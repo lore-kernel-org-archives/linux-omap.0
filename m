@@ -1,15 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OSK5912 USB Port Problem
-Date: Mon, 21 Nov 2005 09:49:14 -0800
-Message-ID: <20051121174914.GA7680@atomide.com>
-References: <437d78ad.1c0496aa.28bc.29a8@mx.gmail.com>
-	<1132524761.8816.8.camel@localhost.localdomain>
-	<43819DED.9030102@uma.es>
+Subject: Re: [PATCH] camera: c99 style structure
+Date: Mon, 21 Nov 2005 09:52:31 -0800
+Message-ID: <20051121175231.GB7680@atomide.com>
+References: <304D2A85A9643F4A991BDDF8D297BBA60181A12C@dlee05.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <43819DED.9030102@uma.es>
+In-Reply-To: <304D2A85A9643F4A991BDDF8D297BBA60181A12C@dlee05.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,28 +15,28 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Jose Manuel Cano Garcia <jcgarcia@uma.es>
-Cc: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Zhang, Jian" <jzhang@ti.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Jose Manuel Cano Garcia <jcgarcia@uma.es> [051121 02:14]:
-> Hi,
+* Zhang, Jian <jzhang@ti.com> [051121 07:20]:
+> Komal,
 > 
-> I had problems with an USB flash memory, too. I tried several solutions
-> and kernels which did not work until I recently read a post on the Linux
-> Omap mailing list regarding USB clock malfunction on kernels
-> 2.6.12-2.6.14 (which were the ones I have tried). Then, I tried kernel
-> 2.6.11 an it worked.
+> omap16xxcam.c is an OMAP specific file (OMAP1 camera I/F) instead of
+> board specific file. I like to keep omap16xxcam.c both board and sensor
+> independent. My suggestion is that moving the board code from the ov9640
+> sensor driver to board files and calling the board functions from the
+> sensor. So the sensor interface is intact.
 
-I've noticed that having CONFIG_OMAP_RESET_CLOCKS on kills OHCI at least
-on OSK. Juha's patch from few months ago probably helps with that as it
-turns on dc_clk:
+I like this too.
+ 
+> From: Komal Shah [mailto:komal_shah802003@yahoo.com] 
+> 
+> I have attached the patch to update the structures in 16xxcam.c and
+> sensor file to c99 way and fixes compilation of drivers on h3.
 
-http://linux.omap.com/pipermail/linux-omap-open-source/2005-August/004818.html
-
-Can you please check if it's caused by this combination? We should get
-Juha's patch integrated...
+I'll push this one today.
 
 Tony
