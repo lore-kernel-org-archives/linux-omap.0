@@ -1,13 +1,14 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: Kernel not working
-Date: Mon, 21 Nov 2005 02:55:57 -0800 (PST)
-Message-ID: <20051121105557.5206.qmail@web32901.mail.mud.yahoo.com>
-References: <004301c5ee89$153ff350$642aa8c0@BUFFY>
+From: "xuxian" <lsfdxuxian@gmail.com>
+Subject: RE: OSK 5912 can't execute file
+Date: Mon, 21 Nov 2005 18:58:21 +0800
+Message-ID: <4381a853.63005bbd.1ad2.7ba2@mx.gmail.com>
+References: <003701c5ee80$0ca76a10$dc96718c@bluecan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <004301c5ee89$153ff350$642aa8c0@BUFFY>
+In-Reply-To: <003701c5ee80$0ca76a10$dc96718c@bluecan>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,42 +18,41 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Richard Copeman <richard.copeman@lauterbach.co.uk>, linux-omap-open-source@linux.omap.com
+To: "'Laihui,Sun'" <laihui.ece93g@nctu.edu.tw>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---- Richard Copeman <richard.copeman@lauterbach.co.uk> wrote:
+Hi,
+Make sure the executable file 'hello' exist in /bin/ .
 
-> Hello,
-> 
->  
-> 
-> I'm a newbie, so please forgive me if this has been answered
-> elsewhere.
-> 
-> I have the 2.6.8rc3 kernel source downloaded from linux.omap.com and
-> have
-> built with GCC 3.3.2. I have not done any tweaking in make xconfig,
-> so it
-> should be the standard OMAP 5912 OSK kernel. I get the vmlinux output
-> which
-> I put through objcopy and the appropriate mkimage for my version > of
+xuxian
 
-I don't know if you need to update u-boot or not, but you can update
-the kernel from 
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+Laihui,Sun
+Sent: Monday, November 21, 2005 5:44 PM
+To: linux-omap-open-source@linux.omap.com
+Subject: OSK 5912 can't execute file
 
-http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=log;t=7
+Hi, everyone:
 
-A README for fetching the kernel tree is provided on 
-http://www.muru.com/linux/omap/
+My OMAP5912 platform is 2.6.12 kernel version.
+I set up the nfs system and use the cross-compiler for a simple "hello"
+file.
+I know that some file may need the library file for executing file. 
+I copy some lib file for it, but it still not work.
+The error message is 
 
-You then please enable low-level debugging CONFIG_DEBUG_LL in the
-kernel configuration and post the serial-output messages if any.
+-sh: /bin/hello : not found 
 
----Komal Shah
-http://komalshah.blogspot.com/
+Does anyone ever meet the same problem and also copy the needed lib file but
+still can't work?
+Or there may some other way to solve this problem?
 
-
-		
-__________________________________ 
-Yahoo! FareChase: Search multiple travel sites in one click.
-http://farechase.yahoo.com
+Thank you very much.
+Best Regards,
+Laihui, Sun
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
