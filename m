@@ -1,9 +1,10 @@
-From: "na ken" <na_era2001@hotmail.com>
-Subject: How much is OMAP5912 HDQ clock speed?
-Date: Mon, 21 Nov 2005 17:34:51 +0800
-Message-ID: <BAY114-F249A4F49A1B2B148F7EC14EA530@phx.gbl>
+From: "Laihui,Sun" <laihui.ece93g@nctu.edu.tw>
+Subject: OSK 5912 can't execute file
+Date: Mon, 21 Nov 2005 17:43:37 +0800
+Message-ID: <003701c5ee80$0ca76a10$dc96718c@bluecan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gb2312; format=flowed
+Content-Type: text/plain;
+	charset="big5"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
@@ -18,13 +19,21 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-  I'm building a system based on OMAP5912 with battery monitor.
-  Application note SlUA319(HDQ Compatibility Between OMAP=99 and bq Produ=
-cts)=20
-says most of TI bq(e.g,bq2019) battery monitor use HDQ protocal and is no=
-t=20
-compatible with all OMAP. But i didn't find OMAP5912 HDQ engine timing.
-  Is there anyone knowing that?Thank you.
+Hi, everyone:
 
-_________________________________________________________________
-=C3=E2=B7=D1=CF=C2=D4=D8 MSN Explorer:   http://explorer.msn.com/lccn =20
+My OMAP5912 platform is 2.6.12 kernel version.
+I set up the nfs system and use the cross-compiler for a simple "hello" =
+file.
+I know that some file may need the library file for executing file.=20
+I copy some lib file for it, but it still not work.
+The error message is=20
+
+-sh: /bin/hello : not found=20
+
+Does anyone ever meet the same problem and also copy the needed lib file =
+but still can't work?
+Or there may some other way to solve this problem?
+
+Thank you very much.
+Best Regards,
+Laihui, Sun
