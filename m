@@ -1,13 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap24xx mcbsp support
-Date: Mon, 21 Nov 2005 10:33:02 -0800
-Message-ID: <20051121183302.GE7680@atomide.com>
-References: <20051121051735.80492.qmail@web32904.mail.mud.yahoo.com>
+From: Jose Manuel Cano Garcia <jcgarcia@uma.es>
+Subject: Re: OSK5912 USB Port Problem
+Date: Mon, 21 Nov 2005 19:51:10 +0100
+Message-ID: <4382171E.5050107@uma.es>
+References: <437d78ad.1c0496aa.28bc.29a8@mx.gmail.com>
+	<1132524761.8816.8.camel@localhost.localdomain>
+	<43819DED.9030102@uma.es> <20051121174914.GA7680@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20051121051735.80492.qmail@web32904.mail.mud.yahoo.com>
+In-Reply-To: <20051121174914.GA7680@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,59 +19,47 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Komal Shah <komal_shah802003@yahoo.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Komal Shah <komal_shah802003@yahoo.com> [051120 21:20]:
-> Tony,
-> 
-> I have added the omap24xx mcbsp support to existing mcbsp framework.
-> Only tested with dumping the registers.
+Hi Tony,
 
-OK
+That option was indeed active in the .config file. Let me a couple of 
+days to recompile the 2.6.14 kernel without that option and try it again.
 
-> Have you tested the dma chaining on 24xx? Next plan is to add audio and
-> touchscreen support taking spi code from 2.6.9 for time being. Once
-> audio + ts is tested then we can move to better spi framework from
-> spi-devel guys.
+Best regards,
 
-No, I've only tested dma with memory-to-memory transfers and MMC on
-24xx. So audio would be a good test :)
+Jose.
 
-One comment on the patch below:
 
-> @@ -228,8 +231,10 @@ int omap_mcbsp_request(unsigned int id)
->  	 * On 1510, 1610 and 1710, McBSP1 and McBSP3
->  	 * are DSP public peripherals.
->  	 */
-> -	if (id == OMAP_MCBSP1 || id == OMAP_MCBSP3)
-> -		omap_mcbsp_dsp_request();
-> +	if (cpu_is_omap1510() || cpu_is_omap16xx()) {
-> +		if (id == OMAP_MCBSP1 || id == OMAP_MCBSP3)
-> +			omap_mcbsp_dsp_request();
-> +	}
+Tony Lindgren wrote:
+
+>* Jose Manuel Cano Garcia <jcgarcia@uma.es> [051121 02:14]:
 >  
->  	spin_lock(&mcbsp[id].lock);
->  	if (!mcbsp[id].free) {
-> @@ -274,8 +279,10 @@ void omap_mcbsp_free(unsigned int id)
->  	if (omap_mcbsp_check(id) < 0)
->  		return;
+>
+>>Hi,
+>>
+>>I had problems with an USB flash memory, too. I tried several solutions
+>>and kernels which did not work until I recently read a post on the Linux
+>>Omap mailing list regarding USB clock malfunction on kernels
+>>2.6.12-2.6.14 (which were the ones I have tried). Then, I tried kernel
+>>2.6.11 an it worked.
+>>    
+>>
+>
+>I've noticed that having CONFIG_OMAP_RESET_CLOCKS on kills OHCI at least
+>on OSK. Juha's patch from few months ago probably helps with that as it
+>turns on dc_clk:
+>
+>http://linux.omap.com/pipermail/linux-omap-open-source/2005-August/004818.html
+>
+>Can you please check if it's caused by this combination? We should get
+>Juha's patch integrated...
+>
+>Tony
+>
+>.
+>
 >  
-> -	if (id == OMAP_MCBSP1 || id == OMAP_MCBSP3)
-> -		omap_mcbsp_dsp_free();
-> +	if (cpu_is_omap1510() || cpu_is_omap24xx()) {
-> +		if (id == OMAP_MCBSP1 || id == OMAP_MCBSP3)
-> +			omap_mcbsp_dsp_free();
-> +	}
->  
->  	spin_lock(&mcbsp[id].lock);
->  	if (mcbsp[id].free) {
-
-AFAIK 730 and 24xx do not have mcbsp wired to DSP, and only 15xx
-and 16xx have it wired to DSP. Then the second chunk above should
-probably be also if (cpu_is_omap1510() || cpu_is_omap16xx()) ?
-
-Regards,
-
-Tony
+>
