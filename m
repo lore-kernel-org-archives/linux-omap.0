@@ -1,13 +1,11 @@
-From: Matthew Percival <matthew@capgo.com>
-Subject: RE: Kernel not working
-Date: Tue, 22 Nov 2005 09:05:52 +1100
-Message-ID: <1132610752.8832.6.camel@localhost.localdomain>
-References: <007f01c5eeb3$60c99ef0$642aa8c0@BUFFY>
+From: Brian Swetland <swetland@google.com>
+Subject: boot issues on omap730/p2
+Date: Mon, 21 Nov 2005 14:10:36 -0800
+Message-ID: <20051121221036.GA18825@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <007f01c5eeb3$60c99ef0$642aa8c0@BUFFY>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,19 +13,41 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-G'Day,
 
-> Can somebody point me at a pre built arm-linux tool chain so I can build
-> Uboot 1.1.3 please? Or a pre-built Uboot.bin 1.1.3 for OMAP 5912OSK?
+I'm running into problems with the recent kernels trying to get the
+system to boot on my p2 board.  Sadly, devfs is no more, and I'm trying
+to get the kernel to still consider mounting my romfs boot filesystem
+in flash, yet:
 
-	Your problem sounds like the one caused by the bug in the old version
-of u-boot.  I believe the u-boot binary at the CE Linux wiki is good, so
-you may like to try it out from here:
-		http://tree.celinuxforum.org/CelfPubWiki/OSK
+VFS: No root yet, retrying to mount root on 31:3 (unknown-block(31,3))
+VFS: Cannot open root device "31:3" or unknown-block(31,3)
+Please append a correct "root=" boot option
 
-	-- Matthew
+I used to be able to specify root=/dev/mtdblock/3 and everything was
+well.  Now I'm reduced to root=31:3 but that does not bring happiness.
+
+Creating 4 MTD partitions on "omapflash.0":
+0x00000000-0x00020000 : "bootloader"
+mtd: Giving out device 0 to bootloader
+0x00020000-0x00040000 : "params"
+mtd: Giving out device 1 to params
+0x00040000-0x00240000 : "kernel"
+mtd: Giving out device 2 to kernel
+0x00240000-0x02000000 : "rootfs"
+mtd: Giving out device 3 to rootfs
+
+The romfs filesystem is definitely there at 0x240000 and a much earlier
+kernel happily boots it.
+
+Any pointers?
+
+Any hope of devfs coming back to save us from this misery? 
+
+Thanks,
+
+Brian
