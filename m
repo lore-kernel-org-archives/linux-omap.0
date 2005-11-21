@@ -1,12 +1,13 @@
-From: "Richard Copeman" <richard.copeman@lauterbach.co.uk>
-Subject: Kernel not working
-Date: Mon, 21 Nov 2005 10:48:18 -0000
-Message-ID: <004301c5ee89$153ff350$642aa8c0@BUFFY>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: Re: Kernel not working
+Date: Mon, 21 Nov 2005 02:55:57 -0800 (PST)
+Message-ID: <20051121105557.5206.qmail@web32901.mail.mud.yahoo.com>
+References: <004301c5ee89$153ff350$642aa8c0@BUFFY>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <004301c5ee89$153ff350$642aa8c0@BUFFY>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,55 +17,42 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Richard Copeman <richard.copeman@lauterbach.co.uk>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+--- Richard Copeman <richard.copeman@lauterbach.co.uk> wrote:
 
-=20
+> Hello,
+> 
+>  
+> 
+> I'm a newbie, so please forgive me if this has been answered
+> elsewhere.
+> 
+> I have the 2.6.8rc3 kernel source downloaded from linux.omap.com and
+> have
+> built with GCC 3.3.2. I have not done any tweaking in make xconfig,
+> so it
+> should be the standard OMAP 5912 OSK kernel. I get the vmlinux output
+> which
+> I put through objcopy and the appropriate mkimage for my version > of
 
-I'm a newbie, so please forgive me if this has been answered elsewhere.
+I don't know if you need to update u-boot or not, but you can update
+the kernel from 
 
-I have the 2.6.8rc3 kernel source downloaded from linux.omap.com and =
-have
-built with GCC 3.3.2. I have not done any tweaking in make xconfig, so =
-it
-should be the standard OMAP 5912 OSK kernel. I get the vmlinux output =
-which
-I put through objcopy and the appropriate mkimage for my version of =
-Uboot
-(1.1.1) to provide me with an image which I tftpboot onto the board.
+http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=log;t=7
 
-=20
+A README for fetching the kernel tree is provided on 
+http://www.muru.com/linux/omap/
 
-The system gets as far as uncompressing the kernel and then I get the
-message:
+You then please enable low-level debugging CONFIG_DEBUG_LL in the
+kernel configuration and post the serial-output messages if any.
 
-=20
+---Komal Shah
+http://komalshah.blogspot.com/
 
-Starting kernel .
 
-=20
-
-And nothing else happens.
-
-=20
-
-Can anybody tell me it went wrong and what I can do to try and get it
-working please?
-
-=20
-
-I'm sorry if I haven't provided all of the right information for you to =
-help
-but I'm not sure what I should be providing at this point. If you can =
-let me
-know.?
-
-=20
-
-Thanks,
-
-=20
-
-Richard.
+		
+__________________________________ 
+Yahoo! FareChase: Search multiple travel sites in one click.
+http://farechase.yahoo.com
