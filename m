@@ -1,11 +1,9 @@
-From: "Sanjiv Malik" <sanjiv@faith.co.jp>
-Subject: Sample source code to open the audio device through the kernel
-	module
-Date: Mon, 21 Nov 2005 16:28:28 +0900
-Message-ID: <003401c5ee6d$2a9dae70$5a11a80a@smalik>
+From: "na ken" <na_era2001@hotmail.com>
+Subject: How much is OMAP5912 HDQ clock speed?
+Date: Mon, 21 Nov 2005 17:34:51 +0800
+Message-ID: <BAY114-F249A4F49A1B2B148F7EC14EA530@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=gb2312; format=flowed
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
@@ -20,14 +18,13 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi friends,
+  I'm building a system based on OMAP5912 with battery monitor.
+  Application note SlUA319(HDQ Compatibility Between OMAP=99 and bq Produ=
+cts)=20
+says most of TI bq(e.g,bq2019) battery monitor use HDQ protocal and is no=
+t=20
+compatible with all OMAP. But i didn't find OMAP5912 HDQ engine timing.
+  Is there anyone knowing that?Thank you.
 
-Iam writing a kernel module thats open the audio device (/dev/dsp) =
-through the Kernel module?=20
-Currently iam using the sys_open(), sys_ioclt(),sys_write() functions to =
-open, write and ioctl on the device... through the kernel module.
-But iam not able to open the audio device.
-So can anyone have the sample code for the same?
-
-Thanks
-Sanjiv
+_________________________________________________________________
+=C3=E2=B7=D1=CF=C2=D4=D8 MSN Explorer:   http://explorer.msn.com/lccn =20
