@@ -1,11 +1,13 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: OMAP2 phone is coming
-Date: Tue, 22 Nov 2005 01:55:58 -0800 (PST)
-Message-ID: <20051122095558.63393.qmail@web32912.mail.mud.yahoo.com>
+From: "Yves Godin" <Yves.Godin@lyrtech.com>
+Subject: RE: OSK5912 USB Port Problem
+Date: Tue, 22 Nov 2005 08:30:45 -0500
+Message-ID: <42848A5C5A0D1E47B026E644DD49B08E683DA7@mail>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,31 +15,107 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Li Weichen <iaadoa@gmail.com>, xuxian <lsfdxuxian@gmail.com>, Tony Lindgren <tony@atomide.com>, Jose Manuel Cano Garcia <jcgarcia@uma.es>
+Cc: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Checkout this:
+Hi,
+	I did not follow all the thread but if I'm correct, when you enable the =
+Gadget support in the Kernel for the OSK, the USB can no longer be used =
+as a Master.
 
-http://www.3g.co.uk/PR/Nov2005/2158.htm
+Regards,
 
-"Texas Instruments announced that TI's OMAP2420 application
-processor has been selected for the new NTT DoCoMo's FOMA 902i
-series 3G handsets to provide advanced multimedia capabilities.
-Expected to launch later this year, these handsets will represent
-the first OMAP(TM) 2-based mobile devices on the market"
+-Yves
 
-Second linuxdevices.com link doesn't mention about omap2 but it does
-mention about MV kernel, do I need to say anything else? :-)
+-----Message d'origine-----
+De=A0: linux-omap-open-source-bounces@linux.omap.com =
+[mailto:linux-omap-open-source-bounces@linux.omap.com] De la part de Li =
+Weichen
+Envoy=E9=A0: Tuesday, November 22, 2005 3:15 AM
+=C0=A0: 'xuxian'; 'Tony Lindgren'; 'Jose Manuel Cano Garcia'
+Cc=A0: 'Linux OMAP Open Source'
+Objet=A0: RE: OSK5912 USB Port Problem
 
-http://www.linuxdevices.com/news/NS5832443133.html
+Well I encounter another problem.  If I only enable the usb host =
+support,
+the usb Flash disk works well with OSK.  But after I add the USB Gadget
+support, and enables the OTG, the Flash disk doesn't work.
 
----Komal Shah
-http://komalshah.blogspot.com/
+Is there anything wrong with OTG?
 
+> -----Original Message-----
+> From: linux-omap-open-source-bounces+iaadoa=3Dgmail.com@linux.omap.com
+> =
+[mailto:linux-omap-open-source-bounces+iaadoa=3Dgmail.com@linux.omap.com]=
+ On
+> Behalf Of xuxian
+> Sent: Tuesday, November 22, 2005 11:22 AM
+> To: 'Tony Lindgren'; 'Jose Manuel Cano Garcia'
+> Cc: 'Linux OMAP Open Source'
+> Subject: RE: OSK5912 USB Port Problem
+>=20
+> Hi Tony,
+>=20
+> The patch work. Now the OSK can detect the USB key automatically.
+> Thanks much.
+>=20
+> xuxian
+>=20
+> -----Original Message-----
+> From: =
+linux-omap-open-source-bounces+lsfdxuxian=3Dgmail.com@linux.omap.com
+> =
+[mailto:linux-omap-open-source-bounces+lsfdxuxian=3Dgmail.com@linux.omap.=
+com
+> ]
+> On Behalf Of Tony Lindgren
+> Sent: Tuesday, November 22, 2005 1:49 AM
+> To: Jose Manuel Cano Garcia
+> Cc: Linux OMAP Open Source
+> Subject: Re: OSK5912 USB Port Problem
+>=20
+> * Jose Manuel Cano Garcia <jcgarcia@uma.es> [051121 02:14]:
+> > Hi,
+> >
+> > I had problems with an USB flash memory, too. I tried several =
+solutions
+> > and kernels which did not work until I recently read a post on the =
+Linux
+> > Omap mailing list regarding USB clock malfunction on kernels
+> > 2.6.12-2.6.14 (which were the ones I have tried). Then, I tried =
+kernel
+> > 2.6.11 an it worked.
+>=20
+> I've noticed that having CONFIG_OMAP_RESET_CLOCKS on kills OHCI at =
+least
+> on OSK. Juha's patch from few months ago probably helps with that as =
+it
+> turns on dc_clk:
+>=20
+> =
+http://linux.omap.com/pipermail/linux-omap-open-source/2005-August/004818=
+.
+> ht
+> ml
+>=20
+> Can you please check if it's caused by this combination? We should get
+> Juha's patch integrated...
+>=20
+> Tony
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>=20
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
 
-		
-__________________________________ 
-Start your day with Yahoo! - Make it your home page! 
-http://www.yahoo.com/r/hs
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
