@@ -1,12 +1,12 @@
-From: "Hunter, Jon" <jon-hunter@ti.com>
-Subject: RE: DSP core access
-Date: Wed, 23 Nov 2005 09:33:56 -0600
-Message-ID: <C51F43ABFC95844490F0529B60753BF402A3A8B8@dlee02.ent.ti.com>
+From: "Zhang, Jian" <jzhang@ti.com>
+Subject: RE: [PATCH] camera: c99 style structure
+Date: Wed, 23 Nov 2005 09:36:18 -0600
+Message-ID: <304D2A85A9643F4A991BDDF8D297BBA60187D82F@dlee05.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,38 +15,60 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com, Louis Jung <lhsj81@gmail.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Komal Shah <komal_shah802003@yahoo.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Louis=20
+" But I was thinking to create
+files under drivers/media/video/omap directory like
+sensor_power_h2/h4/<custom board name> to export powerup/down function
+related to sensors based on board interface."
 
->=20
-> Hi all,
->=20
-> I am currently trying to obtain a real time data using DSP core on the
+Yes, this is what I meant.
 
-> omap platform via the I2C peripheral.  I was hoping to achieve this by
-
-> controlling the DSP via linux kernel that's running on the Arm core.=20
-> There is a DSP gateway through which I think i should be able to=20
-> control. Does anyone know the specific ways of doing this?
->=20
-
-You could also use the dsp/bios link software for controlling the DSP
-and streaming data between the ARM and DSP. See the following link.
-There are some simple example applications provided to get you started.=20
-http://focus.ti.com/dsp/docs/dspsupportatn.tsp?sectionId=3D3&tabId=3D477&=
-fam
-ilyId=3D44&toolTypeId=3D5
-
-In order to use the i2c peripheral from the DSP side you first need to
-configure the static switch in the device because this is a
-shared-peripheral and defaults as an ARM peripheral. For more details
-please refer to section 2.5 of the following document:
-http://focus.ti.com/docs/apps/catalog/resources/appnoteabstract.jhtml?ab
-stractName=3Dspru758a
+Porting OMAP2 driver to camera_core is not straightforward. We are
+developing a new sensor driver for TI/Micron camera which has sensor
+context A and B. This will require the change to omap24xxcam.c. If you
+want to spend time in unifying OMAP1 and OMAP2 camera drivers, I suggest
+you wait until my change to omap24xxcam.c is done.
 
 Regards,
-Jon
+Jian =20
+
+-----Original Message-----
+From: Komal Shah [mailto:komal_shah802003@yahoo.com]=20
+Sent: Tuesday, November 22, 2005 11:40 PM
+To: Zhang, Jian; Tony Lindgren
+Cc: linux-omap-open-source@linux.omap.com
+Subject: RE: [PATCH] camera: c99 style structure
+
+
+--- "Zhang, Jian" <jzhang@ti.com> wrote:
+
+> I think it is as simple as a bunch of board files in the same
+> directory
+> (drivers/media/video/omap2420). They don't need to go to
+> arch/arm/mach/
+> directory. I believe OMAP1 frame buffer driver takes this
+> approach.
+
+No, Imre has added OMAP2 fb support without creating new omap2
+directory under drivers/video directory. But I was thinking to create
+files under drivers/media/video/omap directory like
+sensor_power_h2/h4/<custom board name> to export powerup/down function
+related to sensors based on board interface.
+
+Also while porting omap24xx camera interface, I want to keep the same
+camera_core and sensor interface as you had suggested earlier.
+
+---Komal Shah
+http://komalshah.blogspot.com/
+
+
+=09
+	=09
+__________________________________=20
+Yahoo! Mail - PC Magazine Editors' Choice 2005=20
+http://mail.yahoo.com
