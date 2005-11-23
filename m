@@ -1,9 +1,10 @@
-From: Brian Swetland <swetland@google.com>
-Subject: usb gadget driver on 730?
-Date: Tue, 22 Nov 2005 14:44:35 -0800
-Message-ID: <20051122224435.GA21970@localhost.localdomain>
+From: Louis Jung <lhsj81@gmail.com>
+Subject: DSP core access
+Date: Tue, 22 Nov 2005 21:05:45 -0500
+Message-ID: <cb6819fd0511221805n7aad0f86s486a95c5144deaf2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
@@ -15,12 +16,16 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi all,
 
-Is there any documentation on how to set up some of the simple gadget
-drivers (like g_zero or the ethernet interface)?  In particular, can
-it be done without using external modules and mod_probe?  
+I am currently trying to obtain a real time data using DSP core on the omap
+platform via the I2C peripheral.  I was hoping to achieve this by
+controlling the DSP via linux kernel that's running on the Arm core. There
+is a DSP gateway through which I think i should be able to control. Does
+anyone know the specific ways of doing this?
 
-Brian
+Louis Jung
+2005-11-23
