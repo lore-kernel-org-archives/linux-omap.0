@@ -1,13 +1,13 @@
-From: "Zhang, Jian" <jzhang@ti.com>
-Subject: RE: [PATCH] camera: c99 style structure
-Date: Wed, 23 Nov 2005 09:36:18 -0600
-Message-ID: <304D2A85A9643F4A991BDDF8D297BBA60187D82F@dlee05.ent.ti.com>
+From: Dirk Behme <dirk.behme@de.bosch.com>
+Subject: Re: Problem with ALSA in 2.6.14-omap2 on OSK
+Date: Wed, 23 Nov 2005 17:10:03 +0100
+Message-ID: <4384945B.7050700@de.bosch.com>
+References: <42848A5C5A0D1E47B026E644DD49B08E683708@mail>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+In-Reply-To: <42848A5C5A0D1E47B026E644DD49B08E683708@mail>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,58 +17,33 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Komal Shah <komal_shah802003@yahoo.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
+Cc: Yves Godin <Yves.Godin@lyrtech.com>
 List-Id: linux-omap@vger.kernel.org
 
-" But I was thinking to create
-files under drivers/media/video/omap directory like
-sensor_power_h2/h4/<custom board name> to export powerup/down function
-related to sensors based on board interface."
+Yves Godin wrote:
+> 	It seems that something has change in the driver for the DMA in
+> 2.6.14-omap2.
+> 
+> When I play a pure tone (ALSA driver), I ear some glitches in the audio
+> every 5-10 secconds. Everithing was correct with 2.6.14-rc1.
+> 
+> From what I can see with a scope on the serial data sent to the codec,
+> it seems that some samples (a complete buffer??) are repeated from time
+> to time. It's easier to ear it when playing a pure tone (ex 1Khz).
+> 
+> Note that my alsa driver is slightly modified to play 24 bits audio
+> samples instead of 16 bits (DMA is configured in 32 bits). 
+> 
+> The files from the alsa driver have not changed between 2.6.14-rc1 and
+> 2.6.14-omap2. So I supposed the changes have been made to the OMAP dma
+> drivers.
 
-Yes, this is what I meant.
+On 2.6.15-rc2-omap1 on OSK I can reproduce this using madplay and mp3. 
+All 5-10 seconds a short part is repeated.
 
-Porting OMAP2 driver to camera_core is not straightforward. We are
-developing a new sensor driver for TI/Micron camera which has sensor
-context A and B. This will require the change to omap24xxcam.c. If you
-want to spend time in unifying OMAP1 and OMAP2 camera drivers, I suggest
-you wait until my change to omap24xxcam.c is done.
+Any news or ideas about this?
 
-Regards,
-Jian =20
+Thanks
 
------Original Message-----
-From: Komal Shah [mailto:komal_shah802003@yahoo.com]=20
-Sent: Tuesday, November 22, 2005 11:40 PM
-To: Zhang, Jian; Tony Lindgren
-Cc: linux-omap-open-source@linux.omap.com
-Subject: RE: [PATCH] camera: c99 style structure
-
-
---- "Zhang, Jian" <jzhang@ti.com> wrote:
-
-> I think it is as simple as a bunch of board files in the same
-> directory
-> (drivers/media/video/omap2420). They don't need to go to
-> arch/arm/mach/
-> directory. I believe OMAP1 frame buffer driver takes this
-> approach.
-
-No, Imre has added OMAP2 fb support without creating new omap2
-directory under drivers/video directory. But I was thinking to create
-files under drivers/media/video/omap directory like
-sensor_power_h2/h4/<custom board name> to export powerup/down function
-related to sensors based on board interface.
-
-Also while porting omap24xx camera interface, I want to keep the same
-camera_core and sensor interface as you had suggested earlier.
-
----Komal Shah
-http://komalshah.blogspot.com/
-
-
-=09
-	=09
-__________________________________=20
-Yahoo! Mail - PC Magazine Editors' Choice 2005=20
-http://mail.yahoo.com
+Dirk
