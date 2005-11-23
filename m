@@ -1,10 +1,11 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: [omap24xx] camera driver porting
-Date: Wed, 23 Nov 2005 03:09:06 -0800 (PST)
-Message-ID: <20051123110907.78731.qmail@web32907.mail.mud.yahoo.com>
+From: "Richard Copeman" <richard.copeman@lauterbach.co.uk>
+Subject: Setting bootargs console=vt100
+Date: Wed, 23 Nov 2005 11:17:44 -0000
+Message-ID: <002101c5f01f$87300210$642aa8c0@BUFFY>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,26 +19,48 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Jian,
+Hi,
 
-Some more points about omap24xx camera driver porting to
-existing framework on linux-omap-git tree.
+=20
 
-o How to handle csr_error used in omap24xxcam.c with
-camera_core_sgdma_process(), as defines for csr_error is specific to
-omap2 platform, so it should be passed from platform specific
-file(omap24xxcam.c) to camera_core.c, but how? 
+First off, I'd like to thank everyone who helped me out earlier. I now =
+have
+a bootable kernel and can NFS mount my filesystem. Next problem is =
+getting
+something readable on my serial shell. For many good reasons I am not =
+able
+to use minicom. The program I am using gives me something like the =
+following
+as output from "ls":
 
-o How to port omap24xxcam_error_handler(), as it calls
-omap24xxcam_sg_dma_sync()? Error handler is specific to 24xx so, should
-be implemented from omap24xxcam.c , but then we can't call
-sg_dma_sync() from omap24xxcam.c as it should be in camera_core.c ?
+=20
 
----Komal Shah
-http://komalshah.blogspot.com/
+@[1;34mbin@[0m @[1;34mdev@[0m @[1;34metc@[0m @[1;34mlib@[0m =
+@[1;34mproc@[0m
 
+=20
 
-		
-__________________________________ 
-Yahoo! FareChase: Search multiple travel sites in one click.
-http://farechase.yahoo.com
+I'm guessing that my terminal can't handle the escape sequences that are
+being used to format the output from ls. I know it can handle vt100
+correctly. So, how do I force the shell on my ttyS0 to be vt100? Is it
+something like:
+
+=20
+
+setenv bootargs console=3DttyS0,115200n8,vt100 ..
+
+=20
+
+fed in to U-boot?
+
+=20
+
+Thanks,
+
+=20
+
+Richard.
+
+=20
+
+=20
