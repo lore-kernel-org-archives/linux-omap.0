@@ -1,12 +1,14 @@
-From: Louis Jung <lhsj81@gmail.com>
-Subject: DSP core access
-Date: Tue, 22 Nov 2005 21:05:45 -0500
-Message-ID: <cb6819fd0511221805n7aad0f86s486a95c5144deaf2@mail.gmail.com>
+From: "andy" <andy.lu@serialsys.com.hk>
+Subject: RE: DSP core access
+Date: Wed, 23 Nov 2005 10:47:53 +0800
+Message-ID: <001c01c5efd8$4d5b9870$3832a8c0@andy>
+References: <cb6819fd0511221805n7aad0f86s486a95c5144deaf2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+In-Reply-To: <cb6819fd0511221805n7aad0f86s486a95c5144deaf2@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,8 +18,23 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: 'Louis Jung' <lhsj81@gmail.com>, Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
+
+Dear Louis,
+
+You can make mailbox to access DSP with shared memory.
+
+Best Regards
+Andy Lu
+
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Louis
+Jung
+Sent: Wednesday, November 23, 2005 10:06 AM
+To: Linux-omap-open-source@linux.omap.com
+Subject: DSP core access
 
 Hi all,
 
@@ -29,3 +46,7 @@ anyone know the specific ways of doing this?
 
 Louis Jung
 2005-11-23
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
