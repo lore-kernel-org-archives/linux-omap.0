@@ -1,11 +1,14 @@
 From: Ajaya Babu Anne <anneajaya@gmail.com>
-Subject: Worst Case ISR latency around 15ms??
-Date: Fri, 25 Nov 2005 12:00:03 +0530
-Message-ID: <c43be92d0511242230v4c81fe25w58c66aa4c3fba9e7@mail.gmail.com>
+Subject: Re: Audio L/R Channel Interchanges ( Solved!)
+Date: Fri, 25 Nov 2005 12:20:51 +0530
+Message-ID: <c43be92d0511242250t43dc6edfx1c632d4ce5a070b6@mail.gmail.com>
+References: <c43be92d0511182105h6bb9f274q62925dcef7b59ca8@mail.gmail.com>
+	<4385F4DC.2040503@de.bosch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <4385F4DC.2040503@de.bosch.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -14,29 +17,55 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "Linux-omap-open-source@linux.omap.com" <Linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Dirk Behme <dirk.behme@de.bosch.com>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi All,
+>>Just want to test this because of issues with DMA and ALSA driver. But I
+>>can't find what is behind
 
-I am seeing worst case IRQ latency in Linux up to 15 milli seconds, I am
-using 2.6.13 kernel and using JFFS2 file system on OSK board. I am wonderin=
-g
-any patch available which ensures interrupt latency with in 1/2 milli
-seconds or no way in to ensure interrupt latency in the kernel?
+>>s->hw_stop_stream( );
+>>s->hw_start_stream( );changes required for audio_stream_t in
+omap-audio.hadd following elements
 
-I measured interrupt latency as fallows.
+int (*hw_stop )( void );
+int (*hw_start)( void );
 
-I've level sensitive interrupt which is connected to IRQ14 ( GPIO15 ), As
-soon as my isr get triggered I mask Level sensitive interrupt so it goes lo=
-w
-, I am measuring the pulse width, I see most of the time it is around
-20-44micro seconds, However I see some times it goes up to 15 miili seconds=
-.
 
-Any comments. Why is this so late?
+changes in audio driver, omap-audio-aic23.c:
 
-Thanks and Warm Regards,
+static int audio_ifc_start( void ) {  omap_mcbsp_start(AUDIO_MCBSP); return
+0; }
+static int audio_ifc_stop( void )  {  omap_mcbsp_stop(AUDIO_MCBSP); return
+0; }
+
+
+static audio_stream_t output_stream =3D {
+        .id              =3D "AIC23 out",
+        .dma_dev         =3D OMAP_DMA_MCBSP1_TX,
+        .input_or_output =3D FMODE_WRITE,
+        .hw_start =3D audio_ifc_start,
+        .hw_stop =3D audio_ifc_stop
+};
+
+static audio_stream_t input_stream =3D {
+        .id              =3D "AIC23 in",
+        .dma_dev         =3D OMAP_DMA_MCBSP1_RX,
+        .input_or_output =3D FMODE_READ,
+        .hw_start =3D audio_ifc_start,
+        .hw_stop =3D audio_ifc_stop
+};
+
+
+>> Any hint or even better a patch?
+
+unfortunately my audio driver is little different as I am using MCBSP2 for
+DAC and MCBSP1 for ADC so it will not work for OSK board. So I just written
+the changes required in omap-audio-aic23.c for OSK above. Hope this helps.
+
+
+
+With Warm Regards,
 Ajaya Babu
