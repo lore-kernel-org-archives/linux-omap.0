@@ -1,13 +1,12 @@
 From: Dirk Behme <dirk.behme@de.bosch.com>
-Subject: Re: Problem with ALSA in 2.6.14-omap2 on OSK
-Date: Mon, 28 Nov 2005 10:55:40 +0100
-Message-ID: <438AD41C.4090006@de.bosch.com>
-References: <520AB2AD990DC04082102F77CA17263801D40597@dlee03.ent.ti.com>
-	<20051123164523.GC7547@atomide.com> <4389F0EB.6000404@de.bosch.com>
+Subject: [PATCH] Re: Convert input devices to input_allocate_device
+Date: Mon, 28 Nov 2005 10:54:33 +0100
+Message-ID: <438AD3D9.1090002@de.bosch.com>
+References: <438375AF.1090808@de.bosch.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000100010302020909020201"
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <4389F0EB.6000404@de.bosch.com>
+Content-Type: multipart/mixed; boundary="------------050604050905050904070207"
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <438375AF.1090808@de.bosch.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,273 +14,211 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------000100010302020909020201
+--------------050604050905050904070207
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
 Dirk Behme wrote:
-> Yves Godin wrote:
->  > The files from the alsa driver have not changed between 2.6.14-rc1 and
->  > 2.6.14-omap2. So I supposed the changes have been made to the OMAP dma
->  > drivers.
+> while loading omapts and omap-keypad drivers as modules in
+> 2.6.15-rc1-omap1 I get:
 > 
-> Looks to me that it is something in DMA as well.
+> input: device omap-keypad is statically allocated, will not register
+> Please convert to input_allocate_device() or contact 
+> dtor_core@ameritech.net
+> 
+> input: device omap_ts is statically allocated, will not register
+> Please convert to input_allocate_device() or contact 
+> dtor_core@ameritech.net
 
-Next step ;) Looking into sound/oss/omap-audio-dma-intfc.c I found that
-there is done much more stuff than in sound/arm/omap-alsa-dma.c. So, I
-put the ping pong work item logic from OSS DMA to ALSA DMA as well. And
-looks like this fixes the issue of repeated audio samples :)
+ARM: OMAP: Convert input devices to input_allocate_device:
 
-Please test. I use 'madplay foo.mp3' for tests.
+input: device omap-keypad is statically allocated, will not register
+Please convert to input_allocate_device() or contact
+dtor_core@ameritech.net
 
-But unfortunately, now there seems to be some noise over the (now
-unrepeated) audio output.
+input: device omap_ts is statically allocated, will not register
+Please convert to input_allocate_device() or contact
+dtor_core@ameritech.net
 
-Any ideas about that?
+ARM: OMAP: Check in omap_ts_handler() if timer is still running. Delete
+it if neccessary. Else we will get Oops "kernel BUG at
+include/linux/timer.h:83!"
 
-Note: For tests, first apply alsa_dma.patch, which includes Ajaya Babu
-L/R fix (reposted here, same as in the last mail), then apply
-alsa_fix_repeat.patch.
-
-Many thanks
-
-Dirk
+Signed-off-by: Dirk Behme <dirk.behme_at_de.bosch.com>
 
 
 
---------------000100010302020909020201
+--------------050604050905050904070207
 Content-Type: text/plain;
- name="alsa_dma.patch"
+ name="input_allocate_device_v3.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="alsa_dma.patch"
+ filename="input_allocate_device_v3.patch"
 
---- ./sound/arm/omap-aic23.c_orig	2005-11-25 20:24:14.782887816 +0100
-+++ ./sound/arm/omap-aic23.c	2005-11-25 20:42:10.552346000 +0100
-@@ -34,6 +34,8 @@
-  *
-  * 2005-07-29   INdT Kernel Team - Alsa driver for omap osk. Creation of new 
-  *                                 file omap-aic23.c
-+ *
-+ * 2005-11-25   Dirk Behme      - Added L/R Channel Interchange fix as proposed by Ajaya Babu
-  */
+--- ./drivers/input/touchscreen/omap/omap_ts.c_orig	2005-11-22 22:18:23.000000000 +0100
++++ ./drivers/input/touchscreen/omap/omap_ts.c	2005-11-28 09:18:30.871818824 +0100
+@@ -65,10 +65,10 @@ static int omap_ts_read(void)
  
- #include <linux/config.h>
-@@ -156,6 +158,20 @@ static snd_pcm_hw_constraint_list_t hw_c
- 	.mask = 0,
- };
+ 	ts_omap.dev->read(data);
  
-+/*
-+ * HW interface start and stop helper functions
-+ */
-+static int audio_ifc_start(void)
-+{
-+	omap_mcbsp_start(AUDIO_MCBSP); 
-+	return 0;
-+}
-+
-+static int audio_ifc_stop(void)
-+{
-+	omap_mcbsp_stop(AUDIO_MCBSP);
-+	return 0;
-+}
+-	input_report_abs(&(ts_omap.inputdevice), ABS_X, data[0]);
+-	input_report_abs(&(ts_omap.inputdevice), ABS_Y, data[1]);
+-	input_report_abs(&(ts_omap.inputdevice), ABS_PRESSURE, data[2]);
+-	input_sync(&(ts_omap.inputdevice));
++	input_report_abs(ts_omap.inputdevice, ABS_X, data[0]);
++	input_report_abs(ts_omap.inputdevice, ABS_Y, data[1]);
++	input_report_abs(ts_omap.inputdevice, ABS_PRESSURE, data[2]);
++	input_sync(ts_omap.inputdevice);
  
- /*
-  * Codec/mcbsp init and configuration section
-@@ -243,12 +259,20 @@ static void omap_aic23_audio_init(struct
- 	    SNDRV_PCM_STREAM_PLAYBACK;
- 	omap_aic23->s[SNDRV_PCM_STREAM_PLAYBACK].dma_dev =
- 	    OMAP_DMA_MCBSP1_TX;
-+	omap_aic23->s[SNDRV_PCM_STREAM_PLAYBACK].hw_start =
-+	    audio_ifc_start;
-+	omap_aic23->s[SNDRV_PCM_STREAM_PLAYBACK].hw_stop =
-+	    audio_ifc_stop;
- 
- 	omap_aic23->s[SNDRV_PCM_STREAM_CAPTURE].id = "Alsa AIC23 in";
- 	omap_aic23->s[SNDRV_PCM_STREAM_CAPTURE].stream_id =
- 	    SNDRV_PCM_STREAM_CAPTURE;
- 	omap_aic23->s[SNDRV_PCM_STREAM_CAPTURE].dma_dev =
- 	    OMAP_DMA_MCBSP1_RX;
-+	omap_aic23->s[SNDRV_PCM_STREAM_CAPTURE].hw_start =
-+	    audio_ifc_start;
-+	omap_aic23->s[SNDRV_PCM_STREAM_CAPTURE].hw_stop =
-+	    audio_ifc_stop;
- 
- 	/* configuring the McBSP */
- 	omap_mcbsp_request(AUDIO_MCBSP);
---- ./sound/arm/omap-aic23.h_orig	2005-11-25 20:28:02.368289576 +0100
-+++ ./sound/arm/omap-aic23.h	2005-11-25 20:38:02.210099760 +0100
-@@ -33,7 +33,8 @@
-  *  2005/07/25 INdT-10LE Kernel Team - 	Alsa driver for omap osk,
-  *  					original version based in sa1100 driver
-  *  					and omap oss driver.
-- *  
-+ *
-+ *  2005-11-25   Dirk Behme      - Added L/R Channel Interchange fix as proposed by Ajaya Babu
-  */
- 
- #ifndef __OMAP_AIC23_H
-@@ -85,6 +86,8 @@ struct audio_stream {
- 	snd_pcm_substream_t *stream;	/* the pcm stream */
- 	unsigned linked:1;	/* dma channels linked */
- 	int offset;		/* store start position of the last period in the alsa buffer */
-+        int (*hw_start)(void);  /* interface to start HW interface, e.g. McBSP */
-+        int (*hw_stop)(void);   /* interface to stop HW interface, e.g. McBSP */
- };
- 
- /*
---- ./sound/arm/omap-alsa-dma.c_orig	2005-11-24 17:13:48.000000000 +0100
-+++ ./sound/arm/omap-alsa-dma.c	2005-11-25 20:46:58.328597360 +0100
-@@ -34,7 +34,9 @@
-  * 2005-07-19	INdT Kernel Team - Alsa port. Creation of new file omap-alsa-dma.c based in
-  * 				   omap-audio-dma-intfc.c oss file. Support for aic23 codec.
-  * 				   Removal of buffer handling (Alsa does that), modifications
-- * 				   in dma handling and port to alsa structures. 
-+ * 				   in dma handling and port to alsa structures.
-+ *
-+ * 2005-11-25   Dirk Behme      - Added L/R Channel Interchange fix as proposed by Ajaya Babu
-  */
- 
- #include <linux/config.h>
-@@ -356,8 +358,10 @@ static int audio_start_dma_chain(struct 
- 	int channel = s->lch[s->dma_q_head];
- 	FN_IN;
- 	if (!s->started) {
-+	        s->hw_stop();            /* stops McBSP Interface */ 
- 		omap_start_dma(channel);
- 		s->started = 1;
-+		s->hw_start();           /* start McBSP interface */ 
+ 	DEBUG_TS("omap_ts_read: read x=%d,y=%d,p=%d\n", data[0], data[1],
+ 		 data[2]);
+@@ -85,7 +85,7 @@ static void omap_ts_timer(unsigned long 
+ 	if (!ts_omap.dev->penup()) {
+ 		if (!ts_omap.touched) {
+ 			DEBUG_TS("omap_ts_timer: pen down\n");
+-			input_report_key(&(ts_omap.inputdevice), BTN_TOUCH, 1);
++			input_report_key(ts_omap.inputdevice, BTN_TOUCH, 1);
+ 		}
+ 		ts_omap.touched = 1;
+ 		omap_ts_read();
+@@ -95,12 +95,12 @@ static void omap_ts_timer(unsigned long 
+ 		if (ts_omap.touched) {
+ 			DEBUG_TS("omap_ts_timer: pen up\n");
+ 			ts_omap.touched = 0;
+-			input_report_abs(&(ts_omap.inputdevice), ABS_X, 0);
+-			input_report_abs(&(ts_omap.inputdevice), ABS_Y, 0);
+-			input_report_abs(&(ts_omap.inputdevice), ABS_PRESSURE,
++			input_report_abs(ts_omap.inputdevice, ABS_X, 0);
++			input_report_abs(ts_omap.inputdevice, ABS_Y, 0);
++			input_report_abs(ts_omap.inputdevice, ABS_PRESSURE,
+ 					 0);
+-			input_sync(&(ts_omap.inputdevice));
+-			input_report_key(&(ts_omap.inputdevice), BTN_TOUCH, 0);
++			input_sync(ts_omap.inputdevice);
++			input_report_key(ts_omap.inputdevice, BTN_TOUCH, 0);
+ 		}
+ 		if (!ts_omap.irq_enabled) {
+ 			ts_omap.irq_enabled = 1;
+@@ -119,6 +119,9 @@ static irqreturn_t omap_ts_handler(int i
+ 		ts_omap.irq_enabled = 0;
+ 		disable_irq(irq);
  	}
- 	/* else the dma itself will progress forward with out our help */
- 	FN_OUT(0);
-
-
---------------000100010302020909020201
-Content-Type: text/plain;
- name="alsa_fix_repeat.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="alsa_fix_repeat.patch"
-
---- ./sound/arm/omap-alsa-dma.c_orig	2005-11-28 09:58:01.601413144 +0100
-+++ ./sound/arm/omap-alsa-dma.c	2005-11-28 10:41:38.272618656 +0100
-@@ -37,6 +37,8 @@
-  * 				   in dma handling and port to alsa structures.
-  *
-  * 2005-11-25   Dirk Behme      - Added L/R Channel Interchange fix as proposed by Ajaya Babu
-+ *
-+ * 2005-11-28   Dirk Behme      - Fix DMA issues that all 5-10s a short audio part is repeated
-  */
- 
- #include <linux/config.h>
-@@ -55,6 +57,7 @@
- #include <linux/sysrq.h>
- #include <linux/interrupt.h>
- #include <linux/dma-mapping.h>
-+#include <linux/completion.h>
- 
- #include <asm/uaccess.h>
- #include <asm/io.h>
-@@ -126,7 +129,23 @@
- 
- static spinlock_t dma_list_lock = SPIN_LOCK_UNLOCKED;
- 
-+struct audio_isr_work_item {
-+	int current_lch;
-+	u16 ch_status;
-+	struct audio_stream *s;
-+};
-+
-+static char work_item_running = 0;
- static char nr_linked_channels = 1;
-+static struct audio_isr_work_item work1, work2;
-+
-+/*********************************** MODULE SPECIFIC FUNCTIONS PROTOTYPES *************/
-+
-+static void audio_dsr_handler(unsigned long);
-+static DECLARE_TASKLET(audio_isr_work1, audio_dsr_handler,
-+		(unsigned long)&work1);
-+static DECLARE_TASKLET(audio_isr_work2, audio_dsr_handler,
-+		(unsigned long)&work2);
- 
- /*********************************** MODULE SPECIFIC FUNCTIONS ***********************/
- 
-@@ -414,6 +433,33 @@ int omap_start_sound_dma(struct audio_st
- 
- }
- 
-+/***************************************************************************************
-+ *
-+ * ISR related functions
-+ *
-+ **************************************************************************************/
-+/* The work item handler */
-+static void audio_dsr_handler(unsigned long inData)
-+{
-+	void *data = (void *)inData;
-+	struct audio_isr_work_item *work = data;
-+	struct audio_stream *s = (work->s);
-+
-+	FN_IN;
-+	DPRINTK("lch=%d,status=0x%x, data=%p as=%p\n", sound_curr_lch,
-+		ch_status, data, s);
-+	if (AUDIO_QUEUE_EMPTY(s)) {
-+		FN_OUT(-1);
-+		return;
-+	}
-+
-+	AUDIO_INCREMENT_HEAD(s);	/* Empty the queue */
-+
-+	/* Try to fill again */
-+	audio_dma_callback(s);
-+	FN_OUT(0);
-+}
-+
- /* 
-  * ISRs have to be short and smart.. 
-  * Here we call alsa handling, after some error checking
-@@ -438,8 +484,26 @@ static void sound_dma_irq_handler(int so
- 		return;
++	// check for still pending timer, delete it if neccessary
++        if(timer_pending(&(ts_omap.ts_timer)))
++		del_timer(&(ts_omap.ts_timer));
+ 	// restart acquire
+ 	ts_omap.ts_timer.expires = jiffies + HZ / 100;
+ 	add_timer(&(ts_omap.ts_timer));
+@@ -168,14 +171,14 @@ static int __init omap_ts_probe(struct d
+ 		return -EINVAL;
  	}
  
--	if (ch_status & DCSR_END_BLOCK) 
--		audio_dma_callback(s);
-+	if (AUDIO_QUEUE_LAST(s))
-+		omap_audio_stop_dma(s);
-+
-+	/* Start the work item  - we ping pong the work items */
-+	if (!work_item_running) {
-+		work1.current_lch = sound_curr_lch;
-+		work1.ch_status = ch_status;
-+		work1.s = s;
-+		/* schedule tasklet 1 */
-+		tasklet_schedule(&audio_isr_work1);
-+		work_item_running = 1;
-+	} else {
-+		work2.current_lch = sound_curr_lch;
-+		work2.ch_status = ch_status;
-+		work2.s = s;
-+		/* schedule tasklet 2 */
-+		tasklet_schedule(&audio_isr_work2);
-+		work_item_running = 0;
-+	}
-+
- 	FN_OUT(0);
- 	return;
+-	init_input_dev(&(ts_omap.inputdevice));
+-	ts_omap.inputdevice.name = OMAP_TS_NAME;
+-	ts_omap.inputdevice.dev = dev;
+-	ts_omap.inputdevice.evbit[0] = BIT(EV_KEY) | BIT(EV_ABS);
+-	ts_omap.inputdevice.keybit[LONG(BTN_TOUCH)] |= BIT(BTN_TOUCH);
+-	ts_omap.inputdevice.absbit[0] =
++	ts_omap.inputdevice = input_allocate_device();
++	ts_omap.inputdevice->name = OMAP_TS_NAME;
++	ts_omap.inputdevice->dev = dev;
++	ts_omap.inputdevice->evbit[0] = BIT(EV_KEY) | BIT(EV_ABS);
++	ts_omap.inputdevice->keybit[LONG(BTN_TOUCH)] |= BIT(BTN_TOUCH);
++	ts_omap.inputdevice->absbit[0] =
+ 	    BIT(ABS_X) | BIT(ABS_Y) | BIT(ABS_PRESSURE);
+-	input_register_device(&(ts_omap.inputdevice));
++	input_register_device(ts_omap.inputdevice);
+ 
+ 	ts_omap.dev->enable();
+ 
+@@ -187,7 +190,7 @@ static int __init omap_ts_probe(struct d
+ static int __exit omap_ts_remove(struct device *dev)
+ {
+ 	ts_omap.dev->disable();
+-	input_unregister_device(&ts_omap.inputdevice);
++	input_unregister_device(ts_omap.inputdevice);
+ 	if (ts_omap.irq != -1)
+ 		free_irq(ts_omap.irq, &ts_omap);
+ 
+--- ./drivers/input/touchscreen/omap/omap_ts.h_orig	2005-11-22 22:18:24.000000000 +0100
++++ ./drivers/input/touchscreen/omap/omap_ts.h	2005-11-22 22:22:16.000000000 +0100
+@@ -42,7 +42,7 @@ struct ts_device {
+ };
+ 
+ struct omap_ts_t{
+-	struct input_dev inputdevice;
++	struct input_dev * inputdevice;
+ 	struct timer_list ts_timer;      // Timer for triggering acquisitions
+ 	int touched;
+ 	int irq;
+--- ./drivers/input/keyboard/omap-keypad.c_orig	2005-11-22 22:18:22.000000000 +0100
++++ ./drivers/input/keyboard/omap-keypad.c	2005-11-22 22:22:16.000000000 +0100
+@@ -44,7 +44,7 @@
+ static void omap_kp_tasklet(unsigned long);
+ static void omap_kp_timer(unsigned long);
+ 
+-static struct input_dev omap_kp_dev;
++static struct input_dev * omap_kp_dev;
+ static unsigned char keypad_state[8];
+ static unsigned int keypad_irq = INT_KEYBOARD;
+ 
+@@ -246,7 +246,7 @@ static void omap_kp_tasklet(unsigned lon
+ 				continue;
+ 			}
+ 
+-			input_report_key(&omap_kp_dev, key,
++			input_report_key(omap_kp_dev, key,
+ 					 new_state[col] & (1 << row));
+ #endif
+ 		}
+@@ -277,7 +277,7 @@ static int __init omap_kp_init(void)
+ 
+ 	if (machine_is_omap_h2() || machine_is_omap_h3()) {
+ 		keymap = h2_keymap;
+-		set_bit(EV_REP, omap_kp_dev.evbit);
++		set_bit(EV_REP, omap_kp_dev->evbit);
+ 	} else if (machine_is_omap_innovator()) {
+ 		keymap = innovator_keymap;
+ 	} else if (machine_is_omap_osk()) {
+@@ -299,11 +299,12 @@ static int __init omap_kp_init(void)
+ 		return -EINVAL;
+ 
+ 	/* setup input device */
+-	set_bit(EV_KEY, omap_kp_dev.evbit);
++	omap_kp_dev = input_allocate_device();
++	set_bit(EV_KEY, omap_kp_dev->evbit);
+ 	for (i = 0; keymap[i] != 0; i++)
+-		set_bit(keymap[i] & 0x00ffffff, omap_kp_dev.keybit);
+-	omap_kp_dev.name = "omap-keypad";
+-	input_register_device(&omap_kp_dev);
++		set_bit(keymap[i] & 0x00ffffff, omap_kp_dev->keybit);
++	omap_kp_dev->name = "omap-keypad";
++	input_register_device(omap_kp_dev);
+ 
+ 	if (machine_is_omap_h2() || machine_is_omap_h3()) {
+ 		omap_cfg_reg(F18_1610_KBC0);
+@@ -353,7 +354,7 @@ static void __exit omap_kp_exit(void)
+ 	del_timer_sync(&kp_timer);
+ 
+ 	/* unregister everything */
+-	input_unregister_device(&omap_kp_dev);
++	input_unregister_device(omap_kp_dev);
  }
+ 
+ module_init(omap_kp_init);
 
 
---------------000100010302020909020201
+--------------050604050905050904070207
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------000100010302020909020201--
+--------------050604050905050904070207--
