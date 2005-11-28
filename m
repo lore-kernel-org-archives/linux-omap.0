@@ -1,11 +1,11 @@
 From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: [PATCH 4/5] omapfb: Use struct platform_driver
-Date: Mon, 28 Nov 2005 08:55:15 -0800 (PST)
-Message-ID: <20051128165515.79572.qmail@web32913.mail.mud.yahoo.com>
+Subject: [PATCH 5/5] dsp_core.c: Use struct platform_driver
+Date: Mon, 28 Nov 2005 08:56:24 -0800 (PST)
+Message-ID: <20051128165624.57987.qmail@web32908.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-243868827-1133196915=:77506"
+Content-Type: multipart/mixed; boundary="0-860871086-1133196984=:57236"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,171 +13,189 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---0-243868827-1133196915=:77506
+--0-860871086-1133196984=:57236
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Content-Id: 
 Content-Disposition: inline
 
-Tony/Imre,
+Tony/Toshihiro-san,
 
-Attached patch updates driver model for fb.
+Attached patch updates driver model and adjustment of #ifdef CONFIG_PM.
 
 ---Komal Shah
 http://komalshah.blogspot.com/
 
 
+	
 		
 __________________________________ 
-Yahoo! Music Unlimited 
-Access over 1 million songs. Try it free. 
-http://music.yahoo.com/unlimited/
---0-243868827-1133196915=:77506
-Content-Type: text/plain; name="0004-fb.patch"
-Content-Description: pat1067135640
-Content-Disposition: inline; filename="0004-fb.patch"
+Yahoo! Mail - PC Magazine Editors' Choice 2005 
+http://mail.yahoo.com
+--0-860871086-1133196984=:57236
+Content-Type: text/plain; name="0005-dsp.patch"
+Content-Description: pat1686335160
+Content-Disposition: inline; filename="0005-dsp.patch"
 
-Subject: [PATCH 4/5] omapfb: Use struct platform_driver
+Subject: [PATCH 5/5] dsp_core.c: Use struct platform_driver
 Signed-off-by: Komal Shah <komal_shah802003@yahoo.com>
 
 ---
 
- drivers/video/omap/omapfb_main.c |   40 +++++++++++++++++++-------------------
- 1 files changed, 20 insertions(+), 20 deletions(-)
+ arch/arm/plat-omap/dsp/dsp_core.c |   40 +++++++++++++++++++------------------
+ 1 files changed, 21 insertions(+), 19 deletions(-)
 
-applies-to: 8739922c992039877301da6707c04402a13209be
-a083f77ba304d63186b37d41c5a46f642ede99fd
-diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
-index 58af600..2c4098d 100644
---- a/drivers/video/omap/omapfb_main.c
-+++ b/drivers/video/omap/omapfb_main.c
-@@ -1214,9 +1214,8 @@ static void check_required_callbacks(str
-  *      start LCD frame transfer
-  *   7. register system fb_info structure
-  */
--static int omapfb_probe(struct device *dev)
-+static int omapfb_probe(struct platform_device *pdev)
+applies-to: 76a87a72f8766eb762aefcd68303dd8d6b91d6fc
+a0aede602b9c14ba4eb3d63d879bd0eb72442176
+diff --git a/arch/arm/plat-omap/dsp/dsp_core.c b/arch/arm/plat-omap/dsp/dsp_core.c
+index d5d8c22..f7aa2b8 100644
+--- a/arch/arm/plat-omap/dsp/dsp_core.c
++++ b/arch/arm/plat-omap/dsp/dsp_core.c
+@@ -588,7 +588,7 @@ static void dsp_dev_release(struct devic
+ #	define INT_D2A_MB2 INT_DSP_MAILBOX1
+ #endif
+ 
+-static int __init dsp_drv_probe(struct device *dev)
++static int __init dsp_drv_probe(struct platform_device *pdev)
  {
--	struct platform_device	*pdev;
- 	struct omapfb_device	*fbdev = NULL;
- 	struct fb_info		*fbi;
- 	int			init_state;
-@@ -1228,14 +1227,13 @@ static int omapfb_probe(struct device *d
+ 	int ret;
  
- 	init_state = 0;
- 
--	pdev = to_platform_device(dev);
- 	if (pdev->num_resources != 0) {
- 		pr_err("probed for an unknown device\n");
- 		r = -ENODEV;
- 		goto cleanup;
+@@ -611,7 +611,7 @@ static int __init dsp_drv_probe(struct d
+ 	 * mailbox interrupt handlers registration
+ 	 */
+ 	ret = request_irq(INT_D2A_MB1, mbx1_interrupt, SA_INTERRUPT, "dsp",
+-			  dev);
++			  &pdev->dev);
+ 	if (ret) {
+ 		printk(KERN_ERR
+ 		       "failed to register mailbox1 interrupt: %d\n", ret);
+@@ -619,7 +619,7 @@ static int __init dsp_drv_probe(struct d
  	}
  
--	fbi = framebuffer_alloc(sizeof(struct omapfb_device), dev);
-+	fbi = framebuffer_alloc(sizeof(struct omapfb_device), &pdev->dev);
- 	if (fbi == NULL) {
- 		pr_err("unable to allocate memory for device info\n");
- 		r = -ENOMEM;
-@@ -1245,8 +1243,8 @@ static int omapfb_probe(struct device *d
+ 	ret = request_irq(INT_D2A_MB2, mbx2_interrupt, SA_INTERRUPT, "dsp",
+-			  dev);
++			  &pdev->dev);
+ 	if (ret) {
+ 		printk(KERN_ERR
+ 		       "failed to register mailbox2 interrupt: %d\n", ret);
+@@ -627,7 +627,7 @@ static int __init dsp_drv_probe(struct d
+ 	}
  
- 	fbdev = (struct omapfb_device *)fbi->par;
- 	fbdev->fb_info = fbi;
--	fbdev->dev = dev;
--	dev_set_drvdata(dev, fbdev);
-+	fbdev->dev = &pdev->dev;
-+	platform_set_drvdata(pdev, fbdev);
+ 	ret = request_irq(INT_DSP_MMU, dsp_mmu_interrupt, SA_INTERRUPT, "dsp",
+-			  dev);
++			  &pdev->dev);
+ 	if (ret) {
+ 		printk(KERN_ERR
+ 		       "failed to register DSP MMU interrupt: %d\n", ret);
+@@ -649,9 +649,9 @@ static int __init dsp_drv_probe(struct d
+ 	return 0;
  
- 	init_MUTEX(&fbdev->rqueue_sema);
- 
-@@ -1348,9 +1346,9 @@ cleanup:
+ fail6:
+-	free_irq(INT_D2A_MB2, dev);
++	free_irq(INT_D2A_MB2, &pdev->dev);
+ fail5:
+-	free_irq(INT_D2A_MB1, dev);
++	free_irq(INT_D2A_MB1, &pdev->dev);
+ fail4:
+ 	dsp_taskmod_exit();
+ fail3:
+@@ -667,16 +667,16 @@ fail1:
+ 	return ret;
  }
  
- /* Called when the device is being detached from the driver */
--static int omapfb_remove(struct device *dev)
-+static int omapfb_remove(struct platform_device *pdev)
+-static int dsp_drv_remove(struct device *dev)
++static int dsp_drv_remove(struct platform_device *pdev)
  {
--	struct omapfb_device *fbdev = dev_get_drvdata(dev);
-+	struct omapfb_device *fbdev = platform_get_drvdata(pdev);
- 	enum omapfb_state saved_state = fbdev->state;
+ 	dsp_cpustat_request(CPUSTAT_RESET);
  
- 	DBGENTER(1);
-@@ -1364,9 +1362,9 @@ static int omapfb_remove(struct device *
+ #if 0
+ 	free_irq(INT_MPUIO, dev);
+ #endif
+-	free_irq(INT_DSP_MMU, dev);
+-	free_irq(INT_D2A_MB2, dev);
+-	free_irq(INT_D2A_MB1, dev);
++	free_irq(INT_DSP_MMU, &pdev->dev);
++	free_irq(INT_D2A_MB2, &pdev->dev);
++	free_irq(INT_D2A_MB1, &pdev->dev);
+ 
+ 	/* recover disable_depth */
+ 	enable_irq(INT_DSP_MMU);
+@@ -696,19 +696,22 @@ static int dsp_drv_remove(struct device 
  }
  
- /* PM suspend */
--static int omapfb_suspend(struct device *dev, pm_message_t mesg)
-+static int omapfb_suspend(struct platform_device *pdev, pm_message_t mesg)
+ #ifdef CONFIG_PM
+-static int dsp_drv_suspend(struct device *dev, pm_message_t state)
++static int dsp_drv_suspend(struct platform_device *pdev, pm_message_t state)
  {
--	struct omapfb_device *fbdev = dev_get_drvdata(dev);
-+	struct omapfb_device *fbdev = platform_get_drvdata(pdev);
+ 	dsp_suspend();
  
- 	DBGENTER(1);
- 
-@@ -1378,9 +1376,9 @@ static int omapfb_suspend(struct device 
- }
- 
- /* PM resume */
--static int omapfb_resume(struct device *dev)
-+static int omapfb_resume(struct platform_device *pdev)
- {
--	struct omapfb_device *fbdev = dev_get_drvdata(dev);
-+	struct omapfb_device *fbdev = platform_get_drvdata(pdev);
- 
- 	DBGENTER(1);
- 
-@@ -1390,13 +1388,15 @@ static int omapfb_resume(struct device *
  	return 0;
  }
  
--static struct device_driver omapfb_driver = {
--	.name		= OMAPFB_DRIVER,
+-static int dsp_drv_resume(struct device *dev)
++static int dsp_drv_resume(struct platform_device *pdev)
+ {
+ 	dsp_resume();
+ 
+ 	return 0;
+ }
++#else
++#define dsp_drv_suspend		NULL
++#define dsp_drv_resume		NULL
+ #endif /* CONFIG_PM */
+ 
+ static struct resource dsp_resources[] = {
+@@ -736,15 +739,14 @@ struct platform_device dsp_device = {
+ 	.resource	= dsp_resources,
+ };
+ 
+-static struct device_driver dsp_driver = {
+-	.name		= "dsp",
 -	.bus		= &platform_bus_type,
--	.probe          = omapfb_probe,
--	.remove         = omapfb_remove,
-+static struct platform_driver omapfb_driver = {
-+	.probe		= omapfb_probe,
-+	.remove		= omapfb_remove,
- 	.suspend	= omapfb_suspend,
--	.resume		= omapfb_resume
-+	.resume		= omapfb_resume,
++static struct platform_driver dsp_driver = {
+ 	.probe		= dsp_drv_probe,
+ 	.remove		= dsp_drv_remove,
+-#ifdef CONFIG_PM
+ 	.suspend	= dsp_drv_suspend,
+ 	.resume		= dsp_drv_resume,
+-#endif
 +	.driver		= {
-+		.name	= OMAPFB_DRIVER,
-+		.owner	= THIS_MODULE,
++		.name	= "dsp",
 +	},
  };
  
- #ifndef MODULE
-@@ -1475,7 +1475,7 @@ static int __init omapfb_init(void)
+ static int __init omap_dsp_mod_init(void)
+@@ -757,7 +759,7 @@ static int __init omap_dsp_mod_init(void
+ 		goto fail1;
  	}
- #endif
- 	/* Register the driver with LDM */
--	if (driver_register(&omapfb_driver)) {
-+	if (platform_driver_register(&omapfb_driver)) {
- 		pr_err("failed to register omapfb driver\n");
- 		r = -ENODEV;
- 		goto exit;
-@@ -1490,7 +1490,7 @@ static void __exit omapfb_cleanup(void)
+ 
+-	ret = driver_register(&dsp_driver);
++	ret = platform_driver_register(&dsp_driver);
+ 	if (ret) {
+ 		printk(KERN_ERR "failed to register the DSP driver: %d\n", ret);
+ 		goto fail2;
+@@ -773,7 +775,7 @@ fail1:
+ 
+ static void __exit omap_dsp_mod_exit(void)
  {
- 	DBGENTER(1);
- 
--	driver_unregister(&omapfb_driver);
-+	platform_driver_unregister(&omapfb_driver);
- 
- 	DBGLEAVE(1);
+-	driver_unregister(&dsp_driver);
++	platform_driver_unregister(&dsp_driver);
+ 	platform_device_unregister(&dsp_device);
  }
+ 
 ---
 0.99.9.GIT
 
---0-243868827-1133196915=:77506
+--0-860871086-1133196984=:57236
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---0-243868827-1133196915=:77506--
+--0-860871086-1133196984=:57236--
