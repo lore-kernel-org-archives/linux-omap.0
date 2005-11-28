@@ -1,12 +1,13 @@
-From: Olav Kongas <ok@artecdesign.ee>
+From: "Hunter, Jon" <jon-hunter@ti.com>
 Subject: RE: Basic question: how to flash omap system with ccs?
-Date: Mon, 28 Nov 2005 17:30:00 +0200 (EET)
-Message-ID: <Pine.LNX.4.63.0511281720330.22060@pcy.artec.ee>
-References: <438af835.547cd4ee.1b00.4646@mx.gmail.com>
+Date: Mon, 28 Nov 2005 09:46:23 -0600
+Message-ID: <C51F43ABFC95844490F0529B60753BF402A3AF7B@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <438af835.547cd4ee.1b00.4646@mx.gmail.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,17 +17,31 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Li Weichen <iaadoa@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Li Weichen <iaadoa@gmail.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi Weichen,
+
+>=20
+> Thank you for your reply.  But I cannot find how to download a file to
+
+> the board in CCS since I am quite unfamiliar with this software. =20
+> Could you please be so kind to show me?
+>=20
+
+>From your previous emails my understanding is that you are using the TI
+PCI card XDS560 emulator. Exactly how far have you got with the
+emulator? Have you been able to setup CCS and connect to the device?=20
+
+If you have gotten this far, then see "step 1: restoring uboot" on the
+below webpage. This will talk you through restoring uboot with CCS.
+Please note that although you don't have a Spectrum Digital emulator
+these steps are still valid.=20
+
+http://omap.spectrumdigital.com/osk5912/factoryconfig/
 
 
-On Mon, 28 Nov 2005, Li Weichen wrote:
+Hope this helps.
 
-> It is so kind of to reply.  I am very interested about your COFF generator.
-
-I'll put it up on the web somewhere and let you know soon. 
-However, as Steven informed us, ELF should work too.
-
-Olav
+Regards,
+Jon=20
