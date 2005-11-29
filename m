@@ -1,14 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/5] omap1610-ir: Use struct platform_driver and PM
-	updates.
-Date: Mon, 28 Nov 2005 19:19:15 -0800
-Message-ID: <20051129031915.GK8319@atomide.com>
-References: <20051128165431.57198.qmail@web32908.mail.mud.yahoo.com>
+Subject: Re: [PATCH 4/5] omapfb: Use struct platform_driver
+Date: Mon, 28 Nov 2005 19:19:50 -0800
+Message-ID: <20051129031950.GN8319@atomide.com>
+References: <20051128165515.79572.qmail@web32913.mail.mud.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20051128165431.57198.qmail@web32908.mail.mud.yahoo.com>
+In-Reply-To: <20051128165515.79572.qmail@web32913.mail.mud.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -23,10 +22,9 @@ Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 * Komal Shah <komal_shah802003@yahoo.com> [051128 08:56]:
-> Tony,
+> Tony/Imre,
 > 
-> Attached patch updated driver model support and removes third argument
-> from PM functions.
+> Attached patch updates driver model for fb.
 
 Pushing today.
 
