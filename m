@@ -1,20 +1,10 @@
-From: Romain Goyet <r.goyet@gmail.com>
-Subject: Re: [PATCH] FB support for OMAP2
-Date: Tue, 29 Nov 2005 09:11:39 +0100
-Message-ID: <8028e5750511290011l5a716c82o@mail.gmail.com>
-References: <1129668250.5871.56.camel@mammoth.research.nokia.com>
-	<4356BD5A.2040100@mvista.com>
-	<1129799050.5762.6.camel@mammoth.research.nokia.com>
-	<8028e5750511271548o1c5a213i@mail.gmail.com>
-	<1133158321.8150.9.camel@localhost.localdomain>
-	<8028e5750511272311r7fb387b2t@mail.gmail.com>
-	<20051129021725.GG8319@atomide.com>
+From: yonghua zheng <spiesolo@gmail.com>
+Subject: How can I boot 2.6 kernel on omap5912
+Date: Tue, 29 Nov 2005 17:19:20 +0900
+Message-ID: <f901f8890511290019n2beccf77n47e837e620122ef4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <20051129021725.GG8319@atomide.com>
-Content-Disposition: inline
+Content-Type: multipart/mixed; boundary="===============0613971500=="
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,49 +12,101 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-You might push this if you want, but I'm preparing a slightly bigger
-patch that will include this one. (Since even with this Palm TE
-support is still broken...)
+--===============0613971500==
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-Kind regards,
-Romain Goyet
+SGksYWxsLCBJIGFtIGEgbmV3YmllIHRvIG9tYXAgZGV2ZWxvcG1lbnQuCgpXaGF0IEkgdHJ5IHRv
+IGRvIGlzIHRvIGJvb3QgIDIuNiBrZXJuZWwgb24gb21hcDU5MTIsIGJ1dCBmYWlsZWQgc29tZWhv
+dy4KClRoZSByb290IGZpbGVzeXN0ZW0gSSBhbSB1c2luZyBpcwpodHRwOi8vbGludXgub21hcC5j
+b20vcHViL2ZpbGVzeXN0ZW0vcm9vdGZzb3NrLnRhci5iejIKVGhlIGtlcm5lbCBJIGFtIHVzaW5n
+IGlzCmh0dHA6Ly9saW51eC5vbWFwLmNvbS9wdWIva2VybmVsL29zay8yLjYuOC1yYzNfMDgwODA0
+LnRhci5iejIKVGhlIHUtYm9vdCBvbiB0aGUgb21hcDU5MTIgaGFzIGJlZW4gdXBkYXRlZCB0byB2
+ZXJzaW9uIDEuMS4zCgpUaGUga2VybmVsIG1vdW50cyB0aGUgZmlsZSBzeXN0ZW0gdGhyb3VnaCBO
+RlMsIGV2ZXJ5dGhpbmcgZ29lcyB3ZWxsIHVudGlsCndoZW4gIkZyZWVpbmcgaW5pdCBtZW1vcnk6
+IDgwSyIKaXMgcHJpbnRlZCBvdXQgYW5kIHRoZSBrZXJuZWwgc2VlbXMgcnVuIGludG8gd2FpdCBj
+b25kaXRpb24gZm9yIHNvbWUgdGhpbmcKdW5rbm93bi4KQmVsb3cgaXMgcGFydCBvZiBvdXRwdXQg
+Y3V0IGZyb20gbWluaWNvbSBjb25zb2xlLiBUaGUga2VybmVsIHN0b3BzIGF0CiJGcmVlaW5nIGlu
+aXQgbWVtb3J5OiA4MEsiCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpPTUFQ
+NTkxMiBPU0sgIyBib290bQojIyBCb290aW5nIGltYWdlIGF0IDEwMDAwMDAwIC4uLgogICBJbWFn
+ZSBOYW1lOiAgIExpbnV4LTIuNi44LXJjMy1vbWFwMQogICBJbWFnZSBUeXBlOiAgIEFSTSBMaW51
+eCBLZXJuZWwgSW1hZ2UgKHVuY29tcHJlc3NlZCkKICAgRGF0YSBTaXplOiAgICA5MDk2MDggQnl0
+ZXMgPSA4ODguMyBrQgogICBMb2FkIEFkZHJlc3M6IDEwMDA4MDAwCiAgIEVudHJ5IFBvaW50OiAg
+MTAwMDgwMDAKICAgVmVyaWZ5aW5nIENoZWNrc3VtIC4uLiBPSwpPSwoKU3RhcnRpbmcga2VybmVs
+IC4uLgoKTGludXggdmVyc2lvbiAyLjYuOC1yYzMtb21hcDEgKHJvb3RAZHVhbC1kZXNrdG9wKSAo
+Z2NjIHZlcnNpb24KMy40LjAyMDAzMTIzMCAoQ29kZVNvdXJjZXJ5IEFSTSBRNCAyMDAzKSkgIzMg
+U3VuIEF1ZyA4IDEyOjEwNENQVToKQVJNOTI2RUotU2lkKHd0KSBbNDEwNjkyNjNdIHJldmlzaW9u
+IDMgKEFSTXY1VEVKKQpDUFU6IEQgVklQVCB3cml0ZS1iYWNrIGNhY2hlCkNQVTogSSBjYWNoZTog
+MTYzODQgYnl0ZXMsIGFzc29jaWF0aXZpdHkgNCwgMzIgYnl0ZSBsaW5lcywgMTI4IHNldHMKQ1BV
+OiBEIGNhY2hlOiA4MTkyIGJ5dGVzLCBhc3NvY2lhdGl2aXR5IDQsIDMyIGJ5dGUgbGluZXMsIDY0
+IHNldHMKTWFjaGluZTogVEktT1NLCk1lbW9yeSBwb2xpY3k6IEVDQyBkaXNhYmxlZCwgRGF0YSBj
+YWNoZSB3cml0ZXRocm91Z2gKT01BUCByZXZpc2lvbjogMy4yICgweDAzMzIwNTAwKSBpZDogMHgy
+YjY1ZjAyZiBkZXRlY3RlZCBhcyBPTUFQLXVua25vd24sCnBsZWFzZSBhZGQgc3VwcG9ydCEKQnVp
+bHQgMSB6b25lbGlzdHMKS2VybmVsIGNvbW1hbmQgbGluZTogY29uc29sZT10dHlTMCwxMTUyMDBu
+OCBtZW09MzJNIGlwPTEwLjM0LjEyNS40NToxMAouMzQuMTI1LjEwMzoxMC4zNC4xMjUuMjUzOjI1
+NS4yNTUuMjU1LjA6b3NrOmV0aDA6b2ZmIHJrVG90YWwgb2YgMTI4CmludGVycnVwdHMgaW4gNCBp
+bnRlcnJ1cHQgYmFua3MKUElEIGhhc2ggdGFibGUgZW50cmllczogMjU2IChvcmRlciA4OiAyMDQ4
+IGJ5dGVzKQpDb25zb2xlOiBjb2xvdXIgZHVtbXkgZGV2aWNlIDgweDMwCkRlbnRyeSBjYWNoZSBo
+YXNoIHRhYmxlIGVudHJpZXM6IDgxOTIgKG9yZGVyOiAzLCAzMjc2OCBieXRlcykKSW5vZGUtY2Fj
+aGUgaGFzaCB0YWJsZSBlbnRyaWVzOiA0MDk2IChvcmRlcjogMiwgMTYzODQgYnl0ZXMpCk1lbW9y
+eTogMzJNQiA9IDMyTUIgdG90YWwKTWVtb3J5OiAzMDMyOEtCIGF2YWlsYWJsZSAoMTUxN0sgY29k
+ZSwgNDI0SyBkYXRhLCA4MEsgaW5pdCkKQ2FsaWJyYXRpbmcgZGVsYXkgbG9vcC4uLiA5NS44NCBC
+b2dvTUlQUwpNb3VudC1jYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6IDUxMiAob3JkZXI6IDAsIDQw
+OTYgYnl0ZXMpCkNQVTogVGVzdGluZyB3cml0ZSBidWZmZXIgY29oZXJlbmN5OiBvawpORVQ6IFJl
+Z2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDE2Ck9NQVAgRE1BIGhhcmR3YXJlIHZlcnNpb24gMQpE
+TUEgY2FwYWJpbGl0aWVzOiAwMDBjMDAwMDowMDAwMDAwMDowMWZmOjAwM2Y6MDA3ZgpPTUFQIEdQ
+SU8gaGFyZHdhcmUgdmVyc2lvbiAxLjAKSW5pdGlhbGl6aW5nIE9NQVAgTWNCU1Agc3lzdGVtCk9N
+QVAgT0NQSSBpbnRlcmNvbm5lY3QgZHJpdmVyIGxvYWRlZApQb3dlciBNYW5hZ2VtZW50IGZvciBU
+SSBPTUFQLgpOZXRXaW5kZXIgRmxvYXRpbmcgUG9pbnQgRW11bGF0b3IgVjAuOTcgKGRvdWJsZSBw
+cmVjaXNpb24pCmRldmZzOiAyMDA0LTAxLTMxIFJpY2hhcmQgR29vY2ggKHJnb29jaEBhdG5mLmNz
+aXJvLmF1KQpkZXZmczogYm9vdF9vcHRpb25zOiAweDAKSW5pdGlhbGl6aW5nIENyeXB0b2dyYXBo
+aWMgQVBJClNlcmlhbDogODI1MC8xNjU1MCBkcml2ZXIgJFJldmlzaW9uOiAxLjkwICQgNCBwb3J0
+cywgSVJRIHNoYXJpbmcgZGlzYWJsZWQKdHR5UzAgYXQgTU1JTyAweGZlZmIwMDAwIChpcnEgPSA0
+NikgaXMgYSBPTUFQIFVBUlQKdHR5UzEgYXQgTU1JTyAweGZlZmIwODAwIChpcnEgPSA0NykgaXMg
+YSBPTUFQIFVBUlQKdHR5UzIgYXQgTU1JTyAweGZlZmI5ODAwIChpcnEgPSAxNSkgaXMgYSAxNjQ1
+MApPTUFQIHNlcmlhbDogYWN0aXZhdGVkIDMgcG9ydHMKUkFNRElTSyBkcml2ZXIgaW5pdGlhbGl6
+ZWQ6IDE2IFJBTSBkaXNrcyBvZiA4MTkySyBzaXplIDEwMjQgYmxvY2tzaXplCmxvb3A6IGxvYWRl
+ZCAobWF4IDggZGV2aWNlcykKUFBQIGdlbmVyaWMgZHJpdmVyIHZlcnNpb24gMi40LjIKc21jOTF4
+OiBJT0FERFIgYzI4MDAwMDAgZG9lc24ndCBtYXRjaCBjb25maWd1cmF0aW9uICgzMDApLgpzbWM5
+MXguYzogdjEuMCwgbWFyIDA3IDIwMDMgYnkgTmljb2xhcyBQaXRyZSA8bmljb0BjYW0ub3JnPgpl
+dGgwOiBTTUM5MUM5NCAocmV2IDkpIGF0IDB4YzI4MDAwMDAgSVJRIDE2MCBbbm93YWl0XQpldGgw
+OiBFdGhlcm5ldCBhZGRyOiAwMDowZTo5OTowMjowODphYgpPTUFQIEkyQzogRHJpdmVyIHZlci4g
+MS4zCnRwczY1MDEwOiB2ZXJzaW9uIEF1ZyAgOCAyMDA0MTI6MDk6MDAKbWljZTogUFMvMiBtb3Vz
+ZSBkZXZpY2UgY29tbW9uIGZvciBhbGwgbWljZQpPTUFQIEtleXBhZCBEcml2ZXIKTkVUOiBSZWdp
+c3RlcmVkIHByb3RvY29sIGZhbWlseSAyCklQOiByb3V0aW5nIGNhY2hlIGhhc2ggdGFibGUgb2Yg
+NTEyIGJ1Y2tldHMsIDRLYnl0ZXMKVENQOiBIYXNoIHRhYmxlcyBjb25maWd1cmVkIChlc3RhYmxp
+c2hlZCAyMDQ4IGJpbmQgNDA5NikKTkVUOiBSZWdpc3RlcmVkIHByb3RvY29sIGZhbWlseSAxCmV0
+aDA6IGxpbmsgdXAKSVAtQ29uZmlnOiBDb21wbGV0ZToKICAgICAgZGV2aWNlPWV0aDAsIGFkZHI9
+MTAuMzQuMTI1LjQ1LCBtYXNrPTI1NS4yNTUuMjU1LjAsIGd3PTEwLjM0LjEyNS4yNTMsCiAgICAg
+aG9zdD1vc2ssIGRvbWFpbj0sIG5pcy1kb21haW49KG5vbmUpLAogICAgIGJvb3RzZXJ2ZXI9MTAu
+MzQuMTI1LjEwMywgcm9vdHNlcnZlcj0xMC4zNC4xMjUuMTAzLCByb290cGF0aD0KTG9va2luZyB1
+cCBwb3J0IG9mIFJQQyAxMDAwMDMvMiBvbiAxMC4zNC4xMjUuMTAzCkxvb2tpbmcgdXAgcG9ydCBv
+ZiBSUEMgMTAwMDA1LzEgb24gMTAuMzQuMTI1LjEwMwpWRlM6IE1vdW50ZWQgcm9vdCAobmZzIGZp
+bGVzeXN0ZW0pLgpGcmVlaW5nIGluaXQgbWVtb3J5OiA4MEsKLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LQoKVGhlIGNvbW1hbmQgbGluZSBwYXNzZWQgdG8ga2VybmVsIGlzIGFzIGZvbGxvd3M6CgpzZXRl
+bnYgYm9vdGFyZ3MgY29uc29sZT10dHlTMCwxMTUyMDBuOCBtZW09MzJNIGlwPTEwLjM0LjEyNS40
+NToxMAouMzQuMTI1LjEwMzoxMC4zNC4xMjUuMjUzOjI1NS4yNTUuMjU1LjA6b3NrOmV0aDA6b2Zm
+IHJvb3Q9L2Rldi9uZnMgcncKbmZzcm9vdD0xMC4zNC4xMjUuMTAzOi9ob21lL3NwaWVnZWwvUHJv
+amVjdC9vbWFwNTkxMi9yb290ZnMyLjYsbm9sb2NrCgpJZiBJIHVzZSAyLjQuMjBfbXZsMzEtb21h
+cDU5MTJfb3NrIGtlcm5lbCBJbnN0ZWFkIG9mIDIuNi44IGtlcm5lbCwKZXZlcnl0aGluZyBnb2Vz
+IHF1aXRlIHdlbGwgYW5kIGZpbmFsbHkgcmVhY2ggdG8gc2hlbGwuCgpEb2VzIGFueW9uZSBoYXMg
+YW55IGlkZWEgb2YgdGhpcz8gRG8gSSBtaXNzIHNvbWV0aGluZz8KUGxlYXNlIGdpdmUgbWUgc29t
+ZSBoZWxwIG9uIHRoaXMuCgpUaGFua3MuCnNwaWVnZWwK
+--===============0613971500==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-2005/11/29, Tony Lindgren <tony@atomide.com>:
-> * Romain Goyet <r.goyet@gmail.com> [051127 23:11]:
-> > .
-> > After checking, it appeared your patch was just working great : my
-> > Palm's in fact crashing because of a bug in the function
-> > paging_init(); in arch/arm/mm/init.c.
-> >
-> > 2005/11/28, Imre Deak <imre.deak@nokia.com>:
-> > > Hi,
-> > >
-> > > For me it didn't even build for PALMTE, so this is at least needed:
-> > >
-> > > diff --git a/drivers/video/omap/lcdc.c b/drivers/video/omap/lcdc.c
-> > > index fd5e137..5700d25 100644
-> > > --- a/drivers/video/omap/lcdc.c
-> > > +++ b/drivers/video/omap/lcdc.c
-> > > @@ -439,7 +439,7 @@ static void inline setup_regs(void)
-> > >  #ifdef CONFIG_MACH_OMAP_PALMTE
-> > >  /* FIXME:if (machine_is_omap_palmte()) { */
-> > >                 /* PalmTE uses alternate TFT setting in 8BPP mode */
-> > > -               l |=3D (tft && fbdev->panel->video_mode->bpp =3D=3D 8=
-) ? 0x810000 : 0;
-> > > +               l |=3D (is_tft && panel->bpp =3D=3D 8) ? 0x810000 : 0=
-;
-> > >  /*     } */
-> > >  #endif
-> > >         omap_writel(l, OMAP_LCDC_CONTROL);
->
-> Pushing this today.
->
-> Tony
->
+
+--===============0613971500==--
