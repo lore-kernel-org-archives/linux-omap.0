@@ -1,9 +1,9 @@
 From: Komal Shah <komal_shah802003@yahoo.com>
 Subject: [PATCH] RTC: Use struct platform driver
-Date: Thu, 1 Dec 2005 02:50:12 -0800 (PST)
-Message-ID: <20051201105012.75102.qmail@web32904.mail.mud.yahoo.com>
+Date: Thu, 1 Dec 2005 02:50:31 -0800 (PST)
+Message-ID: <20051201105031.38262.qmail@web32915.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-988133193-1133434212=:72232"
+Content-Type: multipart/mixed; boundary="0-551961155-1133434231=:35981"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
@@ -18,7 +18,7 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---0-988133193-1133434212=:72232
+--0-551961155-1133434231=:35981
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Content-Id: 
@@ -37,9 +37,9 @@ http://komalshah.blogspot.com/
 __________________________________ 
 Yahoo! Mail - PC Magazine Editors' Choice 2005 
 http://mail.yahoo.com
---0-988133193-1133434212=:72232
+--0-551961155-1133434231=:35981
 Content-Type: text/plain; name="0006-omap-rtc-Use-struct-platform_driver.txt"
-Content-Description: pat1472811966
+Content-Description: pat685316842
 Content-Disposition: inline;
 	filename="0006-omap-rtc-Use-struct-platform_driver.txt"
 
@@ -159,11 +159,11 @@ index 63ad322..d0e0014 100644
 ---
 0.99.9.GIT
 
---0-988133193-1133434212=:72232
+--0-551961155-1133434231=:35981
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---0-988133193-1133434212=:72232--
+--0-551961155-1133434231=:35981--
