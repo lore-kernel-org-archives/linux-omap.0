@@ -1,13 +1,14 @@
-From: "Hunter, Jon" <jon-hunter@ti.com>
+From: "Ishigami" <ishigami@ti.com>
 Subject: RE: DSP core access
-Date: Wed, 30 Nov 2005 15:31:50 -0600
-Message-ID: <C51F43ABFC95844490F0529B60753BF402B6B5CF@dlee02.ent.ti.com>
+Date: Thu, 1 Dec 2005 10:54:09 +0900
+Message-ID: <200512010154.jB11s9uS026763@dmhp30.itg.ti.com>
+References: <cb6819fd0511221805n7aad0f86s486a95c5144deaf2@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-class: urn:content-classes:message
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <cb6819fd0511221805n7aad0f86s486a95c5144deaf2@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,40 +16,56 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Louis Jung <lhsj81@gmail.com>
-Cc: Toshihiro.Kobayashi@nokia.com, linux-omap-open-source@linux.omap.com, comunerito@yahoo.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: 'Louis Jung' <lhsj81@gmail.com>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Louis,
-=09
-> =09
-> Sorry for continuous postings on the same topic, but I am very new to
-this OMAP development area and was hoping to grab all the help that can
-be=20
-> provided.
-> Currently my major problem seems to be on using non-montavista linux.
-The CCS approach seems to have ways around non-montavista linux. However
-the Linux > DSP tools seems to be montavista linux specific. It seems to
-me that the tools are using binaries that are specifically provided by
-montavista, if I am > wrong could someone give me a hand in configuring
-the $DSPLINK/make/Linux/osk5912_mvlpreviewkit3.1.mk ? I can't not really
-find replacements for
-> 	-BASE_CGTOOLS :=3D /opt/montavista/previewkit/arm/v4t_le/bin
-> 	-BASE_OSLIB :=3D /opt/montavista/previewkit/arm/v4t_le/lib
-> 	which I assume are necessary for C55xx DSP code generation.
+Hello,
 
->From my understanding the above definitions are not needed for compiling
-the DSP portion of dsplink. Please note that dsplink consists of a
-kernel module that runs on the arm and a dsp/bios driver that runs on
-the dsp. With regard to the above, if you are not using the montavista
-tools, then this is where you should specify what build tools you are
-using for the arm to build the kernel module and arm side dsplink
-applications.=20
+> There is a DSP gateway through which I think i should
+> be able to control. Does anyone know the specific ways
+> of doing this?
 
-Regards,
-Jon
 
-=09
-=09
+ Basic howto ( see dsp )
+ http://oskfordummies.hp.infoseek.co.jp/howto.html
+
+ Home page
+ http://dspgateway.sourceforge.net/pub/index.php
+
+ Mailing lists
+ http://lists.sourceforge.net/lists/listinfo/dspgateway-devel
+
+ Sample programs in Japanese
+ http://www.cqpub.co.jp/interface/download/contents.htm
+ (subset) MP3 player (2005 Oct),  Fir filter (2004 May)
+
+ Hope you enjoy the dsp programming, as much as arm linux.
+
+ Regards,
+ Ishgiami
+
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Louis
+Jung
+Sent: Wednesday, November 23, 2005 11:06 AM
+To: Linux-omap-open-source@linux.omap.com
+Subject: DSP core access
+
+Hi all,
+
+I am currently trying to obtain a real time data using DSP core on the omap
+platform via the I2C peripheral.  I was hoping to achieve this by
+controlling the DSP via linux kernel that's running on the Arm core. There
+is a DSP gateway through which I think i should be able to control. Does
+anyone know the specific ways of doing this?
+
+Louis Jung
+2005-11-23
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
