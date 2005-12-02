@@ -1,11 +1,12 @@
-From: "Sampath Kumar C K" <sampath_kumar@annctech.com>
-Subject: Re: Linux-omap-open-source Digest, Vol 19, Issue 53
-Date: Fri, 02 Dec 2005 11:24:01 +0530
-Message-ID: <E1Ei3rt-0002fD-GS@cpanel2.interactivedns.com>
-Reply-To: sampath_kumar@annctech.com
+From: naga rajan <nagubk82@gmail.com>
+Subject: Problem while building an application in DSP/BIOS version 5.20
+Date: Fri, 2 Dec 2005 11:31:07 +0530
+Message-ID: <7e6cc7550512012201n2e8e7866j4fd09f6f1255585@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,78 +19,16 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Li,
+Hi all,
 
-GTK + can support for Omap-5912. you can get info from this link
-http://www.celinuxforum.org/.../ITJ2005Detail1_2d4?action=AttachFile&do=get&target=OSK-OpenEmbedded.pdf
+          I m currently working with linux based DSP tools.I have downloade=
+d
+and installed the DSP/BIOS version 5.20. I set the config.mak and
+c55rules.mak files accordingly. While building the hello world application,
+I faced a linking error problem("illegal relocation type 050002").Have
+anyone of you worked with DSP/BIOS version 5.20,if so please mail some tips
+to sort out this problem....
 
-Thanks,
-Sampath
-
-
-> Send Linux-omap-open-source mailing list submissions to
-> 	linux-omap-open-source@linux.omap.com
-> 
-> To subscribe or unsubscribe via the World Wide Web, visit
-> 	http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> or, via email, send a message with subject or body 'help' to
-> 	linux-omap-open-source-request@linux.omap.com
-> 
-> You can reach the person managing the list at
-> 	linux-omap-open-source-owner@linux.omap.com
-> 
-> When replying, please edit your Subject line so it is more specific
-> than "Re: Contents of Linux-omap-open-source digest..."
-> 
-> 
-> Today's Topics:
-> 
->    1. Can omap5912 support gtk+ gui? (Li Weichen)
-> 
-> 
-> ----------------------------------------------------------------------
-> 
-> Message: 1
-> Date: Thu, 1 Dec 2005 00:30:54 +0800
-> From: "Li Weichen" <iaadoa@gmail.com>
-> Subject: Can omap5912 support gtk+ gui?
-> To: <linux-omap-open-source@linux.omap.com>
-> Message-ID: <438dd3c5.439b2fb7.54d3.2103@mx.gmail.com>
-> Content-Type: text/plain;	charset="us-ascii"
-> 
-> Hi all,
-> 
-> Does anybody have the experience or any idea of using gtk+ in omap5912
-> system?  Is it feasible to use gtk+ as the omap system's gui?  And is it
-> easy to develop with compared to Qt/E and Minigui?
-> 
-> Thanks and best regards.
-> 
-> 
-> Li Weichen
-> 2005-12-1
-> 
-> 
-> 
-> ------------------------------
-> 
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> 
-> 
-> End of Linux-omap-open-source Digest, Vol 19, Issue 53
-> ******************************************************
-> 
-> 
-
-
------------------------------------------------------------------------
-Disclaimer
------------------------------------------------------------------------
-"This message(including attachment if any)is confidential and may be 
-privileged. Any unauthorized use or dissemination of this message in 
-whole or in part is strictly prohibited.  Please note that e-mails are 
-susceptible to change and Ann'C Technologies shall not be liable for 
-any improper,untimely or incomplete transmission."
+Thanks and regards,
+B.Nagaraj,
+SANDS.
