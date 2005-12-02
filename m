@@ -1,11 +1,14 @@
-From: Graham Henstridge <graham@capgo.com>
-Subject: OMAP5912 and Intel P30 Flash
-Date: Fri, 2 Dec 2005 17:39:33 +1100
-Message-ID: <2CBB9620-2407-4313-9AE8-7222247BC0BD@capgo.com>
-Mime-Version: 1.0 (Apple Message framework v746.2)
-Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Romain Goyet <r.goyet@gmail.com>
+Subject: Re: OMAP5912 and Intel P30 Flash
+Date: Fri, 2 Dec 2005 14:06:34 +0100
+Message-ID: <8028e5750512020506p41b7b81fk@mail.gmail.com>
+References: <2CBB9620-2407-4313-9AE8-7222247BC0BD@capgo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <2CBB9620-2407-4313-9AE8-7222247BC0BD@capgo.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,20 +18,23 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: OMAP Linux mailing list <linux-omap-open-source@linux.omap.com>
+Cc: OMAP Linux mailing list <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+Hello everybody,
+ I'm still porting Linux to the Palm Tungsten E , and it happened that
+Linux stopped working when I upgraded from 2.6.13 to 2.6.15-rc2.
+ My biggest problem is that this board has _no_ UART nor JTAG, so
+it's _very_ difficult to debug. I managed to find out that the kernel
+crashes in paging_init, but I couldn't find out why.
+ Could you give me any suggestions ? In particular, I would like to
+know what changed in arch/arm/mm between 2.6.13 and 2.6.15, since
+2.6.13 was working like a charm.
+ What's rather weird is that it sounds to be working OK on other
+OMAP1510 devices. As the Tungsten E uses an OMAP310 which defines
+IS_OMAP_15XX, I don't really understand why it doesn't work as well on
+the OMAP310.
 
-A little off topic, but I don't know of a better list to ask ...
-Has anyone had any positive or negative experiences in using Intel's  
-new P30 Series Flash with OMAP5912. My main concern is with software  
-issues.
-The J3 Series is being obsoleted (or at least not further expanded)  
-by Intel, and the 256kb part is no longer available.
+Kind regards,
 
-Graham Henstridge
-Capgo Pty Ltd
-43-45 Galvin Street, Bendigo Vic 3550, Australia
-Email: graham@capgo.com, Web: www.capgo.com
-Tel: +61 (0)3 5442 4909
+Romain Goyet
