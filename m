@@ -1,10 +1,11 @@
-From: naga rajan <nagubk82@gmail.com>
-Subject: Uploading problem in OSK5912
-Date: Fri, 2 Dec 2005 11:21:21 +0530
-Message-ID: <7e6cc7550512012151m49fb0a97q2bcdbda5502281a8@mail.gmail.com>
+From: "Sampath Kumar C K" <sampath_kumar@annctech.com>
+Subject: Re: Linux-omap-open-source Digest, Vol 19, Issue 53
+Date: Fri, 02 Dec 2005 11:24:01 +0530
+Message-ID: <E1Ei3rt-0002fD-GS@cpanel2.interactivedns.com>
+Reply-To: sampath_kumar@annctech.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0898301242=="
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain; charset=iso-8859-1
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,37 +13,83 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============0898301242==
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+Hi Li,
 
-SGkgYWxsLAoKCgogICAgICAgICAgICBUaGlzIGlzIE5hZ2FyYWogZnJvbSBTYW5kcyBJbnN0cnVt
-ZW50YXRpb24gUHZ0IEx0ZCwgQ2hlbm5haS4gV2UKaGF2ZSBwcm9jdXJlZCB0aGUgT1NLNTkxMiBr
-aXQgZm9yIG91ciBhcHBsaWNhdGlvbiBkZXZlbG9wbWVudC4KCgoKICAgICAgICAgICAgSSBoYXZl
-IGZ1c2VkIHRoZSBrZXJuZWwgYW5kIGZpbGUgc3lzdGVtIG9uIHRvIHRoZSBib2FyZCB1c2luZwoi
-dGZ0cCIuIEkgdmVyaWZpZWQgdGhlIGF1ZGlvIGFwcGxpY2F0aW9uIHByb2dyYW0gcHJlc2VudCBp
-biB0aGUgZmlsZSBzeXN0ZW0uCkkgaGF2ZSBkZXZlbG9wZWQgYSBzaW1wbGUgYXBwbGljYXRpb24g
-dXNpbmcgQVJNIGNvbXBpbGVyIHByb3ZpZGVkIGluIHRoZQptb250YXZpc3RhIGxpbnV4IHByZXZp
-ZXcga2l0LgoKCgpJICB3b3VsZCBsaWtlIHRvIGtub3cKCiooaSlob3cgdG8gdXBsb2FkIGFuZCBl
-eGVjdXRlIHRoZSBhcHBsaWNhdGlvbnMgaW4gdGhlIGtlcm5lbCB3aXRob3V0IHVzaW5nCm5ldHdv
-cmsgc2VydmVyIGFjY2VzcyA/KgoKKioKCiooaWkpIGhvdyB0byBmdXNlIG15IGFwcGxpY2F0aW9u
-IGludG8gdGhlIGZsYXNoPyouCgoKCiooaWlpKUlzIHRoZXJlIGFueSB0ZXJtaW5hbCBwcm9ncmFt
-KGxpa2UgbWluaWNvbSxoeXBlcnRlcm1pbmFsKSB0byB1cGxvYWQKdGhlIGV4ZWN1dGFibGUgZmls
-ZSBpbnRvIHRoZSBrZXJuZWwgZm9yICJ0ZnRwIj8qLgoKCgpQbGVhc2UgcHJvdmlkZSBzb2x1dGlv
-biBmb3IgbXkgcHJvYmxlbXMgYW5kIHRoZSB0ZXJtaW5hbCB0aGF0IHN1cHBvcnRzCnVwbG9hZGlu
-ZyBmaWxlIGludG8gdGhlIGtlcm5lbC4KCgoKVGhhbmtzIGFuZCByZWdhcmRzhYWFCgpCLk5hZ2Fy
-YWphbiwKClNBTkRTIElOU1RSVU1FTlRBVElPTi4K
---===============0898301242==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+GTK + can support for Omap-5912. you can get info from this link
+http://www.celinuxforum.org/.../ITJ2005Detail1_2d4?action=AttachFile&do=get&target=OSK-OpenEmbedded.pdf
+
+Thanks,
+Sampath
 
 
---===============0898301242==--
+> Send Linux-omap-open-source mailing list submissions to
+> 	linux-omap-open-source@linux.omap.com
+> 
+> To subscribe or unsubscribe via the World Wide Web, visit
+> 	http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> or, via email, send a message with subject or body 'help' to
+> 	linux-omap-open-source-request@linux.omap.com
+> 
+> You can reach the person managing the list at
+> 	linux-omap-open-source-owner@linux.omap.com
+> 
+> When replying, please edit your Subject line so it is more specific
+> than "Re: Contents of Linux-omap-open-source digest..."
+> 
+> 
+> Today's Topics:
+> 
+>    1. Can omap5912 support gtk+ gui? (Li Weichen)
+> 
+> 
+> ----------------------------------------------------------------------
+> 
+> Message: 1
+> Date: Thu, 1 Dec 2005 00:30:54 +0800
+> From: "Li Weichen" <iaadoa@gmail.com>
+> Subject: Can omap5912 support gtk+ gui?
+> To: <linux-omap-open-source@linux.omap.com>
+> Message-ID: <438dd3c5.439b2fb7.54d3.2103@mx.gmail.com>
+> Content-Type: text/plain;	charset="us-ascii"
+> 
+> Hi all,
+> 
+> Does anybody have the experience or any idea of using gtk+ in omap5912
+> system?  Is it feasible to use gtk+ as the omap system's gui?  And is it
+> easy to develop with compared to Qt/E and Minigui?
+> 
+> Thanks and best regards.
+> 
+> 
+> Li Weichen
+> 2005-12-1
+> 
+> 
+> 
+> ------------------------------
+> 
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> 
+> 
+> End of Linux-omap-open-source Digest, Vol 19, Issue 53
+> ******************************************************
+> 
+> 
+
+
+-----------------------------------------------------------------------
+Disclaimer
+-----------------------------------------------------------------------
+"This message(including attachment if any)is confidential and may be 
+privileged. Any unauthorized use or dissemination of this message in 
+whole or in part is strictly prohibited.  Please note that e-mails are 
+susceptible to change and Ann'C Technologies shall not be liable for 
+any improper,untimely or incomplete transmission."
