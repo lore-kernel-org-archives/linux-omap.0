@@ -1,11 +1,12 @@
-From: Brian Swetland <swetland@google.com>
-Subject: [PATCH] fix omap keypad
-Date: Sat, 3 Dec 2005 02:27:34 -0800
-Message-ID: <20051203102734.GA12279@localhost.localdomain>
+From: naga rajan <nagubk82@gmail.com>
+Subject: Re: Uploading problem in OSK5912
+Date: Sat, 3 Dec 2005 17:33:49 +0530
+Message-ID: <7e6cc7550512030403u1a48a95cx2f3417e4b37bf121@mail.gmail.com>
+References: <520AB2AD990DC04082102F77CA17263801E541AE@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="bp/iNruPH9dso1Pn"
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-Type: multipart/mixed; boundary="===============0147002156=="
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <520AB2AD990DC04082102F77CA17263801E541AE@dlee03.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,71 +14,67 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "Menon, Nishanth" <x0nishan@ti.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-
---bp/iNruPH9dso1Pn
-Content-Type: text/plain; charset=us-ascii
+--===============0147002156==
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: base64
 Content-Disposition: inline
 
-
-- register an "omap-keypad" device so that the keypad
-  driver actually gets probed
-
-- initialize kp_tasklet.data so that we don't crash the
-  first time the keypad tasklet runs
-
-
---bp/iNruPH9dso1Pn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="omap-keypad.patch"
-
-diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-index 1bb1058..4aeb032 100644
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -99,6 +99,11 @@ static inline void omap_init_i2c(void) {
- 
- /*-------------------------------------------------------------------------*/
- #if	defined(CONFIG_KEYBOARD_OMAP) || defined(CONFIG_KEYBOARD_OMAP_MODULE)
-+static struct platform_device omap_kp_device = {
-+        .name           = "omap-keypad",
-+        .id             = -1,
-+};
-+
- static void omap_init_kp(void)
- {
- 	if (machine_is_omap_h2() || machine_is_omap_h3()) {
-@@ -127,6 +132,8 @@ static void omap_init_kp(void)
- 		omap_cfg_reg(F4_730_KBC3);
- 		omap_cfg_reg(E3_730_KBC4);
- 	}
-+
-+	(void) platform_device_register(&omap_kp_device);
- }
- #else
- static inline void omap_init_kp(void) {}
-diff --git a/drivers/input/keyboard/omap-keypad.c b/drivers/input/keyboard/omap-keypad.c
-index 15351bb..7e851e2 100644
---- a/drivers/input/keyboard/omap-keypad.c
-+++ b/drivers/input/keyboard/omap-keypad.c
-@@ -331,6 +331,7 @@ static int __init omap_kp_probe(struct p
- 
- 	/* get the irq and init timer*/
- 	tasklet_enable(&kp_tasklet);
-+	kp_tasklet.data = (unsigned long) omap_kp;
- 	if (request_irq(keypad_irq, omap_kp_interrupt, 0,
- 			"omap-keypad", 0) < 0)
- 		return -EINVAL;
-
---bp/iNruPH9dso1Pn
+RGVhciBOaXNoYW50aCwKCgoKICAgICAgICAgICAgICAgICAgICAgICAgSSBmb2xsb3dlZCB1cCAg
+dGhlIHN0ZXBzIGluIHRoZSBtYWlsIHdoYXQgdSBoYXZlCnNlbnQgZm9yIG15IHF1ZXJ5LiBJIHdl
+bnQgdGhyb3VnaCB0aGUgZG9jdW1lbnRhdGlvbiBhbmQgY29waWVkIHRoZQpmaWxlc3lzdGVtIHRv
+IHRoZSBmbGFzaC4gSSBtIHVzaW5nIHRoZSBrZXJuZWwgMi40LjIwLTguV2hpbGUgbW91bnRpbmcg
+dGhlCmZpbGVzeXN0ZW0gdG8gKi9tbnQvZmxhc2gqLCB0aGUgZm9sbG93aW5nIGVycm9yIG9jY3Vy
+cmVkLgoKCgoqbW91bnQgZnMgdHlwZSBqZmZzMiBub3Qgc3VwcG9ydGVkIGJ5IHRoZSBrZXJuZWwu
+KgoKCgogICAgICAgICAgICBJbiB0aGUgT1NLNTkxMiBndWlkZSwgaXQgaXMgbWVudGlvbmVkIHRv
+IHVzZSByZWRoYXQgNy85LkNvdWxkCnlvdSB0ZWxsIG1lIHRoZSB3YXkgdG8gZ2V0IGpmZnMyIGZv
+ciBrZXJuZWwgMi40LjIwLTggb3IgYW55IGNoYW5nZXMgdG8gYmUKZG9uZSB0byBnZXQgdGhlIHNv
+bHV0aW9uIGZvciB0aGUgYWJvdmUgcHJvYmxlbT8gV2FpdGluZyBmb3IgeW91ciBwb3NpdGl2ZQpy
+ZXBseS4KCgoKVGhhbmtzIGFuZCByZWdhcmRzhS4KCkIuTmFnYXJhamFuLAoKU0FORFMuCgoKT24g
+MTIvMi8wNSwgTWVub24sIE5pc2hhbnRoIDx4MG5pc2hhbkB0aS5jb20+IHdyb3RlOgo+Cj4gVGhp
+cyBpcyBhIGdlbmVyaWMgaXNzdWUsCj4gPiAqKGkpaG93IHRvIHVwbG9hZCBhbmQgZXhlY3V0ZSB0
+aGUgYXBwbGljYXRpb25zIGluIHRoZSBrZXJuZWwgd2l0aG91dAo+IHVzaW5nCj4gPiBuZXR3b3Jr
+IHNlcnZlciBhY2Nlc3MgPyoKPiBXaXRob3V0IHVzaW5nIGV0aGVybmV0LCBZb3UgaGF2ZSBsb3Rz
+IG9mIG9wdGlvbnM6Cj4ganRhZy9mbGFzaC91YXJ0L3VzYihvc3QgaG9zdCkgZXRjLi4gT25lIGV4
+Y2VsbGVudCBkb2N1bWVudGF0aW9uIEkgaGF2ZQo+IHNlZW4gZm9yIG9zayBpczogaHR0cDovL29z
+a2ZvcmR1bW1pZXMuaHAuaW5mb3NlZWsuY28uanAvaG93dG8uaHRtbC4gQWxzbwo+IHUgbWlnaHQg
+YmUgaW50ZXJlc3RlZCBpbiBjaGVja2luZyBvdXQKPiBodHRwOi8vbGludXgub21hcC5jb20vcHVi
+L2RvY3VtZW50YXRpb24vIGZvciBtb3JlIGRhdGEgKHNvbWUgZG9jcyBmcm9tCj4gb3RoZXIgcGxh
+dGZvcm1zIG1pZ2h0IGJlIGdlbmVyaWMgZW5vdWdoIHRvIGJlIHVzZWZ1bCkuIE9mY291cnNlLCBn
+b29nbGUKPiBpcyBhIG5pY2UgcGxhY2UgdG8gc3RhcnQgb2ZmLCBhbmQgc3VyZWx5IHlvdSBjYW4g
+dHJ5IGNoZWNraW5nIHRoaXMKPiBtYWlsaW5nIGxpc3QgYW5kIHRoZSBhcm0gbGludXggbWFpbGlu
+ZyBsaXN0IGFyY2hpdmVzIHRvby4uCj4KPiA+Cj4gPiAqKGlpKSBob3cgdG8gZnVzZSBteSBhcHBs
+aWNhdGlvbiBpbnRvIHRoZSBmbGFzaD8qLgo+ID4KPiBUbyBmbGFzaCBpdCB1c2UgdGhlIHVib290
+IGl0c2VsZihpZiB1IGFscmVhZHkgaGF2ZSBvbmUgdWJvb3Qgb24gYm9hcmQpIC0KPiBpdCBzaG91
+bGQgc3VwcG9ydCBmbGFzaGluZyBvcHRpb25zLiBQcm90ZWN0IG9mZiwgZXJhc2UgLCBjcCBjb21t
+YW5kcwo+IHNob3VsZCBiZSBnb29kIGVub3VnaCBmb3IgTk9SIGZsYXNoLiBUaGVyZSBpcyBoZWxw
+IGZvciB0aGUgc2FtZSB3aXRoaW4KPiB1Ym9vdCBpdHNlbGYgKHR5cGUgaGVscCBhdCB1Ym9vdCBj
+b21tYW5kIHByb21wdCkKPiBPciB1IGNhbiB1c2UgdGhlIG9zdCBob3N0IHRvb2wgYXMgZGVzY3Jp
+YmVkIGluIHRoZSBvc2tmb3JkdW1taWVzLgo+Cj4gPgo+ID4gKihpaWkpSXMgdGhlcmUgYW55IHRl
+cm1pbmFsIHByb2dyYW0obGlrZSBtaW5pY29tLGh5cGVydGVybWluYWwpIHRvCj4gdXBsb2FkCj4g
+PiB0aGUgZXhlY3V0YWJsZSBmaWxlIGludG8gdGhlIGtlcm5lbCBmb3IgInRmdHAiPyouCj4gT2su
+LiBJIGFzc3VtZSB0aGF0IHUgd291bGQgbGlrZSB0byBkb3dubG9hZCBrZXJuZWw/IE9yIGRvIHUg
+d2FudCB0bwo+IGRvd25sb2FkIGEgZmlsZXN5c3RlbT8gTGV0IG1lIHRyeSBlaXRoZXIgb25lIG9m
+IHRoZW0KPiBPbmJvYXJkLCB1IGNhbiB1c2UgdGhlIGxvYWRiIGNvbW1hbmQgdGhhdCBjYW4gdGFr
+ZSBhIGZpbGUKPiAodUltYWdlL3Vib290LmJpbi9zb21lIGJpbikgb3ZlciBzZXJpYWwgcG9ydCB1
+c2luZyBLZXJtaXQuIE9uY2UgdSBoYXZlIGEKPiBmaWxlc3lzdGVtIChlaXRoZXIgcmFtZGlzay9q
+ZmZzMiBiYXNlZCBmbGFzaC9uZnMgZmlsZXN5c3RlbSkgdSBjYW4gYm9vdAo+IHVyIGtlcm5lbC4g
+QnV0IGEga2VybmVsIGFsb25lIHdpbGwgbm90IGJlIG9mIG11Y2ggdXNlIHRvIHUuIHRoZSBhcHBz
+Cj4gbmVlZCB0byByZXNpZGUgb24gdGhlIGZpbGVzeXN0ZW0uIE9uY2UgdSBoYXZlIHRoZSBmaWxl
+c3lzdGVtIGlzCj4gYXZhaWxhYmxlIGFuZCB1IGhhdmUgc29tZSBzb3J0IG9mIHByb21wdCwgY2hl
+Y2sgdGhlIGZpbGVzeXN0ZW0gYXBwcwo+IGF2YWlsYWJsZS4gVGhleSBzaG91bGQgYmVoYXZlIGFz
+IGlmIHlvdSBhcmUgb24gYSBub3JtYWwgbGludXggYm94Lgo+Cj4gUmVnYXJkcywKPiBOaXNoYW50
+aCBNZW5vbgo+Cg==
+--===============0147002156==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---bp/iNruPH9dso1Pn--
+--===============0147002156==--
