@@ -1,7 +1,7 @@
 From: Todd Poynor <tpoynor@mvista.com>
-Subject: Fix audio driver miscompile
-Date: Fri, 2 Dec 2005 20:17:38 -0800
-Message-ID: <20051203041738.GA24673@slurryseal.ddns.mvista.com>
+Subject: Fix fb driver miscompile
+Date: Fri, 2 Dec 2005 20:26:52 -0800
+Message-ID: <20051203042652.GA25469@slurryseal.ddns.mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
@@ -18,28 +18,29 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Fix OMAP audio miscompile.
+Fix miscompile if CONFIG_FB_OMAP_LCDC_INTERNAL=n.
 
 ---
-commit b20b0ffcf86bcd9d814833f11b8989586ee122e2
-tree 51a5bf7a592529abb4d3319131d3e56a207c65dc
-parent 279a7045accc927dbb2b1d41691424c4d345489c
-author Todd Poynor <tpoynor@mvista.com> Fri, 02 Dec 2005 20:16:19 -0800
-committer Todd Poynor <tpoynor@mvista.com> Fri, 02 Dec 2005 20:16:19 -0800
+commit a0f7a1e5640376ffb1e4a01d601a24fb05bed5d7
+tree e8e922933de12aca63353f404f35930290eb30d4
+parent b20b0ffcf86bcd9d814833f11b8989586ee122e2
+author Todd Poynor <tpoynor@mvista.com> Fri, 02 Dec 2005 20:24:45 -0800
+committer Todd Poynor <tpoynor@mvista.com> Fri, 02 Dec 2005 20:24:45 -0800
 
- sound/oss/omap-audio.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/video/omap/omapfb_main.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/sound/oss/omap-audio.c b/sound/oss/omap-audio.c
-index 523dffd..3885700 100644
---- a/sound/oss/omap-audio.c
-+++ b/sound/oss/omap-audio.c
-@@ -360,7 +360,7 @@ static int audio_suspend(struct platform
-  * audio_resume(): Function to handle resume operations
-  *
-  *********************************************************************************/
--static int audio_resume(struct platform_device *dev)
-+static int audio_resume(struct platform_device *pdev)
- {
- 	int ret = 0;
+diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
+index 2c4098d..8aae102 100644
+--- a/drivers/video/omap/omapfb_main.c
++++ b/drivers/video/omap/omapfb_main.c
+@@ -1249,7 +1249,9 @@ static int omapfb_probe(struct platform_
+ 	init_MUTEX(&fbdev->rqueue_sema);
  
+ #ifdef CONFIG_ARCH_OMAP1
++#ifdef CONFIG_FB_OMAP_LCDC_INTERNAL
+ 	fbdev->int_ctrl = &omap1_int_ctrl;
++#endif
+ #ifdef CONFIG_FB_OMAP_LCDC_EXTERNAL
+ 	fbdev->ext_if = &sossi_extif;
+ #endif
