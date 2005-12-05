@@ -1,13 +1,14 @@
-From: "Yoo Sangwook-W21530" <sangwook@motorola.com>
-Subject: USB function by using ISP1105 in OMAP2420 H4 platform
-Date: Mon, 5 Dec 2005 09:29:34 +0800
-Message-ID: <96F412457F42204E96067F45143848B62D56A8@zmy16exm61.ds.mot.com>
+From: Imre Deak <imre.deak@nokia.com>
+Subject: Re: omapfb -- panel initialization inflexibility
+Date: Mon, 05 Dec 2005 14:35:54 +0200
+Message-ID: <1133786154.7902.11.camel@localhost.localdomain>
+References: <20051203034219.GA1516@localhost.localdomain>
+Reply-To: imre.deak@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-class: urn:content-classes:message
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20051203034219.GA1516@localhost.localdomain>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,33 +16,38 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: ext Brian Swetland <swetland@google.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi, my name is sangwook yoo.
-=20
-Currently, I try to using ISP1105 instead of ISP1301.
-Our team plan to remove ISP1301 and want to use only ISP1105.
-=20
-In source file, omap_usb1_init, omap_usb2_init was undefined and
-omap_usb0_init was defined.
-Especially, I want to use CDC ACM Communications class(one of Class
-drivers)
-Any help will be appreciated. Thank in advance.
-Sangwook.
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D
-  Sang-Wook Yoo
-  Staff Engineer / MKI
-  Advanced Technology Research Team, HW Group,
-  R&D Center. MKI
-  phone: +82 (0)2-2018-4473
-  mobile: +82 (0)11-9990-9950
-  e-mail: sangwook@motorola.com
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D
-=20
+Actually there is no requirement on calling panel->enable() before
+omapfb_set_update_mode(), which enables the LCD DMA. It's even possible
+to enable / disable the panel while having the LCD DMA active.
+
+So lets simply switch the order of the two calls in omapfb_probe and the
+suspend / resume functions. Please send a patch.
+
+--Imre
+
+On Fri, 2005-12-02 at 19:42 -0800, ext Brian Swetland wrote:
+> I have an lcd panel connected to a omap730 based system that *requires*
+> that MCK, HSYNC, and VSYNC are active when it is powered on.  It will
+> not initialize correctly otherwise.
+> 
+> I've modified my omapfb driver so that there is a new OMAP_LCDC_*
+> flag (OMAP_LCDC_PANEL_INIT_AFTER_LCDC) that determines if the
+> enable hook is called where it is in the existing driver, or if
+> it is called after omapfb_set_update_mode() returns.
+> 
+> Any objections to this workaround?  Any suggestions for a better
+> name for the flag?  Is there a better value than 0x200 for the flag?
+> 
+> Thanks,
+> 
+> Brian
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
