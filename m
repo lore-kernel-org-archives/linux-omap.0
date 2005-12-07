@@ -1,13 +1,14 @@
 From: Matthew Percival <matthew@capgo.com>
-Subject: RE: problems on building root filesystem using scratchbox and meamo
-Date: Thu, 08 Dec 2005 09:05:21 +1100
-Message-ID: <1133993121.8897.4.camel@localhost.localdomain>
-References: <43967db0.2fc92d15.13f7.2f8f@mx.gmail.com>
+Subject: Re: How to recovery shipped bootloader ?
+Date: Thu, 08 Dec 2005 09:08:29 +1100
+Message-ID: <1133993309.8897.8.camel@localhost.localdomain>
+References: <20051207171410.M24555@stmail.cgu.edu.tw>
+	<193d62450512070208p3044be29t1329e7c94de9bd4d@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <43967db0.2fc92d15.13f7.2f8f@mx.gmail.com>
+In-Reply-To: <193d62450512070208p3044be29t1329e7c94de9bd4d@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,24 +23,12 @@ List-Id: linux-omap@vger.kernel.org
 
 G'Day,
 
-> I use the command:
->   mkfs.jffs2 -p -l -e 0x20000 -n -v -r /home/xuxian/rootfs/fs -o
-> filesys.jffs2
-> to make the root filesystem image. 
+> http://omap.spectrumdigital.com/osk5912/factoryconfig
+> check this out, will solve your problem, I was having the similar one.
 
-	For my OSK, -e 0x20000 is the correct size; the command I use is
-basically the same as you.  
-
-> What size of the erase block will be fine? I can't access the file /proc/mtd
-> because I cannot mount the filesystem. Does the kernel determine the size of
-> erase block or anything else? Where can I set the erase block size?
-
-	If you mount your filesystem as an NFS root rather than an image, then
-you can read /proc/mtd, but I would say you are most likely correct in
-your erase size.
-
-	I am not familiar with scratchbox or maemo, so it is possible your
-problem relates to them, but I cannot be sure.  Sorry, I probably will
-not be of much help here.
+	In addition to that, especially if you do not use CCS or have a J-Tag
+emulator, there are two programs to automatically reflash u-boot for you
+using USB.  You can find more out about them here:
+http://tree.celinuxforum.org/CelfPubWiki/FlashRecoveryUtility
 
 	-- Matthew
