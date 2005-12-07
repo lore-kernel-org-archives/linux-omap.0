@@ -1,14 +1,12 @@
-From: "xuxian" <lsfdxuxian@gmail.com>
-Subject: RE: problems on building root filesystem using scratchbox and meamo
-Date: Wed, 7 Dec 2005 14:14:01 +0800
-Message-ID: <43967db0.2fc92d15.13f7.2f8f@mx.gmail.com>
-References: <1133820686.8836.2.camel@localhost.localdomain>
+From: naga rajan <nagubk82@gmail.com>
+Subject: Re: Re: Uploading problem in OSK5912
+Date: Wed, 7 Dec 2005 11:46:32 +0530
+Message-ID: <7e6cc7550512062216v1e998ad3i8766f12bf1a61b56@mail.gmail.com>
+References: <1133630614.mailspinnerdV5.1l@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0183110056=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1133820686.8836.2.camel@localhost.localdomain>
+In-Reply-To: <1133630614.mailspinnerdV5.1l@localhost>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,49 +16,113 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: 'Matthew Percival' <matthew@capgo.com>, 'Linux OMAP Open Source' <linux-omap-open-source@linux.omap.com>
+To: x0nishan@ti.com
+Cc: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Matthew,
+--===============0183110056==
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-I use the command:
-  mkfs.jffs2 -p -l -e 0x20000 -n -v -r /home/xuxian/rootfs/fs -o
-filesys.jffs2
-to make the root filesystem image. 
-Several weeks ago, I mad a filesystem image use the same command without
-scratchbox and maemo, and it work quite well. So I guess if the problem had
-something to do with the scratchbox and maemo?
-What size of the erase block will be fine? I can't access the file /proc/mtd
-because I cannot mount the filesystem. Does the kernel determine the size of
-erase block or anything else? Where can I set the erase block size?
+SGksCgogV2hpbGUgbW91bnRpbmcgdGhlIGZpbGVzeXN0ZW0gdXNpbmcgTkZTLCB0aGUgZm9sbG93
+aW5nIGVycm9yIG9jY3VycmVkLiBESENQCmNvbmZpZ3VyZXMgdGhlIElQIGFkZHJlc3MgcHJvcGVy
+bHkoMTkyLjE2OC4wLjE1MCkuIFdoYXQgY291bGQgYmUgdGhlCnByb2JsZW0/CgoKCkxvb2tpbmcg
+dXAgcG9ydCBvZiBSUEMgMTAwMDAzLzIgb24gMTkyLjE2OC4wLjEyMQoKTG9va2luZyB1cCBwb3J0
+IG9mIFJQQyAxMDAwMDUvMSBvbiAxOTIuMTY4LjAuMTIxCgpSb290LU5GUzogU2VydmVyIHJldHVy
+bmVkIGVycm9yIC0xMyB3aGlsZSBtb3VudGluZwovdGZ0cGJvb3Qvc2VydmVyaXA6L2hvbWUvc2Fj
+aAoKaW4vbW9udGF2aXN0YS9maWxlc3lzCgpWRlM6IFVuYWJsZSB0byBtb3VudCByb290IGZzIHZp
+YSBORlMsIHRyeWluZyBmbG9wcHkuCgpWRlM6IENhbm5vdCBvcGVuIHJvb3QgZGV2aWNlICJuZnMi
+IG9yIDAyOjAwCgpQbGVhc2UgYXBwZW5kIGEgY29ycmVjdCAicm9vdD0iIGJvb3Qgb3B0aW9uCgpL
+ZXJuZWwgcGFuaWM6IFZGUzogVW5hYmxlIHRvIG1vdW50IHJvb3QgZnMgb24gMDI6MDAKCgoKUGxl
+YXNlIHByb3ZpZGUgYSBzb2x1dGlvbiBmb3IgdGhpcyBwcm9ibGVtLgpUaGFua3MgaW4gYWR2YW5j
+ZSwKQi5OYWdhcmFqYW4sClNBTkRTLgoKCgoKT24gMTIvMy8wNSwgTmlzaGFudGggTWVub24gPHgw
+bmlzaGFuQGRsZW1haWx4Lml0Zy50aS5jb20+IHdyb3RlOgo+Cj4gPj4KPiA+Piptb3VudCBmcyB0
+eXBlIGpmZnMyIG5vdCBzdXBwb3J0ZWQgYnkgdGhlIGtlcm5lbC4qCj4gPj4KPiBQbGVhc2UgcmVh
+ZCB0aGUgc2VjdGlvbiBvbiBob3cgdG8gZW5hYmxlIEpmZnMyIGluIHRoZSBrZXJuZWwgLSBtYWtl
+Cj4gbWVudWNvbmZpZywgZmlsZXN5c3RlbSwgY2hlY2sgZm9yIE1URCBpZiBmbGFzaCBkcml2ZXIg
+aXMgZW5hYmxlZCBldGMuLgo+Cj4gSWYgdSBkb250IGhhdmUgamZmczIgYXZhaWxhYmxlIGNvbnNp
+ZGVyIHVzaW5nIHJhbWRpc2sgb3B0aW9uIHRvbyBpZiB1cgo+IGZpbGVzeXN0ZW0gaXMgc21hbGwg
+YW5kIHlvdSBkb250IGNhcmUgYWJvdXQgZmlsZXMgZ2VuZXJhdGVkL21vZGlmaWVkIGFmdGVyCj4g
+Ym9vdHVwLgo+Cj4gLS0tLS0tLS0tSW5jbHVkZWQgTWVzc2FnZS0tLS0tLS0tLS0KPiA+RGF0ZTog
+U2F0LCAzIERlYyAyMDA1IDA2OjE5OjQ1IC0wNjAwCj4gPkZyb206ICJKb3NlIE1hbnVlbCBDYW5v
+IEdhcmNpYSIgPGpjZ2FyY2lhQHVtYS5lcz4KPiA+VG86ICJuYWdhIHJhamFuIiA8bmFndWJrODJA
+Z21haWwuY29tPiwgIkxpbnV4IE9NQVAgT3BlbiBTb3VyY2UiIDwKPiBsaW51eC1vbWFwLW9wZW4t
+c291cmNlQGxpbnV4Lm9tYXAuY29tPgo+ID5TdWJqZWN0OiBSZTogVXBsb2FkaW5nIHByb2JsZW0g
+aW4gT1NLNTkxMgo+ID4KPiA+SGksCj4gPgo+ID5JbiB0aGUgaG93dG8gZnJvbSBvc2tmb3JkdW1t
+aWVzIGEgMi42IGtlcm5lbCBpcyByZWNvbW1lbmRlZC4gQW55d2F5LCBJCj4gPnN1cG9zZSB5b3Ug
+anVzdCBoYXZlIHRvIHJlY29tcGlsZSB0aGUga2VybmVsIHdpdGggamZmczIgZmlsZXN5c3RlbQo+
+ID5zdXBwb3J0IGFuZCByZWZsYXNoIGl0IHRvIHRoZSBvc2sgNTkxMiBib2FyZC4KPiA+Cj4gPk5l
+dmVydGhlbGVzcy4uLndoeSBhcmUgeW91IHJlZmxhc2hpbmcgdGhlIGJvYXJkIGlmIHlvdSBhcmUg
+dXNpbmcgdGhlCj4gPm9yaWdpbmFsIG1vbnRhdmlzdGEgcHJldmlldyBraXQ/IFdoeSBub3QganVz
+dCBkb3dubG9hZCBhIC50YXIgZmlsZSB3aXRoCj4gPnlvdXIgYXBwbGljYXRpb24gdG8gdGhlIGJv
+YXJkIG9yaWdpbmFsIGZpbGVzeXN0ZW0/Cj4gPgo+ID4KPiA+bmFnYSByYWphbiB3cm90ZToKPiA+
+Cj4gPj5EZWFyIE5pc2hhbnRoLAo+ID4+Cj4gPj4KPiA+Pgo+ID4+ICAgICAgICAgICAgICAgICAg
+ICAgICAgSSBmb2xsb3dlZCB1cCAgdGhlIHN0ZXBzIGluIHRoZSBtYWlsIHdoYXQgdSBoYXZlCj4g
+Pj5zZW50IGZvciBteSBxdWVyeS4gSSB3ZW50IHRocm91Z2ggdGhlIGRvY3VtZW50YXRpb24gYW5k
+IGNvcGllZCB0aGUKPiA+PmZpbGVzeXN0ZW0gdG8gdGhlIGZsYXNoLiBJIG0gdXNpbmcgdGhlIGtl
+cm5lbCAyLjQuMjAtOC5XaGlsZSBtb3VudGluZwo+IHRoZQo+ID4+ZmlsZXN5c3RlbSB0byAqL21u
+dC9mbGFzaCosIHRoZSBmb2xsb3dpbmcgZXJyb3Igb2NjdXJyZWQuCj4gPj4KPiA+Pgo+ID4+Cj4g
+Pj4qbW91bnQgZnMgdHlwZSBqZmZzMiBub3Qgc3VwcG9ydGVkIGJ5IHRoZSBrZXJuZWwuKgo+ID4+
+Cj4gPj4KPiA+Pgo+ID4+ICAgICAgICAgICAgSW4gdGhlIE9TSzU5MTIgZ3VpZGUsIGl0IGlzIG1l
+bnRpb25lZCB0byB1c2UgcmVkaGF0Cj4gNy85LkNvdWxkCj4gPj55b3UgdGVsbCBtZSB0aGUgd2F5
+IHRvIGdldCBqZmZzMiBmb3Iga2VybmVsIDIuNC4yMC04IG9yIGFueSBjaGFuZ2VzIHRvCj4gYmUK
+PiA+PmRvbmUgdG8gZ2V0IHRoZSBzb2x1dGlvbiBmb3IgdGhlIGFib3ZlIHByb2JsZW0/IFdhaXRp
+bmcgZm9yIHlvdXIKPiBwb3NpdGl2ZQo+ID4+cmVwbHkuCj4gPj4KPiA+Pgo+ID4+Cj4gPj5UaGFu
+a3MgYW5kIHJlZ2FyZHOFLgo+ID4+Cj4gPj5CLk5hZ2FyYWphbiwKPiA+Pgo+ID4+U0FORFMuCj4g
+Pj4KPiA+Pgo+ID4+T24gMTIvMi8wNSwgTWVub24sIE5pc2hhbnRoIDx4MG5pc2hhbkB0aS5jb20+
+IHdyb3RlOgo+ID4+Cj4gPj4KPiA+Pj5UaGlzIGlzIGEgZ2VuZXJpYyBpc3N1ZSwKPiA+Pj4KPiA+
+Pj4KPiA+Pj4+KihpKWhvdyB0byB1cGxvYWQgYW5kIGV4ZWN1dGUgdGhlIGFwcGxpY2F0aW9ucyBp
+biB0aGUga2VybmVsIHdpdGhvdXQKPiA+Pj4+Cj4gPj4+Pgo+ID4+PnVzaW5nCj4gPj4+Cj4gPj4+
+Cj4gPj4+Pm5ldHdvcmsgc2VydmVyIGFjY2VzcyA/Kgo+ID4+Pj4KPiA+Pj4+Cj4gPj4+V2l0aG91
+dCB1c2luZyBldGhlcm5ldCwgWW91IGhhdmUgbG90cyBvZiBvcHRpb25zOgo+ID4+Pmp0YWcvZmxh
+c2gvdWFydC91c2Iob3N0IGhvc3QpIGV0Yy4uIE9uZSBleGNlbGxlbnQgZG9jdW1lbnRhdGlvbiBJ
+IGhhdmUKPiA+Pj5zZWVuIGZvciBvc2sgaXM6IGh0dHA6Ly9vc2tmb3JkdW1taWVzLmhwLmluZm9z
+ZWVrLmNvLmpwL2hvd3RvLmh0bWwuCj4gQWxzbwo+ID4+PnUgbWlnaHQgYmUgaW50ZXJlc3RlZCBp
+biBjaGVja2luZyBvdXQKPiA+Pj5odHRwOi8vbGludXgub21hcC5jb20vcHViL2RvY3VtZW50YXRp
+b24vIGZvciBtb3JlIGRhdGEgKHNvbWUgZG9jcyBmcm9tCj4gPj4+b3RoZXIgcGxhdGZvcm1zIG1p
+Z2h0IGJlIGdlbmVyaWMgZW5vdWdoIHRvIGJlIHVzZWZ1bCkuIE9mY291cnNlLCBnb29nbGUKPiA+
+Pj5pcyBhIG5pY2UgcGxhY2UgdG8gc3RhcnQgb2ZmLCBhbmQgc3VyZWx5IHlvdSBjYW4gdHJ5IGNo
+ZWNraW5nIHRoaXMKPiA+Pj5tYWlsaW5nIGxpc3QgYW5kIHRoZSBhcm0gbGludXggbWFpbGluZyBs
+aXN0IGFyY2hpdmVzIHRvby4uCj4gPj4+Cj4gPj4+Cj4gPj4+Cj4gPj4+PiooaWkpIGhvdyB0byBm
+dXNlIG15IGFwcGxpY2F0aW9uIGludG8gdGhlIGZsYXNoPyouCj4gPj4+Pgo+ID4+Pj4KPiA+Pj4+
+Cj4gPj4+VG8gZmxhc2ggaXQgdXNlIHRoZSB1Ym9vdCBpdHNlbGYoaWYgdSBhbHJlYWR5IGhhdmUg
+b25lIHVib290IG9uIGJvYXJkKQo+IC0KPiA+Pj5pdCBzaG91bGQgc3VwcG9ydCBmbGFzaGluZyBv
+cHRpb25zLiBQcm90ZWN0IG9mZiwgZXJhc2UgLCBjcCBjb21tYW5kcwo+ID4+PnNob3VsZCBiZSBn
+b29kIGVub3VnaCBmb3IgTk9SIGZsYXNoLiBUaGVyZSBpcyBoZWxwIGZvciB0aGUgc2FtZSB3aXRo
+aW4KPiA+Pj51Ym9vdCBpdHNlbGYgKHR5cGUgaGVscCBhdCB1Ym9vdCBjb21tYW5kIHByb21wdCkK
+PiA+Pj5PciB1IGNhbiB1c2UgdGhlIG9zdCBob3N0IHRvb2wgYXMgZGVzY3JpYmVkIGluIHRoZSBv
+c2tmb3JkdW1taWVzLgo+ID4+Pgo+ID4+Pgo+ID4+Pgo+ID4+Pj4qKGlpaSlJcyB0aGVyZSBhbnkg
+dGVybWluYWwgcHJvZ3JhbShsaWtlIG1pbmljb20saHlwZXJ0ZXJtaW5hbCkgdG8KPiA+Pj4+Cj4g
+Pj4+Pgo+ID4+PnVwbG9hZAo+ID4+Pgo+ID4+Pgo+ID4+Pj50aGUgZXhlY3V0YWJsZSBmaWxlIGlu
+dG8gdGhlIGtlcm5lbCBmb3IgInRmdHAiPyouCj4gPj4+Pgo+ID4+Pj4KPiA+Pj5Pay4uIEkgYXNz
+dW1lIHRoYXQgdSB3b3VsZCBsaWtlIHRvIGRvd25sb2FkIGtlcm5lbD8gT3IgZG8gdSB3YW50IHRv
+Cj4gPj4+ZG93bmxvYWQgYSBmaWxlc3lzdGVtPyBMZXQgbWUgdHJ5IGVpdGhlciBvbmUgb2YgdGhl
+bQo+ID4+Pk9uYm9hcmQsIHUgY2FuIHVzZSB0aGUgbG9hZGIgY29tbWFuZCB0aGF0IGNhbiB0YWtl
+IGEgZmlsZQo+ID4+Pih1SW1hZ2UvdWJvb3QuYmluL3NvbWUgYmluKSBvdmVyIHNlcmlhbCBwb3J0
+IHVzaW5nIEtlcm1pdC4gT25jZSB1IGhhdmUKPiBhCj4gPj4+ZmlsZXN5c3RlbSAoZWl0aGVyIHJh
+bWRpc2svamZmczIgYmFzZWQgZmxhc2gvbmZzIGZpbGVzeXN0ZW0pIHUgY2FuIGJvb3QKPiA+Pj51
+ciBrZXJuZWwuIEJ1dCBhIGtlcm5lbCBhbG9uZSB3aWxsIG5vdCBiZSBvZiBtdWNoIHVzZSB0byB1
+LiB0aGUgYXBwcwo+ID4+Pm5lZWQgdG8gcmVzaWRlIG9uIHRoZSBmaWxlc3lzdGVtLiBPbmNlIHUg
+aGF2ZSB0aGUgZmlsZXN5c3RlbSBpcwo+ID4+PmF2YWlsYWJsZSBhbmQgdSBoYXZlIHNvbWUgc29y
+dCBvZiBwcm9tcHQsIGNoZWNrIHRoZSBmaWxlc3lzdGVtIGFwcHMKPiA+Pj5hdmFpbGFibGUuIFRo
+ZXkgc2hvdWxkIGJlaGF2ZSBhcyBpZiB5b3UgYXJlIG9uIGEgbm9ybWFsIGxpbnV4IGJveC4KPiA+
+Pj4KPiA+Pj5SZWdhcmRzLAo+ID4+Pk5pc2hhbnRoIE1lbm9uCj4gPj4+Cj4gPj4+Cj4gPj4+Cj4K
+PiA+Pj4tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0KPiA+Pj4KPiA+Pj5fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwo+ID4+PkxpbnV4LW9tYXAtb3Blbi1zb3VyY2UgbWFpbGlu
+ZyBsaXN0Cj4gPj4+TGludXgtb21hcC1vcGVuLXNvdXJjZUBsaW51eC5vbWFwLmNvbQo+ID4+Pmh0
+dHA6Ly9saW51eC5vbWFwLmNvbS9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW9tYXAtb3Blbi1zb3Vy
+Y2UKPiA+Pj4KPiA+Pj4KPiA+Cj4gPl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCj4gPkxpbnV4LW9tYXAtb3Blbi1zb3VyY2UgbWFpbGluZyBsaXN0Cj4gPkxp
+bnV4LW9tYXAtb3Blbi1zb3VyY2VAbGludXgub21hcC5jb20KPiA+aHR0cDovL2xpbnV4Lm9tYXAu
+Y29tL21haWxtYW4vbGlzdGluZm8vbGludXgtb21hcC1vcGVuLXNvdXJjZQo+ID4KPiA+Cj4gLS0t
+LS0tLS0tRW5kIG9mIEluY2x1ZGVkIE1lc3NhZ2UtLS0tLS0tLS0tCj4KPgo+Cg==
+--===============0183110056==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Thank you and best regards
 
-xuxian
-
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Matthew
-Percival
-Sent: Tuesday, December 06, 2005 6:11 AM
-To: Linux OMAP Open Source
-Subject: Re: problems on building root filesystem using scratchbox and meamo
-
-G'Day,
-
-> Perhaps the file system was created with the wrong erase size?
-
-	Could you share the command you used to make the filesystem image?
-It
-seems likely you did not use the correct erase size. Try this command:
-		# cat /proc/mtd
-It will tell you the correct erase block size.  If you used a size
-different to this (mkfs.jffs2 -e 0x####) then you will get errors like
-you have seen here.
-
-	-- Matthew
-
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+--===============0183110056==--
