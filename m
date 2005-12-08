@@ -1,17 +1,13 @@
-From: Nirav Jani <nirav.jani@gmail.com>
-Subject: How to recovery shipped bootloader ?
-Date: Thu, 8 Dec 2005 09:45:28 +0530
-Message-ID: <193d62450512072015re7576d1l25a2ec303f906640@mail.gmail.com>
-References: <20051207171410.M24555@stmail.cgu.edu.tw>
-	<193d62450512070208p3044be29t1329e7c94de9bd4d@mail.gmail.com>
-	<1133993309.8897.8.camel@localhost.localdomain>
-	<193d62450512072014t14ef7a94m902f613da5a39380@mail.gmail.com>
+From: Kristian Mueller <Kristian-M@kristian-m.de>
+Subject: Re: Problem in arch/arm/mm between 2.6.13-rc1 and 2.6.15-rc2
+Date: Thu, 08 Dec 2005 09:33:30 +0100
+Message-ID: <1134030810.2994.30.camel@pismo>
+References: <8028e5750512020508g68c5fe5fl@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <193d62450512072014t14ef7a94m902f613da5a39380@mail.gmail.com>
-Content-Disposition: inline
+In-Reply-To: <8028e5750512020508g68c5fe5fl@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,32 +17,23 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Romain Goyet <r.goyet@gmail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-The problem with fru is to find out a male to male usb cable, if you can, i=
-t
-is good one,
- nirav
+Hi Romain
+
+> I managed to find out that the kernel
+> crashes in paging_init, but I couldn't find out why.
+>  Could you give me any suggestions ? In particular, I would like to
+> know what changed in arch/arm/mm between 2.6.13 and 2.6.15, since
+> 2.6.13 was working like a charm.
+
+You can see the changes made in arch/arm/mm/init.c in the git history at
+http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=history;f=arch/arm/mm/init.c
+
+Maybe you can try older versions to isolate the date of the patch...
 
 
- On 12/8/05, Matthew Percival <matthew@capgo.com> wrote:
->
-> G'Day,
->
-> > http://omap.spectrumdigital.com/osk5912/factoryconfig
-> > check this out, will solve your problem, I was having the similar one.
->
->        In addition to that, especially if you do not use CCS or have a
-> J-Tag
-> emulator, there are two programs to automatically reflash u-boot for you
-> using USB.  You can find more out about them here:
-> http://tree.celinuxforum.org/CelfPubWiki/FlashRecoveryUtility
->
->        -- Matthew
->
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
+Best Regards
+Kristian
