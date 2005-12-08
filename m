@@ -1,13 +1,11 @@
-From: Kristian Mueller <Kristian-M@kristian-m.de>
-Subject: Re: Problem in arch/arm/mm between 2.6.13-rc1 and 2.6.15-rc2
-Date: Thu, 08 Dec 2005 09:33:30 +0100
-Message-ID: <1134030810.2994.30.camel@pismo>
-References: <8028e5750512020508g68c5fe5fl@mail.gmail.com>
+From: nitesh ranjan <nit_ranjan@yahoo.com>
+Subject: Booting problem !!
+Date: Thu, 8 Dec 2005 02:01:42 -0800 (PST)
+Message-ID: <20051208100142.13344.qmail@web50715.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <8028e5750512020508g68c5fe5fl@mail.gmail.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,25 +13,26 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Romain Goyet <r.goyet@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Romain
 
-> I managed to find out that the kernel
-> crashes in paging_init, but I couldn't find out why.
->  Could you give me any suggestions ? In particular, I would like to
-> know what changed in arch/arm/mm between 2.6.13 and 2.6.15, since
-> 2.6.13 was working like a charm.
+when I connect osk5912 and start minicom..it does not
+show anything..(earlier it was booting..)thr is no
+power on the ethernet leds .Also..in windows after
+connecting thr hypertrm .osk doesnot boot at all .
+What I did was ..loading my fresh compiled kernel
+uImage into osk5912..(version D)..an error has occured
+..an flash was not erased at some location ..and wht i
+did.. I typed bootm ..then it loaded linux.. and after
+entering ..it hanged ..then.. i pressed reset
+button.Since then , thr is no booting ..at all
+..nothing is being shown .
+Plz suggest wht to do and what had happened :(
 
-You can see the changes made in arch/arm/mm/init.c in the git history at
-http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=history;f=arch/arm/mm/init.c
-
-Maybe you can try older versions to isolate the date of the patch...
-
-
-Best Regards
-Kristian
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
