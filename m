@@ -1,13 +1,15 @@
-From: Paul Lever <paull@codetelligence.com>
+From: embedos <embedos@gmail.com>
 Subject: Re: Can the driver of a wlan card for PC be used in embedded sytems?
-Date: Thu, 08 Dec 2005 09:07:06 -0800
-Message-ID: <6.2.1.2.0.20051208090434.032835c0@mail.codetelligence.com>
-References: <20051208155515.A6014807D2@linux.omap.com>
+Date: Fri, 9 Dec 2005 08:56:37 +0800
+Message-ID: <7dc7802e0512081656r4077975dm@mail.gmail.com>
+References: <7dc7802e0512080806n3fd10834s@mail.gmail.com>
+	<439863e9.622d3de6.25c5.0c75@mx.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20051208155515.A6014807D2@linux.omap.com>
-References: <20051208155515.A6014807D2@linux.omap.com>
+In-Reply-To: <439863e9.622d3de6.25c5.0c75@mx.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,38 +19,90 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Li Weichen <iaadoa@gmail.com>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Socket Communications can supply Linux drivers for their E-300 WiFi SDIO 
-card. I'm sure there are other vendors that have drivers available too.
-http://www.socketcom.com/
+unfortunately, yes.
+you will need usb 2.0 interface to access the full speed of the 80211g wlan
+card.
 
-Paul
-www.codetelligence.com
-At 07:55 AM 12/8/2005, linux-omap-open-source-request@linux.omap.com wrote:
->Date: Thu, 8 Dec 2005 22:45:39 +0800
->From: "Li Weichen" <iaadoa@gmail.com>
->Subject: Can the driver of a wlan card for PC be used in embedded
->         sytems?
->To: <linux-arm@lists.arm.linux.org.uk>, "Linux-wlan-user Maillist"
->         <Linux-Wlan-User@Lists.Linux-Wlan.Com>,
->         <linux-omap-open-source@linux.omap.com>
->Message-ID: <4398471c.3cbd3f73.5837.ffffe958@mx.gmail.com>
->Content-Type: text/plain;       charset="US-ASCII"
+
+2005/12/9, Li Weichen <iaadoa@gmail.com>:
 >
->Hi all,
+>  Then do you connected it to the usb1.1 port of omap?  Will the interface
+> speed limits the wifi performance?
 >
->Is there anybody can tell me that if I can use the wlan card driver for PC
->in the embedded system?  I guess that there is something related to the
->interface.  Then if I use usb will it work?  Or do I need to modify some
->settings in the source code?
 >
->By the way can anybody give me some advice on card selection?  Anything
->related to vendors, chips, drivers, interfaces and so on would be helpful.
->Better 802.11g cards.
 >
->Thank you all in advance and best regards!
+> Thanks again.
 >
->Li Weichen
->2005-12-8
+>
+>   ------------------------------
+>
+> *From:* embedos [mailto:embedos@gmail.com]
+> *Sent:* Friday, December 09, 2005 12:07 AM
+> *To:* Li Weichen
+> *Cc:* Linux-omap-open-source@linux.omap.com
+> *Subject:* Re: Can the driver of a wlan card for PC be used in embedded
+> sytems?
+>
+>
+>
+> You are a lucky guy!
+>
+> I just did a similiar work today.
+>
+> you can buy this wlan card: asus w167g (usb)
+>
+> and get driver from here:
+>
+> http://rt2x00.serialmonkey.com/rt2570-cvs-daily.tar.gz (for 2.6 kernel)
+>
+>
+>
+> untar,
+>
+> edit Makefile and specify your kernel source directory,
+>
+> make arm
+>
+> insmod ra2570.ko
+>
+> then using iwconfig to config your wlan card
+>
+> done
+>
+>
+>
+>
+>
+>
+> 2005/12/8, Li Weichen <iaadoa@gmail.com>:
+>
+> Hi all,
+>
+> Is there anybody can tell me that if I can use the wlan card driver for P=
+C
+> in the embedded system?  I guess that there is something related to the
+> interface.  Then if I use usb will it work?  Or do I need to modify some
+> settings in the source code?
+>
+> By the way can anybody give me some advice on card selection?  Anything
+> related to vendors, chips, drivers, interfaces and so on would be helpful=
+.
+>
+> Better 802.11g cards.
+>
+> Thank you all in advance and best regards!
+>
+> Li Weichen
+> 2005-12-8
+>
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
+>
+>
