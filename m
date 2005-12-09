@@ -1,10 +1,11 @@
-From: "Mihail Georgiev" <georgiev@students.cc.tut.fi>
-Subject: OMAP touchscreen
-Date: Fri, 09 Dec 2005 14:21:31 +0200
-Message-ID: <op.s1im95jptqqdru@tsunami.it.tut.fi>
+From: "Student" <student@sonsys.de>
+Subject: Communication DSP to GPP (RF6)
+Date: Fri, 9 Dec 2005 13:33:34 +0100
+Message-ID: <009001c5fcbc$c8e21c80$b410a8c0@nb1xp>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,23 +19,20 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+Hi all,
 
-  I want to ask you about touchscreen events in OMAP system within gcc..
+we work with the omap5912osk.
+We are evaluating the reference framework RF6, the manual number is
+SPRA796A originally supplied by Texas Instruments. The problem we have
+is to establish communication between the GPP and the DSP onboard (cf.
+figure 29 omn page 53 of this document). While GPP can transmit messages
+and data to the DSP, we don't succeed with communication vice versa,
+specifically with the greyed MSGQ (Status Task/DSP -_ Status
+pThread/GPP). Therefore we don't see the heartbeats.
 
-  I am using omap innovator 1510..and i need to catch touch on screen..
-  Because I am newbie in linux, please provide me some help:
-  I need to know - what kind of drivers must to be in linux (and how to
-  understand whether i have them)
-  How to install these drivers..
-  What kind of gcc libraries i need for that..
-  and...how to catch this event (whether there are already available
-source
-  examples for that..)
+I think the error is on the DSP side.
+On the GPP side is the MSGQ_create and the DSP-side must locate this message 
+queue
 
-I have already tried the sample code in OMAP innovator software CD-
-touchscreen.c - but it not received events from touch screen...
-Did somebody tried to start this sample ?
-
-  Thank You in advance..
-   and have a nice day
+Regards,
+Andre 
