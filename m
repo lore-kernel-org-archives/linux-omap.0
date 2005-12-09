@@ -1,13 +1,12 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: OMAP touchscreen
-Date: Fri, 9 Dec 2005 04:40:58 -0800 (PST)
-Message-ID: <20051209124058.38181.qmail@web32908.mail.mud.yahoo.com>
-References: <op.s1im95jptqqdru@tsunami.it.tut.fi>
+From: naga rajan <nagubk82@gmail.com>
+Subject: Re: Re: Uploading problem in OSK5912
+Date: Fri, 9 Dec 2005 18:29:32 +0530
+Message-ID: <7e6cc7550512090459i8162cd3j44e5d27216a44dda@mail.gmail.com>
+References: <520AB2AD990DC04082102F77CA17263801F15E3C@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="===============0515611555=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <op.s1im95jptqqdru@tsunami.it.tut.fi>
+In-Reply-To: <520AB2AD990DC04082102F77CA17263801F15E3C@dlee03.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,50 +16,136 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Mihail Georgiev <georgiev@students.cc.tut.fi>, linux-omap-open-source@linux.omap.com
+To: "Menon, Nishanth" <x0nishan@ti.com>
+Cc: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
---- Mihail Georgiev <georgiev@students.cc.tut.fi> wrote:
+--===============0515611555==
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-> Hello,
-> 
->   I want to ask you about touchscreen events in OMAP system within
-> gcc..
-> 
->   I am using omap innovator 1510..and i need to catch touch on
-> screen..
->   Because I am newbie in linux, please provide me some help:
->   I need to know - what kind of drivers must to be in linux (and how
-> to
->   understand whether i have them)
->   How to install these drivers..
->   What kind of gcc libraries i need for that..
->   and...how to catch this event (whether there are already available
-> source
->   examples for that..)
-> 
-> I have already tried the sample code in OMAP innovator software CD-
-> touchscreen.c - but it not received events from touch screen...
-> Did somebody tried to start this sample ?
+SGkgTmlzaGFudGgsCgogICAgICAgICAgICAgIEkgdHJpZWQgdG8gbW91bnQgdGhlIG5mcyBiZXR3
+ZWVuIHR3byBsaW51eCBtYWNoaW5lcyB3aXRoCiAgIm1vdW50IC10IG5mcyA8c2VydmVycGF0aD46
+PG1udHBhdGg+IC1vLi4uLi4uLi4uLi4uLmFzIHlvdSBtZW50aW9uZWQgd2l0aApzZXJ2ZXIgaXAg
+YW5kIGV4cG9ydCBwYXRoLkJ1dCBjb3VsZCBub3QgYWJsZSB0byBtb3VudCB0aGUgZmlsZSBzeXN0
+ZW0uSSBtCmdldHRpbmcgdGhlIGVycm9yIHN0YXRlZCBhcyAqUlBDOnRpbWVkKiAqb3V0Ki5QbGVh
+c2UgcHJvdmlkZSBhIHNvbHV0aW9uIGFzCndlIGdvdCBzdHJ1Y2sgd2l0aCB0aGlzIHBhcnRpY3Vs
+YXIgc3RlcC4KClRoYW5rcyBhbmQgcmVnYXJkcywKQi5OYWdhcmFqYW4sClNBTkRTLgoKCk9uIDEy
+LzcvMDUsIE1lbm9uLCBOaXNoYW50aCA8eDBuaXNoYW5AdGkuY29tPiB3cm90ZToKPgo+ICBIaSBO
+YWdhcmFqYW4sCj4KPiBJIFVzZSBzb21ldGhpbmcgYXMgZm9sbG93czoKPgo+IHNldGVudiBib290
+YXJncyAnbWVtPTMyTSBjb25zb2xlPXR0eVMwLDExNTIwMG44IG5vaW5pdHJkIHJvb3Q9L2Rldi9u
+ZnMgcncKPiBuZnNyb290PTxzZXJ2ZXJJUD46PE1udFBhdGg+LHZlcnM9Mixyc2l6ZT0xMDI0LHdz
+aXplPTEwMjQgaXA9ZGhjcAo+IGRldmZzPW1vdW50Jwo+Cj4gZm9yIGEgMi40IGtlcm5lbC4KPgo+
+IENoZWNrIGlmIHlvdSBhcmUgYWJsZSB0byBkbyBhICJtb3VudCCWdCBuZnMgJzxzZXJ2ZXJJUD46
+PE1udFBhdGg+JyCWbwo+ICd2ZXJzPTIscnNpemU9MTAyNCx3c2l6ZT0xMDI0JyIgZnJvbSBhbm90
+aGVyIGxpbnV4IGJveC4gSWYgdGhpcyB3b3JrcywgdGhlbgo+IHRoZSBhYm92ZSBib290IGFyZ3Mg
+c2hvdWxkIHdvcmsuCj4KPiBOb3RlOiB0aGUgdmVycyBhcmd1bWVudCBpcyBuZWVkZWQgZm9yIHNv
+bWUgbmZzIHNlcnZlcnMuLgo+Cj4gUmVnYXJkcywKPgo+IE5pc2hhbnRoIE1lbm9uCj4KPgo+Cj4K
+PiAgIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+Cj4gKkZyb206KiBuYWdhIHJhamFu
+IFttYWlsdG86bmFndWJrODJAZ21haWwuY29tXQo+ICpTZW50OiogV2VkbmVzZGF5LCBEZWNlbWJl
+ciAwNywgMjAwNSAxMjoxNyBBTQo+ICpUbzoqIE1lbm9uLCBOaXNoYW50aAo+ICpDYzoqIEpvc2Ug
+TWFudWVsIENhbm8gR2FyY2lhOyBMaW51eCBPTUFQIE9wZW4gU291cmNlCj4gKlN1YmplY3Q6KiBS
+ZTogUmU6IFVwbG9hZGluZyBwcm9ibGVtIGluIE9TSzU5MTIKPgo+Cj4KPiBIaSwKPgo+Cj4gIFdo
+aWxlIG1vdW50aW5nIHRoZSBmaWxlc3lzdGVtIHVzaW5nIE5GUywgdGhlIGZvbGxvd2luZyBlcnJv
+ciBvY2N1cnJlZC4KPiBESENQIGNvbmZpZ3VyZXMgdGhlIElQIGFkZHJlc3MgcHJvcGVybHkoMTky
+LjE2OC4wLjE1MCkuIFdoYXQgY291bGQgYmUgdGhlCj4gcHJvYmxlbT8KPgo+Cj4KPiBMb29raW5n
+IHVwIHBvcnQgb2YgUlBDIDEwMDAwMy8yIG9uIDE5Mi4xNjguMC4xMjEKPgo+IExvb2tpbmcgdXAg
+cG9ydCBvZiBSUEMgMTAwMDA1LzEgb24gMTkyLjE2OC4wLjEyMQo+Cj4gUm9vdC1ORlM6IFNlcnZl
+ciByZXR1cm5lZCBlcnJvciAtMTMgd2hpbGUgbW91bnRpbmcKPiAvdGZ0cGJvb3Qvc2VydmVyaXA6
+L2hvbWUvc2FjaAo+Cj4gaW4vbW9udGF2aXN0YS9maWxlc3lzCj4KPiBWRlM6IFVuYWJsZSB0byBt
+b3VudCByb290IGZzIHZpYSBORlMsIHRyeWluZyBmbG9wcHkuCj4KPiBWRlM6IENhbm5vdCBvcGVu
+IHJvb3QgZGV2aWNlICJuZnMiIG9yIDAyOjAwCj4KPiBQbGVhc2UgYXBwZW5kIGEgY29ycmVjdCAi
+cm9vdD0iIGJvb3Qgb3B0aW9uCj4KPiBLZXJuZWwgcGFuaWM6IFZGUzogVW5hYmxlIHRvIG1vdW50
+IHJvb3QgZnMgb24gMDI6MDAKPgo+Cj4KPiBQbGVhc2UgcHJvdmlkZSBhIHNvbHV0aW9uIGZvciB0
+aGlzIHByb2JsZW0uCj4KPiBUaGFua3MgaW4gYWR2YW5jZSwKPgo+IEIuTmFnYXJhamFuLAo+Cj4g
+U0FORFMuCj4KPgo+Cj4KPgo+Cj4gT24gMTIvMy8wNSwgKk5pc2hhbnRoIE1lbm9uKiA8eDBuaXNo
+YW5AZGxlbWFpbHguaXRnLnRpLmNvbT4gd3JvdGU6Cj4KPiA+Pgo+ID4+Km1vdW50IGZzIHR5cGUg
+amZmczIgbm90IHN1cHBvcnRlZCBieSB0aGUga2VybmVsLioKPiA+Pgo+IFBsZWFzZSByZWFkIHRo
+ZSBzZWN0aW9uIG9uIGhvdyB0byBlbmFibGUgSmZmczIgaW4gdGhlIGtlcm5lbCAtIG1ha2UKPiBt
+ZW51Y29uZmlnLCBmaWxlc3lzdGVtLCBjaGVjayBmb3IgTVREIGlmIGZsYXNoIGRyaXZlciBpcyBl
+bmFibGVkIGV0Yy4uCj4KPiBJZiB1IGRvbnQgaGF2ZSBqZmZzMiBhdmFpbGFibGUgY29uc2lkZXIg
+dXNpbmcgcmFtZGlzayBvcHRpb24gdG9vIGlmIHVyCj4gZmlsZXN5c3RlbSBpcyBzbWFsbCBhbmQg
+eW91IGRvbnQgY2FyZSBhYm91dCBmaWxlcyBnZW5lcmF0ZWQvbW9kaWZpZWQgYWZ0ZXIKPiBib290
+dXAuCj4KPiAtLS0tLS0tLS1JbmNsdWRlZCBNZXNzYWdlLS0tLS0tLS0tLQo+ID5EYXRlOiBTYXQs
+IDMgRGVjIDIwMDUgMDY6MTk6NDUgLTA2MDAKPiA+RnJvbTogIkpvc2UgTWFudWVsIENhbm8gR2Fy
+Y2lhIiA8amNnYXJjaWFAdW1hLmVzPgo+ID5UbzogIm5hZ2EgcmFqYW4iIDxuYWd1Yms4MkBnbWFp
+bC5jb20+LCAiTGludXggT01BUCBPcGVuIFNvdXJjZSIgPAo+IGxpbnV4LW9tYXAtb3Blbi1zb3Vy
+Y2VAbGludXgub21hcC5jb20+Cj4gPlN1YmplY3Q6IFJlOiBVcGxvYWRpbmcgcHJvYmxlbSBpbiBP
+U0s1OTEyCj4gPgo+ID5IaSwKPiA+Cj4gPkluIHRoZSBob3d0byBmcm9tIG9za2ZvcmR1bW1pZXMg
+YSAyLjYga2VybmVsIGlzIHJlY29tbWVuZGVkLiBBbnl3YXksIEkKPiA+c3Vwb3NlIHlvdSBqdXN0
+IGhhdmUgdG8gcmVjb21waWxlIHRoZSBrZXJuZWwgd2l0aCBqZmZzMiBmaWxlc3lzdGVtCj4gPnN1
+cHBvcnQgYW5kIHJlZmxhc2ggaXQgdG8gdGhlIG9zayA1OTEyIGJvYXJkLgo+ID4KPiA+TmV2ZXJ0
+aGVsZXNzLi4ud2h5IGFyZSB5b3UgcmVmbGFzaGluZyB0aGUgYm9hcmQgaWYgeW91IGFyZSB1c2lu
+ZyB0aGUKPiA+b3JpZ2luYWwgbW9udGF2aXN0YSBwcmV2aWV3IGtpdD8gV2h5IG5vdCBqdXN0IGRv
+d25sb2FkIGEgLnRhciBmaWxlIHdpdGgKPiA+eW91ciBhcHBsaWNhdGlvbiB0byB0aGUgYm9hcmQg
+b3JpZ2luYWwgZmlsZXN5c3RlbT8KPiA+Cj4gPgo+ID5uYWdhIHJhamFuIHdyb3RlOgo+ID4KPiA+
+PkRlYXIgTmlzaGFudGgsCj4gPj4KPiA+Pgo+ID4+Cj4gPj4gICAgICAgICAgICAgICAgICAgICAg
+ICBJIGZvbGxvd2VkIHVwICB0aGUgc3RlcHMgaW4gdGhlIG1haWwgd2hhdCB1IGhhdmUKPiA+PnNl
+bnQgZm9yIG15IHF1ZXJ5LiBJIHdlbnQgdGhyb3VnaCB0aGUgZG9jdW1lbnRhdGlvbiBhbmQgY29w
+aWVkIHRoZQo+ID4+ZmlsZXN5c3RlbSB0byB0aGUgZmxhc2guIEkgbSB1c2luZyB0aGUga2VybmVs
+IDIuNC4yMC04LldoaWxlIG1vdW50aW5nCj4gdGhlCj4gPj5maWxlc3lzdGVtIHRvICovbW50L2Zs
+YXNoKiwgdGhlIGZvbGxvd2luZyBlcnJvciBvY2N1cnJlZC4KPiA+Pgo+ID4+Cj4gPj4KPiA+Pipt
+b3VudCBmcyB0eXBlIGpmZnMyIG5vdCBzdXBwb3J0ZWQgYnkgdGhlIGtlcm5lbC4qCj4gPj4KPiA+
+Pgo+ID4+Cj4gPj4gICAgICAgICAgICBJbiB0aGUgT1NLNTkxMiBndWlkZSwgaXQgaXMgbWVudGlv
+bmVkIHRvIHVzZSByZWRoYXQKPiA3LzkuQ291bGQKPiA+PnlvdSB0ZWxsIG1lIHRoZSB3YXkgdG8g
+Z2V0IGpmZnMyIGZvciBrZXJuZWwgMi40LjIwLTggb3IgYW55IGNoYW5nZXMgdG8KPiBiZQo+ID4+
+ZG9uZSB0byBnZXQgdGhlIHNvbHV0aW9uIGZvciB0aGUgYWJvdmUgcHJvYmxlbT8gV2FpdGluZyBm
+b3IgeW91cgo+IHBvc2l0aXZlCj4gPj5yZXBseS4KPiA+Pgo+ID4+Cj4gPj4KPiA+PlRoYW5rcyBh
+bmQgcmVnYXJkc4UuCj4gPj4KPiA+PkIuTmFnYXJhamFuLAo+ID4+Cj4gPj5TQU5EUy4KPiA+Pgo+
+ID4+Cj4gPj5PbiAxMi8yLzA1LCBNZW5vbiwgTmlzaGFudGggPCB4MG5pc2hhbkB0aS5jb20+IHdy
+b3RlOgo+ID4+Cj4gPj4KPiA+Pj5UaGlzIGlzIGEgZ2VuZXJpYyBpc3N1ZSwKPiA+Pj4KPiA+Pj4K
+PiA+Pj4+KihpKWhvdyB0byB1cGxvYWQgYW5kIGV4ZWN1dGUgdGhlIGFwcGxpY2F0aW9ucyBpbiB0
+aGUga2VybmVsIHdpdGhvdXQKPiA+Pj4+Cj4gPj4+Pgo+ID4+PnVzaW5nCj4gPj4+Cj4gPj4+Cj4g
+Pj4+Pm5ldHdvcmsgc2VydmVyIGFjY2VzcyA/Kgo+ID4+Pj4KPiA+Pj4+Cj4gPj4+V2l0aG91dCB1
+c2luZyBldGhlcm5ldCwgWW91IGhhdmUgbG90cyBvZiBvcHRpb25zOgo+ID4+Pmp0YWcvZmxhc2gv
+dWFydC91c2Iob3N0IGhvc3QpIGV0Yy4uIE9uZSBleGNlbGxlbnQgZG9jdW1lbnRhdGlvbiBJIGhh
+dmUKPiA+Pj5zZWVuIGZvciBvc2sgaXM6IGh0dHA6Ly9vc2tmb3JkdW1taWVzLmhwLmluZm9zZWVr
+LmNvLmpwL2hvd3RvLmh0bWwgLgo+IEFsc28KPiA+Pj51IG1pZ2h0IGJlIGludGVyZXN0ZWQgaW4g
+Y2hlY2tpbmcgb3V0Cj4gPj4+aHR0cDovL2xpbnV4Lm9tYXAuY29tL3B1Yi9kb2N1bWVudGF0aW9u
+LyBmb3IgbW9yZSBkYXRhIChzb21lIGRvY3MgZnJvbQo+ID4+Pm90aGVyIHBsYXRmb3JtcyBtaWdo
+dCBiZSBnZW5lcmljIGVub3VnaCB0byBiZSB1c2VmdWwpLiBPZmNvdXJzZSwgZ29vZ2xlCj4KPiA+
+Pj5pcyBhIG5pY2UgcGxhY2UgdG8gc3RhcnQgb2ZmLCBhbmQgc3VyZWx5IHlvdSBjYW4gdHJ5IGNo
+ZWNraW5nIHRoaXMKPiA+Pj5tYWlsaW5nIGxpc3QgYW5kIHRoZSBhcm0gbGludXggbWFpbGluZyBs
+aXN0IGFyY2hpdmVzIHRvby4uCj4gPj4+Cj4gPj4+Cj4gPj4+Cj4gPj4+PiooaWkpIGhvdyB0byBm
+dXNlIG15IGFwcGxpY2F0aW9uIGludG8gdGhlIGZsYXNoPyouCj4gPj4+Pgo+ID4+Pj4KPiA+Pj4+
+Cj4gPj4+VG8gZmxhc2ggaXQgdXNlIHRoZSB1Ym9vdCBpdHNlbGYoaWYgdSBhbHJlYWR5IGhhdmUg
+b25lIHVib290IG9uIGJvYXJkKQo+IC0KPiA+Pj5pdCBzaG91bGQgc3VwcG9ydCBmbGFzaGluZyBv
+cHRpb25zLiBQcm90ZWN0IG9mZiwgZXJhc2UgLCBjcCBjb21tYW5kcwo+ID4+PnNob3VsZCBiZSBn
+b29kIGVub3VnaCBmb3IgTk9SIGZsYXNoLiBUaGVyZSBpcyBoZWxwIGZvciB0aGUgc2FtZSB3aXRo
+aW4KPiA+Pj51Ym9vdCBpdHNlbGYgKHR5cGUgaGVscCBhdCB1Ym9vdCBjb21tYW5kIHByb21wdCkK
+PiA+Pj5PciB1IGNhbiB1c2UgdGhlIG9zdCBob3N0IHRvb2wgYXMgZGVzY3JpYmVkIGluIHRoZSBv
+c2tmb3JkdW1taWVzLgo+ID4+Pgo+ID4+Pgo+ID4+Pgo+ID4+Pj4qKGlpaSlJcyB0aGVyZSBhbnkg
+dGVybWluYWwgcHJvZ3JhbShsaWtlIG1pbmljb20saHlwZXJ0ZXJtaW5hbCkgdG8KPiA+Pj4+Cj4g
+Pj4+Pgo+ID4+PnVwbG9hZAo+ID4+Pgo+ID4+Pgo+ID4+Pj50aGUgZXhlY3V0YWJsZSBmaWxlIGlu
+dG8gdGhlIGtlcm5lbCBmb3IgInRmdHAiPyouCj4gPj4+Pgo+ID4+Pj4KPiA+Pj5Pay4uIEkgYXNz
+dW1lIHRoYXQgdSB3b3VsZCBsaWtlIHRvIGRvd25sb2FkIGtlcm5lbD8gT3IgZG8gdSB3YW50IHRv
+Cj4gPj4+ZG93bmxvYWQgYSBmaWxlc3lzdGVtPyBMZXQgbWUgdHJ5IGVpdGhlciBvbmUgb2YgdGhl
+bQo+ID4+Pk9uYm9hcmQsIHUgY2FuIHVzZSB0aGUgbG9hZGIgY29tbWFuZCB0aGF0IGNhbiB0YWtl
+IGEgZmlsZQo+ID4+Pih1SW1hZ2UvdWJvb3QuYmluL3NvbWUgYmluKSBvdmVyIHNlcmlhbCBwb3J0
+IHVzaW5nIEtlcm1pdC4gT25jZSB1IGhhdmUKPiBhCj4gPj4+ZmlsZXN5c3RlbSAoZWl0aGVyIHJh
+bWRpc2svamZmczIgYmFzZWQgZmxhc2gvbmZzIGZpbGVzeXN0ZW0pIHUgY2FuIGJvb3QKPgo+ID4+
+PnVyIGtlcm5lbC4gQnV0IGEga2VybmVsIGFsb25lIHdpbGwgbm90IGJlIG9mIG11Y2ggdXNlIHRv
+IHUuIHRoZSBhcHBzCj4gPj4+bmVlZCB0byByZXNpZGUgb24gdGhlIGZpbGVzeXN0ZW0uIE9uY2Ug
+dSBoYXZlIHRoZSBmaWxlc3lzdGVtIGlzCj4gPj4+YXZhaWxhYmxlIGFuZCB1IGhhdmUgc29tZSBz
+b3J0IG9mIHByb21wdCwgY2hlY2sgdGhlIGZpbGVzeXN0ZW0gYXBwcwo+ID4+PmF2YWlsYWJsZS4g
+VGhleSBzaG91bGQgYmVoYXZlIGFzIGlmIHlvdSBhcmUgb24gYSBub3JtYWwgbGludXggYm94Lgo+
+ID4+Pgo+ID4+PlJlZ2FyZHMsCj4gPj4+TmlzaGFudGggTWVub24KPiA+Pj4KPiA+Pj4KPiA+Pj4K
+PiA+Pj4tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0KPgo+ID4+Pgo+ID4+Pl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCj4gPj4+TGludXgtb21hcC1vcGVuLXNvdXJjZSBtYWls
+aW5nIGxpc3QKPiA+Pj5MaW51eC1vbWFwLW9wZW4tc291cmNlQGxpbnV4Lm9tYXAuY29tCj4gPj4+
+aHR0cDovL2xpbnV4Lm9tYXAuY29tL21haWxtYW4vbGlzdGluZm8vbGludXgtb21hcC1vcGVuLXNv
+dXJjZQo+ID4+Pgo+ID4+Pgo+ID4KPiA+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KPiA+TGludXgtb21hcC1vcGVuLXNvdXJjZSBtYWlsaW5nIGxpc3QKPiA+
+TGludXgtb21hcC1vcGVuLXNvdXJjZUBsaW51eC5vbWFwLmNvbQo+ID4gaHR0cDovL2xpbnV4Lm9t
+YXAuY29tL21haWxtYW4vbGlzdGluZm8vbGludXgtb21hcC1vcGVuLXNvdXJjZQo+ID4KPiA+Cj4g
+LS0tLS0tLS0tRW5kIG9mIEluY2x1ZGVkIE1lc3NhZ2UtLS0tLS0tLS0tCj4KPgo+Cg==
+--===============0515611555==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Please try the kernel from 
-http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=log;t=7
 
-and visit 
-
-http://www.muru.com/linux/omap README_GIT on how to fetch this kernel. 
-
-For driver you can look at 
-
-drivers/input/touchscreen/omap directory.
-
-In user space you can use tslib (available from cvs repo on
-arm.linux.org.uk website) utilities to test touchscreen. 
-
----Komal Shah
-http://komalshah.blogspot.com/
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+--===============0515611555==--
