@@ -1,10 +1,15 @@
-From: Dirk Behme <dirk.behme@de.bosch.com>
-Subject: [PATCH] OSS Audio L/R Channel Interchanges fix
-Date: Sat, 10 Dec 2005 18:28:27 +0100
-Message-ID: <439B103B.1060509@de.bosch.com>
+From: Louis Jung <lhsj81@gmail.com>
+Subject: Re: DSP core access
+Date: Mon, 12 Dec 2005 16:51:48 +1100
+Message-ID: <cb6819fd0512112151r3cd9a108i9cbb6d3b63985a@mail.gmail.com>
+References: <cb6819fd0511221805n7aad0f86s486a95c5144deaf2@mail.gmail.com>
+	<200512010154.jB11s9uS026763@dmhp30.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090902060406040905040308"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <200512010154.jB11s9uS026763@dmhp30.itg.ti.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,119 +19,70 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Ishigami <ishigami@ti.com>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090902060406040905040308
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hello,
 
+I am currently trying to follow Basic Howto (DSP) link that was provided
+some time ago. I am using scratchbox and linux-2.6.12-rc2 sources with
+appropriate omap patches. I download dspgw3.3-arm and untarred it by
+following the instructions given. However, I do not seem to have DSPtools
+directory under dspgw3.3-arm after I untar it. Has anyone come  across
+similar issues? or know how to resolve this problem?
+Thanks everyone
 
-ARM: OMAP: OSS L/R Channel Interchange fix as proposed by
-             Ajaya Babu Anne <anneajaya_at_gmail.com>
-
-Signed-off-by: Dirk Behme <dirk.behme_at_de.bosch.com>
-
-
-
-
---------------090902060406040905040308
-Content-Type: text/plain;
- name="audio_oss_LR.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="audio_oss_LR.patch"
-
---- ./sound/oss/omap-audio-dma-intfc.c_orig	2005-12-10 18:03:21.686775384 +0100
-+++ ./sound/oss/omap-audio-dma-intfc.c	2005-12-10 18:04:35.904492576 +0100
-@@ -28,6 +28,8 @@
-  * 2004-11-01   Nishanth Menon  - 16xx platform code base modified to support multi channel chaining.
-  *
-  * 2004-12-15   Nishanth Menon  - Improved 16xx platform channel logic introduced - tasklets, queue handling updated
-+ *
-+ * 2005-12-10   Dirk Behme      - Added L/R Channel Interchange fix as proposed by Ajaya Babu
-  */
- 
- #include <linux/config.h>
-@@ -730,8 +732,10 @@ static int audio_start_dma_chain(audio_s
- 	int channel = s->lch[s->dma_q_head];
- 	FN_IN;
- 	if (!s->started) {
-+	        s->hw_stop();            /* stops McBSP Interface */ 
- 		omap_start_dma(channel);
- 		s->started = 1;
-+		s->hw_start();           /* start McBSP interface */ 
- 	}
- 	/* else the dma itself will progress forward with out our help */
- 	FN_OUT(0);
---- ./sound/oss/omap-audio-aic23.c_orig	2005-12-10 17:55:27.471867008 +0100
-+++ ./sound/oss/omap-audio-aic23.c	2005-12-10 18:02:33.822051928 +0100
-@@ -111,16 +111,35 @@
- 
- #define NUMBER_SAMPLE_RATES_SUPPORTED 9
- 
-+/*
-+ * HW interface start and stop helper functions
-+ */
-+static int audio_ifc_start(void)
-+{
-+	omap_mcbsp_start(AUDIO_MCBSP); 
-+	return 0;
-+}
-+
-+static int audio_ifc_stop(void)
-+{
-+	omap_mcbsp_stop(AUDIO_MCBSP);
-+	return 0;
-+}
-+
- static audio_stream_t output_stream = {
-         .id              = "AIC23 out",
-         .dma_dev         = OMAP_DMA_MCBSP1_TX,
--        .input_or_output = FMODE_WRITE
-+        .input_or_output = FMODE_WRITE,
-+        .hw_start        = audio_ifc_start,
-+        .hw_stop         = audio_ifc_stop
- };
- 
- static audio_stream_t input_stream = {
-         .id              = "AIC23 in",
-         .dma_dev         = OMAP_DMA_MCBSP1_RX,
--        .input_or_output = FMODE_READ
-+        .input_or_output = FMODE_READ,
-+        .hw_start        = audio_ifc_start,
-+        .hw_stop         = audio_ifc_stop
- };
- 
- static struct clk *aic23_mclk = 0;
---- ./sound/oss/omap-audio.h_orig	2005-12-10 17:55:49.571507352 +0100
-+++ ./sound/oss/omap-audio.h	2005-12-10 17:57:47.124636560 +0100
-@@ -20,6 +20,8 @@
-  *  2004/08/12 Nishanth Menon - Modified to integrate Audio requirements on 1610,1710 platforms
-  *
-  *  2004/04/04 Nishanth menon - Added hooks for power management
-+ *
-+ *  2005/12/10 Dirk Behme     - Added L/R Channel Interchange fix as proposed by Ajaya Babu
-  */
- 
- #ifndef __OMAP_AUDIO_H
-@@ -75,6 +77,8 @@ typedef struct {
- 	unsigned stopped:1;	/* might be active but stopped */
- 	unsigned spin_idle:1;	/* have DMA spin on zeros when idle */
- 	unsigned linked:1;	/* dma channels linked */
-+        int (*hw_start)(void);  /* interface to start HW interface, e.g. McBSP */
-+        int (*hw_stop)(void);   /* interface to stop HW interface, e.g. McBSP */
- } audio_stream_t;
- 
- /*
-
-
---------------090902060406040905040308
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---------------090902060406040905040308--
+On 12/1/05, Ishigami <ishigami@ti.com> wrote:
+>
+> Hello,
+>
+> > There is a DSP gateway through which I think i should
+> > be able to control. Does anyone know the specific ways
+> > of doing this?
+>
+>
+> Basic howto ( see dsp )
+> http://oskfordummies.hp.infoseek.co.jp/howto.html
+>
+> Home page
+> http://dspgateway.sourceforge.net/pub/index.php
+>
+> Mailing lists
+> http://lists.sourceforge.net/lists/listinfo/dspgateway-devel
+>
+> Sample programs in Japanese
+> http://www.cqpub.co.jp/interface/download/contents.htm
+> (subset) MP3 player (2005 Oct),  Fir filter (2004 May)
+>
+> Hope you enjoy the dsp programming, as much as arm linux.
+>
+> Regards,
+> Ishgiami
+>
+> -----Original Message-----
+> From: linux-omap-open-source-bounces@linux.omap.com
+> [mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Louis
+> Jung
+> Sent: Wednesday, November 23, 2005 11:06 AM
+> To: Linux-omap-open-source@linux.omap.com
+> Subject: DSP core access
+>
+> Hi all,
+>
+> I am currently trying to obtain a real time data using DSP core on the
+> omap
+> platform via the I2C peripheral.  I was hoping to achieve this by
+> controlling the DSP via linux kernel that's running on the Arm core. Ther=
+e
+> is a DSP gateway through which I think i should be able to control. Does
+> anyone know the specific ways of doing this?
+>
+> Louis Jung
+> 2005-11-23
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
+>
