@@ -1,14 +1,12 @@
-From: "Ishigami" <ishigami@ti.com>
-Subject: RE: DSP core access
-Date: Mon, 12 Dec 2005 20:51:17 +0900
-Message-ID: <200512121151.jBCBpUIK010576@dmhp30.itg.ti.com>
-References: <cb6819fd0512112151r3cd9a108i9cbb6d3b63985a@mail.gmail.com>
+From: Petukhov Nikolay <palmtt2@mail.ru>
+Subject: omap1510 MPU interupt BUG
+Date: Mon, 12 Dec 2005 19:25:39 +0300
+Message-ID: <E1ElqUd-000N2H-00.palmtt2-mail-ru@f37.mail.ru>
+Reply-To: Petukhov Nikolay <palmtt2@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <cb6819fd0512112151r3cd9a108i9cbb6d3b63985a@mail.gmail.com>
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,36 +14,40 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: 'Louis Jung' <lhsj81@gmail.com>
-Cc: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
- 
- See "5.2 Toolchain"
- http://dspgateway.sourceforge.net/pub/3.2/DSP_Gateway32_spec.pdf
- It has a pointer for them.
-  
- Good luck,
- Ishigami
+Hi All.
 
-________________________________
+in file linux-2.6.14-omap2/arch/arm/plat-omap/gpio.c
+in function
+static void gpio_irq_handler(unsigned int irq, struct irqdesc *desc,                                                                    struct pt_regs *regs)
 
-From: Louis Jung
-Sent: Monday, December 12, 2005 2:52 PM
-To: Ishigami
-Cc: Linux-omap-open-source@linux.omap.com
-Subject: Re: DSP core access
+.......
 
+        isr = __raw_readl(isr_reg);  
+.......
 
-Hello,
+Note:    __raw_readl return 32bit, but MPU have 16 bit registers
 
-I am currently trying to follow Basic Howto (DSP) link that was provided
-some time ago. I am using scratchbox and linux-2.6.12-rc2 sources with
-appropriate omap patches. I download dspgw3.3-arm and untarred it by
-following the instructions given. However, I do not seem to have DSPtools
-directory under dspgw3.3-arm after I untar it. Has anyone come  across
-similar issues? or know how to resolve this problem? 
-Thanks everyone
+example:
+MPU isr=0x0001, but __raw_readl() return isr=0x00010001 -> virtual interrupt 16
+desc_handle_irq(0, d, regs) - handled ok
+desc_handle_irq(16, d, regs) - interrupt handler = NULL
+
+Here patch fix it
+
+diff -Nru linux-2.6.14-omap2/arch/arm/plat-omap/gpio.c
+linux-2.6.14-omap2-palmtt2/arch/arm/plat-omap/gpio.c  
+
+--- linux-2.6.14-omap2/arch/arm/plat-omap/gpio.c        Sat Dec 10 21:05:46 2005                             +++ linux-2.6.14-omap2-palmtt2/arch/arm/plat-omap/gpio.c        Sat Dec 10 19:57:30 2005                     @@ -758,6 +758,10 @@
+                                                                                                                                                                                     while(1) {            
+isr = __raw_readl(isr_reg);
++#ifdef CONFIG_ARCH_OMAP15XX                                                                                 +       if (bank->method == METHOD_MPUIO)
++           isr&=0xffff;   
++#endif !
+                                                                                                           _enable_gpio_irqbank(bank, isr, 0);
+_clear_gpio_irqbank(bank, isr);            
+_enable_gpio_irqbank(bank, isr, 1);
