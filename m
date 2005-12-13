@@ -1,13 +1,10 @@
 From: Anderson Briglia <anderson.briglia@indt.org.br>
-Subject: Re: [patch 0/5] Add MMC password protection (lock/unlock) support
-Date: Tue, 13 Dec 2005 18:27:34 -0400
-Message-ID: <439F4AD6.9090203@indt.org.br>
-References: <20051213213208.303580000@localhost.localdomain>
+Subject: [patch 1/5] Add MMC password protection (lock/unlock) support
+Date: Tue, 13 Dec 2005 18:44:50 -0400
+Message-ID: <439F4EE2.6070506@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1905249742=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20051213213208.303580000@localhost.localdomain>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,62 +14,118 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Anderson Lizardo <anderson.lizardo@indt.org.br>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap-open-source@linux.omap.com, linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
+To: "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, "Aguiar Carlos (EXT-INdT/Manaus)" <carlos.aguiar@indt.org.br>, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizardo@indt.org.br>
 List-Id: linux-omap@vger.kernel.org
 
-[resending summary because our first attempt failed]
+This is a multi-part message in MIME format.
+--===============1905249742==
+Content-Type: text/x-patch;
+ name="mmc_ignore_locked.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="mmc_ignore_locked.diff"
 
-Hi,
+When a card is locked, only commands from the "basic" and "lock card" classes
+are accepted. To be able to use the other commands, the card must be unlocked
+first.
 
-These series of patches add support for MultiMediaCard (MMC) password
-protection, as described in the MMC Specification v4.1. This feature is
-supported by all compliant MMC cards, and used by some devices such as Symbian
-OS cell phones to optionally protect MMC cards with a password. Password length
-is limited to 16 bytes.
+This patch prevents the block driver from trying to run privileged class
+commands on locked MMC cards, which will fail anyway.
 
-By default, a MMC card with no password assigned is always in "unlocked" state.
-After password assignement, in the next power cycle the card switches to a
-"locked" state where only the "basic" and "lock card" command classes are
-accepted by the card. Only after unlocking it with the correct password the
-card can be normally used for operations like block I/O.
+Signed-off-by: Anderson Briglia <anderson.briglia@indt.org.br>
+Signed-off-by: Anderson Lizardo <anderson.lizardo@indt.org.br>
+Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+Signed-off-by: David Brownell <david-b@pacbell.net>
 
-Password management and caching is done through the "Kernel Key Retention
-Service" mechanism and the sysfs filesystem. The Key Retention Service is used
-for (1) unlocking the card, (2) assigning a password to an unlocked card and
-(3) change a card's password. To remove the password and check locked/unlocked
-status, a new sysfs attribute was added to the MMC driver.
-
-Along with this thread will be sent a script that tests all possible user
-scenarios described above. Also will be attached a tarball containing a simple
-text-only reference UI to demonstrate how to manipulate the password.
-
-TODO:
-
-- MMC hotplugging needs to be extended to properly call probe() for the
-  different MMC drivers (currently only mmc_block). Currently, the block driver
-  is not notified in any way that the card was unlocked.
-
-- Password caching: when inserting a locked card, the driver should try to
-  unlock it with the currently stored password (if any), and if it fails,
-  revoke the key containing it and fallback to the normal "no password present"
-  situation.
-
-- Currently, some host drivers assume the block length will always be a power
-  of 2. This is not true for the MMC_LOCK_UNLOCK command, which is a block
-  command that accepts arbitratry block lengths. We have made the necessary
-  changes to the omap.c driver (present on the linux-omap tree), but the same
-  needs to be done for other hosts' drivers.
-
-Known Issue:
-
-- Some cards have an incorrect behaviour (hardware bug?) regarding password
-  acceptance: if an affected card has password <pwd>, it accepts <pwd><xxx> as
-  the correct password too, where <xxx> is any sequence of characters, of any
-  length. In other words, on these cards only the first <password length> bytes
-  need to match the correct password.
-
-Comments or suggestions are welcome.
+Index: linux-2.6.14-omap2/drivers/mmc/mmc.c
+===================================================================
+--- linux-2.6.14-omap2.orig/drivers/mmc/mmc.c	2005-12-12 08:45:47.000000000 -0400
++++ linux-2.6.14-omap2/drivers/mmc/mmc.c	2005-12-12 08:47:04.000000000 -0400
+@@ -986,10 +986,15 @@ static void mmc_check_cards(struct mmc_h
+ 		cmd.flags = MMC_RSP_R1;
+ 
+ 		err = mmc_wait_for_cmd(host, &cmd, CMD_RETRIES);
+-		if (err == MMC_ERR_NONE)
++		if (err != MMC_ERR_NONE) {
++			mmc_card_set_dead(card);
+ 			continue;
++		}
+ 
+-		mmc_card_set_dead(card);
++		if (cmd.resp[0] & R1_CARD_IS_LOCKED)
++			mmc_card_set_locked(card);
++		else
++			card->state &= ~MMC_STATE_LOCKED;
+ 	}
+ }
+ 
+Index: linux-2.6.14-omap2/drivers/mmc/mmc_sysfs.c
+===================================================================
+--- linux-2.6.14-omap2.orig/drivers/mmc/mmc_sysfs.c	2005-12-12 08:45:47.000000000 -0400
++++ linux-2.6.14-omap2/drivers/mmc/mmc_sysfs.c	2005-12-12 08:50:20.000000000 -0400
+@@ -16,6 +16,7 @@
+ 
+ #include <linux/mmc/card.h>
+ #include <linux/mmc/host.h>
++#include <linux/mmc/protocol.h>
+ 
+ #include "mmc.h"
+ 
+@@ -69,13 +70,22 @@ static void mmc_release_card(struct devi
+ }
+ 
+ /*
+- * This currently matches any MMC driver to any MMC card - drivers
+- * themselves make the decision whether to drive this card in their
+- * probe method.  However, we force "bad" cards to fail.
++ * This currently matches any MMC driver to any MMC card - drivers themselves
++ * make the decision whether to drive this card in their probe method. However,
++ * we force "bad" cards to fail.
++ *
++ * We also fail for all locked cards; drivers expect to be able to do block I/O
++ * still on probe(), which is not possible while the card is locked. Device
++ * probing must be triggered sometime later to make the card available to the
++ * block driver.
+  */
+ static int mmc_bus_match(struct device *dev, struct device_driver *drv)
+ {
+ 	struct mmc_card *card = dev_to_mmc_card(dev);
++	if (mmc_card_lockable(card) && mmc_card_locked(card)) {
++		dev_dbg(&card->dev, "card is locked; binding is deferred\n");
++		return 0;
++	}
+ 	return !mmc_card_bad(card);
+ }
+ 
+Index: linux-2.6.14-omap2/include/linux/mmc/card.h
+===================================================================
+--- linux-2.6.14-omap2.orig/include/linux/mmc/card.h	2005-12-12 08:45:47.000000000 -0400
++++ linux-2.6.14-omap2/include/linux/mmc/card.h	2005-12-12 08:47:04.000000000 -0400
+@@ -56,6 +56,7 @@ struct mmc_card {
+ #define MMC_STATE_BAD		(1<<2)		/* unrecognised device */
+ #define MMC_STATE_SDCARD	(1<<3)		/* is an SD card */
+ #define MMC_STATE_READONLY	(1<<4)		/* card is read-only */
++#define MMC_STATE_LOCKED	(1<<5)		/* card is currently locked */
+ 	u32			raw_cid[4];	/* raw card CID */
+ 	u32			raw_csd[4];	/* raw card CSD */
+ 	u32			raw_scr[2];	/* raw card SCR */
+@@ -69,12 +70,16 @@ struct mmc_card {
+ #define mmc_card_bad(c)		((c)->state & MMC_STATE_BAD)
+ #define mmc_card_sd(c)		((c)->state & MMC_STATE_SDCARD)
+ #define mmc_card_readonly(c)	((c)->state & MMC_STATE_READONLY)
++#define mmc_card_locked(c)	((c)->state & MMC_STATE_LOCKED)
++
++#define mmc_card_lockable(c)	((c)->csd.cmdclass & CCC_LOCK_CARD)
+ 
+ #define mmc_card_set_present(c)	((c)->state |= MMC_STATE_PRESENT)
+ #define mmc_card_set_dead(c)	((c)->state |= MMC_STATE_DEAD)
+ #define mmc_card_set_bad(c)	((c)->state |= MMC_STATE_BAD)
+ #define mmc_card_set_sd(c)	((c)->state |= MMC_STATE_SDCARD)
+ #define mmc_card_set_readonly(c) ((c)->state |= MMC_STATE_READONLY)
++#define mmc_card_set_locked(c)	((c)->state |= MMC_STATE_LOCKED)
+ 
+ #define mmc_card_name(c)	((c)->cid.prod_name)
+ #define mmc_card_id(c)		((c)->dev.bus_id)
 
 --
 Anderson Briglia,
@@ -82,3 +135,14 @@ Carlos Eduardo Aguiar
 Embedded Linux Lab - 10LE
 Nokia Institute of Technology - INdT
 Manaus - Brazil
+
+
+
+--===============1905249742==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============1905249742==--
