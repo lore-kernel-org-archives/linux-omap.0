@@ -1,13 +1,11 @@
-From: Dirk Behme <dirk.behme@de.bosch.com>
-Subject: Re: OMAP touchscreen timer BUG
-Date: Tue, 13 Dec 2005 07:39:11 +0100
-Message-ID: <439E6C8F.4040405@de.bosch.com>
-References: <20051213022905.GA27130@slurryseal.ddns.mvista.com>
+From: "Mihail Georgiev" <georgiev@students.cc.tut.fi>
+Subject: das U-boot loader on omap 1510
+Date: Tue, 13 Dec 2005 14:34:40 +0200
+Message-ID: <op.s1p2j2cvtqqdru@tsunami.it.tut.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20051213022905.GA27130@slurryseal.ddns.mvista.com>
+Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,33 +13,31 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Todd Poynor <tpoynor@mvista.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+I am trying to flas u-boot loader on my OMAP system
+but i somehow not succeed with that...
+For now i am booting from ram - where i prevously load
+u-boot..and with bootm command start flashed linux..
+everything is ok..
+but i can't flash u-boot..or probably i do not know where i am wrong
+I am sure that bin version of u-boot is working...
 
-Todd Poynor wrote:
+i use following commands:
+protect off 1:0-4
+erase 1:0-4
+loadb uboot.bin
+...
+....
+cp.b 0x10000000 0 0x....
+protect on 1:0-4
 
-> kernel BUG at include/linux/timer.h:83!
-> [<c002ac60>] (__bug+0x0/0x58) from [<c01a3fbc>] (omap_ts_handler+0x60/0x78)
-> [<c01a3f5c>] (omap_ts_handler+0x0/0x78) from [<c00269fc>] (__do_irq+0x4c/0x8c)
-> 
-> which is:
-> 
-> static inline void add_timer(struct timer_list *timer)
-> {
->         BUG_ON(timer_pending(timer));
->         __mod_timer(timer, timer->expires);
-
-Because Tonys vacation, we have some pending patches on the list. I 
-fixed this already in
-
-http://linux.omap.com/pipermail/linux-omap-open-source/2005-December/005837.html
-
-using an additional del_timer().
-
-I will try to send a pending patches list next days.
-
-Dirk
+Is thos somehow connected with configuration switch SW2-
+in two different tutorials i found two different configuration for flashi=
+ng
+u-boot..
+Can you tell whether i am wrong with something or how exactly to tell
+to OMAP(with SW2) to boot my flashed u-boot...
