@@ -1,64 +1,112 @@
-From: Daniel Petrini <d.pensator@gmail.com>
-Subject: Re: Problem with ALSA in 2.6.14-omap2 on OSK
-Date: Mon, 12 Dec 2005 15:34:11 -0400
-Message-ID: <9268368b0512121134j2e3abc93g57f8982352147406@mail.gmail.com>
-References: <520AB2AD990DC04082102F77CA17263801D40597@dlee03.ent.ti.com>
-	<20051123164523.GC7547@atomide.com> <4389F0EB.6000404@de.bosch.com>
-	<438AD41C.4090006@de.bosch.com>
+From: Todd Poynor <tpoynor@mvista.com>
+Subject: LDM wakeup flags for OMAP keypad
+Date: Mon, 12 Dec 2005 17:04:42 -0800
+Message-ID: <20051213010442.GA23526@slurryseal.ddns.mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <438AD41C.4090006@de.bosch.com>
-Content-Disposition: inline
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@de.bosch.com>
-Cc: linux-omap-open-source@linux.omap.com
+Content-Type: multipart/mixed; boundary="===============36273541723908176=="
+Return-path: <linux-pm-bounces@lists.osdl.org>
+List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
+List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.osdl.org>
+List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
+List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.osdl.org
+Errors-To: linux-pm-bounces@lists.osdl.org
+To: linux-pm@osdl.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Dirk,
+--===============36273541723908176==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 11/28/05, Dirk Behme <dirk.behme@de.bosch.com> wrote:
-> Dirk Behme wrote:
-> > Yves Godin wrote:
-> >  > The files from the alsa driver have not changed between 2.6.14-rc1 a=
-nd
-> >  > 2.6.14-omap2. So I supposed the changes have been made to the OMAP d=
-ma
-> >  > drivers.
-> >
-> > Looks to me that it is something in DMA as well.
->
-> Next step ;) Looking into sound/oss/omap-audio-dma-intfc.c I found that
-> there is done much more stuff than in sound/arm/omap-alsa-dma.c. So, I
-> put the ping pong work item logic from OSS DMA to ALSA DMA as well. And
-> looks like this fixes the issue of repeated audio samples :)
->
-> Please test. I use 'madplay foo.mp3' for tests.
->
-> But unfortunately, now there seems to be some noise over the (now
-> unrepeated) audio output.
->
-> Any ideas about that?
+Here's a try at converting an embedded platform device, the OMAP keypad,
+to the new driver model wakeup enable flags mechanism.  The calls to a
+machine-family-specific extern are less than lovely, I realize, so have
+at with better suggestions.
 
-Tested this as well (against omap-2.6.15-rc4), the ping pong works,
-but you have to set nr_linked_channels to 2 or 3, unlike your patch
-which has 1 for this variable.
 
-I heard the same noise throughout the music playing. Both in mp3 and wav.
-With the increased channels it became more prone to inconsistences if
-I stop the music with ctrl-c. But worth mention that after this key
-combination, if the song can restart (calling the command again), it
-starts without the mentioned noises.
+diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
+index b275af5..1c2b7fb 100644
+--- a/arch/arm/mach-omap1/pm.c
++++ b/arch/arm/mach-omap1/pm.c
+@@ -182,6 +182,13 @@ void omap_pm_idle(void)
+ 	local_irq_enable();
+ }
+ 
++static int keypad_wakeup;
++
++void omap_pm_wakeup_enable_keypad(void)
++{
++	keypad_wakeup = 1;
++}
++
+ /*
+  * Configuration of the wakeup event is board specific. For the
+  * moment we put it into this helper function. Later it may move
+@@ -213,13 +220,14 @@ static void omap_pm_wakeup_setup(void)
+ 	if (cpu_is_omap730()) {
+ 		omap_writel(~level2_wake, OMAP_IH2_0_MIR);
+ 		omap_writel(~(OMAP_IRQ_BIT(INT_730_WAKE_UP_REQ) |
+-				OMAP_IRQ_BIT(INT_730_MPUIO_KEYPAD)),
++			        (keypad_wakeup ? 
++			         OMAP_IRQ_BIT(INT_730_MPUIO_KEYPAD) : 0)),
+ 				OMAP_IH2_1_MIR);
+ 	} else if (cpu_is_omap1510()) {
+-		level2_wake |= OMAP_IRQ_BIT(INT_KEYBOARD);
++		level2_wake |= keypad_wakeup ? OMAP_IRQ_BIT(INT_KEYBOARD) : 0;
+ 		omap_writel(~level2_wake,  OMAP_IH2_MIR);
+ 	} else if (cpu_is_omap16xx()) {
+-		level2_wake |= OMAP_IRQ_BIT(INT_KEYBOARD);
++		level2_wake |= keypad_wakeup ? OMAP_IRQ_BIT(INT_KEYBOARD) : 0;
+ 		omap_writel(~level2_wake, OMAP_IH2_0_MIR);
+ 
+ 		/* INT_1610_WAKE_UP_REQ is needed for GPIO wakeup... */
+@@ -598,6 +606,7 @@ static int omap_pm_prepare(suspend_state
+ 	{
+ 	case PM_SUSPEND_STANDBY:
+ 	case PM_SUSPEND_MEM:
++		keypad_wakeup = 0;
+ 		break;
+ 
+ 	case PM_SUSPEND_DISK:
+diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+index 11626e6..1f3d7b9 100644
+--- a/arch/arm/plat-omap/devices.c
++++ b/arch/arm/plat-omap/devices.c
+@@ -134,6 +134,7 @@ static void omap_init_kp(void)
+ 	}
+ 
+ 	(void) platform_device_register(&omap_kp_device);
++	device_init_wakeup(&omap_kp_device.dev, 1);
+ 
+ }
+ #else
+diff --git a/drivers/input/keyboard/omap-keypad.c b/drivers/input/keyboard/omap-keypad.c
+index 7e851e2..3bd46b4 100644
+--- a/drivers/input/keyboard/omap-keypad.c
++++ b/drivers/input/keyboard/omap-keypad.c
+@@ -272,9 +272,12 @@ static void omap_kp_tasklet(unsigned lon
+ }
+ 
+ #ifdef CONFIG_PM
++extern void omap_pm_wakeup_enable_keypad(void);
++
+ static int omap_kp_suspend(struct platform_device *dev, pm_message_t state)
+ {
+-	/* Nothing yet */
++	if (device_may_wakeup(&dev->dev))
++		omap_pm_wakeup_enable_keypad();
+ 
+ 	return 0;
+ }
 
-Daniel
---
-INdT - Manaus - Brazil
+--===============36273541723908176==
+Content-Type: text/plain; charset="iso-8859-1"
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+
+--===============36273541723908176==--
