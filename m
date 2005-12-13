@@ -1,7 +1,7 @@
-From: "Hunter, Jon" <jon-hunter@ti.com>
-Subject: RE: das U-boot loader on omap 1510
-Date: Tue, 13 Dec 2005 10:10:40 -0600
-Message-ID: <C51F43ABFC95844490F0529B60753BF402D32C27@dlee02.ent.ti.com>
+From: "Menon, Nishanth" <x0nishan@ti.com>
+Subject: RE: Problem with ALSA in 2.6.14-omap2 on OSK
+Date: Tue, 13 Dec 2005 10:18:13 -0600
+Message-ID: <520AB2AD990DC04082102F77CA17263802021F4C@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,42 +17,21 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Mihail Georgiev <georgiev@students.cc.tut.fi>, linux-omap-open-source@linux.omap.com
+To: Dirk Behme <dirk.behme@de.bosch.com>, Daniel Petrini <d.pensator@gmail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mihail,
-
-
-> I am trying to flas u-boot loader on my OMAP system but i=20
-> somehow not succeed with that...
-> For now i am booting from ram - where i prevously load=20
-> u-boot..and with bootm command start flashed linux..
-> everything is ok..
-> but i can't flash u-boot..or probably i do not know where i=20
-> am wrong I am sure that bin version of u-boot is working...
->=20
-> i use following commands:
-> protect off 1:0-4
-> erase 1:0-4
-> loadb uboot.bin
-> ...
-> ....
-> cp.b 0x10000000 0 0x....
-> protect on 1:0-4
->=20
-> Is thos somehow connected with configuration switch SW2- in=20
-> two different tutorials i found two different configuration=20
-> for flashing u-boot..
-> Can you tell whether i am wrong with something or how exactly=20
-> to tell to OMAP(with SW2) to boot my flashed u-boot...
-
-
-For configuring SW2 on the Innovator board please see section 3.9.3 of
-the following user guide:
-http://focus.ti.com/lit/ug/spru667/spru667.pdf=20
-
-There are two flash devices on the board and you should be able to use
-either.=20
-
+> Some notes to my environment. I'm using ~5MB mp3 playing over NFS with
+> madplay in ramdisk. Yesterday, I had an additional idea, but no time
+to
+> test it yet: Do you have PREEMPT (CONFIG_PREEMPT=3Dy) enabled? May be
+this
+> is the difference?
+One suggestion, can u measure the time b/w subsequent writes?
+Get_time_of_day or something of that sort can help. The average write
+time should be within sampling rate. If not, it might point at latency
+issues spend in user context.. since it is only 5 Meg, can u try a
+ramdisk for the test - can isolate any issues due to network latencies..
+just guessing here..
 Regards,
-Jon
+Nishanth Menon
