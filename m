@@ -1,11 +1,14 @@
-From: "Mihail Georgiev" <georgiev@students.cc.tut.fi>
-Subject: das U-boot loader on omap 1510
-Date: Tue, 13 Dec 2005 14:34:40 +0200
-Message-ID: <op.s1p2j2cvtqqdru@tsunami.it.tut.fi>
+From: "Richard Copeman" <richard.copeman@lauterbach.co.uk>
+Subject: DSP gateway build problems with 2.6.13.4
+Date: Tue, 13 Dec 2005 14:59:07 -0000
+Message-ID: <004501c5fff5$c47e5050$642aa8c0@BUFFY>
+References: <20051212180004.8514480695@linux.omap.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20051212180004.8514480695@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,31 +16,25 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-I am trying to flas u-boot loader on my OMAP system
-but i somehow not succeed with that...
-For now i am booting from ram - where i prevously load
-u-boot..and with bootm command start flashed linux..
-everything is ok..
-but i can't flash u-boot..or probably i do not know where i am wrong
-I am sure that bin version of u-boot is working...
+Hi Everyone,
 
-i use following commands:
-protect off 1:0-4
-erase 1:0-4
-loadb uboot.bin
-...
-....
-cp.b 0x10000000 0 0x....
-protect on 1:0-4
+I suspect that much of this is down to my lack of understanding.
 
-Is thos somehow connected with configuration switch SW2-
-in two different tutorials i found two different configuration for flashi=
-ng
-u-boot..
-Can you tell whether i am wrong with something or how exactly to tell
-to OMAP(with SW2) to boot my flashed u-boot...
+I have a 2.6.13.4 kernel which I can build and which runs nicely on my OMAP
+5912 OSK board.
+
+I downloaded dspgateway 3.3 and it comes with a patch from 2.6.12-omap1.
+Some of the pathnames have been changed from here to 2.6.13.4. I don't know
+enough yet to know which bits need patching to what level to get something
+that I can build and run. Does anybody have a patch which I can apply to my
+2.6.13.4 tree (preferably with idiot proof instructions for applying said
+patch too :-) ) please?
+
+Many thanks,
+
+Richard.
