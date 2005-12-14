@@ -1,64 +1,41 @@
-From: Louis Jung <lhsj81@gmail.com>
-Subject: Re: DSP setup
-Date: Wed, 14 Dec 2005 17:09:54 +1100
-Message-ID: <cb6819fd0512132209v60c19f8ap362bf7eb123a55f4@mail.gmail.com>
-References: <cb6819fd0512131938k474a9688jd55aa3c2f7043602@mail.gmail.com>
+From: Pierre Ossman <drzeus-list@drzeus.cx>
+Subject: Re: [patch 0/5] Add MMC password protection (lock/unlock) support
+Date: Wed, 14 Dec 2005 08:07:18 +0100
+Message-ID: <439FC4A6.4010900@drzeus.cx>
+References: <20051213213208.303580000@localhost.localdomain> <439F4AD6.9090203@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <cb6819fd0512131938k474a9688jd55aa3c2f7043602@mail.gmail.com>
-Content-Disposition: inline
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751291AbVLNHH1@vger.kernel.org>
+In-Reply-To: <439F4AD6.9090203@indt.org.br>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Anderson Briglia <anderson.briglia@indt.org.br>
+Cc: Anderson Lizardo <anderson.lizardo@indt.org.br>, linux-omap-open-source@linux.omap.com, linux-kernel@vger.kernel.org, Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>
 List-Id: linux-omap@vger.kernel.org
 
- Hi, guys, I have made few postings previously in regards to the DSP setup
-> procedures.
-> But I was hoping if anyone could provide a way of gettting around few of
-> the problems listed below.
->
-> 1) DSP/BIOS using CCS + DSP tools provided by TI
->     This procedure seems to be very useful, however at the configuration
-> stage, I need to select the
->     linux type that I am using. There seems to be only three options ,
-> montavista, monterey, nucleus.
->     I am currently using Linux-2.6.12-rc2 with appropriate patches which
-> does not seem to belong to any
->     of the options listed above. Does anyone know how to overcome this
-> issue?
->
-> 2) Linux DSP tools,
->     Similar problems to the above. Also, there are many changes that must
-> be made to .rc files during
->     the installation process. This package assumes that you are using
-> montavista linux, and again I am
->     not using montavista...... So I was hoping that someone knows how to
-> get around this problem.
->
-> 3) DSP gateway packages
->     I tried downloading dspgw-3.3 and untarred it. However, this package
-> also relies heavily on the Linux
->    DSP tools which leads to the problem that I was mentioning in previous
-> points....
->
-> I would be jumping with joy if someone could give me a hand ( I am very
-> new to this OMAP DSP programming)
-> because I just can't set up the DSP to a level where I can start
-> programming.
->
-> Also, is there any other ways of building static DSP tasks other than the
-> methods mentioned above?
->
-> Thank you very much for your time.
-> Cheers
-> Louis
->
+Anderson Briglia wrote:
+> [resending summary because our first attempt failed]
+> 
+> 
+> - Password caching: when inserting a locked card, the driver should try to
+>   unlock it with the currently stored password (if any), and if it fails,
+>   revoke the key containing it and fallback to the normal "no password present"
+>   situation.
+> 
+
+Would it be possible to use the id of the card as a search key for the
+password? That way several passwords can coexist.
+
+> - Currently, some host drivers assume the block length will always be a power
+>   of 2. This is not true for the MMC_LOCK_UNLOCK command, which is a block
+>   command that accepts arbitratry block lengths. We have made the necessary
+>   changes to the omap.c driver (present on the linux-omap tree), but the same
+>   needs to be done for other hosts' drivers.
+> 
+
+The MMC layer is designed that way, so it's hardly surprising that
+drivers have been coded for it. I'm assuming you've removed blksz_bits
+in favor of something in bytes?
+
+Rgds
+Pierre
