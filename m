@@ -1,12 +1,12 @@
-From: Louis Jung <lhsj81@gmail.com>
-Subject: DSP setup
-Date: Wed, 14 Dec 2005 14:38:38 +1100
-Message-ID: <cb6819fd0512131938k474a9688jd55aa3c2f7043602@mail.gmail.com>
+From: Kiran Bynam <kiran.bynam@flextronicssoftware.com>
+Subject: Re: e-linux kernel for P2 board
+Date: Wed, 14 Dec 2005 10:22:45 +0530
+Message-ID: <OF8126673A.40DFB229-ON652570D7.001A5365-652570D7.001AC6BF@flextronicssoftware.com>
+References: <20051213060719.31730.qmail@web32909.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+In-Reply-To: <20051213060719.31730.qmail@web32909.mail.mud.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,49 +16,107 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: Komal Shah <komal_shah802003@yahoo.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi, guys, I have made few postings previously in regards to the DSP setup
-procedures.
-But I was hoping if anyone could provide a way of gettting around few of th=
-e
-problems listed below.
+                                                                           
+             Komal Shah                                                    
+             <komal_shah802003                                             
+             @yahoo.com>                                                To 
+                                       Kiran Bynam/HSS@HSS,                
+             12/13/2005 11:37          linux-omap-open-source@linux.omap.c 
+             AM                        om                                  
+                                                                        cc 
+                                                                           
+                                                                   Subject 
+                                       Re: e-linux kernel for P2 board     
+                                                                           
+                                                                           
+                                                                           
+                                                                           
+                                                                           
+                                                                           
 
-1) DSP/BIOS using CCS + DSP tools provided by TI
-    This procedure seems to be very useful, however at the configuration
-stage, I need to select the
-    linux type that I am using. There seems to be only three options ,
-montavista, monterey, nucleus.
-    I am currently using Linux-2.6.12-rc2 with appropriate patches which
-does not seem to belong to any
-    of the options listed above. Does anyone know how to overcome this
-issue?
 
-2) Linux DSP tools,
-    Similar problems to the above. Also, there are many changes that must b=
-e
-made to .rc files during
-    the installation process. This package assumes that you are using
-montavista linux, and again I am
-    not using montavista...... So I was hoping that someone knows how to ge=
-t
-around this problem.
 
-3) DSP gateway packages
-    I tried downloading dspgw-3.3 and untarred it. However, this package
-also relies heavily on the Linux
-   DSP tools which leads to the problem that I was mentioning in previous
-points....
 
-I would be jumping with joy if someone could give me a hand ( I am very new
-to this OMAP DSP programming)
-because I just can't set up the DSP to a level where I can start
-programming.
 
-Also, is there any other ways of building static DSP tasks other than the
-methods mentioned above?
 
-Thank you very much for your time.
-Cheers
-Louis
+
+
+
+
+
+--- Kiran Bynam <kiran.bynam@flextronicssoftware.com> wrote:
+
+>
+>
+>
+>
+> Hi All,
+>
+> I am a  new user of the OMAP 730(P2 sample).
+>
+> we want to port e-linux to the P2 board.
+>
+> There are two versions of the e-linux available on the TI web site.
+>
+>  2.4 kernel &  2.6. kernel
+>
+> open source code is available for 2.6 kernel where as
+> link is provided to Monta Vista site for 2.4 kernel.
+>
+> Can anybody suggest me the difference between these two versions of
+> e-linux?
+>
+
+
+I hope you mean e-linux as embedded linux !. I would suggest you to use
+2.6.x kernel, where all the latest development happens. Lot's of bugs
+were fixed after 2.4.x.
+
+Hi,
+
+Thank you for your reply and suggestion.
+Yes, i meant embedded linux for e-linux.
+But, I am still confused what is the difference between
+Monta Vista Linux and Open source code. What are the extra
+features we are going to have in the Monta Vista Linux?
+
+Thanks in advance.
+
+Regards
+Kiran.B
+
+You can fetch the latest git tree from
+http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=log;t=7
+
+Instruction for OMAP-GIT:
+http://www.muru.com/linux/omap
+
+http://lwn.net/Articles/driver-porting/ _or_ LDD3 to see what is new
+and make out differences yourself !
+
+---Komal Shah
+http://komalshah.blogspot.com/
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around
+http://mail.yahoo.com
+
+
+
+***********************  FSS-Unclassified   ***********************
+"DISCLAIMER: This message is proprietary to Flextronics Software
+Systems Limited (FSS) and is intended solely for the use of the
+individual to whom it is addressed. It may contain  privileged or
+confidential information and should not be circulated or used for
+any purpose other than for what it is intended. If you have received
+this message in  error, please notify the originator immediately.
+If you are not the intended recipient, you are notified that you are
+strictly  prohibited  from  using, copying, altering, or disclosing
+the contents of this message.  FSS  accepts no  responsibility  for
+loss or damage arising from the use of  the information transmitted
+by this email including damage from virus."
