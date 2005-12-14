@@ -1,37 +1,48 @@
-From: Matthew Percival <matthew@capgo.com>
-Subject: Re: DSP gateway build problems with 2.6.13.4
-Date: Thu, 15 Dec 2005 09:07:21 +1100
-Message-ID: <1134598041.8818.3.camel@localhost.localdomain>
-References: <004501c5fff5$c47e5050$642aa8c0@BUFFY>
+From: Anderson Lizardo <anderson.lizardo@gmail.com>
+Subject: Re: [patch 0/5] Add MMC password protection (lock/unlock) support
+Date: Wed, 14 Dec 2005 18:48:27 -0400
+Message-ID: <5b5833aa0512141448o1014e7a5vdfd62cfdc61c7d11@mail.gmail.com>
+References: <20051213213208.303580000@localhost.localdomain>
+	 <200512131403.53983.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <004501c5fff5$c47e5050$642aa8c0@BUFFY>
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965053AbVLNWs3@vger.kernel.org>
+In-Reply-To: <200512131403.53983.david-b@pacbell.net>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Anderson Lizardo <anderson.lizardo@indt.org.br>, linux-omap-open-source@linux.omap.com, linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, Anderson Briglia <anderson.briglia@indt.org.br>, Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-G'Day,
+On 12/13/05, David Brownell <david-b@pacbell.net> wrote:
+> Is there a writeup on how to hook this up with the key retention
+> infrastructure?  I know many folk are unfamiliar with that, and
+> I seem to recall a need for some userspace tweaks.  (Like SHA1
+> hashing of passphrases to generate MMC keys, and maybe storing
+> keys in some per-user file using some user interface.)
 
-> I have a 2.6.13.4 kernel which I can build and which runs nicely on my OMAP
-> 5912 OSK board.
-> 
-> I downloaded dspgateway 3.3 and it comes with a patch from 2.6.12-omap1.
+We have created a sample text-mode reference UI (using keyctl from the
+keyutils[1] package to interface with the key retention service) that
+shows how everything works together. We are setting up some web space
+to put such UI (actually a set of shell scripts) and we will provide
+links soon.
 
-	DSP Gateway has been merged with the OMAP kernel for quite some time
-now, so the version of Gateway already in your 2.6.13 kernel would be
-either the same as --- or possibly newer than --- the one in the 2.6.12
-patch.  It would not be difficult to modify things so the paths would
-match up, but in this case it is unnecessary.  Just recompile with
-CONFIG_OMAP_DSP selected.
+Regarding the userspace tweaks, we have not gone into this aspect, but
+just provided the "core" kernel code. Usually, those integrating the
+system will dictate policies regarding password hashing, persistent
+caching etc. The policies for our reference UI were:
 
-	-- Matthew
+- no hashing (password is sent/stored clear-text)
+- in-memory caching (so if the user reboots the system, the password
+will have to be re-typed).
+
+I think those policies can be done still on userspace, so the kernel
+code remains "policy-free".
+
+[1] http://people.redhat.com/~dhowells/keyutils/
+--
+Anderson Lizardo
+Embedded Linux Lab - 10LE
+Nokia Institute of Technology - INdT
+Manaus - Brazil
