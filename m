@@ -1,7 +1,7 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: omap5912 and regular DDR
-Date: Thu, 15 Dec 2005 10:44:53 -0600
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A5036C197A@dlee02.ent.ti.com>
+From: "Hunter, Jon" <jon-hunter@ti.com>
+Subject: RE: DSP setup
+Date: Thu, 15 Dec 2005 11:12:10 -0600
+Message-ID: <C51F43ABFC95844490F0529B60753BF402DBE392@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,49 +17,129 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Olav Kongas <ok@artecdesign.ee>, linux-omap-open-source@linux.omap.com
+To: Louis Jung <lhsj81@gmail.com>, Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-I'll give my disclaimer that I don't have an OSK. Nor did I look up the
-module capabilities, So I really don't know.
+Hi Louis,
+=20
+=20
+> Hi, guys, I have made few postings previously in regards to=20
+> the DSP setup procedures.
+> But I was hoping if anyone could provide a way of gettting=20
+> around few of the problems listed below.
+>=20
+> 1) DSP/BIOS using CCS + DSP tools provided by TI
+>     This procedure seems to be very useful, however at the=20
+> configuration stage, I need to select the
+>     linux type that I am using. There seems to be only three=20
+> options , montavista, monterey, nucleus.
+>     I am currently using Linux-2.6.12-rc2 with appropriate=20
+> patches which does not seem to belong to any
+>     of the options listed above. Does anyone know how to=20
+> overcome this issue?
 
-I would guess it should support DDR and mDDR.  The initialization
-sequence as documented in TRM's and DDR data sheets I've looked at are
-slightly different.
 
-OMAP2 DDR controllers defiantly are designed to support both though I've
-only seen mDDR on boards which I use.
+I maybe able to help with this. With dsp/bios link v1.12.01 there is a
+"make\Linux" directory that contains the contains the makefiles for
+building the ARM portion of dsplink. In this directory you will find a
+file called "osdefs.mk". This file establishes which distribution of
+linux you. In this file you will see that there is a variable called
+"GPPDISTRIBUTION". This variable gets set when you run the dsplinkcfg
+perl script located in the directory config\bin\. The linux distribution
+options that you can choose from are defined in the file dsplinkcfg.opt
+also located in config\bin\. If you open dsplinkcfg.opt you should find
+the following definition:
+
+@OPT_GPPOS      =3D (
+    [
+        "",
+        "",
+        ""
+    ],
+    [
+        "Linux",
+        "montavista",
+        "Montavista Linux Pro 3.1",
+    ],
+    [
+        "Linux",
+        "innovator5910_mvlpro3.0",
+        "Montavista Linux Pro 3.0",
+    ],
+    [
+        "Linux",
+        "osk5912_mvlpreviewkit3.1",
+        "Montavista Linux Pro 3.1 Preview Kit",
+    ],
+    [
+        "Linux",
+        "monterey",
+        "Monterey Linux",
+    ],
+    [
+        "Nucleus",
+        "",
+        "Nucleus",
+    ]
+) ;
+
+If you wish to add another distribution you can simply do something like
+the following:
+
+@OPT_GPPOS      =3D (
+    [
+        "",
+        "",
+        ""
+    ],
+    [
+        "Linux",
+        "myLinux",
+        "My Linux",
+    ],   =20
+    [
+        "Linux",
+        "montavista",
+        "Montavista Linux Pro 3.1",
+    ],
+    [
+        "Linux",
+        "innovator5910_mvlpro3.0",
+        "Montavista Linux Pro 3.0",
+    ],
+    [
+        "Linux",
+        "osk5912_mvlpreviewkit3.1",
+        "Montavista Linux Pro 3.1 Preview Kit",
+    ],
+    [
+        "Linux",
+        "monterey",
+        "Monterey Linux",
+    ],
+    [
+        "Nucleus",
+        "",
+        "Nucleus",
+    ]
+) ;
+
+There is one more thing that you need to do. If you had selected the
+"Monterey Linux" option when you run the dsplinkcfg perl script and
+built dsplink, the osdefs.mk file would have included the file called
+"monterey.mk" located in the directory "make\Linux" during the build.
+Similarly, if you had selected the "Montavista Linux Pro 3.1 Preview
+Kit" option, the osdefs.mk file would have included the file called
+"osk5912_mvlpreviewkit3.1.mk" during the build. These *.mk files
+included by the osdefs.mk file abstracts the build tools for the linux
+distribution from the dsplink make system.=20
+
+Hence, if you now select the "My Linux" option above when you run the
+dsplinkcfg perl script and then attempt to build dsplink, the osdefs.mk
+file will try to include a file called "myLinux.mk". You need to create
+this file and add the definitions that you see defined in the likes of
+monterey.mk and osk5912_mvlpreviewkit3.1.mk, for the distribution that
+you are using.=20
 
 Regards,
-Richard W.
-
-> -----Original Message-----
-> From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-
-> open-source-bounces@linux.omap.com] On Behalf Of Olav Kongas
-> Sent: Thursday, December 15, 2005 10:32 AM
-> To: linux-omap-open-source@linux.omap.com
-> Subject: omap5912 and regular DDR
->=20
-> Hi,
->=20
-> omap5912 supports mobile DDR, OSK devel boards have it.
-> However, it is unclear to me from omap docs, whether the
-> chip supports regular DDR. Yes, I know, my questions should
-> be destined to the TI support, but you know, I really have
-> got real (omap) help only from this list.
->=20
-> 1. Is regular DDR known to work on omap5912 (or known not
-> to work). If it works then ...
->=20
-> 2. is there anything tricky to get the regular DDR working
->=20
-> 3. has anybody a working DDR initialization code for
-> omap5912.
->=20
-> Thanks in advance,
-> Olav
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+Jon
