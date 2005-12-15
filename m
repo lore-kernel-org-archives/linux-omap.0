@@ -1,39 +1,109 @@
-From: Pierre Ossman <drzeus-list@drzeus.cx>
-Subject: Re: [patch 0/5] Add MMC password protection (lock/unlock) support
-Date: Thu, 15 Dec 2005 17:01:30 +0100
-Message-ID: <43A1935A.4020902@drzeus.cx>
-References: <20051213213208.303580000@localhost.localdomain> <439F4AD6.9090203@indt.org.br> <439FC4A6.4010900@drzeus.cx> <5b5833aa0512141551l638b2c05xcd4588a9370bfa51@mail.gmail.com> <43A11204.2070403@drzeus.cx> <20051215091220.GA29620@flint.arm.linux.org.uk> <43A136F1.3040700@drzeus.cx> <20051215100657.GC32490@flint.arm.linux.org.uk> <20051215134436.GB6211@flint.arm.linux.org.uk>
+From: "Zhang, Jian" <jzhang@ti.com>
+Subject: RE: [RFD] [PATCH] omap24xx vout and dispc library
+Date: Thu, 15 Dec 2005 10:22:38 -0600
+Message-ID: <304D2A85A9643F4A991BDDF8D297BBA601B8FA57@dlee05.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750783AbVLOQBh@vger.kernel.org>
-In-Reply-To: <20051215134436.GB6211@flint.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pierre Ossman <drzeus-list@drzeus.cx>, Anderson Lizardo <anderson.lizardo@gmail.com>, Anderson Briglia <anderson.briglia@indt.org.br>, Anderson Lizardo <anderson.lizardo@indt.org.br>, linux-omap-open-source@linux.omap.com, linux-kernel@vger.kernel.org, Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Khasim, Syed" <x0khasim@ti.com>, Komal Shah <komal_shah802003@yahoo.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Russell King wrote:
-> Reading through the specs I have here, block sizes seem to be all over
-> the place.  The MMC card specs seem to imply that any block size can
-> be set, from 0 bytes to 2^32-1 bytes.
->
-> The PXA MMC interface specification allows the block size to be anything
-> from 1 to 1023 bytes, excluding CRC.  It is unclear whether a value of 0
-> means 1024.
->
-> The MMCI specification allows the block size to be specified as a power
-> of two, from 1 to 2048 bytes, excluding CRC.
->
-> Pierre - can you comment on wbsd's capabilities please?
->
->   
+In linking case, V1 and V2 share the image source but still have their
+own crop and display window settings. So you can see the full image on
+TV, and have a much smaller icon'ed image on LCD.
 
-wbsd can do 1 to 4087 (it wants CRC bytes in the size so it goes to 4095
-including those). Which means I probably set incorrect sg limits... I
-guess I should fix that.
+Regards,
+Jian
 
-sdhci, which I'm currently developing, can do up to 0x7FFF. The register
-is 16-bits, but the upper bit never sticks so I assume it cannot be used.
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+Khasim, Syed
+Sent: Thursday, December 15, 2005 8:44 AM
+To: Komal Shah; linux-omap-open-source@linux.omap.com
+Subject: RE: [RFD] [PATCH] omap24xx vout and dispc library
 
-Rgds
-Pierre
+Video plane linking is a software implementation to render similar image
+data simultaneously through both V1 and V2 pipelines.
+
+Use case Example: if v1 is connected to LCD and V2 is connected to TV,
+When a link is ON (V2 linked to V1), an image displayed through V1 on
+LCD, is simultaneously displayed TV (through V2, but same data).
+
+Regards,
+Khasim.
+
+
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+Komal Shah
+Sent: Thursday, December 15, 2005 2:41 AM
+To: linux-omap-open-source@linux.omap.com
+Subject: [RFD] [PATCH] omap24xx vout and dispc library
+
+Imre/Tony,
+
+I have attached the patch (compressed .gz) which includes (done by Jian
+and the team...)
+
+o display functions library [display.[ch]].
+  - Location: arch/arm/mach-omap2/display.c
+  - common omap2 dispc exported functions can then be used by fb, vout
+and camera preview code.
+
+o V4L2 based Video out patch. [omap24xxvout.[ch]]
+  o This framework implements
+    o Dynamic use of video planes=20
+      e.g As per the 2.6.9-TI code,
+      in camera driver V1 was fixed for preview.
+     =20
+      Now for camera preview _or_ video out on (LCD/TV) can
+      dynamically take the plane which is free.
+    o video plane linking [Jian can explain on this...]
+    o and rotation/mirroring/colorkey...etc.
+
+o omap24xxlib.[ch]
+- It includes functions common between camera preview and vout.
+(cropping/scaling)
+
+Attached patch works with 2.6.9-TI omap24xxfb (considering that it uses
+the display.[ch] library) driver.
+
+I am *not* able to successfully test this driver along with
+git-omap2-fb driver. See I have disabled request_irq, dispc
+reset/initialisation in the omap2_disp_init(dispc.c) patch.
+
+But as git-omap2-fb driver is checking FIFO_UNDERFLOW/SYNC_LOST
+interrupts, which I am getting more than five times, which ultimately
+disables the display irq (irq_status 0x4000, 0x40a2, 0x4002....), and
+my test-application(e.g streaming yuv on v1) hangs the system after
+that...
+
+So, could you please have look at the patch, so that we can find better
+way to integrate vout and display controller library functions into the
+git tree. Thanx.
+
+---Komal Shah
+http://komalshah.blogspot.com/
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around=20
+http://mail.yahoo.com=20
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
