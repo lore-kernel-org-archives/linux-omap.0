@@ -1,68 +1,83 @@
-From: Pierre Ossman <drzeus-list@drzeus.cx>
-Subject: Re: [patch 0/5] Add MMC password protection (lock/unlock) support
-Date: Thu, 15 Dec 2005 07:49:40 +0100
-Message-ID: <43A11204.2070403@drzeus.cx>
-References: <20051213213208.303580000@localhost.localdomain>	 <439F4AD6.9090203@indt.org.br> <439FC4A6.4010900@drzeus.cx> <5b5833aa0512141551l638b2c05xcd4588a9370bfa51@mail.gmail.com>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: [RFD] [PATCH] omap24xx vout and dispc library
+Date: Thu, 15 Dec 2005 00:41:12 -0800 (PST)
+Message-ID: <20051215084112.8426.qmail@web32907.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964789AbVLOGtt@vger.kernel.org>
-In-Reply-To: <5b5833aa0512141551l638b2c05xcd4588a9370bfa51@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Anderson Lizardo <anderson.lizardo@gmail.com>
-Cc: Anderson Briglia <anderson.briglia@indt.org.br>, Anderson Lizardo <anderson.lizardo@indt.org.br>, linux-omap-open-source@linux.omap.com, linux-kernel@vger.kernel.org, Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>
+Content-Type: multipart/mixed; boundary="0-761951586-1134636072=:8193"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Anderson Lizardo wrote:
+--0-761951586-1134636072=:8193
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Content-Id: 
+Content-Disposition: inline
 
->Probably using the entire 128-bit CID for the key description would
->waste too much space though, so we are thinking about using just some
->CID fields to build a smaller unique ID. The key retention service has
->quotas for how much space a keyring can use for payload and key
->description, so we should try to keep the description as short as
->possible. If a collision occurs and the password is wrong, we can
->simply invalidate the key and ask for the password again.
->
->  
->
+Imre/Tony,
 
-For SD cards we can also use the RCA, which tends to be a bit random.
-Perhaps a generic hash function so that we can extend and tweak this
-algorithm in one place?
+I have attached the patch (compressed .gz) which includes (done by Jian
+and the team...)
 
->I actually just did the following change to the OMAP code (drivers/mmc/omap.c):
->
->-
->-	block_size = 1 << data->blksz_bits;
->+	/*  password protection: we need to send the exact block size to the
->+	 *  card (password + 2), not a 2-exponent. */
->+	if (req->cmd->opcode == MMC_LOCK_UNLOCK)
->+		block_size = data->sg[0].length;
->+	else
->+		block_size = 1 << data->blksz_bits;
->
->Given that for the LOCK_UNLOCK command the sg_len will always be 1, we
->can get the block size directly from the first entry of the
->scatterlist. For other block operations, the blksz_bits value is used
->as usual.
->
->  
->
+o display functions library [display.[ch]].
+  - Location: arch/arm/mach-omap2/display.c
+  - common omap2 dispc exported functions can then be used by fb, vout
+and camera preview code.
 
-I can't say that I approve of this code. It's my firm belief that
-drivers that are protocol aware are horribly broken.
+o V4L2 based Video out patch. [omap24xxvout.[ch]]
+  o This framework implements
+    o Dynamic use of video planes 
+      e.g As per the 2.6.9-TI code,
+      in camera driver V1 was fixed for preview.
+      
+      Now for camera preview _or_ video out on (LCD/TV) can
+      dynamically take the plane which is free.
+    o video plane linking [Jian can explain on this...]
+    o and rotation/mirroring/colorkey...etc.
 
->Maybe removing blksz_bits and using the block size directly would be
->better? Is there any host/card which expects to always receive a
->power-of-2 block size for block operations?
->  
->
+o omap24xxlib.[ch]
+- It includes functions common between camera preview and vout.
+(cropping/scaling)
 
-Sounds like a much better solution. Hacking around problems instead of
-solving them usually lead to even more problems.
+Attached patch works with 2.6.9-TI omap24xxfb (considering that it uses
+the display.[ch] library) driver.
 
-I haven't studied all drivers in detail, but I believe all of them
-should be able to handle the transistion.
+I am *not* able to successfully test this driver along with
+git-omap2-fb driver. See I have disabled request_irq, dispc
+reset/initialisation in the omap2_disp_init(dispc.c) patch.
 
-Rgds
-Pierre
+But as git-omap2-fb driver is checking FIFO_UNDERFLOW/SYNC_LOST
+interrupts, which I am getting more than five times, which ultimately
+disables the display irq (irq_status 0x4000, 0x40a2, 0x4002....), and
+my test-application(e.g streaming yuv on v1) hangs the system after
+that...
+
+So, could you please have look at the patch, so that we can find better
+way to integrate vout and display controller library functions into the
+git tree. Thanx.
+
+---Komal Shah
+http://komalshah.blogspot.com/
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
+--0-761951586-1134636072=:8193
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--0-761951586-1134636072=:8193--
