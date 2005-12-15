@@ -1,101 +1,33 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: [RFD] [PATCH] omap24xx vout and dispc library
-Date: Thu, 15 Dec 2005 01:01:57 -0800 (PST)
-Message-ID: <20051215090157.3672.qmail@web32903.mail.mud.yahoo.com>
-References: <20051215084112.8426.qmail@web32907.mail.mud.yahoo.com>
+From: Russell King <rmk+lkml@arm.linux.org.uk>
+Subject: Re: [patch 0/5] Add MMC password protection (lock/unlock) support
+Date: Thu, 15 Dec 2005 09:12:21 +0000
+Message-ID: <20051215091220.GA29620@flint.arm.linux.org.uk>
+References: <20051213213208.303580000@localhost.localdomain> <439F4AD6.9090203@indt.org.br> <439FC4A6.4010900@drzeus.cx> <5b5833aa0512141551l638b2c05xcd4588a9370bfa51@mail.gmail.com> <43A11204.2070403@drzeus.cx>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-677013891-1134637317=:1828"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20051215084112.8426.qmail@web32907.mail.mud.yahoo.com>
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161141AbVLOJMn@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <43A11204.2070403@drzeus.cx>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pierre Ossman <drzeus-list@drzeus.cx>
+Cc: Anderson Lizardo <anderson.lizardo@gmail.com>, Anderson Briglia <anderson.briglia@indt.org.br>, Anderson Lizardo <anderson.lizardo@indt.org.br>, linux-omap-open-source@linux.omap.com, linux-kernel@vger.kernel.org, Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>
 List-Id: linux-omap@vger.kernel.org
 
---0-677013891-1134637317=:1828
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Content-Id: 
-Content-Disposition: inline
+On Thu, Dec 15, 2005 at 07:49:40AM +0100, Pierre Ossman wrote:
+> Sounds like a much better solution. Hacking around problems instead of
+> solving them usually lead to even more problems.
 
-It seems that, list is removing .gz files. So I am renaming it from
-vout-list.patch.gz to vout-list.patch (which is still .gz). Hope that
-it arrives this time (size 41k).
+No, that's not possible.
 
---- Komal Shah <komal_shah802003@yahoo.com> wrote:
+> I haven't studied all drivers in detail, but I believe all of them
+> should be able to handle the transistion.
 
-> Imre/Tony,
-> 
-> I have attached the patch (compressed .gz) which includes (done by
-> Jian
-> and the team...)
-> 
-> o display functions library [display.[ch]].
->   - Location: arch/arm/mach-omap2/display.c
->   - common omap2 dispc exported functions can then be used by fb,
-> vout
-> and camera preview code.
-> 
-> o V4L2 based Video out patch. [omap24xxvout.[ch]]
->   o This framework implements
->     o Dynamic use of video planes 
->       e.g As per the 2.6.9-TI code,
->       in camera driver V1 was fixed for preview.
->       
->       Now for camera preview _or_ video out on (LCD/TV) can
->       dynamically take the plane which is free.
->     o video plane linking [Jian can explain on this...]
->     o and rotation/mirroring/colorkey...etc.
-> 
-> o omap24xxlib.[ch]
-> - It includes functions common between camera preview and vout.
-> (cropping/scaling)
-> 
-> Attached patch works with 2.6.9-TI omap24xxfb (considering that it
-> uses
-> the display.[ch] library) driver.
-> 
-> I am *not* able to successfully test this driver along with
-> git-omap2-fb driver. See I have disabled request_irq, dispc
-> reset/initialisation in the omap2_disp_init(dispc.c) patch.
-> 
-> But as git-omap2-fb driver is checking FIFO_UNDERFLOW/SYNC_LOST
-> interrupts, which I am getting more than five times, which ultimately
-> disables the display irq (irq_status 0x4000, 0x40a2, 0x4002....), and
-> my test-application(e.g streaming yuv on v1) hangs the system after
-> that...
-> 
-> So, could you please have look at the patch, so that we can find
-> better
-> way to integrate vout and display controller library functions into
-> the
-> git tree. Thanx.
-> 
-> ---Komal Shah
-> http://komalshah.blogspot.com/
- 
+You seem to have ignored my message on why this is required.  The MMCI
+driver requires that all transfers be a multiple of 1 << blksz_bits.
+So, if you want to transfer (eg) 9 bytes, it must be transferred as 9
+one byte blocks.  So set blksz_bits to 0 and blocks to 9.
 
-
----Komal Shah
-http://komalshah.blogspot.com/
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
---0-677013891-1134637317=:1828
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---0-677013891-1134637317=:1828--
+-- 
+Russell King
+ Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
+ maintainer of:  2.6 Serial core
