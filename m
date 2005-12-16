@@ -1,11 +1,12 @@
-From: "Tushar" <tushar.mathur@purplevisiontech.com>
-Subject: ping gives segmentation fault
-Date: Fri, 16 Dec 2005 02:10:12 -0500
-Message-ID: <200512160210.AA98894164@purplevisiontech.com>
-Reply-To: tushar.mathur@purplevisiontech.com
+From: Louis Jung <lhsj81@gmail.com>
+Subject: DSP related
+Date: Fri, 16 Dec 2005 21:03:03 +1100
+Message-ID: <cb6819fd0512160203t3ee5ec0cybb778aa5d2008e5b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,22 +19,15 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-hi,
+Hi, guys,
 
-i am runnning linux-2.6.12 on omap5912osk and using busybox init and mounting my root filesystem via nfs. when i try to ping any ip address i get a segmentation fault. also, busybox does not seem to recognize the options i am giving it. ping works fine when i mount my root filesystem from flash.
+A thought just passed my mind. I am just curious whether people use
+1)Linux DSP tools?
+2) Code Composer Studio
 
-can anybody tell me what might be wrong.
+If any of the above, does everyone use montavista?
+If not, how do you manage to configure the various settings that are
+specifically pre-defined for Montavista?
 
-thanks
-
-tm 
-
-
-
-
-________________________________________________________________
-Sent via the WebMail system at purplevisiontech.com
-
-
- 
-                   
+Thanks
+Louis
