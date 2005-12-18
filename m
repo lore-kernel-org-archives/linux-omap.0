@@ -1,12 +1,11 @@
-From: "Kanagesh R" <kanagesh@india.com>
-Subject: Linksys WCF54 Card on OSK
-Date: Sun, 18 Dec 2005 19:55:42 +0800
-Message-ID: <20051218115542.7FD17CA0A3@ws5-11.us4.outblaze.com>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: [PATCH] fix watchdog
+Date: Sun, 18 Dec 2005 06:09:22 -0800 (PST)
+Message-ID: <20051218140922.88154.qmail@web32915.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-Type: multipart/mixed; boundary="0-1207545726-1134914962=:83926"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,66 +13,54 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+--0-1207545726-1134914962=:83926
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Content-Id: 
+Content-Disposition: inline
 
-I'm trying to get a LInksys WCF54G 802.11g wireless CF card to=20
-work with the OSK.  I started off by first trying to get a=20
-CF memory card working with the OSK.  I configured the kernel
-for PCMCIA CF support, compiled and configured pcmcia-cs and=20
-tested a Sandisk CF memory card (1G).  Works fine - mounts, am
-able to copy to the card and from the card.=20=20
+Tony,
 
-My configurations are as follows:
-Linux kernel - 2.6.13-omap1
-shell - bash-3.0
-card services - pcmcia-cs-3.2.7
-wlan-drivers - linux-wlan-ng-0.2.3
+Change .driver_name from "omap-wdt" to "omap_wdt".
 
-I've got linux-wlan-ng configured and compiled.  When I insert the=20
-Linksys card, I see from the prints that the card is detected:
+Signed-off-by: Komal Shah <komal_shah802003@yahoo.com>
 
-cardmgr[743]: socket 0: Linksys WCF54G
-cardmgr[743]: executing: 'modprobe prism2_cs 2>&1'
-cardmgr[743]: + Using /lib/modules/2.6.13-omap1/linux-wlan-ng/p80211.ko
-prism2cs_init: prism2_cs.o: 0.2.3 Loaded
-prism2cs_init: dev_info is: prism2_cs
-cardmgr[743]: + Using /lib/modules/2.6.13-omap1/linux-wlan-ng/prism2_cs.ko
+---Komal Shah
+http://komalshah.blogspot.com/
 
-and using modprobe, it loads the drivers (p80211.ko and prism2_cs.ko) also.
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
+--0-1207545726-1134914962=:83926
+Content-Type: text/plain; name="fix-watchdog.patch"
+Content-Description: 3502949089-fix-watchdog.patch
+Content-Disposition: inline; filename="fix-watchdog.patch"
 
-I've probed further using cardctl:
+diff --git a/drivers/char/watchdog/omap_wdt.c b/drivers/char/watchdog/omap_wdt.c
+index 9904165..8f6fa68 100644
+--- a/drivers/char/watchdog/omap_wdt.c
++++ b/drivers/char/watchdog/omap_wdt.c
+@@ -362,7 +362,7 @@ static struct platform_driver omap_wdt_d
+ 	.resume		= omap_wdt_resume,
+ 	.driver		= {
+ 		.owner	= THIS_MODULE,
+-		.name	= "omap-wdt",
++		.name	= "omap_wdt",
+ 	},
+ };
+ 
 
-'cardctl status' gives me:
-
-3.3V 16-bit PC Card
-function 0: [ready]
-
-after i eject the card, 'cardctl status' shows:
-
-no card
-
-However, when the card is in the CF slot and cardmgr says it has=20
-detected it, the card doesn't seem to draw power as the power led
-on the card is idle.=20=20
-
-Has anyone managed to get any wireless card working with the OSK?
-
-Thank you for your time,
-
-Regards,
-Kanagesh
+--0-1207545726-1134914962=:83926
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 
-
-
-
-
---=20
-India.com free e-mail - www.india.com.=20
-Check out our value-added Premium features, such as an extra 20MB for mail =
-storage, POP3, e-mail forwarding, and ads-free mailboxes!
+--0-1207545726-1134914962=:83926--
