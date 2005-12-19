@@ -1,12 +1,12 @@
-From: Eduardo Bezerra <edubezval@gmail.com>
-Subject: Building a RF6 example with DSP Gateway 3.3
-Date: Mon, 19 Dec 2005 08:32:44 -0400
-Message-ID: <a0580c510512190432sc2973f9g@mail.gmail.com>
+From: Olav Kongas <ok@artecdesign.ee>
+Subject: RE: omap5912 and regular DDR
+Date: Mon, 19 Dec 2005 14:53:22 +0200 (EET)
+Message-ID: <Pine.LNX.4.63.0512191302170.2652@pcy.artec.ee>
+References: <C51F43ABFC95844490F0529B60753BF402E30EDE@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+In-Reply-To: <C51F43ABFC95844490F0529B60753BF402E30EDE@dlee02.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,53 +16,35 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
 
 
-  I'm trying to compile and execute using DSPGW 3.3 the simple RF6
-(XDAIS - Reference Framework 6) example that comes with the Linux
-DSP Tools (OSK5912 and Linux 2.6.x). To do that, I'm following
-the how-to that comes with Linux DSP Tools and can be found in
-($LINUX_DSP_TOOLS_DIR)/doc/LinuxDspTools_GettingStartedGuide_v98.pdf
-  Linux DSP Tools DSP Development for TI OMAP5912
-  Getting Started Guide
-  Document Version 0.98
-  PRELIMINARY
+On Thu, 15 Dec 2005, Hunter, Jon wrote:
 
-  It explains how to do that using Montavista 3.1. However,
-after changing makefiles and environment variables, the compilation
-process was fine. But, when I try to execute the 'app.out' generated
-binary file with:
+> Unfortunately, I do not believe that we support this on the OMAP5912. My
+> understanding is that we only support regular SDR, mobile SDR and mobile
+> DDR. The description of the EMIFF interface in the data manual only
+> lists these. I also recall that we had said no to this in the past to
+> from another request. 
 
- # dspctl start app.out
+Hi Jon, Richard,
 
-it gets a configuration error. Like that:
+Jon, thanks for the information.
 
-omapdsp: DSP address 0060072c / size 00000004 is not valid!
-Can't determine reset vector address
+We have developed a board on which we use regular DDR 
+MT46V16M16TG, attached to omap5912. Last Friday I got the 
+DDR working and till now the u-boot's alternative (more 
+thorough) memory test has been running flawlessly for about 
+72 hours. Though I don't think anyone is stupid enough to 
+knowingly design for unsupported memory type, it seems at 
+least until now that it can be done with the above memory.
 
-  And, when I do:
+Jon, I would most appreciate if you could find out and 
+reveal the reason, why rDDR is not officially supported on 
+omap5912. 
 
-# dspctl version app.out
-
-It gets:
-
-DSP Gateway binary version 3.1 or before.
-
-  It seams like the binary is too old.
-  Is there any way to build a RF6 (Reference Framework 6) example and run i=
-t
-using DSP Gateway linux drivers / tokliBIOS / tinkernel into a 2.6.x runnin=
-g
-linux kernel?
-  It seams that RF6 uses a link (DSP <--> ARM9) quite different of the one
-provided by DSP Gateway project. Is that true?
-
-Thanks,
-
-
---
-Eduardo Bezerra Valentin
+Thanks in advance,
+Olav
