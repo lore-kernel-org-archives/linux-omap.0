@@ -1,12 +1,13 @@
-From: Olav Kongas <ok@artecdesign.ee>
-Subject: RE: omap5912 and regular DDR
-Date: Tue, 20 Dec 2005 20:51:54 +0200 (EET)
-Message-ID: <Pine.LNX.4.63.0512202046200.7730@pcy.artec.ee>
-References: <C51F43ABFC95844490F0529B60753BF402EC21A6@dlee02.ent.ti.com>
+From: Matthew Percival <matthew@capgo.com>
+Subject: Re: Re: Regarding McBSP Int ...help needed... (Matthew Percival)
+Date: Wed, 21 Dec 2005 09:40:05 +1100
+Message-ID: <1135118405.8928.17.camel@localhost.localdomain>
+References: <D8595042F3765A4285B848A78A2C2ED101F596EA@bsdmsg002.corp.satyam.ad>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <C51F43ABFC95844490F0529B60753BF402EC21A6@dlee02.ent.ti.com>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <D8595042F3765A4285B848A78A2C2ED101F596EA@bsdmsg002.corp.satyam.ad>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,27 +15,30 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
+G'Day,
 
+> There is indeed a bit a advance in the sense, My ISR is executed twice
+> now after including ur line of code. But after that no response. 
 
-On Tue, 20 Dec 2005, Hunter, Jon wrote:
+	I would say that your interrupts are all working fine now (it is
+executes twice, it is unlikely that you have any problems there), but I
+would be inclined to say that your problem is related to your McBSP
+configuration: the interrupt is probably not being asserted a third time
+for some reason (you might want to watch the L2.0 handler registers to
+confirm this).
 
-> > Jon, I would most appreciate if you could find out and reveal 
-> > the reason, why rDDR is not officially supported on omap5912. 
-> 
-> 
-> I doubled checked on this as it had been sometime since I had looked at
-> this. However, the official statement still is that we do not support
-> ddr1. The problem is that the internal i/o buffer on the 5912 will not
-> meet the JEDEC spec for ddr1. It could be possible that it may work,
-> however, we cannot guarantee across all devices produced that it will
-> work as there will be some variation in the silicon between parts. 
+	My guess would be that you get the first interrupt, fill the McBSP
+buffer, and this buffer is then loaded to be transmitted; now the buffer
+is empty, you get the second interrupt and again fill the buffer.  If
+the transmission never occurs, however, the buffer will never be emptied
+again, therefore the interrupt will not be asserted a third time.  This
+is just speculation, but I would suggest first confirming that the
+interrupt is indeed asserted a third time, and if not then make sure
+that your McBSP is actually transmitting.
 
-Jon, thank you so much.
-
-Olav
+	-- Matthew
