@@ -1,13 +1,13 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: Putting Uboot back into H4 board
-Date: Tue, 20 Dec 2005 07:16:25 -0800 (PST)
-Message-ID: <20051220151625.94035.qmail@web32902.mail.mud.yahoo.com>
-References: <000201c60571$9e3b7d60$642aa8c0@BUFFY>
+From: "Hunter, Jon" <jon-hunter@ti.com>
+Subject: RE: omap5912 and regular DDR
+Date: Tue, 20 Dec 2005 10:37:20 -0600
+Message-ID: <C51F43ABFC95844490F0529B60753BF402EC21A6@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <000201c60571$9e3b7d60$642aa8c0@BUFFY>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,93 +15,33 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Richard Copeman <richard.copeman@lauterbach.co.uk>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Olav Kongas <ok@artecdesign.ee>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---- Richard Copeman <richard.copeman@lauterbach.co.uk> wrote:
+Hi Olav,
 
-> Hi,
-> 
->  
-> 
-> I have an H4 board (OMAP-2420)  with a broken Uboot. Can somebody
-> point me
-> at a set of instructions or a utility to replace it please?
-
-Hope you have got H4 Menelaus board. You can download h4 u-boot source
-from http://linux.omap.com and use OST tools, it is available from the
-ti site:
-
---------
-Flashing Uboot (Menelaus Board)
-
-Procedure for flashing u-boot using OST tools
-
-1. Make the following switch settings
-
-Menelaus SDR based board:
-
-Processor Daughter card:
-
-SW4: OFF, OFF, ON, ON 
-SW1: ON, OFF, ON, OFF(OFF, OFF, ON, ON for booting)
-SW2: OFF, OFF, ON, ON(All ON for booting)
-SW3: OFF, ON, ON, ON
-
-Main H4 board:
-
-S1: All ON except 1,2,9,10
-S2: ON, OFF, OFF, ON
+> We have developed a board on which we use regular DDR=20
+> MT46V16M16TG, attached to omap5912. Last Friday I got the DDR=20
+> working and till now the u-boot's alternative (more
+> thorough) memory test has been running flawlessly for about
+> 72 hours. Though I don't think anyone is stupid enough to=20
+> knowingly design for unsupported memory type, it seems at=20
+> least until now that it can be done with the above memory.
+>=20
+> Jon, I would most appreciate if you could find out and reveal=20
+> the reason, why rDDR is not officially supported on omap5912.=20
 
 
-2. Connect the Serial cable to UART J400 socket (near to power supply)
-of H4 board and serial port of PC. NOTE: 1. Make sure that there is no
-other program running on PC monitoring the serial port.
+I doubled checked on this as it had been sometime since I had looked at
+this. However, the official statement still is that we do not support
+ddr1. The problem is that the internal i/o buffer on the 5912 will not
+meet the JEDEC spec for ddr1. It could be possible that it may work,
+however, we cannot guarantee across all devices produced that it will
+work as there will be some variation in the silicon between parts.=20
 
-     2. DO NOT switch on the board just follow the instructions
-
-3. Launch OSTtools tools Click on Settings->Configuration... menu to
-launch Configuration Dialog box In Configuration Dialog box
-
-- Click on 'Restore Default Addresses' button
-- Select '2420 Menelaus SDR' as platform 
-- Select 'UART' as interface
-- Select 'FlashWriterNOR.out' file name as Flash loader 
-- select 'OST_Load.2nd' as Downloaded SW
-- Click on 'OK' to close the dialog box
-
-On main GUI window
-
-- Select 'Image downloading and Flashing' as mode of operation 
-- Select 'h4_u-boot.raw' as input file name
-- Click on 'Download To Target' button 
- You should see following message
- 'Waiting for Target to Send ASIC ID' 
-
-
-4. SWITCH ON the board. OST tools will download/flash the u-boot raw
-binary on to the board. OST tools will display the downloading/Flashing
-progress. The whole process will take less than 18 sec. Once the
-flashing is completed, close the OST tool and switch OFF the board
-
-5. Make following changes and switch ON the board
-
-SW1: OFF, OFF, ON, ON
-SW2: All ON 
-
-NOTE: To get u-boot o/p you need to connect the serial cable to debug
-board 
-
------snip-------------------------
-
-Hope it helps !!!
-
----Komal Shah
-http://komalshah.blogspot.com/
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+Regards,
+Jon
+=20
