@@ -1,7 +1,7 @@
 From: sudhir kumar <sudhir_kum2002@yahoo.co.in>
 Subject: problem interfacing 8 bit peripheral(OCATAL UART ) with omap 5910
-Date: Wed, 21 Dec 2005 17:42:08 +0000 (GMT)
-Message-ID: <20051221174208.43917.qmail@web8321.mail.in.yahoo.com>
+Date: Wed, 21 Dec 2005 17:43:12 +0000 (GMT)
+Message-ID: <20051221174312.51808.qmail@web8311.mail.in.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
