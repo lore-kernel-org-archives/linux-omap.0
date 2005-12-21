@@ -1,11 +1,15 @@
-From: sudhir kumar <sudhir_kum2002@yahoo.co.in>
-Subject: problem interfacing 8 bit peripheral(OCATAL UART ) with omap 5910
-Date: Wed, 21 Dec 2005 17:43:12 +0000 (GMT)
-Message-ID: <20051221174312.51808.qmail@web8311.mail.in.yahoo.com>
+From: "Jason Huang" <jason.huang@wescongroup.com>
+Subject: RE: problem interfacing 8 bit peripheral(OCATAL UART ) with omap
+	5910
+Date: Wed, 21 Dec 2005 13:59:45 -0800
+Message-ID: <002001c60679$daa69ec0$6cfea8c0@wescongroup.com>
+References: <20051221174208.43917.qmail@web8321.mail.in.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20051221174208.43917.qmail@web8321.mail.in.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,10 +17,33 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
+
+Sudhir:
+
+You need provide more detailed information (on what you have and what you
+observed) for anyone to try to diagnose your problem (or challenge).
+
+>From you stated, I don't see anything wrong in your circuit logic.
+
+What is the OCTAL UART you are using? What code did you use?
+
+Best regards.
+
+Jason Huang
+Wescon Technology
+408-727-8818 x108 
+
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of sudhir
+kumar
+Sent: Wednesday, December 21, 2005 9:42 AM
+To: linux-omap-open-source@linux.omap.com
+Subject: problem interfacing 8 bit peripheral(OCATAL UART ) with omap 5910
 
 hi,
     I am interfacing 8 bit peripheral(OCTAL UART) with
@@ -47,3 +74,7 @@ Sudhir
        
 
 Send instant messages to your online friends http://in.messenger.yahoo.com 
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
