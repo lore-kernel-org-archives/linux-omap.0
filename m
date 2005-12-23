@@ -1,13 +1,12 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: Problem with flashing and/or starting UBoot with 2420
-Date: Fri, 23 Dec 2005 03:22:35 -0800 (PST)
-Message-ID: <20051223112235.86861.qmail@web32905.mail.mud.yahoo.com>
-References: <3d3153f60512230139v57b3a30dh2346e44ad2b17da8@mail.gmail.com>
+From: "xuxian" <lsfdxuxian@gmail.com>
+Subject: wireless network card on OSK5912
+Date: Fri, 23 Dec 2005 21:36:39 +0800
+Message-ID: <43abfd75.5624d01d.0dec.ffffe4e9@mx.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <3d3153f60512230139v57b3a30dh2346e44ad2b17da8@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,47 +16,19 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Ola Helm <ola.hel@gmail.com>, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
+Cc: linux-arm@lists.arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
---- Ola Helm <ola.hel@gmail.com> wrote:
+Hi all,
 
-> Hi all,
-> 
-> My problem is following one:
-> 
-> I flashed the newest H4 UBoot available to ou board and after restart
-> I get
-> following message in Hyperterminal:
-> 
-> U-Boot 1.1.3 (Sep  6 2005 - 14:24:25)
-> 
-> U-Boot code: 80E80000 -> 80E9F0E8  BSS: -> 80EA3F2C
-> OMAP2420-GP revision 3, PRCM II
-> TI H4 SDP Base Board + Menelaus Daughter Board + mDDR
-> RAM Configuration:
-> Bank #0: 80000000 32 MB
-> Bank #1: 82000000 32 MB
-> ## Unknown FLASH on Bank 0 - Size = 0x00000000 = 0 MB
-> ## Unknown FLASH on Bank 1 - Size = 0x00000000 = 0 MB
-> Flash:  0 kB
-> NAND:
+I have a wireless network card called D-Link DWL-G122 and it works properly
+under Debian linux on my host PC. The open source driver I used is rt2570
+available on http://rt2x00.serialmonkey.com/rt2570-cvs-daily.tar.gz and my
+target is OSK5912. Now, my question is how can I get the wireless card work
+on the target board, in other words how can I install the drivers on the
+target board? Does anyone have successful experience on this? Could you give
+me some guiding information? 
 
->From this I can make out that, you are trying to boot from NAND instead
-of NOR ...!!! Switch positions on processor daughter card is wrong.
-
-Does u-boot compiled for NAND or NOR? Please undefine
-#CONFIG_NAND_BOOT.
-
-Please see this:
-http://linux.omap.com/pipermail/linux-omap-open-source/2005-December/005994.html
-
----Komal Shah
-http://komalshah.blogspot.com/
-
-
-	
-		
-__________________________________ 
-Yahoo! for Good - Make a difference this year. 
-http://brand.yahoo.com/cybergivingweek2005/
+Best Regards,
+xuxian
