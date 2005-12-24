@@ -1,14 +1,17 @@
-From: "Jason Huang" <jason.huang@wescongroup.com>
-Subject: RE: problem interfacing 8 bit peripheral(OCTAL UART ) with omap 5910
-Date: Fri, 23 Dec 2005 10:25:28 -0800
-Message-ID: <01da01c607ee$4055bf10$6cfea8c0@wescongroup.com>
-References: <20051223043025.56699.qmail@web8324.mail.in.yahoo.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] MMC - CONFIG_HOTPLUG support
+Date: Sat, 24 Dec 2005 22:35:02 +0000
+Message-ID: <20051224223502.GA22630@flint.arm.linux.org.uk>
+References: <43A31A75.7070500@indt.org.br>
+	<20051216215823.GB1302@flint.arm.linux.org.uk>
+	<F26D8BDC5BC8014A909C6D45468F69EF022B680C@mzebe101.NOE.Nokia.com>
+	<20051219130436.GC11932@flint.arm.linux.org.uk>
+	<F26D8BDC5BC8014A909C6D45468F69EF022B6813@mzebe101.NOE.Nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20051223043025.56699.qmail@web8324.mail.in.yahoo.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <F26D8BDC5BC8014A909C6D45468F69EF022B6813@mzebe101.NOE.Nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,132 +19,40 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "Anderson.Briglia@indt.org.br" <Anderson.Briglia@indt.org.br>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Sudhir,
+On Mon, Dec 19, 2005 at 01:02:36PM -0300, Anderson.Briglia@indt.org.br wrote:
+> On Mon, Dec 19, 2005 at 09:52:59AM -0300, Anderson.Briglia@indt.org.br wrote:
+> > I'd like you to explain:
+> > 1. what additional support this patch gives us.
+> 
+> I'm working on MMC hotplug system. This patch is a inicial work to provide
+> a minimal kernel configuration hotplug support (and prevent future bugs). 
 
-As I said, your connection is correct: D8:D15 of OMAP to D0:D7 of the UART.
-Your description of the problem (e.g., 'unable to access all registers') is
-too vague.
+Either you have hotplug support or you don't.  There is no half-way
+house implemented in any kernel subsystem.
 
-Best regards.
+> It's necessary more interaction between the MMC core and the MMC block
+> driver. When a MMC card is inserted/removed the MMC block driver should
+> be informed and adds/removes the device information from the kernel.
+> I'm trying to implement this interaction.
 
-Jason Huang
+This is already implemented.  The MMC block driver will be called via
+mmc_blk_probe() when a card is inserted, and via mmc_blk_remove()
+when it is removed.
 
------Original Message-----
-From: sudhir kumar [mailto:sudhir_kum2002@yahoo.co.in] 
-Sent: Thursday, December 22, 2005 8:30 PM
-To: Jason Huang
-Subject: RE: problem interfacing 8 bit peripheral(OCTAL UART ) with omap
-5910
+> > 2. what the nature of the optimisation is.
+> 
+> AFAIK, compiler directives are a guiding for what will/won't be compiled.
+> IMHO, if the kernel hotplug support is not selected, doesn't make sense
+> that the mmc_bus_hotplug function be compiled. When the MMC core and
+> MMC block interaction will be implemented the mmc_bus_hotplug function
+> should not be compiled providing that hotplug support.
 
-hi Jason,
-           i think  so i did not formulate my question
-properly.
- In OMAP 5910 there is no A0 address line so we are
-connecting the A1 adress line of the processor to the
-A0 address line of the OCTAL UART.The OCTAL UART we
-are using is of  EXAR type XR16L788.
-following the same thing we are connecting the A8
-address line of the procvessor to the A7 address line
-of the OCTAL UART.
-                        and as far as data lines are
-concerened OCTAL UART data lines are connected to the
-HIGHER BYTE data bus i.e. D8 to D16.but now the
-problem is that we are able to read the register
-having ODD address in the OCTAL UART properly but for
-the EVEN address register we have to RIGHT Shift the
-data which we have read by 8.And that to some time its
-not coming right for the even address.
-                          So my problem is that that
-why are we not able to access the even address
-register properly.
-        
-                     And  how to make the omap 5910
-processor(16-bit) to interface peoperly with the OCTAL
-UART(8-bit). so that i can access the data properly.
-Is the way i have connected my DATA lines and ADDRESS
-lines properly?
-  
---- Jason Huang <jason.huang@wescongroup.com> wrote:
-
-> Sudhir:
-> 
-> You need provide more detailed information (on what
-> you have and what you
-> observed) for anyone to try to diagnose your problem
-> (or challenge).
-> 
-> >From you stated, I don't see anything wrong in your
-> circuit logic.
-> 
-> What is the OCTAL UART you are using? What code did
-> you use?
-> 
-> Best regards.
-> 
-> Jason Huang
-> 
-> -----Original Message-----
-> From: linux-omap-open-source-bounces@linux.omap.com
->
-[mailto:linux-omap-open-source-bounces@linux.omap.com]
-> On Behalf Of sudhir
-> kumar
-> Sent: Wednesday, December 21, 2005 9:42 AM
-> To: linux-omap-open-source@linux.omap.com
-> Subject: problem interfacing 8 bit peripheral(OCATAL
-> UART ) with omap 5910
-> 
-> hi,
->     I am interfacing 8 bit peripheral(OCTAL UART)
-> with
-> omap 5910 but  i am not able to access all the
-> registers of octal uart properly and the data which
-> i
-> am getting is not reliable.
->                     
->                      I will let u know how we have
-> interfaced our OMAP 5910 processors address line  to
-> OCTAL UART address line. 
-> A0 addressline of the processor is grounded so we
-> have
-> connected the A1 address line of the omap processor
-> to
-> the A0 address line of the OCTAL uart.following the
-> same thing A8 address line of the omap processor is
-> connected to the A7 address line of the Octal UART.
->    And regarding the DATA lines i have connected the
-> UART 8 bit data lines to OMAP processor higher byte
-> DATA  bus.
->                                           So am i
-> doing everything fine? Is any body has worked on it
-> .Any kind of help or suggesstion will be really
-> helpful.
-> 
-> Thanks in Advance.
-> 
-> Regards
-> Sudhir
->        
-> 
-> Send instant messages to your online friends
-> http://in.messenger.yahoo.com 
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
->
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> 
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
->
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> 
-
-
-Send instant messages to your online friends http://in.messenger.yahoo.com 
+Right.  You could eliminate the whole function and define mmc_bus_hotplug
+to NULL when CONFIG_HOTPLUG is unset, which will eliminate even more
+bytes.
