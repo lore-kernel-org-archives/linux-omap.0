@@ -1,11 +1,12 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: [PATCH] I2C: Use struct platform_driver
-Date: Sun, 25 Dec 2005 22:13:53 -0800 (PST)
-Message-ID: <20051226061353.45936.qmail@web32903.mail.mud.yahoo.com>
+From: "Kanagesh R" <kanagesh@india.com>
+Subject: Re: USB Flash Disk on OSK
+Date: Mon, 26 Dec 2005 19:51:26 +0800
+Message-ID: <20051226115126.370D543844@ws5-1.us4.outblaze.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-1624993648-1135577633=:39187"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,130 +16,118 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Kanagesh R <kanagesh@india.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---0-1624993648-1135577633=:39187
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Content-Id: 
-Content-Disposition: inline
+>=20
+> Hello,
+>=20
+> I am trying to get a Linksys USB-to-Wireless adapter working with=20
+> the OSK.  I started
+> off by trying to check if the USB Master interface works using a=20
+> Flash disk.  When I
+> plug in the USB disk, I see that usb interrupts do not occur.
+>=20
+> I'm using a linux-2.4.16 kernel, patched with omap1 patch from=20
+> www.muru.com.  I've
+> configured and built the kernel for OSK with the USB support=20
+> according to the document
+> at OSK for dummies:
+>=20
+> Device Drivers --->
+> USB support --->
+>   <*> Support for host-side USB ( CONFIG_USB )
+>   <*> OHCI HCD support( CONFIG_USB_OHCI_HCD )
+>   <*> USB Mass Storage Support( CONFIG_USB_STORAGE )
+>=20
+> SCSI device support --->( CONFIG_SCSI )
+>   <*> SCSI disk support( CONFIG_BLK_DEV_SD )
+>=20
+> "File systems" --->
+> "DOS/FAT/NT Filesystems" --->( CONFIG_FAT_FS)
+>   <*> MSDOS fs support( CONFIG_MSDOS_FS )
+>   <*> VFAT ( Windows-95 fs support)( CONFIG_VFAT_FS )
+>=20
+> "File systems" --->
+> "Partition Types"  --->
+>   [*] Advanced partition selection( CONFIG_PARTITION_ADVANCED )
+>   [*] PC BIOS (MSDOS partition table)( CONFIG_MSDOS_PARTITION )
+>=20
+> "File systems" --->
+> "Native Language Support" --->( CONFIG_NLS )
+>   <*> Code Page 437 (United States...)( CONFIG_NLS_CODEPAGE_437 )
+>   <*> NLS ISO8859 (Latan 1...)( CONFIG_NLS_ISO8859_1 )
+>=20
+> As far as my understanding goes, irrespective of whether the
+> device has been configured for USB Mass storage or not, if the
+> device is recognized, USB interrupts should occur, which is not
+> happening.
+>=20
+> cat /proc/interrupt returns:
+>=20
+> CPU0
+>   19:          0   DMA
+>   20:          0   DMA
+>   21:          0   DMA
+>   22:          0   DMA
+>   23:          0   DMA
+>   24:          0   DMA
+>   25:          0   LCD DMA
+>   31:          3   omap-lcdc
+>   33:          1   omap-keypad
+>   36:          0   i2c_omap
+>   38:          0   ohci_hcd:usb1
+>   46:        548   serial
+>   54:     158278   32KHz timer
+>   85:          0   DMA
+>   86:          0   DMA
+>   87:          0   DMA
+>   88:          0   DMA
+>   89:          0   DMA
+>   90:          0   DMA
+>   91:          0   DMA
+>   92:          0   DMA
+>   93:          0   DMA
+>   94:          0   DMA
+> 160:       1399   eth0
+> 197:          0   serial wakeup
+> 222:          0   omap_cf
+>=20
+>=20
+> Has anyone successfully got the USB Master interface on the OSK5912
+> to work fine?
+>=20
+> Thanks in advance,
+>=20
+> Regards,
+> Kanagesh
 
-Tony,
+Hello,
 
-Attached patch uses "struct platform_driver" and kmalloc->kzalloc.
+My apologies, the kernel that I am using right now is linux-2.6.13-omap1 (a=
+nd not
+linux-2.4.16 as mentioned).=20=20
 
-Signed-off-by: Komal Shah <komal_shah802003@yahoo.com>
+Further, I found from the list archives that there was a USB clock malfunct=
+ion
+in kernels 2.6.12 - 2.6.14.  I backported my work to 2.6.11-omap1 and I sti=
+ll
+see the same problem.  However, when the system comes up, I see some stray =
+USB
+interrupts (even though there is no device plugged in).
 
----Komal Shah
-http://komalshah.blogspot.com/
+When I plug in a memory disk or any other USB device, there're no USB inter=
+rupts.
 
+Can anyone point me to what am doing wrong?
 
-	
-		
-__________________________________ 
-Yahoo! for Good - Make a difference this year. 
-http://brand.yahoo.com/cybergivingweek2005/
---0-1624993648-1135577633=:39187
-Content-Type: text/plain; name="i2c-pdriver.patch"
-Content-Description: 2591886790-i2c-pdriver.patch
-Content-Disposition: inline; filename="i2c-pdriver.patch"
-
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 826b10c..c217d51 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -571,9 +571,8 @@ static void omap_i2c_24xx_enable_clocks(
- #endif
- 
- static int
--omap_i2c_probe(struct device *dev)
-+omap_i2c_probe(struct platform_device *pdev)
- {
--	struct platform_device	*pdev = to_platform_device(dev);
- 	struct omap_i2c_dev	*omap_i2c_dev;
- 	struct i2c_adapter	*adap;
- 	struct resource		*mem, *irq;
-@@ -606,17 +605,16 @@ omap_i2c_probe(struct device *dev)
- 	if (own < 1 || own > 0x7f)
- 		own = DEFAULT_OWN;
- 
--	omap_i2c_dev = kmalloc(sizeof(struct omap_i2c_dev), GFP_KERNEL);
-+	omap_i2c_dev = kzalloc(sizeof(struct omap_i2c_dev), GFP_KERNEL);
- 	if (!omap_i2c_dev) {
- 		r = -ENOMEM;
- 		goto do_release_region;
- 	}
--	memset(omap_i2c_dev, 0, sizeof(struct omap_i2c_dev));
- 
--	omap_i2c_dev->dev = dev;
-+	omap_i2c_dev->dev = &pdev->dev;
- 	omap_i2c_dev->irq = irq->start;
- 	omap_i2c_dev->base = (void __iomem *)IO_ADDRESS(mem->start);
--	dev_set_drvdata(omap_i2c_dev->dev, omap_i2c_dev);
-+	platform_set_drvdata(pdev, omap_i2c_dev);
- 	init_waitqueue_head(&omap_i2c_dev->cmd_wait);
- 
- 	if ((r = omap_i2c_24xx_get_clocks(omap_i2c_dev, pdev->id)) != 0)
-@@ -648,7 +646,7 @@ omap_i2c_probe(struct device *dev)
- 	adap->class = I2C_CLASS_HWMON;
- 	strncpy(adap->name, "OMAP I2C adapter", sizeof(adap->name));
- 	adap->algo = &omap_i2c_algo;
--	adap->dev.parent = dev;
-+	adap->dev.parent = &pdev->dev;
- 	/* i2c device drivers may be active on return from add_adapter() */
- 	r = i2c_add_adapter(adap);
- 	if (r) {
-@@ -673,10 +671,9 @@ do_release_region:
- }
- 
- static int
--omap_i2c_remove(struct device *dev)
-+omap_i2c_remove(struct platform_device *pdev)
- {
--	struct platform_device	*pdev = to_platform_device(dev);
--	struct omap_i2c_dev	*omap_i2c_dev = dev_get_drvdata(dev);
-+	struct omap_i2c_dev	*omap_i2c_dev = platform_get_drvdata(pdev);
- 	struct resource		*mem;
- 
- 	omap_i2c_write(omap_i2c_dev, 0, OMAP_I2C_CON);
-@@ -690,24 +687,25 @@ omap_i2c_remove(struct device *dev)
- 	return 0;
- }
- 
--static struct device_driver omap_i2c_driver = {
--	.name		= (char *)driver_name,
--	.bus		= &platform_bus_type,
-+static struct platform_driver omap_i2c_driver = {
- 	.probe		= omap_i2c_probe,
- 	.remove		= omap_i2c_remove,
-+	.driver 	= {
-+		.name	= (char *)driver_name,
-+	},
- };
- 
- /* i2c may be needed to bring up other drivers */
- static int __init
- omap_i2c_init_driver(void)
- {
--	return driver_register(&omap_i2c_driver);
-+	return platform_driver_register(&omap_i2c_driver);
- }
- subsys_initcall(omap_i2c_init_driver);
- 
- static void __exit omap_i2c_exit_driver(void)
- {
--	driver_unregister(&omap_i2c_driver);
-+	platform_driver_unregister(&omap_i2c_driver);
- }
- module_exit(omap_i2c_exit_driver);
- 
-
---0-1624993648-1135577633=:39187
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks in advance
+regards,
+Kanagesh
 
 
---0-1624993648-1135577633=:39187--
+
+--=20
+India.com free e-mail - www.india.com.=20
+Check out our value-added Premium features, such as an extra 20MB for mail =
+storage, POP3, e-mail forwarding, and ads-free mailboxes!
