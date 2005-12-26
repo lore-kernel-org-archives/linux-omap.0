@@ -1,17 +1,11 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] MMC - CONFIG_HOTPLUG support
-Date: Sat, 24 Dec 2005 22:35:02 +0000
-Message-ID: <20051224223502.GA22630@flint.arm.linux.org.uk>
-References: <43A31A75.7070500@indt.org.br>
-	<20051216215823.GB1302@flint.arm.linux.org.uk>
-	<F26D8BDC5BC8014A909C6D45468F69EF022B680C@mzebe101.NOE.Nokia.com>
-	<20051219130436.GC11932@flint.arm.linux.org.uk>
-	<F26D8BDC5BC8014A909C6D45468F69EF022B6813@mzebe101.NOE.Nokia.com>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: [PATCH] I2C: Use struct platform_driver
+Date: Sun, 25 Dec 2005 22:13:53 -0800 (PST)
+Message-ID: <20051226061353.45936.qmail@web32903.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <F26D8BDC5BC8014A909C6D45468F69EF022B6813@mzebe101.NOE.Nokia.com>
+Content-Type: multipart/mixed; boundary="0-1624993648-1135577633=:39187"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,40 +13,132 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "Anderson.Briglia@indt.org.br" <Anderson.Briglia@indt.org.br>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Dec 19, 2005 at 01:02:36PM -0300, Anderson.Briglia@indt.org.br wrote:
-> On Mon, Dec 19, 2005 at 09:52:59AM -0300, Anderson.Briglia@indt.org.br wrote:
-> > I'd like you to explain:
-> > 1. what additional support this patch gives us.
-> 
-> I'm working on MMC hotplug system. This patch is a inicial work to provide
-> a minimal kernel configuration hotplug support (and prevent future bugs). 
+--0-1624993648-1135577633=:39187
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Content-Id: 
+Content-Disposition: inline
 
-Either you have hotplug support or you don't.  There is no half-way
-house implemented in any kernel subsystem.
+Tony,
 
-> It's necessary more interaction between the MMC core and the MMC block
-> driver. When a MMC card is inserted/removed the MMC block driver should
-> be informed and adds/removes the device information from the kernel.
-> I'm trying to implement this interaction.
+Attached patch uses "struct platform_driver" and kmalloc->kzalloc.
 
-This is already implemented.  The MMC block driver will be called via
-mmc_blk_probe() when a card is inserted, and via mmc_blk_remove()
-when it is removed.
+Signed-off-by: Komal Shah <komal_shah802003@yahoo.com>
 
-> > 2. what the nature of the optimisation is.
-> 
-> AFAIK, compiler directives are a guiding for what will/won't be compiled.
-> IMHO, if the kernel hotplug support is not selected, doesn't make sense
-> that the mmc_bus_hotplug function be compiled. When the MMC core and
-> MMC block interaction will be implemented the mmc_bus_hotplug function
-> should not be compiled providing that hotplug support.
+---Komal Shah
+http://komalshah.blogspot.com/
 
-Right.  You could eliminate the whole function and define mmc_bus_hotplug
-to NULL when CONFIG_HOTPLUG is unset, which will eliminate even more
-bytes.
+
+	
+		
+__________________________________ 
+Yahoo! for Good - Make a difference this year. 
+http://brand.yahoo.com/cybergivingweek2005/
+--0-1624993648-1135577633=:39187
+Content-Type: text/plain; name="i2c-pdriver.patch"
+Content-Description: 2591886790-i2c-pdriver.patch
+Content-Disposition: inline; filename="i2c-pdriver.patch"
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 826b10c..c217d51 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -571,9 +571,8 @@ static void omap_i2c_24xx_enable_clocks(
+ #endif
+ 
+ static int
+-omap_i2c_probe(struct device *dev)
++omap_i2c_probe(struct platform_device *pdev)
+ {
+-	struct platform_device	*pdev = to_platform_device(dev);
+ 	struct omap_i2c_dev	*omap_i2c_dev;
+ 	struct i2c_adapter	*adap;
+ 	struct resource		*mem, *irq;
+@@ -606,17 +605,16 @@ omap_i2c_probe(struct device *dev)
+ 	if (own < 1 || own > 0x7f)
+ 		own = DEFAULT_OWN;
+ 
+-	omap_i2c_dev = kmalloc(sizeof(struct omap_i2c_dev), GFP_KERNEL);
++	omap_i2c_dev = kzalloc(sizeof(struct omap_i2c_dev), GFP_KERNEL);
+ 	if (!omap_i2c_dev) {
+ 		r = -ENOMEM;
+ 		goto do_release_region;
+ 	}
+-	memset(omap_i2c_dev, 0, sizeof(struct omap_i2c_dev));
+ 
+-	omap_i2c_dev->dev = dev;
++	omap_i2c_dev->dev = &pdev->dev;
+ 	omap_i2c_dev->irq = irq->start;
+ 	omap_i2c_dev->base = (void __iomem *)IO_ADDRESS(mem->start);
+-	dev_set_drvdata(omap_i2c_dev->dev, omap_i2c_dev);
++	platform_set_drvdata(pdev, omap_i2c_dev);
+ 	init_waitqueue_head(&omap_i2c_dev->cmd_wait);
+ 
+ 	if ((r = omap_i2c_24xx_get_clocks(omap_i2c_dev, pdev->id)) != 0)
+@@ -648,7 +646,7 @@ omap_i2c_probe(struct device *dev)
+ 	adap->class = I2C_CLASS_HWMON;
+ 	strncpy(adap->name, "OMAP I2C adapter", sizeof(adap->name));
+ 	adap->algo = &omap_i2c_algo;
+-	adap->dev.parent = dev;
++	adap->dev.parent = &pdev->dev;
+ 	/* i2c device drivers may be active on return from add_adapter() */
+ 	r = i2c_add_adapter(adap);
+ 	if (r) {
+@@ -673,10 +671,9 @@ do_release_region:
+ }
+ 
+ static int
+-omap_i2c_remove(struct device *dev)
++omap_i2c_remove(struct platform_device *pdev)
+ {
+-	struct platform_device	*pdev = to_platform_device(dev);
+-	struct omap_i2c_dev	*omap_i2c_dev = dev_get_drvdata(dev);
++	struct omap_i2c_dev	*omap_i2c_dev = platform_get_drvdata(pdev);
+ 	struct resource		*mem;
+ 
+ 	omap_i2c_write(omap_i2c_dev, 0, OMAP_I2C_CON);
+@@ -690,24 +687,25 @@ omap_i2c_remove(struct device *dev)
+ 	return 0;
+ }
+ 
+-static struct device_driver omap_i2c_driver = {
+-	.name		= (char *)driver_name,
+-	.bus		= &platform_bus_type,
++static struct platform_driver omap_i2c_driver = {
+ 	.probe		= omap_i2c_probe,
+ 	.remove		= omap_i2c_remove,
++	.driver 	= {
++		.name	= (char *)driver_name,
++	},
+ };
+ 
+ /* i2c may be needed to bring up other drivers */
+ static int __init
+ omap_i2c_init_driver(void)
+ {
+-	return driver_register(&omap_i2c_driver);
++	return platform_driver_register(&omap_i2c_driver);
+ }
+ subsys_initcall(omap_i2c_init_driver);
+ 
+ static void __exit omap_i2c_exit_driver(void)
+ {
+-	driver_unregister(&omap_i2c_driver);
++	platform_driver_unregister(&omap_i2c_driver);
+ }
+ module_exit(omap_i2c_exit_driver);
+ 
+
+--0-1624993648-1135577633=:39187
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--0-1624993648-1135577633=:39187--
