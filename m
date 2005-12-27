@@ -1,58 +1,80 @@
-From: "Anderson.Briglia@indt.org.br" <Anderson.Briglia@indt.org.br>
-Subject: Re: Pending patches
-Date: Tue, 27 Dec 2005 15:01:03 -0300
-Message-ID: <F26D8BDC5BC8014A909C6D45468F69EF022B6818@mzebe101.NOE.Nokia.com>
-References: <43B10E92.4060203@de.bosch.com>
+From: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Subject: Re: [patch 0/5] Add MMC password protection (lock/unlock) support
+Date: Tue, 27 Dec 2005 14:48:21 -0400
+Message-ID: <43B18C75.6030807@indt.org.br>
+References: <20051213213208.303580000@localhost.localdomain>	 <200512131403.53983.david-b@pacbell.net> <5b5833aa0512141448o1014e7a5vdfd62cfdc61c7d11@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: dirk.behme@de.bosch.com, linux-omap-open-source@linux.omap.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750724AbVL0StP@vger.kernel.org>
+In-Reply-To: <5b5833aa0512141448o1014e7a5vdfd62cfdc61c7d11@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Anderson Lizardo <anderson.lizardo@gmail.com>
+Cc: David Brownell <david-b@pacbell.net>, Anderson Lizardo <anderson.lizardo@indt.org.br>, linux-omap-open-source@linux.omap.com, linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, Anderson Briglia <anderson.briglia@indt.org.br>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-> Hello,
+Anderson Lizardo wrote:
 
-> find below a list of pending patches from last weeks.
+>On 12/13/05, David Brownell <david-b@pacbell.net> wrote:
+>  
+>
+>>Is there a writeup on how to hook this up with the key retention
+>>infrastructure?  I know many folk are unfamiliar with that, and
+>>I seem to recall a need for some userspace tweaks.  (Like SHA1
+>>hashing of passphrases to generate MMC keys, and maybe storing
+>>keys in some per-user file using some user interface.)
+>>    
+>>
+>
+>We have created a sample text-mode reference UI (using keyctl from the
+>keyutils[1] package to interface with the key retention service) that
+>shows how everything works together. We are setting up some web space
+>to put such UI (actually a set of shell scripts) and we will provide
+>links soon.
+>
+>Regarding the userspace tweaks, we have not gone into this aspect, but
+>just provided the "core" kernel code. Usually, those integrating the
+>system will dictate policies regarding password hashing, persistent
+>caching etc. The policies for our reference UI were:
+>
+>- no hashing (password is sent/stored clear-text)
+>- in-memory caching (so if the user reboots the system, the password
+>will have to be re-typed).
+>
+>I think those policies can be done still on userspace, so the kernel
+>code remains "policy-free".
+>
+>[1] http://people.redhat.com/~dhowells/keyutils/
+>--
+>Anderson Lizardo
+>Embedded Linux Lab - 10LE
+>Nokia Institute of Technology - INdT
+>Manaus - Brazil
+>
+>  
+>
+Hi all,
 
-> Feel free to update, correct, extend etc.
+As promised, you can find a simple text-mode reference UI for the MMC 
+password protection
+support, written in shell script, that shows how everything works 
+together on the links below:
 
-> Hth,
+http://www.indt.org.br/10le/mmc_pwd/mmc_reference_ui-20051215.tar.gz
+http://www.indt.org.br/10le/mmc_pwd/mmc_test-20051215.sh
 
-> Dirk
-
-> List of pending patches for OMAP Linux.
-
-> Last modified: 2005/12/27
-
-> Pending patches (ready for inclusion):
-> =
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-
-> 11) MMC - CONFIG_HOTPLUG support
-> =
-http://linux.omap.com/pipermail/linux-omap-open-source/2005-December/0059=
-63.html
-
-> Note: Still in discussion with RMK?
-
-I guess it's ok this one. Please, see the lastest RMK e-mail about the =
-patch:
-
-http://linux.omap.com/pipermail/linux-omap-open-source/2005-December/0060=
-24.html
 
 BR,
 
-Anderson Briglia
+Carlos Aguiar.
+
+
+
+-- 
+Carlos Eduardo
+Software Engineer
+Nokia Institute of Technology - INdT
+Embedded Linux Laboratory - 10LE
+Phone: +55 92 2126-1079
+Mobile: +55 92 8127-1797
+E-mail: carlos.aguiar@indt.org.br
