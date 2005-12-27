@@ -1,13 +1,14 @@
-From: Ola Helm <ola.hel@gmail.com>
-Subject: Re: Problem with flashing and/or starting UBoot with 2420
-Date: Tue, 27 Dec 2005 14:21:24 +0200
-Message-ID: <3d3153f60512270421p7bfc1985gf73dd64df1f65012@mail.gmail.com>
-References: <20051227103058.1324.qmail@web32901.mail.mud.yahoo.com>
-	<20051227103741.11441.qmail@web32903.mail.mud.yahoo.com>
+From: "Anderson.Briglia@indt.org.br" <Anderson.Briglia@indt.org.br>
+Subject: Re: Pending patches
+Date: Tue, 27 Dec 2005 15:01:03 -0300
+Message-ID: <F26D8BDC5BC8014A909C6D45468F69EF022B6818@mzebe101.NOE.Nokia.com>
+References: <43B10E92.4060203@de.bosch.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1142037294=="
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20051227103741.11441.qmail@web32903.mail.mud.yahoo.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,70 +18,41 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: dirk.behme@de.bosch.com, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============1142037294==
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+> Hello,
 
-SSBkZWZpbmUgbXkgc2F5aW5nCgo+ID4gb3Bwb3NpdGUgeW91IHNhaWQgaS5lLiAgSSdtIHRyeWlu
-ZyB0byBmbGFzaCAmIGJvb3QgZnJvbSBOT1IgYnV0IHRoZQo+ID4gVUJvb3QgaXMKPiA+IGZvciBO
-QU5ECgphIGJpdCBhbHNvOiBXaGF0IEkgd2FudCBub3cgaXMgdG8gZmxhc2ggVWJvb3QgdG8gTk9S
-IG9uIG15IGJvYXJkIGFuZCBib290IGl0CmZyb20gdGhlcmUgYWZ0ZXIgdGhhdCwganVzdCBhcyB5
-b3Ugc2FpZCBpbgoKPiBmbGFzaGluZwo+IHUtYm9vdAo+IHRvIE5PUiBmbGFzaCBpLmUgQm9vdGlu
-ZyBmcm9tIE5PUi4KClNvLCBJIHRoaW5rIHRoYXQncyB3aGF0IGxpbmsgd2FzIGFib3V0LCByaWdo
-dD8gQnV0LCB0aGUgc3dpdGNoIHNldHRpbmdzCmJlbG93IChjb3BpZWQgZnJvbSB0aGF0IG1lc3Nh
-Z2UpIGFyZSBub3QgY29tcGF0aWJsZSB3aXRoIG91ciBib2FyZDoKClNXNDogT0ZGLCBPRkYsIE9O
-LCBPTgpTVzE6IE9OLCBPRkYsIE9OLCBPRkYoT0ZGLCBPRkYsIE9OLCBPTiBmb3IgYm9vdGluZykK
-U1cyOiBPRkYsIE9GRiwgT04sIE9OKEFsbCBPTiBmb3IgYm9vdGluZykKU1czOiBPRkYsIE9OLCBP
-TiwgT04KCkluIG91ciBib2FyZCB0aGUgc2V0dGluZ3MgYXJlIGZvbGxvd2luZyBvbmVzLCBlc3Bl
-Y2lhbGx5IFNXMSAmIFNXMiBtdXN0IGJlCmxpa2UgdGhhdAoKU1c0OiBPRkYsIE9GRiwgT04sIE9O
-ClNXMTogT04sIE9GRiwgT04sIE9GRihPTiwgT0ZGLCBPTiwgT04gZm9yIGJvb3RpbmcpClNXMjog
-T0ZGLCBPTiwgT04sIE9OKEFsbCBPTiBmb3IgYm9vdGluZykKU1czOiBPRkYsIE9OLCBPTiwgT0ZG
-CgpJdCB3b3JrcyB3aXRoIG9yaWdpbmFsIFRJIGZpbGVzLCBidXQgSSdtIG5vdCBzdXJlIGlzIGl0
-IGNvcnJlY3QgZm9yIHRoaXMKY2FzZS4gVGhleSB2YXJ5IGZyb20gYm9hcmQgdG8gYm9hcmQgYW55
-d2F5LiBJIHRoaW5rIHRoYXQgdGhlIGZsYXNoaW5nICBnb2VzCnRvIHJpZ2h0IHBsYWNlIGFuZCBJ
-IHRoaW5rIGl0IGV2ZW4gYm9vdHMgZnJvbSB0aGUgcmlnaHQgcGxhY2UgKGlmIGl0IHdvdWxkCmJv
-b3QgZnJvbSBOQU5EIHRoZXJlIHdvdWxkIGJlIG5vIG1lc3NhZ2UgYXQgYWxsKSwgYnV0IHNvbWUg
-c2V0dGluZ3MgKGJvb3RpbmcKb3IgZmxhc2hpbmcpIGFyZSBub3QgY29tcGxldGVseSBjb3JyZWN0
-LiBPciBwZXJoYXBzIHRoZSBDT05GSUdfTkFORF9CT09UCmRlZmluaXRpb24uLgoKL08KCk9uIDEy
-LzI3LzA1LCBLb21hbCBTaGFoIDxrb21hbF9zaGFoODAyMDAzQHlhaG9vLmNvbT4gd3JvdGU6Cj4K
-PiA+IG8gRmxhc2hpbmcgYW5kIGJvb3RpbmcgZnJvbSB1LWJvb3QgaXMgYSBkaWZmZXJlbnQgc3Rv
-cnksIGFzIGl0Cj4gPiByZXF1aXJlcwo+ID4geC1sb2FkZXIgKHlvdSBuZWVkIHRvIHNpZ24geC1s
-b2FkZXIgaW1hZ2UpIGFuZCBkaWZmZXJlbnQgc3dpdGNoCj4gPiBwb3NpdGlvbnMuCj4KPiBBYm92
-ZSBzdGF0bWVudCBpcyBmb3IgTkFORC4KPgo+Cj4gLS0tIEtvbWFsIFNoYWggPGtvbWFsX3NoYWg4
-MDIwMDNAeWFob28uY29tPiB3cm90ZToKPgo+ID4gLS0tIE9sYSBIZWxtIDxvbGEuaGVsQGdtYWls
-LmNvbT4gd3JvdGU6Cj4gPgo+ID4gPiBIaSwKPiA+ID4KPiA+ID4gVGhhbmtzIGZvciBxdWljayBh
-bnN3ZXJpbmcsIHVuZm9ydHVuYXRlbHkgSSBoYXZlbid0IGJlZW4gYWJsZSB0bwo+ID4gbWVzcwo+
-ID4gPiBhcm91bmQKPiA+ID4gd2l0aCBib2FyZC4KPiA+ID4KPiA+ID4gWWVzLCBzZWVtcyB0byBi
-ZSB0aGF0IGJvb3QgaXMgZm9yIE5BTkQgYW5kIG5vdCBOT1IuIFRodXMgaXQgaXMKPiA+ID4gYWN0
-dWFsbHkKPiA+ID4gb3Bwb3NpdGUgeW91IHNhaWQgaS5lLiAgSSdtIHRyeWluZyB0byBmbGFzaCAm
-IGJvb3QgZnJvbSBOT1IgYnV0IHRoZQo+ID4gPiBVQm9vdCBpcwo+ID4gPiBmb3IgTkFORC4KPiA+
-Cj4gPiBMZXQgbWUgc2ltcGxpZnkgbXkgZWFybGllciBzdGF0ZW1lbnRzOgo+ID4KPiA+IG8gTGlu
-ayBJIGhhZCBtZW50aW9uZWQgZ2l2ZXMgc3RlcHMgZm9yIE1lbmVsdWFzIEJvYXJkLCBmbGFzaGlu
-Zwo+ID4gdS1ib290Cj4gPiB0byBOT1IgZmxhc2ggaS5lIEJvb3RpbmcgZnJvbSBOT1IuCj4gPgo+
-ID4gbyBGbGFzaGluZyBhbmQgYm9vdGluZyBmcm9tIHUtYm9vdCBpcyBhIGRpZmZlcmVudCBzdG9y
-eSwgYXMgaXQKPiA+IHJlcXVpcmVzCj4gPiB4LWxvYWRlciAoeW91IG5lZWQgdG8gc2lnbiB4LWxv
-YWRlciBpbWFnZSkgYW5kIGRpZmZlcmVudCBzd2l0Y2gKPiA+IHBvc2l0aW9ucy4KPiA+Cj4gPiBT
-d2l0Y2ggcG9zaXRpb25zIGFyZSBkZXNjcmliZWQgaW4gRVZNIHVzZXIgZ3VpZGUuIFBsZWFzZSBy
-ZWZlciB0aGF0Lgo+ID4KPiA+IC0tLUtvbWFsIFNoYWgKPiA+IGh0dHA6Ly9rb21hbHNoYWguYmxv
-Z3Nwb3QuY29tLwo+ID4KPiA+Cj4gPgo+ID4KPiA+IF9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KPiA+IFlhaG9vISBmb3IgR29vZCAtIE1ha2UgYSBkaWZmZXJlbmNlIHRoaXMgeWVh
-ci4KPiA+IGh0dHA6Ly9icmFuZC55YWhvby5jb20vY3liZXJnaXZpbmd3ZWVrMjAwNS8KPiA+IF9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gPiBMaW51eC1v
-bWFwLW9wZW4tc291cmNlIG1haWxpbmcgbGlzdAo+ID4gTGludXgtb21hcC1vcGVuLXNvdXJjZUBs
-aW51eC5vbWFwLmNvbQo+ID4gaHR0cDovL2xpbnV4Lm9tYXAuY29tL21haWxtYW4vbGlzdGluZm8v
-bGludXgtb21hcC1vcGVuLXNvdXJjZQo+ID4KPgo+Cj4gLS0tS29tYWwgU2hhaAo+IGh0dHA6Ly9r
-b21hbHNoYWguYmxvZ3Nwb3QuY29tLwo+Cj4KPgo+IF9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwo+IFlhaG9vISBEU0wgliBTb21ldGhpbmcgdG8gd3JpdGUgaG9tZSBh
-Ym91dC4KPiBKdXN0ICQxNi45OS9tby4gb3IgbGVzcy4KPiBkc2wueWFob28uY29tCj4KPgo=
---===============1142037294==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> find below a list of pending patches from last weeks.
 
+> Feel free to update, correct, extend etc.
 
---===============1142037294==--
+> Hth,
+
+> Dirk
+
+> List of pending patches for OMAP Linux.
+
+> Last modified: 2005/12/27
+
+> Pending patches (ready for inclusion):
+> =
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+
+> 11) MMC - CONFIG_HOTPLUG support
+> =
+http://linux.omap.com/pipermail/linux-omap-open-source/2005-December/0059=
+63.html
+
+> Note: Still in discussion with RMK?
+
+I guess it's ok this one. Please, see the lastest RMK e-mail about the =
+patch:
+
+http://linux.omap.com/pipermail/linux-omap-open-source/2005-December/0060=
+24.html
+
+BR,
+
+Anderson Briglia
