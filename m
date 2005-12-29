@@ -1,7 +1,7 @@
 From: Anderson Lizardo <anderson.lizardo@gmail.com>
 Subject: Re: [patch 0/5] Add MMC password protection (lock/unlock) support
-Date: Thu, 29 Dec 2005 15:06:15 -0400
-Message-ID: <5b5833aa0512291106m5142acd5pfb12c4831b60e96b@mail.gmail.com>
+Date: Thu, 29 Dec 2005 15:17:19 -0400
+Message-ID: <5b5833aa0512291117p3d410c4fr268c39d0609bd9b3@mail.gmail.com>
 References: <20051213213208.303580000@localhost.localdomain>
 	 <439F4AD6.9090203@indt.org.br> <439FC4A6.4010900@drzeus.cx>
 	 <5b5833aa0512141551l638b2c05xcd4588a9370bfa51@mail.gmail.com>
@@ -13,7 +13,7 @@ References: <20051213213208.303580000@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750874AbVL2TGR@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750901AbVL2TRV@vger.kernel.org>
 In-Reply-To: <20051215134436.GB6211@flint.arm.linux.org.uk>
 Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
