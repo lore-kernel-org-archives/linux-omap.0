@@ -1,7 +1,7 @@
 From: Louis Jung <lhsj81@gmail.com>
-Subject: I2C and DSP
-Date: Thu, 29 Dec 2005 19:26:14 +1100
-Message-ID: <cb6819fd0512290026u65538d6g65d732510b23a580@mail.gmail.com>
+Subject: DSP specification task_test2 compilation error
+Date: Thu, 29 Dec 2005 22:35:32 +1100
+Message-ID: <cb6819fd0512290335td92ffadqccff67be0385dd14@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
@@ -19,12 +19,15 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi everyone,
+G'day
 
-Just wondering if anyone tried using I2C peripheral via DSP. If they have
-what would be the best documentations to have a read at in order to get
-proper understanding of the overall procedures.
+I tried to compile task_test2.c in DSP specification v3.3 but I am getting
+errors
 
-Happy New year
-Thanks,
+"task_test2.c", line 37: error: expression must have integral type
+"task_test2.c", line 42: error: a value of type "Uns *" cannot be used to
+initialize an entity of type "struct mmap_info *"
+
+Does anyone know solution to this problem?
+Thanks
 Louis
