@@ -1,46 +1,51 @@
-From: Russell King <rmk+lkml@arm.linux.org.uk>
-Subject: Re: [patch 0/5] Add MMC password protection (lock/unlock) support
-Date: Thu, 29 Dec 2005 21:37:50 +0000
-Message-ID: <20051229213749.GB1687@flint.arm.linux.org.uk>
-References: <439FC4A6.4010900@drzeus.cx> <5b5833aa0512141551l638b2c05xcd4588a9370bfa51@mail.gmail.com> <43A11204.2070403@drzeus.cx> <20051215091220.GA29620@flint.arm.linux.org.uk> <43A136F1.3040700@drzeus.cx> <20051215100657.GC32490@flint.arm.linux.org.uk> <20051215134436.GB6211@flint.arm.linux.org.uk> <5b5833aa0512291106m5142acd5pfb12c4831b60e96b@mail.gmail.com> <20051229200939.GA1113@flint.arm.linux.org.uk> <5b5833aa0512291323o1fe50d23m5f9fe6dc00f5f876@mail.gmail.com>
+From: "Zhang, Jian" <jzhang@ti.com>
+Subject: RE: gpio interrupt support
+Date: Thu, 29 Dec 2005 16:04:02 -0600
+Message-ID: <304D2A85A9643F4A991BDDF8D297BBA601CF6C41@dlee05.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751027AbVL2ViG@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5b5833aa0512291323o1fe50d23m5f9fe6dc00f5f876@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Anderson Lizardo <anderson.lizardo@gmail.com>
-Cc: Pierre Ossman <drzeus-list@drzeus.cx>, Anderson Briglia <anderson.briglia@indt.org.br>, Anderson Lizardo <anderson.lizardo@indt.org.br>, linux-omap-open-source@linux.omap.com, linux-kernel@vger.kernel.org, Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Brian Swetland <swetland@google.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 29, 2005 at 05:23:52PM -0400, Anderson Lizardo wrote:
-> On 12/29/05, Russell King <rmk+lkml@arm.linux.org.uk> wrote:
-> > On Thu, Dec 29, 2005 at 03:06:15PM -0400, Anderson Lizardo wrote:
-> > > The MMC specification v4.1 is clear in one thing: the SET_BLOCKLEN
-> > > command should be issued prior to the actual LOCK_UNLOCK command with
-> > > *exactly* the password length + 2 bytes (which contains the operation
-> > > mode bits and the password length in bytes). The MMC password
-> > > unlocking (and other password operations, FWIW) doesn't work on the
-> > > OMAP host if the SET_BLOCKLEN command argument and the block size of
-> > > the data transfer itself do not match.
-> >
-> > Since passwords are limited to a maximum of 16 characters, this means
-> > that only passwords of length 2, 6, and 14 are possible with MMCI.
-> > All other passwords are invalid and/or impossible with this host.
-> 
-> What do you suggest in this case?
+gpio.c extends the system IRQs by the number of OMAP GPIO pins. You use
+request_irq() to subscribe a GPIO IRQ. See Ethernet driver for details.
 
-Well, we seem to have an increasing number of silly limitations in
-MMC host implementations.  In this particular case, I guess the
-easiest solution would be to supply a capability flag from the host
-to say "only supports power of two block sizes" - and disable
-password support if this flag is set.
+Regards,
+Jian
 
-Yes, this means that password-locked cards become non-functional
-with such restricted hosts, but I think that's realistically
-unavoidable.
+-----Original Message-----
+From: linux-omap-open-source-bounces+jzhang=3Dti.com@linux.omap.com
+[mailto:linux-omap-open-source-bounces+jzhang=3Dti.com@linux.omap.com] =
+On
+Behalf Of Brian Swetland
+Sent: Thursday, December 29, 2005 3:25 PM
+To: linux-omap-open-source@linux.omap.com
+Subject: gpio interrupt support
 
--- 
-Russell King
- Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
- maintainer of:  2.6 Serial core
+
+I need to handle interrupts from omap gpios... it looks like there's
+code for (most of?) this in plat-omap/gpio.c, but the interrupt related
+functions are static and not exported.  Is this functionality incomplete
+or is there some other way to register gpio interrupt handlers that I'm
+overlooking?
+
+Thanks,
+
+Brian
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
