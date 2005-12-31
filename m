@@ -1,11 +1,12 @@
-From: "=?gb2312?B?zMDA2r3w?=" <leijint@mobilesoft.com.cn>
-Subject: how to write a csmi driver in omap730 in the arm9
-Date: Sat, 31 Dec 2005 09:28:13 +0800
-Message-ID: <20051231012842.920106F0006@mail.mobilesoft.com.cn>
-Reply-To: leijint@mobilesoft.com.cn
+From: naga rajan <nagubk82@gmail.com>
+Subject: Error while building an DSP application
+Date: Sat, 31 Dec 2005 10:31:07 +0530
+Message-ID: <7e6cc7550512302101y16fe4815h7b76cb1d2f20a33b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0084659988=="
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,37 +16,73 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com, matthew@capgo.com
 List-Id: linux-omap@vger.kernel.org
 
---===============0084659988==
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
-
-bGludXgtb21hcC1vcGVuLXNvdXJjZaOhDQogICAgIE5vdyB3ZSBhcmUgY29kaW5nIGEgY3NtaSBk
-cml2ZXIgYmFzaW5nIG9uIFRJoa9zIGRvY3VtZW50IC4gV2UgZm91bmQgc29tZSBwcm9ibGVtIGlu
-IG91ciBkcml2ZXIgd2hlbiB3ZSBkaWQgdGhlIHRlc3RzLg0KDQpGb3IgZXhhbXBsZTogIFdoZW4g
-bXB1IHNlbmQgYSBtZXNzYWdlIHRocm91Z2ggdGhlIEdTTSBjb250cm9sIGNoYW5uZWwsIGlmIHRo
-ZSBtcHUgd2FpdCB0aGUgR3Ntoa9zIGFja25vd2xlZGdlLCANCg0Kb3VyIHN5c3RlbSBiZWNvbWUg
-c2xvd2x5LiBTbyB3ZSBzZXQgdGhlIG1lc3NhZ2UgY29tbXVuaWNhdGlvbiB3aXRob3V0IGFja25v
-d2xlZGdlLCB0aGUgU3lzdGVtIHJ1bnMgd2VsbCBidXQgc29tZXRpbWVzIHdlIG1ldCBzb21lIHRy
-b3VibGVzLiBXZSBwdXp6bGVkIGFib3V0IHRoZSByZXN1bHQuDQoNCkFib3V0IHRoZSBTdHJlYW0g
-Y2hhbm5lbCwgd2Ugd2FudCB0byBrbm93IGhvdyBhbmQgd2hlbiBpbml0aWFsaXplIHRoZSBmb3Vy
-IHBvaW50ZXJzIG9mIHRoZSBzdWJzeXN0ZW1zLiBXaGVuIG91ciBzeXN0ZW0gYm9vdCB1cCwgd2Ug
-cmVhZCB0aGUgbWVzc2FnZSB3aGljaCBmcm9tIHRoZSBHU00sIHdlIGNvbXBhcmUgdGhlIHBvaW50
-ZXJzIHdoaWNoIGNvbWVzIGZyb20gdGhlIG1lc3NhZ2Ugd2l0aCB0aGUgZm9ybWVyIHBvaW50ZXJz
-LCBidXQgdGhlIHZhbHVlIG9mIHRoZSBwb2ludGVyIGRpZG6hr3QgY2hhbmdlLiANCg0KQW55IGJv
-ZHkgZ2l2ZSB1cyBoZWxwLiB0aGFuayB5b3UgdmVyeSBtdWNoICANCgkNCg0KoaGhoaGhoaGhoaGh
-oaGhoWxlaWppbnRAbW9iaWxlc29mdC5jb20uY24NCqGhoaGhoaGhoaGhoaGhoaGhoaGhMjAwNS0x
-Mi0zMQ0K
+Hi all,
 
 
---===============0084659988==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+                With reference to the *"Linux DSP Tools Getting Started
+Guide*"  released by *Texas Instrument*, I downloaded and installed the
+Linux DSP Tools.I followed the document step by step and built the DSP/BIOS
+LINK successfully.While perfoming the *step 14* in *section 3.2 Build and
+Run Hello World from DSP*, the following error occured.
 
 
---===============0084659988==--
+
+Login as *"user"*
+
+
+
+[sachin@sachin osk5912]$ *gmake clean**
+*removing generated configuration files ...
+removing object files and binaries ...
+[sachin@sachin osk5912]$ *gmake all**
+*/opt/ti_dsptools/bios_5_03 /tconf/tconf
+-Dconfig.importPath=3D"/opt/ti_dsptools/bios_5_03
+;/opt/ti_dsptools/bios_5_03
+/ti/bios;/home/sachin/rta_sdk_5_00/ti/bios/rta/examples/dsp/common;.."
+hello.tcf
+/bin/sh: line 1: /opt/ti_dsptools/bios_5_03: is a directory
+gmake: *** [hellocfg.s55] *Error 126*
+
+
+
+Login as *"root"*
+
+
+[root@sachin osk5912]# *gmake clean**
+*removing generated configuration files ...
+removing object files and binaries ...
+[root@sachin osk5912]# *gmake all**
+*/opt/ti_dsptools/bios_5_03 /tconf/tconf
+-Dconfig.importPath=3D"/opt/ti_dsptools/bios_5_03 ;/opt/ti_dsptools/bios_5_=
+03
+/ti/bios;/home/sachin/rta_sdk_5_00/ti/bios/rta/examples/dsp/common;.."
+hello.tcf
+/bin/sh: line 1: /opt/ti_dsptools/bios_5_03: is a directory
+gmake: *** [hellocfg.s55] *Error 126*
+
+
+
+In the guide, the proceedings are given for *"user"* login and not for *
+"root"* login.I like to know the solution as we are interested in developin=
+g
+the DSP applications with this procedure as reference.
+
+
+
+Please provide a solution for this problem.
+
+
+
+Wish you a happy new year.
+
+
+
+Thanks and regards,
+
+B.Nagarajan,
+
+SANDS.
