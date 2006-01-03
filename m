@@ -1,14 +1,14 @@
-From: Louis Jung <lhsj81@gmail.com>
+From: Matthew Percival <matthew@capgo.com>
 Subject: Re: DSP specification task_test2 compilation error
-Date: Tue, 3 Jan 2006 14:46:08 +1100
-Message-ID: <cb6819fd0601021946j15d134d0i57a83543077aa7e6@mail.gmail.com>
+Date: Tue, 03 Jan 2006 15:03:07 +1100
+Message-ID: <1136260987.8899.29.camel@localhost.localdomain>
 References: <cb6819fd0512290335td92ffadqccff67be0385dd14@mail.gmail.com>
+	<cb6819fd0601021946j15d134d0i57a83543077aa7e6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <cb6819fd0512290335td92ffadqccff67be0385dd14@mail.gmail.com>
-Content-Disposition: inline
+In-Reply-To: <cb6819fd0601021946j15d134d0i57a83543077aa7e6@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,37 +18,14 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi, everyone,
+G'Day,
 
-I am currently using DPSgateway 3.2. I made dspctl and the ex_task.out. I
-placed the ex_task.out under /root in the OMAP. Placed dspctl binary under
-/sbin. Manually mounted sys directory using
-mkdir /sys
-mount -t sysfs sysfs /sys
+	You would probably find it more beneficial to direct DSP Gateway
+related questions to the DSP Gateway mailing list rather than here.  You
+can find the list here:
+		http://sourceforge.net/mail/?group_id=84178
 
-and created the dsptask nodes.
-
-When I type
-/sbin/dspctl start ex_task.out
-I get
-.
-.
-.
-.
-.
-dspgw_version   : adr =3D 0x000000, size=3D    8  ... ignored.
-ipbuf           : adr =3D 0x018800, size=3D 1136  ... initialized.
-dbgbuf          : adr =3D 0x00c7f0, size=3D  512  ... initialized.
-And right at the end, I get this error.
-
-warning: found zero-sized cinit entry at 0xbde
-.cinit          : adr =3D 0x010000, size=3D 3040   ... .bss variables are
-initialized.
-
-And the system freezes.
-Does anyone know how to get around this problem?
-Thank you very much.
-Louis
+	-- Matthew
