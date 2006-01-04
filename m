@@ -1,13 +1,12 @@
-From: Todd Poynor <tpoynor@mvista.com>
+From: Komal Shah <komal_shah802003@yahoo.com>
 Subject: Re: Pending patches mostly pushed, please check
-Date: Tue, 03 Jan 2006 16:25:41 -0800
-Message-ID: <43BB1605.9070903@mvista.com>
-References: <43B10E92.4060203@de.bosch.com> <20051230222808.GJ4415@atomide.com>
-	<20060103191356.GR6034@atomide.com>
+Date: Tue, 3 Jan 2006 23:12:49 -0800 (PST)
+Message-ID: <20060104071249.3324.qmail@web32912.mail.mud.yahoo.com>
+References: <20060103191356.GR6034@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 In-Reply-To: <20060103191356.GR6034@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -16,41 +15,64 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>, Dirk Behme <dirk.behme@de.bosch.com>, imre.deak@nokia.com
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren wrote:
+--- Tony Lindgren <tony@atomide.com> wrote:
 
->> 9) LDM wakeup flags for OMAP keypad
->> http://linux.omap.com/pipermail/linux-omap-open-source/2005-December/005897.html
-> 
-> Let's think about this one a bit more. Maybe we should have u32 device_wakeup in
-> pm.c, and then various drivers would mask it with OMAP_WAKEUP_KEYPAD etc?
-> 
-> Or maybe device_init_wakeup() should register a callback function in the driver,
-> and them pm.c just calls all registered wakeup callback functions? That would
-> move the enable/disable code to drivers.
+> > Experimental & test (do not apply yet):
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> >=20
+> > 1) omap24xx vout and dispc library
+> >
+>
+http://linux.omap.com/pipermail/linux-omap-open-source/2005-December/0059=
+32.html
 
-Agreed, I should have labeled this patch as at an RFC stage.  It's the 
-first attempt I'm aware of to apply the wakeup flags stuff begun for 
-PCI/USB to an embedded SoC, and was intended to start a discussion on 
-the above sorts of issues, which should also occur on 
-linux-pm@lists.osdl.org (and other embedded-oriented wakeup patches are 
-being floated there as well).  It would be nice to move the wakeup 
-enable code to drivers, but with the per-core keypad IRQ assignments, 
-the need to enable level-2 IRQs, etc., not sure if a platform core file 
-ends up being more suitable, don't have a strong opinion myself so far.
-
-On a related note, if anybody knows how to tell what source woke up an 
-OMAP from deep/big sleep I'd appreciate hearing about it.  I haven't 
-found a register devoted to it, and keypad wakeup on my H3 seemed to 
-show a pending Level-2 interrupt in the level-1 ITR, but the level-2 
-ITRs all read zero (reading prior to enabling interrupts upon deep sleep 
-resume).  Thanks,
+Imre,=20
+Could you please reply on this? If needed I can re-work on integration
+as per your suggestions.
 
 
--- 
-Todd
+> >=20
+> > 3) keypad: platform_data and 24xx support -exp
+> >
+>
+>http://linux.omap.com/pipermail/linux-omap-open-source/2005-December/005=
+889.html
+
+> >=20
+> > 4) omap24xx IrDA update
+> >
+>
+>http://linux.omap.com/pipermail/linux-omap-open-source/2005-December/005=
+992.html
+
+Please comment on keypad and irda patches. If acceptable then I can
+regenerate them against latest git tree. Thanx.
+
+IrDA patch is now working on H4 without crash.
+
+Patches sitting under my ompt-git tree:
+
+o h4 nand patch (not able to test...as got stuck with x-loader an d
+u-boot flashing). If someone wants to experiment, I can release.
+
+o OMAP2 spi master controller driver + tsc2101 protocol driver
+as per david's framework. I have written good amount of the code for
+this, but not yet working successfully. If someone wants to have fun
+then I can submit to them.
+
+---Komal Shah
+http://komalshah.blogspot.com/
+
+
+	=09
+__________________________________________=20
+Yahoo! DSL =96 Something to write home about.=20
+Just $16.99/mo. or less.=20
+dsl.yahoo.com=20
