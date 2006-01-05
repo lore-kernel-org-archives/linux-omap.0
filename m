@@ -1,14 +1,13 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: A uboot problem when booting from on-board NOR Flash on
-	H4platform
-Date: Thu, 5 Jan 2006 10:05:44 -0600
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A503B91F3C@dlee02.ent.ti.com>
+From: Matthew Percival <matthew@capgo.com>
+Subject: Re: Toolchain select
+Date: Fri, 06 Jan 2006 09:00:50 +1100
+Message-ID: <1136498450.8801.7.camel@localhost.localdomain>
+References: <43bd2165.6762f2e2.3596.51a6@mx.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+In-Reply-To: <43bd2165.6762f2e2.3596.51a6@mx.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,126 +17,28 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Zhang, Jian" <jzhang@ti.com>, "Liu, Jason" <jason.liu@spansion.com>, linux-omap-open-source@linux.omap.com
+To: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-To further clarify you will need to compile with XIP support to run your
-kernel in flash.  I don't believe all the necessary fixes are in most of
-the generally available public versions to correctly do XIP.  I do
-recall MontaVista adding some fixes for XIP and ARM11.  These fixes will
-be in there CEE/Mobilinux products and perhaps are in the latest 2.6
-public kernels.  Many aspects of the ARM11 support were broke in the
-public trees.  TI kernels patch many of these, vendor/partner kernels do
-also, and the latest public kernels are finally also coming around.
-When you have a lot of memory running from DDR is probably preferred
-anyway as it is much quicker though it may have a higher power cost.  It
-is likely we will refresh our kernel image again, we'll see about making
-sure xip works.
+G'Day,
 
-As Jian indicated, you can burn a kernel into flash which is meant to
-run in SDRAM, this has been the norm.  U-boot will relocate and direct
-execution to it at the proper point.
+> I have already used the crosstool to make my own toolchain, and chose the
+> gcc-4.0.1, binutils-2.16.1, glibc-2.3.5.  But it seems that it has some
+> problem.  When I build u-boot it shows that the examples cannot be compiled.
 
-Regards,
-Richard W.
+	u-boot may not be a good test.  Versions of u-boot older than 1.1.4 do
+not compile with 4.0 at all; even 1.1.4 seems to have problems, as some
+users have reported that it does not compile (most seem to be OK, but
+there are a few who cannot).  You said that kernel did not compile
+either, though, and that should work, so the problem in your case likely
+lies with the toolchain.
 
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
-Zhang, Jian
-Sent: Thursday, January 05, 2006 9:23 AM
-To: Liu, Jason; linux-omap-open-source@linux.omap.com
-Subject: RE: A uboot problem when booting from on-board NOR Flash on
-H4platform
+	My toolchain was compile with gcc-4.0.1, binutils-2.15 and glibc 2.3.5:
+this combination is known to work.  Looking at the crosstool buildlogs,
+your combination is not listed, so it is somewhat of an unknown
+quantity, though it sounds like the combination you have picked does not
+work.  I would recommend looking at the crosstool buildlogs yourself, to
+see what combinations are known to work, and sticking with them, unless
+you want to experiment with different combinations.
 
-The following is wrong. You need the exactly same uImage to boot from
-flash as boot from RAM:
-
-//Note: uImage is generated from mkimage, "mkimage -A arm -O linux -T
-kernel -C none -a 0x04100000 -e 0x04100040 -n "Linux Image" -d linux.bin
-uImage"
-
-Regards,
-Jian
-
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Liu,
-Jason
-Sent: Thursday, January 05, 2006 2:37 AM
-To: linux-omap-open-source@linux.omap.com
-Subject: A uboot problem when booting from on-board NOR Flash on H4
-platform
-
-
-Hi all,
-
-I met an issue when booting a linux kernel from NOR flash on H4
-MENELAUSE platform. u-boot for h4 is downloaded from linux.omap.com.
-Nothing is modified except that the CFG_NAND_BOOT is undefined.
-
-
-The linux kernel can be booted from RAM if we use the below uboot
-command,
-> tftpboot 0x80007fc0 uImage  =20
-> bootm 0x80007fc0
-//Note: uImage is generated from mkimage, "mkimage -A arm -O linux -T
-kernel -C none -a 0x80007fc0 -e 0x80008000 -n "Linux Image" -d linux.bin
-uImage"
-
-.......Kernel booting OK!!
-
-
-But now, I want to boot the uImage from NOR Flash,  I use the following
-uboot command to flash the NOR flash firstly,
-> protect off all
-> erase 1:8-23    /* Intel Flash with 128kB per sector,erase 2MB from
-the beginning of 0x04100000*/
-> tftpboot 0x80007fc0 uImage
-> cp 0x80007fc0 0x04100000 0x200000   /* 2M size for kernel */
-//Note: uImage is generated from mkimage, "mkimage -A arm -O linux -T
-kernel -C none -a 0x04100000 -e 0x04100040 -n "Linux Image" -d linux.bin
-uImage"
-
-After flashing is over, I boot the kernel with the below command:
-> bootm 0x04100000
-
-The terminal shows the below information:
-
-## Booting image at 04100000 ...
-   Image Name:   Bill Linux Image
-   Image Type:   ARM Linux Kernel Image (uncompressed)
-   Data Size:    1975872 Bytes =3D  1.9 MB
-   Load Address: 04100000
-   Entry Point:  04100040
-   Verifying Checksum ... OK
-   XIP Kernel Image ... OK
-
-Starting kernel ...
-
-Then stopped, and followed by nothing......:(
-
-So, could anybody tell me what the reason is?  or tell me another way to
-fulfill it. Thanks a lot!!!
-
-
-Jason Liu =20
-
-
-
-
-
-
-
-
-=20
-an issue when booting a linux kernel from NOR flash.
-The linux kernel=20
-
-
-Jason Liu
-
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+	-- Matthew
