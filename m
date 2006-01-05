@@ -1,7 +1,7 @@
-From: "G Kondaiah, Manjunath" <xgkondai@ti.com>
+From: "Kipisz, Steven" <s-kipisz2@ti.com>
 Subject: RE: 2420 H4 and kernel startup RAM error
-Date: Thu, 5 Jan 2006 07:22:02 -0600
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A503B91CE6@dlee02.ent.ti.com>
+Date: Thu, 5 Jan 2006 07:28:42 -0600
+Message-ID: <99E943D7AA8E3A448619E1F809F2A2A201160D7F@dlee04.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -20,20 +20,16 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: Ola Helm <ola.hel@gmail.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-> > Kernel command line: root=3D/dev/ram0 rw mem=3D32M=20
-> > console=3DttyS0,115200n8 initrd=3D0x80600000,8M ramdisk_size=3D8192
-Your command line argument asks the kernel to use ramdisk. Hence you
-have to load ramdisk image to 0x80600000 and kernel image to
-0x80300000(order doesn't matter).
-If you don't want to use ramdisk image change the command line arg to
-use NFS.
+rd-jffs2 is not a ramdisk.  It is a flash file system that you write to
+flash.  I have not looked lately, but a ramdisk would be named something
+like rd-ext2.
 
-Regards,
-Manjunath
+Steve K.
 
 -----Original Message-----
-From: linux-omap-open-source-bounces+xgkondai=3Dti.com@linux.omap.com
-[mailto:linux-omap-open-source-bounces+xgkondai=3Dti.com@linux.omap.com]
+From: linux-omap-open-source-bounces+s-kipisz2=3Dti.com@linux.omap.com
+[mailto:linux-omap-open-source-bounces+s-kipisz2=3Dti.com@linux.omap.com]=
+
 On Behalf Of Ola Helm
 Sent: Thursday, January 05, 2006 7:12 AM
 To: linux-omap-open-source@linux.omap.com
