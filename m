@@ -1,7 +1,7 @@
 From: "Chen leonard-a17094" <liangchen@motorola.com>
-Subject: Config Linux for omap embedded system
-Date: Thu, 5 Jan 2006 09:58:42 +0800
-Message-ID: <93481F4E3CC5F042BBDE9376E50F759A2A5A8B@zmy16exm63.ds.mot.com>
+Subject: Debug Linux in CCS
+Date: Thu, 5 Jan 2006 09:59:46 +0800
+Message-ID: <93481F4E3CC5F042BBDE9376E50F759A2A5A8D@zmy16exm63.ds.mot.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="US-ASCII"
@@ -22,18 +22,8 @@ List-Id: linux-omap@vger.kernel.org
 
 Hi,=20
 
-I'm a newbie for linux-omap, and am trying to port the linux-omap onto a
-specific embedded system, which has 8M/8M rom/ram.
+Is there a way to debug linux(omap) in Code Composer Studio? And can CCS
+map/unassemble binary to source code for linux kernel?=20
 
-I have some questions regarding with configuring Linux:
-1. how to config the total memory when making the kernel? For example,
-8M/8M rom/ram.
-2. how to specify the startup address when making the kernel? For
-example, the kernel is expected to start from 0x0a000000.
-
-3. how to let the linker allocate code/data/stack on specific addresses?
-For example, code starts from 0x0a000000, data starts from 0x08000000,
-and stack starts from 0x04000000.
-
-Thanks in advance,
+Thanks,=20
 Liang=20
