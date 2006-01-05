@@ -1,9 +1,11 @@
-From: "Liu, Jason" <jason.liu@spansion.com>
-Subject: A uboot problem when booting from on-board NOR Flash on H4 platform
-Date: Thu, 5 Jan 2006 16:37:26 +0800
-Message-ID: <CC04AFA304B8774881AE87E8FEC6EF1868B271@ssuzexmb2.amd.com>
+From: "Menon, Nishanth" <x0nishan@ti.com>
+Subject: RE: 2420 H4 and kernel startup RAM error
+Date: Thu, 5 Jan 2006 05:00:59 -0600
+Message-ID: <520AB2AD990DC04082102F77CA172638022A1EDD@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0685167340=="
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
@@ -15,54 +17,23 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Ola Helm <ola.hel@gmail.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
 
---===============0685167340==
-Content-class: urn:content-classes:message
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: base64
-
-DQpIaSBhbGwsDQoNCkkgbWV0IGFuIGlzc3VlIHdoZW4gYm9vdGluZyBhIGxpbnV4IGtlcm5lbCBm
-cm9tIE5PUiBmbGFzaCBvbiBINCBNRU5FTEFVU0UgcGxhdGZvcm0uIHUtYm9vdCBmb3IgaDQgaXMg
-ZG93bmxvYWRlZCBmcm9tIGxpbnV4Lm9tYXAuY29tLiBOb3RoaW5nIGlzIG1vZGlmaWVkIGV4Y2Vw
-dCB0aGF0IHRoZSBDRkdfTkFORF9CT09UIGlzIHVuZGVmaW5lZC4NCg0KDQpUaGUgbGludXgga2Vy
-bmVsIGNhbiBiZSBib290ZWQgZnJvbSBSQU0gaWYgd2UgdXNlIHRoZSBiZWxvdyB1Ym9vdCBjb21t
-YW5kLA0KPiB0ZnRwYm9vdCAweDgwMDA3ZmMwIHVJbWFnZSAgIA0KPiBib290bSAweDgwMDA3ZmMw
-DQovL05vdGU6IHVJbWFnZSBpcyBnZW5lcmF0ZWQgZnJvbSBta2ltYWdlLCAibWtpbWFnZSAtQSBh
-cm0gLU8gbGludXggLVQga2VybmVsIC1DIG5vbmUgLWEgMHg4MDAwN2ZjMCAtZSAweDgwMDA4MDAw
-IC1uICJMaW51eCBJbWFnZSIgLWQgbGludXguYmluIHVJbWFnZSINCg0KLi4uLi4uLktlcm5lbCBi
-b290aW5nIE9LISENCg0KDQpCdXQgbm93LCBJIHdhbnQgdG8gYm9vdCB0aGUgdUltYWdlIGZyb20g
-Tk9SIEZsYXNoLCAgSSB1c2UgdGhlIGZvbGxvd2luZyB1Ym9vdCBjb21tYW5kIHRvIGZsYXNoIHRo
-ZSBOT1IgZmxhc2ggZmlyc3RseSwNCj4gcHJvdGVjdCBvZmYgYWxsDQo+IGVyYXNlIDE6OC0yMyAg
-ICAvKiBJbnRlbCBGbGFzaCB3aXRoIDEyOGtCIHBlciBzZWN0b3IsZXJhc2UgMk1CIGZyb20gdGhl
-IGJlZ2lubmluZyBvZiAweDA0MTAwMDAwKi8NCj4gdGZ0cGJvb3QgMHg4MDAwN2ZjMCB1SW1hZ2UN
-Cj4gY3AgMHg4MDAwN2ZjMCAweDA0MTAwMDAwIDB4MjAwMDAwICAgLyogMk0gc2l6ZSBmb3Iga2Vy
-bmVsICovDQovL05vdGU6IHVJbWFnZSBpcyBnZW5lcmF0ZWQgZnJvbSBta2ltYWdlLCAibWtpbWFn
-ZSAtQSBhcm0gLU8gbGludXggLVQga2VybmVsIC1DIG5vbmUgLWEgMHgwNDEwMDAwMCAtZSAweDA0
-MTAwMDQwIC1uICJMaW51eCBJbWFnZSIgLWQgbGludXguYmluIHVJbWFnZSINCg0KQWZ0ZXIgZmxh
-c2hpbmcgaXMgb3ZlciwgSSBib290IHRoZSBrZXJuZWwgd2l0aCB0aGUgYmVsb3cgY29tbWFuZDoN
-Cj4gYm9vdG0gMHgwNDEwMDAwMA0KDQpUaGUgdGVybWluYWwgc2hvd3MgdGhlIGJlbG93IGluZm9y
-bWF0aW9uOg0KDQojIyBCb290aW5nIGltYWdlIGF0IDA0MTAwMDAwIC4uLg0KICAgSW1hZ2UgTmFt
-ZTogICBCaWxsIExpbnV4IEltYWdlDQogICBJbWFnZSBUeXBlOiAgIEFSTSBMaW51eCBLZXJuZWwg
-SW1hZ2UgKHVuY29tcHJlc3NlZCkNCiAgIERhdGEgU2l6ZTogICAgMTk3NTg3MiBCeXRlcyA9ICAx
-LjkgTUINCiAgIExvYWQgQWRkcmVzczogMDQxMDAwMDANCiAgIEVudHJ5IFBvaW50OiAgMDQxMDAw
-NDANCiAgIFZlcmlmeWluZyBDaGVja3N1bSAuLi4gT0sNCiAgIFhJUCBLZXJuZWwgSW1hZ2UgLi4u
-IE9LDQoNClN0YXJ0aW5nIGtlcm5lbCAuLi4NCg0KVGhlbiBzdG9wcGVkLCBhbmQgZm9sbG93ZWQg
-Ynkgbm90aGluZy4uLi4uLjooDQoNClNvLCBjb3VsZCBhbnlib2R5IHRlbGwgbWUgd2hhdCB0aGUg
-cmVhc29uIGlzPyAgb3IgdGVsbCBtZSBhbm90aGVyIHdheSB0byBmdWxmaWxsIGl0LiBUaGFua3Mg
-YSBsb3QhISENCg0KDQpKYXNvbiBMaXUgIA0KDQoNCg0KDQoNCg0KDQoNCiANCmFuIGlzc3VlIHdo
-ZW4gYm9vdGluZyBhIGxpbnV4IGtlcm5lbCBmcm9tIE5PUiBmbGFzaC4NClRoZSBsaW51eCBrZXJu
-ZWwgDQoNCg0KSmFzb24gTGl1DQoNCg==
-
---===============0685167340==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============0685167340==--
+> I have tried both to erase 0x4000000 0x417FFFF and load with file size
+> 0x1222e0, source address 0x80000000 and destination address 0x4040000
+i.e
+>=20
+> cp.b 0x80000000 0x4040000 1222e0
+>=20
+> Kernel command line: root=3D/dev/ram0 rw mem=3D32M =
+console=3DttyS0,115200n8
+> initrd=3D0x80600000,8M ramdisk_size=3D8192
+I guess u told the kernel to load a ramdisk from =
+0x80600000(initrd=3Dxyz)
+and the ramdisk image remained in flash...
+If U'd like the file system in flash(and use it from flash) 0x04040000
+then it should be a jffs2 filesystem.=20
+Regards,
+Nishanth Menon
