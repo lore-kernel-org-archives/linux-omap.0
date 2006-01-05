@@ -1,13 +1,11 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: 2420 H4 and kernel startup RAM error
-Date: Thu, 5 Jan 2006 02:51:28 -0800 (PST)
-Message-ID: <20060105105128.27635.qmail@web32912.mail.mud.yahoo.com>
-References: <3d3153f60601050212x24ad061bhbc77d5a08e686af9@mail.gmail.com>
+From: "Liu, Jason" <jason.liu@spansion.com>
+Subject: A uboot problem when booting from on-board NOR Flash on H4 platform
+Date: Thu, 5 Jan 2006 16:37:26 +0800
+Message-ID: <CC04AFA304B8774881AE87E8FEC6EF1868B271@ssuzexmb2.amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============0685167340=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <3d3153f60601050212x24ad061bhbc77d5a08e686af9@mail.gmail.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,38 +15,54 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Ola Helm <ola.hel@gmail.com>, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---- Ola Helm <ola.hel@gmail.com> wrote:
+This is a multi-part message in MIME format.
 
-> Kernel command line: root=3D/dev/ram0 rw mem=3D32M console=3DttyS0,1152=
-00n8
-> initrd=3D0x80600000,8M ramdisk_size=3D8192
+--===============0685167340==
+Content-class: urn:content-classes:message
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: base64
 
-I believe that you are pointing out RAMDISK error you are getting while
-booting the kernel. If that is the case then you have to load ramdisk
-image (available on linux.omap.com site) to 0x80600000 location (either
-through tftp / serial ).
+DQpIaSBhbGwsDQoNCkkgbWV0IGFuIGlzc3VlIHdoZW4gYm9vdGluZyBhIGxpbnV4IGtlcm5lbCBm
+cm9tIE5PUiBmbGFzaCBvbiBINCBNRU5FTEFVU0UgcGxhdGZvcm0uIHUtYm9vdCBmb3IgaDQgaXMg
+ZG93bmxvYWRlZCBmcm9tIGxpbnV4Lm9tYXAuY29tLiBOb3RoaW5nIGlzIG1vZGlmaWVkIGV4Y2Vw
+dCB0aGF0IHRoZSBDRkdfTkFORF9CT09UIGlzIHVuZGVmaW5lZC4NCg0KDQpUaGUgbGludXgga2Vy
+bmVsIGNhbiBiZSBib290ZWQgZnJvbSBSQU0gaWYgd2UgdXNlIHRoZSBiZWxvdyB1Ym9vdCBjb21t
+YW5kLA0KPiB0ZnRwYm9vdCAweDgwMDA3ZmMwIHVJbWFnZSAgIA0KPiBib290bSAweDgwMDA3ZmMw
+DQovL05vdGU6IHVJbWFnZSBpcyBnZW5lcmF0ZWQgZnJvbSBta2ltYWdlLCAibWtpbWFnZSAtQSBh
+cm0gLU8gbGludXggLVQga2VybmVsIC1DIG5vbmUgLWEgMHg4MDAwN2ZjMCAtZSAweDgwMDA4MDAw
+IC1uICJMaW51eCBJbWFnZSIgLWQgbGludXguYmluIHVJbWFnZSINCg0KLi4uLi4uLktlcm5lbCBi
+b290aW5nIE9LISENCg0KDQpCdXQgbm93LCBJIHdhbnQgdG8gYm9vdCB0aGUgdUltYWdlIGZyb20g
+Tk9SIEZsYXNoLCAgSSB1c2UgdGhlIGZvbGxvd2luZyB1Ym9vdCBjb21tYW5kIHRvIGZsYXNoIHRo
+ZSBOT1IgZmxhc2ggZmlyc3RseSwNCj4gcHJvdGVjdCBvZmYgYWxsDQo+IGVyYXNlIDE6OC0yMyAg
+ICAvKiBJbnRlbCBGbGFzaCB3aXRoIDEyOGtCIHBlciBzZWN0b3IsZXJhc2UgMk1CIGZyb20gdGhl
+IGJlZ2lubmluZyBvZiAweDA0MTAwMDAwKi8NCj4gdGZ0cGJvb3QgMHg4MDAwN2ZjMCB1SW1hZ2UN
+Cj4gY3AgMHg4MDAwN2ZjMCAweDA0MTAwMDAwIDB4MjAwMDAwICAgLyogMk0gc2l6ZSBmb3Iga2Vy
+bmVsICovDQovL05vdGU6IHVJbWFnZSBpcyBnZW5lcmF0ZWQgZnJvbSBta2ltYWdlLCAibWtpbWFn
+ZSAtQSBhcm0gLU8gbGludXggLVQga2VybmVsIC1DIG5vbmUgLWEgMHgwNDEwMDAwMCAtZSAweDA0
+MTAwMDQwIC1uICJMaW51eCBJbWFnZSIgLWQgbGludXguYmluIHVJbWFnZSINCg0KQWZ0ZXIgZmxh
+c2hpbmcgaXMgb3ZlciwgSSBib290IHRoZSBrZXJuZWwgd2l0aCB0aGUgYmVsb3cgY29tbWFuZDoN
+Cj4gYm9vdG0gMHgwNDEwMDAwMA0KDQpUaGUgdGVybWluYWwgc2hvd3MgdGhlIGJlbG93IGluZm9y
+bWF0aW9uOg0KDQojIyBCb290aW5nIGltYWdlIGF0IDA0MTAwMDAwIC4uLg0KICAgSW1hZ2UgTmFt
+ZTogICBCaWxsIExpbnV4IEltYWdlDQogICBJbWFnZSBUeXBlOiAgIEFSTSBMaW51eCBLZXJuZWwg
+SW1hZ2UgKHVuY29tcHJlc3NlZCkNCiAgIERhdGEgU2l6ZTogICAgMTk3NTg3MiBCeXRlcyA9ICAx
+LjkgTUINCiAgIExvYWQgQWRkcmVzczogMDQxMDAwMDANCiAgIEVudHJ5IFBvaW50OiAgMDQxMDAw
+NDANCiAgIFZlcmlmeWluZyBDaGVja3N1bSAuLi4gT0sNCiAgIFhJUCBLZXJuZWwgSW1hZ2UgLi4u
+IE9LDQoNClN0YXJ0aW5nIGtlcm5lbCAuLi4NCg0KVGhlbiBzdG9wcGVkLCBhbmQgZm9sbG93ZWQg
+Ynkgbm90aGluZy4uLi4uLjooDQoNClNvLCBjb3VsZCBhbnlib2R5IHRlbGwgbWUgd2hhdCB0aGUg
+cmVhc29uIGlzPyAgb3IgdGVsbCBtZSBhbm90aGVyIHdheSB0byBmdWxmaWxsIGl0LiBUaGFua3Mg
+YSBsb3QhISENCg0KDQpKYXNvbiBMaXUgIA0KDQoNCg0KDQoNCg0KDQoNCiANCmFuIGlzc3VlIHdo
+ZW4gYm9vdGluZyBhIGxpbnV4IGtlcm5lbCBmcm9tIE5PUiBmbGFzaC4NClRoZSBsaW51eCBrZXJu
+ZWwgDQoNCg0KSmFzb24gTGl1DQoNCg==
 
-Load kernel image in RAM at 0x80300000
-
-#tftpboot 0x80300000 kernel.cc
-
-Load ramdisk image at 0x80600000
-
-#tftpboot 0x80600000 ramdisk.img
-
-#bootm 0x80300000
-
-Hope this helps !!!
-
----Komal Shah
-http://komalshah.blogspot.com/
+--===============0685167340==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 
-	=09
-__________________________________________=20
-Yahoo! DSL =96 Something to write home about.=20
-Just $16.99/mo. or less.=20
-dsl.yahoo.com=20
+--===============0685167340==--
