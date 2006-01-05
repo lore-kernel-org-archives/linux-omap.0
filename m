@@ -1,13 +1,11 @@
-From: Matthew Percival <matthew@capgo.com>
-Subject: Re: Toolchain select
-Date: Fri, 06 Jan 2006 09:00:50 +1100
-Message-ID: <1136498450.8801.7.camel@localhost.localdomain>
-References: <43bd2165.6762f2e2.3596.51a6@mx.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: 2.6.15-omap1 tagged & patch exported
+Date: Thu, 5 Jan 2006 14:57:06 -0800
+Message-ID: <20060105225705.GC4741@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <43bd2165.6762f2e2.3596.51a6@mx.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,28 +15,24 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-G'Day,
+Hi all,
 
-> I have already used the crosstool to make my own toolchain, and chose the
-> gcc-4.0.1, binutils-2.16.1, glibc-2.3.5.  But it seems that it has some
-> problem.  When I build u-boot it shows that the examples cannot be compiled.
+I've tagged 2.6.16-omap1 in the git tree and exported it also as a
+patch.
 
-	u-boot may not be a good test.  Versions of u-boot older than 1.1.4 do
-not compile with 4.0 at all; even 1.1.4 seems to have problems, as some
-users have reported that it does not compile (most seem to be OK, but
-there are a few who cannot).  You said that kernel did not compile
-either, though, and that should work, so the problem in your case likely
-lies with the toolchain.
+Please report any issues to this list.
 
-	My toolchain was compile with gcc-4.0.1, binutils-2.15 and glibc 2.3.5:
-this combination is known to work.  Looking at the crosstool buildlogs,
-your combination is not listed, so it is somewhat of an unknown
-quantity, though it sounds like the combination you have picked does not
-work.  I would recommend looking at the crosstool buildlogs yourself, to
-see what combinations are known to work, and sticking with them, unless
-you want to experiment with different combinations.
+Patches are available at the usual locations:
 
-	-- Matthew
+http://www.muru.com/linux/omap/
+
+and with a short delay at:
+
+http://linux.omap.com/pub/patches/
+
+Regards,
+
+Tony
