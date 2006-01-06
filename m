@@ -1,13 +1,13 @@
 From: Dirk Behme <dirk.behme@de.bosch.com>
-Subject: [PATCH] Re: omap1510 MPU interupt BUG
-Date: Fri, 06 Jan 2006 20:37:25 +0100
-Message-ID: <43BEC6F5.70504@de.bosch.com>
-References: <E1ElqUd-000N2H-00.palmtt2-mail-ru@f37.mail.ru>
-	<20060103175520.GO6034@atomide.com>
+Subject: [PATCH] Re: Pending patches mostly pushed, please check
+Date: Fri, 06 Jan 2006 20:37:41 +0100
+Message-ID: <43BEC705.50002@de.bosch.com>
+References: <43B10E92.4060203@de.bosch.com> <20051230222808.GJ4415@atomide.com>
+	<20060103191356.GR6034@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080104070809050803080407"
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <20060103175520.GO6034@atomide.com>
+Content-Type: multipart/mixed; boundary="------------030605030102010009000105"
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20060103191356.GR6034@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,77 +15,153 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>, Petukhov Nikolay <palmtt2@mail.ru>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------080104070809050803080407
+--------------030605030102010009000105
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
+Hi Tony,
+
 Tony Lindgren wrote:
 
->>diff -Nru linux-2.6.14-omap2/arch/arm/plat-omap/gpio.c
->>linux-2.6.14-omap2-palmtt2/arch/arm/plat-omap/gpio.c  
->>
->>--- linux-2.6.14-omap2/arch/arm/plat-omap/gpio.c        Sat Dec 10 21:05:46 2005      
->>+++ linux-2.6.14-omap2-palmtt2/arch/arm/plat-omap/gpio.c        Sat Dec 10 19:57:30 2005      
->>@@ -758,6 +758,10 @@
->>    
->>while(1) {            
->>isr = __raw_readl(isr_reg);
->>+#ifdef CONFIG_ARCH_OMAP15XX   
->>+       if (bank->method == METHOD_MPUIO)
->>+           isr&=0xffff;   
->>+#endif !
->>
->>_enable_gpio_irqbank(bank, isr, 0);
->>_clear_gpio_irqbank(bank, isr);            
->>_enable_gpio_irqbank(bank, isr, 1);
-> 
-> 
-> Can't read this patch because of the bad formatting... Can you please
-> repost? Maybe sending it as an attachment works better with a web
-> interface :)
+>>12) ALSA Audio L/R Channel Interchanges fix
+>>http://linux.omap.com/pipermail/linux-omap-open-source/2005-December/005971.html
+>  
+> Applied.
 
-arch/arm/plat-omap/gpio.c has changed since 2.6.14-omap2, so patch above
-will not apply to recent git even if formatting is correct. I tried to
-adapt it to current version of gpio.c. I can't test it, so is patch
-below okay?
+Can you check if this is really applied? Using most recent git I can
+still apply it ;-)
+
+There were two similiar patches: One for OSS (is applied, number 7 of
+the list) and this one for ALSA.
+
+Best regards
+
+Dirk
 
 
 
---------------080104070809050803080407
+
+--------------030605030102010009000105
 Content-Type: text/plain;
- name="omap1510_mpu_interrupt_bug.patch"
+ name="audio_alsa_LR.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="omap1510_mpu_interrupt_bug.patch"
+ filename="audio_alsa_LR.patch"
 
---- ./arch/arm/plat-omap/gpio.c_orig	2006-01-06 19:37:32.602154520 +0100
-+++ ./arch/arm/plat-omap/gpio.c	2006-01-06 19:44:03.917665520 +0100
-@@ -767,6 +767,9 @@ static void gpio_irq_handler(unsigned in
- 					OMAP24XX_GPIO_LEVELDETECT0) |
- 				__raw_readl(bank->base +
- 					OMAP24XX_GPIO_LEVELDETECT1);
-+		if(cpu_is_omap15xx())
-+			if(bank->method == METHOD_MPUIO)
-+				level_mask = 0xffff0000; 
+--- ./sound/arm/omap-aic23.c_orig	2005-12-02 16:57:32.000000000 +0100
++++ ./sound/arm/omap-aic23.c	2005-12-18 18:17:51.360077016 +0100
+@@ -34,6 +34,8 @@
+  *
+  * 2005-07-29   INdT Kernel Team - Alsa driver for omap osk. Creation of new 
+  *                                 file omap-aic23.c
++ *
++ * 2005-12-18   Dirk Behme      - Added L/R Channel Interchange fix as proposed by Ajaya Babu
+  */
  
- 		/* clear edge sensitive interrupts before handler(s) are
- 		called so that we don't miss any interrupt occurred while
+ #include <linux/config.h>
+@@ -156,6 +158,20 @@ static snd_pcm_hw_constraint_list_t hw_c
+ 	.mask = 0,
+ };
+ 
++/*
++ * HW interface start and stop helper functions
++ */
++static int audio_ifc_start(void)
++{
++	omap_mcbsp_start(AUDIO_MCBSP); 
++	return 0;
++}
++
++static int audio_ifc_stop(void)
++{
++	omap_mcbsp_stop(AUDIO_MCBSP);
++	return 0;
++}
+ 
+ /*
+  * Codec/mcbsp init and configuration section
+@@ -243,12 +259,20 @@ static void omap_aic23_audio_init(struct
+ 	    SNDRV_PCM_STREAM_PLAYBACK;
+ 	omap_aic23->s[SNDRV_PCM_STREAM_PLAYBACK].dma_dev =
+ 	    OMAP_DMA_MCBSP1_TX;
++	omap_aic23->s[SNDRV_PCM_STREAM_PLAYBACK].hw_start =
++	    audio_ifc_start;
++	omap_aic23->s[SNDRV_PCM_STREAM_PLAYBACK].hw_stop =
++	    audio_ifc_stop;
+ 
+ 	omap_aic23->s[SNDRV_PCM_STREAM_CAPTURE].id = "Alsa AIC23 in";
+ 	omap_aic23->s[SNDRV_PCM_STREAM_CAPTURE].stream_id =
+ 	    SNDRV_PCM_STREAM_CAPTURE;
+ 	omap_aic23->s[SNDRV_PCM_STREAM_CAPTURE].dma_dev =
+ 	    OMAP_DMA_MCBSP1_RX;
++	omap_aic23->s[SNDRV_PCM_STREAM_CAPTURE].hw_start =
++	    audio_ifc_start;
++	omap_aic23->s[SNDRV_PCM_STREAM_CAPTURE].hw_stop =
++	    audio_ifc_stop;
+ 
+ 	/* configuring the McBSP */
+ 	omap_mcbsp_request(AUDIO_MCBSP);
+--- ./sound/arm/omap-aic23.h_orig	2005-11-20 17:38:56.000000000 +0100
++++ ./sound/arm/omap-aic23.h	2005-12-18 18:17:51.362076712 +0100
+@@ -33,7 +33,8 @@
+  *  2005/07/25 INdT-10LE Kernel Team - 	Alsa driver for omap osk,
+  *  					original version based in sa1100 driver
+  *  					and omap oss driver.
+- *  
++ *
++ *  2005-12-18   Dirk Behme      - Added L/R Channel Interchange fix as proposed by Ajaya Babu
+  */
+ 
+ #ifndef __OMAP_AIC23_H
+@@ -85,6 +86,8 @@ struct audio_stream {
+ 	snd_pcm_substream_t *stream;	/* the pcm stream */
+ 	unsigned linked:1;	/* dma channels linked */
+ 	int offset;		/* store start position of the last period in the alsa buffer */
++        int (*hw_start)(void);  /* interface to start HW interface, e.g. McBSP */
++        int (*hw_stop)(void);   /* interface to stop HW interface, e.g. McBSP */
+ };
+ 
+ /*
+--- ./sound/arm/omap-alsa-dma.c_orig	2005-11-20 17:38:56.000000000 +0100
++++ ./sound/arm/omap-alsa-dma.c	2005-12-18 18:17:51.365076256 +0100
+@@ -34,7 +34,9 @@
+  * 2005-07-19	INdT Kernel Team - Alsa port. Creation of new file omap-alsa-dma.c based in
+  * 				   omap-audio-dma-intfc.c oss file. Support for aic23 codec.
+  * 				   Removal of buffer handling (Alsa does that), modifications
+- * 				   in dma handling and port to alsa structures. 
++ * 				   in dma handling and port to alsa structures.
++ *
++ * 2005-12-18   Dirk Behme      - Added L/R Channel Interchange fix as proposed by Ajaya Babu
+  */
+ 
+ #include <linux/config.h>
+@@ -356,8 +358,10 @@ static int audio_start_dma_chain(struct 
+ 	int channel = s->lch[s->dma_q_head];
+ 	FN_IN;
+ 	if (!s->started) {
++	        s->hw_stop();            /* stops McBSP Interface */ 
+ 		omap_start_dma(channel);
+ 		s->started = 1;
++		s->hw_start();           /* start McBSP interface */ 
+ 	}
+ 	/* else the dma itself will progress forward with out our help */
+ 	FN_OUT(0);
 
 
 
 
---------------080104070809050803080407
+--------------030605030102010009000105
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------080104070809050803080407--
+--------------030605030102010009000105--
