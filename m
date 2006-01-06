@@ -1,13 +1,14 @@
-From: Dirk Behme <dirk.behme@de.bosch.com>
-Subject: [PATCH] Convert touchscreen to input_allocate_device
-Date: Fri, 06 Jan 2006 20:37:16 +0100
-Message-ID: <43BEC6EC.6060204@de.bosch.com>
-References: <43B10E92.4060203@de.bosch.com> <20051230222808.GJ4415@atomide.com>
-	<20060103191356.GR6034@atomide.com>
+From: "M Letti" <m.letti@gmx.net>
+Subject: gdbserver hangs on target
+Date: Fri, 6 Jan 2006 22:16:21 +0100
+Message-ID: <200601062116.k06LGSUM013218@frio.ext.ti.com>
+References: <200601061347.k06Dl0JP006201@brazos.ext.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060008050005070706040901"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060103191356.GR6034@atomide.com>
+In-Reply-To: <200601061347.k06Dl0JP006201@brazos.ext.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,128 +18,273 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: 'OMAP' <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060008050005070706040901
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Dear Sirs,
 
-Tony Lindgren wrote:
-> Dirk, I've only pushed Todd's timer fix below like you suggested. Can you please
-> update your patch?
+finally I managed to crosscompile my gdb and gdbserver. Though it would
+still be interesting how to patch the according file (see mail below), =
+it
+works now with the newer gdb version 6.4.
 
-ARM: OMAP: Convert touchscreen to input_allocate_device() to remove:
+Now that I would like to debug a simple hello world on my target, I
+experience the problem, that gdbserver hangs on executing (on the host, =
+I
+get the error message "Ignoring packet error, continuing...")
 
-input: device omap_ts is statically allocated, will not register
-Please convert to input_allocate_device() or contact dtor_core@ameritech.net
+Is there any hint you can give me?
 
-Signed-off-by: Dirk Behme <dirk.behme_at_de.bosch.com>
+Below my tasks to start debugging:
 
+----------------------- target: OSK 5912 ------------------------------
 
+> gdbserver hostip:port helloworld_arm
 
+# following output appears:
+Process helloworld_arm created; pid=3D49
+Listening on port 6666
+=20
+# After having connected via gdb on the host, this output appears:
+Remote debugging from host 192.168.0.4
 
---------------060008050005070706040901
-Content-Type: text/plain;
- name="touchscreen_input_allocate_device.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="touchscreen_input_allocate_device.patch"
+# After executing run, this appears:
+Killing inferior
+GDBserver restarting
+Process helloworld_arm created; pid=3D50
 
---- ./drivers/input/touchscreen/omap/omap_ts.c_orig	2006-01-06 16:43:40.000000000 +0100
-+++ ./drivers/input/touchscreen/omap/omap_ts.c	2006-01-06 18:48:39.754015208 +0100
-@@ -65,10 +65,10 @@ static int omap_ts_read(void)
- 
- 	ts_omap.dev->read(data);
- 
--	input_report_abs(&(ts_omap.inputdevice), ABS_X, data[0]);
--	input_report_abs(&(ts_omap.inputdevice), ABS_Y, data[1]);
--	input_report_abs(&(ts_omap.inputdevice), ABS_PRESSURE, data[2]);
--	input_sync(&(ts_omap.inputdevice));
-+	input_report_abs(ts_omap.inputdevice, ABS_X, data[0]);
-+	input_report_abs(ts_omap.inputdevice, ABS_Y, data[1]);
-+	input_report_abs(ts_omap.inputdevice, ABS_PRESSURE, data[2]);
-+	input_sync(ts_omap.inputdevice);
- 
- 	DEBUG_TS("omap_ts_read: read x=%d,y=%d,p=%d\n", data[0], data[1],
- 		 data[2]);
-@@ -85,7 +85,7 @@ static void omap_ts_timer(unsigned long 
- 	if (!ts_omap.dev->penup()) {
- 		if (!ts_omap.touched) {
- 			DEBUG_TS("omap_ts_timer: pen down\n");
--			input_report_key(&(ts_omap.inputdevice), BTN_TOUCH, 1);
-+			input_report_key(ts_omap.inputdevice, BTN_TOUCH, 1);
- 		}
- 		ts_omap.touched = 1;
- 		omap_ts_read();
-@@ -95,12 +95,12 @@ static void omap_ts_timer(unsigned long 
- 		if (ts_omap.touched) {
- 			DEBUG_TS("omap_ts_timer: pen up\n");
- 			ts_omap.touched = 0;
--			input_report_abs(&(ts_omap.inputdevice), ABS_X, 0);
--			input_report_abs(&(ts_omap.inputdevice), ABS_Y, 0);
--			input_report_abs(&(ts_omap.inputdevice), ABS_PRESSURE,
-+			input_report_abs(ts_omap.inputdevice, ABS_X, 0);
-+			input_report_abs(ts_omap.inputdevice, ABS_Y, 0);
-+			input_report_abs(ts_omap.inputdevice, ABS_PRESSURE,
- 					 0);
--			input_sync(&(ts_omap.inputdevice));
--			input_report_key(&(ts_omap.inputdevice), BTN_TOUCH, 0);
-+			input_sync(ts_omap.inputdevice);
-+			input_report_key(ts_omap.inputdevice, BTN_TOUCH, 0);
- 		}
- 		if (!ts_omap.irq_enabled) {
- 			ts_omap.irq_enabled = 1;
-@@ -167,14 +167,14 @@ static int __init omap_ts_probe(struct p
- 		return -EINVAL;
- 	}
- 
--	init_input_dev(&(ts_omap.inputdevice));
--	ts_omap.inputdevice.name = OMAP_TS_NAME;
--	ts_omap.inputdevice.dev = &pdev->dev;
--	ts_omap.inputdevice.evbit[0] = BIT(EV_KEY) | BIT(EV_ABS);
--	ts_omap.inputdevice.keybit[LONG(BTN_TOUCH)] |= BIT(BTN_TOUCH);
--	ts_omap.inputdevice.absbit[0] =
-+	ts_omap.inputdevice = input_allocate_device();
-+	ts_omap.inputdevice->name = OMAP_TS_NAME;
-+	ts_omap.inputdevice->dev = &pdev->dev;
-+	ts_omap.inputdevice->evbit[0] = BIT(EV_KEY) | BIT(EV_ABS);
-+	ts_omap.inputdevice->keybit[LONG(BTN_TOUCH)] |= BIT(BTN_TOUCH);
-+	ts_omap.inputdevice->absbit[0] =
- 	    BIT(ABS_X) | BIT(ABS_Y) | BIT(ABS_PRESSURE);
--	input_register_device(&(ts_omap.inputdevice));
-+	input_register_device(ts_omap.inputdevice);
- 
- 	ts_omap.dev->enable();
- 
-@@ -186,7 +186,7 @@ static int __init omap_ts_probe(struct p
- static int omap_ts_remove(struct platform_device *pdev)
- {
- 	ts_omap.dev->disable();
--	input_unregister_device(&ts_omap.inputdevice);
-+	input_unregister_device(ts_omap.inputdevice);
- 	if (ts_omap.irq != -1)
- 		free_irq(ts_omap.irq, &ts_omap);
- 
---- ./drivers/input/touchscreen/omap/omap_ts.h_orig	2006-01-06 16:43:40.000000000 +0100
-+++ ./drivers/input/touchscreen/omap/omap_ts.h	2006-01-06 18:48:39.756014904 +0100
-@@ -42,7 +42,7 @@ struct ts_device {
- };
- 
- struct omap_ts_t{
--	struct input_dev inputdevice;
-+	struct input_dev * inputdevice;
- 	struct timer_list ts_timer;      // Timer for triggering acquisitions
- 	int touched;
- 	int irq;
+# from now on, it just hangs
 
 
---------------060008050005070706040901
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+--------------------- host: fedora linux ------------------------------
+
+> arm-linux-gdb helloworld_arm
+# note, that I compiled the program with debug-option:
+# arm-linux-gcc -g -o helloworld_arm helloworld.c
+
+gdb starts...
+> (gdb) target extended-remote targetip:port
+Remote debugging using 192.168.0.6:6666
+...
+> (gdb) run
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y
+Starting program: ./helloworld_arm
+
+# after a while, following appears:
+Ignoring packet error, continuing...
+Ignoring packet error, continuing...
+Ignoring packet error, continuing...
+
+# from now on, it just hangs
+
+-----------------------------------------------------------------------
+
+Therefore, on the host I get the errors "Ignoring packet error,
+continuing..." - the network connection is okay, since the server =
+responds
+to my debug request.
+
+Do you have any ideas what's wrong?
+
+Maybe I should add, that after copying gdbserver on my target, it was =
+not
+able to start due to lack of a library called "libthread_db.so.1". I =
+have
+copied it from the host (from the same toolchain with which I compiled =
+gdb)
+to the target in the lib-directory, and then it worked.
+Maybe it has something to do with this aspect. Otherwise I have no clue =
+:-(
 
 
---------------060008050005070706040901--
+
+Any help is appreciated very much,
+Thanks in advance,
+
+Letti
+
+
+-----Urspr=FCngliche Nachricht-----
+Von: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] Im Auftrag von M
+Letti
+Gesendet: Freitag, 06. J=E4nner 2006 14:47
+An: 'Vineet Tuli'; 'OMAP'
+Betreff: AW: where to find cross-compiled versions of gdbserver?
+
+Dear Vineet,
+
+thank you for your assistance. I think it can help me.
+
+I just experience one problem: your friend mentioned, that the file
+"/usr/src/debug/gdb-6.3/sim/arm/iwmmxt.c" has to be patched for =
+successful
+compilation of gdb.
+
+My question:
+- where do I get the patched file?
+- once obtained, do I just need to replace this single file?
+
+
+Thanks again,
+Letti
+
+
+-----Urspr=FCngliche Nachricht-----
+Von: Vineet Tuli [mailto:vineet@cybernetra.com]=20
+Gesendet: Freitag, 30. Dezember 2005 05:02
+An: OMAP
+Cc: M Letti
+Betreff: Re: where to find cross-compiled versions of gdbserver?
+
+Dear M Letti,
+
+One of my friend, Meenakshi prepared the following howto for cross
+compiling GDB for ARM. I am enclosing the same.
+
+Thanks
+
+Vineet
+
+*************************************************************************=
+***
+*******************
+Howto build gdb for ARM
+
+NOTE: The following compilation was done on Fedora Core 4 Linux.
+
+Download the gdb pakage from the following site:
+
+ftp://ftp.gnu.org/gnu/gdb	wget -c
+ftp://ftp.gnu.org/gnu/gdb/gdb-6.3.tar.bz2
+
+Place the downloaded file in /usr/src directory of your system.
+
+Under /usr/src, create a debug directory and extract the gdb package in =
+this
+(/usr/src/debug) directory.=20
+
+[root@localhost]# cd /usr/src/debug
+[root@localhost]# tar jxf ../gdb-6.3.tar.bz2
+
+Build gdb debugger
+
+The debugger must be built into directories separate from the source. =
+Thus,
+create a directory for gdb within the /usr/src/debug directory.
+
+[root@localhost]# mkdir /usr/src/debug/build_gdb
+
+NOTE: The following file of source code of gdb-6.3 needs to be patched =
+for
+successful compilation of gdb:
+
+	/usr/src/debug/gdb-6.3/sim/arm/iwmmxt.c=20
+
+Chose the prefix for the new debugger. This is a directory where the =
+binary
+and other debugger files resides. This application report uses =
+/opt/gdebug
+for the new debugger. The directory is created by the installation of =
+the
+tools. Go to the /usr/src/debug/gdb-6.3 directory to configure and then
+build the binary and other debugger files with the commands shown below.
+
+[root@localhost]# cd /usr/src/debug/build_gdb
+[root@localhost]# ../gdb-6.3/configure --target=3Darm-linux
+--prefix=3D/opt/gdebug
+[root@localhost]# make
+[root@localhost]# make install
+
+The binary generated resides in /opt/gdebug and is fairly large. This is =
+why
+the gdb binary can't be used as-is on the target and the gdbserver is =
+used
+instead.
+
+Build gdb server
+
+The gdb server wasn't built earlier because it has to be cross-compiled =
+for
+the target using the appropriate tools. To do so, create a directory to
+build the gdb server, move to it and build the gdb server:
+
+[root@localhost]# mkdir /usr/src/debug/build_gdbserver
+[root@localhost]# cd /usr/src/debug/build_gdbserver
+[root@localhost]# export PATH=3D/opt/arm/3.4.1/bin:$PATH
+[root@localhost]# CC=3Darm-linux-gcc ../gdb-6.3/gdb/gdbserver/configure
+--host=3Darm-linux --prefix=3D/opt/gdebug/arm-linux
+[root@localhost]# make
+[root@localhost]# make install
+
+The gdb server binary, 'gdbserver', has now been installed in your
+/opt/gdebug/arm-linux/bin directory.
+
+Once built, copy gdbserver to the target's root file system.
+
+On Thu, 2005-12-29 at 21:00 +0100, M Letti wrote:
+> Dear Sirs,
+>=20
+> =20
+>=20
+> I use the precompiled toolchain (version 3.3.2) on my OSK5912, which =
+is
+> available from http://linux.omap.com/pub/toolchain/ .
+>=20
+> So far so good, I can use the arm-linux-gcc command to compile my own
+> programs for my target.
+>=20
+> =20
+>=20
+> But now that I want to debug these apps remotely, I'm looking for the
+> cross-compiled versions of gdb and gdbserver (that is, arm-linux-gdb =
+and
+> arm-linux-gdbserver.and wonder, if they shouldn't be included in the
+> toolchain I downloaded already? I just can't find them.(they are not =
+in
+the
+> 3.3.2/bin directory where for example the arm-linux-gcc resides)
+>=20
+> =20
+>=20
+> Could anyone please point me out where they normally would be located, =
+or
+if
+> I have to cross-compile them on my own (in fact, I have already tried =
+this
+> step, but got mass of errors when executing "make").
+>=20
+> =20
+>=20
+>=20
+>=20
+> By the way, I would like to ask you if you by chance can recommend any
+> graphical development and debugging tools for my target (besides DDD &
+co)?
+> Are there for example any special Eclipse plugins I could use, or =
+should I
+> use normal Eclipse environment and just set the remote debugging
+> configuration appropriately to develop for my target?
+>=20
+> =20
+>=20
+>=20
+>=20
+> Thank you very much in advance,
+>=20
+> =20
+>=20
+> Michael
+>=20
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+
+
+
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
