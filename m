@@ -1,11 +1,13 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: OMAP Git tree at kernel.org
-Date: Mon, 9 Jan 2006 05:22:56 -0800 (PST)
-Message-ID: <20060109132256.83915.qmail@web32914.mail.mud.yahoo.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAP Git tree at kernel.org
+Date: Mon, 9 Jan 2006 10:00:06 -0800
+Message-ID: <20060109180006.GA1835@atomide.com>
+References: <20060109132256.83915.qmail@web32914.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <20060109132256.83915.qmail@web32914.mail.mud.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,23 +17,22 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Komal Shah <komal_shah802003@yahoo.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Tony,
+* Komal Shah <komal_shah802003@yahoo.com> [060109 05:29]:
+> Tony,
+> 
+> http://www.kernel.org/git/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary
+> 
+> tree shows that it was updated 5 weeks ago !. Is source.mvista.com tree
+> same as this one.
 
-http://www.kernel.org/git/?p=3Dlinux/kernel/git/tmlind/linux-omap-2.6.git=
-;a=3Dsummary
+Yes, it's the same although I have not updated it for a while. Eventually
+it should become our master omap tree with the omap patches applied neatly
+so they can be directly applied to the mainline kernel as they are.
 
-tree shows that it was updated 5 weeks ago !. Is source.mvista.com tree
-same as this one.
+Regards,
 
----Komal Shah
-http://komalshah.blogspot.com/
-
-
-	=09
-__________________________________________=20
-Yahoo! DSL =96 Something to write home about.=20
-Just $16.99/mo. or less.=20
-dsl.yahoo.com=20
+Tony
