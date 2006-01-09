@@ -1,9 +1,9 @@
 From: Anderson Briglia <anderson.briglia@indt.org.br>
-Subject: [patch 4/5] Add MMC password protection (lock/unlock) support V3
-Date: Mon, 09 Jan 2006 18:16:29 -0400
-Message-ID: <43C2E0BD.5040601@indt.org.br>
+Subject: [patch 1/5] Add MMC password protection (lock/unlock) support V3
+Date: Mon, 09 Jan 2006 18:15:00 -0400
+Message-ID: <43C2E064.90500@indt.org.br>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090103050800050608030500"
+Content-Type: multipart/mixed; boundary="------------000306090100090603080502"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -19,202 +19,126 @@ Cc: linux@arm.linux.org.uk, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizar
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090103050800050608030500
+--------------000306090100090603080502
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
 
 
-
-
-
---------------090103050800050608030500
+--------------000306090100090603080502
 Content-Type: text/x-patch;
- name="mmc_sysfs.diff"
+ name="mmc_ignore_locked.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="mmc_sysfs.diff"
+ filename="mmc_ignore_locked.diff"
 
-Implement MMC password reset and forced erase support. It uses the sysfs
-mechanism to send commands to the MMC subsystem. Usage:
+When a card is locked, only commands from the "basic" and "lock card" classes
+are accepted. To be able to use the other commands, the card must be unlocked
+first.
 
-Forced erase:
-
-echo erase > /sys/bus/mmc/devices/mmc0\:0001/lockable
-
-Remove password:
-
-echo remove > /sys/bus/mmc/devices/mmc0\:0001/lockable
+This patch prevents the block driver from trying to run privileged class
+commands on locked MMC cards, which will fail anyway.
 
 Signed-off-by: Anderson Briglia <anderson.briglia@indt.org.br>
 Signed-off-by: Anderson Lizardo <anderson.lizardo@indt.org.br>
 Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+Signed-off-by: David Brownell <david-b@pacbell.net>
 
+Index: linux-2.6.15-rc4/drivers/mmc/mmc.c
+===================================================================
+--- linux-2.6.15-rc4.orig/drivers/mmc/mmc.c	2005-12-15 14:06:52.000000000 -0400
++++ linux-2.6.15-rc4/drivers/mmc/mmc.c	2005-12-15 17:00:37.000000000 -0400
+@@ -986,10 +986,15 @@ static void mmc_check_cards(struct mmc_h
+ 		cmd.flags = MMC_RSP_R1;
+ 
+ 		err = mmc_wait_for_cmd(host, &cmd, CMD_RETRIES);
+-		if (err == MMC_ERR_NONE)
++		if (err != MMC_ERR_NONE) {
++			mmc_card_set_dead(card);
+ 			continue;
++		}
+ 
+-		mmc_card_set_dead(card);
++		if (cmd.resp[0] & R1_CARD_IS_LOCKED)
++			mmc_card_set_locked(card);
++		else
++			card->state &= ~MMC_STATE_LOCKED;
+ 	}
+ }
+ 
 Index: linux-2.6.15-rc4/drivers/mmc/mmc_sysfs.c
 ===================================================================
---- linux-2.6.15-rc4.orig/drivers/mmc/mmc_sysfs.c	2006-01-09 10:35:09.000000000 -0400
-+++ linux-2.6.15-rc4/drivers/mmc/mmc_sysfs.c	2006-01-09 12:19:05.000000000 -0400
+--- linux-2.6.15-rc4.orig/drivers/mmc/mmc_sysfs.c	2005-10-27 20:02:08.000000000 -0400
++++ linux-2.6.15-rc4/drivers/mmc/mmc_sysfs.c	2005-12-15 17:00:29.000000000 -0400
 @@ -16,6 +16,7 @@
- #include <linux/device.h>
- #include <linux/idr.h>
- #include <linux/key.h>
-+#include <linux/err.h>
  
  #include <linux/mmc/card.h>
  #include <linux/mmc/host.h>
-@@ -26,6 +27,10 @@
- #define KEY_OP_INSTANTIATE 1
- #define KEY_OP_UPDATE 2
++#include <linux/mmc/protocol.h>
  
-+#ifdef CONFIG_MMC_DEBUG
-+#define DEBUG  /* for dev_dbg(), pr_debug(), etc */
-+#endif
-+
- #define dev_to_mmc_card(d)	container_of(d, struct mmc_card, dev)
- #define to_mmc_driver(d)	container_of(d, struct mmc_driver, drv)
- #define cls_dev_to_mmc_host(d)	container_of(d, struct mmc_host, class_dev)
-@@ -67,6 +72,58 @@ static struct device_attribute mmc_dev_a
+ #include "mmc.h"
  
- static struct device_attribute mmc_dev_attr_scr = MMC_ATTR_RO(scr);
- 
-+#ifdef	CONFIG_MMC_PASSWORDS
-+
-+static ssize_t
-+mmc_lockable_show(struct device *dev, struct device_attribute *att, char *buf)
-+{
-+	struct mmc_card *card = dev_to_mmc_card(dev);
-+
-+	if (!mmc_card_lockable(card))
-+		return sprintf(buf, "unlockable\n");
-+	else
-+		return sprintf(buf, "lockable, %slocked\n", mmc_card_locked(card) ?
-+			"" : "un");
-+}
-+
-+/*
-+ * implement MMC password reset ("remove password") and forced erase ("forgot
-+ * password").
-+ */
-+static ssize_t
-+mmc_lockable_store(struct device *dev, struct device_attribute *att,
-+	const char *data, size_t len)
-+{
-+	struct mmc_card *card = dev_to_mmc_card(dev);
-+
-+	if (!mmc_card_lockable(card))
-+		return -EINVAL;
-+
-+	if (mmc_card_locked(card) && !strncmp(data, "erase", 5)) {
-+		/* forced erase only works while card is locked */
-+		mmc_lock_unlock(card, NULL, MMC_LOCK_MODE_ERASE);
-+		return len;
-+	} else if (!mmc_card_locked(card) && !strncmp(data, "remove", 6)) {
-+		/* remove password only works while card is unlocked */
-+		struct key *mmc_key = request_key(&mmc_key_type, "mmc:key", NULL);
-+
-+		if (!IS_ERR(mmc_key)) {
-+			int err = mmc_lock_unlock(card, mmc_key, MMC_LOCK_MODE_CLR_PWD);
-+			if (!err)
-+				return len;
-+		} else
-+			dev_dbg(&card->dev, "request_key returned error %ld\n", PTR_ERR(mmc_key));
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static struct device_attribute mmc_dev_attr_lockable =
-+	__ATTR(lockable, S_IWUSR | S_IRUGO,
-+		 mmc_lockable_show, mmc_lockable_store);
-+
-+#endif
-+
- 
- static void mmc_release_card(struct device *dev)
- {
-@@ -238,6 +295,11 @@ int mmc_register_card(struct mmc_card *c
- 			if (ret)
- 				device_del(&card->dev);
- 		}
-+#ifdef CONFIG_MMC_PASSWORDS
-+		ret = device_create_file(&card->dev, &mmc_dev_attr_lockable);
-+		if (ret)
-+			device_del(&card->dev);
-+#endif
- 	}
- 	return ret;
+@@ -69,13 +70,22 @@ static void mmc_release_card(struct devi
  }
-@@ -251,7 +313,9 @@ void mmc_remove_card(struct mmc_card *ca
- 	if (mmc_card_present(card)) {
- 		if (mmc_card_sd(card))
- 			device_remove_file(&card->dev, &mmc_dev_attr_scr);
--
-+#ifdef CONFIG_MMC_PASSWORDS
-+		device_remove_file(&card->dev, &mmc_dev_attr_lockable);
-+#endif
- 		device_del(&card->dev);
- 	}
  
-@@ -305,19 +369,25 @@ static int manage_key(struct key *key, c
- 
- 	zap = NULL;
- 	ret = -EINVAL;
--	if (datalen <= 0 || datalen > MMC_KEYLEN_MAXBYTES || !data)
-+	if (datalen <= 0 || datalen > MMC_KEYLEN_MAXBYTES || !data){
-+		dev_dbg(&card->dev, "Invalid data\n");
- 		goto error;
+ /*
+- * This currently matches any MMC driver to any MMC card - drivers
+- * themselves make the decision whether to drive this card in their
+- * probe method.  However, we force "bad" cards to fail.
++ * This currently matches any MMC driver to any MMC card - drivers themselves
++ * make the decision whether to drive this card in their probe method.
++ * However, we force "bad" cards to fail.
++ *
++ * We also fail for all locked cards; drivers expect to be able to do block
++ * I/O still on probe(), which is not possible while the card is locked.
++ * Device probing must be triggered sometime later to make the card available
++ * to the block driver.
+  */
+ static int mmc_bus_match(struct device *dev, struct device_driver *drv)
+ {
+ 	struct mmc_card *card = dev_to_mmc_card(dev);
++	if (mmc_card_lockable(card) && mmc_card_locked(card)) {
++		dev_dbg(&card->dev, "card is locked; binding is deferred\n");
++		return 0;
 +	}
+ 	return !mmc_card_bad(card);
+ }
  
- 	if (operation == KEY_OP_INSTANTIATE) { /* KEY_OP_INSTANTIATE */
-                ret = key_payload_reserve(key, datalen);
--               if (ret < 0)
--                       goto error;
-+               if (ret < 0){
-+		       dev_dbg(&card->dev, "ret = %d", ret);
-+		       goto error;
-+	       }
- 	}
+Index: linux-2.6.15-rc4/include/linux/mmc/card.h
+===================================================================
+--- linux-2.6.15-rc4.orig/include/linux/mmc/card.h	2005-10-27 20:02:08.000000000 -0400
++++ linux-2.6.15-rc4/include/linux/mmc/card.h	2005-12-15 17:00:37.000000000 -0400
+@@ -56,6 +56,7 @@ struct mmc_card {
+ #define MMC_STATE_BAD		(1<<2)		/* unrecognised device */
+ #define MMC_STATE_SDCARD	(1<<3)		/* is an SD card */
+ #define MMC_STATE_READONLY	(1<<4)		/* card is read-only */
++#define MMC_STATE_LOCKED	(1<<5)		/* card is currently locked */
+ 	u32			raw_cid[4];	/* raw card CID */
+ 	u32			raw_csd[4];	/* raw card CSD */
+ 	u32			raw_scr[2];	/* raw card SCR */
+@@ -69,12 +70,16 @@ struct mmc_card {
+ #define mmc_card_bad(c)		((c)->state & MMC_STATE_BAD)
+ #define mmc_card_sd(c)		((c)->state & MMC_STATE_SDCARD)
+ #define mmc_card_readonly(c)	((c)->state & MMC_STATE_READONLY)
++#define mmc_card_locked(c)	((c)->state & MMC_STATE_LOCKED)
++
++#define mmc_card_lockable(c)	((c)->csd.cmdclass & CCC_LOCK_CARD)
  
- 	ret = -ENOMEM;
- 	mpayload = kmalloc(sizeof(*mpayload) + datalen, GFP_KERNEL);
--	if (!mpayload)
-+	if (!mpayload){
-+		dev_dbg(&card->dev, "Unable to allocate mpayload structure\n");
- 		goto error;
-+	}
+ #define mmc_card_set_present(c)	((c)->state |= MMC_STATE_PRESENT)
+ #define mmc_card_set_dead(c)	((c)->state |= MMC_STATE_DEAD)
+ #define mmc_card_set_bad(c)	((c)->state |= MMC_STATE_BAD)
+ #define mmc_card_set_sd(c)	((c)->state |= MMC_STATE_SDCARD)
+ #define mmc_card_set_readonly(c) ((c)->state |= MMC_STATE_READONLY)
++#define mmc_card_set_locked(c)	((c)->state |= MMC_STATE_LOCKED)
  
- 	mpayload->datalen = datalen;
- 	memcpy(mpayload->data, data, datalen);
-@@ -341,8 +411,10 @@ static int manage_key(struct key *key, c
- 	
- 	ret = -EINVAL;
- 	dev = bus_find_device(&mmc_bus_type, NULL, NULL, mmc_match_lockable);
--	if (!dev)
-+	if (!dev){
-+		dev_dbg(&card->dev, "Unable to locate device\n");
- 		goto error;
-+	}
- 	card = dev_to_mmc_card(dev);
- 	
- 	if (operation == KEY_OP_INSTANTIATE) { /* KEY_OP_INSTANTIATE */
-@@ -359,8 +431,10 @@ static int manage_key(struct key *key, c
-                        ret = mmc_lock_unlock(card, key, MMC_LOCK_MODE_SET_PWD);
-        }
-        
--       if (ret)
-+       if (ret){
- 	       ret = -EKEYREJECTED;
-+	       dev_dbg(&card->dev, "Key was rejected\n");
-+       }
- 
-        if (operation == KEY_OP_UPDATE) /* KEY_OP_UPDATE */
- 	       call_rcu(&zap->rcu, mmc_key_update_rcu_disposal);
+ #define mmc_card_name(c)	((c)->cid.prod_name)
+ #define mmc_card_id(c)		((c)->dev.bus_id)
 
---------------090103050800050608030500
+--------------000306090100090603080502
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------090103050800050608030500--
+--------------000306090100090603080502--
