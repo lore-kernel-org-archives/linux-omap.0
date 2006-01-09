@@ -1,13 +1,14 @@
-From: Matthew Percival <matthew@capgo.com>
+From: "Li Weichen" <iaadoa@gmail.com>
 Subject: RE: Toolchain select
-Date: Mon, 09 Jan 2006 14:06:28 +1100
-Message-ID: <1136775989.8961.14.camel@localhost.localdomain>
-References: <43c1c602.744e24c8.3c58.744e@mx.gmail.com>
+Date: Mon, 9 Jan 2006 11:23:41 +0800
+Message-ID: <43c1d747.274065db.2ac3.ffffe387@mx.gmail.com>
+References: <1136775989.8961.14.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <43c1c602.744e24c8.3c58.744e@mx.gmail.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <1136775989.8961.14.camel@localhost.localdomain>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,34 +16,16 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: 'Matthew Percival' <matthew@capgo.com>, 'Linux OMAP Open Source' <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-G'Day,
+Thank you for your kind reply I think there is something wrong with the
+omap5912osk_config file.  And the 2.6.14 kernel is no problem,  but the
+2.6.15 can not work here.
 
-> What version of u-boot are you using?  I use the u-boot-1.1.4 and
-> u-boot-1.1.3, and my steps is,
-> $tar xjvf u-boot-1.1.x
-> $cd u-boot-1.1.x
-> $make omap5912osk_config
-> $make
+Thanks again and best regards.
 
-	I am using 1.1.2; I have 1.1.4, but it does not link (I have not
-investigated why yet, as it is pretty low priority).
-
-	Your process is correct, so it is a little strange that the file does
-not exist.  The command which creates the file (as called from the
-Makefile) is:
-	arm-linux-objcopy -O srec hello_world hello_world.srec 2>/dev/null
-	I would suggest looking for where that command is used when you run it,
-for there is likely a minor error being flagged at this point (run make
-distclean first, then start afresh).
-
-> And have you tried building the 2.6.15 kernel?
-
-	Not yet: it is not on my current list of priorities.  I am running
-2.6.14-omap1 at the moment.
-
-	-- Matthew
+Li Weichen
+2006-1-9
