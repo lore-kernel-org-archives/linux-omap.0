@@ -1,14 +1,11 @@
-From: "Li Weichen" <iaadoa@gmail.com>
-Subject: RE: Toolchain select
-Date: Mon, 9 Jan 2006 11:23:41 +0800
-Message-ID: <43c1d747.274065db.2ac3.ffffe387@mx.gmail.com>
-References: <1136775989.8961.14.camel@localhost.localdomain>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: OMAP Git tree at kernel.org
+Date: Mon, 9 Jan 2006 05:22:56 -0800 (PST)
+Message-ID: <20060109132256.83915.qmail@web32914.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1136775989.8961.14.camel@localhost.localdomain>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,14 +15,23 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: 'Matthew Percival' <matthew@capgo.com>, 'Linux OMAP Open Source' <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Thank you for your kind reply I think there is something wrong with the
-omap5912osk_config file.  And the 2.6.14 kernel is no problem,  but the
-2.6.15 can not work here.
+Tony,
 
-Thanks again and best regards.
+http://www.kernel.org/git/?p=3Dlinux/kernel/git/tmlind/linux-omap-2.6.git=
+;a=3Dsummary
 
-Li Weichen
-2006-1-9
+tree shows that it was updated 5 weeks ago !. Is source.mvista.com tree
+same as this one.
+
+---Komal Shah
+http://komalshah.blogspot.com/
+
+
+	=09
+__________________________________________=20
+Yahoo! DSL =96 Something to write home about.=20
+Just $16.99/mo. or less.=20
+dsl.yahoo.com=20
