@@ -1,67 +1,56 @@
 From: Russell King <rmk+lkml@arm.linux.org.uk>
-Subject: Re: [patch 2/5] Add MMC password protection (lock/unlock) support V3
-Date: Mon, 9 Jan 2006 22:32:55 +0000
-Message-ID: <20060109223255.GG19131@flint.arm.linux.org.uk>
-References: <43C2E087.1090608@indt.org.br>
+Subject: Re: [patch 3/5] Add MMC password protection (lock/unlock) support V3
+Date: Mon, 9 Jan 2006 22:42:04 +0000
+Message-ID: <20060109224204.GH19131@flint.arm.linux.org.uk>
+References: <43C2E0A2.3090701@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751593AbWAIWdH@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751587AbWAIWmO@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <43C2E087.1090608@indt.org.br>
+In-Reply-To: <43C2E0A2.3090701@indt.org.br>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Anderson Briglia <anderson.briglia@indt.org.br>
-Cc: linux-kernel@vger.kernel.org, "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, linux@arm.linux.org.uk, ext David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, drzeus-list@drzeus.cx, "Aguiar Carlos (EXT-INdT/Manaus)" <carlos.aguiar@indt.org.br>, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizardo@indt.org.br>
+Cc: linux-kernel@vger.kernel.org, "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, linux@arm.linux.org.uk, ext David Brownell <david-b@PACBELL.NET>, Tony Lindgren <tony@atomide.com>, drzeus-list@drzeus.cx, "Aguiar Carlos (EXT-INdT/Manaus)" <carlos.aguiar@indt.org.br>, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizardo@indt.org.br>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 09, 2006 at 06:15:35PM -0400, Anderson Briglia wrote:
-> +	cmd.opcode = MMC_LOCK_UNLOCK;
-> +	cmd.arg = 0;
-> +	cmd.flags = MMC_RSP_R1B;
-> +
-> +	memset(&data, 0, sizeof(struct mmc_data));
-> +
-> +	data.timeout_ns = card->csd.tacc_ns * 10;
-> +	data.timeout_clks = card->csd.tacc_clks * 10;
-> +	data.blksz_bits = blksz_bits(data_size);
-> +	data.blocks = 1;
-> +	data.flags = MMC_DATA_WRITE;
-> +	data.sg = &sg;
-> +	data.sg_len = 1;
-> +
-> +	memset(&mrq, 0, sizeof(struct mmc_request));
-> +
-> +	mrq.cmd = &cmd;
-> +	mrq.data = &data;
-> +
-> +	sg_init_one(&sg, data_buf, data_size);
-> +	err = mmc_wait_for_req(card->host, &mrq);
-> +	if (err != MMC_ERR_NONE) {
-> +		mmc_card_set_dead(card);
+On Mon, Jan 09, 2006 at 06:16:02PM -0400, Anderson Briglia wrote:
+> +	dev = bus_find_device(&mmc_bus_type, NULL, NULL, mmc_match_lockable);
+> +	if (!dev)
 > +		goto error;
-> +	}
+> +	card = dev_to_mmc_card(dev);
+> +	
+> +	if (operation == KEY_OP_INSTANTIATE) { /* KEY_OP_INSTANTIATE */
+> +               if (mmc_card_locked(card)) {
+> +                       ret = mmc_lock_unlock(card, key, MMC_LOCK_MODE_UNLOCK);
+> +                       mmc_remove_card(card);
+> +                       mmc_register_card(card);
+> +               }
+> +	       else
+> +		       ret = mmc_lock_unlock(card, key, MMC_LOCK_MODE_SET_PWD);
 
-If the command error is MMC_ERR_INVALID, this means the host doesn't
-support this operation, so we shouldn't set the card "dead".
+I really don't like this - if the MMC card is not locked, we set a
+password on it.  If it's locked, we unlock it.
 
-> +        memset(&cmd, 0, sizeof(struct mmc_command));
+That's a potential race condition if you're trying to unlock a card
+and the card is changed beneath you while you slept waiting for
+memory - you end up setting that password on the new card.
 
-The ugly formatting monster makes an appearance.  Tabs please.
+It's far better to have separate "unlock this card" and "set a
+password on this card" commands rather than trying to combine the
+two operations.
 
-> Index: linux-2.6.15-rc4/include/linux/mmc/host.h
-> ===================================================================
-> --- linux-2.6.15-rc4.orig/include/linux/mmc/host.h	2006-01-08 07:35:39.069715192 -0400
-> +++ linux-2.6.15-rc4/include/linux/mmc/host.h	2006-01-08 07:49:40.763758248 -0400
-> @@ -83,6 +83,7 @@
->  	u32			ocr_avail;
->  
->  	unsigned long		caps;		/* Host capabilities */
-> +	int                     pwd_support;    /* MMC password support */
->  
->  #define MMC_CAP_4_BIT_DATA	(1 << 0)	/* Can the host do 4 bit transfers */
->  
+Also, removing and re-registering a card is an offence.  These
+things are ref-counted, and mmc_remove_card() will drop the last
+reference - so the memory associated with it will be freed.  Then
+you re-register it.  Whoops.
 
-And this means we don't need the "pwd_support" thing here.  Even
-if we did, it should be a host capability, not an "int".
+If you merely want to try to attach a driver, use device_attach()
+instead.
+
+Also, what if you have multiple MMC cards?  I have a board here
+with two MMC slots.  I'd rather not have it try to set the same
+password on both devices.
+
 
 -- 
 Russell King
