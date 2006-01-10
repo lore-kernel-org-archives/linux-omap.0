@@ -1,58 +1,45 @@
-From: Russell King <rmk+lkml@arm.linux.org.uk>
-Subject: Re: [patch 3/5] Add MMC password protection (lock/unlock) support V3
-Date: Mon, 9 Jan 2006 22:42:04 +0000
-Message-ID: <20060109224204.GH19131@flint.arm.linux.org.uk>
-References: <43C2E0A2.3090701@indt.org.br>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: Re: [PATCH] 24xx Irda update
+Date: Mon, 9 Jan 2006 22:18:54 -0800 (PST)
+Message-ID: <20060110061854.82145.qmail@web32913.mail.mud.yahoo.com>
+References: <20060106140009.76737.qmail@web32904.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751587AbWAIWmO@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <43C2E0A2.3090701@indt.org.br>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Anderson Briglia <anderson.briglia@indt.org.br>
-Cc: linux-kernel@vger.kernel.org, "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, linux@arm.linux.org.uk, ext David Brownell <david-b@PACBELL.NET>, Tony Lindgren <tony@atomide.com>, drzeus-list@drzeus.cx, "Aguiar Carlos (EXT-INdT/Manaus)" <carlos.aguiar@indt.org.br>, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizardo@indt.org.br>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20060106140009.76737.qmail@web32904.mail.mud.yahoo.com>
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 09, 2006 at 06:16:02PM -0400, Anderson Briglia wrote:
-> +	dev = bus_find_device(&mmc_bus_type, NULL, NULL, mmc_match_lockable);
-> +	if (!dev)
-> +		goto error;
-> +	card = dev_to_mmc_card(dev);
-> +	
-> +	if (operation == KEY_OP_INSTANTIATE) { /* KEY_OP_INSTANTIATE */
-> +               if (mmc_card_locked(card)) {
-> +                       ret = mmc_lock_unlock(card, key, MMC_LOCK_MODE_UNLOCK);
-> +                       mmc_remove_card(card);
-> +                       mmc_register_card(card);
-> +               }
-> +	       else
-> +		       ret = mmc_lock_unlock(card, key, MMC_LOCK_MODE_SET_PWD);
+--- Komal Shah <komal_shah802003@yahoo.com> wrote:
 
-I really don't like this - if the MMC card is not locked, we set a
-password on it.  If it's locked, we unlock it.
+> Tony,
+>=20
+> Attached the updated IrDA patch (integrated workqueue) with 24xx
+> support.
+>=20
+> Signed-off-by: Komal Shah <komal_shah802003@yahoo.com>
 
-That's a potential race condition if you're trying to unlock a card
-and the card is changed beneath you while you slept waiting for
-memory - you end up setting that password on the new card.
-
-It's far better to have separate "unlock this card" and "set a
-password on this card" commands rather than trying to combine the
-two operations.
-
-Also, removing and re-registering a card is an offence.  These
-things are ref-counted, and mmc_remove_card() will drop the last
-reference - so the memory associated with it will be freed.  Then
-you re-register it.  Whoops.
-
-If you merely want to try to attach a driver, use device_attach()
-instead.
-
-Also, what if you have multiple MMC cards?  I have a board here
-with two MMC slots.  I'd rather not have it try to set the same
-password on both devices.
+If everyone is happy with this patch, then please consider it for
+commit in tree. Thanx.
+=20
 
 
--- 
-Russell King
- Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
- maintainer of:  2.6 Serial core
+---Komal Shah
+http://komalshah.blogspot.com/
+
+
+	=09
+__________________________________________=20
+Yahoo! DSL =96 Something to write home about.=20
+Just $16.99/mo. or less.=20
+dsl.yahoo.com=20
