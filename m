@@ -1,13 +1,13 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: 2420 H4 and kernel startup RAM error
-Date: Tue, 10 Jan 2006 06:18:39 -0800 (PST)
-Message-ID: <20060110141839.49109.qmail@web32903.mail.mud.yahoo.com>
-References: <3d3153f60601100605p36bc331y971958e446e1d476@mail.gmail.com>
+From: "Menon, Nishanth" <x0nishan@ti.com>
+Subject: RE: 2420 H4 and kernel startup RAM error
+Date: Tue, 10 Jan 2006 10:05:51 -0600
+Message-ID: <520AB2AD990DC04082102F77CA1726380236AE15@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <3d3153f60601100605p36bc331y971958e446e1d476@mail.gmail.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,88 +15,78 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Ola Helm <ola.hel@gmail.com>, "Menon, Nishanth" <x0nishan@ti.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Ola Helm <ola.hel@gmail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---- Ola Helm <ola.hel@gmail.com> wrote:
+Hi,
 
-> I got the RAMdisk setup working as adviced. Thanks to all for help.
->=20
-> Then I tried the JFFS but again faced problems. I continue it here
-> though
-> the heading is not quite correct anymore..
-=20
-Hope this helps. You know from where to get flash_* tools.=20
+There seems to be two issues here.=20
+1. booting a kernel from flash
+2. Using a jffs2 partition
 
-----
-1. Make JFFS2 Filesystem.
+MTD Toolchain:
+The latest MTD tree in infradead uses something called as EBH (Erase
+Block Header). This, till I last saw it(a month or so back), was
+incompatible with JFFS2 cleanmarkers. U could check the infradead site
+to pick up the last known JFFS2 support (I think July or so last year).
+Just ensure that you have the kernel's mtd matching with the mtd utils
+you are using.
 
-#mkfs.jffs2 -v --eraseblock=3D128KiB -l --root=3D$(ROOTFSDIR) -o
+Ref: http://www.linux-mtd.infradead.org/source.html=20
+
+Here is what I used to do:
+1. booting from flash
+make uImage
+from uboot:
+tftp 0x80000000 xyz.uImg
+This shows how many bytes have been downloaded. Check if this is less
+than 0x00200000. If the downloaded image is greater than this, the
+partition size defn in kernel nor mapping need modification. (I am
+assuming the Nor flash base address to be still 0x04000000 on H4).
+protect off 0x04040000 0x0423ffff
+erase 0x04040000 0x0423ffff
+cp.b 0x80000000 0x04040000 0x00200000
+
+run printenv and ensure that the bootargs is proper.
+
+Now try 'bootm 0x04040000'
+The kernel should bootup. If this does not then this could be a problem
+with the git code base we have.
+
+2. jffs2 file system in flash
+a) Using a filesystem in a tar ball.
+Once you boot, using say NFS, run the following:
+./flash_eraseall -j /dev/mtd/3
+mount -t jffs2 /dev/mtdblock/3 /mnt
+cd /mnt
+tar -xvzf ../FileSystem.tgz
+cd
+umount /mnt
+
+b) using mkfs
+(from Komal's mail)
+mkfs.jffs2 -v --eraseblock=3D128KiB -l --root=3D$(ROOTFSDIR) -o
 $(IMAGEDIR)/rd-jffs2.bin
+Once you boot, using say NFS, run the following:
+./flash_eraseall /dev/mtd/3
+(there is no need for a -j as the mkfs would have created the clean
+markers where required).
+cat rd-jffs2.bin>/dev/mtd/3
+mount -t jffs2 /dev/mtdblock/3 /mnt
+ls /mnt
+umount /mnt
 
-2. Boot the Kernel with NFS Filesystem. {Flashing through mtd tools}
+(NOTE: The umount might take a short while while the GC thread finishes
+off its work).
+(reboot)
+For uboot prompt:
+setenv bootargs mem=3D32M console=3DttyS0,115200n8 noinitrd
+root=3D/dev/mtdblock3 rootfstype=3Djffs2 devfs=3Dmount
 
-#cat /proc/partitions
-major minor  #blocks  name
+bootm..
 
-31     0        128 mtdblock0
-
-31     1        128 mtdblock1
-
-31     2       2048 mtdblock2
-
-31     3      63232 mtdblock3
-
-{erase through character device *not* block device}
-
-{"-j" option will makes partition suitable for JFFS2 }
-
-#flash_eraseall /dev/mtd/3 -j
-
-{It will take time to erase the 60+ MB Flash }
-
-#flashcp -v rd-jffs2.bin /dev/mtd/3
-
-{It again erases the flash ..I don't know why and copies and
-verifies the data at the end }
-
-[Cross check the filesystem by mounting it offline]
-
-#mount -t jffs2 /dev/mtdblock/3 /mnt/flash
-
-[Flashing the Kernel in]
-
-{erase 2MB partition for kernel }
-
-#flash_eraseall /dev/mtd/2
-#flashcp H4-kernel.cc /dev/mtd/2 -v
-
-3. Booting the kernel and filesystem from Flash.
-
-Change the kernel boot arguments like this:
-
-On U-boot prompt:
-
-#setenv bootargs console=3DttyS0,115200n8 root=3D/dev/mtdblock3
-rootfstype=3Djffs2 rw     =20
-
-#bootm 04040000
-
-While booting you might see lots of messages starting with
-CLEANMARKER..Please ignore them..as it is just a indication of empty
-flash.=20
-----=20
-
-
----Komal Shah
-http://komalshah.blogspot.com/
-
-
-	=09
-__________________________________________=20
-Yahoo! DSL =96 Something to write home about.=20
-Just $16.99/mo. or less.=20
-dsl.yahoo.com=20
+Regards,
+Nishanth Menon
