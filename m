@@ -1,45 +1,38 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: [PATCH] 24xx Irda update
-Date: Mon, 9 Jan 2006 22:18:54 -0800 (PST)
-Message-ID: <20060110061854.82145.qmail@web32913.mail.mud.yahoo.com>
-References: <20060106140009.76737.qmail@web32904.mail.mud.yahoo.com>
+From: Pierre Ossman <drzeus-list@drzeus.cx>
+Subject: Re: [patch 4/5] Add MMC password protection (lock/unlock) support
+ V3
+Date: Tue, 10 Jan 2006 07:46:40 +0100
+Message-ID: <43C35850.2020104@drzeus.cx>
+References: <43C2E0BD.5040601@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060106140009.76737.qmail@web32904.mail.mud.yahoo.com>
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750752AbWAJGqz@vger.kernel.org>
+In-Reply-To: <43C2E0BD.5040601@indt.org.br>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Anderson Briglia <anderson.briglia@indt.org.br>
+Cc: linux-kernel@vger.kernel.org, "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, linux@arm.linux.org.uk, ext David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, "Aguiar Carlos (EXT-INdT/Manaus)" <carlos.aguiar@indt.org.br>, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizardo@indt.org.br>
 List-Id: linux-omap@vger.kernel.org
 
---- Komal Shah <komal_shah802003@yahoo.com> wrote:
+Anderson Briglia wrote:
 
-> Tony,
->=20
-> Attached the updated IrDA patch (integrated workqueue) with 24xx
-> support.
->=20
-> Signed-off-by: Komal Shah <komal_shah802003@yahoo.com>
+>@@ -238,6 +295,11 @@ int mmc_register_card(struct mmc_card *c
+> 			if (ret)
+> 				device_del(&card->dev);
+> 		}
+>+#ifdef CONFIG_MMC_PASSWORDS
+>+		ret = device_create_file(&card->dev, &mmc_dev_attr_lockable);
+>+		if (ret)
+>+			device_del(&card->dev);
+>+#endif
+> 	}
+> 	return ret;
+> }
+>  
+>
 
-If everyone is happy with this patch, then please consider it for
-commit in tree. Thanx.
-=20
+It might be wise to also check the command classes here. I don't believe
+SDIO supports locking.
 
-
----Komal Shah
-http://komalshah.blogspot.com/
-
-
-	=09
-__________________________________________=20
-Yahoo! DSL =96 Something to write home about.=20
-Just $16.99/mo. or less.=20
-dsl.yahoo.com=20
+Rgds
+Pierre
