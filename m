@@ -1,54 +1,59 @@
-From: Anderson Briglia <anderson.briglia@indt.org.br>
-Subject: Re: [patch 3/5] Add MMC password protection (lock/unlock) support
- V3
-Date: Wed, 11 Jan 2006 09:58:03 -0400
-Message-ID: <43C50EEB.9060501@indt.org.br>
-References: <43C2E0A2.3090701@indt.org.br>	<20060109224204.GH19131@flint.arm.linux.org.uk> <43C42B00.60206@indt.org.br>
+From: Russell King <rmk+lkml@arm.linux.org.uk>
+Subject: Re: [patch 1/5] Add MMC password protection (lock/unlock) support V3
+Date: Wed, 11 Jan 2006 14:44:24 +0000
+Message-ID: <20060111144424.GA20523@flint.arm.linux.org.uk>
+References: <43C2E064.90500@indt.org.br> <20060109222902.GF19131@flint.arm.linux.org.uk> <43C5052C.4050804@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932392AbWAKOaV@vger.kernel.org>
-In-Reply-To: <43C42B00.60206@indt.org.br>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750771AbWAKOoh@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <43C5052C.4050804@indt.org.br>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Anderson Briglia <anderson.briglia@indt.org.br>
-Cc: Russell King <rmk+lkml@arm.linux.org.uk>, ext David Brownell <david-b@PACBELL.NET>, linux@arm.linux.org.uk, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizardo@indt.org.br>, drzeus-list@drzeus.cx, "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, linux-kernel@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, linux@arm.linux.org.uk, ext David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, drzeus-list@drzeus.cx, "Aguiar Carlos (EXT-INdT/Manaus)" <carlos.aguiar@indt.org.br>, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizardo@indt.org.br>
 List-Id: linux-omap@vger.kernel.org
 
-Anderson Briglia wrote:
+On Wed, Jan 11, 2006 at 09:16:28AM -0400, Anderson Briglia wrote:
 > Russell King wrote:
 > 
-> 
->>On Mon, Jan 09, 2006 at 06:16:02PM -0400, Anderson Briglia wrote:
->> 
->>
->>
->>>+	dev = bus_find_device(&mmc_bus_type, NULL, NULL, mmc_match_lockable);
->>>+	if (!dev)
->>>+		goto error;
->>>+	card = dev_to_mmc_card(dev);
->>>+	
->>>+	if (operation == KEY_OP_INSTANTIATE) { /* KEY_OP_INSTANTIATE */
->>>+               if (mmc_card_locked(card)) {
->>>+                       ret = mmc_lock_unlock(card, key, MMC_LOCK_MODE_UNLOCK);
->>>+                       mmc_remove_card(card);
->>>+                       mmc_register_card(card);
->>>+               }
->>>+	       else
->>>+		       ret = mmc_lock_unlock(card, key, MMC_LOCK_MODE_SET_PWD);
->>>   
-> 
->>Also, removing and re-registering a card is an offence.  These
->>things are ref-counted, and mmc_remove_card() will drop the last
->>reference - so the memory associated with it will be freed.  Then
->>you re-register it.  Whoops.
->>
->>If you merely want to try to attach a driver, use device_attach()
->>instead.
->>
-We changed the mmc_remove_card() and mmc_register_card() by device_release_driver() and
-device_attach(), supposedly avoiding ref-counts issues.
+> >On Mon, Jan 09, 2006 at 06:15:00PM -0400, Anderson Briglia wrote:
+> >  
+> >
+> >>When a card is locked, only commands from the "basic" and "lock card" classes
+> >>are accepted. To be able to use the other commands, the card must be unlocked
+> >>first.
+> >>    
+> >>
+> >
+> >I don't think this works as you intend.
+> >
+> >When a card is initially inserted, we discover the cards via mmc_setup()
+> >and mmc_discover_cards().  This means that we'll never set the locked
+> >status for newly inserted cards.
+> >  
+> >
+> mmc_setup() calls mmc_check_cards(). Our patch adds the necessary code
+> to mmc_check_cards() to set the locked state when the card is locked.
 
-Regards,
+Not in Linus' kernel, it doesn't.
 
-Anderson Briglia
-INdT - Manaus
+If you're working off the OMAP tree, bear in mind that I've found in
+the past that they have a large number of wrong or inappropriate
+changes to the MMC layer in there.  They don't regularly merge either,
+and they certainly don't forward any bug fixes for review in a timely
+manner.
+
+mmc_rescan() is the only caller of mmc_check_cards(), and this only
+happens if mmc_rescan() is called with the power already applied
+(iow, cards are already known to the MMC layer.)
+
+This call is done _before_ we call mmc_setup() to discover new cards.
+
+Calling mmc_check_cards() from mmc_rescan() is _wrong_, and from what
+I can ascertain, it's probably due to unforwarded broken changes in
+the OMAP tree.
+
+-- 
+Russell King
+ Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
+ maintainer of:  2.6 Serial core
