@@ -1,49 +1,61 @@
-From: "Menon, Nishanth" <x0nishan@ti.com>
-Subject: RE: 2420 H4 and kernel startup RAM error
-Date: Wed, 11 Jan 2006 09:46:54 -0600
-Message-ID: <520AB2AD990DC04082102F77CA172638023C279B@dlee03.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [patch 1/5] Add MMC password protection (lock/unlock) support V3
+Date: Wed, 11 Jan 2006 10:14:59 -0800
+Message-ID: <20060111181459.GF4422@atomide.com>
+References: <43C2E064.90500@indt.org.br> <20060109222902.GF19131@flint.arm.linux.org.uk> <43C5052C.4050804@indt.org.br> <20060111144424.GA20523@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Ola Helm <ola.hel@gmail.com>, Komal Shah <komal_shah802003@yahoo.com>
-Cc: linux-omap-open-source@linux.omap.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932426AbWAKSPf@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20060111144424.GA20523@flint.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Anderson Briglia <anderson.briglia@indt.org.br>, linux-kernel@vger.kernel.org, "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, linux@arm.linux.org.uk, ext David Brownell <david-b@pacbell.net>, drzeus-list@drzeus.cx, "Aguiar Carlos (EXT-INdT/Manaus)" <carlos.aguiar@indt.org.br>, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizardo@indt.org.br>
 List-Id: linux-omap@vger.kernel.org
 
+* Russell King <rmk+lkml@arm.linux.org.uk> [060111 06:44]:
+> On Wed, Jan 11, 2006 at 09:16:28AM -0400, Anderson Briglia wrote:
+> > Russell King wrote:
+> > 
+> > >On Mon, Jan 09, 2006 at 06:15:00PM -0400, Anderson Briglia wrote:
+> > >  
+> > >
+> > >>When a card is locked, only commands from the "basic" and "lock card" classes
+> > >>are accepted. To be able to use the other commands, the card must be unlocked
+> > >>first.
+> > >>    
+> > >>
+> > >
+> > >I don't think this works as you intend.
+> > >
+> > >When a card is initially inserted, we discover the cards via mmc_setup()
+> > >and mmc_discover_cards().  This means that we'll never set the locked
+> > >status for newly inserted cards.
+> > >  
+> > >
+> > mmc_setup() calls mmc_check_cards(). Our patch adds the necessary code
+> > to mmc_check_cards() to set the locked state when the card is locked.
+> 
+> Not in Linus' kernel, it doesn't.
+> 
+> If you're working off the OMAP tree, bear in mind that I've found in
+> the past that they have a large number of wrong or inappropriate
+> changes to the MMC layer in there.  They don't regularly merge either,
+> and they certainly don't forward any bug fixes for review in a timely
+> manner.
 
->The questions are:
->1) No way to do filesystem flashing and loading in uboot state i.e.
-with >same method as with kernel?
-U can do the same from uboot too, but a tftp of a 60 Meg image is
-guaranteed to take a long long time.. it is much easier to have it in
-nfs and cat it.
-The procedure will be the same as the flashing of the uboot.
+I agree the omap MMC driver should be cleaned-up and finally merged.
 
-Lets say u managed to have an rd-jffs2.bin which worked fine from nfs
-filesystem and you were able to mount -t jffs2 the resultant partition.
-In such a case, repeat the steps we did for uboot, but change the
-addresses to map to mtd3 and the size to map to the size of the
-partition from uboot. It should still do the same thing.
+Anderson, since you are already patching it, do you want to take care of
+cleaning it up a bit and posting it here?
 
->2) Is there a way to load the image afterwards i.e. when the system has
+There are some mmc core hacks there for buggy cards that might worth
+testing on other platforms too. (It could also be that they are
+only needed on omap).
 
->booted up with some filesystem?
-> 3) Could this kind loading be done with ramdisk system?
-This is what I had presented - usually we do it over nfs since the jffs2
-image file tends to be big and may not fit into a ramdisk. This has the
-additional advantage of being able to modify the filesystem and reflash
-it as often as I need to..
-
+As far as I remember for omap we've had to do hacks for cards that claim
+to be ready before the data is transferred, and also hacks for cards
+that never set the ready bit...
+ 
 Regards,
-Nishanth Menon
+
+Tony
