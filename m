@@ -1,11 +1,11 @@
 From: Eduardo Bezerra <edubezval@gmail.com>
-Subject: Speex encoder running on DSP through DSP Gateway
-Date: Wed, 11 Jan 2006 11:18:39 -0400
-Message-ID: <a0580c510601110718v4d6f1a74r@mail.gmail.com>
+Subject: Dealing with DSP Tasks from the kernel space
+Date: Wed, 11 Jan 2006 11:22:51 -0400
+Message-ID: <a0580c510601110722u5a5aa4bdh@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -14,109 +14,85 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
 Hi all,
 
 
-  I know that the issue below is related more to the DSP-GW community as
-opposed to Linux-OMAP and I do apologise for posting it here, but DSP-GW
-list seems to be populated sparringly and responses are really slow or
-long term. I would therefore appreciate if someone has already seen this
-issue and could give me a hint or two.
+  I'm tring to load a DSP task from the kernel space. I know that this
+stuff is done by a user space utility, dspctl ou dsp_dld. However, I
+want to know how to deal (load, communicate, unload, etc) with DSP tasks
+from the Kernel Space. There is no much documentation about the code
+found in arch/arm/plat-omap/dsp/*. Documentation about DSP Gateway
+project comments more user space and "dsp space" related issues.
 
-  I'm trying to run a speex encoder on the OSK 5912 DSP using
-DSP Gateway.  This enconder is based on the speex library
-that can be found in www.speex.org.
+  Nevertheless, I know that DSP code only exports its symbols if
+it is built as a module. When this is done, I can access some importants
+objects, such as:
 
-  The whole code to produce a single encoder using this library
-plus the tokliBIOS library code resulted in a binary with
-200KB of size. A simple frame coding step also requires
-a stack size of 4K words. It also does about 12K words
-of allocation (using malloc). These memory requirements
-were analysed using valgrind tools.
+extern unsigned long dspmem_base, dspmem_size,
+                     daram_base, daram_size,
+                     saram_base, saram_size;
+extern struct clk *api_ck_handle;
+extern int exmap_valid(void *vadr, size_t len);
 
-  Because of these memory requirements, the DSP task needed some shared
-memory. So, I added one memory space to put some data. The .cmd
-of the DSP Task is:
+  and tranlate dsp adress space into virtual address space with:
+
+#define dspword_to_virt(dw)     ((void *)(dspmem_base + ((dw) << 1)))
+
+  with this, I can write in the dsp memory space by simple:
+
+  if (omap_dsp_request_mem() < 0)
+        return -EBUSY;
+  clk_use(api_ck_handle);
+
+  memcpy(vadr, buf, written);
+
+  omap_dsp_release_mem();
+  clk_unuse(api_ck_handle);
+
+  and, validate any tlb entry with: exmap_valid(vadr, len), if I need
+to write in the any shared space.
+
+  I would like to know if the above information is correct and what is
+wrong with the steps bellow to load a DSP task:
 
 /*
- * Data sections
- * */
-
--l tokliBIOScfg.cmd
--l tokliBIOS.cmd
-
-MEMORY {
-        PAGE 0: SARAM_D:     origin =3D 0x30000, len =3D 0x5000
-}
-SECTIONS {
-        shared_data:    {} > SARAM_D PAGE 0
-}
-
-  However, as the application also needs more memory to
-stack and heap, I also modified the tokliBIOScfg.tcf:
-
-.
-.
-.
-
-var myHeap =3D bios.MEM.create("MYHEAP");
-myHeap.comment =3D "Speex Heap";
-myHeap.base =3D 0x1a800;
-myHeap.len =3D 0x8000;
-myHeap.createHeap =3D true;
-myHeap.space =3D "data";
-myHeap.heapSize =3D 0x4000;
-
-bios.MEM.MALLOCSEG =3D prog.get("MYHEAP");
-bios.MEM.BIOSOBJSEG =3D prog.get("DARAM");
-bios.MEM.STACKSEG =3D prog.get("MYHEAP");
-bios.MEM.SYSSTACKSEG =3D prog.get("MYHEAP");
-
-.
-.
-.
-/*
- * TSK
+ * I need to export some symbols from the dsp code to call them here.
  */
-bios.TSK.ENABLETSK =3D true;
-bios.TSK.STACKSEG =3D prog.get("MYHEAP");
+        int ret =3D 0;
+        long rstvct;
 
-  I did a static compilation of this task and it was fine. Before the
-loading of the resulted binary, I executed the following commands on the
-OSK board:
+        mpui_byteswap_off();
 
-# dspctl kmem_reserve 0x20000
+        /* Do the loading here writing the section using the procedure
+           described above */
+        rstvct =3D load_dsptask(dspbinary, BINARY_SIZE);
 
-As in the .cmd file, it needs a TLB entry pointing to 0x30000, size
-0x5000
-# dspctl exmap 0x30000 0x5000
+        if (rstvct > 0x00ffffff) {
+                printk("Can't determine reset vector "
+                                "address: %lx\n", rstvct);
+                goto out;
+        }
 
-As in the .tcf file, it needs a TLB entry pointing to 0x35000, size
-0x10000
-# dspctl exmap 0x35000 0x10000
+        dsp_cpustat_request(CPUSTAT_RESET);
 
+        ret =3D dsp_set_rstvect(rstvct);
+        if (ret < 0)
+                goto out;
 
-  So, I did the loading:
+        dsp_cpustat_request(DSP_RUN);
+        ret =3D dspcfg();
 
-# dspctl start speex.out
-
-
-  The loading was fine also. But when I run a user space program to
-communicate to the DSP task through the DSP gateway device file, it
-gets an error. The user space program only sends a ipbuffer a requests
-another one. It sends and receives the ipbuffer without any problem.
-And the user space application ends. The data produced by the encoder is
-correct. The problem is that the kernel prints out a message indicating
-that there is a mailbox message from a non-existing DSP task. After
-that, the DSP task hangs out. The message error code is: BADTID.
-
-  Any suggestion?
+   because it hangs up when it "runs" the dsp cpu (dsp_cpustat_request).
+It falls into a TLB miss.
+   If someone knows where I can find documentation to do this stuff (or
+even deal with the DSP into kernel space) I'd appreciate.
 
 BR,
+
 
 Eduardo Bezerra Valentin
