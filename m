@@ -1,264 +1,59 @@
-From: Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] sound support on omap24xx
-Date: Wed, 11 Jan 2006 14:08:47 +0900
-Message-ID: <0ISW00BBUWYN0Z@mmp1.samsung.com>
-Reply-To: kyungmin.park@samsung.com
+From: Anderson Briglia <anderson.briglia@indt.org.br>
+Subject: Re: [patch 1/5] Add MMC password protection (lock/unlock) support
+ V3
+Date: Wed, 11 Jan 2006 09:16:28 -0400
+Message-ID: <43C5052C.4050804@indt.org.br>
+References: <43C2E064.90500@indt.org.br> <20060109222902.GF19131@flint.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751481AbWAKNPd@vger.kernel.org>
+In-Reply-To: <20060109222902.GF19131@flint.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King <rmk+lkml@arm.linux.org.uk>
+Cc: linux-kernel@vger.kernel.org, "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, linux@arm.linux.org.uk, ext David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, drzeus-list@drzeus.cx, "Aguiar Carlos (EXT-INdT/Manaus)" <carlos.aguiar@indt.org.br>, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizardo@indt.org.br>
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+Russell King wrote:
 
-Sorry for same mail since wrong title.
+>On Mon, Jan 09, 2006 at 06:15:00PM -0400, Anderson Briglia wrote:
+>  
+>
+>>When a card is locked, only commands from the "basic" and "lock card" classes
+>>are accepted. To be able to use the other commands, the card must be unlocked
+>>first.
+>>    
+>>
+>
+>I don't think this works as you intend.
+>
+>When a card is initially inserted, we discover the cards via mmc_setup()
+>and mmc_discover_cards().  This means that we'll never set the locked
+>status for newly inserted cards.
+>  
+>
+mmc_setup() calls mmc_check_cards(). Our patch adds the necessary code
+to mmc_check_cards() to set the locked state when the card is locked.
 
-This patch enables OMAP sound on omap24xx
-To test omap sound, you first have to patch the first spi patch from komal
-shah not the latest spi patch.
-
-It also adds 'OSS L/R Channel Interchange fix' on tsc2101
-
-Any comments are welcome.
-
-Regards,
-Kyungmin Park
-
-P.S., There's some problem when running qtopia on H4.
-At the end of mediaplay. we can't stop audio, exactly audio_sync why?
-But madplay is working well :)
-
---
-
-diff --git a/sound/oss/Kconfig b/sound/oss/Kconfig
---- a/sound/oss/Kconfig
-+++ b/sound/oss/Kconfig
-@@ -13,14 +13,18 @@ config SOUND_OMAP
- 
- config SOUND_OMAP_TSC2101
- 	tristate "TSC2101 Stereo Codec"
--	depends on SOUND_OMAP && ( MACH_OMAP_H2 || MACH_OMAP_H3 )
--	select OMAP_TSC2101
--	select OMAP_UWIRE if ARCH_OMAP
-+	depends on SOUND_OMAP && ( MACH_OMAP_H2 || MACH_OMAP_H3 ||
-MACH_OMAP_H4)
-+	select OMAP_TSC2101 if ( MACH_OMAP_H2 || MACH_OMAP_H3 )
-+	select OMAP_UWIRE if ARCH_OMAP1
- 	---help---
- 	  Tsc2101 Audio Codec Driver for OMAP will be enabled.
- 	  Will also Enable the following:
-+	  case OMAP1:
- 	  1. uWire Driver based on Platform
- 	  2. TSC2101 Glue driver
-+	  case OMAP2:
-+	  1. McSPI Driver based on Platform
-+	  2. TSC2101 Glue driver
- 
- config SOUND_OMAP_AIC23
- 	tristate "AIC23 Stereo Codec"
-diff --git a/sound/oss/omap-audio-dma-intfc.c
-b/sound/oss/omap-audio-dma-intfc.c
---- a/sound/oss/omap-audio-dma-intfc.c
-+++ b/sound/oss/omap-audio-dma-intfc.c
-@@ -701,12 +701,25 @@ static int audio_set_dma_params_play(int
- 	int dt = 0x1;		/* data type 16 */
- 	int cen = 32;		/* Stereo */
- 	int cfn = dma_size / (2 * cen);
-+	unsigned long dest_start;
-+	int dest_port = 0;
-+	int sync_dev = 0;
-+
- 	FN_IN;
--	omap_set_dma_dest_params(channel, 0x05, 0x00,
--				 (OMAP1610_MCBSP1_BASE + 0x806),
--				 0, 0);
--	omap_set_dma_src_params(channel, 0x00, 0x01, dma_ptr, 0, 0);
--	omap_set_dma_transfer_params(channel, dt, cen, cfn, 0x00, 0, 0);
-+
-+	if (cpu_is_omap16xx()) {
-+		dest_start = (OMAP1610_MCBSP1_BASE + 0x806);
-+		dest_port = OMAP_DMA_PORT_MPUI;
-+	}
-+	if (cpu_is_omap24xx()) {
-+		dest_start = AUDIO_MCBSP_DATAWRITE;
-+		sync_dev = AUDIO_DMA_TX;
-+	}
-+
-+	omap_set_dma_dest_params(channel, dest_port,
-OMAP_DMA_AMODE_CONSTANT, dest_start, 0, 0);
-+	omap_set_dma_src_params(channel, 0, OMAP_DMA_AMODE_POST_INC,
-dma_ptr, 0, 0);
-+	omap_set_dma_transfer_params(channel, dt, cen, cfn,
-OMAP_DMA_SYNC_ELEMENT, sync_dev, 0);
-+
- 	FN_OUT(0);
- 	return 0;
- }
-@@ -717,12 +730,27 @@ static int audio_set_dma_params_capture(
- 	int dt = 0x1;		/* data type 16 */
- 	int cen = 16;		/* mono */
- 	int cfn = dma_size / (2 * cen);
-+	unsigned long src_start;
-+	int src_port = 0;
-+	int sync_dev = 0;
-+	int src_sync = 0;
-+
- 	FN_IN;
--	omap_set_dma_src_params(channel, 0x05, 0x00,
--				(OMAP1610_MCBSP1_BASE + 0x802),
--				0, 0);
--	omap_set_dma_dest_params(channel, 0x00, 0x01, dma_ptr, 0, 0);
--	omap_set_dma_transfer_params(channel, dt, cen, cfn, 0x00, 0, 0);
-+
-+	if (cpu_is_omap16xx()) {
-+		src_start = (OMAP1610_MCBSP1_BASE + 0x802);
-+		src_port = OMAP_DMA_PORT_MPUI;
-+	}
-+	if (cpu_is_omap24xx()) {
-+		src_start = AUDIO_MCBSP_DATAREAD;
-+		sync_dev = AUDIO_DMA_RX;
-+		src_sync = 1;
-+	}
-+
-+	omap_set_dma_src_params(channel, src_port, OMAP_DMA_AMODE_CONSTANT,
-src_start, 0, 0);
-+	omap_set_dma_dest_params(channel, 0, OMAP_DMA_AMODE_POST_INC,
-dma_ptr, 0, 0);
-+	omap_set_dma_transfer_params(channel, dt, cen, cfn,
-OMAP_DMA_SYNC_ELEMENT, sync_dev, src_sync);
-+
- 	FN_OUT(0);
- 	return 0;
- }
-@@ -732,10 +760,10 @@ static int audio_start_dma_chain(audio_s
- 	int channel = s->lch[s->dma_q_head];
- 	FN_IN;
- 	if (!s->started) {
--	 s->hw_stop();	    /* stops McBSP Interface */
-+		s->hw_stop();		/* stops McBSP Interface */
- 		omap_start_dma(channel);
- 		s->started = 1;
--		s->hw_start();	   /* start McBSP interface */
-+		s->hw_start();		/* start McBSP interface */
- 	}
- 	/* else the dma itself will progress forward with out our help */
- 	FN_OUT(0);
-@@ -850,8 +878,9 @@ static void sound_dma_irq_handler(int so
- 	DPRINTK("lch=%d,status=0x%x, dma_status=%d, data=%p\n",
-sound_curr_lch,
- 		ch_status, dma_status, data);
- 
--	if (dma_status & (DCSR_ERROR)) {
--		OMAP_DMA_CCR_REG(sound_curr_lch) &= ~DCCR_EN;
-+	if (dma_status) {
-+		if (cpu_is_omap16xx() && (dma_status & (DCSR_ERROR)))
-+			OMAP_DMA_CCR_REG(sound_curr_lch) &= ~DCCR_EN;
- 		ERR("DCSR_ERROR!\n");
- 		FN_OUT(-1);
- 		return;
-diff --git a/sound/oss/omap-audio-tsc2101.c b/sound/oss/omap-audio-tsc2101.c
---- a/sound/oss/omap-audio-tsc2101.c
-+++ b/sound/oss/omap-audio-tsc2101.c
-@@ -48,9 +48,10 @@
- #include "omap-audio.h"
- #include "omap-audio-dma-intfc.h"
- #include <asm/arch/mcbsp.h>
--#if CONFIG_ARCH_OMAP16XX
-+#ifdef CONFIG_ARCH_OMAP16XX
- #include <../drivers/ssi/omap-uwire.h>
- #include <asm/arch/dsp_common.h>
-+#elif defined(CONFIG_ARCH_OMAP24XX)
- #else
- #error "Unsupported configuration"
- #endif
-@@ -70,12 +71,10 @@
- 
- #define CODEC_NAME		 "TSC2101"
- 
--#if CONFIG_ARCH_OMAP16XX
-+#ifdef CONFIG_ARCH_OMAP16XX
- #define PLATFORM_NAME "OMAP16XX"
--#endif
--
--#if CONFIG_ARCH_OMAP16XX
--#define OMAP_DSP_BASE        0xE0000000
-+#elif defined(CONFIG_ARCH_OMAP24XX)
-+#define PLATFORM_NAME "OMAP2"
- #endif
- 
- /* Define to set the tsc as the master w.r.t McBSP */
-@@ -90,9 +89,9 @@
- #define LEAVE_CS 			          0x80
- 
- /* Select the McBSP For Audio */
--#if CONFIG_ARCH_OMAP16XX
--#define AUDIO_MCBSP                   OMAP_MCBSP1
--#else
-+/* 16XX is MCBSP1 and 24XX is MCBSP2*/
-+/* see include/asm-arm/arch-omap/mcbsp.h */
-+#ifndef AUDIO_MCBSP
- #error "UnSupported Configuration"
- #endif
- 
-@@ -147,16 +146,32 @@
- 
- /***************************** Data Structures
-**********************************/
- 
-+static int audio_ifc_start(void)
-+{
-+	omap_mcbsp_start(AUDIO_MCBSP);
-+	return 0;
-+}
-+
-+static int audio_ifc_stop(void)
-+{
-+	omap_mcbsp_stop(AUDIO_MCBSP);
-+	return 0;
-+}
-+
- static audio_stream_t output_stream = {
--	.id              = "TSC2101 out",
--	.dma_dev         = OMAP_DMA_MCBSP1_TX,
--	.input_or_output = FMODE_WRITE
-+	.id			= "TSC2101 out",
-+	.dma_dev		= AUDIO_DMA_TX,
-+	.input_or_output	= FMODE_WRITE,
-+	.hw_start		= audio_ifc_start,
-+	.hw_stop		= audio_ifc_stop,
- };
- 
- static audio_stream_t input_stream = {
--	.id              = "TSC2101 in",
--	.dma_dev         = OMAP_DMA_MCBSP1_RX,
--	.input_or_output = FMODE_READ
-+	.id			= "TSC2101 in",
-+	.dma_dev		= AUDIO_DMA_RX,
-+	.input_or_output	= FMODE_READ,
-+	.hw_start		= audio_ifc_start,
-+	.hw_stop		= audio_ifc_stop,
- };
- 
- static int audio_dev_id, mixer_dev_id;
-@@ -227,9 +242,9 @@ static struct omap_mcbsp_reg_cfg initial
- 	.srgr2 = GSYNC | CLKSP | FSGM | FPER(31),
- 
- 	/* platform specific initialization */
--#if CONFIG_MACH_OMAP_H2
-+#ifdef CONFIG_MACH_OMAP_H2
- 	.pcr0  = CLKXM | CLKRM | FSXP | FSRP | CLKXP | CLKRP,
--#elif CONFIG_MACH_OMAP_H3
-+#elif defined(CONFIG_MACH_OMAP_H3) || defined(CONFIG_MACH_OMAP_H4)
- 
- #ifndef TSC_MASTER
- 	.pcr0  = FSXM | FSRM | CLKXM | CLKRM | CLKXP | CLKRP,
+>>===================================================================
+>>--- linux-2.6.15-rc4.orig/drivers/mmc/mmc.c	2005-12-15 14:06:52.000000000 -0400
+>>+++ linux-2.6.15-rc4/drivers/mmc/mmc.c	2005-12-15 17:00:37.000000000 -0400
+>>@@ -986,10 +986,15 @@ static void mmc_check_cards(struct mmc_h
+>> 		cmd.flags = MMC_RSP_R1;
+>> 
+>> 		err = mmc_wait_for_cmd(host, &cmd, CMD_RETRIES);
+>>-		if (err == MMC_ERR_NONE)
+>>+		if (err != MMC_ERR_NONE) {
+>>+			mmc_card_set_dead(card);
+>> 			continue;
+>>+		}
+>> 
+>>-		mmc_card_set_dead(card);
+>>+		if (cmd.resp[0] & R1_CARD_IS_LOCKED)
+>>+			mmc_card_set_locked(card);
+>>+		else
+>>+			card->state &= ~MMC_STATE_LOCKED;
+>>    
+>>
+Anderson Briglia
+INdT - Manaus
