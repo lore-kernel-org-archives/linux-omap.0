@@ -1,60 +1,60 @@
-From: Russell King <rmk+lkml@arm.linux.org.uk>
-Subject: Re: [patch 3/5] Add MMC password protection (lock/unlock) support V3
-Date: Wed, 11 Jan 2006 14:45:47 +0000
-Message-ID: <20060111144547.GB20523@flint.arm.linux.org.uk>
-References: <43C2E0A2.3090701@indt.org.br> <20060109224204.GH19131@flint.arm.linux.org.uk> <43C42B00.60206@indt.org.br> <43C50EEB.9060501@indt.org.br>
+From: Ola Helm <ola.hel@gmail.com>
+Subject: Re: 2420 H4 and kernel startup RAM error
+Date: Wed, 11 Jan 2006 12:46:31 +0200
+Message-ID: <3d3153f60601110246y3dd5e8e2vccbbbdd04aa08875@mail.gmail.com>
+References: <520AB2AD990DC04082102F77CA1726380236AE15@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750816AbWAKOp6@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <520AB2AD990DC04082102F77CA1726380236AE15@dlee03.ent.ti.com>
 Content-Disposition: inline
-In-Reply-To: <43C50EEB.9060501@indt.org.br>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Anderson Briglia <anderson.briglia@indt.org.br>
-Cc: ext David Brownell <david-b@PACBELL.NET>, linux@arm.linux.org.uk, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizardo@indt.org.br>, drzeus-list@drzeus.cx, "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, linux-kernel@vger.kernel.org
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Menon, Nishanth" <x0nishan@ti.com>, Komal Shah <komal_shah802003@yahoo.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 11, 2006 at 09:58:03AM -0400, Anderson Briglia wrote:
-> Anderson Briglia wrote:
-> > Russell King wrote:
-> > 
-> > 
-> >>On Mon, Jan 09, 2006 at 06:16:02PM -0400, Anderson Briglia wrote:
-> >> 
-> >>
-> >>
-> >>>+	dev = bus_find_device(&mmc_bus_type, NULL, NULL, mmc_match_lockable);
-> >>>+	if (!dev)
-> >>>+		goto error;
-> >>>+	card = dev_to_mmc_card(dev);
-> >>>+	
-> >>>+	if (operation == KEY_OP_INSTANTIATE) { /* KEY_OP_INSTANTIATE */
-> >>>+               if (mmc_card_locked(card)) {
-> >>>+                       ret = mmc_lock_unlock(card, key, MMC_LOCK_MODE_UNLOCK);
-> >>>+                       mmc_remove_card(card);
-> >>>+                       mmc_register_card(card);
-> >>>+               }
-> >>>+	       else
-> >>>+		       ret = mmc_lock_unlock(card, key, MMC_LOCK_MODE_SET_PWD);
-> >>>   
-> > 
-> >>Also, removing and re-registering a card is an offence.  These
-> >>things are ref-counted, and mmc_remove_card() will drop the last
-> >>reference - so the memory associated with it will be freed.  Then
-> >>you re-register it.  Whoops.
-> >>
-> >>If you merely want to try to attach a driver, use device_attach()
-> >>instead.
-> >>
-> We changed the mmc_remove_card() and mmc_register_card() by
-> device_release_driver() and device_attach(), supposedly avoiding
-> ref-counts issues.
+Thanks again for advices.
 
-As per my previous mail - I think this probably comes down to differences
-between mainline and the omap tree.  My suggestion should work fine
-in mainline.  I can only suspect that the OMAP tree is doing something
-it shouldn't.
+1. booting a kernel from flash
 
--- 
-Russell King
- Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
- maintainer of:  2.6 Serial core
+
+I'd say this one works. I have managed to copy the kernel to flash and boot
+it up from 0x04040000, and it works nicely with ramdisk image. The ramdisk
+is naturally vanished after restart, but kernel stays. So the task is to
+make it work as well with jffs
+
+
+2. Using a jffs2 partition
+
+
+Both filesystem in tarball and mkfs require having the file there already,
+am I right. There is no copying or loading from anywhere so seems to me tha=
+t
+it is expected to have FileSystem.tgz there already while starting kernel.
+
+tar -xvzf ../FileSystem.tgz
+
+
+
+ Same seems to apply with mkfs .I.e. You'd load the jffs filesystem image
+with current filesystem, like NFS.
+
+The questions are:
+1) No way to do filesystem flashing and loading in uboot state i.e. with
+same method as with kernel?
+2) Is there a way to load the image afterwards i.e. when the system has
+booted up with some filesystem?
+3) Could this kind loading be done with ramdisk system?
+
+I must try playing with mtd-tools at the meanwhile..
+
+/O
