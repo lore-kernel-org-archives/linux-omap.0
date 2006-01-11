@@ -1,44 +1,52 @@
 From: Anderson Briglia <anderson.briglia@indt.org.br>
-Subject: Re: [patch 4/5] Add MMC password protection (lock/unlock) support
+Subject: Re: [patch 3/5] Add MMC password protection (lock/unlock) support
  V3
-Date: Wed, 11 Jan 2006 09:32:17 -0400
-Message-ID: <43C508E1.4080007@indt.org.br>
-References: <43C2E0BD.5040601@indt.org.br> <43C35850.2020104@drzeus.cx>
+Date: Wed, 11 Jan 2006 09:58:03 -0400
+Message-ID: <43C50EEB.9060501@indt.org.br>
+References: <43C2E0A2.3090701@indt.org.br>	<20060109224204.GH19131@flint.arm.linux.org.uk> <43C42B00.60206@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751574AbWAKNbr@vger.kernel.org>
-In-Reply-To: <43C35850.2020104@drzeus.cx>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932392AbWAKOaV@vger.kernel.org>
+In-Reply-To: <43C42B00.60206@indt.org.br>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pierre Ossman <drzeus-list@drzeus.cx>
-Cc: linux-kernel@vger.kernel.org, "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, linux@arm.linux.org.uk, ext David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, "Aguiar Carlos (EXT-INdT/Manaus)" <carlos.aguiar@indt.org.br>, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizardo@indt.org.br>
+To: Anderson Briglia <anderson.briglia@indt.org.br>
+Cc: Russell King <rmk+lkml@arm.linux.org.uk>, ext David Brownell <david-b@PACBELL.NET>, linux@arm.linux.org.uk, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizardo@indt.org.br>, drzeus-list@drzeus.cx, "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Pierre Ossman wrote:
-> Anderson Briglia wrote:
+Anderson Briglia wrote:
+> Russell King wrote:
 > 
 > 
->>@@ -238,6 +295,11 @@ int mmc_register_card(struct mmc_card *c
->>			if (ret)
->>				device_del(&card->dev);
->>		}
->>+#ifdef CONFIG_MMC_PASSWORDS
->>+		ret = device_create_file(&card->dev, &mmc_dev_attr_lockable);
->>+		if (ret)
->>+			device_del(&card->dev);
->>+#endif
->>	}
->>	return ret;
->>}
+>>On Mon, Jan 09, 2006 at 06:16:02PM -0400, Anderson Briglia wrote:
 >> 
 >>
+>>
+>>>+	dev = bus_find_device(&mmc_bus_type, NULL, NULL, mmc_match_lockable);
+>>>+	if (!dev)
+>>>+		goto error;
+>>>+	card = dev_to_mmc_card(dev);
+>>>+	
+>>>+	if (operation == KEY_OP_INSTANTIATE) { /* KEY_OP_INSTANTIATE */
+>>>+               if (mmc_card_locked(card)) {
+>>>+                       ret = mmc_lock_unlock(card, key, MMC_LOCK_MODE_UNLOCK);
+>>>+                       mmc_remove_card(card);
+>>>+                       mmc_register_card(card);
+>>>+               }
+>>>+	       else
+>>>+		       ret = mmc_lock_unlock(card, key, MMC_LOCK_MODE_SET_PWD);
+>>>   
 > 
-> 
-> It might be wise to also check the command classes here. I don't believe
-> SDIO supports locking.
-
-In this case, the lockable attribute will show "unlockable", which is the expected
-behavior. The lockable attribute will always be present, the card being lockable or not.
+>>Also, removing and re-registering a card is an offence.  These
+>>things are ref-counted, and mmc_remove_card() will drop the last
+>>reference - so the memory associated with it will be freed.  Then
+>>you re-register it.  Whoops.
+>>
+>>If you merely want to try to attach a driver, use device_attach()
+>>instead.
+>>
+We changed the mmc_remove_card() and mmc_register_card() by device_release_driver() and
+device_attach(), supposedly avoiding ref-counts issues.
 
 Regards,
 
