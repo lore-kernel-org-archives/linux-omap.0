@@ -1,12 +1,14 @@
-From: Genildo de Moura Vasconcelos <genildo@dee.ufcg.edu.br>
-Subject: ICACHE OMAP1611
-Date: Thu, 12 Jan 2006 18:04:57 -0300
-Message-ID: <9c2fbcaf0601121304y5ba66ea1i1b3d179e5329bbcf@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] 24xx Irda update
+Date: Thu, 12 Jan 2006 14:32:58 -0800
+Message-ID: <20060112223258.GH5461@atomide.com>
+References: <20060106140009.76737.qmail@web32904.mail.mud.yahoo.com>
+	<20060110061854.82145.qmail@web32913.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
+In-Reply-To: <20060110061854.82145.qmail@web32913.mail.mud.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,15 +18,23 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Komal Shah <komal_shah802003@yahoo.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi All,
+* Komal Shah <komal_shah802003@yahoo.com> [060109 22:24]:
+> --- Komal Shah <komal_shah802003@yahoo.com> wrote:
+> 
+> > Tony,
+> > 
+> > Attached the updated IrDA patch (integrated workqueue) with 24xx
+> > support.
+> > 
+> > Signed-off-by: Komal Shah <komal_shah802003@yahoo.com>
+> 
+> If everyone is happy with this patch, then please consider it for
+> commit in tree. Thanx.
 
-I=B4m working with OMAP1611 and I'd like to know if anybody has already
-enabled ICACHE in TMS320C55x, I followed the instructions of the pdfs of
-Texas using CLS and DSP/BIOS  to enable ICACHE but I didn't obtain results.
+Sorry for the delay, pushing today, thanks.
 
-Thanks all
-Genildo de Moura Vasconcelos
-Trainee of INdT
+Tony
