@@ -1,14 +1,13 @@
-From: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>
+From: Kristian Mueller <Kristian-M@kristian-m.de>
 Subject: Re: build error on Linux-2.6.15-omap1
-Date: Thu, 12 Jan 2006 20:29:04 +0900 (JST)
-Message-ID: <20060112.202904.59649446.kaminaga@sm.sony.co.jp>
+Date: Thu, 12 Jan 2006 11:21:13 +0800
+Message-ID: <1137036074.11250.52.camel@pismo>
 References: <20060112.135142.74755663.kaminaga@sm.sony.co.jp>
-	<1137035283.11250.50.camel@pismo>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1137035283.11250.50.camel@pismo>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20060112.135142.74755663.kaminaga@sm.sony.co.jp>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,57 +15,29 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Craps@kristian-m.de
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Hiroki
 
-> I guess there must be something wrong with your patch since in
-> linux-2.6.15-omap1 pm.c and Sleep.S are already in mach-omap1 
-> 
-> That is since 1st december last year:
-> http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=a57a89ee9ad70186e4f7be46e0930fcb8fb53bb6
-> 
+On Do, 2006-01-12 at 13:51 +0900, Hiroki Kaminaga wrote:
+> [..]
+> I'm building linux 2.6.15, and applied Linux-2.6.15-omap1.
+> When I tried to build for OSK5912, with CONFIG_PM=y (this is default),
+> [..]
+> 1) mv pm.c (and Sleep.S) from plat-omap/ to mach-omap1/, or
 
-Oh!
-It is fixed in source code management system!
+I guess there must be something wrong with your patch since in
+linux-2.6.15-omap1 pm.c and Sleep.S are already in mach-omap1 
 
-However, I looked Linux-2.6.15-omap1 patch again, and it was as follows:
-
-* * *
-
-diff --git a/arch/arm/plat-omap/pm.c b/arch/arm/mach-omap1/pm.c
-similarity index 83%
-rename from arch/arm/plat-omap/pm.c
-rename to arch/arm/mach-omap1/pm.c
-index 1a24e2c..d483ac4 100644
---- a/arch/arm/plat-omap/pm.c
-+++ b/arch/arm/mach-omap1/pm.c
-@@ -40,22 +40,26 @@
- #include <linux/proc_fs.h>
- #include <linux/pm.h>
- #include <linux/interrupt.h>
-+#include <linux/sysfs.h>
-+#include <linux/module.h>
-... 
-
-* * *
-
-the `+++' part is mach-omap1, but `---' part was plat-omap, and
-after patching, pm.c was still in plat-omap...
-
-I'm using FC3 as host, diff version 2.8.1, patch version 2.5.4, 
-I guess `rename from' and `rename to' line didn't do what is intended?!
+That is since 1st december last year:
+http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=a57a89ee9ad70186e4f7be46e0930fcb8fb53bb6
 
 
-# Or I'm downloading different file? I downloaded:
-# http://www.muru.com/linux/omap/ -> Linux-2.6.15-omap1
+Greetings
 
-
-Best Regards,
-
-HK.
---
+Kristian
+-- 
