@@ -1,13 +1,13 @@
 From: toshihiro.kobayashi@nokia.com
-Subject: Re: Dealing with DSP Tasks from the kernel space
-Date: Sat, 14 Jan 2006 00:38:55 +0900 (JST)
-Message-ID: <20060114.003855.730553122.toshihiro.kobayashi@nokia.com>
-References: <a0580c510601110722u5a5aa4bdh@mail.gmail.com>
+Subject: Re: Speex encoder running on DSP through DSP Gateway
+Date: Sat, 14 Jan 2006 01:00:53 +0900 (JST)
+Message-ID: <20060114.010053.846937934.toshihiro.kobayashi@nokia.com>
+References: <a0580c510601110718v4d6f1a74r@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <a0580c510601110722u5a5aa4bdh@mail.gmail.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <a0580c510601110718v4d6f1a74r@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,106 +15,117 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: edubezval@gmail.com, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-HI,
+Hi,
 
 From: Eduardo Bezerra <edubezval@gmail.com>
-Subject: Dealing with DSP Tasks from the kernel space
-Date: Wed, 11 Jan 2006 11:22:51 -0400
+Subject: Speex encoder running on DSP through DSP Gateway
+Date: Wed, 11 Jan 2006 11:18:39 -0400
 
->   I'm tring to load a DSP task from the kernel space. I know that this
-> stuff is done by a user space utility, dspctl ou dsp_dld. However, I
-> want to know how to deal (load, communicate, unload, etc) with DSP tasks
-> from the Kernel Space. There is no much documentation about the code
-> found in arch/arm/plat-omap/dsp/*. Documentation about DSP Gateway
-> project comments more user space and "dsp space" related issues.
->
->   Nevertheless, I know that DSP code only exports its symbols if
-> it is built as a module. When this is done, I can access some importants
-> objects, such as:
-> 
-> extern unsigned long dspmem_base, dspmem_size,
->                      daram_base, daram_size,
->                      saram_base, saram_size;
-> extern struct clk *api_ck_handle;
-> extern int exmap_valid(void *vadr, size_t len);
-> 
->   and tranlate dsp adress space into virtual address space with:
-> 
-> #define dspword_to_virt(dw)     ((void *)(dspmem_base + ((dw) << 1)))
-> 
->   with this, I can write in the dsp memory space by simple:
-> 
->   if (omap_dsp_request_mem() < 0)
->         return -EBUSY;
->   clk_use(api_ck_handle);
-> 
->   memcpy(vadr, buf, written);
-> 
->   omap_dsp_release_mem();
->   clk_unuse(api_ck_handle);
-> 
->   and, validate any tlb entry with: exmap_valid(vadr, len), if I need
-> to write in the any shared space.
-> 
->   I would like to know if the above information is correct and what is
-> wrong with the steps bellow to load a DSP task:
+>   I know that the issue below is related more to the DSP-GW community as
+> opposed to Linux-OMAP and I do apologise for posting it here, but DSP-GW
+> list seems to be populated sparringly and responses are really slow or
+> long term.
 
-Yes, they seems to be correct as the same is done in intmem_write() or
-exmem_write().
+However, eventually I'm answering in any ways. :)
+I've been on the business trip followed by the vacation.
+Sorry for slow replies.
 
+>   I'm trying to run a speex encoder on the OSK 5912 DSP using
+> DSP Gateway.  This enconder is based on the speex library
+> that can be found in www.speex.org.
+> 
+>   The whole code to produce a single encoder using this library
+> plus the tokliBIOS library code resulted in a binary with
+> 200KB of size. A simple frame coding step also requires
+> a stack size of 4K words. It also does about 12K words
+> of allocation (using malloc). These memory requirements
+> were analysed using valgrind tools.
+> 
+>   Because of these memory requirements, the DSP task needed some shared
+> memory. So, I added one memory space to put some data. The .cmd
+> of the DSP Task is:
+> 
 > /*
->  * I need to export some symbols from the dsp code to call them here.
+>  * Data sections
+>  * */
+> 
+> -l tokliBIOScfg.cmd
+> -l tokliBIOS.cmd
+> 
+> MEMORY {
+>         PAGE 0: SARAM_D:     origin = 0x30000, len = 0x5000
+> }
+> SECTIONS {
+>         shared_data:    {} > SARAM_D PAGE 0
+> }
+> 
+>   However, as the application also needs more memory to
+> stack and heap, I also modified the tokliBIOScfg.tcf:
+> 
+> .
+> .
+> .
+> 
+> var myHeap = bios.MEM.create("MYHEAP");
+> myHeap.comment = "Speex Heap";
+> myHeap.base = 0x1a800;
+> myHeap.len = 0x8000;
+> myHeap.createHeap = true;
+> myHeap.space = "data";
+> myHeap.heapSize = 0x4000;
+> 
+> bios.MEM.MALLOCSEG = prog.get("MYHEAP");
+> bios.MEM.BIOSOBJSEG = prog.get("DARAM");
+> bios.MEM.STACKSEG = prog.get("MYHEAP");
+> bios.MEM.SYSSTACKSEG = prog.get("MYHEAP");
+> 
+> .
+> .
+> .
+> /*
+>  * TSK
 >  */
->         int ret = 0;
->         long rstvct;
+> bios.TSK.ENABLETSK = true;
+> bios.TSK.STACKSEG = prog.get("MYHEAP");
 > 
->         mpui_byteswap_off();
+>   I did a static compilation of this task and it was fine. Before the
+> loading of the resulted binary, I executed the following commands on the
+> OSK board:
 > 
->         /* Do the loading here writing the section using the procedure
->            described above */
->         rstvct = load_dsptask(dspbinary, BINARY_SIZE);
+> # dspctl kmem_reserve 0x20000
 > 
->         if (rstvct > 0x00ffffff) {
->                 printk("Can't determine reset vector "
->                                 "address: %lx\n", rstvct);
->                 goto out;
->         }
+> As in the .cmd file, it needs a TLB entry pointing to 0x30000, size
+> 0x5000
+> # dspctl exmap 0x30000 0x5000
 > 
->         dsp_cpustat_request(CPUSTAT_RESET);
+> As in the .tcf file, it needs a TLB entry pointing to 0x35000, size
+> 0x10000
+> # dspctl exmap 0x35000 0x10000
 > 
->         ret = dsp_set_rstvect(rstvct);
->         if (ret < 0)
->                 goto out;
 > 
->         dsp_cpustat_request(DSP_RUN);
->         ret = dspcfg();
+>   So, I did the loading:
 > 
->    because it hangs up when it "runs" the dsp cpu (dsp_cpustat_request).
-> It falls into a TLB miss.
+> # dspctl start speex.out
+> 
+> 
+>   The loading was fine also. But when I run a user space program to
+> communicate to the DSP task through the DSP gateway device file, it
+> gets an error. The user space program only sends a ipbuffer a requests
+> another one. It sends and receives the ipbuffer without any problem.
+> And the user space application ends. The data produced by the encoder is
+> correct. The problem is that the kernel prints out a message indicating
+> that there is a mailbox message from a non-existing DSP task. After
+> that, the DSP task hangs out. The message error code is: BADTID.
 
-What DSP binary do you use? Is it known to work fine, at least runs without
-MMU fault?
-
-I'd propose you how to check if your loader is working correctly or not:
-Once you load the DSP binary with my dspctl, and dump the DSP memory.
-(for example using dd for /dev/dspctl/mem)
-Then do the same with your kernel binary loader, and you can compare the
-two results.
-
-Also the simple_load_code() in dsp_common.c would be the good reference
-for you, that loads a tiny code into the DSP spce within the kernel.
-It contains byte swapping operation.
-
->    If someone knows where I can find documentation to do this stuff (or
-> even deal with the DSP into kernel space) I'd appreciate.
-
-Unfortunately ther's no such a documentation.
-I'd appreciate if you could contribute on it, when you could complete it. :)
+Can you show me how you use bksnd() in your DSP task?
+Because the TID used in the mailbox command is extracted from the "task"
+argument passed with the bksnd().
+Also the dump list of /sys/devices/platform/dsp/mblog may be some help.
 
 BR,
 Toshihiro Kobayashi
