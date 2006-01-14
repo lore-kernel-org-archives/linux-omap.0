@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: omap 5912 serial driver
-Date: Fri, 13 Jan 2006 16:43:42 -0800
-Message-ID: <20060114004342.GK5499@atomide.com>
-References: <9cba36250601130644t2554c420x78373804a51a2949@mail.gmail.com>
+Subject: Re: [PATCH] misc patch on 24xx
+Date: Fri, 13 Jan 2006 16:57:10 -0800
+Message-ID: <20060114005710.GM5499@atomide.com>
+References: <0ISN0041GUEIYE@mmp1.samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <9cba36250601130644t2554c420x78373804a51a2949@mail.gmail.com>
+In-Reply-To: <0ISN0041GUEIYE@mmp1.samsung.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,83 +17,33 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: vikas gupta <vikas.iet@gmail.com>
+To: Kyungmin Park <kyungmin.park@samsung.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* vikas gupta <vikas.iet@gmail.com> [060113 06:50]:
-> hi all
+* Kyungmin Park <kyungmin.park@samsung.com> [060105 23:37]:
+> Hi
 > 
+> We need to display correct SRAM physical address.
 > 
+> Regards,
+> Kyungmin Park
 > 
-> i am a naive user trying his hands on arm osk omap5912 board
-> 
-> 
-> 
-> Well i wanted to know whether it is possible to test serial port on omap
-> board by using inb/outb instruction as can be done in x86 platform...
-> 
-> If it is possible then can u please suggest me a working example of one test
-> case doing this thing..
-> 
-> I have tried my hands in it but wothout success on x86 platform below
-> mention program is working fine but on arm board it's not working so can
-> anyone help me ???
-> 
-> 
-> 
-> Sorry, if the question seems naive as this is my initial attempt :)
-> 
-> 
-> 
-> test program
-> 
-> =============
-> 
-> 
-> 
-> include <stdio.h>
-> 
-> #include <stdlib.h>
-> 
-> #include <unistd.h>
-> 
-> #include <sys/io.h>
-> 
-> 
-> 
-> #define base 0x378
-> 
-> #define value 255
-> 
-> 
-> 
-> main(int argc, char **argv)
-> 
-> {
-> 
->   int value1;
-> 
->   if (ioperm(base,1,1))
-> 
->     fprintf(stderr, "Couldn't get the port at %x\n", base), exit(1);
-> 
-> 
-> 
->    outb(value, base);
-> 
->    value1 = inb(base);
-> 
->   printf("value written is %d \n",value1);
-> 
-> }
+>  diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> --- a/arch/arm/plat-omap/sram.c
+> +++ b/arch/arm/plat-omap/sram.c
+> @@ -147,7 +147,8 @@ void __init omap_map_sram(void)
+>  	iotable_init(omap_sram_io_desc, ARRAY_SIZE(omap_sram_io_desc));
+>  
+>  	printk(KERN_INFO "SRAM: Mapped pa 0x%08lx to va 0x%08lx size:
+> 0x%lx\n",
+> -	       omap_sram_io_desc[0].pfn, omap_sram_io_desc[0].virtual,
+> +	       __pfn_to_phys(omap_sram_io_desc[0].pfn),
+> +	       omap_sram_io_desc[0].virtual,
+>  	       omap_sram_io_desc[0].length);
+>  
+>  	/*
 
-It won't quite work as the IO address is different. Also inb/outb are
-mapped to __raw_readb/__raw_writeb.
-
-See these files:
-
-include/asm-arm/io.h
-include/asm-arm/arch-omap/io.h
+Thanks applied.
 
 Tony
