@@ -1,15 +1,13 @@
-From: andrzej zaborowski <balrogg@gmail.com>
+From: Juha =?ISO-8859-1?Q?Yrj=F6l=E4?= <juha.yrjola@nokia.com>
 Subject: Re: [PATCH] Palm TE Touchscreen and fixes
-Date: Sun, 15 Jan 2006 18:14:26 +0100
-Message-ID: <fb249edb0601150914o1fb58c6fs@mail.gmail.com>
-References: <fb249edb0601141306o6eb43a9o@mail.gmail.com>
-	<20060115091040.80061.qmail@web32906.mail.mud.yahoo.com>
+Date: Sun, 15 Jan 2006 18:04:59 +0200
+Message-ID: <1137341099.7384.16.camel@two.research.nokia.com>
+References: <20060115091040.80061.qmail@web32906.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 In-Reply-To: <20060115091040.80061.qmail@web32906.mail.mud.yahoo.com>
-Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,78 +17,24 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com, Komal Shah <komal_shah802003@yahoo.com>
+To: Komal Shah <komal_shah802003@yahoo.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-thanks for looking at the patches,
+On Sun, 2006-01-15 at 01:10 -0800, ext Komal Shah wrote:
 
-> e.g Integrating OMAP2430 and DM6446/DM6443 McBSP interface and imagine
-> how this mcbsp.c will look like :)
->
-Right, that would make it a big mess and kindof hard to maintain.
-Additionaly, I think the OMAP 730 definitions have been left out of
-the conditional part and will produce compilation errors.
+> TSC2301 support is really good, there was no community known driver
+> available yet. Even this chip has audio + 2 gpios + keyboard controller
+> which you may want to experiment with now.
 
-> See as of know all audio codec + tsc controller drivers are specific to
-> OMAP, but can be used with other chips, and generally interfaced by
-> uWire (SPI half-duplex) or SPI or I2C for command interface to the
-> chip. So recently we had SPI framework developed by David Brownell,
-> Dmitry, Vitally wool which will make its way in 2.6.16, considering
-> there is no objections.
->
-> You may want to experiment more with it. David had uWire hacks to merge
-> with its SPI subsytem, which I will forward to you. Here is the link of
-> that subsystem as GIT tree.
->
-> http://www.kernel.org/git/?p=3Dlinux/kernel/git/gregkh/spi-2.6.git;a=3Dsu=
-mmary
->
-Thanks for the link. Unfortunately I only have this one PDA that
-contains the TSC2301 chip, and it uses only uWire to communicate with
-it. And.. I'm currently at the point of trying to mount some initrd as
-root and having somethng for input (like the touchscreen) so I didn't
-have space for experimenting with things like audio so far. But I
-think both the TSC2301 and the Touchscreen code can be reused.
+We have a TSC2301 driver that's in a pretty good shape now.  At the
+moment keypad and touchscreen are supported.  The audio mixer driver is
+work-in-progress.
 
-> > - The last patch only corrects some typos I found
-> > while browsing the sources.
->
-> These are generic ARM typos changes, and it should be submitted to
-> linux-arm-kernel mailing list. But see that our tree is not synced with
-> linus tree as of now. So, it is better to generate those typos patches
-> against linus tree (if generic) than OMAP tree.
->
-Okay, already sent it. It applied cleanly to Linus tree without rediff'ing.
+We'll merge it whenever Dave's SPI stuff finds its way into linux-omap.
 
-> --- linux-omap-2.6.orig/drivers/input/touchscreen/omap/omap_ts.c
-> 2006-01-14 14:59:17.000000000 +0000
-> +++ linux-omap-2.6/drivers/input/touchscreen/omap/omap_ts.c     2006-01-1=
-4
-> 15:56:12.000000000 +0000
-> @@ -23,7 +23,7 @@
->   * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
-> USA
->   * History:
->   * 12/12/2004    Srinath Modified and intergrated code for H2 and H3
-> - *
-> + * 13/01/2006    Added PalmTE specific code, Andrzej Zaborowski
->   */
->
-> I would suggest to not add up History changes as above, as AUTHOR name
-> will be there when Tony commits in the tree, until we have create a new
-> file (eg. plamte_ts.c).
->
-Good point. In the end the revision system (GIT) is there to keep the histo=
-ry.
+BTW, we also have a McSPI controller driver for OMAP2.  It uses PIO at
+the moment, but DMA support is on its way.
 
-I am attaching a corrected version of the Touchscreen support patch
-(the second one).
-
-Regards,
-Andrzej Zaborowski
---
-balrog 2oo6
-
-Dear Outlook users: Please remove me from your address books
-http://www.newsforge.com/article.pl?sid=3D03/08/21/143258
+Cheers,
+Juha
