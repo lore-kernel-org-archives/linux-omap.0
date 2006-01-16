@@ -1,13 +1,13 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH] keypad platform_data and 24xx support refresh
-Date: Mon, 16 Jan 2006 11:29:54 -0600
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A503E44125@dlee02.ent.ti.com>
+From: Dirk Behme <dirk.behme@de.bosch.com>
+Subject: Re: [PATCH] Convert touchscreen to input_allocate_device
+Date: Mon, 16 Jan 2006 19:15:48 +0100
+Message-ID: <43CBE2D4.4000003@de.bosch.com>
+References: <890E52023811004CB455C1B7C433BA101A8B26@dino.eu.tieto.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <890E52023811004CB455C1B7C433BA101A8B26@dino.eu.tieto.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,23 +15,21 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Komal Shah <komal_shah802003@yahoo.com>, =?iso-8859-1?Q?Juha_=22Yrj=F6l=E4?= <juha.yrjola@nokia.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Mikko.Soikkala@Tietoenator.com
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-> > > +#ifdef CONFIG_MACH_OMAP_H4
-> > > +static void set_col_gpio_val(u8 value)
-> >
-> > Not H4 but OMAP2.
->=20
-> Why? If 2430 falls into OMAP2 class then it's EVM design for keyboard
-> is using TWL4030 i2c interface to read the values. Richard can clarify
-> on this.
+Mikko.Soikkala@Tietoenator.com wrote:
+> Hi
+> 
+> Shouldn't there be a check after input_allocate_device() if the
+> allocation fails? At least other touchscreen drivers seem to return
+> -ENOMEM in this case.
 
-That is correct the GPIO key implementation is not used on the =
-OMAP2-2430SDP.  It uses the keypad decoder found in the companion chip.
+Sounds good to me. Can you send a patch?
 
-Regards,
-Richard W.
+Thanks
+
+Dirk
