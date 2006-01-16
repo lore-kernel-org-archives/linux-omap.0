@@ -1,13 +1,10 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Palm TE Touchscreen and fixes
-Date: Sun, 15 Jan 2006 12:19:50 -0800
-Message-ID: <20060115201949.GF5905@atomide.com>
-References: <fb249edb0601141306o6eb43a9o@mail.gmail.com>
+From: lamikr <lamikr@cc.jyu.fi>
+Subject: omap1510/16xx fixes for the tsc2101 oss driver
+Date: Mon, 16 Jan 2006 04:26:15 +0200
+Message-ID: <43CB0447.2000606@cc.jyu.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <fb249edb0601141306o6eb43a9o@mail.gmail.com>
+Content-Type: multipart/mixed; boundary="------------090106030303070101000804"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,36 +12,117 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: andrzej zaborowski <balrogg@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+This is a multi-part message in MIME format.
+--------------090106030303070101000804
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Good to hear you got things working against the current git tree!
+1) mcbsp.h needs to define AUDIO_MCBSP_DATAREAD and
+AUDIO_MCBSP_DATAWRITE functions, etc... both for the omap1510 and
+omap16xx oterwise the sound/oss/omap-audio-dma-intfc.c fails to compile
+with omap1.
 
-* andrzej zaborowski <balrogg@gmail.com> [060115 12:00]:
-> 
-> - The first one fixes the compilation errors and some clock issues
-> that made the kernel hang on boot on Palm Tungsten E. While these
-> changes make the kernel boot and work well with the device, and
-> hopefully don't affect other devices, I don't know how correct are my
-> ways of fixing it, as I'm completely inexperienced in kernel insides.
+2) Added cpu_is_omap1510 check to places which earlier only checked
+cpu_is_omap16xx() so that the dma got initialized properly also with the
+omap1510 based iPAQ h6300.
 
-Regarding changes to clock.[ch], we should have CLOCK_IN_OMAP1510 and
-CLOCK_IN_OMAP3XX separate. At least the DSP clocks should not be on 310
-because it does not have a DSP AFAIK. They may be also other clocks that
-are not on 310.
+3)  DCSR_ERROR check looked suspicious compared to the version in 2.6.14
+kernel. In addition that prevented the sound working after first played
+frame
+in the iPAQ h6300 as assumed always that error had happened.
 
-Could you please redo the clock.[ch] patch so it adds CLOCK_IN_OMAP3XX,
-and masks it only for the clocks you think you have on 310?
+After applying attached fixes, cat my_song.wav > /dev/dsp worked ok for me.
 
-Or if you don't know which clocks are on both 310 and 1510, you could
-just leave out DSP clocks for now, and enable all other 1510 clocks
-also for 310.
+Mika
 
-Regards,
+--------------090106030303070101000804
+Content-Type: text/x-patch;
+ name="tsc2101_omap1_oss_audio_fix.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="tsc2101_omap1_oss_audio_fix.patch"
 
-Tony
+--- linux-omap-2.6/include/asm-arm/arch-omap/mcbsp.h	2006-01-14 13:26:21.000000000 +0200
++++ linux-omap-h6300-2.6/include/asm-arm/arch-omap/mcbsp.h	2006-01-16 03:40:27.000000000 +0200
+@@ -40,7 +40,7 @@
+ #define OMAP24XX_MCBSP1_BASE	0x48074000
+ #define OMAP24XX_MCBSP2_BASE	0x48076000
+ 
+-#ifdef CONFIG_ARCH_OMAP16XX
++#if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX)
+ 
+ #define OMAP_MCBSP_REG_DRR2	0x00
+ #define OMAP_MCBSP_REG_DRR1	0x02
+@@ -76,6 +76,9 @@
+ 
+ #define OMAP_MAX_MCBSP_COUNT 3
+ 
++#define AUDIO_MCBSP_DATAWRITE	(OMAP1510_MCBSP1_BASE + OMAP_MCBSP_REG_DXR1)
++#define AUDIO_MCBSP_DATAREAD	(OMAP1510_MCBSP1_BASE + OMAP_MCBSP_REG_DRR1)
++
+ #define AUDIO_MCBSP		OMAP_MCBSP1
+ #define AUDIO_DMA_TX		OMAP_DMA_MCBSP1_TX
+ #define AUDIO_DMA_RX		OMAP_DMA_MCBSP1_RX
+--- linux-omap-2.6/sound/oss/omap-audio-dma-intfc.c	2006-01-14 13:26:23.000000000 +0200
++++ linux-omap-h6300-2.6/sound/oss/omap-audio-dma-intfc.c	2006-01-16 03:47:30.000000000 +0200
+@@ -683,13 +683,6 @@
+ 	return;
+ }
+ 
+-/*********************************** MODULE FUNCTIONS DEFINTIONS ***********************/
+-
+-#ifdef OMAP1610_MCBSP1_BASE
+-#undef OMAP1610_MCBSP1_BASE
+-#endif
+-#define OMAP1610_MCBSP1_BASE    0xE1011000
+-
+ /***************************************************************************************
+  *
+  * DMA related functions
+@@ -707,8 +700,8 @@
+ 
+ 	FN_IN;
+ 
+-	if (cpu_is_omap16xx()) {
+-		dest_start = (OMAP1610_MCBSP1_BASE + 0x806);
++	if (cpu_is_omap1510() || cpu_is_omap16xx()) {
++		dest_start = AUDIO_MCBSP_DATAWRITE;
+ 		dest_port = OMAP_DMA_PORT_MPUI;
+ 	}
+ 	if (cpu_is_omap24xx()) {
+@@ -737,8 +730,8 @@
+ 
+ 	FN_IN;
+ 
+-	if (cpu_is_omap16xx()) {
+-		src_start = (OMAP1610_MCBSP1_BASE + 0x802);
++	if (cpu_is_omap1510() || cpu_is_omap16xx()) {
++		src_start = AUDIO_MCBSP_DATAREAD;
+ 		src_port = OMAP_DMA_PORT_MPUI;
+ 	}
+ 	if (cpu_is_omap24xx()) {
+@@ -878,8 +871,8 @@
+ 	DPRINTK("lch=%d,status=0x%x, dma_status=%d, data=%p\n", sound_curr_lch,
+ 		ch_status, dma_status, data);
+ 
+-	if (dma_status) {
+-		if (cpu_is_omap16xx() && (dma_status & (DCSR_ERROR)))
++	if (dma_status & (DCSR_ERROR)) {
++		if (cpu_is_omap1510() || cpu_is_omap16xx())
+ 			OMAP_DMA_CCR_REG(sound_curr_lch) &= ~DCCR_EN;
+ 		ERR("DCSR_ERROR!\n");
+ 		FN_OUT(-1);
+
+--------------090106030303070101000804
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--------------090106030303070101000804--
