@@ -1,9 +1,9 @@
 From: Dirk Behme <dirk.behme@de.bosch.com>
-Subject: [PATCH] Fix AUDIO_MCBSP_DATAREAD/WRITE undefined for OMAP16xx
-Date: Tue, 17 Jan 2006 19:44:15 +0100
-Message-ID: <43CD3AFF.9080802@de.bosch.com>
+Subject: [PATCH] Fix clk_get_usecount() warning
+Date: Tue, 17 Jan 2006 19:44:40 +0100
+Message-ID: <43CD3B18.1010803@de.bosch.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010808060205000009020106"
+Content-Type: multipart/mixed; boundary="------------050800000304090802070006"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,49 +18,60 @@ To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------010808060205000009020106
+--------------050800000304090802070006
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
 
-ARM: OMAP: Define AUDIO_MCBSP_DATAREAD/WRITE for OMAP16xx as well
+ARM: OMAP: Fix warning about missing clk_get_usecount() declaration
 
-Fix error
+arch/arm/plat-omap/clock.c exports clk_get_usecount(), but linux/clk.h
+doesn't contain the prototype for it. Add it to asm/arch/clock.h and add
+clock.h to omap-audio-aic23.c.
 
-sound/oss/omap-audio-dma-intfc.c:715: error: `AUDIO_MCBSP_DATAWRITE'
-undeclared (first use in this function)
-sound/oss/omap-audio-dma-intfc.c:745: error: `AUDIO_MCBSP_DATAREAD'
-undeclared (first use in this function)
+sound/oss/omap-audio-aic23.c: In function `audio_aic23_init':
+sound/oss/omap-audio-aic23.c:680: warning: implicit declaration of
+function `clk_get_usecount'
 
 Signed-off-by: Dirk Behme <dirk.behme_at_de.bosch.com>
 
 
---------------010808060205000009020106
+
+--------------050800000304090802070006
 Content-Type: text/plain;
- name="audio_mcbsp_readwrite.patch"
+ name="clk_get_usecount.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="audio_mcbsp_readwrite.patch"
+ filename="clk_get_usecount.patch"
 
---- ./include/asm-arm/arch-omap/mcbsp.h_orig	2006-01-17 18:34:46.000000000 +0100
-+++ ./include/asm-arm/arch-omap/mcbsp.h	2006-01-17 18:37:11.720163080 +0100
-@@ -80,6 +80,9 @@
- #define AUDIO_DMA_TX		OMAP_DMA_MCBSP1_TX
- #define AUDIO_DMA_RX		OMAP_DMA_MCBSP1_RX
+--- ./include/asm-arm/arch-omap/clock.h_orig	2006-01-17 18:52:15.414780616 +0100
++++ ./include/asm-arm/arch-omap/clock.h	2006-01-17 19:10:53.619787616 +0100
+@@ -57,6 +57,7 @@ extern void propagate_rate(struct clk *c
+ extern void followparent_recalc(struct clk * clk);
+ extern void clk_allow_idle(struct clk *clk);
+ extern void clk_deny_idle(struct clk *clk);
++extern int clk_get_usecount(struct clk *clk);
  
-+#define AUDIO_MCBSP_DATAWRITE	(0)
-+#define AUDIO_MCBSP_DATAREAD	(0)
-+
- #elif defined(CONFIG_ARCH_OMAP24XX)
+ /* Clock flags */
+ #define RATE_CKCTL		(1 << 0)	/* Main fixed ratio clocks */
+--- ./sound/oss/omap-audio-aic23.c_orig	2006-01-17 18:40:00.000000000 +0100
++++ ./sound/oss/omap-audio-aic23.c	2006-01-17 18:56:08.970274784 +0100
+@@ -47,6 +47,7 @@
+ #include <asm/arch/mcbsp.h>
+ #include <asm/arch/fpga.h>
+ #include <asm/arch/aic23.h>
++#include <asm/arch/clock.h>
  
- #define OMAP_MCBSP_REG_DRR2	0x00
+ #include "omap-audio.h"
+ #include "omap-audio-dma-intfc.h"
 
 
---------------010808060205000009020106
+
+--------------050800000304090802070006
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------010808060205000009020106--
+--------------050800000304090802070006--
