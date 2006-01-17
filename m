@@ -1,10 +1,14 @@
-From: Dirk Behme <dirk.behme@de.bosch.com>
-Subject: [PATCH] Make ALSA omap-aic23.c compile again
-Date: Tue, 17 Jan 2006 19:45:37 +0100
-Message-ID: <43CD3B51.80105@de.bosch.com>
+From: lamikr <lamikr@cc.jyu.fi>
+Subject: Re: [PATCH] Fix AUDIO_MCBSP_DATAREAD/WRITE undefined for OMAP16xx
+Date: Tue, 17 Jan 2006 21:21:29 +0200
+Message-ID: <43CD43B9.70902@cc.jyu.fi>
+References: <43CD3AFF.9080802@de.bosch.com>
+Reply-To: linux-omap-open-source@linux.omap.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010000070501050909050608"
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <43CD3AFF.9080802@de.bosch.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,92 +16,54 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010000070501050909050608
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+For this I think it would be better to take the patch from the message
+titled "omap1510/16xx fixes for the tsc2101 oss driver" I send yesterday.
+It defines the AUDIO_MCBSP_DATAWRITE and AUDIO_MCBSP_DATAREAD for the
+omap1510/16xx in a similar way than is done for the omap24xx.
 
+Mika
 
-ARM: OMAP: Remove errors and warnings and make omap-aic23.c compile again:
+Dirk Behme wrote:
 
-sound/arm/omap-aic23.c:661: error: structure has no member named
-`pm_private_data'
-sound/arm/omap-aic23.c:680: error: structure has no member named
-`pm_private_data'
-sound/arm/omap-aic23.c:772: warning: implicit declaration of function
-`clk_get_usecount'
-sound/arm/omap-aic23.c:863: warning: implicit declaration of function
-`snd_card_set_pm_callback'
-
-Note: Needs "Fix clk_get_usecount() warning" patch
-
-Signed-off-by: Dirk Behme <dirk.behme_at_de.bosch.com>
-
-
---------------010000070501050909050608
-Content-Type: text/plain;
- name="omap-aic23.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="omap-aic23.patch"
-
---- ./sound/arm/omap-aic23.c_orig	2006-01-17 19:26:00.707889264 +0100
-+++ ./sound/arm/omap-aic23.c	2006-01-17 19:38:02.260196640 +0100
-@@ -59,6 +59,7 @@
- #include <asm/arch/dma.h>
- #include <asm/arch/aic23.h>
- #include <asm/arch/mcbsp.h>
-+#include <asm/arch/clock.h>
- 
- #include <sound/core.h>
- #include <sound/pcm.h>
-@@ -658,7 +659,7 @@ static int __init snd_card_omap_aic23_pc
- 
- static int snd_omap_aic23_suspend(snd_card_t * card, pm_message_t state)
- {
--	struct snd_card_omap_aic23 *chip = card->pm_private_data;
-+	struct snd_card_omap_aic23 *chip = card->private_data;
- 	ADEBUG();
- 
- 	if (chip->card->power_state != SNDRV_CTL_POWER_D3hot) {
-@@ -677,7 +678,7 @@ static int snd_omap_aic23_suspend(snd_ca
-  */
- static int snd_omap_aic23_resume(snd_card_t * card)
- {
--	struct snd_card_omap_aic23 *chip = card->pm_private_data;
-+	struct snd_card_omap_aic23 *chip = card->private_data;
- 	ADEBUG();
- 	
- 	if (chip->card->power_state != SNDRV_CTL_POWER_D0) {
-@@ -860,14 +861,13 @@ static int __init snd_omap_aic23_probe(s
- 	if ((err = snd_card_omap_aic23_pcm(omap_aic23, 0)) < 0)
- 		goto nodev;
- 
--	snd_card_set_pm_callback(card, snd_omap_aic23_suspend,
--				 snd_omap_aic23_resume, omap_aic23);
--
- 	strcpy(card->driver, "AIC23");
- 	strcpy(card->shortname, "OSK AIC23");
- 	sprintf(card->longname, "OMAP OSK with AIC23");
- 
- 	snd_omap_init_mixer();
-+
-+	snd_card_set_dev(card, &pdev->dev);
- 	
- 	if ((err = snd_card_register(card)) == 0) {
- 		printk(KERN_INFO "OSK audio support initialized\n");
-
-
---------------010000070501050909050608
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---------------010000070501050909050608--
+>
+> ARM: OMAP: Define AUDIO_MCBSP_DATAREAD/WRITE for OMAP16xx as well
+>
+> Fix error
+>
+> sound/oss/omap-audio-dma-intfc.c:715: error: `AUDIO_MCBSP_DATAWRITE'
+> undeclared (first use in this function)
+> sound/oss/omap-audio-dma-intfc.c:745: error: `AUDIO_MCBSP_DATAREAD'
+> undeclared (first use in this function)
+>
+> Signed-off-by: Dirk Behme <dirk.behme_at_de.bosch.com>
+>
+>------------------------------------------------------------------------
+>
+>--- ./include/asm-arm/arch-omap/mcbsp.h_orig	2006-01-17 18:34:46.000000000 +0100
+>+++ ./include/asm-arm/arch-omap/mcbsp.h	2006-01-17 18:37:11.720163080 +0100
+>@@ -80,6 +80,9 @@
+> #define AUDIO_DMA_TX		OMAP_DMA_MCBSP1_TX
+> #define AUDIO_DMA_RX		OMAP_DMA_MCBSP1_RX
+> 
+>+#define AUDIO_MCBSP_DATAWRITE	(0)
+>+#define AUDIO_MCBSP_DATAREAD	(0)
+>+
+> #elif defined(CONFIG_ARCH_OMAP24XX)
+> 
+> #define OMAP_MCBSP_REG_DRR2	0x00
+>
+>  
+>
+>------------------------------------------------------------------------
+>
+>_______________________________________________
+>Linux-omap-open-source mailing list
+>Linux-omap-open-source@linux.omap.com
+>http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>  
+>
