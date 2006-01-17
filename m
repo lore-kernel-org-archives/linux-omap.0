@@ -1,13 +1,14 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: [PATCH] keypad platform_data and 24xx support refresh
-Date: Mon, 16 Jan 2006 21:25:24 -0800 (PST)
-Message-ID: <20060117052524.58872.qmail@web32903.mail.mud.yahoo.com>
-References: <1137435453.12289.51.camel@two.research.nokia.com>
+From: Vineet Tuli <vineet@cybernetra.com>
+Subject: Re: Usb printing thru omap5912
+Date: Tue, 17 Jan 2006 16:26:14 +0530
+Message-ID: <1137495375.2532.16.camel@meenakshi.linux>
+References: <1137324187.3427.2.camel@meenakshi.linux>
+	<20060116184307.GH4511@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1137435453.12289.51.camel@two.research.nokia.com>
+In-Reply-To: <20060116184307.GH4511@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,27 +18,26 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-Cc: linux-omap-open-source@linux.omap.com
+To: OMAP <linux-omap-open-source@linux.omap.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
---- Juha Yrj=F6l=E4 <juha.yrjola@nokia.com> wrote:
+Hi Tony
 
->=20
-> Only generic keypad drivers are supposed to live in omap-keypad.c.  I
-> had the impression that using GPIOs is the standard way of
-> implementing
-> a keypad on OMAP2xxx CPUs (if you don't use an external keypad chip,
-> that is).  Is this not the case?  Keypads handled by companion chips
-> most likely will not share a lot of code with the OMAP-specific
-> driver,
-> so they naturally belong to a separate driver.
+Thankx a lot Actually my printer is detected properly but i am on the
+lookout for some printing tools for ARM.
 
-Fine, I agree with you and 2430 will have separate file in this case.
+Vineet Tuli
 
----Komal Shah
-http://komalshah.blogspot.com/
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around=20
-http://mail.yahoo.com=20
+On Mon, 2006-01-16 at 10:43 -0800, Tony Lindgren wrote:
+> * Vineet Tuli <vineet@cybernetra.com> [060115 13:14]:
+> > Hi.
+> > 
+> > Has anybody been able to print using a usb printer using omap5912?
+> > 
+> > Please Guide.
+> 
+> Pretty much all Linux USB stuff should work on OSK. If you have
+> problems, please make sure that you have CONFIG_OMAP_RESET_CLOCKS
+> disabled in your .config file.
+> 
+> Tony
