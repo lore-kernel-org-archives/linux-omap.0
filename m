@@ -1,14 +1,13 @@
-From: lamikr <lamikr@cc.jyu.fi>
-Subject: Re: [PATCH] Fix AUDIO_MCBSP_DATAREAD/WRITE undefined for OMAP16xx
-Date: Tue, 17 Jan 2006 21:21:29 +0200
-Message-ID: <43CD43B9.70902@cc.jyu.fi>
-References: <43CD3AFF.9080802@de.bosch.com>
-Reply-To: linux-omap-open-source@linux.omap.com
+From: <Mikko.Soikkala@Tietoenator.com>
+Subject: RE: [PATCH] Convert touchscreen to input_allocate_device
+Date: Wed, 18 Jan 2006 11:34:03 +0200
+Message-ID: <890E52023811004CB455C1B7C433BA101A8B29@dino.eu.tieto.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <43CD3AFF.9080802@de.bosch.com>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,54 +15,50 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: komal_shah802003@yahoo.com, dirk.behme@de.bosch.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-For this I think it would be better to take the patch from the message
-titled "omap1510/16xx fixes for the tsc2101 oss driver" I send yesterday.
-It defines the AUDIO_MCBSP_DATAWRITE and AUDIO_MCBSP_DATAREAD for the
-omap1510/16xx in a similar way than is done for the omap24xx.
+> -----Original Message-----
+> From: Komal Shah [mailto:komal_shah802003@yahoo.com]
+>=20
+> Not good enough.
+>=20
+> 1. Need to free the irq, you just got before this code.
+> 2. Need to call ts_omap.dev->remove() to match _probe() for the
+> corresponding platform before you return -ENOMEM.>=20
 
-Mika
+How about if we move the allocation and check to the beginning of the
+probe function? Then the return shouldn't cause problems?
 
-Dirk Behme wrote:
+Mikko
 
->
-> ARM: OMAP: Define AUDIO_MCBSP_DATAREAD/WRITE for OMAP16xx as well
->
-> Fix error
->
-> sound/oss/omap-audio-dma-intfc.c:715: error: `AUDIO_MCBSP_DATAWRITE'
-> undeclared (first use in this function)
-> sound/oss/omap-audio-dma-intfc.c:745: error: `AUDIO_MCBSP_DATAREAD'
-> undeclared (first use in this function)
->
-> Signed-off-by: Dirk Behme <dirk.behme_at_de.bosch.com>
->
->------------------------------------------------------------------------
->
->--- ./include/asm-arm/arch-omap/mcbsp.h_orig	2006-01-17 18:34:46.000000000 +0100
->+++ ./include/asm-arm/arch-omap/mcbsp.h	2006-01-17 18:37:11.720163080 +0100
->@@ -80,6 +80,9 @@
-> #define AUDIO_DMA_TX		OMAP_DMA_MCBSP1_TX
-> #define AUDIO_DMA_RX		OMAP_DMA_MCBSP1_RX
-> 
->+#define AUDIO_MCBSP_DATAWRITE	(0)
->+#define AUDIO_MCBSP_DATAREAD	(0)
->+
-> #elif defined(CONFIG_ARCH_OMAP24XX)
-> 
-> #define OMAP_MCBSP_REG_DRR2	0x00
->
->  
->
->------------------------------------------------------------------------
->
->_______________________________________________
->Linux-omap-open-source mailing list
->Linux-omap-open-source@linux.omap.com
->http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->  
->
+--
+
+diff -Naur linux-2.6.15-omap2/drivers/input/touchscreen/omap/omap_ts.c
+linux-2.6.15-omap2-tsfix/drivers/input/touchscreen/omap/omap_ts.c
+--- linux-2.6.15-omap2/drivers/input/touchscreen/omap/omap_ts.c
+2006-01-17 14:39:49.000000000 +0200
++++ linux-2.6.15-omap2-tsfix/drivers/input/touchscreen/omap/omap_ts.c
+2006-01-18 11:08:42.447581656 +0200
+@@ -133,6 +133,10 @@
+ 	int status =3D -ENODEV;
+=20
+ 	memset(&ts_omap, 0, sizeof(ts_omap));
++	ts_omap.inputdevice =3D input_allocate_device();
++	if (!ts_omap.inputdevice)
++		return -ENOMEM;
++
+ 	spin_lock_init(&ts_omap.lock);
+=20
+ 	for (i =3D 0; i < ARRAY_SIZE(ts_devs); i++) {
+@@ -167,7 +171,6 @@
+ 		return -EINVAL;
+ 	}
+=20
+-	ts_omap.inputdevice =3D input_allocate_device();
+ 	ts_omap.inputdevice->name =3D OMAP_TS_NAME;
+ 	ts_omap.inputdevice->dev =3D &pdev->dev;
+ 	ts_omap.inputdevice->evbit[0] =3D BIT(EV_KEY) | BIT(EV_ABS);=20
