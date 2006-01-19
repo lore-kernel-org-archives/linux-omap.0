@@ -1,11 +1,13 @@
-From: =?utf-8?B?IuyehOq3vOyLnSI=?= <invain@naver.com>
-Subject: RE: Re: Help me. Oops: 805 [#1]err using kernel.2.6.10.omap1patch
- with NFS(RFS)
-Date: Thu, 19 Jan 2006 20:50:40 +0900 (KST)
-Message-ID: <43CF7D10.000001.02044@nhn527>
-Reply-To: =?utf-8?B?IuyehOq3vOyLnSI=?= <invain@naver.com>
+From: "chandrashekhar singh" <cp_singh@faith.co.jp>
+Subject: Re: Linux 2.4 kernel and tool chain
+Date: Thu, 19 Jan 2006 21:22:39 +0900
+Message-ID: <012301c61cf3$0aec8060$4b13a80a@cpsingh>
+References: <20060119081303.70672.qmail@web32910.mail.mud.yahoo.com>
+Reply-To: chandrashekhar singh <cp_singh@faith.co.jp>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0725010036=="
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -16,110 +18,48 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Komal Shah <komal_shah802003@yahoo.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============0725010036==
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: base64
+Hi,
+Thanks for the mail.
 
-DQpUaGFua3MgZm9yIHlvdXIgcmVwbHlpbmcuIEkgYWxyZWFkeSBzdWNjZXNzZWQgIHdpdGggbmZz
-IHJvb3QgZmlsZSBzeXN0ZW0gIA0KdXNpbmcgIGtlcm5lbC5vcmcuMi42LjE1ICsgb21hcDIucGF0
-Y2guIEJ1dCwgSW4gbXkgY2lyY3Vtc3RhbmNlLCBOb3csIA0KSSBoYXZlIHRvICBkbyBib290aW5n
-IHVzaW5nIDIuNi4xMCBrZXJuZWwuDQpQbGVhc2UuIGluZm9ybSBtZXRob2QgdGhhdCBjYW4gZG8g
-UG90aW5nICB0byBvbWFwIGJvYXJkIHVzaW5nIDIuNi4xMCBrZXJuZWwgDQpiZWNhdXNlICBJIHVz
-ZSAyLjYuMTAgdmVyc2lvbi4NCg0KDQo8LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0+DQo+IEZy
-b206ICJUb255IExpbmRncmVuIiA8dG9ueUBhdG9taWRlLmNvbT4NCj4gVG86ICLsnoTqt7zsi50i
-IDxpbnZhaW5AbmF2ZXIuY29tPg0KPiBDYzogPGxpbnV4LW9tYXAtb3Blbi1zb3VyY2VAbGludXgu
-b21hcC5jb20+DQo+IFNlbnQ6IDIwMDYtMDEtMTkgMTY6MzANCj4gU3ViamVjdDogUmU6IEhlbHAg
-bWUuIE9vcHM6IDgwNSBbIzFdZXJyIHVzaW5nIGtlcm5lbC4yLjYuMTAub21hcDFwYXRjaCB3aXRo
-IE5GUyhSRlMpDQoNCiogIuyehOq3vOyLnSIgPGludmFpbkBuYXZlci5jb20+IFswNjAxMTggMjI6
-MzddOg0KPiBJdCBzZWVtcyB0aGF0IG15IGVtYWlsIHN5c3RlbSAgcHJvYmxlbS4gc28gaSBjaGFu
-Z2VkIGVtYWlsIGFkZHJlc3MuDQo+IA0KPiANCj4gU3ViamVjdCAtIE9vcHM6IDgwNSBbIzFdIHBy
-b2JsZW0gdXNpbmcga2VybmVsLjIuNi4xMC5vbWFwMXBhdGNoIHdpdGggTkZTKFJGUykgDQo+IC0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tIA0KPiANCj4gSSBmaW5pc2hl
-ZCBjb21waWxpbmcgYW5kIHBvcnRpbmcgb3VzaW5nIGtlcm5lbC4yLjYuMTAgb2Yga2VybmVsLm9y
-ZyBhbmQgcGF0Y2guMi42LjEwLm9tYXAxLiBCdXQsIFdoZW4gSSB0cnkgYm9vdGluZyB3aXRoIGNv
-bXBpbGVkIHpJbWFnZSBvbiBvbWFwNTkxMm9zayBib2FyZCwgSSBtZWV0IGJlbG93IGVycm9yIG1l
-c3NhZ2UuIEZvciByZWZlcmVuY2UsIFdoZW4gSSB1c2UgUmFtZGlzayhyb290IGZpbGUgc3lzdGVt
-KSwga2VyZW5sIGlzIGJvb3RlZCBzdWNjZXNzZnVsbHkuIE9ubHkgV2hlbiBJIHVzZSBORlMgUm9v
-dCBmaWxlIHN5c3RlbSAsIGVycm9yIGhhcHBlbmVkIGxpa2UgYmVsb3dzLiBQbGVhc2UuIFdoYXQn
-cyByZWFzb24/IC4gVGVsbCBtZSBob3cgdG8gc29sdmUgdGhpcyBwcm9ibGVtLiANCj4gKFAuUzog
-V2hlbiBJIHRyeWVkICJwaW5nIHRhcmdldC5ib2FyZC5pcC5hZGRyZXNzIiBjb21tYW5kIG9uIGhv
-c3QgcGMoUkg5LjApLCBJIHJlY2V2aWNlZCBUVEwgcmVwbHkuICkgDQo+IA0KPiAqIFRlc3QgRW52
-aXJpb25tZW50LiANCj4gLWJvYXJkIDogVEkgb21hcDU5MTIub3NrIGJvYXJkIA0KPiAtRXRoZXJu
-ZXQgOiBTTUM5MUM5NCBFdGhlcm5ldCBjYXJkIA0KPiAta2VybmVsLm9yZyA6a2VybmVsLjIuNi4x
-MC50YXIuZ3ogKHd3dy5rZXJuZWwub3JnICkgDQo+IC1jb21waWxlciA6bW9udGF2aXN0YSBfYXJt
-X3Y1IA0KPiAtb21hcCBwYXRjaCA6aHR0cDovL3d3dy5tdXJ1LmNvbS9saW51eC9vbWFwL3BhdGNo
-ZXMvcGF0Y2gtMi42LjEwLW9tYXAxLmJ6MiANCj4gLVJvb3RmaWxlc3lzdGVtOiBORlMgUm9vdCBm
-aWxlIHN5c3RlbSANCj4gDQo+IA0KPiAqIFdoZW4gSSBib290IGtlcm5lbC4yLjYuMTAub21hcDEg
-d2l0aCBuZnNyb290ICwgSSBtZWV0ICJPb3BzOiA4MDUgWyMxXToiIG1lc2FzZ2UgbGlrZSBiZWxv
-d3MuIC4uLi4uLi4uLi4uLi4uLiB1cHBlciBvbWlzc2lvbi4uLi4uLi4uLi4uLi4uLi4uLi4uLiAN
-Cj4gZXRoMDogbGluayB1cCANCj4gSVAtQ29uZmlnOiBDb21wbGV0ZTogDQo+IGRldmljZT1ldGgw
-LCBhZGRyPTE5Mi4xNjguMC4xMCwgbWFzaz0yNTUuMjU1LjI1NS4wLCBndz0xOTIuMTY4LjAuMiwg
-DQo+IGhvc3Q9MTkyLjE2OC4wLjEwLCBkb21haW49LCBuaXMtZG9tYWluPShub25lKSwgDQo+IGJv
-b3RzZXJ2ZXI9MTkyLjE2OC4wLjIsIHJvb3RzZXJ2ZXI9MTkyLjE2OC4wLjIsIHJvb3RwYXRoPSBM
-b29raW5nIHVwIHBvcnQgb2YgUlBDIDEwMDAwMy8yIG9uIDE5Mi4xNjguMC4yIExvb2tpbmcgdXAg
-cG9ydCBvZiBSUEMgMTAwMDA1LzEgb24gMTkyLjE2OC4wLjIgDQo+IFZGUzogTW91bnRlZCByb290
-IChuZnMgZmlsZXN5c3RlbSkuIA0KPiBGcmVlaW5nIGluaXQgbWVtb3J5OiAxMDRLIA0KPiA8LS0t
-LS0tLS0tLS0tLS0tLS0tLSBSZWY6IEFmdGVyIDEwIG1pbnV0ZXMsIEJlbG93cyBtZXNzYWdlIGFw
-cGVhcmVkIG9uIGNvbnNvbGUuIFVuYWJsZSB0byBoYW5kbGUga2VybmVsIHBhZ2luZyByZXF1ZXN0
-IGF0IHZpcnR1YWwgYWRkcmVzcyBjMjAwMDAwMCBwZ2QgPSBjMDAxMDAwMCBbYzIwMDAwMDBdICpw
-Z2Q9MDAwMDAwMDAgSW50ZXJuYWwgZXJyb3I6IE9vcHM6IDgwNSBbIzFdIE1vZHVsZXMgbGlua2Vk
-IGluOiANCj4gQ1BVOiAwIA0KPiBQQyBpcyBhdCAuaW5zd184X2xwKzB4MzAvMHg0NCANCj4gTFIg
-aXMgYXQgMHg0MzQxIA0KPiBwYyA6IFtdIGxyIDogWzwwMDAwNDM0MT5dIE5vdCB0YWludGVkIA0K
-PiBzcCA6IGMwMjk5ZTQ0IGlwIDogNDM0MTQzNDEgZnAgOiBjMDI5OWU5OCANCj4gcjEwOiBjMDMz
-OTAwMCByOSA6IGMyODUyMDAwIHI4IDogMDAwMDAwMDAgDQo+IHI3IDogYzAzMzkyMjAgcjYgOiBm
-ZmZmZmZmYSByNSA6IDQzNDE0MzQxIHI0IDogNDM0MTQzNDEgDQo+IHIzIDogNDM0MTQzNDEgcjIg
-OiA3ZmUxMTg1NSByMSA6IGMxZmZmZmY0IHIwIDogYzI4NTIwMDggDQo+IEZsYWdzOiBuekN2IElS
-UXMgb24gRklRcyBvbiBNb2RlIFNWQ18zMiBTZWdtZW50IHVzZXIgDQo+IENvbnRyb2w6IDU3MTdG
-IFRhYmxlOiAxMDAxMDAwMCBEQUM6IDAwMDAwMDE1IA0KPiBQcm9jZXNzIGluaXQgKHBpZDogMSwg
-c3RhY2sgbGltaXQgPSAweGMwMjk4MTkwKSANCj4gU3RhY2s6ICgweGMwMjk5ZTQ0IHRvIDB4YzAy
-OWEwMDApIA0KPiA5ZTQwOiBjMDNmNzRlMCBjMjg1MjAwMCBjMDEyZGU5NCBjMWMyMzBiMiAwMDAw
-NDAzMCAwMDAwMDAwNyAwMDAwMDAzMyANCj4gOWU2MDogYzAzMzkyMjAgYzAzM2VhMjAgMDAwMDAw
-YTAgMDAwMDAwMDAgYzAzM2VhMjAgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwYTAgDQo+IDllODA6
-IGMwMjk5ZjQwIGMwMjk5ZjQwIGZlZmJlNDE4IGMwMjk5ZWJjIGMwMjk5ZTljIGMwMDIzMmY4IGMw
-MTJkYzE0IGMwMjEwNTQwIA0KPiA5ZWEwOiAwMDAwMDBhMCBjMDMzZWEyMCBjMDI5OWY0MCBjMDFk
-NTg0YyBjMDI5OWVkYyBjMDI5OWVjMCBjMDAyMzQ1NCBjMDAyMzJiYyANCj4gOWVjMDogMDAwMDAw
-YTEgMDAwMDFlMDAgMDAwMDAwMDEgYzAyMTA1NzAgYzAyOTlmMDggYzAyOTllZTAgYzAwMmU3ZDgg
-YzAwMjMzYjQgDQo+IDllZTA6IGMwMjk5Zjc0IGZlZmVjYjAwIGMwMjk4MDAwIGMwMDI4ZDRjIDIw
-MDAwMDEzIGMwMjBlNzQwIGMwMjk5ZjQwIGMwMjk5ZjNjIA0KPiA5ZjAwOiBjMDI5OWYwYyBjMDAy
-MzVkYyBjMDAyZTc0NCAwMDAwMDAxZSBjMDI5OWZiMCBjMDI5OWY3NCBmZWZlY2IwMCBmZmZmZmZm
-ZiANCj4gOWYyMDogYzAwMjhkNGMgMjAwMDAwMTMgZmZmZmZmZmYgNDAxMjcwMDAgYzAyOTlmYWMg
-YzAyOTlmNDAgYzAwMjIzZTAgYzAwMjM1OWMgDQo+IDlmNDA6IGMwMDEzZmY4IGMwMDA3ZmY4IDAw
-MDAwMDAwIDEwMDAyNDAxIGZmZmYxMDAwIGMwMDEwMDAwIDEwMDAyMDAxIDAwMDAwMDAwIA0KPiA5
-ZjYwOiBjMDI5OWZiMCAwMDAwMDAwMCA0MDEyNzAwMCBjMDI5OWZhYyAwMDAwM2ZmOCBjMDI5OWY4
-OCBjMDI5ODAwMCBjMDAyOGQ0YyANCj4gOWY4MDogMjAwMDAwMTMgZmZmZmZmZmYgZmVmZWNiMDAg
-YzAxZDJmYTAgZmZmZjEwMDAgNjAwMDAwMTAgMDAwNTcxNzcgYzAyOTlmZWMgDQo+IDlmYTA6IDAw
-MDAwMDAwIGMwMjk5ZmIwIGMwMDIyNzE4IGMwMDI4Y2Q4IDAwMDAwMDAwIDAwMDAwMDAxIDQwMTI4
-MmI4IGZmZmYwZmZmIA0KPiA5ZmMwOiAwMDAwMDAwMCAwMDAwMDAwMCA0MDEyODJiOCAwMDAwMTJi
-OCAwMDAwMDAwMCAwMDAwMDAwMCA0MDEyNzAwMCAwMDAwMDAwMCANCj4gOWZlMDogYmVmZmZmM2Mg
-YmVmZmZkZDggNDAwNDliOTQgZmZmZjEwMDAgNjAwMDAwMTAgZmZmZmZmZmYgZTU5MDMwODQgZTM1
-MzAwMDEgDQo+IEJhY2t0cmFjZTogDQo+IFtdIChzbWNfaW50ZXJydXB0KzB4MC8weDZkMCkgZnJv
-bSBbXSAoX19kb19pcnErMHg0Yy8weDg4KSBbXSAoX19kb19pcnErMHgwLzB4ODgpIGZyb20gW10g
-KGRvX2VkZ2VfSVJRKzB4YjAvMHgxMmMpIHI4ID0gQzAxRDU4NEMgcjcgPSBDMDI5OUY0MCByNiA9
-IEMwMzNFQTIwIHI1ID0gMDAwMDAwQTAgcjQgPSBDMDIxMDU0MCBbXSAoZG9fZWRnZV9JUlErMHgw
-LzB4MTJjKSBmcm9tIFtdIChncGlvX2lycV9oYW5kbGVyKzB4YTQvMHhiOCkgcjcgPSBDMDIxMDU3
-MCByNiA9IDAwMDAwMDAxIHI1ID0gMDAwMDFFMDAgcjQgPSAwMDAwMDBBMSBbXSAoZ3Bpb19pcnFf
-aGFuZGxlcisweDAvMHhiOCkgZnJvbSBbXSAoYXNtX2RvX0lSUSsweDUwLzB4MTUwKSBbXSAoYXNt
-X2RvX0lSUSsweDAvMHgxNTApIGZyb20gW10gKF9faXJxX3N2YysweDIwLzB4ODApIFtdIChkb190
-cmFuc2xhdGlvbl9mYXVsdCsweDAvMHhhYykgZnJvbSBbXSAocmV0X2Zyb21fZXhjZXB0aW9uKzB4
-MC8weDEwKSByOCA9IEMwMjk5RkVDIHI3ID0gMDAwNTcxNzcgcjYgPSA2MDAwMDAxMCByNSA9IEZG
-RkYxMDAwIHI0ID0gQzAxRDJGQTAgDQo+IENvZGU6IGUxODU1ODBjIGUxZDBjMGIwIGUxZDBlMGIw
-IGUxOGNjODBlIChlOGExMTAzOCkgDQo+IDwwPktlcm5lbCBwYW5pYyAtIG5vdCBzeW5jaW5nOiBB
-aWVlLCBraWxsaW5nIGludGVycnVwdCBoYW5kbGVyISANCj4gDQo+IGVuZCBvZiBMaW5lLiANCg0K
-VGhpcyBzb3VuZHMgbGlrZSB0aGUgb2xkIHdyb25nLWZsYXNoLW1lbW9yeS1idXMtdGltaW5ncyBw
-cm9ibGVtIHdpdGgNCnNtYzkxeC4gVHJ5IGEgbW9yZSByZWNlbnQga2VybmVsIGFuZCBpdCBzaG91
-bGQgZ28gYXdheS4NCg0KVG9ueQ0KDQoNCg0KDQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCk5BVkVSIDo6IEtv
-cmVhJ3MgTm8uMSBwb3J0YWwgc2VydmljZQ0Kd3d3Lm5hdmVyLmNvbQ0K
+we have consulted MontaVista and  it seems that it is very costly. We are just looking for freeware 
+if any one can
+have it. Actually MontaVista  have asked to pay appx $ 42,000 for tool chain only.
 
---===============0725010036==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+BR
+chandrasheakhar
+
+----- Original Message ----- 
+From: "Komal Shah" <komal_shah802003@yahoo.com>
+To: "chandrashekhar singh" <cp_singh@faith.co.jp>; <linux-omap-open-source@linux.omap.com>
+Sent: Thursday, January 19, 2006 5:13 PM
+Subject: Re: Linux 2.4 kernel and tool chain
 
 
---===============0725010036==--
+> --- chandrashekhar singh <cp_singh@faith.co.jp> wrote:
+>
+>> Dear All,
+>>
+>> I want linux 2.4 kernel for OMAP 2420 and OMAP 730 and its cross tool
+>> chain.
+>> I'm unable to find it  with the help of google. so if some  one have
+>> it please
+>> send me your link so that i can download it.
+>
+> For OMAP2420 2.4 kernel is available from MontaVista. Please ask them.
+> I don't know about omap730.
+>
+> There is a 2420 support in our omap 2.6.x git tree, but not all drivers
+> yet available.
+>
+> ---Komal Shah
+> http://komalshah.blogspot.com/
+>
+> __________________________________________________
+> Do You Yahoo!?
+> Tired of spam?  Yahoo! Mail has the best spam protection around
+> http://mail.yahoo.com
+> 
