@@ -1,13 +1,11 @@
-From: "Kipisz, Steven" <s-kipisz2@ti.com>
-Subject: RE: configuration problem with innovator 1510 & tsc2101
-Date: Thu, 19 Jan 2006 10:28:51 -0600
-Message-ID: <99E943D7AA8E3A448619E1F809F2A2A201160E00@dlee04.ent.ti.com>
+From: Dirk Behme <dirk.behme@de.bosch.com>
+Subject: Ethernet issue in most recent git?
+Date: Thu, 19 Jan 2006 18:49:41 +0100
+Message-ID: <43CFD135.4090604@de.bosch.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,37 +15,39 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@de.bosch.com>, Mikko.Soikkala@Tietoenator.com
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-The Innovator 1510 uses an ADS7846 touch screen controller so it does
-not use the tsc2101.
+Hi,
 
-Steve Kipisz
+has anybody else problems with ethernet with 2.6.16-rc1-omap1 on OSK?
 
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Dirk
-Behme
-Sent: Thursday, January 19, 2006 10:04 AM
-To: Mikko.Soikkala@Tietoenator.com
-Cc: linux-omap-open-source@linux.omap.com
-Subject: Re: configuration problem with innovator 1510 & tsc2101
+# mount -t nfs -o nolock 192.0.0.1:/home/omap_linux/nfs /mnt/nfs
+NETDEV WATCHDOG: eth0: transmit timed out
+mount: RPC: Unable to receive; errno = No route to host
+mount: nfsmount failed: Bad file descriptor
+mount: Mounting 192.0.0.1:/home/omap_linux/nfs on /mnt/nfs failed: 
+Invalid argument
+# ifconfig
+eth0      Link encap:Ethernet  HWaddr 00:0E:99:02:02:42
+           inet addr:192.0.0.2  Bcast:192.0.0.255  Mask:255.255.255.0
+           UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+           RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+           TX packets:20 errors:1 dropped:0 overruns:0 carrier:1
+           collisions:0 txqueuelen:1000
+           RX bytes:0 (0.0 B)  TX bytes:840 (840.0 B)
+           Interrupt:160 Base address:0x1300 DMA chan:ff
+# cat /proc/interrupts
+            CPU0
+...
+160:          1   eth0
+...
+Err:          0
 
-Mikko.Soikkala@Tietoenator.com wrote:
-> Is omap-tsc2101.c supposed to be compiled in 1510 innovator
-environment?
-
-If I remember correctly touchscreen is set to unsupported for 1510=20
-because nobody has tested it.
-
-If it is working for you and you tested it, a patch is welcome ;)
+Telnet and ping don't work as well. I imagine that I doesn't change any 
+configuration, only kernel update form git. UBoots tftpboot works quite 
+well.
 
 Regards
 
 Dirk
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
