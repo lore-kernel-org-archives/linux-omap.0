@@ -1,7 +1,8 @@
-From: "=?EUC-KR?B?Jmx0OyZxdW90O8DTsdm9xCZxdW90OyZndDs=?=" <invain@hanmail.net>
-Subject: Oops: 805 [#1] problem using kernel.2.6.10.omap1patch with NFS(RFS)
-Date: Thu, 19 Jan 2006 15:06:38 +0900 (KST)
-Message-ID: <20060119150638.HM.l000000000524Fd@invain.premium65.hanmail.net>
+From: "=?EUC-KR?B?wNOx2b3E?=" <invain@hanmail.net>
+Subject: Question - Oops: 805 [#1] problem using kernel.2.6.10.omap1patch
+	with NFS(RFS)
+Date: Thu, 19 Jan 2006 15:22:21 +0900 (KST)
+Message-ID: <20060119152221.HM.l000000000524Fh@invain.premium65.hanmail.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="euc-kr"
 Content-Transfer-Encoding: 8bit
