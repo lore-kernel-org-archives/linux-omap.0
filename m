@@ -1,12 +1,12 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Anderson Briglia <anderson.briglia@indt.org.br>
 Subject: Re: Ethernet issue in most recent git?
-Date: Thu, 19 Jan 2006 10:12:07 -0800
-Message-ID: <20060119181207.GI4425@atomide.com>
+Date: Thu, 19 Jan 2006 14:11:25 -0400
+Message-ID: <43CFD64D.2060209@indt.org.br>
 References: <43CFD135.4090604@de.bosch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 In-Reply-To: <43CFD135.4090604@de.bosch.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,15 +15,13 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: Dirk Behme <dirk.behme@de.bosch.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Dirk Behme <dirk.behme@de.bosch.com> [060119 09:55]:
+Dirk Behme wrote:
 > Hi,
 > 
 > has anybody else problems with ethernet with 2.6.16-rc1-omap1 on OSK?
@@ -32,7 +30,7 @@ Hi,
 > NETDEV WATCHDOG: eth0: transmit timed out
 > mount: RPC: Unable to receive; errno = No route to host
 > mount: nfsmount failed: Bad file descriptor
-> mount: Mounting 192.0.0.1:/home/omap_linux/nfs on /mnt/nfs failed: 
+> mount: Mounting 192.0.0.1:/home/omap_linux/nfs on /mnt/nfs failed:
 > Invalid argument
 > # ifconfig
 > eth0      Link encap:Ethernet  HWaddr 00:0E:99:02:02:42
@@ -50,11 +48,13 @@ Hi,
 > ...
 > Err:          0
 > 
-> Telnet and ping don't work as well. I imagine that I doesn't change any 
-> configuration, only kernel update form git. UBoots tftpboot works quite 
+> Telnet and ping don't work as well. I imagine that I doesn't change any
+> configuration, only kernel update form git. UBoots tftpboot works quite
 > well.
 
-Same problem here. I'd assume it's the recent "IRQ type flags" patch
-that does not work properly for omap gpio interrupts.
+I tested here and I had the same problems on H2 and OSK as well.
 
-Tony
+Regards,
+
+Anderson Briglia
+INdT - Manaus
