@@ -1,13 +1,14 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Fix warning in omapfb_main.c
-Date: Fri, 20 Jan 2006 11:03:03 -0800
-Message-ID: <20060120190303.GF4431@atomide.com>
-References: <43CD3B20.1060007@de.bosch.com>
+From: tony@atomide.com
+Subject: Re: [PATCH] keypad refresh2
+Date: Fri, 20 Jan 2006 11:19:04 -0800
+Message-ID: <20060120191904.GA6683@atomide.com>
+References: <20060117174317.89353.qmail@web32907.mail.mud.yahoo.com>
+	<20060120094006.44461.qmail@web32904.mail.mud.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <43CD3B20.1060007@de.bosch.com>
+In-Reply-To: <20060120094006.44461.qmail@web32904.mail.mud.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,36 +18,27 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@de.bosch.com>
+To: Komal Shah <komal_shah802003@yahoo.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Dirk Behme <dirk.behme@de.bosch.com> [060117 10:52]:
+* Komal Shah <komal_shah802003@yahoo.com> [060120 01:48]:
+> --- Komal Shah <komal_shah802003@yahoo.com> wrote:
+> > Tony/Juha,
+> > 
+> > Attached patch implements the review comments given by Juha.
+> > 
+> > FIXME:
+> > keypad_state and new_state max value is set to 8 right now. But I
+> > think
+> > its ok for a while.
 > 
-> ARM: OMAP: Fix warning because of changed ioctl() parameters
+> If there are no review comments, then please consider it in next set of
+> commits.
 > 
-> drivers/video/omap/omapfb_main.c:877: warning: initialization from
-> incompatible pointer type
-> 
-> Signed-off-by: Dirk Behme <dirk.behme_at_de.bosch.com>
-> 
+> Today I have rebased this keypad branch with latest git head and it
+> works without any changes.
 
-> --- ./drivers/video/omap/omapfb_main.c_orig	2006-01-17 18:58:58.037572648 +0100
-> +++ ./drivers/video/omap/omapfb_main.c	2006-01-17 19:04:15.332336512 +0100
-> @@ -743,9 +743,8 @@ EXPORT_SYMBOL(omapfb_write_first_pixel);
->   * graphics transformations, frame flipping support is provided through this
->   * interface.
->   */
-> -static int omapfb_ioctl(struct inode *inode, struct file *file,
-> -			unsigned int cmd, unsigned long arg,
-> -			struct fb_info *fbi)
-> +static int omapfb_ioctl(struct fb_info *fbi, unsigned int cmd,
-> +                        unsigned long arg)
->  {
->  	struct omapfb_device	*fbdev = (struct omapfb_device *)fbi->par;
->  	struct fb_ops		*ops = fbi->fbops;
-> 
-
-Pushing this one too.
+Nice, I'll push it today. I've s/Meneluas/Menelaus/ in the patch.
 
 Tony
