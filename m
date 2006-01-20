@@ -1,10 +1,13 @@
-From: sushant mathur <sushant.iet@gmail.com>
-Subject: ioperm on omap5912 giving error...
-Date: Fri, 20 Jan 2006 08:40:34 +0530
-Message-ID: <9c7773ab0601191910w69978464i9ad908b84d49522@mail.gmail.com>
+From: <Mikko.Soikkala@Tietoenator.com>
+Subject: RE: configuration problem with innovator 1510 & tsc2101
+Date: Fri, 20 Jan 2006 10:04:30 +0200
+Message-ID: <890E52023811004CB455C1B7C433BA101A8B31@dino.eu.tieto.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1797767720=="
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,34 +17,24 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: s-kipisz2@ti.com, dirk.behme@de.bosch.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============1797767720==
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+> -----Original Message-----
+> From: Kipisz, Steven [mailto:s-kipisz2@ti.com]
+>=20
+> The Innovator 1510 uses an ADS7846 touch screen controller so it does
+> not use the tsc2101.
 
-SGkKCgoKCgpJIGFtIHRyeWluZyB0byBkbyBzb21lIGV4cGVyaW1lbnQgb24gbXkgb21hcDU5MTIg
-b3NrIGJvYXJkCgpJIGhhdmUgd3JpdHRlbiBvbmUgdGVzdCBjYXNlIHRoYXQgaXMgZG9pbmcgaS9v
-IHJlYWQvd3JpdGUgZnJvbSB1c2VyIHNwYWNlIGJ5CnVzaW5nIGluYi9vdXRiCgoKCkJ1dCB0aGlz
-IHRlc3QgY2FzZSBpcyBnaXZpbmcgZXJyb3IgdGhlbiBJIHRyaWVkIHRvIHRyYWNlIGl0IIUgdGhl
-biBJIGZvdW5kCnRoYXQgaXQncyBmYWlsaW5nIGluIGlvcGVybSAuLgoKV2VsbCBhZnRlciBzZWVp
-bmcuLi8uLi9hcm0vaW9wZXJtLmMgSSBnb3QgdG8ga25vdyBpbiBwbGF0Zm9ybSBzdHJ1Y3R1cmUK
-YXJyYXkgIlRJLW9zayIgaXMgbm90IHN1cHBvcnRlZAoKU28gSSB3YW50IHRvIGtub3cgd2hldGhl
-ciBpb3Blcm0gaXMgc3VwcG9ydGVkIGZvciBvbWFwNTkxMiBvciBub3Qgb3IgaXQgaXMKdXNpbmcg
-c3lzY3RsIG90IHJlYWRsaW5rIHRvIGluaXRpYWxpemUgdGhlIEkvTwoKSWYgdGhhdCBpcyBub3Qg
-c3VwcG9ydGVkIHRoZW4gd2hhdCBpcyB0aGUgd2F5IG9mIGRvaW5nIEkvTyBmcm9tIHVzZXIgc3Bh
-Y2UghQoKQW5kIE9uZSBNb3JlIHRoaW5nCgpXaGF0IGFsbCBhcmUgdGhlIHBvcnRzIHRoYXQgSSBj
-YW4gdGVzdCB3aXRoIGRvaW5nIHVzZXIgc3BhY2UgcG9ydCBhY2Nlc3NpbmcKCkFuZCBmcm9tIHdo
-ZXJlIEkgY2FuIGdldCB0aGUgYmFzZSBhZGRyZXNzIGZvciB0aG9zZSBwb3J0cyBvbiBvbWFwNTkx
-Mi1vc2sKYm9hcmQKCiBPbmUgbW9yZSB0aGluZyBzeXNjdGwgY2FsbCBpcyBnaXZpbmcgRU5PREVW
-IGlzIHRoZXJlIGFueSBvdGhlciB3YXkgdG8gbWFrZQppdCB3b3JrCgpTdXNoYW50Cg==
---===============1797767720==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+So, the actual problem is in ./drivers/input/touchscreen/Kconfig.
+TOUCHSCREEN_OMAP shouldn't select the TSC2101 when CONFIG_ARCH_OMAP15XX
+is set. Can we use=20
 
+        select OMAP_TSC2101 if ( MACH_OMAP_H2 || MACH_OMAP_H3 )
 
---===============1797767720==--
+As it is done in ./sound/oss/Kconfig or should this include some other
+platforms?
+
+Thanks,
+Mikko
