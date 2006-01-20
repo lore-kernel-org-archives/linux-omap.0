@@ -1,15 +1,10 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Re: Help me. Oops: 805 [#1]err using kernel.2.6.10.omap1patch
-	with NFS(RFS)
-Date: Thu, 19 Jan 2006 17:10:00 -0800
-Message-ID: <20060120011000.GV4425@atomide.com>
-References: <43D03607.000001.29461@naver892>
+From: sushant mathur <sushant.iet@gmail.com>
+Subject: ioperm on omap5912 giving error...
+Date: Fri, 20 Jan 2006 08:40:34 +0530
+Message-ID: <9c7773ab0601191910w69978464i9ad908b84d49522@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <43D03607.000001.29461@naver892>
+Content-Type: multipart/mixed; boundary="===============1797767720=="
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,42 +12,36 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: =?utf-8?B?IuyehOq3vOyLnSI=?= <invain@naver.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* "=EC=9E=84=EA=B7=BC=EC=8B=9D" <invain@naver.com> [060119 17:07]:
->=20
-> Thank you for offering you patch file. But, I tried thus patch work alr=
-eady for solve this problem.
-> In the long run , Although I adjusted patch to smc91x.c file, booting s=
-till is failed with nfs RFS.
-> I am poor knowledge about device dirver. If possible, I need technique =
-of veteran engineer.
->=20
-> P.S: When i send packet using nmap tool from host(192.168.0.2) to targe=
-t(192.168.0.10) ,
-> Below message appeared on minicom console.
-> -------------------------------------------------------
-> eth0: bad memory timings: rxlen 0 status 507f
-> eth0: bad memory timings: rxlen 0 status 407f
-> -------------------------------------------------------
+--===============1797767720==
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-See what board-osk.c does for EMIFS:
+SGkKCgoKCgpJIGFtIHRyeWluZyB0byBkbyBzb21lIGV4cGVyaW1lbnQgb24gbXkgb21hcDU5MTIg
+b3NrIGJvYXJkCgpJIGhhdmUgd3JpdHRlbiBvbmUgdGVzdCBjYXNlIHRoYXQgaXMgZG9pbmcgaS9v
+IHJlYWQvd3JpdGUgZnJvbSB1c2VyIHNwYWNlIGJ5CnVzaW5nIGluYi9vdXRiCgoKCkJ1dCB0aGlz
+IHRlc3QgY2FzZSBpcyBnaXZpbmcgZXJyb3IgdGhlbiBJIHRyaWVkIHRvIHRyYWNlIGl0IIUgdGhl
+biBJIGZvdW5kCnRoYXQgaXQncyBmYWlsaW5nIGluIGlvcGVybSAuLgoKV2VsbCBhZnRlciBzZWVp
+bmcuLi8uLi9hcm0vaW9wZXJtLmMgSSBnb3QgdG8ga25vdyBpbiBwbGF0Zm9ybSBzdHJ1Y3R1cmUK
+YXJyYXkgIlRJLW9zayIgaXMgbm90IHN1cHBvcnRlZAoKU28gSSB3YW50IHRvIGtub3cgd2hldGhl
+ciBpb3Blcm0gaXMgc3VwcG9ydGVkIGZvciBvbWFwNTkxMiBvciBub3Qgb3IgaXQgaXMKdXNpbmcg
+c3lzY3RsIG90IHJlYWRsaW5rIHRvIGluaXRpYWxpemUgdGhlIEkvTwoKSWYgdGhhdCBpcyBub3Qg
+c3VwcG9ydGVkIHRoZW4gd2hhdCBpcyB0aGUgd2F5IG9mIGRvaW5nIEkvTyBmcm9tIHVzZXIgc3Bh
+Y2UghQoKQW5kIE9uZSBNb3JlIHRoaW5nCgpXaGF0IGFsbCBhcmUgdGhlIHBvcnRzIHRoYXQgSSBj
+YW4gdGVzdCB3aXRoIGRvaW5nIHVzZXIgc3BhY2UgcG9ydCBhY2Nlc3NpbmcKCkFuZCBmcm9tIHdo
+ZXJlIEkgY2FuIGdldCB0aGUgYmFzZSBhZGRyZXNzIGZvciB0aG9zZSBwb3J0cyBvbiBvbWFwNTkx
+Mi1vc2sKYm9hcmQKCiBPbmUgbW9yZSB0aGluZyBzeXNjdGwgY2FsbCBpcyBnaXZpbmcgRU5PREVW
+IGlzIHRoZXJlIGFueSBvdGhlciB3YXkgdG8gbWFrZQppdCB3b3JrCgpTdXNoYW50Cg==
+--===============1797767720==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-static void __init osk_init_smc91x(void)
-{
-        if ((omap_request_gpio(0)) < 0) {
-                printk("Error requesting gpio 0 for smc91x irq\n");
-                return;
-        }
 
-        /* Check EMIFS wait states to fix errors with SMC_GET_PKT_HDR */
-        EMIFS_CCS(1) |=3D 0x3;
-}
-
-Regards,
-
-Tony
+--===============1797767720==--
