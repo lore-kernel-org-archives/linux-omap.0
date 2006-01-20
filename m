@@ -1,15 +1,14 @@
-From: tony@atomide.com
-Subject: Re: [PATCH] Palm TE Touchscreen and fixes
-Date: Fri, 20 Jan 2006 11:53:52 -0800
-Message-ID: <20060120195352.GB6683@atomide.com>
-References: <fb249edb0601141306o6eb43a9o@mail.gmail.com>
-	<20060115201949.GF5905@atomide.com>
-	<fb249edb0601161523q70fc0ba1n@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] keypad: platform_data and 24xx support -exp
+Date: Fri, 20 Jan 2006 15:02:57 -0800
+Message-ID: <20060120230257.GC6683@atomide.com>
+References: <20051210130228.91620.qmail@web32905.mail.mud.yahoo.com>
+	<20060114003728.GJ5499@atomide.com> <43C85C21.6030202@cc.jyu.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <fb249edb0601161523q70fc0ba1n@mail.gmail.com>
+In-Reply-To: <43C85C21.6030202@cc.jyu.fi>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,47 +16,36 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: andrzej zaborowski <balrogg@gmail.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: lamikr <lamikr@cc.jyu.fi>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* andrzej zaborowski <balrogg@gmail.com> [060116 15:23]:
-> Hi there,
-> 
-> > Regarding changes to clock.[ch], we should have CLOCK_IN_OMAP1510 and
-> > CLOCK_IN_OMAP3XX separate. At least the DSP clocks should not be on 310
-> > because it does not have a DSP AFAIK. They may be also other clocks that
-> > are not on 310.
-> >
-> > Could you please redo the clock.[ch] patch so it adds CLOCK_IN_OMAP3XX,
-> > and masks it only for the clocks you think you have on 310?
-> >
-> > Or if you don't know which clocks are on both 310 and 1510, you could
-> > just leave out DSP clocks for now, and enable all other 1510 clocks
-> > also for 310.
-> 
-> Indeed, I don't know which clocks are there and I don't know if the
-> board has a DSP or not. There is no real documentation for OMAP310
-> publicly availiable. The product page
-> (http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=11997&path=templatedata/cm/product/data/omap_310)
-> doesn't mention DSP, except the line
-> "Digital Phase-Locked Loop (DPLL) for MPU/DSP/TC Clocking Control",
-> however it is said that OMAP310 is similar to OMAP5910
-> (http://focus.ti.com/docs/prod/folders/print/omap5910.html) which is
-> fully documented and this one definitely has a DSP.
-> After disabling the DSP related clocks and the DSP initialisation,
-> McBSP fails to initialise with the message: "mcbsp: could not acquire
-> dsp_ck handle", nevertheless the kernel still boots and everything
-> works fine. (It feels bad not knowing what's inside your computer.)
-> I'm attaching the same patch but with CLOCK_IN_OMAP1510 and
-> CLOCK_IN_OMAP310 separate and everything DSP-related turned off.
+Hi Mika,
 
-OK, I've pushed linux-palmte-errors.patch in three separate patches.
-Where did find out the mclk for 15xx entry, BTW? Just trying out the
-bits?
+* lamikr <lamikr@cc.jyu.fi> [060113 17:57]:
+> Has anybody needed a joypad driver for the omap-boards? 
+> I have made changes to keypad driver so that it will support h6300 joypad ok, but I think my approach is a little bit hackish.
+> The iPAQ h6300 joypad has 5 sensors that are located in following diagonal locations
+> 
+> 	UL - Up/Left
+> 	DL - Down/Left
+> 	DR - Down/Right
+> 	UR - Up/Right
+> 	CT - Center
+> 
+> If I press the key-pad for example to North, the joypad will generate 3 keydown events. (CT, UL and UR)
+> Same logic applies to all 4 main directions both when the key is pressed down or released.
+> Therefore I have put the driver to listen the real sensor events, but instead of sending them to userspace
+> I will calculate a "virtual" key event (up, right, down or left) and send that to the userspace.
+> 
+> I am not yet proposing this patch to be applied to omap kernel, but would anyway like to hear
+> some suggestions how to handle this kind of situation.
 
-Regards,
+Maybe you could update it now against the current git tree?
+
+Now that all the key mappings are done in board-*.c files it should be
+easy to add support for h6300 too.
 
 Tony
