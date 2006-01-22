@@ -1,11 +1,13 @@
-From: Dirk Behme <dirk.behme@de.bosch.com>
-Subject: OSK touchscreen broken
-Date: Sun, 22 Jan 2006 17:26:23 +0100
-Message-ID: <43D3B22F.5050003@de.bosch.com>
+From: Juha =?iso-8859-1?B?WXJq9mzk?= <juha.yrjola@nokia.com>
+Subject: Re: [PATCH] keypad refresh2
+Date: Mon, 23 Jan 2006 00:12:51 +0200
+Message-ID: <20060122221251.GA1068@two.research.nokia.com>
+References: <20060117174317.89353.qmail@web32907.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <20060117174317.89353.qmail@web32907.mail.mud.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,28 +15,21 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: ext Komal Shah <komal_shah802003@yahoo.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Tue, Jan 17, 2006 at 09:43:16AM -0800, ext Komal Shah wrote:
 
-in recent git the OSK touchscreen is broken. Seems that we didn't get 
-any interrupts. Does touchscreen work on other boards?
+> +	if (cpu_is_omap24xx() && omap_has_menelaus()) {
+> +		row_gpios[5] = 0;
+> +		col_gpios[2] = 15;
+> +		col_gpios[6] = 18;
+> +	}
 
-# ts_calibrate
-xres = 240, yres = 320
+What's this about?  What does the keypad have to do with Menelaus?
 
--> nothing happens if touching the screen, CTRL-C stops this
-# cat /proc/interrupts
-            CPU0
-...
-164:          0   omap_ts
-...
-
-GPIO IRQT patch is applied. Any other ideas?
-
-Thanks
-
-Dirk
+Cheers,
+Juha
