@@ -1,11 +1,13 @@
-From: Paul Mundt <paul.mundt@nokia.com>
-Subject: [PATCH] ARM: OMAP: Trivial warning fixups.
-Date: Mon, 23 Jan 2006 16:13:42 +0200
-Message-ID: <20060123141342.GB25124@nokia.com>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: Re: [PATCH] keypad refresh2
+Date: Mon, 23 Jan 2006 06:43:19 -0800 (PST)
+Message-ID: <20060123144319.89522.qmail@web32910.mail.mud.yahoo.com>
+References: <20060122221251.GA1068@two.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+In-Reply-To: <20060122221251.GA1068@two.research.nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,55 +17,30 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Bogus type for vfree() in __ioremap_pfn() (should probably use
-remove_vm_area() anyways), and some type mismatches in the OMAP MMC
-driver.
+--- Juha Yrj=F6l=E4 <juha.yrjola@nokia.com> wrote:
 
-Signed-off-by: Paul Mundt <paul.mundt@nokia.com>
+> On Tue, Jan 17, 2006 at 09:43:16AM -0800, ext Komal Shah wrote:
+>=20
+> > +	if (cpu_is_omap24xx() && omap_has_menelaus()) {
+> > +		row_gpios[5] =3D 0;
+> > +		col_gpios[2] =3D 15;
+> > +		col_gpios[6] =3D 18;
+> > +	}
+>=20
+> What's this about?  What does the keypad have to do with Menelaus?
 
----
+The first H4 board came out from TI was not having Menelaus chip. And
+gpio signals were changed in the H4 EVM came out with Menelaus for
+keypad. So only way to differentiate between the two was Menelaus chip
+on the new board.
 
- arch/arm/mm/ioremap.c |    2 +-
- drivers/mmc/omap.c    |    5 +++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+---Komal Shah
+http://komalshah.blogspot.com/
 
-dfe121170f696b2557e3c43a5aceffa66b739c9c
-diff --git a/arch/arm/mm/ioremap.c b/arch/arm/mm/ioremap.c
-index de3ce1e..c45bfea 100644
---- a/arch/arm/mm/ioremap.c
-+++ b/arch/arm/mm/ioremap.c
-@@ -142,7 +142,7 @@ __ioremap_pfn(unsigned long pfn, unsigne
-  		return NULL;
-  	addr = (unsigned long)area->addr;
-  	if (remap_area_pages(addr, pfn, size, flags)) {
-- 		vfree(addr);
-+		vfree((void *)addr);
-  		return NULL;
-  	}
-  	return (void __iomem *) (offset + (char *)addr);
-diff --git a/drivers/mmc/omap.c b/drivers/mmc/omap.c
-index f76efee..1eb3a58 100644
---- a/drivers/mmc/omap.c
-+++ b/drivers/mmc/omap.c
-@@ -678,7 +678,7 @@ mmc_omap_prepare_dma(struct mmc_omap_hos
- 	int dst_port = 0;
- 	int sync_dev = 0;
- 
--	data_addr = io_v2p((void __force *) host->base) + OMAP_MMC_REG_DATA;
-+	data_addr = (unsigned long)io_v2p((void __force *) host->base) + OMAP_MMC_REG_DATA;
- 	frame = 1 << data->blksz_bits;
- 	count = (u32)sg_dma_len(sg);
- 
-@@ -1306,7 +1306,8 @@ static int __init mmc_omap_probe(struct 
- 	}
- 
- 	if (omap_has_menelaus())
--		menelaus_mmc_register(mmc_omap_switch_callback, &host);
-+		menelaus_mmc_register(mmc_omap_switch_callback,
-+				      (unsigned long)&host);
- 
- no_switch:
- 	return 0;
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around=20
+http://mail.yahoo.com=20
