@@ -1,16 +1,13 @@
-From: =?ISO-8859-1?Q?Lu=EDs_Cargnini?= <lvcargnini@gmail.com>
-Subject: Re: updated makefile for git tree.
-Date: Mon, 23 Jan 2006 13:39:27 -0200
-Message-ID: <ae36f8040601230739r44327061n@mail.gmail.com>
-References: <AcYcjrtkwc/hS//oTCeHngmsOfZ0ow==>
-	<EA12F909C0431D458B9D18A176BEE4A503EF7360@dlee02.ent.ti.com>
-Reply-To: lvcargnini@ieee.org
+From: Anderson Briglia <anderson.briglia@indt.org.br>
+Subject: Re: tollchain and kernel source
+Date: Mon, 23 Jan 2006 12:26:49 -0400
+Message-ID: <43D503C9.6020907@indt.org.br>
+References: <ae36f8040601230447g6af145f3k@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A503EF7360@dlee02.ent.ti.com>
-Content-Disposition: inline
+In-Reply-To: <ae36f8040601230447g6af145f3k@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,29 +17,26 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: lvcargnini@ieee.org
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-where i found this source tree ??
+Hi Lu=EDs,
 
-On 18/01/06, Woodruff, Richard <r-woodruff2@ti.com> wrote:
-> Tony,
->
-> I see you didn't fill in the CROSS_COMPILE when you updated the Makefile
-> to 2.6.16-rc1.  Previously you have set it to arm-linux- .
->
-> Regards,
-> Richard W.
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
+I guess you can find some useful information at this link: http://www.mur=
+u.com/linux/omap/
+Good luck :)
 
+Anderson Briglia
+INdT - Manaus
 
---
-Thanks && Regards
-Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
-IEEE Member
-Mastering Degree student @ PUC-RS Electrical Engineer Faculty
+Lu=EDs Cargnini wrote:
+> Hi i've downloaded the binutils,gcc, and Kernel linux source and
+> started to create a tollchain for arm. But I in doubt about how to
+> create my toolchain for omap from scratch and what source of kernel i
+> must use ? AN where to to found the source tree to donwload the latest
+> kernel source tree.
+> Please i'm starting to develop for omap any new information will be wel=
+come.
+>=20
+> --
