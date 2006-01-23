@@ -1,10 +1,13 @@
-From: Olav Kongas <ok@artecdesign.ee>
-Subject: removal of spinlock from dma.c?
-Date: Mon, 23 Jan 2006 14:00:19 +0200 (EET)
-Message-ID: <Pine.LNX.4.63.0601231243150.15249@pcy.artec.ee>
+From: =?ISO-8859-1?Q?Lu=EDs_Cargnini?= <lvcargnini@gmail.com>
+Subject: tollchain and kernel source
+Date: Mon, 23 Jan 2006 10:47:10 -0200
+Message-ID: <ae36f8040601230447g6af145f3k@mail.gmail.com>
+Reply-To: lvcargnini@ieee.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,14 +17,19 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi i've downloaded the binutils,gcc, and Kernel linux source and
+started to create a tollchain for arm. But I in doubt about how to
+create my toolchain for omap from scratch and what source of kernel i
+must use ? AN where to to found the source tree to donwload the latest
+kernel source tree.
+Please i'm starting to develop for omap any new information will be welcome=
+.
 
-In /arch/arm/plat-omap/dma.c, the structure lcd_dma contains 
-a spinlock. It seems that the lock is used to only guard for 
-the .reserved field in the same structure. Would the same be 
-achieved by making .reserved atomic and removing spinlock?
-
-Olav
+--
+Thanks && Regards
+Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
+IEEE Member
+Mastering Degree student @ PUC-RS Electrical Engineer Faculty
