@@ -1,16 +1,15 @@
-From: =?ISO-8859-1?Q?Lu=EDs_Cargnini?= <lvcargnini@gmail.com>
-Subject: Re: tollchain and kernel source
-Date: Mon, 23 Jan 2006 14:47:55 -0200
-Message-ID: <ae36f8040601230847k351b7fc6m@mail.gmail.com>
-References: <ae36f8040601230447g6af145f3k@mail.gmail.com>
-	<43D503C9.6020907@indt.org.br>
-Reply-To: lvcargnini@ieee.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] keypad refresh2
+Date: Mon, 23 Jan 2006 09:03:47 -0800
+Message-ID: <20060123170347.GB6263@atomide.com>
+References: <20060122221251.GA1068@two.research.nokia.com>
+	<20060123144319.89522.qmail@web32910.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <43D503C9.6020907@indt.org.br>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
+In-Reply-To: <20060123144319.89522.qmail@web32910.mail.mud.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,38 +17,30 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Anderson Briglia <anderson.briglia@indt.org.br>
-Cc: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Komal Shah <komal_shah802003@yahoo.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-thanks
-On 23/01/06, Anderson Briglia <anderson.briglia@indt.org.br> wrote:
-> Hi Lu=EDs,
->
-> I guess you can find some useful information at this link: http://www.mur=
-u.com/linux/omap/
-> Good luck :)
->
-> Anderson Briglia
-> INdT - Manaus
->
-> Lu=EDs Cargnini wrote:
-> > Hi i've downloaded the binutils,gcc, and Kernel linux source and
-> > started to create a tollchain for arm. But I in doubt about how to
-> > create my toolchain for omap from scratch and what source of kernel i
-> > must use ? AN where to to found the source tree to donwload the latest
-> > kernel source tree.
-> > Please i'm starting to develop for omap any new information will be wel=
-come.
-> >
-> > --
->
+* Komal Shah <komal_shah802003@yahoo.com> [060123 06:44]:
+> --- Juha Yrj=F6l=E4 <juha.yrjola@nokia.com> wrote:
+>=20
+> > On Tue, Jan 17, 2006 at 09:43:16AM -0800, ext Komal Shah wrote:
+> >=20
+> > > +	if (cpu_is_omap24xx() && omap_has_menelaus()) {
+> > > +		row_gpios[5] =3D 0;
+> > > +		col_gpios[2] =3D 15;
+> > > +		col_gpios[6] =3D 18;
+> > > +	}
+> >=20
+> > What's this about?  What does the keypad have to do with Menelaus?
+>=20
+> The first H4 board came out from TI was not having Menelaus chip. And
+> gpio signals were changed in the H4 EVM came out with Menelaus for
+> keypad. So only way to differentiate between the two was Menelaus chip
+> on the new board.
 
+How about just adding && machine_is_omap_h4() there too?
 
---
-Thanks && Regards
-Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
-IEEE Member
-Mastering Degree student @ PUC-RS Electrical Engineer Faculty
+Tony
