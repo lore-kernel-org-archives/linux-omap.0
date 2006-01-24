@@ -1,17 +1,11 @@
-From: Vineet Tuli <vineet@cybernetra.com>
-Subject: Re: tollchain and kernel source
-Date: Tue, 24 Jan 2006 17:08:27 +0530
-Message-ID: <1138102708.2500.2.camel@meenakshi.linux>
-References: <ae36f8040601230447g6af145f3k@mail.gmail.com>
-	<43D503C9.6020907@indt.org.br>
-	<ae36f8040601230847k351b7fc6m@mail.gmail.com>
-	<1138098390.2500.1.camel@meenakshi.linux>
-	<ae36f8040601240330x6af0ed66i@mail.gmail.com>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: [PATCH 1/2] i2c-omap: Fix i2c_xfer for 1 msg
+Date: Tue, 24 Jan 2006 13:46:54 +0100
+Message-ID: <20060124124654.GA21123@orphique>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <ae36f8040601240330x6af0ed66i@mail.gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,74 +13,27 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: lvcargnini@ieee.org
-Cc: OMAP <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Yes u can use the git kernel.
+omap_i2c_xfer is supposed to return number of messages successfuly
+transfered. Remove bogus condition which causes it to fail when
+transfering one message.
 
-On Tue, 2006-01-24 at 09:30 -0200, Lu=C3=ADs Cargnini wrote:
-> ok but the kernel step i must following what he says or i could make
-> an modification and use the git of omap ? downloaded using git ? the
-> official source tree ?
->=20
-> On 24/01/06, Vineet Tuli <vineet@cybernetra.com> wrote:
-> > Please check the following post on building a gcc-4.0 toolchain from
-> > scratch:
-> >
-> > http://linux.omap.com/pipermail/linux-omap-open-source/2005-November/=
-005665.html
-> >
-> > Thanks
-> >
-> > Vineet Tuli
-> >
-> > On Mon, 2006-01-23 at 14:47 -0200, Lu=C3=ADs Cargnini wrote:
-> > > thanks
-> > > On 23/01/06, Anderson Briglia <anderson.briglia@indt.org.br> wrote:
-> > > > Hi Lu=C3=ADs,
-> > > >
-> > > > I guess you can find some useful information at this link: http:/=
-/www.muru.com/linux/omap/
-> > > > Good luck :)
-> > > >
-> > > > Anderson Briglia
-> > > > INdT - Manaus
-> > > >
-> > > > Lu=C3=ADs Cargnini wrote:
-> > > > > Hi i've downloaded the binutils,gcc, and Kernel linux source an=
-d
-> > > > > started to create a tollchain for arm. But I in doubt about how=
- to
-> > > > > create my toolchain for omap from scratch and what source of ke=
-rnel i
-> > > > > must use ? AN where to to found the source tree to donwload the=
- latest
-> > > > > kernel source tree.
-> > > > > Please i'm starting to develop for omap any new information wil=
-l be welcome.
-> > > > >
-> > > > > --
-> > > >
-> > >
-> > >
-> > > --
-> > > Thanks && Regards
-> > > Msc. Bsc. Lu=C3=ADs Vit=C3=B3rio Cargnini
-> > > IEEE Member
-> > > Mastering Degree student @ PUC-RS Electrical Engineer Faculty
-> > > _______________________________________________
-> > > Linux-omap-open-source mailing list
-> > > Linux-omap-open-source@linux.omap.com
-> > > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> >
-> >
->=20
->=20
-> --
-> Thanks && Regards
-> Msc. Bsc. Lu=C3=ADs Vit=C3=B3rio Cargnini
-> IEEE Member
-> Mastering Degree student @ PUC-RS Electrical Engineer Faculty
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index fb41255..b021073 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -403,7 +403,7 @@ omap_i2c_xfer(struct i2c_adapter *adap, 
+ 			break;
+ 	}
+ 
+-	if (r == 0 && num > 1)
++	if (r == 0)
+ 		r = num;
+ out:
+ 	omap_i2c_disable_clocks(dev);
