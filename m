@@ -1,15 +1,13 @@
-From: Juha =?iso-8859-1?B?WXJq9mzk?= <juha.yrjola@nokia.com>
-Subject: Re: [PATCH] keypad refresh2
-Date: Tue, 24 Jan 2006 23:26:36 +0200
-Message-ID: <20060124212636.GA7275@two.research.nokia.com>
-References: <20060122221251.GA1068@two.research.nokia.com>
-	<20060123144319.89522.qmail@web32910.mail.mud.yahoo.com>
-	<20060123170347.GB6263@atomide.com>
+From: Kevin Hilman <khilman@mvista.com>
+Subject: Re: low-level debug output using CCS
+Date: Tue, 24 Jan 2006 15:03:09 -0800
+Message-ID: <43D6B22D.3060104@mvista.com>
+References: <43D68822.6030505@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20060123170347.GB6263@atomide.com>
+In-Reply-To: <43D68822.6030505@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,22 +17,30 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 23, 2006 at 09:03:47AM -0800, ext Tony Lindgren wrote:
+After a little more digging, it turns out this is a CCS-feature on the 
+host-side, not on the target.  CCS does in TI-toolchain generated 
+binaries by setting a breakpoint in the low-level print function and 
+then dumping the output to a window.
 
-> > The first H4 board came out from TI was not having Menelaus chip. And
-> > gpio signals were changed in the H4 EVM came out with Menelaus for
-> > keypad. So only way to differentiate between the two was Menelaus chip
-> > on the new board.
+Kevin
+
+Kevin Hilman wrote:
+> The current kernels have support for low-level debug using the ARM 
+> EmbeddedICE DCC channel.
 > 
-> How about just adding && machine_is_omap_h4() there too?
-
-This check should be performed in the board-specific code, i.e. in
-board-h4.c.  The data passed to the keyboard driver should be modified
-there.
-
-Cheers,
-Juha
+> Does anyone know if it's possible to do something similar using the TI 
+> CCS tool?  Often for new TI boards, CCS is the only JTAG tool that works 
+> so for early bringup this could be useful.
+> 
+> If someone can point me in the right direction WRT CCS, I'd be happy to 
+> make a patch.
+> 
+> Thanks,
+> Kevin
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
