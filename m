@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Trivial warning fixups.
-Date: Tue, 24 Jan 2006 20:07:18 -0800
-Message-ID: <20060125040718.GE4966@atomide.com>
-References: <20060123141342.GB25124@nokia.com>
+Subject: Re: [PATCH] i2c: Fix bogus endmenu reference for GPIOEXPANDER_OMAP.
+Date: Tue, 24 Jan 2006 20:07:34 -0800
+Message-ID: <20060125040734.GF4966@atomide.com>
+References: <20060123141600.GC25124@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20060123141342.GB25124@nokia.com>
+In-Reply-To: <20060123141600.GC25124@nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,34 +21,29 @@ To: Paul Mundt <paul.mundt@nokia.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Paul Mundt <paul.mundt@nokia.com> [060123 06:21]:
-> Bogus type for vfree() in __ioremap_pfn() (should probably use
-> remove_vm_area() anyways), and some type mismatches in the OMAP MMC
-> driver.
-> 
+* Paul Mundt <paul.mundt@nokia.com> [060123 06:16]:
 > Signed-off-by: Paul Mundt <paul.mundt@nokia.com>
 > 
 > ---
 > 
->  arch/arm/mm/ioremap.c |    2 +-
->  drivers/mmc/omap.c    |    5 +++--
->  2 files changed, 4 insertions(+), 3 deletions(-)
+>  drivers/i2c/chips/Kconfig |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> dfe121170f696b2557e3c43a5aceffa66b739c9c
-> diff --git a/arch/arm/mm/ioremap.c b/arch/arm/mm/ioremap.c
-> index de3ce1e..c45bfea 100644
-> --- a/arch/arm/mm/ioremap.c
-> +++ b/arch/arm/mm/ioremap.c
-> @@ -142,7 +142,7 @@ __ioremap_pfn(unsigned long pfn, unsigne
->   		return NULL;
->   	addr = (unsigned long)area->addr;
->   	if (remap_area_pages(addr, pfn, size, flags)) {
-> - 		vfree(addr);
-> +		vfree((void *)addr);
->   		return NULL;
->   	}
->   	return (void __iomem *) (offset + (char *)addr);
+> 180618404fb979f540dc98344b7914747b94ec22
+> diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
+> index abc8d29..946cc21 100644
+> --- a/drivers/i2c/chips/Kconfig
+> +++ b/drivers/i2c/chips/Kconfig
+> @@ -114,7 +114,7 @@ config GPIOEXPANDER_OMAP
+>  	depends on I2C && (ARCH_OMAP16XX || ARCH_OMAP24XX)
+>  	help
+>  	  If you say yes here you get support for I/O expander calls
+> -	  to configure IrDA, Camera and audio devices endmenu
+> +	  to configure IrDA, Camera and audio devices.
+>  
+>  config MENELAUS
+>  	bool "Menelaus PM chip"
 
-Pushed. Do you want to send the chunk above to RMK?
+Pushed, thanks.
 
 Tony
