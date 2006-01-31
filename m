@@ -1,124 +1,226 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [patch 1/6] Add MMC password protection (lock/unlock) support V4
-Date: Tue, 31 Jan 2006 16:16:37 -0400
-Message-ID: <20060131202540.491518000@localhost.localdomain>
+Subject: [patch 2/6] Add MMC password protection (lock/unlock) support V4
+Date: Tue, 31 Jan 2006 16:16:38 -0400
+Message-ID: <20060131202540.885179000@localhost.localdomain>
 References: <20060131201636.264543000@localhost.localdomain>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751465AbWAaUdn@vger.kernel.org>
-Content-Disposition: inline; filename=mmc_ignore_locked.diff
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751478AbWAaU4e@vger.kernel.org>
+Content-Disposition: inline; filename=mmc_lock_unlock.diff
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
 Cc: linux@arm.linux.org.uk, David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+lkml@arm.linux.org.uk>, "Aguiar Carlos (EXT-INdT/Manaus)" <carlos.aguiar@indt.org.br>, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizardo@indt.org.br>, Anderson Briglia <anderson.briglia@indt.org.br>
 List-Id: linux-omap@vger.kernel.org
 
-When a card is locked, only commands from the "basic" and "lock card" classes
-are accepted. To be able to use the other commands, the card must be unlocked
-first.
-
-This patch prevents the block driver from trying to run privileged class
-commands on locked MMC cards, which will fail anyway.
+Implement card lock/unlock operation, using the MMC_LOCK_UNLOCK command.
 
 Signed-off-by: Anderson Briglia <anderson.briglia@indt.org.br>
 Signed-off-by: Anderson Lizardo <anderson.lizardo@indt.org.br>
 Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-Signed-off-by: David Brownell <david-b@pacbell.net>
 
-Index: linux-omap-2.6.git/drivers/mmc/mmc_sysfs.c
+Index: linux-omap-2.6.git/drivers/mmc/mmc.c
 ===================================================================
---- linux-omap-2.6.git.orig/drivers/mmc/mmc_sysfs.c	2006-01-31 15:17:45.000000000 -0400
-+++ linux-omap-2.6.git/drivers/mmc/mmc_sysfs.c	2006-01-31 15:22:07.000000000 -0400
-@@ -16,6 +16,7 @@
+--- linux-omap-2.6.git.orig/drivers/mmc/mmc.c	2006-01-31 15:22:07.000000000 -0400
++++ linux-omap-2.6.git/drivers/mmc/mmc.c	2006-01-31 15:22:21.000000000 -0400
+@@ -4,6 +4,8 @@
+  *  Copyright (C) 2003-2004 Russell King, All Rights Reserved.
+  *  SD support Copyright (C) 2004 Ian Molton, All Rights Reserved.
+  *  SD support Copyright (C) 2005 Pierre Ossman, All Rights Reserved.
++ *  MMC password protection (C) 2005 Instituto Nokia de Tecnologia (INdT),
++ *     All Rights Reserved.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -20,6 +22,7 @@
+ #include <linux/err.h>
+ #include <asm/scatterlist.h>
+ #include <linux/scatterlist.h>
++#include <linux/key.h>
  
  #include <linux/mmc/card.h>
  #include <linux/mmc/host.h>
-+#include <linux/mmc/protocol.h>
+@@ -1011,10 +1014,14 @@ static void mmc_check_cards(struct mmc_h
+ 		cmd.flags = MMC_RSP_R1;
  
- #include "mmc.h"
- 
-@@ -69,13 +70,22 @@ static void mmc_release_card(struct devi
- }
- 
- /*
-- * This currently matches any MMC driver to any MMC card - drivers
-- * themselves make the decision whether to drive this card in their
-- * probe method.  However, we force "bad" cards to fail.
-+ * This currently matches any MMC driver to any MMC card - drivers themselves
-+ * make the decision whether to drive this card in their probe method.
-+ * However, we force "bad" cards to fail.
-+ *
-+ * We also fail for all locked cards; drivers expect to be able to do block
-+ * I/O still on probe(), which is not possible while the card is locked.
-+ * Device probing must be triggered sometime later to make the card available
-+ * to the block driver.
-  */
- static int mmc_bus_match(struct device *dev, struct device_driver *drv)
- {
- 	struct mmc_card *card = dev_to_mmc_card(dev);
-+	if (mmc_card_lockable(card) && mmc_card_locked(card)) {
-+		dev_dbg(&card->dev, "card is locked; binding is deferred\n");
-+		return 0;
-+	}
- 	return !mmc_card_bad(card);
- }
- 
-Index: linux-omap-2.6.git/include/linux/mmc/card.h
-===================================================================
---- linux-omap-2.6.git.orig/include/linux/mmc/card.h	2006-01-31 15:17:45.000000000 -0400
-+++ linux-omap-2.6.git/include/linux/mmc/card.h	2006-01-31 15:22:07.000000000 -0400
-@@ -61,6 +61,7 @@ struct mmc_card {
- #define MMC_STATE_BAD		(1<<2)		/* unrecognised device */
- #define MMC_STATE_SDCARD	(1<<3)		/* is an SD card */
- #define MMC_STATE_READONLY	(1<<4)		/* card is read-only */
-+#define MMC_STATE_LOCKED	(1<<5)		/* card is currently locked */
- 	u32			raw_cid[4];	/* raw card CID */
- 	u32			raw_csd[4];	/* raw card CSD */
- 	u32			raw_scr[2];	/* raw card SCR */
-@@ -74,12 +75,18 @@ struct mmc_card {
- #define mmc_card_bad(c)		((c)->state & MMC_STATE_BAD)
- #define mmc_card_sd(c)		((c)->state & MMC_STATE_SDCARD)
- #define mmc_card_readonly(c)	((c)->state & MMC_STATE_READONLY)
-+#define mmc_card_locked(c)	((c)->state & MMC_STATE_LOCKED)
-+#define mmc_card_clear_locked(c)	((c)->state &= ~MMC_STATE_LOCKED)
-+
-+#define mmc_card_lockable(c)    (((c)->csd.cmdclass & CCC_LOCK_CARD) && \
-+				((c)->host->caps & MMC_CAP_LOCK_UNLOCK))
- 
- #define mmc_card_set_present(c)	((c)->state |= MMC_STATE_PRESENT)
- #define mmc_card_set_dead(c)	((c)->state |= MMC_STATE_DEAD)
- #define mmc_card_set_bad(c)	((c)->state |= MMC_STATE_BAD)
- #define mmc_card_set_sd(c)	((c)->state |= MMC_STATE_SDCARD)
- #define mmc_card_set_readonly(c) ((c)->state |= MMC_STATE_READONLY)
-+#define mmc_card_set_locked(c)	((c)->state |= MMC_STATE_LOCKED)
- 
- #define mmc_card_name(c)	((c)->cid.prod_name)
- #define mmc_card_id(c)		((c)->dev.bus_id)
-Index: linux-omap-2.6.git/include/linux/mmc/host.h
-===================================================================
---- linux-omap-2.6.git.orig/include/linux/mmc/host.h	2006-01-31 15:17:45.000000000 -0400
-+++ linux-omap-2.6.git/include/linux/mmc/host.h	2006-01-31 15:22:07.000000000 -0400
-@@ -85,6 +85,8 @@ struct mmc_host {
- 	unsigned long		caps;		/* Host capabilities */
- 
- #define MMC_CAP_4_BIT_DATA	(1 << 0)	/* Can the host do 4 bit transfers */
-+#define MMC_CAP_LOCK_UNLOCK	(1 << 1)	/* Host password support capability */
-+
- 
- 	/* host specific block data */
- 	unsigned int		max_seg_size;	/* see blk_queue_max_segment_size */
-Index: linux-omap-2.6.git/drivers/mmc/mmc.c
-===================================================================
---- linux-omap-2.6.git.orig/drivers/mmc/mmc.c	2006-01-31 15:17:45.000000000 -0400
-+++ linux-omap-2.6.git/drivers/mmc/mmc.c	2006-01-31 15:22:07.000000000 -0400
-@@ -828,6 +828,11 @@ static void mmc_discover_cards(struct mm
- 			list_add(&card->node, &host->cards);
- 		}
- 
+ 		err = mmc_wait_for_cmd(host, &cmd, CMD_RETRIES);
+-		if (err == MMC_ERR_NONE)
++		if (err != MMC_ERR_NONE) {
++			mmc_card_set_dead(card);
+ 			continue;
+-
+-		mmc_card_set_dead(card);
++		}
 +		if (cmd.resp[0] & R1_CARD_IS_LOCKED)
 +			mmc_card_set_locked(card);
 +		else
 +			mmc_card_clear_locked(card);
-+
- 		card->state &= ~MMC_STATE_DEAD;
+ 	}
+ }
  
- 		if (host->mode == MMC_MODE_SD) {
+@@ -1108,6 +1115,135 @@ static void mmc_setup(struct mmc_host *h
+ 		mmc_read_scrs(host);
+ }
+ 
++/* Calculate the minimal blksz_bits to hold x bytes. */
++static inline int blksz_bits(unsigned x)
++{
++	return fls(x-1);
++}
++
++/**
++ *	mmc_lock_unlock - send LOCK_UNLOCK command to a specific card.
++ *	@card: card to which the LOCK_UNLOCK command should be sent
++ *	@key: key containing the MMC password
++ *	@mode: LOCK_UNLOCK mode
++ *
++ */
++int mmc_lock_unlock(struct mmc_card *card, struct key *key, int mode)
++{
++	struct mmc_request mrq;
++	struct mmc_command cmd;
++	struct mmc_data data;
++	struct scatterlist sg;
++	struct mmc_key_payload *mpayload;
++	unsigned long erase_timeout;
++	int err, data_size;
++	u8 *data_buf;
++
++	mpayload = NULL;
++	data_size = 1;
++	if (mode != MMC_LOCK_MODE_ERASE) {
++		mpayload = rcu_dereference(key->payload.data);
++		data_size = 2 + mpayload->datalen;
++	}
++
++	data_buf = kmalloc(data_size, GFP_KERNEL);
++	if (!data_buf)
++		return -ENOMEM;
++	memset(data_buf, 0, data_size);
++
++	data_buf[0] = mode;
++	if (mode != MMC_LOCK_MODE_ERASE) {
++		data_buf[1] = mpayload->datalen;
++		memcpy(data_buf + 2, mpayload->data, mpayload->datalen);
++	}
++
++	err = mmc_card_claim_host(card);
++	if (err != MMC_ERR_NONE) {
++		mmc_card_set_dead(card);
++		goto out;
++	}
++
++	memset(&cmd, 0, sizeof(struct mmc_command));
++
++	cmd.opcode = MMC_SET_BLOCKLEN;
++	cmd.arg = data_size;
++	cmd.flags = MMC_RSP_R1;
++	err = mmc_wait_for_cmd(card->host, &cmd, CMD_RETRIES);
++	if (err != MMC_ERR_NONE) {
++		mmc_card_set_dead(card);
++		goto error;
++	}
++
++	memset(&cmd, 0, sizeof(struct mmc_command));
++
++	cmd.opcode = MMC_LOCK_UNLOCK;
++	cmd.arg = 0;
++	cmd.flags = MMC_RSP_R1B;
++
++	memset(&data, 0, sizeof(struct mmc_data));
++
++	data.timeout_ns = card->csd.tacc_ns * 10;
++	data.timeout_clks = card->csd.tacc_clks * 10;
++	data.blksz_bits = blksz_bits(data_size);
++	data.blocks = 1;
++	data.flags = MMC_DATA_WRITE;
++	data.sg = &sg;
++	data.sg_len = 1;
++
++	memset(&mrq, 0, sizeof(struct mmc_request));
++
++	mrq.cmd = &cmd;
++	mrq.data = &data;
++
++	sg_init_one(&sg, data_buf, data_size);
++	err = mmc_wait_for_req(card->host, &mrq);
++	if (err != MMC_ERR_NONE) {
++		if(err != MMC_ERR_INVALID)
++			mmc_card_set_dead(card);
++		goto error;
++	}
++
++	memset(&cmd, 0, sizeof(struct mmc_command));
++
++	cmd.opcode = MMC_SEND_STATUS;
++	cmd.arg = card->rca << 16;
++	cmd.flags = MMC_RSP_R1;
++
++	/* set timeout for forced erase operation to 3 min. (see MMC spec) */
++	erase_timeout = jiffies + 180 * HZ;
++	do {
++		/* we cannot use "retries" here because the
++		 * R1_LOCK_UNLOCK_FAILED bit is cleared by subsequent reads to
++		 * the status register, hiding the error condition */
++		err = mmc_wait_for_cmd(card->host, &cmd, 0);
++		if (err != MMC_ERR_NONE)
++			break;
++		/* the other modes don't need timeout checking */
++		if (mode != MMC_LOCK_MODE_ERASE)
++			continue;
++		if (time_after(jiffies, erase_timeout)) {
++			dev_dbg(&card->dev, "forced erase timed out\n");
++			err = MMC_ERR_TIMEOUT;
++			break;
++		}
++	} while (!(cmd.resp[0] & R1_READY_FOR_DATA));
++	if (cmd.resp[0] & R1_LOCK_UNLOCK_FAILED) {
++		dev_dbg(&card->dev, "LOCK_UNLOCK operation failed\n");
++		err = MMC_ERR_FAILED;
++	}
++
++error:
++	mmc_check_cards(card->host);
++	mmc_deselect_cards(card->host);
++	mmc_card_release_host(card);
++out:
++	kfree(data_buf);
++
++	return err;
++}
++
++EXPORT_SYMBOL(mmc_lock_unlock);
++
+ 
+ /**
+  *	mmc_detect_change - process change of state on a MMC socket
+Index: linux-omap-2.6.git/include/linux/mmc/card.h
+===================================================================
+--- linux-omap-2.6.git.orig/include/linux/mmc/card.h	2006-01-31 15:22:07.000000000 -0400
++++ linux-omap-2.6.git/include/linux/mmc/card.h	2006-01-31 15:22:21.000000000 -0400
+@@ -116,4 +116,8 @@ static inline int mmc_card_claim_host(st
+ 
+ #define mmc_card_release_host(c)	mmc_release_host((c)->host)
+ 
++struct key;
++
++extern int mmc_lock_unlock(struct mmc_card *card, struct key *key, int mode);
++
+ #endif
+Index: linux-omap-2.6.git/include/linux/mmc/protocol.h
+===================================================================
+--- linux-omap-2.6.git.orig/include/linux/mmc/protocol.h	2006-01-31 15:17:45.000000000 -0400
++++ linux-omap-2.6.git/include/linux/mmc/protocol.h	2006-01-31 15:22:21.000000000 -0400
+@@ -243,5 +243,13 @@ struct _mmc_csd {
+ #define SD_BUS_WIDTH_1      0
+ #define SD_BUS_WIDTH_4      2
+ 
++/*
++ * MMC_LOCK_UNLOCK modes
++ */
++#define MMC_LOCK_MODE_ERASE	(1<<3)
++#define MMC_LOCK_MODE_UNLOCK	(0<<2)
++#define MMC_LOCK_MODE_CLR_PWD	(1<<1)
++#define MMC_LOCK_MODE_SET_PWD	(1<<0)
++
+ #endif  /* MMC_MMC_PROTOCOL_H */
+ 
 
 --
