@@ -1,71 +1,188 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [patch 0/6] Add MMC password protection (lock/unlock) support V4
-Date: Tue, 31 Jan 2006 16:16:36 -0400
-Message-ID: <20060131201636.264543000@localhost.localdomain>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751456AbWAaU0S@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [patch 3/6] Add MMC password protection (lock/unlock) support V4
+Date: Tue, 31 Jan 2006 16:16:39 -0400
+Message-ID: <20060131202543.501914000@localhost.localdomain>
+References: <20060131201636.264543000@localhost.localdomain>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline; filename=mmc_key_retention.diff
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-kernel@vger.kernel.org, "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
-Cc: linux@arm.linux.org.uk, David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+lkml@arm.linux.org.uk>, "Aguiar Carlos (EXT-INdT/Manaus)" <carlos.aguiar@indt.org.br>, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizardo@indt.org.br>, Anderson Briglia <anderson.briglia@indt.org.br>
+Cc: Russell King <rmk+lkml@arm.linux.org.uk>, linux@arm.linux.org.uk, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizardo@indt.org.br>
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+Implement key retention operations.
 
-New in this version:
+Signed-off-by: Anderson Briglia <anderson.briglia@indt.org.br>
+Signed-off-by: Anderson Lizardo <anderson.lizardo@indt.org.br>
+Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 
-- The remaining MMC password operations previously executed by key
-  retention functions (change password, unlock card and assign password)
-  were implemented using the sysfs mechanism.
-- Added the host MMC lock/unlock capability support for OMAP platform.
-- Added verbose debugging messages
+Index: linux-omap-2.6.git/drivers/mmc/Kconfig
+===================================================================
+--- linux-omap-2.6.git.orig/drivers/mmc/Kconfig	2006-01-31 15:17:45.000000000 -0400
++++ linux-omap-2.6.git/drivers/mmc/Kconfig	2006-01-31 15:22:25.000000000 -0400
+@@ -19,6 +19,19 @@ config MMC_DEBUG
+ 	  This is an option for use by developers; most people should
+ 	  say N here.  This enables MMC core and driver debugging.
+ 
++config MMC_PASSWORDS
++	boolean "MMC card lock/unlock passwords (EXPERIMENTAL)"
++	depends on MMC && EXPERIMENTAL
++	select KEYS
++	help
++	  Say Y here to enable the use of passwords to lock and unlock
++	  MMC cards.  This uses the access key retention support, using
++	  request_key to look up the key associated with each card.
++
++	  For example, if you have an MMC card that was locked using
++	  Symbian OS on your cell phone, you won't be able to read it
++	  on Linux without this support.
++
+ config MMC_BLOCK
+ 	tristate "MMC block device driver"
+ 	depends on MMC
+Index: linux-omap-2.6.git/drivers/mmc/mmc.h
+===================================================================
+--- linux-omap-2.6.git.orig/drivers/mmc/mmc.h	2006-01-31 15:17:45.000000000 -0400
++++ linux-omap-2.6.git/drivers/mmc/mmc.h	2006-01-31 15:22:25.000000000 -0400
+@@ -18,4 +18,12 @@ struct mmc_host *mmc_alloc_host_sysfs(in
+ int mmc_add_host_sysfs(struct mmc_host *host);
+ void mmc_remove_host_sysfs(struct mmc_host *host);
+ void mmc_free_host_sysfs(struct mmc_host *host);
++
++/* core-internal data */
++extern struct key_type mmc_key_type;
++struct mmc_key_payload {
++	struct rcu_head	rcu;		/* RCU destructor */
++	unsigned short	datalen;	/* length of this data */
++	char		data[0];	/* actual data */
++};
+ #endif
+Index: linux-omap-2.6.git/drivers/mmc/mmc_sysfs.c
+===================================================================
+--- linux-omap-2.6.git.orig/drivers/mmc/mmc_sysfs.c	2006-01-31 15:22:07.000000000 -0400
++++ linux-omap-2.6.git/drivers/mmc/mmc_sysfs.c	2006-01-31 15:22:25.000000000 -0400
+@@ -2,6 +2,8 @@
+  *  linux/drivers/mmc/mmc_sysfs.c
+  *
+  *  Copyright (C) 2003 Russell King, All Rights Reserved.
++ *  MMC password protection (C) 2005 Instituto Nokia de Tecnologia (INdT),
++ *     All Rights Reserved.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -13,6 +15,7 @@
+ #include <linux/init.h>
+ #include <linux/device.h>
+ #include <linux/idr.h>
++#include <linux/key.h>
+ 
+ #include <linux/mmc/card.h>
+ #include <linux/mmc/host.h>
+@@ -265,6 +268,71 @@ static struct class mmc_host_class = {
+ static DEFINE_IDR(mmc_host_idr);
+ static DEFINE_SPINLOCK(mmc_host_lock);
+ 
++#ifdef  CONFIG_MMC_PASSWORDS
++
++#define MMC_KEYLEN_MAXBYTES 32
++
++int mmc_key_instantiate(struct key *key, const void *data, size_t datalen)
++{
++	struct mmc_key_payload *mpayload, *zap;
++	int ret;
++
++	zap = NULL;
++	ret = -EINVAL;
++	if (datalen <= 0 || datalen > MMC_KEYLEN_MAXBYTES || !data) {
++		DBG("Invalid data\n");
++		goto error;
++	}
++
++	ret = key_payload_reserve(key, datalen);
++	if (ret < 0) {
++		DBG("ret = %d\n", ret);
++		goto error;
++	}
++
++	ret = -ENOMEM;
++	mpayload = kmalloc(sizeof(*mpayload) + datalen, GFP_KERNEL);
++	if (!mpayload) {
++		DBG("Unable to allocate mpayload structure\n");
++		goto error;
++	}
++	mpayload->datalen = datalen;
++	memcpy(mpayload->data, data, datalen);
++
++	rcu_assign_pointer(key->payload.data, mpayload);
++
++	/* ret = 0 if there is no error */
++	ret = 0;
++
++error:
++	return ret;
++}
++
++int mmc_key_match(const struct key *key, const void *description)
++{
++	return strcmp(key->description, description) == 0;
++}
++
++/*
++ * dispose of the data dangling from the corpse of a mmc key
++ */
++void mmc_key_destroy(struct key *key)
++{
++	struct mmc_key_payload *mpayload = key->payload.data;
++
++	kfree(mpayload);
++}
++
++struct key_type mmc_key_type = {
++	.name		= "mmc",
++	.def_datalen	= MMC_KEYLEN_MAXBYTES,
++	.instantiate	= mmc_key_instantiate,
++	.match		= mmc_key_match,
++	.destroy	= mmc_key_destroy,
++};
++
++#endif
++
+ /*
+  * Internal function. Allocate a new MMC host.
+  */
+@@ -335,6 +403,15 @@ static int __init mmc_init(void)
+ 		ret = class_register(&mmc_host_class);
+ 		if (ret)
+ 			bus_unregister(&mmc_bus_type);
++#ifdef	CONFIG_MMC_PASSWORDS
++		else {
++			ret = register_key_type(&mmc_key_type);
++			if (ret) {
++				class_unregister(&mmc_host_class);
++				bus_unregister(&mmc_bus_type);
++			}
++		}
++#endif
+ 	}
+ 	return ret;
+ }
+@@ -343,6 +420,9 @@ static void __exit mmc_exit(void)
+ {
+ 	class_unregister(&mmc_host_class);
+ 	bus_unregister(&mmc_bus_type);
++#ifdef	CONFIG_MMC_PASSWORDS
++	unregister_key_type(&mmc_key_type);
++#endif
+ }
+ 
+ module_init(mmc_init);
 
-This series of patches add support for MultiMediaCard (MMC) password
-protection, as described in the MMC Specification v4.1. This feature is
-supported by all compliant MMC cards, and used by some devices such as
-Symbian OS cell phones to optionally protect MMC cards with a password.
-
-By default, a MMC card with no password assigned is always in "unlocked"
-state. After password assignment, in the next power cycle the card
-switches to a "locked" state where only the "basic" and "lock card"
-command classes are accepted by the card. Only after unlocking it with
-the correct password the card can be normally used for operations like
-block I/O.
-
-Password management and caching is done through the "Kernel Key
-Retention Service" mechanism and the sysfs filesystem. A new sysfs
-attribute was added to the MMC driver for unlocking the card, assigning
-a password to an unlocked card, change a card's password, remove the
-password and check locked/unlocked status.
-
-A sample text-mode reference UI written in shell script (using the
-keyctl command from the keyutils package), can be found at:
-
-http://www.indt.org.br/10le/mmc_pwd/mmc_reference_ui-20060130.tar.bz2
-
-TODO:
-
-- Password caching: when inserting a locked card, the driver should try
-  to unlock it with the currently stored password (if any), and if it
-  fails, revoke the key containing it and fallback to the normal "no
-  password present" situation.
-
-Known Issue:
-
-- Some cards have an incorrect behaviour (hardware bug?) regarding
-  password acceptance: if an affected card has password <pwd>, it
-  accepts <pwd><xxx> as the correct password too, where <xxx> is any
-  sequence of characters, of any length. In other words, on these cards
-  only the first <password length> bytes need to match the correct
-  password.
-
-
-We would like to ask you to test these patches. We believe they are
-ready to be included on the kernel source.
-
-Comments and suggestions are welcome.
 --
-Anderson Briglia,
-Anderson Lizardo,
-Carlos Eduardo Aguiar
-Embedded Linux Lab - 10LE
-Nokia Institute of Technology - INdT
-Manaus - Brazil
