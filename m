@@ -1,10 +1,10 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [patch 5/6] Add MMC password protection (lock/unlock) support V4
-Date: Tue, 31 Jan 2006 16:16:41 -0400
-Message-ID: <20060131202547.535444000@localhost.localdomain>
+Subject: [patch 4/6] Add MMC password protection (lock/unlock) support V4
+Date: Tue, 31 Jan 2006 16:16:40 -0400
+Message-ID: <20060131202545.380492000@localhost.localdomain>
 References: <20060131201636.264543000@localhost.localdomain>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline; filename=mmc_omap_blklen.diff
+Content-Disposition: inline; filename=mmc_sysfs.diff
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,35 +18,163 @@ To: linux-kernel@vger.kernel.org, "Linux-omap-open-source@linux.omap.com" <linux
 Cc: Russell King <rmk+lkml@arm.linux.org.uk>, linux@arm.linux.org.uk, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizardo@indt.org.br>
 List-Id: linux-omap@vger.kernel.org
 
-The MMC_LOCK_UNLOCK command requires the block length to be exactly the
-password length + 2 bytes, but hardware-specific drivers force a "power of 2"
-block size.
-
-This patch sends the exact block size (password + 2 bytes) to the host. OMAP
-specific.
+Implement MMC password force erase, remove password, change password,
+unlock card and assign password operations. It uses the sysfs mechanism
+to send commands to the MMC subsystem. 
 
 Signed-off-by: Anderson Briglia <anderson.briglia@indt.org.br>
 Signed-off-by: Anderson Lizardo <anderson.lizardo@indt.org.br>
 Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 
-Index: linux-omap-2.6.git/drivers/mmc/omap.c
+Index: linux-omap-2.6.git/drivers/mmc/mmc_sysfs.c
 ===================================================================
---- linux-omap-2.6.git.orig/drivers/mmc/omap.c	2006-01-31 15:17:44.000000000 -0400
-+++ linux-omap-2.6.git/drivers/mmc/omap.c	2006-01-31 15:22:33.000000000 -0400
-@@ -888,8 +888,12 @@ mmc_omap_prepare_data(struct mmc_omap_ho
- 		return;
+--- linux-omap-2.6.git.orig/drivers/mmc/mmc_sysfs.c	2006-01-31 15:22:25.000000000 -0400
++++ linux-omap-2.6.git/drivers/mmc/mmc_sysfs.c	2006-01-31 15:22:29.000000000 -0400
+@@ -16,6 +16,7 @@
+ #include <linux/device.h>
+ #include <linux/idr.h>
+ #include <linux/key.h>
++#include <linux/err.h>
+ 
+ #include <linux/mmc/card.h>
+ #include <linux/mmc/host.h>
+@@ -23,6 +24,12 @@
+ 
+ #include "mmc.h"
+ 
++#ifdef CONFIG_MMC_DEBUG
++#define DBG(x...)	printk(KERN_DEBUG x)
++#else
++#define DBG(x...)	do { } while (0)
++#endif
++
+ #define dev_to_mmc_card(d)	container_of(d, struct mmc_card, dev)
+ #define to_mmc_driver(d)	container_of(d, struct mmc_driver, drv)
+ #define cls_dev_to_mmc_host(d)	container_of(d, struct mmc_host, class_dev)
+@@ -64,6 +71,101 @@ static struct device_attribute mmc_dev_a
+ 
+ static struct device_attribute mmc_dev_attr_scr = MMC_ATTR_RO(scr);
+ 
++#ifdef	CONFIG_MMC_PASSWORDS
++
++static ssize_t
++mmc_lockable_show(struct device *dev, struct device_attribute *att, char *buf)
++{
++	struct mmc_card *card = dev_to_mmc_card(dev);
++
++	if (!mmc_card_lockable(card))
++		return sprintf(buf, "unsupported\n");
++	else
++		return sprintf(buf, "%slocked\n", mmc_card_locked(card) ?
++			"" : "un");
++}
++
++/*
++ * implement MMC password functions: force erase, remove password, change
++ * password, unlock card and assign password.
++ */
++static ssize_t
++mmc_lockable_store(struct device *dev, struct device_attribute *att,
++	const char *data, size_t len)
++{
++	struct mmc_card *card = dev_to_mmc_card(dev);
++
++	if (!mmc_card_lockable(card))
++		return -EINVAL;
++
++	if (mmc_card_locked(card) && !strncmp(data, "erase", 5)) {
++		/* forced erase only works while card is locked */
++		mmc_lock_unlock(card, NULL, MMC_LOCK_MODE_ERASE);
++		return len;
++	} else if (!mmc_card_locked(card) && !strncmp(data, "remove", 6)) {
++		/* remove password only works while card is unlocked */
++		struct key *mmc_key = request_key(&mmc_key_type, "mmc:key",
++				"remove");
++
++		if (!IS_ERR(mmc_key)) {
++			int err = mmc_lock_unlock(card, mmc_key,
++					MMC_LOCK_MODE_CLR_PWD);
++			if (!err)
++				return len;
++		} else
++			DBG("request_key returned error %ld\n",
++					PTR_ERR(mmc_key));
++	} else if (!mmc_card_locked(card) && !strncmp(data, "change", 6)) {
++			/* change */
++			struct key *mmc_key = request_key(&mmc_key_type,
++					"mmc:key", "change");
++			if (!IS_ERR(mmc_key)) {
++				int err = mmc_lock_unlock(card, mmc_key,
++						MMC_LOCK_MODE_SET_PWD);
++				if (!err)
++					return len;
++			} else
++				DBG("request_key returned error %ld\n",
++						PTR_ERR(mmc_key));
++	} else if (mmc_card_locked(card) && !strncmp(data, "unlock", 6)) {
++			/* unlock */
++			struct key *mmc_key = request_key(&mmc_key_type,
++					"mmc:key", "unlock");
++			if (!IS_ERR(mmc_key)) {
++				int err = mmc_lock_unlock(card, mmc_key,
++						MMC_LOCK_MODE_UNLOCK);
++				if (err)
++					DBG("Wrong password\n");
++				device_release_driver(dev);
++				device_attach(dev);
++				if (!err)
++					return len;
++			} else
++				DBG("request_key returned error %ld\n",
++						PTR_ERR(mmc_key));
++	} else if (!mmc_card_locked(card) && !strncmp(data, "assign", 6)) {
++			/* assign */
++			struct key *mmc_key = request_key(&mmc_key_type,
++					"mmc:key", "assign");
++			if (!IS_ERR(mmc_key)) {
++			int err = mmc_lock_unlock(card, mmc_key,
++					MMC_LOCK_MODE_SET_PWD);
++			if (!err)
++				return len;
++			} else
++				DBG("request_key returned error %ld\n",
++						PTR_ERR(mmc_key));
++	}
++
++	return -EINVAL;
++}
++
++static struct device_attribute mmc_dev_attr_lockable =
++	__ATTR(lockable, S_IWUSR | S_IRUGO,
++		 mmc_lockable_show, mmc_lockable_store);
++
++#endif
++
+ 
+ static void mmc_release_card(struct device *dev)
+ {
+@@ -233,6 +335,11 @@ int mmc_register_card(struct mmc_card *c
+ 			if (ret)
+ 				device_del(&card->dev);
+ 		}
++#ifdef CONFIG_MMC_PASSWORDS
++		ret = device_create_file(&card->dev, &mmc_dev_attr_lockable);
++		if (ret)
++			device_del(&card->dev);
++#endif
+ 	}
+ 	return ret;
+ }
+@@ -246,7 +353,9 @@ void mmc_remove_card(struct mmc_card *ca
+ 	if (mmc_card_present(card)) {
+ 		if (mmc_card_sd(card))
+ 			device_remove_file(&card->dev, &mmc_dev_attr_scr);
+-
++#ifdef CONFIG_MMC_PASSWORDS
++		device_remove_file(&card->dev, &mmc_dev_attr_lockable);
++#endif
+ 		device_del(&card->dev);
  	}
  
--
--	block_size = 1 << data->blksz_bits;
-+	/*  password protection: we need to send the exact block size to the
-+	 *  card (password + 2), not a 2-exponent. */
-+	if (req->cmd->opcode == MMC_LOCK_UNLOCK)
-+		block_size = data->sg[0].length;
-+	else
-+		block_size = 1 << data->blksz_bits;
- 
- 	OMAP_MMC_WRITE(host->base, NBLK, data->blocks - 1);
- 	OMAP_MMC_WRITE(host->base, BLEN, block_size - 1);
 
 --
