@@ -1,14 +1,15 @@
-From: "chandrashekhar singh" <cp_singh@faith.co.jp>
-Subject: Re: Linux-omap-open-source Digest, Vol 21, Issue 52
-Date: Tue, 31 Jan 2006 10:02:48 +0900
-Message-ID: <01ff01c62602$0e750d20$4b13a80a@cpsingh>
-References: <20060130180002.8DE628062C@linux.omap.com>
-Reply-To: chandrashekhar singh <cp_singh@faith.co.jp>
+From: Vineet Tuli <vineet@cybernetra.com>
+Subject: Re: Howto build a gcc 4.0 toolchain for ARM?
+Date: Tue, 31 Jan 2006 09:16:58 +0530
+Message-ID: <1138679218.2553.2.camel@meenakshi.linux>
+References: <43D746D5.80202@freescale.com>
+	<1138346601.2518.9.camel@meenakshi.linux>
+	<ae36f8040601270748j6117dcf3w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <ae36f8040601270748j6117dcf3w@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,114 +19,567 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com, madhu_p83@yahoo.com
+To: lvcargnini@ieee.org
+Cc: OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-> 1. cat endoftheworld > /dev/dsp
->  This gives me the error "No such device"
->  Thus, I am not able to use Audio on the board.
-> So can anybody please tell where I am wrong. Has anybody successfully made Audio working on board?
->  I desperately need help. so please reply soon.
+Sorry for replying late. I was not available at office. Please use the
+option --disable-shared while compiling gcc. This will resolve the error
+of crti.o.
 
+This will give an error "cannot create executables" in the end which can
+be safely ignored.
 
-Have  you checked that sound device exist i mean please check it   /dev/sound/dsp,
-I had similar problem with linux 2.4 kernel on OMAP 2420.
+Vineet=20
 
-Just look into your /dev dir and locate sound pcm device.
-
-Chandrashekhar
-
-
------ Original Message ----- 
-From: <linux-omap-open-source-request@linux.omap.com>
-To: <linux-omap-open-source@linux.omap.com>
-Sent: Tuesday, January 31, 2006 3:00 AM
-Subject: Linux-omap-open-source Digest, Vol 21, Issue 52
-
-
-> Send Linux-omap-open-source mailing list submissions to
-> linux-omap-open-source@linux.omap.com
->
-> To subscribe or unsubscribe via the World Wide Web, visit
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> or, via email, send a message with subject or body 'help' to
-> linux-omap-open-source-request@linux.omap.com
->
-> You can reach the person managing the list at
-> linux-omap-open-source-owner@linux.omap.com
->
-> When replying, please edit your Subject line so it is more specific
-> than "Re: Contents of Linux-omap-open-source digest..."
->
->
-> Today's Topics:
->
->   1. Audio driver on OMAP 1510 Innovator with MontaVista Linux
->      (Madhu Punjabi)
->
->
-> ----------------------------------------------------------------------
->
-> Message: 1
-> Date: Mon, 30 Jan 2006 07:16:40 -0800 (PST)
-> From: Madhu Punjabi <madhu_p83@yahoo.com>
-> Subject: Audio driver on OMAP 1510 Innovator with MontaVista Linux
-> To: linux-omap-open-source@linux.omap.com
-> Message-ID: <20060130151640.79660.qmail@web50702.mail.yahoo.com>
-> Content-Type: text/plain; charset=iso-8859-1
->
-> Hi,
-> I am new to arm. I am trying to enable Audio on MontaVista Linux 2.4.20 on my OMAP 1510 Innovator 
-> board. So please be patient in reading the following and answering for the same.
-> I am having the following hardware:
-> 1. OMAP 1510 Innovator board
-> 2. JTAG
-> 3. Serial cable connected to COM1 on my PC.
->  I am using the following software/tools:
-> 1. Redhat linux 7.2 on my Build PC
-> 2. MontaVista Linux 2.4.20
-> 3. Prebuilt rrload image used as bootloader for Omap 1510 Innovator board
-> 4. Prebuilt arm_v4t_le- toolchain on my Build PC
-> 5. minicom as a terminal program which in turn is using the serial cable connected to my PC.
->  I am using the following steps for building MontaVista linux-kernel image for OMAP 1510 
-> Innovator:
-> 1. cd mvlcee-2.4.20
-> 2. make ARCH=arm CROSS_COMPILE=/opt/mvlcee/devkit/arm/v4t_le/bin/arm_v4t_le- menuconfig
->   Here, in the "Menu" I select the "Sound" menu, where I make the following changes:
-> a. For the "Omap Sound Drivers" submenu I select the "Allow DSP to control Audio McBSP" option for 
-> configuration
-> 3. make ARCH=arm CROSS_COMPILE=/opt/mvlcee/devkit/arm/v4t_le/bin/arm_v4t_le- dep
-> 4. make ARCH=arm CROSS_COMPILE=/opt/mvlcee/devkit/arm/v4t_le/bin/arm_v4t_le- vmlinux
-> 5. ./../rrload/mkimage --LAddr 0x10008000 --EAddr 0x10008000 vmlinux vmlinux.rr
->  This gives me the vmlinux.rr file to be put on the board using rrload.
->  I am using rrload as bootloader. My Minicom terminal program shows me the rrload prompt:
-> Here are I am using the following steps to download the kernel image:
-> 1. Boot arguments are set as follows:
->   console=ttyS0,115200n8 nointrd root=/dev/nfs rw ip=bootp 
-> nfsroot=10.41.1.73:/opt/mvlcee/devkit/arm/v4t_le/target,nolock
-> 2. I then burn the kernel image vmlinux.rr to Flash.
->  I am then able to boot the kernel successfully.
-> Here I am testing the sound device as follows:
-> 1. cat endoftheworld > /dev/dsp
->  This gives me the error "No such device"
->  Thus, I am not able to use Audio on the board.
-> So can anybody please tell where I am wrong. Has anybody successfully made Audio working on board?
->  I desperately need help. so please reply soon.
->  --Riya
->
->
-> ---------------------------------
->
-> What are the most popular cars? Find out at Yahoo! Autos
->
-> ------------------------------
->
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
->
-> End of Linux-omap-open-source Digest, Vol 21, Issue 52
-> ******************************************************
-> 
+On Fri, 2006-01-27 at 13:48 -0200, Lu=C3=ADs Cargnini wrote:
+> this step:
+> [root at localhost]# cd /usr/src
+> [root at localhost
+> ]# tar =E2=80=93xjf  gcc-4.0.2.tar.bz2
+>=20
+> A configuration file must be modified so that the compiler is built wit=
+hout libc includes. Edit the /usr/src/gcc-4.0.2/gcc/config/arm/t-linux fi=
+le and append
+> =20
+> =E2=80=93Dinhibit_libc =E2=80=93D__gthr_posix_h to the line starting wi=
+th TARGET_LIBGCC2_CFLAGS =3D.=20
+>=20
+>=20
+> The top of the file is shown below, after appending the flags.
+>=20
+> # Just for these, we omit the frame pointer since it makes such a big
+> # difference. It is then pointless adding debugging.
+> TARGET_LIBGCC2_CFLAGS =3D -fomit-frame-pointer -fPIC =E2=80=93Dinhibit_=
+libc =E2=80=93D__gthr_posix_h
+>=20
+> LIBGCC2_DEBUG_CFLAGS =3D -g0
+>=20
+> Go to the /usr/src/build/gcc-4.0.2 directory to configure and build the=
+ GNU C compiler with the commands below.
+>=20
+> [
+> root at localhost]# cd /usr/src/build/gcc-4.0.2
+> [root at localhost]# ../../gcc-4.0.2/configure =E2=80=93-target=3Darm-l=
+inux =E2=80=93-prefix=3D/opt/armv4 --disable-threads =E2=80=93-enable-lan=
+guages=3Dc
+>=20
+> [root at localhost]# make
+> isn't working for me io always receive some error
+>=20
+> that was crti.o how to fix this ??
+>=20
+> [
+> root at localhost]# make install
+>=20
+>=20
+> On 27/01/06, Vineet Tuli <vineet@cybernetra.com> wrote:=20
+>         Some problem in my mail system. Attachment not going.
+>         Including the
+>         patches herein:
+>        =20
+>         --- elf/dynamic-link.h.old      2005-03-12 18:12:37.000000000
+>         -0800
+>         +++ elf/dynamic-link.h  2005-03-12 18:12:59.777820848 -0800
+>         @@ -19,43 +19,6 @@
+>        =20
+>         #include <elf.h>
+>         #include <assert.h>
+>         -
+>         -#ifdef RESOLVE
+>         -/* We pass reloc_addr as a pointer to void, as opposed to a
+>         pointer to
+>         -   ElfW(Addr), because not all architectures can assume that
+>         the
+>         -   relocated address is properly aligned, whereas the
+>         compiler is=20
+>         -   entitled to assume that a pointer to a type is properly
+>         aligned for
+>         -   the type.  Even if we cast the pointer back to some other
+>         type with
+>         -   less strict alignment requirements, the compiler might
+>         still
+>         -   remember that the pointer was originally more aligned,
+>         thereby
+>         -   optimizing away alignment tests or using word instructions
+>         for
+>         -   copying memory, breaking the very code written to handle
+>         the
+>         -   unaligned cases.  */=20
+>         -auto void __attribute__((always_inline))
+>         -elf_machine_rel (struct link_map *map, const ElfW(Rel)
+>         *reloc,
+>         -                const ElfW(Sym) *sym, const struct
+>         r_found_version *version,
+>         -                void *const reloc_addr);=20
+>         -auto void __attribute__((always_inline))
+>         -elf_machine_rela (struct link_map *map, const ElfW(Rela)
+>         *reloc,
+>         -                 const ElfW(Sym) *sym, const struct
+>         r_found_version *version,
+>         -                 void *const reloc_addr);=20
+>         -auto void __attribute__((always_inline))
+>         -elf_machine_rel_relative (ElfW(Addr) l_addr, const ElfW(Rel)
+>         *reloc,
+>         -                         void *const reloc_addr);
+>         -auto void __attribute__((always_inline))
+>         -elf_machine_rela_relative (ElfW(Addr) l_addr, const
+>         ElfW(Rela) *reloc,
+>         -                          void *const reloc_addr);
+>         -# if ELF_MACHINE_NO_RELA || defined ELF_MACHINE_PLT_REL
+>         -auto void __attribute__((always_inline))=20
+>         -elf_machine_lazy_rel (struct link_map *map,
+>         -                     ElfW(Addr) l_addr, const ElfW(Rel)
+>         *reloc);
+>         -# else
+>         -auto void __attribute__((always_inline))
+>         -elf_machine_lazy_rel (struct link_map *map,=20
+>         -                     ElfW(Addr) l_addr, const ElfW(Rela)
+>         *reloc);
+>         -# endif
+>         -#endif
+>         -
+>         #include <dl-machine.h>
+>        =20
+>         #ifndef VERSYMIDX
+>        =20
+>        =20
+>        =20
+>         --- glibc-2.3.5.orig/iconvdata/jis0208.h        2003-06-11
+>         21:40: 42.000000000 +0000
+>         +++ glibc-2.3.5/iconvdata/jis0208.h     2005-07-15
+>         18:32:20.726328528 +0000
+>         @@ -24,15 +24,6 @@
+>         #include <gconv.h>
+>         #include <stdint.h>
+>        =20
+>         -/* Conversion table.  */
+>         -extern const uint16_t __jis0208_to_ucs[];=20
+>         -
+>         -extern const char __jisx0208_from_ucs4_lat1[256][2];
+>         -extern const char __jisx0208_from_ucs4_greek[0xc1][2];
+>         -extern const struct jisx0208_ucs_idx
+>         __jisx0208_from_ucs_idx[];
+>         -extern const char __jisx0208_from_ucs_tab[][2];=20
+>         -
+>         -
+>         /* Struct for table with indeces in UCS mapping table.  */
+>         struct jisx0208_ucs_idx
+>         {
+>         @@ -42,6 +33,15 @@
+>         };
+>        =20
+>        =20
+>         +/* Conversion table.  */
+>         +extern const uint16_t __jis0208_to_ucs[];
+>         +
+>         +extern const char __jisx0208_from_ucs4_lat1[256][2];
+>         +extern const char __jisx0208_from_ucs4_greek[0xc1][2];
+>         +extern const struct jisx0208_ucs_idx
+>         __jisx0208_from_ucs_idx[];
+>         +extern const char __jisx0208_from_ucs_tab[][2];=20
+>         +
+>         +
+>         static inline uint32_t
+>         __attribute ((always_inline))
+>         jisx0208_to_ucs4 (const unsigned char **s, size_t avail,
+>         unsigned char offset)
+>        =20
+>        =20
+>        =20
+>         --- libc/include/libc-symbols.h 2005/02/11 00:29:46     1.70
+>         +++ libc/include/libc-symbols.h 2005/03/17 21:06:27     1.71
+>         @@ -583,78 +583,23 @@
+>         #  define hidden_proto(name, attrs...) \
+>            __hidden_proto (name, __GI_##name, ##attrs)
+>         #  define __hidden_proto(name, internal, attrs...) \=20
+>         -  extern __typeof (name) internal; \
+>            extern __typeof (name) name __asm__ (__hidden_asmname
+>         (#internal)) \
+>            __hidden_proto_hiddenattr (attrs);
+>         #  define __hidden_asmname(name) \
+>            __hidden_asmname1 (__USER_LABEL_PREFIX__, name)=20
+>         #  define __hidden_asmname1(prefix, name)
+>         __hidden_asmname2(prefix, name)
+>         #  define __hidden_asmname2(prefix, name) #prefix name
+>         -#  ifdef HAVE_ASM_SET_DIRECTIVE
+>         -#   define __hidden_def1(original,
+>         alias)                      \=20
+>         -  ASM_GLOBAL_DIRECTIVE C_SYMBOL_NAME (alias)
+>         ASM_LINE_SEP      \
+>         -  .set C_SYMBOL_NAME (alias), C_SYMBOL_NAME (original)
+>         -#   ifdef HAVE_ASM_GLOBAL_DOT_NAME
+>         -#     define __hidden_dot_def1(original, alias)
+>         ASM_LINE_SEP   \=20
+>         -  ASM_GLOBAL_DIRECTIVE C_SYMBOL_DOT_NAME (alias)
+>         ASM_LINE_SEP  \
+>         -  .set C_SYMBOL_DOT_NAME (alias), C_SYMBOL_DOT_NAME
+>         (original)
+>         -#   else
+>         -#     define __hidden_dot_def1(original, alias)
+>         -#   endif
+>         -#  else=20
+>         -#   define __hidden_def1(original,
+>         alias)                      \
+>         -  ASM_GLOBAL_DIRECTIVE C_SYMBOL_NAME (alias)
+>         ASM_LINE_SEP      \
+>         -  C_SYMBOL_NAME (alias) =3D C_SYMBOL_NAME (original)
+>         -#   ifdef HAVE_ASM_GLOBAL_DOT_NAME=20
+>         -#    define __hidden_dot_def1(original, alias)
+>         ASM_LINE_SEP    \
+>         -  ASM_GLOBAL_DIRECTIVE C_SYMBOL_DOT_NAME (alias)
+>         ASM_LINE_SEP  \
+>         -  C_SYMBOL_DOT_NAME (alias) =3D C_SYMBOL_DOT_NAME (original)
+>         -#   else
+>         -#    define __hidden_dot_def1(original, alias)=20
+>         -#   endif
+>         -#  endif
+>         -#  define __hidden_def2(...) #__VA_ARGS__
+>         -#  define __hidden_def3(...) __hidden_def2 (__VA_ARGS__)
+>         -#  define hidden_def(name)
+>         \
+>         -  __asm__ (__hidden_def3 (__hidden_def1 (__GI_##name, name)
+>         \=20
+>         -  __hidden_dot_def1 (__GI_##name, name)));
+>         -#  define
+>         hidden_data_def(name)                                        \
+>         -  __asm__ (__hidden_def3 (__hidden_def1 (__GI_##name,
+>         name)));
+>         -#  define hidden_ver(local,
+>         name)                              \=20
+>         -  __asm__ (__hidden_def3 (__hidden_def1 (local, __GI_##name)
+>         \
+>         -  __hidden_dot_def1 (local, __GI_##name)));
+>         -#  define hidden_data_ver(local, name)
+>         \
+>         -  __asm__ (__hidden_def3 (__hidden_def1 (local,
+>         __GI_##name)));=20
+>         -#  ifdef HAVE_WEAK_SYMBOLS
+>         -#   ifdef HAVE_ASM_WEAKEXT_DIRECTIVE
+>         -#    define __hidden_weak1(original,
+>         alias)                    \
+>         -  .weakext C_SYMBOL_NAME (alias), C_SYMBOL_NAME (original)
+>         -#    ifdef HAVE_ASM_GLOBAL_DOT_NAME=20
+>         -#     define __hidden_dot_weak1(original, alias)
+>         ASM_LINE_SEP    \
+>         -  .weakext C_SYMBOL_DOT_NAME (alias), C_SYMBOL_DOT_NAME
+>         (original)
+>         -#    else
+>         -#     define __hidden_dot_weak1(original, alias)
+>         -#    endif=20
+>         -#   else /* ! HAVE_ASM_WEAKEXT_DIRECTIVE */
+>         -#    define __hidden_weak1(original,
+>         alias)                    \
+>         -  .weak C_SYMBOL_NAME (alias) ASM_LINE_SEP
+>         \
+>         -  C_SYMBOL_NAME (alias) =3D C_SYMBOL_NAME (original)=20
+>         -#    ifdef HAVE_ASM_GLOBAL_DOT_NAME
+>         -#     define __hidden_dot_weak1(original, alias)
+>         ASM_LINE_SEP    \
+>         -  .weak C_SYMBOL_DOT_NAME (alias) ASM_LINE_SEP \
+>         -  C_SYMBOL_DOT_NAME (alias) =3D C_SYMBOL_DOT_NAME (original)=20
+>         -#    else
+>         -#     define __hidden_dot_weak1(original, alias)
+>         -#    endif
+>         -#   endif
+>         -#   define hidden_weak(name)
+>         \
+>         -  __asm__ (__hidden_def3 (__hidden_weak1 (__GI_##name, name)
+>         \=20
+>         -  __hidden_dot_weak1 (__GI_##name, name)));
+>         -#   define
+>         hidden_data_weak(name)                                      \
+>         -  __asm__ (__hidden_def3 (__hidden_weak1 (__GI_##name,
+>         name)));
+>         -#  else
+>         -#   define hidden_weak(name) hidden_def (name)=20
+>         -#  endif
+>         +#  define __hidden_ver1(local, internal, name) \
+>         +  extern __typeof (name) __EI_##name __asm__(__hidden_asmname
+>         (#internal)); \
+>         +  extern __typeof (name) __EI_##name \
+>         +       __attribute__((alias (__hidden_asmname (#local))))=20
+>         +#  define hidden_ver(local, name)      __hidden_ver1(local,
+>         __GI_##name, name);
+>         +#  define hidden_data_ver(local, name) hidden_ver(local,
+>         name)
+>         +#  define hidden_def(name)
+>         __hidden_ver1(__GI_##name, name, name);=20
+>         +#  define
+>         hidden_data_def(name)                hidden_def(name)
+>         +#  define hidden_weak(name) \
+>         +       __hidden_ver1(__GI_##name, name, name)
+>         __attribute__((weak));
+>         +#  define hidden_data_weak(name)       hidden_weak(name)=20
+>         # else
+>         /* For assembly, we need to do the opposite of what we do in
+>         C:
+>        =20
+>        =20
+>        =20
+>         --- wcsmbs/wcscoll.c    2004/03/14 21:05:48     1.13
+>         +++ wcsmbs/wcscoll.c    2005/03/17 21:06:24     1.14
+>         @@ -22,12 +22,11 @@=20
+>        =20
+>         #define STRING_TYPE wchar_t
+>         #define USTRING_TYPE wint_t
+>         -#define STRCOLL __wcscoll
+>         +#define STRCOLL wcscoll
+>         #define STRCOLL_L __wcscoll_l
+>        =20
+>         #include "../string/strcoll.c"
+>        =20
+>         #ifndef USE_IN_EXTENDED_LOCALE_MODEL=20
+>         -weak_alias (__wcscoll, wcscoll)
+>         libc_hidden_weak (wcscoll)
+>         #endif
+>        =20
+>        =20
+>        =20
+>        =20
+>         --- glibc-2.3.4/sysdeps/arm/dl-machine.h.old    Sun Mar 20
+>         17:54:37 2005
+>         +++ glibc-2.3.4/sysdeps/arm/dl-machine.h        Sun Mar 20
+>         17:57:32 2005=20
+>         @@ -359,7 +359,14 @@
+>         # endif
+>        =20
+>         /* Deal with an out-of-range PC24 reloc.  */
+>         -static Elf32_Addr
+>         +#if __GNUC__ >=3D 4
+>         +  auto inline Elf32_Addr
+>         +#else
+>         +  static inline Elf32_Addr
+>         +#endif
+>         +#if __GNUC__ >=3D 4 || (__GNUC__ =3D=3D 3 && __GNUC_MINOR__ >=3D=
+ 2)
+>         +  __attribute ((always_inline))
+>         +#endif
+>         fix_bad_pc24 (Elf32_Addr *const reloc_addr, Elf32_Addr value)
+>         {
+>            static void *fix_page;=20
+>         @@ -392,7 +399,14 @@
+>         /* Perform the relocation specified by RELOC and SYM (which is
+>         fully resolved).
+>             MAP is the object containing the reloc.  */
+>        =20
+>         -static inline void
+>         +#if __GNUC__ >=3D 4
+>         +  auto inline void=20
+>         +#else
+>         +  static inline void
+>         +#endif
+>         +#if __GNUC__ >=3D 4 || (__GNUC__ =3D=3D 3 && __GNUC_MINOR__ >=3D=
+ 2)
+>         +  __attribute ((always_inline))
+>         +#endif
+>         elf_machine_rel (struct link_map *map, const Elf32_Rel
+>         *reloc,=20
+>                          const Elf32_Sym *sym, const struct
+>         r_found_version *version,
+>                          void *const reloc_addr_arg)
+>         @@ -517,7 +531,14 @@
+>         }
+>        =20
+>         # ifndef RTLD_BOOTSTRAP
+>         -static inline void
+>         +#if __GNUC__ >=3D 4=20
+>         +  auto inline void
+>         +#else
+>         +  static inline void
+>         +#endif
+>         +#if __GNUC__ >=3D 4 || (__GNUC__ =3D=3D 3 && __GNUC_MINOR__ >=3D=
+ 2)
+>         +  __attribute ((always_inline))
+>         +#endif
+>         elf_machine_rela (struct link_map *map, const Elf32_Rela
+>         *reloc,=20
+>                           const Elf32_Sym *sym, const struct
+>         r_found_version *version,
+>                           void *const reloc_addr_arg)
+>         @@ -597,7 +618,14 @@
+>         }
+>         # endif
+>        =20
+>         -static inline void
+>         +#if __GNUC__ >=3D 4=20
+>         +  auto inline void
+>         +#else
+>         +  static inline void
+>         +#endif
+>         +#if __GNUC__ >=3D 4 || (__GNUC__ =3D=3D 3 && __GNUC_MINOR__ >=3D=
+ 2)
+>         +  __attribute ((always_inline))
+>         +#endif
+>         elf_machine_rel_relative (Elf32_Addr l_addr, const Elf32_Rel
+>         *reloc,=20
+>                                   void *const reloc_addr_arg)
+>         {
+>         @@ -606,7 +634,14 @@
+>         }
+>        =20
+>         # ifndef RTLD_BOOTSTRAP
+>         -static inline void
+>         +#if __GNUC__ >=3D 4
+>         +  auto inline void
+>         +#else
+>         +  static inline void=20
+>         +#endif
+>         +#if __GNUC__ >=3D 4 || (__GNUC__ =3D=3D 3 && __GNUC_MINOR__ >=3D=
+ 2)
+>         +  __attribute ((always_inline))
+>         +#endif
+>         elf_machine_rela_relative (Elf32_Addr l_addr, const Elf32_Rela
+>         *reloc,
+>                                    void *const reloc_addr_arg)=20
+>         {
+>         @@ -615,7 +650,14 @@
+>         }
+>         # endif
+>        =20
+>         -static inline void
+>         +#if __GNUC__ >=3D 4
+>         +  auto inline void
+>         +#else
+>         +  static inline void
+>         +#endif
+>         +#if __GNUC__ >=3D 4 || (__GNUC__ =3D=3D 3 && __GNUC_MINOR__ >=3D=
+ 2)=20
+>         +  __attribute ((always_inline))
+>         +#endif
+>         elf_machine_lazy_rel (struct link_map *map,
+>                               Elf32_Addr l_addr, const Elf32_Rel
+>         *reloc)
+>         {
+>        =20
+>        =20
+>        =20
+>        =20
+>        =20
+>         ---
+>         glibc-2.3.2/sysdeps/unix/sysv/linux/arm/ioperm.c.old        200=
+3-02-20 14:22: 24.000000000 -0800
+>         +++
+>         glibc-2.3.2/sysdeps/unix/sysv/linux/arm/ioperm.c    2004-01-31
+>         16:01:50.000000000 -0800
+>         @@ -47,6 +47,12 @@
+>         #include <asm/page.h>
+>         #include <sys/sysctl.h>
+>        =20
+>         +/* see
+>         http://www.ussg.iu.edu/hypermail/linux/kernel/0311.0/0529.html
+>         */
+>         +#include <linux/version.h>
+>         +#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,23))
+>         +#define CTL_BUS_ISA BUS_ISA    /* and hope it's not the one
+>         from linux/input.h */=20
+>         +#endif
+>         +
+>         #define PATH_ARM_SYSTYPE       "/etc/arm_systype"
+>         #define PATH_CPUINFO           "/proc/cpuinfo"
+>        =20
+>         @@ -80,7 +86,7 @@
+>           * Initialize I/O system.  There are several ways to get the
+>         information=20
+>           * we need.  Each is tried in turn until one succeeds.
+>           *
+>         - * 1. Sysctl (CTL_BUS, BUS_ISA, ISA_*).  This is the
+>         preferred method
+>         + * 1. Sysctl (CTL_BUS, CTL_BUS_ISA, ISA_*).  This is the
+>         preferred method
+>           *    but not all kernels support it.
+>           *
+>           * 2. Read the value (not the contents) of symlink
+>         PATH_ARM_SYSTYPE.
+>         @@ -100,8 +106,8 @@
+>         {
+>            char systype[256];
+>            int i, n;
+>         -  static int iobase_name[] =3D { CTL_BUS, BUS_ISA,
+>         BUS_ISA_PORT_BASE };=20
+>         -  static int ioshift_name[] =3D { CTL_BUS, BUS_ISA,
+>         BUS_ISA_PORT_SHIFT };
+>         +  static int iobase_name[] =3D { CTL_BUS, CTL_BUS_ISA,
+>         BUS_ISA_PORT_BASE };
+>         +  static int ioshift_name[] =3D { CTL_BUS, CTL_BUS_ISA,
+>         BUS_ISA_PORT_SHIFT };=20
+>            size_t len =3D sizeof(io.base);
+>        =20
+>            if (! sysctl (iobase_name, 3, &io.io_base, &len, NULL, 0)
+>        =20
+>        =20
+>        =20
+>         --- string/strcoll.c    2004/03/14 20:51:30     1.33
+>         +++ string/strcoll.c    2005/03/17 21:06:24     1.34
+>         @@ -23,6 +23,7 @@
+>         # define STRING_TYPE char
+>         # define STRCOLL strcoll
+>         # define STRCOLL_L __strcoll_l
+>         +# define USE_HIDDEN_DEF
+>         #endif
+>        =20
+>         #include "../locale/localeinfo.h"
+>         @@ -35,6 +36,7 @@=20
+>         {
+>            return STRCOLL_L (s1, s2, _NL_CURRENT_LOCALE);
+>         }
+>         -#if !defined WIDE_CHAR_VERSION
+>         -libc_hidden_def (strcoll)
+>         +
+>         +#ifdef USE_HIDDEN_DEF
+>         +libc_hidden_def (STRCOLL)
+>         #endif
+>        =20
+>        =20
+>        =20
+>         --- include/wchar.h     2004/03/14 20:45:10     1.26
+>         +++ include/wchar.h     2005/03/17 21:06:24     1.27
+>         @@ -56,7 +56,6 @@
+>         extern int __wcsncasecmp (__const wchar_t *__s1, __const
+>         wchar_t *__s2,
+>                                   size_t __n)
+>               __attribute_pure__;=20
+>         -extern int __wcscoll (__const wchar_t *__s1, __const wchar_t
+>         *__s2);
+>         extern size_t __wcslen (__const wchar_t *__s)
+>         __attribute_pure__;
+>         extern size_t __wcsnlen (__const wchar_t *__s, size_t
+>         __maxlen)
+>               __attribute_pure__;=20
+>        =20
+>         ***************************************************************=
+****************
+>        =20
+>         On Wed, 2006-01-25 at 09:37 +0000, Steve Papacharalambous
+>         wrote:
+>         > Hi Vineet,
+>         >
+>         > I was looking at your steps on how to build a gcc-4.0
+>         toolchain for ARM:
+>         >
+>         >
+>         http://linux.omap.com/pipermail/linux-omap-open-source/2005-Nov=
+ember/005665.html
+>         >
+>         > The patches for glibc-2.3.5 that you mention don't appear to
+>         be attached
+>         > to the page, can you let me know where I can get these
+>         patches please?
+>         >
+>         > Thanks,
+>         >
+>         > Steve
+>         >
+>        =20
+>         _______________________________________________
+>         Linux-omap-open-source mailing list
+>         Linux-omap-open-source@linux.omap.com
+>         http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>=20
+>=20
+>=20
+> --=20
+> Thanks && Regards
+> Msc. Bsc. Lu=C3=ADs Vit=C3=B3rio Cargnini
+> IEEE Member
+> Mastering Degree student @ PUC-RS Electrical Engineer Faculty=20
