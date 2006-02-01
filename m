@@ -1,16 +1,17 @@
-From: =?WINDOWS-1252?Q?Lu=EDs_Cargnini?= <lvcargnini@gmail.com>
+From: Vineet Tuli <vineet@cybernetra.com>
 Subject: Re: Howto build a gcc 4.0 toolchain for ARM?
-Date: Tue, 31 Jan 2006 16:57:24 -0200
-Message-ID: <ae36f8040601311057t2967cb33h@mail.gmail.com>
+Date: Wed, 01 Feb 2006 14:57:18 +0530
+Message-ID: <1138786038.2892.1.camel@meenakshi.linux>
 References: <43D746D5.80202@freescale.com>
 	<1138346601.2518.9.camel@meenakshi.linux>
 	<ae36f8040601270748j6117dcf3w@mail.gmail.com>
 	<1138679218.2553.2.camel@meenakshi.linux>
-Reply-To: lvcargnini@ieee.org
+	<ae36f8040601311057t2967cb33h@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0899339371=="
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1138679218.2553.2.camel@meenakshi.linux>
+In-Reply-To: <ae36f8040601311057t2967cb33h@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,403 +21,694 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Vineet Tuli <vineet@cybernetra.com>
+To: lvcargnini@ieee.org
 Cc: OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============0899339371==
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+Remove all occurances of -lgcc_eh from the files: Makeconfig, configure
+and configure.in from top level glibc soruce code directory and
+recompile.
 
-b2sgaSBwYXNzZWQgdGhlIGNvbXBpbGVyCmJ1dCBhZnRlciBhZGRlZCBzb21lIHBhdGNocyB0byBn
-bGliYy4yLjMuNQoKZ2xpYmMtMi4zLjUtYWxsb3ctZ2NjLTQuMC13b3JkZXhwLnBhdGNoCmdsaWJj
-LTIuMy41LWFsbG93LWdjYzQtc3RyaW5nLnBhdGNoCmdsaWJjLTIuMy41LWFsbG93LWdjYzQtc3lt
-Ym9scy5wYXRjaApnbGliYy0yLjMuNS1hbGxvdy1nY2M0LXdjc3RvbF9sLnBhdGNoCmFuZCB5b3Vy
-IG93biBwYXRjaAppIHJlY2VpdmVkIHRoZSBmb2xsb3dpbmcgIGVycm9yOgovb3B0L2FybS1saW51
-eC9saWIvZ2NjL2FybS1saW51eC80LjAuMi8uLi8uLi8uLi8uLi9hcm0tbGludXgvYmluL2xkOiBj
-YW5ub3QKZmluZCAtbGdjY19laApjb2xsZWN0MjogbGQgcmV0dXJuZWQgMSBleGl0IHN0YXR1cwpt
-YWtlWzJdOiAqKioKWy9ob21lL2x2Y2FyZ25pbmkvcHVjL21lc3RyYWRvL2luc3RyYW1lZC9idWls
-ZHMvbGludXgvYmdsaWJjL2ljb252L2ljb252Y29uZmlnXQpFcnJvciAxCm1ha2VbMl06IExlYXZp
-bmcgZGlyZWN0b3J5CmAvaG9tZS9sdmNhcmduaW5pL3B1Yy9tZXN0cmFkby9pbnN0cmFtZWQvYnVp
-bGRzL2xpbnV4L2dsaWJjLTIuMy41L2ljb252JwptYWtlWzFdOiAqKiogW2ljb252L290aGVyc10g
-RXJyb3IgMgptYWtlWzFdOiBMZWF2aW5nIGRpcmVjdG9yeQpgL2hvbWUvbHZjYXJnbmluaS9wdWMv
-bWVzdHJhZG8vaW5zdHJhbWVkL2J1aWxkcy9saW51eC9nbGliYy0yLjMuNScKCk9uIDMxLzAxLzA2
-LCBWaW5lZXQgVHVsaSA8dmluZWV0QGN5YmVybmV0cmEuY29tPiB3cm90ZToKPgo+IFNvcnJ5IGZv
-ciByZXBseWluZyBsYXRlLiBJIHdhcyBub3QgYXZhaWxhYmxlIGF0IG9mZmljZS4gUGxlYXNlIHVz
-ZSB0aGUKPiBvcHRpb24gLS1kaXNhYmxlLXNoYXJlZCB3aGlsZSBjb21waWxpbmcgZ2NjLiBUaGlz
-IHdpbGwgcmVzb2x2ZSB0aGUgZXJyb3IKPiBvZiBjcnRpLm8uCj4KPiBUaGlzIHdpbGwgZ2l2ZSBh
-biBlcnJvciAiY2Fubm90IGNyZWF0ZSBleGVjdXRhYmxlcyIgaW4gdGhlIGVuZCB3aGljaCBjYW4K
-PiBiZSBzYWZlbHkgaWdub3JlZC4KPgo+IFZpbmVldAo+Cj4gT24gRnJpLCAyMDA2LTAxLTI3IGF0
-IDEzOjQ4IC0wMjAwLCBMde1zIENhcmduaW5pIHdyb3RlOgo+ID4gdGhpcyBzdGVwOgo+ID4gW3Jv
-b3QgYXQgbG9jYWxob3N0XSMgY2QgL3Vzci9zcmMKPiA+IFtyb290IGF0IGxvY2FsaG9zdAo+ID4g
-XSMgdGFyIJZ4amYgIGdjYy00LjAuMi50YXIuYnoyCj4gPgo+ID4gQSBjb25maWd1cmF0aW9uIGZp
-bGUgbXVzdCBiZSBtb2RpZmllZCBzbyB0aGF0IHRoZSBjb21waWxlciBpcyBidWlsdAo+IHdpdGhv
-dXQgbGliYyBpbmNsdWRlcy4gRWRpdCB0aGUgL3Vzci9zcmMvZ2NjLTQuMC4yL2djYy9jb25maWcv
-YXJtL3QtbGludXgKPiBmaWxlIGFuZCBhcHBlbmQKPiA+Cj4gPiCWRGluaGliaXRfbGliYyCWRF9f
-Z3Rocl9wb3NpeF9oIHRvIHRoZSBsaW5lIHN0YXJ0aW5nIHdpdGgKPiBUQVJHRVRfTElCR0NDMl9D
-RkxBR1MgPS4KPiA+Cj4gPgo+ID4gVGhlIHRvcCBvZiB0aGUgZmlsZSBpcyBzaG93biBiZWxvdywg
-YWZ0ZXIgYXBwZW5kaW5nIHRoZSBmbGFncy4KPiA+Cj4gPiAjIEp1c3QgZm9yIHRoZXNlLCB3ZSBv
-bWl0IHRoZSBmcmFtZSBwb2ludGVyIHNpbmNlIGl0IG1ha2VzIHN1Y2ggYSBiaWcKPiA+ICMgZGlm
-ZmVyZW5jZS4gSXQgaXMgdGhlbiBwb2ludGxlc3MgYWRkaW5nIGRlYnVnZ2luZy4KPiA+IFRBUkdF
-VF9MSUJHQ0MyX0NGTEFHUyA9IC1mb21pdC1mcmFtZS1wb2ludGVyIC1mUElDIJZEaW5oaWJpdF9s
-aWJjCj4glkRfX2d0aHJfcG9zaXhfaAo+ID4KPiA+IExJQkdDQzJfREVCVUdfQ0ZMQUdTID0gLWcw
-Cj4gPgo+ID4gR28gdG8gdGhlIC91c3Ivc3JjL2J1aWxkL2djYy00LjAuMiBkaXJlY3RvcnkgdG8g
-Y29uZmlndXJlIGFuZCBidWlsZCB0aGUKPiBHTlUgQyBjb21waWxlciB3aXRoIHRoZSBjb21tYW5k
-cyBiZWxvdy4KPiA+Cj4gPiBbCj4gPiByb290IGF0IGxvY2FsaG9zdF0jIGNkIC91c3Ivc3JjL2J1
-aWxkL2djYy00LjAuMgo+ID4gW3Jvb3QgYXQgbG9jYWxob3N0XSMgLi4vLi4vZ2NjLTQuMC4yL2Nv
-bmZpZ3VyZSCWLXRhcmdldD1hcm0tbGludXgKPiCWLXByZWZpeD0vb3B0L2FybXY0IC0tZGlzYWJs
-ZS10aHJlYWRzIJYtZW5hYmxlLWxhbmd1YWdlcz1jCj4gPgo+ID4gW3Jvb3QgYXQgbG9jYWxob3N0
-XSMgbWFrZQo+ID4gaXNuJ3Qgd29ya2luZyBmb3IgbWUgaW8gYWx3YXlzIHJlY2VpdmUgc29tZSBl
-cnJvcgo+ID4KPiA+IHRoYXQgd2FzIGNydGkubyBob3cgdG8gZml4IHRoaXMgPz8KPiA+Cj4gPiBb
-Cj4gPiByb290IGF0IGxvY2FsaG9zdF0jIG1ha2UgaW5zdGFsbAo+ID4KPiA+Cj4gPiBPbiAyNy8w
-MS8wNiwgVmluZWV0IFR1bGkgPHZpbmVldEBjeWJlcm5ldHJhLmNvbT4gd3JvdGU6Cj4gPiAgICAg
-ICAgIFNvbWUgcHJvYmxlbSBpbiBteSBtYWlsIHN5c3RlbS4gQXR0YWNobWVudCBub3QgZ29pbmcu
-Cj4gPiAgICAgICAgIEluY2x1ZGluZyB0aGUKPiA+ICAgICAgICAgcGF0Y2hlcyBoZXJlaW46Cj4g
-Pgo+ID4gICAgICAgICAtLS0gZWxmL2R5bmFtaWMtbGluay5oLm9sZCAgICAgIDIwMDUtMDMtMTIg
-MTg6MTI6MzcuMDAwMDAwMDAwCj4gPiAgICAgICAgIC0wODAwCj4gPiAgICAgICAgICsrKyBlbGYv
-ZHluYW1pYy1saW5rLmggIDIwMDUtMDMtMTIgMTg6MTI6NTkuNzc3ODIwODQ4IC0wODAwCj4gPiAg
-ICAgICAgIEBAIC0xOSw0MyArMTksNiBAQAo+ID4KPiA+ICAgICAgICAgI2luY2x1ZGUgPGVsZi5o
-Pgo+ID4gICAgICAgICAjaW5jbHVkZSA8YXNzZXJ0Lmg+Cj4gPiAgICAgICAgIC0KPiA+ICAgICAg
-ICAgLSNpZmRlZiBSRVNPTFZFCj4gPiAgICAgICAgIC0vKiBXZSBwYXNzIHJlbG9jX2FkZHIgYXMg
-YSBwb2ludGVyIHRvIHZvaWQsIGFzIG9wcG9zZWQgdG8gYQo+ID4gICAgICAgICBwb2ludGVyIHRv
-Cj4gPiAgICAgICAgIC0gICBFbGZXKEFkZHIpLCBiZWNhdXNlIG5vdCBhbGwgYXJjaGl0ZWN0dXJl
-cyBjYW4gYXNzdW1lIHRoYXQKPiA+ICAgICAgICAgdGhlCj4gPiAgICAgICAgIC0gICByZWxvY2F0
-ZWQgYWRkcmVzcyBpcyBwcm9wZXJseSBhbGlnbmVkLCB3aGVyZWFzIHRoZQo+ID4gICAgICAgICBj
-b21waWxlciBpcwo+ID4gICAgICAgICAtICAgZW50aXRsZWQgdG8gYXNzdW1lIHRoYXQgYSBwb2lu
-dGVyIHRvIGEgdHlwZSBpcyBwcm9wZXJseQo+ID4gICAgICAgICBhbGlnbmVkIGZvcgo+ID4gICAg
-ICAgICAtICAgdGhlIHR5cGUuICBFdmVuIGlmIHdlIGNhc3QgdGhlIHBvaW50ZXIgYmFjayB0byBz
-b21lIG90aGVyCj4gPiAgICAgICAgIHR5cGUgd2l0aAo+ID4gICAgICAgICAtICAgbGVzcyBzdHJp
-Y3QgYWxpZ25tZW50IHJlcXVpcmVtZW50cywgdGhlIGNvbXBpbGVyIG1pZ2h0Cj4gPiAgICAgICAg
-IHN0aWxsCj4gPiAgICAgICAgIC0gICByZW1lbWJlciB0aGF0IHRoZSBwb2ludGVyIHdhcyBvcmln
-aW5hbGx5IG1vcmUgYWxpZ25lZCwKPiA+ICAgICAgICAgdGhlcmVieQo+ID4gICAgICAgICAtICAg
-b3B0aW1pemluZyBhd2F5IGFsaWdubWVudCB0ZXN0cyBvciB1c2luZyB3b3JkIGluc3RydWN0aW9u
-cwo+ID4gICAgICAgICBmb3IKPiA+ICAgICAgICAgLSAgIGNvcHlpbmcgbWVtb3J5LCBicmVha2lu
-ZyB0aGUgdmVyeSBjb2RlIHdyaXR0ZW4gdG8gaGFuZGxlCj4gPiAgICAgICAgIHRoZQo+ID4gICAg
-ICAgICAtICAgdW5hbGlnbmVkIGNhc2VzLiAgKi8KPiA+ICAgICAgICAgLWF1dG8gdm9pZCBfX2F0
-dHJpYnV0ZV9fKChhbHdheXNfaW5saW5lKSkKPiA+ICAgICAgICAgLWVsZl9tYWNoaW5lX3JlbCAo
-c3RydWN0IGxpbmtfbWFwICptYXAsIGNvbnN0IEVsZlcoUmVsKQo+ID4gICAgICAgICAqcmVsb2Ms
-Cj4gPiAgICAgICAgIC0gICAgICAgICAgICAgICAgY29uc3QgRWxmVyhTeW0pICpzeW0sIGNvbnN0
-IHN0cnVjdAo+ID4gICAgICAgICByX2ZvdW5kX3ZlcnNpb24gKnZlcnNpb24sCj4gPiAgICAgICAg
-IC0gICAgICAgICAgICAgICAgdm9pZCAqY29uc3QgcmVsb2NfYWRkcik7Cj4gPiAgICAgICAgIC1h
-dXRvIHZvaWQgX19hdHRyaWJ1dGVfXygoYWx3YXlzX2lubGluZSkpCj4gPiAgICAgICAgIC1lbGZf
-bWFjaGluZV9yZWxhIChzdHJ1Y3QgbGlua19tYXAgKm1hcCwgY29uc3QgRWxmVyhSZWxhKQo+ID4g
-ICAgICAgICAqcmVsb2MsCj4gPiAgICAgICAgIC0gICAgICAgICAgICAgICAgIGNvbnN0IEVsZlco
-U3ltKSAqc3ltLCBjb25zdCBzdHJ1Y3QKPiA+ICAgICAgICAgcl9mb3VuZF92ZXJzaW9uICp2ZXJz
-aW9uLAo+ID4gICAgICAgICAtICAgICAgICAgICAgICAgICB2b2lkICpjb25zdCByZWxvY19hZGRy
-KTsKPiA+ICAgICAgICAgLWF1dG8gdm9pZCBfX2F0dHJpYnV0ZV9fKChhbHdheXNfaW5saW5lKSkK
-PiA+ICAgICAgICAgLWVsZl9tYWNoaW5lX3JlbF9yZWxhdGl2ZSAoRWxmVyhBZGRyKSBsX2FkZHIs
-IGNvbnN0IEVsZlcoUmVsKQo+ID4gICAgICAgICAqcmVsb2MsCj4gPiAgICAgICAgIC0gICAgICAg
-ICAgICAgICAgICAgICAgICAgdm9pZCAqY29uc3QgcmVsb2NfYWRkcik7Cj4gPiAgICAgICAgIC1h
-dXRvIHZvaWQgX19hdHRyaWJ1dGVfXygoYWx3YXlzX2lubGluZSkpCj4gPiAgICAgICAgIC1lbGZf
-bWFjaGluZV9yZWxhX3JlbGF0aXZlIChFbGZXKEFkZHIpIGxfYWRkciwgY29uc3QKPiA+ICAgICAg
-ICAgRWxmVyhSZWxhKSAqcmVsb2MsCj4gPiAgICAgICAgIC0gICAgICAgICAgICAgICAgICAgICAg
-ICAgIHZvaWQgKmNvbnN0IHJlbG9jX2FkZHIpOwo+ID4gICAgICAgICAtIyBpZiBFTEZfTUFDSElO
-RV9OT19SRUxBIHx8IGRlZmluZWQgRUxGX01BQ0hJTkVfUExUX1JFTAo+ID4gICAgICAgICAtYXV0
-byB2b2lkIF9fYXR0cmlidXRlX18oKGFsd2F5c19pbmxpbmUpKQo+ID4gICAgICAgICAtZWxmX21h
-Y2hpbmVfbGF6eV9yZWwgKHN0cnVjdCBsaW5rX21hcCAqbWFwLAo+ID4gICAgICAgICAtICAgICAg
-ICAgICAgICAgICAgICAgRWxmVyhBZGRyKSBsX2FkZHIsIGNvbnN0IEVsZlcoUmVsKQo+ID4gICAg
-ICAgICAqcmVsb2MpOwo+ID4gICAgICAgICAtIyBlbHNlCj4gPiAgICAgICAgIC1hdXRvIHZvaWQg
-X19hdHRyaWJ1dGVfXygoYWx3YXlzX2lubGluZSkpCj4gPiAgICAgICAgIC1lbGZfbWFjaGluZV9s
-YXp5X3JlbCAoc3RydWN0IGxpbmtfbWFwICptYXAsCj4gPiAgICAgICAgIC0gICAgICAgICAgICAg
-ICAgICAgICBFbGZXKEFkZHIpIGxfYWRkciwgY29uc3QgRWxmVyhSZWxhKQo+ID4gICAgICAgICAq
-cmVsb2MpOwo+ID4gICAgICAgICAtIyBlbmRpZgo+ID4gICAgICAgICAtI2VuZGlmCj4gPiAgICAg
-ICAgIC0KPiA+ICAgICAgICAgI2luY2x1ZGUgPGRsLW1hY2hpbmUuaD4KPiA+Cj4gPiAgICAgICAg
-ICNpZm5kZWYgVkVSU1lNSURYCj4gPgo+ID4KPiA+Cj4gPiAgICAgICAgIC0tLSBnbGliYy0yLjMu
-NS5vcmlnL2ljb252ZGF0YS9qaXMwMjA4LmggICAgICAgIDIwMDMtMDYtMTEKPiA+ICAgICAgICAg
-MjE6NDA6IDQyLjAwMDAwMDAwMCArMDAwMAo+ID4gICAgICAgICArKysgZ2xpYmMtMi4zLjUvaWNv
-bnZkYXRhL2ppczAyMDguaCAgICAgMjAwNS0wNy0xNQo+ID4gICAgICAgICAxODozMjoyMC43MjYz
-Mjg1MjggKzAwMDAKPiA+ICAgICAgICAgQEAgLTI0LDE1ICsyNCw2IEBACj4gPiAgICAgICAgICNp
-bmNsdWRlIDxnY29udi5oPgo+ID4gICAgICAgICAjaW5jbHVkZSA8c3RkaW50Lmg+Cj4gPgo+ID4g
-ICAgICAgICAtLyogQ29udmVyc2lvbiB0YWJsZS4gICovCj4gPiAgICAgICAgIC1leHRlcm4gY29u
-c3QgdWludDE2X3QgX19qaXMwMjA4X3RvX3Vjc1tdOwo+ID4gICAgICAgICAtCj4gPiAgICAgICAg
-IC1leHRlcm4gY29uc3QgY2hhciBfX2ppc3gwMjA4X2Zyb21fdWNzNF9sYXQxWzI1Nl1bMl07Cj4g
-PiAgICAgICAgIC1leHRlcm4gY29uc3QgY2hhciBfX2ppc3gwMjA4X2Zyb21fdWNzNF9ncmVla1sw
-eGMxXVsyXTsKPiA+ICAgICAgICAgLWV4dGVybiBjb25zdCBzdHJ1Y3QgamlzeDAyMDhfdWNzX2lk
-eAo+ID4gICAgICAgICBfX2ppc3gwMjA4X2Zyb21fdWNzX2lkeFtdOwo+ID4gICAgICAgICAtZXh0
-ZXJuIGNvbnN0IGNoYXIgX19qaXN4MDIwOF9mcm9tX3Vjc190YWJbXVsyXTsKPiA+ICAgICAgICAg
-LQo+ID4gICAgICAgICAtCj4gPiAgICAgICAgIC8qIFN0cnVjdCBmb3IgdGFibGUgd2l0aCBpbmRl
-Y2VzIGluIFVDUyBtYXBwaW5nIHRhYmxlLiAgKi8KPiA+ICAgICAgICAgc3RydWN0IGppc3gwMjA4
-X3Vjc19pZHgKPiA+ICAgICAgICAgewo+ID4gICAgICAgICBAQCAtNDIsNiArMzMsMTUgQEAKPiA+
-ICAgICAgICAgfTsKPiA+Cj4gPgo+ID4gICAgICAgICArLyogQ29udmVyc2lvbiB0YWJsZS4gICov
-Cj4gPiAgICAgICAgICtleHRlcm4gY29uc3QgdWludDE2X3QgX19qaXMwMjA4X3RvX3Vjc1tdOwo+
-ID4gICAgICAgICArCj4gPiAgICAgICAgICtleHRlcm4gY29uc3QgY2hhciBfX2ppc3gwMjA4X2Zy
-b21fdWNzNF9sYXQxWzI1Nl1bMl07Cj4gPiAgICAgICAgICtleHRlcm4gY29uc3QgY2hhciBfX2pp
-c3gwMjA4X2Zyb21fdWNzNF9ncmVla1sweGMxXVsyXTsKPiA+ICAgICAgICAgK2V4dGVybiBjb25z
-dCBzdHJ1Y3QgamlzeDAyMDhfdWNzX2lkeAo+ID4gICAgICAgICBfX2ppc3gwMjA4X2Zyb21fdWNz
-X2lkeFtdOwo+ID4gICAgICAgICArZXh0ZXJuIGNvbnN0IGNoYXIgX19qaXN4MDIwOF9mcm9tX3Vj
-c190YWJbXVsyXTsKPiA+ICAgICAgICAgKwo+ID4gICAgICAgICArCj4gPiAgICAgICAgIHN0YXRp
-YyBpbmxpbmUgdWludDMyX3QKPiA+ICAgICAgICAgX19hdHRyaWJ1dGUgKChhbHdheXNfaW5saW5l
-KSkKPiA+ICAgICAgICAgamlzeDAyMDhfdG9fdWNzNCAoY29uc3QgdW5zaWduZWQgY2hhciAqKnMs
-IHNpemVfdCBhdmFpbCwKPiA+ICAgICAgICAgdW5zaWduZWQgY2hhciBvZmZzZXQpCj4gPgo+ID4K
-PiA+Cj4gPiAgICAgICAgIC0tLSBsaWJjL2luY2x1ZGUvbGliYy1zeW1ib2xzLmggMjAwNS8wMi8x
-MSAwMDoyOTo0NiAgICAgMS43MAo+ID4gICAgICAgICArKysgbGliYy9pbmNsdWRlL2xpYmMtc3lt
-Ym9scy5oIDIwMDUvMDMvMTcgMjE6MDY6MjcgICAgIDEuNzEKPiA+ICAgICAgICAgQEAgLTU4Myw3
-OCArNTgzLDIzIEBACj4gPiAgICAgICAgICMgIGRlZmluZSBoaWRkZW5fcHJvdG8obmFtZSwgYXR0
-cnMuLi4pIFwKPiA+ICAgICAgICAgICAgX19oaWRkZW5fcHJvdG8gKG5hbWUsIF9fR0lfIyNuYW1l
-LCAjI2F0dHJzKQo+ID4gICAgICAgICAjICBkZWZpbmUgX19oaWRkZW5fcHJvdG8obmFtZSwgaW50
-ZXJuYWwsIGF0dHJzLi4uKSBcCj4gPiAgICAgICAgIC0gIGV4dGVybiBfX3R5cGVvZiAobmFtZSkg
-aW50ZXJuYWw7IFwKPiA+ICAgICAgICAgICAgZXh0ZXJuIF9fdHlwZW9mIChuYW1lKSBuYW1lIF9f
-YXNtX18gKF9faGlkZGVuX2FzbW5hbWUKPiA+ICAgICAgICAgKCNpbnRlcm5hbCkpIFwKPiA+ICAg
-ICAgICAgICAgX19oaWRkZW5fcHJvdG9faGlkZGVuYXR0ciAoYXR0cnMpOwo+ID4gICAgICAgICAj
-ICBkZWZpbmUgX19oaWRkZW5fYXNtbmFtZShuYW1lKSBcCj4gPiAgICAgICAgICAgIF9faGlkZGVu
-X2FzbW5hbWUxIChfX1VTRVJfTEFCRUxfUFJFRklYX18sIG5hbWUpCj4gPiAgICAgICAgICMgIGRl
-ZmluZSBfX2hpZGRlbl9hc21uYW1lMShwcmVmaXgsIG5hbWUpCj4gPiAgICAgICAgIF9faGlkZGVu
-X2FzbW5hbWUyKHByZWZpeCwgbmFtZSkKPiA+ICAgICAgICAgIyAgZGVmaW5lIF9faGlkZGVuX2Fz
-bW5hbWUyKHByZWZpeCwgbmFtZSkgI3ByZWZpeCBuYW1lCj4gPiAgICAgICAgIC0jICBpZmRlZiBI
-QVZFX0FTTV9TRVRfRElSRUNUSVZFCj4gPiAgICAgICAgIC0jICAgZGVmaW5lIF9faGlkZGVuX2Rl
-ZjEob3JpZ2luYWwsCj4gPiAgICAgICAgIGFsaWFzKSAgICAgICAgICAgICAgICAgICAgICBcCj4g
-PiAgICAgICAgIC0gIEFTTV9HTE9CQUxfRElSRUNUSVZFIENfU1lNQk9MX05BTUUgKGFsaWFzKQo+
-ID4gICAgICAgICBBU01fTElORV9TRVAgICAgICBcCj4gPiAgICAgICAgIC0gIC5zZXQgQ19TWU1C
-T0xfTkFNRSAoYWxpYXMpLCBDX1NZTUJPTF9OQU1FIChvcmlnaW5hbCkKPiA+ICAgICAgICAgLSMg
-ICBpZmRlZiBIQVZFX0FTTV9HTE9CQUxfRE9UX05BTUUKPiA+ICAgICAgICAgLSMgICAgIGRlZmlu
-ZSBfX2hpZGRlbl9kb3RfZGVmMShvcmlnaW5hbCwgYWxpYXMpCj4gPiAgICAgICAgIEFTTV9MSU5F
-X1NFUCAgIFwKPiA+ICAgICAgICAgLSAgQVNNX0dMT0JBTF9ESVJFQ1RJVkUgQ19TWU1CT0xfRE9U
-X05BTUUgKGFsaWFzKQo+ID4gICAgICAgICBBU01fTElORV9TRVAgIFwKPiA+ICAgICAgICAgLSAg
-LnNldCBDX1NZTUJPTF9ET1RfTkFNRSAoYWxpYXMpLCBDX1NZTUJPTF9ET1RfTkFNRQo+ID4gICAg
-ICAgICAob3JpZ2luYWwpCj4gPiAgICAgICAgIC0jICAgZWxzZQo+ID4gICAgICAgICAtIyAgICAg
-ZGVmaW5lIF9faGlkZGVuX2RvdF9kZWYxKG9yaWdpbmFsLCBhbGlhcykKPiA+ICAgICAgICAgLSMg
-ICBlbmRpZgo+ID4gICAgICAgICAtIyAgZWxzZQo+ID4gICAgICAgICAtIyAgIGRlZmluZSBfX2hp
-ZGRlbl9kZWYxKG9yaWdpbmFsLAo+ID4gICAgICAgICBhbGlhcykgICAgICAgICAgICAgICAgICAg
-ICAgXAo+ID4gICAgICAgICAtICBBU01fR0xPQkFMX0RJUkVDVElWRSBDX1NZTUJPTF9OQU1FIChh
-bGlhcykKPiA+ICAgICAgICAgQVNNX0xJTkVfU0VQICAgICAgXAo+ID4gICAgICAgICAtICBDX1NZ
-TUJPTF9OQU1FIChhbGlhcykgPSBDX1NZTUJPTF9OQU1FIChvcmlnaW5hbCkKPiA+ICAgICAgICAg
-LSMgICBpZmRlZiBIQVZFX0FTTV9HTE9CQUxfRE9UX05BTUUKPiA+ICAgICAgICAgLSMgICAgZGVm
-aW5lIF9faGlkZGVuX2RvdF9kZWYxKG9yaWdpbmFsLCBhbGlhcykKPiA+ICAgICAgICAgQVNNX0xJ
-TkVfU0VQICAgIFwKPiA+ICAgICAgICAgLSAgQVNNX0dMT0JBTF9ESVJFQ1RJVkUgQ19TWU1CT0xf
-RE9UX05BTUUgKGFsaWFzKQo+ID4gICAgICAgICBBU01fTElORV9TRVAgIFwKPiA+ICAgICAgICAg
-LSAgQ19TWU1CT0xfRE9UX05BTUUgKGFsaWFzKSA9IENfU1lNQk9MX0RPVF9OQU1FIChvcmlnaW5h
-bCkKPiA+ICAgICAgICAgLSMgICBlbHNlCj4gPiAgICAgICAgIC0jICAgIGRlZmluZSBfX2hpZGRl
-bl9kb3RfZGVmMShvcmlnaW5hbCwgYWxpYXMpCj4gPiAgICAgICAgIC0jICAgZW5kaWYKPiA+ICAg
-ICAgICAgLSMgIGVuZGlmCj4gPiAgICAgICAgIC0jICBkZWZpbmUgX19oaWRkZW5fZGVmMiguLi4p
-ICNfX1ZBX0FSR1NfXwo+ID4gICAgICAgICAtIyAgZGVmaW5lIF9faGlkZGVuX2RlZjMoLi4uKSBf
-X2hpZGRlbl9kZWYyIChfX1ZBX0FSR1NfXykKPiA+ICAgICAgICAgLSMgIGRlZmluZSBoaWRkZW5f
-ZGVmKG5hbWUpCj4gPiAgICAgICAgIFwKPiA+ICAgICAgICAgLSAgX19hc21fXyAoX19oaWRkZW5f
-ZGVmMyAoX19oaWRkZW5fZGVmMSAoX19HSV8jI25hbWUsIG5hbWUpCj4gPiAgICAgICAgIFwKPiA+
-ICAgICAgICAgLSAgX19oaWRkZW5fZG90X2RlZjEgKF9fR0lfIyNuYW1lLCBuYW1lKSkpOwo+ID4g
-ICAgICAgICAtIyAgZGVmaW5lCj4gPiAgICAgICAgIGhpZGRlbl9kYXRhX2RlZihuYW1lKSAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCj4gPiAgICAgICAgIC0gIF9fYXNt
-X18gKF9faGlkZGVuX2RlZjMgKF9faGlkZGVuX2RlZjEgKF9fR0lfIyNuYW1lLAo+ID4gICAgICAg
-ICBuYW1lKSkpOwo+ID4gICAgICAgICAtIyAgZGVmaW5lIGhpZGRlbl92ZXIobG9jYWwsCj4gPiAg
-ICAgICAgIG5hbWUpICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAo+ID4gICAgICAgICAt
-ICBfX2FzbV9fIChfX2hpZGRlbl9kZWYzIChfX2hpZGRlbl9kZWYxIChsb2NhbCwgX19HSV8jI25h
-bWUpCj4gPiAgICAgICAgIFwKPiA+ICAgICAgICAgLSAgX19oaWRkZW5fZG90X2RlZjEgKGxvY2Fs
-LCBfX0dJXyMjbmFtZSkpKTsKPiA+ICAgICAgICAgLSMgIGRlZmluZSBoaWRkZW5fZGF0YV92ZXIo
-bG9jYWwsIG5hbWUpCj4gPiAgICAgICAgIFwKPiA+ICAgICAgICAgLSAgX19hc21fXyAoX19oaWRk
-ZW5fZGVmMyAoX19oaWRkZW5fZGVmMSAobG9jYWwsCj4gPiAgICAgICAgIF9fR0lfIyNuYW1lKSkp
-Owo+ID4gICAgICAgICAtIyAgaWZkZWYgSEFWRV9XRUFLX1NZTUJPTFMKPiA+ICAgICAgICAgLSMg
-ICBpZmRlZiBIQVZFX0FTTV9XRUFLRVhUX0RJUkVDVElWRQo+ID4gICAgICAgICAtIyAgICBkZWZp
-bmUgX19oaWRkZW5fd2VhazEob3JpZ2luYWwsCj4gPiAgICAgICAgIGFsaWFzKSAgICAgICAgICAg
-ICAgICAgICAgXAo+ID4gICAgICAgICAtICAud2Vha2V4dCBDX1NZTUJPTF9OQU1FIChhbGlhcyks
-IENfU1lNQk9MX05BTUUgKG9yaWdpbmFsKQo+ID4gICAgICAgICAtIyAgICBpZmRlZiBIQVZFX0FT
-TV9HTE9CQUxfRE9UX05BTUUKPiA+ICAgICAgICAgLSMgICAgIGRlZmluZSBfX2hpZGRlbl9kb3Rf
-d2VhazEob3JpZ2luYWwsIGFsaWFzKQo+ID4gICAgICAgICBBU01fTElORV9TRVAgICAgXAo+ID4g
-ICAgICAgICAtICAud2Vha2V4dCBDX1NZTUJPTF9ET1RfTkFNRSAoYWxpYXMpLCBDX1NZTUJPTF9E
-T1RfTkFNRQo+ID4gICAgICAgICAob3JpZ2luYWwpCj4gPiAgICAgICAgIC0jICAgIGVsc2UKPiA+
-ICAgICAgICAgLSMgICAgIGRlZmluZSBfX2hpZGRlbl9kb3Rfd2VhazEob3JpZ2luYWwsIGFsaWFz
-KQo+ID4gICAgICAgICAtIyAgICBlbmRpZgo+ID4gICAgICAgICAtIyAgIGVsc2UgLyogISBIQVZF
-X0FTTV9XRUFLRVhUX0RJUkVDVElWRSAqLwo+ID4gICAgICAgICAtIyAgICBkZWZpbmUgX19oaWRk
-ZW5fd2VhazEob3JpZ2luYWwsCj4gPiAgICAgICAgIGFsaWFzKSAgICAgICAgICAgICAgICAgICAg
-XAo+ID4gICAgICAgICAtICAud2VhayBDX1NZTUJPTF9OQU1FIChhbGlhcykgQVNNX0xJTkVfU0VQ
-Cj4gPiAgICAgICAgIFwKPiA+ICAgICAgICAgLSAgQ19TWU1CT0xfTkFNRSAoYWxpYXMpID0gQ19T
-WU1CT0xfTkFNRSAob3JpZ2luYWwpCj4gPiAgICAgICAgIC0jICAgIGlmZGVmIEhBVkVfQVNNX0dM
-T0JBTF9ET1RfTkFNRQo+ID4gICAgICAgICAtIyAgICAgZGVmaW5lIF9faGlkZGVuX2RvdF93ZWFr
-MShvcmlnaW5hbCwgYWxpYXMpCj4gPiAgICAgICAgIEFTTV9MSU5FX1NFUCAgICBcCj4gPiAgICAg
-ICAgIC0gIC53ZWFrIENfU1lNQk9MX0RPVF9OQU1FIChhbGlhcykgQVNNX0xJTkVfU0VQIFwKPiA+
-ICAgICAgICAgLSAgQ19TWU1CT0xfRE9UX05BTUUgKGFsaWFzKSA9IENfU1lNQk9MX0RPVF9OQU1F
-IChvcmlnaW5hbCkKPiA+ICAgICAgICAgLSMgICAgZWxzZQo+ID4gICAgICAgICAtIyAgICAgZGVm
-aW5lIF9faGlkZGVuX2RvdF93ZWFrMShvcmlnaW5hbCwgYWxpYXMpCj4gPiAgICAgICAgIC0jICAg
-IGVuZGlmCj4gPiAgICAgICAgIC0jICAgZW5kaWYKPiA+ICAgICAgICAgLSMgICBkZWZpbmUgaGlk
-ZGVuX3dlYWsobmFtZSkKPiA+ICAgICAgICAgXAo+ID4gICAgICAgICAtICBfX2FzbV9fIChfX2hp
-ZGRlbl9kZWYzIChfX2hpZGRlbl93ZWFrMSAoX19HSV8jI25hbWUsIG5hbWUpCj4gPiAgICAgICAg
-IFwKPiA+ICAgICAgICAgLSAgX19oaWRkZW5fZG90X3dlYWsxIChfX0dJXyMjbmFtZSwgbmFtZSkp
-KTsKPiA+ICAgICAgICAgLSMgICBkZWZpbmUKPiA+ICAgICAgICAgaGlkZGVuX2RhdGFfd2Vhayhu
-YW1lKSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAo+ID4gICAgICAgICAt
-ICBfX2FzbV9fIChfX2hpZGRlbl9kZWYzIChfX2hpZGRlbl93ZWFrMSAoX19HSV8jI25hbWUsCj4g
-PiAgICAgICAgIG5hbWUpKSk7Cj4gPiAgICAgICAgIC0jICBlbHNlCj4gPiAgICAgICAgIC0jICAg
-ZGVmaW5lIGhpZGRlbl93ZWFrKG5hbWUpIGhpZGRlbl9kZWYgKG5hbWUpCj4gPiAgICAgICAgIC0j
-ICBlbmRpZgo+ID4gICAgICAgICArIyAgZGVmaW5lIF9faGlkZGVuX3ZlcjEobG9jYWwsIGludGVy
-bmFsLCBuYW1lKSBcCj4gPiAgICAgICAgICsgIGV4dGVybiBfX3R5cGVvZiAobmFtZSkgX19FSV8j
-I25hbWUgX19hc21fXyhfX2hpZGRlbl9hc21uYW1lCj4gPiAgICAgICAgICgjaW50ZXJuYWwpKTsg
-XAo+ID4gICAgICAgICArICBleHRlcm4gX190eXBlb2YgKG5hbWUpIF9fRUlfIyNuYW1lIFwKPiA+
-ICAgICAgICAgKyAgICAgICBfX2F0dHJpYnV0ZV9fKChhbGlhcyAoX19oaWRkZW5fYXNtbmFtZSAo
-I2xvY2FsKSkpKQo+ID4gICAgICAgICArIyAgZGVmaW5lIGhpZGRlbl92ZXIobG9jYWwsIG5hbWUp
-ICAgICAgX19oaWRkZW5fdmVyMShsb2NhbCwKPiA+ICAgICAgICAgX19HSV8jI25hbWUsIG5hbWUp
-Owo+ID4gICAgICAgICArIyAgZGVmaW5lIGhpZGRlbl9kYXRhX3Zlcihsb2NhbCwgbmFtZSkgaGlk
-ZGVuX3Zlcihsb2NhbCwKPiA+ICAgICAgICAgbmFtZSkKPiA+ICAgICAgICAgKyMgIGRlZmluZSBo
-aWRkZW5fZGVmKG5hbWUpCj4gPiAgICAgICAgIF9faGlkZGVuX3ZlcjEoX19HSV8jI25hbWUsIG5h
-bWUsIG5hbWUpOwo+ID4gICAgICAgICArIyAgZGVmaW5lCj4gPiAgICAgICAgIGhpZGRlbl9kYXRh
-X2RlZihuYW1lKSAgICAgICAgICAgICAgICBoaWRkZW5fZGVmKG5hbWUpCj4gPiAgICAgICAgICsj
-ICBkZWZpbmUgaGlkZGVuX3dlYWsobmFtZSkgXAo+ID4gICAgICAgICArICAgICAgIF9faGlkZGVu
-X3ZlcjEoX19HSV8jI25hbWUsIG5hbWUsIG5hbWUpCj4gPiAgICAgICAgIF9fYXR0cmlidXRlX18o
-KHdlYWspKTsKPiA+ICAgICAgICAgKyMgIGRlZmluZSBoaWRkZW5fZGF0YV93ZWFrKG5hbWUpICAg
-ICAgIGhpZGRlbl93ZWFrKG5hbWUpCj4gPiAgICAgICAgICMgZWxzZQo+ID4gICAgICAgICAvKiBG
-b3IgYXNzZW1ibHksIHdlIG5lZWQgdG8gZG8gdGhlIG9wcG9zaXRlIG9mIHdoYXQgd2UgZG8gaW4K
-PiA+ICAgICAgICAgQzoKPiA+Cj4gPgo+ID4KPiA+ICAgICAgICAgLS0tIHdjc21icy93Y3Njb2xs
-LmMgICAgMjAwNC8wMy8xNCAyMTowNTo0OCAgICAgMS4xMwo+ID4gICAgICAgICArKysgd2NzbWJz
-L3djc2NvbGwuYyAgICAyMDA1LzAzLzE3IDIxOjA2OjI0ICAgICAxLjE0Cj4gPiAgICAgICAgIEBA
-IC0yMiwxMiArMjIsMTEgQEAKPiA+Cj4gPiAgICAgICAgICNkZWZpbmUgU1RSSU5HX1RZUEUgd2No
-YXJfdAo+ID4gICAgICAgICAjZGVmaW5lIFVTVFJJTkdfVFlQRSB3aW50X3QKPiA+ICAgICAgICAg
-LSNkZWZpbmUgU1RSQ09MTCBfX3djc2NvbGwKPiA+ICAgICAgICAgKyNkZWZpbmUgU1RSQ09MTCB3
-Y3Njb2xsCj4gPiAgICAgICAgICNkZWZpbmUgU1RSQ09MTF9MIF9fd2NzY29sbF9sCj4gPgo+ID4g
-ICAgICAgICAjaW5jbHVkZSAiLi4vc3RyaW5nL3N0cmNvbGwuYyIKPiA+Cj4gPiAgICAgICAgICNp
-Zm5kZWYgVVNFX0lOX0VYVEVOREVEX0xPQ0FMRV9NT0RFTAo+ID4gICAgICAgICAtd2Vha19hbGlh
-cyAoX193Y3Njb2xsLCB3Y3Njb2xsKQo+ID4gICAgICAgICBsaWJjX2hpZGRlbl93ZWFrICh3Y3Nj
-b2xsKQo+ID4gICAgICAgICAjZW5kaWYKPiA+Cj4gPgo+ID4KPiA+Cj4gPiAgICAgICAgIC0tLSBn
-bGliYy0yLjMuNC9zeXNkZXBzL2FybS9kbC1tYWNoaW5lLmgub2xkICAgIFN1biBNYXIgMjAKPiA+
-ICAgICAgICAgMTc6NTQ6MzcgMjAwNQo+ID4gICAgICAgICArKysgZ2xpYmMtMi4zLjQvc3lzZGVw
-cy9hcm0vZGwtbWFjaGluZS5oICAgICAgICBTdW4gTWFyIDIwCj4gPiAgICAgICAgIDE3OjU3OjMy
-IDIwMDUKPiA+ICAgICAgICAgQEAgLTM1OSw3ICszNTksMTQgQEAKPiA+ICAgICAgICAgIyBlbmRp
-Zgo+ID4KPiA+ICAgICAgICAgLyogRGVhbCB3aXRoIGFuIG91dC1vZi1yYW5nZSBQQzI0IHJlbG9j
-LiAgKi8KPiA+ICAgICAgICAgLXN0YXRpYyBFbGYzMl9BZGRyCj4gPiAgICAgICAgICsjaWYgX19H
-TlVDX18gPj0gNAo+ID4gICAgICAgICArICBhdXRvIGlubGluZSBFbGYzMl9BZGRyCj4gPiAgICAg
-ICAgICsjZWxzZQo+ID4gICAgICAgICArICBzdGF0aWMgaW5saW5lIEVsZjMyX0FkZHIKPiA+ICAg
-ICAgICAgKyNlbmRpZgo+ID4gICAgICAgICArI2lmIF9fR05VQ19fID49IDQgfHwgKF9fR05VQ19f
-ID09IDMgJiYgX19HTlVDX01JTk9SX18gPj0gMikKPiA+ICAgICAgICAgKyAgX19hdHRyaWJ1dGUg
-KChhbHdheXNfaW5saW5lKSkKPiA+ICAgICAgICAgKyNlbmRpZgo+ID4gICAgICAgICBmaXhfYmFk
-X3BjMjQgKEVsZjMyX0FkZHIgKmNvbnN0IHJlbG9jX2FkZHIsIEVsZjMyX0FkZHIgdmFsdWUpCj4g
-PiAgICAgICAgIHsKPiA+ICAgICAgICAgICAgc3RhdGljIHZvaWQgKmZpeF9wYWdlOwo+ID4gICAg
-ICAgICBAQCAtMzkyLDcgKzM5OSwxNCBAQAo+ID4gICAgICAgICAvKiBQZXJmb3JtIHRoZSByZWxv
-Y2F0aW9uIHNwZWNpZmllZCBieSBSRUxPQyBhbmQgU1lNICh3aGljaCBpcwo+ID4gICAgICAgICBm
-dWxseSByZXNvbHZlZCkuCj4gPiAgICAgICAgICAgICBNQVAgaXMgdGhlIG9iamVjdCBjb250YWlu
-aW5nIHRoZSByZWxvYy4gICovCj4gPgo+ID4gICAgICAgICAtc3RhdGljIGlubGluZSB2b2lkCj4g
-PiAgICAgICAgICsjaWYgX19HTlVDX18gPj0gNAo+ID4gICAgICAgICArICBhdXRvIGlubGluZSB2
-b2lkCj4gPiAgICAgICAgICsjZWxzZQo+ID4gICAgICAgICArICBzdGF0aWMgaW5saW5lIHZvaWQK
-PiA+ICAgICAgICAgKyNlbmRpZgo+ID4gICAgICAgICArI2lmIF9fR05VQ19fID49IDQgfHwgKF9f
-R05VQ19fID09IDMgJiYgX19HTlVDX01JTk9SX18gPj0gMikKPiA+ICAgICAgICAgKyAgX19hdHRy
-aWJ1dGUgKChhbHdheXNfaW5saW5lKSkKPiA+ICAgICAgICAgKyNlbmRpZgo+ID4gICAgICAgICBl
-bGZfbWFjaGluZV9yZWwgKHN0cnVjdCBsaW5rX21hcCAqbWFwLCBjb25zdCBFbGYzMl9SZWwKPiA+
-ICAgICAgICAgKnJlbG9jLAo+ID4gICAgICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IEVsZjMy
-X1N5bSAqc3ltLCBjb25zdCBzdHJ1Y3QKPiA+ICAgICAgICAgcl9mb3VuZF92ZXJzaW9uICp2ZXJz
-aW9uLAo+ID4gICAgICAgICAgICAgICAgICAgICAgICAgIHZvaWQgKmNvbnN0IHJlbG9jX2FkZHJf
-YXJnKQo+ID4gICAgICAgICBAQCAtNTE3LDcgKzUzMSwxNCBAQAo+ID4gICAgICAgICB9Cj4gPgo+
-ID4gICAgICAgICAjIGlmbmRlZiBSVExEX0JPT1RTVFJBUAo+ID4gICAgICAgICAtc3RhdGljIGlu
-bGluZSB2b2lkCj4gPiAgICAgICAgICsjaWYgX19HTlVDX18gPj0gNAo+ID4gICAgICAgICArICBh
-dXRvIGlubGluZSB2b2lkCj4gPiAgICAgICAgICsjZWxzZQo+ID4gICAgICAgICArICBzdGF0aWMg
-aW5saW5lIHZvaWQKPiA+ICAgICAgICAgKyNlbmRpZgo+ID4gICAgICAgICArI2lmIF9fR05VQ19f
-ID49IDQgfHwgKF9fR05VQ19fID09IDMgJiYgX19HTlVDX01JTk9SX18gPj0gMikKPiA+ICAgICAg
-ICAgKyAgX19hdHRyaWJ1dGUgKChhbHdheXNfaW5saW5lKSkKPiA+ICAgICAgICAgKyNlbmRpZgo+
-ID4gICAgICAgICBlbGZfbWFjaGluZV9yZWxhIChzdHJ1Y3QgbGlua19tYXAgKm1hcCwgY29uc3Qg
-RWxmMzJfUmVsYQo+ID4gICAgICAgICAqcmVsb2MsCj4gPiAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIGNvbnN0IEVsZjMyX1N5bSAqc3ltLCBjb25zdCBzdHJ1Y3QKPiA+ICAgICAgICAgcl9mb3Vu
-ZF92ZXJzaW9uICp2ZXJzaW9uLAo+ID4gICAgICAgICAgICAgICAgICAgICAgICAgICB2b2lkICpj
-b25zdCByZWxvY19hZGRyX2FyZykKPiA+ICAgICAgICAgQEAgLTU5Nyw3ICs2MTgsMTQgQEAKPiA+
-ICAgICAgICAgfQo+ID4gICAgICAgICAjIGVuZGlmCj4gPgo+ID4gICAgICAgICAtc3RhdGljIGlu
-bGluZSB2b2lkCj4gPiAgICAgICAgICsjaWYgX19HTlVDX18gPj0gNAo+ID4gICAgICAgICArICBh
-dXRvIGlubGluZSB2b2lkCj4gPiAgICAgICAgICsjZWxzZQo+ID4gICAgICAgICArICBzdGF0aWMg
-aW5saW5lIHZvaWQKPiA+ICAgICAgICAgKyNlbmRpZgo+ID4gICAgICAgICArI2lmIF9fR05VQ19f
-ID49IDQgfHwgKF9fR05VQ19fID09IDMgJiYgX19HTlVDX01JTk9SX18gPj0gMikKPiA+ICAgICAg
-ICAgKyAgX19hdHRyaWJ1dGUgKChhbHdheXNfaW5saW5lKSkKPiA+ICAgICAgICAgKyNlbmRpZgo+
-ID4gICAgICAgICBlbGZfbWFjaGluZV9yZWxfcmVsYXRpdmUgKEVsZjMyX0FkZHIgbF9hZGRyLCBj
-b25zdCBFbGYzMl9SZWwKPiA+ICAgICAgICAgKnJlbG9jLAo+ID4gICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIHZvaWQgKmNvbnN0IHJlbG9jX2FkZHJfYXJnKQo+ID4gICAgICAgICB7
-Cj4gPiAgICAgICAgIEBAIC02MDYsNyArNjM0LDE0IEBACj4gPiAgICAgICAgIH0KPiA+Cj4gPiAg
-ICAgICAgICMgaWZuZGVmIFJUTERfQk9PVFNUUkFQCj4gPiAgICAgICAgIC1zdGF0aWMgaW5saW5l
-IHZvaWQKPiA+ICAgICAgICAgKyNpZiBfX0dOVUNfXyA+PSA0Cj4gPiAgICAgICAgICsgIGF1dG8g
-aW5saW5lIHZvaWQKPiA+ICAgICAgICAgKyNlbHNlCj4gPiAgICAgICAgICsgIHN0YXRpYyBpbmxp
-bmUgdm9pZAo+ID4gICAgICAgICArI2VuZGlmCj4gPiAgICAgICAgICsjaWYgX19HTlVDX18gPj0g
-NCB8fCAoX19HTlVDX18gPT0gMyAmJiBfX0dOVUNfTUlOT1JfXyA+PSAyKQo+ID4gICAgICAgICAr
-ICBfX2F0dHJpYnV0ZSAoKGFsd2F5c19pbmxpbmUpKQo+ID4gICAgICAgICArI2VuZGlmCj4gPiAg
-ICAgICAgIGVsZl9tYWNoaW5lX3JlbGFfcmVsYXRpdmUgKEVsZjMyX0FkZHIgbF9hZGRyLCBjb25z
-dCBFbGYzMl9SZWxhCj4gPiAgICAgICAgICpyZWxvYywKPiA+ICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgdm9pZCAqY29uc3QgcmVsb2NfYWRkcl9hcmcpCj4gPiAgICAgICAgIHsK
-PiA+ICAgICAgICAgQEAgLTYxNSw3ICs2NTAsMTQgQEAKPiA+ICAgICAgICAgfQo+ID4gICAgICAg
-ICAjIGVuZGlmCj4gPgo+ID4gICAgICAgICAtc3RhdGljIGlubGluZSB2b2lkCj4gPiAgICAgICAg
-ICsjaWYgX19HTlVDX18gPj0gNAo+ID4gICAgICAgICArICBhdXRvIGlubGluZSB2b2lkCj4gPiAg
-ICAgICAgICsjZWxzZQo+ID4gICAgICAgICArICBzdGF0aWMgaW5saW5lIHZvaWQKPiA+ICAgICAg
-ICAgKyNlbmRpZgo+ID4gICAgICAgICArI2lmIF9fR05VQ19fID49IDQgfHwgKF9fR05VQ19fID09
-IDMgJiYgX19HTlVDX01JTk9SX18gPj0gMikKPiA+ICAgICAgICAgKyAgX19hdHRyaWJ1dGUgKChh
-bHdheXNfaW5saW5lKSkKPiA+ICAgICAgICAgKyNlbmRpZgo+ID4gICAgICAgICBlbGZfbWFjaGlu
-ZV9sYXp5X3JlbCAoc3RydWN0IGxpbmtfbWFwICptYXAsCj4gPiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICBFbGYzMl9BZGRyIGxfYWRkciwgY29uc3QgRWxmMzJfUmVsCj4gPiAgICAgICAg
-ICpyZWxvYykKPiA+ICAgICAgICAgewo+ID4KPiA+Cj4gPgo+ID4KPiA+Cj4gPiAgICAgICAgIC0t
-LQo+ID4gICAgICAgICBnbGliYy0yLjMuMi9zeXNkZXBzL3VuaXgvc3lzdi9saW51eC9hcm0vaW9w
-ZXJtLmMub2xkICAgICAgICAyMDAzLTAyLTIwCj4gMTQ6MjI6IDI0LjAwMDAwMDAwMCAtMDgwMAo+
-ID4gICAgICAgICArKysKPiA+ICAgICAgICAgZ2xpYmMtMi4zLjIvc3lzZGVwcy91bml4L3N5c3Yv
-bGludXgvYXJtL2lvcGVybS5jICAgIDIwMDQtMDEtMzEKPiA+ICAgICAgICAgMTY6MDE6NTAuMDAw
-MDAwMDAwIC0wODAwCj4gPiAgICAgICAgIEBAIC00Nyw2ICs0NywxMiBAQAo+ID4gICAgICAgICAj
-aW5jbHVkZSA8YXNtL3BhZ2UuaD4KPiA+ICAgICAgICAgI2luY2x1ZGUgPHN5cy9zeXNjdGwuaD4K
-PiA+Cj4gPiAgICAgICAgICsvKiBzZWUKPiA+ICAgICAgICAgaHR0cDovL3d3dy51c3NnLml1LmVk
-dS9oeXBlcm1haWwvbGludXgva2VybmVsLzAzMTEuMC8wNTI5Lmh0bWwKPiA+ICAgICAgICAgKi8K
-PiA+ICAgICAgICAgKyNpbmNsdWRlIDxsaW51eC92ZXJzaW9uLmg+Cj4gPiAgICAgICAgICsjaWYg
-KExJTlVYX1ZFUlNJT05fQ09ERSA8IEtFUk5FTF9WRVJTSU9OKDIsNCwyMykpCj4gPiAgICAgICAg
-ICsjZGVmaW5lIENUTF9CVVNfSVNBIEJVU19JU0EgICAgLyogYW5kIGhvcGUgaXQncyBub3QgdGhl
-IG9uZQo+ID4gICAgICAgICBmcm9tIGxpbnV4L2lucHV0LmggKi8KPiA+ICAgICAgICAgKyNlbmRp
-Zgo+ID4gICAgICAgICArCj4gPiAgICAgICAgICNkZWZpbmUgUEFUSF9BUk1fU1lTVFlQRSAgICAg
-ICAiL2V0Yy9hcm1fc3lzdHlwZSIKPiA+ICAgICAgICAgI2RlZmluZSBQQVRIX0NQVUlORk8gICAg
-ICAgICAgICIvcHJvYy9jcHVpbmZvIgo+ID4KPiA+ICAgICAgICAgQEAgLTgwLDcgKzg2LDcgQEAK
-PiA+ICAgICAgICAgICAqIEluaXRpYWxpemUgSS9PIHN5c3RlbS4gIFRoZXJlIGFyZSBzZXZlcmFs
-IHdheXMgdG8gZ2V0IHRoZQo+ID4gICAgICAgICBpbmZvcm1hdGlvbgo+ID4gICAgICAgICAgICog
-d2UgbmVlZC4gIEVhY2ggaXMgdHJpZWQgaW4gdHVybiB1bnRpbCBvbmUgc3VjY2VlZHMuCj4gPiAg
-ICAgICAgICAgKgo+ID4gICAgICAgICAtICogMS4gU3lzY3RsIChDVExfQlVTLCBCVVNfSVNBLCBJ
-U0FfKikuICBUaGlzIGlzIHRoZQo+ID4gICAgICAgICBwcmVmZXJyZWQgbWV0aG9kCj4gPiAgICAg
-ICAgICsgKiAxLiBTeXNjdGwgKENUTF9CVVMsIENUTF9CVVNfSVNBLCBJU0FfKikuICBUaGlzIGlz
-IHRoZQo+ID4gICAgICAgICBwcmVmZXJyZWQgbWV0aG9kCj4gPiAgICAgICAgICAgKiAgICBidXQg
-bm90IGFsbCBrZXJuZWxzIHN1cHBvcnQgaXQuCj4gPiAgICAgICAgICAgKgo+ID4gICAgICAgICAg
-ICogMi4gUmVhZCB0aGUgdmFsdWUgKG5vdCB0aGUgY29udGVudHMpIG9mIHN5bWxpbmsKPiA+ICAg
-ICAgICAgUEFUSF9BUk1fU1lTVFlQRS4KPiA+ICAgICAgICAgQEAgLTEwMCw4ICsxMDYsOCBAQAo+
-ID4gICAgICAgICB7Cj4gPiAgICAgICAgICAgIGNoYXIgc3lzdHlwZVsyNTZdOwo+ID4gICAgICAg
-ICAgICBpbnQgaSwgbjsKPiA+ICAgICAgICAgLSAgc3RhdGljIGludCBpb2Jhc2VfbmFtZVtdID0g
-eyBDVExfQlVTLCBCVVNfSVNBLAo+ID4gICAgICAgICBCVVNfSVNBX1BPUlRfQkFTRSB9Owo+ID4g
-ICAgICAgICAtICBzdGF0aWMgaW50IGlvc2hpZnRfbmFtZVtdID0geyBDVExfQlVTLCBCVVNfSVNB
-LAo+ID4gICAgICAgICBCVVNfSVNBX1BPUlRfU0hJRlQgfTsKPiA+ICAgICAgICAgKyAgc3RhdGlj
-IGludCBpb2Jhc2VfbmFtZVtdID0geyBDVExfQlVTLCBDVExfQlVTX0lTQSwKPiA+ICAgICAgICAg
-QlVTX0lTQV9QT1JUX0JBU0UgfTsKPiA+ICAgICAgICAgKyAgc3RhdGljIGludCBpb3NoaWZ0X25h
-bWVbXSA9IHsgQ1RMX0JVUywgQ1RMX0JVU19JU0EsCj4gPiAgICAgICAgIEJVU19JU0FfUE9SVF9T
-SElGVCB9Owo+ID4gICAgICAgICAgICBzaXplX3QgbGVuID0gc2l6ZW9mKGlvLmJhc2UpOwo+ID4K
-PiA+ICAgICAgICAgICAgaWYgKCEgc3lzY3RsIChpb2Jhc2VfbmFtZSwgMywgJmlvLmlvX2Jhc2Us
-ICZsZW4sIE5VTEwsIDApCj4gPgo+ID4KPiA+Cj4gPiAgICAgICAgIC0tLSBzdHJpbmcvc3RyY29s
-bC5jICAgIDIwMDQvMDMvMTQgMjA6NTE6MzAgICAgIDEuMzMKPiA+ICAgICAgICAgKysrIHN0cmlu
-Zy9zdHJjb2xsLmMgICAgMjAwNS8wMy8xNyAyMTowNjoyNCAgICAgMS4zNAo+ID4gICAgICAgICBA
-QCAtMjMsNiArMjMsNyBAQAo+ID4gICAgICAgICAjIGRlZmluZSBTVFJJTkdfVFlQRSBjaGFyCj4g
-PiAgICAgICAgICMgZGVmaW5lIFNUUkNPTEwgc3RyY29sbAo+ID4gICAgICAgICAjIGRlZmluZSBT
-VFJDT0xMX0wgX19zdHJjb2xsX2wKPiA+ICAgICAgICAgKyMgZGVmaW5lIFVTRV9ISURERU5fREVG
-Cj4gPiAgICAgICAgICNlbmRpZgo+ID4KPiA+ICAgICAgICAgI2luY2x1ZGUgIi4uL2xvY2FsZS9s
-b2NhbGVpbmZvLmgiCj4gPiAgICAgICAgIEBAIC0zNSw2ICszNiw3IEBACj4gPiAgICAgICAgIHsK
-PiA+ICAgICAgICAgICAgcmV0dXJuIFNUUkNPTExfTCAoczEsIHMyLCBfTkxfQ1VSUkVOVF9MT0NB
-TEUpOwo+ID4gICAgICAgICB9Cj4gPiAgICAgICAgIC0jaWYgIWRlZmluZWQgV0lERV9DSEFSX1ZF
-UlNJT04KPiA+ICAgICAgICAgLWxpYmNfaGlkZGVuX2RlZiAoc3RyY29sbCkKPiA+ICAgICAgICAg
-Kwo+ID4gICAgICAgICArI2lmZGVmIFVTRV9ISURERU5fREVGCj4gPiAgICAgICAgICtsaWJjX2hp
-ZGRlbl9kZWYgKFNUUkNPTEwpCj4gPiAgICAgICAgICNlbmRpZgo+ID4KPiA+Cj4gPgo+ID4gICAg
-ICAgICAtLS0gaW5jbHVkZS93Y2hhci5oICAgICAyMDA0LzAzLzE0IDIwOjQ1OjEwICAgICAxLjI2
-Cj4gPiAgICAgICAgICsrKyBpbmNsdWRlL3djaGFyLmggICAgIDIwMDUvMDMvMTcgMjE6MDY6MjQg
-ICAgIDEuMjcKPiA+ICAgICAgICAgQEAgLTU2LDcgKzU2LDYgQEAKPiA+ICAgICAgICAgZXh0ZXJu
-IGludCBfX3djc25jYXNlY21wIChfX2NvbnN0IHdjaGFyX3QgKl9fczEsIF9fY29uc3QKPiA+ICAg
-ICAgICAgd2NoYXJfdCAqX19zMiwKPiA+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBzaXplX3QgX19uKQo+ID4gICAgICAgICAgICAgICBfX2F0dHJpYnV0ZV9wdXJlX187Cj4gPiAg
-ICAgICAgIC1leHRlcm4gaW50IF9fd2NzY29sbCAoX19jb25zdCB3Y2hhcl90ICpfX3MxLCBfX2Nv
-bnN0IHdjaGFyX3QKPiA+ICAgICAgICAgKl9fczIpOwo+ID4gICAgICAgICBleHRlcm4gc2l6ZV90
-IF9fd2NzbGVuIChfX2NvbnN0IHdjaGFyX3QgKl9fcykKPiA+ICAgICAgICAgX19hdHRyaWJ1dGVf
-cHVyZV9fOwo+ID4gICAgICAgICBleHRlcm4gc2l6ZV90IF9fd2NzbmxlbiAoX19jb25zdCB3Y2hh
-cl90ICpfX3MsIHNpemVfdAo+ID4gICAgICAgICBfX21heGxlbikKPiA+ICAgICAgICAgICAgICAg
-X19hdHRyaWJ1dGVfcHVyZV9fOwo+ID4KPiA+Cj4gKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKgo+ID4K
-PiA+ICAgICAgICAgT24gV2VkLCAyMDA2LTAxLTI1IGF0IDA5OjM3ICswMDAwLCBTdGV2ZSBQYXBh
-Y2hhcmFsYW1ib3VzCj4gPiAgICAgICAgIHdyb3RlOgo+ID4gICAgICAgICA+IEhpIFZpbmVldCwK
-PiA+ICAgICAgICAgPgo+ID4gICAgICAgICA+IEkgd2FzIGxvb2tpbmcgYXQgeW91ciBzdGVwcyBv
-biBob3cgdG8gYnVpbGQgYSBnY2MtNC4wCj4gPiAgICAgICAgIHRvb2xjaGFpbiBmb3IgQVJNOgo+
-ID4gICAgICAgICA+Cj4gPiAgICAgICAgID4KPiA+Cj4gaHR0cDovL2xpbnV4Lm9tYXAuY29tL3Bp
-cGVybWFpbC9saW51eC1vbWFwLW9wZW4tc291cmNlLzIwMDUtTm92ZW1iZXIvMDA1NjY1Lmh0bWwK
-PiA+ICAgICAgICAgPgo+ID4gICAgICAgICA+IFRoZSBwYXRjaGVzIGZvciBnbGliYy0yLjMuNSB0
-aGF0IHlvdSBtZW50aW9uIGRvbid0IGFwcGVhciB0bwo+ID4gICAgICAgICBiZSBhdHRhY2hlZAo+
-ID4gICAgICAgICA+IHRvIHRoZSBwYWdlLCBjYW4geW91IGxldCBtZSBrbm93IHdoZXJlIEkgY2Fu
-IGdldCB0aGVzZQo+ID4gICAgICAgICBwYXRjaGVzIHBsZWFzZT8KPiA+ICAgICAgICAgPgo+ID4g
-ICAgICAgICA+IFRoYW5rcywKPiA+ICAgICAgICAgPgo+ID4gICAgICAgICA+IFN0ZXZlCj4gPiAg
-ICAgICAgID4KPiA+Cj4gPiAgICAgICAgIF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCj4gPiAgICAgICAgIExpbnV4LW9tYXAtb3Blbi1zb3VyY2UgbWFpbGlu
-ZyBsaXN0Cj4gPiAgICAgICAgIExpbnV4LW9tYXAtb3Blbi1zb3VyY2VAbGludXgub21hcC5jb20K
-PiA+ICAgICAgICAgaHR0cDovL2xpbnV4Lm9tYXAuY29tL21haWxtYW4vbGlzdGluZm8vbGludXgt
-b21hcC1vcGVuLXNvdXJjZQo+ID4KPiA+Cj4gPgo+ID4gLS0KPiA+IFRoYW5rcyAmJiBSZWdhcmRz
-Cj4gPiBNc2MuIEJzYy4gTHXtcyBWaXTzcmlvIENhcmduaW5pCj4gPiBJRUVFIE1lbWJlcgo+ID4g
-TWFzdGVyaW5nIERlZ3JlZSBzdHVkZW50IEAgUFVDLVJTIEVsZWN0cmljYWwgRW5naW5lZXIgRmFj
-dWx0eQo+Cj4KCgotLQpUaGFua3MgJiYgUmVnYXJkcwpNc2MuIEJzYy4gTHXtcyBWaXTzcmlvIENh
-cmduaW5pCklFRUUgTWVtYmVyCk1hc3RlcmluZyBEZWdyZWUgc3R1ZGVudCBAIFBVQy1SUyBFbGVj
-dHJpY2FsIEVuZ2luZWVyIEZhY3VsdHkK
---===============0899339371==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============0899339371==--
+On Tue, 2006-01-31 at 16:57 -0200, Lu=C3=ADs Cargnini wrote:
+> ok i passed the compiler=20
+> but after added some patchs to glibc.2.3.5
+>=20
+> glibc-2.3.5-allow-gcc-4.0-wordexp.patch   =20
+> glibc-2.3.5-allow-gcc4-string.patch       =20
+> glibc-2.3.5-allow-gcc4-symbols.patch     =20
+> glibc-2.3.5-allow-gcc4-wcstol_l.patch  =20
+> and your own patch
+> i received the following  error:
+> /opt/arm-linux/lib/gcc/arm-linux/4.0.2/../../../../arm-linux/bin/ld:
+> cannot find -lgcc_eh
+> collect2: ld returned 1 exit status
+> make[2]: ***
+> [/home/lvcargnini/puc/mestrado/instramed/builds/linux/bglibc/iconv/icon=
+vconfig] Error 1=20
+> make[2]: Leaving directory
+> `/home/lvcargnini/puc/mestrado/instramed/builds/linux/glibc-2.3.5/iconv=
+'
+> make[1]: *** [iconv/others] Error 2
+> make[1]: Leaving directory
+> `/home/lvcargnini/puc/mestrado/instramed/builds/linux/glibc- 2.3.5'
+>=20
+> On 31/01/06, Vineet Tuli <vineet@cybernetra.com> wrote:
+>         Sorry for replying late. I was not available at office. Please
+>         use the
+>         option --disable-shared while compiling gcc. This will resolve
+>         the error
+>         of crti.o.
+>        =20
+>         This will give an error "cannot create executables" in the end
+>         which can=20
+>         be safely ignored.
+>        =20
+>         Vineet
+>        =20
+>         On Fri, 2006-01-27 at 13:48 -0200, Lu=C3=ADs Cargnini wrote:
+>         > this step:
+>         > [root at localhost]# cd /usr/src
+>         > [root at localhost
+>         > ]# tar =E2=80=93xjf  gcc-4.0.2.tar.bz2=20
+>         >
+>         > A configuration file must be modified so that the compiler
+>         is built without libc includes. Edit
+>         the /usr/src/gcc-4.0.2/gcc/config/arm/t-linux file and append
+>         >
+>         > =E2=80=93Dinhibit_libc =E2=80=93D__gthr_posix_h to the line s=
+tarting with
+>         TARGET_LIBGCC2_CFLAGS =3D.=20
+>         >
+>         >
+>         > The top of the file is shown below, after appending the
+>         flags.
+>         >
+>         > # Just for these, we omit the frame pointer since it makes
+>         such a big
+>         > # difference. It is then pointless adding debugging.=20
+>         > TARGET_LIBGCC2_CFLAGS =3D -fomit-frame-pointer -fPIC =E2=80=93
+>         Dinhibit_libc =E2=80=93D__gthr_posix_h
+>         >
+>         > LIBGCC2_DEBUG_CFLAGS =3D -g0
+>         >
+>         > Go to the /usr/src/build/gcc-4.0.2 directory to configure
+>         and build the GNU C compiler with the commands below.=20
+>         >
+>         > [
+>         > root at localhost]# cd /usr/src/build/gcc-4.0.2
+>         > [root at localhost]# ../../gcc-4.0.2/configure
+>         =E2=80=93-target=3Darm-linux =E2=80=93-prefix=3D/opt/armv4 --di=
+sable-threads
+>         =E2=80=93-enable-languages=3Dc
+>         >
+>         > [root at localhost]# make=20
+>         > isn't working for me io always receive some error
+>         >
+>         > that was crti.o how to fix this ??
+>         >
+>         > [
+>         > root at localhost]# make install
+>         >
+>         >
+>         > On 27/01/06, Vineet Tuli < vineet@cybernetra.com> wrote:
+>         >         Some problem in my mail system. Attachment not
+>         going.
+>         >         Including the
+>         >         patches herein:
+>         >
+>         >         --- elf/dynamic- link.h.old      2005-03-12
+>         18:12:37.000000000
+>         >         -0800
+>         >         +++ elf/dynamic-link.h  2005-03-12
+>         18:12:59.777820848 -0800
+>         >         @@ -19,43 +19,6 @@
+>         >
+>         >         #include <elf.h >
+>         >         #include <assert.h>
+>         >         -
+>         >         -#ifdef RESOLVE
+>         >         -/* We pass reloc_addr as a pointer to void, as
+>         opposed to a
+>         >         pointer to
+>         >         -   ElfW(Addr), because not all architectures can
+>         assume that=20
+>         >         the
+>         >         -   relocated address is properly aligned, whereas
+>         the
+>         >         compiler is
+>         >         -   entitled to assume that a pointer to a type is
+>         properly
+>         >         aligned for=20
+>         >         -   the type.  Even if we cast the pointer back to
+>         some other
+>         >         type with
+>         >         -   less strict alignment requirements, the compiler
+>         might
+>         >         still
+>         >         -   remember that the pointer was originally more
+>         aligned,=20
+>         >         thereby
+>         >         -   optimizing away alignment tests or using word
+>         instructions
+>         >         for
+>         >         -   copying memory, breaking the very code written
+>         to handle
+>         >         the
+>         >         -   unaligned cases.  */
+>         >         -auto void __attribute__((always_inline))
+>         >         -elf_machine_rel (struct link_map *map, const
+>         ElfW(Rel)
+>         >         *reloc,
+>         >         -                const ElfW(Sym) *sym, const struct=20
+>         >         r_found_version *version,
+>         >         -                void *const reloc_addr);
+>         >         -auto void __attribute__((always_inline))
+>         >         -elf_machine_rela (struct link_map *map, const
+>         ElfW(Rela)=20
+>         >         *reloc,
+>         >         -                 const ElfW(Sym) *sym, const struct
+>         >         r_found_version *version,
+>         >         -                 void *const reloc_addr);
+>         >         -auto void __attribute__((always_inline))=20
+>         >         -elf_machine_rel_relative (ElfW(Addr) l_addr, const
+>         ElfW(Rel)
+>         >         *reloc,
+>         >         -                         void *const reloc_addr);
+>         >         -auto void __attribute__((always_inline))=20
+>         >         -elf_machine_rela_relative (ElfW(Addr) l_addr, const
+>         >         ElfW(Rela) *reloc,
+>         >         -                          void *const reloc_addr);
+>         >         -# if ELF_MACHINE_NO_RELA || defined
+>         ELF_MACHINE_PLT_REL=20
+>         >         -auto void __attribute__((always_inline))
+>         >         -elf_machine_lazy_rel (struct link_map *map,
+>         >         -                     ElfW(Addr) l_addr, const
+>         ElfW(Rel)
+>         >         *reloc);
+>         >         -# else
+>         >         -auto void __attribute__((always_inline))
+>         >         -elf_machine_lazy_rel (struct link_map *map,
+>         >         -                     ElfW(Addr) l_addr, const
+>         ElfW(Rela)
+>         >         *reloc);=20
+>         >         -# endif
+>         >         -#endif
+>         >         -
+>         >         #include <dl-machine.h>
+>         >
+>         >         #ifndef VERSYMIDX
+>         >
+>         >
+>         >
+>         >         ---
+>         glibc-2.3.5.orig/iconvdata/jis0208.h        2003-06-11=20
+>         >         21:40: 42.000000000 +0000
+>         >         +++ glibc-2.3.5/iconvdata/jis0208.h     2005-07-15
+>         >         18:32:20.726328528 +0000
+>         >         @@ -24,15 +24,6 @@
+>         >         #include <gconv.h >
+>         >         #include <stdint.h>
+>         >
+>         >         -/* Conversion table.  */
+>         >         -extern const uint16_t __jis0208_to_ucs[];
+>         >         -
+>         >         -extern const char
+>         __jisx0208_from_ucs4_lat1[256][2];=20
+>         >         -extern const char
+>         __jisx0208_from_ucs4_greek[0xc1][2];
+>         >         -extern const struct jisx0208_ucs_idx
+>         >         __jisx0208_from_ucs_idx[];
+>         >         -extern const char __jisx0208_from_ucs_tab[][2];=20
+>         >         -
+>         >         -
+>         >         /* Struct for table with indeces in UCS mapping
+>         table.  */
+>         >         struct jisx0208_ucs_idx
+>         >         {
+>         >         @@ -42,6 +33,15 @@
+>         >         };=20
+>         >
+>         >
+>         >         +/* Conversion table.  */
+>         >         +extern const uint16_t __jis0208_to_ucs[];
+>         >         +
+>         >         +extern const char
+>         __jisx0208_from_ucs4_lat1[256][2];
+>         >         +extern const char
+>         __jisx0208_from_ucs4_greek[0xc1][2];=20
+>         >         +extern const struct jisx0208_ucs_idx
+>         >         __jisx0208_from_ucs_idx[];
+>         >         +extern const char __jisx0208_from_ucs_tab[][2];
+>         >         +
+>         >         +
+>         >         static inline uint32_t=20
+>         >         __attribute ((always_inline))
+>         >         jisx0208_to_ucs4 (const unsigned char **s, size_t
+>         avail,
+>         >         unsigned char offset)
+>         >
+>         >
+>         >
+>         >         --- libc/include/libc-symbols.h 2005/02/11 00:29:46
+>         1.70
+>         >         +++ libc/include/libc-symbols.h 2005/03/17 21:06:27
+>         1.71
+>         >         @@ -583,78 +583,23 @@
+>         >         #  define hidden_proto(name, attrs...) \
+>         >            __hidden_proto (name, __GI_##name, ##attrs)=20
+>         >         #  define __hidden_proto(name, internal, attrs...) \
+>         >         -  extern __typeof (name) internal; \
+>         >            extern __typeof (name) name __asm__
+>         (__hidden_asmname
+>         >         (#internal)) \=20
+>         >            __hidden_proto_hiddenattr (attrs);
+>         >         #  define __hidden_asmname(name) \
+>         >            __hidden_asmname1 (__USER_LABEL_PREFIX__, name)
+>         >         #  define __hidden_asmname1(prefix, name)=20
+>         >         __hidden_asmname2(prefix, name)
+>         >         #  define __hidden_asmname2(prefix, name) #prefix
+>         name
+>         >         -#  ifdef HAVE_ASM_SET_DIRECTIVE
+>         >         -#   define __hidden_def1(original,
+>         >         alias)                      \
+>         >         -  ASM_GLOBAL_DIRECTIVE C_SYMBOL_NAME (alias)
+>         >         ASM_LINE_SEP      \
+>         >         -  .set C_SYMBOL_NAME (alias), C_SYMBOL_NAME
+>         (original)
+>         >         -#   ifdef HAVE_ASM_GLOBAL_DOT_NAME=20
+>         >         -#     define __hidden_dot_def1(original, alias)
+>         >         ASM_LINE_SEP   \
+>         >         -  ASM_GLOBAL_DIRECTIVE C_SYMBOL_DOT_NAME (alias)
+>         >         ASM_LINE_SEP  \
+>         >         -  .set C_SYMBOL_DOT_NAME (alias),
+>         C_SYMBOL_DOT_NAME=20
+>         >         (original)
+>         >         -#   else
+>         >         -#     define __hidden_dot_def1(original, alias)
+>         >         -#   endif
+>         >         -#  else
+>         >         -#   define __hidden_def1(original,=20
+>         >         alias)                      \
+>         >         -  ASM_GLOBAL_DIRECTIVE C_SYMBOL_NAME (alias)
+>         >         ASM_LINE_SEP      \
+>         >         -  C_SYMBOL_NAME (alias) =3D C_SYMBOL_NAME (original)
+>         >         -#   ifdef HAVE_ASM_GLOBAL_DOT_NAME=20
+>         >         -#    define __hidden_dot_def1(original, alias)
+>         >         ASM_LINE_SEP    \
+>         >         -  ASM_GLOBAL_DIRECTIVE C_SYMBOL_DOT_NAME (alias)
+>         >         ASM_LINE_SEP  \
+>         >         -  C_SYMBOL_DOT_NAME (alias) =3D C_SYMBOL_DOT_NAME
+>         (original)=20
+>         >         -#   else
+>         >         -#    define __hidden_dot_def1(original, alias)
+>         >         -#   endif
+>         >         -#  endif
+>         >         -#  define __hidden_def2(...) #__VA_ARGS__
+>         >         -#  define __hidden_def3(...) __hidden_def2
+>         (__VA_ARGS__)=20
+>         >         -#  define hidden_def(name)
+>         >         \
+>         >         -  __asm__ (__hidden_def3 (__hidden_def1
+>         (__GI_##name, name)
+>         >         \
+>         >         -  __hidden_dot_def1 (__GI_##name, name)));
+>         >         -#  define
+>         >
+>         hidden_data_def(name)                                        \
+>         >         -  __asm__ (__hidden_def3 (__hidden_def1
+>         (__GI_##name,
+>         >         name)));
+>         >         -#  define hidden_ver(local,=20
+>         >         name)                              \
+>         >         -  __asm__ (__hidden_def3 (__hidden_def1 (local,
+>         __GI_##name)
+>         >         \
+>         >         -  __hidden_dot_def1 (local, __GI_##name)));
+>         >         -#  define hidden_data_ver(local, name)=20
+>         >         \
+>         >         -  __asm__ (__hidden_def3 (__hidden_def1 (local,
+>         >         __GI_##name)));
+>         >         -#  ifdef HAVE_WEAK_SYMBOLS
+>         >         -#   ifdef HAVE_ASM_WEAKEXT_DIRECTIVE
+>         >         -#    define __hidden_weak1(original,=20
+>         >         alias)                    \
+>         >         -  .weakext C_SYMBOL_NAME (alias), C_SYMBOL_NAME
+>         (original)
+>         >         -#    ifdef HAVE_ASM_GLOBAL_DOT_NAME
+>         >         -#     define __hidden_dot_weak1(original, alias)=20
+>         >         ASM_LINE_SEP    \
+>         >         -  .weakext C_SYMBOL_DOT_NAME (alias),
+>         C_SYMBOL_DOT_NAME
+>         >         (original)
+>         >         -#    else
+>         >         -#     define __hidden_dot_weak1(original, alias)=20
+>         >         -#    endif
+>         >         -#   else /* ! HAVE_ASM_WEAKEXT_DIRECTIVE */
+>         >         -#    define __hidden_weak1(original,
+>         >         alias)                    \
+>         >         -  .weak C_SYMBOL_NAME (alias) ASM_LINE_SEP=20
+>         >         \
+>         >         -  C_SYMBOL_NAME (alias) =3D C_SYMBOL_NAME (original)
+>         >         -#    ifdef HAVE_ASM_GLOBAL_DOT_NAME
+>         >         -#     define __hidden_dot_weak1(original, alias)
+>         >         ASM_LINE_SEP    \=20
+>         >         -  .weak C_SYMBOL_DOT_NAME (alias) ASM_LINE_SEP \
+>         >         -  C_SYMBOL_DOT_NAME (alias) =3D C_SYMBOL_DOT_NAME
+>         (original)
+>         >         -#    else
+>         >         -#     define __hidden_dot_weak1(original, alias)=20
+>         >         -#    endif
+>         >         -#   endif
+>         >         -#   define hidden_weak(name)
+>         >         \
+>         >         -  __asm__ (__hidden_def3 (__hidden_weak1
+>         (__GI_##name, name)
+>         >         \
+>         >         -  __hidden_dot_weak1 (__GI_##name, name)));=20
+>         >         -#   define
+>         >
+>         hidden_data_weak(name)                                      \
+>         >         -  __asm__ (__hidden_def3 (__hidden_weak1
+>         (__GI_##name,
+>         >         name)));
+>         >         -#  else=20
+>         >         -#   define hidden_weak(name) hidden_def (name)
+>         >         -#  endif
+>         >         +#  define __hidden_ver1(local, internal, name) \
+>         >         +  extern __typeof (name) __EI_##name
+>         __asm__(__hidden_asmname=20
+>         >         (#internal)); \
+>         >         +  extern __typeof (name) __EI_##name \
+>         >         +       __attribute__((alias (__hidden_asmname
+>         (#local))))
+>         >         +#  define hidden_ver(local,
+>         name)      __hidden_ver1(local,=20
+>         >         __GI_##name, name);
+>         >         +#  define hidden_data_ver(local, name)
+>         hidden_ver(local,
+>         >         name)
+>         >         +#  define hidden_def(name)
+>         >         __hidden_ver1(__GI_##name, name, name);=20
+>         >         +#  define
+>         >
+>         hidden_data_def(name)                hidden_def(name)
+>         >         +#  define hidden_weak(name) \
+>         >         +       __hidden_ver1(__GI_##name, name, name)
+>         >         __attribute__((weak));=20
+>         >         +#  define hidden_data_weak(name)
+>         hidden_weak(name)
+>         >         # else
+>         >         /* For assembly, we need to do the opposite of what
+>         we do in
+>         >         C:
+>         >
+>         >
+>         >
+>         >         --- wcsmbs/wcscoll.c    2004/03/14 21:05:48     1.13
+>         >         +++ wcsmbs/wcscoll.c    2005/03/17 21:06:24     1.14
+>         >         @@ -22,12 +22,11 @@
+>         >
+>         >         #define STRING_TYPE wchar_t=20
+>         >         #define USTRING_TYPE wint_t
+>         >         -#define STRCOLL __wcscoll
+>         >         +#define STRCOLL wcscoll
+>         >         #define STRCOLL_L __wcscoll_l
+>         >
+>         >         #include "../string/strcoll.c"=20
+>         >
+>         >         #ifndef USE_IN_EXTENDED_LOCALE_MODEL
+>         >         -weak_alias (__wcscoll, wcscoll)
+>         >         libc_hidden_weak (wcscoll)
+>         >         #endif
+>         >
+>         >
+>         >
+>         >
+>         >         --- glibc-2.3.4/sysdeps/arm/dl-machine.h.old    Sun
+>         Mar 20
+>         >         17:54:37 2005
+>         >         +++ glibc-2.3.4/sysdeps/arm/dl-machine.h        Sun
+>         Mar 20
+>         >         17:57:32 2005
+>         >         @@ -359,7 +359,14 @@=20
+>         >         # endif
+>         >
+>         >         /* Deal with an out-of-range PC24 reloc.  */
+>         >         -static Elf32_Addr
+>         >         +#if __GNUC__ >=3D 4
+>         >         +  auto inline Elf32_Addr
+>         >         +#else=20
+>         >         +  static inline Elf32_Addr
+>         >         +#endif
+>         >         +#if __GNUC__ >=3D 4 || (__GNUC__ =3D=3D 3 &&
+>         __GNUC_MINOR__ >=3D 2)
+>         >         +  __attribute ((always_inline))
+>         >         +#endif=20
+>         >         fix_bad_pc24 (Elf32_Addr *const reloc_addr,
+>         Elf32_Addr value)
+>         >         {
+>         >            static void *fix_page;
+>         >         @@ -392,7 +399,14 @@
+>         >         /* Perform the relocation specified by RELOC and SYM
+>         (which is=20
+>         >         fully resolved).
+>         >             MAP is the object containing the reloc.  */
+>         >
+>         >         -static inline void
+>         >         +#if __GNUC__ >=3D 4
+>         >         +  auto inline void
+>         >         +#else=20
+>         >         +  static inline void
+>         >         +#endif
+>         >         +#if __GNUC__ >=3D 4 || (__GNUC__ =3D=3D 3 &&
+>         __GNUC_MINOR__ >=3D 2)
+>         >         +  __attribute ((always_inline))
+>         >         +#endif=20
+>         >         elf_machine_rel (struct link_map *map, const
+>         Elf32_Rel
+>         >         *reloc,
+>         >                          const Elf32_Sym *sym, const struct
+>         >         r_found_version *version,
+>         >                          void *const reloc_addr_arg)=20
+>         >         @@ -517,7 +531,14 @@
+>         >         }
+>         >
+>         >         # ifndef RTLD_BOOTSTRAP
+>         >         -static inline void
+>         >         +#if __GNUC__ >=3D 4
+>         >         +  auto inline void
+>         >         +#else=20
+>         >         +  static inline void
+>         >         +#endif
+>         >         +#if __GNUC__ >=3D 4 || (__GNUC__ =3D=3D 3 &&
+>         __GNUC_MINOR__ >=3D 2)
+>         >         +  __attribute ((always_inline))
+>         >         +#endif=20
+>         >         elf_machine_rela (struct link_map *map, const
+>         Elf32_Rela
+>         >         *reloc,
+>         >                           const Elf32_Sym *sym, const struct
+>         >         r_found_version *version,
+>         >                           void *const reloc_addr_arg)=20
+>         >         @@ -597,7 +618,14 @@
+>         >         }
+>         >         # endif
+>         >
+>         >         -static inline void
+>         >         +#if __GNUC__ >=3D 4
+>         >         +  auto inline void
+>         >         +#else
+>         >         +  static inline void
+>         >         +#endif
+>         >         +#if __GNUC__ >=3D 4 || (__GNUC__ =3D=3D 3 &&
+>         __GNUC_MINOR__ >=3D 2)
+>         >         +  __attribute ((always_inline))
+>         >         +#endif=20
+>         >         elf_machine_rel_relative (Elf32_Addr l_addr, const
+>         Elf32_Rel
+>         >         *reloc,
+>         >                                   void *const
+>         reloc_addr_arg)
+>         >         {
+>         >         @@ -606,7 +634,14 @@=20
+>         >         }
+>         >
+>         >         # ifndef RTLD_BOOTSTRAP
+>         >         -static inline void
+>         >         +#if __GNUC__ >=3D 4
+>         >         +  auto inline void
+>         >         +#else
+>         >         +  static inline void=20
+>         >         +#endif
+>         >         +#if __GNUC__ >=3D 4 || (__GNUC__ =3D=3D 3 &&
+>         __GNUC_MINOR__ >=3D 2)
+>         >         +  __attribute ((always_inline))
+>         >         +#endif
+>         >         elf_machine_rela_relative (Elf32_Addr l_addr, const
+>         Elf32_Rela=20
+>         >         *reloc,
+>         >                                    void *const
+>         reloc_addr_arg)
+>         >         {
+>         >         @@ -615,7 +650,14 @@
+>         >         }
+>         >         # endif
+>         >
+>         >         -static inline void=20
+>         >         +#if __GNUC__ >=3D 4
+>         >         +  auto inline void
+>         >         +#else
+>         >         +  static inline void
+>         >         +#endif
+>         >         +#if __GNUC__ >=3D 4 || (__GNUC__ =3D=3D 3 &&
+>         __GNUC_MINOR__ >=3D 2)=20
+>         >         +  __attribute ((always_inline))
+>         >         +#endif
+>         >         elf_machine_lazy_rel (struct link_map *map,
+>         >                               Elf32_Addr l_addr, const
+>         Elf32_Rel
+>         >         *reloc)=20
+>         >         {
+>         >
+>         >
+>         >
+>         >
+>         >
+>         >         ---
+>         >
+>         glibc-2.3.2/sysdeps/unix/sysv/linux/arm/ioperm.c.old        200=
+3-02-20 14:22: 24.000000000 -0800
+>         >         +++
+>         >
+>         glibc-2.3.2/sysdeps/unix/sysv/linux/arm/ioperm.c    2004-01-31
+>         >         16:01:50.000000000 -0800
+>         >         @@ -47,6 +47,12 @@
+>         >         #include <asm/page.h>
+>         >         #include <sys/sysctl.h>=20
+>         >
+>         >         +/* see
+>         >
+>         http://www.ussg.iu.edu/hypermail/linux/kernel/0311.0/0529.html
+>         >         */
+>         >         +#include <linux/version.h>=20
+>         >         +#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,23))
+>         >         +#define CTL_BUS_ISA BUS_ISA    /* and hope it's not
+>         the one
+>         >         from linux/input.h */
+>         >         +#endif
+>         >         +=20
+>         >         #define PATH_ARM_SYSTYPE       "/etc/arm_systype"
+>         >         #define PATH_CPUINFO           "/proc/cpuinfo"
+>         >
+>         >         @@ -80,7 +86,7 @@
+>         >           * Initialize I/O system.  There are several ways
+>         to get the=20
+>         >         information
+>         >           * we need.  Each is tried in turn until one
+>         succeeds.
+>         >           *
+>         >         - * 1. Sysctl (CTL_BUS, BUS_ISA, ISA_*).  This is
+>         the
+>         >         preferred method=20
+>         >         + * 1. Sysctl (CTL_BUS, CTL_BUS_ISA, ISA_*).  This
+>         is the
+>         >         preferred method
+>         >           *    but not all kernels support it.
+>         >           *
+>         >           * 2. Read the value (not the contents) of symlink=20
+>         >         PATH_ARM_SYSTYPE.
+>         >         @@ -100,8 +106,8 @@
+>         >         {
+>         >            char systype[256];
+>         >            int i, n;
+>         >         -  static int iobase_name[] =3D { CTL_BUS, BUS_ISA,=20
+>         >         BUS_ISA_PORT_BASE };
+>         >         -  static int ioshift_name[] =3D { CTL_BUS, BUS_ISA,
+>         >         BUS_ISA_PORT_SHIFT };
+>         >         +  static int iobase_name[] =3D { CTL_BUS,
+>         CTL_BUS_ISA,
+>         >         BUS_ISA_PORT_BASE };=20
+>         >         +  static int ioshift_name[] =3D { CTL_BUS,
+>         CTL_BUS_ISA,
+>         >         BUS_ISA_PORT_SHIFT };
+>         >            size_t len =3D sizeof(io.base);
+>         >
+>         >            if (! sysctl (iobase_name, 3, &io.io_base, &len,
+>         NULL, 0)=20
+>         >
+>         >
+>         >
+>         >         --- string/strcoll.c    2004/03/14 20:51:30     1.33
+>         >         +++ string/strcoll.c    2005/03/17 21:06:24     1.34
+>         >         @@ -23,6 +23,7 @@
+>         >         # define STRING_TYPE char=20
+>         >         # define STRCOLL strcoll
+>         >         # define STRCOLL_L __strcoll_l
+>         >         +# define USE_HIDDEN_DEF
+>         >         #endif
+>         >
+>         >         #include "../locale/localeinfo.h"
+>         >         @@ -35,6 +36,7 @@
+>         >         {
+>         >            return STRCOLL_L (s1, s2, _NL_CURRENT_LOCALE);
+>         >         }
+>         >         -#if !defined WIDE_CHAR_VERSION
+>         >         -libc_hidden_def (strcoll)=20
+>         >         +
+>         >         +#ifdef USE_HIDDEN_DEF
+>         >         +libc_hidden_def (STRCOLL)
+>         >         #endif
+>         >
+>         >
+>         >
+>         >         --- include/wchar.h     2004/03/14 20:45:10     1.26
+>         >         +++ include/wchar.h     2005/03/17 21:06:24     1.27
+>         >         @@ -56,7 +56,6 @@
+>         >         extern int __wcsncasecmp (__const wchar_t *__s1,
+>         __const
+>         >         wchar_t *__s2,
+>         >                                   size_t __n)
+>         >               __attribute_pure__;=20
+>         >         -extern int __wcscoll (__const wchar_t *__s1,
+>         __const wchar_t
+>         >         *__s2);
+>         >         extern size_t __wcslen (__const wchar_t *__s)
+>         >         __attribute_pure__;
+>         >         extern size_t __wcsnlen (__const wchar_t *__s,
+>         size_t=20
+>         >         __maxlen)
+>         >               __attribute_pure__;
+>         >
+>         >
+>         ***************************************************************=
+****************
+>         >
+>         >         On Wed, 2006-01-25 at 09:37 +0000, Steve
+>         Papacharalambous=20
+>         >         wrote:
+>         >         > Hi Vineet,
+>         >         >
+>         >         > I was looking at your steps on how to build a
+>         gcc-4.0
+>         >         toolchain for ARM:
+>         >         >
+>         >         >=20
+>         >
+>         http://linux.omap.com/pipermail/linux-omap-open-source/2005-Nov=
+ember/005665.html
+>         >         >
+>         >         > The patches for glibc-2.3.5 that you mention don't
+>         appear to
+>         >         be attached
+>         >         > to the page, can you let me know where I can get
+>         these
+>         >         patches please?
+>         >         >
+>         >         > Thanks,=20
+>         >         >
+>         >         > Steve
+>         >         >
+>         >
+>         >         _______________________________________________
+>         >         Linux-omap-open-source mailing list
+>         >         Linux-omap-open-source@linux.omap.com
+>         >
+>         http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>         >
+>         >
+>         >
+>         > --
+>         > Thanks && Regards
+>         > Msc. Bsc. Lu=C3=ADs Vit=C3=B3rio Cargnini
+>         > IEEE Member
+>         > Mastering Degree student @ PUC-RS Electrical Engineer
+>         Faculty
+>        =20
+>=20
+>=20
+>=20
+> --=20
+> Thanks && Regards
+> Msc. Bsc. Lu=C3=ADs Vit=C3=B3rio Cargnini
+> IEEE Member
+> Mastering Degree student @ PUC-RS Electrical Engineer Faculty
