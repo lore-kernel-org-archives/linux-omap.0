@@ -1,20 +1,14 @@
-From: =?ISO-8859-1?Q?Lu=EDs_Cargnini?= <lvcargnini@gmail.com>
-Subject: Re: Howto build a gcc 4.0 toolchain for ARM?
-Date: Wed, 1 Feb 2006 18:17:27 -0200
-Message-ID: <ae36f8040602011217l55172309r@mail.gmail.com>
-References: <43D746D5.80202@freescale.com>
-	<1138346601.2518.9.camel@meenakshi.linux>
-	<ae36f8040601270748j6117dcf3w@mail.gmail.com>
-	<1138679218.2553.2.camel@meenakshi.linux>
-	<ae36f8040601311057t2967cb33h@mail.gmail.com>
-	<1138786038.2892.1.camel@meenakshi.linux>
-	<ae36f8040602011154p6f088bfcl@mail.gmail.com>
-Reply-To: lvcargnini@ieee.org
+From: Ola Helm <ola.hel@gmail.com>
+Subject: Re: 2420 H4 and kernel startup RAM error
+Date: Thu, 2 Feb 2006 11:25:53 +0200
+Message-ID: <3d3153f60602020125i1ed37e09ka064fd98fb7661ff@mail.gmail.com>
+References: <AcYWpTe6aXSMe0MKSzKgc7ZYk93NfwAIDqiQ>
+	<520AB2AD990DC04082102F77CA172638023C279B@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <ae36f8040602011154p6f088bfcl@mail.gmail.com>
+In-Reply-To: <520AB2AD990DC04082102F77CA172638023C279B@dlee03.ent.ti.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -25,60 +19,49 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Vineet Tuli <vineet@cybernetra.com>
-Cc: OMAP <linux-omap-open-source@linux.omap.com>
+To: "Menon, Nishanth" <x0nishan@ti.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-hi thanks it worked for glibc
+Old news, but I finally surrendered and did excatly as you guys adviced
+- used nfs
+- flash_eraseall
+- mount
+and it naturally worked.
 
-now the last problem is with compialtion of gcc with glibc
+So in case anybody happens to read this conversation, my advice is to do
+just as told in previous mails. Whatever way the jffs2-image has been
+generated,  I recommend to use nfs to generate the pre-filesystem which via
+at least jffs2 image is brought available to be flashed.
 
+Thanks to everybody again for help.
 
-because during compilation of new gcc (with glibc) it happened:
-
-make[2]: Entering directory
-`/home/lvcargnini/puc/mestrado/instramed/builds/linux/b-gcc/gcc'
-/home/lvcargnini/puc/mestrado/instramed/builds/linux/b-gcc/gcc/xgcc
--B/home/lvcargnini/puc/mestrado/instramed/builds/linux/b-gcc/gcc/
--B/opt/arm-linux/arm-linux/bin/ -B/opt/arm-linux/arm-linux/lib/ -isystem
-/opt/arm-linux/arm-linux/include -isystem
-/opt/arm-linux/arm-linux/sys-include -O2  -DIN_GCC -DCROSS_COMPILE   -W
--Wall -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes
--Wold-style-definition  -isystem ./include  -fomit-frame-pointer -fPIC -g0
--DHAVE_GTHR_DEFAULT -DIN_LIBGCC2 -D__GCC_FLOAT_NOT_NEEDED -Dinhibit_libc -I=
-.
--I. -I../../gcc- 4.0.2/gcc -I../../gcc-4.0.2/gcc/.
--I../../gcc-4.0.2/gcc/../include
--I../../gcc-4.0.2/gcc/../libcpp/include  -fvisibility=3Dhidden -DHIDE_EXPOR=
-TS
--fexceptions -c ../../gcc-4.0.2/gcc/unwind-dw2.c -o libgcc/./unwind-dw2.o
-In file included from ./gthr- default.h:1,
-                 from ../../gcc-4.0.2/gcc/gthr.h:114,
-                 from ../../gcc-4.0.2/gcc/unwind-dw2.c:42:
-../../gcc-4.0.2/gcc/gthr-posix.h:43:21: error: pthread.h: No such file or
-directory
-../../gcc-4.0.2/gcc/gthr-posix.h:44:20: error: unistd.h: No such file or
-directory
-
-just this it is simple i know that i could add the path but exist a way to
-fix this ?? this little problem is known ?
-i tried adding -I/opt/arm-linux/include on Makefile it compiled but after
-some compiling time i received the following:
-
-/opt/arm-linux/arm-linux/bin/ld: crti.o: No such file: No such file or
-directory
-collect2: ld returned 1 exit status
-make[2]: *** [libgcc_s.so] Error 1
-make[2]: Leaving directory
-`/home/lvcargnini/puc/mestrado/instramed/builds/linux/b-gcc/gcc'
-make[1]: *** [libgcc.a] Error 2
-make[1]: Leaving directory
-`/home/lvcargnini/puc/mestrado/instramed/builds/linux/b-gcc/gcc'
-make: *** [all-gcc] Error 2
-
-
---
-Thanks && Regards
-Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
-IEEE Member
-Mastering Degree student @ PUC-RS Electrical Engineer Faculty
+On 1/11/06, Menon, Nishanth <x0nishan@ti.com> wrote:
+>
+>
+> >The questions are:
+> >1) No way to do filesystem flashing and loading in uboot state i.e.
+> with >same method as with kernel?
+> U can do the same from uboot too, but a tftp of a 60 Meg image is
+> guaranteed to take a long long time.. it is much easier to have it in
+> nfs and cat it.
+> The procedure will be the same as the flashing of the uboot.
+>
+> Lets say u managed to have an rd-jffs2.bin which worked fine from nfs
+> filesystem and you were able to mount -t jffs2 the resultant partition.
+> In such a case, repeat the steps we did for uboot, but change the
+> addresses to map to mtd3 and the size to map to the size of the
+> partition from uboot. It should still do the same thing.
+>
+> >2) Is there a way to load the image afterwards i.e. when the system has
+>
+> >booted up with some filesystem?
+> > 3) Could this kind loading be done with ramdisk system?
+> This is what I had presented - usually we do it over nfs since the jffs2
+> image file tends to be big and may not fit into a ramdisk. This has the
+> additional advantage of being able to modify the filesystem and reflash
+> it as often as I need to..
+>
+> Regards,
+> Nishanth Menon
+>
