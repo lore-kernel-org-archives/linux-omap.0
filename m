@@ -1,13 +1,14 @@
-From: "Hunter, Jon" <jon-hunter@ti.com>
-Subject: RE: OSK5912 cpu_is_omap5912() FALSE
-Date: Fri, 3 Feb 2006 08:41:17 -0600
-Message-ID: <C51F43ABFC95844490F0529B60753BF4036F2F52@dlee02.ent.ti.com>
+From: andrzej zaborowski <balrogg@gmail.com>
+Subject: Re: How to port floating point code on the dsp side(omap 1610)
+Date: Fri, 3 Feb 2006 16:20:31 +0100
+Message-ID: <fb249edb0602030720w52130603v@mail.gmail.com>
+References: <20060203050428.28743.qmail@web8415.mail.in.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20060203050428.28743.qmail@web8415.mail.in.yahoo.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,96 +16,29 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Smith, Stephen" <smsmith@ti.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: prakhar vig <aquarian_133@yahoo.co.in>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Stephen,=20
+Hi,
 
-> -----Original Message-----
-> From:=20
-> linux-omap-open-source-bounces+jon-hunter=3Dti.com@linux.omap.co
-> m=20
-> [mailto:linux-omap-open-source-bounces+jon-hunter=3Dti.com@linux
-> .omap.com] On Behalf Of Smith, Stephen
-> Sent: Thursday, February 02, 2006 5:14 PM
-> To: linux-omap-open-source@linux.omap.com
-> Subject: OSK5912 cpu_is_omap5912() FALSE
->=20
-> OSK5912/Linux 2.6.13
->=20
-> =20
->=20
-> There is a discrepancy in cpu.h and what my OSK5912 reflects.
->=20
-> =20
->=20
-> cpu.h reflects:
->=20
-> IS_OMAP_TYPE(5912, 0x1611)
->=20
-> =20
->=20
-> Here is my data from boot, which reflects the correct values:
->=20
-> OMAP_DIE_ID_0: 0xbfd20610
->=20
-> OMAP_DIE_ID_1: 0x8e059089 DIE_REV: 2
->=20
-> OMAP_PRODUCTION_ID_0: 0x00aaaafc
->=20
-> OMAP_PRODUCTION_ID_1: 0x00016cbe JTAG_ID: 0x6cbe
->=20
-> OMAP32_ID_0: 0x03320500
->=20
-> OMAP32_ID_1: 0x2b65f02f
->=20
-> JTAG_ID: 0xb65f DIE_REV: 2
->=20
-> OMAP162123 revision 2 handled as 16xx id: 8e059089bfd20610
->=20
-> =20
->=20
-> =20
->=20
-> Is arch-omap/cpu.h wrong, or is there something more here?  With
->=20
-> code as it was patched, cpu_is_omap5912() fails.  Sign of problem
->=20
-> is the inability to reboot the board (# reboot).  I can fix by
->=20
-> changing cpu.h to:
->=20
-> =20
->=20
-> IS_OMAP_TYPE(5912, 0x1621)
->=20
-> =20
->=20
-> I don't want to blindly change because I do not know history=20
-> of OMAP5912
->=20
-> and it is possible some previous rev had id'ed as 1611.
->=20
-> It could also be fixed by adding another type check to=20
-> arch_reset(), but
->=20
-> that may include 1621 types that do not require or want workaround.
->=20
-> =20
->=20
-> Any insight would be appreciated.
+On 03/02/06, prakhar vig <aquarian_133@yahoo.co.in> wrote:
+> Hi all,
+>     I am new to dsp programming. I have a code which
+> is using floating point arithmatic. I want to run this
+> code on the c55x dsp of omap1610 board. But since it
+> is a fixed point processor,
+> i suppose i need to convert my code into fixed point
+> arithmatic.
 
+I don't do DSP programming either but someone posted this link on a
+different mailing list this week:
+http://libvncserver.sourceforge.net/qemu/qemu-fixed-point.txt
+It isn't linux related but it might help with the very basics.
+--
+balrog 2oo6
 
-The initial 5912 devices were based on the 1611 devices. However, the
-production version of the 5912 is based on the 1621. From a
-user/functional perspective there is not much difference between the
-devices. There were a lot of silicon issues that were fixed and
-performance improvements made.=20
-
-It appears that you have the production 5912 silicon and so 1621 makes
-sense.=20
-
-Regards,
-Jon
+Dear Outlook users: Please remove me from your address books
+http://www.newsforge.com/article.pl?sid=3D03/08/21/143258
