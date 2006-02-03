@@ -1,13 +1,11 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OSK5912 cpu_is_omap5912() FALSE
-Date: Thu, 2 Feb 2006 15:41:49 -0800
-Message-ID: <20060202234149.GO15939@atomide.com>
-References: <F0A81B25BD70E240B7E341C65A96C833031B6F75@dlee02.ent.ti.com>
+From: prakhar vig <aquarian_133@yahoo.co.in>
+Subject: How to port floating point code on the dsp side(omap 1610)
+Date: Fri, 3 Feb 2006 05:04:28 +0000 (GMT)
+Message-ID: <20060203050428.28743.qmail@web8415.mail.in.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <F0A81B25BD70E240B7E341C65A96C833031B6F75@dlee02.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,76 +15,32 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Smith, Stephen" <smsmith@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Smith, Stephen <smsmith@ti.com> [060202 15:14]:
-> OSK5912/Linux 2.6.13
-> 
->  
-> 
-> There is a discrepancy in cpu.h and what my OSK5912 reflects.
-> 
->  
-> 
-> cpu.h reflects:
-> 
-> IS_OMAP_TYPE(5912, 0x1611)
-> 
->  
-> 
-> Here is my data from boot, which reflects the correct values:
-> 
-> OMAP_DIE_ID_0: 0xbfd20610
-> 
-> OMAP_DIE_ID_1: 0x8e059089 DIE_REV: 2
-> 
-> OMAP_PRODUCTION_ID_0: 0x00aaaafc
-> 
-> OMAP_PRODUCTION_ID_1: 0x00016cbe JTAG_ID: 0x6cbe
-> 
-> OMAP32_ID_0: 0x03320500
-> 
-> OMAP32_ID_1: 0x2b65f02f
-> 
-> JTAG_ID: 0xb65f DIE_REV: 2
-> 
-> OMAP162123 revision 2 handled as 16xx id: 8e059089bfd20610
-> 
->  
-> 
->  
-> 
-> Is arch-omap/cpu.h wrong, or is there something more here?  With
-> 
-> code as it was patched, cpu_is_omap5912() fails.  Sign of problem
-> 
-> is the inability to reboot the board (# reboot).  I can fix by
-> 
-> changing cpu.h to:
-> 
->  
-> 
-> IS_OMAP_TYPE(5912, 0x1621)
-> 
->  
-> 
-> I don't want to blindly change because I do not know history of OMAP5912
-> 
-> and it is possible some previous rev had id'ed as 1611.
-> 
-> It could also be fixed by adding another type check to arch_reset(), but
-> 
-> that may include 1621 types that do not require or want workaround.
+Hi all,
+    I am new to dsp programming. I have a code which
+is using floating point arithmatic. I want to run this
+code on the c55x dsp of omap1610 board. But since it
+is a fixed point processor,
+i suppose i need to convert my code into fixed point
+arithmatic.
+I am coding in CCS. Can anyone throw some light
+regarding
 
-We should really get rid of cpu_is_omap5912() and just use
-cpu_is_omap16xx().
+a) how to convert the floating point numbers to fixed
+point numbers and perform basic arithmatic operations
+(like addition,multiplication etc)
 
-If 1710 is excluded, we should use something like:
+b) how to do scaling.
 
-(cpu_is_omap16xx() && !cpu_is_omap1710())
+Also links to some tutorials regarding these matters
+will be also of great help to me.
 
-In some cases we may need to test for machine_is_omap_osk() instead.
+Thanks and regards,
+Prakhar.
 
-Tony
+
+		
+__________________________________________________________ 
+Yahoo! India Matrimony: Find your partner now. Go to http://yahoo.shaadi.com
