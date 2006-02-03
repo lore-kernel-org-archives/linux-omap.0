@@ -1,13 +1,10 @@
-From: andrzej zaborowski <balrogg@gmail.com>
-Subject: Re: How to port floating point code on the dsp side(omap 1610)
-Date: Fri, 3 Feb 2006 16:20:31 +0100
-Message-ID: <fb249edb0602030720w52130603v@mail.gmail.com>
-References: <20060203050428.28743.qmail@web8415.mail.in.yahoo.com>
+From: Brian Swetland <swetland@google.com>
+Subject: OMAPFB_FILLRECT and friends
+Date: Fri, 3 Feb 2006 11:11:57 -0800
+Message-ID: <20060203191157.GA23171@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <20060203050428.28743.qmail@web8415.mail.in.yahoo.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -16,29 +13,22 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: prakhar vig <aquarian_133@yahoo.co.in>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
 
-On 03/02/06, prakhar vig <aquarian_133@yahoo.co.in> wrote:
-> Hi all,
->     I am new to dsp programming. I have a code which
-> is using floating point arithmatic. I want to run this
-> code on the c55x dsp of omap1610 board. But since it
-> is a fixed point processor,
-> i suppose i need to convert my code into fixed point
-> arithmatic.
+It appears that an older version of the omapfb driver had support for
+ioctls to FILLRECT, COPYAREA, TRANSPARENT_BLIT, etc.  A bit of searching
+found this version at:
+http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=blob;h=aeb66c8fbb09bb675a4662a5c055d0162f5e109f
 
-I don't do DSP programming either but someone posted this link on a
-different mailing list this week:
-http://libvncserver.sourceforge.net/qemu/qemu-fixed-point.txt
-It isn't linux related but it might help with the very basics.
---
-balrog 2oo6
+Being unwise in the way of git or gitweb, I have no idea how to go 
+from this page to "where in space or time does this stuff live".
+Any pointers?  Was this stuff once there and later removed (it
+doesn't seem to be in tip of tree) and if so, why?
 
-Dear Outlook users: Please remove me from your address books
-http://www.newsforge.com/article.pl?sid=3D03/08/21/143258
+Curious,
+
+Brian
