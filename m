@@ -1,11 +1,13 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: [PATCH] various whitespace cleanups
-Date: Fri, 3 Feb 2006 11:56:33 +0100
-Message-ID: <20060203105632.GA11888@orphique>
+From: "Hunter, Jon" <jon-hunter@ti.com>
+Subject: RE: OSK5912 cpu_is_omap5912() FALSE
+Date: Fri, 3 Feb 2006 08:41:17 -0600
+Message-ID: <C51F43ABFC95844490F0529B60753BF4036F2F52@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,210 +17,94 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: "Smith, Stephen" <smsmith@ti.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Stephen,=20
 
-please use 'let c_space_errors=1' in vim to see what this patch fixes.
-While there, remove initilizers from variables which are by default
-initialized to zero (to respect linux policy). No code changes.
+> -----Original Message-----
+> From:=20
+> linux-omap-open-source-bounces+jon-hunter=3Dti.com@linux.omap.co
+> m=20
+> [mailto:linux-omap-open-source-bounces+jon-hunter=3Dti.com@linux
+> .omap.com] On Behalf Of Smith, Stephen
+> Sent: Thursday, February 02, 2006 5:14 PM
+> To: linux-omap-open-source@linux.omap.com
+> Subject: OSK5912 cpu_is_omap5912() FALSE
+>=20
+> OSK5912/Linux 2.6.13
+>=20
+> =20
+>=20
+> There is a discrepancy in cpu.h and what my OSK5912 reflects.
+>=20
+> =20
+>=20
+> cpu.h reflects:
+>=20
+> IS_OMAP_TYPE(5912, 0x1611)
+>=20
+> =20
+>=20
+> Here is my data from boot, which reflects the correct values:
+>=20
+> OMAP_DIE_ID_0: 0xbfd20610
+>=20
+> OMAP_DIE_ID_1: 0x8e059089 DIE_REV: 2
+>=20
+> OMAP_PRODUCTION_ID_0: 0x00aaaafc
+>=20
+> OMAP_PRODUCTION_ID_1: 0x00016cbe JTAG_ID: 0x6cbe
+>=20
+> OMAP32_ID_0: 0x03320500
+>=20
+> OMAP32_ID_1: 0x2b65f02f
+>=20
+> JTAG_ID: 0xb65f DIE_REV: 2
+>=20
+> OMAP162123 revision 2 handled as 16xx id: 8e059089bfd20610
+>=20
+> =20
+>=20
+> =20
+>=20
+> Is arch-omap/cpu.h wrong, or is there something more here?  With
+>=20
+> code as it was patched, cpu_is_omap5912() fails.  Sign of problem
+>=20
+> is the inability to reboot the board (# reboot).  I can fix by
+>=20
+> changing cpu.h to:
+>=20
+> =20
+>=20
+> IS_OMAP_TYPE(5912, 0x1621)
+>=20
+> =20
+>=20
+> I don't want to blindly change because I do not know history=20
+> of OMAP5912
+>=20
+> and it is possible some previous rev had id'ed as 1611.
+>=20
+> It could also be fixed by adding another type check to=20
+> arch_reset(), but
+>=20
+> that may include 1621 types that do not require or want workaround.
+>=20
+> =20
+>=20
+> Any insight would be appreciated.
 
-diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index 0bc2d7a..619db18 100644
---- a/arch/arm/mach-omap1/clock.c
-+++ b/arch/arm/mach-omap1/clock.c
-@@ -345,7 +345,7 @@ static unsigned calc_ext_dsor(unsigned l
- 	 */
- 	for (dsor = 2; dsor < 96; ++dsor) {
- 		if ((dsor & 1) && dsor > 8)
--		  	continue;
-+			continue;
- 		if (rate >= 96000000 / dsor)
- 			break;
- 	}
-diff --git a/arch/arm/mach-omap1/irq.c b/arch/arm/mach-omap1/irq.c
-index ed65a7d..a0431c0 100644
---- a/arch/arm/mach-omap1/irq.c
-+++ b/arch/arm/mach-omap1/irq.c
-@@ -60,7 +60,7 @@ struct omap_irq_bank {
- 	unsigned long wake_enable;
- };
- 
--static unsigned int irq_bank_count = 0;
-+static unsigned int irq_bank_count;
- static struct omap_irq_bank *irq_banks;
- 
- static inline unsigned int irq_bank_readl(int bank, int offset)
-@@ -142,28 +142,28 @@ static void omap_irq_set_cfg(int irq, in
- 
- #ifdef CONFIG_ARCH_OMAP730
- static struct omap_irq_bank omap730_irq_banks[] = {
--	{ .base_reg = OMAP_IH1_BASE, 		.trigger_map = 0xb3f8e22f },
--	{ .base_reg = OMAP_IH2_BASE, 		.trigger_map = 0xfdb9c1f2 },
-+	{ .base_reg = OMAP_IH1_BASE,		.trigger_map = 0xb3f8e22f },
-+	{ .base_reg = OMAP_IH2_BASE,		.trigger_map = 0xfdb9c1f2 },
- 	{ .base_reg = OMAP_IH2_BASE + 0x100,	.trigger_map = 0x800040f3 },
- };
- #endif
- 
- #ifdef CONFIG_ARCH_OMAP15XX
- static struct omap_irq_bank omap1510_irq_banks[] = {
--	{ .base_reg = OMAP_IH1_BASE, 		.trigger_map = 0xb3febfff },
--	{ .base_reg = OMAP_IH2_BASE, 		.trigger_map = 0xffbfffed },
-+	{ .base_reg = OMAP_IH1_BASE,		.trigger_map = 0xb3febfff },
-+	{ .base_reg = OMAP_IH2_BASE,		.trigger_map = 0xffbfffed },
- };
- static struct omap_irq_bank omap310_irq_banks[] = {
--	{ .base_reg = OMAP_IH1_BASE, 		.trigger_map = 0xb3faefc3 },
--	{ .base_reg = OMAP_IH2_BASE, 		.trigger_map = 0x65b3c061 },
-+	{ .base_reg = OMAP_IH1_BASE,		.trigger_map = 0xb3faefc3 },
-+	{ .base_reg = OMAP_IH2_BASE,		.trigger_map = 0x65b3c061 },
- };
- #endif
- 
- #if defined(CONFIG_ARCH_OMAP16XX)
- 
- static struct omap_irq_bank omap1610_irq_banks[] = {
--	{ .base_reg = OMAP_IH1_BASE, 		.trigger_map = 0xb3fefe8f },
--	{ .base_reg = OMAP_IH2_BASE, 		.trigger_map = 0xfdb7c1fd },
-+	{ .base_reg = OMAP_IH1_BASE,		.trigger_map = 0xb3fefe8f },
-+	{ .base_reg = OMAP_IH2_BASE,		.trigger_map = 0xfdb7c1fd },
- 	{ .base_reg = OMAP_IH2_BASE + 0x100,	.trigger_map = 0xffffb7ff },
- 	{ .base_reg = OMAP_IH2_BASE + 0x200,	.trigger_map = 0xffffffff },
- };
-diff --git a/arch/arm/mach-omap1/mux.c b/arch/arm/mach-omap1/mux.c
-index 013a2be..10fe0b3 100644
---- a/arch/arm/mach-omap1/mux.c
-+++ b/arch/arm/mach-omap1/mux.c
-@@ -77,8 +77,8 @@ MUX_CFG("UART3_BCLK",		 A,    0,    0,	 
- MUX_CFG("Y15_1610_UART3_RTS",	 A,    0,    1,	  2,   6,   0,	 NA,	 0,  0)
- 
- /* PWT & PWL, conflicts with UART3 */
--MUX_CFG("PWT",		 	 6,    0,    2,	  0,  30,   0,	 NA,	 0,  0)
--MUX_CFG("PWL",		 	 6,    3,    1,	  0,  31,   1,	 NA,	 0,  0)
-+MUX_CFG("PWT",			 6,    0,    2,	  0,  30,   0,	 NA,	 0,  0)
-+MUX_CFG("PWL",			 6,    3,    1,	  0,  31,   1,	 NA,	 0,  0)
- 
- /* USB internal master generic */
- MUX_CFG("R18_USB_VBUS",		 7,    9,    2,	  1,  11,   0,	 NA,	 0,  1)
-@@ -155,7 +155,7 @@ MUX_CFG("MCBSP3_CLKX",		 9,    3,    1,	
- 
- /* Misc ballouts */
- MUX_CFG("BALLOUT_V8_ARMIO3",	 B,   18,    0,	  2,  25,   1,	 NA,	 0,  1)
--MUX_CFG("N20_HDQ",	       6,   18,    1,   1,   4,   0,    1,     4,  0)
-+MUX_CFG("N20_HDQ",		 6,   18,    1,   1,   4,   0,    1,     4,  0)
- 
- /* OMAP-1610 MMC2 */
- MUX_CFG("W8_1610_MMC2_DAT0",	 B,   21,    6,	  2,  23,   1,	  2,	 1,  1)
-diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
-index cc01813..be0d6b7 100644
---- a/arch/arm/mach-omap1/pm.c
-+++ b/arch/arm/mach-omap1/pm.c
-@@ -234,7 +234,7 @@ static void omap_pm_wakeup_setup(void)
- 
- 	/*  New IRQ agreement, recalculate in cascade order */
- 	omap_writel(1, OMAP_IH2_CONTROL);
-- 	omap_writel(1, OMAP_IH1_CONTROL);
-+	omap_writel(1, OMAP_IH1_CONTROL);
- }
- 
- #define EN_DSPCK	13	/* ARM_CKCTL */
-@@ -271,7 +271,7 @@ void omap_pm_suspend(void)
- 	 * We have to save and restore very little register state to
- 	 * idle the omap.
-          *
-- 	 * Save interrupt, MPUI, ARM and UPLD control registers.
-+	 * Save interrupt, MPUI, ARM and UPLD control registers.
- 	 */
- 
- 	if (cpu_is_omap730()) {
-@@ -371,7 +371,7 @@ void omap_pm_suspend(void)
- 	 * Step 6c: ARM and Traffic controller shutdown
- 	 *
- 	 * Jump to assembly code. The processor will stay there
-- 	 * until wake up.
-+	 * until wake up.
- 	 */
-         omap_sram_suspend(arg0, arg1);
- 
-@@ -559,29 +559,29 @@ static int omap_pm_read_proc(
- 			   "MPUI1510_CTRL_REG             0x%-8x \n"
- 			   "MPUI1510_DSP_STATUS_REG:      0x%-8x \n"
- 			   "MPUI1510_DSP_BOOT_CONFIG_REG: 0x%-8x \n"
--		   	   "MPUI1510_DSP_API_CONFIG_REG:  0x%-8x \n"
--		   	   "MPUI1510_SDRAM_CONFIG_REG:    0x%-8x \n"
--		   	   "MPUI1510_EMIFS_CONFIG_REG:    0x%-8x \n",
--		   	   MPUI1510_SHOW(MPUI_CTRL),
--		   	   MPUI1510_SHOW(MPUI_DSP_STATUS),
--		   	   MPUI1510_SHOW(MPUI_DSP_BOOT_CONFIG),
--		   	   MPUI1510_SHOW(MPUI_DSP_API_CONFIG),
--		   	   MPUI1510_SHOW(EMIFF_SDRAM_CONFIG),
--		   	   MPUI1510_SHOW(EMIFS_CONFIG));
-+			   "MPUI1510_DSP_API_CONFIG_REG:  0x%-8x \n"
-+			   "MPUI1510_SDRAM_CONFIG_REG:    0x%-8x \n"
-+			   "MPUI1510_EMIFS_CONFIG_REG:    0x%-8x \n",
-+			   MPUI1510_SHOW(MPUI_CTRL),
-+			   MPUI1510_SHOW(MPUI_DSP_STATUS),
-+			   MPUI1510_SHOW(MPUI_DSP_BOOT_CONFIG),
-+			   MPUI1510_SHOW(MPUI_DSP_API_CONFIG),
-+			   MPUI1510_SHOW(EMIFF_SDRAM_CONFIG),
-+			   MPUI1510_SHOW(EMIFS_CONFIG));
- 		} else if (cpu_is_omap16xx()) {
- 			my_buffer_offset += sprintf(my_base + my_buffer_offset,
- 			   "MPUI1610_CTRL_REG             0x%-8x \n"
- 			   "MPUI1610_DSP_STATUS_REG:      0x%-8x \n"
- 			   "MPUI1610_DSP_BOOT_CONFIG_REG: 0x%-8x \n"
--		   	   "MPUI1610_DSP_API_CONFIG_REG:  0x%-8x \n"
--		   	   "MPUI1610_SDRAM_CONFIG_REG:    0x%-8x \n"
--		   	   "MPUI1610_EMIFS_CONFIG_REG:    0x%-8x \n",
--		   	   MPUI1610_SHOW(MPUI_CTRL),
--		   	   MPUI1610_SHOW(MPUI_DSP_STATUS),
--		   	   MPUI1610_SHOW(MPUI_DSP_BOOT_CONFIG),
--		   	   MPUI1610_SHOW(MPUI_DSP_API_CONFIG),
--		   	   MPUI1610_SHOW(EMIFF_SDRAM_CONFIG),
--		   	   MPUI1610_SHOW(EMIFS_CONFIG));
-+			   "MPUI1610_DSP_API_CONFIG_REG:  0x%-8x \n"
-+			   "MPUI1610_SDRAM_CONFIG_REG:    0x%-8x \n"
-+			   "MPUI1610_EMIFS_CONFIG_REG:    0x%-8x \n",
-+			   MPUI1610_SHOW(MPUI_CTRL),
-+			   MPUI1610_SHOW(MPUI_DSP_STATUS),
-+			   MPUI1610_SHOW(MPUI_DSP_BOOT_CONFIG),
-+			   MPUI1610_SHOW(MPUI_DSP_API_CONFIG),
-+			   MPUI1610_SHOW(EMIFF_SDRAM_CONFIG),
-+			   MPUI1610_SHOW(EMIFS_CONFIG));
- 		}
- 
- 		g_read_completed++;
-@@ -694,10 +694,10 @@ static struct irqaction omap_wakeup_irq 
- 
- 
- static struct pm_ops omap_pm_ops ={
--	.pm_disk_mode = 0,
--        .prepare        = omap_pm_prepare,
--        .enter          = omap_pm_enter,
--        .finish         = omap_pm_finish,
-+	.pm_disk_mode	= 0,
-+	.prepare	= omap_pm_prepare,
-+	.enter		= omap_pm_enter,
-+	.finish		= omap_pm_finish,
- };
- 
- static int __init omap_pm_init(void)
-diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
-index e924e0c..9b4cd69 100644
---- a/arch/arm/mach-omap1/serial.c
-+++ b/arch/arm/mach-omap1/serial.c
-@@ -30,9 +30,9 @@
- #include <asm/arch/pm.h>
- #endif
- 
--static struct clk * uart1_ck = NULL;
--static struct clk * uart2_ck = NULL;
--static struct clk * uart3_ck = NULL;
-+static struct clk * uart1_ck;
-+static struct clk * uart2_ck;
-+static struct clk * uart3_ck;
- 
- static inline unsigned int omap_serial_in(struct plat_serial8250_port *up,
- 					  int offset)
+
+The initial 5912 devices were based on the 1611 devices. However, the
+production version of the 5912 is based on the 1621. From a
+user/functional perspective there is not much difference between the
+devices. There were a lot of silicon issues that were fixed and
+performance improvements made.=20
+
+It appears that you have the production 5912 silicon and so 1621 makes
+sense.=20
+
+Regards,
+Jon
