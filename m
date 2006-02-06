@@ -1,12 +1,13 @@
-From: Ram <vshrirama@gmail.com>
-Subject: SDRAM clock changes ?
-Date: Mon, 6 Feb 2006 10:54:40 +0530
-Message-ID: <8bf247760602052124s701cf35n9596d9202f5702b4@mail.gmail.com>
+From: Imre Deak <imre.deak@nokia.com>
+Subject: Re: OMAPFB_FILLRECT and friends
+Date: Mon, 06 Feb 2006 10:26:15 +0200
+Message-ID: <1139214375.29549.13.camel@mammoth.research.nokia.com>
+References: <20060203191157.GA23171@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+In-Reply-To: <20060203191157.GA23171@localhost.localdomain>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,31 +17,42 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: ext Brian Swetland <swetland@google.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
-   I want to change the sdram setting from 96 MHZ to 192MHZ in OMAP.
 
-  What registers need to be modified for effecting this.
+On Fri, 2006-02-03 at 11:11 -0800, ext Brian Swetland wrote:
+> It appears that an older version of the omapfb driver had support for
+> ioctls to FILLRECT, COPYAREA, TRANSPARENT_BLIT, etc.  A bit of searching
+> found this version at:
+> http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=blob;h=aeb66c8fbb09bb675a4662a5c055d0162f5e109f
+> 
+> Being unwise in the way of git or gitweb, I have no idea how to go 
+> from this page to "where in space or time does this stuff live".
+> Any pointers?  
 
+You can check out a specific version based on the commit id with
 
+$ git checkout -b <branch> <commit id>
 
-  I went through the data sheets and there is no single place where
-it is listed - the values of   different sdram clock rates.
+> Was this stuff once there and later removed (it
+> doesn't seem to be in tip of tree) and if so, why?
 
-i have made the required changes in the DPLL control register (PLL_MULT Bit=
-s).
+Yes, I removed it because later performance testing showed no
+improvement whatsoever when using DMA for SDRAM - SDRAM transfers
+compared to using MPU bursts.
 
-In addition to this what other changes i need to make ?.
+Being a dead code I didn't see any reason leaving it in the driver.
 
+--Imre
 
-
- Any help is highly appreciated.
-
-
-Thanks,
-
-
-Regards,
-sriram
+> 
+> Curious,
+> 
+> Brian
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
