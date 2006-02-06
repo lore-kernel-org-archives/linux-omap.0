@@ -1,12 +1,15 @@
-From: Paul Mundt <paul.mundt@nokia.com>
-Subject: ARM: OMAP: STI/XTI support.
-Date: Mon, 6 Feb 2006 21:46:58 +0200
-Message-ID: <20060206194658.GA20394@nokia.com>
+From: Daniel Petrini <d.pensator@gmail.com>
+Subject: Re: omap alsa tsc2101 driver
+Date: Mon, 6 Feb 2006 18:01:15 -0400
+Message-ID: <9268368b0602061401m4522d31v258f0f67f19509ef@mail.gmail.com>
+References: <43E66CF6.8040600@cc.jyu.fi>
+	<9268368b0602061113n30e8c49bx756de24a1eaf93c6@mail.gmail.com>
+	<43E7AEC3.3020901@cc.jyu.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-Type: multipart/mixed;
+	boundary="----=_Part_5896_12779150.1139263275047"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <43E7AEC3.3020901@cc.jyu.fi>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,1338 +17,2448 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: lamikr@cc.jyu.fi
+Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-This implements a simple subsystem for the OMAP serial tracing interface,
-as found in omap16xx and omap24xx.
+------=_Part_5896_12779150.1139263275047
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-There's a few things implemented in this patch:
+Hi Mika,
 
-	- STI console support
-	- STI netlink support
-	- STI RX FIFO support
+On 2/6/06, lamikr <lamikr@cc.jyu.fi> wrote:
+> Hi Petrini
+>
+> That sounds good for me, I am happy from anything that works and can try
+> to continue from that :-)
 
-In addition to this, we also provide a general tracing framework that can
-be used by both the kernel and userspace (and imask control for allowing
-DSP-side STI manipulation).
+Great!
 
-Since the IRQ is multiplexed, drivers register for the bits they're
-interested in (the RX FIFO is an example of this).
+> Can you give more info from your driver like is it already using DMA, is
+> it using headset or normal speakers for playing, etc?
+> In addition do you have sources available somewhere so I could check
+> whether your code works also with my device?
 
-The netlink interface exists for streaming data bi-directionally. This is
-currently done using NETLINK_USERSOCK, which ends up being somewhat
-limiting.
+Yes, I am sending it right now (I have just updated my tree). Please
+note that it is really work in progress code, with remaining debug
+printks and so on. I will clean up soon.
+Try to make it work w/ your device, you will have to change the board*
+file accordingly H2 or osk in this patch.
 
-All of these things have been tested on both OMAP1 and OMAP2, and it
-takes in to account some of the protocol differences.
+>
+> It should be possible to take the existing mixer part from my code to
+> your driver. As I have not yet been able to play songs properly, I have
+> sofar only been able to test the volume and mute/unmute settings from
+> the Mixers Digital Gain Control (DGC) properly.
+> Headset and handset parts seems to act ok, but only time will tell
+> whether they really work. But if I can get your driver to play with my
+> device, I could continue from that.
 
----
+Let me know if you can play sounds with this patch so that I will
+prepare it to receive your mixer then you can debug it
+
+> I think there will also be a need for a somekind of "temp/work"
+> repository for helping to synchronize the our (and possible others)
+> work, but I think we can resolve that later.
+
+Yeah, maybe we can try to keep sending pathes privetely in order to
+don't mess the list to much, unless we got a server somewhere.
+
+Please let me know if this patch works for you.
+The idea was to change omap-alsa-aic23.c to omap-alsa.c and use
+separate codec files for board dependent functions and data. Dma and
+mcbsp functions should remain untouched.
+
+> Mika
+>
+
+Daniel
+
+> Daniel Petrini wrote:
+>
+> >Hi Mika,
+> >
+> >I have been working in this ALSA driver as well, and I have a
+> >functional patch that plays songs but lacks the mixer support yet.
+> >What do you think of join the drivers to make it work faster?
+> >I am developing it generically in order to take advantage of existing
+> >common code as dma and alsa generic.
+> >
+> >Daniel
+> >
+> >On 2/5/06, lamikr <lamikr@cc.jyu.fi> wrote:
+> >
+> >
+> >>Hi
+> >>
+> >>I have not seen anyone working with the tsc2101 Alsa driver, so attache=
+d
+> >>are the tsc2101 alsa driver sources I have been working for a while. Th=
+e
+> >>patch should apply to the omap-driver head. Unfortunately it is still
+> >>non-functional at least with my omap 1510 based iPAQ h6340.
+> >>
+> >>I can hear small start of the song but then nothing happens. I have
+> >>tried to debug the code and I can see that the the driver is able to ge=
+t
+> >>one callback to sound_dma_irq_handler with DSCR_END_BLOCK set, but afte=
+r
+> >>it does not continue with a next period of code.
+> >>
+> >>Here is some info from the driver
+> >>- all code is located in /sound/arm/omap as I have wanted to mix it to
+> >>existing aic23 code until this one works
+> >>- based on to aic23 Alsa and tsc2101 OSS drivers. DMA code and driver
+> >>base taken from the aic, but hardware initialization taken from the
+> >>tsc2101 oss driver. (dma has only small changes like 16 bit mono to
+> >>capture params instead of 32 bit ones supported in the aic23)
+> >>- mixer code for DGC, headset and handset
+> >>- debug is mostly printed by using DPRINTK() function and can be enable=
+d
+> >>by uncommenting "#define DEBUG 1" from the omap-alsa.h
+> >>- This is platform driver, so you need to register it to your board-cod=
+e
+> >>in arch/arm/mach-omap1/board-* in a following way:
+> >>        static struct platform_device h6300_mcbsp1_device =3D {
+> >>                    .name        =3D "omap_tsc2101_mcbsp",
+> >>                    .id        =3D 1,
+> >>            };
+> >>
+> >>        static struct platform_device *h6300_devices[] __initdata =3D {
+> >>                ...
+> >>                &h6300_mcbsp1_device,
+> >>        };
+> >>
+> >>I have only tested this with omap1510 based iPAQ h6300, so I would
+> >>appreciate if somebody else could test this with other
+> >>devices having tsc2101 chipset to find out whether this is just my hw
+> >>specific problem. (Fixes would ofcource also be nice :-)
+> >>
+> >>For testing the driver I have plugged headset and listened the result o=
+f
+> >>following commands
+> >>- aplay song.wav (44100 hz 16 bit little endion format)
+> >>- "speaker-test -r 8000", "-r 44100", etc...
+> >>
+> >>I have also tryed to change the audio_get_dma_pos() method to be like i=
+n
+> >>the sa11xx-uda1341.c driver. With implementation
+> >>based on to that, the speaker-test is able to produce somekind of
+> >>periodic "wuff <silence> wuff <silence> wuff..." sound.
+> >>(that method version is commented out in the omap-alsa-tsc2101.c)
+> >>
+> >>In addition to sources, attached is the log from one play attempt.
+> >>
+> >>Mika
+> >>
+> >>root@h6300:~# aplay free_breakbeat.wav
+> >>Playing WAVE 'free_breakbeat.wav' : Signed 16 bit Little Endian, Rate
+> >>44100 Hz, Stereo
+> >>aplay: pcm_write:1146: write error: Input/output error
+> >>root@h6300:~# dmesg
+> >>XXX Alsa debug f:omap_alsa_tsc2101_init, l:1157
+> >>XXX Alsa debug f:snd_omap_alsa_tsc2101_probe, l:1077
+> >>XXX Alsa debug f:snd_card_omap_alsa_tsc2101_pcm, l:845
+> >>XXX Alsa debug f:omap_alsa_tsc2101_audio_init, l:350
+> >>XXX Alsa debug f:audio_dma_request, l:385
+> >>[omap_request_alsa_sound_dma]: start
+> >>[omap_request_alsa_sound_dma]: end(0)
+> >>XXX Alsa debug f:audio_dma_request, l:385
+> >>[omap_request_alsa_sound_dma]: start
+> >>[omap_request_alsa_sound_dma]: end(0)
+> >>[snd_omap_init_mixer]: start
+> >>[setRecordSource]: start
+> >>[setRecordSource]: end(0)
+> >>[snd_omap_init_mixer]: end(0)
+> >>OMAP_ALSA_TSC2101 audio support initialized
+> >><omap_alsa_tsc2101_clock_on>: clock use count =3D 0
+> >><omap_alsa_tsc2101_clock_on>: old clock rate =3D 12000000
+> >>omap_alsa_tsc2101_clock_on(), no need to change clock rate, rate alread=
+y
+> >>12000000 Hz.
+> >><omap_alsa_tsc2101_clock_on>: MCLK =3D 12000000 [12000000], usecount =
+=3D 1,
+> >>clk_enable retval =3D 0
+> >><snd_card_omap_alsa_tsc2101_open>: runtime->hw =3D
+> >>snd_omap_alsa_tsc2101_playback
+> >><snd_omap_alsa_tsc2101_hw_params>: snd_omap_alsa_tsc2101_hw_params(),
+> >>size =3D 131072
+> >>XXX Alsa debug f:snd_omap_alsa_tsc2101_prepare, l:686
+> >>XXX Alsa debug f:omap_alsa_tsc2101_set_samplerate, l:248
+> >><omap_alsa_tsc2101_set_samplerate>: selected 44.1khz PLL
+> >><snd_omap_alsa_tsc2101_trigger>: cmd =3D 1
+> >><audio_process_dma>: started,  offset =3D 0, dma_size =3D 8192, s->peri=
+od =3D
+> >>0, s->periods =3D 0, s->dma_q_head =3D 0, s->offset =3D 0, rt->buffer_s=
+ize =3D
+> >>32768, rt->period_size =3D 2048, rt->frame_bits =3D 32, runtime->dma_ad=
+dr =3D
+> >>0, dma_ptr =3D -1042022400
+> >>[omap_start_alsa_sound_dma]: start
+> >><omap_start_alsa_sound_dma>: stream_id =3D playback, dma_ptr =3D
+> >>-1042022400, dma_size =3D 8192
+> >>[audio_set_dma_params_play]: start
+> >>[audio_set_dma_params_play]: end(0)
+> >>[audio_start_dma_chain]: start
+> >>XXX Alsa debug f:audio_ifc_stop, l:229
+> >>XXX Alsa debug f:audio_ifc_start, l:222
+> >>[audio_start_dma_chain]: end(0)
+> >>[omap_start_alsa_sound_dma]: end(0)
+> >><audio_process_dma>: done, offset =3D 0, dma_size =3D 8192, s->period =
+=3D 0,
+> >>s->periods =3D 1, s->dma_q_head =3D 0, s->offset =3D 0, rt->buffer_size=
+ =3D
+> >>32768, rt->period_size =3D 2048, rt->frame_bits =3D 32, runtime->dma_ad=
+dr =3D
+> >>0, dma_ptr =3D -1042022400
+> >><audio_get_dma_pos>: count =3D 6150, s->dma_q_head =3D 0, s->offset =3D=
+ 0,
+> >>s->period =3D 1, s->periods =3D 1, rt->buffer_size =3D 32768, rt->perio=
+d_size
+> >>=3D 2048, rt->frame_bits =3D 32, runtime->dma_addr =3D 0, offset =3D -1=
+537,
+> >>dma_ptr =3D -1042023937
+> >><audio_get_dma_pos>: offsetFrame=3D 0, countFrame =3D 1537
+> >><audio_get_dma_pos>: warning, resetted offset to 0, old offset val =3D =
+0
+> >><sound_dma_irq_handler>: started, lch =3D 0, status =3D 0x20, dma_statu=
+s =3D
+> >>32, data =3D c0b0608c
+> >><sound_dma_irq_handler>: status =3D DCSR_END_BLOCK, calling
+> >>audio_dma_callback()
+> >><audio_dma_callback>: s->active, calling snd_pcm_period_elapsed
+> >><audio_get_dma_pos>: count =3D 6150, s->dma_q_head =3D 0, s->offset =3D=
+ 0,
+> >>s->period =3D 1, s->periods =3D 1, rt->buffer_size =3D 32768, rt->perio=
+d_size
+> >>=3D 2048, rt->frame_bits =3D 32, runtime->dma_addr =3D 0, offset =3D -1=
+537,
+> >>dma_ptr =3D -1042023937
+> >><audio_get_dma_pos>: offsetFrame=3D 0, countFrame =3D 1537
+> >><audio_get_dma_pos>: warning, resetted offset to 0, old offset val =3D =
+0
+> >><audio_process_dma>: started,  offset =3D 8192, dma_size =3D 8192, s->p=
+eriod
+> >>=3D 1, s->periods =3D 0, s->dma_q_head =3D 0, s->offset =3D 0, rt->buff=
+er_size =3D
+> >>32768, rt->period_size =3D 2048, rt->frame_bits =3D 32, runtime->dma_ad=
+dr =3D
+> >>0, dma_ptr =3D -1042014208
+> >>[omap_start_alsa_sound_dma]: start
+> >><omap_start_alsa_sound_dma>: stream_id =3D playback, dma_ptr =3D
+> >>-1042014208, dma_size =3D 8192
+> >>[audio_set_dma_params_play]: start
+> >>[audio_set_dma_params_play]: end(0)
+> >>[audio_start_dma_chain]: start
+> >>[audio_start_dma_chain]: end(0)
+> >>[omap_start_alsa_sound_dma]: end(0)
+> >><audio_process_dma>: done, offset =3D 8192, dma_size =3D 8192, s->perio=
+d =3D
+> >>1, s->periods =3D 1, s->dma_q_head =3D 0, s->offset =3D 8192, rt->buffe=
+r_size
+> >>=3D 32768, rt->period_size =3D 2048, rt->frame_bits =3D 32, runtime->dm=
+a_addr
+> >>=3D 0, dma_ptr =3D -1042014208
+> >><sound_dma_irq_handler>: done
+> >>ALSA
+> >>/home/lamikr/own/h6300/git/linux-omap-h6300-2.6/sound/core/pcm_lib.c:22=
+31:
+> >>playback write error (DMA or IRQ trouble?)
+> >><snd_omap_alsa_tsc2101_trigger>: cmd =3D 0
+> >>XXX Alsa debug f:audio_stop_dma, l:488
+> >>[omap_alsa_audio_stop_dma]: start
+> >>[omap_alsa_audio_stop_dma]: end(0)
+> >>[omap_clear_alsa_sound_dma]: start
+> >>[omap_clear_alsa_sound_dma]: end(0)
+> >>XXX Alsa debug f:snd_card_omap_alsa_tsc2101_close, l:785
+> >><omap_alsa_tsc2101_clock_off>: clock use count =3D 1
+> >><omap_alsa_tsc2101_clock_off>: clock rate =3D 12000000
+> >><omap_alsa_tsc2101_clock_off>: clock disabled
+> >><omap_alsa_tsc2101_clock_off>: audio codec off
+> >>
+> >>
+> >>
+> >>_______________________________________________
+> >>Linux-omap-open-source mailing list
+> >>Linux-omap-open-source@linux.omap.com
+> >>http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> >>
+> >>
+> >>
+> >>
+> >>
+> >>
+> >
+> >
+> >--
+> >INdT - Manaus - Brazil
+> >
+> >
+> >
+>
+>
 
 
-If someone wishes the patch split for review, I'll resubmit it as a small
-patch series. Applies to current git.
+--
+INdT - Manaus - Brazil
 
- arch/arm/mach-omap1/devices.c        |   40 +++
- arch/arm/mach-omap2/clock.h          |   11=20
- arch/arm/mach-omap2/devices.c        |   42 +++
- arch/arm/plat-omap/Kconfig           |   11=20
- arch/arm/plat-omap/Makefile          |    3=20
- arch/arm/plat-omap/sti/Makefile      |    4=20
- arch/arm/plat-omap/sti/sti-console.c |  174 ++++++++++++++
- arch/arm/plat-omap/sti/sti-fifo.c    |  117 +++++++++
- arch/arm/plat-omap/sti/sti-netlink.c |  157 ++++++++++++
- arch/arm/plat-omap/sti/sti.c         |  425 ++++++++++++++++++++++++++++=
-+++++++
- include/asm-arm/arch-omap/sti.h      |  159 +++++++++++++
- 11 files changed, 1143 insertions(+)
+------=_Part_5896_12779150.1139263275047
+Content-Type: text/x-patch; name=alsa_patch-h2-osk20060206.patch;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Attachment-Id: f_ejdbrbzk
+Content-Disposition: attachment; filename="alsa_patch-h2-osk20060206.patch"
 
-diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.=
-c
-index ecbc475..876c38d 100644
---- a/arch/arm/mach-omap1/devices.c
-+++ b/arch/arm/mach-omap1/devices.c
-@@ -99,6 +99,45 @@ static void omap_init_rtc(void)
- static inline void omap_init_rtc(void) {}
- #endif
-=20
-+#if defined(CONFIG_OMAP_STI)
-+
-+#define OMAP1_STI_BASE		IO_ADDRESS(0xfffea000)
-+#define OMAP1_STI_CHANNEL_BASE	(OMAP1_STI_BASE + 0x400)
-+
-+static struct resource sti_resources[] =3D {
-+	{
-+		.start		=3D OMAP1_STI_BASE,
-+		.end		=3D OMAP1_STI_BASE + SZ_1K - 1,
-+		.flags		=3D IORESOURCE_MEM,
-+	},
-+	{
-+		.start		=3D OMAP1_STI_CHANNEL_BASE,
-+		.end		=3D OMAP1_STI_CHANNEL_BASE + SZ_1K - 1,
-+		.flags		=3D IORESOURCE_MEM,
-+	},
-+	{
-+		.start		=3D INT_1610_STI,
-+		.flags		=3D IORESOURCE_IRQ,
-+	}
-+};
-+
-+static struct platform_device sti_device =3D {
-+	.name		=3D "sti",
-+	.id		=3D -1,
-+	.dev =3D {
-+		.release	=3D omap_nop_release,
-+	},
-+	.num_resources	=3D ARRAY_SIZE(sti_resources),
-+	.resource	=3D sti_resources,
-+};
-+
-+static inline void omap_init_sti(void)
-+{
-+	platform_device_register(&sti_device);
-+}
-+#else
-+static inline void omap_init_sti(void) {}
-+#endif
-=20
- /*----------------------------------------------------------------------=
----*/
-=20
-@@ -129,6 +168,7 @@ static int __init omap1_init_devices(voi
- 	 */
- 	omap_init_irda();
- 	omap_init_rtc();
-+	omap_init_sti();
-=20
- 	return 0;
- }
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index d33e2ba..7a7ae6b 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -717,6 +717,16 @@ static struct clk sys_clkout2 =3D {
- 	.recalc		=3D &omap2_clksel_recalc,
+diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
+index 4cc6a31..ead9ac9 100644
+--- a/arch/arm/mach-omap1/board-h2.c
++++ b/arch/arm/mach-omap1/board-h2.c
+@@ -41,6 +41,7 @@
+ #include <asm/arch/usb.h>
+ #include <asm/arch/keypad.h>
+ #include <asm/arch/common.h>
++#include <asm/arch/mcbsp.h>
+ 
+ extern int omap_gpio_init(void);
+ 
+@@ -271,12 +272,48 @@ static struct platform_device h2_irda_de
+ 	.resource	= h2_irda_resources,
  };
-=20
-+static struct clk emul_ck =3D {
-+	.name		=3D "emul_ck",
-+	.parent		=3D &func_54m_ck,
-+	.flags		=3D CLOCK_IN_OMAP242X,
-+	.enable_reg	=3D (void __iomem *)&PRCM_CLKEMUL_CTRL,
-+	.enable_bit	=3D 0,
-+	.recalc		=3D &omap2_propagate_rate,
+ 
++static struct omap_mcbsp_config mcbsp1_config = {
++	.mcbsp_regs = { 
++		.spcr2 = FREE | FRST | GRST | XRST | XINTM(3),
++		.spcr1 = RINTM(3) | RRST,
++		.rcr2  = RPHASE | RFRLEN2(OMAP_MCBSP_WORD_8) |
++			 RWDLEN2(OMAP_MCBSP_WORD_16) | RDATDLY(1),
++		.rcr1  = RFRLEN1(OMAP_MCBSP_WORD_8) | RWDLEN1(OMAP_MCBSP_WORD_16),
++		.xcr2  = XPHASE | XFRLEN2(OMAP_MCBSP_WORD_8) |
++			 XWDLEN2(OMAP_MCBSP_WORD_16) | XDATDLY(1) | XFIG,
++		.xcr1  = XFRLEN1(OMAP_MCBSP_WORD_8) | XWDLEN1(OMAP_MCBSP_WORD_16),
++		.srgr1 = FWID(15),
++		.srgr2 = GSYNC | CLKSP | FSGM | FPER(31),
++
++		.pcr0  = CLKXM | CLKRM | FSXP | FSRP | CLKXP | CLKRP,
++		//.pcr0 = CLKXP | CLKRP,	/* mcbsp: slave */
++	},
++	.codec_configure_dev	= tsc2101_configure,
++	.codec_set_samplerate	= tsc2101_set_samplerate,
++	.codec_clock_setup	= tsc2101_clock_setup,
++	.codec_clock_on		= tsc2101_clock_on,
++	.codec_clock_off	= tsc2101_clock_off,
++	.codec_write		= audio_tsc2101_write,
++	.codec_read		= audio_tsc2101_read,
++	.init_audio_controls 	= tsc2101_init_audio_controls,
 +
 +};
 +
- /*
-  * MPU clock domain
-  *	Clocks:
-@@ -1957,6 +1967,7 @@ static struct clk *onchip_clks[] =3D {
- 	&wdt1_osc_ck,
- 	&sys_clkout,
- 	&sys_clkout2,
-+	&emul_ck,
- 	/* mpu domain clocks */
- 	&mpu_ck,
- 	/* dsp domain clocks */
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.=
-c
-index 7181edb..def9e53 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -74,6 +74,47 @@ static void omap_init_i2c(void) {}
-=20
++static struct platform_device h2_mcbsp1_device = {
++	.name 		= "omap_mcbsp",
++	.id		= 1,
++	.dev = {
++		.platform_data = &mcbsp1_config,
++	},
++};
++
+ static struct platform_device *h2_devices[] __initdata = {
+ 	&h2_nor_device,
+ 	&h2_nand_device,
+ 	&h2_smc91x_device,
+ 	&h2_irda_device,
+ 	&h2_kp_device,
++	&h2_mcbsp1_device,
+ };
+ 
+ static void __init h2_init_smc91x(void)
+diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
+index 9d6098b..fb716df 100644
+--- a/arch/arm/mach-omap1/board-osk.c
++++ b/arch/arm/mach-omap1/board-osk.c
+@@ -148,10 +148,46 @@ static struct platform_device osk5912_cf
+ 	.num_resources	= ARRAY_SIZE(osk5912_cf_resources),
+ 	.resource	= osk5912_cf_resources,
+ };
++static struct platform_device h2_smc91x_device = {
++	.name		= "smc91x",
++	.id		= 0,
++	.num_resources	= ARRAY_SIZE(h2_smc91x_resources),
++	.resource	= h2_smc91x_resources,
++};
++
++static struct omap_mcbsp_config mcbsp1_config = {
++	.mcbsp_regs = { 
++		.spcr2 = FREE | FRST | GRST | XRST | XINTM(3),
++		.spcr1 = RINTM(3) | RRST,
++		.rcr2  = RPHASE | RFRLEN2(OMAP_MCBSP_WORD_8) |
++			 RWDLEN2(OMAP_MCBSP_WORD_16) | RDATDLY(1),
++		.rcr1  = RFRLEN1(OMAP_MCBSP_WORD_8) | RWDLEN1(OMAP_MCBSP_WORD_16),
++		.xcr2  = XPHASE | XFRLEN2(OMAP_MCBSP_WORD_8) |
++			 XWDLEN2(OMAP_MCBSP_WORD_16) | XDATDLY(1) | XFIG,
++		.xcr1  = XFRLEN1(OMAP_MCBSP_WORD_8) | XWDLEN1(OMAP_MCBSP_WORD_16),
++		.srgr1 = FWID(15),
++		.srgr2 = GSYNC | CLKSP | FSGM | FPER(31),
+ 
+-static struct platform_device osk5912_mcbsp1_device = {
+-	.name		= "omap_mcbsp",
++		.pcr0  = CLKXM | CLKRM | FSXP | FSRP | CLKXP | CLKRP,
++		//.pcr0 = CLKXP | CLKRP,	/* mcbsp: slave */
++	},
++	.codec_configure_dev	= tsc2101_configure,
++	.codec_set_samplerate	= tsc2101_set_samplerate,
++	.codec_clock_setup	= tsc2101_clock_setup,
++	.codec_clock_on		= tsc2101_clock_on,
++	.codec_clock_off	= tsc2101_clock_off,
++	.codec_write		= audio_tsc2101_write,
++	.codec_read		= audio_tsc2101_read,
++	.init_audio_controls 	= tsc2101_init_audio_controls,
++
++};
++
++static struct platform_device h2_mcbsp1_device = {
++	.name 		= "omap_mcbsp",
+ 	.id		= 1,
++	.dev = {
++		.platform_data = &mcbsp1_config,
++	},
+ };
+ 
+ static struct resource osk5912_kp_resources[] = {
+diff --git a/include/asm-arm/arch-omap/mcbsp.h b/include/asm-arm/arch-omap/mcbsp.h
+index d97e031..1b2c95c 100644
+--- a/include/asm-arm/arch-omap/mcbsp.h
++++ b/include/asm-arm/arch-omap/mcbsp.h
+@@ -312,4 +312,39 @@ void omap_mcbsp_set_spi_mode(unsigned in
+ int omap_mcbsp_pollread(unsigned int id, u16 * buf);
+ int omap_mcbsp_pollwrite(unsigned int id, u16 buf);
+ 
++/* Codecs -  must leave soon */
++//#include "../../../sound/arm/alsa-omap.h"
++struct codec_controls;
++/* for alsa driver must leave */
++struct omap_mcbsp_config {
++	struct	omap_mcbsp_reg_cfg	 mcbsp_regs;
++	void	(*codec_configure_dev)(void);
++	void	(*codec_set_samplerate)(long, unsigned int *);
++	void	(*codec_clock_setup)(void);
++	int	(*codec_clock_on)(void);
++	int 	(*codec_clock_off)(void);
++	void 	(*codec_write)(u8 address, u16 data);
++	void	(*codec_read) (u8 address);
++	void 	(*init_audio_controls) (struct codec_controls *);
++	
++
++};
++
++
++inline void aic23_configure(void);
++void aic23_set_samplerate(long rate, unsigned int rates[]);
++void aic23_clock_setup(void);
++int aic23_clock_on(void);
++int aic23_clock_off(void);
++void audio_aic23_write(u8, u16);
++void aic23_init_audio_controls(struct codec_controls * controls);
++
++inline void tsc2101_configure(void);
++void tsc2101_set_samplerate(long rate, unsigned int rates[]);
++void tsc2101_clock_setup(void);
++int tsc2101_clock_on(void);
++int tsc2101_clock_off(void);
++void audio_tsc2101_write(u8, u16);
++u16 audio_tsc2101_read(u8);
++void tsc2101_init_audio_controls(struct codec_controls * controls);
  #endif
-=20
-+#if defined(CONFIG_OMAP_STI)
-+
-+#define OMAP2_STI_BASE		IO_ADDRESS(0x48068000)
-+#define OMAP2_STI_CHANNEL_BASE	0x54000000
-+#define OMAP2_STI_IRQ		4
-+
-+static struct resource sti_resources[] =3D {
-+	{
-+		.start		=3D OMAP2_STI_BASE,
-+		.end		=3D OMAP2_STI_BASE + 0x7ff,
-+		.flags		=3D IORESOURCE_MEM,
-+	},
-+	{
-+		.start		=3D OMAP2_STI_CHANNEL_BASE,
-+		.end		=3D OMAP2_STI_CHANNEL_BASE + SZ_64K - 1,
-+		.flags		=3D IORESOURCE_MEM,
-+	},
-+	{
-+		.start		=3D OMAP2_STI_IRQ,
-+		.flags		=3D IORESOURCE_IRQ,
-+	}
-+};
-+
-+static struct platform_device sti_device =3D {
-+	.name		=3D "sti",
-+	.id		=3D -1,
-+	.dev =3D {
-+		.release	=3D omap_nop_release,
-+	},
-+	.num_resources	=3D ARRAY_SIZE(sti_resources),
-+	.resource	=3D sti_resources,
-+};
-+
-+static inline void omap_init_sti(void)
-+{
-+	platform_device_register(&sti_device);
-+}
-+#else
-+static inline void omap_init_sti(void) {}
-+#endif
-+
- /*----------------------------------------------------------------------=
----*/
-=20
- static int __init omap2_init_devices(void)
-@@ -82,6 +123,7 @@ static int __init omap2_init_devices(voi
- 	 * in alphabetical order so they're easier to sort through.
- 	 */
- 	omap_init_i2c();
-+	omap_init_sti();
-=20
- 	return 0;
- }
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index ad2bd3e..c42fdbf 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -83,6 +83,17 @@ config OMAP_MUX_WARNINGS
- 	  to change the pin multiplexing setup.  When there are no warnings
- 	  printed, it's safe to deselect OMAP_MUX for your product.
-=20
-+config OMAP_STI
-+	bool "STI/XTI support"
-+	depends on ARCH_OMAP16XX || ARCH_OMAP24XX
-+	default n
-+
-+config OMAP_STI_CONSOLE
-+	bool "STI console support"
-+	depends on OMAP_STI
+diff --git a/sound/arm/Kconfig b/sound/arm/Kconfig
+index cf07154..f2e7577 100644
+--- a/sound/arm/Kconfig
++++ b/sound/arm/Kconfig
+@@ -7,6 +7,7 @@ config SND_SA11XX_UDA1341
+ 	tristate "SA11xx UDA1341TS driver (iPaq H3600)"
+ 	depends on ARCH_SA1100 && SND && L3
+ 	select SND_PCM
++	select SND_GENERIC_DRIVER
+ 	help
+ 	  Say Y here if you have a Compaq iPaq H3x00 handheld computer
+ 	  and want to use its Philips UDA 1341 audio chip.
+@@ -45,4 +46,17 @@ config SND_OMAP_AIC23
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called snd-omap-aic23.
+ 
++config SND_OMAP_TSC2101
++	tristate "OMAP TSC2101 alsa driver (H2)"
++	depends on ARCH_OMAP && SND
++	select SND_PCM
++        select OMAP_TSC2101
++        select OMAP_UWIRE if ARCH_OMAP
 +	help
-+	  This enables a console driver by way of STI/XTI.
++	  Say Y here if you have a H2 platform board
++	  and want to use its TSC2101 audio chip.
 +
- choice
-         prompt "System timer"
- 	default OMAP_MPU_TIMER
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index 01ceab4..c6ab756 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -13,6 +13,9 @@ obj-$(CONFIG_OMAP_32K_TIMER)	+=3D timer32k
- # OCPI interconnect support for 1710, 1610 and 5912
- obj-$(CONFIG_ARCH_OMAP16XX) +=3D ocpi.o
-=20
-+# STI support
-+obj-$(CONFIG_OMAP_STI) +=3D sti/
++	  To compile this driver as a module, choose M here: the module
++	  will be called snd-omap-alsa-tsc2101.
 +
- obj-$(CONFIG_CPU_FREQ) +=3D cpu-omap.o
- obj-$(CONFIG_OMAP_DM_TIMER) +=3D dmtimer.o
- obj-$(CONFIG_OMAP_BOOT_REASON) +=3D bootreason.o
-diff --git a/arch/arm/plat-omap/sti/Makefile b/arch/arm/plat-omap/sti/Mak=
-efile
-new file mode 100644
-index 0000000..6ad9bb3
---- /dev/null
-+++ b/arch/arm/plat-omap/sti/Makefile
-@@ -0,0 +1,4 @@
-+obj-y +=3D sti.o sti-fifo.o
+ endmenu
+diff --git a/sound/arm/Makefile b/sound/arm/Makefile
+index 019a9f0..1215b88 100644
+--- a/sound/arm/Makefile
++++ b/sound/arm/Makefile
+@@ -14,5 +14,8 @@ snd-pxa2xx-pcm-objs		:= pxa2xx-pcm.o
+ obj-$(CONFIG_SND_PXA2XX_AC97)	+= snd-pxa2xx-ac97.o
+ snd-pxa2xx-ac97-objs		:= pxa2xx-ac97.o
+ 
+-obj-$(CONFIG_SND_OMAP_AIC23) += snd-omap-aic23.o
+-snd-omap-aic23-objs := omap-aic23.o omap-alsa-dma.o omap-alsa-mixer.o
++obj-$(CONFIG_SND_OMAP_AIC23) += snd-omap-alsa-aic23.o
++snd-omap-alsa-aic23-objs := omap-alsa.o omap-alsa-dma.o omap-alsa-mixer.o omap-alsa-aic23.o 
 +
-+obj-$(CONFIG_OMAP_STI_CONSOLE)	+=3D sti-console.o
-+obj-$(CONFIG_NET)		+=3D sti-netlink.o
-diff --git a/arch/arm/plat-omap/sti/sti-console.c b/arch/arm/plat-omap/st=
-i/sti-console.c
-new file mode 100644
-index 0000000..46f878c
---- /dev/null
-+++ b/arch/arm/plat-omap/sti/sti-console.c
-@@ -0,0 +1,174 @@
-+/*
-+ * Console support for OMAP STI/XTI
-+ *
-+ * Copyright (C) 2004, 2005, 2006 Nokia Corporation
-+ * Written by: Paul Mundt <paul.mundt@nokia.com>
-+ *
-+ * This file is subject to the terms and conditions of the GNU General P=
-ublic
-+ * License.  See the file "COPYING" in the main directory of this archiv=
-e
-+ * for more details.
-+ */
-+#include <linux/console.h>
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/tty.h>
-+#include <linux/tty_driver.h>
-+#include <asm/arch/sti.h>
-+
-+#define DRV_NAME "sticon"
-+
-+static struct tty_driver *tty_driver;
-+static DEFINE_SPINLOCK(sti_console_lock);
-+static unsigned int sti_console_channel =3D 32;
-+static int sti_line_done =3D -1;
-+
-+/*
-+ * Write a string to any channel (including terminating NULL)
-+ * Returns number of characters written.
-+ */
-+static int sti_channel_puts(const char *string, unsigned int channel, in=
-t len)
-+{
-+	int count =3D 0;
-+
-+	/*
-+	 * sti_line_done is needed to determine when we have reached the
-+	 * end of the line. write() has a tendency to hand us small
-+	 * strings which otherwise end up creating newlines.. we need to
-+	 * keep the channel open and in append mode until the line has
-+	 * been terminated.
-+	 */
-+	if (sti_line_done !=3D 0) {
-+#ifdef __LITTLE_ENDIAN
-+		sti_channel_writeb(0xc3, channel);
-+#else
-+		sti_channel_writeb(0xc0, channel);
++obj-$(CONFIG_SND_OMAP_TSC2101) += snd-omap-alsa-tsc2101.o
++snd-omap-alsa-tsc2101-objs := omap-alsa.o omap-alsa-dma.o omap-alsa-mixer.o omap-alsa-tsc2101.o 
+diff --git a/sound/arm/omap-aic23.h b/sound/arm/omap-aic23.h
+index c8ab42c..ff7385c 100644
+--- a/sound/arm/omap-aic23.h
++++ b/sound/arm/omap-aic23.h
+@@ -44,6 +44,7 @@
+ #include <asm/arch/dma.h>
+ #include <sound/core.h>
+ #include <sound/pcm.h>
++#include <asm/arch/mcbsp.h>
+ 
+ #define DEFAULT_OUTPUT_VOLUME         0x60
+ #define DEFAULT_INPUT_VOLUME          0x00	/* 0 ==> mute line in */
+@@ -93,7 +94,7 @@ struct audio_stream {
+ /*
+  * Alsa card structure for aic23
+  */
+-struct snd_card_omap_aic23 {
++struct snd_card_omap_codec {
+ 	snd_card_t *card;
+ 	snd_pcm_t *pcm;
+ 	long samplerate;
+@@ -103,17 +104,21 @@ struct snd_card_omap_aic23 {
+ /*********** Function Prototypes *************************/
+ 
+ void audio_dma_callback(void *);
+-int snd_omap_mixer(struct snd_card_omap_aic23 *);
+-void snd_omap_init_mixer(void);
++int snd_omap_mixer(struct snd_card_omap_codec *);
++void snd_omap_init_mixer(struct omap_mcbsp_config *);
+ /* Clock functions */
+ int omap_aic23_clock_on(void);
+ int omap_aic23_clock_off(void);
++ /* ADDED functions - H2/LDM port */
++void omap_codec_set_samplerate(struct snd_card_omap_codec * , long rate, unsigned int rates[]);
++inline void codec_configure(void);
+ 
+ #ifdef CONFIG_PM
+ void snd_omap_suspend_mixer(void);
+ void snd_omap_resume_mixer(void);
+ #endif
+ 
++#if 0
+ /* Codec AIC23 */
+ #if defined(CONFIG_SENSORS_TLV320AIC23) || defined (CONFIG_SENSORS_TLV320AIC23_MODULE)
+ 
+@@ -126,5 +131,5 @@ static __inline__ void audio_aic23_write
+ }
+ 
+ #endif /* CONFIG_SENSORS_TLV320AIC23 */
+-
 +#endif
-+		xchg(&sti_line_done, 0);
-+	}
-+
-+	while (*string && count !=3D len) {
-+		char c =3D *string++;
-+
-+		count++;
-+
-+		if (c =3D=3D '\n') {
-+			xchg(&sti_line_done, 1);
-+			sti_channel_writeb(0, channel);
-+			break;
-+		} else
-+			sti_channel_writeb(c, channel);
-+	}
-+
-+	if (sti_line_done)
-+		sti_channel_flush(channel);
-+
-+	return count;
-+}
-+
-+static int sti_tty_open(struct tty_struct *tty, struct file *filp)
-+{
-+	return 0;
-+}
-+
-+static int sti_tty_write(struct tty_struct *tty,
-+			 const unsigned char *buf, int len)
-+{
-+	unsigned long flags;
-+	int bytes;
-+
-+	spin_lock_irqsave(&sti_console_lock, flags);
-+	bytes =3D sti_channel_puts(buf, sti_console_channel, len);
-+	spin_unlock_irqrestore(&sti_console_lock, flags);
-+
-+	return bytes;
-+}
-+
-+static int sti_tty_write_room(struct tty_struct *tty)
-+{
-+	return 0x100000;
-+}
-+
-+static int sti_tty_chars_in_buffer(struct tty_struct *tty)
-+{
-+	return 0;
-+}
-+
-+static struct tty_operations sti_tty_ops =3D {
-+	.open			=3D sti_tty_open,
-+	.write			=3D sti_tty_write,
-+	.write_room		=3D sti_tty_write_room,
-+	.chars_in_buffer	=3D sti_tty_chars_in_buffer,
-+};
-+
-+static void sti_console_write(struct console *c, const char *s, unsigned=
- n)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&sti_console_lock, flags);
-+	sti_channel_puts(s, sti_console_channel, n);
-+	spin_unlock_irqrestore(&sti_console_lock, flags);
-+}
-+
-+static struct tty_driver *sti_console_device(struct console *c, int *ind=
-ex)
-+{
-+	*index =3D c->index;
-+	return tty_driver;
-+}
-+
-+static int sti_console_setup(struct console *c, char *opts)
-+{
-+	return 0;
-+}
-+
-+static struct console sti_console =3D {
-+	.name		=3D DRV_NAME,
-+	.write		=3D sti_console_write,
-+	.device		=3D sti_console_device,
-+	.setup		=3D sti_console_setup,
-+	.flags		=3D CON_PRINTBUFFER | CON_ENABLED,
-+	.index		=3D -1,
-+};
-+
-+static int __init sti_console_init(void)
-+{
-+	register_console(&sti_console);
-+	return 0;
-+}
-+__initcall(sti_console_init);
-+
-+static int __init sti_tty_init(void)
-+{
-+	struct tty_driver *tty;
-+	int ret;
-+
-+	tty =3D alloc_tty_driver(1);
-+	if (!tty)
-+		return -ENOMEM;
-+
-+	tty->name		=3D DRV_NAME;
-+	tty->driver_name	=3D DRV_NAME;
-+	tty->major		=3D 0;	/* dynamic major */
-+	tty->minor_start	=3D 0;
-+	tty->type		=3D TTY_DRIVER_TYPE_SYSTEM;
-+	tty->subtype		=3D SYSTEM_TYPE_SYSCONS;
-+	tty->init_termios	=3D tty_std_termios;
-+
-+	tty_set_operations(tty, &sti_tty_ops);
-+
-+	ret =3D tty_register_driver(tty);
-+	if (ret) {
-+		put_tty_driver(tty);
-+		return ret;
-+	}
-+
-+	tty_driver =3D tty;
-+	return 0;
-+}
-+late_initcall(sti_tty_init);
-+
-+module_param(sti_console_channel, uint, 0);
-+MODULE_PARM_DESC(sti_console_channel, "STI console channel (default 32)"=
-);
-+MODULE_AUTHOR("Paul Mundt");
-+MODULE_DESCRIPTION("OMAP STI console support");
-+MODULE_LICENSE("GPL");
-diff --git a/arch/arm/plat-omap/sti/sti-fifo.c b/arch/arm/plat-omap/sti/s=
-ti-fifo.c
+ #endif
+diff --git a/sound/arm/omap-alsa-aic23.c b/sound/arm/omap-alsa-aic23.c
 new file mode 100644
-index 0000000..1824417
+index 0000000..6f7feef
 --- /dev/null
-+++ b/arch/arm/plat-omap/sti/sti-fifo.c
-@@ -0,0 +1,117 @@
++++ b/sound/arm/omap-alsa-aic23.c
+@@ -0,0 +1,255 @@
++
 +/*
-+ * STI RX FIFO Support
++ * sound/arm/omap-alsa-aic23.c
++ * 
++ * Alsa codec Driver for AIC23 codec on OSK5912 platform board
 + *
-+ * Copyright (C) 2005, 2006 Nokia Corporation
-+ * Written by:  Paul Mundt <paul.mundt@nokia.com> and
-+ *		Roman Tereshonkov <roman.tereshonkov@nokia.com>
++ * Copyright (C) 2005 Instituto Nokia de Tecnologia - INdT - Manaus Brazil
++ * Written by Daniel Petrini (d.pensator@gmail.com)
++ * 
++ * Based in former alsa driver for osk and oss driver
 + *
-+ * This file is subject to the terms and conditions of the GNU General P=
-ublic
-+ * License.  See the file "COPYING" in the main directory of this archiv=
-e
-+ * for more details.
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
 + */
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/err.h>
-+#include <linux/module.h>
-+#include <asm/arch/sti.h>
 +
-+#define STI_READ_BUFFER_SIZE	1024
-+#define sti_buf_pos(pos)	((sti_crb->bufpos + (pos)) % \
-+				 STI_READ_BUFFER_SIZE)
++//#include <linux/config.h>
++//#include <sound/driver.h>
++#include <sound/driver.h>
++#include <sound/core.h>
++#include <sound/pcm.h>
++#include <sound/initval.h>
++#include <sound/control.h>
++#include <asm/hardware/clock.h>
++#include <asm/arch/aic23.h>
++#include "omap-aic23.h"
++#include "omap-alsa.h"
 +
-+static struct sti_cycle_buffer {
-+	int bufpos;
-+	int datalen;
-+	unsigned char *buf;
-+} *sti_crb;
++#include "omap-alsa-mixer.h"
 +
-+/**
-+ * sti_read_packet - STI read packet (read an entire STI packet)
-+ * @buf: Buffer to store the packet.
-+ * @maxsize: Maximum size requested.
-+ *
-+ * This reads in a single completed STI packet from the RX FIFOs and
-+ * places it in @buf for further processing.
-+ *
-+ * The return value is < 0 on error, and >=3D 0 for the number of bytes
-+ * actually read. As per the STI specification, we require a 0xC1 to
-+ * indicate the end of the packet, and we don't return the packet until
-+ * we've read the entire thing in.
-+ *
-+ * Due to the size of the FIFOs, it's unrealistic to constantly drain
-+ * this for 1 or 2 bytes at a time, so we assemble it here and return
-+ * the whole thing.
++/* Define to set the AIC23 as the master w.r.t McBSP */
++#define AIC23_MASTER
++
++#define NUMBER_SAMPLE_RATES_SUPPORTED 10
++
++static struct clk *aic23_mclk = 0;
++
++struct sample_rate_rate_reg_info {
++	u8 control;		/* SR3, SR2, SR1, SR0 and BOSR */
++	u8 divider;		/* if 0 CLKIN = MCLK, if 1 CLKIN = MCLK/2 */
++};
++
++/* aic23 related */
++static const struct sample_rate_rate_reg_info
++ rate_reg_info[NUMBER_SAMPLE_RATES_SUPPORTED] = {
++	{0x06, 1},		/*  4000 */
++	{0x06, 0},		/*  8000 */
++	{0x0C, 1},		/* 16000 */
++	{0x11, 1},              /* 22050 */
++	{0x00, 1},		/* 24000 */
++	{0x0C, 0},		/* 32000 */
++	{0x11, 0},		/* 44100 */
++	{0x00, 0},		/* 48000 */
++	{0x1F, 0},		/* 88200 */
++	{0x0E, 0},		/* 96000 */
++};
++/*
++ * Codec/mcbsp init and configuration section
++ * codec dependent code.
 + */
-+int sti_read_packet(unsigned char *buf, int maxsize)
++
++extern int tlv320aic23_write_value(u8 reg, u16 value);
++
++/* TLV320AIC23 is a write only device */
++__inline__ void audio_aic23_write(u8 address, u16 data)
 +{
-+	unsigned int pos;
++	tlv320aic23_write_value(address, data);
++}
 +
-+	if (unlikely(!buf))
-+		return -EINVAL;
-+	if (!sti_crb->datalen)
-+		return 0;
 +
-+	pos =3D sti_buf_pos(sti_crb->datalen - 1);
-+	/* End of packet */
-+	if (sti_crb->buf[pos] =3D=3D 0xC1) {
-+		int i;
++/*
++ * Sample rate changing
++ */
++void aic23_set_samplerate(long rate, unsigned int rates[])
++{
++	u8 count = 0;
++	u16 data = 0;
 +
-+		for (i =3D 0; i < sti_crb->datalen && i < maxsize; i++) {
-+			pos =3D sti_buf_pos(i);
-+			buf[i] =3D sti_crb->buf[pos];
++	/* Fix the rate if it has a wrong value */
++	if (rate >= 96000)
++		rate = 96000;
++	else if (rate >= 88200)
++		rate = 88200;
++	else if (rate >= 48000)
++		rate = 48000;
++	else if (rate >= 44100)
++		rate = 44100;
++	else if (rate >= 32000)
++		rate = 32000;
++	else if (rate >= 24000)
++		rate = 24000;
++	else if (rate >= 22050)
++		rate = 22050;
++	else if (rate >= 16000)
++		rate = 16000;
++	else if (rate >= 8000)
++		rate = 8000;
++	else
++		rate = 4000;
++
++	/* Search for the right sample rate */
++	/* Verify what happens if the rate is not supported
++	 * now it goes to 96Khz */
++	while ((rates[count] != rate) &&
++	       (count < (NUMBER_SAMPLE_RATES_SUPPORTED - 1))) {
++		count++;
++	}
++
++	data = (rate_reg_info[count].divider << CLKIN_SHIFT) |
++	    (rate_reg_info[count].control << BOSR_SHIFT) | USB_CLK_ON;
++
++	audio_aic23_write(SAMPLE_RATE_CONTROL_ADDR, data);
++
++}
++
++
++inline void aic23_configure(void)
++{
++	/* Reset codec */
++	audio_aic23_write(RESET_CONTROL_ADDR, 0);
++
++	/* Initialize the AIC23 internal state */
++
++	/* Analog audio path control, DAC selected, delete INSEL_MIC for line in */
++	audio_aic23_write(ANALOG_AUDIO_CONTROL_ADDR, DEFAULT_ANALOG_AUDIO_CONTROL);
++
++	/* Digital audio path control, de-emphasis control 44.1kHz */
++	audio_aic23_write(DIGITAL_AUDIO_CONTROL_ADDR, DEEMP_44K);
++
++	/* Digital audio interface, master/slave mode, I2S, 16 bit */
++//#ifdef AIC23_MASTER
++	audio_aic23_write(DIGITAL_AUDIO_FORMAT_ADDR,
++			  MS_MASTER | IWL_16 | FOR_DSP);
++//#else
++//	audio_aic23_write(DIGITAL_AUDIO_FORMAT_ADDR, IWL_16 | FOR_DSP);
++//#endif
++
++	/* Enable digital interface */
++	audio_aic23_write(DIGITAL_INTERFACE_ACT_ADDR, ACT_ON);
++
++
++	printk(KERN_ERR  "\n\n TESTE 2 \n\n");
++
++}
++
++/*
++ *  Omap MCBSP clock configuration
++ *  
++ *  Here we have some functions that allows clock to be enabled and
++ *   disabled only when needed. Besides doing clock configuration 
++ *   it allows turn on/turn off audio when necessary. 
++ */
++#define CODEC_CLOCK                   12000000
++#define AUDIO_RATE_DEFAULT	      44100
++
++/*
++ * Do clock framework mclk search
++ */
++void aic23_clock_setup(void)
++{
++	aic23_mclk = clk_get(0, "mclk");
++}
++
++/*
++ * Do some sanity check, set clock rate, starts it and
++ *  turn codec audio on 
++ */
++int aic23_clock_on(void)
++{
++	if (clk_get_usecount(aic23_mclk) > 0) {
++		/* MCLK is already in use */
++		printk(KERN_WARNING
++		       "MCLK in use at %d Hz. We change it to %d Hz\n",
++		       (uint) clk_get_rate(aic23_mclk),
++		       CODEC_CLOCK);
++	}
++	
++	if (clk_set_rate(aic23_mclk, CODEC_CLOCK)) {
++		printk(KERN_ERR
++		       "Cannot set MCLK for AIC23 CODEC\n");
++		return -ECANCELED;
++	}
++
++	clk_use(aic23_mclk);
++
++	printk(KERN_DEBUG
++		"MCLK = %d [%d], usecount = %d\n",
++	       (uint) clk_get_rate(aic23_mclk), CODEC_CLOCK,
++	       clk_get_usecount(aic23_mclk));
++
++	/* Now turn the audio on */
++	audio_aic23_write(POWER_DOWN_CONTROL_ADDR, 
++			  ~DEVICE_POWER_OFF & ~OUT_OFF & ~DAC_OFF &
++			  ~ADC_OFF & ~MIC_OFF & ~LINE_OFF);
++	
++	return 0;
++}
++/*
++ * Do some sanity check, turn clock off and then turn
++ *  codec audio off
++ */
++int aic23_clock_off(void)
++{
++	if  (clk_get_usecount(aic23_mclk) > 0) { 
++		if (clk_get_rate(aic23_mclk) != CODEC_CLOCK) {
++			printk(KERN_WARNING
++			       "MCLK for audio should be %d Hz. But is %d Hz\n",
++			       (uint) clk_get_rate(aic23_mclk),
++			       CODEC_CLOCK);
 +		}
 +
-+		sti_crb->bufpos =3D sti_buf_pos(i);
-+		sti_crb->datalen -=3D i;
-+
-+		return i;
++		clk_unuse(aic23_mclk);
 +	}
++	
++	audio_aic23_write(POWER_DOWN_CONTROL_ADDR,
++			  DEVICE_POWER_OFF | OUT_OFF | DAC_OFF |
++			  ADC_OFF | MIC_OFF | LINE_OFF);	
++	return 0;
++}
++
++/*
++ * Mixer part
++ */
++snd_kcontrol_new_t snd_omap_controls[] = {
++	OMAP_DOUBLE("PCM Playback Switch", 0, LEFT_CHANNEL_VOLUME_ADDR, RIGHT_CHANNEL_VOLUME_ADDR,
++		     PCM_INDEX, 0x00),
++	OMAP_DOUBLE("PCM Playback Volume", 0, LEFT_CHANNEL_VOLUME_ADDR, RIGHT_CHANNEL_VOLUME_ADDR,
++		     PCM_INDEX, OUTPUT_VOLUME_MASK),
++	OMAP_BOOL("Line Playback Switch", 0, ANALOG_AUDIO_CONTROL_ADDR, AAC_INDEX, BYPASS_ON, 0),
++	OMAP_DOUBLE("Line Capture Switch", 0, LEFT_LINE_VOLUME_ADDR, RIGHT_LINE_VOLUME_ADDR,
++		     LINE_INDEX, 0x00),
++	OMAP_DOUBLE("Line Capture Volume", 0, LEFT_LINE_VOLUME_ADDR, RIGHT_LINE_VOLUME_ADDR,
++		     LINE_INDEX, INPUT_VOLUME_MASK),	
++	OMAP_BOOL("Mic Playback Switch", 0, ANALOG_AUDIO_CONTROL_ADDR, AAC_INDEX, STE_ENABLED, 0),	
++	OMAP_SINGLE("Mic Playback Volume", 0, ANALOG_AUDIO_CONTROL_ADDR, AAC_INDEX, 5, SIDETONE_MASK),
++	OMAP_BOOL("Mic Capture Switch", 0, ANALOG_AUDIO_CONTROL_ADDR, AAC_INDEX, MICM_MUTED, 1),
++	OMAP_BOOL("Mic Booster Playback Switch", 0, ANALOG_AUDIO_CONTROL_ADDR, AAC_INDEX, MICB_20DB, 0),
++	OMAP_MUX("Capture Source", ANALOG_AUDIO_CONTROL_ADDR, AAC_INDEX, INSEL_MIC),
++};
++int omap_controls_size = ARRAY_SIZE(snd_omap_controls);
++
++
++void aic23_init_audio_controls(struct codec_controls * mixer_controls)
++{
++	mixer_controls->left_vol_output = DEFAULT_OUTPUT_VOLUME;
++	mixer_controls->right_vol_output = DEFAULT_OUTPUT_VOLUME;
++	mixer_controls->left_line_input = DEFAULT_INPUT_VOLUME & INPUT_VOLUME_MASK;
++	mixer_controls->right_line_input = DEFAULT_INPUT_VOLUME & INPUT_VOLUME_MASK;
++	mixer_controls->mic_input = 0;
++	mixer_controls->left_vol_address = LEFT_CHANNEL_VOLUME_ADDR;
++	mixer_controls->right_vol_address = RIGHT_CHANNEL_VOLUME_ADDR;
++	mixer_controls->left_line_address = LEFT_LINE_VOLUME_ADDR;
++	mixer_controls->right_line_address = RIGHT_LINE_VOLUME_ADDR;
++}
+diff --git a/sound/arm/omap-alsa-mixer.c b/sound/arm/omap-alsa-mixer.c
+index 742e5b6..63cf1fe 100644
+--- a/sound/arm/omap-alsa-mixer.c
++++ b/sound/arm/omap-alsa-mixer.c
+@@ -39,41 +39,56 @@
+ 
+ #include <linux/config.h>
+ #include <sound/driver.h>
+-#include <linux/module.h>
+-#include <linux/device.h>
+-#include <linux/init.h>
+-#include <linux/errno.h>
+-#include <linux/ioctl.h>
+-#include <linux/delay.h>
+-#include <linux/slab.h>
+-
+-#include <asm/hardware.h>
+-#include <asm/mach-types.h>
+-#include <asm/arch/dma.h>
++//#include <linux/module.h>
++//#include <linux/device.h>
++//#include <linux/init.h>
++//#include <linux/errno.h>
++//#include <linux/ioctl.h>
++//#include <linux/delay.h>
++//#include <linux/slab.h>
++
++//#include <asm/hardware.h>
++//#include <asm/mach-types.h>
++//#include <asm/arch/dma.h>
+ #include <asm/arch/aic23.h>
+ 
+ #include "omap-aic23.h"
+ #include <sound/initval.h>
+ #include <sound/control.h>
+ 
++#include <asm/arch/mcbsp.h>
++#include "omap-alsa.h"
++#include "omap-alsa-mixer.h"
++
+ MODULE_AUTHOR("David Cohen, Daniel Petrini - INdT");
+ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("OMAP Alsa mixer driver for ALSA");
+ 
++struct omap_mcbsp_config * pldata = NULL;
++struct codec_controls mixer_controls;
+ /*
+  * Codec dependent region
+  */
+ 
+ /* Codec AIC23 */
+-#if defined(CONFIG_SENSORS_TLV320AIC23) || defined (CONFIG_SENSORS_TLV320AIC23_MODULE)
++//#if defined(CONFIG_SENSORS_TLV320AIC23) || defined (CONFIG_SENSORS_TLV320AIC23_MODULE)
++#if defined(CONFIG_SND_OMAP_AIC23)
+ 
+ extern __inline__ void audio_aic23_write(u8, u16);
+ 
+ #define MIXER_NAME		     "Mixer AIC23"
+ #define SND_OMAP_WRITE(reg, val)     audio_aic23_write(reg, val)
+ 
+-#endif
++#else
++
++//extern __inline__ void audio_tsc2101_write(u8 address, u16 data);
+ 
++#define MIXER_NAME		     "Mixer TSC2101"
++//#define SND_OMAP_WRITE(reg, val)     audio_tsc2101_write(reg, val)
++#define SND_OMAP_WRITE(reg, val)     pldata->codec_write(reg, val)
++
++#endif
++#if 0
+ /* Callback Functions */
+ #define OMAP_BOOL(xname, xindex, reg, reg_index, mask, invert) \
+ { \
+@@ -117,14 +132,9 @@ extern __inline__ void audio_aic23_write
+ 	.put = snd_omap_put_double, \
+ 	.private_value = left_reg | (right_reg << 8) | (reg_index << 16) | (mask << 18) \
+ }
++#endif
+ 
+ /* Local Registers */
+-enum snd_device_index {
+-	PCM_INDEX = 0,
+-	LINE_INDEX,
+-	AAC_INDEX, /* Analog Audio Control: reg = l_reg */
+-};
+-
+ struct {
+ 	u16 l_reg;
+ 	u16 r_reg;
+@@ -150,7 +160,7 @@ u16 snd_sidetone[6] = {
+ 
+ /* Begin Bool Functions */
+ 
+-static int snd_omap_info_bool(snd_kcontrol_t *kcontrol, snd_ctl_elem_info_t * uinfo)
++int snd_omap_info_bool(snd_kcontrol_t *kcontrol, snd_ctl_elem_info_t * uinfo)
+ {
+ 	uinfo->type = SNDRV_CTL_ELEM_TYPE_BOOLEAN;
+ 	uinfo->count = 1;
+@@ -160,7 +170,7 @@ static int snd_omap_info_bool(snd_kcontr
+ 	return 0;
+ }
+ 
+-static int snd_omap_get_bool(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol)
++int snd_omap_get_bool(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol)
+ {
+ 	int mic_index = (kcontrol->private_value >> 8) & 0x03;
+ 	u16 mask = (kcontrol->private_value >> 12) & 0xff;
+@@ -174,7 +184,7 @@ static int snd_omap_get_bool(snd_kcontro
+ 	return 0;
+ }
+ 
+-static int snd_omap_put_bool(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol)
++int snd_omap_put_bool(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol)
+ {
+ 	int mic_index = (kcontrol->private_value >> 8) & 0x03;
+ 	u16 mask = (kcontrol->private_value >> 12) & 0xff;
+@@ -203,7 +213,7 @@ static int snd_omap_put_bool(snd_kcontro
+ 
+ /* Begin Mux Functions */
+ 
+-static int snd_omap_info_mux(snd_kcontrol_t *kcontrol, snd_ctl_elem_info_t * uinfo)
++int snd_omap_info_mux(snd_kcontrol_t *kcontrol, snd_ctl_elem_info_t * uinfo)
+ {
+ 	/* Mic = 0
+ 	 * Line = 1 */
+@@ -211,7 +221,7 @@ static int snd_omap_info_mux(snd_kcontro
+ 
+ 	uinfo->type = SNDRV_CTL_ELEM_TYPE_ENUMERATED;
+ 	uinfo->count = 1;
+-	uinfo->value.enumerated.items = 2;
++	uinfo->value.enumerated.items = 1/*2 VOLTE AQUI*/;
+ 	
+ 	if (uinfo->value.enumerated.item > 1)
+ 		uinfo->value.enumerated.item = 1;
+@@ -221,7 +231,7 @@ static int snd_omap_info_mux(snd_kcontro
+ 	return 0;
+ }
+ 
+-static int snd_omap_get_mux(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol)
++int snd_omap_get_mux(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol)
+ {
+ 	u16 mask = (kcontrol->private_value >> 10) & 0xff;
+ 	int mux_index = (kcontrol->private_value >> 8) & 0x03;
+@@ -231,7 +241,7 @@ static int snd_omap_get_mux(snd_kcontrol
+ 	return 0;
+ }
+ 
+-static int snd_omap_put_mux(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol)
++int snd_omap_put_mux(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol)
+ {
+ 	u16 reg = kcontrol->private_value & 0xff;
+ 	u16 mask = (kcontrol->private_value >> 10) & 0xff;
+@@ -253,7 +263,7 @@ static int snd_omap_put_mux(snd_kcontrol
+ 
+ /* Begin Single Functions */
+ 
+-static int snd_omap_info_single(snd_kcontrol_t *kcontrol, snd_ctl_elem_info_t * uinfo)
++int snd_omap_info_single(snd_kcontrol_t *kcontrol, snd_ctl_elem_info_t * uinfo)
+ {
+ 	int mask = (kcontrol->private_value >> 18) & 0xff;
+ 	int reg_val = (kcontrol->private_value >> 8) & 0xff;
+@@ -266,7 +276,7 @@ static int snd_omap_info_single(snd_kcon
+ 	return 0;
+ }
+ 
+-static int snd_omap_get_single(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol)
++int snd_omap_get_single(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol)
+ {
+ 	u16 reg_val = (kcontrol->private_value >> 8) & 0xff;
+ 
+@@ -275,7 +285,7 @@ static int snd_omap_get_single(snd_kcont
+ 	return 0;
+ }
+ 
+-static int snd_omap_put_single(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol)
++int snd_omap_put_single(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol)
+ {
+ 	u16 reg_index = (kcontrol->private_value >> 16) & 0x03;
+ 	u16 mask = (kcontrol->private_value >> 18) & 0x1ff;
+@@ -305,7 +315,7 @@ static int snd_omap_put_single(snd_kcont
+ 
+ /* Begin Double Functions */
+ 
+-static int snd_omap_info_double(snd_kcontrol_t *kcontrol, snd_ctl_elem_info_t * uinfo)
++int snd_omap_info_double(snd_kcontrol_t *kcontrol, snd_ctl_elem_info_t * uinfo)
+ {
+ 	/* mask == 0 : Switch
+ 	 * mask != 0 : Volume */
+@@ -319,7 +329,7 @@ static int snd_omap_info_double(snd_kcon
+ 	return 0;
+ }
+ 
+-static int snd_omap_get_double(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol)
++int snd_omap_get_double(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol)
+ {
+ 	/* mask == 0 : Switch
+ 	 * mask != 0 : Volume */
+@@ -339,7 +349,7 @@ static int snd_omap_get_double(snd_kcont
+ 	return 0;
+ }
+ 
+-static int snd_omap_put_double(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol)
++int snd_omap_put_double(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol)
+ {
+ 	/* mask == 0 : Switch
+ 	 * mask != 0 : Volume */
+@@ -393,7 +403,7 @@ static int snd_omap_put_double(snd_kcont
+ }
+ 
+ /* End Double Functions */
+-
++#if 0
+ static snd_kcontrol_new_t snd_omap_controls[] = {
+ 	OMAP_DOUBLE("PCM Playback Switch", 0, LEFT_CHANNEL_VOLUME_ADDR, RIGHT_CHANNEL_VOLUME_ADDR,
+ 		     PCM_INDEX, 0x00),
+@@ -410,11 +420,18 @@ static snd_kcontrol_new_t snd_omap_contr
+ 	OMAP_BOOL("Mic Booster Playback Switch", 0, ANALOG_AUDIO_CONTROL_ADDR, AAC_INDEX, MICB_20DB, 0),
+ 	OMAP_MUX("Capture Source", ANALOG_AUDIO_CONTROL_ADDR, AAC_INDEX, INSEL_MIC),
+ };
++#endif
++extern snd_kcontrol_new_t snd_omap_controls[];
++extern int omap_controls_size;
+ 
+-void snd_omap_init_mixer(void)
++void snd_omap_init_mixer(struct omap_mcbsp_config *pdata)
+ {
+ 	u16 vol_reg;
+ 
++	pldata = pdata;
++
++	pldata->init_audio_controls(&mixer_controls);
++#if 0
+ 	/* Line's default values */
+ 	omap_regs[LINE_INDEX].l_reg = DEFAULT_INPUT_VOLUME & INPUT_VOLUME_MASK;
+ 	omap_regs[LINE_INDEX].r_reg = DEFAULT_INPUT_VOLUME & INPUT_VOLUME_MASK;
+@@ -434,6 +451,28 @@ void snd_omap_init_mixer(void)
+ 	omap_regs[PCM_INDEX].sw = 1;
+ 	SND_OMAP_WRITE(LEFT_CHANNEL_VOLUME_ADDR, vol_reg);
+ 	SND_OMAP_WRITE(RIGHT_CHANNEL_VOLUME_ADDR, vol_reg);
++#endif
++
++	/*Line's default values */
++	omap_regs[LINE_INDEX].l_reg = mixer_controls.left_line_input;
++	omap_regs[LINE_INDEX].r_reg = mixer_controls.right_line_input;
++	omap_regs[LINE_INDEX].sw = 0;
++	SND_OMAP_WRITE(mixer_controls.left_line_address, mixer_controls.left_line_input);
++	SND_OMAP_WRITE(mixer_controls.right_line_address,  mixer_controls.right_line_input);
++
++	/* Analog Audio Control's default values */
++	omap_regs[AAC_INDEX].l_reg = DEFAULT_ANALOG_AUDIO_CONTROL;
++
++	/* Headphone's default values */
++	omap_regs[PCM_INDEX].l_reg = mixer_controls.left_vol_output;
++	omap_regs[PCM_INDEX].r_reg = mixer_controls.right_vol_output;
++	omap_regs[PCM_INDEX].sw = 1;
++//	SND_OMAP_WRITE(mixer_controls.left_vol_address, mixer_controls.left_vol_output);
++//	SND_OMAP_WRITE(mixer_controls.right_vol_address, mixer_controls.right_vol_output);
++	SND_OMAP_WRITE(mixer_controls.right_vol_address, 0x0f0f);
++
++	printk("Volume:::::::::: %d %d %d %d \n", mixer_controls.left_vol_output, mixer_controls.right_vol_output,
++			mixer_controls.left_vol_address, mixer_controls.right_vol_address);
+ }
+ 
+ #ifdef CONFIG_PM
+@@ -474,7 +513,7 @@ void snd_omap_resume_mixer(void)
+ }
+ #endif
+ 
+-int snd_omap_mixer(struct snd_card_omap_aic23 *chip)
++int snd_omap_mixer(struct snd_card_omap_codec *chip)
+ {
+ 	snd_card_t *card;
+ 	unsigned int idx;
+@@ -487,7 +526,7 @@ int snd_omap_mixer(struct snd_card_omap_
+ 	strcpy(card->mixername, MIXER_NAME);
+ 
+ 	/* Registering alsa mixer controls */
+-	for (idx = 0; idx < ARRAY_SIZE(snd_omap_controls); idx++) 
++	for (idx = 0; idx < omap_controls_size/*ARRAY_SIZE(snd_omap_controls)*/; idx++) 
+ 		if ((err = snd_ctl_add(card, snd_ctl_new1(&snd_omap_controls[idx], chip))) < 0)
+ 			return err;
+ 
+diff --git a/sound/arm/omap-alsa-mixer.h b/sound/arm/omap-alsa-mixer.h
+new file mode 100644
+index 0000000..02cf761
+--- /dev/null
++++ b/sound/arm/omap-alsa-mixer.h
+@@ -0,0 +1,72 @@
++
++#include <sound/initval.h>
++#include <sound/control.h>
++
++enum snd_device_index {
++	PCM_INDEX = 0,
++	LINE_INDEX,
++	AAC_INDEX, /* Analog Audio Control: reg = l_reg */
++};
++
++
++int snd_omap_info_bool(snd_kcontrol_t *kcontrol, snd_ctl_elem_info_t * uinfo);
++int snd_omap_get_bool(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol);
++int snd_omap_put_bool(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol);
++int snd_omap_info_mux(snd_kcontrol_t *kcontrol, snd_ctl_elem_info_t * uinfo);
++int snd_omap_get_mux(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol);
++int snd_omap_put_mux(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol);
++int snd_omap_info_single(snd_kcontrol_t *kcontrol, snd_ctl_elem_info_t * uinfo);
++int snd_omap_get_single(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol);
++int snd_omap_put_single(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol);
++int snd_omap_info_double(snd_kcontrol_t *kcontrol, snd_ctl_elem_info_t * uinfo);
++int snd_omap_get_double(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol);
++int snd_omap_put_double(snd_kcontrol_t * kcontrol, snd_ctl_elem_value_t * ucontrol);
++
++
++
++
++
++/* Callback Functions */
++#define OMAP_BOOL(xname, xindex, reg, reg_index, mask, invert) \
++{ \
++	.iface = SNDRV_CTL_ELEM_IFACE_MIXER, \
++	.name = xname, \
++	.index = xindex, \
++	.info = snd_omap_info_bool, \
++	.get = snd_omap_get_bool, \
++	.put = snd_omap_put_bool, \
++	.private_value = reg | (reg_index << 8) | (invert << 10) | (mask << 12) \
++}
++
++#define OMAP_MUX(xname, reg, reg_index, mask) \
++{ \
++	.iface = SNDRV_CTL_ELEM_IFACE_MIXER, \
++	.name = xname, \
++	.info = snd_omap_info_mux, \
++	.get = snd_omap_get_mux, \
++	.put = snd_omap_put_mux, \
++	.private_value = reg | (reg_index << 8) | (mask << 10) \
++}
++
++#define OMAP_SINGLE(xname, xindex, reg, reg_index, reg_val, mask) \
++{\
++	.iface = SNDRV_CTL_ELEM_IFACE_MIXER, \
++	.name = xname, \
++	.index = xindex, \
++	.info = snd_omap_info_single, \
++	.get = snd_omap_get_single, \
++	.put = snd_omap_put_single, \
++	.private_value = reg | (reg_val << 8) | (reg_index << 16) | (mask << 18) \
++}
++
++#define OMAP_DOUBLE(xname, xindex, left_reg, right_reg, reg_index, mask) \
++{\
++	.iface = SNDRV_CTL_ELEM_IFACE_MIXER, \
++	.name = xname, \
++	.index = xindex, \
++	.info = snd_omap_info_double, \
++	.get = snd_omap_get_double, \
++	.put = snd_omap_put_double, \
++	.private_value = left_reg | (right_reg << 8) | (reg_index << 16) | (mask << 18) \
++}
++
+diff --git a/sound/arm/omap-alsa-tsc2101.c b/sound/arm/omap-alsa-tsc2101.c
+new file mode 100644
+index 0000000..58fc3ac
+--- /dev/null
++++ b/sound/arm/omap-alsa-tsc2101.c
+@@ -0,0 +1,471 @@
++
++/* routines extracted from file oss/omap-audio-tsc2101.c
++ * or called from drivers/ssi/omap-tsc2101.c */
++
++//#include <linux/module.h>
++//#include <linux/init.h>
++//#include <linux/errno.h>
++//#include <linux/types.h>
++#include <linux/delay.h>
++#include <linux/soundcard.h>
++//#include <asm/hardware.h>
++#include <sound/driver.h>
++#include <sound/core.h>
++#include <sound/pcm.h>
++#include <sound/initval.h>
++#include <sound/control.h>
++#include <linux/clk.h>
++#include <asm/io.h>
++#include <asm/arch/mcbsp.h>
++
++#include <asm/hardware/tsc2101.h>
++#include <../drivers/ssi/omap-tsc2101.h>
++
++#include "omap-alsa.h"
++#include "omap-alsa-mixer.h"
++
++/*
++ * AUDIO related MACROS
++ */
++#define DEFAULT_BITPERSAMPLE          16
++#define AUDIO_RATE_DEFAULT	          44100
++#define PAGE2_AUDIO_CODEC_REGISTERS   (2)
++#define LEAVE_CS 			          0x80
++
++/* Tsc Audio Specific */
++#define NUMBER_SAMPLE_RATES_SUPPORTED 16
++#define OUTPUT_VOLUME_MIN 0x7F
++#define OUTPUT_VOLUME_MAX 0x32
++#define OUTPUT_VOLUME_RANGE           (OUTPUT_VOLUME_MIN - OUTPUT_VOLUME_MAX)
++#define OUTPUT_VOLUME_MASK            OUTPUT_VOLUME_MIN
++#define DEFAULT_VOLUME_LEVEL          OUTPUT_VOLUME_MAX
++
++/* use input vol of 75 for 0dB gain */
++#define INPUT_VOLUME_MIN 		      0x0
++#define INPUT_VOLUME_MAX	 0x7D
++#define INPUT_VOLUME_RANGE 		      (INPUT_VOLUME_MAX - INPUT_VOLUME_MIN)
++#define INPUT_VOLUME_MASK 		      INPUT_VOLUME_MAX
++
++#define DEFAULT_VOLUME            20/*93*/
++#define DEFAULT_INPUT_VOLUME	  20	/* An minimal volume */
++typedef struct {
++	u8	volume;
++	u8	line;
++	u8	mic;
++	int	recsrc;
++	int	mod_cnt;
++} tsc2101_local_info;
++
++static tsc2101_local_info tsc2101_local = {
++	volume:		DEFAULT_VOLUME,
++	line:		DEFAULT_INPUT_VOLUME,
++	mic:		DEFAULT_INPUT_VOLUME,
++	recsrc:		SOUND_MASK_LINE,
++	mod_cnt:	0
++};
++
++
++#define AUDIO_MCBSP                   OMAP_MCBSP1
++
++/* Define to set the tsc as the master w.r.t McBSP */
++#define TSC_MASTER
++
++#define SET_VOLUME 			          1
++#define SET_LINE   			          2
++#define SET_MIC	      3
++#define SET_RECSRC	      4
++
++#undef DEBUG
++
++#ifdef DEBUG
++#define ADEBUG() printk("XXX Alsa debug f:%s, l:%d\n", __FUNCTION__, __LINE__)
++#else
++#define ADEBUG()		/* nop */
++#endif
++
++
++//deve sair....
++static int tsc2101_update(int flag, int val);
++
++static struct clk *tsc2101_mclk = 0;
++
++struct sample_rate_reg_info {
++	u16 sample_rate;
++	u8  divisor;
++	u8  fs_44kHz;		/* if 0 48 khz, if 1 44.1 khz fsref */
++};
++
++/* To Store the default sample rate */
++static long audio_samplerate = AUDIO_RATE_DEFAULT;
++
++static const struct sample_rate_reg_info
++ reg_info[NUMBER_SAMPLE_RATES_SUPPORTED] = {
++	/* Div 1 */
++	{48000, 0, 0},
++	{44100, 0, 1},
++	/* Div 1.5 */
++	{32000, 1, 0},
++	{29400, 1, 1},
++	/* Div 2 */
++	{24000, 2, 0},
++	{22050, 2, 1},
++	/* Div 3 */
++	{16000, 3, 0},
++	{14700, 3, 1},
++	/* Div 4 */
++	{12000, 4, 0},
++	{11025, 4, 1},
++	/* Div 5 */
++	{9600, 5, 0},
++	{8820, 5, 1},
++	/* Div 5.5 */
++	{8727, 6, 0},
++	{8018, 6, 1},
++	/* Div 6 */
++	{8000, 7, 0},
++	{7350, 7, 1},
++};
++
++/*
++ * Codec/mcbsp init and configuration section
++ * codec dependent code.
++ */
++
++/*********************************************************************************
++ *
++ * Simplified write for tsc Audio
++ *
++ *********************************************************************************/
++/*inline*/ void audio_tsc2101_write(u8 address, u16 data)
++{
++	printk("WR: ad:0x%x data:0x%x\n", address, data);
++	omap_tsc2101_write(PAGE2_AUDIO_CODEC_REGISTERS, address, data);
++}
++
++/*********************************************************************************
++ *
++ * Simplified read for tsc  Audio
++ *
++ *********************************************************************************/
++__inline__ u16 audio_tsc2101_read(u8 address)
++{
++	return (omap_tsc2101_read(PAGE2_AUDIO_CODEC_REGISTERS, address));
++}
++
++/*
++ * Sample rate changing
++ */
++void tsc2101_set_samplerate(long sample_rate, unsigned int rates[])
++{
++
++	u8 count = 0;
++	u16 data = 0;
++	int clkgdv = 0;
++
++	u16 srgr1, srgr2;
++	/* wait for any frame to complete */
++	udelay(125);
++	ADEBUG();
++
++	/* Search for the right sample rate */
++	while ((reg_info[count].sample_rate != sample_rate) &&
++	       (count < NUMBER_SAMPLE_RATES_SUPPORTED)) {
++		count++;
++	}
++	if (count == NUMBER_SAMPLE_RATES_SUPPORTED) {
++		printk(KERN_ERR "Invalid Sample Rate %d requested\n",
++		       (int)sample_rate);
++		return; // -EPERM;
++	}
++
++	/* Set AC1 */
++	data = audio_tsc2101_read(TSC2101_AUDIO_CTRL_1);
++	/*Clear prev settings */
++	data &= ~(AC1_DACFS(0x07) | AC1_ADCFS(0x07));
++	data |=
++	    AC1_DACFS(reg_info[count].divisor) | AC1_ADCFS(reg_info[count].
++							   divisor);
++	audio_tsc2101_write(TSC2101_AUDIO_CTRL_1, data);
++
++	/* Set the AC3 */
++	data = audio_tsc2101_read(TSC2101_AUDIO_CTRL_3);
++	/*Clear prev settings */
++	data &= ~(AC3_REFFS | AC3_SLVMS);
++	data |= (reg_info[count].fs_44kHz) ? AC3_REFFS : 0;
++#ifdef TSC_MASTER
++	data |= AC3_SLVMS;
++#endif				/* #ifdef TSC_MASTER */
++	audio_tsc2101_write(TSC2101_AUDIO_CTRL_3, data);
++
++	/* program the PLLs */
++	if (reg_info[count].fs_44kHz) {
++		/* 44.1 khz - 12 MHz Mclk */
++		audio_tsc2101_write(TSC2101_PLL_PROG_1, PLL1_PLLSEL | PLL1_PVAL(1) | PLL1_I_VAL(7));	/* PVAL 1; I_VAL 7 */
++		audio_tsc2101_write(TSC2101_PLL_PROG_2, PLL2_D_VAL(0x1490));	/* D_VAL 5264 */
++	} else {
++		/* 48 khz - 12 Mhz Mclk */
++		audio_tsc2101_write(TSC2101_PLL_PROG_1, PLL1_PLLSEL | PLL1_PVAL(1) | PLL1_I_VAL(8));	/* PVAL 1; I_VAL 8 */
++		audio_tsc2101_write(TSC2101_PLL_PROG_2, PLL2_D_VAL(0x780));	/* D_VAL 1920 */
++	}
++
++	audio_samplerate = sample_rate;
++
++	/* Set the sample rate */
++#ifndef TSC_MASTER
++	clkgdv =
++	    DEFAULT_MCBSP_CLOCK / (sample_rate *
++				   (DEFAULT_BITPERSAMPLE * 2 - 1));
++	if (clkgdv)
++		//initial_config.srgr1 =
++		srgr1 = 
++		    (FWID(DEFAULT_BITPERSAMPLE - 1) | CLKGDV(clkgdv));
++	else
++		return (1);
++
++	/* Stereo Mode */
++	//initial_config.srgr2 =
++	srgr2 = 
++	    (CLKSM | FSGM | FPER(DEFAULT_BITPERSAMPLE * 2 - 1));
++#else
++	//initial_config.srgr1 =
++	srgr1 = 
++	    (FWID(DEFAULT_BITPERSAMPLE - 1) | CLKGDV(clkgdv));
++	//initial_config.srgr2 =
++	srgr2 = 
++	    ((GSYNC | CLKSP | FSGM | FPER(DEFAULT_BITPERSAMPLE * 2 - 1)));
++
++#endif				/* end of #ifdef TSC_MASTER */
++	//omap_mcbsp_config(AUDIO_MCBSP, &initial_config);
++	
++	OMAP_MCBSP_WRITE(OMAP1610_MCBSP1_BASE, SRGR2, srgr2);
++	OMAP_MCBSP_WRITE(OMAP1610_MCBSP1_BASE, SRGR1, srgr1);
++
++	
++//#define OMAP1610_MCBSP1_BASE	0xe1011800
++
++}
++
++
++inline void tsc2101_configure(void)
++{
++	ADEBUG();
++
++	audio_tsc2101_write(TSC2101_CODEC_POWER_CTRL, 0x0000);
++
++	/*Mute Analog Sidetone */
++	/*Select MIC_INHED input for headset */
++	/*Cell Phone In not connected */
++	audio_tsc2101_write(TSC2101_MIXER_PGA_CTRL,
++			    MPC_ASTMU | MPC_ASTG(0x40) | MPC_MICADC);
++
++	/* Set record source */
++	tsc2101_update(SET_RECSRC, tsc2101_local.recsrc);
++
++	/* ADC, DAC, Analog Sidetone, cellphone, buzzer softstepping enabled */
++	/* 1dB AGC hysteresis */
++	/* MICes bias 2V */
++	audio_tsc2101_write(TSC2101_AUDIO_CTRL_4, AC4_MB_HED(0));
++
++	/* Set codec output volume */
++	audio_tsc2101_write(TSC2101_DAC_GAIN_CTRL, 0x0000);
++
++	/* DAC left and right routed to SPK2 */
++	/* SPK1/2 unmuted */
++	audio_tsc2101_write(TSC2101_AUDIO_CTRL_5,
++			    AC5_DAC2SPK1(3) | AC5_AST2SPK1 | AC5_KCL2SPK1 |
++			    AC5_DAC2SPK2(3) | AC5_AST2SPK2 | AC5_KCL2SPK2 |
++			    AC5_HDSCPTC);
++
++	/* OUT8P/N muted, CPOUT muted */
++
++	audio_tsc2101_write(TSC2101_AUDIO_CTRL_6,
++			    AC6_MUTLSPK | AC6_MUTSPK2 | AC6_LDSCPTC |
++			    AC6_VGNDSCPTC);
++
++	/* Headset/Hook switch detect disabled */
++	audio_tsc2101_write(TSC2101_AUDIO_CTRL_7, 0x0000);
++
++	/* Left line input volume control */
++	tsc2101_update(SET_LINE, tsc2101_local.line);
++
++	/* mic input volume control */
++	tsc2101_update(SET_MIC, tsc2101_local.mic);
++
++	/* Left/Right headphone channel volume control */
++	/* Zero-cross detect on */
++	tsc2101_update(SET_VOLUME, tsc2101_local.volume);
++
++	/* clock configuration */
++	tsc2101_set_samplerate(audio_samplerate, NULL);
++
++//#ifdef TSC_DUMP_REGISTERS
++//	tsc2101_dumpRegisters();
++//#endif
++
++	printk(KERN_ERR  "\n\n TESTE 2 \n\n");
++
++}
++
++/*
++ *  Omap MCBSP clock configuration
++ *  
++ *  Here we have some functions that allows clock to be enabled and
++ *   disabled only when needed. Besides doing clock configuration 
++ *   it allows turn on/turn off audio when necessary. 
++ */
++#define CODEC_CLOCK 12000000
++/*
++ * Do clock framework mclk search
++ */
++void tsc2101_clock_setup(void)
++{
++	tsc2101_mclk = clk_get(0, "mclk");
++	ADEBUG();
++}
++
++/*
++ * Do some sanity check, set clock rate, starts it and
++ *  turn codec audio on 
++ */
++int tsc2101_clock_on(void)
++{
++	omap_tsc2101_enable(); /*  */
 +
 +	return 0;
 +}
-+EXPORT_SYMBOL(sti_read_packet);
-+
-+static void sti_fifo_irq(unsigned long arg)
-+{
-+	/* If there is data read it */
-+	while (!(sti_readl(STI_RX_STATUS) & STI_RXFIFO_EMPTY)) {
-+		unsigned int pos =3D sti_buf_pos(sti_crb->datalen);
-+
-+		sti_crb->buf[pos] =3D sti_readl(STI_DR);
-+		sti_crb->datalen++;
-+	}
-+
-+	sti_ack_irq(STI_RX_INT);
-+}
-+
-+static int __init sti_fifo_init(void)
-+{
-+	unsigned int size;
-+	int ret;
-+
-+	size =3D sizeof(struct sti_cycle_buffer) + STI_READ_BUFFER_SIZE;
-+	sti_crb =3D kmalloc(size, GFP_KERNEL);
-+	if (!sti_crb)
-+		return -ENOMEM;
-+
-+	sti_crb->bufpos =3D sti_crb->datalen =3D 0;
-+	sti_crb->buf =3D (unsigned char *)(sti_crb + sizeof(*sti_crb));
-+
-+	ret =3D sti_request_irq(STI_RX_INT, sti_fifo_irq, 0);
-+	if (ret !=3D 0)
-+		kfree(sti_crb);
-+
-+	return ret;
-+}
-+
-+static void __exit sti_fifo_exit(void)
-+{
-+	sti_free_irq(STI_RX_INT);
-+	kfree(sti_crb);
-+}
-+
-+module_init(sti_fifo_init);
-+module_exit(sti_fifo_exit);
-+
-+MODULE_AUTHOR("Paul Mundt, Roman Tereshonkov");
-+MODULE_LICENSE("GPL");
-diff --git a/arch/arm/plat-omap/sti/sti-netlink.c b/arch/arm/plat-omap/st=
-i/sti-netlink.c
-new file mode 100644
-index 0000000..45b8085
---- /dev/null
-+++ b/arch/arm/plat-omap/sti/sti-netlink.c
-@@ -0,0 +1,157 @@
 +/*
-+ * OMAP STI/XTI communications interface via netlink socket.
-+ *
-+ * Copyright (C) 2004, 2005 Nokia Corporation
-+ * Written by: Paul Mundt <paul.mundt@nokia.com>
-+ *
-+ * This file is subject to the terms and conditions of the GNU General P=
-ublic
-+ * License.  See the file "COPYING" in the main directory of this archiv=
-e
-+ * for more details.
++ * Do some sanity check, turn clock off and then turn
++ *  codec audio off
 + */
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/netlink.h>
-+#include <linux/socket.h>
-+#include <linux/skbuff.h>
-+#include <net/sock.h>
-+#include <asm/arch/sti.h>
-+
-+static struct sock *sti_sock;
-+static DECLARE_MUTEX(sti_netlink_sem);
-+
-+enum {
-+	STI_READ,
-+	STI_WRITE,
-+};
-+
-+static int sti_netlink_read(int pid, int seq, void *payload, int size)
++int tsc2101_clock_off(void)
 +{
-+	struct sk_buff *skb;
-+	struct nlmsghdr *nlh;
-+	int ret, len =3D NLMSG_SPACE(size);
-+	unsigned char *tail;
-+
-+	skb =3D alloc_skb(len, GFP_KERNEL);
-+	if (!skb)
-+		return -ENOMEM;
-+
-+	tail =3D skb->tail;
-+	nlh =3D NLMSG_PUT(skb, pid, seq, STI_READ,
-+			len - (sizeof(struct nlmsghdr)));
-+	nlh->nlmsg_flags =3D 0;
-+	memcpy(NLMSG_DATA(nlh), payload, size);
-+	nlh->nlmsg_len =3D skb->tail - tail;
-+
-+	ret =3D netlink_unicast(sti_sock, skb, pid, MSG_DONTWAIT);
-+	if (ret > 0)
-+		ret =3D 0;
-+
-+	return ret;
-+
-+nlmsg_failure:
-+	if (skb)
-+		kfree_skb(skb);
-+
-+	return -EINVAL;
++	omap_tsc2101_disable();
++	
++	return 0;
 +}
 +
-+/*
-+ * We abuse nlmsg_type and nlmsg_flags for our purposes.
-+ *
-+ * The ID is encoded into the upper 8 bits of the nlmsg_type, while the
-+ * channel number is encoded into the upper 8 bits of the nlmsg_flags.
-+ */
-+static int sti_netlink_receive_msg(struct sk_buff *skb, struct nlmsghdr =
-*nlh)
++static int tsc2101_update(int flag, int val)
 +{
-+	void *data;
-+	u8 chan, id;
-+	int size, ret =3D 0, len =3D 0;
++	u16 volume;
++	u16 data;
 +
-+	data	=3D NLMSG_DATA(nlh);
-+	chan	=3D (nlh->nlmsg_flags >> 8) & 0xff;
-+	id	=3D (nlh->nlmsg_type  >> 8) & 0xff;
-+	size	=3D (int)(nlh->nlmsg_len - ((char *)data - (char *)nlh));
++	//FN_IN;
++	ADEBUG();
++	switch (flag) {
++	case SET_VOLUME:
++		if (val < 0 || val > 100) {
++			printk(KERN_ERR "Trying a bad volume value(%d)!\n", val);
++			return -EPERM;
++		}
++		/* Convert 0 -> 100 volume to 0x7F(min) -> y(max) volume range */
++		volume =
++		    ((val * OUTPUT_VOLUME_RANGE) / 100) + OUTPUT_VOLUME_MAX;
++		/* invert the value for getting the proper range 0 min and 100 max */
++		volume = OUTPUT_VOLUME_MIN - volume;
++		data = audio_tsc2101_read(TSC2101_DAC_GAIN_CTRL);
++		data &=
++		    ~(DGC_DALVL(OUTPUT_VOLUME_MIN) |
++		      DGC_DARVL(OUTPUT_VOLUME_MIN));
++		data |= DGC_DALVL(volume) | DGC_DARVL(volume);
++		audio_tsc2101_write(TSC2101_DAC_GAIN_CTRL, data);
++		data = audio_tsc2101_read(TSC2101_DAC_GAIN_CTRL);
 +
-+	switch (nlh->nlmsg_type & 0xff) {
-+	case STI_WRITE:
-+		sti_channel_write_trace(size, id, data, chan);
 +		break;
-+	case STI_READ:
-+		data =3D kmalloc(size, GFP_KERNEL);
-+		if (!data)
-+			return -ENOMEM;
-+		memset(data, 0, size);
 +
-+		len =3D sti_read_packet(data, size);
-+		ret =3D sti_netlink_read(NETLINK_CB(skb).pid, nlh->nlmsg_seq,
-+				       data, len);
-+		kfree(data);
++	case SET_LINE:
++		if (val < 0 || val > 100) {
++			printk(KERN_ERR "Trying a bad volume value(%d)!\n", val);
++			return -EPERM;
++		}
++		/* Convert 0 -> 100 volume to 0x0(min) -> 0x7D(max) volume range */
++		/* NOTE: 0 is minimum volume and not mute */
++		volume = ((val * INPUT_VOLUME_RANGE) / 100) + INPUT_VOLUME_MIN;
++		/* Handset Input not muted, AGC for Handset In off */
++		audio_tsc2101_write(TSC2101_HEADSET_GAIN_CTRL,
++	HGC_ADPGA_HED(volume));
++		break;
++
++	case SET_MIC:
++		if (val < 0 || val > 100) {
++			printk(KERN_ERR "Trying a bad volume value(%d)!\n", val);
++			return -EPERM;
++		}
++		/* Convert 0 -> 100 volume to 0x0(min) -> 0x7D(max) volume range */
++		/* NOTE: 0 is minimum volume and not mute */
++		volume = ((val * INPUT_VOLUME_RANGE) / 100) + INPUT_VOLUME_MIN;
++		/* Handset Input not muted, AGC for Handset In off */
++		audio_tsc2101_write(TSC2101_HANDSET_GAIN_CTRL,
++	HNGC_ADPGA_HND(volume));
++		break;
++
++	case SET_RECSRC:
++		/*
++		 * If more than one recording device selected,
++		 * disable the device that is currently in use.
++		 */
++		if (hweight32(val) > 1)
++			val &= ~tsc2101_local.recsrc;
++
++		data = audio_tsc2101_read(TSC2101_MIXER_PGA_CTRL);
++		data &= ~MPC_MICSEL(7); /* clear all MICSEL bits */
++
++		if (val == SOUND_MASK_MIC) {
++			data |=  MPC_MICSEL(1);
++			audio_tsc2101_write(TSC2101_MIXER_PGA_CTRL, data);
++		}
++		else if (val == SOUND_MASK_LINE) {
++			data |=  MPC_MICSEL(0);
++			audio_tsc2101_write(TSC2101_MIXER_PGA_CTRL, data);
++		}
++		else {
++			printk(KERN_WARNING "omap1610-tsc2101: Wrong RECSRC"
++	 " value specified\n");
++			return -EINVAL;
++		}
++		tsc2101_local.recsrc = val;
 +		break;
 +	default:
-+		return -ENOTTY;
++		printk(KERN_WARNING "omap1610-tsc2101: Wrong tsc2101_update "
++	"flag specified\n");
++		break;
 +	}
 +
-+	return ret;
-+}
-+
-+static int sti_netlink_receive_skb(struct sk_buff *skb)
-+{
-+	while (skb->len >=3D NLMSG_SPACE(0)) {
-+		struct nlmsghdr *nlh;
-+		u32 rlen;
-+		int ret;
-+
-+		nlh =3D (struct nlmsghdr *)skb->data;
-+		if (nlh->nlmsg_len < sizeof(struct nlmsghdr) ||
-+		    skb->len < nlh->nlmsg_len)
-+			break;
-+
-+		rlen =3D NLMSG_ALIGN(nlh->nlmsg_len);
-+		if (rlen > skb->len)
-+			rlen =3D skb->len;
-+
-+		ret =3D sti_netlink_receive_msg(skb, nlh);
-+		if (ret)
-+			netlink_ack(skb, nlh, -ret);
-+		else if (nlh->nlmsg_flags & NLM_F_ACK)
-+			netlink_ack(skb, nlh, 0);
-+
-+		skb_pull(skb, rlen);
-+	}
-+
++	//FN_OUT(0);
 +	return 0;
 +}
 +
-+static void sti_netlink_receive(struct sock *sk, int len)
++/*
++ * Mixer part
++ */
++
++/* NOT WORKING *** */
++snd_kcontrol_new_t snd_omap_controls[] = {
++	OMAP_DOUBLE("PCM Playback Switch", 0, TSC2101_DAC_GAIN_CTRL, TSC2101_DAC_GAIN_CTRL,
++		     PCM_INDEX, 0x00),
++	OMAP_DOUBLE("PCM Playback Volume", 0, TSC2101_DAC_GAIN_CTRL, TSC2101_DAC_GAIN_CTRL,
++		     PCM_INDEX, 0x7f/*OUTPUT_VOLUME_MASK*/),
++	//OMAP_BOOL("Line Playback Switch", 0, TSC2101_HEADSET_GAIN_CTRL, AAC_INDEX, 0x02/*mudeme*/, 0),
++	//OMAP_DOUBLE("Line Capture Switch", 0, TSC2101_HEADSET_GAIN_CTRL, TSC2101_HEADSET_GAIN_CTRL,
++	//	     LINE_INDEX, 0x00),
++	//OMAP_DOUBLE("Line Capture Volume", 0, TSC2101_HEADSET_GAIN_CTRL, TSC2101_HEADSET_GAIN_CTRL,
++	//	     LINE_INDEX, 0x7f/*INPUT_VOLUME_MASK*/),	
++	//OMAP_BOOL("Mic Playback Switch", 0, ANALOG_AUDIO_CONTROL_ADDR, AAC_INDEX, STE_ENABLED, 0),	
++	//OMAP_SINGLE("Mic Playback Volume", 0, TSC2101_HANDSET_GAIN_CTRL, AAC_INDEX, 5, SIDETONE_MASK),
++	//OMAP_BOOL("Mic Capture Switch", 0, ANALOG_AUDIO_CONTROL_ADDR, AAC_INDEX, MICM_MUTED, 1),
++	//OMAP_BOOL("Mic Booster Playback Switch", 0, ANALOG_AUDIO_CONTROL_ADDR, AAC_INDEX, MICB_20DB, 0),
++	//OMAP_MUX("Capture Source", ANALOG_AUDIO_CONTROL_ADDR, AAC_INDEX, INSEL_MIC),
++};
++int omap_controls_size = ARRAY_SIZE(snd_omap_controls);
++
++void tsc2101_init_audio_controls(struct codec_controls * mixer_controls)
 +{
-+	struct sk_buff *skb;
-+
-+	if (down_trylock(&sti_netlink_sem))
-+		return;
-+
-+	while ((skb =3D skb_dequeue(&sk->sk_receive_queue)))
-+		if (sti_netlink_receive_skb(skb) && skb->len)
-+			skb_queue_head(&sk->sk_receive_queue, skb);
-+		else
-+			kfree_skb(skb);
-+
-+	up(&sti_netlink_sem);
++	mixer_controls->left_vol_output = 0x30;
++	mixer_controls->right_vol_output = 0x30;
++	mixer_controls->left_line_input = 0;
++	mixer_controls->right_line_input = 0;
++	mixer_controls->mic_input = 0;
++	mixer_controls->left_vol_address = TSC2101_DAC_GAIN_CTRL;
++	mixer_controls->right_vol_address = TSC2101_DAC_GAIN_CTRL;
++	mixer_controls->left_line_address = TSC2101_HEADSET_GAIN_CTRL;
++	mixer_controls->right_line_address = TSC2101_HEADSET_GAIN_CTRL;
 +}
-+
-+static int __init sti_netlink_init(void)
-+{
-+	sti_sock =3D netlink_kernel_create(NETLINK_USERSOCK, 0,
-+					 sti_netlink_receive, THIS_MODULE);
-+	if (!sti_sock) {
-+		printk(KERN_ERR "STI: Failed to create netlink socket\n");
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
-+module_init(sti_netlink_init);
-+
-+MODULE_AUTHOR("Paul Mundt");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("STI netlink-driven communications interface");
-diff --git a/arch/arm/plat-omap/sti/sti.c b/arch/arm/plat-omap/sti/sti.c
+diff --git a/sound/arm/omap-alsa.c b/sound/arm/omap-alsa.c
 new file mode 100644
-index 0000000..5226e95
+index 0000000..ab56ac6
 --- /dev/null
-+++ b/arch/arm/plat-omap/sti/sti.c
-@@ -0,0 +1,425 @@
++++ b/sound/arm/omap-alsa.c
+@@ -0,0 +1,757 @@
 +/*
-+ * Support functions for OMAP STI/XTI (Serial Tracing Interface)
++ * sound/arm/omap-aic23.c
++ * 
++ * Alsa Driver for AIC23 codec on OSK5912 platform board
 + *
-+ * Copyright (C) 2004, 2005, 2006 Nokia Corporation
-+ * Written by: Paul Mundt <paul.mundt@nokia.com>
++ * Copyright (C) 2005 Instituto Nokia de Tecnologia - INdT - Manaus Brazil
++ * Written by Daniel Petrini, David Cohen, Anderson Briglia
++ *            {daniel.petrini, david.cohen, anderson.briglia}@indt.org.br
 + *
-+ * STI initialization code and channel handling
-+ * from Juha Yrj=F6l=E4 <juha.yrjola@nokia.com>.
++ * Based on sa11xx-uda1341.c, 
++ * Copyright (C) 2002 Tomas Kasparek <tomas.kasparek@seznam.cz>
 + *
-+ * XTI initialization
-+ * from Roman Tereshonkov <roman.tereshonkov@nokia.com>.
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
 + *
-+ * This file is subject to the terms and conditions of the GNU General P=
-ublic
-+ * License.  See the file "COPYING" in the main directory of this archiv=
-e
-+ * for more details.
++ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
++ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
++ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * You should have received a copy of the  GNU General Public License along
++ * with this program; if not, write  to the Free Software Foundation, Inc.,
++ * 675 Mass Ave, Cambridge, MA 02139, USA.
++ *
++ * History:
++ *
++ * 2005-07-29   INdT Kernel Team - Alsa driver for omap osk. Creation of new 
++ *                                 file omap-aic23.c
++ * 
++ * 2005-12-18   Dirk Behme      - Added L/R Channel Interchange fix as proposed by Ajaya Babu
 + */
++
 +#include <linux/config.h>
-+#include <linux/init.h>
-+#include <linux/err.h>
++#include <sound/driver.h>
 +#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/spinlock.h>
-+#include <linux/interrupt.h>
 +#include <linux/platform_device.h>
-+#include <linux/clk.h>
-+#include <asm/arch/sti.h>
-+#include <asm/byteorder.h>
++#include <linux/moduleparam.h>
++#include <linux/init.h>
++#include <linux/errno.h>
++#include <linux/ioctl.h>
++#include <linux/delay.h>
++#include <linux/slab.h>
 +
-+static struct clk *sti_ck;
-+unsigned long sti_base, sti_channel_base;
-+static unsigned long sti_kern_mask =3D STIEn;
-+static unsigned long sti_irq_mask =3D STI_IRQSTATUS_MASK;
-+static DEFINE_SPINLOCK(sti_lock);
++#ifdef CONFIG_PM
++#include <linux/pm.h>
++#endif
 +
-+static struct sti_irqdesc {
-+	irqreturn_t (*func)(unsigned long);
-+	unsigned long data;
-+} ____cacheline_aligned sti_irq_desc[STI_NR_IRQS];
++#include <asm/hardware.h>
++#include <asm/mach-types.h>
++#include <asm/arch/dma.h>
++#include <asm/arch/aic23.h>
++//#include <asm/hardware/clock.h>
++#include <asm/arch/mcbsp.h>
 +
-+void sti_channel_write_trace(int len, int id, void *data, unsigned int c=
-hannel)
-+{
-+	const u8 *tpntr =3D data;
++#include <sound/core.h>
++#include <sound/pcm.h>
++#include <sound/initval.h>
++#include <sound/memalloc.h>
 +
-+	sti_channel_writeb(id, channel);
++#include "omap-alsa-dma.h"
++#include "omap-aic23.h"
 +
-+	if (cpu_is_omap16xx())
-+		/* Check u32 boundary */
-+		if (!((u32)data & (STI_PERCHANNEL_SIZE - 1)) &&
-+		     (len >=3D STI_PERCHANNEL_SIZE)) {
-+			const u32 *asrc =3D data;
++#undef DEBUG
++//#define DEBUG
 +
-+			do {
-+				sti_channel_writel(cpu_to_be32(*asrc++),
-+						   channel);
-+				len -=3D STI_PERCHANNEL_SIZE;
-+			} while (len >=3D STI_PERCHANNEL_SIZE);
-+
-+			tpntr =3D (const u8 *)asrc;
-+		}
-+
-+	while (len--)
-+		sti_channel_writeb(*tpntr++, channel);
-+
-+	sti_channel_flush(channel);
-+}
-+EXPORT_SYMBOL(sti_channel_write_trace);
-+
-+void sti_enable_irq(unsigned int id)
-+{
-+	spin_lock_irq(&sti_lock);
-+	sti_writel(1 << id, STI_IRQSETEN);
-+	spin_unlock_irq(&sti_lock);
-+}
-+EXPORT_SYMBOL(sti_enable_irq);
-+
-+void sti_disable_irq(unsigned int id)
-+{
-+	spin_lock_irq(&sti_lock);
-+
-+	if (cpu_is_omap16xx())
-+		sti_writel(1 << id, STI_IRQCLREN);
-+	else if (cpu_is_omap24xx())
-+		sti_writel(sti_readl(STI_IRQSETEN) & ~(1 << id), STI_IRQSETEN);
-+	else
-+		BUG();
-+
-+	spin_unlock_irq(&sti_lock);
-+}
-+EXPORT_SYMBOL(sti_disable_irq);
-+
-+void sti_ack_irq(unsigned int id)
-+{
-+	/* Even though the clear state is 0, we have to write 1 to clear */
-+	sti_writel(1 << id, STI_IRQSTATUS);
-+}
-+EXPORT_SYMBOL(sti_ack_irq);
-+
-+int sti_request_irq(unsigned int irq, void *handler, unsigned long arg)
-+{
-+	struct sti_irqdesc *desc;
-+
-+	if (unlikely(!handler || irq > STI_NR_IRQS))
-+		return -EINVAL;
-+
-+	desc =3D sti_irq_desc + irq;
-+	if (unlikely(desc->func)) {
-+		printk(KERN_WARNING "STI: Attempting to request in-use IRQ "
-+				    "%d, consider fixing your code..\n", irq);
-+		return -EBUSY;
-+	}
-+
-+	desc->func =3D handler;
-+	desc->data =3D arg;
-+
-+	sti_enable_irq(irq);
-+	return 0;
-+}
-+EXPORT_SYMBOL(sti_request_irq);
-+
-+void sti_free_irq(unsigned int irq)
-+{
-+	struct sti_irqdesc *desc =3D sti_irq_desc + irq;
-+
-+	if (unlikely(irq > STI_NR_IRQS))
-+		return;
-+
-+	sti_disable_irq(irq);
-+
-+	desc->func =3D NULL;
-+	desc->data =3D 0;
-+}
-+EXPORT_SYMBOL(sti_free_irq);
++#ifdef DEBUG
++#define ADEBUG() printk("XXX Alsa debug f:%s, l:%d\n", __FUNCTION__, __LINE__)
++#else
++#define ADEBUG()		/* nop */
++#endif
 +
 +/*
-+ * This is a bit heavy, so normally we would defer this to a tasklet.
-+ * Unfortunately tasklets are too slow for the RX FIFO interrupt (and
-+ * possibly some others), so we just do the irqdesc walking here.
++ * AUDIO related MACROS
 + */
-+static irqreturn_t sti_interrupt(int irq, void *dev_id, struct pt_regs *=
-regs)
++#define DEFAULT_BITPERSAMPLE          16
++#define AUDIO_RATE_DEFAULT	      44100
++#define AUDIO_MCBSP                   OMAP_MCBSP1
++#define NUMBER_SAMPLE_RATES_SUPPORTED 10
++
++
++MODULE_AUTHOR("Daniel Petrini, David Cohen, Anderson Briglia - INdT");
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("OMAP driver for ALSA");
++MODULE_SUPPORTED_DEVICE("{{AIC23,OMAP AIC23}}");
++MODULE_ALIAS("omap_mcbsp.1");
++
++static char *id = NULL;	
++MODULE_PARM_DESC(id, "OMAP ALSA Driver for AIC23 chip.");
++
++static struct snd_card_omap_codec *omap_alsa = NULL;
++
++struct omap_mcbsp_config * pdata = NULL;
++
++/*
++ * DAC USB-mode sampling rates (MCLK = 12 MHz)
++ * The rates and rate_reg_into MUST be in the same order
++ */
++static unsigned int rates[] = {
++	4000, 8000, 16000, 22050,
++	24000, 32000, 44100,
++	48000, 88200, 96000,
++};
++
++static snd_pcm_hw_constraint_list_t hw_constraints_rates = {
++	.count = ARRAY_SIZE(rates),
++	.list = rates,
++	.mask = 0,
++};
++
++/*
++ * HW interface start and stop helper functions
++ */
++static int audio_ifc_start(void)
 +{
-+	int ret =3D IRQ_NONE;
-+	u16 status;
-+	int i;
-+
-+	status =3D sti_readl(STI_IRQSTATUS) & sti_irq_mask;
-+
-+	for (i =3D 0; status; i++) {
-+		struct sti_irqdesc *desc =3D sti_irq_desc + i;
-+		u16 id =3D 1 << i;
-+
-+		if (!(status & id))
-+			continue;
-+
-+		if (likely(desc && desc->func))
-+			ret |=3D desc->func(desc->data);
-+		if (unlikely(ret =3D=3D IRQ_NONE)) {
-+			printk("STI: spurious interrupt (id %d)\n", id);
-+			sti_disable_irq(i);
-+			sti_ack_irq(i);
-+			ret =3D IRQ_HANDLED;
-+		}
-+
-+		status &=3D ~id;
-+	}
-+
-+	return IRQ_RETVAL(ret);
-+}
-+
-+static void omap_sti_reset(void)
-+{
-+	int i;
-+
-+	/* Reset STI module */
-+	sti_writel(0x02, STI_SYSCONFIG);
-+
-+	/* Wait a while for the STI module to complete its reset */
-+	for (i =3D 0; i < 10000; i++)
-+		if (sti_readl(STI_SYSSTATUS) & 1)
-+			break;
-+}
-+
-+static int __init sti_init(void)
-+{
-+	char buf[64];
-+	int i;
-+
-+	if (cpu_is_omap16xx()) {
-+		/* Release ARM Rhea buses peripherals enable */
-+		sti_writel(sti_readl(ARM_RSTCT2) | 0x0001, ARM_RSTCT2);
-+
-+		/* Enable TC1_CK (functional clock) */
-+		sti_ck =3D clk_get(NULL, "tc1_ck");
-+	} else if (cpu_is_omap24xx())
-+		/* Enable emulation tools clock */
-+		sti_ck =3D clk_get(NULL, "emul_ck");
-+
-+	if (IS_ERR(sti_ck))
-+		return PTR_ERR(sti_ck);
-+
-+	clk_enable(sti_ck);
-+
-+	/* Reset STI module */
-+	omap_sti_reset();
-+
-+	/* Enable STI */
-+	sti_trace_enable(MPUCmdEn);
-+
-+	/* Change to custom serial protocol */
-+	sti_writel(0x01, STI_SERIAL_CFG);
-+
-+	/* Set STI clock control register to normal mode */
-+	sti_writel(0x00, STI_CLK_CTRL);
-+
-+	i =3D sti_readl(STI_REVISION);
-+	snprintf(buf, sizeof(buf), "OMAP STI support loaded (HW v%u.%u)\n",
-+	        (i >> 4) & 0x0f, i & 0x0f);
-+	printk(KERN_INFO "%s", buf);
-+
-+	sti_channel_write_trace(strlen(buf), 0xc3, buf, 239);
-+
++	omap_mcbsp_start(AUDIO_MCBSP);
 +	return 0;
 +}
 +
-+static void sti_exit(void)
++static int audio_ifc_stop(void)
 +{
-+	u32 tmp;
-+
-+	/*
-+	 * This should have already been done by reset, but we switch off
-+	 * STI entirely just for added sanity..
-+	 */
-+	tmp =3D sti_readl(STI_ER);
-+	tmp &=3D ~STIEn;
-+	sti_writel(tmp, STI_ER);
-+
-+	clk_disable(sti_ck);
-+	clk_put(sti_ck);
-+}
-+
-+static void __sti_trace_enable(int event)
-+{
-+	u32 tmp;
-+
-+	tmp =3D sti_readl(STI_ER);
-+	tmp |=3D sti_kern_mask | event;
-+	sti_writel(tmp, STI_ER);
-+}
-+
-+int sti_trace_enable(int event)
-+{
-+	spin_lock_irq(&sti_lock);
-+	sti_kern_mask |=3D event;
-+	__sti_trace_enable(event);
-+	spin_unlock_irq(&sti_lock);
-+
++	omap_mcbsp_stop(AUDIO_MCBSP);
 +	return 0;
 +}
-+EXPORT_SYMBOL(sti_trace_enable);
 +
-+static void __sti_trace_disable(int event)
++static void omap_alsa_audio_init(struct snd_card_omap_codec *omap_alsa)
 +{
-+	u32 tmp;
++	/* Setup DMA stuff */
++	omap_alsa->s[SNDRV_PCM_STREAM_PLAYBACK].id = "Alsa AIC23 out";
++	omap_alsa->s[SNDRV_PCM_STREAM_PLAYBACK].stream_id =
++	    SNDRV_PCM_STREAM_PLAYBACK;
++	omap_alsa->s[SNDRV_PCM_STREAM_PLAYBACK].dma_dev =
++	    OMAP_DMA_MCBSP1_TX;
++	omap_alsa->s[SNDRV_PCM_STREAM_PLAYBACK].hw_start =
++	    audio_ifc_start;
++	omap_alsa->s[SNDRV_PCM_STREAM_PLAYBACK].hw_stop =
++	    audio_ifc_stop;
 +
-+	tmp =3D sti_readl(STI_DR);
-+	tmp |=3D event;
-+	tmp &=3D ~sti_kern_mask;
-+	sti_writel(tmp, STI_DR);
++	omap_alsa->s[SNDRV_PCM_STREAM_CAPTURE].id = "Alsa AIC23 in";
++	omap_alsa->s[SNDRV_PCM_STREAM_CAPTURE].stream_id =
++	    SNDRV_PCM_STREAM_CAPTURE;
++	omap_alsa->s[SNDRV_PCM_STREAM_CAPTURE].dma_dev =
++	    OMAP_DMA_MCBSP1_RX;
++	omap_alsa->s[SNDRV_PCM_STREAM_CAPTURE].hw_start =
++	    audio_ifc_start;
++	omap_alsa->s[SNDRV_PCM_STREAM_CAPTURE].hw_stop =
++	    audio_ifc_stop;
 +}
 +
-+void sti_trace_disable(int event)
++/* 
++ * DMA functions 
++ * Depends on omap-alsa-dma.c functions and (omap) dma.c
++ * 
++ */
++#define DMA_BUF_SIZE	1024 * 8
++
++static int audio_dma_request(struct audio_stream *s,
++			     void (*callback) (void *))
 +{
-+	spin_lock_irq(&sti_lock);
-+	sti_kern_mask &=3D ~event;
-+	__sti_trace_disable(event);
-+	spin_unlock_irq(&sti_lock);
-+}
-+EXPORT_SYMBOL(sti_trace_disable);
++	int err;
++	ADEBUG();
 +
-+static ssize_t
-+sti_trace_show(struct device *dev, struct device_attribute *attr, char *=
-buf)
-+{
-+	return sprintf(buf, "0x%08lx\n", sti_readl(STI_ER));
-+}
-+
-+static ssize_t
-+sti_trace_store(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	int evt =3D simple_strtoul(buf, NULL, 0);
-+	int mask =3D ~evt;
-+
-+	spin_lock_irq(&sti_lock);
-+	__sti_trace_disable(mask);
-+	__sti_trace_enable(evt);
-+	spin_unlock_irq(&sti_lock);
-+
-+	return count;
-+}
-+static DEVICE_ATTR(trace, S_IRUGO | S_IWUSR, sti_trace_show, sti_trace_s=
-tore);
-+
-+static ssize_t
-+sti_imask_show(struct device *dev, struct device_attribute *attr, char *=
-buf)
-+{
-+	return sprintf(buf, "0x%04lx\n", sti_irq_mask);
++	err = omap_request_sound_dma(s->dma_dev, s->id, s, &s->lch);
++	if (err < 0)
++		printk(KERN_ERR "unable to grab audio dma 0x%x\n",
++		       s->dma_dev);
++	return err;
 +}
 +
-+static ssize_t
-+sti_imask_store(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t count)
++static int audio_dma_free(struct audio_stream *s)
 +{
-+	spin_lock_irq(&sti_lock);
-+	sti_irq_mask =3D simple_strtoul(buf, NULL, 0);
-+	spin_unlock_irq(&sti_lock);
++	int err = 0;
++	ADEBUG();
 +
-+	return count;
++	err = omap_free_sound_dma(s, &s->lch);
++	if (err < 0)
++		printk(KERN_ERR "Unable to free audio dma channels!\n");
++	return err;
 +}
-+static DEVICE_ATTR(imask, S_IRUGO | S_IWUSR, sti_imask_show, sti_imask_s=
-tore);
 +
-+static int __devinit sti_probe(struct platform_device *pdev)
++/*
++ *  This function should calculate the current position of the dma in the
++ *  buffer. It will help alsa middle layer to continue update the buffer.
++ *  Its correctness is crucial for good functioning.
++ */
++static u_int audio_get_dma_pos(struct audio_stream *s)
 +{
-+	struct resource *res, *cres;
++	snd_pcm_substream_t *substream = s->stream;
++	snd_pcm_runtime_t *runtime = substream->runtime;
++	unsigned int offset;
++	unsigned long flags;
++	dma_addr_t count;
++	ADEBUG();
++
++	/* this must be called w/ interrupts locked as requested in dma.c */
++	spin_lock_irqsave(&s->dma_lock, flags);
++
++	/* For the current period let's see where we are */
++	count = omap_get_dma_src_addr_counter(s->lch[s->dma_q_head]);
++
++	spin_unlock_irqrestore(&s->dma_lock, flags);
++
++	/* Now, the position related to the end of that period */
++	offset = bytes_to_frames(runtime, s->offset) - bytes_to_frames(runtime, count);
++
++	if (offset >= runtime->buffer_size || offset < 0)
++		offset = 0;
++
++	return offset;
++}
++
++/*
++ * this stops the dma and clears the dma ptrs
++ */
++static void audio_stop_dma(struct audio_stream *s)
++{
++	unsigned long flags;
++	ADEBUG();
++
++	spin_lock_irqsave(&s->dma_lock, flags);
++	s->active = 0;
++	s->period = 0;
++	s->periods = 0;
++
++	/* this stops the dma channel and clears the buffer ptrs */
++	omap_audio_stop_dma(s);
++
++	omap_clear_sound_dma(s);
++
++	spin_unlock_irqrestore(&s->dma_lock, flags);
++}
++
++/*
++ *  Main dma routine, requests dma according where you are in main alsa buffer
++ */
++static void audio_process_dma(struct audio_stream *s)
++{
++	snd_pcm_substream_t *substream = s->stream;
++	snd_pcm_runtime_t *runtime;
++	unsigned int dma_size;
++	unsigned int offset;
 +	int ret;
++	ADEBUG();
 +
-+	if (pdev->num_resources !=3D 3) {
-+		dev_err(&pdev->dev, "invalid number of resources: %d\n",
-+			pdev->num_resources);
-+		return -ENODEV;
-+	}
-+
-+	/* STI base */
-+	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (unlikely(!res)) {
-+		dev_err(&pdev->dev, "invalid mem resource\n");
-+		return -ENODEV;
-+	}
-+
-+	/* Channel base */
-+	cres =3D platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	if (unlikely(!cres)) {
-+		dev_err(&pdev->dev, "invalid channel mem resource\n");
-+		return -ENODEV;
-+	}
-+
-+	ret =3D device_create_file(&pdev->dev, &dev_attr_trace);
-+	if (unlikely(ret !=3D 0))
-+		return ret;
-+
-+	ret =3D device_create_file(&pdev->dev, &dev_attr_imask);
-+	if (unlikely(ret !=3D 0))
-+		goto err;
-+
-+	sti_base =3D res->start;
-+
-+	/*
-+	 * OMAP 16xx keeps channels in a relatively sane location,
-+	 * whereas 24xx maps them much further out, and so they must be
-+	 * remapped.
-+	 */
-+	if (cpu_is_omap16xx())
-+		sti_channel_base =3D cres->start;
-+	else if (cpu_is_omap24xx()) {
-+		unsigned int size =3D cres->end - cres->start;
-+
-+		sti_channel_base =3D (unsigned long)ioremap(cres->start, size);
-+		if (unlikely(!sti_channel_base)) {
-+			ret =3D -ENODEV;
-+			goto err_badremap;
++	runtime = substream->runtime;
++	if (s->active) {
++		dma_size = frames_to_bytes(runtime, runtime->period_size);
++		offset = dma_size * s->period;
++		snd_assert(dma_size <= DMA_BUF_SIZE,);
++		ret =
++		    omap_start_sound_dma(s,
++					 (dma_addr_t) runtime->dma_area +
++					 offset, dma_size);
++		if (ret) {
++			printk(KERN_ERR
++			       "audio_process_dma: cannot queue DMA buffer (%i)\n",
++			       ret);
++			return;
 +		}
++
++		s->period++;
++		s->period %= runtime->periods;
++		s->periods++;
++		s->offset = offset;
 +	}
-+
-+	ret =3D request_irq(platform_get_irq(pdev, 0), sti_interrupt,
-+			  SA_INTERRUPT, "sti", NULL);
-+	if (unlikely(ret !=3D 0))
-+		goto err_badirq;
-+
-+	return sti_init();
-+
-+err_badirq:
-+	iounmap((void *)sti_channel_base);
-+err_badremap:
-+	device_remove_file(&pdev->dev, &dev_attr_imask);
-+err:
-+	device_remove_file(&pdev->dev, &dev_attr_trace);
-+
-+	return ret;
 +}
 +
-+static int __devexit sti_remove(struct platform_device *pdev)
++/* 
++ *  This is called when dma IRQ occurs at the end of each transmited block
++ */
++void audio_dma_callback(void *data)
 +{
-+	unsigned int irq =3D platform_get_irq(pdev, 0);
++	struct audio_stream *s = data;
++	ADEBUG();
 +
-+	if (cpu_is_omap24xx())
-+		iounmap((void *)sti_channel_base);
++	/* 
++	 * If we are getting a callback for an active stream then we inform
++	 * the PCM middle layer we've finished a period
++	 */
++	if (s->active)
++		snd_pcm_period_elapsed(s->stream);
 +
-+	device_remove_file(&pdev->dev, &dev_attr_trace);
-+	device_remove_file(&pdev->dev, &dev_attr_imask);
-+	free_irq(irq, NULL);
-+	sti_exit();
++	spin_lock(&s->dma_lock);
++	if (s->periods > 0) {
++		s->periods--;
++	}
++	audio_process_dma(s);
++	spin_unlock(&s->dma_lock);
++}
++
++
++/* 
++ * Alsa section
++ * PCM settings and callbacks
++ */
++
++static int snd_omap_alsa_trigger(snd_pcm_substream_t * substream, int cmd)
++{
++	struct snd_card_omap_codec *chip =
++	    snd_pcm_substream_chip(substream);
++	int stream_id = substream->pstr->stream;
++	struct audio_stream *s = &chip->s[stream_id];
++	int err = 0;
++	ADEBUG();
++
++	/* note local interrupts are already disabled in the midlevel code */
++	spin_lock(&s->dma_lock);
++	switch (cmd) {
++	case SNDRV_PCM_TRIGGER_START:
++		/* requested stream startup */
++		s->active = 1;
++		audio_process_dma(s);
++		break;
++	case SNDRV_PCM_TRIGGER_STOP:
++		/* requested stream shutdown */
++		audio_stop_dma(s);
++		break;
++	default:
++		err = -EINVAL;
++		break;
++	}
++	spin_unlock(&s->dma_lock);
++	
++	return err;
++}
++
++static int snd_omap_alsa_prepare(snd_pcm_substream_t * substream)
++{
++	struct snd_card_omap_codec *chip =
++	    snd_pcm_substream_chip(substream);
++	snd_pcm_runtime_t *runtime = substream->runtime;
++	struct audio_stream *s = &chip->s[substream->pstr->stream];
++	ADEBUG();
++
++	/* set requested samplerate */
++	pdata->codec_set_samplerate(runtime->rate, &rates[0]);
++	chip->samplerate = runtime->rate;
++
++	s->period = 0;
++	s->periods = 0;
 +
 +	return 0;
 +}
 +
-+static struct platform_driver sti_driver =3D {
-+	.probe		=3D sti_probe,
-+	.remove		=3D __devexit_p(sti_remove),
-+	.driver		=3D {
-+		.name	=3D "sti",
-+		.owner	=3D THIS_MODULE,
++static snd_pcm_uframes_t snd_omap_alsa_pointer(snd_pcm_substream_t *
++						substream)
++{
++	ADEBUG();
++	struct snd_card_omap_codec *chip =
++	    snd_pcm_substream_chip(substream);
++	
++	return audio_get_dma_pos(&chip->s[substream->pstr->stream]);
++}
++
++/* Hardware capabilities */
++
++static snd_pcm_hardware_t snd_omap_alsa_capture = {
++	.info = (SNDRV_PCM_INFO_INTERLEAVED | SNDRV_PCM_INFO_BLOCK_TRANSFER |
++		 SNDRV_PCM_INFO_MMAP | SNDRV_PCM_INFO_MMAP_VALID),
++	.formats = (SNDRV_PCM_FMTBIT_S16_LE),
++	.rates = (SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_16000 |
++		  SNDRV_PCM_RATE_22050 | SNDRV_PCM_RATE_32000 |
++		  SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000 |
++		  SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 |
++		  SNDRV_PCM_RATE_KNOT),
++	.rate_min = 8000,
++	.rate_max = 96000,
++	.channels_min = 2,
++	.channels_max = 2,
++	.buffer_bytes_max = 128 * 1024,
++	.period_bytes_min = 32,
++	.period_bytes_max = 8 * 1024,
++	.periods_min = 16,
++	.periods_max = 255,
++	.fifo_size = 0,
++};
++
++static snd_pcm_hardware_t snd_omap_alsa_playback = {
++	.info = (SNDRV_PCM_INFO_INTERLEAVED | SNDRV_PCM_INFO_BLOCK_TRANSFER |
++		 SNDRV_PCM_INFO_MMAP | SNDRV_PCM_INFO_MMAP_VALID),	
++	.formats = (SNDRV_PCM_FMTBIT_S16_LE),
++	.rates = (SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_16000 |
++		  SNDRV_PCM_RATE_22050 | SNDRV_PCM_RATE_32000 |
++		  SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000 |
++		  SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 |
++		  SNDRV_PCM_RATE_KNOT),
++	.rate_min = 8000,
++	.rate_max = 96000,
++	.channels_min = 2,
++	.channels_max = 2,
++	.buffer_bytes_max = 128 * 1024,
++	.period_bytes_min = 32,
++	.period_bytes_max = 8 * 1024,
++	.periods_min = 16,
++	.periods_max = 255,
++	.fifo_size = 0,
++};
++
++static int snd_card_omap_alsa_open(snd_pcm_substream_t * substream)
++{
++	struct snd_card_omap_codec *chip =
++	    snd_pcm_substream_chip(substream);
++	snd_pcm_runtime_t *runtime = substream->runtime;
++	int stream_id = substream->pstr->stream;
++	int err;
++	ADEBUG();
++
++	chip->s[stream_id].stream = substream;
++	
++	pdata->codec_clock_on();
++	
++	if (stream_id == SNDRV_PCM_STREAM_PLAYBACK)
++		runtime->hw = snd_omap_alsa_playback;
++	else
++		runtime->hw = snd_omap_alsa_capture;
++	if ((err =
++	     snd_pcm_hw_constraint_integer(runtime,
++					   SNDRV_PCM_HW_PARAM_PERIODS)) <
++	    0)
++		return err;
++	if ((err =
++	     snd_pcm_hw_constraint_list(runtime, 0,
++					SNDRV_PCM_HW_PARAM_RATE,
++					&hw_constraints_rates)) < 0)
++		return err;
++
++	return 0;
++}
++
++static int snd_card_omap_alsa_close(snd_pcm_substream_t * substream)
++{
++	struct snd_card_omap_codec *chip =
++	    snd_pcm_substream_chip(substream);
++	ADEBUG();
++	
++	pdata->codec_clock_off();
++	chip->s[substream->pstr->stream].stream = NULL;
++	
++	return 0;
++}
++
++/* HW params & free */
++
++static int snd_omap_alsa_hw_params(snd_pcm_substream_t * substream,
++				    snd_pcm_hw_params_t * hw_params)
++{
++	return snd_pcm_lib_malloc_pages(substream,
++					params_buffer_bytes(hw_params));
++}
++
++static int snd_omap_alsa_hw_free(snd_pcm_substream_t * substream)
++{
++	return snd_pcm_lib_free_pages(substream);
++}
++
++/* pcm operations */
++
++static snd_pcm_ops_t snd_card_omap_alsa_playback_ops = {
++	.open =		snd_card_omap_alsa_open,
++	.close =	snd_card_omap_alsa_close,
++	.ioctl =	snd_pcm_lib_ioctl,
++	.hw_params =	snd_omap_alsa_hw_params,
++	.hw_free =	snd_omap_alsa_hw_free,
++	.prepare =	snd_omap_alsa_prepare,
++	.trigger =	snd_omap_alsa_trigger,
++	.pointer =	snd_omap_alsa_pointer,
++};
++
++static snd_pcm_ops_t snd_card_omap_alsa_capture_ops = {
++	.open =		snd_card_omap_alsa_open,
++	.close =	snd_card_omap_alsa_close,
++	.ioctl =	snd_pcm_lib_ioctl,
++	.hw_params =	snd_omap_alsa_hw_params,
++	.hw_free =	snd_omap_alsa_hw_free,
++	.prepare =	snd_omap_alsa_prepare,
++	.trigger =	snd_omap_alsa_trigger,
++	.pointer =	snd_omap_alsa_pointer,
++};
++
++/*
++ *  Alsa init and exit section
++ *  
++ *  Inits pcm alsa structures, allocate the alsa buffer, suspend, resume
++ */
++static int __init snd_card_omap_alsa_pcm(struct snd_card_omap_codec
++					  *omap_alsa, int device)
++{
++	snd_pcm_t *pcm;
++	int err;
++	ADEBUG();
++
++	if ((err =
++	     snd_pcm_new(omap_alsa->card, "AIC23 PCM", device, 1, 1,
++			 &pcm)) < 0)
++		return err;
++
++	/* sets up initial buffer with continuous allocation */
++	snd_pcm_lib_preallocate_pages_for_all(pcm,
++					      SNDRV_DMA_TYPE_CONTINUOUS,
++					      snd_dma_continuous_data
++					      (GFP_KERNEL),
++					      128 * 1024, 128 * 1024);
++
++	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK,
++			&snd_card_omap_alsa_playback_ops);
++	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE,
++			&snd_card_omap_alsa_capture_ops);
++	pcm->private_data = omap_alsa;
++	pcm->info_flags = 0;
++	strcpy(pcm->name, "omap aic23 pcm");
++
++	omap_alsa_audio_init(omap_alsa);
++
++	/* setup DMA controller */
++	audio_dma_request(&omap_alsa->s[SNDRV_PCM_STREAM_PLAYBACK],
++			  audio_dma_callback);
++	audio_dma_request(&omap_alsa->s[SNDRV_PCM_STREAM_CAPTURE],
++			  audio_dma_callback);
++
++	omap_alsa->pcm = pcm;
++
++	return 0;
++}
++
++
++#ifdef CONFIG_PM
++
++static int snd_omap_alsa_suspend(snd_card_t * card, pm_message_t state)
++{
++	struct snd_card_omap_codec *chip = card->private_data;
++	ADEBUG();
++
++	if (chip->card->power_state != SNDRV_CTL_POWER_D3hot) {
++		snd_power_change_state(chip->card, SNDRV_CTL_POWER_D3hot);
++		snd_pcm_suspend_all(chip->pcm);
++		/* Mutes and turn clock off */
++		pdata->codec_clock_off();
++		snd_omap_suspend_mixer();
++	}
++
++	return 0;
++}
++
++/*
++ *  Prepare hardware for resume
++ */
++static int snd_omap_alsa_resume(snd_card_t * card)
++{
++	struct snd_card_omap_codec *chip = card->private_data;
++	ADEBUG();
++	
++	if (chip->card->power_state != SNDRV_CTL_POWER_D0) {
++		snd_power_change_state(chip->card, SNDRV_CTL_POWER_D0);
++		pdata->codec_clock_on();
++		snd_omap_resume_mixer();
++	}
++
++	return 0;
++}
++
++/*
++ * Driver suspend/resume - calls alsa functions. Some hints from aaci.c
++ */
++static int omap_alsa_suspend(struct platform_device *pdev, pm_message_t state)
++{
++	snd_card_t *card = platform_get_drvdata(pdev);
++	
++	if (card->power_state != SNDRV_CTL_POWER_D3hot) {
++		snd_omap_alsa_suspend(card, PMSG_SUSPEND);
++	}
++	return 0;
++}
++
++static int omap_alsa_resume(struct platform_device *pdev)
++{
++	snd_card_t *card = platform_get_drvdata(pdev);
++
++	if (card->power_state != SNDRV_CTL_POWER_D0) {
++		snd_omap_alsa_resume(card);
++	}
++	return 0;
++}
++
++#else
++#define snd_omap_alsa_suspend	NULL
++#define snd_omap_alsa_resume	NULL
++#define omap_alsa_suspend	NULL
++#define omap_alsa_resume	NULL
++
++#endif	/* CONFIG_PM */
++
++/* 
++ */
++void snd_omap_alsa_free(snd_card_t * card)
++{
++	struct snd_card_omap_codec *chip = card->private_data;
++	ADEBUG();
++	
++	/*
++	 * Turn off codec after it is done.
++	 * Can't do it immediately, since it may still have
++	 * buffered data.
++	 */
++	set_current_state(TASK_INTERRUPTIBLE);
++	schedule_timeout(2);
++
++	omap_mcbsp_stop(AUDIO_MCBSP);
++	omap_mcbsp_free(AUDIO_MCBSP);
++
++	//audio_aic23_write(RESET_CONTROL_ADDR, 0);
++	//audio_aic23_write(POWER_DOWN_CONTROL_ADDR, 0xff);
++
++	audio_dma_free(&chip->s[SNDRV_PCM_STREAM_PLAYBACK]);
++	audio_dma_free(&chip->s[SNDRV_PCM_STREAM_CAPTURE]);
++}
++
++/* module init & exit */
++
++/* 
++ *  Inits alsa soudcard structure
++ */
++static int __init snd_omap_alsa_probe(struct platform_device *pdev)
++{
++	int err = 0;
++	snd_card_t *card;
++	ADEBUG();
++
++	pdata = pdev->dev.platform_data;
++
++	if (pdata == NULL) {
++		err = -ENODEV;
++		goto nodev1;
++	}
++	
++	pdata->codec_clock_setup();
++	pdata->codec_clock_on(); 
++
++	omap_mcbsp_request(AUDIO_MCBSP);
++	omap_mcbsp_stop(AUDIO_MCBSP);
++	omap_mcbsp_config(AUDIO_MCBSP, &pdata->mcbsp_regs);
++	omap_mcbsp_start(AUDIO_MCBSP);
++	
++	if (pdata && pdata->codec_configure_dev) {
++		pdata->codec_configure_dev();
++	}
++
++	pdata->codec_clock_off(); 
++
++	/* register the soundcard */
++	card = snd_card_new(-1, id, THIS_MODULE, sizeof(omap_alsa));
++	if (card == NULL)
++		goto nodev2;
++
++	omap_alsa = kcalloc(1, sizeof(*omap_alsa), GFP_KERNEL);
++	if (omap_alsa == NULL)
++		goto nodev3;
++
++	card->private_data = (void *) omap_alsa;
++	card->private_free = snd_omap_alsa_free;
++
++	omap_alsa->card = card;
++	omap_alsa->samplerate = AUDIO_RATE_DEFAULT;
++
++	spin_lock_init(&omap_alsa->s[0].dma_lock);
++	spin_lock_init(&omap_alsa->s[1].dma_lock);
++
++	/* mixer */
++	//if ((err = snd_omap_mixer(omap_alsa)) < 0) 
++	//	goto nodev4;
++
++	/* PCM */
++	if ((err = snd_card_omap_alsa_pcm(omap_alsa, 0)) < 0)
++		goto nodev4;
++
++	//snd_card_set_pm_callback(card, snd_omap_alsa_suspend,
++	//			 snd_omap_alsa_resume, omap_alsa);
++
++	strcpy(card->driver, "AIC23");
++	strcpy(card->shortname, "OSK AIC23");
++	sprintf(card->longname, "OMAP OSK with AIC23");
++
++	//snd_omap_init_mixer(pdata);
++
++	snd_card_set_dev(card, &pdev->dev);
++	
++	if ((err = snd_card_register(card)) == 0) {
++		printk(KERN_INFO "OSK audio support initialized\n");
++		platform_set_drvdata(pdev, card);
++		return 0;
++	}
++	
++	
++nodev4:
++	kfree(omap_alsa);	
++nodev3:	
++	snd_card_free(card);
++nodev2:
++	omap_mcbsp_stop(AUDIO_MCBSP);
++	omap_mcbsp_free(AUDIO_MCBSP);
++nodev1:	
++	return err;
++}
++
++static int snd_omap_alsa_remove(struct platform_device *pdev)
++{
++	snd_card_t *card = platform_get_drvdata(pdev);
++	struct snd_card_omap_codec *chip = card->private_data;
++	
++	snd_card_free(card);
++
++	omap_alsa = NULL;
++	card->private_data = NULL;
++	kfree(chip);
++	
++	platform_set_drvdata(pdev, NULL);
++	
++	return 0;
++	
++}
++
++static struct platform_driver omap_alsa_driver = {
++	.probe =	snd_omap_alsa_probe,
++	.remove =	snd_omap_alsa_remove,
++	.suspend =	omap_alsa_suspend, 
++	.resume =	omap_alsa_resume, 
++	.driver = {
++		.name =	"omap_mcbsp",
 +	},
 +};
 +
-+static int __init sti_module_init(void)
++static int __init omap_alsa_init(void)
 +{
-+	return platform_driver_register(&sti_driver);
++	int err;
++	ADEBUG();
++
++	err = platform_driver_register(&omap_alsa_driver);
++
++	return err;
 +}
 +
-+static void __exit sti_module_exit(void)
++static void __exit omap_alsa_exit(void)
 +{
-+	platform_driver_unregister(&sti_driver);
++	ADEBUG();
++	
++	platform_driver_unregister(&omap_alsa_driver);
 +}
-+subsys_initcall(sti_module_init);
-+module_exit(sti_module_exit);
 +
-+MODULE_AUTHOR("Paul Mundt, Juha Yrj=F6l=E4, Roman Tereshonkov");
-+MODULE_LICENSE("GPL");
-diff --git a/include/asm-arm/arch-omap/sti.h b/include/asm-arm/arch-omap/=
-sti.h
++module_init(omap_alsa_init);
++module_exit(omap_alsa_exit);
++
+diff --git a/sound/arm/omap-alsa.h b/sound/arm/omap-alsa.h
 new file mode 100644
-index 0000000..f42f6e5
+index 0000000..7867736
 --- /dev/null
-+++ b/include/asm-arm/arch-omap/sti.h
-@@ -0,0 +1,159 @@
-+#ifndef __ASM_ARCH_OMAP_STI_H
-+#define __ASM_ARCH_OMAP_STI_H
-+
-+#include <asm/io.h>
++++ b/sound/arm/omap-alsa.h
+@@ -0,0 +1,16 @@
 +
 +/*
-+ * STI/XTI
++ * struct that contais codec audio control values and registers address
++ *  to handle them (used by mixer)
 + */
-+#define STI_REVISION		0x00
-+#define STI_SYSCONFIG		0x10
-+#define STI_SYSSTATUS		0x14
-+#define STI_IRQSTATUS		0x18
-+#define STI_IRQSETEN		0x1c
-+
-+#if defined(CONFIG_ARCH_OMAP1)
-+#define STI_IRQCLREN		0x20
-+#define STI_ER			0x24
-+#define STI_DR			0x28
-+#define STI_RX_STATUS		0x30
-+#define STI_CLK_CTRL		0x34
-+#define STI_IOBOTT0		0x4c
-+#define STI_IOTOP0		0x50
-+#define STI_IOBOTT1		0x54
-+#define STI_IOTOP1		0x58
-+#define STI_SERIAL_CFG		0x60
-+
-+#define STI_OCPT2_MATCH_INT	0
-+#define STI_OCPT1_MATCH_INT	1
-+#define STI_EMIFS_MATCH_INT	2
-+#define STI_EMIFF_MATCH_INT	3
-+#define STI_IO_MATCH_INT	4
-+#define STI_RX_INT		5
-+#define STI_DUMP_REQUEST_INT	6
-+#define STI_DUMP_UNDERRUN_INT	7
-+#define STI_WAKEUP_INT		9
-+
-+#define STI_NR_IRQS	10
-+
-+#define STI_IRQSTATUS_MASK	0x2ff
-+#define STI_PERCHANNEL_SIZE	4
-+
-+#define STI_RXFIFO_EMPTY	(1 << 0)
-+
-+/*
-+ * We use the following enums to retain consistency with the STI "functi=
-onal"
-+ * specification.
-+ */
-+
-+/* STI_ER */
-+enum {
-+	UnlockStatMatch	=3D (1 <<  2), /* Unlock status match event regs */
-+	IOMPUStr1En1	=3D (1 <<  3), /* MPU IO match, strobe 1, window 1 */
-+	IOMPUStr0En1	=3D (1 <<  4), /* MPU IO match, strobe 0, window 1 */
-+	IOMPUStr1En0	=3D (1 <<  5), /* MPU IO match, strobe 1, window 0 */
-+	IOMPUStr0En0	=3D (1 <<  6), /* MPU IO match, strobe 0, window 0 */
-+	IODSPStr1En1	=3D (1 <<  7), /* DSP IO match, strobe 1, window 1 */
-+	IODSPStr0En1	=3D (1 <<  8), /* DSP IO match, strobe 0, window 1 */
-+	IODSPStr1En0	=3D (1 <<  9), /* DSP IO match, strobe 1, window 0 */
-+	IODSPStr0En0	=3D (1 << 10), /* DSP IO match, strobe 0, window 0 */
-+	MemMatchEn	=3D (1 << 11), /* Memory matched event */
-+	DSPCmdEn	=3D (1 << 12), /* DSP command write */
-+	MPUCmdEn	=3D (1 << 13), /* MPU command write */
-+	MemDumpEn	=3D (1 << 14), /* System memory dump */
-+	STIEn		=3D (1 << 15), /* Global trace enable */
-+};
-+#elif defined(CONFIG_ARCH_OMAP2)
-+
-+/* XTI interrupt bits */
-+enum {
-+	STI_WAKEUP_INT	=3D 0,
-+	STI_ETB_THRESHOLD_INT,
-+	STI_RX_INT,
-+	STI_DUMP_REQUEST_INT,
-+	STI_NR_IRQS,
-+};
-+
-+/* XTI_TRACESELECT */
-+enum {
-+	CmdTimeStampEn	=3D (1 << 0),	/* Command write timestamps */
-+	WinTimeStampEn	=3D (1 << 1),	/* Window match timestamps */
-+	WinMatchEn	=3D (1 << 2),	/* Window match trace */
-+	DSPCmdEn	=3D (1 << 3),	/* DSP command write */
-+	MPUCmdEn	=3D (1 << 4),	/* MPU command write */
-+	MemDumpEn0	=3D (1 << 5),	/* System memory dump */
-+	MemDumpEn1	=3D (1 << 6),
-+	MemDumpEn2	=3D (1 << 7),
-+	ExtTriggerEn	=3D (1 << 8),	/* External trace trigger */
-+	STIEn		=3D (1 << 9),	/* System trace enable */
-+};
-+
-+#define STI_IRQSTATUS_MASK	0x0f
-+#define STI_PERCHANNEL_SIZE	64
-+
-+/* XTI registers */
-+#define XTI_SYSSTATUS		0x14
-+#define XTI_TRACESELECT		0x24
-+#define XTI_RXDATA		0x28
-+#define XTI_SCLKCRTL		0x2c
-+#define XTI_SCONFIG		0x30
-+
-+/* STI Compatability */
-+#define STI_RX_STATUS		XTI_SYSSTATUS
-+#define STI_IRQCLREN		STI_IRQSETEN
-+#define STI_ER			XTI_TRACESELECT
-+#define STI_DR			XTI_RXDATA
-+#define STI_CLK_CTRL		XTI_SCLKCRTL
-+#define STI_SERIAL_CFG		XTI_SCONFIG
-+
-+#define STI_RXFIFO_EMPTY	(1 << 8)
-+
-+#endif
-+
-+/* arch/arm/plat-omap/sti/sti.c */
-+extern unsigned long sti_base, sti_channel_base;
-+
-+int sti_request_irq(unsigned int irq, void *handler, unsigned long arg);
-+void sti_free_irq(unsigned int irq);
-+void sti_enable_irq(unsigned int irq);
-+void sti_disable_irq(unsigned int irq);
-+void sti_ack_irq(unsigned int irq);
-+
-+int sti_trace_enable(int event);
-+void sti_trace_disable(int event);
-+
-+void sti_channel_write_trace(int len, int id, void *data, unsigned int c=
-hannel);
-+
-+/* arch/arm/plat-omap/sti/sti-fifo.c */
-+int sti_read_packet(unsigned char *buf, int maxsize);
-+
-+static inline unsigned long sti_readl(unsigned long reg)
-+{
-+	return __raw_readl(sti_base + reg);
-+}
-+
-+static inline void sti_writel(unsigned long data, unsigned long reg)
-+{
-+	__raw_writel(data, sti_base + reg);
-+}
-+
-+#define to_channel_address(channel) \
-+	(sti_channel_base + STI_PERCHANNEL_SIZE * (channel))
-+
-+static inline void sti_channel_writeb(unsigned char data, unsigned int c=
-hannel)
-+{
-+	__raw_writeb(data, to_channel_address(channel));
-+}
-+
-+static inline void sti_channel_writel(unsigned long data, unsigned int c=
-hannel)
-+{
-+	__raw_writel(data, to_channel_address(channel));
-+}
-+
-+#define STI_TRACE_CONTROL_CHANNEL	253
-+
-+static inline void sti_channel_flush(unsigned int channel)
-+{
-+	sti_channel_writeb(channel, STI_TRACE_CONTROL_CHANNEL);
-+}
-+#endif /* __ASM_ARCH_OMAP_STI_H */
++struct codec_controls {
++	u16	left_vol_output;
++	u16	right_vol_output;
++	u16	left_line_input;
++	u16	right_line_input;
++	u8	left_vol_address;
++	u8	right_vol_address;
++	u8	left_line_address;
++	u8	right_line_address;
++	u16 	mic_input;
++} ;
+
+
+------=_Part_5896_12779150.1139263275047
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+------=_Part_5896_12779150.1139263275047--
