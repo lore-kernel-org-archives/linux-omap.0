@@ -1,13 +1,10 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: OMAPFB_FILLRECT and friends
-Date: Tue, 7 Feb 2006 10:34:34 -0600
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A504365541@dlee02.ent.ti.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: [PATCH] Convert drivers to new irq trigger modes
+Date: Tue, 07 Feb 2006 18:32:58 +0100
+Message-ID: <43E8D9CA.8000204@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="------------030501010004030508030503"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,86 +14,216 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Paul Mundt <paul.mundt@nokia.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------030501010004030508030503
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hi Paul,
 
-> On Tue, Feb 07, 2006 at 07:57:44AM -0600, Woodruff, Richard wrote:
-> > > I've made the measurements on OMAP1610/1710 platforms. What I
-wanted
-> > > to see is that using the DMA will indeed offload the MPU. In
-reality
-> > > the MPU was practically stalled, I assume because of SDRAM or
-system
-> > > bandwidth limitation and the fact the we have a cache flush
-between
-> > > context switches.
-> >
-> > 2420 and 2430 have much greater bandwidth though the L3
-interconnects to
-> > the DDR (16/17xx < 2420 < 2430 in this regard).  And v6 doesn't
-flush
-> > caches nearly as much so many of these effects are gone.
-> >
-> That's irrelevant in the DMA case, since there's no snooping logic and
-we
-> have the write-back or invalidate depending on direction anyways. It's
-> certainly not as frequent as every context switch, but it's still
-going
-> to have an impact on performance.
+ARM: OMAP: Convert drivers to new irq trigger modes.
 
-What is the mapping of the buffers in question?  It seems the mmap done
-in fbmem.c will mark things as non-cached and at best for ARM write
-combining.
+New way to handle irq trigger mode is to pass it as flag to
+request_irq()  instead of using special ARM function
+set_irq_mode().
 
-DMA maintenance may or may not include cache flushing.  Depending on
-what attributes the buffer is allocated with.  In the case of video it
-is not cached in the general case.  Or are you referring to another
-mechanism?
+Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
 
-Having the ARM PIO to strongly ordered memory on a v6 will completely
-stop the pipelines and uses a lot of logic to move data where it
-probably can be done more efficiently with a tiny by logic comparison
-DMA engine.  Having the ARM in a WFI is far better than having it do PIO
-from a power perspective.
+--------------030501010004030508030503
+Content-Type: text/x-patch;
+ name="new_irq_model.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="new_irq_model.patch"
 
-> If the MPU ends up stalling anyways, then offloading to DMA is
-pointless,
-> since the offload doesn't really buy you anything, not to mention the
-> higher cost of setting up the DMA in the first place.
+--- ./drivers/i2c/chips/isp1301_omap.c_orig	2006-02-07 17:34:40.000000000 +0100
++++ ./drivers/i2c/chips/isp1301_omap.c	2006-02-07 18:03:24.000000000 +0100
+@@ -60,6 +60,7 @@ struct isp1301 {
+ 	void			(*i2c_release)(struct device *dev);
+ 
+ 	int			irq;
++	int			irq_type;
+ 
+ 	u32			last_otg_ctrl;
+ 	unsigned		working:1;
+@@ -1526,6 +1527,7 @@ static int isp1301_probe(struct i2c_adap
+ 	isp->timer.data = (unsigned long) isp;
+ 
+ 	isp->irq = -1;
++	isp->irq_type = SA_SAMPLE_RANDOM;
+ 	isp->client.addr = address;
+ 	i2c_set_clientdata(&isp->client, isp);
+ 	isp->client.adapter = bus;
+@@ -1602,7 +1604,7 @@ fail1:
+ 		isp->irq = OMAP_GPIO_IRQ(2);
+ 		omap_request_gpio(2);
+ 		omap_set_gpio_direction(2, 1);
+-		set_irq_type(isp->irq, IRQT_FALLING);
++		isp->irq_type = SA_TRIGGER_FALLING;
+ 	}
+ 
+ 	if (machine_is_omap_h3()) {
+@@ -1611,11 +1613,11 @@ fail1:
+ 		isp->irq = OMAP_GPIO_IRQ(14);
+ 		omap_request_gpio(14);
+ 		omap_set_gpio_direction(14, 1);
+-		set_irq_type(isp->irq, IRQT_FALLING);
++		isp->irq_type = SA_TRIGGER_FALLING;
+ 	}
+ 
+ 	status = request_irq(isp->irq, isp1301_irq,
+-			SA_SAMPLE_RANDOM, DRIVER_NAME, isp);
++			isp->irq_type, DRIVER_NAME, isp);
+ 	if (status < 0) {
+ 		dev_dbg(&i2c->dev, "can't get IRQ %d, err %d\n",
+ 				isp->irq, status);
+--- ./drivers/i2c/chips/tps65010.c_orig	2006-02-07 17:48:49.000000000 +0100
++++ ./drivers/i2c/chips/tps65010.c	2006-02-07 17:52:58.000000000 +0100
+@@ -87,6 +87,7 @@ struct tps65010 {
+ 	struct i2c_client	client;
+ 	struct semaphore	lock;
+ 	int			irq;
++	int			irq_type;
+ 	struct work_struct	work;
+ 	struct dentry		*file;
+ 	unsigned		charging:1;
+@@ -526,6 +527,8 @@ fail1:
+ 		return 0;
+ 	}
+ 
++	tps->irq_type = SA_SAMPLE_RANDOM;
++
+ #ifdef	CONFIG_ARM
+ 	if (machine_is_omap_h2()) {
+ 		tps->model = TPS65010;
+@@ -533,7 +536,7 @@ fail1:
+ 		tps->irq = OMAP_GPIO_IRQ(58);
+ 		omap_request_gpio(58);
+ 		omap_set_gpio_direction(58, 1);
+-		set_irq_type(tps->irq, IRQT_FALLING);
++		tps->irq_type = SA_TRIGGER_FALLING;
+ 	}
+ 	if (machine_is_omap_osk()) {
+ 		tps->model = TPS65010;
+@@ -541,21 +544,18 @@ fail1:
+ 		tps->irq = OMAP_GPIO_IRQ(OMAP_MPUIO(1));
+ 		omap_request_gpio(OMAP_MPUIO(1));
+ 		omap_set_gpio_direction(OMAP_MPUIO(1), 1);
+-		set_irq_type(tps->irq, IRQT_FALLING);
++		tps->irq_type = SA_TRIGGER_FALLING;
+ 	}
+ 	if (machine_is_omap_h3()) {
+ 		tps->model = TPS65013;
+ 
+ 		// FIXME set up this board's IRQ ...
+ 	}
+-#else
+-#define set_irq_type(num,trigger)	do{}while(0)
+ #endif
+ 
+ 	if (tps->irq > 0) {
+-		set_irq_type(tps->irq, IRQT_LOW);
+ 		status = request_irq(tps->irq, tps65010_irq,
+-			SA_SAMPLE_RANDOM, DRIVER_NAME, tps);
++			 tps->irq_type, DRIVER_NAME, tps);
+ 		if (status < 0) {
+ 			dev_dbg(&tps->client.dev, "can't get IRQ %d, err %d\n",
+ 					tps->irq, status);
+--- ./drivers/mmc/omap.c_orig	2006-02-07 17:27:38.000000000 +0100
++++ ./drivers/mmc/omap.c	2006-02-07 17:30:27.000000000 +0100
+@@ -1262,9 +1262,8 @@ static int __init mmc_omap_probe(struct 
+ 		}
+ 
+ 		omap_set_gpio_direction(host->switch_pin, 1);
+-		set_irq_type(OMAP_GPIO_IRQ(host->switch_pin), IRQT_RISING);
+ 		ret = request_irq(OMAP_GPIO_IRQ(host->switch_pin),
+-				  mmc_omap_switch_irq, 0, DRIVER_NAME, host);
++				  mmc_omap_switch_irq, SA_TRIGGER_RISING, DRIVER_NAME, host);
+ 		if (ret) {
+ 			printk(KERN_WARNING "MMC%d: Unable to get IRQ for MMC cover switch\n",
+ 			       host->id);
+--- ./drivers/input/touchscreen/omap/omap_ts.c_orig	2006-02-07 17:44:24.000000000 +0100
++++ ./drivers/input/touchscreen/omap/omap_ts.c	2006-02-07 17:45:02.000000000 +0100
+@@ -162,7 +162,7 @@ static int __init omap_ts_probe(struct p
+ 
+ 	/* request irq */
+ 	if (ts_omap.irq != -1) {
+-		if (request_irq(ts_omap.irq, omap_ts_handler, 0,
++		if (request_irq(ts_omap.irq, omap_ts_handler, ts_omap.irq_type,
+ 				OMAP_TS_NAME, &ts_omap)) {
+ 			printk(KERN_ERR
+ 	  "omap_ts.c: Could not allocate touchscreen IRQ!\n");
+--- ./drivers/input/touchscreen/omap/omap_ts.h_orig	2006-02-07 17:44:11.000000000 +0100
++++ ./drivers/input/touchscreen/omap/omap_ts.h	2006-02-07 17:45:28.000000000 +0100
+@@ -46,6 +46,7 @@ struct omap_ts_t{
+ 	struct timer_list ts_timer;      // Timer for triggering acquisitions
+ 	int touched;
+ 	int irq;
++	int irq_type;
+ 	int irq_enabled;
+ 	struct ts_device *dev;
+ 	spinlock_t lock;
+--- ./drivers/input/touchscreen/omap/ts_hx.c_orig	2006-02-07 17:43:20.000000000 +0100
++++ ./drivers/input/touchscreen/omap/ts_hx.c	2006-02-07 17:47:17.000000000 +0100
+@@ -98,7 +98,7 @@ static int __init hx_ts_probe(struct oma
+ 	};
+ 
+ 	omap_set_gpio_direction(gpio, 1);
+-	set_irq_type(ts->irq, IRQT_FALLING);
++	ts->irq_type = SA_TRIGGER_FALLING;
+ 	return 0;
+ }
+ 
+--- ./drivers/input/touchscreen/omap/ts_osk.c_orig	2006-02-07 17:43:43.000000000 +0100
++++ ./drivers/input/touchscreen/omap/ts_osk.c	2006-02-07 17:46:40.000000000 +0100
+@@ -91,7 +91,7 @@ static int  __init osk_ts_probe(struct o
+         omap_cfg_reg(P20_1610_GPIO4);
+ 	omap_request_gpio(4);
+ 	omap_set_gpio_direction(4, 1);
+-	set_irq_type(OMAP_GPIO_IRQ(4), IRQT_FALLING);
++	ts->irq_type = SA_TRIGGER_FALLING;
+ 
+ 	ts->irq = PEN_IRQ;
+ 
+--- ./drivers/input/touchscreen/omap/ts_inn1510.c_orig	2006-02-07 17:43:33.000000000 +0100
++++ ./drivers/input/touchscreen/omap/ts_inn1510.c	2006-02-07 17:53:40.000000000 +0100
+@@ -176,6 +176,7 @@ static int __init inn1510_ts_probe(struc
+ 		return -ENODEV;
+ 
+ 	ts->irq = OMAP1510_INT_FPGA_TS;
++	ts->irq_type = SA_SAMPLE_RANDOM;
+ 	
+ 	return 0;
+ }
+--- ./drivers/input/keyboard/omap-keypad.c_orig	2006-02-07 17:32:10.000000000 +0100
++++ ./drivers/input/keyboard/omap-keypad.c	2006-02-07 17:33:32.000000000 +0100
+@@ -365,10 +365,9 @@ static int __init omap_kp_probe(struct p
+ 		omap_writew(0, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
+ 	} else {
+ 		for (i = 0; i < omap_kp->rows; i++) {
+-			if (request_irq(OMAP_GPIO_IRQ(row_gpios[i]), omap_kp_interrupt, 0,
+-						"omap-keypad", omap_kp) < 0)
++			if (request_irq(OMAP_GPIO_IRQ(row_gpios[i]), omap_kp_interrupt, 
++					SA_TRIGGER_FALLING, "omap-keypad", omap_kp) < 0)
+ 				return -EINVAL;
+-			set_irq_type(OMAP_GPIO_IRQ(row_gpios[i]), IRQT_FALLING);
+ 		}
+ 	}
+ 
 
-I think I'm missing something here.  Why is the MPU stalling here, isn't
-there other work for it to do?  Why should it be dependency locked on
-some graphics operation?  While the DMA is on going the CPU should be
-off doing other work and get an async notification by the completion of
-the event.  If there is nothing else for it to do, then fine it can be
-stuck in idle.  Having the ability to other work is what matters.
 
-When I think of stalling, I guess I look the micro architecture pipeline
-level and then right up to the macro idle loop.  The micro level doesn't
-seem to apply here but the loop does.
 
-> Unless it's a clear win from a performance point of view, it's not
-> obvious that having the added complexity of the code in the driver is
-a
-> worthwhile tradeoff. The numbers provided by Imre don't indicate that
-DMA
-> is a significant win, if you have some that show otherwise, it'd be
-> interesting to see your test cases, and effect they have on MPU
-stalling.
 
-Measurements we take are used for internal comparisons and regression.
-Releasing them requires several administrative actions which imply
-overhead and at minimum re-running tests.  It is very likely that
-customers can request such data triggering work, but it is something we
-are not set up to release at present.
 
-I agree that if you are talking about a couple of bytes the overhead for
-a DMA may be more that it is worth.  But if you are talking about a
-large block copy then it would seem DMA would be better.
 
-Regards,
-Richard W.
+
+--------------030501010004030508030503
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--------------030501010004030508030503--
