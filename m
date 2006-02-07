@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: omap clock.h question
-Date: Tue, 7 Feb 2006 15:12:33 -0800
-Message-ID: <20060207231233.GI27148@atomide.com>
-References: <EA12F909C0431D458B9D18A176BEE4A504365C2E@dlee02.ent.ti.com>
+Subject: Re: [PATCH] Convert drivers to new irq trigger modes
+Date: Tue, 7 Feb 2006 15:16:01 -0800
+Message-ID: <20060207231601.GJ27148@atomide.com>
+References: <43E8D9CA.8000204@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A504365C2E@dlee02.ent.ti.com>
+In-Reply-To: <43E8D9CA.8000204@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,49 +15,20 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Woodruff, Richard <r-woodruff2@ti.com> [060207 14:58]:
-> > * Woodruff, Richard <r-woodruff2@ti.com> [060207 14:07]:
-> > > > I believe he meant just to hide the clock number for mmc 1 or 2.
-> But I
-> > > > guess we still need to have different naming for omap1 and omap2.
-> > >
-> > > Like I was saying you could hide both the slot and the names.
-> > >
-> > >  for(i=data.slot[slot].num_clks; i>0; i--)
-> > >  {
-> > > 	ck = clk_get(data.slot.clk_name[i-1])
-> > > 	if(ck != NULL)
-> > > 	clk_enabl(ck);
-> > >  }
-> > >
-> > > That way we don't care the name or how many.  It gets rid of some if
-> > > statements anyway.
-> > 
-> > But one of the clocks can be off more often than the other from PM
-> point
-> > of view.
+* Dirk Behme <dirk.behme@googlemail.com> [060207 09:39]:
 > 
-> Perhaps, but probably not for OMAP2.  The I clocks and the F clock
-> enables are local to the module. Enabling an F or an I clock doesn't
-> mean the parent which supplies it is active. It will open up a gate of
-> sorts and raise a clock request.  If that parent source is running then
-> it can propagate into the functional block.
+> ARM: OMAP: Convert drivers to new irq trigger modes.
 > 
-> I don't think OMAP1 does it quite like this.  The source clock doesn't
-> have the module level gating.  
-> 
-> Seems like in theory you and run some modules with their I clock off and
-> the F clock on, though I doubt you would do it much in practice.  You
-> can just set your I clock to auto idle and it will raise and lower its
-> clock request automatically as needed, effectively doing the same.
+> New way to handle irq trigger mode is to pass it as flag to
+> request_irq()  instead of using special ARM function
+> set_irq_mode().
 
-OK, let's do it in two phases then. First I'll just get rid of the clock
-numbers, then let's see if we can combine some clocks later on.
+Thanks, pushing today. I've also pushed a related patch for gpio.c.
 
 Tony
