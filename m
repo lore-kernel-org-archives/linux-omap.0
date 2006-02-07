@@ -1,19 +1,13 @@
-From: lamikr <lamikr@cc.jyu.fi>
-Subject: Re: omap alsa tsc2101 driver
-Date: Tue, 07 Feb 2006 22:43:25 +0200
-Message-ID: <43E9066D.9080903@cc.jyu.fi>
-References: <43E66CF6.8040600@cc.jyu.fi>	
-	<9268368b0602061113n30e8c49bx756de24a1eaf93c6@mail.gmail.com>	
-	<43E7AEC3.3020901@cc.jyu.fi>	
-	<9268368b0602061401m4522d31v258f0f67f19509ef@mail.gmail.com>	
-	<43E8960E.6090005@cc.jyu.fi>
-	<5b5833aa0602070819s4bded6d0i8be83e889add56b3@mail.gmail.com>
-Reply-To: lamikr@cc.jyu.fi
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: omap clock.h question
+Date: Tue, 7 Feb 2006 12:52:23 -0800
+Message-ID: <20060207205222.GD27148@atomide.com>
+References: <20060207185951.GA5897@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <5b5833aa0602070819s4bded6d0i8be83e889add56b3@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20060207185951.GA5897@localhost.localdomain>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -23,20 +17,21 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Anderson Lizardo <anderson.lizardo@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Brian Swetland <swetland@google.com>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+* Brian Swetland <swetland@google.com> [060207 11:06]:
+> 
+> I'm trying to get the MMC driver working on OMAP730 -- currently it
+> fails in probe because it can't obtain "mmc1_ck".  clocks.h has a
+> definition for this, but only for 1510/16xx/310.  OMAP730 appears to use
+> a different config register (PERSEUS_PCC_CONF) to enable this clock.
+> 
+> What's the correct way to support this?  Define another clock struct
+> with the same name, but setup for 730?  
 
->>Playing raw data '01_the_grudge.mp3' : Unsigned 8 bit, Rate 8000 Hz, Mono
->>    
->>
->
->AFAIK, aplay is not able to play MP3 files directly. try to convert
->the file to WAV or use madplay.
->
-That was actually a good point I have not realized earlier!
-I have however also tested with the "Signed 16 bit little endian wavs
-using 44100 hz" with same results.
+Yes, just add another clock for 730. BTW, the mmc driver is about to
+change where you just request mmc_ick and mmc_fck on all omaps.
 
-Mika
+Tony
