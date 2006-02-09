@@ -1,12 +1,11 @@
-From: Ram <vshrirama@gmail.com>
-Subject: enabling D cache
-Date: Thu, 9 Feb 2006 17:59:51 +0530
-Message-ID: <8bf247760602090429ua184034md573e11f7a8f512a@mail.gmail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: omap2 power analogy.
+Date: Thu, 9 Feb 2006 12:53:35 -0600
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A504438D70@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C62DAA.21B824C2"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,25 +15,28 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+This is a multi-part message in MIME format.
+
+------_=_NextPart_001_01C62DAA.21B824C2
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
 Hi,
-   I am using OMAP 5912 OSK.
 
-   I am implementing a command in u-boot (boot loader) which has lots
-writes to and
-   reads from memory.
+I found this somewhat useful, hope someone else might also.
 
-   I want to enable the D cache in u-boot. i went through the data
-sheets of osk and could not find the registers i need to set inorder
-to enable d-cache.
+Regards,
+Richard W.
 
-
-
-
- please advice.
+------_=_NextPart_001_01C62DAA.21B824C2
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 
-regards,
-sriram
+------_=_NextPart_001_01C62DAA.21B824C2--
