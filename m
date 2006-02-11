@@ -1,11 +1,13 @@
-From: X-Stranger <x@linux.by>
-Subject: PalmTE kernel and linux
-Date: Fri, 10 Feb 2006 23:54:04 +0200
-Message-ID: <43ED0B7C.1030200@linux.by>
+From: Paul Mundt <paul.mundt@nokia.com>
+Subject: Re: [PATCH] omap camera
+Date: Sat, 11 Feb 2006 08:34:17 +0200
+Message-ID: <20060211063417.GB15109@nokia.com>
+References: <43ECFF9B.80509@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <43ECFF9B.80509@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,41 +15,22 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: OMAP <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: David Cohen <david.cohen@indt.org.br>
+Cc: "Linux-omap-open-source@linux.omap.com" <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello!
+On Fri, Feb 10, 2006 at 05:03:23PM -0400, David Cohen wrote:
+> I don't think it is appropriate to use a common driver (camera_core) for
+> the omap 2420 and 1611/1710. I guess creating a common driver for omap1
+> (current camera_core) and other for omap2 (an updated camera_core) could
+> be better. Any comment?
 
-I'm owner of Palm Tungsten E and very interested with porting Linux on 
-it. Nowadays we have working kernel with touchscreen and SD support 
-(thanks to Andrzej Zaborowski) which can be started using Garux (thanks 
-to Romain Goyet). All this good, but we have very strange problem that
-can't be resolved without help from you.
+Perhaps you can explain a little more why you feel it's inappropriate for
+omap1 and omap2 to share the same camera_core?
 
-After kernel starts init process the system hangs. If I replace init by
-script which starts shell (sh from Busybox), it seems to be all right, 
-but when I start any other program from shell, ls for example, it also
-hangs. As told Andrzej,
+Also, why is this driver doing its own scatter-gather processing rather
+than working with the DMA mapping API?
 
-"I did all kinds of memory tests and checked that there is no memory 
-corruption. I also disabled all possible device drivers
-(running almost the original OMAP kernel without any patches) and
-probed all versions since 2.6.13-rc1 to 2.6.16-rc1, and the same
-behaviour was present."
-
-Then, I've debug Busybox init process and found where it hangs (for me): 
-when it tries to reset signal handlers running actions from inittab. 
-Call to function
-
-signal(SIGUSR1, SIG_DFL);
-
-hangs init process. Probably something is incorrect in kernel pathes for 
-PalmTE... Can somebody help with understanding what is incorrect?
-
-
-Kind regards to all OMAP fans, Dzmitry
-
-http://epam.com
-http://linux.by
+Plans for actually doing something wih the MMU?
