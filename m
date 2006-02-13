@@ -1,13 +1,17 @@
 From: Juha =?ISO-8859-1?Q?Yrj=F6l=E4?= <juha.yrjola@nokia.com>
-Subject: Re: OMAP: Update OMAP keypad driver
-Date: Mon, 13 Feb 2006 10:56:51 +0200
-Message-ID: <1139821011.5208.11.camel@two.research.nokia.com>
-References: <20060213074100.42397.qmail@web32910.mail.mud.yahoo.com>
+Subject: Re: [PATCH] Convert drivers to new irq trigger modes
+Date: Mon, 13 Feb 2006 11:17:36 +0200
+Message-ID: <1139822256.5208.20.camel@two.research.nokia.com>
+References: <43E8D9CA.8000204@gmail.com>
+	<20060208051451.GA22845@two.research.nokia.com>
+	<43EA4234.4070807@gmail.com>
+	<20060209062536.GC11799@two.research.nokia.com>
+	<43EF5790.3020509@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060213074100.42397.qmail@web32910.mail.mud.yahoo.com>
+In-Reply-To: <43EF5790.3020509@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,30 +21,25 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: ext Komal Shah <komal_shah802003@yahoo.com>
+To: ext Dirk Behme <dirk.behme@googlemail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Komal,
+On Sun, 2006-02-12 at 16:43 +0100, ext Dirk Behme wrote:
 
-On Sun, 2006-02-12 at 23:41 -0800, ext Komal Shah wrote:
-
-> - if (cpu_is_omap24xx() && omap_has_menelaus()) {
-> - row_gpios[5] = 0;
-> - col_gpios[2] = 15;
-> - col_gpios[6] = 18;
-> - }
-> -
+> > SA_SAMPLE_RANDOM doesn't have anything to do with triggering.  It's used to
+> > indicate whether an IRQ source can be used to feed the kernel entropy pools. 
+> > If the IRQ in question cannot be considered to happen at random intervals,
+> > the flag must not be set.
 > 
-> May I know, where you have moved this? As discussed earlier here, it
-> should be in the board specific file, but I don't find it there. _or_
-> are you planning this in the next patch.?
+> Okay. What's about this?
+> 
+> Add ORing the  SA_TRIGGER_FALLING and don't use
+> SA_SAMPLE_RANDOM as default value in ts_inn1510.c.
 
-I was the one who removed that, since it breaks keypad support on all
-OMAP24xx boards (except H4, I presume) that have Menelaus on them.  And
-there are quite a few of those.
-
-Please submit a patch that moves the stuff above into board-h4.c.
+Exactly the other way around. =) The touchscreen IRQ practically occurs
+randomly, so there the flag should be set.  For the power chips, the IRQ
+arrival can sort of be predicted, so the default value should be zero.
 
 Cheers,
 Juha
