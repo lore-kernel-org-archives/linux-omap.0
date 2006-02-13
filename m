@@ -1,13 +1,13 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: serial on omap in current git.
-Date: Mon, 13 Feb 2006 10:23:57 -0800
-Message-ID: <20060213182357.GA5113@atomide.com>
-References: <EA12F909C0431D458B9D18A176BEE4A5044B24F9@dlee02.ent.ti.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: serial on omap in current git.
+Date: Mon, 13 Feb 2006 12:50:31 -0600
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A5044B2C35@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A5044B24F9@dlee02.ent.ti.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,58 +17,38 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+> So the extended capabilities bit is needed to write fcr, or else some
+> settings don't get set?
 
-* Woodruff, Richard <r-woodruff2@ti.com> [060212 14:15]:
-> Actually it is more like this...
-> 
-> 
-> if (up->port.type != PORT_16750) {
-> 	if (fcr & UART_FCR_ENABLE_FIFO) {
-> 		/* emulated UARTs (Lucent Venus 167x) need two steps */
-> 		serial_outp(up, UART_FCR, UART_FCR_ENABLE_FIFO);
-> 	}
-> 	if(uart_config[up->port.type].flags & UART_CAP_EFR){
-> 		serial_outp(up, UART_LCR, 0xBF); /*allow access to
-> EFR(vs LCR)*/
-> 		serial_outp(up, UART_EFR, UART_EFR_ECB);/*allow FCR tx
-> fifo write*/
-> 		serial_outp(up, UART_LCR, 0x0); /* access back to FCR */
-> 		serial_outp(up, UART_FCR, fcr); /* set fcr with possible
-> TX fifo setting */
-> 		serial_outp(up, UART_LCR, 0xBF);
-> 		serial_outp(up, UART_EFR, 0);
-> 		serial_outp(up, UART_LCR, cval); /* access back to FCR
-> */
-> 	} else
-> 		serial_outp(up, UART_FCR, fcr);
+That is what the OMAP-UART data sheet says.  The write water mark bits
+4:5 are not accessible unless ECB is set.
 
-So the extended capabilities bit is needed to write fcr, or else some
-settings don't get set?
- 
-> In my build your last serial hack is not necessary anymore either.
+The data sheet says it is TI16C750 compatible but it seems to share more
+with what the code calls a TI16C752.  The 750 has a DLAB to set 64bit
+fifo and I don't believe that is the case for ours.
 
-Looks like patch f5968b37b3ad35b682b574b578843a0361218aff fixed it in
-the mainline 8250.c:
+The code id's it as a 16654 which isn't quite correct.
 
-http://kernel.org/git/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=f5968b37b3ad35b682b574b578843a0361218aff;hp=620739025b94fe472c845ce013bff62716d3c576
- 
-> I played around a bit trying to remove several of them.  To use the
-> actual TX watermark interrupt set at 32bytes required too ugly of a hack
-> to use (not use OMAP_SCR=0).
+> Can you list the 8250.c issues you've seen?
 
-Can you list the 8250.c issues you've seen?
- 
-> A minor note is we are still only using 32 bytes of the 64 byte TX fifo
-> for transmits in the current code.  I'm not sure if there is an
-> application that this matters to.
+The TX watermark, the IRQ_HANDLED not working, then the recent error
+which you worked around.
+=20
+> > A minor note is we are still only using 32 bytes of the 64 byte TX
+fifo
+> > for transmits in the current code.  I'm not sure if there is an
+> > application that this matters to.
+>=20
+> I guess that could help on bluetooth maybe.
 
-I guess that could help on bluetooth maybe.
+Sure.  For fast Bluetooth I would think both DMA and flow control should
+also be enabled.  I doubt both would just work given it identified
+wrongly and the details around these areas are exactly what are
+differently between the 554/750/752 as far as I can tell.
 
 Regards,
-
-Tony
+Richard W.
