@@ -1,75 +1,74 @@
-From: "Hunter, Jon" <jon-hunter@ti.com>
-Subject: RE: changing core frequency in omap 5912
-Date: Mon, 13 Feb 2006 10:55:44 -0600
-Message-ID: <C51F43ABFC95844490F0529B60753BF4038CD242@dlee02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: serial on omap in current git.
+Date: Mon, 13 Feb 2006 10:23:57 -0800
+Message-ID: <20060213182357.GA5113@atomide.com>
+References: <EA12F909C0431D458B9D18A176BEE4A5044B24F9@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <u-boot-users-admin@lists.sourceforge.net>
-Content-class: urn:content-classes:message
-Sender: u-boot-users-admin@lists.sourceforge.net
-Errors-To: u-boot-users-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/u-boot-users>,
-	<mailto:u-boot-users-request@lists.sourceforge.net?subject=unsubscribe>
-List-Post: <mailto:u-boot-users@lists.sourceforge.net>
-List-Help: <mailto:u-boot-users-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/u-boot-users>,
-	<mailto:u-boot-users-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=u-boot-users>
-To: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>, vshrirama@gmail.com
-Cc: u-boot-users@lists.sourceforge.net, linux-omap-open-source@linux.omap.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A5044B24F9@dlee02.ent.ti.com>
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Sriram, HK,
+Hi,
 
+* Woodruff, Richard <r-woodruff2@ti.com> [060212 14:15]:
+> Actually it is more like this...
+> 
+> 
+> if (up->port.type != PORT_16750) {
+> 	if (fcr & UART_FCR_ENABLE_FIFO) {
+> 		/* emulated UARTs (Lucent Venus 167x) need two steps */
+> 		serial_outp(up, UART_FCR, UART_FCR_ENABLE_FIFO);
+> 	}
+> 	if(uart_config[up->port.type].flags & UART_CAP_EFR){
+> 		serial_outp(up, UART_LCR, 0xBF); /*allow access to
+> EFR(vs LCR)*/
+> 		serial_outp(up, UART_EFR, UART_EFR_ECB);/*allow FCR tx
+> fifo write*/
+> 		serial_outp(up, UART_LCR, 0x0); /* access back to FCR */
+> 		serial_outp(up, UART_FCR, fcr); /* set fcr with possible
+> TX fifo setting */
+> 		serial_outp(up, UART_LCR, 0xBF);
+> 		serial_outp(up, UART_EFR, 0);
+> 		serial_outp(up, UART_LCR, cval); /* access back to FCR
+> */
+> 	} else
+> 		serial_outp(up, UART_FCR, fcr);
 
-> -----Original Message-----
-> From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-
-> open-source-bounces@linux.omap.com] On Behalf Of Hiroki Kaminaga
-> Sent: Monday, February 13, 2006 2:19 AM
-> To: vshrirama@gmail.com
-> Cc: u-boot-users@lists.sourceforge.net; linux-omap-open-
-> source@linux.omap.com
-> Subject: Re: changing core frequency in omap 5912
->=20
-> Hi,
->=20
-> >     How do i change the cpu core frequency in omap 5912.
-> >
-> >     I tried changing the DPLL registers. but u-boot hangs.
->=20
-> writing clock control value(0x050f) to address(0xfffece00)?
->=20
->=20
+So the extended capabilities bit is needed to write fcr, or else some
+settings don't get set?
+ 
+> In my build your last serial hack is not necessary anymore either.
 
-You need to take care when modifying the DPLL1 and the ARM_CKCTL
-register. Simply configuring the DPLL1 for 192MHz will not work, as by
-default uboot configures the device for what is know as "fully scalable
-mode", where the ARM, DSP and Traffic Controller (TC) run at the DPLL1
-speed. The TC can NOT operate at 192MHz. It is limited to 96MHz.
-Therefore, before configuring the DPLL1 and ARM_CKCTL, you need to put
-the device into "synchronous scalable" mode where the ARM, DSP and TC
-can run at different speeds determined by the ARM_CKCTL register.=20
+Looks like patch f5968b37b3ad35b682b574b578843a0361218aff fixed it in
+the mainline 8250.c:
 
-So here is what you need to do:
+http://kernel.org/git/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=f5968b37b3ad35b682b574b578843a0361218aff;hp=620739025b94fe472c845ce013bff62716d3c576
+ 
+> I played around a bit trying to remove several of them.  To use the
+> actual TX watermark interrupt set at 32bytes required too ugly of a hack
+> to use (not use OMAP_SCR=0).
 
-1). Make sure the DPLL1 is in bypass
-2). Configure the ARM_SYSST for "synchronous scalable" mode
-3). Configure the ARM_CKCTL register so that the different clock domains
-operate no faster than the maximum speed for that particular domain. See
-"OMAP5912 Global Clock Rules" in the OMAP5912 Errata guide for a list
-showing the maximum speed for each clock domain
-(http://focus.ti.com/docs/prod/folders/print/omap5912.html)
-4). Configure DPLL1.=20
+Can you list the 8250.c issues you've seen?
+ 
+> A minor note is we are still only using 32 bytes of the 64 byte TX fifo
+> for transmits in the current code.  I'm not sure if there is an
+> application that this matters to.
+
+I guess that could help on bluetooth maybe.
 
 Regards,
-Jon
 
-
--------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
-for problems?  Stop!  Download the new AJAX search engine that makes
-searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
-http://sel.as-us.falkag.net/sel?cmd=lnk&kid=103432&bid=230486&dat=121642
+Tony
