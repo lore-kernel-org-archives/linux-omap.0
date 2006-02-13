@@ -1,12 +1,12 @@
 From: "Zhang, Jian" <jzhang@ti.com>
 Subject: RE: [PATCH] omap camera
-Date: Mon, 13 Feb 2006 15:13:51 -0600
-Message-ID: <304D2A85A9643F4A991BDDF8D297BBA60244DF14@dlee05.ent.ti.com>
+Date: Mon, 13 Feb 2006 15:15:53 -0600
+Message-ID: <304D2A85A9643F4A991BDDF8D297BBA60244DF1C@dlee05.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,11 +15,23 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Paul Mundt <paul.mundt@nokia.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Zhang, Jian" <jzhang@ti.com>, Paul Mundt <paul.mundt@nokia.com>
 Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
+
+Some corrections.
+
+-----Original Message-----
+From: linux-omap-open-source-bounces+jzhang=3Dti.com@linux.omap.com
+[mailto:linux-omap-open-source-bounces+jzhang=3Dti.com@linux.omap.com] =
+On
+Behalf Of Zhang, Jian
+Sent: Monday, February 13, 2006 3:14 PM
+To: Paul Mundt
+Cc: Linux-omap-open-source@linux.omap.com
+Subject: RE: [PATCH] omap camera
 
 Paul,
 
@@ -29,9 +41,10 @@ duplicate some video-buf code in the camera driver if you skip
 video-buf.
 
 By disabling camera MMU, I have to use scatterlists. Otherwise, the
-buffer would have to be physically contiguous. For example, you would be
+buffer would have to be physically contiguous. For example, you would
+NOT be
 able to DMA the image to a user buffer that consist of a set of discrete
-page frames.=20
+page frames in a single DMA transfer.=20
 
 Can you send your code in a separate e-mail to me?
 
@@ -83,3 +96,7 @@ where the scatterlists are going to be useful?
 For what it's worth, I have some code already for manipulating the
 camera, IVA, and DSP MMUs on OMAP2420 that I can make available if
 someone is interested in working on this.
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
