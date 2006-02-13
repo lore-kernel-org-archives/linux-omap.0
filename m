@@ -1,49 +1,42 @@
-From: "Marco Candiago" <Marco.Candiago@nicta.com.au>
-Subject: Push Buttons
-Date: Mon, 13 Feb 2006 14:35:08 +1100
-Message-ID: <09D3F703EF3B0A4CBE28449EA9F3D320477AA8@nicta-atp-mail.in.nicta.com.au>
+From: Ram <vshrirama@gmail.com>
+Subject: changing core frequency in omap 5912
+Date: Mon, 13 Feb 2006 11:50:55 +0530
+Message-ID: <8bf247760602122220y2abfab6eraddf56fc82ef1840@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-content-class: urn:content-classes:message
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Return-path: <u-boot-users-admin@lists.sourceforge.net>
+Content-Disposition: inline
+Sender: u-boot-users-admin@lists.sourceforge.net
+Errors-To: u-boot-users-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/u-boot-users>,
+	<mailto:u-boot-users-request@lists.sourceforge.net?subject=unsubscribe>
+List-Post: <mailto:u-boot-users@lists.sourceforge.net>
+List-Help: <mailto:u-boot-users-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/u-boot-users>,
+	<mailto:u-boot-users-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=u-boot-users>
+To: linux-omap-open-source@linux.omap.com, u-boot-users@lists.sourceforge.net
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
+    How do i change the cpu core frequency in omap 5912.
 
-Hello all,
-
-In search prior posts, I could not find an answer to this question.
-
-On the OMAP 1510 Innovator development board, how are the user defined
-buttons (SW4, SW5, SW6, SW7) accessed.  Is there a device node specific
-to these buttons that can be used? If so, what is it?
-
-Thanks in advance,
-
-Marco
+    I tried changing the DPLL registers. but u-boot hangs.
 
 
 
 
 
+    Which registers i should look for ?.
 
---------------------------------------------------------------------------
-This email and any attachments may be confidential. They may contain=
- legally
-privileged information or copyright material. You should not read, copy,
-use or disclose them without authorisation. If you are not an intended
-recipient, please contact us at once by return email and then delete both
-messages. We do not accept liability in connection with computer virus,
-data corruption, delay, interruption, unauthorised access or unauthorised
-amendment. This notice should not be removed.
+
+Regards,
+sriram
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
+for problems?  Stop!  Download the new AJAX search engine that makes
+searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+http://sel.as-us.falkag.net/sel?cmd=lnk&kid=103432&bid=230486&dat=121642
