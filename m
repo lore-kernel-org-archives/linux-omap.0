@@ -1,13 +1,11 @@
-From: =?ISO-8859-1?Q?Lu=EDs_Cargnini?= <lvcargnini@gmail.com>
-Subject: SOLVED-+upgraded toolchain with gcc-4.0.2
-Date: Tue, 14 Feb 2006 02:22:40 +0000
-Message-ID: <ae36f8040602131822i33a17b6dl@mail.gmail.com>
-Reply-To: lvcargnini@ieee.org
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: clk_get kernel dump
+Date: Tue, 14 Feb 2006 09:01:26 -0800 (PST)
+Message-ID: <20060214170126.65047.qmail@web32913.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,265 +15,102 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: OMAP <Linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi after some e-mails among list me and Vineet Tuli i have generated a
-toolchain for omap. But i have made some changes
-i have created a new toolchain with following tools:
-binutils-2.16.1
-gcc-4.0.2
-glibc-2.3.6 (+glibc-linuxthreads)
+Anybody sees the following kernel dump for H4 EVM ? or am I missing
+some patch ?
 
-some changes in glibc were nececssary, following the patches for glibc-2.3.=
-6:
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-diff -r -u glibc-2.3.6/Makeconfig glibc-2.3.6-patched/Makeconfig
---- glibc-2.3.6/Makeconfig=092005-02-16 10:50:19.000000000 +0000
-+++ glibc-2.3.6-patched/Makeconfig=092006-02-14 00:23:58.650233320 +0000
-@@ -503,12 +503,12 @@
-   libunwind =3D -lunwind
- endif
- ifneq ($(have-as-needed),yes)
-- libgcc_eh :=3D -lgcc_eh $(libunwind)
-+ libgcc_eh :=3D $(libunwind)
- else
-  libgcc_eh :=3D -Wl,--as-needed -lgcc_s$(libgcc_s_suffix) $(libunwind)
--Wl,--no-as-needed
- endif
- gnulib :=3D -lgcc $(libgcc_eh)
--static-gnulib :=3D -lgcc -lgcc_eh $(libunwind)
-+static-gnulib :=3D -lgcc $(libunwind)
- libc.so-gnulib :=3D -lgcc
- endif
- ifeq ($(elf),yes)
-Only in glibc-2.3.6-patched/: autom4te.cache
-diff -r -u glibc-2.3.6/configure glibc-2.3.6-patched/configure
---- glibc-2.3.6/configure=092005-11-04 00:37:15.000000000 +0000
-+++ glibc-2.3.6-patched/configure=092006-02-14 00:24:49.436512632 +0000
-@@ -6304,7 +6304,7 @@
-   ac_status=3D$?
-   echo "$as_me:$LINENO: \$? =3D $ac_status" >&5
-   (exit $ac_status); }; } ||
--   { ac_try=3D'$libc_unwind_check -lgcc_eh -lgcc >&5'
-+   { ac_try=3D'$libc_unwind_check -lgcc >&5'
-   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-   (eval $ac_try) 2>&5
-   ac_status=3D$?
-diff -r -u glibc-2.3.6/configure.in glibc-2.3.6-patched/configure.in
---- glibc-2.3.6/configure.in=092005-07-18 01:38:55.000000000 +0000
-+++ glibc-2.3.6-patched/configure.in=092006-02-14 00:24:33.881877296 +0000
-@@ -1760,7 +1760,7 @@
- =09=09=09    -lgcc"
- # Some platforms' specs put -lgcc first.  The second one doesn't hurt.
- if AC_TRY_COMMAND([$libc_unwind_check >&AS_MESSAGE_LOG_FD]) ||
--   AC_TRY_COMMAND([$libc_unwind_check -lgcc_eh -lgcc >&AS_MESSAGE_LOG_FD])
-+   AC_TRY_COMMAND([$libc_unwind_check -lgcc >&AS_MESSAGE_LOG_FD])
- then
-   if $libc_unwind_check -v 2>&1 >/dev/null \
-      | grep -- --eh-frame-hdr 2>&1 >/dev/null; then
-diff -r -u glibc-2.3.6/sysdeps/arm/dl-machine.h
-glibc-2.3.6-patched/sysdeps/arm/dl-machine.h
---- glibc-2.3.6/sysdeps/arm/dl-machine.h=092005-10-17 04:52:36.000000000 +0=
-000
-+++ glibc-2.3.6-patched/sysdeps/arm/dl-machine.h=092006-02-14
-00:18:24.149085224 +0000
-@@ -357,7 +357,15 @@
- #ifdef RESOLVE
 
- /* Deal with an out-of-range PC24 reloc.  */
--static Elf32_Addr
-+/* static Elf32_Addr */
-+#if __GNUC__ >=3D 4
-+  auto inline Elf32_Addr
-+#else
-+  static inline Elf32_Addr
-+#endif
-+#if __GNUC__ >=3D 4 || (__GNUC__ =3D=3D 3 && __GNUC_MINOR__ >=3D 2)
-+  __attribute ((always_inline))
-+#endif
- fix_bad_pc24 (Elf32_Addr *const reloc_addr, Elf32_Addr value)
- {
-   static void *fix_page;
-@@ -390,8 +398,17 @@
- /* Perform the relocation specified by RELOC and SYM (which is fully resol=
-ved).
-    MAP is the object containing the reloc.  */
+Uncompressing
+Linux.............................................................
+.................. done, booting the kernel.
+<5>Linux version 2.6.16-rc2-omap1-g67374e9f-dirty (komal@Ubuntu) (gcc
+version
+ 3.4.0 20040409 (CodeSourcery ARM Q1A 2004)) #11 Tue Feb 14 18:42:46
+EET 2006
+CPU: Some Random V6 Processor [4107b362] revision 2 (ARMv6TEJ)
+Machine: OMAP2420 H4 board
+Memory policy: ECC disabled, Data cache writeback
+<7>On node 0 totalpages: 32768
+<7>  DMA zone: 32768 pages, LIFO batch:7
+<7>  DMA32 zone: 0 pages, LIFO batch:0
+<7>  Normal zone: 0 pages, LIFO batch:0
+<7>  HighMem zone: 0 pages, LIFO batch:0
+<6>OMAP2420
+<6>SRAM: Mapped pa 0x4020f000 to va 0xd0000000 size: 0x1000
+CPU0: D VIPT write-back cache
+CPU0: I cache: 32768 bytes, associativity 4, 32 byte lines, 256 sets
+CPU0: D cache: 32768 bytes, associativity 4, 32 byte lines, 256 sets
+Built 1 zonelists
+<5>Kernel command line: console=ttyS0,115200n8 root=/dev/nfs rw
+nfsroot=172.45.4
+0.102:/omap2420/omap2420root,rsize=1024,wsize=1024 ip=dhcp
+<6>Clocking rate (Crystal/DPLL/MPU): 12.0/600/300 MHz
+<3>clock.c: Enable for dpll_ck without enable code
+<6>IRQ: Found an INTC at 0x480fe000 (revision 1.0) with 96 interrupts
+<6>Total of 96 interrupts on 1 active controller
+<6>OMAP24xx GPIO hardware version 1.5
+Muxing M15_24XX_GPIO92 (0x4800010a): 0x03 -> 0x03
+PID hash table entries: 1024 (order: 10, 16384 bytes)
+<6>OMAP2 GP timer (HW version 1.2)
+Console: colour dummy device 80x30
+Dentry cache hash table entries: 32768 (order: 5, 131072 bytes)
+Inode-cache hash table entries: 16384 (order: 4, 65536 bytes)
+<6>Memory: 128MB 0MB = 128MB total
+<5>Memory: 127104KB available (2000K code, 445K data, 104K init)
+<7>Calibrating delay loop... 299.00 BogoMIPS (lpj=1495040)
+Mount-cache hash table entries: 512
+<6>CPU: Testing write buffer coherency: ok
+<6>NET: Registered protocol family 16
+<1>Unhandled fault: alignment exception (0x001) at 0x00000012
+Internal error: : 1 [#1]
+Modules linked in:
+CPU: 0
+PC is at clk_get+0x58/0x148
+LR is at debug_mutex_free_waiter+0x78/0x94
+pc : [<c003467c>]    lr : [<c0052ffc>]    Not tainted
+sp : c03e3f74  ip : 22222222  fp : c03e3f94
+r10: 00000000  r9 : 00000000  r8 : c01eb1d4
+r7 : ffffffff  r6 : fffffffe  r5 : c021fd88  r4 : 00000012
+r3 : c03e2000  r2 : c03e2000  r1 : 22222222  r0 : c03e3f38
+Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  Segment kernel
+Control: C5387F  Table: 80004000  DAC: 00000017
+Process swapper (pid: 1, stack limit = 0xc03e2194)
+Stack: (0xc03e3f74 to 0xc03e4000)
+3f60:                                              c021f4f0 00000000
+c001f1e0
+3f80: c001e358 00000000 c03e3fb0 c03e3f98 c0010ebc c0034630 c001e1c0
+c03e2000
+3fa0: 00000000 c03e3fc0 c03e3fb4 c00112cc c0010e54 c03e3fd0 c03e3fc4
+c000eb98
+3fc0: c0011288 c03e3ff4 c03e3fd4 c00220f4 c000eb84 00000001 00000000
+00000000
+3fe0: 00000000 00000000 00000000 c03e3ff8 c003e5d0 c0022064 46804b45
+b84cc023
+Backtrace:
+[<c0034624>] (clk_get+0x0/0x148) from [<c0010ebc>]
+(omap_serial_init+0x74/0x220)
+ r8 = 00000000  r7 = C001E358  r6 = C001F1E0  r5 = 00000000
+ r4 = C021F4F0
+[<c0010e48>] (omap_serial_init+0x0/0x220) from [<c00112cc>]
+(omap_h4_init+0x50/0
+x68)
+ r6 = 00000000  r5 = C03E2000  r4 = C001E1C0
+[<c001127c>] (omap_h4_init+0x0/0x68) from [<c000eb98>]
+(customize_machine+0x20/0
+x2c)
+[<c000eb78>] (customize_machine+0x0/0x2c) from [<c00220f4>]
+(init+0x9c/0x218)
+[<c0022058>] (init+0x0/0x218) from [<c003e5d0>] (do_exit+0x0/0x754)
+ r7 = 00000000  r6 = 00000000  r5 = 00000000  r4 = 00000000
+Code: e59f50f0 e59f00f0 eb06a9e4 e5954000 (e5943000)
+ <0>Kernel panic - not syncing: Attempted to kill init!
 
--auto inline void
-+/* auto inline void
- __attribute__ ((always_inline))
-+*/
-+#if __GNUC__ >=3D 4
-+  auto inline void
-+#else
-+  static inline void
-+#endif
-+#if __GNUC__ >=3D 4 || (__GNUC__ =3D=3D 3 && __GNUC_MINOR__ >=3D 2)
-+  __attribute ((always_inline))
-+#endif
- elf_machine_rel (struct link_map *map, const Elf32_Rel *reloc,
- =09=09 const Elf32_Sym *sym, const struct r_found_version *version,
- =09=09 void *const reloc_addr_arg)
-@@ -516,8 +533,19 @@
- }
+---Komal Shah
+http://komalshah.blogspot.com/
 
- # ifndef RTLD_BOOTSTRAP
-+
-+/*
- auto inline void
- __attribute__ ((always_inline))
-+*/
-+#if __GNUC__ >=3D 4
-+  auto inline void
-+#else
-+  static inline void
-+#endif
-+#if __GNUC__ >=3D 4 || (__GNUC__ =3D=3D 3 && __GNUC_MINOR__ >=3D 2)
-+  __attribute ((always_inline))
-+#endif
- elf_machine_rela (struct link_map *map, const Elf32_Rela *reloc,
- =09=09  const Elf32_Sym *sym, const struct r_found_version *version,
- =09=09  void *const reloc_addr_arg)
-@@ -597,8 +625,18 @@
- }
- # endif
-
-+/*
- auto inline void
- __attribute__ ((always_inline))
-+*/
-+#if __GNUC__ >=3D 4
-+  auto inline void
-+#else
-+  static inline void
-+#endif
-+#if __GNUC__ >=3D 4 || (__GNUC__ =3D=3D 3 && __GNUC_MINOR__ >=3D 2)
-+  __attribute ((always_inline))
-+#endif
- elf_machine_rel_relative (Elf32_Addr l_addr, const Elf32_Rel *reloc,
- =09=09=09  void *const reloc_addr_arg)
- {
-@@ -607,8 +645,18 @@
- }
-
- # ifndef RTLD_BOOTSTRAP
-+/*
- auto inline void
- __attribute__ ((always_inline))
-+*/
-+#if __GNUC__ >=3D 4
-+  auto inline void
-+#else
-+  static inline void
-+#endif
-+#if __GNUC__ >=3D 4 || (__GNUC__ =3D=3D 3 && __GNUC_MINOR__ >=3D 2)
-+  __attribute ((always_inline))
-+#endif
- elf_machine_rela_relative (Elf32_Addr l_addr, const Elf32_Rela *reloc,
- =09=09=09   void *const reloc_addr_arg)
- {
-@@ -617,8 +665,18 @@
- }
- # endif
-
-+/*
- auto inline void
- __attribute__ ((always_inline))
-+*/
-+#if __GNUC__ >=3D 4
-+  auto inline void
-+#else
-+  static inline void
-+#endif
-+#if __GNUC__ >=3D 4 || (__GNUC__ =3D=3D 3 && __GNUC_MINOR__ >=3D 2)
-+  __attribute ((always_inline))
-+#endif
- elf_machine_lazy_rel (struct link_map *map,
- =09=09      Elf32_Addr l_addr, const Elf32_Rel *reloc)
- {
-diff -r -u glibc-2.3.6/sysdeps/unix/sysv/linux/arm/ioperm.c
-glibc-2.3.6-patched/sysdeps/unix/sysv/linux/arm/ioperm.c
---- glibc-2.3.6/sysdeps/unix/sysv/linux/arm/ioperm.c=092003-02-20
-22:22:35.000000000 +0000
-+++ glibc-2.3.6-patched/sysdeps/unix/sysv/linux/arm/ioperm.c=092006-02-14
-00:01:15.358485168 +0000
-@@ -47,6 +47,13 @@
- #include <asm/page.h>
- #include <sys/sysctl.h>
-
-+/* see http://www.ussg.iu.edu/hypermail/linux/kernel/0311.0/0529.html */
-+#include <linux/version.h>
-+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,23))
-+#define CTL_BUS_ISA BUS_ISA    /* and hope it's not the one from
-linux/input.h */
-+#endif
-+
-+
- #define PATH_ARM_SYSTYPE=09"/etc/arm_systype"
- #define PATH_CPUINFO=09=09"/proc/cpuinfo"
-
-@@ -81,6 +88,7 @@
-  * we need.  Each is tried in turn until one succeeds.
-  *
-  * 1. Sysctl (CTL_BUS, BUS_ISA, ISA_*).  This is the preferred method
-+ *(NEW) 1. Sysctl (CTL_BUS, CTL_BUS_ISA, ISA_*).  This is the preferred me=
-thod
-  *    but not all kernels support it.
-  *
-  * 2. Read the value (not the contents) of symlink PATH_ARM_SYSTYPE.
-@@ -100,8 +108,12 @@
- {
-   char systype[256];
-   int i, n;
-+  /*
-   static int iobase_name[] =3D { CTL_BUS, BUS_ISA, BUS_ISA_PORT_BASE };
-   static int ioshift_name[] =3D { CTL_BUS, BUS_ISA, BUS_ISA_PORT_SHIFT };
-+  */
-+  static int iobase_name[] =3D { CTL_BUS, CTL_BUS_ISA, BUS_ISA_PORT_BASE }=
-;
-+  static int ioshift_name[] =3D { CTL_BUS, CTL_BUS_ISA, BUS_ISA_PORT_SHIFT=
- };
-   size_t len =3D sizeof(io.base);
-
-   if (! sysctl (iobase_name, 3, &io.io_base, &len, NULL, 0)
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-
-after compiled glibc i recompiled gcc with the following flags:
-
-../gcc-4.0.2/configure --target=3Darm-linux --prefix=3D/opt/arm-linux
---enable-languages=3Dc,c++  --enable-threads --enable-__cxa_atexit
---enable-nls --enable-long-long --enable-c99
-
-why:
- --enable-languages=3Dc,c++
-
-    This option ensures that only the C and C++ compilers are built.
---enable-__cxa_atexit
-
-    This option allows use of __cxa_atexit, rather than atexit, to
-register C++ destructors for local statics and global objects and is
-essential for fully standards-compliant handling of destructors. It
-also affects the C++ ABI and therefore results in C++ shared libraries
-and C++ programs that are interoperable with other Linux
-distributions.
---enable-c99
-
-    Enable C99 support for C programs.
---enable-long-long
-
-    Enables long long support in the compiler.
---enable-threads=3Dposix || --enable-threads
-
-    This enables C++ exception handling for multi-threaded code.
-
-thats all 8-)
-
---
-Thanks && Regards
-Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
-IEEE Member
-Mastering Degree student @ PUC-RS Electrical Engineer Faculty
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
