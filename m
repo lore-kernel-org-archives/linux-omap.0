@@ -1,13 +1,11 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: clk_get kernel dump
-Date: Tue, 14 Feb 2006 09:56:04 -0800
-Message-ID: <20060214175603.GE7135@atomide.com>
-References: <20060214170126.65047.qmail@web32913.mail.mud.yahoo.com>
+From: gilles bardoux <gilles.bardoux@enst-bretagne.fr>
+Subject: "Multimedia Processor Security Features Reference Guide" needed
+Date: Tue, 14 Feb 2006 23:09:28 +0100
+Message-ID: <43F25518.9030803@enst-bretagne.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20060214170126.65047.qmail@web32913.mail.mud.yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,21 +13,14 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Komal Shah <komal_shah802003@yahoo.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Komal Shah <komal_shah802003@yahoo.com> [060214 09:08]:
-> Anybody sees the following kernel dump for H4 EVM ? or am I missing
-> some patch ?
-
-Might be the common DSP code trying to set NULL clocks on omap2. I've
-patched the clock framework to check that:
-
-http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commitdiff;h=8fc55a5be4a212efc51a335ddcd5ba066f46de6c
-
-So updating to current git tree should help.
-
-Tony
+ Could anyone send me the "Multimedia Processor Security Features 
+Reference Guide" (reference SPRU754)?
+ I'm desperately looking for this file, as I am going to work on a 
+project where security is a major issue.
+ Thanks for your help
+ Gilles
