@@ -1,13 +1,11 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: clk_get kernel dump
-Date: Wed, 15 Feb 2006 06:37:15 -0800 (PST)
-Message-ID: <20060215143716.48574.qmail@web32901.mail.mud.yahoo.com>
-References: <20060214175603.GE7135@atomide.com>
+From: Riya Patel <riya_mp0@yahoo.com>
+Subject: Audio Configuration on OMAP 1510 Innovator board
+Date: Wed, 15 Feb 2006 06:52:04 -0800 (PST)
+Message-ID: <20060215145204.86381.qmail@web36314.mail.mud.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060214175603.GE7135@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,27 +15,39 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: LinuxOMap MailingList <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
---- Tony Lindgren <tony@atomide.com> wrote:
+Hi,
+	I have problems in configuring audio on the OMAP 1510
+Innovator board, for usage with the Openh323 protocol
+stack.
+I have the following hardware:
 
-> 
-> Might be the common DSP code trying to set NULL clocks on omap2. I've
-> patched the clock framework to check that:
-> 
->
-http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commitdiff;h=8fc55a5be4a212efc51a335ddcd5ba066f46de6c
-> 
-> So updating to current git tree should help.
+I am using the following software:
+1. Linux 2.6.9.
 
-My tree is having this patch and clock fwk is latest as per the git
-tree. But the dump seems to coming from debug_mutex_waiter_free(...)
-function. 
+I have made the following settings for audio through
+Openh323 source code:
+1. No. of channels: 2
+2. Sample Rate: 8000 bit/s
+3. Bits per sample: 16
+4. Jitter buffer size: 320
 
----Komal Shah
-http://komalshah.blogspot.com/
+With this configuration when I try to make a call from
+OMAP 1510 Innovator board to another PC with H.323
+terminal running on it, I am not able to hear the
+voice clearly.
+So, can anybody help me in identifying the problem
+with the audio configuration.
+It would be great if somebody can tell me the ideal
+configuration for running audio applications on OMAP
+1510 Innovator board.
+
+Thanks in advance.
+
+Regards,
+Riya.
 
 __________________________________________________
 Do You Yahoo!?
