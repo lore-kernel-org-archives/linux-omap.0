@@ -1,12 +1,12 @@
 From: =?ISO-8859-1?Q?Lu=EDs_Cargnini?= <lvcargnini@gmail.com>
-Subject: problems compiling u-boot-1.1.4
-Date: Wed, 15 Feb 2006 19:06:44 +0000
-Message-ID: <ae36f8040602151106w52a5baa0v115d1c4982332a85@mail.gmail.com>
+Subject: problems compiling u-Boot 1.1.4 (2)
+Date: Wed, 15 Feb 2006 22:01:10 +0000
+Message-ID: <ae36f8040602151401j4776aaccge3bd4818a95c60c5@mail.gmail.com>
 Reply-To: lvcargnini@ieee.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,61 +15,110 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi i've downloaded the u-boot-1.1.4 and did the following:
-shark u-boot-1.1.4 # make omap5912osk_config
-Configuring for omap5912osk board...
-shark u-boot-1.1.4 # make
-....
-make[1]: Leaving directory `/root/instramed/u-boot-1.1.4/post/cpu'
-arm-linux-gcc -Wa,-gstabs -D__ASSEMBLY__ -g  -Os =20
--fno-strict-aliasing  -fno-common -ffixed-r8 -msoft-float=20
--D__KERNEL__ -DTEXT_BASE=3D0x11080000
--I/root/instramed/u-boot-1.1.4/include -fno-builtin -ffreestanding
--nostdinc -isystem /usr/lib/gcc/i686-pc-linux-gnu/4.0.2/include -pipe=20
--DCONFIG_ARM -D__ARM__ -march=3Darmv4 -mabi=3Dapcs-gnu -c -o
-cpu/arm926ejs/start.o
-/root/instramed/u-boot-1.1.4/cpu/arm926ejs/start.S
-/root/instramed/u-boot-1.1.4/cpu/arm926ejs/start.S: Assembler messages:
-/root/instramed/u-boot-1.1.4/cpu/arm926ejs/start.S:169: Error:
-undefined symbol CFG_GBL_DATA_SIZE used as an immediate value
-/root/instramed/u-boot-1.1.4/cpu/arm926ejs/start.S:335: Error:
-undefined symbol CFG_GBL_DATA_SIZE used as an immediate value
-/root/instramed/u-boot-1.1.4/cpu/arm926ejs/start.S:336: Error:
-undefined symbol CFG_GBL_DATA_SIZE used as an immediate value
-/root/instramed/u-boot-1.1.4/cpu/arm926ejs/start.S:341: Error:
-undefined symbol CFG_GBL_DATA_SIZE used as an immediate value
-/root/instramed/u-boot-1.1.4/cpu/arm926ejs/start.S:342: Error:
-undefined symbol CFG_GBL_DATA_SIZE used as an immediate value
-/root/instramed/u-boot-1.1.4/cpu/arm926ejs/start.S:347: Error:
-undefined symbol CFG_GBL_DATA_SIZE used as an immediate value
-/root/instramed/u-boot-1.1.4/cpu/arm926ejs/start.S:348: Error:
-undefined symbol CFG_GBL_DATA_SIZE used as an immediate value
-/root/instramed/u-boot-1.1.4/cpu/arm926ejs/start.S:353: Error:
-undefined symbol CFG_GBL_DATA_SIZE used as an immediate value
-/root/instramed/u-boot-1.1.4/cpu/arm926ejs/start.S:354: Error:
-undefined symbol CFG_GBL_DATA_SIZE used as an immediate value
-/root/instramed/u-boot-1.1.4/cpu/arm926ejs/start.S:359: Error:
-undefined symbol CFG_GBL_DATA_SIZE used as an immediate value
-/root/instramed/u-boot-1.1.4/cpu/arm926ejs/start.S:360: Error:
-undefined symbol CFG_GBL_DATA_SIZE used as an immediate value
-/root/instramed/u-boot-1.1.4/cpu/arm926ejs/start.S:384: Error:
-undefined symbol CFG_GBL_DATA_SIZE used as an immediate value
-/root/instramed/u-boot-1.1.4/cpu/arm926ejs/start.S:385: Error:
-undefined symbol CFG_GBL_DATA_SIZE used as an immediate value
-/root/instramed/u-boot-1.1.4/cpu/arm926ejs/start.S:390: Error:
-undefined symbol CFG_GBL_DATA_SIZE used as an immediate value
-/root/instramed/u-boot-1.1.4/cpu/arm926ejs/start.S:391: Error:
-undefined symbol CFG_GBL_DATA_SIZE used as an immediate value
-make: *** [cpu/arm926ejs/start.o] Error 1
+this lines deescribes the problem occured (after error message i wrote
+more informations):
 
-i finded thie variable inside included/configs/omap*.h (another config
-omap files)
-someone know how to fix this ??
+make[1]: Leaving directory `/root/instramed/u-boot-1.1.4/common'
+UNDEF_SYM=3D`arm-linux-objdump -x lib_generic/libgeneric.a
+board/omap5912osk/libomap5912osk.a cpu/arm926ejs/libarm926ejs.a
+lib_arm/libarm.a fs/cramfs/libcramfs.a fs/fat/libfat.a
+fs/fdos/libfdos.a fs/jffs2/libjffs2.a fs/reiserfs/libreiserfs.a
+fs/ext2/libext2fs.a net/libnet.a disk/libdisk.a rtc/librtc.a
+dtt/libdtt.a drivers/libdrivers.a drivers/sk98lin/libsk98lin.a
+post/libpost.a post/cpu/libcpu.a common/libcommon.a |sed  -n -e
+'s/.*\(__u_boot_cmd_.*\)/-u\1/p'|sort|uniq`;\
+        arm-linux-ld -Bstatic -T
+/root/instramed/u-boot-1.1.4/board/omap5912osk/u-boot.lds -Ttext
+0x11080000  $UNDEF_SYM cpu/arm926ejs/start.o \
+                --start-group lib_generic/libgeneric.a
+board/omap5912osk/libomap5912osk.a cpu/arm926ejs/libarm926ejs.a
+lib_arm/libarm.a fs/cramfs/libcramfs.a fs/fat/libfat.a
+fs/fdos/libfdos.a fs/jffs2/libjffs2.a fs/reiserfs/libreiserfs.a
+fs/ext2/libext2fs.a net/libnet.a disk/libdisk.a rtc/librtc.a
+dtt/libdtt.a drivers/libdrivers.a drivers/sk98lin/libsk98lin.a
+post/libpost.a post/cpu/libcpu.a common/libcommon.a --end-group -L
+/opt/arm-linux/lib/gcc/arm-linux/4.0.2 -lgcc \
+                -Map u-boot.map -o u-boot
+arm-linux-ld: ERROR:
+/opt/arm-linux/lib/gcc/arm-linux/4.0.2/libgcc.a(_divsi3.o) uses
+hardware FP, whereas u-boot uses software FP
+arm-linux-ld: failed to merge target specific data of file
+/opt/arm-linux/lib/gcc/arm-linux/4.0.2/libgcc.a(_divsi3.o)
+arm-linux-ld: ERROR:
+/opt/arm-linux/lib/gcc/arm-linux/4.0.2/libgcc.a(_modsi3.o) uses
+hardware FP, whereas u-boot uses software FP
+arm-linux-ld: failed to merge target specific data of file
+/opt/arm-linux/lib/gcc/arm-linux/4.0.2/libgcc.a(_modsi3.o)
+lib_arm/libarm.a(board.o): In function `start_armboot':
+/root/instramed/u-boot-1.1.4/lib_arm/board.c:236: undefined reference
+to `flash_init'
+common/libcommon.a(cmd_bootm.o): In function `do_imls':
+/root/instramed/u-boot-1.1.4/common/cmd_bootm.c:1160: undefined
+reference to `flash_info'
+common/libcommon.a(cmd_flash.o): In function `abbrev_spec':
+/root/instramed/u-boot-1.1.4/common/cmd_flash.c:106: undefined
+reference to `flash_info'
+common/libcommon.a(cmd_flash.o): In function `addr_spec':
+/root/instramed/u-boot-1.1.4/common/cmd_flash.c:195: undefined
+reference to `flash_info'
+common/libcommon.a(cmd_flash.o): In function `flash_fill_sect_ranges':
+/root/instramed/u-boot-1.1.4/common/cmd_flash.c:278: undefined
+reference to `flash_info'
+common/libcommon.a(cmd_flash.o): In function `do_flinfo':
+/root/instramed/u-boot-1.1.4/common/cmd_flash.c:292: undefined
+reference to `flash_print_info'
+/root/instramed/u-boot-1.1.4/common/cmd_flash.c:304: undefined
+reference to `flash_print_info'
+/root/instramed/u-boot-1.1.4/common/cmd_flash.c:306: undefined
+reference to `flash_info'
+common/libcommon.a(cmd_flash.o): In function `flash_sect_erase':
+/root/instramed/u-boot-1.1.4/common/cmd_flash.c:432: undefined
+reference to `flash_erase'
+/root/instramed/u-boot-1.1.4/common/cmd_flash.c:442: undefined
+reference to `flash_info'
+common/libcommon.a(cmd_flash.o): In function `do_flerase':
+/root/instramed/u-boot-1.1.4/common/cmd_flash.c:385: undefined
+reference to `flash_erase'
+/root/instramed/u-boot-1.1.4/common/cmd_flash.c:401: undefined
+reference to `flash_info'
+common/libcommon.a(cmd_flash.o): In function `flash_sect_protect':
+/root/instramed/u-boot-1.1.4/common/cmd_flash.c:671: undefined
+reference to `flash_info'
+common/libcommon.a(cmd_flash.o): In function `do_protect':
+/root/instramed/u-boot-1.1.4/common/cmd_flash.c:617: undefined
+reference to `flash_info'
+common/libcommon.a(flash.o): In function `addr2info':
+/root/instramed/u-boot-1.1.4/common/flash.c:122: undefined reference
+to `flash_info'
+common/libcommon.a(flash.o): In function `flash_write':
+/root/instramed/u-boot-1.1.4/common/flash.c:177: undefined reference
+to `write_buff'
+make: *** [u-boot] Error 1
+
+
+
+
+someone know something about thi error in linker:
+
+arm-linux-ld: ERROR:
+/opt/arm-linux/lib/gcc/arm-linux/4.0.2/libgcc.a(_divsi3.o) uses
+hardware FP, whereas u-boot uses software FP
+arm-linux-ld: failed to merge target specific data of file
+/opt/arm-linux/lib/gcc/arm-linux/4.0.2/libgcc.a(_divsi3.o)
+arm-linux-ld: ERROR:
+/opt/arm-linux/lib/gcc/arm-linux/4.0.2/libgcc.a(_modsi3.o) uses
+hardware FP, whereas u-boot uses software FP
+arm-linux-ld: failed to merge target specific data of file
+/opt/arm-linux/lib/gcc/arm-linux/4.0.2/libgcc.a(_modsi3.o)
+lib_arm/libarm.a(board.o): In function `start_armboot':
+
+
+
 
 --
 Thanks && Regards
