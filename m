@@ -1,13 +1,13 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: Audio Configuration on OMAP 1510 Innovator board
-Date: Wed, 15 Feb 2006 07:11:30 -0800 (PST)
-Message-ID: <20060215151130.75929.qmail@web32915.mail.mud.yahoo.com>
-References: <20060215145204.86381.qmail@web36314.mail.mud.yahoo.com>
+From: =?ISO-8859-1?Q?Lu=EDs_Cargnini?= <lvcargnini@gmail.com>
+Subject: problem compiling kernel
+Date: Wed, 15 Feb 2006 18:25:27 +0000
+Message-ID: <ae36f8040602151025o25f4661dp8a4c1696a1f56bcb@mail.gmail.com>
+Reply-To: lvcargnini@ieee.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060215145204.86381.qmail@web36314.mail.mud.yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,35 +15,26 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Riya Patel <riya_mp0@yahoo.com>, LinuxOMap MailingList <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
---- Riya Patel <riya_mp0@yahoo.com> wrote:
+ CC      drivers/input/touchscreen/omap/omap_ts.o
+drivers/input/touchscreen/omap/omap_ts.c:230: error: syntax error
+before '{' token
+drivers/input/touchscreen/omap/omap_ts.c:233: error: syntax error
+before '}' token
+make[4]: *** [drivers/input/touchscreen/omap/omap_ts.o] Error 1
+make[3]: *** [drivers/input/touchscreen/omap] Error 2
+make[2]: *** [drivers/input/touchscreen] Error 2
+make[1]: *** [drivers/input] Error 2
+make: *** [drivers] Error 2
 
-> Hi,
-> 	I have problems in configuring audio on the OMAP 1510
-> Innovator board, for usage with the Openh323 protocol
-> stack.
-> I have the following hardware:
-> 
-> I am using the following software:
-> 1. Linux 2.6.9.
-> 
-
-Better you switch to the latest OMAP Linux kernel. You can pull the
-kernel from 
-
-http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=log
-
-for instructions please see
-http://www.muru.com/linux/omap/
-
----Komal Shah
-http://komalshah.blogspot.com/
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+someone know about it or how to fix ?
+i taked a look at source but seems ok, any fix available ?
+--
+Thanks && Regards
+Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
+IEEE Member
+Mastering Degree student @ PUC-RS Electrical Engineer Faculty
