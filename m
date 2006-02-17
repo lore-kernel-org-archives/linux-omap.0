@@ -1,12 +1,18 @@
-From: =?big5?B?qkykcKq0?= <subsun.ece94g@nctu.edu.tw>
-Subject: A problem about the uart3 of OMAP osk5912
-Date: Fri, 17 Feb 2006 16:27:58 +0800
-Message-ID: <20060217163457.9B78586CF0@mailreg.nctu.edu.tw>
+From: =?ISO-8859-1?Q?Lu=EDs_Cargnini?= <lvcargnini@gmail.com>
+Subject: Re: problems compiling u-Boot 1.1.4 (2)
+Date: Fri, 17 Feb 2006 10:39:13 -0200
+Message-ID: <ae36f8040602170439l1a2a6fe5lb48982352739c067@mail.gmail.com>
+References: <ae36f8040602160414s1af05cdcmf64b14448a894ff3@mail.gmail.com>
+	<20060217.095643.71082850.kaminaga@sm.sony.co.jp>
+	<ae36f8040602161930m4cd1c758vc451bc11a0610777@mail.gmail.com>
+	<20060217.165145.45744598.kaminaga@sm.sony.co.jp>
+Reply-To: lvcargnini@ieee.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="big5"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20060217.165145.45744598.kaminaga@sm.sony.co.jp>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,26 +20,35 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>
+Cc: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi there,
+so this won't generate softwares with low performance ?
+how this will affect me ? or i could add hardware fp ?
 
-I have a problem about the uart3 of OMAP osk5912. The fact is that osk5912
-don't have a second substantial uart port. We tried to send a echo signal to
-/dev/ttyS02(which is a character device node with the major number 4 and
-minor number 65 we made), but there was no voltage change on the TX of
-uart3. Can you tell me how to control the second uart of osk5912 under OS?
-Further more, can you tell me how to use the USB serial converter? We were
-using the GMUS-03 with chipset prolific, although the required convert is
-Elecom's US-SGT.
+On 2/17/06, Hiroki Kaminaga <kaminaga@sm.sony.co.jp> wrote:
+> Hi,
+>
+> > but this omap is a arm926ejs it have hardware fp i don't have this
+> > options --without-float or --with-float=3Dhard, neither
+> > --with-float=3Dsoft'
+> > but --with-float=3Dsoft will add software fp correct ?
+>
+> Yes.
+>
+>
+> Best Regards,
+>
+> HK.
+> --
+>
 
- 
 
-Regards,
-
-May
-
- 
+--
+Thanks && Regards
+Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
+IEEE Member
+Mastering Degree student @ PUC-RS Electrical Engineer Faculty
