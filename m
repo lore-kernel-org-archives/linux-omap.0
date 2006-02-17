@@ -1,13 +1,15 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: problem compiling kernel
-Date: Fri, 17 Feb 2006 17:00:27 +0100
-Message-ID: <43F5F31B.2010503@gmail.com>
-References: <ae36f8040602151025o25f4661dp8a4c1696a1f56bcb@mail.gmail.com>
+From: David Weinehall <tao@acc.umu.se>
+Subject: Re: OMAP: Update OMAP keypad driver
+Date: Fri, 17 Feb 2006 17:30:52 +0100
+Message-ID: <20060217163052.GC20494@vasa.acc.umu.se>
+References: <1139821011.5208.11.camel@two.research.nokia.com>
+	<20060217151207.48903.qmail@web32904.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <ae36f8040602151025o25f4661dp8a4c1696a1f56bcb@mail.gmail.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <20060217151207.48903.qmail@web32904.mail.mud.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,27 +17,46 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: lvcargnini@ieee.org
-Cc: OMAP <Linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Komal Shah <komal_shah802003@yahoo.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Lu=EDs Cargnini wrote:
->  CC      drivers/input/touchscreen/omap/omap_ts.o
-> drivers/input/touchscreen/omap/omap_ts.c:230: error: syntax error
-> before '{' token
-> drivers/input/touchscreen/omap/omap_ts.c:233: error: syntax error
-> before '}' token
-> make[4]: *** [drivers/input/touchscreen/omap/omap_ts.o] Error 1
-> make[3]: *** [drivers/input/touchscreen/omap] Error 2
-> make[2]: *** [drivers/input/touchscreen] Error 2
-> make[1]: *** [drivers/input] Error 2
-> make: *** [drivers] Error 2
+On Fri, Feb 17, 2006 at 07:12:07AM -0800, Komal Shah wrote:
+> --- Juha Yrj=F6l=E4 <juha.yrjola@nokia.com> wrote:
+>=20
+> >=20
+> > I was the one who removed that, since it breaks keypad support on all
+> > OMAP24xx boards (except H4, I presume) that have Menelaus on them.=20
+> > And
+> > there are quite a few of those.
+> >=20
+> > Please submit a patch that moves the stuff above into board-h4.c.
+> >=20
+>=20
+> I will submit that patch soon, having some problem in H4 setup right
+> now.
+>=20
+> Before that can't we convert the code below in keypad to
+>=20
+> 253 down(&kp_enable_mutex);
+> 254 	if (state !=3D kp_enable) {
+> 255 	if (state)
+> 256 		enable_irq(INT_KEYBOARD);
+> 257 	else
+> 258 		disable_irq(INT_KEYBOARD);
+> 259 		kp_enable =3D state;
+> 260 }
+> 261 up(&kp_enable_mutex);
 
-Does patch in previous mail fix this?
+Either you've indented incorrectly here, or you have a bug.
 
-Which toolchain do use? My toolchain doesn't complain about=20
-this.
+[snip]
 
-Dirk
+
+Regards: David Weinehall
+--=20
+ /) David Weinehall <tao@acc.umu.se> /) Northern lights wander      (\
+//  Maintainer of the v2.0 kernel   //  Dance across the winter sky //
+\)  http://www.acc.umu.se/~tao/    (/   Full colour fire           (/
