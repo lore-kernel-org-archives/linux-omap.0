@@ -1,14 +1,10 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: A problem about the uart3 of OMAP osk5912
-Date: Fri, 17 Feb 2006 13:08:25 -0800
-Message-ID: <20060217210824.GB771@atomide.com>
-References: <20060217163457.9B78586CF0@mailreg.nctu.edu.tw>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: [PATCH] Support all four gpio trigger modes for OMAP1610
+Date: Sat, 18 Feb 2006 09:19:31 +0100
+Message-ID: <43F6D893.9030004@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20060217163457.9B78586CF0@mailreg.nctu.edu.tw>
+Content-Type: multipart/mixed; boundary="------------050802080405050706000803"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,32 +12,52 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: =?utf-8?B?5p6X5bCP546r?= <subsun.ece94g@nctu.edu.tw>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* =E6=9E=97=E5=B0=8F=E7=8E=AB <subsun.ece94g@nctu.edu.tw> [060217 00:29]:
-> Hi there,
->=20
-> I have a problem about the uart3 of OMAP osk5912. The fact is that osk5=
-912
-> don't have a second substantial uart port. We tried to send a echo sign=
-al to
-> /dev/ttyS02(which is a character device node with the major number 4 an=
-d
-> minor number 65 we made), but there was no voltage change on the TX of
-> uart3. Can you tell me how to control the second uart of osk5912 under =
-OS?
-> Further more, can you tell me how to use the USB serial converter? We w=
-ere
-> using the GMUS-03 with chipset prolific, although the required convert =
-is
-> Elecom's US-SGT.
+This is a multi-part message in MIME format.
+--------------050802080405050706000803
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-If you solder a second UART to osk, you also have to init the additional
-internal port. See board-osk.c for that. USB serial port should show up
-as /dev/ttyUSB0.
 
-Tony
+ARM: OMAP: Support all four OMAP1610 GPIO trigger modes
+(proposed by David Brownell)
+
+Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
+
+
+
+--------------050802080405050706000803
+Content-Type: text/x-patch;
+ name="gpio_trigger.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="gpio_trigger.patch"
+
+--- ./arch/arm/plat-omap/gpio.c_orig	2006-02-18 07:43:54.000000000 +0100
++++ ./arch/arm/plat-omap/gpio.c	2006-02-18 08:59:30.000000000 +0100
+@@ -452,10 +452,8 @@ static int _set_gpio_triggering(struct g
+ 		l &= ~(3 << (gpio << 1));
+ 		if (trigger & __IRQT_RISEDGE)
+ 			l |= 2 << (gpio << 1);
+-		else if (trigger & __IRQT_FALEDGE)
++		if (trigger & __IRQT_FALEDGE)
+ 			l |= 1 << (gpio << 1);
+-		else
+-			goto bad;
+ 		break;
+ 	case METHOD_GPIO_730:
+ 		reg += OMAP730_GPIO_INT_CONTROL;
+
+
+--------------050802080405050706000803
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--------------050802080405050706000803--
