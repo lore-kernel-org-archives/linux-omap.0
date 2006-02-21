@@ -1,13 +1,13 @@
 From: "Menon, Nishanth" <x0nishan@ti.com>
-Subject: RE: [PATCH] Alsa modularisations and support for tsc2101 0/7
-Date: Tue, 21 Feb 2006 07:22:26 -0600
-Message-ID: <520AB2AD990DC04082102F77CA1726381036EA@dlee03.ent.ti.com>
-References: <9268368b0602200933s41905c2bp254749b1e6eff9c7@mail.gmail.com>
+Subject: RE: [PATCH] Alsa modularisations and support for tsc2101 2/7
+Date: Tue, 21 Feb 2006 07:31:19 -0600
+Message-ID: <520AB2AD990DC04082102F77CA1726381036EB@dlee03.ent.ti.com>
+References: <9268368b0602200947g57ed39d6y28d4612ed4278cda@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -16,41 +16,51 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: Daniel Petrini <d.pensator@gmail.com>, OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Daniel,
-Glad to see a clean organization coming in for the code :).
->2) If it is acceptable to put the codecs under arch directory, would
->plat-omap be better location than arch-omap1, for mcbsp supported
->codecs? (Are there any omap2 boards with aic23 or tsc2101 codecs?)
-Yes, There are omap2 boards with tsc2101, and omap2 boards which can =
-have pluggable codecs. some interesting observations I have seen so far =
-(it will be a small set compared to what others could add):
+Nope, does not look a good idea to me, as we will not be able to pull =
+these out for 2420/2430 platforms(unless we move it to plat). why keep =
+the tsc2101/aic in platforms specific directory if:
+1. it can have varied control path
+2. data transfer paths?
+3. defined set of apis which can be called  by an higher abstraction =
+layer?
 =20
-Control paths:
-McSPI, uWire, I2C
+I can see the transfer configuration is mainly setup from board file, =
+which is an excellent idea. however for codecs.. err.. sound/... is a =
+nice place for it to remain..
 =20
-Data transfer paths:
-codecs with mcbsp/EAC on 2420
-codecs with mcbsp/mcbsplp(on2430)
-codecs on mcbsp1,2
-=20
-Data formats:
-PCM,I2S,TDM
-could have supported uLaw data formats too
-=20
-Codecs:
-tsc2101, aic, others such as =
-twl4030(http://focus.ti.com/general/docs/wtbu/wtbugencontent.tsp?template=
-Id=3D6123&path=3Dtemplatedata/cm/general/data/wtbmiddl/twl4030&DCMP=3DWTB=
-U&HQS=3DProductBulletin+OT+twl4030) =
-<http://focus.ti.com/general/docs/wtbu/wtbugencontent.tsp?templateId=3D61=
-23&path=3Dtemplatedata/cm/general/data/wtbmiddl/twl4030&DCMP=3DWTBU&HQS=3D=
-ProductBulletin+OT+twl4030)other> codecs which are far more complex than =
-these two, including data mixing, mono/stereo input/output capabilities.
+This will allow:
+1. Other platforms other than omap also to be able to use tsc2101 =
+functionalilty
+2. have common support for alsa and oss - i dont see oss dying a lot =
+sooner ;)
+why would we want to stop the cross leverage?
 =20
 Regards,
 Nishanth Menon
+
+________________________________
+
+From: linux-omap-open-source-bounces@linux.omap.com on behalf of Daniel =
+Petrini
+Sent: Mon 2/20/2006 11:47 AM
+To: OMAP-Linux
+Subject: [PATCH] Alsa modularisations and support for tsc2101 2/7
+
+
+
+ALSA Omap Patch
+
+This patch moves codec files to mach-omap1 file and adds supports in
+makefile for this
+
+signed-off by Daniel Petrini <d.pensator@gmail.com>
+signed-off by Mika Laitio <lamikr@cc.jyu.fi>
+
+Daniel
+--
+INdT - Manaus - Brazil
