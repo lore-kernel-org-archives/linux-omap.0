@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH][RFC] update flash timing on OMAP5912OSK
-Date: Mon, 20 Feb 2006 15:04:50 -0800
-Message-ID: <20060220230450.GH30248@atomide.com>
-References: <20060220.132145.74756047.kaminaga@sm.sony.co.jp>
+Subject: Re: serial on omap in current git.
+Date: Mon, 20 Feb 2006 16:03:39 -0800
+Message-ID: <20060221000338.GI30248@atomide.com>
+References: <EA12F909C0431D458B9D18A176BEE4A5044B2C35@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20060220.132145.74756047.kaminaga@sm.sony.co.jp>
+In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A5044B2C35@dlee02.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,36 +15,42 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Hiroki Kaminaga <kaminaga@sm.sony.co.jp> [060219 20:29]:
-> Hi,
+* Woodruff, Richard <r-woodruff2@ti.com> [060213 10:51]:
+> > So the extended capabilities bit is needed to write fcr, or else some
+> > settings don't get set?
 > 
-> In linux-2.6.15-omap1 patch, in arch/arm/mach-omap1/board-osk.c,
-> EMIFS_CS3_VAL is set to 0x30003361.
+> That is what the OMAP-UART data sheet says.  The write water mark bits
+> 4:5 are not accessible unless ECB is set.
 > 
-> This was introduced to fix flash timing error.
-> http://linux.omap.com/pipermail/linux-omap-open-source/2005-July/004717.html
+> The data sheet says it is TI16C750 compatible but it seems to share more
+> with what the code calls a TI16C752.  The 750 has a DLAB to set 64bit
+> fifo and I don't believe that is the case for ours.
 > 
-> On the other hand, in SectionE:Errata in EMIFS timing at:
-> http://omap.spectrumdigital.com/osk5912/osk5912_faq.html
-> EMIFS_CS3_VAL was set to 0x88013141, fixing write/read rate.
+> The code id's it as a 16654 which isn't quite correct.
 > 
-> Reading from
-> http://focus.ti.com/lit/ug/spru742/spru742.pdf
-> 3.6 EMIFS Registers,
+> > Can you list the 8250.c issues you've seen?
 > 
-> 0x30003361 will set read mode from "page mode, 4 word/page" to 
-> "asynchronous read", and read from flash slowed down.
+> The TX watermark, the IRQ_HANDLED not working, then the recent error
+> which you worked around.
+>  
+> > > A minor note is we are still only using 32 bytes of the 64 byte TX
+> fifo
+> > > for transmits in the current code.  I'm not sure if there is an
+> > > application that this matters to.
+> > 
+> > I guess that could help on bluetooth maybe.
 > 
-> I tested with new value 0x88013141, and works good so far.
-> 
-> Here is a patch against 2.6.15-omap1 patch.
+> Sure.  For fast Bluetooth I would think both DMA and flow control should
+> also be enabled.  I doubt both would just work given it identified
+> wrongly and the details around these areas are exactly what are
+> differently between the 554/750/752 as far as I can tell.
 
-Thanks, pushing today.
+I've pushed this, let's see how it works and then send it to RMK.
 
 Tony
