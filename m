@@ -1,14 +1,12 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: clk_get kernel dump
-Date: Mon, 20 Feb 2006 16:05:38 -0800
-Message-ID: <20060221000538.GJ30248@atomide.com>
-References: <20060214175603.GE7135@atomide.com>
-	<20060215143716.48574.qmail@web32901.mail.mud.yahoo.com>
+From: "Kavita Kalra" <kavita.dsp@gmail.com>
+Subject: Problem in configuring DSP/BIOS Link
+Date: Tue, 21 Feb 2006 12:08:06 +0530
+Message-ID: <c474a93a0602202238o2140573eqd3c91fd3e1b5a91a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20060215143716.48574.qmail@web32901.mail.mud.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,26 +16,40 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Komal Shah <komal_shah802003@yahoo.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Komal Shah <komal_shah802003@yahoo.com> [060215 06:37]:
-> --- Tony Lindgren <tony@atomide.com> wrote:
-> 
-> > 
-> > Might be the common DSP code trying to set NULL clocks on omap2. I've
-> > patched the clock framework to check that:
-> > 
-> >
-> http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commitdiff;h=8fc55a5be4a212efc51a335ddcd5ba066f46de6c
-> > 
-> > So updating to current git tree should help.
-> 
-> My tree is having this patch and clock fwk is latest as per the git
-> tree. But the dump seems to coming from debug_mutex_waiter_free(...)
-> function. 
+Hi All
 
-In case you still have this problem, my h4 boots just fine here, BTW.
+I am working on TI OMAP 5912. I have configured the ARM as per the
+documentation available with the kit. To be able to work on DSP side I
+need to configure the DSP/BIOS link. However when i try configuring
+DSP/BIOS link by setting the DSPLINK environment variables by issuing
+the following command on host :
+source ~/dsplink/etc/host/scripts/Linux/gppenv.bash
+and build it:
+./dsplinkcfg
 
-Tony
+then rather than taking the path home/username it takes it as:
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+             DSP/BIOS(TM) LINK  Configuration Tool
+  ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+  DSPLINK is currently defined as:
+
+  /root/dsplink
+
+
+  1.   Continue.
+
+  2.   Quit to change.
+
+  ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+  YOUR CHOICE : 2
+
+what should i do so as  to make it take the correct path             =20
+                                                     ???
+
+Regards
+Kavita
