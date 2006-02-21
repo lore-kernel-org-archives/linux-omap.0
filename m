@@ -1,13 +1,15 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: [PATCH] Make H2 board file compile without irda warning
-Date: Tue, 21 Feb 2006 13:54:26 -0800 (PST)
-Message-ID: <20060221215426.68231.qmail@web32903.mail.mud.yahoo.com>
-References: <20060221212838.67357.qmail@web32905.mail.mud.yahoo.com>
+From: lamikr <lamikr@cc.jyu.fi>
+Subject: Re: [PATCH] Alsa modularisations and support for tsc2101 2/7
+Date: Wed, 22 Feb 2006 01:53:10 +0200
+Message-ID: <43FBA7E6.2080103@cc.jyu.fi>
+References: <9268368b0602200947g57ed39d6y28d4612ed4278cda@mail.gmail.com><520AB2AD990DC04082102F77CA1726381036EB@dlee03.ent.ti.com>	<9268368b0602210606y5a84b111g459f2b293d4ece4@mail.gmail.com>
+	<520AB2AD990DC04082102F77CA1726381036EF@dlee03.ent.ti.com>
+Reply-To: lamikr@cc.jyu.fi
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-1647374327-1140558866=:65541"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060221212838.67357.qmail@web32905.mail.mud.yahoo.com>
+In-Reply-To: <520AB2AD990DC04082102F77CA1726381036EF@dlee03.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,70 +19,55 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Daniel Petrini <d.pensator@gmail.com>, OMAP-Linux <linux-omap-open-source@linux.omap.com>
+To: "Menon, Nishanth" <x0nishan@ti.com>
+Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
---0-1647374327-1140558866=:65541
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Content-Id: 
-Content-Disposition: inline
 
---- Komal Shah <komal_shah802003@yahoo.com> wrote:
+>>You mean the codec files moving to sound/ ? With this board file
+>>approach this cause problems in linking the codec functions in the
+>>board file. They had to stay in the omap tree not in the sound/ .
+>>Maybe a better place to them could be plat-omap/ ?
+>>    
+>>
+>I dont see plat-omap having stuff other than omap specific code - such as dma etc.. if we put peripheral chip specific code there, i dont see kernel directory's abstraction happening properly sound/.. is the perfect place for this. The issue of linking is a minor problem - which can be handled by using proper include files.
+>Regards,
+>  
+>
+Hi,
 
-> 
-> True, the warning will be generated, but I added that check
-> considering
-> that transceiver_mode function will be active only if we are
-> successfully able to request that GPIO. So, I am _not_ sure, but it
-> is
-> better to #ifdef around the h2_transceiver_mode(...) function. What
-> do
-> you think?
-> 
+We have put the audio codec files under /arm/arch because we have wanted
+to share the same omap-alsa.c between both codecs.
+And for that reason we need to set the function pointers to omap-alsa.c
+so that the calls from omap-alsa.c ends up to correct codec.
 
-And here comes the patch.
+We have tried to do couple of different method for implementing this and
+have not sofar found any perfect solution.
 
-OMAP: Irda: Remove warning
-arch/arm/mach-omap1/board-h2.c:244: warning: 'h2_transceiver_mode'
-defined but not used.
+In our first attempt we kept all alsa related files in sound/arm/omap
+directory.
+In addition we put get_codec_functions() method to both of the drivers
+and when the module was loaded the omap-alsa.c
+called this get_codec_functions() method. The method had one
+disadvantage, user could not build aic23 and tsc2101 drivers to same kernel
+as both of the drivers had this one function with the same name.
 
-Signed-off-by: Komal Shah <komal_shah802003@yahoo.com>
+In our second attemt (the one included in patches) we put the board-code
+to set the function pointers. The drawback in this
+method is that the functions defined in the board-code must itself be
+linked within the board-code, otherwise we
+got linking errors in the end.
 
----Komal Shah
-http://komalshah.blogspot.com/
+Third (non tested) alternative could work in the following way
+- Move the alsa modules probe method to codecs.
+- when probe is called, it could define the function pointers and set
+them to omap-alsa.c
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
---0-1647374327-1140558866=:65541
-Content-Type: application/octet-stream; name="h2Irda.patch"
-Content-Transfer-Encoding: base64
-Content-Description: 390387012-h2Irda.patch
-Content-Disposition: attachment; filename="h2Irda.patch"
+Fourth possibility I know would be to make own implementation from
+omap-alsa.c both for both of the codecs
+but that is something I would like to avoid.
 
-ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtaDIuYyBi
-L2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtaDIuYwppbmRleCA2ODBlNjdl
-Li5jYmM3Njc0IDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAxL2Jv
-YXJkLWgyLmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1oMi5j
-CkBAIC0yNDAsNiArMjQwLDcgQEAgc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9k
-ZXZpY2UgaDJfa3BfZGV2aQogCiAjZGVmaW5lIEgyX0lSREFfRklSU0VMX0dQ
-SU9fUElOCTE3CiAKKyNpZiBkZWZpbmVkKENPTkZJR19PTUFQX0lSKSB8fCBk
-ZWZpbmVkKENPTkZJR19PTUFQX0lSX01PRFVMRSkgCiBzdGF0aWMgaW50IGgy
-X3RyYW5zY2VpdmVyX21vZGUoc3RydWN0IGRldmljZSAqZGV2LCBpbnQgc3Rh
-dGUpCiB7CiAJaWYgKHN0YXRlICYgSVJfU0lSTU9ERSkKQEAgLTI0OSw2ICsy
-NTAsNyBAQCBzdGF0aWMgaW50IGgyX3RyYW5zY2VpdmVyX21vZGUoc3RydWN0
-IGRlCiAKIAlyZXR1cm4gMDsKIH0KKyNlbmRpZgogCiBzdGF0aWMgc3RydWN0
-IG9tYXBfaXJkYV9jb25maWcgaDJfaXJkYV9kYXRhID0gewogCS50cmFuc2Nl
-aXZlcl9jYXAJPSBJUl9TSVJNT0RFIHwgSVJfTUlSTU9ERSB8IElSX0ZJUk1P
-REUsCg==
+So if you have some idea how to do this, can you give us some info how
+to do that.
 
---0-1647374327-1140558866=:65541
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---0-1647374327-1140558866=:65541--
+Mika
