@@ -1,15 +1,13 @@
-From: "Menon, Nishanth" <x0nishan@ti.com>
-Subject: RE: [PATCH] Alsa modularisations and support for tsc2101 2/7
-Date: Tue, 21 Feb 2006 08:08:18 -0600
-Message-ID: <520AB2AD990DC04082102F77CA1726381036EF@dlee03.ent.ti.com>
-References: <9268368b0602200947g57ed39d6y28d4612ed4278cda@mail.gmail.com><520AB2AD990DC04082102F77CA1726381036EB@dlee03.ent.ti.com>
-	<9268368b0602210606y5a84b111g459f2b293d4ece4@mail.gmail.com>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: RE: [PATCH] Alsa modularisations and support for tsc2101 4/7
+Date: Tue, 21 Feb 2006 06:14:24 -0800 (PST)
+Message-ID: <20060221141424.95300.qmail@web32914.mail.mud.yahoo.com>
+References: <520AB2AD990DC04082102F77CA1726381036EC@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-class: urn:content-classes:message
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <520AB2AD990DC04082102F77CA1726381036EC@dlee03.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,21 +15,32 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Daniel Petrini <d.pensator@gmail.com>
-Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Menon, Nishanth" <x0nishan@ti.com>, Daniel Petrini <d.pensator@gmail.com>, OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Daniel,
->You mean the codec files moving to sound/ ? With this board file
->approach this cause problems in linking the codec functions in the
->board file. They had to stay in the omap tree not in the sound/ .
->Maybe a better place to them could be plat-omap/ ?
-I dont see plat-omap having stuff other than omap specific code - such =
-as dma etc.. if we put peripheral chip specific code there, i dont see =
-kernel directory's abstraction happening properly sound/.. is the =
-perfect place for this. The issue of linking is a minor problem - which =
-can be handled by using proper include files.
-Regards,
-Nishanth Menon
+--- "Menon, Nishanth" <x0nishan@ti.com> wrote:
+
+> 
+> One interesting observations about the new platform device support.
+> on SDP2430, we can plug in the codec we'd desire. the combination of
+> codec and mcbsp settings are useful, not mcbsp settings remaining
+> remaining constant.
+> 
+> i can see we can do it here and a lot cleaner :)
+
+I am not able to understand this. Could you please explain?
+
+Does it mean, that you have added the code in 2430 port which does
+above stuff, means dynamic setting for McBSP from platform data? _or_
+You want to mention that McBSP settings for particular board and codec
+combination remains same.
+
+---Komal Shah
+http://komalshah.blogspot.com/
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
