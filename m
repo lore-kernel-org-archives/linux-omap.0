@@ -1,8 +1,8 @@
 From: "Menon, Nishanth" <x0nishan@ti.com>
-Subject: RE: [PATCH] Alsa modularisations and support for tsc2101 4/7
-Date: Tue, 21 Feb 2006 07:37:58 -0600
-Message-ID: <520AB2AD990DC04082102F77CA1726381036EC@dlee03.ent.ti.com>
-References: <9268368b0602200953q181b7a4em1944ece745d5acd3@mail.gmail.com>
+Subject: RE: [PATCH] Alsa modularisations and support for tsc2101 6/7
+Date: Tue, 21 Feb 2006 07:39:59 -0600
+Message-ID: <520AB2AD990DC04082102F77CA1726381036ED@dlee03.ent.ti.com>
+References: <43FA0A3B.7070303@cc.jyu.fi>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -18,27 +18,17 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Daniel Petrini <d.pensator@gmail.com>, OMAP-Linux <linux-omap-open-source@linux.omap.com>
+To: lamikr@cc.jyu.fi, OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-+#define DEFAULT_BITPERSAMPLE 16
++#define CODEC_CLOCK 12000000
 
-+static struct omap_mcbsp_reg_cfg mcbsp_regs =3D {=20
++#define AUDIO_MCBSP OMAP_MCBSP1
 
-+ .spcr2 =3D FREE | FRST | GRST | XRST | XINTM(3),
-
-+ .spcr1 =3D RINTM(3) | RRST,
-
-the default bitspersample might vary for codecs - some codecs have =
-support for 24 bit too(and mcbsp as 32bit wordlen if bitspersample is =
-24bit). this was not supported in oss, but with alsa.. we have scope.
-
-One interesting observations about the new platform device support. on =
-SDP2430, we can plug in the codec we'd desire. the combination of codec =
-and mcbsp settings are useful, not mcbsp settings remaining remaining =
-constant.
-
-i can see we can do it here and a lot cleaner :)
+we should be quering the sysclk for figuring out the codec_clk. some =
+boards such as sdp2430 have an interesting property of being able to =
+provide 12/13mhz clk to the codec.. and hardcoding mcbsp1 wil have =
+portability issues on omap2420 does this belong to platform structure?
 
 Regards,
 
@@ -47,23 +37,21 @@ Nishanth Menon
 
 ________________________________
 
-From: linux-omap-open-source-bounces@linux.omap.com on behalf of Daniel =
-Petrini
-Sent: Mon 2/20/2006 11:53 AM
+From: linux-omap-open-source-bounces+x0nishan=3Dti.com@linux.omap.com on =
+behalf of lamikr
+Sent: Mon 2/20/2006 12:28 PM
 To: OMAP-Linux
-Subject: [PATCH] Alsa modularisations and support for tsc2101 4/7
+Subject: [PATCH] Alsa modularisations and support for tsc2101 6/7
 
 
 
 ALSA Omap Patch
 
-This patch includes the platform device support for the new proposed
-approach. For OSK and H2.
+This patch creates support for tsc2101 codec for alsa omap. Tested with
+boards H2 and iPAQ h6300.
 
-signed-off by Daniel Petrini <d.pensator@gmail.com>
 signed-off by Mika Laitio <lamikr@cc.jyu.fi>
+signed-off by Daniel Petrini <d.pensator@gmail.com>
 
-
-Daniel Petrini
---
-INdT - Manaus - Brazil
+----------------
+Mika Laitio
