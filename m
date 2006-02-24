@@ -1,12 +1,13 @@
-From: "naga rajan" <nagubk82@gmail.com>
-Subject: Regarding filesystem Compression
-Date: Fri, 24 Feb 2006 17:06:47 +0530
-Message-ID: <7e6cc7550602240336q2486065i6a5caac847c39463@mail.gmail.com>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: Re: [PATCH] Alsa modularisations and support for tsc2101 1/7
+Date: Fri, 24 Feb 2006 05:24:50 -0800 (PST)
+Message-ID: <20060224132450.18630.qmail@web32901.mail.mud.yahoo.com>
+References: <43FCE2B1.1070901@cc.jyu.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+In-Reply-To: <43FCE2B1.1070901@cc.jyu.fi>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,18 +17,22 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: lamikr@cc.jyu.fi, Daniel Petrini <d.pensator@gmail.com>
+Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-hi all
+I hope you guys know about this ASoc stuff. 
 
-  I have created root filesystem image of 33Mb for OMAP 5912, on using
-mkfs.jjfs2  the size of the image comes to 16MB. Here i have included only
-few libraries only. I have to compress it further.
+ More info on: http://www.rpsys.net/openzaurus/patches/alsa/info.html 
 
-I compared with TI root-filesystem, the image size of root filesystem is
-very low, Can anyone overcome this problem?
+If you are going ot FOSDEM then you will be able to discuss with Liam
+about ALSA SoC layer.
 
-by
-Nagaraj
-SANDS
+
+---Komal Shah
+http://komalshah.blogspot.com/
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
