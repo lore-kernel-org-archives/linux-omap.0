@@ -1,13 +1,12 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Apollon LCD support
-Date: Fri, 24 Feb 2006 17:13:49 -0800
-Message-ID: <20060225011349.GF5116@atomide.com>
-References: <0IV300JL62X3NE@mmp2.samsung.com>
+From: "ahmed adel" <elakwah@gmail.com>
+Subject: osk5912 help plz
+Date: Sat, 25 Feb 2006 23:55:07 +0200
+Message-ID: <6fbbb3de0602251355j102a19f3qc90462e4320aadc2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <0IV300JL62X3NE@mmp2.samsung.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,15 +16,14 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kyungmin Park <kyungmin.park@samsung.com> [060222 09:26]:
-> Hi
-> 
-> Sync. with OMAP git tree
+hello
+i am ahmed,
+is the developement for osk5912 using linux only is difficult
+i.e.is there is debugging ang simulators as code composer under windows?
 
-Thanks, pushing today.
+what should i need to begin developement under linux?
 
-Tony
+thanks in advance
