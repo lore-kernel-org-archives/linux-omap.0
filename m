@@ -1,14 +1,11 @@
-From: "andrzej zaborowski" <balrog@zabor.org>
-Subject: Re: problem compiling kernel
-Date: Mon, 27 Feb 2006 10:55:55 +0100
-Message-ID: <fb249edb0602270155v65302263x@mail.gmail.com>
-References: <ae36f8040602151025o25f4661dp8a4c1696a1f56bcb@mail.gmail.com>
-	<43F5F31B.2010503@gmail.com>
-Reply-To: balrogg@gmail.com
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: [PATCH] OMAP2: I2C: Use clock id
+Date: Mon, 27 Feb 2006 06:43:42 -0800 (PST)
+Message-ID: <20060227144342.94854.qmail@web32901.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0694068416=="
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <43F5F31B.2010503@gmail.com>
+Content-Type: multipart/mixed; boundary="0-996117186-1141051422=:92575"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,33 +13,101 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: OMAP <Linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============0694068416==
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+--0-996117186-1141051422=:92575
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Content-Id: 
 Content-Disposition: inline
 
-T24gMTcvMDIvMDYsIERpcmsgQmVobWUgPGRpcmsuYmVobWVAZ29vZ2xlbWFpbC5jb20+IHdyb3Rl
-Ogo+IFsuLl0KPiBEb2VzIHBhdGNoIGluIHByZXZpb3VzIG1haWwgZml4IHRoaXM/Cj4KPiBXaGlj
-aCB0b29sY2hhaW4gZG8gdXNlPyBNeSB0b29sY2hhaW4gZG9lc24ndCBjb21wbGFpbiBhYm91dAo+
-IHRoaXMuCgpNeSBnY2MgNC4xLjAgZGlkIGNvbXBsYWluIGFuZCB0aGUgcGF0Y2ggZml4ZWQgdGhp
-cyBmaW5lLiBJIHRoaW5rIHRoZXJlCndlcmUgYWxzbyBvdGhlciBlcnJvcnMvd2FybmluZyAoY2Fu
-J3QgcmVtZW1iZXIpIHdoZW4gY29tcGlsaW5nIHdpdGgKNC4xLjAgLS0gb2Zjb3Vyc2UsIGRlcGVu
-ZGluZyBvbiB3aGF0IGRyaXZlcnMgeW91IGNob3NlIHRvIGNvbXBpbGUgaW4uClNvcnJ5IGZvciBs
-YXRlIHJlcGx5LgotLQpiYWxyb2cgMm9vNgoKRGVhciBPdXRsb29rIHVzZXJzOiBQbGVhc2UgcmVt
-b3ZlIG1lIGZyb20geW91ciBhZGRyZXNzIGJvb2tzCmh0dHA6Ly93d3cubmV3c2ZvcmdlLmNvbS9h
-cnRpY2xlLnBsP3NpZD0wMy8wOC8yMS8xNDMyNTgK
+Tony,
 
---===============0694068416==
+Attached patch uses clock id for I2C clocks on OMAP2. Tested with H4.
+
+Signed-off-by: Komal Shah <komal_shah802003@yahoo.com>
+
+---Komal Shah
+http://komalshah.blogspot.com/
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
+--0-996117186-1141051422=:92575
+Content-Type: application/octet-stream; name="i2c-clkid.patch"
+Content-Transfer-Encoding: base64
+Content-Description: 1237781688-i2c-clkid.patch
+Content-Disposition: attachment; filename="i2c-clkid.patch"
+
+ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvY2xvY2suaCBiL2Fy
+Y2gvYXJtL21hY2gtb21hcDIvY2xvY2suaAppbmRleCA3YTdhZTZiLi42Yzc4
+ZDQ3IDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2Nsb2NrLmgK
+KysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9jbG9jay5oCkBAIC0xNjk4LDcg
+KzE2OTgsOCBAQCBzdGF0aWMgc3RydWN0IGNsayBoZHFfZmNrID0gewogfTsK
+IAogc3RhdGljIHN0cnVjdCBjbGsgaTJjMl9pY2sgPSB7Ci0JLm5hbWUJCT0g
+ImkyYzJfaWNrIiwKKwkubmFtZQkJPSAiaTJjX2ljayIsCisJLmlkCQk9IDIs
+CiAJLnBhcmVudAkJPSAmbDRfY2ssCiAJLmZsYWdzCQk9IENMT0NLX0lOX09N
+QVAyNDJYIHwgQ0xPQ0tfSU5fT01BUDI0M1gsCiAJLmVuYWJsZV9yZWcJPSAo
+dm9pZCBfX2lvbWVtICopJkNNX0lDTEtFTjFfQ09SRSwKQEAgLTE3MDcsNyAr
+MTcwOCw4IEBAIHN0YXRpYyBzdHJ1Y3QgY2xrIGkyYzJfaWNrID0gewogfTsK
+IAogc3RhdGljIHN0cnVjdCBjbGsgaTJjMl9mY2sgPSB7Ci0JLm5hbWUJCT0g
+ImkyYzJfZmNrIiwKKwkubmFtZQkJPSAiaTJjX2ZjayIsCisJLmlkCQk9IDIs
+CiAJLnBhcmVudAkJPSAmZnVuY18xMm1fY2ssCiAJLmZsYWdzCQk9IENMT0NL
+X0lOX09NQVAyNDJYIHwgQ0xPQ0tfSU5fT01BUDI0M1gsCiAJLmVuYWJsZV9y
+ZWcJPSAodm9pZCBfX2lvbWVtICopJkNNX0ZDTEtFTjFfQ09SRSwKQEAgLTE3
+MjUsNyArMTcyNyw4IEBAIHN0YXRpYyBzdHJ1Y3QgY2xrIGkyY2hzMl9mY2sg
+PSB7CiB9OwogCiBzdGF0aWMgc3RydWN0IGNsayBpMmMxX2ljayA9IHsKLQku
+bmFtZQkJPSAiaTJjMV9pY2siLAorCS5uYW1lCQk9ICJpMmNfaWNrIiwKKwku
+aWQJCT0gMSwKIAkucGFyZW50CQk9ICZsNF9jaywKIAkuZmxhZ3MJCT0gQ0xP
+Q0tfSU5fT01BUDI0MlggfCBDTE9DS19JTl9PTUFQMjQzWCwKIAkuZW5hYmxl
+X3JlZwk9ICh2b2lkIF9faW9tZW0gKikmQ01fSUNMS0VOMV9DT1JFLApAQCAt
+MTczNCw3ICsxNzM3LDggQEAgc3RhdGljIHN0cnVjdCBjbGsgaTJjMV9pY2sg
+PSB7CiB9OwogCiBzdGF0aWMgc3RydWN0IGNsayBpMmMxX2ZjayA9IHsKLQku
+bmFtZQkJPSAiaTJjMV9mY2siLAorCS5uYW1lCQk9ICJpMmNfZmNrIiwKKwku
+aWQJCT0gMSwKIAkucGFyZW50CQk9ICZmdW5jXzEybV9jaywKIAkuZmxhZ3MJ
+CT0gQ0xPQ0tfSU5fT01BUDI0MlggfCBDTE9DS19JTl9PTUFQMjQzWCwKIAku
+ZW5hYmxlX3JlZwk9ICh2b2lkIF9faW9tZW0gKikmQ01fRkNMS0VOMV9DT1JF
+LApkaWZmIC0tZ2l0IGEvZHJpdmVycy9pMmMvYnVzc2VzL2kyYy1vbWFwLmMg
+Yi9kcml2ZXJzL2kyYy9idXNzZXMvaTJjLW9tYXAuYwppbmRleCBkNjRkMzdm
+Li5mNDE2ZDE5IDEwMDY0NAotLS0gYS9kcml2ZXJzL2kyYy9idXNzZXMvaTJj
+LW9tYXAuYworKysgYi9kcml2ZXJzL2kyYy9idXNzZXMvaTJjLW9tYXAuYwpA
+QCAtMTYyLDE5ICsxNjIsMTcgQEAgc3RhdGljIGlubGluZSB1MTYgb21hcF9p
+MmNfcmVhZF9yZWcoc3RydQogfQogCiAjaWZkZWYgQ09ORklHX0FSQ0hfT01B
+UDI0WFgKLXN0YXRpYyBpbnQgb21hcF9pMmNfZ2V0X2Nsb2NrcyhzdHJ1Y3Qg
+b21hcF9pMmNfZGV2ICpkZXYsIGludCBidXMpCitzdGF0aWMgaW50IG9tYXBf
+aTJjX2dldF9jbG9ja3Moc3RydWN0IG9tYXBfaTJjX2RldiAqZGV2KQogewog
+CWlmICghY3B1X2lzX29tYXAyNHh4KCkpCiAJCXJldHVybiAwOwogCi0JZGV2
+LT5pY2xrID0gY2xrX2dldChOVUxMLAotCQlidXMgPT0gMSA/ICJpMmMxX2lj
+ayIgOiAiaTJjMl9pY2siKTsKKwlkZXYtPmljbGsgPSBjbGtfZ2V0KGRldi0+
+ZGV2LCAiaTJjX2ljayIpOwogCWlmIChJU19FUlIoZGV2LT5pY2xrKSkgewog
+CQlyZXR1cm4gLUVOT0RFVjsKIAl9CiAKLQlkZXYtPmZjbGsgPSBjbGtfZ2V0
+KE5VTEwsCi0JCWJ1cyA9PSAxID8gImkyYzFfZmNrIiA6ICJpMmMyX2ZjayIp
+OworCWRldi0+ZmNsayA9IGNsa19nZXQoZGV2LT5kZXYsICJpMmNfZmNrIik7
+CiAJaWYgKElTX0VSUihkZXYtPmZjbGspKSB7CiAJCWNsa19wdXQoZGV2LT5m
+Y2xrKTsKIAkJcmV0dXJuIC1FTk9ERVY7CkBAIC0yMDIsNyArMjAwLDcgQEAg
+c3RhdGljIHZvaWQgb21hcF9pMmNfZGlzYWJsZV9jbG9ja3Moc3RydQogfQog
+CiAjZWxzZQotI2RlZmluZSBvbWFwX2kyY19nZXRfY2xvY2tzKHgsIHkpCQkw
+CisjZGVmaW5lIG9tYXBfaTJjX2dldF9jbG9ja3MoeCkJCTAKICNkZWZpbmUg
+b21hcF9pMmNfZW5hYmxlX2Nsb2Nrcyh4KQlkbyB7fSB3aGlsZSAoMCkKICNk
+ZWZpbmUgb21hcF9pMmNfZGlzYWJsZV9jbG9ja3MoeCkJZG8ge30gd2hpbGUg
+KDApCiAjZGVmaW5lIG9tYXBfaTJjX3B1dF9jbG9ja3MoeCkJCWRvIHt9IHdo
+aWxlICgwKQpAQCAtNjE5LDcgKzYxNyw3IEBAIG9tYXBfaTJjX3Byb2JlKHN0
+cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnAKIAlkZXYtPmJhc2UgPSAodm9pZCBf
+X2lvbWVtICopIElPX0FERFJFU1MobWVtLT5zdGFydCk7CiAJcGxhdGZvcm1f
+c2V0X2RydmRhdGEocGRldiwgZGV2KTsKIAotCWlmICgociA9IG9tYXBfaTJj
+X2dldF9jbG9ja3MoZGV2LCBwZGV2LT5pZCkpICE9IDApCisJaWYgKChyID0g
+b21hcF9pMmNfZ2V0X2Nsb2NrcyhkZXYpKSAhPSAwKQogCQlnb3RvIGRvX2Zy
+ZWVfbWVtOwogCiAJb21hcF9pMmNfZW5hYmxlX2Nsb2NrcyhkZXYpOwo=
+
+--0-996117186-1141051422=:92575
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---===============0694068416==--
+--0-996117186-1141051422=:92575--
