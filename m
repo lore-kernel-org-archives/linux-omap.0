@@ -1,11 +1,13 @@
-From: =?big5?q?=AAL=A4p=AA=B4?= <foxfromworld@yahoo.com.tw>
-Subject: I can't make ssh for osk5912
-Date: Tue, 28 Feb 2006 18:59:01 +0800 (CST)
-Message-ID: <20060228105902.53508.qmail@web17505.mail.tpe.yahoo.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH] omapfb vsync support
+Date: Tue, 28 Feb 2006 06:54:43 -0600
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A5048ACD44@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=big5
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,34 +17,26 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Mathias Agopian <mathias@google.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-When I make the ssh for osk. I found a problem about
--lz
-Can you tell me how to solve it?
-Many thanks.
+> > Alternatively, we could disable the IRQ each time, if it's not a too
+> > heavy operation?
+>=20
+> Maybe just have a use count and decrement it in
+omapfb_wait_for_vsync()
+> at wake up time... If you know how many users are in your queue you
+> should know how many to decrement it by.  If a process is killed I'm
+not
+> sure how that plays out, the kernel likely just closes paths and
+> probably silently de-queues a process where ever it happens to be
+stuck.
 
-make[1]: Entering directory
-`/home/may/openssh-3.5p1/openbsd-compat'
-make[1]: Nothing to be done for `all'.
-make[1]: Leaving directory
-`/home/may/openssh-3.5p1/openbsd-compat'
-arm-linux-gcc -o ssh ssh.o sshconnect.o sshconnect1.o
-sshconnect2.o sshtty.o readconf.o clientloop.o -L.
--Lopenbsd-compat/ -L./fake-lib -lssh -lopenbsd-compat
--lutil -lz -lnsl  -lcrypto -lcrypt
-/usr/local/arm/3.3.2/lib/gcc-lib/arm-linux/3.3.2/../../../../arm-linux/bi=
-n/ld:
-skipping incompatible ./fake-lib/libz.a when searching
-for -lz
-/usr/local/arm/3.3.2/lib/gcc-lib/arm-linux/3.3.2/../../../../arm-linux/bi=
-n/ld:
-cannot find -lz
-collect2: ld returned 1 exit status
-make: *** [ssh] Error 1
+Actually, a lock and an enable flag are probably enough.  Everyone in
+your queued gets woke up upon wake_up anyway, counting probably doesn't
+add anything but overhead.  Having a suspend lockout on D2/D3 is
+probably still worth having.  However, that becomes a bit more coupled
+with power management and that seems to be a bit of a moving target.
 
-
-___________________________________________________  =B3=CC=B7s=AA=A9 Yah=
-oo!=A9_=BC=AF=A7Y=AE=C9=B3q=B0T 7.0=A1A=A7K=B6O=BA=F4=B8=F4=B9q=B8=DC=A5=F4=
-=A7A=A5=B4=A1I  http://messenger.yahoo.com.tw/
+Regards,
+Richard W.
