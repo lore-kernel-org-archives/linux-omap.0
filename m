@@ -1,12 +1,12 @@
-From: "Menon, Nishanth" <x0nishan@ti.com>
+From: "Khasim, Syed" <x0khasim@ti.com>
 Subject: RE: [PATCH] Alsa modularisations and support for tsc2101 6/7
-Date: Wed, 1 Mar 2006 16:18:07 -0600
-Message-ID: <520AB2AD990DC04082102F77CA17263802B4ADC5@dlee03.ent.ti.com>
+Date: Wed, 1 Mar 2006 16:28:32 -0600
+Message-ID: <2B486F5800B5A8428350207E391C3BEB021BDC29@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,11 +15,25 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: lamikr@cc.jyu.fi
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Menon, Nishanth" <x0nishan@ti.com>, lamikr@cc.jyu.fi
 Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
+
+clk_get_rate("sys_ck") should return the sys clock.
+
+Regards,
+Khasim
+
+-----Original Message-----
+From: linux-omap-open-source-bounces+x0khasim=3Dti.com@linux.omap.com
+[mailto:linux-omap-open-source-bounces+x0khasim=3Dti.com@linux.omap.com]
+On Behalf Of Menon, Nishanth
+Sent: Wednesday, March 01, 2006 4:18 PM
+To: lamikr@cc.jyu.fi
+Cc: OMAP-Linux
+Subject: RE: [PATCH] Alsa modularisations and support for tsc2101 6/7
 
 Hi,
 
@@ -52,3 +66,7 @@ Nishanth Menon
 >=20
 > Do you know how to do that easily dynamically? It seems that the value
 > is often hardcoded in clock.c.
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
