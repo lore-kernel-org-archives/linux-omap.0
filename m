@@ -1,13 +1,14 @@
-From: "Hunter, Jon" <jon-hunter@ti.com>
-Subject: RE: Bad data CRC problem after i restart the OSK 5912
-Date: Fri, 3 Mar 2006 13:50:54 -0600
-Message-ID: <C51F43ABFC95844490F0529B60753BF403CE7CF7@dlee02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP1: camera core : Use platform driver structure
+Date: Fri, 3 Mar 2006 11:52:34 -0800
+Message-ID: <20060303195234.GM4398@atomide.com>
+References: <304D2A85A9643F4A991BDDF8D297BBA602645AE0@dlee05.ent.ti.com>
+	<20060224103550.28867.qmail@web32915.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <20060224103550.28867.qmail@web32915.mail.mud.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,51 +18,30 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>, prafulla chandra vejendla <v.prafulla@gmail.com>
+To: Komal Shah <komal_shah802003@yahoo.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-
-> open-source-bounces@linux.omap.com] On Behalf Of Tony Lindgren
-> Sent: Friday, March 03, 2006 1:05 PM
-> To: prafulla chandra vejendla
-> Cc: linux-omap-open-source@linux.omap.com
-> Subject: Re: Bad data CRC problem after i restart the OSK 5912
->=20
-> * prafulla chandra vejendla <v.prafulla@gmail.com> [060302 22:53]:
-> > Hi all,
-> > i am using u-boot 1.1.1 with linux2.6.11.3 i made an uimage.cc of
-> 1143783
-> > bytes (nearly 1.1MB) with out any error by following new-bie guide
-for
-> my
-> > osk 5912 board i downloaded that through  the hyperterminal by using
-the
-> > kermit protocol . once i restarted the board or if i use
-> >  bootm 0x100000 it is giving verifying checksum....... Bad Data CRC.
-and
-> > remained in the uboot prompt only.
-> > why i am getting this error .where will be the problem.whether that
-> kernal
-> > and u-boot combination that i have choosen is correct or not.
-> > please clear my doubt
->=20
-> Probably bad memory timings set in the bootloader.
->=20
-> Tony
+* Komal Shah <komal_shah802003@yahoo.com> [060224 02:36]:
+> --- "Zhang, Jian" <jzhang@ti.com> wrote:
+> 
+> > Komal,
+> > 
+> > Is there any guideline on the way a driver is registered with LDM?
+> > e.g.
+> > via driver_register() or platform_driver_register()? We are now
+> > always
+> > using omap_driver_register() which is a wrapper to driver_register().
+> > 
+> > Again, is this the trend to move the bulk of init code to probe()
+> > function?
+> 
+> This one is very tricky question :) May be GregKH and RMK can do better
+> justice :) 
 
-I have seen such problems on occasion too. I would try downloading the
-kernel again and before you program it into the flash use the uboot
-"imi" command to validate that the image was downloaded correctly. When
-using the "imi" you need to pass the address where the kernel was
-downloaded to. More info here:
-http://www.denx.de/wiki/view/DULG/UBootCmdGroupInfo#Section_5.9.1.4.
+Board specific init code should be in board-*.c files, and the rest in
+probe(). The bus just matches the driver with the board specific code.
 
-Also once you program the kernel into flash you can use the "imi"
-command again to verify that it was programmed correctly. If you
-accidently programmed a size smaller than the actual image size into
-flash when using the "cp.b" command you may see this issue too.
+Regards,
 
-Jon
+Tony
