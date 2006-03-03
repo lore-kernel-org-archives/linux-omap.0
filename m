@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Bad data CRC problem after i restart the OSK 5912
-Date: Fri, 3 Mar 2006 11:04:33 -0800
-Message-ID: <20060303190432.GH4398@atomide.com>
-References: <26d3a31c0603022252i50c46104qe2aad374479156b0@mail.gmail.com>
+Subject: Re: USB gadget driver
+Date: Fri, 3 Mar 2006 11:10:53 -0800
+Message-ID: <20060303191053.GI4398@atomide.com>
+References: <p2gy81d4tnj.fsf@doris.dna.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <26d3a31c0603022252i50c46104qe2aad374479156b0@mail.gmail.com>
+In-Reply-To: <p2gy81d4tnj.fsf@doris.dna.fi>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,22 +17,67 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: prafulla chandra vejendla <v.prafulla@gmail.com>
+To: Antti P Miettinen <ananaza@iki.fi>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* prafulla chandra vejendla <v.prafulla@gmail.com> [060302 22:53]:
-> Hi all,
-> i am using u-boot 1.1.1 with linux2.6.11.3 i made an uimage.cc of 1143783
-> bytes (nearly 1.1MB) with out any error by following new-bie guide for my
-> osk 5912 board i downloaded that through  the hyperterminal by using the
-> kermit protocol . once i restarted the board or if i use
->  bootm 0x100000 it is giving verifying checksum....... Bad Data CRC. and
-> remained in the uboot prompt only.
-> why i am getting this error .where will be the problem.whether that kernal
-> and u-boot combination that i have choosen is correct or not.
-> please clear my doubt
+* Antti P Miettinen <ananaza@iki.fi> [060118 04:24]:
+> While doing development for an OMAP2420 board I noticed that the
+> "workaround for seemingly-lost IRQs for RX ACKs" in omap_udc.c needs a
+> little tweak in order to prevent NFS root over usbnet from hanging.
+> According to the documentation the status flag register should only be
+> accessed when endpoint select bit is set in the EP_NUM register. See
+> e.g. SPRU761A, end of page 78 (about STAT_FLG register):
+> 
+> "This register cannot be read if EP_NUM.EP_SEL bit is not asserted for the
+> endpoint."
+> 
+> Similar statement seems to be in the specs for other OMAPs too.
+> 
+> As a change for the workaround seem to have an effect it seems that
+> there is indeed an underlying "IRQs get lost" problem?
+> 
+> In principle reading the status flag in proc_ep_show() would need
+> similar change, but I'm not sure how the EP selection would interact
+> with interrupt processing. Actually I'm not sure how this change
+> interacts with interrupt processing either but at least it cured the
+> hangs for the 2420.
+> 
+> It seems that usbnet with Nokia 770 is also a bit unreliable but this
+> change does not seem to have an effect. Does someone have an OMAP
+> based system where usbnet is reliable?
+> 
+> --- drivers/usb/gadget/omap_udc.c~	2005-12-13 14:49:29.000000000 +0200
+> +++ drivers/usb/gadget/omap_udc.c	2006-01-16 15:20:52.000000000 +0200
+> @@ -1897,7 +1897,7 @@
+>  
+>  	spin_lock_irqsave(&ep->udc->lock, flags);
+>  	if (!list_empty(&ep->queue) && ep->ackwait) {
+> -		use_ep(ep, 0);
+> +		use_ep(ep, UDC_EP_SEL);
+>  		stat_flg = UDC_STAT_FLG_REG;
+>  
+>  		if ((stat_flg & UDC_ACK) && (!(stat_flg & UDC_FIFO_EN)
+> @@ -1907,12 +1907,14 @@
+>  			VDBG("%s: lose, %04x\n", ep->ep.name, stat_flg);
+>  			req = container_of(ep->queue.next,
+>  					struct omap_req, queue);
+> -			UDC_EP_NUM_REG = ep->bEndpointAddress | UDC_EP_SEL;
+>  			(void) read_fifo(ep, req);
+>  			UDC_EP_NUM_REG = ep->bEndpointAddress;
+>  			UDC_CTRL_REG = UDC_SET_FIFO_EN;
+>  			ep->ackwait = 1 + ep->double_buf;
+>  		}
+> +		else {
+> +		    deselect_ep();
+> +		}
+>  	}
+>  	mod_timer(&ep->timer, PIO_OUT_TIMEOUT);
+>  	spin_unlock_irqrestore(&ep->udc->lock, flags);
+> 
 
-Probably bad memory timings set in the bootloader.
+Thanks & sorry for the long delay with this patch. Pushing this one today.
+
+Regards,
 
 Tony
