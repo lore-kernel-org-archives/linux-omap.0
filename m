@@ -1,9 +1,11 @@
-From: "kk_balvir" <kk_balvir@yahoo.com>
-Subject: Fwd: Photo
-Date: Fri, 3 Mar 2006 02:23:38 -0600
-Message-ID: <200603030823.k238Ncgw028984@cypress.ext.ti.com>
+From: Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Question about OMAP2 Image Video Acceleration (IVA)
+Date: Fri, 03 Mar 2006 17:38:48 +0900
+Message-ID: <0IVJ00EC6MOO3V@mmp2.samsung.com>
+Reply-To: kyungmin.park@samsung.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----=_NextPart_7.07629919052124E-03"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -14,22 +16,21 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hi
 
-------=_NextPart_7.07629919052124E-03
-Content-Transfer-Encoding: quoted-printable
-MIME-Version: 1.0
-Content-Type: text/plain; format="flowed"
+Now The apollon board (based on OMAP2) is working with Qtopia 2.1.1
 
+The mpegplayer in qtopia, however, has poor performance. there's some
+jitters.
+Of course, the application have to be tunning but I also tunning the OMAP2
+with IVA features.
 
-------=_NextPart_7.07629919052124E-03
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Now I want to know how to enable IVA features and how to use.?
 
+If someone know to theres or already used ones, please let me know :)
 
-------=_NextPart_7.07629919052124E-03--
+Thank you,
+Kyungmin Park
