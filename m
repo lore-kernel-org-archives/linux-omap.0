@@ -1,13 +1,12 @@
-From: Juha =?iso-8859-1?B?WXJq9mzk?= <juha.yrjola@nokia.com>
-Subject: Re: [PATCH] OMAP: MMC: Move set_power to platform data
-Date: Sat, 4 Mar 2006 12:36:06 +0200
-Message-ID: <20060304103606.GA16761@two.research.nokia.com>
-References: <20060303132421.46104.qmail@web32909.mail.mud.yahoo.com>
+From: =?big5?B?qkykcKq0?= <subsun.ece94g@nctu.edu.tw>
+Subject: [HELP]How to log in SSH on embedded system?
+Date: Sun, 5 Mar 2006 17:56:50 +0800
+Message-ID: <20060305095659.8E4B093E60@mailreg.nctu.edu.tw>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20060303132421.46104.qmail@web32909.mail.mud.yahoo.com>
+Content-Type: text/plain;
+	charset="big5"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,42 +14,23 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: ext Komal Shah <komal_shah802003@yahoo.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Mar 03, 2006 at 05:24:21AM -0800, ext Komal Shah wrote:
+Hi,
 
->  #include "omap.h"
-> @@ -102,6 +100,7 @@ struct mmc_omap_host {
->  	struct work_struct	switch_work;
->  	struct timer_list	switch_timer;
->  	int			switch_last_state;
-> +	void (*set_power)(void __iomem *base, int on);
->  };
+I just cross compiled openssh-3.5p1 for my board. And when I log in the
+embedded system on a client PC, I can=A1=A6t log in!!
 
-Note that just "on" is not enough; some power supplies have support for
-setting the voltage to several different values.
+I changed the root password and even added a new user, I still =
+can=A1=A6t log
+in=A1K
 
-> diff --git a/include/asm-arm/arch-omap/board.h b/include/asm-arm/arch-omap/board.h
-> index 6d6240a..168662f 100644
-> --- a/include/asm-arm/arch-omap/board.h
-> +++ b/include/asm-arm/arch-omap/board.h
-> @@ -46,6 +46,7 @@ struct omap_mmc_conf {
->  	s16 power_pin;
->  	s16 switch_pin;
->  	s16 wp_pin;
-> +	void (*set_power)(void __iomem *base, int on);
->  };
+Furthermore, I used a pair of RSA keys (Private& Public) to enable
+AuthorizedKeys. But that didn=A1=A6t work.
 
-You shouldn't use the struct in board.h for this.  It is meant for passing
-data from the bootloader, and passing a kernel function pointer from the
-bootloader is problematic, to say the least. =)
+Do you know how to fix this?
 
-The proper way to solve this is to introde the concept of a voltage framework,
-so that we can reference voltages by name instead of a function.
-
-Cheers,
-Juha
+Thanks.
