@@ -1,12 +1,11 @@
-From: "naga rajan" <nagubk82@gmail.com>
-Subject: regarding booting 2.6.8 kernel in osk5912
-Date: Mon, 6 Mar 2006 17:32:32 +0530
-Message-ID: <7e6cc7550603060402w172651fbv1b6f4b88c4c42811@mail.gmail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: [PATCH] OMAP2: timer+irq fix up
+Date: Mon, 6 Mar 2006 10:10:30 -0600
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A5049BF62D@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C64138.7DD0B3AC"
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,31 +13,108 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
-           i am involved in "Building linux for the omap 5912 using
-2.6.8.rc3" kernel.
+This is a multi-part message in MIME format.
 
-     i created uImage by following steps
+------_=_NextPart_001_01C64138.7DD0B3AC
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-                     *make omap_osk_5912_defconfig
-                     make uImage*
-*
-* ## Booting image at 00100000 ...
- Image Name:   Linux-2.6.8-rc3-omap1
-Image Type:   ARM Linux Kernel Image (uncompressed)
-Data Size:    857676 Bytes =3D 837.6 kB
-Load Address: 10008000
-Entry Point:  10008000
-Verifying Checksum ... OK
-OK
+This patch fixes up some aspects of the git timer-gp code and peripheral
+synchronization.=20
 
-Starting kernel ...
+For timer-gp.c:
+- add GPT enables.
+	-- shouldn't assume GPT I&F clk are enabled
+- add setting of GPT2 source to sysclk.
+	-- shouldn't assumed sys_clk is source, 32K is default.
+	-- set_parent -> recalc sys_clk -> gpt rate correct.=20
+- move first timer access past clock enable.
+	-- access will abort if clock off.
+- sys_clk is always on, no need for enable
 
-Uncompressing Linux done, booting the kernel.
-Then, it hung up.
-can anyone over come this problem ?
+For irq.c:
+	- add write barriers to synchronize posted ARM peripheral port
+accesses with ARM pipeline and ARM memory port.
+	-- ARM pipe and memory port are synchronized by default, p-port
+is not.
+
+
+Note:
+	- Strange that the timer offset function was dropped in porting
+over from TI code.  Compensating for latency and giving higher
+resolution time stamps seems like a good thing.
+
+Regards,
+Richard W.
+
+------_=_NextPart_001_01C64138.7DD0B3AC
+Content-Type: application/octet-stream;
+	name="timer_irqsync.diff"
+Content-Transfer-Encoding: base64
+Content-Description: timer_irqsync.diff
+Content-Disposition: attachment;
+	filename="timer_irqsync.diff"
+
+ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvaXJxLmMgYi9hcmNoL2FybS9tYWNoLW9t
+YXAyL2lycS5jCmluZGV4IGQ3YmFmZjYuLjc5YTQ1YmQgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21h
+Y2gtb21hcDIvaXJxLmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9pcnEuYwpAQCAtMjYsNiAr
+MjYsMTEgQEAKICNkZWZpbmUgSU5UQ19NSVJfQ0xFQVIwCTB4MDA4OAogI2RlZmluZSBJTlRDX01J
+Ul9TRVQwCTB4MDA4YwogCisjZGVmaW5lIHN5bmNfcF9wb3J0X3dyaXRlKCkJXAorCSh7IGludCBk
+diA9IDA7CVwKKwkJX19hc21fXyBfX3ZvbGF0aWxlX18gKCJtY3IgcDE1LCAwLCAlMCwgYzcsIGMx
+MCwgNCIgOiA6ICJyIiAoZHYpKTsJXAorCX0pCisKIC8qCiAgKiBPTUFQMiBoYXMgYSBudW1iZXIg
+b2YgZGlmZmVyZW50IGludGVycnVwdCBjb250cm9sbGVycywgZWFjaCBpbnRlcnJ1cHQKICAqIGNv
+bnRyb2xsZXIgaXMgaWRlbnRpZmllZCBhcyBpdHMgb3duICJiYW5rIi4gUmVnaXN0ZXIgZGVmaW5p
+dGlvbnMgYXJlCkBAIC02MSw2ICs2Niw3IEBAIHN0YXRpYyBzdHJ1Y3Qgb21hcF9pcnFfYmFuayB7
+CiBzdGF0aWMgdm9pZCBvbWFwX2Fja19pcnEodW5zaWduZWQgaW50IGlycSkKIHsKIAlvbWFwX3dy
+aXRlbCgweDEsIGlycV9iYW5rc1swXS5iYXNlX3JlZyArIElOVENfQ09OVFJPTCk7CisJc3luY19w
+X3BvcnRfd3JpdGUoKTsKIH0KIAogc3RhdGljIHZvaWQgb21hcF9tYXNrX2lycSh1bnNpZ25lZCBp
+bnQgaXJxKQpAQCAtNzQsNiArODAsNyBAQCBzdGF0aWMgdm9pZCBvbWFwX21hc2tfaXJxKHVuc2ln
+bmVkIGludCBpCiAJfQogCiAJb21hcF93cml0ZWwoMSA8PCBpcnEsIGlycV9iYW5rc1swXS5iYXNl
+X3JlZyArIElOVENfTUlSX1NFVDAgKyBvZmZzZXQpOworCXN5bmNfcF9wb3J0X3dyaXRlKCk7CiB9
+CiAKIHN0YXRpYyB2b2lkIG9tYXBfdW5tYXNrX2lycSh1bnNpZ25lZCBpbnQgaXJxKQpAQCAtODcs
+NiArOTQsNyBAQCBzdGF0aWMgdm9pZCBvbWFwX3VubWFza19pcnEodW5zaWduZWQgaW50CiAJfQog
+CiAJb21hcF93cml0ZWwoMSA8PCBpcnEsIGlycV9iYW5rc1swXS5iYXNlX3JlZyArIElOVENfTUlS
+X0NMRUFSMCArIG9mZnNldCk7CisJc3luY19wX3BvcnRfd3JpdGUoKTsKIH0KIAogc3RhdGljIHZv
+aWQgb21hcF9tYXNrX2Fja19pcnEodW5zaWduZWQgaW50IGlycSkKZGlmZiAtLWdpdCBhL2FyY2gv
+YXJtL21hY2gtb21hcDIvdGltZXItZ3AuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvdGltZXItZ3Au
+YwppbmRleCAxZDJmNWFjLi42MjMxNjM1IDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAy
+L3RpbWVyLWdwLmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi90aW1lci1ncC5jCkBAIC05Mywy
+OCArOTMsMzQgQEAgc3RhdGljIHN0cnVjdCBpcnFhY3Rpb24gb21hcDJfZ3BfdGltZXJfaQogCiBz
+dGF0aWMgdm9pZCBfX2luaXQgb21hcDJfZ3BfdGltZXJfaW5pdCh2b2lkKQogewotCXN0cnVjdCBj
+bGsgKiBzeXNfY2s7Ci0JdTMyIHRpY2tfcGVyaW9kID0gMTIwMDAwOwotCXUzMiBsOworCXN0cnVj
+dCBjbGsgKnN5c19jaywgKmdwdF9mY2ssICpncHRfaWNrOworCXUzMiBsLCB0aWNrX3BlcmlvZCA9
+IDEyMDAwMDsKIAotCS8qIFJlc2V0IGNsb2NrIGFuZCBwcmVzY2FsZSB2YWx1ZSAqLwotCXRpbWVy
+X3dyaXRlX3JlZyhPU19USU1FUl9OUiwgR1BfVElNRVJfVENMUiwgMCk7CisJc3lzX2NrICA9IGNs
+a19nZXQoTlVMTCwgInN5c19jayIpOworCWdwdF9mY2sgPSBjbGtfZ2V0KE5VTEwsICJncHQyX2Zj
+ayIpOworCWdwdF9pY2sgPSBjbGtfZ2V0KE5VTEwsICJncHQyX2ljayIpOwogCi0Jc3lzX2NrID0g
+Y2xrX2dldChOVUxMLCAic3lzX2NrIik7Ci0JaWYgKElTX0VSUihzeXNfY2spKQotCQlwcmludGso
+S0VSTl9FUlIgIkNvdWxkIG5vdCBnZXQgc3lzX2NrXG4iKTsKKwlpZiAoSVNfRVJSKHN5c19jaykg
+fHwgSVNfRVJSKGdwdF9mY2spIHx8IElTX0VSUihncHRfaWNrKSkKKwkJcHJpbnRrKEtFUk5fRVJS
+ICJTZXJpb3VzIHByb2JsZW0gc3RhcnRpbmcgR1BUMiBcbiIpOwogCWVsc2UgewotCQljbGtfZW5h
+YmxlKHN5c19jayk7CisJCWNsa19zZXRfcGFyZW50KGdwdF9mY2ssIHN5c19jayk7CisJCWNsa19l
+bmFibGUoZ3B0X2Zjayk7CisJCWNsa19lbmFibGUoZ3B0X2ljayk7CiAJCXRpY2tfcGVyaW9kID0g
+Y2xrX2dldF9yYXRlKHN5c19jaykgLyAxMDA7CiAJCWNsa19wdXQoc3lzX2NrKTsKKwkJY2xrX3B1
+dChncHRfZmNrKTsKKwkJY2xrX3B1dChncHRfaWNrKTsKIAl9CiAKKwkvKiBSZXNldCBjbG9jayBh
+bmQgcHJlc2NhbGUgdmFsdWUgKi8KKwl0aW1lcl93cml0ZV9yZWcoT1NfVElNRVJfTlIsIEdQX1RJ
+TUVSX1RDTFIsIDApOworCiAJdGlja19wZXJpb2QgLz0gMjsJLyogTWluaW11bSBwcmVzY2FsZSBk
+aXZpZGVyIGlzIDIgKi8KIAl0aWNrX3BlcmlvZCAtPSAxOwogCiAJbCA9IHRpbWVyX3JlYWRfcmVn
+KE9TX1RJTUVSX05SLCBHUF9USU1FUl9USURSKTsKLQlwcmludGsoS0VSTl9JTkZPICJPTUFQMiBH
+UCB0aW1lciAoSFcgdmVyc2lvbiAlZC4lZClcbiIsCi0JICAgICAgIChsID4+IDQpICYgMHgwZiwg
+bCAmIDB4MGYpOworCXByaW50ayhLRVJOX0lORk8gIk9NQVAyIEdQIHRpbWVyIChIVyB2ZXJzaW9u
+ICVkLiVkKVxuIiwgCisJCShsID4+IDQpICYgMHgwZiwgbCAmIDB4MGYpOwogCiAJc2V0dXBfaXJx
+KDM4LCAmb21hcDJfZ3BfdGltZXJfaXJxKTsK
+
+------_=_NextPart_001_01C64138.7DD0B3AC
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+------_=_NextPart_001_01C64138.7DD0B3AC--
