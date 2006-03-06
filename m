@@ -1,14 +1,12 @@
-From: "prafulla chandra vejendla" <v.prafulla@gmail.com>
-Subject: Bad data CRC problem after i restart the OSK 5912
-Date: Mon, 6 Mar 2006 12:01:13 +0530
-Message-ID: <26d3a31c0603052231p2654b55eh55d83699012d09ef@mail.gmail.com>
-References: <C51F43ABFC95844490F0529B60753BF403CE7CF7@dlee02.ent.ti.com>
+From: "Kimmo Nikkanen" <knikkane@gmail.com>
+Subject: Re: Can't execute sshd
+Date: Mon, 6 Mar 2006 13:04:32 +0200
+Message-ID: <729f50430603060304h3f65292ep@mail.gmail.com>
+References: <20060228161647.87567.qmail@web17504.mail.tpe.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============0493186915=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <C51F43ABFC95844490F0529B60753BF403CE7CF7@dlee02.ent.ti.com>
-Content-Disposition: inline
+In-Reply-To: <20060228161647.87567.qmail@web17504.mail.tpe.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,74 +16,34 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Hunter, Jon" <jon-hunter@ti.com>
+To: =?BIG5?B?qkykcKq0?= <foxfromworld@yahoo.com.tw>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
- Hi
-i verified both before and after downloading into flash using imi 0x1000000=
-0
-and imi 0x100000 for before and after the download .in both cases programme=
-d
-size is same and it is also indicating that the verifying
-checksum ........o.k ..... in both cases .but once i boot up using bootm
-0x100000
-it is giving the same previous error BAD DATA CRC.
-then where could be the problem ??
-i am doubting the combination i have choosed
-i am using mkimage tool present in the u-boot 1.1.1 with gcc-3.4.1 for linu=
-x
-2.6.11.3 with the same rc3 patch . is this the valid combination ??
-is there any conflicts between uboot1.1.1 and linux 2.6.11.3 ??
-whether uboot 1.1.1 will support linux2.6.11.3 or not ??
+--===============0493186915==
+Content-Type: text/plain; charset=BIG5
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+UnVuIHRoZSBzZXJ2ZXIgaW4gZGVidWcgbW9kZSAoc3NoZCAtZCkgYW5kIHNlZSB3aGF0IGVsc2Ug
+aXQgaXMgc2F5aW5nLgpBcmUgeW91IHJ1bm5pbmcgc3NoZCBhcyBhbiByb290IG9yIG90aGVyIHVz
+ZXI/IERvZXMgdGhlIHVzZXIgaGF2ZSByaWd0aHMgdG8KL2Rldi9yYW5kb20/IERvZXMgL2Rldi9y
+YW5kb20gZXhpc3Q/CgosS2ltbW8KCjIwMDYvMi8yOCwgqkykcKq0IDxmb3hmcm9td29ybGRAeWFo
+b28uY29tLnR3PjoKPgo+IEkgY29tcGlsZWQgdGhlIE9wZW5TU0gsIGJ1dCB3aGVuIEkgZXhlY3V0
+ZSB0aGUgc3NoZCBvbgo+IHRhcmdldCBib2FyZCwgSSBmb3VuZCBhIG1lc3NhZ2Ugc2hvd3MgdGhh
+dCAiUFJORyBpcwo+IG5vdCBzZWVkZWQiLkNhbiB5b3UgaGVscCBtZSB0byBmaXggdGhpcyBwcm9i
+bGVtPwo+Cj4KPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18gILPMt3OqqSBZYWhvbyGpX7yvp1muybNxsFQgNy4woUEKPiCnS7ZPuvS49LlxuNyl9KdB
+pbShSSAgaHR0cDovL21lc3Nlbmdlci55YWhvby5jb20udHcvCj4gX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KPiBMaW51eC1vbWFwLW9wZW4tc291cmNlIG1h
+aWxpbmcgbGlzdAo+IExpbnV4LW9tYXAtb3Blbi1zb3VyY2VAbGludXgub21hcC5jb20KPiBodHRw
+Oi8vbGludXgub21hcC5jb20vbWFpbG1hbi9saXN0aW5mby9saW51eC1vbWFwLW9wZW4tc291cmNl
+Cj4K
+--===============0493186915==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 
-
-
-On 3/4/06, Hunter, Jon <jon-hunter@ti.com> wrote:
->
-> > -----Original Message-----
-> > From: linux-omap-open-source-bounces@linux.omap.com
-> [mailto:linux-omap-
-> > open-source-bounces@linux.omap.com] On Behalf Of Tony Lindgren
-> > Sent: Friday, March 03, 2006 1:05 PM
-> > To: prafulla chandra vejendla
-> > Cc: linux-omap-open-source@linux.omap.com
-> > Subject: Re: Bad data CRC problem after i restart the OSK 5912
-> >
-> > * prafulla chandra vejendla <v.prafulla@gmail.com> [060302 22:53]:
-> > > Hi all,
-> > > i am using u-boot 1.1.1 with linux2.6.11.3 i made an uimage.cc of
-> > 1143783
-> > > bytes (nearly 1.1MB) with out any error by following new-bie guide
-> for
-> > my
-> > > osk 5912 board i downloaded that through  the hyperterminal by using
-> the
-> > > kermit protocol . once i restarted the board or if i use
-> > >  bootm 0x100000 it is giving verifying checksum....... Bad Data CRC.
-> and
-> > > remained in the uboot prompt only.
-> > > why i am getting this error .where will be the problem.whether that
-> > kernal
-> > > and u-boot combination that i have choosen is correct or not.
-> > > please clear my doubt
-> >
-> > Probably bad memory timings set in the bootloader.
-> >
-> > Tony
->
-> I have seen such problems on occasion too. I would try downloading the
-> kernel again and before you program it into the flash use the uboot
-> "imi" command to validate that the image was downloaded correctly. When
-> using the "imi" you need to pass the address where the kernel was
-> downloaded to. More info here:
-> http://www.denx.de/wiki/view/DULG/UBootCmdGroupInfo#Section_5.9.1.4.
->
-> Also once you program the kernel into flash you can use the "imi"
-> command again to verify that it was programmed correctly. If you
-> accidently programmed a size smaller than the actual image size into
-> flash when using the "cp.b" command you may see this issue too.
->
-> Jon
->
+--===============0493186915==--
