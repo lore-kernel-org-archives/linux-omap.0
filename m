@@ -1,9 +1,9 @@
 From: "Woodruff, Richard" <r-woodruff2@ti.com>
 Subject: RE: [PATCH] OMAP2: timer+irq fix up
-Date: Mon, 6 Mar 2006 19:08:15 -0600
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A504A47BDD@dlee02.ent.ti.com>
+Date: Mon, 6 Mar 2006 19:39:20 -0600
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A504A47BF1@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C64183.9D4D7856"
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C64187.F500437C"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
@@ -21,67 +21,81 @@ List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
 
-------_=_NextPart_001_01C64183.9D4D7856
+------_=_NextPart_001_01C64187.F500437C
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 
-Hi Tony,
+This is the one, the usec conversion was wrong in the other.  This
+allows lmbench to gauge granularity to sub-jiffy and has a meaningful
+granularity measurement.
 
-Well, how about this than.  It pretty much does everything and seems to
-test ok and values look reasonable at hardware probes.
-
-For irq.c:
-- add write barriers to synchronize posted ARM peripheral port accesses
-with ARM pipeline and ARM memory port.
-	-- ARM pipe and memory port are synchronized by default, p-port
-is not.
-
-For timer-gp.c:
-- add GPT enables.
-	-- shouldn't assume GPT I&F clk are enabled
-- add setting of GPT2 source to sysclk.
-	-- shouldn't assumed sys_clk is source, 32K is default.
-	-- set_parent -> recalc sys_ck -> gpt rate correct.=20
-- move first timer access past clock enable.
-	-- access will abort if clock off.
-- sys_ck is always on, no need for enable
-- implement sched_clock
-- implement gettimeoffset
-- make generic for any gptimer usage
-
-For clock.h
-- fix gptimer2 enable bit.
-
-For timex.h
-- fix CLOCK_TICK_RATE to behave like it does for the rest of the ARMs.
+Lmbench can now guess the frequency in a couple of seconds instead of
+297 seconds.
 
 Regards,
 Richard W.
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Monday, March 06, 2006 4:00 PM
-> To: Woodruff, Richard
-> Cc: linux-omap-open-source@linux.omap.com
-> Subject: Re: [PATCH] OMAP2: timer+irq fix up
+
+> Hi Tony,
 >=20
-> * Woodruff, Richard <r-woodruff2@ti.com> [060306 08:10]:
-> >
-> > Note:
-> > 	- Strange that the timer offset function was dropped in porting
-> > over from TI code.  Compensating for latency and giving higher
-> > resolution time stamps seems like a good thing.
+> Well, how about this than.  It pretty much does everything and seems
+to
+> test ok and values look reasonable at hardware probes.
 >=20
-> Yeah the gettimeoffset function should be there. We could also use
-> the 32KHz sync timer for gettimeoffset as done in timer32k.c, might be
-> worth doing some testing to see if that accuracy is enough.
+> For irq.c:
+> - add write barriers to synchronize posted ARM peripheral port
+accesses
+> with ARM pipeline and ARM memory port.
+> 	-- ARM pipe and memory port are synchronized by default, p-port
+> is not.
+>=20
+> For timer-gp.c:
+> - add GPT enables.
+> 	-- shouldn't assume GPT I&F clk are enabled
+> - add setting of GPT2 source to sysclk.
+> 	-- shouldn't assumed sys_clk is source, 32K is default.
+> 	-- set_parent -> recalc sys_ck -> gpt rate correct.
+> - move first timer access past clock enable.
+> 	-- access will abort if clock off.
+> - sys_ck is always on, no need for enable
+> - implement sched_clock
+> - implement gettimeoffset
+> - make generic for any gptimer usage
+>=20
+> For clock.h
+> - fix gptimer2 enable bit.
+>=20
+> For timex.h
+> - fix CLOCK_TICK_RATE to behave like it does for the rest of the ARMs.
 >=20
 > Regards,
+> Richard W.
 >=20
-> Tony
+> > -----Original Message-----
+> > From: Tony Lindgren [mailto:tony@atomide.com]
+> > Sent: Monday, March 06, 2006 4:00 PM
+> > To: Woodruff, Richard
+> > Cc: linux-omap-open-source@linux.omap.com
+> > Subject: Re: [PATCH] OMAP2: timer+irq fix up
+> >
+> > * Woodruff, Richard <r-woodruff2@ti.com> [060306 08:10]:
+> > >
+> > > Note:
+> > > 	- Strange that the timer offset function was dropped in porting
+> > > over from TI code.  Compensating for latency and giving higher
+> > > resolution time stamps seems like a good thing.
+> >
+> > Yeah the gettimeoffset function should be there. We could also use
+> > the 32KHz sync timer for gettimeoffset as done in timer32k.c, might
+be
+> > worth doing some testing to see if that accuracy is enough.
+> >
+> > Regards,
+> >
+> > Tony
 
-------_=_NextPart_001_01C64183.9D4D7856
+------_=_NextPart_001_01C64187.F500437C
 Content-Type: application/octet-stream;
 	name="timer.diff"
 Content-Transfer-Encoding: base64
@@ -119,7 +133,7 @@ IDw8IGlycSwgaXJxX2JhbmtzWzBdLmJhc2VfcmVnICsgSU5UQ19NSVJfQ0xFQVIwICsgb2Zmc2V0
 KTsKKwlzeW5jX3BfcG9ydF93cml0ZSgpOwogfQogCiBzdGF0aWMgdm9pZCBvbWFwX21hc2tfYWNr
 X2lycSh1bnNpZ25lZCBpbnQgaXJxKQpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi90
 aW1lci1ncC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi90aW1lci1ncC5jCmluZGV4IDFkMmY1YWMu
-LmJkNDBmZTcgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvdGltZXItZ3AuYworKysg
+Ljk4ZTkzNTggMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvdGltZXItZ3AuYworKysg
 Yi9hcmNoL2FybS9tYWNoLW9tYXAyL3RpbWVyLWdwLmMKQEAgLTgsOCArOCw3IEBACiAgKiAgICAg
 ICAgIEp1aGEgWXJq9mzkIDxqdWhhLnlyam9sYUBub2tpYS5jb20+CiAgKgogICogU29tZSBwYXJ0
 cyBiYXNlZCBvZmYgb2YgVEkncyAyNHh4IGNvZGU6Ci0gKgotICogICBDb3B5cmlnaHQgKEMpIDIw
@@ -165,7 +179,7 @@ ID0gMHhmZmZmZmZmIC0gdGltZXJfcmVhZF9yZWcoT1NfVElNRVJfTlIsIEdQX1RJTUVSX1RDUlIp
 OworCS8qIGFkanVzdCBmb3IgbGF0ZW5jeSwgb3ZlcmZsb3cgd29ya3Mgb3V0IHdpdGggdTMyIHNp
 emUgKi8KKwlvbWFwX21wdV90aW1lcl9sYXN0ID0gbm93IC0gbGF0ZW5jeTsKKwogCXdyaXRlX3Nl
 cWxvY2soJnh0aW1lX2xvY2spOwogCiAJdGltZXJfd3JpdGVfcmVnKE9TX1RJTUVSX05SLCBHUF9U
-SU1FUl9USVNSLCAxIDw8IDEpOwpAQCAtODUsNDMgKzExNCwxNDAgQEAgc3RhdGljIGlycXJldHVy
+SU1FUl9USVNSLCAxIDw8IDEpOwpAQCAtODUsNDMgKzExNCwxMzkgQEAgc3RhdGljIGlycXJldHVy
 bl90IG9tYXAyX2dwX3RpbWVyX2ludGVycgogCXJldHVybiBJUlFfSEFORExFRDsKIH0KIAorc3Rh
 dGljIGludCBvbWFwMl9ncF9jbGtjdHJsKHUzMiBuciwgdW5zaWduZWQgbG9uZyAqcmF0ZSwgdTMy
 IG9uX29mZiwgCisJCQkJY2hhciAqbl9zcmMpCit7CisJc3RydWN0IGNsayAqc3JjX2NrLCAqZ3B0
@@ -218,57 +232,56 @@ TEspKXsKKwkJdGltZXJfd3JpdGVfcmVnKG5yLCBHUF9USU1FUl9UQ0xSLCAwKTsKKwkJb21hcDJf
 Z3BfdGltZXJfc3RhcnQobnIsIDB4ZmZmZmZmZmYsIDEpOworCQlzZXR1cF9pcnEoT1NfVElNRVJf
 T0ZGX0lSUSwgJm9tYXAyX2dwdF9vZmZfaXJxKTsKIAl9Cit9CiAKLQl0aWNrX3BlcmlvZCAvPSAy
 OwkvKiBNaW5pbXVtIHByZXNjYWxlIGRpdmlkZXIgaXMgMiAqLwotCXRpY2tfcGVyaW9kIC09IDE7
-CitzdGF0aWMgdTMyIG1hY2hpbmVjeWNsZXNfdG9fdXNlY3ModTMyIGdwdGlja3MpCit7CisJLyog
-cm91bmQgdXAgdG8gbmVhcmVzdCB1c2VjKi8KKwlyZXR1cm4gKChncHRpY2tzIC8gKGdwdGlja3Nf
-cGVyX21zZWMgLyAxMDAwKSkgKyAxKSA+PiAxOworfQorCisvKgorICogU2NoZWR1bGVyIGNsb2Nr
-IC0gcmV0dXJucyBjdXJyZW50IHRpbWUgaW4gbmFub3NlYyB1bml0cy4KKyAqLwordW5zaWduZWQg
-bG9uZyBsb25nIHNjaGVkX2Nsb2NrKHZvaWQpCit7CisJdTMyIGVsYXBzZWRfY3ljbGVzLCBlbGFw
-c2VkX3VzZWM7CisJCisJZWxhcHNlZF9jeWNsZXMgPSB0aW1lcl9yZWFkX3JlZyhPU19USU1FUl9P
-RkYsIEdQX1RJTUVSX1RDUlIpOworCWVsYXBzZWRfdXNlYyA9IG1hY2hpbmVjeWNsZXNfdG9fdXNl
-Y3MoZWxhcHNlZF9jeWNsZXMpOwkKKwlyZXR1cm4gKG92X2VsYXBzZWRfbnMgKyBlbGFwc2VkX3Vz
-ZWMgKiAxMDAwKTsKK30KIAotCWwgPSB0aW1lcl9yZWFkX3JlZyhPU19USU1FUl9OUiwgR1BfVElN
-RVJfVElEUik7Ci0JcHJpbnRrKEtFUk5fSU5GTyAiT01BUDIgR1AgdGltZXIgKEhXIHZlcnNpb24g
-JWQuJWQpXG4iLAotCSAgICAgICAobCA+PiA0KSAmIDB4MGYsIGwgJiAweDBmKTsKKy8qIHJldHVy
-biBlbGFwc2VkIHVzZWNzIHNpbmNlIGxhc3Qgc3lzdGVtIHRpbWVyIElTUiAqLworc3RhdGljIHVu
-c2lnbmVkIGxvbmcgb21hcDJfZ2V0dGltZW9mZnNldCh2b2lkKQoreworCXUzMiBub3csIGVsYXBz
-ZWRfdXNlYywgZWxhcHNlZF9jeWNsZXM7CiAKLQlzZXR1cF9pcnEoMzgsICZvbWFwMl9ncF90aW1l
-cl9pcnEpOworCW5vdyA9IHRpbWVyX3JlYWRfcmVnKE9TX1RJTUVSX09GRiwgR1BfVElNRVJfVENS
-Uik7CisJZWxhcHNlZF9jeWNsZXMgPSBub3cgLSBvbWFwX21wdV90aW1lcl9sYXN0OworCWVsYXBz
-ZWRfdXNlYyA9IG1hY2hpbmVjeWNsZXNfdG9fdXNlY3MoZWxhcHNlZF9jeWNsZXMpOworCXJldHVy
-bihlbGFwc2VkX3VzZWMpOworfQorCitzdGF0aWMgdm9pZCBfX2luaXQgb21hcDJfdGltZXJfaW5p
-dCh2b2lkKQoreworCXUzMiBncHRpY2tzX3Blcl9uczsKIAotCW9tYXAyX2dwX3RpbWVyX3N0YXJ0
-KE9TX1RJTUVSX05SLCB0aWNrX3BlcmlvZCk7CisJb21hcDJfZ3BfdGltZXJfb2Zmc2V0X2luaXQo
-T1NfVElNRVJfT0ZGLCBOVUxMKTsKKwlvbWFwMl9ncF90aW1lcl9pbml0KE9TX1RJTUVSX05SKTsK
-KwlncHRpY2tzX3Blcl9ucyA9IGdwdGlja3NfcGVyX21zZWMgLyAxMDAwMDAwOworCW9tYXBfdGlt
-ZXIub2Zmc2V0ID0gb21hcDJfZ2V0dGltZW9mZnNldDsKKwluc19wZXJfb3ZlcmZsb3cgPSAweGZm
-ZmZmZmZmICogZ3B0aWNrc19wZXJfbnM7CiB9CiAKIHN0cnVjdCBzeXNfdGltZXIgb21hcF90aW1l
-ciA9IHsKLQkuaW5pdAk9IG9tYXAyX2dwX3RpbWVyX2luaXQsCisJLmluaXQJPSBvbWFwMl90aW1l
-cl9pbml0LAorCS5vZmZzZXQgPSBOVUxMLAogfTsKIApkaWZmIC0tZ2l0IGEvaW5jbHVkZS9hc20t
-YXJtL2FyY2gtb21hcC9pcnFzLmggYi9pbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFwL2lycXMuaApp
-bmRleCA0MjA5OGQ5Li40NThiMDI2IDEwMDY0NAotLS0gYS9pbmNsdWRlL2FzbS1hcm0vYXJjaC1v
-bWFwL2lycXMuaAorKysgYi9pbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFwL2lycXMuaApAQCAtMjQy
-LDYgKzI0Miw4IEBACiAjZGVmaW5lIElOVF8yNFhYX0dQSU9fQkFOSzIJMzAKICNkZWZpbmUgSU5U
-XzI0WFhfR1BJT19CQU5LMwkzMQogI2RlZmluZSBJTlRfMjRYWF9HUElPX0JBTks0CTMyCisjZGVm
-aW5lIElOVF8yNFhYX0dQVElNRVIyCTM4CisjZGVmaW5lIElOVF8yNFhYX0dQVElNRVIzCTM5CiAj
-ZGVmaW5lIElOVF8yNFhYX01DQlNQMV9JUlFfVFgJNTkKICNkZWZpbmUgSU5UXzI0WFhfTUNCU1Ax
-X0lSUV9SWAk2MAogI2RlZmluZSBJTlRfMjRYWF9NQ0JTUDJfSVJRX1RYCTYyCmRpZmYgLS1naXQg
-YS9pbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFwL3RpbWV4LmggYi9pbmNsdWRlL2FzbS1hcm0vYXJj
-aC1vbWFwL3RpbWV4LmgKaW5kZXggMjFmMmUzNi4uMWQ4OTY3OSAxMDA2NDQKLS0tIGEvaW5jbHVk
-ZS9hc20tYXJtL2FyY2gtb21hcC90aW1leC5oCisrKyBiL2luY2x1ZGUvYXNtLWFybS9hcmNoLW9t
-YXAvdGltZXguaApAQCAtMzQsOCArMzQsMTIgQEAKICAqLwogI2lmZGVmIENPTkZJR19PTUFQXzMy
-S19USU1FUgogI2RlZmluZSBDTE9DS19USUNLX1JBVEUJCShDT05GSUdfT01BUF8zMktfVElNRVJf
-SFopCisjZWxpZiBkZWZpbmVkKENPTkZJR19NQUNIX09NQVBfSDQpCisjZGVmaW5lIENMT0NLX1RJ
-Q0tfUkFURSAJKDYwMDAwMDApCS8qIHN5c19jbGsvMiAqLworI2VsaWYgZGVmaW5lZChDT05GSUdf
-TUFDSF9PTUFQXzI0MzBTRFApCisjZGVmaW5lIENMT0NLX1RJQ0tfUkFURSAJKDY1MDAwMDApCiAj
-ZWxzZQotI2RlZmluZSBDTE9DS19USUNLX1JBVEUJCShIWiAqIDEwMDAwMFVMKQorI2RlZmluZSBD
-TE9DS19USUNLX1JBVEUJCSg2MDAwMDAwKQogI2VuZGlmCiAKICNlbmRpZiAvKiBfX0FTTV9BUkNI
-X09NQVBfVElNRVhfSCAqLwo=
+CitzdGF0aWMgdTMyIG1hY2hpbmVjeWNsZXNfdG9fdXNlY3ModTMyIGdwdGlja3MpCit7CisJcmV0
+dXJuICgoKGdwdGlja3MgKiAyICogMTAwMCkvIGdwdGlja3NfcGVyX21zZWMpICsgMSkgPj4gMTsK
+K30KKworLyoKKyAqIFNjaGVkdWxlciBjbG9jayAtIHJldHVybnMgY3VycmVudCB0aW1lIGluIG5h
+bm9zZWMgdW5pdHMuCisgKi8KK3Vuc2lnbmVkIGxvbmcgbG9uZyBzY2hlZF9jbG9jayh2b2lkKQor
+eworCXUzMiBlbGFwc2VkX2N5Y2xlcywgZWxhcHNlZF91c2VjOworCQorCWVsYXBzZWRfY3ljbGVz
+ID0gdGltZXJfcmVhZF9yZWcoT1NfVElNRVJfT0ZGLCBHUF9USU1FUl9UQ1JSKTsKKwllbGFwc2Vk
+X3VzZWMgPSBtYWNoaW5lY3ljbGVzX3RvX3VzZWNzKGVsYXBzZWRfY3ljbGVzKTsJCisJcmV0dXJu
+IChvdl9lbGFwc2VkX25zICsgZWxhcHNlZF91c2VjICogMTAwMCk7Cit9CiAKLQlsID0gdGltZXJf
+cmVhZF9yZWcoT1NfVElNRVJfTlIsIEdQX1RJTUVSX1RJRFIpOwotCXByaW50ayhLRVJOX0lORk8g
+Ik9NQVAyIEdQIHRpbWVyIChIVyB2ZXJzaW9uICVkLiVkKVxuIiwKLQkgICAgICAgKGwgPj4gNCkg
+JiAweDBmLCBsICYgMHgwZik7CisvKiByZXR1cm4gZWxhcHNlZCB1c2VjcyBzaW5jZSBsYXN0IHN5
+c3RlbSB0aW1lciBJU1IgKi8KK3N0YXRpYyB1bnNpZ25lZCBsb25nIG9tYXAyX2dldHRpbWVvZmZz
+ZXQodm9pZCkKK3sKKwl1MzIgbm93LCBlbGFwc2VkX3VzZWMsIGVsYXBzZWRfY3ljbGVzOwogCi0J
+c2V0dXBfaXJxKDM4LCAmb21hcDJfZ3BfdGltZXJfaXJxKTsKKwlub3cgPSB0aW1lcl9yZWFkX3Jl
+ZyhPU19USU1FUl9PRkYsIEdQX1RJTUVSX1RDUlIpOworCWVsYXBzZWRfY3ljbGVzID0gbm93IC0g
+b21hcF9tcHVfdGltZXJfbGFzdDsKKwllbGFwc2VkX3VzZWMgPSBtYWNoaW5lY3ljbGVzX3RvX3Vz
+ZWNzKGVsYXBzZWRfY3ljbGVzKTsKKwlyZXR1cm4oZWxhcHNlZF91c2VjKTsKK30KKworc3RhdGlj
+IHZvaWQgX19pbml0IG9tYXAyX3RpbWVyX2luaXQodm9pZCkKK3sKKwl1MzIgZ3B0aWNrc19wZXJf
+bnM7CiAKLQlvbWFwMl9ncF90aW1lcl9zdGFydChPU19USU1FUl9OUiwgdGlja19wZXJpb2QpOwor
+CW9tYXAyX2dwX3RpbWVyX29mZnNldF9pbml0KE9TX1RJTUVSX09GRiwgTlVMTCk7CisJb21hcDJf
+Z3BfdGltZXJfaW5pdChPU19USU1FUl9OUik7CisJZ3B0aWNrc19wZXJfbnMgPSBncHRpY2tzX3Bl
+cl9tc2VjIC8gMTAwMDAwMDsKKwlvbWFwX3RpbWVyLm9mZnNldCA9IG9tYXAyX2dldHRpbWVvZmZz
+ZXQ7CisJbnNfcGVyX292ZXJmbG93ID0gMHhmZmZmZmZmZiAqIGdwdGlja3NfcGVyX25zOwogfQog
+CiBzdHJ1Y3Qgc3lzX3RpbWVyIG9tYXBfdGltZXIgPSB7Ci0JLmluaXQJPSBvbWFwMl9ncF90aW1l
+cl9pbml0LAorCS5pbml0CT0gb21hcDJfdGltZXJfaW5pdCwKKwkub2Zmc2V0ID0gTlVMTCwKIH07
+CiAKZGlmZiAtLWdpdCBhL2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvaXJxcy5oIGIvaW5jbHVk
+ZS9hc20tYXJtL2FyY2gtb21hcC9pcnFzLmgKaW5kZXggNDIwOThkOS4uNDU4YjAyNiAxMDA2NDQK
+LS0tIGEvaW5jbHVkZS9hc20tYXJtL2FyY2gtb21hcC9pcnFzLmgKKysrIGIvaW5jbHVkZS9hc20t
+YXJtL2FyY2gtb21hcC9pcnFzLmgKQEAgLTI0Miw2ICsyNDIsOCBAQAogI2RlZmluZSBJTlRfMjRY
+WF9HUElPX0JBTksyCTMwCiAjZGVmaW5lIElOVF8yNFhYX0dQSU9fQkFOSzMJMzEKICNkZWZpbmUg
+SU5UXzI0WFhfR1BJT19CQU5LNAkzMgorI2RlZmluZSBJTlRfMjRYWF9HUFRJTUVSMgkzOAorI2Rl
+ZmluZSBJTlRfMjRYWF9HUFRJTUVSMwkzOQogI2RlZmluZSBJTlRfMjRYWF9NQ0JTUDFfSVJRX1RY
+CTU5CiAjZGVmaW5lIElOVF8yNFhYX01DQlNQMV9JUlFfUlgJNjAKICNkZWZpbmUgSU5UXzI0WFhf
+TUNCU1AyX0lSUV9UWAk2MgpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9hc20tYXJtL2FyY2gtb21hcC90
+aW1leC5oIGIvaW5jbHVkZS9hc20tYXJtL2FyY2gtb21hcC90aW1leC5oCmluZGV4IDIxZjJlMzYu
+LjFkODk2NzkgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvdGltZXguaAor
+KysgYi9pbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFwL3RpbWV4LmgKQEAgLTM0LDggKzM0LDEyIEBA
+CiAgKi8KICNpZmRlZiBDT05GSUdfT01BUF8zMktfVElNRVIKICNkZWZpbmUgQ0xPQ0tfVElDS19S
+QVRFCQkoQ09ORklHX09NQVBfMzJLX1RJTUVSX0haKQorI2VsaWYgZGVmaW5lZChDT05GSUdfTUFD
+SF9PTUFQX0g0KQorI2RlZmluZSBDTE9DS19USUNLX1JBVEUgCSg2MDAwMDAwKQkvKiBzeXNfY2xr
+LzIgKi8KKyNlbGlmIGRlZmluZWQoQ09ORklHX01BQ0hfT01BUF8yNDMwU0RQKQorI2RlZmluZSBD
+TE9DS19USUNLX1JBVEUgCSg2NTAwMDAwKQogI2Vsc2UKLSNkZWZpbmUgQ0xPQ0tfVElDS19SQVRF
+CQkoSFogKiAxMDAwMDBVTCkKKyNkZWZpbmUgQ0xPQ0tfVElDS19SQVRFCQkoNjAwMDAwMCkKICNl
+bmRpZgogCiAjZW5kaWYgLyogX19BU01fQVJDSF9PTUFQX1RJTUVYX0ggKi8K
 
-------_=_NextPart_001_01C64183.9D4D7856
+------_=_NextPart_001_01C64187.F500437C
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
-------_=_NextPart_001_01C64183.9D4D7856--
+------_=_NextPart_001_01C64187.F500437C--
