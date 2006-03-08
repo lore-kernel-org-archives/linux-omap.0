@@ -1,13 +1,11 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: Re : Problem enabling camera driver for OMAP 1510 Innovator
-Date: Wed, 8 Mar 2006 04:48:45 -0800 (PST)
-Message-ID: <20060308124845.85723.qmail@web32912.mail.mud.yahoo.com>
-References: <ade4abe50603080435t5a5bdc21k46d1ae28ec12a9c6@mail.gmail.com>
+From: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>
+Subject: [RFC] snapshot boot on omap osk 5912
+Date: Wed, 08 Mar 2006 21:49:46 +0900 (JST)
+Message-ID: <20060308.214946.48536311.kaminaga@sm.sony.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <ade4abe50603080435t5a5bdc21k46d1ae28ec12a9c6@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,29 +15,48 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: RAVI SHANGAR <ravishangar@gmail.com>, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---- RAVI SHANGAR <ravishangar@gmail.com> wrote:
+Hi,
 
-> U mentioned that "1510 Innovator might have a different camera block
-> than
-> 1610/1710. If they differ, it is needed to write an omapcam1500.c".
-> 
-> *Queries:*
-> What does the word camera block refer? Is it the Omap's camera
-> interface or
-> the Camera itself?
-> How could I compare the camera block of OMAP 1510 with that of 1610?
+On target osk5912, software-suspend (suspend-to-disk) is now working,
+and resume-from-disk takes about 10sec. This is on linux-2.6.11 + omap
+patch + software-suspend arm porting.
 
-You need to have access to Technical Reference Manuals of OMAP1510 and
-1610 for that. TRM's for 1510/1610 are not available as 591x series.
-You need to contact your TI FAE to get those TRMs.
+My next try is to shrink resume-from-disk operation duration time.
+My method is as below:
 
----Komal Shah
-http://komalshah.blogspot.com/
+(in boot loader (u-boot) side, after bootloader starts target)
+1) extract resumed image in disk (for osk, it's in flash) to memory
+2) do necessary initialization
+3) jump to kernel, not to entry point but to point just after image is
+   allocated in kernel resume sequence.
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+I implemented these steps in bootloader command.
+
+After program counter jumps to kernel, resume goes, restores regs to
+that of suspended point, restores coprocessor regs, serial8250 gets
+resumed (and printk emits char to console), osk lcd lights again, but
+in omapfb resume procedure, wait_for_completion->schedule is called
+and goes to cpu_idle<-->omap_pm_idle busy loop.
+
+Obiously, I missed some initialization staff.
+What I did in step 2) in bootloader is
+2-1) modified timer to 192MHz for ARM, and enabled mpu, xor, tim
+     clock.
+2-2) enabled MMU
+(for other device, I hoped resume sequence in kernel would handle...)
+
+I'd like to have some advice on: things I need to initialize, good way
+to do that (like use kernel func abit), and other pit falls I might
+face.
+
+Also, is anyone interested in fast bootup?
+This could do significant shrink in bootup time when it works :-)
+
+Thanks in advance.
+
+
+HK.
+--
