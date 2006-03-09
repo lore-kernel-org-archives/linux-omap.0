@@ -1,11 +1,12 @@
-From: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>
-Subject: [RFC] snapshot boot on omap osk 5912
-Date: Wed, 08 Mar 2006 21:49:46 +0900 (JST)
-Message-ID: <20060308.214946.48536311.kaminaga@sm.sony.co.jp>
+From: "ahmed adel" <elakwah@gmail.com>
+Subject: plzzzzzzz help in osk5912
+Date: Thu, 9 Mar 2006 15:24:08 +0200
+Message-ID: <6fbbb3de0603090524s532264c4qd8598b0697496a09@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,50 +14,43 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+hello
 
-On target osk5912, software-suspend (suspend-to-disk) is now working,
-and resume-from-disk takes about 10sec. This is on linux-2.6.11 + omap
-patch + software-suspend arm porting.
+i am a student working in graduation project on OSK5912,
 
-My next try is to shrink resume-from-disk operation duration time.
-My method is as below:
+please i want you give me an overview of the ARM in OSK5912(how it
+work,uboot,filesytem)?
 
-(in boot loader (u-boot) side, after bootloader starts target)
-1) extract resumed image in disk (for osk, it's in flash) to memory
-2) do necessary initialization
-3) jump to kernel, not to entry point but to point just after image is
-   allocated in kernel resume sequence.
+i want to know how to deal with ARM?
 
-I implemented these steps in bootloader command.
+how can i reach to ARM?
 
-After program counter jumps to kernel, resume goes, restores regs to
-that of suspended point, restores coprocessor regs, serial8250 gets
-resumed (and printk emits char to console), osk lcd lights again, but
-in omapfb resume procedure, wait_for_completion->schedule is called
-and goes to cpu_idle<-->omap_pm_idle busy loop.
+can i use the arm only on osk5912?
 
-Obiously, I missed some initialization staff.
-What I did in step 2) in bootloader is
-2-1) modified timer to 192MHz for ARM, and enabled mpu, xor, tim
-     clock.
-2-2) enabled MMU
-(for other device, I hoped resume sequence in kernel would handle...)
+what the usage of MontaVista preview kit in developing?
 
-I'd like to have some advice on: things I need to initialize, good way
-to do that (like use kernel func abit), and other pit falls I might
-face.
+can i use arm without MontaVista preview kit?
 
-Also, is anyone interested in fast bootup?
-This could do significant shrink in bootup time when it works :-)
+why i need linux on the host pc?
 
-Thanks in advance.
+what about network configurations in osk5912 such as DHCP,Ethernet
+interface,NFS, firewall?
 
+if i have a c code and i want to run it on arm in osk5912 what should i do
+after i have install
 
-HK.
---
+the Montavista previw kit?
+
+should i master the linux Redhat to deal with arm(what should i kmnow about
+Redhat)?
+
+sorry for this amount of questions
+
+thanks in advance
+
+ahmed
