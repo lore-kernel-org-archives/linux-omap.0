@@ -1,11 +1,9 @@
-From: Riku Voipio <rvoipio+news@movial.fi>
-Subject: Re: Waitpid() issue
-Date: Mon, 13 Mar 2006 10:15:45 +0200
-Message-ID: <pan.2006.03.13.08.15.45.414472@movial.fi>
-References: <cb6819fd0603121657qe719cfco9ca94665fc549a76@mail.gmail.com>
+From: Anoop Krishnan <Anoop.Krishnan@lntinfotech.com>
+Subject: DSP BIOS problem in OMAP1510 Innovator
+Date: Mon, 13 Mar 2006 14:17:09 +0530
+Message-ID: <OF9DC9495F.26D3A005-ON65257130.002F545F-65257130.00304474@lntinfotech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="US-ASCII"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -19,12 +17,18 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 13 Mar 2006 11:57:02 +1100, Louis Jung wrote:
-> my point of view the problem seems to be related with the
-> incompatibility of the glibc with the OMAP platform,
-> but with a great uncertainty. 
+Hi all,
 
-Unfortunately we really suck at mind reading, so we can't know what
-version of glibc you have in your scratchbox toolchain and what glibc your
-"OMAP platform" has... Thus we can't tell you if they are same enought to
-work or not.
+I am trying to implement a MP3 Decoder running in the DSP.
+I am using Linux DSP Tools to compile for DSP. I am also using DSP Gateway 
+& tokliBIOS.
+But the DSP is hanging after sometime. I tried to debug by putting dbg() 
+calls.
+>From that I could see that the user task is hanging in SEM_pend() call.
+I am not able to debug furthur. Could anyone please give suggestions on 
+how to approach this problem?
+Thanks in advance.
+
+Anoop
+
+______________________________________________________________________
