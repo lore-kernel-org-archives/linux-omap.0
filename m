@@ -1,13 +1,14 @@
-From: "andrzej zaborowski" <balrog@zabor.org>
-Subject: Re: How to solve "lsmod :QM_MODULES: Function not implemented."?
-Date: Mon, 13 Mar 2006 16:04:07 +0100
-Message-ID: <fb249edb0603130704y28435755h@mail.gmail.com>
-References: <20060313145529.E41E1A856C@mailreg.nctu.edu.tw>
-Reply-To: balrogg@gmail.com
+From: toshihiro.kobayashi@nokia.com
+Subject: Re: Which patches for 2.6.15 for 5912OSK?
+Date: Tue, 14 Mar 2006 01:12:03 +0900 (JST)
+Message-ID: <20060314.011203.846939260.toshihiro.kobayashi@nokia.com>
+References: <001101c644ea$26a680c0$0301a8c0@hydra>
+	<003601c6468b$2d1dbd40$642aa8c0@BUFFY>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1879182808=="
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060313145529.E41E1A856C@mailreg.nctu.edu.tw>
+In-Reply-To: <003601c6468b$2d1dbd40$642aa8c0@BUFFY>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,28 +18,30 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: richard.copeman@lauterbach.co.uk
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============1879182808==
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+Hi,
 
-PiBJIHdhbnQgdG8gdXNlIGxzbW9kIG9uIE9TSyA1OTEyLCBidXQgd2hlbiBJIHVzZSBpdCwgdGhl
-IG1lc3NhZ2UgImxzbW9kCj4gOlFNX01PRFVMRVM6IEZ1bmN0aW9uIG5vdCBpbXBsZW1lbnRlZCIg
-YW5ub3kgbWUuClRoaXMgbWVzc2FnZSB1c3VhbGx5IG1lYW5zIHRoYXQgeW91J3JlIHVzaW5nIGFu
-IG9sZCB2ZXJzaW9uIG9mCm1vZHV0aWxzICh0aGUgb25lIGZyb20gMi40IGtlcm5lbHMpIG9yIGhh
-dmUgYm90aCB0aGUgbmV3IGFuZCBvbGQKdmVyc2lvbiBpbnN0YWxsZWQgYnV0IHRoZSBvbGQgb25l
-IGdldHMgY2FsbGVkLgpHcmVldGluZ3MsCkFuZHJldwotLQpiYWxyb2cgMm9vNgoKRGVhciBPdXRs
-b29rIHVzZXJzOiBQbGVhc2UgcmVtb3ZlIG1lIGZyb20geW91ciBhZGRyZXNzIGJvb2tzCmh0dHA6
-Ly93d3cubmV3c2ZvcmdlLmNvbS9hcnRpY2xlLnBsP3NpZD0wMy8wOC8yMS8xNDMyNTgK
+From: "Richard Copeman" <richard.copeman@lauterbach.co.uk>
+Subject: RE: Which patches for 2.6.15 for 5912OSK?
+Date: Mon, 13 Mar 2006 10:44:59 -0000
 
---===============1879182808==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> Hi Michal,
+> 
+> Thanks for the information. I only had to copy two files from plat-omap to
+> mach-omap1: pm.c and sleep.S
+> 
+> I have a running kernel. Now I just need to configure the dsp gateway. Do
+> you have any information on how to do that?
 
+I don't think I had any issues with linux-2.6.15 + patch-2.6.15-omap2.
 
---===============1879182808==--
+You should see the DSP Gateway configuration at
+  System Type
+    ---> TI OMAP Implementations
+      ---> OMAP DSP Driver (DSP Gateway)
+
+BR,
+Toshihiro Kobayashi
