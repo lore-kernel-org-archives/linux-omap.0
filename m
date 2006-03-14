@@ -1,10 +1,13 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] Fix tlv320aic23.c
-Date: Tue, 14 Mar 2006 17:48:27 +0100
-Message-ID: <4416F3DB.1090605@gmail.com>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: RE: [PATCH] Fix OV9640 sensor and add h4 sensor power functions
+Date: Tue, 14 Mar 2006 09:04:03 -0800 (PST)
+Message-ID: <20060314170403.95804.qmail@web32903.mail.mud.yahoo.com>
+References: <304D2A85A9643F4A991BDDF8D297BBA602949824@dlee05.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060207030301010206060009"
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <304D2A85A9643F4A991BDDF8D297BBA602949824@dlee05.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,66 +15,29 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "Zhang, Jian" <jzhang@ti.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060207030301010206060009
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+--- "Zhang, Jian" <jzhang@ti.com> wrote:
 
+> Komal,
+> 
+> I have strncpy in my code and don't experience any issue. I don't
+> know
+> when it became strlcpy.
+> 
 
-ARM: OMAP: Fix error from GCC 4.1.0:
+Hmm, in your 2430 2.6.10 code (I hope this is your current tree) you
+are copying into i2c_driver->name[32] not i2c_driver->driver.name,
+which is the case in the latest git tree. So, I hope it is now clear
+that why strlcpy/strncpy is failing in the latest tree.
 
-drivers/i2c/chips/tlv320aic23.c:157: error: expected '='
-before '{' token
-drivers/i2c/chips/tlv320aic23.c:161: error: expected '}'
-before '.' token
-drivers/i2c/chips/tlv320aic23.c:597: error: expected '='
-before '{' token
-drivers/i2c/chips/tlv320aic23.c:601: error: expected '}'
-before '.' token
+---Komal Shah
+http://komalshah.blogspot.com/
 
-Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
-
-
-
---------------060207030301010206060009
-Content-Type: text/plain;
- name="tlv320aic23_error.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="tlv320aic23_error.txt"
-
---- ./drivers/i2c/chips/tlv320aic23.c_orig	2006-03-14 17:39:07.000000000 +0100
-+++ ./drivers/i2c/chips/tlv320aic23.c	2006-03-14 17:41:19.000000000 +0100
-@@ -154,7 +154,7 @@ static int tlv320aic23_attach_adapter(st
- }
- 
- static struct i2c_driver tlv320aic23_driver = {
--	.driver {
-+	.driver = {
- 		.name	= "OMAP+TLV320AIC23 codec",
- 		/*.flags	= I2C_DF_NOTIFY,*/
- 	},
-@@ -594,7 +594,7 @@ static int audio_i2c_resume(struct platf
- }
- 
- static struct platform_driver audio_i2c_driver = {
--	.driver {
-+	.driver = {
- 		.owner	= THIS_MODULE,
- 		.name	= "audio-i2c",
- 	},
-
-
---------------060207030301010206060009
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---------------060207030301010206060009--
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
