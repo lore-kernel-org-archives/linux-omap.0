@@ -1,14 +1,12 @@
-From: Philippe Laporte <philippe.laporte@gatespacetelematics.com>
-Subject: Re: Jazelle
-Date: Wed, 15 Mar 2006 12:23:32 +0100
-Message-ID: <4417F934.3060202@gatespacetelematics.com>
-References: <4416FE0E.3040806@gatespacetelematics.com>
-	<44170217.6050103@gmail.com>
+From: "naga rajan" <nagubk82@gmail.com>
+Subject: Linux DSP Tools for 2.6 kernel
+Date: Wed, 15 Mar 2006 16:57:08 +0530
+Message-ID: <7e6cc7550603150327o65edee63k61bbfd982f941856@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <44170217.6050103@gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,47 +16,35 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-     Did you mean to say that I should find good information by doing tha=
-t?
-
-There was nothing from that doing that...
-
-Thanks,
-
-Philippe Laporte
-Software=20
-
-Gatespace Telematics
-F=F6rsta L=E5nggatan 18
-41328 G=F6teborg
-Sweden
-Phone: +46 702 04 35 11
-Fax:   +46 31 24 16 50
-Email: philippe.laporte@gatespacetelematics.com
+Dear Sir/Madam,
 
 
 
-Dirk Behme wrote:
+                        I have been using 2.6.8 kernel for OMAP5912 Starter
+Kit.  I generated JFFS2 File system and verified a basic program in the ARM
+side.  I like to have information regarding the development of Linux
+DSP-TOOLS for 2.6.8 kernel.
 
-> Philippe Laporte wrote:
->
->> Any input/intelligence is gladly welcome. Performance, integration,=20
->> shortcomings, etc.
->
->
-> Do you tried Google with
->
-> site:lists.arm.linux.org.uk Java
-> site:lists.arm.linux.org.uk Jazelle
->
-> ?
->
-> Best regards
->
-> Dirk
->
+
+
+                        In the "Linux DSP Tools getting Started guide", the
+Montavista linux kernel is referred for building the tools. I like to
+develop Linux DSP Tools environment compatible for open source
+2.6.8kernel,which in not referred in the guide. Have anyone faced this
+problem?.
+
+
+
+                        I wish to have a solution for this problem from you
+people. Please help me in this regard.
+
+
+
+Thanks and regards,
+
+B.Nagarajan,
+
+SANDS Instrumentation.
