@@ -1,10 +1,9 @@
-From: "prafulla chandra vejendla" <v.prafulla@gmail.com>
-Subject: problem with root filesystem
-Date: Wed, 15 Mar 2006 19:47:30 +0530
-Message-ID: <26d3a31c0603150617g22cac272g990d8313c3b4ae99@mail.gmail.com>
+From: Tom Rini <trini@kernel.crashing.org>
+Subject: OSK5912 and CF and network broken?
+Date: Wed, 15 Mar 2006 11:30:06 -0700
+Message-ID: <20060315183006.GA16873@smtp.west.cox.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
@@ -19,11 +18,21 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi all ,
-i followed newbie guide and i mounted the root filesystem using the NFS. i
-have given read/write access to that folder to all in the exports file .but
-i am unable to create single directory in the target .why is it so ?? how t=
-o
-overcome this problem . i have down loaded the root filesystem from the
-following website  http://linux.omap.com/pub/filesystem/rootfsosk.tar.bz2
---prafulla chandra
+Hello.  I'm trying to use current linux-omap-2.6 (source.mvista.com one)
+git with the omap_osk_5912_defconfig and with U-Boot 1.1.4 release (+ 2
+patches from this list).  I can bring the board up just fine but when I
+insert a CF device I see:
+pccard: PCMCIA card inserted into slot 0
+pcmcia: registering new device pcmcia0.0
+NETDEV WATCHDOG: eth0: transmit timed out
+...
+NETDEV WATCHDOG: eth0: transmit timed out
+pccard: card ejected from slot 0
+
+Has anyone seen this before?  Or should I just looking at the interrupt
+routes?  I'm assuming that the board does support me using both CF and
+network at the same time.  Thanks!
+
+-- 
+Tom Rini
+http://gate.crashing.org/~trini/
