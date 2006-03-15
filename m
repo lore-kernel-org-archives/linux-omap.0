@@ -1,13 +1,13 @@
 From: Matthew Percival <matthew@capgo.com>
-Subject: Re: Linux DSP Tools for 2.6 kernel
-Date: Thu, 16 Mar 2006 09:06:04 +1100
-Message-ID: <1142460365.9059.4.camel@localhost.localdomain>
-References: <7e6cc7550603150327o65edee63k61bbfd982f941856@mail.gmail.com>
+Subject: Re: problem with root filesystem
+Date: Thu, 16 Mar 2006 09:13:16 +1100
+Message-ID: <1142460796.9059.11.camel@localhost.localdomain>
+References: <26d3a31c0603150617g22cac272g990d8313c3b4ae99@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <7e6cc7550603150327o65edee63k61bbfd982f941856@mail.gmail.com>
+In-Reply-To: <26d3a31c0603150617g22cac272g990d8313c3b4ae99@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,16 +22,23 @@ List-Id: linux-omap@vger.kernel.org
 
 G'Day,
 
->                         In the "Linux DSP Tools getting Started guide", the
-> Montavista linux kernel is referred for building the tools. I like to
-> develop Linux DSP Tools environment compatible for open source
-> 2.6.8kernel,which in not referred in the guide. Have anyone faced this
-> problem?.
+> i followed newbie guide and i mounted the root filesystem using the NFS. i
+> have given read/write access to that folder to all in the exports file .but
+> i am unable to create single directory in the target .why is it so ?? how to
+> overcome this problem . i have down loaded the root filesystem from the
+> following website  http://linux.omap.com/pub/filesystem/rootfsosk.tar.bz2
 
-	I installed the Linux DSP Tools without having MontaVista: there are no
-related issues.  I am not sure whether DSP/BIOS Link would work with 2.6
-or not (I use DSP Gateway), but I have had no trouble with the DSP
-compiler and other tools.  I just followed the steps in chapter two of
-the `Getting Started' guide and it all went smoothly.
+	There are a few possible causes of this, but the most likely is that
+you are mounting the filesystem as read-only; make sure you have `rw' in
+the `bootargs' environmental variable in u-boot.  Here is what I set
+them to when using NFS:
+
+setenv bootargs console=ttyS0,115200n8 noinitrd ip=on root=/dev/nfs rw
+nfsroot=${MY_IP}:${PATH_TO_ROOTFS},nolock
+saveenv
+
+	If that is not the problem, check the permissions as they are set on
+the host system: it is possible, however unlikely, that you have them
+set up in some strange way (eg -r-xr-xr-x).
 
 	-- Matthew
