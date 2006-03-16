@@ -1,13 +1,11 @@
-From: Matthew Percival <matthew@capgo.com>
-Subject: Re: problem with root filesystem
-Date: Thu, 16 Mar 2006 09:13:16 +1100
-Message-ID: <1142460796.9059.11.camel@localhost.localdomain>
-References: <26d3a31c0603150617g22cac272g990d8313c3b4ae99@mail.gmail.com>
+From: May Lin <foxfromworld@yahoo.com.tw>
+Subject: [USB][osk_5912]Why can't I use usb-to-serial port?
+Date: Thu, 16 Mar 2006 11:48:25 +0800 (CST)
+Message-ID: <20060316034825.89805.qmail@web17503.mail.tpe.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <26d3a31c0603150617g22cac272g990d8313c3b4ae99@mail.gmail.com>
+Content-Type: text/plain; charset=big5
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,30 +13,32 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-G'Day,
+Hi there
+I have set some configuration about usb-to-serial.=20
+When I turn on the system... the message below ois
+shown.
+But I still can't access the ttyUSB0.
+Do you know how to solve it?
 
-> i followed newbie guide and i mounted the root filesystem using the NFS. i
-> have given read/write access to that folder to all in the exports file .but
-> i am unable to create single directory in the target .why is it so ?? how to
-> overcome this problem . i have down loaded the root filesystem from the
-> following website  http://linux.omap.com/pub/filesystem/rootfsosk.tar.bz2
+usbcore: registered new driver usbserial
+drivers/usb/serial/usb-serial.c: USB Serial Driver
+core v2.0
+drivers/usb/serial/usb-serial.c: USB Serial support
+registered for PL-2303
+usb 1-1: new full speed USB device using ohci and
+address 2
+pl2303 1-1:1.0: PL-2303 converter detected
+usb 1-1: PL-2303 converter now attached to ttyUSB0
+usbcore: registered new driver pl2303
+drivers/usb/serial/pl2303.c: Prolific PL2303 USB to
+serial adaptor driver v0.12
 
-	There are a few possible causes of this, but the most likely is that
-you are mounting the filesystem as read-only; make sure you have `rw' in
-the `bootargs' environmental variable in u-boot.  Here is what I set
-them to when using NFS:
 
-setenv bootargs console=ttyS0,115200n8 noinitrd ip=on root=/dev/nfs rw
-nfsroot=${MY_IP}:${PATH_TO_ROOTFS},nolock
-saveenv
-
-	If that is not the problem, check the permissions as they are set on
-the host system: it is possible, however unlikely, that you have them
-set up in some strange way (eg -r-xr-xr-x).
-
-	-- Matthew
+___________________________________________________  =B3=CC=B7s=AA=A9 Yah=
+oo!=A9_=BC=AF=A7Y=AE=C9=B3q=B0T 7.0=A1A=A7K=B6O=BA=F4=B8=F4=B9q=B8=DC=A5=F4=
+=A7A=A5=B4=A1I  http://messenger.yahoo.com.tw/
