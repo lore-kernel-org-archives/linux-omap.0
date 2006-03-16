@@ -1,9 +1,9 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] Fix menelaus
-Date: Thu, 16 Mar 2006 16:19:36 +0100
-Message-ID: <44198208.9000706@gmail.com>
+Subject: [PATCH] Fix omap-rtc
+Date: Thu, 16 Mar 2006 16:41:13 +0100
+Message-ID: <44198719.3090308@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010803070505000209070206"
+Content-Type: multipart/mixed; boundary="------------030206030601030900010003"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -14,49 +14,50 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------010803070505000209070206
+--------------030206030601030900010003
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-ARM: OMAP: Fix menelaus.c compile for GCC 4.1.0:
 
-drivers/i2c/chips/menelaus.c:453: error: expected '=' before
-'{' token
-drivers/i2c/chips/menelaus.c:456: error: expected '}' before
-'.' token
+ARM: OMAP: Fix omap-rtc:
+
+drivers/char/omap-rtc.c:125: error: static declaration of
+'rtc_interrupt' follows non-static declaration
+include/linux/rtc.h:107: error: previous declaration of
+'rtc_interrupt' was here
 
 Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
 
 
---------------010803070505000209070206
+--------------030206030601030900010003
 Content-Type: text/plain;
- name="menelaus_patch.txt"
+ name="rtc_patch.txt"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="menelaus_patch.txt"
+ filename="rtc_patch.txt"
 
---- ./drivers/i2c/chips/menelaus.c_orig	2006-03-16 16:13:53.000000000 +0100
-+++ ./drivers/i2c/chips/menelaus.c	2006-03-16 16:15:13.000000000 +0100
-@@ -450,7 +450,7 @@ static int menelaus_scan_bus(struct i2c_
- }
+--- ./drivers/char/omap-rtc.c_orig	2006-03-16 16:33:23.000000000 +0100
++++ ./drivers/char/omap-rtc.c	2006-03-16 16:39:37.000000000 +0100
+@@ -121,7 +121,7 @@ static const unsigned char days_in_mo[] 
+  *	A very tiny interrupt handler. It runs with SA_INTERRUPT set.
+  */
  
- static struct i2c_driver menelaus_i2c_driver = {
--	.driver {
-+	.driver = {
- 		.name		= DRIVER_NAME,
- 	},
- 	.id		= I2C_DRIVERID_MISC, /*FIXME:accroding to i2c-ids.h */
+-static irqreturn_t rtc_interrupt(int irq, void *dev_id, struct pt_regs *regs)
++irqreturn_t rtc_interrupt(int irq, void *dev_id, struct pt_regs *regs)
+ {
+ 	/*
+ 	 *	Either an alarm interrupt or update complete interrupt.
 
 
---------------010803070505000209070206
+--------------030206030601030900010003
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------010803070505000209070206--
+--------------030206030601030900010003--
