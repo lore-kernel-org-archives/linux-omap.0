@@ -1,13 +1,12 @@
-From: "Li Weichen" <iaadoa@gmail.com>
-Subject: How to compile the driver of rt2570usb 802.11g wlan stick into
-	kernel?
-Date: Thu, 16 Mar 2006 22:19:37 +0800
-Message-ID: <44197412.354d7f0f.18f4.5a9a@mx.gmail.com>
+From: "prafulla chandra vejendla" <v.prafulla@gmail.com>
+Subject: Re: problem with root filesystem
+Date: Thu, 16 Mar 2006 20:26:13 +0530
+Message-ID: <26d3a31c0603160656v26d05b0epc1b9c00286920cec@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,19 +16,51 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: rt2400-general@lists.sourceforge.net, rt2400-devel@lists.sourceforge.net
-Cc: linux-arm@lists.arm.linux.org.uk, linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi guys,
+Matthew,
 
-I am trying to utilize a D-Link DWL-G122 usb stick in TI OSK that is based
-on OMAP 5912.  I wonder how to compile the driver of this wlan stick into
-kernel?  I have searched the forum and FAQ of rt2x00, but didn't find the
-way.
-
-I am eagerly waiting your help, thanks in advance.
+I have the your steps. I have set rw in boot args and my bootargs also look=
+s
+like yours. And I have checked the access rights in the HOST and it has
+fulll access. But still the problem prevails. What could be the reason.
 
 
-Li Weichen
-2006-3-16
+G'Day,
+
+> i followed newbie guide and i mounted the root filesystem using the NFS. =
+i
+
+> have given read/write access to that folder to all in the exports file
+.but
+
+> i am unable to create single directory in the target .why is it so ?? how
+to
+
+> overcome this problem . i have down loaded the root filesystem from the
+
+> following website http://linux.omap.com/pub/filesystem/rootfsosk.tar.bz2
+
+There are a few possible causes of this, but the most likely is that
+
+you are mounting the filesystem as read-only; make sure you have `rw' in
+
+the `bootargs' environmental variable in u-boot. Here is what I set
+
+them to when using NFS:
+
+setenv bootargs console=3DttyS0,115200n8 noinitrd ip=3Don root=3D/dev/nfs r=
+w
+
+nfsroot=3D${MY_IP}:${PATH_TO_ROOTFS},nolock
+
+saveenv
+
+If that is not the problem, check the permissions as they are set on
+
+the host system: it is possible, however unlikely, that you have them
+
+set up in some strange way (eg -r-xr-xr-x).
+
+-- Matthew
