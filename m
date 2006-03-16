@@ -1,12 +1,10 @@
-From: "prafulla chandra vejendla" <v.prafulla@gmail.com>
-Subject: Re: problem with root filesystem
-Date: Thu, 16 Mar 2006 20:26:13 +0530
-Message-ID: <26d3a31c0603160656v26d05b0epc1b9c00286920cec@mail.gmail.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: [PATCH] Fix menelaus
+Date: Thu, 16 Mar 2006 16:19:36 +0100
+Message-ID: <44198208.9000706@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="------------010803070505000209070206"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,48 +17,46 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Matthew,
+This is a multi-part message in MIME format.
+--------------010803070505000209070206
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I have the your steps. I have set rw in boot args and my bootargs also look=
-s
-like yours. And I have checked the access rights in the HOST and it has
-fulll access. But still the problem prevails. What could be the reason.
+ARM: OMAP: Fix menelaus.c compile for GCC 4.1.0:
+
+drivers/i2c/chips/menelaus.c:453: error: expected '=' before
+'{' token
+drivers/i2c/chips/menelaus.c:456: error: expected '}' before
+'.' token
+
+Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
 
 
-G'Day,
+--------------010803070505000209070206
+Content-Type: text/plain;
+ name="menelaus_patch.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="menelaus_patch.txt"
 
-> i followed newbie guide and i mounted the root filesystem using the NFS. =
-i
+--- ./drivers/i2c/chips/menelaus.c_orig	2006-03-16 16:13:53.000000000 +0100
++++ ./drivers/i2c/chips/menelaus.c	2006-03-16 16:15:13.000000000 +0100
+@@ -450,7 +450,7 @@ static int menelaus_scan_bus(struct i2c_
+ }
+ 
+ static struct i2c_driver menelaus_i2c_driver = {
+-	.driver {
++	.driver = {
+ 		.name		= DRIVER_NAME,
+ 	},
+ 	.id		= I2C_DRIVERID_MISC, /*FIXME:accroding to i2c-ids.h */
 
-> have given read/write access to that folder to all in the exports file
-.but
 
-> i am unable to create single directory in the target .why is it so ?? how
-to
+--------------010803070505000209070206
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> overcome this problem . i have down loaded the root filesystem from the
 
-> following website http://linux.omap.com/pub/filesystem/rootfsosk.tar.bz2
-
-There are a few possible causes of this, but the most likely is that
-
-you are mounting the filesystem as read-only; make sure you have `rw' in
-
-the `bootargs' environmental variable in u-boot. Here is what I set
-
-them to when using NFS:
-
-setenv bootargs console=3DttyS0,115200n8 noinitrd ip=3Don root=3D/dev/nfs r=
-w
-
-nfsroot=3D${MY_IP}:${PATH_TO_ROOTFS},nolock
-
-saveenv
-
-If that is not the problem, check the permissions as they are set on
-
-the host system: it is possible, however unlikely, that you have them
-
-set up in some strange way (eg -r-xr-xr-x).
-
--- Matthew
+--------------010803070505000209070206--
