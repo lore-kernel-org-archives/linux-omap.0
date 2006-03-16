@@ -1,14 +1,14 @@
-From: Tom Rini <trini@kernel.crashing.org>
-Subject: Re: OSK5912 and CF and network broken?
-Date: Thu, 16 Mar 2006 10:19:40 -0700
-Message-ID: <20060316171940.GE16873@smtp.west.cox.net>
-References: <20060315183006.GA16873@smtp.west.cox.net>
-	<44199A46.3080303@gmail.com>
+From: "Daniel Petrini" <d.pensator@gmail.com>
+Subject: Re: ALSA with OMAP1510
+Date: Thu, 16 Mar 2006 13:27:17 -0400
+Message-ID: <9268368b0603160927v6de56f8cqc8037455344a365c@mail.gmail.com>
+References: <9343BE359FA4224CA72A94D8CC362C9C093659@edpc500.cedt.iisc.ernet.in>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <9343BE359FA4224CA72A94D8CC362C9C093659@edpc500.cedt.iisc.ernet.in>
 Content-Disposition: inline
-In-Reply-To: <44199A46.3080303@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,43 +18,35 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
+To: Prakash Narayanan M <mnarayan@cedt.iisc.ernet.in>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Mar 16, 2006 at 06:03:02PM +0100, Dirk Behme wrote:
-> Tom Rini wrote:
-> >Has anyone seen this before?  Or should I just looking at the interrupt
-> >routes?  I'm assuming that the board does support me using both CF and
-> >network at the same time.  Thanks!
-> 
-> Yes, board supports both, CF and network. However, OSK CF 
-> hardware is limited and is really troublesome.
+HI,
 
-I wonder if my board is just more troublesome than most.  If I turned off
-network (and used a ramdisk for userspace) I then got to the point of:
+On 3/16/06, Prakash Narayanan M <mnarayan@cedt.iisc.ernet.in> wrote:
+> Hai All
+<snip>
+> The ALSA part is compiled with kernel.  Now when I do #cat test.raw >
+> /dev/dsp no response from the audio device.  I have created and tested
+> test.raw in my host machine.
 
-pccard: PCMCIA card inserted into slot 0                                      
-pcmcia: registering new device pcmcia0.0                                        
-hdb: probing with STATUS(0x00) instead of ALTSTATUS(0x51)                       
-hdb: probing with STATUS(0x00) instead of ALTSTATUS(0x51)                       
-hdb: probing with STATUS(0x00) instead of ALTSTATUS(0x51)                       
-hdb: probing with STATUS(0x00) instead of ALTSTATUS(0x51)                       
-hdb: probing with STATUS(0x00) instead of ALTSTATUS(0x51)                       
-hdb: probing with STATUS(0x00) instead of ALTSTATUS(0x51)                       
-hdb: probing with STATUS(0x00) instead of ALTSTATUS(0x51)                       
-hdb: probing with STATUS(0x00) instead of ALTSTATUS(0x51)                       
-hdb: probing with STATUS(0x00) instead of ALTSTATUS(0x51)                       
-hdb: probing with STATUS(0x00) instead of ALTSTATUS(0x51)                       
-ide-cs: ide_register() at 0xc2852000 & 0xc285200e, irq 222 failed
+You should use "aplay test.raw" to play using alsa stack.
 
-with an old 16MB CF card.  With my 2.2GB microdrive I get more of the
-messages, but the same result.  FWIW, u-boot won't load if the MD is
-inserted, but will if the CF is.
+> Also I used a C program to check the audio device.
+>
+> 1. opens /dev/mixer and set the mic gain to 100 and close /dev/mixer
+> 2. opens /dev/dsp (Read only mode) and set the parameters
+> 3. reads the mic values to a buffer and close /dev/dsp
+> 4. opens /dev/mixer and set the mic gain to 0 and close /dev/mixer
+> 5. opens /dev/dsp (Write only mode) and set the parameters
+> 6. write the buffer to /dev/dsp device
 
-But perhaps I need a better cardmgr options file?  I don't have anything
-board-specific in mine.  Thanks!
+Maybe taking a look at the source of some alsa application, like the
+aplay itself would help.
 
--- 
-Tom Rini
-http://gate.crashing.org/~trini/
+Regards,
+
+Daniel
+--
+INdT
