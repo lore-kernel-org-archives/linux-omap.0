@@ -1,10 +1,10 @@
-From: Imre Deak <imre.deak@nokia.com>
-Subject: [PATCH] ads7846: Add disable sysfs entry / fix spin lock init,
-	driver cleanup
-Date: Fri, 17 Mar 2006 17:46:50 +0200
-Message-ID: <1142610410.17258.85.camel@mammoth.research.nokia.com>
+From: "andrzej zaborowski" <balrog@zabor.org>
+Subject: OMAP emulation
+Date: Fri, 17 Mar 2006 18:33:50 +0100
+Message-ID: <fb249edb0603170933m391da937w@mail.gmail.com>
+Reply-To: balrogg@gmail.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-uN4em+q1zsTEw1AeLLdQ"
+Content-Type: multipart/mixed; boundary="===============1361173425=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,305 +15,140 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: omap-linux <linux-omap-open-source@linux.omap.com>
-Cc: "Yrjola Juha (Nokia-M/Helsinki)" <Juha.Yrjola@nokia.com>
+To: OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
+--===============1361173425==
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
---=-uN4em+q1zsTEw1AeLLdQ
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+SGksCkkgc3RhcnRlZCBhZGRpbmcgYmFzaWMgZW11bGF0aW9uIGZvciBhIE9NQVAgMzEwIGJhc2Vk
+IHN5c3RlbSAodGhlIFBhbG0KVHVuZ3N0ZW4gRSBkZXZpY2UgaW4gcGFydGljdWxhcikgdG8gdGhl
+IFFFTVUgcHJvamVjdCAod3d3LnFlbXUub3JnKQp0YWtpbmcgYWR2YW50YWdlIG9mIGl0cyBhbHJl
+YWR5IGZ1bmN0aW9uYWwgZW11bGF0aW9uIG9mIHRoZSBBUk0KcHJvY2Vzc29yLiBOb3cgaXQncyBh
+bHJlYWR5IGF0IGEgcG9pbnQgd2hlcmUgaXQgbGV0cyBtZSBib290IHRoZSBzb21lCm9mIHNhbWUg
+T01BUCBrZXJuZWwgYnVpbGRzIG9uIG15IFBDIHVzaW5nIHRoZSBlbXVsYXRvciBhbmQgb24gdGhl
+IHJlYWwKZGV2aWNlIHVzaW5nIHRoZSBHYXJ1eCBib290bG9hZGVyIChnYXJ1eC5zb3VyY2Vmb3Jn
+ZS5uZXQpLiBJZiBhbnlvbmUKaXMgaW50ZXJlc3RlZCwgZmVlbCBmcmVlIHRvIHRyeSBpdCBvdXQg
+YWx0aG91Z2ggdGhlIGVtdWxhdG9yIGlzIHN0aWxsCm1pc3NpbmcgdmFyaW91cyBwYXJ0cy4gSSdt
+IGhvcGluZyB0aGF0IGl0IHdpbGwgaGVscCBtZSBkZWJ1Z2dpbmcgdGhlCmRyaXZlcnMgbGF0ZXIu
+IEFsc28sIFFFTVUgcnVucyBsaW51eCBhdCBhYm91dCBkb3VibGUgc3BlZWQgb2YgdGhlIHJlYWwK
+ZGV2aWNlIG9uIG15IGRlc2t0b3AgUEMgc28gaXQgbWlnaHQgc3BlZWQgdXAgdGVzdGluZy4KSGVy
+ZSBpcyB3aGF0IEkgaGF2ZSBnb3Qgd29ya2luZyBzbyBmYXIsIGFuZCB3aGF0IHRoZSBwYXRjaCBj
+b250YWluczoKCiAtIHdlbGwsIHRoZSBwcm9jZXNzb3I6IFFFTVUgZW11bGF0ZXMgYW4gQVJNIDEw
+MjYgYnV0IGl0IHR1cm5lZCBvdXQgdG8KYmUgc2ltaWxhciAgZW5vdWdoIHRvIHRoZSBUSSA5MjUu
+IEkgcmVhbGx5IG9ubHkgaGFkIHRvIGNoYW5nZSB0aGUKaWRlbnRpZmljYXRpb24gbnVtYmVycyBp
+dCByZXR1cm5zIHRvIHRob3NlIG9mIFRJIDkyNS4KCiAtIHNvbWUgb2YgdGhlIGJhc2ljICJNUFUg
+c3Vic3lzdGVtcyIsIHRoYXQgaXM6CiAtIHRoZSBJUlEgYW5kIEZJUSBnZW5lcmF0aW9uIGZyb20g
+Ym90aCBsZXZlbCAxIGFuZCAyIGJhbmtzIG9mCmludGVycnVwdHMgKHdpdGggdGhlIHJpZ2h0IHBl
+cmlwaGVyYWxzIGNvbm5lY3RlZCB0byB0aGUgcmlnaHQKaW50ZXJydXB0IGxpbmVzLikKIC0gdGlt
+ZXJzOiB0aGUgdGhyZWUgZ2VuZXJhbCBwdXJwb3NlIE1QVSB0aW1lcnMuCiAtIG1vc3Qgb2YgdGhl
+IGNvbmZpZ3VyYXRpb24gcmVnaXN0ZXJzIChhY3R1YWxseSBtYW55IG9mIHRoZW0gYXJlIG9ubHkK
+ZHVtbWllcyBiZWNhdXNlIHRoZSBlbXVsYXRvciBkb2Vzbid0IGNhcmUgYWJvdXQgdGhpbmdzIGxp
+a2Ugdm9sdGFnZXMsCmNsb2NraW5nIHNjaGVtZXMsIG9yIGFsbCB0aGUgZGlmZmVyZW50IHR5cGVz
+IG9mIGNhY2hpbmcuKQogLSB0aGUgc2hhcmVkIEdQSU8gbGluZXMgcGx1cyB0aGUgMTYgTVBVSU8g
+R1BJT3MgKHdpdGggdGhlIHJlc3Qgb2YgdGhlCnBlcmlwaGVyYWxzIGNvbm5lY3RlZCB0byB0aGUg
+cmlnaHQgZ3BpbyBwaW5zIGxpa2Ugb24gbXkgUGFsbS4pCiAtIGEga2V5Ym9hcmQgY29ubmVjdGVk
+IHRocm91Z2ggdGhlIE1QVUkga2V5cGFkIGludGVyZmFjZSAodGhlIGtleW1hcApJIHVzZWQgaXMg
+bm90IHRoZSBvbmUgZnJvbSB0aGUgcmVhbCBkZXZpY2UsIGl0IGNvbnRhaW5zIGFsbCB0aGUgUEMK
+a2V5cy4gWW91IGNhbiBjaGFuZ2UgdGhhdCBlYXNpbHkuKQoKIC0gdGhlIE9NQVAgRE1BIGNvbnRy
+b2xsZXIgd2l0aCA5IGdlbmVyYWwgY2hhbm5lbHMgYW5kIG9uZSBkZWRpY2F0ZWQKY2hhbm5lbCBm
+b3IgdGhlIExDRCAtLSBzZWVtcyB0byBiZSB3b3JraW5nIGJ1dCBhcyB5b3UgY2FuIGltYWdpbmUs
+Cml0J3MgZGlmZmljdWx0IHRvIGVtdWxhdGUuCgogLSB0aGUgT01BUCBMQ0QgY29udHJvbGxlciB3
+aXRoIHRoZSBRRU1VIGRpc3BsYXkgY29ubmVjdGVkIHRvIGl0IGFzCnRoZSBhY3R1YWwgTENEIC0t
+IG9ubHkgdGVzdGVkIHdpdGggOCBiaXQgY29sb3VyLCB0aGUgcGVuZ3VpbiBsb29rcwpmaW5lLgoK
+IC0gYW4gU0QgY2FyZCBlbXVsYXRvciBhY2NvcmRpbmcgdG8gdGhlIFNEIHNwZWNpZmljYXRpb24g
+KGZvciB0aG9zZQp3aG8gZG9uJ3Qga25vdywgU0QgY2FyZHMgaGF2ZSBhIHdob2xlIGxpdHRsZSAi
+Y29tcHV0ZXIiIHdvcmtpbmcgaW4KZWFjaCBvZiB0aGVtLikgSW1wbGVtZW50cyBzb21lIHNlY3Vy
+aXR5IGZlYXR1cmVzIHRvby4KCiAtIHRoZSBPTUFQIE1NQy9TRCBob3N0IGNvbnRyb2xsZXIgbWFr
+aW5nIHVzZSBvZiB0aGUgU0QgY2FyZCBlbXVsYXRvci4KQWxzbyBlbXVsYXRlcyB0aGUgY2FyZCBl
+amVjdCBldmVudCBhbmQgaW5zZXJ0aW9uIG9mIG5ldyBjYXJkcywgYW5kIGNhbgpiZSBhY2Nlc3Nl
+ZCB1c2luZyBlaXRoZXIgRE1BIG9yIHRoZSByZWdpc3RlcnMuIFVuZm9ydHVuYXRlbHkgdGhlcmUn
+cwpzdGlsbCBzb21ldGhpbmcgd3Jvbmcgd2l0aCBpdCAtLSBsaW51eCBwYW5pY3MgYWZ0ZXIgYSBm
+ZXcgcmVxdWVzdHMKKGJ1dCBhbHdheXMgcmVhZHMgdGhlIHBhcnRpdGlvbiB0YWJsZSBmaW5lKSwg
+c3RyYW5nZSB0aGluZyBpcyB0aGF0IGl0CnBhbmljcyBpbiB0aGUgZ2VuZXJpYyBibG9jayBkcml2
+ZXIgd2hlbiBpdCdzIHRyeWluZyB0byBhbGxvY2F0ZSBtZW1vcnkKZm9yIGEgbmV3IGJsb2NrIG9m
+IGRhdGEgZnJvbSB0aGUgY2FyZCwgbm90IGFueXdoZXJlIGluIE1NQyBvciBPTUFQCmRyaXZlcnMu
+CgogLSB0aGUgbWljcm93aXJlIHBvcnRzIChvbmx5IHRlc3RlZCB3aXRoIHJlZ2lzdGVycyBhY2Nl
+c3MsIG5vIGRtYS4pCgogLSBhIChwYXJ0IG9mIHRoZSkgVFNDMjMwMSBjaGlwc2V0IGNvbm5lY3Rl
+ZCB0byB0aGUgTVBVIHVzaW5nIHRoZQptaWNyb3dpcmUgcG9ydC4gQ3VycmVudGx5IG9ubHkgaGFz
+IHNvbWUgb2YgdGhlIGludGVybmFsIGxvZ2ljIHBsdXMgdGhlCnRvdWNoc2NyZWVuIGNvbnRyb2xs
+ZXIgd2l0aCB0aGUgUUVNVSBtb3VzZSBpbnB1dCBjb25uZWN0ZWQgYXMgdGhlCmFjdHVhbCB0b3Vj
+aHNjcmVlbi4gVFNDMjMwMSBjYW4gYWxzbyBjb250cm9sIGF1ZGlvIGlucHV0cyBhbmQgb3V0cHV0
+cywKYSBrZXlwYWQgKHVudXNlZCBpbiBQYWxtIFR1bmdzdGVuIEUgYXMgdGhlIGtleXBhZCBpcyBj
+b25uZWN0ZWQgdG8gdGhlCk1QVUkgaW50ZXJmYWNlKSwgdGVtcGVyYXR1cmUgKGFsc28gdW51c2Vk
+KSBhbmQgYmF0dGVyeSBzdGF0ZSBtb25pdG9ycwotLSBhbmQgdGhlc2UgYXJlIG5vdCBpbXBsZW1l
+bnRlZC4KCiAtIHRoZSBPTUFQIFJUQyB3aXRoIGFsYXJtIGFuZCBzdHVmZi4gVGhyb3VnaCBpdCB0
+aGUgVk0gY2FuIGFjY2VzcyB0aGUKaG9zdCdzIGNsb2NrLgoKVGhlIHBhdGNoIGlzIGF0IGh0dHA6
+Ly93d3cuemFib3Iub3JnL2JhbHJvZy9xZW11LW9tYXAucGF0Y2ggKDE2MCBrQikuClRoZSBjb21t
+YW5kIGxpbmUgSSB1c2UgdG8gbGF1bmNoIFFFTVUgaXM6CiAgICQgcWVtdS1zeXN0ZW0tYXJtIC1N
+IG9tYXAzMTAgLWtlcm5lbCAuL3pJbWFnZQpZb3UgY2FuIGFkZCAiLWZkYSAuL2NhcmRpbWFnZSIu
+Ck5vdGUgaG93ZXZlciB0aGF0IEkgaW1wbGVtZW50ZWQgbW9zdCBwYXJ0cyBhY2NvcmRpbmcgdG8g
+dGhlCmRvY3VtZW50YXRpb24gZnJvbSB0aS5jb20gKG1vc3RseSBPTUFQIDU5MTAgZG9jcykgYW5k
+IG5vdCBhY2NvcmRpbmcgdG8Kd2hhdCBMaW51eCBuZWVkZWQgdG8gd29yay4gVGhlcmVmb3JlLCB3
+aGVyZSBsaW51eCBkcml2ZXJzIGFjY2Vzc2VkCm5vbi1leGlzdGVudCAob3IgdW5kb2N1bWVudGVk
+KSByZWdpc3RlcnMsIG9yIHBlcmZvcm1lZCB3cml0ZXMgdG8KcmVhZC1vbmx5IHJlZ2lzdGVycywg
+b3Igd3JvdGUgdmFsdWVzIHByb2hpYml0ZWQgYnkgdGhlIGRvY3MsIEkKbW9kaWZpZWQgdGhlIGtl
+cm5lbCBhbmQgbm90IHRoZSBlbXVsYXRvciAoYW5kIHRoZXJlIHdhcyBhIG51bWJlciBvZgpzdWNo
+IHBsYWNlcykuIFNvIFFFTVUgaXMgbGlrZWx5IHRvIGV4aXQgd2l0aCBzb21ldGhpbmcgbGlrZSAi
+ZmF0YWwKZXJyb3I6IGJhZCByZWdpc3RlciBhY2Nlc3MgYXQgLi4uIiB3aGVuIHlvdSB0cnkgYm9v
+dGluZyBMaW51eC4gSW4gdGhhdApjYXNlIGl0IGNhbiBiZToKIC0gTGludXggZHJpdmVycyBhY2Nl
+c3Npbmcgbm9uLWV4aXN0ZW50IHJlZ2lzdGVycywgb3IKIC0gTGludXggYWNjZXNzaW5nIGEgcGVy
+aXBoZXJhbCB0aGF0IFFFTVUgZG9lc24ndCBlbXVsYXRlIHlldCAoZS5nLiBVU0IpLgpJZiB0aGF0
+IGhhcHBlbnMgeW91IGNhbiBlaXRoZXIgZml4IHRoZSBrZXJuZWwgb3IgYWRkIGR1bW15IHJlZ2lz
+dGVycwppbiBRRU1VIG9yIG1ha2UgUUVNVSBpZ25vcmUgYmFkIHJlZ2lzdGVyIGFjY2Vzc2VzIHdo
+YXRzb2V2ZXIgKHRoYXQncwp3aGF0IHRoZSByZWFsIGRldmljZSBkb2VzKS4gSW4gdGhlIGxhdHRl
+ciBjYXNlLCByZWNvbXBpbGUga2VybmVsCndpdGhvdXQgc3VwcG9ydCBmb3IgdGhlIGdpdmVuIHBl
+cmlwaGVyYWwgZGV2aWNlLgpJIGtub3cgdGhhdCAzMTAgaXMgcHJhY3RpY2FsbHkgdGhlIHNpbXBs
+ZXN0IG9mIE9NQVAgYm9hcmRzIGJlY2F1c2UgaXQKZG9lc24ndCBoYXZlIGEgRFNQIGNvcmUgYW5k
+IGxhY2tzIGEgY291cGxlIG9mIG90aGVyIHRoaW5ncy4gQWxtb3N0IGFsbApvZiB0aGUgY29kZSBj
+YW4gYmUgcmV1c2VkIGZvciBPTUFQIDE1MTAgb3IgNTkxMC81OTEyIGVtdWxhdGlvbiB0aG91Z2gu
+CkVtdWFsdGluZyBvdGhlciBib2FyZHMgd291bGQgcmVxdWlyZSBtb3JlIGNoYW5nZXMuClRoZSBw
+YXRjaCBpcyBhZ2FpbnN0IFFFTVUgMC44LjAgcmVsZWFzZS4gSSBoYXZlIG9ubHkgdGVzdGVkIGl0
+IG9uIGEKTGludXgvUEMgYXMgaG9zdCAtLSBJJ20gcHJldHR5IHN1cmUgaXQgd29uJ3Qgd29yayBv
+biBsaXR0bGUtZW5kaWFuCm1hY2hpbmVzIChldmVuIHRob3VnaCBRRU1VIGluIGdlbmVyYWwgZG9l
+cyB3b3JrIG9uIFBQQyBhbmQgb3RoZXIKYXJjaHMpLiBJdCBjb250YWlucyBhIGJvb3Rsb2FkZXIg
+Y29kZSBmb3IgTGludXgvQVJNIGNvcGllZCBmcm9tIHRoZQpJbnRlZ3JhdG9yQ1AgYm9hcmQgZW11
+bGF0b3IgYnkgUGF1bCBCcm9vay4gSXQgYWxzbyBjb250YWlucyBwaWVjZXMgb2YKY29kZSBmcm9t
+IEFudGhvbnkgTGlndW9yaSdzIHBhdGNoIGZvciBXQUNPTSB0YWJsZXQgZW11bGF0aW9uLCB0aGF0
+CmVuYWJsZXMgUUVNVSByZXBvcnRpbmcgYWJzb2x1dGUgY29vcmRpbmF0ZXMgKGZvciB0aGUgVFND
+MjMwMQp0b3VjaHNjcmVlbikuCgpUaGUgcHVycG9zZSBvZiB0aGlzIGVtdWxhdG9yIHdhcyB0byBo
+ZWxwIG1lIGZpeCBhIGJ1ZyBpbiB0aGUga2VybmVsCnRoYXQgY2F1c2VzIGxpbnV4IHVzZXJzcGFj
+ZSB0byBiZSBleHRyZW1lbHkgdW5zdGFibGUgLS0gdW5mb3J0dW50YWx5Cml0IHR1cm5lZCBvdXQg
+dGhhdCB0aGUgYnVnIGlzIG5vdCByZXByb2R1Y2VkIGluIHRoZSBlbXVsYXRvciwKZXZlcnl0aGlu
+ZyB3b3JrcyBwZXJmZWN0bHkgZmluZSBpbiBpdC4gVGhlIGJ1ZyB3YXMgYWxyZWFkeSBtZW50aW9u
+ZWQKb24gdGhpcyBsaXN0IGJ5IFgtU3RyYW5nZXIKKGh0dHA6Ly9saW51eC5vbWFwLmNvbS9waXBl
+cm1haWwvbGludXgtb21hcC1vcGVuLXNvdXJjZS8yMDA2LUZlYnJ1YXJ5LzAwNjM5OS5odG1sKS4K
+T24gdGhlIHJlYWwgZGV2aWNlIChQYWxtIFR1bmdzdGVuIEUpIGtlcm5lbCBhbHdheXMgYm9vdHMg
+ZmluZSBidXQgYXMKc29vbiBhcyB1c2Vyc3BhY2Uga2lja3MgaW4sIHByb2dyYW1zIHdpbGwgaGFu
+Zywgc2VnZmF1bHQgb3IgZmFpbAphc3NlcnRpb25zIChpbiBjYXNlIG9mIGdsaWIgYmFzZWQgcHJv
+Z3JhbXMpIHRvIHRoZSBwb2ludCBvZiBiZWluZwp1bnVzYWJsZS4gQSBnaXZlbiBwcm9ncmFtIGJp
+bmFyeSB3aXRoIGEgZ2l2ZW4ga2VybmVsIGJpbmFyeSBhbHdheXMKZmFpbHMgdGhlIHNhbWUgd2F5
+IGFuZCBpbiB0aGUgc2FtZSBtb21lbnQgb2YgZXhlY3V0aW9uLiBIb3dldmVyLAphZGRpbmcgb3Ig
+cmVtb3ZpbmcgYSBzaW5nbGUgaW5zdHJ1Y3Rpb24gaW4gZWl0aGVyIHRoZSBrZXJuZWwgb3IgdGhl
+CnByb2dyYW0sIGNoYW5nZXMgdGhlIGtpbmQgb2YgZXJyb3IgYW5kIHRoZSBwbGFjZSB3aGVyZSBp
+dCBoYXBwZW5zCihzb21ldGltZXMgZml4ZXMgdGhlIHByb2JsZW0gb3IgYnJlYWtzIG5ldyB0aGlu
+Z3MpIC0tIG5vdCBkZXBlbmRpbmcgb24KdGhlIGFjdHVhbCBpbnN0cnVjdGlvbiB0aGF0IHdhcyBh
+ZGRlZCwgbW9yZSBvbiB0aGUgc2l6ZSBvZiBpdCBhbmQgaXRzCnBsYWNlbWVudCBpbiB0aGUgY29k
+ZS4KUmVtb3ZpbmcgdGhlIGFjY2Vzc2VzIG9mIG5vbi1leGlzdGVudCByZWdpc3RlcnMgZnJvbSB0
+aGUga2VybmVsIGRpZG4ndApoZWxwIGFzIEkgaG9wZWQgaXQgd291bGQuIFNpbmNlIG93bmVycyBv
+ZiBPTUFQIDE1MTAgZGV2aWNlcyBkb24ndApyZXBvcnQgc3VjaCBwcm9ibGVtcyBhbmQgdGhlIGVt
+dWxhdG9yIChiYXNlZCBvbiA1OTEwIGRvY3MpIGRvZXNuJ3QKZXhoaWJpdCB0aGUgYnVnIGVpdGhl
+ciwgb3VyIGNvbmNsdXNpb24gaXMgdGhhdCB0aGUgZGlmZmVyZW5jZXMgYmV0d2VlbgpPTUFQIDMx
+MCBhbmQgb3RoZXIgYm9hcmRzIGFyZSBpbiB0aGUgcm9vdCBvZiB0aGUgYnVnLiBBbHRlcm5hdGl2
+ZWx5LAppdCBjb3VsZCBiZSBhIGJvb3Rsb2FkZXIgcHJvYmxlbSAod2UgdXNlIEdhcnV4IG9uIHRo
+ZSBQREEpLiBJZiBhbnlib2R5CmhhcyBhbiBpZGVhIGFib3V0IHdoYXQgbWlnaHQgYmUgd3Jvbmcs
+IHBsZWFzZSB0ZWxsLgoKUmVnYXJkcywKQW5kcnplaiBaYWJvcm93c2tpCi0tCmJhbHJvZyAyb282
+CgpEZWFyIE91dGxvb2sgdXNlcnM6IFBsZWFzZSByZW1vdmUgbWUgZnJvbSB5b3VyIGFkZHJlc3Mg
+Ym9va3MKaHR0cDovL3d3dy5uZXdzZm9yZ2UuY29tL2FydGljbGUucGw/c2lkPTAzLzA4LzIxLzE0
+MzI1OAo=
 
-Add disable attribute to support device locking mode, where a
-unintentional touch event shouldn't wake up the system.
-
-Add missing spin_lock_init.
-
-Do device resume with the lock held.
-
-Do cleanup calls / free memory in the reverse order of initialization.
-
-Signed-off-by: Imre Deak <imre.deak@nokia.com>
-
---=-uN4em+q1zsTEw1AeLLdQ
-Content-Disposition: attachment; filename=ads7846_omap_disable-patch.diff
-Content-Type: text/x-patch; name=ads7846_omap_disable-patch.diff; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
-index 6da8348..527ab2d 100644
---- a/drivers/input/touchscreen/ads7846.c
-+++ b/drivers/input/touchscreen/ads7846.c
-@@ -2,6 +2,7 @@
-  * ADS7846 based touchscreen and sensor driver
-  *
-  * Copyright (c) 2005 David Brownell
-+ * Copyright (c) 2006 Imre Deak <imre.deak@nokia.com>
-  *
-  * Using code from:
-  *  - corgi_ts.c
-@@ -33,17 +34,25 @@
- 
- 
- /*
-- * This code has been lightly tested on an ads7846.
-+ * This code has been tested on an ads7846 / N770 device.
-  * Support for ads7843 and ads7845 has only been stubbed in.
-  *
-- * Not yet done:  investigate the values reported.  Are x/y/pressure
-- * event values sane enough for X11?  How accurate are the temperature
-- * and voltage readings?  (System-specific calibration should support
-+ * Not yet done:  How accurate are the temperature and voltage
-+ * readings? (System-specific calibration should support
-  * accuracy of 0.3 degrees C; otherwise it's 2.0 degrees.)
-  *
-+ * IRQ handling needs a workaround because of a shortcoming in handling
-+ * edge triggered IRQs on some platforms like the OMAP1/2. These
-+ * platforms don't handle the ARM lazy IRQ disabling properly, thus we
-+ * have to maintain our own SW IRQ disabled status. This should be
-+ * removed as soon as the affected platform's IRQ handling is fixed.
-+ *
-  * app note sbaa036 talks in more detail about accurate sampling...
-  * that ought to help in situations like LCDs inducing noise (which
-  * can also be helped by using synch signals) and more generally.
-+ * This driver tries to utilize the measures described in the app
-+ * note. The strength of filtering can be set in the board-* specific
-+ * files.
-  */
- 
- #define	TS_POLL_PERIOD	msecs_to_jiffies(10)
-@@ -90,6 +99,7 @@ struct ads7846 {
- 	unsigned		pending:1;	/* P: lock */
- // FIXME remove "irq_disabled"
- 	unsigned		irq_disabled:1;	/* P: lock */
-+	unsigned		disabled:1;
- };
- 
- /* leave chip selected when we're done, for quicker re-select? */
-@@ -160,6 +170,9 @@ struct ser_req {
- 	struct spi_transfer	xfer[6];
- };
- 
-+static void ads7846_enable(struct ads7846 *ts);
-+static void ads7846_disable(struct ads7846 *ts);
-+
- static int ads7846_read12_ser(struct device *dev, unsigned command)
- {
- 	struct spi_device	*spi = to_spi_device(dev);
-@@ -256,6 +269,38 @@ static ssize_t ads7846_pen_down_show(str
- 
- static DEVICE_ATTR(pen_down, S_IRUGO, ads7846_pen_down_show, NULL);
- 
-+static ssize_t ads7846_disable_show(struct device *dev,
-+				     struct device_attribute *attr, char *buf)
-+{
-+	struct ads7846	*ts = dev_get_drvdata(dev);
-+
-+	return sprintf(buf, "%u\n", ts->disabled);
-+}
-+
-+static ssize_t ads7846_disable_store(struct device *dev,
-+				     struct device_attribute *attr,
-+				     const char *buf, size_t count)
-+{
-+	struct ads7846 *ts = dev_get_drvdata(dev);
-+	unsigned long flags;
-+	char *endp;
-+	int i;
-+
-+	i = simple_strtoul(buf, &endp, 10);
-+	spin_lock_irqsave(&ts->lock, flags);
-+
-+	if (i)
-+		ads7846_disable(ts);
-+	else
-+		ads7846_enable(ts);
-+
-+	spin_unlock_irqrestore(&ts->lock, flags);
-+
-+	return count;
-+}
-+
-+static DEVICE_ATTR(disable, 0664, ads7846_disable_show, ads7846_disable_store);
-+
- /*--------------------------------------------------------------------------*/
- 
- /*
-@@ -394,12 +439,9 @@ static irqreturn_t ads7846_irq(int irq, 
- {
- 	struct ads7846 *ts = handle;
- 	unsigned long flags;
--	int r = IRQ_HANDLED;
- 
- 	spin_lock_irqsave(&ts->lock, flags);
--	if (ts->irq_disabled)
--		r = IRQ_HANDLED;
--	else {
-+	if (likely(!ts->irq_disabled && !ts->disabled)) {
- 		if (!ts->irq_disabled) {
- 			ts->irq_disabled = 1;
- 			/* The following has at the moment no effect whatsoever
-@@ -413,20 +455,17 @@ static irqreturn_t ads7846_irq(int irq, 
- 		}
- 	}
- 	spin_unlock_irqrestore(&ts->lock, flags);
--	return r;
-+
-+	return IRQ_HANDLED;
- }
- 
- /*--------------------------------------------------------------------------*/
- 
--static int
--ads7846_suspend(struct spi_device *spi, pm_message_t message)
-+/* Must be called with ts->lock held */
-+static void ads7846_disable(struct ads7846 *ts)
- {
--	struct ads7846 *ts = dev_get_drvdata(&spi->dev);
--	unsigned long	flags;
--
--	spin_lock_irqsave(&ts->lock, flags);
--
--	spi->dev.power.power_state = message;
-+	if (ts->disabled)
-+		return;
- 
- 	/* are we waiting for IRQ, or polling? */
- 	if (!ts->pendown) {
-@@ -435,6 +474,8 @@ ads7846_suspend(struct spi_device *spi, 
- 			disable_irq(ts->spi->irq);
- 		}
- 	} else {
-+		unsigned long flags;
-+
- 		/* polling; force a final SPI completion;
- 		 * that will clean things up neatly
- 		 */
-@@ -452,17 +493,48 @@ ads7846_suspend(struct spi_device *spi, 
- 	 * leave it that way after every request
- 	 */
- 
-+	ts->disabled = 1;
-+}
-+
-+/* Must be called with ts->lock held */
-+static void ads7846_enable(struct ads7846 *ts)
-+{
-+	if (!ts->disabled)
-+		return;
-+
-+	ts->disabled = 0;
-+	ts->irq_disabled = 0;
-+	enable_irq(ts->spi->irq);
-+}
-+
-+static int ads7846_suspend(struct spi_device *spi, pm_message_t message)
-+{
-+	struct ads7846 *ts = dev_get_drvdata(&spi->dev);
-+	unsigned long	flags;
-+
-+	spin_lock_irqsave(&ts->lock, flags);
-+
-+	spi->dev.power.power_state = message;
-+	ads7846_disable(ts);
-+
- 	spin_unlock_irqrestore(&ts->lock, flags);
-+
- 	return 0;
-+
- }
- 
- static int ads7846_resume(struct spi_device *spi)
- {
- 	struct ads7846 *ts = dev_get_drvdata(&spi->dev);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ts->lock, flags);
- 
--	ts->irq_disabled = 0;
--	enable_irq(ts->spi->irq);
- 	spi->dev.power.power_state = PMSG_ON;
-+	ads7846_enable(ts);
-+
-+	spin_unlock_irqrestore(&ts->lock, flags);
-+
- 	return 0;
- }
- 
-@@ -515,6 +587,8 @@ static int __devinit ads7846_probe(struc
- 	ts->timer.data = (unsigned long) ts;
- 	ts->timer.function = ads7846_timer;
- 
-+	spin_lock_init(&ts->lock);
-+
- 	ts->model = pdata->model ? : 7846;
- 	ts->vref_delay_usecs = pdata->vref_delay_usecs ? : 100;
- 	ts->x_plate_ohms = pdata->x_plate_ohms ? : 400;
-@@ -665,13 +739,25 @@ static int __devinit ads7846_probe(struc
- 
- 	device_create_file(&spi->dev, &dev_attr_pen_down);
- 
-+	device_create_file(&spi->dev, &dev_attr_disable);
-+
- 	err = input_register_device(input_dev);
- 	if (err)
--		goto err_free_irq;
-+		goto err_remove_attr;
- 
- 	return 0;
- 
-- err_free_irq:
-+ err_remove_attr:
-+	device_remove_file(&spi->dev, &dev_attr_disable);
-+	device_remove_file(&spi->dev, &dev_attr_pen_down);
-+	if (ts->model == 7846) {
-+		device_remove_file(&spi->dev, &dev_attr_temp1);
-+		device_remove_file(&spi->dev, &dev_attr_temp0);
-+	}
-+	if (ts->model != 7845)
-+		device_remove_file(&spi->dev, &dev_attr_vbatt);
-+	device_remove_file(&spi->dev, &dev_attr_vaux);
-+
- 	free_irq(spi->irq, ts);
-  err_free_mem:
- 	input_free_device(input_dev);
-@@ -683,22 +769,24 @@ static int __devexit ads7846_remove(stru
- {
- 	struct ads7846		*ts = dev_get_drvdata(&spi->dev);
- 
-+	input_unregister_device(ts->input);
-+
- 	ads7846_suspend(spi, PMSG_SUSPEND);
--	free_irq(ts->spi->irq, ts);
--	if (ts->irq_disabled)
--		enable_irq(ts->spi->irq);
- 
-+	device_remove_file(&spi->dev, &dev_attr_disable);
- 	device_remove_file(&spi->dev, &dev_attr_pen_down);
--
- 	if (ts->model == 7846) {
--		device_remove_file(&spi->dev, &dev_attr_temp0);
- 		device_remove_file(&spi->dev, &dev_attr_temp1);
-+		device_remove_file(&spi->dev, &dev_attr_temp0);
- 	}
- 	if (ts->model != 7845)
- 		device_remove_file(&spi->dev, &dev_attr_vbatt);
- 	device_remove_file(&spi->dev, &dev_attr_vaux);
- 
--	input_unregister_device(ts->input);
-+	free_irq(ts->spi->irq, ts);
-+	if (ts->irq_disabled)
-+		enable_irq(ts->spi->irq);
-+
- 	kfree(ts);
- 
- 	dev_dbg(&spi->dev, "unregistered touchscreen\n");
-
---=-uN4em+q1zsTEw1AeLLdQ
+--===============1361173425==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---=-uN4em+q1zsTEw1AeLLdQ--
+--===============1361173425==--
