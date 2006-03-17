@@ -1,10 +1,9 @@
-From: May Lin <foxfromworld@yahoo.com.tw>
-Subject: [HELP!!]telnetd: bind: Address already in use
-Date: Fri, 17 Mar 2006 15:54:52 +0800 (CST)
-Message-ID: <20060317075452.43625.qmail@web17502.mail.tpe.yahoo.com>
+From: =?utf-8?B?5p2O546u?= <coffeeyu531@126.com>
+Subject: The kernel of osk5912 board  cannot start
+Date: Fri, 17 Mar 2006 16:25:28 +0800
+Message-ID: <002b01c6499c$5a286380$9c0aa8c0@liwei>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=big5
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============1662939081=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,11 +17,25 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-When I execute the telnetd on my board, the message
-"telnetd: bind: Address already in use
-" shows up...
-Can you tell me how to solve it?
 
-___________________________________________________  =B3=CC=B7s=AA=A9 Yah=
-oo!=A9_=BC=AF=A7Y=AE=C9=B3q=B0T 7.0=A1A=A7K=B6O=BA=F4=B8=F4=B9q=B8=DC=A5=F4=
-=A7A=A5=B4=A1I  http://messenger.yahoo.com.tw/
+This is a multi-part message in MIME format.
+
+--===============1662939081==
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+
+SSBoYXZlIG1hZGUgdGhlIGtlcm5lbCBvZiBvc2s1OTEyIGJvYXJkICxidXQgaXQgY2FuIG5vdCBz
+dGFydOOAgg0KSSBtYWRlIGl0IGFjY29yZGluZyB0byAiQnVpbGRpbmcgTGludXggZm9yIHRoZSBP
+TUFQNTkxMiBPU0vihKIgRGV2ZWxvcG1lbnQgUGxhdGZvcm0iLA0KcGxlYXNlIGhlbHAgbWUhVGhh
+bmtzIGEgbG90IQ0Kd2hvIGhhdmUgdGhlIGtlcm5lbCBvZiBvc2s1OTEyIGJvYXJkPyBjYW4geW91
+IGdpdmUgbWUgYSBjb3B5PyBUaGFua3Mh
+
+--===============1662939081==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============1662939081==--
