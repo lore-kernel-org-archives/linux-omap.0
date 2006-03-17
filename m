@@ -1,13 +1,14 @@
-From: "Ola Helm" <ola.hel@gmail.com>
+From: "prafulla chandra vejendla" <v.prafulla@gmail.com>
 Subject: Re: problem with root filesystem
-Date: Fri, 17 Mar 2006 11:21:54 +0200
-Message-ID: <3d3153f60603170121ob1c86cana0906006fc151503@mail.gmail.com>
+Date: Fri, 17 Mar 2006 15:32:44 +0530
+Message-ID: <26d3a31c0603170202q68170beo98e12da3ad721cb2@mail.gmail.com>
 References: <26d3a31c0603160656v26d05b0epc1b9c00286920cec@mail.gmail.com>
+	<3d3153f60603170121ob1c86cana0906006fc151503@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <26d3a31c0603160656v26d05b0epc1b9c00286920cec@mail.gmail.com>
+In-Reply-To: <3d3153f60603170121ob1c86cana0906006fc151503@mail.gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,22 +19,33 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: prafulla chandra vejendla <v.prafulla@gmail.com>
+To: Ola Helm <ola.hel@gmail.com>
 Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Helm,
+i am getting this error
+# mkdir adfadf
+mkdir : Cannot Create Directory 'adfadf' : Read-only file system
+--prafulla chandra
 
-What's the exact error code your system gives when you're trying to create
-the folder?
 
-Cheers,
 
-/O
-
-On 3/16/06, prafulla chandra vejendla <v.prafulla@gmail.com> wrote:
+On 3/17/06, Ola Helm <ola.hel@gmail.com> wrote:
 >
-> Matthew,
+> Hi,
+>
+> What's the exact error code your system gives when you're trying to creat=
+e
+> the folder?
+>
+> Cheers,
+>
+> /O
+>
+>  On 3/16/06, prafulla chandra vejendla < v.prafulla@gmail.com> wrote:
+>
+> > Matthew,
 >
 > I have the your steps. I have set rw in boot args and my bootargs also
 > looks
@@ -58,6 +70,7 @@ On 3/16/06, prafulla chandra vejendla <v.prafulla@gmail.com> wrote:
 >
 > > following website http://linux.omap.com/pub/filesystem/rootfsosk.tar.bz=
 2
+>
 >
 > There are a few possible causes of this, but the most likely is that
 >
@@ -85,4 +98,7 @@ On 3/16/06, prafulla chandra vejendla <v.prafulla@gmail.com> wrote:
 > Linux-omap-open-source mailing list
 > Linux-omap-open-source@linux.omap.com
 > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
+>
+>
 >
