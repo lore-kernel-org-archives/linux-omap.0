@@ -1,14 +1,14 @@
-From: "XiangyuGu" <guxy@dspchina.com>
-Subject: omap on WinCE
-Date: Fri, 17 Mar 2006 16:16:22 +0800
-Message-ID: <200603170817.k2H8H9YF002986@brazos.ext.ti.com>
-References: <304D2A85A9643F4A991BDDF8D297BBA6029A07FC@dlee05.ent.ti.com>
+From: "Andy" <andy.lu@serialsys.com.hk>
+Subject: RE: omap on WinCE
+Date: Fri, 17 Mar 2006 16:52:07 +0800
+Message-ID: <000c01c649a0$1f8235e0$3832a8c0@andy>
+References: <200603170817.k2H8H9YF002986@brazos.ext.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="gb2312"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <304D2A85A9643F4A991BDDF8D297BBA6029A07FC@dlee05.ent.ti.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <200603170817.k2H8H9YF002986@brazos.ext.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,10 +16,23 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: 'XiangyuGu' <guxy@dspchina.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
+
+You can get it form TI FAE.
+
+Best regards
+Andy Lu
+
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+XiangyuGu
+Sent: Friday, March 17, 2006 4:16 PM
+To: linux-omap-open-source@linux.omap.com
+Subject: omap on WinCE
 
 Hi, All,
 
@@ -87,3 +100,8 @@ Do You Yahoo!?
 Tired of spam?  Yahoo! Mail has the best spam protection around =
 http://mail.
 yahoo.com=20
+
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
