@@ -1,10 +1,10 @@
-From: "andrzej zaborowski" <balrog@zabor.org>
-Subject: OMAP emulation
-Date: Fri, 17 Mar 2006 18:33:50 +0100
-Message-ID: <fb249edb0603170933m391da937w@mail.gmail.com>
-Reply-To: balrogg@gmail.com
+From: Kevin Hilman <khilman@mvista.com>
+Subject: MMC lockup on 16xx/H2
+Date: Fri, 17 Mar 2006 11:55:41 -0800
+Message-ID: <441B143D.2020100@mvista.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1361173425=="
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,140 +15,63 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: OMAP <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============1361173425==
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+I"m seeing a soft lockup in the OMAP MMC driver on my 1623/H2 board.  I haven't 
+found it yet, but wondering if anyone else sees this.
 
-SGksCkkgc3RhcnRlZCBhZGRpbmcgYmFzaWMgZW11bGF0aW9uIGZvciBhIE9NQVAgMzEwIGJhc2Vk
-IHN5c3RlbSAodGhlIFBhbG0KVHVuZ3N0ZW4gRSBkZXZpY2UgaW4gcGFydGljdWxhcikgdG8gdGhl
-IFFFTVUgcHJvamVjdCAod3d3LnFlbXUub3JnKQp0YWtpbmcgYWR2YW50YWdlIG9mIGl0cyBhbHJl
-YWR5IGZ1bmN0aW9uYWwgZW11bGF0aW9uIG9mIHRoZSBBUk0KcHJvY2Vzc29yLiBOb3cgaXQncyBh
-bHJlYWR5IGF0IGEgcG9pbnQgd2hlcmUgaXQgbGV0cyBtZSBib290IHRoZSBzb21lCm9mIHNhbWUg
-T01BUCBrZXJuZWwgYnVpbGRzIG9uIG15IFBDIHVzaW5nIHRoZSBlbXVsYXRvciBhbmQgb24gdGhl
-IHJlYWwKZGV2aWNlIHVzaW5nIHRoZSBHYXJ1eCBib290bG9hZGVyIChnYXJ1eC5zb3VyY2Vmb3Jn
-ZS5uZXQpLiBJZiBhbnlvbmUKaXMgaW50ZXJlc3RlZCwgZmVlbCBmcmVlIHRvIHRyeSBpdCBvdXQg
-YWx0aG91Z2ggdGhlIGVtdWxhdG9yIGlzIHN0aWxsCm1pc3NpbmcgdmFyaW91cyBwYXJ0cy4gSSdt
-IGhvcGluZyB0aGF0IGl0IHdpbGwgaGVscCBtZSBkZWJ1Z2dpbmcgdGhlCmRyaXZlcnMgbGF0ZXIu
-IEFsc28sIFFFTVUgcnVucyBsaW51eCBhdCBhYm91dCBkb3VibGUgc3BlZWQgb2YgdGhlIHJlYWwK
-ZGV2aWNlIG9uIG15IGRlc2t0b3AgUEMgc28gaXQgbWlnaHQgc3BlZWQgdXAgdGVzdGluZy4KSGVy
-ZSBpcyB3aGF0IEkgaGF2ZSBnb3Qgd29ya2luZyBzbyBmYXIsIGFuZCB3aGF0IHRoZSBwYXRjaCBj
-b250YWluczoKCiAtIHdlbGwsIHRoZSBwcm9jZXNzb3I6IFFFTVUgZW11bGF0ZXMgYW4gQVJNIDEw
-MjYgYnV0IGl0IHR1cm5lZCBvdXQgdG8KYmUgc2ltaWxhciAgZW5vdWdoIHRvIHRoZSBUSSA5MjUu
-IEkgcmVhbGx5IG9ubHkgaGFkIHRvIGNoYW5nZSB0aGUKaWRlbnRpZmljYXRpb24gbnVtYmVycyBp
-dCByZXR1cm5zIHRvIHRob3NlIG9mIFRJIDkyNS4KCiAtIHNvbWUgb2YgdGhlIGJhc2ljICJNUFUg
-c3Vic3lzdGVtcyIsIHRoYXQgaXM6CiAtIHRoZSBJUlEgYW5kIEZJUSBnZW5lcmF0aW9uIGZyb20g
-Ym90aCBsZXZlbCAxIGFuZCAyIGJhbmtzIG9mCmludGVycnVwdHMgKHdpdGggdGhlIHJpZ2h0IHBl
-cmlwaGVyYWxzIGNvbm5lY3RlZCB0byB0aGUgcmlnaHQKaW50ZXJydXB0IGxpbmVzLikKIC0gdGlt
-ZXJzOiB0aGUgdGhyZWUgZ2VuZXJhbCBwdXJwb3NlIE1QVSB0aW1lcnMuCiAtIG1vc3Qgb2YgdGhl
-IGNvbmZpZ3VyYXRpb24gcmVnaXN0ZXJzIChhY3R1YWxseSBtYW55IG9mIHRoZW0gYXJlIG9ubHkK
-ZHVtbWllcyBiZWNhdXNlIHRoZSBlbXVsYXRvciBkb2Vzbid0IGNhcmUgYWJvdXQgdGhpbmdzIGxp
-a2Ugdm9sdGFnZXMsCmNsb2NraW5nIHNjaGVtZXMsIG9yIGFsbCB0aGUgZGlmZmVyZW50IHR5cGVz
-IG9mIGNhY2hpbmcuKQogLSB0aGUgc2hhcmVkIEdQSU8gbGluZXMgcGx1cyB0aGUgMTYgTVBVSU8g
-R1BJT3MgKHdpdGggdGhlIHJlc3Qgb2YgdGhlCnBlcmlwaGVyYWxzIGNvbm5lY3RlZCB0byB0aGUg
-cmlnaHQgZ3BpbyBwaW5zIGxpa2Ugb24gbXkgUGFsbS4pCiAtIGEga2V5Ym9hcmQgY29ubmVjdGVk
-IHRocm91Z2ggdGhlIE1QVUkga2V5cGFkIGludGVyZmFjZSAodGhlIGtleW1hcApJIHVzZWQgaXMg
-bm90IHRoZSBvbmUgZnJvbSB0aGUgcmVhbCBkZXZpY2UsIGl0IGNvbnRhaW5zIGFsbCB0aGUgUEMK
-a2V5cy4gWW91IGNhbiBjaGFuZ2UgdGhhdCBlYXNpbHkuKQoKIC0gdGhlIE9NQVAgRE1BIGNvbnRy
-b2xsZXIgd2l0aCA5IGdlbmVyYWwgY2hhbm5lbHMgYW5kIG9uZSBkZWRpY2F0ZWQKY2hhbm5lbCBm
-b3IgdGhlIExDRCAtLSBzZWVtcyB0byBiZSB3b3JraW5nIGJ1dCBhcyB5b3UgY2FuIGltYWdpbmUs
-Cml0J3MgZGlmZmljdWx0IHRvIGVtdWxhdGUuCgogLSB0aGUgT01BUCBMQ0QgY29udHJvbGxlciB3
-aXRoIHRoZSBRRU1VIGRpc3BsYXkgY29ubmVjdGVkIHRvIGl0IGFzCnRoZSBhY3R1YWwgTENEIC0t
-IG9ubHkgdGVzdGVkIHdpdGggOCBiaXQgY29sb3VyLCB0aGUgcGVuZ3VpbiBsb29rcwpmaW5lLgoK
-IC0gYW4gU0QgY2FyZCBlbXVsYXRvciBhY2NvcmRpbmcgdG8gdGhlIFNEIHNwZWNpZmljYXRpb24g
-KGZvciB0aG9zZQp3aG8gZG9uJ3Qga25vdywgU0QgY2FyZHMgaGF2ZSBhIHdob2xlIGxpdHRsZSAi
-Y29tcHV0ZXIiIHdvcmtpbmcgaW4KZWFjaCBvZiB0aGVtLikgSW1wbGVtZW50cyBzb21lIHNlY3Vy
-aXR5IGZlYXR1cmVzIHRvby4KCiAtIHRoZSBPTUFQIE1NQy9TRCBob3N0IGNvbnRyb2xsZXIgbWFr
-aW5nIHVzZSBvZiB0aGUgU0QgY2FyZCBlbXVsYXRvci4KQWxzbyBlbXVsYXRlcyB0aGUgY2FyZCBl
-amVjdCBldmVudCBhbmQgaW5zZXJ0aW9uIG9mIG5ldyBjYXJkcywgYW5kIGNhbgpiZSBhY2Nlc3Nl
-ZCB1c2luZyBlaXRoZXIgRE1BIG9yIHRoZSByZWdpc3RlcnMuIFVuZm9ydHVuYXRlbHkgdGhlcmUn
-cwpzdGlsbCBzb21ldGhpbmcgd3Jvbmcgd2l0aCBpdCAtLSBsaW51eCBwYW5pY3MgYWZ0ZXIgYSBm
-ZXcgcmVxdWVzdHMKKGJ1dCBhbHdheXMgcmVhZHMgdGhlIHBhcnRpdGlvbiB0YWJsZSBmaW5lKSwg
-c3RyYW5nZSB0aGluZyBpcyB0aGF0IGl0CnBhbmljcyBpbiB0aGUgZ2VuZXJpYyBibG9jayBkcml2
-ZXIgd2hlbiBpdCdzIHRyeWluZyB0byBhbGxvY2F0ZSBtZW1vcnkKZm9yIGEgbmV3IGJsb2NrIG9m
-IGRhdGEgZnJvbSB0aGUgY2FyZCwgbm90IGFueXdoZXJlIGluIE1NQyBvciBPTUFQCmRyaXZlcnMu
-CgogLSB0aGUgbWljcm93aXJlIHBvcnRzIChvbmx5IHRlc3RlZCB3aXRoIHJlZ2lzdGVycyBhY2Nl
-c3MsIG5vIGRtYS4pCgogLSBhIChwYXJ0IG9mIHRoZSkgVFNDMjMwMSBjaGlwc2V0IGNvbm5lY3Rl
-ZCB0byB0aGUgTVBVIHVzaW5nIHRoZQptaWNyb3dpcmUgcG9ydC4gQ3VycmVudGx5IG9ubHkgaGFz
-IHNvbWUgb2YgdGhlIGludGVybmFsIGxvZ2ljIHBsdXMgdGhlCnRvdWNoc2NyZWVuIGNvbnRyb2xs
-ZXIgd2l0aCB0aGUgUUVNVSBtb3VzZSBpbnB1dCBjb25uZWN0ZWQgYXMgdGhlCmFjdHVhbCB0b3Vj
-aHNjcmVlbi4gVFNDMjMwMSBjYW4gYWxzbyBjb250cm9sIGF1ZGlvIGlucHV0cyBhbmQgb3V0cHV0
-cywKYSBrZXlwYWQgKHVudXNlZCBpbiBQYWxtIFR1bmdzdGVuIEUgYXMgdGhlIGtleXBhZCBpcyBj
-b25uZWN0ZWQgdG8gdGhlCk1QVUkgaW50ZXJmYWNlKSwgdGVtcGVyYXR1cmUgKGFsc28gdW51c2Vk
-KSBhbmQgYmF0dGVyeSBzdGF0ZSBtb25pdG9ycwotLSBhbmQgdGhlc2UgYXJlIG5vdCBpbXBsZW1l
-bnRlZC4KCiAtIHRoZSBPTUFQIFJUQyB3aXRoIGFsYXJtIGFuZCBzdHVmZi4gVGhyb3VnaCBpdCB0
-aGUgVk0gY2FuIGFjY2VzcyB0aGUKaG9zdCdzIGNsb2NrLgoKVGhlIHBhdGNoIGlzIGF0IGh0dHA6
-Ly93d3cuemFib3Iub3JnL2JhbHJvZy9xZW11LW9tYXAucGF0Y2ggKDE2MCBrQikuClRoZSBjb21t
-YW5kIGxpbmUgSSB1c2UgdG8gbGF1bmNoIFFFTVUgaXM6CiAgICQgcWVtdS1zeXN0ZW0tYXJtIC1N
-IG9tYXAzMTAgLWtlcm5lbCAuL3pJbWFnZQpZb3UgY2FuIGFkZCAiLWZkYSAuL2NhcmRpbWFnZSIu
-Ck5vdGUgaG93ZXZlciB0aGF0IEkgaW1wbGVtZW50ZWQgbW9zdCBwYXJ0cyBhY2NvcmRpbmcgdG8g
-dGhlCmRvY3VtZW50YXRpb24gZnJvbSB0aS5jb20gKG1vc3RseSBPTUFQIDU5MTAgZG9jcykgYW5k
-IG5vdCBhY2NvcmRpbmcgdG8Kd2hhdCBMaW51eCBuZWVkZWQgdG8gd29yay4gVGhlcmVmb3JlLCB3
-aGVyZSBsaW51eCBkcml2ZXJzIGFjY2Vzc2VkCm5vbi1leGlzdGVudCAob3IgdW5kb2N1bWVudGVk
-KSByZWdpc3RlcnMsIG9yIHBlcmZvcm1lZCB3cml0ZXMgdG8KcmVhZC1vbmx5IHJlZ2lzdGVycywg
-b3Igd3JvdGUgdmFsdWVzIHByb2hpYml0ZWQgYnkgdGhlIGRvY3MsIEkKbW9kaWZpZWQgdGhlIGtl
-cm5lbCBhbmQgbm90IHRoZSBlbXVsYXRvciAoYW5kIHRoZXJlIHdhcyBhIG51bWJlciBvZgpzdWNo
-IHBsYWNlcykuIFNvIFFFTVUgaXMgbGlrZWx5IHRvIGV4aXQgd2l0aCBzb21ldGhpbmcgbGlrZSAi
-ZmF0YWwKZXJyb3I6IGJhZCByZWdpc3RlciBhY2Nlc3MgYXQgLi4uIiB3aGVuIHlvdSB0cnkgYm9v
-dGluZyBMaW51eC4gSW4gdGhhdApjYXNlIGl0IGNhbiBiZToKIC0gTGludXggZHJpdmVycyBhY2Nl
-c3Npbmcgbm9uLWV4aXN0ZW50IHJlZ2lzdGVycywgb3IKIC0gTGludXggYWNjZXNzaW5nIGEgcGVy
-aXBoZXJhbCB0aGF0IFFFTVUgZG9lc24ndCBlbXVsYXRlIHlldCAoZS5nLiBVU0IpLgpJZiB0aGF0
-IGhhcHBlbnMgeW91IGNhbiBlaXRoZXIgZml4IHRoZSBrZXJuZWwgb3IgYWRkIGR1bW15IHJlZ2lz
-dGVycwppbiBRRU1VIG9yIG1ha2UgUUVNVSBpZ25vcmUgYmFkIHJlZ2lzdGVyIGFjY2Vzc2VzIHdo
-YXRzb2V2ZXIgKHRoYXQncwp3aGF0IHRoZSByZWFsIGRldmljZSBkb2VzKS4gSW4gdGhlIGxhdHRl
-ciBjYXNlLCByZWNvbXBpbGUga2VybmVsCndpdGhvdXQgc3VwcG9ydCBmb3IgdGhlIGdpdmVuIHBl
-cmlwaGVyYWwgZGV2aWNlLgpJIGtub3cgdGhhdCAzMTAgaXMgcHJhY3RpY2FsbHkgdGhlIHNpbXBs
-ZXN0IG9mIE9NQVAgYm9hcmRzIGJlY2F1c2UgaXQKZG9lc24ndCBoYXZlIGEgRFNQIGNvcmUgYW5k
-IGxhY2tzIGEgY291cGxlIG9mIG90aGVyIHRoaW5ncy4gQWxtb3N0IGFsbApvZiB0aGUgY29kZSBj
-YW4gYmUgcmV1c2VkIGZvciBPTUFQIDE1MTAgb3IgNTkxMC81OTEyIGVtdWxhdGlvbiB0aG91Z2gu
-CkVtdWFsdGluZyBvdGhlciBib2FyZHMgd291bGQgcmVxdWlyZSBtb3JlIGNoYW5nZXMuClRoZSBw
-YXRjaCBpcyBhZ2FpbnN0IFFFTVUgMC44LjAgcmVsZWFzZS4gSSBoYXZlIG9ubHkgdGVzdGVkIGl0
-IG9uIGEKTGludXgvUEMgYXMgaG9zdCAtLSBJJ20gcHJldHR5IHN1cmUgaXQgd29uJ3Qgd29yayBv
-biBsaXR0bGUtZW5kaWFuCm1hY2hpbmVzIChldmVuIHRob3VnaCBRRU1VIGluIGdlbmVyYWwgZG9l
-cyB3b3JrIG9uIFBQQyBhbmQgb3RoZXIKYXJjaHMpLiBJdCBjb250YWlucyBhIGJvb3Rsb2FkZXIg
-Y29kZSBmb3IgTGludXgvQVJNIGNvcGllZCBmcm9tIHRoZQpJbnRlZ3JhdG9yQ1AgYm9hcmQgZW11
-bGF0b3IgYnkgUGF1bCBCcm9vay4gSXQgYWxzbyBjb250YWlucyBwaWVjZXMgb2YKY29kZSBmcm9t
-IEFudGhvbnkgTGlndW9yaSdzIHBhdGNoIGZvciBXQUNPTSB0YWJsZXQgZW11bGF0aW9uLCB0aGF0
-CmVuYWJsZXMgUUVNVSByZXBvcnRpbmcgYWJzb2x1dGUgY29vcmRpbmF0ZXMgKGZvciB0aGUgVFND
-MjMwMQp0b3VjaHNjcmVlbikuCgpUaGUgcHVycG9zZSBvZiB0aGlzIGVtdWxhdG9yIHdhcyB0byBo
-ZWxwIG1lIGZpeCBhIGJ1ZyBpbiB0aGUga2VybmVsCnRoYXQgY2F1c2VzIGxpbnV4IHVzZXJzcGFj
-ZSB0byBiZSBleHRyZW1lbHkgdW5zdGFibGUgLS0gdW5mb3J0dW50YWx5Cml0IHR1cm5lZCBvdXQg
-dGhhdCB0aGUgYnVnIGlzIG5vdCByZXByb2R1Y2VkIGluIHRoZSBlbXVsYXRvciwKZXZlcnl0aGlu
-ZyB3b3JrcyBwZXJmZWN0bHkgZmluZSBpbiBpdC4gVGhlIGJ1ZyB3YXMgYWxyZWFkeSBtZW50aW9u
-ZWQKb24gdGhpcyBsaXN0IGJ5IFgtU3RyYW5nZXIKKGh0dHA6Ly9saW51eC5vbWFwLmNvbS9waXBl
-cm1haWwvbGludXgtb21hcC1vcGVuLXNvdXJjZS8yMDA2LUZlYnJ1YXJ5LzAwNjM5OS5odG1sKS4K
-T24gdGhlIHJlYWwgZGV2aWNlIChQYWxtIFR1bmdzdGVuIEUpIGtlcm5lbCBhbHdheXMgYm9vdHMg
-ZmluZSBidXQgYXMKc29vbiBhcyB1c2Vyc3BhY2Uga2lja3MgaW4sIHByb2dyYW1zIHdpbGwgaGFu
-Zywgc2VnZmF1bHQgb3IgZmFpbAphc3NlcnRpb25zIChpbiBjYXNlIG9mIGdsaWIgYmFzZWQgcHJv
-Z3JhbXMpIHRvIHRoZSBwb2ludCBvZiBiZWluZwp1bnVzYWJsZS4gQSBnaXZlbiBwcm9ncmFtIGJp
-bmFyeSB3aXRoIGEgZ2l2ZW4ga2VybmVsIGJpbmFyeSBhbHdheXMKZmFpbHMgdGhlIHNhbWUgd2F5
-IGFuZCBpbiB0aGUgc2FtZSBtb21lbnQgb2YgZXhlY3V0aW9uLiBIb3dldmVyLAphZGRpbmcgb3Ig
-cmVtb3ZpbmcgYSBzaW5nbGUgaW5zdHJ1Y3Rpb24gaW4gZWl0aGVyIHRoZSBrZXJuZWwgb3IgdGhl
-CnByb2dyYW0sIGNoYW5nZXMgdGhlIGtpbmQgb2YgZXJyb3IgYW5kIHRoZSBwbGFjZSB3aGVyZSBp
-dCBoYXBwZW5zCihzb21ldGltZXMgZml4ZXMgdGhlIHByb2JsZW0gb3IgYnJlYWtzIG5ldyB0aGlu
-Z3MpIC0tIG5vdCBkZXBlbmRpbmcgb24KdGhlIGFjdHVhbCBpbnN0cnVjdGlvbiB0aGF0IHdhcyBh
-ZGRlZCwgbW9yZSBvbiB0aGUgc2l6ZSBvZiBpdCBhbmQgaXRzCnBsYWNlbWVudCBpbiB0aGUgY29k
-ZS4KUmVtb3ZpbmcgdGhlIGFjY2Vzc2VzIG9mIG5vbi1leGlzdGVudCByZWdpc3RlcnMgZnJvbSB0
-aGUga2VybmVsIGRpZG4ndApoZWxwIGFzIEkgaG9wZWQgaXQgd291bGQuIFNpbmNlIG93bmVycyBv
-ZiBPTUFQIDE1MTAgZGV2aWNlcyBkb24ndApyZXBvcnQgc3VjaCBwcm9ibGVtcyBhbmQgdGhlIGVt
-dWxhdG9yIChiYXNlZCBvbiA1OTEwIGRvY3MpIGRvZXNuJ3QKZXhoaWJpdCB0aGUgYnVnIGVpdGhl
-ciwgb3VyIGNvbmNsdXNpb24gaXMgdGhhdCB0aGUgZGlmZmVyZW5jZXMgYmV0d2VlbgpPTUFQIDMx
-MCBhbmQgb3RoZXIgYm9hcmRzIGFyZSBpbiB0aGUgcm9vdCBvZiB0aGUgYnVnLiBBbHRlcm5hdGl2
-ZWx5LAppdCBjb3VsZCBiZSBhIGJvb3Rsb2FkZXIgcHJvYmxlbSAod2UgdXNlIEdhcnV4IG9uIHRo
-ZSBQREEpLiBJZiBhbnlib2R5CmhhcyBhbiBpZGVhIGFib3V0IHdoYXQgbWlnaHQgYmUgd3Jvbmcs
-IHBsZWFzZSB0ZWxsLgoKUmVnYXJkcywKQW5kcnplaiBaYWJvcm93c2tpCi0tCmJhbHJvZyAyb282
-CgpEZWFyIE91dGxvb2sgdXNlcnM6IFBsZWFzZSByZW1vdmUgbWUgZnJvbSB5b3VyIGFkZHJlc3Mg
-Ym9va3MKaHR0cDovL3d3dy5uZXdzZm9yZ2UuY29tL2FydGljbGUucGw/c2lkPTAzLzA4LzIxLzE0
-MzI1OAo=
+I'm using the default omap_h2_1610_defconfig plus enabling MMC, MMC_BLOCK and 
+MMC_OMAP (built-in.)  The kernel boots fine without these enabled.
 
---===============1361173425==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+The soft-lockup catches the problem:
 
+[ ... ]
+usb0: Ethernet Gadget, version: May Day 2005
+usb0: using omap_udc, OUT ep2out-bulk IN ep1in-bulk STATUS ep3in-int
+usb0: MAC e2:f3:92:66:c0:5a
+usb0: HOST MAC 66:f8:01:66:fb:8d
+usb0: RNDIS ready
+otg: b_idle, SWITCH to gadget, ctrl 098021
+isp1301_omap 0-002d: ready for dual-role USB ...
+mice: PS/2 mouse device common for all mice
+NET: Registered protocol family 2
+BUG: soft lockup detected on CPU#0!
 
---===============1361173425==--
+Pid: 4, comm:             events/0
+CPU: 0
+PC is at mmc_omap_set_ios+0x130/0x154
+LR is at schedule_timeout+0x94/0xbc
+pc : [<c0181a58>]    lr : [<c01eb0fc>]    Not tainted
+sp : c0325e38  ip : c0325ddc  fp : c0325e58
+r10: c0354e00  r9 : 00000000  r8 : 00061a80
+r7 : c0354eac  r6 : 00000879  r5 : c0354f20  r4 : 02dc6c00
+r3 : 00000000  r2 : fefb7800  r1 : c0325dc0  r0 : 00000000
+Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  Segment kernel
+Control: 5317F  Table: 10004000  DAC: 00000017
+[<c00278f0>] (show_regs+0x0/0x4c) from [<c005d3f8>] (softlockup_tick+0x64/0x7c)
+  r4 = C0325DF0
+[<c005d394>] (softlockup_tick+0x0/0x7c) from [<c0049a70>] 
+(do_timer+0x404/0x480) r4 = C028475C
+[<c004966c>] (do_timer+0x0/0x480) from [<c002aac4>] (timer_tick+0xb4/0xe4)
+[<c002aa10>] (timer_tick+0x0/0xe4) from [<c0030ad4>] 
+(omap_mpu_timer_interrupt+) r6 = 00000000  r5 = 00000000  r4 = C0283710
+[<c0030a88>] (omap_mpu_timer_interrupt+0x0/0x6c) from [<c00269b0>] 
+(__do_irq+0x) r4 = C0232FE8
+[<c0026964>] (__do_irq+0x0/0x8c) from [<c0026bf8>] (do_level_IRQ+0x68/0xc0)
+  r8 = C0325DF0  r7 = C0354EAC  r6 = C0325DF0  r5 = 0000001E
+  r4 = C0278BD8
+[<c0026b90>] (do_level_IRQ+0x0/0xc0) from [<c0026ca4>] (asm_do_IRQ+0x54/0x140)
+  r6 = FFFFFFFF  r5 = FEFECB00  r4 = C0324000
+[<c0026c50>] (asm_do_IRQ+0x0/0x140) from [<c0025964>] (__irq_svc+0x24/0x80)
+[<c0181928>] (mmc_omap_set_ios+0x0/0x154) from [<c017e690>] 
+(mmc_rescan+0x90/0x) r8 = C0325E68  r7 = 00000000  r6 = C0354EAC  r5 = 00000002
+  r4 = 00000001
+[<c017e600>] (mmc_rescan+0x0/0xbc8) from [<c00503a8>] 
+(run_workqueue+0xb4/0x108)[<c00502f4>] (run_workqueue+0x0/0x108) from 
+[<c0050518>] (worker_thread+0x11c/0) r7 = C0325F88  r6 = C0325F8C  r5 = 
+C02FB6E8  r4 = C02FB6F0
+[<c00503fc>] (worker_thread+0x0/0x170) from [<c0053c90>] (kthread+0xe8/0x11c)
+  r8 = 00000001  r7 = C00503FC  r6 = C030BF24  r5 = C0324000
+  r4 = C02FB6E0
+[<c0053ba8>] (kthread+0x0/0x11c) from [<c004276c>] (do_exit+0x0/0x7e8)
