@@ -1,11 +1,11 @@
 From: "naga rajan" <nagubk82@gmail.com>
-Subject: Problem with DSP/BIOS LINK for kernel 2.6.8
-Date: Sat, 18 Mar 2006 10:15:09 +0530
-Message-ID: <7e6cc7550603172045j2557ce64s3ac4464cb2513e18@mail.gmail.com>
+Subject: Difference between DSP/BIOS LINK and DSP Gateway
+Date: Sat, 18 Mar 2006 10:17:43 +0530
+Message-ID: <7e6cc7550603172047s34bb1649k6b2f574fdeffae6e@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -14,22 +14,22 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Dear Sir,
+Dear sir,
 
 
 
-                        I build the DSP/BIOS link with kernel 2.6.8 by
-setting the compiler path and kernel path corresponding to 2.6.8 kernel and
-toolchain.While executing "./load4rta",the following message is displayed
-"Not configured for old kernel".I think that "load4rta" utility has been
-built with montavista 2.4.20 kernel. I want to change the "load4rta" to
-2.6.8 kernel but cant able to find the version number, have u overcome this
-problem.
+                        Currently we are working with OSK5912 in
+2.6.8kernel. We are using Linux DSP Tools for DSP
+applications.We would like to know the difference between the DSP/BIOS Link
+provided by " Texas Instruments " and DSP-Gateway provided by
+SourceForge.net
+
+
 
 
 
