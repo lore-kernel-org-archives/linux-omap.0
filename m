@@ -1,14 +1,13 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 0/5] [RFC] MMC handle mutiple slots by external
-	transceiver
-Date: Mon, 20 Mar 2006 06:43:25 -0800
-Message-ID: <20060320144324.GC4980@atomide.com>
-References: <20060308102705.c8713048.Hiroshi.DOYU@nokia.com>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: Re: omap24xxcam status (Was: v4l2 camera test app)
+Date: Mon, 20 Mar 2006 06:58:55 -0800 (PST)
+Message-ID: <20060320145855.10464.qmail@web32908.mail.mud.yahoo.com>
+References: <3d3153f60603200519t2173ce20l52d184b0a6a39ff@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20060308102705.c8713048.Hiroshi.DOYU@nokia.com>
+In-Reply-To: <3d3153f60603200519t2173ce20l52d184b0a6a39ff@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,37 +17,46 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Ola Helm <ola.hel@gmail.com>, Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [060308 00:31]:
-> Hello,
-> 
-> This patch series is intended basically to make MMC handle multiple bus(slots)
-> when it uses an external transceiver. And this also can handle multiple
-> SD cards at the same time. Basic idea is to deal with each slot independently
-> during card detection phase until RCA number is assigned to each card, 
-> because an external transceiver can deal each slot separately(independently).
-> After RCA number is assigned(after card detection), we can access a specified
-> card which we want to use by choosing RCA number.
-> 
-> Currently most of things is being handled by "drivers/mmc/omap.c" in order
-> to keep current MMC common framework in "drivers/mmc/mmc.c" as it is. But 
-> I think that there might be an another alternative implementation to change
-> MMC common framework itself to handle multiple bus with an external 
-> transceiver. So I would like to get some comments/feedbacks about this issue.
-> 
-> This patch series include 5 patches and 
-> the main one is:
-> 
-> 	[patch 2/5] MMC MULTIPLE SLOT SUPPORT BASE
-> 
-> The others are small bugfixes and supplement ones.
+--- Ola Helm <ola.hel@gmail.com> wrote:
 
-Let's push these and once we have the Carlos' version of the MMC driver
-integrated into the mainline kernel we start merging in the omap tree.
-We probably will want to keep the existing MMC driver around for a
-little while until everything is merged.
+> Hi,
+> 
+> Have you got some idea what's the situation of the 24xx camera driver
+> at the
+> moment? AFAIK the patch David sent in last month is not included to
+> tree,
+> propably since there were some opposite opinions about the way of
+> implementation and at least I did not have one file mentioned in
+> patch (I
+> think you mentioned about the same issue)
 
-Tony
+24xx camera driver is now in David's hand. I just review the code now,
+as not able to work on camera stuff anymore.
+ 
+Following strategy can work out meanwhile as I had offline discussion
+with David :)
+
+o Separate 24xx CamDMA code from omap24xxcam.c to new file as 
+  exported apis (Suggested by David)
+
+o Keep the old omap24xxcam driver interface(2.6.8 TI kernel days), 
+  having video out code part of the camera driver itself. As new 
+  separated video out code depends upon the common display controller  
+  library, which requires to change fb driver in git tree to adopt 
+  that interface, so that video out, and fb driver can 
+  utilize the same code. But video out patches submitted by me didn't 
+  generated any discussion on the list in that direction. 
+
+o So, to have 24xx camera code in git tree, we can use the old camera 
+  driver interface as of now, if everyone agrees.
+
+---Komal Shah
+http://komalshah.blogspot.com/
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
