@@ -1,14 +1,12 @@
-From: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>
-Subject: Re: [RFC] snapshot boot on omap osk 5912
-Date: Mon, 20 Mar 2006 15:45:02 +0900 (JST)
-Message-ID: <20060320.154502.74754326.kaminaga@sm.sony.co.jp>
-References: <20060308.214946.48536311.kaminaga@sm.sony.co.jp>
-	<20060320.113406.78713993.kaminaga@sm.sony.co.jp>
+From: "Li Weichen" <iaadoa@gmail.com>
+Subject: Modify the usb power budget in OSK?
+Date: Mon, 20 Mar 2006 16:50:24 +0800
+Message-ID: <441e6cd5.3aec302a.4058.ffff9d44@mx.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060320.113406.78713993.kaminaga@sm.sony.co.jp>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,22 +19,19 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi all,
 
-> > What I did in step 2) in bootloader is
-> > 2-1) modified timer to 192MHz for ARM, and enabled mpu, xor, tim clock.
-> > 2-2) enabled MMU
-> > (for other device, I hoped resume sequence in kernel would handle...)
-> 
-> I answer myself, Mask Interrupt Register was not setup right, and
-> it blocked all interrupts. After I unmasked MIR, it got further.
-> 
-> But next problem was that network is not up.
+I am trying to plug a D-Link DWL-G122 802.11g wlan usb stick on to OSK.  But
+I always get the "over power budget" warning, should I modify the power
+budget set in drivers/usb/host/ohci-omap.c?  Has anyone ever succeeded to
+utilize a similar usb stick?
 
-I answer myself again :)
-It was because gpio1 irqenable register was not properly set.
+And, I have tried to use a extra wire to get power supply from a PC usb
+port, the errors were still.
+
+I am so eagerly looking forward to your help, thank you in advance.
+
+Best regards!
 
 
-(Hiroki Kaminaga)
-t
---
+Li Weichen
