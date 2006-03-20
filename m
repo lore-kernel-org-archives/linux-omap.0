@@ -1,12 +1,14 @@
-From: "naga rajan" <nagubk82@gmail.com>
-Subject: Linux DSP Tools or CCS-IDE?
-Date: Mon, 20 Mar 2006 11:39:14 +0530
-Message-ID: <7e6cc7550603192209w3a95d774u8713f76357d2e32d@mail.gmail.com>
+From: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>
+Subject: Re: [RFC] snapshot boot on omap osk 5912
+Date: Mon, 20 Mar 2006 15:45:02 +0900 (JST)
+Message-ID: <20060320.154502.74754326.kaminaga@sm.sony.co.jp>
+References: <20060308.214946.48536311.kaminaga@sm.sony.co.jp>
+	<20060320.113406.78713993.kaminaga@sm.sony.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20060320.113406.78713993.kaminaga@sm.sony.co.jp>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,20 +16,27 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+Hi,
 
-        Currently i am working with OMAP5912 starter kit. In the DSP
-application development, there are two options provided one with Linux DSP
-Tools and another with CCS-IDE with emulator. Is there any feature-wise
-difference between these two tools?. How many of you have preferred CCS-IDE
-instead of Linux DSP Tools? Which one is better for the application
-development?. Please help me in this regard.
+> > What I did in step 2) in bootloader is
+> > 2-1) modified timer to 192MHz for ARM, and enabled mpu, xor, tim clock.
+> > 2-2) enabled MMU
+> > (for other device, I hoped resume sequence in kernel would handle...)
+> 
+> I answer myself, Mask Interrupt Register was not setup right, and
+> it blocked all interrupts. After I unmasked MIR, it got further.
+> 
+> But next problem was that network is not up.
 
-Thanks in advance,
-B.Nagarajan,
-SANDS INSTRUMENTATION.
+I answer myself again :)
+It was because gpio1 irqenable register was not properly set.
+
+
+(Hiroki Kaminaga)
+t
+--
