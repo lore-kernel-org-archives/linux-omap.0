@@ -1,7 +1,7 @@
-From: "Zhang, Jian" <jzhang@ti.com>
-Subject: RE: omap24xxcam status (Was: v4l2 camera test app)
-Date: Mon, 20 Mar 2006 10:27:04 -0600
-Message-ID: <304D2A85A9643F4A991BDDF8D297BBA602A10CB5@dlee05.ent.ti.com>
+From: "Minjie Lin" <MLin@EmpowerTechnologies.com>
+Subject: RE: Problem with DSP/BIOS LINK for kernel 2.6.8
+Date: Mon, 20 Mar 2006 10:32:23 -0700
+Message-ID: <6632A2E3A760EA41B6A08F2A8B02C34C93B422@BBSC-EX01.bbsconnect.ca>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,83 +17,49 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Cohen <david.cohen@indt.org.br>, ext Komal Shah <komal_shah802003@yahoo.com>
-Cc: Linux-omap-open-source@linux.omap.com
+To: naga rajan <nagubk82@gmail.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-David,
-
-I don't see the new sensor interface incorporated in your patch. It is
-likely that Micron 2MP camera MT9D111 will be used by more people. The
-new sensor interface supports double-context which is an advanced
-feature of micron camera.
+Hi,
+Please Add compiling option -D__LINUX_ARM_ARCH__=3D5.
 
 Regards,
-Jian   =20
+=20
+Minjie
 
 -----Original Message-----
-From: David Cohen [mailto:david.cohen@indt.org.br]=20
-Sent: Monday, March 20, 2006 10:10 AM
-To: ext Komal Shah
-Cc: Ola Helm; Linux-omap-open-source@linux.omap.com; Zhang, Jian
-Subject: Re: omap24xxcam status (Was: v4l2 camera test app)
+From:
+linux-omap-open-source-bounces+mlin=3Dempowertechnologies.com@linux.omap.=
+c
+om
+[mailto:linux-omap-open-source-bounces+mlin=3Dempowertechnologies.com@lin=
+u
+x.omap.com] On Behalf Of naga rajan
+Sent: March 17, 2006 8:45 PM
+To: linux-omap-open-source@linux.omap.com
+Subject: Problem with DSP/BIOS LINK for kernel 2.6.8
 
-Hi,
+Dear Sir,
 
-I just sent a code that should be compilable and working. I guess the
-mainly target is to apply this patch to the public tree. After that, as
-Komal said, could be interesting to update the dma code to the omap api
-to be easier future reviews.
 
-Regards,
 
-David Cohen
+                        I build the DSP/BIOS link with kernel 2.6.8 by
+setting the compiler path and kernel path corresponding to 2.6.8 kernel
+and toolchain.While executing "./load4rta",the following message is
+displayed "Not configured for old kernel".I think that "load4rta"
+utility has been built with montavista 2.4.20 kernel. I want to change
+the "load4rta" to
+2.6.8 kernel but cant able to find the version number, have u overcome
+this problem.
 
-ext Komal Shah wrote:
 
->--- Ola Helm <ola.hel@gmail.com> wrote:
->
-> =20
->
->>Hi,
->>
->>Have you got some idea what's the situation of the 24xx camera driver
->>at the
->>moment? AFAIK the patch David sent in last month is not included to
->>tree,
->>propably since there were some opposite opinions about the way of
->>implementation and at least I did not have one file mentioned in
->>patch (I
->>think you mentioned about the same issue)
->>   =20
->>
->
->24xx camera driver is now in David's hand. I just review the code now,
->as not able to work on camera stuff anymore.
->=20
->Following strategy can work out meanwhile as I had offline discussion
->with David :)
->
->o Separate 24xx CamDMA code from omap24xxcam.c to new file as=20
->  exported apis (Suggested by David)
->
->o Keep the old omap24xxcam driver interface(2.6.8 TI kernel days),=20
->  having video out code part of the camera driver itself. As new=20
->  separated video out code depends upon the common display controller =20
->  library, which requires to change fb driver in git tree to adopt=20
->  that interface, so that video out, and fb driver can=20
->  utilize the same code. But video out patches submitted by me didn't=20
->  generated any discussion on the list in that direction.=20
->
->o So, to have 24xx camera code in git tree, we can use the old camera=20
->  driver interface as of now, if everyone agrees.
->
->---Komal Shah
->http://komalshah.blogspot.com/
->
->__________________________________________________
->Do You Yahoo!?
->Tired of spam?  Yahoo! Mail has the best spam protection around=20
->http://mail.yahoo.com=20
-> =20
->
+
+Thanks and regards,
+
+B.Nagarajan,
+
+SANDS INSTRUMENTATION.
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
