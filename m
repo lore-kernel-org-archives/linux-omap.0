@@ -1,13 +1,13 @@
-From: David Cohen <david.cohen@indt.org.br>
-Subject: Re: omap24xxcam status (Was: v4l2 camera test app)
-Date: Mon, 20 Mar 2006 13:36:12 -0400
-Message-ID: <441EE80C.6000503@indt.org.br>
-References: <304D2A85A9643F4A991BDDF8D297BBA602A10CB5@dlee05.ent.ti.com>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: Re: [PATCH] Re: v4l2 camera test app
+Date: Mon, 20 Mar 2006 12:16:36 -0800 (PST)
+Message-ID: <20060320201636.49261.qmail@web32908.mail.mud.yahoo.com>
+References: <441ECE1F.9000709@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <304D2A85A9643F4A991BDDF8D297BBA602A10CB5@dlee05.ent.ti.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <441ECE1F.9000709@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,105 +15,76 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "ext Zhang, Jian" <jzhang@ti.com>
-Cc: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: David Cohen <david.cohen@indt.org.br>, ext Ola Helm <ola.hel@gmail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Yes... good point. I will genereted another patch with support to this
-new interface.
-But it would be great if anyone could test this patch on H4.
+--- David Cohen <david.cohen@indt.org.br> wrote:
 
-Regards,
+> Hi,
+> 
+> I am sending a new version of the camera driver for omap2420. Unlike
+> the
+> last patch I sent, I am not using those functions from dispc and vout
+> that were not applied yet.
+> The sensor module should be configured to BT8. The configurations for
+> NOBT are in the code, but commented on omap24xxcam_sensor_cc_ctrl
+> function. It can be changed if necessary.
+> 
+> +
+> +#include "omap24xxcam.h"
+> +
+> +#define CAMERA_OV9640
+> +#ifdef CAMERA_OV9640
+> +#include "ov9640.h"
+> +#endif
 
-David Cohen
+You may not need to include this. 
 
-ext Zhang, Jian wrote:
 
->David,
->
->I don't see the new sensor interface incorporated in your patch. It is
->likely that Micron 2MP camera MT9D111 will be used by more people. The
->new sensor interface supports double-context which is an advanced
->feature of micron camera.
->
->Regards,
->Jian    
->
->-----Original Message-----
->From: David Cohen [mailto:david.cohen@indt.org.br] 
->Sent: Monday, March 20, 2006 10:10 AM
->To: ext Komal Shah
->Cc: Ola Helm; Linux-omap-open-source@linux.omap.com; Zhang, Jian
->Subject: Re: omap24xxcam status (Was: v4l2 camera test app)
->
->Hi,
->
->I just sent a code that should be compilable and working. I guess the
->mainly target is to apply this patch to the public tree. After that, as
->Komal said, could be interesting to update the dma code to the omap api
->to be easier future reviews.
->
->Regards,
->
->David Cohen
->
->ext Komal Shah wrote:
->
->  
->
->>--- Ola Helm <ola.hel@gmail.com> wrote:
->>
->> 
->>
->>    
->>
->>>Hi,
->>>
->>>Have you got some idea what's the situation of the 24xx camera driver
->>>at the
->>>moment? AFAIK the patch David sent in last month is not included to
->>>tree,
->>>propably since there were some opposite opinions about the way of
->>>implementation and at least I did not have one file mentioned in
->>>patch (I
->>>think you mentioned about the same issue)
->>>   
->>>
->>>      
->>>
->>24xx camera driver is now in David's hand. I just review the code now,
->>as not able to work on camera stuff anymore.
->>
->>Following strategy can work out meanwhile as I had offline discussion
->>with David :)
->>
->>o Separate 24xx CamDMA code from omap24xxcam.c to new file as 
->> exported apis (Suggested by David)
->>
->>o Keep the old omap24xxcam driver interface(2.6.8 TI kernel days), 
->> having video out code part of the camera driver itself. As new 
->> separated video out code depends upon the common display controller  
->> library, which requires to change fb driver in git tree to adopt 
->> that interface, so that video out, and fb driver can 
->> utilize the same code. But video out patches submitted by me didn't 
->> generated any discussion on the list in that direction. 
->>
->>o So, to have 24xx camera code in git tree, we can use the old camera 
->> driver interface as of now, if everyone agrees.
->>
->>---Komal Shah
->>http://komalshah.blogspot.com/
->>
->>__________________________________________________
->>Do You Yahoo!?
->>Tired of spam?  Yahoo! Mail has the best spam protection around 
->>http://mail.yahoo.com 
->> 
->>
->>    
->>
->
->  
->
+> +static void omap24xxcam_sensor_cc_ctrl(struct omap24xxcam_device
+> *cam)
+> +{
+> +	struct v4l2_pix_format *pix = &cam->pix;
+> +
+> +	DBG;
+> +
+> +	cam->cc_ctrl =		/*CC_CTRL_NOBT_SYNCHRO | CC_CTRL_NOBT_VS_POL */
+> +	    CC_CTRL_BT_CORRECT | CC_CTRL_PAR_MODE_BT8;
+
+As I believe this should come from sensor, I think Jian added this in
+the new sensor interface. 
+
+
+> +		if (!in_atomic()) {
+> +			set_current_state(TASK_INTERRUPTIBLE);
+> +			schedule_timeout(1);
+
+We can use the new api available which combines this two functions.
+
+> +		CAMDMA_CSDP_WRITE_MODE_POSTED 
+> +	      | CAMDMA_CSDP_DST_BURST_EN_64
+> +	      | CAMDMA_CSDP_DST_PACKED
+> +	      | CAMDMA_CSDP_SRC_BURST_EN_64
+
+Why changing from 16 to 64? vga? 
+
+> +
+> +	cam = kmalloc(sizeof(struct omap24xxcam_device), GFP_KERNEL);
+> +	if (!cam) {
+> +		printk(KERN_ERR CAM_NAME ": could not allocate memory\n");
+> +		goto init_error;
+> +	}
+> +	memset(cam, 0, sizeof(struct omap24xxcam_device));
+
+I like kzalloc.
+
+---Komal Shah
+http://komalshah.blogspot.com/
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
