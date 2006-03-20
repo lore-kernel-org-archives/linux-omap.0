@@ -1,13 +1,12 @@
-From: Matthew Percival <matthew@capgo.com>
-Subject: Re: Linux DSP Tools or CCS-IDE?
-Date: Tue, 21 Mar 2006 08:58:59 +1100
-Message-ID: <1142891939.8946.2.camel@localhost.localdomain>
-References: <7e6cc7550603192209w3a95d774u8713f76357d2e32d@mail.gmail.com>
+From: "Richard Copeman" <richard.copeman@lauterbach.co.uk>
+Subject: Problems with DSP gateway
+Date: Mon, 20 Mar 2006 11:51:10 -0000
+Message-ID: <009f01c64c14$953bf7f0$642aa8c0@BUFFY>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <7e6cc7550603192209w3a95d774u8713f76357d2e32d@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,25 +16,90 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-G'Day,
+Hi,
 
->         Currently i am working with OMAP5912 starter kit. In the DSP
-> application development, there are two options provided one with Linux DSP
-> Tools and another with CCS-IDE with emulator. Is there any feature-wise
-> difference between these two tools?. How many of you have preferred CCS-IDE
-> instead of Linux DSP Tools? Which one is better for the application
-> development?. Please help me in this regard.
+=20
 
-	They are effectively the same thing: CCS is a front end for the same
-tools that you get with the Linux DSP Tools.  It just comes down to what
-kind of environment you are more familiar with.  Linux users are
-traditionally more comfortable with IDE, so will tend to prefer CCS,
-whilst GNU/Linux users are typically more comfortable with using the
-shell, and as such will prefer to use the Linux DSP Tools in the way
-they normally code.  If you have no preference either way, CCS would
-probably be the easiest to learn with.
+I have just built 2.6.15 kernel with 2.6.15-omap1 patch. I included the =
+DSP
+gateway support in my "make xconfig" stage. I downloaded the utils and =
+apps
+from sourceforge for dspgateway 3.3 and built those successfully. I am =
+using
+Uboot 1.1.1 to setup my 5912 OSK board and then downloading the kernel =
+and a
+ramdisk via JTAG to target memory. Console is via serial port and =
+minicom to
+my host PC. My ramdisk is created with:
 
-	-- Matthew
+=20
+
+set -x
+
+SIZE=3D8192
+
+DEV=3D/dev/ram
+
+ROOTFS=3D/usr/src/5912/rootfs2.6
+
+/sbin/mkfs.ext2 $DEV $SIZE
+
+mount -t ext2 $DEV /mnt/ram
+
+cd $ROOTFS
+
+cp -av . /mnt/ram
+
+df /dev/ram
+
+umount /mnt/ram
+
+dd if=3D$DEV bs=3D1k count=3D$SIZE | gzip -9 > ramdisk.image.gz
+
+chmod 666 ramdisk.image.gz
+
+=20
+
+=20
+
+ I try to do: dspctl load ex_task.out but it tells me that:
+
+=20
+
+Warning: none of /sys/devicesplatform/dsp.0/ifver,
+/sys/devices/platform/dsp0..
+
+(DSP Gateway driver is too old or not loaded)
+
+open control device: No such file or directory.
+
+=20
+
+In /sys/devices/platform I have: i2c_omap.1, omap_mcbsp.1, omapflash.0,
+serial8250.0, omap-keyboard, omap_t2, power, smc91x, omap_cf, omapfb,
+serial8250 and uevent.
+
+=20
+
+In /dev I have: console, tty, tty0 and ttyS0
+
+=20
+
+lsmod shows no modules loaded.
+
+=20
+
+I'm sure I have missed a step along the way here but I can't find it. =
+Can
+someone point me in the right direction please?
+
+=20
+
+Thanks,
+
+=20
+
+Richard.
