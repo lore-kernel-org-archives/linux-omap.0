@@ -1,10 +1,13 @@
-From: =?gb2312?B?wO7n4g==?= <coffeeyu531@126.com>
-Subject: Help me! The2.6.8  kernel for osk5912 can not start
-Date: Mon, 20 Mar 2006 10:14:17 +0800
-Message-ID: <001801c64bc3$fda9fe00$9c0aa8c0@liwei>
+From: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>
+Subject: Re: [RFC] snapshot boot on omap osk 5912
+Date: Mon, 20 Mar 2006 11:34:06 +0900 (JST)
+Message-ID: <20060320.113406.78713993.kaminaga@sm.sony.co.jp>
+References: <20060308.214946.48536311.kaminaga@sm.sony.co.jp>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0496680265=="
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20060308.214946.48536311.kaminaga@sm.sony.co.jp>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,30 +20,37 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
-This is a multi-part message in MIME format.
+> Obiously, I missed some initialization staff.
+> What I did in step 2) in bootloader is
+> 2-1) modified timer to 192MHz for ARM, and enabled mpu, xor, tim
+>      clock.
+> 2-2) enabled MMU
+> (for other device, I hoped resume sequence in kernel would handle...)
 
---===============0496680265==
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+I answer myself, Mask Interrupt Register was not setup right, and
+it blocked all interrupts. After I unmasked MIR, it got further.
 
-RGVhciBhbGwsDQogIEkgaGF2ZSBtYWRlIHRoZSBrZXJuZWwgZm9yIG9zazU5MTIsdGhlIHZlcnNp
-b24gaXMgMi42LjgtcmMzLA0KT24gc3JhdHJpbmcga2VybmVsLGl0IHNob3dzIGFzIGZvbGxvd3M6
-DQpPTUFQNTkxMiBPU0sgIyBib290bSAweDEwMDAwMDAwDQojIyBCb290aW5nIGltYWdlIGF0IDEw
-MDAwMDAwIC4uLg0KICAgSW1hZ2UgTmFtZTogICBMaW51eCBLZXJuZWwgSW1hZ2UNCiAgIEltYWdl
-IFR5cGU6ICAgQVJNIExpbnV4IEtlcm5lbCBJbWFnZSAoZ3ppcCBjb21wcmVzc2VkKQ0KICAgRGF0
-YSBTaXplOiAgICA4NTQ5NDcgQnl0ZXMgPSA4MzQuOSBrQg0KICAgTG9hZCBBZGRyZXNzOiAxMGMw
-ODAwMA0KICAgRW50cnkgUG9pbnQ6ICAxMGMwODAwMA0KICAgVmVyaWZ5aW5nIENoZWNrc3VtIC4u
-LiBPSw0KICAgVW5jb21wcmVzc2luZyBLZXJuZWwgSW1hZ2UgLi4uIE9LDQoNClN0YXJ0aW5nIGtl
-cm5lbCAuLi4NCi4uLi4uLi4uLi4uDQoNCkkgZG9uJ3Qga25vdyB3aHkgaXQgY2FuIG5vdCBzdGFy
-dCxwbGVhc2UgaGVscCBtZSENClRoYW5rcyBhIGxvdCENCg==
+But next problem was that network is not up.
+I got:
 
---===============0496680265==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+NETDEV WATCHDOG: eth0: transmit timed out
+eth0: INT 0x9d MASK 0x3f MEM 0x0018 FIFO 0x0094
+NETDEV WATCHDOG: eth0: transmit timed out
+eth0: INT 0x9d MASK 0x3f MEM 0x0018 FIFO 0x0097
+end_request: I/O error, dev mtdblock3, sector 256
+NETDEV WATCHDOG: eth0: transmit timed out
+nfs: server 192.168.0.1 not responding, still trying
+nfs: server 192.168.0.1 not responding, still trying
+
+Can someone tell me the steps I have to take to enable network?
+
+# smc91 seems to be working, since kernel is obtained via tftp...
 
 
---===============0496680265==--
+Thanks in advance.
+
+(Hiroki Kaminaga)
+t
+--
