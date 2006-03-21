@@ -1,10 +1,12 @@
 From: Imre Deak <imre.deak@nokia.com>
-Subject: [PATCH] ads7846: pressure value limitation
-Date: Tue, 21 Mar 2006 20:56:12 +0200
-Message-ID: <1142967372.8050.45.camel@mammoth.research.nokia.com>
+Subject: Re: [PATCH] ads7846: pressure value limitationads
+Date: Tue, 21 Mar 2006 21:23:41 +0200
+Message-ID: <1142969021.8050.50.camel@mammoth.research.nokia.com>
+References: <1142967372.8050.45.camel@mammoth.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-Hu4FwBGdEhbE9/MTRUVQ"
+Content-Type: multipart/mixed; boundary="=-o6X+JVtZcuNt9/4Tkw98"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <1142967372.8050.45.camel@mammoth.research.nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,26 +21,30 @@ Cc: Paul.Mundt@nokia.com, Dmitry Torokhov <dtor_core@ameritech.net>, "Yrjola Juh
 List-Id: linux-omap@vger.kernel.org
 
 
---=-Hu4FwBGdEhbE9/MTRUVQ
+--=-o6X+JVtZcuNt9/4Tkw98
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-Limit the pressure value to the maximum specified in the board-*
-specific file. Samples with pressure values beyond the maximum are
-considered non-reliable. For these report the x,y values measured last.
+Resending the patch, by default there should be no limit on the pressure
+value.
 
-Signed-off-by: Imre Deak <imre.deak@nokia.com>
+On Tue, 2006-03-21 at 20:56 +0200, Imre Deak wrote:
+> Limit the pressure value to the maximum specified in the board-*
+> specific file. Samples with pressure values beyond the maximum are
+> considered non-reliable. For these report the x,y values measured last.
+> 
+> Signed-off-by: Imre Deak <imre.deak@nokia.com>
 
---=-Hu4FwBGdEhbE9/MTRUVQ
+--=-o6X+JVtZcuNt9/4Tkw98
 Content-Disposition: attachment; filename=ads7846-pressure_max-patch.diff
 Content-Type: text/x-patch; name=ads7846-pressure_max-patch.diff; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
-index 2b9a521..02f4cdc 100644
+index 2b9a521..447992e 100644
 --- a/drivers/input/touchscreen/ads7846.c
 +++ b/drivers/input/touchscreen/ads7846.c
-@@ -81,10 +83,14 @@ struct ads7846 {
+@@ -81,10 +81,14 @@ struct ads7846 {
  	u16			model;
  	u16			vref_delay_usecs;
  	u16			x_plate_ohms;
@@ -53,7 +59,7 @@ index 2b9a521..02f4cdc 100644
  
  	struct spi_transfer	xfer[10];
  	struct spi_message	msg[5];
-@@ -345,6 +351,18 @@ static void ads7846_rx(void *ads)
+@@ -345,6 +349,18 @@ static void ads7846_rx(void *ads)
  	} else
  		Rt = 0;
  
@@ -72,21 +78,20 @@ index 2b9a521..02f4cdc 100644
  	/* NOTE:  "pendown" is inferred from pressure; we don't rely on
  	 * being able to check nPENIRQ status, or "friendly" trigger modes
  	 * (both-edges is much better than just-falling or low-level).
-@@ -596,6 +615,7 @@ static int __devinit ads7846_probe(struc
+@@ -596,6 +612,7 @@ static int __devinit ads7846_probe(struc
  	ts->model = pdata->model ? : 7846;
  	ts->vref_delay_usecs = pdata->vref_delay_usecs ? : 100;
  	ts->x_plate_ohms = pdata->x_plate_ohms ? : 400;
-+	ts->pressure_max = pdata->pressure_max ? : 255;
++	ts->pressure_max = pdata->pressure_max ? : ~0;
  	ts->debounce_max = pdata->debounce_max ? : 1;
  	ts->debounce_tol = pdata->debounce_tol ? : 10;
  
 
-
---=-Hu4FwBGdEhbE9/MTRUVQ
+--=-o6X+JVtZcuNt9/4Tkw98
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---=-Hu4FwBGdEhbE9/MTRUVQ--
+--=-o6X+JVtZcuNt9/4Tkw98--
