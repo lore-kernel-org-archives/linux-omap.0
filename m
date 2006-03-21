@@ -1,12 +1,13 @@
-From: "naga rajan" <nagubk82@gmail.com>
-Subject: DSP/BIOS LINK problem
-Date: Tue, 21 Mar 2006 17:51:33 +0530
-Message-ID: <7e6cc7550603210421i6d43d1c9ycaf910d9be22895f@mail.gmail.com>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: Re: [PATCH] Re: omap24xxcam status (Was: v4l2 camera test app)
+Date: Tue, 21 Mar 2006 04:56:38 -0800 (PST)
+Message-ID: <20060321125638.26538.qmail@web32913.mail.mud.yahoo.com>
+References: <441F1CB6.3060901@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+In-Reply-To: <441F1CB6.3060901@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,103 +17,48 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: David Cohen <david.cohen@indt.org.br>, "ext Zhang, Jian" <jzhang@ti.com>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Minjie,
+--- David Cohen <david.cohen@indt.org.br> wrote:
 
-            I built the DSP/BIOS LINK using kernel 2.6.8 by using the same
-procedure mentioned in the Linux DSP Tools guide. I made few changes.
-Instead of using montavista toolchain i directed to arm toolchain in the
-makefile. I mounted and tested two filesystems.
+> Hi,
+> 
+> I am sending a new patch with support for the new sensor interface
+> (kernel 2.6.10 TI already did it). I have made also some updates
+> according to Komal comments. :)
+> 
 
-While mounting the montavista filesystem the following error occcured for
-./load4rta,
+Thanx. I have tested it with H4 now, after updating sensor_ov9640.c
+with common registers settings for h4 and changing to new sensor
+interface.
 
+I am able to capture and preview qvga and vga. But using my earlier
+test application vcam.c to preview, if I press ctrl-c to exit that
+preview while (1) loop, it gives following overlay callback csr error.
+Sorry, not spent much time to investigate the cause of this error.
 
-                                                Montavista filesystem using
-kernel2.6.8
+log: 
 
+# ./vcapture -d /dev/video0 -p
+device name is /dev/video0
+v4l2: init
+v4l2: device info:
+  omap24xxcam 0.0.0 / omap24xxcam @
+v4l2: new params (320x240, UYVY, 153600 byte)
 
+<Press Ctrl-C>
 
-MontaVista(R) Linux(R) Professional Edition 3.1, Preview Kit
-
-
-
-login[175]: root login  on `console'
-
-
-
-
-
-
-
-BusyBox v0.60.2 (2004.04.30-17:44+0000) Built-in shell (ash)
-
-Enter 'help' for a list of built-in commands.
-
-
-
-# ls
-
-add
-
-pid
-
-# cd /work/rta/
-
-# ls
-
-dsplinkk.o  load4rta    pmr_drv.o
-
-# ./load4rta
-
-Using dsplinkk.o
-
-insmod: Not configured to support old kernels
-
-Using pmr_drv.o
-
-insmod: Not configured to support old kernels
-
-#
+# 
+omap24xxcam: overlay_callback error. csr = 0x00000020
+omap24xxcam: overlay_callback error. csr = 0x00000020
 
 
+---Komal Shah
+http://komalshah.blogspot.com/
 
-While mounting the 2.6.8 filesystem
-
-
-
-                                    Rootfs2.6 filesystem using kernel2.6.8
-
-
-
-# cd rta/
-
-# ls
-
-dsplinkk.o   led.out      load4rta      pmr_drv.o
-
-hello.out    libcd_bl.so  loadandrun    rtaTrace
-
-# ./load4rta
-
-Using dsplinkk.o
-
-No module found in object
-
-insmod: cannot insert `dsplinkk.o': Invalid module format (-1): Exec format
-erro
-
-r
-
-Using pmr_drv.o
-
-No module found in object
-
-insmod: cannot insert `pmr_drv.o': Invalid module format (-1): Exec format
-error
-
-
-
- Have you faced this problem?
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
