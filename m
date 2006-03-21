@@ -1,13 +1,10 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: [PATCH] Re: omap24xxcam status (Was: v4l2 camera test app)
-Date: Tue, 21 Mar 2006 04:56:38 -0800 (PST)
-Message-ID: <20060321125638.26538.qmail@web32913.mail.mud.yahoo.com>
-References: <441F1CB6.3060901@indt.org.br>
+From: Imre Deak <imre.deak@nokia.com>
+Subject: [PATCH] ads7846: report 0 pressure value along with pen up event
+Date: Tue, 21 Mar 2006 14:57:45 +0200
+Message-ID: <1142945865.8050.7.camel@mammoth.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="=-TBIqeEJemE0l3h/3x51R"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <441F1CB6.3060901@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,48 +14,53 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Cohen <david.cohen@indt.org.br>, "ext Zhang, Jian" <jzhang@ti.com>
-Cc: Linux-omap-open-source@linux.omap.com
+To: omap-linux <linux-omap-open-source@linux.omap.com>
+Cc: "Mundt Paul (Nokia-M/Helsinki)" <Paul.Mundt@nokia.com>, Dmitry Torokhov <dtor_core@ameritech.net>, "Yrjola Juha (Nokia-M/Helsinki)" <Juha.Yrjola@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
---- David Cohen <david.cohen@indt.org.br> wrote:
 
-> Hi,
-> 
-> I am sending a new patch with support for the new sensor interface
-> (kernel 2.6.10 TI already did it). I have made also some updates
-> according to Komal comments. :)
-> 
+--=-TBIqeEJemE0l3h/3x51R
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Thanx. I have tested it with H4 now, after updating sensor_ov9640.c
-with common registers settings for h4 and changing to new sensor
-interface.
+X touchscreen drivers that don't interpret the designated pen up message
+assume a pen up event from a pressure value 0. For these we generate a
+pressure 0 message along with the pen up message.
 
-I am able to capture and preview qvga and vga. But using my earlier
-test application vcam.c to preview, if I press ctrl-c to exit that
-preview while (1) loop, it gives following overlay callback csr error.
-Sorry, not spent much time to investigate the cause of this error.
+Signed-off-by: Imre Deak <imre.deak@nokia.com>
 
-log: 
+--=-TBIqeEJemE0l3h/3x51R
+Content-Disposition: attachment; filename=ads7846_pen_up-patch.diff
+Content-Type: text/x-patch; name=ads7846_pen_up-patch.diff; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-# ./vcapture -d /dev/video0 -p
-device name is /dev/video0
-v4l2: init
-v4l2: device info:
-  omap24xxcam 0.0.0 / omap24xxcam @
-v4l2: new params (320x240, UYVY, 153600 byte)
+diff --git a/Makefile b/Makefile
+diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
+index 00003d1..2b9a521 100644
+--- a/drivers/input/touchscreen/ads7846.c
++++ b/drivers/input/touchscreen/ads7846.c
+@@ -366,11 +366,13 @@ static void ads7846_rx(void *ads)
+ 	if (Rt) {
+ 		input_report_abs(input_dev, ABS_X, x);
+ 		input_report_abs(input_dev, ABS_Y, y);
+-		input_report_abs(input_dev, ABS_PRESSURE, Rt);
+ 		sync = 1;
+ 	}
+-	if (sync)
++
++	if (sync) {
++		input_report_abs(input_dev, ABS_PRESSURE, Rt);
+ 		input_sync(input_dev);
++	}
+ 
+ #ifdef	VERBOSE
+ 	if (Rt || ts->pendown)
 
-<Press Ctrl-C>
+--=-TBIqeEJemE0l3h/3x51R
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-# 
-omap24xxcam: overlay_callback error. csr = 0x00000020
-omap24xxcam: overlay_callback error. csr = 0x00000020
 
-
----Komal Shah
-http://komalshah.blogspot.com/
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+--=-TBIqeEJemE0l3h/3x51R--
