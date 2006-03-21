@@ -1,11 +1,9 @@
-From: "Richard Copeman" <richard.copeman@lauterbach.co.uk>
-Subject: Problems with DSP gateway
-Date: Mon, 20 Mar 2006 11:51:10 -0000
-Message-ID: <009f01c64c14$953bf7f0$642aa8c0@BUFFY>
+From: kangjw@lenovo.com
+Subject: Help! Omap730 ext2 file system problem?
+Date: Tue, 21 Mar 2006 10:41:28 +0800
+Message-ID: <OFC36582A1.D7DA06EC-ON48257138.000EB4AD@LocalDomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============0692050431=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -19,87 +17,94 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+--===============0692050431==
+Content-type: text/plain; charset=gb2312
+Content-transfer-encoding: base64
 
-=20
+aGkuDQoNCkkgbWVldCBhIHN0cmFuZ2UgcHJvYmxlbS4gbXkgc3lzdGVtIHVzZXMgb21hcDczMCBh
+bmQgMzJNIEludGVsIE5vciBmbGFzaC4NCnRoZSByb290ZnMgaXMgZXh0MiBmaWxlIHN5c3RlbSBv
+biBmbGFzaCBNVEQsIHdoZW4gSSBvcGVuZWQgYSBmaWxlIHRvIHdyaXRlDQphbmQgc2F2ZSwNCmFs
+d2F5cyBzYXZlIGZsYXNoIGlzIGVycm9yLCB0aGUgbXRkYmxvY2sgZGVidWcgaW5mbyBpcyBiZWxv
+dzoNCg0KIm10ZGJsb2NrOiBlcmFzZSBvZiByZWdpb24gWzB4MCwgMHgyMDAwMF0gb24gInJvb3Rm
+cyIgZmFpbGVkDQplbmRfcmVxdWVzdDogSS9PIGVycm9yLCBkZXYgbXRkYmxvY2szLCBzZWN0b3Ig
+MjE3NCAiDQoNCmZyb20gYWJvdmUgZGV0YWlsIHRyYWNlLCB0aGUgZXJyb3Igb2YgcmV0dXJuIGlz
+IC1FUk9GUywNCnRoZSByZXR1cm4gaXMgZnJvbSAiZG9fZXJhc2Vfb25lYmxvY2siIGZ1bmN0aW9u
+IGluIGZpbGUNCiJjZmlfY21kc2V0XzAwMDEuYyIuDQoNClRoZSBwb2ludCBvZiByZXR1cm4gZnJv
+bSBoZXJlOg0KDQpzdGF0aWMgaW50IF9feGlwcmFtIGRvX2VyYXNlX29uZWJsb2NrKHN0cnVjdCBt
+YXBfaW5mbyAqbWFwLCBzdHJ1Y3QgZmxjaGlwDQoqY2hpcCwNCiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgdW5zaWduZWQgbG9uZyBhZHIsIGludCBsZW4sIHZvaWQgKnRodW5rKQ0Kew0KICAgICAg
+Li4uLi4NCiAgICAgLyogV2UndmUgYnJva2VuIHRoaXMgYmVmb3JlLiBJdCBkb2Vzbid0IGh1cnQg
+dG8gYmUgc2FmZSAqLw0KICAgICBtYXBfd3JpdGUobWFwLCBDTUQoMHg3MCksIGFkcik7DQogICAg
+IGNoaXAtPnN0YXRlID0gRkxfU1RBVFVTOw0KICAgICBzdGF0dXMgPSBtYXBfcmVhZChtYXAsIGFk
+cik7DQoNCiAgICAgLyogY2hlY2sgZm9yIGVycm9ycyAqLw0KICAgICBpZiAobWFwX3dvcmRfYml0
+c3NldChtYXAsIHN0YXR1cywgQ01EKDB4M2EpKSkgew0KICAgICAgICAgIHVuc2lnbmVkIGxvbmcg
+Y2hpcHN0YXR1cyA9IE1FUkdFU1RBVFVTKHN0YXR1cyk7DQoNCiAgICAgICAgICAvKiBSZXNldCB0
+aGUgZXJyb3IgYml0cyAqLw0KICAgICAgICAgIG1hcF93cml0ZShtYXAsIENNRCgweDUwKSwgYWRy
+KTsNCiAgICAgICAgICBtYXBfd3JpdGUobWFwLCBDTUQoMHg3MCksIGFkcik7DQogICAgICAgICAg
+eGlwX2VuYWJsZShtYXAsIGNoaXAsIGFkcik7DQoNCiAgICAgICAgICBpZiAoKGNoaXBzdGF0dXMg
+JiAweDMwKSA9PSAweDMwKSB7DQogICAgICAgICAgICAgICBwcmludGsoS0VSTl9FUlIgIiVzOiBi
+bG9jayBlcmFzZSBlcnJvcjogKGJhZCBjb21tYW5kDQpzZXF1ZW5jZSwgc3RhdHVzIDB4JWx4KVxu
+IiwgbWFwLT5uYW1lLCBjaGlwc3RhdHVzKTsNCiAgICAgICAgICAgICAgIHJldCA9IC1FSU5WQUw7
+DQogICAgICAgICAgfSBlbHNlIGlmIChjaGlwc3RhdHVzICYgMHgwMikgew0KICAgICAgICAgICAg
+ICAgLyogUHJvdGVjdGlvbiBiaXQgc2V0ICovDQogICAgICAgICAgICAgICByZXQgPSAtRVJPRlM7
+ICAgICAgICAgICAgICAgICAvLz09PT09PT09PT09PT09PT09cmV0dXJuDQplcnJvciBmcm9tIGhl
+cmUuDQogICAgICAgICAgfSBlbHNlIGlmIChjaGlwc3RhdHVzICYgMHg4KSB7DQogICAgICAgICAg
+ICAgICAvKiBWb2x0YWdlICovDQogICAgICAgICAgICAgICBwcmludGsoS0VSTl9FUlIgIiVzOiBi
+bG9jayBlcmFzZSBlcnJvcjogKGJhZCBWUFApXG4iLA0KbWFwLT5uYW1lKTsNCiAgICAgICAgICAg
+ICAgIHJldCA9IC1FSU87DQogICAgICAgICAgfSBlbHNlIGlmIChjaGlwc3RhdHVzICYgMHgyMCAm
+JiByZXRyaWVzLS0pIHsNCiAgICAgICAgICAgICAgIHByaW50ayhLRVJOX0RFQlVHICJibG9jayBl
+cmFzZSBmYWlsZWQgYXQgMHglMDhseDogc3RhdHVzDQoweCVseC4gUmV0cnlpbmcuLi5cbiIsIGFk
+ciwgY2hpcHN0YXR1cyk7DQogICAgICAgICAgICAgICB0aW1lbyA9IGppZmZpZXMgKyBIWjsNCiAg
+ICAgICAgICAgICAgIHB1dF9jaGlwKG1hcCwgY2hpcCwgYWRyKTsNCiAgICAgICAgICAgICAgIHNw
+aW5fdW5sb2NrKGNoaXAtPm11dGV4KTsNCiAgICAgICAgICAgICAgIGdvdG8gcmV0cnk7DQogICAg
+ICAgICAgfSBlbHNlIHsNCiAgICAgICAgICAgICAgIHByaW50ayhLRVJOX0VSUiAiJXM6IGJsb2Nr
+IGVyYXNlIGZhaWxlZCBhdCAweCUwOGx4IChzdGF0dXMNCjB4JWx4KVxuIiwgbWFwLT5uYW1lLCBh
+ZHIsIGNoaXBzdGF0dXMpOw0KICAgICAgICAgICAgICAgcmV0ID0gLUVJTzsNCiAgICAgICAgICB9
+DQp9DQoNCg0KQnV0IHRoZSByb290ZnMgaXMgd3JpdGVhYmxlIGluIG15IHN5c3RlbS4gdGhlIGZp
+bGUgcGFydCBsb2cgb2Ygc2V0dXAgaXMNCmJlbG93Og0KDQpvbWFwZmxhc2guMDogRm91bmQgMSB4
+MTYgZGV2aWNlcyBhdCAweDAgaW4gMTYtYml0IGJhbmsNCiBJbnRlbC9TaGFycCBFeHRlbmRlZCBR
+dWVyeSBUYWJsZSBhdCAweDAxMEENCiBJbnRlbC9TaGFycCBFeHRlbmRlZCBRdWVyeSBUYWJsZSBh
+dCAweDAxMEENCiBJbnRlbC9TaGFycCBFeHRlbmRlZCBRdWVyeSBUYWJsZSBhdCAweDAxMEENCiBJ
+bnRlbC9TaGFycCBFeHRlbmRlZCBRdWVyeSBUYWJsZSBhdCAweDAxMEENCiBJbnRlbC9TaGFycCBF
+eHRlbmRlZCBRdWVyeSBUYWJsZSBhdCAweDAxMEENCiBJbnRlbC9TaGFycCBFeHRlbmRlZCBRdWVy
+eSBUYWJsZSBhdCAweDAxMEENClVzaW5nIGJ1ZmZlciB3cml0ZSBtZXRob2QNCmNmaV9jbWRzZXRf
+MDAwMTogRXJhc2Ugc3VzcGVuZCBvbiB3cml0ZSBlbmFibGVkDQpDcmVhdGluZyA0IE1URCBwYXJ0
+aXRpb25zIG9uICJvbWFwZmxhc2guMCI6DQoweDAwMDAwMDAwLTB4MDAwMjAwMDAgOiAiYm9vdGxv
+YWRlciINCjB4MDAwMjAwMDAtMHgwMDA0MDAwMCA6ICJwYXJhbXMiDQoweDAwMDQwMDAwLTB4MDAy
+NDAwMDAgOiAia2VybmVsIg0KMHgwMDI0MDAwMC0weDAyMDAwMDAwIDogInJvb3RmcyINCg0KDQpI
+ZXJlIGlzIG15IG5vcl9wYXJ0aXRpb25zIHNldC50aGUgcm9vdCBwYXJ0aXRpb24gaXMgd3JpdGUg
+YWJsZS4NCg0Kc3RhdGljIHN0cnVjdCBtdGRfcGFydGl0aW9uIG5vcl9wYXJ0aXRpb25zW10gPSB7
+DQogICAgIC8qIGJvb3Rsb2FkZXIgKFUtQm9vdCwgZXRjKSBpbiBmaXJzdCBzZWN0b3IgKi8NCiAg
+ICAgew0KICAgICAgICAgICAubmFtZSAgICAgICAgID0gImJvb3Rsb2FkZXIiLA0KICAgICAgICAg
+ICAub2Zmc2V0ICAgICAgID0gMCwNCiAgICAgICAgICAgLnNpemUgICAgICAgICA9IFNaXzEyOEss
+DQogICAgICAgICAgIC5tYXNrX2ZsYWdzICAgPSBNVERfV1JJVEVBQkxFLCAvKiBmb3JjZSByZWFk
+LW9ubHkgKi8NCiAgICAgfSwNCiAgICAgLyogYm9vdGxvYWRlciBwYXJhbXMgaW4gdGhlIG5leHQg
+c2VjdG9yICovDQogICAgIHsNCiAgICAgICAgICAgLm5hbWUgICAgICAgICA9ICJwYXJhbXMiLA0K
+ICAgICAgICAgICAub2Zmc2V0ICAgICAgID0gTVREUEFSVF9PRlNfQVBQRU5ELA0KICAgICAgICAg
+ICAuc2l6ZSAgICAgICAgID0gU1pfMTI4SywNCiAgICAgICAgICAgLm1hc2tfZmxhZ3MgICA9IDAs
+DQogICAgIH0sDQogICAgIC8qIGtlcm5lbCAqLw0KICAgICB7DQogICAgICAgICAgIC5uYW1lICAg
+ICAgICAgPSAia2VybmVsIiwNCiAgICAgICAgICAgLm9mZnNldCAgICAgICA9IE1URFBBUlRfT0ZT
+X0FQUEVORCwNCiAgICAgICAgICAgLnNpemUgICAgICAgICA9IFNaXzJNLA0KICAgICAgICAgICAu
+bWFza19mbGFncyAgID0gMA0KICAgICB9LA0KICAgICAvKiByZXN0IG9mIGZsYXNoIGlzIGEgZmls
+ZSBzeXN0ZW0gKi8NCiAgICAgew0KICAgICAgICAgICAubmFtZSAgICAgICAgID0gInJvb3RmcyIs
+DQogICAgICAgICAgIC5vZmZzZXQgICAgICAgPSBNVERQQVJUX09GU19BUFBFTkQsDQogICAgICAg
+ICAgIC5zaXplICAgICAgICAgPSBNVERQQVJUX1NJWl9GVUxMLA0KICAgICAgICAgICAubWFza19m
+bGFncyAgID0gMA0KICAgICB9LA0KfTsNCg0KDQpQbGVhc2UgaGVscCBtZSBhbmQgZ2l2ZSBtZSBz
+b21lIGNvbW1lbnQhDQoNCkJlc3QgcmVnYXJkcy4NCg0KIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjDQogICBBbmR5IEthbmcNCiAgIExlbm92byBN
+b2JpbGUgTGltaXRlZCBSJkQgQ2VudGVyLFNoYW5naGFpIEJyYW5jaA0KICAgOUajrE5vLjY5NiBT
+b25ndGFvIFJkLixQdWRvbmcgSGlnaC1UZWNoLFNoYW5naGFpDQogICBUZWw6Kzg2LTIxLTUwNTA0
+NTAwLTg0MzcNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLQ0K
 
-I have just built 2.6.15 kernel with 2.6.15-omap1 patch. I included the =
-DSP
-gateway support in my "make xconfig" stage. I downloaded the utils and =
-apps
-from sourceforge for dspgateway 3.3 and built those successfully. I am =
-using
-Uboot 1.1.1 to setup my 5912 OSK board and then downloading the kernel =
-and a
-ramdisk via JTAG to target memory. Console is via serial port and =
-minicom to
-my host PC. My ramdisk is created with:
 
-=20
 
-set -x
 
-SIZE=3D8192
+--===============0692050431==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-DEV=3D/dev/ram
 
-ROOTFS=3D/usr/src/5912/rootfs2.6
-
-/sbin/mkfs.ext2 $DEV $SIZE
-
-mount -t ext2 $DEV /mnt/ram
-
-cd $ROOTFS
-
-cp -av . /mnt/ram
-
-df /dev/ram
-
-umount /mnt/ram
-
-dd if=3D$DEV bs=3D1k count=3D$SIZE | gzip -9 > ramdisk.image.gz
-
-chmod 666 ramdisk.image.gz
-
-=20
-
-=20
-
- I try to do: dspctl load ex_task.out but it tells me that:
-
-=20
-
-Warning: none of /sys/devicesplatform/dsp.0/ifver,
-/sys/devices/platform/dsp0..
-
-(DSP Gateway driver is too old or not loaded)
-
-open control device: No such file or directory.
-
-=20
-
-In /sys/devices/platform I have: i2c_omap.1, omap_mcbsp.1, omapflash.0,
-serial8250.0, omap-keyboard, omap_t2, power, smc91x, omap_cf, omapfb,
-serial8250 and uevent.
-
-=20
-
-In /dev I have: console, tty, tty0 and ttyS0
-
-=20
-
-lsmod shows no modules loaded.
-
-=20
-
-I'm sure I have missed a step along the way here but I can't find it. =
-Can
-someone point me in the right direction please?
-
-=20
-
-Thanks,
-
-=20
-
-Richard.
+--===============0692050431==--
