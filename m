@@ -1,13 +1,15 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: [PATCH] Re: omap24xxcam status (Was: v4l2 camera test app)
-Date: Tue, 21 Mar 2006 05:30:37 -0800 (PST)
-Message-ID: <20060321133037.5422.qmail@web32902.mail.mud.yahoo.com>
-References: <441FFE50.90501@indt.org.br>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC] snapshot boot on omap osk 5912
+Date: Tue, 21 Mar 2006 05:51:50 -0800
+Message-ID: <20060321135148.GB16337@atomide.com>
+References: <20060308.214946.48536311.kaminaga@sm.sony.co.jp>
+	<20060320152105.GE4980@atomide.com>
+	<20060321.124548.41636126.kaminaga@sm.sony.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <441FFE50.90501@indt.org.br>
+Content-Disposition: inline
+In-Reply-To: <20060321.124548.41636126.kaminaga@sm.sony.co.jp>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,26 +19,28 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Cohen <david.cohen@indt.org.br>
-Cc: Linux-omap-open-source@linux.omap.com
+To: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---- David Cohen <david.cohen@indt.org.br> wrote:
-
-> Hi,
+* Hiroki Kaminaga <kaminaga@sm.sony.co.jp> [060320 19:47]:
+> > > On target osk5912, software-suspend (suspend-to-disk) is now working,
+> > > and resume-from-disk takes about 10sec. This is on linux-2.6.11 + omap
+> > > patch + software-suspend arm porting.
+> > 
+> > Cool. Do you have a url for the software-suspend arm porting patch +
+> > your patches?
 > 
-> This kind of error probably has ocurred because a dma transferring
-> was
-> droped when you pressed ctrl+c. It will not affect anything, but it
-> is
-> good to avoid messages like that in future patches.
+> Yes,
+> 
+> I posted an arm portin patch at
+> http://lists.osdl.org/pipermail/linux-pm/2005-July/001077.html
+> The problem here turned out to be flash read/write timing error, and
+> above patch would work.
+> 
+> It's root=/dev/nfs, and suspend image to /dev/mtdblock3 (which is flash)
 
-Ok. I will submit the ov9640 changes patch soon.
+Thanks, so it's the same patch. But I think the mailing list ate your
+"above patch again"...
 
----Komal Shah
-http://komalshah.blogspot.com/
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+Tony
