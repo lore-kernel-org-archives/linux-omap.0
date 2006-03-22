@@ -1,11 +1,12 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: pending patches list
-Date: Wed, 22 Mar 2006 03:35:23 -0800 (PST)
-Message-ID: <20060322113523.59684.qmail@web32903.mail.mud.yahoo.com>
+From: "naga rajan" <nagubk82@gmail.com>
+Subject: patch for kernel 2.6.12
+Date: Wed, 22 Mar 2006 17:31:17 +0530
+Message-ID: <7e6cc7550603220401i7277db4co6ad1535e856a2191@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,50 +19,15 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Tony,
+ Hi all,
 
-Here is the list of pending patches.
+  I like to port linux kernel 2.6.12 in OMAP 5912 starter kit.I downloaded
+the associate patches from muru.com.I could not find any of the patches
+supporting *"OMAP5912 board"* in its *"SYSTEM TYPE"* ,kernel configuration
+option.I like to know the exact patch that supports OMAP5912 board or an
+equivalent solution(system configuration equivalent of OMAP5912).Please
+provide a solution
 
-[PATCH] ads7846: pressure value limitationads
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-March/006718.html
-
-[PATCH] OMAP2: ov9640 updates for H4
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-March/006713.html
-
-[PATCH] omap24xxcamera 
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-March/006701.html
-
-[PATCH] Fix tahvo-usb omap_otg_remove
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-March/006619.html
-
-[PATCH] Fix OV9640 sensor and add h4 sensor power functions 
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-March/006622.html
-
-[PATCH] Fix tlv320aic23.c
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-March/006624.html
-
-[PATCH] Documentation/arm/OMAP/README update 
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-March/006636.html
-
-[PATCH 0/6] CBUS: kmalloc->kzalloca and platform_driver usage
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-March/006646.html
-
-[PATCH] Fix menelaus  
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-March/006658.html
-
-[PATCH] Fix omap-rtc
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-March/006659.html
-
-[PATCH] Fix warnings in innovator_ps2
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-March/006660.html
-
-Please append alsa patches if it works with latest git tree with aplay
-and madplay. Thanx.
-
----Komal Shah
-http://komalshah.blogspot.com/
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+Thanks in advance,
+B.Nagarajan,
+SANDS.
