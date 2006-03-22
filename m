@@ -1,13 +1,13 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: [PATCH] omap24xx camera cleanup
-Date: Wed, 22 Mar 2006 08:55:57 -0800 (PST)
-Message-ID: <20060322165557.7683.qmail@web32912.mail.mud.yahoo.com>
-References: <20060322132144.30079.qmail@web32909.mail.mud.yahoo.com>
+From: Jonathan McDowell <noodles@earth.li>
+Subject: [PATCH] Add support for Amstrad Delta (E3) Videophone
+Date: Wed, 22 Mar 2006 11:39:03 +0000
+Message-ID: <20060322113903.GK5187@earth.li>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-1609740917-1143046557=:7665"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060322132144.30079.qmail@web32909.mail.mud.yahoo.com>
+Resent-Message-ID: <20060322174422.GL26949@earth.li>
+Resent-To: linux-omap-open-source@linux.omap.com
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,1437 +18,1138 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
+Cc: e3-hacking@earth.li
 List-Id: linux-omap@vger.kernel.org
 
---0-1609740917-1143046557=:7665
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Content-Id: 
-Content-Disposition: inline
+This patch adds support for the Amstrad Delta (E3) Videophone. This is
+an OMAP5910 based device, which you can find more details about at:
 
---- Komal Shah <komal_shah802003@yahoo.com> wrote:
+http://www.amstrad.com/products/emailers/e3.html
+http://www.earth.li/~noodles/hardware-e3.html
 
-> Patch should be applied on top of previous patches on 24xx camera
-> driver.
-> Tested on H4 and it is working.
-> 
-> ---
-> Move common vout functions to omap24xxlib.c (Taken from TI 2.6.10)
-> Convert sem to mutex apis.
-> 
-> Signed-off-by: Komal Shah <komal_shah802003@yahoo.com>
-> 
+Patch is against latest git://source.mvista.com/git/linux-omap-2.6 and
+adds the bare minimum of support for the device; I have a handful of
+other patches to sort out the NAND, LCD, keymap and USB but they all
+depend on this one.
 
-Please ignore the last patch.
+Signed-Off-By: Jonathan McDowell <noodles@earth.li>
 
-Attached new patch is a further cleanup to 24xx camera driver which
-populates the _remove function, uses schedule_timeout_interruptible
-api, adds proper check on error return path in _probe function and few
-cosmetic changes. Tested on H4 and it works.
-
-Signed-off-by: Komal Shah <komal_shah802003@yahoo.com>
-
----Komal Shah
-http://komalshah.blogspot.com/
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
---0-1609740917-1143046557=:7665
-Content-Type: text/x-patch; name="24xxcamcleanup02.patch"
-Content-Description: 2790603595-24xxcamcleanup02.patch
-Content-Disposition: inline; filename="24xxcamcleanup02.patch"
-
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index def9e53..0ce0705 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -28,6 +28,40 @@
- extern void omap_nop_release(struct device *dev);
- 
- /*-------------------------------------------------------------------------*/
-+#if defined(CONFIG_VIDEO_OMAP_CAMERA) || defined(CONFIG_VIDEO_OMAP_CAMERA_MODULE)
-+
-+#define OMAP2_CAM_BASE		0x48052000
-+#define OMAP2_CAM_MPU_IRQ	24
-+
-+static struct resource cam_resources[] = {
-+	{
-+		.start		= OMAP2_CAM_BASE,
-+		.end		= OMAP2_CAM_BASE + 0xfff,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP2_CAM_MPU_IRQ,
-+		.flags		= IORESOURCE_IRQ,
-+	}
-+};
-+
-+static struct platform_device omap_cam_device = {
-+	.name		= "cam_omap",
-+	.id		= -1,
-+	.dev = {
-+		.release	= omap_nop_release,
-+	},
-+	.num_resources	= ARRAY_SIZE(cam_resources),
-+	.resource	= cam_resources,
-+};
-+
-+static inline void omap_init_camera(void)
-+{
-+	platform_device_register(&omap_cam_device);
-+}
-+#else
-+static inline void omap_init_camera(void) {}
-+#endif
- 
- #if 	defined(CONFIG_I2C_OMAP) || defined(CONFIG_I2C_OMAP_MODULE)
- 
-@@ -122,6 +156,7 @@ static int __init omap2_init_devices(voi
- 	/* please keep these calls, and their implementations above,
- 	 * in alphabetical order so they're easier to sort through.
- 	 */
-+	omap_init_camera();
- 	omap_init_i2c();
- 	omap_init_sti();
- 
-diff --git a/drivers/media/video/omap/Makefile b/drivers/media/video/omap/Makefile
-index 164700e..454b056 100644
---- a/drivers/media/video/omap/Makefile
-+++ b/drivers/media/video/omap/Makefile
-@@ -4,7 +4,7 @@ obj-$(CONFIG_VIDEO_OMAP_CAMERA) += omapc
- obj-$(CONFIG_VIDEO_CAMERA_SENSOR_OV9640) += sensor_ov9640.o
- 
- objs-y$(CONFIG_ARCH_OMAP16XX) += camera_core.o omap16xxcam.o
--objs-y$(CONFIG_ARCH_OMAP24XX) += omap24xxcam.o
-+objs-y$(CONFIG_ARCH_OMAP24XX) += omap24xxcam.o omap24xxlib.o
- objs-y$(CONFIG_MACH_OMAP_H3) += h3_sensor_power.o
- objs-y$(CONFIG_MACH_OMAP_H4) += h4_sensor_power.o
- 
-diff --git a/drivers/media/video/omap/omap24xxcam.c b/drivers/media/video/omap/omap24xxcam.c
-index e46ce15..bfc8cf2 100644
---- a/drivers/media/video/omap/omap24xxcam.c
-+++ b/drivers/media/video/omap/omap24xxcam.c
-@@ -56,14 +56,12 @@
- #include <asm/arch/clock.h>
- 
- #include "omap24xxcam.h"
-+#include "omap24xxlib.h"
- #include "sensor_if.h"
- 
- /* configuration macros */
- #define CAM_NAME 	"omap24xxcam"
- 
--/* Should be moved from here */
--#define INT_CAM_MPU_IRQ 24
--
- //#define DEBUG_CAM
- 
- #ifdef DEBUG_CAM
-@@ -98,9 +96,6 @@ static int overlay_mem = 640 * 480 * 2;
- */
- static int video2_mem = 320 * 240 * 2;
- 
--static struct clk *cam_fck;
--static struct clk *cam_ick;
--
- /* -------------------------------------------------------------------------- */
- 
- /* Set the value of the CC_CTRL register in cam->cc_ctrl that is required to 
-@@ -304,16 +299,14 @@ cam_reset(const struct omap24xxcam_devic
- 	timeout = jiffies + timeout_ticks;
- 	while (!(cam_reg_in(cam, CAM_SYSSTATUS) & CAM_SYSSTATUS_RESETDONE)
- 	       && time_before(jiffies, timeout)) {
--		if (!in_atomic()) {
--			set_current_state(TASK_INTERRUPTIBLE);
--			schedule_timeout(1);
--		} else
-+		if (!in_atomic()) 
-+			schedule_timeout_interruptible(1);
-+		else
- 			udelay(10);
- 	}
--	if (!(cam_reg_in(cam, CAM_SYSSTATUS) & CAM_SYSSTATUS_RESETDONE)) {
-+	if (!(cam_reg_in(cam, CAM_SYSSTATUS) & CAM_SYSSTATUS_RESETDONE)) 
- 		printk(KERN_WARNING CAM_NAME
- 		       ": timeout waiting for camera subsystem reset\n");
--	}
- 
- 	return;
- }
-@@ -415,15 +408,14 @@ omap24xxcam_flip_overlay(struct omap24xx
- 	vid_attributes = dispc_reg_merge(cam, DISPC_VID_ATTRIBUTES(v),
- 					 DISPC_VID_ATTRIBUTES_ENABLE,
- 					 DISPC_VID_ATTRIBUTES_ENABLE);
--	if (vid_attributes & DISPC_VID_ATTRIBUTES_VIDCHANNELOUT) {
-+	if (vid_attributes & DISPC_VID_ATTRIBUTES_VIDCHANNELOUT)
- 		/* digital output */
- 		dispc_reg_merge(cam, DISPC_CONTROL, DISPC_CONTROL_GODIGITAL,
- 				DISPC_CONTROL_GODIGITAL);
--	} else {
-+	else
- 		/* LCD */
- 		dispc_reg_merge(cam, DISPC_CONTROL, DISPC_CONTROL_GOLCD,
- 				DISPC_CONTROL_GOLCD);
--	}
- }
- 
- /* Get the framebuffer parameters by reading the display controller registers 
-@@ -459,256 +451,6 @@ static void omap24xxcam_g_fbuf(struct om
- 	cam->gfx_attributes = dispc_reg_in(cam, DISPC_GFX_ATTRIBUTES);
- }
- 
--/* Return the default overlay cropping rectangle in crop given the image capture
-- * size in cam->pix and the video display size in cam->fbuf.  The default 
-- * cropping rectangle is the largest rectangle no larger than the capture size 
-- * that will fit on the display.  The default cropping rectangle is centered in 
-- * the captured image.  All dimensions and offsets are rounded down to even 
-- * numbers.
-- */
--static void
--omap24xxcam_default_crop_rect(struct omap24xxcam_device *cam,
--			      struct v4l2_rect *crop)
--{
--	struct v4l2_pix_format *pix = &cam->pix;
--	struct v4l2_framebuffer *fbuf = &cam->fbuf;
--
--	DBG;
--
--	crop->width = (pix->width < fbuf->fmt.width) ?
--	    pix->width : fbuf->fmt.width;
--	crop->height = (pix->height < fbuf->fmt.height) ?
--	    pix->height : fbuf->fmt.height;
--	crop->width &= ~1;
--	crop->height &= ~1;
--	crop->left = ((pix->width - crop->width) >> 1) & ~1;
--	crop->top = ((pix->height - crop->height) >> 1) & ~1;
--}
--
--/* Given a new cropping rectangle in new_crop, adjust the cropping rectangle to 
-- * the nearest supported configuration.  The image preview window cam->win will 
-- * also be adjusted if necessary.  The preview window is adjusted such that the 
-- * horizontal and vertical rescaling ratios stay constant.  If the preview 
-- * window would fall outside the display boundaries, the cropping rectangle will 
-- * also be adjusted to maintain the rescaling ratios.  If successful, cam->crop 
-- * and cam->win are updated.
-- * Returns zero if succesful, or -EINVAL if the requested cropping rectangle is 
-- * impossible and cannot reasonably be adjusted.
-- */
--static int
--omap24xxcam_new_crop_rect(struct omap24xxcam_device *cam,
--			  const struct v4l2_rect *new_crop)
--{
--	struct v4l2_pix_format *pix = &cam->pix;
--	struct v4l2_window *win = &cam->win;
--	struct v4l2_framebuffer *fbuf = &cam->fbuf;
--	struct v4l2_rect *crop = &cam->crop;
--	struct v4l2_rect try_crop;
--	unsigned long vresize, hresize;
--
--	DBG;
--
--	/* make a working copy of the new_crop rectangle */
--	try_crop = *new_crop;
--
--	/* adjust the cropping rectangle so it fits in the image */
--	if (try_crop.left < 0) {
--		try_crop.width += try_crop.left;
--		try_crop.left = 0;
--	}
--	if (try_crop.top < 0) {
--		try_crop.height += try_crop.top;
--		try_crop.top = 0;
--	}
--	try_crop.width = (try_crop.width < pix->width) ?
--	    try_crop.width : pix->width;
--	try_crop.height = (try_crop.height < pix->height) ?
--	    try_crop.height : pix->height;
--	if (try_crop.left + try_crop.width > pix->width)
--		try_crop.width = pix->width - try_crop.left;
--	if (try_crop.top + try_crop.height > pix->height)
--		try_crop.height = pix->height - try_crop.top;
--	try_crop.width &= ~1;
--	try_crop.height &= ~1;
--	if (try_crop.width <= 0 || try_crop.height <= 0)
--		return -EINVAL;
--
--	if (crop->height != win->w.height) {
--		/* If we're resizing vertically, we can't support a crop width 
--		 * wider than 768 pixels.
--		 */
--		if (try_crop.width > 768)
--			try_crop.width = 768;
--	}
--	/* vertical resizing */
--	vresize = (1024 * crop->height) / win->w.height;
--	if (vresize > 2048)
--		vresize = 2048;
--	else if (vresize == 0)
--		vresize = 1;
--	win->w.height = ((1024 * try_crop.height) / vresize) & ~1;
--	if (win->w.height == 0)
--		win->w.height = 2;
--	if (win->w.height + win->w.top > fbuf->fmt.height) {
--		/* We made the preview window extend below the bottom of the 
--		 * display, so clip it to the display boundary and resize the 
--		 * cropping height to maintain the vertical resizing ratio.
--		 */
--		win->w.height = (fbuf->fmt.height - win->w.top) & ~1;
--		try_crop.height = ((vresize * win->w.height) / 1024) & ~1;
--		if (try_crop.height == 0)
--			try_crop.height = 2;
--	}
--	/* horizontal resizing */
--	hresize = (1024 * crop->width) / win->w.width;
--	if (hresize > 2048)
--		hresize = 2048;
--	else if (hresize == 0)
--		hresize = 1;
--	win->w.width = ((1024 * try_crop.width) / hresize) & ~1;
--	if (win->w.width == 0)
--		win->w.width = 2;
--	if (win->w.width + win->w.left > fbuf->fmt.width) {
--		/* We made the preview window extend past the right side of the  
--		 * display, so clip it to the display boundary and resize the 
--		 * cropping width to maintain the horizontal resizing ratio.
--		 */
--		win->w.width = (fbuf->fmt.width - win->w.left) & ~1;
--		try_crop.width = ((hresize * win->w.width) / 1024) & ~1;
--		if (try_crop.width == 0)
--			try_crop.width = 2;
--	}
--	/* update our cropping rectangle and we're done */
--	*crop = try_crop;
--	return 0;
--}
--
--/* Given a new preview window in new_win, adjust the preview window to the 
-- * nearest supported configuration.  The adjusted preview window parameters are 
-- * returned in new_win.
-- * Returns zero if succesful, or -EINVAL if the requested preview window is 
-- * impossible and cannot reasonably be adjusted.
-- */
--static int
--omap24xxcam_try_preview_window(struct omap24xxcam_device *cam,
--			       struct v4l2_window *new_win)
--{
--	struct v4l2_framebuffer *fbuf = &cam->fbuf;
--	struct v4l2_rect try_win;
--
--	DBG;
--
--	/* make a working copy of the new_win rectangle */
--	try_win = new_win->w;
--
--	/* adjust the preview window so it fits on the display by clipping any 
--	 * offscreen areas
--	 */
--	if (try_win.left < 0) {
--		try_win.width += try_win.left;
--		try_win.left = 0;
--	}
--	if (try_win.top < 0) {
--		try_win.height += try_win.top;
--		try_win.top = 0;
--	}
--	try_win.width = (try_win.width < fbuf->fmt.width) ?
--	    try_win.width : fbuf->fmt.width;
--	try_win.height = (try_win.height < fbuf->fmt.height) ?
--	    try_win.height : fbuf->fmt.height;
--	if (try_win.left + try_win.width > fbuf->fmt.width)
--		try_win.width = fbuf->fmt.width - try_win.left;
--	if (try_win.top + try_win.height > fbuf->fmt.height)
--		try_win.height = fbuf->fmt.height - try_win.top;
--	try_win.width &= ~1;
--	try_win.height &= ~1;
--	if (try_win.width <= 0 || try_win.height <= 0)
--		return -EINVAL;
--
--	/* We now have a valid preview window, so go with it */
--	new_win->w = try_win;
--	new_win->field = V4L2_FIELD_NONE;
--	return 0;
--}
--
--/* Given a new preview window in new_win, adjust the preview window to the 
-- * nearest supported configuration.  The image cropping window cam->crop 
-- * will also be adjusted if necessary.  Preference is given to keeping the 
-- * preview window as close to the requested configuration as possible.  If 
-- * successful, new_win, cam->win, and cam->crop are updated.
-- * Returns zero if succesful, or -EINVAL if the requested preview window is 
-- * impossible and cannot reasonably be adjusted.
-- */
--static int
--omap24xxcam_new_preview_window(struct omap24xxcam_device *cam,
--			       struct v4l2_window *new_win)
--{
--	struct v4l2_window *win = &cam->win;
--	struct v4l2_rect *crop = &cam->crop;
--	int err;
--
--	DBG;
--
--	err = omap24xxcam_try_preview_window(cam, new_win);
--	if (err)
--		return err;
--
--	/* update our preview window */
--	win->w = new_win->w;
--	win->field = new_win->field;
--	win->chromakey = new_win->chromakey;
--
--	/* adjust the cropping window to allow for resizing limitations */
--	if (crop->height / win->w.height >= 2) {
--		/* The maximum vertical downsizing ratio is 2:1 */
--		crop->height = win->w.height * 2;
--	}
--	if (crop->width / win->w.width >= 2) {
--		/* The maximum horizontal downsizing ratio is 2:1 */
--		crop->width = win->w.width * 2;
--	}
--	if (crop->width > 768) {
--		/* The OMAP2420 vertical resizing line buffer is 768 pixels 
--		 * wide.  If the cropped image is wider than 768 pixels then it 
--		 * cannot be vertically resized.
--		 */
--		if (crop->height != win->w.height)
--			crop->width = 768;
--	}
--	return 0;
--}
--
--/* Given a capture format in cam->pix, the cam->crop, cam->win, and cam->fbuf 
-- * structures are initialized to default values.  cam->fbuf is initialized by 
-- * reading the display controller registers for the graphics window.  cam->crop 
-- * is initialized to the largest window size that will fit on the display.  The 
-- * crop window is centered in the captured image.  cam->win is initialized to 
-- * the same size as cam->crop and is centered on the display.
-- * All sizes and offsets are constrained to be even numbers.  
-- */
--static void omap24xxcam_new_capture_format(struct omap24xxcam_device *cam)
--{
--	struct v4l2_rect *crop = &cam->crop;
--	struct v4l2_window *win = &cam->win;
--	struct v4l2_framebuffer *fbuf = &cam->fbuf;
--
--	DBG;
--
--	/* get the framebuffer parameters */
--	omap24xxcam_g_fbuf(cam);
--
--	/* crop defines the preview source window in the image capture 
--	 * buffer
--	 */
--	omap24xxcam_default_crop_rect(cam, crop);
--
--	/* win defines the preview target window on the display */
--	win->w.width = crop->width;
--	win->w.height = crop->height;
--	win->w.left = ((fbuf->fmt.width - win->w.width) >> 1) & ~1;
--	win->w.top = ((fbuf->fmt.height - win->w.height) >> 1) & ~1;
--}
--
- /* Program the camera interface xclk for the frequency cam->xclk based on 
-  * the functional clock frequency cam->mclk.  If the specifed cam->xclk 
-  * frequency is not possible based on the value of cam->mclk, then the 
-@@ -999,22 +741,19 @@ omap24xxcam_configure_overlay(struct oma
- 		int row_inc;
- 		/* in video2 layer we won't be down or up scaling */
- 		dispc_reg_out(cam, DISPC_VID_FIR(v), 0x400 | (0x400 << 16));
--		if (pix->width + vid2_format->left > fbuf->fmt.width) {
-+		if (pix->width + vid2_format->left > fbuf->fmt.width) 
- 			vid_position_x = fbuf->fmt.width < pix->width ? 0 :
- 			    cam->gfx_position_x + fbuf->fmt.width - pix->width;
--		} else {
-+		else 
- 			vid_position_x = cam->gfx_position_x +
- 			    vid2_format->left;
- 
--		}
--
--		if (pix->height + vid2_format->top > fbuf->fmt.height) {
-+		if (pix->height + vid2_format->top > fbuf->fmt.height)
- 			vid_position_y = fbuf->fmt.height < pix->height ? 0 :
- 			    cam->gfx_position_y +
- 			    fbuf->fmt.height - pix->height;
--		} else {
-+		else 
- 			vid_position_y = cam->gfx_position_y + vid2_format->top;
--		}
- 
- 		vid_size = ((((pix->width > fbuf->fmt.width ? fbuf->fmt.width
- 			       : pix->width) - 1)
-@@ -1051,16 +790,15 @@ omap24xxcam_configure_overlay(struct oma
- 		vid_attributes = dispc_reg_merge(cam, DISPC_VID_ATTRIBUTES(v),
- 						 DISPC_VID_ATTRIBUTES_ENABLE,
- 						 DISPC_VID_ATTRIBUTES_ENABLE);
--		if (vid_attributes & DISPC_VID_ATTRIBUTES_VIDCHANNELOUT) {
-+		if (vid_attributes & DISPC_VID_ATTRIBUTES_VIDCHANNELOUT) 
- 			/* digital output */
- 			dispc_reg_merge(cam, DISPC_CONTROL,
- 					DISPC_CONTROL_GODIGITAL,
- 					DISPC_CONTROL_GODIGITAL);
--		} else {
-+		else 
- 			/* LCD */
- 			dispc_reg_merge(cam, DISPC_CONTROL, DISPC_CONTROL_GOLCD,
- 					DISPC_CONTROL_GOLCD);
--		}
- 	}
- }
- 
-@@ -1785,13 +1523,12 @@ static void omap24xxcam_error_handler(st
- 	camdma_reg_out(cam, CAMDMA_IRQENABLE_L3, 0);
- #endif
- 
--	if (cam->previewing || cam->streaming) {
-+	if (cam->previewing || cam->streaming) 
- 		/* Preview or capture is in progress, so we need to register 
- 		 * our routine to restart the camera interface the next time a 
- 		 * DMA transfer is queued.
- 		 */
- 		omap24xxcam_dma_notify(cam, omap24xxcam_cc_enable);
--	}
- 
- 	/* Restart overlay DMA if preview is enabled. */
- 	omap24xxcam_start_overlay_dma(cam);
-@@ -1970,10 +1707,9 @@ omap24xxcam_vbq_prepare(struct videobuf_
- 				spin_lock(&cam->img_lock);
- 				vb->size = size;
- 			}
--		} else {
-+		} else 
- 			/* We need to allocate a new kernel bounce buffer. */
- 			vb->size = size;
--		}
- 	}
- 	if (cam->still_capture && cam->cam_sensor->try_format_still_capture) {
- 		vb->width = cam->pix2.width;
-@@ -2162,8 +1898,8 @@ omap24xxcam_do_ioctl(struct inode *inode
- 
- 					spin_lock(&cam->img_lock);
- 					err =
--					    omap24xxcam_try_preview_window(cam,
--									   win);
-+					    omap24xxvout_try_window(&cam->fbuf,
-+									win);
- 					spin_unlock(&cam->img_lock);
- 					return err;
- 				}
-@@ -2199,8 +1935,11 @@ omap24xxcam_do_ioctl(struct inode *inode
- 						return -EBUSY;
- 					}
- 					err =
--					    omap24xxcam_new_preview_window(cam,
--									   win);
-+					    omap24xxvout_new_window(&cam->crop,
-+								    &cam->win,
-+								    &cam->fbuf,
-+								    win);
-+						    					    					    
- 					spin_unlock(&cam->img_lock);
- 					return err;
- 				}
-@@ -2256,7 +1995,10 @@ omap24xxcam_do_ioctl(struct inode *inode
- 					cam->cparm.timeperframe =
- 					    cam->nominal_timeperframe;
- 					/* intialize the preview parameters */
--					omap24xxcam_new_capture_format(cam);
-+					omap24xxvout_new_format(&cam->pix,
-+								&cam->fbuf,
-+								&cam->crop,
-+								&cam->win);
- 					spin_unlock(&cam->img_lock);
- 					/* program xclk */
- 					omap24xxcam_set_xclk(cam);
-@@ -2331,9 +2073,10 @@ omap24xxcam_do_ioctl(struct inode *inode
- 					cropcap->bounds.width = pix->width & ~1;
- 					cropcap->bounds.height =
- 					    pix->height & ~1;
--					omap24xxcam_default_crop_rect(cam,
--								      &cropcap->
--								      defrect);
-+					omap24xxvout_default_crop(&cam->pix,
-+								  &cam->fbuf,
-+								  &cropcap->
-+								  defrect);
- 					spin_unlock(&cam->img_lock);
- 					cropcap->pixelaspect.numerator = 1;
- 					cropcap->pixelaspect.denominator = 1;
-@@ -2409,9 +2152,11 @@ omap24xxcam_do_ioctl(struct inode *inode
- 						spin_unlock(&cam->img_lock);
- 						return -EBUSY;
- 					}
--					err = omap24xxcam_new_crop_rect(cam,
--									&crop->
--									c);
-+					err = omap24xxvout_new_crop(&cam->pix,
-+								    &cam->crop,
-+								    &cam->win,
-+								    &cam->fbuf,
-+								    &crop->c);
- 					spin_unlock(&cam->img_lock);
- 					return err;
- 				}
-@@ -2483,9 +2228,8 @@ omap24xxcam_do_ioctl(struct inode *inode
- 							       &cam->cparm.
- 							       timeperframe,
- 							       cam->sensor);
--			} else {
-+			} else 
- 				spin_unlock(&cam->img_lock);
--			}
- 			return 0;
- 		}
- 
-@@ -2705,26 +2449,26 @@ int omap24xxcam_poll(struct file *file, 
- 	} else {
- 		/* read() capture */
- 		spin_unlock(&cam->img_lock);
--		down(&fh->vbq.lock);
-+		mutex_lock(&fh->vbq.lock);
- 		if (fh->vbq.read_buf == NULL) {
- 			/* need to capture a new image */
- 			fh->vbq.read_buf = videobuf_alloc(fh->vbq.msize);
- 			if (fh->vbq.read_buf == NULL) {
--				up(&fh->vbq.lock);
-+				mutex_unlock(&fh->vbq.lock);
- 				return POLLERR;
- 			}
- 			fh->vbq.read_buf->memory = V4L2_MEMORY_USERPTR;
- 			field = videobuf_next_field(&fh->vbq);
- 			if (fh->vbq.ops->buf_prepare(&fh->vbq, fh->vbq.read_buf,
- 						     field) != 0) {
--				up(&fh->vbq.lock);
-+				mutex_unlock(&fh->vbq.lock);
- 				return POLLERR;
- 			}
- 			omap24xxcam_dma_notify(cam, omap24xxcam_cc_enable);
- 			fh->vbq.ops->buf_queue(&fh->vbq, fh->vbq.read_buf);
- 			fh->vbq.read_off = 0;
- 		}
--		up(&fh->vbq.lock);
-+		mutex_unlock(&fh->vbq.lock);
- 		vb = (struct videobuf_buffer *)fh->vbq.read_buf;
- 	}
- 
-@@ -2799,9 +2543,9 @@ omap24xxcam_write(struct file *file, con
- 		dispc_reg_merge(cam, DISPC_CONTROL, DISPC_CONTROL_GOLCD,
- 				DISPC_CONTROL_GOLCD);
- 	}
--	if (copy_from_user((void *)cam->video2_base, data, count)) {
--		printk("error in copying data");
--	}
-+	if (copy_from_user((void *)cam->video2_base, data, count)) 
-+		printk(KERN_INFO "error in copying data");
-+
- 	return count;
- }
- 
-@@ -2823,16 +2567,15 @@ omap24xxcam_ioctl(struct inode *inode, s
-  * Do some sanity check, set clock rate, starts it and
-  *  turn codec audio on 
-  */
--int omap24xxcam_clock_on(void)
-+int omap24xxcam_clock_on(struct omap24xxcam_device *cam)
- {
--
--	clk_enable(cam_fck);
--	clk_enable(cam_ick);
-+	clk_enable(cam->cam_fck);
-+	clk_enable(cam->cam_ick);
- 
- 	printk(KERN_DEBUG
- 	       "FCLK = %d [%d], usecount = %d\n",
--	       (uint) clk_get_rate(cam_fck), CAM_CLOCK,
--	       clk_get_usecount(cam_fck));
-+	       (uint) clk_get_rate(cam->cam_fck), CAM_CLOCK,
-+	       clk_get_usecount(cam->cam_fck));
- 
- 	return 0;
- }
-@@ -2841,17 +2584,17 @@ int omap24xxcam_clock_on(void)
-  * Do some sanity check, turn clock off and then turn
-  *  codec audio off
-  */
--int omap24xxcam_clock_off(void)
-+int omap24xxcam_clock_off(struct omap24xxcam_device *cam)
- {
--	if (clk_get_usecount(cam_fck) > 0) {
--		if (clk_get_rate(cam_fck) != CAM_CLOCK) {
-+	if (clk_get_usecount(cam->cam_fck) > 0) {
-+		if (clk_get_rate(cam->cam_fck) != CAM_CLOCK) {
- 			printk(KERN_WARNING
- 			       "FCLK for camera should be %d Hz. But is %d Hz\n",
--			       (uint) clk_get_rate(cam_fck), CAM_CLOCK);
-+			       (uint) clk_get_rate(cam->cam_fck), CAM_CLOCK);
- 		}
- 
--		clk_disable(cam_fck);
--		clk_disable(cam_ick);
-+		clk_disable(cam->cam_fck);
-+		clk_disable(cam->cam_ick);
- 	}
- 
- 	return 0;
-@@ -2933,6 +2676,7 @@ static struct file_operations omap24xxca
- };
- 
- /* -------------------------------------------------------------------------- */
-+#ifdef CONFIG_PM
- static int omap24xxcam_suspend(struct platform_device *pdev, pm_message_t state)
- {
- 	struct omap24xxcam_device *cam = platform_get_drvdata(pdev);
-@@ -2995,27 +2739,51 @@ static int omap24xxcam_resume(struct pla
- 
- 	return 0;
- }
-+#endif
- 
- static int omap24xxcam_probe(struct platform_device *pdev)
- {
- 	struct omap24xxcam_device *cam;
- 	struct video_device *vfd;
-+	struct resource *mem;
-+	int irq = NO_IRQ;
- 
- 	DBG;
- 
-+	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!mem) {
-+		printk(KERN_WARNING "no mem resource?\n");
-+		return -ENODEV;
-+	}
-+
-+	irq = platform_get_irq(pdev, 0);
-+	if (irq <= 0) {
-+		printk(KERN_WARNING "no irq for camera?\n");
-+		return -ENOENT;
-+	}
-+
-+	/* request the mem region for the camera registers */
-+	if (!request_mem_region(mem->start, (mem->end - mem->start) + 1,
-+			       	pdev->name)) {
-+		printk(KERN_ERR CAM_NAME
-+		       ": cannot reserve camera register I/O region\n");
-+		return -EBUSY;	
-+	}
-+
- 	cam = kzalloc(sizeof(struct omap24xxcam_device), GFP_KERNEL);
- 	if (!cam) {
- 		printk(KERN_ERR CAM_NAME ": could not allocate memory\n");
--		goto init_error;
-+		goto err0;
- 	}
- 	saved_cam = cam;
-+	cam->irq  = irq;
- 
- 	/* initialize the video_device struct */
- 	vfd = cam->vfd = video_device_alloc();
- 	if (!vfd) {
- 		printk(KERN_ERR CAM_NAME
- 		       ": could not allocate video device struct\n");
--		goto init_error;
-+		goto err1;
- 	}
- 	vfd->release = video_device_release;
- #ifdef FIXME_FIXME
-@@ -3047,22 +2815,14 @@ static int omap24xxcam_probe(struct plat
- 	if (capture_mem < 320 * 240 * 2 * 2)
- 		capture_mem = 320 * 240 * 2 * 2;
- 
--	/* request the mem region for the camera registers */
--	if (!request_mem_region(CAM_REG_BASE, CAM_REG_SIZE, vfd->name)) {
--		printk(KERN_ERR CAM_NAME
--		       ": cannot reserve camera register I/O region\n");
--		goto init_error;
--	}
--	cam->cam_mmio_base_phys = CAM_REG_BASE;
--	cam->cam_mmio_size = CAM_REG_SIZE;
- 
- 	/* map the region */
- 	cam->cam_mmio_base = (unsigned long)
--	    ioremap(cam->cam_mmio_base_phys, cam->cam_mmio_size);
-+		ioremap(mem->start, (mem->end - mem->start) + 1);
- 	if (!cam->cam_mmio_base) {
- 		printk(KERN_ERR CAM_NAME
- 		       ": cannot map camera register I/O region\n");
--		goto init_error;
-+		goto err2;
- 	}
- 
- 	/* Map the display controller registers.
-@@ -3077,7 +2837,7 @@ static int omap24xxcam_probe(struct plat
- 	if (!cam->dispc_mmio_base) {
- 		printk(KERN_ERR CAM_NAME
- 		       ": cannot map display controller register I/O region\n");
--		goto init_error;
-+		goto err3;
- 	}
- 
- 	/* allocate coherent memory for the overlay framebuffer */
-@@ -3096,7 +2856,7 @@ static int omap24xxcam_probe(struct plat
- 		if (!cam->overlay_base) {
- 			printk(KERN_ERR CAM_NAME
- 			       ": cannot allocate overlay framebuffer\n");
--			goto init_error;
-+			goto err4;
- 		}
- 	}
- 	memset((void *)cam->overlay_base, 0, cam->overlay_size);
-@@ -3114,7 +2874,7 @@ static int omap24xxcam_probe(struct plat
- 		if (!cam->video2_base) {
- 			printk(KERN_ERR CAM_NAME
- 			       ": cannot allocate video2 layer memory\n");
--			goto init_error;
-+			goto err5;
- 
- 		}
- 	}
-@@ -3134,9 +2894,9 @@ static int omap24xxcam_probe(struct plat
- 
- 	/* initialize the camera interface functional clock frequency */
- 	cam->mclk = 96000000;	/* 96MHz */
--	cam_fck = clk_get(0, "cam_fck");
--	cam_ick = clk_get(0, "cam_ick");
--	omap24xxcam_clock_on();
-+	cam->cam_fck = clk_get(0, "cam_fck");
-+	cam->cam_ick = clk_get(0, "cam_ick");
-+	omap24xxcam_clock_on(cam);
- 
- 	/* initialize the streaming capture parameters */
- 	cam->cparm.readbuffers = 1;
-@@ -3162,7 +2922,7 @@ static int omap24xxcam_probe(struct plat
- 	cam->sensor = cam->cam_sensor->init(&cam->pix, &cam->pix2);
- 	if (!cam->sensor) {
- 		printk(KERN_ERR CAM_NAME ": cannot initialize sensor\n");
--		goto init_error;
-+		goto err6;
- 	}
- 	printk(KERN_INFO "Sensor is %s\n", cam->cam_sensor->name);
- 
-@@ -3181,7 +2941,7 @@ static int omap24xxcam_probe(struct plat
- 	/* initialize the image preview parameters based on the default capture 
- 	 * format
- 	 */
--	omap24xxcam_new_capture_format(cam);
-+	omap24xxvout_new_format(&cam->pix, &cam->fbuf, &cam->crop, &cam->win);
- 
- 	/* program the sensor for the default capture format and rate */
- 	cam->cam_sensor->configure(&cam->pix, cam->xclk,
-@@ -3198,80 +2958,130 @@ static int omap24xxcam_probe(struct plat
- 	omap24xxcam_dma_init(cam);
- 
- 	/* install the interrupt service routine */
--	if (request_irq(INT_CAM_MPU_IRQ, omap24xxcam_isr, 0, CAM_NAME, cam)) {
-+	if (request_irq(cam->irq, omap24xxcam_isr, 0, CAM_NAME, cam)) {
- 		printk(KERN_ERR CAM_NAME
- 		       ": could not install interrupt service routine\n");
--		goto init_error;
-+		goto err7;
- 	}
--	cam->irq = INT_CAM_MPU_IRQ;
- 
- 	if (video_register_device(vfd, VFL_TYPE_GRABBER, video_nr) < 0) {
- 		printk(KERN_ERR CAM_NAME
- 		       ": could not register Video for Linux device\n");
- 		vfd->minor = -1;
--		goto init_error;
-+		goto err8;
- 	}
-+
- 	/* set driver specific data to use in power management functions */
- 	platform_set_drvdata(pdev, cam);
- 
- 	printk(KERN_INFO CAM_NAME
- 	       ": registered device video%d [v4l2]\n", vfd->minor);
- 
--#undef CAMERA_TEST
--//#define CAMERA_TEST
--#ifdef CAMERA_TEST
--	if (cam->pix.sizeimage <= cam->overlay_size) {
--		printk(KERN_INFO CAM_NAME ": Camera test--enabling overlay\n");
--		/* turn on the video overlay */
--		omap24xxcam_configure_overlay(cam, NULL);
--		omap24xxcam_flip_overlay(cam, cam->overlay_base_phys);
--		cam->previewing = (struct omap24xxcam_fh *)1;
--		/* start the camera interface */
--		omap24xxcam_dma_notify(cam, omap24xxcam_cc_enable);
--		omap24xxcam_start_overlay_dma(cam);
--	} else {
--		printk(KERN_INFO CAM_NAME
--		       ": Can't start camera test--overlay buffer too"
--		       " small\n");
--	}
--#endif
--
- 	return 0;
-+	
-+err8:
-+	free_irq(cam->irq, cam);
-+err7:
-+	omap24xxcam_dma_exit(cam);
-+	cam->cam_sensor->cleanup(cam->sensor);
-+	cam->sensor = NULL;
-+err6:
-+	omap24xxcam_clock_off(cam);
-+	dma_free_coherent(NULL, cam->video2_size,
-+			  (void *)cam->video2_base,
-+			  cam->video2_base_phys);
-+	cam->video2_base = 0;
-+err5:
-+	dma_free_coherent(NULL, cam->overlay_size,
-+			  (void *)cam->overlay_base,
-+			  cam->overlay_base_phys);
-+	cam->overlay_base = 0;
-+err4:
-+	iounmap((void *)cam->dispc_mmio_base);
-+	cam->dispc_mmio_base = 0;
-+err3:
-+	iounmap((void *)cam->cam_mmio_base);
-+	cam->cam_mmio_base = 0;
-+err2:
-+	video_device_release(vfd);
-+err1:
-+	kfree(cam);
-+	saved_cam = NULL;
-+err0:
-+	release_mem_region(mem->start, (mem->end - mem->start) + 1);
- 
--      init_error:
--	omap24xxcam_cleanup();
- 	return -ENODEV;
- }
- 
- static int omap24xxcam_remove(struct platform_device *pdev)
- {
-+	struct omap24xxcam_device *cam = platform_get_drvdata(pdev);
-+	struct resource	*mem;
-+	struct video_device *vfd;
-+
-+	vfd = cam->vfd;
-+	
-+	if (vfd) {
-+		if (vfd->minor == -1) 
-+			/* The device was never registered, so release the 
-+			 * video_device struct directly.
-+			 */
-+			video_device_release(vfd);
-+		else 
-+			/* The unregister function will release the video_device
-+			 * struct as well as unregistering it.
-+			 */
-+			video_unregister_device(vfd);
-+		
-+		cam->vfd = NULL;
-+	}
-+	
-+	free_irq(cam->irq, cam);
-+	
-+	omap24xxcam_dma_exit(cam);
-+	cam->cam_sensor->cleanup(cam->sensor);
-+
-+	dma_free_coherent(NULL, cam->video2_size,
-+				(void *)cam->video2_base,
-+				cam->video2_base_phys);
-+	cam->video2_base = 0;
-+	
-+	dma_free_coherent(NULL, cam->overlay_size,
-+			  (void *)cam->overlay_base,
-+			  cam->overlay_base_phys);
-+	cam->overlay_base = 0;
-+
-+	iounmap((void *)cam->dispc_mmio_base);
-+	cam->dispc_mmio_base = 0;
-+
-+	iounmap((void *)cam->cam_mmio_base);
-+	cam->cam_mmio_base = 0;
-+
-+	omap24xxcam_clock_off(cam);
-+
-+	kfree(cam);
-+	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	release_mem_region(mem->start, (mem->end - mem->start) + 1);
-+	
- 	return 0;
- }
- 
- static struct platform_driver omap24xxcam_driver = {
--	.probe = omap24xxcam_probe,
--	.remove = omap24xxcam_remove,
-+	.probe		= omap24xxcam_probe,
-+	.remove		= omap24xxcam_remove,
- #ifdef CONFIG_PM
--	.suspend = omap24xxcam_suspend,
--	.resume = omap24xxcam_resume,
-+	.suspend	= omap24xxcam_suspend,
-+	.resume		= omap24xxcam_resume,
- #else
--	.suspend = NULL,
--	.resume = NULL,
-+	.suspend	= NULL,
-+	.resume		= NULL,
- #endif
--	.shutdown = NULL,
--	.driver {
--		.name = CAM_NAME,
-+	.shutdown	= NULL,
-+	.driver		= {
-+		.name = "cam_omap",
- 	},
- };
- 
--static struct platform_device omap24xxcam_dev = {
--	.name = CAM_NAME,
--	.dev = {
--		.release = NULL,
--		},
--	.id = 0,
--};
--
- int __init omap24xxcam_init(void)
- {
- 	int ret;
-@@ -3281,87 +3091,13 @@ int __init omap24xxcam_init(void)
- 	ret = platform_driver_register(&omap24xxcam_driver);
- 	if (ret != 0)
- 		return ret;
--	ret = platform_device_register(&omap24xxcam_dev);
--	if (ret != 0) {
--		platform_driver_unregister(&omap24xxcam_driver);
--		return ret;
--	}
- 
- 	return 0;
- }
- 
--void omap24xxcam_cleanup(void)
-+static void __exit omap24xxcam_exit(void)
- {
--	struct omap24xxcam_device *cam = saved_cam;
--	struct video_device *vfd;
--
--	DBG;
--
--	if (!cam)
--		return;
--	vfd = cam->vfd;
--
--	if (vfd) {
--		if (vfd->minor == -1) {
--			/* The device was never registered, so release the 
--			 * video_device struct directly.
--			 */
--			video_device_release(vfd);
--		} else {
--			/* The unregister function will release the video_device
--			 * struct as well as unregistering it.
--			 */
--			video_unregister_device(vfd);
--		}
--		cam->vfd = NULL;
--	}
--
--	if (cam->irq) {
--		free_irq(cam->irq, cam);
--		cam->irq = 0;
--	}
--
--	omap24xxcam_dma_exit(cam);
--	cam->cam_sensor->cleanup(cam->sensor);
--	/* sensor allocated private data is gone */
--	cam->sensor = NULL;
--
--	if (cam->video2_base) {
--		dma_free_coherent(NULL, cam->video2_size,
--				  (void *)cam->video2_base,
--				  cam->video2_base_phys);
--		cam->video2_base = 0;
--	}
--	cam->video2_base_phys = 0;
--
--	if (cam->overlay_base) {
--		dma_free_coherent(NULL, cam->overlay_size,
--				  (void *)cam->overlay_base,
--				  cam->overlay_base_phys);
--		cam->overlay_base = 0;
--	}
--	cam->overlay_base_phys = 0;
--
--	if (cam->dispc_mmio_base) {
--		iounmap((void *)cam->dispc_mmio_base);
--		cam->dispc_mmio_base = 0;
--	}
--	cam->dispc_mmio_base_phys = 0;
--
--	if (cam->cam_mmio_base) {
--		iounmap((void *)cam->cam_mmio_base);
--		cam->cam_mmio_base = 0;
--	}
--	if (cam->cam_mmio_base_phys) {
--		release_mem_region(cam->cam_mmio_base_phys, cam->cam_mmio_size);
--		cam->cam_mmio_base_phys = 0;
--	}
--
--	platform_device_unregister(&omap24xxcam_dev);
- 	platform_driver_unregister(&omap24xxcam_driver);
--
--	kfree(cam);
--	saved_cam = NULL;
- }
- 
- MODULE_AUTHOR("MontaVista Software, Inc.");
-@@ -3378,4 +3114,4 @@ MODULE_PARM_DESC(overlay_mem,
- 		 "Preview overlay framebuffer size (default 600KB)");
- 
- module_init(omap24xxcam_init);
--module_exit(omap24xxcam_cleanup);
-+module_exit(omap24xxcam_exit);
-diff --git a/drivers/media/video/omap/omap24xxcam.h b/drivers/media/video/omap/omap24xxcam.h
-index 85c10e6..2e4bb9b 100644
---- a/drivers/media/video/omap/omap24xxcam.h
-+++ b/drivers/media/video/omap/omap24xxcam.h
-@@ -423,8 +423,6 @@ struct omap24xxcam_device {
- 	unsigned int irq;
- 
- 	unsigned long cam_mmio_base;
--	unsigned long cam_mmio_base_phys;
--	unsigned long cam_mmio_size;
- 
- 	unsigned long dispc_mmio_base;
- 	unsigned long dispc_mmio_base_phys;
-@@ -547,6 +545,9 @@ struct omap24xxcam_device {
- 	/* value of GFX_ATTRIBUTES register from display controller */
- 	unsigned long gfx_attributes;
- 
-+	struct clk *cam_fck;
-+	struct clk *cam_ick;
-+
- 	/* video 2 layer of the display controller is also configured through
- 	 ** it */
- 	int vid2;
-diff --git a/drivers/media/video/omap/omap24xxlib.c b/drivers/media/video/omap/omap24xxlib.c
+-----
+diff --git a/arch/arm/configs/ams_delta_defconfig b/arch/arm/configs/ams_delta_defconfig
 new file mode 100644
-index 0000000..63c0d4f
+index 0000000..03f02dd
 --- /dev/null
-+++ b/drivers/media/video/omap/omap24xxlib.c
-@@ -0,0 +1,264 @@
++++ b/arch/arm/configs/ams_delta_defconfig
+@@ -0,0 +1,880 @@
++#
++# Automatically generated make config: don't edit
++# Linux kernel version: 2.6.16-omap1
++# Wed Mar 22 10:53:48 2006
++#
++CONFIG_ARM=y
++CONFIG_MMU=y
++CONFIG_RWSEM_GENERIC_SPINLOCK=y
++CONFIG_GENERIC_CALIBRATE_DELAY=y
++
++#
++# Code maturity level options
++#
++CONFIG_EXPERIMENTAL=y
++CONFIG_BROKEN_ON_SMP=y
++CONFIG_LOCK_KERNEL=y
++CONFIG_INIT_ENV_ARG_LIMIT=32
++
++#
++# General setup
++#
++CONFIG_LOCALVERSION=""
++CONFIG_LOCALVERSION_AUTO=y
++# CONFIG_SWAP is not set
++CONFIG_SYSVIPC=y
++# CONFIG_POSIX_MQUEUE is not set
++# CONFIG_BSD_PROCESS_ACCT is not set
++CONFIG_SYSCTL=y
++# CONFIG_AUDIT is not set
++# CONFIG_IKCONFIG is not set
++CONFIG_INITRAMFS_SOURCE=""
++CONFIG_UID16=y
++CONFIG_CC_OPTIMIZE_FOR_SIZE=y
++# CONFIG_EMBEDDED is not set
++CONFIG_KALLSYMS=y
++# CONFIG_KALLSYMS_ALL is not set
++# CONFIG_KALLSYMS_EXTRA_PASS is not set
++CONFIG_HOTPLUG=y
++CONFIG_PRINTK=y
++CONFIG_BUG=y
++CONFIG_ELF_CORE=y
++CONFIG_BASE_FULL=y
++CONFIG_FUTEX=y
++CONFIG_EPOLL=y
++CONFIG_SHMEM=y
++CONFIG_CC_ALIGN_FUNCTIONS=0
++CONFIG_CC_ALIGN_LABELS=0
++CONFIG_CC_ALIGN_LOOPS=0
++CONFIG_CC_ALIGN_JUMPS=0
++CONFIG_SLAB=y
++# CONFIG_TINY_SHMEM is not set
++CONFIG_BASE_SMALL=0
++# CONFIG_SLOB is not set
++
++#
++# Loadable module support
++#
++CONFIG_MODULES=y
++CONFIG_MODULE_UNLOAD=y
++CONFIG_MODULE_FORCE_UNLOAD=y
++CONFIG_OBSOLETE_MODPARM=y
++# CONFIG_MODVERSIONS is not set
++# CONFIG_MODULE_SRCVERSION_ALL is not set
++CONFIG_KMOD=y
++
++#
++# Block layer
++#
++
++#
++# IO Schedulers
++#
++CONFIG_IOSCHED_NOOP=y
++CONFIG_IOSCHED_AS=y
++CONFIG_IOSCHED_DEADLINE=y
++CONFIG_IOSCHED_CFQ=y
++CONFIG_DEFAULT_AS=y
++# CONFIG_DEFAULT_DEADLINE is not set
++# CONFIG_DEFAULT_CFQ is not set
++# CONFIG_DEFAULT_NOOP is not set
++CONFIG_DEFAULT_IOSCHED="anticipatory"
++
++#
++# System Type
++#
++# CONFIG_ARCH_CLPS7500 is not set
++# CONFIG_ARCH_CLPS711X is not set
++# CONFIG_ARCH_CO285 is not set
++# CONFIG_ARCH_EBSA110 is not set
++# CONFIG_ARCH_FOOTBRIDGE is not set
++# CONFIG_ARCH_INTEGRATOR is not set
++# CONFIG_ARCH_IOP3XX is not set
++# CONFIG_ARCH_IXP4XX is not set
++# CONFIG_ARCH_IXP2000 is not set
++# CONFIG_ARCH_L7200 is not set
++# CONFIG_ARCH_PXA is not set
++# CONFIG_ARCH_RPC is not set
++# CONFIG_ARCH_SA1100 is not set
++# CONFIG_ARCH_S3C2410 is not set
++# CONFIG_ARCH_SHARK is not set
++# CONFIG_ARCH_LH7A40X is not set
++CONFIG_ARCH_OMAP=y
++# CONFIG_ARCH_VERSATILE is not set
++# CONFIG_ARCH_REALVIEW is not set
++# CONFIG_ARCH_IMX is not set
++# CONFIG_ARCH_H720X is not set
++# CONFIG_ARCH_AAEC2000 is not set
++# CONFIG_ARCH_AT91RM9200 is not set
++
++#
++# TI OMAP Implementations
++#
++CONFIG_ARCH_OMAP1=y
++# CONFIG_ARCH_OMAP2 is not set
++
++#
++# OMAP Feature Selections
++#
++# CONFIG_OMAP_RESET_CLOCKS is not set
++# CONFIG_OMAP_BOOT_TAG is not set
++CONFIG_OMAP_MUX=y
++# CONFIG_OMAP_MUX_DEBUG is not set
++CONFIG_OMAP_MUX_WARNINGS=y
++CONFIG_OMAP_MPU_TIMER=y
++# CONFIG_OMAP_32K_TIMER is not set
++CONFIG_OMAP_LL_DEBUG_UART1=y
++# CONFIG_OMAP_LL_DEBUG_UART2 is not set
++# CONFIG_OMAP_LL_DEBUG_UART3 is not set
++CONFIG_OMAP_SERIAL_WAKE=y
++
++#
++# OMAP Core Type
++#
++# CONFIG_ARCH_OMAP730 is not set
++CONFIG_ARCH_OMAP15XX=y
++# CONFIG_ARCH_OMAP16XX is not set
++
++#
++# OMAP Board Type
++#
++# CONFIG_MACH_OMAP_INNOVATOR is not set
++# CONFIG_MACH_VOICEBLUE is not set
++# CONFIG_MACH_OMAP_PALMTE is not set
++CONFIG_MACH_AMS_DELTA=y
++# CONFIG_MACH_OMAP_GENERIC is not set
++
++#
++# OMAP CPU Speed
++#
++# CONFIG_OMAP_CLOCKS_SET_BY_BOOTLOADER is not set
++# CONFIG_OMAP_ARM_168MHZ is not set
++CONFIG_OMAP_ARM_150MHZ=y
++# CONFIG_OMAP_ARM_120MHZ is not set
++# CONFIG_OMAP_ARM_60MHZ is not set
++# CONFIG_OMAP_ARM_30MHZ is not set
++# CONFIG_OMAP_DSP is not set
++
++#
++# Processor Type
++#
++CONFIG_CPU_32=y
++CONFIG_CPU_ARM925T=y
++CONFIG_CPU_32v4=y
++CONFIG_CPU_ABRT_EV4T=y
++CONFIG_CPU_CACHE_V4WT=y
++CONFIG_CPU_CACHE_VIVT=y
++CONFIG_CPU_COPY_V4WB=y
++CONFIG_CPU_TLB_V4WBI=y
++
++#
++# Processor Features
++#
++# CONFIG_ARM_THUMB is not set
++# CONFIG_CPU_ICACHE_DISABLE is not set
++# CONFIG_CPU_DCACHE_DISABLE is not set
++CONFIG_CPU_DCACHE_WRITETHROUGH=y
++
++#
++# Bus support
++#
++
++#
++# PCCARD (PCMCIA/CardBus) support
++#
++# CONFIG_PCCARD is not set
++
++#
++# Kernel Features
++#
++CONFIG_PREEMPT=y
++# CONFIG_NO_IDLE_HZ is not set
++# CONFIG_AEABI is not set
++# CONFIG_ARCH_DISCONTIGMEM_ENABLE is not set
++CONFIG_SELECT_MEMORY_MODEL=y
++CONFIG_FLATMEM_MANUAL=y
++# CONFIG_DISCONTIGMEM_MANUAL is not set
++# CONFIG_SPARSEMEM_MANUAL is not set
++CONFIG_FLATMEM=y
++CONFIG_FLAT_NODE_MEM_MAP=y
++# CONFIG_SPARSEMEM_STATIC is not set
++CONFIG_SPLIT_PTLOCK_CPUS=4096
++# CONFIG_LEDS is not set
++CONFIG_ALIGNMENT_TRAP=y
++
++#
++# Boot options
++#
++CONFIG_ZBOOT_ROM_TEXT=0x0
++CONFIG_ZBOOT_ROM_BSS=0x0
++CONFIG_CMDLINE="mem=32M console=ttyS0,115200n8 root=/dev/ram0 initrd=0x11c00000,4M"
++# CONFIG_XIP_KERNEL is not set
++
++#
++# CPU Frequency scaling
++#
++# CONFIG_CPU_FREQ is not set
++
++#
++# Floating point emulation
++#
++
++#
++# At least one emulation must be selected
++#
++CONFIG_FPE_NWFPE=y
++# CONFIG_FPE_NWFPE_XP is not set
++# CONFIG_FPE_FASTFPE is not set
++
++#
++# Userspace binary formats
++#
++CONFIG_BINFMT_ELF=y
++# CONFIG_BINFMT_AOUT is not set
++# CONFIG_BINFMT_MISC is not set
++# CONFIG_ARTHUR is not set
++
++#
++# Power management options
++#
++# CONFIG_PM is not set
++# CONFIG_APM is not set
++
++#
++# Networking
++#
++CONFIG_NET=y
++
++#
++# Networking options
++#
++# CONFIG_NETDEBUG is not set
++CONFIG_PACKET=y
++# CONFIG_PACKET_MMAP is not set
++CONFIG_UNIX=y
++# CONFIG_NET_KEY is not set
++CONFIG_INET=y
++CONFIG_IP_MULTICAST=y
++# CONFIG_IP_ADVANCED_ROUTER is not set
++CONFIG_IP_FIB_HASH=y
++# CONFIG_IP_PNP is not set
++# CONFIG_NET_IPIP is not set
++# CONFIG_NET_IPGRE is not set
++# CONFIG_IP_MROUTE is not set
++# CONFIG_ARPD is not set
++# CONFIG_SYN_COOKIES is not set
++# CONFIG_INET_AH is not set
++# CONFIG_INET_ESP is not set
++# CONFIG_INET_IPCOMP is not set
++# CONFIG_INET_TUNNEL is not set
++CONFIG_INET_DIAG=y
++CONFIG_INET_TCP_DIAG=y
++# CONFIG_TCP_CONG_ADVANCED is not set
++CONFIG_TCP_CONG_BIC=y
++CONFIG_IPV6=y
++# CONFIG_IPV6_PRIVACY is not set
++# CONFIG_INET6_AH is not set
++# CONFIG_INET6_ESP is not set
++# CONFIG_INET6_IPCOMP is not set
++# CONFIG_INET6_TUNNEL is not set
++# CONFIG_IPV6_TUNNEL is not set
++# CONFIG_NETFILTER is not set
++
++#
++# DCCP Configuration (EXPERIMENTAL)
++#
++# CONFIG_IP_DCCP is not set
++
++#
++# SCTP Configuration (EXPERIMENTAL)
++#
++# CONFIG_IP_SCTP is not set
++
++#
++# TIPC Configuration (EXPERIMENTAL)
++#
++# CONFIG_TIPC is not set
++# CONFIG_ATM is not set
++# CONFIG_BRIDGE is not set
++# CONFIG_VLAN_8021Q is not set
++# CONFIG_DECNET is not set
++# CONFIG_LLC2 is not set
++# CONFIG_IPX is not set
++# CONFIG_ATALK is not set
++# CONFIG_X25 is not set
++# CONFIG_LAPB is not set
++# CONFIG_NET_DIVERT is not set
++# CONFIG_ECONET is not set
++# CONFIG_WAN_ROUTER is not set
++
++#
++# QoS and/or fair queueing
++#
++# CONFIG_NET_SCHED is not set
++
++#
++# Network testing
++#
++# CONFIG_NET_PKTGEN is not set
++# CONFIG_HAMRADIO is not set
++# CONFIG_IRDA is not set
++# CONFIG_BT is not set
++# CONFIG_IEEE80211 is not set
++
++#
++# Device Drivers
++#
++
++#
++# Generic Driver Options
++#
++CONFIG_STANDALONE=y
++CONFIG_PREVENT_FIRMWARE_BUILD=y
++# CONFIG_FW_LOADER is not set
++# CONFIG_DEBUG_DRIVER is not set
++
++#
++# Connector - unified userspace <-> kernelspace linker
++#
++# CONFIG_CONNECTOR is not set
++
++#
++# Memory Technology Devices (MTD)
++#
++# CONFIG_MTD is not set
++
++#
++# Parallel port support
++#
++# CONFIG_PARPORT is not set
++
++#
++# Plug and Play support
++#
++
++#
++# Block devices
++#
++# CONFIG_BLK_DEV_COW_COMMON is not set
++CONFIG_BLK_DEV_LOOP=y
++# CONFIG_BLK_DEV_CRYPTOLOOP is not set
++# CONFIG_BLK_DEV_NBD is not set
++CONFIG_BLK_DEV_RAM=y
++CONFIG_BLK_DEV_RAM_COUNT=16
++CONFIG_BLK_DEV_RAM_SIZE=8192
++CONFIG_BLK_DEV_INITRD=y
++# CONFIG_CDROM_PKTCDVD is not set
++# CONFIG_ATA_OVER_ETH is not set
++
++#
++# SCSI device support
++#
++# CONFIG_RAID_ATTRS is not set
++# CONFIG_SCSI is not set
++
++#
++# Multi-device support (RAID and LVM)
++#
++# CONFIG_MD is not set
++
++#
++# Fusion MPT device support
++#
++# CONFIG_FUSION is not set
++
++#
++# IEEE 1394 (FireWire) support
++#
++
++#
++# I2O device support
++#
++
++#
++# Network device support
++#
++CONFIG_NETDEVICES=y
++# CONFIG_DUMMY is not set
++# CONFIG_BONDING is not set
++# CONFIG_EQUALIZER is not set
++# CONFIG_TUN is not set
++
++#
++# PHY device support
++#
++# CONFIG_PHYLIB is not set
++
++#
++# Ethernet (10 or 100Mbit)
++#
++CONFIG_NET_ETHERNET=y
++CONFIG_MII=y
++# CONFIG_SMC91X is not set
++# CONFIG_DM9000 is not set
++
++#
++# Ethernet (1000 Mbit)
++#
++
++#
++# Ethernet (10000 Mbit)
++#
++
++#
++# Token Ring devices
++#
++
++#
++# Wireless LAN (non-hamradio)
++#
++# CONFIG_NET_RADIO is not set
++
++#
++# Wan interfaces
++#
++# CONFIG_WAN is not set
++CONFIG_PPP=y
++CONFIG_PPP_MULTILINK=y
++# CONFIG_PPP_FILTER is not set
++# CONFIG_PPP_ASYNC is not set
++# CONFIG_PPP_SYNC_TTY is not set
++# CONFIG_PPP_DEFLATE is not set
++# CONFIG_PPP_BSDCOMP is not set
++# CONFIG_PPP_MPPE is not set
++# CONFIG_PPPOE is not set
++# CONFIG_SLIP is not set
++# CONFIG_SHAPER is not set
++# CONFIG_NETCONSOLE is not set
++# CONFIG_NETPOLL is not set
++# CONFIG_NET_POLL_CONTROLLER is not set
++
++#
++# ISDN subsystem
++#
++# CONFIG_ISDN is not set
++
++#
++# Input device support
++#
++CONFIG_INPUT=y
++
++#
++# Userland interfaces
++#
++CONFIG_INPUT_MOUSEDEV=y
++CONFIG_INPUT_MOUSEDEV_PSAUX=y
++CONFIG_INPUT_MOUSEDEV_SCREEN_X=1024
++CONFIG_INPUT_MOUSEDEV_SCREEN_Y=768
++# CONFIG_INPUT_JOYDEV is not set
++# CONFIG_INPUT_TSDEV is not set
++# CONFIG_INPUT_EVDEV is not set
++# CONFIG_INPUT_EVBUG is not set
++
++#
++# Input Device Drivers
++#
++CONFIG_INPUT_KEYBOARD=y
++CONFIG_KEYBOARD_ATKBD=y
++# CONFIG_KEYBOARD_SUNKBD is not set
++# CONFIG_KEYBOARD_LKKBD is not set
++# CONFIG_KEYBOARD_XTKBD is not set
++# CONFIG_KEYBOARD_NEWTON is not set
++CONFIG_KEYBOARD_OMAP=y
++# CONFIG_INPUT_MOUSE is not set
++# CONFIG_INPUT_JOYSTICK is not set
++# CONFIG_INPUT_TOUCHSCREEN is not set
++# CONFIG_INPUT_MISC is not set
++
++#
++# Hardware I/O ports
++#
++CONFIG_SERIO=y
++CONFIG_SERIO_SERPORT=y
++CONFIG_SERIO_LIBPS2=y
++# CONFIG_SERIO_RAW is not set
++# CONFIG_GAMEPORT is not set
++
++#
++# Character devices
++#
++CONFIG_VT=y
++CONFIG_VT_CONSOLE=y
++CONFIG_HW_CONSOLE=y
++# CONFIG_SERIAL_NONSTANDARD is not set
++
++#
++# Serial drivers
++#
++CONFIG_SERIAL_8250=y
++CONFIG_SERIAL_8250_CONSOLE=y
++CONFIG_SERIAL_8250_NR_UARTS=4
++CONFIG_SERIAL_8250_RUNTIME_UARTS=4
++# CONFIG_SERIAL_8250_EXTENDED is not set
++
++#
++# Non-8250 serial port support
++#
++CONFIG_SERIAL_CORE=y
++CONFIG_SERIAL_CORE_CONSOLE=y
++CONFIG_UNIX98_PTYS=y
++# CONFIG_LEGACY_PTYS is not set
++
++#
++# IPMI
++#
++# CONFIG_IPMI_HANDLER is not set
++
++#
++# Watchdog Cards
++#
++# CONFIG_WATCHDOG is not set
++# CONFIG_NVRAM is not set
++# CONFIG_RTC is not set
++CONFIG_OMAP_RTC=y
++# CONFIG_DTLK is not set
++# CONFIG_R3964 is not set
++
++#
++# Ftape, the floppy tape device driver
++#
++# CONFIG_RAW_DRIVER is not set
++
++#
++# TPM devices
++#
++# CONFIG_TCG_TPM is not set
++# CONFIG_TELCLOCK is not set
++
++#
++# I2C support
++#
++CONFIG_I2C=y
++CONFIG_I2C_CHARDEV=y
++
++#
++# I2C Algorithms
++#
++CONFIG_I2C_ALGOBIT=y
++# CONFIG_I2C_ALGOPCF is not set
++# CONFIG_I2C_ALGOPCA is not set
++
++#
++# I2C Hardware Bus support
++#
++# CONFIG_I2C_PARPORT_LIGHT is not set
++# CONFIG_I2C_STUB is not set
++# CONFIG_I2C_PCA_ISA is not set
++CONFIG_I2C_OMAP=y
++
++#
++# Miscellaneous I2C Chip support
++#
++# CONFIG_SENSORS_DS1337 is not set
++# CONFIG_SENSORS_DS1374 is not set
++# CONFIG_SENSORS_EEPROM is not set
++# CONFIG_SENSORS_PCF8574 is not set
++# CONFIG_SENSORS_PCA9539 is not set
++# CONFIG_SENSORS_PCF8591 is not set
++# CONFIG_SENSORS_RTC8564 is not set
++# CONFIG_TPS65010 is not set
++# CONFIG_SENSORS_TLV320AIC23 is not set
++# CONFIG_SENSORS_MAX6875 is not set
++# CONFIG_RTC_X1205_I2C is not set
++# CONFIG_I2C_DEBUG_CORE is not set
++# CONFIG_I2C_DEBUG_ALGO is not set
++# CONFIG_I2C_DEBUG_BUS is not set
++# CONFIG_I2C_DEBUG_CHIP is not set
++
++#
++# SPI support
++#
++# CONFIG_SPI is not set
++# CONFIG_SPI_MASTER is not set
++
++#
++# Dallas's 1-wire bus
++#
++# CONFIG_W1 is not set
++
++#
++# Hardware Monitoring support
++#
++# CONFIG_HWMON is not set
++# CONFIG_HWMON_VID is not set
++
++#
++# Misc devices
++#
++
++#
++# Multimedia Capabilities Port drivers
++#
++
++#
++# Multimedia devices
++#
++# CONFIG_VIDEO_DEV is not set
++
++#
++# Digital Video Broadcasting Devices
++#
++# CONFIG_DVB is not set
++
++#
++# Graphics support
++#
++# CONFIG_FB is not set
++
++#
++# Console display driver support
++#
++# CONFIG_VGA_CONSOLE is not set
++CONFIG_DUMMY_CONSOLE=y
++
++#
++# Sound
++#
++# CONFIG_SOUND is not set
++
++#
++# USB support
++#
++CONFIG_USB_ARCH_HAS_HCD=y
++CONFIG_USB_ARCH_HAS_OHCI=y
++# CONFIG_USB is not set
++
++#
++# NOTE: USB_STORAGE enables SCSI, and 'SCSI disk support'
++#
++
++#
++# USB Gadget Support
++#
++# CONFIG_USB_GADGET is not set
++
++#
++# MMC/SD Card support
++#
++# CONFIG_MMC is not set
++
++#
++# Synchronous Serial Interfaces (SSI)
++#
++# CONFIG_OMAP_UWIRE is not set
++# CONFIG_OMAP_TSC2101 is not set
++
++#
++# CBUS support
++#
++# CONFIG_CBUS is not set
++
++#
++# File systems
++#
++CONFIG_EXT2_FS=y
++# CONFIG_EXT2_FS_XATTR is not set
++# CONFIG_EXT2_FS_XIP is not set
++CONFIG_EXT3_FS=y
++CONFIG_EXT3_FS_XATTR=y
++# CONFIG_EXT3_FS_POSIX_ACL is not set
++# CONFIG_EXT3_FS_SECURITY is not set
++CONFIG_JBD=y
++# CONFIG_JBD_DEBUG is not set
++CONFIG_FS_MBCACHE=y
++# CONFIG_REISERFS_FS is not set
++# CONFIG_JFS_FS is not set
++# CONFIG_FS_POSIX_ACL is not set
++# CONFIG_XFS_FS is not set
++# CONFIG_OCFS2_FS is not set
++# CONFIG_MINIX_FS is not set
++# CONFIG_ROMFS_FS is not set
++CONFIG_INOTIFY=y
++# CONFIG_QUOTA is not set
++CONFIG_DNOTIFY=y
++CONFIG_AUTOFS_FS=y
++CONFIG_AUTOFS4_FS=y
++# CONFIG_FUSE_FS is not set
++
++#
++# CD-ROM/DVD Filesystems
++#
++# CONFIG_ISO9660_FS is not set
++# CONFIG_UDF_FS is not set
++
++#
++# DOS/FAT/NT Filesystems
++#
++CONFIG_FAT_FS=y
++CONFIG_MSDOS_FS=y
++CONFIG_VFAT_FS=y
++CONFIG_FAT_DEFAULT_CODEPAGE=437
++CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
++# CONFIG_NTFS_FS is not set
++
++#
++# Pseudo filesystems
++#
++CONFIG_PROC_FS=y
++CONFIG_SYSFS=y
++CONFIG_TMPFS=y
++# CONFIG_HUGETLB_PAGE is not set
++CONFIG_RAMFS=y
++# CONFIG_RELAYFS_FS is not set
++# CONFIG_CONFIGFS_FS is not set
++
++#
++# Miscellaneous filesystems
++#
++# CONFIG_ADFS_FS is not set
++# CONFIG_AFFS_FS is not set
++# CONFIG_HFS_FS is not set
++# CONFIG_HFSPLUS_FS is not set
++# CONFIG_BEFS_FS is not set
++# CONFIG_BFS_FS is not set
++# CONFIG_EFS_FS is not set
++# CONFIG_CRAMFS is not set
++# CONFIG_VXFS_FS is not set
++# CONFIG_HPFS_FS is not set
++# CONFIG_QNX4FS_FS is not set
++# CONFIG_SYSV_FS is not set
++# CONFIG_UFS_FS is not set
++
++#
++# Network File Systems
++#
++CONFIG_NFS_FS=y
++# CONFIG_NFS_V3 is not set
++# CONFIG_NFS_V4 is not set
++# CONFIG_NFS_DIRECTIO is not set
++# CONFIG_NFSD is not set
++CONFIG_LOCKD=y
++CONFIG_NFS_COMMON=y
++CONFIG_SUNRPC=y
++# CONFIG_RPCSEC_GSS_KRB5 is not set
++# CONFIG_RPCSEC_GSS_SPKM3 is not set
++# CONFIG_SMB_FS is not set
++# CONFIG_CIFS is not set
++# CONFIG_NCP_FS is not set
++# CONFIG_CODA_FS is not set
++# CONFIG_AFS_FS is not set
++# CONFIG_9P_FS is not set
++
++#
++# Partition Types
++#
++CONFIG_PARTITION_ADVANCED=y
++# CONFIG_ACORN_PARTITION is not set
++# CONFIG_OSF_PARTITION is not set
++# CONFIG_AMIGA_PARTITION is not set
++# CONFIG_ATARI_PARTITION is not set
++# CONFIG_MAC_PARTITION is not set
++CONFIG_MSDOS_PARTITION=y
++# CONFIG_BSD_DISKLABEL is not set
++# CONFIG_MINIX_SUBPARTITION is not set
++# CONFIG_SOLARIS_X86_PARTITION is not set
++# CONFIG_UNIXWARE_DISKLABEL is not set
++# CONFIG_LDM_PARTITION is not set
++# CONFIG_SGI_PARTITION is not set
++# CONFIG_ULTRIX_PARTITION is not set
++# CONFIG_SUN_PARTITION is not set
++# CONFIG_KARMA_PARTITION is not set
++# CONFIG_EFI_PARTITION is not set
++
++#
++# Native Language Support
++#
++CONFIG_NLS=y
++CONFIG_NLS_DEFAULT="iso8859-1"
++CONFIG_NLS_CODEPAGE_437=y
++# CONFIG_NLS_CODEPAGE_737 is not set
++# CONFIG_NLS_CODEPAGE_775 is not set
++CONFIG_NLS_CODEPAGE_850=y
++CONFIG_NLS_CODEPAGE_852=y
++# CONFIG_NLS_CODEPAGE_855 is not set
++# CONFIG_NLS_CODEPAGE_857 is not set
++# CONFIG_NLS_CODEPAGE_860 is not set
++# CONFIG_NLS_CODEPAGE_861 is not set
++# CONFIG_NLS_CODEPAGE_862 is not set
++# CONFIG_NLS_CODEPAGE_863 is not set
++# CONFIG_NLS_CODEPAGE_864 is not set
++# CONFIG_NLS_CODEPAGE_865 is not set
++# CONFIG_NLS_CODEPAGE_866 is not set
++# CONFIG_NLS_CODEPAGE_869 is not set
++# CONFIG_NLS_CODEPAGE_936 is not set
++# CONFIG_NLS_CODEPAGE_950 is not set
++# CONFIG_NLS_CODEPAGE_932 is not set
++# CONFIG_NLS_CODEPAGE_949 is not set
++# CONFIG_NLS_CODEPAGE_874 is not set
++# CONFIG_NLS_ISO8859_8 is not set
++# CONFIG_NLS_CODEPAGE_1250 is not set
++# CONFIG_NLS_CODEPAGE_1251 is not set
++# CONFIG_NLS_ASCII is not set
++CONFIG_NLS_ISO8859_1=y
++CONFIG_NLS_ISO8859_2=y
++# CONFIG_NLS_ISO8859_3 is not set
++# CONFIG_NLS_ISO8859_4 is not set
++# CONFIG_NLS_ISO8859_5 is not set
++# CONFIG_NLS_ISO8859_6 is not set
++# CONFIG_NLS_ISO8859_7 is not set
++# CONFIG_NLS_ISO8859_9 is not set
++# CONFIG_NLS_ISO8859_13 is not set
++# CONFIG_NLS_ISO8859_14 is not set
++# CONFIG_NLS_ISO8859_15 is not set
++# CONFIG_NLS_KOI8_R is not set
++# CONFIG_NLS_KOI8_U is not set
++# CONFIG_NLS_UTF8 is not set
++
++#
++# Profiling support
++#
++# CONFIG_PROFILING is not set
++
++#
++# Kernel hacking
++#
++# CONFIG_PRINTK_TIME is not set
++CONFIG_MAGIC_SYSRQ=y
++CONFIG_DEBUG_KERNEL=y
++CONFIG_LOG_BUF_SHIFT=14
++CONFIG_DETECT_SOFTLOCKUP=y
++# CONFIG_SCHEDSTATS is not set
++# CONFIG_DEBUG_SLAB is not set
++CONFIG_DEBUG_PREEMPT=y
++CONFIG_DEBUG_MUTEXES=y
++# CONFIG_DEBUG_SPINLOCK is not set
++# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
++# CONFIG_DEBUG_KOBJECT is not set
++CONFIG_DEBUG_BUGVERBOSE=y
++# CONFIG_DEBUG_INFO is not set
++# CONFIG_DEBUG_FS is not set
++# CONFIG_DEBUG_VM is not set
++CONFIG_FRAME_POINTER=y
++CONFIG_FORCED_INLINING=y
++# CONFIG_RCU_TORTURE_TEST is not set
++# CONFIG_DEBUG_USER is not set
++# CONFIG_DEBUG_WAITQ is not set
++# CONFIG_DEBUG_ERRORS is not set
++# CONFIG_DEBUG_LL is not set
++
++#
++# Security options
++#
++# CONFIG_KEYS is not set
++# CONFIG_SECURITY is not set
++
++#
++# Cryptographic options
++#
++# CONFIG_CRYPTO is not set
++
++#
++# Hardware crypto devices
++#
++
++#
++# Library routines
++#
++# CONFIG_CRC_CCITT is not set
++# CONFIG_CRC16 is not set
++CONFIG_CRC32=y
++# CONFIG_LIBCRC32C is not set
+diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
+index 0cad7be..fc7d3ce 100644
+--- a/arch/arm/mach-omap1/Kconfig
++++ b/arch/arm/mach-omap1/Kconfig
+@@ -87,6 +87,13 @@ config MACH_NOKIA770
+ 	  Support for the Nokia 770 Internet Tablet. Say Y here if you
+ 	  have such a device.
+ 
++config MACH_AMS_DELTA
++	bool "Amstrad E3 (Delta)"
++	depends on ARCH_OMAP1 && ARCH_OMAP15XX
++	help
++	  Support for the Amstrad E3 (codename Delta) videophone. Say Y here
++	  if you have such a device.
++
+ config MACH_OMAP_GENERIC
+ 	bool "Generic OMAP board"
+ 	depends on ARCH_OMAP1 && (ARCH_OMAP15XX || ARCH_OMAP16XX)
+diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
+index 5e0e023..9ea7195 100644
+--- a/arch/arm/mach-omap1/Makefile
++++ b/arch/arm/mach-omap1/Makefile
+@@ -22,6 +22,7 @@ obj-$(CONFIG_MACH_OMAP_H3)		+= board-h3.
+ obj-$(CONFIG_MACH_VOICEBLUE)		+= board-voiceblue.o
+ obj-$(CONFIG_MACH_OMAP_PALMTE)		+= board-palmte.o
+ obj-$(CONFIG_MACH_NOKIA770)		+= board-nokia770.o
++obj-$(CONFIG_MACH_AMS_DELTA)		+= board-ams-delta.o
+ 
+ ifeq ($(CONFIG_ARCH_OMAP15XX),y)
+ # Innovator-1510 FPGA
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+new file mode 100644
+index 0000000..6178f04
+--- /dev/null
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -0,0 +1,116 @@
 +/*
-+ * drivers/media/video/omap/omap24xxlib.c
++ * linux/arch/arm/mach-omap1/board-ams-delta.c
 + *
-+ * Copyright (C) 2005-2006 Texas Instruments.
++ * Modified from board-generic.c
 + *
-+ * This file is licensed under the terms of the GNU General Public License 
-+ * version 2. This program is licensed "as is" without any warranty of any 
-+ * kind, whether express or implied.
++ * Board specific inits for the Amstrad E3 (codename Delta) videophone
 + *
-+ * Based on the OMAP2 camera driver
-+ * Video-for-Linux (Version 2) camera capture driver for 
-+ * the OMAP24xx camera controller.
++ * Copyright (C) 2006 Jonathan McDowell <noodles@earth.li>
 + *
-+ * Author: Andy Lowe (source@mvista.com)
-+ *
-+ * Copyright (C) 2004 MontaVista Software, Inc.
-+ * Copyright (C) 2004 Texas Instruments.
-+ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
-+#include <linux/config.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
++
 +#include <linux/kernel.h>
-+#include <linux/videodev.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
 +
-+/* Return the default overlay cropping rectangle in crop given the image
-+ * size in pix and the video display size in fbuf.  The default 
-+ * cropping rectangle is the largest rectangle no larger than the capture size 
-+ * that will fit on the display.  The default cropping rectangle is centered in 
-+ * the image.  All dimensions and offsets are rounded down to even numbers.
-+ */
-+void
-+omap24xxvout_default_crop(struct v4l2_pix_format *pix,
-+			  struct v4l2_framebuffer *fbuf, struct v4l2_rect *crop)
++#include <asm/hardware.h>
++#include <asm/mach-types.h>
++#include <asm/mach/arch.h>
++#include <asm/mach/map.h>
++
++#include <asm/arch/board-ams-delta.h>
++#include <asm/arch/gpio.h>
++#include <asm/arch/mux.h>
++#include <asm/arch/usb.h>
++#include <asm/arch/board.h>
++#include <asm/arch/common.h>
++
++static u8 ams_delta_latch1_reg;
++static u16 ams_delta_latch2_reg;
++
++void ams_delta_latch1_write(u8 mask, u8 value)
 +{
-+	crop->width = (pix->width < fbuf->fmt.width) ?
-+	    pix->width : fbuf->fmt.width;
-+	crop->height = (pix->height < fbuf->fmt.height) ?
-+	    pix->height : fbuf->fmt.height;
-+	crop->width &= ~1;
-+	crop->height &= ~1;
-+	crop->left = ((pix->width - crop->width) >> 1) & ~1;
-+	crop->top = ((pix->height - crop->height) >> 1) & ~1;
++	ams_delta_latch1_reg &= ~mask;
++	ams_delta_latch1_reg |= value;
++	*(volatile __u8 *) AMS_DELTA_LATCH1_VIRT = ams_delta_latch1_reg;
 +}
 +
-+/* Given a new render window in new_win, adjust the window to the 
-+ * nearest supported configuration.  The adjusted window parameters are 
-+ * returned in new_win.
-+ * Returns zero if succesful, or -EINVAL if the requested window is 
-+ * impossible and cannot reasonably be adjusted.
-+ */
-+int
-+omap24xxvout_try_window(struct v4l2_framebuffer *fbuf,
-+			struct v4l2_window *new_win)
++void ams_delta_latch2_write(u16 mask, u16 value)
 +{
-+	struct v4l2_rect try_win;
-+
-+	/* make a working copy of the new_win rectangle */
-+	try_win = new_win->w;
-+
-+	/* adjust the preview window so it fits on the display by clipping any 
-+	 * offscreen areas
-+	 */
-+	if (try_win.left < 0) {
-+		try_win.width += try_win.left;
-+		try_win.left = 0;
-+	}
-+	if (try_win.top < 0) {
-+		try_win.height += try_win.top;
-+		try_win.top = 0;
-+	}
-+	try_win.width = (try_win.width < fbuf->fmt.width) ?
-+	    try_win.width : fbuf->fmt.width;
-+	try_win.height = (try_win.height < fbuf->fmt.height) ?
-+	    try_win.height : fbuf->fmt.height;
-+	if (try_win.left + try_win.width > fbuf->fmt.width)
-+		try_win.width = fbuf->fmt.width - try_win.left;
-+	if (try_win.top + try_win.height > fbuf->fmt.height)
-+		try_win.height = fbuf->fmt.height - try_win.top;
-+	try_win.width &= ~1;
-+	try_win.height &= ~1;
-+
-+	if (try_win.width <= 0 || try_win.height <= 0)
-+		return -EINVAL;
-+
-+	/* We now have a valid preview window, so go with it */
-+	new_win->w = try_win;
-+	new_win->field = V4L2_FIELD_NONE;
-+	return 0;
++	ams_delta_latch2_reg &= ~mask;
++	ams_delta_latch2_reg |= value;
++	*(volatile __u16 *) AMS_DELTA_LATCH2_VIRT = ams_delta_latch2_reg;
 +}
 +
-+/* Given a new render window in new_win, adjust the window to the 
-+ * nearest supported configuration.  The image cropping window in crop 
-+ * will also be adjusted if necessary.  Preference is given to keeping the 
-+ * the window as close to the requested configuration as possible.  If 
-+ * successful, new_win, vout->win, and crop are updated.
-+ * Returns zero if succesful, or -EINVAL if the requested preview window is 
-+ * impossible and cannot reasonably be adjusted.
-+ */
-+int
-+omap24xxvout_new_window(struct v4l2_rect *crop,
-+			struct v4l2_window *win,
-+			struct v4l2_framebuffer *fbuf,
-+			struct v4l2_window *new_win)
++static void __init ams_delta_init_irq(void)
 +{
-+	int err;
-+
-+	err = omap24xxvout_try_window(fbuf, new_win);
-+	if (err)
-+		return err;
-+
-+	/* update our preview window */
-+	win->w = new_win->w;
-+	win->field = new_win->field;
-+	win->chromakey = new_win->chromakey;
-+
-+	/* adjust the cropping window to allow for resizing limitations */
-+	if (crop->height / win->w.height >= 2) 
-+		/* The maximum vertical downsizing ratio is 2:1 */
-+		crop->height = win->w.height * 2;
-+	
-+	if (crop->width / win->w.width >= 2)
-+		/* The maximum horizontal downsizing ratio is 2:1 */
-+		crop->width = win->w.width * 2;
-+	
-+	if (crop->width > 768) {
-+		/* The OMAP2420 vertical resizing line buffer is 768 pixels 
-+		 * wide.  If the cropped image is wider than 768 pixels then it 
-+		 * cannot be vertically resized.
-+		 */
-+		if (crop->height != win->w.height)
-+			crop->width = 768;
-+	}
-+	return 0;
++	omap1_init_common_hw();
++	omap_init_irq();
++	omap_gpio_init();
 +}
 +
-+/* Given a new cropping rectangle in new_crop, adjust the cropping rectangle to 
-+ * the nearest supported configuration.  The image render window in win will 
-+ * also be adjusted if necessary.  The preview window is adjusted such that the 
-+ * horizontal and vertical rescaling ratios stay constant.  If the render 
-+ * window would fall outside the display boundaries, the cropping rectangle will 
-+ * also be adjusted to maintain the rescaling ratios.  If successful, crop 
-+ * and win are updated.
-+ * Returns zero if succesful, or -EINVAL if the requested cropping rectangle is 
-+ * impossible and cannot reasonably be adjusted.
-+ */
-+int
-+omap24xxvout_new_crop(struct v4l2_pix_format *pix,
-+		      struct v4l2_rect *crop,
-+		      struct v4l2_window *win,
-+		      struct v4l2_framebuffer *fbuf,
-+		      const struct v4l2_rect *new_crop)
++static struct map_desc ams_delta_io_desc[] __initdata = {
++	// AMS_DELTA_LATCH1
++	{
++		.virtual	= AMS_DELTA_LATCH1_VIRT,
++		.pfn		= __phys_to_pfn(AMS_DELTA_LATCH1_PHYS),
++		.length		= 0x01000000,
++		.type		= MT_DEVICE
++	},
++	// AMS_DELTA_LATCH2
++	{
++		.virtual	= AMS_DELTA_LATCH2_VIRT,
++		.pfn		= __phys_to_pfn(AMS_DELTA_LATCH2_PHYS),
++		.length		= 0x01000000,
++		.type		= MT_DEVICE
++	},
++	// AMS_DELTA_MODEM
++	{
++		.virtual	= AMS_DELTA_MODEM_VIRT,
++		.pfn		= __phys_to_pfn(AMS_DELTA_MODEM_PHYS),
++		.length		= 0x01000000,
++		.type		= MT_DEVICE
++	}
++};
++
++static struct omap_uart_config ams_delta_uart_config __initdata = {
++	.enabled_uarts = 1,
++};
++
++static struct omap_board_config_kernel ams_delta_config[] = {
++	{ OMAP_TAG_UART,	&ams_delta_uart_config },
++};
++
++static void __init ams_delta_init(void)
 +{
-+	struct v4l2_rect try_crop;
-+	unsigned long vresize, hresize;
++	iotable_init(ams_delta_io_desc, ARRAY_SIZE(ams_delta_io_desc));
 +
-+	/* make a working copy of the new_crop rectangle */
-+	try_crop = *new_crop;
++	omap_board_config = ams_delta_config;
++	omap_board_config_size = ARRAY_SIZE(ams_delta_config);
++	omap_serial_init();
 +
-+	/* adjust the cropping rectangle so it fits in the image */
-+	if (try_crop.left < 0) {
-+		try_crop.width += try_crop.left;
-+		try_crop.left = 0;
-+	}
-+	if (try_crop.top < 0) {
-+		try_crop.height += try_crop.top;
-+		try_crop.top = 0;
-+	}
-+	try_crop.width = (try_crop.width < pix->width) ?
-+	    try_crop.width : pix->width;
-+	try_crop.height = (try_crop.height < pix->height) ?
-+	    try_crop.height : pix->height;
-+	if (try_crop.left + try_crop.width > pix->width)
-+		try_crop.width = pix->width - try_crop.left;
-+	if (try_crop.top + try_crop.height > pix->height)
-+		try_crop.height = pix->height - try_crop.top;
-+	try_crop.width &= ~1;
-+	try_crop.height &= ~1;
-+	if (try_crop.width <= 0 || try_crop.height <= 0)
-+		return -EINVAL;
-+
-+	if (crop->height != win->w.height) {
-+		/* If we're resizing vertically, we can't support a crop width 
-+		 * wider than 768 pixels.
-+		 */
-+		if (try_crop.width > 768)
-+			try_crop.width = 768;
-+	}
-+	/* vertical resizing */
-+	vresize = (1024 * crop->height) / win->w.height;
-+	if (vresize > 2048)
-+		vresize = 2048;
-+	else if (vresize == 0)
-+		vresize = 1;
-+	win->w.height = ((1024 * try_crop.height) / vresize) & ~1;
-+	if (win->w.height == 0)
-+		win->w.height = 2;
-+	if (win->w.height + win->w.top > fbuf->fmt.height) {
-+		/* We made the preview window extend below the bottom of the 
-+		 * display, so clip it to the display boundary and resize the 
-+		 * cropping height to maintain the vertical resizing ratio.
-+		 */
-+		win->w.height = (fbuf->fmt.height - win->w.top) & ~1;
-+		try_crop.height = ((vresize * win->w.height) / 1024) & ~1;
-+		if (try_crop.height == 0)
-+			try_crop.height = 2;
-+	}
-+	/* horizontal resizing */
-+	hresize = (1024 * crop->width) / win->w.width;
-+	if (hresize > 2048)
-+		hresize = 2048;
-+	else if (hresize == 0)
-+		hresize = 1;
-+	win->w.width = ((1024 * try_crop.width) / hresize) & ~1;
-+	if (win->w.width == 0)
-+		win->w.width = 2;
-+	if (win->w.width + win->w.left > fbuf->fmt.width) {
-+		/* We made the preview window extend past the right side of the  
-+		 * display, so clip it to the display boundary and resize the 
-+		 * cropping width to maintain the horizontal resizing ratio.
-+		 */
-+		win->w.width = (fbuf->fmt.width - win->w.left) & ~1;
-+		try_crop.width = ((hresize * win->w.width) / 1024) & ~1;
-+		if (try_crop.width == 0)
-+			try_crop.width = 2;
-+	}
-+	/* update our cropping rectangle and we're done */
-+	*crop = try_crop;
-+	return 0;
++	/* Clear latch2 (NAND, LCD, modem enable) */
++	ams_delta_latch2_write(~0, 0);
 +}
 +
-+/* Given a new format in pix and fbuf,  crop and win 
-+ * structures are initialized to default values. crop 
-+ * is initialized to the largest window size that will fit on the display.  The 
-+ * crop window is centered in the image. win is initialized to 
-+ * the same size as crop and is centered on the display.
-+ * All sizes and offsets are constrained to be even numbers.  
-+ */
-+void
-+omap24xxvout_new_format(struct v4l2_pix_format *pix,
-+			struct v4l2_framebuffer *fbuf,
-+			struct v4l2_rect *crop, struct v4l2_window *win)
++static void __init ams_delta_map_io(void)
 +{
-+	/* crop defines the preview source window in the image capture 
-+	 * buffer
-+	 */
-+	omap24xxvout_default_crop(pix, fbuf, crop);
-+
-+	/* win defines the preview target window on the display */
-+	win->w.width = crop->width;
-+	win->w.height = crop->height;
-+	win->w.left = ((fbuf->fmt.width - win->w.width) >> 1) & ~1;
-+	win->w.top = ((fbuf->fmt.height - win->w.height) >> 1) & ~1;
++	omap1_map_common_io();
 +}
 +
-+EXPORT_SYMBOL_GPL(omap24xxvout_default_crop);
-+EXPORT_SYMBOL_GPL(omap24xxvout_try_window);
-+EXPORT_SYMBOL_GPL(omap24xxvout_new_window);
-+EXPORT_SYMBOL_GPL(omap24xxvout_new_crop);
-+EXPORT_SYMBOL_GPL(omap24xxvout_new_format);
++MACHINE_START(AMS_DELTA, "Amstrad E3 (Delta)")
++	/* Maintainer: Jonathan McDowell <noodles@earth.li> */
++	.phys_io	= 0xfff00000,
++	.io_pg_offst	= ((0xfef00000) >> 18) & 0xfffc,
++	.boot_params	= 0x10000100,
++	.map_io		= ams_delta_map_io,
++	.init_irq	= ams_delta_init_irq,
++	.init_machine	= ams_delta_init,
++	.timer		= &omap_timer,
++MACHINE_END
 +
-+MODULE_AUTHOR("Texas Instruments.");
-+MODULE_DESCRIPTION("OMAP24xx Video library");
-+MODULE_LICENSE ("GPL");
-diff --git a/drivers/media/video/omap/omap24xxlib.h b/drivers/media/video/omap/omap24xxlib.h
++EXPORT_SYMBOL(ams_delta_latch1_write);
++EXPORT_SYMBOL(ams_delta_latch2_write);
+diff --git a/include/asm-arm/arch-omap/board-ams-delta.h b/include/asm-arm/arch-omap/board-ams-delta.h
 new file mode 100644
-index 0000000..f778291
+index 0000000..88bb3c6
 --- /dev/null
-+++ b/drivers/media/video/omap/omap24xxlib.h
-@@ -0,0 +1,39 @@
++++ b/include/asm-arm/arch-omap/board-ams-delta.h
+@@ -0,0 +1,65 @@
 +/*
-+ * drivers/media/video/omap/omap24xxlib.h
++ * linux/include/asm-arm/arch-omap/board-ams-delta.h
 + *
-+ * Copyright (C) 2005-2006 Texas Instruments.
++ * Copyright (C) 2006 Jonathan McDowell <noodles@earth.li>
 + *
-+ * This file is licensed under the terms of the GNU General Public License 
-+ * version 2. This program is licensed "as is" without any warranty of any 
-+ * kind, whether express or implied.
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
 + *
++ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
++ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
++ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 675 Mass Ave, Cambridge, MA 02139, USA.
 + */
++#ifndef __ASM_ARCH_OMAP_AMS_DELTA_H
++#define __ASM_ARCH_OMAP_AMS_DELTA_H
 +
-+#ifndef OMAP24XXLIB_VIDEO_H
-+#define OMAP24XXLIB_VIDEO_H
++#if defined (CONFIG_MACH_AMS_DELTA)
 +
-+extern void
-+ omap24xxvout_default_crop(struct v4l2_pix_format *pix,
-+				struct v4l2_framebuffer *fbuf,
-+				struct v4l2_rect *crop);
++#define AMS_DELTA_LATCH1_PHYS		0x01000000
++#define AMS_DELTA_LATCH1_VIRT		0xEA000000
++#define AMS_DELTA_MODEM_PHYS		0x04000000
++#define AMS_DELTA_MODEM_VIRT		0xEB000000
++#define AMS_DELTA_LATCH2_PHYS		0x08000000
++#define AMS_DELTA_LATCH2_VIRT		0xEC000000
 +
-+extern int
-+ omap24xxvout_new_crop(struct v4l2_pix_format *pix, struct v4l2_rect *crop,
-+			struct v4l2_window *win, struct v4l2_framebuffer *fbuf,
-+			const struct v4l2_rect *new_crop);
++#define AMS_DELTA_LATCH1_LED_CAMERA	0x01
++#define AMS_DELTA_LATCH1_LED_ADVERT	0x02
++#define AMS_DELTA_LATCH1_LED_EMAIL	0x04
++#define AMS_DELTA_LATCH1_LED_HANDSFREE	0x08
++#define AMS_DELTA_LATCH1_LED_VOICEMAIL	0x10
++#define AMS_DELTA_LATCH1_LED_VOICE	0x20
 +
-+extern int
-+ omap24xxvout_try_window(struct v4l2_framebuffer *fbuf,
-+				 struct v4l2_window *new_win);
++#define AMS_DELTA_LATCH2_LCD_VBLEN	0x0001
++#define AMS_DELTA_LATCH2_LCD_NDISP	0x0002
++#define AMS_DELTA_LATCH2_NAND_NCE	0x0004
++#define AMS_DELTA_LATCH2_NAND_NRE	0x0008
++#define AMS_DELTA_LATCH2_NAND_NWP	0x0010
++#define AMS_DELTA_LATCH2_NAND_NWE	0x0020
++#define AMS_DELTA_LATCH2_NAND_ALE	0x0040
++#define AMS_DELTA_LATCH2_NAND_CLE	0x0080
++#define AMS_DELTA_LATCH2_MODEM_NRESET	0x1000
++#define AMS_DELTA_LATCH2_MODEM_CODEC	0x2000
 +
-+extern int
-+ omap24xxvout_new_window(struct v4l2_rect *crop,struct v4l2_window *win,
-+				struct v4l2_framebuffer *fbuf,
-+				struct v4l2_window *new_win);
++#define AMS_DELTA_GPIO_PIN_NAND_RB	12
 +
-+extern void
-+ omap24xxvout_new_format(struct v4l2_pix_format *pix,
-+			 	struct v4l2_framebuffer *fbuf,
-+				struct v4l2_rect *crop,
-+				struct v4l2_window *win);
++#ifndef __ASSEMBLY__
++void ams_delta_latch1_write(u8 mask, u8 value);
++void ams_delta_latch2_write(u16 mask, u16 value);
 +#endif
++
++#endif /* CONFIG_MACH_AMS_DELTA */
++
++#endif /* __ASM_ARCH_OMAP_AMS_DELTA_H */
+-----
 
---0-1609740917-1143046557=:7665
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+J.
 
-
---0-1609740917-1143046557=:7665--
+-- 
+    "Making the impossible very    |  .''`.  Debian GNU/Linux Developer
+    difficult" -- The OpenGALEN    | : :' :  Happy to accept PGP signed
+             website.              | `. `'   or encrypted mail - RSA +
+                                   |   `-    DSA keys on the keyservers.
