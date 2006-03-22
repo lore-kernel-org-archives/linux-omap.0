@@ -1,12 +1,14 @@
-From: Anoop Krishnan <Anoop.Krishnan@lntinfotech.com>
-Subject: Re: Volume control in OMAP 1510
-Date: Wed, 22 Mar 2006 17:32:49 +0530
-Message-ID: <OFD1C8DE0A.FCB11C3F-ON65257139.0040FA60-65257139.00422D28@lntinfotech.com>
-References: <fd1e34b0603220134q4b27474dr9e8742fd2cf28268@mail.gmail.com>
+From: Anderson Briglia <anderson.briglia@indt.org.br>
+Subject: Re: ALSA with OSK
+Date: Wed, 22 Mar 2006 09:07:12 -0400
+Message-ID: <44214C00.3060302@indt.org.br>
+References: <442020C6.1060203@gmail.com> <442072B2.5050005@cc.jyu.fi>
+	<4420F44F.9010900@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <fd1e34b0603220134q4b27474dr9e8742fd2cf28268@mail.gmail.com>
+In-Reply-To: <4420F44F.9010900@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,32 +18,21 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: ext Dirk Behme <dirk.behme@googlemail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi James
+Hi,
 
-I  enabled ALSA  in the sound driver. There you  have to enable OSS PCM 
-API.
+ext Dirk Behme wrote:
+> Thanks! Does aplay play mp3? I applied the patches, but no difference:
 
- Location:
-     -> Device Drivers
-       -> Sound 
-         -> Advanced Linux Sound Architecture
-           -> Advanced Linux Sound Architecture (SND [=y]) 
+aplay doesn't support mp3 files. You can try this command instead:
 
+madplay -q -o raw:- file.mp3 | aplay -q -f cd
 
+It uses madplay just for mp3 decoding and aplay to actually "talk" with alsa.
 
-Also you should enable OMAP sound driver in OSS.
+Best Regards,
 
- Location: 
-     -> Device Drivers 
-       -> Sound 
-         -> Open Sound System
-           -> Open Sound System (DEPRECATED) (SOUND_PRIME [=y])
-            -> OMAP Sound Driver (SOUND_OMAP [=y])
-
-
-Anoop
-
-______________________________________________________________________
+Anderson Briglia
