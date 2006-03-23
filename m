@@ -1,15 +1,14 @@
-From: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>
-Subject: Re: [RFC] snapshot boot on omap osk 5912
-Date: Thu, 23 Mar 2006 17:34:34 +0900 (JST)
-Message-ID: <20060323.173434.70222708.kaminaga@sm.sony.co.jp>
-References: <20060308.214946.48536311.kaminaga@sm.sony.co.jp>
-	<20060320.113406.78713993.kaminaga@sm.sony.co.jp>
-	<20060320.154502.74754326.kaminaga@sm.sony.co.jp>
+From: "andrzej zaborowski" <balrog@zabor.org>
+Subject: Re: [PATCH] ads7846: pressure value limitationads
+Date: Thu, 23 Mar 2006 11:49:30 +0100
+Message-ID: <fb249edb0603230249h7f4f4149k@mail.gmail.com>
+References: <1142967372.8050.45.camel@mammoth.research.nokia.com>
+	<1142969021.8050.50.camel@mammoth.research.nokia.com>
+Reply-To: balrogg@gmail.com
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060320.154502.74754326.kaminaga@sm.sony.co.jp>
+Content-Type: multipart/mixed; boundary="===============0606296841=="
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <1142969021.8050.50.camel@mammoth.research.nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,51 +16,36 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Imre Deak <imre.deak@nokia.com>
+Cc: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+--===============0606296841==
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-> > > What I did in step 2) in bootloader is
-> > > 2-1) modified timer to 192MHz for ARM, and enabled mpu, xor, tim clock.
-> > > 2-2) enabled MMU
-> > > (for other device, I hoped resume sequence in kernel would handle...)
-> > 
-> > I answer myself, Mask Interrupt Register was not setup right, and
-> > it blocked all interrupts. After I unmasked MIR, it got further.
-> > 
-> > But next problem was that network is not up.
-> 
-> I answer myself again :)
-> It was because gpio1 irqenable register was not properly set.
+PiBPbiBUdWUsIDIwMDYtMDMtMjEgYXQgMjA6NTYgKzAyMDAsIEltcmUgRGVhayB3cm90ZToKPiA+
+IExpbWl0IHRoZSBwcmVzc3VyZSB2YWx1ZSB0byB0aGUgbWF4aW11bSBzcGVjaWZpZWQgaW4gdGhl
+IGJvYXJkLSoKPiA+IHNwZWNpZmljIGZpbGUuIFNhbXBsZXMgd2l0aCBwcmVzc3VyZSB2YWx1ZXMg
+YmV5b25kIHRoZSBtYXhpbXVtIGFyZQo+ID4gY29uc2lkZXJlZCBub24tcmVsaWFibGUuIEZvciB0
+aGVzZSByZXBvcnQgdGhlIHgseSB2YWx1ZXMgbWVhc3VyZWQgbGFzdC4KTm90ZSB0aGF0IHRoaXMg
+Y2FuIGJlIGFsc28gZG9uZSBlbnRpcmVseSBpbiB1c2Vyc3BhY2UuCgo+ID4KPiA+IFNpZ25lZC1v
+ZmYtYnk6IEltcmUgRGVhayA8aW1yZS5kZWFrQG5va2lhLmNvbT4KPgo+Cj4gX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KPiBMaW51eC1vbWFwLW9wZW4tc291
+cmNlIG1haWxpbmcgbGlzdAo+IExpbnV4LW9tYXAtb3Blbi1zb3VyY2VAbGludXgub21hcC5jb20K
+PiBodHRwOi8vbGludXgub21hcC5jb20vbWFpbG1hbi9saXN0aW5mby9saW51eC1vbWFwLW9wZW4t
+c291cmNlCj4KPgo+Cj4KClJlZ2FyZHMsCkFuZHJldwotLQpiYWxyb2cgMm9vNgoKRGVhciBPdXRs
+b29rIHVzZXJzOiBQbGVhc2UgcmVtb3ZlIG1lIGZyb20geW91ciBhZGRyZXNzIGJvb2tzCmh0dHA6
+Ly93d3cubmV3c2ZvcmdlLmNvbS9hcnRpY2xlLnBsP3NpZD0wMy8wOC8yMS8xNDMyNTgK
 
-Then comes nor flash... I got this message:
-
-mtdblock: erase of region [0x0, 0x20000] on "filesystem" failed
-end_request: I/O error, dev mtdblock3, sector 256
-
-
-Can anybody tell me the init steps I have to take?
-(from the *very* beginning, like turn on clock, register settings, ...)
-
-The usual message I get during normal kernel boot is:
-
-omap_nor_cs3: Found 1 x16 devices at 0x0 in 16-bit bank
-omap_nor_cs3: Found 1 x16 devices at 0x1000000 in 16-bit bank
- Intel/Sharp Extended Query Table at 0x0031
-Using buffer write method
-cfi_cmdset_0001: Erase suspend on write enabled
-Creating 4 MTD partitions on "omap_nor_cs3":
-0x00000000-0x00020000 : "bootloader"
-0x00020000-0x00040000 : "params"
-0x00040000-0x00240000 : "kernel"
-0x00240000-0x02000000 : "filesystem"
+--===============0606296841==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 
-Thanks in advance.
-
-(Hiroki Kaminaga)
-t
---
+--===============0606296841==--
