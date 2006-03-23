@@ -1,10 +1,10 @@
 From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: [PATCH] : Fix annoying 'too much work for irq72' serial port
+Subject: RE: [PATCH] : Fix annoying 'too much work for irq72' serial port
 	watermark error.
-Date: Thu, 23 Mar 2006 11:53:20 -0600
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A504E61448@dlee02.ent.ti.com>
+Date: Thu, 23 Mar 2006 13:29:49 -0600
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A504E6159F@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C64EA2.AC2DAB62"
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C64EB0.26FDE01A"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
@@ -22,38 +22,48 @@ List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
 
-------_=_NextPart_001_01C64EA2.AC2DAB62
+------_=_NextPart_001_01C64EB0.26FDE01A
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 
-Tony,
-
-I was just trying out a different PRCM set on 2420/2430 and the annoying
-serial 'too much work' interrupt started up again even with an SCR=3D8.
-I've attached a patch which fixes the problem.  At fastest PRCM sets
-timing some issues have popped up which have been masked before.
-
-Note: This patch is a consolidated on with the other patches I had
-previously sent which have not been applied, as this is what I tested
-with.  The timer version in this patch is good, and I validated outputs
-using the emulator at function entry/exits.  Some of the earlier
-versions had overflow issues with nano-seconds.
-
-This patch now allows the OMAP_SCR to go back to 0, though it works
-either way.  This issue was this:  A THR interrupt can be generated
-which has status in the IIR, but without status in the LSR.  This is
-because the TX watermark interrupt happens when the FIFO and SR are NOT
-empty.  The previous logic assumed at least the FIFO was empty before
-calling the TX routine.  For a watermark this is not the case.  The fix
-I added to this code checks the SSR (supplementary status register) to
-see if there is room in the FIFO.  Given we know how it was loaded there
-will be room if this shows it is not empty.
+Perhaps this version is better.  It avoids a possible double entry to
+transmit_chars() and removes the need for an #ifdef OMAPxyz.
 
 Regards,
 Richard W.
 
-------_=_NextPart_001_01C64EA2.AC2DAB62
+> I was just trying out a different PRCM set on 2420/2430 and the
+annoying
+> serial 'too much work' interrupt started up again even with an =
+SCR=3D8.
+> I've attached a patch which fixes the problem.  At fastest PRCM sets
+> timing some issues have popped up which have been masked before.
+>=20
+> Note: This patch is a consolidated on with the other patches I had
+> previously sent which have not been applied, as this is what I tested
+> with.  The timer version in this patch is good, and I validated
+outputs
+> using the emulator at function entry/exits.  Some of the earlier
+> versions had overflow issues with nano-seconds.
+>=20
+> This patch now allows the OMAP_SCR to go back to 0, though it works
+> either way.  This issue was this:  A THR interrupt can be generated
+> which has status in the IIR, but without status in the LSR.  This is
+> because the TX watermark interrupt happens when the FIFO and SR are
+NOT
+> empty.  The previous logic assumed at least the FIFO was empty before
+> calling the TX routine.  For a watermark this is not the case.  The
+fix
+> I added to this code checks the SSR (supplementary status register) to
+> see if there is room in the FIFO.  Given we know how it was loaded
+there
+> will be room if this shows it is not empty.
+>=20
+> Regards,
+> Richard W.
+
+------_=_NextPart_001_01C64EB0.26FDE01A
 Content-Type: application/octet-stream;
 	name="serial_fix_timer_irq.diff"
 Content-Transfer-Encoding: base64
@@ -246,53 +256,63 @@ ICo9ICh1NjQpbnVtX25zX2luX2ppZmZ5OworCW9tYXBfdGltZXIub2Zmc2V0ID0gb21hcDJfZ2V0
 dGltZW9mZnNldDsKIH0KIAogc3RydWN0IHN5c190aW1lciBvbWFwX3RpbWVyID0gewotCS5pbml0
 CT0gb21hcDJfZ3BfdGltZXJfaW5pdCwKKwkuaW5pdAk9IG9tYXAyX3RpbWVyX2luaXQsCisJLm9m
 ZnNldCA9IE5VTEwsCiB9OwogCmRpZmYgLS1naXQgYS9kcml2ZXJzL3NlcmlhbC84MjUwLmMgYi9k
-cml2ZXJzL3NlcmlhbC84MjUwLmMKaW5kZXggOGIxZmM1YS4uZmZiYzRmOSAxMDA2NDQKLS0tIGEv
-ZHJpdmVycy9zZXJpYWwvODI1MC5jCisrKyBiL2RyaXZlcnMvc2VyaWFsLzgyNTAuYwpAQCAtMTI4
-MSw5ICsxMjgxLDIxIEBAIHNlcmlhbDgyNTBfaGFuZGxlX3BvcnQoc3RydWN0IHVhcnRfODI1MF8K
-IAlpZiAoc3RhdHVzICYgVUFSVF9MU1JfRFIpCiAJCXJlY2VpdmVfY2hhcnModXAsICZzdGF0dXMs
-IHJlZ3MpOwogCWNoZWNrX21vZGVtX3N0YXR1cyh1cCk7Ci0JaWYgKHN0YXR1cyAmIFVBUlRfTFNS
-X1RIUkUpCisJaWYgKHN0YXR1cyAmIFVBUlRfTFNSX1RIUkUpICAvKiBoYW5kbGUgZmlmbyBlbXB0
-eSAqLwogCQl0cmFuc21pdF9jaGFycyh1cCk7CiAKKyNpZmRlZiBDT05GSUdfTUFDSF9PTUFQX0dF
-TkVSSUMKKwkvKgorCSAqIFRIUiByYXNpZWQuIFRoZSBmaWZvIGlzIE5PVCBlbXB0eSwgYnV0IGJl
-bG93IHdhdGVybWFyay4gCisJICogRm9yIE9NQVAgVGhlIEZJRk8gaXMgNjQgYnV0IHNpemVkIGFz
-IDMyLCB3aXRoIHdhdGVybWFyayAKKwkgKiBhdCAzMi4gIFRoZXJlIGlzIGFsd2F5cyByb29tIGZv
-ciAzMi4gIFRoaXMgcmVhbGx5IGFwcGxpZXMgCisJICogdG8gbW9yZSB0aGFuIE9NQVAgYnV0IG5v
-dCB2YXJpZW50cyBhbGwgaGF2ZSB0aGUgU1NSLgorCSAqLworCXN0YXR1cyA9IHNlcmlhbF9pbnAo
-dXAsIFVBUlRfT01BUF9TU1IpOyAvKiBoYW5kbGUgd2F0ZXJtYXJrIGludGVycnVwdCAqLworCWlm
-ICghKHN0YXR1cyAmIFVBUlRfU1NSX1RYX0ZJRk9fRlVMTCkpCisJCXRyYW5zbWl0X2NoYXJzKHVw
-KTsKKyNlbmRpZgorCiAJc3Bpbl91bmxvY2soJnVwLT5wb3J0LmxvY2spOwogfQogCmRpZmYgLS1n
-aXQgYS9pbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFwL2lycXMuaCBiL2luY2x1ZGUvYXNtLWFybS9h
-cmNoLW9tYXAvaXJxcy5oCmluZGV4IDQyMDk4ZDkuLjQ1OGIwMjYgMTAwNjQ0Ci0tLSBhL2luY2x1
-ZGUvYXNtLWFybS9hcmNoLW9tYXAvaXJxcy5oCisrKyBiL2luY2x1ZGUvYXNtLWFybS9hcmNoLW9t
-YXAvaXJxcy5oCkBAIC0yNDIsNiArMjQyLDggQEAKICNkZWZpbmUgSU5UXzI0WFhfR1BJT19CQU5L
-MgkzMAogI2RlZmluZSBJTlRfMjRYWF9HUElPX0JBTkszCTMxCiAjZGVmaW5lIElOVF8yNFhYX0dQ
-SU9fQkFOSzQJMzIKKyNkZWZpbmUgSU5UXzI0WFhfR1BUSU1FUjIJMzgKKyNkZWZpbmUgSU5UXzI0
-WFhfR1BUSU1FUjMJMzkKICNkZWZpbmUgSU5UXzI0WFhfTUNCU1AxX0lSUV9UWAk1OQogI2RlZmlu
-ZSBJTlRfMjRYWF9NQ0JTUDFfSVJRX1JYCTYwCiAjZGVmaW5lIElOVF8yNFhYX01DQlNQMl9JUlFf
-VFgJNjIKZGlmZiAtLWdpdCBhL2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvdGltZXguaCBiL2lu
-Y2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvdGltZXguaAppbmRleCAyMWYyZTM2Li4xZDg5Njc5IDEw
-MDY0NAotLS0gYS9pbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFwL3RpbWV4LmgKKysrIGIvaW5jbHVk
-ZS9hc20tYXJtL2FyY2gtb21hcC90aW1leC5oCkBAIC0zNCw4ICszNCwxMiBAQAogICovCiAjaWZk
-ZWYgQ09ORklHX09NQVBfMzJLX1RJTUVSCiAjZGVmaW5lIENMT0NLX1RJQ0tfUkFURQkJKENPTkZJ
-R19PTUFQXzMyS19USU1FUl9IWikKKyNlbGlmIGRlZmluZWQoQ09ORklHX01BQ0hfT01BUF9INCkK
-KyNkZWZpbmUgQ0xPQ0tfVElDS19SQVRFIAkoNjAwMDAwMCkJLyogc3lzX2Nsay8yICovCisjZWxp
-ZiBkZWZpbmVkKENPTkZJR19NQUNIX09NQVBfMjQzMFNEUCkKKyNkZWZpbmUgQ0xPQ0tfVElDS19S
-QVRFIAkoNjUwMDAwMCkKICNlbHNlCi0jZGVmaW5lIENMT0NLX1RJQ0tfUkFURQkJKEhaICogMTAw
-MDAwVUwpCisjZGVmaW5lIENMT0NLX1RJQ0tfUkFURQkJKDYwMDAwMDApCiAjZW5kaWYKIAogI2Vu
-ZGlmIC8qIF9fQVNNX0FSQ0hfT01BUF9USU1FWF9IICovCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xp
-bnV4L3NlcmlhbF9yZWcuaCBiL2luY2x1ZGUvbGludXgvc2VyaWFsX3JlZy5oCmluZGV4IDNjOGE2
-YWEuLjkzZGYwY2MgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvbGludXgvc2VyaWFsX3JlZy5oCisrKyBi
-L2luY2x1ZGUvbGludXgvc2VyaWFsX3JlZy5oCkBAIC0zMjEsNSArMzIxLDggQEAKICNkZWZpbmUg
-VUFSVF9PTUFQX1NZU0MJCTB4MTUJLyogU3lzdGVtIGNvbmZpZ3VyYXRpb24gcmVnaXN0ZXIgKi8K
-ICNkZWZpbmUgVUFSVF9PTUFQX1NZU1MJCTB4MTYJLyogU3lzdGVtIHN0YXR1cyByZWdpc3RlciAq
-LwogCisjZGVmaW5lIFVBUlRfU1NSX1RYX0ZJRk9fRlVMTCAgMHgxCisjZGVmaW5lIFVBUlRfU1NS
-X1JYX0NUU19XVV9TVFMgMHgyCisKICNlbmRpZiAvKiBfTElOVVhfU0VSSUFMX1JFR19IICovCiAK
+cml2ZXJzL3NlcmlhbC84MjUwLmMKaW5kZXggOGIxZmM1YS4uNDBjNmQ0MSAxMDA2NDQKLS0tIGEv
+ZHJpdmVycy9zZXJpYWwvODI1MC5jCisrKyBiL2RyaXZlcnMvc2VyaWFsLzgyNTAuYwpAQCAtMTI2
+OCw3ICsxMjY4LDggQEAgc3RhdGljIHVuc2lnbmVkIGludCBjaGVja19tb2RlbV9zdGF0dXMocwog
+ICogVGhpcyBoYW5kbGVzIHRoZSBpbnRlcnJ1cHQgZnJvbSBvbmUgcG9ydC4KICAqLwogc3RhdGlj
+IGlubGluZSB2b2lkCi1zZXJpYWw4MjUwX2hhbmRsZV9wb3J0KHN0cnVjdCB1YXJ0XzgyNTBfcG9y
+dCAqdXAsIHN0cnVjdCBwdF9yZWdzICpyZWdzKQorc2VyaWFsODI1MF9oYW5kbGVfcG9ydChzdHJ1
+Y3QgdWFydF84MjUwX3BvcnQgKnVwLCBzdHJ1Y3QgcHRfcmVncyAqcmVncywgCisJCQkJCSAgIHVu
+c2lnbmVkIGludCBpaXIpCiB7CiAJdW5zaWduZWQgaW50IHN0YXR1czsKIApAQCAtMTI4MSw3ICsx
+MjgyLDExIEBAIHNlcmlhbDgyNTBfaGFuZGxlX3BvcnQoc3RydWN0IHVhcnRfODI1MF8KIAlpZiAo
+c3RhdHVzICYgVUFSVF9MU1JfRFIpCiAJCXJlY2VpdmVfY2hhcnModXAsICZzdGF0dXMsIHJlZ3Mp
+OwogCWNoZWNrX21vZGVtX3N0YXR1cyh1cCk7Ci0JaWYgKHN0YXR1cyAmIFVBUlRfTFNSX1RIUkUp
+CisKKwkvKiBsb2FkIHNwYWNlIGluIHR4IGZpZm8gaWYgZW50cnkgZnJvbSBUSFJJLXdhdGVybWFy
+ayAKKwkgKiBvciBpZiBUSFJFIHNob3dzIGVtcHR5LiAKKwkgKi8KKwlpZiAoKHN0YXR1cyAmIFVB
+UlRfTFNSX1RIUkUpIHx8IChpaXIgJiBVQVJUX0lJUl9USFJJKSkKIAkJdHJhbnNtaXRfY2hhcnMo
+dXApOwogCiAJc3Bpbl91bmxvY2soJnVwLT5wb3J0LmxvY2spOwpAQCAtMTMyMCw3ICsxMzI1LDcg
+QEAgc3RhdGljIGlycXJldHVybl90IHNlcmlhbDgyNTBfaW50ZXJydXB0KAogCiAJCWlpciA9IHNl
+cmlhbF9pbih1cCwgVUFSVF9JSVIpOwogCQlpZiAoIShpaXIgJiBVQVJUX0lJUl9OT19JTlQpKSB7
+Ci0JCQlzZXJpYWw4MjUwX2hhbmRsZV9wb3J0KHVwLCByZWdzKTsKKwkJCXNlcmlhbDgyNTBfaGFu
+ZGxlX3BvcnQodXAsIHJlZ3MsIGlpcik7CiAKIAkJCWhhbmRsZWQgPSAxOwogCkBAIC0xNDIxLDcg
+KzE0MjYsNyBAQCBzdGF0aWMgdm9pZCBzZXJpYWw4MjUwX3RpbWVvdXQodW5zaWduZWQgCiAKIAlp
+aXIgPSBzZXJpYWxfaW4odXAsIFVBUlRfSUlSKTsKIAlpZiAoIShpaXIgJiBVQVJUX0lJUl9OT19J
+TlQpKQotCQlzZXJpYWw4MjUwX2hhbmRsZV9wb3J0KHVwLCBOVUxMKTsKKwkJc2VyaWFsODI1MF9o
+YW5kbGVfcG9ydCh1cCwgTlVMTCwgaWlyKTsKIAogCXRpbWVvdXQgPSB1cC0+cG9ydC50aW1lb3V0
+OwogCXRpbWVvdXQgPSB0aW1lb3V0ID4gNiA/ICh0aW1lb3V0IC8gMiAtIDIpIDogMTsKZGlmZiAt
+LWdpdCBhL2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvaXJxcy5oIGIvaW5jbHVkZS9hc20tYXJt
+L2FyY2gtb21hcC9pcnFzLmgKaW5kZXggNDIwOThkOS4uNDU4YjAyNiAxMDA2NDQKLS0tIGEvaW5j
+bHVkZS9hc20tYXJtL2FyY2gtb21hcC9pcnFzLmgKKysrIGIvaW5jbHVkZS9hc20tYXJtL2FyY2gt
+b21hcC9pcnFzLmgKQEAgLTI0Miw2ICsyNDIsOCBAQAogI2RlZmluZSBJTlRfMjRYWF9HUElPX0JB
+TksyCTMwCiAjZGVmaW5lIElOVF8yNFhYX0dQSU9fQkFOSzMJMzEKICNkZWZpbmUgSU5UXzI0WFhf
+R1BJT19CQU5LNAkzMgorI2RlZmluZSBJTlRfMjRYWF9HUFRJTUVSMgkzOAorI2RlZmluZSBJTlRf
+MjRYWF9HUFRJTUVSMwkzOQogI2RlZmluZSBJTlRfMjRYWF9NQ0JTUDFfSVJRX1RYCTU5CiAjZGVm
+aW5lIElOVF8yNFhYX01DQlNQMV9JUlFfUlgJNjAKICNkZWZpbmUgSU5UXzI0WFhfTUNCU1AyX0lS
+UV9UWAk2MgpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9hc20tYXJtL2FyY2gtb21hcC90aW1leC5oIGIv
+aW5jbHVkZS9hc20tYXJtL2FyY2gtb21hcC90aW1leC5oCmluZGV4IDIxZjJlMzYuLjFkODk2Nzkg
+MTAwNjQ0Ci0tLSBhL2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvdGltZXguaAorKysgYi9pbmNs
+dWRlL2FzbS1hcm0vYXJjaC1vbWFwL3RpbWV4LmgKQEAgLTM0LDggKzM0LDEyIEBACiAgKi8KICNp
+ZmRlZiBDT05GSUdfT01BUF8zMktfVElNRVIKICNkZWZpbmUgQ0xPQ0tfVElDS19SQVRFCQkoQ09O
+RklHX09NQVBfMzJLX1RJTUVSX0haKQorI2VsaWYgZGVmaW5lZChDT05GSUdfTUFDSF9PTUFQX0g0
+KQorI2RlZmluZSBDTE9DS19USUNLX1JBVEUgCSg2MDAwMDAwKQkvKiBzeXNfY2xrLzIgKi8KKyNl
+bGlmIGRlZmluZWQoQ09ORklHX01BQ0hfT01BUF8yNDMwU0RQKQorI2RlZmluZSBDTE9DS19USUNL
+X1JBVEUgCSg2NTAwMDAwKQogI2Vsc2UKLSNkZWZpbmUgQ0xPQ0tfVElDS19SQVRFCQkoSFogKiAx
+MDAwMDBVTCkKKyNkZWZpbmUgQ0xPQ0tfVElDS19SQVRFCQkoNjAwMDAwMCkKICNlbmRpZgogCiAj
+ZW5kaWYgLyogX19BU01fQVJDSF9PTUFQX1RJTUVYX0ggKi8KZGlmZiAtLWdpdCBhL2luY2x1ZGUv
+bGludXgvc2VyaWFsX3JlZy5oIGIvaW5jbHVkZS9saW51eC9zZXJpYWxfcmVnLmgKaW5kZXggM2M4
+YTZhYS4uOTNkZjBjYyAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9zZXJpYWxfcmVnLmgKKysr
+IGIvaW5jbHVkZS9saW51eC9zZXJpYWxfcmVnLmgKQEAgLTMyMSw1ICszMjEsOCBAQAogI2RlZmlu
+ZSBVQVJUX09NQVBfU1lTQwkJMHgxNQkvKiBTeXN0ZW0gY29uZmlndXJhdGlvbiByZWdpc3RlciAq
+LwogI2RlZmluZSBVQVJUX09NQVBfU1lTUwkJMHgxNgkvKiBTeXN0ZW0gc3RhdHVzIHJlZ2lzdGVy
+ICovCiAKKyNkZWZpbmUgVUFSVF9TU1JfVFhfRklGT19GVUxMICAweDEKKyNkZWZpbmUgVUFSVF9T
+U1JfUlhfQ1RTX1dVX1NUUyAweDIKKwogI2VuZGlmIC8qIF9MSU5VWF9TRVJJQUxfUkVHX0ggKi8K
+IAo=
 
-------_=_NextPart_001_01C64EA2.AC2DAB62
+------_=_NextPart_001_01C64EB0.26FDE01A
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
-------_=_NextPart_001_01C64EA2.AC2DAB62--
+------_=_NextPart_001_01C64EB0.26FDE01A--
