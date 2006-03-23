@@ -1,14 +1,14 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] : Fix annoying 'too much work for irq72' serial port
-	watermark error.
-Date: Thu, 23 Mar 2006 11:46:28 -0800
-Message-ID: <20060323194604.GH22325@atomide.com>
-References: <EA12F909C0431D458B9D18A176BEE4A504E6159F@dlee02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Cina Hazegh <chazegh@flashmob.com>
+Subject: OMAP development on a student budget
+Date: Thu, 23 Mar 2006 13:55:19 -0800
+Message-ID: <CAB8FEAD-4A3A-486E-97B2-B2547FD2C9D6@flashmob.com>
+Mime-Version: 1.0 (Apple Message framework v746.3)
+Content-Type: text/plain;
+	charset=US-ASCII;
+	delsp=yes;
+	format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A504E6159F@dlee02.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,42 +18,33 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Woodruff, Richard <r-woodruff2@ti.com> [060323 11:30]:
-> Perhaps this version is better.  It avoids a possible double entry to
-> transmit_chars() and removes the need for an #ifdef OMAPxyz.
+Many apologies if this sort of question has been asked many times  
+before, but I haven't been able to find this information on the web  
+or in this lists' archives, so I am going to ask.
 
-OK, let's test this on various boards.
+I am very interested in developing my own PCB that incorporates an  
+OMAP processor. Does anyone on this list have any experience with  
+doing this sort of thing, and if so, what does it take? Is it a  
+reasonable task for someone with some solid PCB layout experience?
 
-> > I was just trying out a different PRCM set on 2420/2430 and the
-> annoying
-> > serial 'too much work' interrupt started up again even with an SCR=8.
-> > I've attached a patch which fixes the problem.  At fastest PRCM sets
-> > timing some issues have popped up which have been masked before.
-> > 
-> > Note: This patch is a consolidated on with the other patches I had
-> > previously sent which have not been applied, as this is what I tested
-> > with.  The timer version in this patch is good, and I validated
-> outputs
-> > using the emulator at function entry/exits.  Some of the earlier
-> > versions had overflow issues with nano-seconds.
-> > 
-> > This patch now allows the OMAP_SCR to go back to 0, though it works
-> > either way.  This issue was this:  A THR interrupt can be generated
-> > which has status in the IIR, but without status in the LSR.  This is
-> > because the TX watermark interrupt happens when the FIFO and SR are
-> NOT
-> > empty.  The previous logic assumed at least the FIFO was empty before
-> > calling the TX routine.  For a watermark this is not the case.  The
-> fix
-> > I added to this code checks the SSR (supplementary status register) to
-> > see if there is room in the FIFO.  Given we know how it was loaded
-> there
-> > will be room if this shows it is not empty.
+If so, which processors would I be able to obtain on a student  
+budget? I've been able to find the OMAP5910 through Digi-key, but I'm  
+interested in designing a board for one of the newer processors,  
+since TI is warning that new designs should not be done for the 5910  
+(which means to me that it will be discontinued soon).
 
-Thanks, I'll take a look at the timer code soonish.
+I should point out, that my final goal is to provide the board layout  
+and schematic in an open source fashion for other students and  
+developers to learn from. Any help/information/guidance you can  
+provide would be appreciated.
 
-Tony
+-- Cina Hazegh
+
+
+___________________________________________________
+Cina Hazegh, Graduate Student
+University of California, Irvine --  Arts, Computation and Engineering
+chazegh@uci.edu  |  http://cinahazegh.com | http://opencircuits.com
