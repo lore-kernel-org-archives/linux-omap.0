@@ -1,9 +1,9 @@
 From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: [PATCH] OMAP: retu-rtc: sem2mutex conversion
-Date: Fri, 24 Mar 2006 05:39:46 -0800 (PST)
-Message-ID: <20060324133946.47252.qmail@web32903.mail.mud.yahoo.com>
+Subject: [PATCH] OMAP: OSS: sem2mutex conversion
+Date: Fri, 24 Mar 2006 05:46:08 -0800 (PST)
+Message-ID: <20060324134608.77318.qmail@web32911.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-1021589137-1143207586=:45761"
+Content-Type: multipart/mixed; boundary="0-464739785-1143207968=:76385"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
@@ -18,7 +18,7 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---0-1021589137-1143207586=:45761
+--0-464739785-1143207968=:76385
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Content-Id: 
@@ -34,170 +34,129 @@ __________________________________________________
 Do You Yahoo!?
 Tired of spam?  Yahoo! Mail has the best spam protection around 
 http://mail.yahoo.com 
---0-1021589137-1143207586=:45761
-Content-Type: text/plain; name="0004-OMAP-retu-rtc-sem2mutex-conversion.txt"
-Content-Description: 3544559991-0004-OMAP-retu-rtc-sem2mutex-conversion.txt
-Content-Disposition: inline;
-	filename="0004-OMAP-retu-rtc-sem2mutex-conversion.txt"
+--0-464739785-1143207968=:76385
+Content-Type: text/plain; name="0008-OMAP-OSS-sem2mutex-conversion.txt"
+Content-Description: 4198930708-0008-OMAP-OSS-sem2mutex-conversion.txt
+Content-Disposition: inline; filename="0008-OMAP-OSS-sem2mutex-conversion.txt"
 
-Subject: [PATCH] OMAP: retu-rtc: sem2mutex conversion
+Subject: [PATCH] OMAP: OSS: sem2mutex conversion
 
 Signed-off-by: Komal Shah <komal_shah802003@yahoo.com>
 
 ---
 
- drivers/cbus/retu-rtc.c |   34 +++++++++++++++++-----------------
- 1 files changed, 17 insertions(+), 17 deletions(-)
+ sound/oss/omap-audio-tsc2101.c |    4 ++--
+ sound/oss/omap-audio.c         |   12 ++++++------
+ sound/oss/omap-audio.h         |    2 +-
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
-008b3a3490221a17b138fd01241cc1772a712c0b
-diff --git a/drivers/cbus/retu-rtc.c b/drivers/cbus/retu-rtc.c
-index 6471e7e..cb69804 100644
---- a/drivers/cbus/retu-rtc.c
-+++ b/drivers/cbus/retu-rtc.c
-@@ -39,12 +39,12 @@
- #include <linux/module.h>
- #include <linux/completion.h>
- #include <linux/platform_device.h>
--#include <asm/semaphore.h>
+62f9d1526185a03bcd0defb273d38927cd5ee7b4
+diff --git a/sound/oss/omap-audio-tsc2101.c b/sound/oss/omap-audio-tsc2101.c
+index 13dc7af..f8e6dac 100644
+--- a/sound/oss/omap-audio-tsc2101.c
++++ b/sound/oss/omap-audio-tsc2101.c
+@@ -33,8 +33,8 @@
+ #include <linux/errno.h>
+ #include <linux/sound.h>
+ #include <linux/soundcard.h>
 +#include <linux/mutex.h>
  
- #include "cbus.h"
- #include "retu.h"
+-#include <asm/semaphore.h>
+ #include <asm/uaccess.h>
+ #include <asm/hardware.h>
+ #include <asm/arch/dma.h>
+@@ -326,7 +326,7 @@ static audio_state_t tsc2101_state = {
+ 	.hw_remove      = omap_tsc2101_remove,
+ 	.hw_suspend     = omap_tsc2101_suspend,
+ 	.hw_resume      = omap_tsc2101_resume,
+-	.sem		= __SEMAPHORE_INIT(tsc2101_state.sem, 1),
++	.mutex		= __MUTEX_INITIALIZER(tsc2101_state.mutex),
+ };
  
--static struct semaphore retu_rtc_sem;
-+static struct mutex retu_rtc_mutex;
- static u16 retu_rtc_alarm_expired;
- static u16 retu_rtc_reset_occurred;
+ /* This will be defined in the Audio.h */
+diff --git a/sound/oss/omap-audio.c b/sound/oss/omap-audio.c
+index 3885700..cc1f14a 100644
+--- a/sound/oss/omap-audio.c
++++ b/sound/oss/omap-audio.c
+@@ -46,11 +46,11 @@
+ #include <linux/delay.h>
+ #include <linux/platform_device.h>
+ #include <linux/completion.h>
++#include <linux/mutex.h>
  
-@@ -63,7 +63,7 @@ static ssize_t retu_rtc_time_show(struct
- {
- 	u16 dsr, hmr, dsr2;
+ #include <asm/uaccess.h>
+ #include <asm/io.h>
+ #include <asm/hardware.h>
+-#include <asm/semaphore.h>
  
--	down(&retu_rtc_sem);
-+	mutex_lock(&retu_rtc_mutex);
- 
- 	do {
- 		u16 dummy;
-@@ -82,7 +82,7 @@ static ssize_t retu_rtc_time_show(struct
- 		dsr2	= retu_read_reg(RETU_REG_RTCDSR);
- 	} while ((dsr != dsr2));
- 
--	up(&retu_rtc_sem);
-+	mutex_unlock(&retu_rtc_mutex);
- 
- 	/*
- 	 * Format a 32-bit date-string for userspace
-@@ -104,7 +104,7 @@ static ssize_t retu_rtc_time_show(struct
- static ssize_t retu_rtc_time_store(struct device *dev, struct device_attribute *attr,
- 				   const char *buf, size_t count)
- {
--	down(&retu_rtc_sem);
-+	mutex_lock(&retu_rtc_mutex);
- 	/*
- 	 * Writing anything to the day counter forces it to 0
- 	 * The seconds counter would be cleared by resetting the minutes counter,
-@@ -117,7 +117,7 @@ static ssize_t retu_rtc_time_store(struc
- 	retu_write_reg(RETU_REG_RTCDSR,
- 		       retu_read_reg(RETU_REG_RTCDSR) & (1 << 6));
- 
--	up(&retu_rtc_sem);
-+	mutex_unlock(&retu_rtc_mutex);
- 
- 	return count;
- }
-@@ -167,12 +167,12 @@ static ssize_t retu_rtc_reset_store(stru
- 
- 	if(sscanf(buf, "%u", &choice) != 1)
- 		return count;
--	down(&retu_rtc_sem);
-+	mutex_lock(&retu_rtc_mutex);
- 	if (choice == 0)
- 		retu_rtc_reset_occurred = 0;
- 	else if (choice == 1)
- 		retu_rtc_do_reset();
--	up(&retu_rtc_sem);
-+	mutex_unlock(&retu_rtc_mutex);
- 	return count;
- }
- 
-@@ -185,7 +185,7 @@ static ssize_t retu_rtc_alarm_show(struc
- 	u16 chmar;
- 	ssize_t retval;
- 
--	down(&retu_rtc_sem);
-+	mutex_lock(&retu_rtc_mutex);
- 	/*
- 	 * Format a 16-bit date-string for userspace
- 	 *
-@@ -195,7 +195,7 @@ static ssize_t retu_rtc_alarm_show(struc
- 	chmar = retu_read_reg(RETU_REG_RTCHMAR);
- 	/* No shifting needed, only masking unrelated bits */
- 	retval = sprintf(buf, "0x%04x\n", chmar & 0x1f3f);
--	up(&retu_rtc_sem);
-+	mutex_unlock(&retu_rtc_mutex);
- 
- 	return retval;
- }
-@@ -208,7 +208,7 @@ static ssize_t retu_rtc_alarm_store(stru
- 	unsigned hours;
- 	unsigned minutes;
- 
--	down(&retu_rtc_sem);
-+	mutex_lock(&retu_rtc_mutex);
- 
- 	if(sscanf(buf, "%x", &alrm) != 1)
- 		return count;
-@@ -233,7 +233,7 @@ static ssize_t retu_rtc_alarm_store(stru
- 			/* enable the interrupt */
- 			retu_enable_irq(RETU_INT_RTCA);
+ #include "omap-audio-dma-intfc.h"
+ #include "omap-audio.h"
+@@ -438,7 +438,7 @@ int audio_register_codec(audio_state_t *
  	}
--	up(&retu_rtc_sem);
-+	mutex_unlock(&retu_rtc_mutex);
  
- 	return count;
- }
-@@ -268,9 +268,9 @@ static ssize_t retu_rtc_cal_show(struct 
- {
- 	u16 rtccalr1;
+ 	memcpy(&audio_state, codec_state, sizeof(audio_state_t));
+-	sema_init(&audio_state.sem, 1);
++	mutex_init(&audio_state.mutex);
  
--	down(&retu_rtc_sem);
-+	mutex_lock(&retu_rtc_mutex);
- 	rtccalr1 = retu_read_reg(RETU_REG_RTCCALR);
--	up(&retu_rtc_sem);
-+	mutex_unlock(&retu_rtc_mutex);
+ 	ret = platform_device_register(&omap_audio_device);
+ 	if (ret != 0) {
+@@ -1024,7 +1024,7 @@ static int audio_open(struct inode *inod
+ 		return -ESTALE;
+ 	}
  
- 	/*
- 	 * Shows the status of the Calibration Register.
-@@ -291,10 +291,10 @@ static ssize_t retu_rtc_cal_store(struct
- 	if (sscanf(buf, "%x", &calibration_value) != 1)
- 		return count;
+-	down(&state->sem);
++	mutex_lock(&state->mutex);
  
--	down(&retu_rtc_sem);
-+	mutex_lock(&retu_rtc_mutex);
- 	retu_rtc_barrier();
- 	retu_write_reg(RETU_REG_RTCCALR, calibration_value & 0x00ff);
--	up(&retu_rtc_sem);
-+	mutex_unlock(&retu_rtc_mutex);
+ 	/* access control */
+ 	err = -ENODEV;
+@@ -1092,7 +1092,7 @@ static int audio_open(struct inode *inod
+ 	err = 0;
  
- 	return count;
- }
-@@ -370,7 +370,7 @@ static int __devinit retu_rtc_probe(stru
- 	if ((r = retu_rtc_init_irq()) != 0)
- 		return r;
+       out:
+-	up(&state->sem);
++	mutex_unlock(&state->mutex);
+ 	if (err) {
+ 		module_put(state->owner);
+ 		module_put(THIS_MODULE);
+@@ -1114,7 +1114,7 @@ static int audio_release(struct inode *i
  
--	init_MUTEX(&retu_rtc_sem);
-+	mutex_init(&retu_rtc_mutex);
+ 	FN_IN;
  
- 	/* If the calibration register is zero, we've probably lost
- 	 * power */
+-	down(&state->sem);
++	mutex_lock(&state->mutex);
+ 
+ 	if (file->f_mode & FMODE_READ) {
+ 		audio_discard_buf(is);
+@@ -1145,7 +1145,7 @@ static int audio_release(struct inode *i
+ 			state->hw_shutdown(state->data);
+ 	}
+ 
+-	up(&state->sem);
++	mutex_unlock(&state->mutex);
+ 
+ 	module_put(state->owner);
+ 	module_put(THIS_MODULE);
+diff --git a/sound/oss/omap-audio.h b/sound/oss/omap-audio.h
+index 58eff31..c039dee 100644
+--- a/sound/oss/omap-audio.h
++++ b/sound/oss/omap-audio.h
+@@ -101,7 +101,7 @@ typedef struct {
+ 	int (*hw_suspend) (void);
+ 	int (*hw_resume) (void);
+ 	struct pm_dev *pm_dev;
+-	struct semaphore sem;	/* to protect against races in attach() */
++	struct mutex mutex;	/* to protect against races in attach() */
+ } audio_state_t;
+ 
+ #ifdef AUDIO_PM
 -- 
 1.1.6
 
---0-1021589137-1143207586=:45761
+--0-464739785-1143207968=:76385
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---0-1021589137-1143207586=:45761--
+--0-464739785-1143207968=:76385--
