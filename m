@@ -1,9 +1,9 @@
 From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: [PATCH] OMAP: Menelaus: sem2mutex conversion
-Date: Fri, 24 Mar 2006 05:37:05 -0800 (PST)
-Message-ID: <20060324133705.35012.qmail@web32912.mail.mud.yahoo.com>
+Subject: [PATCH] OMAP: FB: sem2mutex conversion
+Date: Fri, 24 Mar 2006 05:38:46 -0800 (PST)
+Message-ID: <20060324133846.74035.qmail@web32911.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-981613896-1143207425=:31047"
+Content-Type: multipart/mixed; boundary="0-1017677672-1143207526=:73005"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
@@ -18,7 +18,7 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---0-981613896-1143207425=:31047
+--0-1017677672-1143207526=:73005
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Content-Id: 
@@ -34,104 +34,79 @@ __________________________________________________
 Do You Yahoo!?
 Tired of spam?  Yahoo! Mail has the best spam protection around 
 http://mail.yahoo.com 
---0-981613896-1143207425=:31047
-Content-Type: text/plain; name="0002-OMAP-Menelaus-sem2mutex-conversion.txt"
-Content-Description: 2719435515-0002-OMAP-Menelaus-sem2mutex-conversion.txt
-Content-Disposition: inline;
-	filename="0002-OMAP-Menelaus-sem2mutex-conversion.txt"
+--0-1017677672-1143207526=:73005
+Content-Type: text/plain; name="0003-OMAP-FB-sem2mutex-conversion.txt"
+Content-Description: 2362136449-0003-OMAP-FB-sem2mutex-conversion.txt
+Content-Disposition: inline; filename="0003-OMAP-FB-sem2mutex-conversion.txt"
 
-Subject: [PATCH] OMAP: Menelaus: sem2mutex conversion
+Subject: [PATCH] OMAP: FB: sem2mutex conversion
 
 Signed-off-by: Komal Shah <komal_shah802003@yahoo.com>
 
 ---
 
- drivers/i2c/chips/menelaus.c |   17 +++++++++--------
- 1 files changed, 9 insertions(+), 8 deletions(-)
+ drivers/video/omap/omapfb_main.c   |    6 +++---
+ include/asm-arm/arch-omap/omapfb.h |    3 ++-
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-ea50d76db43f835a43f9f31192d95406d2c7d647
-diff --git a/drivers/i2c/chips/menelaus.c b/drivers/i2c/chips/menelaus.c
-index c3a750e..b305e7f 100644
---- a/drivers/i2c/chips/menelaus.c
-+++ b/drivers/i2c/chips/menelaus.c
-@@ -33,6 +33,7 @@
- #include <linux/i2c.h>
+e0d16c9260eadb18d6fc9aabbdf2fa87e8b80264
+diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
+index d32ba58..7e78379 100644
+--- a/drivers/video/omap/omapfb_main.c
++++ b/drivers/video/omap/omapfb_main.c
+@@ -111,12 +111,12 @@ extern struct lcd_ctrl_extif rfbi_extif;
+ 
+ static void omapfb_rqueue_lock(struct omapfb_device *fbdev)
+ {
+-	down(&fbdev->rqueue_sema);
++	mutex_lock(&fbdev->rqueue_mutex);
+ }
+ 
+ static void omapfb_rqueue_unlock(struct omapfb_device *fbdev)
+ {
+-	up(&fbdev->rqueue_sema);
++	mutex_unlock(&fbdev->rqueue_mutex);
+ }
+ 
+ /*
+@@ -1273,7 +1273,7 @@ static int omapfb_do_probe(struct platfo
+ 	fbdev->panel = panel;
+ 	platform_set_drvdata(pdev, fbdev);
+ 
+-	init_MUTEX(&fbdev->rqueue_sema);
++	mutex_init(&fbdev->rqueue_mutex);
+ 
+ #ifdef CONFIG_ARCH_OMAP1
+ 	fbdev->int_ctrl = &omap1_int_ctrl;
+diff --git a/include/asm-arm/arch-omap/omapfb.h b/include/asm-arm/arch-omap/omapfb.h
+index 7eade7b..fccdb3d 100644
+--- a/include/asm-arm/arch-omap/omapfb.h
++++ b/include/asm-arm/arch-omap/omapfb.h
+@@ -126,6 +126,7 @@ enum omapfb_update_mode {
+ #include <linux/completion.h>
  #include <linux/interrupt.h>
- #include <linux/sched.h>
+ #include <linux/fb.h>
 +#include <linux/mutex.h>
  
- #include <asm/mach-types.h>
- #include <asm/mach/irq.h>
-@@ -133,7 +134,7 @@ I2C_CLIENT_INSMOD;
+ #include <asm/arch/board.h>
  
- struct menelaus_chip {
- 	unsigned long		initialized;
--	struct semaphore	lock;
-+	struct mutex		lock;
- 	struct i2c_client	client;
- 	struct work_struct	work;
- 	int			irq;
-@@ -193,10 +194,10 @@ static void menelaus_ack_irq(int irq)
- /* Adds a handler for an interrupt. Does not run in interrupt context */
- static int menelaus_add_irq_work(int irq, void * handler)
- {
--	down(&menelaus.lock);
-+	mutex_lock(&menelaus.lock);
- 	menelaus.handlers[irq] = handler;
- 	menelaus_enable_irq(irq);
--	up(&menelaus.lock);
-+	mutex_unlock(&menelaus.lock);
+@@ -269,7 +270,7 @@ struct omapfb_device {
+ 	int			state;
+ 	int                     ext_lcdc;               /* Using external
+                                                            LCD controller */
+-	struct semaphore	rqueue_sema;
++	struct mutex		rqueue_mutex;
  
- 	return 0;
- }
-@@ -204,10 +205,10 @@ static int menelaus_add_irq_work(int irq
- /* Removes handler for an interrupt */
- static void menelaus_remove_irq_work(int irq)
- {
--	down(&menelaus.lock);
-+	mutex_lock(&menelaus.lock);
- 	menelaus_disable_irq(irq);
- 	menelaus.handlers[irq] = NULL;
--	up(&menelaus.lock);
-+	mutex_unlock(&menelaus.lock);
- }
- 
- /*-----------------------------------------------------------------------*/
-@@ -332,7 +333,7 @@ static void menelaus_work(void * _menela
- 
- 		for (i = 0; i < IH_MENELAUS_IRQS; i++) {
- 			if (isr & (1 << i)) {
--				down(&menelaus->lock);
-+				mutex_lock(&menelaus->lock);
- 				menelaus_disable_irq(i);
- 				menelaus_ack_irq(i);
- 				if (menelaus->handlers[i]) {
-@@ -340,7 +341,7 @@ static void menelaus_work(void * _menela
- 					handler(menelaus);
- 				}
- 				menelaus_enable_irq(i);
--				up(&menelaus->lock);
-+				mutex_unlock(&menelaus->lock);
- 			}
- 		}
- 	}
-@@ -405,7 +406,7 @@ static int menelaus_probe(struct i2c_ada
- 	if (err)
- 		printk(KERN_ERR "Could not get Menelaus IRQ\n");
- 
--	init_MUTEX(&menelaus.lock);
-+	mutex_init(&menelaus.lock);
- 	INIT_WORK(&menelaus.work, menelaus_work, &menelaus);
- 
- 	if (kind < 0)
+ 	void			*vram_virt_base;
+ 	dma_addr_t		vram_phys_base;
 -- 
 1.1.6
 
---0-981613896-1143207425=:31047
+--0-1017677672-1143207526=:73005
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---0-981613896-1143207425=:31047--
+--0-1017677672-1143207526=:73005--
