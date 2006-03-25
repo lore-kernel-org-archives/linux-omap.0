@@ -1,10 +1,10 @@
-From: =?iso-8859-2?Q?Micha=B3_Szabat?= <michal611@interia.pl>
-Subject: Re: [NFS problem][On osk_5912]
-Date: Sat, 25 Mar 2006 13:39:53 +0100
-Message-ID: <001401c65009$3d941340$0301a8c0@hydra>
+From: "Laihui,Sun" <laihui.ece93g@nctu.edu.tw>
+Subject: usb camera: Unable to open /dev/video on omap5912
+Date: Sat, 25 Mar 2006 21:08:49 +0800
+Message-ID: <006101c6500d$41e261f0$dc96718c@bluecan>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-2"
+	charset="big5"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
@@ -16,25 +16,59 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
-You shuld compile the kernel with options=20
-CONFIG_NFS_FS=3Dy
+Hi everyone,
 
-CONFIG_NFS_V3=3Dy
+Recently, I am working on the usb camera on omap5912.=20
+I use the kernel 2.6.15 with path patch-2.6.15-omap2.
 
-CONFIG_ROOT_NFS=3Dy
+I fellow the oskfordummies.hp.infoseek.co.jp also but still can't work.
 
-You will need set some parameters for the kernel, for examlpe
+/ # mknod /dev/video0 c 81 0
+/ # ln -s /dev/video0 /dev/video
 
-# setenv bootargs console=3DttyS0,115200n8 noinitrd =
-ip=3D${OSK_IP}:${PC_IP}:${GATEWAY_IP}:${NETMASK}:osk:eth0:off root=3D
+/ # hexdump -v -n 100 /dev/video0
+hexdump: /dev/video0: No such device
+hexdump: /dev/video0: Bad file descriptor
 
-/dev/nfs rw nfsroot=3D${PC_IP}:/data/rootfs2.6,nolock mem=3D32M
+/ # webcam t.jpg
+Error : Unable to open /dev/video
+: No such device
 
-# saveenv
+There is report in dmesg, saying:
+/ # dmesg | grep sn9c102
+sn9c102: V4L2 driver for SN9C10x PC Camera Controllers v1:1.24a
+usbcore: registered new driver sn9c102
 
-Check if server nfs work on ip 140.113.179.57, and if you can mount =
-folder on this pc where is running server nfs.
+and
+
+/ # dmesg | grep usb
+USB: hmc 16, usb0 2 wires
+usbcore: registered new driver usbfs
+usbcore: registered new driver hub
+usbmon: debugfs is not available
+usb 1-1: new full speed USB device using ohci and address 2
+usbcore: registered new driver sn9c102
+usb 1-1.3: new full speed USB device using ohci and address 3
+
+And I try to insmod the videodev.ko in omap5912,
+
+/ # insmod ./videodev.ko
+Using ./videodev.ko
+Linux video capture interface: v1.00
+video_dev: unable to get major 81
+insmod: cannot insert `./videodev.ko': Input/output error (-1): =
+Input/output err
+
+It looks like stuck on the /dev/video.
+
+Does somebody ever happen it or open the /dev/video....
+Please explain this problem for me.....
+
+Thank you very much.
+
+
+
+Sun, Lai-Hui
