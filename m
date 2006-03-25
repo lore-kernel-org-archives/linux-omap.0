@@ -1,13 +1,14 @@
-From: "Marco Candiago" <Marco.Candiago@nicta.com.au>
-Subject: Problem Loading Ramdisk from flash to SDRAM
-Date: Sat, 25 Mar 2006 09:50:55 +1100
-Message-ID: <09D3F703EF3B0A4CBE28449EA9F3D320477AC0@nicta-atp-mail.in.nicta.com.au>
+From: Madis Listak <madis.listak@mail.ee>
+Subject: Re: Modify the usb power budget in OSK
+Date: Sat, 25 Mar 2006 12:26:16 +0200
+Message-ID: <44251AC8.4030002@mail.ee>
+References: <441e6cd5.3aec302a.4058.ffff9d44@mx.gmail.com>
+	<42911.212.62.63.56.1143206869.squirrel@webmail.verat.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-content-class: urn:content-classes:message
+In-Reply-To: <42911.212.62.63.56.1143206869.squirrel@webmail.verat.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,46 +18,103 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: chief@verat.net
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Hello,
+I still have "over budget" message annoying me,
+but my cameras started to work then I compiled
+all the modules into the kernel and stopped using
+modprobe or insmod modules.
+You can try the following:
 
-Hello all,
+Device Drivers --->
+Multimedia deices --->
+<*> Video for Linux				( CONFIG_VIDEO_DEV )
 
-I'm developing with Innovator 1510 platform.
+Device Drivers --->
+USB support --->
+<*> Support for Host-side USB			( CONFIG_USB )
+<*>   OHCI HCD support				( CONFIG_USB_OHCI_HCD )
 
-I'm having a problem of booting my ramdisk from flash memory.
+Device Drivers --->
+USB support --->
+USB Camera support-->
+<*>   USB SN9C10x PC Camera Controler support 	( CONFIG_USB_SN9C102 )
 
-The kernel gets loaded from flash into RAM with no problem, however, at
-the end of the kernel boot message I get the ... Couldn't find valid
-ramdisk image starting at 0.
+Madis
 
-I have no problems at all when I use rrload to load the file system into
-RAM with
 
-LA=3D  11700000 and EA=3D  11700000=0D
+Djordje Nijemcevic wrote:
 
-With my kernel boot line:  initrd=3D0x11700000,8m root=3D/dev/ram0
-console=3DttyS0,115200n8
-
-However when I use rrload to store the filesystem from RAM to flash and
-then=0D
-Power off and boot, I run into the can't find valid ramdisk problem.
-
-I think it is a simple matter of specifying the correct address of the
-initrd, however how do I determine where rrload is placing the
-initramdisk
-In RAM memory?  It was not evident to me when looking through the rrload
-source.
-
-Marco
-
---------------------------------------------------------------------------
-This email and any attachments may be confidential. They may contain=
- legally
-privileged information or copyright material. You should not read, copy,
-use or disclose them without authorisation. If you are not an intended
-recipient, please contact us at once by return email and then delete both
-messages. We do not accept liability in connection with computer virus,
-data corruption, delay, interruption, unauthorised access or unauthorised
-amendment. This notice should not be removed.
+>Hello,
+>
+>We have the same problem with our web camera... We're using an external
+>power supply for USB.
+>
+>First, we modified the line in ohci-omap.c
+>ohci_to_hcd(ohci)->power_budget = 250;
+>to
+>ohci_to_hcd(ohci)->power_budget = 500;
+>
+>After that modification, during the boot process, we still got the message
+>"400mA over 100mA budget"
+>By searching the files containing string "mA budget", we have found inside
+>hub.c
+>
+>		/* 100mA per-port ceiling, or 8mA for OTG ports */
+>		if (i != (udev->bus->otg_port - 1) || hdev->parent)
+>			ceiling = 50;
+>		else
+>			ceiling = 4;
+>
+>In the rest of the source, the value 'ceiling' is considered as a half the
+>maximum power that the USB port can give. After modifying the 'ceiling'
+>value from 50 (which corresponds to 100mA) to 250 (corresponds to 500mA)
+>we didn't have the boot message mentioned anymore, but the camera still
+>doesn't work, nor its LED :( But, you might give a try with this.
+>
+>It looks strange to me that hub.c is even needed, as well as there is
+>100mA limit inside of it. We still doubt that our camera doesn't work due
+>to some power budget-related issue. Is something else to be modified?
+>
+>TIA
+>Djordje Nijemcevic
+>
+>  
+>
+>>Hi all,
+>>
+>>I am trying to plug a D-Link DWL-G122 802.11g wlan usb stick on to OSK.
+>>But
+>>I always get the "over power budget" warning, should I modify the power
+>>budget set in drivers/usb/host/ohci-omap.c?  Has anyone ever succeeded to
+>>utilize a similar usb stick?
+>>
+>>And, I have tried to use a extra wire to get power supply from a PC usb
+>>port, the errors were still.
+>>
+>>I am so eagerly looking forward to your help, thank you in advance.
+>>
+>>Best regards!
+>>
+>>
+>>Li Weichen
+>>
+>>_______________________________________________
+>>Linux-omap-open-source mailing list
+>>Linux-omap-open-source@linux.omap.com
+>>http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>>
+>>    
+>>
+>
+>_______________________________________________
+>Linux-omap-open-source mailing list
+>Linux-omap-open-source@linux.omap.com
+>http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
+>
+>  
+>
