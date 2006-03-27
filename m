@@ -1,13 +1,11 @@
-From: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>
-Subject: Re: U-boot 1.1.4 compilation problem
-Date: Mon, 27 Mar 2006 15:48:18 +0900 (JST)
-Message-ID: <20060327.154818.59488842.kaminaga@sm.sony.co.jp>
-References: <C4DF42131A1F374CA3675F7B2EF03ECB0223925E@ES22SNLNT.srn.sandia.gov>
+From: "b8944028" <b8944028@stmail.cgu.edu.tw>
+Subject: Is there window environment on omap5912 / QVGA module ?
+Date: Mon, 27 Mar 2006 17:55:12 +0800
+Message-ID: <20060327094500.M24209@stmail.cgu.edu.tw>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset=big5
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <C4DF42131A1F374CA3675F7B2EF03ECB0223925E@ES22SNLNT.srn.sandia.gov>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,24 +15,16 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: jwgiron@sandia.gov
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-sorry for late reply,
+  I have omap5912 and QVGA module and I can find some LCD, backlight demo
+programs in the shipped CD. But that is not enough. I want to build a window
+environment on my board and add some applications. Is there any window system
+for omap5912 / QVGA module ? 
 
-> It is also necessary to change CFG_MAX_FLASH_BANKS to 2 (from 1).
-> Otherwise the CFI driver will only detect a single 16MB bank, rather
-> than the full 16MBx2 = 32MB.
+Regards
 
-Umm, that's right. Also if you change to 2, you also need to set
-CFG_FLASH_BANKS_LIST too?
-
-
-Best Regards,
-
-(Hiroki Kaminaga)
-t
---
+D.G.Lin
