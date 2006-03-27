@@ -1,12 +1,10 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: Re: [PATCH] fix MMC response types
-Date: Mon, 27 Mar 2006 08:46:24 -0400
-Message-ID: <4427DEA0.6050804@indt.org.br>
-References: <fb249edb0603241237l5854cc04k@mail.gmail.com>
+Subject: [PATCH] fix MMC response types
+Date: Mon, 27 Mar 2006 08:56:01 -0400
+Message-ID: <4427E0E1.8050703@indt.org.br>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060102010908080508080509"
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <fb249edb0603241237l5854cc04k@mail.gmail.com>
+Content-Type: multipart/mixed; boundary="------------080606060104060703010707"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,44 +12,18 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: balrogg@gmail.com
-Cc: omap-linux <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: balrogg@gmail.com, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------060102010908080508080509
+--------------080606060104060703010707
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-ext andrzej zaborowski wrote:
+Ok, let's try again, now with the patch...
 
->Previously the MMC/SD protocol layer didn't provide command and
->response types to mmc_omap_start_command(). In 2.6.16 it does and the
->hack that tries to find the correct command/response types based on
->flags is no longer needed.
->This matters particularly for response types because for command types
->this hack worked fine, while it failed to give correct response type
->for some SD commands such as CMD3 (in most cases this caused no big
->problems because the size of the response matched).
->Regards,
->Andrzej
->--
->balrog 2oo6
->
->Dear Outlook users: Please remove me from your address books
->http://www.newsforge.com/article.pl?sid=03/08/21/143258
->  
->
->------------------------------------------------------------------------
->
->_______________________________________________
->Linux-omap-open-source mailing list
->Linux-omap-open-source@linux.omap.com
->http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->  
->
 Hi Andrzej and folks,
 
 Attached to this mail follow my propose of fixing MMC responde types in 
@@ -77,7 +49,7 @@ Mobile: +55 92 8127-1797
 E-mail: carlos.aguiar@indt.org.br
 
 
---------------060102010908080508080509
+--------------080606060104060703010707
 Content-Type: text/x-patch;
  name="mmc_omap_rsp.patch"
 Content-Transfer-Encoding: 7bit
@@ -151,11 +123,11 @@ Index: linux-omap-2.6.git/drivers/mmc/omap.c
  	} else {
  		cmdtype = OMAP_MMC_CMDTYPE_AC;
 
---------------060102010908080508080509
+--------------080606060104060703010707
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------060102010908080508080509--
+--------------080606060104060703010707--
