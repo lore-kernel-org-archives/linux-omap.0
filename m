@@ -1,13 +1,13 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: source.mvista.com/git not accessible
-Date: Mon, 27 Mar 2006 07:21:06 -0800 (PST)
-Message-ID: <20060327152106.8539.qmail@web32908.mail.mud.yahoo.com>
-References: <20060327151504.GD15423@smtp.west.cox.net>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: Is there window environment on omap5912 / QVGA module ?
+Date: Mon, 27 Mar 2006 20:06:11 +0200
+Message-ID: <44282993.7060505@gmail.com>
+References: <20060327094500.M24209@stmail.cgu.edu.tw>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060327151504.GD15423@smtp.west.cox.net>
+Content-Type: text/plain; charset=Big5
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20060327094500.M24209@stmail.cgu.edu.tw>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,26 +15,23 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tom Rini <trini@kernel.crashing.org>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: b8944028 <b8944028@stmail.cgu.edu.tw>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---- Tom Rini <trini@kernel.crashing.org> wrote:
-
+b8944028 wrote:
+> Hi,
 > 
-> Apache died and has been restarted.  git-daemon and rsyncd were still
-> going fine.  I've restarted apache and asked someone to poke around
-> and
-> see why it died.
+>   I have omap5912 and QVGA module and I can find some LCD, backlight demo
+> programs in the shipped CD. But that is not enough. I want to build a window
+> environment on my board and add some applications. Is there any window system
+> for omap5912 / QVGA module ? 
 
-Thanx. It works now.
+Search list archive for
 
----Komal Shah
-http://komalshah.blogspot.com/
+X on OMAP
+OPIE, QT/E, Qtopia
+Microwindows
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+Dirk
