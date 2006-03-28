@@ -1,11 +1,13 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: board-netstar.c in linus tree
-Date: Mon, 27 Mar 2006 23:49:14 -0800 (PST)
-Message-ID: <20060328074914.57511.qmail@web32911.mail.mud.yahoo.com>
+From: Philippe Laporte <philippe.laporte@gatespacetelematics.com>
+Subject: Re: 770 display failure workaround
+Date: Tue, 28 Mar 2006 10:14:37 +0200
+Message-ID: <4428F06D.30601@gatespacetelematics.com>
+References: <Qs8Znlvx6mDv.px2H5QYm@smtprelay1.telia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <Qs8Znlvx6mDv.px2H5QYm@smtprelay1.telia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,15 +20,27 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Tony,
+Hi,
+     What I mean to say is, it's a Hardware failure...but with a
+software workaround...so it's a software failure not to handle the
+potential hardware failure.
 
-Need to remove board-netstar.c from linus mainline tree. Just got the
-merge conflict on delete/modify :)
+But obviously the powers that be don't agree.
 
----Komal Shah
-http://komalshah.blogspot.com/
+I say put the code in the official kernel image...
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+Or?
+
+Regards,
+
+--=20
+Philippe Laporte
+Software
+
+Gatespace Telematics
+F=F6rsta L=E5nggatan 18
+41328 G=F6teborg
+Sweden
+Phone: +46 702 04 35 11
+Fax:   +46 31 24 16 50
+Email: philippe.laporte@gatespacetelematics.com
