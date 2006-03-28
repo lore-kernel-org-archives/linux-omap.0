@@ -1,13 +1,11 @@
-From: tony@atomide.com
-Subject: Re: DMA support for smc91x
-Date: Tue, 28 Mar 2006 05:50:28 -0800
-Message-ID: <20060328135027.GE28751@atomide.com>
-References: <20060324002336.GA13667@orphique>
+From: Tony Lindgren <tony@atomide.com>
+Subject: About to tag 2.6.16-omap1 & current patch status
+Date: Tue, 28 Mar 2006 07:35:02 -0800
+Message-ID: <20060328153500.GF28751@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20060324002336.GA13667@orphique>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,30 +15,51 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Ladislav Michl <ladis@linux-mips.org> [060323 16:23]:
-> Hi,
-> 
-> this mail contains dirty and for most people completely useless patch.
-> Here is my motivation for it: I have OMAP based board using LAN91C111,
-> its interrupt line is routed to GPIO pin. Other GPIO lines are used as
-> interrupt sources for ISDN chips which needs to be services regulary
-> (irq can be generated per 125us for each of four chips). All interrupts
-> from GPIOs are serialized, so if smc91x needs 1.6ms to read 8 full size
-> packets from memory, communication with ISDN chips gets screwed. Even
-> decreasing MAX_IRQ_LOOPS to 1 doesn't help too much here, because single
-> full size packet reading takes 200us. Now programing DMA takes only 6us
-> and rest of CPU time is left for sometning usesfull :-). Patch is
-> pre-alpha quality, there are some locking bugs - reading from eeprom
-> while DMA is progress will result in undefined behaviour (but there
-> is not eeprom support upstream, so who cares ;-)) - and I just want to
-> ask if anyone else would need something it and provide some feedback.
-> Then I may think a bit more, finish it and send it to proper mailing
-> list.
+Hi all,
 
-That's cool :)
+We're about to ready to tag 2.6.16-omap1. Let's do some testing
+and try to get few issues fixed. Currently there's at least the MMC
+issue with I2C powered sockets that we should fix before tagging
+2.6.16-omap1.
+
+Please report any issues that should be fixed for 2.6.16-omap1 to this
+thread.
+
+Also following is a summary of the currently applied and pending patches. 
+
+Applied patches
+
+Komal Shah [PATCH] OMAP: KEYPAD: sem2mutex conversion
+Komal Shah [PATCH] OMAP: Menelaus: sem2mutex conversion
+Komal Shah [PATCH] OMAP: FB: sem2mutex conversion
+Komal Shah [PATCH] OMAP: retu-rtc: sem2mutex conversion
+Komal Shah [PATCH] retu-user: sem2mutex conversion
+Komal Shah [PATCH] OMAP: tahvo usb: sem2mutex conversion
+Komal Shah [PATCH] OMAP: tahvo_user: sem2mutex conversion
+Komal Shah [PATCH] OMAP: OSS: sem2mutex conversion
+Komal Shah [PATCH] OMAP2: Fix H4 keypad
+Komal Shah [PATCH] OMAP1: camera core : Use platform driver structure
+Komal Shah [PATCH] Fix OV9640 sensor and add h4 sensor power functions 
+Jonathan McDowell [PATCH] Add support for Amstrad Delta (E3) Videophone
+
+
+Pending patches for post 2.6.16-omap1
+
+Komal Shah [PATCH] OMAP2 MCSPI Use resources
+Hiroshi DOYU [patch 1/5] MMC BUGFIX TRIVIAL STUFFS
+Richard Woodruff [PATCH] : Fix annoying 'too much work for irq72' serial
+Richard Woodruff [PATCH] OMAP2: timer+irq fix up
+David Cohen [PATCH] omap24xxcamera
+Carlos Aguiar [PATCH] fix MMC response types
+Komal Shah [PATCH] OMAP2: ov9640 updates for H4
+Komal Shah [PATCH] omap24xx camera cleanup
+Komal Shah [PATCH] CBUS: various cleanups
+Komal Shah [PATCH] OMAP: MMC: Move set_power to platform data
+Komal Shah [PATCH] OMAP: FB: Use blocking notifier apis
+
+Regards,
 
 Tony
