@@ -1,13 +1,12 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: About to tag 2.6.16-omap1 & current patch status
-Date: Wed, 29 Mar 2006 00:01:49 -0800 (PST)
-Message-ID: <20060329080149.23826.qmail@web32901.mail.mud.yahoo.com>
-References: <20060328153500.GF28751@atomide.com>
+From: "Ola Helm" <ola.hel@gmail.com>
+Subject: Trasnferring u-boot to P2 730
+Date: Wed, 29 Mar 2006 12:07:04 +0300
+Message-ID: <3d3153f60603290107w2dcb1289r9a4667a1c23ed49c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060328153500.GF28751@atomide.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,57 +16,45 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---- Tony Lindgren <tony@atomide.com> wrote:
+Hi,
 
-> Hi all,
-> 
-> We're about to ready to tag 2.6.16-omap1. Let's do some testing
-> and try to get few issues fixed. Currently there's at least the MMC
-> issue with I2C powered sockets that we should fix before tagging
-> 2.6.16-omap1.
+I have searched the archives and and tried to find some discussion about th=
+e
+issue and also checked out the /pub/documentation but none seems to exist
+which would answer. I'm trying to find out how to transfer u-boot to P2
+board. I'm interested to hear how have you managed to get the u-boot  - and
+furthermore anything - to board.
 
-I am able to boot the kernel on h4 EVM. No MMC crash. But following 
-line on boot sequence. Bootloader is in prcm5b configuration.
+My situation is that board have SysBoot 1.18 in it. It does recognize and
+accept MMC and finds linking file, but it does not accept image itself. It
+gives a message:"Valid image could not be found". I have tried self-compile=
+d
+and downloaded u-boot.out, u-boot.bin and u-boot files with no result, can'=
+t
+get a reason for that..
 
-...
-Kernel command line: console=ttyS0,115200n8 root=/dev/nfs
-nfsroot=172.21.41.211:
-/pub/fs/oss,wsize=1024,rsize=1024 ip=dhcp
-Clocking rate (Crystal/DPLL/MPU): 12.0/880/440 MHz
-...
+I'm also intrested is there a way to download the u-boot via serial cable o=
+r
+other transfer method. I have tried to download with hyperterminal, minicom
+and OST Tool, but none seems to have any reaction to sysboot. I'm not sure
+am I using correct addresses in OST tool for flashing/RAM download thoug, I
+should use the debug board in some way I don't know, perhaps switches are
+not in correct positions in either of boards (in target I (think) have trie=
+d
+them in almost all possible positions and in debug board I mainly changed
+position of SW4-6 enabling/disabling RS-232 in either board and SW4-7
+changing UART 1 and 2) etc. etc.
 
-...
-initcall at 0xc0010ae0: omap2_clk_arch_init+0x0/0xec(): returned with
-error code
- -22
-....
+I have also tried to have connection via JTAG but it does not get connected
+even though I tried different switch / jumper settings, now
+JP1: 1-2
+JP2: 1-2
+JP3: 2-3
+(device does work, the reason is somewhere else).
 
-This is not a bug, as I am not passing mpurate on command line.
+Ideas?
 
-> 
-> Pending patches for post 2.6.16-omap1
-> 
-> Komal Shah [PATCH] OMAP2 MCSPI Use resources
-
-One bug in this patch: passing vaddr to request_mem_region.
-
-> Komal Shah [PATCH] CBUS: various cleanups
-
-These patches are need to be rebased. I will do it once you sync up
-with latest mainline tree and -omap1 tag.
-
-> Komal Shah [PATCH] OMAP: MMC: Move set_power to platform data
-
-Remove this patch from pending queue, as it doesn't seems to be clean
-solution as of now.
-
----Komal Shah
-http://komalshah.blogspot.com/
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+/O
