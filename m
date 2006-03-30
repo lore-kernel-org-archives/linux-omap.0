@@ -1,13 +1,13 @@
-From: "Ishigami, Tatsuya" <ishigami@ti.com>
-Subject: RE: OMAP development on a student budget
-Date: Thu, 30 Mar 2006 03:47:06 -0600
-Message-ID: <3D54759CE5A8F64BB2078090E91D50A20EE550@dlee08.ent.ti.com>
+From: Jonathan McDowell <noodles@earth.li>
+Subject: Re: [PATCH] Fix USB host on 1510/5910?
+Date: Thu, 30 Mar 2006 19:02:21 +0100
+Message-ID: <20060330180220.GH26949@earth.li>
+References: <20060328164403.GL26949@earth.li> <20060328190519.GS26949@earth.li>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-class: urn:content-classes:message
+Content-Type: multipart/mixed; boundary="FxlYARId5dseejUu"
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <20060328190519.GS26949@earth.li>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,73 +15,80 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Cina Hazegh <chazegh@flashmob.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Ladislav Michl <ladis@linux-mips.org>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello Cina,
 
- Probably, you already know the OSK5912, don't you?
+--FxlYARId5dseejUu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-	http://omap.spectrumdigital.com/osk5912/
+On Tue, Mar 28, 2006 at 08:05:19PM +0100, Jonathan McDowell wrote:
+> I'd still like to know if anyone's having success with a 1510/5910 and
+> latest git though, as I've had someone else tell me they were seeing
+> similar problems on a platform that wasn't the E3 (unfortunately it
+> was on IRC and I don't have their details. :( ).
 
- If you are looking forward to making the board itself, here
-is the check list for you.
+ladis, I think this was you. Does the attached help at all, if you're
+still having problems? It sorts things out for me on the E3 with latest
+git; the OMAP5910 datasheet says that the lb clock needs enabled for USB
+to work, so it seems reasonable that this is required.
 
- - Comfortable with 6 ~ 10 layers design?
- - Comfortable with > 50 MHz signal routing?
- - Comfortable with  1.6[V] design for 50 ~150 [mA]?
- - Able to solder the BGA package?
- - Able to obtain the DDR for your quantity?
-   (The LCD would be next difficult to get, if you plan it)
- - Do you (or your friend) have JTAG tools?
+J.
 
- If you are positive for these items, I believe you enjoy the
-work itself, and it should be good experience.
+-- 
+noodles is not pasta
 
- As for the device, try the OMAP5912, which is available
-through the digi-key.
+--FxlYARId5dseejUu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="omap-git-usb-fix.diff"
 
- Good luck,
- Ishigami
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index 6178f04..664c3e2 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -80,8 +80,15 @@ static struct omap_uart_config ams_delta
+ 	.enabled_uarts = 1,
+ };
+ 
++static struct omap_usb_config ams_delta_usb_config __initdata = {
++	.register_host	= 1,
++	.hmc_mode	= 16,
++	.pins[0]	= 2,
++};
++
+ static struct omap_board_config_kernel ams_delta_config[] = {
+ 	{ OMAP_TAG_UART,	&ams_delta_uart_config },
++	{ OMAP_TAG_USB,		&ams_delta_usb_config },
+ };
+ 
+ static void __init ams_delta_init(void)
+diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
+index d9207d8..ced5b2e 100644
+--- a/drivers/usb/host/ohci-omap.c
++++ b/drivers/usb/host/ohci-omap.c
+@@ -353,7 +353,11 @@ int usb_hcd_omap_probe (const struct hc_
+ 	if (IS_ERR(usb_host_ck))
+ 		return PTR_ERR(usb_host_ck);
+ 
+-	usb_dc_ck = clk_get(0, "usb_dc_ck");
++	if (!cpu_is_omap1510())
++		usb_dc_ck = clk_get(0, "usb_dc_ck");
++	else
++		usb_dc_ck = clk_get(0, "lb_ck");
++
+ 	if (IS_ERR(usb_dc_ck)) {
+ 		clk_put(usb_host_ck);
+ 		return PTR_ERR(usb_dc_ck);
 
------Original Message-----
-From: Cina Hazegh
-Sent: Friday, March 24, 2006 6:55 AM
-To: linux-omap-open-source@linux.omap.com
-Subject: OMAP development on a student budget
-
-Many apologies if this sort of question has been asked many times =20
-before, but I haven't been able to find this information on the web =20
-or in this lists' archives, so I am going to ask.
-
-I am very interested in developing my own PCB that incorporates an =20
-OMAP processor. Does anyone on this list have any experience with =20
-doing this sort of thing, and if so, what does it take? Is it a =20
-reasonable task for someone with some solid PCB layout experience?
-
-If so, which processors would I be able to obtain on a student =20
-budget? I've been able to find the OMAP5910 through Digi-key, but I'm =20
-interested in designing a board for one of the newer processors, =20
-since TI is warning that new designs should not be done for the 5910 =20
-(which means to me that it will be discontinued soon).
-
-I should point out, that my final goal is to provide the board layout =20
-and schematic in an open source fashion for other students and =20
-developers to learn from. Any help/information/guidance you can =20
-provide would be appreciated.
-
--- Cina Hazegh
+--FxlYARId5dseejUu
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 
-___________________________________________________
-Cina Hazegh, Graduate Student
-University of California, Irvine --  Arts, Computation and Engineering
-chazegh@uci.edu  |  http://cinahazegh.com | http://opencircuits.com
-
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+--FxlYARId5dseejUu--
