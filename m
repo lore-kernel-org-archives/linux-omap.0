@@ -1,12 +1,12 @@
 From: lamikr <lamikr@cc.jyu.fi>
-Subject: [PATCH 3/5] omap-alsa-tsc2101-mixer: playback and recording
- selection cleanup.
-Date: Fri, 31 Mar 2006 01:55:23 +0300
-Message-ID: <442C61DB.9090702@cc.jyu.fi>
+Subject: [PATCH 4/5] omap-alsa-tsc2101-mixer: merge similar looking methods
+ together.
+Date: Fri, 31 Mar 2006 01:55:36 +0300
+Message-ID: <442C61E8.3030707@cc.jyu.fi>
 Reply-To: lamikr@cc.jyu.fi
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000508000103080800090209"
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: multipart/mixed; boundary="------------000305040600020701080604"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,220 +14,266 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------000508000103080800090209
+--------------000305040600020701080604
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
 
 
---------------000508000103080800090209
+--------------000305040600020701080604
 Content-Type: text/plain;
-	name="0003-omap-alsa-tsc2101-mixer-playback-and-recording-selection-cleanup.txt"
+	name="0004-omap-alsa-tsc2101-mixer-merge-similar-looking-methods-together.txt"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
-	filename="0003-omap-alsa-tsc2101-mixer-playback-and-recording-selection-cleanup.txt"
+	filename="0004-omap-alsa-tsc2101-mixer-merge-similar-looking-methods-together.txt"
 
 >From nobody Mon Sep 17 00:00:00 2001
 From: lamikr <lamikr@cc.jyu.fi)>
-Date: Fri Mar 31 01:21:59 2006 +0300
-Subject: [PATCH 3/5] omap-alsa-tsc2101-mixer: playback and recording selection cleanup.
+Date: Fri Mar 31 01:25:31 2006 +0300
+Subject: [PATCH 4/5] omap-alsa-tsc2101-mixer: merge similar looking methods together.
 
 Signed-off-by: lamikr <lamikr@cc.jyu.fi>
 
 
 ---
 
- sound/arm/omap/omap-alsa-tsc2101-mixer.c |   80 +++++++++++-------------------
- sound/arm/omap/omap-alsa-tsc2101-mixer.h |   16 +++---
- 2 files changed, 37 insertions(+), 59 deletions(-)
+ sound/arm/omap/omap-alsa-tsc2101-mixer.c |  127 +++++++++++++++---------------
+ 1 files changed, 62 insertions(+), 65 deletions(-)
 
-cc513fa045980cdd6366f70559988cb4a8b5a137
+a3c51ca5f7606601bf1332d07130de27ba9ffc9a
 diff --git a/sound/arm/omap/omap-alsa-tsc2101-mixer.c b/sound/arm/omap/omap-alsa-tsc2101-mixer.c
-index 1b7b968..3d99984 100644
+index 3d99984..5c9b0ba 100644
 --- a/sound/arm/omap/omap-alsa-tsc2101-mixer.c
 +++ b/sound/arm/omap/omap-alsa-tsc2101-mixer.c
-@@ -85,25 +85,24 @@ inline u16 omap_tsc2101_audio_read(u8 ad
- }
+@@ -50,20 +50,15 @@
+ //#define M_DPRINTK(ARGS...)  printk(KERN_INFO "<%s>: ",__FUNCTION__);printk(ARGS)
+ #define M_DPRINTK(ARGS...)  		/* nop */
  
- /*
-- * Used for switching between TSC2101 recourd sources.
-- * Logic is adjusted from the TSC2101 OSS code.
-+ * For selecting tsc2101 recourd source.
-  */
--static int set_record_source(int val)
-+static void set_record_source(int val)
- {
- 	u16	data;
--	int	maskedVal;
- 	
--	FN_IN;
--	maskedVal	= 0xe0 & val;	
--
--	data	= omap_tsc2101_audio_read(TSC2101_MIXER_PGA_CTRL);
-+	/* Mute Analog Sidetone
-+	 * Analog sidetone gain db?
-+	 * Cell Phone In not connected to ADC
-+	 * Input selected by MICSEL connected to ADC
-+	 */
-+	data	= MPC_ASTMU | MPC_ASTG(0x45);
- 	data	&= ~MPC_MICSEL(7); /* clear all MICSEL bits */
--	data	|= maskedVal;
-+	data	|= MPC_MICSEL(val);
-+	data	|= MPC_MICADC;
- 	omap_tsc2101_audio_write(TSC2101_MIXER_PGA_CTRL, data);
-+	
- 	current_rec_src	= val;
--
--	FN_OUT(0);
--	return 0;
- }
++#defome CHECK_BIT(INDX, ARG) (((ARG) & TSC2101_BIT(INDX)) >> INDX)
++#define IS_UNMUTED(INDX, ARG) (((CHECK_BIT(INDX, ARG)) == 0))
++
+ #define DGC_DALVL_EXTRACT(ARG) ((ARG & 0x7f00) >> 8)
+ #define DGC_DARVL_EXTRACT(ARG) ((ARG & 0x007f))
+-#define GET_DGC_DALMU_BIT_VALUE(ARG)  (((ARG) & TSC2101_BIT(15)) >> 15)
+-#define GET_DGC_DARMU_BIT_VALUE(ARG)  (((ARG) & TSC2101_BIT(7)) >> 7)
+-#define IS_DGC_DALMU_UNMUTED(ARG)  (((GET_DGC_DALMU_BIT_VALUE(ARG)) == 0))
+-#define IS_DGC_DARMU_UNMUTED(ARG) (((GET_DGC_DARMU_BIT_VALUE(ARG)) == 0))
  
- /*
-@@ -324,24 +323,9 @@ int set_mixer_volume_as_handset_gain_con
+ #define HGC_ADPGA_HED_EXTRACT(ARG) ((ARG & 0x7f00) >> 8)
+-#define GET_DGC_HGCMU_BIT_VALUE(ARG) (((ARG) & TSC2101_BIT(15)) >> 15)
+-#define IS_DGC_HGCMU_UNMUTED(ARG) (((GET_DGC_HGCMU_BIT_VALUE(ARG)) == 0))
+-
+ #define HNGC_ADPGA_HND_EXTRACT(ARG) ((ARG & 0x7f00) >> 8)
+-#define GET_DGC_HNGCMU_BIT_VALUE(ARG) (((ARG) & TSC2101_BIT(15)) >> 15)
+-#define IS_DGC_HNGCMU_UNMUTED(ARG) (((GET_DGC_HNGCMU_BIT_VALUE(ARG)) == 0))
++#define BGC_ADPGA_BGC_EXTRACT(ARG) ((ARG & 0x7f00) >> 8)
+ 
+ static int current_playback_target	= PLAYBACK_TARGET_LOUDSPEAKER;
+ static int current_rec_src 		= REC_SRC_SINGLE_ENDED_MICIN_HED;
+@@ -171,7 +166,11 @@ int set_mixer_volume_as_dac_gain_control
  	return retVal;
  }
  
--void init_record_sources(void)
--{
--	/* Mute Analog Sidetone
--	 * analog sidetone gain db?
--	 * Cell Phone In not connected to ADC
--	 * Input selected by MICSEL connected to ADC
--	 */
--	omap_tsc2101_audio_write(TSC2101_MIXER_PGA_CTRL,
--			  MPC_ASTMU | MPC_ASTG(0x40) | ~MPC_CPADC | MPC_MICADC);
--	/* Set record source, Select MIC_INHED input for headset */
--	set_record_source(REC_SRC_SINGLE_ENDED_MICIN_HED);	
--}
--
- void set_loudspeaker_to_playback_target(void)
+-int dac_gain_control_unmute_control(int muteLeft, int muteRight)
++/**
++ * If unmuteLeft/unmuteRight == 0  --> mute
++ * If unmuteLeft/unmuteRight == 1 --> unmute
++ */
++int dac_gain_control_unmute(int unmuteLeft, int unmuteRight)
  {
--	u16	val;
--
--	/* power down sp1, sp2 and loudspeaker */
-+	/* power down SPK1, SPK2 and loudspeaker */
- 	omap_tsc2101_audio_write(TSC2101_CODEC_POWER_CTRL,
- 			CPC_SP1PWDN | CPC_SP2PWDN | CPC_LDAPWDF);	
- 	/* ADC, DAC, Analog Sidetone, cellphone, buzzer softstepping enabled
-@@ -352,21 +336,13 @@ void set_loudspeaker_to_playback_target(
- 
- 	/* DAC left and right routed to SPK1/SPK2
- 	 * SPK1/SPK2 unmuted
--	 * keyclicks routed to SPK1/SPK2
--	 */
--	val	= AC5_DIFFIN |
-+	 * Keyclicks routed to SPK1/SPK2 */
-+	omap_tsc2101_audio_write(TSC2101_AUDIO_CTRL_5, 
-+			AC5_DIFFIN |
- 			AC5_DAC2SPK1(3) | AC5_AST2SPK1 | AC5_KCL2SPK1 |
--			AC5_DAC2SPK2(3) | AC5_AST2SPK2 | AC5_KCL2SPK2 |
--			AC5_HDSCPTC;
--	val	= val & ~AC5_HDSCPTC;
--	omap_tsc2101_audio_write(TSC2101_AUDIO_CTRL_5, val);
--	
--	/* powerdown spk1/out32n and spk2 */
--	val	= omap_tsc2101_audio_read(TSC2101_POWERDOWN_STS);
--	val	= val & ~(~PS_SPK1FL | ~PS_HNDFL | PS_LSPKFL);
--	omap_tsc2101_audio_write(TSC2101_POWERDOWN_STS,	val);
--
--	/* routing selected to SPK1 goes to OUT8P/OUT84 alsa. (loudspeaker)
-+			AC5_DAC2SPK2(3) | AC5_AST2SPK2 | AC5_KCL2SPK2);
-+	
-+	/* routing selected to SPK1 goes also to OUT8P/OUT8N. (loudspeaker)
- 	 * analog sidetone routed to loudspeaker
- 	 * buzzer pga routed to loudspeaker
- 	 * keyclick routing to loudspeaker
-@@ -380,29 +356,29 @@ void set_loudspeaker_to_playback_target(
+ 	u16 val;
+ 	int count;
+@@ -181,8 +180,8 @@ int dac_gain_control_unmute_control(int 
+ 	/* in alsa mixer 1 --> on, 0 == off. In tsc2101 registry 1 --> off, 0 --> on
+ 	 * so if values are same, it's time to change the registry value.
  	 */
- 	omap_tsc2101_audio_write(TSC2101_AUDIO_CTRL_6,
- 			AC6_SPL2LSK | AC6_AST2LSK | AC6_BUZ2LSK | AC6_KCL2LSK |
--			AC6_CPI2LSK | AC6_MIC2CPO | AC6_SPL2CPO |
--			~AC6_MUTLSPK | ~AC6_MUTSPK2 | ~AC6_LDSCPTC | ~AC6_VGNDSCPTC);
-+			AC6_CPI2LSK | AC6_MIC2CPO | AC6_SPL2CPO);
- 	current_playback_target	= PLAYBACK_TARGET_LOUDSPEAKER;
+-	if (muteLeft == GET_DGC_DALMU_BIT_VALUE(val)) {
+-		if (muteLeft == 0) {
++	if (unmuteLeft != IS_UNMUTED(15, val)) {
++		if (unmuteLeft == 0) {
+ 			/* mute --> turn bit on */
+ 			val	= val | DGC_DALMU;
+ 		}
+@@ -192,8 +191,8 @@ int dac_gain_control_unmute_control(int 
+ 		}
+ 		count++;
+ 	} /* L */
+-	if (muteRight == GET_DGC_DARMU_BIT_VALUE(val)) {
+-		if (muteRight == 0) {
++	if (unmuteRight != IS_UNMUTED(7, val)) {
++		if (unmuteRight == 0) {
+ 			/* mute --> turn bit on */
+ 			val	= val | DGC_DARMU;
+ 		}
+@@ -206,12 +205,45 @@ int dac_gain_control_unmute_control(int 
+ 	if (count) {
+ 		omap_tsc2101_audio_write(TSC2101_DAC_GAIN_CTRL, val);
+ 		M_DPRINTK("changed value, is_unmuted left = %d, right = %d\n", 
+-			IS_DGC_DALMU_UNMUTED(val),
+-			IS_DGC_DARMU_UNMUTED(val));
++			IS_UNMUTED(15, val),
++			IS_UNMUTED(7, val));
+ 	}
+ 	return count;	
  }
  
- void set_headphone_to_playback_target(void)
++/**
++ * unmute: 0 --> mute, 1 --> unmute
++ * page2RegIndx: Registry index in tsc2101 page2.
++ * muteBitIndx: Index number for the bit in registry that indicates whether muted or unmuted.
++ */
++int adc_pga_unmute_control(int unmute, int page2regIndx, int muteBitIndx)
++{
++	int count;
++	u16 val;
++	
++	count	= 0;
++	val 	= omap_tsc2101_audio_read(page2regIndx);
++	/* in alsa mixer 1 --> on, 0 == off. In tsc2101 registry 1 --> off, 0 --> on
++	 * so if the values are same, it's time to change the registry value...
++	 */
++	if (unmute != IS_UNMUTED(muteBitIndx, val)) {
++		if (unmute == 0) {
++			/* mute --> turn bit on */
++			val	= val | TSC2101_BIT(muteBitIndx);
++		}
++		else {
++			/* unmute --> turn bit off */
++			val	= val & ~TSC2101_BIT(muteBitIndx);
++		}
++		M_DPRINTK("changed value, is_unmuted = %d\n", IS_UNMUTED(muteBitIndx, val));
++		count++;
++	}
++	if (count) {
++		omap_tsc2101_audio_write(page2regIndx, val);
++	}
++	return count;
++}
++
+ /*
+  * Converts the DGC registry value read from the TSC2101 registry to 
+  * Alsa mixer volume format (0 - 100).
+@@ -442,7 +474,7 @@ void init_playback_targets(void)
+ 	 */
+ 	set_mixer_volume_as_dac_gain_control_volume(DEFAULT_OUTPUT_VOLUME, DEFAULT_OUTPUT_VOLUME);	
+ 	/* unmute */
+-	dac_gain_control_unmute_control(1, 1);
++	dac_gain_control_unmute(1, 1);
+ }
+ 
+ /*
+@@ -568,14 +600,14 @@ static int __pcm_playback_switch_get(snd
  {
--	/* power down sp1, sp2 and loudspeaker */
-+	/* power down SPK1, SPK2 and loudspeaker */
- 	omap_tsc2101_audio_write(TSC2101_CODEC_POWER_CTRL,
- 			CPC_SP1PWDN | CPC_SP2PWDN | CPC_LDAPWDF);
- 	/* ADC, DAC, Analog Sidetone, cellphone, buzzer softstepping enabled */
- 	/* 1dB AGC hysteresis */
- 	/* MICes bias 2V */
- 	omap_tsc2101_audio_write(TSC2101_AUDIO_CTRL_4, AC4_MB_HED(0));
--
--	/* DAC left and right routed to SPK2 */
--	/* SPK1/2 unmuted */
-+				
-+	/* DAC left and right routed to SPK1/SPK2
-+	 * SPK1/SPK2 unmuted
-+	 * Keyclicks routed to SPK1/SPK2 */
- 	omap_tsc2101_audio_write(TSC2101_AUDIO_CTRL_5,
- 			AC5_DAC2SPK1(3) | AC5_AST2SPK1 | AC5_KCL2SPK1 |
- 			AC5_DAC2SPK2(3) | AC5_AST2SPK2 | AC5_KCL2SPK2 |
- 			AC5_HDSCPTC);
--
--	/* OUT8P/N muted, CPOUT muted */
-+			
-+	/* OUT8P/OUT8N muted, CPOUT muted */
- 	omap_tsc2101_audio_write(TSC2101_AUDIO_CTRL_6,
- 			AC6_MUTLSPK | AC6_MUTSPK2 | AC6_LDSCPTC |
- 			AC6_VGNDSCPTC);
-@@ -479,7 +455,9 @@ void snd_omap_init_mixer(void)
- 	/* Headset/Hook switch detect enabled */
- 	omap_tsc2101_audio_write(TSC2101_AUDIO_CTRL_7, AC7_DETECT);
+ 	u16 val	= omap_tsc2101_audio_read(TSC2101_DAC_GAIN_CTRL);
+ 	
+-	ucontrol->value.integer.value[0]	= IS_DGC_DALMU_UNMUTED(val);
+-	ucontrol->value.integer.value[1]	= IS_DGC_DARMU_UNMUTED(val);
++	ucontrol->value.integer.value[0]	= IS_UNMUTED(15, val);	// left
++	ucontrol->value.integer.value[1]	= IS_UNMUTED(7, val);	// right
+ 	return 0;
+ }
  
--	init_record_sources();
-+	/* Select headset to record source (MIC_INHED)*/
-+	set_record_source(REC_SRC_SINGLE_ENDED_MICIN_HED);
-+	/* Init loudspeaker as a default playback target*/
- 	init_playback_targets();
+ static int __pcm_playback_switch_put(snd_kcontrol_t *kcontrol, snd_ctl_elem_value_t *ucontrol) 
+ {
+-	return dac_gain_control_unmute_control(ucontrol->value.integer.value[0], 
++	return dac_gain_control_unmute(ucontrol->value.integer.value[0], 
+ 					ucontrol->value.integer.value[1]);
+ }
  
- 	FN_OUT(0);
-diff --git a/sound/arm/omap/omap-alsa-tsc2101-mixer.h b/sound/arm/omap/omap-alsa-tsc2101-mixer.h
-index f68f33d..ff852b5 100644
---- a/sound/arm/omap/omap-alsa-tsc2101-mixer.h
-+++ b/sound/arm/omap/omap-alsa-tsc2101-mixer.h
-@@ -62,14 +62,14 @@
+@@ -625,33 +657,16 @@ static int __headset_playback_switch_inf
+ static int __headset_playback_switch_get(snd_kcontrol_t *kcontrol, snd_ctl_elem_value_t *ucontrol) 
+ {
+ 	u16 val = omap_tsc2101_audio_read(TSC2101_HEADSET_GAIN_CTRL);
+-	ucontrol->value.integer.value[0]	= IS_DGC_HGCMU_UNMUTED(val);
++	ucontrol->value.integer.value[0]	= IS_UNMUTED(15, val);
+ 	return 0;
+ }
  
- /* following are used for register 03h Mixer PGA control bits D7-D5 for selecting record source */
- #define REC_SRC_TARGET_COUNT		0x08
--#define REC_SRC_SINGLE_ENDED_MICIN_HED	MPC_MICSEL(0)	// oss code referred to MIXER_LINE
--#define REC_SRC_SINGLE_ENDED_MICIN_HND	MPC_MICSEL(1)	// oss code referred to MIXER_MIC
--#define REC_SRC_SINGLE_ENDED_AUX1	MPC_MICSEL(2)
--#define REC_SRC_SINGLE_ENDED_AUX2	MPC_MICSEL(3)
--#define REC_SRC_MICIN_HED_AND_AUX1	MPC_MICSEL(4)
--#define REC_SRC_MICIN_HED_AND_AUX2	MPC_MICSEL(5)
--#define REC_SRC_MICIN_HND_AND_AUX1	MPC_MICSEL(6)
--#define REC_SRC_MICIN_HND_AND_AUX2	MPC_MICSEL(7)
-+#define REC_SRC_SINGLE_ENDED_MICIN_HED	0x00	// oss code referred to MIXER_LINE
-+#define REC_SRC_SINGLE_ENDED_MICIN_HND	0x01	// oss code referred to MIXER_MIC
-+#define REC_SRC_SINGLE_ENDED_AUX1	0x02
-+#define REC_SRC_SINGLE_ENDED_AUX2	0x03
-+#define REC_SRC_MICIN_HED_AND_AUX1	0x04
-+#define REC_SRC_MICIN_HED_AND_AUX2	0x05
-+#define REC_SRC_MICIN_HND_AND_AUX1	0x06
-+#define REC_SRC_MICIN_HND_AND_AUX2	0x07
+ static int __headset_playback_switch_put(snd_kcontrol_t *kcontrol, snd_ctl_elem_value_t *ucontrol) 
+ {
+-	int count = 0;
+-	u16 val = omap_tsc2101_audio_read(TSC2101_HEADSET_GAIN_CTRL);
+-	/* in alsa mixer 1 --> on, 0 == off. In tsc2101 registry 1 --> off, 0 --> on
+-	 * so if values are same, it's time to change the registry value...
+-	 */
+-	if (ucontrol->value.integer.value[0] == GET_DGC_HGCMU_BIT_VALUE(val)) {
+-		if (ucontrol->value.integer.value[0] == 0) {
+-			/* mute --> turn bit on */
+-			val	= val | HGC_ADMUT_HED;
+-		}
+-		else {
+-			/* unmute --> turn bit off */
+-			val	= val & ~HGC_ADMUT_HED;
+-		}
+-		count++;
+-		M_DPRINTK("changed value, is_unmuted = %d\n", IS_DGC_HGCMU_UNMUTED(val));
+-	}
+-	if (count) {
+-		omap_tsc2101_audio_write(TSC2101_HEADSET_GAIN_CTRL, val);
+-	}
+-	return count;
++	// mute/unmute headset
++	return adc_pga_unmute_control(ucontrol->value.integer.value[0],
++				TSC2101_HEADSET_GAIN_CTRL,
++				15);
+ }
  
- #define DEFAULT_OUTPUT_VOLUME		90	// default output volume to dac dgc
- #define DEFAULT_INPUT_VOLUME		20	// default record volume
+ static int __handset_playback_volume_info(snd_kcontrol_t *kcontrol, snd_ctl_elem_info_t *uinfo) 
+@@ -699,34 +714,16 @@ static int __handset_playback_switch_inf
+ static int __handset_playback_switch_get(snd_kcontrol_t *kcontrol, snd_ctl_elem_value_t *ucontrol) 
+ {
+ 	u16 val = omap_tsc2101_audio_read(TSC2101_HANDSET_GAIN_CTRL);
+-	ucontrol->value.integer.value[0]	= IS_DGC_HNGCMU_UNMUTED(val);
++	ucontrol->value.integer.value[0]	= IS_UNMUTED(15, val);
+ 	return 0;
+ }
+ 
+ static int __handset_playback_switch_put(snd_kcontrol_t *kcontrol, snd_ctl_elem_value_t *ucontrol) 
+ {
+-	int count = 0;
+-	u16 val = omap_tsc2101_audio_read(TSC2101_HANDSET_GAIN_CTRL);
+-	
+-	/* in alsa mixer 1 --> on, 0 == off. In tsc2101 registry 1 --> off, 0 --> on
+-	 * so if values are same, it's time to change the registry value...
+-	 */
+-	if (ucontrol->value.integer.value[0] == GET_DGC_HNGCMU_BIT_VALUE(val)) {
+-		if (ucontrol->value.integer.value[0] == 0) {
+-			/* mute --> turn bit on */
+-			val	= val | HNGC_ADMUT_HND;
+-		}
+-		else {
+-			/* unmute --> turn bit off */
+-			val	= val & ~HNGC_ADMUT_HND;
+-		}
+-		M_DPRINTK("changed value, is_unmuted = %d\n", IS_DGC_HNGCMU_UNMUTED(val));
+-		count++;
+-	}
+-	if (count) {
+-		omap_tsc2101_audio_write(TSC2101_HANDSET_GAIN_CTRL, val);
+-	}
+-	return count;
++	// handset mute/unmute
++	return adc_pga_unmute_control(ucontrol->value.integer.value[0],
++				TSC2101_HANDSET_GAIN_CTRL,
++				15);
+ }
+ 
+ static snd_kcontrol_new_t tsc2101_control[] __devinitdata = {
 -- 
 1.2.2
 
 
---------------000508000103080800090209
+--------------000305040600020701080604
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------000508000103080800090209--
+--------------000305040600020701080604--
