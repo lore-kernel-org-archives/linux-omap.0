@@ -1,15 +1,13 @@
-From: lamikr <lamikr@cc.jyu.fi>
-Subject: Re: [PATCH] fix MMC response types
-Date: Fri, 31 Mar 2006 20:35:49 +0300
-Message-ID: <442D6875.20204@cc.jyu.fi>
-References: <fb249edb0603241237l5854cc04k@mail.gmail.com>		<4427DEA0.6050804@indt.org.br>	<fb249edb0603271204o1d8df4oe636c1181362d740@mail.gmail.com>	<4429A3A6.5000503@indt.org.br>
-	<442B1840.6060801@cc.jyu.fi>
-Reply-To: lamikr@cc.jyu.fi
+From: Husam <husamsenussi@gmail.com>
+Subject: Reading/Writing to MMC without interrupt handler
+Date: Sat, 1 Apr 2006 13:04:36 +0100
+Message-ID: <200604011304.36250.husamsenussi@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <442B1840.6060801@cc.jyu.fi>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,30 +15,40 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: lamikr@cc.jyu.fi
-Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
->
->Hopefully this patch is not needed anymore after your updates, but here
->it is anyway just in case that somebody finds it usefull.
->  
->
-Btw, I tested this more and found out that the only thing really needed
-to get h6300
-to mount SD in addition of MMC card during the boot was this one.
-(That's on top of the latest omap-git version)
+I guess this stupid question, but I'm going to asked anyway :)
 
-diff -Naur orig/mmc.c fixed/mmc.c
---- orig/mmc.c	2006-03-18 10:22:19.000000000 +0200
-+++ fixed/mmc.c	2006-03-18 10:30:32.000000000 +0200
-@@ -964,7 +964,7 @@
- 		mmc_decode_scr(card);
- 	}
- 
--	mmc_deselect_cards(host);
-+	//mmc_deselect_cards(host);
- }
+I'm adding ipaq h6300 support to u-boot which based OMAP1510 processer, I want 
+to allow u-boot to load an kernel image from MMC/SD card.
+
+I did make the changes but I'm having problem reading from the MMC card 
+(Getting Data Timeout) ,
+
+At the moment I'm polling for the status without using irq, and that seems to 
+work for configuring the card and reading manufacturer information like date, 
+serial number  etc.
+
+mca_vsn : 03
+cmdclass : 1F5
+tacc_clks: 00
+tacc_ns  : 4C4B400
+max_dtr  : 1312D00
+read_blkbits: 9
+capacity    : 1003520
+Manufacturer ID = 0000049A
+HW/FW Revision = 0 0
+Product Name = MMC
+Serial Number = 0000049a
+Month = 12
+Year = 2004
+
+My question is it passible to do that without having to enable irq and using 
+interrupt handler?
+
+Thanks 
