@@ -1,13 +1,11 @@
-From: Jonathan McDowell <noodles@earth.li>
-Subject: [PATCH 3/3] Add RGB444 support to OMAP FB driver.
-Date: Sun, 2 Apr 2006 17:41:14 +0100
-Message-ID: <20060402164114.GF26949@earth.li>
-References: <20060402163614.GC26949@earth.li> <20060402163832.GD26949@earth.li>
+From: Imre Deak <imre.deak@nokia.com>
+Subject: [RFC] ARM: OMAP: handle lazy IRQ disable properly
+Date: Sun, 02 Apr 2006 23:04:27 +0300
+Message-ID: <1144008267.8058.58.camel@bitbox.mine.nu>
+Reply-To: imre.deak@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20060402163832.GD26949@earth.li>
+Content-Type: multipart/mixed; boundary="=-v6+lA/ACcIw3RDnCd9Gh"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,154 +13,117 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
-Cc: e3-hacking@earth.li
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "Yrjola Juha (Nokia-M/Helsinki)" <Juha.Yrjola@nokia.com>
+Cc: linux-omap <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch adds support for an RGB444 mode to the OMAP FB driver; it's
-used by the Amstrad Delta which has a 12 bit DSTN screen setup in 444
-mode.
 
-Mark Underwood did the original work for this patch:
+--=-v6+lA/ACcIw3RDnCd9Gh
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-http://www.earth.li/pipermail/e3-hacking/2006-March/000376.html
+GPIO IRQs can't be disabled at the moment, since the ARM lazy IRQ
+masking is not handled properly by the current GPIO IRQ handler.
 
-I have simply updated to the latest git tree.
+Implementing it properly would solve the following issues, which the
+standard do_edge_IRQ, do_level_IRQ handlers already do:
 
-Signed-Off-By: Jonathan McDowell <noodles@earth.li>
+- Account for disable_irq delaying the IRQ masking till the next
+  interrupt. The IRQ dispatcher should check whether the IRQ line is
+  disabled through irq_desc.disable_depth and if so it should not call
+  the IRQ handler and should leave the IRQ masked. enable_irq will do
+  later the unmasking.
 
-diff -rupN -X linux-omap/Documentation/dontdiff linux-omap-lcd/drivers/video/omap/lcd_ams_delta.c linux-omap-lcd-444/drivers/video/omap/lcd_ams_delta.c
---- linux-omap-lcd/drivers/video/omap/lcd_ams_delta.c	2006-04-02 16:53:09.881449750 +0100
-+++ linux-omap-lcd-444/drivers/video/omap/lcd_ams_delta.c	2006-04-02 17:21:04.654931750 +0100
-@@ -77,7 +77,7 @@ struct lcd_panel ams_delta_panel = {
- 	.name		= "ams-delta",
- 	.config		= 0,
+- Try to avoid lost edge triggered interrupts. We won't reenter an
+  already running IRQ handler, but will call it again in the next
+  iteration of the IRQ dispatch loop.
+
+- Avoid a possible stack overflow. This can happen when the next 
+  interrupt is generated before the device driver gets the chance to
+  act upon the first interrupt. Since we run edge triggered IRQ handlers
+  unmasked this could lead to an unbounded recursion in the IRQ 
+  dispatcher. This is at least the case with the ads7846 touchscreen
+  controller.
+
+--Imre
+
+
+--=-v6+lA/ACcIw3RDnCd9Gh
+Content-Disposition: attachment; filename=omap-gpio_disable_lazy-patch.diff
+Content-Type: text/x-patch; name=omap-gpio_disable_lazy-patch.diff;
+	charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index d3c8ea7..642f5eb 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -736,6 +736,7 @@ static void gpio_irq_handler(unsigned in
+ 	u32 isr;
+ 	unsigned int gpio_irq;
+ 	struct gpio_bank *bank;
++	u32 retrigger = 0;
  
--	.bpp		= 16,
-+	.bpp		= 12,
- 	.data_lines	= 16,
- 	.x_res		= 480,
- 	.y_res		= 320,
-diff -rupN -X linux-omap/Documentation/dontdiff linux-omap-lcd/drivers/video/omap/lcdc.c linux-omap-lcd-444/drivers/video/omap/lcdc.c
---- linux-omap-lcd/drivers/video/omap/lcdc.c	2006-04-02 16:56:46.278973750 +0100
-+++ linux-omap-lcd-444/drivers/video/omap/lcdc.c	2006-04-02 17:21:47.105584750 +0100
-@@ -353,6 +353,7 @@ static int omap_lcdc_setup_plane(int pla
- 		omap_lcdc.palette_size = 512;
- 		break;
- 	case OMAPFB_COLOR_RGB565:
-+	case OMAPFB_COLOR_RGB444:
- 		omap_lcdc.bpp = 16;
- 		omap_lcdc.palette_code = 0x4000;
- 		omap_lcdc.palette_size = 32;
-@@ -720,7 +721,11 @@ static int alloc_fbmem(int req_size)
- 	int frame_size;
- 	struct lcd_panel *panel = omap_lcdc.fbdev->panel;
+ 	desc->chip->ack(irq);
  
--	frame_size = PAGE_ALIGN(panel->x_res * panel->bpp / 8 * panel->y_res);
-+	if (panel->bpp == 12)
-+		frame_size = PAGE_ALIGN(panel->x_res * 16 / 8 * panel->y_res);
-+	else
-+		frame_size = PAGE_ALIGN(panel->x_res * panel->bpp / 8 *
-+				panel->y_res);
- 	if (req_size > frame_size)
- 		frame_size = req_size;
- 	omap_lcdc.vram_size = frame_size;
-diff -rupN -X linux-omap/Documentation/dontdiff linux-omap-lcd/drivers/video/omap/omapfb_main.c linux-omap-lcd-444/drivers/video/omap/omapfb_main.c
---- linux-omap-lcd/drivers/video/omap/omapfb_main.c	2006-04-02 15:52:24.524659500 +0100
-+++ linux-omap-lcd-444/drivers/video/omap/omapfb_main.c	2006-04-02 17:25:23.947136500 +0100
-@@ -239,6 +239,7 @@ static int _setcolreg(struct fb_info *in
- 							transp, update_hw_pal);
- 		/* Fallthrough */
- 	case OMAPFB_COLOR_RGB565:
-+	case OMAPFB_COLOR_RGB444:
- 		if (r != 0)
+@@ -785,16 +786,49 @@ static void gpio_irq_handler(unsigned in
+ 		if (!level_mask)
+ 			desc->chip->unmask(irq);
+ 
++		isr |= retrigger;
++		retrigger = 0;
+ 		if (!isr)
  			break;
  
-@@ -249,8 +250,14 @@ static int _setcolreg(struct fb_info *in
- 
- 		if (regno < 16) {
- 			u16 pal;
--			pal = ((red >> 11) << 11) | ((green >> 10) << 5) |
--				(blue >> 11);
-+			if (fbdev->color_mode == OMAPFB_COLOR_RGB444)
-+				pal = ((red >> 12) << 8) |
-+					((green >> 12) << 4) |
-+					(blue >> 12);
-+			else
-+				pal = ((red >> 11) << 11) |
-+					((green >> 10) << 5) |
-+					(blue >> 11);
- 			((u32 *)(info->pseudo_palette))[regno] = pal;
+ 		gpio_irq = bank->virtual_irq_start;
+ 		for (; isr != 0; isr >>= 1, gpio_irq++) {
+ 			struct irqdesc *d;
++			int irq_mask;
+ 			if (!(isr & 1))
+ 				continue;
+ 			d = irq_desc + gpio_irq;
++			/* Don't run the handler if it's already running
++			 * or was disabled lazely.
++			 */
++			if (unlikely((d->disable_depth || d->running))) {
++				irq_mask = 1 <<
++					(gpio_irq - bank->virtual_irq_start);
++				/* The unmasking will be done by
++				 * enable_irq in case it is disabled or
++				 * after returning from the handler if
++				 * it's already running.
++				 */
++				_enable_gpio_irqbank(bank, irq_mask, 0);
++				if (!d->disable_depth) {
++					/* Level triggered interrupts
++					 * won't ever be reentered
++					 */
++					BUG_ON(level_mask & irq_mask);
++					d->pending = 1;
++				}
++				continue;
++			}
++			d->running = 1;
+ 			desc_handle_irq(gpio_irq, d, regs);
++			d->running = 0;
++			if (unlikely(d->pending && !d->disable_depth)) {
++				irq_mask = 1 <<
++					(gpio_irq - bank->virtual_irq_start);
++				d->pending = 0;
++				_enable_gpio_irqbank(bank, irq_mask, 1);
++				retrigger |= irq_mask;
++			}
  		}
- 		break;
-@@ -402,12 +409,19 @@ static int set_fb_var(struct omapfb_devi
- 	unsigned long	line_size;
- 	struct lcd_panel *panel = fbdev->panel;
  
--	bpp = var->bits_per_pixel = panel->bpp;
-+	if (panel->bpp == 12)
-+		/* 12-bpp mode stores colours in 16 bits and ignores top 4 */
-+		bpp = var->bits_per_pixel = 16;
-+	else
-+		bpp = var->bits_per_pixel = panel->bpp;
- 
--	switch (bpp) {
-+	switch (panel->bpp) {
- 	case 16:
- 		fbdev->color_mode = OMAPFB_COLOR_RGB565;
- 		break;
-+	case 12:
-+		fbdev->color_mode = OMAPFB_COLOR_RGB444;
-+		break;
- 	case 8:
- 		fbdev->color_mode = OMAPFB_COLOR_CLUT_8BPP;
- 		break;
-@@ -453,9 +467,21 @@ static int set_fb_var(struct omapfb_devi
- 		var->yoffset = var->yres_virtual - var->yres;
- 	line_size = var->xres * bpp / 8;
- 
--	var->red.offset	 = 11; var->red.length	 = 5; var->red.msb_right   = 0;
--	var->green.offset= 5;  var->green.length = 6; var->green.msb_right = 0;
--	var->blue.offset = 0;  var->blue.length  = 5; var->blue.msb_right  = 0;
-+	if (fbdev->color_mode == OMAPFB_COLOR_RGB444) {
-+		var->red.offset	 = 8; var->red.length	= 4;
-+		var->red.msb_right   = 0;
-+		var->green.offset= 4; var->green.length = 4;
-+		var->green.msb_right = 0;
-+		var->blue.offset = 0; var->blue.length  = 4;
-+		var->blue.msb_right  = 0;
-+	} else {
-+		var->red.offset	 = 11; var->red.length	 = 5;
-+		var->red.msb_right   = 0;
-+		var->green.offset= 5;  var->green.length = 6;
-+		var->green.msb_right = 0;
-+		var->blue.offset = 0;  var->blue.length  = 5;
-+		var->blue.msb_right  = 0;
-+	}
- 
- 	var->height		= -1;
- 	var->width		= -1;
-diff -rupN -X linux-omap/Documentation/dontdiff linux-omap-lcd/include/asm-arm/arch/omapfb.h linux-omap-lcd-444/include/asm-arm/arch/omapfb.h
---- linux-omap-lcd/include/asm-arm/arch/omapfb.h	2006-04-02 15:51:02.303521000 +0100
-+++ linux-omap-lcd-444/include/asm-arm/arch/omapfb.h	2006-04-02 17:20:38.957325750 +0100
-@@ -64,6 +64,7 @@ enum omapfb_color_format {
- 	OMAPFB_COLOR_CLUT_4BPP,
- 	OMAPFB_COLOR_CLUT_2BPP,
- 	OMAPFB_COLOR_CLUT_1BPP,
-+	OMAPFB_COLOR_RGB444,
- };
- 
- struct omapfb_update_window {
-diff -rupN -X linux-omap/Documentation/dontdiff linux-omap-lcd/include/asm-arm/arch-omap/omapfb.h linux-omap-lcd-444/include/asm-arm/arch-omap/omapfb.h
---- linux-omap-lcd/include/asm-arm/arch-omap/omapfb.h	2006-04-02 15:51:02.303521000 +0100
-+++ linux-omap-lcd-444/include/asm-arm/arch-omap/omapfb.h	2006-04-02 17:20:38.957325750 +0100
-@@ -64,6 +64,7 @@ enum omapfb_color_format {
- 	OMAPFB_COLOR_CLUT_4BPP,
- 	OMAPFB_COLOR_CLUT_2BPP,
- 	OMAPFB_COLOR_CLUT_1BPP,
-+	OMAPFB_COLOR_RGB444,
- };
- 
- struct omapfb_update_window {
+ 		if (cpu_is_omap24xx()) {
+
+--=-v6+lA/ACcIw3RDnCd9Gh
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--=-v6+lA/ACcIw3RDnCd9Gh--
