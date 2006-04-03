@@ -1,10 +1,10 @@
 From: "b.b.w" <rememberme_2000@126.com>
 Subject: Re: About dct4x4 transform on 55x dsp,who can provide a good way?
-Date: Mon, 3 Apr 2006 13:22:19 +0800
-Message-ID: <006001c656df$9fe441f0$9d0aa8c0@yfwangbaobin>
+Date: Mon, 3 Apr 2006 13:22:34 +0800
+Message-ID: <006301c656df$a4557ec0$9d0aa8c0@yfwangbaobin>
 References: <3D54759CE5A8F64BB2078090E91D50A216DEB6@dlee08.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2022539751=="
+Content-Type: multipart/mixed; boundary="===============0490547281=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,46 +18,45 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============2022539751==
+--===============0490547281==
 Content-Type: text/plain;
 	charset="iso-2022-jp"
 Content-Transfer-Encoding: base64
 
 
-dGhhbmtzICxidXQgaXQgaXMgZXhhbXBsZSBmb3IgOHg4IGRjdC5idXQgaSB3YW50IHRvIGdldCA0
-eDQgZGN0IHJlc3VsdCANCi0tLS0tIE9yaWdpbmFsIE1lc3NhZ2UgLS0tLS0gDQpGcm9tOiAiSXNo
-aWdhbWksIFRhdHN1eWEiIDxpc2hpZ2FtaUB0aS5jb20+DQpUbzogIhskQjImSnVJSxsoQiIgPHJl
-bWVtYmVybWVfMjAwMEAxMjYuY29tPg0KQ2M6IDxMaW51eC1vbWFwLW9wZW4tc291cmNlQGxpbnV4
-Lm9tYXAuY29tPg0KU2VudDogRnJpZGF5LCBNYXJjaCAzMSwgMjAwNiA0OjExIFBNDQpTdWJqZWN0
-OiBSRTogQWJvdXQgZGN0NHg0IHRyYW5zZm9ybSBvbiA1NXggZHNwLHdobyBjYW4gcHJvdmlkZSBh
-IGdvb2Qgd2F5Pw0KDQoNCj4gDQo+IEhlbGxvLA0KPiANCj4gIFByb2JhYmx5LCB0aGUgYzU1eCBp
-bWFnZSBsaWJyYXJ5IHdvdWxkIGJlIHlvdXIgZ29vZCByZWZlcmVuY2UuDQo+IA0KPiAgMSkgRG93
-bmxvYWQgdGhlIGxpYnJhcnkNCj4gIGh0dHA6Ly9mb2N1cy50aS5jb20vZG9jcy90b29sc3cvZm9s
-ZGVycy9wcmludC9zcHJjMTAxLmh0bWwNCj4gDQo+ICAyKSBFeGFtcGxlDQo+ICAtIC4uIFxjNTUw
-MFxpbWdsaXhcZXhhbXBsZXNcZGN0aWRjdA0KPiANCj4gIEJlc3QgUmVnYXJkcywNCj4gIElzaGln
-YW1pDQo+IA0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiAbJEIyJkp1SUsb
-KEINCj4gU2VudDogV2VkbmVzZGF5LCBNYXJjaCAyOSwgMjAwNiAxMToyMCBBTQ0KPiBUbzogTGlu
-dXgtb21hcC1vcGVuLXNvdXJjZUBsaW51eC5vbWFwLmNvbQ0KPiBTdWJqZWN0OiBBYm91dCBkY3Q0
-eDQgdHJhbnNmb3JtIG9uIDU1eCBkc3Asd2hvIGNhbiBwcm92aWRlIGEgZ29vZCB3YXk/DQo+IA0K
-PiBoaToNCj4gIGkgd2FudCB0byBnZXQgZGN0NHg0IHRyYW5zZm9ybSBpbiA1NXggZHNwLiBBbmQg
-SSBnZXQgc29tZSB1c2VmdWwgaW5mb3JtYXRpb24gZnJvbSB0aGUgZG9jdW1lbnQgIiBUTVMzMjBD
-NTV4IEhhcmR3YXJlIEV4dGVuc2lvbnMgZm9yIEltYWdlL1ZpZGVvIEFwcGxpY2F0aW9ucyBQcm9n
-cmFtbWVyGyRCIUcbKEJzIFJlZmVyZW5jZSIuLS0tLS0teW91IGNhbiBnZXQgaXQgZnJvbSBpbnRl
-cm5ldCBlYXNpbHkuDQo+IHRoZSBkb2N1bWVudCBleHBsYWluIGhvdyB0byBnZXQgZGN0OHg4IHRy
-YW5zZm9ybSByZXN1bHQgc3RlcCBieSBzdGVwLmkgaGF2ZSB0ZXN0ZWQgaXQgIXJpZ2h0Lg0KPiAg
-SW4gcGFnZSAyLTUgLCBpdCB0ZWxsIG1lIHNvbWUgaW5mb3JtYXRpb24gYWJvdXQgaG93IHRvIGdl
-dCBkY3Q0eDQgdHJhbmZvcm1lIHJlc3VsdC5idXQgaXQgaXMNCj4gc28gb2JzY3VyaXR5IHRoYXQg
-aSBjYW4ndCB1bmRlcnN0YW5kIGhvdyB0byB1c2UgaXQhIQ0KPiAgd2hvIGNhbiBnaXZlIG1lIGhh
-bmRzISB0aGFua3MuDQo+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIGIudy5iIA0KPiA=
+DQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJvbTogIklzaGlnYW1pLCBUYXRzdXlh
+IiA8aXNoaWdhbWlAdGkuY29tPg0KVG86ICIbJEIyJkp1SUsbKEIiIDxyZW1lbWJlcm1lXzIwMDBA
+MTI2LmNvbT4NCkNjOiA8TGludXgtb21hcC1vcGVuLXNvdXJjZUBsaW51eC5vbWFwLmNvbT4NClNl
+bnQ6IEZyaWRheSwgTWFyY2ggMzEsIDIwMDYgNDoxMSBQTQ0KU3ViamVjdDogUkU6IEFib3V0IGRj
+dDR4NCB0cmFuc2Zvcm0gb24gNTV4IGRzcCx3aG8gY2FuIHByb3ZpZGUgYSBnb29kIHdheT8NCg0K
+DQo+IA0KPiBIZWxsbywNCj4gDQo+ICBQcm9iYWJseSwgdGhlIGM1NXggaW1hZ2UgbGlicmFyeSB3
+b3VsZCBiZSB5b3VyIGdvb2QgcmVmZXJlbmNlLg0KPiANCj4gIDEpIERvd25sb2FkIHRoZSBsaWJy
+YXJ5DQo+ICBodHRwOi8vZm9jdXMudGkuY29tL2RvY3MvdG9vbHN3L2ZvbGRlcnMvcHJpbnQvc3By
+YzEwMS5odG1sDQo+IA0KPiAgMikgRXhhbXBsZQ0KPiAgLSAuLiBcYzU1MDBcaW1nbGl4XGV4YW1w
+bGVzXGRjdGlkY3QNCj4gDQo+ICBCZXN0IFJlZ2FyZHMsDQo+ICBJc2hpZ2FtaQ0KPiANCj4gLS0t
+LS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogGyRCMiZKdUlLGyhCDQo+IFNlbnQ6IFdl
+ZG5lc2RheSwgTWFyY2ggMjksIDIwMDYgMTE6MjAgQU0NCj4gVG86IExpbnV4LW9tYXAtb3Blbi1z
+b3VyY2VAbGludXgub21hcC5jb20NCj4gU3ViamVjdDogQWJvdXQgZGN0NHg0IHRyYW5zZm9ybSBv
+biA1NXggZHNwLHdobyBjYW4gcHJvdmlkZSBhIGdvb2Qgd2F5Pw0KPiANCj4gaGk6DQo+ICBpIHdh
+bnQgdG8gZ2V0IGRjdDR4NCB0cmFuc2Zvcm0gaW4gNTV4IGRzcC4gQW5kIEkgZ2V0IHNvbWUgdXNl
+ZnVsIGluZm9ybWF0aW9uIGZyb20gdGhlIGRvY3VtZW50ICIgVE1TMzIwQzU1eCBIYXJkd2FyZSBF
+eHRlbnNpb25zIGZvciBJbWFnZS9WaWRlbyBBcHBsaWNhdGlvbnMgUHJvZ3JhbW1lchskQiFHGyhC
+cyBSZWZlcmVuY2UiLi0tLS0tLXlvdSBjYW4gZ2V0IGl0IGZyb20gaW50ZXJuZXQgZWFzaWx5Lg0K
+PiB0aGUgZG9jdW1lbnQgZXhwbGFpbiBob3cgdG8gZ2V0IGRjdDh4OCB0cmFuc2Zvcm0gcmVzdWx0
+IHN0ZXAgYnkgc3RlcC5pIGhhdmUgdGVzdGVkIGl0ICFyaWdodC4NCj4gIEluIHBhZ2UgMi01ICwg
+aXQgdGVsbCBtZSBzb21lIGluZm9ybWF0aW9uIGFib3V0IGhvdyB0byBnZXQgZGN0NHg0IHRyYW5m
+b3JtZSByZXN1bHQuYnV0IGl0IGlzDQo+IHNvIG9ic2N1cml0eSB0aGF0IGkgY2FuJ3QgdW5kZXJz
+dGFuZCBob3cgdG8gdXNlIGl0ISENCj4gIHdobyBjYW4gZ2l2ZSBtZSBoYW5kcyEgdGhhbmtzLg0K
+PiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBiLncu
+YiANCj4g
 
 
 
---===============2022539751==
+--===============0490547281==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---===============2022539751==--
+--===============0490547281==--
