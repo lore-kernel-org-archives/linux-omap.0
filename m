@@ -1,11 +1,11 @@
-From: Imre Deak <imre.deak@nokia.com>
-Subject: [RFC] ARM: OMAP: handle lazy IRQ disable properly
-Date: Sun, 02 Apr 2006 23:04:27 +0300
-Message-ID: <1144008267.8058.58.camel@bitbox.mine.nu>
-Reply-To: imre.deak@nokia.com
+From: "b.b.w" <rememberme_2000@126.com>
+Subject: Re: About dct4x4 transform on 55x dsp,who can provide a good way?
+Date: Mon, 3 Apr 2006 13:22:19 +0800
+Message-ID: <006001c656df$9fe441f0$9d0aa8c0@yfwangbaobin>
+References: <3D54759CE5A8F64BB2078090E91D50A216DEB6@dlee08.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-v6+lA/ACcIw3RDnCd9Gh"
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: multipart/mixed; boundary="===============2022539751=="
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,117 +13,51 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "Yrjola Juha (Nokia-M/Helsinki)" <Juha.Yrjola@nokia.com>
-Cc: linux-omap <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-
---=-v6+lA/ACcIw3RDnCd9Gh
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
-GPIO IRQs can't be disabled at the moment, since the ARM lazy IRQ
-masking is not handled properly by the current GPIO IRQ handler.
-
-Implementing it properly would solve the following issues, which the
-standard do_edge_IRQ, do_level_IRQ handlers already do:
-
-- Account for disable_irq delaying the IRQ masking till the next
-  interrupt. The IRQ dispatcher should check whether the IRQ line is
-  disabled through irq_desc.disable_depth and if so it should not call
-  the IRQ handler and should leave the IRQ masked. enable_irq will do
-  later the unmasking.
-
-- Try to avoid lost edge triggered interrupts. We won't reenter an
-  already running IRQ handler, but will call it again in the next
-  iteration of the IRQ dispatch loop.
-
-- Avoid a possible stack overflow. This can happen when the next 
-  interrupt is generated before the device driver gets the chance to
-  act upon the first interrupt. Since we run edge triggered IRQ handlers
-  unmasked this could lead to an unbounded recursion in the IRQ 
-  dispatcher. This is at least the case with the ads7846 touchscreen
-  controller.
-
---Imre
+--===============2022539751==
+Content-Type: text/plain;
+	charset="iso-2022-jp"
+Content-Transfer-Encoding: base64
 
 
---=-v6+lA/ACcIw3RDnCd9Gh
-Content-Disposition: attachment; filename=omap-gpio_disable_lazy-patch.diff
-Content-Type: text/x-patch; name=omap-gpio_disable_lazy-patch.diff;
-	charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+dGhhbmtzICxidXQgaXQgaXMgZXhhbXBsZSBmb3IgOHg4IGRjdC5idXQgaSB3YW50IHRvIGdldCA0
+eDQgZGN0IHJlc3VsdCANCi0tLS0tIE9yaWdpbmFsIE1lc3NhZ2UgLS0tLS0gDQpGcm9tOiAiSXNo
+aWdhbWksIFRhdHN1eWEiIDxpc2hpZ2FtaUB0aS5jb20+DQpUbzogIhskQjImSnVJSxsoQiIgPHJl
+bWVtYmVybWVfMjAwMEAxMjYuY29tPg0KQ2M6IDxMaW51eC1vbWFwLW9wZW4tc291cmNlQGxpbnV4
+Lm9tYXAuY29tPg0KU2VudDogRnJpZGF5LCBNYXJjaCAzMSwgMjAwNiA0OjExIFBNDQpTdWJqZWN0
+OiBSRTogQWJvdXQgZGN0NHg0IHRyYW5zZm9ybSBvbiA1NXggZHNwLHdobyBjYW4gcHJvdmlkZSBh
+IGdvb2Qgd2F5Pw0KDQoNCj4gDQo+IEhlbGxvLA0KPiANCj4gIFByb2JhYmx5LCB0aGUgYzU1eCBp
+bWFnZSBsaWJyYXJ5IHdvdWxkIGJlIHlvdXIgZ29vZCByZWZlcmVuY2UuDQo+IA0KPiAgMSkgRG93
+bmxvYWQgdGhlIGxpYnJhcnkNCj4gIGh0dHA6Ly9mb2N1cy50aS5jb20vZG9jcy90b29sc3cvZm9s
+ZGVycy9wcmludC9zcHJjMTAxLmh0bWwNCj4gDQo+ICAyKSBFeGFtcGxlDQo+ICAtIC4uIFxjNTUw
+MFxpbWdsaXhcZXhhbXBsZXNcZGN0aWRjdA0KPiANCj4gIEJlc3QgUmVnYXJkcywNCj4gIElzaGln
+YW1pDQo+IA0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiAbJEIyJkp1SUsb
+KEINCj4gU2VudDogV2VkbmVzZGF5LCBNYXJjaCAyOSwgMjAwNiAxMToyMCBBTQ0KPiBUbzogTGlu
+dXgtb21hcC1vcGVuLXNvdXJjZUBsaW51eC5vbWFwLmNvbQ0KPiBTdWJqZWN0OiBBYm91dCBkY3Q0
+eDQgdHJhbnNmb3JtIG9uIDU1eCBkc3Asd2hvIGNhbiBwcm92aWRlIGEgZ29vZCB3YXk/DQo+IA0K
+PiBoaToNCj4gIGkgd2FudCB0byBnZXQgZGN0NHg0IHRyYW5zZm9ybSBpbiA1NXggZHNwLiBBbmQg
+SSBnZXQgc29tZSB1c2VmdWwgaW5mb3JtYXRpb24gZnJvbSB0aGUgZG9jdW1lbnQgIiBUTVMzMjBD
+NTV4IEhhcmR3YXJlIEV4dGVuc2lvbnMgZm9yIEltYWdlL1ZpZGVvIEFwcGxpY2F0aW9ucyBQcm9n
+cmFtbWVyGyRCIUcbKEJzIFJlZmVyZW5jZSIuLS0tLS0teW91IGNhbiBnZXQgaXQgZnJvbSBpbnRl
+cm5ldCBlYXNpbHkuDQo+IHRoZSBkb2N1bWVudCBleHBsYWluIGhvdyB0byBnZXQgZGN0OHg4IHRy
+YW5zZm9ybSByZXN1bHQgc3RlcCBieSBzdGVwLmkgaGF2ZSB0ZXN0ZWQgaXQgIXJpZ2h0Lg0KPiAg
+SW4gcGFnZSAyLTUgLCBpdCB0ZWxsIG1lIHNvbWUgaW5mb3JtYXRpb24gYWJvdXQgaG93IHRvIGdl
+dCBkY3Q0eDQgdHJhbmZvcm1lIHJlc3VsdC5idXQgaXQgaXMNCj4gc28gb2JzY3VyaXR5IHRoYXQg
+aSBjYW4ndCB1bmRlcnN0YW5kIGhvdyB0byB1c2UgaXQhIQ0KPiAgd2hvIGNhbiBnaXZlIG1lIGhh
+bmRzISB0aGFua3MuDQo+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgIGIudy5iIA0KPiA=
 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index d3c8ea7..642f5eb 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -736,6 +736,7 @@ static void gpio_irq_handler(unsigned in
- 	u32 isr;
- 	unsigned int gpio_irq;
- 	struct gpio_bank *bank;
-+	u32 retrigger = 0;
- 
- 	desc->chip->ack(irq);
- 
-@@ -785,16 +786,49 @@ static void gpio_irq_handler(unsigned in
- 		if (!level_mask)
- 			desc->chip->unmask(irq);
- 
-+		isr |= retrigger;
-+		retrigger = 0;
- 		if (!isr)
- 			break;
- 
- 		gpio_irq = bank->virtual_irq_start;
- 		for (; isr != 0; isr >>= 1, gpio_irq++) {
- 			struct irqdesc *d;
-+			int irq_mask;
- 			if (!(isr & 1))
- 				continue;
- 			d = irq_desc + gpio_irq;
-+			/* Don't run the handler if it's already running
-+			 * or was disabled lazely.
-+			 */
-+			if (unlikely((d->disable_depth || d->running))) {
-+				irq_mask = 1 <<
-+					(gpio_irq - bank->virtual_irq_start);
-+				/* The unmasking will be done by
-+				 * enable_irq in case it is disabled or
-+				 * after returning from the handler if
-+				 * it's already running.
-+				 */
-+				_enable_gpio_irqbank(bank, irq_mask, 0);
-+				if (!d->disable_depth) {
-+					/* Level triggered interrupts
-+					 * won't ever be reentered
-+					 */
-+					BUG_ON(level_mask & irq_mask);
-+					d->pending = 1;
-+				}
-+				continue;
-+			}
-+			d->running = 1;
- 			desc_handle_irq(gpio_irq, d, regs);
-+			d->running = 0;
-+			if (unlikely(d->pending && !d->disable_depth)) {
-+				irq_mask = 1 <<
-+					(gpio_irq - bank->virtual_irq_start);
-+				d->pending = 0;
-+				_enable_gpio_irqbank(bank, irq_mask, 1);
-+				retrigger |= irq_mask;
-+			}
- 		}
- 
- 		if (cpu_is_omap24xx()) {
 
---=-v6+lA/ACcIw3RDnCd9Gh
+
+--===============2022539751==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---=-v6+lA/ACcIw3RDnCd9Gh--
+--===============2022539751==--
