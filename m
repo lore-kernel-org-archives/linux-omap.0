@@ -1,11 +1,14 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: n770 alsa build broken
-Date: Tue, 4 Apr 2006 09:18:25 -0700 (PDT)
-Message-ID: <20060404161825.67622.qmail@web32901.mail.mud.yahoo.com>
+From: Geoff Levand <geoffrey.levand@am.sony.com>
+Subject: Re: 2.6.16-omap2 tagged & patches available
+Date: Tue, 04 Apr 2006 13:57:27 -0700
+Message-ID: <4432DDB7.7080204@am.sony.com>
+References: <20060403204428.GN13009@atomide.com>
+	<20060404144930.GD15266@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20060404144930.GD15266@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,73 +16,29 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Please supply the patch.
+Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [060403 13:46]:
+>> Hi all,
+>> 
+>> Turns out the MMC bug on H2 and H3 was related to the recent clock id
+>> usgage :)
+>> 
+>> I've tagged 2.6.16-omap1 and posted a patch to the usual location:
+>> 
+>> http://www.muru.com/linux/omap/
+> 
+> I generated a quick 2.6.16-omap2 with the 1510 USB host patch in it.
+> 
 
-#make n770_defconfig
-#make
+Sorry, seems to be bad.  Nothing inside...
 
-sound/arm/omap/omap-alsa-dma.c: In function `omap_sound_dma_link_lch':
-sound/arm/omap/omap-alsa-dma.c:143: error: `FN_IN' undeclared (first
-use in this function)
-sound/arm/omap/omap-alsa-dma.c:143: error: (Each undeclared identifier
-is reported only once
-sound/arm/omap/omap-alsa-dma.c:143: error: for each function it appears
-in.)
-sound/arm/omap/omap-alsa-dma.c:145: warning: implicit declaration of
-function `FN_OUT'
-sound/arm/omap/omap-alsa-dma.c: In function
-`omap_request_alsa_sound_dma':
-sound/arm/omap/omap-alsa-dma.c:164: error: `FN_IN' undeclared (first
-use in this function)
-sound/arm/omap/omap-alsa-dma.c: In function
-`omap_sound_dma_unlink_lch':
-sound/arm/omap/omap-alsa-dma.c:222: error: `FN_IN' undeclared (first
-use in this function)
-sound/arm/omap/omap-alsa-dma.c: In function `omap_free_alsa_sound_dma':
-sound/arm/omap/omap-alsa-dma.c:243: error: `FN_IN' undeclared (first
-use in this function)
-sound/arm/omap/omap-alsa-dma.c: In function `omap_stop_alsa_sound_dma':
-sound/arm/omap/omap-alsa-dma.c:277: error: `FN_IN' undeclared (first
-use in this function)
-sound/arm/omap/omap-alsa-dma.c: In function
-`omap_clear_alsa_sound_dma':
-sound/arm/omap/omap-alsa-dma.c:297: error: `FN_IN' undeclared (first
-use in this function)
-sound/arm/omap/omap-alsa-dma.c: In function
-`audio_set_dma_params_play':
-sound/arm/omap/omap-alsa-dma.c:315: error: `FN_IN' undeclared (first
-use in this function)
-sound/arm/omap/omap-alsa-dma.c: In function
-`audio_set_dma_params_capture':
-sound/arm/omap/omap-alsa-dma.c:333: error: `FN_IN' undeclared (first
-use in this function)
-sound/arm/omap/omap-alsa-dma.c: In function `audio_start_dma_chain':
-sound/arm/omap/omap-alsa-dma.c:346: error: `FN_IN' undeclared (first
-use in this function)
-sound/arm/omap/omap-alsa-dma.c: In function
-`omap_start_alsa_sound_dma':
-sound/arm/omap/omap-alsa-dma.c:368: error: `FN_IN' undeclared (first
-use in this function)
-sound/arm/omap/omap-alsa-dma.c: In function `sound_dma_irq_handler':
-sound/arm/omap/omap-alsa-dma.c:414: error: `FN_IN' undeclared (first
-use in this function)
-sound/arm/omap/omap-alsa-dma.c:419: warning: implicit declaration of
-function `DPRINTK'
-make[3]: *** [sound/arm/omap/omap-alsa-dma.o] Error 1
-make[2]: *** [sound/arm/omap] Error 2
-make[1]: *** [sound/arm] Error 2
-make: *** [sound] Error 2
-
-
----Komal Shah
-http://komalshah.blogspot.com/
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+$ quilt push
+Applying osk-support/patch-2.6.16-omap2
+patch: **** Only garbage was found in the patch input.
+Patch osk-support/patch-2.6.16-omap2 does not apply (enforce with -f)
