@@ -1,13 +1,14 @@
-From: tony@atomide.com
-Subject: Re: FIQ Handler
-Date: Wed, 5 Apr 2006 15:57:07 -0700
-Message-ID: <20060405225656.GA19378@atomide.com>
-References: <44343500.1030306@tesco.net>
+From: lamikr <lamikr@cc.jyu.fi>
+Subject: Re: n770 alsa build broken
+Date: Thu, 06 Apr 2006 02:18:04 +0300
+Message-ID: <4434502C.3050206@cc.jyu.fi>
+References: <20060404161825.67622.qmail@web32901.mail.mud.yahoo.com>
+Reply-To: lamikr@cc.jyu.fi
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <44343500.1030306@tesco.net>
+In-Reply-To: <20060404161825.67622.qmail@web32901.mail.mud.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,25 +18,31 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Matt Callow <mc-lists@tesco.net>
+To: Komal Shah <komal_shah802003@yahoo.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Matt Callow <mc-lists@tesco.net> [060405 14:28]:
-> Hi,
-> 
-> I've been trying to install a FIQ handler for an omap 5910 board
-> (actually the amstrad E3) but I seem to get a data abort exception as
-> soon as I read the SIR_FIQ_CODE register.
-> I note in the omap source (arch/arm/mach-omap1/irq.c) it says  read the
-> mailing list threads on FIQ handlers if you are planning to add a FIQ
-> handler. So, I've looked through the archives but can only find a
-> reference to http://lkml.org/lkml/2005/6/22/111
-> 
-> Is there more information that I'm missing. If so, could someone point
-> me in the right direction please.
+Komal Shah wrote:
 
-Search linux-arm-kernel@lists.arm.linux.org.uk list for it. Also look at
-the other FIQ handlers under arch/arm. It should not be hard to do.
+>Please supply the patch.
+>
+>#make n770_defconfig
+>#make
+>
+>sound/arm/omap/omap-alsa-dma.c: In function `omap_sound_dma_link_lch':
+>sound/arm/omap/omap-alsa-dma.c:143: error: `FN_IN' undeclared (first
+>use in this function)
+>  
+>
+In which kernel version you got this? I tried to use your method instead
+of opening xconfig but I could not reproduce this neither with
+2.6.16-omap2 or
+with the linux-omap-git head. With the code in head I the build stopped
+however already earlier to some MMC build problems. The 2.6.16-omap2
+compiled just fine.
 
-Tony
+One thing I noticed however. As 770 uses also alsa driver, it needs alsa
+platform driver initialization stuff. For that I will send a patch in a
+separate mail.
+
+Mika
