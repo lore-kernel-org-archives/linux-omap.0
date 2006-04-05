@@ -1,12 +1,9 @@
-From: "Michal Szabat" <michal611@interia.pl>
-Subject: Re: Linux audio driver OMAP5912
-Date: Wed, 5 Apr 2006 18:38:08 +0200
-Message-ID: <000801c658cf$54aac4b0$0301a8c0@hydra>
-References: <OFA3EE633B.6C835667-ON65257147.003F99C3-65257147.00403CF6@tcs.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: [PATCH] Convert OSS aic23 to mutex
+Date: Wed, 05 Apr 2006 20:10:03 +0200
+Message-ID: <443407FB.2060304@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="------------070109070400000605080801"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -17,59 +14,45 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com, ruchir.gulati@tcs.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-
------ Original Message ----- 
-From: <ruchir.gulati@tcs.com>
-To: <linux-omap-open-source@linux.omap.com>
-Sent: Wednesday, April 05, 2006 1:42 PM
-Subject: Linux audio driver OMAP5912
+This is a multi-part message in MIME format.
+--------------070109070400000605080801
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
 
->
-> Hello,
->
-> I am trying to record/capture and play/render audio on the OMAP5912 OSK
-> supplied by Spectrum Digital. I am aware of the TLV320AIC23 Audio Codec IC
-> present on this board. I want to record and play the audio using the GPP
-> or the ARM9 processor, through the MotaVista Linux OS present on the ARM
-> processor.
->
-> Can anyone please tell me how can I do this? If there is any driver (I
-> mean Linux driver for OMAP5912) available for this, then where is it? As
-> of now I have searched the OMAP page on the Spectrum Digital webpage and a
-> few other websites, but without any success.
->
-> If anyone has worked on such a thing, please help with this! Or, if this
-> is not possible, please let me know, so that I could take some other
-> approach....
->
-> Thanks in advance,
-> Ruchir Gulati
-> Embedded Systems Group,
-> TATA Consultancy Services Ltd.
->
-> Notice: The information contained in this e-mail message and/or 
-> attachments to it may contain confidential or privileged information.   If 
-> you are not the intended recipient, any dissemination, use, review, 
-> distribution, printing or copying of the information contained in this 
-> e-mail message and/or attachments to it are strictly prohibited.   If you 
-> have received this communication in error, please notify us by reply 
-> e-mail or telephone and immediately and permanently delete the message and 
-> any attachments.  Thank you
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
+ARM: OMAP: Convert OSS aic23 to mutex.
 
-Hello.
-
-I want to compress audio to mp3 or other format, by now without cuccess.
-You can check it http://oskfordummies.hp.infoseek.co.jp/howto/audio.html. 
+Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
 
 
-----------------------------------------------------------------------
-Poznaj Stefana! Zmien komunikator! >>> http://link.interia.pl/f1924
+--------------070109070400000605080801
+Content-Type: text/plain;
+ name="omap-audio-aic23_mutex_patch.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="omap-audio-aic23_mutex_patch.txt"
+
+--- ./sound/oss/omap-audio-aic23.c_orig	2006-04-05 20:02:22.000000000 +0200
++++ ./sound/oss/omap-audio-aic23.c	2006-04-05 20:03:05.000000000 +0200
+@@ -243,7 +243,7 @@ static audio_state_t aic23_state = {
+         .hw_remove      =  __exit_p(omap_aic23_remove),
+         .hw_suspend     = omap_aic23_suspend,
+         .hw_resume      = omap_aic23_resume,
+-	.sem	    = __SEMAPHORE_INIT(aic23_state.sem, 1),
++	.mutex	    = __MUTEX_INITIALIZER(aic23_state.mutex),
+ };
+ 
+ /* This will be defined in the audio.h */
+
+
+--------------070109070400000605080801
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--------------070109070400000605080801--
