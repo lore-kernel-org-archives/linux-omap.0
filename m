@@ -1,11 +1,12 @@
-From: lamikr <lamikr@cc.jyu.fi>
-Subject: [PATCH] board-nokia-770.c: Add missing alsa platform driver code
-Date: Thu, 06 Apr 2006 02:20:48 +0300
-Message-ID: <443450D0.1020001@cc.jyu.fi>
-Reply-To: lamikr@cc.jyu.fi
+From: ruchir.gulati@tcs.com
+Subject: Re: Linux audio driver OMAP5912
+Date: Thu, 6 Apr 2006 15:36:34 +0530
+Message-ID: <OF24DCAEEA.2584161E-ON65257148.00371CD2-65257148.00377BD1@tcs.com>
+References: <000801c658cf$54aac4b0$0301a8c0@hydra>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080307030405050706050908"
+Content-Type: text/plain; charset="US-ASCII"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <000801c658cf$54aac4b0$0301a8c0@hydra>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,112 +16,109 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: OMAP-Linux <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080307030405050706050908
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 
-Hi it seems that 770 is also using aic23 alsa driver, original patches
-added aic23 platform data driver code only to board-osk.c,
-but this adds now a similar platform driver config also to board-nokia770.c.
-I have only tested made a compile test for this one.Can somebody who is
-building own kernels for 770 try to build, boot & "play it again sam"
-with this?
-The patch should apply on top of both to 2.6.16-omap2 branch and
-linux-omap git head.
+Thank you Michal, Sriram, and Nishant,
 
-Signed off: Mika Laitio lamikr@cc.jyu.fi
+I tried the steps mentioned at the website suggested by you and they work. 
+I am able to play sound. Actually i have a raw PCM file which contains 
+mono speech sampled at 8KHz and uses 16 bits/sample resolution. 
+Though this file is playing, it seems to be getting played very fast in 
+spite of doing the proper configuration. Is it necessary to convert any 
+PCM file to the *.au file before attempting to play it or can I also play 
+a simple PCM file as described above? If yes, then how should I go about 
+it?
 
-Mika
-
-
-
---------------080307030405050706050908
-Content-Type: text/x-patch;
-	name="board-nokia-770.c-Add-missing-alsa-platform-driver-code.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename="board-nokia-770.c-Add-missing-alsa-platform-driver-code.patch"
-
-Subject: [PATCH] board-nokia-770.c: Add missing alsa platform driver code.
-Signed-off-by: Mika Laitio <lamikr@cc.jyu.fi>
-
----
-
- arch/arm/mach-omap1/board-nokia770.c |   39 ++++++++++++++++++++++++++++++++++
- 1 files changed, 39 insertions(+), 0 deletions(-)
-
-4b0bfc38bfa33f82155b339709131e6dc3dfa0ab
-diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
-index 02b980d..924c5bd 100644
---- a/arch/arm/mach-omap1/board-nokia770.c
-+++ b/arch/arm/mach-omap1/board-nokia770.c
-@@ -31,6 +31,8 @@
- #include <asm/arch/dsp_common.h>
- #include <asm/arch/aic23.h>
- #include <asm/arch/gpio.h>
-+#include <asm/arch/mcbsp.h>
-+#include <asm/arch/omap-alsa.h>
- 
- static void __init omap_nokia770_init_irq(void)
- {
-@@ -86,8 +88,45 @@ static struct platform_device nokia770_k
- 	.resource	= nokia770_kp_resources,
- };
- 
-+#define DEFAULT_BITPERSAMPLE 16
-+
-+static struct omap_mcbsp_reg_cfg mcbsp_regs = { 
-+	.spcr2 = FREE | FRST | GRST | XRST | XINTM(3),
-+	.spcr1 = RINTM(3) | RRST,
-+	.rcr2 = RPHASE | RFRLEN2(OMAP_MCBSP_WORD_8) |
-+	    RWDLEN2(OMAP_MCBSP_WORD_16) | RDATDLY(0),
-+	.rcr1 = RFRLEN1(OMAP_MCBSP_WORD_8) | RWDLEN1(OMAP_MCBSP_WORD_16),
-+	.xcr2 = XPHASE | XFRLEN2(OMAP_MCBSP_WORD_8) |
-+	    XWDLEN2(OMAP_MCBSP_WORD_16) | XDATDLY(0) | XFIG,
-+	.xcr1 = XFRLEN1(OMAP_MCBSP_WORD_8) | XWDLEN1(OMAP_MCBSP_WORD_16),
-+	.srgr1 = FWID(DEFAULT_BITPERSAMPLE - 1),
-+	.srgr2 = GSYNC | CLKSP | FSGM | FPER(DEFAULT_BITPERSAMPLE * 2 - 1),
-+	/*.pcr0 = FSXM | FSRM | CLKXM | CLKRM | CLKXP | CLKRP,*/ /* mcbsp: master */
-+	.pcr0 = CLKXP | CLKRP,  /* mcbsp: slave */
-+};
-+
-+static struct omap_alsa_codec_config alsa_config = {
-+	.name			= "n770 AIC23",
-+	.mcbsp_regs_alsa	= &mcbsp_regs,
-+	.codec_configure_dev	= NULL, // aic23_configure,
-+	.codec_set_samplerate	= NULL, // aic23_set_samplerate,
-+	.codec_clock_setup	= NULL, // aic23_clock_setup,
-+	.codec_clock_on		= NULL, // aic23_clock_on,
-+	.codec_clock_off	= NULL, // aic23_clock_off,
-+	.get_default_samplerate	= NULL, // aic23_get_default_samplerate,	
-+};
-+
-+static struct platform_device nokia770_mcbsp1_device = {
-+	.name	= "omap_alsa_mcbsp",
-+ 	.id	= 1,
-+	.dev = {
-+		.platform_data	= &alsa_config,
-+	},
-+};
-+
- static struct platform_device *nokia770_devices[] __initdata = {
-         &nokia770_kp_device,
-+	&nokia770_mcbsp1_device,
- };
- 
- static struct ads7846_platform_data nokia770_ads7846_platform_data __initdata = {
--- 
-1.0.GIT
-
---------------080307030405050706050908
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks in advance....
+Ruchir Gulati
+Tata Consultancy Services Limited
+M2 & N2, Sector V, Block GP,
+Salt Lake Electronics Complex
+Kolkata - 700091,West Bengal
+India
+Mailto: ruchir.gulati@tcs.com
+Website: http://www.tcs.com
 
 
---------------080307030405050706050908--
+
+"Michal Szabat" <michal611@interia.pl> 
+04/05/2006 10:08 PM
+
+To
+<linux-omap-open-source@linux.omap.com>, <ruchir.gulati@tcs.com>
+cc
+
+Subject
+Re: Linux audio driver OMAP5912
+
+
+
+
+
+
+
+----- Original Message ----- 
+From: <ruchir.gulati@tcs.com>
+To: <linux-omap-open-source@linux.omap.com>
+Sent: Wednesday, April 05, 2006 1:42 PM
+Subject: Linux audio driver OMAP5912
+
+
+>
+> Hello,
+>
+> I am trying to record/capture and play/render audio on the OMAP5912 OSK
+> supplied by Spectrum Digital. I am aware of the TLV320AIC23 Audio Codec 
+IC
+> present on this board. I want to record and play the audio using the GPP
+> or the ARM9 processor, through the MotaVista Linux OS present on the ARM
+> processor.
+>
+> Can anyone please tell me how can I do this? If there is any driver (I
+> mean Linux driver for OMAP5912) available for this, then where is it? As
+> of now I have searched the OMAP page on the Spectrum Digital webpage and 
+a
+> few other websites, but without any success.
+>
+> If anyone has worked on such a thing, please help with this! Or, if this
+> is not possible, please let me know, so that I could take some other
+> approach....
+>
+> Thanks in advance,
+> Ruchir Gulati
+> Embedded Systems Group,
+> TATA Consultancy Services Ltd.
+>
+> Notice: The information contained in this e-mail message and/or 
+> attachments to it may contain confidential or privileged information. If 
+
+> you are not the intended recipient, any dissemination, use, review, 
+> distribution, printing or copying of the information contained in this 
+> e-mail message and/or attachments to it are strictly prohibited.   If 
+you 
+> have received this communication in error, please notify us by reply 
+> e-mail or telephone and immediately and permanently delete the message 
+and 
+> any attachments.  Thank you
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
+
+Hello.
+
+I want to compress audio to mp3 or other format, by now without cuccess.
+You can check it http://oskfordummies.hp.infoseek.co.jp/howto/audio.html. 
+
+
+----------------------------------------------------------------------
+Poznaj Stefana! Zmien komunikator! >>> http://link.interia.pl/f1924
+
+
+ForwardSourceID:NT0000413E 
+
+
+Notice: The information contained in this e-mail message and/or attachments to it may contain confidential or privileged information.   If you are not the intended recipient, any dissemination, use, review, distribution, printing or copying of the information contained in this e-mail message and/or attachments to it are strictly prohibited.   If you have received this communication in error, please notify us by reply e-mail or telephone and immediately and permanently delete the message and any attachments.  Thank you
