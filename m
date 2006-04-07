@@ -1,12 +1,13 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: [PATCH] Convert OSS aic23 to mutex
-Date: Thu, 06 Apr 2006 16:45:00 +0200
-Message-ID: <4435296C.5040304@gmail.com>
-References: <443407FB.2060304@gmail.com> <20060405190013.GA5532@nokia.com>
+From: "prafulla chandra vejendla" <v.prafulla@gmail.com>
+Subject: debug unresolved in the tokliBIOS.lib while generating binary for
+	the 55xx using the codegen toll
+Date: Fri, 7 Apr 2006 10:26:55 +0530
+Message-ID: <26d3a31c0604062156sffdb4fbu56797b3987ab035@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030906040908080409020604"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060405190013.GA5532@nokia.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,67 +17,23 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Paul Mundt <paul.mundt@nokia.com>, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030906040908080409020604
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Paul Mundt wrote:
-> Are you sure this doesn't need an #include <linux/mutex.h>? All of the
-> other conversions so far have..
-
-It compiles without extra linux/mutex.h because
-linux/sound.h includes linux/fs.h which includes
-linux/mutex.h. But you are right, include linux/mutex.h is
-cleaner. Please find updated patch in attachment.
-
-Cheers
-
-Dirk
-
-ARM: OMAP: Convert OSS aic23 to mutex.
-
-Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
-
---------------030906040908080409020604
-Content-Type: text/plain;
- name="omap-audio-aic23_mutex_patch.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="omap-audio-aic23_mutex_patch.txt"
-
---- ./sound/oss/omap-audio-aic23.c_orig	2006-04-05 20:02:22.000000000 +0200
-+++ ./sound/oss/omap-audio-aic23.c	2006-04-06 16:23:30.000000000 +0200
-@@ -38,6 +38,7 @@
- #include <linux/sound.h>
- #include <linux/soundcard.h>
- #include <linux/clk.h>
-+#include <linux/mutex.h>
- 
- #include <asm/uaccess.h>
- #include <asm/hardware.h>
-@@ -243,7 +244,7 @@ static audio_state_t aic23_state = {
-         .hw_remove      =  __exit_p(omap_aic23_remove),
-         .hw_suspend     = omap_aic23_suspend,
-         .hw_resume      = omap_aic23_resume,
--	.sem	    = __SEMAPHORE_INIT(aic23_state.sem, 1),
-+	.mutex	    = __MUTEX_INITIALIZER(aic23_state.mutex),
- };
- 
- /* This will be defined in the audio.h */
-
-
-
-
-
---------------030906040908080409020604
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---------------030906040908080409020604--
+Hi all,
+i am using the DSP GATEWAY to communicate between the ARM and DSP processor=
+.
+i am using the gateway version 3.1 for my linux 2.6.11.3
+i have generated the tokliBIOS.lib using the ccs version 3.1 . this
+generated library i am using in the make file for generating the user binar=
+y
+executables. but i got error message like "*debug unresolved in the
+tokliBIOS.lib*".
+why it is comming ?? is there any relation between the error and the ccs
+version.??
+in the tokliBIOS.lib generation pdf procedure is mentioned for the ccs
+version 2.20. what could be the changes that i need to made to generate the
+same tokliBIOS.lib using the ccs version 3.1 .
+what could be the problem??
+thanks in advance
+--prafulla chandra
