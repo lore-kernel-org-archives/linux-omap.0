@@ -1,11 +1,13 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: omap defconfigs in mainline tree
-Date: Fri, 7 Apr 2006 02:31:34 -0700 (PDT)
-Message-ID: <20060407093134.25516.qmail@web32902.mail.mud.yahoo.com>
+From: Matt Callow <mc-lists@tesco.net>
+Subject: Re: FIQ Handler
+Date: Fri, 07 Apr 2006 11:27:21 +0100
+Message-ID: <44363E89.9050506@tesco.net>
+References: <44343500.1030306@tesco.net> <20060405225656.GA19378@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20060405225656.GA19378@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,25 +15,24 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Tony,
+tony@atomide.com wrote:
 
-I want to understand why we don't push defconfigs (minus drivers
-options, which are not yet in mainline) to mainline tree? If we do that
-we can cover all variants as part of kautobuild, _or_ if someone gives
-me idea on setting up such autobuilds (kautobuild source?) I can set it
-up offline here.
+>
+>
+>Search linux-arm-kernel@lists.arm.linux.org.uk list for it. Also look at
+>the other FIQ handlers under arch/arm. It should not be hard to do.
+>
+>  
+>
+Thanks for the pointers. There is some useful info in there.  I was
+expecting there to be something special about FIQ on the omap platform,
+hence the message in the source, but it seems not.
+I've solved my original data abort problem now, which was due to some
+hardware not being mapped where I thought it was.
 
-
-
----Komal Shah
-http://komalshah.blogspot.com/
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+Matt
