@@ -1,13 +1,15 @@
-From: "andrzej zaborowski" <balrog@zabor.org>
-Subject: Re: Problems compiling with GCC-4.0.0
-Date: Mon, 10 Apr 2006 10:48:29 +0200
-Message-ID: <fb249edb0604100148m2f6857ds9413fabe953cc5a5@mail.gmail.com>
-References: <20060410045239.55C6143AA1@ws5-1.us4.outblaze.com>
-Reply-To: balrogg@gmail.com
+From: "Ola Helm" <ola.hel@gmail.com>
+Subject: Re: Trasnferring u-boot to P2 730
+Date: Mon, 10 Apr 2006 11:54:34 +0300
+Message-ID: <3d3153f60604100154w22e5a845p4411e3aa3c0d7757@mail.gmail.com>
+References: <3d3153f60604070015g5e260b69v3bc680d29f99fc@mail.gmail.com>
+	<44369A4B.4050801@mvista.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1424713991=="
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <20060410045239.55C6143AA1@ws5-1.us4.outblaze.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <44369A4B.4050801@mvista.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,52 +17,74 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Kanagesh R <kanagesh@india.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
+Cc: kangjw@lenovo.com, cp_singh@faith.co.jp
 List-Id: linux-omap@vger.kernel.org
 
---===============1424713991==
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+Thanks a lot for everybody for your help!
 
-SGksCgpPbiAxMC8wNC8wNiwgS2FuYWdlc2ggUiA8a2FuYWdlc2hAaW5kaWEuY29tPiB3cm90ZToK
-PiBIZWxsbywKPgo+IEkgaGF2ZSBiZWVuIHVzaW5nIGEgdG9vbGNoYWluIGJ1aWx0IHVzaW5nIGNy
-b3NzdG9vbHMuCj4gVGhlIHZlcnNpb24gb2YgdG9vbHMgaXMgYXMgZm9sbG93czoKPiBHQ0MtMy40
-LjEKPiBCaW51dGlscy0yLjE1Cj4gR0xJQkMtMi4zLjIKPgo+IFRoaXMgaGFzIGJlZW4gY29tcGls
-aW5nIGFsbCBrZXJuZWxzICgyLjYuMTIsIDIuNi4xMywKPiAyLjYuMTUpIGZpbmUgd2l0aG91dCBh
-bnkgaXNzdWVzLgo+Cj4gSSd2ZSBub3cgZG93bmxvYWRlZCB0aGUgRUxESyAoVmVyIDQpIHRvb2xj
-aGFpbiBmcm9tCj4gd3d3LmRlbnguZGUgYW5kIEkndmUgdHJpZWQgdG8gY29tcGlsZSAyLjYuMTUt
-b21hcDEsCj4gYnV0IHdpdGhvdXQgc3VjY2Vzcy4gIEl0IGJyZWFrcyB3aGlsZSBjb21waWxpbmcg
-ZmlsZQo+IGRyaXZlcnMvaW5wdXQvdG91Y2hzY3JlZW4vb21hcC9vbXBhX3RzLmMgIChob3dldmVy
-LAo+IHdoZW4gdGhlIHNhbWUgc291cmNlcyBhcmUgY29tcGlsZWQgd2l0aCBHQ0MtMy40LjEsCj4g
-aXQgYnVpbGRzIGZpbmUpCj4KPiBUaGUgdmVyc2lvbiBvZiB0b29scyBpbiB0aGlzIHRvb2xjaGFp
-biBpczoKPiBHQ0MtNC4wLjAKPiBCaW51dGlscy0yLjE2LjEKPiBHTElCQy0yLjMuNQo+Cj4gSSB0
-aGVuIGJ1aWx0IGEgR0NDLTQuMC4wIGNyb3NzY29tcGlsZXIgdXNpbmcgY3Jvc3N0b29scwo+IGFu
-ZCBJIGhpdCB0aGUgc2FtZSBwcm9ibGVtLgo+Cj4gSXMgYW55b25lIGVsc2UgdXNpbmcgdGhlIEVM
-REstNC4wIHRvb2xjaGFpbiAob3IgY3Jvc3Njb21waWxlcgo+IEdDQy00LjAuMCkgYW5kIGhhcyBz
-aW1pbGFyIHByb2JsZW1zPwoKQXMgZmFyIGFzIEkgcmVtZW1iZXIgdGhpcyBoYXMgYmVlbiBhbHJl
-YWR5IGNvcnJlY3RlZC4gMi42LjE1IHdhcwpnaXZpbmcgYSBjb3VwbGUgb2YgZXJyb3JzIHdpdGgg
-R0NDIDQgYnV0IGFsbCBvZiB0aGVtIHRyaXZpYWxseQpmaXhhYmxlLgpQbGVhc2UgdXBkYXRlIHlv
-dXIga2VybmVsIHNvdXJjZXMuCj4KPiB3YXJtIHJlZ2FyZHMsCj4gS2FuYWdlc2gKPgo+Cj4gLS0K
-PiBJbmRpYS5jb20gZnJlZSBlLW1haWwgLSB3d3cuaW5kaWEuY29tLgo+IENoZWNrIG91dCBvdXIg
-dmFsdWUtYWRkZWQgUHJlbWl1bSBmZWF0dXJlcywgc3VjaCBhcyBhbiBleHRyYSAyME1CIGZvciBt
-YWlsIHN0b3JhZ2UsIFBPUDMsIGUtbWFpbCBmb3J3YXJkaW5nLCBhbmQgYWRzLWZyZWUgbWFpbGJv
-eGVzIQo+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4g
-TGludXgtb21hcC1vcGVuLXNvdXJjZSBtYWlsaW5nIGxpc3QKPiBMaW51eC1vbWFwLW9wZW4tc291
-cmNlQGxpbnV4Lm9tYXAuY29tCj4gaHR0cDovL2xpbnV4Lm9tYXAuY29tL21haWxtYW4vbGlzdGlu
-Zm8vbGludXgtb21hcC1vcGVuLXNvdXJjZQo+CgpSZWdhcmRzLApBbmRyZXcKLS0KYmFscm9nIDJv
-bzYKCkRlYXIgT3V0bG9vayB1c2VyczogUGxlYXNlIHJlbW92ZSBtZSBmcm9tIHlvdXIgYWRkcmVz
-cyBib29rcwpodHRwOi8vd3d3Lm5ld3Nmb3JnZS5jb20vYXJ0aWNsZS5wbD9zaWQ9MDMvMDgvMjEv
-MTQzMjU4Cg==
+With these bits and pieces it seems to be that perhaps the most easiest way
+to handle this would be to first add this small header, which should perhap=
+s
+be done with some tool tends to be called preimage_flash or something like
+that. It cannot be done manually at least in my case when you really don't
+know excatly what should be done. Then the image could be downloaded either
+using some serial tool with some name (could it be OMAP730 Host Loader I sa=
+w
+in some in picture of some documetation) or using MMC.
 
---===============1424713991==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+So, does anybody have a glue either
+- where to get the preflash_image tool
+- how to excatly modify u-boot file manually
+- where to get the serial loader tool for 730
+
+As I said, I have not been able to twist the OST tool version I have
+(version 2.5, available also from TI website) to work with 730, not even to
+download it.
+
+I was able to download the u-boot.bin (the raw binary) as well as u-boot
+> (ELF image) to P2's RAM using OST Tools over a serial line (COM1). I has
+> success in downloading u-boot to the specific address in RAM, but the ima=
+ge
+> doesn't seem to execute/run. ALso, there is a provision of downloading
+> images over the USB connection to the target, but in my case my Windows P=
+C
+> does not detect the P2 board as a USB device when I connect the board to =
+the
+> host PC with a USB cable. Rather, the charging LED on the board blinks fo=
+r a
+> second.
+>
+>
 
 
---===============1424713991==--
+> OST tools installer for OMAP 730 can be found at
+> http://focus.ti.com/download/wtbu/OSTBoot_NoSource_1.6.1.zip, the
+> installer accompanies a User guide as well in PDF format.
+>
+
+
+Chetan, which version have you used since you have been able to aat least
+download the image to board? And furthermore, I do have the OST boot you
+mentioned in your mail but as far as I know that package does not include
+any executables and is anyway more 2420 oriented package. What kind of usag=
+e
+do you mean with it?
+
+
+> I did this once via an Abatron BDI-2000.  George Davis had previously
+> got it working using the small JTAG debug board that shipped with some
+> versions of OMAP 730/16xx based on the "surfer" board; so far as I know
+> we never got a BDI to talk to the multiport debug card shipped with P2
+> boards.  On the JTAG board:
+>
+>
+
+Todd, do you mean that there is some other debug device than that normally
+coming with 730 boards?
+
+BRs,
+
+/O
