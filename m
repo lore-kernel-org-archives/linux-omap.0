@@ -1,7 +1,7 @@
-From: "Kavita Kalra" <kavita.dsp@gmail.com>
-Subject: choice of bootloader on omap1510
-Date: Mon, 10 Apr 2006 16:02:02 +0530
-Message-ID: <c474a93a0604100332w785e7604w30a2890909d34c0f@mail.gmail.com>
+From: "Sergey Vointsev" <vointsev@gmail.com>
+Subject: Is it possible to use NFS with built-in kernel on 5912 OSK?
+Date: Mon, 10 Apr 2006 17:43:05 +0400
+Message-ID: <9713be7f0604100643r394b2c5ct80caabf27c2225eb@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
@@ -16,19 +16,24 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+Hello, everybody!
 
-I  am on the initial phase of omap 1510. Want to know whether rrlaod or
-uboot should be used as a bootloader.*Also from where can i obtain them?*
+I try to mount folder of host PC via NFS. From other PC it works
+perfect. But from OMAP5912 OSK I have the following situation:
 
-uboot is a universal bootloader....does it mean that the uboot 1.1.1 image
-which i have for omap 5912...(was thr in the cd along with the kit of omap
-5912) can also be used for oamp1510.
+# insmod /lib/modules/2.4.20_mvl31-omap5912_osk/kernel/fs/nfsd/nfsd.o
+# mkdir /tmp/nfs
+# mount 192.168.0.16:/nfs /tmp/nfs
+mount: 192.168.0.16:/nfs failed, reason given by server: Permission denied
+mount: nfsmount failed: Bad file descriptor
+NFS: mount program didn't pass remote address!
+mount: Mounting 192.168.0.16:/nfs on /tmp/nfs failed: Invalid argument
 
-I need some direction to start....pls help.
+What's wrong? I use standard kernel and rootfs shipped with the board.
+By the way, why OMAP5912 OSK has 32M of flash onboard, but the size of
+default rootfs is only 16M?
 
-Thanks
-Kavita
+Thanks. Sergey.
