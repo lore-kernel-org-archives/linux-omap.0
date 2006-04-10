@@ -1,7 +1,7 @@
 From: "Kavita Kalra" <kavita.dsp@gmail.com>
 Subject: choice of bootloader on omap1510
-Date: Mon, 10 Apr 2006 15:45:45 +0530
-Message-ID: <c474a93a0604100315s64cf7c8cq651659c9477ad3f4@mail.gmail.com>
+Date: Mon, 10 Apr 2006 15:51:42 +0530
+Message-ID: <c474a93a0604100321p6af3bf8fs556ac37f9d49d533@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
