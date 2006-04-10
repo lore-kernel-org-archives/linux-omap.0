@@ -1,12 +1,11 @@
-From: "Kavita Kalra" <kavita.dsp@gmail.com>
-Subject: choice of bootloader on omap1510
-Date: Mon, 10 Apr 2006 15:51:42 +0530
-Message-ID: <c474a93a0604100321p6af3bf8fs556ac37f9d49d533@mail.gmail.com>
+From: prakhar vig <aquarian_133@yahoo.co.in>
+Subject: IMG_jpeg_vlc-- How to use?
+Date: Mon, 10 Apr 2006 11:16:48 +0100 (BST)
+Message-ID: <20060410101648.75915.qmail@web8706.mail.in.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,21 +13,34 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+Hi All,
 
-I  am on the initial phase of omap 1510. Want to know whether rrlaod or
-uboot should be used as a bootloader.*Also from where can i obtain them?*
+I am trying to use a variable length coding library
+present in IMGLIB, for my huffman encoding of a JPEG
+file. I am facing certain problems i.e:
 
-uboot is a universal bootloader....does it mean that the uboot 1.1.1 image
-which i have for omap 5912...(was thr in the cd along with the kit of omap
-5912) can also be used for oamp1510.
+void IMG_jpeg_vlc(int *input_data, int *output_stream,
+int type);
 
-I need some direction to start....pls help.
+a)In this function length of output is data-dependent.
+I am confused, what should be the size of an
+output_stream array for 8x8 input data, and how many
+bits of output_stream I have to write to a final JPEG
+file.
 
-Thanks
-Kavita
+If someone know something in this regard, please help
+me.
+
+Thanks And Regards
+Prakhar
+
+
+
+		
+__________________________________________________________ 
+Yahoo! India Matrimony: Find your partner now. Go to http://yahoo.shaadi.com
