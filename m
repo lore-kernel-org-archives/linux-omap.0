@@ -1,12 +1,13 @@
-From: "Sergey Vointsev" <vointsev@gmail.com>
-Subject: Is it possible to use NFS with built-in kernel on 5912 OSK?
-Date: Mon, 10 Apr 2006 17:43:05 +0400
-Message-ID: <9713be7f0604100643r394b2c5ct80caabf27c2225eb@mail.gmail.com>
+From: "Menon, Nishanth" <x0nishan@ti.com>
+Subject: RE: Linux audio driver OMAP5912
+Date: Mon, 10 Apr 2006 09:35:32 -0500
+Message-ID: <520AB2AD990DC04082102F77CA17263803127532@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,26 +15,24 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: ruchir.gulati@tcs.com, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello, everybody!
+>Also the MIC volume is coming as 27500, where as I guess the allowd
+values are between 0 and 100. Can anybody please tell me what the
+possible problem might be??
 
-I try to mount folder of host PC via NFS. From other PC it works
-perfect. But from OMAP5912 OSK I have the following situation:
+Oss.pdf again. Left channel 8 bits and right channel 8 bits are depicted
+as as RRLL for the 16 bits to the volume ioctl. You can have 0 to 100
+for either RR or LL. 27500 =3D 0x6B6C =3D=3D> Left =3D 0x6C and right =
+=3D 0x6B=20
 
-# insmod /lib/modules/2.4.20_mvl31-omap5912_osk/kernel/fs/nfsd/nfsd.o
-# mkdir /tmp/nfs
-# mount 192.168.0.16:/nfs /tmp/nfs
-mount: 192.168.0.16:/nfs failed, reason given by server: Permission denied
-mount: nfsmount failed: Bad file descriptor
-NFS: mount program didn't pass remote address!
-mount: Mounting 192.168.0.16:/nfs on /tmp/nfs failed: Invalid argument
+Regards,
 
-What's wrong? I use standard kernel and rootfs shipped with the board.
-By the way, why OMAP5912 OSK has 32M of flash onboard, but the size of
-default rootfs is only 16M?
+Nishanth Menon
 
-Thanks. Sergey.
+=20
+
+=20
