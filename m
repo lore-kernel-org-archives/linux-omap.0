@@ -1,13 +1,15 @@
-From: "Zhang, Jian" <jzhang@ti.com>
-Subject: RE: FIFO_FULL on camera driver
-Date: Tue, 11 Apr 2006 10:29:21 -0500
-Message-ID: <304D2A85A9643F4A991BDDF8D297BBA602DE3312@dlee05.ent.ti.com>
+From: Nachiappan <tonachi@gmail.com>
+Subject: omap 1510 camera interface -ov6x30.c recognising fault
+Date: Wed, 12 Apr 2006 09:45:57 +0530
+Message-ID: <b4638ae70604112115g29f8342dwb33e352469b3cc4c@mail.gmail.com>
+References: <b4638ae70604110214g24db98c1s5e34690a96c16cf4@mail.gmail.com>
+	<b4638ae70604110229l29fa6bc6nc854c481f0cd056b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <b4638ae70604110229l29fa6bc6nc854c481f0cd056b@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,79 +17,61 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Carlos, John J DA CIV USA ATC" <john.carlos@atc.army.mil>, Linux-Omap-Open-Source <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-John,
+ Dear All,
 
-Did you mean that the driver worked for a different sensor at slower
-rate? So the first question I want to ask is that does the new sensor
-ever work? You may want to configure the new sensor at a slow rate (say
-10FPS) first.
 
-Do you process the data and capture the data in sequential or in
-parallel? I do recall the OMAP1 camera driver does a software rotation
-of the captured data to frame buffer sequentially with the capture.=20
+Iam working on TI-OMAP 1510 -innovator break up board. -[TI 925t arm based]
+ Iam finding difficulty in OV6x30 camera getting identified.
 
-Regards,
-Jian  =20
 
------Original Message-----
-From: Carlos, John J DA CIV USA ATC [mailto:john.carlos@atc.army.mil]=20
-Sent: Tuesday, April 11, 2006 10:03 AM
-To: Zhang, Jian; Carlos, John J DA CIV USA ATC; Linux-Omap-Open-Source
-Subject: RE: FIFO_FULL on camera driver
+When iam in stage of compiling the linux kernel.
 
-Hi Jian,
+using make ARCH=3Darm menu config
 
-  I don't do any processing till after I read a full buffer.  Not sure
-why I
-am over running the buffer do you know a spec on the speed the camera
-interface can handle.  As I mentioned the period on the frame is about
-12
-msec faster then the cmos sensor I have that works.
+In selecting multi media devices
+have opted for video for linux,
+selected video proc file systems
 
-Thanks again,
-John=20
+ but i dont get any option of selecting ov6x30 camera in that place.
 
------Original Message-----
-From: Zhang, Jian [mailto:jzhang@ti.com]=20
-Sent: Tuesday, April 11, 2006 10:45 AM
-To: Carlos, John J DA CIV USA ATC; Linux-Omap-Open-Source
-Subject: RE: FIFO_FULL on camera driver
+Can Any one suggest me kernel compilation .....what exactly has to be opted
+as modules in kernel compilation [make arch=3Darm menu config] for getting
+ov6x30.c
 
-The driver may not be the cause for the FIFO overflow. It is most likely
-that your post-processing code is not running fast enough.
+When i go to the folder and verify whether that OV6X30 driver routine is
+there.
+I find that it is present in ./root/drivers/media/video/omap/camera-ov6x30.=
+c
 
-Regards,
-Jian =20
+but still i dont get that highlighted when iam in stage of kernel
+compilation.
 
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
-Carlos,
-John J DA CIV USA ATC
-Sent: Tuesday, April 11, 2006 9:38 AM
-To: Linux-Omap-Open-Source
-Subject: FIFO_FULL on camera driver
 
-Hello All,
 
-	I am using 2.6.14-rc1-omap1 on OSK5912.  I am working with a
-video
-decoder with a 8 bit camera interface.  When I run a test application to
-collect data I get FIFO_FULL error messages.  The frame pulse is about
-33msec period.  This is a bit faster the a cmos sensor I use that works
-fine
-(45 msec period).  What clocking can be adjusted to stop the fifo
-overrun?
+So at the time of booting kernel i dont find this camera device at all.
 
-Thanks,
 
-John
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+Files i have used are
+
+
+   1. linux-2.4.19.tar
+   2. patch-2.4.19-rmk7.bz2
+   3. patch-2.4.19-rmk7-omap1.bz2
+   4. rrload-innovator-0301151120.tar.bz2
+
+for tool chain:
+
+   1. binutils-2.12.1.tar.bz2
+   2. gcc-2.95.3.tar.gz
+   3. glibc-2.2.3.tar.gz
+   4. glibc-linuxthreads-2.2.3.tar.gz
+
+Iam expecting ur replies eagerly.
+
+thanking you,
+  Nachiappan
