@@ -1,7 +1,7 @@
-From: Ram <vshrirama@gmail.com>
-Subject: MMC/SD Not Working - OMAP 5912
-Date: Mon, 17 Apr 2006 08:13:54 -0700
-Message-ID: <8bf247760604170813j6e189386t5f668562b1fa7010@mail.gmail.com>
+From: "RAVI SHANGAR" <ravishangar@gmail.com>
+Subject: OMAP 1510 Camera sensor (ov6630) driver code
+Date: Tue, 18 Apr 2006 14:42:54 +0530
+Message-ID: <ade4abe50604180212q4447ac60n8a7d36e878f9a0d8@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
@@ -19,45 +19,36 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-  I am using OMAP OSK 5912 OSK
+Previously, I got info about the 1510 camera driver that sensor_ov9640.c
+must be modified for our ov66xx sensor.
 
-  I am also using an Mistral's RDK add on board  for SD/MMC Card I/F.
+But when I learnt ov9640 & ov6630 sensor specifications, they have more
+similarities. Also the sensor code seems to be alright for atleast
+*initialization
+& detection* of ov6630 sensor chip.
 
-  I have made the changes for enabling the MMC/SD I/F as suggested in
-oskfordummies
-  http://oskfordummies.hp.infoseek.co.jp/howto/mmcsd.html
+When I tried with the camera driver, sensor initialization failed at
+the *i2c_transfer(
+)* function which returns -121 i.e., REMOTEIO error.
 
+I am not aware of the significance of the error as well as where the source
+of error lies ( with sensor code or sensor in camera itself).
 
-  But When i try to do:
- # mount /dev/mmcblk0 /mnt/mmc -t vfat
-  mount: Mounting /dev/mmcblk0 on /mnt/mmc failed: No such device or addres=
-s
+The second doubt I have is the slave address for I2C driver used in ov9640.=
+h
 
+If OMAP_24xx_VIRTIO defined , addr is 0x60 or it is 0x30.
 
-  I have tried having the mmc/sd drivers both within and as modules.
+But in iBootHost given with OMAP board, Camera code uses 0x60 as the addr.
 
+*QUERIES:*
+*What's the exact address to be used? *
+*In what places the sensor code is to be modified ?*
+*I need to get MIDH and MIDL values from the sensor. Give the code changes
+for this purpose atleast.*
 
-  Could anyone tell me where i am going wrong? Is there any checks i
-need to do to isolate the problem.
-
-
-  I checked both the MUX Control Register and the values are correct.
-
-
-
-#lsmod
-mmc_block 6344 0 - Live 0xbf00b000
-omap 12968 0 - Live 0xbf006000
-mmc_core 18964 2 mmc_block,omap, Live 0xbf000000
-
- # mount /dev/mmcblk0 /mnt/mmc -t vfat
-  mount: Mounting /dev/mmcblk0 on /mnt/mmc failed: No such device or addres=
-s
-
-
-
-   Please Advice.
+Pl give a clear solution or sensor ov6630 code for OMAP camera  if
+available.
 
 Regards,
-sriram
+Ravishangar.K
