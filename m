@@ -1,11 +1,11 @@
-From: "RAVI SHANGAR" <ravishangar@gmail.com>
-Subject: Problems in OMAP 1510 Camera sensor code
-Date: Tue, 18 Apr 2006 15:51:16 +0530
-Message-ID: <ade4abe50604180321w6a25159cyfea3cdf01e89f4b1@mail.gmail.com>
+From: "prafulla chandra vejendla" <v.prafulla@gmail.com>
+Subject: segmentation fault while accessing mcbsp1 port from the ARM
+Date: Tue, 18 Apr 2006 16:07:25 +0530
+Message-ID: <26d3a31c0604180337r76e326f9tb560c289e6e1ec6f@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -14,41 +14,16 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Previously, I got info about the 1510 camera driver that sensor_ov9640.c
-must be modified for our ov66xx sensor.
-
-But when I learnt ov9640 & ov6630 sensor specifications, they have more
-similarities. Also the sensor code seems to be alright for atleast
-*initialization
-& detection* of ov6630 sensor chip.
-
-When I tried with the camera driver, sensor initialization failed at
-the *i2c_transfer(
-)* function which returns -121 i.e., REMOTEIO error.
-
-I am not aware of the significance of the error as well as where the source
-of error lies ( with sensor code or sensor in camera itself).
-
-The second doubt I have is the slave address for I2C driver used in ov9640.=
-h
-
-If OMAP_24xx_VIRTIO defined , addr is 0x60 or it is 0x30.
-
-But in iBootHost given with OMAP board, Camera code uses 0x60 as the addr.
-
-*QUERIES:*
-*What's the exact address to be used? *
-*In what places the sensor code is to be modified ?*
-*I need to get MIDH and MIDL values from the sensor. Give the code changes
-for this purpose atleast.*
-
-Pl give a clear solution or sensor ov6630 code for OMAP camera  if
-available.
-
-Regards,
-Ravishangar.K
+Hi all,
+in OSK5912 board i am trying to access the McBSP port through ARM processor
+in which LINUX 2.6.11.3  is ported. i am  trying to access McBSP1 using the
+address 0xe1011806. but i am getting error as segmentation fault. why is it
+so. any one come accross the problem.is there any other way to acces the
+McBSP1 port there by AIC23  codec from the ARM processor.
+thanks in advance
+prafulla chandra
