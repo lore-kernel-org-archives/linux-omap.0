@@ -1,13 +1,12 @@
-From: "Menon, Nishanth" <x0nishan@ti.com>
-Subject: RE: segmentation fault while accessing mcbsp1 port from the ARM
-Date: Tue, 18 Apr 2006 09:54:50 -0500
-Message-ID: <520AB2AD990DC04082102F77CA172638032874FF@dlee03.ent.ti.com>
+From: lamikr <lamikr@cc.jyu.fi>
+Subject: rmmod omap-keymap crash for others?
+Date: Tue, 18 Apr 2006 22:50:03 +0300
+Message-ID: <444542EB.8030301@cc.jyu.fi>
+Reply-To: lamikr@cc.jyu.fi
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,45 +16,46 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: prafulla chandra vejendla <v.prafulla@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Two things come to mind:
-1. are u using virtual address to access mcbsp? If not, use the same
-(however, I remember sometime back at least, virt=3Dphy on omap1
-platforms, but mebbe an ioremap was missing?).
-2. mcbsp1 has a strange behavior of wanting dsp to be in idle state
-before being accessible on omap1 platforms (1610,1710 had it). Check the
-same out.
+Hi
 
-Regards,
-Nishanth Menon
+Are others still seeing same crash than what I get with 2.6.16 kernel
+when I rmmod omap-kaymap?
+For me this happens omap1510 based iPAQ h6300.
+I have checked that the irq tryed to free has earlier received ok by
+using platform_get_irq() method and before calling the rmmod, the driver
+seems to work just fine.
 
-> -----Original Message-----
-> From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-
-> open-source-bounces@linux.omap.com] On Behalf Of prafulla chandra
-vejendla
-> Sent: Tuesday, April 18, 2006 5:37 AM
-> To: linux-omap-open-source@linux.omap.com
-> Subject: segmentation fault while accessing mcbsp1 port from the ARM
->=20
-> Hi all,
-> in OSK5912 board i am trying to access the McBSP port through ARM
-> processor
-> in which LINUX 2.6.11.3  is ported. i am  trying to access McBSP1
-using
-> the
-> address 0xe1011806. but i am getting error as segmentation fault. why
-is
-> it
-> so. any one come accross the problem.is there any other way to acces
-the
-> McBSP1 port there by AIC23  codec from the ARM processor.
-> thanks in advance
-> prafulla chandra
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+rmmod omap-keymap
+omap-keypad: key 0-1 released
+Trying to free IRQ33
+[<c002bb60>] (dump_stack+0x0/0x14) from [<c002829c>] (free_irq+0xa8/0xc0)
+[<c00281f4>] (free_irq+0x0/0xc0) from [<bf0423ac>]
+(omap_kp_remove+0x48/0x70 [omap_keypad])
+ r4 = C1D4E420
+[<bf042364>] (omap_kp_remove+0x0/0x70 [omap_keypad]) from [<c018265c>]
+(platform_drv_remove+0x20/0x24)
+ r4 = C02F38E0
+[<c018263c>] (platform_drv_remove+0x0/0x24) from [<c0180b28>]
+(__device_release_driver+0x70/0x88)
+[<c0180ab8>] (__device_release_driver+0x0/0x88) from [<c0180c3c>]
+(driver_detach+0x9c/0x100)
+ r6 = BF042EAC  r5 = C02F38E0  r4 = C02F39A4
+[<c0180ba0>] (driver_detach+0x0/0x100) from [<c0180474>]
+(bus_remove_driver+0x8c/0xb0)
+ r6 = C1EFC000  r5 = C0305BE4  r4 = BF042EAC
+[<c01803e8>] (bus_remove_driver+0x0/0xb0) from [<c0180f78>]
+(driver_unregister+0x14/0x20)
+ r7 = 00000000  r6 = C1EFC000  r5 = BF042F80  r4 = BF042EAC
+[<c0180f64>] (driver_unregister+0x0/0x20) from [<c0182768>]
+(platform_driver_unregister+0x14/0x18)
+ r4 = C02F64CC
+[<c0182754>] (platform_driver_unregister+0x0/0x18) from [<bf042410>]
+(omap_kp_exit+0x14/0x1c [omap_keypad])
+[<bf0423fc>] (omap_kp_exit+0x0/0x1c [omap_keypad]) from [<c006c574>]
+(sys_delete_module+0x244/0x2a8)
+[<c006c330>] (sys_delete_module+0x0/0x2a8) from [<c0026
+
+Mika
