@@ -1,13 +1,13 @@
-From: "Sergey Vointsev" <vointsev@gmail.com>
-Subject: Re: linux kernel 2.6.13 for osk 5912
-Date: Thu, 20 Apr 2006 00:23:08 +0400
-Message-ID: <9713be7f0604191323g23974ec0r5ec68c0bed26313e@mail.gmail.com>
-References: <20060419195354.22756.qmail@web36103.mail.mud.yahoo.com>
+From: "Sivakumar  Subramanian" <shivakumar1000@rediffmail.com>
+Subject: Need Info on "Tiny Linux Loader"
+Date: 20 Apr 2006 05:19:42 -0000
+Message-ID: <20060420051942.15027.qmail@webmail8.rediffmail.com>
+Reply-To: Sivakumar Subramanian <shivakumar1000@rediffmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060419195354.22756.qmail@web36103.mail.mud.yahoo.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,13 +18,9 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Take standard Linux kernel from kernel.org and apply patch from
-http://www.muru.com/linux/omap/
-See OSK5912 Newbie Guide for details.
-
---
-Also available for instant messaging via Google Talk.
-Need invite to Gmail? I have one for you! Just ask.
+Hi,=0A=0AIs there any boot loader called "Tiny Linux Loader" for Montavista=
+ Linux. I need more info on that. Pleease suggest me any mailing lists if y=
+ou know. Thanking you.=0A=0ARegards,=0ASivakumar
