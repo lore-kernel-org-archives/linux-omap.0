@@ -1,11 +1,13 @@
-From: "dk_cheng79" <dk_cheng79@163.com>
+From: Kevin Hilman <khilman@mvista.com>
 Subject: Re: Kernel Boot Problem - OMAP 730 P2 - v2.6.9-rc1-omap1
-Date: Fri, 21 Apr 2006 17:42:15 +0800
-Message-ID: <003401c66528$2e05d830$4f0aa8c0@YFCHENGDEKAI>
-References: <OF7AB99364.2B971A7B-ON65257156.0050B604-65257156.0050C95E@flextronicssoftware.com>
+Date: Fri, 21 Apr 2006 09:32:29 -0700
+Message-ID: <4449091D.2030009@mvista.com>
+References: <OFB11CB3E7.FA5ED181-ON65257157.002A9E00-65257157.002C2D03@flextronicssoftware.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1627673940=="
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <OFB11CB3E7.FA5ED181-ON65257157.002A9E00-65257157.002C2D03@flextronicssoftware.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,84 +17,33 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com, Chetan Kapoor <chetan.kapoor@flextronicssoftware.com>
+To: Chetan Kapoor <chetan.kapoor@flextronicssoftware.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============1627673940==
-Content-Type: text/plain;
-	charset="ISO-8859-1"
-Content-Transfer-Encoding: base64
+Chetan Kapoor wrote:
+> Hello
+> 
+> Thanks for the reply.
+> 
+> Yes, we tried out downloading the zImage to the SDRAM & executing it using 
+> 'go' command. And, we did get the kernel boot traces on the terminal. 
 
+This is expeted.  u-boot doesn't pass bootargs when using 'go', only 'bootm'
 
-dV9ib290IDogY2hhbmdlIGJpX2FyY2hfbnVtYmVyIHRvIDQ5MSANCi0tLS0tIE9yaWdpbmFsIE1l
-c3NhZ2UgLS0tLS0gDQpGcm9tOiAiQ2hldGFuIEthcG9vciIgPGNoZXRhbi5rYXBvb3JAZmxleHRy
-b25pY3Nzb2Z0d2FyZS5jb20+DQpUbzogPGxpbnV4LW9tYXAtb3Blbi1zb3VyY2VAbGludXgub21h
-cC5jb20+DQpTZW50OiBUaHVyc2RheSwgQXByaWwgMjAsIDIwMDYgMTA6NDIgUE0NClN1YmplY3Q6
-IEtlcm5lbCBCb290IFByb2JsZW0gLSBPTUFQIDczMCBQMiAtIHYyLjYuOS1yYzEtb21hcDENCg0K
-DQo+IA0KPiBIZWxsbw0KPiANCj4gSSBhbSB0cnlpbmcgdG8gYm9vdCBrZXJuZWwgdmVyc2lvbiAy
-LjYuOS1yYzEtb21hcDEgb24gbXkgT01BUCBQMiA3MzAgDQo+IHRhcmdldCBib2FyZCwgYnV0IGFt
-IGZhY2luZyBwcm9ibGVtcyBpbiB0aGUga2VybmVsIGJvb3QgcHJvY2Vzcy4gSSBhbSANCj4gdXNp
-bmcgdS1ib290IHZlcnNpb24gMS4wLjEsIHdoaWNoIGhhcyBiZWVuIGJ1cm50IHRvIHRoZSB0YXJn
-ZXQncyBOT1IgDQo+IGZsYXNoLg0KPiANCj4gdS1ib290IDEuMC4xIGlzIHVwIGFuZCBydW5uaW5n
-IG9uIHRoZSB0YXJnZXQsIGFuZCBJIHVzZSB0aGUgY29tbWFuZCAnbG9hZGIgDQo+IDB4KGFkZHIp
-JyBhbG9uZyB3aXRoIHRyaWdnZXJpbmcgYSBzZW5kIGZpbGUgKHByb3RvY29sLT5rZXJtaXQpIG9u
-IHRoZSANCj4gaHlwZXJ0ZXJtaW5hbCB0byBkb3dubG9hZCB0aGUga2VybmVsIGltYWdlICd1SW1h
-Z2UnIG9uIHRvIHRoZSB0YXJnZXQncyANCj4gUkFNLiAndUltYWdlJyBpcyBjcmVhdGVkIHVzaW5n
-IGEgdXRpbGl0eSAnbWtpbWFnZScgd2hpY2ggaXMgY3JlYXRlZCBieSANCj4gdS1ib290IGJ1aWxk
-IHByb2Nlc3MuIEkgc3BlY2lmaWVkIHRoZSBsb2FkIGFkZHJlc3MgJiBlbnRyeSBwb2ludCBhcyAN
-Cj4gMHgxMDAwODAwMCB3aGlsZSBjcmVhdGluZyB0aGUgdUltYWdlLg0KPiANCj4gSSBhbHNvIG1h
-ZGUgc3VyZSB0aGF0IEkgcHJvcGVybHkgc3BlY2lmeSB0aGUgZW52aXJvbm1lbnQgdmFyaWFibGVz
-IGZvciANCj4gdS1ib290LCB0aGUgbW9zdCBpbXBvcnRhbnQgb25lIGJlaW5nICdib290YXJncycu
-IFRoZSBmb2xsb3dpbmcgY29tbWFuZCB3YXMgDQo+IGdpdmVuIGF0IHRoZSB1LWJvb3QgcHJvbXB0
-IHRvIHNwZWNpZnkgJ2Jvb3RhcmdzJy4NCj4gDQo+IE9NQVA3MzAgUDIgIyBzZXRlbnYgYm9vdGFy
-Z3MgbWVtPTMyTSBjb25zb2xlPXR0eVMwLDExNTIwMG44IHJvb3Q9L2Rldi9yYW0wIA0KPiBydyBp
-bml0cmQ9MHgxMDQwMDAwMCwxTSBkZXZmcz1tb3VudA0KPiANCj4gVGhlIHJhbWRpc2sgaW1hZ2Ug
-d2FzIHRoZW4gZG93bmxvYWRlZCB0byB0aGUgdGFyZ2V0J3MgUkFNIG92ZXIgdGhlIHNlcmlhbCAN
-Cj4gbGluZSBhdCB0aGUgJ2luaXRyZCcgYWRkcmVzcyAtIDB4MTA0MDAwMDAuIEhhdmluZyBkb25l
-IGV2ZXJ5dGhpbmcgYnkgdGhlIA0KPiBib29rLCBJIG5vdyBpc3N1ZSB0aGUgZm9sbG93aW5nIGNv
-bW1hbmQgdG8gYm9vdCB0aGUga2VybmVsOg0KPiANCj4gT01BUDczMCBQMiAjIGJvb3RtIDB4MTAw
-MDgwMDAgMHgxMDQwMDAwMA0KPiANCj4gVGhlIHRyYWNlcyByZWNlaXZlZCBvbiB0aGUgaHlwZXJ0
-ZXJtaW5hbCBhcmU6DQo+IA0KPiANCj4gIyMgQm9vdGluZyBpbWFnZSBhdCAxMDAwODAwMCAuLi4N
-Cj4gICAgSW1hZ2UgTmFtZTogICBMaW51eC0yLjYuOS1yYzEtb21hcDENCj4gICAgSW1hZ2UgVHlw
-ZTogICBBUk0gTGludXggS2VybmVsIEltYWdlICh1bmNvbXByZXNzZWQpDQo+ICAgIERhdGEgU2l6
-ZTogICAgODY0NjAwIEJ5dGVzID0gODQ0LjMga0INCj4gICAgTG9hZCBBZGRyZXNzOiAxMDAwODAw
-MA0KPiAgICBFbnRyeSBQb2ludDogIDEwMDA4MDAwDQo+ICAgIFZlcmlmeWluZyBDaGVja3N1bSAu
-Li4gT0sNCj4gICAgWElQIEtlcm5lbCBJbWFnZSAuLi4gT0sNCj4gDQo+IFN0YXJ0aW5nIGtlcm5l
-bCAuLi4gDQo+IA0KPiAgICAgICAgICAgICAgICAgLS0tLS0+IGFuZCB0aGUgZXhlY3V0aW9uIHN0
-dWNrcyBiZXlvbmQgdGhpcyBwb2ludC4gVGhlIA0KPiBzeXN0ZW0gZnJlZXplcyByaWdodCBhZnRl
-ciB1LWJvb3QgZmluaXNoZXMgdW5jb21wcmVzc2luZyB0aGUgaW1hZ2UgZm9yIA0KPiBzdGFydHVw
-LiBOb3RoaW5nIGlzIG91dHB1dCBhZnRlciB0aGF0ICYgdGhlcmUgYXJlIG5vIHJlc3BvbnNlcyB0
-byBhbnkgDQo+IGlucHV0IGZyb20gdGhlIHRlcm1pbmFsLg0KPiANCj4gSSBhbSBub3QgdmVyeSBz
-dXJlIGlmIHRoZXJlIGlzIGFueSBtaXNzaW5nIHN0ZXAgd2hpY2ggaXMgbmVlZGVkIHRvIG1ha2Ug
-DQo+IHRoZSBrZXJuZWwgYm9vdCBvciBtYXliZSBJIGFtIGdpdmluZyB0aGUgbG9hZC1hZGRyZXNz
-L2VudHJ5LXBvaW50IHdyb25nbHkgDQo+IHdoaWxlIGJ1aWxkaW5nIHRoZSBrZXJuZWwgaW1hZ2Vz
-LiANCj4gDQo+IEFsc28sIEkgdHJpZWQgY2hhbmdpbmcgdGhlIGZpbGVkIHRleHRhZGRyLXkgaW4g
-dGhlIGtlcm5lbCBtYWtlZmlsZSB3aGlsZSANCj4gYnVpbGRpbmcgdGhlIGtlcm5lbCB6SW1hZ2Uu
-IERvZXMgYW55IG9uZSBoYXZlIGFueSBpZGVhIHRoYXQgd2hhdCBkb2VzIHRoaXMgDQo+IGFkZHJl
-c3Mgc2lnbmlmeSAmIGRvZXMgaXQgZWZmZWN0IHRoZSBrZXJuZWwgaW1hZ2VzIGNyZWF0ZWQgYnkg
-dGhlIGJ1aWxkIA0KPiBwcm9jZXNzLiBUaGUgb3JpZ2luYWwgZW50cnkgYWdhaW5zdCB0aGUgdGV4
-dGFkZHIteSBmaWVsZCBpbiB0aGUga2VybmVsIA0KPiBNYWtlZmlsZSB3YXMgMHhDMDAwODAwMCB3
-aGljaCB3YXMgY2hhbmdlZCB0byAweDEwMDA4MDAwIGJ5IG1lIGFzIHRoZSANCj4gZm9ybWVyIGFk
-ZHJlc3MgbG9va2VkIGEgYml0IG9ic2N1cmUgJiBkaWQgbm90IHJlbGF0ZSB0byB0aGUgdGFyZ2V0
-J3MgDQo+IG1lbW9yeSBtYXAuDQo+IA0KPiBQbGVhc2UgaGVscCBtZSBpZiBhbnlvbmUgaGFzIGZh
-Y2VkIHRoZSBzaW1pbGFyIHByb2JsZW0gYmVmb3JlIG9yIGlmIGFueW9uZSANCj4gY2FuIG1ha2Ug
-b3V0IHRoZSBtaXNzaW5nIGxpbmsgaW4gdGhlIHN0ZXBzIHdoaWNoIEkgYW0gZG9pbmcgaW4gb3Jk
-ZXIgdG8gDQo+IGJvb3QgdGhlIGtlcm5lbCBpbWFnZS4NCj4gDQo+IFlvdXIgcmVwbHkgJiBzdWdn
-ZXN0aW9uIHdpbGwgYmUgb2YgZ3JlYXQgaGVscC4NCj4gDQo+IENoZXRhbg0KPiANCj4gKioqKioq
-KioqKioqKioqKioqKioqKiogIEZTUy1VbmNsYXNzaWZpZWQgICAqKioqKioqKioqKioqKioqKioq
-KioqKg0KPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw0K
-PiBMaW51eC1vbWFwLW9wZW4tc291cmNlIG1haWxpbmcgbGlzdA0KPiBMaW51eC1vbWFwLW9wZW4t
-c291cmNlQGxpbnV4Lm9tYXAuY29tDQo+IGh0dHA6Ly9saW51eC5vbWFwLmNvbS9tYWlsbWFuL2xp
-c3RpbmZvL2xpbnV4LW9tYXAtb3Blbi1zb3VyY2UNCj4gDQo=
+> the uImage still doesn't seem to execute. uImage was created using the 
+> mkimage utility. The command issued (on the development host) to create 
+> uImage is:
+> 
+> mkimage -n 'Linux Kernel Image 2.6.9-rc1-omap1' -A arm -O linux -T kernel 
+> -C none -a 0x10008000 -e 0x10008000 -d zImage uImage
 
+You can also use 'make uImage' in the kernel source.  I've done a 'make uImage' 
+with the latest git tree.  You can also grab the resultant uImage from 
+ftp://hilman.org/omap730/uImage-2.6.16-rc5-omap1 to test on your board.
 
+You might try updating your u-boot.  The version on my board (rev4) is 1.1.4. 
+There should be a newer u-boot available on linux.omap.com (which is currently 
+down.)
 
-
---===============1627673940==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============1627673940==--
+Kevin
