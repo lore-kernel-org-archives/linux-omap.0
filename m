@@ -1,8 +1,7 @@
-From: "RAVI SHANGAR" <ravishangar@gmail.com>
-Subject: Delay in loading Qtopia or Qt Applications from jffs ported to OMAP
-	1510
-Date: Wed, 26 Apr 2006 18:59:33 +0530
-Message-ID: <ade4abe50604260629p24df19aco3b53db16127c7674@mail.gmail.com>
+From: "Ola Helm" <ola.hel@gmail.com>
+Subject: H4-2420 Serial port handling
+Date: Wed, 26 Apr 2006 17:04:13 +0300
+Message-ID: <3d3153f60604260704t4593697eia9a7fa3d6415e3c0@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
@@ -20,18 +19,14 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-We made jffs2 along with Qtopia and Qt applications and ported it to OMAP
-1510.
+Does anybody has got an ideas how do the mapping / handling of serial ports
+with 2420 goes when compared the Gitversion and the one in omap/pub? The
+Gittree version seems to handle all ports similar way (all are ST16654
+ports) but omap/pub kernel treats the ttyS0 different way than others (ttyS=
+0
+is ST16654, others ST16650V2). The main cause of this seems to be in static
+int size_fifo. TtyS0 gets value 64 from there (basically count value is 64)=
+,
+others get 0.
 
-When we try to execute the applications from NFS, there is no delay.
-
-But, when executing from the jffs2 filesystem, we get more than 10 min dela=
-y
-in starting the application fully.
-
-We enabled in kernel menuconfig with I-cache D-cache and Clock as 168 MHz.
-
-Please give a solution to minimize delay by any means.
-
-Regards,
-Ravishangar.K
+/O
