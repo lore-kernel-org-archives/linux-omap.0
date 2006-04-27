@@ -1,13 +1,12 @@
-From: "Johnson, Steve-OMAP" <stevej@ti.com>
-Subject: ARM Ltd's Linux Wiki page
-Date: Thu, 27 Apr 2006 14:14:55 -0500
-Message-ID: <940F0204B50E3E4886CC4E7D562F6D3401D44FF5@dlee04.ent.ti.com>
+From: "Jason Huang" <jason.huang@wescongroup.com>
+Subject: Anybody has MMC on Innovator 1510 working
+Date: Thu, 27 Apr 2006 16:29:43 -0700
+Message-ID: <00a401c66a52$76969380$6cfea8c0@wescongroup.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,20 +16,20 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Philippe Robin at ARM has created a Wiki page for ARM Linux developers.
-http://www.linux-arm.com/
+Dear list members:
 
-=20
+Is there anybody has MMC on Innovator working? Which version of Linux?
 
-Please visit the site and contribute if you have some time.
+I tried 2.6.11-omap1, 2.6.16-omap1, 2.6.16-omap2 as well as current git
+tree.
+All I got: MMC1: Command timeout, CMD0 when I did 'modprobe omap'.
 
-=20
+Any help is much appreciated.
 
-Regards,
-
-Steve
-
-=20
+Best Regards.
+=A0
+Jason Huang
+1-408-727-8818
