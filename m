@@ -1,13 +1,14 @@
 From: tony@atomide.com
-Subject: Re: [PATCH 1/3] Add backlight support for Amstrad Delta
-Date: Fri, 28 Apr 2006 03:26:38 -0700
-Message-ID: <20060428102637.GH31797@atomide.com>
-References: <20060402163614.GC26949@earth.li>
+Subject: Re: [PATCH] Convert OSS aic23 to mutex
+Date: Fri, 28 Apr 2006 03:29:18 -0700
+Message-ID: <20060428102917.GI31797@atomide.com>
+References: <443407FB.2060304@gmail.com> <20060405190013.GA5532@nokia.com>
+	<4435296C.5040304@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20060402163614.GC26949@earth.li>
+In-Reply-To: <4435296C.5040304@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,23 +16,22 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Jonathan McDowell <noodles@earth.li>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Dirk Behme <dirk.behme@googlemail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Jonathan McDowell <noodles@earth.li> [060402 09:38]:
-> This patch adds support for the Amstrad Delta LCD backlight. It's the
-> first patch in a series of 3 enabling full LCD support for the Delta and
-> is the least intrusive, allowing control of the backlight through the
-> existing backlight class infrastructure.
+* Dirk Behme <dirk.behme@googlemail.com> [060406 10:32]:
+> Paul Mundt wrote:
+> >Are you sure this doesn't need an #include <linux/mutex.h>? All of the
+> >other conversions so far have..
+> 
+> It compiles without extra linux/mutex.h because
+> linux/sound.h includes linux/fs.h which includes
+> linux/mutex.h. But you are right, include linux/mutex.h is
+> cleaner. Please find updated patch in attachment.
 
-Looks good. Can you please separate arch/arm/mach-omap1/board-ams-delta.c
-changes and other core omap changes into separate patch in this series?
-
-See new http://www.muru.com/linux/omap/README_OMAP_PATCHES
-
-Thanks,
+Thanks, pushing today.
 
 Tony
