@@ -1,13 +1,11 @@
 From: tony@atomide.com
-Subject: Re: fsample support patch (core omap only)
-Date: Fri, 28 Apr 2006 01:15:46 -0700
-Message-ID: <20060428081545.GE31797@atomide.com>
-References: <20060413170611.GA5510@localhost.localdomain>
+Subject: Checklist for submitting omap patches
+Date: Fri, 28 Apr 2006 01:48:03 -0700
+Message-ID: <20060428084803.GF31797@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20060413170611.GA5510@localhost.localdomain>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,32 +15,52 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Brian Swetland <swetland@google.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Brian Swetland <swetland@google.com> [060413 10:07]:
-> 
-> Here's a revised version of my original patch, using cpu_is_*()
-> and only including the core omap files.
+Hi all,
 
-Looks good & sorry for delay in replying. Just few more nitpicking
-comments to make the patch usable for sending upstream as-is:
+Following a short checklist for submitting omap patches. I've
+also posted it to:
 
-- Please repost with subject: [PATCH] ARM: OMAP: Add core fsample support 
+http://www.muru.com/linux/omap/README_OMAP_PATCHES
 
-- Then body that says something like "This patch adds core fsample
-  support", and add Signed-off-by line
+Does anybody have comments or something that should be added?
 
-- Please separate arch/arm/tools/mach-types into yet another separate
-  patch as we don't need to send that chunk upstream
-
-And just to recap, we want to have core omap support in sync with
-mainline and want to produce patches that work against the mainline
-tree without rewriting :)
- 
-> Device patches to follow.
-
-Great!
+Regards,
 
 Tony
+
+
+Submitting OMAP patches version 20060428
+
+As linux-omap tree is almost in sync with the mainline kernel, all core
+omap patches need to in suitable format for sending upstream.
+
+The reason for this is to produce a clean revision history, make
+maintenance easier, and give proper credit to the patch author.
+
+The core omap patches include anything that touches the following
+directories:
+
+arch/arm/plat-omap
+arch/arm/mach-omap1
+arch/arm/mach-omap2
+include/asm-arm/arch-omap
+
+Anything else is considered non-core omap code, and must be in separate
+patches.
+
+When submitting a patch, please check the following:
+
+- Patch follows linux/Documentation/CodingStyle
+
+- Patch follows linux/Documentation/SubmittingPatches
+
+- Patch subject must be [PATCH] ARM: OMAP: Subject of the patch
+
+- Patch body must contain short description of the patch
+
+- Patch body must contain proper Signed-off-by: line
+
+- Non-core patches are in separate patches
