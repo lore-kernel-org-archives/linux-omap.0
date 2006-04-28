@@ -1,14 +1,10 @@
-From: "Jason Huang" <jason.huang@wescongroup.com>
-Subject: RE: Anybody has MMC on Innovator 1510 working
-Date: Fri, 28 Apr 2006 08:10:50 -0700
-Message-ID: <000f01c66ad5$f1b07710$786fa8c0@smtp2>
-References: <20060428073402.GC31797@atomide.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: [PATCH] ARM: OMAP: Fix tlv320aic23.c
+Date: Fri, 28 Apr 2006 17:44:14 +0200
+Message-ID: <4452384E.7080409@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <20060428073402.GC31797@atomide.com>
+Content-Type: multipart/mixed; boundary="------------050803070906060707030808"
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,41 +12,59 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+This is a multi-part message in MIME format.
+--------------050803070906060707030808
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-When or which version was that the MMC worked on Innovator 1510?
-I need to pull the working version from the git tree.
 
-Jason
+ARM: OMAP: Fix error from GCC 4.1.0:
 
------Original Message-----
-From: tony@atomide.com [mailto:tony@atomide.com] 
-Sent: Friday, April 28, 2006 12:34 AM
-To: Jason Huang
-Cc: linux-omap-open-source@linux.omap.com
-Subject: Re: Anybody has MMC on Innovator 1510 working
+drivers/i2c/chips/tlv320aic23.c:157: error: expected '='
+before '{' token
+drivers/i2c/chips/tlv320aic23.c:161: error: expected '}'
+before '.' token
 
-Hi,
+Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
 
-* Jason Huang <jason.huang@wescongroup.com> [060427 16:30]:
-> Dear list members:
-> 
-> Is there anybody has MMC on Innovator working? Which version of Linux?
-> 
-> I tried 2.6.11-omap1, 2.6.16-omap1, 2.6.16-omap2 as well as current git
-> tree.
-> All I got: MMC1: Command timeout, CMD0 when I did 'modprobe omap'.
-> 
-> Any help is much appreciated.
+-- cut, comment not to go into git below --
 
-It worked on Innovator 1510 last time I tried. In the current git tree
-it is broken as we're in process of switching to use the mainline MMC code.
+Seems that the first part of
 
-Regards,
+http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commitdiff;h=51c0cddf5027bd4e5c1903845047d7d7e266c79b
 
-Tony
+was lost somewhere??
+
+--------------050803070906060707030808
+Content-Type: text/plain;
+ name="tlv320aic23_gcc_410_patch.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="tlv320aic23_gcc_410_patch.txt"
+
+--- ./drivers/i2c/chips/tlv320aic23.c_orig	2006-04-28 17:29:49.000000000 +0200
++++ ./drivers/i2c/chips/tlv320aic23.c	2006-04-28 17:30:55.000000000 +0200
+@@ -154,7 +154,7 @@ static int aic23_attach_adapter(struct i
+ }
+ 
+ static struct i2c_driver aic23_driver = {
+-	.driver {
++	.driver = {
+ 		.name	= "OMAP+TLV320AIC23 codec",
+ 		/*.flags	= I2C_DF_NOTIFY,*/
+ 	},
+
+
+--------------050803070906060707030808
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--------------050803070906060707030808--
