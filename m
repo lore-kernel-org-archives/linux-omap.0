@@ -1,12 +1,14 @@
-From: lamikr <lamikr@cc.jyu.fi>
-Subject: [PATCH 0/3] aic23 sound driver fixes
-Date: Tue, 02 May 2006 23:38:53 +0300
-Message-ID: <4457C35D.4020700@cc.jyu.fi>
-Reply-To: lamikr@cc.jyu.fi
+From: Kevin Hilman <khilman@mvista.com>
+Subject: Re: omap mmc build errors
+Date: Tue, 02 May 2006 14:24:50 -0700
+Message-ID: <4457CE22.8050702@mvista.com>
+References: <443BAD8C.4090005@indt.org.br>	<20060413151756.47512.qmail@web32901.mail.mud.yahoo.com>
+	<20060502092025.GC24728@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20060502092025.GC24728@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,15 +18,27 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: OMAP-Linux <linux-omap-open-source@linux.omap.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Following patch set should fix the broken method references to from Alsa
-and OSS drivers to tlv320aic23 i2c drivers that has been reported.
-In addition the 3:rd patch contains the platform driver code that the
-innovator requires if it wants to use alsa driver.
+Tony Lindgren wrote:
+> * Komal Shah <komal_shah802003@yahoo.com> [060413 08:18]:
+>> --- Carlos Aguiar <carlos.aguiar@indt.org.br> wrote:
+>>
+>>> Hi Komal and folks,
+>>>
+>>> You have to apply a patch that Tony sent to the list 7 days ago. This
+>>>
+>>> patch corrects the bugs mentioned above. Attached to this mail follow
+>>>
+>> You still need the attached patch on top of the Tony's patch to build
+>> it successfully.
+> 
+> I've just pushed that patch + fixed trying to ioremap a virtual address.
+> Seems to work now, can you test?
 
-I do not own myself the innovator or aic23 drivers so it would be nice
-if someone else could test these.
+Haven't had time to dig, but this builds but doesn't boot on 1710/H3.  Simply 
+disabling CONFIG_MMC_OMAP makes it boot.
 
-Mika
+Kevin
