@@ -1,69 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Thomas Gleixner <tglx@linutronix.de>
 Subject: Re: [PATCH 00/32] Convert ARM to generic irq subsystem
-Date: Tue, 2 May 2006 04:59:15 -0700
-Message-ID: <20060502115914.GF24728@atomide.com>
+Date: Tue, 02 May 2006 14:33:10 +0200
+Message-ID: <1146573190.1322.678.camel@localhost.localdomain>
 References: <20060407095850.690110000@localhost.localdomain>
 	<20060426230543.GA28908@flint.arm.linux.org.uk>
 	<44529239.2060409@mvista.com>
 	<1146263927.1322.640.camel@localhost.localdomain>
 	<4452A282.4050909@mvista.com>
 	<1146305308.1322.657.camel@localhost.localdomain>
+	<20060502115914.GF24728@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <1146305308.1322.657.camel@localhost.localdomain>
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
+In-Reply-To: <20060502115914.GF24728@atomide.com>
+List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://lists.arm.linux.org.uk/pipermail/linux-arm-kernel>
+List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
+List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
+List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap-open-source@linux.omap.com, LAK <linux-arm-kernel@lists.arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-* Thomas Gleixner <tglx@linutronix.de> [060429 03:08]:
-> On Fri, 2006-04-28 at 16:17 -0700, Kevin Hilman wrote:
-> > ok, I tried with -rc3 and I still dont see any GPIO interrupts.
-> > 
-> > After looking closer at the IRQ_TYPE_* flags, I noticed that they didn't match 
-> > the SA_TRIGGER_* flags for _FALLING or _RISING.  The following patch swaps the 
-> > two and make OMAP happy.  It's now booting, and things seem sane.  Will do some 
-> > more intensive testing
-> > 
-> > Kevin
+On Tue, 2006-05-02 at 04:59 -0700, Tony Lindgren wrote:
+> > Applied and released -rc3-armirq2.
 > 
-> Sigh. I knew I'd screw that one up.
-> 
-> Applied and released -rc3-armirq2.
+> Patches seem to work for me too on various omap boards. Also dyntick
+> works.
 
-Patches seem to work for me too on various omap boards. Also dyntick
-works.
+Thanks for testing.
 
-Should this part in kernel/irq/handle.c be CONFIG_ARM for now?
+> Should this part in kernel/irq/handle.c be CONFIG_ARM for now?
 
-@@ -84,6 +229,15 @@ fastcall int handle_IRQ_event(unsigned i
- 	if (!(action->flags & SA_INTERRUPT))
- 		local_irq_enable();
- 
-+#if defined(CONFIG_NO_IDLE_HZ)
-+	if (!(action->flags & SA_TIMER) && system_timer->dyn_tick !=
-NULL) {
-+		write_seqlock(&xtime_lock);
-+		if (system_timer->dyn_tick->state & DYN_TICK_ENABLED)
-+			system_timer->dyn_tick->handler(irq, 0, regs);
-+		write_sequnlock(&xtime_lock);
-+	}
-+#endif
-+
- 	do {
- 		ret = action->handler(irq, action->dev_id, regs);
- 		if (ret == IRQ_HANDLED)
+Yes, until we find a unified solution for dynamic ticks.
 
-Regards,
+	tglx
 
-Tony
+
+
+
+-------------------------------------------------------------------
+List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
+FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
+Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
