@@ -1,7 +1,8 @@
 From: lamikr <lamikr@cc.jyu.fi>
-Subject: [PATCH 1/3] aic23 omap alsa driver method reference fix.
-Date: Tue, 02 May 2006 23:39:17 +0300
-Message-ID: <4457C375.80508@cc.jyu.fi>
+Subject: [PATCH 3/3] board-innovator platform driver fix for the alsa sound
+ driver.
+Date: Tue, 02 May 2006 23:39:54 +0300
+Message-ID: <4457C39A.6010106@cc.jyu.fi>
 Reply-To: lamikr@cc.jyu.fi
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -19,53 +20,84 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Fix the undefined reference from aic23 omap alsa driver to in
-tlv320aic23.c driver's aic23_write_value method . In addition force the
-tlv320aic23 i2c driver and it dependencies always to be selected when
-the aic23 omap alsa sound driver is selected.
+Add Alsa platform driver definitions for the OMAP1510/1610 based
+board-innovator.
 
 Signed-off-by: Mika Laitio <lamikr@cc.jyu.fi>
 
 
 ---
 
- sound/arm/Kconfig                |    2 ++
- sound/arm/omap/omap-alsa-aic23.c |    4 ++--
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap1/board-innovator.c |   39
++++++++++++++++++++++++++++++++++
+ 1 files changed, 39 insertions(+), 0 deletions(-)
 
-3f247c941cb140eb6e530cb62bf93ab61bfd4136
-diff --git a/sound/arm/Kconfig b/sound/arm/Kconfig
-index cccdf23..742bf8a 100644
---- a/sound/arm/Kconfig
-+++ b/sound/arm/Kconfig
-@@ -37,6 +37,8 @@ config SND_OMAP_AIC23
-     tristate "OMAP AIC23 alsa driver (osk5912)"
-     depends on ARCH_OMAP && SND
-     select SND_PCM
-+    select I2C
-+    select I2C_OMAP
-     select SENSORS_TLV320AIC23
-     help
-       Say Y here if you have a OSK platform board
-diff --git a/sound/arm/omap/omap-alsa-aic23.c
-b/sound/arm/omap/omap-alsa-aic23.c
-index f490616..18b7395 100644
---- a/sound/arm/omap/omap-alsa-aic23.c
-+++ b/sound/arm/omap/omap-alsa-aic23.c
-@@ -113,12 +113,12 @@ static snd_pcm_hardware_t aic23_snd_omap
-  * codec dependent code.
-  */
+632613814a945379aec5ed90db8e1d16bbae9fff
+diff --git a/arch/arm/mach-omap1/board-innovator.c
+b/arch/arm/mach-omap1/board-innovator.c
+index e90c137..43260aa 100644
+--- a/arch/arm/mach-omap1/board-innovator.c
++++ b/arch/arm/mach-omap1/board-innovator.c
+@@ -37,6 +37,8 @@
+ #include <asm/arch/usb.h>
+ #include <asm/arch/keypad.h>
+ #include <asm/arch/common.h>
++#include <asm/arch/mcbsp.h>
++#include <asm/arch/omap-alsa.h>
  
--extern int tlv320aic23_write_value(u8 reg, u16 value);
-+extern int aic23_write_value(u8 reg, u16 value);
+ static int innovator_keymap[] = {
+     KEY(0, 0, KEY_F1),
+@@ -112,6 +114,42 @@ static struct platform_device innovator_
+     .resource    = &innovator_flash_resource,
+ };
  
- /* TLV320AIC23 is a write only device */
- void audio_aic23_write(u8 address, u16 data)
- {
--    tlv320aic23_write_value(address, data);
-+    aic23_write_value(address, data);
- }
- EXPORT_SYMBOL_GPL(audio_aic23_write);
- 
++#define DEFAULT_BITPERSAMPLE 16
++
++static struct omap_mcbsp_reg_cfg mcbsp_regs = {
++    .spcr2 = FREE | FRST | GRST | XRST | XINTM(3),
++    .spcr1 = RINTM(3) | RRST,
++    .rcr2 = RPHASE | RFRLEN2(OMAP_MCBSP_WORD_8) |
++        RWDLEN2(OMAP_MCBSP_WORD_16) | RDATDLY(0),
++    .rcr1 = RFRLEN1(OMAP_MCBSP_WORD_8) | RWDLEN1(OMAP_MCBSP_WORD_16),
++    .xcr2 = XPHASE | XFRLEN2(OMAP_MCBSP_WORD_8) |
++        XWDLEN2(OMAP_MCBSP_WORD_16) | XDATDLY(0) | XFIG,
++    .xcr1 = XFRLEN1(OMAP_MCBSP_WORD_8) | XWDLEN1(OMAP_MCBSP_WORD_16),
++    .srgr1 = FWID(DEFAULT_BITPERSAMPLE - 1),
++    .srgr2 = GSYNC | CLKSP | FSGM | FPER(DEFAULT_BITPERSAMPLE * 2 - 1),
++    /*.pcr0 = FSXM | FSRM | CLKXM | CLKRM | CLKXP | CLKRP,*/ /* mcbsp:
+master */
++    .pcr0 = CLKXP | CLKRP,  /* mcbsp: slave */
++};
++
++static struct omap_alsa_codec_config alsa_config = {
++    .name            = "OMAP Innovator AIC23",
++    .mcbsp_regs_alsa    = &mcbsp_regs,
++    .codec_configure_dev    = NULL, // aic23_configure,
++    .codec_set_samplerate    = NULL, // aic23_set_samplerate,
++    .codec_clock_setup    = NULL, // aic23_clock_setup,
++    .codec_clock_on        = NULL, // aic23_clock_on,
++    .codec_clock_off    = NULL, // aic23_clock_off,
++    .get_default_samplerate    = NULL, // aic23_get_default_samplerate,
++};
++
++static struct platform_device innovator_mcbsp1_device = {
++    .name    = "omap_alsa_mcbsp",
++     .id    = 1,
++    .dev = {
++        .platform_data    = &alsa_config,
++    },
++};
++
+ static struct resource innovator_kp_resources[] = {
+     [0] = {
+         .start    = INT_KEYBOARD,
+@@ -177,6 +215,7 @@ static struct platform_device innovator1
+ static struct platform_device *innovator1510_devices[] __initdata = {
+     &innovator_flash_device,
+     &innovator1510_smc91x_device,
++    &innovator_mcbsp1_device,
+     &innovator_kp_device,
+     &innovator1510_lcd_device,
+ };
 -- 
 1.2.2
