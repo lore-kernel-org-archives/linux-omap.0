@@ -1,10 +1,13 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP: Fix aic23 audio drivers
-Date: Wed, 03 May 2006 20:41:59 +0200
-Message-ID: <4458F977.2060708@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP: Fix tlv320aic23.c
+Date: Wed, 03 May 2006 20:41:42 +0200
+Message-ID: <4458F966.40504@gmail.com>
+References: <4452384E.7080409@gmail.com> <20060503125606.GG30376@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030408000409020607070908"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20060503125606.GG30376@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,69 +17,51 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030408000409020607070908
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Tony Lindgren wrote:
+> * Dirk Behme <dirk.behme@googlemail.com> [060428 08:45]:
+>>Seems that the first part of
+>>
+>>http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commitdiff;h=51c0cddf5027bd4e5c1903845047d7d7e266c79b
+>>
+>>was lost somewhere??
+...
+> Thanks, pushed your patch.
+> 
+> I think the earlier patch chunk has gotten auto-hosed by git merge in
+> Juha's recent merge:
+> 
+> http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=330c1eb9a689973326cdece277d0b4b409833bb9
+> 
+> Mika & Dirk, can you guys check if some of the other audio files got
+> hosed or some old audio files got added back?
 
+Mmmh, seems that something is going on here I don't
+understand completely ;(
 
-ARM: OMAP: Fix OMAP aic23 audio drivers because function
-name tlv320aic23_write_value() was switched to
-aic23_write_value().
+While building modules with most recent git I get two
+warnings (or better errors, modules are not build):
 
-Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
+WARNING: "tlv320aic23_write_value"
+[sound/arm/omap/snd-omap-alsa-aic23.ko] undefined!
+WARNING: "usb_disconnect" [drivers/usb/host/ohci-hcd.ko]
+undefined!
 
---------------030408000409020607070908
-Content-Type: text/plain;
- name="tlv320_aic23_name_patch.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="tlv320_aic23_name_patch.txt"
+Not sure if USB is OMAP related, but aic is. Looking at
 
---- ./sound/arm/omap/omap-alsa-aic23.c_orig	2006-05-03 20:12:02.000000000 +0200
-+++ ./sound/arm/omap/omap-alsa-aic23.c	2006-05-03 20:30:01.000000000 +0200
-@@ -113,12 +113,12 @@ static snd_pcm_hardware_t aic23_snd_omap
-  * codec dependent code.
-  */
- 
--extern int tlv320aic23_write_value(u8 reg, u16 value);
-+extern int aic23_write_value(u8 reg, u16 value);
- 
- /* TLV320AIC23 is a write only device */
- void audio_aic23_write(u8 address, u16 data)
- {
--	tlv320aic23_write_value(address, data);
-+	aic23_write_value(address, data);
- }
- EXPORT_SYMBOL_GPL(audio_aic23_write);
- 
---- ./sound/oss/omap-audio-aic23.c_orig	2006-05-03 20:29:49.000000000 +0200
-+++ ./sound/oss/omap-audio-aic23.c	2006-05-03 20:30:40.000000000 +0200
-@@ -250,12 +250,12 @@ static audio_state_t aic23_state = {
- /* This will be defined in the audio.h */
- static struct file_operations *omap_audio_fops;
- 
--extern int tlv320aic23_write_value(u8 reg, u16 value);
-+extern int aic23_write_value(u8 reg, u16 value);
- 
- /* TLV320AIC23 is a write only device */
- static __inline__ void audio_aic23_write(u8 address, u16 data)
- {
--        tlv320aic23_write_value(address, data);
-+        aic23_write_value(address, data);
- }
- 
- static int aic23_update(int flag, int val)
+http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=blobdiff;h=fac8d6b7518032f54869cc309328e812e16892be;hp=7fdd1d3608b2c41141901acff4b79df27b0f53df;hb=51c0cddf5027bd4e5c1903845047d7d7e266c79b;f=drivers/i2c/chips/tlv320aic23.c
 
+shows that from function names and variables 'tlv320' was
+removed. However, commitdiff only shows the small (correct)
+patch.
 
---------------030408000409020607070908
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Patch in seperate mail.
 
+Any ideas about USB? Seems that it comes from
+drivers/usb/host/ohci-omap.c
 
---------------030408000409020607070908--
+Regards
+
+Dirk
