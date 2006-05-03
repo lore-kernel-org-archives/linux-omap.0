@@ -1,13 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Fix tlv320aic23.c
-Date: Wed, 3 May 2006 05:56:07 -0700
-Message-ID: <20060503125606.GG30376@atomide.com>
-References: <4452384E.7080409@gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 2.6.17-rc3-omap] omap_cf works better
+Date: Wed, 3 May 2006 07:45:13 -0700
+Message-ID: <200605030745.13625.david-b@pacbell.net>
+References: <200605011404.16645.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <200605011404.16645.david-b@pacbell.net>
 Content-Disposition: inline
-In-Reply-To: <4452384E.7080409@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,52 +19,33 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Dirk Behme <dirk.behme@googlemail.com> [060428 08:45]:
+On Monday 01 May 2006 2:04 pm, David Brownell wrote:
 > 
-> ARM: OMAP: Fix error from GCC 4.1.0:
-> 
-> drivers/i2c/chips/tlv320aic23.c:157: error: expected '='
-> before '{' token
-> drivers/i2c/chips/tlv320aic23.c:161: error: expected '}'
-> before '.' token
-> 
-> Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
-> 
-> -- cut, comment not to go into git below --
-> 
-> Seems that the first part of
-> 
-> http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commitdiff;h=51c0cddf5027bd4e5c1903845047d7d7e266c79b
-> 
-> was lost somewhere??
+> There's still something way goofy going on.  The driver
+> mostly behaves, but under much load something will access
+> a bogus (and unmapped) kernel address, causing trouble.
+> I suspect that's in the pcmcia core, not omap_cf.
 
-> --- ./drivers/i2c/chips/tlv320aic23.c_orig	2006-04-28 17:29:49.000000000 +0200
-> +++ ./drivers/i2c/chips/tlv320aic23.c	2006-04-28 17:30:55.000000000 +0200
-> @@ -154,7 +154,7 @@ static int aic23_attach_adapter(struct i
->  }
->  
->  static struct i2c_driver aic23_driver = {
-> -	.driver {
-> +	.driver = {
->  		.name	= "OMAP+TLV320AIC23 codec",
->  		/*.flags	= I2C_DF_NOTIFY,*/
->  	},
-> 
+More info on this problem.  With PREEMPT enabled, the access
+came when testing "current" for the current preempt count,
+while switching IRQ handlers in the IDE system.  (At least,
+during the time I managed to get a decent stack trace.)
 
-Thanks, pushed your patch.
+With it disabled, the fault was a "scheduling while atomic"
+error ... but the "current->comm" was bogus, ditto the value
+of preempt_count().  dump_stack() didn't work...
 
-I think the earlier patch chunk has gotten auto-hosed by git merge in
-Juha's recent merge:
+In both cases it looked as if "current" had become garbage.
 
-http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=330c1eb9a689973326cdece277d0b4b409833bb9
+So I'm pretty comfortable thinking the issue isn't omap_cf.
 
-Mika & Dirk, can you guys check if some of the other audio files got
-hosed or some old audio files got added back?
+But the real problem could be a variety of other places,
+and I don't have time to chase it down.  Maybe someone else
+has some strange failures to report, so clues could add up.
+I'm not sure if the problem is only in the OMAP tree; or if
+it only affects CF card access.
 
-Regards,
-
-Tony
+- Dave
