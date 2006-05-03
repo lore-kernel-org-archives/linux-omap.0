@@ -1,14 +1,15 @@
-From: "Rick Foos" <rick@synchromeshcomputing.com>
-Subject: Re: omap mmc build errors
-Date: Tue, 2 May 2006 16:59:54 -0500
-Message-ID: <00ae01c66e33$bf52cd20$7701a8c0@AthlonX2>
-References: <443BAD8C.4090005@indt.org.br>	<20060413151756.47512.qmail@web32901.mail.mud.yahoo.com><20060502092025.GC24728@atomide.com>
-	<4457CE22.8050702@mvista.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: 1710 and USB host
+Date: Tue, 2 May 2006 22:11:04 -0700
+Message-ID: <200605022211.05662.david-b@pacbell.net>
+References: <44564B38.9020802@mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <44564B38.9020802@mvista.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,50 +23,50 @@ To: Kevin Hilman <khilman@mvista.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-CONFIG_MMC_OMAP also allowed the git kernel to boot on OMAP 2420 H4, =
-Thanks.
-  ----- Original Message -----=20
-  From: Kevin Hilman=20
-  To: Tony Lindgren=20
-  Cc: linux-omap-open-source@linux.omap.com=20
-  Sent: Tuesday, May 02, 2006 4:24 PM
-  Subject: Re: omap mmc build errors
+On Monday 01 May 2006 10:54 am, Kevin Hilman wrote:
+> Anyone else having success using the 1710 in USB host mode? 
+
+Last time I tried it was on a platform where the transceiver wasn't
+wired up usably, so it was kind of pointless.  I expect that's not
+what you're finding ...
 
 
-  Tony Lindgren wrote:
-  > * Komal Shah <komal_shah802003@yahoo.com> [060413 08:18]:
-  >> --- Carlos Aguiar <carlos.aguiar@indt.org.br> wrote:
-  >>
-  >>> Hi Komal and folks,
-  >>>
-  >>> You have to apply a patch that Tony sent to the list 7 days ago. =
-This
-  >>>
-  >>> patch corrects the bugs mentioned above. Attached to this mail =
-follow
-  >>>
-  >> You still need the attached patch on top of the Tony's patch to =
-build
-  >> it successfully.
-  >=20
-  > I've just pushed that patch + fixed trying to ioremap a virtual =
-address.
-  > Seems to work now, can you test?
+> Using the latest  
+> git kernel, I'm getting the boot messages below.  I have a USB key plugged in 
+> and it's lighting up, so presumably it's getting powered properly.
+> 
+> Maybe the jumpers aren't set quite right, I don't quite grok the comments 
+> around the 'hmc_mode' value in. board-h3.c.  In any case, my SW1501 settings 
+> are 1=on, and the rest are off.
 
-  Haven't had time to dig, but this builds but doesn't boot on 1710/H3.  =
-Simply=20
-  disabling CONFIG_MMC_OMAP makes it boot.
+I have no H3, so I can't say whether any of this is sane or not.
+As I recall, there are two transceivers on that board:  OTG, and non-OTG.
+Ideally both should work.  I seem to recall positive reports about using
+the OTG transciever.
 
-  Kevin
-  _______________________________________________
-  Linux-omap-open-source mailing list
-  Linux-omap-open-source@linux.omap.com
-  http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> Thanks for any pointers,
+> 
+> Kevin
+> 
+> isp1301_omap 0-002d: chiprev 2.00, driver 24 August 2004
+> MUX: initialized N21_1710_GPIO14
+> usbmon: debugfs is not available
+> isp1301_omap 0-002d: A-Host sessions ok
+> ohci ohci: OMAP OHCI
+> ohci ohci: new USB bus registered, assigned bus number 1
+> ohci ohci: irq 38, io mem 0xfffba000
+> ohci ohci: init err (00000000 0000)
+
+That "init err" means the controlle wasn't responding to basic stuff.
+Like maybe it wasn't clocked correctly ... you could turn on USB_DEBUG
+in Kconfig and see if the register dump looks even vaguely sane (like,
+it should report three ports etc).
+
+- Dave
 
 
-
-  --=20
-  No virus found in this incoming message.
-  Checked by AVG Free Edition.
-  Version: 7.1.385 / Virus Database: 268.5.1/328 - Release Date: =
-5/1/2006
+> ohci ohci: can't start
+> ohci ohci: startup error -75
+> ohci ohci: USB bus 1 deregistered
+> ohci: probe of ohci failed with error -75
+> 
