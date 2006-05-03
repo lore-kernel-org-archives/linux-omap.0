@@ -1,15 +1,11 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: 1710 and USB host
-Date: Tue, 2 May 2006 22:11:04 -0700
-Message-ID: <200605022211.05662.david-b@pacbell.net>
-References: <44564B38.9020802@mvista.com>
+Subject: [PATCH 2.6.17-rc3-omap] omap_uwire byteswap bugfix
+Date: Tue, 2 May 2006 22:15:48 -0700
+Message-ID: <200605022215.49062.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <44564B38.9020802@mvista.com>
-Content-Disposition: inline
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_FyDWEJcef1gdBWF"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,56 +13,136 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kevin Hilman <khilman@mvista.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 01 May 2006 10:54 am, Kevin Hilman wrote:
-> Anyone else having success using the 1710 in USB host mode? 
+--Boundary-00=_FyDWEJcef1gdBWF
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Last time I tried it was on a platform where the transceiver wasn't
-wired up usably, so it was kind of pointless.  I expect that's not
-what you're finding ...
+I mentioned a while back that my original omap_uwire code had some bugs
+that came from a bogus optimization ... here's a patch fixing them.
+(Please merge...)
 
+The consequence of that bogus optimization is that some SPI protocol
+drivers (layered on top of this driver) would get data in strange byte
+orders.  Hence for example an ads7846 issue that Juha and Imre noticed,
+but were trying to fix at the wrong level.  (So in a moment I'll post
+a separate patch for that driver.)
 
-> Using the latest  
-> git kernel, I'm getting the boot messages below.  I have a USB key plugged in 
-> and it's lighting up, so presumably it's getting powered properly.
-> 
-> Maybe the jumpers aren't set quite right, I don't quite grok the comments 
-> around the 'hmc_mode' value in. board-h3.c.  In any case, my SW1501 settings 
-> are 1=on, and the rest are off.
-
-I have no H3, so I can't say whether any of this is sane or not.
-As I recall, there are two transceivers on that board:  OTG, and non-OTG.
-Ideally both should work.  I seem to recall positive reports about using
-the OTG transciever.
-
-> Thanks for any pointers,
-> 
-> Kevin
-> 
-> isp1301_omap 0-002d: chiprev 2.00, driver 24 August 2004
-> MUX: initialized N21_1710_GPIO14
-> usbmon: debugfs is not available
-> isp1301_omap 0-002d: A-Host sessions ok
-> ohci ohci: OMAP OHCI
-> ohci ohci: new USB bus registered, assigned bus number 1
-> ohci ohci: irq 38, io mem 0xfffba000
-> ohci ohci: init err (00000000 0000)
-
-That "init err" means the controlle wasn't responding to basic stuff.
-Like maybe it wasn't clocked correctly ... you could turn on USB_DEBUG
-in Kconfig and see if the register dump looks even vaguely sane (like,
-it should report three ports etc).
+Other drivers layered on top of omap_uwire may also need to revisit
+how they've handled byte order.
 
 - Dave
 
 
-> ohci ohci: can't start
-> ohci ohci: startup error -75
-> ohci ohci: USB bus 1 deregistered
-> ohci: probe of ohci failed with error -75
-> 
+--Boundary-00=_FyDWEJcef1gdBWF
+Content-Type: text/x-diff;
+  charset="us-ascii";
+  name="omap-uwire.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="omap-uwire.patch"
+
+Get rid of broken optimization in MicroWire driver:  don't try to morph
+consecutive single-byte operations into one (faster) two-byte operation.
+This resolves some byteswap problems.  (And consequently allows fixing
+some bugs in at least the OMAP version of the ads7846 driver...)
+
+Also, reject LSB-first device modes; this controller doesn't support them.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+
+Index: osk/drivers/spi/omap_uwire.c
+===================================================================
+--- osk.orig/drivers/spi/omap_uwire.c	2006-04-22 14:41:22.000000000 -0700
++++ osk/drivers/spi/omap_uwire.c	2006-05-02 18:37:24.000000000 -0700
+@@ -196,6 +196,9 @@ static int uwire_txrx(struct spi_device 
+ 	if (t->tx_buf && t->rx_buf)
+ 		return -EPERM;
+ 
++	if (!bits)
++		bits = 8;
++
+ 	w = spi->chip_select << 10;
+ 	w |= CS_CMD;
+ 
+@@ -206,18 +209,15 @@ static int uwire_txrx(struct spi_device 
+ 
+ 		/* write one or two bytes at a time */
+ 		while (len >= 1) {
+-			/* tx is msb-aligned */
++			/* tx bit 15 is first sent; we byteswap multibyte words
++			 * (msb-first) on the way out from memory.
++			 */
+ 			val = *buf++;
+-			if (len > 1 && (!bits || bits > 8)) {
+-				if (!bits)
+-					bits = 16;
++			if (bits > 8) {
+ 				bytes = 2;
+ 				val |= *buf++ << 8;
+-			} else {
+-				if (!bits || bits > 8)
+-					bits = 8;
++			} else
+ 				bytes = 1;
+-			}
+ 			val <<= 16 - bits;
+ 
+ #ifdef	VERBOSE
+@@ -253,15 +253,10 @@ static int uwire_txrx(struct spi_device 
+ 
+ 		/* read one or two bytes at a time */
+ 		while (len) {
+-			if (len > 1 && (!bits || bits > 8)) {
+-				if (!bits)
+-					bits = 16;
++			if (bits > 8) {
+ 				bytes = 2;
+-			} else {
+-				if (!bits || bits > 8)
+-					bits = 8;
++			} else
+ 				bytes = 1;
+-			}
+ 
+ 			/* start read */
+ 			val = START | w | (bits << 0);
+@@ -275,7 +270,9 @@ static int uwire_txrx(struct spi_device 
+ 						RDRB, 0))
+ 				goto eio;
+ 
+-			/* rx is lsb-aligned */
++			/* rx bit 0 is last received; multibyte words will
++			 * be properly byteswapped on the way to memory.
++			 */
+ 			val = uwire_read_reg(UWIRE_RDR);
+ 			val &= (1 << bits) - 1;
+ 			*buf++ = (u8) val;
+@@ -320,6 +317,12 @@ static int uwire_setup(struct spi_device
+ 		goto done;
+ 	}
+ 
++	if (spi->mode & SPI_LSB_FIRST) {
++		pr_debug("%s: lsb first?\n", spi->dev.bus_id);
++		status = -EINVAL;
++		goto done;
++	}
++
+ 	/* mode 0..3, clock inverted separately;
+ 	 * standard nCS signaling;
+ 	 * don't treat DI=high as "not ready"
+
+--Boundary-00=_FyDWEJcef1gdBWF
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--Boundary-00=_FyDWEJcef1gdBWF--
