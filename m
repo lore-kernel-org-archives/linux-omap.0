@@ -1,12 +1,13 @@
-From: Chetan Kapoor <chetan.kapoor@flextronicssoftware.com>
+From: Marc Singer <elf@buici.com>
 Subject: Re: Problem using gdbserver on ARM target
-Date: Thu, 4 May 2006 20:11:50 +0530
-Message-ID: <OFA87C7033.BF085F3F-ON65257164.004F50C2-65257164.0050C029@flextronicssoftware.com>
-References: <20060504140311.GA32124@nevyn.them.org>
+Date: Thu, 4 May 2006 08:37:52 -0700
+Message-ID: <20060504153751.GC4234@buici.com>
+References: <OF2D51E9C2.3C3CCC6A-ON65257164.00424D70-65257164.00426D5F@flextronicssoftware.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0014862669=="
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
-In-Reply-To: <20060504140311.GA32124@nevyn.them.org>
+Content-Disposition: inline
+In-Reply-To: <OF2D51E9C2.3C3CCC6A-ON65257164.00424D70-65257164.00426D5F@flextronicssoftware.com>
 List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
 List-Archive: <http://lists.arm.linux.org.uk/pipermail/linux-arm-kernel>
@@ -14,53 +15,37 @@ List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
 List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
 List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
-Mime-version: 1.0
 Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
-To: Daniel Jacobowitz <dan@debian.org>
-Cc: linux-omap-open-source@linux.omap.com, linux-arm-kernel@lists.arm.linux.org.uk
+To: Chetan Kapoor <chetan.kapoor@flextronicssoftware.com>
+Cc: linux-omap-open-source@linux.omap.com, linux-arm-kernel@lists.arm.linux.org.uk, linux-arm-toolchain@lists.arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
---===============0014862669==
-Content-type: multipart/related;
-	Boundary="0__=EABBFBF7DFDCD6528f9e8a93df938690918cEABBFBF7DFDCD652"
-Content-Disposition: inline
+On Thu, May 04, 2006 at 05:35:23PM +0530, Chetan Kapoor wrote:
+> Hello
+> 
+> I am trying bring up gdbserver on my ARM target (OMAP P2 730).
+> 
+> I downloaded a prebuilt toolchain which contains gcc 3.3.2-glibc-2.3.2 + 
+> binutils-head. We have used this to build   Kernel version 2.6.16-omap1 & 
+> Busybox-1.0.0.
+> 
+> I have now compiled gdb 6.4 pack, and crosscompiled the gdb with 
+> --target=arm-linux
+> For gdbserver in the gbb/gdbserver directory I configured using 
+> --host=arm-linux 
+> 
+> A make is successful but the dynamically linked ARM executable gives the 
+> following error when I execute it on the target,
+> 
+> ~ # ./gdbserver
+> -sh: ./gdbserver: No such file or directory
 
---0__=EABBFBF7DFDCD6528f9e8a93df938690918cEABBFBF7DFDCD652
-Content-type: image/gif;
-	name="graycol.gif"
-Content-Disposition: inline; filename="graycol.gif"
-Content-ID: <00__=EABBFBF7DFDCD652@flextronicssoftware.com>
-Content-transfer-encoding: base64
+Try
 
-R0lGODlhEAAQAPcAAAAAAL8AAAC/AL+/AAAAv78AvwC/v8DAwICAgP8AAAD/AP//AAAA//8A/wD/
-/////wCAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAA8ALAAAAAAQABAA
-QAgtAB8IHEiwoMEHBxIeOIhQoUOHDCNKnPhQ4cSLGDNqNFgR4sGKFxNuHEmSYEAAADs=
-
---0__=EABBFBF7DFDCD6528f9e8a93df938690918cEABBFBF7DFDCD652--
-
-
-
---===============0014862669==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+  # ldd gdbserver
 
 -------------------------------------------------------------------
 List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
 FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
 Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
---===============0014862669==--
