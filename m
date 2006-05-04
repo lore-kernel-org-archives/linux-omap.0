@@ -1,16 +1,10 @@
-From: "James Selvam" <james.iisc@gmail.com>
-Subject: Re: [PATCH 0/3] aic23 sound driver fixes
-Date: Thu, 4 May 2006 15:48:59 +0530
-Message-ID: <fd1e34b0605040318m4b0d1bd4h58f50589df2a4cdf@mail.gmail.com>
-References: <4457C35D.4020700@cc.jyu.fi>
-	<fd1e34b0605030420g68f908f7y447d6a4ed2001fc0@mail.gmail.com>
-	<44590581.6070108@cc.jyu.fi>
+From: Chetan Kapoor <chetan.kapoor@flextronicssoftware.com>
+Subject: Problem using gdbserver on ARM target
+Date: Thu, 4 May 2006 17:35:23 +0530
+Message-ID: <OF2D51E9C2.3C3CCC6A-ON65257164.00424D70-65257164.00426D5F@flextronicssoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="US-ASCII"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <44590581.6070108@cc.jyu.fi>
-Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,131 +14,58 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: lamikr@cc.jyu.fi
-Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com, linux-arm-toolchain@lists.arm.linux.org.uk, linux-arm-kernel@lists.arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mika/All,
+Hello
 
-The patch set the MCLK error all right. It infact took the right CLK freq o=
-f
-12 MHz:
+I am trying bring up gdbserver on my ARM target (OMAP P2 730).
 
-Advanced Linux Sound Architecture Driver Version 1.0.11rc2 (Wed Jan 04
-08:57:20
-2006 UTC).
-MCLK =3D 12000000 [12000000], usecount =3D 1
-audio support initialized
-ALSA device list:
-  #0: OMAP Innovator AIC23
+I downloaded a prebuilt toolchain which contains gcc 3.3.2-glibc-2.3.2 + 
+binutils-head. We have used this to build   Kernel version 2.6.16-omap1 & 
+Busybox-1.0.0.
 
-But aplay -l still fails. It fails to recognise and list the hardware
-present:
+I have now compiled gdb 6.4 pack, and crosscompiled the gdb with 
+--target=arm-linux
+For gdbserver in the gbb/gdbserver directory I configured using 
+--host=arm-linux 
 
-**** List of PLAYBACK Hardware Devices ****
-ALSA lib control.c:818:(snd_ctl_open_noupdate) Invalid CTL hw:0
-aplay: device_list:232: control open (0): No such file or directory
+A make is successful but the dynamically linked ARM executable gives the 
+following error when I execute it on the target,
 
-I then tried to do a simple "cat raw_file > /dev/dsp" (OSS emulation
-enabled). It just gave me some noise. Another player "bplay" cross-compiled
-for ARM gave similar results.
+~ # ./gdbserver
+-sh: ./gdbserver: No such file or directory
 
-Clarifications:
-1)  The ALSA is recognising the AIC23 hardware at bootup. But we find that
-it is not accessible as can be seen from the aplay output.
-2) Is there an explicit configuration of ALSA required before we can start
-using it?
-3) Does this configuraton involve manual binding of the hardware with the
-application? If so then how?
+I have noted that the gdbserver executable has been loaded successfully to 
+the target yet I am not able to execute it. 
 
-Thanks,
-James.
+On the host I verified,
 
-On 5/4/06, lamikr <lamikr@cc.jyu.fi> wrote:
->
-> Hi
->
-> James Selvam wrote:
->
-> > Hi Mika/All,
-> >
-> > I am working on OMAP1510 Innovator (kernel 2.6.16.13+omap1). I applied
-> > the patches sent here, but the second hunk containing the change of
-> > function calls to "aic23_write_value" were not defined so I changed
-> > them back to "tlv320aic23_write_value". But the platform related patch
-> > was applied in toto.
->
-> Yes, the patch-set was meant for the linux-omap git head as the
-> drivers/i2c/chips/tlv320aic23.c used by the aic23 ALSA and OSS drivers
-> has changed in git repository after the 2.6.16 omap kernel version.
->
-> But if you are using 2.6.16 then you should just take the 3/3 of
-> patchset. From 1/3 and 2/3 patches you may consider for taking the
-> KConfig changes by hand as
-> the I2C, I2C-OMAP and tlv320aic23 i2c drivers must always be selected if
-> AIC23 alsa or oss driver is selected.
->
->
-> > The kernel then recognised the AIC23 codec at bootup (which it was not
-> > doing before). Also the I2C has set the MCBSP clocks 1 and 3. But ALSA
-> > did throw up an error:
-> >
-> > Clock enabled to MCBSP1 & 3
-> > tlv320aic23 powering up
-> > tlv320aic23_init_power() done
-> > TLV320AIC23 I2C version 1.8 (10-Feb-2006)
-> >
-> > Advanced Linux Sound Architecture Driver Version 1.0.11rc2 (Wed Jan 04
-> > 08:57:20 2006 UTC).
-> > Cannot set MCLK for AIC23 CODEC
-> > audio support initialized
-> > ALSA device list:
-> >   #0: OMAP Innovator AIC23
-> >
-> > Thereafter if we try to run an application it promts the same error
-> > "Cannot set MCLK for AIC23 CODEC" and fails to recognise the device
-> > present.
->
-> That's propaply because the clock rate is already ok, or the clock rate
-> is fixed and can not be changed.
-> Could you check whether the attached patch will work for you? If it
-> works, I will submit it in separate mail to be applied to
-> git repository.
->
-> >
-> > Certain clarifications are required:
-> > 1) Where is the definition of the function "aic23_write_value" -
-> > specified in the first two patches?
->
-> In OMAP git repository head following driver
-> drivers/i2c/chips/tlv320aic23.c
->
-> > 2) The MCLK not being set; the MCBSP clocks are set all right during
-> > the bootup. Why then does it crib now?
->
-> The attached patch should fix it, as it will check whether the clock is
-> already using the correct rate.
-> In future there may be need to change the alsa code a little bit more,
-> so that the clock rate can be defined in the board code instead of
-> hardcoding in the alsa driver as Menon Nishant suggested some time ago.
->
-> > 3) Are the MCLK and the MCBSP clocks one and the same?
->
-> It might help you to check arch/arm/mach-omap1/clock.h for seeing the
-> definition of different kind of clocks that are available for omap boards=
-.
->
-> > We have cross-compiled the ALSA utils (aplay, arec & speaker-test) as
-> > also ALSA libraries separately & included the same in the file-system.
-> > Does ALSA require any configuration before we can use the utils?
->
-> I have only used the tsc2101 omap-alsa driver my self but there I do not
-> need any configuration for basic play testing.
-> I just use "alsamixer" for selecting the playback target and volume and
-> then "aplay music.wav" to play it. speaker-test should give some kind of
-> noice :-)
->
-> Mika
->
->
->
+# file gdbserver
+ELF 32-bit LSB executable, ARM, version 1 (ARM), for GNU/Linux 2.4.3, 
+dynamically linked (uses shared libs), not stripped
+
+Any clues as to what is going wrong here ? 
+
+It seems that the gdbserver dynamically linked executable is looking for a 
+few shared libraries to be in place in the target's rootfs. I tried 
+keeping the required libraries (libc-2.3.2.so, libthread_db-1.0.so, 
+libcrypt-2.3.2.so and related symlinks)at path /usr/local/arm/3.3.2/lib on 
+the target's rootfs to relsove the issue. This time the gdbserver launches 
+but gives a segmentation fault.
+
+Someone suggested that first I should get libthread_db compiled as a 
+static library (i.e. libthread_db.a), and then build a statically linked 
+gdbserver executable which includes libthread_db.a. 
+
+I have a prebuilt toolchain for which I do not have the source code, and 
+libthread_db.a is not present in the toolchain's lib folder, rather 
+libthread_db.so is present. Any pointers, where can I get the toolchain's 
+source and use it to build static librares?, which will in turn be useful 
+in building statically linked gdbserver.
+
+Thanks
+
+Chetan
+
+***********************  FSS-Unclassified   ***********************
