@@ -1,13 +1,12 @@
-From: Eduardo Gallofin <egallofin@yahoo.com>
-Subject: init (busybox) problem on OSK5912
-Date: Thu, 4 May 2006 00:59:41 -0700 (PDT)
-Message-ID: <20060504075941.50253.qmail@web52309.mail.yahoo.com>
-References: <OFD42F04BA.70938876-ON65257164.00280E9D-65257164.0028488C@flextronicssoftware.com>
+From: "Sergey Vointsev" <vointsev@gmail.com>
+Subject: Strange work of OSK5912 audio driver
+Date: Thu, 4 May 2006 12:03:38 +0400
+Message-ID: <9713be7f0605040103ya1463a1mb00b15f1645426e5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <OFD42F04BA.70938876-ON65257164.00280E9D-65257164.0028488C@flextronicssoftware.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,42 +14,34 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Chetan Kapoor <chetan.kapoor@flextronicssoftware.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello Chetan,
+Hi everyone!
+I'm using OSK5912 with linux 2.6.16 +patch-2.6.16-omap2
+I follow http://oskfordummies.hp.infoseek.co.jp/howto/audio.html while
+trying to configure audio driver.
 
-   You can do a "make menuconfig" on the busybox
-source directory to use the GUI-like configuration
-tool. Select <build options> and select <Build busybox
-as a static library>. Save the configuration and
-compile.
+It's written there that following commands should record 5 seconds
+from mic and play it.
+dd bs=3D48k count=3D5 <  /dev/dsp > sample.au
+cp sample.au /dev/dsp
 
-  To check if your busybox program is linked
-statically, you can do a "file busybox" on your linux
-machine and see the file attributes. It should show
-"statically linked".
+But when I try to execute this commands I get strange results -=20
+speech is recorded, but only first ~2-2.5sec and played only ~1.5-
+2sec
 
-  The /lib and /usr/local/lib folders are already part
-of the basefs, and having busybox as statically linked
-doesn't affect these folders. Although when you
-compile your programs statically, you won't be needing
-the library files.
+Also when I try to do "cp notify.wav /dev/dsp" the sound plays almost OK.
+But when I do "cp ringin.wav /dev/dsp" I get about a second of noise
+instead of sound. Both these files are standard Windows sounds, if you
+want to check it yourself.
 
-   Hope this helps. I really would like to compile all
-my apps dynamically since this would save a great deal
-of disk space, especially when you have multiple apps
-sharing the same libraries. Statically compiled
-programs are huge!!! 
-
-- Ed
+What's wrong? Did I miss some configuration? Please advise.
+Thanks. Sergey,
 
 
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+--
+Also available for instant messaging via Google Talk.
+Need invite to Gmail? I have one for you! Just ask.
