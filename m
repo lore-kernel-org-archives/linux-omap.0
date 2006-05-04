@@ -1,16 +1,14 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 2.6.17-rc3-omap] omap_uwire byteswap bugfix
-Date: Thu, 4 May 2006 08:18:43 -0700
-Message-ID: <200605040818.44126.david-b@pacbell.net>
-References: <200605022215.49062.david-b@pacbell.net>
-	<20060504145344.GA21933@nokia.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Undefined usb_disconnect, was [PATCH] ARM: OMAP: Fix tlv320aic23.c
+Date: Thu, 04 May 2006 18:08:50 +0200
+Message-ID: <445A2712.1000606@gmail.com>
+References: <4452384E.7080409@gmail.com> <20060503125606.GG30376@atomide.com>
+	<4458F966.40504@gmail.com> <200605040751.45417.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060504145344.GA21933@nokia.com>
-Content-Disposition: inline
+In-Reply-To: <200605040751.45417.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,33 +18,40 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Paul Mundt <paul.mundt@nokia.com>
+To: David Brownell <david-b@pacbell.net>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 04 May 2006 7:53 am, Paul Mundt wrote:
-
-> > +	if (spi->mode & SPI_LSB_FIRST) {
-> > +		pr_debug("%s: lsb first?\n", spi->dev.bus_id);
-> > +		status = -EINVAL;
-> > +		goto done;
-> > +	}
-> > +
-> >  	/* mode 0..3, clock inverted separately;
-> >  	 * standard nCS signaling;
-> >  	 * don't treat DI=high as "not ready"
+David Brownell wrote:
+> On Wednesday 03 May 2006 11:41 am, Dirk Behme wrote:
 > 
-> This breaks the build, SPI_LSB_FIRST isn't defined anywhere..
-> ...
-> Looks like this is missing..
+>>WARNING: "usb_disconnect" [drivers/usb/host/ohci-hcd.ko]
+>>undefined!
 > 
-> 	http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/gregkh-01-driver/spi-devices-can-require-lsb-first-encodings.patch
+> Of course, it hasn't been exported for a while now.
+>>
+>>Any ideas about USB? Seems that it comes from
+>>drivers/usb/host/ohci-omap.c
 > 
-> which isn't in Linus's tree either yet however.
+> I see a curious and pointless routine, ohci_omap_host_enable(), which
+> isn't called from anywhere I can see, which wants usb_disconnect().
+> 
+> Try deleting that routine.
 
-Whoops, yes.  My bad, sorry; it was in _my_ tree and I overlooked how it got there.
-I thought maybe Juha had merged it.
+tahvo-usb.c uses ohci_omap_host_enable():
 
-Simplest fix would be to merge that patch from Greg's tree.
+./drivers/cbus/tahvo-usb.c:88:extern int 
+ohci_omap_host_enable(struct usb_bus *host, int enable);
+./drivers/cbus/tahvo-usb.c:248: 
+ohci_omap_host_enable(tu->otg.host, 1);
+./drivers/cbus/tahvo-usb.c:266: 
+ohci_omap_host_enable(tu->otg.host, 0);
+./drivers/cbus/tahvo-usb.c:300: 
+ohci_omap_host_enable(tu->otg.host, 0);
+./drivers/cbus/tahvo-usb.c:338: 
+ohci_omap_host_enable(tu->otg.host, 0);
+./drivers/cbus/tahvo-usb.c:431: ohci_omap_host_enable(host, 0);
 
-- Dave
+Regards
+
+Dirk
