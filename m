@@ -1,18 +1,14 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: Undefined usb_disconnect,
-	was [PATCH] ARM: OMAP: Fix tlv320aic23.c
-Date: Thu, 4 May 2006 09:32:45 -0700
-Message-ID: <200605040932.46678.david-b@pacbell.net>
-References: <4452384E.7080409@gmail.com>
-	<200605040751.45417.david-b@pacbell.net>
-	<445A2712.1000606@gmail.com>
+From: "andrzej zaborowski" <balrog@zabor.org>
+Subject: Re: init (busybox) problem on OSK5912
+Date: Thu, 4 May 2006 18:43:09 +0200
+Message-ID: <fb249edb0605040943k8a85615w76b5231436d5aec@mail.gmail.com>
+References: <20060503194919.7EDC38062D@linux.omap.com>
+	<20060504064708.22877.qmail@web52314.mail.yahoo.com>
+Reply-To: balrogg@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <445A2712.1000606@gmail.com>
-Content-Disposition: inline
+Content-Type: multipart/mixed; boundary="===============1479626032=="
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20060504064708.22877.qmail@web52314.mail.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,27 +16,69 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Eduardo Gallofin <egallofin@yahoo.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 04 May 2006 9:08 am, Dirk Behme wrote:
-> David Brownell wrote:
-> > On Wednesday 03 May 2006 11:41 am, Dirk Behme wrote:
+--===============1479626032==
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-> > I see a curious and pointless routine, ohci_omap_host_enable(), which
-> > isn't called from anywhere I can see, which wants usb_disconnect().
-> > 
-> > Try deleting that routine.
-> 
-> tahvo-usb.c uses ohci_omap_host_enable():
+SGkgRWR1YXJkbywKCk9uIDA0LzA1LzA2LCBFZHVhcmRvIEdhbGxvZmluIDxlZ2FsbG9maW5AeWFo
+b28uY29tPiB3cm90ZToKPiBJJ20gcmVwbHlpbmcgdG8gbXkgb3duIHF1ZXJ5IHRvIGdpdmUgdXBk
+YXRlIC4uLi4KPgo+IEkgbWFuYWdlZCB0byBoYXZlIGluaXQgd29ya2luZyBieSB1c2luZyBhbiBv
+bGRlcgo+IHZlcnNpb24gb2YgYnVzeWJveCAoMS4wMC1wcmU4KSwgaG93ZXZlciBhbm90aGVyCj4g
+cHJvYmxlbSBoYXBwZW5zIHdpdGggL2Jpbi9zaCAoYXNoKSBjcmFzaGluZyBhbmQKPiByZXN0YXJ0
+aW5nIG92ZXIgYW5kIG92ZXIuCj4KPiBUaGUgcHJvYmxlbSBzZWVtcyB0byBoYXBwZW4gb25seSB3
+aGVuIGJ1c3lib3ggaXMKPiBjb21waWxlZCB3aXRoIHNoYXJlZCBsaWJyYXJpZXMuIG90aGVyIGJ1
+c3lib3ggYXBwbGV0cwo+IChsaWtlIGxzIC1sKSBhbHNvIHRlcm1pbmF0ZSB3aXRoIHNlZ21lbnRh
+dGlvbiBmYXVsdC4KPiBzdHJhY2Ugc2hvd3MgdGhhdCB0aGV5IHNlZyBmYXVsdCB3aGVuIGNvbm5l
+Y3Rpbmcgb3IKPiBiaW5kaW5nIHRvIGEgc29ja2V0Lgo+Cj4gYW55IHRob3VnaHRzIHdoeSB0aGVz
+ZSBvbmx5IGhhcHBlbiB3aXRoIHNoYXJlZAo+IGxpYnJhcmllcz8KRnJvbSB5b3VyIGRlc2NyaXB0
+aW9uIGl0IHNvdW5kcyBsaWtlIGEgc2ltaWxhciBidWcgdG8gd2hhdCB3ZSd2ZSBiZWVuCmZhY2lu
+ZyBvbiBzb21lIFBEQXMgYmFzZWQgb24gT01BUDMxMS4gSWYgaXQgaXMgdGhlIHNhbWUgdGhpbmcs
+IHRoZW4gaXQKZG9lc24ndCBtYXR0ZXIgd2hhdCB2ZXJzaW9uIG9mIGJ1c3lib3ggb3Igb3RoZXIg
+YXBwbGljYXRpb25zIHlvdSBhcmUKcnVubmluZyBvciB3aGV0aGVyIGl0J3MgY29tcGlsZWQgc3Rh
+dGljYWxseS4gQWxsIHByb2dyYW1zIHNlZW0gdG8gYmUKYWZmZWN0ZWQgYnkgdGhlIGJ1ZyBpbiB0
+aGUgd2F5IHRoYXQgdGhleSBoYW5nIG9yIHNlZ2ZhdWx0IGluIHJhbmRvbQpwbGFjZXMuIFN0YXRp
+Y2FsbHkgY29tcGlsZWQgcHJvZ3JhbXMgZG8gdGhhdCB3aXRoIGxvd2VyIHByb2JhYmlsaXR5CmJ1
+dCB0aGV5IHN0aWxsIGRvLiBTb21lIHZlcnNpb25zIGFyZSBtb3JlIGFmZmVjdGVkIGFuZCBvdGhl
+cnMgbGVzcywKYnV0IGNoYW5naW5nIGEgc2luZ2xlIGxpbmUgaW4gdGhlIGJ1c3lib3ggY29kZSBj
+aGFuZ2VzIHRoYXQKcHJvYmFiaWxpdHkgcmFuZG9tbHkuCgpXZSBoYXZlbid0IGZvdW5kIGEgZGVm
+aW5pdGl2ZSBzb2x1dGlvbiB5ZXQgYnV0IHdlIGZvdW5kIGEgbmFzdHkKd29ya2Fyb3VuZCAoY3Jl
+ZGl0cyBnbyB0byBuYXN0eSBNYXJleCk6IGNvbXBpbGUgdGhlIGtlcm5lbCB3aXRoIHN3YXAKc3Vw
+cG9ydCAoIlBhZ2luZyBvZiBhbm9ueW1vdXMgbWVtb3J5IiBpbiB0aGUgY29uZmlnLCBJIHRoaW5r
+KSAtLSB5b3UKZG9uJ3QgbmVlZCB0byBhZGQgc3dhcCBwYXJ0aXRpb25zLCBqdXN0IGNvbXBpbGUg
+dGhlIGtlcm5lbCB3aXRoIHRoaXMKb3B0aW9uIGVuYWJsZWQuIFRoaXMgc2hvdWxkIGxvd2VyIHRo
+ZSBwcm9iYWJpbGl0eSBvZiBicmVha2FnZSB0byBuZWFyCmFjY2VwdGFibGUgbGV2ZWwuIEl0IHdv
+dWxkIGJlIGludGVyZXN0aW5nIHRvIHNlZSBpZiB0aGlzIHdvcmtzIGZvciB5b3UKYW5kIGlmIGl0
+J3MgcmVhbGx5IHRoZSBzYW1lIHByb2JsZW0uIFNvIGZhciBJIHdhcyBvbmx5IHNlZWluZyBpdCBv
+bgpPTUFQMzExLiBJdCBtaWdodCBqdXN0IGFzIHdlbGwgYmUgc29tZXRoaW5nIHRvdGFsbHkgZGlm
+ZmVyZW50LCBpbiB0aGlzCmNhc2UganVzdCBpZ25vcmUgbWUuCgpXaXRoIHRoaXMgb3B0aW9uIGVu
+YWJsZWQgd2UncmUgYWJsZSB0byBydW4gd2hvbGUgZHluYW1pY2FsbHktbGlua2VkCkxpbnV4IGRp
+c3RyaWJ1dGlvbnMgaW5jbHVkaW5nIFgsIEdub21lLCBLREUsIGdkYiBhbmQgc3RyYWNlLiBUaGUK
+cHJvYmxlbSBwZXJzaXN0cyBidXQgaXMgYSB3aG9sZSBvcmRlciBvZiBtYWduaXR1ZGUgbGVzcyBh
+bm5veWluZy4KCkJUVzogcHJvZ3JhbXMgY29tcGlsbGVkIHN0YXRpY2FsbHkgYWdhaW5zdCB1Y2xp
+YmMgYXJlIG5vdCBodWdlIGF0IGFsbCwKc29tZXRpbWUgc21hbGxlciB0aGFuIGR5bmFtaWNhbGx5
+LWxpbmtlZCBhZ2FpbnN0IGdsaWJjLgo+Cj4KPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwo+IERvIFlvdSBZYWhvbyE/Cj4gVGlyZWQgb2Ygc3BhbT8g
+IFlhaG9vISBNYWlsIGhhcyB0aGUgYmVzdCBzcGFtIHByb3RlY3Rpb24gYXJvdW5kCj4gaHR0cDov
+L21haWwueWFob28uY29tCj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KPiBMaW51eC1vbWFwLW9wZW4tc291cmNlIG1haWxpbmcgbGlzdAo+IExpbnV4LW9t
+YXAtb3Blbi1zb3VyY2VAbGludXgub21hcC5jb20KPiBodHRwOi8vbGludXgub21hcC5jb20vbWFp
+bG1hbi9saXN0aW5mby9saW51eC1vbWFwLW9wZW4tc291cmNlCj4KR29vZCBsdWNrIQoKUmVnYXJk
+cywKQW5kcnplagotLQpiYWxyb2cgMm9vNgoKRGVhciBPdXRsb29rIHVzZXJzOiBQbGVhc2UgcmVt
+b3ZlIG1lIGZyb20geW91ciBhZGRyZXNzIGJvb2tzCmh0dHA6Ly93d3cubmV3c2ZvcmdlLmNvbS9h
+cnRpY2xlLnBsP3NpZD0wMy8wOC8yMS8xNDMyNTgK
 
-And so it does.  That would be a bug in how the Tahvo transceiver is
-trying to activate the USB host.  It should be able to just use
-the normal power management suspend and resume calls... certainly
-there's no benefit to creating transceiver-specific backdoors into
-usbcore for runtime PM.
+--===============1479626032==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-- Dave
+
+--===============1479626032==--
