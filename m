@@ -1,10 +1,13 @@
-From: Chetan Kapoor <chetan.kapoor@flextronicssoftware.com>
-Subject: Problem using gdbserver on ARM target
-Date: Thu, 4 May 2006 17:35:23 +0530
-Message-ID: <OF2D51E9C2.3C3CCC6A-ON65257164.00424D70-65257164.00426D5F@flextronicssoftware.com>
+From: ruchir.gulati@tcs.com
+Subject: RE: Linux audio driver OMAP5912
+Date: Thu, 4 May 2006 17:59:05 +0530
+Message-ID: <OF7625A7D7.954C6AEA-ON65257164.0043E1C5-65257164.004485A8@tcs.com>
+References: <520AB2AD990DC04082102F77CA172638033F0DD1@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <520AB2AD990DC04082102F77CA172638033F0DD1@dlee03.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,58 +17,68 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com, linux-arm-toolchain@lists.arm.linux.org.uk, linux-arm-kernel@lists.arm.linux.org.uk
+To: "Menon, Nishanth" <x0nishan@ti.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello
+Hi,
 
-I am trying bring up gdbserver on my ARM target (OMAP P2 730).
+Is it so that the OSS driver on the OMAP5912will not work in the 
+full-dulpex mode at all? I think the problem I am facing presently is of 
+buffer underrun while audio playback, and hope to resolve it by trying 
+different fragment sizes. I really hope this works! Any more help/tips on 
+this topic??
+Please let me know if switching to ALSA would be absolutely necessary for 
+supporting full-duplex sort of functioning on the OMAP5912
 
-I downloaded a prebuilt toolchain which contains gcc 3.3.2-glibc-2.3.2 + 
-binutils-head. We have used this to build   Kernel version 2.6.16-omap1 & 
-Busybox-1.0.0.
+Thanks & Regards,
+Ruchir Gulati
 
-I have now compiled gdb 6.4 pack, and crosscompiled the gdb with 
---target=arm-linux
-For gdbserver in the gbb/gdbserver directory I configured using 
---host=arm-linux 
 
-A make is successful but the dynamically linked ARM executable gives the 
-following error when I execute it on the target,
 
-~ # ./gdbserver
--sh: ./gdbserver: No such file or directory
 
-I have noted that the gdbserver executable has been loaded successfully to 
-the target yet I am not able to execute it. 
+"Menon, Nishanth" <x0nishan@ti.com> 
+04/26/2006 08:08 PM
 
-On the host I verified,
+To
+<ruchir.gulati@tcs.com>, <linux-omap-open-source@linux.omap.com>
+cc
 
-# file gdbserver
-ELF 32-bit LSB executable, ARM, version 1 (ARM), for GNU/Linux 2.4.3, 
-dynamically linked (uses shared libs), not stripped
+Subject
+RE: Linux audio driver OMAP5912
 
-Any clues as to what is going wrong here ? 
 
-It seems that the gdbserver dynamically linked executable is looking for a 
-few shared libraries to be in place in the target's rootfs. I tried 
-keeping the required libraries (libc-2.3.2.so, libthread_db-1.0.so, 
-libcrypt-2.3.2.so and related symlinks)at path /usr/local/arm/3.3.2/lib on 
-the target's rootfs to relsove the issue. This time the gdbserver launches 
-but gives a segmentation fault.
 
-Someone suggested that first I should get libthread_db compiled as a 
-static library (i.e. libthread_db.a), and then build a statically linked 
-gdbserver executable which includes libthread_db.a. 
 
-I have a prebuilt toolchain for which I do not have the source code, and 
-libthread_db.a is not present in the toolchain's lib folder, rather 
-libthread_db.so is present. Any pointers, where can I get the toolchain's 
-source and use it to build static librares?, which will in turn be useful 
-in building statically linked gdbserver.
 
-Thanks
 
-Chetan
-
-***********************  FSS-Unclassified   ***********************
+Hi Ruchir,
+> Sometimes it gives the error message like Omap_audio: DMA IRQ received 
+for non-existing buffer. Ultimately the board hangs and a reboot needs to 
+be done. 
+This points at some sort of buffer handling issues on the audio layer. The 
+OSS driver is kind of deprecated now-a-days. Have you tried alsa driver 
+yet? This should be present in the latest omap-linux git tree.
+ 
+> Can someone please tell me where the problem is? If the problem is with 
+device fragment size, then what is the correct procedure for setting the 
+same, and to what value should it be set? If somone working on the OMAP 
+5912 has come across similar problems, and fixed them, then please throw 
+some light on the solution for me also! 
+Check out oss.pdf again for DSP_SETFRAGMENTS ioctl for adjusting the 
+kernel buffer parameters.
+ 
+Regards,
+Nishanth Menon
+ForwardSourceID:NT0000473A 
+=====-----=====-----=====
+Notice: The information contained in this e-mail
+message and/or attachments to it may contain 
+confidential or privileged information. If you are 
+not the intended recipient, any dissemination, use, 
+review, distribution, printing or copying of the 
+information contained in this e-mail message 
+and/or attachments to it are strictly prohibited. If 
+you have received this communication in error, 
+please notify us by reply e-mail or telephone and 
+immediately and permanently delete the message 
+and any attachments. Thank you
