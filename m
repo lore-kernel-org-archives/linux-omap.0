@@ -1,15 +1,13 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 2.6.17-rc3-omap] omap_uwire byteswap bugfix
-Date: Thu, 4 May 2006 10:07:24 -0700
-Message-ID: <200605041007.24948.david-b@pacbell.net>
-References: <200605022215.49062.david-b@pacbell.net>
-	<20060504145344.GA21933@nokia.com>
-	<200605040818.44126.david-b@pacbell.net>
+From: "Minjie Lin" <MLin@EmpowerTechnologies.com>
+Subject: RE: Strange work of OSK5912 audio driver
+Date: Thu, 4 May 2006 11:29:33 -0600
+Message-ID: <1A1CA1A4CD7D304485214EBCCAEE0A0105BFED@BBSC-EX01.bbsconnect.ca>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_MTjWEM7/lVOdTMN"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <200605040818.44126.david-b@pacbell.net>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,74 +17,60 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Paul Mundt <paul.mundt@nokia.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Sergey Vointsev <vointsev@gmail.com>, Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---Boundary-00=_MTjWEM7/lVOdTMN
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi Sergey,
 
-On Thursday 04 May 2006 8:18 am, David Brownell wrote:
-> On Thursday 04 May 2006 7:53 am, Paul Mundt wrote:
-> 
-> > This breaks the build, SPI_LSB_FIRST isn't defined anywhere..
-> > ...
-> > Looks like this is missing..
-> > 
-> > 	http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/gregkh-01-driver/spi-devices-can-require-lsb-first-encodings.patch
-> > 
-> > which isn't in Linus's tree either yet however.
-> 
-> Whoops, yes.  My bad, sorry; it was in _my_ tree and I overlooked how it got there.
-> I thought maybe Juha had merged it.
-> 
-> Simplest fix would be to merge that patch from Greg's tree.
+The method is used for basic test sound driver whether it works and
+cannot be used for test this play speed problem. It is correct only
+recording for 2.5 second with dd bs=3D48k count=3D5 <  /dev/dsp > =
+sample.au
+at sample rate 48khz and stereo mode. If you want to testing sound
+correctly, please use a wave player or write a wavw play program. As to
+ringin.wav, it is a wav file of sample rate 11khz which the sound driver
+and aic23 codec doesn't support.
 
-I take that back.  Simplest fix is to remove that code fragment, since
-an equivalent one -- in the spi_bitbang infrastructure -- is found in
-that nyet-merged patch.
+Regards,
 
-- Dave
+Minjie Lin
 
+ =20
 
---Boundary-00=_MTjWEM7/lVOdTMN
-Content-Type: text/x-diff; charset="us-ascii"; name="omap-uwire-tweak.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="omap-uwire-tweak.patch"
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+Sergey Vointsev
+Sent: May 4, 2006 1:04 AM
+To: Linux-omap-open-source@linux.omap.com
+Subject: Strange work of OSK5912 audio driver
 
-Build fix ... the LSB_FIRST option isn't yet merged, and in any
-case this driver doesn't need it since the LSB_FIRST patch handles
-it in the spi_bitbang infrastructure used by omap_uwire.
+Hi everyone!
+I'm using OSK5912 with linux 2.6.16 +patch-2.6.16-omap2 I follow
+http://oskfordummies.hp.infoseek.co.jp/howto/audio.html while trying to
+configure audio driver.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+It's written there that following commands should record 5 seconds from
+mic and play it.
+dd bs=3D48k count=3D5 <  /dev/dsp > sample.au cp sample.au /dev/dsp
 
-Index: osk/drivers/spi/omap_uwire.c
-===================================================================
---- osk.orig/drivers/spi/omap_uwire.c	2006-05-03 08:03:40.000000000 -0700
-+++ osk/drivers/spi/omap_uwire.c	2006-05-04 10:05:14.000000000 -0700
-@@ -317,12 +317,6 @@ static int uwire_setup(struct spi_device
- 		goto done;
- 	}
- 
--	if (spi->mode & SPI_LSB_FIRST) {
--		pr_debug("%s: lsb first?\n", spi->dev.bus_id);
--		status = -EINVAL;
--		goto done;
--	}
--
- 	/* mode 0..3, clock inverted separately;
- 	 * standard nCS signaling;
- 	 * don't treat DI=high as "not ready"
+But when I try to execute this commands I get strange results - speech
+is recorded, but only first ~2-2.5sec and played only ~1.5- 2sec
 
---Boundary-00=_MTjWEM7/lVOdTMN
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Also when I try to do "cp notify.wav /dev/dsp" the sound plays almost
+OK.
+But when I do "cp ringin.wav /dev/dsp" I get about a second of noise
+instead of sound. Both these files are standard Windows sounds, if you
+want to check it yourself.
+
+What's wrong? Did I miss some configuration? Please advise.
+Thanks. Sergey,
 
 
---Boundary-00=_MTjWEM7/lVOdTMN--
+--
+Also available for instant messaging via Google Talk.
+Need invite to Gmail? I have one for you! Just ask.
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
