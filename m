@@ -1,13 +1,15 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: How to program flash of custom OMAP board?
-Date: Fri, 5 May 2006 11:19:04 -0500
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A5058CDD50@dlee02.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: Compact Flash Issue on OSK 5912
+Date: Fri, 5 May 2006 13:22:42 -0700
+Message-ID: <200605051322.42634.david-b@pacbell.net>
+References: <31bab3780605050815v5906b07ap994bcb3204a8b49d@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <31bab3780605050815v5906b07ap994bcb3204a8b49d@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,45 +17,18 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Li Weichen <iaadoa@gmail.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-For many OMAP-u-boot ports, if you have a JTAG debugger, you can connect
-to the board, initialize clocks & ddr via script, load u-boot into
-memory and execute it.  Now you can download using either your JTAG or
-ether the image you want to burn and use u-boot to burn that image.
+On Friday 05 May 2006 8:15 am, Bharat Kumar Reddy wrote:
+>
+> Has anyone faced these problems before and are there any patch fixes for this ?
 
-Regards,
-Richard W.
+Post any stack backtraces you get.  I saw similar rudeness on 2.6.17-current
+but ISTR that 2.6.14-omap didn't have problems there.  It's not clear what
+the problems are; my symptoms pointed more at IDE layer confusions with respect
+to IRQ handling.
 
-> -----Original Message-----
-> From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-
-> open-source-bounces@linux.omap.com] On Behalf Of Li Weichen
-> Sent: Friday, May 05, 2006 11:08 AM
-> To: linux-omap-open-source@linux.omap.com
-> Subject: How to program flash of custom OMAP board?
->=20
-> Hi everyone,
->=20
-> I have a custom OMAP 5912 board with Intel 28F256J3C NOR Flash.  But I
-> don't
-> know how to download the u-boot to it.  With OSK, the factory
-> u-boot-1.1.1.out can be loaded in CCS and download itself while
-running.
-> But due to the different flash type, this factory u-boot cannot be
-> programmed to the custom OMAP board.
->=20
-> Does anyone have any idea to resolve this problem?
->=20
-> Thank you in advance and best regards!
->=20
->=20
-> Li Weichen
->=20
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+ 
