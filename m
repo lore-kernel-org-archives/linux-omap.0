@@ -1,17 +1,11 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: Undefined usb_disconnect
-Date: Fri, 5 May 2006 11:08:52 +0300
-Message-ID: <20060505110852.66e6f39d.Hiroshi.DOYU@nokia.com>
-References: <4452384E.7080409@gmail.com>
-	<200605040751.45417.david-b@pacbell.net>
-	<445A2712.1000606@gmail.com>
-	<200605040932.46678.david-b@pacbell.net>
-	<445AD983.7060908@gmail.com>
+From: anshuman.goswami@tcs.com
+Subject: How to configure stack on ARM of OMAP5912 using Linux?
+Date: Fri, 5 May 2006 15:41:03 +0530
+Message-ID: <OF1D9231E9.494C20BE-ON65257165.00371AAB-65257165.0037F1FE@tcs.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <445AD983.7060908@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,45 +15,43 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: ext Dirk Behme <dirk.behme@googlemail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 Hi all,
 
-On Fri, 05 May 2006 06:50:11 +0200
-"ext Dirk Behme" <dirk.behme@googlemail.com> wrote:
+I want to know what is the method of setting the stack size manually used 
+by ARM926EJ-S of OMAP5912 from MontaVIsta Linux.
+I have used "arm_v4t_le-gcc" to compile and generate the executable which 
+was loded onto ARM926EJ-S through Monta Vista Linux.
 
-> David Brownell wrote:
-> > On Thursday 04 May 2006 9:08 am, Dirk Behme wrote:
-> >>David Brownell wrote:
-> >>>On Wednesday 03 May 2006 11:41 am, Dirk Behme wrote:
-> >>>I see a curious and pointless routine, ohci_omap_host_enable(), which
-> >>>isn't called from anywhere I can see, which wants usb_disconnect().
-> >>>
-> >>>Try deleting that routine.
-> >>
-> >>tahvo-usb.c uses ohci_omap_host_enable():
-> > 
-> > And so it does.  That would be a bug in how the Tahvo transceiver is
-> > trying to activate the USB host.  It should be able to just use
-> > the normal power management suspend and resume calls... certainly
-> > there's no benefit to creating transceiver-specific backdoors into
-> > usbcore for runtime PM.
-> 
-> Anybody like to fix and test tahvo-usb.c regarding this? 
-> Then we could remove ohci_omap_host_enable() from 
-> drivers/usb/host/ohci-omap.c .
+Is there anything like the linker command file like the one used in CCS to 
+configure the memory map when using the ARM926 Simulator which uses TI's 
+TMS470RXX CPU core?
 
-I will work on this, because we need this feature.
+Any suggestion is eagerly awaited.
 
-        Hiroshi DOYU
+Thanks in advance,
 
-> 
-> Cheers
-> 
-> Dirk
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+Regards,
+Anshuman Goswami
+COMPUTER CONSULTANCY
+Tata Consultancy Services Limited
+M2 & N2, Sector V, Block GP,
+Salt Lake Electronics Complex
+Kolkata - 700091,West Bengal
+India
+Mailto: anshuman.goswami@tcs.com
+Website: http://www.tcs.com
+=====-----=====-----=====
+Notice: The information contained in this e-mail
+message and/or attachments to it may contain 
+confidential or privileged information. If you are 
+not the intended recipient, any dissemination, use, 
+review, distribution, printing or copying of the 
+information contained in this e-mail message 
+and/or attachments to it are strictly prohibited. If 
+you have received this communication in error, 
+please notify us by reply e-mail or telephone and 
+immediately and permanently delete the message 
+and any attachments. Thank you
