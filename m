@@ -1,12 +1,12 @@
-From: "Bharat Kumar Reddy" <bharat.mailing@gmail.com>
-Subject: Compact Flash Issue on OSK 5912
-Date: Fri, 5 May 2006 20:45:05 +0530
-Message-ID: <31bab3780605050815v5906b07ap994bcb3204a8b49d@mail.gmail.com>
+From: "Li Weichen" <iaadoa@gmail.com>
+Subject: How to program flash of custom OMAP board?
+Date: Sat, 6 May 2006 00:08:00 +0800
+Message-ID: <445b7863.3e20ff6b.367d.ffff84b6@mx.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,22 +16,20 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello All,
+Hi everyone,
 
-On the OSK 5912 Linux kernel version 2.6.15.1, I tried to mount CF
-device of capacity 512 MB and 2GB, this mounts successfully but when
-we try to copy some files to the mount point I get a kernel panic,
-While a 32 MB CF disk gives no problems.
+I have a custom OMAP 5912 board with Intel 28F256J3C NOR Flash.  But I don't
+know how to download the u-boot to it.  With OSK, the factory
+u-boot-1.1.1.out can be loaded in CCS and download itself while running.
+But due to the different flash type, this factory u-boot cannot be
+programmed to the custom OMAP board.
 
-We also tried by creating a "swap" partition on the CF and doing
-"swapon", but this too fails.
+Does anyone have any idea to resolve this problem?
 
-Has anyone faced these problems before and are there any patch fixes for th=
-is ?
+Thank you in advance and best regards!
 
-Thanks in Advance.
-Warm Regards
-Bharat.
+
+Li Weichen
