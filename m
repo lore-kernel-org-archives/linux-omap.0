@@ -1,14 +1,14 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: Compact Flash Issue on OSK 5912
-Date: Fri, 5 May 2006 13:22:42 -0700
-Message-ID: <200605051322.42634.david-b@pacbell.net>
-References: <31bab3780605050815v5906b07ap994bcb3204a8b49d@mail.gmail.com>
+Subject: Re: Touchscreen on Innovator OMAP1510
+Date: Fri, 5 May 2006 13:25:23 -0700
+Message-ID: <200605051325.24349.david-b@pacbell.net>
+References: <9343BE359FA4224CA72A94D8CC362C9C0936A8@edpc500.cedt.iisc.ernet.in>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <31bab3780605050815v5906b07ap994bcb3204a8b49d@mail.gmail.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <9343BE359FA4224CA72A94D8CC362C9C0936A8@edpc500.cedt.iisc.ernet.in>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -17,18 +17,23 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
+Cc: Prakash Narayanan M <mnarayan@cedt.iisc.ernet.in>
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 05 May 2006 8:15 am, Bharat Kumar Reddy wrote:
->
-> Has anyone faced these problems before and are there any patch fixes for this ?
+On Friday 05 May 2006 5:07 am, Prakash Narayanan M wrote:
 
-Post any stack backtraces you get.  I saw similar rudeness on 2.6.17-current
-but ISTR that 2.6.14-omap didn't have problems there.  It's not clear what
-the problems are; my symptoms pointed more at IDE layer confusions with respect
-to IRQ handling.
+> Innovator has ADS7846E as touchscreen controller.  How to enable the
+> driver for ads7846 instead of tsc2101?
 
- 
+Did you try this with the current kernel tree?  There was a bogus
+dependency in Kconfig which should resolve that even if you're using
+the "old" touchscreen driver.
+
+You could switch do the "new" drivers/input/touchscreen/ads7846.c driver
+with a simple bitbang SPI module.  If you're interested, I'll post you one
+off-list that you'd need to modify for Innovator.
+
+- Dave
