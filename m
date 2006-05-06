@@ -1,11 +1,14 @@
-From: saminath sanjay <saminathmail@yahoo.com>
-Subject: How to Install X windows
-Date: Fri, 5 May 2006 21:56:28 -0700 (PDT)
-Message-ID: <20060506045628.98903.qmail@web31812.mail.mud.yahoo.com>
+From: "Li Weichen" <iaadoa@gmail.com>
+Subject: RE: How to program flash of custom OMAP board?
+Date: Sat, 6 May 2006 16:15:41 +0800
+Message-ID: <445c5b32.01f8c5fc.422c.5691@mx.gmail.com>
+References: <EA12F909C0431D458B9D18A176BEE4A5058CDD50@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A5058CDD50@dlee02.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,20 +18,13 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: "'Woodruff, Richard'" <r-woodruff2@ti.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-  Hi,
-  This is saminath,
-   
-  I want install X window system, on my Omap innovator 1510 kit which in having ARM processor.
-  How to compile the X window system and install it?
-  Currently I am using Linux-2.4.19 kernel and GCC-2.95.3
-  Can any one suggest the details steps, how to install X window system?
-   
-  thanks and regards
-
- __________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+> For many OMAP-u-boot ports, if you have a JTAG debugger, you can connect
+> to the board, initialize clocks & ddr via script, load u-boot into
+> memory and execute it.  Now you can download using either your JTAG or
+> ether the image you want to burn and use u-boot to burn that image.
+> 
+But after I load the u-boot and run, it seems not work, only stop at the
+beginning of the codes and there is not any information at the UART.
