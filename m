@@ -1,11 +1,13 @@
-From: Hiroshi.DOYU@nokia.com
-Subject: [PATCH 2/2] ARM: OMAP: USB: remove ohci_omap_host_enable
-Date: Mon, 08 May 2006 12:11:22 +0300
-Message-ID: <26781.2556507581$1147079728@news.gmane.org>
-References: <11470794823893-git-send-email-1>
-Reply-To: Hiroshi.DOYU@nokia.com
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH] Add PRCM scheme I on omap2420
+Date: Mon, 8 May 2006 10:13:17 -0500
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A5058CE854@dlee02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11470794823893-git-send-email-1>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,244 +17,161 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: kyungmin.park@samsung.com, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Kyungmin,
 
-A usb external transceiver mode is set when a kernel module(usb host/usb
-gadget) is loaded. "ohci_omap_host_enable()" is not used anymore.
+Locally I use the following RFR defines.
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+ #define V24XX_SDRC_RFR_CTRL_165MHz	(0x0004e200 | 1)
+ #define V24XX_SDRC_RFR_CTRL_133MHz	(0x0003de00 | 1)
+ #define V24XX_SDRC_RFR_CTRL_110MHz	(0x00032801 | 1)
+ #define V24XX_SDRC_RFR_CTRL_100MHz	(0x0002da01 | 1)
+ #define V24XX_SDRC_RFR_CTRL_BYPASS	(0x00005000 | 1)
+
+This is for DDR's used on H4 and 2430SDP's.  Really I suppose we should
+have a board specific table setting imported.  Your 44c00 perhaps could
+be a little better; it really depends on the part.  Many of the mDDRs
+seem to be pretty compatible in this regard given a frequency.=20
+
+I also don't use _166MHz for the speed as it's really set to 165.  660/4
+=3D 165.
+=20
+Otherwise it looks fine.
+
+Regards,
+Richard W.
 
 
----
+-----Original Message-----
+From: linux-omap-open-source-bounces+r-woodruff2=3Dti.com@linux.omap.com
+[mailto:linux-omap-open-source-bounces+r-woodruff2=3Dti.com@linux.omap.co=
+m
+] On Behalf Of Kyungmin Park
+Sent: Monday, May 08, 2006 1:03 AM
+To: linux-omap-open-source@linux.omap.com
+Subject: [PATCH] Add PRCM scheme I on omap2420
 
- drivers/cbus/tahvo-usb.c     |   83 ++++++++----------------------------------
- drivers/usb/host/ohci-omap.c |   41 ---------------------
- 2 files changed, 16 insertions(+), 108 deletions(-)
+Hi
 
-52a44544889a16f86b6a57d03540660507d86399
-diff --git a/drivers/cbus/tahvo-usb.c b/drivers/cbus/tahvo-usb.c
-index aef8481..f51151f 100644
---- a/drivers/cbus/tahvo-usb.c
-+++ b/drivers/cbus/tahvo-usb.c
-@@ -85,8 +85,6 @@ #else
- #define TAHVO_MODE(tu)		TAHVO_MODE_HOST
- #endif
- 
--extern int ohci_omap_host_enable(struct usb_bus *host, int enable);
--
- struct tahvo_usb {
- 	struct platform_device *pt_dev;
- 	struct otg_transceiver otg;
-@@ -132,8 +130,10 @@ static irqreturn_t omap_otg_irq(int irq,
- 	} else if (otg_irq & DRIVER_SWITCH) {
- 
- 		if ((!(OTG_CTRL_REG & OTG_DRIVER_SEL)) &&
--		   tu->otg.host && tu->otg.state == OTG_STATE_A_HOST) {
-+		   tu->otg.host && tu->otg.state == OTG_STATE_A_HOST
-+		    && tu->otg.host->root_hub) {
- 			/* role is host */
+This patch add PRCM scheme I on omap2420.
+
+The Apollon can run with 660MHz with SDRAM 166MHz.
+
+please check the setting values.=20
+
+Thank you
+Kyungmin Park
+
+--
+
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index 6c78d47..94ded7b 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -174,7 +174,7 @@ struct prcm_config {
+ #define RII_CLKSEL_DSP			(3 << 0)	/* c5x - 200MHz
+*/
+ #define RII_CLKSEL_DSP_IF		(2 << 5)	/* c5x - 100MHz
+*/
+ #define RII_SYNC_DSP			(0 << 7)	/* Bypass sync
+*/
+-#define RII_CLKSEL_IVA			(6 << 8)	/* iva1 - 200MHz
+*/
++#define RII_CLKSEL_IVA			(3 << 8)	/* iva1 - 200MHz
+*/
+ #define RII_SYNC_IVA			(0 << 13)	/* Bypass sync
+*/
+ #define RII_CM_CLKSEL_DSP_VAL		RII_SYNC_IVA | RII_CLKSEL_IVA |
+\
+ 					RII_SYNC_DSP | RII_CLKSEL_DSP_IF
+| \
+@@ -182,6 +182,27 @@ struct prcm_config {
+ #define RII_CLKSEL_GFX			(2 << 0)	/* 50MHz */
+ #define RII_CM_CLKSEL_GFX_VAL		RII_CLKSEL_GFX
+=20
++/* 2420-PRCM I 660MHz core */
++#define RI_CLKSEL_L3			(4 << 0)	/* 165MHz */
++#define RI_CLKSEL_L4			(2 << 5)	/* 82.5MHz */
++#define RI_CLKSEL_USB			(4 << 25)	/* 41.25MHz */
++#define RI_CM_CLKSEL1_CORE_VAL		RI_CLKSEL_USB | \
++					RXX_CLKSEL_SSI |
+RXX_CLKSEL_VLYNQ |
+\
++					RX_CLKSEL_DSS2 | RX_CLKSEL_DSS1
+| \
++					RI_CLKSEL_L4 | RI_CLKSEL_L3
++#define RI_CLKSEL_MPU			(2 << 0)	/* 330MHz */
++#define RI_CM_CLKSEL_MPU_VAL		RI_CLKSEL_MPU
++#define RI_CLKSEL_DSP			(3 << 0)	/* c5x - 220MHz
+*/
++#define RI_CLKSEL_DSP_IF		(2 << 5)	/* c5x - 110MHz
+*/
++#define RI_SYNC_DSP			(1 << 7)	/* Activate sync
+*/
++#define RI_CLKSEL_IVA			(4 << 8)	/* iva1 - 165MHz
+*/
++#define RI_SYNC_IVA			(0 << 13)	/* Bypass sync
+*/
++#define RI_CM_CLKSEL_DSP_VAL		RI_SYNC_IVA | RI_CLKSEL_IVA | \
++					RI_SYNC_DSP | RI_CLKSEL_DSP_IF |
+\
++					RI_CLKSEL_DSP
++#define RI_CLKSEL_GFX			(1 << 0)	/* 165MHz */
++#define RI_CM_CLKSEL_GFX_VAL		RI_CLKSEL_GFX
 +
- 			usb_bus_start_enum(tu->otg.host,
- 					   tu->otg.host->otg_port);
- 		}
-@@ -244,8 +244,6 @@ static void check_vbus_state(struct tahv
- 		case OTG_STATE_A_IDLE:
- 			/* Session is now valid assuming the USB hub is driving Vbus */
- 			tu->otg.state = OTG_STATE_A_HOST;
--			if (tu->otg.host)
--				ohci_omap_host_enable(tu->otg.host, 1);
- 			break;
- 		default:
- 			break;
-@@ -262,9 +260,6 @@ static void check_vbus_state(struct tahv
- 			break;
- 		case OTG_STATE_A_HOST:
- 			tu->otg.state = OTG_STATE_A_IDLE;
--			if (tu->otg.host)
--				ohci_omap_host_enable(tu->otg.host, 0);
--
- 			break;
- 		default:
- 			break;
-@@ -296,8 +291,6 @@ static void tahvo_usb_become_host(struct
- 
- static void tahvo_usb_stop_host(struct tahvo_usb *tu)
- {
--	if (tu->otg.host)
--		ohci_omap_host_enable(tu->otg.host, 0);
- 	tu->otg.state = OTG_STATE_A_IDLE;
- }
- 
-@@ -334,9 +327,6 @@ static void tahvo_usb_power_off(struct t
- 	if (tu->otg.gadget)
- 		usb_gadget_vbus_disconnect(tu->otg.gadget);
- 
--	if (tu->otg.host)
--		ohci_omap_host_enable(tu->otg.host, 0);
--
- 	/* Disable OTG and interrupts */
- 	if (TAHVO_MODE(tu) == TAHVO_MODE_PERIPHERAL)
- 		id = OTG_ID;
-@@ -413,24 +403,21 @@ static int tahvo_usb_set_host(struct otg
- 		return -ENODEV;
- 
- #if defined(CONFIG_USB_OTG) || !defined(CONFIG_USB_GADGET_OMAP)
--
- 	mutex_lock(&tu->serialize);
- 
-+	if (tu->tahvo_mode == TAHVO_MODE_PERIPHERAL)
-+		tahvo_usb_stop_peripheral(tu);
-+	tu->tahvo_mode = TAHVO_MODE_HOST;
-+	
- 	if (!host) {
--		if (TAHVO_MODE(tu) == TAHVO_MODE_HOST)
--			tahvo_usb_power_off(tu);
-+		tahvo_usb_power_off(tu);
- 		tu->otg.host = 0;
- 		mutex_unlock(&tu->serialize);
- 		return 0;
- 	}
- 
--	if (TAHVO_MODE(tu) == TAHVO_MODE_HOST) {
--		tu->otg.host = 0;
--		tahvo_usb_become_host(tu);
--	} else
--		ohci_omap_host_enable(host, 0);
--
- 	tu->otg.host = host;
-+	tahvo_usb_become_host(tu);
- 
- 	mutex_unlock(&tu->serialize);
- #else
-@@ -449,20 +436,21 @@ static int tahvo_usb_set_peripheral(stru
- 		return -ENODEV;
- 
- #if defined(CONFIG_USB_OTG) || defined(CONFIG_USB_GADGET_OMAP)
--
- 	mutex_lock(&tu->serialize);
- 
-+	if (tu->tahvo_mode == TAHVO_MODE_HOST)
-+		tahvo_usb_stop_host(tu);
-+	tu->tahvo_mode = TAHVO_MODE_PERIPHERAL;
+ /* 2420-PRCM VII (boot) */
+ #define RVII_CLKSEL_L3			(1 << 0)
+ #define RVII_CLKSEL_L4			(1 << 5)
+@@ -300,6 +321,13 @@ struct prcm_config {
+  * boot (boot)
+  */
+=20
++/* PRCM I target DPLL =3D 2*330MHz =3D 660MHz */
++#define MI_DPLL_MULT_12			(55 << 12)
++#define MI_DPLL_DIV_12			(1 << 8)
++#define MI_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
++					MI_DPLL_DIV_12 | MI_DPLL_MULT_12
+| \
++					MX_APLLS_CLIKIN_12
 +
- 	if (!gadget) {
--		if (TAHVO_MODE(tu) == TAHVO_MODE_PERIPHERAL)
--			tahvo_usb_power_off(tu);
-+		tahvo_usb_power_off(tu);
- 		tu->otg.gadget = 0;
- 		mutex_unlock(&tu->serialize);
- 		return 0;
- 	}
- 
- 	tu->otg.gadget = gadget;
--	if (TAHVO_MODE(tu) == TAHVO_MODE_PERIPHERAL)
--		tahvo_usb_become_peripheral(tu);
-+	tahvo_usb_become_peripheral(tu);
- 
- 	mutex_unlock(&tu->serialize);
- #else
-@@ -505,46 +493,7 @@ static ssize_t otg_mode_show(struct devi
- 	}
- 	return sprintf(buf, "unknown\n");
- }
--
--static ssize_t otg_mode_store(struct device *device,
--			      struct device_attribute *attr,
--			      const char *buf, size_t count)
--{
--	struct tahvo_usb *tu = (struct tahvo_usb*) device->driver_data;
--	int r;
--
--	r = strlen(buf);
--	mutex_lock(&tu->serialize);
--	if (strncmp(buf, "host", 4) == 0) {
--		if (tu->tahvo_mode == TAHVO_MODE_PERIPHERAL)
--			tahvo_usb_stop_peripheral(tu);
--		tu->tahvo_mode = TAHVO_MODE_HOST;
--		if (tu->otg.host) {
--			printk(KERN_INFO "Selected HOST mode: host controller present.\n");
--			tahvo_usb_become_host(tu);
--		} else {
--			printk(KERN_INFO "Selected HOST mode: no host controller, powering off.\n");
--			tahvo_usb_power_off(tu);
--		}
--	} else if (strncmp(buf, "peripheral", 10) == 0) {
--		if (tu->tahvo_mode == TAHVO_MODE_HOST)
--			tahvo_usb_stop_host(tu);
--		tu->tahvo_mode = TAHVO_MODE_PERIPHERAL;
--		if (tu->otg.gadget) {
--			printk(KERN_INFO "Selected PERIPHERAL mode: gadget driver present.\n");
--			tahvo_usb_become_peripheral(tu);
--		} else {
--			printk(KERN_INFO "Selected PERIPHERAL mode: no gadget driver, powering off.\n");
--			tahvo_usb_power_off(tu);
--		}
--	} else
--		r = -EINVAL;
--
--	mutex_unlock(&tu->serialize);
--	return r;
--}
--
--static DEVICE_ATTR(otg_mode, 0644, otg_mode_show, otg_mode_store);
-+static DEVICE_ATTR_RO(otg_mode);
- #endif
- 
- static int tahvo_usb_probe(struct device *dev)
-diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
-index 1401844..e129a4f 100644
---- a/drivers/usb/host/ohci-omap.c
-+++ b/drivers/usb/host/ohci-omap.c
-@@ -281,47 +281,6 @@ static void omap_stop_hc(struct platform
- 
- void usb_hcd_omap_remove (struct usb_hcd *, struct platform_device *);
- 
--/* configure so an HC device and id are always provided */
--/* always called with process context; sleeping is OK */
--
--
--int ohci_omap_host_enable(struct usb_bus *host, int enable)
--{
--	struct usb_hcd *hcd;
--	struct ohci_hcd *ohci;
--	int retval;
--
--	if (host_enabled == enable)
--		return 0;
--
--	host_enabled = enable;
--
--	if (!host_initialized)
--		return 0;
--
--	hcd = (struct usb_hcd *)host->hcpriv;
--	ohci = hcd_to_ohci(hcd);
--	if (enable) {
--		omap_ohci_clock_power(1);
--		if ((retval = ohci_init(ohci)) < 0) {
--			dev_err(hcd->self.controller, "init error %d\n",
--				retval);
--			return retval;
--		}
--		if ((retval = hcd->driver->start(hcd)) < 0) {
--			dev_err(hcd->self.controller, "startup error %d\n",
--				retval);
--			return retval;
--		}
--	} else {
--		usb_disconnect(&hcd->self.root_hub);
--		hcd->driver->stop(hcd);
--		omap_ohci_clock_power(0);
--	}
--
--	return 0;
--}
--
- /**
-  * usb_hcd_omap_probe - initialize OMAP-based HCDs
-  * Context: !in_interrupt()
--- 
-1.3.2.g8611
+ /*
+  * 2420 Equivalent - mode registers
+  * PRCM II , target DPLL =3D 2*300MHz =3D 600MHz
+@@ -352,6 +380,7 @@ struct prcm_config {
+  * By having the boot loader boot up in the fastest L4 speed available
+likely
+  * will result in something which you can switch between.
+  */
++#define V24XX_SDRC_RFR_CTRL_166MHz	(0x00044c00 | 1)
+ #define V24XX_SDRC_RFR_CTRL_133MHz	(0x0003de00 | 1)
+ #define V24XX_SDRC_RFR_CTRL_100MHz	(0x0002da01 | 1)
+ #define V24XX_SDRC_RFR_CTRL_110MHz	(0x0002da01 | 1) /* Need to calc
+*/
+@@ -394,6 +423,13 @@ struct prcm_config {
+  * Note: This table needs to be sorted, fastest to slowest.
+=20
+*-----------------------------------------------------------------------
+--
+*/
+ static struct prcm_config rate_table[] =3D {
++	/* PRCM I - FAST */
++	{S12M, S660M, S330M, RI_CM_CLKSEL_MPU_VAL,		/*
+330MHz
+ARM */
++		RI_CM_CLKSEL_DSP_VAL, RI_CM_CLKSEL_GFX_VAL,
++		RI_CM_CLKSEL1_CORE_VAL, MI_CM_CLKSEL1_PLL_12_VAL,
++		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_166MHz,
++		RATE_IN_242X},
++
+ 	/* PRCM II - FAST */
+ 	{S12M, S600M, S300M, RII_CM_CLKSEL_MPU_VAL,		/*
+300MHz
+ARM */
+ 		RII_CM_CLKSEL_DSP_VAL, RII_CM_CLKSEL_GFX_VAL,
+
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
