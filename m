@@ -1,13 +1,9 @@
-From: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>
-Subject: Re: JTAG debugger on Linux Environment
-Date: Mon, 08 May 2006 16:26:10 +0900 (JST)
-Message-ID: <20060508.162610.41628466.kaminaga@sm.sony.co.jp>
-References: <20060508040747.29661.qmail@web36404.mail.mud.yahoo.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <20060508040747.29661.qmail@web36404.mail.mud.yahoo.com>
+From: Hiroshi.DOYU@nokia.com
+Subject: [PATCH 1/2] add DEVICE_ATTR_RO(name)
+Date: Mon, 08 May 2006 12:11:21 +0300
+Message-ID: <20537.6203441576$1147079703@news.gmane.org>
+Reply-To: Hiroshi.DOYU@nokia.com
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,31 +11,37 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: tungsys@yahoo.com
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-From: Tung Dang <tungsys@yahoo.com>
-> Hi all,
-> I am using OMAP5912 Starter Kit without JTAG debugger , 
-> I am planning to develop a DSP application on Linux Environment (not windows)
-> Can i use a JTAG debugger on Linux Environment ? and what is the JTAG debugger suitable for me . 
-> Does the BDI2000 supports OMAP5912 ? ( is BDI2000 support only OMAP1510 ?)
+add DEVICE_ATTR_RO(name) as __ATTR_RO(_name) in "sysfs.h"
 
-you might find below thread useful.
-
-http://sourceforge.net/mailarchive/forum.php?thread_id=10249833&forum_id=12898
-with title "OMAP5912 OSK - BDI2000 config file / flash instructions?"
-
-hope this helps.
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
 
-Best Regards,
+---
 
-(Hiroki Kaminaga)
-t
---
+ include/linux/device.h |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+95e30aadfc789d4791777f27cca139c8418f554d
+diff --git a/include/linux/device.h b/include/linux/device.h
+index f6e72a6..5763b8a 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -300,6 +300,9 @@ struct device_attribute {
+ #define DEVICE_ATTR(_name,_mode,_show,_store) \
+ struct device_attribute dev_attr_##_name = __ATTR(_name,_mode,_show,_store)
+ 
++#define DEVICE_ATTR_RO(_name) \
++struct device_attribute dev_attr_##_name = __ATTR_RO(_name)
++
+ extern int device_create_file(struct device *device, struct device_attribute * entry);
+ extern void device_remove_file(struct device * dev, struct device_attribute * attr);
+ struct device {
+-- 
+1.3.2.g8611
