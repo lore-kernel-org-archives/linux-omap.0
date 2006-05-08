@@ -1,13 +1,13 @@
-From: "Chetan Kapoor" <chetan.kapoor@flextronicssoftware.com>
-Subject: Problem using gdbserver on ARM target - Strace logs
-Date: Mon, 8 May 2006 12:26:35 +0530
-Message-ID: <14fc2db60605072356j56dc616dmea05bb61499838ec@mail.gmail.com>
-Reply-To: chetan.kapoor@flextronicssoftware.com
+From: "Ishigami, Tatsuya" <ishigami@ti.com>
+Subject: RE: How to program flash of custom OMAP board?
+Date: Mon, 8 May 2006 01:58:06 -0500
+Message-ID: <772F5D89C5E0734B8A86D85DFC6A202403346834@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,249 +17,72 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Li Weichen <iaadoa@gmail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+Hi,
 
-We are stuck with problem of gdbserver giving a segmantation fault when
-connecting or binding to a socket, when launched on the OMAP P2 730 target
-running kernel v2.6.16-omap1. Initially we were working with the gdbserver
-binary (dynamically linked) built by us for the downloaded sources. But, th=
-e
-problem persists even when we use the prebuilt gdbserver binary included in
-the 'scratchbox' gnu-arm toolchain, which we downloaded from scratchbox.org=
-.
+ If you find no message on the UART, is the u-boot running
+on the DDR or Flash?
 
-The problem seems to be relates to presence of shared libs on the target's
-rootfs. We have tried many things, like copying the complete /lib tree from
-the cross toolchain installation directory to the appropriate lib directory
-in the nfs share for rootfs. This only makes the gdbserver launch, after
-that it gives the segmentation fault.
+ If you mean the latter, the number of device errata may
+impact your design.
 
-Attached is the strace dump for the gdbserver execution on our target.
+	http://focus.ti.com/lit/er/sprz209h/sprz209h.pdf
+	(see page 30)
 
-Also, Is anyone using  cross toolchain, which has static libraries (.a
-files) instead of the shared libraries (.so files). We have downloaded two
-prebuilt toolchains but both of them contain the libraries required by
-gdbserver as shared objects only- (libc-2.3.2.so, libthread_db-1.0.so,
-libcrypt-2.3.2.so), we need static libraries e.g.  libthread_db-1.0.a. Any
-ideas?
+ If I remember correctly, the u-boot must be re-configured to =20
+include the 28F256J3 driver (while the single MTD driver supports
+28F128J3 & 28F256J3 in Linux).
 
-Please help.
+ BTW, this product already supports the OMAP5912 +=20
+28F256J3C, and all the behind-sence things will be done=20
+automatically by pressing the single button.
 
-Chetan
+	http://www.sophia.com/Products/EJ-Writer.html
 
 
+ The board below (OMAP5912 + 28F256J3) is programmed
+the bootloader with this tool.
 
-STRACE LOGS:
+	http://www.losteaka.com/omap_e.htm
 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=
-++++++++++++++++
+ Good luck.
 
-/bin # strace gdbTry 172.21.160.215:6281 ./hello.arm.1.out
-execve("/bin/gdbTry", ["gdbTry", "172.21.160.215:6281",
-"./hello.arm.1.out"], [/
-* 8 vars */]) =3D 0
-brk(0)                                  =3D 0x1c000
-old_mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0=
-)
-=3D 0
-x40016000
-open("/etc/ld.so.preload", O_RDONLY)    =3D -1 ENOENT (No such file or
-directory)
-open("/usr/local/arm/3.3.2/etc/ld.so.cache", O_RDONLY) =3D -1 ENOENT (No su=
-ch
-file
- or directory)
-open("/usr/local/arm/3.3.2/lib/v5l/fast-mult/half/libthread_db.so.1",
-O_RDONLY)
-=3D -1 ENOENT (No such file or directory)
-stat64("/usr/local/arm/3.3.2/lib/v5l/fast-mult/half", 0xbedad2a4) =3D -1
-ENOENT (N
-o such file or directory)
-open("/usr/local/arm/3.3.2/lib/v5l/fast-mult/libthread_db.so.1", O_RDONLY) =
-=3D
--1
-ENOENT (No such file or directory)
-stat64("/usr/local/arm/3.3.2/lib/v5l/fast-mult", 0xbedad2a4) =3D -1 ENOENT =
-(No
-suc
-h file or directory)
-open("/usr/local/arm/3.3.2/lib/v5l/half/libthread_db.so.1", O_RDONLY) =3D -=
-1
-ENOEN
-T (No such file or directory)
-stat64("/usr/local/arm/3.3.2/lib/v5l/half", 0xbedad2a4) =3D -1 ENOENT (No s=
-uch
-fil
-e or directory)
-open("/usr/local/arm/3.3.2/lib/v5l/libthread_db.so.1", O_RDONLY) =3D -1 ENO=
-ENT
-(No
- such file or directory)
-stat64("/usr/local/arm/3.3.2/lib/v5l", 0xbedad2a4) =3D -1 ENOENT (No such f=
-ile
-or
-directory)
-open("/usr/local/arm/3.3.2/lib/fast-mult/half/libthread_db.so.1", O_RDONLY)
-=3D -1
- ENOENT (No such file or directory)
-stat64("/usr/local/arm/3.3.2/lib/fast-mult/half", 0xbedad2a4) =3D -1 ENOENT
-(No su
-ch file or directory)
-open("/usr/local/arm/3.3.2/lib/fast-mult/libthread_db.so.1", O_RDONLY) =3D =
--1
-ENOE
-NT (No such file or directory)
-stat64("/usr/local/arm/3.3.2/lib/fast-mult", 0xbedad2a4) =3D -1 ENOENT (No
-such fi
-le or directory)
-open("/usr/local/arm/3.3.2/lib/half/libthread_db.so.1", O_RDONLY) =3D -1
-ENOENT (N
-o such file or directory)
-stat64("/usr/local/arm/3.3.2/lib/half", 0xbedad2a4) =3D -1 ENOENT (No such
-file or
- directory)
-open("/usr/local/arm/3.3.2/lib/libthread_db.so.1", O_RDONLY) =3D 3
-read(3, "\177ELF\1\1\1a\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0\304\23\0"..., 1024) =
-=3D
-102
-4
-fstat64(3, {st_mode=3DS_IFREG|0755, st_size=3D1101460, ...}) =3D 0
-old_mmap(NULL, 49636, PROT_READ|PROT_EXEC, MAP_PRIVATE, 3, 0) =3D 0x4001f00=
-0
-mprotect(0x40023000, 33252, PROT_NONE)  =3D 0
-old_mmap(0x40027000, 20480, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED, 3,
-0) =3D
- 0x40027000
-close(3)                                =3D 0
-open("/usr/local/arm/3.3.2/lib/libc.so.6", O_RDONLY) =3D 3
-read(3, "\177ELF\1\1\1a\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0h~\1\0004"..., 1024) =
-=3D
-102
-4
-fstat64(3, {st_mode=3DS_IFREG|0755, st_size=3D26901638, ...}) =3D 0
-old_mmap(NULL, 1212024, PROT_READ|PROT_EXEC, MAP_PRIVATE, 3, 0) =3D 0x4002c=
-000
-mprotect(0x40146000, 56952, PROT_NONE)  =3D 0
-old_mmap(0x4014c000, 32768, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED, 3,
-0x11
-8000) =3D 0x4014c000
-close(3)                                =3D 0
-mprotect(0x4002c000, 1155072, PROT_READ|PROT_WRITE) =3D 0
-mprotect(0x4002c000, 1155072, PROT_READ|PROT_EXEC) =3D 0
-mprotect(0x4001f000, 16384, PROT_READ|PROT_WRITE) =3D 0
-mprotect(0x4001f000, 16384, PROT_READ|PROT_EXEC) =3D 0
-brk(0)                                  =3D 0x1c000
-brk(0x1d000)                            =3D 0x1d000
-brk(0)                                  =3D 0x1d000
-rt_sigaction(SIGRT_1, {SIG_IGN}, {SIG_DFL}, 8) =3D 0
-rt_sigaction(SIGTTOU, {SIG_DFL}, {SIG_DFL}, 8) =3D 0
-rt_sigaction(SIGTTIN, {SIG_DFL}, {SIG_DFL}, 8) =3D 0
-fork()                                  =3D 260
---- SIGCHLD (Child exited) @ 0 (0) ---
-write(2, "Process ./hello.arm.1.out create"..., 45Process ./hello.arm.1.out
-crea
-ted; pid =3D 260
-) =3D 45
-rt_sigaction(SIGTTOU, {SIG_IGN}, {SIG_DFL}, 8) =3D 0
-rt_sigaction(SIGTTIN, {SIG_IGN}, {SIG_DFL}, 8) =3D 0
-ioctl(2, TIOCSPGRP, [260])              =3D 0
-rt_sigaction(SIGIO, {0xa060, [IO], SA_RESTART|0x4000000}, {SIG_DFL}, 8) =3D=
- 0
-rt_sigprocmask(SIG_UNBLOCK, [IO], NULL, 8) =3D 0
-wait4(-1, [{WIFSTOPPED(s) && WSTOPSIG(s) =3D=3D SIGTRAP}], WNOHANG, NULL) =
-=3D 260
-ptrace(PTRACE_PEEKUSER, 260, r0, [0])   =3D 0
-ptrace(PTRACE_PEEKUSER, 260, r1, [0xbefb8f70]) =3D 0
-ptrace(PTRACE_PEEKUSER, 260, r2, [0])   =3D 0
-ptrace(PTRACE_PEEKUSER, 260, r3, [0])   =3D 0
-ptrace(PTRACE_PEEKUSER, 260, r4, [0])   =3D 0
-ptrace(PTRACE_PEEKUSER, 260, r5, [0])   =3D 0
-ptrace(PTRACE_PEEKUSER, 260, r6, [0])   =3D 0
-ptrace(PTRACE_PEEKUSER, 260, r7, [0])   =3D 0
-ptrace(PTRACE_PEEKUSER, 260, r8, [0])   =3D 0
-ptrace(PTRACE_PEEKUSER, 260, r9, [0])   =3D 0
-ptrace(PTRACE_PEEKUSER, 260, r10, [0])  =3D 0
-ptrace(PTRACE_PEEKUSER, 260, fp, [0])   =3D 0
-ptrace(PTRACE_PEEKUSER, 260, ip, [0])   =3D 0
-ptrace(PTRACE_PEEKUSER, 260, sp, [0xbefb8eb0]) =3D 0
-ptrace(PTRACE_PEEKUSER, 260, lr, [0])   =3D 0
-ptrace(PTRACE_PEEKUSER, 260, pc, [0x40001690]) =3D 0
-ptrace(PTRACE_PEEKUSER, 260, cpsr, [0x10]) =3D 0
-ptrace(PTRACE_PEEKTEXT, 260, 0x40001690, [0xe1a0000d]) =3D 0
-rt_sigaction(SIGIO, {SIG_IGN}, {0xa060, [IO], SA_RESTART|0x4000000}, 8) =3D=
- 0
-socket(PF_INET, SOCK_STREAM, IPPROTO_IP) =3D 3
-setsockopt(3, SOL_SOCKET, SO_REUSEADDR, [1], 4) =3D 0
-bind(3, {sa_family=3DAF_INET, sin_port=3Dhtons(6281),
-sin_addr=3Dinet_addr("0.0.0.0")}
-, 16) =3D 0
-listen(3, 1)                            =3D 0
-write(2, "Listening on port 6281\n", 23Listening on port 6281
-) =3D 23
---- SIGSEGV (Segmentation fault) @ 0 (0) ---
-+++ killed by SIGSEGV +++
-Process 259 detached
-Hello World
-argc =3D 1
-argv[0] =3D "./hello.arm.1.out"
-argv[1] =3D "<NULL>"
-Hit any key to exit ...
+ regards,
+  Ishigami
 
-/bin #
+-----Original Message-----
+From: Jason Huang
+Sent: Sunday, May 07, 2006 9:02 AM
+To: linux-omap-open-source@linux.omap.com
+Subject: RE: How to program flash of custom OMAP board?
 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=
-++++++++++++++++
+When you build the u-boot, be sure it is pointing the UART port you are
+using.
 
-Hello
+-----Original Message-----
+From: Behalf Of Li Weichen
+Sent: Saturday, May 06, 2006 1:16 AM
+To: 'Woodruff, Richard'; linux-omap-open-source@linux.omap.com
+Subject: RE: How to program flash of custom OMAP board?
 
-I am trying bring up gdbserver on my ARM target (OMAP P2 730).
+> For many OMAP-u-boot ports, if you have a JTAG debugger, you can
+connect
+> to the board, initialize clocks & ddr via script, load u-boot into
+> memory and execute it.  Now you can download using either your JTAG or
+> ether the image you want to burn and use u-boot to burn that image.
+>=20
+But after I load the u-boot and run, it seems not work, only stop at the
+beginning of the codes and there is not any information at the UART.
 
-I downloaded a prebuilt toolchain which contains gcc 3.3.2-glibc-2.3.2 +
-binutils-head. We have used this to build   Kernel version 2.6.16-omap1 &
-Busybox-1.0.0.
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
 
-I have now compiled gdb 6.4 pack, and crosscompiled the gdb with
---target=3Darm-linux
-For gdbserver in the gbb/gdbserver directory I configured using
---host=3Darm-linux
-
-A make is successful but the dynamically linked ARM executable gives the
-following error when I execute it on the target,
-
-~ # ./gdbserver
--sh: ./gdbserver: No such file or directory
-
-I have noted that the gdbserver executable has been loaded successfully to
-the target yet I am not able to execute it.
-
-On the host I verified,
-
-# file gdbserver
-ELF 32-bit LSB executable, ARM, version 1 (ARM), for GNU/Linux 2.4.3,
-dynamically linked (uses shared libs), not stripped
-
-Any clues as to what is going wrong here ?
-
-It seems that the gdbserver dynamically linked executable is looking for a
-few shared libraries to be in place in the target's rootfs. I tried
-keeping the required libraries (libc-2.3.2.so, libthread_db-1.0.so,
-libcrypt-2.3.2.so and related symlinks)at path /usr/local/arm/3.3.2/lib on
-the target's rootfs to relsove the issue. This time the gdbserver launches
-but gives a segmentation fault.
-
-Someone suggested that first I should get libthread_db compiled as a
-static library (i.e. libthread_db.a), and then build a statically linked
-gdbserver executable which includes libthread_db.a.
-
-I have a prebuilt toolchain for which I do not have the source code, and
-libthread_db.a is not present in the toolchain's lib folder, rather
-libthread_db.so is present. Any pointers, where can I get the toolchain's
-source and use it to build static librares?, which will in turn be useful
-in building statically linked gdbserver.
-
-Thanks
-
-Chetan
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
