@@ -1,18 +1,12 @@
-From: "James Selvam" <james.iisc@gmail.com>
-Subject: Re: [PATCH 0/3] aic23 sound driver fixes
-Date: Mon, 8 May 2006 11:29:01 +0530
-Message-ID: <fd1e34b0605072259o7a4bb4bei6b0d0556047751c0@mail.gmail.com>
-References: <4457C35D.4020700@cc.jyu.fi>
-	<fd1e34b0605030420g68f908f7y447d6a4ed2001fc0@mail.gmail.com>
-	<44590581.6070108@cc.jyu.fi>
-	<fd1e34b0605040318m4b0d1bd4h58f50589df2a4cdf@mail.gmail.com>
-	<445B7A03.6040908@cc.jyu.fi>
+From: Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] Add PRCM scheme I on omap2420
+Date: Mon, 08 May 2006 15:02:39 +0900
+Message-ID: <038101c67265$02e89c60$c7a3580a@swcenter.sec.samsung.co.kr>
+Reply-To: kyungmin.park@samsung.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <445B7A03.6040908@cc.jyu.fi>
-Content-Disposition: inline
+Content-Type: text/plain; charset=ks_c_5601-1987
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,68 +14,103 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: lamikr@cc.jyu.fi
-Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mika/All,
+Hi
 
-I have all the relavant nodes created in /dev/snd directory. This includes
-controlCx, hwCxDy, midiCxDy, pcmCxDyc, pcmCxDyc, seq & timer.
+This patch add PRCM scheme I on omap2420.
 
-I have also put the following three lines:
+The Apollon can run with 660MHz with SDRAM 166MHz.
 
-        spin_lock_irqsave(&s->dma_lock, flags);
-        omap_stop_alsa_sound_dma(s);
-        spin_unlock_irqrestore(&s->dma_lock, flags);
+please check the setting values. 
 
-Any ideas about how to get this working? Is there something else missing?
+Thank you
+Kyungmin Park
 
-Thanks,
-James.
+--
 
-
-
-On 5/5/06, lamikr <lamikr@cc.jyu.fi> wrote:
->
-> James Selvam wrote:
->
-> > Hi Mika/All,
-> >
-> > The patch set the MCLK error all right. It infact took the right CLK
-> > freq of 12 MHz:
-> >
-> > Advanced Linux Sound Architecture Driver Version 1.0.11rc2 (Wed Jan 04
-> > 08:57:20
-> > 2006 UTC).
-> > MCLK =3D 12000000 [12000000], usecount =3D 1
-> > audio support initialized
-> > ALSA device list:
-> >   #0: OMAP Innovator AIC23
-> >
-> > But aplay -l still fails. It fails to recognise and list the hardware
-> > present:
->
-> Hmm, do you have udev installed and do you get nodes created to /dev/snd
-> directory?
->
-> >
-> > **** List of PLAYBACK Hardware Devices ****
-> > ALSA lib control.c:818:(snd_ctl_open_noupdate) Invalid CTL hw:0
-> > aplay: device_list:232: control open (0): No such file or directory
-> >
-> > I then tried to do a simple "cat raw_file > /dev/dsp" (OSS emulation
-> > enabled). It just gave me some noise. Another player "bplay"
-> > cross-compiled for ARM gave similar results.
->
-> So, you were able to hear something? I had some DMA problems with my
-> OMAP1510 based h6300 and therefore the omap-alsa.c has
-> #ifdef CONFIG_MACH_OMAP_H6300 in one place. You could try to enable that
-> also in your board?
-> For Daniel the AIC23 alsa code however worked with the OSK board without
-> need for the modifications.
->
-> Mika
->
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index 6c78d47..94ded7b 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -174,7 +174,7 @@ struct prcm_config {
+ #define RII_CLKSEL_DSP			(3 << 0)	/* c5x - 200MHz */
+ #define RII_CLKSEL_DSP_IF		(2 << 5)	/* c5x - 100MHz */
+ #define RII_SYNC_DSP			(0 << 7)	/* Bypass sync */
+-#define RII_CLKSEL_IVA			(6 << 8)	/* iva1 - 200MHz */
++#define RII_CLKSEL_IVA			(3 << 8)	/* iva1 - 200MHz */
+ #define RII_SYNC_IVA			(0 << 13)	/* Bypass sync */
+ #define RII_CM_CLKSEL_DSP_VAL		RII_SYNC_IVA | RII_CLKSEL_IVA | \
+ 					RII_SYNC_DSP | RII_CLKSEL_DSP_IF | \
+@@ -182,6 +182,27 @@ struct prcm_config {
+ #define RII_CLKSEL_GFX			(2 << 0)	/* 50MHz */
+ #define RII_CM_CLKSEL_GFX_VAL		RII_CLKSEL_GFX
+ 
++/* 2420-PRCM I 660MHz core */
++#define RI_CLKSEL_L3			(4 << 0)	/* 165MHz */
++#define RI_CLKSEL_L4			(2 << 5)	/* 82.5MHz */
++#define RI_CLKSEL_USB			(4 << 25)	/* 41.25MHz */
++#define RI_CM_CLKSEL1_CORE_VAL		RI_CLKSEL_USB | \
++					RXX_CLKSEL_SSI | RXX_CLKSEL_VLYNQ |
+\
++					RX_CLKSEL_DSS2 | RX_CLKSEL_DSS1 | \
++					RI_CLKSEL_L4 | RI_CLKSEL_L3
++#define RI_CLKSEL_MPU			(2 << 0)	/* 330MHz */
++#define RI_CM_CLKSEL_MPU_VAL		RI_CLKSEL_MPU
++#define RI_CLKSEL_DSP			(3 << 0)	/* c5x - 220MHz */
++#define RI_CLKSEL_DSP_IF		(2 << 5)	/* c5x - 110MHz */
++#define RI_SYNC_DSP			(1 << 7)	/* Activate sync */
++#define RI_CLKSEL_IVA			(4 << 8)	/* iva1 - 165MHz */
++#define RI_SYNC_IVA			(0 << 13)	/* Bypass sync */
++#define RI_CM_CLKSEL_DSP_VAL		RI_SYNC_IVA | RI_CLKSEL_IVA | \
++					RI_SYNC_DSP | RI_CLKSEL_DSP_IF | \
++					RI_CLKSEL_DSP
++#define RI_CLKSEL_GFX			(1 << 0)	/* 165MHz */
++#define RI_CM_CLKSEL_GFX_VAL		RI_CLKSEL_GFX
++
+ /* 2420-PRCM VII (boot) */
+ #define RVII_CLKSEL_L3			(1 << 0)
+ #define RVII_CLKSEL_L4			(1 << 5)
+@@ -300,6 +321,13 @@ struct prcm_config {
+  * boot (boot)
+  */
+ 
++/* PRCM I target DPLL = 2*330MHz = 660MHz */
++#define MI_DPLL_MULT_12			(55 << 12)
++#define MI_DPLL_DIV_12			(1 << 8)
++#define MI_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
++					MI_DPLL_DIV_12 | MI_DPLL_MULT_12 | \
++					MX_APLLS_CLIKIN_12
++
+ /*
+  * 2420 Equivalent - mode registers
+  * PRCM II , target DPLL = 2*300MHz = 600MHz
+@@ -352,6 +380,7 @@ struct prcm_config {
+  * By having the boot loader boot up in the fastest L4 speed available
+likely
+  * will result in something which you can switch between.
+  */
++#define V24XX_SDRC_RFR_CTRL_166MHz	(0x00044c00 | 1)
+ #define V24XX_SDRC_RFR_CTRL_133MHz	(0x0003de00 | 1)
+ #define V24XX_SDRC_RFR_CTRL_100MHz	(0x0002da01 | 1)
+ #define V24XX_SDRC_RFR_CTRL_110MHz	(0x0002da01 | 1) /* Need to calc */
+@@ -394,6 +423,13 @@ struct prcm_config {
+  * Note: This table needs to be sorted, fastest to slowest.
+  *-------------------------------------------------------------------------
+*/
+ static struct prcm_config rate_table[] = {
++	/* PRCM I - FAST */
++	{S12M, S660M, S330M, RI_CM_CLKSEL_MPU_VAL,		/* 330MHz
+ARM */
++		RI_CM_CLKSEL_DSP_VAL, RI_CM_CLKSEL_GFX_VAL,
++		RI_CM_CLKSEL1_CORE_VAL, MI_CM_CLKSEL1_PLL_12_VAL,
++		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_166MHz,
++		RATE_IN_242X},
++
+ 	/* PRCM II - FAST */
+ 	{S12M, S600M, S300M, RII_CM_CLKSEL_MPU_VAL,		/* 300MHz
+ARM */
+ 		RII_CM_CLKSEL_DSP_VAL, RII_CM_CLKSEL_GFX_VAL,
