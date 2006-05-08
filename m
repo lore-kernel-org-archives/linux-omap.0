@@ -1,15 +1,12 @@
-From: "Bharat Kumar Reddy" <bharat.mailing@gmail.com>
-Subject: Re: Compact Flash Issue on OSK 5912
-Date: Mon, 8 May 2006 10:14:36 +0530
-Message-ID: <31bab3780605072144m642dc628gfd348f59adeb98aa@mail.gmail.com>
-References: <31bab3780605050815v5906b07ap994bcb3204a8b49d@mail.gmail.com>
-	<200605051322.42634.david-b@pacbell.net>
+From: Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] Enable apollon mmc support
+Date: Mon, 08 May 2006 14:42:27 +0900
+Message-ID: <038001c67262$310a2df0$c7a3580a@swcenter.sec.samsung.co.kr>
+Reply-To: kyungmin.park@samsung.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ks_c_5601-1987
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <200605051322.42634.david-b@pacbell.net>
-Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,560 +16,158 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello All,
-Thanks Dave for you response
+Hi
 
-Dump of stack backtraces when I tried to copy a file to CF mount point.
-################################################################
- Unable to handle kernel paging request at virtual address aa55aacd
-pgd =3D c0004000
-[aa55aacd] *pgd=3D00000000
-Internal error: Oops: 1 [#1]
-Modules linked in:
-CPU: 0
-PC is at do_page_fault+0x38/0x214
-LR is at do_translation_fault+0x2c/0xac
-pc : [<c002b8dc>]    lr : [<c002bae4>]    Not tainted
-sp : c03420b4  ip : 0055aa00  fp : c03420e8
-r10: aa55aacd  r9 : c03421bc  r8 : c03421bc
-r7 : 00000005  r6 : 00000005  r5 : aa55aa55  r4 : ffffffff
-r3 : c0342000  r2 : c03421bc  r1 : 00000005  r0 : aa55aacd
-Flags: nzCv  IRQs off  FIQs on  Mode SVC_32  Segment kernel
-Control: 5317F  Table: 10324000  DAC: 00000017
-Process kthread (pid: 5, stack limit =3D 0xc0340194)
-Stack: (0xc03420b4 to 0xc0342000)
-Backtrace:
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bae4>]
-(do_translation_fault+0x2c/0xac)
-[<c002bab8>] (do_translation_fault+0x0/0xac) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
- r8 =3D AA55AACD  r7 =3D C03421BC  r6 =3D 00000005  r5 =3D C024409C
- r4 =3D FFFFFFFF
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D AA55AACD  r7 =3D C002B8DC  r6 =3D C03422FC  r5 =3D C03421F0
- r4 =3D FFFFFFFF
-[<c002cba4>] (do_alignment_ldrstr+0x0/0x118) from [<c002d11c>]
-(do_alignment+0x1d0/0x354)
- r4 =3D 00000078
-[<c002cf4c>] (do_alignment+0x0/0x354) from [<c002bbf8>] (do_DataAbort+0x3c/=
-0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D C034244C  r7 =3D 00000005  r6 =3D 00000005  r5 =3D C0342330
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bae4>]
-(do_translation_fault+0x2c/0xac)
-[<c002bab8>] (do_translation_fault+0x0/0xac) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
- r8 =3D AA55AACD  r7 =3D C034244C  r6 =3D 00000005  r5 =3D C024409C
- r4 =3D FFFFFFFF
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D AA55AACD  r7 =3D C002B8DC  r6 =3D C034258C  r5 =3D C0342480
- r4 =3D FFFFFFFF
-[<c002cba4>] (do_alignment_ldrstr+0x0/0x118) from [<c002d11c>]
-(do_alignment+0x1d0/0x354)
- r4 =3D 00000078 8
-[<c002cf4c>] m [<c0024960>] (__dabt_svc+0x40/0x60)
- r8 =3D C03426DC  r7 =3D 00000005  r6 =3D 00000005  r5 =3D C03425C0
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bae4>]
-(do_translation_fault+0x2c/0xac)
-[<c002bab8>] (do_translation_fault+0x0/0xac) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
- r8 =3D AA55AACD  r7 =3D C03426DC  r6 =3D 00000005  r5 =3D C024409C
- r4 =3D FFFFFFFF
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D AA55AACD  r7 =3D C002B8DC  r6 =3D C034281C  r5 =3D C0342710
- r4 =3D FFFFFFFF
-[<c002cba4>] (do_alignment_ldrstr+0x0/0x118) from [<c002d11c>]
-(do_alignment+0x1d0/0x354)
- r4 =3D 00000078
-[<c002cf4c>] (do_0alignment+0x0/054) from [<c002bbfn8>]
-(do_DataAbo0000005  r6 =3D 00000005  r5 =3D C030 r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bae4>]
-(do_translation_fault+0x2c/0xac)
-[<c002bab8>] (do_translation_fault+0x0/0xac) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
- r8 =3D AA55AACD  r7 =3D C034296C  r6 =3D 00000005  r5 =3D C024409C
- r4 =3D FFFFFFFF
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D AA55AACD  r7 =3D C002B8DC  r6 =3D C0342AAC  r5 =3D C03429A0
- r4 =3D FFFFFFFF
-[<c002cba4>] (do_alignment_ldrstr+0x0/0x118) from [<c002d11c>]
-(do_alignment+0x1d0/0x354)
- r4 =3D 00000078
-[<c002cf4c>] (do_alignment+0x0/0x354) from [<c002bbf8>] (do_DataAbort+0x3c/=
-0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D C0342BFC  r7 =3D 00000005  r6 =3D 00000005  r5 =3D C0342AE0
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bae4>]
-(do_translation_fault+0x2c/0xac)
-[<c002bab8>] (do_translation_fault+0x0/0xac) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
- r8 =3D AA55AACD  r7 =3D C0342BFC  r6 =3D 00000005  r5 =3D C024409C
- r4 =3D FFFFFFFF
-[<c002bbbc>] (do_DataAbort+0 x0/0xa0) from [=3D AA55AACD  r7 =3D C002B8DC=
-=20
-r6 =3D C0342D3C  r5 =3D C0342C30
- r4 =3D FFFFFFFF
-[<c002cba4>] (do_alignment_ldrstr+0x0/0x118) from [<c002d11c>]
-(do_alignment+0x1d0/0x354)
- r4 =3D 00000078
-[<c002cf4c>] (do_alignment+0x0/0x354) from [<c002bbf8>] (do_DataAbort+0x3c/=
-0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D C0342E8C  r7 =3D 00000005  r6 =3D 00000005  r5 =3D C0342D70
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bae4>]
-(do_translation_fault+0x2c/0xac)
-[<c002bab8>] (do_translation_fault+0x0/0xac) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
- r8 =3D AA55AACD  r7 =3D C0342E8C  r6 =3D 00000005  r5 =3D C024409C
- r4 =3D FFFFFFFF
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D AA55AACD  r7 =3D C002B8DC  r6 =3D C0342FCC  r5 =3D DC0342EC0
- r4 =3D1d0/0x354)
- r4 =3DC 00000078
-[<cfrom [<c0024960>] (__dabt_svc+0x40/0x60)
- r8 =3D C034311C  r7 =3D 00000005  r6 =3D 00000005  r5 =3D C0343000
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bae4>]
-(do_translation_fault+0x2c/0xac)
-[<c002bab8>] (do_translation_fault+0x0/0xac) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
- r8 =3D AA55AACD  r7 =3D C034311C  r6 =3D 00000005  r5 =3D C024409C
- r4 =3D FFFFFFFF
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D AA55AACD  r7 =3D C002B8DC  r6 =3D C034325C  r5 =3D C0343150
- r4 =3D FFFFFFFF
-[<c002cba4>] (do_alignment_ldrstr+0x0/0x118) from [<c002d11c>]
-(do_alignment+0x1d0/0x354)
- r4 =3D 00000078
-[<c002cf4c>] (do_alignment+0x0/0x354) from [<c002bbf8>] (do_DataAbort+0x3c/=
-0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D C03433AC  r7 =3D 000)00005  r6 =3D 0000xac)
-[<c002bab8>] (do_translation_fault+0x0/0xac) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
- r8 =3D AA55AACD  r7 =3D C03433AC  r6 =3D 00000005  r5 =3D C024409C
- r4 =3D FFFFFFFF
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D AA55AACD  r7 =3D C002B8DC  r6 =3D C03434EC  r5 =3D C03433E0
- r4 =3D FFFFFFFF
-[<c002cba4>] (do_alignment_ldrstr+0x0/0x118) from [<c002d11c>]
-(do_alignment+0x1d0/0x354)
- r4 =3D 00000078
-[<c002cf4c>] (do_alignment+0x0/0x354) from [<c002bbf8>] (do_DataAbort+0x3c/=
-0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D C034363C  r7 =3D 00000005  r6 =3D 00000005  r5 =3D C0343520
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bae4>]
-(do_translation_fault+0x2c/0xac)
-[<c002bab8>] (do_translation_faublt+0x0/0xac) frc002bbf8>]
-(do_DabtaAbort+0x3c/0xrt+0x0/0xa0) from ) r8 =3D AA55AACD  r7 =3D C002B8DC
- r6 =3D C034377C  r5 =3D C0343670
- r4 =3D FFFFFFFF
-[<c002cba4>] (do_alignment_ldrstr+0x0/0x118) from [<c002d11c>]
-(do_alignment+0x1d0/0x354)
- r4 =3D 00000078
-[<c002cf4c>] (do_alignment+0x0/0x354) from [<c002bbf8>] (do_DataAbort+0x3c/=
-0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D C03438CC  r7 =3D 00000005  r6 =3D 00000005  r5 =3D C03437B0
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bae4>]
-(do_translation_fault+0x2c/0xac)
-[<c002bab8>] (do_translation_fault+0x0/0xac) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
- r8 =3D AA55AACD  r7 =3D C03438CC  r6 =3D 00000005  r5 =3D C024409C
- r4 =3D FFFFFFFF
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c00o24960>] (__dabtx60)
- r8 =3D AA55AoACD  r7 =3D C002Bc>] (do_alignment+0x1d0/0x354)
- r4 =3D 00000078
-[<c002cf4c>] (do_alignment+0x0/0x354) from [<c002bbf8>] (do_DataAbort+0x3c/=
-0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D C0343B5C  r7 =3D 00000005  r6 =3D 00000005  r5 =3D C0343A40
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bae4>]
-(do_translation_fault+0x2c/0xac)
-[<c002bab8>] (do_translation_fault+0x0/0xac) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
- r8 =3D AA55AACD  r7 =3D C0343B5C  r6 =3D 00000005  r5 =3D C024409C
- r4 =3D FFFFFFFF
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D AA55AACD  r7 =3D C002B8DC  r6 =3D C0343C9C  r5 =3D C0343B90
- r4 =3D FFFFFFFF
-[<c002cba4>] (do_alignment_ldrstr+0x0/0x118) from [<c002d11c>]
-(do_alignment+0x1d0/0x354)
- r4 =3D 00000078
-[<c002cf4c>] (do_alignment+0x0/0x354) from [<c002bbf8>]
-(do_DaftaAbort+0x3c/0xr6 =3D 00000005  r5 =3D C0 r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bae4>]
-(do_translation_fault+0x2c/0xac)
-[<c002bab8>] (do_translation_fault+0x0/0xac) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
- r8 =3D AA55AACD  r7 =3D C0343DEC  r6 =3D 00000005  r5 =3D C024409C
- r4 =3D FFFFFFFF
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D AA55AACD  r7 =3D C002B8DC  r6 =3D C0343F2C  r5 =3D C0343E20
- r4 =3D FFFFFFFF
-[<c002cba4>] (do_alignment_ldrstr+0x0/0x118) from [<c002d11c>]
-(do_alignment+0x1d0/0x354)
- r4 =3D 00000078
-[<c002cf4c>] (do_alignment+0x0/0x354) from [<c002bbf8>] (do_DataAbort+0x3c/=
-0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C0344054  r6 =3D 00000017  r5 =3D C0343F60
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C034417C  r6 =3D 00000017  r5 =3D C0344088
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) f_rom [<c002bbf8>do_DataAbort+0x3c/0=
-0xa0)
-[<c002bb00017  r5 =3D C03441B0
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C03443CC  r6 =3D 00000017  r5 =3D C03442D8
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C03444F4  r6 =3D 00000017  r5 =3D C0344400
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C034461C  r6 =3D 00000017  r5 =3D C0344528
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_pa ge_fault+0x0/0x from [<c002bbf8> ]
-(do_DataAbort344744  r6 =3D 00000017  r5 =3D C030 r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C034486C  r6 =3D 00000017  r5 =3D C0344778
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C0344994  r6 =3D 00000017  r5 =3D C03448A0
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C0344ABC  r6 =3D 00000017  r5 =3D C03449C8
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C0344BE4  r6 =3D 00000017  r5 =3D C0344AF0
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C0344D0C  r6 =3D 00000017  r5 =3D C0344C18
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C0344E34  r6 =3D 00000017  r5 =3D C0344D40
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  /r7 =3D C0344F5C   from [<c002bbf8>/]
-(do_DataAbort0000078  r7 =3D C0345084  r6 =3D 000000 r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C03451AC  r6 =3D 00000017  r5 =3D C03450B8
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C03452D4  r6 =3D 00000017  r5 =3D C03451E0
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C03453FC  r6 =3D 00000017  r5 =3D C0345308
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x 214) from [<c00ort+0x3c/0xa0)
-[ <c002bbbc>] (doC0345430
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C034564C  r6 =3D 00000017  r5 =3D C0345558
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C0345774  r6 =3D 00000017  r5 =3D C0345680
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C034589C  r6 =3D 00000017  r5 =3D C03457A8
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c 002bbf8>] (do_D+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C03459C4  r6 =3D 00000017  r5 =3D C03458D0
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C0345AEC  r6 =3D 00000017  r5 =3D C03459F8
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C0345C14  r6 =3D 00000017  r5 =3D C0345B20
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000078  r7 =3D C0345D3C  r6 =3D 00000017  r5 =3D C0345C48
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+00x40/0x=
-60)
- r8 078  r7 =3D C0345E6>4  r6 =3D 0000001xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D 00000034  r7 =3D C0345F8C  r6 =3D 00000017  r5 =3D C0345E98
- r4 =3D FFFFFFFF
-[<c002b8a4>] (do_page_fault+0x0/0x214) from [<c002bbf8>]
-(do_DataAbort+0x3c/0xa0)
-[<c002bbbc>] (do_DataAbort+0x0/0xa0) from [<c0024960>] (__dabt_svc+0x40/0x6=
-0)
- r8 =3D C03460CC  r7 =3D C03460CC  r6 =3D 00000093  r5 =3D C0345FC0
- r4 =3D FFFFFFFF
-[<c003b664>] (scheduler_tick+0x0/0x2f8) from [<c0047f38>]
-(update_process_times+0x114/0x130)
-[<c0047e24>] (update_process_times+0x0/0x130) from [<c0029940>]
-(timer_tick+0xc8/0xe4)
- r5 =3D C029BCB0  r4 =3D C03460CC
-[<c0029878>] (timer_tick+0x0/0xe4) from [<c003a1f8>]
-(omap_32k_timer_interrupt+0x5c/0xac)
- r6 =3D 00000093  r5 =3D C029BCB0  r4 =3D 02582194
-[<c003a19c>] (omap_32k_timer_interrupto+0x0/0xac) from<c0025a08>]
-(__do_oirq+0xa4/0xe8)
-                                                                     =20
-                >] (do_level) r8 =3D C03460CC  r7 =3D A0000013  r6 =3D
-C03460CC  r5 =3D 00000036
- r4 =3D C029161C
-[<c0025be8>] (do_level_IRQ+0x0/0xbc) from [<c0025cf8>] (asm_do_IRQ+0x54/0x1=
-40)
- r6 =3D FFFFFFFF  r5 =3D FEFE0000  r4 =3D C0346000
-[<c0025ca4>] (asm_do_IRQ+0x0/0x140) from [<c00249a4>] (__irq_svc+0x24/0x80)
-[<c0163ccc>] (ide_intr+0x0/0x1ec) from [<c0025a08>] (__do_irq+0xa4/0xe8)
-[<c0025964>] (__do_irq+0x0/0xe8) from [<c0025a94>] (do_simple_IRQ+0x48/0x70=
-)
- r8 =3D C0247834  r7 =3D C0293870  r6 =3D C03461EC  r5 =3D 000000DE
- r4 =3D C029383C
-[<c0025a4c>] (do_simple_IRQ+0x0/0x70) from [<c0039348>]
-(gpio_irq_handler+0xd8/0xf4)
- r6 =3D 00002D18  r5 =3D 000000DF  r4 =3D 00000001
-[<c0039270>] (gpio_irq_handler+0x0/0xf4) from [<c0025cf8>]
-(asm_do_IRQ+0x54/0x140)
-[<c0025ca4>] (asm_do_IRQ+0x0/0x140) from [<c00249a4>] (__irq_svc+0x24/0x80)
-[<c0163ccc>] (ide_intr+0x0/0x1ec) from [<c0025a08>] (__do_irq+0xa4/0xe8)
-[<c0025964>] (__do_irq+0x0/0xe8) from [<c0025a94>] (do_simple_IRQ+0x48/0x70=
-)
- r8 =3D C0247834  r7 =3D C0293870  r6 =3D C034630C  r5 =3D 000000DE
- r4 =3D C029383C
-[<c0025a4c>] (do_simple_IRQ+0x0/0x70) from [<c0039348>]
-(gpio_irq_handler+0xd8/0xf4)
- r6 =3D 00002D18  r5 =3D 000000DF  r4 =3D 00000001
-[<c0039270>] (gpio_irq_handler+0x0/0xf4) from [<c0025cf8>]
-(asm_do_IRQ+0x54/0x140)
-[<c0025ca4>] (asm_do_IRQ+0x0/0x140) from [<c00249a4>] (__irq_svc+0x24/0x80)
-[<c0163ccc>] (ide_intr+0x0/0x1ec) from [<c0025a08>] (__do_irq+0xa4/0xe8)
-[<c0025964>] (__do_irq+0x0/0xe8) from [<c0025a94>] (do_simple_IRQ+0x48/0x70=
-)
- r8 =3D C0247834  r7 =3D C0293870  r6 =3D C034642C  r5 =3D 000000DE
- r4 =3D C029383C
-[<c0025a4c>] (do_simple_IRQ+0x0/0x70) from [<c0039348>]
-(gpio_irq_handler+0xd8/0xf4)
- r6 =3D 00002D18  r5 =3D 000000DF  0r4 =3D 00000001
-                                              )
-[<c0025ca4>] (0asm_do_IRQ+0x0/ (__do_irq+0xa4/0xe8)
-[<c0025964>] (__do_irq+0x0/0xe8) from [<c0025a94>] (do_simple_IRQ+0x48/0x70=
-)
- r8 =3D C0247834  r7 =3D C0293870  r6 =3D C034654C  r5 =3D 000000DE
- r4 =3D C029383C
-[<c0025a4c>] (do_simple_IRQ+0x0/0x70) from [<c0039348>]
-(gpio_irq_handler+0xd8/0xf4)
- r6 =3D 00002D18  r5 =3D 000000DF  r4 =3D 00000001
-[<c0039270>] (gpio_irq_handler+0x0/0xf4) from [<c0025cf8>]
-(asm_do_IRQ+0x54/0x140)
-[<c0025ca4>] (asm_do_IRQ+0x0/0x140) from [<c00249a4>] (__irq_svc+0x24/0x80)
-[<c0163ccc>] (ide_intr+0x0/0x1ec) from [<c0025a08>] (__do_irq+0xa4/0xe8)
-[<c0025964>] (__do_irq+0x0/0xe8) from [<c0025a94>] (do_simple_IRQ+0x48/0x70=
-)
- r8 =3D C0247834  r7 =3D C0293870  r6 =3D C034666C  r5 =3D 000000DE
- r4 =3D C029383C
-[<c0025a4c>] (do_simple_IRQ+0x0/0x70) from [<c0039348>]
-(gpio_irq_handler+0xd8/0xf4)
- r6 =3D 00002D18  r5 =3D 000000DF  r4 =3D 00000001
-[<c0039270>] (gpio_irq_handler+0x0/0xf4) from [<c0025cf8>]
-(asm_do_IRQ+0x54/0x140)
-[<c0025ca4>] (asm_do_IRQ+0x0/0x140) from [<c00249a4>] (__irq_svc+0x24/0x80)
-[<c0163ccc>] (ide_intr+0x0/0x1ec) from [<c0025a08>] (__do_irq+0xa4/0xe8)
-[<c0025964>] (__do_irq+0x0/0xe8) from [<c0025a94>] (do_simple_IRQ+0x48/0x70=
-)
- r8 =3D C0247834  r7 =3D C0293870  r6 =3D C034678C   r5 =3D
-000000DE[<c0025a4c>] (do_simple_IRQ+0x0/0x70) f) r6 =3D 00002D18  r5 =3D
-000000DF  r4 =3D 00000001
-[<c0039270>] (gpio_irq_handler+0x0/0xf4) from [<c0025cf8>]
-(asm_do_IRQ+0x54/0x140)
-[<c0025ca4>] (asm_do_IRQ+0x0/0x140) from [<c00249a4>] (__irq_svc+0x24/0x80)
-[<c0163ccc>] (ide_intr+0x0/0x1ec) from [<c0025a08>] (__do_irq+0xa4/0xe8)
-[<c0025964>] (__do_irq+0x0/0xe8) from [<c0025a94>] (do_simple_IRQ+0x48/0x70=
-)
- r8 =3D C0247834  r7 =3D C0293870  r6 =3D C03468AC  r5 =3D 000000DE
- r4 =3D C029383C
-[<c0025a4c>] (do_simple_IRQ+0x0/0x70) from [<c0039348>]
-(gpio_irq_handler+0xd8/0xf4)
- r6 =3D 00002D18  r5 =3D 000000DF  r4 =3D 00000001
-[<c0039270>] (gpio_irq_handler+0x0/0xf4) from [<c0025cf8>]
-(asm_do_IRQ+0x54/0x140)
-[<c0025ca4>] (asm_do_IRQ+0x0/0x140) from [<c00249a4>] (__irq_svc+0x24/0x80)
-[<c0163ccc>] (ide_intr+0x0/0x1ec) from [<c0025a08>] (__do_irq+0xa4/0xe80)
-[<c0025964>] r6 =3D C03469CC  r05 =3D 000000DE
-  r5 =3D 000000DF  r4 =3D 00000001
-[<c0039270>] (gpio_irq_handler+0x0/0xf4) from [<c0025cf8>]
-(asm_do_IRQ+0x54/0x140)
-[<c0025ca4>] (asm_do_IRQ+0x0/0x140) from [<c00249a4>] (__irq_svc+0x24/0x80)
-[<c0163ccc>] (ide_intr+0x0/0x1ec) from [<c0025a08>] (__do_irq+0xa4/0xe8)
-[<c0025964>] (__do_irq+0x0/0xe8) from [<c0025a94>] (do_simple_IRQ+0x48/0x70=
-)
- r8 =3D C0247834  r7 =3D C0293870  r6 =3D C0346AEC  r5 =3D 000000DE
- r4 =3D C029383C
-[<c0025a4c>] (do_simple_IRQ+0x0/0x70) from [<c0039348>]
-(gpio_irq_handler+0xd8/0xf4)
- r6 =3D 00002D18  r5 =3D 000000DF  r4 =3D 00000001
-[<c0039270>] (gpio_irq_handler+0x0/0xf4) from [<c0025cf8>]
-(asm_do_IRQ+0x54/0x140)
-[<c0025ca4>] (asm_do_IRQ+0x0/0x140) from [<c00249a4>] (__irq_svc+0x24/0x80)
-[<c0163ccc>] (ide_intr+0x0/0x1ec) from [<c0025a08>] (__do_irq+0xa4/0xe8)
-[<c0025964>] (__do_irq+0x0/0xe8) from [<c0025a94>] (do_simple_IRQ+0x48/0x70=
-)
- r8 =3D C02 47834  r7 =3D C02pio_irq_handler+0xd8/0xf4)
- r6 =3D 00002D18  r5 =3D 000000DF  r4 =3D 00000001
-[<c0039270>] (gpio_irq_handler+0x0/0xf4) from [<c0025cf8>]
-(asm_do_IRQ+0x54/0x140)
-[<c0025ca4>] (asm_do_IRQ+0x0/0x140) from [<c00249a4>] (__irq_svc+0x24/0x80)
-[<c0163ccc>] (ide_intr+0x0/0x1ec) from [<c0025a08>] (__do_irq+0xa4/0xe8)
-[<c0025964>] (__do_irq+0x0/0xe8) from [<c0025a94>] (do_simple_IRQ+0x48/0x70=
-)
- r8 =3D C0247834  r7 =3D C0293870  r6 =3D C0346D2C  r5 =3D 000000DE
- r4 =3D C029383C
-[<c0025a4c>] (do_simple_IRQ+0x0/0x70) from [<c0039348>]
-(gpio_irq_handler+0xd8/0xf4)
- r6 =3D 00002D18  r5 =3D 000000DF  r4 =3D 00000001
-[<c0039270>] (gpio_irq_handler+0x0/0xf4) from [<c0025cf8>]
-(asm_do_IRQ+0x54/0x140)
-[<c0025ca4>] (asm_do_IRQ+0x0/0x140) from [<c00249a4>] (__irq_svc+0x24/0x80)
-[<c0163ccc>] (ide_intr+0x0/0x1ec) from [<c0025a08>] (__do_irq+0xa4/0xe8)
-[<c0025964>] (__do_irq+0x0/0xe8) from [9<c0025a94>]
-(dodo_simple_IRQ+0x0/0x70) from [<c0039348>] (g) r6 =3D 00002D18  r5 =3D
-000000DF  r4 =3D 00000001
-[<c0039270>] (gpio_irq_handler+0x0/0xf4) from [<c0025cf8>]
-(asm_do_IRQ+0x54/0x140)
-[<c0025ca4>] (asm_do_IRQ+0x0/0x140) from [<c00249a4>] (__irq_svc+0x24/0x80)
-[<c0163ccc>] (ide_intr+0x0/0x1ec) from [<c0025a08>] (__do_irq+0xa4/0xe8)
-[<c0025964>] (__do_irq+0x0/0xe8) from [<c0025a94>] (do_simple_IRQ+0x48/0x70=
-)
- r8 =3D C0247834  r7 =3D C0293870  r6 =3D C0346F6C  r5 =3D 000000DE
- r4 =3D C029383C
-[<c0025a4c>] (do_simple_IRQ+0x0/0x70) from [<c0039348>]
-(gpio_irq_handler+0xd8/0xf4)
- r6 =3D 00002D18  r5 =3D 000000DF  r4 =3D 00000001
-[<c0039270>] (gpio_irq_handler+0x0/0xf4) from [<c0025cf8>]
-(asm_do_IRQ+0x54/0x140)
-[<c0025ca4>] (asm_do_IRQ+0x0/0x140) from [<c00249a4>] (__irq_svc+0x24/0x80)
-[<c0163ccc>] (ide_intr+0x0/0xd1ec) from [<c000247834  r7 =3D C0293870=20
-r6 =3D C034708C  r5 =3D 000000DE
- r4 =3D C029383C
-[<c0025a4c>] (do_simple_IRQ+0x0/0x70) from [<c0039348>]
-(gpio_irq_handler+0xd8/0xf4)
- r6 =3D 00002D18  r5 =3D 000000DF  r4 =3D 00000001
-[<c0039270>] (gpio_irq_handler+0x0/0xf4) from [<c0025cf8>]
-(asm_do_IRQ+0x54/0x140)
-[<c0025ca4>] (asm_do_IRQ+0x0/0x140) from [<c00249a4>] (__irq_svc+0x24/0x80)
-[<c0163ccc>] (ide_intr+0x0/0x1ec) from [<c0025a08>] (__do_irq+0xa4/0xe8)
-[<c0025964>] (__do_irq+0x0/0xe8) from [<c0025a94>] (do_simple_IRQ+0x48/0x70=
-)
- r8 =3D C0247834  r7 =3D C0293870  r6
-################################################################
+This patch enables mmc interface on apollon (omap2420)
+The apollon use omap2420 mmc interface instead of another chip as h4
 
-Thanks in Advance,
-Bharat.
+I wonder there's side-effect on h4 since I always configure mmc mux when
+cpu is omap2420
+Is it right? or do I add machine_is_apollon() when configure mmc mux?
 
-On 5/6/06, David Brownell <david-b@pacbell.net> wrote:
-> On Friday 05 May 2006 8:15 am, Bharat Kumar Reddy wrote:
-> >
-> > Has anyone faced these problems before and are there any patch fixes fo=
-r
-> this ?
->
-> Post any stack backtraces you get.  I saw similar rudeness on 2.6.17-curr=
-ent
-> but ISTR that 2.6.14-omap didn't have problems there.  It's not clear wha=
-t
-> the problems are; my symptoms pointed more at IDE layer confusions with
-> respect
-> to IRQ handling.
->
->
->
+please let me know :)
+
+thank you
+Kyungmin Park
+
+--
+
+diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-
+omap2/board-apollon.c
+index 6c6ba17..f19c49f 100644
+--- a/arch/arm/mach-omap2/board-apollon.c
++++ b/arch/arm/mach-omap2/board-apollon.c
+@@ -166,8 +166,8 @@ static struct omap_uart_config apollon_u
+ 
+ static struct omap_mmc_config apollon_mmc_config __initdata = {
+ 	.mmc [0] = {
+-		.enabled 	= 0,
+-		.wire4		= 0,
++		.enabled 	= 1,
++		.wire4		= 1,
+ 		.wp_pin		= -1,
+ 		.power_pin	= -1,
+ 		.switch_pin	= -1,
+@@ -257,6 +257,9 @@ static void __init omap_apollon_init(voi
+ 	/* REVISIT: where's the correct place */
+ 	omap_cfg_reg(W19_24XX_SYS_NIRQ);
+ 
++	/* Use Interal loop-back in MMC/SDIO Module Input Clock selection */
++	CONTROL_DEVCONF |= (1 << 24);
++
+ 	/*
+  	 * Make sure the serial ports are muxed on at this point.
+ 	 * You have to mux them off in device drivers later on
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 1197dc3..782796e 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -79,6 +79,20 @@ MUX_CFG_24XX("P20_24XX_TSC_IRQ",	0x108,	
+ MUX_CFG_24XX("K15_24XX_UART3_TX",	0x118,	0,	0,	0,	1)
+ MUX_CFG_24XX("K14_24XX_UART3_RX",	0x119,	0,	0,	0,	1)
+ 
++/* MMC/SDIO */
++MUX_CFG_24XX("G19_24XX_MMC_CLKO",	0x0f3,	0,	0,	0,	1)
++MUX_CFG_24XX("H18_24XX_MMC_CMD",	0x0f4,	0,	0,	0,	1)
++MUX_CFG_24XX("F20_24XX_MMC_DAT0",	0x0f5,	0,	0,	0,	1)
++MUX_CFG_24XX("H14_24XX_MMC_DAT1",	0x0f6,	0,	0,	0,	1)
++MUX_CFG_24XX("E19_24XX_MMC_DAT2",	0x0f7,	0,	0,	0,	1)
++MUX_CFG_24XX("D19_24XX_MMC_DAT3",	0x0f8,	0,	0,	0,	1)
++MUX_CFG_24XX("F19_24XX_MMC_DAT_DIR0",	0x0f9,	0,	0,	0,	1)
++MUX_CFG_24XX("E20_24XX_MMC_DAT_DIR1",	0x0fa,	0,	0,	0,	1)
++MUX_CFG_24XX("F18_24XX_MMC_DAT_DIR2",	0x0fb,	0,	0,	0,	1)
++MUX_CFG_24XX("E18_24XX_MMC_DAT_DIR3",	0x0fc,	0,	0,	0,	1)
++MUX_CFG_24XX("G18_24XX_MMC_CMD_DIR",	0x0fd,	0,	0,	0,	1)
++MUX_CFG_24XX("H15_24XX_MMC_CLKI",	0x0fe,	0,	0,	0,	1)
++
+ /* Keypad GPIO*/
+ MUX_CFG_24XX("T19_24XX_KBR0",		0x106,	3,	1,	1,	1)
+ MUX_CFG_24XX("R19_24XX_KBR1",		0x107,	3,	1,	1,	1)
+diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+index 5b3ee54..e46d228 100644
+--- a/arch/arm/plat-omap/devices.c
++++ b/arch/arm/plat-omap/devices.c
+@@ -149,7 +149,7 @@ static inline void omap_init_kp(void) {}
+ 
+ #ifdef CONFIG_ARCH_OMAP24XX
+ #define	OMAP_MMC1_BASE		0x4809c000
+-#define OMAP_MMC1_INT		83
++#define OMAP_MMC1_INT		INT_24XX_MMC_IRQ
+ #else
+ #define	OMAP_MMC1_BASE		0xfffb7800
+ #define OMAP_MMC1_INT		INT_MMC
+@@ -226,7 +226,14 @@ static void __init omap_init_mmc(void)
+ 	/* block 1 is always available and has just one pinout option */
+ 	mmc = &mmc_conf->mmc[0];
+ 	if (mmc->enabled) {
+-		if (!cpu_is_omap24xx()) {
++		if (cpu_is_omap24xx()) {
++			omap_cfg_reg(H18_24XX_MMC_CMD);
++			omap_cfg_reg(H15_24XX_MMC_CLKI);
++			omap_cfg_reg(G19_24XX_MMC_CLKO);
++			omap_cfg_reg(F20_24XX_MMC_DAT0);
++			omap_cfg_reg(F19_24XX_MMC_DAT_DIR0);
++			omap_cfg_reg(G18_24XX_MMC_CMD_DIR);
++		} else {
+ 			omap_cfg_reg(MMC_CMD);
+ 			omap_cfg_reg(MMC_CLK);
+ 			omap_cfg_reg(MMC_DAT0);
+@@ -237,7 +244,14 @@ static void __init omap_init_mmc(void)
+ 			}
+ 		}
+ 		if (mmc->wire4) {
+-			if (!cpu_is_omap24xx()) {
++			if (cpu_is_omap24xx()) {
++				omap_cfg_reg(H14_24XX_MMC_DAT1);
++				omap_cfg_reg(E19_24XX_MMC_DAT2);
++				omap_cfg_reg(D19_24XX_MMC_DAT3);
++				omap_cfg_reg(E20_24XX_MMC_DAT_DIR1);
++				omap_cfg_reg(F18_24XX_MMC_DAT_DIR2);
++				omap_cfg_reg(E18_24XX_MMC_DAT_DIR3);
++			} else {
+ 				omap_cfg_reg(MMC_DAT1);
+ 				/* NOTE:  DAT2 can be on W10 (here) or M15
+*/
+ 				if (!mmc->nomux)
+diff --git a/include/asm-arm/arch-omap/irqs.h b/include/asm-arm/arch-
+omap/irqs.h
+index 42098d9..31a79a1 100644
+--- a/include/asm-arm/arch-omap/irqs.h
++++ b/include/asm-arm/arch-omap/irqs.h
+@@ -247,6 +247,7 @@
+ #define INT_24XX_MCBSP2_IRQ_TX	62
+ #define INT_24XX_MCBSP2_IRQ_RX	63
+ #define INT_24XX_UART3_IRQ	74
++#define INT_24XX_MMC_IRQ	83
+ 
+ /* Max. 128 level 2 IRQs (OMAP1610), 192 GPIOs (OMAP730) and
+  * 16 MPUIO lines */
+diff --git a/include/asm-arm/arch-omap/mux.h b/include/asm-arm/arch-
+omap/mux.h
+index 0dc24d4..eee8906 100644
+--- a/include/asm-arm/arch-omap/mux.h
++++ b/include/asm-arm/arch-omap/mux.h
+@@ -435,6 +435,20 @@ enum omap24xx_index {
+ 	K15_24XX_UART3_TX,
+ 	K14_24XX_UART3_RX,
+ 
++	/* MMC/SDIO */
++	G19_24XX_MMC_CLKO,
++	H18_24XX_MMC_CMD,
++	F20_24XX_MMC_DAT0,
++	H14_24XX_MMC_DAT1,
++	E19_24XX_MMC_DAT2,
++	D19_24XX_MMC_DAT3,
++	F19_24XX_MMC_DAT_DIR0,
++	E20_24XX_MMC_DAT_DIR1,
++	F18_24XX_MMC_DAT_DIR2,
++	E18_24XX_MMC_DAT_DIR3,
++	G18_24XX_MMC_CMD_DIR,
++	H15_24XX_MMC_CLKI,
++
+ 	/* Keypad GPIO*/
+ 	T19_24XX_KBR0,
+ 	R19_24XX_KBR1,
