@@ -1,13 +1,13 @@
-From: "Ishigami, Tatsuya" <ishigami@ti.com>
-Subject: RE: How to program flash of custom OMAP board?
-Date: Mon, 8 May 2006 01:58:06 -0500
-Message-ID: <772F5D89C5E0734B8A86D85DFC6A202403346834@dlee03.ent.ti.com>
+From: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>
+Subject: Re: JTAG debugger on Linux Environment
+Date: Mon, 08 May 2006 16:26:10 +0900 (JST)
+Message-ID: <20060508.162610.41628466.kaminaga@sm.sony.co.jp>
+References: <20060508040747.29661.qmail@web36404.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20060508040747.29661.qmail@web36404.mail.mud.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,74 +15,31 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Li Weichen <iaadoa@gmail.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: tungsys@yahoo.com
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
- If you find no message on the UART, is the u-boot running
-on the DDR or Flash?
+From: Tung Dang <tungsys@yahoo.com>
+> Hi all,
+> I am using OMAP5912 Starter Kit without JTAG debugger , 
+> I am planning to develop a DSP application on Linux Environment (not windows)
+> Can i use a JTAG debugger on Linux Environment ? and what is the JTAG debugger suitable for me . 
+> Does the BDI2000 supports OMAP5912 ? ( is BDI2000 support only OMAP1510 ?)
 
- If you mean the latter, the number of device errata may
-impact your design.
+you might find below thread useful.
 
-	http://focus.ti.com/lit/er/sprz209h/sprz209h.pdf
-	(see page 30)
+http://sourceforge.net/mailarchive/forum.php?thread_id=10249833&forum_id=12898
+with title "OMAP5912 OSK - BDI2000 config file / flash instructions?"
 
- If I remember correctly, the u-boot must be re-configured to =20
-include the 28F256J3 driver (while the single MTD driver supports
-28F128J3 & 28F256J3 in Linux).
-
- BTW, this product already supports the OMAP5912 +=20
-28F256J3C, and all the behind-sence things will be done=20
-automatically by pressing the single button.
-
-	http://www.sophia.com/Products/EJ-Writer.html
+hope this helps.
 
 
- The board below (OMAP5912 + 28F256J3) is programmed
-the bootloader with this tool.
+Best Regards,
 
-	http://www.losteaka.com/omap_e.htm
-
- Good luck.
-
- regards,
-  Ishigami
-
------Original Message-----
-From: Jason Huang
-Sent: Sunday, May 07, 2006 9:02 AM
-To: linux-omap-open-source@linux.omap.com
-Subject: RE: How to program flash of custom OMAP board?
-
-When you build the u-boot, be sure it is pointing the UART port you are
-using.
-
------Original Message-----
-From: Behalf Of Li Weichen
-Sent: Saturday, May 06, 2006 1:16 AM
-To: 'Woodruff, Richard'; linux-omap-open-source@linux.omap.com
-Subject: RE: How to program flash of custom OMAP board?
-
-> For many OMAP-u-boot ports, if you have a JTAG debugger, you can
-connect
-> to the board, initialize clocks & ddr via script, load u-boot into
-> memory and execute it.  Now you can download using either your JTAG or
-> ether the image you want to burn and use u-boot to burn that image.
->=20
-But after I load the u-boot and run, it seems not work, only stop at the
-beginning of the codes and there is not any information at the UART.
-
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+(Hiroki Kaminaga)
+t
+--
