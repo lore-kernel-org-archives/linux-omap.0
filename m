@@ -1,12 +1,13 @@
-From: "chetan.kapoor@flextronicssoftware.com" <chetan.kapoor@flextronicssoftware.com>
+From: "Chetan Kapoor" <chetan.kapoor@flextronicssoftware.com>
 Subject: Re: init (busybox) problem on OSK5912
-Date: Wed, 10 May 2006 03:21:49 -0400
-Message-ID: <380-22006531072149281@M2W138.mail2web.com>
+Date: Wed, 10 May 2006 13:08:23 +0530
+Message-ID: <14fc2db60605100038t7c95cd6ag18d2ee592ca1bbf@mail.gmail.com>
 Reply-To: chetan.kapoor@flextronicssoftware.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,30 +22,24 @@ List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-I have made some findings to resolve this issue=2E May be this is helpful =
-for
-you=2E
+I have made some findings to resolve this issue. May be this is helpful for=
+ you.
 
 We were also facing the similar issue where the gdbserver when linked
-dynamically was always resulting in a segmentation fault=2E We have ensure=
-d
-that the version of libraries used while compilation are same in the targe=
-t
-also=2E But still , the gdbserver was resulting in a crash (always before
-accept system call)=2E=20
+dynamically was always resulting in a segmentation fault. We have
+ensured that the version of libraries used while compilation are same
+in the target also. But still , the gdbserver was resulting in a crash
+(always before accept system call).
 
-After going through other mailing lists, I have found that this issue is
-happening because of a bug in glibc libraries=2E I have rebuilt the glibc
-libraries (2=2E3=2E5 version) for arm after deleting the sysdeps/arm/memse=
-t=2ES
-file=2E I have used the newly built "libc=2Eso=2E6" and "ld-linux=2Eso=2E2=
-" for
-compilation and runtime environment=2E This time gdbserver and other
-dynamically shared program worked fine=2E
+After going through other mailing lists, I have found that this issue
+is happening because of a bug in glibc libraries. I have rebuilt the
+glibc libraries (2.3.5 version) for arm after deleting the
+sysdeps/arm/memset.S file. I have used the newly built "libc.so.6" and
+"ld-linux.so.2" for compilation and runtime environment. This time
+gdbserver and other dynamically shared program worked fine.
 
-May be you can give this step a try=2E I have followed the steps for build=
-ing
-toolchain from http://frank=2Eharvard=2Eedu/~coldwell/toolchain/
+May be you can give this step a try. I have followed the steps for
+building toolchain from http://frank.harvard.edu/~coldwell/toolchain/
 
 Regards,
 Dinesh
@@ -52,7 +47,3 @@ Dinesh
 ++ Sent by Chetan Kapoor on behalf of Dinesh Arora ++
 
 ***********************  FSS-Unclassified   ***********************
-
---------------------------------------------------------------------
-mail2web - Check your email from the web at
-http://mail2web=2Ecom/ =2E
