@@ -1,10 +1,11 @@
-From: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>
-Subject: OSK5912 copy flash to mem broken?
-Date: Thu, 11 May 2006 15:52:33 +0900 (JST)
-Message-ID: <20060511.155233.74750204.kaminaga@sm.sony.co.jp>
+From: Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Question about DMA on omap2420
+Date: Thu, 11 May 2006 18:20:44 +0900
+Message-ID: <004101c674dc$2e45a0a0$c7a3580a@swcenter.sec.samsung.co.kr>
+Reply-To: kyungmin.park@samsung.com
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ks_c_5601-1987
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,41 +19,51 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi
 
-I'm facing a problem, on OSK5912 board, boot loader that is 
-copied from 0x00000000 to 0x11080000 at powerup is not exactly copied.
+I have a problem with DMA transfer on OMAP2420.
 
-This can be checked as below:
-(after OSK5912 is powered up and uboot prompt is shown)
-OMAP5912 OSK # cmp.b 0x00000000 0x11080000 0x15dd4
+As previous mail the MMC with DMA is working well.
+Data is copied from MMC to SDRAM wirh dedicated MMC DMA.
+So I think DMA routine has no problem to use
 
-and I got:
+But the problem is happended when copy from GPMC (OneNAND) to SDRAM
 
-byte at 0x000150a2 (0xff) != byte at 0x110950a2 (0x0f)
+In my understanding
 
+DMA programming as follow.
 
-Memory itself is not broken, since I get:
+1. omap_request_dma(OMAP24XX_DMA_NO_DEVICE, ..., dma_callback, ...);
 
-OMAP5912 OSK # tftp 10000000 uboot.bin
-TFTP from server 192.168.0.1; our IP address is 192.168.0.43
-Filename 'uboot.bin'.
-Load address: 0x10000000
-Loading: ##################
-done
-Bytes transferred = 89556 (15dd4 hex)
-OMAP5912 OSK # cp.b 10000000 11080000 0x15dd4
-OMAP5912 OSK # cmp.b 0x10000000 0x11080000 0x15dd4
-Total of 89556 bytes were the same
+2. dma mapping & translate virt to phys
 
+3. set src & dest configurations
+	omap_set_dma_src_params(dma->ch, 0, OMAP_DMA_AMODE_POST_INC,
+src_phys, 0, 0);
+	omap_set_dma_dest_params(dma->ch, 0, OMAP_DMA_AMODE_POST_INC,
+dest_phys, 0, 0);
+	omap_set_dma_transfer_params(dma->ch, OMAP_DMA_DATA_TYPE_S16,
+                                1, count >> 1, OMAP_DMA_SYNC_ELEMENT,
+                                0, 0);
+	or
+	omap_set_dma_transfer_params(dma->ch, OMAP_DMA_DATA_TYPE_S32,
+                                1, count >> 2, OMAP_DMA_SYNC_ELEMENT,
+                                0, 0);
 
-I'm using the updated uboot.bin from
-http://omap.spectrumdigital.com/osk5912/osk5912_faq.html
+4. start dma
+	omap_start_dma(dma->ch);
 
-Anyone have the same problem?
-I tested with OSK5912 Revision C and D, and its the same...
+5. wait until work done 
+	dma_callback send wakeup
 
+In this sequence. DMA go works well but some time later it failed.
 
-(Hiroki Kaminaga)
-t
---
+I think data copy from GPMC to SDRAM is memory copy. so I set GPMC part as
+SDRAM does
+
+Are there any other configurations for GPMC for DMA?
+E.g., I need to set OMAP24XX_DMA_GPMC instead of OMAP24XX_DMA_NO_DEVICE.
+       or need to set dma_trigger?
+
+Thanks you
+Kyungmin Park
