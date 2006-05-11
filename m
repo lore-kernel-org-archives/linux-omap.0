@@ -1,13 +1,13 @@
-From: "Nemakal, Vijaya" <xnemakal@ti.com>
-Subject: RE: Question about DMA on omap2420
-Date: Thu, 11 May 2006 15:19:57 -0500
-Message-ID: <520AB2AD990DC04082102F77CA172638016D1909@dlee03.ent.ti.com>
+From: "=?ISO-8859-1?Q?Lu=EDs_Cargnini?=" <lvcargnini@gmail.com>
+Subject: problems compiling Das u-Boot 1.1.4 for omap osk 5912
+Date: Thu, 11 May 2006 13:50:25 -0700
+Message-ID: <ae36f8040605111350u3ba2c1b6r1dc856db29aa3c87@mail.gmail.com>
+Reply-To: lvcargnini@ieee.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,139 +15,91 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: kyungmin.park@samsung.com, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+--=20
+Thanks && Regards
+Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
+IEEE Member
+Mastering Degree student @ PUC-RS Electrical Engineer Faculty
 
-Hi,=20
-The parameters you are using seem to be fine except, the block size you
-are configuring.
-Typically the (element x frame cnt x block cnt) will be the buffer size.
-Hope you are ensuring that.
-
-Also, apart from the virt to phy conversion of the buffer, you have to
-make sure that the address falls under the non cachable address space.
-You can use the consistent_sync option for that.
-Pasted below is the chunk of code which worked for me.
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-
-+static inline int omap_onenand_dma_transfer(struct mtd_info *mtd, void
-*addr,
-+                                         void *src, unsigned int
-u32_count, int is_write)
-+{
-+       const int block_size =3D 16;
-+       unsigned int block_count, len;
-+
-+       block_count =3D u32_count * 4 / block_size;
-+       if (is_write) {
-+               omap_set_dma_dest_params(dma_ch,
-OMAP_DMA_AMODE_POST_INC, src,
-+                                        0, 0);
-+               omap_set_dma_src_params(dma_ch, OMAP_DMA_AMODE_POST_INC,
-+                                       virt_to_phys(addr),
-+                                       0, 0);
-+               omap_set_dma_dest_burst_mode(dma_ch,
-OMAP_DMA_DATA_BURST_32);
-+               omap_set_dma_src_burst_mode(dma_ch,
-OMAP_DMA_DATA_BURST_32);
-+       } else {
-+
-+               omap_set_dma_src_params(dma_ch, OMAP_DMA_AMODE_POST_INC,
-src,
-+                                       0, 0);
-+               omap_set_dma_dest_params(dma_ch,
-OMAP_DMA_AMODE_POST_INC,
-+                                        virt_to_phys(addr),
-+                                        0, 0);
-+               omap_set_dma_dest_burst_mode(dma_ch,
-OMAP_DMA_DATA_BURST_32);
-+               omap_set_dma_src_burst_mode(dma_ch,
-OMAP_DMA_DATA_BURST_32);
-+       }
-+       omap_set_dma_transfer_params(dma_ch, OMAP_DMA_DATA_TYPE_S32,
-block_size / 4,
-+                                    block_count, OMAP_DMA_SYNC_BLOCK,
-+                                    0, 0);
-+       init_completion(&comp);
-+
-+       len =3D u32_count << 2;
-+       consistent_sync(addr, len, PCI_DMA_TODEVICE);
-+       omap_start_dma(dma_ch);
-+       wait_for_completion(&comp);
-+       if (!is_write)
-+               consistent_sync(addr, len, PCI_DMA_FROMDEVICE);
-+       return 0;
-+}
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-
-Regards
-vijaya
-
-> -----Original Message-----
-> From: linux-omap-open-source-bounces@linux.omap.com=20
-> [mailto:linux-omap-open-source-bounces@linux.omap.com] On=20
-> Behalf Of Kyungmin Park
-> Sent: Thursday, May 11, 2006 4:21 AM
-> To: linux-omap-open-source@linux.omap.com
-> Subject: Question about DMA on omap2420
->=20
-> Hi
->=20
-> I have a problem with DMA transfer on OMAP2420.
->=20
-> As previous mail the MMC with DMA is working well.
-> Data is copied from MMC to SDRAM wirh dedicated MMC DMA.
-> So I think DMA routine has no problem to use
->=20
-> But the problem is happended when copy from GPMC (OneNAND) to SDRAM
->=20
-> In my understanding
->=20
-> DMA programming as follow.
->=20
-> 1. omap_request_dma(OMAP24XX_DMA_NO_DEVICE, ..., dma_callback, ...);
->=20
-> 2. dma mapping & translate virt to phys
->=20
-> 3. set src & dest configurations
-> 	omap_set_dma_src_params(dma->ch, 0,=20
-> OMAP_DMA_AMODE_POST_INC, src_phys, 0, 0);
-> 	omap_set_dma_dest_params(dma->ch, 0,=20
-> OMAP_DMA_AMODE_POST_INC, dest_phys, 0, 0);
-> 	omap_set_dma_transfer_params(dma->ch, OMAP_DMA_DATA_TYPE_S16,
->                                 1, count >> 1, OMAP_DMA_SYNC_ELEMENT,
->                                 0, 0);
-> 	or
-> 	omap_set_dma_transfer_params(dma->ch, OMAP_DMA_DATA_TYPE_S32,
->                                 1, count >> 2, OMAP_DMA_SYNC_ELEMENT,
->                                 0, 0);
->=20
-> 4. start dma
-> 	omap_start_dma(dma->ch);
->=20
-> 5. wait until work done=20
-> 	dma_callback send wakeup
->=20
-> In this sequence. DMA go works well but some time later it failed.
->=20
-> I think data copy from GPMC to SDRAM is memory copy. so I set=20
-> GPMC part as SDRAM does
->=20
-> Are there any other configurations for GPMC for DMA?
-> E.g., I need to set OMAP24XX_DMA_GPMC instead of=20
-> OMAP24XX_DMA_NO_DEVICE.
->        or need to set dma_trigger?
->=20
-> Thanks you
-> Kyungmin Park
->=20
->=20
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->=20
+Hi, i'm encountering the following problem to compile u-boot 1.1.4
+UNDEF_SYM=3D`arm-linux-objdump -x lib_generic/libgeneric.a
+board/omap5912osk/libomap5912osk.a cpu/arm926ejs/libarm926ejs.a
+lib_arm/libarm.a fs/cramfs/libcramfs.a
+fs/fat/libfat.a fs/fdos/libfdos.a fs/jffs2/libjffs2.a
+fs/reiserfs/libreiserfs.a fs/ext2/libext2fs.a net/libnet.a
+disk/libdisk.a rtc/librtc.a dtt/libdtt.a drivers/libdrivers.a
+drivers/sk98lin/libsk98lin.a post/libpost.a post/cpu/libcpu.a
+common/libcommon.a |sed  -n -e
+'s/.*\(__u_boot_cmd_.*\)/-u\1/p'|sort|uniq`;\
+        arm-linux-ld -Bstatic -T
+/home/lvcargnini/puc/instramed/u-boot-1.1.4/board/omap5912osk/u-boot.lds
+-Ttext 0x11080000  $UNDEF_SYM cpu/arm926ejs/start.o \
+                --start-group lib_generic/libgeneric.a
+board/omap5912osk/libomap5912osk.a cpu/arm926ejs/libarm926ejs.a
+lib_arm/libarm.a fs/cramfs/libcramfs.a fs/fat/libfat.a
+fs/fdos/libfdos.a fs/jffs2/libjffs2.a fs/reiserfs/libreiserfs.a
+fs/ext2/libext2fs.a net/libnet.a disk/libdisk.a rtc/librtc.a
+dtt/libdtt.a drivers/libdrivers.a drivers/sk98lin/libsk98lin.a
+post/libpost.a post/cpu/libcpu.a common/libcommon.a --end-group -L
+/opt/omap-linux/lib/gcc/arm-linux/4.0.3 -lgcc \
+                -Map u-boot.map -o u-boot
+arm-linux-ld: ERROR:
+/opt/omap-linux/lib/gcc/arm-linux/4.0.3/libgcc.a(_divsi3.o) uses
+hardware FP, whereas u-boot uses software FP
+arm-linux-ld: failed to merge target specific data of file
+/opt/omap-linux/lib/gcc/arm-linux/4.0.3/libgcc.a(_divsi3.o)
+arm-linux-ld: ERROR:
+/opt/omap-linux/lib/gcc/arm-linux/4.0.3/libgcc.a(_modsi3.o) uses
+hardware FP, whereas u-boot uses software FP
+arm-linux-ld: failed to merge target specific data of file
+/opt/omap-linux/lib/gcc/arm-linux/4.0.3/libgcc.a(_modsi3.o)
+lib_arm/libarm.a(board.o): In function `start_armboot':
+/home/lvcargnini/puc/instramed/u-boot-1.1.4/lib_arm/board.c:236:
+undefined reference to `flash_init'
+common/libcommon.a(cmd_bootm.o): In function `do_imls':
+/home/lvcargnini/puc/instramed/u-boot-1.1.4/common/cmd_bootm.c:1160:
+undefined reference to `flash_info'
+common/libcommon.a(cmd_flash.o): In function `abbrev_spec':
+/home/lvcargnini/puc/instramed/u-boot-1.1.4/common/cmd_flash.c:106:
+undefined reference to `flash_info'
+common/libcommon.a(cmd_flash.o): In function `addr_spec':
+/home/lvcargnini/puc/instramed/u-boot-1.1.4/common/cmd_flash.c:195:
+undefined reference to `flash_info'
+common/libcommon.a(cmd_flash.o): In function `flash_fill_sect_ranges':
+/home/lvcargnini/puc/instramed/u-boot-1.1.4/common/cmd_flash.c:278:
+undefined reference to `flash_info'
+common/libcommon.a(cmd_flash.o): In function `do_flinfo':
+/home/lvcargnini/puc/instramed/u-boot-1.1.4/common/cmd_flash.c:292:
+undefined reference to `flash_print_info'
+/home/lvcargnini/puc/instramed/u-boot-1.1.4/common/cmd_flash.c:304:
+undefined reference to `flash_print_info'
+/home/lvcargnini/puc/instramed/u-boot-1.1.4/common/cmd_flash.c:306:
+undefined reference to `flash_info'
+common/libcommon.a(cmd_flash.o): In function `flash_sect_erase':
+/home/lvcargnini/puc/instramed/u-boot-1.1.4/common/cmd_flash.c:432:
+undefined reference to `flash_erase'
+/home/lvcargnini/puc/instramed/u-boot-1.1.4/common/cmd_flash.c:442:
+undefined reference to `flash_info'
+common/libcommon.a(cmd_flash.o): In function `do_flerase':
+/home/lvcargnini/puc/instramed/u-boot-1.1.4/common/cmd_flash.c:385:
+undefined reference to `flash_erase'
+/home/lvcargnini/puc/instramed/u-boot-1.1.4/common/cmd_flash.c:401:
+undefined reference to `flash_info'
+common/libcommon.a(cmd_flash.o): In function `flash_sect_protect':
+/home/lvcargnini/puc/instramed/u-boot-1.1.4/common/cmd_flash.c:671:
+undefined reference to `flash_info'
+common/libcommon.a(cmd_flash.o): In function `do_protect':
+/home/lvcargnini/puc/instramed/u-boot-1.1.4/common/cmd_flash.c:617:
+undefined reference to `flash_info'
+common/libcommon.a(flash.o): In function `addr2info':
+/home/lvcargnini/puc/instramed/u-boot-1.1.4/common/flash.c:122:
+undefined reference to `flash_info'
+common/libcommon.a(flash.o): In function `flash_write':
+/home/lvcargnini/puc/instramed/u-boot-1.1.4/common/flash.c:177:
+undefined reference to `write_buff'
+make: *** [u-boot] Error 1
