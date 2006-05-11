@@ -1,13 +1,11 @@
-From: Matthew Percival <matthew@capgo.com>
-Subject: Re: how to burn u-boot into flash
-Date: Thu, 11 May 2006 11:55:15 +1000
-Message-ID: <1147312516.11957.7.camel@localhost.localdomain>
-References: <446090f2.2066db8a.3359.56fe@mx.gmail.com>
+From: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>
+Subject: OSK5912 copy flash to mem broken?
+Date: Thu, 11 May 2006 15:52:33 +0900 (JST)
+Message-ID: <20060511.155233.74750204.kaminaga@sm.sony.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <446090f2.2066db8a.3359.56fe@mx.gmail.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,32 +13,46 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-	G'Day,
+Hi,
 
-	For putting u-boot onto flash, I find the easiest way is to use a Flash
-Recovery Utility: you just plug your board to your computer via USB, and
-away it goes.  There are three options:
+I'm facing a problem, on OSK5912 board, boot loader that is 
+copied from 0x00000000 to 0x11080000 at powerup is not exactly copied.
 
-	The first one:
-http://tree.celinuxforum.org/CelfPubWiki/FlashRecoveryUtility
-Was the original.  It runs on Windows, but only handles revision C OSKs.
+This can be checked as below:
+(after OSK5912 is powered up and uboot prompt is shown)
+OMAP5912 OSK # cmp.b 0x00000000 0x11080000 0x15dd4
 
-	The second (found at the bottom of the same page) was written for Linux
-users, however, it only handles revision D OSKs.
+and I got:
 
-	The third option:
-http://www.softwaredesignsolutions.com/
-Is an updated version of the original, which handles both revision C and
-D boards.  It runs on Windows, but you have to buy a copy of it.
+byte at 0x000150a2 (0xff) != byte at 0x110950a2 (0x0f)
 
-	I have used all three, and had no problems with any of them.  The third
-one seems to be the third you have tried, and with that you simply need
-to select the uboot.bin that results from compiling u-boot (or can be
-downloaded from a few sites around too): it will load this just fine.
 
-	-- Matthew
+Memory itself is not broken, since I get:
+
+OMAP5912 OSK # tftp 10000000 uboot.bin
+TFTP from server 192.168.0.1; our IP address is 192.168.0.43
+Filename 'uboot.bin'.
+Load address: 0x10000000
+Loading: ##################
+done
+Bytes transferred = 89556 (15dd4 hex)
+OMAP5912 OSK # cp.b 10000000 11080000 0x15dd4
+OMAP5912 OSK # cmp.b 0x10000000 0x11080000 0x15dd4
+Total of 89556 bytes were the same
+
+
+I'm using the updated uboot.bin from
+http://omap.spectrumdigital.com/osk5912/osk5912_faq.html
+
+Anyone have the same problem?
+I tested with OSK5912 Revision C and D, and its the same...
+
+
+(Hiroki Kaminaga)
+t
+--
