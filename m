@@ -1,14 +1,17 @@
-From: "xuxian" <lsfdxuxian@gmail.com>
-Subject: RE: how to burn u-boot into flash
-Date: Fri, 12 May 2006 12:21:32 +0800
-Message-ID: <44640d5d.1e0abe25.1fce.ffffa54e@mx.gmail.com>
-References: <1147389079.8931.4.camel@localhost.localdomain>
+From: ml@roese.nl
+Subject: Re: problems compiling Das u-Boot 1.1.4 for omap osk 5912
+Date: Fri, 12 May 2006 06:31:14 +0200
+Message-ID: <200605120631.14864.ml@roese.nl>
+References: <ae36f8040605111350u3ba2c1b6r1dc856db29aa3c87@mail.gmail.com>
+	<ae36f8040605111439u690e08bbu7d6fdc876d99e597@mail.gmail.com>
+	<ae36f8040605111450l72b35621v274d4e2cb7f6c1bb@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1147389079.8931.4.camel@localhost.localdomain>
+In-Reply-To: <ae36f8040605111450l72b35621v274d4e2cb7f6c1bb@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,53 +21,24 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: 'Matthew Percival' <matthew@capgo.com>, 'Linux OMAP Open Source' <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com, lvcargnini@ieee.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Mattew,
+On Thursday 11 May 2006 23:50, Lu=EDs Cargnini wrote:
+> hi after downloaded the git tree version i try to compilate it and i
+> received the following :
+>
 
-	I just tried your .bin file, but it still tells me that is not a
-.hex format file. So strange! Could you tell me where your FlashBurn DSK
-download? Is there something different between the software?
-As to the u-boot.srec, I notice the start address is 0x11080000 using the
-following command:
-	arm-linux-objdump -x u-boot.srec
-FlashBurn tells me trying to burn at 0x5080000 and override the size of
-flash 0x2000000 when I burn u-boot.srec. So I change the start address to
-0xc000000 the physical address. It can be burn but there is nothing on
-console when restart. What could the problem be? Thank you for your time.
+<snip>
 
-Best Regard,
-xuxian
+> /opt/arm-linux/lib/gcc/arm-linux/4.0.3/libgcc.a(_divsi3.o) uses hardware
+> FP, whereas u-boot uses software FP
+> arm-linux-ld: failed to merge target specific data of file
+> /opt/arm-linux/lib/gcc/arm-linux/4.0.3/libgcc.a(_divsi3.o)
+> arm-linux-ld: ERROR:
 
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Matthew
-Percival
-Sent: Friday, May 12, 2006 7:11 AM
-To: Linux OMAP Open Source
-Subject: RE: how to burn u-boot into flash
+What toolchain are you using? ELDK 4.0=20
+(http://www.denx.de/wiki/DULG/ELDKAvailability) works here without problems.
 
-G'Day,
-
-> 	I have tried the third one and it tells me the u-boot.bin is not a
-> hex format file. The only thing different is my FlashBurn DSK is a free
-one.
-> Are you sure the non-free one can load u-boot.bin? I will consider buying
-> one.
-
-	Hmm... I could swear I have just used u-boot.bin with all three
-programs (I have used both the free and non-free with FlashBurn).  It
-may be possible that there is something funny with your file.  A
-known-good image can be found here, if you want to check that:
-http://tree.celinuxforum.org/CelfPubWiki/OSK?action=AttachFile&do=get&target
-=osk-u-boot.bin
-Alternatively, u-boot.srec (in the same directory as u-boot.bin) is a
-Motorola S-Record format file, which may be of use to you.
-
-	-- Matthew
-
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+Best regards,
+Stefan
