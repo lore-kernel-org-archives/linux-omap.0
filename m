@@ -1,13 +1,13 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: is dynamic tick working?
-Date: Sun, 14 May 2006 03:49:18 -0700
-Message-ID: <20060514104911.GB4715@atomide.com>
-References: <200605121905.13405.david-b@pacbell.net>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: Enabling Mistral touch screen driver
+Date: Sun, 14 May 2006 17:45:04 +0200
+Message-ID: <44675080.1040503@gmail.com>
+References: <4465A8C0.4020100@nextbitcpu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <200605121905.13405.david-b@pacbell.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <4465A8C0.4020100@nextbitcpu.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,39 +15,36 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Vishal Borker <vishal@nextbitcpu.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [060512 19:05]:
-> On an OSK, using today's GIT tree, I turned on dynamic tick using
-> sysfs and thought the IRQ rate (32 KHz timer) was odd.  So I did
-> 
->   grep tim /proc/int*; sleep 60; grep tim /proc/int*
-> 
-> and saw 104551 IRQs, which is 1742 per second.  Too many!!  When
-> I turned dyntick off (on/off via sysfs) the same measurement
-> gave a more reasonable 7701 IRQs, making 128 per second.
-> 
-> In short, enabling dyntick got me 14x as many IRQs, instead of
-> shrinking the number of IRQs.  Known bug?
+Vishal Borker wrote:
+> Was interested in finding asto what i 
+> would need to do to enable the touchscreen component & support. both, on 
+> the kernel ...
 
-Is this with touchscreen enabled? I saw something similar last week
-where SPI was generating interrupts continuously. I think Imre has a
-patch for that already available.
+Seach list archive for 'tslib' and 'touchscreen'.
 
-With dyntick the timer interrupt handler is being called also from
-other interrupt handlers to update time. So doing something like:
+Use userspace tslib for touchscreen handling:
 
-$ cat /proc/interrupts; sleep 10; cat /proc/interrupts
+http://cvs.arm.linux.org.uk/
 
-might give you a clue which device interrupt is stuck.
+-> tslib
 
-In general dyntick should work, and you should see about 4-6HZ idle
-tick rate.
+Kernel configuration for this:
 
-Regards,
+CONFIG_OMAP_OSK_MISTRAL=y
+CONFIG_OMAP_UWIRE=y
+CONFIG_INPUT_TOUCHSCREEN=y
+CONFIG_TOUCHSCREEN_OMAP=y
 
-Tony
+ > ... as well as microwindows side.
+
+Search list archive for 'microwindows' as well.
+
+Regards
+
+Dirk
