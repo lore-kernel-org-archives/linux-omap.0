@@ -1,16 +1,14 @@
-From: Brian Swetland <swetland@google.com>
-Subject: Re: [PATCH] ARM: OMAP: Add core fsample support
-Date: Mon, 15 May 2006 08:18:09 -0700
-Message-ID: <20060515151809.GA1842@localhost.localdomain>
-References: <20060515095624.GJ8368@atomide.com>
-	<20060515131338.88891.qmail@web37910.mail.mud.yahoo.com>
-	<20060515133606.GA31834@localhost.localdomain>
-	<20060515151041.GX8368@atomide.com>
+From: Vince <v.richomme@hotmail.fr>
+Subject: Linux On TI Omap850
+Date: Mon, 15 May 2006 19:33:23 +0200
+Message-ID: <4468BB63.9030206@hotmail.fr>
+References: <200605121905.13405.david-b@pacbell.net>	<20060514104911.GB4715@atomide.com>	<200605140919.09540.david-b@pacbell.net>
+	<20060515092601.GE8368@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20060515151041.GX8368@atomide.com>
+In-Reply-To: <20060515092601.GE8368@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,21 +18,13 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-[Tony Lindgren <tony@atomide.com>]
-> * Brian Swetland <swetland@google.com> [060515 06:36]:
-> > > 
-> > > Please check the board-fsample.c in gitweb now :)
-> > 
-> > Looks like it happened to board-fsample.h as well:
-> > 
-> > The other files in the patch look okay.
-> 
-> Strange :) I've reverted it and re-applied. Can you check it now?
+I would like to know if someone has information about running linux on 
+TI omap850 platform.
+I have searched on google and I only found one or two posts regarding 
+this topic.
+I would like to have maximum information on this processor.
 
-Looks good now (both in gitweb and locally after a cg-update).
-
-Brian
+Thanks
