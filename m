@@ -1,14 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Add core fsample support
-Date: Mon, 15 May 2006 02:56:25 -0700
-Message-ID: <20060515095624.GJ8368@atomide.com>
-References: <20060428182353.GA9571@localhost.localdomain>
-	<4452651C.1000407@mvista.com>
+Subject: Re: [PATCH] ARM: OMAP: Readd Amstrad Delta USB support.
+Date: Mon, 15 May 2006 02:58:48 -0700
+Message-ID: <20060515095847.GK8368@atomide.com>
+References: <20060428123140.GL7570@earth.li>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <4452651C.1000407@mvista.com>
+In-Reply-To: <20060428123140.GL7570@earth.li>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,26 +17,39 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kevin Hilman <khilman@mvista.com>
+To: Jonathan McDowell <noodles@earth.li>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@mvista.com> [060428 11:56]:
-> Brian Swetland wrote:
-> >This patch adds core support for the TI F-Sample Board (OMAP 850).
-
-Pushing this today.
-
-> Hi Brian,
+* Jonathan McDowell <noodles@earth.li> [060428 05:33]:
+> One of the recent merges from mainline removed the Amstrad Delta USB
+> support. This patch adds it back in; it's the same as was in
+> 2.6.16-omap2.
 > 
-> Seems like you should add a separate CPU: OMAP850 at the same time.  
-> Shouldn't be too much more work.
+> Signed-Off-By: Jonathan McDowell <noodles@earth.li>
 > 
-> Is the OMAP850 currently detected exactly like the 730 via the JTAG ID (see 
-> arch/arm/mach-omap1/id.c)
-> 
-> Sorry I couldn't comment on this sooner.
+> -----
+> diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+> index 6178f04..664c3e2 100644
+> --- a/arch/arm/mach-omap1/board-ams-delta.c
+> +++ b/arch/arm/mach-omap1/board-ams-delta.c
+> @@ -80,8 +80,15 @@ static struct omap_uart_config ams_delta
+>  	.enabled_uarts = 1,
+>  };
+>  
+> +static struct omap_usb_config ams_delta_usb_config __initdata = {
+> +	.register_host	= 1,
+> +	.hmc_mode	= 16,
+> +	.pins[0]	= 2,
+> +};
+> +
+>  static struct omap_board_config_kernel ams_delta_config[] = {
+>  	{ OMAP_TAG_UART,	&ams_delta_uart_config },
+> +	{ OMAP_TAG_USB,		&ams_delta_usb_config },
+>  };
+>  
+>  static void __init ams_delta_init(void)
 
-This would be a nice patch to have.
+Pushing today.
 
 Tony
