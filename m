@@ -1,13 +1,11 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Enable apollon mmc support
-Date: Mon, 15 May 2006 03:36:28 -0700
-Message-ID: <20060515103627.GR8368@atomide.com>
-References: <038001c67262$310a2df0$c7a3580a@swcenter.sec.samsung.co.kr>
+From: Imre Deak <imre.deak@nokia.com>
+Subject: Edge selecton on SPI bus
+Date: Mon, 15 May 2006 14:05:15 +0300
+Message-ID: <1147691115.32613.10.camel@mammoth.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <038001c67262$310a2df0$c7a3580a@swcenter.sec.samsung.co.kr>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,23 +15,21 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: David Brownell <david-b@pacbell.net>
+Cc: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Kyungmin Park <kyungmin.park@samsung.com> [060507 22:43]:
-> Hi
-> 
-> This patch enables mmc interface on apollon (omap2420)
-> The apollon use omap2420 mmc interface instead of another chip as h4
-> 
-> I wonder there's side-effect on h4 since I always configure mmc mux when
-> cpu is omap2420
-> Is it right? or do I add machine_is_apollon() when configure mmc mux?
-> 
-> please let me know :)
+Hi,
 
-To me it looks OK, but let's verify this on H4. First we need to add
-back the Menelaus code to drivers/mmc/omap.c though...
+I think the edge selection in the omap_uwire and omap2_mcspi is borked.
+I have a patch for it, but I'd like to ask first if my assumption is
+right:
+On the SPI / uWire bus by definition you can only configure a mode (one
+of the 4 modes), in which the read / write takes place on opposite
+edges. That is you can't configure for example a read rising edge /
+write rising edge mode.
 
-Tony
+On OMAP2 this I even see from the fact that you can set the reading edge
+and the writing edge is implied.
+
+--Imre
