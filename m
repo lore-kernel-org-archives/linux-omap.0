@@ -1,13 +1,15 @@
-From: "andrzej zaborowski" <balrog@zabor.org>
-Subject: Re: Writeable Replacement for /dev
-Date: Tue, 16 May 2006 23:52:50 +0200
-Message-ID: <fb249edb0605161452t298bd463h781b5d91905cfebf@mail.gmail.com>
-References: <2a3728820605161418v5a4a4e5cw24359c87cbba6fc6@mail.gmail.com>
-Reply-To: balrogg@gmail.com
+From: Imre Deak <imre.deak@nokia.com>
+Subject: [PATCH 0/3] ARM: OMAP: SPI edge selection [was Re: Edge selecton
+	on SPI bus]
+Date: Wed, 17 May 2006 01:12:49 +0300
+Message-ID: <1147817569.27886.54.camel@mammoth.research.nokia.com>
+References: <1147691115.32613.10.camel@mammoth.research.nokia.com>
+	<200605151159.37793.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1136249090=="
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <2a3728820605161418v5a4a4e5cw24359c87cbba6fc6@mail.gmail.com>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <200605151159.37793.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,47 +17,57 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Lucas Hartmann <lucas.hartmann@gmail.com>
-Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: ext David Brownell <david-b@pacbell.net>
+Cc: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============1136249090==
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+On Mon, 2006-05-15 at 11:59 -0700, ext David Brownell wrote:
+> On Monday 15 May 2006 4:05 am, Imre Deak wrote:
+> > Hi,
+> > 
+> > I think the edge selection in the omap_uwire and omap2_mcspi is borked.
+> > I have a patch for it, but I'd like to ask first if my assumption is
+> > right:
+> > On the SPI / uWire bus by definition you can only configure a mode (one
+> > of the 4 modes), in which the read / write takes place on opposite
+> > edges. That is you can't configure for example a read rising edge /
+> > write rising edge mode.
+> 
+> That's my understanding, yes.  Consider that if you connect MOSI directly
+> to MISO for a loopback configuration, what you send is supposed to exactly
+> match what you receive ... that couldn't happen if there were no settling
+> time between setting MOSI and reading MISO.
+> 
+> That WRITE_FALLING | READ_FALLING always did look goofy, but I recall it
+> as more or less a direct translation from the old driver.  In any case
+> the REVISIT note seems to have gotten lost.
 
-SGksCgpPbiAxNi8wNS8wNiwgTHVjYXMgSGFydG1hbm4gPGx1Y2FzLmhhcnRtYW5uQGdtYWlsLmNv
-bT4gd3JvdGU6Cj4gSGVsbG8uCj4KPiBJJ3ZlIGJlZW4gdXNpbmcga2VybmVsIDIuNi4xMiB3aXRo
-IHRoZSAvZGV2IHBzZXVkbyBmaWxlc3lzdGVtIGFjdGl2YXRlZC4KPiBXaGVuIGkgdHJ5IHRvIG1v
-dmUgdG8gbmV3ZXIga2VybmVscywgdGhlIC9kZXYgaXMgbm8gbG9uZ2VyIHN1cHBvcnRlZC4gVGhp
-cwo+IGNhdXNlcyB0aGUgc3lzdGVtIHRvIGhhbmcgYXMgdGhlIGtlcm5lbCB0cmllcyB0byAib3Bl
-biBhbiBpbml0aWFsIGNvbnNvbGUiLgo+Cj4gSG93IGRvIEkgc2V0IGEgd3JpdGFibGUgdG1wZnMg
-ZmlsZXN5c3RlbSBvbiB0aGUgL2Rldj8gSXMgdGhlcmUgYW55IG90aGVyCj4gYmV0dGVyIHdheSBv
-ZiBkb2luZyB0aGlzPwo+CgpJZiBJJ20gbm90IG1pc3Rha2VuLCB0aGUgdXN1YWwgd2F5IG9mIGRv
-aW5nIHRoYXQgaXMgaGF2aW5nIHN0YXRpYwovZGV2L2NvbnNvbGUgYW5kIC9kZXYvbnVsbCBub2Rl
-cyAob25seSB0aGVzZSB0d28/KSBvbiB0aGUgdW5kZXJsYXlpbmcKLyBmaWxlc3lzdGVtIHdoaWNo
-IGxhdGVyIGFyZSBjb3ZlcmVkIHdpdGggd2hhdGV2ZXIgaXMgbW91bnRlZCBhdCAvZGV2CmZyb20g
-ZnN0YWIuIE90aGVyd2lzZSB5b3UgY2FuIGFsd2F5cyB1c2UgYSBpbml0cmFtZnMuCk5ldmVydGhl
-bGVzcyBJIHRoaW5rIHRoZSBrZXJuZWwgc2hvdWxkbid0IGhhbmcgd2hlbiB0aGVyZSdzIG5vCi9k
-ZXYvY29uc29sZSwgaXQgc2hvdWxkIGp1c3QgZ2l2ZSBhIHdhcm5pbmcuCgo+IFVzaW5nIHUtYm9v
-dCwgbG9hZGluZyBrZXJuZWwgb3ZlciB0ZnRwIGFuZCByb290IGZpbGVzeXN0ZW0gaXMgb24gTkZT
-Lgo+Cj4gVGhhbmtzLgo+IC0tCj4gTHVjYXMgVmluaWNpdXMgSGFydG1hbm4KPiAoODMpIDk5Njct
-NDYyOAo+Cj4gIlRoZXJlIGFyZSAxMCBraW5kcyBvZiBwZW9wbGUgaW4gdGhlIHdvcmxkOiBUaGUg
-b25lcyB3aG8gdW5kZXJzdGFuZCBiaW5hcnkKPiBhbmQgdGhlIG9uZXMgd2hvIGRvbid0LiIKPiBf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+IExpbnV4LW9t
-YXAtb3Blbi1zb3VyY2UgbWFpbGluZyBsaXN0Cj4gTGludXgtb21hcC1vcGVuLXNvdXJjZUBsaW51
-eC5vbWFwLmNvbQo+IGh0dHA6Ly9saW51eC5vbWFwLmNvbS9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
-LW9tYXAtb3Blbi1zb3VyY2UKPgoKUmVnYXJkcywKQW5kcmV3Ci0tIApiYWxyb2cgMm9vNgoKRGVh
-ciBPdXRsb29rIHVzZXJzOiBQbGVhc2UgcmVtb3ZlIG1lIGZyb20geW91ciBhZGRyZXNzIGJvb2tz
-Cmh0dHA6Ly93d3cubmV3c2ZvcmdlLmNvbS9hcnRpY2xlLnBsP3NpZD0wMy8wOC8yMS8xNDMyNTgK
+I think the devices worked so far with this buggy logic since I suspect
+a complementary problem in the TRM for the read edge selection HW flag.
+I checked this against devices that are known to be using a given SPI
+mode.
 
---===============1136249090==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+The OMAP2 McSPI code too has a wrong mapping between SPI mode and read /
+write edge.
 
+Also at least the ads7846 was using incorrectly SPI mode 0, since it's
+expecting writes on the falling / reads on the rising edge which maps to
+mode 1.
 
---===============1136249090==--
+I'm posting 3 patches to solve these issues.
+
+--Imre
+
+> 
+> - Dave
+> 
+> 
+> 
+> > On OMAP2 this I even see from the fact that you can set the reading edge
+> > and the writing edge is implied.
+> > 
+> > --Imre
+> > 
+> > 
