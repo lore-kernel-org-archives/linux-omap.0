@@ -1,11 +1,14 @@
-From: Raju Abhyankar <kf6rzt@yahoo.com>
-Subject: Access GPIO on OMAP OSK5912
-Date: Tue, 16 May 2006 07:26:56 -0700 (PDT)
-Message-ID: <20060516142656.33019.qmail@web52912.mail.yahoo.com>
+From: Gururaj N <gururaj@sasken.com>
+Subject: File system in flash
+Date: Tue, 16 May 2006 20:38:29 +0530 (IST)
+Message-ID: <Pine.GSO.4.64.0605162034220.6215@sunm21.sasken.com>
+References: <20060516142656.33019.qmail@web52912.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN;
+	charset=US-ASCII;
+	format=flowed
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20060516142656.33019.qmail@web52912.mail.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,21 +21,18 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
-
-Was wondering what is the syntax or driver to access
-the GPIO connector on the OSK5912 board. I need to
-drive two outputs and read one input. 
-
-Your help in this regard is appreciated.
-
-regards,
-
-Raju
 
 
+Hi,
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+How to specify for kernel bootup that filesytem resides at  specific
+flash address ?
+
+
+Regards
+Gururaj
+
+"SASKEN RATED Among THE Top 3 BEST COMPANIES TO WORK FOR IN INDIA - SURVEY 2005 conducted by the BUSINESS TODAY - Mercer - TNS India"
+
+                           SASKEN BUSINESS DISCLAIMER
+This message may contain confidential, proprietary or legally Privileged information. In case you are not the original intended Recipient of the message, you must not, directly or indirectly, use, Disclose, distribute, print, or copy any part of this message and you are requested to delete it and inform the sender. Any views expressed in this message are those of the individual sender unless otherwise stated. Nothing contained in this message shall be construed as an offer or acceptance of any offer by Sasken Communication Technologies Limited ("Sasken") unless sent with that express intent and with due authority of Sasken. Sasken has taken enough precautions to prevent the spread of viruses. However the company accepts no liability for any damage caused by any virus transmitted by this email
