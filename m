@@ -1,13 +1,13 @@
-From: Matt Callow <mc-lists@tesco.net>
-Subject: Re: Userspace GPIO
-Date: Tue, 16 May 2006 10:08:27 +0100
-Message-ID: <4469968B.3050802@tesco.net>
-References: <09D3F703EF3B0A4CBE28449EA9F3D320477AD8@nicta-atp-mail.in.nicta.com.au>
+From: "Ishigami, Tatsuya" <ishigami@ti.com>
+Subject: RE: OPIE on OMAP Innovator 1510
+Date: Tue, 16 May 2006 05:30:37 -0500
+Message-ID: <772F5D89C5E0734B8A86D85DFC6A20240347F5A9@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <09D3F703EF3B0A4CBE28449EA9F3D320477AD8@nicta-atp-mail.in.nicta.com.au>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,29 +17,42 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-Cc: linux-omap-open-source@linux.omap.com
+To: James Selvam <james.iisc@gmail.com>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Marco Candiago wrote:
-> Hello,
->
-> We are developing with the Innovator 1510 2.6.12-rc2-omap1 kernel
-> version.
->
-> Going through the archives I see that a similar type of question has
-> been a
-> Asked regarding accessing the GPIO lines via user-space; the answer
-> being just a link to the mailing list archives.
->
-> With this kernel is there a convenient method of toggling the GPIO lines
-> without having to resort to kernel space programming. With some other
-> hardware I have seen using Linux, it is possible to access the GPIO
-> lines via a /proc entry, however, I don't see that here.
->
->   
-Since the GPIO lines are mapped into the ARM memory space, you can use a 
-program like devmem2 to access the memory locations directly. Maybe not 
-the most elegant solution but I've used the program successfully on an 
-OMAP board. Try searching for devmem2.c in google.
+Hi James,
 
-Matt
+ Although this is about slightly different processor, I believe
+the same procedure is applicable.
+
+http://www.celinuxforum.org/pubwiki/moin.cgi/ITJ2005Detail1_2d4?action=3D=
+A
+ttachFile&do=3Dget&target=3DOSK-OpenEmbedded.pdf=20
+
+ Regards,
+ Ishigami
+
+-----Original Message-----
+From: James Selvam
+Sent: Tuesday, May 16, 2006 3:23 PM
+To: Linux-omap-open-source@linux.omap.com
+Subject: OPIE on OMAP Innovator 1510
+
+Hi All,
+
+Im using 2.6.16-omap1 kernel on my Innovator OMAP 1510. I want to put
+OPIE
+on it.
+
+If anyone has done something similar, could you kindly give me a brief
+how-to or guide me to a place where I could find one?
+
+I have built OPIE as specified in
+http://people.via.ecp.fr/~clem/nist/qt-notes.php
+But if Im not mistaken it is to develop applications over existing OPIE.
+Is
+there documentation to install OPIE in the first place?
+
+Regards,
+James.
