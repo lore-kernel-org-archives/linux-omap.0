@@ -1,15 +1,11 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: File system in flash
-Date: Tue, 16 May 2006 08:32:11 -0700
-Message-ID: <200605160832.13035.david-b@pacbell.net>
-References: <20060516142656.33019.qmail@web52912.mail.yahoo.com>
-	<Pine.GSO.4.64.0605162034220.6215@sunm21.sasken.com>
+From: "Lucas Hartmann" <lucas.hartmann@gmail.com>
+Subject: Writeable Replacement for /dev
+Date: Tue, 16 May 2006 18:18:16 -0300
+Message-ID: <2a3728820605161418v5a4a4e5cw24359c87cbba6fc6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <Pine.GSO.4.64.0605162034220.6215@sunm21.sasken.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -20,27 +16,24 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Gururaj N <gururaj@sasken.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 16 May 2006 8:08 am, Gururaj N wrote:
+Hello.
 
-> "SASKEN RATED Among THE Top 3 BEST COMPANIES TO WORK FOR IN INDIA
-> - SURVEY 2005 conducted by the BUSINESS TODAY - Mercer - TNS India" 
+I've been using kernel 2.6.12 with the /dev pseudo filesystem activated.
+When i try to move to newer kernels, the /dev is no longer supported. This
+causes the system to hang as the kernel tries to "open an initial console".
 
-Please, no advertisements here ...
+How do I set a writable tmpfs filesystem on the /dev? Is there any other
+better way of doing this?
 
+Using u-boot, loading kernel over tftp and root filesystem is on NFS.
 
->                            SASKEN BUSINESS DISCLAIMER
-> This message may contain confidential, proprietary or legally Privileged information.
-> In case you are not the original intended Recipient of the message, you must not,
-> directly or indirectly, use, Disclose, distribute, print, or copy any part of this
-> message and you are requested to delete it and inform the sender.
+Thanks.
+--=20
+Lucas Vinicius Hartmann
+(83) 9967-4628
 
-And this kind of disclaimer is absolutely inappropriate to include on any email
-that YOU have freely submitted to a globally distributed and archived public
-mailing list.
-
-... especially when it's not even formated with proper line endings before the
-80th column.  That's rude enough, even ignoring the content of the text.
+"There are 10 kinds of people in the world: The ones who understand binary
+and the ones who don't."
