@@ -1,15 +1,13 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: is dynamic tick working?
-Date: Mon, 15 May 2006 23:59:46 -0700
-Message-ID: <20060516065945.GF3413@atomide.com>
-References: <200605121905.13405.david-b@pacbell.net>
-	<446793B2.6040408@nokia.com> <20060515092253.GD8368@atomide.com>
-	<200605151511.11836.david-b@pacbell.net>
+From: "Marco Candiago" <Marco.Candiago@nicta.com.au>
+Subject: Userspace GPIO
+Date: Tue, 16 May 2006 17:46:39 +1000
+Message-ID: <09D3F703EF3B0A4CBE28449EA9F3D320477AD8@nicta-atp-mail.in.nicta.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <200605151511.11836.david-b@pacbell.net>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,40 +15,40 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [060515 15:11]:
-> On Monday 15 May 2006 2:22 am, Tony Lindgren wrote:
-> > 
-> > OK, I've pushed Imre's patches. Can you check that everything got
-> > patched OK?
-> 
-> I attach three patches:
-> 
->  - To make Mistral work better needs new callback), which worked for
->    me (modulo writing the "disable" file wedging, gotta retest that);
 
-I'll push this patch today.
-  
->  - A quickie bitbang SPI adapter for the 1510-Innovator FPGA hookup to ads7846,
->    untested beyond compiling (no Innovator here!);
->  
->  - Removing the old OMAP-specific Mistral and Innovator touchscreen drivers;
->    this may be a trifle premature given the lack of Innovator testing
+Hello,
 
-Let's try these patches out before pushing. Can somebody with an
-Innovator test these patches? 
- 
-> Anyway, with the first of these patches I saw tick rates of about 27 Hz;
-> the issue seems to be the omap_ts driver keeping a timer active (among
-> other misbehaviors).
-> 
-> In short:  yes, it's better now.
+We are developing with the Innovator 1510 2.6.12-rc2-omap1 kernel
+version.
 
-AFAIK omap_ts should only need a timer when pen is down. 
+Going through the archives I see that a similar type of question has
+been a
+Asked regarding accessing the GPIO lines via user-space; the answer
+being just a link to the mailing list archives.
 
-Tony
+With this kernel is there a convenient method of toggling the GPIO lines
+without having to resort to kernel space programming. With some other
+hardware I have seen using Linux, it is possible to access the GPIO
+lines via a /proc entry, however, I don't see that here.
+
+I apologize if this question is obtuse, but any help would be greatly=0D
+Appreciated.
+
+Thanks,
+
+Marco =0D
+
+--------------------------------------------------------------------------
+This email and any attachments may be confidential. They may contain=
+ legally
+privileged information or copyright material. You should not read, copy,
+use or disclose them without authorisation. If you are not an intended
+recipient, please contact us at once by return email and then delete both
+messages. We do not accept liability in connection with computer virus,
+data corruption, delay, interruption, unauthorised access or unauthorised
+amendment. This notice should not be removed.
