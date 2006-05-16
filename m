@@ -1,8 +1,7 @@
 From: Imre Deak <imre.deak@nokia.com>
-Subject: [PATCH 1/3] ARM: OMAP: omap2_mcspi: fix for channel configuration
-	and CS
-Date: Wed, 17 May 2006 01:13:20 +0300
-Message-ID: <1147817600.27886.56.camel@mammoth.research.nokia.com>
+Subject: [PATCH 2/3] ARM: OMAP: edge selection for McSPI / uWire
+Date: Wed, 17 May 2006 01:14:41 +0300
+Message-ID: <1147817681.27886.59.camel@mammoth.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -20,57 +19,57 @@ To: David Brownell <david-b@pacbell.net>
 Cc: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-[ resending an earlier patch ]
+ARM: OMAP: edge selection for McSPI / uWire
 
-ARM: OMAP: omap2_mcspi: fix for channel configuration and CS
+SPI mode 0 maps to the case where we have write on rising and read on
+falling clock edge. Fix the OMAP2 McSPI and OMAP1 uWire edge selection
+accordingly.
 
-Fix for channel reconfiguration case: once the EPOL, POL or PHA has been
-configured to 1, further configuration on the channel can't change it to
-0.
-The first CS enable is not needed. The CS will be enabled right before
-the transfer anyway, if it's not active.
+In the uWire case the meaning of the HW flag selecting the read edge
+selection must be flipped for correct operation and this is in
+contradiction with the OMAP1 specification. Tests were performed on SPI
+devices using mode 1 (original uWire protocoll) like the ads7846 to
+validate this.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Signed-off-by: Imre Deak <imre.deak@nokia.com>
 
 Index: linux-2.6/drivers/spi/omap2_mcspi.c
 ===================================================================
---- linux-2.6.orig/drivers/spi/omap2_mcspi.c	2006-05-17 00:21:15.000000000 +0300
-+++ linux-2.6/drivers/spi/omap2_mcspi.c	2006-05-17 00:22:13.000000000 +0300
-@@ -307,12 +307,18 @@ static int omap2_mcspi_setup_transfer(st
- 	l |= (word_len - 1) << 7;
- 	if (!(spi->mode & SPI_CS_HIGH))
- 		l |= OMAP2_MCSPI_CHCONF_EPOL;
-+	else
-+		l &= ~OMAP2_MCSPI_CHCONF_EPOL;
- 	l &= ~OMAP2_MCSPI_CHCONF_CLKD_MASK;
- 	l |= div << 2;
- 	if (spi->mode & SPI_CPOL)
- 		l |= OMAP2_MCSPI_CHCONF_POL;
-+	else
-+		l &= ~OMAP2_MCSPI_CHCONF_POL;
+--- linux-2.6.orig/drivers/spi/omap2_mcspi.c	2006-05-17 00:24:46.000000000 +0300
++++ linux-2.6/drivers/spi/omap2_mcspi.c	2006-05-17 00:26:22.000000000 +0300
+@@ -316,9 +316,9 @@ static int omap2_mcspi_setup_transfer(st
+ 	else
+ 		l &= ~OMAP2_MCSPI_CHCONF_POL;
  	if (spi->mode & SPI_CPHA)
- 		l |= OMAP2_MCSPI_CHCONF_PHA;
+-		l |= OMAP2_MCSPI_CHCONF_PHA;
+-	else
+ 		l &= ~OMAP2_MCSPI_CHCONF_PHA;
 +	else
-+		l &= ~OMAP2_MCSPI_CHCONF_PHA;
++		l |= OMAP2_MCSPI_CHCONF_PHA;
  	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
  
  	return 0;
-@@ -349,7 +355,7 @@ static void omap2_mcspi_work(unsigned lo
- 		struct spi_message		*m;
- 		struct spi_device		*spi;
- 		struct spi_transfer		*t = NULL;
--		int				cs_active;
-+		int				cs_active = 0;
- 		struct omap2_mcspi_device_config *conf;
- 		struct omap2_mcspi_cs		*cs;
- 		int				par_override = 0;
-@@ -365,9 +371,6 @@ static void omap2_mcspi_work(unsigned lo
- 		conf = (struct omap2_mcspi_device_config *) spi->controller_data;
- 		cs = (struct omap2_mcspi_cs *) spi->controller_state;
+Index: linux-2.6/drivers/spi/omap_uwire.c
+===================================================================
+--- linux-2.6.orig/drivers/spi/omap_uwire.c	2006-05-17 00:24:50.000000000 +0300
++++ linux-2.6/drivers/spi/omap_uwire.c	2006-05-17 00:26:11.000000000 +0300
+@@ -76,8 +76,8 @@
+ #define	CS_CMD	(1 << 12)
  
--		omap2_mcspi_force_cs(spi, 1);
--		cs_active = 1;
--
- 		list_for_each_entry(t, &m->transfers, transfer_list) {
- 			if (t->tx_buf == NULL && t->rx_buf == NULL && t->len) {
- 				status = -EINVAL;
+ /* SR1 or SR2 bits */
+-#define UWIRE_READ_FALLING_EDGE		0x0000
+-#define UWIRE_READ_RISING_EDGE		0x0001
++#define UWIRE_READ_FALLING_EDGE		0x0001
++#define UWIRE_READ_RISING_EDGE		0x0000
+ #define UWIRE_WRITE_FALLING_EDGE	0x0000
+ #define UWIRE_WRITE_RISING_EDGE		0x0002
+ #define UWIRE_CS_ACTIVE_LOW		0x0000
+@@ -355,7 +355,7 @@ static int uwire_setup_transfer(struct s
+ 	switch (spi->mode & (SPI_CPOL | SPI_CPHA)) {
+ 	case SPI_MODE_0:
+ 	case SPI_MODE_3:
+-		flags |= UWIRE_WRITE_FALLING_EDGE | UWIRE_READ_FALLING_EDGE;
++		flags |= UWIRE_WRITE_RISING_EDGE | UWIRE_READ_FALLING_EDGE;
+ 		break;
+ 	case SPI_MODE_1:
+ 	case SPI_MODE_2:
