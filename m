@@ -1,16 +1,17 @@
-From: Imre Deak <imre.deak@nokia.com>
-Subject: Re: is dynamic tick working?
-Date: Tue, 16 May 2006 16:32:43 +0300
-Message-ID: <1147786363.27886.14.camel@mammoth.research.nokia.com>
+From: Brian Swetland <swetland@google.com>
+Subject: Re: Linux On TI Omap850
+Date: Tue, 16 May 2006 07:11:27 -0700
+Message-ID: <20060516141127.GA29719@localhost.localdomain>
 References: <200605121905.13405.david-b@pacbell.net>
 	<20060514104911.GB4715@atomide.com>
 	<200605140919.09540.david-b@pacbell.net>
-	<20060515092601.GE8368@atomide.com>
+	<20060515092601.GE8368@atomide.com> <4468BB63.9030206@hotmail.fr>
+	<20060516065256.GE3413@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <20060515092601.GE8368@atomide.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <20060516065256.GE3413@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,36 +19,34 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: ext Tony Lindgren <tony@atomide.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 2006-05-15 at 02:26 -0700, ext Tony Lindgren wrote:
-> * David Brownell <david-b@pacbell.net> [060514 09:19]:
-> > On Sunday 14 May 2006 3:49 am, Tony Lindgren wrote:
-> > 
-> > > In general dyntick should work, and you should see about 4-6HZ idle
-> > > tick rate.
-> > 
-> > Depending on drivers, it seems ... ;)
-> > 
-> > I have a patch to get rid of the OHCI root hub polling, which will
-> > get rid of one 4Hz timer.
+[Tony Lindgren <tony@atomide.com>]
+> * Vince <v.richomme@hotmail.fr> [060515 10:32]:
+> > I would like to know if someone has information about running linux on 
+> > TI omap850 platform.
+> > I have searched on google and I only found one or two posts regarding 
+> > this topic.
+> > I would like to have maximum information on this processor.
 > 
-> Cool. Last time I played with sub 4Hz idle tick, some timers stopped
-> working properly... Might be different now though as the timer system
-> has seen some changes since last fall.
+> Try going to linux.omap.com, go to the mailing lists. Then select April
+> 2006 archives by thread. There you see all the current 850 fsample
+> patches. We integrated the core 850 fsample support patch yesterday, so
+> the device driver patches are still missing.
 
-On N770 I've found that the omap_udc is pushing up the tick-rate as well
-by HZ/3. It is a workaround to account for lost RX interrupts.
+Speaking of the device driver patches, I still need to figure out how
+to have lcd_p2.c included for perseus2 or fsample, but not twice if you
+build a kernel for both...
 
---Imre
+obviously, something like this in drivers/video/Makefile is wrong:
 
-> 
-> Tony
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+objs-y$(CONFIG_MACH_OMAP_PERSEUS2) += lcd_p2.o
+objs-y$(CONFIG_MACH_OMAP_FSAMPLE) += lcd_p2.o
+
+Is the solution to have a CONFIG_FB_OMAP_LCD_P2?
+
+Brian, unwise in the ways of kconfig 
