@@ -1,7 +1,7 @@
-From: Imre Deak <imre.deak@nokia.com>
-Subject: [PATCH 3/3] Input: ads7846: select correct SPI mode
-Date: Wed, 17 May 2006 01:14:53 +0300
-Message-ID: <1147817693.27886.61.camel@mammoth.research.nokia.com>
+From: Kevin Hilman <khilman@mvista.com>
+Subject: [ANNOUNCE] TI DaVinci git tree available
+Date: Tue, 16 May 2006 17:43:37 -0700
+Message-ID: <1147826617.8739.32.camel@vence.internal.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -15,29 +15,44 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
-Cc: omap-linux <linux-omap-open-source@linux.omap.com>
+To: davinci-linux-open-source@linux.davincidsp.com
+Cc: "linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Input: ads7846: select correct SPI mode
+The kernel git tree[1] for the TI DaVinci platform is now available at
 
-The device is using a protocoll where writes are on the falling, reads are
-on the rising edge of the clock. This maps to SPI mode 1.
+  http://source.mvista.com/git/
 
-Signed-off-by: Imre Deak <imre.deak@nokia.com>
+This kernel is currently based on 2.6.17-rc4 and will follow the
+mainline kernel.  
 
-Index: linux-2.6/drivers/input/touchscreen/ads7846.c
-===================================================================
---- linux-2.6.orig/drivers/input/touchscreen/ads7846.c	2006-05-17 00:29:36.000000000 +0300
-+++ linux-2.6/drivers/input/touchscreen/ads7846.c	2006-05-17 00:30:17.000000000 +0300
-@@ -683,6 +683,10 @@ static int __devinit ads7846_probe(struc
- 
- 	dev_set_drvdata(&spi->dev, ts);
- 	spi->dev.power.power_state = PMSG_ON;
-+	spi->mode = SPI_MODE_1;
-+	err = spi_setup(spi);
-+	if (err < 0)
-+		goto err_free_mem;
- 
- 	ts->spi = spi;
- 	ts->input = input_dev;
+This is currently a minimal kernel with only serial and ethernet
+support, but drivers will be added one by one as I forward port them
+from the 2.6.10-based MontaVista product.
+
+Included in the tree is a default config (via 'make
+davinci_dm644x_defconfig') that should boot.
+
+There are some known issues[2] as well as some areas that could use
+updating to the newer kernel and updates for the Linux Driver model.
+
+Patches are welcome!   
+
+Like the OMAP site, TI is maintaining a Linux site for DaVinci at
+http://linux.davincidsp.com/  Mailing-list subscription info can be
+found there.
+
+-- 
+Kevin Hilman <khilman@mvista.com>
+MontaVista Software, Inc.
+
+
+
+[1] For those new to git, there is an overview, tutorial and man pages
+available at http://www.kernel.org/git/  
+
+[2] Known issues:  Something has changed in the 8250 serial driver since
+2.6.10 which causes some problems on the serial console.  Interrupts
+seem to be lost such that the driver seems to be a few characters behind
+what you're typing.  This is still under investigation, but any help
+appreciated.
