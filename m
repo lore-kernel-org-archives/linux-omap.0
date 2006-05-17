@@ -1,13 +1,13 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: RE: [PATCH] Add PRCM scheme I on omap2420
-Date: Tue, 16 May 2006 23:56:29 -0700 (PDT)
-Message-ID: <20060517065629.68535.qmail@web37908.mail.mud.yahoo.com>
-References: <EA12F909C0431D458B9D18A176BEE4A50595FF66@dlee02.ent.ti.com>
+From: "andrzej zaborowski" <balrog@zabor.org>
+Subject: Re: Userspace GPIO
+Date: Wed, 17 May 2006 10:56:59 +0200
+Message-ID: <fb249edb0605170156u63eceb3fja5fa915c8e2c405d@mail.gmail.com>
+References: <09D3F703EF3B0A4CBE28449EA9F3D320477ADA@nicta-atp-mail.in.nicta.com.au>
+Reply-To: balrogg@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A50595FF66@dlee02.ent.ti.com>
+Content-Type: multipart/mixed; boundary="===============1851182852=="
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <09D3F703EF3B0A4CBE28449EA9F3D320477ADA@nicta-atp-mail.in.nicta.com.au>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,89 +15,84 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>, kyungmin.park@samsung.com, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Marco Candiago <Marco.Candiago@nicta.com.au>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---- "Woodruff, Richard" <r-woodruff2@ti.com> wrote:
+--===============1851182852==
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-> 
-> The open-source git kernel has no chance of booting, 2430 is not
-> fully
-> merged here.  The processors are similar but there are enough address
-> space changes to ensure it won't work even for a minimal kernel.  We
-> have also not yet attempted to sync up the external u-boot tree.
+SGkgTWFyY28sCgpPbiAxNy8wNS8wNiwgTWFyY28gQ2FuZGlhZ28gPE1hcmNvLkNhbmRpYWdvQG5p
+Y3RhLmNvbS5hdT4gd3JvdGU6Cj4KPiBNYXR0LCBSaWNoYXJkLAo+Cj4gVGhhbmtzIGZvciB5b3Vy
+IHJlcGxpZXMuCj4KPiBNYXR0LAo+Cj4gICAgICAgICBkZXZtZW0yIGRvZXMgZG8gdGhlIGpvYiBh
+bmQgaXMgcmlkaWN1bG91c2x5IGVhc3kgdG8gdXNlLgo+Cj4gUmljaGFyZCwKPgo+ICBJIHVuZGVy
+c3RhbmQgd2hhdCB5b3UgYXJlIHNheWluZywgYnV0IEkgc2ltcGx5IGRvIG5vdCBrbm93IGhvdyB0
+bwo+IGNyZWF0ZSBhIHByb3h5IG9mIHRoaXMgbmF0dXJlLiAgRG8geW91IGhhdmUgYW55IHJlY29t
+bWVuZGVkCj4gZG9jdW1lbnRhdGlvbiB0aGF0IHdvdWxkCj4gRW5saWdodGVuIG1lLgoKWW91IGNv
+dWxkIGNyZWF0ZSBpdCBieSBtb2RpZnlpbmcgb25lIG9mIHRoZSBkcml2ZXJzIGFscmVhZHkgcHJl
+c2VudCBpbgp0aGUgdHJlZSwgSSBrbm93IHRoZSBJbnRlbCBQWEEgaGFja2VycyBoYXZlIG9uZSBv
+ZiB0aGVzZSBhbmQgdXNlIGl0IGFzCmEga2V5cGFkIGRyaXZlciBiZWNhdXNlIGVhY2gga2V5IGlz
+IGFzc29jaWF0ZWQgd2l0aCBvbmUgR1BJTyBsaW5lIG9uCnRoZWlyIGJvYXJkcy4gSSBkb24ndCBr
+bm93IHRoZSBuYW1lIG9mIHRoZSBkcml2ZXIgdGhleSB1c2UgYnV0IEkgZm91bmQKdHdvIHNpbWls
+YXIgZHJpdmVycyBpbiB0aGUga2VybmVsLm9yZyB0cmVlOgpodHRwOi8vd3d3Lmtlcm5lbC5vcmcv
+Z2l0Lz9wPWxpbnV4L2tlcm5lbC9naXQvdG9ydmFsZHMvbGludXgtMi42LmdpdDthPWJsb2I7aD00
+NmQ2NjAzN2I5MTdjNTg1MTIyMmI1NmFmNzdmNGIxNThjZTc5M2FhO2hiPTBjMDU2YzUwYTYyMThl
+MGU1Nzc4MTdjMTZiYTg4NTFhZjU5M2Q3NDI7Zj1kcml2ZXJzL2NoYXIvY3M1NTM1X2dwaW8uYwpo
+dHRwOi8vd3d3Lmtlcm5lbC5vcmcvZ2l0Lz9wPWxpbnV4L2tlcm5lbC9naXQvdG9ydmFsZHMvbGlu
+dXgtMi42LmdpdDthPWJsb2I7aD02NjRhNmU5N2ViMWE4MDEyNDc1NjI1YWY2MzgzODI1YTNkODg1
+ZTIwO2hiPTBjMDU2YzUwYTYyMThlMGU1Nzc4MTdjMTZiYTg4NTFhZjU5M2Q3NDI7Zj1kcml2ZXJz
+L2NoYXIvc2N4MjAwX2dwaW8uYwpJIGltYWdpbmUgeW91IHdvdWxkIGhhdmUgdG8gdGhyb3cgb3V0
+IHRoZSBkZXZpY2Ugc3BlY2lmaWMgY29kZSBmcm9tCnRoZW0gYW5kIHJlcGxhY2UgdGhlICpfZ3Bp
+b19yZWFkIGFuZCAqX2dwaW9fd3JpdGUgZnVuY3Rpb25zIHdpdGggY2FsbHMKdG8gb21hcF9zZXRf
+Z3Bpb19kYXRhaW4oKSBhbmQgb21hcF9zZXRfZ3Bpb19kYXRhb3V0KCkuCgo+Cj4gTWFyY28KPgo+
+Cj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0KPiBGcm9tOiBsaW51eC1vbWFwLW9wZW4tc291
+cmNlLWJvdW5jZXNAbGludXgub21hcC5jb20KPiBbbWFpbHRvOmxpbnV4LW9tYXAtb3Blbi1zb3Vy
+Y2UtYm91bmNlc0BsaW51eC5vbWFwLmNvbV0gT24gQmVoYWxmIE9mCj4gV29vZHJ1ZmYsIFJpY2hh
+cmQKPiBTZW50OiBUdWVzZGF5LCBNYXkgMTYsIDIwMDYgMTA6MTAgUE0KPiBUbzogTWF0dCBDYWxs
+b3cKPiBDYzogbGludXgtb21hcC1vcGVuLXNvdXJjZUBsaW51eC5vbWFwLmNvbQo+IFN1YmplY3Q6
+IFJFOiBVc2Vyc3BhY2UgR1BJTwo+Cj4gPiBTaW5jZSB0aGUgR1BJTyBsaW5lcyBhcmUgbWFwcGVk
+IGludG8gdGhlIEFSTSBtZW1vcnkgc3BhY2UsIHlvdSBjYW4gdXNlCj4gYQo+ID4gcHJvZ3JhbSBs
+aWtlIGRldm1lbTIgdG8gYWNjZXNzIHRoZSBtZW1vcnkgbG9jYXRpb25zIGRpcmVjdGx5LiBNYXli
+ZQo+IG5vdAo+ID4gdGhlIG1vc3QgZWxlZ2FudCBzb2x1dGlvbiBidXQgSSd2ZSB1c2VkIHRoZSBw
+cm9ncmFtIHN1Y2Nlc3NmdWxseSBvbiBhbgo+ID4gT01BUCBib2FyZC4gVHJ5IHNlYXJjaGluZyBm
+b3IgZGV2bWVtMi5jIGluIGdvb2dsZS4KPgo+IEkgd291bGRuJ3QgcmVjb21tZW5kIHRoYXQuICAz
+MiBHUElPcyBhcmUgY29udHJvbGxlZCBwZXIgcmVnaXN0ZXIuICBBCj4gZGlyZWN0IHVzZXIgc3Bh
+Y2Ugd3JpdGUgd2l0aCBvdXQgYW55IGxvY2tpbmcgY291bGQgZGVzdHJveSB0aGUgc3RhdGUgb2YK
+PiBhIGdwaW8gb3duZWQgYnkgc29tZW9uZSBlbHNlLiAgSWYgc29tZW9uZSByZWFsbHkgd2FudGVk
+IHRvIHVzZSBpdCwgdGhlbgo+IHNvbWUgcHJveHkgYmV0d2VlbiAoL3Byb2Mvc3lzL3N5c2NhbGwp
+IHRvIHRoZSByZWFsIGtlcm5lbCBBUEkgc2hvdWxkIGJlCj4gY3JlYXRlZC4gIEl0IG1pZ2h0IGJl
+IGZ1biB0byBoYXZlIHNvbWUgbm90aWZpY2F0aW9uIG1ldGhvZCBpZiB0aGUgR1BJTwo+IHdlcmUg
+Y29uZmlndXJlZCBhcyBhbiBpbnRlcnJ1cHQgc291cmNlLgo+Cj4gUmVnYXJkcywKPiBSaWNoYXJk
+IFcuCj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KPiBM
+aW51eC1vbWFwLW9wZW4tc291cmNlIG1haWxpbmcgbGlzdAo+IExpbnV4LW9tYXAtb3Blbi1zb3Vy
+Y2VAbGludXgub21hcC5jb20KPiBodHRwOi8vbGludXgub21hcC5jb20vbWFpbG1hbi9saXN0aW5m
+by9saW51eC1vbWFwLW9wZW4tc291cmNlCj4KPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+IFRoaXMgZW1h
+aWwgYW5kIGFueSBhdHRhY2htZW50cyBtYXkgYmUgY29uZmlkZW50aWFsLiBUaGV5IG1heSBjb250
+YWluIGxlZ2FsbHkKPiBwcml2aWxlZ2VkIGluZm9ybWF0aW9uIG9yIGNvcHlyaWdodCBtYXRlcmlh
+bC4gWW91IHNob3VsZCBub3QgcmVhZCwgY29weSwKPiB1c2Ugb3IgZGlzY2xvc2UgdGhlbSB3aXRo
+b3V0IGF1dGhvcmlzYXRpb24uIElmIHlvdSBhcmUgbm90IGFuIGludGVuZGVkCj4gcmVjaXBpZW50
+LCBwbGVhc2UgY29udGFjdCB1cyBhdCBvbmNlIGJ5IHJldHVybiBlbWFpbCBhbmQgdGhlbiBkZWxl
+dGUgYm90aAo+IG1lc3NhZ2VzLiBXZSBkbyBub3QgYWNjZXB0IGxpYWJpbGl0eSBpbiBjb25uZWN0
+aW9uIHdpdGggY29tcHV0ZXIgdmlydXMsCj4gZGF0YSBjb3JydXB0aW9uLCBkZWxheSwgaW50ZXJy
+dXB0aW9uLCB1bmF1dGhvcmlzZWQgYWNjZXNzIG9yIHVuYXV0aG9yaXNlZAo+IGFtZW5kbWVudC4g
+VGhpcyBub3RpY2Ugc2hvdWxkIG5vdCBiZSByZW1vdmVkLgo+IF9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gTGludXgtb21hcC1vcGVuLXNvdXJjZSBtYWls
+aW5nIGxpc3QKPiBMaW51eC1vbWFwLW9wZW4tc291cmNlQGxpbnV4Lm9tYXAuY29tCj4gaHR0cDov
+L2xpbnV4Lm9tYXAuY29tL21haWxtYW4vbGlzdGluZm8vbGludXgtb21hcC1vcGVuLXNvdXJjZQo+
+CgpSZWdhcmRzLApBbmRyZXcKLS0gCmJhbHJvZyAyb282CgpEZWFyIE91dGxvb2sgdXNlcnM6IFBs
+ZWFzZSByZW1vdmUgbWUgZnJvbSB5b3VyIGFkZHJlc3MgYm9va3MKaHR0cDovL3d3dy5uZXdzZm9y
+Z2UuY29tL2FydGljbGUucGw/c2lkPTAzLzA4LzIxLzE0MzI1OAo=
 
-Here is first kernel boot (crash!!, but that's ok) of omap-git tree on
-2430. I just started to add minimal support. Need to look at cpu id,
-clocks, and gpios now. I will post the patch. We need to come at some
-conclusion to avoid lots #ifders I have used in my code for 243x :) 
- 
-<5>Linux version 2.6.17-rc4-omap1-gabfedf52-dirty (komal@everest) (gcc
-version
-3.4.0 20040409 (CodeSourcery ARM Q1A 2004)) #266 Wed May 17 12:10:48
-IST 2006
-CPU: Some Random V6 Processor [4107b362] revision 2 (ARMv6TEJ)
-Machine: Generic OMAP24xx
-Memory policy: ECC disabled, Data cache writeback
-<7>On node 0 totalpages: 32768
-<7>  DMA zone: 32768 pages, LIFO batch:7
-<7>OMAP_TAP_IDCODE 0x00000204 REV 0 HAWKEYE 0x0000 MANF 102
-<7>OMAP_TAP_DIE_ID_0: 0x00000218
-<7>OMAP_TAP_DIE_ID_1: 0x0000021c DEV_REV: 0
-<7>OMAP_TAP_DIE_ID_2: 0x00000220
-<7>OMAP_TAP_DIE_ID_3: 0x00000224
-<7>OMAP_TAP_PROD_ID_0: 0x00000208 DEV_TYPE: 0
-<3>Unknown OMAP CPU id
-<6>SRAM: Mapped pa 0x4020f000 to va 0xd0000000 size: 0x1000
-CPU0: D VIPT write-back cache
-CPU0: I cache: 32768 bytes, associativity 4, 32 byte lines, 256 sets
-CPU0: D cache: 32768 bytes, associativity 4, 32 byte lines, 256 sets
-Built 1 zonelists
-<5>Kernel command line: console=ttyS0,115200n8 noinitrd root=/dev/nfs r
-w nfsroot=10.203.96.33:/pub/fs/oss,wsize=1024
-ip=10.203.96.34:10.203.96.33:
-255.255.254.0:omap2:eth0:
-<6>Clocking rate (Crystal/DPLL/MPU): 13.0/0/0 MHz
-<3>clock.c: Enable for dpll_ck without enable code
-<6>IRQ: Found an INTC at 0x480fe000 (revision 3.0) with 96 interrupts
-<6>Total of 96 interrupts on 1 active controller
-PID hash table entries: 1024 (order: 10, 4096 bytes)
-<3>Could not get sys_ck
-<6>OMAP2 GP timer (HW version 1.6)
-Console: colour dummy device 80x30
-Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
-Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
-<6>Memory: 128MB = 128MB total
-<5>Memory: 128128KB available (1260K code, 325K data, 84K init)
-<7>Calibrating delay loop... 303.92 BogoMIPS (lpj=1519616)
-Mount-cache hash table entries: 512
-<6>CPU: Testing write buffer coherency: ok
-<1>Unhandled fault: external abort on linefetch (0x806) at 0x00000000
-Internal error: : 806 [#1]
-Modules linked in:
-CPU: 0
-PC is at kernel_thread_helper+0x0/0xc
-LR is at kernel_thread_helper+0x0/0xc
-pc : [<c001f478>]    lr : [<c001f478>]    Not tainted
-sp : c02e9ff8  ip : 00000000  fp : 00000000
-r10: 00000000  r9 : 00000000  r8 : 00000000
-r7 : 00000000  r6 : 00000000  r5 : 00000000  r4 : 00000000
-r3 : c0039c9c  r2 : c001d058  r1 : 00000000  r0 : 00000000
-Flags: nzcv  IRQs on  FIQs on  Mode SVC_32  Segment kernel
-Control: C5387F  Table: 80004000  DAC: 00000017
-Process swapper (pid: 1, stack limit = 0xc02e8190)
-Stack: (0xc02e9ff8 to 0xc02ea000)
-9fe0:                                                       0000000a
-00000001
-Backtrace: no frame pointer
-Code: db043fac e89da800 c0195e60 c015da44 (e1a00001)
+--===============1851182852==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
----Komal Shah
-http://komalshah.blogspot.com/
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+--===============1851182852==--
