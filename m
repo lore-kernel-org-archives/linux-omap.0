@@ -1,14 +1,17 @@
-From: =?ISO-8859-1?Q?Juha_Yrj=F6l=E4?= <juha.yrjola@nokia.com>
-Subject: Re: Userspace GPIO
-Date: Wed, 17 May 2006 12:49:26 +0300
-Message-ID: <446AF1A6.90703@nokia.com>
-References: <09D3F703EF3B0A4CBE28449EA9F3D320477ADA@nicta-atp-mail.in.nicta.com.au>
-	<fb249edb0605170156u63eceb3fja5fa915c8e2c405d@mail.gmail.com>
+From: Imre Deak <imre.deak@nokia.com>
+Subject: Re: [PATCH 0/3] ARM: OMAP: SPI edge selection [was Re: Edge selecton
+ on SPI bus]
+Date: Wed, 17 May 2006 13:13:51 +0300
+Message-ID: <446AF75F.4080005@nokia.com>
+References: <1147691115.32613.10.camel@mammoth.research.nokia.com>
+	<200605151159.37793.david-b@pacbell.net>
+	<1147817569.27886.54.camel@mammoth.research.nokia.com>
+	<200605161950.17041.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <fb249edb0605170156u63eceb3fja5fa915c8e2c405d@mail.gmail.com>
+In-Reply-To: <200605161950.17041.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,20 +21,62 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: balrogg@gmail.com
-Cc: linux-omap-open-source@linux.omap.com, Marco Candiago <Marco.Candiago@nicta.com.au>
+To: ext David Brownell <david-b@pacbell.net>
+Cc: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-andrzej zaborowski wrote:
+ext David Brownell wrote:
+>> I think the devices worked so far with this buggy logic since I suspect
+>> a complementary problem in the TRM for the read edge selection HW flag.
+>> I checked this against devices that are known to be using a given SPI
+>> mode.
+> 
+> Hmm, I hope the attached GIF makes it through ... it shows the data
+> and clock signals and their variations pretty clearly, though you need
+> to understand that "out" means MOSI.
 
-> You could create it by modifying one of the drivers already present in
-> the tree, I know the Intel PXA hackers have one of these and use it as
-> a keypad driver because each key is associated with one GPIO line on
-> their boards.
+ From the diagram it seems that the master will shift out the data on 
+MOSI at the same time as it is latching in the data on MISO. If that's 
+really the case, then as I understand the loopback setup (connecting the 
+two lines) wouldn't be possible. Also CPHA would define only the mode on 
+the MOSI line, the MISO line would operate according to the opposite 
+semantic. This might be the case, though I haven't found a description 
+where this distinction was pointed out.
 
-Or you could GPIO switch framework (arch/arm/plat-omap/gpio-switch.c), 
-which interfaces to user-space using sysfs.  It will need a small amount 
-of work to operate properly with the platform_data mechanism, though.
+> 
+> Agreed, the TRM is a bit opaque there.  There are three bits to
+> cover two basic protocol options:  sample edge (2x) which seems
+> to encode CPHA, and clock polarity which sure ought to be CPOL.  
 
-Cheers,
-Juha
+Yes, so the 2 edge flags should always be set to the same value to 
+define a valid SPI mode.
+
+Also in OMAP2 the SPI PHA flag is defined to be the opposite value of 
+the CPHA as defined in the four SPI modes.
+
+> 
+> 
+>> Also at least the ads7846 was using incorrectly SPI mode 0, since it's
+>> expecting writes on the falling / reads on the rising edge which maps to
+>> mode 1.
+> 
+> Seems right ... does that give you more consistent sample readings?
+
+No, setting to mode 1 won't change the actual HW configuration, since 
+with the uWire patch the mapping also changes to set the same HW flags 
+as we used before.
+
+--Imre
+
+> 
+> 
+>> I'm posting 3 patches to solve these issues.
+> 
+> They look OK to me.  I'd say to merge them to the OMAP tree; if no
+> problems turn up, I'll push the ads7846 patch along soonish.
+> 
+> - Dave
+> 
+> 
+> ------------------------------------------------------------------------
+> 
