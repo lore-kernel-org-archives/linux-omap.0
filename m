@@ -1,17 +1,12 @@
-From: Imre Deak <imre.deak@nokia.com>
-Subject: Re: [PATCH 0/3] ARM: OMAP: SPI edge selection [was Re: Edge selecton
- on SPI bus]
-Date: Wed, 17 May 2006 13:13:51 +0300
-Message-ID: <446AF75F.4080005@nokia.com>
-References: <1147691115.32613.10.camel@mammoth.research.nokia.com>
-	<200605151159.37793.david-b@pacbell.net>
-	<1147817569.27886.54.camel@mammoth.research.nokia.com>
-	<200605161950.17041.david-b@pacbell.net>
+From: "Komal Shah" <komal_shah802003@yahoo.com>
+Subject: [PATCH] ARM: OMAP: Make McBSP KConfigurable
+Date: Wed, 17 May 2006 03:30:49 -0700
+Message-ID: <1147861849.30153.261638320@webmail.messagingengine.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: multipart/mixed; boundary="_----------=_1147861849301531";
+	charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <200605161950.17041.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,62 +16,79 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: ext David Brownell <david-b@pacbell.net>
-Cc: omap-linux <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-ext David Brownell wrote:
->> I think the devices worked so far with this buggy logic since I suspect
->> a complementary problem in the TRM for the read edge selection HW flag.
->> I checked this against devices that are known to be using a given SPI
->> mode.
-> 
-> Hmm, I hope the attached GIF makes it through ... it shows the data
-> and clock signals and their variations pretty clearly, though you need
-> to understand that "out" means MOSI.
+This is a multi-part message in MIME format.
 
- From the diagram it seems that the master will shift out the data on 
-MOSI at the same time as it is latching in the data on MISO. If that's 
-really the case, then as I understand the loopback setup (connecting the 
-two lines) wouldn't be possible. Also CPHA would define only the mode on 
-the MOSI line, the MISO line would operate according to the opposite 
-semantic. This might be the case, though I haven't found a description 
-where this distinction was pointed out.
+--_----------=_1147861849301531
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="ISO-8859-1"
+MIME-Version: 1.0
+X-Mailer: MIME::Lite 5022  (F2.72; T1.15; A1.62; B3.04; Q3.03)
+Date: Wed, 17 May 2006 10:30:49 UT
 
-> 
-> Agreed, the TRM is a bit opaque there.  There are three bits to
-> cover two basic protocol options:  sample edge (2x) which seems
-> to encode CPHA, and clock polarity which sure ought to be CPOL.  
+---Komal Shah
+http://komalshah.blogspot.com
 
-Yes, so the 2 edge flags should always be set to the same value to 
-define a valid SPI mode.
+--=20
+http://www.fastmail.fm - And now for something completely different=85
 
-Also in OMAP2 the SPI PHA flag is defined to be the opposite value of 
-the CPHA as defined in the four SPI modes.
 
-> 
-> 
->> Also at least the ads7846 was using incorrectly SPI mode 0, since it's
->> expecting writes on the falling / reads on the rising edge which maps to
->> mode 1.
-> 
-> Seems right ... does that give you more consistent sample readings?
+--_----------=_1147861849301531
+Content-Disposition: attachment;
+	filename="0001-ARM-OMAP-Make-McBSP-KConfigurable.patch"
+Content-Transfer-Encoding: base64
+Content-Type: application/octet-stream;
+	name="0001-ARM-OMAP-Make-McBSP-KConfigurable.patch"
+MIME-Version: 1.0
+X-Mailer: MIME::Lite 5022  (F2.72; T1.15; A1.62; B3.04; Q3.03)
+Date: Wed, 17 May 2006 10:30:49 UT
 
-No, setting to mode 1 won't change the actual HW configuration, since 
-with the uWire patch the mapping also changes to set the same HW flags 
-as we used before.
+RnJvbSBub2JvZHkgTW9uIFNlcCAxNyAwMDowMDowMCAyMDAxCkZyb206IEtv
+bWFsIFNoYWggPGtvbWFsX3NoYWg4MDIwMDNAeWFob28uY29tPgpEYXRlOiBX
+ZWQsIDE3IE1heSAyMDA2IDE0OjMxOjM4ICswNTMwClN1YmplY3Q6IFtQQVRD
+SF0gQVJNOiBPTUFQOiBNYWtlIE1jQlNQIEtDb25maWd1cmFibGUuCgpTaWdu
+ZWQtb2ZmLWJ5OiBLb21hbCBTaGFoIDxrb21hbF9zaGFoODAyMDAzQHlhaG9v
+LmNvbT4KCi0tLQoKIGFyY2gvYXJtL3BsYXQtb21hcC9LY29uZmlnICB8ICAg
+IDcgKysrKysrKwogYXJjaC9hcm0vcGxhdC1vbWFwL01ha2VmaWxlIHwgICAg
+NCArKystCiAyIGZpbGVzIGNoYW5nZWQsIDEwIGluc2VydGlvbnMoKyksIDEg
+ZGVsZXRpb25zKC0pCgo0NDYzMTI4MWQ5YmJiZTBiY2EyM2YxZmRjMDk5MWYy
+NzExYjZjYTViCmRpZmYgLS1naXQgYS9hcmNoL2FybS9wbGF0LW9tYXAvS2Nv
+bmZpZyBiL2FyY2gvYXJtL3BsYXQtb21hcC9LY29uZmlnCmluZGV4IDI4Y2E1
+YWQuLmY0Y2JmN2YgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL3BsYXQtb21hcC9L
+Y29uZmlnCisrKyBiL2FyY2gvYXJtL3BsYXQtb21hcC9LY29uZmlnCkBAIC0x
+MDIsNiArMTAyLDEzIEBAIGNvbmZpZyBPTUFQX1NUSV9DT05TT0xFCiAJaGVs
+cAogCSAgVGhpcyBlbmFibGVzIGEgY29uc29sZSBkcml2ZXIgYnkgd2F5IG9m
+IFNUSS9YVEkuCiAKK2NvbmZpZyBPTUFQX01DQlNQCisJYm9vbCAiTWNCU1Ag
+c3VwcG9ydCIKKwlkZXBlbmRzIG9uIEFSQ0hfT01BUAorCWhlbHAKKwkgIFNh
+eSBZIGhlcmUgaWYgeW91IHdhbnQgc3VwcG9ydCBmb3IgdGhlIE9NQVAgTXVs
+dGljaGFubmVsCisJICBCdWZmZXJlZCBTZXJpYWwgUG9ydC4KKwogY2hvaWNl
+CiAgICAgICAgIHByb21wdCAiU3lzdGVtIHRpbWVyIgogCWRlZmF1bHQgT01B
+UF9NUFVfVElNRVIKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL3BsYXQtb21hcC9N
+YWtlZmlsZSBiL2FyY2gvYXJtL3BsYXQtb21hcC9NYWtlZmlsZQppbmRleCAz
+NGJhOGZkLi5mZGZkZWNiIDEwMDY0NAotLS0gYS9hcmNoL2FybS9wbGF0LW9t
+YXAvTWFrZWZpbGUKKysrIGIvYXJjaC9hcm0vcGxhdC1vbWFwL01ha2VmaWxl
+CkBAIC0zLDcgKzMsNyBAQCAjIE1ha2VmaWxlIGZvciB0aGUgbGludXgga2Vy
+bmVsLgogIwogCiAjIENvbW1vbiBzdXBwb3J0Ci1vYmoteSA6PSBjb21tb24u
+byBzcmFtLm8gc3JhbS1mbi5vIGNsb2NrLm8gZGV2aWNlcy5vIGRtYS5vIG11
+eC5vIGdwaW8ubyBtY2JzcC5vIHVzYi5vIGZiLm8KK29iai15IDo9IGNvbW1v
+bi5vIHNyYW0ubyBzcmFtLWZuLm8gY2xvY2subyBkZXZpY2VzLm8gZG1hLm8g
+bXV4Lm8gZ3Bpby5vIHVzYi5vIGZiLm8KIG9iai1tIDo9CiBvYmotbiA6PQog
+b2JqLSAgOj0KQEAgLTE2LDYgKzE2LDggQEAgb2JqLSQoQ09ORklHX0FSQ0hf
+T01BUDE2WFgpICs9IG9jcGkubwogIyBTVEkgc3VwcG9ydAogb2JqLSQoQ09O
+RklHX09NQVBfU1RJKSArPSBzdGkvCiAKK29iai0kKENPTkZJR19PTUFQX01D
+QlNQKSArPSBtY2JzcC5vCisKIG9iai0kKENPTkZJR19DUFVfRlJFUSkgKz0g
+Y3B1LW9tYXAubwogb2JqLSQoQ09ORklHX09NQVBfRE1fVElNRVIpICs9IGRt
+dGltZXIubwogb2JqLSQoQ09ORklHX09NQVBfQk9PVF9SRUFTT04pICs9IGJv
+b3RyZWFzb24ubwotLSAKMS4zLjIuZ2RlMWQKCg==
 
---Imre
+--_----------=_1147861849301531
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> 
-> 
->> I'm posting 3 patches to solve these issues.
-> 
-> They look OK to me.  I'd say to merge them to the OMAP tree; if no
-> problems turn up, I'll push the ads7846 patch along soonish.
-> 
-> - Dave
-> 
-> 
-> ------------------------------------------------------------------------
-> 
+
+--_----------=_1147861849301531--
