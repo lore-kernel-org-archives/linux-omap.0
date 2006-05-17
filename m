@@ -1,13 +1,14 @@
-From: "andrzej zaborowski" <balrog@zabor.org>
+From: =?ISO-8859-1?Q?Juha_Yrj=F6l=E4?= <juha.yrjola@nokia.com>
 Subject: Re: Userspace GPIO
-Date: Wed, 17 May 2006 10:56:59 +0200
-Message-ID: <fb249edb0605170156u63eceb3fja5fa915c8e2c405d@mail.gmail.com>
+Date: Wed, 17 May 2006 12:49:26 +0300
+Message-ID: <446AF1A6.90703@nokia.com>
 References: <09D3F703EF3B0A4CBE28449EA9F3D320477ADA@nicta-atp-mail.in.nicta.com.au>
-Reply-To: balrogg@gmail.com
+	<fb249edb0605170156u63eceb3fja5fa915c8e2c405d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1851182852=="
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <09D3F703EF3B0A4CBE28449EA9F3D320477ADA@nicta-atp-mail.in.nicta.com.au>
+In-Reply-To: <fb249edb0605170156u63eceb3fja5fa915c8e2c405d@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,82 +18,20 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Marco Candiago <Marco.Candiago@nicta.com.au>
-Cc: linux-omap-open-source@linux.omap.com
+To: balrogg@gmail.com
+Cc: linux-omap-open-source@linux.omap.com, Marco Candiago <Marco.Candiago@nicta.com.au>
 List-Id: linux-omap@vger.kernel.org
 
---===============1851182852==
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+andrzej zaborowski wrote:
 
-SGkgTWFyY28sCgpPbiAxNy8wNS8wNiwgTWFyY28gQ2FuZGlhZ28gPE1hcmNvLkNhbmRpYWdvQG5p
-Y3RhLmNvbS5hdT4gd3JvdGU6Cj4KPiBNYXR0LCBSaWNoYXJkLAo+Cj4gVGhhbmtzIGZvciB5b3Vy
-IHJlcGxpZXMuCj4KPiBNYXR0LAo+Cj4gICAgICAgICBkZXZtZW0yIGRvZXMgZG8gdGhlIGpvYiBh
-bmQgaXMgcmlkaWN1bG91c2x5IGVhc3kgdG8gdXNlLgo+Cj4gUmljaGFyZCwKPgo+ICBJIHVuZGVy
-c3RhbmQgd2hhdCB5b3UgYXJlIHNheWluZywgYnV0IEkgc2ltcGx5IGRvIG5vdCBrbm93IGhvdyB0
-bwo+IGNyZWF0ZSBhIHByb3h5IG9mIHRoaXMgbmF0dXJlLiAgRG8geW91IGhhdmUgYW55IHJlY29t
-bWVuZGVkCj4gZG9jdW1lbnRhdGlvbiB0aGF0IHdvdWxkCj4gRW5saWdodGVuIG1lLgoKWW91IGNv
-dWxkIGNyZWF0ZSBpdCBieSBtb2RpZnlpbmcgb25lIG9mIHRoZSBkcml2ZXJzIGFscmVhZHkgcHJl
-c2VudCBpbgp0aGUgdHJlZSwgSSBrbm93IHRoZSBJbnRlbCBQWEEgaGFja2VycyBoYXZlIG9uZSBv
-ZiB0aGVzZSBhbmQgdXNlIGl0IGFzCmEga2V5cGFkIGRyaXZlciBiZWNhdXNlIGVhY2gga2V5IGlz
-IGFzc29jaWF0ZWQgd2l0aCBvbmUgR1BJTyBsaW5lIG9uCnRoZWlyIGJvYXJkcy4gSSBkb24ndCBr
-bm93IHRoZSBuYW1lIG9mIHRoZSBkcml2ZXIgdGhleSB1c2UgYnV0IEkgZm91bmQKdHdvIHNpbWls
-YXIgZHJpdmVycyBpbiB0aGUga2VybmVsLm9yZyB0cmVlOgpodHRwOi8vd3d3Lmtlcm5lbC5vcmcv
-Z2l0Lz9wPWxpbnV4L2tlcm5lbC9naXQvdG9ydmFsZHMvbGludXgtMi42LmdpdDthPWJsb2I7aD00
-NmQ2NjAzN2I5MTdjNTg1MTIyMmI1NmFmNzdmNGIxNThjZTc5M2FhO2hiPTBjMDU2YzUwYTYyMThl
-MGU1Nzc4MTdjMTZiYTg4NTFhZjU5M2Q3NDI7Zj1kcml2ZXJzL2NoYXIvY3M1NTM1X2dwaW8uYwpo
-dHRwOi8vd3d3Lmtlcm5lbC5vcmcvZ2l0Lz9wPWxpbnV4L2tlcm5lbC9naXQvdG9ydmFsZHMvbGlu
-dXgtMi42LmdpdDthPWJsb2I7aD02NjRhNmU5N2ViMWE4MDEyNDc1NjI1YWY2MzgzODI1YTNkODg1
-ZTIwO2hiPTBjMDU2YzUwYTYyMThlMGU1Nzc4MTdjMTZiYTg4NTFhZjU5M2Q3NDI7Zj1kcml2ZXJz
-L2NoYXIvc2N4MjAwX2dwaW8uYwpJIGltYWdpbmUgeW91IHdvdWxkIGhhdmUgdG8gdGhyb3cgb3V0
-IHRoZSBkZXZpY2Ugc3BlY2lmaWMgY29kZSBmcm9tCnRoZW0gYW5kIHJlcGxhY2UgdGhlICpfZ3Bp
-b19yZWFkIGFuZCAqX2dwaW9fd3JpdGUgZnVuY3Rpb25zIHdpdGggY2FsbHMKdG8gb21hcF9zZXRf
-Z3Bpb19kYXRhaW4oKSBhbmQgb21hcF9zZXRfZ3Bpb19kYXRhb3V0KCkuCgo+Cj4gTWFyY28KPgo+
-Cj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0KPiBGcm9tOiBsaW51eC1vbWFwLW9wZW4tc291
-cmNlLWJvdW5jZXNAbGludXgub21hcC5jb20KPiBbbWFpbHRvOmxpbnV4LW9tYXAtb3Blbi1zb3Vy
-Y2UtYm91bmNlc0BsaW51eC5vbWFwLmNvbV0gT24gQmVoYWxmIE9mCj4gV29vZHJ1ZmYsIFJpY2hh
-cmQKPiBTZW50OiBUdWVzZGF5LCBNYXkgMTYsIDIwMDYgMTA6MTAgUE0KPiBUbzogTWF0dCBDYWxs
-b3cKPiBDYzogbGludXgtb21hcC1vcGVuLXNvdXJjZUBsaW51eC5vbWFwLmNvbQo+IFN1YmplY3Q6
-IFJFOiBVc2Vyc3BhY2UgR1BJTwo+Cj4gPiBTaW5jZSB0aGUgR1BJTyBsaW5lcyBhcmUgbWFwcGVk
-IGludG8gdGhlIEFSTSBtZW1vcnkgc3BhY2UsIHlvdSBjYW4gdXNlCj4gYQo+ID4gcHJvZ3JhbSBs
-aWtlIGRldm1lbTIgdG8gYWNjZXNzIHRoZSBtZW1vcnkgbG9jYXRpb25zIGRpcmVjdGx5LiBNYXli
-ZQo+IG5vdAo+ID4gdGhlIG1vc3QgZWxlZ2FudCBzb2x1dGlvbiBidXQgSSd2ZSB1c2VkIHRoZSBw
-cm9ncmFtIHN1Y2Nlc3NmdWxseSBvbiBhbgo+ID4gT01BUCBib2FyZC4gVHJ5IHNlYXJjaGluZyBm
-b3IgZGV2bWVtMi5jIGluIGdvb2dsZS4KPgo+IEkgd291bGRuJ3QgcmVjb21tZW5kIHRoYXQuICAz
-MiBHUElPcyBhcmUgY29udHJvbGxlZCBwZXIgcmVnaXN0ZXIuICBBCj4gZGlyZWN0IHVzZXIgc3Bh
-Y2Ugd3JpdGUgd2l0aCBvdXQgYW55IGxvY2tpbmcgY291bGQgZGVzdHJveSB0aGUgc3RhdGUgb2YK
-PiBhIGdwaW8gb3duZWQgYnkgc29tZW9uZSBlbHNlLiAgSWYgc29tZW9uZSByZWFsbHkgd2FudGVk
-IHRvIHVzZSBpdCwgdGhlbgo+IHNvbWUgcHJveHkgYmV0d2VlbiAoL3Byb2Mvc3lzL3N5c2NhbGwp
-IHRvIHRoZSByZWFsIGtlcm5lbCBBUEkgc2hvdWxkIGJlCj4gY3JlYXRlZC4gIEl0IG1pZ2h0IGJl
-IGZ1biB0byBoYXZlIHNvbWUgbm90aWZpY2F0aW9uIG1ldGhvZCBpZiB0aGUgR1BJTwo+IHdlcmUg
-Y29uZmlndXJlZCBhcyBhbiBpbnRlcnJ1cHQgc291cmNlLgo+Cj4gUmVnYXJkcywKPiBSaWNoYXJk
-IFcuCj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KPiBM
-aW51eC1vbWFwLW9wZW4tc291cmNlIG1haWxpbmcgbGlzdAo+IExpbnV4LW9tYXAtb3Blbi1zb3Vy
-Y2VAbGludXgub21hcC5jb20KPiBodHRwOi8vbGludXgub21hcC5jb20vbWFpbG1hbi9saXN0aW5m
-by9saW51eC1vbWFwLW9wZW4tc291cmNlCj4KPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+IFRoaXMgZW1h
-aWwgYW5kIGFueSBhdHRhY2htZW50cyBtYXkgYmUgY29uZmlkZW50aWFsLiBUaGV5IG1heSBjb250
-YWluIGxlZ2FsbHkKPiBwcml2aWxlZ2VkIGluZm9ybWF0aW9uIG9yIGNvcHlyaWdodCBtYXRlcmlh
-bC4gWW91IHNob3VsZCBub3QgcmVhZCwgY29weSwKPiB1c2Ugb3IgZGlzY2xvc2UgdGhlbSB3aXRo
-b3V0IGF1dGhvcmlzYXRpb24uIElmIHlvdSBhcmUgbm90IGFuIGludGVuZGVkCj4gcmVjaXBpZW50
-LCBwbGVhc2UgY29udGFjdCB1cyBhdCBvbmNlIGJ5IHJldHVybiBlbWFpbCBhbmQgdGhlbiBkZWxl
-dGUgYm90aAo+IG1lc3NhZ2VzLiBXZSBkbyBub3QgYWNjZXB0IGxpYWJpbGl0eSBpbiBjb25uZWN0
-aW9uIHdpdGggY29tcHV0ZXIgdmlydXMsCj4gZGF0YSBjb3JydXB0aW9uLCBkZWxheSwgaW50ZXJy
-dXB0aW9uLCB1bmF1dGhvcmlzZWQgYWNjZXNzIG9yIHVuYXV0aG9yaXNlZAo+IGFtZW5kbWVudC4g
-VGhpcyBub3RpY2Ugc2hvdWxkIG5vdCBiZSByZW1vdmVkLgo+IF9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gTGludXgtb21hcC1vcGVuLXNvdXJjZSBtYWls
-aW5nIGxpc3QKPiBMaW51eC1vbWFwLW9wZW4tc291cmNlQGxpbnV4Lm9tYXAuY29tCj4gaHR0cDov
-L2xpbnV4Lm9tYXAuY29tL21haWxtYW4vbGlzdGluZm8vbGludXgtb21hcC1vcGVuLXNvdXJjZQo+
-CgpSZWdhcmRzLApBbmRyZXcKLS0gCmJhbHJvZyAyb282CgpEZWFyIE91dGxvb2sgdXNlcnM6IFBs
-ZWFzZSByZW1vdmUgbWUgZnJvbSB5b3VyIGFkZHJlc3MgYm9va3MKaHR0cDovL3d3dy5uZXdzZm9y
-Z2UuY29tL2FydGljbGUucGw/c2lkPTAzLzA4LzIxLzE0MzI1OAo=
+> You could create it by modifying one of the drivers already present in
+> the tree, I know the Intel PXA hackers have one of these and use it as
+> a keypad driver because each key is associated with one GPIO line on
+> their boards.
 
---===============1851182852==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Or you could GPIO switch framework (arch/arm/plat-omap/gpio-switch.c), 
+which interfaces to user-space using sysfs.  It will need a small amount 
+of work to operate properly with the platform_data mechanism, though.
 
-
---===============1851182852==--
+Cheers,
+Juha
