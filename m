@@ -1,13 +1,13 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: git tags update
-Date: Thu, 18 May 2006 00:32:41 -0700
-Message-ID: <20060518073240.GC4013@atomide.com>
-References: <1147893580.8739.75.camel@vence.internal.net>
+From: =?ISO-8859-1?Q?Juha_Yrj=F6l=E4?= <juha.yrjola@nokia.com>
+Subject: Re: [PATCH] ARM: OMAP: OMAP_GPIO_SWITCH doesn't need OMAP_BOOT_TAG
+Date: Thu, 18 May 2006 11:34:26 +0300
+Message-ID: <446C3192.5070402@nokia.com>
+References: <20060517172547.GA3778@earth.li>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <1147893580.8739.75.camel@vence.internal.net>
+In-Reply-To: <20060517172547.GA3778@earth.li>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,23 +17,28 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kevin Hilman <khilman@mvista.com>
-Cc: "linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
+To: ext Jonathan McDowell <noodles@earth.li>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@mvista.com> [060517 12:19]:
-> Tony,
-> 
-> The OMAP tree was missing tags since 2.6.15-rc1.  I've updated the tags
-> in the tree as of today's linus tree.
-> 
-> I did:
-> 
-> $ git pull --tags
-> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-> 
-> $ git push --tags git://source.mvista.com/git/linux-omap-2.6.git 
+Jonathan McDowell wrote:
 
-Thanks :)
+> I can't see any reason why OMAP_GPIO_SWITCH depends on OMAP_BOOT_TAG;
+> it compiles fine without it. This patch removes the Kconfig dependency.
 
-Tony 
+Yeah, that's a legacy restriction.
+
+> Also the description is wrong; it doesn't hook into the input layer at
+> all from what I can tell. Are there patches around that add this? The
+> Amstrad Delta has a phone hook on a GPIO that I plan to support with
+> this driver and being able to produce a keypress would be nice.
+
+It doesn't anymore.  We replaced that with uevents.  Nowadays the right 
+way to go is to use the sysfs_notify() API.
+
+The patches for the input stuff are probably long gone (but you might 
+find something in the BitKeeper repository).  I won't object to someone 
+re-adding the input layer functionality again, though.
+
+Cheers,
+Juha
