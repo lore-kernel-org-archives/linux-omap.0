@@ -1,11 +1,14 @@
-From: ruchir.gulati@tcs.com
-Subject: Problem with play in O_RDWR mode on OMAP5912 OSK board
-Date: Thu, 18 May 2006 18:29:32 +0530
-Message-ID: <OF6A9A48FE.85EDD736-ON65257172.00470E97-65257172.00474F68@tcs.com>
+From: Daniel Walker <dwalker@mvista.com>
+Subject: Re: omap1710 upstream ?
+Date: Thu, 18 May 2006 06:34:54 -0700
+Message-ID: <1147959295.17117.17.camel@c-67-180-134-207.hsd1.ca.comcast.net>
+References: <1147890163.13483.6.camel@dwalker1.mvista.com>
+	<20060518073202.GB4013@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20060518073202.GB4013@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,42 +16,26 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Dear All,
+On Thu, 2006-05-18 at 00:32 -0700, Tony Lindgren wrote:
+> * Daniel Walker <dwalker@mvista.com> [060517 11:22]:
+> > 
+> > 	I was wondering if there was any time frame when omap1710 might be
+> > going upstream ? Is there still work that needs to be done to make it
+> > acceptable , or is it just not a top priority ?
+> 
+> In our tree omap1710 is mostly same as omap16xx. There are only few
+> places where we need to check for omap1710 vs omap16xx.
+> 
+> Most of the core omap code is in sync with mainline tree. Many device
+> drivers are not integrated yet.
 
-I have tried for sometime now to simultaneously play and recored audio in 
-the O_RDWR mode on the OMAP 5912 OSK board, without any success!
-With larger fragment size (32k), audio is played for a while but then the 
-board hangs. For smaller fragment sizes, I get the following error:
-"omap_audio: received DMA IRQ for non existent buffers!"
-I have also looked at the driver code and seen that 2 DMA channels are 
-used when the device is opened in the O_RDWR mode. However, one of the 
-channels has one buffer unallocated, which causes this error. I have also 
-tried doing read and write in separate threads, but to no avail. Though 
-recording happens more or less properly
+The one thing I notice that's missing is the defconfig . The only
+upstream defconfig is 1610 .
 
-I have seen sevral posts whixh say that simultaneous read/write is rather 
-not do-able....
-
-Does any of you have any ideas as to how things can be fixed?  If not then 
-I might have to start with ALSA.
-
-Thanks & Regards,
-Ruchir
-ForwardSourceID:NT00005786 
-=====-----=====-----=====
-Notice: The information contained in this e-mail
-message and/or attachments to it may contain 
-confidential or privileged information. If you are 
-not the intended recipient, any dissemination, use, 
-review, distribution, printing or copying of the 
-information contained in this e-mail message 
-and/or attachments to it are strictly prohibited. If 
-you have received this communication in error, 
-please notify us by reply e-mail or telephone and 
-immediately and permanently delete the message 
-and any attachments. Thank you
+Daniel
