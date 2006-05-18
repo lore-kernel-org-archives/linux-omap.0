@@ -1,14 +1,13 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: [ANNOUNCE] TI DaVinci git tree available
-Date: Wed, 17 May 2006 09:58:54 -0700
-Message-ID: <1147885134.8739.70.camel@vence.internal.net>
-References: <1147826617.8739.32.camel@vence.internal.net>
-	<446B44B9.2000900@gmail.com>
+From: "Marco Candiago" <Marco.Candiago@nicta.com.au>
+Subject: RE: Userspace GPIO
+Date: Thu, 18 May 2006 14:08:13 +1000
+Message-ID: <09D3F703EF3B0A4CBE28449EA9F3D320020AB520@nicta-atp-mail.in.nicta.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <446B44B9.2000900@gmail.com>
+content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,38 +17,46 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: "linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 2006-05-17 at 17:43 +0200, Dirk Behme wrote:
-> Kevin Hilman wrote:
-> > The kernel git tree[1] for the TI DaVinci platform is now available
-> 
-> What are the pros and cons for having one tree vs. two trees 
-> for OMAP1 & OMAP2 (& OMAP3?) & DaVinci in the long term?
 
-It may be a good idea long term, in fact I almost released this tree as
-a branch of the OMAP tree instead of Linus' tree.  As I thought about it
-though, there's very little shared code between the two trees, so I
-assumed it would be more of a burden on the OMAP community.  So in the
-end, I decided to wait and see what type of development community
-sprouts up around DaVinci and go from there.  If the OMAP community is
-interested in absorbing the DaVinci support, I think long-term
-maintenance would be easier.
+Thanks fellas,
 
-I'm not fixed on one way or the other, and could easily be pursuaded to
-rebase the DaVinci tree.  For kicks, I rebased locally, and there's a
-patch adding DaVinci support to todays OMAP tree available here:
-http://source.mvista.com/~khilman/davinci/
+I will investigate these options
 
-Some existing areas of overlap I can think of off the top of my head:
+Cheers,
 
-- CONFIG_DEBUG_LL patch to kernel/printk.c
-- AIC23 code: DaVinci has AIC33 and I have a minor patch to support
-AIC33
-- There's also hack to the 8250.c serial ISR that used to be needed but
-is no longer needed on DaVinci.  It seems some mainline fixes have
-removed the need for that.  I'm curious if it's still necessary on OMAP.
+Marco
 
-Kevin
+-----Original Message-----
+From: Juha Yrj=F6l=E4 [mailto:juha.yrjola@nokia.com]=0D
+Sent: Wednesday, May 17, 2006 7:49 PM
+To: balrogg@gmail.com
+Cc: Marco Candiago; linux-omap-open-source@linux.omap.com
+Subject: Re: Userspace GPIO
+
+andrzej zaborowski wrote:
+
+> You could create it by modifying one of the drivers already present in
+> the tree, I know the Intel PXA hackers have one of these and use it as
+> a keypad driver because each key is associated with one GPIO line on
+> their boards.
+
+Or you could GPIO switch framework (arch/arm/plat-omap/gpio-switch.c),=0D
+which interfaces to user-space using sysfs.  It will need a small amount=0D
+of work to operate properly with the platform_data mechanism, though.
+
+Cheers,
+Juha
+
+
+--------------------------------------------------------------------------
+This email and any attachments may be confidential. They may contain=
+ legally
+privileged information or copyright material. You should not read, copy,
+use or disclose them without authorisation. If you are not an intended
+recipient, please contact us at once by return email and then delete both
+messages. We do not accept liability in connection with computer virus,
+data corruption, delay, interruption, unauthorised access or unauthorised
+amendment. This notice should not be removed.
