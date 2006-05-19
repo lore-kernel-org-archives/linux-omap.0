@@ -1,13 +1,13 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: Framebuffer driver on OMAP 2430
-Date: Fri, 19 May 2006 04:05:35 -0700 (PDT)
-Message-ID: <20060519110535.14605.qmail@web37902.mail.mud.yahoo.com>
-References: <904DEC693BE1AB429622C6F5ABA7E0B801066507@is01ex02.ittiam.com>
+From: Kevin Hilman <khilman@mvista.com>
+Subject: Re: [patchset] Generic IRQ Subsystem: -V5
+Date: Fri, 19 May 2006 15:11:15 -0700
+Message-ID: <1148076675.9331.35.camel@vence.internal.net>
+References: <20060519145310.GB12703@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <904DEC693BE1AB429622C6F5ABA7E0B801066507@is01ex02.ittiam.com>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20060519145310.GB12703@elte.hu>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,37 +15,23 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Vaibhav Goyal <vaibhav.goyal@ittiam.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>, "linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, linux-arm-kernel@lists.arm.linux.org.uk, Russell King <rmk@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
---- Vaibhav Goyal <vaibhav.goyal@ittiam.com> wrote:
+On Fri, 2006-05-19 at 16:53 +0200, Ingo Molnar wrote:
+> This is Version 5 of the genirq patch-queue, against 2.6.17-rc4. 
 
-> 
-> Can anybody give me pointers as where to get framebuffer driver for
-> OMAP 2430(DSP side)?
+I've tested -V5 on various OMAP boards (1710/H3, 1623/H2, and 5912/OSK)
+and all have the same network TX timeout problems when booting using
+nfsroot.  Eventually, they boot to a prompt, but continue to have
+periodic timeouts when accessing NFS files.
 
-Contact your TI FAE for that, if they have some readymade example done
-through c64x+ using TI DSPBridge. Let me clarify at this point:
+On all 3 boards, the network driver is the smc91x and the IRQ is a GPIO
+interrupt.  
 
-* You can find linux-2.6.10 based Linux kernel on http://linux.omap.com
-  for OMAP2430 done by TI.
+Just and FYI... I'm still digging for root cause.
 
-* You can find minimal Linux OMAP-GIT tree port posted by me here:
-Link:
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-May/007205.html
-
-* There is _no_ open-source dspgateway available for c64x+/omap2430 as
-of now. If you want you can start with
-http://dspgateway.sourceforge.net and then write your fb omap2 dispc
-interface there or something like FBEXPORT ioctl.
-
-
----Komal Shah
-http://komalshah.blogspot.com/
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+Kevin
