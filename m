@@ -1,14 +1,13 @@
-From: "Menon, Nishanth" <x0nishan@ti.com>
-Subject: RE: dma request
-Date: Sun, 21 May 2006 09:10:53 -0500
-Message-ID: <14ACE099F888004586603AEC0A559C2E08637F@DLEE09.ent.ti.com>
-References: <3634de740605210424w207391f4v191462789a7dff59@mail.gmail.com>
+From: Matthew Percival <matthew@capgo.com>
+Subject: Re: OSK5912 Deep Sleep
+Date: Mon, 22 May 2006 09:08:52 +1000
+Message-ID: <1148252932.9017.4.camel@localhost.localdomain>
+References: 446C7FC0.4070503@web.de  <446D9F6A.9080202@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+In-Reply-To: <446D9F6A.9080202@web.de>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,48 +17,23 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Maximus <john.maximus@gmail.com>, linux-omap-open-source@linux.omap.com
+To: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Maximus,
-Here is a quick view of what this means:
->    what is the difference between element count and frame count?.
-buffer size=3Db
-frame count =3Df
-element count =3D e
-data type =3D d
-implies
-Size of 1 element =3D number of bytes send by DMA per read/write =
-operation =3D d
-Size of 1 Frame =3D number of elements send by DMA per dma request =3D =
-e=3D e*d bytes
-Size of 1 transfer (also called block)=3D number of bytes transfered by =
-DMA in a transfer =3D f =3D f*e*d bytes.
+G'Day,
 
->   how it is computed?.
-For the sake of explanation, I shall use a scenario where the dma =
-transfers data from memory to a peripheral (using frame sync).
-1. we first decide on what should be the basic transfer unit to the =
-peripheral, it is like deciding should i use a writeb,writew/writel to =
-write to the data register of the peripheral(implying a 8/16/32 bit =
-write op to the peripheral's data register).  This forms the data type =
-in DMA which is the size of a single element which will be transfered by =
-the DMA.
-2. now some peripherals have internal FIFOs'. So everytime a dma request =
-appears from the peripheral to the DMA, it implies, that the peripheral =
-would want e elements to be transfered to it's fifo. this is the =
-number(e) that we program to the element count.=20
-3. when we have a buffer of size b, and we have programmed an element =
-size 'd' and a element count 'e', this implies that we need to send =
-b/(d*e) frame more. this is the frame count.=20
-=20
-with element sync mode of operation, the dma is concerned with the =
-number of bytes per element to be transfered, so if u put element =
-count=3Db/d and frame count=3D1, or element count =3D1 and frame =
-count=3Db/d, it will still work.
-=20
-The TRM contain detailed info on DMA ops, that can act as a better =
-explanation I hope.
+> i tried what you told me, but i got this message from the shell: cannot 
+> create /sys/power/state: No such file or directory
 
-Regards,
-Nishanth Menon
+	Ah, you either have not compiled the sysfs into kernel, or have not
+mounted it.  Ensure you have CONFIG_SYSFS=y in your kernel's .config
+(this is in the root source directory) --- =m is also OK, if you load
+the module later.  If not, enable it, and recompile.  Then, make sure
+you have the following line in your OSK's /etc/fstab:
+none		/sys		sysfs	defaults	0	0
+This will load the sysfs on boot (make sure you have created /sys/ for
+it to mount there).  If you check the contents of /sys/ (with ls) after
+it has been mounted, you should see a collection of directories: these
+can be very useful to running your system.
+
+	-- Matthew
