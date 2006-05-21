@@ -1,11 +1,12 @@
-From: Guru Raj <n.gururaj@yahoo.com>
-Subject: Major  number of keypad
-Date: Sat, 20 May 2006 03:55:47 -0700 (PDT)
-Message-ID: <20060520105547.2592.qmail@web31503.mail.mud.yahoo.com>
+From: Maximus <john.maximus@gmail.com>
+Subject: dma request
+Date: Sun, 21 May 2006 04:24:20 -0700
+Message-ID: <3634de740605210424w207391f4v191462789a7dff59@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,19 +20,29 @@ To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
+  i am trying to use omap-dma to dma some data from and to the device.
 
-How to identify major number of keypad in omap2430 ?
-I donot see the keypad driver being listed in
-/proc/devices.
+  In omap_set_dma_transfer_params ( ) - could anyone explain to me
+what the arguments mean-
+  could any one let me know what is
+   1) frame count, element count, sync_mode
 
-Any help in this direction will be very useful.
+    what is the difference between element count and frame count?.
 
-Regards
-Gururaj
-
+   how it is computed?.
 
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+   All i have is a buffer and some bytes to be transferred.
+
+
+  there are other functions like -
+   omap_set_dma_dest_params, omap_set_dma_src_params,
+omap_set_dma_dest_data_pack,
+ and so on
+
+   could any one explain it what the arguments mean?
+
+
+
+Regards,
+j
