@@ -1,13 +1,14 @@
-From: "Uri Kogan" <uri.kogan@givenimaging.com>
-Subject: Compact Flash Issue on OSK 5912
-Date: Mon, 22 May 2006 14:01:02 +0300
-Message-ID: <F3BD61925F12EE409D6994B43BE8D89352D0EB@GMAIL01.givenimaging.com>
+From: "James Selvam" <james.iisc@gmail.com>
+Subject: Re: [PATCH 0/3] aic23 sound driver fixes
+Date: Tue, 23 May 2006 10:05:10 +0530
+Message-ID: <fd1e34b0605222135x650aaac9t31437eac3b9fdb7a@mail.gmail.com>
+References: <4457C35D.4020700@cc.jyu.fi>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+In-Reply-To: <4457C35D.4020700@cc.jyu.fi>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,16 +18,38 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: lamikr@cc.jyu.fi
+Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Production versions of OMAP5912 chip lack the CF interface according to
-datasheet/errata.
+Hi Mika/All,
 
-I am too trying to figure out how to add CF support to Linux running on
-this chip and will be very glad to hear any suggestions or existing
-implementations.
+Im happy to inform you that the patches you sent have been tested and they
+are found to be working fine on my Innovator 1510. There should be no
+problem with it going into the git.
 
-Thanks in advance
+I was bogged down by a hardware snag on my Innovator kit which delayed the
+verification. But I see its fine now. :-) .
 
-Uri Kogan
+Thanx for the help.
+
+Regards,
+James.
+
+
+On 5/3/06, lamikr <lamikr@cc.jyu.fi> wrote:
+>
+> Following patch set should fix the broken method references to from Alsa
+> and OSS drivers to tlv320aic23 i2c drivers that has been reported.
+> In addition the 3:rd patch contains the platform driver code that the
+> innovator requires if it wants to use alsa driver.
+>
+> I do not own myself the innovator or aic23 drivers so it would be nice
+> if someone else could test these.
+>
+> Mika
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
