@@ -1,13 +1,12 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: OMAP5912 OSK & GPIO
-Date: Wed, 24 May 2006 18:09:29 +0200
-Message-ID: <44748539.4030200@gmail.com>
-References: <009d01c67f49$47f84170$642aa8c0@Buffy>
+From: Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Question about USB mass storage on omap2420
+Date: Thu, 25 May 2006 17:26:40 +0900
+Message-ID: <003e01c67fd4$f2d7efb0$c7a3580a@swcenter.sec.samsung.co.kr>
+Reply-To: kyungmin.park@samsung.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ks_c_5601-1987
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <009d01c67f49$47f84170$642aa8c0@Buffy>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,34 +16,40 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Richard Copeman <richard.copeman@lauterbach.co.uk>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Richard Copeman wrote:
-> Hi,
-> 
-> Does anybody have any examples for configuring and using the GPIO pins?
-> I'm trying to toggle GPIO7. I set the data direction bit to output and set
-> the output pin register bit to high. I have not changed the default pin
-> muxing, so I assume I should be getting a signal on pin L15, which according
-> to my schematics is pin 25 on connector P12. I put a scope on there and
-> don't see anything ;-(
+Hi
 
-Try to use GPIO framework. See for example
+I'm working with USB on omap2420
 
-/arch/arm/mach-omap1/leds.c
-/arch/arm/mach-omap1/leds-osk.c
+The current usb source code can't support omap2420 but it's not difficult
+to port from TI web 2.6.9 kernel Now USB gadget is working and the windows
+recognizes the removable disk, and File-backed Storage Gadget.
+But I can't see real disk drive.
 
-#include <asm/arch/gpio.h>
-#include <asm/arch/mux.h>
+I wonder the current USB gadget code can't support removable disk since the
+OSK has same problem.
+Does anyone who has similar problem?
 
-omap_cfg_reg(P18_1610_GPIO3);  // request pin from pinmux, 
-depends on chip
-if (omap_request_gpio(3) == 0)      // request GPIO
-    omap_set_gpio_direction(3, 0);   // set it to output
-omap_set_gpio_dataout(3, 1);        // set it
+and is it the right clocks in omap2420?
 
-Regards
+@@ -2780,6 +2831,15 @@ static int __init omap_udc_probe(struct
+                udelay(100);
+        }
 
-Dirk
++       if (cpu_is_omap24xx()) {
++               dc_clk = clk_get(&pdev->dev, "usb_fck");
++               hhc_clk = clk_get(&pdev->dev, "usb_l4_ick");
++               BUG_ON(IS_ERR(dc_clk) || IS_ERR(hhc_clk));
++               clk_enable(dc_clk);
++               clk_enable(hhc_clk);
++               udelay(100);
++       }
++
+        INFO("OMAP UDC rev %d.%d%s\n",
+                UDC_REV_REG >> 4, UDC_REV_REG & 0xf,
+                config->otg ? ", Mini-AB" : "");
+
+Regards,
+Kyungmin Park
