@@ -1,12 +1,15 @@
-From: Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Question about USB mass storage on omap2420
-Date: Thu, 25 May 2006 17:26:40 +0900
-Message-ID: <003e01c67fd4$f2d7efb0$c7a3580a@swcenter.sec.samsung.co.kr>
-Reply-To: kyungmin.park@samsung.com
+From: "James Selvam" <james.iisc@gmail.com>
+Subject: Re: OPIE on Innovator 1510
+Date: Thu, 25 May 2006 15:52:45 +0530
+Message-ID: <fd1e34b0605250322t3b6cd133hc68cdfed3fae0831@mail.gmail.com>
+References: <fd1e34b0605240419k2a874d47w97d4a908d3e0e9b7@mail.gmail.com>
+	<fb249edb0605240534h135b1a36q3600950ee61f1d5b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ks_c_5601-1987
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <fb249edb0605240534h135b1a36q3600950ee61f1d5b@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,40 +19,96 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: balrogg@gmail.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+Hi All,
 
-I'm working with USB on omap2420
+As specified in my earlier mail, I have downloaded an opie built rootfs. Bu=
+t
+the OPIE will not go beyond the initial screen. It asks me to tap to start
+but does not. Also if I ran the OPIE applications (like calculator or
+datebook) from debug console it puts up the appln window but does not take
+the input from touch screen.
 
-The current usb source code can't support omap2420 but it's not difficult
-to port from TI web 2.6.9 kernel Now USB gadget is working and the windows
-recognizes the removable disk, and File-backed Storage Gadget.
-But I can't see real disk drive.
+I then independantly compiled applications like ts_calibrate and ran it. It
+runs; and gives the right coordinates; showing that the touchscreen
+interface is all right.
 
-I wonder the current USB gadget code can't support removable disk since the
-OSK has same problem.
-Does anyone who has similar problem?
+Now the only difference I can see is that these applications (ts_calibrate)
+were statically built (without dynamical linking) whereas OPIE may not. But
+when I am loading the applications (like calculator) certain messages are
+thrown out which indicate dynamic linking (the libapplets.so being loaded
+etc).
 
-and is it the right clocks in omap2420?
-
-@@ -2780,6 +2831,15 @@ static int __init omap_udc_probe(struct
-                udelay(100);
-        }
-
-+       if (cpu_is_omap24xx()) {
-+               dc_clk = clk_get(&pdev->dev, "usb_fck");
-+               hhc_clk = clk_get(&pdev->dev, "usb_l4_ick");
-+               BUG_ON(IS_ERR(dc_clk) || IS_ERR(hhc_clk));
-+               clk_enable(dc_clk);
-+               clk_enable(hhc_clk);
-+               udelay(100);
-+       }
-+
-        INFO("OMAP UDC rev %d.%d%s\n",
-                UDC_REV_REG >> 4, UDC_REV_REG & 0xf,
-                config->otg ? ", Mini-AB" : "");
+Is there any configuration that I am missing?
 
 Regards,
-Kyungmin Park
+James.
+
+PS :  The udev indeed has problems due to which certain devices are not
+created. All devices have been manually created and the corresponding
+/dev/input/input0/event0 is added & working.
+
+On 5/24/06, andrzej zaborowski <balrog@zabor.org> wrote:
+>
+> Hi,
+>
+> On 24/05/06, James Selvam <james.iisc@gmail.com> wrote:
+> > Hi All,
+> >
+> > Im trying to use OPIE on my OMAP 1510 Innovator board. I have used the
+> root
+> > file system image available at familiar.handhelds.org (
+> > opie-image-v0.8.4-rc1-h6300.rootfs.tar.bz2).
+> >
+> > I have enabled the Touchscreen as an input device and configured the
+> OMAP
+> > Innovator touchscreen. This has indeed been enabled as seen from the
+> > following messages at bootup:
+> >
+> > ts: Compaq touchscreen protocol output
+> > input: omap_ts as /class/input/input0
+> > OMAP touchscreen driver initialized
+> >
+> > The innovator, however, comes to the startup screen and stops there
+> waiting
+> > to be tapped. It does not take the tapping.
+> >
+> > The debug console shows that the udev is unable to create the
+> > /dev/input/input0/event0 device.
+> >
+> > There seems to be a missing link between the drivers and the
+> application. If
+> > anybody has faced similar issues plz let me know.
+>
+> Yes, it seems there is something wrong with udev in recent familiar
+> images, so we just disable udev when using this image and recreate the
+> /dev nodes manually in one of the init scripts before X in
+> /etc/init.d, e.g.
+>   mkdir -p /dev/input
+>   mknod /dev/input/event0 c 13 64
+>   mknod /dev/input/event1 c 13 65
+> etc, or you can just make sure that nothing overwrites /dev. If you
+> also experience problems with the calibration, the easiest hack is to
+> calibrate the touchscreen without OPIE (e.g in GPE) and copy
+> /etc/pointercal over.
+>
+> >
+> > Thanx,
+> > James.
+> > _______________________________________________
+> > Linux-omap-open-source mailing list
+> > Linux-omap-open-source@linux.omap.com
+> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> >
+>
+> Greetings,
+> Andrew
+> --
+> balrog 2oo6
+>
+> Dear Outlook users: Please remove me from your address books
+> http://www.newsforge.com/article.pl?sid=3D03/08/21/143258
+>
