@@ -1,15 +1,15 @@
-From: "James Selvam" <james.iisc@gmail.com>
-Subject: Re: OPIE on Innovator 1510
-Date: Thu, 25 May 2006 15:52:45 +0530
-Message-ID: <fd1e34b0605250322t3b6cd133hc68cdfed3fae0831@mail.gmail.com>
-References: <fd1e34b0605240419k2a874d47w97d4a908d3e0e9b7@mail.gmail.com>
-	<fb249edb0605240534h135b1a36q3600950ee61f1d5b@mail.gmail.com>
+From: lamikr <lamikr@cc.jyu.fi>
+Subject: Re: [PATCH 0/3] aic23 sound driver fixes
+Date: Thu, 25 May 2006 14:28:17 +0300
+Message-ID: <447594D1.60401@cc.jyu.fi>
+References: <4457C35D.4020700@cc.jyu.fi>
+	<fd1e34b0605222135x650aaac9t31437eac3b9fdb7a@mail.gmail.com>
+Reply-To: lamikr@cc.jyu.fi
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <fb249edb0605240534h135b1a36q3600950ee61f1d5b@mail.gmail.com>
-Content-Disposition: inline
+In-Reply-To: <fd1e34b0605222135x650aaac9t31437eac3b9fdb7a@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,96 +19,62 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: balrogg@gmail.com
-Cc: linux-omap-open-source@linux.omap.com
+To: James Selvam <james.iisc@gmail.com>
+Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi All,
+James
 
-As specified in my earlier mail, I have downloaded an opie built rootfs. Bu=
-t
-the OPIE will not go beyond the initial screen. It asks me to tap to start
-but does not. Also if I ran the OPIE applications (like calculator or
-datebook) from debug console it puts up the appln window but does not take
-the input from touch screen.
+Thanks for the info, I have been quite busy but in Finland we have today
+holiday so I have now time again to
+prepare a new set of patches. Can you verify some issues that have
+remained open.
+Is it working for you without these lines in the audio_process_dma()
+function. (in omap_alsa.c)
 
-I then independantly compiled applications like ts_calibrate and ran it. It
-runs; and gives the right coordinates; showing that the touchscreen
-interface is all right.
+        spin_lock_irqsave(&s->dma_lock, flags);
+        omap_stop_alsa_sound_dma(s);
+        spin_unlock_irqrestore(&s->dma_lock, flags);
 
-Now the only difference I can see is that these applications (ts_calibrate)
-were statically built (without dynamical linking) whereas OPIE may not. But
-when I am loading the applications (like calculator) certain messages are
-thrown out which indicate dynamic linking (the libapplets.so being loaded
-etc).
+At least you added those lines once for there for testing. (I need to
+use those with my omap1510 based device)
 
-Is there any configuration that I am missing?
+Mika
 
-Regards,
-James.
+James Selvam wrote:
 
-PS :  The udev indeed has problems due to which certain devices are not
-created. All devices have been manually created and the corresponding
-/dev/input/input0/event0 is added & working.
-
-On 5/24/06, andrzej zaborowski <balrog@zabor.org> wrote:
+> Hi Mika/All,
 >
-> Hi,
+> Im happy to inform you that the patches you sent have been tested and
+> they are found to be working fine on my Innovator 1510. There should
+> be no problem with it going into the git.
 >
-> On 24/05/06, James Selvam <james.iisc@gmail.com> wrote:
-> > Hi All,
-> >
-> > Im trying to use OPIE on my OMAP 1510 Innovator board. I have used the
-> root
-> > file system image available at familiar.handhelds.org (
-> > opie-image-v0.8.4-rc1-h6300.rootfs.tar.bz2).
-> >
-> > I have enabled the Touchscreen as an input device and configured the
-> OMAP
-> > Innovator touchscreen. This has indeed been enabled as seen from the
-> > following messages at bootup:
-> >
-> > ts: Compaq touchscreen protocol output
-> > input: omap_ts as /class/input/input0
-> > OMAP touchscreen driver initialized
-> >
-> > The innovator, however, comes to the startup screen and stops there
-> waiting
-> > to be tapped. It does not take the tapping.
-> >
-> > The debug console shows that the udev is unable to create the
-> > /dev/input/input0/event0 device.
-> >
-> > There seems to be a missing link between the drivers and the
-> application. If
-> > anybody has faced similar issues plz let me know.
+> I was bogged down by a hardware snag on my Innovator kit which delayed
+> the verification. But I see its fine now. :-) .
 >
-> Yes, it seems there is something wrong with udev in recent familiar
-> images, so we just disable udev when using this image and recreate the
-> /dev nodes manually in one of the init scripts before X in
-> /etc/init.d, e.g.
->   mkdir -p /dev/input
->   mknod /dev/input/event0 c 13 64
->   mknod /dev/input/event1 c 13 65
-> etc, or you can just make sure that nothing overwrites /dev. If you
-> also experience problems with the calibration, the easiest hack is to
-> calibrate the touchscreen without OPIE (e.g in GPE) and copy
-> /etc/pointercal over.
+> Thanx for the help.
 >
-> >
-> > Thanx,
-> > James.
-> > _______________________________________________
-> > Linux-omap-open-source mailing list
-> > Linux-omap-open-source@linux.omap.com
-> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> >
+> Regards,
+> James.
 >
-> Greetings,
-> Andrew
-> --
-> balrog 2oo6
 >
-> Dear Outlook users: Please remove me from your address books
-> http://www.newsforge.com/article.pl?sid=3D03/08/21/143258
+> On 5/3/06, *lamikr* <lamikr@cc.jyu.fi <mailto:lamikr@cc.jyu.fi>> wrote:
+>
+>     Following patch set should fix the broken method references to
+>     from Alsa
+>     and OSS drivers to tlv320aic23 i2c drivers that has been reported.
+>     In addition the 3:rd patch contains the platform driver code that the
+>     innovator requires if it wants to use alsa driver.
+>
+>     I do not own myself the innovator or aic23 drivers so it would be nice
+>     if someone else could test these.
+>
+>     Mika
+>     _______________________________________________
+>     Linux-omap-open-source mailing list
+>     Linux-omap-open-source@linux.omap.com
+>     <mailto:Linux-omap-open-source@linux.omap.com>
+>     http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>     <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>
+>
 >
