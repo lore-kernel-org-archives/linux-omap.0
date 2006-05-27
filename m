@@ -1,17 +1,16 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] ARM: OMAP: fix GPIO IRQ mask handling [was Re: [RFC]
-	ARM: OMAP: handle lazy IRQ disable properly]
-Date: Fri, 26 May 2006 17:22:01 -0700
-Message-ID: <200605261722.04793.david-b@pacbell.net>
-References: <1144008267.8058.58.camel@bitbox.mine.nu>
-	<1148471720.28420.32.camel@mammoth.research.nokia.com>
-	<20060526225907.GL4132@atomide.com>
+From: Stefan Roese <ml@roese.nl>
+Subject: Re: Kernel panics on OSK5912
+Date: Sat, 27 May 2006 08:18:30 +0200
+Message-ID: <200605270818.30543.ml@roese.nl>
+References: <20060526063240.84781.qmail@web52306.mail.yahoo.com>
+	<200605260908.03332.ml@roese.nl>
+	<20060526220755.GG4132@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060526225907.GL4132@atomide.com>
+In-Reply-To: <20060526220755.GG4132@atomide.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -22,19 +21,24 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
-Cc: michl@2n.cz, "Yrjola Juha (Nokia-M/Helsinki)" <Juha.Yrjola@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap-open-source@linux.omap.com, Eduardo Gallofin <egallofin@yahoo.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 26 May 2006 3:59 pm, Tony Lindgren wrote:
+Hi Tony,
 
-> 
-> Great, hopefully this will finally fix the last GPIO irq issues!
+On Saturday 27 May 2006 00:07, Tony Lindgren wrote:
+> > We experienced similar problems on our OSK5912. The problems are SDRAM
+> > setup related and can be solved by updating to the latest U-Boot version.
+> > Please download and install the top-of-git version and give it a try.
+>
+> Anybody have a patch to check this in the board-osk.c? This bug seems to
+> occur repeatedly so it would be nice to patch it away in the kernel
+> also.
 
-Just in time to phase in the new generic IRQ infrastructure.  :)
+I don't think this would work. SDRAM setup has to be done correctly in the 
+bootloader (U-Boot or whatever is used) and can't be corrected later on by 
+linux itself.
 
-One of the GPIO IRQ issues gets resolved there by having the analogue
-of do_simple_IRQ() test for disabled IRQs like all the other dispatchers.
-Better do it there than in drivers or platform irq code...
-
-- Dave
+Best regards,
+Stefan
