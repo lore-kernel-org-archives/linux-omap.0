@@ -1,14 +1,17 @@
-From: Imre Deak <imre.deak@nokia.com>
+From: David Brownell <david-b@pacbell.net>
 Subject: Re: OMAP5912 touchscreen irq not working
-Date: Sat, 27 May 2006 23:10:53 +0300
-Message-ID: <1148760653.7041.19.camel@mammoth.research.nokia.com>
+Date: Sat, 27 May 2006 15:14:53 -0700
+Message-ID: <200605271514.53896.david-b@pacbell.net>
 References: <4477F2BA.3080907@gmail.com>
 	<200605270851.22051.david-b@pacbell.net>
+	<1148760653.7041.19.camel@mammoth.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <200605270851.22051.david-b@pacbell.net>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <1148760653.7041.19.camel@mammoth.research.nokia.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,45 +19,31 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: ext David Brownell <david-b@pacbell.net>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Imre Deak <imre.deak@nokia.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, 2006-05-27 at 08:51 -0700, ext David Brownell wrote:
-> On Friday 26 May 2006 11:33 pm, Dirk Behme wrote:
-> 
-> > Can anybody else reproduce this?
-> 
-> Just tried it ... /proc/interrupts shows a few IRQs, but I get no
-> touchscreen data.
+On Saturday 27 May 2006 1:10 pm, Imre Deak wrote:
 
-I noticed that the ads7846 sampling rate is set too high in board-osk.c.
-The spec allows a maximum bus frequency of 2.5MHz which gives a ~96k
-sample rate. There is also the uwire clock patch in my previous post,
-which might have an effect on this issue.
+> I noticed that the ads7846 sampling rate is set too high in board-osk.c.
+> The spec allows a maximum bus frequency of 2.5MHz which gives a ~96k
+> sample rate. 
 
---Imre
+The spec says max sample rate of 125 KHz (at 5V) and describes Fclk
+in terms of Fsample (at an extremely fast 16 bit/sample rate) ...
+I saw no limit for Fclk, it's a function of the sample rate.
 
-diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
-index e0711d2..bc4269b 100644
---- a/arch/arm/mach-omap1/board-osk.c
-+++ b/arch/arm/mach-omap1/board-osk.c
-@@ -317,7 +317,7 @@ static struct spi_board_info __initdata 
- 	.modalias		= "ads7846",
- 	.platform_data		= &mistral_ts_info,
- 	.irq			= OMAP_GPIO_IRQ(4),
--	.max_speed_hz		= 120000 /* max sample rate at 3V */
-+	.max_speed_hz		= 96000 /* max sample rate at 3V */
- 					* 26 /* command + data + overhead */,
- 	.bus_num		= 2,
- 	.chip_select		= 0,
+Regardless, the max sample frequency at 3V is not 96 KHz!  The
+graph shows 120 KHz... 96 KHz would be for about 2.1V.
 
 
-> 
-> - Dave
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> There is also the uwire clock patch in my previous post, 
+> which might have an effect on this issue.
+
+Unlikely; it worked before, why would it stop working suddenly?
+Including with the previous SPI clock... it's some other change
+causing the breakage.
+
+- Dave
