@@ -1,12 +1,13 @@
-From: "Yuan Chia Fu" <ycfunet@gmail.com>
-Subject: 5912 & ASUS WL-167G with/without USB HUB?
-Date: Sat, 27 May 2006 17:05:29 +0800
-Message-ID: <19b6ee950605270205o7fc96646t24bea6417d3cfcf5@mail.gmail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [ANNOUNCE] TI DaVinci git tree available
+Date: Sat, 27 May 2006 08:59:46 -0500
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A505EAA426@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,12 +17,42 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@mvista.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-When I use 5912 & USB HUB with Power & WL-167G and they are very good.
+> > - There's also hack to the 8250.c serial ISR that used to be needed
+but
+> > is no longer needed on DaVinci.  It seems some mainline fixes have
+> > removed the need for that.  I'm curious if it's still necessary on
+OMAP.
+>=20
+> I assume you mean this chunk?
+>=20
+> @@ -1372,7 +1372,8 @@
+>=20
+>         DEBUG_INTR("end.\n");
+>=20
+> -       return IRQ_RETVAL(handled);
+> +       //return IRQ_RETVAL(handled);
+> +       return IRQ_HANDLED;     /* FIXME: iir status not ready on 1510
+*/
+>  }
+>=20
+> I'll see if things work now without that.
 
-If I remove USB Hub with Power,5912 will show a 'power is not enough' messa=
-ge.
+Last time I tried it didn't work with out it.  I did send Tony a patch
+which may have fixed it.  Where are you at with those patches anyway
+Tony?
 
-Have any body can tell me this problem's reason?
+The serial bit was a bug with respect to watermark handling and status.
+
+On a side note to the above, I have recently unearthed a 15/16xx era
+defect where the uart interrupt line could stay asserted some 6interface
++ 6functional cycles after a source condition clear, given certain clock
+ratios.  Its possible DaVinci either uses a fixed version of the IP or
+they just are not running at a clock combination which brings the
+condition out.....or it could just be a software bug.
+
+Regards,
+Richard W.
