@@ -1,11 +1,13 @@
 From: Jonathan McDowell <noodles@earth.li>
-Subject: [PATCH 1/2] FB: OMAP: Add LCD support for Amstrad Delta
-Date: Sat, 27 May 2006 16:04:25 +0100
-Message-ID: <20060527150425.GA3864@earth.li>
+Subject: Re: [PATCH 2/2] ARM: OMAP: Add LCD support for Amstrad Delta
+Date: Sat, 27 May 2006 16:06:11 +0100
+Message-ID: <20060527150611.GB3864@earth.li>
+References: <20060527150425.GA3864@earth.li>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
+In-Reply-To: <20060527150425.GA3864@earth.li>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,208 +20,101 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-The patch below adds support for the 12bit 480x320 DSTN panel used in
-the Amstrad Delta (E3) videophone. It just adds support to the
-drivers/video/omap/ tree; my next patch will add the appropriate
-arch/arm/ configuration to make the Delta use the driver.
+The patch below adds the hooks to the arch/arm/ tree for the Amstrad
+Delta to use the LCD driver submitted in my previous mail.
 
 Patch is against current linux-omap git.
 
 Signed-Off-By: Jonathan McDowell <noodles@earth.li>
 
 -----
-diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
-index 725ea29..e2ad039 100644
---- a/drivers/video/omap/Makefile
-+++ b/drivers/video/omap/Makefile
-@@ -14,6 +14,7 @@ objs-$(CONFIG_ARCH_OMAP2)$(CONFIG_FB_OMA
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index 664c3e2..2f3d853 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -76,6 +76,10 @@ static struct map_desc ams_delta_io_desc
+ 	}
+ };
  
- objs-y$(CONFIG_FB_OMAP_LCDC_HWA742) += hwa742.o
++static struct omap_lcd_config ams_delta_lcd_config __initdata = {
++	.ctrl_name	= "internal",
++};
++
+ static struct omap_uart_config ams_delta_uart_config __initdata = {
+ 	.enabled_uarts = 1,
+ };
+@@ -87,10 +91,20 @@ static struct omap_usb_config ams_delta_
+ };
  
-+objs-y$(CONFIG_MACH_AMS_DELTA) += lcd_ams_delta.o
- objs-y$(CONFIG_MACH_OMAP_H4) += lcd_h4.o
- objs-y$(CONFIG_MACH_OMAP_H3) += lcd_h3.o
- objs-y$(CONFIG_MACH_OMAP_H2) += lcd_h2.o
-diff --git a/drivers/video/omap/lcdc.c b/drivers/video/omap/lcdc.c
-index a86cd73..d401d8a 100644
---- a/drivers/video/omap/lcdc.c
-+++ b/drivers/video/omap/lcdc.c
-@@ -844,6 +844,8 @@ static int omap_lcdc_init(struct omapfb_
- 	rate = clk_get_rate(tc_ck);
- 	clk_put(tc_ck);
+ static struct omap_board_config_kernel ams_delta_config[] = {
++	{ OMAP_TAG_LCD,		&ams_delta_lcd_config },
+ 	{ OMAP_TAG_UART,	&ams_delta_uart_config },
+ 	{ OMAP_TAG_USB,		&ams_delta_usb_config },
+ };
  
++static struct platform_device ams_delta_lcd_device = {
++	.name	= "lcd_ams_delta",
++	.id	= "-1",
++};
++
++static struct platform_device *ams_delta_devices[] __initdata = {
++	&ams_delta_lcd_device,
++};
++
+ static void __init ams_delta_init(void)
+ {
+ 	iotable_init(ams_delta_io_desc, ARRAY_SIZE(ams_delta_io_desc));
+@@ -101,6 +115,8 @@ static void __init ams_delta_init(void)
+ 
+ 	/* Clear latch2 (NAND, LCD, modem enable) */
+ 	ams_delta_latch2_write(~0, 0);
++
++	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
+ }
+ 
+ static void __init ams_delta_map_io(void)
+diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
+index f1958e8..b4dab21 100644
+--- a/arch/arm/mach-omap1/clock.c
++++ b/arch/arm/mach-omap1/clock.c
+@@ -20,6 +20,7 @@ #include <linux/err.h>
+ #include <linux/clk.h>
+ 
+ #include <asm/io.h>
++#include <asm/mach-types.h>
+ 
+ #include <asm/arch/cpu.h>
+ #include <asm/arch/usb.h>
+@@ -772,6 +773,14 @@ #if defined(CONFIG_MACH_OMAP_PERSEUS2) |
+ 	omap_writew(omap_readw(OMAP730_PCC_UPLD_CTRL) & ~0x1, OMAP730_PCC_UPLD_CTRL);
+ #endif
+ 
++#ifdef CONFIG_MACH_AMS_DELTA
++	/* Amstrad Delta wants BCLK high when inactive */
 +	if (machine_is_ams_delta())
-+		rate /= 4;
- 	if (machine_is_omap_h3())
- 		rate /= 3;
- 	r = clk_set_rate(omap_lcdc.lcd_ck, rate);
-diff --git a/drivers/video/omap/lcd_ams_delta.c b/drivers/video/omap/lcd_ams_delta.c
---- a/drivers/video/omap/lcd_ams_delta.c
-+++ b/drivers/video/omap/lcd_ams_delta.c
-@@ -0,0 +1,157 @@
-+/*
-+ * File: drivers/video/omap/lcd_ams_delta.c
-+ *
-+ * Based on drivers/video/omap/lcd_inn1510.c
-+ *
-+ * LCD panel support for the Amstrad E3 (Delta) videophone.
-+ *
-+ * Copyright (C) 2006 Jonathan McDowell <noodles@earth.li>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-+ */
++		omap_writel(omap_readl(ULPD_CLOCK_CTRL) |
++				(1 << SDW_MCLK_INV_BIT),
++				ULPD_CLOCK_CTRL);
++#endif
 +
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+
-+#include <asm/delay.h>
-+#include <asm/io.h>
-+
-+#include <asm/arch/board-ams-delta.h>
-+#include <asm/arch/omap16xx.h>
-+#include <asm/arch/omapfb.h>
-+
-+/* #define OMAPFB_DBG 1 */
-+
-+#include "debug.h"
-+
-+#define AMS_DELTA_DEFAULT_CONTRAST	112
-+
-+static int ams_delta_panel_init(struct omapfb_device *fbdev)
-+{
-+	DBGENTER(1);
-+	DBGLEAVE(1);
-+	return 0;
-+}
-+
-+static void ams_delta_panel_cleanup(void)
-+{
-+	DBGENTER(1);
-+	DBGLEAVE(1);
-+}
-+
-+static int ams_delta_panel_enable(void)
-+{
-+	DBGENTER(1);
-+
-+	ams_delta_latch2_write(AMS_DELTA_LATCH2_LCD_NDISP,
-+			AMS_DELTA_LATCH2_LCD_NDISP);
-+	ams_delta_latch2_write(AMS_DELTA_LATCH2_LCD_VBLEN,
-+			AMS_DELTA_LATCH2_LCD_VBLEN);
-+
-+	omap_writeb(1, OMAP16XX_PWL_CLK_ENABLE);
-+	omap_writeb(AMS_DELTA_DEFAULT_CONTRAST, OMAP16XX_PWL_ENABLE);
-+
-+	DBGLEAVE(1);
-+	return 0;
-+}
-+
-+static void ams_delta_panel_disable(void)
-+{
-+	DBGENTER(1);
-+
-+	ams_delta_latch2_write(AMS_DELTA_LATCH2_LCD_VBLEN, 0);
-+	ams_delta_latch2_write(AMS_DELTA_LATCH2_LCD_NDISP, 0);
-+
-+	DBGLEAVE(1);
-+}
-+
-+static unsigned long ams_delta_panel_get_caps(void)
-+{
-+	return 0;
-+}
-+
-+static struct lcd_panel ams_delta_panel = {
-+	.name		= "ams-delta",
-+	.config		= 0,
-+
-+	.bpp		= 12,
-+	.data_lines	= 16,
-+	.x_res		= 480,
-+	.y_res		= 320,
-+	.pixel_clock	= 4687,
-+	.hsw		= 3,
-+	.hfp		= 1,
-+	.hbp		= 1,
-+	.vsw		= 1,
-+	.vfp		= 0,
-+	.vbp		= 0,
-+	.pcd		= 0,
-+	.acb		= 37,
-+
-+	.init		= ams_delta_panel_init,
-+	.cleanup	= ams_delta_panel_cleanup,
-+	.enable		= ams_delta_panel_enable,
-+	.disable	= ams_delta_panel_disable,
-+	.get_caps	= ams_delta_panel_get_caps,
-+};
-+
-+static int ams_delta_panel_probe(struct platform_device *pdev)
-+{
-+	DBGENTER(1);
-+	omapfb_register_panel(&ams_delta_panel);
-+	return 0;
-+}
-+
-+static int ams_delta_panel_remove(struct platform_device *pdev)
-+{
-+	DBGENTER(1);
-+	return 0;
-+}
-+
-+static int ams_delta_panel_suspend(struct platform_device *pdev, pm_message_t mesg)
-+{
-+	DBGENTER(1);
-+	return 0;
-+}
-+
-+static int ams_delta_panel_resume(struct platform_device *pdev)
-+{
-+	DBGENTER(1);
-+	return 0;
-+}
-+
-+struct platform_driver ams_delta_panel_driver = {
-+	.probe		= ams_delta_panel_probe,
-+	.remove		= ams_delta_panel_remove,
-+	.suspend	= ams_delta_panel_suspend,
-+	.resume		= ams_delta_panel_resume,
-+	.driver		= {
-+		.name	= "lcd_ams_delta",
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+static int ams_delta_panel_drv_init(void)
-+{
-+	return platform_driver_register(&ams_delta_panel_driver);
-+}
-+
-+static void ams_delta_panel_drv_cleanup(void)
-+{
-+	platform_driver_unregister(&ams_delta_panel_driver);
-+}
-+
-+module_init(ams_delta_panel_drv_init);
-+module_exit(ams_delta_panel_drv_cleanup);
+ 	/* Turn off DSP and ARM_TIMXO. Make sure ARM_INTHCK is not divided */
+ 	/* (on 730, bit 13 must not be cleared) */
+ 	if (cpu_is_omap730())
+diff --git a/arch/arm/mach-omap1/clock.h b/arch/arm/mach-omap1/clock.h
+index 0b125c3..f7df002 100644
+--- a/arch/arm/mach-omap1/clock.h
++++ b/arch/arm/mach-omap1/clock.h
+@@ -89,6 +89,7 @@ #define EN_TC2_CK	4
+ #define EN_DSPTIMCK	5
+ 
+ /* Various register defines for clock controls scattered around OMAP chip */
++#define SDW_MCLK_INV_BIT	2	/* In ULPD_CLKC_CTRL */
+ #define USB_MCLK_EN_BIT		4	/* In ULPD_CLKC_CTRL */
+ #define USB_HOST_HHC_UHOST_EN	9	/* In MOD_CONF_CTRL_0 */
+ #define SWD_ULPD_PLL_CLK_REQ	1	/* In SWD_CLK_DIV_CTRL_SEL */
 -----
 
 J.
 
 -- 
-                                            jid: noodles@jabber.earth.li
-noodles is said to have been introduced to
-                                            europe by marco polo after
-he returned from china
+I get the feeling that I've been cheated.
