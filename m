@@ -1,15 +1,13 @@
-From: <Toshihiro.Kobayashi@nokia.com>
-Subject: RE: DSP Gateway application-reg
-Date: Mon, 29 May 2006 20:47:27 +0900
-Message-ID: <7AF192DA69C59243838FF62851F64F55025C3711@toebe101.NOE.Nokia.com>
-References: <7e6cc7550605270036h2edb26cdvc3f128045dc72acb@mail.gmail.com>
+From: Anderson Briglia <anderson.briglia@indt.org.br>
+Subject: Re: Playing mp3 on OMAP5912 OSK
+Date: Mon, 29 May 2006 10:35:17 -0400
+Message-ID: <447B06A5.6020500@indt.org.br>
+References: <4477F81C.2000308@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <7e6cc7550605270036h2edb26cdvc3f128045dc72acb@mail.gmail.com>
+In-Reply-To: <4477F81C.2000308@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,36 +17,93 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: nagubk82@gmail.com, linux-omap-open-source@linux.omap.com
+To: ext Dirk Behme <dirk.behme@googlemail.com>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Dirk,
 
-From: ext naga rajan [mailto:nagubk82@gmail.com]=20
-Sent: Saturday, May 27, 2006 4:37 PM
+I tested the ALSA driver presented in the latest git tree and madplay is working properly.
+Did you select the OSS wrapper at ALSA section when compiled the osk kernel? My madplay
+was installed from the debian repository, so I guess it's compiled with default flags.
+For reference, my configuration:
 
-> Currently we are working on OSK5912 with DSP Gateway application
-programs provided along with DSP Gateway version3.3. We verified the
-wdsnd command program provided with the demo folder. We have some
-queries to be clarified with that particular program (demo_console.c).=20
+root@arm:~/sounds# madplay --version
+MPEG Audio Decoder 0.15.1 (beta)
+  Copyright (C) 2000-2004 Underbit Technologies, Inc.
+  Build options: FPM_ARM ASO_IMDCT ASO_INTERLEAVE1
 
-> Why we have to send a initial data from ARM to DSP?
-> Note: On omitting this process, the program is not able to receive
-data from DSP.
+ID3 Tag Library 0.15.1 (beta)
+  Copyright (C) 2000-2004 Underbit Technologies, Inc.
+  Build options: NDEBUG
 
-Because the DSP task consists of callbacks to the ARM's requests.
+madplay 0.15.2 (beta)
+  Copyright (C) 2000-2004 Robert Leslie
+  Build options: AUDIO_DEFAULT=audio_oss ENABLE_NLS
 
-> Why we have to include a "busywait" in the DSP side in this word
-transfer?
-> Note:   On excluding "busywait", the data transfer is not proper.=20
+root@arm:~/sounds# uname -r
+2.6.17-rc4-omap1-gcd37adf0-dirty
 
-That restriction comes from buffer size on ARM side.
-For the Word Sending Tasks, DSP Gateway driver prepares 32-words
-receiving buffer in ARM side in default.
-If DSP sends data words faster than ARM reads, the receiving buffer will
-overflow.
-If you want a larger buffer, you can change the size of it through
-/sys/devices/platform/dsp/dsptaskX/fifosz.
+Best regards,
 
-BR,
-Toshihiro Kobayashi
+Anderson Briglia
+
+ext Dirk Behme wrote:
+> Hi,
+> 
+> okay, I give up fighting with my madplay playing mp3 on OSK ;(
+> 
+> After months I tried again my madplay on recent git and again get
+> 
+> output: ioctl(SNDCTL_DSP_SYNC): Invalid argument
+> 
+> Can anybody give me a link to a nice, little, prebuild, easy to use mp3
+> player for ALSA on OSK? Something like my madplay, but working ;)
+> 
+> Many thanks
+> 
+> Dirk
+> 
+> For reference, my configuration:
+> 
+> # madplay -V
+> MPEG Audio Decoder 0.15.1 (beta)
+>   Copyright (C) 2000-2004 Underbit Technologies, Inc.
+>   Build options: NDEBUG FPM_ARM ASO_IMDCT ASO_INTERLEAVE1 OPT_SPEED OPT_SSO
+> 
+> ID3 Tag Library 0.15.1 (beta)
+>   Copyright (C) 2000-2004 Underbit Technologies, Inc.
+>   Build options: NDEBUG
+> 
+> madplay 0.15.2 (beta)
+>   Copyright (C) 2000-2004 Robert Leslie
+>   Build options: NDEBUG AUDIO_DEFAULT=audio_oss ENABLE_NLS
+> 
+> `madplay --license' for license and warranty information.
+> 
+> # file test.mp3
+> test.mp3: MPEG ADTS, layer III, v1, 192 kBits, 44.1 kHz, Stereo
+> # lsmod | grep aic
+> snd_omap_alsa_aic23 15900 0 - Live 0xbf0b4000
+> snd_pcm 77576 2 snd_pcm_oss,snd_omap_alsa_aic23, Live 0xbf0a0000
+> snd 45012 4 snd_pcm_oss,snd_omap_alsa_aic23,snd_pcm,snd_timer, Live
+> 0xbf08a000
+> # madplay test.mp3
+> MPEG Audio Decoder 0.15.2 (beta) - Copyright (C) 2000-2004 Robert Leslie
+> et al.
+>           Title: test
+>          Artist: test
+>           Album: test
+>           Track: 8
+>           Genre: Blues
+> output: ioctl(SNDCTL_DSP_SYNC): Invalid argument
+> #
+> 
+> 
+> 
+> 
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> 
