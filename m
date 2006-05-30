@@ -1,13 +1,13 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: Playing mp3 on OMAP5912 OSK
-Date: Tue, 30 May 2006 18:45:31 +0200
-Message-ID: <447C76AB.8040901@gmail.com>
-References: <4477F81C.2000308@gmail.com> <447B06A5.6020500@indt.org.br>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: Re: Kdrive
+Date: Tue, 30 May 2006 10:00:30 -0700 (PDT)
+Message-ID: <20060530170030.20040.qmail@web37901.mail.mud.yahoo.com>
+References: <20060530155230.14153.qmail@web31503.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <447B06A5.6020500@indt.org.br>
+In-Reply-To: <20060530155230.14153.qmail@web31503.mail.mud.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,21 +17,27 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: Guru Raj <n.gururaj@yahoo.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Anderson Briglia wrote:
-> I tested the ALSA driver presented in the latest git tree and madplay is working properly.
+--- Guru Raj <n.gururaj@yahoo.com> wrote:
 
->>output: ioctl(SNDCTL_DSP_SYNC): Invalid argument
+> Hi,
+> 
+> Has anyone tried KDrive on OMAP2420 ?
+> 
+> Please let me know your thoughts on porting it to
+> OMAP2420.
 
-Seems that this becomes strange. I used Anderson's madplay, 
-libmad and .mp3 for tests. Anderson's mp3 is 44.1 kHz as 
-well, so this shouldn't be the issue. My kernel sound 
-configuration seems to be okay as well. But even with 
-Anderson's binaries I get the ioctl error above. So last 
-thing I can imagine is other kernel configuration.
+It will work !!!. Try to pull GPE or start cross-compiling X libraries
+and dependant libraries and have fun :)
+ 
 
-Best regards
 
-Dirk
+---Komal Shah
+http://komalshah.blogspot.com/
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
