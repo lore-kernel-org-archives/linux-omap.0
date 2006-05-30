@@ -1,14 +1,15 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: Playing mp3 on OMAP5912 OSK
-Date: Tue, 30 May 2006 19:53:06 +0200
-Message-ID: <447C8682.8060201@gmail.com>
-References: <4477F81C.2000308@gmail.com> <447B06A5.6020500@indt.org.br>
-	<447C76AB.8040901@gmail.com>
+From: "=?ISO-8859-1?Q?Lu=EDs_Cargnini?=" <lvcargnini@gmail.com>
+Subject: Re: How to recover flash
+Date: Tue, 30 May 2006 16:14:12 -0300
+Message-ID: <ae36f8040605301214k5878b103q5c1afa5853d5e920@mail.gmail.com>
+References: <772F5D89C5E0734B8A86D85DFC6A202403744447@dlee03.ent.ti.com>
+Reply-To: lvcargnini@ieee.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <447C76AB.8040901@gmail.com>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <772F5D89C5E0734B8A86D85DFC6A202403744447@dlee03.ent.ti.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,48 +17,55 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Ishigami, Tatsuya" <ishigami@ti.com>
+Cc: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Dirk Behme wrote:
-> Anderson Briglia wrote:
-> 
->> I tested the ALSA driver presented in the latest git tree and madplay 
->> is working properly.
-> 
->>> output: ioctl(SNDCTL_DSP_SYNC): Invalid argument
-> 
-> Seems that this becomes strange. I used Anderson's madplay, libmad and 
-> .mp3 for tests. Anderson's mp3 is 44.1 kHz as well, so this shouldn't be 
-> the issue. My kernel sound configuration seems to be okay as well. But 
-> even with Anderson's binaries I get the ioctl error above. So last thing 
-> I can imagine is other kernel configuration.
+thanik you all for the ASAP answers, i think that i'll try flash recovery
+utility i tried  with code composer studio but without luck, so thanks and
+best regards to you all i'll send more if necessary, but the FRU i think it
+solve my problems thanks again.
 
-For the archive and fyi answering to myself:
+On 5/29/06, Ishigami, Tatsuya <ishigami@ti.com> wrote:
+>
+> Hi
+>
+> Please refer the link below.
+>
+> http://omap.spectrumdigital.com/osk5912/factoryconfig/
+>
+> Regards,
+> Ishigami
+>
+> -----Original Message-----
+> From: Luis Cargnini
+> Sent: Tuesday, May 30, 2006 5:51 AM
+> To: OMAP
+> Subject: How to recover flash
+>
+> Please I destroyed the flash of my OMAP OSK5912 (dev kit) how to recover
+> the
+> flash ??
+> after download the u-boot latest version i must do saveenv before reboot =
+?
+>
+> --
+> Thanks && Regards
+> Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
+> IEEE Member
+> Mastering Degree student @ PUC-RS Electrical Engineer Faculty
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
 
-Here's my 'what it is not' list:
 
-- madplay binaries and libraries are okay
-- mp3 is okay
-- playing over NFS is okay
-- kernel config is okay
 
-And now? Toolchain!
-
-Compiling kernel with my old 3.4.1 gcc: madplay doesn't 
-complain any more. Compiling kernel with my newer 4.1.0 with 
-same config and same binaries: madplay fails. Haven't seen 
-any other issues with my 4.1.0 yet, no error, failure, nothing.
-
-Will see if I find time to investigate this further. Built 
-my 4.1.0 with crosstool-0.42 and crosstool's
-
-eval `cat arm.dat gcc-4.1.0-glibc-2.3.2.dat`  sh all.sh --notest
-
-configuration.
-
-Thanks for your help
-
-Dirk
+--=20
+Thanks && Regards
+Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
+IEEE Member
+Mastering Degree student @ PUC-RS Electrical Engineer Faculty
