@@ -1,13 +1,11 @@
-From: Jonathan McDowell <noodles@earth.li>
-Subject: Re: USB on OMAP 1510 Innovator
-Date: Tue, 30 May 2006 10:04:48 +0100
-Message-ID: <20060530090448.GA14634@earth.li>
-References: <fd1e34b0605290244n498d81a1ua964ee28eddcd617@mail.gmail.com>
+From: prakhar vig <aquarian_133@yahoo.co.in>
+Subject: How to use ISRAM as a framebuffer?
+Date: Tue, 30 May 2006 10:02:02 +0100 (BST)
+Message-ID: <20060530090202.12715.qmail@web8705.mail.in.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <fd1e34b0605290244n498d81a1ua964ee28eddcd617@mail.gmail.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,36 +13,30 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 29, 2006 at 03:14:24PM +0530, James Selvam wrote:
-> I am trying to use a USB peripheral with USB 2 host on the OMAP 1510
-> Innovator. But I am unable to see the device being registered (or
-> recognised).
-> 
-> -> The USB peripheral device be registered in the first place, when system
-> boots?
-> -> Has anyone successfully used the USB (2) Host with Innovator 1510?
+Hi all,
 
-The 1510 only has USB 1 (though a USB 2 peripheral should work, just at
-a slower speed). What kernel version are you using? There's a patch that
-went into 2.6.16-omap2 that I believe is required for USB to work on the
-1510 (it certainly is for the 5910).
+I am working on OMAP1610(ARM + C55x DSP)
+am trying to access framebuffer to get the input
+image data.I have some doubts regarding this manner.
+First of all i want to know whether
+I have two choices for mapping my frame buffer i.e
+1. Map the frame buffer to ISRAM
+2. Map the frame buffer to SDRAM.
 
-You should see some indication in the kernel boot messages about whether
-the USB is successfully working or not.
+Which is the optimized way to get the image data from
+the frame buffer. Also do i need to use DMA calls to
+make this data transfer faster?
 
-> -> Does the patch submitted by Hiroshi DOYU on this forum on May 8,
-> necessarily be applied?
+If i perform the frame buffer access from ARM
+side(using ISRAM), then do i need to make DMA calls??
 
-No.
+Thanks and regards,
+Prakhar.
 
-J.
 
--- 
-/-\                             |    Sorry for the inconvenience.
-|@/  Debian GNU/Linux Developer |
-\-                              |
+Send instant messages to your online friends http://in.messenger.yahoo.com 
