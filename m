@@ -1,13 +1,16 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: osk5912 boot failure with u-boot 1.1.4
-Date: Wed, 31 May 2006 17:54:33 +0200
-Message-ID: <447DBC39.5010202@gmail.com>
-References: <933035583@web.de>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: OMAP5912 touchscreen irq not working
+Date: Wed, 31 May 2006 09:05:31 -0700
+Message-ID: <200605310905.31864.david-b@pacbell.net>
+References: <4477F2BA.3080907@gmail.com> <44793CF9.2050101@nokia.com>
+	<447DB9CC.2070808@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <933035583@web.de>
+In-Reply-To: <447DB9CC.2070808@gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,31 +20,39 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Martin Margraf <m_margraf@web.de>
+To: Dirk Behme <dirk.behme@googlemail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Martin Margraf wrote:
-> #Error: unrecognized/unsupported machine ID (r1 = 0x00000003).
->
-> #00000203        TI-OSK
->
-> these are the settings i made in the kernel .config:
+On Wednesday 31 May 2006 8:44 am, Dirk Behme wrote:
+> I think it's wrong to get ads7846_irq() called already while 
+> init without screen touched? And then this irq seems to be 
+> locked after first touch.
 
-Your u-boot passes wrong machine ID to kernel (3, should be 
-0x203). So your kernel should be correct, but your u-boot 
-seems to be wrong. Looking at
+Locking out after first touch is a problem, of course.  
 
-http://www.denx.de/cgi-bin/gitweb.cgi?p=u-boot.git;a=blob;h=6993b136eebbf10cfdf1c678958ab4b6d3162577;hb=392c252efd5d2e67b47ebeb3b7e4f42e7e3d5127;f=board/omap5912osk/omap5912osk.c
+IRQ during init happens with some hardware; I recall
+concluding it wasn't a problem here, though the details
+of that have been discarded like a used coffee filter.
 
-recent u-boot passes the correct number if build correctly. 
-Do you really built u-boot with
+ISTR one issue is that sampling will trigger an IRQ,
+so the driver needs to throttle the IRQs.
 
-make omap5912osk_config
-make
 
-?
 
-Regards
+> Please correct me if I'm wrong here, but with irq called at 
+> init without screen touched, then after one touch locked, 
+> and permanently called ads7846_rx() throwing away all 
+> samples, it seems to me that there is anything basically 
+> wrong with this new code? At least on OSK with mistral.
 
-Dirk
+There were glitches related to the problem with irqs not
+getting disabled on request, with comments along the lines
+of "remove this when the irqs work right" ... I think it's
+time to maybe sort that issue out.
+
+That said, this problem did not exist before the GPIO IRQ
+patches were merged ... I certainly saw correct IRQ behavior
+from my testing.
+
+- Dave
