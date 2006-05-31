@@ -1,12 +1,12 @@
-From: "balaji durai" <balajicdurai@gmail.com>
-Subject: regarding bootloader fusing
-Date: Wed, 31 May 2006 10:50:11 +0530
-Message-ID: <e037a20a0605302220g23be80dfxe57e5c6c20e44b47@mail.gmail.com>
+From: "Vaibhav Goyal" <vaibhav.goyal@ittiam.com>
+Subject: OMAP 2430 memory map
+Date: Wed, 31 May 2006 11:56:07 +0530
+Message-ID: <904DEC693BE1AB429622C6F5ABA7E0B801066519@is01ex02.ittiam.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,14 +19,16 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-hi ,
+Hello All,
 
- i am currently working on osk5912 for my development. i am using
-linux-2.6.12 kernel and u-boot bootloader. i had query, how to fuse the
-bootloader to the target bootloader without the help of JTAG/BDM debugger. i
-want information is there is any other utility program to fuse bootloader to
-the target board using open- source software
+Can anybody tell me virtual DSP RAM base address as seen by ARM side?
 
-Regards
-Balaji.C
-SANDS Instrumentation
+Regards,
+Vaibhav
+
+**********************************************************************
+This email and any files transmitted with it are confidential and
+intended solely for the use of the individual or entity to whom they
+are addressed. If you have received this email in error please notify
+helpdesk@ittiam.com.
+**********************************************************************
