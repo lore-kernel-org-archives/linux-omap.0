@@ -1,11 +1,11 @@
 From: Martin Margraf <m_margraf@web.de>
-Subject: regarding bootloader fusing
-Date: Wed, 31 May 2006 08:28:23 +0200
-Message-ID: <447D3787.70209@web.de>
+Subject: osk5912 boot failure with u-boot 1.1.4
+Date: Wed, 31 May 2006 11:41:49 +0200
+Message-ID: <932687713@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=iso-8859-15
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,28 +13,23 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: balajicdurai@gmail.com
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 hi,
 
-there is a tool called OST Tool 2.5. With this program you can flash the 
-bootloader.
-But you need an type A to type A usb cable. Its pretty easy to use, i 
-think there is a description
-available.
+i compiled u-boot 1.1.4 with ELDK 4.0 and put it to my osk5912.
+but now my board does not boot anymore. how can i fix this?
 
-another way to bring the bootloader to the osk5912 is using a serial 
-communication program like
-Hyperterminal (windows) or Minicom (linux).
-
-http://linux.omap.com/pub/documentation/U-Boot for the OMAP16xx.pdf
-
-or look at the OSK5912 Newbie Guide written by Matthew Percival
+if i boot my board with u-boot 1.1.2 there is a conflict with the machine number.
+the u-boot machine number is 3 and the kernel machine number is 203??
+can i change the machine number in u-boot? 
 
 regards
 
 martin
+______________________________________________________________________
+XXL-Speicher, PC-Virenschutz, Spartarife & mehr: Nur im WEB.DE Club!		
+Jetzt gratis testen! http://freemail.web.de/home/landingpad/?mc=021130
