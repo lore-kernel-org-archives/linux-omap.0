@@ -1,13 +1,13 @@
-From: Pierre Ossman <drzeus-list@drzeus.cx>
-Subject: Re: Plea for MMC spec owners
-Date: Mon, 05 Jun 2006 17:57:25 +0200
-Message-ID: <44845465.9020505@drzeus.cx>
-References: <77C7F7CB1230A74A9D19C0C111E6EDBE41C7BA@DLEE09.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: Add minimal OMAP2430 support
+Date: Mon, 5 Jun 2006 09:54:47 -0700
+Message-ID: <20060605165447.GE16454@atomide.com>
+References: <1147952673.26830.261739629@webmail.messagingengine.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <77C7F7CB1230A74A9D19C0C111E6EDBE41C7BA@DLEE09.ent.ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <1147952673.26830.261739629@webmail.messagingengine.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,43 +15,71 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Khasim, Syed" <x0khasim@ti.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Komal Shah <komal_shah802003@yahoo.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Khasim, Syed wrote:
-> Hi Pierre,
->
-> A quick search to write_bl_partial and read_bl_partial in MMC spec gave
-> the following lines.
->   
+Hi,
 
-Thanks. Unfortunately, it wasn't the response I was hoping for as it
-isn't consistent with what we've been seeing with other MMC and SD readers.
+* Komal Shah <komal_shah802003@yahoo.com> [060518 04:45]:
+> Tony/Richard,
+> 
+> * NFS is still not working. NETDEV Watchdog timeouts.
+> * Intel Starta flash gets detected - JFFS2 is not yet tested.
+> * platform_add_devices() is not working - Let me know, where I
+> am making mistake :)
+> 
+> Please review.
 
-> I think you already have this pointer to SD spec, might be helpful to
-> others.
->
-> http://www.sdcard.org/sd_memorycard/Simplified%20Physical%20Layer%20Spec
-> ification.PDF
->
->   
+Well one thing we should change is to make it possible to compile in all
+24xx boards. This involves changing things like PRCM register access
+to use a base address instead of ifdefs.
 
-I have to admit, I hadn't looked that closely at that spec as it didn't
-cover the protocol properly. But it actually said something about this
-issue:
+I know we this is quite a bit of work now, but it pays off in the long
+run. Something like this has proven to work well for portable code
+across various omaps/platforms: 
 
-4.3.2 2GByte Card
-To make 2GByte card, the Maximum Block Length (READ_BL_LEN=WRITE_BL_LEN)
-shall be set to
-1024 bytes. But Block Length set by CMD16 shall be up to 512 bytes to
-keep consistency with 512
-bytes Maximum Block Length cards (Less than and equal 2GByte cards).
+#define OMAP2420_PRCM_SOME_BASE	0xaaaaaaaa
+#define OMAP2430_PRCM_SOME_BASE	0xbbbbbbbb
 
-Could you have a second look in the MMC spec and see if there are
-similar provisions?
+#define PRCM_SOME_REG1_OFFSET	0x10	
+#define		REG1_AAAA	(1 << 31)
+#define		REG1_BBBB	(1 << 30)
+#define		REG1_CCCC	(1 << 29)
 
-Rgds
-Pierre
+#define PRCM_SOME_REG2_OFFSET	0x20
+#define		REG2_AAAA	(1 << 2)
+#define		REG2_BBBB	(1 << 1)
+#define		REG2_CCCC	(1 << 0)
+
+#define PRCM_SOME_REG3_OFFSET	0x30	
+
+static unsigned long prcm_vbase;
+
+#define prcm_readl(r)		__raw_readl(prcm_vbase + (r))
+#define prcm_writel(v, r)	__raw_writel((v), prcm_vbase + (r))
+
+static int prcm_do_something(void)
+{
+	u32 reg;
+
+	reg = prcm_readl(PRCM_SOME_REG1_OFFSET);
+	reg |= REG1_BBBB;
+	prcm_writel(reg, PRCM_SOME_REG1_OFFSET);
+}
+
+static int __init prcm_init(void)
+{
+	if (cpu_is_omap2420())
+		prcm_vbase = OMAP2420_PRCM_SOME_BASE;
+	else if (cpu_is_omap2430())
+		prcm_vbase = OMAP2430_PRCM_SOME_BASE;
+
+	return 0;
+}
+
+Regards,
+
+Tony
