@@ -1,13 +1,14 @@
-From: "Khasim, Syed" <x0khasim@ti.com>
-Subject: RE: Plea for MMC spec owners
-Date: Tue, 6 Jun 2006 09:44:27 -0500
-Message-ID: <77C7F7CB1230A74A9D19C0C111E6EDBE4791EA@DLEE09.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: Add minimal OMAP2430 support
+Date: Tue, 6 Jun 2006 10:58:56 -0700
+Message-ID: <20060606175856.GS16454@atomide.com>
+References: <20060605165447.GE16454@atomide.com>
+	<20060606030819.75396.qmail@web37903.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <20060606030819.75396.qmail@web37903.mail.mud.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,73 +16,74 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Pierre Ossman <drzeus-list@drzeus.cx>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Komal Shah <komal_shah802003@yahoo.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-> As per my understanding, MMC (of all sizes) by default should be set
-to
-> operate in 512B (mandatory). This is true for both read and write.
-With
-> this default setup, I feel MMC card (<=3D2GB) should work as is with
-BLEN
-> set to 512.
->  =20
+* Komal Shah <komal_shah802003@yahoo.com> [060605 20:08]:
+> --- Tony Lindgren <tony@atomide.com> wrote:
+> 
+> > 
+> > Well one thing we should change is to make it possible to compile in
+> > all
+> > 24xx boards. This involves changing things like PRCM register access
+> > to use a base address instead of ifdefs.
+> > 
+> > I know we this is quite a bit of work now, but it pays off in the
+> > long
+> > run. Something like this has proven to work well for portable code
+> > across various omaps/platforms: 
+> > 
+> > #define OMAP2420_PRCM_SOME_BASE	0xaaaaaaaa
+> > #define OMAP2430_PRCM_SOME_BASE	0xbbbbbbbb
+> > 
+> > #define PRCM_SOME_REG1_OFFSET	0x10	
+> > #define		REG1_AAAA	(1 << 31)
+> > #define		REG1_BBBB	(1 << 30)
+> > #define		REG1_CCCC	(1 << 29)
+> > 
+> > #define PRCM_SOME_REG2_OFFSET	0x20
+> > #define		REG2_AAAA	(1 << 2)
+> > #define		REG2_BBBB	(1 << 1)
+> > #define		REG2_CCCC	(1 << 0)
+> > 
+> > #define PRCM_SOME_REG3_OFFSET	0x30	
+> > 
+> > static unsigned long prcm_vbase;
+> > 
+> > #define prcm_readl(r)		__raw_readl(prcm_vbase + (r))
+> > #define prcm_writel(v, r)	__raw_writel((v), prcm_vbase + (r))
+> > 
+> > static int prcm_do_something(void)
+> > {
+> > 	u32 reg;
+> > 
+> > 	reg = prcm_readl(PRCM_SOME_REG1_OFFSET);
+> > 	reg |= REG1_BBBB;
+> > 	prcm_writel(reg, PRCM_SOME_REG1_OFFSET);
+> > }
+> > 
+> > static int __init prcm_init(void)
+> > {
+> > 	if (cpu_is_omap2420())
+> > 		prcm_vbase = OMAP2420_PRCM_SOME_BASE;
+> > 	else if (cpu_is_omap2430())
+> > 		prcm_vbase = OMAP2430_PRCM_SOME_BASE;
+> > 
+> > 	return 0;
+> > }
+> > 
+> 
+> Thanx for the review. I will work on this, once I come back from Japan
+> :). At home, both the 2430 boards are not-booting and I had tough time
+> with CSST and switch settings, so was not able to flash bootloader on
+> 2430SDP-EVM ES1.0 chips. But it will not be hard to make compile-only
+> patch for review.
 
->>> That is my feeling as well. But it would have been nice to back it
-up
->>> with an official spec.
+OK, cool. I have some 24xx PM related patches coming up that already
+convert some part of the PRCM registers to use prcm_readl/writel(). I'll
+have those available probably towards the end of the week.
 
-Pierre, this is clearly defined in spec. It's mandatory for a MMC (of
-any size) to start with a 512M block on a soft reset / power on.=20
-
-Regards,
-Khasim
-
------Original Message-----
-From: Pierre Ossman [mailto:drzeus-list@drzeus.cx]=20
-Sent: Monday, June 05, 2006 5:40 PM
-To: Khasim, Syed
-Cc: linux-omap-open-source@linux.omap.com
-Subject: Re: Plea for MMC spec owners
-
-Khasim, Syed wrote:
-> Hi Pierre,
->
-> Regarding 2GB, the MMC specification doesn't state any thing clearly
-as
-> the SD spec does.
->
->  =20
-
-That's too bad as I was hoping we could avoid guesswork. :-/
-
-> As per my understanding, MMC (of all sizes) by default should be set
-to
-> operate in 512B (mandatory). This is true for both read and write.
-With
-> this default setup, I feel MMC card (<=3D2GB) should work as is with
-BLEN
-> set to 512.
->  =20
-
-That is my feeling as well. But it would have been nice to back it up
-with an official spec.
-
-> However, if the size of MMC is greater than 2GB then it switches to
-> sector access mode (<=3D2GB operates in byte access) and we are =
-supposed
-> to read from EXT_CSD register for getting the density of card. I was
-> wondering if for some reason on some of the cards it's switching to
-this
-> mode and therefore it's not consistent across all the 2GB MMCs.
->
->  =20
-
-This voodoo you speak of is rather unknown to us since we lack a real
-MMC4 spec. ;-)
-
-Rgds
-Pierre
+Tony
