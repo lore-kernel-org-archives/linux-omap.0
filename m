@@ -1,13 +1,13 @@
-From: Pierre Ossman <drzeus-list@drzeus.cx>
-Subject: Re: Plea for MMC spec owners
-Date: Tue, 06 Jun 2006 00:40:01 +0200
-Message-ID: <4484B2C1.6020100@drzeus.cx>
-References: <77C7F7CB1230A74A9D19C0C111E6EDBE41CF48@DLEE09.ent.ti.com>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: Re: [PATCH] ARM: OMAP: Add minimal OMAP2430 support
+Date: Mon, 5 Jun 2006 20:08:19 -0700 (PDT)
+Message-ID: <20060606030819.75396.qmail@web37903.mail.mud.yahoo.com>
+References: <20060605165447.GE16454@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <77C7F7CB1230A74A9D19C0C111E6EDBE41CF48@DLEE09.ent.ti.com>
+In-Reply-To: <20060605165447.GE16454@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,39 +17,73 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Khasim, Syed" <x0khasim@ti.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Khasim, Syed wrote:
-> Hi Pierre,
->
-> Regarding 2GB, the MMC specification doesn't state any thing clearly as
-> the SD spec does.
->
->   
+--- Tony Lindgren <tony@atomide.com> wrote:
 
-That's too bad as I was hoping we could avoid guesswork. :-/
+> 
+> Well one thing we should change is to make it possible to compile in
+> all
+> 24xx boards. This involves changing things like PRCM register access
+> to use a base address instead of ifdefs.
+> 
+> I know we this is quite a bit of work now, but it pays off in the
+> long
+> run. Something like this has proven to work well for portable code
+> across various omaps/platforms: 
+> 
+> #define OMAP2420_PRCM_SOME_BASE	0xaaaaaaaa
+> #define OMAP2430_PRCM_SOME_BASE	0xbbbbbbbb
+> 
+> #define PRCM_SOME_REG1_OFFSET	0x10	
+> #define		REG1_AAAA	(1 << 31)
+> #define		REG1_BBBB	(1 << 30)
+> #define		REG1_CCCC	(1 << 29)
+> 
+> #define PRCM_SOME_REG2_OFFSET	0x20
+> #define		REG2_AAAA	(1 << 2)
+> #define		REG2_BBBB	(1 << 1)
+> #define		REG2_CCCC	(1 << 0)
+> 
+> #define PRCM_SOME_REG3_OFFSET	0x30	
+> 
+> static unsigned long prcm_vbase;
+> 
+> #define prcm_readl(r)		__raw_readl(prcm_vbase + (r))
+> #define prcm_writel(v, r)	__raw_writel((v), prcm_vbase + (r))
+> 
+> static int prcm_do_something(void)
+> {
+> 	u32 reg;
+> 
+> 	reg = prcm_readl(PRCM_SOME_REG1_OFFSET);
+> 	reg |= REG1_BBBB;
+> 	prcm_writel(reg, PRCM_SOME_REG1_OFFSET);
+> }
+> 
+> static int __init prcm_init(void)
+> {
+> 	if (cpu_is_omap2420())
+> 		prcm_vbase = OMAP2420_PRCM_SOME_BASE;
+> 	else if (cpu_is_omap2430())
+> 		prcm_vbase = OMAP2430_PRCM_SOME_BASE;
+> 
+> 	return 0;
+> }
+> 
 
-> As per my understanding, MMC (of all sizes) by default should be set to
-> operate in 512B (mandatory). This is true for both read and write. With
-> this default setup, I feel MMC card (<=2GB) should work as is with BLEN
-> set to 512.
->   
+Thanx for the review. I will work on this, once I come back from Japan
+:). At home, both the 2430 boards are not-booting and I had tough time
+with CSST and switch settings, so was not able to flash bootloader on
+2430SDP-EVM ES1.0 chips. But it will not be hard to make compile-only
+patch for review.
 
-That is my feeling as well. But it would have been nice to back it up
-with an official spec.
+---Komal Shah
+http://komalshah.blogspot.com/
 
-> However, if the size of MMC is greater than 2GB then it switches to
-> sector access mode (<=2GB operates in byte access) and we are supposed
-> to read from EXT_CSD register for getting the density of card. I was
-> wondering if for some reason on some of the cards it's switching to this
-> mode and therefore it's not consistent across all the 2GB MMCs.
->
->   
-
-This voodoo you speak of is rather unknown to us since we lack a real
-MMC4 spec. ;-)
-
-Rgds
-Pierre
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
