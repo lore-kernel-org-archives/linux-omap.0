@@ -1,14 +1,12 @@
 From: Kyungmin Park <kyungmin.park@samsung.com>
-Subject: RE: Plea for MMC spec owners
-Date: Wed, 07 Jun 2006 08:49:33 +0900
-Message-ID: <00da01c689c3$dca1b110$c7a3580a@swcenter.sec.samsung.co.kr>
-References: <4485F623.5030403@drzeus.cx>
+Subject: [PATCH] Apollon MMC support
+Date: Wed, 07 Jun 2006 10:22:07 +0900
+Message-ID: <00ec01c689d0$ce2baed0$c7a3580a@swcenter.sec.samsung.co.kr>
 Reply-To: kyungmin.park@samsung.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ks_c_5601-1987
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-reply-to: <4485F623.5030403@drzeus.cx>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,130 +16,150 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: 'Pierre Ossman' <drzeus-list@drzeus.cx>, "'Khasim, Syed'" <x0khasim@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+Apollon board MMC supports on OMAP2
 
-The following is written from MMC Spec. 4.2
+TODO:
+	We have to check MMC on H4
 
-* READ_BL_PARTIAL
-Defines whether partial block sizes can be used in block read commands.
-Up to 2GB of density (byte access mode):
-READ_BL_PARTIAL=3D0 means that only the 512B and the READ_BL_LEN block =
-size
-can be used for
-block oriented data transfers.
-READ_BL_PARTIAL=3D1 means that smaller blocks can be used as well. The
-minimum block size will be
-equal to minimum addressable unit (one byte).
-Higher than 2GB of density (sector access mode):
-READ_BL_PARTIAL=3D0 means that only the 512B and the READ_BL_LEN block =
-sizes
-can be used for
-block oriented data transfers.
-READ_BL_PARTIAL=3D1 means that smaller blocks than indicated in =
-READ_BL_LEN
-can be used as
-well. The minimum block size will be equal to minimum addressable unit, =
-one
-sector (512B).
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-* WRITE_BL_LEN
-Block length for write operations. See READ_BL_LEN for field coding.
-Note that the support for 512B write access is mandatory for all cards. =
-And
-that the cards has to be in 512B
-block length mode by default after power-on, or software reset. The =
-purpose
-of this register is to indicate the
-supported maximum write data block length.
-Defines whether partial block sizes can be used in block write commands.
-Up to 2GB of density (byte access mode):
-WRITE_BL_PARTIAL=3D=A1=AF0=A1=AF means that only the 512B and the =
-WRITE_BL_LEN block
-size can be used
-for block oriented data write.
-WRITE_BL_PARTIAL=3D=A1=AF1=A1=AF means that smaller blocks can be used =
-as well. The
-minimum block size is one
-byte.
-Higher than 2GB of density (sector access mode):
-WRITE_BL_PARTIAL=3D=A1=AF0=A1=AF means that only the 512B and the =
-WRITE_BL_LEN block
-size can be used
-for block oriented data write.
-WRITE_BL_PARTIAL=3D=A1=AF1=A1=AF means that smaller blocks can be used =
-as well. The
-minimum block size will
-be equal to minimum addressable unit, one sector (512B).
+--
 
-4.2.3 Access Mode Validation (Higher than 2GB of Densities)
-The SEND_OP_COND (CMD1) command and the OCR register are also including =
-two
-bits for the indication of the supported access mode of the memory. The
-specifically set bits in the CMD1 command argument are indicating to a
-memory that the host is capable of handling sector type of addressing. =
-The
-correspondingly set bits in the OCR register are indicating that the =
-card
-is requiring usage of sector type of addressing. These specific
-bits of the OCR register are valid only in the last response from the =
-card
-for CMD1 (card entering Ready state). This kind of two way handshaking =
-is
-needed so that
-* If there is no indication by a host to a memory that the host is =
-capable
-of handling sector type of addressing
-the higher than 2GB of density of memory will change its state to =
-Inactive
-(similarly to a situation in which there is no common voltage range to =
-work
-with)
-* From the indication of the sector type of addressing requirement in =
-the
-OCR register the host is able to separate
-the card from the byte access mode cards and prepare itself
-It needs to be taken into account that in a multi card system a byte =
-access
-mode card (<=3D2GB) is blocking the
-OCR response in such way that a sector access mode card (>2GB) is not
-necessarily recognized as a sector
-access mode card during the initialization. Thus this needs to be
-reconfirmed by reading the SEC_COUNT
-information from the EXT_CSD register.=20
-
-Regards,
-Kyungmin Park
-
-> -----Original Message-----
-> From: linux-omap-open-source-bounces@linux.omap.com=20
-> [mailto:linux-omap-open-source-bounces@linux.omap.com] On=20
-> Behalf Of Pierre Ossman
-> Sent: Wednesday, June 07, 2006 6:40 AM
-> To: Khasim, Syed
-> Cc: linux-omap-open-source@linux.omap.com
-> Subject: Re: Plea for MMC spec owners
->=20
-> Khasim, Syed wrote:
-> >
-> > Pierre, this is clearly defined in spec. It's mandatory for=20
-> a MMC (of=20
-> > any size) to start with a 512M block on a soft reset / power on.
-> >  =20
->=20
-> Then I guess the spec would be self-contradictory as the=20
-> section you quoted earlier clearly stated that only=20
-> READ_BL_LEN/WRITE_BL_LEN was valid if *_BL_PARTIAL wasn't set.
->=20
-> Rgds
-> Pierre
->=20
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->=20
->=20
+diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-
+omap2/board-apollon.c
+index 6c6ba17..f19c49f 100644
+--- a/arch/arm/mach-omap2/board-apollon.c
++++ b/arch/arm/mach-omap2/board-apollon.c
+@@ -166,8 +166,8 @@ static struct omap_uart_config apollon_u
+ 
+ static struct omap_mmc_config apollon_mmc_config __initdata = {
+ 	.mmc [0] = {
+-		.enabled 	= 0,
+-		.wire4		= 0,
++		.enabled 	= 1,
++		.wire4		= 1,
+ 		.wp_pin		= -1,
+ 		.power_pin	= -1,
+ 		.switch_pin	= -1,
+@@ -257,6 +257,9 @@ static void __init omap_apollon_init(voi
+ 	/* REVISIT: where's the correct place */
+ 	omap_cfg_reg(W19_24XX_SYS_NIRQ);
+ 
++	/* Use Interal loop-back in MMC/SDIO Module Input Clock selection */
++	CONTROL_DEVCONF |= (1 << 24);
++
+ 	/*
+  	 * Make sure the serial ports are muxed on at this point.
+ 	 * You have to mux them off in device drivers later on diff --git
+a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c index
+1197dc3..782796e 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -79,6 +79,20 @@ MUX_CFG_24XX("P20_24XX_TSC_IRQ",	0x108,	
+ MUX_CFG_24XX("K15_24XX_UART3_TX",	0x118,	0,	0,	0,	1)
+ MUX_CFG_24XX("K14_24XX_UART3_RX",	0x119,	0,	0,	0,	1)
+ 
++/* MMC/SDIO */
++MUX_CFG_24XX("G19_24XX_MMC_CLKO",	0x0f3,	0,	0,	0,	1)
++MUX_CFG_24XX("H18_24XX_MMC_CMD",	0x0f4,	0,	0,	0,	1)
++MUX_CFG_24XX("F20_24XX_MMC_DAT0",	0x0f5,	0,	0,	0,	1)
++MUX_CFG_24XX("H14_24XX_MMC_DAT1",	0x0f6,	0,	0,	0,	1)
++MUX_CFG_24XX("E19_24XX_MMC_DAT2",	0x0f7,	0,	0,	0,	1)
++MUX_CFG_24XX("D19_24XX_MMC_DAT3",	0x0f8,	0,	0,	0,	1)
++MUX_CFG_24XX("F19_24XX_MMC_DAT_DIR0",	0x0f9,	0,	0,	0,	1)
++MUX_CFG_24XX("E20_24XX_MMC_DAT_DIR1",	0x0fa,	0,	0,	0,	1)
++MUX_CFG_24XX("F18_24XX_MMC_DAT_DIR2",	0x0fb,	0,	0,	0,	1)
++MUX_CFG_24XX("E18_24XX_MMC_DAT_DIR3",	0x0fc,	0,	0,	0,	1)
++MUX_CFG_24XX("G18_24XX_MMC_CMD_DIR",	0x0fd,	0,	0,	0,	1)
++MUX_CFG_24XX("H15_24XX_MMC_CLKI",	0x0fe,	0,	0,	0,	1)
++
+ /* Keypad GPIO*/
+ MUX_CFG_24XX("T19_24XX_KBR0",		0x106,	3,	1,	1,	1)
+ MUX_CFG_24XX("R19_24XX_KBR1",		0x107,	3,	1,	1,	1)
+diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+index 8bff566..67d6c3e 100644
+--- a/arch/arm/plat-omap/devices.c
++++ b/arch/arm/plat-omap/devices.c
+@@ -149,7 +149,7 @@ static inline void omap_init_kp(void) {}
+ 
+ #ifdef CONFIG_ARCH_OMAP24XX
+ #define	OMAP_MMC1_BASE		0x4809c000
+-#define OMAP_MMC1_INT		83
++#define OMAP_MMC1_INT		INT_24XX_MMC_IRQ
+ #else
+ #define	OMAP_MMC1_BASE		0xfffb7800
+ #define OMAP_MMC1_INT		INT_MMC
+@@ -226,7 +226,14 @@ static void __init omap_init_mmc(void)
+ 	/* block 1 is always available and has just one pinout option */
+ 	mmc = &mmc_conf->mmc[0];
+ 	if (mmc->enabled) {
+-		if (!cpu_is_omap24xx()) {
++		if (cpu_is_omap24xx()) {
++			omap_cfg_reg(H18_24XX_MMC_CMD);
++			omap_cfg_reg(H15_24XX_MMC_CLKI);
++			omap_cfg_reg(G19_24XX_MMC_CLKO);
++			omap_cfg_reg(F20_24XX_MMC_DAT0);
++			omap_cfg_reg(F19_24XX_MMC_DAT_DIR0);
++			omap_cfg_reg(G18_24XX_MMC_CMD_DIR);
++		} else {
+ 			omap_cfg_reg(MMC_CMD);
+ 			omap_cfg_reg(MMC_CLK);
+ 			omap_cfg_reg(MMC_DAT0);
+@@ -237,7 +244,14 @@ static void __init omap_init_mmc(void)
+ 			}
+ 		}
+ 		if (mmc->wire4) {
+-			if (!cpu_is_omap24xx()) {
++			if (cpu_is_omap24xx()) {
++				omap_cfg_reg(H14_24XX_MMC_DAT1);
++				omap_cfg_reg(E19_24XX_MMC_DAT2);
++				omap_cfg_reg(D19_24XX_MMC_DAT3);
++				omap_cfg_reg(E20_24XX_MMC_DAT_DIR1);
++				omap_cfg_reg(F18_24XX_MMC_DAT_DIR2);
++				omap_cfg_reg(E18_24XX_MMC_DAT_DIR3);
++			} else {
+ 				omap_cfg_reg(MMC_DAT1);
+ 				/* NOTE:  DAT2 can be on W10 (here) or M15
+*/
+ 				if (!mmc->nomux)
+diff --git a/include/asm-arm/arch-omap/irqs.h b/include/asm-arm/arch-
+omap/irqs.h
+index 42098d9..31a79a1 100644
+--- a/include/asm-arm/arch-omap/irqs.h
++++ b/include/asm-arm/arch-omap/irqs.h
+@@ -247,6 +247,7 @@
+ #define INT_24XX_MCBSP2_IRQ_TX	62
+ #define INT_24XX_MCBSP2_IRQ_RX	63
+ #define INT_24XX_UART3_IRQ	74
++#define INT_24XX_MMC_IRQ	83
+ 
+ /* Max. 128 level 2 IRQs (OMAP1610), 192 GPIOs (OMAP730) and
+  * 16 MPUIO lines */
+diff --git a/include/asm-arm/arch-omap/mux.h b/include/asm-arm/arch-
+omap/mux.h index 0dc24d4..eee8906 100644
+--- a/include/asm-arm/arch-omap/mux.h
++++ b/include/asm-arm/arch-omap/mux.h
+@@ -435,6 +435,20 @@ enum omap24xx_index {
+ 	K15_24XX_UART3_TX,
+ 	K14_24XX_UART3_RX,
+ 
++	/* MMC/SDIO */
++	G19_24XX_MMC_CLKO,
++	H18_24XX_MMC_CMD,
++	F20_24XX_MMC_DAT0,
++	H14_24XX_MMC_DAT1,
++	E19_24XX_MMC_DAT2,
++	D19_24XX_MMC_DAT3,
++	F19_24XX_MMC_DAT_DIR0,
++	E20_24XX_MMC_DAT_DIR1,
++	F18_24XX_MMC_DAT_DIR2,
++	E18_24XX_MMC_DAT_DIR3,
++	G18_24XX_MMC_CMD_DIR,
++	H15_24XX_MMC_CLKI,
++
+ 	/* Keypad GPIO*/
+ 	T19_24XX_KBR0,
+ 	R19_24XX_KBR1,
