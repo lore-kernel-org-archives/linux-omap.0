@@ -1,12 +1,11 @@
 From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: Couple boot failures on H4-2420 and their reasons.
-Date: Thu, 8 Jun 2006 14:19:09 -0500
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A506198C31@dlee02.ent.ti.com>
+Subject: [patch] Fix to allow H4 to boot and ethernet to work on 2.6.17-rc5
+	git.
+Date: Thu, 8 Jun 2006 18:36:20 -0500
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A506198F79@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C68B54.58E6F761"
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,24 +14,140 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+This is a multi-part message in MIME format.
+
+------_=_NextPart_001_01C68B54.58E6F761
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
 Hi,
 
-I just pulled and tried the H4 and it wouldn't boot given the defconfig.
-A little probing shows the following:
+In case anyone is trying to actually use the H4-2420 this patch allows
+it to boot on a pull from today.  I needed to test a few things and I
+see it's likely not worked for a bit.
 
-	- omap's mmc_set_ios is hanging in the MMC_POWER_UP loop.
+- The GPMC settings in the board file were wrong, especially the MUX
+settings, there is no way Ethernet would have worked with those.  The
+change to the board file is likely worth keeping.
 
-	- irlm_do_discovery()'s structure entry irlmp_cb.hints is not
-half word aligned and the compiler is trying to do a ldrh from there.
-It appears the hints structure is supposed to be a union of uchar[2] and
-a u16 but it fails to align to the right structure size (GCC 3.4.1
-anyway).  I've force aligned the structure, but I don' t know if that is
-right or now.
+- I put ugly hacks into MMC and Irda which likely are not worth keeping
+but they do allow a boot.
+
+- I noticed the 2422 and 2423 is_cpu_xyz macros are broke but did not
+fix them.  You need to read both Hawkeye and production_id to
+distinguish current parts.
+
+Now on to some testing of other things ...
 
 Regards,
 Richard W.
+
+------_=_NextPart_001_01C68B54.58E6F761
+Content-Type: application/octet-stream;
+	name="h4-boot-ether-2_6_17-rc5.diff"
+Content-Transfer-Encoding: base64
+Content-Description: h4-boot-ether-2_6_17-rc5.diff
+Content-Disposition: attachment;
+	filename="h4-boot-ether-2_6_17-rc5.diff"
+
+ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtaDQuYyBiL2FyY2gvYXJtL21h
+Y2gtb21hcDIvYm9hcmQtaDQuYwppbmRleCA0OTMzZmNlLi5mMzhmZjg0IDEwMDY0NAotLS0gYS9h
+cmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLWg0LmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9i
+b2FyZC1oNC5jCkBAIC0xOSw2ICsxOSw3IEBACiAjaW5jbHVkZSA8bGludXgvZGVsYXkuaD4KICNp
+bmNsdWRlIDxsaW51eC93b3JrcXVldWUuaD4KICNpbmNsdWRlIDxsaW51eC9pbnB1dC5oPgorI2lu
+Y2x1ZGUgPGxpbnV4L2Nsay5oPgogCiAjaW5jbHVkZSA8YXNtL2hhcmR3YXJlLmg+CiAjaW5jbHVk
+ZSA8YXNtL21hY2gtdHlwZXMuaD4KQEAgLTI3MSwxNSArMjcyLDY3IEBAIHN0YXRpYyBzdHJ1Y3Qg
+cGxhdGZvcm1fZGV2aWNlICpoNF9kZXZpY2UKIAkmaDRfbGNkX2RldmljZSwKIH07CiAKKy8qIDI0
+MjAgU3lzYm9vdCBzZXR1cCAoMjQzMCBpcyBkaWZmZXJlbnQpICovCitzdGF0aWMgdTMyIGdldF9z
+eXNib290X3ZhbHVlKHZvaWQpCit7CisJcmV0dXJuIChvbWFwX3JlYWRsKE9NQVAyNDJYX0NPTlRS
+T0xfU1RBVFVTKSAmIDB4RkZGKTsKK30KKworLyogSDQtMjQyMCdzIGFsd2F5cyB1c2VkIG11eGVk
+IG1vZGUsIEg0LTI0MjIncyBhbHdheXMgdXNlIG5vbi1tdXhlZAorICoKKyAqIE5vdGU6IE9NQVAt
+R0lUIGRvZXNuJ3QgY29ycmVjdGx5IGRvIGlzX2NwdV9vbWFwMjQyMiBhbmQgaXNfY3B1X29tYXAy
+NDIzCisgKiAgY29ycmVjdGx5LiAgVGhlIG1hY3JvIG5lZWRzIHRvIGxvb2sgYXQgcHJvZHVjdGlv
+bl9pZCBub3QganVzdCBoYXdrZXllLgorICovCitzdGF0aWMgdTMyIGlzX2dwbWNfbXV4ZWQodm9p
+ZCkKK3sKKwl1MzIgbXV4OworCW11eCA9IGdldF9zeXNib290X3ZhbHVlKCk7CisJaWYgKChtdXgg
+JiAweEYpID09IDB4ZCkKKwkJcmV0dXJuIDE7CS8qIE5BTkQgY29uZmlnIChjb3VsZCBiZSBlaXRo
+ZXIpICovCisJaWYgKG11eCAmIDB4MikJCS8qIGlmIG11eCdlZCAqLworCQlyZXR1cm4gMTsKKwll
+bHNlCisJCXJldHVybiAwOworfQorCiBzdGF0aWMgaW5saW5lIHZvaWQgX19pbml0IGg0X2luaXRf
+c21jOTF4KHZvaWQpCiB7CisJc3RydWN0IGNsayAqbDNjazsKKwl1bnNpZ25lZCBpbnQgcmF0ZSwg
+bXV4ZWQ7CisKKwlsM2NrID0gY2xrX2dldChOVUxMLCAiY29yZV9sM19jayIpOworCWlmIChJU19F
+UlIobDNjaykpCisJCXJhdGUgPSAxMDAwMDAwMDA7CisJZWxzZQorCQlyYXRlID0gY2xrX2dldF9y
+YXRlKGwzY2spOworCiAJLyogTWFrZSBzdXJlIENTMSB0aW1pbmdzIGFyZSBjb3JyZWN0ICovCi0J
+R1BNQ19DT05GSUcxXzEgPSAweDAwMDExMjAwOwotCUdQTUNfQ09ORklHMl8xID0gMHgwMDFmMWYw
+MTsKLQlHUE1DX0NPTkZJRzNfMSA9IDB4MDAwODA4MDM7Ci0JR1BNQ19DT05GSUc0XzEgPSAweDFj
+MDkxYzA5OwotCUdQTUNfQ09ORklHNV8xID0gMHgwNDFmMWYxZjsKLQlHUE1DX0NPTkZJRzZfMSA9
+IDB4MDAwMDA0YzQ7CisJaWYgKGlzX2dwbWNfbXV4ZWQoKSkKKwkJbXV4ZWQgPSAweDIwMDsKKwll
+bHNlCisJCW11eGVkID0gMDsJCisKKwlHUE1DX0NPTkZJRzFfMSA9ICgweDAwMDExMDAwIHwgbXV4
+ZWQpOworCisJaWYocmF0ZSA9PSAxNjUwMDAwMDApIHsKKwkJR1BNQ19DT05GSUcyXzEgPSAweDAw
+MWYxZjAxOworCQlHUE1DX0NPTkZJRzNfMSA9IDB4MDAwODA4MDM7CisJCUdQTUNfQ09ORklHNF8x
+ID0gMHgxYzBiMWMwYTsKKwkJR1BNQ19DT05GSUc1XzEgPSAweDA0MWYxRjFGOworCQlHUE1DX0NP
+TkZJRzZfMSA9IDB4MDAwMDA0QzQ7CisJfSBlbHNlIGlmIChyYXRlID09IDEzMzAwMDAwMCkgewor
+CQlHUE1DX0NPTkZJRzJfMSA9IDB4MDAxZjFmMDA7CisJCUdQTUNfQ09ORklHM18xID0gMHgwMDA4
+MDgwMjsKKwkJR1BNQ19DT05GSUc0XzEgPSAweDFDMDkxQzA5OworCQlHUE1DX0NPTkZJRzVfMSA9
+IDB4MDQxZjFGMUY7CisJCUdQTUNfQ09ORklHNl8xID0gMHgwMDAwMDRDNDsKKwl9IGVsc2Ugey8q
+IHJhdGUgPSAxMDAwMDAwMDAgKi8KKwkJR1BNQ19DT05GSUcyXzEgPSAweDAwMWYxZjAwOworCQlH
+UE1DX0NPTkZJRzNfMSA9IDB4MDAwODA4MDI7CisJCUdQTUNfQ09ORklHNF8xID0gMHgxYzA5MWMw
+OTsKKwkJR1BNQ19DT05GSUc1XzEgPSAweDAzMUExRjFGOworCQlHUE1DX0NPTkZJRzZfMSA9IDB4
+MDAwMDAzQzI7CisJfQogCUdQTUNfQ09ORklHN18xID0gMHgwMDAwMGY0MCB8ICgweDA4MDAwMDAw
+ID4+IDI0KTsKIAl1ZGVsYXkoMTAwKTsKIApkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFw
+Mi9jbG9jay5oIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9jbG9jay5oCmluZGV4IDI3ODFkZmIuLmUx
+YTE2NGUgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvY2xvY2suaAorKysgYi9hcmNo
+L2FybS9tYWNoLW9tYXAyL2Nsb2NrLmgKQEAgLTM1MiwxMCArMzUyLDExIEBAIHN0cnVjdCBwcmNt
+X2NvbmZpZyB7CiAgKiBCeSBoYXZpbmcgdGhlIGJvb3QgbG9hZGVyIGJvb3QgdXAgaW4gdGhlIGZh
+c3Rlc3QgTDQgc3BlZWQgYXZhaWxhYmxlIGxpa2VseQogICogd2lsbCByZXN1bHQgaW4gc29tZXRo
+aW5nIHdoaWNoIHlvdSBjYW4gc3dpdGNoIGJldHdlZW4uCiAgKi8KKyNkZWZpbmUgVjI0WFhfU0RS
+Q19SRlJfQ1RSTF8xNjVNSHoJKDB4MDAwNGUyMDAgfCAxKQogI2RlZmluZSBWMjRYWF9TRFJDX1JG
+Ul9DVFJMXzEzM01IegkoMHgwMDAzZGUwMCB8IDEpCisjZGVmaW5lIFYyNFhYX1NEUkNfUkZSX0NU
+UkxfMTEwTUh6CSgweDAwMDMyODAxIHwgMSkKICNkZWZpbmUgVjI0WFhfU0RSQ19SRlJfQ1RSTF8x
+MDBNSHoJKDB4MDAwMmRhMDEgfCAxKQotI2RlZmluZSBWMjRYWF9TRFJDX1JGUl9DVFJMXzExME1I
+egkoMHgwMDAyZGEwMSB8IDEpIC8qIE5lZWQgdG8gY2FsYyAqLwotI2RlZmluZSBWMjRYWF9TRFJD
+X1JGUl9DVFJMX0JZUEFTUwkoMHgwMDAwNTAwMCB8IDEpIC8qIE5lZWQgdG8gY2FsYyAqLworI2Rl
+ZmluZSBWMjRYWF9TRFJDX1JGUl9DVFJMX0JZUEFTUwkoMHgwMDAwNTAwMCB8IDEpCiAKIC8qIE1Q
+VSBzcGVlZCBkZWZpbmVzICovCiAjZGVmaW5lIFMxMk0JMTIwMDAwMDAKZGlmZiAtLWdpdCBhL2Ry
+aXZlcnMvbW1jL29tYXAuYyBiL2RyaXZlcnMvbW1jL29tYXAuYwppbmRleCA3YzhiNmNlLi4xZTFk
+YzMyIDEwMDY0NAotLS0gYS9kcml2ZXJzL21tYy9vbWFwLmMKKysrIGIvZHJpdmVycy9tbWMvb21h
+cC5jCkBAIC05NDgsNyArOTQ4LDggQEAgc3RhdGljIHZvaWQgbW1jX29tYXBfc2V0X2lvcyhzdHJ1
+Y3QgbW1jXwogCQlPTUFQX01NQ19XUklURShob3N0LT5iYXNlLCBJRSwgMCk7CiAJCU9NQVBfTU1D
+X1dSSVRFKGhvc3QtPmJhc2UsIFNUQVQsIDB4ZmZmZik7CiAJCU9NQVBfTU1DX1dSSVRFKGhvc3Qt
+PmJhc2UsIENNRCwgMTw8Nyk7Ci0JCXdoaWxlICgwID09IChPTUFQX01NQ19SRUFEKGhvc3QtPmJh
+c2UsIFNUQVQpICYgMSkpOworCQl1ZGVsYXkoNTAwKTsKKy8vCQl3aGlsZSAoMCA9PSAoT01BUF9N
+TUNfUkVBRChob3N0LT5iYXNlLCBTVEFUKSAmIDEpKTsKIAkJT01BUF9NTUNfV1JJVEUoaG9zdC0+
+YmFzZSwgU1RBVCwgMSk7CiAJfQogCWNsa19kaXNhYmxlKGhvc3QtPmZjbGspOwpkaWZmIC0tZ2l0
+IGEvaW5jbHVkZS9hc20tYXJtL2FyY2gtb21hcC9vbWFwMjR4eC5oIGIvaW5jbHVkZS9hc20tYXJt
+L2FyY2gtb21hcC9vbWFwMjR4eC5oCmluZGV4IDZlNTk4MDUuLmU3MjQwYTUgMTAwNjQ0Ci0tLSBh
+L2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvb21hcDI0eHguaAorKysgYi9pbmNsdWRlL2FzbS1h
+cm0vYXJjaC1vbWFwL29tYXAyNHh4LmgKQEAgLTIwLDUgKzIwLDcgQEAKICNkZWZpbmUgT01BUDI0
+WFhfUFJDTV9CQVNFCShMNF8yNFhYX0JBU0UgKyAweDgwMDApCiAjZGVmaW5lIE9NQVAyNFhYX1NE
+UkNfQkFTRQkoTDNfMjRYWF9CQVNFICsgMHg5MDAwKQogCisjZGVmaW5lIE9NQVAyNDJYX0NPTlRS
+T0xfU1RBVFVTCShMNF8yNFhYX0JBU0UgKyAweDJGOCkKKwogI2VuZGlmIC8qIF9fQVNNX0FSQ0hf
+T01BUDI0WFhfSCAqLwogCmRpZmYgLS1naXQgYS9pbmNsdWRlL25ldC9pcmRhL2lybG1wLmggYi9p
+bmNsdWRlL25ldC9pcmRhL2lybG1wLmgKaW5kZXggYzBjODk1ZC4uMzdhZDU4OSAxMDA2NDQKLS0t
+IGEvaW5jbHVkZS9uZXQvaXJkYS9pcmxtcC5oCisrKyBiL2luY2x1ZGUvbmV0L2lyZGEvaXJsbXAu
+aApAQCAtMTUsNyArMTUsNyBAQAogICogICAgIAogICogICAgIFRoaXMgcHJvZ3JhbSBpcyBmcmVl
+IHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgCiAgKiAgICAgbW9kaWZ5
+IGl0IHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgYXMg
+Ci0gKiAgICAgcHVibGlzaGVkIGJ5IHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb247IGVpdGhl
+ciB2ZXJzaW9uIDIgb2YgCisgKiAgICAgcHVibGlzaGVkIGJ5IHRoZSBGcmVlIFNvZnR3YXJlIEZv
+dW5kYXRpb247IGVpdGhlciB2ZXJzaW9uIDIgb2YKICAqICAgICB0aGUgTGljZW5zZSwgb3IgKGF0
+IHlvdXIgb3B0aW9uKSBhbnkgbGF0ZXIgdmVyc2lvbi4KICAqCiAgKiAgICAgTmVpdGhlciBEYWcg
+QnJhdHRsaSBub3IgVW5pdmVyc2l0eSBvZiBUcm9tc/ggYWRtaXQgbGlhYmlsaXR5IG5vcgpAQCAt
+MTg5LDcgKzE4OSwxMCBAQCBzdHJ1Y3QgaXJsbXBfY2IgewogCiAJaW50IHJ1bm5pbmc7CiAKLQlf
+X3UxNl9ob3N0X29yZGVyIGhpbnRzOyAvKiBIaW50IGJpdHMgKi8KKwkvKiBwcm9ibGVtIG5vdCBH
+Q0MzLjQgd29yZCBhbGlnbmVkICYgY2F1c2VzIGFsaWdubWVudCBleGNlcHRpb24gKi8KKwlfX3U4
+IGR1bW15OworCV9fdTE2IGR1bW15MjsKKwlfX3UxNl9ob3N0X29yZGVyIGhpbnRzOyAvKiBIaW50
+IGJpdHMgPyAqLwogfTsKIAogLyogUHJvdG90eXBlIGRlY2xhcmF0aW9ucyAqLwo=
+
+------_=_NextPart_001_01C68B54.58E6F761
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+------_=_NextPart_001_01C68B54.58E6F761--
