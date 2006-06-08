@@ -1,13 +1,13 @@
-From: Clement Idelon <clement@iclem.net>
-Subject: Re: TI OMAP (Imate)
-Date: Thu, 08 Jun 2006 08:51:43 +0200
-Message-ID: <4487C8FF.5000000@iclem.net>
-References: <7f50d1380606072233h6adb93deh277584d4728828cc@mail.gmail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: Couple boot failures on H4-2420 and their reasons.
+Date: Thu, 8 Jun 2006 14:19:09 -0500
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A506198C31@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <7f50d1380606072233h6adb93deh277584d4728828cc@mail.gmail.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,41 +15,24 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Gureek a =E9crit :
-> Please if anyone can direct me to some link about bootldr for omap and
-> what linux distributions I can use. Will be thankful
-
 Hi,
 
-Imate K-Jam (aka HTC Wizard) bootloader is supposed to be similar to=20
-Typhoon. Have a look at the Typhoon port effort at :=20
-http://vivien.chappelier.free.fr/typhoon/index.html
+I just pulled and tried the H4 and it wouldn't boot given the defconfig.
+A little probing shows the following:
 
-The most used linux distribution on HTC PDA phones is Familiar with GPE=20
-or Opie :
-http://familiar.handhelds.org
-http://gpe.handhelds.org
-http://opie.handhelds.org
+	- omap's mmc_set_ios is hanging in the MMC_POWER_UP loop.
 
-Other interesting locations for your device :
-* HTC phones Wiki :
-http://wiki.xda-developers.com/index.php?pagename=3DXanaduxDeveloperHome
+	- irlm_do_discovery()'s structure entry irlmp_cb.hints is not
+half word aligned and the compiler is trying to do a ldrh from there.
+It appears the hints structure is supposed to be a union of uchar[2] and
+a u16 but it fails to align to the right structure size (GCC 3.4.1
+anyway).  I've force aligned the structure, but I don' t know if that is
+right or now.
 
-* itsutils :
-http://www.xs4all.nl/~itsme/projects/xda/tools.html
-(Not sure these tools are working with WM5)
-
-* HaRET
-http://wiki.xda-developers.com/index.php?pagename=3DHaRET
-http://xanadux.cvs.sourceforge.net/xanadux/haret/haret-gnu/
-
-You may also find some help in #htc-linux irc channel on Freenode :
-irc://irc.freenode.net/#htc-linux
-
-Best regards,
-Clement
+Regards,
+Richard W.
