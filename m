@@ -1,9 +1,10 @@
-From: jason <jason.noronha@gmail.com>
-Subject: osk problem with 2.6 kernel
-Date: Fri, 9 Jun 2006 06:35:13 +0000 (UTC)
-Message-ID: <loom.20060609T082829-119@post.gmane.org>
+From: Imre Deak <imre.deak@nokia.com>
+Subject: [PATCH] ARM: OMAP: omap_uwire: wait for tx complete before
+	starting the next one
+Date: Fri, 09 Jun 2006 18:17:50 +0300
+Message-ID: <1149866270.3240.11.camel@mammoth.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
@@ -15,35 +16,34 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The TDR register shouldn't be written when the CSRB flag is set. The fix
+solves the problem where one SPI transfer includes multiple 8 or 16 bit
+tx elements and the current transfer can be corrupted by accessing the
+TDR too early.
 
-I have read the posts in this mailing list and have built u-boot 1.1.4 using 
-ELDK 3.1.1. It works perfectly fine on the osk 5912. but when i copy my 2.6.7 
-kernel (which i also built with ELDK 3.1.1) onto the board, it just hangs 
-after uncompressing the kernel. i have used an omap patch obtained from 
-http://www.muru.com. Can somebody help me out? Is it working for anyone and if 
-yes, what is the version of your linux kernel and are there anyone patches 
-available or do any files need to be changed.
+Signed-off-by: Imre Deak <imre.deak@nokia.com>
 
-this is what is displayed :
-___________________________________________________________________________
-OMAP5912 OSK # bootm 0x100000
-## Booting image at 00100000 ...
-   Image Name:   Linux Kernel Image
-   Image Type:   ARM Linux Kernel Image (gzip compressed)
-   Data Size:    839088 Bytes = 819.4 kB
-   Load Address: 10c08000
-   Entry Point:  10c08000
-   Verifying Checksum ... OK
-   Uncompressing Kernel Image ... OK
-
-Starting kernel ...
-____________________________________________________________________________
-
-Thank you.
-
-Regards 
-Jason
+diff --git a/drivers/spi/omap_uwire.c b/drivers/spi/omap_uwire.c
+index ce4b992..6375256 100644
+--- a/drivers/spi/omap_uwire.c
++++ b/drivers/spi/omap_uwire.c
+@@ -240,12 +240,13 @@ static int uwire_txrx(struct spi_device 
+ 			pr_debug("%s: write-%d =%04x\n",
+ 					spi->dev.bus_id, bits, val);
+ #endif
++			if (wait_uwire_csr_flag(CSRB, 0, 0))
++				goto eio;
++
+ 			uwire_write_reg(UWIRE_TDR, val);
+ 
+ 			/* start write */
+ 			val = START | w | (bits << 5);
+-			if (wait_uwire_csr_flag(CSRB, 0, 0))
+-				goto eio;
+ 
+ 			uwire_write_reg(UWIRE_CSR, val);
+ 			len -= bytes;
