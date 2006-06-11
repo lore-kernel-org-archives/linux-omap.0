@@ -1,13 +1,13 @@
-From: =?ISO-8859-1?Q?Juha_Yrj=F6l=E4?= <juha.yrjola@solidboot.com>
-Subject: Re: [PATCH] ARM: OMAP: Add minimal OMAP2430 support
-Date: Sun, 11 Jun 2006 13:08:02 +0300
-Message-ID: <448BEB82.5020609@solidboot.com>
-References: <20060611083756.85274.qmail@web37912.mail.mud.yahoo.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH] ARM: OMAP: Add minimal OMAP2430 support
+Date: Sun, 11 Jun 2006 07:15:29 -0500
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A506200328@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060611083756.85274.qmail@web37912.mail.mud.yahoo.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,38 +17,29 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Komal Shah <komal_shah802003@yahoo.com>
+To: Komal Shah <komal_shah802003@yahoo.com>, Tony Lindgren <tony@atomide.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-Komal Shah wrote:
 
 > After looking at the files which are needed to change for
 > prcm_read/write[l], clock.c needs the major update. I hope Richard is
 > OK with going from __REG32(...) to __raw_read/write[l] based prcm_rw
-> wrappers? 
+> wrappers?
+>=20
+> Anyways, I have started doing that changes for other files.
 
-read_reg() and write_reg() are definitely the way to go.  The __REG() 
-macros are unportable, and usually even lead to inefficient assembly code.
+I picked up this encoding from USB which uses it also.  In general it
+makes any kind of porting and sharing between some of our internal code
+bases easier.  It has a nice property of also being more compact (in C
+file coding space) then other forms.
 
-As for which API is the most coherent, I've found that this approach 
-makes the most sense:
+As far as portability goes header files do hide the any differences and
+we use it seamlessly between 2420 and 2430 dispute them having very
+different maps.   It won't give you a single binary which runs across
+OMAP1/OMAP2/OMAP3 but as you use a different compiler target v5, v6,
+cortex, which produces incompatible binaries that has somewhat a lesser
+importance.
 
-static void __iomem *prcm_base;
-
-static u32 prcm_read_reg(int reg);
-static void prcm_write_reg(int reg, u32 value);
-
-If you go with the readl/writel argument ordering, you'll end up with 
-oddness like:
-
-static u32 mmc_writel(struct mmc *mmc, u32 value, int reg);
-
-You should also not expose the raw register read/write functions, but 
-rather implement wrapper functions to modify the relevant registers. 
-Otherwise you might run into race issues with a preemptible kernel.
-
-Cheers,
-Juha
+Regards,
+Richard W.
