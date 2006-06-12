@@ -1,13 +1,13 @@
-From: =?ISO-8859-1?Q?Juha_Yrj=F6l=E4?= <juha.yrjola@solidboot.com>
+From: Komal Shah <komal_shah802003@yahoo.com>
 Subject: Re: [PATCH] ARM: OMAP: Add minimal OMAP2430 support
-Date: Sun, 11 Jun 2006 16:54:23 +0300
-Message-ID: <448C208F.4020102@solidboot.com>
-References: <EA12F909C0431D458B9D18A176BEE4A506200337@dlee02.ent.ti.com>
+Date: Sun, 11 Jun 2006 23:43:09 -0700 (PDT)
+Message-ID: <20060612064309.71669.qmail@web37904.mail.mud.yahoo.com>
+References: <448C208F.4020102@solidboot.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A506200337@dlee02.ent.ti.com>
+In-Reply-To: <448C208F.4020102@solidboot.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,17 +21,24 @@ To: "Woodruff, Richard" <r-woodruff2@ti.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Woodruff, Richard wrote:
+--- Juha Yrj=F6l=E4 <juha.yrjola@solidboot.com> wrote:
 
-> Along with my other biases I rationalized it this way... I like
-> having  a private driver incompatible method to access the PRCM. It forces
-> drivers to use API access functions and not directly access its
-> registers. The PRCM has more and more things to manage and having some
-> xyz driver mess up its state behind my back will break everything.
+>=20
+> Exactly.  That's why I keep my read_reg/write_reg functions static.=20
+> Usually I put even the register definitions to the .c file, since
+> other=20
+> drivers shouldn't have any business modifying them directly anyway.
+>=20
 
-Exactly.  That's why I keep my read_reg/write_reg functions static. 
-Usually I put even the register definitions to the .c file, since other 
-drivers shouldn't have any business modifying them directly anyway.
+Have them static prcm_read/write_reg means, that clock.c and prcm.c
+should be merged, as clock.c is the heaviest user of PRCM/CM_*
+registers as of now, and only having static prcm_read/write_reg
+functions in prcm.c doesn't solve usage PRCM_* registers from clock.c?
 
-Cheers,
-Juha
+---Komal Shah
+http://komalshah.blogspot.com/
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around=20
+http://mail.yahoo.com=20
