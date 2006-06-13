@@ -1,13 +1,11 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: OMAP 5912OSK and touchscreen under Qt/Embedded
-Date: Tue, 13 Jun 2006 16:48:11 +0200
-Message-ID: <448ED02B.1060209@gmail.com>
-References: <CA21EAA4DF189C40A3BC30A5A75DA56001D4C846@ratatosk>
+From: Matt Callow <mc-lists@tesco.net>
+Subject: Possible error in omap16xxcam_set_xclk?
+Date: Tue, 13 Jun 2006 16:07:40 +0100
+Message-ID: <448ED4BC.1010804@tesco.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <CA21EAA4DF189C40A3BC30A5A75DA56001D4C846@ratatosk>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,40 +15,44 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Birger Kroon <Birger.Kroon@sys.teleca.se>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Birger Kroon wrote:
-> Does anyone here have experience of getting a touchscreen working with Qt/embedded?
->  
-> * I'm currently using the OMAP 5912OSK with the Mistral LCD unit.
-> * I've got Qt/Embedded up and running on the platform (at least the display). 
-> * I'm using the latest kernel/patch.
-> * I see events when I touch the screen so the low level drivers does work correct I beleive.
->  
-> My problem is that I do not know how to connect Qt/E with the touch screen drivers in the correct way. I've testet to set the 'QWS_MOUSE_PROTO' environment variable to different thing, but w/o success. 
-> 
-> - Do I need the tslib to use a TS under Qt/E? 
+  Hi,
 
-Yes, you should use tslib for QT/E. Do calibration first 
-with tslib and then start QT/E.
+I've been looking at omap/omap16xxcam.c (with a view to creating an 
+omap1510 equivalent) and have noticed the following:
 
-Note that OMAP5912 touchscreen is broken in recent git. If 
-you use recent git, you should apply
 
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-June/007358.html
+        int divisor = 1;
+        divisor = data->ocp_clk/xclk;
+        if ( divisor * xclk < data->ocp_clk)
+                ++divisor;
 
-as well.
+        switch (divisor) {
+                case 1:
+                case 2:
+                        xclk_val = FOSCMOD_TC2_CK2;
+                        break;
+                case 3:
+                        xclk_val = FOSCMOD_TC2_CK3;
+                        break;
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                        xclk_val = FOSCMOD_TC2_CK4;
+                        break;
+...
 
-However, latest patch on http://www.muru.com/linux/omap/ 
-should be okay (?).
+Now, by my reckoning, divisor can only be 1 or 2 when it reaches the 
+case statement. So, should the preceding if statement actually be:
 
-Try to use -tslib to configure QT/E . If I remember 
-correctly there is a macro QT_QWS_TSLIB available within QT/E.
+        while ( divisor * xclk < data->ocp_clk)
+                ++divisor;
 
-Maybe ask google as well.
+?
 
-Hth,
+regards
 
-dirk
+Matt Callow
