@@ -1,12 +1,13 @@
-From: "Komal Shah" <komal_shah802003@yahoo.com>
-Subject: [PATCH] ARM: OMAP: Check gpio_fck not gpio_ick.
-Date: Tue, 13 Jun 2006 04:20:15 -0700
-Message-ID: <1150197615.26712.263694540@webmail.messagingengine.com>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: Re: [PATCH] ARM: OMAP: Make McBSP KConfigurable.
+Date: Tue, 13 Jun 2006 05:20:53 -0700 (PDT)
+Message-ID: <20060613122053.24102.qmail@web37905.mail.mud.yahoo.com>
+References: <20060613111746.GP14634@earth.li>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="_----------=_1150197615267120";
-	charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20060613111746.GP14634@earth.li>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,58 +17,24 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Jonathan McDowell <noodles@earth.li>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
+--- Jonathan McDowell <noodles@earth.li> wrote:
 
---_----------=_1150197615267120
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="ISO-8859-1"
-MIME-Version: 1.0
-X-Mailer: MIME::Lite 5022  (F2.72; T1.15; A1.62; B3.04; Q3.03)
-Date: Tue, 13 Jun 2006 11:20:15 UT
+> On Tue, Jun 13, 2006 at 04:01:19AM -0700, Komal Shah wrote:
+> > Please take the rebased patch, some boards do not use McBSP :)
+> 
+> Shouldn't the Kconfig option default to y rather than breaking all
+> the
+> boards that do currently use it?
 
+Correct. I will submit the new patch soon.
 
--- 
-http://www.fastmail.fm - Email service worth paying for. Try it for free
+---Komal Shah
+http://komalshah.blogspot.com/
 
-
---_----------=_1150197615267120
-Content-Disposition: attachment;
-	filename="0001-ARM-OMAP-Check-gpio_fck-not-gpio_ick.patch"
-Content-Transfer-Encoding: base64
-Content-Type: application/octet-stream;
-	name="0001-ARM-OMAP-Check-gpio_fck-not-gpio_ick.patch"
-MIME-Version: 1.0
-X-Mailer: MIME::Lite 5022  (F2.72; T1.15; A1.62; B3.04; Q3.03)
-Date: Tue, 13 Jun 2006 11:20:15 UT
-
-RnJvbSBub2JvZHkgTW9uIFNlcCAxNyAwMDowMDowMCAyMDAxCkZyb206IEtv
-bWFsIFNoYWggPGtvbWFsX3NoYWg4MDIwMDNAeWFob28uY29tPgpEYXRlOiBU
-dWUsIDEzIEp1biAyMDA2IDIyOjE4OjI5ICswNTMwClN1YmplY3Q6IFtQQVRD
-SF0gQVJNOiBPTUFQOiBDaGVjayBncGlvX2ZjayBub3QgZ3Bpb19pY2suCgpT
-aWduZWQtb2ZmLWJ5OiBLb21hbCBTaGFoIDxrb21hbF9zaGFoODAyMDAzQHlh
-aG9vLmNvbT4KCi0tLQoKIGFyY2gvYXJtL3BsYXQtb21hcC9ncGlvLmMgfCAg
-ICAyICstCiAxIGZpbGVzIGNoYW5nZWQsIDEgaW5zZXJ0aW9ucygrKSwgMSBk
-ZWxldGlvbnMoLSkKCjYwY2EwODM0ZDI3YTNiMTM4ZTY1ZDE2MDdhM2ZkYWM2
-MWFjZDEzM2YKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL3BsYXQtb21hcC9ncGlv
-LmMgYi9hcmNoL2FybS9wbGF0LW9tYXAvZ3Bpby5jCmluZGV4IGU3NWEyY2Eu
-LmZkZGE1YjkgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL3BsYXQtb21hcC9ncGlv
-LmMKKysrIGIvYXJjaC9hcm0vcGxhdC1vbWFwL2dwaW8uYwpAQCAtOTgzLDcg
-Kzk4Myw3IEBAIHN0YXRpYyBpbnQgX19pbml0IF9vbWFwX2dwaW9faW5pdCh2
-b2lkKQogCQllbHNlCiAJCQljbGtfZW5hYmxlKGdwaW9faWNrKTsKIAkJZ3Bp
-b19mY2sgPSBjbGtfZ2V0KE5VTEwsICJncGlvc19mY2siKTsKLQkJaWYgKElT
-X0VSUihncGlvX2ljaykpCisJCWlmIChJU19FUlIoZ3Bpb19mY2spKQogCQkJ
-cHJpbnRrKCJDb3VsZCBub3QgZ2V0IGdwaW9zX2Zja1xuIik7CiAJCWVsc2UK
-IAkJCWNsa19lbmFibGUoZ3Bpb19mY2spOwotLSAKMS4zLjMKCg==
-
---_----------=_1150197615267120
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---_----------=_1150197615267120--
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
