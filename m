@@ -1,12 +1,13 @@
-From: "Komal Shah" <komal_shah802003@yahoo.com>
-Subject: [PATCH] ARM: OMAP: Make McBSP KConfigurable.
-Date: Tue, 13 Jun 2006 08:17:36 -0700
-Message-ID: <1150211856.20744.263714230@webmail.messagingengine.com>
+From: Matt Callow <mc-lists@tesco.net>
+Subject: Re: Possible error in omap16xxcam_set_xclk?
+Date: Tue, 13 Jun 2006 21:52:25 +0100
+Message-ID: <448F2589.6090304@tesco.net>
+References: <448ED4BC.1010804@tesco.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="_----------=_1150211856207440";
-	charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <448ED4BC.1010804@tesco.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,81 +15,51 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Matt Callow wrote:
 
---_----------=_1150211856207440
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="ISO-8859-1"
-MIME-Version: 1.0
-X-Mailer: MIME::Lite 5022  (F2.72; T1.15; A1.62; B3.04; Q3.03)
-Date: Tue, 13 Jun 2006 15:17:36 UT
+>  Hi,
+>
+> I've been looking at omap/omap16xxcam.c (with a view to creating an
+> omap1510 equivalent) and have noticed the following:
+>
+>
+>        int divisor = 1;
+>        divisor = data->ocp_clk/xclk;
+>        if ( divisor * xclk < data->ocp_clk)
+>                ++divisor;
+>
+>        switch (divisor) {
+>                case 1:
+>                case 2:
+>                        xclk_val = FOSCMOD_TC2_CK2;
+>                        break;
+>                case 3:
+>                        xclk_val = FOSCMOD_TC2_CK3;
+>                        break;
+>                case 4:
+>                case 5:
+>                case 6:
+>                case 7:
+>                        xclk_val = FOSCMOD_TC2_CK4;
+>                        break;
+> ...
+>
+> Now, by my reckoning, divisor can only be 1 or 2 when it reaches the
+> case statement. So, should the preceding if statement actually be:
+>
+>        while ( divisor * xclk < data->ocp_clk)
+>                ++divisor;
+>
+> ?
+>
+>
+No!
+Answered my own question! I should have looked more carefully at the
+code :-)
 
-Make default selecton to "yes" for McBSP.
-
--- 
-http://www.fastmail.fm - One of many happy users:
-  http://www.fastmail.fm/docs/quotes.html
-
-
---_----------=_1150211856207440
-Content-Disposition: attachment;
-	filename="0001-ARM-OMAP-Make-McBSP-KConfigurable.patch"
-Content-Transfer-Encoding: base64
-Content-Type: application/octet-stream;
-	name="0001-ARM-OMAP-Make-McBSP-KConfigurable.patch"
-MIME-Version: 1.0
-X-Mailer: MIME::Lite 5022  (F2.72; T1.15; A1.62; B3.04; Q3.03)
-Date: Tue, 13 Jun 2006 15:17:36 UT
-
-RnJvbSBub2JvZHkgTW9uIFNlcCAxNyAwMDowMDowMCAyMDAxCkZyb206IEtv
-bWFsIFNoYWggPGtvbWFsX3NoYWg4MDIwMDNAeWFob28uY29tPgpEYXRlOiBU
-dWUsIDEzIEp1biAyMDA2IDIyOjQ5OjE0ICswNTMwClN1YmplY3Q6IFtQQVRD
-SF0gQVJNOiBPTUFQOiBNYWtlIE1jQlNQIEtDb25maWd1cmFibGUuCgpTaWdu
-ZWQtb2ZmLWJ5OiBLb21hbCBTaGFoIDxrb21hbF9zaGFoODAyMDAzQHlhaG9v
-LmNvbT4KCi0tLQoKIGFyY2gvYXJtL3BsYXQtb21hcC9LY29uZmlnICB8ICAg
-IDggKysrKysrKysKIGFyY2gvYXJtL3BsYXQtb21hcC9NYWtlZmlsZSB8ICAg
-IDQgKysrLQogMiBmaWxlcyBjaGFuZ2VkLCAxMSBpbnNlcnRpb25zKCspLCAx
-IGRlbGV0aW9ucygtKQoKYjk1ZGJjMTRmOTgyMWUzM2I3Y2RhMGUxY2FmYzY5
-MTJjOGFjYTljZgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vcGxhdC1vbWFwL0tj
-b25maWcgYi9hcmNoL2FybS9wbGF0LW9tYXAvS2NvbmZpZwppbmRleCA4YWNk
-ZWI3Li43NWYxNDk0IDEwMDY0NAotLS0gYS9hcmNoL2FybS9wbGF0LW9tYXAv
-S2NvbmZpZworKysgYi9hcmNoL2FybS9wbGF0LW9tYXAvS2NvbmZpZwpAQCAt
-MTAxLDYgKzEwMSwxNCBAQCBjb25maWcgT01BUF9TVElfQ09OU09MRQogCWhl
-bHAKIAkgIFRoaXMgZW5hYmxlcyBhIGNvbnNvbGUgZHJpdmVyIGJ5IHdheSBv
-ZiBTVEkvWFRJLgogCitjb25maWcgT01BUF9NQ0JTUAorCWJvb2wgIk1jQlNQ
-IHN1cHBvcnQiCisJZGVwZW5kcyBvbiBBUkNIX09NQVAKKwlkZWZhdWx0IHkK
-KwloZWxwCisJICBTYXkgWSBoZXJlIGlmIHlvdSB3YW50IHN1cHBvcnQgZm9y
-IHRoZSBPTUFQIE11bHRpY2hhbm5lbAorCSAgQnVmZmVyZWQgU2VyaWFsIFBv
-cnQuCisKIGNob2ljZQogICAgICAgICBwcm9tcHQgIlN5c3RlbSB0aW1lciIK
-IAlkZWZhdWx0IE9NQVBfTVBVX1RJTUVSCmRpZmYgLS1naXQgYS9hcmNoL2Fy
-bS9wbGF0LW9tYXAvTWFrZWZpbGUgYi9hcmNoL2FybS9wbGF0LW9tYXAvTWFr
-ZWZpbGUKaW5kZXggMzRiYThmZC4uZmRmZGVjYiAxMDA2NDQKLS0tIGEvYXJj
-aC9hcm0vcGxhdC1vbWFwL01ha2VmaWxlCisrKyBiL2FyY2gvYXJtL3BsYXQt
-b21hcC9NYWtlZmlsZQpAQCAtMyw3ICszLDcgQEAgIyBNYWtlZmlsZSBmb3Ig
-dGhlIGxpbnV4IGtlcm5lbC4KICMKIAogIyBDb21tb24gc3VwcG9ydAotb2Jq
-LXkgOj0gY29tbW9uLm8gc3JhbS5vIHNyYW0tZm4ubyBjbG9jay5vIGRldmlj
-ZXMubyBkbWEubyBtdXgubyBncGlvLm8gbWNic3AubyB1c2IubyBmYi5vCitv
-YmoteSA6PSBjb21tb24ubyBzcmFtLm8gc3JhbS1mbi5vIGNsb2NrLm8gZGV2
-aWNlcy5vIGRtYS5vIG11eC5vIGdwaW8ubyB1c2IubyBmYi5vCiBvYmotbSA6
-PQogb2JqLW4gOj0KIG9iai0gIDo9CkBAIC0xNiw2ICsxNiw4IEBAIG9iai0k
-KENPTkZJR19BUkNIX09NQVAxNlhYKSArPSBvY3BpLm8KICMgU1RJIHN1cHBv
-cnQKIG9iai0kKENPTkZJR19PTUFQX1NUSSkgKz0gc3RpLwogCitvYmotJChD
-T05GSUdfT01BUF9NQ0JTUCkgKz0gbWNic3AubworCiBvYmotJChDT05GSUdf
-Q1BVX0ZSRVEpICs9IGNwdS1vbWFwLm8KIG9iai0kKENPTkZJR19PTUFQX0RN
-X1RJTUVSKSArPSBkbXRpbWVyLm8KIG9iai0kKENPTkZJR19PTUFQX0JPT1Rf
-UkVBU09OKSArPSBib290cmVhc29uLm8KLS0gCjEuMy4zCgo=
-
---_----------=_1150211856207440
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---_----------=_1150211856207440--
+Matt
