@@ -1,11 +1,13 @@
-From: Matt Callow <mc-lists@tesco.net>
-Subject: Possible error in omap16xxcam_set_xclk?
-Date: Tue, 13 Jun 2006 16:07:40 +0100
-Message-ID: <448ED4BC.1010804@tesco.net>
+From: "Birger Kroon" <Birger.Kroon@sys.teleca.se>
+Subject: RE: OMAP 5912OSK and touchscreen under Qt/Embedded
+Date: Tue, 13 Jun 2006 17:14:10 +0200
+Message-ID: <CA21EAA4DF189C40A3BC30A5A75DA56002551248@ratatosk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,41 +20,27 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-  Hi,
+Thanks for the quick responses...
 
-I've been looking at omap/omap16xxcam.c (with a view to creating an 
-omap1510 equivalent) and have noticed the following:
+I did not thought that tslib was needed, but I will try it and get back =
+here if I can't figure it out. :)
+
+Thanks again=20
+// Birger
 
 
-        int divisor = 1;
-        divisor = data->ocp_clk/xclk;
-        if ( divisor * xclk < data->ocp_clk)
-                ++divisor;
+Birger Kroon=20
+Software Engineer=20
+Automotive Solutions
 
-        switch (divisor) {
-                case 1:
-                case 2:
-                        xclk_val = FOSCMOD_TC2_CK2;
-                        break;
-                case 3:
-                        xclk_val = FOSCMOD_TC2_CK3;
-                        break;
-                case 4:
-                case 5:
-                case 6:
-                case 7:
-                        xclk_val = FOSCMOD_TC2_CK4;
-                        break;
-...
+Teleca Sweden West AB=20
+Lindholmspiren 9=20
+SE-417 56 G=F6teborg=20
+Sweden=20
+Tel +46 31 744 80 00=20
+Fax +46 31 744 80 01=20
 
-Now, by my reckoning, divisor can only be 1 or 2 when it reaches the 
-case statement. So, should the preceding if statement actually be:
-
-        while ( divisor * xclk < data->ocp_clk)
-                ++divisor;
-
-?
-
-regards
-
-Matt Callow
+Direct +46 31 744 80 87=20
+Mobile +46 703 79 19 11=20
+birger.kroon@sys.teleca.se=20
+www.teleca.com
