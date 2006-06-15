@@ -1,14 +1,13 @@
-From: "Sergey Vointsev" <vointsev@gmail.com>
-Subject: Re: telnet server
-Date: Thu, 15 Jun 2006 17:17:59 +0400
-Message-ID: <9713be7f0606150617w51f6c4d2uaf0e45c3d4877f57@mail.gmail.com>
-References: <14ACE099F888004586603AEC0A559C2E24FE98@DLEE09.ent.ti.com>
+From: "Minjie Lin" <MLin@EmpowerTechnologies.com>
+Subject: RE: change cpu_freq
+Date: Thu, 15 Jun 2006 12:19:15 -0600
+Message-ID: <1A1CA1A4CD7D304485214EBCCAEE0A010A53F4@BBSC-EX01.bbsconnect.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <14ACE099F888004586603AEC0A559C2E24FE98@DLEE09.ent.ti.com>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,35 +17,48 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: Martin Margraf <m_margraf@web.de>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Thanks for quick response!
+Hi Martin,
 
-I've installed inetd and it works well - it calls in.telnetd when
-incoming connectiong appears.
-But some problem occurred with telnet server. When I try to telnet to
-OMAP I see such message
-------------------
-d5277@debian:~/work/linux-2.6.16$ telnet 192.168.0.99
-Trying 192.168.0.99...
-Connected to 192.168.0.99.
-Escape character is '^]'.
-telnetd: getpty: No such file or directory
-.
-Connection closed by foreign host.
-------------------
-I googled a little and found a number of similar situations, where
-people were advised to check /det/pts. I executed
-----
-mkdir /dev/pts
-mount -t devpts -o gid=5,mode=620 /dev/pts /dev/pts
-----
-and got devpts mounted, but problem with server remains.
+You can select userspace governor for cpu_freq and change
+/sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed value
+to change the cpu frequency.
 
-Please advise.
+Regards,
 
+Minjie
+=20
 
--- 
-Also available for instant messaging via Google Talk.
-Need invite to Gmail? I have one for you! Just ask.
+-----Original Message-----
+From:
+linux-omap-open-source-bounces+mlin=3Dempowertechnologies.com@linux.omap.=
+c
+om
+[mailto:linux-omap-open-source-bounces+mlin=3Dempowertechnologies.com@lin=
+u
+x.omap.com] On Behalf Of Martin Margraf
+Sent: June 14, 2006 5:34 AM
+To: linux-omap-open-source@linux.omap.com
+Subject: change cpu_freq
+
+hi,
+
+how can i change the cpu frequency of my osk5912 using the
+scale_cpu_freq feature of the 2.6.16 kernel? how is the syntax of this?=20
+is there a documentation available (except the ones in the documentation
+folder of my linux directory)?
+
+my next question is, how can i read/write to the regs of the omap5912?=20
+during using 2.4 kernel i was able to access the regs directly with a
+module. but now with 2.6 kernel i get a segmentation fault. maybe
+someone can help me?
+
+regards
+
+martin
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
