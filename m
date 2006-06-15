@@ -1,13 +1,14 @@
-From: "Prakash Narayanan M" <mnarayan@cedt.iisc.ernet.in>
-Subject: MMC problem OMAP
-Date: Thu, 15 Jun 2006 16:01:23 +0530
-Message-ID: <9343BE359FA4224CA72A94D8CC362C9C0936DC@edpc500.cedt.iisc.ernet.in>
+From: "Sergey Vointsev" <vointsev@gmail.com>
+Subject: Re: telnet server
+Date: Thu, 15 Jun 2006 17:17:59 +0400
+Message-ID: <9713be7f0606150617w51f6c4d2uaf0e45c3d4877f57@mail.gmail.com>
+References: <14ACE099F888004586603AEC0A559C2E24FE98@DLEE09.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+In-Reply-To: <14ACE099F888004586603AEC0A559C2E24FE98@DLEE09.ent.ti.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,59 +18,35 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi All
+Thanks for quick response!
 
-=20
+I've installed inetd and it works well - it calls in.telnetd when
+incoming connectiong appears.
+But some problem occurred with telnet server. When I try to telnet to
+OMAP I see such message
+------------------
+d5277@debian:~/work/linux-2.6.16$ telnet 192.168.0.99
+Trying 192.168.0.99...
+Connected to 192.168.0.99.
+Escape character is '^]'.
+telnetd: getpty: No such file or directory
+.
+Connection closed by foreign host.
+------------------
+I googled a little and found a number of similar situations, where
+people were advised to check /det/pts. I executed
+----
+mkdir /dev/pts
+mount -t devpts -o gid=5,mode=620 /dev/pts /dev/pts
+----
+and got devpts mounted, but problem with server remains.
 
-I am trying to mount MMC/SD file system in OMAP 1510 (TI Innovator).  I
-have enabled SD support and ext2 support in the kernel
-(2.6.16.13-omap1).  When the kernel boots up the following messages are
-coming.=20
+Please advise.
 
-=20
 
-1)       Anyone got the same error?  What is the source of the error?
-
-2)       Anyone mounted a ext2 file system from MMC/SD?  How do I go
-about doing this?
-
-=20
-
-Thanks in advance
-
-Prakash
-
-=20
-
-MUX: initialized MMC_DAT1
-
-MUX: initialized MMC_DAT2
-
-MUX: initialized MMC_DAT3
-
-MMC1: Command timeout, CMD0
-
-MMC1: Command timeout, CMD0
-
-MMC1: Command timeout, CMD7
-
-mmcblk0: mmc0:a95c SD016 14400KiB
-
- mmcblk0:<7>MMC1: Data CRC error, bytes left 0
-
-mmcblk0: error 2 transferring data
-
-end_request: I/O error, dev mmcblk0, sector 0
-
-Buffer I/O error on device mmcblk0, logical block 0
-
-mmcblk0: error 2 transferring data
-
-end_request: I/O error, dev mmcblk0, sector 0
-
-Buffer I/O error on device mmcblk0, logical block 0
-
- unable to read partition table
+-- 
+Also available for instant messaging via Google Talk.
+Need invite to Gmail? I have one for you! Just ask.
