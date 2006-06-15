@@ -1,13 +1,13 @@
-From: Amit Kucheria <amit.kucheria@nokia.com>
-Subject: RE: Power domain addition.
-Date: Thu, 15 Jun 2006 12:12:41 +0300
-Message-ID: <1150362761.14712.11.camel@localhost>
-References: <EA12F909C0431D458B9D18A176BEE4A5062FD931@dlee02.ent.ti.com>
+From: "Prakash Narayanan M" <mnarayan@cedt.iisc.ernet.in>
+Subject: MMC problem OMAP
+Date: Thu, 15 Jun 2006 16:01:23 +0530
+Message-ID: <9343BE359FA4224CA72A94D8CC362C9C0936DC@edpc500.cedt.iisc.ernet.in>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A5062FD931@dlee02.ent.ti.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,26 +17,59 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "ext Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 2006-06-14 at 14:52 -0500, ext Woodruff, Richard wrote:
+Hi All
 
-> -- In the example code I use the full auto method, I don't see auto
-> state settings being done here (CM_CLKSTCTRL_CORE for instance)...
+=20
 
-Setting the AUTOSTAT_x bits in the CM_CLKSTCTRL_y registers to 1 is
-_not_ setting it to full auto?
+I am trying to mount MMC/SD file system in OMAP 1510 (TI Innovator).  I
+have enabled SD support and ext2 support in the kernel
+(2.6.16.13-omap1).  When the kernel boots up the following messages are
+coming.=20
 
->From arch/arm/mach-omap2/pm-domain.c:
+=20
 
-pmdomain_set_clock_autocontrol(AUTOSTAT_DSS | AUTOSTAT_L4 | AUTOSTAT_L3,
-PM_CORE_OFFSET);
+1)       Anyone got the same error?  What is the source of the error?
 
-is supposed to to set it to full auto. If this is required to be 0
-instead, then we have seriously misread that section of the TRM. :)
+2)       Anyone mounted a ext2 file system from MMC/SD?  How do I go
+about doing this?
 
--- 
-Amit Kucheria <amit.kucheria@nokia.com>
-Nokia
+=20
+
+Thanks in advance
+
+Prakash
+
+=20
+
+MUX: initialized MMC_DAT1
+
+MUX: initialized MMC_DAT2
+
+MUX: initialized MMC_DAT3
+
+MMC1: Command timeout, CMD0
+
+MMC1: Command timeout, CMD0
+
+MMC1: Command timeout, CMD7
+
+mmcblk0: mmc0:a95c SD016 14400KiB
+
+ mmcblk0:<7>MMC1: Data CRC error, bytes left 0
+
+mmcblk0: error 2 transferring data
+
+end_request: I/O error, dev mmcblk0, sector 0
+
+Buffer I/O error on device mmcblk0, logical block 0
+
+mmcblk0: error 2 transferring data
+
+end_request: I/O error, dev mmcblk0, sector 0
+
+Buffer I/O error on device mmcblk0, logical block 0
+
+ unable to read partition table
