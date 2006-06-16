@@ -1,13 +1,12 @@
-From: Anderson Briglia <anderson.briglia@indt.org.br>
-Subject: Re: MMC problem OMAP
-Date: Fri, 16 Jun 2006 09:21:50 -0400
-Message-ID: <4492B06E.2000002@indt.org.br>
-References: <9343BE359FA4224CA72A94D8CC362C9C0936DC@edpc500.cedt.iisc.ernet.in>
+From: "Komal Shah" <komal_shah802003@yahoo.com>
+Subject: [PATCH] ARM: OMAP: Fix GPMC_CS1(smc91x) timing values
+Date: Fri, 16 Jun 2006 06:46:04 -0700
+Message-ID: <1150465564.11943.263979219@webmail.messagingengine.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="_----------=_1150465564119430";
+	charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <9343BE359FA4224CA72A94D8CC362C9C0936DC@edpc500.cedt.iisc.ernet.in>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,63 +14,150 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: ext Prakash Narayanan M <mnarayan@cedt.iisc.ernet.in>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Prakash,
+This is a multi-part message in MIME format.
 
-> I am trying to mount MMC/SD file system in OMAP 1510 (TI Innovator).  I
-> have enabled SD support and ext2 support in the kernel
-> (2.6.16.13-omap1).  When the kernel boots up the following messages are
-> coming. 
-> 
-> 1)       Anyone got the same error?  What is the source of the error?
+--_----------=_1150465564119430
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="ISO-8859-1"
+MIME-Version: 1.0
+X-Mailer: MIME::Lite 5022  (F2.72; T1.15; A1.62; B3.04; Q3.03)
+Date: Fri, 16 Jun 2006 13:46:04 UT
 
-Seems that you do not have a valid partition table available in the MMC card and/or the
-MMC card is broken. AFAIK, the MMC code available for OMAP 1510 Innovator is not broken,
-but I still not tested it recently. Use fdisk to make an ext2 partition in the MMC and
-test again, if it is already done let me know and I will test the latest Innovator MMC
-code to give you some feedback.
+This patch also uses new gpmc_* apis.
+Ofcourse we can use gpmc_*_timings(...) api,
+but it is OK for a while.
 
-> 2)       Anyone mounted a ext2 file system from MMC/SD?  How do I go
-> about doing this?
+Tested on H4 with NFS.
 
-Yes. I guess you can do this just setting up the MMC card properly and using 'mount'. :)
+---Komal Shah
+http://komalshah.blogspot.com
 
-Best Regards,
+-- 
+http://www.fastmail.fm - The professional email service
 
-Anderson Briglia
 
-> 
-> MUX: initialized MMC_DAT1
-> 
-> MUX: initialized MMC_DAT2
-> 
-> MUX: initialized MMC_DAT3
-> 
-> MMC1: Command timeout, CMD0
-> 
-> MMC1: Command timeout, CMD0
-> 
-> MMC1: Command timeout, CMD7
-> 
-> mmcblk0: mmc0:a95c SD016 14400KiB
-> 
->  mmcblk0:<7>MMC1: Data CRC error, bytes left 0
-> 
-> mmcblk0: error 2 transferring data
-> 
-> end_request: I/O error, dev mmcblk0, sector 0
-> 
-> Buffer I/O error on device mmcblk0, logical block 0
-> 
-> mmcblk0: error 2 transferring data
-> 
-> end_request: I/O error, dev mmcblk0, sector 0
-> 
-> Buffer I/O error on device mmcblk0, logical block 0
-> 
->  unable to read partition table
+--_----------=_1150465564119430
+Content-Disposition: attachment; filename="0001-fix-gpmc-cs1-timings.patch"
+Content-Transfer-Encoding: base64
+Content-Type: application/octet-stream; name="0001-fix-gpmc-cs1-timings.patch"
+MIME-Version: 1.0
+X-Mailer: MIME::Lite 5022  (F2.72; T1.15; A1.62; B3.04; Q3.03)
+Date: Fri, 16 Jun 2006 13:46:04 UT
+
+RnJvbSBub2JvZHkgTW9uIFNlcCAxNyAwMDowMDowMCAyMDAxCkZyb206IEtv
+bWFsIFNoYWggPGtvbWFsX3NoYWg4MDIwMDNAeWFob28uY29tPgpEYXRlOiBT
+YXQsIDE3IEp1biAyMDA2IDAwOjQxOjE1ICswNTMwClN1YmplY3Q6IFtQQVRD
+SF0gQVJNOiBPTUFQOiBGaXggR1BNQ19DUzEoc21jOTF4KSB0aW1pbmcgdmFs
+dWVzIGZvcgoKZGlmZmVyZW50IHJldmlzaW9ucyBvZiBPTUFQMjQyeCBjaGlw
+cyBvbiBINCBib2FyZC4KCkJhc2VkIG9uIHRoZSBwYXRjaCBmcm9tIFJpY2hh
+cmQgV29vZHJ1ZmYuClNpZ25lZC1vZmYtYnk6IEtvbWFsIFNoYWggPGtvbWFs
+X3NoYWg4MDIwMDNAeWFob28uY29tPgoKLS0tCgogYXJjaC9hcm0vbWFjaC1v
+bWFwMi9ib2FyZC1oNC5jICAgICAgIHwgICA3OCArKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrLS0tCiBpbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFw
+L2JvYXJkLWg0LmggfCAgICAyIC0KIGluY2x1ZGUvYXNtLWFybS9hcmNoLW9t
+YXAvb21hcDI0eHguaCB8ICAgIDIgKwogMyBmaWxlcyBjaGFuZ2VkLCA3MyBp
+bnNlcnRpb25zKCspLCA5IGRlbGV0aW9ucygtKQoKZTM5YjVjZDU2ZGIyYmMy
+MzY4ZGExZWI1NDMwNzMzZjg3YmIzZjNlMgpkaWZmIC0tZ2l0IGEvYXJjaC9h
+cm0vbWFjaC1vbWFwMi9ib2FyZC1oNC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFw
+Mi9ib2FyZC1oNC5jCmluZGV4IDA1ZWJhOTIuLjExNDNkOGIgMTAwNjQ0Ci0t
+LSBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtaDQuYworKysgYi9hcmNo
+L2FybS9tYWNoLW9tYXAyL2JvYXJkLWg0LmMKQEAgLTE5LDYgKzE5LDggQEAg
+I2luY2x1ZGUgPGxpbnV4L210ZC9wYXJ0aXRpb25zLmg+CiAjaW5jbHVkZSA8
+bGludXgvZGVsYXkuaD4KICNpbmNsdWRlIDxsaW51eC93b3JrcXVldWUuaD4K
+ICNpbmNsdWRlIDxsaW51eC9pbnB1dC5oPgorI2luY2x1ZGUgPGxpbnV4L2Vy
+ci5oPgorI2luY2x1ZGUgPGxpbnV4L2Nsay5oPgogCiAjaW5jbHVkZSA8YXNt
+L2hhcmR3YXJlLmg+CiAjaW5jbHVkZSA8YXNtL21hY2gtdHlwZXMuaD4KQEAg
+LTI3MCwxNiArMjcyLDc4IEBAIHN0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZGV2
+aWNlICpoNF9kZXZpY2UKIAkmaDRfbGNkX2RldmljZSwKIH07CiAKKy8qIDI0
+MjAgU3lzYm9vdCBzZXR1cCAoMjQzMCBpcyBkaWZmZXJlbnQpICovCitzdGF0
+aWMgdTMyIGdldF9zeXNib290X3ZhbHVlKHZvaWQpCit7CisJcmV0dXJuIChv
+bWFwX3JlYWRsKE9NQVAyNDJYX0NPTlRST0xfU1RBVFVTKSAmIDB4RkZGKTsK
+K30KKworLyogRklYTUU6IFRoaXMgZnVuY3Rpb24gc2hvdWxkIGJlIG1vdmVk
+IHRvIHNvbWUgb3RoZXIgZmlsZSwgZ3BtYy5jPyAqLworCisvKiBINC0yNDIw
+J3MgYWx3YXlzIHVzZWQgbXV4ZWQgbW9kZSwgSDQtMjQyMidzIGFsd2F5cyB1
+c2Ugbm9uLW11eGVkCisgKgorICogTm90ZTogT01BUC1HSVQgZG9lc24ndCBj
+b3JyZWN0bHkgZG8gaXNfY3B1X29tYXAyNDIyIGFuZCBpc19jcHVfb21hcDI0
+MjMKKyAqICBjb3JyZWN0bHkuICBUaGUgbWFjcm8gbmVlZHMgdG8gbG9vayBh
+dCBwcm9kdWN0aW9uX2lkIG5vdCBqdXN0IGhhd2tleWUuCisgKi8KK3N0YXRp
+YyB1MzIgaXNfZ3BtY19tdXhlZCh2b2lkKQoreworCXUzMiBtdXg7CisJbXV4
+ID0gZ2V0X3N5c2Jvb3RfdmFsdWUoKTsKKwlpZiAoKG11eCAmIDB4RikgPT0g
+MHhkKQorCQlyZXR1cm4gMTsJLyogTkFORCBjb25maWcgKGNvdWxkIGJlIGVp
+dGhlcikgKi8KKwlpZiAobXV4ICYgMHgyKQkJLyogaWYgbXV4J2VkICovCisJ
+CXJldHVybiAxOworCWVsc2UKKwkJcmV0dXJuIDA7Cit9CisKKyNkZWZpbmUg
+U01DOTFYX0NTCTEgCisKIHN0YXRpYyBpbmxpbmUgdm9pZCBfX2luaXQgaDRf
+aW5pdF9zbWM5MXgodm9pZCkKIHsKKwlpbnQgZXRoX2NzOworCXVuc2lnbmVk
+IGludCBtdXhlZCwgcmF0ZTsKKwlzdHJ1Y3QgY2xrICpsM2NrOworCisJZXRo
+X2NzCT0gU01DOTFYX0NTOworCisJbDNjayA9IGNsa19nZXQoTlVMTCwgImNv
+cmVfbDNfY2siKTsKKwlpZiAoSVNfRVJSKGwzY2spKQorCQlyYXRlID0gMTAw
+MDAwMDAwOworCWVsc2UKKwkJcmF0ZSA9IGNsa19nZXRfcmF0ZShsM2NrKTsK
+KworCWlmIChpc19ncG1jX211eGVkKCkpCisJCW11eGVkID0gMHgyMDA7CisJ
+ZWxzZQorCQltdXhlZCA9IDA7CisKIAkvKiBNYWtlIHN1cmUgQ1MxIHRpbWlu
+Z3MgYXJlIGNvcnJlY3QgKi8KLQlHUE1DX0NPTkZJRzFfMSA9IDB4MDAwMTEy
+MDA7Ci0JR1BNQ19DT05GSUcyXzEgPSAweDAwMWYxZjAxOwotCUdQTUNfQ09O
+RklHM18xID0gMHgwMDA4MDgwMzsKLQlHUE1DX0NPTkZJRzRfMSA9IDB4MWMw
+OTFjMDk7Ci0JR1BNQ19DT05GSUc1XzEgPSAweDA0MWYxZjFmOwotCUdQTUNf
+Q09ORklHNl8xID0gMHgwMDAwMDRjNDsKLQlHUE1DX0NPTkZJRzdfMSA9IDB4
+MDAwMDBmNDAgfCAoMHgwODAwMDAwMCA+PiAyNCk7CisJZ3BtY19jc193cml0
+ZV9yZWcoZXRoX2NzLCBHUE1DX0NTX0NPTkZJRzEsIAorCQkJICAweDAwMDEx
+MDAwIHwgbXV4ZWQpOworCisJaWYocmF0ZSA+PSAxNjAwMDAwMDApIHsKKwkJ
+Z3BtY19jc193cml0ZV9yZWcoZXRoX2NzLCBHUE1DX0NTX0NPTkZJRzIsIDB4
+MDAxZjFmMDEpOworCQlncG1jX2NzX3dyaXRlX3JlZyhldGhfY3MsIEdQTUNf
+Q1NfQ09ORklHMywgMHgwMDA4MDgwMyk7CisJCWdwbWNfY3Nfd3JpdGVfcmVn
+KGV0aF9jcywgR1BNQ19DU19DT05GSUc0LCAweDFjMGIxYzBhKTsKKwkJZ3Bt
+Y19jc193cml0ZV9yZWcoZXRoX2NzLCBHUE1DX0NTX0NPTkZJRzUsIDB4MDQx
+ZjFGMUYpOworCQlncG1jX2NzX3dyaXRlX3JlZyhldGhfY3MsIEdQTUNfQ1Nf
+Q09ORklHNiwgMHgwMDAwMDRDNCk7CisJfSBlbHNlIGlmIChyYXRlID49IDEz
+MDAwMDAwMCkgeworCQlncG1jX2NzX3dyaXRlX3JlZyhldGhfY3MsIEdQTUNf
+Q1NfQ09ORklHMiwgMHgwMDFmMWYwMCk7CisJCWdwbWNfY3Nfd3JpdGVfcmVn
+KGV0aF9jcywgR1BNQ19DU19DT05GSUczLCAweDAwMDgwODAyKTsKKwkJZ3Bt
+Y19jc193cml0ZV9yZWcoZXRoX2NzLCBHUE1DX0NTX0NPTkZJRzQsIDB4MUMw
+OTFDMDkpOworCQlncG1jX2NzX3dyaXRlX3JlZyhldGhfY3MsIEdQTUNfQ1Nf
+Q09ORklHNSwgMHgwNDFmMUYxRik7CisJCWdwbWNfY3Nfd3JpdGVfcmVnKGV0
+aF9jcywgR1BNQ19DU19DT05GSUc2LCAweDAwMDAwNEM0KTsKKwl9IGVsc2Ug
+ey8qIHJhdGUgPSAxMDAwMDAwMDAgKi8KKwkJZ3BtY19jc193cml0ZV9yZWco
+ZXRoX2NzLCBHUE1DX0NTX0NPTkZJRzIsIDB4MDAxZjFmMDApOworCQlncG1j
+X2NzX3dyaXRlX3JlZyhldGhfY3MsIEdQTUNfQ1NfQ09ORklHMywgMHgwMDA4
+MDgwMik7CisJCWdwbWNfY3Nfd3JpdGVfcmVnKGV0aF9jcywgR1BNQ19DU19D
+T05GSUc0LCAweDFDMDkxQzA5KTsKKwkJZ3BtY19jc193cml0ZV9yZWcoZXRo
+X2NzLCBHUE1DX0NTX0NPTkZJRzUsIDB4MDMxQTFGMUYpOworCQlncG1jX2Nz
+X3dyaXRlX3JlZyhldGhfY3MsIEdQTUNfQ1NfQ09ORklHNiwgMHgwMDAwMDND
+Mik7CisJfQorCisJZ3BtY19jc193cml0ZV9yZWcoZXRoX2NzLCBHUE1DX0NT
+X0NPTkZJRzcsCisJCQkgIDB4MDAwMDBmNDAgfCAoMHgwODAwMDAwMCA+PiAy
+NCkpOwogCXVkZWxheSgxMDApOwogCiAJb21hcF9jZmdfcmVnKE0xNV8yNFhY
+X0dQSU85Mik7CmRpZmYgLS1naXQgYS9pbmNsdWRlL2FzbS1hcm0vYXJjaC1v
+bWFwL2JvYXJkLWg0LmggYi9pbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFwL2Jv
+YXJkLWg0LmgKaW5kZXggN2VmNjY0Yi4uYmJjNTJkOSAxMDA2NDQKLS0tIGEv
+aW5jbHVkZS9hc20tYXJtL2FyY2gtb21hcC9ib2FyZC1oNC5oCisrKyBiL2lu
+Y2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvYm9hcmQtaDQuaApAQCAtMzAsOCAr
+MzAsNiBAQCAjaWZuZGVmIF9fQVNNX0FSQ0hfT01BUF9INF9ICiAjZGVmaW5l
+IF9fQVNNX0FSQ0hfT01BUF9INF9ICiAKIC8qIFBsYWNlaG9sZGVyIGZvciBI
+NCBzcGVjaWZpYyBkZWZpbmVzICovCi0vKiBHUE1DIENTMSAqLwotI2RlZmlu
+ZSBPTUFQMjRYWF9FVEhSX1NUQVJUICAgICAgICAgICAgIDB4MDgwMDAzMDAK
+ICNkZWZpbmUgT01BUDI0WFhfRVRIUl9HUElPX0lSUQkJOTIKICNkZWZpbmUg
+SDRfQ1MwX0JBU0UJCQkweDA0MDAwMDAwCiAjZW5kaWYgLyogIF9fQVNNX0FS
+Q0hfT01BUF9INF9IICovCmRpZmYgLS1naXQgYS9pbmNsdWRlL2FzbS1hcm0v
+YXJjaC1vbWFwL29tYXAyNHh4LmggYi9pbmNsdWRlL2FzbS1hcm0vYXJjaC1v
+bWFwL29tYXAyNHh4LmgKaW5kZXggNmU1OTgwNS4uOTkzNTcyYyAxMDA2NDQK
+LS0tIGEvaW5jbHVkZS9hc20tYXJtL2FyY2gtb21hcC9vbWFwMjR4eC5oCisr
+KyBiL2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvb21hcDI0eHguaApAQCAt
+MjAsNSArMjAsNyBAQCAjZGVmaW5lIE9NQVAyNFhYXzMyS1NZTkNUX0JBU0UJ
+KEw0XzI0WFhfCiAjZGVmaW5lIE9NQVAyNFhYX1BSQ01fQkFTRQkoTDRfMjRY
+WF9CQVNFICsgMHg4MDAwKQogI2RlZmluZSBPTUFQMjRYWF9TRFJDX0JBU0UJ
+KEwzXzI0WFhfQkFTRSArIDB4OTAwMCkKIAorI2RlZmluZSBPTUFQMjQyWF9D
+T05UUk9MX1NUQVRVUwkoTDRfMjRYWF9CQVNFICsgMHgyZjgpCisKICNlbmRp
+ZiAvKiBfX0FTTV9BUkNIX09NQVAyNFhYX0ggKi8KIAotLSAKMS4zLjMKCg==
+
+--_----------=_1150465564119430
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--_----------=_1150465564119430--
