@@ -1,13 +1,13 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: Anyone going to OLS this year?
-Date: Tue, 20 Jun 2006 12:26:17 -0500
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A506464A33@dlee02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: Use gpmc_cs_get_base_addr for H4 smc91x
+Date: Tue, 20 Jun 2006 11:10:22 -0700
+Message-ID: <20060620181022.GG4257@atomide.com>
+References: <1150459732.2583.263972498@webmail.messagingengine.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <1150459732.2583.263972498@webmail.messagingengine.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,15 +15,15 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Komal Shah <komal_shah802003@yahoo.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Komal Shah <komal_shah802003@yahoo.com> [060616 05:09]:
+> Tested on H4 with NFS.
 
-We will have a few people at OLS this year again.  If anyone is going
-and interested in talking OMAP it would be nice to get together.
+Pushed.
 
-Regards,
-Richard W.
+Tony
