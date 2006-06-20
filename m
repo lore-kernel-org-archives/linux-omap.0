@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Fix GPMC_CS1(smc91x) timing values
-Date: Tue, 20 Jun 2006 11:10:06 -0700
-Message-ID: <20060620181006.GF4257@atomide.com>
-References: <1150465564.11943.263979219@webmail.messagingengine.com>
+Subject: Re: Power domain addition.
+Date: Tue, 20 Jun 2006 11:09:01 -0700
+Message-ID: <20060620180901.GE4257@atomide.com>
+References: <EA12F909C0431D458B9D18A176BEE4A506363C90@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <1150465564.11943.263979219@webmail.messagingengine.com>
+In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A506363C90@dlee02.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,17 +17,27 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Komal Shah <komal_shah802003@yahoo.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: linux-omap-open-source@linux.omap.com, sampsa.fabritius@nokia.com
 List-Id: linux-omap@vger.kernel.org
 
-* Komal Shah <komal_shah802003@yahoo.com> [060616 06:46]:
-> This patch also uses new gpmc_* apis.
-> Ofcourse we can use gpmc_*_timings(...) api,
-> but it is OK for a while.
+* Woodruff, Richard <r-woodruff2@ti.com> [060615 16:14]:
 > 
-> Tested on H4 with NFS.
+> > Do you have a patch for your changes?
+> 
+> Just the hack I did for booting yesterday which is attached.  I tried
+> quickly to make a MT_MEMORY_COHERENT so it could use page tables not
+> just section entries but that required some changes elsewhere and I just
+> made it a section entry.
 
-Thanks, pushed.
+OK, I've pushed that chunk along with Komal's smc91x patches so H4 boots
+and works with PM and cpufreq.
+ 
+> Also the USB msuspend signal is hooked up else you won't sleep.
+
+I'll take a look at the PM stuff soon once I have something else out of
+the way.
+
+Regards,
 
 Tony
