@@ -1,11 +1,14 @@
-From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: H4 keypad driver with latest kernel
-Date: Tue, 20 Jun 2006 08:48:42 -0700 (PDT)
-Message-ID: <20060620154842.83619.qmail@web37911.mail.mud.yahoo.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: Implement support for two MMC slots
+Date: Tue, 20 Jun 2006 09:39:51 -0700
+Message-ID: <20060620163951.GD4257@atomide.com>
+References: <20060619165202.GA30055@mail.solidboot.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <20060619165202.GA30055@mail.solidboot.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,27 +16,26 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Juha =?iso-8859-1?B?WXJq9mzk?= <juha.yrjola@solidboot.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Tony/Imre,
+Hi,
 
-H4 keypad driver with latest kernel on linux.omap.com and with two top
-commits on gpio.c is not working.
+* Juha Yrj=F6l=E4 <juha.yrjola@solidboot.com> [060619 10:00]:
+> Hi,
+>=20
+> Here's a patch for review.  It is by no means complete yet, but
+> at least supporting two slots connected to Menelaus does work.
 
-o It only detects the first time key press and release events only,
-then after it is not detecting gpio interrupts.
+Nice to have the board-*.c MMC power clean-up done!
+=20
+> I'd also appreciate patches implementing support for
+> omap_mmc_platform_data for the various board-*.c files=20
 
-I have reverted two top commits on gpio.c and it is working now. I did
-this quickly as I am preparing the keypad driver for linux-input
-mailing list submission by tomorrow.
+Let's wait until we have 2.6.17-omap1 ready and tagged before
+pushing this.
 
----Komal Shah
-http://komalshah.blogspot.com/
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+Tony
