@@ -1,13 +1,13 @@
-From: Kevin Hilman <khilman@deeprooted.net>
-Subject: Re: Anyone going to OLS this year?
-Date: Tue, 20 Jun 2006 11:09:53 -0700
-Message-ID: <1150826994.27204.63.camel@vence.internal.net>
-References: <EA12F909C0431D458B9D18A176BEE4A506464A33@dlee02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: Update H4 defconfig
+Date: Tue, 20 Jun 2006 11:10:52 -0700
+Message-ID: <20060620181051.GH4257@atomide.com>
+References: <1150196777.25724.263693698@webmail.messagingengine.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A506464A33@dlee02.ent.ti.com>
+Content-Disposition: inline
+In-Reply-To: <1150196777.25724.263693698@webmail.messagingengine.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,15 +17,15 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
+To: Komal Shah <komal_shah802003@yahoo.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 2006-06-20 at 12:26 -0500, Woodruff, Richard wrote:
+* Komal Shah <komal_shah802003@yahoo.com> [060613 04:06]:
+> 
+> -- 
+> http://www.fastmail.fm - The way an email service should be
 
-> We will have a few people at OLS this year again.  If anyone is going
-> and interested in talking OMAP it would be nice to get together.
+Pushed this one too.
 
-I will be there.
-
-Kevin
+Tony
