@@ -1,13 +1,13 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Power domain addition.
-Date: Tue, 20 Jun 2006 11:09:01 -0700
-Message-ID: <20060620180901.GE4257@atomide.com>
-References: <EA12F909C0431D458B9D18A176BEE4A506363C90@dlee02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprooted.net>
+Subject: Re: Anyone going to OLS this year?
+Date: Tue, 20 Jun 2006 11:09:53 -0700
+Message-ID: <1150826994.27204.63.camel@vence.internal.net>
+References: <EA12F909C0431D458B9D18A176BEE4A506464A33@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A506363C90@dlee02.ent.ti.com>
+In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A506464A33@dlee02.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,26 +18,14 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: linux-omap-open-source@linux.omap.com, sampsa.fabritius@nokia.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Woodruff, Richard <r-woodruff2@ti.com> [060615 16:14]:
-> 
-> > Do you have a patch for your changes?
-> 
-> Just the hack I did for booting yesterday which is attached.  I tried
-> quickly to make a MT_MEMORY_COHERENT so it could use page tables not
-> just section entries but that required some changes elsewhere and I just
-> made it a section entry.
+On Tue, 2006-06-20 at 12:26 -0500, Woodruff, Richard wrote:
 
-OK, I've pushed that chunk along with Komal's smc91x patches so H4 boots
-and works with PM and cpufreq.
- 
-> Also the USB msuspend signal is hooked up else you won't sleep.
+> We will have a few people at OLS this year again.  If anyone is going
+> and interested in talking OMAP it would be nice to get together.
 
-I'll take a look at the PM stuff soon once I have something else out of
-the way.
+I will be there.
 
-Regards,
-
-Tony
+Kevin
