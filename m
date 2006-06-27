@@ -1,12 +1,13 @@
-From: "Liad Weinberger" <weliad@gmail.com>
-Subject: Problems with remote debugging on OSK5912
-Date: Mon, 26 Jun 2006 21:24:48 +0300
-Message-ID: <3889f29f0606261124t6be72811y9564c9681f2b89fd@mail.gmail.com>
+From: "andrew chalmers" <achalmers@ellex.com>
+Subject: OMAP5912 & kernel 2.4 MMC driver support.
+Date: Tue, 27 Jun 2006 17:07:38 +0930
+Message-ID: <F886F08A2006F7478D83B2249BDD97578E3D62@ellex-adc1.ellexmedical.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,100 +15,59 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi list,
+I'm looking for some help getting the MMC support working on our
+OMAP5912 system. We have a custom board based on the OSK5912, and we're
+using the Montavista preview kit (kernel 2.4.20-mvl3).
 
-I have built the entire toolchain on my own, using several guides I found on
-the web. I also managed to compile a 2.6.16.20 kernel configured for the
-board, and u-boot 1.1.1.2, both are running ok on the board. By ok I mean
-that there does not seem to be any problems with them.
+I have enable the OMAP MMC support in the kernel and modified the
+existing omap_mmc.c 1510 support to work for the 5912 (ala 1610) using
+the MMC1. However I'm not having much luck with the MMC interrupts (i.e.
+I'm not getting any). The reset command completes but I don't get the
+MMC1 interrupt even though I have enabled it in the MMC.
 
-I am now trying to get GDB to work so that I could finalize my development
-environment. To test GDB, I created a simple hello world program, and
-cross-compiled it with '-g' as the only flag. I transfered the result binary
-to the filesystem and tested to see that it runs ok. It did. I than
-cross-compiled gdbserver and put it on the board, and also compiled gdb.
-following are the steps I took to compile both:
+# insmod mmc_base
+mmc_init
+mmc_media_init
+# insmod /mnt/andrew/omap_mmc.o
+mmc_register_slot_driver max=3D1 ocr=3D0x00ffc000
+omap_mmc_slot_init
+omap_mmc_slot_up
+mmc_insert: 0
+omap_mmc_init retval 0
+mmc_tasklet_action: dev=3Dc40c4ef0 flags=3D04
+mmc_cim_default_state
+mmc_check_eject dev state=3D4
+mmc_check_insert dev state=3D4
+mmc_cim_init_stack
+omap_mmc_set_clock: Set rate: 400000
+omap_mmc_exec_command: Send cmd: 80
+ Arg: 0
+omap_mmc_exec_command STAT=3D   0,CON=3D 878,IE=3D4181
+omap_mmc_exec_command STAT=3D   0,CON=3D 878,IE=3D4181
+# omap_mmc_fix_sd_detect card_state=3D0
+mmc_insert: 0
+omap_mmc_fix_sd_detect STAT=3D   1,CON=3D 878,IE=3D4181
+mmc_tasklet_action: dev=3Dc40c4ef0 flags=3D05
 
-For GDB:
-   $ ../../gdb-6.4/configure --target=arm-linux --prefix=~/arm/tools
-   $ make
-   $ make install
+I've also noticed that if I build the MMC driver into the kernel (not as
+a module) it doesn't seem to load and initialise.
 
-For GDB-Server:
-   $ CC=arm-linux-gcc ../../gdb-6.4/gdb/gdbserver/configure --host=arm-linux
---prefix=~/arm/rootfs/usr
-   $ make
-   $ make install
+I've googled for help and discovered a few others have had the exact
+same problems I'm having with both the OSK5912 and the innovator. But
+other the 2.6 patches and an alternate MMC driver patch for
+linux-2.4.21-rmk1-omap1 (which I'm not yet prepared to try merging into
+the Montavista tree), I cannot find any advise on how fix the problem.
 
-Now, on the tboard I ran:
+Clearly others have managed to get the MMC support working under 2.4.
+I'm not sure if its an issue with the MMC1 vs. MMC2 or if there is
+something wrong with the IRQ setup in the 2.4.20-mvl3 I have.
 
-   # gdbserver :6666 helloworld
-   Process helloworld created; pid = 721
-   Listening on port 6666
+Can anyone offer any advise/suggestions?
 
-And on the host:
-
-   $ arm-linux-gdb helloworld
-   ...
-   This GDB was configured as "--host=i686-pc-linux-gnu
---target=arm-linux"...
-   (gdb) target remote 10.0.0.3:6666
-   Remote debugging using 10.0.0.3:6666
-   0x40000b80 in ?? ()
-   (gdb)
-
-Once I did that, on the board I got:
-
-   Remote debugging from host 10.0.0.2
-
-Now, here's the strange thing. It seems that the execution did not enter any
-function yet:  "0x40000b80 in ?? ()" If I try to break at main I get:
-
-   (gdb) break main
-   Breakpoint 1 at 0x84dc: file helloworld.c, line 10.
-
-Seems ok. Trying to continue gives the following:
-
-   (gdb) cont
-   Continuing.
-   Program received signal SIGTRAP, Trace/breakpoint trap.
-   0x4000be30 in ?? ()
-
-
-trying to step gives me:
-
-   (gdb) step
-   Cannot find bounds of current function
-
-calling main:
-
-   (gdb) call main
-   $1 = {int ()} 0x84cc <main>
-
-and now continueing several times:
-
-   (gdb) cont
-   Continuing.
-   Program received signal SIGILL, Illegal instruction.
-   0x4000be34 in ?? ()
-   (gdb) cont
-   Continuing.
-   Program terminated with signal SIGILL, Illegal instruction.
-   The program no longer exists.
-
-
-Now, the server exits on the board.
-
-Well, as you can guess, I have no clue as to where the problem can be. I
-tried googling for an answer and found nothing. If you can point me in a
-direction I would very much appreciate it.
-
-
-Thanks in advance,
-
-         Liad Weinberger.
+Regards,
+Andrew Chalmers
