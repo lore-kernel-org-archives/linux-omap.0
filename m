@@ -1,14 +1,12 @@
-From: lamikr <lamikr@cc.jyu.fi>
-Subject: Re: OMAP850 with "uboot_load.exe" ? How become "debug info" ?
-Date: Thu, 29 Jun 2006 20:00:42 +0300
-Message-ID: <44A4073A.9080305@cc.jyu.fi>
-References: <20060629114114.75224.qmail@web27803.mail.ukl.yahoo.com>
-Reply-To: lamikr@cc.jyu.fi
+From: "andrzej zaborowski" <balrog@zabor.org>
+Subject: [PATCH] fix PWL macro names
+Date: Thu, 29 Jun 2006 21:10:35 +0200
+Message-ID: <fb249edb0606291210v45cd5bb5odf668ebbc98c3813@mail.gmail.com>
+Reply-To: balrogg@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="----=_Part_84985_19628354.1151608235608"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060629114114.75224.qmail@web27803.mail.ukl.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,58 +16,66 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Omap 850 <omap850@yahoo.de>
-Cc: linux-omap-open-source@linux.omap.com
+To: Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+------=_Part_84985_19628354.1151608235608
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-The uboot_load.exe and bootstrap.bin have only been tested for booting
-Linux from wince with omap1510 based
-devices. uboot_load.exe is wince executable which purpose is to load and
-launch the OS independent bootstrap.bin.
-(And pass linux boot parameters read from the config file for it)
-Bootstrap.bin will then load the image or zImage and then launch the
-Linux boot process with
+Remove "16XX" from the names of PWL-related defines as they are valid
+for other models as well.
+---
+Regards,
+Andzej
 
-Somebody in freenodes htc-linux irc channel tried recently to use
-uboot_load.exe and bootstrap.bin also for booting the omap850 but did
-not have success with it.
-So propably there are needed some changes at least for the bootstrap.bin
-code.
+------=_Part_84985_19628354.1151608235608
+Content-Type: application/octet-stream; name=linux-pwl-defines.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_ep1m3uq4
+Content-Disposition: attachment; filename="linux-pwl-defines.patch"
 
-Sources for both of these are available in
-svn://fuzzyneural.net/h6300/bootstrap/trunk &
-svn://fuzzyneural.net/h6300/uboot_load/trunk
-For compiling the bootstrap.bin I have used gcc-3.3 based
-arm-crosscompiler from the familiar site. (Binaries made with gcc 3.4
-have not worked for some reason)
-For compiling uboot_load you can use either the Microsoft eVC 4.0 or
-arm-wince-pe gcc crosscompiler.
+ZGlmZiAtcE5hdXIgLVggbGludXgtb21hcC0yLjYtbmV3YnVpbGQvRG9jdW1lbnRhdGlvbi9kb250
+ZGlmZiBsaW51eC1vbWFwLTIuNi9kcml2ZXJzL3ZpZGVvL29tYXAvbGNkX29zay5jIGxpbnV4LW9t
+YXAtMi42LW5ld2J1aWxkL2RyaXZlcnMvdmlkZW8vb21hcC9sY2Rfb3NrLmMKLS0tIGxpbnV4LW9t
+YXAtMi42L2RyaXZlcnMvdmlkZW8vb21hcC9sY2Rfb3NrLmMJMjAwNi0wMy0yMiAxODo0NDo1My4w
+MDAwMDAwMDAgKzAxMDAKKysrIGxpbnV4LW9tYXAtMi42LW5ld2J1aWxkL2RyaXZlcnMvdmlkZW8v
+b21hcC9sY2Rfb3NrLmMJMjAwNi0wNi0yMyAwMzo0OTo1Mi4wMDAwMDAwMDAgKzAyMDAKQEAgLTQ0
+LDEwICs0NCwxMCBAQCBzdGF0aWMgaW50IG9za19wYW5lbF9lbmFibGUoc3RydWN0IGxjZF9wCiAJ
+b21hcF9jZmdfcmVnKFBXTCk7CiAKIAkvKiBFbmFibGUgUFdMIHVuaXQgKi8KLQlvbWFwX3dyaXRl
+YigweDAxLCBPTUFQMTZYWF9QV0xfQ0xLX0VOQUJMRSk7CisJb21hcF93cml0ZWIoMHgwMSwgT01B
+UF9QV0xfQ0xLX0VOQUJMRSk7CiAKIAkvKiBTZXQgUFdMIGxldmVsICovCi0Jb21hcF93cml0ZWIo
+MHhGRiwgT01BUDE2WFhfUFdMX0VOQUJMRSk7CisJb21hcF93cml0ZWIoMHhGRiwgT01BUF9QV0xf
+RU5BQkxFKTsKIAogCS8qIGNvbmZpZ3VyZSBHUElPMiBhcyBvdXRwdXQgKi8KIAlvbWFwX3NldF9n
+cGlvX2RpcmVjdGlvbigyLCAwKTsKQEAgLTYxLDEwICs2MSwxMCBAQCBzdGF0aWMgaW50IG9za19w
+YW5lbF9lbmFibGUoc3RydWN0IGxjZF9wCiBzdGF0aWMgdm9pZCBvc2tfcGFuZWxfZGlzYWJsZShz
+dHJ1Y3QgbGNkX3BhbmVsICpwYW5lbCkKIHsKIAkvKiBTZXQgUFdMIGxldmVsIHRvIHplcm8gKi8K
+LQlvbWFwX3dyaXRlYigweDAwLCBPTUFQMTZYWF9QV0xfRU5BQkxFKTsKKwlvbWFwX3dyaXRlYigw
+eDAwLCBPTUFQX1BXTF9FTkFCTEUpOwogCiAJLyogRGlzYWJsZSBQV0wgdW5pdCAqLwotCW9tYXBf
+d3JpdGViKDB4MDAsIE9NQVAxNlhYX1BXTF9DTEtfRU5BQkxFKTsKKwlvbWFwX3dyaXRlYigweDAw
+LCBPTUFQX1BXTF9DTEtfRU5BQkxFKTsKIAogCS8qIHNldCBHUElPMiBsb3cgKi8KIAlvbWFwX3Nl
+dF9ncGlvX2RhdGFvdXQoMiwgMCk7CmRpZmYgLXBOYXVyIC1YIGxpbnV4LW9tYXAtMi42LW5ld2J1
+aWxkL0RvY3VtZW50YXRpb24vZG9udGRpZmYgbGludXgtb21hcC0yLjYvaW5jbHVkZS9hc20tYXJt
+L2FyY2gtb21hcC9vbWFwMTZ4eC5oIGxpbnV4LW9tYXAtMi42LW5ld2J1aWxkL2luY2x1ZGUvYXNt
+LWFybS9hcmNoLW9tYXAvb21hcDE2eHguaAotLS0gbGludXgtb21hcC0yLjYvaW5jbHVkZS9hc20t
+YXJtL2FyY2gtb21hcC9vbWFwMTZ4eC5oCTIwMDYtMDMtMjIgMTg6NDU6MDAuMDAwMDAwMDAwICsw
+MTAwCisrKyBsaW51eC1vbWFwLTIuNi1uZXdidWlsZC9pbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFw
+L29tYXAxNnh4LmgJMjAwNi0wNi0yMyAwMzo0ODoxNi4wMDAwMDAwMDAgKzAyMDAKQEAgLTE2Myw5
+ICsxNjMsOSBAQAogICogUHVsc2UtV2lkdGggTGlnaHQKICAqIC0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0K
+ICAqLwotI2RlZmluZSBPTUFQMTZYWF9QV0xfQkFTRQkoMHhmZmZiNTgwMCkKLSNkZWZpbmUgT01B
+UDE2WFhfUFdMX0VOQUJMRQkoT01BUDE2WFhfUFdMX0JBU0UgKyAweDAwKQotI2RlZmluZSBPTUFQ
+MTZYWF9QV0xfQ0xLX0VOQUJMRQkoT01BUDE2WFhfUFdMX0JBU0UgKyAweDA0KQorI2RlZmluZSBP
+TUFQX1BXTF9CQVNFCQkweGZmZmI1ODAwCisjZGVmaW5lIE9NQVBfUFdMX0VOQUJMRQkJKE9NQVBf
+UFdMX0JBU0UgKyAweDAwKQorI2RlZmluZSBPTUFQX1BXTF9DTEtfRU5BQkxFCShPTUFQX1BXTF9C
+QVNFICsgMHgwNCkKIAogLyoKICAqIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo=
+------=_Part_84985_19628354.1151608235608
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Mika
-Omap 850 wrote:
-> hello togehter,
->
-> can sombody tell me how to become a debug file from "uboot_load.exe" ?
->
-> i try to boot my "Vodafone compact II", with OMAP850
-> with the "uboot_load.exe" ... but nothing happens.
-> How must i configure the "uboot.txt" that "uboot_load.exe"
-> write a logfile/debugfile ?
->
-> thanks
->
-> bye
->
-> omap850
->
->  		
-> ---------------------------------
-> Mit Yahoo! Mail SpamGuard lesen Sie nur die Mails, die Sie auch wirklich lesen wollen.
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
->   
+
+------=_Part_84985_19628354.1151608235608--
