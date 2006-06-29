@@ -1,14 +1,11 @@
-From: "Mouhammad Tayseer Alquoatli" <idoit.ief@gmail.com>
-Subject: Re: Latest kernel for OMAP5912
-Date: Thu, 29 Jun 2006 09:28:57 +0300
-Message-ID: <d8c9df6c0606282328p85abdfdua67e0645d5eece39@mail.gmail.com>
-References: <7e6cc7550606282259lc730bccl7d3c45ddce5155dd@mail.gmail.com>
+From: Omap 850 <omap850@yahoo.de>
+Subject: OMAP850 with "uboot_load.exe" ? How become "debug info" ?
+Date: Thu, 29 Jun 2006 13:41:14 +0200 (CEST)
+Message-ID: <20060629114114.75224.qmail@web27803.mail.ukl.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <7e6cc7550606282259lc730bccl7d3c45ddce5155dd@mail.gmail.com>
-Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,35 +15,25 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: naga rajan <nagubk82@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On 6/29/06, naga rajan <nagubk82@gmail.com> wrote:
->
-> Hi all,
->
->         I like to know the latest kernel and the respective patch for
-> OMAP5912 that supports DSPGateway and audio-codec in OSK5912 board. Please
-> provide a solution for my problem.
 
+hello togehter,
 
-Hi
-check the latest here:
-http://www.muru.com/linux/omap/
-DSP Gateway patches are merged into linux OMAP patches
-hope this helps
+can sombody tell me how to become a debug file from "uboot_load.exe" ?
 
-Thanks in advance,
-> B.Nagarajan,
-> SANDS.
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
+i try to boot my "Vodafone compact II", with OMAP850
+with the "uboot_load.exe" ... but nothing happens.
+How must i configure the "uboot.txt" that "uboot_load.exe"
+write a logfile/debugfile ?
 
+thanks
 
+bye
 
--- 
-Mouhammad Tayseer Alquoatli
+omap850
+
+ 		
+---------------------------------
+Mit Yahoo! Mail SpamGuard lesen Sie nur die Mails, die Sie auch wirklich lesen wollen.
