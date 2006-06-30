@@ -1,12 +1,12 @@
-From: "andrzej zaborowski" <balrog@zabor.org>
-Subject: [PATCH] LCD backlight
-Date: Thu, 29 Jun 2006 21:35:56 +0200
-Message-ID: <fb249edb0606291235t1522f11di19c33f6a2fef8480@mail.gmail.com>
-Reply-To: balrogg@gmail.com
+From: "naga rajan" <nagubk82@gmail.com>
+Subject: DSPGateway problem with kernel2.6.14
+Date: Fri, 30 Jun 2006 10:19:24 +0530
+Message-ID: <7e6cc7550606292149y585c24aah60c559bc0b37ebe0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_85588_13150113.1151609756250"
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,189 +14,131 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Linux-OMAP <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com, dspgateway-devel-request@lists.sourceforge.net
 List-Id: linux-omap@vger.kernel.org
 
-------=_Part_85588_13150113.1151609756250
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi all,
 
-Add a simple driver for the LCD backlight that uses the Linux backlight api.
----
-Some notes:
+       I tried to execute the DSPGateway program after patching the OMAP
+patch for kernel 2.6.14, i am getting the following error....
 
-The "check_fb" field is for the boards that have more than one LCD.
-The "set_power" field is for boards that need to do something special
-(e.g. GPIOs) before enabling the backlight. You can leave them unset.
+# dspctl start ex_task.out
+Warning: none of /sys/devices/platform/dsp.0/ifver,
+/sys/devices/platform/dsp0/i
 
-You can use this driver only on boards that don't use UART3 because
-UART3.TX and PWL use the same pin. Does someone know an easy
-workaround for this pin conflict? PalmOS 5 running on OMAP311 somehow
-manages to send and receiver IrDA through UART3 and you can't see any
-change in the backlight level. In Linux when I set this pin to be
-UART3.TX, the backlight level is always forced to 255.
+fver or /sys/devices/platform/dsp/ifver is
+found.
+(DSP Gateway driver is too old or not
+loaded)
+loading ex_task.out...
+.vers           : adr = 0x000000, size=  120  ...
+ignored.
+.sysstack       : adr = 0x000100, size=  512  ...
+initialized.
+.clk            : adr = 0x000300, size=    8  ...
+initialized.
+.prd            : adr = 0x000308, size=   48  ...
+initialized.
+.swi            : adr = 0x000338, size=   80  ...
+initialized.
+.tsk            : adr = 0x000388, size=  264  ...
+initialized.
+.idl            : adr = 0x000490, size=    8  ...
+initialized.
+.hwi_disp_sec   : adr = 0x000498, size=  384  ...
+initialized.
+.bss            : adr = 0x000618, size= 2808  ...
+initialized.
+.far            : adr = 0x000100, size=
+0
+.sysdata        : adr = 0x001110, size=  316  ...
+initialized.
+.mem            : adr = 0x00124c, size=    2  ...
+initialized.
+.cio            : adr = 0x000100, size=
+0
+.sysreomapdsp: IPBUF configuration
+           128 words * 4 lines at
+0xe0020000.
+gs        : adr = 0x000100, sizeomapdsp: found 1
+task(s)
+=    0
+.switch         : adr =omapdsp: task 0: name
+hellotimer
+ 0x000100, size=    0
+.trcdataomapdsp: taskdev hellotimer
+enabled.
+        : adr = 0x00124e, size=
+.sem            : adr = 0x001254, size=  132  ...
+initialized.
+.dsm            : adr = 0x000100, size=
+0
+.data           : adr = 0x0012d8, size=    4  ...
+initialized.
+.gio            : adr = 0x000100, size=
+0
+.sys            : adr = 0x0012dc, size=   16  ...
+initialized.
+.pinit          : adr = 0x000100, size=
+0
+.gblinit        : adr = 0x0012ec, size=   74  ...
+initialized.
+.TSK_idle$stk   : adr = 0x001338, size= 2560  ...
+initialized.
+.TSK_sleep$stk  : adr = 0x001d38, size= 2560  ...
+initialized.
+.TSK_super$stk  : adr = 0x002738, size= 2560  ...
+initialized.
+.const          : adr = 0x003138, size= 1726  ...
+initialized.
+.printf         : adr = 0x0037f6, size=  236  ...
+ignored.
+.args           : adr = 0x0037f8, size=   16  ...
+initialized.
+.LOG_system$buf : adr = 0x003880, size=  128  ...
+initialized.
+.trace          : adr = 0x003900, size= 1024  ...
+initialized.
+.stack          : adr = 0x003d00, size= 2048  ...
+initialized.
+.hst            : adr = 0x000100, size=
+0
+.log            : adr = 0x003808,
+.pip            : adr = 0x000100, size=
+0
+.sts            : adr = 0x00381c, size=   64  ...
+initialized.
+.DARAM$heap     : adr = 0x004500,
+size=32512
+frt             : adr = 0x012000, size=    0
+.bios           : adr = 0x012000, size=10215  ... initialized.
+.text           : adr = 0x0147e8, size=21056  ... initialized.
+.sysinit        : adr = 0x019a28, size=  437  ... initialized.
+.hwi            : adr = 0x012000, size=    0
+.SARAM$heap     : adr = 0x019bdd, size=   16
+.hwi_vec        : adr = 0xffff00, size=  256  ... initialized.
+dspgw_task      : adr = 0x00c510, size=   36
+dspgw_version   : adr = 0x000000, size=    8  ... ignored.
+SARAM_seq       : adr = 0x019bee, size=    8  ... initialized.
+DARAM_seq       : adr = 0x00385c, size=    8  ... initialized.
+SDRAM_seq       : adr = 0xfffd00, size=    8  ... initialized.
+SDRAM_system_data : adr = 0xfffd08, size=  136  ... initialized.
+sleep_code      : adr = 0x00c400, size=  271  ... initialized.
+ipbuf           : adr = 0x020000, size= 1072  ... initialized.
+dbgbuf          : adr = 0x019bf8, size= 4096  ... initialized.
+warning: found zero-sized cinit entry at 0x9f2
+.cinit          : adr = 0x000100, size= 2548   ... .bss variables are
+initialize
+d.
+setting DSP reset vector to 0x019afe
+releasing DSP reset
+DSP configuration ... succeeded
+open taskdev: No such file or directory
+#
+Please provide solution for this problem.
 
-Does someone know if the Kconfig option should depend on (ARCH_OMAP1
-|| ARCH_OMAP2) or rather ARCH_OMAP1 only?
-
-To use this patch, first use the previous patch ("fix PWL macro names").
-
-Regards,
-Andrzej
-
-------=_Part_85588_13150113.1151609756250
-Content-Type: application/octet-stream; name=linux-omap-backlight.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ep1m8tar
-Content-Disposition: attachment; filename="linux-omap-backlight.patch"
-
-ZGlmZiAtcE5hdXIgLVggbGludXgtb21hcC0yLjYtbmV3YnVpbGQvRG9jdW1lbnRhdGlvbi9kb250
-ZGlmZiBsaW51eC1vbWFwLTIuNi9kcml2ZXJzL3ZpZGVvL2JhY2tsaWdodC9LY29uZmlnIGxpbnV4
-LW9tYXAtMi42LW5ld2J1aWxkL2RyaXZlcnMvdmlkZW8vYmFja2xpZ2h0L0tjb25maWcKLS0tIGxp
-bnV4LW9tYXAtMi42L2RyaXZlcnMvdmlkZW8vYmFja2xpZ2h0L0tjb25maWcJMjAwNi0wMy0yMiAx
-ODo0NDo1My4wMDAwMDAwMDAgKzAxMDAKKysrIGxpbnV4LW9tYXAtMi42LW5ld2J1aWxkL2RyaXZl
-cnMvdmlkZW8vYmFja2xpZ2h0L0tjb25maWcJMjAwNi0wNi0yNCAwMTozNzozMi4wMDAwMDAwMDAg
-KzAyMDAKQEAgLTU4LDMgKzU4LDExIEBAIGNvbmZpZyBCQUNLTElHSFRfSFA2ODAKIAkgIElmIHlv
-dSBoYXZlIGEgSFAgSm9ybmFkYSA2ODAsIHNheSB5IHRvIGVuYWJsZSB0aGUKIAkgIGJhY2tsaWdo
-dCBkcml2ZXIuCiAKK2NvbmZpZyBCQUNLTElHSFRfT01BUAorCXRyaXN0YXRlICJPTUFQIExDRCBC
-YWNrbGlnaHQiCisJZGVwZW5kcyBvbiBCQUNLTElHSFRfREVWSUNFICYmIChBUkNIX09NQVAxIHx8
-IEFSQ0hfT01BUDIpCisJZGVmYXVsdCB5CisJaGVscAorCSAgVGhpcyBkcml2ZXIgY29udHJvbHMg
-dGhlIExDRCBiYWNrbGlnaHQgbGV2ZWwgYW5kIHBvd2VyCisJICBmb3IgdGhlIFBXTCBtb2R1bGUg
-b2YgT01BUCBwcm9jZXNzb3JzLiAgU2F5IFkgaWYgeW91IHdhbnQKKwkgIHRvIHVzZSBwb3dlciBz
-YXZpbmcuCmRpZmYgLXBOYXVyIC1YIGxpbnV4LW9tYXAtMi42LW5ld2J1aWxkL0RvY3VtZW50YXRp
-b24vZG9udGRpZmYgbGludXgtb21hcC0yLjYvZHJpdmVycy92aWRlby9iYWNrbGlnaHQvTWFrZWZp
-bGUgbGludXgtb21hcC0yLjYtbmV3YnVpbGQvZHJpdmVycy92aWRlby9iYWNrbGlnaHQvTWFrZWZp
-bGUKLS0tIGxpbnV4LW9tYXAtMi42L2RyaXZlcnMvdmlkZW8vYmFja2xpZ2h0L01ha2VmaWxlCTIw
-MDYtMDMtMjIgMTg6NDQ6NTMuMDAwMDAwMDAwICswMTAwCisrKyBsaW51eC1vbWFwLTIuNi1uZXdi
-dWlsZC9kcml2ZXJzL3ZpZGVvL2JhY2tsaWdodC9NYWtlZmlsZQkyMDA2LTA2LTIzIDA0OjE1OjA1
-LjAwMDAwMDAwMCArMDIwMApAQCAtNCw0ICs0LDUgQEAgb2JqLSQoQ09ORklHX0xDRF9DTEFTU19E
-RVZJQ0UpICAgICArPSBsYwogb2JqLSQoQ09ORklHX0JBQ0tMSUdIVF9DTEFTU19ERVZJQ0UpICs9
-IGJhY2tsaWdodC5vCiBvYmotJChDT05GSUdfQkFDS0xJR0hUX0NPUkdJKQkrPSBjb3JnaV9ibC5v
-CiBvYmotJChDT05GSUdfQkFDS0xJR0hUX0hQNjgwKQkrPSBocDY4MF9ibC5vCitvYmotJChDT05G
-SUdfQkFDS0xJR0hUX09NQVApCSs9IG9tYXBfYmwubwogb2JqLSQoQ09ORklHX1NIQVJQX0xPQ09N
-TykJKz0gbG9jb21vbGNkLm8KZGlmZiAtcE5hdXIgLVggbGludXgtb21hcC0yLjYtbmV3YnVpbGQv
-RG9jdW1lbnRhdGlvbi9kb250ZGlmZiBsaW51eC1vbWFwLTIuNi9kcml2ZXJzL3ZpZGVvL2JhY2ts
-aWdodC9vbWFwX2JsLmMgbGludXgtb21hcC0yLjYtbmV3YnVpbGQvZHJpdmVycy92aWRlby9iYWNr
-bGlnaHQvb21hcF9ibC5jCi0tLSBsaW51eC1vbWFwLTIuNi9kcml2ZXJzL3ZpZGVvL2JhY2tsaWdo
-dC9vbWFwX2JsLmMJMTk3MC0wMS0wMSAwMTowMDowMC4wMDAwMDAwMDAgKzAxMDAKKysrIGxpbnV4
-LW9tYXAtMi42LW5ld2J1aWxkL2RyaXZlcnMvdmlkZW8vYmFja2xpZ2h0L29tYXBfYmwuYwkyMDA2
-LTA2LTI1IDA2OjA1OjQ2LjAwMDAwMDAwMCArMDIwMApAQCAtMCwwICsxLDIxNSBAQAorLyoKKyAq
-IGRyaXZlcnMvdmlkZW8vYmFja2xpZ2h0L29tYXBfYmwuYworICoKKyAqIEJhY2tsaWdodCBkcml2
-ZXIgZm9yIE9NQVAgYmFzZWQgYm9hcmRzLgorICoKKyAqIENvcHlyaWdodCAoYykgMjAwNiBBbmRy
-emVqIFphYm9yb3dza2kgIDxiYWxyb2dAemFib3Iub3JnPgorICoKKyAqIFRoaXMgcGFja2FnZSBp
-cyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5Cisg
-KiBpdCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGFz
-IHB1Ymxpc2hlZCBieQorICogdGhlIEZyZWUgU29mdHdhcmUgRm91bmRhdGlvbjsgZWl0aGVyIHZl
-cnNpb24gMiBvZiB0aGUgTGljZW5zZSwgb3IKKyAqIChhdCB5b3VyIG9wdGlvbikgYW55IGxhdGVy
-IHZlcnNpb24uCisgKgorICogVGhpcyBwYWNrYWdlIGlzIGRpc3RyaWJ1dGVkIGluIHRoZSBob3Bl
-IHRoYXQgaXQgd2lsbCBiZSB1c2VmdWwsCisgKiBidXQgV0lUSE9VVCBBTlkgV0FSUkFOVFk7IHdp
-dGhvdXQgZXZlbiB0aGUgaW1wbGllZCB3YXJyYW50eSBvZgorICogTUVSQ0hBTlRBQklMSVRZIG9y
-IEZJVE5FU1MgRk9SIEEgUEFSVElDVUxBUiBQVVJQT1NFLiAgU2VlIHRoZQorICogR05VIEdlbmVy
-YWwgUHVibGljIExpY2Vuc2UgZm9yIG1vcmUgZGV0YWlscy4KKyAqCisgKiBZb3Ugc2hvdWxkIGhh
-dmUgcmVjZWl2ZWQgYSBjb3B5IG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZQorICog
-YWxvbmcgd2l0aCB0aGlzIHBhY2thZ2U7IGlmIG5vdCwgd3JpdGUgdG8gdGhlIEZyZWUgU29mdHdh
-cmUKKyAqIEZvdW5kYXRpb24sIEluYy4sIDUxIEZyYW5rbGluIFN0LCBGaWZ0aCBGbG9vciwgQm9z
-dG9uLCBNQSAgMDIxMTAtMTMwMSAgVVNBCisgKi8KKworI2luY2x1ZGUgPGxpbnV4L21vZHVsZS5o
-PgorI2luY2x1ZGUgPGxpbnV4L2tlcm5lbC5oPgorI2luY2x1ZGUgPGxpbnV4L2luaXQuaD4KKyNp
-bmNsdWRlIDxsaW51eC9wbGF0Zm9ybV9kZXZpY2UuaD4KKyNpbmNsdWRlIDxsaW51eC9mYi5oPgor
-I2luY2x1ZGUgPGxpbnV4L2JhY2tsaWdodC5oPgorCisjaW5jbHVkZSA8YXNtL2FyY2gvaGFyZHdh
-cmUuaD4KKyNpbmNsdWRlIDxhc20vYXJjaC9ib2FyZC5oPgorI2luY2x1ZGUgPGFzbS9hcmNoL211
-eC5oPgorCisjZGVmaW5lIE9NQVBCTF9NQVhfSU5URU5TSVRZCQkweGZmCisKK3N0cnVjdCBvbWFw
-X2JhY2tsaWdodCB7CisJaW50IHBvd2VybW9kZTsKKwlpbnQgY3VycmVudF9pbnRlbnNpdHk7CisK
-KwlzdHJ1Y3QgZGV2aWNlICpkZXY7CisJc3RydWN0IG9tYXBfYmFja2xpZ2h0X2NvbmZpZyAqcGRh
-dGE7Cit9OworCitzdGF0aWMgdm9pZCBpbmxpbmUgb21hcGJsX3NlbmRfaW50ZW5zaXR5KGludCBp
-bnRlbnNpdHkpCit7CisJb21hcF93cml0ZWIoaW50ZW5zaXR5LCBPTUFQX1BXTF9FTkFCTEUpOwor
-fQorCitzdGF0aWMgdm9pZCBpbmxpbmUgb21hcGJsX3NlbmRfZW5hYmxlKGludCBlbmFibGUpCit7
-CisJb21hcF93cml0ZWIoZW5hYmxlLCBPTUFQX1BXTF9DTEtfRU5BQkxFKTsKK30KKworc3RhdGlj
-IHZvaWQgb21hcGJsX2JsYW5rKHN0cnVjdCBvbWFwX2JhY2tsaWdodCAqYmwsIGludCBtb2RlKQor
-eworCWlmIChibC0+cGRhdGEtPnNldF9wb3dlcikKKwkJYmwtPnBkYXRhLT5zZXRfcG93ZXIoYmwt
-PmRldiwgbW9kZSk7CisKKwlzd2l0Y2ggKG1vZGUpIHsKKwljYXNlIEZCX0JMQU5LX05PUk1BTDoK
-KwljYXNlIEZCX0JMQU5LX1ZTWU5DX1NVU1BFTkQ6CisJY2FzZSBGQl9CTEFOS19IU1lOQ19TVVNQ
-RU5EOgorCWNhc2UgRkJfQkxBTktfUE9XRVJET1dOOgorCQlvbWFwYmxfc2VuZF9pbnRlbnNpdHko
-MCk7CisJCW9tYXBibF9zZW5kX2VuYWJsZSgwKTsKKwkJYnJlYWs7CisKKwljYXNlIEZCX0JMQU5L
-X1VOQkxBTks6CisJCW9tYXBibF9zZW5kX2ludGVuc2l0eShibC0+Y3VycmVudF9pbnRlbnNpdHkp
-OworCQlvbWFwYmxfc2VuZF9lbmFibGUoMSk7CisJCWJyZWFrOworCX0KK30KKworI2lmZGVmIENP
-TkZJR19QTQorc3RhdGljIGludCBvbWFwYmxfc3VzcGVuZChzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNl
-ICpwZGV2LCBwbV9tZXNzYWdlX3Qgc3RhdGUpCit7CisJc3RydWN0IGJhY2tsaWdodF9kZXZpY2Ug
-KmRldiA9IHBsYXRmb3JtX2dldF9kcnZkYXRhKHBkZXYpOworCXN0cnVjdCBvbWFwX2JhY2tsaWdo
-dCAqYmwgPSBjbGFzc19nZXRfZGV2ZGF0YSgmZGV2LT5jbGFzc19kZXYpOworCisJb21hcGJsX2Js
-YW5rKGJsLCBGQl9CTEFOS19QT1dFUkRPV04pOworCXJldHVybiAwOworfQorCitzdGF0aWMgaW50
-IG9tYXBibF9yZXN1bWUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKK3sKKwlzdHJ1Y3Qg
-YmFja2xpZ2h0X2RldmljZSAqZGV2ID0gcGxhdGZvcm1fZ2V0X2RydmRhdGEocGRldik7CisJc3Ry
-dWN0IG9tYXBfYmFja2xpZ2h0ICpibCA9IGNsYXNzX2dldF9kZXZkYXRhKCZkZXYtPmNsYXNzX2Rl
-dik7CisKKwlvbWFwYmxfYmxhbmsoYmwsIGJsLT5wb3dlcm1vZGUpOworCXJldHVybiAwOworfQor
-I2Vsc2UKKyNkZWZpbmUgb21hcGJsX3N1c3BlbmQJTlVMTAorI2RlZmluZSBvbWFwYmxfcmVzdW1l
-CU5VTEwKKyNlbmRpZgorCitzdGF0aWMgaW50IG9tYXBibF9zZXRfcG93ZXIoc3RydWN0IGJhY2ts
-aWdodF9kZXZpY2UgKmRldiwgaW50IHN0YXRlKQoreworCXN0cnVjdCBvbWFwX2JhY2tsaWdodCAq
-YmwgPSBjbGFzc19nZXRfZGV2ZGF0YSgmZGV2LT5jbGFzc19kZXYpOworCisJb21hcGJsX2JsYW5r
-KGJsLCBzdGF0ZSk7CisJYmwtPnBvd2VybW9kZSA9IHN0YXRlOworCisJcmV0dXJuIDA7Cit9CisK
-K3N0YXRpYyBpbnQgb21hcGJsX2dldF9wb3dlcihzdHJ1Y3QgYmFja2xpZ2h0X2RldmljZSAqZGV2
-KQoreworCXN0cnVjdCBvbWFwX2JhY2tsaWdodCAqYmwgPSBjbGFzc19nZXRfZGV2ZGF0YSgmZGV2
-LT5jbGFzc19kZXYpOworCXJldHVybiBibC0+cG93ZXJtb2RlOworfQorCitzdGF0aWMgaW50IG9t
-YXBibF9zZXRfaW50ZW5zaXR5KHN0cnVjdCBiYWNrbGlnaHRfZGV2aWNlICpkZXYsIGludCBpbnRl
-bnNpdHkpCit7CisJc3RydWN0IG9tYXBfYmFja2xpZ2h0ICpibCA9IGNsYXNzX2dldF9kZXZkYXRh
-KCZkZXYtPmNsYXNzX2Rldik7CisKKwlpZiAoaW50ZW5zaXR5ID4gT01BUEJMX01BWF9JTlRFTlNJ
-VFkgfHwgaW50ZW5zaXR5IDwgMCkKKwkJcmV0dXJuIC1FUEVSTTsJLyogTGVhdmUgY3VycmVudF9p
-bnRlbnNpdHkgdW50b3VjaGVkICovCisKKwlpZiAoYmwtPnBvd2VybW9kZSA9PSBGQl9CTEFOS19V
-TkJMQU5LKQorCQlvbWFwYmxfc2VuZF9pbnRlbnNpdHkoaW50ZW5zaXR5KTsKKwlibC0+Y3VycmVu
-dF9pbnRlbnNpdHkgPSBpbnRlbnNpdHk7CisKKwlyZXR1cm4gMDsKK30KKworc3RhdGljIGludCBv
-bWFwYmxfZ2V0X2ludGVuc2l0eShzdHJ1Y3QgYmFja2xpZ2h0X2RldmljZSAqZGV2KQoreworCXN0
-cnVjdCBvbWFwX2JhY2tsaWdodCAqYmwgPSBjbGFzc19nZXRfZGV2ZGF0YSgmZGV2LT5jbGFzc19k
-ZXYpOworCXJldHVybiBibC0+Y3VycmVudF9pbnRlbnNpdHk7Cit9CisKK3N0YXRpYyBzdHJ1Y3Qg
-YmFja2xpZ2h0X3Byb3BlcnRpZXMgb21hcGJsX2RhdGEgPSB7CisJLm93bmVyCQk9IFRISVNfTU9E
-VUxFLAorCS5nZXRfcG93ZXIJPSBvbWFwYmxfZ2V0X3Bvd2VyLAorCS5zZXRfcG93ZXIJPSBvbWFw
-Ymxfc2V0X3Bvd2VyLAorCS5tYXhfYnJpZ2h0bmVzcwk9IE9NQVBCTF9NQVhfSU5URU5TSVRZLAor
-CS5nZXRfYnJpZ2h0bmVzcwk9IG9tYXBibF9nZXRfaW50ZW5zaXR5LAorCS5zZXRfYnJpZ2h0bmVz
-cwk9IG9tYXBibF9zZXRfaW50ZW5zaXR5LAorfTsKKworc3RhdGljIGludCBvbWFwYmxfcHJvYmUo
-c3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKK3sKKwlzdHJ1Y3QgYmFja2xpZ2h0X2Rldmlj
-ZSAqZGV2OworCXN0cnVjdCBvbWFwX2JhY2tsaWdodCAqYmw7CisJc3RydWN0IG9tYXBfYmFja2xp
-Z2h0X2NvbmZpZyAqcGRhdGEgPSBwZGV2LT5kZXYucGxhdGZvcm1fZGF0YTsKKworCW9tYXBibF9k
-YXRhLmNoZWNrX2ZiID0gcGRhdGEtPmNoZWNrX2ZiOworCisJYmwgPSBremFsbG9jKHNpemVvZihz
-dHJ1Y3Qgb21hcF9iYWNrbGlnaHQpLCBHRlBfS0VSTkVMKTsKKwlpZiAodW5saWtlbHkoIWJsKSkK
-KwkJcmV0dXJuIC1FTk9NRU07CisKKwlkZXYgPSBiYWNrbGlnaHRfZGV2aWNlX3JlZ2lzdGVyKCJv
-bWFwLWJsIiwgYmwsICZvbWFwYmxfZGF0YSk7CisJaWYgKElTX0VSUihkZXYpKSB7CisJCWtmcmVl
-KGJsKTsKKwkJcmV0dXJuIFBUUl9FUlIoZGV2KTsKKwl9CisKKwlibC0+cG93ZXJtb2RlID0gRkJf
-QkxBTktfUE9XRVJET1dOOworCWJsLT5jdXJyZW50X2ludGVuc2l0eSA9IDA7CisKKwlibC0+cGRh
-dGEgPSBwZGF0YTsKKwlibC0+ZGV2ID0gJnBkZXYtPmRldjsKKworCXBsYXRmb3JtX3NldF9kcnZk
-YXRhKHBkZXYsIGRldik7CisKKwlvbWFwX2NmZ19yZWcoUFdMKTsJLyogQ29uZmxpY3RzIHdpdGgg
-VUFSVDMgKi8KKworCW9tYXBibF9zZXRfcG93ZXIoZGV2LCBGQl9CTEFOS19VTkJMQU5LKTsKKwlv
-bWFwYmxfc2V0X2ludGVuc2l0eShkZXYsIHBkYXRhLT5kZWZhdWx0X2ludGVuc2l0eSk7CisKKwlw
-cmludGsoS0VSTl9JTkZPICJPTUFQIExDRCBiYWNrbGlnaHQgaW5pdGlhbGlzZWRcbiIpOworCisJ
-cmV0dXJuIDA7Cit9CisKK3N0YXRpYyBpbnQgb21hcGJsX3JlbW92ZShzdHJ1Y3QgcGxhdGZvcm1f
-ZGV2aWNlICpwZGV2KQoreworCXN0cnVjdCBiYWNrbGlnaHRfZGV2aWNlICpkZXYgPSBwbGF0Zm9y
-bV9nZXRfZHJ2ZGF0YShwZGV2KTsKKwlzdHJ1Y3Qgb21hcF9iYWNrbGlnaHQgKmJsID0gY2xhc3Nf
-Z2V0X2RldmRhdGEoJmRldi0+Y2xhc3NfZGV2KTsKKworCWJhY2tsaWdodF9kZXZpY2VfdW5yZWdp
-c3RlcihkZXYpOworCWtmcmVlKGJsKTsKKworCXJldHVybiAwOworfQorCitzdGF0aWMgc3RydWN0
-IHBsYXRmb3JtX2RyaXZlciBvbWFwYmxfZHJpdmVyID0geworCS5wcm9iZQkJPSBvbWFwYmxfcHJv
-YmUsCisJLnJlbW92ZQkJPSBvbWFwYmxfcmVtb3ZlLAorCS5zdXNwZW5kCT0gb21hcGJsX3N1c3Bl
-bmQsCisJLnJlc3VtZQkJPSBvbWFwYmxfcmVzdW1lLAorCS5kcml2ZXIJCT0geworCQkubmFtZQk9
-ICJvbWFwLWJsIiwKKwl9LAorfTsKKworc3RhdGljIGludCBfX2luaXQgb21hcGJsX2luaXQodm9p
-ZCkKK3sKKwlyZXR1cm4gcGxhdGZvcm1fZHJpdmVyX3JlZ2lzdGVyKCZvbWFwYmxfZHJpdmVyKTsK
-K30KKworc3RhdGljIHZvaWQgX19leGl0IG9tYXBibF9leGl0KHZvaWQpCit7CisJcGxhdGZvcm1f
-ZHJpdmVyX3VucmVnaXN0ZXIoJm9tYXBibF9kcml2ZXIpOworfQorCittb2R1bGVfaW5pdChvbWFw
-YmxfaW5pdCk7Cittb2R1bGVfZXhpdChvbWFwYmxfZXhpdCk7CisKK01PRFVMRV9BVVRIT1IoIkFu
-ZHJ6ZWogWmFib3Jvd3NraSA8YmFscm9nQHphYm9yLm9yZz4iKTsKK01PRFVMRV9ERVNDUklQVElP
-TigiT01BUCBMQ0QgQmFja2xpZ2h0IGRyaXZlciIpOworTU9EVUxFX0xJQ0VOU0UoIkdQTCIpOwpk
-aWZmIC1wTmF1ciAtWCBsaW51eC1vbWFwLTIuNi1uZXdidWlsZC9Eb2N1bWVudGF0aW9uL2RvbnRk
-aWZmIGxpbnV4LW9tYXAtMi42L2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvYm9hcmQuaCBsaW51
-eC1vbWFwLTIuNi1uZXdidWlsZC9pbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFwL2JvYXJkLmgKLS0t
-IGxpbnV4LW9tYXAtMi42L2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvYm9hcmQuaAkyMDA2LTAz
-LTIyIDE4OjQ1OjAwLjAwMDAwMDAwMCArMDEwMAorKysgbGludXgtb21hcC0yLjYtbmV3YnVpbGQv
-aW5jbHVkZS9hc20tYXJtL2FyY2gtb21hcC9ib2FyZC5oCTIwMDYtMDYtMjUgMDU6MTY6MDkuMDAw
-MDAwMDAwICswMjAwCkBAIC0xMDQsNiArMTA0LDE0IEBAIHN0cnVjdCBvbWFwX2xjZF9jb25maWcg
-ewogCXU4ICAgZGF0YV9saW5lczsKIH07CiAKK3N0cnVjdCBkZXZpY2U7CitzdHJ1Y3QgZmJfaW5m
-bzsKK3N0cnVjdCBvbWFwX2JhY2tsaWdodF9jb25maWcgeworCWludCBkZWZhdWx0X2ludGVuc2l0
-eTsKKwlpbnQgKCpzZXRfcG93ZXIpKHN0cnVjdCBkZXZpY2UgKmRldiwgaW50IHN0YXRlKTsKKwlp
-bnQgKCpjaGVja19mYikoc3RydWN0IGZiX2luZm8gKmZiKTsKK307CisKIHN0cnVjdCBvbWFwX2Zi
-bWVtX2NvbmZpZyB7CiAJdTMyIHN0YXJ0OwogCXUzMiBzaXplOwo=
-------=_Part_85588_13150113.1151609756250
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
-------=_Part_85588_13150113.1151609756250--
+Thanks in advance,
+B.Nagarajan,
+SANDS.
