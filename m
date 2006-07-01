@@ -1,15 +1,12 @@
-From: <Toshihiro.Kobayashi@nokia.com>
-Subject: RE: DSPGateway problem with kernel2.6.14
-Date: Fri, 30 Jun 2006 14:13:39 +0900
-Message-ID: <7AF192DA69C59243838FF62851F64F550285C9BE@toebe101.NOE.Nokia.com>
-References: <7e6cc7550606292149y585c24aah60c559bc0b37ebe0@mail.gmail.com>
+From: "ahmed adel" <elakwah@gmail.com>
+Subject: RF6 app.(osk5912)
+Date: Sat, 1 Jul 2006 17:25:53 +0300
+Message-ID: <6fbbb3de0607010725n2b342d9g237fa199b4e9840d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <7e6cc7550606292149y585c24aah60c559bc0b37ebe0@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,30 +16,51 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: nagubk82@gmail.com, linux-omap-open-source@linux.omap.com, dspgateway-devel-request@lists.sourceforge.net
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
->From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of ext
-naga rajan
->Sent: Friday, June 30, 2006 1:49 PM
->Subject: DSPGateway problem with kernel2.6.14
+the RF6 application of osk5912,
 
->Warning: none of /sys/devices/platform/dsp.0/ifver,
->/sys/devices/platform/dsp0/i
->
->fver or /sys/devices/platform/dsp/ifver is
->found.
->(DSP Gateway driver is too old or not
->loaded)
+i want to configure it to get the sound
+from mic not form (line in),
 
-http://dspgateway.sourceforge.net/pub/index.php?Page=3DFAQ#Q8
+the configuration code on gpp side:
 
->open taskdev: No such file or directory
+/*
+ *  ======== configureCodec ========
+ *  Configure the codec.
+ */
+static void configureCodec( int sampleFreq )
+{
+    int ioctlarg;
 
-You didn't create task devices enough or at all.
-ex_task.out will contain 12 tasks, so you need /dev/dsptask0 to 11 at
-least.
+    /* Open the codec */
+    codecFd = open( CODEC_DEV, O_WRONLY, 0 );
 
-BR,
-Toshihiro Kobayashi
+    if( codecFd == -1 ) {
+        terminateThread( "Error: Failed to open audio driver", AUDIOSTATE0
+);
+    }
+
+    /* Configure the bits/sample in the driver */
+    ioctlarg = BITSPERSAMPLE;
+
+    if( ioctl(codecFd, SNDCTL_DSP_SETFMT, &ioctlarg) == -1 ) {
+        terminateThread( "Error: cannot set bits", AUDIOSTATE1 );
+    }
+
+    /* Configure the number of audio channels in the data stream */
+    ioctlarg = STEREO;    // AIC23 is a stereo codec
+
+    if( ioctl(codecFd, SNDCTL_DSP_CHANNELS, &ioctlarg) == -1 ) {
+        terminateThread( "Error: cannot set channels", AUDIOSTATE1 );
+    }
+
+    /* Configure the speed of the data stream */
+    ioctlarg = sampleFreq;
+
+    if( ioctl(codecFd, SNDCTL_DSP_SPEED, &ioctlarg) == -1 ) {
+        terminateThread( "Error: cannot set speed", AUDIOSTATE1 );
+    }
+    return;
+}
