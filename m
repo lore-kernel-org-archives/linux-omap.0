@@ -1,7 +1,7 @@
 From: "ahmed adel" <elakwah@gmail.com>
-Subject: RF6 app.(osk5912)
-Date: Sat, 1 Jul 2006 17:25:53 +0300
-Message-ID: <6fbbb3de0607010725n2b342d9g237fa199b4e9840d@mail.gmail.com>
+Subject: to RF6 users(help)
+Date: Sun, 2 Jul 2006 04:47:50 +0300
+Message-ID: <6fbbb3de0607011847n74cd7fa9l359bb7a1f54388dd@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -19,48 +19,20 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-the RF6 application of osk5912,
+hi
 
-i want to configure it to get the sound
-from mic not form (line in),
+in RF6 application the sound in final process go out from codec,
 
-the configuration code on gpp side:
+we want to modify the program to return the sound again to the arm,
 
-/*
- *  ======== configureCodec ========
- *  Configure the codec.
- */
-static void configureCodec( int sampleFreq )
-{
-    int ioctlarg;
+how can we do this
 
-    /* Open the codec */
-    codecFd = open( CODEC_DEV, O_WRONLY, 0 );
+another question:
 
-    if( codecFd == -1 ) {
-        terminateThread( "Error: Failed to open audio driver", AUDIOSTATE0
-);
-    }
+if i want to make a third channel in RF6 application ,how??
 
-    /* Configure the bits/sample in the driver */
-    ioctlarg = BITSPERSAMPLE;
+can i get the sound dirctely to the arm not from the dsp side?
 
-    if( ioctl(codecFd, SNDCTL_DSP_SETFMT, &ioctlarg) == -1 ) {
-        terminateThread( "Error: cannot set bits", AUDIOSTATE1 );
-    }
+plz reply ASAP...........
 
-    /* Configure the number of audio channels in the data stream */
-    ioctlarg = STEREO;    // AIC23 is a stereo codec
-
-    if( ioctl(codecFd, SNDCTL_DSP_CHANNELS, &ioctlarg) == -1 ) {
-        terminateThread( "Error: cannot set channels", AUDIOSTATE1 );
-    }
-
-    /* Configure the speed of the data stream */
-    ioctlarg = sampleFreq;
-
-    if( ioctl(codecFd, SNDCTL_DSP_SPEED, &ioctlarg) == -1 ) {
-        terminateThread( "Error: cannot set speed", AUDIOSTATE1 );
-    }
-    return;
-}
+thanks
