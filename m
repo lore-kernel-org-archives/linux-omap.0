@@ -1,12 +1,13 @@
-From: imre.deak@solidboot.com
-Subject: [PATCH] ARM: OMAP: timer32k: fix tick count calculation when
-	reprogramming
-Date: Mon, 3 Jul 2006 18:51:55 +0300
-Message-ID: <20060703155155.GA29815@localdomain>
+From: Jonathan McDowell <noodles@earth.li>
+Subject: Re: [PATCH] fix PWL macro names
+Date: Mon, 3 Jul 2006 16:59:52 +0100
+Message-ID: <20060703155952.GE3852@earth.li>
+References: <fb249edb0606291210v45cd5bb5odf668ebbc98c3813@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
+In-Reply-To: <fb249edb0606291210v45cd5bb5odf668ebbc98c3813@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,50 +17,17 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: tony@atomide.com
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Reprogramming takes places before putting the CPU into idle mode if
-the dynamic tick option is enabled. The timer is then set to expire
-at the next pending timer event. Because some time has already passed
-since the last reported jiffy we have to wait less than the time
-specified in jiffies.
+On Thu, Jun 29, 2006 at 09:10:35PM +0200, andrzej zaborowski wrote:
+> Remove "16XX" from the names of PWL-related defines as they are valid
+> for other models as well.
 
-Also make sure we don't set a load value of 0 whose outcome is
-unspecified according to the TRM.
+Move them out of omap16xx.h as well then? I'm in favour of this change
+though.
 
-Signed-off-by: Imre Deak <imre.deak@solidboot.com>
+J.
 
---
-
-diff --git a/arch/arm/plat-omap/timer32k.c b/arch/arm/plat-omap/timer32k.c
-index 6ef5468..946b937 100644
---- a/arch/arm/plat-omap/timer32k.c
-+++ b/arch/arm/plat-omap/timer32k.c
-@@ -132,6 +132,8 @@ static inline unsigned long omap_32k_syn
- static inline void omap_32k_timer_start(unsigned long load_val)
- {
- 	if (cpu_class_is_omap1()) {
-+		if (!load_val)
-+			load_val = 1;
- 		omap_32k_timer_write(load_val, OMAP1_32K_TIMER_TVR);
- 		omap_32k_timer_write(0x0f, OMAP1_32K_TIMER_CR);
- 	}
-@@ -236,7 +238,15 @@ static irqreturn_t omap_32k_timer_interr
-  */
- void omap_32k_timer_reprogram(unsigned long next_tick)
- {
--	omap_32k_timer_start(JIFFIES_TO_HW_TICKS(next_tick, 32768) + 1);
-+	unsigned long ticks = JIFFIES_TO_HW_TICKS(next_tick, 32768) + 1;
-+	unsigned long now = omap_32k_sync_timer_read();
-+	unsigned long idled = now - omap_32k_last_tick;
-+
-+	if (idled + 1 < ticks)
-+		ticks -= idled;
-+	else
-+		ticks = 1;
-+	omap_32k_timer_start(ticks);
- }
- 
- static struct irqaction omap_32k_timer_irq;
+-- 
+noodles is on fire
