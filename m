@@ -1,15 +1,13 @@
-From: "andrzej zaborowski" <balrog@zabor.org>
-Subject: Re: [PATCH] fix PWL macro names
-Date: Tue, 4 Jul 2006 04:20:33 +0200
-Message-ID: <fb249edb0607031920x1059bff9u62018712068599a0@mail.gmail.com>
-References: <fb249edb0606291210v45cd5bb5odf668ebbc98c3813@mail.gmail.com>
-	<20060703155952.GE3852@earth.li>
-Reply-To: balrogg@gmail.com
+From: tony@atomide.com
+Subject: Re: [PATCH] ARM: OMAP: Fix section mismatch warnings
+Date: Tue, 4 Jul 2006 00:56:47 -0700
+Message-ID: <20060704075611.GA4962@atomide.com>
+References: <4479AB04.7080501@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_44800_7172210.1151979633478"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060703155952.GE3852@earth.li>
+Content-Disposition: inline
+In-Reply-To: <4479AB04.7080501@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,113 +17,48 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Jonathan McDowell <noodles@earth.li>
+To: Dirk Behme <dirk.behme@googlemail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-------=_Part_44800_7172210.1151979633478
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+* Dirk Behme <dirk.behme@googlemail.com> [060528 06:53]:
+> 
+> Fix warnings
+> 
+> WARNING: drivers/pcmcia/omap_cf.o - Section mismatch:
+> reference to .init.text: from .data between '$d' (at offset
+> 0x80) and 'omap_cf_ops'
+> WARNING: sound/arm/omap/snd-omap-alsa-aic23.o - Section
+> mismatch: reference to .init.text: from .data between '$d'
+> (at offset 0x68) and 'aic23_hw_constraints_rates'
+> 
+> Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
+> 
 
-On 03/07/06, Jonathan McDowell <noodles@earth.li> wrote:
-> On Thu, Jun 29, 2006 at 09:10:35PM +0200, andrzej zaborowski wrote:
-> > Remove "16XX" from the names of PWL-related defines as they are valid
-> > for other models as well.
->
-> Move them out of omap16xx.h as well then? I'm in favour of this change
-> though.
+> --- ./sound/arm/omap/omap-alsa-aic23.c_orig	2006-05-28 15:34:02.000000000 +0200
+> +++ ./sound/arm/omap/omap-alsa-aic23.c	2006-05-28 15:40:52.000000000 +0200
+> @@ -271,7 +271,7 @@ int aic23_get_default_samplerate(void)
+>  	return DEFAULT_SAMPLE_RATE;
+>  }
+>  
+> -static int __init snd_omap_alsa_aic23_probe(struct platform_device *pdev)
+> +static int __devinit snd_omap_alsa_aic23_probe(struct platform_device *pdev)
+>  {
+>  	int	ret;
+>  	struct	omap_alsa_codec_config *codec_cfg;
+> --- ./drivers/pcmcia/omap_cf.c_orig	2006-05-28 15:32:25.000000000 +0200
+> +++ ./drivers/pcmcia/omap_cf.c	2006-05-28 15:40:56.000000000 +0200
+> @@ -203,7 +203,7 @@ static struct pccard_operations omap_cf_
+>   * "what chipselect is used".  Boards could want more.
+>   */
+>  
+> -static int __init omap_cf_probe(struct device *dev)
+> +static int __devinit omap_cf_probe(struct device *dev)
+>  {
+>  	unsigned		seg;
+>  	struct omap_cf_socket	*cf;
+> 
 
-Ok, patch attached.
-I will do the same for UART3 defines later because they are used for
-IrDA and I got the IrDA driver working on my OMAP311 with minor
-changes (still testing).
+Pushing today.
 
->
-> J.
->
-> --
-> noodles is on fire
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
-
----
-
-Move PWL-related defines out of "omap16xx.h" as they are also valid
-for models other than 16xx.
-
----
-Regards,
-Andrzej
-
-------=_Part_44800_7172210.1151979633478
-Content-Type: application/octet-stream; name=linux-pwl-defines.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ep7qxxf7
-Content-Disposition: attachment; filename="linux-pwl-defines.patch"
-
-ZGlmZiAtcE5hdXIgLVggbGludXgtb21hcC0yLjYtbmV3YnVpbGQvRG9jdW1lbnRhdGlvbi9kb250
-ZGlmZiBsaW51eC1vbWFwLTIuNi9kcml2ZXJzL3ZpZGVvL29tYXAvbGNkX29zay5jIGxpbnV4LW9t
-YXAtMi42LW5ld2J1aWxkL2RyaXZlcnMvdmlkZW8vb21hcC9sY2Rfb3NrLmMKLS0tIGxpbnV4LW9t
-YXAtMi42L2RyaXZlcnMvdmlkZW8vb21hcC9sY2Rfb3NrLmMJMjAwNi0wMy0yMiAxODo0NDo1My4w
-MDAwMDAwMDAgKzAxMDAKKysrIGxpbnV4LW9tYXAtMi42LW5ld2J1aWxkL2RyaXZlcnMvdmlkZW8v
-b21hcC9sY2Rfb3NrLmMJMjAwNi0wNi0yMyAwMzo0OTo1Mi4wMDAwMDAwMDAgKzAyMDAKQEAgLTQ0
-LDEwICs0NCwxMCBAQCBzdGF0aWMgaW50IG9za19wYW5lbF9lbmFibGUoc3RydWN0IGxjZF9wCiAJ
-b21hcF9jZmdfcmVnKFBXTCk7CiAKIAkvKiBFbmFibGUgUFdMIHVuaXQgKi8KLQlvbWFwX3dyaXRl
-YigweDAxLCBPTUFQMTZYWF9QV0xfQ0xLX0VOQUJMRSk7CisJb21hcF93cml0ZWIoMHgwMSwgT01B
-UF9QV0xfQ0xLX0VOQUJMRSk7CiAKIAkvKiBTZXQgUFdMIGxldmVsICovCi0Jb21hcF93cml0ZWIo
-MHhGRiwgT01BUDE2WFhfUFdMX0VOQUJMRSk7CisJb21hcF93cml0ZWIoMHhGRiwgT01BUF9QV0xf
-RU5BQkxFKTsKIAogCS8qIGNvbmZpZ3VyZSBHUElPMiBhcyBvdXRwdXQgKi8KIAlvbWFwX3NldF9n
-cGlvX2RpcmVjdGlvbigyLCAwKTsKQEAgLTYxLDEwICs2MSwxMCBAQCBzdGF0aWMgaW50IG9za19w
-YW5lbF9lbmFibGUoc3RydWN0IGxjZF9wCiBzdGF0aWMgdm9pZCBvc2tfcGFuZWxfZGlzYWJsZShz
-dHJ1Y3QgbGNkX3BhbmVsICpwYW5lbCkKIHsKIAkvKiBTZXQgUFdMIGxldmVsIHRvIHplcm8gKi8K
-LQlvbWFwX3dyaXRlYigweDAwLCBPTUFQMTZYWF9QV0xfRU5BQkxFKTsKKwlvbWFwX3dyaXRlYigw
-eDAwLCBPTUFQX1BXTF9FTkFCTEUpOwogCiAJLyogRGlzYWJsZSBQV0wgdW5pdCAqLwotCW9tYXBf
-d3JpdGViKDB4MDAsIE9NQVAxNlhYX1BXTF9DTEtfRU5BQkxFKTsKKwlvbWFwX3dyaXRlYigweDAw
-LCBPTUFQX1BXTF9DTEtfRU5BQkxFKTsKIAogCS8qIHNldCBHUElPMiBsb3cgKi8KIAlvbWFwX3Nl
-dF9ncGlvX2RhdGFvdXQoMiwgMCk7CmRpZmYgLXBOYXVyIC1YIGxpbnV4LW9tYXAtMi42LW5ld2J1
-aWxkL0RvY3VtZW50YXRpb24vZG9udGRpZmYgbGludXgtb21hcC0yLjYvaW5jbHVkZS9hc20tYXJt
-L2FyY2gtb21hcC9oYXJkd2FyZS5oIGxpbnV4LW9tYXAtMi42LW5ld2J1aWxkL2luY2x1ZGUvYXNt
-LWFybS9hcmNoLW9tYXAvaGFyZHdhcmUuaAotLS0gbGludXgtb21hcC0yLjYvaW5jbHVkZS9hc20t
-YXJtL2FyY2gtb21hcC9oYXJkd2FyZS5oCTIwMDYtMDMtMjIgMTg6NDU6MDAuMDAwMDAwMDAwICsw
-MTAwCisrKyBsaW51eC1vbWFwLTIuNi1uZXdidWlsZC9pbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFw
-L2hhcmR3YXJlLmgJMjAwNi0wNy0wNCAwNTo1ODo0Mi4wMDAwMDAwMDAgKzAyMDAKQEAgLTI2OCw2
-ICsyNjgsMTUgQEAKICNkZWZpbmUgT01BUF9MUEcyX1BNUgkJCShPTUFQX0xQRzJfQkFTRSArIDB4
-MDQpCiAKIC8qCisgKiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCisgKiBQdWxzZS1XaWR0aCBMaWdodAor
-ICogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQorICovCisjZGVmaW5lIE9NQVBfUFdMX0JBU0UJCQkweGZm
-ZmI1ODAwCisjZGVmaW5lIE9NQVBfUFdMX0VOQUJMRQkJCShPTUFQX1BXTF9CQVNFICsgMHgwMCkK
-KyNkZWZpbmUgT01BUF9QV0xfQ0xLX0VOQUJMRQkJKE9NQVBfUFdMX0JBU0UgKyAweDA0KQorCisv
-KgogICogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiAgKiBQcm9jZXNzb3Igc3BlY2lmaWMgZGVmaW5lcwog
-ICogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tCmRpZmYgLXBOYXVyIC1YIGxpbnV4LW9tYXAtMi42LW5ld2J1
-aWxkL0RvY3VtZW50YXRpb24vZG9udGRpZmYgbGludXgtb21hcC0yLjYvaW5jbHVkZS9hc20tYXJt
-L2FyY2gtb21hcC9vbWFwMTZ4eC5oIGxpbnV4LW9tYXAtMi42LW5ld2J1aWxkL2luY2x1ZGUvYXNt
-LWFybS9hcmNoLW9tYXAvb21hcDE2eHguaAotLS0gbGludXgtb21hcC0yLjYvaW5jbHVkZS9hc20t
-YXJtL2FyY2gtb21hcC9vbWFwMTZ4eC5oCTIwMDYtMDMtMjIgMTg6NDU6MDAuMDAwMDAwMDAwICsw
-MTAwCisrKyBsaW51eC1vbWFwLTIuNi1uZXdidWlsZC9pbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFw
-L29tYXAxNnh4LmgJMjAwNi0wNy0wNCAwNTo1NzowOS4wMDAwMDAwMDAgKzAyMDAKQEAgLTE1OSwx
-NSArMTU5LDYgQEAKICNkZWZpbmUgVUFSVDNfTVZSICAgICAgICAgICAgICAgKE9NQVBfVUFSVDNf
-QkFTRSArIDB4NTApCiAKIC8qCi0gKiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCi0gKiBQdWxzZS1XaWR0
-aCBMaWdodAotICogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQotICovCi0jZGVmaW5lIE9NQVAxNlhYX1BX
-TF9CQVNFCSgweGZmZmI1ODAwKQotI2RlZmluZSBPTUFQMTZYWF9QV0xfRU5BQkxFCShPTUFQMTZY
-WF9QV0xfQkFTRSArIDB4MDApCi0jZGVmaW5lIE9NQVAxNlhYX1BXTF9DTEtfRU5BQkxFCShPTUFQ
-MTZYWF9QV0xfQkFTRSArIDB4MDQpCi0KLS8qCiAgKiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KICAqIFdh
-dGNoZG9nIHRpbWVyCiAgKiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0K
-------=_Part_44800_7172210.1151979633478
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
-------=_Part_44800_7172210.1151979633478--
+Tony
