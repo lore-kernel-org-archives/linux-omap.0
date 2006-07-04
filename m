@@ -1,18 +1,11 @@
 From: tony@atomide.com
-Subject: Re: [PATCH] input: ads7846: can't disable filtering [was OMAP5912
-	touchscreen irq not working]
-Date: Tue, 4 Jul 2006 01:38:34 -0700
-Message-ID: <20060704083824.GC4962@atomide.com>
-References: <4477F2BA.3080907@gmail.com> <44793CF9.2050101@nokia.com>
-	<447DB9CC.2070808@gmail.com>
-	<200605310905.31864.david-b@pacbell.net>
-	<1149093991.31999.66.camel@mammoth.research.nokia.com>
-	<4481D7DE.2090904@nokia.com>
+Subject: 2.6.17-omap1 tagged & vacation
+Date: Tue, 4 Jul 2006 02:53:13 -0700
+Message-ID: <20060704094942.GA14417@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <4481D7DE.2090904@nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,52 +15,22 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Imre Deak <imre.deak@nokia.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Imre Deak <imre.deak@nokia.com> [060603 12:50]:
-> [ Didn't try on OSK, but seems to be the problem you had there. ]
-> 
-> When filtering is disabled the driver will ignore all samples and
-> never detect the pen up event.
-> 
-> Signed-off-by: Imre Deak <imre.deak@nokia.com>
+Hi all,
 
-> diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
-> index 4369845..2d8ea07 100644
-> --- a/drivers/input/touchscreen/ads7846.c
-> +++ b/drivers/input/touchscreen/ads7846.c
-> @@ -472,7 +474,8 @@ static void ads7846_debounce(void *ads)
->  	m = &ts->msg[ts->msg_idx];
->  	t = list_entry(m->transfers.prev, struct spi_transfer, transfer_list);
->  	val = (be16_to_cpu(*(__be16 *)t->rx_buf) >> 3) & 0x0fff;
-> -	if (!ts->read_cnt || (abs(ts->last_read - val) > ts->debounce_tol)) {
-> +	if (ts->debounce_max && (
-> +	    !ts->read_cnt || (abs(ts->last_read - val) > ts->debounce_tol))) {
->  		/* Repeat it, if this was the first read or the read
->  		 * wasn't consistent enough. */
->  		if (ts->read_cnt < ts->debounce_max) {
-> @@ -702,14 +705,9 @@ static int __devinit ads7846_probe(struc
->  	ts->vref_delay_usecs = pdata->vref_delay_usecs ? : 100;
->  	ts->x_plate_ohms = pdata->x_plate_ohms ? : 400;
->  	ts->pressure_max = pdata->pressure_max ? : ~0;
-> -	if (pdata->debounce_max) {
-> -		ts->debounce_max = pdata->debounce_max;
-> -		ts->debounce_tol = pdata->debounce_tol;
-> -		ts->debounce_rep = pdata->debounce_rep;
-> -		if (ts->debounce_rep > ts->debounce_max + 1)
-> -			ts->debounce_rep = ts->debounce_max - 1;
-> -	} else
-> -		ts->debounce_tol = ~0;
-> +	ts->debounce_max = pdata->debounce_max;
-> +	ts->debounce_tol = pdata->debounce_tol;
-> +	ts->debounce_rep = pdata->debounce_rep;
->  	ts->get_pendown_state = pdata->get_pendown_state;
->  
->  	snprintf(ts->phys, sizeof(ts->phys), "%s/input0", spi->dev.bus_id);
-> 
+I've tagged 2.6.17-omap1. There's probably some issues on few boards,
+and quite a few patches are still not merged.
 
-Pushing this one today.
+The good thing is that our more strict patch applying rules helped
+us to get most of the patches upstream nicely in a series of separate
+patches without any need for rewriting :) So we should continue that.
+
+I'll be on vacation until beginning of August, so I did not update 
+yet our tree as the generic irq seems to have gotten integrated and
+probably still has some issues.
+
+Regards,
 
 Tony
