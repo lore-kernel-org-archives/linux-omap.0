@@ -1,14 +1,11 @@
-From: tony@atomide.com
-Subject: Re: [PATCH] ARM: OMAP: timer32k: fix tick count calculation when
-	reprogramming
-Date: Wed, 5 Jul 2006 01:51:04 -0700
-Message-ID: <20060705085059.GC4546@atomide.com>
-References: <20060703155155.GA29815@localdomain>
+From: ii kk <the_heretic@abv.bg>
+Subject: osk
+Date: Wed, 5 Jul 2006 16:57:27 +0300 (EEST)
+Message-ID: <1261849398.467961152107847327.JavaMail.nobody@mail06.abv.bg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1251"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20060703155155.GA29815@localdomain>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,25 +15,18 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: imre.deak@solidboot.com
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* imre.deak@solidboot.com <imre.deak@solidboot.com> [060703 08:51]:
-> Reprogramming takes places before putting the CPU into idle mode if
-> the dynamic tick option is enabled. The timer is then set to expire
-> at the next pending timer event. Because some time has already passed
-> since the last reported jiffy we have to wait less than the time
-> specified in jiffies.
+Hi,
+I bump up against very strange problem. Writing on camera interface regis=
+ters ( 0xFFFB6800/0xFFFB6818 ) is unsuccessful. After writing I read 0x00=
+000000. The platform that I use is OSK 5912, Linux Kernel is 2.6.16.
 
-Looks good to me. This patch seems to need an update though.
+Sorry for my bad english !
 
-Did you do this to fix some specific problem, or just to improve timer
-accuracy?
 
-> Also make sure we don't set a load value of 0 whose outcome is
-> unspecified according to the TRM.
-
-OK
-
-Tony
+-----------------------------------------------------------------
+http://ide.li/ - =EF=EE=F0=F2=E0=EB =E7=E0 =E1=FA=EB=E3=E0=F0=E8=F2=E5 =EF=
+=EE =F1=E2=E5=F2=E0. =D1=F2=E0=F2=E8=E8, =ED=EE=E2=E8=ED=E8, =F4=EE=F0=F3=
+=EC=E8, =F1=ED=E8=EC=EA=E8, =E8=ED=F4=EE=F0=EC=E0=F6=E8=FF.
