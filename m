@@ -1,12 +1,14 @@
-From: "naga rajan" <nagubk82@gmail.com>
-Subject: Problem with kernel2.6.14
-Date: Wed, 5 Jul 2006 12:33:19 +0530
-Message-ID: <7e6cc7550607050003u3b11326i47f33d3d95a27216@mail.gmail.com>
+From: tony@atomide.com
+Subject: Re: [PATCH] ARM: OMAP: timer32k: fix tick count calculation when
+	reprogramming
+Date: Wed, 5 Jul 2006 01:51:04 -0700
+Message-ID: <20060705085059.GC4546@atomide.com>
+References: <20060703155155.GA29815@localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
+In-Reply-To: <20060703155155.GA29815@localdomain>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,16 +18,25 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com, dspgateway-devel-request@lists.sourceforge.net
+To: imre.deak@solidboot.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+* imre.deak@solidboot.com <imre.deak@solidboot.com> [060703 08:51]:
+> Reprogramming takes places before putting the CPU into idle mode if
+> the dynamic tick option is enabled. The timer is then set to expire
+> at the next pending timer event. Because some time has already passed
+> since the last reported jiffy we have to wait less than the time
+> specified in jiffies.
 
-       None of the pathces provided for kernel 2.6.14 is supporting  both
-audio-codec and DSPGateway. Either it works for audio-codec or for
-DSPGateway.Have anyone faced this problem?. Please provide a solution to
-sort out this problem.
+Looks good to me. This patch seems to need an update though.
 
-Thanks in advance,
-B.Nagarajan,
-SANDS
+Did you do this to fix some specific problem, or just to improve timer
+accuracy?
+
+> Also make sure we don't set a load value of 0 whose outcome is
+> unspecified according to the TRM.
+
+OK
+
+Tony
