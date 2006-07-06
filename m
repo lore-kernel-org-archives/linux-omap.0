@@ -1,11 +1,15 @@
-From: Aderibigbe Emmanuel <emma_dapo@yahoo.com>
-Subject: Using USB port From OMAP5912
-Date: Thu, 6 Jul 2006 06:42:26 -0700 (PDT)
-Message-ID: <20060706134226.4780.qmail@web34102.mail.mud.yahoo.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: [PATCH 1/4] Input: ads7846: detect pen up from IRQ state
+Date: Thu, 06 Jul 2006 17:58:31 +0200
+Message-ID: <44AD3327.4090404@gmail.com>
+References: <20060703182931.GA29921@localdomain> <44AA84CC.5020808@gmail.com>
+	<20060705161832.GA32247@localdomain> <44ABEC05.7070204@gmail.com>
+	<20060705190507.GA32376@localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20060705190507.GA32376@localdomain>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,17 +19,30 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: imre.deak@solidboot.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
-  I got a USB device (an RFID reader) and I will like to interact with it from the USB port on the OMAP5912. I am using Embedded Linux Development Kit (ELDK) linux on the board. Can anyone help me on communicating with it. I will appreciate a guide in using the USB port with any USB device.
-   
-  Very Expectant,
-   
-  Regards,
-  Emmauel.
+imre.deak@solidboot.com wrote:
+>>>>Yesterday, you posted a new patchset "[PATCH 1/1-4] Input: 
+>>>>ads7846:". As I understand it, this recent patch set is the 
+>>>>clean version of ads7846 and is a replacement for the old 
+>>>>workaround now pushed by Tony? Or is it an add on?
+>>>
+>>>The first patch of the set includes that fix. Now that it's pushed I'm
+>>>posting an updated version of that first patch. The rest should apply ok.
+>>
+>>Just applied patch 1-4 to recent git and tried on OSK and 
+>>get crash below at module load.
+> 
+> Just a wild guess, but did you update the kernel as well? The platform
+> data struct changed..
 
- 		
----------------------------------
-Want to be your own boss? Learn how on  Yahoo! Small Business. 
+Uh, sometimes it can be so easy ;)
+
+Many thanks for the hint
+
+Dirk
+
+P.S.: Works on OSK. I put this patchset on my pending 
+patches list.
