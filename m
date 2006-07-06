@@ -1,7 +1,7 @@
-From: lizette sanglay <moonpools2003@yahoo.com>
-Subject: Cannot write to NOR Flash
-Date: Thu, 6 Jul 2006 12:53:43 +0100 (BST)
-Message-ID: <20060706115343.96051.qmail@web60416.mail.yahoo.com>
+From: Aderibigbe Emmanuel <emma_dapo@yahoo.com>
+Subject: Using USB port From OMAP5912
+Date: Thu, 6 Jul 2006 06:42:26 -0700 (PDT)
+Message-ID: <20060706134226.4780.qmail@web34102.mail.mud.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
@@ -15,9 +15,17 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-I am using OMAP5912 and I have trouble writing to the NOR Flash. I have already configured the emifs registers using mostly the default values specified by the CSL Emifs APIs. I have also disabled the write protection on the config register but I still can not write to the NOR Flash. Does anyone know what is wrong here?
+Hi all,
+  I got a USB device (an RFID reader) and I will like to interact with it from the USB port on the OMAP5912. I am using Embedded Linux Development Kit (ELDK) linux on the board. Can anyone help me on communicating with it. I will appreciate a guide in using the USB port with any USB device.
+   
+  Very Expectant,
+   
+  Regards,
+  Emmauel.
 
- Send instant messages to your online friends http://uk.messenger.yahoo.com 
+ 		
+---------------------------------
+Want to be your own boss? Learn how on  Yahoo! Small Business. 
