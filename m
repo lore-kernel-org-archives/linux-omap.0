@@ -1,11 +1,10 @@
-From: "Kevin.Chang" <ibmw007@gmail.com>
-Subject: Severe network problem with omap5912 osk!
-Date: Sat, 8 Jul 2006 10:37:56 +0800
-Message-ID: <904143c50607071937ua6b09aax7a6bb5f65fd2d89d@mail.gmail.com>
+From: Jonathan McDowell <noodles@earth.li>
+Subject: ARM: OMAP: omapfb: Fix 444 mode after recent LCD changes
+Date: Sat, 8 Jul 2006 23:55:51 +0100
+Message-ID: <20060708225551.GA26313@earth.li>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -14,39 +13,32 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The recent changes to the LCD driver have broken the 444 mode (where a
+12 bit panel is driven from 16 bits in memory). This one liner fixes it
+for me.
 
-      I followed instructions to upload U-boot to the board by tftp. Tftp
-server package has installed."tftpboot" directory is readable and
-u-boot.binis inside. I removed "disable = yes" and restart xinetd
-service on the
-host.I also set ethaddr, ipaddr, serverip, netmask, gatewayip, saveenv on
-the board. But when I entered " # tftpboot 0x10000000 u-boot.bin ". The
-result was " Loading T T T T T T T T T T Retry count exceeded;starting again
-". On the board, the led light D8 and D5 blinked at the same time. The
-colorof D8 was green and D5 was red.
+Signed-Off-By: Jonathan McDowell <noodles@earth.li>
 
-     I tried several times and I'm sure all the configuration is OK. So
-what's the problem?
+-----
+diff -ruNp -X linux-2.6.17-e3-05/Documentation/dontdiff linux-2.6.17-e3-05/drivers/video/omap/omapfb_main.c linux-2.6.17-e3-06/drivers/video/omap/omapfb_main.c
+--- linux-2.6.17-e3-05/drivers/video/omap/omapfb_main.c	2006-07-08 18:39:14.963928000 +0100
++++ linux-2.6.17-e3-06/drivers/video/omap/omapfb_main.c	2006-07-08 23:46:51.969142000 +0100
+@@ -420,6 +420,7 @@ static int set_color_mode(struct omapfb_
+ 		plane->color_mode = OMAPFB_COLOR_CLUT_8BPP;
+ 		return 0;
+ 	case 12:
++		var->bits_per_pixel = 16;
+ 		plane->color_mode = OMAPFB_COLOR_RGB444;
+ 		return 0;
+ 	case 16:
+-----
 
-     I doubt there are several possibilities bellow:
+J.
 
-    1. The network connector of the osk is bad.
-    2. The flash can't be written. Actually I can't change or make any
-directory on the board when I entered with minicom.
-    3. Some jumper or other hardware configuration is not ture.
-
-    I also tried nfs service. "/sbin/ifconfig eth0 192.168.100.10 up" After
-I set the ip address on the board. I can't ping the  address form board to
-host or form host to board. Does it strange?
-
-   I bought the osk recently and never changed anything on the board.
-
-   So what should I do? I really need you help!!!
-
- Kevin.Chang
+-- 
+Revd. Jonathan McDowell, ULC | Every bug you find is the last one.
