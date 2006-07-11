@@ -1,11 +1,14 @@
-From: "maia grotepass" <maiatoday@gmail.com>
-Subject: falsh images disapearing OSK5912 starter kit
-Date: Tue, 11 Jul 2006 15:02:23 +0200
-Message-ID: <70275cc60607110602v1bac84fcrbd6c148252fd0cc7@mail.gmail.com>
+From: "Chetan Kapoor" <chetan.kapoor@flextronicssoftware.com>
+Subject: OMAP 730: I2S driver
+Date: Tue, 11 Jul 2006 19:34:59 +0530
+Message-ID: <14fc2db60607110704ue119a91j2247bdaecbdf805d@mail.gmail.com>
+References: <14fc2db60607110701m6a255b77h397295db1297a614@mail.gmail.com>
+Reply-To: chetan.kapoor@flextronicssoftware.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <14fc2db60607110701m6a255b77h397295db1297a614@mail.gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -19,19 +22,23 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+Hello
 
-I have just started playing with OSK5912. It keeps losing the kernel image
-and the filesystem. I manage to load the factory default kernel and file
-system from the cd over the ethernet using tftpboot. I can see the kernel
-and the image in memory. If I call bootm 0x100000 it starts up correctly but
-if I cycle the power it boots into U-boot and I can no longer see the kernel
-when I do md 0x100000.
+I have an OMAP 730 P2 reference board I am looking for an open source
+implementation of the OMAP 730 I2S(Inter-IC sound) interface driver
+which provides an serial data transfer interface between EAC(Enhanced
+Audio Controller) and an analog audio device (Syren Chip) on OMAP 730
+P2.
 
-I seem to have more success if I unplug the ethernet when I power cycle.
+The kernel version I am running is 2.6.16-omap1 (patch-2.6.16-omap1).
 
-So far i am blaming the hardware. :)
+Kindly help if you have come across or know of any open source
+implementation of the I2S driver on OMAP 7xx. I tried searching in the
+.config file which came with the patched kernel for an entry for I2S
+driver, but couldn't find anything.
 
-any suggestions, is there something I could try perhaps?
+Please help.
 
-Maia
+Thanks
+
+Chetan Kapoor
