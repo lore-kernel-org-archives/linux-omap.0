@@ -1,13 +1,11 @@
-From: Jonathan McDowell <noodles@earth.li>
-Subject: Re: Compile time failure with latest kernel sources
-Date: Mon, 10 Jul 2006 22:31:06 +0100
-Message-ID: <20060710213106.GI26313@earth.li>
-References: <44B2C05D.9060005@mvista.com>
+From: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>
+Subject: [RFC] Snapshot boot for OSK5912
+Date: Tue, 11 Jul 2006 20:04:52 +0900 (JST)
+Message-ID: <20060711.200452.92582959.kaminaga@sm.sony.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <44B2C05D.9060005@mvista.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,28 +13,32 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jul 10, 2006 at 02:02:21PM -0700, Khem Raj wrote:
-> I am getting this build time error. with latest sources from omap tree.
-> 
->  CC      drivers/video/omap/omapfb_main.o
-> drivers/video/omap/omapfb_main.c: In function 'omapfb_do_probe':
-> drivers/video/omap/omapfb_main.c:1441: error: too few arguments to 
-> function 'omap_set_dma_priority'
+Hi,
 
-Have you read Dirk Behme's mail at:
+I made a page describing snapshot boot. Patch and instructions are
+available here:
 
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-July/007508.html
+http://tree.celinuxforum.org/CelfPubWiki/SuspendToDiskForARM
 
-?
+Snapshot boot is essentially a resume-from-disk operation, which is a
+system resume from a semi-permanent snapshot image stored on flash
+memory for OSK5912, that restores the machine to a known running
+state. As opposed to a standard resume operation, a snapshot image is
+made only once, stored on flash memory, and same image is used
+repeatedly, every time the system is powered on.
 
-J.
+The purpose of this is to achieve faster startup time of linux on
+OSK5912. It is still OSK5912 specific, but would like to hear
+comments.
 
--- 
-/-\                             |  I'm from the government. I'm here
-|@/  Debian GNU/Linux Developer |            to help you.
-\-                              |
+
+Best Regards,
+
+(Hiroki Kaminaga)
+t
+--
