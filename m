@@ -1,14 +1,14 @@
 From: "Chetan Kapoor" <chetan.kapoor@flextronicssoftware.com>
-Subject: OMAP 730: I2S driver
-Date: Tue, 11 Jul 2006 19:34:59 +0530
-Message-ID: <14fc2db60607110704ue119a91j2247bdaecbdf805d@mail.gmail.com>
-References: <14fc2db60607110701m6a255b77h397295db1297a614@mail.gmail.com>
+Subject: Query: OMAP 730 CSMI Driver (MPU-GSM Interface)
+Date: Tue, 11 Jul 2006 19:36:10 +0530
+Message-ID: <14fc2db60607110706r27216510m3a9094f3020aaa3e@mail.gmail.com>
+References: <14fc2db60607110545p6863dfe1s82b56b5d7d66ba7e@mail.gmail.com>
 Reply-To: chetan.kapoor@flextronicssoftware.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <14fc2db60607110701m6a255b77h397295db1297a614@mail.gmail.com>
+In-Reply-To: <14fc2db60607110545p6863dfe1s82b56b5d7d66ba7e@mail.gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -24,20 +24,26 @@ List-Id: linux-omap@vger.kernel.org
 
 Hello
 
-I have an OMAP 730 P2 reference board I am looking for an open source
-implementation of the OMAP 730 I2S(Inter-IC sound) interface driver
-which provides an serial data transfer interface between EAC(Enhanced
-Audio Controller) and an analog audio device (Syren Chip) on OMAP 730
-P2.
+I have an OMAP 730 P2 reference board, on which we have been
+successful in porting Linux. The kernel which we have used is 2.6.16,
+the is patched with patch 'patch-2.6.16-omap1'. We have also been
+successful in bringing up and using a few OMAP peripheral device
+drivers included in the patch-2.6.16-omap1.
 
-The kernel version I am running is 2.6.16-omap1 (patch-2.6.16-omap1).
+I am now interested in bringing up the CSMI driver for co-processor
+(MPU-GSM) communication in our Linux port and am looking for an open
+source implementation/patch(official/unofficial) of a CSMI driver
+module for OMAP 730.
 
-Kindly help if you have come across or know of any open source
-implementation of the I2S driver on OMAP 7xx. I tried searching in the
-.config file which came with the patched kernel for an entry for I2S
-driver, but couldn't find anything.
+I have come across mention of an open source CSMI driver for OMAP 7xx
+on a mailing list but am unable to find the patch.
 
-Please help.
+Has anyone come across or used any open source OMAP 7xx CSMI driver(or
+any other OMAP/ARM CSMI Linux driver implementation) before, or is
+there any open source implementation of the CSMI driver module
+officially (in the Linux OMAP/ARM community) available.
+
+Your inputs will be very helpful.
 
 Thanks
 
