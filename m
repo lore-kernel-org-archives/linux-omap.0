@@ -1,13 +1,13 @@
-From: "Kondaiah G, Manjunath" <manjugk@ti.com>
-Subject: RE: Access GPIO, OMAP 5912 OSK
-Date: Wed, 12 Jul 2006 19:18:50 +0530
-Message-ID: <45F366B1BC4F7C4A895F0F34C41E61A501D2DF3B@dbde01.ent.ti.com>
+From: Kevin Hilman <khilman@deeprooted.net>
+Subject: RE: Build error with latest GIT tree
+Date: Wed, 12 Jul 2006 09:11:01 -0500
+Message-ID: <1152713461.12527.57.camel@vence.internal.net>
+References: <C51F43ABFC95844490F0529B60753BF4055F32C0@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <C51F43ABFC95844490F0529B60753BF4055F32C0@dlee02.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,63 +15,72 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Birger Kroon <Birger.Kroon@sys.teleca.se>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Birger,
+This was caused by a cleanup I did for gcc4 compatability and I
+admittedly did not test w/CONFIG_OMAP_RESET_CLOCKS.  Oops.
 
-Refer to arch/arm/plat-omap/gpio.c=20
+I've pushd a fix for this and compile tested for gcc3 and gcc4, with and
+without CONFIG_OMAP_RESET_CLODKS.
 
-You can make use of these API's to control your custom peripherals.
+http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=64929d882591a213cb51407992f28c42121b2f7d
 
-omap_request_gpio;
-omap_free_gpio;
-omap_set_gpio_direction;
-omap_set_gpio_dataout;
-omap_get_gpio_datain;
+Kevin
 
-Br,
--Manjunath
-
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com =
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of =
-Birger Kroon
-Sent: Wednesday, July 12, 2006 12:47 PM
-To: linux-omap-open-source@linux.omap.com
-Subject: Access GPIO, OMAP 5912 OSK
-
-Hi list...
-=20
-* I have some custom peripherals that I want to control via GPIOs, =
-either from a driver (kernel space) or an application (user space).
-* Is there some sort of API to do this or do I have to write my own?
-=20
-Any ideas are welcome...
-=20
-Regards
-// Birger
-=20
-=20
-Birger Kroon=20
-Software Engineer=20
-Automotive Solutions
-
-Teleca Sweden West AB=20
-Lindholmspiren 9=20
-SE-417 56 G=F6teborg=20
-Sweden=20
-Tel +46 31 744 80 00=20
-Fax +46 31 744 80 01=20
-
-Direct +46 31 744 80 87=20
-Mobile +46 703 79 19 11=20
-birger.kroon@sys.teleca.se=20
-www.teleca.com
-=20
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+On Tue, 2006-07-11 at 11:11 -0500, Hunter, Jon wrote:
+> I did a diff between the clock.h file in the include/asm/arch/ directory
+> and found the following differences between v2.6.17 and v2.6.17-rc6
+> (which I belive is the latest);
+> 
+> --- include/asm/arch/clock.h    2006-07-11 10:45:46.000000000 -0500
+> +++ ../linux-omap-2.6.git/include/asm/arch/clock.h      2006-07-10
+> 16:34:40.000000000 -0500
+> @@ -48,8 +48,6 @@
+>  };
+> 
+>  extern unsigned int mpurate;
+> -extern struct list_head clocks;
+> -extern spinlock_t clockfw_lock;
+> 
+> I believe the removal of "clocks" variable is why the compiler is
+> complaining below. Let me know if you have any thoughts.
+> 
+> Cheers,
+> Jon
+> 
+> 
+>  
+> > Is anyone seeing the following build error with the latest GIT tree?
+> > Seemed similar to the following issue, but the exact error looks
+> > different:
+> > http://linux.omap.com/pipermail/linux-omap-open-source/2006-Ju
+> > ne/007473.
+> > html
+> > 
+> > 
+> > CC      arch/arm/mach-omap1/clock.o
+> > arch/arm/mach-omap1/clock.c: In function `omap1_late_clk_reset':
+> > arch/arm/mach-omap1/clock.c:609: error: `clocks' undeclared 
+> > (first use in this function)
+> > arch/arm/mach-omap1/clock.c:609: error: (Each undeclared 
+> > identifier is reported only once
+> > arch/arm/mach-omap1/clock.c:609: error: for each function it appears
+> > in.)
+> > make[1]: *** [arch/arm/mach-omap1/clock.o] Error 1
+> > make: *** [arch/arm/mach-omap1] Error 2
+> > 
+> > Cheers,
+> > Jon
+> > _______________________________________________
+> > Linux-omap-open-source mailing list
+> > Linux-omap-open-source@linux.omap.com
+> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> > 
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
