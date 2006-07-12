@@ -1,13 +1,12 @@
-From: "Birger Kroon" <Birger.Kroon@sys.teleca.se>
-Subject: Access GPIO, OMAP 5912 OSK
-Date: Wed, 12 Jul 2006 09:16:32 +0200
-Message-ID: <9B3B9A21BBE3D643AA52066F0B26C8A20DD14D@setswgbgmx01.global.ad.teleca.com>
+From: "Anand SVR" <anand.svr@gmail.com>
+Subject: iMate K-jam linux port
+Date: Wed, 12 Jul 2006 11:47:36 +0000
+Message-ID: <48a4d13c0607120447p7f9bd3c8j95551b18b2f0efdc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,31 +19,16 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi list...
-=20
-* I have some custom peripherals that I want to control via GPIOs, =
-either from a driver (kernel space) or an application (user space).
-* Is there some sort of API to do this or do I have to write my own?
-=20
-Any ideas are welcome...
-=20
+Hi,
+
+I would like to port Linux onto i-mate K-JAM. If there is any effort
+already made in this regard
+can you please let me know where I can get a downloadable Linux
+bootloader, kernel image, and Linux distribution ? For beginners like
+me, is there a site that gives step-by-step procedure of porting Linux
+onto OMAP processor based devices like the one I have ?
+
+Thanks
+
 Regards
-// Birger
-=20
-=20
-Birger Kroon=20
-Software Engineer=20
-Automotive Solutions
-
-Teleca Sweden West AB=20
-Lindholmspiren 9=20
-SE-417 56 G=F6teborg=20
-Sweden=20
-Tel +46 31 744 80 00=20
-Fax +46 31 744 80 01=20
-
-Direct +46 31 744 80 87=20
-Mobile +46 703 79 19 11=20
-birger.kroon@sys.teleca.se=20
-www.teleca.com
-=20
+Anand
