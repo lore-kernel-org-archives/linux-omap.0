@@ -1,12 +1,11 @@
-From: "Anand SVR" <anand.svr@gmail.com>
-Subject: iMate K-jam linux port
-Date: Wed, 12 Jul 2006 11:47:36 +0000
-Message-ID: <48a4d13c0607120447p7f9bd3c8j95551b18b2f0efdc@mail.gmail.com>
+From: Omap 850 <omap850@yahoo.de>
+Subject: OMAP850 / HTC Wizard: Keyboard-Kernel-Driver ?
+Date: Wed, 12 Jul 2006 14:58:27 +0200 (CEST)
+Message-ID: <20060712125827.89035.qmail@web27806.mail.ukl.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,19 +15,36 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
 
-I would like to port Linux onto i-mate K-JAM. If there is any effort
-already made in this regard
-can you please let me know where I can get a downloadable Linux
-bootloader, kernel image, and Linux distribution ? For beginners like
-me, is there a site that gives step-by-step procedure of porting Linux
-onto OMAP processor based devices like the one I have ?
+Hello,
 
-Thanks
+sorry about my poor english, i am german.
 
-Regards
-Anand
+can sombody help me, i search for a way to
+find-out mor about the keyboard on my HTC Wizard / OMAP850 with ARM926 CPU.
+
+I can boot Linux, an Login with telnet.
+
+If sombody interestet at, can download the files at:
+
+http://omap850.om.funpic.de/downloads/wizard
+
+IT IS NOT MY WORK, IT IS THE WORK OF NICO
+
+
+http://chac.le-poulpe.net/~nico/tornado/ 
+
+I made only the zImage
+
+thanks
+
+Best regards 
+
+dennis
+
+ 		
+---------------------------------
+NEU: Fragen stellen - Wissen, Meinungen und Erfahrungen teilen. Jetzt auf Yahoo! Clever.
