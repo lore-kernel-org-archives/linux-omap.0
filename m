@@ -1,13 +1,13 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: deleting bootcmd boot argument
-Date: Thu, 13 Jul 2006 02:37:50 -0500
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A50694593F@dlee02.ent.ti.com>
+From: "Sanjiv Malik" <sanjiv@faith.co.jp>
+Subject: Re: deleting bootcmd boot argument
+Date: Thu, 13 Jul 2006 16:57:23 +0900
+Message-ID: <009d01c6a651$f9618f00$5a11a80a@smalik>
+References: <EA12F909C0431D458B9D18A176BEE4A50694593F@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,8 +17,41 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Sanjiv Malik <sanjiv@faith.co.jp>, Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
+To: "Woodruff, Richard" <r-woodruff2@ti.com>, Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
+
+Hello Richard,
+   Thanks for your email.
+   I tried the following steps as written by you. But still the kernel is 
+getting booted automatically. Iam not getting a u-boot prompt.
+
+   Currently iam connecting the OMAP 2430 board with the PC using a serial 
+(RS232 ) cable.
+
+   Iam using the Tera Term to send the messages to the OMAP board through 
+the PC.
+
+   I hold the space bar button of the UART console down (i.e. space bar 
+button on the PC ) as the  Tera Term is running on my PC. I reset the board, 
+but still the kernel is getting booted automatically.
+
+Whether the above steps which iam following is correct??
+Can you mail me the proper steps??
+
+Thanks in advace
+Sanjiv
+
+
+
+
+
+----- Original Message ----- 
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+To: "Sanjiv Malik" <sanjiv@faith.co.jp>; "Linux OMAP Open Source" 
+<linux-omap-open-source@linux.omap.com>
+Sent: Thursday, July 13, 2006 4:37 PM
+Subject: RE: deleting bootcmd boot argument
+
 
 Hold your UART console space bar down and reset the board.  It should
 break you to a u-boot prompt.
@@ -35,23 +68,21 @@ Regards,
 Richard W.
 
 > -----Original Message-----
-> From: =
-linux-omap-open-source-bounces+r-woodruff2=3Dti.com@linux.omap.com
+> From: linux-omap-open-source-bounces+r-woodruff2=ti.com@linux.omap.com
 >
-[mailto:linux-omap-open-source-bounces+r-woodruff2=3Dti.com@linux.omap.co=
-m
+[mailto:linux-omap-open-source-bounces+r-woodruff2=ti.com@linux.omap.com
 ]
 > On Behalf Of Sanjiv Malik
 > Sent: Thursday, July 13, 2006 12:24 PM
 > To: Linux OMAP Open Source
 > Subject: deleting bootcmd boot argument
->=20
+>
 > Hello friends,
->=20
+>
 >      Currently iam facing with a problem on OMAP 2430.
->=20
+>
 >     The problem is as follows:
->=20
+>
 >     - I have set the u-boot environment variable "bootcmd" with the
 > booting
 >       address of Kernel from flash
@@ -60,36 +91,36 @@ m
 to
 > 0
 >         i.e. set bootdelay 0
->=20
+>
 >     Due to these settings as soon as the board is switched ON, the
 linux
 > kernel from flash address is getting booted automatically through
 U-boot.
->=20
+>
 >     Now, iam not able to boot the linux kernel from TFTP server.
 >     Even iam not able to set the following TFTP boot arguments:
 >      i.e. setenv bootargs
 >           set server ip
 >      because the kernel from flash gets booted automatically.
->=20
+>
 >     Now, i wanna delete the bootcmd environment variable. May i know
 how
 > can
 > i delete it so that i can set these TFTP boot arguments??
->=20
+>
 >  Thanks in advance,
 >  Sanjiv
->=20
->=20
->=20
+>
+>
+>
 > ----- Original Message -----
 > From: "Mouhammad Tayseer Alquoatli" <idoit.ief@gmail.com>
 > To: "naga rajan" <nagubk82@gmail.com>
 > Cc: "Linux OMAP Open Source" <linux-omap-open-source@linux.omap.com>
 > Sent: Thursday, July 13, 2006 3:16 PM
 > Subject: Re: Flash recovery-regards
->=20
->=20
+>
+>
 > > On 7/13/06, naga rajan <nagubk82@gmail.com> wrote:
 > >>
 > >> Hi all,
@@ -133,7 +164,7 @@ system
 > > Linux-omap-open-source@linux.omap.com
 > > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
 > >
->=20
+>
 > _______________________________________________
 > Linux-omap-open-source mailing list
 > Linux-omap-open-source@linux.omap.com
