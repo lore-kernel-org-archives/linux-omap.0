@@ -1,7 +1,7 @@
 From: "=?ISO-8859-1?Q?Lu=EDs_Cargnini?=" <lvcargnini@gmail.com>
-Subject: problems compiling latest version of kernel with denx toolkit
-Date: Fri, 14 Jul 2006 14:38:40 -0300
-Message-ID: <ae36f8040607141038p3698911ck4cd8a281e698ea8@mail.gmail.com>
+Subject: Problems compiling gcc-4.1.0
+Date: Fri, 14 Jul 2006 14:45:16 -0300
+Message-ID: <ae36f8040607141045p5669198ci65d28617d466bbed@mail.gmail.com>
 Reply-To: lvcargnini@ieee.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
@@ -20,24 +20,51 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi someone find a fix for this problem ?
-CHK     include/linux/version.h
-make[1]: `include/asm-arm/mach-types.h' is up to date.
-  CHK     include/linux/compile.h
-  CC      arch/arm/plat-omap/clock.o
-arch/arm/plat-omap/clock.c:31: error: static declaration of 'clocks' follow=
-s
-non-static declaration
-include/asm/arch/clock.h:19: error: previous declaration of 'clocks' was
-here
-arch/arm/plat-omap/clock.c:33: error: static declaration of 'clockfw_lock'
-follows non-static declaration
-include/asm/arch/clock.h:20: error: previous declaration of 'clockfw_lock'
-was here
-make[1]: *** [arch/arm/plat-omap/clock.o] Error 1
-make: *** [arch/arm/plat-omap] Error 2
+Hi someone knows how to fix this:
 
-the omap is osk 5912
+/home/lvcargnini/puc/instramed/build/b-gcc/./gcc/xgcc
+-B/home/lvcargnini/puc/instramed/build/b-gcc/./gcc/
+-B/opt/arm-linux/arm-linux/bin/ -B/opt/arm-linux/arm-linux/lib/ -isystem
+/opt/arm-linux/arm-linux/include -isystem
+/opt/arm-linux/arm-linux/sys-include -O2 -O2 -g -O2  -DIN_GCC
+-DCROSS_COMPILE   -W -Wall -Wwrite-strings -Wstrict-prototypes
+-Wmissing-prototypes -Wold-style-definition  -isystem ./include  -I. -I.
+-I../../gcc-4.1.0/gcc -I../../gcc-4.1.0/gcc/. -I../../gcc-4.1.0/gcc/../incl=
+ude
+-I../../gcc-4.1.0/gcc/../libcpp/include   -g0 -finhibit-size-directive
+-fno-inline-functions -fno-exceptions -fno-zero-initialized-in-bss
+-fno-unit-at-a-time   \
+          -c ../../gcc-4.1.0/gcc/crtstuff.c -DCRT_BEGIN \
+          -o crtbegin.o
+In file included from ../../gcc-4.1.0/gcc/crtstuff.c:68:
+../../gcc-4.1.0/gcc/tsystem.h:90:19: error: stdio.h: No such file or
+directory
+../../gcc-4.1.0/gcc/tsystem.h:93:23: error: sys/types.h: No such file or
+directory
+../../gcc-4.1.0/gcc/tsystem.h:96:19: error: errno.h: No such file or
+directory
+../../gcc-4.1.0/gcc/tsystem.h:103:20: error: string.h: No such file or
+directory
+../../gcc-4.1.0/gcc/tsystem.h:104:20: error: stdlib.h: No such file or
+directory
+../../gcc-4.1.0/gcc/tsystem.h:105:20: error: unistd.h: No such file or
+directory
+../../gcc-4.1.0/gcc/tsystem.h:111:18: error: time.h: No such file or
+directory
+make[2]: *** [crtbegin.o] Error 1
+make[2]: Leaving directory `/home/lvcargnini/puc/instramed/build/b-gcc/gcc'
+make[1]: *** [all-gcc] Error 2
+make[1]: Leaving directory `/home/lvcargnini/puc/instramed/build/b-gcc'
+make: *** [all] Error 2
+
+
+i have modified ../gcc-4.1.0/gcc/config/arm/t-linux and added -Dinhibit_lib=
+c
+-D__gthr_posix_h
+what should i do ???
+I'm doing this because of the clock erros that are appearing on compiling
+time with denx toolchain
+Thanks for any help
 
 
 --=20
