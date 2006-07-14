@@ -1,13 +1,13 @@
-From: "=?ISO-8859-1?Q?Lu=EDs_Cargnini?=" <lvcargnini@gmail.com>
-Subject: Git tree
-Date: Thu, 13 Jul 2006 19:41:12 -0300
-Message-ID: <ae36f8040607131541v5b969500mfa5c98bd3b8d719a@mail.gmail.com>
-Reply-To: lvcargnini@ieee.org
+From: "Ishigami, Tatsuya" <ishigami@ti.com>
+Subject: RE: How to build Kernel Modules
+Date: Thu, 13 Jul 2006 21:08:14 -0500
+Message-ID: <772F5D89C5E0734B8A86D85DFC6A202403FBCCB7@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,77 +15,155 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: OMAP <Linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Richard Copeman <richard.copeman@lauterbach.co.uk>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Please whose git tree i must use the git tree provided bit mvist or
-kernel.org ??
-the problem compiling the source from kernel.org:
+Hi Richard.C,
 
- CHK     include/linux/version.h
-make[1]: `include/asm-arm/mach-types.h' is up to date.
-  CHK     include/linux/compile.h
-  CC      arch/arm/plat-omap/clock.o
-arch/arm/plat-omap/clock.c:31: error: static declaration of 'clocks' follow=
-s
-non-static declaration
-include/asm/arch/clock.h:19: error: previous declaration of 'clocks' was
-here
-arch/arm/plat-omap/clock.c:33: error: static declaration of 'clockfw_lock'
-follows non-static declaration
-include/asm/arch/clock.h:20: error: previous declaration of 'clockfw_lock'
-was here
-make[1]: *** [arch/arm/plat-omap/clock.o] Error 1
-make: *** [arch/arm/plat-omap] Error 2
+ Another interesting (and great) information
+=20
+ http://free-electrons.com/training/drivers
 
-persist.
-How could i fix this ?
-someone mentioned a patch where i found this patch for gcc ?
-i'm using the denx toolchain, but thinking im recreate my own toolchain,
-someone using 4.1.0 ??
-and have a howto or quick-setup ?
+ Please note the way to develop kernel modules are very different
+between 2.4.x and 2.6.x version. You might ensure you are
+referring the one for you.
 
-compiling gcc.4.1.0 i founded the following:
-In file included from ../../gcc-4.1.0/gcc/crtstuff.c:68:
-../../gcc-4.1.0/gcc/tsystem.h:90:19: error: stdio.h: No such file or
-directory
-../../gcc-4.1.0/gcc/tsystem.h:93:23: error: sys/types.h: No such file or
-directory
-../../gcc-4.1.0/gcc/tsystem.h:96:19: error: errno.h: No such file or
-directory
-../../gcc-4.1.0/gcc/tsystem.h:103:20: error: string.h: No such file or
-directory
-../../gcc-4.1.0/gcc/tsystem.h:104:20: error: stdlib.h: No such file or
-directory
-../../gcc-4.1.0/gcc/tsystem.h:105:20: error: unistd.h: No such file or
-directory
-../../gcc-4.1.0/gcc/tsystem.h:111:18: error: time.h: No such file or
-directory
-make[2]: *** [crtbegin.o] Error 1
-make[2]: Leaving directory `/home/lvcargnini/puc/instramed/build/b-gcc/gcc'
-make[1]: *** [all-gcc] Error 2
-make[1]: Leaving directory `/home/lvcargnini/puc/instramed/build/b-gcc'
+ Regards,
+ Ishigami
+
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+Woodruff, Richard
+Sent: Friday, July 14, 2006 12:44 AM
+To: Richard Copeman; linux-omap-open-source@linux.omap.com
+Subject: RE: How to build Kernel Modules
+
+http://examples.oreilly.com/linuxdrive3/
 
 
-but
-../gcc-4.1.0/gcc/config/arm/t-linux
-....
-TARGET_LIBGCC2_CFLAGS =3D -fomit-frame-pointer -fPIC -Dinhibit_libc
--D__gthr_posix_h
-....
- and my configure line is
-../gcc-4.1.0/configure --prefix=3D/opt/arm-linux --target=3Darm-linux
---with-float=3Dsoft --with-cpu=3Darm9tdmi --disable-shared --disable-thread=
-s
---with-headers=3D/opt/arm-linux/arm-linux/include --enable-languages=3Dc
 
+> -----Original Message-----
+> From: Richard Copeman [mailto:richard.copeman@lauterbach.co.uk]
+> Sent: Thursday, July 13, 2006 9:08 PM
+> To: Woodruff, Richard; linux-omap-open-source@linux.omap.com
+> Subject: RE: How to build Kernel Modules
+>=20
+> Hi Richard,
+>=20
+> Thanks. I just had a look and couldn't see the wood for the trees. Do
+you
+> have a link or something that I can put into their search engine that
+will
+> get me close?
+>=20
+> Thanks,
+>=20
+> Richard.
+>=20
+> -----Original Message-----
+> From: Woodruff, Richard [mailto:r-woodruff2@ti.com]
+> Sent: 13 July 2006 16:24
+> To: Richard Copeman; linux-omap-open-source@linux.omap.com
+> Subject: RE: How to build Kernel Modules
+>=20
+> Down load the Linux Device Drivers module examples.  It has a nice and
+> easy to use dummy module.  You can find them on the O'Riley site.
+>=20
+> You can just compile and insmod .o like your trying.  There are a few
+> more steps.
+>=20
+> Regards,
+> Richard W.
+>=20
+> > -----Original Message-----
+> > From: linux-omap-open-source-bounces@linux.omap.com
+> [mailto:linux-omap-
+> > open-source-bounces@linux.omap.com] On Behalf Of Richard Copeman
+> > Sent: Thursday, July 13, 2006 8:30 PM
+> > To: linux-omap-open-source@linux.omap.com
+> > Subject: How to build Kernel Modules
+> >
+> > Hi,
+> >
+> > I don't know if this is the right place to ask...
+> >
+> > I have OMAP 5912OSK with a 2.6.15 kernel cross compiled from SUSE
+9.2
+> > using
+> > GCC 3.4.1. That works and I am happy with it. I can build my own
+tasks
+> and
+> > include them into my RAM disk image.
+> >
+> > The next challenge is to build a kernel module. I followed the
+> guidelines
+> > in
+> > Peter Salzman's book/FAQ/tutorial and tried to adapt it for cross
+> > compiling:
+> >
+> > Arm-linux-gcc -c hellomod.c -Wall
+> >
+> > This produced hellomod.o but when I tried to insmod it on my target
+I
+> got
+> > an
+> > error:
+> >
+> > / # ls
+> > ascii       etc         lib         proc        sys         var
+> > bin         hello       linuxrc     sbin        tmp
+> > dev         hellomod.o  lost+found  sieve       usr
+> > / # insmod ./hellomod.o
+> > Using ./hellomod.o
+> > No module found in object
+> > insmod: cannot insert `./hellomod.o': Invalid module format (-1):
+Exec
+> > format error
+> > / # _
+> >
+> > I suspect I haven't done something right in the build stage for my
+KO.
+> >
+> > My source code is simple and looks like this:
+> >
+> > #define __KERNEL__
+> > #define MODULE
+> >
+> > #include "/usr/local/arm/3.4.1/arm-linux/include/linux/module.h"
+> > #include "/usr/local/arm/3.4.1/arm-linux/include/linux/kernel.h"
+> >
+> > #include "/usr/local/arm/3.4.1/arm-linux/include/linux/tty.h"
+> >
+> > int init_module()
+> > {
+> > 	console_print("Hello World from Rico\n");
+> > 	return 0;
+> > }
+> >
+> > void cleanup_module()
+> > {
+> > 	console_print("Goodbye from Rico!\n");
+> > }
+> >
+> > Can somebody point me at an FAQ or how to for cross compiling Kernel
+> > Modules
+> > please?
+> >
+> > TIA,
+> >
+> > Richard.
+> >
+> > _______________________________________________
+> > Linux-omap-open-source mailing list
+> > Linux-omap-open-source@linux.omap.com
+> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>=20
 
-thanks for any help.
-
---=20
-Thanks && Regards
-Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
-IEEE Member
-Mastering Degree student @ PUC-RS Electrical Engineer Faculty
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
