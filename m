@@ -1,12 +1,11 @@
-From: Kevin Hilman <khilman@deeprooted.net>
-Subject: RE: 2420 boot BUG(): failure to map SRAM
-Date: Mon, 17 Jul 2006 12:59:34 -0500
-Message-ID: <1153159174.5729.10.camel@imap.mvista.com>
-References: <EA12F909C0431D458B9D18A176BEE4A5069458BC@dlee02.ent.ti.com>
+From: Matthew Percival <matthew@capgo.com>
+Subject: Using McBSP in kernel...
+Date: Wed, 19 Jul 2006 16:56:17 +1000
+Message-ID: <1153292177.5167.11.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-QEZJvc7dHkiWVr/hfiyi"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A5069458BC@dlee02.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,82 +15,63 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
+G'Day,
 
---=-QEZJvc7dHkiWVr/hfiyi
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+	I have been trying to write a driver that makes use of McBSP2 in SPI
+mode recently, but seem to have missed a step or something along the
+way.  The following code is included in my drivers __init block:
 
-On Wed, 2006-07-12 at 18:59 -0500, Woodruff, Richard wrote:
-> Kevin likely has an EMU device and yours is GP.
-> 
-> It seems like when I fist did this aspect it was correct.  Somehow it
-> got messed up along the way.
-> 
-> -a- The physical base address of the static remap operation should be
-> 40200000 in either case.  The size needs to be 1M divisible to generate
-> a section entry.  The virtual address needs to be 2M divisible to work
-> with the 2.6 allocation scheme.
-> 
-> -b- The useable physical OMAP2-SRAM then either starts at 40200000 or
-> 4020f800 depending on device type.  Therefore in this code you need to
-> set the virtually mapped region the same in both cases, but sets its API
-> useable range to that of the actual device.  The push/pop APIs have
-> global variables for this.
+	struct omap_mcbsp_spi_cfg mcbsp2_spi_conf;
 
-Here's a patch which sets the static mapping to the same for both device
-types, but doesn't modify 'omap_sram_base' used elsewhere for the usable
-address.
+	if (omap_mcbsp_request(OMAP_MCBSP2))
+		return -EBUSY;
+	omap_mcbsp_stop(OMAP_MCBSP2);
 
-Richard, is this sufficient?
+	mcbsp2_spi_conf.spi_mode = OMAP_MCBSP_SPI_MASTER;
+	mcbsp2_spi_conf.rx_clock_polarity = OMAP_MCBSP_CLK_RISING;
+	mcbsp2_spi_conf.tx_clock_polarity = OMAP_MCBSP_CLK_FALLING;
+	mcbsp2_spi_conf.fsx_polarity = OMAP_MCBSP_FS_ACTIVE_LOW;
+	mcbsp2_spi_conf.clk_div = 1;
+	mcbsp2_spi_conf.clk_stp_mode = OMAP_MCBSP_CLK_STP_MODE_NO_DELAY;
+	mcbsp2_spi_conf.word_length = OMAP_MCBSP_WORD_32;
+	omap_mcbsp_set_spi_mode(OMAP_MCBSP2, &mcbsp2_spi_conf);
 
-Kevin
+	Then, on open(), I make the following call:
 
+	omap_mcbsp_start(OMAP_MCBSP2);
 
---=-QEZJvc7dHkiWVr/hfiyi
-Content-Disposition: attachment; filename=sram-mapping.patch
-Content-Type: text/x-patch; name=sram-mapping.patch; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	On certain events, I also call the following:
 
-ARM: OMAP: Fix SRAM static mapping for EMU devices.
+	omap_mcbsp_spi_master_recv_word_poll(OMAP_MCBSP2, (u32 *)data)
+	omap_mcbsp_spi_master_xmit_word_poll(OMAP_MCBSP2, config);
 
-Signed-off-by: Kevin Hilman <khilman@deeprooted.net>
+	When I call these, I would expect to see activity on the McBSP2 pins,
+but do not see anything on McBSP2.DX, McBSP2.CLKX or McBSP2.FSX.  I have
+verified that I am able to write to the registers, so the module should
+be configured correctly.  Is there some kind of an additional operation
+I need to perform at some point when making use of the functions already
+available in kernel?
 
----
-commit 9945b4f622be0bf89821991122752aeaad19528d
-tree bc667f727a4c8ab9b11a584fe87f815675eedee9
-parent 64929d882591a213cb51407992f28c42121b2f7d
-author Kevin Hilman <khilman@deeprooted.net> Mon, 17 Jul 2006 11:05:50 -0700
-committer Kevin Hilman <khilman@deeprooted.net> Mon, 17 Jul 2006 11:05:50 -0700
+	A register dump performed after calling omap_mcbsp_start() returns the
+following:
+		DRR2:  0x0000
+		DRR1:  0x0000
+		DXR2:  0x0000
+		DXR1:  0x0000
+		SPCR2: 0x00c3
+		SPCR1: 0x1001
+		RCR2:  0x0001
+		RCR1:  0x00a0
+		XCR2:  0x0001
+		XCR1:  0x00a0
+		SRGR2: 0x2000
+		SRGR1: 0x0000
+		PCR0:  0x0a0b
+These look about right to me, leaving me at a loss to what could be
+wrong.  My initial suspicion was that this were simply a clock issue,
+but since McBSP2 only uses ARM_PER, that seems improbable.
 
- arch/arm/plat-omap/sram.c |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index 7b0b924..045b27b 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -190,10 +190,7 @@ void __init omap_map_sram(void)
- 	if (cpu_is_omap24xx()) {
- 		omap_sram_io_desc[0].virtual = OMAP2_SRAM_VA;
- 
--		if (is_sram_locked())
--			base = OMAP2_SRAM_PUB_PA;
--		else
--			base = OMAP2_SRAM_PA;
-+		base = OMAP2_SRAM_PA;
- 		base = ROUND_DOWN(base, PAGE_SIZE);
- 		omap_sram_io_desc[0].pfn = __phys_to_pfn(base);
- 	}
-
---=-QEZJvc7dHkiWVr/hfiyi
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---=-QEZJvc7dHkiWVr/hfiyi--
+	-- Matthew
