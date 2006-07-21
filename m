@@ -1,13 +1,14 @@
-From: "Khasim, Syed" <x0khasim@ti.com>
-Subject: RE: Using McBSP in kernel...
-Date: Thu, 20 Jul 2006 07:16:41 -0500
-Message-ID: <77C7F7CB1230A74A9D19C0C111E6EDBEB21CD9@DLEE09.ent.ti.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: Playing mp3 on OMAP5912 OSK
+Date: Fri, 21 Jul 2006 18:49:27 +0200
+Message-ID: <44C10597.3060208@gmail.com>
+References: <4477F81C.2000308@gmail.com> <447B06A5.6020500@indt.org.br>
+	<447C76AB.8040901@gmail.com> <447C8682.8060201@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+In-Reply-To: <447C8682.8060201@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,74 +18,59 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Matthew Percival <matthew@capgo.com>, Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+Dirk Behme wrote:
+> Dirk Behme wrote:
+> 
+>> Anderson Briglia wrote:
+>>
+>>> I tested the ALSA driver presented in the latest git tree and madplay 
+>>> is working properly.
+>>
+>>
+>>>> output: ioctl(SNDCTL_DSP_SYNC): Invalid argument
+>>
+>>
+>> Seems that this becomes strange. I used Anderson's madplay, libmad and 
+>> .mp3 for tests. Anderson's mp3 is 44.1 kHz as well, so this shouldn't 
+>> be the issue. My kernel sound configuration seems to be okay as well. 
+>> But even with Anderson's binaries I get the ioctl error above. So last 
+>> thing I can imagine is other kernel configuration.
+> 
+> 
+> For the archive and fyi answering to myself:
+> 
+> Here's my 'what it is not' list:
+> 
+> - madplay binaries and libraries are okay
+> - mp3 is okay
+> - playing over NFS is okay
+> - kernel config is okay
+> 
+> And now? Toolchain!
+> 
+> Compiling kernel with my old 3.4.1 gcc: madplay doesn't complain any 
+> more. Compiling kernel with my newer 4.1.0 with same config and same 
+> binaries: madplay fails. Haven't seen any other issues with my 4.1.0 
+> yet, no error, failure, nothing.
+> 
+> Will see if I find time to investigate this further. Built my 4.1.0 with 
+> crosstool-0.42 and crosstool's
+> 
+> eval `cat arm.dat gcc-4.1.0-glibc-2.3.2.dat`  sh all.sh --notest
+> 
+> configuration.
 
-There are some app notes on TI site, I found one here
-http://focus.ti.com/lit/an/spra487c/spra487c.pdf
+For the archive: Seems that this [1] is fixed with
 
-Try to compare your values with this example.
+http://gcc.gnu.org/viewcvs/branches/gcc-4_1-branch/gcc/cse.c?r1=115620&r2=115619&pathrev=115620
 
-McBSP registers are 16bit, Some times reading them as 32bit will result
-in 0s. I don't know if this is the exact issue you are facing when
-reading from application space. Make sure you do a 16bit read of every
-register.
+Many thanks to Paul Brook!
 
-The FSX line will be used as Chip Select for SPI operations, So, while
-doing initial mux settings, you put the line as pulled up. If you are
-using a CRO to probe the signals, then probing this line should show
-high.=20
+Regards
 
-When you configure your SPI for a low Chip select polarity and then
-write to a DXR register, the FSX / CS line should go low. This will
-confirm if all your register settings clock and mux settings.
+Dirk
 
-Regards,
-Khasim
-
-
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
-Matthew Percival
-Sent: Thursday, July 20, 2006 1:54 AM
-To: Linux OMAP Open Source
-Subject: RE: Using McBSP in kernel...
-
-G'Day,
-
-	Thanks for the reply.
-
-> Configuration seems to fine, did you check pin muxing?
-
-	Aye, MUX settings are correct according to the manual.  The
-clock
-(ARM_PER, according to the manual) is also on (I checked
-both /proc/omap_clocks and the ARM_IDLCT2 register).  I have also
-observed that, for whatever reason, I can read/write the registers
-perfectly fine in kernel, but they always seem to return 0x0 when I try
-to read from user space (using devmem2).  I am not sure if that is
-relevant or not, but it seemed odd.
-
-> Also, note that clock will be generated only when there is data on the
-> bus. Otherwise the line will be simply high. If CS line is configured
-as
-> active low, then you might not even see the CS line changing its
-> transition. Try to put CS line as high during initialization and then
-do
-> a write, it should drop to low.
-
-	I am not sure what you mean by configuring the CS line.  Could
-you give
-a reference for this?  If you are referring to the Frame Sync./Slave
-Enable, that is configured to active low, but I am not sure how to
-configure it to be high during initialisation.
-
-	-- Matthew
-
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+[1] http://gcc.gnu.org/bugzilla/show_bug.cgi?id=27363
