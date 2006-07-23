@@ -1,14 +1,14 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: Playing mp3 on OMAP5912 OSK
-Date: Fri, 21 Jul 2006 18:49:27 +0200
-Message-ID: <44C10597.3060208@gmail.com>
-References: <4477F81C.2000308@gmail.com> <447B06A5.6020500@indt.org.br>
-	<447C76AB.8040901@gmail.com> <447C8682.8060201@gmail.com>
+Subject: Re: [RFC] Snapshot boot for OSK5912
+Date: Sun, 23 Jul 2006 17:10:39 +0200
+Message-ID: <44C3916F.50104@gmail.com>
+References: <20060711.200452.92582959.kaminaga@sm.sony.co.jp>	<44B3FED8.8030309@gmail.com>
+	<20060712.094055.104034060.kaminaga@sm.sony.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <447C8682.8060201@gmail.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20060712.094055.104034060.kaminaga@sm.sony.co.jp>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,61 +16,31 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Dirk Behme wrote:
-> Dirk Behme wrote:
+Hiroki Kaminaga wrote:
+> From: Dirk Behme <dirk.behme@googlemail.com>
 > 
->> Anderson Briglia wrote:
+>>>The purpose of this is to achieve faster startup time of linux on
+>>>OSK5912.
 >>
->>> I tested the ALSA driver presented in the latest git tree and madplay 
->>> is working properly.
->>
->>
->>>> output: ioctl(SNDCTL_DSP_SYNC): Invalid argument
->>
->>
->> Seems that this becomes strange. I used Anderson's madplay, libmad and 
->> .mp3 for tests. Anderson's mp3 is 44.1 kHz as well, so this shouldn't 
->> be the issue. My kernel sound configuration seems to be okay as well. 
->> But even with Anderson's binaries I get the ioctl error above. So last 
->> thing I can imagine is other kernel configuration.
+>>Do you have any startup time comparisons?
+>  
+> Just created new section, and uploaded log.
+> Please refer.
 > 
-> 
-> For the archive and fyi answering to myself:
-> 
-> Here's my 'what it is not' list:
-> 
-> - madplay binaries and libraries are okay
-> - mp3 is okay
-> - playing over NFS is okay
-> - kernel config is okay
-> 
-> And now? Toolchain!
-> 
-> Compiling kernel with my old 3.4.1 gcc: madplay doesn't complain any 
-> more. Compiling kernel with my newer 4.1.0 with same config and same 
-> binaries: madplay fails. Haven't seen any other issues with my 4.1.0 
-> yet, no error, failure, nothing.
-> 
-> Will see if I find time to investigate this further. Built my 4.1.0 with 
-> crosstool-0.42 and crosstool's
-> 
-> eval `cat arm.dat gcc-4.1.0-glibc-2.3.2.dat`  sh all.sh --notest
-> 
-> configuration.
+> http://tree.celinuxforum.org/CelfPubWiki/SuspendToDiskForARM#head-7a6bbbfe98bd0d9f9804d60abcdc9f36217ee099
 
-For the archive: Seems that this [1] is fixed with
+Just fyi: The proceedings of this years Linux Symposium are 
+online [1]. Volume two contains a paper from Hiroki Kaminaga 
+"Improving Linux Startup Time Using Software Resume (and 
+other techniques)"
 
-http://gcc.gnu.org/viewcvs/branches/gcc-4_1-branch/gcc/cse.c?r1=115620&r2=115619&pathrev=115620
-
-Many thanks to Paul Brook!
-
-Regards
+Cheers
 
 Dirk
 
-[1] http://gcc.gnu.org/bugzilla/show_bug.cgi?id=27363
+[1] http://www.linuxsymposium.org/2006/proceedings.php
