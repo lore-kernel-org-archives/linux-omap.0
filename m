@@ -1,11 +1,13 @@
-From: lizette sanglay <moonpools2003@yahoo.com>
-Subject: OMAP5912 Writing to nor flash
-Date: Tue, 25 Jul 2006 12:39:08 +0100 (BST)
-Message-ID: <20060725113908.8195.qmail@web60424.mail.yahoo.com>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: Re: Require help to understand linux device drivers.
+Date: Tue, 25 Jul 2006 04:53:39 -0700 (PDT)
+Message-ID: <20060725115339.80196.qmail@web37910.mail.mud.yahoo.com>
+References: <20060725104728.467FBCC054@pf2.intervideo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20060725104728.467FBCC054@pf2.intervideo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,15 +17,34 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: Taru Varshney <taru.varshney@intervideo.com>, Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-   
-  I am Lizette. I have been using OMAP5912 and am trying to write to the Nor Flash throught the emifs on linux. I used the mmap function to access the physical memory of the flash.I was able to erase and read from the flash but when I write, I get 0s as read-back. Does anyone know what the problem here is? Is there a caching issue when you use the mmap function to access the flash?
-   
-  Thanks!!
-   
-  Lizette 
+--- Taru Varshney <taru.varshney@intervideo.com> wrote:
 
- Send instant messages to your online friends http://uk.messenger.yahoo.com 
+> Is there any way out with anybody. Also pl. give info.
+> regarding the
+> site where I could be able to get the Linux kernel image to execute
+> on the
+> system.
+
+Based on your e-mail id, I am sure your company will have atleast
+OMAP2420 or OMAP2430 hardware to work with.
+
+For OMAP2420-H4 we have source available at
+http://source.mvista.com/git trees as well on TI supplied tarballs at
+http://linux.omap.com.
+
+For more information about Linux Kernel drivers articles you can check
+
+http://free-electrons.com
+http://www.lwn.net kernel section and 2.6.x driver porting articles.
+
+
+---Komal Shah
+http://komalshah.blogspot.com/
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
