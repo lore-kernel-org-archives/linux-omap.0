@@ -1,15 +1,11 @@
-From: Hiroki Kaminaga <kaminaga@sm.sony.co.jp>
-Subject: Re: [RFC] Snapshot boot for OSK5912
-Date: Wed, 26 Jul 2006 13:14:36 +0900 (JST)
-Message-ID: <20060726.131436.78702840.kaminaga@sm.sony.co.jp>
-References: <44B3FED8.8030309@gmail.com>
-	<20060712.094055.104034060.kaminaga@sm.sony.co.jp>
-	<44C3916F.50104@gmail.com>
+From: Mark Howell <mhowell@northlink.com>
+Subject: [PATCH] ARM: OMAP: mux: add config for 16xx SPI pins
+Date: Wed, 26 Jul 2006 14:03:40 -0700
+Message-ID: <44C7D8AC.7070505@northlink.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <44C3916F.50104@gmail.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,41 +13,58 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: dirk.behme@googlemail.com
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Dirk Behme <dirk.behme@googlemail.com>
-> Hiroki Kaminaga wrote:
-> > From: Dirk Behme <dirk.behme@googlemail.com>
-> > 
-> >>>The purpose of this is to achieve faster startup time of linux on
-> >>>OSK5912.
-> >>
-> >>Do you have any startup time comparisons?
-> >  
-> > Just created new section, and uploaded log.
-> > Please refer.
-> > 
-> > http://tree.celinuxforum.org/CelfPubWiki/SuspendToDiskForARM#head-7a6bbbfe98bd0d9f9804d60abcdc9f36217ee099
-> 
-> Just fyi: The proceedings of this years Linux Symposium are 
-> online [1]. Volume two contains a paper from Hiroki Kaminaga 
-> "Improving Linux Startup Time Using Software Resume (and 
-> other techniques)"
+This patch adds pin mux info for the SPI master/slave interface on 
+OMAP16xx. Data from OMAP 1611/1612 TRM and errata. Works for me on my 
+1611/H2 with current git kernel.
 
-Thank you for mentioning, I have uploaded slides used on wiki page.
-Please refer section 4 of below url.
+Signed-off-by: Mark Howell <mhowell@northlink.com>
 
-http://tree.celinuxforum.org/CelfPubWiki/OttawaLinuxSymposium2006
+-----
 
-Also, ols this year is collecting slides from presenters.
-I assume page with slides are coming shortly at ols web site.
-
-Best Regards,
-
-(Hiroki Kaminaga)
-t
---
+diff -ruNp -X linux-omap/Documentation/dontdiff linux-omap/arch/arm/mach-omap1/mux.c dev-linux-omap/arch/arm/mach-omap1/mux.c
+--- linux-omap/arch/arm/mach-omap1/mux.c	2006-07-26 13:16:11.000000000 -0700
++++ dev-linux-omap/arch/arm/mach-omap1/mux.c	2006-07-26 13:26:58.000000000 -0700
+@@ -200,6 +200,17 @@ MUX_CFG("N14_1610_UWIRE_CS0",	 8,    9, 
+ MUX_CFG("P15_1610_UWIRE_CS3",	 8,   12,    1,	  1,  22,   0,	  1,	 1,  1)
+ MUX_CFG("N15_1610_UWIRE_CS1",	 7,   18,    2,	  1,  14,   0,	 NA,	 0,  1)
+ 
++/* OMAP-1610 SPI */
++MUX_CFG("U19_1610_SPIF_SCK",	 7,    21,   6,	  1,  15,   0,	  1,	 1,  1)
++MUX_CFG("U18_1610_SPIF_DIN",	 8,    0,    6,	  1,  18,   1,	  1,	 0,  1)
++MUX_CFG("P20_1610_SPIF_DIN",	 6,    27,   4,   1,   7,   1,    1,     0,  1)
++MUX_CFG("W21_1610_SPIF_DOUT",	 8,    3,    6,	  1,  19,   0,	  1,	 0,  1)
++MUX_CFG("R18_1610_SPIF_DOUT",	 7,    9,    3,	  1,  11,   0,	  1,	 0,  1)
++MUX_CFG("N14_1610_SPIF_CS0",	 8,    9,    6,	  1,  21,   0,	  1,	 1,  1)
++MUX_CFG("N15_1610_SPIF_CS1",	 7,    18,   6,	  1,  14,   0,	  1,	 1,  1)
++MUX_CFG("T19_1610_SPIF_CS2",	 7,    15,   4,	  1,  13,   0,	  1,	 1,  1)
++MUX_CFG("P15_1610_SPIF_CS3",	 8,    12,   3,	  1,  22,   0,	  1,	 1,  1)
++
+ /* OMAP-1610 Flash */
+ MUX_CFG("L3_1610_FLASH_CS2B_OE",10,    6,    1,	 NA,   0,   0,	 NA,	 0,  1)
+ MUX_CFG("M8_1610_FLASH_CS2B_WE",10,    3,    1,	 NA,   0,   0,	 NA,	 0,  1)
+diff -ruNp -X linux-omap/Documentation/dontdiff linux-omap/include/asm-arm/arch-omap/mux.h dev-linux-omap/include/asm-arm/arch-omap/mux.h
+--- linux-omap/include/asm-arm/arch-omap/mux.h	2006-07-26 13:16:15.000000000 -0700
++++ dev-linux-omap/include/asm-arm/arch-omap/mux.h	2006-07-26 13:20:22.000000000 -0700
+@@ -320,6 +320,17 @@ enum omap1xxx_index {
+ 	P15_1610_UWIRE_CS3,
+ 	N15_1610_UWIRE_CS1,
+ 
++	/* OMAP-1610 SPI */
++	U19_1610_SPIF_SCK,
++	U18_1610_SPIF_DIN,
++	P20_1610_SPIF_DIN,
++	W21_1610_SPIF_DOUT,
++	R18_1610_SPIF_DOUT,
++	N14_1610_SPIF_CS0,
++	N15_1610_SPIF_CS1,
++	T19_1610_SPIF_CS2,
++	P15_1610_SPIF_CS3,
++
+ 	/* OMAP-1610 Flash */
+ 	L3_1610_FLASH_CS2B_OE,
+ 	M8_1610_FLASH_CS2B_WE,
