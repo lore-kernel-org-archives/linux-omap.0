@@ -1,13 +1,13 @@
-From: "Ishigami, Tatsuya" <ishigami@ti.com>
-Subject: RE: [OT] Connectors for A and B buses on Innovator1510
-Date: Tue, 1 Aug 2006 04:18:26 -0500
-Message-ID: <772F5D89C5E0734B8A86D85DFC6A20240421B4CE@dlee03.ent.ti.com>
+From: Arnold <abo_gwapo@yahoo.com>
+Subject: Re: gpio Interrupt handling for omap5912
+Date: Tue, 1 Aug 2006 02:18:26 -0700 (PDT)
+Message-ID: <20060801091826.19862.qmail@web55804.mail.re3.yahoo.com>
+References: <44CDCBEA.3040703@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+In-Reply-To: <44CDCBEA.3040703@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,53 +17,76 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Lucas Vinicius Hartmann <lucas.hartmann@gmail.com>
-Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Lucas,
 
- Search "52760-1609" at www.molex.com
+Hi,
 
- # The original part seems obsolete, and you might
-want to check its replacements, too.
+I've been playing around the gpio. writing to pins. I
+encountered an error that is weird. Im not sure if
+this is cause by writing to a gpio. I tried several
+gpio pins but I still encountered an error. below is
+the error encountered:
+# ./gpio_test
+Opening gpio driver
+(OJ) Writing at pin = 49
+(OJ) Value of pin = 1
 
- You can try getting some "samples", or order through
+~ #
+~ #
+~ #
+~ #
+~ # ./gpio_test
+nfs: server 157.184.66.86 not responding, still trying
+NETDEV WATCHDOG: eth0: transmit timed out
+NETDEV WATCHDOG: eth0: transmit timed out
 
-	www.mouser.com
+Do Anyone knows whats wrong here? I have no idea why
+Im encountering this error.
 
- Regards,
- Ishigami
+Regards,
+OJ
 
------Original Message-----
-From: Lucas Vinicius Hartmann
-Sent: Tuesday, August 01, 2006 4:44 AM
-To: Linux-OMAP
-Subject: [OT] Connectors for A and B buses on Innovator1510
 
-Hello,
+--- Dirk Behme <dirk.behme@googlemail.com> wrote:
 
-I own a OMAP 1510 Innovator development kit, and I'd like to build a
-custom
-expansion board. For this, however, I need the connectors for A and B
-buses
-of the Innovator (the largest connectors on the boards). I heard they
-could
-be found under the specification "IEEE 1386 CMC Mezzanine Connector",
-but I
-could only find these on a 1mm pitch. The one on Innovator is smaller.
+> Arnold wrote:
+> > Anybody knows what interrupt number a gpio on
+> omap5912
+> > uses?
+> 
+> AFAIK interrupt numbers for GPIO start with 160 and
+> then are 
+> numbered starting with first GPIO bank and so on.
+> 
+> See include/asm-arm/arch-omap/irqs.h:
+> 
+> #define IH2_BASE           32
+> 
+> /* Max. 128 level 2 IRQs (OMAP1610), 192 GPIOs
+> (OMAP730) and
+>   * 16 MPUIO lines */
+> #define OMAP_MAX_GPIO_LINES     192
+> #define IH_GPIO_BASE            (128 + IH2_BASE)
+> #define IH_MPUIO_BASE           (OMAP_MAX_GPIO_LINES
+> + 
+> IH_GPIO_BASE)
+> #define IH_BOARD_BASE           (16 + IH_MPUIO_BASE)
+> 
+> Have a look to GPIO framework in gpio.c and its
+> usage in 
+> various files which can help you programming GPIO
+> stuff.
+> 
+> Cheers
+> 
+> Dirk
+> 
 
-Does anyone know if this specification is correct, or what is the
-correct
-one? Any supplyers (Brazil or worldwide)?
 
-Directions to another discussion list, were I should ask this, are also
-welcome.
-
-Sorry for the OT, and thanks.
---=20
-Lucas Vinicius Hartmann
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
