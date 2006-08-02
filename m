@@ -1,10 +1,13 @@
-From: "b.b.w" <rememberme_2000@126.com>
-Subject: hi,question about mtd partion with osk-board
-Date: Wed, 2 Aug 2006 09:22:05 +0800
-Message-ID: <000a01c6b5d2$11594320$410aa8c0@yfwangbaobin>
+From: Arnold <abo_gwapo@yahoo.com>
+Subject: NETDEV WATCHDOG
+Date: Tue, 1 Aug 2006 18:59:54 -0700 (PDT)
+Message-ID: <20060802015954.81185.qmail@web55808.mail.re3.yahoo.com>
+References: <44CF831E.5000403@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1180633116=="
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <44CF831E.5000403@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,30 +17,30 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+> P.S.: Ethernet interrupt is connected to GPIO 0 of
+> bank 0. 
+> So the NETDEV WATCHDOG stuff may come either because
+> you 
+> accidently touched anything what is necessary for
+> proper 
+> ethernet interrupt. Or the GPIO interrupt you are
+> dealing 
+> with is coming so often that there isn't enough time
+> for 
+> ethernet irq. 
 
-This is a multi-part message in MIME format.
+This problem occurs only if I stop the program. Which
+calls the omap_free_gpio. Does freeing the gpio pin be
+the cause of the problem?
 
---===============1180633116==
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+Thanks,
+OJ
 
-aGk6DQogVGhlIGJvYXJkIHdoaWNoIGkgdXNlZCBpcyBvc2stNTkxMi5ub3cgaSB3YW50IHRvIG1v
-dW50IGEgc21hbGxlciBmaWxlc3lzdGVtIGxvY2F0ZWQgaW4gdGhlIGZpcnN0IGZsYXNoIGNoaXAg
-d2hlbiB0aGUgYm9hcmQgaXMgcG93ZXJlZC5hbmQgaSBoYXZlIHRvIGNoYW5nZSB0aGUgYWRkcmVz
-cyBvZiBmaWxlc3lzdGVtLg0KIFRoZSBpbmZvcm1hdGlvbiBpIGdvdCBmcm9tIGludGVybmV0IHRv
-bGQgbWUgdG8gZG8gd2l0aCBtdGQgcGFydGlvbi4gYnV0IGknbSBzdGlsbCBjb25mdXNlZC4NCiAg
-ICB3aG8gY2FuIGdpdmUgbWUgc29tZSBpbmZvcm1hdGlvbiBtb3JlIQ0KICAgICAgICAgICAgICAg
-ICAgICB0aGFua3MNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHcuYi5i
-
---===============1180633116==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============1180633116==--
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
