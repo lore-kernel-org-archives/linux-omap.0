@@ -1,7 +1,9 @@
-From: "Richard Copeman" <richard.copeman@lauterbach.co.uk>
-Subject: NPTL on OMAP 5912
-Date: Thu, 3 Aug 2006 10:40:45 +0100
-Message-ID: <006c01c6b6e0$e5018750$642aa8c0@Buffy>
+From: "Harsha Jayaramaiah" <jharsha@ciber.com>
+Subject: Montavista on OMAP 5912 - Directory /opt/montavista/previewkit/lsp
+	missing
+Date: Thu, 3 Aug 2006 15:25:26 +0530
+Message-ID: <003e01c6b6e2$f4e859d0$6e02a8c0@HarshaJ>
+Reply-To: jharsha@ciber.com
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -19,25 +21,18 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi, 
+ 
+ After installing montavista linux we are not having
+/opt/montavista/previewkit/lsp/ti-omap5912_osk-previewkit-arm_v4t_le/lin
+ux-2.4.20_mvl31 directory.
+ 
+/opt/montavista/previewkit/lsp    itself is not present.
+ 
+Please let us know how to solve this problem.
+ 
+Regards,
+Harsha J
+
 
  
-
-I have a 2.6.15 kernel running on my 5912OSK board. Has anybody got the NPTL
-stuff working on here? Can someone point me at a getting started guide?
-
-I tried to figure out which version of threads my target supports:
-
-            Getconf GNU_LIBPTHREAD_VERSION
-
- But the command returned an empty string :-(
-
-I built my target with GCC 3.4.1 which I built using crosstool.
-
- 
-
-Thanks,
-
- 
-
-Richard.
