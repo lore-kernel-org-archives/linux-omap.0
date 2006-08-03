@@ -1,13 +1,13 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: GPMC timings for smc91x on 24xx (WAS: Pending July patches)
-Date: Thu, 3 Aug 2006 10:57:38 -0500
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A506F16C69@dlee02.ent.ti.com>
+From: =?ISO-8859-1?Q?Juha_Yrj=F6l=E4?= <juha.yrjola@solidboot.com>
+Subject: Re: GPMC timings for smc91x on 24xx (WAS: Pending July patches)
+Date: Thu, 03 Aug 2006 19:00:22 +0300
+Message-ID: <44D21D96.7080406@solidboot.com>
+References: <EA12F909C0431D458B9D18A176BEE4A506F16A6C@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A506F16A6C@dlee02.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,78 +17,71 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-> Sure if you take a snapshot of the code and hack it for your board for
-a
-> year the merge back to the current tree is a big pain. If you want to
-> merge something then, you need to allocate the resouces to do that.
+Woodruff, Richard wrote:
 
-We did make some effort at that time. Our resource window as defined at
-that time wasn't so big.  What we got was, we don't like this, and there
-should only be mach-omap directory and not mach-omap2.  Keeping it all
-in a shared structure at that time meant a higher bar of entry.  After
-more people outside of TI started working on it, it did eventually go to
-OMAP2 + Plat.
+> As far as 2420 vs. 2420POP vs. 2422 vs. 2423 unfortunately early chips
+> did not follow a common schema, later ones do, doing things which
+> captures them all can be messy.  The mechanism in the OMAP1 port was not
+> constructed to work with the multi-stage check which is now necessary.
+> This simple example highlights one basic issue.  The current level of
+> code sharing as the processors diverge can make it harder to add trivial
+> code with out breaking other ones.
 
-Practically speaking available time is limited.  Perhaps it needs to be
-more but those are not the parameters I set.
+Harder, sure, as in "requires more competence to do the initial work". 
+Any additional time spent on cleaning up the architecture is saved 
+several times over when the bug fixing and maintenance period starts, or 
+when support for yet new CPUs are added.  And besides, the more we move 
+into a more generic direction with the code, the easier it gets to add 
+support for new hardware, and bug fixes for generic code will benefit 
+all platforms.
 
-> Product vendors can certainly do their board specific hacks on the
-> common code. Who's saying you have to wait for something instead of
-> doing your own board specific hacks?
+The fact is that the community development model simply does not favor 
+branching the code.  I'd also argue that having several code bases does 
+not suit proprietary software development that well either, but that is 
+another matter altogether.
 
-No body waits.
+> This will slow the tree's adoption of new chips. It is hard to say
+ > what the sharing balance should be. If
+> chips have a long lifetime then code sharing at the low level seems 
+> pretty good, if they only live for a couple of years adding some
+> extra indirection and maintaining high levels of sharing in the old
+> ones starts to lose its value.
 
-Better aligning capabilities windows results in more functionality
-getting in.  Having working things evolving would seem to be better for
-many interests.
+Lifetime from whose point of view?  There are users who will be using 
+products based on current generation CPUs ten years from now.  The Linux 
+kernel still supports hardware and CPUs that existed back when the very 
+first version of the kernel was released.
 
-OMAP3 isn't so far off.  One of the side goals of my chip centric point
-of view is to look at how OMAP2 went and see if there are any factors
-which can make OMAP3 come in easier (aside from the obvious adding
-resources).  It is pretty safe to say there will be an OMAP3 directory,
-for some reason that wasn't an easy call for OMAP2.  By putting high
-coupling between the chips like was started in OMAP2 means things won't
-move well.
+> Production volume vendor time lines
+> and their compromises does force branching and fragmentation.
 
-> > One measure might be I know of several vendors in production of
-OMAP2
-> > chips for over a year using less well structured trees.  I don't
-think
-> > the same can happen from this tree yet.  Now, those less well
-structured
-> > trees many not have been able to exist with out a good branch off
-point
-> > which this tree provides...  balance...
->=20
-> Sure. Then go use your hacked 2.6.10 tree. If you're in a rush you
-must
-> use what's available and hack the available code for your board.
-However
-> somebody needs to look after the integration too. Hack and forget
-> attitude means duplicating the work over and over again. Think about
-> the MMC drivers Linux has seen for example: Because of lack of
-> coordination it was written 3 times for omap.
+Simply not true.  There are numerous examples of both silicon and device 
+volume vendors being able to do quality kernel code and in the end being 
+able to get the code merged into mainline without compromising schedules.
 
-Yes, that is true.  And the USB subsystem has been rewritten 3 times
-also.  In some sense that is the way of Linux and why it has evolved
-faster than others.  Like I lobbied it's a balance.
+> Perhaps one tree can not and should not meet all needs. Keeping high level
+> interface compatibly is really good the level of low level can be
+> less.
 
-> > Thanks for the good work.
->=20
-> Whatever. Rather thank Komal for all the good work on merging TI code.
+Linus' tree does seem to be doing a fairly good job of meeting almost 
+everyone's needs.  Branching the code is simply impossible from 
+maintenance point of view due to rapid development speed of the kernel. 
+  New features that also benefit the embedded people are added every 
+month, bugs and vulnerabilities are fixed daily.  Back-porting them to 
+older versions will start consuming more and more time until it just 
+becomes impossible.
 
-Generally we try and help where we can in this forum.  I do help Komal
-and you and others where I can.  Boards, data clarification, some
-code...
+> One measure might be I know of several vendors in production of OMAP2
+> chips for over a year using less well structured trees.
 
-I saw a 2430 patch recently which seemed reasonable which hasn't had
-many comments.  A little tweak here and there and it boots.  What holds
-such things back from being merged?  Many people benefit from it
-working.
+Too bad I don't remember seeing any OMAP2 patches from said vendors. 
+The end result is that each vendor will have to spend extra resources 
+implementing their drivers separately, with each driver having bugs of 
+their own.
 
-Regards,
-Richard W.
+Cheers,
+Juha
