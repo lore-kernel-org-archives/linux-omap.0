@@ -1,11 +1,12 @@
-From: Arnold <abo_gwapo@yahoo.com>
-Subject: Re: NETDEV WATCHDOG (additonal info)
-Date: Tue, 1 Aug 2006 23:41:31 -0700 (PDT)
-Message-ID: <20060802064131.52892.qmail@web55815.mail.re3.yahoo.com>
+From: "Richard Copeman" <richard.copeman@lauterbach.co.uk>
+Subject: NPTL on OMAP 5912
+Date: Thu, 3 Aug 2006 10:40:45 +0100
+Message-ID: <006c01c6b6e0$e5018750$642aa8c0@Buffy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,60 +14,30 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-How I end up having a system hang and NETDEV WATCHDOG
-error:
-
-1.)omap_request_gpio(2);
-2.)omap_set_gpio_direction(pin, DIRECTION_FOR_OUTPUT);
-3.)printk(" Writing at pin = %d\n",pin);
-4.)omap_set_gpio_dataout(2,1);
-5.)printk("Value of pin =
-%d\n",omap_get_gpio_datain(2));
-6.)omap_free_gpio(2);
-
-After this I'm encountering NETDEV WATCHDOG error.
-
---- Arnold <abo_gwapo@yahoo.com> wrote:
-
-> > P.S.: Ethernet interrupt is connected to GPIO 0 of
-> > bank 0. 
-> > So the NETDEV WATCHDOG stuff may come either
-> because
-> > you 
-> > accidently touched anything what is necessary for
-> > proper 
-> > ethernet interrupt. Or the GPIO interrupt you are
-> > dealing 
-> > with is coming so often that there isn't enough
-> time
-> > for 
-> > ethernet irq. 
- 
- This problem occurs only if I stop the program.
- Which
- calls the omap_free_gpio. Does freeing the gpio pin
- be
- the cause of the problem?
-
+Hi,
 
  
-> Thanks,
-> OJ
-> 
-> __________________________________________________
-> Do You Yahoo!?
-> Tired of spam?  Yahoo! Mail has the best spam
-> protection around 
-> http://mail.yahoo.com 
-> 
 
+I have a 2.6.15 kernel running on my 5912OSK board. Has anybody got the NPTL
+stuff working on here? Can someone point me at a getting started guide?
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+I tried to figure out which version of threads my target supports:
+
+            Getconf GNU_LIBPTHREAD_VERSION
+
+ But the command returned an empty string :-(
+
+I built my target with GCC 3.4.1 which I built using crosstool.
+
+ 
+
+Thanks,
+
+ 
+
+Richard.
