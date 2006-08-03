@@ -1,14 +1,13 @@
-From: "Richard Copeman" <richard.copeman@lauterbach.co.uk>
-Subject: RE: NPTL on OMAP 5912
-Date: Thu, 3 Aug 2006 16:15:16 +0100
-Message-ID: <00b601c6b70f$a08b1620$642aa8c0@Buffy>
-References: <20060803122348.GA23880@orphique>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: GPMC timings for smc91x on 24xx (WAS: Pending July patches)
+Date: Thu, 3 Aug 2006 10:57:38 -0500
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A506F16C69@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-reply-to: <20060803122348.GA23880@orphique>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,50 +15,80 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: 'Ladislav Michl' <MICHL@2n.cz>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+> Sure if you take a snapshot of the code and hack it for your board for
+a
+> year the merge back to the current tree is a big pain. If you want to
+> merge something then, you need to allocate the resouces to do that.
 
-Thanks for the pointers. Which shared objects do you include in your target
-filesystem?
+We did make some effort at that time. Our resource window as defined at
+that time wasn't so big.  What we got was, we don't like this, and there
+should only be mach-omap directory and not mach-omap2.  Keeping it all
+in a shared structure at that time meant a higher bar of entry.  After
+more people outside of TI started working on it, it did eventually go to
+OMAP2 + Plat.
 
-TIA,
+Practically speaking available time is limited.  Perhaps it needs to be
+more but those are not the parameters I set.
 
-Richard.
+> Product vendors can certainly do their board specific hacks on the
+> common code. Who's saying you have to wait for something instead of
+> doing your own board specific hacks?
 
------Original Message-----
-From: Ladislav Michl [mailto:MICHL@2n.cz] 
-Sent: 03 August 2006 13:24
-To: Richard Copeman
-Cc: linux-omap-open-source@linux.omap.com
-Subject: Re: NPTL on OMAP 5912
+No body waits.
 
-On Thu, Aug 03, 2006 at 10:40:45AM +0100, Richard Copeman wrote:
-> Hi,
-> 
-> I have a 2.6.15 kernel running on my 5912OSK board. Has anybody got the
-NPTL
-> stuff working on here? Can someone point me at a getting started guide?
+Better aligning capabilities windows results in more functionality
+getting in.  Having working things evolving would seem to be better for
+many interests.
 
-http://kegel.com/crosstool/
-I used hacked version 0.38 to build NTPLed toolchains. If you are not
-familiar with building toolchains you may want to use precompiled ones:
-http://www.codesourcery.com/gnu_toolchains/arm/
+OMAP3 isn't so far off.  One of the side goals of my chip centric point
+of view is to look at how OMAP2 went and see if there are any factors
+which can make OMAP3 come in easier (aside from the obvious adding
+resources).  It is pretty safe to say there will be an OMAP3 directory,
+for some reason that wasn't an easy call for OMAP2.  By putting high
+coupling between the chips like was started in OMAP2 means things won't
+move well.
 
-> I tried to figure out which version of threads my target supports:
-> 
->             Getconf GNU_LIBPTHREAD_VERSION
-> 
->  But the command returned an empty string :-(
-> 
-> I built my target with GCC 3.4.1 which I built using crosstool.
+> > One measure might be I know of several vendors in production of
+OMAP2
+> > chips for over a year using less well structured trees.  I don't
+think
+> > the same can happen from this tree yet.  Now, those less well
+structured
+> > trees many not have been able to exist with out a good branch off
+point
+> > which this tree provides...  balance...
+>=20
+> Sure. Then go use your hacked 2.6.10 tree. If you're in a rush you
+must
+> use what's available and hack the available code for your board.
+However
+> somebody needs to look after the integration too. Hack and forget
+> attitude means duplicating the work over and over again. Think about
+> the MMC drivers Linux has seen for example: Because of lack of
+> coordination it was written 3 times for omap.
 
-That's not enought recent gcc (unless you are using codesourcery patches).
-I'm using gcc-4.1.1, glibc-2.4 and binutils-2.17 sucessfuly.
+Yes, that is true.  And the USB subsystem has been rewritten 3 times
+also.  In some sense that is the way of Linux and why it has evolved
+faster than others.  Like I lobbied it's a balance.
 
-Best regards,
-	ladis
+> > Thanks for the good work.
+>=20
+> Whatever. Rather thank Komal for all the good work on merging TI code.
+
+Generally we try and help where we can in this forum.  I do help Komal
+and you and others where I can.  Boards, data clarification, some
+code...
+
+I saw a 2430 patch recently which seemed reasonable which hasn't had
+many comments.  A little tweak here and there and it boots.  What holds
+such things back from being merged?  Many people benefit from it
+working.
+
+Regards,
+Richard W.
