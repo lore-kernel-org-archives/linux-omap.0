@@ -1,11 +1,9 @@
 From: "b.b.w" <rememberme_2000@126.com>
-Subject: Re: Montavista on OMAP 5912 - Directory
-	/opt/montavista/previewkit/lspmissing
-Date: Fri, 4 Aug 2006 09:35:37 +0800
-Message-ID: <000c01c6b766$4af73520$410aa8c0@yfwangbaobin>
-References: <003e01c6b6e2$f4e859d0$6e02a8c0@HarshaJ>
+Subject: AboutTthe Filesys In Osk
+Date: Fri, 4 Aug 2006 10:48:25 +0800
+Message-ID: <001701c6b770$75f99970$410aa8c0@yfwangbaobin>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0712033802=="
+Content-Type: multipart/mixed; boundary="===============1995260081=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -16,42 +14,48 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: jharsha@ciber.com
-Cc: Linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============0712033802==
+
+This is a multi-part message in MIME format.
+
+--===============1995260081==
 Content-Type: text/plain;
-	charset="ISO-8859-1"
+	charset="gb2312"
 Content-Transfer-Encoding: base64
 
+aGk6DQogd2hlbiBpIHdhbnQgdG8gYnVpbGQgYSBqZmZzIGZpbGUgc3lzdGVtIG9uIHRoZSBvc2sg
+Ym9hcmQuDQpiZWNhdXNlIG9ubHkgdGhlIGZpcnN0IGZsYXNoIGNoaXAgaXMgd2VsbCBpbiBteSBi
+b2FyZC5pIGhhdmUgdG8gaW5zdGFsbA0KdGhlIGZpbGVzeXMgaW4gdGhlIGZpcnN0IGZsYXNoIGNo
+aXAuDQogbm93IGkgZGl2aWRlZCB0aGUgZmxhc2ggaW50byB0aHJlZSBwYXJ0cy4gMS51Ym9vdCAy
+Lmtlcm5lbCAzLmZpbGVzeXN0ZW0gDQoxLiBpIG1vZGlmeSB0aGUgb21hcC1mbGFzaC5jLigvbGlu
+dXgtMi40LjIwX212bDMxL2RyaXZlcnMvbXRkL21hcHMpIA0KICBmb3IgZXhhbXBsZToNCiBzdGF0
+aWMgc3RydWN0IG10ZF9wYXJ0aXRpb24gaW5ub3ZhdG9yX3BhcnRpdGlvbnNbXSA9IHsNCiB7DQog
+IC5uYW1lICA9ICJCb290TG9hZGVyIiwNCiAgLnNpemUgID0gMHgwMDAyMDAwMCwNCiAgLm9mZnNl
+dCAgPSAwLA0KICAubWFza19mbGFncyA9IE1URF9XUklURUFCTEUsICAvKiBmb3JjZSByZWFkLW9u
+bHkgKi8NCiAgfSwgew0KICAubmFtZSAgPSAiUGFyYW1zIiwNCiAgLnNpemUgID0gMHgwMDAyMDAw
+MCwNCiAgLm9mZnNldCAgPSBNVERQQVJUX09GU19BUFBFTkQsDQogIC5tYXNrX2ZsYWdzID0gTVRE
+X1dSSVRFQUJMRSwgIC8qIGZvcmNlIHJlYWQtb25seSAqLw0KICB9LCB7DQogIC5uYW1lICA9ICJL
+ZXJuZWwiLA0KICAuc2l6ZSAgPSAweDAwMjAwMDAwLA0KICAub2Zmc2V0ICA9IE1URFBBUlRfT0ZT
+X0FQUEVORCwNCiAgfSwgew0KICAubmFtZSAgPSAiRmxhc2gwIEZpbGVTeXMiLA0KICAuc2l6ZSAg
+PSAweDAwZGMwMDAwLA0KICAub2Zmc2V0ICA9IE1URFBBUlRfT0ZTX0FQUEVORCwNCiAgfSwgew0K
+ICAubmFtZSAgPSAiRmxhc2gxIEZpbGVTeXMiLA0KICAuc2l6ZSAgPSBNVERQQVJUX1NJWl9GVUxM
+LA0KICAub2Zmc2V0ICA9IE1URFBBUlRfT0ZTX0FQUEVORCwNCiAgfQ0KIH07DQogQ2hhbmdlIHRo
+ZSBzaXplIGFuZCBvZmZzZXQgYXMgeW91IHdhbnQuDQoyLmFmdGVyIHRoYXQNCiBpIHJlYnVpbGRl
+ZCB0aGUga2VybmVsIGFuZCBidXJuZWQgaW4gdGhlIGZsYXNoLg0KQm9vdCBpdCB3aXRoIG5mcyBm
+aWxlc3lzdGVtLg0KMy5pIGlucHV0IHRoZSBjb21tYW5kOg0KICAgICAgICAgICAgbW9yZSAvcHJv
+Yy9tdGQNCiB0aGUgaW5mb3JtYXRpb24gaSBnb3QgaXM6IA0KICAgICIgICAgIGRldjogICAgc2l6
+ZSAgIGVyYXNlc2l6ZSAgbmFtZSAgICINCiBpIGRvbid0IGdldCBhbnkgaW5mb3JtYXRpb24gYWJv
+dXQgbXRkMCBtdGQxIG10ZDIgLg0KDQoNCndobyBoYXMgdGhlIGV4cGVyaWNlcyBhYm91dCBpdD8g
+Z2l2ZSBtZSBhIGhhbmQuDQp0aGFua3MNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHcu
+Yi5iDQogICAgDQogICAgICAgICAgIA0K
 
-DQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJvbTogIkhhcnNoYSBKYXlhcmFtYWlh
-aCIgPGpoYXJzaGFAY2liZXIuY29tPg0KVG86IDxsaW51eC1vbWFwLW9wZW4tc291cmNlQGxpbnV4
-Lm9tYXAuY29tPg0KU2VudDogVGh1cnNkYXksIEF1Z3VzdCAwMywgMjAwNiA1OjU1IFBNDQpTdWJq
-ZWN0OiBNb250YXZpc3RhIG9uIE9NQVAgNTkxMiAtIERpcmVjdG9yeSAvb3B0L21vbnRhdmlzdGEv
-cHJldmlld2tpdC9sc3BtaXNzaW5nIA0KDQoNCj4gDQo+IEhpLCANCj4gIA0KPiAgQWZ0ZXIgaW5z
-dGFsbGluZyBtb250YXZpc3RhIGxpbnV4IHdlIGFyZSBub3QgaGF2aW5nDQo+IC9vcHQvbW9udGF2
-aXN0YS9wcmV2aWV3a2l0L2xzcC90aS1vbWFwNTkxMl9vc2stcHJldmlld2tpdC1hcm1fdjR0X2xl
-L2xpbg0KPiB1eC0yLjQuMjBfbXZsMzEgZGlyZWN0b3J5Lg0KPiAgDQo+IC9vcHQvbW9udGF2aXN0
-YS9wcmV2aWV3a2l0L2xzcCAgICBpdHNlbGYgaXMgbm90IHByZXNlbnQuDQo+ICANCj4gUGxlYXNl
-IGxldCB1cyBrbm93IGhvdyB0byBzb2x2ZSB0aGlzIHByb2JsZW0uDQo+ICANCmkgdGhpbmsgeW91
-IHNob3VsZCByZWFkIHRoZSBkb2N1bWVudCAgICBPTUFQNTkxMiBTYXJ0ZXIgS2l0IFVzZXIgR3Vp
-ZGUsY2FyZWZ1bGx5Lg0KIEluc3RhbGwgdGhlIHByZXZpZXcgc29mdCBraXQgYXMgdGhlIHVzZXIg
-Z3VpZGVyIHRvbGQgeW91Lg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgR29vZCBsdWNrDQo+IFJlZ2FyZHMsDQo+IEhhcnNoYSBKDQo+IA0KPiANCj4gIA0KPiBfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw0KPiBMaW51eC1vbWFw
-LW9wZW4tc291cmNlIG1haWxpbmcgbGlzdA0KPiBMaW51eC1vbWFwLW9wZW4tc291cmNlQGxpbnV4
-Lm9tYXAuY29tDQo+IGh0dHA6Ly9saW51eC5vbWFwLmNvbS9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
-LW9tYXAtb3Blbi1zb3VyY2UNCj4g
-
-
-
---===============0712033802==
+--===============1995260081==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---===============0712033802==--
+--===============1995260081==--
