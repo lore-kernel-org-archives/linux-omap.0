@@ -1,14 +1,15 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: NPTL on OMAP 5912
-Date: Fri, 4 Aug 2006 07:42:58 +0200
-Message-ID: <20060804054258.GA5329@orphique>
-References: <20060803122348.GA23880@orphique>
-	<00b601c6b70f$a08b1620$642aa8c0@Buffy>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] fix PWL macro names
+Date: Fri, 4 Aug 2006 13:37:44 +0300
+Message-ID: <20060804103743.GB26416@atomide.com>
+References: <fb249edb0606291210v45cd5bb5odf668ebbc98c3813@mail.gmail.com>
+	<20060703155952.GE3852@earth.li>
+	<fb249edb0607031920x1059bff9u62018712068599a0@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <00b601c6b70f$a08b1620$642aa8c0@Buffy>
+In-Reply-To: <fb249edb0607031920x1059bff9u62018712068599a0@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,37 +19,27 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Richard Copeman <richard.copeman@lauterbach.co.uk>
+To: balrogg@gmail.com
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 03, 2006 at 04:15:16PM +0100, Richard Copeman wrote:
-> Hi,
+* andrzej zaborowski <balrog@zabor.org> [060704 05:22]:
+> On 03/07/06, Jonathan McDowell <noodles@earth.li> wrote:
+> >On Thu, Jun 29, 2006 at 09:10:35PM +0200, andrzej zaborowski wrote:
+> >> Remove "16XX" from the names of PWL-related defines as they are valid
+> >> for other models as well.
+> >
+> >Move them out of omap16xx.h as well then? I'm in favour of this change
+> >though.
 > 
-> Thanks for the pointers. Which shared objects do you include in your target
-> filesystem?
+> Ok, patch attached.
+> I will do the same for UART3 defines later because they are used for
+> IrDA and I got the IrDA driver working on my OMAP311 with minor
+> changes (still testing).
 
-Depends on what you want to run. You may need more or less, it's easy to
-control it with PTXdist :-)
-http://www.pengutronix.de/software/ptxdist_en.html
+Pushing today. Please separate the core omap files and add a
+Signed-off-by next time as specified in:
 
--rwxr-xr-x 1 root root  136248 2006-06-29 15:48 ld-2.4.so
--rwxr-xr-x 1 root root 1116104 2006-06-29 15:48 libc-2.4.so
--rwxr-xr-x 1 root root   22016 2006-06-29 15:48 libcrypt-2.4.so
--rwxr-xr-x 1 root root    9908 2006-06-29 15:48 libdl-2.4.so
--rwxr-xr-x 1 root root   35728 2006-06-29 15:48 libgcc_s.so.1
--rwxr-xr-x 1 root root  453380 2006-06-29 15:48 libm-2.4.so
--rwxr-xr-x 1 root root   68176 2006-06-29 15:48 libnsl-2.4.so
--rwxr-xr-x 1 root root   26400 2006-06-29 15:48 libnss_compat-2.4.so
--rwxr-xr-x 1 root root   17952 2006-06-29 15:48 libnss_dns-2.4.so
--rwxr-xr-x 1 root root   38644 2006-06-29 15:48 libnss_files-2.4.so
--rwxr-xr-x 1 root root   18008 2006-06-29 15:48 libnss_hesiod-2.4.so
--rwxr-xr-x 1 root root   34640 2006-06-29 15:48 libnss_nis-2.4.so
--rwxr-xr-x 1 root root   42744 2006-06-29 15:48 libnss_nisplus-2.4.so
--rwxr-xr-x 1 root root   70828 2006-06-29 15:48 libpthread-2.4.so
--rwxr-xr-x 1 root root   63620 2006-06-29 15:48 libresolv-2.4.so
--rwxr-xr-x 1 root root   27128 2006-06-29 15:48 librt-2.4.so
--rwxr-xr-x 1 root root   26988 2006-06-29 15:48 libthread_db-1.0.so
--rwxr-xr-x 1 root root    9812 2006-06-29 15:48 libutil-2.4.so
+http://www.muru.com/linux/omap/README_OMAP_PATCHES
 
-	ladis
+Tony
