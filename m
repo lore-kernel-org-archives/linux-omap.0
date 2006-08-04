@@ -1,14 +1,14 @@
-From: Jonathan McDowell <noodles@earth.li>
-Subject: [PATCH] ARM: OMAP: Fix lcd_ams_delta to use new PWL defines
-Date: Fri, 4 Aug 2006 14:20:35 +0100
-Message-ID: <20060804132035.GG17406@earth.li>
-References: <20060803111721.GH8661@atomide.com>
-	<20060803120858.53676.qmail@web37909.mail.mud.yahoo.com>
+From: lamikr <lamikr@cc.jyu.fi>
+Subject: Re: Pending July patches
+Date: Fri, 04 Aug 2006 17:40:28 +0300
+Message-ID: <44D35C5C.8060602@cc.jyu.fi>
+References: <20060803111721.GH8661@atomide.com>	<20060803120858.53676.qmail@web37909.mail.mud.yahoo.com>
 	<20060804110530.GC26416@atomide.com>
+Reply-To: lamikr@cc.jyu.fi
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="jozmn01XJZjDjM3N"
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 In-Reply-To: <20060804110530.GC26416@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -17,65 +17,86 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+It would be nice if somebody could test the functionality of usbnet and
+mmc/sd with omap1 devices (omap1510)
+before tagging. I got the lcd working by using the fixes now already
+applied to OMAP kernel but both the MMC/SD
+and usbnet failed to work at least for me & h6300.
+(2.6.16 kernel worked ok.)
 
---jozmn01XJZjDjM3N
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I can also try to test again these but for me it will go over the weekend...
 
-On Fri, Aug 04, 2006 at 02:05:31PM +0300, Tony Lindgren wrote:
- 
+Mika
+
+Tony Lindgren wrote:
+> Hi all,
+>
 > I've pushed some patches. Does anybody else have patches that should go in
 > before I tag 2.6.17-omap2?
-
-The attached is necessary to move the Amstrad Delta LCD driver over to
-the new PWL defines that have been pushed.
-
-Signed-Off-By: Jonathan McDowell <noodles@earth.li>
-
-J.
-
--- 
-/-\                             |   noodles is a quick meal that is
-|@/  Debian GNU/Linux Developer |               healthy
-\-                              |
-
---jozmn01XJZjDjM3N
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="ams-delta-lcd-pwl-fix.diff"
-
---- drivers/video/omap/lcd_ams_delta.c.orig	2006-08-04 14:16:22.000000000 +0100
-+++ drivers/video/omap/lcd_ams_delta.c	2006-08-04 14:17:59.000000000 +0100
-@@ -29,7 +29,7 @@
- #include <asm/io.h>
- 
- #include <asm/arch/board-ams-delta.h>
--#include <asm/arch/omap16xx.h>
-+#include <asm/arch/hardware.h>
- #include <asm/arch/omapfb.h>
- 
- #define AMS_DELTA_DEFAULT_CONTRAST	112
-@@ -51,8 +51,8 @@ static int ams_delta_panel_enable(struct
- 	ams_delta_latch2_write(AMS_DELTA_LATCH2_LCD_VBLEN,
- 			AMS_DELTA_LATCH2_LCD_VBLEN);
- 
--	omap_writeb(1, OMAP16XX_PWL_CLK_ENABLE);
--	omap_writeb(AMS_DELTA_DEFAULT_CONTRAST, OMAP16XX_PWL_ENABLE);
-+	omap_writeb(1, OMAP_PWL_CLK_ENABLE);
-+	omap_writeb(AMS_DELTA_DEFAULT_CONTRAST, OMAP_PWL_ENABLE);
- 
- 	return 0;
- }
-
---jozmn01XJZjDjM3N
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---jozmn01XJZjDjM3N--
+>
+>  Here's the current status:
+>
+> 1. [PATCH] fix PWL macro names
+> http://linux.omap.com/pipermail/linux-omap-open-source/2006-July/007503.html
+>
+> Pushed.
+>
+> 2. [PATCH] ARM: OMAP: Fix missing channel using
+> omap_set_dma_priority()
+> http://linux.omap.com/pipermail/linux-omap-open-source/2006-July/007508.html
+>
+> Note: Needs check if channel 0 is really okay for OMAP24xx.
+>
+> This gets only called for omap1, channel does not matter. Pushed.
+>
+> 3. ARM: OMAP: omapfb: Fix 444 mode after recent LCD changes
+> http://linux.omap.com/pipermail/linux-omap-open-source/2006-July/007525.html
+>
+> Pushed.
+>
+> 4. [PATCH] ARM: OMAP: omapfb: Add Amstrad Delta LCD driver
+> http://linux.omap.com/pipermail/linux-omap-open-source/2006-July/007526.html
+>
+> Pushed.
+>
+> 5. 2420 boot BUG(): failure to map SRAM
+> http://linux.omap.com/pipermail/linux-omap-open-source/2006-July/007578.html
+>
+> Pushed.
+>
+> 6.[PATCH] ARM: OMAP: mux: add config for 16xx SPI pins
+> http://linux.omap.com/pipermail/linux-omap-open-source/2006-July/007596.html
+>
+> Pushed.
+>
+> 7. [PATCH] ARM: OMAP: Apollon MMC support using OMAP2 MMC interface
+> http://linux.omap.com/pipermail/linux-omap-open-source/2006-June/007373.html
+>
+> Pushed.
+>
+> 8. [PATCH] ARM: OMAP: LEDs dirver support
+> http://linux.omap.com/pipermail/linux-omap-open-source/2006-June/007478.html
+>
+> Pushed.
+>
+> 9. [PATCH] USB device support on OMAP2
+> http://linux.omap.com/pipermail/linux-omap-open-source/2006-June/007471.html
+>
+> Not pushed yet, need to leave out MMC code out of the patch and test
+> first.
+>
+> Regards,
+>
+> Tony
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
+>   
