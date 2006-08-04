@@ -1,10 +1,13 @@
-From: "b.b.w" <rememberme_2000@126.com>
-Subject: AboutTthe Filesys In Osk
-Date: Fri, 4 Aug 2006 10:48:25 +0800
-Message-ID: <001701c6b770$75f99970$410aa8c0@yfwangbaobin>
+From: Arnold <abo_gwapo@yahoo.com>
+Subject: Re: gpio Interrupt handling for omap5912
+Date: Thu, 3 Aug 2006 19:49:47 -0700 (PDT)
+Message-ID: <20060804024947.80936.qmail@web55802.mail.re3.yahoo.com>
+References: <44D1C3AF.5010004@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1995260081=="
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <44D1C3AF.5010004@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,50 +15,132 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi Dirk,
 
-This is a multi-part message in MIME format.
+> In your first mail you asked for a description/spec
+> how to 
+> program GPIO. Maybe you can now write a short howto
+> how to 
+> program and use GPIO API and send it to the list?
+> Then the 
+> result of our discussion can be helpful for others
+> as well. 
+> Giving something back to the community must not be
+> code or 
+> patches, it can be documentation as well.
+ 
+Here's the a little of what I know on howto for gpio.
+There may be an error, so feel free to edit/modify.
 
---===============1995260081==
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+GPIO API's How To.
 
-aGk6DQogd2hlbiBpIHdhbnQgdG8gYnVpbGQgYSBqZmZzIGZpbGUgc3lzdGVtIG9uIHRoZSBvc2sg
-Ym9hcmQuDQpiZWNhdXNlIG9ubHkgdGhlIGZpcnN0IGZsYXNoIGNoaXAgaXMgd2VsbCBpbiBteSBi
-b2FyZC5pIGhhdmUgdG8gaW5zdGFsbA0KdGhlIGZpbGVzeXMgaW4gdGhlIGZpcnN0IGZsYXNoIGNo
-aXAuDQogbm93IGkgZGl2aWRlZCB0aGUgZmxhc2ggaW50byB0aHJlZSBwYXJ0cy4gMS51Ym9vdCAy
-Lmtlcm5lbCAzLmZpbGVzeXN0ZW0gDQoxLiBpIG1vZGlmeSB0aGUgb21hcC1mbGFzaC5jLigvbGlu
-dXgtMi40LjIwX212bDMxL2RyaXZlcnMvbXRkL21hcHMpIA0KICBmb3IgZXhhbXBsZToNCiBzdGF0
-aWMgc3RydWN0IG10ZF9wYXJ0aXRpb24gaW5ub3ZhdG9yX3BhcnRpdGlvbnNbXSA9IHsNCiB7DQog
-IC5uYW1lICA9ICJCb290TG9hZGVyIiwNCiAgLnNpemUgID0gMHgwMDAyMDAwMCwNCiAgLm9mZnNl
-dCAgPSAwLA0KICAubWFza19mbGFncyA9IE1URF9XUklURUFCTEUsICAvKiBmb3JjZSByZWFkLW9u
-bHkgKi8NCiAgfSwgew0KICAubmFtZSAgPSAiUGFyYW1zIiwNCiAgLnNpemUgID0gMHgwMDAyMDAw
-MCwNCiAgLm9mZnNldCAgPSBNVERQQVJUX09GU19BUFBFTkQsDQogIC5tYXNrX2ZsYWdzID0gTVRE
-X1dSSVRFQUJMRSwgIC8qIGZvcmNlIHJlYWQtb25seSAqLw0KICB9LCB7DQogIC5uYW1lICA9ICJL
-ZXJuZWwiLA0KICAuc2l6ZSAgPSAweDAwMjAwMDAwLA0KICAub2Zmc2V0ICA9IE1URFBBUlRfT0ZT
-X0FQUEVORCwNCiAgfSwgew0KICAubmFtZSAgPSAiRmxhc2gwIEZpbGVTeXMiLA0KICAuc2l6ZSAg
-PSAweDAwZGMwMDAwLA0KICAub2Zmc2V0ICA9IE1URFBBUlRfT0ZTX0FQUEVORCwNCiAgfSwgew0K
-ICAubmFtZSAgPSAiRmxhc2gxIEZpbGVTeXMiLA0KICAuc2l6ZSAgPSBNVERQQVJUX1NJWl9GVUxM
-LA0KICAub2Zmc2V0ICA9IE1URFBBUlRfT0ZTX0FQUEVORCwNCiAgfQ0KIH07DQogQ2hhbmdlIHRo
-ZSBzaXplIGFuZCBvZmZzZXQgYXMgeW91IHdhbnQuDQoyLmFmdGVyIHRoYXQNCiBpIHJlYnVpbGRl
-ZCB0aGUga2VybmVsIGFuZCBidXJuZWQgaW4gdGhlIGZsYXNoLg0KQm9vdCBpdCB3aXRoIG5mcyBm
-aWxlc3lzdGVtLg0KMy5pIGlucHV0IHRoZSBjb21tYW5kOg0KICAgICAgICAgICAgbW9yZSAvcHJv
-Yy9tdGQNCiB0aGUgaW5mb3JtYXRpb24gaSBnb3QgaXM6IA0KICAgICIgICAgIGRldjogICAgc2l6
-ZSAgIGVyYXNlc2l6ZSAgbmFtZSAgICINCiBpIGRvbid0IGdldCBhbnkgaW5mb3JtYXRpb24gYWJv
-dXQgbXRkMCBtdGQxIG10ZDIgLg0KDQoNCndobyBoYXMgdGhlIGV4cGVyaWNlcyBhYm91dCBpdD8g
-Z2l2ZSBtZSBhIGhhbmQuDQp0aGFua3MNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHcu
-Yi5iDQogICAgDQogICAgICAgICAgIA0K
+INCLUDE
+#include <asm/arch/gpio.h>
 
---===============1995260081==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I. GPIO Modules/Banks
+        A.) GPIO MODULE/BANK 0 - PIN  0-15
+        B.) GPIO MODULE/BANK 1 - PIN 16-31
+        C.) GPIO MODULE/BANK 2 - PIN 32-47
+        D.) GPIO MODULE/BANK 3 - PIN 48-63
+
+II. GPIO API's
+A.) omap_request_gpio(int gpio)
+     Description:
+     Parameter:
+     > int gpio - GPIO PIN (Pin 0-63)
+     Note:
+     >Using this function, you dont have to worry
+about
+       banks/modules where the gpio pin is.
+B.) omap_set_gpio_direction(int gpio, int is_input)
+    Description:
+     > This function is responsible for setting the
+       gpio pin direction(input or output).
+    Parameter:
+     > int gpio - GPIO PIN (Pin 0-63)
+     > int is_input - pin direction (0=output,
+1=input)
+
+C.) omap_set_gpio_dataout(int gpio, int enable)
+    Description:
+     > This function is responsible for writing to a  
+                 pin.
+    Parameter:
+     > int gpio - GPIO PIN (Pin 0-63)
+     > int enable - pin value (0 or 1)
+D.) omap_get_gpio_datain(int gpio)
+    Description:
+    > This function is responsible for reading pin
+values.
+    Parameter:
+    > int gpio - GPIO PIN (Pin 0-63)
+E.) omap_free_gpio(int gpio)
+    Description:
+    > This function is responsible for freeing the pin
+used.
+    Parameter:
+    > int gpio - GPIO PIN (Pin 0-63)
+F.) OMAP_GPIO_IRQ(int gpio)
+    Description:
+    > Returns the Interrupt number for the specified
+gpio pin.
+    Parameter:
+    > int gpio - GPIO PIN (Pin 0-63)
+G.) set_irq_type(unsigned int irq, unsigned int type)
+    Description:
+    > This function is responsible for setting the
+type of interrupt(RISING or FALLING).
+    Parameter:
+    > unsigned int irq - The interrupt number for the
+gpio pin.
+    > unsigned int type - (IRQT_RISING = rising,
+IRQT_FALLING= falling)
 
 
---===============1995260081==--
+Example:
+1.) Writing to gpio pin#3 a value 1. and reading the
+value of gpio pin#3.
+        Request for gpio pin
+                omap_request_gpio(3);
+        Writing a 1 to gpio pin # 3:
+                omap_set_gpio_direction(3,0);
+                omap_set_set_dataout(3,1);
+        Reading the value of pin # 3;
+                ret = omap_get_datain(3);
+                printk("value of pin # 3 = %d\n",ret);
+        Freeing gpio pin # 3;
+                omap_free_gpio(3);
+
+2.) Interrupt
+        Request for gpio pin
+                omap_request_gpio(3);
+        Setting up pin for interrupt
+         omap_set_gpio_direction(3,0);
+         set_irq_type(OMAP_GPIO_IRQ(3),IRQT_RISING);  
+    
+         request_irq(OMAP_GPIO_IRQ(3),(void
+*)&my_int_handler,SA_SHIRQ,....);
+        Freeing interrupt and gpio pin
+                free_irq(OMAP_GPIO_IRQ(3),&id);
+                omap_free_gpio(3);
+
+
+I dont know if this will help. Thanks for all the
+help.
+
+Regards,
+OJ
+
+
+
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
