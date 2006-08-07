@@ -1,12 +1,14 @@
-From: "Anant Malewar" <anantm@motechsoftware.com>
-Subject: Write to file
-Date: Mon, 7 Aug 2006 18:13:17 +0530
-Message-ID: <AOEAJEHKCJCLCFFMGNFDEEGICGAA.anantm@motechsoftware.com>
+From: "Sergey Vointsev" <vointsev@gmail.com>
+Subject: Re: Write to file
+Date: Mon, 7 Aug 2006 16:58:29 +0400
+Message-ID: <9713be7f0608070558g7be2c6c2hafdf0a76cd5298a@mail.gmail.com>
+References: <AOEAJEHKCJCLCFFMGNFDEEGICGAA.anantm@motechsoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <AOEAJEHKCJCLCFFMGNFDEEGICGAA.anantm@motechsoftware.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,24 +16,17 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-  I have an OSK 5912 rev C board. I am able to boot it and mount the
-filesystem over NFS. My application needs to write some data in a file. But
-the filesystem is read only (/ is mounted as read only). What do I need to
-do to make my application write to a file so that I will be able to read
-this file it on my host PC?
+Hi, Anant!
 
-Regards,
-Anant
+Why your application can't write the same directory where it is
+located? You run application from NFS, right?
+If you really need to remount root file system to RW, you can use the
+following command
+mount -n -o remount /
 
-
-
-
--------------------------------------------------------------------------------------------------------------------------------
-DISCLAIMER:
-This message (Including any attachments) is confidential and is intended only for the addressee. All MoTech Software mails and attachments are scanned for all known viruses at the time of transmission. However, please scan the mail and attachments for viruses before opening or downloading from this transmission. We will not accept any liability for damages through virus. If you are not the intended recipient or received this message by mistake, please notify the sender by E-mail & delete the message from the system. Any unauthorized use or dissemination of the message in whole or part is strictly prohibited.
+Sergey.
