@@ -1,15 +1,15 @@
-From: "LIMITED Nguyen Duong Thanh (CR/AEM Praktikant)" <DuongThanh.Nguyen@de.bosch.com>
-Subject: AW: Write to file
-Date: Tue, 8 Aug 2006 09:19:42 +0200
-Message-ID: <B3FDBBC0428C8145A83F312B740CE67D075831@si-mail48.de.bosch.com>
+From: "Sergey Vointsev" <vointsev@gmail.com>
+Subject: Re: Write to file
+Date: Tue, 8 Aug 2006 12:25:43 +0400
+Message-ID: <9713be7f0608080125r5f6e992fi30ad23287381ff30@mail.gmail.com>
 References: <9713be7f0608070558g7be2c6c2hafdf0a76cd5298a@mail.gmail.com>
+	<B3FDBBC0428C8145A83F312B740CE67D075831@si-mail48.de.bosch.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <9713be7f0608070558g7be2c6c2hafdf0a76cd5298a@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <B3FDBBC0428C8145A83F312B740CE67D075831@si-mail48.de.bosch.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,46 +17,33 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Sergey Vointsev <vointsev@gmail.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+Hi, Nguyen!
 
-I have the same problem. I have a application write by C language, and i =
-have to read and write files on system. But now I cross compiler it to =
-run on OMAP5912, but it doesn't work anymore.=20
+As I understand, there aren't some special commands for read/write
+files on OMAP. At least the following simple program worked fine on
+both my desktop and my OSK5912:
 
-Can somebody tell me, that what can I do to read and write the files on =
-the OMAP system, either I use the NFS or use the JFFS filesystems.=20
+********************
+#include <stdio.h>
+int main()
+{
+	FILE *f;
+	f = fopen ("/tmp/testfile","a+");
+	fprintf (f,"Hello! \n");
+	fclose (f);
+	return 0;
+}
+********************
 
-Very Thanks and have a nice day
-
-Nguyen
-
-P/S: sorry about my English.
-
------Urspr=FCngliche Nachricht-----
-Von: =
-linux-omap-open-source-bounces+duongthanh.nguyen=3Dde.bosch.com@linux.oma=
-p.com =
-[mailto:linux-omap-open-source-bounces+duongthanh.nguyen=3Dde.bosch.com@l=
-inux.omap.com] Im Auftrag von Sergey Vointsev
-Gesendet: Montag, 7. August 2006 14:58
-An: linux-omap-open-source@linux.omap.com
-Betreff: Re: Write to file
-
-Hi, Anant!
-
-Why your application can't write the same directory where it is
-located? You run application from NFS, right?
-If you really need to remount root file system to RW, you can use the
-following command
-mount -n -o remount /
+I have rootfs mounted via NFS, but I believe it doesn't really matter.
+So you should check the following things:
+1. is your filesystem mounted in rw mode or only for reading
+2. does you program have permissons (chmod/chown I mean) for writing
+to the directory you use
 
 Sergey.
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
