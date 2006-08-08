@@ -1,18 +1,11 @@
-From: "andrzej zaborowski" <balrog@zabor.org>
-Subject: Re: Pending July patches
-Date: Tue, 8 Aug 2006 03:30:58 +0200
-Message-ID: <fb249edb0608071830x5035afd3y4b993a16d578f688@mail.gmail.com>
-References: <20060803111721.GH8661@atomide.com>
-	<20060803120858.53676.qmail@web37909.mail.mud.yahoo.com>
-	<20060804110530.GC26416@atomide.com> <44D35C5C.8060602@cc.jyu.fi>
-	<20060807152344.GH10387@atomide.com> <44D7D332.3050101@cc.jyu.fi>
-Reply-To: balrogg@gmail.com
+From: "b.b.w" <rememberme_2000@126.com>
+Subject: Re: hi,question about mtd partion with osk-board
+Date: Tue, 8 Aug 2006 10:05:45 +0800
+Message-ID: <001301c6ba8f$2981a610$410aa8c0@yfwangbaobin>
+References: <B3FDBBC0428C8145A83F312B740CE67D07582F@si-mail48.de.bosch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <44D7D332.3050101@cc.jyu.fi>
-Content-Disposition: inline
+Content-Type: multipart/mixed; boundary="===============0755023086=="
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,66 +13,53 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: lamikr@cc.jyu.fi
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "LIMITED Nguyen Duong Thanh (CR/AEM Praktikant)" <DuongThanh.Nguyen@de.bosch.com>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On 08/08/06, lamikr <lamikr@cc.jyu.fi> wrote:
-> Tony Lindgren wrote:
-> > * lamikr <lamikr@cc.jyu.fi> [060804 17:40]:
-> >> It would be nice if somebody could test the functionality of usbnet and
-> >> mmc/sd with omap1 devices (omap1510)
-> >> before tagging. I got the lcd working by using the fixes now already
-> >> applied to OMAP kernel but both the MMC/SD
-> >> and usbnet failed to work at least for me & h6300.
-> >> (2.6.16 kernel worked ok.)
-> >>
-> >> I can also try to test again these but for me it will go over the
-> weekend...
-> >
-> > No patches so I tagged it already :)
-> Well, I suppose2.6.17-omap2 tag means that it works with omap2 devices :-)
->
-> I tried that with my h6340 that but unfortunately I could not find fix
-> for the usbnet and MMC/SD card problems.
-> So it probably means that they are failing also for other OMAP1 devices?
->
-> I tested usbnet both with the DMA enabled and disabled in omap_udc.c
-> (#define USE_DMA / #undef USE_DMA) and with both of the options
-> the usb link was not created to my desktop.
-> I also tried to mount both the "Kingston Elite Pro 512 MB" SD card and
-> San Disk 256 MB RC-MMC MMC cards without success.
->
-> With 2.6.16 kernel, both the SD, MMC cards were working as well as the
-> usbnet.
-> Any idea, which would be the best place to add debug in in the MMC/SD
-> card subsystem to get more info?
+--===============0755023086==
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: base64
 
-Try enabling CONFIG_MMC_DEBUG in the config, it should give at least
-some basic info, e.g. what commands are sent to the card and what
-error they give (timeouts, crc..).
 
-Personally I didn't have problems with MMC/SD support on OMAP1 with
-current git, except the 2GB and 4GB cards (but we have a workaround
-for those). Instead I see strange things happen with the LCD -- It
-takes about 1 second to initialise (in 2.6.16 you couldn't notice
-this) and for some reason I had to change the .pixclock field from
-12500 to 29000. The weird part is that it's not anything in the LCD
-driver because I reverted this driver alone to 2.6.16 and nothing
-changed. I will be investigating this.
+SGVsbG8sTmd1eWVuDQpUaGFua3MgdG8gZ2V0IHlvdXIgaGVscC4gYnV0ICBpIGNhbid0IGdldCB0
+aGUgaG9tcGFnZShodHRwOi8vb3NrZm9yZHVtbWllcy5ocC5pbmZvc2Vlay5jby5qcC9ob3d0by9m
+bGFzaF9mcy5odG1sKSwgaSBkb24ndCBrbm93IHRoZSByZWFzb24gLm1heWJlIHRoZSB3ZWJzaXRl
+IGlzIGZvcmJpZGRlZCBieSBwb2xpY2VtYW4gKGknbSBzb3JyeSB3ZSBkb24ndCBoYXZlIGVub3Vn
+aCBmcmVlZG9tIHRvIGdldCBhbnkgd2Vic2l0ZSkuDQogV291bGQgeW91IGxpa2Ugc2VuZCBtZSAg
+dGhlIGNvbnRlbnQgb2YgdGhlIGhvbWVwYWdlLmh0dHA6Ly9vc2tmb3JkdW1taWVzLmhwLmluZm9z
+ZWVrLmNvLmpwL2hvd3RvL2ZsYXNoX2ZzLmh0bWwpIC4NCiBUaGFua3MNCiAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgIHcuYi5iDQoNCi0tLS0tIE9yaWdpbmFsIE1lc3Nh
+Z2UgLS0tLS0gDQpGcm9tOiAiTElNSVRFRCBOZ3V5ZW4gRHVvbmcgVGhhbmggKENSL0FFTSBQcmFr
+dGlrYW50KSIgPER1b25nVGhhbmguTmd1eWVuQGRlLmJvc2NoLmNvbT4NClRvOiAiYi5iLnciIDxy
+ZW1lbWJlcm1lXzIwMDBAMTI2LmNvbT4NClNlbnQ6IE1vbmRheSwgQXVndXN0IDA3LCAyMDA2IDEx
+OjA3IFBNDQpTdWJqZWN0OiBBVzogaGkscXVlc3Rpb24gYWJvdXQgbXRkIHBhcnRpb24gd2l0aCBv
+c2stYm9hcmQNCg0KDQoNCkhlbGxvIGIuYi53LA0KDQpNYXliZSB0aGlzIGhvdy1rbm93IG1heSBo
+ZWxwIHlvdQ0KDQpodHRwOi8vb3NrZm9yZHVtbWllcy5ocC5pbmZvc2Vlay5jby5qcC9ob3d0by9m
+bGFzaF9mcy5odG1sDQoNCkNoZWVyLA0KDQpOZ3V5ZW4NCg0KLS0tLS1VcnNwcvxuZ2xpY2hlIE5h
+Y2hyaWNodC0tLS0tDQpWb246IGxpbnV4LW9tYXAtb3Blbi1zb3VyY2UtYm91bmNlc0BsaW51eC5v
+bWFwLmNvbSBbbWFpbHRvOmxpbnV4LW9tYXAtb3Blbi1zb3VyY2UtYm91bmNlc0BsaW51eC5vbWFw
+LmNvbV0gSW0gQXVmdHJhZyB2b24gYi5iLncNCkdlc2VuZGV0OiBNaXR0d29jaCwgMi4gQXVndXN0
+IDIwMDYgMDM6MjINCkFuOiBMaW51eC1vbWFwLW9wZW4tc291cmNlQGxpbnV4Lm9tYXAuY29tDQpC
+ZXRyZWZmOiBoaSxxdWVzdGlvbiBhYm91dCBtdGQgcGFydGlvbiB3aXRoIG9zay1ib2FyZA0KDQpo
+aToNCiBUaGUgYm9hcmQgd2hpY2ggaSB1c2VkIGlzIG9zay01OTEyLm5vdyBpIHdhbnQgdG8gbW91
+bnQgYSBzbWFsbGVyIGZpbGVzeXN0ZW0gbG9jYXRlZCBpbiB0aGUgZmlyc3QgZmxhc2ggY2hpcCB3
+aGVuIHRoZSBib2FyZCBpcyBwb3dlcmVkLmFuZCBpIGhhdmUgdG8gY2hhbmdlIHRoZSBhZGRyZXNz
+IG9mIGZpbGVzeXN0ZW0uDQogVGhlIGluZm9ybWF0aW9uIGkgZ290IGZyb20gaW50ZXJuZXQgdG9s
+ZCBtZSB0byBkbyB3aXRoIG10ZCBwYXJ0aW9uLiBidXQgaSdtIHN0aWxsIGNvbmZ1c2VkLg0KICAg
+IHdobyBjYW4gZ2l2ZSBtZSBzb21lIGluZm9ybWF0aW9uIG1vcmUhDQogICAgICAgICAgICAgICAg
+ICAgIHRoYW5rcw0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdy5iLmINCg==
 
->
-> Mika
->
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
 
-Greetings,
-Andrew
--- 
-balrog 2oo6
+
+--===============0755023086==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============0755023086==--
