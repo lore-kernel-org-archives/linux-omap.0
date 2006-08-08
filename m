@@ -1,11 +1,17 @@
 From: Jonathan McDowell <noodles@earth.li>
-Subject: [PATCH] ARM: OMAP: Readd Amstrad Delta LEDs platform setup.
-Date: Tue, 8 Aug 2006 22:28:41 +0100
-Message-ID: <20060808212841.GD27094@earth.li>
+Subject: Re: 2.6.18-rc4 / generic irq etc.
+Date: Tue, 8 Aug 2006 22:33:19 +0100
+Message-ID: <20060808213319.GE27094@earth.li>
+References: <20060803111721.GH8661@atomide.com>
+	<20060803120858.53676.qmail@web37909.mail.mud.yahoo.com>
+	<20060804110530.GC26416@atomide.com>
+	<20060804132035.GG17406@earth.li>
+	<20060807152201.GG10387@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
+In-Reply-To: <20060807152201.GG10387@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,45 +24,18 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-The platform init details for the Amstrad Delta LEDs appear to have
-been lost in the most recent sync with mainline. This readds it in
-exactly the same manner as it existed previously.
+On Mon, Aug 07, 2006 at 06:22:02PM +0300, Tony Lindgren wrote:
+ 
+> Also updating the tree to 2.6.18-rc4 so some things will probably break
+> a bit with the generic irq framework :)
 
-Signed-Off-By: Jonathan McDowell <noodles@earth.li>
-
------
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index 664c3e2..8437d06 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -91,6 +91,15 @@ static struct omap_board_config_kernel a
- 	{ OMAP_TAG_USB,		&ams_delta_usb_config },
- };
- 
-+static struct platform_device ams_delta_led_device = {
-+	.name	= "ams-delta-led",
-+	.id	= -1
-+};
-+
-+static struct platform_device *ams_delta_devices[] __initdata = {
-+	&ams_delta_led_device,
-+};
-+
- static void __init ams_delta_init(void)
- {
- 	iotable_init(ams_delta_io_desc, ARRAY_SIZE(ams_delta_io_desc));
-@@ -101,6 +110,8 @@ static void __init ams_delta_init(void)
- 
- 	/* Clear latch2 (NAND, LCD, modem enable) */
- 	ams_delta_latch2_write(~0, 0);
-+
-+	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
- }
- 
- static void __init ams_delta_map_io(void)
------
+As a data point latest git seems to work fine on the E3 for at least
+the serial console and USB host.
 
 J.
 
 -- 
-noodles is consumed in yangon every day
+                                            jid: noodles@jabber.earth.li
+Everybody needs a little love sometime;
+                                            stop hacking and fall in
+love!
