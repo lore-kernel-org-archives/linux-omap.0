@@ -1,10 +1,13 @@
-From: "Abot Botbot" <dejanigma@hotmail.com>
-Subject: Welcome + Boot Error
-Date: Tue, 08 Aug 2006 12:57:13 +0000
-Message-ID: <BAY102-F33964DA005C427B9694D64A9540@phx.gbl>
+From: "Khasim, Syed" <x0khasim@ti.com>
+Subject: RE: mcbsp
+Date: Tue, 8 Aug 2006 08:00:48 -0500
+Message-ID: <77C7F7CB1230A74A9D19C0C111E6EDBEE6BA20@DLEE09.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,53 +15,42 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Arnold <abo_gwapo@yahoo.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+Is LED connected to McBSP lines and you want to operate them (McBSP
+lines) in GPIO mode? This is possible by changing the mux settings of
+McBSP lines to GPIO mode and use the GPIO APIs to read and write to
+them.
 
-This is my first post to this list. I have participated in several embedded 
-linux forums before, including but not limmited to uClinux-microblaze, 
-uClinux-dev, google groups such as ARM and ARCH.Embedded, etc. Thanks for 
-having me and I hope I can be a useful member of the community. Now to the 
-dirty business.
+Regards,
+Khasim
 
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+Arnold
+Sent: Tuesday, August 08, 2006 3:34 AM
+To: linux-omap-open-source@linux.omap.com
+Subject: mcbsp
 
-I'm working with the OMAP5912 OSK, an EVM board from Spectrum Digital. I've 
-gone through all the steps of building the kernel, building my apps, and all 
-that. I've set up my new file system with my compiled apps as an NFS share 
-which I can successfully mount from the EVM board as well as other systems 
-on the network. When I boot my board it should mount this file system and 
-boot, but instead I see the following error:
+Hi guys,
 
-.... boot log ....
-NET4: Unix domain sockets 1.0/SMP for Linux NET4.0.
-802.1Q VLAN Support v1.7 Ben Greear <greearb@candelatech.com>
-All bugs added by David S. Miller <davem@redhat.com>
-NetWinder Floating Point Emulator V0.95 (c) 1998-1999 Rebel.com
-RAMDISK: Couldn't find valid RAM disk image starting at 0.
-Freeing initrd memory: 8192K
-Looking up port of RPC 100003/2 on [[[myip]]]
-Looking up port of RPC 100005/1 on [[[myip]]]
-VFS: Mounted root (nfs filesystem).
-Mounted devfs on /dev
-Freeing init memory: 64K
-Kernel panic: No init found.  Try passing init= option to kernel.
-
-My bootargs from uBoot are as follows:
-
-bootargs=console=ttyS0,115200n8 noinitrd rw ip=dhcp root=/dev/nfs 
-nfsroot=[[[myip]]]:/home/projects/filesys,nolock mem=30M
-
-I tried putting a init=/bin/sh in this string in a few different places and 
-as its own parameter, but that doesnt seem to solve the problem. Does anyone 
-have any ideas?
+Is there anyone who knows about mcbsp? Is it possible
+to connect a button or a led to it? If yes, how is it
+done? Is it the same as programming the gpio? I hope
+there's someone who could help me.
 
 Thanks,
-Andy
+Oj
 
-_________________________________________________________________
-Express yourself instantly with MSN Messenger! Download today - it's FREE! 
-http://messenger.msn.click-url.com/go/onm00200471ave/direct/01/
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around=20
+http://mail.yahoo.com=20
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
