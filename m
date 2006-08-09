@@ -1,13 +1,13 @@
-From: "Menon, Nishanth" <x0nishan@ti.com>
-Subject: RE: MCSI&McBSP
-Date: Wed, 9 Aug 2006 08:04:48 -0500
-Message-ID: <14ACE099F888004586603AEC0A559C2EA11A18@DLEE09.ent.ti.com>
+From: "Abot Botbot" <dejanigma@hotmail.com>
+Subject: NFS Bootargs
+Date: Wed, 09 Aug 2006 14:26:36 +0000
+Message-ID: <BAY102-F15BFC0DB6B83849C21C502A9550@phx.gbl>
+References: <BAY102-F33964DA005C427B9694D64A9540@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; format=flowed
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+In-Reply-To: <BAY102-F33964DA005C427B9694D64A9540@phx.gbl>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,39 +17,38 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Zgembo Adislic <adislic_zgembo@yahoo.com>, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ado,
-Which driver do you have? Can you tell us the path from where u pulled
-the kernel out?
-Regards,
-Nishanth Menon
+Hello all,
 
-> -----Original Message-----
-> From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-
-> open-source-bounces@linux.omap.com] On Behalf Of Zgembo Adislic
-> Sent: Wednesday, August 09, 2006 7:55 AM
-> To: linux-omap-open-source@linux.omap.com
-> Subject: MCSI&McBSP
->=20
->   Hi guys!
->=20
->   I have a problem. Because of the problems with the MSCI pins I
->  need to use McBSP. I have McBSP TI code and I need create driver. I
->  cannot find a way to use existing code to create the driver and how I
-> will
->  attached driver on my already existing code. If someone has a idea it
->  would be great.
->   Thanks,
->   Ado
->=20
->=20
-> ---------------------------------
-> Do you Yahoo!?
->  Everyone is raving about the  all-new Yahoo! Mail Beta.
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+
+    I'm trying to boot off an NFS share as laid out in the OSK Users guid=
+e=20
+so I can begin my software development process. My buidling of the system=
+=20
+with the approrpiate makefiles has all gone seamlessly. I am attempting t=
+o=20
+boot from the NFS share on my linux machine, which I've demonstrated is=20
+possible from a neighboring machine. The error is as follows:
+
+Kernel panic: No init found.  Try passing init=3D option to kernel.
+
+I have tried putting an "init=3D/bin/sh" argument into the bootargs strin=
+g,=20
+but that hasn't solved the problem. Does anyone else have a bootargs stri=
+ng=20
+for an NFS share that they have used succesfully? Here is the string I am=
+=20
+currently using for refference:
+
+console=3DttyS0,115200n8 noinitrd rw ip=3Ddhcp root=3D/dev/nfs=20
+nfsroot=3D192.168.1.101:/home/usr/projects/filesys,nolock mem=3D30M init=3D=
+/bin/sh
+
+Thanks for your help,
+Andy
+
+_________________________________________________________________
+Don=92t just search. Find. Check out the new MSN Search!=20
+http://search.msn.click-url.com/go/onm00200636ave/direct/01/
