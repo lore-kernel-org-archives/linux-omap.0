@@ -1,13 +1,14 @@
-From: "Abot Botbot" <dejanigma@hotmail.com>
-Subject: NFS Bootargs
-Date: Wed, 09 Aug 2006 14:26:36 +0000
-Message-ID: <BAY102-F15BFC0DB6B83849C21C502A9550@phx.gbl>
-References: <BAY102-F33964DA005C427B9694D64A9540@phx.gbl>
+From: "Hingkwan Huen" <hkh@cypress.com>
+Subject: Memory Expansion on OMAP2420 H4
+Date: Wed, 9 Aug 2006 09:06:18 -0700
+Message-ID: <005201c6bbcd$c3165bb0$6401a8c0@mis.cypress.com>
+References: <006c01c6b6e0$e5018750$642aa8c0@Buffy>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <BAY102-F33964DA005C427B9694D64A9540@phx.gbl>
+In-Reply-To: <006c01c6b6e0$e5018750$642aa8c0@Buffy>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,35 +21,15 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello all,
+Hi,
 
+I have a 2.6.16 kernel running on my 2420 H4 board through u-boot and
+initrd. For memory testing purposes I've added SRAM through CS7 from the CPU
+daughter card.
 
-    I'm trying to boot off an NFS share as laid out in the OSK Users guid=
-e=20
-so I can begin my software development process. My buidling of the system=
-=20
-with the approrpiate makefiles has all gone seamlessly. I am attempting t=
-o=20
-boot from the NFS share on my linux machine, which I've demonstrated is=20
-possible from a neighboring machine. The error is as follows:
+Can someone point me at a getting started guide to access the added memory?
 
-Kernel panic: No init found.  Try passing init=3D option to kernel.
+Thanks!
 
-I have tried putting an "init=3D/bin/sh" argument into the bootargs strin=
-g,=20
-but that hasn't solved the problem. Does anyone else have a bootargs stri=
-ng=20
-for an NFS share that they have used succesfully? Here is the string I am=
-=20
-currently using for refference:
-
-console=3DttyS0,115200n8 noinitrd rw ip=3Ddhcp root=3D/dev/nfs=20
-nfsroot=3D192.168.1.101:/home/usr/projects/filesys,nolock mem=3D30M init=3D=
-/bin/sh
-
-Thanks for your help,
-Andy
-
-_________________________________________________________________
-Don=92t just search. Find. Check out the new MSN Search!=20
-http://search.msn.click-url.com/go/onm00200636ave/direct/01/
+ 
+Kwan.
