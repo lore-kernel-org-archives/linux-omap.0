@@ -1,13 +1,14 @@
-From: Mark Howell <mhowell@northlink.com>
-Subject: Re: ARM: OMAP: Fix OMAP1 compilation after MPUIO check change.
-Date: Wed, 09 Aug 2006 16:46:39 -0700
-Message-ID: <44DA73DF.7080308@northlink.com>
-References: <20060809092544.GK27094@earth.li>
+From: lamikr <lamikr@cc.jyu.fi>
+Subject: Re: [PATCH 1/3] aic23: Kconfig fixes for alsa and oss drivers.
+Date: Thu, 10 Aug 2006 03:29:20 +0300
+Message-ID: <44DA7DE0.6000200@cc.jyu.fi>
+References: <4476192B.5070703@cc.jyu.fi> <20060526231248.GN4132@atomide.com>
+Reply-To: lamikr@cc.jyu.fi
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <20060809092544.GK27094@earth.li>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20060526231248.GN4132@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,16 +16,34 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com, Imre Deak <imre.deak@solidboot.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Jonathan McDowell wrote:
-> The recent MPUIO range change fix breaks compilation if
-> CONFIG_ARCH_OMAP24XX isn't defined; it should be OMAP_MAX_GPIO_LINES not
-> MAX_GPIO_LINES I believe. This one liner fixes it.
-> 
+Tony Lindgren wrote:
+> * lamikr <lamikr@cc.jyu.fi> [060525 13:54]:
+>   
+>> Kconfig fixes to prevent unselecting I2C and I2C-omap drivers is aic23
+>> sound driver is selected.
+>>     
+>
+> Pushing all 3 patches today.
+>
+> Tony
+>
+>   
+Tony
 
-Thanks, this works for me on my 1611 H2 with today's 2.6.18-rc4 from
-git. Mark.
+I noticed that patches 2 and 3 are not applied. James Selvam tested that
+they were needed in order to get sounds working with innovator.
+Can you you still apply the old patches or should I resend them? (Send
+originally in 25.5.2006)
+
+In addition to these, audio_process_dma from omap-alsa.c will also need
+one more fix that I can send separately.
+(2 #ifdef CONFIG_MACH_OMAP_H6300 definitions must be changed to #ifdef
+CONFIG_ARCH_OMAP15XX)
+
+Mika
