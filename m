@@ -1,13 +1,15 @@
-From: "Khasim, Syed" <x0khasim@ti.com>
-Subject: RE: MCSI & MCBSP howto configure as gpio
-Date: Wed, 9 Aug 2006 23:51:47 -0500
-Message-ID: <77C7F7CB1230A74A9D19C0C111E6EDBEEC6821@DLEE09.ent.ti.com>
+From: "andrzej zaborowski" <balrog@zabor.org>
+Subject: Re: Suspending with keypad bug (RFC)
+Date: Thu, 10 Aug 2006 06:55:26 +0200
+Message-ID: <fb249edb0608092155r20c17f5dl6397c3d9d191105b@mail.gmail.com>
+References: <fb249edb0608041633y58eef1b8we6f00cccf69c99a0@mail.gmail.com>
+	<44D6423F.3070001@solidboot.com>
+Reply-To: balrogg@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-class: urn:content-classes:message
+Content-Type: multipart/mixed;
+	boundary="----=_Part_68596_2176137.1155185726881"
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <44D6423F.3070001@solidboot.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,45 +17,91 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Arnold <abo_gwapo@yahoo.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: =?UTF-8?Q?Juha_Yrj=C3=B6l=C3=A4?= <juha.yrjola@solidboot.com>
+Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-If you have access to TRM of OMAP you are working on, then see the
-relevant chapter for pin mux, it should tell you the mode to configure
-(inorder to configure a McBSP1 pin as GPIO).
+------=_Part_68596_2176137.1155185726881
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-As a hack you can directly write this value to the mux register, but the
-correct way would be to add an entry in arch/arm/mach-omap2/mux.c and
-use the "omap_cfg_reg" API to configure the same.
+T24gMDYvMDgvMDYsIEp1aGEgWXJqw7Zsw6QgPGp1aGEueXJqb2xhQHNvbGlkYm9vdC5jb20+IHdy
+b3RlOgo+IGFuZHJ6ZWogemFib3Jvd3NraSB3cm90ZToKPgo+ID4gSSBjYW1lIHVwIHdpdGggYSBk
+aWZmZXJlbnQgZml4LCBpbiB0aGUga2V5cGFkIGRyaXZlciBidXQgaXQncyBhIGJpdAo+ID4gbW9y
+ZSBpbnRydXNpdmUuIFdpdGggdGhpcyB0aGUgZGV2aWNlIHNsZWVwcyBwZWFjZWZ1bGx5IHVudGls
+IGFub3RoZXIKPiA+IGtleS1wcmVzcyBpcyBkZXRlY3RlZC4gV2hhdCBzaG91bGQgYmUgdGhlIGNv
+cnJlY3QgYmVoYXZpb3I/Cj4gPiBJJ20gYXR0YWNoaW5nIGJvdGggY2hhbmdlcy4KPgo+IFRoaXMg
+YXBwcm9hY2ggaXMgYmV0dGVyOyB0aGUgZ2VuZXJpYyBQTSBjb2RlIHNob3VsZCBub3QgaGF2ZSB0
+byBjYXJlCj4gdGhhdCBtdWNoIGFib3V0IGRpZmZlcmVudCB3YWtldXAgc291cmNlcy4KPgo+IEkn
+bSBub3QgZXhhY3RseSBzdXJlIGluIHdoaWNoIHN0YXRlIHRoZSBzeXN0ZW0gaXMgd2hlbiB0aGUg
+c3VzcGVuZAo+IGZ1bmN0aW9uIGlzIGNhbGxlZC4gIENhbiB0aGVyZSBzdGlsbCBiZSB0aW1lciBh
+Y3Rpdml0eSwgZm9yIGV4YW1wbGU/CgpJIHRoaW5rIHllcywgc29tZSBzdXNwZW5kIGZ1bmN0aW9u
+cyBtYXkgcmVseSBvbiB0aW1lcnMgYmVjYXVzZSB0aGV5CmFyZSBub3Qgb2JsaWdlZCB0byByZXR1
+cm4gaW1tZGlhdGVseS4KCj4gTmV2ZXJ0aGVsZXNzLCB5b3UncmUgc2FmZXIgZG9pbmcgYSBzcGlu
+X2xvY2tfaXJxc2F2ZSgpIGluIHRoZSBzdXNwZW5kCj4gZnVuY3Rpb24gZmlyc3QsIGFuZCByZWxl
+YXNpbmcgdGhlIGxvY2sgb25seSBhZnRlciBzZXR0aW5nIHRoZSBzdXNwZW5kZWQKPiB2YXJpYWJs
+ZSBhbmQgcmUtZW5hYmxpbmcgdGhlIGludGVycnVwdC4KPgo+IFlvdSBzaG91bGQgYWxzbyBjaGVj
+ayB3aGV0aGVyIHlvdSdyZSBhY3R1YWxseSBydW5uaW5nIG9uIE9NQVAxIGJlZm9yZQo+IHlvdSB3
+cml0ZSB0byB0aGUgcmVnaXN0ZXIuCj4KPiBJbiB0aGUgSVJRIGhhbmRsZXIsIHlvdSBzaG91bGQg
+YWxzbyBkbyBhIHNwaW5fbG9ja19pcnFzYXZlKCkgYmVmb3JlCj4gYWNjZXNzaW5nIHRoZSBzdXNw
+ZW5kZWQgdmFyaWFibGUuCgpUaGFua3MgZm9yIGhlbHAhIEknbSBhdHRhY2hpbmcgdGhlIGNvcnJl
+Y3RlZCB2ZXJzaW9uLCBpdCB3b3JrcyBuaWNlbHkuCgpJbiB0aGUgaXJxIGhhbmRsZXIgSSByZWxl
+YXNlIHRoZSBsb2NrIGp1c3QgYWZ0ZXIgYWNjZXNzaW5nIHRoZQoic3VzcGVuZGVkIiB2YXJpYWJs
+ZSBiZWNhdXNlIGFzIEkgdW5kZXJzdGFuZCBhbiBpcnEgaGFuZGxlciB3aWxsIG5ldmVyCmJlIGlu
+dGVycnVwdGVkIGJ5IHNvbWV0aGluZyB0aGF0IGNhbGxzIHRoZSBzdXNwZW5kIGZ1bmN0aW9uLgoK
+Pgo+IENoZWVycywKPiBKdWhhCj4KCgotLSAKYmFscm9nIDJvbzYK
+------=_Part_68596_2176137.1155185726881
+Content-Type: application/octet-stream; name=linux-keypad-suspend2.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_eqos4u8r
+Content-Disposition: attachment; filename="linux-keypad-suspend2.patch"
 
-Regards,
-Khasim
+LS0tIGEvZHJpdmVycy9pbnB1dC9rZXlib2FyZC9vbWFwLWtleXBhZC5jCTIwMDYtMDgtMDUgMDU6
+MTg6MDEuMDAwMDAwMDAwICswMDAwCisrKyBiL2RyaXZlcnMvaW5wdXQva2V5Ym9hcmQvb21hcC1r
+ZXlwYWQuYwkyMDA2LTA4LTEwIDA2OjE5OjExLjAwMDAwMDAwMCArMDAwMApAQCAtMzMsNiArMzMs
+NyBAQAogI2luY2x1ZGUgPGxpbnV4L2RlbGF5Lmg+CiAjaW5jbHVkZSA8bGludXgvcGxhdGZvcm1f
+ZGV2aWNlLmg+CiAjaW5jbHVkZSA8bGludXgvbXV0ZXguaD4KKyNpbmNsdWRlIDxsaW51eC9zcGlu
+bG9jay5oPgogI2luY2x1ZGUgPGFzbS9hcmNoL2lycXMuaD4KICNpbmNsdWRlIDxhc20vYXJjaC9n
+cGlvLmg+CiAjaW5jbHVkZSA8YXNtL2FyY2gvaGFyZHdhcmUuaD4KQEAgLTU5LDYgKzYwLDggQEAg
+c3RydWN0IG9tYXBfa3AgewogCWludCBpcnE7CiAJdW5zaWduZWQgaW50IHJvd3M7CiAJdW5zaWdu
+ZWQgaW50IGNvbHM7CisJaW50IHN1c3BlbmRlZDsKKwlzcGlubG9ja190IHN1c3BlbmRfbG9jazsK
+IH07CiAKIERFQ0xBUkVfVEFTS0xFVF9ESVNBQkxFRChrcF90YXNrbGV0LCBvbWFwX2twX3Rhc2ts
+ZXQsIDApOwpAQCAtOTksNiArMTAyLDEzIEBAIHN0YXRpYyBpcnFyZXR1cm5fdCBvbWFwX2twX2lu
+dGVycnVwdChpbnQKIAkJCQkgICAgIHN0cnVjdCBwdF9yZWdzICpyZWdzKQogewogCXN0cnVjdCBv
+bWFwX2twICpvbWFwX2twID0gZGV2X2lkOworCXVuc2lnbmVkIGxvbmcgZmxhZ3M7CisJc3Bpbl9s
+b2NrX2lycXNhdmUoJm9tYXBfa3AtPnN1c3BlbmRfbG9jaywgZmxhZ3MpOworCisJaWYgKG9tYXBf
+a3AtPnN1c3BlbmRlZCkKKwkJcmV0dXJuIElSUV9IQU5ETEVEOworCisJc3Bpbl91bmxvY2tfaXJx
+cmVzdG9yZSgmb21hcF9rcC0+c3VzcGVuZF9sb2NrLCBmbGFncyk7CiAKIAkvKiBkaXNhYmxlIGtl
+eWJvYXJkIGludGVycnVwdCBhbmQgc2NoZWR1bGUgZm9yIGhhbmRsaW5nICovCiAJaWYgKGNwdV9p
+c19vbWFwMjR4eCgpKSB7CkBAIC0yNzEsMTUgKzI4MSwyOSBAQCBzdGF0aWMgREVWSUNFX0FUVFIo
+ZW5hYmxlLCBTX0lSVUdPIHwgU19JCiAjaWZkZWYgQ09ORklHX1BNCiBzdGF0aWMgaW50IG9tYXBf
+a3Bfc3VzcGVuZChzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpkZXYsIHBtX21lc3NhZ2VfdCBzdGF0
+ZSkKIHsKLQkvKiBOb3RoaW5nIHlldCAqLworCXN0cnVjdCBvbWFwX2twICpvbWFwX2twID0gcGxh
+dGZvcm1fZ2V0X2RydmRhdGEoZGV2KTsKKwl1bnNpZ25lZCBsb25nIGZsYWdzOworCXNwaW5fbG9j
+a19pcnFzYXZlKCZvbWFwX2twLT5zdXNwZW5kX2xvY2ssIGZsYWdzKTsKKworCS8qCisJICogUmUt
+ZW5hYmxlIHRoZSBpbnRlcnJ1cHQgaW4gY2FzZSBpdCBoYXMgYmVlbiBtYXNrZWQgYnkgdGhlCisJ
+ICogaGFuZGxlciBhbmQgYSBrZXkgaXMgc3RpbGwgcHJlc3NlZC4gIFdlIG5lZWQgdGhlIGludGVy
+cnVwdAorCSAqIHRvIHdha2UgdXMgdXAgZnJvbSBzdXNwZW5kZWQuCisJICovCisJaWYgKGNwdV9j
+bGFzc19pc19vbWFwMSgpKQorCQlvbWFwX3dyaXRldygwLCBPTUFQX01QVUlPX0JBU0UgKyBPTUFQ
+X01QVUlPX0tCRF9NQVNLSVQpOwogCisJb21hcF9rcC0+c3VzcGVuZGVkID0gMTsKKworCXNwaW5f
+dW5sb2NrX2lycXJlc3RvcmUoJm9tYXBfa3AtPnN1c3BlbmRfbG9jaywgZmxhZ3MpOwogCXJldHVy
+biAwOwogfQogCiBzdGF0aWMgaW50IG9tYXBfa3BfcmVzdW1lKHN0cnVjdCBwbGF0Zm9ybV9kZXZp
+Y2UgKmRldikKIHsKLQkvKiBOb3RoaW5nIHlldCAqLworCXN0cnVjdCBvbWFwX2twICpvbWFwX2tw
+ID0gcGxhdGZvcm1fZ2V0X2RydmRhdGEoZGV2KTsKIAorCW9tYXBfa3AtPnN1c3BlbmRlZCA9IDA7
+CiAJcmV0dXJuIDA7CiB9CiAjZWxzZQpAQCAtMzUxLDYgKzM3NSw5IEBAIHN0YXRpYyBpbnQgX19p
+bml0IG9tYXBfa3BfcHJvYmUoc3RydWN0IHAKIAkJfQogCX0KIAorCXNwaW5fbG9ja19pbml0KCZv
+bWFwX2twLT5zdXNwZW5kX2xvY2spOworCW9tYXBfa3AtPnN1c3BlbmRlZCA9IDA7CisKIAlpbml0
+X3RpbWVyKCZvbWFwX2twLT50aW1lcik7CiAJb21hcF9rcC0+dGltZXIuZnVuY3Rpb24gPSBvbWFw
+X2twX3RpbWVyOwogCW9tYXBfa3AtPnRpbWVyLmRhdGEgPSAodW5zaWduZWQgbG9uZykgb21hcF9r
+cDsK
+------=_Part_68596_2176137.1155185726881
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
-Arnold
-Sent: Wednesday, August 09, 2006 8:14 PM
-To: linux-omap-open-source@linux.omap.com
-Subject: MCSI & MCBSP howto configure as gpio
 
-Hi All,
-
-Is there anyone who can help me configure MCSI1 or
-MCBSP1 to a gpio pin? Is there a spec/howto on how to
-configure it to a gpio pin? I hope to hear from you
-guys.
-
-Regards,
-OJ
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around=20
-http://mail.yahoo.com=20
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+------=_Part_68596_2176137.1155185726881--
