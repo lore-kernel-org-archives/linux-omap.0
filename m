@@ -1,14 +1,12 @@
-From: tony@atomide.com
-Subject: Re: [PATCH 1/3] aic23: Kconfig fixes for alsa and oss drivers.
-Date: Thu, 10 Aug 2006 09:44:22 +0300
-Message-ID: <20060810064420.GA30195@atomide.com>
-References: <4476192B.5070703@cc.jyu.fi> <20060526231248.GN4132@atomide.com>
-	<44DA7DE0.6000200@cc.jyu.fi>
+From: "andrzej zaborowski" <balrog@zabor.org>
+Subject: [PATCH] ARM: OMAP: Disable 32kHz timer warning
+Date: Thu, 10 Aug 2006 08:49:17 +0200
+Message-ID: <fb249edb0608092349l7af8a3a0sc34efd84013d8a8e@mail.gmail.com>
+Reply-To: balrogg@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <44DA7DE0.6000200@cc.jyu.fi>
+Content-Type: multipart/mixed;
+	boundary="----=_Part_69930_16207733.1155192557771"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,43 +14,43 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: lamikr <lamikr@cc.jyu.fi>
-Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* lamikr <lamikr@cc.jyu.fi> [060810 03:29]:
-> Tony Lindgren wrote:
-> > * lamikr <lamikr@cc.jyu.fi> [060525 13:54]:
-> >   
-> >> Kconfig fixes to prevent unselecting I2C and I2C-omap drivers is aic23
-> >> sound driver is selected.
-> >>     
-> >
-> > Pushing all 3 patches today.
-> >
-> > Tony
-> >
-> >   
-> Tony
-> 
-> I noticed that patches 2 and 3 are not applied. James Selvam tested that
-> they were needed in order to get sounds working with innovator.
-> Can you you still apply the old patches or should I resend them? (Send
-> originally in 25.5.2006)
+------=_Part_69930_16207733.1155192557771
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Hmm, I wonder if these too got accidentally reverted a while back?
-Occasionally I miss new files with git-add too :)
+This makes the following warning conditional as the 32kHz timer is
+only implemented for 16xx out of OMAP1 cpus:
+arch/arm/mach-omap1/pm.c:138:2: warning: #warning Enable 32kHz OS
+timer in order to allow sleep states in idle
 
-Since you know exactly what's missing, can you please resend the missing
-patches?
- 
-> In addition to these, audio_process_dma from omap-alsa.c will also need
-> one more fix that I can send separately.
-> (2 #ifdef CONFIG_MACH_OMAP_H6300 definitions must be changed to #ifdef
-> CONFIG_ARCH_OMAP15XX)
+Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
+-- 
+balrog 2oo6
 
-OK
+------=_Part_69930_16207733.1155192557771
+Content-Type: application/octet-stream; name=linux-32ktimer-warning.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_eqow4yn6
+Content-Disposition: attachment; filename="linux-32ktimer-warning.patch"
 
-Tony
+LS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMS9wbS5jCTIwMDYtMDctMDYgMDI6NDc6NTYuMDAwMDAw
+MDAwICswMDAwCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDEvcG0uYwkyMDA2LTA4LTA4IDA1OjEy
+OjA1LjAwMDAwMDAwMCArMDAwMApAQCAtMTM0LDcgKzEzNCw5IEBAIHZvaWQgb21hcF9wbV9pZGxl
+KHZvaWQpCiAJdGltZXJfZHluX3JlcHJvZ3JhbSgpOwogCiAjaWZkZWYgQ09ORklHX09NQVBfTVBV
+X1RJTUVSCisjaWZkZWYgQ09ORklHX0FSQ0hfT01BUDE2WFgKICN3YXJuaW5nIEVuYWJsZSAzMmtI
+eiBPUyB0aW1lciBpbiBvcmRlciB0byBhbGxvdyBzbGVlcCBzdGF0ZXMgaW4gaWRsZQorI2VuZGlm
+CiAJdXNlX2lkbGVjdDEgPSB1c2VfaWRsZWN0MSAmIH4oMSA8PCA5KTsKICNlbHNlCiAK
+------=_Part_69930_16207733.1155192557771
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+------=_Part_69930_16207733.1155192557771--
