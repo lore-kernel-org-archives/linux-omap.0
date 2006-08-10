@@ -1,13 +1,12 @@
-From: "Manoj Kotnala" <kotnala@TechMahindra.com>
-Subject: Re: NFS Bootargs
-Date: Thu, 10 Aug 2006 10:36:41 +0530
-Message-ID: <FD17D65012AEA049AF96FD6A415F470E031A2C20@SINPUNEX001.TechMahindra.com>
+From: "andrzej zaborowski" <balrog@zabor.org>
+Subject: [PATCH] ARM: OMAP: Remove duplicate pm.c
+Date: Thu, 10 Aug 2006 08:42:16 +0200
+Message-ID: <fb249edb0608092342n797e7532na3d5fbf9cdcda028@mail.gmail.com>
+Reply-To: balrogg@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed;
+	boundary="----=_Part_69798_9356117.1155192136630"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,524 +16,373 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-
-Andy,
-
-Are you using BusyBox?
-If yes, you need to enable one option in Busybox config (related to NFS=
- support)..
-
-Regards,
-
-Manoj Kotnala
-
-
-
-
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com=
- [mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of=
- linux-omap-open-source-request@linux.omap.com
-Sent: Thursday, August 10, 2006 10:26 AM
-To: linux-omap-open-source@linux.omap.com
-Subject: Linux-omap-open-source Digest, Vol 28, Issue 14
-
-Send Linux-omap-open-source mailing list submissions to
-	linux-omap-open-source@linux.omap.com
-
-To subscribe or unsubscribe via the World Wide Web, visit
-	http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-or, via email, send a message with subject or body 'help' to
-	linux-omap-open-source-request@linux.omap.com
-
-You can reach the person managing the list at
-	linux-omap-open-source-owner@linux.omap.com
-
-When replying, please edit your Subject line so it is more specific than=
- "Re: Contents of Linux-omap-open-source digest..."
-
-
-Today's Topics:
-
-   1. Re: NFS Bootargs (Mark Howell)
-   2. Re: ARM: OMAP: Fix OMAP1 compilation after MPUIO check
-      change. (Mark Howell)
-   3. Re: [PATCH 1/3] aic23: Kconfig fixes for alsa and oss
-      drivers. (lamikr)
-   4. Re: status of OMAP ALSA support (lamikr)
-   5. MCSI & MCBSP howto configure as gpio (Arnold)
-   6. Re: Pending July patches (andrzej zaborowski)
-   7. RE: MCSI & MCBSP howto configure as gpio (Khasim, Syed)
-   8. Re: Suspending with keypad bug (RFC) (andrzej zaborowski)
-
-
-----------------------------------------------------------------------
-
-Message: 1
-Date: Wed, 09 Aug 2006 16:45:47 -0700
-From: Mark Howell <mhowell@northlink.com>
-Subject: Re: NFS Bootargs
-To: Abot Botbot <dejanigma@hotmail.com>
-Cc: linux-omap-open-source@linux.omap.com
-Message-ID: <44DA73AB.4050104@northlink.com>
-Content-Type: text/plain; charset=3DISO-8859-1; format=3Dflowed
-
-Abot Botbot wrote:
-> Hello all,
->=0D
->=0D
->    I'm trying to boot off an NFS share as laid out in the OSK Users=0D
-> guide so I can begin my software development process. My buidling of=0D
-> the system with the approrpiate makefiles has all gone seamlessly. I=0D
-> am attempting to boot from the NFS share on my linux machine, which=0D
-> I've demonstrated is possible from a neighboring machine. The error is=0D
-> as
-> follows:
->=0D
-> Kernel panic: No init found.  Try passing init=3D option to kernel.
->=0D
-> I have tried putting an "init=3D/bin/sh" argument into the bootargs=0D
-> string, but that hasn't solved the problem. Does anyone else have a=0D
-> bootargs string for an NFS share that they have used succesfully? Here=0D
-> is the string I am currently using for refference:
->=0D
-> console=3DttyS0,115200n8 noinitrd rw ip=3Ddhcp root=3D/dev/nfs=0D
-> nfsroot=3D192.168.1.101:/home/usr/projects/filesys,nolock mem=3D30M=0D
-> init=3D/bin/sh
->=0D
-> Thanks for your help,
-> Andy
->=0D
-[snip]
-
-Andy, this is a working NFS boot string for my 1611 H2 with today's git
-kernel:
-
-mem=3D32M console=3DttyS0,115200n8 noinitrd root=3D/dev/nfs rw nfsroot=
-=3D172.30.2.32:/home/markh/omap/nfsroot ip=3Ddhcp
-
-Cheers,
-
-Mark.
-
-
-
-------------------------------
-
-Message: 2
-Date: Wed, 09 Aug 2006 16:46:39 -0700
-From: Mark Howell <mhowell@northlink.com>
-Subject: Re: ARM: OMAP: Fix OMAP1 compilation after MPUIO check
-	change.
-To: linux-omap-open-source@linux.omap.com, Imre Deak
-	<imre.deak@solidboot.com>
-Message-ID: <44DA73DF.7080308@northlink.com>
-Content-Type: text/plain; charset=3DISO-8859-1; format=3Dflowed
-
-Jonathan McDowell wrote:
-> The recent MPUIO range change fix breaks compilation if=0D
-> CONFIG_ARCH_OMAP24XX isn't defined; it should be OMAP_MAX_GPIO_LINES=0D
-> not MAX_GPIO_LINES I believe. This one liner fixes it.
->=0D
-
-Thanks, this works for me on my 1611 H2 with today's 2.6.18-rc4 from git.=
- Mark.
-
-
-
-------------------------------
-
-Message: 3
-Date: Thu, 10 Aug 2006 03:29:20 +0300
-From: lamikr <lamikr@cc.jyu.fi>
-Subject: Re: [PATCH 1/3] aic23: Kconfig fixes for alsa and oss
-	drivers.
-To: Tony Lindgren <tony@atomide.com>
-Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
-Message-ID: <44DA7DE0.6000200@cc.jyu.fi>
-Content-Type: text/plain; charset=3DISO-8859-1
-
-Tony Lindgren wrote:
-> * lamikr <lamikr@cc.jyu.fi> [060525 13:54]:
->  =0D
->> Kconfig fixes to prevent unselecting I2C and I2C-omap drivers is=0D
->> aic23 sound driver is selected.
->>    =0D
->
-> Pushing all 3 patches today.
->
-> Tony
->
->  =0D
-Tony
-
-I noticed that patches 2 and 3 are not applied. James Selvam tested that=
- they were needed in order to get sounds working with innovator.
-Can you you still apply the old patches or should I resend them? (Send=
- originally in 25.5.2006)
-
-In addition to these, audio_process_dma from omap-alsa.c will also need one=
- more fix that I can send separately.
-(2 #ifdef CONFIG_MACH_OMAP_H6300 definitions must be changed to #ifdef
-CONFIG_ARCH_OMAP15XX)
-
-Mika
-
-
-------------------------------
-
-Message: 4
-Date: Thu, 10 Aug 2006 03:42:03 +0300
-From: lamikr <lamikr@cc.jyu.fi>
-Subject: Re: status of OMAP ALSA support
-To: "Zhang, Jian" <jzhang@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
-Message-ID: <44DA80DB.7010700@cc.jyu.fi>
-Content-Type: text/plain; charset=3Dus-ascii
-
-Zhang, Jian wrote:
-> Hi,
->
-> Does OMAP ALSA driver work? Neither H4 nor H3 has it in default=0D
-> configuration.
->  =0D
-Yes, the aic23 has been tested with board-osk and tsc2101 has been tested=
- with the board-osk and board-h6300. (h6300 specific code is not yet send=
- to omap-kernel list, but you can check the h6300 port of omap 2.6.16=
- kernel it by using command:
-svn export svn://fuzzyneural.net/h6300/omap-linux/branches/h6300_dev
-
-> I see the following in tsc2101 codec driver:
->
-> codec_cfg =3D pdev->dev.platform_data;
-> if (codec_cfg !=3D NULL) {
->  ...
-> }
-> else
-> ret =3D -ENODEV;
->
-> I don't see any code to set up dev.platform_data. As a result,=0D
-> codec_cfg is always NULL and OMAP ALSA should not work at all.
->  =0D
-It should be pretty easy to add the support also for other omap boards if=
- you just know the correct MCBSP settings. I have not access to h3 or h4=
- boards so I have not been able to test them. Do you have access to that=
- data?
-
-I have however send once the patches adding a similar kind of support for=
- the Innovator and 770 boards that are using aic23 chipset.
-Innovator patches has been tested to work by James Selvam.
-
-According to one message in maemo developer list, somebody build & tested=
- also the 770 patch and was able to hear some kind of noice but not correct=
- sound.
-(mcbsp settings were probably incorrect for that board). It seems that n770=
- uses anyway some other driver for the sounds by default, so I have not=
- investigated this further.
-
-> I might miss something here. Please comment.
->
-> Other than that, it seems to have the following limitations by looking=0D
-> at the code statically.
-> - omap-alsa.c knows the codec connectivity detail (hard-coded to=0D
-> MCBSP1). This file should be independent of board specifics.
->  =0D
-Maybe that info could also be set-up either during the kernel configuration=
- phase or in board-file.
-> - Dead lock as s->dma_lock is double locked in multiple locations.
->  =0D
-Hmm, I have not noticed any dead locks. With my h6300 I need however stop=
- sound dma in every round in audio_process_dma() function.
-(and according to innovator tests by James Selvam, other omap1510 devices=
- needs to do also the same)
-
-> - Don't support duplex as codec lock is shut off when either input=0D
-> stream or output stream is closed.
->  =0D
-Do you have any patches for these? If you want I could also try to work=
- with you to fix these issues.
-> - Memory strategy is very rudimental: Hard-coded to allocate 128KB=0D
-> consistent memory in init time.
->  =0D
-Would you like to specify this also in the board file?
-
-Mika
-
-
-------------------------------
-
-Message: 5
-Date: Wed, 9 Aug 2006 18:13:30 -0700 (PDT)
-From: Arnold <abo_gwapo@yahoo.com>
-Subject: MCSI & MCBSP howto configure as gpio
-To: linux-omap-open-source@linux.omap.com
-Message-ID: <20060810011330.17839.qmail@web55804.mail.re3.yahoo.com>
-Content-Type: text/plain; charset=3Diso-8859-1
-
-Hi All,
-
-Is there anyone who can help me configure MCSI1 or
-MCBSP1 to a gpio pin? Is there a spec/howto on how to configure it to a=
- gpio pin? I hope to hear from you guys.
-
-Regards,
-OJ
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around=
- http://mail.yahoo.com=0D
-
-
-------------------------------
-
-Message: 6
-Date: Thu, 10 Aug 2006 06:41:05 +0200
-From: "andrzej zaborowski" <balrog@zabor.org>
-Subject: Re: Pending July patches
-To: lamikr@cc.jyu.fi
-Cc: linux-omap-open-source@linux.omap.com
-Message-ID:
-	<fb249edb0608092141g71e176e6qe6cabfc245970f36@mail.gmail.com>
-Content-Type: text/plain; charset=3DUTF-8; format=3Dflowed
-
-On 08/08/06, andrzej zaborowski <balrog@zabor.org> wrote:
-> On 08/08/06, lamikr <lamikr@cc.jyu.fi> wrote:
-> > Tony Lindgren wrote:
-> > > * lamikr <lamikr@cc.jyu.fi> [060804 17:40]:
-> > >> It would be nice if somebody could test the functionality of usbnet=
- and
-> > >> mmc/sd with omap1 devices (omap1510)
-> > >> before tagging. I got the lcd working by using the fixes now already
-> > >> applied to OMAP kernel but both the MMC/SD
-> > >> and usbnet failed to work at least for me & h6300.
-> > >> (2.6.16 kernel worked ok.)
-> > >>
-> > >> I can also try to test again these but for me it will go over the
-> > weekend...
-> > >
-> > > No patches so I tagged it already :)
-> > Well, I suppose2.6.17-omap2 tag means that it works with omap2 devices=
- :-)
-> >
-> > I tried that with my h6340 that but unfortunately I could not find fix
-> > for the usbnet and MMC/SD card problems.
-> > So it probably means that they are failing also for other OMAP1=
- devices?
-> >
-> > I tested usbnet both with the DMA enabled and disabled in omap_udc.c
-> > (#define USE_DMA / #undef USE_DMA) and with both of the options
-> > the usb link was not created to my desktop.
-> > I also tried to mount both the "Kingston Elite Pro 512 MB" SD card and
-> > San Disk 256 MB RC-MMC MMC cards without success.
-> >
-> > With 2.6.16 kernel, both the SD, MMC cards were working as well as the
-> > usbnet.
-> > Any idea, which would be the best place to add debug in in the MMC/SD
-> > card subsystem to get more info?
->
-> Try enabling CONFIG_MMC_DEBUG in the config, it should give at least
-> some basic info, e.g. what commands are sent to the card and what
-> error they give (timeouts, crc..).
->
-> Personally I didn't have problems with MMC/SD support on OMAP1 with
-> current git, except the 2GB and 4GB cards (but we have a workaround
-> for those). Instead I see strange things happen with the LCD -- It
-> takes about 1 second to initialise (in 2.6.16 you couldn't notice
-
-Oops, actually it was in the MMC/SD driver. Because the lines
-        if (!irqs_disabled())
-                return -EAGAIN;
-in mmc_omap_suspend were removed, LCD & backlight are now suspended
-before MMC and resumed first which results in a weird visual effect
-while cards are detected but no slowdown as far as I can tell.
-
-A more serious issue I found in this version on my board (OMAP311) is
-that Linux gets really confused if a card is inserted or ejected while
-suspended. For example the sequence: suspend the system, eject the
-card, resume, suspend again -- results in a lockup in 100% cases while
-it worked in 2.6.16. I *think* it's not only me and I *think* it's not
-even OMAP specific but can't test it. The lock-up is in
-mmc_deselect_cards(), the MMC layer thinks a card is selected (even
-though no card is inserted).
-
-> this) and for some reason I had to change the .pixclock field from
-> 12500 to 29000. The weird part is that it's not anything in the LCD
-
-I haven't figured out why I had to change the pixclock (debugging is
-difficult because 1 in 5 tries it works with the old value so you're
-never sure).
-
-> driver because I reverted this driver alone to 2.6.16 and nothing
-> changed. I will be investigating this.
->
-> >
-> > Mika
-> >
-> > _______________________________________________
-> > Linux-omap-open-source mailing list
-> > Linux-omap-open-source@linux.omap.com
-> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> >
->
-> Greetings,
-> Andrew
-> --
-> balrog 2oo6
->
-
-It seems a number of things were fixed which weren't broken :P
---=0D
+------=_Part_69798_9356117.1155192136630
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+[I can see arch/arm/plat-omap/pm.c has been removed together with
+sleep.S in the history, but it's there again, and sleep.S isn't. How
+does this work?]
+
+Remove arch/arm/plat-omap/pm.c because it now sits in arch/arm/mach-omap1 and 2.
+
+Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
+-- 
 balrog 2oo6
 
+------=_Part_69798_9356117.1155192136630
+Content-Type: application/octet-stream; name=linux-remove-pm-c.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_eqovuahr
+Content-Disposition: attachment; filename="linux-remove-pm-c.patch"
 
-------------------------------
+LS0tIGxpbnV4LW9tYXAtMi42LWdpdC9hcmNoL2FybS9wbGF0LW9tYXAvcG0uYwkyMDA2LTAzLTIy
+IDE3OjQ0OjI1LjAwMDAwMDAwMCArMDAwMAorKysgYi9hcmNoL2FybS9wbGF0LW9tYXAvcG0uYwkx
+OTcwLTAxLTAxIDAwOjAwOjAwLjAwMDAwMDAwMCArMDAwMApAQCAtMSw2NzAgKzAsMCBAQAotLyoK
+LSAqIGxpbnV4L2FyY2gvYXJtL3BsYXQtb21hcC9wbS5jCi0gKgotICogT01BUCBQb3dlciBNYW5h
+Z2VtZW50IFJvdXRpbmVzCi0gKgotICogT3JpZ2luYWwgY29kZSBmb3IgdGhlIFNBMTF4MDoKLSAq
+IENvcHlyaWdodCAoYykgMjAwMSBDbGlmZiBCcmFrZSA8Y2JyYWtlQGFjY2VsZW50LmNvbT4KLSAq
+Ci0gKiBNb2RpZmllZCBmb3IgdGhlIFBYQTI1MCBieSBOaWNvbGFzIFBpdHJlOgotICogQ29weXJp
+Z2h0IChjKSAyMDAyIE1vbnRhIFZpc3RhIFNvZnR3YXJlLCBJbmMuCi0gKgotICogTW9kaWZpZWQg
+Zm9yIHRoZSBPTUFQMTUxMCBieSBEYXZpZCBTaW5nbGV0b246Ci0gKiBDb3B5cmlnaHQgKGMpIDIw
+MDIgTW9udGEgVmlzdGEgU29mdHdhcmUsIEluYy4KLSAqCi0gKiBDbGVhbnVwIDIwMDQgZm9yIE9N
+QVAxNTEwLzE2MTAgYnkgRGlyayBCZWhtZSA8ZGlyay5iZWhtZUBkZS5ib3NjaC5jb20+Ci0gKgot
+ICogVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0
+IGFuZC9vciBtb2RpZnkgaXQKLSAqIHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwg
+UHVibGljIExpY2Vuc2UgYXMgcHVibGlzaGVkIGJ5IHRoZQotICogRnJlZSBTb2Z0d2FyZSBGb3Vu
+ZGF0aW9uOyBlaXRoZXIgdmVyc2lvbiAyIG9mIHRoZSBMaWNlbnNlLCBvciAoYXQgeW91cgotICog
+b3B0aW9uKSBhbnkgbGF0ZXIgdmVyc2lvbi4KLSAqCi0gKiBUSElTIFNPRlRXQVJFIElTIFBST1ZJ
+REVEIGBgQVMgSVMnJyBBTkQgQU5ZIEVYUFJFU1MgT1IgSU1QTElFRAotICogV0FSUkFOVElFUywg
+SU5DTFVESU5HLCBCVVQgTk9UIExJTUlURUQgVE8sIFRIRSBJTVBMSUVEIFdBUlJBTlRJRVMgT0YK
+LSAqIE1FUkNIQU5UQUJJTElUWSBBTkQgRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0Ug
+QVJFIERJU0NMQUlNRUQuIElOCi0gKiBOTyBFVkVOVCBTSEFMTCBUSEUgQVVUSE9SIEJFIExJQUJM
+RSBGT1IgQU5ZIERJUkVDVCwgSU5ESVJFQ1QsCi0gKiBJTkNJREVOVEFMLCBTUEVDSUFMLCBFWEVN
+UExBUlksIE9SIENPTlNFUVVFTlRJQUwgREFNQUdFUyAoSU5DTFVESU5HLCBCVVQKLSAqIE5PVCBM
+SU1JVEVEIFRPLCBQUk9DVVJFTUVOVCBPRiBTVUJTVElUVVRFIEdPT0RTIE9SIFNFUlZJQ0VTOyBM
+T1NTIE9GCi0gKiBVU0UsIERBVEEsIE9SIFBST0ZJVFM7IE9SIEJVU0lORVNTIElOVEVSUlVQVElP
+TikgSE9XRVZFUiBDQVVTRUQgQU5EIE9OCi0gKiBBTlkgVEhFT1JZIE9GIExJQUJJTElUWSwgV0hF
+VEhFUiBJTiBDT05UUkFDVCwgU1RSSUNUIExJQUJJTElUWSwgT1IgVE9SVAotICogKElOQ0xVRElO
+RyBORUdMSUdFTkNFIE9SIE9USEVSV0lTRSkgQVJJU0lORyBJTiBBTlkgV0FZIE9VVCBPRiBUSEUg
+VVNFIE9GCi0gKiBUSElTIFNPRlRXQVJFLCBFVkVOIElGIEFEVklTRUQgT0YgVEhFIFBPU1NJQklM
+SVRZIE9GIFNVQ0ggREFNQUdFLgotICoKLSAqIFlvdSBzaG91bGQgaGF2ZSByZWNlaXZlZCBhIGNv
+cHkgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGFsb25nCi0gKiB3aXRoIHRoaXMg
+cHJvZ3JhbTsgaWYgbm90LCB3cml0ZSB0byB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLCBJ
+bmMuLAotICogNjc1IE1hc3MgQXZlLCBDYW1icmlkZ2UsIE1BIDAyMTM5LCBVU0EuCi0gKi8KLQot
+I2luY2x1ZGUgPGxpbnV4L3BtLmg+Ci0jaW5jbHVkZSA8bGludXgvc2NoZWQuaD4KLSNpbmNsdWRl
+IDxsaW51eC9wcm9jX2ZzLmg+Ci0jaW5jbHVkZSA8bGludXgvcG0uaD4KLSNpbmNsdWRlIDxsaW51
+eC9pbnRlcnJ1cHQuaD4KLQotI2luY2x1ZGUgPGFzbS9pby5oPgotI2luY2x1ZGUgPGFzbS9pcnEu
+aD4KLSNpbmNsdWRlIDxhc20vbWFjaC90aW1lLmg+Ci0jaW5jbHVkZSA8YXNtL21hY2gvaXJxLmg+
+Ci0KLSNpbmNsdWRlIDxhc20vbWFjaC10eXBlcy5oPgotI2luY2x1ZGUgPGFzbS9hcmNoL2lycXMu
+aD4KLSNpbmNsdWRlIDxhc20vYXJjaC90Yy5oPgotI2luY2x1ZGUgPGFzbS9hcmNoL3BtLmg+Ci0j
+aW5jbHVkZSA8YXNtL2FyY2gvbXV4Lmg+Ci0jaW5jbHVkZSA8YXNtL2FyY2gvdHBzNjUwMTAuaD4K
+LSNpbmNsdWRlIDxhc20vYXJjaC9kc3BfY29tbW9uLmg+Ci0KLSNpbmNsdWRlIDxhc20vYXJjaC9j
+bG9jay5oPgotI2luY2x1ZGUgPGFzbS9hcmNoL3NyYW0uaD4KLQotc3RhdGljIHVuc2lnbmVkIGlu
+dCBhcm1fc2xlZXBfc2F2ZVtBUk1fU0xFRVBfU0FWRV9TSVpFXTsKLXN0YXRpYyB1bnNpZ25lZCBz
+aG9ydCB1bHBkX3NsZWVwX3NhdmVbVUxQRF9TTEVFUF9TQVZFX1NJWkVdOwotc3RhdGljIHVuc2ln
+bmVkIGludCBtcHVpNzMwX3NsZWVwX3NhdmVbTVBVSTczMF9TTEVFUF9TQVZFX1NJWkVdOwotc3Rh
+dGljIHVuc2lnbmVkIGludCBtcHVpMTUxMF9zbGVlcF9zYXZlW01QVUkxNTEwX1NMRUVQX1NBVkVf
+U0laRV07Ci1zdGF0aWMgdW5zaWduZWQgaW50IG1wdWkxNjEwX3NsZWVwX3NhdmVbTVBVSTE2MTBf
+U0xFRVBfU0FWRV9TSVpFXTsKLQotc3RhdGljIHZvaWQgKCpvbWFwX3NyYW1faWRsZSkodm9pZCkg
+PSBOVUxMOwotc3RhdGljIHZvaWQgKCpvbWFwX3NyYW1fc3VzcGVuZCkodW5zaWduZWQgbG9uZyBy
+MCwgdW5zaWduZWQgbG9uZyByMSkgPSBOVUxMOwotCi0vKgotICogTGV0J3MgcG93ZXIgZG93biBv
+biBpZGxlLCBidXQgb25seSBpZiB3ZSBhcmUgcmVhbGx5Ci0gKiBpZGxlLCBiZWNhdXNlIG9uY2Ug
+d2Ugc3RhcnQgZG93biB0aGUgcGF0aCBvZgotICogZ29pbmcgaWRsZSB3ZSBjb250aW51ZSB0byBk
+byBpZGxlIGV2ZW4gaWYgd2UgZ2V0Ci0gKiBhIGNsb2NrIHRpY2sgaW50ZXJydXB0IC4gLgotICov
+Ci12b2lkIG9tYXBfcG1faWRsZSh2b2lkKQotewotCXVuc2lnbmVkIGludCBtYXNrMzIgPSAwOwot
+Ci0JLyoKLQkgKiBJZiB0aGUgRFNQIGlzIGJlaW5nIHVzZWQgbGV0J3MganVzdCBpZGxlIHRoZSBD
+UFUsIHRoZSBvdmVyaGVhZAotCSAqIHRvIHdha2UgdXAgZnJvbSBCaWcgU2xlZXAgaXMgYmlnLCBt
+aWxsaXNlY29uZHMgdmVyc3VzIG1pY3JvCi0JICogc2Vjb25kcyBmb3Igd2FpdCBmb3IgaW50ZXJy
+dXB0LgotCSAqLwotCi0JbG9jYWxfaXJxX2Rpc2FibGUoKTsKLQlsb2NhbF9maXFfZGlzYWJsZSgp
+OwotCWlmIChuZWVkX3Jlc2NoZWQoKSkgewotCQlsb2NhbF9maXFfZW5hYmxlKCk7Ci0JCWxvY2Fs
+X2lycV9lbmFibGUoKTsKLQkJcmV0dXJuOwotCX0KLQltYXNrMzIgPSBvbWFwX3JlYWRsKEFSTV9T
+WVNTVCk7Ci0KLQkvKgotCSAqIFByZXZlbnQgdGhlIFVMUEQgZnJvbSBlbnRlcmluZyBsb3cgcG93
+ZXIgc3RhdGUgYnkgc2V0dGluZwotCSAqIFBPV0VSX0NUUkxfUkVHOjQgPSAwCi0JICovCi0Jb21h
+cF93cml0ZXcob21hcF9yZWFkdyhVTFBEX1BPV0VSX0NUUkwpICYKLQkJICAgIH5VTFBEX0RFRVBf
+U0xFRVBfVFJBTlNJVElPTl9FTiwgVUxQRF9QT1dFUl9DVFJMKTsKLQotCS8qCi0JICogU2luY2Ug
+YW4gaW50ZXJydXB0IG1heSBzZXQgdXAgYSB0aW1lciwgd2UgZG9uJ3Qgd2FudCB0bwotCSAqIHJl
+cHJvZ3JhbSB0aGUgaGFyZHdhcmUgdGltZXIgd2l0aCBpbnRlcnJ1cHRzIGVuYWJsZWQuCi0JICog
+UmUtZW5hYmxlIGludGVycnVwdHMgb25seSBhZnRlciByZXR1cm5pbmcgZnJvbSBpZGxlLgotCSAq
+LwotCXRpbWVyX2R5bl9yZXByb2dyYW0oKTsKLQotCWlmICgobWFzazMyICYgRFNQX0lETEUpID09
+IDApIHsKLQkJX19hc21fXyB2b2xhdGlsZSAoIm1jcglwMTUsIDAsIHIwLCBjNywgYzAsIDQiKTsK
+LQl9IGVsc2UKLQkJb21hcF9zcmFtX2lkbGUoKTsKLQotCWxvY2FsX2ZpcV9lbmFibGUoKTsKLQls
+b2NhbF9pcnFfZW5hYmxlKCk7Ci19Ci0KLS8qCi0gKiBDb25maWd1cmF0aW9uIG9mIHRoZSB3YWtl
+dXAgZXZlbnQgaXMgYm9hcmQgc3BlY2lmaWMuIEZvciB0aGUKLSAqIG1vbWVudCB3ZSBwdXQgaXQg
+aW50byB0aGlzIGhlbHBlciBmdW5jdGlvbi4gTGF0ZXIgaXQgbWF5IG1vdmUKLSAqIHRvIGJvYXJk
+IHNwZWNpZmljIGZpbGVzLgotICovCi1zdGF0aWMgdm9pZCBvbWFwX3BtX3dha2V1cF9zZXR1cCh2
+b2lkKQotewotCXUzMiBsZXZlbDFfd2FrZSA9IDA7Ci0JdTMyIGxldmVsMl93YWtlID0gT01BUF9J
+UlFfQklUKElOVF9VQVJUMik7Ci0KLQkvKgotCSAqIFR1cm4gb2ZmIGFsbCBpbnRlcnJ1cHRzIGV4
+Y2VwdCBHUElPIGJhbmsgMSwgTDEtMm5kIGxldmVsIGNhc2NhZGUsCi0JICogYW5kIHRoZSBMMiB3
+YWtldXAgaW50ZXJydXB0czoga2V5cGFkIGFuZCBVQVJUMi4gTm90ZSB0aGF0IHRoZQotCSAqIGRy
+aXZlcnMgbXVzdCBzdGlsbCBzZXBhcmF0ZWx5IGNhbGwgb21hcF9zZXRfZ3Bpb193YWtldXAoKSB0
+bwotCSAqIHdha2UgdXAgdG8gYSBHUElPIGludGVycnVwdC4KLQkgKi8KLQlpZiAoY3B1X2lzX29t
+YXA3MzAoKSkKLQkJbGV2ZWwxX3dha2UgPSBPTUFQX0lSUV9CSVQoSU5UXzczMF9HUElPX0JBTksx
+KSB8Ci0JCQlPTUFQX0lSUV9CSVQoSU5UXzczMF9JSDJfSVJRKTsKLQllbHNlIGlmIChjcHVfaXNf
+b21hcDE1MTAoKSkKLQkJbGV2ZWwxX3dha2UgPSBPTUFQX0lSUV9CSVQoSU5UX0dQSU9fQkFOSzEp
+IHwKLQkJCU9NQVBfSVJRX0JJVChJTlRfMTUxMF9JSDJfSVJRKTsKLQllbHNlIGlmIChjcHVfaXNf
+b21hcDE2eHgoKSkKLQkJbGV2ZWwxX3dha2UgPSBPTUFQX0lSUV9CSVQoSU5UX0dQSU9fQkFOSzEp
+IHwKLQkJCU9NQVBfSVJRX0JJVChJTlRfMTYxMF9JSDJfSVJRKTsKLQotCW9tYXBfd3JpdGVsKH5s
+ZXZlbDFfd2FrZSwgT01BUF9JSDFfTUlSKTsKLQotCWlmIChjcHVfaXNfb21hcDczMCgpKSB7Ci0J
+CW9tYXBfd3JpdGVsKH5sZXZlbDJfd2FrZSwgT01BUF9JSDJfMF9NSVIpOwotCQlvbWFwX3dyaXRl
+bCh+KE9NQVBfSVJRX0JJVChJTlRfNzMwX1dBS0VfVVBfUkVRKSB8IE9NQVBfSVJRX0JJVChJTlRf
+NzMwX01QVUlPX0tFWVBBRCkpLCBPTUFQX0lIMl8xX01JUik7Ci0JfSBlbHNlIGlmIChjcHVfaXNf
+b21hcDE1MTAoKSkgewotCQlsZXZlbDJfd2FrZSB8PSBPTUFQX0lSUV9CSVQoSU5UX0tFWUJPQVJE
+KTsKLQkJb21hcF93cml0ZWwofmxldmVsMl93YWtlLCAgT01BUF9JSDJfTUlSKTsKLQl9IGVsc2Ug
+aWYgKGNwdV9pc19vbWFwMTZ4eCgpKSB7Ci0JCWxldmVsMl93YWtlIHw9IE9NQVBfSVJRX0JJVChJ
+TlRfS0VZQk9BUkQpOwotCQlvbWFwX3dyaXRlbCh+bGV2ZWwyX3dha2UsIE9NQVBfSUgyXzBfTUlS
+KTsKLQotCQkvKiBJTlRfMTYxMF9XQUtFX1VQX1JFUSBpcyBuZWVkZWQgZm9yIEdQSU8gd2FrZXVw
+Li4uICovCi0JCW9tYXBfd3JpdGVsKH5PTUFQX0lSUV9CSVQoSU5UXzE2MTBfV0FLRV9VUF9SRVEp
+LCBPTUFQX0lIMl8xX01JUik7Ci0JCW9tYXBfd3JpdGVsKH4weDAsIE9NQVBfSUgyXzJfTUlSKTsK
+LQkJb21hcF93cml0ZWwofjB4MCwgT01BUF9JSDJfM19NSVIpOwotCX0KLQotCS8qICBOZXcgSVJR
+IGFncmVlbWVudCwgcmVjYWxjdWxhdGUgaW4gY2FzY2FkZSBvcmRlciAqLwotCW9tYXBfd3JpdGVs
+KDEsIE9NQVBfSUgyX0NPTlRST0wpOwotIAlvbWFwX3dyaXRlbCgxLCBPTUFQX0lIMV9DT05UUk9M
+KTsKLX0KLQotdm9pZCBvbWFwX3BtX3N1c3BlbmQodm9pZCkKLXsKLQl1bnNpZ25lZCBsb25nIGFy
+ZzAgPSAwLCBhcmcxID0gMDsKLQotCXByaW50aygiUE06IE9NQVAleCBpcyB0cnlpbmcgdG8gZW50
+ZXIgZGVlcCBzbGVlcC4uLlxuIiwgc3lzdGVtX3Jldik7Ci0KLQlvbWFwX3NlcmlhbF93YWtlX3Ry
+aWdnZXIoMSk7Ci0KLQlpZiAobWFjaGluZV9pc19vbWFwX29zaygpKSB7Ci0JCS8qIFN0b3AgTEVE
+MSAoRDkpIGJsaW5rICovCi0JCXRwczY1MDEwX3NldF9sZWQoTEVEMSwgT0ZGKTsKLQl9Ci0KLQlv
+bWFwX3dyaXRldygweGZmZmYsIFVMUERfU09GVF9ESVNBQkxFX1JFUV9SRUcpOwotCi0JLyoKLQkg
+KiBTdGVwIDE6IHR1cm4gb2ZmIGludGVycnVwdHMgKEZJWE1FOiBOT1RFOiBhbHJlYWR5IGRpc2Fi
+bGVkKQotCSAqLwotCi0JbG9jYWxfaXJxX2Rpc2FibGUoKTsKLQlsb2NhbF9maXFfZGlzYWJsZSgp
+OwotCi0JLyoKLQkgKiBTdGVwIDI6IHNhdmUgcmVnaXN0ZXJzCi0JICoKLQkgKiBUaGUgb21hcCBp
+cyBhIHN0cmFuZ2UvYmVhdXRpZnVsIGRldmljZS4gVGhlIGNhY2hlcywgbWVtb3J5Ci0JICogYW5k
+IHJlZ2lzdGVyIHN0YXRlIGFyZSBwcmVzZXJ2ZWQgYWNyb3NzIHBvd2VyIHNhdmVzLgotCSAqIFdl
+IGhhdmUgdG8gc2F2ZSBhbmQgcmVzdG9yZSB2ZXJ5IGxpdHRsZSByZWdpc3RlciBzdGF0ZSB0bwot
+CSAqIGlkbGUgdGhlIG9tYXAuCi0gICAgICAgICAqCi0gCSAqIFNhdmUgaW50ZXJydXB0LCBNUFVJ
+LCBBUk0gYW5kIFVQTEQgY29udHJvbCByZWdpc3RlcnMuCi0JICovCi0KLQlpZiAoY3B1X2lzX29t
+YXA3MzAoKSkgewotCQlNUFVJNzMwX1NBVkUoT01BUF9JSDFfTUlSKTsKLQkJTVBVSTczMF9TQVZF
+KE9NQVBfSUgyXzBfTUlSKTsKLQkJTVBVSTczMF9TQVZFKE9NQVBfSUgyXzFfTUlSKTsKLQkJTVBV
+STczMF9TQVZFKE1QVUlfQ1RSTCk7Ci0JCU1QVUk3MzBfU0FWRShNUFVJX0RTUF9CT09UX0NPTkZJ
+Ryk7Ci0JCU1QVUk3MzBfU0FWRShNUFVJX0RTUF9BUElfQ09ORklHKTsKLQkJTVBVSTczMF9TQVZF
+KEVNSUZTX0NPTkZJRyk7Ci0JCU1QVUk3MzBfU0FWRShFTUlGRl9TRFJBTV9DT05GSUcpOwotCi0J
+fSBlbHNlIGlmIChjcHVfaXNfb21hcDE1MTAoKSkgewotCQlNUFVJMTUxMF9TQVZFKE9NQVBfSUgx
+X01JUik7Ci0JCU1QVUkxNTEwX1NBVkUoT01BUF9JSDJfTUlSKTsKLQkJTVBVSTE1MTBfU0FWRShN
+UFVJX0NUUkwpOwotCQlNUFVJMTUxMF9TQVZFKE1QVUlfRFNQX0JPT1RfQ09ORklHKTsKLQkJTVBV
+STE1MTBfU0FWRShNUFVJX0RTUF9BUElfQ09ORklHKTsKLQkJTVBVSTE1MTBfU0FWRShFTUlGU19D
+T05GSUcpOwotCQlNUFVJMTUxMF9TQVZFKEVNSUZGX1NEUkFNX0NPTkZJRyk7Ci0JfSBlbHNlIGlm
+IChjcHVfaXNfb21hcDE2eHgoKSkgewotCQlNUFVJMTYxMF9TQVZFKE9NQVBfSUgxX01JUik7Ci0J
+CU1QVUkxNjEwX1NBVkUoT01BUF9JSDJfMF9NSVIpOwotCQlNUFVJMTYxMF9TQVZFKE9NQVBfSUgy
+XzFfTUlSKTsKLQkJTVBVSTE2MTBfU0FWRShPTUFQX0lIMl8yX01JUik7Ci0JCU1QVUkxNjEwX1NB
+VkUoT01BUF9JSDJfM19NSVIpOwotCQlNUFVJMTYxMF9TQVZFKE1QVUlfQ1RSTCk7Ci0JCU1QVUkx
+NjEwX1NBVkUoTVBVSV9EU1BfQk9PVF9DT05GSUcpOwotCQlNUFVJMTYxMF9TQVZFKE1QVUlfRFNQ
+X0FQSV9DT05GSUcpOwotCQlNUFVJMTYxMF9TQVZFKEVNSUZTX0NPTkZJRyk7Ci0JCU1QVUkxNjEw
+X1NBVkUoRU1JRkZfU0RSQU1fQ09ORklHKTsKLQl9Ci0KLQlBUk1fU0FWRShBUk1fQ0tDVEwpOwot
+CUFSTV9TQVZFKEFSTV9JRExFQ1QxKTsKLQlBUk1fU0FWRShBUk1fSURMRUNUMik7Ci0JaWYgKCEo
+Y3B1X2lzX29tYXAxNTEwKCkpKQotCQlBUk1fU0FWRShBUk1fSURMRUNUMyk7Ci0JQVJNX1NBVkUo
+QVJNX0VXVVBDVCk7Ci0JQVJNX1NBVkUoQVJNX1JTVENUMSk7Ci0JQVJNX1NBVkUoQVJNX1JTVENU
+Mik7Ci0JQVJNX1NBVkUoQVJNX1NZU1NUKTsKLQlVTFBEX1NBVkUoVUxQRF9DTE9DS19DVFJMKTsK
+LQlVTFBEX1NBVkUoVUxQRF9TVEFUVVNfUkVRKTsKLQotCS8qIChTdGVwIDMgcmVtb3ZlZCAtIHdl
+IG5vdyBhbGxvdyBkZWVwIHNsZWVwIGJ5IGRlZmF1bHQpICovCi0KLQkvKgotCSAqIFN0ZXAgNDog
+T01BUCBEU1AgU2h1dGRvd24KLQkgKi8KLQotCi0JLyoKLQkgKiBTdGVwIDU6IFdha2V1cCBFdmVu
+dCBTZXR1cAotCSAqLwotCi0Jb21hcF9wbV93YWtldXBfc2V0dXAoKTsKLQotCS8qCi0JICogU3Rl
+cCA2OiBBUk0gYW5kIFRyYWZmaWMgY29udHJvbGxlciBzaHV0ZG93bgotCSAqLwotCi0JLyogZGlz
+YWJsZSBBUk0gd2F0Y2hkb2cgKi8KLQlvbWFwX3dyaXRlbCgweDAwRjUsIE9NQVBfV0RUX1RJTUVS
+X01PREUpOwotCW9tYXBfd3JpdGVsKDB4MDBBMCwgT01BUF9XRFRfVElNRVJfTU9ERSk7Ci0KLQkv
+KgotCSAqIFN0ZXAgNmI6IEFSTSBhbmQgVHJhZmZpYyBjb250cm9sbGVyIHNodXRkb3duCi0JICoK
+LQkgKiBTdGVwIDYgY29udGludWVzIGhlcmUuIFByZXBhcmUganVtcCB0byBwb3dlciBtYW5hZ2Vt
+ZW50Ci0JICogYXNzZW1ibHkgY29kZSBpbiBpbnRlcm5hbCBTUkFNLgotCSAqCi0JICogU2luY2Ug
+dGhlIG9tYXBfY3B1X3N1c3BlbmQgcm91dGluZSBoYXMgYmVlbiBjb3BpZWQgdG8KLQkgKiBTUkFN
+LCB3ZSdsbCBkbyBhbiBpbmRpcmVjdCBwcm9jZWR1cmUgY2FsbCB0byBpdCBhbmQgcGFzcyB0aGUK
+LQkgKiBjb250ZW50cyBvZiBhcm1faWRsZWN0MSBhbmQgYXJtX2lkbGVjdDIgc28gaXQgY2FuIHJl
+c3RvcmUKLQkgKiB0aGVtIHdoZW4gaXQgd2FrZXMgdXAgYW5kIGl0IHdpbGwgcmV0dXJuLgotCSAq
+LwotCi0JYXJnMCA9IGFybV9zbGVlcF9zYXZlW0FSTV9TTEVFUF9TQVZFX0FSTV9JRExFQ1QxXTsK
+LQlhcmcxID0gYXJtX3NsZWVwX3NhdmVbQVJNX1NMRUVQX1NBVkVfQVJNX0lETEVDVDJdOwotCi0J
+LyoKLQkgKiBTdGVwIDZjOiBBUk0gYW5kIFRyYWZmaWMgY29udHJvbGxlciBzaHV0ZG93bgotCSAq
+Ci0JICogSnVtcCB0byBhc3NlbWJseSBjb2RlLiBUaGUgcHJvY2Vzc29yIHdpbGwgc3RheSB0aGVy
+ZQotIAkgKiB1bnRpbCB3YWtlIHVwLgotCSAqLwotICAgICAgICBvbWFwX3NyYW1fc3VzcGVuZChh
+cmcwLCBhcmcxKTsKLQotCS8qCi0JICogSWYgd2UgYXJlIGhlcmUsIHByb2Nlc3NvciBpcyB3b2tl
+biB1cCEKLQkgKi8KLQotCS8qCi0JICogUmVzdG9yZSBBUk0gc3RhdGUsIGV4Y2VwdCBBUk1fSURM
+RUNUMS8yIHdoaWNoIG9tYXBfY3B1X3N1c3BlbmQgZGlkCi0JICovCi0KLQlpZiAoIShjcHVfaXNf
+b21hcDE1MTAoKSkpCi0JCUFSTV9SRVNUT1JFKEFSTV9JRExFQ1QzKTsKLQlBUk1fUkVTVE9SRShB
+Uk1fQ0tDVEwpOwotCUFSTV9SRVNUT1JFKEFSTV9FV1VQQ1QpOwotCUFSTV9SRVNUT1JFKEFSTV9S
+U1RDVDEpOwotCUFSTV9SRVNUT1JFKEFSTV9SU1RDVDIpOwotCUFSTV9SRVNUT1JFKEFSTV9TWVNT
+VCk7Ci0JVUxQRF9SRVNUT1JFKFVMUERfQ0xPQ0tfQ1RSTCk7Ci0JVUxQRF9SRVNUT1JFKFVMUERf
+U1RBVFVTX1JFUSk7Ci0KLQlpZiAoY3B1X2lzX29tYXA3MzAoKSkgewotCQlNUFVJNzMwX1JFU1RP
+UkUoRU1JRlNfQ09ORklHKTsKLQkJTVBVSTczMF9SRVNUT1JFKEVNSUZGX1NEUkFNX0NPTkZJRyk7
+Ci0JCU1QVUk3MzBfUkVTVE9SRShPTUFQX0lIMV9NSVIpOwotCQlNUFVJNzMwX1JFU1RPUkUoT01B
+UF9JSDJfMF9NSVIpOwotCQlNUFVJNzMwX1JFU1RPUkUoT01BUF9JSDJfMV9NSVIpOwotCX0gZWxz
+ZSBpZiAoY3B1X2lzX29tYXAxNTEwKCkpIHsKLQkJTVBVSTE1MTBfUkVTVE9SRShNUFVJX0NUUkwp
+OwotCQlNUFVJMTUxMF9SRVNUT1JFKE1QVUlfRFNQX0JPT1RfQ09ORklHKTsKLQkJTVBVSTE1MTBf
+UkVTVE9SRShNUFVJX0RTUF9BUElfQ09ORklHKTsKLQkJTVBVSTE1MTBfUkVTVE9SRShFTUlGU19D
+T05GSUcpOwotCQlNUFVJMTUxMF9SRVNUT1JFKEVNSUZGX1NEUkFNX0NPTkZJRyk7Ci0JCU1QVUkx
+NTEwX1JFU1RPUkUoT01BUF9JSDFfTUlSKTsKLQkJTVBVSTE1MTBfUkVTVE9SRShPTUFQX0lIMl9N
+SVIpOwotCX0gZWxzZSBpZiAoY3B1X2lzX29tYXAxNnh4KCkpIHsKLQkJTVBVSTE2MTBfUkVTVE9S
+RShNUFVJX0NUUkwpOwotCQlNUFVJMTYxMF9SRVNUT1JFKE1QVUlfRFNQX0JPT1RfQ09ORklHKTsK
+LQkJTVBVSTE2MTBfUkVTVE9SRShNUFVJX0RTUF9BUElfQ09ORklHKTsKLQkJTVBVSTE2MTBfUkVT
+VE9SRShFTUlGU19DT05GSUcpOwotCQlNUFVJMTYxMF9SRVNUT1JFKEVNSUZGX1NEUkFNX0NPTkZJ
+Ryk7Ci0KLQkJTVBVSTE2MTBfUkVTVE9SRShPTUFQX0lIMV9NSVIpOwotCQlNUFVJMTYxMF9SRVNU
+T1JFKE9NQVBfSUgyXzBfTUlSKTsKLQkJTVBVSTE2MTBfUkVTVE9SRShPTUFQX0lIMl8xX01JUik7
+Ci0JCU1QVUkxNjEwX1JFU1RPUkUoT01BUF9JSDJfMl9NSVIpOwotCQlNUFVJMTYxMF9SRVNUT1JF
+KE9NQVBfSUgyXzNfTUlSKTsKLQl9Ci0KLQlvbWFwX3dyaXRldygwLCBVTFBEX1NPRlRfRElTQUJM
+RV9SRVFfUkVHKTsKLQotCS8qCi0JICogUmVlbmFibGUgaW50ZXJydXB0cwotCSAqLwotCi0JbG9j
+YWxfaXJxX2VuYWJsZSgpOwotCWxvY2FsX2ZpcV9lbmFibGUoKTsKLQotCW9tYXBfc2VyaWFsX3dh
+a2VfdHJpZ2dlcigwKTsKLQotCXByaW50aygiUE06IE9NQVAleCBpcyByZS1zdGFydGluZyBmcm9t
+IGRlZXAgc2xlZXAuLi5cbiIsIHN5c3RlbV9yZXYpOwotCi0JaWYgKG1hY2hpbmVfaXNfb21hcF9v
+c2soKSkgewotCQkvKiBMZXQgTEVEMSAoRDkpIGJsaW5rIGFnYWluICovCi0JCXRwczY1MDEwX3Nl
+dF9sZWQoTEVEMSwgQkxJTkspOwotCX0KLX0KLQotI2lmIGRlZmluZWQoREVCVUcpICYmIGRlZmlu
+ZWQoQ09ORklHX1BST0NfRlMpCi1zdGF0aWMgaW50IGdfcmVhZF9jb21wbGV0ZWQ7Ci0KLS8qCi0g
+KiBSZWFkIHN5c3RlbSBQTSByZWdpc3RlcnMgZm9yIGRlYnVnZ2luZwotICovCi1zdGF0aWMgaW50
+IG9tYXBfcG1fcmVhZF9wcm9jKAotCWNoYXIgKnBhZ2VfYnVmZmVyLAotCWNoYXIgKipteV9maXJz
+dF9ieXRlLAotCW9mZl90IHZpcnR1YWxfc3RhcnQsCi0JaW50IGxlbmd0aCwKLQlpbnQgKmVvZiwK
+LQl2b2lkICpkYXRhKQotewotCWludCBteV9idWZmZXJfb2Zmc2V0ID0gMDsKLQljaGFyICogY29u
+c3QgbXlfYmFzZSA9IHBhZ2VfYnVmZmVyOwotCi0JQVJNX1NBVkUoQVJNX0NLQ1RMKTsKLQlBUk1f
+U0FWRShBUk1fSURMRUNUMSk7Ci0JQVJNX1NBVkUoQVJNX0lETEVDVDIpOwotCWlmICghKGNwdV9p
+c19vbWFwMTUxMCgpKSkKLQkJQVJNX1NBVkUoQVJNX0lETEVDVDMpOwotCUFSTV9TQVZFKEFSTV9F
+V1VQQ1QpOwotCUFSTV9TQVZFKEFSTV9SU1RDVDEpOwotCUFSTV9TQVZFKEFSTV9SU1RDVDIpOwot
+CUFSTV9TQVZFKEFSTV9TWVNTVCk7Ci0KLQlVTFBEX1NBVkUoVUxQRF9JVF9TVEFUVVMpOwotCVVM
+UERfU0FWRShVTFBEX0NMT0NLX0NUUkwpOwotCVVMUERfU0FWRShVTFBEX1NPRlRfUkVRKTsKLQlV
+TFBEX1NBVkUoVUxQRF9TVEFUVVNfUkVRKTsKLQlVTFBEX1NBVkUoVUxQRF9EUExMX0NUUkwpOwot
+CVVMUERfU0FWRShVTFBEX1BPV0VSX0NUUkwpOwotCi0JaWYgKGNwdV9pc19vbWFwNzMwKCkpIHsK
+LQkJTVBVSTczMF9TQVZFKE1QVUlfQ1RSTCk7Ci0JCU1QVUk3MzBfU0FWRShNUFVJX0RTUF9TVEFU
+VVMpOwotCQlNUFVJNzMwX1NBVkUoTVBVSV9EU1BfQk9PVF9DT05GSUcpOwotCQlNUFVJNzMwX1NB
+VkUoTVBVSV9EU1BfQVBJX0NPTkZJRyk7Ci0JCU1QVUk3MzBfU0FWRShFTUlGRl9TRFJBTV9DT05G
+SUcpOwotCQlNUFVJNzMwX1NBVkUoRU1JRlNfQ09ORklHKTsKLQl9IGVsc2UgaWYgKGNwdV9pc19v
+bWFwMTUxMCgpKSB7Ci0JCU1QVUkxNTEwX1NBVkUoTVBVSV9DVFJMKTsKLQkJTVBVSTE1MTBfU0FW
+RShNUFVJX0RTUF9TVEFUVVMpOwotCQlNUFVJMTUxMF9TQVZFKE1QVUlfRFNQX0JPT1RfQ09ORklH
+KTsKLQkJTVBVSTE1MTBfU0FWRShNUFVJX0RTUF9BUElfQ09ORklHKTsKLQkJTVBVSTE1MTBfU0FW
+RShFTUlGRl9TRFJBTV9DT05GSUcpOwotCQlNUFVJMTUxMF9TQVZFKEVNSUZTX0NPTkZJRyk7Ci0J
+fSBlbHNlIGlmIChjcHVfaXNfb21hcDE2eHgoKSkgewotCQlNUFVJMTYxMF9TQVZFKE1QVUlfQ1RS
+TCk7Ci0JCU1QVUkxNjEwX1NBVkUoTVBVSV9EU1BfU1RBVFVTKTsKLQkJTVBVSTE2MTBfU0FWRShN
+UFVJX0RTUF9CT09UX0NPTkZJRyk7Ci0JCU1QVUkxNjEwX1NBVkUoTVBVSV9EU1BfQVBJX0NPTkZJ
+Ryk7Ci0JCU1QVUkxNjEwX1NBVkUoRU1JRkZfU0RSQU1fQ09ORklHKTsKLQkJTVBVSTE2MTBfU0FW
+RShFTUlGU19DT05GSUcpOwotCX0KLQotCWlmICh2aXJ0dWFsX3N0YXJ0ID09IDApIHsKLQkJZ19y
+ZWFkX2NvbXBsZXRlZCA9IDA7Ci0KLQkJbXlfYnVmZmVyX29mZnNldCArPSBzcHJpbnRmKG15X2Jh
+c2UgKyBteV9idWZmZXJfb2Zmc2V0LAotCQkgICAiQVJNX0NLQ1RMX1JFRzogICAgICAgICAgICAw
+eCUtOHggICAgIFxuIgotCQkgICAiQVJNX0lETEVDVDFfUkVHOiAgICAgICAgICAweCUtOHggICAg
+IFxuIgotCQkgICAiQVJNX0lETEVDVDJfUkVHOiAgICAgICAgICAweCUtOHggICAgIFxuIgotCQkg
+ICAiQVJNX0lETEVDVDNfUkVHOgkgICAgICAweCUtOHggICAgIFxuIgotCQkgICAiQVJNX0VXVVBD
+VF9SRUc6ICAgICAgICAgICAweCUtOHggICAgIFxuIgotCQkgICAiQVJNX1JTVENUMV9SRUc6ICAg
+ICAgICAgICAweCUtOHggICAgIFxuIgotCQkgICAiQVJNX1JTVENUMl9SRUc6ICAgICAgICAgICAw
+eCUtOHggICAgIFxuIgotCQkgICAiQVJNX1NZU1NUX1JFRzogICAgICAgICAgICAweCUtOHggICAg
+IFxuIgotCQkgICAiVUxQRF9JVF9TVEFUVVNfUkVHOiAgICAgICAweCUtNHggICAgIFxuIgotCQkg
+ICAiVUxQRF9DTE9DS19DVFJMX1JFRzogICAgICAweCUtNHggICAgIFxuIgotCQkgICAiVUxQRF9T
+T0ZUX1JFUV9SRUc6ICAgICAgICAweCUtNHggICAgIFxuIgotCQkgICAiVUxQRF9EUExMX0NUUkxf
+UkVHOiAgICAgICAweCUtNHggICAgIFxuIgotCQkgICAiVUxQRF9TVEFUVVNfUkVRX1JFRzogICAg
+ICAweCUtNHggICAgIFxuIgotCQkgICAiVUxQRF9QT1dFUl9DVFJMX1JFRzogICAgICAweCUtNHgg
+ICAgIFxuIiwKLQkJICAgQVJNX1NIT1coQVJNX0NLQ1RMKSwKLQkJICAgQVJNX1NIT1coQVJNX0lE
+TEVDVDEpLAotCQkgICBBUk1fU0hPVyhBUk1fSURMRUNUMiksCi0JCSAgIEFSTV9TSE9XKEFSTV9J
+RExFQ1QzKSwKLQkJICAgQVJNX1NIT1coQVJNX0VXVVBDVCksCi0JCSAgIEFSTV9TSE9XKEFSTV9S
+U1RDVDEpLAotCQkgICBBUk1fU0hPVyhBUk1fUlNUQ1QyKSwKLQkJICAgQVJNX1NIT1coQVJNX1NZ
+U1NUKSwKLQkJICAgVUxQRF9TSE9XKFVMUERfSVRfU1RBVFVTKSwKLQkJICAgVUxQRF9TSE9XKFVM
+UERfQ0xPQ0tfQ1RSTCksCi0JCSAgIFVMUERfU0hPVyhVTFBEX1NPRlRfUkVRKSwKLQkJICAgVUxQ
+RF9TSE9XKFVMUERfRFBMTF9DVFJMKSwKLQkJICAgVUxQRF9TSE9XKFVMUERfU1RBVFVTX1JFUSks
+Ci0JCSAgIFVMUERfU0hPVyhVTFBEX1BPV0VSX0NUUkwpKTsKLQotCQlpZiAoY3B1X2lzX29tYXA3
+MzAoKSkgewotCQkJbXlfYnVmZmVyX29mZnNldCArPSBzcHJpbnRmKG15X2Jhc2UgKyBteV9idWZm
+ZXJfb2Zmc2V0LAotCQkJICAgIk1QVUk3MzBfQ1RSTF9SRUcJICAgICAweCUtOHggXG4iCi0JCQkg
+ICAiTVBVSTczMF9EU1BfU1RBVFVTX1JFRzogICAgICAweCUtOHggXG4iCi0JCQkgICAiTVBVSTcz
+MF9EU1BfQk9PVF9DT05GSUdfUkVHOiAweCUtOHggXG4iCi0JICJNUFVJNzMwX0RTUF9BUElfQ09O
+RklHX1JFRzogIDB4JS04eCBcbiIKLQkgIk1QVUk3MzBfU0RSQU1fQ09ORklHX1JFRzogICAgMHgl
+LTh4IFxuIgotCSAiTVBVSTczMF9FTUlGU19DT05GSUdfUkVHOiAgICAweCUtOHggXG4iLAotCSBN
+UFVJNzMwX1NIT1coTVBVSV9DVFJMKSwKLQkgTVBVSTczMF9TSE9XKE1QVUlfRFNQX1NUQVRVUyks
+Ci0JIE1QVUk3MzBfU0hPVyhNUFVJX0RTUF9CT09UX0NPTkZJRyksCi0JIE1QVUk3MzBfU0hPVyhN
+UFVJX0RTUF9BUElfQ09ORklHKSwKLQkgTVBVSTczMF9TSE9XKEVNSUZGX1NEUkFNX0NPTkZJRyks
+Ci0JIE1QVUk3MzBfU0hPVyhFTUlGU19DT05GSUcpKTsKLQkJfSBlbHNlIGlmIChjcHVfaXNfb21h
+cDE1MTAoKSkgewotCQkJbXlfYnVmZmVyX29mZnNldCArPSBzcHJpbnRmKG15X2Jhc2UgKyBteV9i
+dWZmZXJfb2Zmc2V0LAotCQkJICAgIk1QVUkxNTEwX0NUUkxfUkVHICAgICAgICAgICAgIDB4JS04
+eCBcbiIKLQkJCSAgICJNUFVJMTUxMF9EU1BfU1RBVFVTX1JFRzogICAgICAweCUtOHggXG4iCi0J
+CQkgICAiTVBVSTE1MTBfRFNQX0JPT1RfQ09ORklHX1JFRzogMHglLTh4IFxuIgotCQkgICAJICAg
+Ik1QVUkxNTEwX0RTUF9BUElfQ09ORklHX1JFRzogIDB4JS04eCBcbiIKLQkJICAgCSAgICJNUFVJ
+MTUxMF9TRFJBTV9DT05GSUdfUkVHOiAgICAweCUtOHggXG4iCi0JCSAgIAkgICAiTVBVSTE1MTBf
+RU1JRlNfQ09ORklHX1JFRzogICAgMHglLTh4IFxuIiwKLQkJICAgCSAgIE1QVUkxNTEwX1NIT1co
+TVBVSV9DVFJMKSwKLQkJICAgCSAgIE1QVUkxNTEwX1NIT1coTVBVSV9EU1BfU1RBVFVTKSwKLQkJ
+ICAgCSAgIE1QVUkxNTEwX1NIT1coTVBVSV9EU1BfQk9PVF9DT05GSUcpLAotCQkgICAJICAgTVBV
+STE1MTBfU0hPVyhNUFVJX0RTUF9BUElfQ09ORklHKSwKLQkJICAgCSAgIE1QVUkxNTEwX1NIT1co
+RU1JRkZfU0RSQU1fQ09ORklHKSwKLQkJICAgCSAgIE1QVUkxNTEwX1NIT1coRU1JRlNfQ09ORklH
+KSk7Ci0JCX0gZWxzZSBpZiAoY3B1X2lzX29tYXAxNnh4KCkpIHsKLQkJCW15X2J1ZmZlcl9vZmZz
+ZXQgKz0gc3ByaW50ZihteV9iYXNlICsgbXlfYnVmZmVyX29mZnNldCwKLQkJCSAgICJNUFVJMTYx
+MF9DVFJMX1JFRyAgICAgICAgICAgICAweCUtOHggXG4iCi0JCQkgICAiTVBVSTE2MTBfRFNQX1NU
+QVRVU19SRUc6ICAgICAgMHglLTh4IFxuIgotCQkJICAgIk1QVUkxNjEwX0RTUF9CT09UX0NPTkZJ
+R19SRUc6IDB4JS04eCBcbiIKLQkJICAgCSAgICJNUFVJMTYxMF9EU1BfQVBJX0NPTkZJR19SRUc6
+ICAweCUtOHggXG4iCi0JCSAgIAkgICAiTVBVSTE2MTBfU0RSQU1fQ09ORklHX1JFRzogICAgMHgl
+LTh4IFxuIgotCQkgICAJICAgIk1QVUkxNjEwX0VNSUZTX0NPTkZJR19SRUc6ICAgIDB4JS04eCBc
+biIsCi0JCSAgIAkgICBNUFVJMTYxMF9TSE9XKE1QVUlfQ1RSTCksCi0JCSAgIAkgICBNUFVJMTYx
+MF9TSE9XKE1QVUlfRFNQX1NUQVRVUyksCi0JCSAgIAkgICBNUFVJMTYxMF9TSE9XKE1QVUlfRFNQ
+X0JPT1RfQ09ORklHKSwKLQkJICAgCSAgIE1QVUkxNjEwX1NIT1coTVBVSV9EU1BfQVBJX0NPTkZJ
+RyksCi0JCSAgIAkgICBNUFVJMTYxMF9TSE9XKEVNSUZGX1NEUkFNX0NPTkZJRyksCi0JCSAgIAkg
+ICBNUFVJMTYxMF9TSE9XKEVNSUZTX0NPTkZJRykpOwotCQl9Ci0KLQkJZ19yZWFkX2NvbXBsZXRl
+ZCsrOwotCX0gZWxzZSBpZiAoZ19yZWFkX2NvbXBsZXRlZCA+PSAxKSB7Ci0JCSAqZW9mID0gMTsK
+LQkJIHJldHVybiAwOwotCX0KLQlnX3JlYWRfY29tcGxldGVkKys7Ci0KLQkqbXlfZmlyc3RfYnl0
+ZSA9IHBhZ2VfYnVmZmVyOwotCXJldHVybiAgbXlfYnVmZmVyX29mZnNldDsKLX0KLQotc3RhdGlj
+IHZvaWQgb21hcF9wbV9pbml0X3Byb2Modm9pZCkKLXsKLQlzdHJ1Y3QgcHJvY19kaXJfZW50cnkg
+KmVudHJ5OwotCi0JZW50cnkgPSBjcmVhdGVfcHJvY19yZWFkX2VudHJ5KCJkcml2ZXIvb21hcF9w
+bSIsCi0JCQkJICAgICAgIFNfSVdVU1IgfCBTX0lSVUdPLCBOVUxMLAotCSAgIG9tYXBfcG1fcmVh
+ZF9wcm9jLCBOVUxMKTsKLX0KLQotI2VuZGlmIC8qIERFQlVHICYmIENPTkZJR19QUk9DX0ZTICov
+Ci0KLS8qCi0gKglvbWFwX3BtX3ByZXBhcmUgLSBEbyBwcmVsaW1pbmFyeSBzdXNwZW5kIHdvcmsu
+Ci0gKglAc3RhdGU6CQlzdXNwZW5kIHN0YXRlIHdlJ3JlIGVudGVyaW5nLgotICoKLSAqLwotLy8j
+aW5jbHVkZSA8YXNtL2hhcmR3YXJlLmg+Ci0KLXN0YXRpYyBpbnQgb21hcF9wbV9wcmVwYXJlKHN1
+c3BlbmRfc3RhdGVfdCBzdGF0ZSkKLXsKLQlpbnQgZXJyb3IgPSAwOwotCi0Jc3dpdGNoIChzdGF0
+ZSkKLQl7Ci0JY2FzZSBQTV9TVVNQRU5EX1NUQU5EQlk6Ci0JY2FzZSBQTV9TVVNQRU5EX01FTToK
+LQkJYnJlYWs7Ci0KLQljYXNlIFBNX1NVU1BFTkRfRElTSzoKLQkJcmV0dXJuIC1FTk9UU1VQUDsK
+LQotCWRlZmF1bHQ6Ci0JCXJldHVybiAtRUlOVkFMOwotCX0KLQotCXJldHVybiBlcnJvcjsKLX0K
+LQotCi0vKgotICoJb21hcF9wbV9lbnRlciAtIEFjdHVhbGx5IGVudGVyIGEgc2xlZXAgc3RhdGUu
+Ci0gKglAc3RhdGU6CQlTdGF0ZSB3ZSdyZSBlbnRlcmluZy4KLSAqCi0gKi8KLQotc3RhdGljIGlu
+dCBvbWFwX3BtX2VudGVyKHN1c3BlbmRfc3RhdGVfdCBzdGF0ZSkKLXsKLQlzd2l0Y2ggKHN0YXRl
+KQotCXsKLQljYXNlIFBNX1NVU1BFTkRfU1RBTkRCWToKLQljYXNlIFBNX1NVU1BFTkRfTUVNOgot
+CQlvbWFwX3BtX3N1c3BlbmQoKTsKLQkJYnJlYWs7Ci0KLQljYXNlIFBNX1NVU1BFTkRfRElTSzoK
+LQkJcmV0dXJuIC1FTk9UU1VQUDsKLQotCWRlZmF1bHQ6Ci0JCXJldHVybiAtRUlOVkFMOwotCX0K
+LQotCXJldHVybiAwOwotfQotCi0KLS8qKgotICoJb21hcF9wbV9maW5pc2ggLSBGaW5pc2ggdXAg
+c3VzcGVuZCBzZXF1ZW5jZS4KLSAqCUBzdGF0ZToJCVN0YXRlIHdlJ3JlIGNvbWluZyBvdXQgb2Yu
+Ci0gKgotICoJVGhpcyBpcyBjYWxsZWQgYWZ0ZXIgd2Ugd2FrZSBiYWNrIHVwIChvciBpZiBlbnRl
+cmluZyB0aGUgc2xlZXAgc3RhdGUKLSAqCWZhaWxlZCkuCi0gKi8KLQotc3RhdGljIGludCBvbWFw
+X3BtX2ZpbmlzaChzdXNwZW5kX3N0YXRlX3Qgc3RhdGUpCi17Ci0JcmV0dXJuIDA7Ci19Ci0KLQot
+c3RhdGljIGlycXJldHVybl90ICBvbWFwX3dha2V1cF9pbnRlcnJ1cHQoaW50ICBpcnEsIHZvaWQg
+KiAgZGV2LAotCQkJCSAgICAgc3RydWN0IHB0X3JlZ3MgKiAgcmVncykKLXsKLQlyZXR1cm4gSVJR
+X0hBTkRMRUQ7Ci19Ci0KLXN0YXRpYyBzdHJ1Y3QgaXJxYWN0aW9uIG9tYXBfd2FrZXVwX2lycSA9
+IHsKLQkubmFtZQkJPSAicGVyaXBoZXJhbCB3YWtldXAiLAotCS5mbGFncwkJPSBTQV9JTlRFUlJV
+UFQsCi0JLmhhbmRsZXIJPSBvbWFwX3dha2V1cF9pbnRlcnJ1cHQKLX07Ci0KLQotCi1zdGF0aWMg
+c3RydWN0IHBtX29wcyBvbWFwX3BtX29wcyA9ewotCS5wbV9kaXNrX21vZGUgPSAwLAotICAgICAg
+ICAucHJlcGFyZSAgICAgICAgPSBvbWFwX3BtX3ByZXBhcmUsCi0gICAgICAgIC5lbnRlciAgICAg
+ICAgICA9IG9tYXBfcG1fZW50ZXIsCi0gICAgICAgIC5maW5pc2ggICAgICAgICA9IG9tYXBfcG1f
+ZmluaXNoLAotfTsKLQotc3RhdGljIGludCBfX2luaXQgb21hcF9wbV9pbml0KHZvaWQpCi17Ci0J
+cHJpbnRrKCJQb3dlciBNYW5hZ2VtZW50IGZvciBUSSBPTUFQLlxuIik7Ci0JLyoKLQkgKiBXZSBj
+b3B5IHRoZSBhc3NlbWJsZXIgc2xlZXAvd2FrZXVwIHJvdXRpbmVzIHRvIFNSQU0uCi0JICogVGhl
+c2Ugcm91dGluZXMgbmVlZCB0byBiZSBpbiBTUkFNIGFzIHRoYXQncyB0aGUgb25seQotCSAqIG1l
+bW9yeSB0aGUgTVBVIGNhbiBzZWUgd2hlbiBpdCB3YWtlcyB1cC4KLQkgKi8KLQlpZiAoY3B1X2lz
+X29tYXA3MzAoKSkgewotCQlvbWFwX3NyYW1faWRsZSA9IG9tYXBfc3JhbV9wdXNoKG9tYXA3MzBf
+aWRsZV9sb29wX3N1c3BlbmQsCi0JCQkJCQlvbWFwNzMwX2lkbGVfbG9vcF9zdXNwZW5kX3N6KTsK
+LQkJb21hcF9zcmFtX3N1c3BlbmQgPSBvbWFwX3NyYW1fcHVzaChvbWFwNzMwX2NwdV9zdXNwZW5k
+LAotCSBvbWFwNzMwX2NwdV9zdXNwZW5kX3N6KTsKLQl9IGVsc2UgaWYgKGNwdV9pc19vbWFwMTUx
+MCgpKSB7Ci0JCW9tYXBfc3JhbV9pZGxlID0gb21hcF9zcmFtX3B1c2gob21hcDE1MTBfaWRsZV9s
+b29wX3N1c3BlbmQsCi0JCQkJCQlvbWFwMTUxMF9pZGxlX2xvb3Bfc3VzcGVuZF9zeik7Ci0JCW9t
+YXBfc3JhbV9zdXNwZW5kID0gb21hcF9zcmFtX3B1c2gob21hcDE1MTBfY3B1X3N1c3BlbmQsCi0J
+CQkJCQkgICBvbWFwMTUxMF9jcHVfc3VzcGVuZF9zeik7Ci0JfSBlbHNlIGlmIChjcHVfaXNfb21h
+cDE2eHgoKSkgewotCQlvbWFwX3NyYW1faWRsZSA9IG9tYXBfc3JhbV9wdXNoKG9tYXAxNjEwX2lk
+bGVfbG9vcF9zdXNwZW5kLAotCQkJCQkJb21hcDE2MTBfaWRsZV9sb29wX3N1c3BlbmRfc3opOwot
+CQlvbWFwX3NyYW1fc3VzcGVuZCA9IG9tYXBfc3JhbV9wdXNoKG9tYXAxNjEwX2NwdV9zdXNwZW5k
+LAotCQkJCQkJICAgb21hcDE2MTBfY3B1X3N1c3BlbmRfc3opOwotCX0KLQotCWlmIChvbWFwX3Ny
+YW1faWRsZSA9PSBOVUxMIHx8IG9tYXBfc3JhbV9zdXNwZW5kID09IE5VTEwpIHsKLQkJcHJpbnRr
+KEtFUk5fRVJSICJQTSBub3QgaW5pdGlhbGl6ZWQ6IE1pc3NpbmcgU1JBTSBzdXBwb3J0XG4iKTsK
+LQkJcmV0dXJuIC1FTk9ERVY7Ci0JfQotCi0JcG1faWRsZSA9IG9tYXBfcG1faWRsZTsKLQotCWlm
+IChjcHVfaXNfb21hcDczMCgpKQotCQlzZXR1cF9pcnEoSU5UXzczMF9XQUtFX1VQX1JFUSwgJm9t
+YXBfd2FrZXVwX2lycSk7Ci0JZWxzZSBpZiAoY3B1X2lzX29tYXAxNnh4KCkpCi0JCXNldHVwX2ly
+cShJTlRfMTYxMF9XQUtFX1VQX1JFUSwgJm9tYXBfd2FrZXVwX2lycSk7Ci0KLSNpZiAwCi0JLyog
+LS0tIEJFR0lOIEJPQVJELURFUEVOREVOVCBDT0RFIC0tLSAqLwotCS8qIFNsZWVweCBtYXNrIGRp
+cmVjdGlvbiAqLwotCW9tYXBfd3JpdGV3KChvbWFwX3JlYWR3KDB4ZmZmYjUwMDgpICYgfjIpLCAw
+eGZmZmI1MDA4KTsKLQkvKiBVbm1hc2sgc2xlZXB4IHNpZ25hbCAqLwotCW9tYXBfd3JpdGV3KChv
+bWFwX3JlYWR3KDB4ZmZmYjUwMDQpICYgfjIpLCAweGZmZmI1MDA0KTsKLQkvKiAtLS0gRU5EIEJP
+QVJELURFUEVOREVOVCBDT0RFIC0tLSAqLwotI2VuZGlmCi0KLQkvKiBQcm9ncmFtIG5ldyBwb3dl
+ciByYW1wLXVwIHRpbWUKLQkgKiAoMCBmb3IgbW9zdCBib2FyZHMgc2luY2Ugd2UgZG9uJ3QgbG93
+ZXIgdm9sdGFnZSB3aGVuIGluIGRlZXAgc2xlZXApCi0JICovCi0Jb21hcF93cml0ZXcoVUxQRF9T
+RVRVUF9BTkFMT0dfQ0VMTF8zX1ZBTCwgVUxQRF9TRVRVUF9BTkFMT0dfQ0VMTF8zKTsKLQotCS8q
+IFNldHVwIFVMUEQgUE9XRVJfQ1RSTF9SRUcgLSBlbnRlciBkZWVwIHNsZWVwIHdoZW5ldmVyIHBv
+c3NpYmxlICovCi0Jb21hcF93cml0ZXcoVUxQRF9QT1dFUl9DVFJMX1JFR19WQUwsIFVMUERfUE9X
+RVJfQ1RSTCk7Ci0KLQkvKiBDb25maWd1cmUgSURMRUNUMyAqLwotCWlmIChjcHVfaXNfb21hcDcz
+MCgpKQotCQlvbWFwX3dyaXRlbChPTUFQNzMwX0lETEVDVDNfVkFMLCBPTUFQNzMwX0lETEVDVDMp
+OwotCWVsc2UgaWYgKGNwdV9pc19vbWFwMTZ4eCgpKQotCQlvbWFwX3dyaXRlbChPTUFQMTYxMF9J
+RExFQ1QzX1ZBTCwgT01BUDE2MTBfSURMRUNUMyk7Ci0KLQlwbV9zZXRfb3BzKCZvbWFwX3BtX29w
+cyk7Ci0KLSNpZiBkZWZpbmVkKERFQlVHKSAmJiBkZWZpbmVkKENPTkZJR19QUk9DX0ZTKQotCW9t
+YXBfcG1faW5pdF9wcm9jKCk7Ci0jZW5kaWYKLQotCWlmIChjcHVfaXNfb21hcDE2eHgoKSkgewot
+CQkvKiBjb25maWd1cmUgTE9XX1BXUiBwaW4gKi8KLQkJb21hcF9jZmdfcmVnKFQyMF8xNjEwX0xP
+V19QV1IpOwotCX0KLQotCXJldHVybiAwOwotfQotX19pbml0Y2FsbChvbWFwX3BtX2luaXQpOwot
+Cg==
+------=_Part_69798_9356117.1155192136630
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Message: 7
-Date: Wed, 9 Aug 2006 23:51:47 -0500
-From: "Khasim, Syed" <x0khasim@ti.com>
-Subject: RE: MCSI & MCBSP howto configure as gpio
-To: "Arnold" <abo_gwapo@yahoo.com>,
-	<linux-omap-open-source@linux.omap.com>
-Message-ID: <77C7F7CB1230A74A9D19C0C111E6EDBEEC6821@DLEE09.ent.ti.com>
-Content-Type: text/plain;	charset=3D"us-ascii"
 
-If you have access to TRM of OMAP you are working on, then see the
-relevant chapter for pin mux, it should tell you the mode to configure
-(inorder to configure a McBSP1 pin as GPIO).
-
-As a hack you can directly write this value to the mux register, but the
-correct way would be to add an entry in arch/arm/mach-omap2/mux.c and
-use the "omap_cfg_reg" API to configure the same.
-
-Regards,
-Khasim
-
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
-Arnold
-Sent: Wednesday, August 09, 2006 8:14 PM
-To: linux-omap-open-source@linux.omap.com
-Subject: MCSI & MCBSP howto configure as gpio
-
-Hi All,
-
-Is there anyone who can help me configure MCSI1 or
-MCBSP1 to a gpio pin? Is there a spec/howto on how to
-configure it to a gpio pin? I hope to hear from you
-guys.
-
-Regards,
-OJ
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around=0D
-http://mail.yahoo.com=0D
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-
-
-------------------------------
-
-Message: 8
-Date: Thu, 10 Aug 2006 06:55:26 +0200
-From: "andrzej zaborowski" <balrog@zabor.org>
-Subject: Re: Suspending with keypad bug (RFC)
-To: " Juha Yrj?l? " <juha.yrjola@solidboot.com>
-Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
-Message-ID:
-	<fb249edb0608092155r20c17f5dl6397c3d9d191105b@mail.gmail.com>
-Content-Type: text/plain; charset=3D"utf-8"
-
-On 06/08/06, Juha Yrj=C3=B6l=C3=A4 <juha.yrjola@solidboot.com> wrote:
-> andrzej zaborowski wrote:
->
-> > I came up with a different fix, in the keypad driver but it's a bit
-> > more intrusive. With this the device sleeps peacefully until another
-> > key-press is detected. What should be the correct behavior?
-> > I'm attaching both changes.
->
-> This approach is better; the generic PM code should not have to care
-> that much about different wakeup sources.
->
-> I'm not exactly sure in which state the system is when the suspend
-> function is called.  Can there still be timer activity, for example?
-
-I think yes, some suspend functions may rely on timers because they
-are not obliged to return immdiately.
-
-> Nevertheless, you're safer doing a spin_lock_irqsave() in the suspend
-> function first, and releasing the lock only after setting the suspended
-> variable and re-enabling the interrupt.
->
-> You should also check whether you're actually running on OMAP1 before
-> you write to the register.
->
-> In the IRQ handler, you should also do a spin_lock_irqsave() before
-> accessing the suspended variable.
-
-Thanks for help! I'm attaching the corrected version, it works nicely.
-
-In the irq handler I release the lock just after accessing the
-"suspended" variable because as I understand an irq handler will never
-be interrupted by something that calls the suspend function.
-
->
-> Cheers,
-> Juha
->
-
-
---=0D
-balrog 2oo6
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: linux-keypad-suspend2.patch
-Type: application/octet-stream
-Size: 2111 bytes
-Desc: not available
-Url :=
- http://linux.omap.com/pipermail/linux-omap-open-source/attachments/2006081=
-0/57bac840/linux-keypad-suspend2.obj
-
-------------------------------
-
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-
-
-End of Linux-omap-open-source Digest, Vol 28, Issue 14
-******************************************************
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-
-Tech Mahindra, formerly Mahindra-British Telecom.
-=0D
-Disclaimer:
-
-This message and the information contained herein is proprietary and=
- confidential and subject to the Tech Mahindra policy statement, you may=
- review at <a href=
-=3D"http://www.techmahindra.com/Disclaimer.html">http://www.techmahindra.co=
-m/Disclaimer.html</a> externally and <a href=
-=3D"http://tim.techmahindra.com/Disclaimer.html">http://tim.techmahindra.co=
-m/Disclaimer.html</a> internally within Tech Mahindra.
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+------=_Part_69798_9356117.1155192136630--
