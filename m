@@ -1,13 +1,12 @@
-From: Arnold <abo_gwapo@yahoo.com>
-Subject: RE: MCSI & MCBSP howto configure as gpio
-Date: Thu, 10 Aug 2006 03:04:07 -0700 (PDT)
-Message-ID: <20060810100407.29417.qmail@web55805.mail.re3.yahoo.com>
-References: <77C7F7CB1230A74A9D19C0C111E6EDBEEC6821@DLEE09.ent.ti.com>
+From: "Sergey Vointsev" <vointsev@gmail.com>
+Subject: playing sound directly to /dev/dsp
+Date: Thu, 10 Aug 2006 14:19:02 +0400
+Message-ID: <9713be7f0608100319y39c76e8fv22e0430b1c4213a1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <77C7F7CB1230A74A9D19C0C111E6EDBEEC6821@DLEE09.ent.ti.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,34 +16,56 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Khasim, Syed" <x0khasim@ti.com>, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Khasim, All,
+Hi everybody!
 
-> If you have access to TRM of OMAP you are working
-> on, then see the
-> relevant chapter for pin mux, it should tell you the
-> mode to configure
-> (inorder to configure a McBSP1 pin as GPIO).
-Does TRM  stands for Technical Reference Manual? I
-read the manual and checked the mux.c, but I could'nt
-trace/find the parameters passed to MUX_CFG. I used
-mcbsp3_clkx as an example:
-MUX_CFG("MCBSP3_CLKX",3,1,1,29,0,NA,0,1)
-I can trace until the mux reg, but I cant find the
-next parameters in the TRM. The parameters that I cant
-find/trace in the manual are mode offset,mux mode,pull
-reg ... etc.  Does anyone knows where I can find a
-spec on this mux? I am trying to add MCSI1 so that I
-can configure it as gpio. I hope to hear from you
-guys. Thank you.
+I've configured sound on my OSK5912 and it seems to work OK. At least
+command like
+         cp /1/notify.wav /dev/dsp
+plays sound correctly.
+Now I want to do the same from my program: write some buffer with
+sound to /dev/dsp to hear this sound.
+I wrote this small program:
+************************************************
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
 
-Regards,
-OJ 
+int main(int argc, char **argv)
+{
+	int infile;
+	int outfile;
+	int tm;
+	
+	infile = open("/1/notify.wav", O_RDWR);
+	outfile = open("/dev/dsp", O_RDWR);
+	if (infile < 0) {
+		perror("open infile");
+		exit(1);
+	}
+	if (outfile < 0) {
+		perror("open outfile");
+		exit(1);
+	}
 
+	printf("STARTED...\n");
+	do {
+		read(infile, &tm, sizeof(tm));
+		write(outfile, &tm, sizeof(tm));
+	} while (tm!=EOF);
+	printf("END!\n");
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+	close(infile);
+	close(outfile);
+
+	return 0;
+}
+************************************************
+But it doesn't work :( Some click is heard from headphones, but not
+original sound. As I understand, I need to play some tricks with
+ioctl(), but what parametres should I use for /dev/dsp? Please advise.
+
+Thanks. Sergey.
