@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 2.6.17-omap2 patch
-Date: Fri, 11 Aug 2006 14:02:53 +0300
-Message-ID: <20060811110252.GL6720@atomide.com>
-References: <200608101251.55285.shc@milas.spb.ru>
+Subject: Re: [PATCH] LCD backlight
+Date: Fri, 11 Aug 2006 14:09:52 +0300
+Message-ID: <20060811110951.GM6720@atomide.com>
+References: <fb249edb0606291235t1522f11di19c33f6a2fef8480@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <200608101251.55285.shc@milas.spb.ru>
+In-Reply-To: <fb249edb0606291235t1522f11di19c33f6a2fef8480@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,16 +17,30 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Alexander Shiyan <shc@milas.spb.ru>
-Cc: linux-omap-open-source@linux.omap.com
+To: balrogg@gmail.com
+Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Alexander Shiyan <shc@milas.spb.ru> [060810 11:49]:
-> Hello.
+* andrzej zaborowski <balrog@zabor.org> [060629 22:36]:
+> Add a simple driver for the LCD backlight that uses the Linux backlight api.
+> ---
+> Some notes:
 > 
-> Would it be possible to get the current omap patch (2.6.17-omap2?) against the 
-> 2.6.17 for download to http://www.muru.com/linux/omap/patches/?
+> The "check_fb" field is for the boards that have more than one LCD.
+> The "set_power" field is for boards that need to do something special
+> (e.g. GPIOs) before enabling the backlight. You can leave them unset.
+> 
+> You can use this driver only on boards that don't use UART3 because
+> UART3.TX and PWL use the same pin. Does someone know an easy
+> workaround for this pin conflict? PalmOS 5 running on OMAP311 somehow
+> manages to send and receiver IrDA through UART3 and you can't see any
+> change in the backlight level. In Linux when I set this pin to be
+> UART3.TX, the backlight level is always forced to 255.
 
-OK posted now.
+No idea. Maybe you can mux some other pin for UART3.TX?
+
+Could you please post a Signed-off-by for this patch too?
+
+Thanks,
 
 Tony
