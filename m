@@ -1,16 +1,12 @@
-From: "andrzej zaborowski" <balrog@zabor.org>
-Subject: Re: [PATCH] LCD backlight
-Date: Fri, 11 Aug 2006 13:51:02 +0200
-Message-ID: <fb249edb0608110451s7e85c6bfldbf98875857f6983@mail.gmail.com>
-References: <fb249edb0606291235t1522f11di19c33f6a2fef8480@mail.gmail.com>
-	<20060811110951.GM6720@atomide.com>
-Reply-To: balrogg@gmail.com
+From: "Abot Botbot" <dejanigma@hotmail.com>
+Subject: Re: NFS Bootargs
+Date: Fri, 11 Aug 2006 15:06:41 +0000
+Message-ID: <BAY102-F252592CB572C827127438A94B0@phx.gbl>
+References: <000501c6bcb1$88fcf3f0$0a02a8c0@DAAN>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060811110951.GM6720@atomide.com>
-Content-Disposition: inline
+In-Reply-To: <000501c6bcb1$88fcf3f0$0a02a8c0@DAAN>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,52 +16,109 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
+To: webwire@zonnet.nl
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On 11/08/06, Tony Lindgren <tony@atomide.com> wrote:
-> * andrzej zaborowski <balrog@zabor.org> [060629 22:36]:
-> > Add a simple driver for the LCD backlight that uses the Linux backlight api.
-> > ---
-> > Some notes:
-> >
-> > The "check_fb" field is for the boards that have more than one LCD.
-> > The "set_power" field is for boards that need to do something special
-> > (e.g. GPIOs) before enabling the backlight. You can leave them unset.
-> >
-> > You can use this driver only on boards that don't use UART3 because
-> > UART3.TX and PWL use the same pin. Does someone know an easy
-> > workaround for this pin conflict? PalmOS 5 running on OMAP311 somehow
-> > manages to send and receiver IrDA through UART3 and you can't see any
-> > change in the backlight level. In Linux when I set this pin to be
-> > UART3.TX, the backlight level is always forced to 255.
+Daan,
+
+   Got it to work. Certainly was the version of the NFS service that came 
+with my Cento OS distro.
+
+Thanks for your help!
+Andy
+
+
+>From: "Daan Biere" <webwire@zonnet.nl>
+>Reply-To: "Daan Biere" <webwire@zonnet.nl>
+>To: "Abot Botbot" <dejanigma@hotmail.com>
+>Subject: Re: NFS Bootargs
+>Date: Thu, 10 Aug 2006 21:16:51 +0200
 >
-> No idea. Maybe you can mux some other pin for UART3.TX?
-
-I'm not sure how this happens but now I have both IrDA and PWL working
-and the pin is set to work as PWL.
-
+>Hey,
+>It does matter :), i had the problem too, you''ll have to use the 
+>nfs-user-server.
+>My /etc/exports is as follows:
 >
-> Could you please post a Signed-off-by for this patch too?
-
-I will need to rediff it because it seems the backlight API changed in
-current git a bit. BTW Also I noticed that struct lcd_panel (in the
-OMAP LCD driver) now has pointers for intensity setters and getters
-for potential use. Maybe it should be somehow coupled with backlight
-api (e.g. using "notifiers").
-
-I will post a new version this week, if this is OK.
-
+>/160GB/ris/nfsroot 192.168.2.0/255.255.255.0(rw,no_root_squash,sync)
 >
-> Thanks,
+>Kind Regards,
+>Daan Biere
+>----- Original Message ----- From: "Abot Botbot" <dejanigma@hotmail.com>
+>To: <linux-omap-open-source@linux.omap.com>
+>Sent: Thursday, August 10, 2006 4:28 PM
+>Subject: Re: NFS Bootargs
 >
-> Tony
+>
+>>Hello all,
+>>
+>>   I suspect now the problem is on my linux machine hosting the NFS serv. 
+>>Is there a significant difference between an NFS share being served in 
+>>user mode or kernel mode? I just learned of these different modes reading 
+>>up on some unrelated documentation. I can mount my NFS share on other 
+>>systems just fine, but i suspect that doesn't guarantee the board will be 
+>>able to boot off it. I am running CentOS 3.6, which came with an nfs 
+>>service, which is what I'm using for this. Are all NFS services created 
+>>equal and does the mode (user or kernel) matter for this task?
+>>
+>>Thanks,
+>>Andy
+>>
+>>
+>>>From: Mark Howell <mhowell@northlink.com>
+>>>To: Abot Botbot <dejanigma@hotmail.com>
+>>>CC: linux-omap-open-source@linux.omap.com
+>>>Subject: Re: NFS Bootargs
+>>>Date: Wed, 09 Aug 2006 16:45:47 -0700
+>>>
+>>>Abot Botbot wrote:
+>>>>Hello all,
+>>>>
+>>>>
+>>>>    I'm trying to boot off an NFS share as laid out in the OSK Users 
+>>>>guide so I can begin my software development process. My buidling of the 
+>>>>system with the approrpiate makefiles has all gone seamlessly. I am 
+>>>>attempting to boot from the NFS share on my linux machine, which I've 
+>>>>demonstrated is possible from a neighboring machine. The error is as 
+>>>>follows:
+>>>>
+>>>>Kernel panic: No init found.  Try passing init= option to kernel.
+>>>>
+>>>>I have tried putting an "init=/bin/sh" argument into the bootargs 
+>>>>string, but that hasn't solved the problem. Does anyone else have a 
+>>>>bootargs string for an NFS share that they have used succesfully? Here 
+>>>>is the string I am currently using for refference:
+>>>>
+>>>>console=ttyS0,115200n8 noinitrd rw ip=dhcp root=/dev/nfs 
+>>>>nfsroot=192.168.1.101:/home/usr/projects/filesys,nolock mem=30M 
+>>>>init=/bin/sh
+>>>>
+>>>>Thanks for your help,
+>>>>Andy
+>>>>
+>>>[snip]
+>>>
+>>>Andy, this is a working NFS boot string for my 1611 H2 with today's git 
+>>>kernel:
+>>>
+>>>mem=32M console=ttyS0,115200n8 noinitrd root=/dev/nfs rw 
+>>>nfsroot=172.30.2.32:/home/markh/omap/nfsroot ip=dhcp
+>>>
+>>>Cheers,
+>>>
+>>>Mark.
+>>>
+>>
+>>_________________________________________________________________
+>>Express yourself instantly with MSN Messenger! Download today - it's FREE! 
+>>http://messenger.msn.click-url.com/go/onm00200471ave/direct/01/
+>>
+>>_______________________________________________
+>>Linux-omap-open-source mailing list
+>>Linux-omap-open-source@linux.omap.com
+>>http://linux.omap.com/mailman/listinfo/linux-omap-open-source
 >
 
-
--- 
-balrog 2oo6
-
-Dear Outlook users: Please remove me from your address books
-http://www.newsforge.com/article.pl?sid=03/08/21/143258
+_________________________________________________________________
+Express yourself instantly with MSN Messenger! Download today - it's FREE! 
+http://messenger.msn.click-url.com/go/onm00200471ave/direct/01/
