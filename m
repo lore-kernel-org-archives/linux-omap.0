@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] LCD backlight
-Date: Fri, 11 Aug 2006 14:09:52 +0300
-Message-ID: <20060811110951.GM6720@atomide.com>
-References: <fb249edb0606291235t1522f11di19c33f6a2fef8480@mail.gmail.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP: Use read/write_reg functions for PRCM.
+Date: Fri, 11 Aug 2006 14:12:48 +0300
+Message-ID: <20060811111247.GN6720@atomide.com>
+References: <1150285041.3056.263790643@webmail.messagingengine.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <fb249edb0606291235t1522f11di19c33f6a2fef8480@mail.gmail.com>
+In-Reply-To: <1150285041.3056.263790643@webmail.messagingengine.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,30 +17,39 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: balrogg@gmail.com
-Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
+To: Komal Shah <komal_shah802003@yahoo.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* andrzej zaborowski <balrog@zabor.org> [060629 22:36]:
-> Add a simple driver for the LCD backlight that uses the Linux backlight api.
-> ---
-> Some notes:
+Hi,
+
+* Komal Shah <komal_shah802003@yahoo.com> [060614 14:39]:
+> This patch will break the pm.c and pm-domain.c if CONFIG_PM is enabled.
+
+No problem. I'd actually prefer to have a patch that does not touch pm.c
+and pm-domain.c. There's another patch coming for PM stuff that already
+does not need prcm-regs.h much any longer.
+ 
+> pm.c changes.
+> - Use prcm_read/write_reg for preg(...)?? _or_ get function
+>   for each of that reg.
 > 
-> The "check_fb" field is for the boards that have more than one LCD.
-> The "set_power" field is for boards that need to do something special
-> (e.g. GPIOs) before enabling the backlight. You can leave them unset.
+> - get/set_reg functions for INTC registers??
 > 
-> You can use this driver only on boards that don't use UART3 because
-> UART3.TX and PWL use the same pin. Does someone know an easy
-> workaround for this pin conflict? PalmOS 5 running on OMAP311 somehow
-> manages to send and receiver IrDA through UART3 and you can't see any
-> change in the backlight level. In Linux when I set this pin to be
-> UART3.TX, the backlight level is always forced to 255.
+> - get_reg functions for SDRC_DLLA/B for using with
+>   omap2_sram_suspend ??
+> 
+> - Adding proc based register information as in OMAP1?
+> 
+> pm-domain.c
+> - Add if (cpu_is_omap2420()) and assigning prcm_base at init.
+> - Use prcm_readl/writel for other registers which uses _reg32 
+>   based access as of now.
 
-No idea. Maybe you can mux some other pin for UART3.TX?
+In general looks OK to me, could you please refresh and repost all your
+pending patches? Let's plan on starting to integrate this as soon as we
+have verified the generic irq stuff has not broken anything.
 
-Could you please post a Signed-off-by for this patch too?
-
-Thanks,
+Regards,
 
 Tony
