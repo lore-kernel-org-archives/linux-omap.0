@@ -1,10 +1,13 @@
-From: "b.b.w" <rememberme_2000@126.com>
-Subject: a strange question about osk board
-Date: Fri, 11 Aug 2006 16:25:56 +0800
-Message-ID: <000e01c6bd1f$c5dc1ad0$4e0aa8c0@yfwangbaobin>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: Add some extra #defines for Amstrad Delta.
+Date: Fri, 11 Aug 2006 12:50:00 +0300
+Message-ID: <20060811094959.GB6720@atomide.com>
+References: <20060804225555.GT17406@earth.li>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0811686248=="
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <20060804225555.GT17406@earth.li>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,31 +15,18 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Jonathan McDowell <noodles@earth.li>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+* Jonathan McDowell <noodles@earth.li> [060805 01:56]:
+> This patch adds some further #defines regarding GPIOs and latch bits for
+> the Amstrad Delta; the drivers that use them will be submitted at a
+> later date but there's no reason not to have the information already
+> there and available for use.
 
-This is a multi-part message in MIME format.
+Pushing today.
 
---===============0811686248==
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
-
-aGk6DQogbXkgb3NrICd1Ym9vdCB1c3VhbGx5IGNhbid0IHdvcmsgLndoZW4gdGhlIHBvd2VyIGlz
-IG9uLHRoZSBoeXBlcnRlcm1laW5hdGlvbiB0ZWxsIG1lICJ0aGUgQ29tMSBjYW4ndCBiZSBvcGVu
-ZWQhIi5pIGhhdmUgdG8gYnVybiB0aGUgdWJvb3QgYWdhaW4uaSB0aGluayB0aGUgdWJvb3QgY29k
-ZSBpcyBidXJuZWQgaW4gZmxhc2guIGkgbWV0IGl0IG1hbnkgdGltZXMuDQogDQogd2hvIGhhcyAg
-bWV0IHRoZSBzYW1lIHByb2JsZW0/IA0KIHRoYW5rcw0KICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIHcuYi5iDQog
-
---===============0811686248==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============0811686248==--
+Tony
