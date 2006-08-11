@@ -1,13 +1,10 @@
-From: Arnold <abo_gwapo@yahoo.com>
-Subject: Re: MCSI & MCBSP howto configure as gpio
-Date: Thu, 10 Aug 2006 22:41:49 -0700 (PDT)
-Message-ID: <20060811054149.58678.qmail@web55807.mail.re3.yahoo.com>
-References: <20060811051149.1187.qmail@web55803.mail.re3.yahoo.com>
+From: "b.b.w" <rememberme_2000@126.com>
+Subject: a strange question about osk board
+Date: Fri, 11 Aug 2006 16:25:56 +0800
+Message-ID: <000e01c6bd1f$c5dc1ad0$4e0aa8c0@yfwangbaobin>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060811051149.1187.qmail@web55803.mail.re3.yahoo.com>
+Content-Type: multipart/mixed; boundary="===============0811686248=="
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,49 +12,31 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Khasim, Syed" <x0khasim@ti.com>, Mark Howell <mhowell@northlink.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mark and Khasim,
 
-I already got a TRM for pinouts which could help me
-configure multiplex pins. Thanks for your time. You've
-been of great help.
+This is a multi-part message in MIME format.
 
-Regards,
-OJ
+--===============0811686248==
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
---- Arnold <abo_gwapo@yahoo.com> wrote:
+aGk6DQogbXkgb3NrICd1Ym9vdCB1c3VhbGx5IGNhbid0IHdvcmsgLndoZW4gdGhlIHBvd2VyIGlz
+IG9uLHRoZSBoeXBlcnRlcm1laW5hdGlvbiB0ZWxsIG1lICJ0aGUgQ29tMSBjYW4ndCBiZSBvcGVu
+ZWQhIi5pIGhhdmUgdG8gYnVybiB0aGUgdWJvb3QgYWdhaW4uaSB0aGluayB0aGUgdWJvb3QgY29k
+ZSBpcyBidXJuZWQgaW4gZmxhc2guIGkgbWV0IGl0IG1hbnkgdGltZXMuDQogDQogd2hvIGhhcyAg
+bWV0IHRoZSBzYW1lIHByb2JsZW0/IA0KIHRoYW5rcw0KICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgIHcuYi5iDQog
 
-> Hi Mark,
-> > You are using OMAP 5912? I'll see if I have the
-> > right TRM.
-> I would greatly appreciate If you could help me find
-> a
-> TRM for me to configure the mcsi as gpio. Hope to
-> hear
-> from you again. Thanks!
-> 
-> Regards,
-> OJ 
-> 
-> __________________________________________________
-> Do You Yahoo!?
-> Tired of spam?  Yahoo! Mail has the best spam
-> protection around 
-> http://mail.yahoo.com 
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
->
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> 
+--===============0811686248==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+--===============0811686248==--
