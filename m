@@ -1,14 +1,13 @@
-From: "Daan Biere" <webwire@zonnet.nl>
-Subject: Re: NFS Bootargs
-Date: Wed, 9 Aug 2006 16:45:35 +0200
-Message-ID: <002001c6bbc2$793f9f20$0a02a8c0@DAAN>
-References: <BAY102-F15BFC0DB6B83849C21C502A9550@phx.gbl>
-Reply-To: Daan Biere <webwire@zonnet.nl>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: RE: status of OMAP ALSA support
+Date: Sat, 12 Aug 2006 02:51:50 -0700 (PDT)
+Message-ID: <20060812095150.72775.qmail@web37914.mail.mud.yahoo.com>
+References: <304D2A85A9643F4A991BDDF8D297BBA6040F63E8@dlee05.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=response
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <304D2A85A9643F4A991BDDF8D297BBA6040F63E8@dlee05.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,65 +15,40 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Abot Botbot <dejanigma@hotmail.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Zhang, Jian" <jzhang@ti.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Abot,
-I've set up a nfsroot yesterday for testing a mips based system, i''m using 
-the following bootargs:
+--- "Zhang, Jian" <jzhang@ti.com> wrote:
 
-append ip=dhcp nfsroot="192.168.1.101:/home/usr/projects/filesys" 
-init=/bin/sh root=/dev/nfs rw
+> Mika,
+> 
+> Thanks for the response. I have overlooked this email until today.
+> 
+> Good to know it is tested on H2. I should be able to get a H2. I
+> tried
+> to build a H3 kernel with tsc2101 codec. The alsa core reported no
+> sound
+> card. It seems that snd_card_new() fails silently in omap alsa core. 
+> 
+> I don't have any fixes yet. I can add H3/H4 support once I first have
+> it
+> run on H2 (I am new to sound so need some tracing of control flow:))
+> The
+> current focus is to understand ALSA. I have asked you a dummy
+> configuration question in a separate email. Any help from you is
+> appreciated.   
 
-just be sure you've got all the required depencies in the /lib dir and 
-you'll have the /dev/console, i made a little script to do this.
+And to make it work on H4, it is better to have tsc2101 protocol driver
+understanding the current OMAP2-spi driver _or_ better if Juha releases
+tsc2301 driver early, so that we can derive tsc2101 changes straight
+from there ;) 
 
+---Komal Shah
+http://komalshah.blogspot.com/
 
-ldd $1 | awk '{ print $3; }' | sed 's/\(\/.*\/\(.*\)\)/\1 \2/g' -\
-| xargs -l1 --no-run-if-empty cp
-
-go to the lib dir and type something like "lddcopy /bin/bash" it would copy 
-all the required libs.
-
-Kind Regards,
-Daan Biere
------ Original Message ----- 
-From: "Abot Botbot" <dejanigma@hotmail.com>
-To: <linux-omap-open-source@linux.omap.com>
-Sent: Wednesday, August 09, 2006 4:26 PM
-Subject: NFS Bootargs
-
-
-> Hello all,
->
->
->    I'm trying to boot off an NFS share as laid out in the OSK Users guide 
-> so I can begin my software development process. My buidling of the system 
-> with the approrpiate makefiles has all gone seamlessly. I am attempting to 
-> boot from the NFS share on my linux machine, which I've demonstrated is 
-> possible from a neighboring machine. The error is as follows:
->
-> Kernel panic: No init found.  Try passing init= option to kernel.
->
-> I have tried putting an "init=/bin/sh" argument into the bootargs string, 
-> but that hasn't solved the problem. Does anyone else have a bootargs 
-> string for an NFS share that they have used succesfully? Here is the 
-> string I am currently using for refference:
->
-> console=ttyS0,115200n8 noinitrd rw ip=dhcp root=/dev/nfs 
-> nfsroot=192.168.1.101:/home/usr/projects/filesys,nolock mem=30M 
-> init=/bin/sh
->
-> Thanks for your help,
-> Andy
->
-> _________________________________________________________________
-> Don't just search. Find. Check out the new MSN Search! 
-> http://search.msn.click-url.com/go/onm00200636ave/direct/01/
->
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source 
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
