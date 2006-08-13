@@ -1,15 +1,10 @@
-From: Juha =?iso-8859-1?B?WXJq9mzk?= <juha.yrjola@solidboot.com>
-Subject: Re: Suspending with keypad bug (RFC)
-Date: Sun, 13 Aug 2006 12:36:41 +0300
-Message-ID: <20060813093641.GA20466@mail.solidboot.com>
-References: <fb249edb0608041633y58eef1b8we6f00cccf69c99a0@mail.gmail.com>
-	<44D6423F.3070001@solidboot.com>
-	<fb249edb0608092155r20c17f5dl6397c3d9d191105b@mail.gmail.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: [PATCH] ARM: OMAP: Remove warnings in DSP code
+Date: Sun, 13 Aug 2006 16:04:18 +0200
+Message-ID: <44DF3162.2090700@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="------------090904040704080704070008"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <fb249edb0608092155r20c17f5dl6397c3d9d191105b@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,33 +14,67 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: balrogg@gmail.com
-Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+This is a multi-part message in MIME format.
+--------------090904040704080704070008
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Thu, Aug 10, 2006 at 06:55:26AM +0200, andrzej zaborowski wrote:
 
-> Thanks for help! I'm attaching the corrected version, it works nicely.
+Remove warnings:
 
-+       unsigned long flags;
-+       spin_lock_irqsave(&omap_kp->suspend_lock, flags);
-+
-+       if (omap_kp->suspended)
-+               return IRQ_HANDLED;
-+
-+       spin_unlock_irqrestore(&omap_kp->suspend_lock, flags);
+arch/arm/plat-omap/dsp/dsp_common.c: In function
+'dsp_cpustat_update':
+arch/arm/plat-omap/dsp/dsp_common.c:317: warning: implicit
+declaration of function 'enable_irq'
+arch/arm/plat-omap/dsp/dsp_common.c:325: warning: implicit
+declaration of function 'disable_irq'
 
-Here you are returning with the lock held and IRQs disabled.  It should be
-like this:
+arch/arm/plat-omap/dsp/task.c: In function 'dsp_task_write_bk':
+arch/arm/plat-omap/dsp/task.c:1232: warning: implicit
+declaration of function 'disable_irq'
+arch/arm/plat-omap/dsp/task.c:1232: warning: implicit
+declaration of function 'enable_irq'
 
-       spin_lock_irqsave(&omap_kp->suspend_lock, flags);
-       if (omap_kp->suspended) {
-               spin_unlock_irqrestore(&omap_kp->suspend_lock, flags);
-               return IRQ_HANDLED;
-       }
-       spin_unlock_irqrestore(&omap_kp->suspend_lock, flags);
+Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
 
-Cheers,
-Juha
+
+--------------090904040704080704070008
+Content-Type: text/plain;
+ name="dsp_warnings_patch.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="dsp_warnings_patch.txt"
+
+--- ./arch/arm/plat-omap/dsp/dsp_common.c_orig	2006-08-13 15:55:45.000000000 +0200
++++ ./arch/arm/plat-omap/dsp/dsp_common.c	2006-08-13 15:58:51.000000000 +0200
+@@ -32,6 +32,7 @@
+ #include <linux/mm.h>
+ #include <linux/clk.h>
+ #include <linux/mutex.h>
++#include <linux/interrupt.h>
+ #include <asm/io.h>
+ #include <asm/tlbflush.h>
+ #include <asm/irq.h>
+--- ./arch/arm/plat-omap/dsp/task.c_orig	2006-08-13 15:55:30.000000000 +0200
++++ ./arch/arm/plat-omap/dsp/task.c	2006-08-13 15:59:03.000000000 +0200
+@@ -37,6 +37,7 @@
+ #include <linux/mm.h>
+ #include <linux/proc_fs.h>
+ #include <linux/mutex.h>
++#include <linux/interrupt.h>
+ #include <asm/uaccess.h>
+ #include <asm/io.h>
+ #include <asm/signal.h>
+
+
+--------------090904040704080704070008
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--------------090904040704080704070008--
