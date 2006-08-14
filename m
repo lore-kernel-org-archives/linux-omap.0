@@ -1,14 +1,13 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: gpio Interrupt handling for omap5912
-Date: Mon, 14 Aug 2006 09:17:41 +0200
-Message-ID: <44E02395.304@gmail.com>
-References: <20060804024947.80936.qmail@web55802.mail.re3.yahoo.com>
-	<44DF33FB.3050003@gmail.com> <44DFA617.3030505@cc.jyu.fi>
+From: kabbin <kabbin26@yahoo.com.tw>
+Subject: RE: Problems when porting linux kernel 2.6.10  on OMAP2420H4
+Date: Mon, 14 Aug 2006 16:21:03 +0800 (CST)
+Message-ID: <20060814082103.91425.qmail@web17803.mail.tpe.yahoo.com>
+References: <EA12F909C0431D458B9D18A176BEE4A507010C5D@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <44DFA617.3030505@cc.jyu.fi>
+Content-Type: text/plain; charset=big5
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A507010C5D@dlee02.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,44 +15,34 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: lamikr@cc.jyu.fi
-Cc: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-lamikr wrote:
-> Dirk Behme wrote:
->>to avoid that things like HowTo below are lost, what do you think is
->>the best place to store them?
->>
->>I can imagine
->>
->>- Documentation/arm/OMAP/GPIO
-> 
-> I would prefer this even it might be even too obvious place to search
-> this kind of docs :-) But of course OSK wiki is also good location.
+Dear all
+  When I build u-boot (download from 'git') with
+arm-linux-gcc-4.0.2-glibc-2.3.6
 
-Okay, let us put it into Documentation/arm/OMAP (see patch I
-sent). If it is there, I will add a link to
+#make distclean
+#make omap2420h4_config
+#make all
+I got error message:
+common/env_flash.c  row: 267 undefined reference to
+'flash_probe'=20
+  Dear Woodruff have told me there were a patch for
+it! But I could not find it.I can only find=20
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-February/0064=
+36.html
+which seems similar problems to mine.
+  He also send me some binary files but they did not
+work very well. I have no idea how to deal with it.
+Please HELP me, Thanks :-) =20
 
-http://tree.celinuxforum.org/CelfPubWiki/OSK#head-0bda81ff448870f0aa282eb95524f2c157ca3e83
+P.S. Especially thanks to Woodruff !Yor are so kind to
+help me a lot
 
-Then, we have it at both places ;)
-
-> Maybe there could also be something from the just added GPIO switch
-> framework usage and omap platforms it should support. (OMAP1, OMAP2?)
-> 
-> Another area from which I would be interested in would be ARMIOs, as I
-> have only found my self couple of references to them without good
-> explanation what they really are. They seems to be something that
-> remains GPIO's and I would be interested in to know whether GPIO
-> functions are supposed to handle also them by just using certain high
-> enought ID numbers, or should they be treated diffrerently?
-
-Anybody who is familiar with this can add this info to GPIO
-howto?
-
-Thanks
-
-Dirk
+___________________________________________________=20
+ =B3=CC=B7s=AA=A9 Yahoo!=A9_=BC=AF=A7Y=AE=C9=B3q=B0T 7.0=A1A=A7K=B6O=BA=F4=
+=B8=F4=B9q=B8=DC=A5=F4=A7A=A5=B4=A1I=20
+ http://messenger.yahoo.com.tw/
