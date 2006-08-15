@@ -1,14 +1,11 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH] ARM: OMAP: Add Amstrad Delta platform bits for
-	framebuffer.
-Date: Tue, 15 Aug 2006 09:54:35 +0200
-Message-ID: <20060815075435.GA5426@orphique>
-References: <20060814183119.GN27094@earth.li>
+From: kabbin <kabbin26@yahoo.com.tw>
+Subject: Building kenel error
+Date: Tue, 15 Aug 2006 17:47:38 +0800 (CST)
+Message-ID: <20060815094738.61617.qmail@web17801.mail.tpe.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=big5
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20060814183119.GN27094@earth.li>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,48 +15,50 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Aug 14, 2006 at 07:31:19PM +0100, Jonathan McDowell wrote:
-> This patch adds the platform file components for the Amstrad Delta LCD
-> framebuffer. I have confirmed it works with latest git. The patch to
-> clock.c /is/ needed for this to work.
-> 
-> Signed-Off-By: Jonathan McDowell <noodles@earth.li>
-[snip]
-> diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-> index cc08775..70a5d50 100644
-> --- a/arch/arm/mach-omap1/clock.c
-> +++ b/arch/arm/mach-omap1/clock.c
-> @@ -20,6 +20,7 @@ #include <linux/err.h>
->  #include <linux/clk.h>
->  
->  #include <asm/io.h>
-> +#include <asm/mach-types.h>
->  
->  #include <asm/arch/cpu.h>
->  #include <asm/arch/usb.h>
-> @@ -756,6 +757,14 @@ #if defined(CONFIG_MACH_OMAP_PERSEUS2) |
->  	omap_writew(omap_readw(OMAP730_PCC_UPLD_CTRL) & ~0x1, OMAP730_PCC_UPLD_CTRL);
->  #endif
->  
-> +#ifdef CONFIG_MACH_AMS_DELTA
-> +	/* Amstrad Delta wants BCLK high when inactive */
-> +	if (machine_is_ams_delta())
-> +		omap_writel(omap_readl(ULPD_CLOCK_CTRL) |
-> +				(1 << SDW_MCLK_INV_BIT),
-> +				ULPD_CLOCK_CTRL);
-> +#endif
+Dear all:
+  When I build kernel 2.6.10 which downloaded from
+http://linux.omap.com/pub/kernel/h4/source/linux-2.6.10-omap2420-omap2430=
+.tgz
 
-This #ifdef is not necessary. machine_is_ams_delta() will expand to (0)
-when CONFIG_MACH_AMS_DELTA not selected and that if (0) will be
-optimized away.
+I got :=20
+In file included from include/asm/page.h:27,
+                 from include/asm/cpu-single.h:33,
+                 from include/asm/proc-fns.h:154,
+                 from include/asm/system.h:94,
+                 from include/asm/bitops.h:22,
+                 from include/linux/bitops.h:4,
+                 from include/linux/thread_info.h:20,
+                 from include/linux/spinlock.h:12,
+                 from include/linux/capability.h:45,
+                 from include/linux/sched.h:7,
+                 from
+arch/arm/kernel/asm-offsets.c:13:
+include/asm/glue.h:111:2: error: #error Unknown data
+abort handler type
+In file included from include/asm/cpu-single.h:33,
+                 from include/asm/proc-fns.h:154,
+                 from include/asm/system.h:94,
+                 from include/asm/bitops.h:22,
+                 from include/linux/bitops.h:4,
+                 from include/linux/thread_info.h:20,
+                 from include/linux/spinlock.h:12,
+                 from include/linux/capability.h:45,
+                 from include/linux/sched.h:7,
+                 from
+arch/arm/kernel/asm-offsets.c:13:
+include/asm/page.h:92:2: error: #error Unknown user
+operations model
 
->  	/* Turn off DSP and ARM_TIMXO. Make sure ARM_INTHCK is not divided */
->  	/* (on 730, bit 13 must not be cleared) */
->  	if (cpu_is_omap730())
+Is there some problems on my toolchain ?
+Or maybe I use the  wrong config setting ?=20
+Thanks. Best Regards.
 
+yanming.
 
-Best regards,
-	ladis
+___________________________________________________=20
+ =B3=CC=B7s=AA=A9 Yahoo!=A9_=BC=AF=A7Y=AE=C9=B3q=B0T 7.0=A1A=A7K=B6O=BA=F4=
+=B8=F4=B9q=B8=DC=A5=F4=A7A=A5=B4=A1I=20
+ http://messenger.yahoo.com.tw/
