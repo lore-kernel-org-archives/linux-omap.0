@@ -1,13 +1,12 @@
-From: Arnold <abo_gwapo@yahoo.com>
-Subject: Re: Interrupts on Omap5912
-Date: Tue, 15 Aug 2006 23:13:59 -0700 (PDT)
-Message-ID: <20060816061400.91213.qmail@web55815.mail.re3.yahoo.com>
-References: <20060816031218.23244.qmail@web50504.mail.yahoo.com>
+From: "Daniel Petrini" <d.pensator@gmail.com>
+Subject: Re: Changing Clock to 182MHz (14 x 13MHz) on OMAP5912...
+Date: Wed, 16 Aug 2006 09:00:52 -0300
+Message-ID: <9268368b0608160500v2f710340we437abe9edebbc57@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060816031218.23244.qmail@web50504.mail.yahoo.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,59 +16,91 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: OJ Ravadilla <ojravadilla@yahoo.com>, linux-omap-open-source@linux.omap.com
+To: danilo.caravana@gmail.com
+Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi OJ,
+Hi Danilo,
 
-> Is there anyone who knows about interrupts on OMAP?
-> How are interrupts implemented in omap5912?
+> I can't just put "CONFIG_OMAP_ARM_182MHZ" in the
+> omap_osk_5912_defconfig. Because there is no 182MHz option on <make
+> menuconfig>.
 
-I have made an example on howto request interrupt
-using a gpio. (take note that this example is for
-gpio)
+Due to the lack of a 13 MHz cristal in the default configuration...
 
-Interrupt input by gpio pin#3
-#include <asm/arch/gpio.h>
+> I will continue looking for some workaround...
+> Any help on putting the 182MHz option in the make <menuconfig> would be great.
 
-omap_request_gpio(3);    /* Request for gpio pin */
-omap_set_gpio_direction(3,0);
+There is an ugly workaround:
+You can force it by editing resulting .config file, I guess.
+To do so, select 192 MHz normally in make menuconfig and then edit
+.config file, find the CONFIG_OMAP_ARM_192MHZ and exchange it for
+CONFIG_OMAP_ARM_182MHZ.
+Then make as usual.
+If there is any other dependency you will need to resolv each of them.
+Note that you are beyond valid and tested configurations.
 
-*Setting up pin for interrupt */
-set_irq_type(OMAP_GPIO_IRQ(3),IRQT_RISING); 
+Regards and good luck,
 
-request_irq(OMAP_GPIO_IRQ(3), (void *)&my_int_handler,
-SA_SHIRQ,....);
-
-* Do stuff, handle interrupts in 
-my_int_handler */
-                
-free_irq(OMAP_GPIO_IRQ(3),&id); /*  Freeing interrupt
-and gpio pin */
-omap_free_gpio(3); 
-
-> Do you have to check the status register 
-
-Dirk Behme answered me this before:
-There are level and edge triggered GPIO interrupts,
-depends 
-on your HW configuration. If you have edge, you
-normally 
-don't need to acknowledge anything. If you have level,
-you 
-have to check if you have to acknowledge the interrupt
-in 
-the external unit issuing the irq on GPIO pin to make
-the 
-level go away before exiting the ISR.
-
-But this is with regards to gpio. You can see
-Documentation/arm/interrupts for more info. Just need
-some readings.
+Daniel
 
 
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+On 8/15/06, Daniel Petrini <d.pensator@gmail.com> wrote:
+> Hi Danilo,
+>
+> These happens likely because OSK has a 12MHz cristal...
+> I think that you can change it as you suggests once you have the
+> proper cristal frequency available. But redirect this query to the
+> list to have more opinions. I never tried that.
+>
+> Please, check the frequency multipliers in the clock.h file as I
+> pointed. Confirm that they are valid for 5912. Note that they are for
+> a 13 MHZ cristal....
+>
+> Cheers,
+>
+> Daniel
+>
+>
+> Hi Daniel,
+>
+>  It's available just for OMAP730 in <make menuconfig>.
+>  For OMPA5912 i get 216/192/168... etc...
+>
+>  I check at omap_osk_5912_defconfig. There is no 182MHz.
+>  I was wondering if i can just put: "CONFIG_OMAP_ARM_182MHZ" in the
+> omap_osk_5912_defconfig.
+>
+>  Thanks for your help...
+>
+> Danilo
+>
+>
+> On 8/15/06, Daniel Petrini <d.pensator@gmail.com> wrote:
+> > Hi Danilo,
+> >
+> > It seems that there is this option vailable in the <make menuconfig>,
+> > once there is this clock speed in the arch/arm/mach-omap1/clock.h
+> > file:
+> >
+> > #if defined(CONFIG_OMAP_ARM_182MHZ)
+> >  { 182000000, 13000000, 182000000, 0x050e, 0x2710 }, /* 1/1/2/2/4/8 */
+> > #endif
+> >
+> > Take a look at OSK configuration in it.
+> >
+> > Regards,
+> >
+> > Daniel
+> >
+> >
+> > > Hi all,
+> > >
+> > > I have an OMAP 5912, and I need a 14 x 13MHz (182MHz) instead of 16
+> > > x 12MHz (192MHz) kernel... What can i do to add this option when i
+> > > build the Kernel???
+> >
+> > > Tkanks...
+> >
+> > > Danilo
+> >
