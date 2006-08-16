@@ -1,15 +1,13 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch 2.6.17-rc4-omap-git] rtc-omap, rtc framework driver
-Date: Tue, 15 Aug 2006 15:17:15 -0700
-Message-ID: <200608151517.16378.david-b@pacbell.net>
-References: <8C5B35906ACE4C48ACB3E1FAC65DB5B6231F5B@dlee08.ent.ti.com>
+From: OJ Ravadilla <ojravadilla@yahoo.com>
+Subject: Interrupts on Omap5912
+Date: Tue, 15 Aug 2006 20:12:18 -0700 (PDT)
+Message-ID: <20060816031218.23244.qmail@web50504.mail.yahoo.com>
+References: <200608151517.16378.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <8C5B35906ACE4C48ACB3E1FAC65DB5B6231F5B@dlee08.ent.ti.com>
-Content-Disposition: inline
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <200608151517.16378.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,32 +15,26 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Johnson, Steve-OMAP" <stevej@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 15 August 2006 3:03 pm, Johnson, Steve-OMAP wrote:
-> David,
-> 
-> Thanks.  I'll let marketing know and ask them to fix the graphic.
+Hi All,
 
-Good, so issue #2 is resolved ... this _is_ OMAP1-only, the Kconfig is right.
-
-How about #1?  Likely it's too late to resolve that doc ambiguity, but it'd
-be good to know the answer anyway. :)
-
-- Dave
+Is there anyone who knows about interrupts on OMAP?
+How are interrupts implemented in omap5912? interrupt
+priorities? How do you check what interrupt occured?
+Do you have to check the status register or can you
+just use omap_get_datain to check if the value have
+changed? Do you have to clear the pin after the
+interrupt occured? Hope to hear from anyone you guys. 
 
 
-> > > > Could someone confirm that this RTC can't actually do 
-> > > > system wakeups 
-> > > > without external hardware support?  My documentation isn't at all 
-> > > > clear on that issue.  There's certainly an external wakeup signal 
-> > > > available, but text also says that the alarm irq should work the 
-> > > > normal way ... but I don't see that happening.  It could 
-> > > > easily be just a bug in
-> > > > enable_irq_wakeup(INT_RTC_ALARM) handling, which ISTR 
-> > > > looked like a 
-> > > > big NOP last I checked (for almost all IRQs).
+
+
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
