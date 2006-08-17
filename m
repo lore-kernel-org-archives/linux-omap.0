@@ -1,14 +1,16 @@
-From: Jonathan McDowell <noodles@earth.li>
-Subject: Re: [PATCH] ARM: OMAP: Add Amstrad Delta platform bits for
-	framebuffer.
-Date: Thu, 17 Aug 2006 16:21:37 +0100
-Message-ID: <20060817152137.GE16981@earth.li>
-References: <20060814183119.GN27094@earth.li> <20060815075435.GA5426@orphique>
+From: "andrzej zaborowski" <balrog@zabor.org>
+Subject: Re: Suspending with keypad bug (RFC)
+Date: Thu, 17 Aug 2006 21:43:14 +0200
+Message-ID: <fb249edb0608171243m400d4934kad35300bac3da40@mail.gmail.com>
+References: <fb249edb0608041633y58eef1b8we6f00cccf69c99a0@mail.gmail.com>
+	<44D6423F.3070001@solidboot.com>
+	<fb249edb0608092155r20c17f5dl6397c3d9d191105b@mail.gmail.com>
+	<20060813093641.GA20466@mail.solidboot.com>
+Reply-To: balrogg@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20060815075435.GA5426@orphique>
+Content-Type: multipart/mixed; boundary="===============1554045541=="
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20060813093641.GA20466@mail.solidboot.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,118 +18,40 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: =?UTF-8?Q?Juha_Yrj=C3=B6l=C3=A4?= <juha.yrjola@solidboot.com>
+Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 15, 2006 at 09:54:35AM +0200, Ladislav Michl wrote:
-> On Mon, Aug 14, 2006 at 07:31:19PM +0100, Jonathan McDowell wrote:
-> > This patch adds the platform file components for the Amstrad Delta LCD
-> > framebuffer. I have confirmed it works with latest git. The patch to
-> > clock.c /is/ needed for this to work.
-> > 
-> > Signed-Off-By: Jonathan McDowell <noodles@earth.li>
-> >
-> > +#ifdef CONFIG_MACH_AMS_DELTA
-> > +	/* Amstrad Delta wants BCLK high when inactive */
-> > +	if (machine_is_ams_delta())
-> > +		omap_writel(omap_readl(ULPD_CLOCK_CTRL) |
-> > +				(1 << SDW_MCLK_INV_BIT),
-> > +				ULPD_CLOCK_CTRL);
-> > +#endif
-> 
-> This #ifdef is not necessary. machine_is_ams_delta() will expand to (0)
-> when CONFIG_MACH_AMS_DELTA not selected and that if (0) will be
-> optimized away.
+--===============1554045541==
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-I tend to adopt a belt and braces approach to these things. :) Here's a
-revised patch without the #ifdef.
+T24gMTMvMDgvMDYsIEp1aGEgWXJqw7Zsw6QgPGp1aGEueXJqb2xhQHNvbGlkYm9vdC5jb20+IHdy
+b3RlOgo+IEhpLAo+Cj4gT24gVGh1LCBBdWcgMTAsIDIwMDYgYXQgMDY6NTU6MjZBTSArMDIwMCwg
+YW5kcnplaiB6YWJvcm93c2tpIHdyb3RlOgo+Cj4gPiBUaGFua3MgZm9yIGhlbHAhIEknbSBhdHRh
+Y2hpbmcgdGhlIGNvcnJlY3RlZCB2ZXJzaW9uLCBpdCB3b3JrcyBuaWNlbHkuCj4KPiArICAgICAg
+IHVuc2lnbmVkIGxvbmcgZmxhZ3M7Cj4gKyAgICAgICBzcGluX2xvY2tfaXJxc2F2ZSgmb21hcF9r
+cC0+c3VzcGVuZF9sb2NrLCBmbGFncyk7Cj4gKwo+ICsgICAgICAgaWYgKG9tYXBfa3AtPnN1c3Bl
+bmRlZCkKPiArICAgICAgICAgICAgICAgcmV0dXJuIElSUV9IQU5ETEVEOwo+ICsKPiArICAgICAg
+IHNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJm9tYXBfa3AtPnN1c3BlbmRfbG9jaywgZmxhZ3MpOwo+
+Cj4gSGVyZSB5b3UgYXJlIHJldHVybmluZyB3aXRoIHRoZSBsb2NrIGhlbGQgYW5kIElSUXMgZGlz
+YWJsZWQuICBJdCBzaG91bGQgYmUKPiBsaWtlIHRoaXM6Cj4KPiAgICAgICAgc3Bpbl9sb2NrX2ly
+cXNhdmUoJm9tYXBfa3AtPnN1c3BlbmRfbG9jaywgZmxhZ3MpOwo+ICAgICAgICBpZiAob21hcF9r
+cC0+c3VzcGVuZGVkKSB7Cj4gICAgICAgICAgICAgICAgc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgm
+b21hcF9rcC0+c3VzcGVuZF9sb2NrLCBmbGFncyk7Cj4gICAgICAgICAgICAgICAgcmV0dXJuIElS
+UV9IQU5ETEVEOwo+ICAgICAgICB9Cj4gICAgICAgIHNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJm9t
+YXBfa3AtPnN1c3BlbmRfbG9jaywgZmxhZ3MpOwoKT29wcywgSSBtdXN0IGJlIGJsaW5kISBJJ20g
+Z29pbmcgdG8gc2VuZCBhIGNvcnJlY3RlZCB2ZXJzaW9uLiBUaGFua3MgYWdhaW4uCgo+Cj4gQ2hl
+ZXJzLAo+IEp1aGEKPgoKUmVnYXJkcywKQW5kcnplagotLSAKYmFscm9nIDJvbzYK
 
-Signed-Off-By: Jonathan McDowell <noodles@earth.li>
+--===============1554045541==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
------
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index 8437d06..1389799 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -76,6 +76,10 @@ static struct map_desc ams_delta_io_desc
- 	}
- };
- 
-+static struct omap_lcd_config ams_delta_lcd_config __initdata = {
-+	.ctrl_name	= "internal",
-+};
-+
- static struct omap_uart_config ams_delta_uart_config __initdata = {
- 	.enabled_uarts = 1,
- };
-@@ -87,16 +91,23 @@ static struct omap_usb_config ams_delta_
- };
- 
- static struct omap_board_config_kernel ams_delta_config[] = {
-+	{ OMAP_TAG_LCD,		&ams_delta_lcd_config },
- 	{ OMAP_TAG_UART,	&ams_delta_uart_config },
- 	{ OMAP_TAG_USB,		&ams_delta_usb_config },
- };
- 
-+static struct platform_device ams_delta_lcd_device = {
-+	.name	= "lcd_ams_delta",
-+	.id	= "-1",
-+};
-+
- static struct platform_device ams_delta_led_device = {
- 	.name	= "ams-delta-led",
- 	.id	= -1
- };
- 
- static struct platform_device *ams_delta_devices[] __initdata = {
-+	&ams_delta_lcd_device,
- 	&ams_delta_led_device,
- };
- 
-diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index cc08775..7a25e8d 100644
---- a/arch/arm/mach-omap1/clock.c
-+++ b/arch/arm/mach-omap1/clock.c
-@@ -20,6 +20,7 @@ #include <linux/err.h>
- #include <linux/clk.h>
- 
- #include <asm/io.h>
-+#include <asm/mach-types.h>
- 
- #include <asm/arch/cpu.h>
- #include <asm/arch/usb.h>
-@@ -756,6 +757,12 @@ #if defined(CONFIG_MACH_OMAP_PERSEUS2) |
- 	omap_writew(omap_readw(OMAP730_PCC_UPLD_CTRL) & ~0x1, OMAP730_PCC_UPLD_CTRL);
- #endif
- 
-+	/* Amstrad Delta wants BCLK high when inactive */
-+	if (machine_is_ams_delta())
-+		omap_writel(omap_readl(ULPD_CLOCK_CTRL) |
-+				(1 << SDW_MCLK_INV_BIT),
-+				ULPD_CLOCK_CTRL);
-+
- 	/* Turn off DSP and ARM_TIMXO. Make sure ARM_INTHCK is not divided */
- 	/* (on 730, bit 13 must not be cleared) */
- 	if (cpu_is_omap730())
-diff --git a/arch/arm/mach-omap1/clock.h b/arch/arm/mach-omap1/clock.h
-index 0b125c3..f7df002 100644
---- a/arch/arm/mach-omap1/clock.h
-+++ b/arch/arm/mach-omap1/clock.h
-@@ -89,6 +89,7 @@ #define EN_TC2_CK	4
- #define EN_DSPTIMCK	5
- 
- /* Various register defines for clock controls scattered around OMAP chip */
-+#define SDW_MCLK_INV_BIT	2	/* In ULPD_CLKC_CTRL */
- #define USB_MCLK_EN_BIT		4	/* In ULPD_CLKC_CTRL */
- #define USB_HOST_HHC_UHOST_EN	9	/* In MOD_CONF_CTRL_0 */
- #define SWD_ULPD_PLL_CLK_REQ	1	/* In SWD_CLK_DIV_CTRL_SEL */
------
 
-J.
-
--- 
-I have found the monster - the monster is us.
-This .sig brought to you by the letter H and the number 13
-Product of the Republic of HuggieTag
+--===============1554045541==--
