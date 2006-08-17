@@ -1,10 +1,11 @@
-From: Omap 850 <omap850@yahoo.de>
-Subject: HTC WIZARD - Keyboard works 50 % - thanks to unaiur
-Date: Thu, 17 Aug 2006 22:00:10 +0200 (CEST)
-Message-ID: <20060817200010.35885.qmail@web27812.mail.ukl.yahoo.com>
+From: "andrzej zaborowski" <balrog@zabor.org>
+Subject: [PATCH] Unmask omap-keypad interrupt on suspend
+Date: Thu, 17 Aug 2006 22:09:03 +0200
+Message-ID: <fb249edb0608171309w4391e435ta3230e6d0e04fddf@mail.gmail.com>
+Reply-To: balrogg@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed;
+	boundary="----=_Part_32990_23462600.1155845343124"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,31 +16,69 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
+------=_Part_32990_23462600.1155845343124
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-hello together,
+UHJldmVudCBrZXlib2FyZCBpbnRlcnJ1cHQgZnJvbSBzdGF5aW5nIG1hc2tlZCB3aGVuIG9tYXAt
+a2V5cGFkIGRyaXZlcgppcyBzdXNwZW5kZWQgdG8gYWxsb3cgdGhpcyBpbnRlcnJ1cHQgdG8gdHJp
+Z2dlciBhIHN5c3RlbSB3YWtlIHVwLgpMb2NrcyBhcmUgdXNlZCBhcyBzdWdnZXN0ZWQgYnkgSnVo
+YSBZcmrDtmzDpC4KClNpZ25lZC1vZmYtYnk6IEFuZHJ6ZWogWmFib3Jvd3NraSA8YmFscm9nQHph
+Ym9yLm9yZz4K
+------=_Part_32990_23462600.1155845343124
+Content-Type: application/octet-stream; name=linux-keypad-suspend3.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_eqzoi8zm
+Content-Disposition: attachment; filename="linux-keypad-suspend3.patch"
 
-unaiur has released a patch for keyboard on htc wizard.
-thanks unaiur for your great work. 
+LS0tIGEvZHJpdmVycy9pbnB1dC9rZXlib2FyZC9vbWFwLWtleXBhZC5jCTIwMDYtMDctMDYgMDI6
+NDg6MDkuMDAwMDAwMDAwICswMDAwCisrKyBiL2RyaXZlcnMvaW5wdXQva2V5Ym9hcmQvb21hcC1r
+ZXlwYWQuYwkyMDA2LTA4LTE3IDIxOjUxOjQxLjAwMDAwMDAwMCArMDAwMApAQCAtMzMsNiArMzMs
+NyBAQAogI2luY2x1ZGUgPGxpbnV4L2RlbGF5Lmg+CiAjaW5jbHVkZSA8bGludXgvcGxhdGZvcm1f
+ZGV2aWNlLmg+CiAjaW5jbHVkZSA8bGludXgvbXV0ZXguaD4KKyNpbmNsdWRlIDxsaW51eC9zcGlu
+bG9jay5oPgogI2luY2x1ZGUgPGFzbS9hcmNoL2lycXMuaD4KICNpbmNsdWRlIDxhc20vYXJjaC9n
+cGlvLmg+CiAjaW5jbHVkZSA8YXNtL2FyY2gvaGFyZHdhcmUuaD4KQEAgLTU5LDYgKzYwLDggQEAg
+c3RydWN0IG9tYXBfa3AgewogCWludCBpcnE7CiAJdW5zaWduZWQgaW50IHJvd3M7CiAJdW5zaWdu
+ZWQgaW50IGNvbHM7CisJaW50IHN1c3BlbmRlZDsKKwlzcGlubG9ja190IHN1c3BlbmRfbG9jazsK
+IH07CiAKIERFQ0xBUkVfVEFTS0xFVF9ESVNBQkxFRChrcF90YXNrbGV0LCBvbWFwX2twX3Rhc2ts
+ZXQsIDApOwpAQCAtOTksNiArMTAyLDE0IEBAIHN0YXRpYyBpcnFyZXR1cm5fdCBvbWFwX2twX2lu
+dGVycnVwdChpbnQKIAkJCQkgICAgIHN0cnVjdCBwdF9yZWdzICpyZWdzKQogewogCXN0cnVjdCBv
+bWFwX2twICpvbWFwX2twID0gZGV2X2lkOworCXVuc2lnbmVkIGxvbmcgZmxhZ3M7CisKKwlzcGlu
+X2xvY2tfaXJxc2F2ZSgmb21hcF9rcC0+c3VzcGVuZF9sb2NrLCBmbGFncyk7CisJaWYgKG9tYXBf
+a3AtPnN1c3BlbmRlZCkgeworCQlzcGluX3VubG9ja19pcnFyZXN0b3JlKCZvbWFwX2twLT5zdXNw
+ZW5kX2xvY2ssIGZsYWdzKTsKKwkJcmV0dXJuIElSUV9IQU5ETEVEOworCX0KKwlzcGluX3VubG9j
+a19pcnFyZXN0b3JlKCZvbWFwX2twLT5zdXNwZW5kX2xvY2ssIGZsYWdzKTsKIAogCS8qIGRpc2Fi
+bGUga2V5Ym9hcmQgaW50ZXJydXB0IGFuZCBzY2hlZHVsZSBmb3IgaGFuZGxpbmcgKi8KIAlpZiAo
+Y3B1X2lzX29tYXAyNHh4KCkpIHsKQEAgLTI2OSwxNSArMjgwLDI5IEBAIHN0YXRpYyBERVZJQ0Vf
+QVRUUihlbmFibGUsIFNfSVJVR08gfCBTX0kKICNpZmRlZiBDT05GSUdfUE0KIHN0YXRpYyBpbnQg
+b21hcF9rcF9zdXNwZW5kKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKmRldiwgcG1fbWVzc2FnZV90
+IHN0YXRlKQogewotCS8qIE5vdGhpbmcgeWV0ICovCisJc3RydWN0IG9tYXBfa3AgKm9tYXBfa3Ag
+PSBwbGF0Zm9ybV9nZXRfZHJ2ZGF0YShkZXYpOworCXVuc2lnbmVkIGxvbmcgZmxhZ3M7CisJc3Bp
+bl9sb2NrX2lycXNhdmUoJm9tYXBfa3AtPnN1c3BlbmRfbG9jaywgZmxhZ3MpOworCisJLyoKKwkg
+KiBSZS1lbmFibGUgdGhlIGludGVycnVwdCBpbiBjYXNlIGl0IGhhcyBiZWVuIG1hc2tlZCBieSB0
+aGUKKwkgKiBoYW5kbGVyIGFuZCBhIGtleSBpcyBzdGlsbCBwcmVzc2VkLiAgV2UgbmVlZCB0aGUg
+aW50ZXJydXB0CisJICogdG8gd2FrZSB1cyB1cCBmcm9tIHN1c3BlbmRlZC4KKwkgKi8KKwlpZiAo
+Y3B1X2NsYXNzX2lzX29tYXAxKCkpCisJCW9tYXBfd3JpdGV3KDAsIE9NQVBfTVBVSU9fQkFTRSAr
+IE9NQVBfTVBVSU9fS0JEX01BU0tJVCk7CiAKKwlvbWFwX2twLT5zdXNwZW5kZWQgPSAxOworCisJ
+c3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmb21hcF9rcC0+c3VzcGVuZF9sb2NrLCBmbGFncyk7CiAJ
+cmV0dXJuIDA7CiB9CiAKIHN0YXRpYyBpbnQgb21hcF9rcF9yZXN1bWUoc3RydWN0IHBsYXRmb3Jt
+X2RldmljZSAqZGV2KQogewotCS8qIE5vdGhpbmcgeWV0ICovCisJc3RydWN0IG9tYXBfa3AgKm9t
+YXBfa3AgPSBwbGF0Zm9ybV9nZXRfZHJ2ZGF0YShkZXYpOwogCisJb21hcF9rcC0+c3VzcGVuZGVk
+ID0gMDsKIAlyZXR1cm4gMDsKIH0KICNlbHNlCkBAIC0zNDksNiArMzc0LDkgQEAgc3RhdGljIGlu
+dCBfX2luaXQgb21hcF9rcF9wcm9iZShzdHJ1Y3QgcAogCQl9CiAJfQogCisJc3Bpbl9sb2NrX2lu
+aXQoJm9tYXBfa3AtPnN1c3BlbmRfbG9jayk7CisJb21hcF9rcC0+c3VzcGVuZGVkID0gMDsKKwog
+CWluaXRfdGltZXIoJm9tYXBfa3AtPnRpbWVyKTsKIAlvbWFwX2twLT50aW1lci5mdW5jdGlvbiA9
+IG9tYXBfa3BfdGltZXI7CiAJb21hcF9rcC0+dGltZXIuZGF0YSA9ICh1bnNpZ25lZCBsb25nKSBv
+bWFwX2twOwo=
+------=_Part_32990_23462600.1155845343124
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-please wizard users test it.
-(numbers and special characters do not work at the moment)
 
-download the files from: 
-
-http://omap850.om.funpic.de/downloads/wizard/
-
-see the readme
-
-please tell me if it works on your device, and if it not works.
-
-
-thanks for help
-
-omap850
-
- 		
----------------------------------
-Yahoo! Messenger -  kostenlos* mit Familie und Freunden von PC zu PC telefonieren. 
+------=_Part_32990_23462600.1155845343124--
