@@ -1,14 +1,13 @@
-From: lamikr <lamikr@cc.jyu.fi>
-Subject: Re: quick test OMAP ALSA driver on H2
-Date: Fri, 18 Aug 2006 05:18:07 +0300
-Message-ID: <44E5235F.2000103@cc.jyu.fi>
-References: <304D2A85A9643F4A991BDDF8D297BBA6041C311A@dlee05.ent.ti.com>
-Reply-To: lamikr@cc.jyu.fi
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: Re: [Dspgateway-devel] OMAP2420 DSPGW status?
+Date: Thu, 17 Aug 2006 22:34:27 -0700 (PDT)
+Message-ID: <20060818053427.74135.qmail@web37905.mail.mud.yahoo.com>
+References: <1155807521.15232.268585018@webmail.messagingengine.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <304D2A85A9643F4A991BDDF8D297BBA6041C311A@dlee05.ent.ti.com>
+In-Reply-To: <1155807521.15232.268585018@webmail.messagingengine.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,83 +17,54 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Zhang, Jian" <jzhang@ti.com>
-Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
+To: dspgateway-devel@lists.sourceforge.net, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+--- Komal Shah <komal_shah802003@yahoo.com> wrote:
 
-> The kernel boot log does show H2 TSC2101 is initialized:
-> Advanced Linux Sound Architecture Driver Version 1.0.12rc1 (Thu Jun 22
-> 13:55:50
-> 2006 UTC).
-> audio support initialized
-> ALSA device list:
->   #0: H2 TSC2101
->
-> Do I miss something? (BTW, I have the exact same device nodes as yours).
-> I noticed GIT has alsa 1.0.12rc2 while my user library is 1.0.11. Can
-> this be the problem? (I don't think it is)
->   
-Hi Jian
+> Toshiharo-San/Paul,
+> 
+> Could you please provide us the status of OMAP2420-DSPGW porting now?
+> Are you able to execute some test application with that? 
+> 
+> See that TI uses now their simplified COFF format, they call it DOFF
+> (Dynamic
+> Object File Format), and it seems to be properietary. I believe that
+> it is
+> nothing but just re-organization of the COFF file, so that it
+> compresses well,
+> and then able to reduce the loading time ultimately along with size.
+> 
+> So, are you still using the same COFF loader as in case with 1710-GW
+> or do you have
+> the DOFF-TO-COFF converter and then loading on OMAP2420-DSP? As say,
+> if you are
+> using the external third-party codecs, they usually now distribute in
+> form of
+> .doff files ;)
+> 
+> Are you also considering writing some generic code-apis/framework for
+> OMAP2
+> MMU and IPC-MBox as it remains same for IVA1.0 too.?
 
->From off the list emails I know you got this working by setting up the
-alsa util config files.
-But just for the record for you and others, I copy pasted the output of
-couple of commands
-displaying info from the tsc2101 alsa drivers when they are succesfully
-loaded and configured.
+Apart from that, we have lots of IOCTLs for the existing dspgw.
+Ofcourse as per driver model we are using the sysfs as necessary, but I
+would also suggest for coming up with some kind of virtual filesystem
+to handle all those tasks to truely make it scalable for multiple async
+processors. e.g OMAP2 with adding support for IVA, where we have
+multple co-processors inside (vlcd, seq, imx buffers) each having their
+SRAM, where code needs to be loaded as generated in DOFF file, for
+which you can also export those memories to userspace to have dump of
+those SRAMs for easy debugging ;). How about naming it iva/dsp-fs?
 
-#root@h6300:/home/lamikr# lsmod
-Module Size Used by
-hidp 12416 2
-irda 116040 0
-snd_pcm_oss 56256 0
-snd_omap_alsa_tsc2101 19448 1
-snd_pcm 86536 2 snd_pcm_oss,snd_omap_alsa_tsc2101
-snd_timer 21508 1 snd_pcm
-snd_page_alloc 6728 1 snd_pcm
-snd_mixer_oss 15104 2 snd_pcm_oss
-snd 49048 5
-snd_pcm_oss,snd_omap_alsa_tsc2101,snd_pcm,snd_timer,snd_mixer_oss
-rfcomm 33880 0
-omapts 4720 0
-omap_keypad 6936 0
-l2cap 19716 10 hidp,rfcomm
-hci_uart 15836 0
-bluetooth 42524 6 hidp,rfcomm,l2cap,hci_uart
-h6300_bt 3456 0
+PS:
+Are you able to access dspgw-devel archives? I am also CCing to
+linux-omap-open-source for archive purpose.
 
-#root@h6300:/home/lamikr# ls -la /proc/asound/
-dr-xr-xr-x 5 root root 0 Jan 1 04:05 .
-dr-xr-xr-x 73 root root 0 Jan 1 00:00 ..
-lrwxrwxrwx 1 root root 5 Jan 1 04:05 TSC2101 -> card0
-dr-xr-xr-x 4 root root 0 Jan 1 04:05 card0
--r--r--r-- 1 root root 0 Jan 1 04:05 cards
--r--r--r-- 1 root root 0 Jan 1 04:05 devices
--r--r--r-- 1 root root 0 Jan 1 04:05 modules
-dr-xr-xr-x 2 root root 0 Jan 1 04:05 oss
--r--r--r-- 1 root root 0 Jan 1 04:05 pcm
-dr-xr-xr-x 2 root root 0 Jan 1 04:05 seq
--r--r--r-- 1 root root 0 Jan 1 04:05 timers
--r--r--r-- 1 root root 0 Jan 1 04:05 version
+---Komal Shah
+http://komalshah.blogspot.com/
 
-#root@h6300:/home/lamikr# ls -la /proc/asound/card0/
-dr-xr-xr-x 4 root root 0 Jan 1 04:05 .
-dr-xr-xr-x 5 root root 0 Jan 1 04:05 ..
--r--r--r-- 1 root root 0 Jan 1 04:05 id
--rw-r--r-- 1 root root 0 Jan 1 04:05 oss_mixer
-dr-xr-xr-x 3 root root 0 Jan 1 04:05 pcm0c
-dr-xr-xr-x 3 root root 0 Jan 1 04:05 pcm0p
-
-#root@h6300:/home/lamikr# cat /proc/asound/modules
-0 snd_omap_alsa_tsc2101
-root@h6300:/home/lamikr# cat /proc/asound/devices
-0: [ 0] : control
-16: [ 0- 0]: digital audio playback
-24: [ 0- 0]: digital audio capture
-33: : timer
-
-#root@h6300:/home/lamikr# aplay track_01.wav
-Playing WAVE 'track_01.wav' : Signed 16 bit Little Endian, Rate 44100
-Hz, Stereo
-^XAborted by signal Interrupt...
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
