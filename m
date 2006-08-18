@@ -1,13 +1,13 @@
 From: Komal Shah <komal_shah802003@yahoo.com>
-Subject: Re: [PATCH 2/4] TSC2102 Touchscreen
-Date: Fri, 18 Aug 2006 06:09:37 -0700 (PDT)
-Message-ID: <20060818130937.72819.qmail@web37915.mail.mud.yahoo.com>
-References: <fb249edb0608180307t2fe9ea51wde113d1a8182b51f@mail.gmail.com>
+Subject: Re: [PATCH 1/4] TSC2102 main SPI driver
+Date: Fri, 18 Aug 2006 06:27:53 -0700 (PDT)
+Message-ID: <20060818132753.31468.qmail@web37908.mail.mud.yahoo.com>
+References: <fb249edb0608180301u113ae66fg7be0b7a001c1cc46@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <fb249edb0608180307t2fe9ea51wde113d1a8182b51f@mail.gmail.com>
+In-Reply-To: <fb249edb0608180301u113ae66fg7be0b7a001c1cc46@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,47 +22,42 @@ List-Id: linux-omap@vger.kernel.org
 
 --- andrzej zaborowski <balrog@zabor.org> wrote:
 
-> This a driver for touchscreens connected to the TSC2102 chip. It uses
-> the normal input events framework and can be accessed through
-> /dev/input/eventX.
+> This adds a driver for the TSC2102 chip by Texas Instruments. This
+> driver is responsible for all communication with the chip and doesn't
+> export anything for user-space, but for other drivers controlling
+> devices connected to the chip.
 > 
 
-Few comments here too:
+Quick review comments, will come later with more detailed review.
 
-+#include <linux/platform_device.h>
-+#include <linux/kbd_kern.h>
++	spi->transfer = kzalloc(sizeof(struct spi_transfer) * numregs,
++			GFP_KERNEL);
 
-Why you need kbd_kern.h ? 
+How about checking return value here?
 
-+	dev->absbit[0] = BIT(ABS_X) | BIT(ABS_Y) | BIT(ABS_PRESSURE);
-+	input_register_device(dev);
++	set_irq_type(spi->irq, IRQT_FALLING);
++	if (request_irq(spi->irq, tsc2102_handler,
++				SA_SAMPLE_RANDOM, "tsc2102", &tsc)) {
++		printk(KERN_ERR "Could not allocate touchscreen IRQ!\n");
++		err = -EINVAL;
++		goto err_clk;
++	}
 
-You should check the return value of input_register_device. 
+You should use new flags as per genirq patches, and I think
+set_irq_type may not be required. 
 
-+	printk("TSC2102 touchscreen driver initialized\n");
++#define TSC2102_TS_X			0, 0x00
++#define TSC2102_TS_Y			0, 0x01
 
-Better if you use KERN_INFO with printk above.
+I think better/clean way could be, having defines taking page and addr
+as argument. e.g
 
-+	dev->name = "TSC2102 Touchscreen";
-+	dev->dev = &pdev->dev;
+#define tsc2102_reg(page, addr) /* your code here as per pg and addr
+needs to be shifted and ORed as needed*/
+#define tsc2102_ts_x       tsc2102_reg(0, 0x0)
 
-Also fill up remaining fields of input_dev structure. eg. phys, bustype
-etc. 
-
-+static int
-+tsc2102_ts_suspend(struct platform_device *pdev, pm_message_t state)
-+{
-+	/* Nothing yet */
-+	return 0;
-+}
-+
-+static int tsc2102_ts_resume(struct platform_device *pdev)
-+{
-+	/* Nothing either */
-+	return 0;
-+}
-
-How about using #ifdef CONFIG_PM around suspend and resume.  ?
+and may be conversion macros from reg_to_page and page_to_reg as
+required.
 
 
 ---Komal Shah
