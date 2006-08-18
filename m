@@ -1,11 +1,13 @@
-From: kabbin <kabbin26@yahoo.com.tw>
-Subject: Building kenel error
-Date: Fri, 18 Aug 2006 17:18:40 +0800 (CST)
-Message-ID: <20060818091840.41324.qmail@web17810.mail.tpe.yahoo.com>
+From: "andrzej zaborowski" <balrog@zabor.org>
+Subject: TSC2102 driver
+Date: Fri, 18 Aug 2006 11:56:58 +0200
+Message-ID: <fb249edb0608180256t2800b0c7s727ff7ef94266641@mail.gmail.com>
+Reply-To: balrogg@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=big5
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,59 +17,135 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
+I have a driver for the TSC2102 processor that is quite simple but
+supports, to my knowledge, all parts controlled by this chip. The next
+4 patches contain the parts of the driver. Despite the name of the
+chip it's quite different from TSC2101 and needs a separate driver in
+my opinion. Also the driver is quite different:
 
-Dear all:
-  I use arm-linux-gcc-4.0.2-glibc-2.3.6 to build linux kernel from
-http://linux.omap.com/pub/kernel/h4/source/linux-2.6.10-omap2420-omap2430=
-.tgz
+ - It is asynchronous and uses the SPI framework for communication and
+thus is not OMAP specific except the ALSA audio driver which also uses
+McBSP and would need a separate driver on different arch's.
 
-# make clean
-# make omap_h4_2420_defconfig=20
-# make uImage
+ - It shares the chip's ADC time between touchscreen data conversion
+and data from the sensors.
 
-and I got :
-arch/arm/mach-omap2/clock24xx.c: In function =98c'clk_safe':
-arch/arm/mach-omap2/clock24xx.c:1365: error: case label does not reduce t=
-o an integer constant
-arch/arm/mach-omap2/clock24xx.c:1366: error: case label does not reduce t=
-o an integer constant
-arch/arm/mach-omap2/clock24xx.c:1370: error: case label does not reduce t=
-o an integer constant
-arch/arm/mach-omap2/clock24xx.c:1371: error: case label does not reduce t=
-o an integer constant
-arch/arm/mach-omap2/clock24xx.c:1378: error: case label does not reduce t=
-o an integer constant
-arch/arm/mach-omap2/clock24xx.c:1379: error: case label does not reduce t=
-o an integer constant
-arch/arm/mach-omap2/clock24xx.c:1383: error: case label does not reduce t=
-o an integer constant
-arch/arm/mach-omap2/clock24xx.c:1384: error: case label does not reduce t=
-o an integer constant
-arch/arm/mach-omap2/clock24xx.c:1388: error: case label does not reduce t=
-o an integer constant
-arch/arm/mach-omap2/clock24xx.c:1392: error: case label does not reduce t=
-o an integer constant
-arch/arm/mach-omap2/clock24xx.c:1396: error: case label does not reduce t=
-o an integer constant
-arch/arm/mach-omap2/clock24xx.c:1397: error: case label does not reduce t=
-o an integer constant
-arch/arm/mach-omap2/clock24xx.c:1401: error: case label does not reduce t=
-o an integer constant
-arch/arm/mach-omap2/clock24xx.c:1402: error: case label does not reduce t=
-o an integer constant
-make[1]: *** [arch/arm/mach-omap2/clock24xx.o] Error 1
-make: *** [arch/arm/mach-omap2] Error 2
+ - Since the chip controls devices from different categories (audio,
+sensors, touchscreen input) I decided to split it in parts:
+  * A core TSC2102 SPI driver that communicates with the chip and
+presents a C api to other drivers. It works kind of like a bus in the
+sense that the probe function first checks if the chip is present, and
+only then registers "platform_devices" for the other devices cotrolled
+by the chip. This also ensures that the order of suspending/resuming
+is correct.
+  * An input driver using the Linux touchscreen API.
+  * A driver that reports the data from sensors using the hwmon
+framework. It can also register an APM callback for reporting power
+status if board file requests that.
+  * An OMAP audio driver using the existing omap-alsa and
+omap-alsa-dma code. It includes a mixer.
 
+I'm using this driver on Palm Tungsten E and I don't know of any other
+board that has this chip. Nevertheless it would be nice to have it
+merged into linux-omap-2.6, it would save us from rediffing against
+new versions. (provided there aren't any awfull mistakes in the code)
 
-Is this a well-known bug? And do I need to find a patch for it?=20
-Thanks for your help.=20
-BEST REGARDS. =20
+This is an example config for a board file (pardon the formatting):
 
+static struct omap_mcbsp_reg_cfg palmte_mcbsp1_regs = {
+        .spcr2  = FRST | GRST | XRST | XINTM(3),
+        .xcr2   = XPHASE | XFRLEN2(OMAP_MCBSP_WORD_8) |
+                        XWDLEN2(OMAP_MCBSP_WORD_16) | XDATDLY(1) | XFIG,
+        .xcr1   = XFRLEN1(OMAP_MCBSP_WORD_8) | XWDLEN1(OMAP_MCBSP_WORD_16),
+        .srgr2  = GSYNC | CLKSP | FSGM | FPER(31),
+        .srgr1  = FWID(15),
+        .pcr0   = CLKRM | SCLKME | FSXP | FSRP | CLKXP | CLKRP,
+};
 
-___________________________________________________=20
- =B3=CC=B7s=AA=A9 Yahoo!=A9_=BC=AF=A7Y=AE=C9=B3q=B0T 7.0=A1A=A7K=B6O=BA=F4=
-=B8=F4=B9q=B8=DC=A5=F4=A7A=A5=B4=A1I=20
- http://messenger.yahoo.com.tw/
+static struct omap_alsa_codec_config palmte_alsa_config = {
+        .name                   = "TSC2102 audio",
+        .mcbsp_regs_alsa        = &palmte_mcbsp1_regs,
+        .codec_configure_dev    = NULL, /* tsc2102_configure, */
+        .codec_set_samplerate   = NULL, /* tsc2102_set_samplerate, */
+        .codec_clock_setup      = NULL, /* tsc2102_clock_setup, */
+        .codec_clock_on         = NULL, /* tsc2102_clock_on, */
+        .codec_clock_off        = NULL, /* tsc2102_clock_off, */
+        .get_default_samplerate = NULL, /* tsc2102_get_default_samplerate, */
+};
+
+#ifdef CONFIG_APM
+/*
+ * The values used here are currently quite inaccurate but enough
+ * to give a basic idea of how much longer can the system run and
+ * trigger potential alerts.
+ */
+static void palmte_get_power_status(struct apm_power_info *info, int *battery)
+{
+        info->battery_flag = 0;
+
+        if (!omap_get_gpio_datain(PALMTE_DC_GPIO)) {
+                info->ac_line_status = APM_AC_ONLINE;
+                info->battery_status = APM_BATTERY_STATUS_CHARGING;
+                info->battery_flag |= APM_BATTERY_FLAG_CHARGING;
+        } else {
+                info->ac_line_status = APM_AC_OFFLINE;
+                if (battery[0] > 2100)
+                        info->battery_status = APM_BATTERY_STATUS_HIGH;
+                else if (battery[0] > 1900)
+                        info->battery_status = APM_BATTERY_STATUS_LOW;
+                else
+                        info->battery_status = APM_BATTERY_STATUS_CRITICAL;
+        }
+
+        if (battery[0] > 2100)
+                info->battery_flag |= APM_BATTERY_FLAG_HIGH;
+        else if (battery[0] > 1900)
+                info->battery_flag |= APM_BATTERY_FLAG_LOW;
+        else
+                info->battery_flag |= APM_BATTERY_FLAG_CRITICAL;
+
+        if (battery[0] > 2100)
+                info->battery_life = 60 + (battery[0] - 2100) * 40 / 80;
+        else if (battery[0] > 2000)
+                info->battery_life = 30 + (battery[0] - 2000) * 30 / 100;
+        else if (battery[0] > 1900)
+                info->battery_life = 15 + (battery[0] - 1900) * 15 / 100;
+        else
+                info->battery_life = (battery[0] - 1620) * 15 / 280;
+        if (info->battery_life > 100)
+                info->battery_life = 100;
+
+        info->time = 240 * info->battery_life / 100;    /* Four hours */
+        info->units = APM_UNITS_MINS;
+}
+#else
+#define palmte_get_power_status NULL
+#endif
+
+static struct tsc2102_config palmte_tsc2102_config = {
+        .use_internal   = 0,      /* External reference voltage */
+        .monitor        = TSC_BAT1 | TSC_AUX | TSC_TEMP,
+        .temp_at25c     = { 2200, 2615 },
+        .apm_report     = palmte_get_power_status,
+        .alsa_config    = &palmte_alsa_config,
+};
+
+static struct spi_board_info palmte_spi_board_info[] __initdata = {
+        [0]             = {
+                .modalias       = "tsc2102",
+                .bus_num        = 2,    /* uWire (officially) */
+                .chip_select    = 0,    /* As opposed to 3 */
+                .irq            = OMAP_GPIO_IRQ(PALMTE_PINTDAV_GPIO),
+                .platform_data  = &palmte_tsc2102_config,
+                .max_speed_hz   = 8000000,
+        },
+};
+
+Regards,
+Andrzej
+-- 
+balrog 2oo6
