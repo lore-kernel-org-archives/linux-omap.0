@@ -1,10 +1,10 @@
 From: lamikr <lamikr@cc.jyu.fi>
-Subject: [PATCH 3/5] Fix init warning in tsc2101 alsa driver.
-Date: Fri, 18 Aug 2006 04:15:56 +0300
-Message-ID: <44E514CC.9030706@cc.jyu.fi>
+Subject: [PATCH 2/5] Removed double spinlocking with omap15xx devices.
+Date: Fri, 18 Aug 2006 04:15:03 +0300
+Message-ID: <44E51497.3020600@cc.jyu.fi>
 Reply-To: lamikr@cc.jyu.fi
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010400020305030805090705"
+Content-Type: multipart/mixed; boundary="------------070705050603050702040208"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -19,60 +19,67 @@ To: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------010400020305030805090705
+--------------070705050603050702040208
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
-Fix init warning in tsc2101 alsa driver. WARNING:
-sound/arm/omap/snd-omap-alsa-tsc2101.o - Section mismatch: reference to
-.init.text: from .data between '' (at offset 0x6c) and
-'tsc2101_snd_omap_alsa_capture'
+Removed double spinlocking with omap15xx devices. Thanks for the Jian
+Zhang for reporting this one.
 
 Signed-off-by: Mika Laitio <lamikr@cc.jyu.fi>
 
 
 
---------------010400020305030805090705
+--------------070705050603050702040208
 Content-Type: text/x-patch;
-	name="0003-fix-init-warning-in-tsc2101-alsa-driver.patch"
+	name*0="0002-removed-double-spinlocking-with-omap15xx-devices.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
-	filename="0003-fix-init-warning-in-tsc2101-alsa-driver.patch"
+	filename*0="0002-removed-double-spinlocking-with-omap15xx-devices.patch"
 
->From a72985872597a4c7358a977dac9754afc7e59795 Mon Sep 17 00:00:00 2001
+>From cc97975a2fad87878c9a1a2885b9c831df0c239a Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@cc.jyu.fi>
-Date: Fri, 18 Aug 2006 02:44:01 +0300
-Subject: [PATCH 3/5] fix init warning in tsc2101 alsa driver.
+Date: Fri, 18 Aug 2006 01:56:59 +0300
+Subject: [PATCH 2/5] removed double spinlocking with omap15xx devices.
 
-Fix init warning in tsc2101 alsa driver. WARNING: sound/arm/omap/snd-omap-alsa-tsc2101.o - Section mismatch: reference to .init.text: from .data between '' (at offset 0x6c) and 'tsc2101_snd_omap_alsa_capture'
+Removed double spinlocking with omap15xx devices. Thanks for the Jian Zhang for reporting this one.
 
 Signed-off-by: Mika Laitio <lamikr@cc.jyu.fi>
 ---
- sound/arm/omap/omap-alsa-tsc2101.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ sound/arm/omap/omap-alsa.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-diff --git a/sound/arm/omap/omap-alsa-tsc2101.c b/sound/arm/omap/omap-alsa-tsc2101.c
-index 14afcc6..9bbf0c7 100644
---- a/sound/arm/omap/omap-alsa-tsc2101.c
-+++ b/sound/arm/omap/omap-alsa-tsc2101.c
-@@ -381,7 +381,7 @@ int tsc2101_get_default_samplerate(void)
- 	return DEFAULT_SAMPLE_RATE;
- }
- 
--static int __init snd_omap_alsa_tsc2101_probe(struct platform_device *pdev)
-+static int __devinit snd_omap_alsa_tsc2101_probe(struct platform_device *pdev)
- {
- 	int	ret;
- 	struct	omap_alsa_codec_config *codec_cfg;
+diff --git a/sound/arm/omap/omap-alsa.c b/sound/arm/omap/omap-alsa.c
+index 583460c..b74202f 100644
+--- a/sound/arm/omap/omap-alsa.c
++++ b/sound/arm/omap/omap-alsa.c
+@@ -190,7 +190,6 @@ static void audio_process_dma(struct aud
+ 	unsigned int dma_size;
+ 	unsigned int offset;
+ 	int ret;
+-	unsigned long flags;
+ 	
+ 	ADEBUG();
+ 	runtime = substream->runtime;
+@@ -205,9 +204,7 @@ static void audio_process_dma(struct aud
+ 		 * (invocation of callback_omap_alsa_sound_dma() method).
+ 		 */
+ 		if (cpu_is_omap15xx()) {
+-			spin_lock_irqsave(&s->dma_lock, flags);
+ 			omap_stop_alsa_sound_dma(s);
+-			spin_unlock_irqrestore(&s->dma_lock, flags);
+ 		}
+ 		ret = omap_start_alsa_sound_dma(s,
+ 				(dma_addr_t)runtime->dma_area + offset,
 -- 
 1.4.2
 
 
---------------010400020305030805090705
+--------------070705050603050702040208
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------010400020305030805090705--
+--------------070705050603050702040208--
