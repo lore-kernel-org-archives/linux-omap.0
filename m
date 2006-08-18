@@ -1,11 +1,13 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: Building kenel error
-Date: Fri, 18 Aug 2006 07:04:00 -0500
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A5072DA5F6@dlee02.ent.ti.com>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: Re: [PATCH 4/4] TSC2102 OMAP audio driver
+Date: Fri, 18 Aug 2006 05:39:28 -0700 (PDT)
+Message-ID: <20060818123928.63792.qmail@web37901.mail.mud.yahoo.com>
+References: <fb249edb0608180329k519d3355x7707fcadbddeefee@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0558784913=="
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+In-Reply-To: <fb249edb0608180329k519d3355x7707fcadbddeefee@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,73 +17,46 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: kabbin <kabbin26@yahoo.com.tw>, Linux-omap-open-source@linux.omap.com
+To: balrogg@gmail.com, Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============0558784913==
-Content-class: urn:content-classes:message
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: base64
+--- andrzej zaborowski <balrog@zabor.org> wrote:
 
-VGhhdCBrZXJuZWwgaXMgdG9vIG9sZCB0byBiZSBidWlsdCBvbiB0aGUgbGF0ZXN0IGNvbXBpbGVy
-LiAgSXQgd2lsbCBsaWtlbHkgYnVpbGQgd2l0aCBvdXQgaW5jaWRlbnQgd2l0aCBhIDMuNC54IGNv
-bXBpbGVyIG9yIGVhcmxpZXIuICBUaGUgbWFpbiBrZXJuZWwgd2lsbCBoYXZlIGEgbnVtYmVyIG9m
-IHBhdGNoZXMgd2hpY2ggbWFrZXMgaXQgZ28gdXNpbmcgYSA0LnggY29tcGlsZXIuICBUaGVzZSB3
-b3VsZCBuZWVkIHRvIGJlIGJhY2sgcG9ydGVkIGluIG9yZGVyIHRvIHVzZSB0aGF0IHRvb2wgY2hh
-aW4uDQoNClJlZ2FyZHMsDQpSaWNoYXJkIFcuDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0t
-LS0NCj4gRnJvbTogbGludXgtb21hcC1vcGVuLXNvdXJjZS1ib3VuY2VzQGxpbnV4Lm9tYXAuY29t
-IFttYWlsdG86bGludXgtb21hcC0NCj4gb3Blbi1zb3VyY2UtYm91bmNlc0BsaW51eC5vbWFwLmNv
-bV0gT24gQmVoYWxmIE9mIGthYmJpbg0KPiBTZW50OiBGcmlkYXksIEF1Z3VzdCAxOCwgMjAwNiA0
-OjE5IEFNDQo+IFRvOiBMaW51eC1vbWFwLW9wZW4tc291cmNlQGxpbnV4Lm9tYXAuY29tDQo+IFN1
-YmplY3Q6IEJ1aWxkaW5nIGtlbmVsIGVycm9yDQo+IA0KPiANCj4gRGVhciBhbGw6DQo+ICAgSSB1
-c2UgYXJtLWxpbnV4LWdjYy00LjAuMi1nbGliYy0yLjMuNiB0byBidWlsZCBsaW51eCBrZXJuZWwg
-ZnJvbQ0KPiBodHRwOi8vbGludXgub21hcC5jb20vcHViL2tlcm5lbC9oNC9zb3VyY2UvbGludXgt
-Mi42LjEwLW9tYXAyNDIwLQ0KPiBvbWFwMjQzMC50Z3oNCj4gDQo+ICMgbWFrZSBjbGVhbg0KPiAj
-IG1ha2Ugb21hcF9oNF8yNDIwX2RlZmNvbmZpZw0KPiAjIG1ha2UgdUltYWdlDQo+IA0KPiBhbmQg
-SSBnb3QgOg0KPiBhcmNoL2FybS9tYWNoLW9tYXAyL2Nsb2NrMjR4eC5jOiBJbiBmdW5jdGlvbiDu
-pZYnY2xrX3NhZmUnOg0KPiBhcmNoL2FybS9tYWNoLW9tYXAyL2Nsb2NrMjR4eC5jOjEzNjU6IGVy
-cm9yOiBjYXNlIGxhYmVsIGRvZXMgbm90IHJlZHVjZSB0bw0KPiBhbiBpbnRlZ2VyIGNvbnN0YW50
-DQo+IGFyY2gvYXJtL21hY2gtb21hcDIvY2xvY2syNHh4LmM6MTM2NjogZXJyb3I6IGNhc2UgbGFi
-ZWwgZG9lcyBub3QgcmVkdWNlIHRvDQo+IGFuIGludGVnZXIgY29uc3RhbnQNCj4gYXJjaC9hcm0v
-bWFjaC1vbWFwMi9jbG9jazI0eHguYzoxMzcwOiBlcnJvcjogY2FzZSBsYWJlbCBkb2VzIG5vdCBy
-ZWR1Y2UgdG8NCj4gYW4gaW50ZWdlciBjb25zdGFudA0KPiBhcmNoL2FybS9tYWNoLW9tYXAyL2Ns
-b2NrMjR4eC5jOjEzNzE6IGVycm9yOiBjYXNlIGxhYmVsIGRvZXMgbm90IHJlZHVjZSB0bw0KPiBh
-biBpbnRlZ2VyIGNvbnN0YW50DQo+IGFyY2gvYXJtL21hY2gtb21hcDIvY2xvY2syNHh4LmM6MTM3
-ODogZXJyb3I6IGNhc2UgbGFiZWwgZG9lcyBub3QgcmVkdWNlIHRvDQo+IGFuIGludGVnZXIgY29u
-c3RhbnQNCj4gYXJjaC9hcm0vbWFjaC1vbWFwMi9jbG9jazI0eHguYzoxMzc5OiBlcnJvcjogY2Fz
-ZSBsYWJlbCBkb2VzIG5vdCByZWR1Y2UgdG8NCj4gYW4gaW50ZWdlciBjb25zdGFudA0KPiBhcmNo
-L2FybS9tYWNoLW9tYXAyL2Nsb2NrMjR4eC5jOjEzODM6IGVycm9yOiBjYXNlIGxhYmVsIGRvZXMg
-bm90IHJlZHVjZSB0bw0KPiBhbiBpbnRlZ2VyIGNvbnN0YW50DQo+IGFyY2gvYXJtL21hY2gtb21h
-cDIvY2xvY2syNHh4LmM6MTM4NDogZXJyb3I6IGNhc2UgbGFiZWwgZG9lcyBub3QgcmVkdWNlIHRv
-DQo+IGFuIGludGVnZXIgY29uc3RhbnQNCj4gYXJjaC9hcm0vbWFjaC1vbWFwMi9jbG9jazI0eHgu
-YzoxMzg4OiBlcnJvcjogY2FzZSBsYWJlbCBkb2VzIG5vdCByZWR1Y2UgdG8NCj4gYW4gaW50ZWdl
-ciBjb25zdGFudA0KPiBhcmNoL2FybS9tYWNoLW9tYXAyL2Nsb2NrMjR4eC5jOjEzOTI6IGVycm9y
-OiBjYXNlIGxhYmVsIGRvZXMgbm90IHJlZHVjZSB0bw0KPiBhbiBpbnRlZ2VyIGNvbnN0YW50DQo+
-IGFyY2gvYXJtL21hY2gtb21hcDIvY2xvY2syNHh4LmM6MTM5NjogZXJyb3I6IGNhc2UgbGFiZWwg
-ZG9lcyBub3QgcmVkdWNlIHRvDQo+IGFuIGludGVnZXIgY29uc3RhbnQNCj4gYXJjaC9hcm0vbWFj
-aC1vbWFwMi9jbG9jazI0eHguYzoxMzk3OiBlcnJvcjogY2FzZSBsYWJlbCBkb2VzIG5vdCByZWR1
-Y2UgdG8NCj4gYW4gaW50ZWdlciBjb25zdGFudA0KPiBhcmNoL2FybS9tYWNoLW9tYXAyL2Nsb2Nr
-MjR4eC5jOjE0MDE6IGVycm9yOiBjYXNlIGxhYmVsIGRvZXMgbm90IHJlZHVjZSB0bw0KPiBhbiBp
-bnRlZ2VyIGNvbnN0YW50DQo+IGFyY2gvYXJtL21hY2gtb21hcDIvY2xvY2syNHh4LmM6MTQwMjog
-ZXJyb3I6IGNhc2UgbGFiZWwgZG9lcyBub3QgcmVkdWNlIHRvDQo+IGFuIGludGVnZXIgY29uc3Rh
-bnQNCj4gbWFrZVsxXTogKioqIFthcmNoL2FybS9tYWNoLW9tYXAyL2Nsb2NrMjR4eC5vXSBFcnJv
-ciAxDQo+IG1ha2U6ICoqKiBbYXJjaC9hcm0vbWFjaC1vbWFwMl0gRXJyb3IgMg0KPiANCj4gDQo+
-IElzIHRoaXMgYSB3ZWxsLWtub3duIGJ1Zz8gQW5kIGRvIEkgbmVlZCB0byBmaW5kIGEgcGF0Y2gg
-Zm9yIGl0Pw0KPiBUaGFua3MgZm9yIHlvdXIgaGVscC4NCj4gQkVTVCBSRUdBUkRTLg0KPiANCj4g
-DQo+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw0K
-PiAg5pyA5paw54mIIFlhaG9vIeWlh+aRqeWNs+aZgumAmuioiiA3LjDvvIzlhY3osrvntrLot6/p
-m7voqbHku7vkvaDmiZPvvIENCj4gIGh0dHA6Ly9tZXNzZW5nZXIueWFob28uY29tLnR3Lw0KPiBf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw0KPiBMaW51eC1v
-bWFwLW9wZW4tc291cmNlIG1haWxpbmcgbGlzdA0KPiBMaW51eC1vbWFwLW9wZW4tc291cmNlQGxp
-bnV4Lm9tYXAuY29tDQo+IGh0dHA6Ly9saW51eC5vbWFwLmNvbS9tYWlsbWFuL2xpc3RpbmZvL2xp
-bnV4LW9tYXAtb3Blbi1zb3VyY2UNCg==
+> ALSA driver for OMAP boards with a TSC2102 chip. It is based on the
+> TSC2101 and AIC23 drivers. The chip has only one audio playback
+> output
+> and no inputs. It can play stereo sound with 16-bit samples (only)
+> and
+> supports different sampling rates between 8 and 48 kHz. The patch
+> also
+> includes an ALSA mixer. The mixer controlls two volume levels, for
+> left and right channels, each with 128 steps. It can also toggle the
+> analog de-emphasis filter and bass boost filter which are
+> incorporated
+> in the chip.
 
---===============0558784913==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Driver looks very clean. But just two cosmetic changes if you like.
+
++#ifndef OMAP_ALSA_TSC2102_H_
++#define OMAP_ALSA_TSC2102_H_
++
++#include <linux/types.h>
+ 
+Why you are including types.h here?
 
 
---===============0558784913==--
++		err = clk_set_rate(tsc2102_bclk, CODEC_CLOCK);
++		if (err) {
++			printk(KERN_WARNING "Cannot set BCLK clock rate "
++				"for TSC2102 codec, error code = %d\n", err);
++		}
+
+You can remove curly braces here.
+
+---Komal Shah
+http://komalshah.blogspot.com/
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
