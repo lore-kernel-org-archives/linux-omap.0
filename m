@@ -1,14 +1,13 @@
-From: lamikr <lamikr@cc.jyu.fi>
-Subject: Re: [PATCH] OMAP audio DMA changes for 310 CPUs
-Date: Fri, 18 Aug 2006 20:07:26 +0300
-Message-ID: <44E5F3CE.3010501@cc.jyu.fi>
-References: <fb249edb0608180120m4d0786c7i6d4408112d7e2cf0@mail.gmail.com>
-Reply-To: lamikr@cc.jyu.fi
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: HTC WIZARD - mmc driver problem
+Date: Fri, 18 Aug 2006 20:31:43 +0200
+Message-ID: <44E6078F.5030002@gmail.com>
+References: <20060818084354.63359.qmail@web27803.mail.ukl.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <fb249edb0608180120m4d0786c7i6d4408112d7e2cf0@mail.gmail.com>
+In-Reply-To: <20060818084354.63359.qmail@web27803.mail.ukl.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,43 +17,19 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: balrogg@gmail.com
-Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
+To: Omap 850 <omap850@yahoo.de>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi andrzej
+Omap 850 wrote:
+> i use the patches from nico and unaiur.
+> 
+> i have complied a kernel in mmc-debug mod
+> please see attach:  dmesg_debug_mode.txt 
+> 
+> can sombody help to fix this problem ?
 
-I have couple of questions from your patch.
-Your patch has couple of these changes where cpu_is_omap1510() has been
-changed to cpu_is_omap15xx().
-    -    if (!cpu_is_omap1510())
-    +    if (!cpu_is_omap15xx())
+Sorry if I overlooked anything, but what's the problem you 
+like to have help for?
 
-Do they affect to the sound in omap 310? (I mean is cpu_is_omap15xx()
-true for your omap310)
-Or is following the only relevant omap310 specific change
-
-    +    } else if (cpu_is_omap310())
-    +        omap_start_dma(channel);
-
-Btw, your patch will not apply on top of all 5 patches I sent.
-Could you perhaps re-send it one more time? (I need also test whether
-your changes could work with omap1510/h6300)
-
-Mika
-
-andrzej zaborowski wrote:
-> Avoid restarting McBSP hardware after every DMA transfer to OMAP audio
-> devices on OMAP310, restart only DMA. Also avoid trying to link DMA
-> channels together as this feature isn't supported on 310 processors.
-> Apply on top of "[PATCH 1/5] Change all omap15xx devices to use
-> similar DMA handling than h6300 uses".
->
-> Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
-> ------------------------------------------------------------------------
->
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->   
+Dirk
