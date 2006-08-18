@@ -1,12 +1,12 @@
 From: Komal Shah <komal_shah802003@yahoo.com>
 Subject: Re: [PATCH 3/4] TSC2102 hwmon driver
-Date: Fri, 18 Aug 2006 05:52:20 -0700 (PDT)
-Message-ID: <20060818125220.38707.qmail@web37905.mail.mud.yahoo.com>
+Date: Fri, 18 Aug 2006 05:56:06 -0700 (PDT)
+Message-ID: <20060818125606.26466.qmail@web37913.mail.mud.yahoo.com>
 References: <fb249edb0608180317j1f47ee3crfb89728cdc1f3814@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 In-Reply-To: <fb249edb0608180317j1f47ee3crfb89728cdc1f3814@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,8 +15,8 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: balrogg@gmail.com, Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
