@@ -1,13 +1,14 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: HTC WIZARD - mmc driver problem
-Date: Fri, 18 Aug 2006 20:31:43 +0200
-Message-ID: <44E6078F.5030002@gmail.com>
-References: <20060818084354.63359.qmail@web27803.mail.ukl.yahoo.com>
+Subject: Re: Building kenel error
+Date: Fri, 18 Aug 2006 20:50:23 +0200
+Message-ID: <44E60BEF.2090507@gmail.com>
+References: <EA12F909C0431D458B9D18A176BEE4A5072DA5F6@dlee02.ent.ti.com>
+	<1155918292.2949.25.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060818084354.63359.qmail@web27803.mail.ukl.yahoo.com>
+In-Reply-To: <1155918292.2949.25.camel@localhost.localdomain>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,19 +18,35 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Omap 850 <omap850@yahoo.de>
+To: hkh@cypress.com
 Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Omap 850 wrote:
-> i use the patches from nico and unaiur.
-> 
-> i have complied a kernel in mmc-debug mod
-> please see attach:  dmesg_debug_mode.txt 
-> 
-> can sombody help to fix this problem ?
+Hingkwan Huen wrote:
+> Which version of tool chain are
+> you using for 2.6.16 or 2.6.17 kernel?
 
-Sorry if I overlooked anything, but what's the problem you 
-like to have help for?
+Regarding GCC 4.x.x, if you like prebuild toolchain, try 
+CodeSourcery:
+
+http://www.codesourcery.com/gnu_toolchains/arm/
+
+If you like to build your toolchain on our own, try crosstool:
+
+http://kegel.com/crosstool/
+
+crosstool-0.42 with
+
+eval `cat arm.dat gcc-4.1.0-glibc-2.3.2.dat`  sh all.sh --notest
+
+configuration and additional patch (for ALSA sound)
+
+http://gcc.gnu.org/viewcvs/branches/csl/sourcerygxx-4_1/gcc/cse.c?r1=115616&r2=115615&view=patch&pathrev=115616
+(fixes http://gcc.gnu.org/bugzilla/show_bug.cgi?id=27363)
+
+works for me.
+
+There may be several other working GCC 4.x.x toolchains out 
+there. But I think most people still use GCC 3.x.x toolchains.
 
 Dirk
