@@ -1,15 +1,12 @@
-From: "andrzej zaborowski" <balrog@zabor.org>
+From: Devendra Kumar Madhesia <devendra.madhesia@flextronicssoftware.com>
 Subject: Re: How to use omap keypad driver function
-Date: Sat, 19 Aug 2006 02:26:48 +0200
-Message-ID: <fb249edb0608181726l5f3cdfe5md3718a079615a1fa@mail.gmail.com>
-References: <OFBAB8A90A.203F7215-ON652571CE.004C6076-652571CE.004C8E1E@flextronicssoftware.com>
-Reply-To: balrogg@gmail.com
+Date: Sat, 19 Aug 2006 16:55:21 +0530
+Message-ID: <OF3B719B48.C78BC6D7-ON652571CF.003E457F-652571CF.003EE797@flextronicssoftware.com>
+References: <fb249edb0608181726l5f3cdfe5md3718a079615a1fa@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <OFBAB8A90A.203F7215-ON652571CE.004C6076-652571CE.004C8E1E@flextronicssoftware.com>
-Content-Disposition: inline
+In-Reply-To: <fb249edb0608181726l5f3cdfe5md3718a079615a1fa@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,9 +16,47 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Devendra Kumar Madhesia <devendra.madhesia@flextronicssoftware.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
+
+
+
+
+
+Hi,
+Thanks for giving such useful idea.
+
+But I have also some doubt.
+The omap keypad driver is based on interrupt.
+Will this idea also useful for  omap keypad driver?
+
+Plz find source code for omap keypad driver from:
+/usr/src/armlinux/linux-2.6.16/drivers/input/keyboard/omap-keypad.c
+
+Best Regards,
+Devendra
+
+
+                                                                           
+             "andrzej                                                      
+             zaborowski"                                                   
+             <balrog@zabor.org                                          To 
+             >                         Devendra Kumar Madhesia/HSS@HSS     
+             Sent by:                                                   cc 
+             balrogg@gmail.com         linux-omap-open-source@linux.omap.c 
+                                       om                                  
+                                                                   Subject 
+             08/19/2006 05:56          Re: How to use omap keypad driver   
+             AM                        function                            
+                                                                           
+                                                                           
+             Please respond to                                             
+             balrogg@gmail.com                                             
+                                                                           
+                                                                           
+
+
+
 
 Hi,
 
@@ -100,5 +135,20 @@ etc, that's what an X server does for example.
 >
 
 
--- 
+--
 balrog 2oo6
+
+
+
+***********************  FSS-Unclassified   ***********************
+"DISCLAIMER: This message is proprietary to Flextronics Software
+Systems Limited (FSS) and is intended solely for the use of the
+individual to whom it is addressed. It may contain  privileged or
+confidential information and should not be circulated or used for
+any purpose other than for what it is intended. If you have received
+this message in  error, please notify the originator immediately.
+If you are not the intended recipient, you are notified that you are
+strictly  prohibited  from  using, copying, altering, or disclosing
+the contents of this message.  FSS  accepts no  responsibility  for
+loss or damage arising from the use of  the information transmitted
+by this email including damage from virus."
