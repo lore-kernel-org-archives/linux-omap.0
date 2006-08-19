@@ -1,15 +1,15 @@
 From: "andrzej zaborowski" <balrog@zabor.org>
-Subject: Re: [PATCH 1/4] TSC2102 main SPI driver
-Date: Sat, 19 Aug 2006 01:59:50 +0200
-Message-ID: <fb249edb0608181659l1758287t98a39e332893ea28@mail.gmail.com>
-References: <fb249edb0608180301u113ae66fg7be0b7a001c1cc46@mail.gmail.com>
-	<20060818132753.31468.qmail@web37908.mail.mud.yahoo.com>
+Subject: Re: [PATCH] OMAP audio DMA changes for 310 CPUs
+Date: Sat, 19 Aug 2006 02:12:03 +0200
+Message-ID: <fb249edb0608181712x4e5aedb2oce6946c2912bb811@mail.gmail.com>
+References: <fb249edb0608180120m4d0786c7i6d4408112d7e2cf0@mail.gmail.com>
+	<44E5F3CE.3010501@cc.jyu.fi>
 Reply-To: balrogg@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <20060818132753.31468.qmail@web37908.mail.mud.yahoo.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <44E5F3CE.3010501@cc.jyu.fi>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,86 +18,69 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Komal Shah <komal_shah802003@yahoo.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: lamikr@cc.jyu.fi
 Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 18/08/06, Komal Shah <komal_shah802003@yahoo.com> wrote:
-> --- andrzej zaborowski <balrog@zabor.org> wrote:
+Hi,
+
+On 18/08/06, lamikr <lamikr@cc.jyu.fi> wrote:
+> Hi andrzej
 >
-> > This adds a driver for the TSC2102 chip by Texas Instruments. This
-> > driver is responsible for all communication with the chip and doesn't
-> > export anything for user-space, but for other drivers controlling
-> > devices connected to the chip.
+> I have couple of questions from your patch.
+> Your patch has couple of these changes where cpu_is_omap1510() has been
+> changed to cpu_is_omap15xx().
+>     -    if (!cpu_is_omap1510())
+>     +    if (!cpu_is_omap15xx())
+>
+> Do they affect to the sound in omap 310? (I mean is cpu_is_omap15xx()
+> true for your omap310)
+
+Yes, from what I've seen cpu_is_omap15xx() is always cpu_is_omap1510()
+|| cpu_is_omap310() and it makes sense because the processors are
+mostly compatible (with little exceptions). Similarly
+CONFIG_ARCH_OMAP15XX.
+
+> Or is following the only relevant omap310 specific change
+>
+>     +    } else if (cpu_is_omap310())
+>     +        omap_start_dma(channel);
+>
+> Btw, your patch will not apply on top of all 5 patches I sent.
+
+Oops. I will resend. (but can't do it now)
+
+> Could you perhaps re-send it one more time? (I need also test whether
+> your changes could work with omap1510/h6300)
+
+They shouldn't affect omap1510.
+
+>
+> Mika
+>
+> andrzej zaborowski wrote:
+> > Avoid restarting McBSP hardware after every DMA transfer to OMAP audio
+> > devices on OMAP310, restart only DMA. Also avoid trying to link DMA
+> > channels together as this feature isn't supported on 310 processors.
+> > Apply on top of "[PATCH 1/5] Change all omap15xx devices to use
+> > similar DMA handling than h6300 uses".
+> >
+> > Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
+> > ------------------------------------------------------------------------
+> >
+> > _______________________________________________
+> > Linux-omap-open-source mailing list
+> > Linux-omap-open-source@linux.omap.com
+> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
 > >
 >
-> Quick review comments, will come later with more detailed review.
-
-Many thanks for looking at the code, I wouldn't notice all the issues.
-
-I'm going to send a corrected code next week when I'm online.
-
->
-> +       spi->transfer = kzalloc(sizeof(struct spi_transfer) * numregs,
-> +                       GFP_KERNEL);
->
-> How about checking return value here?
-
-Ok. I'm going to allocate only a single big buffer to avoid creating a
-five error paths.
-
->
-> +       set_irq_type(spi->irq, IRQT_FALLING);
-> +       if (request_irq(spi->irq, tsc2102_handler,
-> +                               SA_SAMPLE_RANDOM, "tsc2102", &tsc)) {
-> +               printk(KERN_ERR "Could not allocate touchscreen IRQ!\n");
-> +               err = -EINVAL;
-> +               goto err_clk;
-> +       }
->
-> You should use new flags as per genirq patches, and I think
-> set_irq_type may not be required.
-
-Ah, right. I changed it to this, and dumped set_irq_type():
-        if (request_irq(spi->irq, tsc2102_handler, SA_SAMPLE_RANDOM |
-                                SA_TRIGGER_FALLING, "tsc2102", &tsc)) {
-
->
-> +#define TSC2102_TS_X                   0, 0x00
-> +#define TSC2102_TS_Y                   0, 0x01
->
-> I think better/clean way could be, having defines taking page and addr
-> as argument. e.g
->
-> #define tsc2102_reg(page, addr) /* your code here as per pg and addr
-> needs to be shifted and ORed as needed*/
-> #define tsc2102_ts_x       tsc2102_reg(0, 0x0)
->
-> and may be conversion macros from reg_to_page and page_to_reg as
-> required.
-
-Here I was trying to maintain api similar to that in omap-tsc2101.c
-with page and offset as separate parameters but I see now that it
-prevents an optimisation.
-
->
->
-> ---Komal Shah
-> http://komalshah.blogspot.com/
->
-> __________________________________________________
-> Do You Yahoo!?
-> Tired of spam?  Yahoo! Mail has the best spam protection around
-> http://mail.yahoo.com
 >
 
-I will appreciate further comments.
 
-Do you know where I can find out what functions are "must check"?
-
-Regards,
-Andrzej
 -- 
 balrog 2oo6
+
+Dear Outlook users: Please remove me from your address books
+http://www.newsforge.com/article.pl?sid=03/08/21/143258
