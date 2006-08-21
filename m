@@ -1,12 +1,10 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: OMAP2 irq.c IVA_INTC base
-Date: Mon, 21 Aug 2006 16:52:06 -0500
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A507360674@dlee02.ent.ti.com>
+From: "Zhang, Jian" <jzhang@ti.com>
+Subject: H3 alsa support
+Date: Mon, 21 Aug 2006 17:59:45 -0500
+Message-ID: <304D2A85A9643F4A991BDDF8D297BBA60425FA3F@dlee05.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C6C575.7EDF3797"
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,33 +13,87 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Komal Shah <komal_shah802003@yahoo.com>, linux-omap-open-source@linux.omap.com, paul.mundt@nokia.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-> I want one clarification about IVA_INTC base address in irq.c. I think
-> that 0x40000000 address is only accessible in the IVA-MPU domain _not_
-> in L3 domain, then how we are going to initialize it from ARM11 side?
-I
-> believe that it should be initialized by framework running on IVA1.0.
+This is a multi-part message in MIME format.
 
-Yes I think that is correct.  The 0x40000000 is an IVA-ARM7 local bus
-address.  The IVA-INTC is NOT accessible through the IVA-L3-Slave Port.
-The current TRM does say this directly and indirectly in a few spots and
-in figures.
+------_=_NextPart_001_01C6C575.7EDF3797
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-The L3 address of 0x40000000 is for the internal mask ROM.
+Tony,
 
-> We have only access to IVA registers of various blocks and
-> co-processors which are mapped in the L3 domain.
+=20
 
-That is correct.  The (interface slave port) ISP decodes incoming
-transactions from the IVA-L3 slave port.  It provides L3 access to
-things like the MMU, SYSC, and memories.  There is no path to the INTC.
+Here is a small patch that adds alsa support on H3. I have tested it by
+playing a few raw, wav files.
 
-Further I asked a bridge person here and they confirmed that the IVA
-code is responsible for setting up the INTC.
+=20
 
 Regards,
-Richard W.
+
+Jian
+
+=20
+
+
+------_=_NextPart_001_01C6C575.7EDF3797
+Content-Type: application/octet-stream;
+	name="h3-alsa.patch"
+Content-Transfer-Encoding: base64
+Content-Description: h3-alsa.patch
+Content-Disposition: attachment;
+	filename="h3-alsa.patch"
+
+ZGlmZiAtcHVyTiBsaW51eC1vbWFwLW9yaWdpbmFsL2xpbnV4LW9tYXAvYXJjaC9hcm0vbWFjaC1v
+bWFwMS9ib2FyZC1oMy5jIGxpbnV4LW9tYXAvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1oMy5j
+Ci0tLSBsaW51eC1vbWFwLW9yaWdpbmFsL2xpbnV4LW9tYXAvYXJjaC9hcm0vbWFjaC1vbWFwMS9i
+b2FyZC1oMy5jCTIwMDYtMDgtMTcgMTA6NTc6NTkuMDAwMDAwMDAwIC0wNTAwCisrKyBsaW51eC1v
+bWFwL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtaDMuYwkyMDA2LTA4LTIxIDE0OjA1OjI4LjAw
+MDAwMDAwMCAtMDUwMApAQCAtNDQsNiArNDQsOCBAQAogI2luY2x1ZGUgPGFzbS9hcmNoL2tleXBh
+ZC5oPgogI2luY2x1ZGUgPGFzbS9hcmNoL2RtYS5oPgogI2luY2x1ZGUgPGFzbS9hcmNoL2NvbW1v
+bi5oPgorI2luY2x1ZGUgPGFzbS9hcmNoL21jYnNwLmg+CisjaW5jbHVkZSA8YXNtL2FyY2gvb21h
+cC1hbHNhLmg+CiAKIGV4dGVybiBpbnQgb21hcF9ncGlvX2luaXQodm9pZCk7CiAKQEAgLTM2Myw2
+ICszNjUsNDEgQEAgc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgaDNfbGNkX2RldgogCS5p
+ZAkJPSAtMSwKIH07CiAKK3N0YXRpYyBzdHJ1Y3Qgb21hcF9tY2JzcF9yZWdfY2ZnIG1jYnNwX3Jl
+Z3MgPSB7CisJLnNwY3IyID0gRlJFRSB8IEZSU1QgfCBHUlNUIHwgWFJTVCB8IFhJTlRNKDMpLAor
+CS5zcGNyMSA9IFJJTlRNKDMpIHwgUlJTVCwKKwkucmNyMiAgPSBSUEhBU0UgfCBSRlJMRU4yKE9N
+QVBfTUNCU1BfV09SRF84KSB8CisgICAgICAgICAgICAgICAgUldETEVOMihPTUFQX01DQlNQX1dP
+UkRfMTYpIHwgUkRBVERMWSgxKSwKKwkucmNyMSAgPSBSRlJMRU4xKE9NQVBfTUNCU1BfV09SRF84
+KSB8IFJXRExFTjEoT01BUF9NQ0JTUF9XT1JEXzE2KSwKKwkueGNyMiAgPSBYUEhBU0UgfCBYRlJM
+RU4yKE9NQVBfTUNCU1BfV09SRF84KSB8CisgICAgICAgICAgICAgICAgWFdETEVOMihPTUFQX01D
+QlNQX1dPUkRfMTYpIHwgWERBVERMWSgxKSB8IFhGSUcsCisJLnhjcjEgID0gWEZSTEVOMShPTUFQ
+X01DQlNQX1dPUkRfOCkgfCBYV0RMRU4xKE9NQVBfTUNCU1BfV09SRF8xNiksCisJLnNyZ3IxID0g
+RldJRCgxNSksCisJLnNyZ3IyID0gR1NZTkMgfCBDTEtTUCB8IEZTR00gfCBGUEVSKDMxKSwKKwor
+CS5wY3IwICA9IENMS1JNIHwgU0NMS01FIHwgRlNYUCB8IEZTUlAgfCBDTEtYUCB8IENMS1JQLAor
+CS8vLnBjcjAgPSBDTEtYUCB8IENMS1JQLCAgICAgICAgLyogbWNic3A6IHNsYXZlICovCit9Owor
+CitzdGF0aWMgc3RydWN0IG9tYXBfYWxzYV9jb2RlY19jb25maWcgYWxzYV9jb25maWcgPSB7CisJ
+Lm5hbWUgICAgICAgICAgICAgICAgICAgPSAiSDMgVFNDMjEwMSIsCisJLm1jYnNwX3JlZ3NfYWxz
+YSAgICAgICAgPSAmbWNic3BfcmVncywKKwkuY29kZWNfY29uZmlndXJlX2RldiAgICA9IE5VTEws
+IC8vIHRzYzIxMDFfY29uZmlndXJlLAorCS5jb2RlY19zZXRfc2FtcGxlcmF0ZSAgID0gTlVMTCwg
+Ly8gdHNjMjEwMV9zZXRfc2FtcGxlcmF0ZSwKKwkuY29kZWNfY2xvY2tfc2V0dXAgICAgICA9IE5V
+TEwsIC8vIHRzYzIxMDFfY2xvY2tfc2V0dXAsCisJLmNvZGVjX2Nsb2NrX29uICAgICAgICAgPSBO
+VUxMLCAvLyB0c2MyMTAxX2Nsb2NrX29uLAorCS5jb2RlY19jbG9ja19vZmYgICAgICAgID0gTlVM
+TCwgLy8gdHNjMjEwMV9jbG9ja19vZmYsCisJLmdldF9kZWZhdWx0X3NhbXBsZXJhdGUgPSBOVUxM
+LCAvLyB0c2MyMTAxX2dldF9kZWZhdWx0X3NhbXBsZXJhdGUsCit9OworCitzdGF0aWMgc3RydWN0
+IHBsYXRmb3JtX2RldmljZSBoM19tY2JzcDFfZGV2aWNlID0geworCS5uYW1lCT0gIm9tYXBfYWxz
+YV9tY2JzcCIsCisJLmlkCT0gMSwKKwkuZGV2ID0geworCQkucGxhdGZvcm1fZGF0YQk9ICZhbHNh
+X2NvbmZpZywKKwl9LAorfTsKKwogc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKmRldmlj
+ZXNbXSBfX2luaXRkYXRhID0gewogCSZub3JfZGV2aWNlLAogCSZuYW5kX2RldmljZSwKQEAgLTM3
+MSw2ICs0MDgsNyBAQCBzdGF0aWMgc3RydWN0IHBsYXRmb3JtX2RldmljZSAqZGV2aWNlc1tdCiAJ
+JmgzX2lyZGFfZGV2aWNlLAogCSZoM19rcF9kZXZpY2UsCiAJJmgzX2xjZF9kZXZpY2UsCisJJmgz
+X21jYnNwMV9kZXZpY2UsCiB9OwogCiBzdGF0aWMgc3RydWN0IG9tYXBfdXNiX2NvbmZpZyBoM191
+c2JfY29uZmlnIF9faW5pdGRhdGEgPSB7CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgo=
+
+------_=_NextPart_001_01C6C575.7EDF3797
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+------_=_NextPart_001_01C6C575.7EDF3797--
