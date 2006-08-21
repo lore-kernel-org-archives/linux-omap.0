@@ -1,10 +1,13 @@
-From: Devendra Kumar Madhesia <devendra.madhesia@flextronicssoftware.com>
-Subject: Problem regarding making sound driver as kernel module for TI OMAP
-Date: Mon, 21 Aug 2006 19:10:03 +0530
-Message-ID: <OF9622F67D.81A0D187-ON652571D1.004AA35C-652571D1.004B3CDA@flextronicssoftware.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: OMAP2 irq.c IVA_INTC base
+Date: Mon, 21 Aug 2006 16:52:06 -0500
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A507360674@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,39 +15,33 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Komal Shah <komal_shah802003@yahoo.com>, linux-omap-open-source@linux.omap.com, paul.mundt@nokia.com
 List-Id: linux-omap@vger.kernel.org
 
+> I want one clarification about IVA_INTC base address in irq.c. I think
+> that 0x40000000 address is only accessible in the IVA-MPU domain _not_
+> in L3 domain, then how we are going to initialize it from ARM11 side?
+I
+> believe that it should be initialized by framework running on IVA1.0.
 
+Yes I think that is correct.  The 0x40000000 is an IVA-ARM7 local bus
+address.  The IVA-INTC is NOT accessible through the IVA-L3-Slave Port.
+The current TRM does say this directly and indirectly in a few spots and
+in figures.
 
+The L3 address of 0x40000000 is for the internal mask ROM.
 
+> We have only access to IVA registers of various blocks and
+> co-processors which are mapped in the L3 domain.
 
+That is correct.  The (interface slave port) ISP decodes incoming
+transactions from the IVA-L3 slave port.  It provides L3 access to
+things like the MMU, SYSC, and memories.  There is no path to the INTC.
 
-Hi,
+Further I asked a bridge person here and they confirmed that the IVA
+code is responsible for setting up the INTC.
 
-I have succesfully run code for configuring sound device and dma for TI
-OMAP plateform using CCS (Code Composer Studio).
-Now i want to make a kernel module for linux 2.6 for this.
-Please suggest me how can i do this with very basic features like play.
-Also, can i implement this as character driver or not ?
-It would be of great help if some could  share some sample code.
-
-Thanks a lot.
-
-Best Regards,
-Devendra
-
-***********************  FSS-Unclassified   ***********************
-"DISCLAIMER: This message is proprietary to Flextronics Software
-Systems Limited (FSS) and is intended solely for the use of the
-individual to whom it is addressed. It may contain  privileged or
-confidential information and should not be circulated or used for
-any purpose other than for what it is intended. If you have received
-this message in  error, please notify the originator immediately.
-If you are not the intended recipient, you are notified that you are
-strictly  prohibited  from  using, copying, altering, or disclosing
-the contents of this message.  FSS  accepts no  responsibility  for
-loss or damage arising from the use of  the information transmitted
-by this email including damage from virus."
+Regards,
+Richard W.
