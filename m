@@ -1,9 +1,11 @@
-From: "Zhang, Jian" <jzhang@ti.com>
-Subject: H3 alsa support
-Date: Mon, 21 Aug 2006 17:59:45 -0500
-Message-ID: <304D2A85A9643F4A991BDDF8D297BBA60425FA3F@dlee05.ent.ti.com>
+From: "Xu Jianfeng-A20136" <A20136@motorola.com>
+Subject: startup hang in function find_bootmap_pfn (linux/arch/arm/mm/init.c)
+Date: Tue, 22 Aug 2006 15:16:58 +0800
+Message-ID: <565F40B9893580489B94B8D324460AF4BEA770@zmy16exm63.ds.mot.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C6C575.7EDF3797"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
@@ -15,85 +17,76 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: OMAP-Linux <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
-
-------_=_NextPart_001_01C6C575.7EDF3797
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-Tony,
-
+Hi,
 =20
-
-Here is a small patch that adds alsa support on H3. I have tested it by
-playing a few raw, wav files.
-
+I'm trying running linux on my OMAP board. But when linux startup, it
+hangs in function find_bootmap_pfn()->BUG(). The root cause is the code
+in RED:
 =20
-
-Regards,
-
-Jian
-
+static unsigned int __init
+find_bootmap_pfn(int node, struct meminfo *mi, unsigned int
+bootmap_pages)
+{
+ unsigned int start_pfn, bank, bootmap_pfn;
 =20
+ start_pfn   =3D V_PFN_UP(&_end);
+ bootmap_pfn =3D 0;
+=20
+ for (bank =3D 0; bank < mi->nr_banks; bank ++) {
+  unsigned int start, end;
+=20
+  if (mi->bank[bank].node !=3D node)
+   continue;
+=20
+  start =3D O_PFN_UP(mi->bank[bank].start);
+  end   =3D O_PFN_DOWN(mi->bank[bank].size +
+       mi->bank[bank].start);
+=20
+  if (end < start_pfn)
+   continue;
+=20
+  if (start < start_pfn)
+   start =3D start_pfn;
+=20
+  if (end <=3D start)
+   continue;
+=20
+  if (end - start >=3D bootmap_pages) {
+   bootmap_pfn =3D start;
+   break;
+  }
+ }
+=20
+ if (bootmap_pfn =3D=3D 0)
+  BUG();
+=20
+ return bootmap_pfn;
+}
 
-
-------_=_NextPart_001_01C6C575.7EDF3797
-Content-Type: application/octet-stream;
-	name="h3-alsa.patch"
-Content-Transfer-Encoding: base64
-Content-Description: h3-alsa.patch
-Content-Disposition: attachment;
-	filename="h3-alsa.patch"
-
-ZGlmZiAtcHVyTiBsaW51eC1vbWFwLW9yaWdpbmFsL2xpbnV4LW9tYXAvYXJjaC9hcm0vbWFjaC1v
-bWFwMS9ib2FyZC1oMy5jIGxpbnV4LW9tYXAvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1oMy5j
-Ci0tLSBsaW51eC1vbWFwLW9yaWdpbmFsL2xpbnV4LW9tYXAvYXJjaC9hcm0vbWFjaC1vbWFwMS9i
-b2FyZC1oMy5jCTIwMDYtMDgtMTcgMTA6NTc6NTkuMDAwMDAwMDAwIC0wNTAwCisrKyBsaW51eC1v
-bWFwL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtaDMuYwkyMDA2LTA4LTIxIDE0OjA1OjI4LjAw
-MDAwMDAwMCAtMDUwMApAQCAtNDQsNiArNDQsOCBAQAogI2luY2x1ZGUgPGFzbS9hcmNoL2tleXBh
-ZC5oPgogI2luY2x1ZGUgPGFzbS9hcmNoL2RtYS5oPgogI2luY2x1ZGUgPGFzbS9hcmNoL2NvbW1v
-bi5oPgorI2luY2x1ZGUgPGFzbS9hcmNoL21jYnNwLmg+CisjaW5jbHVkZSA8YXNtL2FyY2gvb21h
-cC1hbHNhLmg+CiAKIGV4dGVybiBpbnQgb21hcF9ncGlvX2luaXQodm9pZCk7CiAKQEAgLTM2Myw2
-ICszNjUsNDEgQEAgc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgaDNfbGNkX2RldgogCS5p
-ZAkJPSAtMSwKIH07CiAKK3N0YXRpYyBzdHJ1Y3Qgb21hcF9tY2JzcF9yZWdfY2ZnIG1jYnNwX3Jl
-Z3MgPSB7CisJLnNwY3IyID0gRlJFRSB8IEZSU1QgfCBHUlNUIHwgWFJTVCB8IFhJTlRNKDMpLAor
-CS5zcGNyMSA9IFJJTlRNKDMpIHwgUlJTVCwKKwkucmNyMiAgPSBSUEhBU0UgfCBSRlJMRU4yKE9N
-QVBfTUNCU1BfV09SRF84KSB8CisgICAgICAgICAgICAgICAgUldETEVOMihPTUFQX01DQlNQX1dP
-UkRfMTYpIHwgUkRBVERMWSgxKSwKKwkucmNyMSAgPSBSRlJMRU4xKE9NQVBfTUNCU1BfV09SRF84
-KSB8IFJXRExFTjEoT01BUF9NQ0JTUF9XT1JEXzE2KSwKKwkueGNyMiAgPSBYUEhBU0UgfCBYRlJM
-RU4yKE9NQVBfTUNCU1BfV09SRF84KSB8CisgICAgICAgICAgICAgICAgWFdETEVOMihPTUFQX01D
-QlNQX1dPUkRfMTYpIHwgWERBVERMWSgxKSB8IFhGSUcsCisJLnhjcjEgID0gWEZSTEVOMShPTUFQ
-X01DQlNQX1dPUkRfOCkgfCBYV0RMRU4xKE9NQVBfTUNCU1BfV09SRF8xNiksCisJLnNyZ3IxID0g
-RldJRCgxNSksCisJLnNyZ3IyID0gR1NZTkMgfCBDTEtTUCB8IEZTR00gfCBGUEVSKDMxKSwKKwor
-CS5wY3IwICA9IENMS1JNIHwgU0NMS01FIHwgRlNYUCB8IEZTUlAgfCBDTEtYUCB8IENMS1JQLAor
-CS8vLnBjcjAgPSBDTEtYUCB8IENMS1JQLCAgICAgICAgLyogbWNic3A6IHNsYXZlICovCit9Owor
-CitzdGF0aWMgc3RydWN0IG9tYXBfYWxzYV9jb2RlY19jb25maWcgYWxzYV9jb25maWcgPSB7CisJ
-Lm5hbWUgICAgICAgICAgICAgICAgICAgPSAiSDMgVFNDMjEwMSIsCisJLm1jYnNwX3JlZ3NfYWxz
-YSAgICAgICAgPSAmbWNic3BfcmVncywKKwkuY29kZWNfY29uZmlndXJlX2RldiAgICA9IE5VTEws
-IC8vIHRzYzIxMDFfY29uZmlndXJlLAorCS5jb2RlY19zZXRfc2FtcGxlcmF0ZSAgID0gTlVMTCwg
-Ly8gdHNjMjEwMV9zZXRfc2FtcGxlcmF0ZSwKKwkuY29kZWNfY2xvY2tfc2V0dXAgICAgICA9IE5V
-TEwsIC8vIHRzYzIxMDFfY2xvY2tfc2V0dXAsCisJLmNvZGVjX2Nsb2NrX29uICAgICAgICAgPSBO
-VUxMLCAvLyB0c2MyMTAxX2Nsb2NrX29uLAorCS5jb2RlY19jbG9ja19vZmYgICAgICAgID0gTlVM
-TCwgLy8gdHNjMjEwMV9jbG9ja19vZmYsCisJLmdldF9kZWZhdWx0X3NhbXBsZXJhdGUgPSBOVUxM
-LCAvLyB0c2MyMTAxX2dldF9kZWZhdWx0X3NhbXBsZXJhdGUsCit9OworCitzdGF0aWMgc3RydWN0
-IHBsYXRmb3JtX2RldmljZSBoM19tY2JzcDFfZGV2aWNlID0geworCS5uYW1lCT0gIm9tYXBfYWxz
-YV9tY2JzcCIsCisJLmlkCT0gMSwKKwkuZGV2ID0geworCQkucGxhdGZvcm1fZGF0YQk9ICZhbHNh
-X2NvbmZpZywKKwl9LAorfTsKKwogc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKmRldmlj
-ZXNbXSBfX2luaXRkYXRhID0gewogCSZub3JfZGV2aWNlLAogCSZuYW5kX2RldmljZSwKQEAgLTM3
-MSw2ICs0MDgsNyBAQCBzdGF0aWMgc3RydWN0IHBsYXRmb3JtX2RldmljZSAqZGV2aWNlc1tdCiAJ
-JmgzX2lyZGFfZGV2aWNlLAogCSZoM19rcF9kZXZpY2UsCiAJJmgzX2xjZF9kZXZpY2UsCisJJmgz
-X21jYnNwMV9kZXZpY2UsCiB9OwogCiBzdGF0aWMgc3RydWN0IG9tYXBfdXNiX2NvbmZpZyBoM191
-c2JfY29uZmlnIF9faW5pdGRhdGEgPSB7CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgo=
-
-------_=_NextPart_001_01C6C575.7EDF3797
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
-------_=_NextPart_001_01C6C575.7EDF3797--
+I run the linux directly in RAM from address 0x1000 8000. The RAM
+configuration of my board is:
+SDRAM: 8M (0x1000 0000 - 0x1080 0000)
+The runtime value of the variables in above code is : start =3D 0x10000,
+end =3D 0x10800, &_end =3D 0x102a 0df0, start_pfn =3D 0x602a1.=20
+=20
+According my understanding, _end is introduced in vmlinux.lds. The
+address of _end is determined in linkage time. So it is a physical
+address.=20
+But in the code :
+start_pfn   =3D V_PFN_UP(&_end);
+V_PFN_UP is defined as O_PFN_UP(__pa(x)). Seems the code is trying
+converting the address of _end to physical address.=20
+=20
+Can someone help to figure out what's wrong in my porting?
+=20
+The linux source package (linux-2.6.9.tgz) is downloaded from
+http://linux.omap.com/pub/kernel/h3/source/
+=20
+Any comments would be highly appreciated!
+=20
+Thanks,
+Jianfeng
+=20
