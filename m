@@ -1,13 +1,12 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: OMAP networking app
-Date: Wed, 23 Aug 2006 21:22:31 -0500
-Message-ID: <44ED0D67.2010608@gmail.com>
-References: <BAY102-F35016C2F43DA768EBBD0BEA9470@phx.gbl>
+From: "Sergey Vointsev" <vointsev@gmail.com>
+Subject: Using dsplink in my application
+Date: Thu, 24 Aug 2006 14:46:49 +0400
+Message-ID: <9713be7f0608240346x1b7b08a5o2c0500c01422350c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <BAY102-F35016C2F43DA768EBBD0BEA9470@phx.gbl>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,25 +14,26 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Abot Botbot <dejanigma@hotmail.com>, Linux OMAP List <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Abot Botbot wrote:
-> Hello all,
-> 
->   I'm slated to develop an application that sends and recieves UDP
-> packets over the ethernet port of the OMAP5912 EVM board from spectrum
-> digital. Does anyone have a decent document pertaining to this process,
-> and better yet, a working application that could help guide my
-> development there-in? Any help you can offer will be greatly appreciated.
-once u have linux up, you can do what you would do on a PC/anywhere
-else. Linux application interface remains the same... so any standard
-network textbook can be a guide here... So the correct question would be
-do you have a linux port for 5912? The answer to my knowledge is "yes".
+Hi everyone!
+I'm trying to use dsplink to communicate ARM-linux and DSP. I just
+took two working applications (one of them is sample from rf6) and
+tried to insert dsplink code to main in my app.
+Application built successfully but while starting I got such error:
 
-Read this for further info: http://oskfordummies.hp.infoseek.co.jp/
+Reference Framework 6 audio application started
+Assertion failed (PMGR_MSGQ_IsInitialized == TRUE). File : pmgr_msgq.c
+Line : 282
+Assertion failed (LDRV_MSGQ_IsInitialized == TRUE). File : ldrv_msgq.c
+Line : 438
+Assertion failed (mqaId < LdrvMsgqStateObj.numAllocators). File :
+ldrv_msgq.c Line : 441
+MSGQ_AllocatorOpen () failed.
 
-Regards,
-Nishanth Menon
+What can be the reason for this, where should I dig?
+Please advise.
+Thanks. Sergey.
