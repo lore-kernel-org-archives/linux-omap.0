@@ -1,11 +1,12 @@
-From: "w.b.b" <rememberme_2000@126.com>
-Subject: about gpio
-Date: Mon, 28 Aug 2006 16:09:15 +0800
-Message-ID: <001d01c6ca79$412d9e00$4e0aa8c0@wbb>
-References: <20060828071312.59941.qmail@web55812.mail.re3.yahoo.com>
+From: "Komal Shah" <komal_shah802003@yahoo.com>
+Subject: [PATCH] ARM: OMAP: Remove IVA IRQ bank
+Date: Mon, 28 Aug 2006 18:04:43 +0530
+Message-ID: <1156768483.6544.269568352@webmail.messagingengine.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0214646206=="
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: multipart/mixed; boundary="_----------=_115676848365440";
+	charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,45 +14,78 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============0214646206==
-Content-Type: text/plain;
-	charset="iso-8859-1"
+This is a multi-part message in MIME format.
+
+--_----------=_115676848365440
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="ISO-8859-1"
+MIME-Version: 1.0
+X-Mailer: MessagingEngine.com Webmail Interface
+Date: Mon, 28 Aug 2006 12:34:43 UT
+
+Tony,
+
+Attached the patch as per discussion on following thread:
+
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007820.html
+
+---Komal Shah
+http://komalshah.blogspot.com
+
+-- 
+http://www.fastmail.fm - Access all of your messages and folders
+                          wherever you are
+
+
+--_----------=_115676848365440
+Content-Disposition: attachment;
+	filename="0001-ARM-OMAP-Remove-IVA-IRQ-bank.patch"
 Content-Transfer-Encoding: base64
+Content-Type: application/octet-stream;
+	name="0001-ARM-OMAP-Remove-IVA-IRQ-bank.patch"
+MIME-Version: 1.0
+X-Mailer: MessagingEngine.com Webmail Interface
+Date: Mon, 28 Aug 2006 12:34:43 UT
 
-aGk6DQoNCiBpIHdhbnQgdG8gZG8gc29tZSB3b3JrIGFib3V0IE9NQVA1OTEyJ0dQSU8uYnV0IEkg
-YW0gZmFpbGVkIHRvIGRvIHRoYXQuDQoNCiB0aGUgZm9sbG93aW5nIGlzIGEgc2ltcGxlIHByb2dy
-YW06DQoNCnRlc3QuYyANCg0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0NCg0KI2luY2x1ZGUgPHN0ZGlvLmg+DQojaW5jbHVkZSA8dW5pc3RkLmg+
-DQojaW5jbHVkZSA8YXNtL2lvLmg+DQoNCiNkZWZpbmUgR1BJTzNfT1VUIDB4ZmZmYmJjNDAgLyog
-bHAxICovDQoNCmludCBtYWluKCkNCnsNCiAgLyogR2V0IGFjY2VzcyB0byB0aGUgcG9ydHMgKi8N
-CiAgDQogIA0KICAvKiBTZXQgdGhlIGRhdGEgc2lnbmFscyAoRDAtNykgb2YgdGhlIHBvcnQgdG8g
-YWxsIGxvdyAoMCkgKi8NCiAgb3V0YigweGZmZmYsIEdQSU8zX09VVCk7DQogIA0KICAvKiBTbGVl
-cCBmb3IgYSB3aGlsZSAoMTAwIG1zKSAqLw0KICB1c2xlZXAoMTAwMDAwKTt9LS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS1hcm0tbGludXgtZ2NjIC1n
-IHRlc3QuYyAtbyB0ZXN0Lm91dC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS1JIHJ1biB0aGUgYmluYXJ5IGZpbGUgb24gdGhlIG9tYXA6Li90ZXN0Lm91
-dC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tYnV0
-IGkgZ2V0IHRoZSByZXN1bHQ6c2VnbWVudGF0aW9uIGZhbHQhLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0td2hvIGNhbiBwcm92aWRlIG1lIHdpdGggaW5m
-b3JtYXRpb24/IGlmIHlvdSBoYXZlIGRvbmUgd29yayByZWxhdGVkIHdpdGggZ3Bpbyx3b3VsZCB5
-b3UgbGlrZSBzZW5kIG1lIHNvbWUgZXhhbXBsZWZpbGU/ICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICB0aGFua3MhPiBMaW51eC1vbWFwLW9wZW4tc291cmNlQGxpbnV4Lm9tYXAuY29t
-DQo+IGh0dHA6Ly9saW51eC5vbWFwLmNvbS9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW9tYXAtb3Bl
-bi1zb3VyY2UNCj4gDQo+
+RnJvbSBub2JvZHkgTW9uIFNlcCAxNyAwMDowMDowMCAyMDAxCkZyb206IEtv
+bWFsIFNoYWggPGtvbWFsX3NoYWg4MDIwMDNAeWFob28uY29tPgpEYXRlOiBN
+b24sIDI4IEF1ZyAyMDA2IDIzOjMxOjQ1ICswNTMwClN1YmplY3Q6IFtQQVRD
+SF0gQVJNOiBPTUFQOiBSZW1vdmUgSVZBIElSUSBiYW5rCgpBUk0xMSBjYW4n
+dCBhY2Nlc3MgdGhlIElWQSBpbnRlcnJ1cHQgY29udHJvbGxlciBmcm9tCklW
+QSBzbGF2ZSBwb3J0LgoKRnJvbSBSaWNoYXJkIFdvb2RydWZmOgoKIlRoZSAw
+eDQwMDAwMDAwIGlzIGFuIElWQS1BUk03IGxvY2FsIGJ1cyBhZGRyZXNzLgpU
+aGUgSVZBLUlOVEMgaXMgTk9UIGFjY2Vzc2libGUgdGhyb3VnaCB0aGUgSVZB
+LUwzLVNsYXZlIFBvcnQuClRoZSBjdXJyZW50IFRSTSBkb2VzIHNheSB0aGlz
+IGRpcmVjdGx5IGFuZCBpbmRpcmVjdGx5IGluIGEgZmV3IHNwb3RzIGFuZApp
+biBmaWd1cmVzLiIKClNpZ25lZC1vZmYtYnk6IEtvbWFsIFNoYWggPGtvbWFs
+X3NoYWg4MDIwMDNAeWFob28uY29tPgoKLS0tCgogYXJjaC9hcm0vbWFjaC1v
+bWFwMi9pcnEuYyB8ICAgMTIgLS0tLS0tLS0tLS0tCiAxIGZpbGVzIGNoYW5n
+ZWQsIDAgaW5zZXJ0aW9ucygrKSwgMTIgZGVsZXRpb25zKC0pCgo2YmI1NzRm
+MGJmZjg2Yzc5NWU3MDBhYWY2N2M4YTEzNGU2YThiNGQxCmRpZmYgLS1naXQg
+YS9hcmNoL2FybS9tYWNoLW9tYXAyL2lycS5jIGIvYXJjaC9hcm0vbWFjaC1v
+bWFwMi9pcnEuYwppbmRleCBkZmMzYjM1Li4xZWQyZmZmIDEwMDY0NAotLS0g
+YS9hcmNoL2FybS9tYWNoLW9tYXAyL2lycS5jCisrKyBiL2FyY2gvYXJtL21h
+Y2gtb21hcDIvaXJxLmMKQEAgLTQxLDE4ICs0MSw2IEBAIHN0YXRpYyBzdHJ1
+Y3Qgb21hcF9pcnFfYmFuayB7CiAJCS5ucl9pcnFzCT0gOTYsCiAJfSwgewog
+CQkvKiBYWFg6IERTUCBJTlRDICovCi0KLSNpZiAwCi0JLyoKLQkgKiBDb21t
+ZW50ZWQgb3V0IGZvciBub3cgdW50aWwgd2UgZml4IHRoZSBJVkEgY2xvY2tp
+bmcKLQkgKi8KLSNpZmRlZiBDT05GSUdfQVJDSF9PTUFQMjQyMAotCX0sIHsK
+LQkJLyogSVZBIElOVEMgKDI0MjAgb25seSkgKi8KLQkJLmJhc2VfcmVnCT0g
+T01BUDI0WFhfSVZBX0lOVENfQkFTRSwKLQkJLm5yX2lycXMJPSAxNiwJLyog
+QWN0dWFsbHkgMzIsIGJ1dCBvbmx5IDE2IGFyZSB1c2VkICovCi0jZW5kaWYK
+LSNlbmRpZgogCX0KIH07CiAKLS0gCjEuMy4zCgo=
 
-
-
-
---===============0214646206==
+--_----------=_115676848365440
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---===============0214646206==--
+--_----------=_115676848365440--
