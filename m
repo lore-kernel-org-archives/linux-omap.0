@@ -1,11 +1,13 @@
-From: "w.b.b" <rememberme_2000@126.com>
-Subject: GPIO OF OMAP5912
-Date: Tue, 29 Aug 2006 14:43:31 +0800
-Message-ID: <001e01c6cb36$7197e3d0$4e0aa8c0@wbb>
-References: <1156768483.6544.269568352@webmail.messagingengine.com>
+From: kabbin <kabbin26@yahoo.com.tw>
+Subject: RE: Building kenel error (uImage)
+Date: Tue, 29 Aug 2006 18:43:07 +0800 (CST)
+Message-ID: <20060829104307.77524.qmail@web17808.mail.tpe.yahoo.com>
+References: <EA12F909C0431D458B9D18A176BEE4A5072DA5F6@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1730883625=="
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain; charset=big5
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A5072DA5F6@dlee02.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,43 +15,38 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============1730883625==
-Content-Type: text/plain;
-	charset="ISO-8859-1"
-Content-Transfer-Encoding: base64
+Dear all
+   I use arm-linux-gcc 3.4.1 to build kernel 2.6.10 for omap2420h4
+ (http://linux.omap.com/pub/kernel/h4/source/linux-2.6.10-omap2420-omap24=
+30.tgz)
+  with =20
+# make clean
+# make omap_h4_2420_defconfig
+# make uImage
+And I got=20
 
-aGk6DQoNCiBpIHdhbnQgdG8gZG8gc29tZSB3b3JrIGFib3V0IE9NQVA1OTEyJ0dQSU8uYnV0IEkg
-YW0gZmFpbGVkIHRvIGRvIHRoYXQuDQoNCiB0aGUgZm9sbG93aW5nIGlzIGEgc2ltcGxlIHByb2dy
-YW06DQoNCnRlc3QuYyANCg0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0NCg0KI2luY2x1ZGUgPHN0ZGlvLmg+DQojaW5jbHVkZSA8dW5pc3RkLmg+
-DQojaW5jbHVkZSA8YXNtL2lvLmg+DQoNCiNkZWZpbmUgR1BJTzNfT1VUIDB4ZmZmYmJjNDAgLyog
-bHAxICovDQoNCmludCBtYWluKCkNCnsNCiAgLyogR2V0IGFjY2VzcyB0byB0aGUgcG9ydHMgKi8N
-CiAgDQogIA0KICAvKiBTZXQgdGhlIGRhdGEgc2lnbmFscyAoRDAtNykgb2YgdGhlIHBvcnQgdG8g
-YWxsIGxvdyAoMCkgKi8NCiAgb3V0YigweGZmZmYsIEdQSU8zX09VVCk7DQogIA0KICAvKiBTbGVl
-cCBmb3IgYSB3aGlsZSAoMTAwIG1zKSAqLw0KICB1c2xlZXAoMTAwMDAwKTsNCn0NCi0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQphcm0tbGludXgt
-Z2NjIC1nIHRlc3QuYyAtbyB0ZXN0Lm91dA0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KSSBydW4gdGhlIGJpbmFyeSBmaWxlIG9uIHRoZSBvbWFw
-Oi4vdGVzdC5vdXQNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tDQpidXQgaSBnZXQgdGhlIHJlc3VsdDpzZWdtZW50YXRpb24gZmFsdCENCi0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0Kd2hvIGNhbiBw
-cm92aWRlIG1lIHdpdGggaW5mb3JtYXRpb24/IGlmIHlvdSBoYXZlIGRvbmUgd29yayByZWxhdGVk
-IHdpdGggZ3Bpbyx3b3VsZCB5b3UgbGlrZSBzZW5kIG1lIHNvbWUgZXhhbXBsZWZpbGU/ICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICANCiAgIHRoYW5rcyE=
+  Kernel: arch/arm/boot/Image is ready
+  Kernel: arch/arm/boot/zImage is ready
+  UIMAGE  arch/arm/boot/uImage
+  "mkimage" command not found - U-Boot images will not be built
+  Image arch/arm/boot/uImage is ready
 
+I already got Image and zImage,=20
 
+but I cannot find uImage in the directory (or any others) !=20
 
+It seems that zImage and Image do not work on the target board.
+How can I get uImage ?
+Why "mkimage" command not found?
+Could you tell me any suggestion? Thank you.=20
+Best regards.           =20
 
---===============1730883625==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============1730883625==--
+___________________________________________________=20
+ =B3=CC=B7s=AA=A9 Yahoo!=A9_=BC=AF=A7Y=AE=C9=B3q=B0T 7.0=A1A=A7K=B6O=BA=F4=
+=B8=F4=B9q=B8=DC=A5=F4=A7A=A5=B4=A1I=20
+ http://messenger.yahoo.com.tw/
