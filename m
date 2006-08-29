@@ -1,14 +1,11 @@
-From: "Mouhammad Tayseer Alquoatli" <idoit.ief@gmail.com>
-Subject: Re: Please help me
-Date: Mon, 28 Aug 2006 16:30:53 +0200
-Message-ID: <d8c9df6c0608280730o2c1df12fu765885f7990e176f@mail.gmail.com>
-References: <F71A3F85F026644687388710AF44A200D087B5@srv-corp-exmb5.ciber.cbr.inc>
+From: "w.b.b" <rememberme_2000@126.com>
+Subject: GPIO OF OMAP5912
+Date: Tue, 29 Aug 2006 14:43:31 +0800
+Message-ID: <001e01c6cb36$7197e3d0$4e0aa8c0@wbb>
+References: <1156768483.6544.269568352@webmail.messagingengine.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1730883625=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <F71A3F85F026644687388710AF44A200D087B5@srv-corp-exmb5.ciber.cbr.inc>
-Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,25 +15,41 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Kumar, Satish B" <SKumar@ciber.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On 8/28/06, Kumar, Satish B <SKumar@ciber.com> wrote:
->
-> Dear Sharan,
->
-> I am new to OMAP5912, I want  know more  familiar with Communication data
-> between ARM & DSP, then U  can give useful link to that i can more
-> concentrated on this Board.
+--===============1730883625==
+Content-Type: text/plain;
+	charset="ISO-8859-1"
+Content-Transfer-Encoding: base64
+
+aGk6DQoNCiBpIHdhbnQgdG8gZG8gc29tZSB3b3JrIGFib3V0IE9NQVA1OTEyJ0dQSU8uYnV0IEkg
+YW0gZmFpbGVkIHRvIGRvIHRoYXQuDQoNCiB0aGUgZm9sbG93aW5nIGlzIGEgc2ltcGxlIHByb2dy
+YW06DQoNCnRlc3QuYyANCg0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0NCg0KI2luY2x1ZGUgPHN0ZGlvLmg+DQojaW5jbHVkZSA8dW5pc3RkLmg+
+DQojaW5jbHVkZSA8YXNtL2lvLmg+DQoNCiNkZWZpbmUgR1BJTzNfT1VUIDB4ZmZmYmJjNDAgLyog
+bHAxICovDQoNCmludCBtYWluKCkNCnsNCiAgLyogR2V0IGFjY2VzcyB0byB0aGUgcG9ydHMgKi8N
+CiAgDQogIA0KICAvKiBTZXQgdGhlIGRhdGEgc2lnbmFscyAoRDAtNykgb2YgdGhlIHBvcnQgdG8g
+YWxsIGxvdyAoMCkgKi8NCiAgb3V0YigweGZmZmYsIEdQSU8zX09VVCk7DQogIA0KICAvKiBTbGVl
+cCBmb3IgYSB3aGlsZSAoMTAwIG1zKSAqLw0KICB1c2xlZXAoMTAwMDAwKTsNCn0NCi0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQphcm0tbGludXgt
+Z2NjIC1nIHRlc3QuYyAtbyB0ZXN0Lm91dA0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KSSBydW4gdGhlIGJpbmFyeSBmaWxlIG9uIHRoZSBvbWFw
+Oi4vdGVzdC5vdXQNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tDQpidXQgaSBnZXQgdGhlIHJlc3VsdDpzZWdtZW50YXRpb24gZmFsdCENCi0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0Kd2hvIGNhbiBw
+cm92aWRlIG1lIHdpdGggaW5mb3JtYXRpb24/IGlmIHlvdSBoYXZlIGRvbmUgd29yayByZWxhdGVk
+IHdpdGggZ3Bpbyx3b3VsZCB5b3UgbGlrZSBzZW5kIG1lIHNvbWUgZXhhbXBsZWZpbGU/ICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICANCiAgIHRoYW5rcyE=
 
 
-Hi
-you can check:
-http://dspgateway.sourceforge.net/pub/index.php?Page=Home
-http://dspgateway.sourceforge.net/pub/3.3/DSP_Gateway33_spec.pdf
-hope this helps
 
 
--- 
-Mouhammad Tayseer Alquoatli
+--===============1730883625==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============1730883625==--
