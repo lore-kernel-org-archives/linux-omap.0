@@ -1,16 +1,13 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.17-rc4-omap-git] rtc-omap, rtc framework driver
-Date: Wed, 30 Aug 2006 10:57:34 +0300
-Message-ID: <20060830075733.GH27668@atomide.com>
-References: <8C5B35906ACE4C48ACB3E1FAC65DB5B6231F5B@dlee08.ent.ti.com>
-	<200608151517.16378.david-b@pacbell.net>
-	<20060829143454.GI4204@atomide.com>
-	<200608291251.57807.david-b@pacbell.net>
+From: "andrew chalmers" <achalmers@ellex.com>
+Subject: How do I disable filesystem caching for MMC
+Date: Wed, 30 Aug 2006 17:33:11 +0930
+Message-ID: <F886F08A2006F7478D83B2249BDD97578E3DB5@ellex-adc1.ellexmedical.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <200608291251.57807.david-b@pacbell.net>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,34 +15,28 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [060829 22:52]:
-> On Tuesday 29 August 2006 7:34 am, Tony Lindgren wrote:
-> > 
-> > Sounds like it should be capable of waking up the system if 32KHz clock
-> > is on and the wake-up events are configured properly.
-> 
-> Yes.  I had more of a look at things, and have a patch (yet to be tested)
-> that should let many more things be wakeup event sources.  MPUIO irqs,
-> GPIOs not in the first bank, non-MPUI/GPIO irqs (like RTC), etc.
+After some effort I have managed to get the MMC support working under
+the montavista 2.4.20 distribution for the OSK5912.
+I've even managed to setup card detect signal and hotplug support.
+Everything seems to work well. I can mount and unmount MMCs, format
+them, and read and write file to them. The hot plug automatically mounts
+and unmounts the cards filesystem when a card is inserted or removed.
 
-Cool. 
- 
-> > Anyways, pushing today. Let's also plan on removing the old driver then.
-> 
-> Let's get the wakeup thing fixed, then I'll forward rtc-omap upstream if
-> nobody reports any significant problems.
+Everything, that is, except for the fact that after writing something to
+the card I have to wait about 35 seconds for the filesystem to flush to
+the card. This can be a problem when you want to pull the card out
+straight after writing to it.
 
-OK
- 
-> Might as well leave the old version in the OMAP tree until the new one
-> gets pulled down.
+I have tried the sync and dirsync mount options for the vfat filesystem.
 
-OK
+Does anyone have any idea how to convince the filesystem to flush all
+the writes and not cache them for 35 seconds?
 
-Tony
+Help appreciated,
+
+Andrew Chalmers.
