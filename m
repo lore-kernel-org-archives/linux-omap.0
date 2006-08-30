@@ -1,12 +1,13 @@
-From: Prashant <prashantkhoje@gmail.com>
-Subject: OMAP1710 Innovator: problem with Full Duplex Audio
-Date: Wed, 30 Aug 2006 14:50:36 +0530
-Message-ID: <7b1b9c8b0608300220t798d6e58t326ef195320e45f0@mail.gmail.com>
+From: kabbin <kabbin26@yahoo.com.tw>
+Subject: RE: Building kenel error (uImage)
+Date: Wed, 30 Aug 2006 18:15:28 +0800 (CST)
+Message-ID: <20060830101528.41242.qmail@web17801.mail.tpe.yahoo.com>
+References: <20060829104307.77524.qmail@web17808.mail.tpe.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-Type: text/plain; charset=big5
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20060829104307.77524.qmail@web17808.mail.tpe.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,62 +15,48 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi All,
-I am working on OMAP1710 ES 2.0. I have Linux 2.6.9 kernel.
-OMAP1710 audio works fine in half duplex mode.
-But when I try running it in full duplex mode I get errors. Ctrl+C can
-stop the audio test application. I have pasted the trace at the end of message.
+Dear all
+    I use arm-linux-gcc 3.4.1 to build kernel 2.6.10 for omap2420h4=20
+  (http://linux.omap.com/pub/kernel/h4/source/linux-2.6.10-omap2420-omap2=
+430.tgz) =20
+ # make clean
+ # make omap_h4_2420_defconfig
+ # make uImage
 
-Does 2.6.9 kernel support full duplex audio?
-Do I need to apply any patches in order to get it working? Where can I
-get those patches?
+However,when I boot kernel through NFS, I got
 
-Thank you,
-Prashant
+//***********************************************************************=
+*****
+NET: Registered protocol family 2
+IP: routing cache hash table of 512 buckets, 4Kbytes
+TCP: Hash tables configured (established 4096 bind 8192)
+NET: Registered protocol family 1
+NET: Registered protocol family 17
+VFP support v0.3: implementor 41 architecture 1 part 20 variant b rev 2
 
-error trace:
-# ./test_omap1710 -f 8000 -F 7 -G -1 -t 10 -l
-Loopback mode selected
-Chunk: 640 Bit: 16 Freq: 8000 Chan: 2
-10 msec data calculated as 320 bytes
-Using OSS
-caps=3300
-Fragment size set to 128
-Frags limited by driver
-au_open: getblksize 00000080 nblks=0 blklen=128
-fmt=10
-Set channels: 2
-au_open : freq 8000 : ch 2
-Set writelen: 128
-...returned
-Call Max Send Space - first time
-Max Send Space: 130432
-Sending data...
-max_tx: 130560
-Stuff 60 msec
-VE_AUDIO_SendSpace: ramp up completed (1006 frags)
+IP-Config: Failed to open eth0                     <-----------
+IP-Config: No network devices available.           <-----------
 
-{audio_process_dma}-ERROR: Called again while In Use
-{audio_process_dma}-ERROR: Called again while In Use
-{audio_dsr_handler}-ERROR: Interrupt(3)  for empty queue(h=1, T=1)???
-{audio_dsr_handler}-ERROR: nbfrag=1024,pendfrags=18,USR-H=625, QH-607 QT-607
-{audio_dsr_handler}-ERROR: Interrupt(2)  for empty queue(h=1, T=1)???
-{audio_dsr_handler}-ERROR: nbfrag=1024,pendfrags=18,USR-H=625, QH-607 QT-607
-{audio_dsr_handler}-ERROR: Interrupt(2)  for empty queue(h=1, T=1)???
-{audio_dsr_handler}-ERROR: nbfrag=1024,pendfrags=18,USR-H=625, QH-607 QT-607
-{audio_dsr_handler}-ERROR: Interrupt(3)  for empty queue(h=1, T=1)???
-{audio_dsr_handler}-ERROR: nbfrag=1024,pendfrags=18,USR-H=625, QH-607 QT-607
-{audio_dsr_handler}-ERROR: Interrupt(3)  for empty queue(h=1, T=1)???
-{audio_dsr_handler}-ERROR: nbfrag=1024,pendfrags=18,USR-H=625, QH-607 QT-607
-{audio_dsr_handler}-ERROR: Interrupt(2)  for empty queue(h=1, T=1)???
-{audio_dsr_handler}-ERROR: nbfrag=1024,pendfrags=18,USR-H=625, QH-607 QT-607
-{audio_dsr_handler}-ERROR: Interrupt(2)  for empty queue(h=1, T=1)???
-{audio_dsr_handler}-ERROR: nbfrag=1024,pendfrags=18,USR-H=625, QH-607 QT-607
-{audio_dsr_handler}-ERROR: Interrupt(3)  for empty queue(h=1, T=1)???
-{audio_dsr_handler}-ERROR: nbfrag=1024,pendfrags=18,USR-H=625, QH-607 QT-607
-......
+Looking up port of RPC 100003/2 on 140.92.60.138
+RPC: sendmsg returned error 101
+portmap: RPC call returned error 101
+Root-NFS: Unable to get nfsd port number from server, using default
+//***********************************************************************=
+*****
+
+Maybe something wrong with the network driver?=20
+I have tried to modified the kernel configure through menuconfig,
+but it still worked fail.
+Could anybody tell me how to use the correct configuration ? =20
+
+Thanks , best regards.
+
+___________________________________________________=20
+ =B1z=AA=BA=A5=CD=AC=A1=A7Y=AE=C9=B3q =A1=D0 =B7=BE=B3q=A1B=AET=BC=D6=A1B=
+=A5=CD=AC=A1=A1B=A4u=A7@=A4@=A6=B8=B7d=A9w=A1I=20
+ http://messenger.yahoo.com.tw/
