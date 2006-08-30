@@ -1,13 +1,12 @@
-From: Mark Howell <mhowell@northlink.com>
-Subject: Re: [PATCH] ARM: OMAP: mux: add config for 16xx SPI pins
-Date: Wed, 30 Aug 2006 08:57:18 +0800
-Message-ID: <44F4E26E.4050701@northlink.com>
-References: <44C7D8AC.7070505@northlink.com>
+From: "w.b.b" <rememberme_2000@126.com>
+Subject: Re: AW: GPIO OF OMAP5912
+Date: Wed, 30 Aug 2006 10:15:50 +0800
+Message-ID: <000a01c6cbda$36a4b1f0$4e0aa8c0@wbb>
+References: <B3FDBBC0428C8145A83F312B740CE67D075854@si-mail48.de.bosch.com>
+	<1156870223.2844.28.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0836905964=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <44C7D8AC.7070505@northlink.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,33 +16,79 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Mark Howell <mhowell@northlink.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Mark Howell wrote:
-> This patch adds pin mux info for the SPI master/slave interface on 
-> OMAP16xx. Data from OMAP 1611/1612 TRM and errata. Works for me on my
->  1611/H2 with current git kernel.
-> 
+--===============0836905964==
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 
-I have since spent some lab time with a scope and figured out that I
-misunderstood the pull-up config bits in the mux definition structure
-(they are inverted vs. what is actually written to the pull-up control 
-registers). The patch I posted before works, but it can be better.
+IHRoYW5rcy4NCiAgSSBnZXQgaW5mb3JtYXRpb24gYWJvdXQgaG93IHRvIGdldCB1c2Ugb2YgdGhl
+IGhhcmR3YXJlIGluIGxpbnV4LGJ1dCBJIGFtIHN0aWxsIGNvbmZ1c2VkIGFib3V0IGl0Lg0KLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0N
+CnRoZSBmb2xsb3dpbmcgc3RlcHMgYWJvdXQgaXQ6DQogMS4gYXBwbHkgZm9yIHRoZSByZXNvdXJj
+ZSB0byBsaW51eCBrZXJuZWwNCiAyLiBpZiB5b3UgaGF2ZSBhcHBsaWVkICx0aGVuIHlvdSBjYW4g
+ZG8gc29tZSB3b3JrIGFib3V0IGl0Lg0KIDMuaWYgeW91IGhhdmUgZmluaXNoZWQgLHJlbGVhc2Ug
+dGhlIHJlc291Y2UuDQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tDQogaSBjYW4gb25seSBnZXQgdGhlIHBoeXNpY2FsIG1lbW9yeSBv
+ZiB0aGUgcmVnaXN0ZXJzIGZyb20gdGhlIG9tYXAgcHJvY2VzcyBndWlkZS5idXQgSSBkb24ndCBr
+bm93IHRoZWlyIGFkZHJlc3MgaW4gbGludXguDQp0aG91Z2ggaXQncyBhIHZlcnkgYmFzaWNhbCBx
+dWVzdGlvbixpIGhhdmUgdG8gYXBwbHkgZm9yIGhlbHAuDQogbWF5YmUgYSBzaW1wbGUgZXhhbXBs
+ZSBjYW4gbWFrZSBtZSB1bmRlcnN0YW5kIHF1aWNrbHkhDQogICAgICAgICAgICAgICAgICAgICAg
+ICAgdGhhbmtzDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB3LmIuYg0KDQog
+SSANCi0tLS0tIE9yaWdpbmFsIE1lc3NhZ2UgLS0tLS0gDQpGcm9tOiAiSGluZ2t3YW4gSHVlbiIg
+PGhraEBjeXByZXNzLmNvbT4NClRvOiAiTElNSVRFRCBOZ3V5ZW4gRHVvbmcgVGhhbmggKENSL0FF
+TSBQcmFrdGlrYW50KSIgPER1b25nVGhhbmguTmd1eWVuQGRlLmJvc2NoLmNvbT4NCkNjOiAidy5i
+LmIiIDxyZW1lbWJlcm1lXzIwMDBAMTI2LmNvbT47IDxMaW51eC1vbWFwLW9wZW4tc291cmNlQGxp
+bnV4Lm9tYXAuY29tPg0KU2VudDogV2VkbmVzZGF5LCBBdWd1c3QgMzAsIDIwMDYgMTI6NTAgQU0N
+ClN1YmplY3Q6IFJlOiBBVzogR1BJTyBPRiBPTUFQNTkxMg0KDQoNCj4gRG9uJ3QgdGhpbmsgeW91
+IGNhbiBhY2Nlc3MgcGh5c2ljYWwgbWVtb3J5IGRpcmVjdGx5IGluIHVzZXIgc3BhY2UuIFlvdQ0K
+PiBzaG91bGQgdXNlIC9kZXYvbWVtIGluc3RlYWQuDQo+IA0KPiAta3dhbg0KPiANCj4gT24gVHVl
+LCAyMDA2LTA4LTI5IGF0IDE2OjA4ICswMjAwLCBMSU1JVEVEIE5ndXllbiBEdW9uZyBUaGFuaCAo
+Q1IvQUVNDQo+IFByYWt0aWthbnQpIHdyb3RlOg0KPj4gSGVsbG8sDQo+PiANCj4+IEkgZG9uJ3Qg
+a25vdyBpZiBteSBpZGVhIGhlbHAgeW91Lg0KPj4gTWF5YmUgdGhlIHByb2JsZW0gaXMgYWJvdXQg
+dGhlIGxpYnJhcmllcyBpbiBkaXJlY3RvcnkgL2xpYi8gb24gT01BUCBmaWxlIHN5c3RlbXMuIEl0
+IGRvZXNuJ3QgY29udGFpbiB0aGUgbGlicmFyaWVzLCB3aGljaCB5b3VyIHByb2dyYW0gbmVlZC4N
+Cj4+IA0KPj4gUmVnYXJkLA0KPj4gVGhhbmggDQo+PiANCj4+IC0tLS0tVXJzcHLDvG5nbGljaGUg
+TmFjaHJpY2h0LS0tLS0NCj4+IFZvbjogbGludXgtb21hcC1vcGVuLXNvdXJjZS1ib3VuY2VzQGxp
+bnV4Lm9tYXAuY29tIFttYWlsdG86bGludXgtb21hcC1vcGVuLXNvdXJjZS1ib3VuY2VzQGxpbnV4
+Lm9tYXAuY29tXSBJbSBBdWZ0cmFnIHZvbiB3LmIuYg0KPj4gR2VzZW5kZXQ6IERpZW5zdGFnLCAy
+OS4gQXVndXN0IDIwMDYgMDg6NDQNCj4+IEFuOiBMaW51eC1vbWFwLW9wZW4tc291cmNlQGxpbnV4
+Lm9tYXAuY29tDQo+PiBCZXRyZWZmOiBHUElPIE9GIE9NQVA1OTEyDQo+PiANCj4+IGhpOg0KPj4g
+DQo+PiAgaSB3YW50IHRvIGRvIHNvbWUgd29yayBhYm91dCBPTUFQNTkxMidHUElPLmJ1dCBJIGFt
+IGZhaWxlZCB0byBkbyB0aGF0Lg0KPj4gDQo+PiAgdGhlIGZvbGxvd2luZyBpcyBhIHNpbXBsZSBw
+cm9ncmFtOg0KPj4gDQo+PiB0ZXN0LmMgDQo+PiANCj4+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+PiANCj4+ICNpbmNsdWRlIDxzdGRpby5o
+Pg0KPj4gI2luY2x1ZGUgPHVuaXN0ZC5oPg0KPj4gI2luY2x1ZGUgPGFzbS9pby5oPg0KPj4gDQo+
+PiAjZGVmaW5lIEdQSU8zX09VVCAweGZmZmJiYzQwIC8qIGxwMSAqLw0KPj4gDQo+PiBpbnQgbWFp
+bigpDQo+PiB7DQo+PiAgIC8qIEdldCBhY2Nlc3MgdG8gdGhlIHBvcnRzICovDQo+PiAgIA0KPj4g
+ICANCj4+ICAgLyogU2V0IHRoZSBkYXRhIHNpZ25hbHMgKEQwLTcpIG9mIHRoZSBwb3J0IHRvIGFs
+bCBsb3cgKDApICovDQo+PiAgIG91dGIoMHhmZmZmLCBHUElPM19PVVQpOw0KPj4gICANCj4+ICAg
+LyogU2xlZXAgZm9yIGEgd2hpbGUgKDEwMCBtcykgKi8NCj4+ICAgdXNsZWVwKDEwMDAwMCk7DQo+
+PiB9DQo+PiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLQ0KPj4gYXJtLWxpbnV4LWdjYyAtZyB0ZXN0LmMgLW8gdGVzdC5vdXQNCj4+IC0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4+IEkgcnVuIHRo
+ZSBiaW5hcnkgZmlsZSBvbiB0aGUgb21hcDouL3Rlc3Qub3V0DQo+PiAtLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPj4gYnV0IGkgZ2V0IHRoZSBy
+ZXN1bHQ6c2VnbWVudGF0aW9uIGZhbHQhDQo+PiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4+IHdobyBjYW4gcHJvdmlkZSBtZSB3aXRoIGluZm9y
+bWF0aW9uPyBpZiB5b3UgaGF2ZSBkb25lIHdvcmsgcmVsYXRlZCB3aXRoIGdwaW8sd291bGQgeW91
+IGxpa2Ugc2VuZCBtZSBzb21lIGV4YW1wbGVmaWxlPyAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgDQo+PiAgICB0aGFua3MhDQo+PiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXw0KPj4gTGludXgtb21hcC1vcGVuLXNvdXJjZSBtYWlsaW5nIGxpc3QN
+Cj4+IExpbnV4LW9tYXAtb3Blbi1zb3VyY2VAbGludXgub21hcC5jb20NCj4+IGh0dHA6Ly9saW51
+eC5vbWFwLmNvbS9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW9tYXAtb3Blbi1zb3VyY2UNCj4+IA0K
+Pj4gDQo+IA0KPg==
 
-I'll post a patch to set better default values for 16xx SPI pin mux
-after I get a little more lab time. I don't think this is a burning
-issue for anyone 'cept me, since eons had passed without anyone spec'ing
-these pins for 16xx SPI anyway :-)
 
-But this brings up a question... there are some other pins where I'm
-suspicious of the default pull-up config in mux.c, such as for the
-u-wire interface. Won't there be a bit of a power penalty for turning on
-pull-up or pull-down when it isn't necessary? Is there some established 
-opinion or practice in this group regarding pin mux pull-up config to 
-which I can refer?
 
-Cheers,
 
-Mark.
+--===============0836905964==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============0836905964==--
