@@ -1,14 +1,16 @@
-From: "Amit Verma" <vermanamit@gmail.com>
-Subject: Re: How to upload u-boot to H3 with serial port ?
-Date: Thu, 31 Aug 2006 12:44:49 +0530
-Message-ID: <5a2ffe1f0608310014s40fb58fbh8e5993872b6c3eb8@mail.gmail.com>
-References: <122E40D9F186B44FBA6A032362C5FB65564597@mtnex1.mtn.palmsource.com>
+From: Raja Mallik <raja.mallik@sqlstar.com>
+Subject: Re: Loading program to OMAP5910
+Date: Thu, 31 Aug 2006 14:39:40 +0530
+Message-ID: <1157015380.2185.26.camel@Neo>
+References: <B3FDBBC0428C8145A83F312B740CE67D075854@si-mail48.de.bosch.com>
+	<1156870223.2844.28.camel@localhost.localdomain>
+	<000a01c6cbda$36a4b1f0$4e0aa8c0@wbb> <1156942296.2151.18.camel@Neo>
+	<44F5C477.7090108@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <122E40D9F186B44FBA6A032362C5FB65564597@mtnex1.mtn.palmsource.com>
-Content-Disposition: inline
+In-Reply-To: <44F5C477.7090108@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,43 +20,53 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Ningzhong Miao - ??? <Ningzhong.Miao@palmsource.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Miao
+Thank for the input.
 
-U would need to have ( correctly [ARM] compiled ) u-boot image that
-you can flash thru flashing tool (CCS is a good option) using JTAG
-(thru USB) onto the target (H3). You can flash it to say NOR flash
-memory of the target. Plz note CCS expects the image to be in " .out "
-format & image is meant for exact/proper address of the memory on
-which it is to be flashed.
+Aparently, I am trying to look for steps as how to load program to my
+LDK5910 board which has omap5910.
 
-Once you have flashed, you can boot the target and you should have
-some Hyperterminal (Tera Term is a good option) on which you can get
-the u-boot prompt (on the RS232 console).
+Now Omap5910 has ARM925T and DSP. 
 
-Thanks
--Amit Verma @ vermanamit@gmail.com
+We are able to load program,but not able to execute to ARM core using
+Code Composer Studio 3.1. We are trying to load boot loader and execute
+it to program flash through JTAG.
+
+Also we trying to update/load bootloader using serial port. 
+
+At this moment the default bootloader is not there in the board as we
+are thinking the flash would have corrupted and serial console output is
+not showing up in teraterm/hyperterm. All baud setting are fine as per
+document.
+
+we are using rrloader as bootloader.
+
+Is there any other option through which can load the program & execute
+in RAM/flash and write to flash.
+
+Pl, give your input in this case..
+
+Regards
+Raja Mallik
 
 
-On 8/31/06, Ningzhong Miao - ??? <Ningzhong.Miao@palmsource.com> wrote:
-> I am lucky to get a H3 board.
->
-> I connect the serial port of H3 to my PC, and then power up H3, the
-> serial port don't give any data and minicom don't have any print. So I
-> think the H3 board don't have a bootloader yet.
->
->
->
-> I want upload u-boot to H3, but I don't have JTAG and CCS, I only have
-> serial port.
->
-> How should I upload u-boot to H3 with serial port ?
->
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
+
+On Wed, 2006-08-30 at 19:01 +0200, Dirk Behme wrote:
+> Raja Mallik wrote:
+> > We are able to load program,but not able to execute to ARM core using
+> > Code Composer Studio 3.1.We are trying to load boot loader and execute
+> > it to program flash through JTAG.
+> 
+> Check if section 2 of OMAP readme [1] can help you with JTAG 
+> and CCS. Maybe the other stuff in HOWTO section of OMAP Wiki 
+> [2] can help you as well.
+> 
+> Dirk
+> 
+> [1] 
+> http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=blob_plain;h=f8ffb68e8588c5ad43a72c3534c5f963aa7c91af;f=Documentation/arm/OMAP/README
+> 
+> [2] http://tree.celinuxforum.org/CelfPubWiki/OSK
