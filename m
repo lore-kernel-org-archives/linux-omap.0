@@ -1,11 +1,14 @@
-From: kabbin <kabbin26@yahoo.com.tw>
-Subject: IP-Config: Failed to open eth0
-Date: Thu, 31 Aug 2006 11:37:46 +0800 (CST)
-Message-ID: <20060831033746.25882.qmail@web17810.mail.tpe.yahoo.com>
+From: "Amit Verma" <vermanamit@gmail.com>
+Subject: Re: How to upload u-boot to H3 with serial port ?
+Date: Thu, 31 Aug 2006 12:44:49 +0530
+Message-ID: <5a2ffe1f0608310014s40fb58fbh8e5993872b6c3eb8@mail.gmail.com>
+References: <122E40D9F186B44FBA6A032362C5FB65564597@mtnex1.mtn.palmsource.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=big5
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <122E40D9F186B44FBA6A032362C5FB65564597@mtnex1.mtn.palmsource.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,50 +18,43 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: Ningzhong Miao - ??? <Ningzhong.Miao@palmsource.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello
-    I use arm-linux-gcc 3.4.1 to build kernel 2.6.10 for omap2420h4=20
-but I cannot mount NFS
+Hi Miao
 
-I got the following message:
+U would need to have ( correctly [ARM] compiled ) u-boot image that
+you can flash thru flashing tool (CCS is a good option) using JTAG
+(thru USB) onto the target (H3). You can flash it to say NOR flash
+memory of the target. Plz note CCS expects the image to be in " .out "
+format & image is meant for exact/proper address of the memory on
+which it is to be flashed.
 
-/************************************************************************=
-*******
+Once you have flashed, you can boot the target and you should have
+some Hyperterminal (Tera Term is a good option) on which you can get
+the u-boot prompt (on the RS232 console).
 
-NET: Registered protocol family 2
-IP: routing cache hash table of 512 buckets, 4Kbytes
-TCP: Hash tables configured (established 4096 bind 8192)
-NET: Registered protocol family 1
-NET: Registered protocol family 17
-VFP support v0.3: implementor 41 architecture 1 part 20 variant b rev 2
-
-IP-Config: Failed to open eth0
-IP-Config: Complete:
-      device=3Dbond0, addr=3D140.92.60.146, mask=3D255.255.255.0, gw=3D25=
-5.255.255.255,
-     host=3Dtqm, domain=3D, nis-domain=3D(none),
-     bootserver=3D140.92.60.138, rootserver=3D140.92.60.138, rootpath=3D
-
-Looking up port of RPC 100003/2 on 140.92.60.138
-portmap: server 140.92.60.138 not responding, timed out
-Root-NFS: Unable to get nfsd port number from server, using default
-Looking up port of RPC 100005/1 on 140.92.60.138
-portmap: server 140.92.60.138 not responding, timed out
-Root-NFS: Unable to get mountd port number from server, using default
-mount: server 140.92.60.138 not responding, timed out
-Root-NFS: Server returned error -5 while mounting /data/fs-mp3/
-VFS: Unable to mount root fs via NFS, trying floppy.
-VFS: No root yet, retrying to mount root on nfs (unknown-block(2,0))
-
-/************************************************************************=
-**********
-Is there something wrong with my kernel configuration?
-Could anybody help me, please? Thanks .
+Thanks
+-Amit Verma @ vermanamit@gmail.com
 
 
-___________________________________________________=20
- =B1z=AA=BA=A5=CD=AC=A1=A7Y=AE=C9=B3q =A1=D0 =B7=BE=B3q=A1B=AET=BC=D6=A1B=
-=A5=CD=AC=A1=A1B=A4u=A7@=A4@=A6=B8=B7d=A9w=A1I=20
- http://messenger.yahoo.com.tw/
+On 8/31/06, Ningzhong Miao - ??? <Ningzhong.Miao@palmsource.com> wrote:
+> I am lucky to get a H3 board.
+>
+> I connect the serial port of H3 to my PC, and then power up H3, the
+> serial port don't give any data and minicom don't have any print. So I
+> think the H3 board don't have a bootloader yet.
+>
+>
+>
+> I want upload u-boot to H3, but I don't have JTAG and CCS, I only have
+> serial port.
+>
+> How should I upload u-boot to H3 with serial port ?
+>
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
