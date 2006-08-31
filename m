@@ -1,15 +1,13 @@
-From: "Kipisz, Steven" <s-kipisz2@ti.com>
-Subject: RE: How to upload u-boot to H3 with serial port ?
-Date: Thu, 31 Aug 2006 06:46:10 -0500
-Message-ID: <A794DE2F81AEF94099397C9D7D5B651E5FB107@dlee08.ent.ti.com>
-References: <5a2ffe1f0608310014s40fb58fbh8e5993872b6c3eb8@mail.gmail.com>
+From: "Abot Botbot" <dejanigma@hotmail.com>
+Subject: Debug Output
+Date: Thu, 31 Aug 2006 14:10:15 +0000
+Message-ID: <BAY102-F183AEDAADCC650D4263969A93F0@phx.gbl>
+References: <20060831033746.25882.qmail@web17810.mail.tpe.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
+Content-Type: text/plain; format=flowed
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-reply-to: <5a2ffe1f0608310014s40fb58fbh8e5993872b6c3eb8@mail.gmail.com>
+In-Reply-To: <20060831033746.25882.qmail@web17810.mail.tpe.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,65 +17,30 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Amit Verma <vermanamit@gmail.com>, Ningzhong Miao - ??? <Ningzhong.Miao@palmsource.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Actually, newer versions CCS can work with ELF format.  I know 3.1 and
-higher support ELF and I think 2.4 does.  ELF is the format of the
-u-boot executable so you would download and run that file.
-
-Typically, I use CCS or Trace32 to download u-boot, run it, then use it
-to download u-boot.bin and flash that.
-
-Steve K.
-
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Amit
-Verma
-Sent: Thursday, August 31, 2006 2:15 AM
-To: Ningzhong Miao - ???
-Cc: linux-omap-open-source@linux.omap.com
-Subject: Re: How to upload u-boot to H3 with serial port ?
-
-Hi Miao
-
-U would need to have ( correctly [ARM] compiled ) u-boot image that
-you can flash thru flashing tool (CCS is a good option) using JTAG
-(thru USB) onto the target (H3). You can flash it to say NOR flash
-memory of the target. Plz note CCS expects the image to be in " .out "
-format & image is meant for exact/proper address of the memory on
-which it is to be flashed.
-
-Once you have flashed, you can boot the target and you should have
-some Hyperterminal (Tera Term is a good option) on which you can get
-the u-boot prompt (on the RS232 console).
-
-Thanks
--Amit Verma @ vermanamit@gmail.com
+Hello all,
 
 
-On 8/31/06, Ningzhong Miao - ??? <Ningzhong.Miao@palmsource.com> wrote:
-> I am lucky to get a H3 board.
->
-> I connect the serial port of H3 to my PC, and then power up H3, the
-> serial port don't give any data and minicom don't have any print. So I
-> think the H3 board don't have a bootloader yet.
->
->
->
-> I want upload u-boot to H3, but I don't have JTAG and CCS, I only have
-> serial port.
->
-> How should I upload u-boot to H3 with serial port ?
->
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+    I'm trying to edit the RF6 refference framework application to suit m=
+y=20
+purposes. At the moment I want to get a feel for how many samples go thro=
+ugh=20
+their filter with each message from the GPP. My algorithm works on a samp=
+le=20
+by sample basis, so I'm guessing I want to do my loop multiple times per=20
+message from the GPP. My questions is, how can I output basic debug mater=
+ial=20
+to the console? Can I just throw printf statements in any place in the co=
+de=20
+and see the output in the console? I see statments like "UTL_logDebug(=20
+"Application started." );" etc, where does that output end up?
+
+Thanks,
+Andy
+
+_________________________________________________________________
+Windows Live Spaces is here! It=92s easy to create your own personal Web =
+site.=20
+  http://spaces.live.com/signup.aspx
