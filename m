@@ -1,14 +1,11 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: Loading program to OMAP5910
-Date: Wed, 30 Aug 2006 19:01:43 +0200
-Message-ID: <44F5C477.7090108@gmail.com>
-References: <B3FDBBC0428C8145A83F312B740CE67D075854@si-mail48.de.bosch.com>	<1156870223.2844.28.camel@localhost.localdomain>	<000a01c6cbda$36a4b1f0$4e0aa8c0@wbb>
-	<1156942296.2151.18.camel@Neo>
+From: "w.b.b" <rememberme_2000@126.com>
+Subject: Re: AW: GPIO OF OMAP5912
+Date: Thu, 31 Aug 2006 09:08:02 +0800
+Message-ID: <000f01c6cc99$e83a5f40$4e0aa8c0@wbb>
+References: <B3FDBBC0428C8145A83F312B740CE67D075859@si-mail48.de.bosch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0400694489=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1156942296.2151.18.camel@Neo>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,22 +15,98 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Raja Mallik <raja.mallik@sqlstar.com>
-Cc: Linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Raja Mallik wrote:
-> We are able to load program,but not able to execute to ARM core using
-> Code Composer Studio 3.1.We are trying to load boot loader and execute
-> it to program flash through JTAG.
+--===============0400694489==
+Content-Type: text/plain;
+	charset="ISO-8859-1"
+Content-Transfer-Encoding: base64
 
-Check if section 2 of OMAP readme [1] can help you with JTAG 
-and CCS. Maybe the other stuff in HOWTO section of OMAP Wiki 
-[2] can help you as well.
+IGknbSBnbGFkIHRvIHJlY2VpdmUgeW91ciBsZXR0ZXIuIHRoZSBleGFtcGxlIGdpdmVkIGJ5IGh0
+dHA6Ly93d3cuc2l3YXdpLmFydWJpLnVuaS1rbC5kZS9hdnJfcHJvamVjdHMvYXJtX3Byb2plY3Rz
+LyNhdDkxZ3BpbyANCmlzIG5vdCBiYXNlZCBvbiB0aGUgbGludXggb3BlcmF0aW9uIHN5c3RlbS4g
+aSB0aGluayBpdCBjYW4gYmUgZGVidWdnZWQgaW4gQURTIGVudmlyb25tZW50Lg0KIGhvdyB0byBv
+cGVyYXRlIHRoZSBPTUFQNTkxMidzIGdwaW8gcGlucyBpbiBlbWJlZGRlZCBsaW51eCBzeXN0ZW0/
+IGkndiB0cnkgdG8gYXBwbHkgZm9yIHJlc291cmNlIHRvIGxpbnV4IGtlcm5lbCBpbiBteSBhcHBs
+aWNhdGlvbiwgYnV0IGkgZmFpbGVkLg0KICAgIGdpdmUgbWUgYSBoYW5kIQ0KICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICB0aGFua3MNCi0tLS0tIE9yaWdpbmFsIE1lc3NhZ2UgLS0tLS0gDQpGcm9tOiAiTElNSVRF
+RCBOZ3V5ZW4gRHVvbmcgVGhhbmggKENSL0FFTSBQcmFrdGlrYW50KSIgPER1b25nVGhhbmguTmd1
+eWVuQGRlLmJvc2NoLmNvbT4NClRvOiAidy5iLmIiIDxyZW1lbWJlcm1lXzIwMDBAMTI2LmNvbT4N
+ClNlbnQ6IFdlZG5lc2RheSwgQXVndXN0IDMwLCAyMDA2IDQ6NDQgUE0NClN1YmplY3Q6IEFXOiBB
+VzogR1BJTyBPRiBPTUFQNTkxMg0KDQoNCk1heWJlIHlvdSBjYW4gZmluZCB0aGUgZXhhbXBsZSBo
+ZXJlOg0KDQpodHRwOi8vd3d3LnNpd2F3aS5hcnViaS51bmkta2wuZGUvYXZyX3Byb2plY3RzL2Fy
+bV9wcm9qZWN0cy8jYXQ5MWdwaW8gDQoNCkNoZWVyDQpUaGFuaA0KDQotLS0tLVVyc3By/G5nbGlj
+aGUgTmFjaHJpY2h0LS0tLS0NClZvbjogbGludXgtb21hcC1vcGVuLXNvdXJjZS1ib3VuY2VzQGxp
+bnV4Lm9tYXAuY29tIFttYWlsdG86bGludXgtb21hcC1vcGVuLXNvdXJjZS1ib3VuY2VzQGxpbnV4
+Lm9tYXAuY29tXSBJbSBBdWZ0cmFnIHZvbiB3LmIuYg0KR2VzZW5kZXQ6IE1pdHR3b2NoLCAzMC4g
+QXVndXN0IDIwMDYgMDQ6MTYNCkFuOiBMaW51eC1vbWFwLW9wZW4tc291cmNlQGxpbnV4Lm9tYXAu
+Y29tDQpCZXRyZWZmOiBSZTogQVc6IEdQSU8gT0YgT01BUDU5MTINCg0KIHRoYW5rcy4NCiAgSSBn
+ZXQgaW5mb3JtYXRpb24gYWJvdXQgaG93IHRvIGdldCB1c2Ugb2YgdGhlIGhhcmR3YXJlIGluIGxp
+bnV4LGJ1dCBJIGFtIHN0aWxsIGNvbmZ1c2VkIGFib3V0IGl0Lg0KLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCnRoZSBmb2xsb3dpbmcg
+c3RlcHMgYWJvdXQgaXQ6DQogMS4gYXBwbHkgZm9yIHRoZSByZXNvdXJjZSB0byBsaW51eCBrZXJu
+ZWwNCiAyLiBpZiB5b3UgaGF2ZSBhcHBsaWVkICx0aGVuIHlvdSBjYW4gZG8gc29tZSB3b3JrIGFi
+b3V0IGl0Lg0KIDMuaWYgeW91IGhhdmUgZmluaXNoZWQgLHJlbGVhc2UgdGhlIHJlc291Y2UuDQot
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tDQogaSBjYW4gb25seSBnZXQgdGhlIHBoeXNpY2FsIG1lbW9yeSBvZiB0aGUgcmVnaXN0ZXJz
+IGZyb20gdGhlIG9tYXAgcHJvY2VzcyBndWlkZS5idXQgSSBkb24ndCBrbm93IHRoZWlyIGFkZHJl
+c3MgaW4gbGludXguDQp0aG91Z2ggaXQncyBhIHZlcnkgYmFzaWNhbCBxdWVzdGlvbixpIGhhdmUg
+dG8gYXBwbHkgZm9yIGhlbHAuDQogbWF5YmUgYSBzaW1wbGUgZXhhbXBsZSBjYW4gbWFrZSBtZSB1
+bmRlcnN0YW5kIHF1aWNrbHkhDQogICAgICAgICAgICAgICAgICAgICAgICAgdGhhbmtzDQogICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB3LmIuYg0KDQogSSANCi0tLS0tIE9yaWdp
+bmFsIE1lc3NhZ2UgLS0tLS0gDQpGcm9tOiAiSGluZ2t3YW4gSHVlbiIgPGhraEBjeXByZXNzLmNv
+bT4NClRvOiAiTElNSVRFRCBOZ3V5ZW4gRHVvbmcgVGhhbmggKENSL0FFTSBQcmFrdGlrYW50KSIg
+PER1b25nVGhhbmguTmd1eWVuQGRlLmJvc2NoLmNvbT4NCkNjOiAidy5iLmIiIDxyZW1lbWJlcm1l
+XzIwMDBAMTI2LmNvbT47IDxMaW51eC1vbWFwLW9wZW4tc291cmNlQGxpbnV4Lm9tYXAuY29tPg0K
+U2VudDogV2VkbmVzZGF5LCBBdWd1c3QgMzAsIDIwMDYgMTI6NTAgQU0NClN1YmplY3Q6IFJlOiBB
+VzogR1BJTyBPRiBPTUFQNTkxMg0KDQoNCj4gRG9uJ3QgdGhpbmsgeW91IGNhbiBhY2Nlc3MgcGh5
+c2ljYWwgbWVtb3J5IGRpcmVjdGx5IGluIHVzZXIgc3BhY2UuIFlvdQ0KPiBzaG91bGQgdXNlIC9k
+ZXYvbWVtIGluc3RlYWQuDQo+IA0KPiAta3dhbg0KPiANCj4gT24gVHVlLCAyMDA2LTA4LTI5IGF0
+IDE2OjA4ICswMjAwLCBMSU1JVEVEIE5ndXllbiBEdW9uZyBUaGFuaCAoQ1IvQUVNDQo+IFByYWt0
+aWthbnQpIHdyb3RlOg0KPj4gSGVsbG8sDQo+PiANCj4+IEkgZG9uJ3Qga25vdyBpZiBteSBpZGVh
+IGhlbHAgeW91Lg0KPj4gTWF5YmUgdGhlIHByb2JsZW0gaXMgYWJvdXQgdGhlIGxpYnJhcmllcyBp
+biBkaXJlY3RvcnkgL2xpYi8gb24gT01BUCBmaWxlIHN5c3RlbXMuIEl0IGRvZXNuJ3QgY29udGFp
+biB0aGUgbGlicmFyaWVzLCB3aGljaCB5b3VyIHByb2dyYW0gbmVlZC4NCj4+IA0KPj4gUmVnYXJk
+LA0KPj4gVGhhbmggDQo+PiANCj4+IC0tLS0tVXJzcHL8bmdsaWNoZSBOYWNocmljaHQtLS0tLQ0K
+Pj4gVm9uOiBsaW51eC1vbWFwLW9wZW4tc291cmNlLWJvdW5jZXNAbGludXgub21hcC5jb20gW21h
+aWx0bzpsaW51eC1vbWFwLW9wZW4tc291cmNlLWJvdW5jZXNAbGludXgub21hcC5jb21dIEltIEF1
+ZnRyYWcgdm9uIHcuYi5iDQo+PiBHZXNlbmRldDogRGllbnN0YWcsIDI5LiBBdWd1c3QgMjAwNiAw
+ODo0NA0KPj4gQW46IExpbnV4LW9tYXAtb3Blbi1zb3VyY2VAbGludXgub21hcC5jb20NCj4+IEJl
+dHJlZmY6IEdQSU8gT0YgT01BUDU5MTINCj4+IA0KPj4gaGk6DQo+PiANCj4+ICBpIHdhbnQgdG8g
+ZG8gc29tZSB3b3JrIGFib3V0IE9NQVA1OTEyJ0dQSU8uYnV0IEkgYW0gZmFpbGVkIHRvIGRvIHRo
+YXQuDQo+PiANCj4+ICB0aGUgZm9sbG93aW5nIGlzIGEgc2ltcGxlIHByb2dyYW06DQo+PiANCj4+
+IHRlc3QuYyANCj4+IA0KPj4gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0NCj4+IA0KPj4gI2luY2x1ZGUgPHN0ZGlvLmg+DQo+PiAjaW5jbHVkZSA8
+dW5pc3RkLmg+DQo+PiAjaW5jbHVkZSA8YXNtL2lvLmg+DQo+PiANCj4+ICNkZWZpbmUgR1BJTzNf
+T1VUIDB4ZmZmYmJjNDAgLyogbHAxICovDQo+PiANCj4+IGludCBtYWluKCkNCj4+IHsNCj4+ICAg
+LyogR2V0IGFjY2VzcyB0byB0aGUgcG9ydHMgKi8NCj4+ICAgDQo+PiAgIA0KPj4gICAvKiBTZXQg
+dGhlIGRhdGEgc2lnbmFscyAoRDAtNykgb2YgdGhlIHBvcnQgdG8gYWxsIGxvdyAoMCkgKi8NCj4+
+ICAgb3V0YigweGZmZmYsIEdQSU8zX09VVCk7DQo+PiAgIA0KPj4gICAvKiBTbGVlcCBmb3IgYSB3
+aGlsZSAoMTAwIG1zKSAqLw0KPj4gICB1c2xlZXAoMTAwMDAwKTsNCj4+IH0NCj4+IC0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+PiBhcm0tbGlu
+dXgtZ2NjIC1nIHRlc3QuYyAtbyB0ZXN0Lm91dA0KPj4gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPj4gSSBydW4gdGhlIGJpbmFyeSBmaWxlIG9u
+IHRoZSBvbWFwOi4vdGVzdC5vdXQNCj4+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+PiBidXQgaSBnZXQgdGhlIHJlc3VsdDpzZWdtZW50YXRp
+b24gZmFsdCENCj4+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLQ0KPj4gd2hvIGNhbiBwcm92aWRlIG1lIHdpdGggaW5mb3JtYXRpb24/IGlmIHlvdSBo
+YXZlIGRvbmUgd29yayByZWxhdGVkIHdpdGggZ3Bpbyx3b3VsZCB5b3UgbGlrZSBzZW5kIG1lIHNv
+bWUgZXhhbXBsZWZpbGU/ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICANCj4+ICAgIHRo
+YW5rcyENCj4+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+DQo+PiBMaW51eC1vbWFwLW9wZW4tc291cmNlIG1haWxpbmcgbGlzdA0KPj4gTGludXgtb21hcC1v
+cGVuLXNvdXJjZUBsaW51eC5vbWFwLmNvbQ0KPj4gaHR0cDovL2xpbnV4Lm9tYXAuY29tL21haWxt
+YW4vbGlzdGluZm8vbGludXgtb21hcC1vcGVuLXNvdXJjZQ0KPj4gDQo+PiANCj4gDQo+DQoNCg==
 
-Dirk
 
-[1] 
-http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=blob_plain;h=f8ffb68e8588c5ad43a72c3534c5f963aa7c91af;f=Documentation/arm/OMAP/README
 
-[2] http://tree.celinuxforum.org/CelfPubWiki/OSK
+
+--===============0400694489==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============0400694489==--
