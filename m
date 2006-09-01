@@ -1,13 +1,11 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: How to upload u-boot to H3 with serial port ?
-Date: Thu, 31 Aug 2006 22:12:47 -0500
-Message-ID: <44F7A52F.3030402@gmail.com>
-References: <A794DE2F81AEF94099397C9D7D5B651E5FB107@dlee08.ent.ti.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Pending August patches
+Date: Fri, 01 Sep 2006 18:15:21 +0200
+Message-ID: <44F85C99.7080102@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <A794DE2F81AEF94099397C9D7D5B651E5FB107@dlee08.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,28 +15,72 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Kipisz, Steven" <s-kipisz2@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Greeting Miao/Amit
->> I want upload u-boot to H3, but I don't have JTAG and CCS, I only have
->> serial port.
+Hi,
 
-CCS,Lauterbach, USB.. And.... There is supposedly a "poor man's"
-approach... ;)
-There is OST host(some name to that effect) tool which should be usable
-over serial port... if you are lucky enough to get the box in which the
-h3 came with, then it hides innocently in a CD in it...
+my list of pending OMAP patches for August 2006:
 
-http://linux.omap.com/pub/documentation/P2_NAND_boot_support.txt
+1. [PATCH] OMAP1510 serial fix for 115200 baud.
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007677.html
 
-can help you started though it is for P2.. but note that this was
-written sometime back... things have changed since then, but most
-probably not about OST host - if u can flash u-boot to flash.. Ur good
-to GO :)!!
+2. [PATCH] Unmask omap-keypad interrupt on suspend
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007720.html
 
-If you cant find OST host... u could contact your TI contact person for it..
+3. [PATCH] ARM: OMAP: Remove warnings in DSP code
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007728.html
 
-Regards,
-Nishanth Menon
+4. [PATCH] ARM: OMAP: Add GPIO API howto
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007733.html
+
+5. [PATCH] Unmask omap-keypad interrupt on suspend
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007772.html
+
+6. [PATCH] Add LCD backlight driver for OMAP
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007773.html
+
+7. [PATCH] ARM: OMAP: Backlight configuration struct
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007774.html
+
+8. [PATCH] ARM: OMAP: Register LCD backlight on PalmTE
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007775.html
+
+9. [PATCH] ARM: OMAP: Add Amstrad Delta platform bits for 
+framebuffer.
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007776.html
+
+10. [PATCH 1/5] Change all omap15xx devices to use similar 
+DMA handling than h6300 uses.
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007777.html
+
+11. [PATCH 2/5] Removed double spinlocking with omap15xx 
+devices.
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007778.html
+
+12. [PATCH 3/5] Fix init warning in tsc2101 alsa driver.
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007779.html
+
+13. [PATCH 4/5] tsc2101 mixer fixes.
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007780.html
+
+14. [PATCH 5/5] Add gsm phone support for the mixer in 
+tsc2101 alsa driver.
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007781.html
+
+15. [PATCH] support printk-times by fixing sched_clock to be 
+callable in early boot
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007828.html
+
+16. Re: [patch 2.6.17-rc4-omap-git] rtc-omap, rtc framework 
+driver
+or better: Handle wakeup irqs more correctly and completely
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007853.html
+
+Please correct if I missed anything, if any of above patches 
+are already applied or if any has comments I overlooked and 
+needs resend. Are there any older patches pending?
+
+Cheers
+
+Dirk
