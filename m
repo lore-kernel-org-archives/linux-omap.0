@@ -1,13 +1,13 @@
-From: kabbin <kabbin26@yahoo.com.tw>
-Subject: Re: IP-Config: Failed to open eth0
-Date: Fri, 1 Sep 2006 10:43:58 +0800 (CST)
-Message-ID: <20060901024358.73953.qmail@web17805.mail.tpe.yahoo.com>
-References: <20060901021705.61046.qmail@web17805.mail.tpe.yahoo.com>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: How to upload u-boot to H3 with serial port ?
+Date: Thu, 31 Aug 2006 22:12:47 -0500
+Message-ID: <44F7A52F.3030402@gmail.com>
+References: <A794DE2F81AEF94099397C9D7D5B651E5FB107@dlee08.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=big5
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060901021705.61046.qmail@web17805.mail.tpe.yahoo.com>
+In-Reply-To: <A794DE2F81AEF94099397C9D7D5B651E5FB107@dlee08.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,51 +17,28 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: "Kipisz, Steven" <s-kipisz2@ti.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Greeting Miao/Amit
+>> I want upload u-boot to H3, but I don't have JTAG and CCS, I only have
+>> serial port.
 
-Hello
-  Could you tell me how can I set the MAC address ?
-What does it mean to use ifconfig ? =20
-(I have set ethaddr already, so tftp work fine)
-Thanks. Best regards.
-=20
-> --- Ladislav Michl <ladis@linux-mips.org> =BB=A1=A1G
->=20
-> > On Thu, Aug 31, 2006 at 05:06:34PM +0800, kabbin wrote:
-> > > Dear all:=20
-> > >   I cannot boot from NFS. Could anyone help me please?  My board is=
- omap2420h4,  kernel
-> 2.6.10
-> > =20
-> > >=20
-> > >=20
-> > > Does following means that the network driver configuration is wrong=
-?
-> > > Why Invalid ethernet MAC address ?  I have setenv ethaddr already.
-> > >=20
-> > > I got :
-> > >=20
-> > > Universal TUN/TAP device driver 1.5 (C)1999-2002 Maxim Krasnyansky
-> > > smc91x.c: v1.1, sep 22 2004 by Nicolas Pitre <nico@cam.org>
-> > > eth0: SMC91C94 (rev 9) at 0xc4858300 IRQ 188 [nowait]
-> > > eth0: Invalid ethernet MAC address.  Please set using ifconfig
-> >=20
-> > Did you read that hint? ifconfig (8) lives on your NFS root you so yo=
-u
-> > have serious problem ;-) You can either use initrd as workaround=20
-> > or preferably set MAC address corectly. Assuming you are using U-boot=
-:
-> > http://www.denx.de/wiki/bin/view/DULG/EthernetDoesNotWorkInLinux
-> > You can also look at U-Boot source code:
-> > board/voiceblue/eeprom.c
-> >=20
-> > Best regards,
-> > 	ladis
+CCS,Lauterbach, USB.. And.... There is supposedly a "poor man's"
+approach... ;)
+There is OST host(some name to that effect) tool which should be usable
+over serial port... if you are lucky enough to get the box in which the
+h3 came with, then it hides innocently in a CD in it...
 
+http://linux.omap.com/pub/documentation/P2_NAND_boot_support.txt
 
-___________________________________________________=20
- =B1z=AA=BA=A5=CD=AC=A1=A7Y=AE=C9=B3q =A1=D0 =B7=BE=B3q=A1B=AET=BC=D6=A1B=
-=A5=CD=AC=A1=A1B=A4u=A7@=A4@=A6=B8=B7d=A9w=A1I=20
- http://messenger.yahoo.com.tw/
+can help you started though it is for P2.. but note that this was
+written sometime back... things have changed since then, but most
+probably not about OST host - if u can flash u-boot to flash.. Ur good
+to GO :)!!
+
+If you cant find OST host... u could contact your TI contact person for it..
+
+Regards,
+Nishanth Menon
