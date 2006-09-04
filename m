@@ -1,14 +1,13 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
 Subject: Re: Pending August patches
-Date: Mon, 4 Sep 2006 18:04:34 +0300
-Message-ID: <20060904150433.GC8017@atomide.com>
-References: <44F85C99.7080102@gmail.com>
-	<fb249edb0609011004k75484eejae4c583d933bfe01@mail.gmail.com>
+Date: Mon, 04 Sep 2006 17:05:38 +0200
+Message-ID: <44FC40C2.5080207@gmail.com>
+References: <304D2A85A9643F4A991BDDF8D297BBA604484625@dlee05.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <fb249edb0609011004k75484eejae4c583d933bfe01@mail.gmail.com>
+In-Reply-To: <304D2A85A9643F4A991BDDF8D297BBA604484625@dlee05.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,90 +17,29 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: balrogg@gmail.com
+To: "Zhang, Jian" <jzhang@ti.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* andrzej zaborowski <balrog@zabor.org> [060901 20:05]:
-> On 01/09/06, Dirk Behme <dirk.behme@googlemail.com> wrote:
-> >Hi,
-> >
-> >my list of pending OMAP patches for August 2006:
-> >
-> >1. [PATCH] OMAP1510 serial fix for 115200 baud.
-> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007677.html
-> >
-> >2. [PATCH] Unmask omap-keypad interrupt on suspend
-> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007720.html
+Hi Jian,
+
+Zhang, Jian wrote:
+> Dirk,
 > 
-> This patch contained a locking error.
+> This is the one for adding h3 alas support.
 > 
-> >
-> >3. [PATCH] ARM: OMAP: Remove warnings in DSP code
-> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007728.html
-> >
-> >4. [PATCH] ARM: OMAP: Add GPIO API howto
-> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007733.html
-> >
-> >5. [PATCH] Unmask omap-keypad interrupt on suspend
-> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007772.html
-> 
-> This is the correct change. (obsoletes 2. [PATCH] Unmask omap-keypad
-> interrupt on suspend)
-> 
-> >
-> >6. [PATCH] Add LCD backlight driver for OMAP
-> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007773.html
-> >
-> >7. [PATCH] ARM: OMAP: Backlight configuration struct
-> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007774.html
-> >
-> >8. [PATCH] ARM: OMAP: Register LCD backlight on PalmTE
-> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007775.html
-> >
-> >9. [PATCH] ARM: OMAP: Add Amstrad Delta platform bits for
-> >framebuffer.
-> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007776.html
-> >
-> >10. [PATCH 1/5] Change all omap15xx devices to use similar
-> >DMA handling than h6300 uses.
-> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007777.html
-> >
-> >11. [PATCH 2/5] Removed double spinlocking with omap15xx
-> >devices.
-> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007778.html
-> >
-> >12. [PATCH 3/5] Fix init warning in tsc2101 alsa driver.
-> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007779.html
-> >
-> >13. [PATCH 4/5] tsc2101 mixer fixes.
-> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007780.html
-> >
-> >14. [PATCH 5/5] Add gsm phone support for the mixer in
-> >tsc2101 alsa driver.
-> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007781.html
-> >
-> >15. [PATCH] support printk-times by fixing sched_clock to be
-> >callable in early boot
-> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007828.html
-> >
-> >16. Re: [patch 2.6.17-rc4-omap-git] rtc-omap, rtc framework
-> >driver
-> >or better: Handle wakeup irqs more correctly and completely
-> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007853.html
-> >
-> >Please correct if I missed anything, if any of above patches
-> >are already applied or if any has comments I overlooked and
-> >needs resend. Are there any older patches pending?
+> http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/00782
+> 1.html
 
-Then there's the MUSB driver stuff coming up from David Brownell posted
-on linux-usb-devel list:
+Thanks for the hint.
 
-http://sourceforge.net/mailarchive/forum.php?thread_id=30389954&forum_id=5398
+Can you resend this with a proper Signed-off-by: line?
 
-I'll be updating our tree to rc6 and applying some of patches above tonight,
-and will continue on it tomorrow.
+Using [PATCH] ARM: OMAP in subject next time will make it 
+less likely to be overlooked ;) See [1] as well.
 
-Regards,
+Regards
 
-Tony
+Dirk
+
+[1] http://www.muru.com/linux/omap/README_OMAP_PATCHES
