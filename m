@@ -1,38 +1,26 @@
-From: "Shanmugam, Shankar K" <SShanmugam@ciber.com>
-Subject: Problem while creating a new directory on OMAP5912
-Date: Tue, 5 Sep 2006 08:46:17 -0600
-Message-ID: <F71A3F85F026644687388710AF44A200D07FCD@srv-corp-exmb5.ciber.cbr.inc>
+From: tony@atomide.com
+Subject: Re: [PATCH 5/5] Add gsm phone support for the mixer in tsc2101 alsa driver.
+Date: Tue, 5 Sep 2006 18:18:09 +0300
+Message-ID: <20060905151808.GC18073@atomide.com>
+References: <44E51565.6020505@cc.jyu.fi>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965036AbWIEPSg@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <44E51565.6020505@cc.jyu.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lamikr <lamikr@cc.jyu.fi>
+Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi. I'm facing a problem while creating a directory in OSK Session=20
-This is what I get after executing mkdir on OSK board
-=20
-# mkdir usb
-mkdir: Cannot create directory `usb': Read-only file system
-=20
-I have edited /etc/exports with following:
-/home/user/montavista/filesys   *(rw,no_root_squash,no_all_squash,sync)
- And even I have set bootargs of OSK in 'rw' mode, but still I/m getting =
-the same error when I do any file write operation.=20
-=20
-Please give me some relevant solution.
-=20
-=20
-Thanks & Regards,
-K.S.Shankar
+* lamikr <lamikr@cc.jyu.fi> [060818 04:19]:
+> Add gsm phone support for the mixer in tsc2101 alsa driver. This allows
+> selecting cellphone for the playback target via alsa mixer interface.
+> Selection will connect gsm module to speaker and microphone allowing the
+> user to speak to phone and listen the opponents voice. Tested in ipaq
+> h63xx by using gomunicator as an application. Tux wanna call home, and
+> now Tux can finally call home :-)
+
+Cool that you got the phone features working :)
+
+Tony
