@@ -1,14 +1,11 @@
-From: lamikr <lamikr@cc.jyu.fi>
-Subject: Re: Random Number Generation
-Date: Wed, 06 Sep 2006 23:20:04 +0300
-Message-ID: <44FF2D74.7000404@cc.jyu.fi>
-References: <BAY102-F19F562B9CBA2B210F34131A9310@phx.gbl>
-Reply-To: lamikr@cc.jyu.fi
+From: Anderson Briglia <anderson.briglia@indt.org.br>
+Subject: MMC H2 problem
+Date: Wed, 06 Sep 2006 16:23:08 -0400
+Message-ID: <44FF2E2C.4010206@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <BAY102-F19F562B9CBA2B210F34131A9310@phx.gbl>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,20 +13,23 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Abot Botbot <dejanigma@hotmail.com>
-Cc: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Abot Botbot wrote:
-> Hello all,
->
->  I'm wondering how one would generate a random number on both the DSP
-> and GPP sides. Does linux come with a tool for generating random
-> numbers? Should I include a standard (and large) math.h library for
-> this purpose? I know the OMAP has hardware support for the generation
-> of random numbers, but I can't seem to find refferences to how to use
-> it in the BSL pdf. Any insight is much appreciated.
-I have not tried my self, but have you seen the random generator driver in
-    drivers\char\omap-rng.c?
+Hi all,
+
+Is the mmc omap driver for h2 broken on actual git tree? I'm trying to use, but when I
+load the omap.ko module I have this warning:
+
+root@arm:~# modprobe omap
+No IRQF_TRIGGER set_type function for IRQ 353 (MPUIO)
+
+and when I tried to use the MMC card (inserting/removing from mmc slot) the system hangs
+and I have a soft lockup error (with a dump message):
+
+root@arm:~# BUG: soft lockup detected on CPU#0!
+
+
+Anderson Briglia
