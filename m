@@ -1,11 +1,13 @@
-From: Zgembo Adislic <adislic_zgembo@yahoo.com>
-Subject: omap irda problem
-Date: Wed, 6 Sep 2006 07:21:20 -0700 (PDT)
-Message-ID: <20060906142120.98809.qmail@web30614.mail.mud.yahoo.com>
+From: "andrzej zaborowski" <balrog@zabor.org>
+Subject: Re: omap irda problem
+Date: Wed, 6 Sep 2006 20:01:36 +0200
+Message-ID: <fb249edb0609061101i31e124a5r76f9a754ee05e4b6@mail.gmail.com>
+References: <20060906142120.98809.qmail@web30614.mail.mud.yahoo.com>
+Reply-To: balrogg@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============1031877038=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20060906142120.98809.qmail@web30614.mail.mud.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,19 +17,87 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Zgembo Adislic <adislic_zgembo@yahoo.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
- Hello all,
-  I am using omap5910 and kernel 2.6.8.1. I am supposed to make IrDa oper=
-ational so I can communicate with other devices (for example: desktop PC =
-using some terminal emulation program).
- Is there any open sorce avaible for that? Could anyone give some advice =
-how to start dealing with this issue (I am beginning from zero)
-=20
-Thanx :-)=20
+--===============1031877038==
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
- 	=09
----------------------------------
-Yahoo! Messenger with Voice. Make PC-to-Phone Calls to the US (and 30+ co=
-untries) for 2=A2/min or less.
+SGksCgpPbiAwNi8wOS8wNiwgWmdlbWJvIEFkaXNsaWMgPGFkaXNsaWNfemdlbWJvQHlhaG9vLmNv
+bT4gd3JvdGU6Cj4gIEhlbGxvIGFsbCwKPiAgIEkgYW0gdXNpbmcgb21hcDU5MTAgYW5kIGtlcm5l
+bCAyLjYuOC4xLiBJIGFtIHN1cHBvc2VkIHRvIG1ha2UgSXJEYSBvcGVyYXRpb25hbCBzbyBJIGNh
+biBjb21tdW5pY2F0ZSB3aXRoIG90aGVyIGRldmljZXMgKGZvciBleGFtcGxlOiBkZXNrdG9wIFBD
+IHVzaW5nIHNvbWUgdGVybWluYWwgZW11bGF0aW9uIHByb2dyYW0pLgo+ICBJcyB0aGVyZSBhbnkg
+b3BlbiBzb3JjZSBhdmFpYmxlIGZvciB0aGF0PyBDb3VsZCBhbnlvbmUgZ2l2ZSBzb21lIGFkdmlj
+ZSBob3cgdG8gc3RhcnQgZGVhbGluZyB3aXRoIHRoaXMgaXNzdWUgKEkgYW0gYmVnaW5uaW5nIGZy
+b20gemVybykKClRoZXJlJ3MgdGhlIE9NQVAgSXJEQSBkcml2ZXIgaW4gZHJpdmVycy9uZXQvaXJk
+YS9vbWFwLWlyLmMgdGhhdApzdXBwb3J0cyAxNnh4IGFuZCBzb21lIG90aGVyIENQVXMsIGJ1dCBu
+b3QgYW55IG9mIDE1eHggb3V0IG9mIHRoZSBib3guCkkgZG9uJ3Qga25vdyBpZiBpdCdzIGFzIG9s
+ZCBhcyAyLjYuOC4xIGJ1dCB5b3UnbGwgcHJvYmFibHkgd2FudCB0bwp1cGdyYWRlIHlvdXIgdHJl
+ZSBhbnl3YXkgaWYgeW91IHdhbnQgdG8gc3RhcnQgbW9kaWZ5aW5nIGl0LgoKTm93IEkgaGF2ZSBh
+IE9NQVAgMzExICh3aGljaCBpcyAxNXh4KSBhbmQgSSBoYXZlIGJlZW4gcGxheWluZyB3aXRoCnRo
+aXMgZHJpdmVyIGFuZCBJIGV2ZW50dWFsbHkgZ290IGl0IHRvIHdvcmsgKG9yIGl0IHNlZW1zIGxp
+a2UgaXQpLAp3aXRoIGEgY291cGxlIG9mIHJhdGhlciBzaW1wbGUgY2hhbmdlcyBzbyBpdCdzIHBv
+c3NpYmxlIHRoYXQgaXQgd2lsbAphbHNvIHdvcmsgb24geW91ciBwcm9jZXNzb3IuIEhlcmUgYXJl
+IHRoZSBtYWluIGNoYW5nZXMgSSBoYWQgdG8gbWFrZQppbiBvbWFwLWlyLmMgKHdyaXRpbmcgZnJv
+bSBtZW1vcnksIEkgZG9uJ3QgaGF2ZSB0aGUgY29kZSBoZXJlKToKCjEpIEluIHRoZSBpcnEgaGFu
+ZGxlciB0aGUgZHJpdmVyIGFjY2Vzc2VzIGEgRE1BIHJlZ2lzdGVyIGRpcmVjdGx5IHRvCmNoZWNr
+IGhvdyBtYW55IGJ5dGVzIHdlcmUgcmVjZWl2ZWQuIFRoZSByZWdpc3RlciBpcyBjYWxsZWQgc29t
+ZXRoaW5nCmxpa2UgQ1BEQyBhbmQgaXQgdHVybnMgb3V0IHRoYXQgMTV4eCBoYXZlIGEgZGlmZmVy
+ZW50IHJlZ2lzdGVyIGF0IHRoaXMKYWRkcmVzcyBzbyB3cm9uZyBkYXRhIGlzIHJldHVybmVkLiBU
+aGlzIGlzIGJlY2F1c2UgMTV4eCBoYXMgb25seSBvbmUKQ1BDIHJlZ2lzdGVyIHBlciBjaGFubmVs
+IGFuZCAxNnh4IGFuZCB0aGUgb3RoZXIgQ1BVcyBoYXZlIHNlcGFyYXRlCnJlZ2lzdGVycyBmb3Ig
+c291cmNlIGFkZHJlc3NlcyBhbmQgZGVzdGluYXRpb24gYWRkcmVzc2VzIGNhbGxlZCBDUFNDCmFu
+ZCBDUERDIHJlc3BlY3RpdmVseSAob3Igc2ltaWxhcikuIFNvLCBlaXRoZXIgY2hhbmdlIHRoZSBp
+cmRhIGRyaXZlcgp0byB1c2UgQ1BTQywgY2F1c2UgMTV4eCdzIENQQyBoYXMgdGhlIHNhbWUgb2Zm
+c2V0LCBvciBiZXR0ZXIgYWRkCnByb3BlciByZWdpc3RlciBuYW1lcyBmb3IgMTV4eCBpbiBpbmNs
+dWRlL2FzbS9hcmNoL2RtYS5oIGFuZCB1c2UKdGhlc2UuIChUaGUgMTV4eCBhbmQgMTZ4eCBETUFz
+IGFsc28gZGlmZmVyIGluIG90aGVyIHBsYWNlcyB3aGljaApjYXVzZXMgbWFueSBhY2Nlc3NlcyB0
+byBub24tZXhpc3RlbnQgcmVnaXN0ZXJzIGluIGRtYS5jLiBJIGhhdmUKcGF0Y2hlcyBmb3IgdGhp
+cykKCkFub3RoZXIgaWRlYSBpcyB0byB1c2UgdGhlIElyREEgKFVBUlQzKSByZWdpc3RlcnMgdG8g
+cmV0cmlldmUgbGFzdApmcmFtZSBsZW5ndGggaW5zdGVhZCBvZiBETUEgcmVnaXN0ZXJzLgoKMikg
+SXQgc2VlbXMgdGhhdCB0aGUgRE1BIHJlY2VpdmVzIGFsd2F5cyAoZnJhbWUgbGVuZ3RoICsgMSkg
+Ynl0ZXMKaW5zdGVhZCBvZiAoZnJhbWUgbGVuZ3RoICsgMikgb24gbXkgZGV2aWNlIHNvIHJlcGxh
+Y2UgdGhlICJ3IC0gMiIgd2l0aAoidyAtIDEiIGluIHRoZSBkcml2ZXIuIEhvd2V2ZXIsIHRoaXMg
+aXMgc3RyYW5nZSBiZWNhdXNlIHRoZQpkb2N1bWVudGF0aW9uIHNheXMgdGhhdCB0d28gYnl0ZXMg
+b2YgQ1JDIGFyZSB3cml0dGVuIGluIHRoZSBidWZmZXIKd2l0aCBlYWNoIGZyYW1lLgoKMykgSSBk
+b24ndCByZWNlaXZlIHRoZSBUWCBVbmRlcnJ1biBpbnRlcnJ1cHQsIHNvIEkgcGxhY2VkIHRoZQpu
+ZXRpZl9xdWV1ZV93YWtlKCkgY2FsbCBpbiB0aGUgVFggZG1hIGNhbGxiYWNrLiBUaGlzLCBob3dl
+dmVyLCBtYWtlcwp0aGUgZHJpdmVyIHN0YXJ0IHNlbmRpbmcgc29tZSBmcmFtZXMgdG9vIGVhcmx5
+IGFuZCB0aGV5IG92ZXJ3cml0ZQplbmRpbmdzIG9mIHByZXZpb3VzIGZyYW1lcywgYXQgaGlnaCB0
+cmFmZmljLiBJIHByZXZlbnQgaXQgYnkgcG9sbGluZwp0aGUgcmVnaXN0ZXJzIHVudGlsIHRoZSBU
+WCBmaWZvIGRyYWlucywgbWF5YmUgSSBjYW4gZmluZCBhIGJldHRlciB3YXkKbGF0ZXIuCgo0KSBU
+aGUgZHJpdmVyIGxlYXZlcyB0aGUgT1NDXzEyTV9TRUwgcmVnaXN0ZXIgdW50b3VjaGVkIHNvIEkg
+emVybyBpdAphdCBpbml0LiBZb3UgY2FuIHNraXAgdGhpcyBpZiB5b3UncmUgc3VyZSB0aGF0IG5v
+IG90aGVyIE9TIHdhcyBydW5uaW5nCmJlZm9yZSBMaW51eCBhZnRlciBtYWNoaW5lIHJlc2V0LiBP
+ciBzZXQgT1NDXzEyTV9TRUwgYW5kIGRpdmlkZSBiYXVkCnJhdGUgYXBwcm9wcmlhdGVseS4KCkkg
+YWxzbyBjaGFuZ2VkIHRoZSBkcml2ZXIgdG8gdXNlIHRoZSBjbGtfKiBhcGkgaW5zdGVhZCBvZiB3
+cml0aW5nIHRvCmNsb2NrIHJlZ2lzdGVycy4KCkkgY2FuJ3Qgc2hvdyB5b3UgYW55IGNvZGUgYmVj
+YXVzZSBJJ20gYXdheSBmcm9tIG15IGNvbXB1dGVyIChjYWxsIGl0CmhvbGlkYXlzLi4uKS4gSSBk
+aWRuJ3QgbWFuYWdlIHRvIGdldCBpcmxhbi9pcmNvbW0vb2JleCB0byB3b3JrIGJ1dAppdCdzIGxp
+a2VseSB0aGF0IG15IG90aGVyIGRldmljZSB3YXMgcmVzcG9uc2libGUsIHRvIHdoaWNoIEkgd2Fz
+CnRyeWluZyB0byBjb25uZWN0LiBJIGp1c3QgZG9uJ3Qga25vdyB3aGljaCBlbmQgaXMgbW9yZSBi
+cm9rZW4gbm93LgpNYXliZSBpdCB3YXMgYW4gaXJkYS11dGlscyB2ZXJzaW9uIG1pc21hdGNoIG9y
+IHNvbWV0aGluZy4KCkkgdGVzdGVkIHJ4IGFuZCB0eCB3aXRoIHNvbWUgZ2VuZXJhdGVkIGZyYW1l
+cyBhbmQgdGhleSB3ZXJlIHVzdWFsbHkKdHJhbnNtaXR0ZWQgY29ycmVjdGx5LiBJIGhhY2tlZCB1
+cCBhIGZha2UgdHR5IGRyaXZlciBvbiB0b3Agb2YKb21hcC1pci5jIGFuZCBpdCB3b3JrcyBmb3Ig
+YSByZW1vdGUgY29uc29sZS4KCkhvcGUgdGhpcyBoZWxwcy4KCj4KPiBUaGFueCA6LSkKPgo+Cj4g
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gWWFob28hIE1lc3NlbmdlciB3aXRo
+IFZvaWNlLiBNYWtlIFBDLXRvLVBob25lIENhbGxzIHRvIHRoZSBVUyAoYW5kIDMwKyBjb3VudHJp
+ZXMpIGZvciAywqIvbWluIG9yIGxlc3MuCj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KPiBMaW51eC1vbWFwLW9wZW4tc291cmNlIG1haWxpbmcgbGlzdAo+
+IExpbnV4LW9tYXAtb3Blbi1zb3VyY2VAbGludXgub21hcC5jb20KPiBodHRwOi8vbGludXgub21h
+cC5jb20vbWFpbG1hbi9saXN0aW5mby9saW51eC1vbWFwLW9wZW4tc291cmNlCj4KCgotLSAKYmFs
+cm9nIDJvbzYK
+
+--===============1031877038==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============1031877038==--
