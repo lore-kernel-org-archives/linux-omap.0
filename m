@@ -1,44 +1,35 @@
 From: lamikr <lamikr@cc.jyu.fi>
-Subject: Re: [PATCH 5/5] Add gsm phone support for the mixer in tsc2101 alsa
- driver.
-Date: Wed, 06 Sep 2006 23:07:09 +0300
-Message-ID: <44FF2A6D.3000500@cc.jyu.fi>
-References: <44E51565.6020505@cc.jyu.fi> <20060905151808.GC18073@atomide.com>
+Subject: Re: Random Number Generation
+Date: Wed, 06 Sep 2006 23:20:04 +0300
+Message-ID: <44FF2D74.7000404@cc.jyu.fi>
+References: <BAY102-F19F562B9CBA2B210F34131A9310@phx.gbl>
 Reply-To: lamikr@cc.jyu.fi
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751538AbWIFUHf@vger.kernel.org>
-In-Reply-To: <20060905151808.GC18073@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <BAY102-F19F562B9CBA2B210F34131A9310@phx.gbl>
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Abot Botbot <dejanigma@hotmail.com>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-
->> now Tux can finally call home :-)
->>     
+Abot Botbot wrote:
+> Hello all,
 >
-> Cool that you got the phone features working :)
->   
-Yes,  and gprs is also working nicely with the pppd so I can finally
-start eating dog food :-)
-Some problems there still are
-
-1) As we do not yet have any kind of multiplexing support to gsm module
-(currently directly accesing dev/ttyS1 for at commands)
-our phone app is not able to run simultaneously with the ppp. I am not
-sure should I resolve this in the kernel space or user space.
-
-2) I can not suspend/resume by using power button but we have still
-problem from waking up the iPAQ
-from suspend for the incoming calls.
-So far I have tried to enable UART2 wakeup by using
-
-    level2_wake |= OMAP_IRQ_BIT(INT_MPUIO);
-
-in omap_pm_wakeup_setup() method of plat-omap/pm.c but did not have
-success with that.
-Could you have any idea for this one?
-
-Mika
+>  I'm wondering how one would generate a random number on both the DSP
+> and GPP sides. Does linux come with a tool for generating random
+> numbers? Should I include a standard (and large) math.h library for
+> this purpose? I know the OMAP has hardware support for the generation
+> of random numbers, but I can't seem to find refferences to how to use
+> it in the BSL pdf. Any insight is much appreciated.
+I have not tried my self, but have you seen the random generator driver in
+    drivers\char\omap-rng.c?
