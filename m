@@ -1,15 +1,11 @@
-From: Marek =?iso-8859-2?q?Va=B9ut?= <marek.vasut@gmail.com>
-Subject: Re: A problem about LCD driver
-Date: Wed, 6 Sep 2006 13:25:16 +0200
-Message-ID: <200609061325.16322.marek.vasut@gmail.com>
-References: <bfb3f2670609060041ked8b07bl19435998a73c0494@mail.gmail.com>
+From: Zgembo Adislic <adislic_zgembo@yahoo.com>
+Subject: omap irda problem
+Date: Wed, 6 Sep 2006 07:21:20 -0700 (PDT)
+Message-ID: <20060906142120.98809.qmail@web30614.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <bfb3f2670609060041ked8b07bl19435998a73c0494@mail.gmail.com>
-Content-Disposition: inline
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,16 +13,21 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi, 
+ Hello all,
+  I am using omap5910 and kernel 2.6.8.1. I am supposed to make IrDa oper=
+ational so I can communicate with other devices (for example: desktop PC =
+using some terminal emulation program).
+ Is there any open sorce avaible for that? Could anyone give some advice =
+how to start dealing with this issue (I am beginning from zero)
+=20
+Thanx :-)=20
 
-try changing pixclock and bpp (to 8 eg.) ... I had probs with that.
-
-btw what that lcd really does? does something appear on it?
-
-BR
-Marex
+ 	=09
+---------------------------------
+Yahoo! Messenger with Voice. Make PC-to-Phone Calls to the US (and 30+ co=
+untries) for 2=A2/min or less.
