@@ -1,73 +1,37 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: OMAP2420 GPIO IRQSTATUS2 for retention
-Date: Fri, 8 Sep 2006 12:57:56 +0300
-Message-ID: <20060908125756.3092c559.Hiroshi.DOYU@nokia.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [PATCH 5/5] Add gsm phone support for the mixer in tsc2101 alsa driver.
+Date: Thu, 7 Sep 2006 19:31:41 +0000
+Message-ID: <20060907193140.GH8793@ucw.cz>
+References: <44E51565.6020505@cc.jyu.fi> <20060905151808.GC18073@atomide.com> <44FF2A6D.3000500@cc.jyu.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751117AbWIHNoW@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <44FF2A6D.3000500@cc.jyu.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lamikr <lamikr@cc.jyu.fi>
+Cc: tony@atomide.com, OMAP-Linux <linux-omap-open-source@linux.omap.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi!
 
-In OMAP2420, the bits in both GPIO_IRQSTATUS1 and GPIO_IRQSTATUS2
-prevents the system from going idle state. It seems that the GPIO
-interrupts always set both GPIO_IRQSTATUS1 and GPIO_IRQSTATUS2 at
-once, even if the equivalent bit is disabled in GPIO_IRQENABLE1/2
-and also DSP doesn't use GPIO at all.
+> >> now Tux can finally call home :-)
+> >>     
+> >
+> > Cool that you got the phone features working :)
+> >   
+> Yes,  and gprs is also working nicely with the pppd so I can finally
+> start eating dog food :-)
+> Some problems there still are
+> 
+> 1) As we do not yet have any kind of multiplexing support to gsm module
+> (currently directly accesing dev/ttyS1 for at commands)
+> our phone app is not able to run simultaneously with the ppp. I am not
+> sure should I resolve this in the kernel space or user space.
 
-GPIO_IRQSTATUS1 is for MPU and GPIO_IRQSTATUS2 is for DSP.
+Userspace, I'd say. I've seen that package (google for gsm 07.14,
+IIRC), but could not get it to work.
 
-There are some registers to control irq detection mode(EDGE/LEVEL),
-but they affects both GPIO_IRQSTATUS1 and GPIO_IRQSTATUS2 at the same
-time. So it seems that there is no way just to disable GPIO_IRQSTATUS2
-currently.
-
-This patch clears IRQSTATUS2 to avoid the above situation when GPIO
-interrupt occurs. But I am wondering how to disable GPIO_IRQSTATUS2
-independently.
-
-Do you know if any way to disable GPIO interrupts(disabling
-GPIO_IRQSTATUS2)?
-
----
- arch/arm/plat-omap/gpio.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 8d835b1..ce43684 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -94,6 +94,8 @@ #define OMAP24XX_GPIO_REVISION		0x0000
- #define OMAP24XX_GPIO_SYSCONFIG		0x0010
- #define OMAP24XX_GPIO_SYSSTATUS		0x0014
- #define OMAP24XX_GPIO_IRQSTATUS1	0x0018
-+#define OMAP24XX_GPIO_IRQSTATUS2	0x0028
-+#define OMAP24XX_GPIO_IRQENABLE2	0x002c
- #define OMAP24XX_GPIO_IRQENABLE1	0x001c
- #define OMAP24XX_GPIO_CTRL		0x0030
- #define OMAP24XX_GPIO_OE		0x0034
-@@ -529,6 +531,10 @@ static void _clear_gpio_irqbank(struct g
- 		return;
- 	}
- 	__raw_writel(gpio_mask, reg);
-+
-+	/* Workaround for clearing DSP GPIO interrupts to allow
-retention */
-+	if (cpu_is_omap2420())
-+		__raw_writel(gpio_mask, bank->base +
-OMAP24XX_GPIO_IRQSTATUS2); }
- 
- static inline void _clear_gpio_irqstatus(struct gpio_bank *bank, int
-gpio) -- 
-1.4.2.g44c10
+							Pavel
+-- 
+Thanks for all the (sleeping) penguins.
