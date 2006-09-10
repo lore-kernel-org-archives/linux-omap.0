@@ -1,12 +1,13 @@
-From: "Laihui,Sun" <laihui.ece93g@nctu.edu.tw>
-Subject: About DSP 5510 to OMAP5912
-Date: Sun, 10 Sep 2006 15:48:16 +0800
-Message-ID: <003201c6d4ad$7a4375f0$dc96718c@bluecan>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: A problem about the LCD driver in the kernel 2.6.14-omap.
+Date: Sun, 10 Sep 2006 11:21:09 +0200
+Message-ID: <4503D905.8050806@gmail.com>
+References: <bfb3f2670609092333u2b9b01b1n7e2ce82d78d593f8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="big5"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <bfb3f2670609092333u2b9b01b1n7e2ce82d78d593f8@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,21 +17,22 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: lei lei <leibo2001112@gmail.com>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi everyone,
+lei lei wrote:
+> hi all,
+>    THE file place is in drivers/video/omap/lcd_osk.c.
+>    In the omap5912 board---osk,there is not LCD,so  I want to know
+> the LCD driver in the 2.6.14-omap is for which LCD.
 
-Does someone have the experience on developing DSP 5510 ?
+http://www.mistralsoftware.com/html/product/omap_products/products-omap5912_starterkit.php
 
-I try to develope code on DSP side on OMAP5912, but first I try to =
-develope on DSP 5510.
-Now I want to transfer the code to OMAP5912.
+See
 
-So, does someone try to develope DSP on OMAP5912 like me?
-Could you share the experience and procedure about the configuration?
+http://tree.celinuxforum.org/CelfPubWiki/OSK
 
-Thank you very much!
+as well.
 
-BR,
-Laihui Sun
+Dirk
