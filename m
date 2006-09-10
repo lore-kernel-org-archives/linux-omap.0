@@ -1,9 +1,11 @@
-From: "lei lei" <leibo2001112@gmail.com>
-Subject: A problem about the LCD driver in the kernel 2.6.14-omap.
-Date: Sun, 10 Sep 2006 14:33:15 +0800
-Message-ID: <bfb3f2670609092333u2b9b01b1n7e2ce82d78d593f8@mail.gmail.com>
+From: "Laihui,Sun" <laihui.ece93g@nctu.edu.tw>
+Subject: About DSP 5510 to OMAP5912
+Date: Sun, 10 Sep 2006 15:48:16 +0800
+Message-ID: <003201c6d4ad$7a4375f0$dc96718c@bluecan>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0840940054=="
+Content-Type: text/plain;
+	charset="big5"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -14,24 +16,21 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============0840940054==
-Content-Type: text/plain; charset=GB2312; format=flowed
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+Hi everyone,
 
-aGkgYWxsLAogICAgVEhFIGZpbGUgcGxhY2UgaXMgaW4gZHJpdmVycy92aWRlby9vbWFwL2xjZF9v
-c2suYy4KICAgIEluIHRoZSBvbWFwNTkxMiBib2FyZC0tLW9zayx0aGVyZSBpcyBub3QgTENELHNv
-ICBJIHdhbnQgdG8ga25vdwp0aGUgTENEIGRyaXZlciBpbiB0aGUgMi42LjE0LW9tYXAgaXMgZm9y
-IHdoaWNoIExDRC4KICAgIFRoYW5rcyEKCi0tIArA17KoIGJvbGVpCg==
+Does someone have the experience on developing DSP 5510 ?
 
---===============0840940054==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I try to develope code on DSP side on OMAP5912, but first I try to =
+develope on DSP 5510.
+Now I want to transfer the code to OMAP5912.
 
+So, does someone try to develope DSP on OMAP5912 like me?
+Could you share the experience and procedure about the configuration?
 
---===============0840940054==--
+Thank you very much!
+
+BR,
+Laihui Sun
