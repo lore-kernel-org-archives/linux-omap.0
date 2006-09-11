@@ -1,13 +1,13 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: A problem about the LCD driver in the kernel 2.6.14-omap.
-Date: Sun, 10 Sep 2006 11:21:09 +0200
-Message-ID: <4503D905.8050806@gmail.com>
-References: <bfb3f2670609092333u2b9b01b1n7e2ce82d78d593f8@mail.gmail.com>
+From: Arnold <abo_gwapo@yahoo.com>
+Subject: Using SPI
+Date: Sun, 10 Sep 2006 20:38:10 -0700 (PDT)
+Message-ID: <20060911033810.89093.qmail@web55802.mail.re3.yahoo.com>
+References: <4503D905.8050806@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <bfb3f2670609092333u2b9b01b1n7e2ce82d78d593f8@mail.gmail.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <4503D905.8050806@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,24 +15,24 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: lei lei <leibo2001112@gmail.com>
-Cc: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-lei lei wrote:
-> hi all,
->    THE file place is in drivers/video/omap/lcd_osk.c.
->    In the omap5912 board---osk,there is not LCD,so  I want to know
-> the LCD driver in the 2.6.14-omap is for which LCD.
+Hi Guys,
 
-http://www.mistralsoftware.com/html/product/omap_products/products-omap5912_starterkit.php
+I've been exploring SPI on the kernel. I've started
+reading on how SPI works. I've learned that all SPI
+drivers are currently kernel drivers. I would to know
+if anybody have tried to do a userspace driver API? Or
+anybody knows of an opensource userspace driver that
+offers low-level access?
 
-See
+Thanks,
+OJ 
 
-http://tree.celinuxforum.org/CelfPubWiki/OSK
-
-as well.
-
-Dirk
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
