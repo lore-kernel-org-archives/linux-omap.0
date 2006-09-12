@@ -1,15 +1,17 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP audio DMA changes for 310 CPUs
-Date: Tue, 12 Sep 2006 15:05:21 +0300
-Message-ID: <20060912120520.GE22547@atomide.com>
-References: <fb249edb0608180120m4d0786c7i6d4408112d7e2cf0@mail.gmail.com>
-	<44E5F3CE.3010501@cc.jyu.fi>
-	<fb249edb0609120253n41824aefub7eacde17cb5f452@mail.gmail.com>
+Subject: Re: Pending August patches
+Date: Tue, 12 Sep 2006 15:03:29 +0300
+Message-ID: <20060912120328.GD22547@atomide.com>
+References: <44F85C99.7080102@gmail.com>
+	<fb249edb0609011004k75484eejae4c583d933bfe01@mail.gmail.com>
+	<20060904150433.GC8017@atomide.com>
+	<20060905154109.GE18073@atomide.com>
+	<fb249edb0609111626h37d8d971tfc8be67b74134490@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <fb249edb0609120253n41824aefub7eacde17cb5f452@mail.gmail.com>
+In-Reply-To: <fb249edb0609111626h37d8d971tfc8be67b74134490@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,35 +19,36 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: balrogg@gmail.com
-Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* andrzej zaborowski <balrog@zabor.org> [060912 12:54]:
-> On 18/08/06, lamikr <lamikr@cc.jyu.fi> wrote:
-> >Hi andrzej
+* andrzej zaborowski <balrog@zabor.org> [060912 02:27]:
+> On 05/09/06, tony@atomide.com <tony@atomide.com> wrote:
+> >OK, I've pushed Dirk's list except for the ones commented below.
+> >Please check your patches got merged OK.
 > >
-> >I have couple of questions from your patch.
-> >Your patch has couple of these changes where cpu_is_omap1510() has been
-> >changed to cpu_is_omap15xx().
-> >    -    if (!cpu_is_omap1510())
-> >    +    if (!cpu_is_omap15xx())
+> >8. [PATCH 1/5] Change all omap15xx devices to use similar DMA handling 
+> >than h6300 uses.
+> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007777.html
 > >
-> >Do they affect to the sound in omap 310? (I mean is cpu_is_omap15xx()
-> >true for your omap310)
-> >Or is following the only relevant omap310 specific change
-> >
-> >    +    } else if (cpu_is_omap310())
-> >    +        omap_start_dma(channel);
-> >
-> >Btw, your patch will not apply on top of all 5 patches I sent.
-> >Could you perhaps re-send it one more time? (I need also test whether
-> >your changes could work with omap1510/h6300)
+> >Already applied.
 > 
-> Ok, this one applies on top of the five alsa patches. Sorry for the delay.
+> It doesn't appear these two patches are merged yet. Am I looking at a
+> wrong place?
+> 
+> >
+> >9. [PATCH 2/5] Removed double spinlocking with omap15xx devices.
+> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007778.html
+> >
+> >Already applied.
 
-Pushing this today.
+Thanks for noticing. I must have tried to apply these two patches
+twice before committing somehow which made me think they're
+already applied.. Pushing them today.
+
+Regards,
 
 Tony
