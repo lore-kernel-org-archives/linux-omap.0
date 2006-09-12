@@ -1,12 +1,15 @@
-From: "Komal Shah" <komal_shah802003@yahoo.com>
-Subject: [PATCH] OMAP: c55x dummy code as dspfs plugin
-Date: Tue, 12 Sep 2006 15:05:26 +0530
-Message-ID: <1158053726.18758.270711882@webmail.messagingengine.com>
+From: "andrzej zaborowski" <balrog@zabor.org>
+Subject: Re: [PATCH] OMAP audio DMA changes for 310 CPUs
+Date: Tue, 12 Sep 2006 11:53:47 +0200
+Message-ID: <fb249edb0609120253n41824aefub7eacde17cb5f452@mail.gmail.com>
+References: <fb249edb0608180120m4d0786c7i6d4408112d7e2cf0@mail.gmail.com>
+	<44E5F3CE.3010501@cc.jyu.fi>
+Reply-To: balrogg@gmail.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="_----------=_1158053726187580";
-	charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="----=_Part_13009_6320465.1158054827540"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <44E5F3CE.3010501@cc.jyu.fi>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,94 +19,98 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: lamikr@cc.jyu.fi
+Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
-
---_----------=_1158053726187580
-Content-Disposition: inline
+------=_Part_13009_6320465.1158054827540
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="ISO-8859-1"
-MIME-Version: 1.0
-X-Mailer: MessagingEngine.com Webmail Interface
-Date: Tue, 12 Sep 2006 09:35:26 UT
+Content-Disposition: inline
 
-After applying the patch, please update arch/arm/mach-omap2/Makefile
-to make it compile.
+On 18/08/06, lamikr <lamikr@cc.jyu.fi> wrote:
+> Hi andrzej
+>
+> I have couple of questions from your patch.
+> Your patch has couple of these changes where cpu_is_omap1510() has been
+> changed to cpu_is_omap15xx().
+>     -    if (!cpu_is_omap1510())
+>     +    if (!cpu_is_omap15xx())
+>
+> Do they affect to the sound in omap 310? (I mean is cpu_is_omap15xx()
+> true for your omap310)
+> Or is following the only relevant omap310 specific change
+>
+>     +    } else if (cpu_is_omap310())
+>     +        omap_start_dma(channel);
+>
+> Btw, your patch will not apply on top of all 5 patches I sent.
+> Could you perhaps re-send it one more time? (I need also test whether
+> your changes could work with omap1510/h6300)
 
-Signed-off-by: Komal Shah <komal_shah802003@yahoo.com>
+Ok, this one applies on top of the five alsa patches. Sorry for the delay.
 
----Komal Shah
-http://komalshah.blogspot.com
+>
+> Mika
+>
+> andrzej zaborowski wrote:
+> > Avoid restarting McBSP hardware after every DMA transfer to OMAP audio
+> > devices on OMAP310, restart only DMA. Also avoid trying to link DMA
+> > channels together as this feature isn't supported on 310 processors.
+> > Apply on top of "[PATCH 1/5] Change all omap15xx devices to use
+> > similar DMA handling than h6300 uses".
+> >
+> > Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
+> > ------------------------------------------------------------------------
+> >
+> > _______________________________________________
+> > Linux-omap-open-source mailing list
+> > Linux-omap-open-source@linux.omap.com
+> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> >
+>
+>
+
 
 -- 
-http://www.fastmail.fm - Send your email first class
+balrog 2oo6
 
-
---_----------=_1158053726187580
-Content-Disposition: attachment; filename="dsp.patch"
+------=_Part_13009_6320465.1158054827540
+Content-Type: application/octet-stream; name=linux-omap310-audio.patch
 Content-Transfer-Encoding: base64
-Content-Type: text/x-patch; name="dsp.patch"
-MIME-Version: 1.0
-X-Mailer: MessagingEngine.com Webmail Interface
-Date: Tue, 12 Sep 2006 09:35:26 UT
+X-Attachment-Id: f_es07fggh
+Content-Disposition: attachment; filename="linux-omap310-audio.patch"
 
-ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvZHNwLmMgYi9hcmNo
-L2FybS9tYWNoLW9tYXAyL2RzcC5jCm5ldyBmaWxlIG1vZGUgMTAwNjQ0Cmlu
-ZGV4IDAwMDAwMDAuLmZmYmEzMjAKLS0tIC9kZXYvbnVsbAorKysgYi9hcmNo
-L2FybS9tYWNoLW9tYXAyL2RzcC5jCkBAIC0wLDAgKzEsODcgQEAKKy8qCisg
-KiBhcmNoL2FybS9tYWNoLW9tYXAyL2RzcC5jCisgKgorICogU3VwcG9ydCBE
-U1AgKEM1NXgpIGZvciBPTUFQMjQyMCB1c2luZyBkc3Bmcy4KKyAqCisgKiBB
-dXRob3I6IEtvbWFsIFNoYWggKGtvbWFsX3NoYWg4MDIwMDNAeWFob28uY29t
-KQorICoKKyAqIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOyB5b3Ug
-Y2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5CisgKiBpdCB1bmRl
-ciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNl
-IHZlcnNpb24gMiBhcworICogcHVibGlzaGVkIGJ5IHRoZSBGcmVlIFNvZnR3
-YXJlIEZvdW5kYXRpb24uCisgKi8KKyNpbmNsdWRlIDxsaW51eC9pbml0Lmg+
-CisjaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+CisjaW5jbHVkZSA8bGludXgv
-ZXJyLmg+CisjaW5jbHVkZSA8bGludXgvZHNwZnMuaD4KKyNpbmNsdWRlIDxs
-aW51eC9tbS5oPgorI2luY2x1ZGUgPGxpbnV4L2tlcm5lbC5oPgorI2luY2x1
-ZGUgPGxpbnV4L2ZzLmg+CisKK3N0cnVjdCBkZW50cnkgKmRlbnRyeTsKKwor
-c3RhdGljIGludCBvbWFwX2RzcF9pbml0KHZvaWQqIGFyZykKK3sKKwlwcmlu
-dGsoS0VSTl9OT1RJQ0UgIkRTUDogSW5pdGlhbGl6aW5nXG4iKTsKKworCXJl
-dHVybiAwOworfQorCitzdGF0aWMgdm9pZCBvbWFwX2RzcF9leGl0KHZvaWQq
-IGFyZykKK3sKKwlwcmludGsoS0VSTl9OT1RJQ0UgIkRTUDogRXhpdGluZ1xu
-Iik7Cit9CisKK3N0YXRpYyBzc2l6ZV90IG9tYXBfZHNwX2Rpcl93cml0ZShz
-dHJ1Y3QgZmlsZSAqZmlsZSwgY29uc3QgY2hhciBfX3VzZXIgKmJ1ZiwKKwkJ
-CQkgc2l6ZV90IGNvdW50LCBsb2ZmX3QgKnBwb3MpCit7CisJcmV0dXJuIGdl
-bmVyaWNfZmlsZV93cml0ZShmaWxlLCBidWYsIGNvdW50LCBwcG9zKTsKK30K
-Kworc3RhdGljIHN0cnVjdCBmaWxlX29wZXJhdGlvbnMgb21hcF9kc3BfY29k
-ZWNzX2Rpcl9mb3BzID0geworCS5vcGVuCQk9IGRjYWNoZV9kaXJfb3BlbiwK
-KwkucmVsZWFzZQk9IGRjYWNoZV9kaXJfY2xvc2UsCisJLmxsc2VlawkJPSBk
-Y2FjaGVfZGlyX2xzZWVrLAorCS5yZWFkCQk9IGdlbmVyaWNfcmVhZF9kaXIs
-CisJLndyaXRlCQk9IG9tYXBfZHNwX2Rpcl93cml0ZSwKKwkucmVhZGRpcgk9
-IGRjYWNoZV9yZWFkZGlyLAorfTsKKworc3RhdGljIHN0cnVjdCBmaWxlX29w
-ZXJhdGlvbnMgb21hcF9kc3BfcGVyY29kZWNfZm9wcyA9IHsKKwkucmVhZCAg
-PSBnZW5lcmljX2ZpbGVfcmVhZCwKKwkud3JpdGUgPSBnZW5lcmljX2ZpbGVf
-d3JpdGUsCit9OworCitzdGF0aWMgc3RydWN0IHRyZWVfZGVzY3Igb21hcF9k
-c3BfcGVyY29kZWNfZmlsZXNbXSA9IHsKKwl7ImZybWRhdGFfMCIsICZvbWFw
-X2RzcF9wZXJjb2RlY19mb3BzLCBTX0lXVVNSIHwgU19JUlVHT30sCisJeyJm
-cm1kYXRhXzEiLCAmb21hcF9kc3BfcGVyY29kZWNfZm9wcywgU19JV1VTUiB8
-IFNfSVJVR099LAorCXsiIiB9LAorfTsKKworc3RhdGljIHN0cnVjdCBkc3Bf
-aW5mbyBvbWFwX2RzcCA9IHsKKwkubmFtZQk9ICJjNTV4IiwKKwkucGFyZW50
-ID0gTlVMTCwKKwkuaW5pdAk9IG9tYXBfZHNwX2luaXQsCisJLmV4aXQJPSBv
-bWFwX2RzcF9leGl0LAorCS5mb3BzCT0gJm9tYXBfZHNwX2NvZGVjc19kaXJf
-Zm9wcywKKwkucGVyY29kZWNfZmlsZXMgPSBvbWFwX2RzcF9wZXJjb2RlY19m
-aWxlcywKK307CisKK3N0YXRpYyBpbnQgX19pbml0IG9tYXBfZHNwX2ZzX2lu
-aXQodm9pZCkKK3sKKwlkZW50cnkgPSBkc3BfcmVnaXN0ZXIoJm9tYXBfZHNw
-KTsKKworCWlmIChJU19FUlIoZGVudHJ5KSkKKwkJcmV0dXJuIFBUUl9FUlIo
-ZGVudHJ5KTsKKworCXJldHVybiAwOworfQorCitzdGF0aWMgdm9pZCBfX2V4
-aXQgb21hcF9kc3BfZnNfZXhpdCh2b2lkKQoreworCWRzcF91bnJlZ2lzdGVy
-KGRlbnRyeSk7Cit9CisKK21vZHVsZV9pbml0KG9tYXBfZHNwX2ZzX2luaXQp
-OworbW9kdWxlX2V4aXQob21hcF9kc3BfZnNfZXhpdCk7CisKK01PRFVMRV9M
-SUNFTlNFKCJHUEwiKTsK
-
---_----------=_1158053726187580
+ZGlmZiAtLWdpdCBhL3NvdW5kL2FybS9vbWFwL29tYXAtYWxzYS1kbWEuYyBiL3NvdW5kL2FybS9v
+bWFwL29tYXAtYWxzYS1kbWEuYwotLS0gYS9zb3VuZC9hcm0vb21hcC9vbWFwLWFsc2EtZG1hLmMK
+KysrIGIvc291bmQvYXJtL29tYXAvb21hcC1hbHNhLWRtYS5jCkBAIC0yMDAsNyArMjAwLDcgQEAg
+aW50IG9tYXBfcmVxdWVzdF9hbHNhX3NvdW5kX2RtYShpbnQgZGV2aQogCX0KIAogCS8qIENoYWlu
+IHRoZSBjaGFubmVscyB0b2dldGhlciAqLwotCWlmICghY3B1X2lzX29tYXAxNTEwKCkpCisJaWYg
+KCFjcHVfaXNfb21hcDE1eHgoKSkKIAkJb21hcF9zb3VuZF9kbWFfbGlua19sY2goZGF0YSk7CiAK
+IAlzcGluX3VubG9jaygmZG1hX2xpc3RfbG9jayk7CkBAIC0yNTEsNyArMjUxLDcgQEAgaW50IG9t
+YXBfZnJlZV9hbHNhX3NvdW5kX2RtYSh2b2lkICpkYXRhLAogCX0KIAljaGFuID0gKCpjaGFubmVs
+cyk7CiAKLQlpZiAoIWNwdV9pc19vbWFwMTUxMCgpKQorCWlmICghY3B1X2lzX29tYXAxNXh4KCkp
+CiAJCW9tYXBfc291bmRfZG1hX3VubGlua19sY2goZGF0YSk7CiAJZm9yIChpID0gMDsgaSA8IG5y
+X2xpbmtlZF9jaGFubmVsczsgaSsrKSB7CiAJCWludCBjdXJfY2hhbiA9IGNoYW5baV07CkBAIC0z
+NDksNyArMzQ5LDggQEAgc3RhdGljIGludCBhdWRpb19zdGFydF9kbWFfY2hhaW4oc3RydWN0IAog
+CQlvbWFwX3N0YXJ0X2RtYShjaGFubmVsKTsKIAkJcy0+c3RhcnRlZCA9IDE7CiAJCXMtPmh3X3N0
+YXJ0KCk7CSAgIC8qIHN0YXJ0IE1jQlNQIGludGVyZmFjZSAqLwotCX0KKwl9IGVsc2UgaWYgKGNw
+dV9pc19vbWFwMzEwKCkpCisJCW9tYXBfc3RhcnRfZG1hKGNoYW5uZWwpOwogCS8qIGVsc2UgdGhl
+IGRtYSBpdHNlbGYgd2lsbCBwcm9ncmVzcyBmb3J3YXJkIHdpdGggb3V0IG91ciBoZWxwICovCiAJ
+Rk5fT1VUKDApOwogCXJldHVybiAwOwpkaWZmIC0tZ2l0IGEvc291bmQvYXJtL29tYXAvb21hcC1h
+bHNhLmMgYi9zb3VuZC9hcm0vb21hcC9vbWFwLWFsc2EuYwotLS0gYS9zb3VuZC9hcm0vb21hcC9v
+bWFwLWFsc2EuYworKysgYi9zb3VuZC9hcm0vb21hcC9vbWFwLWFsc2EuYwpAQCAtMjAzLDcgKzIw
+Myw3IEBAIHN0YXRpYyB2b2lkIGF1ZGlvX3Byb2Nlc3NfZG1hKHN0cnVjdCBhdWQKIAkJICogaXJx
+IGZyb20gRE1BIGFmdGVyIHRoZSBmaXJzdCB0cmFuc2ZlcmVkL3BsYXllZCBidWZmZXIuCiAJCSAq
+IChpbnZvY2F0aW9uIG9mIGNhbGxiYWNrX29tYXBfYWxzYV9zb3VuZF9kbWEoKSBtZXRob2QpLgog
+CQkgKi8KLQkJaWYgKGNwdV9pc19vbWFwMTV4eCgpKSB7CisJCWlmIChjcHVfaXNfb21hcDE1MTAo
+KSkgewogCQkJb21hcF9zdG9wX2Fsc2Ffc291bmRfZG1hKHMpOwogCQl9CiAJCXJldCA9IG9tYXBf
+c3RhcnRfYWxzYV9zb3VuZF9kbWEocywK
+------=_Part_13009_6320465.1158054827540
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---_----------=_1158053726187580--
+------=_Part_13009_6320465.1158054827540--
