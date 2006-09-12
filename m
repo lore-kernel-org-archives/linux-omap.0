@@ -1,17 +1,11 @@
-From: "andrzej zaborowski" <balrog@zabor.org>
-Subject: Re: Pending August patches
-Date: Tue, 12 Sep 2006 01:26:46 +0200
-Message-ID: <fb249edb0609111626h37d8d971tfc8be67b74134490@mail.gmail.com>
-References: <44F85C99.7080102@gmail.com>
-	<fb249edb0609011004k75484eejae4c583d933bfe01@mail.gmail.com>
-	<20060904150433.GC8017@atomide.com>
-	<20060905154109.GE18073@atomide.com>
-Reply-To: balrogg@gmail.com
+From: "Komal Shah" <komal_shah802003@yahoo.com>
+Subject: [ANNOUNCE] dspfs tree
+Date: Tue, 12 Sep 2006 14:53:43 +0530
+Message-ID: <1158053023.1657.270711270@webmail.messagingengine.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <20060905154109.GE18073@atomide.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -20,80 +14,99 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "tony@atomide.com" <tony@atomide.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On 05/09/06, tony@atomide.com <tony@atomide.com> wrote:
-> OK, I've pushed Dirk's list except for the ones commented below.
-> Please check your patches got merged OK.
->
-> Regards,
->
-> Tony
->
-> 1. [PATCH] ARM: OMAP: Remove warnings in DSP code
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007728.html
->
-> 2. [PATCH] ARM: OMAP: Add GPIO API howto
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007733.html
->
-> 3. [PATCH] Unmask omap-keypad interrupt on suspend
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007772.html
->
-> 4. [PATCH] Add LCD backlight driver for OMAP
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007773.html
->
-> 5. [PATCH] ARM: OMAP: Backlight configuration struct
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007774.html
->
-> 6. [PATCH] ARM: OMAP: Register LCD backlight on PalmTE
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007775.html
->
-> 7. [PATCH] ARM: OMAP: Add Amstrad Delta platform bits for framebuffer.
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007776.html
->
-> 8. [PATCH 1/5] Change all omap15xx devices to use similar DMA handling than h6300 uses.
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007777.html
->
-> Already applied.
+Paul Mundt has published the dspfs tree at the following location:
+git://git.kernel.org/pub/scm/linux/kernel/git/lethal/dspfs-2.6.git
 
-It doesn't appear these two patches are merged yet. Am I looking at a
-wrong place?
+It is visible under http://www.kernel.org/git web interface. See that
+is based from mainline tree _not_ linux-omap-2.6.git tree.
 
->
-> 9. [PATCH 2/5] Removed double spinlocking with omap15xx devices.
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007778.html
->
-> Already applied.
->
-> 10. [PATCH 3/5] Fix init warning in tsc2101 alsa driver.
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007779.html
->
-> 11. [PATCH 4/5] tsc2101 mixer fixes.
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007780.html
->
-> 12. [PATCH 5/5] Add gsm phone support for the mixer in tsc2101 alsa driver.
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007781.html
->
-> 13. H3 alsa support
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007821.html
->
-> 14. [PATCH] support printk-times by fixing sched_clock to be callable in early boot
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007828.html
->
-> Let's do this by implementing printk_clock() instead.
->
-> 15. Re: [patch 2.6.17-rc4-omap-git] rtc-omap, rtc framework driver
-> or better: Handle wakeup irqs more correctly and completely
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007853.html
->
-> Already applied.
->
+dspfs description based on the discussion with Paul and dspfs code.
+----
 
-Thanks
+dspfs - the DSP file system
+=====
+
+A simple resource management file system intended for use with 
+asymmetric cores, and more specifically DSPs.
+
+It is currently being modeled around the TMS320C55x DSP(found
+in both OMAP1710 and OMAP2420) and OMAP2420 IVA1.0 blocks, but
+it intended as simple resource management framework[2].
+
+Need for dspfs?
+=====
+
+It is basically created more in the direction of a staging
+ground for dspgatway[1] replacement, as current dspgateway having
+following downsides:
+
+o virtual bus and ioctls based tight coupling with task interface.
+o Scalability - e.g. OMAP2420 IVA1 block with multiple co-processors.
+o Familiarity of code with various developers.
+o Acceptance of code to mainline tree
+o Burden of maintenance
+
+dspfs tries to address above problems while _not_ restricting it's 
+implementation to TI OMAP-DSPs like processors.
+
+FILES
+=====
+
+"/dsp" is the mount point for dspfs, but it can be mounted elsewhere too.
+
+While mounting dspfs tries to create directories/files for all the processors
+and it's children registered with it under the mountpoint.
+
+Here is the example for OMAP2420(iva1 and c55x).
+
+|-- c55x
+|   |-- codecs
+|      
+`-- iva1
+    |-- codecs
+    `-- seq
+        `-- codecs
+
+1. iva1 can have its co-processors as child so dsp_register_child works here. 
+   It can be like seq, vlcd, and imx.
+2. For c55x, we will just need one entry, as there are no child processors as we know.
+3. codecs directory gets created by default for each child or main parent directory
+   under the mount-point.
+4. codecs directory allows to create per-codec files under it.
+   When you create a new codec file under codecs directory, a directory of the same
+   name gets created at the same level of codecs directory with its default per-codec
+   files. e.g.
+
+|-- c55x
+|   |-- codecs
+|   |   `-- mp4
+|   `-- mp4
+|       |-- frmdata_0
+|       `-- frmdata_1
+`-- iva1
+    |-- codecs
+    `-- seq
+        `-- codecs
+
+5. When you remove codec-file under codecs directory, its parent directory with the same
+   name also gets removed(but not codecs directory).
+
+[1] http://dspgateway.sourceforge.net
+[2] linux/Documentation/filesystem/spufs.txt
+
+----
+
+I will send the dummy C55x implementation patch, so that one can start playing with dspfs.
+
+NOTE: Please CC to Paul Mundt, if you need his attention, as he is not subscribed to this list.
+
+---Komal Shah
+http://komalshah.blogspot.com
 
 -- 
-balrog 2oo6
+http://www.fastmail.fm - Does exactly what it says on the tin
