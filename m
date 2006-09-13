@@ -1,17 +1,12 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Pending August patches
-Date: Tue, 12 Sep 2006 15:03:29 +0300
-Message-ID: <20060912120328.GD22547@atomide.com>
-References: <44F85C99.7080102@gmail.com>
-	<fb249edb0609011004k75484eejae4c583d933bfe01@mail.gmail.com>
-	<20060904150433.GC8017@atomide.com>
-	<20060905154109.GE18073@atomide.com>
-	<fb249edb0609111626h37d8d971tfc8be67b74134490@mail.gmail.com>
+From: "zil iram" <zil_iram@hotmail.com>
+Subject: Re: omap5912 audio driver
+Date: Wed, 13 Sep 2006 01:52:29 +0000
+Message-ID: <BAY21-F78C8577736EB9F39B3493F8280@phx.gbl>
+References: <45057532.5030603@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; format=flowed
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <fb249edb0609111626h37d8d971tfc8be67b74134490@mail.gmail.com>
+In-Reply-To: <45057532.5030603@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,34 +16,38 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: balrogg@gmail.com
-Cc: linux-omap-open-source@linux.omap.com
+To: dirk.behme@googlemail.com
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* andrzej zaborowski <balrog@zabor.org> [060912 02:27]:
-> On 05/09/06, tony@atomide.com <tony@atomide.com> wrote:
-> >OK, I've pushed Dirk's list except for the ones commented below.
-> >Please check your patches got merged OK.
-> >
-> >8. [PATCH 1/5] Change all omap15xx devices to use similar DMA handling 
-> >than h6300 uses.
-> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007777.html
-> >
-> >Already applied.
-> 
-> It doesn't appear these two patches are merged yet. Am I looking at a
-> wrong place?
-> 
-> >
-> >9. [PATCH 2/5] Removed double spinlocking with omap15xx devices.
-> >http://linux.omap.com/pipermail/linux-omap-open-source/2006-August/007778.html
-> >
-> >Already applied.
 
-Thanks for noticing. I must have tried to apply these two patches
-twice before committing somehow which made me think they're
-already applied.. Pushing them today.
+Hi Dirk,
+          Thanks, I tried using kernel 2.6.17 and the audio driver is now 
+compiling and working.
+           Thank you very much!
+Zil
 
-Regards,
+>From: Dirk Behme <dirk.behme@googlemail.com>
+>To: zil iram <zil_iram@hotmail.com>
+>CC: Linux-omap-open-source@linux.omap.com
+>Subject: Re: omap5912 audio driver
+>Date: Mon, 11 Sep 2006 16:39:46 +0200
+>
+>zil iram wrote:
+>>When I compiled the kernel (version 2.6.16) with the audio drivers 
+>>enabled, an error occured with this message :
+>>                sound/oss/omap-audio-aic23.c:246: error: unknown field 
+>>`sem' specified in initializer
+>>To move on with my work, I just commented out the line
+>>                .sem        = __SEMAPHORE_INIT(aic23_state.sem, 1)
+>>inside the structure static audio_state_t aic23_state of the file 
+>>specified in the error message.  So the kernel compiled. Do you know what 
+>>is wrong?
+>
+>Can you try and check the same with recent kernel from git?
+>
+>Dirk
 
-Tony
+_________________________________________________________________
+Express yourself instantly with MSN Messenger! Download today it's FREE! 
+http://messenger.msn.click-url.com/go/onm00200471ave/direct/01/
