@@ -1,15 +1,14 @@
-From: "andrzej zaborowski" <balrog@zabor.org>
-Subject: Re: [PATCH 2/4] TSC2102 Touchscreen
-Date: Wed, 13 Sep 2006 21:14:53 +0200
-Message-ID: <fb249edb0609131214m3ff6114dl3b3cc2edb78fdf3e@mail.gmail.com>
-References: <fb249edb0608180307t2fe9ea51wde113d1a8182b51f@mail.gmail.com>
-	<20060818130937.72819.qmail@web37915.mail.mud.yahoo.com>
-Reply-To: balrogg@gmail.com
+From: Prashant <prashantkhoje@gmail.com>
+Subject: Re: OMAP1710 H3: full duplex audio problem
+Date: Thu, 14 Sep 2006 12:11:44 +0530
+Message-ID: <7b1b9c8b0609132341k2f2547fbt7d379abe9e2cc344@mail.gmail.com>
+References: <7b1b9c8b0609110333w565de1dckf47d5bfe982c24d3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_52147_22670705.1158174893959"
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060818130937.72819.qmail@web37915.mail.mud.yahoo.com>
+In-Reply-To: <7b1b9c8b0609110333w565de1dckf47d5bfe982c24d3@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,184 +18,19 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Komal Shah <komal_shah802003@yahoo.com>
-Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-------=_Part_52147_22670705.1158174893959
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-On 18/08/06, Komal Shah <komal_shah802003@yahoo.com> wrote:
-> Few comments here too:
->
-> +#include <linux/platform_device.h>
-> +#include <linux/kbd_kern.h>
->
-> Why you need kbd_kern.h ?
-
-It was my attempt to tell the kernel to not blank the console when I'm
-typing something using an on-screen keyboard in a tty, like when
-typing with a keyboard. I can see that it's not the right place for
-this code -- it should probably either be done in userspace, the gpm
-way, or be generic for all touchscreen devices like it is for
-keyboards.
-
-Attached is a cleaner version of the patch.
-
->
-> +       dev->absbit[0] = BIT(ABS_X) | BIT(ABS_Y) | BIT(ABS_PRESSURE);
-> +       input_register_device(dev);
->
-> You should check the return value of input_register_device.
->
-> +       printk("TSC2102 touchscreen driver initialized\n");
->
-> Better if you use KERN_INFO with printk above.
->
-> +       dev->name = "TSC2102 Touchscreen";
-> +       dev->dev = &pdev->dev;
->
-> Also fill up remaining fields of input_dev structure. eg. phys, bustype
-> etc.
->
-> +static int
-> +tsc2102_ts_suspend(struct platform_device *pdev, pm_message_t state)
-> +{
-> +       /* Nothing yet */
-> +       return 0;
-> +}
-> +
-> +static int tsc2102_ts_resume(struct platform_device *pdev)
-> +{
-> +       /* Nothing either */
-> +       return 0;
-> +}
->
-> How about using #ifdef CONFIG_PM around suspend and resume.  ?
->
->
-> ---Komal Shah
-> http://komalshah.blogspot.com/
->
-> __________________________________________________
-> Do You Yahoo!?
-> Tired of spam?  Yahoo! Mail has the best spam protection around
-> http://mail.yahoo.com
->
+I have also tried using ioctls GETISPACE & GETOSPACE with and without
+'select' function. Instead of loopback, if I feed some known test data
+to be written to the device, device plays it. But recording doesnt
+work whether I try
+- to loopback,
+- playback anything else than recorded data and dump recorded data to a file or
+- only record opening device in read only mode
 
 
--- 
-balrog 2oo6
+Simple "cat /dev/sound/dsp > /dev/sound/dsp" doesnt work either.
 
-------=_Part_52147_22670705.1158174893959
-Content-Type: application/octet-stream; name=linux-tsc2102-touchscreen.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_es27lm7w
-Content-Disposition: attachment; filename="linux-tsc2102-touchscreen.patch"
-
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5wdXQvdG91Y2hzY3JlZW4vS2NvbmZpZyBiL2RyaXZlcnMv
-aW5wdXQvdG91Y2hzY3JlZW4vS2NvbmZpZwotLS0gYS9kcml2ZXJzL2lucHV0L3RvdWNoc2NyZWVu
-L0tjb25maWcKKysrIGIvZHJpdmVycy9pbnB1dC90b3VjaHNjcmVlbi9LY29uZmlnCkBAIC0xMTEs
-NiArMTExLDIxIEBAIGNvbmZpZyBUT1VDSFNDUkVFTl9IUDYwMAogCSAgVG8gY29tcGlsZSB0aGlz
-IGRyaXZlciBhcyBhIG1vZHVsZSwgY2hvb3NlIE0gaGVyZTogdGhlCiAJICBtb2R1bGUgd2lsbCBi
-ZSBjYWxsZWQgaHA2ODBfdHNfaW5wdXQuCiAKK2NvbmZpZyBUT1VDSFNDUkVFTl9UU0MyMTAyCisJ
-dHJpc3RhdGUgIlRTQyAyMTAyIGJhc2VkIHRvdWNoc2NyZWVucyIKKwlkZXBlbmRzIG9uIFNQSV9N
-QVNURVIKKwlzZWxlY3QgVFNDMjEwMgorCWhlbHAKKwkgIFNheSBZIGhlcmUgaWYgeW91IGhhdmUg
-YSB0b3VjaHNjcmVlbiBpbnRlcmZhY2UgdXNpbmcgdGhlCisJICBUSSBUU0MgMjEwMiBjb250cm9s
-bGVyLCBhbmQgeW91ciBib2FyZC1zcGVjaWZpYyBpbml0aWFsaXphdGlvbgorCSAgY29kZSBpbmNs
-dWRlcyB0aGF0IGluIGl0cyB0YWJsZSBvZiBTUEkgZGV2aWNlcy4gIEFsc28gbWFrZQorCSAgc3Vy
-ZSB0aGUgcHJvcGVyIFNQSSBjb250cm9sbGVyIGlzIHNlbGVjdGVkLgorCisJICBJZiB1bnN1cmUs
-IHNheSBOIChidXQgaXQncyBzYWZlIHRvIHNheSAiWSIpLgorCisJICBUbyBjb21waWxlIHRoaXMg
-ZHJpdmVyIGFzIGEgbW9kdWxlLCBjaG9vc2UgTSBoZXJlOiB0aGUKKwkgIG1vZHVsZSB3aWxsIGJl
-IGNhbGxlZCB0c2MyMTAyX3RzLgorCiBlbmRpZgogY29uZmlnIFRPVUNIU0NSRUVOX09NQVAKIAl0
-cmlzdGF0ZSAiT01BUCB0b3VjaHNjcmVlbiBpbnB1dCBkcml2ZXIiCmRpZmYgLS1naXQgYS9kcml2
-ZXJzL2lucHV0L3RvdWNoc2NyZWVuL01ha2VmaWxlIGIvZHJpdmVycy9pbnB1dC90b3VjaHNjcmVl
-bi9NYWtlZmlsZQotLS0gYS9kcml2ZXJzL2lucHV0L3RvdWNoc2NyZWVuL01ha2VmaWxlCisrKyBi
-L2RyaXZlcnMvaW5wdXQvdG91Y2hzY3JlZW4vTWFrZWZpbGUKQEAgLTEyLDQgKzEyLDUgQEAgb2Jq
-LSQoQ09ORklHX1RPVUNIU0NSRUVOX0VMTykJKz0gZWxvLm8KIG9iai0kKENPTkZJR19UT1VDSFND
-UkVFTl9NVE9VQ0gpICs9IG10b3VjaC5vCiBvYmotJChDT05GSUdfVE9VQ0hTQ1JFRU5fTUs3MTIp
-CSs9IG1rNzEyLm8KIG9iai0kKENPTkZJR19UT1VDSFNDUkVFTl9IUDYwMCkJKz0gaHA2ODBfdHNf
-aW5wdXQubworb2JqLSQoQ09ORklHX1RPVUNIU0NSRUVOX1RTQzIxMDIpCSs9IHRzYzIxMDJfdHMu
-bwogb2JqLSQoQ09ORklHX1RPVUNIU0NSRUVOX09NQVApCSs9IG9tYXAvCmRpZmYgLS1naXQgYS9k
-cml2ZXJzL2lucHV0L3RvdWNoc2NyZWVuL3RzYzIxMDJfdHMuYyBiL2RyaXZlcnMvaW5wdXQvdG91
-Y2hzY3JlZW4vdHNjMjEwMl90cy5jCm5ldyBmaWxlIG1vZGUgMTAwNjQ0Ci0tLSAvZGV2L251bGwK
-KysrIGIvZHJpdmVycy9pbnB1dC90b3VjaHNjcmVlbi90c2MyMTAyX3RzLmMKQEAgLTAsMCArMSwx
-NjQgQEAKKy8qCisgKiBpbnB1dC90b3VjaHNjcmVlbi90c2MyMTAyX3RzLmMKKyAqCisgKiBUb3Vj
-aHNjcmVlbiBpbnB1dCBkZXZpY2UgZHJpdmVyIGZvciB0aGUgVFNDIDIxMDIgY2hpcC4KKyAqCisg
-KiBDb3B5cmlnaHQgKGMpIDIwMDYgQW5kcnplaiBaYWJvcm93c2tpICA8YmFscm9nQHphYm9yLm9y
-Zz4KKyAqCisgKiBUaGlzIHBhY2thZ2UgaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGNhbiByZWRpc3Ry
-aWJ1dGUgaXQgYW5kL29yIG1vZGlmeQorICogaXQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUg
-R2VuZXJhbCBQdWJsaWMgTGljZW5zZSBhcyBwdWJsaXNoZWQgYnkKKyAqIHRoZSBGcmVlIFNvZnR3
-YXJlIEZvdW5kYXRpb247IGVpdGhlciB2ZXJzaW9uIDIgb2YgdGhlIExpY2Vuc2UsIG9yCisgKiAo
-YXQgeW91ciBvcHRpb24pIGFueSBsYXRlciB2ZXJzaW9uLgorICoKKyAqIFRoaXMgcGFja2FnZSBp
-cyBkaXN0cmlidXRlZCBpbiB0aGUgaG9wZSB0aGF0IGl0IHdpbGwgYmUgdXNlZnVsLAorICogYnV0
-IFdJVEhPVVQgQU5ZIFdBUlJBTlRZOyB3aXRob3V0IGV2ZW4gdGhlIGltcGxpZWQgd2FycmFudHkg
-b2YKKyAqIE1FUkNIQU5UQUJJTElUWSBvciBGSVRORVNTIEZPUiBBIFBBUlRJQ1VMQVIgUFVSUE9T
-RS4gIFNlZSB0aGUKKyAqIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGZvciBtb3JlIGRldGFp
-bHMuCisgKgorICogWW91IHNob3VsZCBoYXZlIHJlY2VpdmVkIGEgY29weSBvZiB0aGUgR05VIEdl
-bmVyYWwgUHVibGljIExpY2Vuc2UKKyAqIGFsb25nIHdpdGggdGhpcyBwYWNrYWdlOyBpZiBub3Qs
-IHdyaXRlIHRvIHRoZSBGcmVlIFNvZnR3YXJlCisgKiBGb3VuZGF0aW9uLCBJbmMuLCA1MSBGcmFu
-a2xpbiBTdCwgRmlmdGggRmxvb3IsIEJvc3RvbiwgTUEgIDAyMTEwLTEzMDEgIFVTQQorICovCisK
-KyNpbmNsdWRlIDxsaW51eC9lcnJuby5oPgorI2luY2x1ZGUgPGxpbnV4L2tlcm5lbC5oPgorI2lu
-Y2x1ZGUgPGxpbnV4L21vZHVsZS5oPgorI2luY2x1ZGUgPGxpbnV4L2lucHV0Lmg+CisjaW5jbHVk
-ZSA8bGludXgvaW5pdC5oPgorI2luY2x1ZGUgPGxpbnV4L3BsYXRmb3JtX2RldmljZS5oPgorCisj
-aW5jbHVkZSA8bGludXgvc3BpL3RzYzIxMDIuaD4KKworc3RydWN0IGlucHV0X2RldiAqZGV2Owor
-CitzdGF0aWMgdm9pZCB0c2MyMTAyX3RvdWNoKGludCB0b3VjaGluZykKK3sKKwlpZiAoIXRvdWNo
-aW5nKSB7CisJCWlucHV0X3JlcG9ydF9hYnMoZGV2LCBBQlNfWCwgMCk7CisJCWlucHV0X3JlcG9y
-dF9hYnMoZGV2LCBBQlNfWSwgMCk7CisJCWlucHV0X3JlcG9ydF9hYnMoZGV2LCBBQlNfUFJFU1NV
-UkUsIDApOworCQlpbnB1dF9zeW5jKGRldik7CisJfQorCisJaW5wdXRfcmVwb3J0X2tleShkZXYs
-IEJUTl9UT1VDSCwgdG91Y2hpbmcpOworfQorCitzdGF0aWMgdm9pZCB0c2MyMTAyX2Nvb3Jkcyhp
-bnQgeCwgaW50IHksIGludCB6MSwgaW50IHoyKQoreworCWludCBwOworCisJLyogQ2FsY3VsYXRl
-IHRoZSB0b3VjaCByZXNpc3RhbmNlIGEgbGEgZXF1YXRpb24gIzEgKi8KKwlpZiAoejEgIT0gMCkK
-KwkJcCA9IHggKiAoejIgLSB6MSkgLyAoejEgPDwgNCk7CisJZWxzZQorCQlwID0gMTsKKworCWlu
-cHV0X3JlcG9ydF9hYnMoZGV2LCBBQlNfWCwgeCk7CisJaW5wdXRfcmVwb3J0X2FicyhkZXYsIEFC
-U19ZLCB5KTsKKwlpbnB1dF9yZXBvcnRfYWJzKGRldiwgQUJTX1BSRVNTVVJFLCBwKTsKKwlpbnB1
-dF9zeW5jKGRldik7Cit9CisKK3N0YXRpYyBpbnQgdHNjMjEwMl90c19wcm9iZShzdHJ1Y3QgcGxh
-dGZvcm1fZGV2aWNlICpwZGV2KQoreworCWludCBzdGF0dXM7CisKKwlkZXYgPSBpbnB1dF9hbGxv
-Y2F0ZV9kZXZpY2UoKTsKKwlpZiAoIWRldikKKwkJcmV0dXJuIC1FTk9NRU07CisKKwlzdGF0dXMg
-PSB0c2MyMTAyX3RvdWNoX2NiKHRzYzIxMDJfdG91Y2gpOworCWlmIChzdGF0dXMpIHsKKwkJaW5w
-dXRfZnJlZV9kZXZpY2UoZGV2KTsKKwkJcmV0dXJuIHN0YXR1czsKKwl9CisKKwlzdGF0dXMgPSB0
-c2MyMTAyX2Nvb3Jkc19jYih0c2MyMTAyX2Nvb3Jkcyk7CisJaWYgKHN0YXR1cykgeworCQl0c2My
-MTAyX3RvdWNoX2NiKDApOworCQlpbnB1dF9mcmVlX2RldmljZShkZXYpOworCQlyZXR1cm4gc3Rh
-dHVzOworCX0KKworCWRldi0+bmFtZSA9ICJUU0MyMTAyIFRvdWNoc2NyZWVuIjsKKwlkZXYtPmRl
-diA9ICZwZGV2LT5kZXY7CisJZGV2LT5jZGV2LmRldiA9ICZwZGV2LT5kZXY7CisJZGV2LT5ldmJp
-dFswXSA9IEJJVChFVl9LRVkpIHwgQklUKEVWX0FCUyk7CisJZGV2LT5rZXliaXRbTE9ORyhCVE5f
-VE9VQ0gpXSB8PSBCSVQoQlROX1RPVUNIKTsKKwlkZXYtPmFic2JpdFswXSA9IEJJVChBQlNfWCkg
-fCBCSVQoQUJTX1kpIHwgQklUKEFCU19QUkVTU1VSRSk7CisJZGV2LT5waHlzID0gInRzYzIxMDIv
-aW5wdXQwIjsKKwlkZXYtPmlkLmJ1c3R5cGUgPSBCVVNfSE9TVDsKKwlkZXYtPmlkLnZlbmRvciA9
-IDB4MDAwMTsKKwlkZXYtPmlkLnByb2R1Y3QgPSAweDIxMDI7CisJZGV2LT5pZC52ZXJzaW9uID0g
-MHgwMDAxOworCisJc3RhdHVzID0gaW5wdXRfcmVnaXN0ZXJfZGV2aWNlKGRldik7CisJaWYgKHN0
-YXR1cykgeworCQl0c2MyMTAyX2Nvb3Jkc19jYigwKTsKKwkJdHNjMjEwMl90b3VjaF9jYigwKTsK
-KwkJaW5wdXRfZnJlZV9kZXZpY2UoZGV2KTsKKwkJcmV0dXJuIHN0YXR1czsKKwl9CisKKwlwcmlu
-dGsoS0VSTl9JTkZPICJUU0MyMTAyIHRvdWNoc2NyZWVuIGRyaXZlciBpbml0aWFsaXplZFxuIik7
-CisJcmV0dXJuIDA7Cit9CisKK3N0YXRpYyBpbnQgdHNjMjEwMl90c19yZW1vdmUoc3RydWN0IHBs
-YXRmb3JtX2RldmljZSAqcGRldikKK3sKKwl0c2MyMTAyX3RvdWNoX2NiKDApOworCXRzYzIxMDJf
-Y29vcmRzX2NiKDApOworCWlucHV0X3VucmVnaXN0ZXJfZGV2aWNlKGRldik7CisJaW5wdXRfZnJl
-ZV9kZXZpY2UoZGV2KTsKKwlyZXR1cm4gMDsKK30KKworI2lmZGVmIENPTkZJR19QTQorc3RhdGlj
-IGludAordHNjMjEwMl90c19zdXNwZW5kKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYsIHBt
-X21lc3NhZ2VfdCBzdGF0ZSkKK3sKKwlyZXR1cm4gMDsKK30KKworc3RhdGljIGludCB0c2MyMTAy
-X3RzX3Jlc3VtZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQoreworCXJldHVybiAwOwor
-fQorI2Vsc2UKKyNkZWZpbmUgdHNjMjEwMl90c19zdXNwZW5kCU5VTEwKKyNkZWZpbmUgdHNjMjEw
-Ml90c19yZXN1bWUJTlVMTAorI2VuZGlmCisKK3N0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZHJpdmVy
-IHRzYzIxMDJfdHNfZHJpdmVyID0geworCS5wcm9iZSAJCT0gdHNjMjEwMl90c19wcm9iZSwKKwku
-cmVtb3ZlIAk9IHRzYzIxMDJfdHNfcmVtb3ZlLAorCS5zdXNwZW5kIAk9IHRzYzIxMDJfdHNfc3Vz
-cGVuZCwKKwkucmVzdW1lIAk9IHRzYzIxMDJfdHNfcmVzdW1lLAorCS5kcml2ZXIJCT0geworCQku
-bmFtZQk9ICJ0c2MyMTAyLXRzIiwKKwkJLm93bmVyCT0gVEhJU19NT0RVTEUsCisJfSwKK307CisK
-K3N0YXRpYyBpbnQgX19pbml0IHRzYzIxMDJfdHNfaW5pdCh2b2lkKQoreworCWludCByZXQ7CisK
-KwlyZXQgPSBwbGF0Zm9ybV9kcml2ZXJfcmVnaXN0ZXIoJnRzYzIxMDJfdHNfZHJpdmVyKTsKKwlp
-ZiAocmV0KQorCQlyZXR1cm4gLUVOT0RFVjsKKworCXJldHVybiAwOworfQorCitzdGF0aWMgdm9p
-ZCBfX2V4aXQgdHNjMjEwMl90c19leGl0KHZvaWQpCit7CisJcGxhdGZvcm1fZHJpdmVyX3VucmVn
-aXN0ZXIoJnRzYzIxMDJfdHNfZHJpdmVyKTsKK30KKworbW9kdWxlX2luaXQodHNjMjEwMl90c19p
-bml0KTsKK21vZHVsZV9leGl0KHRzYzIxMDJfdHNfZXhpdCk7CisKK01PRFVMRV9BVVRIT1IoIkFu
-ZHJ6ZWogWmFib3Jvd3NraSIpOworTU9EVUxFX0RFU0NSSVBUSU9OKCJUb3VjaHNjcmVlbiBpbnB1
-dCBkcml2ZXIgZm9yIFRJIFRTQzIxMDIuIik7CitNT0RVTEVfTElDRU5TRSgiR1BMIik7Cg==
-------=_Part_52147_22670705.1158174893959
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
-------=_Part_52147_22670705.1158174893959--
+Regards,
+Prashant Khoje
