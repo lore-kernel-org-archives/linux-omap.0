@@ -1,14 +1,13 @@
-From: Prashant <prashantkhoje@gmail.com>
-Subject: Re: OMAP1710 H3: full duplex audio problem
-Date: Thu, 14 Sep 2006 12:11:44 +0530
-Message-ID: <7b1b9c8b0609132341k2f2547fbt7d379abe9e2cc344@mail.gmail.com>
-References: <7b1b9c8b0609110333w565de1dckf47d5bfe982c24d3@mail.gmail.com>
+From: "Kumar, Satish B" <SKumar@ciber.com>
+Subject: hi
+Date: Thu, 14 Sep 2006 02:27:33 -0600
+Message-ID: <F71A3F85F026644687388710AF44A200D087C8@srv-corp-exmb5.ciber.cbr.inc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <7b1b9c8b0609110333w565de1dckf47d5bfe982c24d3@mail.gmail.com>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,16 +20,13 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-I have also tried using ioctls GETISPACE & GETOSPACE with and without
-'select' function. Instead of loopback, if I feed some known test data
-to be written to the device, device plays it. But recording doesnt
-work whether I try
-- to loopback,
-- playback anything else than recorded data and dump recorded data to a file or
-- only record opening device in read only mode
-
-
-Simple "cat /dev/sound/dsp > /dev/sound/dsp" doesnt work either.
-
-Regards,
-Prashant Khoje
+Dear All,
+=20
+I use RF6 program i am able to run the  program,=20
+=20
+But i want to change the incoming audio signal to stop and how  to set =
+register configuration in that program
+=20
+=20
+Thanks and Regards,
+Sathishkumar.B.M
