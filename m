@@ -1,13 +1,12 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: irda-utils
-Date: Mon, 18 Sep 2006 20:05:58 -0500
-Message-ID: <450F4276.60504@gmail.com>
-References: <20060918123427.41910.qmail@web30613.mail.mud.yahoo.com>
+From: "w.b.b" <rememberme_2000@126.com>
+Subject: informaton about gpio of omap
+Date: Tue, 19 Sep 2006 10:57:22 +0800
+Message-ID: <002901c6db97$5415d760$4e0aa8c0@wbb>
+References: <20060906142120.98809.qmail@web30614.mail.mud.yahoo.com>
+	<fb249edb0609061101i31e124a5r76f9a754ee05e4b6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20060918123427.41910.qmail@web30613.mail.mud.yahoo.com>
+Content-Type: multipart/mixed; boundary="===============0387471818=="
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,19 +14,30 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Zgembo Adislic <adislic_zgembo@yahoo.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Zgembo Adislic stated on 9/18/2006 7:34 AM:
-> Hi,
-> 
-> Does anyone have irda-utils cross-compiled for omap5910 (ARM9)?  I am using 2.6.8.1 kernel. 
-Last I heard was that folks used to compile off the filesystem itself.
-irda-utils seem not to like cross_compile..mebbe someone in the list has
-had better luck?
+--===============0387471818==
+Content-Type: text/plain;
+	charset="UTF-8"
+Content-Transfer-Encoding: base64
 
-Regards,
-Nishanth Menon
+IGhpOg0KIGknZCBldmVyIG1ldCB3aXRoIHByb2JsZW1zIG9mIG9tYXAncyBncGlvLml0J2QgY29u
+ZnVzZWQgbWUuIGJ1dCBpIGZpbmQgc29tZQ0KdXNlZnVsIGluZm9ybWF0aW9uIGFib3V0IGl0IG5v
+dy4NCiBpdCAnbGwgYmUgaGVscGZ1bCBmb3IgZnJlc2ggbWFuIGFzIG1lIQ0KaHR0cDovL3RyZWUu
+Y2VsaW51eGZvcnVtLm9yZy9DZWxmUHViV2lraS9PU0sgLiBpbiB0aGUgaG9tZXBhZ2UseW91IGNh
+biBmaW5kIGluZm9ybWF0aW9uIGFib3V0IGdwaW8uDQogZ29vZCBsdWNr
+
+
+
+
+--===============0387471818==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============0387471818==--
