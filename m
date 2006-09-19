@@ -1,12 +1,13 @@
-From: "w.b.b" <rememberme_2000@126.com>
+From: Arnold <abo_gwapo@yahoo.com>
 Subject: Re: Is there wrong with the file :io.h????????
-Date: Tue, 19 Sep 2006 17:28:54 +0800
-Message-ID: <003401c6dbce$064e52a0$4e0aa8c0@wbb>
-References: <20060906142120.98809.qmail@web30614.mail.mud.yahoo.com><fb249edb0609061101i31e124a5r76f9a754ee05e4b6@mail.gmail.com><002901c6db97$5415d760$4e0aa8c0@wbb>
-	<002b01c6dbc9$59934150$4e0aa8c0@wbb>
+Date: Tue, 19 Sep 2006 03:56:45 -0700 (PDT)
+Message-ID: <20060919105645.97356.qmail@web55305.mail.re4.yahoo.com>
+References: <003401c6dbce$064e52a0$4e0aa8c0@wbb>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0883983725=="
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <003401c6dbce$064e52a0$4e0aa8c0@wbb>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,53 +17,88 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: "w.b.b" <rememberme_2000@126.com>, Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============0883983725==
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: base64
+Hi,
 
-aSBoYWQgZm91bmQgdGhlIHdheSB0byAgYXZvaWQgdGhlIGVycm9yLiAgbW9kaWZ5IHRoZSBmaWxl
-IGFzbS9hcmNoL2lvLmguDQogdG8gY2hhbmdlIHRoZSBkYXRhIHR5cGVzICxzdWNoIGFzIHU4LHUx
-Nix1MzIgd2l0aCB1aW50OF90LHVpbnQxNl90LHVpbnQzMl90Lg0KIHRoZW4gdGhlcmUgaXMgbm8g
-ZXJyb3Igd2hlbiB5b3UgY29tcGlsZSB0aGF0IGZpbGUuDQogaSB0aGluayB0aGVyZSBpcyBhIGxp
-dHRsZSBidWcgaW4gdGhlIGlvLmghISENCg0KLS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAtLS0tLSAN
-CkZyb206ICJ3LmIuYiIgPHJlbWVtYmVybWVfMjAwMEAxMjYuY29tPg0KVG86IDxMaW51eC1vbWFw
-LW9wZW4tc291cmNlQGxpbnV4Lm9tYXAuY29tPg0KU2VudDogVHVlc2RheSwgU2VwdGVtYmVyIDE5
-LCAyMDA2IDQ6NTQgUE0NClN1YmplY3Q6IElzIHRoZXJlIHdyb25nIHdpdGggdGhlIGZpbGUgOmlv
-Lmg/Pz8/Pz8/PyANCg0KDQo+IGhpOg0KPiBpICdkIHdyaXR0ZW4gYSBzaW1lcGxlIHByb2dyYW0u
-YW5kIGknZCBmb3VuZCBzb21lIHF1ZXN0aW9ucyBhYm91dCBpby5oLg0KPiB0aGUgZm9sbG93aW5n
-IGNvZGUgaXM6DQo+IHRoYXQ6DQo+ICAjaW5jbHVkZTxhc20vYXJjaC9ncGlvLmg+DQo+IG1haW4o
-KQ0KPiB7DQo+IG9tYXBfcmVxdWVzdF9ncGlvKDMpOw0KPiBvbWFwX3NldF9ncGlvX2RpcmVjdGlv
-bigzLDEpOw0KPiB9ICANCj4gY29tcGlsZSBjb21tYW5kIDoNCj4gYXJtLWxpbnV4LWdjYyAtSSBs
-aW51eC0yLjYuMTMuNC9pbmNsdWRlIC1jIG1haW4uYw0KPiBhbmQgdGhlbiBpIGdvdCB0aGUgZm9s
-bG93aW5nIGVycm9yIGluZm9ybWF0aW9uOg0KPiBsaW51eC0yLjYuMTMuNC9pbmNsdWRlL2FzbS9h
-cmNoL2lvLmg6OTEgZXJyb3I6cGFyc2UgZXJyb3IgYmVmb3JlICJvZmZzZXQiDQo+IGxpbnV4LTIu
-Ni4xMy40L2luY2x1ZGUvYXNtL2FyY2gvaW8uaDo5NyBlcnJvcjpwYXJzZSBlcnJvciBiZWZvcmUg
-Im9mZnNldCINCj4gbGludXgtMi42LjEzLjQvaW5jbHVkZS9hc20vYXJjaC9pby5oOjEwMiBlcnJv
-cjpwYXJzZSBlcnJvciBiZWZvcmUgIm9mZnNldCIuDQo+IHRoZSB0b29sY2hhaW5zIHdoaWNoIGkg
-dXNlZCBpcyBnY2MtMy40LjEgZm9yIG9tYXAgNTkxMixhbmQgdGhlIGtlcm5lbCBpcyBsaW51eC0y
-LjYuMTMuNCAgZm9yIG9zay4NCj4gSXMgdGhlIGZpbGUgd3Jvbmc/IGknbSBub3Qgc3VyZSBhYm91
-dCBpdCEhISEhISENCj4gICAgICAgICAgICB3aG8gaGFzIGludGVyZXN0IGluIGl0PyBpIGhvcGUg
-dG8gZ2V0IHlvdXIgaGVscC4gDQo+PiBMaW51eC1vbWFwLW9wZW4tc291cmNlQGxpbnV4Lm9tYXAu
-Y29tDQo+PiBodHRwOi8vbGludXgub21hcC5jb20vbWFpbG1hbi9saXN0aW5mby9saW51eC1vbWFw
-LW9wZW4tc291cmNlDQo+Pg0KDQoNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQoNCg0KPiBfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw0KPiBMaW51eC1vbWFw
-LW9wZW4tc291cmNlIG1haWxpbmcgbGlzdA0KPiBMaW51eC1vbWFwLW9wZW4tc291cmNlQGxpbnV4
-Lm9tYXAuY29tDQo+IGh0dHA6Ly9saW51eC5vbWFwLmNvbS9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
-LW9tYXAtb3Blbi1zb3VyY2UNCj4=
+I think you need to create a char driver in order to
+use the GPIO APIs. In this way you can already control
+GPIO in the userspace through your char driver. There
+are many linux device driver books that you could
+refer to make a char driver.
+
+Best Regards,
+OJ
+ 
+
+--- "w.b.b" <rememberme_2000@126.com> wrote:
+
+> i had found the way to  avoid the error.  modify the
+> file asm/arch/io.h.
+>  to change the data types ,such as u8,u16,u32 with
+> uint8_t,uint16_t,uint32_t.
+>  then there is no error when you compile that file.
+>  i think there is a little bug in the io.h!!!
+> 
+> ----- Original Message ----- 
+> From: "w.b.b" <rememberme_2000@126.com>
+> To: <Linux-omap-open-source@linux.omap.com>
+> Sent: Tuesday, September 19, 2006 4:54 PM
+> Subject: Is there wrong with the file :io.h???????? 
+> 
+> 
+> > hi:
+> > i 'd written a simeple program.and i'd found some
+> questions about io.h.
+> > the following code is:
+> > that:
+> >  #include<asm/arch/gpio.h>
+> > main()
+> > {
+> > omap_request_gpio(3);
+> > omap_set_gpio_direction(3,1);
+> > }  
+> > compile command :
+> > arm-linux-gcc -I linux-2.6.13.4/include -c main.c
+> > and then i got the following error information:
+> > linux-2.6.13.4/include/asm/arch/io.h:91
+> error:parse error before "offset"
+> > linux-2.6.13.4/include/asm/arch/io.h:97
+> error:parse error before "offset"
+> > linux-2.6.13.4/include/asm/arch/io.h:102
+> error:parse error before "offset".
+> > the toolchains which i used is gcc-3.4.1 for omap
+> 5912,and the kernel is linux-2.6.13.4  for osk.
+> > Is the file wrong? i'm not sure about it!!!!!!!
+> >            who has interest in it? i hope to get
+> your help. 
+> >> Linux-omap-open-source@linux.omap.com
+> >>
+>
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> >>
+> 
+> 
+>
+--------------------------------------------------------------------------------
+> 
+> 
+> > _______________________________________________
+> > Linux-omap-open-source mailing list
+> > Linux-omap-open-source@linux.omap.com
+> >
+>
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> >> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+>
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> 
 
 
-
-
---===============0883983725==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============0883983725==--
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
