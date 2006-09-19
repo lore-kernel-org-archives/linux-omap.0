@@ -1,12 +1,11 @@
-From: "w.b.b" <rememberme_2000@126.com>
-Subject: informaton about gpio of omap
-Date: Tue, 19 Sep 2006 10:57:22 +0800
-Message-ID: <002901c6db97$5415d760$4e0aa8c0@wbb>
-References: <20060906142120.98809.qmail@web30614.mail.mud.yahoo.com>
-	<fb249edb0609061101i31e124a5r76f9a754ee05e4b6@mail.gmail.com>
+From: srini kode <srinikode@yahoo.com>
+Subject: MMC issue on omap 2430
+Date: Mon, 18 Sep 2006 23:21:29 -0700 (PDT)
+Message-ID: <20060919062129.63977.qmail@web54301.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0387471818=="
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,30 +13,29 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============0387471818==
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: base64
+Hi,
+We are using omap sdp2430 setup with 2.6.10 kernel. 
 
-IGhpOg0KIGknZCBldmVyIG1ldCB3aXRoIHByb2JsZW1zIG9mIG9tYXAncyBncGlvLml0J2QgY29u
-ZnVzZWQgbWUuIGJ1dCBpIGZpbmQgc29tZQ0KdXNlZnVsIGluZm9ybWF0aW9uIGFib3V0IGl0IG5v
-dy4NCiBpdCAnbGwgYmUgaGVscGZ1bCBmb3IgZnJlc2ggbWFuIGFzIG1lIQ0KaHR0cDovL3RyZWUu
-Y2VsaW51eGZvcnVtLm9yZy9DZWxmUHViV2lraS9PU0sgLiBpbiB0aGUgaG9tZXBhZ2UseW91IGNh
-biBmaW5kIGluZm9ybWF0aW9uIGFib3V0IGdwaW8uDQogZ29vZCBsdWNr
+We see that the mmc drivers are getting loaded
+properly, but the MMC card is NOT being detected. We
+are using the slot-1 and see that 1.8v led is lighted.
 
+Has anyone successfully used MMC card on omap 2430. If
+yes, can you please let us know if anything needs to
+be set/configured.  
 
-
-
---===============0387471818==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks
+Srini
 
 
---===============0387471818==--
+
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
