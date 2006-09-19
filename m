@@ -1,13 +1,15 @@
-From: Arnold <abo_gwapo@yahoo.com>
-Subject: Re: Is there wrong with the file :io.h????????
-Date: Tue, 19 Sep 2006 03:56:45 -0700 (PDT)
-Message-ID: <20060919105645.97356.qmail@web55305.mail.re4.yahoo.com>
-References: <003401c6dbce$064e52a0$4e0aa8c0@wbb>
+From: "Chikkature, Madhusudhan" <x0chikka@ti.com>
+Subject: RE: MMC issue on omap 2430
+Date: Tue, 19 Sep 2006 09:00:55 -0500
+Message-ID: <14ACE099F888004586603AEC0A559C2E012EF733@DLEE09.ent.ti.com>
+References: <20060919062129.63977.qmail@web54301.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <003401c6dbce$064e52a0$4e0aa8c0@wbb>
+Content-class: urn:content-classes:message
+In-reply-to: <20060919062129.63977.qmail@web54301.mail.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,88 +19,48 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "w.b.b" <rememberme_2000@126.com>, Linux-omap-open-source@linux.omap.com
+To: srini kode <srinikode@yahoo.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-I think you need to create a char driver in order to
-use the GPIO APIs. In this way you can already control
-GPIO in the userspace through your char driver. There
-are many linux device driver books that you could
-refer to make a char driver.
+I believe you have OMAP2430 ES2.0 silicon version with you. If yes, what
+is the card type you are trying to test? Make sure that the card you are
+using can work at 1.8v. Dual voltage card would be a good one to test.
 
-Best Regards,
-OJ
- 
+Regards,
+Madhu
 
---- "w.b.b" <rememberme_2000@126.com> wrote:
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+srini kode
+Sent: Tuesday, September 19, 2006 1:21 AM
+To: linux-omap-open-source@linux.omap.com
+Subject: MMC issue on omap 2430
 
-> i had found the way to  avoid the error.  modify the
-> file asm/arch/io.h.
->  to change the data types ,such as u8,u16,u32 with
-> uint8_t,uint16_t,uint32_t.
->  then there is no error when you compile that file.
->  i think there is a little bug in the io.h!!!
-> 
-> ----- Original Message ----- 
-> From: "w.b.b" <rememberme_2000@126.com>
-> To: <Linux-omap-open-source@linux.omap.com>
-> Sent: Tuesday, September 19, 2006 4:54 PM
-> Subject: Is there wrong with the file :io.h???????? 
-> 
-> 
-> > hi:
-> > i 'd written a simeple program.and i'd found some
-> questions about io.h.
-> > the following code is:
-> > that:
-> >  #include<asm/arch/gpio.h>
-> > main()
-> > {
-> > omap_request_gpio(3);
-> > omap_set_gpio_direction(3,1);
-> > }  
-> > compile command :
-> > arm-linux-gcc -I linux-2.6.13.4/include -c main.c
-> > and then i got the following error information:
-> > linux-2.6.13.4/include/asm/arch/io.h:91
-> error:parse error before "offset"
-> > linux-2.6.13.4/include/asm/arch/io.h:97
-> error:parse error before "offset"
-> > linux-2.6.13.4/include/asm/arch/io.h:102
-> error:parse error before "offset".
-> > the toolchains which i used is gcc-3.4.1 for omap
-> 5912,and the kernel is linux-2.6.13.4  for osk.
-> > Is the file wrong? i'm not sure about it!!!!!!!
-> >            who has interest in it? i hope to get
-> your help. 
-> >> Linux-omap-open-source@linux.omap.com
-> >>
->
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> >>
-> 
-> 
->
---------------------------------------------------------------------------------
-> 
-> 
-> > _______________________________________________
-> > Linux-omap-open-source mailing list
-> > Linux-omap-open-source@linux.omap.com
-> >
->
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> >> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
->
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> 
+Hi,
+We are using omap sdp2430 setup with 2.6.10 kernel.=20
+
+We see that the mmc drivers are getting loaded
+properly, but the MMC card is NOT being detected. We
+are using the slot-1 and see that 1.8v led is lighted.
+
+Has anyone successfully used MMC card on omap 2430. If
+yes, can you please let us know if anything needs to
+be set/configured. =20
+
+Thanks
+Srini
+
+
 
 
 __________________________________________________
 Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+Tired of spam?  Yahoo! Mail has the best spam protection around=20
+http://mail.yahoo.com=20
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
