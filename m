@@ -1,13 +1,15 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
+From: "Kipisz, Steven" <s-kipisz2@ti.com>
 Subject: RE: Fwd: Problems loading ffs image
-Date: Tue, 19 Sep 2006 16:21:33 -0500
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A507B53C33@dlee02.ent.ti.com>
+Date: Tue, 19 Sep 2006 16:39:11 -0500
+Message-ID: <A794DE2F81AEF94099397C9D7D5B651E9C172A@dlee08.ent.ti.com>
+References: <EA12F909C0431D458B9D18A176BEE4A507B53C33@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-2"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-class: urn:content-classes:message
+In-reply-to: <EA12F909C0431D458B9D18A176BEE4A507B53C33@dlee02.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,11 +17,25 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: =?iso-8859-2?Q?Lu=EDs_Vit=F3rio_Cargnini?= <lvcargnini@ieee.org>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "Woodruff, Richard" <r-woodruff2@ti.com>, =?iso-8859-2?Q?Lu=EDs_Vit=F3rio_Cargnini?= <lvcargnini@ieee.org>
 Cc: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
+
+This web page http://tree.celinuxforum.org/CelfPubWiki/OSK has lots of =
+information on the OSK 5912.
+
+Steve K.
+
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com =
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of =
+Woodruff, Richard
+Sent: Tuesday, September 19, 2006 4:22 PM
+To: Lu=EDs Vit=F3rio Cargnini
+Cc: OMAP
+Subject: RE: Fwd: Problems loading ffs image
 
 > it=B6 a nand type i suppose. Is a OSK 5912 starter kit where I'm =
 trying
@@ -221,3 +237,7 @@ wrong
 > Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
 > IEEE Member
 > Mastering Degree student @ PUC-RS Electrical Engineer Faculty
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
