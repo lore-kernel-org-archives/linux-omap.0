@@ -1,11 +1,13 @@
-From: rajesh B <trytorajesh@yahoo.com>
-Subject: about packages used in linux
-Date: Sat, 23 Sep 2006 00:55:10 -0700 (PDT)
-Message-ID: <20060923075510.33866.qmail@web34901.mail.mud.yahoo.com>
+From: Marek =?iso-8859-2?q?Va=B9ut?= <marek.vasut@gmail.com>
+Subject: [PATCH] Patch adding basic Palm Zire71 support
+Date: Sat, 23 Sep 2006 10:14:08 +0200
+Message-ID: <200609231014.08262.marek.vasut@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,37 +15,20 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
- =20
-  =95Hi guys....
-Am Rajesh=20
-am doing a project in porting Linux on OMAP1510
-can any explain me whats the usage of this files....
+this patch adds basic support for palm zire71 (lcd, keypad, usb net, mmc=20
+works). I have more things working but they=B4re not yet ready for merging =
+into=20
+kernel I think (dirty code - needs cleanup).
 
+Patch is here:=20
+http://disk.jabbim.cz/marex@jabber.cz/palmz71-basic-2.6.18.patch
 
-linux-2.4.19.tar.gz=20
-  =95patch-2.4.19-rmk7.bz2 =20
-  =95patch-2.4.19-rmk7-omap1.bz2 =20
-  =95rrload-innovator-0301151120.tar.bz2=20
-  =95binutils-2.12.1.tar.bz2 =20
-  =95gcc-2.95.3.tar.gz =20
-  =95glibc-2.2.3.tar.gz=20
-  =95glibc-linuxthreads-2.2.3.tar.gz
-
-
-bye...
-=20
-  =20
- =20
- =20
-
-rajesh.B
- 	=09
----------------------------------
- All-new Yahoo! Mail - Fire up a more powerful email and get things done =
-faster.
+BR,
+Marek Vasut
