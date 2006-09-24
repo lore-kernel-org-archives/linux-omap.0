@@ -1,13 +1,14 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: running user application on omap
-Date: Sun, 24 Sep 2006 07:21:00 -0500
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A507C239B5@dlee02.ent.ti.com>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: booting new image
+Date: Sun, 24 Sep 2006 09:52:46 -0500
+Message-ID: <45169BBE.70700@gmail.com>
+References: <ae36f8040609212108t1af9f0d5qc82f6eb5d717f546@mail.gmail.com>	<45140C14.9020508@balister.org>	<ae36f8040609221022y6f0a0802i56d849a45d27b994@mail.gmail.com>	<4514202A.6050207@balister.org>
+	<ae36f8040609221114v585d557ax7e491d1b84e165da@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <ae36f8040609221114v585d557ax7e491d1b84e165da@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,60 +16,26 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: srini kode <srinikode@yahoo.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: =?ISO-8859-1?Q?Lu=EDs_Vit=F3rio_Cargnini?= <lvcargnini@ieee.org>
+Cc: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-When things don't work as expected one thing to do is to use strace or
-ltrace and to look at the error outputs.  'strace ./apptest'
-
-Depending on the shell type and version its errors are not always that
-explicit.  Where did you get your NFS root from?  How was it compiled?
-File systems can be created such that they are not compatible with
-binaries (soft vs. hard float for example).
-
-Also, what are the permissions after you copied it?  If your lucky all
-you need is a chmod 777 apptest.  I would have guessed your shell might
-have told you about that kind of error but I don't know.
-
-Also, I've not used 3.3.2 with 2430, only 3.4.0 and 3.4.1.  This
-shouldn't matter much, but if you are mixing and matching VFP/Hardfloat
-it might.
+Lu=EDs Vit=F3rio Cargnini stated on 9/22/2006 1:14 PM:
+> Gentlemen after booted my board using the image available in:
+> http://oskfordummies.hp.infoseek.co.jp/downloads/rootfs2.6.11_0612.tar.=
+bz2
+>=20
+> it booted using my kernel and my u-boot, it's an busybox version 1.0.0 =
+so i
+> think the problem colud be with busy box.
+> any opinion ?
+yes, like OE, udev here too? that is a usual tricky place too.. I just
+googled and saw some stuff like this:
+http://bugs.busybox.net/view.php?id=3D1041
+I suppose you can move to 1.2.1. give that too a shot :) or maybe ping
+the buxybox folks on this. http://www.busybox.net/lists.html
 
 Regards,
-Richard W.
-
-> We are writing a test user application to run in user
-> space. We downloaded the gcc from linux.omap.com site,
-> installed it under /usr/linux/arm
-> and compiled successfully the application as follows:
->=20
-> arm-linux-gcc-3.3.2 -I /usr/local/arm/3.3.2/include -L
-> /usr/local/arm/3.3.2/lib apptest.c -o apptest
->=20
-> Now we created a test directory on the nfs mounted
-> root directory in omap 2430 sdp and copied the
-> "apptest" to this directory and executed from there.
-> We get the follwoing error:
->=20
-> /test $ ./apptest
-> -sh: ./apptest: not found
-> /test $
->=20
-> All the above we were trying from the
-> console(hyperterminal connected to uart1-2 on omap).
->=20
-> can you please let us know the steps we are missing.
->=20
-> Regards
-> Srini
->=20
->=20
->=20
->=20
->=20
-> __________________________________________________
-> Do You Yahoo!?
-> Tired of spam?  Yahoo! Mail has the best spam protection around
-> http://mail.yahoo.com
+Nishanth Menon
