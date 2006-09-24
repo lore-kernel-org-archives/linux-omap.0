@@ -1,13 +1,13 @@
-From: "Amit Verma" <vermanamit@gmail.com>
-Subject: X Windows;
-	Xlibs cross-compiled+linked files overbloated for OMAP1710
-Date: Sun, 24 Sep 2006 13:54:01 +0530
-Message-ID: <5a2ffe1f0609240124v5b456504u7e1899ed96246c35@mail.gmail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: running user application on omap
+Date: Sun, 24 Sep 2006 07:21:00 -0500
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A507C239B5@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,63 +17,58 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Paul Sokolovsky <pmiscml@gmail.com>, david.cohen@indt.org.br, marek.vasut@gmail.com, linux-omap-open-source@linux.omap.com, carlos.aguiar@indt.org.br, h6300-port@handhelds.org
+To: srini kode <srinikode@yahoo.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-I'm trying to put X Windows on OMAP1710-H3 board (with 32MB NOR
-memory). My "X" is becoming huge after cross-comipiling and
-cross-linking.
+When things don't work as expected one thing to do is to use strace or
+ltrace and to look at the error outputs.  'strace ./apptest'
 
-STEPS:-
-[ 1 ]. I have configured Scratchbox for cross
-compilation(arm-linux-gcc-3.3_3.3.4-glibc-2.3.2.ds1) for ARM processor
-[ 2 ]. Installed "ZLIB"
-[ 3 ]. Installed "TSLIB"
-[ 4 ] . Compiled and installed following "XLIBS" (in the order)
+Depending on the shell type and version its errors are not always that
+explicit.  Where did you get your NFS root from?  How was it compiled?
+File systems can be created such that they are not compatible with
+binaries (soft vs. hard float for example).
 
-Randr
-Render
-XExtensions
-FixesExt
-DamageExt
-Xproto
-xtrans
-Xfont
-Xau
-CompositeExt
-ResourceExt
-RecordExt
-Xdmcp
-XCalibrateExt
-X11
-Xext
+Also, what are the permissions after you copied it?  If your lucky all
+you need is a chmod 777 apptest.  I would have guessed your shell might
+have told you about that kind of error but I don't know.
 
-I'm using following commands to cross-compile and install these libs
-a) ./autogen.sh --disable-maintainer-mode --disable-debug
---enable-optimization --prefix=/usr --host=arm-linux-gnu
-b) make install
+Also, I've not used 3.3.2 with 2430, only 3.4.0 and 3.4.1.  This
+shouldn't matter much, but if you are mixing and matching VFP/Hardfloat
+it might.
 
-But the size of shared objects ".so" is coming so BIG, libX11.so.xxx
-is coming 20MB and others are also coming big.
+Regards,
+Richard W.
 
-[ 5 ] then I'have compiled & installed Xserver
-(anoncvs_at_cvs.freedesktop.org:/cvs/xserver) using following commands
-a) ./autogen.sh
-b) ./configure --prefix=/usr --host=arm-linux-gnu --disable-glx
---disable-dri --disable-ipv6 --disable-xglserver --disable-xglxserver
---disable-xsdlserver --disable-xwinserver --disable-xnestserver
-
-This will give the framebuffered xserver, "Xfbdev" which is coming as 9.4MB.
-
-When I copy these files to my FileSystem, kernel doesn't boots up, it
-gets hanged after saying "booting kernel..." thats obvious b'coz size
-of FS has overbloated than the available memory on the board.
-
-I have limited memory (32MB - NOR) on my OMAP1710-H3 board. So, plz
-tell me how to reduce the sixe of X Windows so that it can fit in.
-ALso tell the non-dependable X-libs so that i can remove them so that
-minimal "X" can be put on the board
-I'm wondering how the size has come so large!!!
-
-Plz help. Thanks! in advance
--Amit Verma
+> We are writing a test user application to run in user
+> space. We downloaded the gcc from linux.omap.com site,
+> installed it under /usr/linux/arm
+> and compiled successfully the application as follows:
+>=20
+> arm-linux-gcc-3.3.2 -I /usr/local/arm/3.3.2/include -L
+> /usr/local/arm/3.3.2/lib apptest.c -o apptest
+>=20
+> Now we created a test directory on the nfs mounted
+> root directory in omap 2430 sdp and copied the
+> "apptest" to this directory and executed from there.
+> We get the follwoing error:
+>=20
+> /test $ ./apptest
+> -sh: ./apptest: not found
+> /test $
+>=20
+> All the above we were trying from the
+> console(hyperterminal connected to uart1-2 on omap).
+>=20
+> can you please let us know the steps we are missing.
+>=20
+> Regards
+> Srini
+>=20
+>=20
+>=20
+>=20
+>=20
+> __________________________________________________
+> Do You Yahoo!?
+> Tired of spam?  Yahoo! Mail has the best spam protection around
+> http://mail.yahoo.com
