@@ -1,26 +1,41 @@
-From: Vovan <vovan888@gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: [PATCH 5/5] Add gsm phone support for the mixer in tsc2101 alsa driver.
-Date: Wed, 27 Sep 2006 00:33:38 +0400
-Message-ID: <op.tgh52caydbah4f@vovan>
-References: <44E51565.6020505@cc.jyu.fi> <20060905151808.GC18073@atomide.com> <44FF2A6D.3000500@cc.jyu.fi> <ce55079f0609250442x5638a93fuac95c65a54a0927@mail.gmail.com> <20060926194541.GA4596@ucw.cz>
+Date: Tue, 26 Sep 2006 22:48:27 +0200
+Message-ID: <20060926204827.GA4714@elf.ucw.cz>
+References: <44E51565.6020505@cc.jyu.fi> <20060905151808.GC18073@atomide.com> <44FF2A6D.3000500@cc.jyu.fi> <ce55079f0609250442x5638a93fuac95c65a54a0927@mail.gmail.com> <20060926194541.GA4596@ucw.cz> <op.tgh52caydbah4f@vovan>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; delsp=yes; charset=windows-1251
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964786AbWIZUZp@vger.kernel.org>
-In-Reply-To: <20060926194541.GA4596@ucw.cz>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964797AbWIZUsc@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <op.tgh52caydbah4f@vovan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
+To: Vovan <vovan888@gmail.com>
 Cc: lamikr@cc.jyu.fi, tony@atomide.com, OMAP-Linux <linux-omap-open-source@linux.omap.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
->> >
->>
->> I work on getting linux running on Siemens SX1 mobile
->> phone.
->
-> Do you have web pages with current state somewhere? SX1 should be
-> *cheap* toy for experiments...
-> 							Pavel
+Hi!
 
-Sure:
-http://www.handhelds.org/moin/moin.cgi/SiemensSX1
+> >>I work on getting linux running on Siemens SX1 mobile
+> >>phone.
+> >
+> >Do you have web pages with current state somewhere? SX1 should be
+> >*cheap* toy for experiments...
+
+I googled a bit, and its price in czech republic is ~$100..$140.
+
+> Sure:
+> http://www.handhelds.org/moin/moin.cgi/SiemensSX1
+
+Thanks! ...so you were able to get most of stuff working, but do not
+have qt/gpe working, and probably do not have suspend working so
+battery life is really bad, right?
+
+OTOH you can dual boot with symbian... so battery life is not _as_ bad
+problem. Do you need windows machine to apply patch allowing you to
+run uboot? Is there easy way to tell difference between 32MB and 24MB
+sx1's? Getting 24MB part would spoil all the fun, I'm afraid...
+
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
