@@ -1,100 +1,34 @@
-From: "andrzej zaborowski" <balrog@zabor.org>
-Subject: Re: X Windows;
-	Xlibs cross-compiled+linked files overbloated for OMAP1710
-Date: Tue, 26 Sep 2006 17:20:25 +0200
-Message-ID: <fb249edb0609260820w7e298978p6ed53109030102d9@mail.gmail.com>
-References: <5a2ffe1f0609240124v5b456504u7e1899ed96246c35@mail.gmail.com>
-Reply-To: balrogg@gmail.com
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 5/5] Add gsm phone support for the mixer in tsc2101 alsa driver.
+Date: Tue, 26 Sep 2006 19:45:42 +0000
+Message-ID: <20060926194541.GA4596@ucw.cz>
+References: <44E51565.6020505@cc.jyu.fi> <20060905151808.GC18073@atomide.com> <44FF2A6D.3000500@cc.jyu.fi> <ce55079f0609250442x5638a93fuac95c65a54a0927@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <5a2ffe1f0609240124v5b456504u7e1899ed96246c35@mail.gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932496AbWIZTp5@vger.kernel.org>
 Content-Disposition: inline
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Amit Verma <vermanamit@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+In-Reply-To: <ce55079f0609250442x5638a93fuac95c65a54a0927@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vladimir <vovan888@gmail.com>
+Cc: lamikr@cc.jyu.fi, tony@atomide.com, OMAP-Linux <linux-omap-open-source@linux.omap.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi!
 
-On 24/09/06, Amit Verma <vermanamit@gmail.com> wrote:
-> I'm trying to put X Windows on OMAP1710-H3 board (with 32MB NOR
-> memory). My "X" is becoming huge after cross-comipiling and
-> cross-linking.
+> >1) As we do not yet have any kind of multiplexing 
+> >support to gsm module
+> >(currently directly accesing dev/ttyS1 for at commands)
+> >our phone app is not able to run simultaneously with 
+> >the ppp. I am not
+> >sure should I resolve this in the kernel space or user 
+> >space.
+> >
+> 
+> I work on getting linux running on Siemens SX1 mobile 
+> phone.
 
-I'm afraid that's normal for X.org, it's designed to be full-featured
-and usable and also look good. It will also take quite long to load on
-your H3.
-
-You probably want to try one of the other X servers. I know embedded
-distributions (e.g Familiar) use the Kdriver Xserver which should be
-some 5 megs big including it's libraries (but not including libc &
-fonts) and it should load and work faster on such small systems. Then
-there's a server called nano-X that I've seen come in a 280 kB (!)
-binary, linked against a 300 kB uClibc, all together not exceeding 1
-MB and I could even put it in initramfs but it's probably slightly
-limited X11-specs-wise.
-
->
-> STEPS:-
-> [ 1 ]. I have configured Scratchbox for cross
-> compilation(arm-linux-gcc-3.3_3.3.4-glibc-2.3.2.ds1) for ARM processor
-> [ 2 ]. Installed "ZLIB"
-> [ 3 ]. Installed "TSLIB"
-> [ 4 ] . Compiled and installed following "XLIBS" (in the order)
->
-> Randr
-> Render
-> XExtensions
-> FixesExt
-> DamageExt
-> Xproto
-> xtrans
-> Xfont
-> Xau
-> CompositeExt
-> ResourceExt
-> RecordExt
-> Xdmcp
-> XCalibrateExt
-> X11
-> Xext
->
-> I'm using following commands to cross-compile and install these libs
-> a) ./autogen.sh --disable-maintainer-mode --disable-debug
-> --enable-optimization --prefix=/usr --host=arm-linux-gnu
-> b) make install
->
-> But the size of shared objects ".so" is coming so BIG, libX11.so.xxx
-> is coming 20MB and others are also coming big.
->
-> [ 5 ] then I'have compiled & installed Xserver
-> (anoncvs_at_cvs.freedesktop.org:/cvs/xserver) using following commands
-> a) ./autogen.sh
-> b) ./configure --prefix=/usr --host=arm-linux-gnu --disable-glx
-> --disable-dri --disable-ipv6 --disable-xglserver --disable-xglxserver
-> --disable-xsdlserver --disable-xwinserver --disable-xnestserver
->
-> This will give the framebuffered xserver, "Xfbdev" which is coming as 9.4MB.
->
-> When I copy these files to my FileSystem, kernel doesn't boots up, it
-> gets hanged after saying "booting kernel..." thats obvious b'coz size
-> of FS has overbloated than the available memory on the board.
->
-> I have limited memory (32MB - NOR) on my OMAP1710-H3 board. So, plz
-> tell me how to reduce the sixe of X Windows so that it can fit in.
-> ALso tell the non-dependable X-libs so that i can remove them so that
-> minimal "X" can be put on the board
-> I'm wondering how the size has come so large!!!
-
-Cheers,
-Andrew
+Do you have web pages with current state somewhere? SX1 should be
+*cheap* toy for experiments...
+							Pavel
+-- 
+Thanks for all the (sleeping) penguins.
