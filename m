@@ -1,41 +1,34 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 5/5] Add gsm phone support for the mixer in tsc2101 alsa driver.
-Date: Tue, 26 Sep 2006 22:48:27 +0200
-Message-ID: <20060926204827.GA4714@elf.ucw.cz>
-References: <44E51565.6020505@cc.jyu.fi> <20060905151808.GC18073@atomide.com> <44FF2A6D.3000500@cc.jyu.fi> <ce55079f0609250442x5638a93fuac95c65a54a0927@mail.gmail.com> <20060926194541.GA4596@ucw.cz> <op.tgh52caydbah4f@vovan>
+From: rajesh B <trytorajesh@yahoo.com>
+Subject: porting linux on OMAP
+Date: Wed, 27 Sep 2006 05:42:11 -0700 (PDT)
+Message-ID: <20060927124211.85505.qmail@web34901.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964797AbWIZUsc@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <op.tgh52caydbah4f@vovan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vovan <vovan888@gmail.com>
-Cc: lamikr@cc.jyu.fi, tony@atomide.com, OMAP-Linux <linux-omap-open-source@linux.omap.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+Hi friends....
 
-> >>I work on getting linux running on Siemens SX1 mobile
-> >>phone.
-> >
-> >Do you have web pages with current state somewhere? SX1 should be
-> >*cheap* toy for experiments...
+Am goin to start my project in OMAP ..."Porting linux on OMAP"
+plz any one help me how to start with....what are the things required...
 
-I googled a bit, and its price in czech republic is ~$100..$140.
+like bootloaders,toolchain and etc....
 
-> Sure:
-> http://www.handhelds.org/moin/moin.cgi/SiemensSX1
+bye....
 
-Thanks! ...so you were able to get most of stuff working, but do not
-have qt/gpe working, and probably do not have suspend working so
-battery life is really bad, right?
 
-OTOH you can dual boot with symbian... so battery life is not _as_ bad
-problem. Do you need windows machine to apply patch allowing you to
-run uboot? Is there easy way to tell difference between 32MB and 24MB
-sx1's? Getting 24MB part would spoil all the fun, I'm afraid...
-
-								Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+rajesh.B
+ 			
+---------------------------------
+Get your own web address for just $1.99/1st yr. We'll help. Yahoo! Small Business.
