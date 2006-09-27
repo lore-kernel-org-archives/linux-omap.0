@@ -1,10 +1,10 @@
 From: rajesh B <trytorajesh@yahoo.com>
-Subject: porting linux on OMAP
-Date: Wed, 27 Sep 2006 05:42:11 -0700 (PDT)
-Message-ID: <20060927124211.85505.qmail@web34901.mail.mud.yahoo.com>
+Subject: porting linux on OMAP1510
+Date: Wed, 27 Sep 2006 06:35:41 -0700 (PDT)
+Message-ID: <20060927133541.12367.qmail@web34903.mail.mud.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,10 +18,11 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi friends....
+ Hi friends....
 
-Am goin to start my project in OMAP ..."Porting linux on OMAP"
+Am goin to start my project in OMAP1510 ..."Porting linux on OMAP1510"
 plz any one help me how to start with....what are the things required...
+which kernel should be used and why?
 
 like bootloaders,toolchain and etc....
 
@@ -29,6 +30,7 @@ bye....
 
 
 rajesh.B
- 			
+ 	=09
 ---------------------------------
-Get your own web address for just $1.99/1st yr. We'll help. Yahoo! Small Business.
+Talk is cheap. Use Yahoo! Messenger to make PC-to-Phone calls.  Great rat=
+es starting at 1=A2/min.
