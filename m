@@ -1,13 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Palm Tungsten E board update
-Date: Thu, 28 Sep 2006 17:04:41 +0300
-Message-ID: <20060928140440.GK29453@atomide.com>
-References: <fb249edb0609230339h66a97190r9f7f5408c688652c@mail.gmail.com>
+Subject: Re: [PATCH] Patch adding basic Palm Zire71 support
+Date: Thu, 28 Sep 2006 17:02:51 +0300
+Message-ID: <20060928140250.GJ29453@atomide.com>
+References: <200609231014.08262.marek.vasut@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <fb249edb0609230339h66a97190r9f7f5408c688652c@mail.gmail.com>
+In-Reply-To: <200609231014.08262.marek.vasut@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,20 +18,27 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: balrogg@gmail.com
-Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
+To: Marek =?utf-8?B?VmHFoXV0?= <marek.vasut@gmail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* andrzej zaborowski <balrog@zabor.org> [060923 13:45]:
-> General update of the board file for Palm Tungsten E. Registers the
-> platform devices contained in the PDA (ROM chip, keypad, infra-red)
-> and updates the configuration for USB and MMC, whose config values
-> were previously guessed in most cases due to lack of documentation
-> (and now are confirmed by a number of users). Macros for GPIO pins are
-> moved to a file in include/asm-arm/arch-omap.
-> 
-> Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
+* Marek Va=C5=A1ut <marek.vasut@gmail.com> [060923 11:14]:
+> Hi,
+>=20
+> this patch adds basic support for palm zire71 (lcd, keypad, usb net, mm=
+c=20
+> works). I have more things working but they=C2=B4re not yet ready for m=
+erging into=20
+> kernel I think (dirty code - needs cleanup).
 
-Pushing today.
+Cool :)
+=20
+> Patch is here:=20
+> http://disk.jabbim.cz/marex@jabber.cz/palmz71-basic-2.6.18.patch
+
+Once you start submitting, please remember to break it down to small
+patches. Some of your fixes might help other 15xx boards..
+
+Regards,
 
 Tony
