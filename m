@@ -1,12 +1,11 @@
-From: "Hieu Ninh" <hninh@hotmail.com>
-Subject: Hardware interface for CDROM with the OSK5912
-Date: Wed, 27 Sep 2006 14:33:25 -0500
-Message-ID: <BAY122-DAV13BA8E7FF312F1680CFFFA61A0@phx.gbl>
+From: Vivek Srivastava <viveks@txc.stpn.soft.net>
+Subject: timers in linux
+Date: Thu, 28 Sep 2006 11:37:55 +0530
+Message-ID: <451B66BB.3020102@txc.stpn.soft.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="x-user-defined"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,21 +13,16 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+All,
 
-We need to connect a CDROM drive to the OSK5912 board using IDE interface.
-I've read that TI doesn't support the compact flash function anymore
+Our application has multiple threads running in user space. Each thread 
+requires multiple timers with millisecond granularity. Please suggest 
+how to implement generic functions for timers in such situation.
 
-http://focus.ti.com/lit/er/sprz209h/sprz209h.pdf  see "Advisory SYS_11"
-
-Has anyone here known what is the exact problem of this issue?  If so how
-would you get around this problem?
-
-Thank you for your help
-
-HN
+thanks,
+Vivek
