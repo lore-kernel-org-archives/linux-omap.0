@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: correct misc 15xx and non-15xx platform code
-Date: Thu, 28 Sep 2006 16:58:50 +0300
-Message-ID: <20060928135849.GI29453@atomide.com>
-References: <fb249edb0609221301u6fc66d0ci51ddf77449a2656f@mail.gmail.com>
+Subject: Re: [PATCH] ARM: OMAP: Palm Tungsten E board update
+Date: Thu, 28 Sep 2006 17:04:41 +0300
+Message-ID: <20060928140440.GK29453@atomide.com>
+References: <fb249edb0609230339h66a97190r9f7f5408c688652c@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <fb249edb0609221301u6fc66d0ci51ddf77449a2656f@mail.gmail.com>
+In-Reply-To: <fb249edb0609230339h66a97190r9f7f5408c688652c@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,16 +21,13 @@ To: balrogg@gmail.com
 Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* andrzej zaborowski <balrog@zabor.org> [060922 23:02]:
-> Disable accesses to SOFT_REQ_REG2 and ULPD_SOFT_DISABLE_REQ_REG
-> registers for 15xx processors that don't have these registers. Enable
-> level 2 interrupt handler for processors that identify as OMAP 15xx
-> (e.g 310) and not 1510 specifically. Also fix the following compiler
-> warning (only visible with CONFIG_OMAP_RESET_CLOCKS):
-> 
-> arch/arm/mach-omap1/clock.c: In function 'omap1_clk_disable_unused':
-> arch/arm/mach-omap1/clock.c:634: warning: 'return' with a value, in
-> function returning void
+* andrzej zaborowski <balrog@zabor.org> [060923 13:45]:
+> General update of the board file for Palm Tungsten E. Registers the
+> platform devices contained in the PDA (ROM chip, keypad, infra-red)
+> and updates the configuration for USB and MMC, whose config values
+> were previously guessed in most cases due to lack of documentation
+> (and now are confirmed by a number of users). Macros for GPIO pins are
+> moved to a file in include/asm-arm/arch-omap.
 > 
 > Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
 
