@@ -1,13 +1,12 @@
-From: tony@atomide.com
-Subject: Re: Generic time for ARM and OMAP
-Date: Fri, 29 Sep 2006 14:16:36 +0300
-Message-ID: <20060929111634.GE19674@atomide.com>
-References: <451C66AD.7000705@mvista.com>
+From: "Richard Copeman" <richard.copeman@lauterbach.co.uk>
+Subject: H4 with 2.6.9 from TI dev site not booting
+Date: Fri, 29 Sep 2006 13:52:04 +0100
+Message-ID: <009f01c6e3c6$10a275b0$642aa8c0@Buffy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <451C66AD.7000705@mvista.com>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,30 +14,32 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Kevin Hilman <khilman@mvista.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@mvista.com> [060929 03:20]:
-> Tony,
-> 
-> A heads up for your next merge, now that the generic timekeeping
-> infrastructure is in mainline.
-> 
-> RMK has just merged the generic time support for ARM[1], and Daniel
-> Walker has converted the OMAP1 MPU and 32k timers over to use the new
-> 'clocksource' method to support generic time[2].  The omap clocksource
-> is not yet applied, but it should be shortly.
-> 
-> Kevin
-> 
-> 
-> [1]http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=3855/1
-> [2]http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=3876/1
-> 
+Hi,
 
-OK, sounds good.
+ 
 
-Tony
+I wonder if anyone has any experience with LINUX 2.6.9 built with gcc 3.4.1
+for ARM running on TI OMAP2420 H4 board.
+
+ 
+
+I download the kernel via JTAG to 0x80000000 and start it running. It runs
+for 35 instructions and then ends up in a tight loop at 0x80008118 which
+contains a nop followed by a branch to 0x80008118.
+
+ 
+
+Can someone point me in the right direction please?
+
+ 
+
+TIA,
+
+ 
+
+Richard.
