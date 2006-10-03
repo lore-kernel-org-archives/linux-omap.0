@@ -1,13 +1,10 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: Recent git kernels and OSK
-Date: Tue, 03 Oct 2006 15:55:17 +0200
-Message-ID: <45226BC5.9050201@gmail.com>
-References: <4521941B.2020102@balister.org>
+From: "Abot Botbot" <dejanigma@hotmail.com>
+Subject: Embedded Linux Mentor
+Date: Tue, 03 Oct 2006 14:20:19 +0000
+Message-ID: <BAY102-F302FDA6B3FD643E3EC14F0A91C0@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <4521941B.2020102@balister.org>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,55 +14,30 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Philip Balister <philip@balister.org>, OMAP <Linux-omap-open-source@linux.omap.com>
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Philip Balister wrote:
-> I just built a kernel from today's git repo and tried booting it on my 
-> OSK. The boot hung after uncompressing the kernel at the "Starting 
-> kernel ..." message.
-> 
-> Has anyone successfully booted a recent git kernel on the OSK?
+F0lks,
 
-Just checked it. Seems that recent git on OSK is really 
-broken. Enabling lowlevel debug last thing I get is kernel 
-command line output [3]. On my last working kernel next 
-output would be clock stuff [2]
+  This is a strange request, but I'm wondering if any of the nice people on 
+this forum would like to assist me with my overall approach to my design 
+project. I'm trying to port a system from a motorola DSP, which is interrupt 
+driven and has no network functionality, to the OMAP5912 OSK platform with 
+linux supporting some enhanced network features. I'm an electrical engineer 
+with most of my background in verilog hardware design, but I've already come 
+pretty far along the learning curve for embedded linux development over the 
+past few months. I would really appreciate if someone, who has been in this 
+niche for a long time, would listen to my design problem and intended 
+solution, and we could discuss ways to compartmentalize intermediary goals 
+such that I can better tackle the tasks at hand. No one in my department has 
+any experience in this specialized area and suprisingly few even know the 
+first thing about Linux. I would be very grateful for any help.
 
-My last update some days ago including "Menelaus: Fix 
-voltage values for VMEM" [1] was okay. So anything between 
-this patch and now is the bad one.
+Thanks so much for all the assistance I've already gotten through this forum 
+and will continue to receive.
+Andy
 
-Any ideas?
-
-Cheers
-
-Dirk
-
-[1] 
-http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=8f321b52ea97a59e8471904b2e2c32438618c6be
-
-[2]
-Clocks: ARM_SYSST: 0x1000 DPLL_CTL: 0x2813 ARM_CKCTL: 0x150f
-Clocking rate (xtal/DPLL1/MPU): 12.0/192.0/192.0 MHz
-...
-
-[3] Recent git with lowlevel debug enabled on OSK:
-
-5>Linux version 2.6.18-omap1 (dirk@asterix) (gcc version 
-4.1.0) #2 PREEMPT Tue Oct 3 15:40:42 CEST 2006
-CPU: ARM926EJ-S [41069263] revision 3 (ARMv5TEJ), cr=00053177
-Machine: TI-OSK
-Memory policy: ECC disabled, Data cache writeback
-<7>On node 0 totalpages: 8192
-<7>  DMA zone: 8192 pages, LIFO batch:1
-OMAP1611b revision 2 handled as 16xx id: 68058c80eb071005
-<6>SRAM: Mapped pa 0x20000000 to va 0xd0000000 size: 0x100000
-CPU0: D VIVT write-back cache
-CPU0: I cache: 16384 bytes, associativity 4, 32 byte lines, 
-128 sets
-CPU0: D cache: 8192 bytes, associativity 4, 32 byte lines, 
-64 sets
-Built 1 zonelists.  Total pages: 8192
-<5>Kernel command line: mem=32M console=tty0 
-console=ttyS0,115200 initrd=0x10400000,8M root=/dev/ram0 rw
+_________________________________________________________________
+Share your special moments by uploading 500 photos per month to Windows Live 
+Spaces  
+http://clk.atdmt.com/MSN/go/msnnkwsp0070000001msn/direct/01/?href=http://www.get.live.com/spaces/features
