@@ -1,10 +1,13 @@
-From: "Abot Botbot" <dejanigma@hotmail.com>
-Subject: Embedded Linux Mentor
-Date: Tue, 03 Oct 2006 14:20:19 +0000
-Message-ID: <BAY102-F302FDA6B3FD643E3EC14F0A91C0@phx.gbl>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: Recent git kernels and OSK
+Date: Tue, 03 Oct 2006 17:24:21 +0200
+Message-ID: <452280A5.5080805@gmail.com>
+References: <4521941B.2020102@balister.org> <45226BC5.9050201@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <45226BC5.9050201@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,30 +17,51 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: Philip Balister <philip@balister.org>, OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-F0lks,
+Dirk Behme wrote:
+> Philip Balister wrote:
+...
+>> Has anyone successfully booted a recent git kernel on the OSK?
+...
+> Just checked it. Seems that recent git on OSK is really broken. Enabling 
+> lowlevel debug last thing I get is kernel command line output [3]. On my 
+> last working kernel next output would be clock stuff [2]
 
-  This is a strange request, but I'm wondering if any of the nice people on 
-this forum would like to assist me with my overall approach to my design 
-project. I'm trying to port a system from a motorola DSP, which is interrupt 
-driven and has no network functionality, to the OMAP5912 OSK platform with 
-linux supporting some enhanced network features. I'm an electrical engineer 
-with most of my background in verilog hardware design, but I've already come 
-pretty far along the learning curve for embedded linux development over the 
-past few months. I would really appreciate if someone, who has been in this 
-niche for a long time, would listen to my design problem and intended 
-solution, and we could discuss ways to compartmentalize intermediary goals 
-such that I can better tackle the tasks at hand. No one in my department has 
-any experience in this specialized area and suprisingly few even know the 
-first thing about Linux. I would be very grateful for any help.
+> Any ideas?
 
-Thanks so much for all the assistance I've already gotten through this forum 
-and will continue to receive.
-Andy
+Seems to me that it hangs in arch/arm/mach-omap1/clock.c in 
+omap1_clk_init in
 
-_________________________________________________________________
-Share your special moments by uploading 500 photos per month to Windows Live 
-Spaces  
-http://clk.atdmt.com/MSN/go/msnnkwsp0070000001msn/direct/01/?href=http://www.get.live.com/spaces/features
+...
+/* USB_REQ_EN will be disabled later if necessary (usb_dc_ck) */
+reg = omap_readw(SOFT_REQ_REG) & (1 << 4);
+omap_writew(reg, SOFT_REQ_REG);
+if (!cpu_is_omap15xx())
+   	omap_writew(0, SOFT_REQ_REG2);
+...
+
+If I remove "omap_writew(reg, SOFT_REQ_REG);" in code above 
+it goes on booting but then crashes later in clk_disable() 
+(as the comment above implies ;) ):
+
+...
+Initializing OMAP McBSP system
+<6>omap_dsp_init() done
+USB: hmc 16, usb0 2 wires
+<6>i2c_omap i2c_omap.1: bus 0 rev2.2 at 100 kHz
+<2>kernel BUG at arch/arm/plat-omap/clock.c:138!
+<1>Unable to handle kernel NULL pointer dereference at 
+virtual address 00000000
+...
+
+If I'm correct here (not sure, can anybody reproduce this?) 
+I really wonder why it may hang in (unchanged) write access 
+to SOFT_REQ_REG?
+
+Again, any ideas?
+
+Cheers
+
+Dirk
