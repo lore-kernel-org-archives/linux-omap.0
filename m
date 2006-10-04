@@ -1,13 +1,11 @@
-From: Marcin Juszkiewicz <openembedded@hrw.one.pl>
-Subject: Re: Disable DSPGW fails
-Date: Wed, 4 Oct 2006 12:11:52 +0200
-Message-ID: <200610041211.53114.openembedded@hrw.one.pl>
-References: <4523752A.8020601@gmail.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Pending September patches
+Date: Wed, 04 Oct 2006 15:28:24 +0200
+Message-ID: <4523B6F8.3020800@gmail.com>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_pj4IFjbdNyrGldH"
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <4523752A.8020601@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,97 +13,46 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---Boundary-00=_pj4IFjbdNyrGldH
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Hi,
 
-Dnia =B6roda, 4 pa=BCdziernika 2006 10:47, Dirk Behme napisa=B3:
+my list of pending OMAP patches for September 2006:
 
-> while debugging the OSK issue, I tried to disable DSPGW
-> completely (CONFIG_OMAP_DSP is not set). On most recent git
-> this fails with
->
-> arch/arm/plat-omap/built-in.o: In function `omap_mcbsp_free':
-> mcbsp.c:(.text+0x44b8): undefined reference to
-> `omap_dsp_release_mem'
-> arch/arm/plat-omap/built-in.o: In function `omap_mcbsp_request':
-> mcbsp.c:(.text+0x45cc): undefined reference to
-> `omap_dsp_request_mem'
->
-> Anybody with an idea how to fix this?
+1. [PATCH] MTD patch, including the latest modifications an
+offical upgrades for MTD
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-September/007889.html
 
-Attached patch fix it. Feel free to push it into correct maintainer to get=
-=20
-it included in GIT tree.
+Note: Is this still necessary or does 2.6.18 contain it
+automatically?
 
-=2D-=20
-JID: hrw-jabber.org
-OpenEmbedded developer
+2.[PATCH 1/4] TSC2102 main SPI driver
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-September/007929.html
 
-             Today is the first day of the rest of your life.
+3. [PATCH 2/4] TSC2102 Touchscreen
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-September/007931.html
 
---Boundary-00=_pj4IFjbdNyrGldH
-Content-Type: text/x-diff; charset="iso-8859-1";
-	name="linux-omap-no-dsp-fix.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="linux-omap-no-dsp-fix.patch"
+Note: What's about "[PATCH 3/4] TSC2102 hwmon driver"?
 
+4. [PATCH 4/4] TSC2102 OMAP audio driver
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-September/007930.html
 
-while debugging the OSK issue, I tried to disable DSPGW 
-completely (CONFIG_OMAP_DSP is not set). 
+5. [PATCH] Request OMAP MMC Write-protect pin
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-September/007976.html
 
-On most recent git this fails with
+6. LCD output from decompressor
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-September/007977.html
 
-arch/arm/plat-omap/built-in.o: In function `omap_mcbsp_free':
-mcbsp.c:(.text+0x44b8): undefined reference to 
-`omap_dsp_release_mem'
-arch/arm/plat-omap/built-in.o: In function `omap_mcbsp_request':
-mcbsp.c:(.text+0x45cc): undefined reference to 
-`omap_dsp_request_mem'
+Note: Should this be applied or only stay on the list for
+interested people?
 
-This patch fixes it.
+Please correct if I missed anything, if any of above patches
+are already applied or if any has comments I overlooked and
+needs resend. Are there any older patches pending?
 
-Signed-off-by: Marcin Juszkiewicz <openembedded@hrw.one.pl>
+Cheers
 
-
-Index: git/arch/arm/plat-omap/mcbsp.c
-===================================================================
---- git.orig/arch/arm/plat-omap/mcbsp.c 2006-09-27 12:17:21.000000000 +0200
-+++ git/arch/arm/plat-omap/mcbsp.c      2006-09-27 12:17:01.000000000 +0200
-@@ -197,7 +197,9 @@
- static void omap_mcbsp_dsp_request(void)
- {
-        if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
-+#ifdef CONFIG_OMAP_DSP
-                omap_dsp_request_mem();
-+#endif
-                clk_enable(mcbsp_dsp_ck);
-                clk_enable(mcbsp_api_ck);
-
-@@ -216,7 +218,9 @@
- static void omap_mcbsp_dsp_free(void)
- {
-        if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
-+#ifdef CONFIG_OMAP_DSP
-                omap_dsp_release_mem();
-+#endif
-                clk_disable(mcbsp_dspxor_ck);
-                clk_disable(mcbsp_dsp_ck);
-                clk_disable(mcbsp_api_ck);
-
---Boundary-00=_pj4IFjbdNyrGldH
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---Boundary-00=_pj4IFjbdNyrGldH--
+Dirk
