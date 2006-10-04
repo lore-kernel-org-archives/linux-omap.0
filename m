@@ -1,11 +1,10 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Pending September patches
-Date: Wed, 04 Oct 2006 15:28:24 +0200
-Message-ID: <4523B6F8.3020800@gmail.com>
+Subject: [PATCH] ARM: OMAP: Fix warning in clock.c
+Date: Wed, 04 Oct 2006 15:28:43 +0200
+Message-ID: <4523B70B.6030100@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: multipart/mixed; boundary="------------080700010309070005070907"
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,46 +12,52 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+This is a multi-part message in MIME format.
+--------------080700010309070005070907
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-my list of pending OMAP patches for September 2006:
 
-1. [PATCH] MTD patch, including the latest modifications an
-offical upgrades for MTD
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-September/007889.html
+Fix warning
 
-Note: Is this still necessary or does 2.6.18 contain it
-automatically?
+arch/arm/mach-omap1/clock.c: In function
+'omap1_clk_enable_generic':
+arch/arm/mach-omap1/clock.c:499: warning: 'return' with no
+value, in function returning non-void
 
-2.[PATCH 1/4] TSC2102 main SPI driver
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-September/007929.html
+Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
 
-3. [PATCH 2/4] TSC2102 Touchscreen
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-September/007931.html
 
-Note: What's about "[PATCH 3/4] TSC2102 hwmon driver"?
+--------------080700010309070005070907
+Content-Type: text/plain;
+ name="clock_warning_patch.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="clock_warning_patch.txt"
 
-4. [PATCH 4/4] TSC2102 OMAP audio driver
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-September/007930.html
+--- ./arch/arm/mach-omap1/clock.c_orig	2006-10-04 15:07:39.000000000 +0200
++++ ./arch/arm/mach-omap1/clock.c	2006-10-04 15:09:41.000000000 +0200
+@@ -496,7 +496,7 @@ static int omap1_clk_enable_generic(stru
+ 		}
+ 	}
+ 
+-	return;
++	return 0;
+ }
+ 
+ static void omap1_clk_disable_generic(struct clk *clk)
 
-5. [PATCH] Request OMAP MMC Write-protect pin
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-September/007976.html
 
-6. LCD output from decompressor
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-September/007977.html
+--------------080700010309070005070907
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Note: Should this be applied or only stay on the list for
-interested people?
 
-Please correct if I missed anything, if any of above patches
-are already applied or if any has comments I overlooked and
-needs resend. Are there any older patches pending?
-
-Cheers
-
-Dirk
+--------------080700010309070005070907--
