@@ -1,14 +1,13 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: Recent git kernels and OSK
-Date: Wed, 04 Oct 2006 11:03:54 +0200
-Message-ID: <452378FA.9050604@gmail.com>
-References: <4521941B.2020102@balister.org> <45226BC5.9050201@gmail.com>
-	<452280A5.5080805@gmail.com>
+From: Marcin Juszkiewicz <openembedded@hrw.one.pl>
+Subject: Re: Disable DSPGW fails
+Date: Wed, 4 Oct 2006 12:11:52 +0200
+Message-ID: <200610041211.53114.openembedded@hrw.one.pl>
+References: <4523752A.8020601@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_pj4IFjbdNyrGldH"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <452280A5.5080805@gmail.com>
+In-Reply-To: <4523752A.8020601@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,37 +17,95 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: OMAP <Linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Dirk Behme wrote:
->> Just checked it. Seems that recent git on OSK is really broken. 
->> Enabling lowlevel debug last thing I get is kernel command line output 
->> [3]. On my last working kernel next output would be clock stuff [2]
->  
->> Any ideas?
-> 
-> Seems to me that it hangs in arch/arm/mach-omap1/clock.c in 
-> omap1_clk_init in
+--Boundary-00=_pj4IFjbdNyrGldH
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-As already mentioned in my last mail, this seems to be 
-related to broken low level debug.
+Dnia =B6roda, 4 pa=BCdziernika 2006 10:47, Dirk Behme napisa=B3:
 
-Doing some more debugging (with low level debug disabled 
-now) shows that at least until "ARM: OMAP: DSPGW: mailbox 
-log cleanup" [1] everything is okay. Then, with all changes 
-including "ARM: OMAP: DSPGW: Peripheral (kfunc) control" [2] 
-it seems to be broken.
+> while debugging the OSK issue, I tried to disable DSPGW
+> completely (CONFIG_OMAP_DSP is not set). On most recent git
+> this fails with
+>
+> arch/arm/plat-omap/built-in.o: In function `omap_mcbsp_free':
+> mcbsp.c:(.text+0x44b8): undefined reference to
+> `omap_dsp_release_mem'
+> arch/arm/plat-omap/built-in.o: In function `omap_mcbsp_request':
+> mcbsp.c:(.text+0x45cc): undefined reference to
+> `omap_dsp_request_mem'
+>
+> Anybody with an idea how to fix this?
 
-So maybe DSPGW changes cause the trouble on OSK. Can anybody 
-with DSPGW knowledge re-check this on OSK?
+Attached patch fix it. Feel free to push it into correct maintainer to get=
+=20
+it included in GIT tree.
 
-Many thanks,
+=2D-=20
+JID: hrw-jabber.org
+OpenEmbedded developer
 
-Dirk
+             Today is the first day of the rest of your life.
 
-[1]
-http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=0992816784c16d294b884c15fde6fe469a18a01f
+--Boundary-00=_pj4IFjbdNyrGldH
+Content-Type: text/x-diff; charset="iso-8859-1";
+	name="linux-omap-no-dsp-fix.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="linux-omap-no-dsp-fix.patch"
 
-[2]
-http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=0a1de60c0d0f0c9f634a8673a1918f716c2cdcad
+
+while debugging the OSK issue, I tried to disable DSPGW 
+completely (CONFIG_OMAP_DSP is not set). 
+
+On most recent git this fails with
+
+arch/arm/plat-omap/built-in.o: In function `omap_mcbsp_free':
+mcbsp.c:(.text+0x44b8): undefined reference to 
+`omap_dsp_release_mem'
+arch/arm/plat-omap/built-in.o: In function `omap_mcbsp_request':
+mcbsp.c:(.text+0x45cc): undefined reference to 
+`omap_dsp_request_mem'
+
+This patch fixes it.
+
+Signed-off-by: Marcin Juszkiewicz <openembedded@hrw.one.pl>
+
+
+Index: git/arch/arm/plat-omap/mcbsp.c
+===================================================================
+--- git.orig/arch/arm/plat-omap/mcbsp.c 2006-09-27 12:17:21.000000000 +0200
++++ git/arch/arm/plat-omap/mcbsp.c      2006-09-27 12:17:01.000000000 +0200
+@@ -197,7 +197,9 @@
+ static void omap_mcbsp_dsp_request(void)
+ {
+        if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
++#ifdef CONFIG_OMAP_DSP
+                omap_dsp_request_mem();
++#endif
+                clk_enable(mcbsp_dsp_ck);
+                clk_enable(mcbsp_api_ck);
+
+@@ -216,7 +218,9 @@
+ static void omap_mcbsp_dsp_free(void)
+ {
+        if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
++#ifdef CONFIG_OMAP_DSP
+                omap_dsp_release_mem();
++#endif
+                clk_disable(mcbsp_dspxor_ck);
+                clk_disable(mcbsp_dsp_ck);
+                clk_disable(mcbsp_api_ck);
+
+--Boundary-00=_pj4IFjbdNyrGldH
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--Boundary-00=_pj4IFjbdNyrGldH--
