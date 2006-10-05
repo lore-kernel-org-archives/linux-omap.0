@@ -1,15 +1,11 @@
-From: "Ishigami, Tatsuya" <ishigami@ti.com>
-Subject: RE: Help with LCD on OSK
-Date: Wed, 4 Oct 2006 15:36:56 -0500
-Message-ID: <772F5D89C5E0734B8A86D85DFC6A202404BA265B@dlee03.ent.ti.com>
-References: <CC7B089C59ED6841BAE28F1EA69A854387371D@EXCHDB.admin.wpi.edu>
+From: Ravi KK <ravikk@huawei.com>
+Subject: How to upload u-boot to H3 with serial port ?
+Date: Thu, 05 Oct 2006 11:28:58 +0530
+Message-ID: <003701c6e843$59ed88f0$4414120a@china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <CC7B089C59ED6841BAE28F1EA69A854387371D@EXCHDB.admin.wpi.edu>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,87 +13,123 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "Sideleau, Scott R" <srs@WPI.EDU>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
-=20
-> It's a grascale video LCD (320x240 from Hantronix) with
-> it's 4x data lines connected to LCD.P2, LCD.P4, LCD.P6,
-> and LCD.P8.
+Hi
 
- Is its specification (or datasheet)  available public, ideally on-line?
+How to load u-boot on OMAP 1710 board?
 
-> I've looked at lcd_osk.c and lcdc.c in .../arch/arm/drivers/plat-omap,
-> but do not readily see what I need to modify to get things working.
+Following steps are followed to load u-boot.bin.raw file to board.
 
- Well, you might first want to understand each parameter with
-the display controller datamanual.
+1. Connected UART on main board to PC serial port (using Rs232 with DB9
+connector). (also tried between debug board UART and PC serial interface,
+but end up with same status)
 
-	http://focus.ti.com/lit/ug/spru764b/spru764b.pdf
+2. Set the switches according "omap_1710v1.4.txt" 
 
-> I do not know how to tell if the driver is installed and loading
-> correctly with my current kernel.
+    - Main Board
 
- I hope this page might help.
+       SW101-1 ON
 
-	http://oskfordummies.hp.infoseek.co.jp/howto/lcd.html
+       SW101-2 ON
 
-> As this is a university project, I'm on a tight schedule
+       SW101-3 ON
 
- Probably you already know, but the OSK LCD board is already
-is available from the 3rd parties.
+       SW101-4 OFF
 
-	http://www.aditec.co.kr/2005_aditec/img/aglm.pdf
+ 
 
-=09
-http://www.mistralsoftware.com/html/product/opendoc.php?document_url=3Dom=
-a
-p_products/QVLM.pdf
+       SW401-1 ON
 
- Good luck,
+       SW401-2 OFF
 
- Regards,
- Ishigami
+       SW401-3 ON
 
------Original Message-----
-From: Sideleau, Scott R [mailto:srs@WPI.EDU]=20
-Sent: Wednesday, October 04, 2006 9:30 AM
-To: linux-omap-open-source@linux.omap.com
-Subject: Help with LCD on OSK
+       SW401-4 ON
 
-Hello,
+ 
 
-I was hoping I might be able to get some assistance with getting an
-external,
-custom LCD working with the OSK.  It's driver board currently connects
-to the
-OSK via the 80-pin HiRose connector to Expansion Slot C on the OSK.
+       - Multiport debug board
 
-It's a grascale video LCD (320x240 from Hantronix) with it's 4x data
-lines
-connected to LCD.P2, LCD.P4, LCD.P6, and LCD.P8.
+ 
 
-I've looked at lcd_osk.c and lcdc.c in .../arch/arm/drivers/plat-omap,
-but do
-not readily see what I need to modify to get things working.
+       SW2-1 OFF
 
-In addition, I do not know how to tell if the driver is installed and
-loading
-correctly with my current kernel.
+       SW2-2 OFF
 
-Any help and/or direction (to documentation or otherwise) would be
-greatly
-appreciated.  As this is a university project, I'm on a tight schedule
-and
-would appreciate any response... really.
+       SW2-3 OFF
 
-Thanks in advance.
-______________________________________________
-Scott R. Sideleau
-ECE '07, Worcester Polytechnic Institute
-@ MQP Ireland A'06, University of Limerick
-+353 61-307310 / srs@wpi.edu
+       SW2-4 OFF
+
+ 
+
+       SW3-1 ON
+
+       SW3-2 ON
+
+       SW3-3 ON
+
+       SW3-4 ON
+
+       SW3-5 ON
+
+       SW3-6 ON
+
+       SW3-7 OFF
+
+       SW3-8 OFF
+
+3. Run OST tool V2.5.
+
+  Set "16xx_17xx DDR" in Platform.
+
+  Set "COM1" in Interface
+
+  Set "NOR" in Flash Type
+
+  Set "HS" in Device.
+
+  Flash Firmware is OST_Flash_16xx.out.
+
+  Downloaded SW is OST_Load_GP_16xx.2nd.
+
+  Input File is u-boot.bin.raw
+
+ Click the button "Download To target", and the message box show  'Waiting
+for Target to send ASIC ID'
+
+4. Power up H3,
+
+OST Tool status shows ''Waiting for Target to send ASIC ID' no change
+further!!!!
+
+------------------->
+
+Based on above switch settings USB OTG is connected to PC USB.
+
+Followed above step 3 and set 'interface' in OST tool to 'USB' and step 4.
+But the status is 'Waiting for USB device to connect" and no other reaction.
+
+
+During this step, when power up the board PC identifies the board as unknown
+device. I tried to install USB driver provided by TI, but is not getting
+installed as windows says current installed  driver is newer than the new
+one. 
+
+How to get the board identified as a normal USB to PC host? Any other is
+available?
+
+ 
+
+Looking for support.
+
+ 
+
+Regards
+
+Ravi KK
+
+ 
