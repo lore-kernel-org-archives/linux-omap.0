@@ -1,13 +1,15 @@
-From: Ladislav Michl <ladis@mips-linux.cz>
-Subject: Re: [PATCH] ARM: OMAP: Fix warning in clock.c
-Date: Thu, 5 Oct 2006 09:48:57 +0200
-Message-ID: <20061005074857.GA10371@orphique>
-References: <4523B70B.6030100@gmail.com>
+From: "Sideleau, Scott R" <srs@WPI.EDU>
+Subject: RE: Help with LCD on OSK
+Date: Thu, 5 Oct 2006 05:48:27 -0400
+Message-ID: <CC7B089C59ED6841BAE28F1EA69A8543873721@EXCHDB.admin.wpi.edu>
+References: <772F5D89C5E0734B8A86D85DFC6A202404BA265B@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <4523B70B.6030100@gmail.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <772F5D89C5E0734B8A86D85DFC6A202404BA265B@dlee03.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,58 +19,58 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
+To: "Ishigami, Tatsuya" <ishigami@ti.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 04, 2006 at 03:28:43PM +0200, Dirk Behme wrote:
-> 
-> Fix warning
-> 
-> arch/arm/mach-omap1/clock.c: In function
-> 'omap1_clk_enable_generic':
-> arch/arm/mach-omap1/clock.c:499: warning: 'return' with no
-> value, in function returning non-void
-> 
-> Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
-> 
+Hello,
 
-> --- ./arch/arm/mach-omap1/clock.c_orig	2006-10-04 15:07:39.000000000 +0200
-> +++ ./arch/arm/mach-omap1/clock.c	2006-10-04 15:09:41.000000000 +0200
-> @@ -496,7 +496,7 @@ static int omap1_clk_enable_generic(stru
->  		}
->  	}
->  
-> -	return;
-> +	return 0;
->  }
+First, thanks for the reply, Ishigami.
 
-Does it make sense to return any vaule at all? This functions return
-always 0. Perhaps in case there is no enable reg it should return
-something else. Btw, can this code run on omap2 cpu?
+> Is its specification (or datasheet) available public, ideally on-line?
 
+Yes, indeed it is.  Check out the data sheet and full specification =
+sheet for
+the 320x240 display (scroll to table on bottom of page) at the following =
+web
+site:
 
-diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index f8e1294..45d0314 100644
---- a/arch/arm/mach-omap1/clock.c
-+++ b/arch/arm/mach-omap1/clock.c
-@@ -432,8 +432,7 @@ static int omap1_clk_enable(struct clk *
- 			}
- 
- 			if (clk->flags & CLOCK_NO_IDLE_PARENT)
--				if (!cpu_is_omap24xx())
--					omap1_clk_deny_idle(clk->parent);
-+				omap1_clk_deny_idle(clk->parent);
- 		}
- 
- 		ret = clk->enable(clk);
-@@ -454,8 +453,7 @@ static void omap1_clk_disable(struct clk
- 		if (likely(clk->parent)) {
- 			omap1_clk_disable(clk->parent);
- 			if (clk->flags & CLOCK_NO_IDLE_PARENT)
--				if (!cpu_is_omap24xx())
--					omap1_clk_allow_idle(clk->parent);
-+				omap1_clk_allow_idle(clk->parent);
- 		}
- 	}
- }
+http://www.hantronix.com/2_1.html
+
+> Well, you might first want to understand each parameter with
+> the display controller datamanual.
+> http://focus.ti.com/lit/ug/spru764b/spru764b.pdf
+>
+> ...
+>
+> I hope this page might help.
+> http://oskfordummies.hp.infoseek.co.jp/howto/lcd.html
+
+Thanks, I'll check out both of those links now.
+
+> Probably you already know, but the OSK LCD board is already
+> is available from the 3rd parties.
+
+Indeed, we were aware of the available OSK LCD boards; however, it being =
+a
+university project with limited funding, one of the existing (rather
+expensive) solutions was not an option.
+
+We have engineered the necessary driver circuitry for the Hantronix =
+320x240
+Chip-on-Glass LCD and have verified it is receiving the necessary =
+voltages
+when powered by the OSK development board across Expansion Connector C.
+
+At this point, I believe it to be a software issue.
+
+If you, or anyone else, has any further advice or knowledge in dealing =
+with
+this aspect of the OSK, any assistance would be greatly appreciated.
+
+Thanks, Ishigami, for your help thus far.
+______________________________________________
+Scott R. Sideleau
+ECE '07, Worcester Polytechnic Institute
+@ MQP Ireland A'06, University of Limerick
++353 61-307310 / srs@wpi.edu
