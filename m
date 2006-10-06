@@ -1,13 +1,13 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: porting linux on OMAP1510
-Date: Fri, 06 Oct 2006 16:52:43 +0200
-Message-ID: <45266DBB.7050201@gmail.com>
-References: <20061006114855.19470.qmail@web34903.mail.mud.yahoo.com>
+Subject: Re: encoder audio or speech for omap5912
+Date: Fri, 06 Oct 2006 17:03:18 +0200
+Message-ID: <45267036.9000806@gmail.com>
+References: <002e01c6e93e$d27fe8c0$5a4517ac@CibersiteIndia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <20061006114855.19470.qmail@web34903.mail.mud.yahoo.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <002e01c6e93e$d27fe8c0$5a4517ac@CibersiteIndia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,29 +15,25 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: rajesh B <trytorajesh@yahoo.com>
-Cc: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: K S Shankar <sshanmugam@ciber.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-rajesh B wrote:
-> am porting linux on OMAP1510...
-> 1. am getting errors in kernal compilation....i didnt get the image what to do....
-> 2. i thought to change the kernel version ....
-> 
-> am using this packages
-> linux-2.4.19.tar.gz 
-> patch-2.4.19-rmk7.bz2 
-> patch-2.4.19-rmk7-omap1.bz2 
-> 
-> if i want to change linux to 2.4.20 then i have to change patch files also or not...
+K S Shankar wrote:
+>   *   - You have to provide appropriate defines for them in config.h, e.g. *
+>   *     + define SIZEOF_SHORT to 2 if the size of a short is 2             *
+>   *     + define WORDS_BIGENDIAN if your system is a big endian system     *
 
-Try to use 2.6, 2.4 is outdated, especially for new 
-projects. See Linux ARM kernel list FAQ:
+Maybe you should follow the advice the tool gives you?
 
-http://www.arm.linux.org.uk/mailinglists/faq.php#f11
+OMAP is little endian. If you are unsure which sizes are 
+correct for the various #define SIZEOF_xx try to write a 
+short test program which does someting like
 
-With 2.6 OMAP1510 should work without any porting.
+printf("Size of short: %i\n", sizeof(short));
+
+etc.
 
 Dirk
