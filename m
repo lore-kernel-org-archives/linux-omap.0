@@ -1,12 +1,13 @@
-From: "K S Shankar" <sshanmugam@ciber.com>
-Subject: encoder audio or speech for omap5912
-Date: Fri, 6 Oct 2006 17:29:01 +0530
-Message-ID: <002e01c6e93e$d27fe8c0$5a4517ac@CibersiteIndia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: Make OMAP1 work again
+Date: Fri, 6 Oct 2006 15:49:00 +0300
+Message-ID: <20061006124859.GJ32423@atomide.com>
+References: <452628C9.1020603@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <452628C9.1020603@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,72 +17,37 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi All, 
- 
-I want encode wav to mp3 on omap5912. I try to compiled lame3.97 with
-montavista linux cross compiler with options 
-CC= /opt/montavista/previewkit/arm/v4t_le/bin/arm_v4t_le-gcc ./configure
---target=arm-linux --host=arm-linux --prefix=/root/lame. 
-This compiled properly, but not works.  
- 
-/ # lame
-LAME version 3.97 (http://lame.sourceforge.net/)
- 
-usage: lame [options] <infile> [outfile]
- 
-    <infile> and/or <outfile> can be "-", which means stdin/stdout.
- 
-Try:
-     "lame --help"           for general usage information
- or:
-     "lame --preset help"    for information on suggested predefined
-settings
- or:
-     "lame --longhelp"
-  or "lame -?"              for a complete options list
-/home # lame testcase.wav testcase.mp3
-Segmentation fault.
- 
-I think that the problem maybe with this(configure warning)
- 
-checking for IEEE854 compliant 80 bit floats... configure: WARNING: can't
-check for IEEE854 compliant 80 bit floats
- 
-checking for ieee754_float64_t... no
-checking for ieee754_float32_t... no
-configure: WARNING:
-  **************************************************************************
-  *                                                                        *
-  * You are cross compiling:                                               *
-  *   - I did not have a change to determine                               *
-  *     + the size of:                                                     *
-  *       - short                                                          *
-  *       - unsigned short                                                 *
-  *       - int                                                            *
-  *       - unsigned int                                                   *
-  *       - long                                                           *
-  *       - unsigned long                                                  *
-  *       - float                                                          *
-  *       - double                                                         *
-  *       - long double                                                    *
-  *     + the endianess of the system                                      *
-  *   - You have to provide appropriate defines for them in config.h, e.g. *
-  *     + define SIZEOF_SHORT to 2 if the size of a short is 2             *
-  *     + define WORDS_BIGENDIAN if your system is a big endian system     *
-  *                                                                        *
-  **************************************************************************
- 
-Anyone could help me with this.
+* Dirk Behme <dirk.behme@googlemail.com> [061006 12:58]:
+> 
+> In mach-omap1/mailbox.c the mailbox name is .name = "DSP"
+> while in plat-omap/dsp/dsp_core.c function  dsp_mbox_init()
+> asks for "dsp". This results in a strcmp() mismatch and then
+> OMAP1 system crashes due to NULL pointer. OMAP2 is correct,
+> there .name is "dsp". Correct OMAP1 name to "dsp" as well.
+> 
+> Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
+> 
 
- 
+> --- ./arch/arm/mach-omap1/mailbox.c_orig	2006-10-06 11:08:50.000000000 +0200
+> +++ ./arch/arm/mach-omap1/mailbox.c	2006-10-06 11:09:13.000000000 +0200
+> @@ -136,7 +136,7 @@ static struct omap_mbox1_priv omap1_mbox
+>  };
+>  
+>  struct omap_mbox mbox_dsp_info = {
+> -	.name = "DSP",
+> +	.name = "dsp",
+>  	.ops  = &omap1_mbox_ops,
+>  	.priv = &omap1_mbox_dsp_priv,
+>  };
+> 
+> 
 
- 
+Great, I pushed it.
 
-Thanks & Regards,
+Regards,
 
-K. S. Shankar
-
- 
+Tony
