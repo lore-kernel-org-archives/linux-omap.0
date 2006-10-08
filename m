@@ -1,13 +1,11 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: USBNET not in OSK5912
-Date: Sun, 08 Oct 2006 20:14:30 +0200
-Message-ID: <45294006.40803@gmail.com>
-References: <000201c6ead0$e8decad0$6401a8c0@jjcar607>
+From: Jonathan McDowell <noodles@earth.li>
+Subject: [PATCH] ARM: OMAP: Fix 1510 compilation with DSP != m
+Date: Sun, 8 Oct 2006 20:08:31 +0100
+Message-ID: <20061008190831.GC21713@earth.li>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <000201c6ead0$e8decad0$6401a8c0@jjcar607>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,18 +15,66 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: John Carlos <Jcarlos201@comcast.net>
-Cc: Linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-John Carlos wrote:
->   I was wondering why CONFIG_USB_USBNET is not in the OSK5912 default
-> config yet it is other omap implementations.  Is there some sort of
-> hardware limitation on the OSK that is not in the others ie: Innovator
-> and so on?
+Looks like recent changes have broken OMAP1510 compilation; I hit this
+because I'm not using the DSP at present but during testing my fix
+discovered that setting CONFIG_OMAP_DSP to Y didn't compile either; only
+M worked. Patch below makes all 3 compile.
 
-As I know there is no hardware limitation on the OSK 
-regarding this. IMHO nobody enabled it because of the nice 
-normal onboard network. Do you tried to enable it?
+Signed-Off-By: Jonathan McDowell <noodles@earth.li>
 
-Dirk
+-----
+diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
+index 992a17d..adae4f8 100644
+--- a/arch/arm/mach-omap1/devices.c
++++ b/arch/arm/mach-omap1/devices.c
+@@ -63,7 +63,7 @@ #endif
+ 
+ #if defined(CONFIG_OMAP_DSP)
+ 
+-#if defined(CONFIG_ARCH_OMAP1510)
++#if defined(CONFIG_ARCH_OMAP15XX)
+ #  define OMAP1_MBOX_SIZE	0x23
+ #  define INT_DSP_MAILBOX1	INT_1510_DSP_MAILBOX1
+ #elif defined(CONFIG_ARCH_OMAP16XX)
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 9d9d456..12ece9d 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -193,7 +193,7 @@ static int omap_mcbsp_check(unsigned int
+ 	return -1;
+ }
+ 
+-#ifdef CONFIG_ARCH_OMAP1
++#if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_OMAP_DSP)
+ static void omap_mcbsp_dsp_request(void)
+ {
+ 	if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
+@@ -266,7 +266,7 @@ int omap_mcbsp_request(unsigned int id)
+ 	if (omap_mcbsp_check(id) < 0)
+ 		return -EINVAL;
+ 
+-#ifdef CONFIG_ARCH_OMAP1
++#if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_OMAP_DSP)
+ 	/*
+ 	 * On 1510, 1610 and 1710, McBSP1 and McBSP3
+ 	 * are DSP public peripherals.
+@@ -333,7 +333,7 @@ void omap_mcbsp_free(unsigned int id)
+ 	if (omap_mcbsp_check(id) < 0)
+ 		return;
+ 
+-#ifdef CONFIG_ARCH_OMAP1
++#if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_OMAP_DSP)
+ 	if (cpu_class_is_omap1()) {
+ 		if (id == OMAP_MCBSP1 || id == OMAP_MCBSP3)
+ 			omap_mcbsp_dsp_free();
+-----
+
+J.
+
+-- 
+                                            jid: noodles@jabber.earth.li
+101 things you can't have too much of : 44
+                                            - Fame.
