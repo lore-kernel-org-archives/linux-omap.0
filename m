@@ -1,15 +1,13 @@
-From: "Sideleau, Scott R" <srs@WPI.EDU>
-Subject: RE: Can't Boot - OSK Frame Buffer Support in Kernel 2.6.18-omap1
-Date: Sun, 8 Oct 2006 08:31:37 -0400
-Message-ID: <CC7B089C59ED6841BAE28F1EA69A854387373C@EXCHDB.admin.wpi.edu>
-References: <CC7B089C59ED6841BAE28F1EA69A854387373A@EXCHDB.admin.wpi.edu>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: USBNET not in OSK5912
+Date: Sun, 08 Oct 2006 20:14:30 +0200
+Message-ID: <45294006.40803@gmail.com>
+References: <000201c6ead0$e8decad0$6401a8c0@jjcar607>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <CC7B089C59ED6841BAE28F1EA69A854387373A@EXCHDB.admin.wpi.edu>
+In-Reply-To: <000201c6ead0$e8decad0$6401a8c0@jjcar607>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,29 +17,18 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: OMAP <Linux-omap-open-source@linux.omap.com>
+To: John Carlos <Jcarlos201@comcast.net>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+John Carlos wrote:
+>   I was wondering why CONFIG_USB_USBNET is not in the OSK5912 default
+> config yet it is other omap implementations.  Is there some sort of
+> hardware limitation on the OSK that is not in the others ie: Innovator
+> and so on?
 
-I noticed that after each attempt of running the kernel, the kernel =
-would
-turn up with a "Bad CRC Checksum" error.  I decided, on a whim, to try
-starting over with flash protection enabled.  It appeared to get a bit
-further (tried to start the Dropbear SSH server), but still fails in the =
-end.
+As I know there is no hardware limitation on the OSK 
+regarding this. IMHO nobody enabled it because of the nice 
+normal onboard network. Do you tried to enable it?
 
-Output from my console is, again, quite large.  I do not know if it is =
-of any
-help in this troubleshooting, but I made it available for viewing at the
-following pastebin...
-
-http://rafb.net/paste/results/Dst2qf91.html
-
-Any ideas?  Thanks, in advance, for any help/advice you can offer.
-______________________________________________
-Scott R. Sideleau
-ECE '07, Worcester Polytechnic Institute
-@ MQP Ireland A'06, University of Limerick
-+353 61-307310 / srs@wpi.edu
-=20
+Dirk
