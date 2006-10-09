@@ -1,7 +1,7 @@
 From: Philip Balister <philip@balister.org>
-Subject: Current git and default config
-Date: Mon, 09 Oct 2006 16:37:22 -0400
-Message-ID: <452AB302.30507@balister.org>
+Subject: Updated images for the OSK
+Date: Mon, 09 Oct 2006 16:49:58 -0400
+Message-ID: <452AB5F6.7030709@balister.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -18,8 +18,17 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-If you run make omap5917osk_defconfig and build, the build fails because 
-some dsp related symbols are needed. Changing to config to add the dspgw 
-allows the kernel to build and run on the OSK.
+I just built these images and loaded them into my OSK and successfully 
+booted. The kernel is based on today's git with the dsp gateway enabled. 
+Let me know if you try these and you have suggestions for improvements. 
+The udev start is slow.
+
+http://ossie.mprg.org/download/osk/
+
+Load the kernel at 0x40000 and the file system at 0x240000.
+
+See the instructions for flashing the kernel image and the filesystem here.
+
+http://oskfordummies.hp.infoseek.co.jp/howto.html
 
 Philip
