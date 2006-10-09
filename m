@@ -1,11 +1,13 @@
-From: Jonathan McDowell <noodles@earth.li>
-Subject: [PATCH] ARM: OMAP: Fix 1510 compilation with DSP != m
-Date: Sun, 8 Oct 2006 20:08:31 +0100
-Message-ID: <20061008190831.GC21713@earth.li>
+From: Kai Svahn <kai.svahn@nokia.com>
+Subject: Re: CPU usage on OMAP5912
+Date: Mon, 09 Oct 2006 09:28:55 +0300
+Message-ID: <4529EC27.5010200@nokia.com>
+References: <20061008111227.82784.qmail@web54310.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20061008111227.82784.qmail@web54310.mail.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,68 +15,21 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: nduongthanh@yahoo.com
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Looks like recent changes have broken OMAP1510 compilation; I hit this
-because I'm not using the DSP at present but during testing my fix
-discovered that setting CONFIG_OMAP_DSP to Y didn't compile either; only
-M worked. Patch below makes all 3 compile.
+ext Duong Thanh Nguyen wrote:
+> Hello everyone,
+>
+> I have a question, when i run a program on OMAP5912, kernel Linux. I want to know
+> how much CPU percent and Memory of OMAP, that my program uses. I stuck at this point 
+> for a long time. Does anyone know how? Can i write a C function in my program to
+> show these infomation
+Why don't you use top? That shows a percentage of memory usage and cpu 
+usage.
 
-Signed-Off-By: Jonathan McDowell <noodles@earth.li>
-
------
-diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
-index 992a17d..adae4f8 100644
---- a/arch/arm/mach-omap1/devices.c
-+++ b/arch/arm/mach-omap1/devices.c
-@@ -63,7 +63,7 @@ #endif
- 
- #if defined(CONFIG_OMAP_DSP)
- 
--#if defined(CONFIG_ARCH_OMAP1510)
-+#if defined(CONFIG_ARCH_OMAP15XX)
- #  define OMAP1_MBOX_SIZE	0x23
- #  define INT_DSP_MAILBOX1	INT_1510_DSP_MAILBOX1
- #elif defined(CONFIG_ARCH_OMAP16XX)
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 9d9d456..12ece9d 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -193,7 +193,7 @@ static int omap_mcbsp_check(unsigned int
- 	return -1;
- }
- 
--#ifdef CONFIG_ARCH_OMAP1
-+#if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_OMAP_DSP)
- static void omap_mcbsp_dsp_request(void)
- {
- 	if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
-@@ -266,7 +266,7 @@ int omap_mcbsp_request(unsigned int id)
- 	if (omap_mcbsp_check(id) < 0)
- 		return -EINVAL;
- 
--#ifdef CONFIG_ARCH_OMAP1
-+#if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_OMAP_DSP)
- 	/*
- 	 * On 1510, 1610 and 1710, McBSP1 and McBSP3
- 	 * are DSP public peripherals.
-@@ -333,7 +333,7 @@ void omap_mcbsp_free(unsigned int id)
- 	if (omap_mcbsp_check(id) < 0)
- 		return;
- 
--#ifdef CONFIG_ARCH_OMAP1
-+#if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_OMAP_DSP)
- 	if (cpu_class_is_omap1()) {
- 		if (id == OMAP_MCBSP1 || id == OMAP_MCBSP3)
- 			omap_mcbsp_dsp_free();
------
-
-J.
-
--- 
-                                            jid: noodles@jabber.earth.li
-101 things you can't have too much of : 44
-                                            - Fame.
+Cheers,
+Kai
