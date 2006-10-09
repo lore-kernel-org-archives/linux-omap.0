@@ -1,13 +1,11 @@
-From: Kai Svahn <kai.svahn@nokia.com>
-Subject: Re: CPU usage on OMAP5912
-Date: Mon, 09 Oct 2006 09:28:55 +0300
-Message-ID: <4529EC27.5010200@nokia.com>
-References: <20061008111227.82784.qmail@web54310.mail.yahoo.com>
+From: Zgembo Adislic <adislic_zgembo@yahoo.com>
+Subject: omap IrDA problem
+Date: Mon, 9 Oct 2006 01:21:41 -0700 (PDT)
+Message-ID: <20061009082141.64024.qmail@web30611.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <20061008111227.82784.qmail@web54310.mail.yahoo.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,21 +13,38 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: nduongthanh@yahoo.com
-Cc: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-ext Duong Thanh Nguyen wrote:
-> Hello everyone,
->
-> I have a question, when i run a program on OMAP5912, kernel Linux. I want to know
-> how much CPU percent and Memory of OMAP, that my program uses. I stuck at this point 
-> for a long time. Does anyone know how? Can i write a C function in my program to
-> show these infomation
-Why don't you use top? That shows a percentage of memory usage and cpu 
-usage.
 
-Cheers,
-Kai
+
+Hello all,
+     I am working on setting up IrDA communication between omap5910(1510) and my PC. I am
+using 2.6.8.1 kernel. I got this link from a Samuel Ortiz(many thanx)  on witch I found
+drivers which should suppose to work on my board.
+    
+http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=70ca65ca7eb8b730de0b674efbc26d72748a3b65
+     But I am still unable to make IrDA work on my board. I compiled my kernel with this
+driver and I ported it to my board. 
+     When I boot up my board and type ifconfig irda0 up in terminal window I got this
+message. 
+     Irda0  Link encap: UNSPEC Hwaddr ---- and so on. 
+     I tried to compare the result of this command with result that I get when I do the same
+on my laptop, which is running on Linux and I get something like this.
+     Irda0 Link encap: IrLAP --- and so on.
+     So I am little confused about this problem. I trayed to measure signals on my IrDA port
+with oscilloscope, and I can see that I am receiving some kind of signals but I can not see
+anything on console. 
+     And one more thing, when I run &#65533;echo xxx > /dev/ttyS2&#65533; I got constant light on TX port
+which I can not turn off until I reboot the device. 
+     I am pretty much run off any ideas, so if anyone have any idea please respond J 
+     Thanx,
+     Zgembo
+
+ 
+ 		
+---------------------------------
+Do you Yahoo!?
+ Get on board. You're invited to try the new Yahoo! Mail.
