@@ -1,13 +1,16 @@
-From: Jonathan McDowell <noodles@earth.li>
+From: Khem Raj <kraj@mvista.com>
 Subject: Re: Current git and default config
-Date: Wed, 11 Oct 2006 08:33:04 +0100
-Message-ID: <20061011073304.GQ18091@earth.li>
-References: <452AB302.30507@balister.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Date: Wed, 11 Oct 2006 01:06:48 -0700
+Message-ID: <85058BC1-FD83-42D9-BCF9-8EE3B87FEE4C@mvista.com>
+References: <452AB302.30507@balister.org> <20061011073304.GQ18091@earth.li>
+Mime-Version: 1.0 (Apple Message framework v752.3)
+Content-Type: text/plain;
+	charset=US-ASCII;
+	delsp=yes;
+	format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <452AB302.30507@balister.org>
+In-Reply-To: <20061011073304.GQ18091@earth.li>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,21 +20,26 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Jonathan McDowell <noodles@earth.li>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Oct 09, 2006 at 04:37:22PM -0400, Philip Balister wrote:
-> If you run make omap5917osk_defconfig and build, the build fails because 
-> some dsp related symbols are needed. Changing to config to add the dspgw 
-> allows the kernel to build and run on the OSK.
 
-Does the patch at
+On Oct 11, 2006, at 12:33 AM, Jonathan McDowell wrote:
 
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008064.html
+>
+> Does the patch at
+>
+> http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/ 
+> 008064.html
+>
+> fix the compilation issue for you if you don't change the config?
 
-fix the compilation issue for you if you don't change the config?
+FWIW It fixed the compilation issues for me using default config and  
+I could build kernel and also boot it on osk5912 board.
 
-J.
+Thanks
 
--- 
-Graduate of the Darth Vader School of Personnel Management.
+
+Khem Raj <kraj@mvista.com>
+MontaVista Software Inc.
