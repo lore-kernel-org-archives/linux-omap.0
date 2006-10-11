@@ -1,12 +1,12 @@
-From: Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] ARM: OMAP: Replace apollon LCD mux setting
-Date: Wed, 11 Oct 2006 17:32:11 +0900
-Message-ID: <000901c6ed0f$bf962ba0$c7a3580a@swcenter.sec.samsung.co.kr>
-Reply-To: kyungmin.park@samsung.com
+From: "Liem Pham Tan" <tanliemph@gmail.com>
+Subject: Process 32-bit data without endianess conversion between ARM-DSP?
+Date: Wed, 11 Oct 2006 17:49:26 +0700
+Message-ID: <982282ef0610110349u6813f2c8rc5095756a8534dc9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ks_c_5601-1987
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,33 +19,26 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Change the LCD mux setting from enable() to init() for PM
+Hi All,
+I'm using DSP/BIOS LINK 1.10.1 to communicate between ARM and DSP on
+OMAP5912.
+I need to process 32-bit data on both ARM and DSP. The problem is DSP
+uses big-endian and ARM uses little-endian.
+The application note "Using Endianess Conversion in the OMAP5912 device"
+(SWPA027) stated that :  if both MPU and DSP access the data using the
+same access size, then no endianess conversion is needed.
+But when I pass data between them, the DSP always perform an
+word-endianess conversion (16-bit). For example : If I write 0x00000001
+on GPP and send via DSP/BIOS LINK to DSP, the data on DSP will be read
+0x00010000 (and vice versa). I used Int32 on GPP and long on DSP
+(32-bit) to access the buffer.
+The DSP endianess can be controlled by the DSP MMU endianess control
+register, but I can't find any good way to set this register in DSP/BIOS
+LINK ( I did try to set the channel attribute to ChannelDataSize_32bits*
+*but it didn't work).
+Do you have any ideas on this problem?
 
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+-- 
+Best regards,
 
---
-
-diff --git a/drivers/video/omap/lcd_apollon.c
-b/drivers/video/omap/lcd_apollon.c
-index fabc3a5..4c0f370 100644
---- a/drivers/video/omap/lcd_apollon.c
-+++ b/drivers/video/omap/lcd_apollon.c
-@@ -35,6 +35,8 @@ #include <asm/arch/omapfb.h>  static int
-apollon_panel_init(struct lcd_panel *panel,
- 				struct omapfb_device *fbdev)
- {
-+	/* configure LCD PWR_EN */
-+	omap_cfg_reg(M21_242X_GPIO11);
- 	return 0;
- }
- 
-@@ -44,10 +46,6 @@ static void apollon_panel_cleanup(struct
- 
- static int apollon_panel_enable(struct lcd_panel *panel)  {
--
--	/* configure LCD PWR_EN */
--	omap_cfg_reg(M21_242X_GPIO11);
--
- 	return 0;
- }
- 
+Liem Pham
