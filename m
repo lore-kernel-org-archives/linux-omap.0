@@ -1,12 +1,13 @@
-From: Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] ARM: OMAP: Fix apollon boot
-Date: Wed, 11 Oct 2006 16:35:45 +0900
-Message-ID: <000801c6ed07$dd1172a0$c7a3580a@swcenter.sec.samsung.co.kr>
-Reply-To: kyungmin.park@samsung.com
+From: Jonathan McDowell <noodles@earth.li>
+Subject: Re: Current git and default config
+Date: Wed, 11 Oct 2006 08:33:04 +0100
+Message-ID: <20061011073304.GQ18091@earth.li>
+References: <452AB302.30507@balister.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ks_c_5601-1987
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <452AB302.30507@balister.org>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,37 +15,23 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-In previous GPMC patch, there was a typo. Fix typo and add header files for
-set_irq_type() warnings.
+On Mon, Oct 09, 2006 at 04:37:22PM -0400, Philip Balister wrote:
+> If you run make omap5917osk_defconfig and build, the build fails because 
+> some dsp related symbols are needed. Changing to config to add the dspgw 
+> allows the kernel to build and run on the OSK.
 
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Does the patch at
 
---
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008064.html
 
-diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-
-omap2/board-apollon.c
-index 5d455d4..99651b2 100644
---- a/arch/arm/mach-omap2/board-apollon.c
-+++ b/arch/arm/mach-omap2/board-apollon.c
-@@ -25,6 +25,7 @@ #include <linux/mtd/onenand.h>
- #include <linux/interrupt.h>
- #include <linux/delay.h>
- #include <linux/leds.h>
-+#include <linux/irq.h>
- 
- #include <asm/hardware.h>
- #include <asm/mach-types.h>
-@@ -199,7 +200,7 @@ static inline void __init apollon_init_s
- 		return;
- 	}
- 	apollon_smc91x_resources[0].start = base + 0x300;
--	apollon_smc91x_resources[1].end   = base + 0x30f;
-+	apollon_smc91x_resources[0].end   = base + 0x30f;
- 	udelay(100);
- 
- 	omap_cfg_reg(W4__24XX_GPIO74);
+fix the compilation issue for you if you don't change the config?
+
+J.
+
+-- 
+Graduate of the Darth Vader School of Personnel Management.
