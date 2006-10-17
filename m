@@ -1,12 +1,12 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.18-omap] omap2/memory.c compile fixes
-Date: Tue, 17 Oct 2006 14:11:31 -0700
-Message-ID: <200610171411.31718.david-b@pacbell.net>
+Subject: [patch 2.6.18-omap] /sys/kernel/debug/omap_gpio
+Date: Tue, 17 Oct 2006 14:10:16 -0700
+Message-ID: <200610171410.16631.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,79 +15,169 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Remove some conflicting declarations in omap2/memory.c so that the
-file builds again.
+Add some GPIO debug support:  /sys/kernel/debug/omap_gpio dumps the state
+of all GPIOs that have been claimed, including basic IRQ info if relevant.
+Tested on 24xx, 16xx.
+
+Includes minor bugfixes:  recording IRQ trigger mode (this should probably
+be a genirq patch), adding missing space to non-wakeup warning
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 
-Index: h4/arch/arm/mach-omap2/memory.c
+Index: h4/arch/arm/plat-omap/gpio.c
 ===================================================================
---- h4.orig/arch/arm/mach-omap2/memory.c	2006-10-13 18:26:36.000000000 -0700
-+++ h4/arch/arm/mach-omap2/memory.c	2006-10-13 18:42:22.000000000 -0700
-@@ -30,37 +30,6 @@
- #include "prcm-regs.h"
- #include "memory.h"
- 
--#define SMS_BASE		0x68008000
--#define SMS_SYSCONFIG		0x010
--
--#define SDRC_BASE		0x68009000
--#define SDRC_SYSCONFIG		0x010
--#define SDRC_SYSSTATUS		0x014
--
--static const u32 sms_base = IO_ADDRESS(SMS_BASE);
--static const u32 sdrc_base = IO_ADDRESS(SDRC_BASE);
--
--
--static inline void sms_write_reg(int idx, u32 val)
--{
--	__raw_writel(val, sms_base + idx);
--}
--
--static inline u32 sms_read_reg(int idx)
--{
--	return __raw_readl(sms_base + idx);
--}
--
--static inline void sdrc_write_reg(int idx, u32 val)
--{
--	__raw_writel(val, sdrc_base + idx);
--}
--
--static inline u32 sdrc_read_reg(int idx)
--{
--	return __raw_readl(sdrc_base + idx);
--}
--
- 
- static struct memory_timings mem_timings;
- 
-@@ -132,18 +101,19 @@ void omap2_init_memory_params(u32 force_
- 	mem_timings.slow_dll_ctrl |= ((1 << 1) | (3 << 8));
+--- h4.orig/arch/arm/plat-omap/gpio.c	2006-10-16 17:50:13.000000000 -0700
++++ h4/arch/arm/plat-omap/gpio.c	2006-10-16 21:56:51.000000000 -0700
+@@ -537,6 +537,10 @@ static int gpio_irq_type(unsigned irq, u
+ 	bank = get_gpio_bank(gpio);
+ 	spin_lock(&bank->lock);
+ 	retval = _set_gpio_triggering(bank, get_gpio_index(gpio), type);
++	if (retval == 0) {
++		irq_desc[irq].status &= ~IRQ_TYPE_SENSE_MASK;
++		irq_desc[irq].status |= type;
++	}
+ 	spin_unlock(&bank->lock);
+ 	return retval;
  }
+@@ -703,7 +707,7 @@ static int _set_gpio_wakeup(struct gpio_
+ 		spin_lock(&bank->lock);
+ 		if (enable) {
+ 			if (bank->non_wakeup_gpios & (1 << gpio)) {
+-				printk(KERN_ERR "Unable to enable wakeup on"
++				printk(KERN_ERR "Unable to enable wakeup on "
+ 				       "non-wakeup GPIO%d\n",
+ 				       (bank - gpio_bank) * 32 + gpio);
+ 				spin_unlock(&bank->lock);
+@@ -1361,3 +1365,127 @@ EXPORT_SYMBOL(omap_set_gpio_dataout);
+ EXPORT_SYMBOL(omap_get_gpio_datain);
  
-+/* turn on smart idle modes for SDRAM scheduler and controller */
- void __init omap2_init_memory(void)
- {
- 	u32 l;
- 
--	l = sms_read_reg(SMS_SYSCONFIG);
-+	l = SMS_SYSCONFIG;
- 	l &= ~(0x3 << 3);
- 	l |= (0x2 << 3);
--	sms_write_reg(SMS_SYSCONFIG, l);
-+	SMS_SYSCONFIG = l;
- 
--	l = sdrc_read_reg(SDRC_SYSCONFIG);
-+	l = SDRC_SYSCONFIG;
- 	l &= ~(0x3 << 3);
- 	l |= (0x2 << 3);
--	sdrc_write_reg(SDRC_SYSCONFIG, l);
-+	SDRC_SYSCONFIG = l;
- 
- }
+ arch_initcall(omap_gpio_sysinit);
++
++
++#ifdef	CONFIG_DEBUG_FS
++
++#include <linux/debugfs.h>
++#include <linux/seq_file.h>
++
++static int gpio_is_input(struct gpio_bank *bank, int mask)
++{
++	void __iomem *reg = bank->base;
++
++	switch (bank->method) {
++	case METHOD_MPUIO:
++		reg += OMAP_MPUIO_IO_CNTL;
++		break;
++	case METHOD_GPIO_1510:
++		reg += OMAP1510_GPIO_DIR_CONTROL;
++		break;
++	case METHOD_GPIO_1610:
++		reg += OMAP1610_GPIO_DIRECTION;
++		break;
++	case METHOD_GPIO_730:
++		reg += OMAP730_GPIO_DIR_CONTROL;
++		break;
++	case METHOD_GPIO_24XX:
++		reg += OMAP24XX_GPIO_OE;
++		break;
++	}
++	return __raw_readl(reg) & mask;
++}
++
++
++static int dbg_gpio_show(struct seq_file *s, void *unused)
++{
++	unsigned	i, j, gpio;
++
++	for (i = 0, gpio = 0; i < gpio_bank_count; i++) {
++		struct gpio_bank	*bank = gpio_bank + i;
++		unsigned		bankwidth = 16;
++		u32			mask = 1;
++
++		if (!cpu_is_omap24xx() && bank->method == METHOD_MPUIO)
++			gpio = OMAP_MPUIO(0);
++		else if (cpu_is_omap24xx() || cpu_is_omap730())
++			bankwidth = 32;
++
++		for (j = 0; j < bankwidth; j++, gpio++, mask <<= 1) {
++			unsigned	irq, value, is_in, irqstat;
++
++			if (!(bank->reserved_map & mask))
++				continue;
++
++			irq = bank->virtual_irq_start + j;
++			value = omap_get_gpio_datain(gpio);
++			is_in = gpio_is_input(bank, mask);
++
++			if (!cpu_is_omap24xx() && bank->method == METHOD_MPUIO)
++				seq_printf(s, "MPUIO %2d: ", j);
++			else
++				seq_printf(s, "GPIO %3d: ", gpio);
++			seq_printf(s, "%s %s",
++					is_in ? "in " : "out",
++					value ? "hi"  : "lo");
++
++			irqstat = irq_desc[irq].status;
++			if (is_in && ((bank->suspend_wakeup & mask)
++					|| irqstat & IRQ_TYPE_SENSE_MASK)) {
++				char	*trigger = NULL;
++
++				switch (irqstat & IRQ_TYPE_SENSE_MASK) {
++				case IRQ_TYPE_EDGE_FALLING:
++					trigger = "falling";
++					break;
++				case IRQ_TYPE_EDGE_RISING:
++					trigger = "rising";
++					break;
++				case IRQ_TYPE_EDGE_BOTH:
++					trigger = "bothedge";
++					break;
++				case IRQ_TYPE_LEVEL_LOW:
++					trigger = "low";
++					break;
++				case IRQ_TYPE_LEVEL_HIGH:
++					trigger = "high";
++					break;
++				case IRQ_TYPE_NONE:
++					trigger = "(unspecified)";
++					break;
++				}
++				seq_printf(s, ", irq-%d %s%s",
++						irq, trigger,
++						(bank->suspend_wakeup & mask)
++							? " wakeup" : "");
++			}
++			seq_printf(s, "\n");
++		}
++
++		if (!cpu_is_omap24xx() && bank->method == METHOD_MPUIO) {
++			seq_printf(s, "\n");
++			gpio = 0;
++		}
++	}
++	return 0;
++}
++
++static int dbg_gpio_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, dbg_gpio_show, inode->u.generic_ip/*i_private*/);
++}
++
++static const struct file_operations debug_fops = {
++	.open		= dbg_gpio_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++static int __init omap_gpio_debuginit(void)
++{
++	(void) debugfs_create_file("omap_gpio", S_IRUGO, NULL, NULL, &debug_fops);
++	return 0;
++}
++late_initcall(omap_gpio_debuginit);
++#endif
