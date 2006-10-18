@@ -1,14 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Request OMAP MMC Write-protect pin
-Date: Wed, 18 Oct 2006 22:12:50 +0300
-Message-ID: <20061018191249.GB4669@atomide.com>
-References: <fb249edb0609221308t5669679cra80f9888b895a346@mail.gmail.com>
-	<fb249edb0609221310y33ac7b4dse744a587d5b9d2bb@mail.gmail.com>
+Subject: Re: [PATCH] ARM: OMAP: Fix 1510 compilation with DSP != m
+Date: Wed, 18 Oct 2006 22:32:53 +0300
+Message-ID: <20061018193251.GC4669@atomide.com>
+References: <20061008190831.GC21713@earth.li>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <fb249edb0609221310y33ac7b4dse744a587d5b9d2bb@mail.gmail.com>
+In-Reply-To: <20061008190831.GC21713@earth.li>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,39 +15,75 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: balrogg@gmail.com
-Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Jonathan McDowell <noodles@earth.li>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-* andrzej zaborowski <balrog@zabor.org> [060922 23:17]:
-> [Sorry, forgot about the actual diff]
+* Jonathan McDowell <noodles@earth.li> [061008 22:09]:
+> Looks like recent changes have broken OMAP1510 compilation; I hit this
+> because I'm not using the DSP at present but during testing my fix
+> discovered that setting CONFIG_OMAP_DSP to Y didn't compile either; only
+> M worked. Patch below makes all 3 compile.
 > 
-> Adds code that requests and frees the WP GPIO pin in OMAP MMC host
-> driver, similarly to how the MMC Power and MMC Cover-switch GPIOs are
-> treated.
+> Signed-Off-By: Jonathan McDowell <noodles@earth.li>
 > 
-> Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
-> 
-> diff --git a/drivers/mmc/omap.c b/drivers/mmc/omap.c
-> index ae08a37..a01682b 100644
-> --- a/drivers/mmc/omap.c
-> +++ b/drivers/mmc/omap.c
-> @@ -1009,7 +1009,7 @@ static int mmc_omap_get_ro(struct mmc_ho
->  {
->  	struct mmc_omap_host *host = mmc_priv(mmc);
+> -----
+> diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
+> index 992a17d..adae4f8 100644
+> --- a/arch/arm/mach-omap1/devices.c
+> +++ b/arch/arm/mach-omap1/devices.c
+> @@ -63,7 +63,7 @@ #endif
 >  
-> -	return host->wp_pin && omap_get_gpio_datain(host->wp_pin);
-> +	return (host->wp_pin >= 0) && omap_get_gpio_datain(host->wp_pin);
+>  #if defined(CONFIG_OMAP_DSP)
+>  
+> -#if defined(CONFIG_ARCH_OMAP1510)
+> +#if defined(CONFIG_ARCH_OMAP15XX)
+>  #  define OMAP1_MBOX_SIZE	0x23
+>  #  define INT_DSP_MAILBOX1	INT_1510_DSP_MAILBOX1
+>  #elif defined(CONFIG_ARCH_OMAP16XX)
+> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+> index 9d9d456..12ece9d 100644
+> --- a/arch/arm/plat-omap/mcbsp.c
+> +++ b/arch/arm/plat-omap/mcbsp.c
+> @@ -193,7 +193,7 @@ static int omap_mcbsp_check(unsigned int
+>  	return -1;
 >  }
+>  
+> -#ifdef CONFIG_ARCH_OMAP1
+> +#if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_OMAP_DSP)
+>  static void omap_mcbsp_dsp_request(void)
+>  {
+>  	if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
+> @@ -266,7 +266,7 @@ int omap_mcbsp_request(unsigned int id)
+>  	if (omap_mcbsp_check(id) < 0)
+>  		return -EINVAL;
+>  
+> -#ifdef CONFIG_ARCH_OMAP1
+> +#if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_OMAP_DSP)
+>  	/*
+>  	 * On 1510, 1610 and 1710, McBSP1 and McBSP3
+>  	 * are DSP public peripherals.
+> @@ -333,7 +333,7 @@ void omap_mcbsp_free(unsigned int id)
+>  	if (omap_mcbsp_check(id) < 0)
+>  		return;
+>  
+> -#ifdef CONFIG_ARCH_OMAP1
+> +#if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_OMAP_DSP)
+>  	if (cpu_class_is_omap1()) {
+>  		if (id == OMAP_MCBSP1 || id == OMAP_MCBSP3)
+>  			omap_mcbsp_dsp_free();
+> -----
 
-...
+I guess originally the idea was that McBSP would work even without
+CONFIG_OMAP_DSP.
 
-This all looks OK, but let's wait on this as I believe there are
-some patches coming to deal with it in board-*.c files.
+Note that arch/arm/plat_omap/dsp/dsp_common.c is compiled even without
+CONFIG_OMAP_DSP. Maybe the compilation problem really is some other
+issue?
 
 Regards,
 
