@@ -1,12 +1,14 @@
 From: Kyungmin Park <kyungmin.park@samsung.com>
 Subject: RE: [patch 2.6.18-omap-git] omap2 fullspeed usb 1/2
-Date: Mon, 23 Oct 2006 13:52:26 +0900
-Message-ID: <001f01c6f65f$09a71a30$c7a3580a@swcenter.sec.samsung.co.kr>
+Date: Mon, 23 Oct 2006 13:44:38 +0900
+Message-ID: <001c01c6f65d$f2d11d20$c7a3580a@swcenter.sec.samsung.co.kr>
+References: <200610201250.25276.david-b@pacbell.net>
 Reply-To: kyungmin.park@samsung.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ks_c_5601-1987
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-reply-to: <200610201250.25276.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,7 +18,7 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: 'David Brownell' <david-b@pacbell.net>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 > [PATCH] Initial USB support on OMAP2
@@ -31,21 +33,22 @@ List-Id: linux-omap@vger.kernel.org
 > 
 > Board support is in separate patches.
 > 
-> Also minor omap_udc updates:  whitespace fixes, syncing with a few 
-> changes from upstream, warning removal.
+> Also minor omap_udc updates:  whitespace fixes, syncing with 
+> a few changes from upstream, warning removal.
 > 
 > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 > -------
-> NOTE:  this is just a cleaned up version of the code from Kyungmin, I 
-> don't have it behaving yet on H4, and didn't re-test on e.g. OSK.
+> NOTE:  this is just a cleaned up version of the code from 
+> Kyungmin, I don't have it behaving yet on H4, and didn't 
+> re-test on e.g. OSK.
 
 There's missing patch. We have to modify following line.
 
 --
 
-diff --git a/drivers/usb/gadget/Kconfig b/drivers/usb/gadget/Kconfig index
-08c962a..4734e78 100644
+diff --git a/drivers/usb/gadget/Kconfig b/drivers/usb/gadget/Kconfig
+index 08c962a..4734e78 100644
 --- a/drivers/usb/gadget/Kconfig
 +++ b/drivers/usb/gadget/Kconfig
 @@ -167,7 +167,7 @@ config USB_GADGET_MUSB_HDRC
