@@ -1,7 +1,7 @@
 From: Kyungmin Park <kyungmin.park@samsung.com>
-Subject: ARM: OMAP2: fix apollon gpmc initialization
-Date: Mon, 23 Oct 2006 13:49:49 +0900
-Message-ID: <001e01c6f65e$abe0e840$c7a3580a@swcenter.sec.samsung.co.kr>
+Subject: RE: [patch 2.6.18-omap-git] omap2 fullspeed usb 1/2
+Date: Mon, 23 Oct 2006 13:52:26 +0900
+Message-ID: <001f01c6f65f$09a71a30$c7a3580a@swcenter.sec.samsung.co.kr>
 Reply-To: kyungmin.park@samsung.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ks_c_5601-1987
@@ -19,36 +19,41 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-[PATCH] ARM: OMAP2: fix apollon gpmc initialization
+> [PATCH] Initial USB support on OMAP2
+> 
+> Initial full speed USB support on OMAP2 platform.
+> Remaining issues include:
+> 
+>     -	only usb0 port tested (not usb1, usb2)
+>     -	only peripheral/gadget controller tested (not ohci, otg)
+>     -	UDC DMA is not working
+>     -	clocks are not turned off
+> 
+> Board support is in separate patches.
+> 
+> Also minor omap_udc updates:  whitespace fixes, syncing with a few 
+> changes from upstream, warning removal.
+> 
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> -------
+> NOTE:  this is just a cleaned up version of the code from Kyungmin, I 
+> don't have it behaving yet on H4, and didn't re-test on e.g. OSK.
 
-After update gpmc patch, apollon can't boot since gpmc init. In Apollon,
-the CS0 uses 0x0000 0000.
-If we don't modify boot_rom_space, we have to update all bootloaders. But
-as you know it's difficult.
-
-  Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+There's missing patch. We have to modify following line.
 
 --
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 73989d4..d0fb9c4 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -17,6 +17,7 @@
- #include <linux/spinlock.h>
+diff --git a/drivers/usb/gadget/Kconfig b/drivers/usb/gadget/Kconfig index
+08c962a..4734e78 100644
+--- a/drivers/usb/gadget/Kconfig
++++ b/drivers/usb/gadget/Kconfig
+@@ -167,7 +167,7 @@ config USB_GADGET_MUSB_HDRC
  
- #include <asm/io.h>
-+#include <asm/mach-types.h>
- #include <asm/arch/gpmc.h>
- 
- #undef DEBUG
-@@ -353,6 +354,9 @@ void __init gpmc_mem_init(void)
- 	 * even if we didn't boot from ROM.
- 	 */
- 	boot_rom_space = BOOT_ROM_SPACE;
-+	/* In apollon the CS0 is mapped as 0x0000 0000 */
-+	if (machine_is_omap_apollon())
-+		boot_rom_space = 0;
- 	gpmc_mem_root.start = GPMC_MEM_START + boot_rom_space;
- 	gpmc_mem_root.end = GPMC_MEM_END;
- 
+ config USB_GADGET_OMAP
+ 	boolean "OMAP USB Device Controller"
+-	depends on ARCH_OMAP1
++	depends on ARCH_OMAP
+ 	select ISP1301_OMAP if MACH_OMAP_H2 || MACH_OMAP_H3
+ 	help
+ 	   Many Texas Instruments OMAP processors have flexible full
