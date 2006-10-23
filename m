@@ -1,17 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Fix 1510 compilation with DSP != m
-Date: Mon, 23 Oct 2006 16:16:29 +0300
-Message-ID: <20061023131627.GC22577@atomide.com>
-References: <20061008190831.GC21713@earth.li>
-	<20061018193251.GC4669@atomide.com>
-	<20061018211035.GO20039@earth.li>
-	<20061019133241.GC9983@atomide.com>
-	<20061019151553.GX20039@earth.li>
+Subject: Re: [PATCH] McBSP dependence for DSP on ARCH_OMAP1 is missing
+Date: Mon, 23 Oct 2006 16:18:25 +0300
+Message-ID: <20061023131824.GD22577@atomide.com>
+References: <453931C6.9080209@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20061019151553.GX20039@earth.li>
+In-Reply-To: <453931C6.9080209@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,61 +17,36 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Jonathan McDowell <noodles@earth.li>
+To: David Cohen <david.cohen@indt.org.br>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Jonathan McDowell <noodles@earth.li> [061019 19:17]:
-> On Thu, Oct 19, 2006 at 04:32:43PM +0300, Tony Lindgren wrote:
-> > * Jonathan McDowell <noodles@earth.li> [061019 00:17]:
-> > > On Wed, Oct 18, 2006 at 10:32:53PM +0300, Tony Lindgren wrote:
-> > > > Hi,
-> > > > 
-> > > > * Jonathan McDowell <noodles@earth.li> [061008 22:09]:
-> > > > > Looks like recent changes have broken OMAP1510 compilation; I hit this
-> > > > > because I'm not using the DSP at present but during testing my fix
-> > > > > discovered that setting CONFIG_OMAP_DSP to Y didn't compile either; only
-> > > > > M worked. Patch below makes all 3 compile.
-> > > > > 
-> > > > > Signed-Off-By: Jonathan McDowell <noodles@earth.li>
-> > > > > 
-> > > > > -----
-> > > > > diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
-> > > > > index 992a17d..adae4f8 100644
-> > > > > --- a/arch/arm/mach-omap1/devices.c
-> > > > > +++ b/arch/arm/mach-omap1/devices.c
-> > > > > @@ -63,7 +63,7 @@ #endif
-> > > > >  
-> > > > >  #if defined(CONFIG_OMAP_DSP)
-> > > > >  
-> > > > > -#if defined(CONFIG_ARCH_OMAP1510)
-> > > > > +#if defined(CONFIG_ARCH_OMAP15XX)
-> > > > >  #  define OMAP1_MBOX_SIZE	0x23
-> > > > >  #  define INT_DSP_MAILBOX1	INT_1510_DSP_MAILBOX1
-> > > > >  #elif defined(CONFIG_ARCH_OMAP16XX)
-> ...
-> > > > I guess originally the idea was that McBSP would work even without
-> > > > CONFIG_OMAP_DSP.
-> > > > 
-> > > > Note that arch/arm/plat_omap/dsp/dsp_common.c is compiled even without
-> > > > CONFIG_OMAP_DSP.
-> > > 
-> > > dsp_common.c will always be compiled if dsp/ is entered.
-> > > 
-> > > However arch/arm/plat-omap/dsp is only entered when CONFIG_OMAP_DSP is
-> > > set; arch/arm/plat-omap/Makefile has:
-> > > 
-> > > # DSP subsystem
-> > > obj-$(CONFIG_OMAP_DSP) += dsp/ mailbox.o
-> > 
-> > Oh yeah, that's true. Does the attached patch work for you?
+* David Cohen <david.cohen@indt.org.br> [061020 23:34]:
+> Hi,
 > 
-> Confirmed as compiling and booting on the Amstrad Delta (OMAP1510) with
-> CONFIG_OMAP_DSP=n.
+> I've tried to compile an up-to-dated kernel tree configured for h3. I
+> got some errors due to the McBSP depends on OMAP_DSP if ARCH_OMAP1 is
+> set, as we can see at these lines from "arch/arm/plat-omap/mcbsp.c":
 > 
-> The first part of my patch (against arch/arm/mach-omap1/devices.c) is
-> still needed for CONFIG_OMAP_DSP=y to compile.
+> (...)
+> #ifdef CONFIG_ARCH_OMAP1
+> static void omap_mcbsp_dsp_request(void)
+> {
+>     if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
+>         omap_dsp_request_mem();
+> 
+> (...)
+> #endif
+> (...)
+> 
+> So, I've made this minimal patch to deal with this problem. It worked
+> well for me. But I put, also, CONFIG_OMAP_DSP=y as default on h3 config
+> file to keep the OMAP_MCBSP as default too.
 
-OK, I've pushed that part too and tagged 2.6.18-omap1.
+This should be already fixed in a recent patch:
+
+http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commitdiff;h=40749d1d5792748372ae3becf638944b896ef8f1
+
+Regards,
 
 Tony
