@@ -1,34 +1,32 @@
-From: Russell King <rmk+lkml@arm.linux.org.uk>
-Subject: Re: [patch 0/6] [RFC] Add MMC Password Protection (lock/unlock) support V5
-Date: Mon, 23 Oct 2006 17:44:22 +0100
-Message-ID: <20061023164422.GB24471@flint.arm.linux.org.uk>
-References: <20061020164914.012378000@localhost.localdomain> <453C5B33.6030300@drzeus.cx>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Git tree updated to 2.6.19-rc2
+Date: Mon, 23 Oct 2006 23:39:26 +0300
+Message-ID: <20061023203925.GC11967@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932169AbWJWQok@vger.kernel.org>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <453C5B33.6030300@drzeus.cx>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pierre Ossman <drzeus-list@drzeus.cx>
-Cc: Carlos Aguiar <carlos.aguiar@indt.org.br>, linux-kernel@vger.kernel.org, linux-omap-open-source@linux.omap.com, David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, ilias.biris@indt.org.br
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Oct 23, 2006 at 08:03:31AM +0200, Pierre Ossman wrote:
-> Carlos Aguiar wrote:
-> > Hi folks,
-> 
-> Hi Carlos,
-> 
-> This is very nice work and it is something that should be in the kernel.
-> 
-> Unfortunately, I won't have time to look at this until the end of the
-> week. So just hang tight, I haven't overlooked you. :)
+Hi all,
 
-Just make sure that it checks for MMC_CAP_BYTEBLOCK - if that flag isn't
-set, the host can't do non-power of two transfers, so probably password
-support has to be refused on such hosts.
+I've updated our git tree to 2.6.19-rc2. At least following have
+problems on omap1 (OSK):
 
--- 
-Russell King
- Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
- maintainer of:  2.6 Serial core
+- CONFIG_DEBUG_LL hangs system
+- BUG in omap1_mbox_enable_irq
+- Aic23 NULL pointer exception
+
+So YMMV :) Anybody got patches for these issues already?
+
+Tony
