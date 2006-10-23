@@ -1,13 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] McBSP dependence for DSP on ARCH_OMAP1 is missing
-Date: Mon, 23 Oct 2006 16:18:25 +0300
-Message-ID: <20061023131824.GD22577@atomide.com>
-References: <453931C6.9080209@indt.org.br>
+Subject: Re: [PATCH] Basic support for Palm Zire71
+Date: Mon, 23 Oct 2006 16:22:25 +0300
+Message-ID: <20061023132224.GE22577@atomide.com>
+References: <200610202303.13569.marek.vasut@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <453931C6.9080209@indt.org.br>
+In-Reply-To: <200610202303.13569.marek.vasut@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,35 +18,27 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Cohen <david.cohen@indt.org.br>
+To: Marek =?utf-8?B?VmHFoXV0?= <marek.vasut@gmail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* David Cohen <david.cohen@indt.org.br> [061020 23:34]:
+* Marek Va=C5=A1ut <marek.vasut@gmail.com> [061021 00:04]:
 > Hi,
-> 
-> I've tried to compile an up-to-dated kernel tree configured for h3. I
-> got some errors due to the McBSP depends on OMAP_DSP if ARCH_OMAP1 is
-> set, as we can see at these lines from "arch/arm/plat-omap/mcbsp.c":
-> 
-> (...)
-> #ifdef CONFIG_ARCH_OMAP1
-> static void omap_mcbsp_dsp_request(void)
-> {
->     if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
->         omap_dsp_request_mem();
-> 
-> (...)
-> #endif
-> (...)
-> 
-> So, I've made this minimal patch to deal with this problem. It worked
-> well for me. But I put, also, CONFIG_OMAP_DSP=y as default on h3 config
-> file to keep the OMAP_MCBSP as default too.
+>=20
+> This patch adds basic support for Palm Zire71 PDA. LCD, backlight, MMC,
+> touchscreen (using ads7846 driver) works. There is much more stuff supp=
+orted=20
+> now, but it=C2=B4s still dirty code which needs cleanup before sending =
+here. If=20
+> you are interested check www.hackndev.com . Patch is enclosed.
 
-This should be already fixed in a recent patch:
+Can you please submit this in smaller patches? Something like this would
+be nice:
 
-http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commitdiff;h=40749d1d5792748372ae3becf638944b896ef8f1
+1. Patch for board-*.c file
+2. Fixes for clock framework
+3. Fixes for serial init
+4. Defconfig
 
 Regards,
 
