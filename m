@@ -1,45 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Basic support for Palm Zire71
-Date: Mon, 23 Oct 2006 16:22:25 +0300
-Message-ID: <20061023132224.GE22577@atomide.com>
-References: <200610202303.13569.marek.vasut@gmail.com>
+From: Russell King <rmk+lkml@arm.linux.org.uk>
+Subject: Re: [patch 0/6] [RFC] Add MMC Password Protection (lock/unlock) support V5
+Date: Mon, 23 Oct 2006 17:44:22 +0100
+Message-ID: <20061023164422.GB24471@flint.arm.linux.org.uk>
+References: <20061020164914.012378000@localhost.localdomain> <453C5B33.6030300@drzeus.cx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932169AbWJWQok@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <200610202303.13569.marek.vasut@gmail.com>
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Marek =?utf-8?B?VmHFoXV0?= <marek.vasut@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+In-Reply-To: <453C5B33.6030300@drzeus.cx>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pierre Ossman <drzeus-list@drzeus.cx>
+Cc: Carlos Aguiar <carlos.aguiar@indt.org.br>, linux-kernel@vger.kernel.org, linux-omap-open-source@linux.omap.com, David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, ilias.biris@indt.org.br
 List-Id: linux-omap@vger.kernel.org
 
-* Marek Va=C5=A1ut <marek.vasut@gmail.com> [061021 00:04]:
-> Hi,
->=20
-> This patch adds basic support for Palm Zire71 PDA. LCD, backlight, MMC,
-> touchscreen (using ads7846 driver) works. There is much more stuff supp=
-orted=20
-> now, but it=C2=B4s still dirty code which needs cleanup before sending =
-here. If=20
-> you are interested check www.hackndev.com . Patch is enclosed.
+On Mon, Oct 23, 2006 at 08:03:31AM +0200, Pierre Ossman wrote:
+> Carlos Aguiar wrote:
+> > Hi folks,
+> 
+> Hi Carlos,
+> 
+> This is very nice work and it is something that should be in the kernel.
+> 
+> Unfortunately, I won't have time to look at this until the end of the
+> week. So just hang tight, I haven't overlooked you. :)
 
-Can you please submit this in smaller patches? Something like this would
-be nice:
+Just make sure that it checks for MMC_CAP_BYTEBLOCK - if that flag isn't
+set, the host can't do non-power of two transfers, so probably password
+support has to be refused on such hosts.
 
-1. Patch for board-*.c file
-2. Fixes for clock framework
-3. Fixes for serial init
-4. Defconfig
-
-Regards,
-
-Tony
+-- 
+Russell King
+ Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
+ maintainer of:  2.6 Serial core
