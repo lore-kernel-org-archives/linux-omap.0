@@ -1,13 +1,13 @@
-From: Arnold <abo_gwapo@yahoo.com>
-Subject: using __raw_read function
-Date: Tue, 24 Oct 2006 00:19:24 -0700 (PDT)
-Message-ID: <20061024071924.15614.qmail@web55307.mail.re4.yahoo.com>
-References: <CC7B089C59ED6841BAE28F1EA69A8543873721@EXCHDB.admin.wpi.edu>
+From: Komal Shah <komal_shah802003@yahoo.com>
+Subject: Re: Git tree updated to 2.6.19-rc2
+Date: Tue, 24 Oct 2006 00:53:36 -0700 (PDT)
+Message-ID: <20061024075336.58475.qmail@web37901.mail.mud.yahoo.com>
+References: <20061023203925.GC11967@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <CC7B089C59ED6841BAE28F1EA69A8543873721@EXCHDB.admin.wpi.edu>
+In-Reply-To: <20061023203925.GC11967@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,46 +17,30 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi All,
+--- Tony Lindgren <tony@atomide.com> wrote:
 
-I am having problems writing a value to a specific
-register. I dont know if the one causing this problem
-is the __raw_readl function. I've tried to use all the
-registers in the I2C and I get the same problem. The
-values are not changed. Is there anyone who knows what
-the problem is? I dont think this is specific to I2C. 
+> Hi all,
+> 
+> I've updated our git tree to 2.6.19-rc2. At least following have
+> problems on omap1 (OSK):
+> 
+..
 
-Below is the example code that I am doing. I want to
-write to the register 0xFFFB382C a value of 0x48. With
-the use of printk I could see that the value was not
-changed. 
+> - Aic23 NULL pointer exception
+> 
 
-#define LXK_I2C_BASE  (void *) IO_ADDRESS(0xFFFB3800)
-#define I2C_SA                          0x2C
+Anything related to as discussed on davinci mailing list for I2C?
 
-void *g_i2c_base = LXK_I2C_BASE;
+http://linux.omap.com/pipermail/davinci-linux-open-source/2006-October/001312.html
 
-static int i2c_open(struct inode *inode, struct file
-*filp)
- u32 l;
- l = 0x48;
-    __raw_writel(l,g_i2c_base + I2C_SA);
-    printk("Slave address = %x
-\n",(__raw_readl(g_i2c_base + I2C_SA)));
+If that is the case, then please try adding zero-length transaction and
+SMBUS_QUICK code as temporary hack.
 
-
-        return 0;
-}
-
-If someone have an idea on whats going on, please give
-me a hand.
-
-Thanks,
-OJ
-
+---Komal Shah
+http://komalshah.blogspot.com/
 
 __________________________________________________
 Do You Yahoo!?
