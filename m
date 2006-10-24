@@ -1,14 +1,11 @@
-From: Jonathan McDowell <noodles@earth.li>
-Subject: [PATCH] ARM: OMAP: Fixup omap-rtc (was: Git tree updated to
-	2.6.19-rc2)
-Date: Tue, 24 Oct 2006 12:05:02 +0100
-Message-ID: <20061024110502.GQ1123@earth.li>
-References: <20061023203925.GC11967@atomide.com>
+From: Marek =?iso-8859-2?q?Va=B9ut?= <marek.vasut@gmail.com>
+Subject: [PATCH 2/4] PalmZ71 - OMAP310 Serial
+Date: Tue, 24 Oct 2006 17:21:45 +0200
+Message-ID: <200610241721.45506.marek.vasut@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20061023203925.GC11967@atomide.com>
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_J+iPFpAHJg49Cd9"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,47 +13,105 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Oct 23, 2006 at 11:39:26PM +0300, Tony Lindgren wrote:
-> I've updated our git tree to 2.6.19-rc2. At least following have
-> problems on omap1 (OSK):
-> 
-> - CONFIG_DEBUG_LL hangs system
-> - BUG in omap1_mbox_enable_irq
-> - Aic23 NULL pointer exception
-> 
-> So YMMV :) Anybody got patches for these issues already?
+--Boundary-00=_J+iPFpAHJg49Cd9
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Haven't hit any of these with the Amstrad Delta defconfig so far (just
-done a compile and boot so far), but did need the patch below to get
-omap-rtc to compile.
+Hi,
+this makes serial usable also on omap310, not only 1510.
+(changing 1510->15xx)
 
-Signed-Off-By: Jonathan McDowell <noodles@earth.li>
+--Boundary-00=_J+iPFpAHJg49Cd9
+Content-Type: text/x-diff; charset="us-ascii"; name="omap-serial-fix.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="omap-serial-fix.patch"
 
------
-diff --git a/drivers/char/omap-rtc.c b/drivers/char/omap-rtc.c
-index f48563f..d57402f 100644
---- a/drivers/char/omap-rtc.c
-+++ b/drivers/char/omap-rtc.c
-@@ -120,7 +120,7 @@ static const unsigned char days_in_mo[] 
-  *	A very tiny interrupt handler. It runs with SA_INTERRUPT set.
-  */
+diff -Naur linux-omap/arch/arm/mach-omap1/serial.c linux-omap-z71/arch/arm/mach-omap1/serial.c
+--- linux-omap/arch/arm/mach-omap1/serial.c	2006-10-15 16:09:10.000000000 +0200
++++ linux-omap-z71/arch/arm/mach-omap1/serial.c	2006-10-20 21:56:49.000000000 +0200
+@@ -1,7 +1,7 @@
+ /*
+- * linux/arch/arm/mach-omap1/id.c
++ * linux/arch/arm/mach-omap1/serial.c
+  *
+- * OMAP1 CPU identification code
++ * OMAP1 serial port driver
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -59,7 +59,7 @@
+ 	omap_serial_outp(p, UART_OMAP_SCR, 0x08);	/* TX watermark */
+ 	omap_serial_outp(p, UART_OMAP_MDR1, 0x00);	/* enable UART */
  
--irqreturn_t rtc_interrupt(int irq, void *dev_id, struct pt_regs *regs)
-+irqreturn_t rtc_interrupt(int irq, void *dev_id)
- {
- 	/*
- 	 *	Either an alarm interrupt or update complete interrupt.
------
+-	if (!cpu_is_omap1510()) {
++	if (!cpu_is_omap15xx()) {
+ 		omap_serial_outp(p, UART_OMAP_SYSC, 0x01);
+ 		while (!(omap_serial_in(p, UART_OMAP_SYSC) & 0x01));
+ 	}
+@@ -121,7 +121,7 @@
+ 		serial_platform_data[1].irq = INT_730_UART_MODEM_IRDA_2;
+ 	}
+ 
+-	if (cpu_is_omap1510()) {
++	if (cpu_is_omap15xx()) {
+ 		serial_platform_data[0].uartclk = OMAP1510_BASE_BAUD * 16;
+ 		serial_platform_data[1].uartclk = OMAP1510_BASE_BAUD * 16;
+ 		serial_platform_data[2].uartclk = OMAP1510_BASE_BAUD * 16;
+@@ -147,10 +147,10 @@
+ 				printk("Could not get uart1_ck\n");
+ 			else {
+ 				clk_enable(uart1_ck);
+-				if (cpu_is_omap1510())
++				if (cpu_is_omap15xx())
+ 					clk_set_rate(uart1_ck, 12000000);
+ 			}
+-			if (cpu_is_omap1510()) {
++			if (cpu_is_omap15xx()) {
+ 				omap_cfg_reg(UART1_TX);
+ 				omap_cfg_reg(UART1_RTS);
+ 				if (machine_is_omap_innovator()) {
+@@ -167,12 +167,12 @@
+ 				printk("Could not get uart2_ck\n");
+ 			else {
+ 				clk_enable(uart2_ck);
+-				if (cpu_is_omap1510())
++				if (cpu_is_omap15xx())
+ 					clk_set_rate(uart2_ck, 12000000);
+ 				else
+ 					clk_set_rate(uart2_ck, 48000000);
+ 			}
+-			if (cpu_is_omap1510()) {
++			if (cpu_is_omap15xx()) {
+ 				omap_cfg_reg(UART2_TX);
+ 				omap_cfg_reg(UART2_RTS);
+ 				if (machine_is_omap_innovator()) {
+@@ -189,10 +189,10 @@
+ 				printk("Could not get uart3_ck\n");
+ 			else {
+ 				clk_enable(uart3_ck);
+-				if (cpu_is_omap1510())
++				if (cpu_is_omap15xx())
+ 					clk_set_rate(uart3_ck, 12000000);
+ 			}
+-			if (cpu_is_omap1510()) {
++			if (cpu_is_omap15xx()) {
+ 				omap_cfg_reg(UART3_TX);
+ 				omap_cfg_reg(UART3_RX);
+ 			}
 
-J.
+--Boundary-00=_J+iPFpAHJg49Cd9
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
--- 
-] http://www.earth.li/~noodles/ []   How does it work?  I don't know   [
-]  PGP/GPG Key @ the.earth.li   []            but it does!             [
-] via keyserver, web or email.  []                                     [
-] RSA: 4DC4E7FD / DSA: 5B430367 []                                     [
+
+--Boundary-00=_J+iPFpAHJg49Cd9--
