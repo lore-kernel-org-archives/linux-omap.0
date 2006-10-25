@@ -1,14 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.18-omap-git] omap2 fullspeed usb 1/2
-Date: Wed, 25 Oct 2006 21:45:10 +0300
-Message-ID: <20061025184508.GK4852@atomide.com>
-References: <001c01c6f65d$f2d11d20$c7a3580a@swcenter.sec.samsung.co.kr>
-	<200610241141.17312.david-b@pacbell.net>
+Subject: Re: [patch 2.6.18-omap-git] omap2 fullspeed usb 2/2 (apollon)
+Date: Wed, 25 Oct 2006 21:46:00 +0300
+Message-ID: <20061025184558.GL4852@atomide.com>
+References: <001d01c6f65e$270c8b10$c7a3580a@swcenter.sec.samsung.co.kr>
+	<200610241143.20417.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <200610241141.17312.david-b@pacbell.net>
+In-Reply-To: <200610241143.20417.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -23,24 +23,17 @@ Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 * David Brownell <david-b@pacbell.net> [061024 22:00]:
-> On Sunday 22 October 2006 9:44 pm, Kyungmin Park wrote:
+> On Sunday 22 October 2006 9:46 pm, Kyungmin Park wrote:
+> > [PATCH] USB device support on Apollon
+> >  
+> >   Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 > 
-> > > -------
-> > > NOTE:  this is just a cleaned up version of the code from 
-> > > Kyungmin, I don't have it behaving yet on H4, and didn't 
-> > > re-test on e.g. OSK.
-> > 
-> > There's missing patch. We have to modify following line.
 > 
-> Good catch.   It got tangled up in the H4 support patch, which I
-> didn't send, since that also needs "select ISP1301_OMAP" when the
-> OTG port is defined.
+> So this is what I sent but without the set_irq_type() stuff that somehow
+> got in, right?
 > 
-> Tony, feel free to merge this patch too.  :)
+> Have you verified that it's stil behaving on your board?
 
-OK, pushed Kyuingmin's patch you cleaned up + Kyungmin's fix as one
-patch.
-
-Regards,
+I've pushed it.
 
 Tony
