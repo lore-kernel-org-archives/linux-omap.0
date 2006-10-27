@@ -1,14 +1,13 @@
-From: Jonathan McDowell <noodles@earth.li>
-Subject: Re: omap-keypad issues with 2.6.19-rc?
-Date: Fri, 27 Oct 2006 17:16:59 +0100
-Message-ID: <20061027161659.GP13361@earth.li>
-References: <20061023203925.GC11967@atomide.com>
-	<20061024110502.GQ1123@earth.li>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: [PATCH]: Fixing blksz_bits calling inside drivers/mmc/mmc.c and
+ drivers/mmc/omap.c
+Date: Fri, 27 Oct 2006 18:02:47 +0200
+Message-ID: <45422DA7.4060900@gmail.com>
+References: <45422209.3090602@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="------------050209050506070500080704"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20061024110502.GQ1123@earth.li>
+In-Reply-To: <45422209.3090602@nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,32 +17,142 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Felipe Balbi <ext-felipe.lima@nokia.com>
+Cc: Linux OMAP Mailing List <linux-omap-open-source@linux.omap.com>, "Lindgren Tony (EXT-Atomide/Helsinki)" <ext-Tony.Lindgren@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 24, 2006 at 12:05:02PM +0100, Jonathan McDowell wrote:
-> On Mon, Oct 23, 2006 at 11:39:26PM +0300, Tony Lindgren wrote:
-> > I've updated our git tree to 2.6.19-rc2. At least following have
-> > problems on omap1 (OSK):
-> > 
-> > - CONFIG_DEBUG_LL hangs system
-> > - BUG in omap1_mbox_enable_irq
-> > - Aic23 NULL pointer exception
-> > 
-> > So YMMV :) Anybody got patches for these issues already?
+This is a multi-part message in MIME format.
+--------------050209050506070500080704
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Felipe Balbi wrote:
+> This small patch solves the problem ;-)
 > 
-> Haven't hit any of these with the Amstrad Delta defconfig so far (just
-> done a compile and boot so far), 
+> Here's the error dump:
+> drivers/mmc/omap.c: In function 'mmc_omap_prepare_dma':
+> drivers/mmc/omap.c:636: error: 'struct mmc_data' has no member named 
+> 'blksz_bits'
+> drivers/mmc/omap.c:639: error: 'struct mmc_data' has no member named 
+> 'blksz_bits'
+> drivers/mmc/omap.c: In function 'mmc_omap_prepare_data':
+> drivers/mmc/omap.c:828: error: 'struct mmc_data' has no member named 
+> 'blksz_bits'
+> 
+> Obs: The same occurs for drivers/mmc/mmc.c file
+> 
+> 
+> ------------------------------------------------------------------------
+> 
+> Index: linux-omap/drivers/mmc/omap.c
+> ===================================================================
+> --- linux-omap.orig/drivers/mmc/omap.c	2006-10-27 09:18:34.000000000 -0400
+> +++ linux-omap/drivers/mmc/omap.c	2006-10-27 11:03:14.000000000 -0400
+> @@ -633,10 +633,10 @@ mmc_omap_prepare_dma(struct mmc_omap_hos
+>  	int sync_dev = 0;
+>  
+>  	data_addr = host->phys_base + OMAP_MMC_REG_DATA;
+> -	frame = 1 << data->blksz_bits;
+> +	frame = 1 << data->blksz;
+>  	count = sg_dma_len(sg);
+>  
+> -	if ((data->blocks == 1) && (count > (1 << data->blksz_bits)))
+> +	if ((data->blocks == 1) && (count > (1 << data->blksz)))
+>  		count = frame;
+>  
+>  	host->dma_len = count;
+> @@ -825,7 +825,7 @@ mmc_omap_prepare_data(struct mmc_omap_ho
+>  	}
+>  
+>  
+> -	block_size = 1 << data->blksz_bits;
+> +	block_size = 1 << data->blksz;
+>  
+>  	OMAP_MMC_WRITE(host, NBLK, data->blocks - 1);
+>  	OMAP_MMC_WRITE(host, BLEN, block_size - 1);
+> 
+> --- linux-omap/drivers/mmc/mmc.c	2006-10-26 06:42:31.000000000 -0400
+> +++ linux-omap-dev/drivers/mmc/mmc.c	2006-10-26 09:53:24.000000000 -0400
+> @@ -996,7 +996,7 @@
+>  
+>  		mmc_set_data_timeout(&data, card, 0);
+>  
+> -		data.blksz = 1 << 3;
+> +		data.blksz_bits = 1 << 3;
+>  		data.blocks = 1;
+>  		data.flags = MMC_DATA_READ;
+>  		data.sg = &sg;
 
-However having prodded further I'm seeing incorrect key parsing with
-the omap-keypad driver under both -rc2 and -rc3 (works fine in
-2.6.18-omap1). Numerous keys now returns strings of characters rather
-than the single expected character. A few keys still work as expected
-however. Before I dig in further is anyone else seeing anything similar?
+This doesn't look correct to me (and compilation still
+fails). Why do you add data.blksz_bits in mmc.c again? It
+was removed by RMK at
 
-J.
+http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=blobdiff;h=5b9caa7978d34311839840243e38921255f6da4b;hp=74eaaee66de0e59532ba5655fddac5aaeea5ba08;hb=132919ba80ad207755fe271277bfefff865a54fe;f=drivers/mmc/mmc.c
 
--- 
- After a number of decimal places,  |       Black Cat Networks Ltd
-       nobody gives a damn.         | http://www.blackcatnetworks.co.uk/
-                                    |  UK Web, domain and email hosting
+Whats about the attachment instead? It additionally
+removes warning
+
+drivers/mmc/omap.c:587: warning: 'mmc_omap_switch_callback'
+defined but not used
+
+too.
+
+Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
+
+--------------050209050506070500080704
+Content-Type: text/plain;
+ name="mmc_omap_fix_patch.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="mmc_omap_fix_patch.txt"
+
+Index: linux-osk/drivers/mmc/omap.c
+===================================================================
+--- linux-osk.orig/drivers/mmc/omap.c
++++ linux-osk/drivers/mmc/omap.c
+@@ -581,12 +581,6 @@ static void mmc_omap_switch_timer(unsign
+ 	schedule_work(&host->switch_work);
+ }
+ 
+-/* FIXME: Handle card insertion and removal properly. Maybe use a mask
+- * for MMC state? */
+-static void mmc_omap_switch_callback(unsigned long data, u8 mmc_mask)
+-{
+-}
+-
+ static void mmc_omap_switch_handler(void *data)
+ {
+ 	struct mmc_omap_host *host = (struct mmc_omap_host *) data;
+@@ -633,10 +627,10 @@ mmc_omap_prepare_dma(struct mmc_omap_hos
+ 	int sync_dev = 0;
+ 
+ 	data_addr = host->phys_base + OMAP_MMC_REG_DATA;
+-	frame = 1 << data->blksz_bits;
++	frame = data->blksz;
+ 	count = sg_dma_len(sg);
+ 
+-	if ((data->blocks == 1) && (count > (1 << data->blksz_bits)))
++	if ((data->blocks == 1) && (count > (data->blksz)))
+ 		count = frame;
+ 
+ 	host->dma_len = count;
+@@ -825,7 +819,7 @@ mmc_omap_prepare_data(struct mmc_omap_ho
+ 	}
+ 
+ 
+-	block_size = 1 << data->blksz_bits;
++	block_size = data->blksz;
+ 
+ 	OMAP_MMC_WRITE(host, NBLK, data->blocks - 1);
+ 	OMAP_MMC_WRITE(host, BLEN, block_size - 1);
+
+
+
+--------------050209050506070500080704
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--------------050209050506070500080704--
