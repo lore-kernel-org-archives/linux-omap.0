@@ -1,9 +1,9 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP: Remove struct pt_regs from lcdc_irq_handler()
-Date: Fri, 27 Oct 2006 18:53:39 +0200
-Message-ID: <45423993.5080300@gmail.com>
+Subject: [PATCH] ARM: OMAP: Remove struct pt_regs from menelaus_irq()
+Date: Fri, 27 Oct 2006 18:56:20 +0200
+Message-ID: <45423A34.1010009@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------050606040203040802070607"
+Content-Type: multipart/mixed; boundary="------------000901050207090503080809"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,44 +18,44 @@ To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------050606040203040802070607
+--------------000901050207090503080809
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
 
-Remove struct pt_regs from lcdc_irq_handler()
+Remove struct pt_regs from menelaus_irq()
 
 Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
 
 
-
---------------050606040203040802070607
+--------------000901050207090503080809
 Content-Type: text/plain;
- name="lcdc_warning_patch.txt"
+ name="menelaus_warning_patch.txt"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="lcdc_warning_patch.txt"
+ filename="menelaus_warning_patch.txt"
 
-Index: linux-osk/drivers/video/omap/lcdc.c
+Index: linux-osk/drivers/i2c/chips/menelaus.c
 ===================================================================
---- linux-osk.orig/drivers/video/omap/lcdc.c
-+++ linux-osk/drivers/video/omap/lcdc.c
-@@ -265,7 +265,7 @@ static void setup_lcd_dma(void)
- 	omap_setup_lcd_dma();
- }
- 
--static irqreturn_t lcdc_irq_handler(int irq, void *dev_id, struct pt_regs *fp)
-+static irqreturn_t lcdc_irq_handler(int irq, void *dev_id)
+--- linux-osk.orig/drivers/i2c/chips/menelaus.c
++++ linux-osk/drivers/i2c/chips/menelaus.c
+@@ -678,7 +678,7 @@ static void menelaus_work(void * _menela
+ /*
+  * We cannot use I2C in interrupt context, so we just schedule work.
+  */
+-static irqreturn_t menelaus_irq(int irq, void *_menelaus, struct pt_regs *regs)
++static irqreturn_t menelaus_irq(int irq, void *_menelaus)
  {
- 	u32 status;
+ 	struct menelaus_chip *menelaus = _menelaus;
  
 
 
---------------050606040203040802070607
+
+--------------000901050207090503080809
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------050606040203040802070607--
+--------------000901050207090503080809--
