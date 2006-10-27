@@ -1,13 +1,13 @@
-From: =?gb2312?B?TmluZ3pob25nIE1pYW8gLSDD58T+1tI=?= <Ningzhong.Miao@access-company.com>
-Subject: Re: A problem about tsc2101 omap audio alsa driver on H3 board
-Date: Fri, 27 Oct 2006 09:51:27 +0800
-Message-ID: <A091501C5752EE42A2FD8880B8EF192F3F89B6@njgex02.njg.access-company.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch 2.6.19-rc3-omap] gpio init section cleanups
+Date: Thu, 26 Oct 2006 21:41:39 -0700
+Message-ID: <200610262141.40485.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,67 +15,87 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: lamikr@cc.jyu.fi
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Dear lamikr:
+Minor GPIO cleanups:  remove needless #include, and omap_gpio_init()
+should be __init, as well as all the board init code calling it.
 
-	It's same. The below is printed messages. The program stopped and no =
-sound in STEREO HEADSET.
-
-[root@Linux /root]#alsa-lib/bin/amixer scontents
-Simple mixer control 'Master',0
-  Capabilities: pvolume pswitch
-  Playback channels: Front Left - Front Right
-  Limits: Playback 0 - 100
-  Mono:
-  Front Left: Playback 90 [90%] [on]
-  Front Right: Playback 90 [90%] [on]
-Simple mixer control 'Playback',0
-  Capabilities: enum
-  Items: 'Loudspeaker' 'Headphone'
-  Item0: 'Headphone'
-Simple mixer control 'Handset',2
-  Capabilities: pvolume pvolume-joined pswitch pswitch-joined
-  Playback channels: Mono
-  Limits: Playback 0 - 100
-  Mono: Playback 21 [21%] [on]
-Simple mixer control 'Headset',1
-  Capabilities: pvolume pvolume-joined pswitch pswitch-joined
-  Playback channels: Mono
-  Limits: Playback 0 - 100
-  Mono: Playback 69 [69%] [on]
-[root@Linux /root]#
-[root@Linux /root]#
-[root@Linux /root]#alsa-lib/bin/aplay microsoft.wav=20
-MCLK already in use at 12000000 Hz. We change it to 12000000 Hz
-omap_alsa_tsc2101_clock_on(), no need to change rate, no need to change =
-clock rate, rate already 12000000 Hz.
-Playing WAVE 'microsoft.wav' : Unsigned 8 bit, Rate 22050 Hz, Mono
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 
 
-
------=D3=CA=BC=FE=D4=AD=BC=FE-----
-=B7=A2=BC=FE=C8=CB: lamikr [mailto:lamikr@cc.jyu.fi]=20
-=B7=A2=CB=CD=CA=B1=BC=E4: 2006=C4=EA10=D4=C226=C8=D5 7:30
-=CA=D5=BC=FE=C8=CB: Ningzhong Miao - =C3=E7=C4=FE=D6=D2
-=B3=AD=CB=CD: linux-omap-open-source@linux.omap.com
-=D6=F7=CC=E2: Re: A problem about tsc2101 omap audio alsa driver on H3 =
-board
-
-
-> The program died here, and earphone don=A1=AFt have any sound.
->
-> I have tried oss audio driver and 2.6.17 kernel. They are same.
->  =20
-Hmm, aplayer has newer crashed for me.
-Could you first try to change the playback target from speaker (default)
-to headphone by using alsa-mixer to check whether you can then hear
-something? If crash still happens, could you try to remove debug,
-change again the target to headphone with alsa-mixer and try again with
-aplay.
-
-Mika
+Index: osk2/arch/arm/plat-omap/gpio.c
+===================================================================
+--- osk2.orig/arch/arm/plat-omap/gpio.c	2006-10-25 14:06:19.000000000 -0700
++++ osk2/arch/arm/plat-omap/gpio.c	2006-10-25 14:55:01.000000000 -0700
+@@ -13,7 +13,6 @@
+ 
+ #include <linux/init.h>
+ #include <linux/module.h>
+-#include <linux/sched.h>
+ #include <linux/interrupt.h>
+ #include <linux/ptrace.h>
+ #include <linux/sysdev.h>
+@@ -1329,7 +1425,7 @@ void omap2_gpio_resume_after_retention(v
+  * This may get called early from board specific init
+  * for boards that have interrupts routed via FPGA.
+  */
+-int omap_gpio_init(void)
++int __init omap_gpio_init(void)
+ {
+ 	if (!initialized)
+ 		return _omap_gpio_init();
+Index: osk2/arch/arm/mach-omap1/board-innovator.c
+===================================================================
+--- osk2.orig/arch/arm/mach-omap1/board-innovator.c	2006-10-25 14:06:18.000000000 -0700
++++ osk2/arch/arm/mach-omap1/board-innovator.c	2006-10-25 14:46:23.000000000 -0700
+@@ -308,7 +308,7 @@ static void __init innovator_init_smc91x
+ 	}
+ }
+ 
+-void innovator_init_irq(void)
++static void __init innovator_init_irq(void)
+ {
+ 	omap1_init_common_hw();
+ 	omap_init_irq();
+Index: osk2/arch/arm/mach-omap1/board-fsample.c
+===================================================================
+--- osk2.orig/arch/arm/mach-omap1/board-fsample.c	2006-10-25 14:06:18.000000000 -0700
++++ osk2/arch/arm/mach-omap1/board-fsample.c	2006-10-25 14:46:23.000000000 -0700
+@@ -246,7 +246,7 @@ static void __init fsample_init_smc91x(v
+ 	mdelay(50);
+ }
+ 
+-void omap_fsample_init_irq(void)
++static void __init omap_fsample_init_irq(void)
+ {
+ 	omap1_init_common_hw();
+ 	omap_init_irq();
+Index: osk2/arch/arm/mach-omap1/board-h3.c
+===================================================================
+--- osk2.orig/arch/arm/mach-omap1/board-h3.c	2006-10-25 14:06:18.000000000 -0700
++++ osk2/arch/arm/mach-omap1/board-h3.c	2006-10-25 14:46:23.000000000 -0700
+@@ -495,7 +495,7 @@ static void __init h3_init_smc91x(void)
+ 	}
+ }
+ 
+-void h3_init_irq(void)
++static void __init h3_init_irq(void)
+ {
+ 	omap1_init_common_hw();
+ 	omap_init_irq();
+Index: osk2/arch/arm/mach-omap1/board-perseus2.c
+===================================================================
+--- osk2.orig/arch/arm/mach-omap1/board-perseus2.c	2006-10-25 14:06:18.000000000 -0700
++++ osk2/arch/arm/mach-omap1/board-perseus2.c	2006-10-25 14:46:23.000000000 -0700
+@@ -246,7 +246,7 @@ static void __init perseus2_init_smc91x(
+ 	mdelay(50);
+ }
+ 
+-void omap_perseus2_init_irq(void)
++static void __init omap_perseus2_init_irq(void)
+ {
+ 	omap1_init_common_hw();
+ 	omap_init_irq();
