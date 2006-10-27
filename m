@@ -1,10 +1,10 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP: Fix warning in mach-omap1
-Date: Fri, 27 Oct 2006 18:19:12 +0200
-Message-ID: <45423180.30502@gmail.com>
+Subject: [PATCH] ARM: OMAP: Fix warning in omap-keypad
+Date: Fri, 27 Oct 2006 18:29:21 +0200
+Message-ID: <454233E1.7060909@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080608080606080801080808"
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: multipart/mixed; boundary="------------020407000700090903060703"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,71 +12,55 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------080608080606080801080808
+--------------020407000700090903060703
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
 Fix warning
 
-arch/arm/mach-omap1/pm.c: In function 'omap_pm_init':
-arch/arm/mach-omap1/pm.c:765: warning: ignoring return value
-of 'subsys_create_file', declared with attribute
-warn_unused_result
+rivers/input/keyboard/omap-keypad.c: In function
+'omap_kp_probe':
+drivers/input/keyboard/omap-keypad.c:450: warning: 'row_idx'
+is used uninitialized in this function
+drivers/input/keyboard/omap-keypad.c:453: warning: 'col_idx'
+is used uninitialized in this function
 
 Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
 
 
---------------080608080606080801080808
+--------------020407000700090903060703
 Content-Type: text/plain;
- name="mach_omap1_warn_patch.txt"
+ name="omap_keypad_warning_patch.txt"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="mach_omap1_warn_patch.txt"
+ filename="omap_keypad_warning_patch.txt"
 
-Index: linux-osk/arch/arm/mach-omap1/pm.c
+Index: linux-osk/drivers/input/keyboard/omap-keypad.c
 ===================================================================
---- linux-osk.orig/arch/arm/mach-omap1/pm.c
-+++ linux-osk/arch/arm/mach-omap1/pm.c
-@@ -706,6 +706,8 @@ static struct pm_ops omap_pm_ops ={
+--- linux-osk.orig/drivers/input/keyboard/omap-keypad.c
++++ linux-osk/drivers/input/keyboard/omap-keypad.c
+@@ -317,7 +317,7 @@ static int __init omap_kp_probe(struct p
+ 	struct omap_kp *omap_kp;
+ 	struct input_dev *input_dev;
+ 	struct omap_kp_platform_data *pdata =  pdev->dev.platform_data;
+-	int i, col_idx, row_idx, irq_idx, ret;
++	int i, col_idx = 0, row_idx = 0, irq_idx, ret;
  
- static int __init omap_pm_init(void)
- {
-+	int error = 0;
-+
- 	printk("Power Management for TI OMAP.\n");
- 
- 	/*
-@@ -762,13 +764,15 @@ static int __init omap_pm_init(void)
- 	omap_pm_init_proc();
- #endif
- 
--	subsys_create_file(&power_subsys, &sleep_while_idle_attr);
-+	error = subsys_create_file(&power_subsys, &sleep_while_idle_attr);
-+	if(unlikely(error != 0))
-+		printk(KERN_ERR "subsys_create_file failed: %d\n", error);
- 
- 	if (cpu_is_omap16xx()) {
- 		/* configure LOW_PWR pin */
- 		omap_cfg_reg(T20_1610_LOW_PWR);
- 	}
- 
--	return 0;
-+	return error;
- }
- __initcall(omap_pm_init);
+ 	if (!pdata->rows || !pdata->cols || !pdata->keymap) {
+ 		printk(KERN_ERR "No rows, cols or keymap from pdata\n");
 
 
---------------080608080606080801080808
+--------------020407000700090903060703
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------080608080606080801080808--
+--------------020407000700090903060703--
