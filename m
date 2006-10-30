@@ -1,99 +1,28 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: Git tree updated to 2.6.19-rc2
-Date: Mon, 30 Oct 2006 00:09:05 +0200 (EET)
-Message-ID: <20061030.000905.94155970.Hiroshi.DOYU@nokia.com>
-References: <20061023203925.GC11967@atomide.com> <453E3C75.6060605@gmail.com>
-	<20061027125013.GB25245@atomide.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [patch 3/6] [RFC] Add MMC Password Protection (lock/unlock) support V5
+Date: Sun, 29 Oct 2006 19:06:50 -0700
+Message-ID: <200610291806.56131.david-b@pacbell.net>
+References: <20061020164914.012378000@localhost.localdomain> <20061020165135.162482000@localhost.localdomain> <45447914.7070101@drzeus.cx>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20061027125013.GB25245@atomide.com>
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: tony@atomide.com
-Cc: linux-omap-open-source@linux.omap.com
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030454AbWJ3DHK@vger.kernel.org>
+In-Reply-To: <45447914.7070101@drzeus.cx>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pierre Ossman <drzeus-list@drzeus.cx>
+Cc: Carlos Aguiar <carlos.aguiar@indt.org.br>, linux-kernel@vger.kernel.org, linux-omap-open-source@linux.omap.com, Tony Lindgren <tony@atomide.com>, Russell King <rmk+lkml@arm.linux.org.uk>, ilias.biris@indt.org.br
 List-Id: linux-omap@vger.kernel.org
 
-From: "ext tony@atomide.com" <tony@atomide.com>
-Subject: Re: Git tree updated to 2.6.19-rc2
-Date: Fri, 27 Oct 2006 15:50:17 +0300
+On Sunday 29 October 2006 1:49 am, Pierre Ossman wrote:
 
-> * Dirk Behme <dirk.behme@googlemail.com> [061024 19:16]:
-> > Tony Lindgren wrote:
-> > >- CONFIG_DEBUG_LL hangs system
-> > 
-> > For reference see
-> > 
-> > http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008025.html
-> > 
-> > and
-> > 
-> > http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008054.html
-> > 
-> > for an ugly workaround if you really need it. I really have
-> > no clue what is broken here.
+> > +	data_buf = kmalloc(data_size, GFP_KERNEL);
+> >   
 > 
-> Sounds like some clock is not enabled somewhere and serial write hangs.
->  
-> > >- BUG in omap1_mbox_enable_irq
-> > 
-> > I think you mean
-> > 
-> > Unbalanced enable for IRQ 10
-> > BUG: warning at kernel/irq/manage.c:118/enable_irq()
-> > 
-> > printed in bootmessages.
-> > 
-> > I spent some minutes for this as well. It is MPU "dsp"
-> > interrupt which is enabled in omap1_mbox_enable_irq() by
-> > 
-> > enable_irq(mbox->irq);
-> > 
-> > In kernel/irq/manage.c function enable_irq() checks for
-> > desc->depth and if it is 0 it prints above message. Seems
-> > that desc->depth has to be >= 1.
-> > 
-> > The comment tells us
-> > 
-> > *	Undoes the effect of one call to disable_irq().  If this
-> > *	matches the last disable, processing of interrupts on this
-> > *	IRQ line is re-enabled.
-> > 
-> > so seems that before calling enable_irq() at least one
-> > disable_irq() is needed.
-> > 
-> > I don't know if patch in attachment is a valid patch or only
-> > a workaround. What do you think?
-> > 
-> > Best regards
-> > 
-> > Dirk
-> > 
-> 
-> > --- arch/arm/plat-omap/mailbox.c_orig	2006-10-24 18:08:06.000000000 +0200
-> > +++ arch/arm/plat-omap/mailbox.c	2006-10-24 18:10:58.000000000 +0200
-> > @@ -237,6 +237,7 @@ static int omap_mbox_init(struct omap_mb
-> >  		       "failed to register mailbox interrupt:%d\n", ret);
-> >  		goto fail1;
-> >  	}
-> > +	disable_mbox_irq(mbox, IRQ_RX);
-> >  	enable_mbox_irq(mbox, IRQ_RX);
-> >  
-> >  	spin_lock_init(&mbox->lock);
-> > 
-> 
-> Let's see what Toshihiro and Hiroshi think.
+> For something that can be at most 34 bytes, a kmalloc seems excessive.
+> Put it on the stack. Just remember to have checks so we do not overflow.
 
-I guess that the above should work for now but I think that there's
-another way, for example, I can have initialization flag in
-enable_mbox_irq() in omap1, though I am sure that there's better way.
-
-    Hiroshi DOYU
+It does seem excessive, but stack-allocated buffers are not guaranteed
+to be DMA-safe.  See Documentation/DMA-mapping.txt right in the first
+major section "What memory is DMA'able?"...
