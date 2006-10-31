@@ -1,9 +1,10 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP: Make AIC23 sound work again
-Date: Tue, 31 Oct 2006 19:48:13 +0100
-Message-ID: <45479A6D.2080100@gmail.com>
+From: Felipe Balbi <ext-felipe.lima@nokia.com>
+Subject: [PATCH] [USB/CORE/USB.C] Fixes autosuspend and auto_pm fields
+	missing
+Date: Tue, 31 Oct 2006 16:00:28 -0400
+Message-ID: <4547AB5C.4010801@nokia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090202060208060206060709"
+Content-Type: multipart/mixed; boundary="------------050402070908000605010009"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -14,85 +15,80 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Linux OMAP Mailing List <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090202060208060206060709
+--------------050402070908000605010009
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
+This small patch changes omap_h3_1710_defconfig to fix the bug.
 
-Hack to add I2C zero length transfers and SMBus quick mode
-necessary for AIC23 sound again.
-
-Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
-
+The catch is: for struct usb_device to have the fields struct 
+work_struct autosuspend and unsigned autopm:1 CONFIG_PM should be set "y".
 
 
---------------090202060208060206060709
-Content-Type: text/plain;
- name="i2c_zero_length_smbus_quick_hack_patch.txt"
+make uImage
+  CHK     include/linux/version.h
+make[1]: `include/asm-arm/mach-types.h' is up to date.
+  CHK     include/linux/utsrelease.h
+  CHK     include/linux/compile.h
+  CC      drivers/usb/core/usb.o
+drivers/usb/core/usb.c: In function 'usb_release_dev':
+drivers/usb/core/usb.c:177: error: 'struct usb_device' has no member 
+named 'autosuspend'
+drivers/usb/core/usb.c: In function 'usb_autosuspend_work':
+drivers/usb/core/usb.c:218: error: 'struct usb_device' has no member 
+named 'auto_pm'
+drivers/usb/core/usb.c:219: warning: statement with no effect
+make[3]: *** [drivers/usb/core/usb.o] Error 1
+make[2]: *** [drivers/usb/core] Error 2
+make[1]: *** [drivers/usb] Error 2
+make: *** [drivers] Error 2
+
+
+-- 
+Best Regards,
+
+Felipe Balbi
+ext-felipe.lima@nokia.com
+OSMRC - INdT
+
+
+--------------050402070908000605010009
+Content-Type: text/x-patch;
+ name="patch-autosuspend-auto_pm.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
-	filename="i2c_zero_length_smbus_quick_hack_patch.txt"
+ filename="patch-autosuspend-auto_pm.diff"
 
-Index: linux-osk/drivers/i2c/busses/i2c-omap.c
+Index: linux-omap-2.6-dev/include/linux/usb.h
 ===================================================================
---- linux-osk.orig/drivers/i2c/busses/i2c-omap.c
-+++ linux-osk/drivers/i2c/busses/i2c-omap.c
-@@ -285,20 +285,29 @@ static int omap_i2c_xfer_msg(struct i2c_
- 			     struct i2c_msg *msg, int stop)
- {
- 	struct omap_i2c_dev *dev = i2c_get_adapdata(adap);
-+	u8 zero_byte = 0;
- 	int r;
- 	u16 w;
+--- linux-omap-2.6-dev.orig/include/linux/usb.h	2006-10-31 14:16:01.000000000 -0400
++++ linux-omap-2.6-dev/include/linux/usb.h	2006-10-31 15:48:43.000000000 -0400
+@@ -381,13 +381,13 @@ struct usb_device {
+ 	struct usb_device *children[USB_MAXCHILDREN];
  
- 	dev_dbg(dev->dev, "addr: 0x%04x, len: %d, flags: 0x%x, stop: %d\n",
- 		msg->addr, msg->len, msg->flags, stop);
+ 	int pm_usage_cnt;		/* usage counter for autosuspend */
+-#ifdef CONFIG_PM
++/* #ifdef CONFIG_PM */
+ 	struct work_struct autosuspend;	/* for delayed autosuspends */
+ 	struct mutex pm_mutex;		/* protects PM operations */
  
--	if (msg->len == 0)
--		return -EINVAL;
--
- 	omap_i2c_write_reg(dev, OMAP_I2C_SA_REG, msg->addr);
+ 	unsigned auto_pm:1;		/* autosuspend/resume in progress */
+ 	unsigned do_remote_wakeup:1;	/* remote wakeup should be enabled */
+-#endif
++/* #endif */
+ };
+ #define	to_usb_device(d) container_of(d, struct usb_device, dev)
  
--	/* REVISIT: Could the STB bit of I2C_CON be used with probing? */
--	dev->buf = msg->buf;
--	dev->buf_len = msg->len;
-+	/* Sigh, seems we can't do zero length transactions. Thus, we
-+	 * can't probe for devices w/o actually sending/receiving at least
-+	 * a single byte. So we'll set count to 1 for the zero length
-+	 * transaction case and hope we don't cause grief for some
-+	 * arbitrary device due to random byte write/read during
-+	 * probes.
-+	 */
-+	if (msg->len == 0) {
-+		dev->buf = &zero_byte;
-+		dev->buf_len = 1;
-+	} else {
-+		dev->buf = msg->buf;
-+		dev->buf_len = msg->len;
-+	}
- 
- 	omap_i2c_write_reg(dev, OMAP_I2C_CNT_REG, dev->buf_len);
- 
-@@ -383,7 +392,7 @@ out:
- static u32
- omap_i2c_func(struct i2c_adapter *adap)
- {
--	return I2C_FUNC_I2C | (I2C_FUNC_SMBUS_EMUL & ~I2C_FUNC_SMBUS_QUICK);
-+	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
- }
- 
- static inline void
 
-
---------------090202060208060206060709
+--------------050402070908000605010009
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------090202060208060206060709--
+--------------050402070908000605010009--
