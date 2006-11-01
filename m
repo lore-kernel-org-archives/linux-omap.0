@@ -1,14 +1,13 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: [PATCH] [USB/CORE/USB.C] Fixes autosuspend and auto_pm fields
- missing
-Date: Wed, 01 Nov 2006 18:09:21 +0100
-Message-ID: <4548D4C1.9000405@gmail.com>
-References: <4547AB5C.4010801@nokia.com>
+From: Tung Dang <tungsys@yahoo.com>
+Subject: Re: Problem with DSP TMS320C55xx on OMAP5912
+Date: Wed, 1 Nov 2006 09:38:35 -0800 (PST)
+Message-ID: <20061101173835.469.qmail@web36407.mail.mud.yahoo.com>
+References: <20061101163742.667A58062D@linux.omap.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <4547AB5C.4010801@nokia.com>
+In-Reply-To: <20061101163742.667A58062D@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,52 +17,123 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
-Cc: Linux OMAP Mailing List <linux-omap-open-source@linux.omap.com>
+To: dejanigma@hotmail.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi David,
+Hi Andy,
+Thank you very much for helping me !
 
-Felipe Balbi wrote:
->  CC      drivers/usb/core/usb.o
-> drivers/usb/core/usb.c: In function 'usb_release_dev':
-> drivers/usb/core/usb.c:177: error: 'struct usb_device' has no member 
-> named 'autosuspend'
-> drivers/usb/core/usb.c: In function 'usb_autosuspend_work':
-> drivers/usb/core/usb.c:218: error: 'struct usb_device' has no member 
-> named 'auto_pm'
-> drivers/usb/core/usb.c:219: warning: statement with no effect
-> make[3]: *** [drivers/usb/core/usb.o] Error 1
+But I only use the simulator of CCS 3.1 (platinum edition) to simulate th=
+e function of DSP side, not any relate to GPP side. My purpose is to  use=
+ the sim55.cdb configuration template of CCS to simulate and debug the ma=
+jor code loops on TMS320C55xx . =20
+Please, do you have any suggestion for me  ?=20
 
-do we have a mismatch here between usage of CONFIG_PM in 
-include/linux/usb.h and CONFIG_USB_SUSPEND in usb/core/usb.c 
-if CONFIG_PM isn't set for OMAP?
+Thanks ,
+Tung .
 
-Cheers
 
-Dirk
+linux-omap-open-source-request@linux.omap.com wrote:
+------------------------------
 
-include/linux/usb.h:
+Message: 3
+Date: Wed, 01 Nov 2006 15:46:26 +0000
+From: "Abot Botbot"=20
+Subject: RE: Problem with DSP TMS320C55xx on OMAP5912
+To: linux-omap-open-source@linux.omap.com
+Message-ID:=20
+Content-Type: text/plain; format=3Dflowed
 
-#ifdef CONFIG_PM
-	struct work_struct autosuspend;	/* for delayed autosuspends */
-	struct mutex pm_mutex;		/* protects PM operations */
+Tung,
 
-	unsigned auto_pm:1;		/* autosuspend/resume in progress */
-	unsigned do_remote_wakeup:1;	/* remote wakeup should be 
-enabled */
-#endif
+   The CCS debugging suite is really unwieldy for doing basic debugging=20
+operations on the OMAP. The main problem is that the GPP is constantly=20
+trying to maintain a strange hold on the DSP, reserving control of its de=
+bug=20
+connections. So, when you try and load a program, set breakpoints or=20
+otherwise alter the state of the DSP, while linux and the GPP are running=
+,=20
+you will invariably get errors. There are a few things you can do that ma=
+ke=20
+things go easier depending on your requirements:
 
-usb/core/usb.c line ~177:
+- Reset the jumpers appropriately to turn the board on in DSP only mode.=20
+This is only good if you don't need access to the peripherals, but its ve=
+ry=20
+useful for step by step hardware debugging of major code loops that would=
+=20
+run solely on the DSP
 
-#ifdef	CONFIG_USB_SUSPEND
-	cancel_delayed_work(&udev->autosuspend);
-...
-#endif
+- After you have loaded your application from the GPP side through linux=20
+(Maybe a-la RF6?) you can go to the file menu of CCS and do a "load symbo=
+ls=20
+only" which will sync CCS and the code running on the DSP. It may allow y=
+ou=20
+to set breakpoints, though it is not totally reliable.
 
-usb/core/usb.c line ~218:
+Make sure you have the latest version of DSP/BIOS compiled and built with=
+=20
+your program, it seems to be less buggy than the default versions. Also=20
+evaluation versions of CCS 3.1 appear to be less stable. I hope some of t=
+his=20
+helps.
 
-#ifdef	CONFIG_USB_SUSPEND
-...
-	udev->auto_pm = 1;
-...
+Thanks,
+Andy
+
+>From: Tung Dang=20
+>To: linux-omap-open-source@linux.omap.com
+>Subject: Problem with DSP TMS320C55xx on OMAP5912
+>Date: Tue, 31 Oct 2006 23:50:03 -0800 (PST)
+>
+>Hi all,
+>When i using Code Composer Studio (CCS) from TI to simulate the function=
+s=20
+>of my program , the CCS verbal a error in the Messages Window :
+>Trouble running Target CPU: Check the linker command file / map file for=
+=20
+>any part of the program going into reserved area and correct the problem=
+=20
+>when Program Counter is 0x0  NOTE: Reset the target, reload the correcte=
+d=20
+>program and continue execution
+>Pls help me , what kind of this error ? What is the root problem ?
+>
+>
+>
+>
+>=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+>Thank you and Best Regards  !
+>Dang Hoang Tung
+>email : tungsys@yahoo.com
+>Student
+>University of Technology
+>Department of Computer Science
+>=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+>
+>---------------------------------
+>  Check out the New Yahoo! Mail - Fire up a more powerful email and get=20
+>things done faster.
+>_______________________________________________
+>Linux-omap-open-source mailing list
+>Linux-omap-open-source@linux.omap.com
+>http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+
+_________________________________________________________________
+Find a local pizza place, music store, museum and more=85then map the bes=
+t=20
+route!  http://local.live.com?FORM=3DMGA001
+
+
+
+------------------------------
+
+
+
+=20
+---------------------------------
+Get your email and see which of your friends are online - Right on the  n=
+ew Yahoo.com
