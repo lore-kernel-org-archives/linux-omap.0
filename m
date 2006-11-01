@@ -1,11 +1,13 @@
-From: Felipe Balbi <ext-felipe.lima@nokia.com>
-Subject: Invalid Storage Class BUG
-Date: Wed, 01 Nov 2006 16:50:07 -0400
-Message-ID: <4549087F.5070701@nokia.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: Invalid Storage Class BUG
+Date: Wed, 1 Nov 2006 16:14:01 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0611011608490.8259-100000@iolanthe.rowland.org>
+References: <4549087F.5070701@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-usb-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <4549087F.5070701@nokia.com>
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
 	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
@@ -15,79 +17,65 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
 	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
 Sender: linux-usb-devel-bounces@lists.sourceforge.net
 Errors-To: linux-usb-devel-bounces@lists.sourceforge.net
-To: Linux OMAP Mailing List <linux-omap-open-source@linux.omap.com>, linux-usb-devel@lists.sourceforge.net
+To: Felipe Balbi <ext-felipe.lima@nokia.com>, Andrew Morton <akpm@osdl.org>
+Cc: Linux OMAP Mailing List <linux-omap-open-source@linux.omap.com>, USB development list <linux-usb-devel@lists.sourceforge.net>
 List-Id: linux-omap@vger.kernel.org
 
-Hello all,
+On Wed, 1 Nov 2006, Felipe Balbi wrote:
 
-Could anyone help me fix this bug?
+> Hello all,
+> 
+> Could anyone help me fix this bug?
+> 
+> I couldn't figure out what is happening.
+> 
+> Here's the bug:
+> drivers/usb/core/hub.c: In function 'usb_new_device':
+> drivers/usb/core/hub.c:1293: error: invalid storage class for function 
+> '__usb_port_suspend'
+> drivers/usb/core/hub.c:1294: warning: implicit declaration of function 
+> '__usb_port_suspend'
+> drivers/usb/core/hub.c: At top level:
+> drivers/usb/core/hub.c:1567: error: static declaration of 
+> '__usb_port_suspend' follows non-static declaration
+> drivers/usb/core/hub.c:1294: error: previous implicit declaration of 
+> '__usb_port_suspend' was here
+> make[3]: *** [drivers/usb/core/hub.o] Error 1
+> make[2]: *** [drivers/usb/core] Error 2
+> make[1]: *** [drivers/usb] Error 2
+> make: *** [drivers] Error 2
 
-I couldn't figure out what is happening.
+Ho, ho!
 
-Here's the bug:
-drivers/usb/core/hub.c: In function 'usb_new_device':
-drivers/usb/core/hub.c:1293: error: invalid storage class for function 
-'__usb_port_suspend'
-drivers/usb/core/hub.c:1294: warning: implicit declaration of function 
-'__usb_port_suspend'
-drivers/usb/core/hub.c: At top level:
-drivers/usb/core/hub.c:1567: error: static declaration of 
-'__usb_port_suspend' follows non-static declaration
-drivers/usb/core/hub.c:1294: error: previous implicit declaration of 
-'__usb_port_suspend' was here
-make[3]: *** [drivers/usb/core/hub.o] Error 1
-make[2]: *** [drivers/usb/core] Error 2
-make[1]: *** [drivers/usb] Error 2
-make: *** [drivers] Error 2
+Andrew, I _told_ you this inner declaration of a static function would 
+cause problems!
 
+> Here's the source code:
+> 
+>  /* Maybe it can talk to us, though we can't talk to it.
+>                  * (Includes HNP test device.)
+>                  */
+>                 if (udev->bus->b_hnp_enable || udev->bus->is_b_host) {
+>                         static int __usb_port_suspend(struct usb_device *,
+>                                                 int port1);   * (line 1293)*
+>                         err = __usb_port_suspend(udev, 
+> udev->bus->otg_port); * (line 1294)*
+>                         if (err < 0)
+>                                 dev_dbg(&udev->dev, "HNP fail, %d\n", err);
+>                 }
+>                 err = -ENODEV;
+>                 goto fail;
+>         }
 
-Here's the source code:
+The solution is simple.  Just take line 1293 (the static function 
+declaration) and move it outside of the usb_new_device() function.  Stick 
+it inside the "#ifdef CONFIG_USB_OTG" block just above the function's 
+start.
 
- /* Maybe it can talk to us, though we can't talk to it.
-                 * (Includes HNP test device.)
-                 */
-                if (udev->bus->b_hnp_enable || udev->bus->is_b_host) {
-                        static int __usb_port_suspend(struct usb_device *,
-                                                int port1);   * (line 1293)*
-                        err = __usb_port_suspend(udev, 
-udev->bus->otg_port); * (line 1294)*
-                        if (err < 0)
-                                dev_dbg(&udev->dev, "HNP fail, %d\n", err);
-                }
-                err = -ENODEV;
-                goto fail;
-        }
+The problem is that gcc 4 doesn't like static function declarations in 
+inner blocks.  Earlier versions of gcc didn't mind.
 
-
-static int __usb_port_suspend (struct usb_device *udev, int port1)
-{ * (line 1567)*
-        int     status = 0;
-
-        /* caller owns the udev device lock */
-        if (port1 < 0)
-                return port1;
-
-        /* we change the device's upstream USB link,
-         * but root hubs have no upstream USB link.
-         */
-        if (udev->parent)
-                status = hub_port_suspend(hdev_to_hub(udev->parent), port1,
-                                udev);
-        else {
-                dev_dbg(&udev->dev, "usb %ssuspend\n",
-                                udev->auto_pm ? "auto-" : "");
-                usb_set_device_state(udev, USB_STATE_SUSPENDED);
-        }
-        return status;
-}
-
-
--- 
-Best Regards,
-
-Felipe Balbi
-ext-felipe.lima@nokia.com
-OSMRC - INdT
+Alan Stern
 
 
 -------------------------------------------------------------------------
