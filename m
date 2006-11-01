@@ -1,14 +1,14 @@
-From: Andrew Morton <akpm@osdl.org>
+From: David Brownell <david-b@pacbell.net>
 Subject: Re: Invalid Storage Class BUG
-Date: Wed, 1 Nov 2006 13:58:13 -0800
-Message-ID: <20061101135813.ae0c960f.akpm@osdl.org>
-References: <4549087F.5070701@nokia.com>
-	<Pine.LNX.4.44L0.0611011608490.8259-100000@iolanthe.rowland.org>
+Date: Wed, 1 Nov 2006 14:26:26 -0800
+Message-ID: <200611011426.28869.david-b@pacbell.net>
+References: <4549087F.5070701@nokia.com> <85ejsmn99r.fsf@orfeo.duckcorp.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-usb-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <Pine.LNX.4.44L0.0611011608490.8259-100000@iolanthe.rowland.org>
+In-Reply-To: <85ejsmn99r.fsf@orfeo.duckcorp.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
 	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
@@ -18,74 +18,45 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
 	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
 Sender: linux-usb-devel-bounces@lists.sourceforge.net
 Errors-To: linux-usb-devel-bounces@lists.sourceforge.net
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linux OMAP Mailing List <linux-omap-open-source@linux.omap.com>, USB development list <linux-usb-devel@lists.sourceforge.net>
+To: linux-omap-open-source@linux.omap.com
+Cc: Andrew Morton <akpm@osdl.org>, linux-usb-devel@lists.sourceforge.net, "Arnaud Patard (Rtp)" <arnaud.patard@rtp-net.org>, Greg KH <greg@kroah.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 1 Nov 2006 16:14:01 -0500 (EST)
-Alan Stern <stern@rowland.harvard.edu> wrote:
+That's identical to what I've been using in some work on a high-speed
+OTG controller that I suspect Felipe is getting familiar with ... :)
 
-> On Wed, 1 Nov 2006, Felipe Balbi wrote:
-> 
-> > Hello all,
-> > 
-> > Could anyone help me fix this bug?
-> > 
-> > I couldn't figure out what is happening.
-> > 
-> > Here's the bug:
-> > drivers/usb/core/hub.c: In function 'usb_new_device':
-> > drivers/usb/core/hub.c:1293: error: invalid storage class for function 
-> > '__usb_port_suspend'
-> > drivers/usb/core/hub.c:1294: warning: implicit declaration of function 
-> > '__usb_port_suspend'
-> > drivers/usb/core/hub.c: At top level:
-> > drivers/usb/core/hub.c:1567: error: static declaration of 
-> > '__usb_port_suspend' follows non-static declaration
-> > drivers/usb/core/hub.c:1294: error: previous implicit declaration of 
-> > '__usb_port_suspend' was here
-> > make[3]: *** [drivers/usb/core/hub.o] Error 1
-> > make[2]: *** [drivers/usb/core] Error 2
-> > make[1]: *** [drivers/usb] Error 2
-> > make: *** [drivers] Error 2
-> 
-> Ho, ho!
-> 
-> Andrew, I _told_ you this inner declaration of a static function would 
-> cause problems!
+So here's a standard format patch.  This should get into 2.6.19 IMO.
 
-I thought we fixed that ages ago?  What happened to it?
+(Andrew, ISTR that a topological sort won't work in this file.)
 
-> > Here's the source code:
-> > 
-> >  /* Maybe it can talk to us, though we can't talk to it.
-> >                  * (Includes HNP test device.)
-> >                  */
-> >                 if (udev->bus->b_hnp_enable || udev->bus->is_b_host) {
-> >                         static int __usb_port_suspend(struct usb_device *,
-> >                                                 int port1);   * (line 1293)*
-> >                         err = __usb_port_suspend(udev, 
-> > udev->bus->otg_port); * (line 1294)*
-> >                         if (err < 0)
-> >                                 dev_dbg(&udev->dev, "HNP fail, %d\n", err);
-> >                 }
-> >                 err = -ENODEV;
-> >                 goto fail;
-> >         }
-> 
-> The solution is simple.  Just take line 1293 (the static function 
-> declaration) and move it outside of the usb_new_device() function.  Stick 
-> it inside the "#ifdef CONFIG_USB_OTG" block just above the function's 
-> start.
+=================	CUT HERE
 
-It'd be better to rearrange things in there so that no forward declarations
-are needed.  A manual tsort...  But whatever.  It'd be better if it
-compiled ;)
+Remove complaint from newer GCCs; they don't like forward function
+declarations except in top-level contexts.
 
-> The problem is that gcc 4 doesn't like static function declarations in 
-> inner blocks.  Earlier versions of gcc didn't mind.
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 
-Wanna send a 2.6.19 patch please?
+Index: h4/drivers/usb/core/hub.c
+===================================================================
+--- h4.orig/drivers/usb/core/hub.c	2006-10-25 13:37:45.000000000 -0700
++++ h4/drivers/usb/core/hub.c	2006-10-25 21:54:17.000000000 -0700
+@@ -1188,6 +1188,7 @@ static inline void show_string(struct us
+ 
+ #ifdef	CONFIG_USB_OTG
+ #include "otg_whitelist.h"
++static int __usb_port_suspend(struct usb_device *, int port1);
+ #endif
+ 
+ /**
+@@ -1289,8 +1290,6 @@ int usb_new_device(struct usb_device *ud
+ 		 * (Includes HNP test device.)
+ 		 */
+ 		if (udev->bus->b_hnp_enable || udev->bus->is_b_host) {
+-			static int __usb_port_suspend(struct usb_device *,
+-						int port1);
+ 			err = __usb_port_suspend(udev, udev->bus->otg_port);
+ 			if (err < 0)
+ 				dev_dbg(&udev->dev, "HNP fail, %d\n", err);
 
 -------------------------------------------------------------------------
 Using Tomcat but need to do more? Need to support web services, security?
