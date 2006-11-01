@@ -1,13 +1,11 @@
-From: "Abot Botbot" <dejanigma@hotmail.com>
-Subject: RE: Problem with DSP TMS320C55xx on OMAP5912
-Date: Wed, 01 Nov 2006 15:46:26 +0000
-Message-ID: <BAY102-F35EC0D929029302085CA5CA9F80@phx.gbl>
-References: <20061101075003.86216.qmail@web36404.mail.mud.yahoo.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Pending October patches
+Date: Wed, 01 Nov 2006 16:54:22 +0100
+Message-ID: <4548C32E.8010800@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <20061101075003.86216.qmail@web36404.mail.mud.yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,89 +13,107 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Tung,
+Hi,
 
-   The CCS debugging suite is really unwieldy for doing basic debugging=20
-operations on the OMAP. The main problem is that the GPP is constantly=20
-trying to maintain a strange hold on the DSP, reserving control of its de=
-bug=20
-connections. So, when you try and load a program, set breakpoints or=20
-otherwise alter the state of the DSP, while linux and the GPP are running=
-,=20
-you will invariably get errors. There are a few things you can do that ma=
-ke=20
-things go easier depending on your requirements:
+my list of pending OMAP patches for October 2006:
 
-- Reset the jumpers appropriately to turn the board on in DSP only mode.=20
-This is only good if you don't need access to the peripherals, but its ve=
-ry=20
-useful for step by step hardware debugging of major code loops that would=
-=20
-run solely on the DSP
+1. [PATCH] ARM: OMAP: Fix warning no IRQF_TRIGGER set_type 
+function for IRQ 353
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008119.html
 
-- After you have loaded your application from the GPP side through linux=20
-(Maybe a-la RF6?) you can go to the file menu of CCS and do a "load symbo=
-ls=20
-only" which will sync CCS and the code running on the DSP. It may allow y=
-ou=20
-to set breakpoints, though it is not totally reliable.
+2. ARM: OMAP2: fix apollon gpmc initialization
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008132.html
 
-Make sure you have the latest version of DSP/BIOS compiled and built with=
-=20
-your program, it seems to be less buggy than the default versions. Also=20
-evaluation versions of CCS 3.1 appear to be less stable. I hope some of t=
-his=20
-helps.
+3. Git tree updated to 2.6.19-rc2
+(Fix BUG in omap1_mbox_enable_irq)
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008148.html
 
-Thanks,
-Andy
+4. [PATCH] ARM: OMAP: Register tsc2102 on Palm Tungsten E
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008155.html
 
->From: Tung Dang <tungsys@yahoo.com>
->To: linux-omap-open-source@linux.omap.com
->Subject: Problem with DSP TMS320C55xx on OMAP5912
->Date: Tue, 31 Oct 2006 23:50:03 -0800 (PST)
->
->Hi all,
->When i using Code Composer Studio (CCS) from TI to simulate the function=
-s=20
->of my program , the CCS verbal a error in the Messages Window :
->Trouble running Target CPU: Check the linker command file / map file for=
-=20
->any part of the program going into reserved area and correct the problem=
-=20
->when Program Counter is 0x0  NOTE: Reset the target, reload the correcte=
-d=20
->program and continue execution
->Pls help me , what kind of this error ? What is the root problem ?
->
->
->
->
->=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
->Thank you and Best Regards  !
->Dang Hoang Tung
->email : tungsys@yahoo.com
->Student
->University of Technology
->Department of Computer Science
->=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
->
->---------------------------------
->  Check out the New Yahoo! Mail - Fire up a more powerful email and get=20
->things done faster.
->_______________________________________________
->Linux-omap-open-source mailing list
->Linux-omap-open-source@linux.omap.com
->http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+5. [patch 2.6.19-rc3-omap] gpio init section cleanups
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008175.html
 
-_________________________________________________________________
-Find a local pizza place, music store, museum and more=85then map the bes=
-t=20
-route!  http://local.live.com?FORM=3DMGA001
+6. [patch 2.6.19-rc3-omap] gpio object shrinkage, cleanup
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008176.html
+
+7. [PATCH]: Fixing blksz_bits calling inside 
+drivers/mmc/mmc.c and drivers/mmc/omap.c
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008183.html
+
+8. [PATCH] ARM: OMAP: Fix warnings in plat-omap
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008184.html
+
+9. [PATCH] ARM: OMAP: Fix warnings in plat-omap/dsp
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008185.html
+
+10. [PATCH] ARM: OMAP: Fix warning in mach-omap1
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008187.html
+
+11. [PATCH] ARM: OMAP: Fix warning in mach-omap2
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008188.html
+
+12. [PATCH] ARM: OMAP: Fix warning in omap-keypad
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008190.html
+
+13. [PATCH] ARM: OMAP: Fix warnings in ads7846
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008191.html
+
+14. [PATCH] ARM: OMAP: Fix Amstrad Delta omap-keypad usage.
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008194.html
+
+15. [PATCH] ARM: OMAP: Remove struct pt_regs from 
+omap_irda_irq()
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008195.html
+
+16. [PATCH] ARM: OMAP: Remove struct pt_regs from 
+lcdc_irq_handler()
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008196.html
+
+17. [PATCH] ARM: OMAP: Remove struct pt_regs from menelaus_irq()
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008197.html
+
+18. [PATCH] ARM: OMAP1: Fix CONFIG_DEBUG_LL
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008201.html
+
+19. [PATCH] PalmZ71 extra brace fix
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008204.html
+
+20. [PATCH 1/3] Palm Tungsten|T support
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008206.html
+
+21. [PATCH 2/3] Palm Tungsten|T LCD
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008207.html
+
+22. [PATCH 3/3] Palm Tungsten|T defconfig
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008208.html
+
+23. [PATCH] Palm Tungsten|T LEDs
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008219.html
+
+24. [PATCH] ARM: OMAP: fix apollon USB device support
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008220.html
+
+25. [PATCH] omap-hw: Fix build breakage
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008229.html
+
+26. [PATCH] ARM: OMAP: Make AIC23 sound work again
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008232.html
+
+27. [PATCH] [USB/CORE/USB.C] Fixes autosuspend and auto_pm 
+fields missing
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008234.html
+
+A lot of stuff this month, was somewhat tricky to track. So 
+as usual, please correct if anything missing, if anything is 
+wrong, outdated or already applied. Are there any older 
+patches pending?
+
+Cheers
+
+Dirk
