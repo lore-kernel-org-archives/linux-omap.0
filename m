@@ -1,13 +1,15 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: [PATCH] To add OMAP 2430 Support
-Date: Fri, 03 Nov 2006 20:28:44 +0100
-Message-ID: <454B986C.6070301@gmail.com>
-References: <77C7F7CB1230A74A9D19C0C111E6EDBE01C6AEA2@DLEE09.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: Pending October patches
+Date: Fri, 3 Nov 2006 11:52:15 -0800
+Message-ID: <200611031152.16397.david-b@pacbell.net>
+References: <4548C32E.8010800@gmail.com> <20061101212850.GD6833@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <77C7F7CB1230A74A9D19C0C111E6EDBE01C6AEA2@DLEE09.ent.ti.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20061101212850.GD6833@atomide.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,55 +17,22 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Syed Mohammed, Khasim wrote:
-> ethernet_fix_2430.patch
-> -----------------------
-> This patch updates the GPIO interrupt line behavior for SMC91x
-> interrupts on 2430 SDP.
- >
- > --- linux-omap/drivers/net/smc91x.h	2006-11-02 
-00:16:21.000000000 -0600
- > +++ dev-linux-omap-2.6.git/drivers/net/smc91x.h 
-2006-11-02 15:38:13.000000000 -0600
- > @@ -192,14 +192,16 @@ SMC_outw(u16 val, void __iomem 
-*ioaddr,
- >  #include <asm/mach-types.h>
- >  #include <asm/arch/cpu.h>
- >
- > +#ifdef CONFIG_ARCH_OMAP2430
- > +#define SMC_IRQ_FLAGS		SA_TRIGGER_LOW
- > +#else
- > #define	SMC_IRQ_FLAGS (( \
- > 		   machine_is_omap_h2() \
- > 		|| machine_is_omap_h3() \
- > 		|| machine_is_omap_h4() \
- >		|| (machine_is_omap_innovator() && !cpu_is_omap1510()) \
- > 	) ? IRQF_TRIGGER_FALLING : IRQF_TRIGGER_RISING)
- > -
- > -
- > +#endif
- > #elif	defined(CONFIG_SH_SH4202_MICRODEV)
+On Wednesday 01 November 2006 1:28 pm, tony@atomide.com wrote:
 
-Regarding SA_TRIGGER_LOW, include/linux/interrupt.h tells us
+> > 27. [PATCH] [USB/CORE/USB.C] Fixes autosuspend and auto_pm 
+> > fields missing
+> > http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008234.html
+> 
+> Sounds like this is getting fixed in the mainline tree.
 
-/*
-  * Migration helpers. Scheduled for removal in 1/2007
-  * Do not use for new code !
-  */
-...
-#define SA_TRIGGER_LOW		IRQF_TRIGGER_LOW
+No, the root cause of the problem is a borked h2 defconfig; but I'm
+not clear how it got past the build step that's supposed to make sure
+the current config matches all the Kconfig constraints.
 
-Any chance (even if I don't see it at the moment ;) ) to 
-integrate IRQF_TRIGGER_LOW instead into the existing 
-SMC_IRQ_FLAGS using machine_is_omap_2430sdp and avoiding the 
-additional #ifdef?
-
-Cheers
-
-Dirk
+(That is, USB_SUSPEND depends on PM, but only one of them was set in
+the defconfig yet the build was proceeding ...)
