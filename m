@@ -1,9 +1,9 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP: Fix warning in mach-omap1
-Date: Sat, 04 Nov 2006 16:49:15 +0100
-Message-ID: <454CB67B.70706@gmail.com>
+Subject: [PATCH] ARM: OMAP: Fix warnings in ads7846
+Date: Sat, 04 Nov 2006 16:50:17 +0100
+Message-ID: <454CB6B9.4090307@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090707060600010702020700"
+Content-Type: multipart/mixed; boundary="------------090201080502060901040301"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,58 +18,104 @@ To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090707060600010702020700
+--------------090201080502060901040301
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Fix warning
+Fix various warnings
 
-arch/arm/mach-omap1/pm.c: In function 'omap_pm_init':
-arch/arm/mach-omap1/pm.c:765: warning: ignoring return value
-of 'subsys_create_file', declared with attribute
-warn_unused_result
+warning: ignoring return value of 'device_create_file',
+declared with attribute warn_unused_result
 
 Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
 
 
---------------090707060600010702020700
+--------------090201080502060901040301
 Content-Type: text/plain;
- name="mach_omap1_warn_patch.txt"
+ name="ads7846_warning_patch.txt"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="mach_omap1_warn_patch.txt"
+ filename="ads7846_warning_patch.txt"
 
-Index: linux-osk/arch/arm/mach-omap1/pm.c
+Index: linux-osk/drivers/input/touchscreen/ads7846.c
 ===================================================================
---- linux-osk.orig/arch/arm/mach-omap1/pm.c
-+++ linux-osk/arch/arm/mach-omap1/pm.c
-@@ -706,6 +706,8 @@ static struct pm_ops omap_pm_ops ={
+--- linux-osk.orig/drivers/input/touchscreen/ads7846.c
++++ linux-osk/drivers/input/touchscreen/ads7846.c
+@@ -916,36 +916,54 @@ static int __devinit ads7846_probe(struc
+ 	 * use the other ADC lines a bit differently too
+ 	 */
+ 	if (ts->model == 7846) {
+-		device_create_file(&spi->dev, &dev_attr_temp0);
+-		device_create_file(&spi->dev, &dev_attr_temp1);
++		err = device_create_file(&spi->dev, &dev_attr_temp0);
++		if (err)
++			goto err_remove_attr7;
++		err = device_create_file(&spi->dev, &dev_attr_temp1);
++		if (err)
++			goto err_remove_attr6;
+ 	}
+ 	/* in1 == vBAT (7846), or a non-scaled ADC input */
+-	if (ts->model != 7845)
+-		device_create_file(&spi->dev, &dev_attr_in1_input);
++	if (ts->model != 7845) {
++		err = device_create_file(&spi->dev, &dev_attr_in1_input);
++		if (err)
++			goto err_remove_attr5;
++	}
+ 	/* in0 == a non-scaled ADC input */
+-	device_create_file(&spi->dev, &dev_attr_in0_input);
++	err = device_create_file(&spi->dev, &dev_attr_in0_input);
++	if (err)
++		goto err_remove_attr4;
  
- static int __init omap_pm_init(void)
- {
-+	int error;
-+
- 	printk("Power Management for TI OMAP.\n");
+ 	/* non-hwmon device attributes */
+-	device_create_file(&spi->dev, &dev_attr_pen_down);
+-	device_create_file(&spi->dev, &dev_attr_disable);
++	err = device_create_file(&spi->dev, &dev_attr_pen_down);
++	if (err)
++		goto err_remove_attr3;
++	err = device_create_file(&spi->dev, &dev_attr_disable);
++	if (err)
++		goto err_remove_attr2;
  
- 	/*
-@@ -762,7 +764,9 @@ static int __init omap_pm_init(void)
- 	omap_pm_init_proc();
- #endif
+ 	err = input_register_device(input_dev);
+ 	if (err)
+-		goto err_remove_attr;
++		goto err_remove_attr1;
  
--	subsys_create_file(&power_subsys, &sleep_while_idle_attr);
-+	error = subsys_create_file(&power_subsys, &sleep_while_idle_attr);
-+	if(error)
-+		printk(KERN_ERR "subsys_create_file failed: %d\n", error);
+ 	return 0;
  
- 	if (cpu_is_omap16xx()) {
- 		/* configure LOW_PWR pin */
+- err_remove_attr:
++ err_remove_attr1:
+ 	device_remove_file(&spi->dev, &dev_attr_disable);
++ err_remove_attr2:
+ 	device_remove_file(&spi->dev, &dev_attr_pen_down);
++ err_remove_attr3:
++	device_remove_file(&spi->dev, &dev_attr_in0_input);
++ err_remove_attr4:
++	if (ts->model != 7845)
++		device_remove_file(&spi->dev, &dev_attr_in1_input);
++ err_remove_attr5:
+ 	if (ts->model == 7846) {
+ 		device_remove_file(&spi->dev, &dev_attr_temp1);
++ err_remove_attr6:
+ 		device_remove_file(&spi->dev, &dev_attr_temp0);
+ 	}
+-	if (ts->model != 7845)
+-		device_remove_file(&spi->dev, &dev_attr_in1_input);
+-	device_remove_file(&spi->dev, &dev_attr_in0_input);
+-
++ err_remove_attr7:
+ 	free_irq(spi->irq, ts);
+  err_cleanup_filter:
+ 	if (ts->filter_cleanup)
 
 
---------------090707060600010702020700
+--------------090201080502060901040301
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------090707060600010702020700--
+--------------090201080502060901040301--
