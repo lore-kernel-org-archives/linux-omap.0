@@ -1,10 +1,14 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP: Fix warnings in ads7846
-Date: Sat, 04 Nov 2006 16:50:17 +0100
-Message-ID: <454CB6B9.4090307@gmail.com>
+Subject: I2C zero length transfers and SMBUS_QUICK,
+	was: Pending October patches
+Date: Sun, 05 Nov 2006 11:32:39 +0100
+Message-ID: <454DBDC7.70706@gmail.com>
+References: <20061103105004.70334.qmail@web37904.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090201080502060901040301"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20061103105004.70334.qmail@web37904.mail.mud.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,105 +21,35 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090201080502060901040301
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+ >Komal Shah wrote:
+ >> --- Dirk Behme <dirk.behme@googlemail.com> wrote:
+ >>>tony@atomide.com wrote:
+>>>>26. [PATCH] ARM: OMAP: Make AIC23 sound work again
+>>
+>>>http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008232.html
+>>>
+>>>Hmmm, I think there were some comments on this hack on LKML when we
+>>>merged the driver?
+>>
+>>Komal, what do you think here?
+>>
+>>Anybody aware of someone working on a better solution? Any 
+>>link to the LKML discussion about this?
+>>
+> Few links:
+...
+> http://linux.omap.com/pipermail/davinci-linux-open-source/2006-October/001332.html
 
-Fix various warnings
+Sounds to me a clean fix (new I2C stack?) will need some 
+decades, if it comes at all. So, how to go one here?
 
-warning: ignoring return value of 'device_create_file',
-declared with attribute warn_unused_result
+Our hack to make things work on OMAP will not be accepted 
+upstream. But staying with broken OMAP features only because 
+(available) hack isn't acceptable in mainline doesn't sound 
+like an option as well.
 
-Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
+I personally vote for working OMAP ;)
 
+Cheers
 
---------------090201080502060901040301
-Content-Type: text/plain;
- name="ads7846_warning_patch.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ads7846_warning_patch.txt"
-
-Index: linux-osk/drivers/input/touchscreen/ads7846.c
-===================================================================
---- linux-osk.orig/drivers/input/touchscreen/ads7846.c
-+++ linux-osk/drivers/input/touchscreen/ads7846.c
-@@ -916,36 +916,54 @@ static int __devinit ads7846_probe(struc
- 	 * use the other ADC lines a bit differently too
- 	 */
- 	if (ts->model == 7846) {
--		device_create_file(&spi->dev, &dev_attr_temp0);
--		device_create_file(&spi->dev, &dev_attr_temp1);
-+		err = device_create_file(&spi->dev, &dev_attr_temp0);
-+		if (err)
-+			goto err_remove_attr7;
-+		err = device_create_file(&spi->dev, &dev_attr_temp1);
-+		if (err)
-+			goto err_remove_attr6;
- 	}
- 	/* in1 == vBAT (7846), or a non-scaled ADC input */
--	if (ts->model != 7845)
--		device_create_file(&spi->dev, &dev_attr_in1_input);
-+	if (ts->model != 7845) {
-+		err = device_create_file(&spi->dev, &dev_attr_in1_input);
-+		if (err)
-+			goto err_remove_attr5;
-+	}
- 	/* in0 == a non-scaled ADC input */
--	device_create_file(&spi->dev, &dev_attr_in0_input);
-+	err = device_create_file(&spi->dev, &dev_attr_in0_input);
-+	if (err)
-+		goto err_remove_attr4;
- 
- 	/* non-hwmon device attributes */
--	device_create_file(&spi->dev, &dev_attr_pen_down);
--	device_create_file(&spi->dev, &dev_attr_disable);
-+	err = device_create_file(&spi->dev, &dev_attr_pen_down);
-+	if (err)
-+		goto err_remove_attr3;
-+	err = device_create_file(&spi->dev, &dev_attr_disable);
-+	if (err)
-+		goto err_remove_attr2;
- 
- 	err = input_register_device(input_dev);
- 	if (err)
--		goto err_remove_attr;
-+		goto err_remove_attr1;
- 
- 	return 0;
- 
-- err_remove_attr:
-+ err_remove_attr1:
- 	device_remove_file(&spi->dev, &dev_attr_disable);
-+ err_remove_attr2:
- 	device_remove_file(&spi->dev, &dev_attr_pen_down);
-+ err_remove_attr3:
-+	device_remove_file(&spi->dev, &dev_attr_in0_input);
-+ err_remove_attr4:
-+	if (ts->model != 7845)
-+		device_remove_file(&spi->dev, &dev_attr_in1_input);
-+ err_remove_attr5:
- 	if (ts->model == 7846) {
- 		device_remove_file(&spi->dev, &dev_attr_temp1);
-+ err_remove_attr6:
- 		device_remove_file(&spi->dev, &dev_attr_temp0);
- 	}
--	if (ts->model != 7845)
--		device_remove_file(&spi->dev, &dev_attr_in1_input);
--	device_remove_file(&spi->dev, &dev_attr_in0_input);
--
-+ err_remove_attr7:
- 	free_irq(spi->irq, ts);
-  err_cleanup_filter:
- 	if (ts->filter_cleanup)
-
-
---------------090201080502060901040301
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---------------090201080502060901040301--
+Dirk
