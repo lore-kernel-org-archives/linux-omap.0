@@ -1,11 +1,14 @@
-From: Felipe Balbi <ext-felipe.lima@nokia.com>
-Subject: [ERROR]: -ENODEV Error!
-Date: Mon, 06 Nov 2006 14:52:56 -0400
-Message-ID: <454F8488.6010806@nokia.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Broken N770, was: I2C zero length transfers and SMBUS_QUICK
+Date: Mon, 06 Nov 2006 19:33:03 +0100
+Message-ID: <454F7FDF.1080101@gmail.com>
+References: <20061105194915.12776.qmail@web37903.mail.mud.yahoo.com>
+	<85d580lv53.fsf@orfeo.duckcorp.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <85d580lv53.fsf@orfeo.duckcorp.org>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,54 +18,43 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux OMAP Mailing List <linux-omap-open-source@linux.omap.com>
+To: "Arnaud Patard (Rtp)" <arnaud.patard@rtp-net.org>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello all,
 
-I'm getting some "No such Device" messages when loading any of the g_* 
-modules.
-I was trying to hack omap_udc.c and I figured out the error is with the 
-first "sanity test", as called in the source-code:
+Seems that this is the month of mail subject change ;)
 
-int usb_gadget_register_driver (struct usb_gadget_driver *driver)
-{
-        int             status = -ENODEV;
-        struct omap_ep  *ep;
-        unsigned long   flags;
+Arnaud Patard (Rtp) wrote:
+> Komal Shah <komal_shah802003@yahoo.com> writes:
+>>Yes, we need working OMAPs and I don't know if it already broke n770
+>>too. ...
+>>
+...
+> the current kernel is broken on the n770. It won't even build.
 
-        /* basic sanity tests */
-        if (!udc)       <---- THIS IS GIVING ME THE ERROR... I COMMENTED 
-THIS AND
-                return -ENODEV;
-        if (!driver 
-                        // FIXME if otg, check:  driver->is_otg
-                        || driver->speed < USB_SPEED_FULL
-                        || !driver->bind
-                        || !driver->unbind
-                        || !driver->setup)    <------ THIS GAVE ME 
-ANOTHER BUG!!! :-P
-                return -EINVAL;
+Thanks for the hint! With patch previously sent
+n770_defconfig should compile again.
 
-        spin_lock_irqsave(&udc->lock, flags);
-        if (udc->driver) {
-                spin_unlock_irqrestore(&udc->lock, flags);
-                return -EBUSY;
-        }
+However, still some warnings in omap-hw.c (unused
+omap_nand_write_byte), retu-user.c, tahvo-user.c,
+tahvo-usb.c (all my new friend "ignoring return value") and
+sti-console.c ("value computed is not used").
 
+> Long explanation :
+> There are some obvious breakages that are not fixed. For instance, look
+> at the omap-hw patch I sent. 
 
-The error:
-# modprobe g_serial
-udc: OMAP UDC driver, version: 4 October 2004 (iso) (dma)
-udc: OMAP UDC rev 6.1, Mini-AB
-gs_module_init: cannot register gadget driver, ret=-19
-FATAL: Error inserting g_serial 
-(/lib/modules/2.6.19-rc4-omap1-gfb280632-dirty/kernel/drivers/usb/gadget/g_serial.ko): 
-No such device
+It is already applied.
 
--- 
-Best Regards,
+> I have some other patches for the build but
+> the kernel is oopsing later in the boot stage when udev plays with the
+> uevents in the spi layer... And there are probably more breakages :(
 
-Felipe Balbi
-ext-felipe.lima@nokia.com
-OSMRC - INdT
+Is there any way to test self compiled kernel on N770
+without breaking flashed SW/image? Anything like download to
+RAM, e.g. used by uboots TFTP download on OSK?
+
+Regards
+
+Dirk
