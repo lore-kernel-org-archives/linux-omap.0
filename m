@@ -1,10 +1,10 @@
-From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: Add MMC_CAP_{MULTIWRITE,BYTEBLOCK} flags in omap.c
-Date: Mon, 06 Nov 2006 15:22:29 -0400
-Message-ID: <454F8B75.5030401@indt.org.br>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: [PATCH] ARM: OMAP: Fix broken N770 build
+Date: Mon, 06 Nov 2006 19:31:19 +0100
+Message-ID: <454F7F77.8000302@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090502090900090609010402"
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: multipart/mixed; boundary="------------070801050702090509010102"
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,66 +12,115 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com, Tony Lindgren <tony@atomide.com>, Juha Yrjola <juha.yrjola@solidboot.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090502090900090609010402
-Content-Type: text/plain; charset=ISO-8859-1
+--------------070801050702090509010102
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Hi Tony and folks,
 
-Following previous comments from Juha and Pierre, this patch add
-MMC_CAP_{MULTIWRITE,BYTEBLOCK} flags in omap.c
+Make build of N770 work again.
 
-BR,
-
-Carlos.
-
--- 
-Carlos Eduardo
-Nokia Institute of Technology - INdT
-Embedded Linux Laboratory - 10LE
-Phone: +55 92 2126-1079
-Mobile: +55 92 8127-1797
-E-mail: carlos.aguiar@indt.org.br
+Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
 
 
---------------090502090900090609010402
+--------------070801050702090509010102
 Content-Type: text/plain;
- name="mmc_omap_caps.diff"
+ name="n770_fixes_patch.txt"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="mmc_omap_caps.diff"
+ filename="n770_fixes_patch.txt"
 
-Add MMC_CAP_{MULTIWRITE,BYTEBLOCK} flags
-
-Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar <at> indt.org.br>
-
-Index: linux-omap-git/drivers/mmc/omap.c
+Index: linux-osk/arch/arm/mach-omap1/board-nokia770.c
 ===================================================================
---- linux-omap-git.orig/drivers/mmc/omap.c	2006-11-06 13:20:29.000000000 -0400
-+++ linux-omap-git/drivers/mmc/omap.c	2006-11-06 13:50:28.000000000 -0400
-@@ -1088,8 +1088,8 @@ static int __init mmc_omap_probe(struct 
- 	mmc->ops = &mmc_omap_ops;
- 	mmc->f_min = 400000;
- 	mmc->f_max = 24000000;
--	mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34 | MMC_CAP_MULTIWRITE
--				| MMC_CAP_BYTEBLOCK;
-+	mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34;
-+	mmc->caps = MMC_CAP_MULTIWRITE | MMC_CAP_BYTEBLOCK;
+--- linux-osk.orig/arch/arm/mach-omap1/board-nokia770.c
++++ linux-osk/arch/arm/mach-omap1/board-nokia770.c
+@@ -76,7 +76,7 @@ static struct omap_kp_platform_data noki
+ 	.rows		= 8,
+ 	.cols		= 8,
+ 	.keymap		= nokia770_keymap,
+-	.keymapsize	= ARRAY_SIZE(nokia770_keymap)
++	.keymapsize	= ARRAY_SIZE(nokia770_keymap),
+ 	.delay		= 4,
+ };
  
- 	if (minfo->wire4)
- 		 mmc->caps |= MMC_CAP_4_BIT_DATA;
+Index: linux-osk/arch/arm/configs/n770_defconfig
+===================================================================
+--- linux-osk.orig/arch/arm/configs/n770_defconfig
++++ linux-osk/arch/arm/configs/n770_defconfig
+@@ -790,8 +790,47 @@ CONFIG_SPI_OMAP_UWIRE=y
+ #
+ # Hardware Monitoring support
+ #
+-# CONFIG_HWMON is not set
++CONFIG_HWMON=y
+ # CONFIG_HWMON_VID is not set
++# CONFIG_SENSORS_ABITUGURU is not set
++# CONFIG_SENSORS_ADM1021 is not set
++# CONFIG_SENSORS_ADM1025 is not set
++# CONFIG_SENSORS_ADM1026 is not set
++# CONFIG_SENSORS_ADM1031 is not set
++# CONFIG_SENSORS_ADM9240 is not set
++# CONFIG_SENSORS_ASB100 is not set
++# CONFIG_SENSORS_ATXP1 is not set
++# CONFIG_SENSORS_DS1621 is not set
++# CONFIG_SENSORS_F71805F is not set
++# CONFIG_SENSORS_FSCHER is not set
++# CONFIG_SENSORS_FSCPOS is not set
++# CONFIG_SENSORS_GL518SM is not set
++# CONFIG_SENSORS_GL520SM is not set
++# CONFIG_SENSORS_IT87 is not set
++# CONFIG_SENSORS_LM63 is not set
++# CONFIG_SENSORS_LM70 is not set
++# CONFIG_SENSORS_LM75 is not set
++# CONFIG_SENSORS_LM77 is not set
++# CONFIG_SENSORS_LM78 is not set
++# CONFIG_SENSORS_LM80 is not set
++# CONFIG_SENSORS_LM83 is not set
++# CONFIG_SENSORS_LM85 is not set
++# CONFIG_SENSORS_LM87 is not set
++# CONFIG_SENSORS_LM90 is not set
++# CONFIG_SENSORS_LM92 is not set
++# CONFIG_SENSORS_MAX1619 is not set
++# CONFIG_SENSORS_PC87360 is not set
++# CONFIG_SENSORS_SMSC47M1 is not set
++# CONFIG_SENSORS_SMSC47M192 is not set
++# CONFIG_SENSORS_SMSC47B397 is not set
++# CONFIG_SENSORS_VT1211 is not set
++# CONFIG_SENSORS_W83781D is not set
++# CONFIG_SENSORS_W83791D is not set
++# CONFIG_SENSORS_W83792D is not set
++# CONFIG_SENSORS_W83L785TS is not set
++# CONFIG_SENSORS_W83627HF is not set
++# CONFIG_SENSORS_W83627EHF is not set
++# CONFIG_HWMON_DEBUG_CHIP is not set
+ 
+ #
+ # Misc devices
+Index: linux-osk/drivers/cbus/tahvo-usb.c
+===================================================================
+--- linux-osk.orig/drivers/cbus/tahvo-usb.c
++++ linux-osk/drivers/cbus/tahvo-usb.c
+@@ -36,7 +36,7 @@
+ #include <linux/usb_ch9.h>
+ #include <linux/usb_gadget.h>
+ #include <linux/usb.h>
+-#include <linux/usb_otg.h>
++#include <linux/usb/otg.h>
+ #include <linux/i2c.h>
+ #include <linux/workqueue.h>
+ #include <linux/kobject.h>
 
---------------090502090900090609010402
+
+--------------070801050702090509010102
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------090502090900090609010402--
+--------------070801050702090509010102--
