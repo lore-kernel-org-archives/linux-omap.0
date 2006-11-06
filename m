@@ -1,14 +1,13 @@
-From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
-Subject: Re: I2C zero length transfers and SMBUS_QUICK,
-	was: Pending October patches
-Date: Mon, 06 Nov 2006 11:36:08 +0100
-Message-ID: <85d580lv53.fsf@orfeo.duckcorp.org>
-References: <20061105194915.12776.qmail@web37903.mail.mud.yahoo.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch 2.6.19-rc4-omap] omap GP timer:  HZ != 100
+Date: Mon, 6 Nov 2006 10:17:27 -0800
+Message-ID: <200611061017.28116.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20061105194915.12776.qmail@web37903.mail.mud.yahoo.com> (Komal
-	Shah's message of "Sun, 5 Nov 2006 11:49:15 -0800 (PST)")
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,55 +17,21 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Komal Shah <komal_shah802003@yahoo.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Teach OMAP2 gp timer that HZ isn't always 100.
 
-Hi,
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 
-Komal Shah <komal_shah802003@yahoo.com> writes:
-
-> --- Dirk Behme <dirk.behme@googlemail.com> wrote:
->
->
->> >>Komal, what do you think here?
->> >>
->> >>Anybody aware of someone working on a better solution? Any 
->> >>link to the LKML discussion about this?
->> >>
->> > Few links:
->> ...
->> >
->>
-> http://linux.omap.com/pipermail/davinci-linux-open-source/2006-October/001332.html
->> 
->> Sounds to me a clean fix (new I2C stack?) will need some 
->> decades, if it comes at all. So, how to go one here?
->> 
->> Our hack to make things work on OMAP will not be accepted 
->> upstream. But staying with broken OMAP features only because 
->> (available) hack isn't acceptable in mainline doesn't sound 
->> like an option as well.
->> 
->> I personally vote for working OMAP ;)
->> 
->
-> Yes, we need working OMAPs and I don't know if it already broke n770
-> too. Let's see what Tony thinks about maintaining this fix in OMAP tree.
->
-hmm... well... while taking care of the n770 is nice, I'm not sure that
-you should take it into account. 
-
-Brief explanation : 
-the current kernel is broken on the n770. It won't even build.
-
-Long explanation :
-There are some obvious breakages that are not fixed. For instance, look
-at the omap-hw patch I sent. I have some other patches for the build but
-the kernel is oopsing later in the boot stage when udev plays with the
-uevents in the spi layer... And there are probably more breakages :(
-
-
-Regards,
-Arnaud
+--- a/arch/arm/mach-omap2/timer-gp.c
++++ b/arch/arm/mach-omap2/timer-gp.c
+@@ -65,7 +65,7 @@ static void __init omap2_gp_timer_init(v
+ 	BUG_ON(gptimer == NULL);
+ 
+ 	omap_dm_timer_set_source(gptimer, OMAP_TIMER_SRC_SYS_CLK);
+-	tick_period = clk_get_rate(omap_dm_timer_get_fclk(gptimer)) / 100;
++	tick_period = clk_get_rate(omap_dm_timer_get_fclk(gptimer)) / HZ;
+ 	tick_period -= 1;
+ 
+ 	setup_irq(omap_dm_timer_get_irq(gptimer), &omap2_gp_timer_irq);
