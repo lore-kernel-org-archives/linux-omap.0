@@ -1,10 +1,14 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP: Fix broken N770 build
-Date: Mon, 06 Nov 2006 19:31:19 +0100
-Message-ID: <454F7F77.8000302@gmail.com>
+From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
+Subject: Re: Broken N770, was: I2C zero length transfers and SMBUS_QUICK
+Date: Mon, 06 Nov 2006 20:49:11 +0100
+Message-ID: <85zmb4iceg.fsf@orfeo.duckcorp.org>
+References: <20061105194915.12776.qmail@web37903.mail.mud.yahoo.com>
+	<85d580lv53.fsf@orfeo.duckcorp.org> <454F7FDF.1080101@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070801050702090509010102"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <454F7FDF.1080101@gmail.com> (Dirk Behme's message of "Mon, 06
+	Nov 2006 19:33:03 +0100")
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,113 +18,78 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070801050702090509010102
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Dirk Behme <dirk.behme@googlemail.com> writes:
+
+> Seems that this is the month of mail subject change ;)
+
+hehe :)
+
+>
+> Arnaud Patard (Rtp) wrote:
+>> Komal Shah <komal_shah802003@yahoo.com> writes:
+>>>Yes, we need working OMAPs and I don't know if it already broke n770
+>>>too. ...
+>>>
+> ...
+>> the current kernel is broken on the n770. It won't even build.
+>
+> Thanks for the hint! With patch previously sent
+> n770_defconfig should compile again.
+
+Sorry, that's wrong. I'm using an up2date git tree with origin
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git/
+and I still need patches.
+
+For instance : 
+- there are still some users of pt_regs (patch sent some time ago)
+- drivers/cbus/tahvo-usb.c is still using usb_otg.h. Patch not sent but
+trivial to write.
 
 
-Make build of N770 work again.
+>
+> However, still some warnings in omap-hw.c (unused
+> omap_nand_write_byte),
 
-Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
+hmm.. yeah. My fault :(
 
+>  retu-user.c, tahvo-user.c,
+> tahvo-usb.c (all my new friend "ignoring return value") and
+> sti-console.c ("value computed is not used").
+>
+>> Long explanation :
+>> There are some obvious breakages that are not fixed. For instance, look
+>> at the omap-hw patch I sent.
+>
+> It is already applied.
+>
+>> I have some other patches for the build but
+>> the kernel is oopsing later in the boot stage when udev plays with the
+>> uevents in the spi layer... And there are probably more breakages :(
+>
+> Is there any way to test self compiled kernel on N770
+> without breaking flashed SW/image? Anything like download to
+> RAM, e.g. used by uboots TFTP download on OSK?
 
---------------070801050702090509010102
-Content-Type: text/plain;
- name="n770_fixes_patch.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="n770_fixes_patch.txt"
+yes, there is. That's what I'm using ^^
 
-Index: linux-osk/arch/arm/mach-omap1/board-nokia770.c
-===================================================================
---- linux-osk.orig/arch/arm/mach-omap1/board-nokia770.c
-+++ linux-osk/arch/arm/mach-omap1/board-nokia770.c
-@@ -76,7 +76,7 @@ static struct omap_kp_platform_data noki
- 	.rows		= 8,
- 	.cols		= 8,
- 	.keymap		= nokia770_keymap,
--	.keymapsize	= ARRAY_SIZE(nokia770_keymap)
-+	.keymapsize	= ARRAY_SIZE(nokia770_keymap),
- 	.delay		= 4,
- };
- 
-Index: linux-osk/arch/arm/configs/n770_defconfig
-===================================================================
---- linux-osk.orig/arch/arm/configs/n770_defconfig
-+++ linux-osk/arch/arm/configs/n770_defconfig
-@@ -790,8 +790,47 @@ CONFIG_SPI_OMAP_UWIRE=y
- #
- # Hardware Monitoring support
- #
--# CONFIG_HWMON is not set
-+CONFIG_HWMON=y
- # CONFIG_HWMON_VID is not set
-+# CONFIG_SENSORS_ABITUGURU is not set
-+# CONFIG_SENSORS_ADM1021 is not set
-+# CONFIG_SENSORS_ADM1025 is not set
-+# CONFIG_SENSORS_ADM1026 is not set
-+# CONFIG_SENSORS_ADM1031 is not set
-+# CONFIG_SENSORS_ADM9240 is not set
-+# CONFIG_SENSORS_ASB100 is not set
-+# CONFIG_SENSORS_ATXP1 is not set
-+# CONFIG_SENSORS_DS1621 is not set
-+# CONFIG_SENSORS_F71805F is not set
-+# CONFIG_SENSORS_FSCHER is not set
-+# CONFIG_SENSORS_FSCPOS is not set
-+# CONFIG_SENSORS_GL518SM is not set
-+# CONFIG_SENSORS_GL520SM is not set
-+# CONFIG_SENSORS_IT87 is not set
-+# CONFIG_SENSORS_LM63 is not set
-+# CONFIG_SENSORS_LM70 is not set
-+# CONFIG_SENSORS_LM75 is not set
-+# CONFIG_SENSORS_LM77 is not set
-+# CONFIG_SENSORS_LM78 is not set
-+# CONFIG_SENSORS_LM80 is not set
-+# CONFIG_SENSORS_LM83 is not set
-+# CONFIG_SENSORS_LM85 is not set
-+# CONFIG_SENSORS_LM87 is not set
-+# CONFIG_SENSORS_LM90 is not set
-+# CONFIG_SENSORS_LM92 is not set
-+# CONFIG_SENSORS_MAX1619 is not set
-+# CONFIG_SENSORS_PC87360 is not set
-+# CONFIG_SENSORS_SMSC47M1 is not set
-+# CONFIG_SENSORS_SMSC47M192 is not set
-+# CONFIG_SENSORS_SMSC47B397 is not set
-+# CONFIG_SENSORS_VT1211 is not set
-+# CONFIG_SENSORS_W83781D is not set
-+# CONFIG_SENSORS_W83791D is not set
-+# CONFIG_SENSORS_W83792D is not set
-+# CONFIG_SENSORS_W83L785TS is not set
-+# CONFIG_SENSORS_W83627HF is not set
-+# CONFIG_SENSORS_W83627EHF is not set
-+# CONFIG_HWMON_DEBUG_CHIP is not set
- 
- #
- # Misc devices
-Index: linux-osk/drivers/cbus/tahvo-usb.c
-===================================================================
---- linux-osk.orig/drivers/cbus/tahvo-usb.c
-+++ linux-osk/drivers/cbus/tahvo-usb.c
-@@ -36,7 +36,7 @@
- #include <linux/usb_ch9.h>
- #include <linux/usb_gadget.h>
- #include <linux/usb.h>
--#include <linux/usb_otg.h>
-+#include <linux/usb/otg.h>
- #include <linux/i2c.h>
- #include <linux/workqueue.h>
- #include <linux/kobject.h>
+./flasher-2.0 -l -b -k <my_kernel>
 
+But if you want to go a little bit further than the first lines of the
+linuxrc file, you have to reintroduce the ioctl MEMSETOOBSEL in
+mtdchar.c because the dsme/bme/cal-tools/libcal and friends from nokia
+are using it. Unfortunately, when they're failing, they reboot your
+device.
+[ Playing with the r&d flags from the flasher won't help as the tools are
+ failing before reading them. ]
 
---------------070801050702090509010102
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>
+> Regards
+>
+> Dirk
 
-
---------------070801050702090509010102--
+Regards,
+Arnaud
