@@ -1,13 +1,11 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.19-rc4-omap] omap GP timer:  HZ != 100
-Date: Mon, 6 Nov 2006 10:17:27 -0800
-Message-ID: <200611061017.28116.david-b@pacbell.net>
+From: Felipe Balbi <ext-felipe.lima@nokia.com>
+Subject: [ERROR]: -ENODEV Error!
+Date: Mon, 06 Nov 2006 14:52:56 -0400
+Message-ID: <454F8488.6010806@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,21 +15,54 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Linux OMAP Mailing List <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Teach OMAP2 gp timer that HZ isn't always 100.
+Hello all,
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+I'm getting some "No such Device" messages when loading any of the g_* 
+modules.
+I was trying to hack omap_udc.c and I figured out the error is with the 
+first "sanity test", as called in the source-code:
 
---- a/arch/arm/mach-omap2/timer-gp.c
-+++ b/arch/arm/mach-omap2/timer-gp.c
-@@ -65,7 +65,7 @@ static void __init omap2_gp_timer_init(v
- 	BUG_ON(gptimer == NULL);
- 
- 	omap_dm_timer_set_source(gptimer, OMAP_TIMER_SRC_SYS_CLK);
--	tick_period = clk_get_rate(omap_dm_timer_get_fclk(gptimer)) / 100;
-+	tick_period = clk_get_rate(omap_dm_timer_get_fclk(gptimer)) / HZ;
- 	tick_period -= 1;
- 
- 	setup_irq(omap_dm_timer_get_irq(gptimer), &omap2_gp_timer_irq);
+int usb_gadget_register_driver (struct usb_gadget_driver *driver)
+{
+        int             status = -ENODEV;
+        struct omap_ep  *ep;
+        unsigned long   flags;
+
+        /* basic sanity tests */
+        if (!udc)       <---- THIS IS GIVING ME THE ERROR... I COMMENTED 
+THIS AND
+                return -ENODEV;
+        if (!driver 
+                        // FIXME if otg, check:  driver->is_otg
+                        || driver->speed < USB_SPEED_FULL
+                        || !driver->bind
+                        || !driver->unbind
+                        || !driver->setup)    <------ THIS GAVE ME 
+ANOTHER BUG!!! :-P
+                return -EINVAL;
+
+        spin_lock_irqsave(&udc->lock, flags);
+        if (udc->driver) {
+                spin_unlock_irqrestore(&udc->lock, flags);
+                return -EBUSY;
+        }
+
+
+The error:
+# modprobe g_serial
+udc: OMAP UDC driver, version: 4 October 2004 (iso) (dma)
+udc: OMAP UDC rev 6.1, Mini-AB
+gs_module_init: cannot register gadget driver, ret=-19
+FATAL: Error inserting g_serial 
+(/lib/modules/2.6.19-rc4-omap1-gfb280632-dirty/kernel/drivers/usb/gadget/g_serial.ko): 
+No such device
+
+-- 
+Best Regards,
+
+Felipe Balbi
+ext-felipe.lima@nokia.com
+OSMRC - INdT
