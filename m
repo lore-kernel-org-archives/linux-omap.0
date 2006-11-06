@@ -1,14 +1,10 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Broken N770, was: I2C zero length transfers and SMBUS_QUICK
-Date: Mon, 06 Nov 2006 19:33:03 +0100
-Message-ID: <454F7FDF.1080101@gmail.com>
-References: <20061105194915.12776.qmail@web37903.mail.mud.yahoo.com>
-	<85d580lv53.fsf@orfeo.duckcorp.org>
+From: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Subject: Add MMC_CAP_{MULTIWRITE,BYTEBLOCK} flags in omap.c
+Date: Mon, 06 Nov 2006 15:22:29 -0400
+Message-ID: <454F8B75.5030401@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <85d580lv53.fsf@orfeo.duckcorp.org>
+Content-Type: multipart/mixed; boundary="------------090502090900090609010402"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,45 +12,66 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Arnaud Patard (Rtp)" <arnaud.patard@rtp-net.org>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com, Tony Lindgren <tony@atomide.com>, Juha Yrjola <juha.yrjola@solidboot.com>
 List-Id: linux-omap@vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------090502090900090609010402
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Seems that this is the month of mail subject change ;)
+Hi Tony and folks,
 
-Arnaud Patard (Rtp) wrote:
-> Komal Shah <komal_shah802003@yahoo.com> writes:
->>Yes, we need working OMAPs and I don't know if it already broke n770
->>too. ...
->>
-...
-> the current kernel is broken on the n770. It won't even build.
+Following previous comments from Juha and Pierre, this patch add
+MMC_CAP_{MULTIWRITE,BYTEBLOCK} flags in omap.c
 
-Thanks for the hint! With patch previously sent
-n770_defconfig should compile again.
+BR,
 
-However, still some warnings in omap-hw.c (unused
-omap_nand_write_byte), retu-user.c, tahvo-user.c,
-tahvo-usb.c (all my new friend "ignoring return value") and
-sti-console.c ("value computed is not used").
+Carlos.
 
-> Long explanation :
-> There are some obvious breakages that are not fixed. For instance, look
-> at the omap-hw patch I sent. 
+-- 
+Carlos Eduardo
+Nokia Institute of Technology - INdT
+Embedded Linux Laboratory - 10LE
+Phone: +55 92 2126-1079
+Mobile: +55 92 8127-1797
+E-mail: carlos.aguiar@indt.org.br
 
-It is already applied.
 
-> I have some other patches for the build but
-> the kernel is oopsing later in the boot stage when udev plays with the
-> uevents in the spi layer... And there are probably more breakages :(
+--------------090502090900090609010402
+Content-Type: text/plain;
+ name="mmc_omap_caps.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="mmc_omap_caps.diff"
 
-Is there any way to test self compiled kernel on N770
-without breaking flashed SW/image? Anything like download to
-RAM, e.g. used by uboots TFTP download on OSK?
+Add MMC_CAP_{MULTIWRITE,BYTEBLOCK} flags
 
-Regards
+Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar <at> indt.org.br>
 
-Dirk
+Index: linux-omap-git/drivers/mmc/omap.c
+===================================================================
+--- linux-omap-git.orig/drivers/mmc/omap.c	2006-11-06 13:20:29.000000000 -0400
++++ linux-omap-git/drivers/mmc/omap.c	2006-11-06 13:50:28.000000000 -0400
+@@ -1088,8 +1088,8 @@ static int __init mmc_omap_probe(struct 
+ 	mmc->ops = &mmc_omap_ops;
+ 	mmc->f_min = 400000;
+ 	mmc->f_max = 24000000;
+-	mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34 | MMC_CAP_MULTIWRITE
+-				| MMC_CAP_BYTEBLOCK;
++	mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34;
++	mmc->caps = MMC_CAP_MULTIWRITE | MMC_CAP_BYTEBLOCK;
+ 
+ 	if (minfo->wire4)
+ 		 mmc->caps |= MMC_CAP_4_BIT_DATA;
+
+--------------090502090900090609010402
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--------------090502090900090609010402--
