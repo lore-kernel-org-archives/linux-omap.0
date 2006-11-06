@@ -1,12 +1,17 @@
-From: "andrzej zaborowski" <balrog@zabor.org>
-Subject: [PATCH, RFC] ARM: OMAP: Convert gpio-switch to platform_driver
-Date: Mon, 6 Nov 2006 02:33:45 +0100
-Message-ID: <fb249edb0611051733x6fe980d4r7384d37f79797645@mail.gmail.com>
-Reply-To: balrogg@gmail.com
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: I2C zero length transfers and SMBUS_QUICK,
+	was: Pending October patches
+Date: Sun, 5 Nov 2006 17:37:10 -0800
+Message-ID: <200611051737.11242.david-b@pacbell.net>
+References: <20061103105004.70334.qmail@web37904.mail.mud.yahoo.com>
+	<454DBDC7.70706@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_50533_5692963.1162776825037"
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <454DBDC7.70706@gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,95 +19,22 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Linux-OMAP <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-------=_Part_50533_5692963.1162776825037
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Sunday 05 November 2006 2:32 am, Dirk Behme wrote:
+>
+> Our hack to make things work on OMAP will not be accepted 
+> upstream. But staying with broken OMAP features only because 
+> (available) hack isn't acceptable in mainline doesn't sound 
+> like an option as well.
+> 
+> I personally vote for working OMAP ;)
 
-[I'm not very sure about this, but shouldn't the driver be a platform
-driver if its parent bus is the platform bus? It's especially annoying
-on resuming from sleep because the driver structure is passed to
-platform_resume_early() where it is casted to struct platform_device
-and .resume_early returns a bogus value. The kernel Oops'es but since
-the LCD is not yet resumed the device looks like dead and it's hard to
-track down.]
+Me too ... the sad part is that this is basicallly a design bug
+in the upstream I2C stack, and over the past couple years there
+have been no evident signs of it ever getting fixed.
 
-Converts the gpio-switch driver to platform_driver to avoid bad cast
-which occurs because the bus type is set to platform bus. Also
-silences the following warnings:
-
-arch/arm/plat-omap/gpio-switch.c:292: warning: ignoring return value
-of 'device_create_file', declared with attribute warn_unused_result
-arch/arm/plat-omap/gpio-switch.c:293: warning: ignoring return value
-of 'device_create_file', declared with attribute warn_unused_result
-arch/arm/plat-omap/gpio-switch.c:294: warning: ignoring return value
-of 'device_create_file', declared with attribute warn_unused_result
-
-Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
-
-------=_Part_50533_5692963.1162776825037
-Content-Type: application/octet-stream; name=omap-gpiosw-platform.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_eu6bh4v8
-Content-Disposition: attachment; filename="omap-gpiosw-platform.patch"
-
-ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL3BsYXQtb21hcC9ncGlvLXN3aXRjaC5jIGIvYXJjaC9hcm0v
-cGxhdC1vbWFwL2dwaW8tc3dpdGNoLmMKaW5kZXggZjJlMDllMi4uN2NmNDdjYyAxMDA2NDQKLS0t
-IGEvYXJjaC9hcm0vcGxhdC1vbWFwL2dwaW8tc3dpdGNoLmMKKysrIGIvYXJjaC9hcm0vcGxhdC1v
-bWFwL2dwaW8tc3dpdGNoLmMKQEAgLTQ5LDcgKzQ5LDcgQEAgc3RydWN0IGdwaW9fc3dpdGNoIHsK
-IAogc3RhdGljIExJU1RfSEVBRChncGlvX3N3aXRjaGVzKTsKIHN0YXRpYyBzdHJ1Y3QgcGxhdGZv
-cm1fZGV2aWNlICpncGlvX3N3X3BsYXRmb3JtX2RldjsKLXN0YXRpYyBzdHJ1Y3QgZGV2aWNlX2Ry
-aXZlciBncGlvX3N3X2RyaXZlcjsKK3N0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZHJpdmVyIGdwaW9f
-c3dfZHJpdmVyOwogCiBzdGF0aWMgY29uc3Qgc3RydWN0IG9tYXBfZ3Bpb19zd2l0Y2ggKmJvYXJk
-X2dwaW9fc3dfdGFibGU7CiBzdGF0aWMgaW50IGJvYXJkX2dwaW9fc3dfY291bnQ7CkBAIC0yNjYs
-NyArMjY2LDcgQEAgc3RhdGljIGludCBfX2luaXQgbmV3X3N3aXRjaChzdHJ1Y3QgZ3BpbwogCXN3
-LT5wZGV2LmlkCT0gLTE7CiAKIAlzdy0+cGRldi5kZXYucGFyZW50ID0gJmdwaW9fc3dfcGxhdGZv
-cm1fZGV2LT5kZXY7Ci0Jc3ctPnBkZXYuZGV2LmRyaXZlciA9ICZncGlvX3N3X2RyaXZlcjsKKwlz
-dy0+cGRldi5kZXYuZHJpdmVyID0gJmdwaW9fc3dfZHJpdmVyLmRyaXZlcjsKIAlzdy0+cGRldi5k
-ZXYucmVsZWFzZSA9IGdwaW9fc3dfcmVsZWFzZTsKIAogCXIgPSBwbGF0Zm9ybV9kZXZpY2VfcmVn
-aXN0ZXIoJnN3LT5wZGV2KTsKQEAgLTI4OSw5ICsyODksMTMgQEAgc3RhdGljIGludCBfX2luaXQg
-bmV3X3N3aXRjaChzdHJ1Y3QgZ3BpbwogCiAJc3ctPnN0YXRlID0gZ3Bpb19zd19nZXRfc3RhdGUo
-c3cpOwogCi0JZGV2aWNlX2NyZWF0ZV9maWxlKCZzdy0+cGRldi5kZXYsICZkZXZfYXR0cl9zdGF0
-ZSk7Ci0JZGV2aWNlX2NyZWF0ZV9maWxlKCZzdy0+cGRldi5kZXYsICZkZXZfYXR0cl90eXBlKTsK
-LQlkZXZpY2VfY3JlYXRlX2ZpbGUoJnN3LT5wZGV2LmRldiwgJmRldl9hdHRyX2RpcmVjdGlvbik7
-CisJciA9IDA7CisJciB8PSBkZXZpY2VfY3JlYXRlX2ZpbGUoJnN3LT5wZGV2LmRldiwgJmRldl9h
-dHRyX3N0YXRlKTsKKwlyIHw9IGRldmljZV9jcmVhdGVfZmlsZSgmc3ctPnBkZXYuZGV2LCAmZGV2
-X2F0dHJfdHlwZSk7CisJciB8PSBkZXZpY2VfY3JlYXRlX2ZpbGUoJnN3LT5wZGV2LmRldiwgJmRl
-dl9hdHRyX2RpcmVjdGlvbik7CisJaWYgKHIpCisJCXByaW50ayhLRVJOX0VSUiAiZ3Bpby1zd2l0
-Y2g6IGF0dHJpYnV0ZSBmaWxlIGNyZWF0aW9uICIKKwkJICAgICAgICJmYWlsZWQgZm9yICVzXG4i
-LCBzdy0+bmFtZSk7CiAKIAlpZiAoIWRpcmVjdGlvbikKIAkJcmV0dXJuIDA7CkBAIC00NjksMTQg
-KzQ3MywxNiBAQCBzdGF0aWMgdm9pZCBfX2luaXQgcmVwb3J0X2luaXRpYWxfc3RhdGUoCiAJfQog
-fQogCi1zdGF0aWMgdm9pZCBncGlvX3N3X3NodXRkb3duKHN0cnVjdCBkZXZpY2UgKmRldikKK3N0
-YXRpYyBpbnQgZ3Bpb19zd19yZW1vdmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqZGV2KQogewor
-CXJldHVybiAwOwogfQogCi1zdGF0aWMgc3RydWN0IGRldmljZV9kcml2ZXIgZ3Bpb19zd19kcml2
-ZXIgPSB7Ci0JLm5hbWUJCT0gImdwaW8tc3dpdGNoIiwKLQkuYnVzCQk9ICZwbGF0Zm9ybV9idXNf
-dHlwZSwKLQkuc2h1dGRvd24JPSBncGlvX3N3X3NodXRkb3duLAorc3RhdGljIHN0cnVjdCBwbGF0
-Zm9ybV9kcml2ZXIgZ3Bpb19zd19kcml2ZXIgPSB7CisJLnJlbW92ZQkJPSBncGlvX3N3X3JlbW92
-ZSwKKwkuZHJpdmVyCQk9IHsKKwkJLm5hbWUJPSAiZ3Bpby1zd2l0Y2giLAorCX0sCiB9OwogCiB2
-b2lkIF9faW5pdCBvbWFwX3JlZ2lzdGVyX2dwaW9fc3dpdGNoZXMoY29uc3Qgc3RydWN0IG9tYXBf
-Z3Bpb19zd2l0Y2ggKnRibCwKQEAgLTQ5NCw3ICs1MDAsNyBAQCBzdGF0aWMgaW50IF9faW5pdCBn
-cGlvX3N3X2luaXQodm9pZCkKIAogCXByaW50ayhLRVJOX0lORk8gIk9NQVAgR1BJTyBzd2l0Y2gg
-aGFuZGxlciBpbml0aWFsaXppbmdcbiIpOwogCi0JciA9IGRyaXZlcl9yZWdpc3RlcigmZ3Bpb19z
-d19kcml2ZXIpOworCXIgPSBwbGF0Zm9ybV9kcml2ZXJfcmVnaXN0ZXIoJmdwaW9fc3dfZHJpdmVy
-KTsKIAlpZiAocikKIAkJcmV0dXJuIHI7CiAKQEAgLTUyMCw3ICs1MjYsNyBAQCBlcnIyOgogCWdw
-aW9fc3dfY2xlYW51cCgpOwogCXBsYXRmb3JtX2RldmljZV91bnJlZ2lzdGVyKGdwaW9fc3dfcGxh
-dGZvcm1fZGV2KTsKIGVycjE6Ci0JZHJpdmVyX3VucmVnaXN0ZXIoJmdwaW9fc3dfZHJpdmVyKTsK
-KwlwbGF0Zm9ybV9kcml2ZXJfdW5yZWdpc3RlcigmZ3Bpb19zd19kcml2ZXIpOwogCXJldHVybiBy
-OwogfQogCkBAIC01MjgsNyArNTM0LDcgQEAgc3RhdGljIHZvaWQgX19leGl0IGdwaW9fc3dfZXhp
-dCh2b2lkKQogewogCWdwaW9fc3dfY2xlYW51cCgpOwogCXBsYXRmb3JtX2RldmljZV91bnJlZ2lz
-dGVyKGdwaW9fc3dfcGxhdGZvcm1fZGV2KTsKLQlkcml2ZXJfdW5yZWdpc3RlcigmZ3Bpb19zd19k
-cml2ZXIpOworCXBsYXRmb3JtX2RyaXZlcl91bnJlZ2lzdGVyKCZncGlvX3N3X2RyaXZlcik7CiB9
-CiAKICNpZm5kZWYgTU9EVUxFCg==
-------=_Part_50533_5692963.1162776825037
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
-------=_Part_50533_5692963.1162776825037--
+- Dave
