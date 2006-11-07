@@ -1,15 +1,11 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [ERROR]: -ENODEV Error!
-Date: Mon, 6 Nov 2006 13:44:39 -0800
-Message-ID: <200611061344.40177.david-b@pacbell.net>
-References: <454F8488.6010806@nokia.com>
+From: batsayan.das@tcs.com
+Subject: Help req on writing JFFS2 filesystem to flash
+Date: Tue, 7 Nov 2006 17:30:44 +0530
+Message-ID: <OFC26FE4B2.FF8BBC4C-ON6525721F.00411E32-6525721F.0041FB77@tcs.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <454F8488.6010806@nokia.com>
-Content-Disposition: inline
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,37 +13,42 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 06 November 2006 10:52 am, Felipe Balbi wrote:
-> int usb_gadget_register_driver (struct usb_gadget_driver *driver)
-> {
->         int             status = -ENODEV;
->         struct omap_ep  *ep;
->         unsigned long   flags;
-> 
->         /* basic sanity tests */
->         if (!udc)       <---- THIS IS GIVING ME THE ERROR... 
+Hi,
 
-Then your board setup is probably wrong, so that probe() didn't get
-called because there was no USB peripheral controller.  Or probe()
-failed for some reason.
+I have built a JFFS2 filesystem for OMAP5912 board. The size of the JFFS2 
+filesystem is 20MB.
 
-This realy _is_ a fatal error...
+When copying the filesystem (by tftp) to SDRAM, it hangs after some time. 
 
->                 return -ENODEV;
->         if (!driver 
->                         // FIXME if otg, check:  driver->is_otg
->                         || driver->speed < USB_SPEED_FULL
->                         || !driver->bind
->                         || !driver->unbind
->                         || !driver->setup)    <------ THIS GAVE ME 
-> ANOTHER BUG!!! :-P
+Whereas, it is able to copy the default JFFS2 filesystem to SDRAM of size 
+15MB.
 
-Also a fatal error.  Gadget drivers **MUST** handle control messages, e.g.
-so they will send device descriptors.
+Is there any specific reason for this? How should I copy the 20MB 
+filesystem to the flash? 
 
-- Dave
+Thanks in advance.
+
+
+
+Regards,
+Batsayan Das
+Tata Consultancy Services
+Mailto: batsayan.das@tcs.com
+Website: http://www.tcs.com
+=====-----=====-----=====
+Notice: The information contained in this e-mail
+message and/or attachments to it may contain 
+confidential or privileged information. If you are 
+not the intended recipient, any dissemination, use, 
+review, distribution, printing or copying of the 
+information contained in this e-mail message 
+and/or attachments to it are strictly prohibited. If 
+you have received this communication in error, 
+please notify us by reply e-mail or telephone and 
+immediately and permanently delete the message 
+and any attachments. Thank you
