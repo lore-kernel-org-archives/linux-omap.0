@@ -1,13 +1,10 @@
-From: rajesh B <trytorajesh@yahoo.com>
-Subject: regarding bootloaer
-Date: Wed, 8 Nov 2006 03:02:04 -0800 (PST)
-Message-ID: <20061108110204.74677.qmail@web34906.mail.mud.yahoo.com>
-References: <7AF192DA69C59243838FF62851F64F550321202C@toebe101.NOE.Nokia.com>
+From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
+Subject: [PATCH] dsp_fbexport: use kzalloc
+Date: Wed, 08 Nov 2006 11:58:24 +0100
+Message-ID: <85odridx2n.fsf@orfeo.duckcorp.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <7AF192DA69C59243838FF62851F64F550321202C@toebe101.NOE.Nokia.com>
+Content-Type: multipart/mixed; boundary="=-=-="
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,21 +12,53 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-Am using rrload bootloader for porting linux in OMAP1510, am structing with some problem in loading in this booloader so any any help me with some other bootloader suppoerting for OMAP1510...
+--=-=-=
 
 
-bye
+The dsp_export function calls omapfb_register_client() right after
+allocating the memory with kmalloc. 
+A commit added to omapfb_register_client() a check on the value of
+plane_idx in the notified block structure. As we're only using kmalloc,
+you may end-up comparing garbage/random values (It even leads to a oops
+on my n770). 
+Using kzalloc() fixes the issue.
+
+Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
+---
 
 
-rajesh.B
+--=-=-=
+Content-Type: text/x-patch
+Content-Disposition: inline; filename=dsp_video_register_client.patch
+
+---
+ arch/arm/plat-omap/dsp/dsp_mem.c |    2 	1 +	1 -	0 !
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-omap-2.6/arch/arm/plat-omap/dsp/dsp_mem.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/dsp/dsp_mem.c	2006-11-07 23:43:12.000000000 +0100
++++ linux-omap-2.6/arch/arm/plat-omap/dsp/dsp_mem.c	2006-11-07 23:43:30.000000000 +0100
+@@ -1495,7 +1495,7 @@ static int dsp_fbexport(dsp_long_t *dspa
+ #endif
  
----------------------------------
-Sponsored Link
+ #ifdef CONFIG_FB_OMAP_LCDC_EXTERNAL
+-	omapfb_nb = kmalloc(sizeof(struct omapfb_notifier_block), GFP_KERNEL);
++	omapfb_nb = kzalloc(sizeof(struct omapfb_notifier_block), GFP_KERNEL);
+ 	if (omapfb_nb == NULL) {
+ 		printk(KERN_ERR
+ 		       "omapdsp: failed to allocate memory for omapfb_nb!\n");
 
-Try Netflix today! With plans starting at only $5.99 a month what are you waiting for?
+--=-=-=
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--=-=-=--
