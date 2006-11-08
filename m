@@ -1,11 +1,13 @@
-From: <Toshihiro.Kobayashi@nokia.com>
-Subject: RE: [PATCH] ARM: OMAP: Fix for mailbox and dsp module
-Date: Wed, 8 Nov 2006 20:02:24 +0900
-Message-ID: <7AF192DA69C59243838FF62851F64F550321230D@toebe101.NOE.Nokia.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: [RFC] [PATCH] ARM: OMAP1: Add clocksource driver for OMAP1
+Date: Wed, 08 Nov 2006 17:44:34 +0100
+Message-ID: <45520972.7060805@gmail.com>
+References: <4550A70B.7020609@gmail.com> <4550CA9E.6090500@mvista.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C70325.5F404275"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+In-Reply-To: <4550CA9E.6090500@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,145 +17,83 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com, hiroshi.doyu@nokia.com
+To: Kevin Hilman <khilman@mvista.com>, OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Kevin Hilman wrote:
+> Dirk Behme wrote: 
+>>Add clocksource driver for OMAP1.
+>>
+>>Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
+>>
+>>What do you think about this? OSK still boots and I can't
+>>see any runtime issues. But maybe others?
+> 
+> Daniel Walker and myself have done both the clocksource and clockevent
+> drivers for the 32k timer and MPU timers on OMAP1.
 
-------_=_NextPart_001_01C70325.5F404275
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Ah, thanks for the hint! I overlooked [1].
 
-Forgot to attach the patch. ;(
+> The clocksource driver has been submitted to RMK's patchsystem (but not
+> yet integrated, RMK is waiting some settling in mainline too) 
 
-BR,
-Toshihiro Kobayashi
+http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=3876/1
 
->-----Original Message-----
->From: Kobayashi Toshihiro (Nokia-NRC/Tokyo)=20
->Sent: Wednesday, November 08, 2006 8:01 PM
->To: 'linux-omap-open-source@linux.omap.com'; Doyu Hiroshi=20
->(Nokia-M/Helsinki)
->Subject: [PATCH] ARM: OMAP: Fix for mailbox and dsp module
->
->Fix to build DSP Gateway as a module.
->
->After this fix, modules regarding mailbox will be built as follows.
->
->arch/arm/mach-omap[12]/mailbox.o -> mailbox_mach.ko
->arch/arm/plat-omap/mailbox.o ->mailbox.ko
->
->BR,
->Toshihiro Kobayashi
+- For clocksource_mpu.mult and clocksource_register stuff we 
+should (later?) have a seperate function 
+omap_init_clocksource() to be able to call it by something like
 
-------_=_NextPart_001_01C70325.5F404275
-Content-Type: application/octet-stream;
-	name="patch-mailbox-module"
-Content-Transfer-Encoding: base64
-Content-Description: patch-mailbox-module
-Content-Disposition: attachment;
-	filename="patch-mailbox-module"
+http://lists.arm.linux.org.uk/pipermail/linux-arm-kernel/2006-October/036700.html
 
-ZGlmZiAtdXJOIGxpbnV4LW9tYXAvYXJjaC9hcm0vbWFjaC1vbWFwMS9NYWtlZmlsZSBsaW51eC1v
-bWFwLW5ldy9hcmNoL2FybS9tYWNoLW9tYXAxL01ha2VmaWxlCi0tLSBsaW51eC1vbWFwL2FyY2gv
-YXJtL21hY2gtb21hcDEvTWFrZWZpbGUJMjAwNi0xMS0wNiAyMzo1Mzo0NiArMDk6MDAKKysrIGxp
-bnV4LW9tYXAtbmV3L2FyY2gvYXJtL21hY2gtb21hcDEvTWFrZWZpbGUJMjAwNi0xMS0wOCAxOTo0
-MjoxMCArMDk6MDAKQEAgLTExLDcgKzExLDggQEAKIG9iai0kKENPTkZJR19QTSkgKz0gcG0ubyBz
-bGVlcC5vCiAKICMgRFNQCi1vYmotJChDT05GSUdfT01BUF9EU1ApICs9IG1haWxib3gubworb2Jq
-LSQoQ09ORklHX09NQVBfRFNQKQkrPSBtYWlsYm94X21hY2gubworbWFpbGJveF9tYWNoLW9ianMJ
-Oj0gbWFpbGJveC5vCiAKIGxlZC15IDo9IGxlZHMubwogCmRpZmYgLXVyTiBsaW51eC1vbWFwL2Fy
-Y2gvYXJtL21hY2gtb21hcDEvZGV2aWNlcy5jIGxpbnV4LW9tYXAtbmV3L2FyY2gvYXJtL21hY2gt
-b21hcDEvZGV2aWNlcy5jCi0tLSBsaW51eC1vbWFwL2FyY2gvYXJtL21hY2gtb21hcDEvZGV2aWNl
-cy5jCTIwMDYtMTEtMDYgMjM6NTM6NDYgKzA5OjAwCisrKyBsaW51eC1vbWFwLW5ldy9hcmNoL2Fy
-bS9tYWNoLW9tYXAxL2RldmljZXMuYwkyMDA2LTExLTA4IDE5OjU5OjQ2ICswOTowMApAQCAtNjEs
-NyArNjEsNyBAQAogc3RhdGljIGlubGluZSB2b2lkIG9tYXBfaW5pdF9ydGModm9pZCkge30KICNl
-bmRpZgogCi0jaWYgZGVmaW5lZChDT05GSUdfT01BUF9EU1ApCisjaWYgZGVmaW5lZChDT05GSUdf
-T01BUF9EU1ApIHx8IGRlZmluZWQoQ09ORklHX09NQVBfRFNQX01PRFVMRSkKIAogI2lmIGRlZmlu
-ZWQoQ09ORklHX0FSQ0hfT01BUDE1WFgpCiAjICBkZWZpbmUgT01BUDFfTUJPWF9TSVpFCTB4MjMK
-ZGlmZiAtdXJOIGxpbnV4LW9tYXAvYXJjaC9hcm0vbWFjaC1vbWFwMS9tYWlsYm94LmMgbGludXgt
-b21hcC1uZXcvYXJjaC9hcm0vbWFjaC1vbWFwMS9tYWlsYm94LmMKLS0tIGxpbnV4LW9tYXAvYXJj
-aC9hcm0vbWFjaC1vbWFwMS9tYWlsYm94LmMJMjAwNi0xMS0wOCAyMDowOToyMyArMDk6MDAKKysr
-IGxpbnV4LW9tYXAtbmV3L2FyY2gvYXJtL21hY2gtb21hcDEvbWFpbGJveC5jCTIwMDYtMTEtMDgg
-MjA6MDk6MTcgKzA5OjAwCkBAIC0xNDEsNiArMTQxLDcgQEAKIAkub3BzICA9ICZvbWFwMV9tYm94
-X29wcywKIAkucHJpdiA9ICZvbWFwMV9tYm94X2RzcF9wcml2LAogfTsKK0VYUE9SVF9TWU1CT0wo
-bWJveF9kc3BfaW5mbyk7CiAKIHN0YXRpYyBpbnQgX19pbml0IG9tYXAxX21ib3hfcHJvYmUoc3Ry
-dWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIHsKZGlmZiAtdXJOIGxpbnV4LW9tYXAvYXJjaC9h
-cm0vbWFjaC1vbWFwMi9NYWtlZmlsZSBsaW51eC1vbWFwLW5ldy9hcmNoL2FybS9tYWNoLW9tYXAy
-L01ha2VmaWxlCi0tLSBsaW51eC1vbWFwL2FyY2gvYXJtL21hY2gtb21hcDIvTWFrZWZpbGUJMjAw
-Ni0xMS0wNiAyMzo1Mzo0NiArMDk6MDAKKysrIGxpbnV4LW9tYXAtbmV3L2FyY2gvYXJtL21hY2gt
-b21hcDIvTWFrZWZpbGUJMjAwNi0xMS0wOCAxOTo0MjoxMCArMDk6MDAKQEAgLTEyLDcgKzEyLDgg
-QEAKIG9iai0kKENPTkZJR19QTSkgKz0gcG0ubyBwbS1kb21haW4ubyBzbGVlcC5vCiAKICMgRFNQ
-Ci1vYmotJChDT05GSUdfT01BUF9EU1ApICs9IG1haWxib3gubworb2JqLSQoQ09ORklHX09NQVBf
-RFNQKQkrPSBtYWlsYm94X21hY2gubworbWFpbGJveF9tYWNoLW9ianMJOj0gbWFpbGJveC5vCiAK
-ICMgU3BlY2lmaWMgYm9hcmQgc3VwcG9ydAogb2JqLSQoQ09ORklHX01BQ0hfT01BUF9HRU5FUklD
-KQkJKz0gYm9hcmQtZ2VuZXJpYy5vCmRpZmYgLXVyTiBsaW51eC1vbWFwL2FyY2gvYXJtL21hY2gt
-b21hcDIvZGV2aWNlcy5jIGxpbnV4LW9tYXAtbmV3L2FyY2gvYXJtL21hY2gtb21hcDIvZGV2aWNl
-cy5jCi0tLSBsaW51eC1vbWFwL2FyY2gvYXJtL21hY2gtb21hcDIvZGV2aWNlcy5jCTIwMDYtMTEt
-MDYgMjM6NTM6NDYgKzA5OjAwCisrKyBsaW51eC1vbWFwLW5ldy9hcmNoL2FybS9tYWNoLW9tYXAy
-L2RldmljZXMuYwkyMDA2LTExLTA4IDIwOjAwOjA0ICswOTowMApAQCAtNjYsNyArNjYsNyBAQAog
-CiAjZW5kaWYKIAotI2lmIGRlZmluZWQoQ09ORklHX09NQVBfRFNQKQorI2lmIGRlZmluZWQoQ09O
-RklHX09NQVBfRFNQKSB8fCBkZWZpbmVkKENPTkZJR19PTUFQX0RTUF9NT0RVTEUpCiAjZGVmaW5l
-IE9NQVAyX01CT1hfQkFTRQkJSU9fQUREUkVTUyhPTUFQMjRYWF9NQUlMQk9YX0JBU0UpCiAKIHN0
-YXRpYyBzdHJ1Y3QgcmVzb3VyY2UgbWJveF9yZXNvdXJjZXNbXSA9IHsKZGlmZiAtdXJOIGxpbnV4
-LW9tYXAvYXJjaC9hcm0vbWFjaC1vbWFwMi9tYWlsYm94LmMgbGludXgtb21hcC1uZXcvYXJjaC9h
-cm0vbWFjaC1vbWFwMi9tYWlsYm94LmMKLS0tIGxpbnV4LW9tYXAvYXJjaC9hcm0vbWFjaC1vbWFw
-Mi9tYWlsYm94LmMJMjAwNi0xMS0wNiAyMzo1Mzo0NiArMDk6MDAKKysrIGxpbnV4LW9tYXAtbmV3
-L2FyY2gvYXJtL21hY2gtb21hcDIvbWFpbGJveC5jCTIwMDYtMTEtMDggMTk6NDI6MTAgKzA5OjAw
-CkBAIC0yMDksMTEgKzIwOSwxMiBAQAogCS5uZXdtc2dfYml0ID0gTUFJTEJPWF9JUlFfTkVXTVNH
-KDEpLAogfTsKIAotc3RhdGljIHN0cnVjdCBvbWFwX21ib3ggbWJveF9kc3BfaW5mbyA9IHsKK3N0
-cnVjdCBvbWFwX21ib3ggbWJveF9kc3BfaW5mbyA9IHsKIAkubmFtZSA9ICJkc3AiLAogCS5vcHMg
-PSAmb21hcDJfbWJveF9vcHMsCiAJLnByaXYgPSAmb21hcDJfbWJveF9kc3BfcHJpdiwKIH07CitF
-WFBPUlRfU1lNQk9MKG1ib3hfZHNwX2luZm8pOwogCiAvKiBJVkEgKi8KIHN0YXRpYyBzdHJ1Y3Qg
-b21hcF9tYm94Ml9wcml2IG9tYXAyX21ib3hfaXZhX3ByaXYgPSB7CmRpZmYgLXVyTiBsaW51eC1v
-bWFwL2FyY2gvYXJtL3BsYXQtb21hcC9kc3AvZHNwX2NvbW1vbi5jIGxpbnV4LW9tYXAtbmV3L2Fy
-Y2gvYXJtL3BsYXQtb21hcC9kc3AvZHNwX2NvbW1vbi5jCi0tLSBsaW51eC1vbWFwL2FyY2gvYXJt
-L3BsYXQtb21hcC9kc3AvZHNwX2NvbW1vbi5jCTIwMDYtMTEtMDYgMjM6NTM6NDYgKzA5OjAwCisr
-KyBsaW51eC1vbWFwLW5ldy9hcmNoL2FybS9wbGF0LW9tYXAvZHNwL2RzcF9jb21tb24uYwkyMDA2
-LTExLTA4IDE5OjQyOjEwICswOTowMApAQCAtNTg3LDYgKzU4Nyw3IEBACiBFWFBPUlRfU1lNQk9M
-KGRzcF9mY2tfaGFuZGxlKTsKIEVYUE9SVF9TWU1CT0woZHNwX2lja19oYW5kbGUpOwogI2VuZGlm
-CitFWFBPUlRfU1lNQk9MKG9tYXBfZHNwKTsKIEVYUE9SVF9TWU1CT0woZHNwbWVtX2Jhc2UpOwog
-RVhQT1JUX1NZTUJPTChkc3BtZW1fc2l6ZSk7CiBFWFBPUlRfU1lNQk9MKGRhcmFtX2Jhc2UpOwpk
-aWZmIC11ck4gbGludXgtb21hcC9hcmNoL2FybS9wbGF0LW9tYXAvZHNwL2RzcF9jb3JlLmMgbGlu
-dXgtb21hcC1uZXcvYXJjaC9hcm0vcGxhdC1vbWFwL2RzcC9kc3BfY29yZS5jCi0tLSBsaW51eC1v
-bWFwL2FyY2gvYXJtL3BsYXQtb21hcC9kc3AvZHNwX2NvcmUuYwkyMDA2LTExLTA2IDIzOjUzOjQ2
-ICswOTowMAorKysgbGludXgtb21hcC1uZXcvYXJjaC9hcm0vcGxhdC1vbWFwL2RzcC9kc3BfY29y
-ZS5jCTIwMDYtMTEtMDggMTk6NDI6MTAgKzA5OjAwCkBAIC00MDYsNyArNDA2LDcgQEAKIHN0YXRp
-YyBpbnQgX19pbml0IGRzcF9tYm94X2luaXQodm9pZCkKIHsKIAlvbWFwX2RzcC0+bWJveCA9IG9t
-YXBfbWJveF9nZXQoImRzcCIpOwotCWlmIChJU19FUlIob21hcF9kc3AtPm1ib3gpKSB7CisJaWYg
-KG9tYXBfZHNwLT5tYm94ID09IE5VTEwpIHsKIAkJcHJpbnRrKEtFUk5fRVJSICJmYWlsZWQgdG8g
-Z2V0IG1haWxib3ggaGFuZGxlciBmb3IgRFNQLlxuIik7CiAJCXJldHVybiAtRU5PREVWOwogCX0K
-QEAgLTY3Niw2ICs2NzYsMTAgQEAKIHsKIAlwbGF0Zm9ybV9kcml2ZXJfdW5yZWdpc3RlcigmZHNw
-X2RyaXZlcik7CiB9CisKKy8qIG1vZHVsZSBkZXBlbmRlbmN5OiBuZWVkIG1haWxib3ggbW9kdWxl
-IHRoYXQgaGF2ZSBtYm94X2RzcF9pbmZvICovCitleHRlcm4gc3RydWN0IG9tYXBfbWJveCBtYm94
-X2RzcF9pbmZvOworc3RydWN0IG9tYXBfbWJveCAqbWJveF9kZXAgPSAmbWJveF9kc3BfaW5mbzsK
-IAogbW9kdWxlX2luaXQob21hcF9kc3BfbW9kX2luaXQpOwogbW9kdWxlX2V4aXQob21hcF9kc3Bf
-bW9kX2V4aXQpOwpkaWZmIC11ck4gbGludXgtb21hcC9hcmNoL2FybS9wbGF0LW9tYXAvZHNwL2Rz
-cF9tZW0uYyBsaW51eC1vbWFwLW5ldy9hcmNoL2FybS9wbGF0LW9tYXAvZHNwL2RzcF9tZW0uYwot
-LS0gbGludXgtb21hcC9hcmNoL2FybS9wbGF0LW9tYXAvZHNwL2RzcF9tZW0uYwkyMDA2LTExLTA2
-IDIzOjUzOjQ2ICswOTowMAorKysgbGludXgtb21hcC1uZXcvYXJjaC9hcm0vcGxhdC1vbWFwL2Rz
-cC9kc3BfbWVtLmMJMjAwNi0xMS0wOCAxOTo0MjoxMCArMDk6MDAKQEAgLTE2NDcsNiArMTY0Nyw4
-IEBACiAJIERTUF9NTVVfSVJRX1RMQk1JU1MpCiAjZW5kaWYKIAorc3RhdGljIGludCBpc19tbXVf
-aW5pdDsKKwogc3RhdGljIHZvaWQgZHNwX21tdV9pbml0KHZvaWQpCiB7CiAJc3RydWN0IHRsYl9s
-b2NrIHRsYl9sb2NrOwpAQCAtMTY4MiwxMyArMTY4NCwxNyBAQAogCW9tYXBfZHNwX3JlbGVhc2Vf
-bWVtKCk7CiAJY2xrX2Rpc2FibGUoZHNwX2NrX2hhbmRsZSk7CiAjZW5kaWYKKworCWlzX21tdV9p
-bml0ID0gMTsKIH0KIAogc3RhdGljIHZvaWQgZHNwX21tdV9zaHV0ZG93bih2b2lkKQogewotCWV4
-bWFwX2ZsdXNoKCk7Ci0JZXhtYXBfY2xlYXJfcHJlc2VydmVkX2VudHJpZXMoKTsKLQlkc3BfbW11
-X2Rpc2FibGUoKTsKKwlpZiAoaXNfbW11X2luaXQpIHsKKwkJZXhtYXBfZmx1c2goKTsKKwkJZXht
-YXBfY2xlYXJfcHJlc2VydmVkX2VudHJpZXMoKTsKKwkJZHNwX21tdV9kaXNhYmxlKCk7CisJfQog
-fQogCiAjaWZkZWYgQ09ORklHX0FSQ0hfT01BUDEKZGlmZiAtdXJOIGxpbnV4LW9tYXAvYXJjaC9h
-cm0vcGxhdC1vbWFwL21haWxib3guYyBsaW51eC1vbWFwLW5ldy9hcmNoL2FybS9wbGF0LW9tYXAv
-bWFpbGJveC5jCi0tLSBsaW51eC1vbWFwL2FyY2gvYXJtL3BsYXQtb21hcC9tYWlsYm94LmMJMjAw
-Ni0xMS0wOCAyMDowOToyMyArMDk6MDAKKysrIGxpbnV4LW9tYXAtbmV3L2FyY2gvYXJtL3BsYXQt
-b21hcC9tYWlsYm94LmMJMjAwNi0xMS0wOCAyMDowOToxNyArMDk6MDAKQEAgLTM0NSwzICszNDUs
-NSBAQAogCiBzdWJzeXNfaW5pdGNhbGwob21hcF9tYm94X2NsYXNzX2luaXQpOwogbW9kdWxlX2V4
-aXQob21hcF9tYm94X2NsYXNzX2V4aXQpOworCitNT0RVTEVfTElDRU5TRSgiR1BMIik7Cg==
+- While working on same topic I wonder if we still need both 
+HW timers in timer.c
 
-------_=_NextPart_001_01C70325.5F404275
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+setup_irq(INT_TIMER1, &omap_mpu_timer1_irq);
+setup_irq(INT_TIMER2, &omap_mpu_timer_irq);
+omap_mpu_timer_start(0, 0xffffffff);
+omap_mpu_timer_start(1, MPU_TIMER_TICK_PERIOD);
 
+?
 
-------_=_NextPart_001_01C70325.5F404275--
+My test worked with using only one HW timer and removing all 
+other stuff:
+
+setup_irq(INT_TIMER1, &omap_mpu_timer_irq);
+omap_mpu_timer_start(0, MPU_TIMER_TICK_PERIOD);
+
+But maybe I missed anything?
+
+> and the
+> rest has been submitted to Thomas Gliexner and will be included in his
+> next -hrt-dyntick patcheset[2]
+> 
+> The active -hrt-dyntick work is going on in -mm right now.  The attached
+> patchset (against 2.6.19-rc2-mm2) includes the latest OMAP patches which
+> will be part of the next -hrt-dyntick patchset.
+
+I think OMAP in mainline is slightly different from our git 
+tree here. Some parts are missing in mainline. If mainline 
+has merged everything and we pull it back to our OMAP git, 
+do we need a patch to adapt OMAP stuff not in mainline yet 
+to changes for -hrt-dyntick?
+
+See RT preemt: If you try to apply RT preemt 2.6.18-rt7 
+(which is against OMAP in mainline) to OMAP 2.6.18 git, it 
+doesn't apply cleanly. Parts are missing and different 
+between OMAP git and OMAP mainline.
+
+> We've tested these with Ingo's -rt patchset on 16xx/H2 and 1710/H3 and
+> see good performance.  We've also validated the new generic dynamic tick
+> support which is part of the -hrt-dyntick patchset
+
+Full text untouched here because seems that large attachment 
+prevented it from keeping in list archive.
+
+> [2] http://tglx.de/projects/hrtimers/
+
+Cheers,
+
+Dirk
+
+[1] 
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-September/008008.html
