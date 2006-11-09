@@ -1,14 +1,14 @@
 From: "Hingkwan Huen" <hkh@cypress.com>
 Subject: RE: patchs commits
-Date: Thu, 9 Nov 2006 14:08:35 -0800
-Message-ID: <002601c7044b$9d359020$818310ac@mis.cypress.com>
-References: <20061109210818.0B8C11DA2C0@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+Date: Thu, 9 Nov 2006 14:11:14 -0800
+Message-ID: <002701c7044b$fbf4a100$818310ac@mis.cypress.com>
+References: <20061109205157.GF16172@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20061109210818.0B8C11DA2C0@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+In-Reply-To: <20061109205157.GF16172@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,26 +18,43 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: 'David Brownell' <david-b@pacbell.net>, tony@atomide.com
-Cc: Linux-omap-open-source@linux.omap.com
+To: 'Tony Lindgren' <tony@atomide.com>
+Cc: 'OMAP' <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-MMC seems to work on H4 with 2.6.16 kernel with the OMAP2 patch, except if
-you eject and re-install the card, you have to reboot the board. 
-At least that's what I am currently using right now.
+Hello Tony,
 
--Kwan
+Do you know if the USB OHCI and Gadget are functional for the OMAP2420 =
+H4?
+
+Thanks,
+kwan
+
 
 -----Original Message-----
-From: David Brownell [mailto:david-b@pacbell.net] 
-Sent: Thursday, November 09, 2006 1:08 PM
-To: tony@atomide.com; hkh@cypress.com
-Cc: Linux-omap-open-source@linux.omap.com
+From: Tony Lindgren [mailto:tony@atomide.com]=20
+Sent: Thursday, November 09, 2006 12:52 PM
+To: Hingkwan Huen
+Cc: 'Lu=EDs Vit=F3rio Cargnini'; 'OMAP'
 Subject: Re: patchs commits
 
-> 	 MMC is probably currently
-> broken for Menelaus, but there are some patches coming for that.
+* Hingkwan Huen <hkh@cypress.com> [061109 22:44]:
+> Hello Tony,
+>=20
+> How about OMAP2? Is there a way that I can find out the supported list =
+of
+> features for OMAP2, well, OMAP2420 H4 in particular?
 
-On at least one H4 board, it seems to not come up ... :)
+The core stuff should be pretty well in sync for basic stuff such
+as irq, timers, gpio, dma etc. But at least power management is still
+not very functional. There should be some patches coming for PM, but
+it may take a little while longer.
 
-- dave
+For the drivers, serial, NOR, i2c, and smc91x should work in mainline =
+tree.=20
+Framebuffer should work in linux-omap tree. MMC is probably currently
+broken for Menelaus, but there are some patches coming for that.
+
+Hope that helps,
+
+Tony
