@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.19-rc4-omap 1/2] h4 must have blinky leds!!
-Date: Fri, 10 Nov 2006 01:08:58 +0200
-Message-ID: <20061109230857.GH16172@atomide.com>
-References: <200611031135.35487.david-b@pacbell.net>
+Subject: Re: [PATCH] ARM: OMAP: Fix warning in mach-omap1
+Date: Fri, 10 Nov 2006 01:24:19 +0200
+Message-ID: <20061109232419.GJ16172@atomide.com>
+References: <454CB67B.70706@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <200611031135.35487.david-b@pacbell.net>
+In-Reply-To: <454CB67B.70706@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,24 +17,47 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
+To: Dirk Behme <dirk.behme@googlemail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [061103 22:08]:
-> This adds generic support for the "debug board" LEDs used by most of
-> TI's OMAP reference boards, and board-specific support for the H4.
+* Dirk Behme <dirk.behme@googlemail.com> [061104 17:56]:
+> Fix warning
 > 
-> It's derived from the not-as-generic stuff used by OMAP1 H2/H3/P2.
-> Those should be able to switch easily to this version, and clean up
-> some of the omap1-specific code.
+> arch/arm/mach-omap1/pm.c: In function 'omap_pm_init':
+> arch/arm/mach-omap1/pm.c:765: warning: ignoring return value
+> of 'subsys_create_file', declared with attribute
+> warn_unused_result
 > 
-> In addition to H4 support, one key improvement is supporting not just
-> the "old" ARM debug LED API (with timer and idle LEDs, plus four that
-> can be handy for kernel debugging), but it also supports the "new"
-> generic LED API (most useful for usermode stuff IMO).  Either or both
-> APIs can be enabled.
+> Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
+> 
 
-Great, pushing today.
+> Index: linux-osk/arch/arm/mach-omap1/pm.c
+> ===================================================================
+> --- linux-osk.orig/arch/arm/mach-omap1/pm.c
+> +++ linux-osk/arch/arm/mach-omap1/pm.c
+> @@ -706,6 +706,8 @@ static struct pm_ops omap_pm_ops ={
+>  
+>  static int __init omap_pm_init(void)
+>  {
+> +	int error;
+> +
+>  	printk("Power Management for TI OMAP.\n");
+>  
+>  	/*
+> @@ -762,7 +764,9 @@ static int __init omap_pm_init(void)
+>  	omap_pm_init_proc();
+>  #endif
+>  
+> -	subsys_create_file(&power_subsys, &sleep_while_idle_attr);
+> +	error = subsys_create_file(&power_subsys, &sleep_while_idle_attr);
+> +	if(error)
+> +		printk(KERN_ERR "subsys_create_file failed: %d\n", error);
+>  
+>  	if (cpu_is_omap16xx()) {
+>  		/* configure LOW_PWR pin */
+> 
+
+Pushing today.
 
 Tony
