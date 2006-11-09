@@ -1,13 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] To add OMAP 2430 Support
-Date: Thu, 9 Nov 2006 04:22:10 +0200
-Message-ID: <20061109022209.GC9740@atomide.com>
-References: <77C7F7CB1230A74A9D19C0C111E6EDBE01C6AEA2@DLEE09.ent.ti.com>
+Subject: Re: I2C zero length transfers and SMBUS_QUICK
+Date: Thu, 9 Nov 2006 04:32:13 +0200
+Message-ID: <20061109023212.GE9740@atomide.com>
+References: <20061103105004.70334.qmail@web37904.mail.mud.yahoo.com>
+	<454DBDC7.70706@gmail.com> <200611051737.11242.david-b@pacbell.net>
+	<20061107174039.GG6215@atomide.com>
+	<20061107202432.2B2941DC800@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <77C7F7CB1230A74A9D19C0C111E6EDBE01C6AEA2@DLEE09.ent.ti.com>
+In-Reply-To: <20061107202432.2B2941DC800@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,57 +18,59 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Syed Mohammed, Khasim" <x0khasim@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: David Brownell <david-b@pacbell.net>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Syed Mohammed, Khasim <x0khasim@ti.com> [061103 20:46]:
-> Hi all,
+* David Brownell <david-b@pacbell.net> [061107 22:24]:
+> > > > Our hack to make things work on OMAP will not be accepted 
+> > > > upstream. But staying with broken OMAP features only because 
+> > > > (available) hack isn't acceptable in mainline doesn't sound 
+> > > > like an option as well.
+> > > > 
+> > > > I personally vote for working OMAP ;)
+> > > 
+> > > Me too ... the sad part is that this is basically a design bug
+> > > in the upstream I2C stack, and over the past couple years there
+> > > have been no evident signs of it ever getting fixed.
+
+The thing is that at some point when more and more people will be using
+the mainline kernel with omap, we end up with mysterious problem reports
+like "sound does not work" and then we don't know where the problem is.
+
+So we really should figure out how to have the same version in
+mainline and linux-omap tree.
+
+> > I wonder if we could help somehow by doing "embedded i2c stack"
+> > by modifying your SPI framework to support i2c?
 > 
-> Attached are set of patches to get OMAP 2430 "minimal" support on to the
-> tree. 
+> Well, "clone-and-modify" vs "modify-in-place" ... could be.  I sure
+> did that SPI framework with a strong goal of not repeating most design
+> mistakes made in the the I2C stack!!  And folk tell me I succeeded...
 > 
-> With these patches I was able to boot the kernel on 2430SDP and have
-> verified booting the same on 2420 H4 (just to confirm it doesn't break
-> any existing 2420 functionality).
-
-Cool. Can you please inline your patches next time to allow easier
-commenting on the code?
- 
-> Please do let me know for any issues, I would be glad to correct and
-> re-submit them.
-
-Looks OK in general, just one comment below.
-
-> +#define sync_p_port_write()	\
-> +	({ int dv = 0;	\
-> +		 __asm__ __volatile__ ("mcr p15, 0, %0, c7, c10, 4" : : "r" (dv));	\
-> +	})
-> +
-> /*
->  * OMAP2 has a number of different interrupt controllers, each interrupt
->  * controller is identified as its own "bank". Register definitions are
-> @@ -48,6 +53,7 @@ static struct omap_irq_bank {
-> static void omap_ack_irq(unsigned int irq)
-> {
-> 	__raw_writel(0x1, irq_banks[0].base_reg + INTC_CONTROL);
-> +	sync_p_port_write();
-> }
+> An "embedded i2c" stack could be done easily:  clone-and-modify SPI,
+> removing assumptions like "full duplex", "names start with spi_",
+> and "addressing works like this"; add synchronous SMBUS-ish utilities
+> on top; add drivers; share or stir, mixing to taste.  :)
 > 
-> static void omap_mask_irq(unsigned int irq)
+> 
+> The politics of that would be more awkward than the technical side
+> of things ... as you imply, the flaws in the current I2C stack are
+> most glaringly evident to folk doing work in embedded systems (and
+> not just OMAP).  So "embedded i2c" would be a useful starting meme.
+> 
+> After all, one point is the need for real I2C support ... and a stack
+> designed around an assumption that everything supports SMBUS_QUICK
+> should probably not be called an "i2c" stack!!
+> 
+> I think Jean Delvare has the notion that some people _are_ working on
+> incremental tweaks to fix such issues in the upstream "I2C" stack.
+> Anyone serious about fixing these issues should start some discussion
+> on that I2C list.
 
-I'd leave this out of the patch for now until we know if it's
-still needed. If it's needed, there should probably be arm generic
-function for it. Maybe dwb() or something like that? :)
-
-I think at some point Richard Woodruff said that he had to drain
-write buffer for timer writes because of some inaccuracy. Richard,
-could you please clarify it again? I don't think I've seen these
-issues on 2420 myself, but maybe some timer test code could expose
-it?
-
-Regards,
+Let's hope somebody picks it up at some point after getting tired of
+working around the same issues over and over again :)
 
 Tony
