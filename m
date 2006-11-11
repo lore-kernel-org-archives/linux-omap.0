@@ -1,13 +1,14 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: [PATCH] ARM: OMAP: Fix broken N770 build
-Date: Sat, 11 Nov 2006 07:07:17 +0100
-Message-ID: <45556895.8080008@gmail.com>
-References: <454F7F77.8000302@gmail.com> <20061111000316.GN26185@atomide.com>
+Subject: Re: regarding bootloaer
+Date: Sat, 11 Nov 2006 08:33:02 +0100
+Message-ID: <45557CAE.6000203@gmail.com>
+References: <7AF192DA69C59243838FF62851F64F550321202C@toebe101.NOE.Nokia.com>	<20061108110204.74677.qmail@web34906.mail.mud.yahoo.com>
+	<8028e5750611090704o2b19bf4cvdf00cb13cdb275e2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20061111000316.GN26185@atomide.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <8028e5750611090704o2b19bf4cvdf00cb13cdb275e2@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,33 +16,59 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Romain Goyet <r.goyet@gmail.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren wrote:
-> Also left out the defconfig changes as they
-> don't seem to do anything. Let me know if something is needed
-> on the defconfig.
+Romain Goyet wrote:
+> Allrifght Rajesh, you should first tell us to which kind of plateform
+> you're porting Linux to. Actually, "porting linux to OMAP1510" makes
+> virtually no sense, given that the port is already done and totally
+> functionnal.
 
-In -rc4 CONFIG_HWMON wasn't evaluated to y necessary to 
-build stuff cleanly. Seems that in -rc5 this is fixed. Now, 
-CONFIG_HWMON is default y and n770_defconfig builds fine 
-without the defconfig patch.
+For that matter, seems that 
+drivers/input/keyboard/innovator_ps2.c used on Innovator 
+1510 is broken:
 
-Thanks for updates,
+   CC [M]  drivers/input/keyboard/innovator_ps2.o
+drivers/input/keyboard/innovator_ps2.c: In function 
+'innovator_kbd_init':
+drivers/input/keyboard/innovator_ps2.c:1225: warning: 
+implicit declaration of function 'init_input_dev'
+
+WARNING: "init_input_dev" 
+[drivers/input/keyboard/innovator_ps2.ko] undefined!
+
+Cheers
 
 Dirk
 
-Btw: Last warning I see with n770_defconfig in our code is
-
-arch/arm/plat-omap/sti/sti-console.c: In function 
-'sti_channel_puts':
-arch/arm/plat-omap/sti/sti-console.c:48: warning: value 
-computed is not used
-arch/arm/plat-omap/sti/sti-console.c:57: warning: value 
-computed is not used
-
-Anybody with an idea here?
+> 2006/11/8, rajesh B <trytorajesh@yahoo.com>:
+> 
+>> Hi,
+>> Am using rrload bootloader for porting linux in OMAP1510, am structing 
+>> with some problem in loading in this booloader so any any help me with 
+>> some other bootloader suppoerting for OMAP1510...
+>>
+>>
+>> bye
+>>
+>>
+>> rajesh.B
+>>
+>> ---------------------------------
+>> Sponsored Link
+>>
+>> Try Netflix today! With plans starting at only $5.99 a month what are 
+>> you waiting for?
+>> _______________________________________________
+>> Linux-omap-open-source mailing list
+>> Linux-omap-open-source@linux.omap.com
+>> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>>
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> 
