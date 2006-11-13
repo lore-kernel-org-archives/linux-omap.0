@@ -1,13 +1,12 @@
 From: "Chung-Wei Ruan" <cwruan@gmail.com>
-Subject: Re: problem on tlv320aic23 in osk5912 using dspgateway3.3
-Date: Mon, 13 Nov 2006 22:50:16 +0800
-Message-ID: <34d819150611130650v5066fb33t15174e6ff0fceed2@mail.gmail.com>
-References: <34d819150611110316w68ade769obe58b280fc9c10f7@mail.gmail.com>
+Subject: problem about change recording source as line in of aic23 under
+	2.6.18 with OMAP5912
+Date: Mon, 13 Nov 2006 23:28:00 +0800
+Message-ID: <34d819150611130728j5f55a44cs49cc783f10c19bb@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <34d819150611110316w68ade769obe58b280fc9c10f7@mail.gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -21,93 +20,65 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello
+Hi
 
-I use similar way to implement the audio echo application according to the
-TI's document with SIO and aic23 by dsp gateway. I got the same problem with
-you.
-By my tracing, I found the SIO_reclaim function would block and the program
-would hang there. I know the SIO_reclaim is bolcking function. But I don't
-understand why it blocks there. I traced the RF6 application example which
-is provided by TI, and I think my basic setting (about the SIO and device
-driver) is the same with that except that I don't use the TSK as the RF6 and
-I use the dsp gateway (not dsp/bios link). I use the same program flow as
-you. I have found some documents and it seems that the SIO application must
-be used as TSK (I amd not sure). I tried many methods, but I can't succeed
-to use TSK in the dsp gateway. Have you solved this problem?
-Do anybody know about this issue?
-Can SIO be used in the dsp gateway?
+I port kernel 2.6.18 to the OMAP 5912 and want to used the aic23 audio
+device.
+The default recording source on the aic23 is microphone input. But I wnat to
+use
+the line in as the input. According to the open sound system (OSS), I write
+some
+testing audio code, and can record the sound from MIC input, and play the
+recording
+sound from the headphone output.
+
+I use the code as below to change the recording source to be line in, but it
+can't work.
+
+int mask = 0;
+mask  |=  (1 << SOUND_MIXER_LINE);
+ioctll(mixer_fd, SOUND_MIXER_WRITE_RECSRC, &mask);
+
+The recording source is still the MIC. I tried to trace the
+${KERNEL_SRC}/sound/oss/omap-audio-aic23.c.
+
+    if((_IOC_DIR(cmd) & _IOC_WRITE) {
+                ret = get_user(val, (int *)arg);
+                if (ret)
+                      goto out;
+
+                switch (nr) {
+                    case SOUND_MIXER_VOLUME:
+                        aic23_local.volume = val;
+                        aic23_local.mod_cnt++;
+                        ret = aic23_update(SET_VOLUME, val);
+                        break;
+
+                    case SOUND_MIXER_LINE:
+                        aic23_local.line = val;
+                        aic23_local.mod_cnt++;
+                        ret = aic23_update(SET_LINE, val);
+                        break;
+
+                    case SOUND_MIXER_MIC:
+                        aic23_local.mic = val;
+                        aic23_local.mod_cnt++;
+                        ret = aic23_update(SET_LINE, val);
+                        break;
+
+                    case SOUND_MIXER_RECSRC:
+                        break;
+                    default:
+                        ret = -EINVAL;
+              }
+          }
+
+The case SOUND_MIXER_RECSRC do nothing.
+So, can the aic23 change the recording source as the line in under arm linux
+system?
+Or if there is another method to change the recording source as the line in?
+
 Thank you very much!!
 
 B.R.
 C.W.
-
-
-
-> Hi all:
->      i want to use dspgateway3.3(kernel2.6.12) to develop a
-> application,which sample some data through  tlv320aic23 in osk5912 dsp
-> side, then sent data to arm for process using dspgateway3.3.
-> for test, i sample some mp3 data played in pc,and sent it to tlv320aic23
-to
-> replay in dsp side (using SIO stream to iuuse full buffer data). but no
-> sound output in headphone port!!why??
-
-
-snipped...
-
-
-> static Uns tfad_adctask_rcv_wdsnd(struct dsptask *task, Uns cmd)
-> {
-> int nmadus, i;
-> unsigned short * inbuf;
-> unsigned short * outbuf;
->
->    for (;;)
->    {
->       // if ( SIO_ready(instream) )
->       {
->          /* Reclaim full buffer from the input stream */
->        if ((nmadus = SIO_reclaim(instream, (Ptr *)&inbuf, NULL)) < 0)
->        {
->            dbg(task,"Error reclaiming full buffer from the input
-> stream\n");
->      }
->        if (SIO_reclaim(outstream, (Ptr *)&outbuf, NULL) < 0)
->        {
->           dbg(task,"Error reclaiming empty buffer from the output
-> stream");
->           }
->
->           /* Do the data move. */
->          for (i = 0; i < (nmadus / sizeof(short)); i++)
->           {
->             outbuf[i] = inbuf[i];
->           }
->
->     /* Issue full buffer to the output stream */
->           if (SIO_issue(outstream, outbuf, nmadus, NULL) != SYS_OK)
->           {
->             dbg(task,"Error issuing full buffer to the output stream");
->           }
->
->          /* Issue an empty buffer to the input stream */
->          if (SIO_issue(instream, inbuf, SIO_bufsize(instream), NULL) !=
->SYS_OK)
->          {
->         dbg(task,"Error issuing empty buffer to the input stream\n");
->          }
->     }
->    }
->
->    return 0;
->
-> }
->
->
-> when run the task, why no sound heard in the headphone port!?
->
-> Please provide solutions for my queries.
->
->Thanks in advance,
->lam
