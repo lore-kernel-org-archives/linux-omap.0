@@ -1,13 +1,10 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: [PATCH] ARM: OMAP: Add clocksource driver for OMAP
-Date: Mon, 13 Nov 2006 11:04:58 -0800
-Message-ID: <4558C1DA.6050105@mvista.com>
-References: <455755DB.1040308@gmail.com>
+From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
+Subject: DSP support on current git
+Date: Mon, 13 Nov 2006 21:08:15 +0100
+Message-ID: <85bqnbw1n4.fsf@orfeo.duckcorp.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <455755DB.1040308@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,33 +12,29 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Dirk Behme wrote:
-> 
-> Add clocksource driver for OMAP.
-> 
-> This is an update of
-> 
-> http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=3876/1
-> 
-> from Daniel Walker and Kevin Hilman.
-> 
-> Changes:
-> 
-> - Apply cleanly to recent git (pt_regs change)
-> - Move clocksource init to extra function. Can be called later by 
-> clocksource subsystem
-> - Remove warning
-> arch/arm/plat-omap/timer32k.c:216: warning: 'omap_32k_timer_handler' 
-> defined but not used
-> if CONFIG_NO_IDLE_HZ isn't set.
-> - Minor cleanups
-> 
-> Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
+Hi,
 
-Acked-by: Kevin Hilman <khilman@mvista.com>
+In my quest in getting the current -omap kernel working on my n770, I
+found that the DSP was not working. (fwiw, it's working fine with the
+kernel from nokia).
+
+When Nokia's tool tries to download code into the DSP, it fails. I've
+also some error messages in the logs like : 
+
+"kernel: omapdsp: TLB is full."
+"kernel: omapdsp: DSP address 00403ff4 / size 00000004 is not valid!"
+"kernel: omapdsp: address 400000 not found in exmap_tbl."
+
+(see http://lechat.rtp-net.org/misc/omapdsp_log)
+
+So, I'm wondering if someone with an omap1 board has got working the DSP
+on current git tree or not. 
+
+
+Regards,
+Arnaud
