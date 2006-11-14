@@ -1,15 +1,11 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] plat-omap changes for 2430 SDP
-Date: Mon, 13 Nov 2006 18:47:23 -0800
-Message-ID: <200611131847.23456.david-b@pacbell.net>
-References: <77C7F7CB1230A74A9D19C0C111E6EDBE01DFA524@DLEE09.ent.ti.com>
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: [PATCH] To enable NOR flash support on 2430 SDP
+Date: Mon, 13 Nov 2006 23:01:07 -0600
+Message-ID: <77C7F7CB1230A74A9D19C0C111E6EDBE01DFA5BF@DLEE09.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <77C7F7CB1230A74A9D19C0C111E6EDBE01DFA524@DLEE09.ent.ti.com>
-Content-Disposition: inline
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C707A9.E5706600"
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,14 +13,107 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Someone should also add an "musb_hdrc" platform device for
-the high speed OTG controller ... I figure that would basically
-live in mach-omap2/devices.c and be called from omap2430sdp_init().
-(I'm assuming that controller is accessible on the SDP...)
+This is a multi-part message in MIME format.
 
-- Dave
+------_=_NextPart_001_01C707A9.E5706600
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+The attached patch enables Strata NOR flash support for 2430 SDP.
+
+File modified
+-------------
+arch/arm/configs/omap_2430sdp_defconfig: MTD support is enabled to add
+NOR flash support for 2430 SDP.
+
+Regards
+
+Khasim
+
+------_=_NextPart_001_01C707A9.E5706600
+Content-Type: application/octet-stream;
+	name="2430sdp_NOR_defconfig.patch"
+Content-Transfer-Encoding: base64
+Content-Description: 2430sdp_NOR_defconfig.patch
+Content-Disposition: attachment;
+	filename="2430sdp_NOR_defconfig.patch"
+
+VGhpcyBwYXRjaCBlbmFibGVzIFNUUkFUQSBOT1Igc3VwcG9ydCBmb3IgMjQzMCBTRFAuCgpTaWdu
+ZWQtb2ZmLWJ5OiBTeWVkIE1vaGFtbWVkIEtoYXNpbSAgPHgwa2hhc2ltQHRpLmNvbT4KCkZpbGVz
+IENoYW5nZWQ6CiBvbWFwXzI0MzBzZHBfZGVmY29uZmlnIHwgICA5OCArKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0tCiAxIGZpbGVzIGNoYW5nZWQsIDk1IGlu
+c2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0gbGlu
+dXgtb21hcC9hcmNoL2FybS9jb25maWdzL29tYXBfMjQzMHNkcF9kZWZjb25maWcJMjAwNi0xMS0x
+MSAyMTo0Nzo0MS4wMDAwMDAwMDAgLTA2MDAKKysrIG15ZGV2LWxpbnV4LW9tYXAvYXJjaC9hcm0v
+Y29uZmlncy9vbWFwXzI0MzBzZHBfZGVmY29uZmlnCTIwMDYtMTEtMTMgMTk6Mjg6NTYuMDAwMDAw
+MDAwIC0wNjAwCkBAIC0xLDcgKzEsNyBAQAogIwogIyBBdXRvbWF0aWNhbGx5IGdlbmVyYXRlZCBt
+YWtlIGNvbmZpZzogZG9uJ3QgZWRpdAotIyBMaW51eCBrZXJuZWwgdmVyc2lvbjogMi42LjE5LXJj
+NC1vbWFwMQotIyBUaHUgTm92ICAyIDE5OjAzOjM5IDIwMDYKKyMgTGludXgga2VybmVsIHZlcnNp
+b246IDIuNi4xOS1yYzUtb21hcDEKKyMgTW9uIE5vdiAxMyAxOToyODo0NyAyMDA2CiAjCiBDT05G
+SUdfQVJNPXkKICMgQ09ORklHX0dFTkVSSUNfVElNRSBpcyBub3Qgc2V0CkBAIC0zNjcsNyArMzY3
+LDg0IEBAIENPTkZJR19QUkVWRU5UX0ZJUk1XQVJFX0JVSUxEPXkKICMKICMgTWVtb3J5IFRlY2hu
+b2xvZ3kgRGV2aWNlcyAoTVREKQogIwotIyBDT05GSUdfTVREIGlzIG5vdCBzZXQKK0NPTkZJR19N
+VEQ9eQorIyBDT05GSUdfTVREX0RFQlVHIGlzIG5vdCBzZXQKK0NPTkZJR19NVERfQ09OQ0FUPXkK
+K0NPTkZJR19NVERfUEFSVElUSU9OUz15CisjIENPTkZJR19NVERfUkVEQk9PVF9QQVJUUyBpcyBu
+b3Qgc2V0CitDT05GSUdfTVREX0NNRExJTkVfUEFSVFM9eQorIyBDT05GSUdfTVREX0FGU19QQVJU
+UyBpcyBub3Qgc2V0CisKKyMKKyMgVXNlciBNb2R1bGVzIEFuZCBUcmFuc2xhdGlvbiBMYXllcnMK
+KyMKK0NPTkZJR19NVERfQ0hBUj15CitDT05GSUdfTVREX0JMT0NLPXkKKyMgQ09ORklHX0ZUTCBp
+cyBub3Qgc2V0CisjIENPTkZJR19ORlRMIGlzIG5vdCBzZXQKKyMgQ09ORklHX0lORlRMIGlzIG5v
+dCBzZXQKKyMgQ09ORklHX1JGRF9GVEwgaXMgbm90IHNldAorIyBDT05GSUdfU1NGREMgaXMgbm90
+IHNldAorCisjCisjIFJBTS9ST00vRmxhc2ggY2hpcCBkcml2ZXJzCisjCitDT05GSUdfTVREX0NG
+ST15CisjIENPTkZJR19NVERfSkVERUNQUk9CRSBpcyBub3Qgc2V0CitDT05GSUdfTVREX0dFTl9Q
+Uk9CRT15CisjIENPTkZJR19NVERfQ0ZJX0FEVl9PUFRJT05TIGlzIG5vdCBzZXQKK0NPTkZJR19N
+VERfTUFQX0JBTktfV0lEVEhfMT15CitDT05GSUdfTVREX01BUF9CQU5LX1dJRFRIXzI9eQorQ09O
+RklHX01URF9NQVBfQkFOS19XSURUSF80PXkKKyMgQ09ORklHX01URF9NQVBfQkFOS19XSURUSF84
+IGlzIG5vdCBzZXQKKyMgQ09ORklHX01URF9NQVBfQkFOS19XSURUSF8xNiBpcyBub3Qgc2V0Cisj
+IENPTkZJR19NVERfTUFQX0JBTktfV0lEVEhfMzIgaXMgbm90IHNldAorQ09ORklHX01URF9DRklf
+STE9eQorQ09ORklHX01URF9DRklfSTI9eQorIyBDT05GSUdfTVREX0NGSV9JNCBpcyBub3Qgc2V0
+CisjIENPTkZJR19NVERfQ0ZJX0k4IGlzIG5vdCBzZXQKK0NPTkZJR19NVERfQ0ZJX0lOVEVMRVhU
+PXkKKyMgQ09ORklHX01URF9DRklfQU1EU1REIGlzIG5vdCBzZXQKKyMgQ09ORklHX01URF9DRklf
+U1RBQSBpcyBub3Qgc2V0CitDT05GSUdfTVREX0NGSV9VVElMPXkKKyMgQ09ORklHX01URF9SQU0g
+aXMgbm90IHNldAorIyBDT05GSUdfTVREX1JPTSBpcyBub3Qgc2V0CisjIENPTkZJR19NVERfQUJT
+RU5UIGlzIG5vdCBzZXQKKyMgQ09ORklHX01URF9PQlNPTEVURV9DSElQUyBpcyBub3Qgc2V0CisK
+KyMKKyMgTWFwcGluZyBkcml2ZXJzIGZvciBjaGlwIGFjY2VzcworIworIyBDT05GSUdfTVREX0NP
+TVBMRVhfTUFQUElOR1MgaXMgbm90IHNldAorIyBDT05GSUdfTVREX1BIWVNNQVAgaXMgbm90IHNl
+dAorIyBDT05GSUdfTVREX0FSTV9JTlRFR1JBVE9SIGlzIG5vdCBzZXQKK0NPTkZJR19NVERfT01B
+UF9OT1I9eQorIyBDT05GSUdfTVREX1BMQVRSQU0gaXMgbm90IHNldAorCisjCisjIFNlbGYtY29u
+dGFpbmVkIE1URCBkZXZpY2UgZHJpdmVycworIworIyBDT05GSUdfTVREX1NMUkFNIGlzIG5vdCBz
+ZXQKKyMgQ09ORklHX01URF9QSFJBTSBpcyBub3Qgc2V0CisjIENPTkZJR19NVERfTVREUkFNIGlz
+IG5vdCBzZXQKKyMgQ09ORklHX01URF9CTE9DSzJNVEQgaXMgbm90IHNldAorCisjCisjIERpc2st
+T24tQ2hpcCBEZXZpY2UgRHJpdmVycworIworIyBDT05GSUdfTVREX0RPQzIwMDAgaXMgbm90IHNl
+dAorIyBDT05GSUdfTVREX0RPQzIwMDEgaXMgbm90IHNldAorIyBDT05GSUdfTVREX0RPQzIwMDFQ
+TFVTIGlzIG5vdCBzZXQKKworIworIyBOQU5EIEZsYXNoIERldmljZSBEcml2ZXJzCisjCisjIENP
+TkZJR19NVERfTkFORCBpcyBub3Qgc2V0CisKKyMKKyMgT25lTkFORCBGbGFzaCBEZXZpY2UgRHJp
+dmVycworIworIyBDT05GSUdfTVREX09ORU5BTkQgaXMgbm90IHNldAogCiAjCiAjIFBhcmFsbGVs
+IHBvcnQgc3VwcG9ydApAQCAtNzgyLDYgKzg1OSwxOSBAQCBDT05GSUdfUkFNRlM9eQogIyBDT05G
+SUdfQkVGU19GUyBpcyBub3Qgc2V0CiAjIENPTkZJR19CRlNfRlMgaXMgbm90IHNldAogIyBDT05G
+SUdfRUZTX0ZTIGlzIG5vdCBzZXQKKyMgQ09ORklHX0pGRlNfRlMgaXMgbm90IHNldAorQ09ORklH
+X0pGRlMyX0ZTPXkKK0NPTkZJR19KRkZTMl9GU19ERUJVRz0wCitDT05GSUdfSkZGUzJfRlNfV1JJ
+VEVCVUZGRVI9eQorIyBDT05GSUdfSkZGUzJfU1VNTUFSWSBpcyBub3Qgc2V0CisjIENPTkZJR19K
+RkZTMl9GU19YQVRUUiBpcyBub3Qgc2V0CitDT05GSUdfSkZGUzJfQ09NUFJFU1NJT05fT1BUSU9O
+Uz15CitDT05GSUdfSkZGUzJfWkxJQj15CitDT05GSUdfSkZGUzJfUlRJTUU9eQorIyBDT05GSUdf
+SkZGUzJfUlVCSU4gaXMgbm90IHNldAorIyBDT05GSUdfSkZGUzJfQ01PREVfTk9ORSBpcyBub3Qg
+c2V0CitDT05GSUdfSkZGUzJfQ01PREVfUFJJT1JJVFk9eQorIyBDT05GSUdfSkZGUzJfQ01PREVf
+U0laRSBpcyBub3Qgc2V0CiAjIENPTkZJR19DUkFNRlMgaXMgbm90IHNldAogIyBDT05GSUdfVlhG
+U19GUyBpcyBub3Qgc2V0CiAjIENPTkZJR19IUEZTX0ZTIGlzIG5vdCBzZXQKQEAgLTk2OSw0ICsx
+MDU5LDYgQEAgQ09ORklHX0NSQ19DQ0lUVD15CiAjIENPTkZJR19DUkMxNiBpcyBub3Qgc2V0CiBD
+T05GSUdfQ1JDMzI9eQogQ09ORklHX0xJQkNSQzMyQz15CitDT05GSUdfWkxJQl9JTkZMQVRFPXkK
+K0NPTkZJR19aTElCX0RFRkxBVEU9eQogQ09ORklHX1BMSVNUPXkK
+
+------_=_NextPart_001_01C707A9.E5706600
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+------_=_NextPart_001_01C707A9.E5706600--
