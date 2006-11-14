@@ -1,13 +1,9 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: Some modification to GPMC library - Can we ?
-Date: Tue, 14 Nov 2006 13:00:30 -0600
-Message-ID: <77C7F7CB1230A74A9D19C0C111E6EDBE01DFABDD@DLEE09.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+From: "Andrzej Zaborowski" <balrog@zabor.org>
+Subject: [PATCH] More pt_regs (TSC2102).
+Date: Tue, 14 Nov 2006 22:09:42 +0100
+Message-ID: <1163538582428-git-send-email-balrog@zabor.org>
+Reply-To: balrogg@gmail.com
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,24 +13,31 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Juha,
+From: Andrzej Zaborowski <balrog@zabor.org>
 
-I was looking at GPMC library arch/arm/mach-omap2/gpmc.c. I was thinking
-if we could export gpmc_cs_set_reserved and gpmc_cs_reserved APIs. So
-that, other libraries and drivers can access these APIs with out doing a
-gpmc_request.=20
+Remove pt_regs use in drivers/spi/tsc2102.c.
 
-The reason is, if I have already configured a GPMC CS in boot loader I
-might not be interested in doing the same again in Kernel. However I
-might want to reserve this particular CS so that it doesn't show as free
-when others do a gpmc_request.=20
+Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
+---
+ drivers/spi/tsc2102.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-I might be looking at one of the scenarios. Please do let me know if you
-find any issues with the same.
-
-Regards,
-Khasim
-=20
+diff --git a/drivers/spi/tsc2102.c b/drivers/spi/tsc2102.c
+index 3d49d99..91d4d21 100644
+--- a/drivers/spi/tsc2102.c
++++ b/drivers/spi/tsc2102.c
+@@ -418,8 +418,7 @@ static void tsc2102_new_mode(struct tsc2
+ static void tsc2102_check_status(struct tsc2102_dev *dev);
+ 
+ /* TSC has new data for us availiable.  */
+-static irqreturn_t
+-tsc2102_handler(int irq, void *dev_id, struct pt_regs *regs)
++static irqreturn_t tsc2102_handler(int irq, void *dev_id)
+ {
+ 	struct tsc2102_dev *dev = (struct tsc2102_dev *) dev_id;
+ 	spin_lock_irq(&dev->lock);
+-- 
+1.4.3.2
