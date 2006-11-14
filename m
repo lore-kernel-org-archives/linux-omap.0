@@ -1,14 +1,13 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: [PATCH] plat-omap changes for 2430 SDP
-Date: Tue, 14 Nov 2006 11:20:49 +0200
-Message-ID: <5d5443650611140120x3c97b2bdwe444abb954a8ff9c@mail.gmail.com>
-References: <77C7F7CB1230A74A9D19C0C111E6EDBE01DFA524@DLEE09.ent.ti.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH] plat-omap changes for 2430 SDP
+Date: Tue, 14 Nov 2006 06:02:10 -0600
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A50893F77A@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <77C7F7CB1230A74A9D19C0C111E6EDBE01DFA524@DLEE09.ent.ti.com>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,46 +17,22 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+To: Trilok Soni <soni.trilok@gmail.com>, "Syed Mohammed, Khasim" <x0khasim@ti.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On 11/14/06, Syed Mohammed, Khasim <x0khasim@ti.com> wrote:
-> Hi,
->
-> The attached patch adds 2430 support to arch/arm/plat-omap folder.
->
-> The following files are modified devices.c, dmtimer.c, gpio.c, mcbsp.c
->
-> Since the changes were very minimal I thought of sending them as a
-> single patch.
->
-> Changes:
-> --------
-> devices.c : Initialization of devices are commented for 2430, will
-> enable the relevant once as and when required.
-> dmtimer.c : Base address for Timer 1 is different from 2420.
-> gpio.c    : The code is modified in few places to support GPIO 5th
+> As clk_get gpio5_ick can really fail, we should also put proper error
+> return path if there is an error in getting gpio5_fck. Actually this
+> is required in general for other OMAP1/2 clocks in gpio.c, also printk
+> with KERN_INFO will be good :)
 
-+#ifdef CONFIG_ARCH_OMAP2430
-+		if (cpu_is_omap2430()) {
-+			gpio5_ick = clk_get(NULL, "gpio5_ick");
-+			if (IS_ERR(gpio5_ick))
-+				printk("Could not get gpio5_ick\n");
-+			else
-+				clk_enable(gpio5_ick);			
-+			gpio5_fck = clk_get(NULL, "gpio5_fck");
-+			if (IS_ERR(gpio5_fck))
-+				printk("Could not get gpio5_fck\n");
-+			else
-+				clk_enable(gpio5_fck);
-+		}
-+#endif
-+}
+That is the convention and it should be followed...  But practically for
+an internal clock wrapped in an is_cpu_xyz macro the only way for it to
+fail today is for the name parameter to be wrong (or system corruption).
+Given the API there are many possibilities which could do the get in a
+more creative way, requiring a check, but that isn't usage today.  A lot
+of verbosity inside of a is_cpu_xyz doesn't feel like it adds much for
+its size.
 
-As clk_get gpio5_ick can really fail, we should also put proper error
-return path if there is an error in getting gpio5_fck. Actually this
-is required in general for other OMAP1/2 clocks in gpio.c, also printk
-with KERN_INFO will be good :)
-
---Trilok Soni
+Regards,
+Richard W.
