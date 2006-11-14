@@ -1,14 +1,13 @@
-From: lamikr <lamikr@cc.jyu.fi>
-Subject: Re: DSP support on current git
-Date: Tue, 14 Nov 2006 01:30:12 +0200
-Message-ID: <45590004.4050004@cc.jyu.fi>
-References: <85bqnbw1n4.fsf@orfeo.duckcorp.org>
-Reply-To: lamikr@cc.jyu.fi
+From: "Katorgi, Maher" <mkatorgi@ti.com>
+Subject: Configuring UDEV rules for MMC/SD hot-plugging
+Date: Mon, 13 Nov 2006 19:19:43 -0600
+Message-ID: <093F85CB9FC9B6438B4D52D70E499AB90625D6E8@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <85bqnbw1n4.fsf@orfeo.duckcorp.org>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,17 +17,35 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Arnaud Patard (Rtp)" <arnaud.patard@rtp-net.org>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Arnaud Patard (Rtp) wrote:
-> Hi,
->
-> In my quest in getting the current -omap kernel working on my n770, I
-> found that the DSP was not working. (fwiw, it's working fine with the
-> kernel from nokia).
->   
-Did you build that kernel yourself by using kernel sources from Maemo repo?
+Hi,
 
-Mika
+I am running 2.6.10 on OMAP2430.  When I plug SD card I get the
+following at the Linux prompt, however the card does not automount.  I
+do have The MMC hot plug scripts /etc/hotplug/mmc.agent and the system
+hot plug script /sbin/hotplug present in the file system but they do not
+get called.
+
+# mmc0: host does not support reading read-only switch. assuming
+write-enable.
+mmcblk0: mmc0:a95c SD01G 992000KiB
+ mmcblk0: p1
+
+I can mount manually with no problem. =20
+
+# ls mmc*
+mmcblk0    mmcblk0p1
+# mount /dev/mmcblk0p1 /mnt/mmc
+# ls /mnt/mmc/
+audio  dcim   palm
+
+I need help configuring udev rules for hot plugging the SD card and
+automatically running /sbin/hotplug script.  Any insight into how to do
+that is appreciated. =20
+
+
+Regards,
+Maher Katorgi
+Texas Instruments, Inc.
