@@ -1,9 +1,13 @@
-From: "Andrzej Zaborowski" <balrog@zabor.org>
-Subject: [PATCH] More pt_regs (TSC2102).
-Date: Tue, 14 Nov 2006 22:09:42 +0100
-Message-ID: <1163538582428-git-send-email-balrog@zabor.org>
-Reply-To: balrogg@gmail.com
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: Moving I2C2 init to plat-omap/devices.c  ?
+Date: Wed, 15 Nov 2006 14:21:51 -0600
+Message-ID: <77C7F7CB1230A74A9D19C0C111E6EDBE01E41F96@DLEE09.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,31 +17,23 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-OMAP <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Andrzej Zaborowski <balrog@zabor.org>
+Hello,
 
-Remove pt_regs use in drivers/spi/tsc2102.c.
+I would like to enable I2C support for 2430. I see I2C1 device
+initialization defined in arch/arm/plat-omap/devices.c and I2C2 in
+arch/arm/mach-omap2/devices.c. I believe the reason for this might be to
+move the common part (I2C1) to plat-omap.=20
 
-Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
----
- drivers/spi/tsc2102.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+I was thinking of moving the I2C2 initialization from
+mach-omap2/devices.c to plat-omap/devices.c. The reason is OMAP1 has 1
+I2C block, OMAP2 has 2 and OMAP3 has 4 (1 dedicated). The I2C register
+base addresses are same for 2420, 2430 and 3430. So, adding same code in
+two directories looks redundant.=20
 
-diff --git a/drivers/spi/tsc2102.c b/drivers/spi/tsc2102.c
-index 3d49d99..91d4d21 100644
---- a/drivers/spi/tsc2102.c
-+++ b/drivers/spi/tsc2102.c
-@@ -418,8 +418,7 @@ static void tsc2102_new_mode(struct tsc2
- static void tsc2102_check_status(struct tsc2102_dev *dev);
- 
- /* TSC has new data for us availiable.  */
--static irqreturn_t
--tsc2102_handler(int irq, void *dev_id, struct pt_regs *regs)
-+static irqreturn_t tsc2102_handler(int irq, void *dev_id)
- {
- 	struct tsc2102_dev *dev = (struct tsc2102_dev *) dev_id;
- 	spin_lock_irq(&dev->lock);
--- 
-1.4.3.2
+Let me know if you see any issues with this approach.
+
+Thanks & Regards,
+Khasim
