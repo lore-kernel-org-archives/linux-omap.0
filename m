@@ -1,15 +1,13 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: Configuring UDEV rules for MMC/SD hot-plugging
-Date: Wed, 15 Nov 2006 20:15:37 -0800
-Message-ID: <200611152015.37738.david-b@pacbell.net>
-References: <093F85CB9FC9B6438B4D52D70E499AB90625D6E8@dlee06.ent.ti.com>
+From: Frantisek Dufka <dufkaf@seznam.cz>
+Subject: Re: clock divisor in mmc_omap_set_ios in drivers/mmc/omap.c wrong
+Date: Thu, 16 Nov 2006 09:15:14 +0100
+Message-ID: <455C1E12.2010403@seznam.cz>
+References: <45544C51.1050106@seznam.cz> <20061116010527.GM21064@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <093F85CB9FC9B6438B4D52D70E499AB90625D6E8@dlee06.ent.ti.com>
-Content-Disposition: inline
+In-Reply-To: <20061116010527.GM21064@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,67 +17,53 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 13 November 2006 5:19 pm, Katorgi, Maher wrote:
-> Hi,
+Tony Lindgren wrote:
 > 
-> I am running 2.6.10 on OMAP2430.  When I plug SD card I get the
-> following at the Linux prompt, however the card does not automount.  I
-> do have The MMC hot plug scripts /etc/hotplug/mmc.agent and the system
-> hot plug script /sbin/hotplug present in the file system but they do not
-> get called.
+> This seems like a bug to me (or else the TRMs have a typo). Let's patch
+> it out and see if it still works.
 > 
-> # mmc0: host does not support reading read-only switch. assuming
-> write-enable.
-> mmcblk0: mmc0:a95c SD01G 992000KiB
->  mmcblk0: p1
 
-That suggests that the hotplug scripts ARE getting called ... all they
-do is ensure that the right drivers are loaded.  FWIW on current systems
-you can probably use the appended script instead of /sbin/hotplug, and
-get better results.
+Yes, that's what I did on Nokia 770 and have mixed results. Most MMC 
+cards around me work with this line removed (at 16Mhz) and there is some 
+speedup (~1.8MB/s@16Mhz vs ~1.4MB/s@12Mhz) but the 64 MB one shipped 
+with Nokia (plain MMC, 7 pins) give me I/O error when inserted. Even 
+partition table is not read. Other cards that work are 128MB noname 
+RS-MMC, 1GB Sandisk RS-MMC, 2GB Kingston MMCmobile (13 pins).
 
+Also interesting is that after I posted my question to this list few 
+days later Nokia released newer kernel source for newer N770 firmware 
+and this dsor++ line is removed there, but there is board specific code 
+that limits MMC speed on Nokia N770 to 12Mhz. So there seems to be 
+something fishy with MMC speeds over 12Mhz (on N770). Either there are 
+known cards on market which fail or Nokia shipped buggy cards with 
+devices and limited MMC interface speed due to this. Or can this limit 
+be matter of wiring/shielding of specific device? Their newer kernel 
+have also support for newer device with miniSD slot with speed limited 
+to 24Mhz in same omap driver.
 
-> I can mount manually with no problem.  
+I'm digging into in this because the MMC speed on N770 is pathetic and 
+newer MMCmobile cards can operate up to 52Mhz. And it looks like with 
+high speed MMC v4.1 patches MMC interface in OMAP1710 inside N770 can 
+run at 48Mhz (divisor=1) giving me ~6MB/s@48Mhz when reading. Every 
+MMCmobile/plus card can do at least 26Mhz so even 24Mhz is good speedup 
+(over original 12Mhz).
 
-I don't think "hotplug" issues "mount" commands.  But I'm fairly sure
-that some folk have "udev" riles that do that; check your current PC
-distros to see what they do with block devices.
+See also http://fanoush.webpark.cz/maemo/#mmcplus
+Some people tried it on their N770 and I got few successful reports and 
+no unsuccesful ones. Such speed is quite useful when booting from MMC 
+and having swap on MMC too. I'm running my N770 in this setup for more 
+than month with Kingston 2GB card @ 48Mhz and had no problems so far 
+(i/o error, data corruption).
 
-- Dave
+So my next related question is whether OMAP 1710 MMC interface is 
+designed to run with divisor set to 1 with 48Mhz clock. It seems to work 
+fine and give nice speed boost with newer MMCmobile cards on market. 
+There is no limit mentioned in spru765a.pdf so I don't know whether I'm 
+in fact overclocking something or not.
 
-
-
-#!/bin/ash
-#
-# "hotplug" initializes devices ... hardware drivers get modprobed and
-# create class devices.  then later udev handles /dev node creation and
-# invokes programs that make userspace aware of the new device node.
-#
-# install as /sbin/hotplug
-
-if [ ! -d /sys ]
-then
-	exit 1
-fi
-cd /sys
-
-if [ "$ACTION" = "add" -a "$SUBSYSTEM" = "mmc" ]
-then
-	# MMC doesn't support modalias yet, but this is
-	# the only choice until we have SDIO support.
-	MODALIAS=mmc_block
-fi
-
-if [ "$ACTION" = "add" -a -n "$MODALIAS" -a ! -L $DEVPATH/driver ]
-then
-	# most important subsystems now have $MODALIAS support:
-	modprobe -q $MODALIAS
-fi
-
-if [ -n "$DEVPATH" ]
-then
-	/sbin/udevsend $1
-fi
+Regards,
+Frantisek
