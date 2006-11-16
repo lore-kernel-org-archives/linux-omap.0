@@ -1,14 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH]  H4 / 2430SDP ethernet IRQ flags fix
-Date: Thu, 16 Nov 2006 02:32:15 +0200
-Message-ID: <20061116003215.GI21064@atomide.com>
-References: <20061115232522.GG21064@atomide.com>
-	<77C7F7CB1230A74A9D19C0C111E6EDBE01E4220D@DLEE09.ent.ti.com>
+Subject: Re: [PATCH] To enable NOR flash support on 2430 SDP
+Date: Thu, 16 Nov 2006 02:56:45 +0200
+Message-ID: <20061116005644.GK21064@atomide.com>
+References: <77C7F7CB1230A74A9D19C0C111E6EDBE01DFA5BF@DLEE09.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <77C7F7CB1230A74A9D19C0C111E6EDBE01E4220D@DLEE09.ent.ti.com>
+In-Reply-To: <77C7F7CB1230A74A9D19C0C111E6EDBE01DFA5BF@DLEE09.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,21 +21,16 @@ To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Syed Mohammed, Khasim <x0khasim@ti.com> [061116 01:36]:
-> Hi Tony,
+* Syed Mohammed, Khasim <x0khasim@ti.com> [061114 07:06]:
+> Hi,
 > 
-> +#ifdef CONFIG_ARCH_OMAP1
-> +#define	SMC_IRQ_FLAGS	(machine_is_omap_innovator() ?
-> IRQF_TRIGGER_RISING : \
-> +				IRQF_TRIGGER_FALLING)
-> +#else
-> +#define SMC_IRQ_FLAGS		IRQF_TRIGGER_LOW
-> +#endif
+> The attached patch enables Strata NOR flash support for 2430 SDP.
 > 
-> This looks fine to me, please push this one.
+> File modified
+> -------------
+> arch/arm/configs/omap_2430sdp_defconfig: MTD support is enabled to add
+> NOR flash support for 2430 SDP.
 
-Thanks, pushed.
-
-Regards,
+Pushing today.
 
 Tony
