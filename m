@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: clock divisor in  mmc_omap_set_ios in drivers/mmc/omap.c wrong
-Date: Thu, 16 Nov 2006 03:05:27 +0200
-Message-ID: <20061116010527.GM21064@atomide.com>
-References: <45544C51.1050106@seznam.cz>
+Subject: Re: [PATCH] board-nokia770: correct lcd name
+Date: Thu, 16 Nov 2006 03:07:38 +0200
+Message-ID: <20061116010738.GN21064@atomide.com>
+References: <858xig3fel.fsf@orfeo.duckcorp.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <45544C51.1050106@seznam.cz>
+In-Reply-To: <858xig3fel.fsf@orfeo.duckcorp.org>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,48 +15,44 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Frantisek Dufka <dufkaf@seznam.cz>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Arnaud Patard <arnaud.patard@rtp-net.org>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Frantisek Dufka <dufkaf@seznam.cz> [061110 11:55]:
-> Hello,
+* Arnaud Patard <arnaud.patard@rtp-net.org> [061112 16:57]:
+> Hi, 
 > 
-> anyone knows real reason why the divisor is intentionally lowered in
-> mmc_omap_set_ios so the result frequency is _not_ near the one requested?
+> (Sorry, I forgot to send this patch while sending the others)
 > 
-> First there is a code which tries hard to select the divisor that
-> produces highest possible frequency which is lower or equal to the
-> requested one
+> Some time ago, the 'lcd_lph8923' device was renamed to 'lcd_mipid' but
+> the board-nokia770.c file was not updated accordingly, leading to not
+> working lcd.
+> This one-liner fixe the trouble.
 > 
->        fclk_rate = clk_get_rate(host->fclk);
->        dsor = fclk_rate / freq;
->        if (dsor < 1)
->                dsor = 1;
->        if (fclk_rate / dsor > freq)
->                dsor++;
+> Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
+> ---
 > 
->        if (dsor > 250)
->                dsor = 250;
-> 
-> and then there is additional
-> 
->        dsor++;
-> 
-> which intentionally makes resulting frequency lower by unknown factor.
-> 
-> If this is some workaround for specific cards maybe it should be solved
-> in different place like blacklisting offending cards and actually
-> requesting lower frequency for them. Or is  there some real reason?
-> 
-> For requested 20Mhz MMC bus speed and 48Mhz omap clock current code
-> results in 12Mhz instead of 16Mhz.
 
-This seems like a bug to me (or else the TRMs have a typo). Let's patch
-it out and see if it still works.
+> ---
+>  arch/arm/mach-omap1/board-nokia770.c |    2 	1 +	1 -	0 !
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> Index: linux-omap-2.6/arch/arm/mach-omap1/board-nokia770.c
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap1/board-nokia770.c	2006-11-12 15:15:27.000000000 +0100
+> +++ linux-omap-2.6/arch/arm/mach-omap1/board-nokia770.c	2006-11-12 15:16:21.000000000 +0100
+> @@ -146,7 +146,7 @@ static struct ads7846_platform_data noki
+>  
+>  static struct spi_board_info nokia770_spi_board_info[] __initdata = {
+>  	[0] = {
+> -		.modalias       = "lcd_lph8923",
+> +		.modalias       = "lcd_mipid",
+>  		.bus_num        = 2,
+>  		.chip_select    = 3,
+>  		.max_speed_hz   = 12000000,
 
-Regards,
+Thanks, pushing today.
 
 Tony
