@@ -1,13 +1,15 @@
-From: Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH]  Apollon ethernet IRQ flags fix
-Date: Thu, 16 Nov 2006 01:18:13 +0000 (GMT)
-Message-ID: <5576323.124231163639946665.JavaMail.weblogic@ep_ml21>
-Reply-To: kyungmin.park@samsung.com
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: RE: Moving I2C2 init to plat-omap/devices.c  ?
+Date: Wed, 15 Nov 2006 19:21:32 -0600
+Message-ID: <77C7F7CB1230A74A9D19C0C111E6EDBE01E422BA@DLEE09.ent.ti.com>
+References: <20061116010133.GL21064@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0140613809=="
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-return: prohibited
-MIME-version: 1.0
+Content-class: urn:content-classes:message
+In-Reply-To: <20061116010133.GL21064@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,37 +20,50 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============0140613809==
-Content-return: prohibited
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: base64
+Tony,
 
-SGksIFRvbnkNCg0KVGhpcyBwYXRjaCBicmFrZXMgdGhlIGFwb2xsb24gYm9hcmQuDQoNCmFwb2xs
-b24gKG9tYXAyNDIwKSB1c2UgSVJRRl9UUklHR0VSX1JJU0lORyB3aGljaCBtZWFucyBJUlFGX1RS
-SUdHRVJfSElHSC4NCg0Kc28gd2UgYWRkIGl0IGFzIGJlbG93DQoNCiNkZWZpbmUgU01DX0lSUV9G
-TEFHUwkJKG1hY2hpbmVfaXNfb21hcF9hcG9sbG9uKCkgPyBJUlFGX1RSSUdHRVJfSElHSCA6IElS
-UUZfVFJJR0dFUl9MT1cpDQoNCnBsZWFzZSBhZGQgdGhpcyBvbmUNCg0KSSB0ZXN0ZWQgaXQuDQoN
-ClRoYW5rIHlvdSwNCkt5dW5nbWluIFBhcmsNCg0KDQoNCi0tLS0tLS0gT3JpZ2luYWwgTWVzc2Fn
-ZSAtLS0tLS0tDQpTZW5kZXIgOiBUb255IExpbmRncmVuPHRvbnlAYXRvbWlkZS5jb20+IA0KRGF0
-ZSAgIDogTm92IDE2LCAyMDA2IDA5OjMyDQpUaXRsZSAgOiBSZTogW1BBVENIXSAgSDQgLyAyNDMw
-U0RQIGV0aGVybmV0IElSUSBmbGFncyBmaXgNCg0KKiBTeWVkIE1vaGFtbWVkLCBLaGFzaW0gPHgw
-a2hhc2ltQHRpLmNvbT4gWzA2MTExNiAwMTozNl06DQo+IEhpIFRvbnksDQo+IA0KPiArI2lmZGVm
-IENPTkZJR19BUkNIX09NQVAxDQo+ICsjZGVmaW5lCVNNQ19JUlFfRkxBR1MJKG1hY2hpbmVfaXNf
-b21hcF9pbm5vdmF0b3IoKSA/DQo+IElSUUZfVFJJR0dFUl9SSVNJTkcgOiBcDQo+ICsJCQkJSVJR
-Rl9UUklHR0VSX0ZBTExJTkcpDQo+ICsjZWxzZQ0KPiArI2RlZmluZSBTTUNfSVJRX0ZMQUdTCQlJ
-UlFGX1RSSUdHRVJfTE9XDQo+ICsjZW5kaWYNCj4gDQo+IFRoaXMgbG9va3MgZmluZSB0byBtZSwg
-cGxlYXNlIHB1c2ggdGhpcyBvbmUuDQoNCg==
+Agreed, it might be early to talk on 3430. I was just giving examples of
+I2C blocks across OMAPs.=20
 
+For my work now, I will follow the existing structure. This can be
+discussed later along with 3430 code placement :)
 
+Regards,
+Khasim
+-----Original Message-----
+From: Tony Lindgren [mailto:tony@atomide.com]=20
+Sent: Wednesday, November 15, 2006 7:02 PM
+To: Syed Mohammed, Khasim
+Cc: linux-omap-open-source@linux.omap.com
+Subject: Re: Moving I2C2 init to plat-omap/devices.c ?
 
---===============0140613809==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+* Syed Mohammed, Khasim <x0khasim@ti.com> [061115 22:28]:
+> Hello,
+>=20
+> I would like to enable I2C support for 2430. I see I2C1 device
+> initialization defined in arch/arm/plat-omap/devices.c and I2C2 in
+> arch/arm/mach-omap2/devices.c. I believe the reason for this might be
+to
+> move the common part (I2C1) to plat-omap.=20
+>=20
+> I was thinking of moving the I2C2 initialization from
+> mach-omap2/devices.c to plat-omap/devices.c. The reason is OMAP1 has 1
+> I2C block, OMAP2 has 2 and OMAP3 has 4 (1 dedicated). The I2C register
+> base addresses are same for 2420, 2430 and 3430. So, adding same code
+in
+> two directories looks redundant.=20
+>=20
+> Let me know if you see any issues with this approach.
 
+Well most of that code is just data for the ports. And it sounds like
+you're assuming that omap3 is a separate directory and "completely
+different"
+from omap2.. Until we've seen some patches and docs, I don't think we
+can make that assumption.
 
---===============0140613809==--
+Regards,
+
+Tony
