@@ -1,14 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
+From: David Brownell <david-b@pacbell.net>
 Subject: Re: Moving I2C2 init to plat-omap/devices.c  ?
-Date: Thu, 16 Nov 2006 23:01:22 +0200
-Message-ID: <20061116210121.GU21064@atomide.com>
+Date: Thu, 16 Nov 2006 13:29:50 -0800
+Message-ID: <20061116212950.C0BC61DF56F@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 References: <EA12F909C0431D458B9D18A176BEE4A508A01E5E@dlee02.ent.ti.com>
-	<455CC603.9050409@gmail.com>
+	<200611161219.54874.david-b@pacbell.net>
+	<20061116205518.GT21064@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <455CC603.9050409@gmail.com>
+In-Reply-To: <20061116205518.GT21064@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,43 +19,47 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Nishanth Menon <menon.nishanth@gmail.com>
+To: tony@atomide.com
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <menon.nishanth@gmail.com> [061116 22:12]:
-> Woodruff, Richard stated on 11/16/2006 8:28 PM:
-> > IP version would clarify some aspects around differences and errata.
-> > You would still end up with both (chip & IP) as the integration of the
-> > IP into a chip is an area where things are different also.  I find USB
-> > client to be one which can be confusing.  From 1510-2420 there are many
-> > bug fixes and many are not apparent by register differences.  This can
-> > result in older ones being broke or newer ones not running to their
-> > potential when sharing.
-> I think a V3.x driver, if defined to handle IP of range 3.0>= x <4.0,
-> then it can have backward compatibility based on subversion information.
-> I can think of more ways this will work than a omap-version based
-> approach.. this may not be the thread to discuss that however..
- 
-Doing different handlers in the drivers depending on the version number
-is probably cleanest way to share the code that can be shared. And that
-keeps the code clean of lots of if then else.
- 
-> > By adding enough layers of indirection/functional pointer tables you can
-> > usually merge things.  However, this can make the code harder to follow.
-> > If people wanted to take the time to merge I suspect that making the HS
-> > driver work in a backward compatible manner might be easier than
-> > upgrading the FS one.  Given what you know today would you agree with
-> > that?  Getting any code into the I2C tree might take a bit of effort.
-> I am pointing at the fact that using FIFO changes our bulk of our logic,
-> we need to be depending on a different set of interrupts, the transfer
-> logic is different etc.. makes 70-80% code look different I think.. yes
-> we can still have the same ARDY,NAK,timeout handling..
-> I am not sure to what extent..
+> >  http://lists.lm-sensors.org/pipermail/i2c/2006-November/000458.html
+> > 	... simple updates, some cleanup plus adding some missing
+> > 	driver model calls:  shutdown(), and suspend()/resume().
+> > 	Looks like this will be merged after minor tweaking.
+> > 
+> >  http://lists.lm-sensors.org/pipermail/i2c/2006-November/000469.html
+> > 	... not actually a patch; copied at the end of this message,
+> > 	this introduces the three interesting patches
+> > 
+> >  http://lists.lm-sensors.org/pipermail/i2c/2006-November/000470.html
+> > 	... first patch mentioned, adds new driver binding model
+> > 	that fully conforms to the Linux driver model
+> > 
+> >  http://lists.lm-sensors.org/pipermail/i2c/2006-November/000468.html
+> > 	... second patch mentioned, activates that new model
+> > 
+> >  http://lists.lm-sensors.org/pipermail/i2c/2006-November/000471.html
+> > 	... updates OSK support to use it, and tps65010 driver
+> > 	(but not aic23/ALSA, that's not upstream yet)
+> > 
+> > I figure getting those last three patches merged will "take a bit of
+> > effort", so feel free to weigh in.  In terms of the original post on
+> > this thread, it sort of assumes the OMAP I2C host would switch over
+> > to a slightly different registration call, more or less passing the
+> > platform_device.id ("2" etc) to the I2C layer and saying "use this
+> > as the bus ID".
+>
+> Wow, that's great, nice job! That should fix the zero length i2c
+> probe issue too :)
 
-We could have omap_i2c_v123_whatever() and omap_i2c_v234_whatever() type
-functions for the parts that are different to keep the code clean.
+I find that I prefer to think of it as the "so-called 'I2C' stack
+can't work without 'SMBUS_QUICK'" issue.  ;)
 
-Regards,
+It does happen to be true that SMBUS_QUICK would be a zero-length
+transaction, if I2C allowed those (and I'm told it doesn't) ... and
+of course, anyone starting to use the I2C stack has to get over a
+major wierd-out caused by the way that stack violates almost every
+rule about how to write drivers in Linux.
 
-Tony
+- Dave
