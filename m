@@ -1,344 +1,58 @@
-From: Anderson Briglia <anderson.briglia@indt.org.br>
-Subject: [patch 5/6] [RFC] Add MMC Password Protection (lock/unlock) support
- V6
-Date: Fri, 17 Nov 2006 09:12:39 -0400
-Message-ID: <455DB547.5060407@indt.org.br>
+From: Russell King <rmk+lkml@arm.linux.org.uk>
+Subject: Re: [patch 1/6] [RFC] Add MMC Password Protection (lock/unlock) support V6
+Date: Fri, 17 Nov 2006 16:04:14 +0000
+Message-ID: <20061117160414.GA28514@flint.arm.linux.org.uk>
+References: <455DB297.1040009@indt.org.br>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080709060301000906000607"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1162413AbWKQNd6@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932932AbWKQQE2@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <455DB297.1040009@indt.org.br>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
-Cc: linux-kernel@vger.kernel.org, Pierre Ossman <drzeus-list@drzeus.cx>, ext David Brownell <david-b@pacbell.net>, Russell King <rmk+lkml@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, "Aguiar Carlos (EXT-INdT/Manaus)" <carlos.aguiar@indt.org.br>, "Biris Ilias (EXT-INdT/Manaus)" <Ilias.Biris@indt.org.br>
+To: Anderson Briglia <anderson.briglia@indt.org.br>
+Cc: "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, linux-kernel@vger.kernel.org, Pierre Ossman <drzeus-list@drzeus.cx>, ext David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, "Aguiar Carlos (EXT-INdT/Manaus)" <carlos.aguiar@indt.org.br>, "Biris Ilias (EXT-INdT/Manaus)" <Ilias.Biris@indt.org.br>
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080709060301000906000607
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Fri, Nov 17, 2006 at 09:01:11AM -0400, Anderson Briglia wrote:
+> Index: linux-omap-2.6.git/drivers/mmc/mmc_sysfs.c
+> ===================================================================
+> --- linux-omap-2.6.git.orig/drivers/mmc/mmc_sysfs.c	2006-11-14 
+> 08:46:54.000000000 -0400
+> +++ linux-omap-2.6.git/drivers/mmc/mmc_sysfs.c	2006-11-14 
+> 09:06:39.000000000 -0400
+> @@ -17,6 +17,7 @@
+> 
+>  #include <linux/mmc/card.h>
+>  #include <linux/mmc/host.h>
+> +#include <linux/mmc/protocol.h>
 
-Implement MMC password force erase, remove password, change password,
-unlock card and assign password operations. It uses the sysfs mechanism
-to send commands to the MMC subsystem.
+Why does this file need mmc/protocol.h?  I don't see anything added
+which would require this include.
 
-Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar <at> indt.org.br>
-Signed-off-by: Anderson Lizardo <anderson.lizardo <at> indt.org.br>
-Signed-off-by: Anderson Briglia <anderson.briglia <at> indt.org.br>
+> @@ -73,10 +74,19 @@ static void mmc_release_card(struct devi
+>   * This currently matches any MMC driver to any MMC card - drivers
+>   * themselves make the decision whether to drive this card in their
+>   * probe method.  However, we force "bad" cards to fail.
+> + *
+> + * We also fail for all locked cards; drivers expect to be able to do block
+> + * I/O still on probe(), which is not possible while the card is locked.
+> + * Device probing must be triggered sometime later to make the card 
+> available
 
-Index: linux-omap-2.6.git/drivers/mmc/mmc_sysfs.c
-===================================================================
---- linux-omap-2.6.git.orig/drivers/mmc/mmc_sysfs.c	2006-11-16 15:45:20.000000000 -0400
-+++ linux-omap-2.6.git/drivers/mmc/mmc_sysfs.c	2006-11-16 15:54:44.000000000 -0400
-@@ -17,6 +17,7 @@
-  #include <linux/idr.h>
-  #include <linux/workqueue.h>
-  #include <linux/key.h>
-+#include <linux/err.h>
+Your mailer wrapped the patch...  Also it would be nice to have this manually
+wrapped so it's viewable sanely on a standard 80 column display.
 
-  #include <linux/mmc/card.h>
-  #include <linux/mmc/host.h>
-@@ -65,6 +66,114 @@ static struct device_attribute mmc_dev_a
+> @@ -75,12 +76,19 @@ struct mmc_card {
+>  #define mmc_card_bad(c)		((c)->state & MMC_STATE_BAD)
+>  #define mmc_card_sd(c)		((c)->state & MMC_STATE_SDCARD)
+>  #define mmc_card_readonly(c)	((c)->state & MMC_STATE_READONLY)
+> +#define mmc_card_locked(c)	((c)->state & MMC_STATE_LOCKED)
+> +#define mmc_card_clear_locked(c)	((c)->state &= ~MMC_STATE_LOCKED)
 
-  static struct device_attribute mmc_dev_attr_scr = MMC_ATTR_RO(scr);
+Since we separate out the "mmc_card_set_xxx" macros, please do the same
+with the "mmc_card_clear_xxx" for consistency sake.
 
-+#ifdef	CONFIG_MMC_PASSWORDS
-+
-+static ssize_t
-+mmc_lockable_show(struct device *dev, struct device_attribute *att, char *buf)
-+{
-+	struct mmc_card *card = dev_to_mmc_card(dev);
-+
-+	if (!mmc_card_lockable(card))
-+		return sprintf(buf, "unsupported\n");
-+	else
-+		return sprintf(buf, "%slocked\n", mmc_card_locked(card) ?
-+			"" : "un");
-+}
-+
-+/*
-+ * implement MMC password functions: force erase, remove password, change
-+ * password, unlock card and assign password.
-+ */
-+static ssize_t
-+mmc_lockable_store(struct device *dev, struct device_attribute *att,
-+	const char *data, size_t len)
-+{
-+	struct mmc_card *card = dev_to_mmc_card(dev);
-+	/* Lock to protect the mmc_lock_unlock data */
-+	spinlock_t mmc_lock = SPIN_LOCK_UNLOCKED;
-+
-+	if (!mmc_card_lockable(card))
-+		return -EINVAL;
-+
-+	if (mmc_card_locked(card) && !strncmp(data, "erase", 5)) {
-+		/* forced erase only works while card is locked */
-+		spin_lock(&mmc_lock);
-+		mmc_lock_unlock(card, NULL, MMC_LOCK_MODE_ERASE);
-+		spin_unlock(&mmc_lock);
-+		return len;
-+	} else if (!mmc_card_locked(card) && !strncmp(data, "remove", 6)) {
-+		/* remove password only works while card is unlocked */
-+		struct key *mmc_key = request_key(&mmc_key_type, "mmc:key", "remove");
-+
-+		if (!IS_ERR(mmc_key)) {
-+			int err = 0;
-+
-+			spin_lock(&mmc_lock);
-+			err = mmc_lock_unlock(card, mmc_key, MMC_LOCK_MODE_CLR_PWD);
-+			spin_unlock(&mmc_lock);
-+			if (!err)
-+				return len;
-+		} else
-+			dev_dbg(&card->dev, "request_key returned error %ld\n", PTR_ERR(mmc_key));
-+	} else if (!mmc_card_locked(card) && !strncmp(data, "change", 6)) {
-+			/* change */
-+			struct key *mmc_key = request_key(&mmc_key_type, "mmc:key", "change");
-+
-+			if (!IS_ERR(mmc_key)) {
-+				int err = 0;
-+				
-+				spin_lock(&mmc_lock);
-+				err = mmc_lock_unlock(card, mmc_key, MMC_LOCK_MODE_SET_PWD);
-+				spin_unlock(&mmc_lock);
-+				if (!err)
-+					return len;
-+			} else
-+				dev_dbg(&card->dev, "request_key returned error %ld\n", PTR_ERR(mmc_key));
-+	} else if (mmc_card_locked(card) && !strncmp(data, "unlock", 6)) {
-+			/* unlock */
-+			struct key *mmc_key = request_key(&mmc_key_type, "mmc:key", "unlock");
-+
-+			if (!IS_ERR(mmc_key)) {
-+				int err = 0;
-+				
-+				spin_lock(&mmc_lock);
-+				mmc_lock_unlock(card, mmc_key, MMC_LOCK_MODE_UNLOCK);
-+				spin_unlock(&mmc_lock);
-+				if (err) {
-+					dev_dbg(&card->dev, "Wrong password\n");
-+				}
-+				else {
-+					device_release_driver(dev);
-+					device_attach(dev);
-+					return len;
-+				}
-+			} else
-+				dev_dbg(&card->dev, "request_key returned error %ld\n", PTR_ERR(mmc_key));
-+	} else if (!mmc_card_locked(card) && !strncmp(data, "assign", 6)) {
-+			/* assign */
-+			struct key *mmc_key = request_key(&mmc_key_type, "mmc:key", "assign");
-+
-+			if (!IS_ERR(mmc_key)) {
-+			int err = 0;
-+			
-+			spin_lock(&mmc_lock);
-+			err = mmc_lock_unlock(card, mmc_key, MMC_LOCK_MODE_SET_PWD);
-+			spin_unlock(&mmc_lock);
-+			if (!err)
-+				return len;
-+			} else
-+				dev_dbg(&card->dev, "request_key returned error %ld\n", PTR_ERR(mmc_key));
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static struct device_attribute mmc_dev_attr_lockable =
-+	__ATTR(lockable, S_IWUSR | S_IRUGO,
-+		 mmc_lockable_show, mmc_lockable_store);
-+
-+#endif
-+
-
-  static void mmc_release_card(struct device *dev)
-  {
-@@ -234,6 +343,11 @@ int mmc_register_card(struct mmc_card *c
-  			if (ret)
-  				device_del(&card->dev);
-  		}
-+#ifdef CONFIG_MMC_PASSWORDS
-+		ret = device_create_file(&card->dev, &mmc_dev_attr_lockable);
-+		if (ret)
-+			device_del(&card->dev);
-+#endif
-  	}
-  	return ret;
-  }
-@@ -248,6 +362,9 @@ void mmc_remove_card(struct mmc_card *ca
-  		if (mmc_card_sd(card))
-  			device_remove_file(&card->dev, &mmc_dev_attr_scr);
-
-+#ifdef CONFIG_MMC_PASSWORDS
-+		device_remove_file(&card->dev, &mmc_dev_attr_lockable);
-+#endif
-  		device_del(&card->dev);
-  	}
-
-
-
---------------080709060301000906000607
-Content-Type: text/x-patch;
- name="mmc_sysfs.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="mmc_sysfs.diff"
-
-Implement MMC password force erase, remove password, change password,
-unlock card and assign password operations. It uses the sysfs mechanism
-to send commands to the MMC subsystem. 
-
-Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar <at> indt.org.br>
-Signed-off-by: Anderson Lizardo <anderson.lizardo <at> indt.org.br>
-Signed-off-by: Anderson Briglia <anderson.briglia <at> indt.org.br>
-
-Index: linux-omap-2.6.git/drivers/mmc/mmc_sysfs.c
-===================================================================
---- linux-omap-2.6.git.orig/drivers/mmc/mmc_sysfs.c	2006-11-16 15:45:20.000000000 -0400
-+++ linux-omap-2.6.git/drivers/mmc/mmc_sysfs.c	2006-11-16 15:54:44.000000000 -0400
-@@ -17,6 +17,7 @@
- #include <linux/idr.h>
- #include <linux/workqueue.h>
- #include <linux/key.h>
-+#include <linux/err.h>
- 
- #include <linux/mmc/card.h>
- #include <linux/mmc/host.h>
-@@ -65,6 +66,114 @@ static struct device_attribute mmc_dev_a
- 
- static struct device_attribute mmc_dev_attr_scr = MMC_ATTR_RO(scr);
- 
-+#ifdef	CONFIG_MMC_PASSWORDS
-+
-+static ssize_t
-+mmc_lockable_show(struct device *dev, struct device_attribute *att, char *buf)
-+{
-+	struct mmc_card *card = dev_to_mmc_card(dev);
-+
-+	if (!mmc_card_lockable(card))
-+		return sprintf(buf, "unsupported\n");
-+	else
-+		return sprintf(buf, "%slocked\n", mmc_card_locked(card) ?
-+			"" : "un");
-+}
-+
-+/*
-+ * implement MMC password functions: force erase, remove password, change
-+ * password, unlock card and assign password.
-+ */
-+static ssize_t
-+mmc_lockable_store(struct device *dev, struct device_attribute *att,
-+	const char *data, size_t len)
-+{
-+	struct mmc_card *card = dev_to_mmc_card(dev);
-+	/* Lock to protect the mmc_lock_unlock data */
-+	spinlock_t mmc_lock = SPIN_LOCK_UNLOCKED;
-+
-+	if (!mmc_card_lockable(card))
-+		return -EINVAL;
-+
-+	if (mmc_card_locked(card) && !strncmp(data, "erase", 5)) {
-+		/* forced erase only works while card is locked */
-+		spin_lock(&mmc_lock);
-+		mmc_lock_unlock(card, NULL, MMC_LOCK_MODE_ERASE);
-+		spin_unlock(&mmc_lock);
-+		return len;
-+	} else if (!mmc_card_locked(card) && !strncmp(data, "remove", 6)) {
-+		/* remove password only works while card is unlocked */
-+		struct key *mmc_key = request_key(&mmc_key_type, "mmc:key", "remove");
-+
-+		if (!IS_ERR(mmc_key)) {
-+			int err = 0;
-+
-+			spin_lock(&mmc_lock);
-+			err = mmc_lock_unlock(card, mmc_key, MMC_LOCK_MODE_CLR_PWD);
-+			spin_unlock(&mmc_lock);
-+			if (!err)
-+				return len;
-+		} else
-+			dev_dbg(&card->dev, "request_key returned error %ld\n", PTR_ERR(mmc_key));
-+	} else if (!mmc_card_locked(card) && !strncmp(data, "change", 6)) {
-+			/* change */
-+			struct key *mmc_key = request_key(&mmc_key_type, "mmc:key", "change");
-+
-+			if (!IS_ERR(mmc_key)) {
-+				int err = 0;
-+				
-+				spin_lock(&mmc_lock);
-+				err = mmc_lock_unlock(card, mmc_key, MMC_LOCK_MODE_SET_PWD);
-+				spin_unlock(&mmc_lock);
-+				if (!err)
-+					return len;
-+			} else
-+				dev_dbg(&card->dev, "request_key returned error %ld\n", PTR_ERR(mmc_key));
-+	} else if (mmc_card_locked(card) && !strncmp(data, "unlock", 6)) {
-+			/* unlock */
-+			struct key *mmc_key = request_key(&mmc_key_type, "mmc:key", "unlock");
-+
-+			if (!IS_ERR(mmc_key)) {
-+				int err = 0;
-+				
-+				spin_lock(&mmc_lock);
-+				mmc_lock_unlock(card, mmc_key, MMC_LOCK_MODE_UNLOCK);
-+				spin_unlock(&mmc_lock);
-+				if (err) {
-+					dev_dbg(&card->dev, "Wrong password\n");
-+				}
-+				else {
-+					device_release_driver(dev);
-+					device_attach(dev);
-+					return len;
-+				}
-+			} else
-+				dev_dbg(&card->dev, "request_key returned error %ld\n", PTR_ERR(mmc_key));
-+	} else if (!mmc_card_locked(card) && !strncmp(data, "assign", 6)) {
-+			/* assign */
-+			struct key *mmc_key = request_key(&mmc_key_type, "mmc:key", "assign");
-+
-+			if (!IS_ERR(mmc_key)) {
-+			int err = 0;
-+			
-+			spin_lock(&mmc_lock);
-+			err = mmc_lock_unlock(card, mmc_key, MMC_LOCK_MODE_SET_PWD);
-+			spin_unlock(&mmc_lock);
-+			if (!err)
-+				return len;
-+			} else
-+				dev_dbg(&card->dev, "request_key returned error %ld\n", PTR_ERR(mmc_key));
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static struct device_attribute mmc_dev_attr_lockable =
-+	__ATTR(lockable, S_IWUSR | S_IRUGO,
-+		 mmc_lockable_show, mmc_lockable_store);
-+
-+#endif
-+
- 
- static void mmc_release_card(struct device *dev)
- {
-@@ -234,6 +343,11 @@ int mmc_register_card(struct mmc_card *c
- 			if (ret)
- 				device_del(&card->dev);
- 		}
-+#ifdef CONFIG_MMC_PASSWORDS
-+		ret = device_create_file(&card->dev, &mmc_dev_attr_lockable);
-+		if (ret)
-+			device_del(&card->dev);
-+#endif
- 	}
- 	return ret;
- }
-@@ -248,6 +362,9 @@ void mmc_remove_card(struct mmc_card *ca
- 		if (mmc_card_sd(card))
- 			device_remove_file(&card->dev, &mmc_dev_attr_scr);
- 
-+#ifdef CONFIG_MMC_PASSWORDS
-+		device_remove_file(&card->dev, &mmc_dev_attr_lockable);
-+#endif
- 		device_del(&card->dev);
- 	}
- 
-
---------------080709060301000906000607--
+-- 
+Russell King
+ Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
+ maintainer of:  2.6 Serial core
