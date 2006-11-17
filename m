@@ -1,15 +1,13 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: Moving I2C2 init to plat-omap/devices.c  ?
-Date: Thu, 16 Nov 2006 13:29:50 -0800
-Message-ID: <20061116212950.C0BC61DF56F@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-References: <EA12F909C0431D458B9D18A176BEE4A508A01E5E@dlee02.ent.ti.com>
-	<200611161219.54874.david-b@pacbell.net>
-	<20061116205518.GT21064@atomide.com>
+From: Arnold <abo_gwapo@yahoo.com>
+Subject: Reading and Writing to Omap register
+Date: Thu, 16 Nov 2006 19:19:42 -0800 (PST)
+Message-ID: <20061117031945.29896.qmail@web55313.mail.re4.yahoo.com>
+References: <ae36f8040611090927qfd0272ao39babf4388c82091@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20061116205518.GT21064@atomide.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <ae36f8040611090927qfd0272ao39babf4388c82091@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,49 +15,63 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: tony@atomide.com
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-> >  http://lists.lm-sensors.org/pipermail/i2c/2006-November/000458.html
-> > 	... simple updates, some cleanup plus adding some missing
-> > 	driver model calls:  shutdown(), and suspend()/resume().
-> > 	Looks like this will be merged after minor tweaking.
-> > 
-> >  http://lists.lm-sensors.org/pipermail/i2c/2006-November/000469.html
-> > 	... not actually a patch; copied at the end of this message,
-> > 	this introduces the three interesting patches
-> > 
-> >  http://lists.lm-sensors.org/pipermail/i2c/2006-November/000470.html
-> > 	... first patch mentioned, adds new driver binding model
-> > 	that fully conforms to the Linux driver model
-> > 
-> >  http://lists.lm-sensors.org/pipermail/i2c/2006-November/000468.html
-> > 	... second patch mentioned, activates that new model
-> > 
-> >  http://lists.lm-sensors.org/pipermail/i2c/2006-November/000471.html
-> > 	... updates OSK support to use it, and tps65010 driver
-> > 	(but not aic23/ALSA, that's not upstream yet)
-> > 
-> > I figure getting those last three patches merged will "take a bit of
-> > effort", so feel free to weigh in.  In terms of the original post on
-> > this thread, it sort of assumes the OMAP I2C host would switch over
-> > to a slightly different registration call, more or less passing the
-> > platform_device.id ("2" etc) to the I2C layer and saying "use this
-> > as the bus ID".
->
-> Wow, that's great, nice job! That should fix the zero length i2c
-> probe issue too :)
+Hi All,
 
-I find that I prefer to think of it as the "so-called 'I2C' stack
-can't work without 'SMBUS_QUICK'" issue.  ;)
+I been having problems reading/writing to omap
+registers. I'm using the __raw_read and __raw_write.
+It seems that when I use the __raw_readl the values of
+the register that is passed back to when I read the
+register is always 0. I am accessing a 4byte register
+and I want to write a value to it, but whenever I
+check the values using __raw_read_l, the values does
+not change. But it confuses me when I tried to use a
+__raw_readb it changes the value. It also concerns me 
+because the register that I am accesing is a 4byte
+register and not a 1 bytes register. Below is my
+implementation:
+Using __raw_readl:
+u32 l;
 
-It does happen to be true that SMBUS_QUICK would be a zero-length
-transaction, if I2C allowed those (and I'm told it doesn't) ... and
-of course, anyone starting to use the I2C stack has to get over a
-major wierd-out caused by the way that stack violates almost every
-rule about how to write drivers in Linux.
+l = 0x10;
+__raw_writel(l,MY_REG);
+printk("MY_REG = %x \n", __raw_readl(l,MY_REG));
+--> This implementation always  prints a 0.
 
-- Dave
+However when I use this implementation:
+l = 0x10;
+__raw_writeb(l,MY_REG);
+printk("MY_REG = %x \n", __raw_readb(l,MY_REG));
+--> This implementation  prints a 0x10.
+
+Does anyone knows whats wrong? I am using an omap5912
+and kernel2.6.17. 
+
+I hope somebody could tell me whats wrong. Thank you
+very much in advance.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+____________________________________________________________________________________
+Sponsored Link
+
+Mortgage rates near 39yr lows. 
+$510k for $1,698/mo. Calculate new payment! 
+www.LowerMyBills.com/lre
