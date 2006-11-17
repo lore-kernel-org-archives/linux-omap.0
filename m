@@ -1,13 +1,13 @@
-From: "Kipisz, Steven" <s-kipisz2@ti.com>
+From: "Azbell, Brandon" <b-azbell@ti.com>
 Subject: RE: Using audio on OMAP OSK5912
-Date: Fri, 17 Nov 2006 12:25:15 -0600
-Message-ID: <A794DE2F81AEF94099397C9D7D5B651E015A578B@dlee08.ent.ti.com>
+Date: Fri, 17 Nov 2006 15:37:55 -0600
+Message-ID: <AC9151450E120A459D078870E96B61CC08A8B0FB@dlee06.ent.ti.com>
 References: <BAY102-F24523908757780FC4A5F50A9E80@phx.gbl>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-class: urn:content-classes:message
 In-Reply-To: <BAY102-F24523908757780FC4A5F50A9E80@phx.gbl>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
@@ -17,16 +17,31 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: Abot Botbot <dejanigma@hotmail.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-I don't have my 5912 TRM handy, but if I remember correctly, McBSP1 and
-McBSP3 are DSP Public peripherals so you can access both from ARM or
-DSP.  McBSP2 is ARM only.
+Andy,
 
-Steve K.
+	The McBSP1 peripheral of the OMAP5912 is what connects to the
+AIC23.  This peripheral is accessible from both the ARM and DSP.  It is,
+however, more tightly coupled to the DSP, but it is on the public DSP
+Peripheral bus that can be access by the ARM and System DMA controller.
+	I have referenced the OMAP5912 Data Manual (SPRS231) for this
+information.
+
+Regards,=20
+
+Brandon Azbell=20
+Texas Instruments=20
+Senior, Group Technical Staff=20
+System Applications=20
+b-azbell@ti.com  email=20
+847.517.4536      voice=20
+847.517.4576      fax=20
+630.561.9593      mobile=20
+
 
 -----Original Message-----
 From: linux-omap-open-source-bounces@linux.omap.com
