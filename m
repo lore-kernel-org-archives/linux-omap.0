@@ -1,41 +1,70 @@
-From: Pierre Ossman <drzeus-list@drzeus.cx>
-Subject: Re: [patch 1/6] [RFC] Add MMC Password Protection (lock/unlock) support
- V6
-Date: Fri, 17 Nov 2006 17:41:29 +0100
-Message-ID: <455DE639.6080308@drzeus.cx>
-References: <455DB297.1040009@indt.org.br> <20061117160951.GD28514@flint.arm.linux.org.uk>
+From: "Ishigami, Tatsuya" <ishigami@ti.com>
+Subject: RE: Using audio on OMAP OSK5912
+Date: Fri, 17 Nov 2006 11:50:12 -0600
+Message-ID: <772F5D89C5E0734B8A86D85DFC6A202405226000@dlee03.ent.ti.com>
+References: <22CECCE071A8DC4CAB2412DC44CBEDF107A5A80C@apgrb1atc-0058e.atc.army.mil>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933709AbWKQQlW@vger.kernel.org>
-In-Reply-To: <20061117160951.GD28514@flint.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Anderson Briglia <anderson.briglia@indt.org.br>, "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, linux-kernel@vger.kernel.org, ext David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, "Aguiar Carlos (EXT-INdT/Manaus)" <carlos.aguiar@indt.org.br>, "Biris Ilias (EXT-INdT/Manaus)" <Ilias.Biris@indt.org.br>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <22CECCE071A8DC4CAB2412DC44CBEDF107A5A80C@apgrb1atc-0058e.atc.army.mil>
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Carlos, John J DA CIV USA ATC" <john.carlos@atc.army.mil>
+Cc: Linux-Omap-Open-Source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Russell King wrote:
-> On Fri, Nov 17, 2006 at 09:01:11AM -0400, Anderson Briglia wrote:
->   
->>  #define MMC_CAP_BYTEBLOCK	(1 << 2)	/* Can do non-log2 block 
->>  sizes */
->> +#define MMC_CAP_LOCK_UNLOCK	(1 << 3)	/* Host password support 
->> capability */
->>     
->
-> What's the point of this capability.  If the host can do BYTEBLOCK transfers
-> it can send the password commands.
->
->   
+Hi John,
 
-This has been pointed out in the past. Anderson, please make sure you
-address all the previous concerns before sending out a new patch set.
-This just creates extra work for us.
+ Ideally, the OMAP5912 would perform better
+(faster and consumes less power), if the DSP
+both read and process the data.
 
-Rgds
+ This is because (a) the McBSP1 is the DSP's
+peripheral, and (b) the DSP is the processor
+specially designed for signal processing :-)
 
--- 
-     -- Pierre Ossman
+> Also that is the best way to make sure
+> you are sampling at a set frequency?=20
 
-  Linux kernel, MMC maintainer        http://www.kernel.org
-  PulseAudio, core developer          http://pulseaudio.org
-  rdesktop, core developer          http://www.rdesktop.org
+ A quick way would be=20
+
+ 1) Record sound with the OSK5912 to a file.
+ 2) Transfer the file to PC
+ 3) Convert this raw data into WAV format
+    (with the sampling rate & bit-resolution
+     info you set)
+ 3) Play the WAV file to hear if it sounds same.
+
+ Regards,
+ Ishigami
+
+-----Original Message-----
+From: Carlos, John J DA CIV USA ATC [mailto:john.carlos@atc.army.mil]=20
+Sent: Thursday, November 16, 2006 10:48 AM
+To: Linux-Omap-Open-Source
+Subject: Using audio on OMAP OSK5912
+
+Hello All,
+
+  I am seeking advice.  I have seen some emails about using the audio
+chip
+on OSK.  My question: what would be better 1.  Have arm read data from
+aic23
+and DSP process or 2.  have DSp read data and arm process.  I would
+think
+the first would be more desirable.  Also that is the best way to make
+sure
+you are sampling at a set frequency?
+
+Thanks,
+John
