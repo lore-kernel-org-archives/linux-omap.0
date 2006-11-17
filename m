@@ -1,12 +1,15 @@
-From: "Abot Botbot" <dejanigma@hotmail.com>
+From: "Kipisz, Steven" <s-kipisz2@ti.com>
 Subject: RE: Using audio on OMAP OSK5912
-Date: Fri, 17 Nov 2006 18:17:23 +0000
-Message-ID: <BAY102-F24523908757780FC4A5F50A9E80@phx.gbl>
-References: <772F5D89C5E0734B8A86D85DFC6A202405226000@dlee03.ent.ti.com>
+Date: Fri, 17 Nov 2006 12:25:15 -0600
+Message-ID: <A794DE2F81AEF94099397C9D7D5B651E015A578B@dlee08.ent.ti.com>
+References: <BAY102-F24523908757780FC4A5F50A9E80@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <772F5D89C5E0734B8A86D85DFC6A202405226000@dlee03.ent.ti.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <BAY102-F24523908757780FC4A5F50A9E80@phx.gbl>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,15 +19,32 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Abot Botbot <dejanigma@hotmail.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
+
+I don't have my 5912 TRM handy, but if I remember correctly, McBSP1 and
+McBSP3 are DSP Public peripherals so you can access both from ARM or
+DSP.  McBSP2 is ARM only.
+
+Steve K.
+
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Abot
+Botbot
+Sent: Friday, November 17, 2006 12:17 PM
+To: linux-omap-open-source@linux.omap.com
+Subject: RE: Using audio on OMAP OSK5912
 
 Folks,
 
-  I thought the only way to interface the audio codec on the 5912 was 
-through the GPP side, that the DSP core had no connectivity to this device. 
-This required using either DSP/BIOS a-la the RF6 app, or using DSP Gateway, 
-both of which transfer the samples over a shared memory interface to the 
+  I thought the only way to interface the audio codec on the 5912 was=20
+through the GPP side, that the DSP core had no connectivity to this
+device.=20
+This required using either DSP/BIOS a-la the RF6 app, or using DSP
+Gateway,=20
+both of which transfer the samples over a shared memory interface to the
+
 DSP. Is this correct?
 
 Thanks,
@@ -89,6 +109,15 @@ Andy
 >http://linux.omap.com/mailman/listinfo/linux-omap-open-source
 
 _________________________________________________________________
-Stay up-to-date with your friends through the Windows Live Spaces friends 
-list. 
-http://clk.atdmt.com/MSN/go/msnnkwsp0070000001msn/direct/01/?href=http://spaces.live.com/spacesapi.aspx?wx_action=create&wx_url=/friends.aspx&mk
+Stay up-to-date with your friends through the Windows Live Spaces
+friends=20
+list.=20
+http://clk.atdmt.com/MSN/go/msnnkwsp0070000001msn/direct/01/?href=3Dhttp:=
+/
+/spaces.live.com/spacesapi.aspx?wx_action=3Dcreate&wx_url=3D/friends.aspx=
+&mk
+
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
