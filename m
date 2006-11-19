@@ -1,33 +1,35 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch 0/6] [RFC] Add MMC Password Protection (lock/unlock) support V6
-Date: Sat, 18 Nov 2006 14:18:09 -0800
-Message-ID: <200611181418.10675.david-b@pacbell.net>
-References: <455DB1FB.1060403@indt.org.br> <200611181117.54242.david-b@pacbell.net> <455F7E2A.60009@drzeus.cx>
+From: "Witold Kaczurba" <vito@mikroel.pl>
+Subject: DSP side, RF6 and DSPGW on YahooGroup.
+Date: Sun, 19 Nov 2006 11:28:29 +0100
+Message-ID: <000301c70bc5$75472c50$0601a8c0@vitoxp>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; format=flowed; charset="iso-8859-2";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753872AbWKRWSQ@vger.kernel.org>
-In-Reply-To: <455F7E2A.60009@drzeus.cx>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pierre Ossman <drzeus-list@drzeus.cx>
-Cc: Anderson Briglia <anderson.briglia@indt.org.br>, "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, linux-kernel@vger.kernel.org, Russell King <rmk+lkml@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, "Aguiar Carlos (EXT-INdT/Manaus)" <carlos.aguiar@indt.org.br>, "Biris Ilias (EXT-INdT/Manaus)" <Ilias.Biris@indt.org.br>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Saturday 18 November 2006 1:42 pm, Pierre Ossman wrote:
-> David Brownell wrote:
-> > I thought the MMC vendors expected to see the actual user-typed
-> > password get SHA1-hashed into a value which would take up the whole
-> > buffer?  In general that's a good idea, since it promotes use of
-> > longer passphrases (more information) over short ones (easy2crack).
-> >   
-> 
-> This sounds like policy though, so it is something user space should
-> concern itself with. We should just provide the infrastructure.
+Hi all!
 
-The kernel shouldn't hash, right.  But the userspace toos
-probably should be doing that ... they're the other part of
-the infrastructure. :)
+I have created YahooGroup for people using OMAP - on the DSP side, using RF6 
+and DSPGW to communicate with DSP. I would like to invite all people to 
+share experiences about using both ARM+DSP cores, not only ARM+Linux. Talk 
+more about DSP, DSPBios, TSM55xx and so on. TI's DSPs are not so easy - so i 
+though that would be useful (especially for people who are trying to 
+synchronize both DSP+ARM sides in their appliacations).
+http://tech.groups.yahoo.com/group/osk5912/
 
-- Dave
+Greetings
+
+vito
+/Witold Kaczurba./
