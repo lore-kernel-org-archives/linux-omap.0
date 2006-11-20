@@ -1,12 +1,15 @@
-From: "Abot Botbot" <dejanigma@hotmail.com>
+From: "Azbell, Brandon" <b-azbell@ti.com>
 Subject: RE: Using audio on OMAP OSK5912
-Date: Mon, 20 Nov 2006 17:50:44 +0000
-Message-ID: <BAY102-F38DAFF349EAC6A1758126DA9ED0@phx.gbl>
-References: <AC9151450E120A459D078870E96B61CC08A8B10C@dlee06.ent.ti.com>
+Date: Mon, 20 Nov 2006 14:31:22 -0600
+Message-ID: <9E8AB4F8CD83E542A3EF3F7DD3E7C55F09F969@dlee11.ent.ti.com>
+References: <BAY102-F38DAFF349EAC6A1758126DA9ED0@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <AC9151450E120A459D078870E96B61CC08A8B10C@dlee06.ent.ti.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <BAY102-F38DAFF349EAC6A1758126DA9ED0@phx.gbl>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,15 +19,61 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Abot Botbot <dejanigma@hotmail.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
+
+Andy,
+
+	I presume you are using the following user's guide for the
+OSK5912 that provides a pictorial view of RF6 running on the OMAP5912.
+The diagram on Page 4 of this document shows a bubble entitled "Data
+Processing Thread" running on the ARM.  Is this the hack that you are
+referring to?
+
+http://omap.spectrumdigital.com/osk5912/files/osk5912_usersguide.pdf
+
+	If yes, this in my opinion represents a potential "thing" that
+can be done with audio data AFTER the DSP has processed it with any
+number of algorithms.  This "thing" could be packetizing this into an IP
+network packet and send it somewhere, or it could be performing
+something like Voice Recognition algorithms, etc.  This really is to
+depict that RF6 has built-in facilities to demonstrate ARM+DSP
+communication via DSP-Link.  It is my understanding the package comes
+with basically a loop-back in the ARM side "Data Processing Thread".
+
+	In this example, the DSP does actually capture data directly and
+sends data directly to the AIC23.
+
+
+Regards,=20
+
+Brandon Azbell=20
+Texas Instruments=20
+Senior, Group Technical Staff=20
+System Applications=20
+b-azbell@ti.com  email=20
+847.517.4536      voice=20
+847.517.4576      fax=20
+630.561.9593      mobile=20
+
+
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Abot
+Botbot
+Sent: Monday, November 20, 2006 11:51 AM
+To: linux-omap-open-source@linux.omap.com
+Subject: RE: Using audio on OMAP OSK5912
 
 Azbell,
 
-  Well this begs the question. Why am I trying to hack the RF6 to do my 
-audio processing? Is there a document or example of how to read and write 
-samples to and from the DSP without using the ARM? Another happy outcome 
-would be doing this while Linux was still alive on the system. I would be 
+  Well this begs the question. Why am I trying to hack the RF6 to do my=20
+audio processing? Is there a document or example of how to read and
+write=20
+samples to and from the DSP without using the ARM? Another happy outcome
+
+would be doing this while Linux was still alive on the system. I would
+be=20
 very happy to see that.
 
 Thanks,
@@ -32,12 +81,13 @@ Andy
 
 
 >From: "Azbell, Brandon" <b-azbell@ti.com>
->To: "Kipisz, Steven" <s-kipisz2@ti.com>, "Abot Botbot" 
+>To: "Kipisz, Steven" <s-kipisz2@ti.com>, "Abot Botbot"=20
 ><dejanigma@hotmail.com>,        <linux-omap-open-source@linux.omap.com>
 >Subject: RE: Using audio on OMAP OSK5912
 >Date: Fri, 17 Nov 2006 15:42:11 -0600
 >
->Just to clarify, McBSP1 and McBSP3 are DSP Public Peripherals accessible
+>Just to clarify, McBSP1 and McBSP3 are DSP Public Peripherals
+accessible
 >from the DSP and DSP DMA.  The ARM can access these two peripherals via
 >the MPUI interface into the DSP subsystem domain.
 >
@@ -72,7 +122,8 @@ Andy
 >
 >-----Original Message-----
 >From: linux-omap-open-source-bounces@linux.omap.com
->[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Abot
+>[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+Abot
 >Botbot
 >Sent: Friday, November 17, 2006 12:17 PM
 >To: linux-omap-open-source@linux.omap.com
@@ -85,7 +136,8 @@ Andy
 >device.
 >This required using either DSP/BIOS a-la the RF6 app, or using DSP
 >Gateway,
->both of which transfer the samples over a shared memory interface to the
+>both of which transfer the samples over a shared memory interface to
+the
 >
 >DSP. Is this correct?
 >
@@ -132,9 +184,11 @@ Andy
 > >
 > >Hello All,
 > >
-> >   I am seeking advice.  I have seen some emails about using the audio
+> >   I am seeking advice.  I have seen some emails about using the
+audio
 > >chip
-> >on OSK.  My question: what would be better 1.  Have arm read data from
+> >on OSK.  My question: what would be better 1.  Have arm read data
+from
 > >aic23
 > >and DSP process or 2.  have DSp read data and arm process.  I would
 > >think
@@ -154,8 +208,12 @@ Andy
 >Stay up-to-date with your friends through the Windows Live Spaces
 >friends
 >list.
->http://clk.atdmt.com/MSN/go/msnnkwsp0070000001msn/direct/01/?href=http:/
->/spaces.live.com/spacesapi.aspx?wx_action=create&wx_url=/friends.aspx&mk
+>http://clk.atdmt.com/MSN/go/msnnkwsp0070000001msn/direct/01/?href=3Dhttp=
+:
+/
+>/spaces.live.com/spacesapi.aspx?wx_action=3Dcreate&wx_url=3D/friends.asp=
+x&m
+k
 >
 >_______________________________________________
 >Linux-omap-open-source mailing list
@@ -167,5 +225,11 @@ Andy
 >http://linux.omap.com/mailman/listinfo/linux-omap-open-source
 
 _________________________________________________________________
-Get free, personalized commercial-free online radio with MSN Radio powered 
-by Pandora http://radio.msn.com/?icid=T002MSN03A07001
+Get free, personalized commercial-free online radio with MSN Radio
+powered=20
+by Pandora http://radio.msn.com/?icid=3DT002MSN03A07001
+
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
