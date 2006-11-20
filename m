@@ -1,11 +1,12 @@
-From: rajesh B <trytorajesh@yahoo.com>
-Subject: where do we get this package
-Date: Mon, 20 Nov 2006 03:27:31 -0800 (PST)
-Message-ID: <20061120112731.38814.qmail@web34901.mail.mud.yahoo.com>
+From: "Abot Botbot" <dejanigma@hotmail.com>
+Subject: RE: Using audio on OMAP OSK5912
+Date: Mon, 20 Nov 2006 17:50:44 +0000
+Message-ID: <BAY102-F38DAFF349EAC6A1758126DA9ED0@phx.gbl>
+References: <AC9151450E120A459D078870E96B61CC08A8B10C@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; format=flowed
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <AC9151450E120A459D078870E96B61CC08A8B10C@dlee06.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,17 +19,153 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-where do we get the following packages and plese send the link for the following packages..
-    1. eldk-toolchain-3.1.tar.gz
-    2. u-boot-1.1.1.tar.gz
-    3. linux-2.6.9.tar.gz + omap patch
-    4. ramdisk_ks.gz
+Azbell,
+
+  Well this begs the question. Why am I trying to hack the RF6 to do my 
+audio processing? Is there a document or example of how to read and write 
+samples to and from the DSP without using the ARM? Another happy outcome 
+would be doing this while Linux was still alive on the system. I would be 
+very happy to see that.
+
+Thanks,
+Andy
 
 
+>From: "Azbell, Brandon" <b-azbell@ti.com>
+>To: "Kipisz, Steven" <s-kipisz2@ti.com>, "Abot Botbot" 
+><dejanigma@hotmail.com>,        <linux-omap-open-source@linux.omap.com>
+>Subject: RE: Using audio on OMAP OSK5912
+>Date: Fri, 17 Nov 2006 15:42:11 -0600
+>
+>Just to clarify, McBSP1 and McBSP3 are DSP Public Peripherals accessible
+>from the DSP and DSP DMA.  The ARM can access these two peripherals via
+>the MPUI interface into the DSP subsystem domain.
+>
+>McBSP2 is a shared peripheral which can be accessed by DSP, ARM and
+>System DMA.
+>
+>Regards,
+>
+>Brandon Azbell
+>Texas Instruments
+>Senior, Group Technical Staff
+>System Applications
+>b-azbell@ti.com  email
+>847.517.4536      voice
+>847.517.4576      fax
+>630.561.9593      mobile
+>
+>
+>-----Original Message-----
+>From: linux-omap-open-source-bounces@linux.omap.com
+>[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+>Kipisz, Steven
+>Sent: Friday, November 17, 2006 12:25 PM
+>To: Abot Botbot; linux-omap-open-source@linux.omap.com
+>Subject: RE: Using audio on OMAP OSK5912
+>
+>I don't have my 5912 TRM handy, but if I remember correctly, McBSP1 and
+>McBSP3 are DSP Public peripherals so you can access both from ARM or
+>DSP.  McBSP2 is ARM only.
+>
+>Steve K.
+>
+>-----Original Message-----
+>From: linux-omap-open-source-bounces@linux.omap.com
+>[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Abot
+>Botbot
+>Sent: Friday, November 17, 2006 12:17 PM
+>To: linux-omap-open-source@linux.omap.com
+>Subject: RE: Using audio on OMAP OSK5912
+>
+>Folks,
+>
+>   I thought the only way to interface the audio codec on the 5912 was
+>through the GPP side, that the DSP core had no connectivity to this
+>device.
+>This required using either DSP/BIOS a-la the RF6 app, or using DSP
+>Gateway,
+>both of which transfer the samples over a shared memory interface to the
+>
+>DSP. Is this correct?
+>
+>Thanks,
+>Andy
+>
+>
+> >From: "Ishigami, Tatsuya" <ishigami@ti.com>
+> >To: "Carlos, John J DA CIV USA ATC" <john.carlos@atc.army.mil>
+> >CC: Linux-Omap-Open-Source <linux-omap-open-source@linux.omap.com>
+> >Subject: RE: Using audio on OMAP OSK5912
+> >Date: Fri, 17 Nov 2006 11:50:12 -0600
+> >
+> >Hi John,
+> >
+> >  Ideally, the OMAP5912 would perform better
+> >(faster and consumes less power), if the DSP
+> >both read and process the data.
+> >
+> >  This is because (a) the McBSP1 is the DSP's
+> >peripheral, and (b) the DSP is the processor
+> >specially designed for signal processing :-)
+> >
+> > > Also that is the best way to make sure
+> > > you are sampling at a set frequency?
+> >
+> >  A quick way would be
+> >
+> >  1) Record sound with the OSK5912 to a file.
+> >  2) Transfer the file to PC
+> >  3) Convert this raw data into WAV format
+> >     (with the sampling rate & bit-resolution
+> >      info you set)
+> >  3) Play the WAV file to hear if it sounds same.
+> >
+> >  Regards,
+> >  Ishigami
+> >
+> >-----Original Message-----
+> >From: Carlos, John J DA CIV USA ATC [mailto:john.carlos@atc.army.mil]
+> >Sent: Thursday, November 16, 2006 10:48 AM
+> >To: Linux-Omap-Open-Source
+> >Subject: Using audio on OMAP OSK5912
+> >
+> >Hello All,
+> >
+> >   I am seeking advice.  I have seen some emails about using the audio
+> >chip
+> >on OSK.  My question: what would be better 1.  Have arm read data from
+> >aic23
+> >and DSP process or 2.  have DSp read data and arm process.  I would
+> >think
+> >the first would be more desirable.  Also that is the best way to make
+> >sure
+> >you are sampling at a set frequency?
+> >
+> >Thanks,
+> >John
+> >
+> >_______________________________________________
+> >Linux-omap-open-source mailing list
+> >Linux-omap-open-source@linux.omap.com
+> >http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
+>_________________________________________________________________
+>Stay up-to-date with your friends through the Windows Live Spaces
+>friends
+>list.
+>http://clk.atdmt.com/MSN/go/msnnkwsp0070000001msn/direct/01/?href=http:/
+>/spaces.live.com/spacesapi.aspx?wx_action=create&wx_url=/friends.aspx&mk
+>
+>_______________________________________________
+>Linux-omap-open-source mailing list
+>Linux-omap-open-source@linux.omap.com
+>http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>_______________________________________________
+>Linux-omap-open-source mailing list
+>Linux-omap-open-source@linux.omap.com
+>http://linux.omap.com/mailman/listinfo/linux-omap-open-source
 
-rajesh.B
- 
----------------------------------
-Sponsored Link
-
-$420,000 Mortgage for $1,399/month -   Think You Pay Too Much For Your Mortgage? Find Out!
+_________________________________________________________________
+Get free, personalized commercial-free online radio with MSN Radio powered 
+by Pandora http://radio.msn.com/?icid=T002MSN03A07001
