@@ -1,15 +1,11 @@
-From: "Azbell, Brandon" <b-azbell@ti.com>
-Subject: RE: Using audio on OMAP OSK5912
-Date: Mon, 20 Nov 2006 14:31:22 -0600
-Message-ID: <9E8AB4F8CD83E542A3EF3F7DD3E7C55F09F969@dlee11.ent.ti.com>
-References: <BAY102-F38DAFF349EAC6A1758126DA9ED0@phx.gbl>
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: [PATCH] I2C support for 2430 SDP
+Date: Mon, 20 Nov 2006 23:55:25 -0600
+Message-ID: <77C7F7CB1230A74A9D19C0C111E6EDBE01F29AD0@DLEE09.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C70D31.A43353FA"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-class: urn:content-classes:message
-In-Reply-To: <BAY102-F38DAFF349EAC6A1758126DA9ED0@phx.gbl>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,219 +13,73 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Abot Botbot <dejanigma@hotmail.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Andy,
+This is a multi-part message in MIME format.
 
-	I presume you are using the following user's guide for the
-OSK5912 that provides a pictorial view of RF6 running on the OMAP5912.
-The diagram on Page 4 of this document shows a bubble entitled "Data
-Processing Thread" running on the ARM.  Is this the hack that you are
-referring to?
+------_=_NextPart_001_01C70D31.A43353FA
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 
-http://omap.spectrumdigital.com/osk5912/files/osk5912_usersguide.pdf
+Hi,
 
-	If yes, this in my opinion represents a potential "thing" that
-can be done with audio data AFTER the DSP has processed it with any
-number of algorithms.  This "thing" could be packetizing this into an IP
-network packet and send it somewhere, or it could be performing
-something like Voice Recognition algorithms, etc.  This really is to
-depict that RF6 has built-in facilities to demonstrate ARM+DSP
-communication via DSP-Link.  It is my understanding the package comes
-with basically a loop-back in the ARM side "Data Processing Thread".
+The attached patch enables I2C support in 2430 SDP default config.
 
-	In this example, the DSP does actually capture data directly and
-sends data directly to the AIC23.
+Please do let me know if you find any issues with the same.
+
+Thanks & Regards,
+Khasim
+
+------_=_NextPart_001_01C70D31.A43353FA
+Content-Type: application/octet-stream;
+	name="2430sdp_I2C_defconfig.patch"
+Content-Transfer-Encoding: base64
+Content-Description: 2430sdp_I2C_defconfig.patch
+Content-Disposition: attachment;
+	filename="2430sdp_I2C_defconfig.patch"
+
+VGhpcyBwYXRjaCBhZGRzIEkyQyBzdXBwb3J0IGZvciAyNDMwIFNEUC4KClNpZ25lZC1vZmYtYnk6
+IFN5ZWQgTW9oYW1tZWQgS2hhc2ltICA8eDBraGFzaW1AdGkuY29tPgoKRmlsZXMgQ2hhbmdlZDoK
+IG9tYXBfMjQzMHNkcF9kZWZjb25maWcgfCAgIDQyICsrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKy0tLQogMSBmaWxlcyBjaGFuZ2VkLCAzOSBpbnNlcnRpb25zKCspLCAzIGRl
+bGV0aW9ucygtKQoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLS0tIGxpbnV4LW9tYXAvYXJjaC9hcm0v
+Y29uZmlncy9vbWFwXzI0MzBzZHBfZGVmY29uZmlnCTIwMDYtMTEtMjAgMjE6NTM6NTYuMDAwMDAw
+MDAwIC0wNjAwCisrKyBteV9saW51eF9kZXZwdC9hcmNoL2FybS9jb25maWdzL29tYXBfMjQzMHNk
+cF9kZWZjb25maWcJMjAwNi0xMS0yMCAyMzozMzowNi4wMDAwMDAwMDAgLTA2MDAKQEAgLTEsNyAr
+MSw3IEBACiAjCiAjIEF1dG9tYXRpY2FsbHkgZ2VuZXJhdGVkIG1ha2UgY29uZmlnOiBkb24ndCBl
+ZGl0Ci0jIExpbnV4IGtlcm5lbCB2ZXJzaW9uOiAyLjYuMTktcmM1LW9tYXAxCi0jIE1vbiBOb3Yg
+MTMgMTk6Mjg6NDcgMjAwNgorIyBMaW51eCBrZXJuZWwgdmVyc2lvbjogMi42LjE5LXJjNi1vbWFw
+MQorIyBNb24gTm92IDIwIDIzOjA1OjIwIDIwMDYKICMKIENPTkZJR19BUk09eQogIyBDT05GSUdf
+R0VORVJJQ19USU1FIGlzIG5vdCBzZXQKQEAgLTY1Myw3ICs2NTMsNDMgQEAgQ09ORklHX0hXX1JB
+TkRPTV9PTUFQPXkKICMKICMgSTJDIHN1cHBvcnQKICMKLSMgQ09ORklHX0kyQyBpcyBub3Qgc2V0
+CitDT05GSUdfSTJDPXkKKyMgQ09ORklHX0kyQ19DSEFSREVWIGlzIG5vdCBzZXQKKworIworIyBJ
+MkMgQWxnb3JpdGhtcworIworIyBDT05GSUdfSTJDX0FMR09CSVQgaXMgbm90IHNldAorIyBDT05G
+SUdfSTJDX0FMR09QQ0YgaXMgbm90IHNldAorIyBDT05GSUdfSTJDX0FMR09QQ0EgaXMgbm90IHNl
+dAorCisjCisjIEkyQyBIYXJkd2FyZSBCdXMgc3VwcG9ydAorIworIyBDT05GSUdfSTJDX09DT1JF
+UyBpcyBub3Qgc2V0CitDT05GSUdfSTJDX09NQVA9eQorIyBDT05GSUdfSTJDX1BBUlBPUlRfTElH
+SFQgaXMgbm90IHNldAorIyBDT05GSUdfSTJDX1NUVUIgaXMgbm90IHNldAorIyBDT05GSUdfSTJD
+X1BDQV9JU0EgaXMgbm90IHNldAorCisjCisjIE1pc2NlbGxhbmVvdXMgSTJDIENoaXAgc3VwcG9y
+dAorIworIyBDT05GSUdfU0VOU09SU19EUzEzMzcgaXMgbm90IHNldAorIyBDT05GSUdfU0VOU09S
+U19EUzEzNzQgaXMgbm90IHNldAorIyBDT05GSUdfU0VOU09SU19FRVBST00gaXMgbm90IHNldAor
+IyBDT05GSUdfU0VOU09SU19QQ0Y4NTc0IGlzIG5vdCBzZXQKKyMgQ09ORklHX1NFTlNPUlNfUENB
+OTUzOSBpcyBub3Qgc2V0CisjIENPTkZJR19TRU5TT1JTX1BDRjg1OTEgaXMgbm90IHNldAorIyBD
+T05GSUdfVFBTNjUwMTAgaXMgbm90IHNldAorIyBDT05GSUdfU0VOU09SU19UTFYzMjBBSUMyMyBp
+cyBub3Qgc2V0CisjIENPTkZJR19HUElPRVhQQU5ERVJfT01BUCBpcyBub3Qgc2V0CisjIENPTkZJ
+R19NRU5FTEFVUyBpcyBub3Qgc2V0CisjIENPTkZJR19TRU5TT1JTX01BWDY4NzUgaXMgbm90IHNl
+dAorIyBDT05GSUdfSTJDX0RFQlVHX0NPUkUgaXMgbm90IHNldAorIyBDT05GSUdfSTJDX0RFQlVH
+X0FMR08gaXMgbm90IHNldAorIyBDT05GSUdfSTJDX0RFQlVHX0JVUyBpcyBub3Qgc2V0CisjIENP
+TkZJR19JMkNfREVCVUdfQ0hJUCBpcyBub3Qgc2V0CiAKICMKICMgU1BJIHN1cHBvcnQK
+
+------_=_NextPart_001_01C70D31.A43353FA
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 
-Regards,=20
-
-Brandon Azbell=20
-Texas Instruments=20
-Senior, Group Technical Staff=20
-System Applications=20
-b-azbell@ti.com  email=20
-847.517.4536      voice=20
-847.517.4576      fax=20
-630.561.9593      mobile=20
-
-
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Abot
-Botbot
-Sent: Monday, November 20, 2006 11:51 AM
-To: linux-omap-open-source@linux.omap.com
-Subject: RE: Using audio on OMAP OSK5912
-
-Azbell,
-
-  Well this begs the question. Why am I trying to hack the RF6 to do my=20
-audio processing? Is there a document or example of how to read and
-write=20
-samples to and from the DSP without using the ARM? Another happy outcome
-
-would be doing this while Linux was still alive on the system. I would
-be=20
-very happy to see that.
-
-Thanks,
-Andy
-
-
->From: "Azbell, Brandon" <b-azbell@ti.com>
->To: "Kipisz, Steven" <s-kipisz2@ti.com>, "Abot Botbot"=20
-><dejanigma@hotmail.com>,        <linux-omap-open-source@linux.omap.com>
->Subject: RE: Using audio on OMAP OSK5912
->Date: Fri, 17 Nov 2006 15:42:11 -0600
->
->Just to clarify, McBSP1 and McBSP3 are DSP Public Peripherals
-accessible
->from the DSP and DSP DMA.  The ARM can access these two peripherals via
->the MPUI interface into the DSP subsystem domain.
->
->McBSP2 is a shared peripheral which can be accessed by DSP, ARM and
->System DMA.
->
->Regards,
->
->Brandon Azbell
->Texas Instruments
->Senior, Group Technical Staff
->System Applications
->b-azbell@ti.com  email
->847.517.4536      voice
->847.517.4576      fax
->630.561.9593      mobile
->
->
->-----Original Message-----
->From: linux-omap-open-source-bounces@linux.omap.com
->[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
->Kipisz, Steven
->Sent: Friday, November 17, 2006 12:25 PM
->To: Abot Botbot; linux-omap-open-source@linux.omap.com
->Subject: RE: Using audio on OMAP OSK5912
->
->I don't have my 5912 TRM handy, but if I remember correctly, McBSP1 and
->McBSP3 are DSP Public peripherals so you can access both from ARM or
->DSP.  McBSP2 is ARM only.
->
->Steve K.
->
->-----Original Message-----
->From: linux-omap-open-source-bounces@linux.omap.com
->[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
-Abot
->Botbot
->Sent: Friday, November 17, 2006 12:17 PM
->To: linux-omap-open-source@linux.omap.com
->Subject: RE: Using audio on OMAP OSK5912
->
->Folks,
->
->   I thought the only way to interface the audio codec on the 5912 was
->through the GPP side, that the DSP core had no connectivity to this
->device.
->This required using either DSP/BIOS a-la the RF6 app, or using DSP
->Gateway,
->both of which transfer the samples over a shared memory interface to
-the
->
->DSP. Is this correct?
->
->Thanks,
->Andy
->
->
-> >From: "Ishigami, Tatsuya" <ishigami@ti.com>
-> >To: "Carlos, John J DA CIV USA ATC" <john.carlos@atc.army.mil>
-> >CC: Linux-Omap-Open-Source <linux-omap-open-source@linux.omap.com>
-> >Subject: RE: Using audio on OMAP OSK5912
-> >Date: Fri, 17 Nov 2006 11:50:12 -0600
-> >
-> >Hi John,
-> >
-> >  Ideally, the OMAP5912 would perform better
-> >(faster and consumes less power), if the DSP
-> >both read and process the data.
-> >
-> >  This is because (a) the McBSP1 is the DSP's
-> >peripheral, and (b) the DSP is the processor
-> >specially designed for signal processing :-)
-> >
-> > > Also that is the best way to make sure
-> > > you are sampling at a set frequency?
-> >
-> >  A quick way would be
-> >
-> >  1) Record sound with the OSK5912 to a file.
-> >  2) Transfer the file to PC
-> >  3) Convert this raw data into WAV format
-> >     (with the sampling rate & bit-resolution
-> >      info you set)
-> >  3) Play the WAV file to hear if it sounds same.
-> >
-> >  Regards,
-> >  Ishigami
-> >
-> >-----Original Message-----
-> >From: Carlos, John J DA CIV USA ATC [mailto:john.carlos@atc.army.mil]
-> >Sent: Thursday, November 16, 2006 10:48 AM
-> >To: Linux-Omap-Open-Source
-> >Subject: Using audio on OMAP OSK5912
-> >
-> >Hello All,
-> >
-> >   I am seeking advice.  I have seen some emails about using the
-audio
-> >chip
-> >on OSK.  My question: what would be better 1.  Have arm read data
-from
-> >aic23
-> >and DSP process or 2.  have DSp read data and arm process.  I would
-> >think
-> >the first would be more desirable.  Also that is the best way to make
-> >sure
-> >you are sampling at a set frequency?
-> >
-> >Thanks,
-> >John
-> >
-> >_______________________________________________
-> >Linux-omap-open-source mailing list
-> >Linux-omap-open-source@linux.omap.com
-> >http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
->_________________________________________________________________
->Stay up-to-date with your friends through the Windows Live Spaces
->friends
->list.
->http://clk.atdmt.com/MSN/go/msnnkwsp0070000001msn/direct/01/?href=3Dhttp=
-:
-/
->/spaces.live.com/spacesapi.aspx?wx_action=3Dcreate&wx_url=3D/friends.asp=
-x&m
-k
->
->_______________________________________________
->Linux-omap-open-source mailing list
->Linux-omap-open-source@linux.omap.com
->http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->_______________________________________________
->Linux-omap-open-source mailing list
->Linux-omap-open-source@linux.omap.com
->http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-
-_________________________________________________________________
-Get free, personalized commercial-free online radio with MSN Radio
-powered=20
-by Pandora http://radio.msn.com/?icid=3DT002MSN03A07001
-
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+------_=_NextPart_001_01C70D31.A43353FA--
