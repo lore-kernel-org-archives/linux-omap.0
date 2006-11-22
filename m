@@ -1,10 +1,12 @@
-From: huangxiangyu@bj.xinwei.com.cn
-Subject: how to use NAND FLASH with OMAP5910
-Date: Wed, 22 Nov 2006 14:06:40 +0800
-Message-ID: <OFEDF2F2B1.CEA9146B-ON4825722E.00216144@bj.xinwei.com.cn>
+From: "Raghunandan Dhongadi" <dk.raghu@gmail.com>
+Subject: CCS for OMAP1710 H3
+Date: Wed, 22 Nov 2006 16:59:23 +0530
+Message-ID: <7d8fdf6f0611220329y1a5d2d77u2750af5e8fe26afd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,10 +19,9 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi All,
 
+I wanted to know which version of CCS has support for OMAP1710 H3 boards ?
 
-Hai all,
-
-Does OMAP5910 support NAND FLASH? and how to connect a NAND flash with it?
-
-Thanks in advance!
+Warm Regards,
+Raghu.
