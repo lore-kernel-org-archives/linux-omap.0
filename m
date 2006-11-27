@@ -1,13 +1,13 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: CONFIG_PREEMPT_RT patch on Apollon (OMAP2)
-Date: Mon, 27 Nov 2006 20:09:54 +0100
-Message-ID: <456B3802.1000101@gmail.com>
-References: <11115895.486281164610759448.JavaMail.weblogic@ep_ml20>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: [PATCH] To enable I2C-2 for 2430 SDP
+Date: Tue, 28 Nov 2006 01:06:44 +0530
+Message-ID: <456B3E4C.2060300@gmail.com>
+References: <77C7F7CB1230A74A9D19C0C111E6EDBE01F29AD2@DLEE09.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <11115895.486281164610759448.JavaMail.weblogic@ep_ml20>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <77C7F7CB1230A74A9D19C0C111E6EDBE01F29AD2@DLEE09.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,53 +15,36 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: kyungmin.park@samsung.com, OMAP <Linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Syed Mohammed, Khasim" <x0khasim@ti.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Kyungmin Park wrote:
-> As you mentioned, I tried to use CONFIG_PREEMPT_RT patch.
+Syed Mohammed, Khasim stated on 11/21/2006 11:31 AM:
+> Hi,
+> 
+> The attached patch enables I2C-2 support for 2430 SDP. On 2430SDP
+> Triton-2 is connected through I2C bus-2.
+> 
+> Please do let me know if you find any issues with the same.
 
-Great!
 
-> But there's some issues.
+-
+-	omap_cfg_reg(J15_24XX_I2C2_SCL);
+-	omap_cfg_reg(H19_24XX_I2C2_SDA);
++	
++	if (!cpu_is_omap2430()){
++		omap_cfg_reg(J15_24XX_I2C2_SCL);
++		omap_cfg_reg(H19_24XX_I2C2_SDA);
++	}
 
-Yep, CONFIG_PREEMPT_RT still looks experimental on our 
-platform. Hopefully we contribute to improvement by testing it.
+IMHO, Bad idea... do we want to handle this carefully? is this mux
+correct for all omap2 devices? it would rather be board specific than
+CPU specific.. remember that the line is out on multiple pins.. this
+might be a bad idea for using the silicon for other boards with a
+different pin out...how about muxing it only for h4?? that sounds more
+proper here... we assume at this point that all muxing was done in uboot
+for 2430?? or should we not be doing it explicitly here??
 
-> 1. ethernet flags
->   - After change from IRQF_RISING to IRQF_HIGH in recent OMAP2 patch. it occurs the GPIO bug message in line 1005.
->     So I reverted IRQF_RISING as before. then it's working.
-
-Maybe David has an idea here? [1]
-
-Regarding ethernet I'm unsure. On OSK/OMAP1 my testcase is 
-playing MP3 over NFS. While writing my previous mail, I 
-never reached the end of MP3 because of NFS timeouts and 
-connection losses.
-
-Today, I tried again to get the exact error message and now 
-no NFS issues any more. MP3 properly finishes.
-
-> 2. Too many loads???
->   - After booting. I think the system is too slow. and also it's unstable. After some opeartions. it's hang.
-
-Can't say this for OSK, feeling is same speed or even 
-faster. For me, ALSA was unstable because I missed to 
-convert some spinlocks to raw_spinlocks. Maybe you should 
-check if you found all?
-
-What's your testcase? For which operations does it hang?
-
-> 3. ARMv6 support
->   - current cmpxchg support for under ARMv6 only.
-
-Don't know anything about ARMv6.
-
-Cheers
-
-Dirk
-
-[1] 
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008270.html
+Regards,
+Nishanth menon
