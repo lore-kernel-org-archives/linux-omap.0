@@ -1,9 +1,9 @@
 From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: [PATCH] Exporting reserved APIs in GPMC header.
-Date: Mon, 27 Nov 2006 10:16:37 -0600
-Message-ID: <77C7F7CB1230A74A9D19C0C111E6EDBE01F7E53A@DLEE09.ent.ti.com>
+Subject: [PATCH] Exporting reserved APIs in GPMC library.
+Date: Mon, 27 Nov 2006 10:15:24 -0600
+Message-ID: <77C7F7CB1230A74A9D19C0C111E6EDBE01F7E534@DLEE09.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C7123F.6A6E1D3A"
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C7123F.3E8E3412"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
@@ -20,7 +20,7 @@ List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
 
-------_=_NextPart_001_01C7123F.6A6E1D3A
+------_=_NextPart_001_01C7123F.3E8E3412
 Content-Type: text/plain;
 	charset="US-ASCII"
 Content-Transfer-Encoding: quoted-printable
@@ -28,7 +28,7 @@ Content-Transfer-Encoding: quoted-printable
 Hi,
 
 The attached patch is to export two APIs (gpmc_cs_set_reserved and
-gpmc_cs_reserved) in gpmc.h.
+gpmc_cs_reserved) of GPMC library.
 
 This allows other libraries and drivers to access these APIs with out
 doing a gpmc_request.=20
@@ -42,44 +42,37 @@ Regards,
 Khasim
 
 
-------_=_NextPart_001_01C7123F.6A6E1D3A
+------_=_NextPart_001_01C7123F.3E8E3412
 Content-Type: application/octet-stream;
-	name="gpmc_exported_inc.patch"
+	name="gpmc_exportedapi.patch"
 Content-Transfer-Encoding: base64
-Content-Description: gpmc_exported_inc.patch
+Content-Description: gpmc_exportedapi.patch
 Content-Disposition: attachment;
-	filename="gpmc_exported_inc.patch"
+	filename="gpmc_exportedapi.patch"
 
 VGhpcyBwYXRjaCBleHBvcnRzIHR3byByZXNlcnZlZCBBUElzIGdwbWNfY3Nfc2V0X3Jlc2VydmVk
 IGFuZCBncG1jX2NzX3Jlc2VydmVkLgoKU2lnbmVkLW9mZi1ieTogU3llZCBNb2hhbW1lZCBLaGFz
-aW0gIDx4MGtoYXNpbUB0aS5jb20+CgpGaWxlcyBDaGFuZ2VkOgogZ3BtYy5oIHwgICAgOCArKysr
-KysrLQogMSBmaWxlcyBjaGFuZ2VkLCA3IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkKCj09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09CmRpZmYgLXB1ck4gbGludXgtb21hcC9pbmNsdWRlL2FzbS1hcm0v
-YXJjaC1vbWFwL2dwbWMuaCBteV9saW51eF9kZXZwdC9pbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFw
-L2dwbWMuaAotLS0gbGludXgtb21hcC9pbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFwL2dwbWMuaAky
-MDA2LTExLTIwIDIxOjU2OjU5LjAwMDAwMDAwMCAtMDYwMAorKysgbXlfbGludXhfZGV2cHQvaW5j
-bHVkZS9hc20tYXJtL2FyY2gtb21hcC9ncG1jLmgJMjAwNi0xMS0yNyAwOTozNzozNi4wMDAwMDAw
-MDAgLTA2MDAKQEAgLTIsNyArMiwxMSBAQAogICogR2VuZXJhbC1QdXJwb3NlIE1lbW9yeSBDb250
-cm9sbGVyIGZvciBPTUFQMgogICoKICAqIENvcHlyaWdodCAoQykgMjAwNS0yMDA2IE5va2lhIENv
-cnBvcmF0aW9uCi0gKgorICogCisgKiBISVNUT1JZOgorICogLS0tLS0tLQorICogRXhwb3J0ZWQg
-ImNzIHJlc2VydmVkIiBBUElzCQlTeWVkIEtoYXNpbQorICogCiAgKiBUaGlzIHByb2dyYW0gaXMg
-ZnJlZSBzb2Z0d2FyZTsgeW91IGNhbiByZWRpc3RyaWJ1dGUgaXQgYW5kL29yIG1vZGlmeQogICog
-aXQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSB2ZXJz
-aW9uIDIgYXMKICAqIHB1Ymxpc2hlZCBieSB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLgpA
-QCAtODgsNSArOTIsNyBAQCBleHRlcm4gaW50IGdwbWNfY3NfY2FsY19kaXZpZGVyKGludCBjcywg
-CiBleHRlcm4gaW50IGdwbWNfY3Nfc2V0X3RpbWluZ3MoaW50IGNzLCBjb25zdCBzdHJ1Y3QgZ3Bt
-Y190aW1pbmdzICp0KTsKIGV4dGVybiBpbnQgZ3BtY19jc19yZXF1ZXN0KGludCBjcywgdW5zaWdu
-ZWQgbG9uZyBzaXplLCB1bnNpZ25lZCBsb25nICpiYXNlKTsKIGV4dGVybiB2b2lkIGdwbWNfY3Nf
-ZnJlZShpbnQgY3MpOworZXh0ZXJuIHZvaWQgZ3BtY19jc19zZXRfcmVzZXJ2ZWQoaW50IGNzLCBp
-bnQgcmVzZXJ2ZWQpOworZXh0ZXJuIGludCBncG1jX2NzX3Jlc2VydmVkKGludCBjcyk7CiAKICNl
-bmRpZgo=
+aW0gIDx4MGtoYXNpbUB0aS5jb20+CgpGaWxlcyBDaGFuZ2VkOgogZ3BtYy5jIHwgICAxMCArKysr
+KysrKy0tCiAxIGZpbGVzIGNoYW5nZWQsIDggaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkK
+Cj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09Ci0tLSBsaW51eC1vbWFwL2FyY2gvYXJtL21hY2gtb21hcDIv
+Z3BtYy5jCTIwMDYtMTEtMjAgMjE6NTQ6MDEuMDAwMDAwMDAwIC0wNjAwCisrKyBteV9saW51eF9k
+ZXZwdC9hcmNoL2FybS9tYWNoLW9tYXAyL2dwbWMuYwkyMDA2LTExLTI3IDA5OjMzOjIxLjAwMDAw
+MDAwMCAtMDYwMApAQCAtMjY0LDE0ICsyNjQsMjAgQEAgc3RhdGljIGludCBncG1jX2NzX21lbV9l
+bmFibGVkKGludCBjcykKIAlyZXR1cm4gbCAmICgxIDw8IDYpOwogfQogCi1zdGF0aWMgdm9pZCBn
+cG1jX2NzX3NldF9yZXNlcnZlZChpbnQgY3MsIGludCByZXNlcnZlZCkKK3ZvaWQgZ3BtY19jc19z
+ZXRfcmVzZXJ2ZWQoaW50IGNzLCBpbnQgcmVzZXJ2ZWQpCiB7CisJaWYgKGNzID4gR1BNQ19DU19O
+VU0pCisJCXJldHVybiAtRU5PREVWOworCQogCWdwbWNfY3NfbWFwICY9IH4oMSA8PCBjcyk7CiAJ
+Z3BtY19jc19tYXAgfD0gKHJlc2VydmVkID8gMSA6IDApIDw8IGNzOwogfQogCi1zdGF0aWMgaW50
+IGdwbWNfY3NfcmVzZXJ2ZWQoaW50IGNzKQoraW50IGdwbWNfY3NfcmVzZXJ2ZWQoaW50IGNzKQog
+eworCWlmIChjcyA+IEdQTUNfQ1NfTlVNKQorCQlyZXR1cm4gLUVOT0RFVjsKKwkKIAlyZXR1cm4g
+Z3BtY19jc19tYXAgJiAoMSA8PCBjcyk7CiB9CiAK
 
-------_=_NextPart_001_01C7123F.6A6E1D3A
+------_=_NextPart_001_01C7123F.3E8E3412
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
-------_=_NextPart_001_01C7123F.6A6E1D3A--
+------_=_NextPart_001_01C7123F.3E8E3412--
