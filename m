@@ -1,11 +1,13 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: [PATCH] Exporting reserved APIs in GPMC library.
-Date: Mon, 27 Nov 2006 10:15:24 -0600
-Message-ID: <77C7F7CB1230A74A9D19C0C111E6EDBE01F7E534@DLEE09.ent.ti.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: CONFIG_PREEMPT_RT patch on Apollon (OMAP2)
+Date: Mon, 27 Nov 2006 20:09:54 +0100
+Message-ID: <456B3802.1000101@gmail.com>
+References: <11115895.486281164610759448.JavaMail.weblogic@ep_ml20>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C7123F.3E8E3412"
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <11115895.486281164610759448.JavaMail.weblogic@ep_ml20>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,66 +15,53 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: kyungmin.park@samsung.com, OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Kyungmin Park wrote:
+> As you mentioned, I tried to use CONFIG_PREEMPT_RT patch.
 
-------_=_NextPart_001_01C7123F.3E8E3412
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Great!
 
-Hi,
+> But there's some issues.
 
-The attached patch is to export two APIs (gpmc_cs_set_reserved and
-gpmc_cs_reserved) of GPMC library.
+Yep, CONFIG_PREEMPT_RT still looks experimental on our 
+platform. Hopefully we contribute to improvement by testing it.
 
-This allows other libraries and drivers to access these APIs with out
-doing a gpmc_request.=20
+> 1. ethernet flags
+>   - After change from IRQF_RISING to IRQF_HIGH in recent OMAP2 patch. it occurs the GPIO bug message in line 1005.
+>     So I reverted IRQF_RISING as before. then it's working.
 
-Reason: If I have already configured a GPMC CS in boot loader I might
-not be interested in doing the same again in Kernel. However I might
-want to reserve this particular CS so that it doesn't show as free when
-others do a gpmc_request.=20
+Maybe David has an idea here? [1]
 
-Regards,
-Khasim
+Regarding ethernet I'm unsure. On OSK/OMAP1 my testcase is 
+playing MP3 over NFS. While writing my previous mail, I 
+never reached the end of MP3 because of NFS timeouts and 
+connection losses.
 
+Today, I tried again to get the exact error message and now 
+no NFS issues any more. MP3 properly finishes.
 
-------_=_NextPart_001_01C7123F.3E8E3412
-Content-Type: application/octet-stream;
-	name="gpmc_exportedapi.patch"
-Content-Transfer-Encoding: base64
-Content-Description: gpmc_exportedapi.patch
-Content-Disposition: attachment;
-	filename="gpmc_exportedapi.patch"
+> 2. Too many loads???
+>   - After booting. I think the system is too slow. and also it's unstable. After some opeartions. it's hang.
 
-VGhpcyBwYXRjaCBleHBvcnRzIHR3byByZXNlcnZlZCBBUElzIGdwbWNfY3Nfc2V0X3Jlc2VydmVk
-IGFuZCBncG1jX2NzX3Jlc2VydmVkLgoKU2lnbmVkLW9mZi1ieTogU3llZCBNb2hhbW1lZCBLaGFz
-aW0gIDx4MGtoYXNpbUB0aS5jb20+CgpGaWxlcyBDaGFuZ2VkOgogZ3BtYy5jIHwgICAxMCArKysr
-KysrKy0tCiAxIGZpbGVzIGNoYW5nZWQsIDggaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkK
-Cj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09Ci0tLSBsaW51eC1vbWFwL2FyY2gvYXJtL21hY2gtb21hcDIv
-Z3BtYy5jCTIwMDYtMTEtMjAgMjE6NTQ6MDEuMDAwMDAwMDAwIC0wNjAwCisrKyBteV9saW51eF9k
-ZXZwdC9hcmNoL2FybS9tYWNoLW9tYXAyL2dwbWMuYwkyMDA2LTExLTI3IDA5OjMzOjIxLjAwMDAw
-MDAwMCAtMDYwMApAQCAtMjY0LDE0ICsyNjQsMjAgQEAgc3RhdGljIGludCBncG1jX2NzX21lbV9l
-bmFibGVkKGludCBjcykKIAlyZXR1cm4gbCAmICgxIDw8IDYpOwogfQogCi1zdGF0aWMgdm9pZCBn
-cG1jX2NzX3NldF9yZXNlcnZlZChpbnQgY3MsIGludCByZXNlcnZlZCkKK3ZvaWQgZ3BtY19jc19z
-ZXRfcmVzZXJ2ZWQoaW50IGNzLCBpbnQgcmVzZXJ2ZWQpCiB7CisJaWYgKGNzID4gR1BNQ19DU19O
-VU0pCisJCXJldHVybiAtRU5PREVWOworCQogCWdwbWNfY3NfbWFwICY9IH4oMSA8PCBjcyk7CiAJ
-Z3BtY19jc19tYXAgfD0gKHJlc2VydmVkID8gMSA6IDApIDw8IGNzOwogfQogCi1zdGF0aWMgaW50
-IGdwbWNfY3NfcmVzZXJ2ZWQoaW50IGNzKQoraW50IGdwbWNfY3NfcmVzZXJ2ZWQoaW50IGNzKQog
-eworCWlmIChjcyA+IEdQTUNfQ1NfTlVNKQorCQlyZXR1cm4gLUVOT0RFVjsKKwkKIAlyZXR1cm4g
-Z3BtY19jc19tYXAgJiAoMSA8PCBjcyk7CiB9CiAK
+Can't say this for OSK, feeling is same speed or even 
+faster. For me, ALSA was unstable because I missed to 
+convert some spinlocks to raw_spinlocks. Maybe you should 
+check if you found all?
 
-------_=_NextPart_001_01C7123F.3E8E3412
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+What's your testcase? For which operations does it hang?
 
+> 3. ARMv6 support
+>   - current cmpxchg support for under ARMv6 only.
 
-------_=_NextPart_001_01C7123F.3E8E3412--
+Don't know anything about ARMv6.
+
+Cheers
+
+Dirk
+
+[1] 
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008270.html
