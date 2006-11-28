@@ -1,15 +1,13 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] To enable I2C-2 for 2430 SDP
-Date: Mon, 27 Nov 2006 20:11:16 -0800
-Message-ID: <20061128041116.AF1DF1E1922@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-References: <456B3E4C.2060300@gmail.com>
-	<77C7F7CB1230A74A9D19C0C111E6EDBE01F7E909@DLEE09.ent.ti.com>
-	<20061128022310.GB7763@atomide.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: CONFIG_PREEMPT_RT patch on Apollon (OMAP2)
+Date: Tue, 28 Nov 2006 07:14:26 +0100
+Message-ID: <456BD3C2.2080807@gmail.com>
+References: <11115895.486281164610759448.JavaMail.weblogic@ep_ml20>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20061128022310.GB7763@atomide.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <11115895.486281164610759448.JavaMail.weblogic@ep_ml20>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,16 +15,24 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: x0khasim@ti.com, tony@atomide.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: kyungmin.park@samsung.com
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On H4, J15 is used for the TUSB 6010 EVM, either for the chip IRQ or
-the DMA request (depending on cpu board version), instead of I2C2_SCL.
+Kyungmin Park wrote:
+> 2. Too many loads???
+>   - After booting. I think the system is too slow. and also it's unstable. After some opeartions. it's hang.
 
-Eventually there should be a way to configure whether a given board
-uses I2C1, I2C2, or both.
+Two additional things:
 
-- Dave
+- Do you converted OMAP2 timer to clocksource as well 
+(timer-gp.c)? I think our clocksource patch only covers 
+OMAP1 (Kevin?).
+
+- Do yout get Cyclictest [1] to work?
+
+Dirk
+
+[1] http://rt.wiki.kernel.org/index.php/Cyclictest
