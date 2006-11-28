@@ -1,11 +1,13 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.19-rc6-omap1] MPUIO wake updates
-Date: Mon, 27 Nov 2006 23:32:25 -0800
-Message-ID: <20061128073226.0816C1E1937@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+From: Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: CONFIG_PREEMPT_RT patch on Apollon (OMAP2)
+Date: Tue, 28 Nov 2006 08:09:08 +0000 (GMT)
+Message-ID: <5544219.568381164701467419.JavaMail.weblogic@ep_ml19>
+Reply-To: kyungmin.park@samsung.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1884838968=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-return: prohibited
+MIME-version: 1.0
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,173 +17,43 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Kevin Hilman <khilman@mvista.com>
+Cc: "linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-GPIO and MPUIO wake updates:
+--===============1884838968==
+Content-return: prohibited
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: base64
 
- - Hook MPUIOs into the irq wakeup framework too.  This uses a platform
-   device to update irq enables during system sleep states, instead of
-   a sys_device, since the latter is no longer needed for such things.
-
- - Also forward enable/disable irq wake requests to the relevant GPIO
-   controller, so the top level IRQ dispatcher can (eventually) handle
-   these wakeup events automatically if more than one GPIO pin needs to
-   be a wakeup event source.
-
- - Minor tweak to the 24xx non-wakeup gpio stuff: no need to check such
-   read-only data under the spinlock.
-
-This assumes (maybe wrongly?) that only 16xx can do GPIO wakeup; without
-a 15xx I can't test such stuff.
-
-Also this expects the top level IRQ dispatcher to properly handle requests
-to enable/disable irq wake, which is currently known to be wrong:  omap1
-saves the flags but ignores them, omap2 doesn't even save it.  (Wakeup
-events are, wrongly, hardwired in the relevant mach-omapX/pm.c file ...)
-So MPUIO irqs won't yet trigger system wakeup.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+QWN0dWFsbHkgSSB1c2VkIHRoZSAzMksgdGltZXIuDQoNCkkgdGVzdGVkIGl0IHdpdGggZnNzdHJl
+c3Mgb24gSkZGUzIgZmlsZXN5c3RlbS4NCg0KDQpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vcGxhdC1v
+bWFwL0tjb25maWcgYi9hcmNoL2FybS9wbGF0LW9tYXAvS2NvbmZpZw0KaW5kZXggZjBjZTc3Mi4u
+NWNjY2IwYyAxMDA2NDQNCi0tLSBhL2FyY2gvYXJtL3BsYXQtb21hcC9LY29uZmlnDQorKysgYi9h
+cmNoL2FybS9wbGF0LW9tYXAvS2NvbmZpZw0KQEAgLTExLDkgKzExLDExIEBAIGNob2ljZQ0KDQog
+Y29uZmlnIEFSQ0hfT01BUDENCiAgICAgICAgYm9vbCAiVEkgT01BUDEiDQorICAgICAgIHNlbGVj
+dCBHRU5FUklDX1RJTUUNCg0KIGNvbmZpZyBBUkNIX09NQVAyDQogICAgICAgIGJvb2wgIlRJIE9N
+QVAyIg0KKyAgICAgICBzZWxlY3QgR0VORVJJQ19USU1FIGlmIE9NQVBfMzJLX1RJTUVSDQoNCiBl
+bmRjaG9pY2UNCg0KVGhhbmsgeW91LA0KS3l1bmdtaW4gUGFyaw0KDQoNCg0KLS0tLS0tLSBPcmln
+aW5hbCBNZXNzYWdlIC0tLS0tLS0NClNlbmRlciA6IEtldmluIEhpbG1hbjxraGlsbWFuQG12aXN0
+YS5jb20+IA0KRGF0ZSAgIDogMjAwNi0xMS0yOCAxNjowOA0KVGl0bGUgIDogUmU6IENPTkZJR19Q
+UkVFTVBUX1JUIHBhdGNoIG9uIEFwb2xsb24gKE9NQVAyKQ0KDQpEaXJrIEJlaG1lIHdyb3RlOg0K
+PiBLeXVuZ21pbiBQYXJrIHdyb3RlOg0KPj4gMi4gVG9vIG1hbnkgbG9hZHM/Pz8NCj4+ICAgLSBB
+ZnRlciBib290aW5nLiBJIHRoaW5rIHRoZSBzeXN0ZW0gaXMgdG9vIHNsb3cuIGFuZCBhbHNvIGl0
+J3MNCj4+IHVuc3RhYmxlLiBBZnRlciBzb21lIG9wZWFydGlvbnMuIGl0J3MgaGFuZy4NCj4gDQo+
+IFR3byBhZGRpdGlvbmFsIHRoaW5nczoNCj4gDQo+IC0gRG8geW91IGNvbnZlcnRlZCBPTUFQMiB0
+aW1lciB0byBjbG9ja3NvdXJjZSBhcyB3ZWxsICh0aW1lci1ncC5jKT8gSQ0KPiB0aGluayBvdXIg
+Y2xvY2tzb3VyY2UgcGF0Y2ggb25seSBjb3ZlcnMgT01BUDEgKEtldmluPykuDQoNCkNvcnJlY3Qs
+IG9ubHkgT01BUDEgY2xvY2tzb3VyY2UvY2xvY2tldmVudCBkb25lIHNvIGZhci4NCg0KS2V2aW4N
+Cg0KDQo=
 
 
-Index: osk2/arch/arm/plat-omap/gpio.c
-===================================================================
---- osk2.orig/arch/arm/plat-omap/gpio.c	2006-11-27 22:49:59.000000000 -0800
-+++ osk2/arch/arm/plat-omap/gpio.c	2006-11-27 22:50:30.000000000 -0800
-@@ -774,29 +774,35 @@ static int _set_gpio_wakeup(struct gpio_
- {
- 	switch (bank->method) {
- #ifdef CONFIG_ARCH_OMAP16XX
-+	case METHOD_MPUIO:
- 	case METHOD_GPIO_1610:
- 		spin_lock(&bank->lock);
--		if (enable)
-+		if (enable) {
- 			bank->suspend_wakeup |= (1 << gpio);
--		else
-+			enable_irq_wake(bank->irq);
-+		} else {
-+			disable_irq_wake(bank->irq);
- 			bank->suspend_wakeup &= ~(1 << gpio);
-+		}
- 		spin_unlock(&bank->lock);
- 		return 0;
- #endif
- #ifdef CONFIG_ARCH_OMAP24XX
- 	case METHOD_GPIO_24XX:
-+		if (bank->non_wakeup_gpios & (1 << gpio)) {
-+			printk(KERN_ERR "Unable to modify wakeup on "
-+			       "non-wakeup GPIO%d\n",
-+			       (bank - gpio_bank) * 32 + gpio);
-+			return -EINVAL;
-+		}
- 		spin_lock(&bank->lock);
- 		if (enable) {
--			if (bank->non_wakeup_gpios & (1 << gpio)) {
--				printk(KERN_ERR "Unable to enable wakeup on "
--				       "non-wakeup GPIO%d\n",
--				       (bank - gpio_bank) * 32 + gpio);
--				spin_unlock(&bank->lock);
--				return -EINVAL;
--			}
- 			bank->suspend_wakeup |= (1 << gpio);
--		} else
-+			enable_irq_wake(bank->irq);
-+		} else {
-+			disable_irq_wake(bank->irq);
- 			bank->suspend_wakeup &= ~(1 << gpio);
-+		}
- 		spin_unlock(&bank->lock);
- 		return 0;
- #endif
-@@ -1112,16 +1118,81 @@ static struct irq_chip mpuio_irq_chip = 
- 	.mask		= mpuio_mask_irq,
- 	.unmask		= mpuio_unmask_irq,
- 	.set_type	= gpio_irq_type,
-+#ifdef CONFIG_ARCH_OMAP16XX
-+	/* REVISIT: assuming only 16xx supports MPUIO wake events */
-+	.set_wake	= gpio_wake_enable,
-+#endif
- };
- 
- 
- #define bank_is_mpuio(bank)	((bank)->method == METHOD_MPUIO)
- 
-+
-+#ifdef CONFIG_ARCH_OMAP16XX
-+
-+#include <linux/platform_device.h>
-+
-+static int omap_mpuio_suspend_late(struct platform_device *pdev, pm_message_t mesg)
-+{
-+	struct gpio_bank	*bank = platform_get_drvdata(pdev);
-+	void __iomem		*mask_reg = bank->base + OMAP_MPUIO_GPIO_MASKIT;
-+
-+	spin_lock(&bank->lock);
-+	bank->saved_wakeup = __raw_readl(mask_reg);
-+	__raw_writel(0xffff & ~bank->suspend_wakeup, mask_reg);
-+	spin_unlock(&bank->lock);
-+
-+	return 0;
-+}
-+
-+static int omap_mpuio_resume_early(struct platform_device *pdev)
-+{
-+	struct gpio_bank	*bank = platform_get_drvdata(pdev);
-+	void __iomem		*mask_reg = bank->base + OMAP_MPUIO_GPIO_MASKIT;
-+
-+	spin_lock(&bank->lock);
-+	__raw_writel(bank->saved_wakeup, mask_reg);
-+	spin_unlock(&bank->lock);
-+
-+	return 0;
-+}
-+
-+/* use platform_driver for this, now that there's no longer any
-+ * point to sys_device (other than not disturbing old code).
-+ */
-+static struct platform_driver omap_mpuio_driver = {
-+	.suspend_late	= omap_mpuio_suspend_late,
-+	.resume_early	= omap_mpuio_resume_early,
-+	.driver		= {
-+		.name	= "mpuio",
-+	},
-+};
-+
-+static struct platform_device omap_mpuio_device = {
-+	.name		= "mpuio",
-+	.id		= -1,
-+	.dev = {
-+		.driver = &omap_mpuio_driver.driver,
-+	}
-+	/* could list the /proc/iomem resources */
-+};
-+
-+static inline void mpuio_init(void)
-+{
-+	if (platform_driver_register(&omap_mpuio_driver) == 0)
-+		(void) platform_device_register(&omap_mpuio_device);
-+}
-+
-+#else
-+static inline void mpuio_init(void) {}
-+#endif	/* 16xx */
-+
- #else
- 
- extern struct irq_chip mpuio_irq_chip;
- 
- #define bank_is_mpuio(bank)	0
-+static inline void mpuio_init(void) {}
- 
- #endif
- 
-@@ -1487,6 +1558,8 @@ static int __init omap_gpio_sysinit(void
- 	if (!initialized)
- 		ret = _omap_gpio_init();
- 
-+	mpuio_init();
-+
- #if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP24XX)
- 	if (cpu_is_omap16xx() || cpu_is_omap24xx()) {
- 		if (ret == 0) {
+
+--===============1884838968==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============1884838968==--
