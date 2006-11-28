@@ -1,11 +1,11 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.19-rc6-omap1] speed up gpio irq handling
-Date: Mon, 27 Nov 2006 23:30:01 -0800
-Message-ID: <20061128073001.AF6C61E1901@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+Subject: [patch 2.6.19-rc6-omap1] MPUIO wake updates
+Date: Mon, 27 Nov 2006 23:32:25 -0800
+Message-ID: <20061128073226.0816C1E1937@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,101 +13,175 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Speedup and shrink GPIO irq handling code, by using a pointer
-that's available in the irq_chip structure instead of calling
-the get_gpio_bank() function.  On OMAP1 this saves 44 words,
-most of which were in IRQ critical path methods.  Hey, every
-few instructions help.
+GPIO and MPUIO wake updates:
+
+ - Hook MPUIOs into the irq wakeup framework too.  This uses a platform
+   device to update irq enables during system sleep states, instead of
+   a sys_device, since the latter is no longer needed for such things.
+
+ - Also forward enable/disable irq wake requests to the relevant GPIO
+   controller, so the top level IRQ dispatcher can (eventually) handle
+   these wakeup events automatically if more than one GPIO pin needs to
+   be a wakeup event source.
+
+ - Minor tweak to the 24xx non-wakeup gpio stuff: no need to check such
+   read-only data under the spinlock.
+
+This assumes (maybe wrongly?) that only 16xx can do GPIO wakeup; without
+a 15xx I can't test such stuff.
+
+Also this expects the top level IRQ dispatcher to properly handle requests
+to enable/disable irq wake, which is currently known to be wrong:  omap1
+saves the flags but ignores them, omap2 doesn't even save it.  (Wakeup
+events are, wrongly, hardwired in the relevant mach-omapX/pm.c file ...)
+So MPUIO irqs won't yet trigger system wakeup.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 
 
 Index: osk2/arch/arm/plat-omap/gpio.c
 ===================================================================
---- osk2.orig/arch/arm/plat-omap/gpio.c	2006-11-27 22:50:30.000000000 -0800
-+++ osk2/arch/arm/plat-omap/gpio.c	2006-11-27 23:00:32.000000000 -0800
-@@ -585,7 +585,7 @@ static int gpio_irq_type(unsigned irq, u
- 			&& (type & (IRQ_TYPE_LEVEL_LOW|IRQ_TYPE_LEVEL_HIGH)))
- 		return -EINVAL;
- 
--	bank = get_gpio_bank(gpio);
-+	bank = get_irq_chip_data(irq);
- 	spin_lock(&bank->lock);
- 	retval = _set_gpio_triggering(bank, get_gpio_index(gpio), type);
- 	if (retval == 0) {
-@@ -830,7 +830,7 @@ static int gpio_wake_enable(unsigned int
- 
- 	if (check_gpio(gpio) < 0)
- 		return -ENODEV;
--	bank = get_gpio_bank(gpio);
-+	bank = get_irq_chip_data(irq);
- 	retval = _set_gpio_wakeup(bank, get_gpio_index(gpio), enable);
- 
- 	return retval;
-@@ -1045,7 +1045,7 @@ static void gpio_irq_handler(unsigned in
- static void gpio_irq_shutdown(unsigned int irq)
+--- osk2.orig/arch/arm/plat-omap/gpio.c	2006-11-27 22:49:59.000000000 -0800
++++ osk2/arch/arm/plat-omap/gpio.c	2006-11-27 22:50:30.000000000 -0800
+@@ -774,29 +774,35 @@ static int _set_gpio_wakeup(struct gpio_
  {
- 	unsigned int gpio = irq - IH_GPIO_BASE;
--	struct gpio_bank *bank = get_gpio_bank(gpio);
-+	struct gpio_bank *bank = get_irq_chip_data(irq);
- 
- 	_reset_gpio(bank, gpio);
- }
-@@ -1053,7 +1053,7 @@ static void gpio_irq_shutdown(unsigned i
- static void gpio_ack_irq(unsigned int irq)
- {
- 	unsigned int gpio = irq - IH_GPIO_BASE;
--	struct gpio_bank *bank = get_gpio_bank(gpio);
-+	struct gpio_bank *bank = get_irq_chip_data(irq);
- 
- 	_clear_gpio_irqstatus(bank, gpio);
- }
-@@ -1061,7 +1061,7 @@ static void gpio_ack_irq(unsigned int ir
- static void gpio_mask_irq(unsigned int irq)
- {
- 	unsigned int gpio = irq - IH_GPIO_BASE;
--	struct gpio_bank *bank = get_gpio_bank(gpio);
-+	struct gpio_bank *bank = get_irq_chip_data(irq);
- 
- 	_set_gpio_irqenable(bank, gpio, 0);
- }
-@@ -1070,7 +1070,7 @@ static void gpio_unmask_irq(unsigned int
- {
- 	unsigned int gpio = irq - IH_GPIO_BASE;
- 	unsigned int gpio_idx = get_gpio_index(gpio);
--	struct gpio_bank *bank = get_gpio_bank(gpio);
-+	struct gpio_bank *bank = get_irq_chip_data(irq);
- 
- 	_set_gpio_irqenable(bank, gpio_idx, 1);
- }
-@@ -1099,7 +1099,7 @@ static void mpuio_ack_irq(unsigned int i
- static void mpuio_mask_irq(unsigned int irq)
- {
- 	unsigned int gpio = OMAP_MPUIO(irq - IH_MPUIO_BASE);
--	struct gpio_bank *bank = get_gpio_bank(gpio);
-+	struct gpio_bank *bank = get_irq_chip_data(irq);
- 
- 	_set_gpio_irqenable(bank, gpio, 0);
- }
-@@ -1107,7 +1107,7 @@ static void mpuio_mask_irq(unsigned int 
- static void mpuio_unmask_irq(unsigned int irq)
- {
- 	unsigned int gpio = OMAP_MPUIO(irq - IH_MPUIO_BASE);
--	struct gpio_bank *bank = get_gpio_bank(gpio);
-+	struct gpio_bank *bank = get_irq_chip_data(irq);
- 
- 	_set_gpio_irqenable(bank, gpio, 1);
- }
-@@ -1347,6 +1347,7 @@ static int __init _omap_gpio_init(void)
+ 	switch (bank->method) {
+ #ifdef CONFIG_ARCH_OMAP16XX
++	case METHOD_MPUIO:
+ 	case METHOD_GPIO_1610:
+ 		spin_lock(&bank->lock);
+-		if (enable)
++		if (enable) {
+ 			bank->suspend_wakeup |= (1 << gpio);
+-		else
++			enable_irq_wake(bank->irq);
++		} else {
++			disable_irq_wake(bank->irq);
+ 			bank->suspend_wakeup &= ~(1 << gpio);
++		}
+ 		spin_unlock(&bank->lock);
+ 		return 0;
  #endif
- 		for (j = bank->virtual_irq_start;
- 		     j < bank->virtual_irq_start + gpio_count; j++) {
-+			set_irq_chip_data(j, bank);
- 			if (bank_is_mpuio(bank))
- 				set_irq_chip(j, &mpuio_irq_chip);
- 			else
+ #ifdef CONFIG_ARCH_OMAP24XX
+ 	case METHOD_GPIO_24XX:
++		if (bank->non_wakeup_gpios & (1 << gpio)) {
++			printk(KERN_ERR "Unable to modify wakeup on "
++			       "non-wakeup GPIO%d\n",
++			       (bank - gpio_bank) * 32 + gpio);
++			return -EINVAL;
++		}
+ 		spin_lock(&bank->lock);
+ 		if (enable) {
+-			if (bank->non_wakeup_gpios & (1 << gpio)) {
+-				printk(KERN_ERR "Unable to enable wakeup on "
+-				       "non-wakeup GPIO%d\n",
+-				       (bank - gpio_bank) * 32 + gpio);
+-				spin_unlock(&bank->lock);
+-				return -EINVAL;
+-			}
+ 			bank->suspend_wakeup |= (1 << gpio);
+-		} else
++			enable_irq_wake(bank->irq);
++		} else {
++			disable_irq_wake(bank->irq);
+ 			bank->suspend_wakeup &= ~(1 << gpio);
++		}
+ 		spin_unlock(&bank->lock);
+ 		return 0;
+ #endif
+@@ -1112,16 +1118,81 @@ static struct irq_chip mpuio_irq_chip = 
+ 	.mask		= mpuio_mask_irq,
+ 	.unmask		= mpuio_unmask_irq,
+ 	.set_type	= gpio_irq_type,
++#ifdef CONFIG_ARCH_OMAP16XX
++	/* REVISIT: assuming only 16xx supports MPUIO wake events */
++	.set_wake	= gpio_wake_enable,
++#endif
+ };
+ 
+ 
+ #define bank_is_mpuio(bank)	((bank)->method == METHOD_MPUIO)
+ 
++
++#ifdef CONFIG_ARCH_OMAP16XX
++
++#include <linux/platform_device.h>
++
++static int omap_mpuio_suspend_late(struct platform_device *pdev, pm_message_t mesg)
++{
++	struct gpio_bank	*bank = platform_get_drvdata(pdev);
++	void __iomem		*mask_reg = bank->base + OMAP_MPUIO_GPIO_MASKIT;
++
++	spin_lock(&bank->lock);
++	bank->saved_wakeup = __raw_readl(mask_reg);
++	__raw_writel(0xffff & ~bank->suspend_wakeup, mask_reg);
++	spin_unlock(&bank->lock);
++
++	return 0;
++}
++
++static int omap_mpuio_resume_early(struct platform_device *pdev)
++{
++	struct gpio_bank	*bank = platform_get_drvdata(pdev);
++	void __iomem		*mask_reg = bank->base + OMAP_MPUIO_GPIO_MASKIT;
++
++	spin_lock(&bank->lock);
++	__raw_writel(bank->saved_wakeup, mask_reg);
++	spin_unlock(&bank->lock);
++
++	return 0;
++}
++
++/* use platform_driver for this, now that there's no longer any
++ * point to sys_device (other than not disturbing old code).
++ */
++static struct platform_driver omap_mpuio_driver = {
++	.suspend_late	= omap_mpuio_suspend_late,
++	.resume_early	= omap_mpuio_resume_early,
++	.driver		= {
++		.name	= "mpuio",
++	},
++};
++
++static struct platform_device omap_mpuio_device = {
++	.name		= "mpuio",
++	.id		= -1,
++	.dev = {
++		.driver = &omap_mpuio_driver.driver,
++	}
++	/* could list the /proc/iomem resources */
++};
++
++static inline void mpuio_init(void)
++{
++	if (platform_driver_register(&omap_mpuio_driver) == 0)
++		(void) platform_device_register(&omap_mpuio_device);
++}
++
++#else
++static inline void mpuio_init(void) {}
++#endif	/* 16xx */
++
+ #else
+ 
+ extern struct irq_chip mpuio_irq_chip;
+ 
+ #define bank_is_mpuio(bank)	0
++static inline void mpuio_init(void) {}
+ 
+ #endif
+ 
+@@ -1487,6 +1558,8 @@ static int __init omap_gpio_sysinit(void
+ 	if (!initialized)
+ 		ret = _omap_gpio_init();
+ 
++	mpuio_init();
++
+ #if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP24XX)
+ 	if (cpu_is_omap16xx() || cpu_is_omap24xx()) {
+ 		if (ret == 0) {
