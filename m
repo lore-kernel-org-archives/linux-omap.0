@@ -1,16 +1,16 @@
-From: "Eyal Shani" <Eyal.Shani@SanDisk.Com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
 Subject: RE: TI 2430 MontaVista Kernel 2.6 Mobilinux - eth smc device
 	notfound
-Date: Wed, 29 Nov 2006 17:21:57 +0200
-Message-ID: <13ECC251745F8F4BA0076A980813C7C29AF9D2@msl-ex02.corp.m-sys.com>
-References: <EA12F909C0431D458B9D18A176BEE4A508C2464E@dlee02.ent.ti.com>
+Date: Wed, 29 Nov 2006 10:34:09 -0600
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A508C7AC6C@dlee02.ent.ti.com>
+References: <13ECC251745F8F4BA0076A980813C7C29AF9D2@msl-ex02.corp.m-sys.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
-In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A508C2464E@dlee02.ent.ti.com>
+In-Reply-To: <13ECC251745F8F4BA0076A980813C7C29AF9D2@msl-ex02.corp.m-sys.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,415 +20,607 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>, linux-omap-open-source@linux.omap.com
-Cc: Eyal Shani <Eyal.Shani@SanDisk.Com>
+To: Eyal Shani <Eyal.Shani@SanDisk.Com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi=20Richard,
+Eyal,
 
-Thanks=20for=20your=20swift=20answer.
+=20
 
-Regarding=20your=20questions,=20see=20answers=20below.
-Wrote=20it=20in=20[eyal=20s.].
+- Based on your logs the error likely as I guessed.  Your u-boot shows
+133MHz L3 and your kernel is setting it for 165MHz L3.
 
-Thanks=20in=20advance,
+=20
 
-Eyal=20Shani
+- Your SDP1.1 will not likely pass 'memtester' running with a 165MHz
+L3/DDR.  There for you should rebuild your _kernel_ to run at PRCM #5a
+(133Mhz DDR setting).  You can do this through xconfig/menuconf options.
+-->  System type and features --> TI OMAP2 Implementations --> PRCM_5a:
+make uImage
 
+=20
 
------Original=20Message-----
-From:=20Woodruff,=20Richard=20[mailto:r-woodruff2@ti.com]=20
-Sent:=20Wednesday,=20November=2029,=202006=203:54=20PM
-To:=20Eyal=20Shani;=20linux-omap-open-source@linux.omap.com
-Subject:=20RE:=20TI=202430=20MontaVista=20Kernel=202.6=20Mobilinux=20-=20e=
-th=20smc=20device
-notfound
+- You could rebuild your u-boot and likely boot at 165MHz but I would
+not recommend it on a SDP1.1.  Yes on a 4.0, no on a 1.1.  U-boot
+initial speed setting can be found at
+u-boot/include/configs/omap2430sdp.h.
 
-Hello=20Eyal,
-
-If=20you=20have=20proper=20access=20to=20a=20MV=20kernel=20they=20should=20=
-be=20able=20to=20help=20you
-through.=20=20I=20would=20expect=20there=20is=20some=20configuration=20err=
-or.
-[eyal=20s.]=20I=20too=20feel=20it=20is=20a=20configuration=20error.=20Stil=
-l,=20no=20way=20of
-finding=20what=20it=20is.
-
-*=20My=20first=20guess=20based=20on=20your=20symptoms=20is=20you=20have=20=
-a=20GPMC=20timing
-mismatch=20between=20the=20u-boot=20on=20your=20board=20and=20the=20target=
-=20speed=20as
-defined=20in=20your=20kernel.=20=20AFAIK=20in=20that=20build=20you=20need=20=
-to=20have=20the
-'fastest'=20u-boot=20to=20support=20kernels=20of=20other=20speeds.=20=20Th=
-ere=20is=20not
-currently=20a=20re-program=20of=20the=20GPMC=20timings.=20=20You=20need=20=
-to=20have=20a=20"PRCM
-#2"=20built=20u-boot=20to=20work=20across=20the=20target=20clock=20speeds.=
-
-[eyal=20s.]=20how=20do=20I=20build=20this=20kind=20of=20u-boot?!=20I=20mea=
-n=20how=20do=20I=20make=20it
-PRCM=20#2?
-
-*=20What=20version=20of=20SDP=20board=20do=20you=20have?=20=20
-[eyal=20s.]=20I=20am=20using=20SDP2430=20V1.1=20board.
-
-Where=20did=20you=20get=20the=20u-boot=20binary=20on=20your=20board?=20=20=
-
-[eyal=20s.]=20Took=20the=20u-boot.bin=20from=20TI=20Download=20site,=20for=
-=202430=20board,
-linux.
-
-As=20you=20did=20not=20provide=20the=20u-boot=20startup=20banner=20its=20n=
-ot=20obvious=20which
-u-boot=20you=20have=20on=20your=20board=20and=20the=20speed=20it=20is=20se=
-t=20for.
-[eyal=20s.]
-=09U-Boot=201.1.3=20(Feb=2027=202006=20-=2012:23:36)
-
-=09U-Boot=20code:=2080E80000=20->=2080E9F608=20=20BSS:=20->=2080EA4EB4
-=09OMAP2430C-GP=20revision=200,=20PRCM=20#5A
-=09TI=202430SDP=20Base=20Board=20+=200.1=20Version=20+=20mDDR
-=09RAM=20Configuration:
-=09Bank=20#0:=2080000000=20128=20MB
-=09Bank=20#1:=2088000000=20=200=20kB
-=09Flash:=20192=20MB
-=09NAND:64=20MB
-=09In:=20=20=20=20serial
-=09Out:=20=20=20serial
-=09Err:=20=20=20serial
-=09OMAP243X=20SDP=20#
-
-*=20What=20is=20the=20problem=20in=20rebuilding=20a=20kernel=20from=20the=20=
-TI=20builds?=20=20They
-should=20work...=20if=20not=20we=20will=20fix=20them.
-[eyal=20s.]=20I=20have=20the=20kernel=20from=20site=20http://linux.omap.co=
-m/pub/
-The=20tool-chain=20there=20is=20not=20relevant=20for=20the=20build=20of=20=
-arm=20V6=20kernel.
-
-
-The=20only=20time=20in=20recent=20kernels=20I=20have=20seen=20anything=20l=
-ike=20you=20describe
-is=20with=20bad=20hardware=20or=20mis-configured=20clocks.
+=20
 
 Regards,
-Richard=20W.=20
 
->=20-----Original=20Message-----
->=20From:=20
->=20linux-omap-open-source-bounces+r-woodruff2=3Dti.com@linux.omap.c
->=20om=20
->=20[mailto:linux-omap-open-source-bounces+r-woodruff2=3Dti.com@linu
->=20x.omap.com]=20On=20Behalf=20Of=20Eyal=20Shani
->=20Sent:=20Wednesday,=20November=2029,=202006=207:16=20AM
->=20To:=20linux-omap-open-source@linux.omap.com
->=20Cc:=20Eyal=20Shani
->=20Subject:=20RE:=20TI=202430=20MontaVista=20Kernel=202.6=20Mobilinux=20-=
-=20eth=20
->=20smc=20device=20notfound
+Richard W.
+
+=20
+
+________________________________
+
+From: Eyal Shani [mailto:Eyal.Shani@SanDisk.Com]=20
+Sent: Wednesday, November 29, 2006 9:22 AM
+To: Woodruff, Richard; linux-omap-open-source@linux.omap.com
+Cc: Eyal Shani
+Subject: RE: TI 2430 MontaVista Kernel 2.6 Mobilinux - eth smc device
+notfound
+
+=20
+
+Hi Richard,
+
+Thanks for your swift answer.
+
+Regarding your questions, see answers below.
+
+Wrote it in [eyal s.].
+
+Thanks in advance,
+
+Eyal Shani
+
+-----Original Message-----
+From: Woodruff, Richard [mailto:r-woodruff2@ti.com]
+Sent: Wednesday, November 29, 2006 3:54 PM
+To: Eyal Shani; linux-omap-open-source@linux.omap.com
+Subject: RE: TI 2430 MontaVista Kernel 2.6 Mobilinux - eth smc device
+notfound
+
+Hello Eyal,
+
+If you have proper access to a MV kernel they should be able to help you
+
+through.  I would expect there is some configuration error.
+
+[eyal s.] I too feel it is a configuration error. Still, no way of
+finding what it is.
+
+* My first guess based on your symptoms is you have a GPMC timing
+
+mismatch between the u-boot on your board and the target speed as
+
+defined in your kernel.  AFAIK in that build you need to have the
+
+'fastest' u-boot to support kernels of other speeds.  There is not
+
+currently a re-program of the GPMC timings.  You need to have a "PRCM
+
+#2" built u-boot to work across the target clock speeds.
+
+[eyal s.] how do I build this kind of u-boot?! I mean how do I make it
+PRCM #2?
+
+* What version of SDP board do you have? =20
+
+[eyal s.] I am using SDP2430 V1.1 board.
+
+Where did you get the u-boot binary on your board? =20
+
+[eyal s.] Took the u-boot.bin from TI Download site, for 2430 board,
+linux.
+
+As you did not provide the u-boot startup banner its not obvious which
+u-boot you have on your board and the speed it is set for.
+
+[eyal s.]
+
+        U-Boot 1.1.3 (Feb 27 2006 - 12:23:36)
+
+        U-Boot code: 80E80000 -> 80E9F608  BSS: -> 80EA4EB4
+
+        OMAP2430C-GP revision 0, PRCM #5A
+
+        TI 2430SDP Base Board + 0.1 Version + mDDR
+
+        RAM Configuration:
+
+        Bank #0: 80000000 128 MB
+
+        Bank #1: 88000000  0 kB
+
+        Flash: 192 MB
+
+        NAND:64 MB
+
+        In:    serial
+
+        Out:   serial
+
+        Err:   serial
+
+        OMAP243X SDP #
+
+* What is the problem in rebuilding a kernel from the TI builds?  They
+
+should work... if not we will fix them.
+
+[eyal s.] I have the kernel from site http://linux.omap.com/pub/
+<http://linux.omap.com/pub/>=20
+
+The tool-chain there is not relevant for the build of arm V6 kernel.
+
+The only time in recent kernels I have seen anything like you describe
+
+is with bad hardware or mis-configured clocks.
+
+Regards,
+
+Richard W.=20
+
+> -----Original Message-----
+
+> From:=20
+
+> linux-omap-open-source-bounces+r-woodruff2=3Dti.com@linux.omap.c
+
+> om=20
+
+> [mailto:linux-omap-open-source-bounces+r-woodruff2=3Dti.com@linu
+
+> x.omap.com] On Behalf Of Eyal Shani
+
+> Sent: Wednesday, November 29, 2006 7:16 AM
+
+> To: linux-omap-open-source@linux.omap.com
+
+> Cc: Eyal Shani
+
+> Subject: RE: TI 2430 MontaVista Kernel 2.6 Mobilinux - eth=20
+
+> smc device notfound
+
 >=20
->=20hi=20guys,
+
+> hi guys,
+
 >=20
->=20Using=20MontaVista=20Mobilinux=204.1=20for=20TI=20OMAP=202430=20SDP.
->=20I=20am=20receiving=20the=20below=20PANIC=20while=20initializing=20the=20=
-kernel=20
->=20from=20TFTP=20on=20the=202430=20OMAP=20platform.
+
+> Using MontaVista Mobilinux 4.1 for TI OMAP 2430 SDP.
+
+> I am receiving the below PANIC while initializing the kernel=20
+
+> from TFTP on the 2430 OMAP platform.
+
 >=20
->=20The=20NETWORK=20CARD=20init=20code,=20smc91x=20is=20not=20finding=20th=
-e=20device=20-
->=20'smc91x:=20not=20found=20(-19)'.
->=20The=20output=20is=20'No=20network=20devices=20available'=20-=20from=20=
-IP-CONFIG.=20
+
+> The NETWORK CARD init code, smc91x is not finding the device -
+
+> 'smc91x: not found (-19)'.
+
+> The output is 'No network devices available' - from IP-CONFIG.=20
+
 >=20
->=20This=20is=20a=20brand=20new=20kernel,=20that=20cannot=20jump=20start=20=
-the=20
->=20platform=20for=20the=20first=20time.
+
+> This is a brand new kernel, that cannot jump start the=20
+
+> platform for the first time.
+
 >=20
->=20I=20have=20carried=20out=20some=20more=20debugging=20and=20found=20the=
-=20following:
+
+> I have carried out some more debugging and found the following:
+
 >=20
->=20from=20kernel=20init=20flow,=20after=20adding=20some=20prints=20into=20=
-the=20
->=20smc91x.c=20code:
->=20=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+
+> from kernel init flow, after adding some prints into the=20
+
+> smc91x.c code:
+
+> =
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->=20:
->=20:
->=20RAMDISK=20driver=20initialized:=2016=20RAM=20disks=20of=208192K=20size=
-=201024=20blocksize
->=20loop:=20loaded=20(max=208=20devices)
->=20before=20smc_probe::EYAL=20smc91x:=20ioaddr=3D0xc2864300
->=20smc91x:=20smc_probe
->=20smc91x:=20ioaddr=3D0xc2864300
->=20smc91x:=20bank=20signature=20probe=20returned=200x0187
->=20smc91x:=20not=20found=20(-19).
->=20:
->=20:
->=20
->=20
->=20Mind=20u:
->=201.=20I=20have=20ruled=20out=20a=20HW=20issue=20on=20the=20smc=20onboar=
-d=20card=20-=20The=20
->=20uImage=20for
->=202430=20=092.6=20kernel=20binary=20from=20TI=20identifies=20the=20ETH0=20=
-device,=20so=20it=20is
->=20not=20an=20=09HW=20issue.=20Alas,=20I=20cannot=20use=20that=20kernel,=20=
-since=20
->=20I=20cannot=20compile
->=20it...
->=202.=20The=20OneNand=20is=20not=20recognized,=20since=20I=20pulled=20up=20=
-it's=20CS=20-=20this=20is
->=20not=20=09the=20issue.
->=20
->=20Original=20U-boot=20TFTP=20&=20Kernel=20init=20flow=20output::
->=20=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->=20OMAP243X=20SDP=20#=20bootm
->=20##=20Booting=20image=20at=2080000000=20...
->=20=20=20=20Image=20Name:=20=20=20Linux-2.6.10_mobilinux410-omap24
->=20=20=20=20Image=20Type:=20=20=20ARM=20Linux=20Kernel=20Image=20(uncompr=
-essed)
->=20=20=20=20Data=20Size:=20=20=20=201401456=20Bytes=20=3D=20=201.3=20MB
->=20=20=20=20Load=20Address:=2080008000
->=20=20=20=20Entry=20Point:=20=2080008000
->=20=20=20=20Verifying=20Checksum=20...=20OK
->=20OK
->=20Starting=20kernel=20...
->=20=20
->=20Uncompressing
->=20Linux.............................................................
->=20.................................=20done,=20booting=20the=20kernel.
->=20Linux=20version=202.6.10_mobilinux410-omap2430_sdp
->=20(root@localhost.localdomain)=20(gcc
+
+> :
+
+> :
+
+> RAMDISK driver initialized: 16 RAM disks of 8192K size 1024 blocksize
+
+> loop: loaded (max 8 devices)
+
+> before smc_probe::EYAL smc91x: ioaddr=3D0xc2864300
+
+> smc91x: smc_probe
+
+> smc91x: ioaddr=3D0xc2864300
+
+> smc91x: bank signature probe returned 0x0187
+
+> smc91x: not found (-19).
+
+> :
+
+> :
+
 >=20
->=20=20version=203.4.3=20(MontaVista=203.4.3-25.0.109.0601319=20
->=202006-08-20))=20#5=20Tue=20Nov=2021=2017:
+
 >=20
->=2041:06=20IST=202006
->=20CPU:=20TI=20OMAP2430=20(ARM1136JF-S)=20[4107b362]=20revision=202=20(AR=
-Mv6TEJ)
->=20CPU0:=20D=20VIPT=20write-back=20cache
->=20CPU0:=20I=20cache:=2032768=20bytes,=20associativity=204,=2032=20byte=20=
-lines,=20256=20sets
->=20CPU0:=20D=20cache:=2032768=20bytes,=20associativity=204,=2032=20byte=20=
-lines,=20256=20sets
->=20Machine:=20OMAP24xx=202430SDP
->=20Memory=20policy:=20ECC=20disabled,=20Data=20cache=20writeback=20Power=20=
 
->=20Management=20for=20TI=20OMAP.
->=20Clocking=20rate=20(xtal/DPLL/MPU):=2013.0/660/330=20MHz
->=20clock.c:=20Enable=20for=20dpll_ck=20without=20enable=20code=20Disablin=
-g=20
->=20unused=20clock=20"i2chs2_fck"...=20<6>=20done=20Disabling=20unused=20c=
-lock=20
->=20"i2c2_ick"...=20<6>=20done=20Disabling=20unused=20clock=20"i2chs1_fck"=
-...=20
->=20<6>=20done=20Disabling=20unused=20clock=20"i2c1_ick"...=20<6>=20done=20=
+> Mind u:
 
->=20Disabling=20unused=20clock=20"wdt1_ick"...=20<6>=20done=20Disabling=20=
+> 1. I have ruled out a HW issue on the smc onboard card - The=20
 
->=20unused=20clock=20"mpu_wdt_fck"...=20<6>=20done=20Disabling=20unused=20=
-clock=20
->=20"mpu_wdt_ick"...=20<6>=20done=20Disabling=20unused=20clock=20
->=20"gpios_fck"...=20<6>=20done=20Disabling=20unused=20clock=20"gpios_ick"=
-...=20
->=20<6>=20done=20Disabling=20unused=20clock=20"gpt2_fck"...=20<6>=20done=20=
+> uImage for
 
->=20Disabling=20unused=20clock=20"gpt2_ick"...=20<6>=20done=20Disabling=20=
+> 2430  2.6 kernel binary from TI identifies the ETH0 device, so it is
 
->=20unused=20clock=20"mdm_osc_ck"...=20<6>=20done=20Disabling=20unused=20c=
-lock=20
->=20"iva2_1_fck"...=20<6>=20done=20Disabling=20unused=20clock=20
->=20"apll54_ck"...=20<6>=20done=20Built=201=20zonelists=20Kernel=20command=
-=20
->=20line:=20mem=3D32M=20console=3DttyS0,115200n8=20noinitrd=20root=3D/dev/=
-nfs=20
->=20ip=3Ddhcp=20PID=20hash=20table=20entries:=20256=20(order:=208,=204096=20=
-bytes)=20
->=20OMAP=20GPTimer1=20hardware=20version=201.6=20OMAP=20GPTimer2=20hardwar=
-e=20version=201.6
->=20Console:=20colour=20dummy=20device=2080x30
->=20Dentry=20cache=20hash=20table=20entries:=208192=20(order:=203,=2032768=
-=20bytes)=20
->=20Inode-cache=20hash=20table=20entries:=204096=20(order:=202,=2016384=20=
-bytes)
->=20Memory:=2032MB=20=3D=2032MB=20total
->=20Memory:=2029312KB=20available=20(2396K=20code,=20533K=20data,=20128K=20=
-init)=20
->=20Mount-cache=20hash=20table=20entries:=20512=20(order:=200,=204096=20by=
-tes)
->=20CPU:=20Testing=20write=20buffer=20coherency:=20ok
->=20spawn_desched_task(00000000)
->=20desched=20cpu_callback=203/00000000
->=20ksoftirqd=20started=20up.
->=20desched=20cpu_callback=202/00000000
->=20desched=20thread=200=20started=20up.
->=20NET:=20Registered=20protocol=20family=2016
->=20OMAP=20DMA4=20hardware=20Initialized=20(max=20lch=3D32)=20OMAP=20GPIO=20=
+> not an        HW issue. Alas, I cannot use that kernel, since=20
 
->=20hardware=20version=202.2=20OMAP=20virtual=20buses=20initialized
->=20map2_disp:=20timeout=20waiting=20for=20display=20controller=20reset=20=
-OMAP=20
->=20Display=20hardware=20version=201.0=20Registering=20OMAP=20device=20
->=20'OMAP24xx=20I2C=2003'.=20Parent=20at=20L4CORE=20Registering=20OMAP=20d=
-evice=20
->=20'OMAP24xx=20I2C=2013'.=20Parent=20at=20L4CORE=20TWL4030=20Power=20Comp=
-anion=20Active
->=20TWL4030:=20Driver=20registration=20complete.
->=20SCSI=20subsystem=20initialized
->=20usbcore:=20registered=20new=20driver=20usbfs
->=20usbcore:=20registered=20new=20driver=20hub
->=20musb_hdrc:=20version=202.2a/db-0.4.8=20[musb-dma]=20[otg:=20
->=20peripheral+host]=20debug=3D0]
->=20usb_hdrc:=20USB=20OTG=20mode=20controller=20at=20c2800000=20using=20DM=
-A,=20IRQ=20
->=2092=20musb_hdrc=20musb_hdrc.0:=20new=20USB=20bus=20registered,=20assign=
-ed=20
->=20bus=20number=201=20memmap=201.1=20initialised=20OMAP24xx=20Dynamic=20P=
-ower=20
->=20Management=20NetWinder=20Floating=20Point=20Emulator=20V0.97=20(double=
-=20precision)
->=20JFFS2=20version=202.2.=20(NAND)=20(C)=202001-2003=20Red=20Hat,=20Inc.
->=20Registering=20OMAP=20device=20'sdp2430_lcd9'.=20Parent=20at=20L3=20
->=20Registering=20OMAP=20device=20'sdp2430_tv10'.=20Parent=20at=20L3=20
->=20Registering=20OMAP=20device=20'omap24xxfb6'.=20Parent=20at=20L3
->=20omap24xxfb:=20Options=20"<NULL>"
->=20Console:=20switching=20to=20colour=20frame=20buffer=20device=2030x40
->=20omap24xxfb:=20fb0=20frame=20buffer=20device
->=20omap24xxfb:=20display=20mode=20240x320x16=20hsync=2019kHz=20vsync=2058=
-Hz
->=20omap_wdt:=20TI=20OMAP=20Watchdog=20Timer:=20timer=20margin=2010000=20s=
-ec
->=20Serial:=208250/16550=20driver=20$Revision:=201.90=20$=204=20ports,=20I=
-RQ=20
->=20sharing=20disabled=20ttyS0=20at=20MMIO=200x4806a000=20(irq=20=3D=2072)=
-=20is=20a=20ST16654
->=20ttyS1=20at=20MMIO=200x4806c000=20(irq=20=3D=2073)=20is=20a=20ST16654
->=20ttyS2=20at=20MMIO=200x4806e000=20(irq=20=3D=2074)=20is=20a=20ST16654=20=
-io=20scheduler=20
->=20noop=20registered=20io=20scheduler=20anticipatory=20registered=20io=20=
+> I cannot compile
 
->=20scheduler=20deadline=20registered=20io=20scheduler=20cfq=20registered=20=
+> it...
 
->=20RAMDISK=20driver=20initialized:=2016=20RAM=20disks=20of=208192K=20size=
-=201024=20blocksize
->=20loop:=20loaded=20(max=208=20devices)
->=20OMAP=20Timer32K=20is=20initialized
->=20Registering=20OMAP=20device=20'omap-twl4030rtc16'.=20Parent=20at=20L4C=
-ORE=20
->=20omap-twl4030rtc:TWL4030-RTC=20Power=20up=20reset=20detected.
->=20omap-twl4030rtc:Enabling=20TWL4030-RTC.
->=20smc91x:=20not=20found=20(-19).
->=20TWL4030=20GPIO=20Demux:=20IRQ=20Range=20264=20to=20273,=20Initializati=
-on=20
->=20Success=20Linux=20video=20capture=20interface:=20v1.00=20Registering=20=
-OMAP=20
->=20device=20'omap24xxcam0'.=20Parent=20at=20L3=20EX3691:Failed=20to=20det=
-ect=20
->=20EX3691=20SOC.
->=20omap24xxcam:=20cannot=20initialize=20sensor
->=20Registering=20OMAP=20device=20'omap24xxvout111'.=20Parent=20at=20L3
->=20omap24xxvout:=20registered=20device=20video1=20[v4l2]=20Registering=20=
+> 2. The OneNand is not recognized, since I pulled up it's CS - this is
 
->=20OMAP=20device=20'omap24xxvout212'.=20Parent=20at=20L3
->=20omap24xxvout:=20registered=20device=20video2=20[v4l2]=20OMAP=20HDQ=20
->=20Hardware=20Revision=200.3.=20Driver=20in=20interrupt=20mode.
->=20elevator:=20using=20anticipatory=20as=20default=20io=20scheduler
->=20omapflash.1:=20Found=201=20x16=20devices=20at=200x0=20in=2016-bit=20ba=
-nk
->=20omapflash.1:=20Found=201=20x16=20devices=20at=200x2000000=20in=2016-bi=
-t=20bank=20=20
->=20Intel/Sharp=20Extended=20Query=20Table=20at=200x010A=20=20Intel/Sharp=20=
+> not   the issue.
 
->=20Extended=20Query=20Table=20at=200x010A=20=20Intel/Sharp=20Extended=20Q=
-uery=20
->=20Table=20at=200x010A=20=20Intel/Sharp=20Extended=20Query=20Table=20at=20=
-0x010A=20=20
->=20Intel/Sharp=20Extended=20Query=20Table=20at=200x010A=20Using=20buffer=20=
-write=20method
->=20cfi_cmdset_0001:=20Erase=20suspend=20on=20write=20enabled=20Creating=20=
-4=20
->=20MTD=20partitions=20on=20"omapflash.1":
->=200x00000000-0x00040000=20:=20"(strata)=20bootloader"
->=200x00040000-0x00060000=20:=20"(strata)=20params"
->=200x00060000-0x00260000=20:=20"(strata)=20kernel"
->=200x00260000-0x04000000=20:=20"(strata)=20filesystem"
->=20omapflash:=20probe=20of=20omapflash.0=20failed=20with=20error=20-5
->=20NAND:=20Unable=20to=20find=20NAND=20settings=20in=20GPMC=20Configurati=
-on=20-=20quitting
->=20mice:=20PS/2=20mouse=20device=20common=20for=20all=20mice=20Registerin=
-g=20OMAP=20
->=20device=20'omap_twl4030keypad1'.=20Parent=20at=20L4CORE=20Registering=20=
+>=20
 
->=20OMAP=20device=20'omap_tsc20468'.=20Parent=20at=20L4CORE=20Registering=20=
+> Original U-boot TFTP & Kernel init flow output::
 
->=20OMAP=20device=20'omap2430-mmc12'.=20Parent=20at=20L3=20Registering=20O=
-MAP=20
->=20device=20'omap2430-mmc217'.=20Parent=20at=20L3=20Registering=20OMAP=20=
-
->=20device=20'omap-audio7'.=20Parent=20at=20L3=20OMAP243X=20TWL4030=20Audi=
-o=20
->=20Support:=20Chip=20Rev[0x2f]=20Initialized
->=20NET:=20Registered=20protocol=20family=202
->=20IP:=20routing=20cache=20hash=20table=20of=20512=20buckets,=204Kbytes
->=20TCP:=20Hash=20tables=20configured=20(established=202048=20bind=204096)=
-
->=20NET:=20Registered=20protocol=20family=201
->=20NET:=20Registered=20protocol=20family=2017
->=20VFP=20support=20v0.3:=20implementor=2041=20architecture=201=20part=202=
-0=20
->=20variant=20b=20rev=202
->=20IP-Config:=20No=20network=20devices=20available.
->=20Root-NFS:=20No=20NFS=20server=20available,=20giving=20up.
->=20VFS:=20Unable=20to=20mount=20root=20fs=20via=20NFS,=20trying=20floppy.=
-
->=20VFS:=20Cannot=20open=20root=20device=20"nfs"=20or=20unknown-block(2,0)=
-=20
->=20Please=20append=20a=20correct=20"root=3D"=20boot=20option=20Kernel=20p=
-anic=20-=20
->=20not=20syncing:=20VFS:=20Unable=20to=20mount=20root=20fs=20on
->=20unknown-block(2,0)
->=20=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+> =
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->=20=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->=20=3D=3D=3D=3D
->=20
->=20
->=20
->=20thanks=20in=20advacne,
->=20eyal=20s.
->=20=20
->=20
->=20______________________________________________________________________=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 
->=20This=20email=20has=20been=20scanned=20by=20the=20MessageLabs=20Email=20=
-Security=20System.
->=20For=20more=20information=20please=20visit=20
->=20http://www.messagelabs.com/email=20
->=20______________________________________________________________________=
+> OMAP243X SDP # bootm
+
+> ## Booting image at 80000000 ...
+
+>    Image Name:   Linux-2.6.10_mobilinux410-omap24
+
+>    Image Type:   ARM Linux Kernel Image (uncompressed)
+
+>    Data Size:    1401456 Bytes =3D  1.3 MB
+
+>    Load Address: 80008000
+
+>    Entry Point:  80008000
+
+>    Verifying Checksum ... OK
+
+> OK
+
+> Starting kernel ...
+
+> =20
+
+> Uncompressing
+
+> Linux.............................................................
+
+> ................................. done, booting the kernel.
+
+> Linux version 2.6.10_mobilinux410-omap2430_sdp
+
+> (root@localhost.localdomain) (gcc
 
 >=20
->=20______________________________________________________________________=
 
->=20This=20email=20has=20been=20scanned=20by=20the=20MessageLabs=20Email=20=
-Security=20System.
->=20For=20more=20information=20please=20visit=20
->=20http://www.messagelabs.com/email=20
->=20______________________________________________________________________=
+>  version 3.4.3 (MontaVista 3.4.3-25.0.109.0601319=20
 
->=20_______________________________________________
->=20Linux-omap-open-source=20mailing=20list
->=20Linux-omap-open-source@linux.omap.com
->=20http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> 2006-08-20)) #5 Tue Nov 21 17:
+
 >=20
+
+> 41:06 IST 2006
+
+> CPU: TI OMAP2430 (ARM1136JF-S) [4107b362] revision 2 (ARMv6TEJ)
+
+> CPU0: D VIPT write-back cache
+
+> CPU0: I cache: 32768 bytes, associativity 4, 32 byte lines, 256 sets
+
+> CPU0: D cache: 32768 bytes, associativity 4, 32 byte lines, 256 sets
+
+> Machine: OMAP24xx 2430SDP
+
+> Memory policy: ECC disabled, Data cache writeback Power=20
+
+> Management for TI OMAP.
+
+> Clocking rate (xtal/DPLL/MPU): 13.0/660/330 MHz
+
+> clock.c: Enable for dpll_ck without enable code Disabling=20
+
+> unused clock "i2chs2_fck"... <6> done Disabling unused clock=20
+
+> "i2c2_ick"... <6> done Disabling unused clock "i2chs1_fck"...=20
+
+> <6> done Disabling unused clock "i2c1_ick"... <6> done=20
+
+> Disabling unused clock "wdt1_ick"... <6> done Disabling=20
+
+> unused clock "mpu_wdt_fck"... <6> done Disabling unused clock=20
+
+> "mpu_wdt_ick"... <6> done Disabling unused clock=20
+
+> "gpios_fck"... <6> done Disabling unused clock "gpios_ick"...=20
+
+> <6> done Disabling unused clock "gpt2_fck"... <6> done=20
+
+> Disabling unused clock "gpt2_ick"... <6> done Disabling=20
+
+> unused clock "mdm_osc_ck"... <6> done Disabling unused clock=20
+
+> "iva2_1_fck"... <6> done Disabling unused clock=20
+
+> "apll54_ck"... <6> done Built 1 zonelists Kernel command=20
+
+> line: mem=3D32M console=3DttyS0,115200n8 noinitrd root=3D/dev/nfs=20
+
+> ip=3Ddhcp PID hash table entries: 256 (order: 8, 4096 bytes)=20
+
+> OMAP GPTimer1 hardware version 1.6 OMAP GPTimer2 hardware version 1.6
+
+> Console: colour dummy device 80x30
+
+> Dentry cache hash table entries: 8192 (order: 3, 32768 bytes)=20
+
+> Inode-cache hash table entries: 4096 (order: 2, 16384 bytes)
+
+> Memory: 32MB =3D 32MB total
+
+> Memory: 29312KB available (2396K code, 533K data, 128K init)=20
+
+> Mount-cache hash table entries: 512 (order: 0, 4096 bytes)
+
+> CPU: Testing write buffer coherency: ok
+
+> spawn_desched_task(00000000)
+
+> desched cpu_callback 3/00000000
+
+> ksoftirqd started up.
+
+> desched cpu_callback 2/00000000
+
+> desched thread 0 started up.
+
+> NET: Registered protocol family 16
+
+> OMAP DMA4 hardware Initialized (max lch=3D32) OMAP GPIO=20
+
+> hardware version 2.2 OMAP virtual buses initialized
+
+> map2_disp: timeout waiting for display controller reset OMAP=20
+
+> Display hardware version 1.0 Registering OMAP device=20
+
+> 'OMAP24xx I2C 03'. Parent at L4CORE Registering OMAP device=20
+
+> 'OMAP24xx I2C 13'. Parent at L4CORE TWL4030 Power Companion Active
+
+> TWL4030: Driver registration complete.
+
+> SCSI subsystem initialized
+
+> usbcore: registered new driver usbfs
+
+> usbcore: registered new driver hub
+
+> musb_hdrc: version 2.2a/db-0.4.8 [musb-dma] [otg:=20
+
+> peripheral+host] debug=3D0]
+
+> usb_hdrc: USB OTG mode controller at c2800000 using DMA, IRQ=20
+
+> 92 musb_hdrc musb_hdrc.0: new USB bus registered, assigned=20
+
+> bus number 1 memmap 1.1 initialised OMAP24xx Dynamic Power=20
+
+> Management NetWinder Floating Point Emulator V0.97 (double precision)
+
+> JFFS2 version 2.2. (NAND) (C) 2001-2003 Red Hat, Inc.
+
+> Registering OMAP device 'sdp2430_lcd9'. Parent at L3=20
+
+> Registering OMAP device 'sdp2430_tv10'. Parent at L3=20
+
+> Registering OMAP device 'omap24xxfb6'. Parent at L3
+
+> omap24xxfb: Options "<NULL>"
+
+> Console: switching to colour frame buffer device 30x40
+
+> omap24xxfb: fb0 frame buffer device
+
+> omap24xxfb: display mode 240x320x16 hsync 19kHz vsync 58Hz
+
+> omap_wdt: TI OMAP Watchdog Timer: timer margin 10000 sec
+
+> Serial: 8250/16550 driver $Revision: 1.90 $ 4 ports, IRQ=20
+
+> sharing disabled ttyS0 at MMIO 0x4806a000 (irq =3D 72) is a ST16654
+
+> ttyS1 at MMIO 0x4806c000 (irq =3D 73) is a ST16654
+
+> ttyS2 at MMIO 0x4806e000 (irq =3D 74) is a ST16654 io scheduler=20
+
+> noop registered io scheduler anticipatory registered io=20
+
+> scheduler deadline registered io scheduler cfq registered=20
+
+> RAMDISK driver initialized: 16 RAM disks of 8192K size 1024 blocksize
+
+> loop: loaded (max 8 devices)
+
+> OMAP Timer32K is initialized
+
+> Registering OMAP device 'omap-twl4030rtc16'. Parent at L4CORE=20
+
+> omap-twl4030rtc:TWL4030-RTC Power up reset detected.
+
+> omap-twl4030rtc:Enabling TWL4030-RTC.
+
+> smc91x: not found (-19).
+
+> TWL4030 GPIO Demux: IRQ Range 264 to 273, Initialization=20
+
+> Success Linux video capture interface: v1.00 Registering OMAP=20
+
+> device 'omap24xxcam0'. Parent at L3 EX3691:Failed to detect=20
+
+> EX3691 SOC.
+
+> omap24xxcam: cannot initialize sensor
+
+> Registering OMAP device 'omap24xxvout111'. Parent at L3
+
+> omap24xxvout: registered device video1 [v4l2] Registering=20
+
+> OMAP device 'omap24xxvout212'. Parent at L3
+
+> omap24xxvout: registered device video2 [v4l2] OMAP HDQ=20
+
+> Hardware Revision 0.3. Driver in interrupt mode.
+
+> elevator: using anticipatory as default io scheduler
+
+> omapflash.1: Found 1 x16 devices at 0x0 in 16-bit bank
+
+> omapflash.1: Found 1 x16 devices at 0x2000000 in 16-bit bank =20
+
+> Intel/Sharp Extended Query Table at 0x010A  Intel/Sharp=20
+
+> Extended Query Table at 0x010A  Intel/Sharp Extended Query=20
+
+> Table at 0x010A  Intel/Sharp Extended Query Table at 0x010A =20
+
+> Intel/Sharp Extended Query Table at 0x010A Using buffer write method
+
+> cfi_cmdset_0001: Erase suspend on write enabled Creating 4=20
+
+> MTD partitions on "omapflash.1":
+
+> 0x00000000-0x00040000 : "(strata) bootloader"
+
+> 0x00040000-0x00060000 : "(strata) params"
+
+> 0x00060000-0x00260000 : "(strata) kernel"
+
+> 0x00260000-0x04000000 : "(strata) filesystem"
+
+> omapflash: probe of omapflash.0 failed with error -5
+
+> NAND: Unable to find NAND settings in GPMC Configuration - quitting
+
+> mice: PS/2 mouse device common for all mice Registering OMAP=20
+
+> device 'omap_twl4030keypad1'. Parent at L4CORE Registering=20
+
+> OMAP device 'omap_tsc20468'. Parent at L4CORE Registering=20
+
+> OMAP device 'omap2430-mmc12'. Parent at L3 Registering OMAP=20
+
+> device 'omap2430-mmc217'. Parent at L3 Registering OMAP=20
+
+> device 'omap-audio7'. Parent at L3 OMAP243X TWL4030 Audio=20
+
+> Support: Chip Rev[0x2f] Initialized
+
+> NET: Registered protocol family 2
+
+> IP: routing cache hash table of 512 buckets, 4Kbytes
+
+> TCP: Hash tables configured (established 2048 bind 4096)
+
+> NET: Registered protocol family 1
+
+> NET: Registered protocol family 17
+
+> VFP support v0.3: implementor 41 architecture 1 part 20=20
+
+> variant b rev 2
+
+> IP-Config: No network devices available.
+
+> Root-NFS: No NFS server available, giving up.
+
+> VFS: Unable to mount root fs via NFS, trying floppy.
+
+> VFS: Cannot open root device "nfs" or unknown-block(2,0)=20
+
+> Please append a correct "root=3D" boot option Kernel panic -=20
+
+> not syncing: VFS: Unable to mount root fs on
+
+> unknown-block(2,0)
+
+> =
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+
+> =3D=3D=3D=3D
+
+>=20
+
+>=20
+
+>=20
+
+> thanks in advacne,
+
+> eyal s.
+
+> =20
+
+>=20
+
+> ______________________________________________________________________
+
+> This email has been scanned by the MessageLabs Email Security System.
+
+> For more information please visit=20
+
+> http://www.messagelabs.com/email=20
+
+> ______________________________________________________________________
+
+>=20
+
+> ______________________________________________________________________
+
+> This email has been scanned by the MessageLabs Email Security System.
+
+> For more information please visit=20
+
+> http://www.messagelabs.com/email=20
+
+> ______________________________________________________________________
+
+> _______________________________________________
+
+> Linux-omap-open-source mailing list
+
+> Linux-omap-open-source@linux.omap.com
+
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+
+>=20
+
 
 ______________________________________________________________________
-This=20email=20has=20been=20scanned=20by=20the=20MessageLabs=20Email=20Sec=
-urity=20System.
-For=20more=20information=20please=20visit=20http://www.messagelabs.com/ema=
-il=20
+This email has been scanned by the MessageLabs Email Security System.
+For more information please visit http://www.messagelabs.com/email=20
 ______________________________________________________________________
