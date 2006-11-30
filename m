@@ -1,14 +1,15 @@
-From: tony@atomide.com
-Subject: Re: [patch 2.6.19-rc6-omap1] remove duplicate omap watchdog kconfig
-	entry
-Date: Thu, 30 Nov 2006 14:44:49 -0800
-Message-ID: <20061130224448.GD9605@atomide.com>
-References: <20061128072829.6EFD61E1901@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [RFC] [PATCH] ARM: OMAP1: Add clocksource driver for OMAP1
+Date: Thu, 30 Nov 2006 16:57:12 -0600
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A508CE05B3@dlee02.ent.ti.com>
+References: <200611301432.46837.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20061128072829.6EFD61E1901@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+Content-class: urn:content-classes:message
+In-Reply-To: <200611301432.46837.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,26 +23,39 @@ To: David Brownell <david-b@pacbell.net>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [061127 23:34]:
-> I suspect this dup joined us when the driver got merged upstream.
-> 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> 
-> --- osk2.orig/drivers/char/watchdog/Kconfig	2006-10-25 14:06:49.000000000 -0700
-> +++ osk2/drivers/char/watchdog/Kconfig	2006-11-24 10:24:42.000000000 -0800
-> @@ -750,11 +750,4 @@ config USBPCWATCHDOG
->  
->  	  Most people will say N.
->  
-> -config OMAP_WATCHDOG
-> -	tristate "OMAP Watchdog"
-> -	depends on WATCHDOG && (ARCH_OMAP16XX || ARCH_OMAP24XX)
-> -	help
-> -	  Support for TI OMAP1610/OMAP1710/OMAP2420 watchdog. Say 'Y' here to enable the
-> -	  OMAP1610/OMAP1710 watchdog timer.
-> -
->  endmenu
+> -----Original Message-----
+> From: David Brownell [mailto:david-b@pacbell.net]
+> Not that I have time to look into OMAP2 low power modes ... but I'd
+> thought
+> the preferred solution when low power was a concern would be to use
+the
+> 32k timers not the general purpose ones, and that you more or less
+said
+> just that.  Did I translate that correctly?  :)
 
-Pushing today.
+Mostly :), but you have more options depending on your target mode.
 
-Tony
+There is one GPT in the wake up domain and a bunch in the CORE domain.
+The all can have source 32K/SYSCK/ALTCK.  All of them are 'wakeup
+capable' however, depending on the depth of your sleep the CORE ones may
+not wake you.  You can target sleep modes where you can sleep in between
+peripheral activity and use the CORE peripheral wake you.  In those
+cases interface clocks are auto gated but some functional clocks can
+run.  (a timer can do this).  So you can use a CORE timer and still hit
+perhaps your most used power mode.  For Retention you (non-functional)
+must use a WKUP one.
+
+One sort of nice aspect of using SYSCLK is its value can be more
+accurate and its resolution is higher for time stamps.
+
+A 32K timer is really 32768 no 32000 and over timer you accumulate error
+faster.  Some users alternate sleep times over an interval to account
+for this error.  It is less necessary to do this with a MHz timer, but
+perhaps a bit depending on your input speed.
+
+For a 1ms tick target 32*1/32768=3D.976ms and a 33*1/32768=3D1.007ms.  =
+You
+can fix this by alternating between 32 and 33 over an interval.=20
+
+Regards,
+Richard W.
