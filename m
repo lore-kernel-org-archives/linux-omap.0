@@ -1,16 +1,15 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: CONFIG_PREEMPT_RT patch on Apollon (OMAP2)
-Date: Thu, 30 Nov 2006 13:35:23 -0800
-Message-ID: <200611301335.23815.david-b@pacbell.net>
-References: <11115895.486281164610759448.JavaMail.weblogic@ep_ml20>
-	<456B3802.1000101@gmail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [RFC] [PATCH] ARM: OMAP1: Add clocksource driver for OMAP1
+Date: Thu, 30 Nov 2006 15:49:14 -0600
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A508CE04CD@dlee02.ent.ti.com>
+References: <200611301330.04176.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <456B3802.1000101@gmail.com>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
+In-Reply-To: <200611301330.04176.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,23 +19,39 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: David Brownell <david-b@pacbell.net>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 27 November 2006 11:09 am, Dirk Behme wrote:
+> From: David Brownell [mailto:david-b@pacbell.net]
+> I don't think the roll-over IRQ is significant in the new clock
+framework,
+> but I do think that the second MPU timer is important if there's a
+chance
+> of lost timer IRQs ... probably negligible at HZ=3D100, less so when =
+the
+> option
+> of HZ=3D1000 is configured.
+>=20
+> Plus, ISTR that the upcoming generic dyntick support will need to
+> reprogram
+> the periodic IRQ, just like the current OMAP-specific code using
+timer32k.
 
-> > 1. ethernet flags
-> >   - After change from IRQF_RISING to IRQF_HIGH in recent OMAP2 patch. it occurs the GPIO bug message in line 1005.
-> >     So I reverted IRQF_RISING as before. then it's working.
-> 
-> Maybe David has an idea here? [1]
+The only thing about using two timers which made me think twice was what
+happens during retention/off mode sleeps.  This forces you to add a
+little code to account for clock switching (sys_clk to 32KHz) at the
+periodic timer, and adding knowledge about the stopped free running one.
 
-No.  H4 with NFSroot and current GIT works fine for me; that
-uses IRQF_TRIGGER_LOW.
+Having a single GPT1 timer active which is wake up capable makes it all
+simpler.  I did ask for a 2nd timer in the wake up domain and that
+actually happened in 3430.
 
-The "best" solution would of course be passing the flags in
-the IRQ resource, but that'd be more invasive to smc91x and
-(eventually) the board init code.  platform_get_irq() doesn't
-pass those flags along.
+... Actually, I would guess many use cases would be find using a CORE
+domain timer and setting the target for the system sleep to be
+'request-idle' this removes any worry about the clock transition as the
+functional clock of the CORE timer can run and its ISR can issue a PRCM
+wake up.  This is the state you want to generally go into anyway in an
+idle routine if you any kind of peripheral activity.
 
-- Dave
+Regards,
+Richard W.
