@@ -1,15 +1,14 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [RFC] [PATCH] ARM: OMAP1: Add clocksource driver for OMAP1
-Date: Thu, 30 Nov 2006 15:49:14 -0600
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A508CE04CD@dlee02.ent.ti.com>
-References: <200611301330.04176.david-b@pacbell.net>
+From: tony@atomide.com
+Subject: Re: [RFC] [PATCH] ARM: OMAP1: Add clocksource driver for OMAP1
+Date: Thu, 30 Nov 2006 13:59:27 -0800
+Message-ID: <20061130215926.GA7762@atomide.com>
+References: <20061110005357.GZ16172@atomide.com>
+	<EA12F909C0431D458B9D18A176BEE4A508CE02C7@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <200611301330.04176.david-b@pacbell.net>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <EA12F909C0431D458B9D18A176BEE4A508CE02C7@dlee02.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,41 +16,29 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-> From: David Brownell [mailto:david-b@pacbell.net]
-> I don't think the roll-over IRQ is significant in the new clock
-framework,
-> but I do think that the second MPU timer is important if there's a
-chance
-> of lost timer IRQs ... probably negligible at HZ=3D100, less so when =
-the
-> option
-> of HZ=3D1000 is configured.
->=20
-> Plus, ISTR that the upcoming generic dyntick support will need to
-> reprogram
-> the periodic IRQ, just like the current OMAP-specific code using
-timer32k.
+Hi,
 
-The only thing about using two timers which made me think twice was what
-happens during retention/off mode sleeps.  This forces you to add a
-little code to account for clock switching (sys_clk to 32KHz) at the
-periodic timer, and adding knowledge about the stopped free running one.
+* Woodruff, Richard <r-woodruff2@ti.com> [061130 11:58]:
+> 
+> > If anybody with 1510 has a chance, it may be worth scanning through
+> some
+> > registers in case there is some continuously running timer for this..
+> 
+> TRM shows 1510 has 3 general timers and 1 32KHz timer.  The 32KHz timer
+> is at base=0xFFFB9000.  TVR=base+0, TCR=base+4, CR=base+8.  It comes in
+> on L2-Pic-IRQ22.  It has a 24 bit counter.
 
-Having a single GPT1 timer active which is wake up capable makes it all
-simpler.  I did ask for a 2nd timer in the wake up domain and that
-actually happened in 3430.
-
-... Actually, I would guess many use cases would be find using a CORE
-domain timer and setting the target for the system sleep to be
-'request-idle' this removes any worry about the clock transition as the
-functional clock of the CORE timer can run and its ISR can issue a PRCM
-wake up.  This is the state you want to generally go into anyway in an
-idle routine if you any kind of peripheral activity.
+Thanks for the info, I guess I was looking for the continuously running
+32KHz timer in addition to that, as then we could use the same dyntick
+code on 1510 also. Do you know if there is continuously running 32KHz
+timer on 1510?
 
 Regards,
-Richard W.
+
+Tony
