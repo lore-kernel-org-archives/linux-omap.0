@@ -1,13 +1,13 @@
 From: tony@atomide.com
-Subject: Re: [PATCH] Exporting reserved APIs in GPMC library.
-Date: Thu, 30 Nov 2006 14:43:19 -0800
-Message-ID: <20061130224318.GC9605@atomide.com>
-References: <77C7F7CB1230A74A9D19C0C111E6EDBE01F7E534@DLEE09.ent.ti.com>
+Subject: Re: [patch 2.6.19-rc6-omap1] speed up gpio irq handling
+Date: Thu, 30 Nov 2006 14:47:28 -0800
+Message-ID: <20061130224728.GE9605@atomide.com>
+References: <20061128073001.AF6C61E1901@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <77C7F7CB1230A74A9D19C0C111E6EDBE01F7E534@DLEE09.ent.ti.com>
+In-Reply-To: <20061128073001.AF6C61E1901@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,27 +17,17 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+To: David Brownell <david-b@pacbell.net>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Syed Mohammed, Khasim <x0khasim@ti.com> [061127 08:16]:
-> Hi,
-> 
-> The attached patch is to export two APIs (gpmc_cs_set_reserved and
-> gpmc_cs_reserved) of GPMC library.
-> 
-> This allows other libraries and drivers to access these APIs with out
-> doing a gpmc_request. 
-> 
-> Reason: If I have already configured a GPMC CS in boot loader I might
-> not be interested in doing the same again in Kernel. However I might
-> want to reserve this particular CS so that it doesn't show as free when
-> others do a gpmc_request. 
+* David Brownell <david-b@pacbell.net> [061127 23:31]:
+> Speedup and shrink GPIO irq handling code, by using a pointer
+> that's available in the irq_chip structure instead of calling
+> the get_gpio_bank() function.  On OMAP1 this saves 44 words,
+> most of which were in IRQ critical path methods.  Hey, every
+> few instructions help.
 
-Pushing your two patches today as a single patch. Left out the HISTORY
-part to cut down on clutter as it already shows up in git.
-
-Regards,
+Cool, pushing today.
 
 Tony
