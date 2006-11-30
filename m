@@ -1,44 +1,43 @@
-From: "andrzej zaborowski" <balrog-8Nh0/XqGfevYtjvyW6yDsg@public.gmane.org>
-Subject: Multi-function chipset drivers
-Date: Thu, 30 Nov 2006 20:26:34 +0100
-Message-ID: <fb249edb0611301126l10e435ydcd290e467f49848@mail.gmail.com>
-Reply-To: balrogg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: CONFIG_PREEMPT_RT patch on OSK
+Date: Thu, 30 Nov 2006 20:43:43 +0100
+Message-ID: <456F346F.8030906@gmail.com>
+References: <455EBA92.5050804@gmail.com>
+	<a0580c510611301012t3985c696q88834c4960acdf8f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <kernel-discuss-bounces-CN5wO63fgwogsBAKwltoeQ@public.gmane.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://handhelds.org/mailman/listinfo/kernel-discuss>,
-	<mailto:kernel-discuss-request-CN5wO63fgwogsBAKwltoeQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://www.handhelds.org/hypermail/kernel-discuss/current>
-List-Post: <mailto:kernel-discuss-CN5wO63fgwogsBAKwltoeQ@public.gmane.org>
-List-Help: <mailto:kernel-discuss-request-CN5wO63fgwogsBAKwltoeQ@public.gmane.org?subject=help>
-List-Subscribe: <https://handhelds.org/mailman/listinfo/kernel-discuss>,
-	<mailto:kernel-discuss-request-CN5wO63fgwogsBAKwltoeQ@public.gmane.org?subject=subscribe>
-Sender: kernel-discuss-bounces-CN5wO63fgwogsBAKwltoeQ@public.gmane.org
-Errors-To: kernel-discuss-bounces-CN5wO63fgwogsBAKwltoeQ@public.gmane.org
-To: Linux-OMAP <linux-omap-open-source-P3Mejjx7fphMeHKdZgrLhA@public.gmane.org>, Paul Sokolovsky <pmiscml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, kernel-discuss-CN5wO63fgwogsBAKwltoeQ@public.gmane.org
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <a0580c510611301012t3985c696q88834c4960acdf8f@mail.gmail.com>
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Eduardo Valentin <edubezval@gmail.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Linux-omap-open-source,
+Eduardo Valentin wrote:
+> [   16.829315] BUG: scheduling while atomic: IRQ 160/0x00000001/709, CPU#0
+> [   18.828186] NETDEV WATCHDOG: eth0: transmit timed out
+> [   21.828155] NETDEV WATCHDOG: eth0: transmit timed out
+> 
+>   Have you already faced this problem? 
 
-There has been a proposition of adding a light framework for Linux
-drivers for chips with multiple different functions that are often
-built into embedded boards. I've been reading the discussion that is
-going on in kernel-discuss-CN5wO63fgwqpoNJhxZO3iw@public.gmane.org I'm just writing here to
-make you aware of the proposition as the linux-omap-2.6 tree contains
-at least drivers for the TSC2101 and TSC2102 chips that I know of and
-only recently a driver for TWL4030 has been posted. Thus OMAP hackers
-may have valuable comments on the proposed framework now while neither
-the name nor the API is decided upon. These are the URLs of related
-threads:
+As mentioned in [1] I doubt ethernet as well. For test 
+purposes I boot using ramdisk instead of NFS, so I had no 
+network/NFS access at boot time. Then, I manually mounted 
+NFS from user space and played MP3 via NFS [1].
 
-"[RFC] Shuffling drivers around"
-http://www.handhelds.org/hypermail/kernel-discuss/20/2063.html
+Anybody with a hint for non-experts what "BUG: scheduling 
+while atomic" wants to tell us? Any idea what is wrong here? 
+IRQ 160 is our GPIO  eth0 interrupt.
 
-"SoC support and mainline"
-http://www.handhelds.org/hypermail/kernel-discuss/21/2174.html
+Dirk
 
-If you have ideas or critique please post under these threads.
-Thanks,
-Andrzej
+[1] 
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008490.html
