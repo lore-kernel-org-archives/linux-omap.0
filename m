@@ -1,13 +1,13 @@
 From: tony@atomide.com
-Subject: Re: [PATCH] ARM: OMAP: Remove platform_device.h from dsp.h
-Date: Thu, 30 Nov 2006 15:08:34 -0800
-Message-ID: <20061130230833.GG9605@atomide.com>
-References: <3a5b1be00611301252j4f5d6f22ydf389457982f3c58@mail.gmail.com>
+Subject: Re: [patch 2.6.19-rc6-omap1] MPUIO wake updates
+Date: Thu, 30 Nov 2006 15:14:17 -0800
+Message-ID: <20061130231417.GI9605@atomide.com>
+References: <20061128073226.0816C1E1937@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <3a5b1be00611301252j4f5d6f22ydf389457982f3c58@mail.gmail.com>
+In-Reply-To: <20061128073226.0816C1E1937@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,39 +17,33 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Komal Shah <komal.shah802003@gmail.com>
+To: David Brownell <david-b@pacbell.net>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Komal Shah <komal.shah802003@gmail.com> [061130 12:53]:
-> -- 
-> ---Komal Shah
-> http://komalshah.blogspot.com
-
-> From 2b552fefc1ff873b1ccc2c6657b5bce758458897 Mon Sep 17 00:00:00 2001
-> From: Komal Shah <komal_shah802003@yahoo.com>
-> Date: Fri, 1 Dec 2006 02:19:17 +0530
-> Subject: [PATCH] ARM: OMAP: Remove platform_device.h from dsp.h
+* David Brownell <david-b@pacbell.net> [061127 23:40]:
+> GPIO and MPUIO wake updates:
 > 
-> - Remove unnecessary #include <linux/platform_device.h>
+>  - Hook MPUIOs into the irq wakeup framework too.  This uses a platform
+>    device to update irq enables during system sleep states, instead of
+>    a sys_device, since the latter is no longer needed for such things.
 > 
-> Signed-off-by: Komal Shah <komal_shah802003@yahoo.com>
-> ---
->  arch/arm/plat-omap/dsp/dsp.h |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
+>  - Also forward enable/disable irq wake requests to the relevant GPIO
+>    controller, so the top level IRQ dispatcher can (eventually) handle
+>    these wakeup events automatically if more than one GPIO pin needs to
+>    be a wakeup event source.
 > 
-> diff --git a/arch/arm/plat-omap/dsp/dsp.h b/arch/arm/plat-omap/dsp/dsp.h
-> index 64d22c6..3535659 100644
-> --- a/arch/arm/plat-omap/dsp/dsp.h
-> +++ b/arch/arm/plat-omap/dsp/dsp.h
-> @@ -21,7 +21,6 @@
->   *
->   */
->  
-> -#include <linux/platform_device.h>
->  #include "hardware_dsp.h"
->  #include "dsp_common.h"
->  
+>  - Minor tweak to the 24xx non-wakeup gpio stuff: no need to check such
+>    read-only data under the spinlock.
+> 
+> This assumes (maybe wrongly?) that only 16xx can do GPIO wakeup; without
+> a 15xx I can't test such stuff.
+> 
+> Also this expects the top level IRQ dispatcher to properly handle requests
+> to enable/disable irq wake, which is currently known to be wrong:  omap1
+> saves the flags but ignores them, omap2 doesn't even save it.  (Wakeup
+> events are, wrongly, hardwired in the relevant mach-omapX/pm.c file ...)
+> So MPUIO irqs won't yet trigger system wakeup.
 
 Pushing today.
 
