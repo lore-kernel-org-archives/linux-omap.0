@@ -1,13 +1,14 @@
-From: <Toshihiro.Kobayashi@nokia.com>
-Subject: [PATCH] ARM: OMAP: fix for mailbox queue status detection
-Date: Thu, 30 Nov 2006 20:09:01 +0900
-Message-ID: <7AF192DA69C59243838FF62851F64F55033BEEC1@toebe101.NOE.Nokia.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: libcurl for omap arm linux
+Date: Thu, 30 Nov 2006 17:39:47 +0100
+Message-ID: <456F0953.9080608@gmail.com>
+References: <504714.62070.qm@web34507.mail.mud.yahoo.com>
+	<20061130075156.964471E2112@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+In-Reply-To: <20061130075156.964471E2112@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,84 +18,19 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com, hiroshi.doyu@nokia.com
+To: binsoft007@yahoo.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-detect 'full' and 'empty' correctly and simply.
+David Brownell wrote:
+>>I require this lib to perform some HTTP related 
+>>operations[GET, POST etc]. 
+>>
+>>Let me know, how I could go about doing HTTP related 
+>>operations on omap-arm-linux. 
+> 
+> Did you try compiling it yourself?  Or cross-compiling it?
 
-Signed-off-by: Toshihiro Kobayashi <toshihiro.kobayashi@nokia.com>
+Or prebuild Debian package?
 
----
-
- arch/arm/plat-omap/mailbox.h |   18 +++++++-----------
- 1 files changed, 7 insertions(+), 11 deletions(-)
-
-927a857c6e44fd508562d9d8c5654b9159449abc
-diff --git a/arch/arm/plat-omap/mailbox.h b/arch/arm/plat-omap/mailbox.h
-index f8b87a1..c3f8f2c 100644
---- a/arch/arm/plat-omap/mailbox.h
-+++ b/arch/arm/plat-omap/mailbox.h
-@@ -21,6 +21,7 @@ struct omap_mbq {
- 	rwlock_t lock;
- 	mbox_msg_t msg[MBQ_DEPTH];
- 	mbox_msg_t *rp, *wp;
-+	int cnt;
- };
-=20
- static inline int mbq_init(struct omap_mbq **addr)
-@@ -33,6 +34,7 @@ static inline int mbq_init(struct omap_m
-=20
- 	write_lock_irq(&m->lock);
- 	m->rp =3D m->wp =3D &m->msg[0];
-+	m->cnt =3D 0;
- 	write_unlock_irq(&m->lock);
-=20
- 	*addr =3D m;
-@@ -45,7 +47,7 @@ static inline int mbq_empty(struct omap_
- 	int ret;
-=20
- 	read_lock_irq(&mbq->lock);
--	ret =3D (mbq->rp =3D=3D mbq->wp);
-+	ret =3D (mbq->cnt =3D=3D 0);
- 	read_unlock_irq(&mbq->lock);
-=20
- 	return ret;
-@@ -54,16 +56,9 @@ static inline int mbq_empty(struct omap_
- static inline int mbq_full(struct omap_mbq *mbq)
- {
- 	int ret;
--	mbox_msg_t *p;
-=20
- 	read_lock_irq(&mbq->lock);
--	p =3D mbq->wp;
--
--	if (++p =3D=3D &mbq->msg[MBQ_DEPTH])
--		p =3D &mbq->msg[0];
--
--	ret =3D (p =3D=3D mbq->rp);
--
-+	ret =3D (mbq->cnt =3D=3D MBQ_DEPTH);
- 	read_unlock_irq(&mbq->lock);
-=20
- 	return ret;
-@@ -79,8 +74,8 @@ static inline int mbq_add(struct omap_mb
- 	if (++mbq->wp =3D=3D &mbq->msg[MBQ_DEPTH])
- 		mbq->wp =3D &mbq->msg[0];
-=20
--	if (mbq->wp =3D=3D mbq->rp)	/* full */
--		ret =3D -1;;
-+	if (++mbq->cnt =3D=3D MBQ_DEPTH)	/* full */
-+		ret =3D -1;
-=20
- 	write_unlock_irq(&mbq->lock);
-=20
-@@ -97,6 +92,7 @@ static inline mbox_msg_t mbq_get(struct=20
-=20
- 	if (++mbq->rp =3D=3D &mbq->msg[MBQ_DEPTH])
- 		mbq->rp =3D &mbq->msg[0];
-+	mbq->cnt--;
-=20
- 	write_unlock_irq(&mbq->lock);
-=20
---=20
-1.3.3
+http://packages.debian.org/oldstable/devel/libcurl-dev
