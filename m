@@ -1,14 +1,15 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: CONFIG_PREEMPT_RT patch on OSK
-Date: Thu, 30 Nov 2006 20:43:43 +0100
-Message-ID: <456F346F.8030906@gmail.com>
-References: <455EBA92.5050804@gmail.com>
-	<a0580c510611301012t3985c696q88834c4960acdf8f@mail.gmail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [RFC] [PATCH] ARM: OMAP1: Add clocksource driver for OMAP1
+Date: Thu, 30 Nov 2006 13:57:50 -0600
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A508CE02C7@dlee02.ent.ti.com>
+References: <20061110005357.GZ16172@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <a0580c510611301012t3985c696q88834c4960acdf8f@mail.gmail.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <20061110005357.GZ16172@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,26 +19,37 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Eduardo Valentin <edubezval@gmail.com>, linux-omap-open-source@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@mvista.com>
+Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Eduardo Valentin wrote:
-> [   16.829315] BUG: scheduling while atomic: IRQ 160/0x00000001/709, CPU#0
-> [   18.828186] NETDEV WATCHDOG: eth0: transmit timed out
-> [   21.828155] NETDEV WATCHDOG: eth0: transmit timed out
-> 
->   Have you already faced this problem? 
+> In this case it will start drifting if you try to do it with just one
+> timer. On omaps, we should use the always running 32 KiHZ timer for
+> clocksource like the timer32k.c does. Unfortunately that's does not
+seem
+> to be available on 1510, and maybe that's why the original mpu timer
+> code from RidgeRun used two timers.
 
-As mentioned in [1] I doubt ethernet as well. For test 
-purposes I boot using ramdisk instead of NFS, so I had no 
-network/NFS access at boot time. Then, I manually mounted 
-NFS from user space and played MP3 via NFS [1].
+That code uses two timers to account for isr latency and to provide
+accurate timestamps.  One timer is periodic and the other is free
+running. The 2nd is used as a relative reference.  Along with being used
+as a reference the 2nd free runner uses its current value and its roll
+over interrupt to sum/calculate the number of ns the system has been up.
+This enables sched_clock to be enabled with accuracy (vs. just
+multiplying times jiffies).
 
-Anybody with a hint for non-experts what "BUG: scheduling 
-while atomic" wants to tell us? Any idea what is wrong here? 
-IRQ 160 is our GPIO  eth0 interrupt.
+The single timer method does not do either of these.  The code was
+reasonably clear, I also sent in a path long ago to enable this.  Is
+there some aspect of this which I mis-understood?
 
-Dirk
+> If anybody with 1510 has a chance, it may be worth scanning through
+some
+> registers in case there is some continuously running timer for this..
 
-[1] 
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008490.html
+TRM shows 1510 has 3 general timers and 1 32KHz timer.  The 32KHz timer
+is at base=3D0xFFFB9000.  TVR=3Dbase+0, TCR=3Dbase+4, CR=3Dbase+8.  It =
+comes in
+on L2-Pic-IRQ22.  It has a 24 bit counter.
+
+Regards,
+Richard W.
