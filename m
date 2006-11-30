@@ -1,11 +1,15 @@
-From: "Komal Shah" <komal.shah802003@gmail.com>
-Subject: [PATCH] ARM: OMAP: Fix typo in board-h4.h
-Date: Fri, 1 Dec 2006 01:59:51 +0530
-Message-ID: <3a5b1be00611301229g4a64202dj3db8e440ac48ef86@mail.gmail.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: [RFC] [PATCH] ARM: OMAP1: Add clocksource driver for OMAP1
+Date: Thu, 30 Nov 2006 21:33:41 +0100
+Message-ID: <456F4025.5010403@gmail.com>
+References: <4550A70B.7020609@gmail.com> <4550CA9E.6090500@mvista.com>
+	<456F1B1E.1050305@gmail.com>
+	<200611301114.09352.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_40462_31556824.1164918591711"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <200611301114.09352.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,47 +19,42 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-------=_Part_40462_31556824.1164918591711
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+David Brownell wrote:
+> BTW, please examine the appended patch to consider updating the
+> merge candidate.
 
--- 
----Komal Shah
-http://komalshah.blogspot.com
+Mmh, maybe I'm wrong here or anything is long term 
+misconfigured, but looks to me that I don't get a login 
+prompt with this patch and rt applied. With [1] I get
 
-------=_Part_40462_31556824.1164918591711
-Content-Type: text/x-patch; name=0001-ARM-OMAP-Fix-typo-in-board-h4.h.patch;
-	charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ev5mdkq6
-Content-Disposition: attachment;
-	filename="0001-ARM-OMAP-Fix-typo-in-board-h4.h.patch"
+-- cut --
 
-RnJvbSAwMzQ2ZTExZGVmMGViNzJjMGEyM2ZjNTRkZWZlOTliNDcxOGEwMjU2IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBLb21hbCBTaGFoIDxrb21hbF9zaGFoODAyMDAzQHlhaG9vLmNv
-bT4KRGF0ZTogRnJpLCAxIERlYyAyMDA2IDAxOjU3OjAwICswNTMwClN1YmplY3Q6IFtQQVRDSF0g
-QVJNOiBPTUFQOiBGaXggdHlwbyBpbiBib2FyZC1oNC5oCgotIFJlcGxhY2UgT01BUDE2MTAgdG8g
-T01BUDI0MjAuCgpTaWduZWQtb2ZmLWJ5OiBLb21hbCBTaGFoIDxrb21hbF9zaGFoODAyMDAzQHlh
-aG9vLmNvbT4KLS0tCiBpbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFwL2JvYXJkLWg0LmggfCAgICAy
-ICstCiAxIGZpbGVzIGNoYW5nZWQsIDEgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbnMoLSkKCmRp
-ZmYgLS1naXQgYS9pbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFwL2JvYXJkLWg0LmggYi9pbmNsdWRl
-L2FzbS1hcm0vYXJjaC1vbWFwL2JvYXJkLWg0LmgKaW5kZXggN2UwZWZlZi4uMjNiNWFjNiAxMDA2
-NDQKLS0tIGEvaW5jbHVkZS9hc20tYXJtL2FyY2gtb21hcC9ib2FyZC1oNC5oCisrKyBiL2luY2x1
-ZGUvYXNtLWFybS9hcmNoLW9tYXAvYm9hcmQtaDQuaApAQCAtMSw3ICsxLDcgQEAKIC8qCiAgKiBs
-aW51eC9pbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFwL2JvYXJkLWg0LmgKICAqCi0gKiBIYXJkd2Fy
-ZSBkZWZpbml0aW9ucyBmb3IgVEkgT01BUDE2MTAgSDQgYm9hcmQuCisgKiBIYXJkd2FyZSBkZWZp
-bml0aW9ucyBmb3IgVEkgT01BUDI0MjAgSDQgYm9hcmQuCiAgKgogICogSW5pdGlhbCBjcmVhdGlv
-biBieSBEaXJrIEJlaG1lIDxkaXJrLmJlaG1lQGRlLmJvc2NoLmNvbT4KICAqCi0tIAoxLjQuMy40
-Lmc4MmNjCgo=
-------=_Part_40462_31556824.1164918591711
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Kernel boot message ...
+...
+Loading modules ...
+...
+Welcome to OSK (ARM926T) - Kernel 2.6.19-rc6-rt3-omap1 (ttyS0).
 
+OSK login: root
+login[992]: root login  on `ttyS0'
 
-------=_Part_40462_31556824.1164918591711--
+BusyBox v1.00 (2005.01.31-19:22+0000) Built-in shell (ash)
+Enter 'help' for a list of built-in commands.
+
+#
+-- cut --
+
+With your patch instead [1], everything including output of 
+/etc/issue ("Welcome...") is missing. Module output is still 
+there.
+
+Strange.
+
+Dirk
+
+[1] 
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008370.html
