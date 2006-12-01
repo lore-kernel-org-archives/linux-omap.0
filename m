@@ -1,16 +1,11 @@
-From: Marek =?utf-8?q?Va=C5=A1ut?= <marek.vasut@gmail.com>
-Subject: Re: MMC not working on Z71
-Date: Fri, 1 Dec 2006 07:00:17 +0100
-Message-ID: <200612010700.17693.marek.vasut@gmail.com>
-References: <200611270016.04977.marek.vasut@gmail.com>
-	<20061130223920.GB9605@atomide.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Pending November patches
+Date: Fri, 01 Dec 2006 16:32:37 +0100
+Message-ID: <45704B15.4040706@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20061130223920.GB9605@atomide.com>
-Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,44 +15,60 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: tony@atomide.com, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Dne =C4=8Dtvrtek 30 listopad 2006 23:39 jste napsal(a):
-> * Marek Va=C5=A1ut <marek.vasut@gmail.com> [061126 15:17]:
-> > Hi,
-> > since this commit
-> > http://source.mvista.com/git/gitweb.cgi?p=3Dlinux-omap-2.6.git;a=3Dcomm=
-it;h=3D3
-> >6808520ce2c9ade647d36c80004c158c71d0510 MMC on palmz71 stopped working.
-> > With latest git it doesnt even get inited. When I enable debug I get cm=
-d3
-> > timeout. I find out that when I compile initramfs into kernel and try
-> > mounting mmc partition, the kernel tries to init the card (I get that
-> > MMC: something and mmc: p1 p2 etc. [sorry, I dont remember it exactly, I
-> > can give more details, if you need them, just ask]) but fails with a lot
-> > of io errors about probs with reading mmc block 0. And that=C2=B4s the =
-end.
-> > Weird is, that mmc was working with 2618-omap1, but after that sync with
-> > Linuses tree it just suddenly stopped. The diff against those 2 commits
-> > is 32megs, so it=C2=B4s quite a prob to find what damaged the mmc. Also=
-, it=C2=B4s
-> > weird that mmc works on palmte. Can this be prob, that mmc isnt powered
-> > up? I doubt so though.
->
-> Yeah, that a big patch :) Have you tried just undoing the mmc parts in th=
-at
-> patch and see if that helps to narrow down the problem?
->
-> Regards,
->
-> Tony
+Hi,
 
-Sure ;) I removed all patches for mmc but one - mmc-block.c.diff - which wa=
-s=20
-too complexly integrated into the kernel. But it didnt helped though :( btw=
-=2E=20
-yeah ... it is a bigger patch ;D
+my list of pending OMAP patches for November 2006:
 
-BR
-Marex
+Pending OMAP patches November 2006
+----------------------------------
+
+1. [PATCH] Fix ADS7846 dependencies
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008344.html
+
+2. [PATCH] ARM: OMAP: OMAP310 i2c fix
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008372.html
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008374.html
+
+3. [patch 1-5/5] [RFC] Add MMC Password Protection 
+(lock/unlock) support V7
+
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008470.html
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008465.html
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008466.html
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008467.html
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008469.html
+
+Note: Comments seem to show acceptance now. Should be 
+applied to mainline and not
+       to OMAP git, right?
+
+4. [PATCH] ARM: OMAP: Ensure correct GPIO registers access 
+width.
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008481.html
+
+5. [PATCH] TWL4030 CORE (I2C chip) driver for 2430 SDP
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008501.html
+
+
+Open, do not apply yet (see list archive for details)
+-----------------------------------------------------
+
+1. [PATCH] ARM: OMAP: PalmZ71 MPUIO monitoring
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008373.html
+
+- Does not apply cleanly, please update
+
+2. [RFC] [PATCH] ARM: Add clocksource driver for OMAP1 and OMAP2
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008531.html
+
+- Need some testing
+
+Again, a very busy patch month. So please forgive if 
+anything is wrong or missing. Please correct then.
+
+Cheers
+
+Dirk
