@@ -1,13 +1,11 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: libcurl for omap arm linux
-Date: Sun, 03 Dec 2006 17:42:58 +0100
-Message-ID: <4572FE92.7060405@gmail.com>
-References: <829041.25922.qm@web34504.mail.mud.yahoo.com>
+From: "Komal Shah" <komal.shah802003@gmail.com>
+Subject: [PATCH] ARM: OMAP: omap-alsa-aic23.c cleanup. No code change
+Date: Sun, 3 Dec 2006 23:19:18 +0530
+Message-ID: <3a5b1be00612030949p33bb4b96r537524fadcd10c17@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <829041.25922.qm@web34504.mail.mud.yahoo.com>
+Content-Type: multipart/mixed;
+	boundary="----=_Part_18041_20252672.1165168158570"
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,48 +13,131 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: binil antony <binsoft007@yahoo.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-binil antony wrote:
-> I took the pre built lib from the link that you
-> specified. But I get the following linker errors when
-> I link the libcurl.a with my sample appl.
+------=_Part_18041_20252672.1165168158570
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-You really should send questions publically to the list.
+-- 
+---Komal Shah
+http://komalshah.blogspot.com
 
-> /usr/local/wma/mvl-tool/mvl-tools-229/montavista/cee/devkit/arm/v5t_le/bin/../lib/gcc-lib/armv5tl-hardhat-linux/3.3.1/../../../../armv5tl-hardhat-linux/bin/ld:
-> ERROR: /home/binil/lib/usr/lib//libcurl.a(easy.o) uses
-> hardware FP, whereas ./sample.out uses software FP
+------=_Part_18041_20252672.1165168158570
+Content-Type: text/x-patch;
+	name=0002-ARM-OMAP-omap-alsa-aic23.c-cleanup.-No-code-change.patch;
+	charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_ev9qzo1o
+Content-Disposition: attachment;
+	filename="0002-ARM-OMAP-omap-alsa-aic23.c-cleanup.-No-code-change.patch"
 
-Your sample.out is compiled to use software floating point, 
-whereas the library is compiled to use hardware floating 
-point. I'm not a toolchain expert, but IMHO hardware 
-floating point is correct here (because ARM kernel emulates 
-floating point). So you should compile sample.out with 
-option for hardware floating point as well.
+RnJvbSBlMDBiODJhOTBjMzA4NmY1OTZkNTQ3OGU1NzI0OWNmODZlMDU2YjMzIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBLb21hbCBTaGFoIDxrb21hbF9zaGFoODAyMDAzQHlhaG9vLmNv
+bT4KRGF0ZTogU3VuLCAzIERlYyAyMDA2IDIzOjExOjI5ICswNTMwClN1YmplY3Q6IFtQQVRDSF0g
+QVJNOiBPTUFQOiBvbWFwLWFsc2EtYWljMjMuYyBjbGVhbnVwLiBObyBjb2RlIGNoYW5nZS4KCi0g
+d2hpdGVzcGFjZSByZW1vdmFsLgotIEZvbGxvdyA4MCBsaW5lIHJ1bGUuIFN0aWxsIGZldyBwbGFj
+ZXMgbGVmdC4KClNpZ25lZC1vZmYtYnk6IEtvbWFsIFNoYWggPGtvbWFsX3NoYWg4MDIwMDNAeWFo
+b28uY29tPgotLS0KIHNvdW5kL2FybS9vbWFwL29tYXAtYWxzYS1haWMyMy5jIHwgICA0NiArKysr
+KysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0tLQogMSBmaWxlcyBjaGFuZ2VkLCAyMyBp
+bnNlcnRpb25zKCspLCAyMyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9zb3VuZC9hcm0vb21h
+cC9vbWFwLWFsc2EtYWljMjMuYyBiL3NvdW5kL2FybS9vbWFwL29tYXAtYWxzYS1haWMyMy5jCmlu
+ZGV4IGI0ODM5NjEuLjBlMTUyOGEgMTAwNjQ0Ci0tLSBhL3NvdW5kL2FybS9vbWFwL29tYXAtYWxz
+YS1haWMyMy5jCisrKyBiL3NvdW5kL2FybS9vbWFwL29tYXAtYWxzYS1haWMyMy5jCkBAIC0xLDYg
+KzEsNCBAQAogLyoKLSAqIGFyY2gvYXJtL21hY2gtb21hcDEvb21hcC1hbHNhLWFpYzIzLmMKLSAq
+IAogICogQWxzYSBjb2RlYyBEcml2ZXIgZm9yIEFJQzIzIGNoaXAgb24gT1NLNTkxMiBwbGF0Zm9y
+bSBib2FyZAogICoKICAqIENvcHlyaWdodCAoQykgMjAwNSBJbnN0aXR1dG8gTm9raWEgZGUgVGVj
+bm9sb2dpYSAtIElOZFQgLSBNYW5hdXMgQnJhemlsCkBAIC04LDcgKzYsNyBAQAogICogICAgICAg
+ICAgICB7ZGFuaWVsLnBldHJpbmksIGRhdmlkLmNvaGVuLCBhbmRlcnNvbi5icmlnbGlhfUBpbmR0
+Lm9yZy5icgogICoKICAqIENvcHlyaWdodCAoQykgMjAwNiBNaWthIExhaXRpbyA8bGFtaWtyQGNj
+Lmp5dS5maT4KLSAqIAorICoKICAqIEJhc2VkIGluIGZvcm1lciBhbHNhIGRyaXZlciBmb3Igb3Nr
+IGFuZCBvc3MgZHJpdmVyCiAgKgogICogVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlv
+dSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBtb2RpZnkgaXQKQEAgLTQ5LDggKzQ3LDggQEAg
+c3RhdGljIGNvbnN0IHN0cnVjdCBhaWMyM19zYW1wbGVyYXRlX3JlZwogLyoKICAqIEhhcmR3YXJl
+IGNhcGFiaWxpdGllcwogICovCi0gCi0gLyoKKworLyoKICAqIERBQyBVU0ItbW9kZSBzYW1wbGlu
+ZyByYXRlcyAoTUNMSyA9IDEyIE1IeikKICAqIFRoZSByYXRlcyBhbmQgcmF0ZV9yZWdfaW50byBN
+VVNUIGJlIGluIHRoZSBzYW1lIG9yZGVyCiAgKi8KQEAgLTY4LDcgKzY2LDcgQEAgc3RhdGljIHNu
+ZF9wY21faHdfY29uc3RyYWludF9saXN0X3QgYWljMgogCiBzdGF0aWMgc25kX3BjbV9oYXJkd2Fy
+ZV90IGFpYzIzX3NuZF9vbWFwX2Fsc2FfcGxheWJhY2sgPSB7CiAJLmluZm8gPSAoU05EUlZfUENN
+X0lORk9fSU5URVJMRUFWRUQgfCBTTkRSVl9QQ01fSU5GT19CTE9DS19UUkFOU0ZFUiB8Ci0JCSBT
+TkRSVl9QQ01fSU5GT19NTUFQIHwgU05EUlZfUENNX0lORk9fTU1BUF9WQUxJRCksCQorCQkgU05E
+UlZfUENNX0lORk9fTU1BUCB8IFNORFJWX1BDTV9JTkZPX01NQVBfVkFMSUQpLAogCS5mb3JtYXRz
+ID0gKFNORFJWX1BDTV9GTVRCSVRfUzE2X0xFKSwKIAkucmF0ZXMgPSAoU05EUlZfUENNX1JBVEVf
+ODAwMCB8IFNORFJWX1BDTV9SQVRFXzE2MDAwIHwKIAkJICBTTkRSVl9QQ01fUkFURV8yMjA1MCB8
+IFNORFJWX1BDTV9SQVRFXzMyMDAwIHwKQEAgLTE3NCw3ICsxNzIsOCBAQCBpbmxpbmUgdm9pZCBh
+aWMyM19jb25maWd1cmUodm9pZCkKIAkvKiBJbml0aWFsaXplIHRoZSBBSUMyMyBpbnRlcm5hbCBz
+dGF0ZSAqLwogCiAJLyogQW5hbG9nIGF1ZGlvIHBhdGggY29udHJvbCwgREFDIHNlbGVjdGVkLCBk
+ZWxldGUgSU5TRUxfTUlDIGZvciBsaW5lIGluICovCi0JYXVkaW9fYWljMjNfd3JpdGUoQU5BTE9H
+X0FVRElPX0NPTlRST0xfQUREUiwgREVGQVVMVF9BTkFMT0dfQVVESU9fQ09OVFJPTCk7CisJYXVk
+aW9fYWljMjNfd3JpdGUoQU5BTE9HX0FVRElPX0NPTlRST0xfQUREUiwKKwkJCSAgREVGQVVMVF9B
+TkFMT0dfQVVESU9fQ09OVFJPTCk7CiAKIAkvKiBEaWdpdGFsIGF1ZGlvIHBhdGggY29udHJvbCwg
+ZGUtZW1waGFzaXMgY29udHJvbCA0NC4xa0h6ICovCiAJYXVkaW9fYWljMjNfd3JpdGUoRElHSVRB
+TF9BVURJT19DT05UUk9MX0FERFIsIERFRU1QXzQ0Syk7CkBAIC0xOTMsMTAgKzE5MiwxMCBAQCBp
+bmxpbmUgdm9pZCBhaWMyM19jb25maWd1cmUodm9pZCkKIAogLyoKICAqICBPbWFwIE1DQlNQIGNs
+b2NrIGNvbmZpZ3VyYXRpb24gYW5kIFBvd2VyIE1hbmFnZW1lbnQKLSAqICAKKyAqCiAgKiAgSGVy
+ZSB3ZSBoYXZlIHNvbWUgZnVuY3Rpb25zIHRoYXQgYWxsb3dzIGNsb2NrIHRvIGJlIGVuYWJsZWQg
+YW5kCi0gKiAgIGRpc2FibGVkIG9ubHkgd2hlbiBuZWVkZWQuIEJlc2lkZXMgZG9pbmcgY2xvY2sg
+Y29uZmlndXJhdGlvbiAKLSAqICAgaXQgYWxsb3dzIHR1cm4gb24vdHVybiBvZmYgYXVkaW8gd2hl
+biBuZWNlc3NhcnkuIAorICogIGRpc2FibGVkIG9ubHkgd2hlbiBuZWVkZWQuIEJlc2lkZXMgZG9p
+bmcgY2xvY2sgY29uZmlndXJhdGlvbgorICogIGl0IGFsbG93cyB0dXJuIG9uL3R1cm4gb2ZmIGF1
+ZGlvIHdoZW4gbmVjZXNzYXJ5LgogICovCiAvKgogICogRG8gY2xvY2sgZnJhbWV3b3JrIG1jbGsg
+c2VhcmNoCkBAIC0yMDgsNyArMjA3LDcgQEAgdm9pZCBhaWMyM19jbG9ja19zZXR1cCh2b2lkKQog
+CiAvKgogICogRG8gc29tZSBzYW5pdHkgY2hlY2ssIHNldCBjbG9jayByYXRlLCBzdGFydHMgaXQg
+YW5kCi0gKiAgdHVybiBjb2RlYyBhdWRpbyBvbiAKKyAqIHR1cm4gY29kZWMgYXVkaW8gb24KICAq
+LwogaW50IGFpYzIzX2Nsb2NrX29uKHZvaWQpCiB7CkBAIC0yMzcsOSArMjM2LDkgQEAgaW50IGFp
+YzIzX2Nsb2NrX29uKHZvaWQpCiAJICAgICAgIGNsa19nZXRfdXNlY291bnQoYWljMjNfbWNsaykp
+OwogCiAJLyogTm93IHR1cm4gdGhlIGF1ZGlvIG9uICovCi0JYXVkaW9fYWljMjNfd3JpdGUoUE9X
+RVJfRE9XTl9DT05UUk9MX0FERFIsIAorCWF1ZGlvX2FpYzIzX3dyaXRlKFBPV0VSX0RPV05fQ09O
+VFJPTF9BRERSLAogCQkJICB+REVWSUNFX1BPV0VSX09GRiAmIH5PVVRfT0ZGICYgfkRBQ19PRkYg
+JgotCQkJICB+QURDX09GRiAmIH5NSUNfT0ZGICYgfkxJTkVfT0ZGKTsJCisJCQkgIH5BRENfT0ZG
+ICYgfk1JQ19PRkYgJiB+TElORV9PRkYpOwogCXJldHVybiAwOwogfQogCkBAIC0yNDksNyArMjQ4
+LDcgQEAgaW50IGFpYzIzX2Nsb2NrX29uKHZvaWQpCiAgKi8KIGludCBhaWMyM19jbG9ja19vZmYo
+dm9pZCkKIHsKLQlpZiAgKGNsa19nZXRfdXNlY291bnQoYWljMjNfbWNsaykgPiAwKSB7IAorCWlm
+ICAoY2xrX2dldF91c2Vjb3VudChhaWMyM19tY2xrKSA+IDApIHsKIAkJaWYgKGNsa19nZXRfcmF0
+ZShhaWMyM19tY2xrKSAhPSBDT0RFQ19DTE9DSykgewogCQkJcHJpbnRrKEtFUk5fV0FSTklORwog
+CQkJICAgICAgICJNQ0xLIGZvciBhdWRpbyBzaG91bGQgYmUgJWQgSHouIEJ1dCBpcyAlZCBIelxu
+IiwKQEAgLTI1OSwxMCArMjU4LDEwIEBAIGludCBhaWMyM19jbG9ja19vZmYodm9pZCkKIAogCQlj
+bGtfZGlzYWJsZShhaWMyM19tY2xrKTsKIAl9Ci0JCisKIAlhdWRpb19haWMyM193cml0ZShQT1dF
+Ul9ET1dOX0NPTlRST0xfQUREUiwKIAkJCSAgREVWSUNFX1BPV0VSX09GRiB8IE9VVF9PRkYgfCBE
+QUNfT0ZGIHwKLQkJCSAgQURDX09GRiB8IE1JQ19PRkYgfCBMSU5FX09GRik7CQorCQkJICBBRENf
+T0ZGIHwgTUlDX09GRiB8IExJTkVfT0ZGKTsKIAlyZXR1cm4gMDsKIH0KIApAQCAtMjc1LDEyICsy
+NzQsMTIgQEAgc3RhdGljIGludCBfX2RldmluaXQgc25kX29tYXBfYWxzYV9haWMyMwogewogCWlu
+dAlyZXQ7CiAJc3RydWN0CW9tYXBfYWxzYV9jb2RlY19jb25maWcgKmNvZGVjX2NmZzsKLQkKKwog
+CWNvZGVjX2NmZyA9IHBkZXYtPmRldi5wbGF0Zm9ybV9kYXRhOwogCWlmIChjb2RlY19jZmcgIT0g
+TlVMTCkgewogCQljb2RlY19jZmctPmh3X2NvbnN0cmFpbnRzX3JhdGVzCT0gJmFpYzIzX2h3X2Nv
+bnN0cmFpbnRzX3JhdGVzOwogCQljb2RlY19jZmctPnNuZF9vbWFwX2Fsc2FfcGxheWJhY2sgID0g
+JmFpYzIzX3NuZF9vbWFwX2Fsc2FfcGxheWJhY2s7Ci0JCWNvZGVjX2NmZy0+c25kX29tYXBfYWxz
+YV9jYXB0dXJlICA9ICZhaWMyM19zbmRfb21hcF9hbHNhX2NhcHR1cmU7CQkKKwkJY29kZWNfY2Zn
+LT5zbmRfb21hcF9hbHNhX2NhcHR1cmUgID0gJmFpYzIzX3NuZF9vbWFwX2Fsc2FfY2FwdHVyZTsK
+IAkJY29kZWNfY2ZnLT5jb2RlY19jb25maWd1cmVfZGV2CT0gYWljMjNfY29uZmlndXJlOwogCQlj
+b2RlY19jZmctPmNvZGVjX3NldF9zYW1wbGVyYXRlCT0gYWljMjNfc2V0X3NhbXBsZXJhdGU7CiAJ
+CWNvZGVjX2NmZy0+Y29kZWNfY2xvY2tfc2V0dXAJPSBhaWMyM19jbG9ja19zZXR1cDsKQEAgLTI4
+OCwxNSArMjg3LDE2IEBAIHN0YXRpYyBpbnQgX19kZXZpbml0IHNuZF9vbWFwX2Fsc2FfYWljMjMK
+IAkJY29kZWNfY2ZnLT5jb2RlY19jbG9ja19vZmYJPSBhaWMyM19jbG9ja19vZmY7CiAJCWNvZGVj
+X2NmZy0+Z2V0X2RlZmF1bHRfc2FtcGxlcmF0ZSA9IGFpYzIzX2dldF9kZWZhdWx0X3NhbXBsZXJh
+dGU7CiAJCXJldAk9IHNuZF9vbWFwX2Fsc2FfcG9zdF9wcm9iZShwZGV2LCBjb2RlY19jZmcpOwot
+CX0KLQllbHNlCisJfSBlbHNlIHsKIAkJcmV0ID0gLUVOT0RFVjsKKwl9CisKIAlyZXR1cm4gcmV0
+OwogfQogCiBzdGF0aWMgc3RydWN0IHBsYXRmb3JtX2RyaXZlciBvbWFwX2Fsc2FfZHJpdmVyID0g
+ewogCS5wcm9iZQkJPSBzbmRfb21hcF9hbHNhX2FpYzIzX3Byb2JlLAotCS5yZW1vdmUgCT0gc25k
+X29tYXBfYWxzYV9yZW1vdmUsCisJLnJlbW92ZQkJPSBzbmRfb21hcF9hbHNhX3JlbW92ZSwKIAku
+c3VzcGVuZAk9IHNuZF9vbWFwX2Fsc2Ffc3VzcGVuZCwKIAkucmVzdW1lCQk9IHNuZF9vbWFwX2Fs
+c2FfcmVzdW1lLAogCS5kcml2ZXIJPSB7CkBAIC0zMDcsNyArMzA3LDcgQEAgc3RhdGljIHN0cnVj
+dCBwbGF0Zm9ybV9kcml2ZXIgb21hcF9hbHNhXwogc3RhdGljIGludCBfX2luaXQgb21hcF9hbHNh
+X2FpYzIzX2luaXQodm9pZCkKIHsKIAlpbnQgZXJyOwotCQorCiAJQURFQlVHKCk7CiAJZXJyID0g
+cGxhdGZvcm1fZHJpdmVyX3JlZ2lzdGVyKCZvbWFwX2Fsc2FfZHJpdmVyKTsKIApAQCAtMzE3LDcg
+KzMxNyw3IEBAIHN0YXRpYyBpbnQgX19pbml0IG9tYXBfYWxzYV9haWMyM19pbml0KHYKIHN0YXRp
+YyB2b2lkIF9fZXhpdCBvbWFwX2Fsc2FfYWljMjNfZXhpdCh2b2lkKQogewogCUFERUJVRygpOwot
+CQorCiAJcGxhdGZvcm1fZHJpdmVyX3VucmVnaXN0ZXIoJm9tYXBfYWxzYV9kcml2ZXIpOwogfQog
+Ci0tIAoxLjQuMy40Lmc4MmNjCgo=
+------=_Part_18041_20252672.1165168158570
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Having compiler version (armv5tl-hardhat-linux-gcc -v (?)) 
-and compile & link options you used for sample.out may be 
-helpful here.
 
-> /usr/local/wma/mvl-tool/mvl-tools-229/montavista/cee/devkit/arm/v5t_le/bin/../lib/gcc-lib/armv5tl-hardhat-linux/3.3.1/../../../../armv5tl-hardhat-linux/bin/ld:
-> Warning: /home/binil/lib/usr/lib//libcurl.a(easy.o)
-> does not support interworking, whereas ./sample.out
-> does
-> No such file or directory: failed to merge target
-> specific data of file
-> /home/binil/lib/usr/lib//libcurl.a(easy.o)
-
-You compiled sample.out with interworking enabled, which 
-isn't supported by the library. Again, having compile & link 
-options may clarify this.
-
-Conclusion is that the compile & link options you used for 
-sample.out are incompatible which those the library is build 
-with.
-
-Dirk
+------=_Part_18041_20252672.1165168158570--
