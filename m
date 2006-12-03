@@ -1,13 +1,11 @@
-From: Vovan <vovan888@gmail.com>
-Subject: Re: sx1 alsa build failure
-Date: Sun, 03 Dec 2006 21:20:50 +0300
-Message-ID: <op.tjzw80b2dbah4f@localhost>
-References: <3a5b1be00612031013v14ca1789ge5c58d125733e675@mail.gmail.com>
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: [PATCH] UpdateMakefile and Kconfig for TWL4030
+Date: Sun, 3 Dec 2006 14:36:25 -0600
+Message-ID: <77C7F7CB1230A74A9D19C0C111E6EDBE0207EE18@DLEE09.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; delsp=yes; charset=windows-1251
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <3a5b1be00612031013v14ca1789ge5c58d125733e675@mail.gmail.com>
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C7171A.B3F0E287"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,55 +13,72 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Komal Shah <komal.shah802003@gmail.com>, linux-omap-open-source <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-03.12.06 =E2 21:13 Komal Shah =E2 =F1=E2=EE=B8=EC =EF=E8=F1=FC=EC=E5 =EF=E8=
-=F1=E0=EB(=E0):
+This is a multi-part message in MIME format.
 
-> Hi Vladimir Ananiev,
->
-> Could you please send a patch to fix this build error.?
->
-> sound/arm/omap/omap-alsa-sx1.c:32: error: `CN_IDX_SX1SND' undeclared
-> here (not in a function)
-> sound/arm/omap/omap-alsa-sx1.c:32: error: initializer element is not =20
-> constant
-> sound/arm/omap/omap-alsa-sx1.c:32: error: (near initialization for
-> `cn_sx1snd_id.idx')
-> sound/arm/omap/omap-alsa-sx1.c:32: error: `CN_VAL_SX1SND' undeclared
-> here (not in a function)
-> sound/arm/omap/omap-alsa-sx1.c:32: error: initializer element is not =20
-> constant
-> sound/arm/omap/omap-alsa-sx1.c:32: error: (near initialization for
-> `cn_sx1snd_id.val')
->
->
+------_=_NextPart_001_01C7171A.B3F0E287
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 
-Sure, here it is:
+Hi,
 
-diff --git a/include/linux/connector.h b/include/linux/connector.h
-index 4c02119..0e2cbf1 100644
---- a/include/linux/connector.h
-+++ b/include/linux/connector.h
-@@ -36,9 +36,13 @@ #define CN_IDX_CIFS                  0x2
-  #define CN_VAL_CIFS                     0x1
-  #define CN_W1_IDX                      0x3     /* w1 communication */
-  #define CN_W1_VAL                      0x1
-+#define CN_IDX_SX1SND          0x4
-+#define CN_VAL_SX1SND          0x1
-+#define CN_IDX_SX1PM           0x5
-+#define CN_VAL_SX1PM           0x1
+=20
+
+The attached patch updates i2c/chips/Makefile and Kconfig for TWL4030
+driver.
+
+=20
+
+Regards,
+
+Khasim
 
 
--#define CN_NETLINK_USERS               4
-+#define CN_NETLINK_USERS               6
+------_=_NextPart_001_01C7171A.B3F0E287
+Content-Type: application/octet-stream;
+	name="twl4030_enable.patch"
+Content-Transfer-Encoding: base64
+Content-Description: twl4030_enable.patch
+Content-Disposition: attachment;
+	filename="twl4030_enable.patch"
 
-  /*
-   * Maximum connector's message size.
+VGhpcyBwYXRjaCBlbmFibGVzIFRXTDQwMzAgaW4gaTJjL2NoaXBzIEtjb25maWcgYW5kIE1ha2Vm
+aWxlCgpTaWduZWQtb2ZmLWJ5OiBTeWVkIE1vaGFtbWVkIEtoYXNpbSAgPHgwa2hhc2ltQHRpLmNv
+bT4KCkZpbGVzIENoYW5nZWQ6CiBLY29uZmlnICB8ICAgIDYgKysrKysrCiBNYWtlZmlsZSB8ICAg
+IDEgKwogMiBmaWxlcyBjaGFuZ2VkLCA3IGluc2VydGlvbnMoKykKCj09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT0KZGlmZiAtcHVyTiBsaW51eC1vbWFwL2RyaXZlcnMvaTJjL2NoaXBzL0tjb25maWcgZGV2cHRf
+YnJhbmNoL2RyaXZlcnMvaTJjL2NoaXBzL0tjb25maWcKLS0tIGxpbnV4LW9tYXAvZHJpdmVycy9p
+MmMvY2hpcHMvS2NvbmZpZwkyMDA2LTExLTIwIDIxOjU1OjIzLjAwMDAwMDAwMCAtMDYwMAorKysg
+ZGV2cHRfYnJhbmNoL2RyaXZlcnMvaTJjL2NoaXBzL0tjb25maWcJMjAwNi0xMi0wMSAyMzo0NTox
+MS4wMDAwMDAwMDAgLTA2MDAKQEAgLTEyMSw2ICsxMjEsMTIgQEAgY29uZmlnIE1FTkVMQVVTCiAJ
+aGVscAogCSAgU2F5IHllcyBoZXJlIGlmIHlvdSBoYXZlIE1lbmVsYXVzIGNoaXAgb24geW91ciBi
+b2FyZAogCitjb25maWcgVFdMNDAzMF9DT1JFCisJYm9vbCAiVEkncyBUV0w0MDMwIGNvbXBhbmlv
+biBjaGlwIENvcmUgRHJpdmVyIFN1cHBvcnQiCisJZGVwZW5kcyBvbiBJMkM9eSAmJiBBUkNIX09N
+QVAyNFhYCisJaGVscAorCSAgU2F5IHllcyBoZXJlIGlmIHlvdSBoYXZlIFRXTDQwMzAgY2hpcCBv
+biB5b3VyIGJvYXJkCisKIGNvbmZpZyBTRU5TT1JTX000MVQwMAogCXRyaXN0YXRlICJTVCBNNDFU
+MDAgUlRDIGNoaXAiCiAJZGVwZW5kcyBvbiBJMkMgJiYgUFBDMzIKZGlmZiAtcHVyTiBsaW51eC1v
+bWFwL2RyaXZlcnMvaTJjL2NoaXBzL01ha2VmaWxlIGRldnB0X2JyYW5jaC9kcml2ZXJzL2kyYy9j
+aGlwcy9NYWtlZmlsZQotLS0gbGludXgtb21hcC9kcml2ZXJzL2kyYy9jaGlwcy9NYWtlZmlsZQky
+MDA2LTExLTIwIDIxOjU1OjIzLjAwMDAwMDAwMCAtMDYwMAorKysgZGV2cHRfYnJhbmNoL2RyaXZl
+cnMvaTJjL2NoaXBzL01ha2VmaWxlCTIwMDYtMTItMDEgMjM6NDU6MTEuMDAwMDAwMDAwIC0wNjAw
+CkBAIC0xNSw2ICsxNSw3IEBAIG9iai0kKENPTkZJR19UUFM2NTAxMCkJCSs9IHRwczY1MDEwLm8K
+IG9iai0kKENPTkZJR19TRU5TT1JTX1RMVjMyMEFJQzIzKSArPSB0bHYzMjBhaWMyMy5vCiBvYmot
+JChDT05GSUdfR1BJT0VYUEFOREVSX09NQVApCSs9IGdwaW9fZXhwYW5kZXJfb21hcC5vCiBvYmot
+JChDT05GSUdfTUVORUxBVVMpCQkrPSBtZW5lbGF1cy5vCitvYmotJChDT05GSUdfVFdMNDAzMF9D
+T1JFKSAgICAgICs9IHR3bDQwMzBfY29yZS5vCiBvYmotJChDT05GSUdfUlRDX1gxMjA1X0kyQykJ
+Kz0geDEyMDUubwogCiBpZmVxICgkKENPTkZJR19JMkNfREVCVUdfQ0hJUCkseSkK
+
+------_=_NextPart_001_01C7171A.B3F0E287
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 
---=20
-Vladimir Ananiev
+------_=_NextPart_001_01C7171A.B3F0E287--
