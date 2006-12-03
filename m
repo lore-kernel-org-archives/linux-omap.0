@@ -1,11 +1,11 @@
 From: "Komal Shah" <komal.shah802003@gmail.com>
-Subject: sx1 alsa build failure
-Date: Sun, 3 Dec 2006 23:43:48 +0530
-Message-ID: <3a5b1be00612031013v14ca1789ge5c58d125733e675@mail.gmail.com>
+Subject: memset in dsp_task_config_all
+Date: Sun, 3 Dec 2006 23:55:00 +0530
+Message-ID: <3a5b1be00612031024m30ae1e10i2206d1d8e2259544@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -14,26 +14,22 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source <linux-omap-open-source@linux.omap.com>, vovan888@gmail.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source <linux-omap-open-source@linux.omap.com>, toshihiro.kobayashi@nokia.com, Hiroshi.DOYU@nokia.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Vladimir Ananiev,
+Doyu-San,
 
-Could you please send a patch to fix this build error.?
+Why memset is being called again on dsptask and taskdevices  in
+dsp_task_config_all function, which was already done while we
+initialized the module (dsp_taskmod_init())?
 
-sound/arm/omap/omap-alsa-sx1.c:32: error: `CN_IDX_SX1SND' undeclared
-here (not in a function)
-sound/arm/omap/omap-alsa-sx1.c:32: error: initializer element is not constant
-sound/arm/omap/omap-alsa-sx1.c:32: error: (near initialization for
-`cn_sx1snd_id.idx')
-sound/arm/omap/omap-alsa-sx1.c:32: error: `CN_VAL_SX1SND' undeclared
-here (not in a function)
-sound/arm/omap/omap-alsa-sx1.c:32: error: initializer element is not constant
-sound/arm/omap/omap-alsa-sx1.c:32: error: (near initialization for
-`cn_sx1snd_id.val')
+Also why we are not preferring linked list based approach for
+maintaining dsp tasks instead of static array of max 255 dsp tasks and
+equal no of taskdevices?
 
+On a real device, I don't see more 10-15 tasks/algorithms running on dsp.
 
 -- 
 ---Komal Shah
