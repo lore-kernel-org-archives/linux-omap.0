@@ -1,43 +1,39 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: OMAP I2C - probe question
-Date: Mon, 4 Dec 2006 13:46:51 -0600
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C4702AEA6@dlee13.ent.ti.com>
+From: Pierre Ossman <drzeus-list@drzeus.cx>
+Subject: Re: [patch 3/5] [RFC] Add MMC Password Protection (lock/unlock) support
+ V7: mmc_lock_unlock.diff
+Date: Mon, 04 Dec 2006 21:23:17 +0100
+Message-ID: <457483B5.8060205@drzeus.cx>
+References: <4564640B.1070004@indt.org.br> <45680308.4040809@drzeus.cx> <45746CD3.1000604@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S937371AbWLDUXW@vger.kernel.org>
+In-Reply-To: <45746CD3.1000604@indt.org.br>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Anderson Briglia <anderson.briglia@indt.org.br>
+Cc: "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, Russell King <rmk+lkml@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, "Aguiar Carlos (EXT-INdT/Manaus)" <carlos.aguiar@indt.org.br>, ext David Brownell <david-b@pacbell.net>, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizardo@indt.org.br>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+Anderson Briglia wrote:
+>
+> Actually they represent the bits regarding the modes and it is used
+> when we
+> have to send the LOCK/UNLOCK mode on the command data block, according
+> to the MMC Spec.
+> If you take a look at mmc_lock_unlock function, we use those modes to
+> set the right bit
+> when composing the command data block.
+> This definition makes the code more legible and simple.
 
-Do we have a method of doing an I2C probe for OMAP I2C devices? I found
-i2c_probe failing in Menelaus driver for H4-2420.=20
+In that case you need to change the code to make sure it is clear that
+it is bits and not values. Also, your definition for
+MMC_LOCK_MODE_UNLOCK is wrong.
 
-"i2c_adapter i2c-0: SMBus Quick command not supported, can't probe for
-chips"
+Rgds
 
-I was looking at one of the mail discussion from David B.
+-- 
+     -- Pierre Ossman
 
-http://lists.lm-sensors.org/pipermail/i2c/2006-October/000298.html
-
-I didn't see any conclusion though. Actually I don't want to do an I2C
-probe, I know I2C adapter for my board. But in order to write a generic
-I2C chip driver it might be required to probe for the device (as there
-are multiple adapters on OMAP2430 / 3430).=20
-
-Can I follow the way (using force) presented by David B in his patch?=20
-
-Thanks & Regards,
-Khasim
+  Linux kernel, MMC maintainer        http://www.kernel.org
+  PulseAudio, core developer          http://pulseaudio.org
+  rdesktop, core developer          http://www.rdesktop.org
