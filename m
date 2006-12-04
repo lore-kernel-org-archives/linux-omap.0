@@ -1,14 +1,16 @@
-From: "Eyal Shani" <Eyal.Shani@SanDisk.Com>
-Subject: mcount unresolved symbol - build module with mv
-	2.6.10_mobilinux410-omap2430_sdp
-Date: Mon, 4 Dec 2006 17:29:08 +0200
-Message-ID: <13ECC251745F8F4BA0076A980813C7C29F1035@msl-ex02.corp.m-sys.com>
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: RE: mcount unresolved symbol - build module with
+	mv2.6.10_mobilinux410-omap2430_sdp
+Date: Mon, 4 Dec 2006 09:44:22 -0600
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C4702ADA2@dlee13.ent.ti.com>
+References: <13ECC251745F8F4BA0076A980813C7C29F1035@msl-ex02.corp.m-sys.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
+in-reply-to: <13ECC251745F8F4BA0076A980813C7C29F1035@msl-ex02.corp.m-sys.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,60 +20,107 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
-Cc: Eyal Shani <Eyal.Shani@SanDisk.Com>
+To: Eyal Shani <Eyal.Shani@SanDisk.Com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
+
+Hi Eyal,
+
+The steps that I follow for building on 2.6 Mobilinux are,
+
+1. Remove "export-objs		:=3D yxyxyx.o" from Makefile
+
+2. Add these definitions at the end of driver file
+MODULE_AUTHOR("");
+MODULE_DESCRIPTION("");
+MODULE_LICENSE("GPL");
+
+3. Include the following headers in driver file.=20
+
+#include <linux/module.h>=20
+#include <linux/config.h>
+#include <linux/init.h>
+#include <linux/kernel.h>=20
+#include <linux/sched.h>
+#include <linux/errno.h>
+#include <linux/delay.h>
+#include <linux/types.h>
+#include <linux/interrupt.h>
+#include <linux/proc_fs.h>
+#include <linux/version.h>
+
+#include <asm/system.h>
+#include <asm/irq.h>
+#include <asm/hardware.h>
+#include <asm/io.h>
+#include <asm/arch/clock.h>
+#include <asm/arch/hardware.h>
+
+4. Few global definitions might be different from 2.4 make sure you have
+updated the same.
+
+
+One of this should fix your problem.
+
+Regards,
+Khasim
+
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Eyal
+Shani
+Sent: Monday, December 04, 2006 9:29 AM
+To: linux-omap-open-source@linux.omap.com
+Cc: Eyal Shani
+Subject: mcount unresolved symbol - build module with
+mv2.6.10_mobilinux410-omap2430_sdp
 
 All,
 
 =20
 
-I=20am=20trying=20to=20build=20my=20hw=20driver=20as=20a=20module,=20with=20=
-the=20mv
-2.6.10_mobilinux410-omap2430_sdp=20kernel.
+I am trying to build my hw driver as a module, with the mv
+2.6.10_mobilinux410-omap2430_sdp kernel.
 
-The=20driver=20is=20build,=20but=20while=20insmod=20I=20get=20the=20follow=
-ing=20output=20on=20the
+The driver is build, but while insmod I get the following output on the
 target:
 
 =20
 
-root@172.17.54.81:~#=20insmod=20my_module.ko
+root@172.17.54.81:~# insmod my_module.ko
 
-my_module:=20no=20version=20for=20"struct_module"=20found:=20kernel=20tain=
-ted.
+my_module: no version for "struct_module" found: kernel tainted.
 
-=20my_module:=20module=20license=20'Proprietary'=20taints=20kernel.
+ my_module: module license 'Proprietary' taints kernel.
 
-my_module:=20Unknown=20symbol=20mcount
+my_module: Unknown symbol mcount
 
-insmod:=20error=20inserting=20'=20my_module.ko':=20-1=20Unknown=20symbol=20=
-in=20module
+insmod: error inserting ' my_module.ko': -1 Unknown symbol in module
 
 =20
 
 =20
 
-I=20am=20used=20to=20building=20modules=20on=20the=20MV=20CEE3.1=20set=20o=
-f=20kernels,=20for
-kernel=202.4,=20but=20I=20have=20not=20seen=20this=20mcount=20before.
+I am used to building modules on the MV CEE3.1 set of kernels, for
+kernel 2.4, but I have not seen this mcount before.
 
 =20
 
-Any=20idea=20anyone?!
+Any idea anyone?!
 
 =20
 
-Thanks=20in=20advance,
+Thanks in advance,
 
-Eyal=20Shani
+Eyal Shani
 
 =20
 
 
 ______________________________________________________________________
-This=20email=20has=20been=20scanned=20by=20the=20MessageLabs=20Email=20Sec=
-urity=20System.
-For=20more=20information=20please=20visit=20http://www.messagelabs.com/ema=
-il=20
+This email has been scanned by the MessageLabs Email Security System.
+For more information please visit http://www.messagelabs.com/email=20
 ______________________________________________________________________
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
