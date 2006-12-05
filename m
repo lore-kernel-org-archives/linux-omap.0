@@ -1,74 +1,51 @@
-From: "Eyal Shani" <Eyal.Shani@SanDisk.Com>
-Subject: request_mem_region fails - built module with mv
-	2.6.10_mobilinux410-omap2430_sdp
-Date: Tue, 5 Dec 2006 15:43:50 +0200
-Message-ID: <13ECC251745F8F4BA0076A980813C7C29F1175@msl-ex02.corp.m-sys.com>
+From: Anderson Briglia <anderson.briglia@indt.org.br>
+Subject: Re: [patch 3/5] [RFC] Add MMC Password Protection (lock/unlock) support
+ V7: mmc_lock_unlock.diff
+Date: Tue, 05 Dec 2006 14:06:36 -0400
+Message-ID: <4575B52C.70403@indt.org.br>
+References: <4564640B.1070004@indt.org.br> <45680308.4040809@drzeus.cx> <45746CD3.1000604@indt.org.br> <457483B5.8060205@drzeus.cx>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
-Cc: Eyal Shani <Eyal.Shani@SanDisk.Com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S968149AbWLESDz@vger.kernel.org>
+In-Reply-To: <457483B5.8060205@drzeus.cx>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ext Pierre Ossman <drzeus-list@drzeus.cx>
+Cc: "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, Russell King <rmk+lkml@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, "Aguiar Carlos (EXT-INdT/Manaus)" <carlos.aguiar@indt.org.br>, ext David Brownell <david-b@pacbell.net>, "Lizardo Anderson (EXT-INdT/Manaus)" <anderson.lizardo@indt.org.br>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-All,
+ext Pierre Ossman wrote:
 
-=20
+> Anderson Briglia wrote:
+>> Actually they represent the bits regarding the modes and it is used
+>> when we
+>> have to send the LOCK/UNLOCK mode on the command data block, according
+>> to the MMC Spec.
+>> If you take a look at mmc_lock_unlock function, we use those modes to
+>> set the right bit
+>> when composing the command data block.
+>> This definition makes the code more legible and simple.
+> 
+> In that case you need to change the code to make sure it is clear that
+> it is bits and not values.
 
-I=20am=20trying=20to=20build=20my=20hw=20driver=20as=20a=20module,=20with=20=
-the=20mv
-2.6.10_mobilinux410-omap2430_sdp=20kernel.
-
-The=20driver=20is=20built,=20but=20while=20insmod=20I=20get=20the=20follow=
-ing=20output=20on=20the
-target:
-
-=20
-
-root@172.17.54.81:~#=20insmod=20my_module.ko
-
-my_module:=20request_mem_region(0x14000000,0x20000)=20failed
-
-=20=20=20=20=20=20=20=20=20=20=20=20:
-
-=20=20=20=20=20=20=20=20=20=20=20=20:
-
-=20=20=20=20=20=20=20=20=20=20=20=20Unable=20to=20handle=20kernel=20paging=
-=20request=20at=20virtual=20address
-00001422
-
-=20
-
-BTW=20-=20My=20device=20is=20mapped=20to=200x14000000,=20CS7.
-
-=20
-
-Can=20anyone=20suggest=20a=20reason=20why=20this=20request_mem_region=20is=
-=20failing?!
-
-=20
-
-Thanks=20in=20advance,
-
-Eyal=20Shani
-
-=20
+Yes. As I sent another version after read your comment, I'll fix the V8 code just for this patch, ok? I don't see that 
+we have to send another version.
 
 
-______________________________________________________________________
-This=20email=20has=20been=20scanned=20by=20the=20MessageLabs=20Email=20Sec=
-urity=20System.
-For=20more=20information=20please=20visit=20http://www.messagelabs.com/ema=
-il=20
-______________________________________________________________________
+> Also, your definition for
+> MMC_LOCK_MODE_UNLOCK is wrong.
+
+This definition:
+
+#define MMC_LOCK_MODE_UNLOCK    (0<<2)
+
+also tries to make the code more clear and legible. It is indicating that this bit is on the position 3 into the bits 
+array, according to MMC Spec.
+But, why zero? Well, the bit must be 1 for locking and 0 for unlocking. We are using the unlocking action, so we used zero.
+Is there any issue using this piece of code?
+If you prefer another approach we can adjust our patch.
+
+Regards,
+
+Anderson Briglia
