@@ -1,11 +1,15 @@
-From: =?utf-8?B?5p2O546u?= <coffeeyu531@126.com>
-Subject: i2c for omap5912,help me
-Date: Fri, 8 Dec 2006 14:51:12 +0800
-Message-ID: <004401c71a95$3faead50$420aa8c0@yfliwei>
-References: <20061130231453.48C468062D@linux.omap.com>
+From: "Ishigami, Tatsuya" <ishigami@ti.com>
+Subject: RE: i2c for omap5912,help me
+Date: Fri, 8 Dec 2006 12:04:28 -0600
+Message-ID: <772F5D89C5E0734B8A86D85DFC6A2024055154AC@dlee03.ent.ti.com>
+References: <004401c71a95$3faead50$420aa8c0@yfliwei>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1451275048=="
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <004401c71a95$3faead50$420aa8c0@yfliwei>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,35 +19,43 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: =?gb2312?B?wO7n4g==?= <coffeeyu531@126.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============1451275048==
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Hi,
 
-SGkgLA0KIA0KIEknbSB1c2luZyBhbiBvbWFwNTkxMiBhbmQgd291bGQgbGlrZSB0byBsaWdodCB0
-aGUgbGVkIEQzIA0Kb24gdGhlIGJvYXJkIHRocnUgdGhlIGkyYyBkcml2ZXIuDQpOb3cgSSAgY2Fu
-IG5vdCBzZWUgbm90aGluZyBpbiAvcHJvYy9zeXMvZGV2LyBhbmQgIC9kZXYsDQpidXQgSSBjYW4g
-c2VlIHRoZXJlIGlzIHNvbWV0aGluZyBhYm91dA0KIGkyYyBpbiAvcHJvYy9idXMvLiBJIGNhbiBu
-b3Qgb3BlbiB0aGUgZmlsZSxDb3VsZCB0aGVyZQ0KYmUgc29tZXRoaW5nIHdyb25nIHdpdGggbXkg
-b3BlbmluZyB0aGUgZGV2IGZpbGUgPyBJIGhvcGUNCnRoZXJlIGlzIHNvbWVvbmUgd2hvIGtub3dz
-IG15IHByb2JsZW0/IFRoYW5rcyBpbg0KYWR2YW5jZS4NCiBCZWxvdyBhcmUgIHRoZSBkZWJ1ZyBt
-c2cgYXN3ZWxsIGFzIHRoZSBjb2RlLiANCg0KICBpbnQgYWRhcHRlcl9uciA9IDA7DQogIGludCBm
-aWxlOw0KICBjaGFyIGZpbGVuYW1lWzIwXTsgDQogIHNwcmludGYoZmlsZW5hbWUsIi9kZXYvaTJj
-LSVkIixhZGFwdGVyX25yKTsNCiAgIGlmICgoZmlsZSA9IG9wZW4oZmlsZW5hbWUsT19SRFdSKSkg
-PCAwKSB7DQogICAgIHByaW50ZigiRXJyb3IgT3BlbmluZyBGaWxlXG4iKTsNCiAgICAgZXhpdCgx
-KTsNCiAgIH0NCg0KdGhlIGZpbGUgdmFsdWUgaXMgYWxsd2F5cyAxLFdobyBjYW4gaGVscCBtZT9U
-aGFua3Mh
+ Does this help?
 
+ http://oskfordummies.hp.infoseek.co.jp/howto/led.html=20
 
+ Regards,
+ Ishigami
 
---===============1451275048==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-----Original Message-----
+From: =C0=EE=E7=E2 [mailto:coffeeyu531@126.com]=20
+Sent: Thursday, December 07, 2006 10:51 PM
+To: linux-omap-open-source@linux.omap.com
+Subject: i2c for omap5912,help me
 
+Hi ,
+=20
+ I'm using an omap5912 and would like to light the led D3=20
+on the board thru the i2c driver.
+Now I  can not see nothing in /proc/sys/dev/ and  /dev,
+but I can see there is something about
+ i2c in /proc/bus/. I can not open the file,Could there
+be something wrong with my opening the dev file ? I hope
+there is someone who knows my problem? Thanks in
+advance.
+ Below are  the debug msg aswell as the code.=20
 
---===============1451275048==--
+  int adapter_nr =3D 0;
+  int file;
+  char filename[20];=20
+  sprintf(filename,"/dev/i2c-%d",adapter_nr);
+   if ((file =3D open(filename,O_RDWR)) < 0) {
+     printf("Error Opening File\n");
+     exit(1);
+   }
+
+the file value is allways 1,Who can help me?Thanks!
