@@ -1,12 +1,16 @@
-From: "Chaitali Sengupta" <chaitali@snrlabs.com>
-Subject: need help with rootfs load/init
-Date: Sun, 10 Dec 2006 00:38:12 -0600
-Message-ID: <000e01c71c25$c43761c0$b768a8c0@d2nrw2b1>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: i2c for omap5912,help me
+Date: Sat, 9 Dec 2006 23:16:21 -0800
+Message-ID: <200612092316.22449.david-b@pacbell.net>
+References: <20061130231453.48C468062D@linux.omap.com>
+	<004401c71a95$3faead50$420aa8c0@yfliwei>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <004401c71a95$3faead50$420aa8c0@yfliwei>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,27 +18,18 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
+Cc: =?utf-8?q?=E6=9D=8E=E7=8E=AE?= <coffeeyu531@126.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
- 
-I am trying to build my own rootfs (running on an OMAP1710) using open
-source resources.
- 
-When I try to boot up the board - after the kernel boots up and the
-filesystem gets mounted, I see the following error:
- 
-init: error while loading shared libraries: libc.so.6: cannot open
-shared object
- file: No such file or directory
-Kernel panic: Attempted to kill init!
- 
-Can anybody help me with any insights into what may be wrong? The rootfs
-that I am trying to load does have a symbolic link called /lib/libc.so.6
-pointing to /lib/libc-2.3.2.so.
- 
-Thanks!
-Chaitali.  
+>  I'm using an omap5912 and would like to light the led D3 
+> on the board thru the i2c driver.
+
+In the kernel, <asm/arch/tps65010.h> exports
+
+extern int tps65010_set_led(unsigned led, unsigned mode);
+extern int tps65010_set_gpio_out_value(unsigned gpio, unsigned value);
+
+which are used for those LEDs.  D3 is connected to TPS65010 GPIO 2...
