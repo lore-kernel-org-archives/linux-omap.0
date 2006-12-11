@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] I2C-1 init fix for 2430
-Date: Mon, 11 Dec 2006 13:46:40 -0800
-Message-ID: <20061211214639.GJ6693@atomide.com>
-References: <77C7F7CB1230A74A9D19C0C111E6EDBE0207EE14@DLEE09.ent.ti.com>
+Subject: Re: [PATCH] update board 2430 file for TWL PIH interrupts
+Date: Mon, 11 Dec 2006 13:53:37 -0800
+Message-ID: <20061211215336.GK6693@atomide.com>
+References: <77C7F7CB1230A74A9D19C0C111E6EDBE0207EE19@DLEE09.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <77C7F7CB1230A74A9D19C0C111E6EDBE0207EE14@DLEE09.ent.ti.com>
+In-Reply-To: <77C7F7CB1230A74A9D19C0C111E6EDBE0207EE19@DLEE09.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,12 +21,13 @@ To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Syed Mohammed, Khasim <x0khasim@ti.com> [061203 12:35]:
+* Syed Mohammed, Khasim <x0khasim@ti.com> [061203 12:42]:
 > Hi,
 > 
 >  
 > 
-> The attached patch fixes/enables the I2C-1 for OMAP2430. 
+> The attached patch updates the board 2430 file to handle TWL PIH
+> interrupts.
 > 
 >  
 > 
@@ -35,47 +36,31 @@ List-Id: linux-omap@vger.kernel.org
 > Khasim
 > 
 
-Content-Description: 2430_i2cinit_fix.patch
-> I2C-1 for 2430 was commented previously, enabled in this patch.
+Content-Description: board2430_twlirq.patch
+> This patch updates the board-2430sdp.h for TWL PIH interrupts.
 > 
 > Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
 > 
 > Files Changed:
->  devices.c |    8 +++++---
->  1 files changed, 5 insertions(+), 3 deletions(-)
+>  board-2430sdp.h |    7 +++++++
+>  1 files changed, 7 insertions(+)
+> 
 > =============================================================================
-> diff -purN linux-omap/arch/arm/plat-omap/devices.c devpt_branch/arch/arm/plat-omap/devices.c
-> --- linux-omap/arch/arm/plat-omap/devices.c	2006-11-28 09:59:29.000000000 -0600
-> +++ devpt_branch/arch/arm/plat-omap/devices.c	2006-12-03 11:53:40.000000000 -0600
-> @@ -136,8 +136,10 @@ static void omap_init_i2c(void)
->  	 * it can include clocking and address info, maybe more.
->  	 */
->  	if (cpu_is_omap24xx()) {
-> -		omap_cfg_reg(M19_24XX_I2C1_SCL);
-> -		omap_cfg_reg(L15_24XX_I2C1_SDA);
-> +		if(machine_is_omap_h4()){
-> +			omap_cfg_reg(M19_24XX_I2C1_SCL);
-> +			omap_cfg_reg(L15_24XX_I2C1_SDA);
-> +		}
->  	} else {
->  		omap_cfg_reg(I2C_SCL);
->  		omap_cfg_reg(I2C_SDA);
-> @@ -501,13 +503,13 @@ static int __init omap_init_devices(void
->  	 * in alphabetical order so they're easier to sort through.
->  	 */
->  	omap_init_dsp();
-> -	omap_init_i2c();
->  	omap_init_kp();
->  	omap_init_mmc();
->  	omap_init_uwire();
->  	omap_init_wdt();
->  	omap_init_rng();
->  #endif
-> +	omap_init_i2c();
->  	return 0;
->  }
->  arch_initcall(omap_init_devices);
+> diff -purN linux-omap/include/asm-arm/arch-omap/board-2430sdp.h devpt_branch/include/asm-arm/arch-omap/board-2430sdp.h
+> --- linux-omap/include/asm-arm/arch-omap/board-2430sdp.h	2006-11-20 21:56:58.000000000 -0600
+> +++ devpt_branch/include/asm-arm/arch-omap/board-2430sdp.h	2006-12-03 13:30:59.000000000 -0600
+> @@ -34,6 +34,13 @@
+>  #define OMAP24XX_ETHR_GPIO_IRQ		149
+>  #define SDP2430_CS0_BASE		0x04000000
+>  
+> +#define TWL4030_IRQNUM			INT_24XX_SYS_NIRQ
+> +
+> +/* TWL4030 Primary Interrupt Handler (PIH) interrupts */
+> +#define IH_TWL4030_BASE		IH_BOARD_BASE
+> +#define IH_TWL4030_END			(IH_TWL4030_BASE+8)
+> +#define NR_IRQS			(IH_TWL4030_END)
+> +
 
-Pushing today.
+Pushing this too, slightly modified to apply.
 
 Tony
