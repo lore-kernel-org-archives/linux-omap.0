@@ -1,16 +1,14 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: i2c for omap5912,help me
-Date: Sat, 9 Dec 2006 23:16:21 -0800
-Message-ID: <200612092316.22449.david-b@pacbell.net>
-References: <20061130231453.48C468062D@linux.omap.com>
-	<004401c71a95$3faead50$420aa8c0@yfliwei>
+From: "chandrashekhar singh" <cp_singh@faith.co.jp>
+Subject: Re: Linux-omap-open-source Digest, Vol 32, Issue 17
+Date: Mon, 11 Dec 2006 10:13:17 +0900
+Message-ID: <008c01c71cc1$8b48d320$5811a80a@cpsingh>
+References: <20061210180003.0CE968062B@linux.omap.com>
+Reply-To: chandrashekhar singh <cp_singh@faith.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <004401c71a95$3faead50$420aa8c0@yfliwei>
-Content-Disposition: inline
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,18 +16,23 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
-Cc: =?utf-8?q?=E6=9D=8E=E7=8E=AE?= <coffeeyu531@126.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: chaitali@snrlabs.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
->  I'm using an omap5912 and would like to light the led D3 
-> on the board thru the i2c driver.
+>init: error while loading shared libraries: libc.so.6: cannot open
+>shared object
+> file: No such file or directory
+>Kernel panic: Attempted to kill init!
 
-In the kernel, <asm/arch/tps65010.h> exports
+Hi your file system might not be correct or some how it might be =
+corrupted,
+download from other place and try again, I had similar problem with
+OMAP 2420/2430.=20
+I  downloaded relatively older vesion files system  and it was working =
+well.
 
-extern int tps65010_set_led(unsigned led, unsigned mode);
-extern int tps65010_set_gpio_out_value(unsigned gpio, unsigned value);
-
-which are used for those LEDs.  D3 is connected to TPS65010 GPIO 2...
+cheers
+chandra
