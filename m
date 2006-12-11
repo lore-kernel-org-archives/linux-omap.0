@@ -1,13 +1,13 @@
 From: tony@atomide.com
-Subject: Re: [PATCH] GPMC driver warning fix
-Date: Mon, 11 Dec 2006 13:58:50 -0800
-Message-ID: <20061211215849.GC31722@atomide.com>
-References: <77C7F7CB1230A74A9D19C0C111E6EDBE0207EE1C@DLEE09.ent.ti.com>
+Subject: Re: [PATCH] ARM: OMAP: sx1-alsa cleanup. No code change.
+Date: Mon, 11 Dec 2006 14:06:40 -0800
+Message-ID: <20061211220639.GE31722@atomide.com>
+References: <3a5b1be00612041018x66d00b7bsdb68d33cf268759b@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <77C7F7CB1230A74A9D19C0C111E6EDBE0207EE1C@DLEE09.ent.ti.com>
+In-Reply-To: <3a5b1be00612041018x66d00b7bsdb68d33cf268759b@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,19 +15,25 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Komal Shah <komal.shah802003@gmail.com>
+Cc: linux-omap-open-source <linux-omap-open-source@linux.omap.com>, vovan888@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-* Syed Mohammed, Khasim <x0khasim@ti.com> [061203 12:38]:
-> Hi,
-> 
->  
-> 
-> This patch is to fix a GPMC driver warning / error.
+* Komal Shah <komal.shah802003@gmail.com> [061204 10:27]:
+> -- 
+> ---Komal Shah
+> http://komalshah.blogspot.com
 
-Pushing this and the header patch as a single commit.
+> From 72f50fac3fb53d0b603ebf9fb3a266c94391c861 Mon Sep 17 00:00:00 2001
+> From: Komal Shah <komal_shah802003@yahoo.com>
+> Date: Sun, 3 Dec 2006 23:45:20 +0530
+> Subject: [PATCH] ARM: OMAP: sx1-alsa cleanup. No code change.
+> 
+> - whitespace removal.
+> - Remove unnecessary #includes.
+
+Pushing today.
 
 Tony
