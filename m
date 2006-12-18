@@ -1,10 +1,9 @@
-From: Zgembo Adislic <adislic_zgembo@yahoo.com>
-Subject: Memory management
-Date: Sun, 17 Dec 2006 23:33:56 -0800 (PST)
-Message-ID: <285666.21394.qm@web30614.mail.mud.yahoo.com>
+From: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Subject: [RFC][PATCH] Update MMC response types
+Date: Mon, 18 Dec 2006 11:34:34 -0400
+Message-ID: <4586B50A.9030700@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="------------020606020307080803060408"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,21 +14,100 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>, Juha Yrjola <juha.yrjola@solidboot.com>, Pierre Ossman <drzeus-list@drzeus.cx>, linux-omap-open-source@linux.omap.com
+Cc: Ilias Biris <ilias.biris@indt.org.br>
 List-Id: linux-omap@vger.kernel.org
 
-Hi All,
-  
- This is all new for me and I need some help. So, if  anyone knows how to help me, please answer me. 
-  
- My problem is about memory menagement. I am working  on OMAP 5910 platform. My  assignment is to update already existing  projects and I am missing memory space. I do not have any kind of memory leak.  The problem I have is when I am trying to create new structure in main project  or when I try to call a function from other library project I get error  messages. Those errors say that it can't allocate memory space for variables as  .bss or .dio or .hst inside DARAM or SARAM. So, I would like to know how I can  have view on memory . Or is there any avaible tool in CodeComposer v3.1 I could  use? That way I could look at memory and see what is going on. 
-  
- Please, if anyone have any idea it will be  usefull.
-  
- Thank you all,
-Zgembo
+This is a multi-part message in MIME format.
+--------------020606020307080803060408
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
- __________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+Hi folks,
+
+This patch is a fix in order to update MMC response types. This modification
+is needed to allow SD card support in OMAP platforms.
+
+It's based on previously work from Juha Yrjola.
+
+This modification was tested in H2 and H3 OMAP platforms using an
+Transcend SD card 512MB.
+
+BR,
+
+Carlos.
+
+-- 
+Carlos Eduardo
+Software Engineer
+Nokia Institute of Technology - INdT
+Open Source Mobile Research Center - OSMRC
+Phone: +55 92 2126-1079
+Mobile: +55 92 8127-1797
+E-mail: carlos.aguiar@indt.org.br
+
+
+--------------020606020307080803060408
+Content-Type: text/plain;
+ name="mmc_rsp.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="mmc_rsp.diff"
+
+This patch is a fix in order to update MMC response types. This modification is 
+needed to allow SD card support on OMAP platforms.
+
+Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+Signed-off-by: Yuha Yrjola <juha.yrjola@solidboot.com>
+
+Index: linux-omap-git/drivers/mmc/omap.c
+===================================================================
+--- linux-omap-git.orig/drivers/mmc/omap.c	2006-11-24 09:45:44.000000000 -0400
++++ linux-omap-git/drivers/mmc/omap.c	2006-12-18 06:02:53.000000000 -0400
+@@ -92,7 +92,6 @@
+ 
+ 
+ #define DRIVER_NAME "mmci-omap"
+-#define RSP_TYPE(x)	((x) & ~(MMC_RSP_BUSY|MMC_RSP_OPCODE))
+ 
+ /* Specifies how often in millisecs to poll for card status changes
+  * when the cover switch is open */
+@@ -205,18 +204,25 @@ mmc_omap_start_command(struct mmc_omap_h
+ 	cmdtype = 0;
+ 
+ 	/* Our hardware needs to know exact type */
+-	switch (RSP_TYPE(mmc_resp_type(cmd))) {
+-	case RSP_TYPE(MMC_RSP_R1):
++	switch (mmc_resp_type(cmd)) {
++	case MMC_RSP_NONE:
++		break;
++	case MMC_RSP_R1:
++	case MMC_RSP_R1B:
+ 		/* resp 1, resp 1b */
+ 		resptype = 1;
+ 		break;
+-	case RSP_TYPE(MMC_RSP_R2):
++	case MMC_RSP_R2:
+ 		resptype = 2;
+ 		break;
+-	case RSP_TYPE(MMC_RSP_R3):
++	case MMC_RSP_R3:
+ 		resptype = 3;
+ 		break;
++	case MMC_RSP_R6:
++		resptype = 6;
++		break;
+ 	default:
++		dev_err(mmc_dev(host->mmc), "Invalid response type: %04x\n", mmc_resp_type(cmd));
+ 		break;
+ 	}
+ 
+
+--------------020606020307080803060408
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--------------020606020307080803060408--
