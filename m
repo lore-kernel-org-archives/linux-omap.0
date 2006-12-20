@@ -1,12 +1,15 @@
-From: Ram <vshrirama@gmail.com>
-Subject: nand booting - sdp 2430
-Date: Wed, 20 Dec 2006 20:09:10 +0530
-Message-ID: <8bf247760612200639h2bb7045etfc78bdc1a3e51bb3@mail.gmail.com>
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: RE: help with clock ticks
+Date: Wed, 20 Dec 2006 10:38:28 -0600
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C4708E3EF@dlee13.ent.ti.com>
+References: <904DEC693BE1AB429622C6F5ABA7E0B801B224EB@is01ex02.ittiam.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
+In-Reply-To: <904DEC693BE1AB429622C6F5ABA7E0B801B224EB@is01ex02.ittiam.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,42 +19,60 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Madhava Gauranga <Madhava.Gauranga@ittiam.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
-  Sir, im trying to boot kernel from Nand using xloader.
 
- Im using CCST tool to burn the xloader. Im using Omap 2430 SDP Board.
-
-Xloader download, compiled and Signed by IFT Setup tool.
-
-
-I followed the following steps to do that
-1)  I downloaded the xloader and burnt it to the nand at  0x0C000000.
-
-2) I downloaded and burnt the u-boot (OS Loader) at (0x0010000 + 0xC00000)
-
-    I got this address from the include/configs/omap2430sdp.h
-
-/* NAND is partitioned:
- * 0x0000000 - 0x0010000        Booting Image
- * 0x0010000 - 0x0050000        U-Boot Image
- * 0x0050000 - 0x0080000        U-Boot Env Data (X-loader doesn't care)
- * 0x0080000 - 0x00B0000        Kernel Image
- * 0x00B0000 - 0x4000000        depends on application
- */
-
-3) I changed the Dip Switch setting S8-3 (CS0_0) to OFF so that
-Onboard Nand is CS0.
-
-
-When i restart the board, It just hangs. Im not sure if im doing
-something wrong?.
-
-
-Please Advice.
-
+Which kernel is this?
 
 Regards,
-sriram
+Khasim
+
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+Madhava Gauranga
+Sent: Wednesday, December 20, 2006 6:44 AM
+To: linux-omap-open-source@linux.omap.com
+Subject: help with clock ticks
+
+Hi,
+
+=20
+
+The clock ticks is not happening. When a thread goes to sleep, it sleeps
+for ever..=20
+
+=20
+
+I reckon that the clock is not ticking.=20
+
+=20
+
+Pls help me with the tcf file for the same..
+
+=20
+
+I am working on SDP2430.
+
+=20
+
+Respect,
+
+Madhava Gauranga
+
+=20
+
+
+**********************************************************************
+This email and any files transmitted with it are confidential and
+intended solely for the use of the individual or entity to whom they
+are addressed. If you have received this email in error please notify
+helpdesk@ittiam.com.
+**********************************************************************
+
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
