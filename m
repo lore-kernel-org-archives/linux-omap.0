@@ -1,15 +1,13 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: Fix ethernet IRQF_TRIGGER flag for apollon
-Date: Thu, 21 Dec 2006 16:24:49 -0600
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A5091AEA5B@dlee02.ent.ti.com>
-References: <20061221215755.GE10399@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] dmtimer.c omap1 register fix...
+Date: Thu, 21 Dec 2006 14:52:19 -0800
+Message-ID: <20061221225219.GF10399@atomide.com>
+References: <1165539159.5155.2.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <20061221215755.GE10399@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <1165539159.5155.2.camel@localhost.localdomain>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,29 +17,33 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>, Dirk Behme <dirk.behme@googlemail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Matthew Percival <matthew@capgo.com>
+Cc: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
->=20
-> AFAIK we _should_ be able to use level GPIO interrupts on all omap2
-> systems. I wonder why that does not work on apollon? Is there some
-> difference in hardware, or maybe some GPIO lines don't support level
-> interrupts on omap2?
+* Matthew Percival <matthew@capgo.com> [061207 16:54]:
+> G'Day,
+> 
+> 	When I went to use dmtimer7 it did not seem to work.  I noticed that
+> the base addresses for dmtimers 7 and 8 were set wrong.  A simple patch
+> to correct a small error.  Confirmed to fix the problem on an OSK.
+> 
+> 	-- Matthew
 
-The OMAP GPIOs can trigger on edges or levels.
+> --- a/arch/arm/plat-omap/dmtimer.c	2006-12-06 11:40:06.000000000 +1100
+> +++ b/arch/arm/plat-omap/dmtimer.c	2006-12-08 11:47:33.000000000 +1100
+> @@ -90,8 +90,8 @@
+>  	{ .phys_base = 0xfffb2c00, .irq = INT_1610_GPTIMER4 },
+>  	{ .phys_base = 0xfffb3400, .irq = INT_1610_GPTIMER5 },
+>  	{ .phys_base = 0xfffb3c00, .irq = INT_1610_GPTIMER6 },
+> -	{ .phys_base = 0xfffb4400, .irq = INT_1610_GPTIMER7 },
+> -	{ .phys_base = 0xfffb4c00, .irq = INT_1610_GPTIMER8 },
+> +	{ .phys_base = 0xfffb7400, .irq = INT_1610_GPTIMER7 },
+> +	{ .phys_base = 0xfffbd400, .irq = INT_1610_GPTIMER8 },
+>  };
+>  
+>  #elif defined(CONFIG_ARCH_OMAP2)
 
-That seems likely a board level issue.  The Ethernet interrupt from the
-raw SMC chip is level assertive.  Depending on the SMC bus hook up mode
-its either active high or low through a smc-push-pull output buffer.
+Good catch, can you please reply to this thread with your Signed-off-by?
 
-On the TI-SDP platforms this signal goes into an FPGA which depending on
-the SDP may or may not invert the signal.  It seems over time depending
-on the SDP a pull-up may have been necessary on the FPGA to OMAP-GPIO
-side when hooked to an open drain fpga output.
-
-At any rate omap-gpios should be ok.  The issue is likely with the smc
-to omap path at the board level.
-
-Regards,
-Richard W.
+Tony
