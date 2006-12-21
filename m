@@ -1,15 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] dmtimer.c omap1 register fix...
-Date: Thu, 21 Dec 2006 15:40:04 -0800
-Message-ID: <20061221234003.GP10399@atomide.com>
-References: <1165539159.5155.2.camel@localhost.localdomain>
-	<20061221225219.GF10399@atomide.com>
-	<1166742806.8156.1.camel@localhost.localdomain>
+Subject: Re: [PATCH] ARM: OMAP: Ensure correct GPIO registers access width.
+Date: Thu, 21 Dec 2006 15:42:14 -0800
+Message-ID: <20061221234214.GQ10399@atomide.com>
+References: <11645731203663-git-send-email-balrog@zabor.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <1166742806.8156.1.camel@localhost.localdomain>
+In-Reply-To: <11645731203663-git-send-email-balrog@zabor.org>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,43 +15,24 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Matthew Percival <matthew@capgo.com>
-Cc: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: balrogg@gmail.com, David Brownell <david-b@pacbell.net>
+Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Matthew Percival <matthew@capgo.com> [061221 15:14]:
-> On Thu, 2006-12-21 at 14:52 -0800, Tony Lindgren wrote:
-> > * Matthew Percival <matthew@capgo.com> [061207 16:54]:
-> > > G'Day,
-> > > 
-> > > 	When I went to use dmtimer7 it did not seem to work.  I noticed that
-> > > the base addresses for dmtimers 7 and 8 were set wrong.  A simple patch
-> > > to correct a small error.  Confirmed to fix the problem on an OSK.
-> > > 
-> > > 	-- Matthew
-> > 
-> > > --- a/arch/arm/plat-omap/dmtimer.c	2006-12-06 11:40:06.000000000 +1100
-> > > +++ b/arch/arm/plat-omap/dmtimer.c	2006-12-08 11:47:33.000000000 +1100
-> > > @@ -90,8 +90,8 @@
-> > >  	{ .phys_base = 0xfffb2c00, .irq = INT_1610_GPTIMER4 },
-> > >  	{ .phys_base = 0xfffb3400, .irq = INT_1610_GPTIMER5 },
-> > >  	{ .phys_base = 0xfffb3c00, .irq = INT_1610_GPTIMER6 },
-> > > -	{ .phys_base = 0xfffb4400, .irq = INT_1610_GPTIMER7 },
-> > > -	{ .phys_base = 0xfffb4c00, .irq = INT_1610_GPTIMER8 },
-> > > +	{ .phys_base = 0xfffb7400, .irq = INT_1610_GPTIMER7 },
-> > > +	{ .phys_base = 0xfffbd400, .irq = INT_1610_GPTIMER8 },
-> > >  };
-> > >  
-> > >  #elif defined(CONFIG_ARCH_OMAP2)
-> > 
-> > Good catch, can you please reply to this thread with your Signed-off-by?
-> > 
-> > Tony
+* Andrzej Zaborowski <balrog@zabor.org> [061126 10:31]:
+> [Note that this probably gives no gain of any kind.  I don't know
+> if it should be applied.]
 > 
-> Signed-off-by: Matthew Percival <matthew at capgo.com>
+> Use 16-bit or 32-bit reads and writes to access GPIO registers in
+> different banks according to their widths.  Currently all accesses
+> in gpio.c were 32-bits.
 
-Thanks, pushing today.
+Let's wait on this a bit. I'd rather have omap1 and omap2 register
+their own handlers, so let's plan on doing this along with the generic
+gpio framework changes that Dave recently posted to LKML.
+
+Regards,
 
 Tony
