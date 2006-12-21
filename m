@@ -1,13 +1,17 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] dmtimer.c omap1 register fix...
-Date: Thu, 21 Dec 2006 14:52:19 -0800
-Message-ID: <20061221225219.GF10399@atomide.com>
-References: <1165539159.5155.2.camel@localhost.localdomain>
+Subject: Re: [patch 2.6.19] omap camera builds again; Mistral hooks
+Date: Thu, 21 Dec 2006 14:57:37 -0800
+Message-ID: <20061221225737.GG10399@atomide.com>
+References: <20061207034509.5BC701E771D@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+	<200612070558.19023.marek.vasut@gmail.com>
+	<20061211222134.GG31722@atomide.com>
+	<200612141239.39491.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <1165539159.5155.2.camel@localhost.localdomain>
+In-Reply-To: <200612141239.39491.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,33 +21,26 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Matthew Percival <matthew@capgo.com>
-Cc: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Matthew Percival <matthew@capgo.com> [061207 16:54]:
-> G'Day,
-> 
-> 	When I went to use dmtimer7 it did not seem to work.  I noticed that
-> the base addresses for dmtimers 7 and 8 were set wrong.  A simple patch
-> to correct a small error.  Confirmed to fix the problem on an OSK.
-> 
-> 	-- Matthew
+* David Brownell <david-b@pacbell.net> [061214 12:40]:
+> On Monday 11 December 2006 2:21 pm, tony@atomide.com wrote:
+> > * Marek Va=C5=A1ut <marek.vasut@gmail.com> [061206 20:59]:
+> > > Hi, just a small typo ...
+> > > static char banner[] __initdata =3D KERN_INFO "OMAP Camera driver=20
+> > > initialzing\n"; ... should be initializing ;-)
+> >=20
+> > Pushed in two parts, one for the core changes, and the other patch
+> > for the driver. I had to manually apply some parts of the driver
+> > patch. Dave, can you please check that your changes got applied?
+>=20
+> I can "patch -R" my version with only a reject on the last half of
+> the camera_core.c changes ... and eyeballing that, I didn't see
+> any obvious breakage, I think it's whitespace.  It still says it's
+> getting its "initial zing" though.  ;)
 
-> --- a/arch/arm/plat-omap/dmtimer.c	2006-12-06 11:40:06.000000000 +1100
-> +++ b/arch/arm/plat-omap/dmtimer.c	2006-12-08 11:47:33.000000000 +1100
-> @@ -90,8 +90,8 @@
->  	{ .phys_base = 0xfffb2c00, .irq = INT_1610_GPTIMER4 },
->  	{ .phys_base = 0xfffb3400, .irq = INT_1610_GPTIMER5 },
->  	{ .phys_base = 0xfffb3c00, .irq = INT_1610_GPTIMER6 },
-> -	{ .phys_base = 0xfffb4400, .irq = INT_1610_GPTIMER7 },
-> -	{ .phys_base = 0xfffb4c00, .irq = INT_1610_GPTIMER8 },
-> +	{ .phys_base = 0xfffb7400, .irq = INT_1610_GPTIMER7 },
-> +	{ .phys_base = 0xfffbd400, .irq = INT_1610_GPTIMER8 },
->  };
->  
->  #elif defined(CONFIG_ARCH_OMAP2)
-
-Good catch, can you please reply to this thread with your Signed-off-by?
+Fixing today :)
 
 Tony
