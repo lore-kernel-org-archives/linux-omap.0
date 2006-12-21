@@ -1,14 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Fix ADS7846 dependencies
-Date: Thu, 21 Dec 2006 15:31:16 -0800
-Message-ID: <20061221233115.GN10399@atomide.com>
-References: <85psbv77ox.fsf@orfeo.duckcorp.org>
-	<20061111003740.GS26185@atomide.com>
+Subject: Re: [PATCH] dmtimer.c omap1 register fix...
+Date: Thu, 21 Dec 2006 15:40:04 -0800
+Message-ID: <20061221234003.GP10399@atomide.com>
+References: <1165539159.5155.2.camel@localhost.localdomain>
+	<20061221225219.GF10399@atomide.com>
+	<1166742806.8156.1.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20061111003740.GS26185@atomide.com>
+In-Reply-To: <1166742806.8156.1.camel@localhost.localdomain>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,55 +17,43 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Arnaud Patard <arnaud.patard@rtp-net.org>, David Brownell <david-b@pacbell.net>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Matthew Percival <matthew@capgo.com>
+Cc: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [061110 16:44]:
-> Hi,
-> 
-> * Arnaud Patard <arnaud.patard@rtp-net.org> [061110 15:34]:
-> > Hi,
+* Matthew Percival <matthew@capgo.com> [061221 15:14]:
+> On Thu, 2006-12-21 at 14:52 -0800, Tony Lindgren wrote:
+> > * Matthew Percival <matthew@capgo.com> [061207 16:54]:
+> > > G'Day,
+> > > 
+> > > 	When I went to use dmtimer7 it did not seem to work.  I noticed that
+> > > the base addresses for dmtimers 7 and 8 were set wrong.  A simple patch
+> > > to correct a small error.  Confirmed to fix the problem on an OSK.
+> > > 
+> > > 	-- Matthew
 > > 
-> > While playing with my kernel configuration, I found out that now,
-> > setting CONFIG_HWMON to 'n' and TOUCHSCREEN_ADS7846 to 'y' was allowed,
-> > which leads to a build failure.
-> > This was caused by the commit 954423251daf362272076c6228dcdac65d72b287
-> > which reverts the changes introduced by the commit
-> > 659cb49d6a8ba8d5651e53dd22a0addab6a479e6. 
-> > This patch fix the trouble.
+> > > --- a/arch/arm/plat-omap/dmtimer.c	2006-12-06 11:40:06.000000000 +1100
+> > > +++ b/arch/arm/plat-omap/dmtimer.c	2006-12-08 11:47:33.000000000 +1100
+> > > @@ -90,8 +90,8 @@
+> > >  	{ .phys_base = 0xfffb2c00, .irq = INT_1610_GPTIMER4 },
+> > >  	{ .phys_base = 0xfffb3400, .irq = INT_1610_GPTIMER5 },
+> > >  	{ .phys_base = 0xfffb3c00, .irq = INT_1610_GPTIMER6 },
+> > > -	{ .phys_base = 0xfffb4400, .irq = INT_1610_GPTIMER7 },
+> > > -	{ .phys_base = 0xfffb4c00, .irq = INT_1610_GPTIMER8 },
+> > > +	{ .phys_base = 0xfffb7400, .irq = INT_1610_GPTIMER7 },
+> > > +	{ .phys_base = 0xfffbd400, .irq = INT_1610_GPTIMER8 },
+> > >  };
+> > >  
+> > >  #elif defined(CONFIG_ARCH_OMAP2)
 > > 
-> > Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
-> > ---
-> 
-> > ---
-> >  drivers/input/touchscreen/Kconfig |    5 	4 +	1 -	0 !
-> >  1 files changed, 4 insertions(+), 1 deletion(-)
+> > Good catch, can you please reply to this thread with your Signed-off-by?
 > > 
-> > Index: linux-2.6.18/drivers/input/touchscreen/Kconfig
-> > ===================================================================
-> > --- linux-2.6.18.orig/drivers/input/touchscreen/Kconfig	2006-09-20 05:42:06.000000000 +0200
-> > +++ linux-2.6.18/drivers/input/touchscreen/Kconfig	2006-11-10 14:24:47.000000000 +0100
-> > @@ -14,10 +14,13 @@ if INPUT_TOUCHSCREEN
-> >  config TOUCHSCREEN_ADS7846
-> >  	tristate "ADS 7846 based touchscreens"
-> >  	depends on SPI_MASTER
-> > +	select HWMON
-> >  	help
-> >  	  Say Y here if you have a touchscreen interface using the
-> >  	  ADS7846 controller, and your board-specific initialization
-> > -	  code includes that in its table of SPI devices.
-> > +	  code includes that in its table of SPI devices.  You will
-> > +	  also get hwmon interfaces for the temperature and voltage
-> > +	  sensors this chip provides.
-> >  
-> >  	  If unsure, say N (but it's safe to say "Y").
-> >  
+> > Tony
 > 
-> This looks OK to me, Dave any comments?
+> Signed-off-by: Matthew Percival <matthew at capgo.com>
 
-Pushing today.
+Thanks, pushing today.
 
 Tony
