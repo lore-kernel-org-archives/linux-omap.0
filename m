@@ -1,13 +1,14 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Remove unnecessary memset in dsp task.c
-Date: Thu, 21 Dec 2006 15:02:41 -0800
-Message-ID: <20061221230240.GI10399@atomide.com>
-References: <3a5b1be00612041027h2e3cefefwf140897ee1bb4717@mail.gmail.com>
+From: Matthew Percival <matthew@capgo.com>
+Subject: Re: [PATCH] dmtimer.c omap1 register fix...
+Date: Fri, 22 Dec 2006 10:13:26 +1100
+Message-ID: <1166742806.8156.1.camel@localhost.localdomain>
+References: <1165539159.5155.2.camel@localhost.localdomain>
+	<20061221225219.GF10399@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <3a5b1be00612041027h2e3cefefwf140897ee1bb4717@mail.gmail.com>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20061221225219.GF10399@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,56 +16,37 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Komal Shah <komal.shah802003@gmail.com>
-Cc: linux-omap-open-source <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Linux OMAP Open Source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Komal Shah <komal.shah802003@gmail.com> [061204 10:33]:
-> There is much more duplicated code can be removed in task.c by using
-> already available wait_for_event_{un}interruptible_{timeout},
-> prepare_wait, finish_wait etc calls. What do you say?
+On Thu, 2006-12-21 at 14:52 -0800, Tony Lindgren wrote:
+> * Matthew Percival <matthew@capgo.com> [061207 16:54]:
+> > G'Day,
+> > 
+> > 	When I went to use dmtimer7 it did not seem to work.  I noticed that
+> > the base addresses for dmtimers 7 and 8 were set wrong.  A simple patch
+> > to correct a small error.  Confirmed to fix the problem on an OSK.
+> > 
+> > 	-- Matthew
 > 
-> -- 
-> ---Komal Shah
-> http://komalshah.blogspot.com
+> > --- a/arch/arm/plat-omap/dmtimer.c	2006-12-06 11:40:06.000000000 +1100
+> > +++ b/arch/arm/plat-omap/dmtimer.c	2006-12-08 11:47:33.000000000 +1100
+> > @@ -90,8 +90,8 @@
+> >  	{ .phys_base = 0xfffb2c00, .irq = INT_1610_GPTIMER4 },
+> >  	{ .phys_base = 0xfffb3400, .irq = INT_1610_GPTIMER5 },
+> >  	{ .phys_base = 0xfffb3c00, .irq = INT_1610_GPTIMER6 },
+> > -	{ .phys_base = 0xfffb4400, .irq = INT_1610_GPTIMER7 },
+> > -	{ .phys_base = 0xfffb4c00, .irq = INT_1610_GPTIMER8 },
+> > +	{ .phys_base = 0xfffb7400, .irq = INT_1610_GPTIMER7 },
+> > +	{ .phys_base = 0xfffbd400, .irq = INT_1610_GPTIMER8 },
+> >  };
+> >  
+> >  #elif defined(CONFIG_ARCH_OMAP2)
+> 
+> Good catch, can you please reply to this thread with your Signed-off-by?
+> 
+> Tony
 
-> From 4e89cea55f7aa2162a7541106443eef609666ed0 Mon Sep 17 00:00:00 2001
-> From: Komal Shah <komal_shah802003@yahoo.com>
-> Date: Mon, 4 Dec 2006 23:52:11 +0530
-> Subject: [PATCH] ARM: OMAP: Remove unnecessary memset in dsp task.c
-> 
-> - and remove commented "struct device_driver"
-> 
-> Signed-off-by: Komal Shah <komal_shah802003@yahoo.com>
-> ---
->  arch/arm/plat-omap/dsp/task.c |    4 ----
->  1 files changed, 0 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/dsp/task.c b/arch/arm/plat-omap/dsp/task.c
-> index 7fcc06a..807c408 100644
-> --- a/arch/arm/plat-omap/dsp/task.c
-> +++ b/arch/arm/plat-omap/dsp/task.c
-> @@ -108,7 +108,6 @@ struct rcvdt_bk_struct {
->  
->  struct taskdev {
->  	struct bus_type *bus;
-> -//	struct device_driver *driver;
->  	struct device dev;	/* Generic device interface */
->  
->  	long state;
-> @@ -564,9 +563,6 @@ int dsp_task_config_all(u8 n)
->  	struct dsptask *taskheap;
->  	size_t devheapsz, taskheapsz;
->  
-> -	memset(taskdev, 0, sizeof(void *) * TASKDEV_MAX);
-> -	memset(dsptask, 0, sizeof(void *) * TASKDEV_MAX);
-> -
->  	printk(KERN_INFO "omapdsp: found %d task(s)\n", n);
->  	if (n == 0)
->  		return 0;
-
-Pushing today.
-
-Tony
+Signed-off-by: Matthew Percival <matthew at capgo.com>
