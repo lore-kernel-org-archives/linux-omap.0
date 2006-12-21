@@ -1,13 +1,10 @@
-From: Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Realtime patch on OMAP2
-Date: Thu, 21 Dec 2006 02:06:30 +0000 (GMT)
-Message-ID: <20731908.192991166666790293.JavaMail.weblogic@ep_ml29>
-Reply-To: kyungmin.park@samsung.com
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: [PATCH] ARM: OMAP: Fix ethernet IRQF_TRIGGER flag for apollon
+Date: Thu, 21 Dec 2006 10:43:04 +0100
+Message-ID: <458A5728.2060905@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1589249565=="
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-return: prohibited
-MIME-version: 1.0
+Content-Type: multipart/mixed; boundary="------------020509050903060201050907"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,67 +12,52 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============1589249565==
-Content-return: prohibited
-Content-type: text/plain; charset=utf-8
-Content-transfer-encoding: base64
-
-SGksDQoNCldpdGggRGlyayBCZWhtZSdzIG1haWwsIEkgdHJ5IGhlIHJlYWx0aW1lIHByZWVtcHRp
-b24gcGF0Y2ggb24gT01BUDINCg0KbGludXgtMi42LjE5LnRhci5iejIgKGNsZWFuIExpbnVzIG9u
-ZSwgbm90IG91ciBPTUFQIHRyZWUpDQpwYXRjaC0yLjYuMTktcnQxNQ0KcGF0Y2gtMi42LjE5LXJ0
-MTUtZml4ZXMuZGlmZg0KDQphcm0taHJ0LWtjb25maWctcGF0Y2gudHh0DQphcm0tbm8taHotcGF0
-Y2gudHh0DQphcm1fb21hcF9jbG9ja3NvdXJjZV9wYXRjaC50eHQNCmFybV9vbWFwX2Nsb2NrZXZl
-bnRzX3BhdGNoLnR4dA0KDQpCdXQgaXQncyBub3QgZW5vdWdoIG9uIE9NQVAyDQoNCkZpcnN0LCBB
-Uk12NiBzdXBwb3J0DQotIEkgYWRkIHRoZSBjbXB4Y2hnIGluIGluY2x1ZGUvYXNtLWFybS9hdG9t
-aWMuaA0KDQojaWZuZGVmIENPTkZJR19TTVANCi8qDQogKiBBdG9taWMgY29tcGFyZSBhbmQgZXhj
-aGFuZ2UuDQogKi8NCiNkZWZpbmUgX19IQVZFX0FSQ0hfQ01QWENIRyAgICAgMQ0KDQpleHRlcm4g
-dW5zaWduZWQgbG9uZyB3cm9uZ19zaXplX2NtcHhjaGcodm9sYXRpbGUgdm9pZCAqcHRyKTsNCg0K
-c3RhdGljIGlubGluZSB1bnNpZ25lZCBsb25nIF9fY21weGNoZyh2b2xhdGlsZSB2b2lkICpwdHIs
-DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB1bnNpZ25lZCBsb25nIG9sZCwN
-CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHVuc2lnbmVkIGxvbmcgbmV3LCBp
-bnQgc2l6ZSkNCnsNCiAgICAgICAgdm9sYXRpbGUgdW5zaWduZWQgbG9uZyAqcCA9IHB0cjsNCg0K
-ICAgICAgICBpZiAoc2l6ZSA9PSA0KSB7DQogICAgICAgICAgICAgICAgdW5zaWduZWQgbG9uZyBv
-bGR2YWwsIHJlczsNCg0KICAgICAgICAgICAgICAgIGRvIHsNCiAgICAgICAgICAgICAgICAgICAg
-ICAgIF9fYXNtX18gX192b2xhdGlsZV9fKCJAIGF0b21pY19jbXB4Y2hnXG4iDQogICAgICAgICAg
-ICAgICAgICAgICAgICAibGRyZXggICUxLCBbJTJdXG4iDQogICAgICAgICAgICAgICAgICAgICAg
-ICAibW92ICAgICUwLCAjMFxuIg0KICAgICAgICAgICAgICAgICAgICAgICAgInRlcSAgICAlMSwg
-JTNcbiINCiAgICAgICAgICAgICAgICAgICAgICAgICJzdHJleGVxICUwLCAlNCwgWyUyXVxuIg0K
-ICAgICAgICAgICAgICAgICAgICAgICAgOiAiPSZyIiAocmVzKSwgIj0mciIgKG9sZHZhbCkNCiAg
-ICAgICAgICAgICAgICAgICAgICAgIDogInIiIChwKSwgIklyIiAob2xkKSwgInIiIChuZXcpDQog
-ICAgICAgICAgICAgICAgICAgICAgICA6ICJjYyIpOw0KICAgICAgICAgICAgICAgIH0gd2hpbGUg
-KHJlcyk7DQoNCiAgICAgICAgICAgICAgICByZXR1cm4gb2xkdmFsOw0KICAgICAgICB9IGVsc2UN
-CiAgICAgICAgICAgICAgICByZXR1cm4gd3Jvbmdfc2l6ZV9jbXB4Y2hnKHB0cik7DQp9DQoNCiNk
-ZWZpbmUgY21weGNoZyhwdHIsbyxuKSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgIFwNCih7ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwNCiAgICAgX190eXBlb2ZfXygqKHB0cikp
-IF9vXyA9IChvKTsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwNCiAgICAg
-X190eXBlb2ZfXygqKHB0cikpIF9uXyA9IChuKTsgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIFwNCiAgICAgKF9fdHlwZW9mX18oKihwdHIpKSkgX19jbXB4Y2hnKChwdHIpLCAo
-dW5zaWduZWQgbG9uZylfb18sICAgICAgICAgIFwNCiAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICh1bnNpZ25lZCBsb25nKV9uXywgc2l6ZW9mKCoocHRyKSkpOyAgIFwNCn0pDQoNCiNl
-bmRpZg0KDQpTZWNvbmQsIHNtYzkxeCB0aW1lb3V0IHByb2JsZW0NCi0gSSBmb3VuZCBhIHBhdGNo
-IGluIGtlcm5lbC1tYWlsaW5nIGxpc3QgWzFdLg0KICBidXQgSSdtIG5vdCBzdXJlIGl0J3MgY29y
-cmVjdCBwYXRjaC4gYnV0IGFmdGVyIHRoZSBwYXRjaC4gaXQncyB3b3JraW5nLg0KDQpBbmQgaXQn
-cyBhbm90aGVyIGlzc3VlIHdpdGggZXRoZXJuZXQgaXJxIGZsYWcgdmFsdWUNCkluIGNsZWFuIExp
-bnVzIGtlcm5lbCBoYXMgSVJRRl9UUklHR0VSX1JJU0lORy4gYnV0IGluIE9NQVAgdHJlZSBoYXMg
-SVJRRl9UUklHR0VSX0hJR0ggb24gYXBvbGxvbi4NCkFzIHByZXZpb3VzIG1lbnRpb25zLiBJUlFG
-X1RSSUdHRVJfSElHSCBpcyBub3Qgd29ya2luZy4NCg0KQW55d2F5LCBpdCdzIG1vcmUgc3RhYmxl
-IHRoYW4gYmVmb3JlLg0KDQpUaGFuayB5b3UsDQpLeXVuZ21pbiBQYXJrDQoNCi0tDQoNClsxXSBo
-dHRwOi8vbWFyYy50aGVhaW1zZ3JvdXAuY29tLz9sPWxpbnV4LWtlcm5lbCZtPTExNjU3Njg3MTEw
-NTAyOSZ3PTI=
+This is a multi-part message in MIME format.
+--------------020509050903060201050907
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
 
+ARM: OMAP: Fix ethernet IRQF_TRIGGER flag for apollon
 
---===============1589249565==
+As reported by Kyungmin Park, ethernet IRQF_TRIGGER flag for
+apollon has to be IRQF_TRIGGER_RISING instead of
+IRQF_TRIGGER_HIGH.
+
+Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
+
+
+--------------020509050903060201050907
+Content-Type: text/plain;
+ name="appollon_ethernet_irqf_trigger_fix.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="appollon_ethernet_irqf_trigger_fix.txt"
+
+Index: linux-osk/drivers/net/smc91x.h
+===================================================================
+--- linux-osk.orig/drivers/net/smc91x.h
++++ linux-osk/drivers/net/smc91x.h
+@@ -198,7 +198,7 @@ SMC_outw(u16 val, void __iomem *ioaddr, 
+ 				? IRQF_TRIGGER_RISING : IRQF_TRIGGER_FALLING)
+ #else
+ #define SMC_IRQ_FLAGS		(machine_is_omap_apollon()		\
+-				? IRQF_TRIGGER_HIGH : IRQF_TRIGGER_LOW)
++				? IRQF_TRIGGER_RISING : IRQF_TRIGGER_LOW)
+ #endif
+ 
+ #elif	defined(CONFIG_SH_SH4202_MICRODEV)
+
+
+--------------020509050903060201050907
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---===============1589249565==--
+--------------020509050903060201050907--
