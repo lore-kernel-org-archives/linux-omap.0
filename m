@@ -1,17 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: OMAP310 i2c fix
-Date: Thu, 21 Dec 2006 15:30:44 -0800
-Message-ID: <20061221233043.GM10399@atomide.com>
-References: <200611121930.36087.marek.vasut@gmail.com>
-	<200611121935.18179.marek.vasut@gmail.com>
-	<5d5443650611130132i40800c09pc8f2801ee4f56625@mail.gmail.com>
-	<200611131705.46392.marek.vasut@gmail.com>
+Subject: Re: [PATCH] Fix ADS7846 dependencies
+Date: Thu, 21 Dec 2006 15:31:16 -0800
+Message-ID: <20061221233115.GN10399@atomide.com>
+References: <85psbv77ox.fsf@orfeo.duckcorp.org>
+	<20061111003740.GS26185@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <200611131705.46392.marek.vasut@gmail.com>
+In-Reply-To: <20061111003740.GS26185@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,34 +18,53 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Marek =?utf-8?B?VmHFoXV0?= <marek.vasut@gmail.com>
+To: Arnaud Patard <arnaud.patard@rtp-net.org>, David Brownell <david-b@pacbell.net>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Marek Va=C5=A1ut <marek.vasut@gmail.com> [061113 09:16]:
-> Dne pond=C4=9Bl=C3=AD 13 listopad 2006 10:32 jste napsal(a):
-> > On 11/12/06, Marek Va=C5=A1ut <marek.vasut@gmail.com> wrote:
-> > > Dne ned=C4=9Ble 12 listopad 2006 19:30 jste napsal(a):
-> > > > Hi,
-> > > >
-> > > > when I turned on i2c on my omap310 based palmz71 and booted the k=
-ernel,
-> > > > it hanged. I=C2=B4ve tracked the place where it hangs and fixed i=
-t. Here=C2=B4s
-> > > > the small patch.
-> > >
-> > > forgot to add this ;-)
-> > >
-> > > Signed-off-by: Marek Va=C5=A1ut <marek.vasut@gmail.com>
-> >
-> > Just to confirm your patch comment. Did you enabled OMAP_DSP or I2C?
-> > as you had modified dsp_common.c. Going the generic way, dsp_common.c
-> > should pick up memory addresses from arch- specific files, but as
-> > omap_dsp_init is called in arch_init, I don't know, what would be the
-> > cleaner way to do it.
->=20
-> yes, I enabled i2c.
+* Tony Lindgren <tony@atomide.com> [061110 16:44]:
+> Hi,
+> 
+> * Arnaud Patard <arnaud.patard@rtp-net.org> [061110 15:34]:
+> > Hi,
+> > 
+> > While playing with my kernel configuration, I found out that now,
+> > setting CONFIG_HWMON to 'n' and TOUCHSCREEN_ADS7846 to 'y' was allowed,
+> > which leads to a build failure.
+> > This was caused by the commit 954423251daf362272076c6228dcdac65d72b287
+> > which reverts the changes introduced by the commit
+> > 659cb49d6a8ba8d5651e53dd22a0addab6a479e6. 
+> > This patch fix the trouble.
+> > 
+> > Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
+> > ---
+> 
+> > ---
+> >  drivers/input/touchscreen/Kconfig |    5 	4 +	1 -	0 !
+> >  1 files changed, 4 insertions(+), 1 deletion(-)
+> > 
+> > Index: linux-2.6.18/drivers/input/touchscreen/Kconfig
+> > ===================================================================
+> > --- linux-2.6.18.orig/drivers/input/touchscreen/Kconfig	2006-09-20 05:42:06.000000000 +0200
+> > +++ linux-2.6.18/drivers/input/touchscreen/Kconfig	2006-11-10 14:24:47.000000000 +0100
+> > @@ -14,10 +14,13 @@ if INPUT_TOUCHSCREEN
+> >  config TOUCHSCREEN_ADS7846
+> >  	tristate "ADS 7846 based touchscreens"
+> >  	depends on SPI_MASTER
+> > +	select HWMON
+> >  	help
+> >  	  Say Y here if you have a touchscreen interface using the
+> >  	  ADS7846 controller, and your board-specific initialization
+> > -	  code includes that in its table of SPI devices.
+> > +	  code includes that in its table of SPI devices.  You will
+> > +	  also get hwmon interfaces for the temperature and voltage
+> > +	  sensors this chip provides.
+> >  
+> >  	  If unsure, say N (but it's safe to say "Y").
+> >  
+> 
+> This looks OK to me, Dave any comments?
 
-Pushing this today.
+Pushing today.
 
 Tony
