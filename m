@@ -1,17 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.19] omap camera builds again; Mistral hooks
-Date: Thu, 21 Dec 2006 14:57:37 -0800
-Message-ID: <20061221225737.GG10399@atomide.com>
-References: <20061207034509.5BC701E771D@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-	<200612070558.19023.marek.vasut@gmail.com>
-	<20061211222134.GG31722@atomide.com>
-	<200612141239.39491.david-b@pacbell.net>
+Subject: Re: [PATCH] ARM: OMAP: Remove unnecessary memset in dsp task.c
+Date: Thu, 21 Dec 2006 15:02:41 -0800
+Message-ID: <20061221230240.GI10399@atomide.com>
+References: <3a5b1be00612041027h2e3cefefwf140897ee1bb4717@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <200612141239.39491.david-b@pacbell.net>
+In-Reply-To: <3a5b1be00612041027h2e3cefefwf140897ee1bb4717@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,26 +17,54 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap-open-source@linux.omap.com
+To: Komal Shah <komal.shah802003@gmail.com>
+Cc: linux-omap-open-source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [061214 12:40]:
-> On Monday 11 December 2006 2:21 pm, tony@atomide.com wrote:
-> > * Marek Va=C5=A1ut <marek.vasut@gmail.com> [061206 20:59]:
-> > > Hi, just a small typo ...
-> > > static char banner[] __initdata =3D KERN_INFO "OMAP Camera driver=20
-> > > initialzing\n"; ... should be initializing ;-)
-> >=20
-> > Pushed in two parts, one for the core changes, and the other patch
-> > for the driver. I had to manually apply some parts of the driver
-> > patch. Dave, can you please check that your changes got applied?
->=20
-> I can "patch -R" my version with only a reject on the last half of
-> the camera_core.c changes ... and eyeballing that, I didn't see
-> any obvious breakage, I think it's whitespace.  It still says it's
-> getting its "initial zing" though.  ;)
+* Komal Shah <komal.shah802003@gmail.com> [061204 10:33]:
+> There is much more duplicated code can be removed in task.c by using
+> already available wait_for_event_{un}interruptible_{timeout},
+> prepare_wait, finish_wait etc calls. What do you say?
+> 
+> -- 
+> ---Komal Shah
+> http://komalshah.blogspot.com
 
-Fixing today :)
+> From 4e89cea55f7aa2162a7541106443eef609666ed0 Mon Sep 17 00:00:00 2001
+> From: Komal Shah <komal_shah802003@yahoo.com>
+> Date: Mon, 4 Dec 2006 23:52:11 +0530
+> Subject: [PATCH] ARM: OMAP: Remove unnecessary memset in dsp task.c
+> 
+> - and remove commented "struct device_driver"
+> 
+> Signed-off-by: Komal Shah <komal_shah802003@yahoo.com>
+> ---
+>  arch/arm/plat-omap/dsp/task.c |    4 ----
+>  1 files changed, 0 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/dsp/task.c b/arch/arm/plat-omap/dsp/task.c
+> index 7fcc06a..807c408 100644
+> --- a/arch/arm/plat-omap/dsp/task.c
+> +++ b/arch/arm/plat-omap/dsp/task.c
+> @@ -108,7 +108,6 @@ struct rcvdt_bk_struct {
+>  
+>  struct taskdev {
+>  	struct bus_type *bus;
+> -//	struct device_driver *driver;
+>  	struct device dev;	/* Generic device interface */
+>  
+>  	long state;
+> @@ -564,9 +563,6 @@ int dsp_task_config_all(u8 n)
+>  	struct dsptask *taskheap;
+>  	size_t devheapsz, taskheapsz;
+>  
+> -	memset(taskdev, 0, sizeof(void *) * TASKDEV_MAX);
+> -	memset(dsptask, 0, sizeof(void *) * TASKDEV_MAX);
+> -
+>  	printk(KERN_INFO "omapdsp: found %d task(s)\n", n);
+>  	if (n == 0)
+>  		return 0;
+
+Pushing today.
 
 Tony
