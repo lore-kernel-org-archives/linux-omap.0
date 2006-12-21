@@ -1,16 +1,13 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: [RFC] Send OMAP clocksource and clockevent to rt mailing list
-Date: Wed, 20 Dec 2006 16:02:14 -0800
-Message-ID: <1166659334.6906.123.camel@vence.hilman.org>
-References: <45883982.8080207@gmail.com>
-	<1166576011.6906.77.camel@vence.hilman.org>
-	<45890397.2080809@gmail.com>
-	<20061220184439.GF22783@atomide.com>  <4589ACB5.1000401@gmail.com>
+From: Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Realtime patch on OMAP2
+Date: Thu, 21 Dec 2006 02:06:30 +0000 (GMT)
+Message-ID: <20731908.192991166666790293.JavaMail.weblogic@ep_ml29>
+Reply-To: kyungmin.park@samsung.com
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1589249565=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <4589ACB5.1000401@gmail.com>
+Content-return: prohibited
+MIME-version: 1.0
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,30 +17,65 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 2006-12-20 at 22:35 +0100, Dirk Behme wrote:
-> tony@atomide.com wrote:
-> > * Dirk Behme <dirk.behme@googlemail.com> [061220 01:41]:
-> >>I now sent our clocksource/clockevent patches to -rt mailing 
-> >>list [1]. If clocksource goes to RMK as well, we have two 
-> >>paths we can get it into mainline. Let us see which is the 
-> >>faster and better one. The biggest risk will be some merge 
-> >>conflicts if both are successful ;)
-> > 
-> > No problem with merge conclicts on the RMK queue, I can easily
-> > refresh that patch series accordingly. So let's send what is
-> > needed to be included in the RT series.
-> 
-> I think at least our latest clocksource [1] patch should go 
-> to RMK.
-> 
-> Kevin: What's about clockevent and RMK?
+--===============1589249565==
+Content-return: prohibited
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: base64
 
-Sorry for the confusion.  Only clocksource patches are going to RMK for
-now since the clockevents are dependent on tglx's -hrt-dyntick patch
-(part of -rt)
+SGksDQoNCldpdGggRGlyayBCZWhtZSdzIG1haWwsIEkgdHJ5IGhlIHJlYWx0aW1lIHByZWVtcHRp
+b24gcGF0Y2ggb24gT01BUDINCg0KbGludXgtMi42LjE5LnRhci5iejIgKGNsZWFuIExpbnVzIG9u
+ZSwgbm90IG91ciBPTUFQIHRyZWUpDQpwYXRjaC0yLjYuMTktcnQxNQ0KcGF0Y2gtMi42LjE5LXJ0
+MTUtZml4ZXMuZGlmZg0KDQphcm0taHJ0LWtjb25maWctcGF0Y2gudHh0DQphcm0tbm8taHotcGF0
+Y2gudHh0DQphcm1fb21hcF9jbG9ja3NvdXJjZV9wYXRjaC50eHQNCmFybV9vbWFwX2Nsb2NrZXZl
+bnRzX3BhdGNoLnR4dA0KDQpCdXQgaXQncyBub3QgZW5vdWdoIG9uIE9NQVAyDQoNCkZpcnN0LCBB
+Uk12NiBzdXBwb3J0DQotIEkgYWRkIHRoZSBjbXB4Y2hnIGluIGluY2x1ZGUvYXNtLWFybS9hdG9t
+aWMuaA0KDQojaWZuZGVmIENPTkZJR19TTVANCi8qDQogKiBBdG9taWMgY29tcGFyZSBhbmQgZXhj
+aGFuZ2UuDQogKi8NCiNkZWZpbmUgX19IQVZFX0FSQ0hfQ01QWENIRyAgICAgMQ0KDQpleHRlcm4g
+dW5zaWduZWQgbG9uZyB3cm9uZ19zaXplX2NtcHhjaGcodm9sYXRpbGUgdm9pZCAqcHRyKTsNCg0K
+c3RhdGljIGlubGluZSB1bnNpZ25lZCBsb25nIF9fY21weGNoZyh2b2xhdGlsZSB2b2lkICpwdHIs
+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB1bnNpZ25lZCBsb25nIG9sZCwN
+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHVuc2lnbmVkIGxvbmcgbmV3LCBp
+bnQgc2l6ZSkNCnsNCiAgICAgICAgdm9sYXRpbGUgdW5zaWduZWQgbG9uZyAqcCA9IHB0cjsNCg0K
+ICAgICAgICBpZiAoc2l6ZSA9PSA0KSB7DQogICAgICAgICAgICAgICAgdW5zaWduZWQgbG9uZyBv
+bGR2YWwsIHJlczsNCg0KICAgICAgICAgICAgICAgIGRvIHsNCiAgICAgICAgICAgICAgICAgICAg
+ICAgIF9fYXNtX18gX192b2xhdGlsZV9fKCJAIGF0b21pY19jbXB4Y2hnXG4iDQogICAgICAgICAg
+ICAgICAgICAgICAgICAibGRyZXggICUxLCBbJTJdXG4iDQogICAgICAgICAgICAgICAgICAgICAg
+ICAibW92ICAgICUwLCAjMFxuIg0KICAgICAgICAgICAgICAgICAgICAgICAgInRlcSAgICAlMSwg
+JTNcbiINCiAgICAgICAgICAgICAgICAgICAgICAgICJzdHJleGVxICUwLCAlNCwgWyUyXVxuIg0K
+ICAgICAgICAgICAgICAgICAgICAgICAgOiAiPSZyIiAocmVzKSwgIj0mciIgKG9sZHZhbCkNCiAg
+ICAgICAgICAgICAgICAgICAgICAgIDogInIiIChwKSwgIklyIiAob2xkKSwgInIiIChuZXcpDQog
+ICAgICAgICAgICAgICAgICAgICAgICA6ICJjYyIpOw0KICAgICAgICAgICAgICAgIH0gd2hpbGUg
+KHJlcyk7DQoNCiAgICAgICAgICAgICAgICByZXR1cm4gb2xkdmFsOw0KICAgICAgICB9IGVsc2UN
+CiAgICAgICAgICAgICAgICByZXR1cm4gd3Jvbmdfc2l6ZV9jbXB4Y2hnKHB0cik7DQp9DQoNCiNk
+ZWZpbmUgY21weGNoZyhwdHIsbyxuKSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgIFwNCih7ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwNCiAgICAgX190eXBlb2ZfXygqKHB0cikp
+IF9vXyA9IChvKTsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwNCiAgICAg
+X190eXBlb2ZfXygqKHB0cikpIF9uXyA9IChuKTsgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgIFwNCiAgICAgKF9fdHlwZW9mX18oKihwdHIpKSkgX19jbXB4Y2hnKChwdHIpLCAo
+dW5zaWduZWQgbG9uZylfb18sICAgICAgICAgIFwNCiAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICh1bnNpZ25lZCBsb25nKV9uXywgc2l6ZW9mKCoocHRyKSkpOyAgIFwNCn0pDQoNCiNl
+bmRpZg0KDQpTZWNvbmQsIHNtYzkxeCB0aW1lb3V0IHByb2JsZW0NCi0gSSBmb3VuZCBhIHBhdGNo
+IGluIGtlcm5lbC1tYWlsaW5nIGxpc3QgWzFdLg0KICBidXQgSSdtIG5vdCBzdXJlIGl0J3MgY29y
+cmVjdCBwYXRjaC4gYnV0IGFmdGVyIHRoZSBwYXRjaC4gaXQncyB3b3JraW5nLg0KDQpBbmQgaXQn
+cyBhbm90aGVyIGlzc3VlIHdpdGggZXRoZXJuZXQgaXJxIGZsYWcgdmFsdWUNCkluIGNsZWFuIExp
+bnVzIGtlcm5lbCBoYXMgSVJRRl9UUklHR0VSX1JJU0lORy4gYnV0IGluIE9NQVAgdHJlZSBoYXMg
+SVJRRl9UUklHR0VSX0hJR0ggb24gYXBvbGxvbi4NCkFzIHByZXZpb3VzIG1lbnRpb25zLiBJUlFG
+X1RSSUdHRVJfSElHSCBpcyBub3Qgd29ya2luZy4NCg0KQW55d2F5LCBpdCdzIG1vcmUgc3RhYmxl
+IHRoYW4gYmVmb3JlLg0KDQpUaGFuayB5b3UsDQpLeXVuZ21pbiBQYXJrDQoNCi0tDQoNClsxXSBo
+dHRwOi8vbWFyYy50aGVhaW1zZ3JvdXAuY29tLz9sPWxpbnV4LWtlcm5lbCZtPTExNjU3Njg3MTEw
+NTAyOSZ3PTI=
 
-Kevin
+
+
+--===============1589249565==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============1589249565==--
