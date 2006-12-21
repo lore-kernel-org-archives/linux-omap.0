@@ -1,17 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] Send OMAP clocksource and clockevent to rt mailing list
-Date: Thu, 21 Dec 2006 11:51:52 -0800
-Message-ID: <20061221195152.GC10399@atomide.com>
-References: <45883982.8080207@gmail.com>
-	<1166576011.6906.77.camel@vence.hilman.org>
-	<45890397.2080809@gmail.com> <20061220184439.GF22783@atomide.com>
-	<4589ACB5.1000401@gmail.com>
-	<1166659334.6906.123.camel@vence.hilman.org>
+Subject: Re: [PATCH] ARM: OMAP: Fix ethernet IRQF_TRIGGER flag for apollon
+Date: Thu, 21 Dec 2006 13:57:55 -0800
+Message-ID: <20061221215755.GE10399@atomide.com>
+References: <458A5728.2060905@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <1166659334.6906.123.camel@vence.hilman.org>
+In-Reply-To: <458A5728.2060905@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,33 +17,39 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kevin Hilman <khilman@mvista.com>
-Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@mvista.com> [061220 16:02]:
-> On Wed, 2006-12-20 at 22:35 +0100, Dirk Behme wrote:
-> > tony@atomide.com wrote:
-> > > * Dirk Behme <dirk.behme@googlemail.com> [061220 01:41]:
-> > >>I now sent our clocksource/clockevent patches to -rt mailing 
-> > >>list [1]. If clocksource goes to RMK as well, we have two 
-> > >>paths we can get it into mainline. Let us see which is the 
-> > >>faster and better one. The biggest risk will be some merge 
-> > >>conflicts if both are successful ;)
-> > > 
-> > > No problem with merge conclicts on the RMK queue, I can easily
-> > > refresh that patch series accordingly. So let's send what is
-> > > needed to be included in the RT series.
-> > 
-> > I think at least our latest clocksource [1] patch should go 
-> > to RMK.
-> > 
-> > Kevin: What's about clockevent and RMK?
+* Dirk Behme <dirk.behme@googlemail.com> [061221 01:43]:
 > 
-> Sorry for the confusion.  Only clocksource patches are going to RMK for
-> now since the clockevents are dependent on tglx's -hrt-dyntick patch
-> (part of -rt)
+> ARM: OMAP: Fix ethernet IRQF_TRIGGER flag for apollon
+> 
+> As reported by Kyungmin Park, ethernet IRQF_TRIGGER flag for
+> apollon has to be IRQF_TRIGGER_RISING instead of
+> IRQF_TRIGGER_HIGH.
+> 
+> Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
+> 
 
-Sounds good to me.
+> Index: linux-osk/drivers/net/smc91x.h
+> ===================================================================
+> --- linux-osk.orig/drivers/net/smc91x.h
+> +++ linux-osk/drivers/net/smc91x.h
+> @@ -198,7 +198,7 @@ SMC_outw(u16 val, void __iomem *ioaddr, 
+>  				? IRQF_TRIGGER_RISING : IRQF_TRIGGER_FALLING)
+>  #else
+>  #define SMC_IRQ_FLAGS		(machine_is_omap_apollon()		\
+> -				? IRQF_TRIGGER_HIGH : IRQF_TRIGGER_LOW)
+> +				? IRQF_TRIGGER_RISING : IRQF_TRIGGER_LOW)
+>  #endif
+>  
+>  #elif	defined(CONFIG_SH_SH4202_MICRODEV)
+> 
+
+AFAIK we _should_ be able to use level GPIO interrupts on all omap2
+systems. I wonder why that does not work on apollon? Is there some
+difference in hardware, or maybe some GPIO lines don't support level
+interrupts on omap2?
 
 Tony
