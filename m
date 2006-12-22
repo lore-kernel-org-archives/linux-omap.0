@@ -1,10 +1,13 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP: Convert SLAB_KERNEL to GFP_KERNEL in omap_uwire.c
-Date: Fri, 22 Dec 2006 11:11:14 +0100
-Message-ID: <458BAF42.4000009@gmail.com>
+Subject: Re: Git tree tagged & updated 2.6.19-omap1 patch posted
+Date: Fri, 22 Dec 2006 11:16:18 +0100
+Message-ID: <458BB072.50007@gmail.com>
+References: <20061222014745.GU10399@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060405050801060101000004"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20061222014745.GU10399@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,47 +17,16 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060405050801060101000004
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Tony Lindgren wrote:
+> I've also updated the tree to 2.6.20-rc1. Things may be broken
+> because of the workqueue changes..
 
+With patches previously sent OSK is fine.
 
-ARM: OMAP: Convert SLAB_KERNEL to GFP_KERNEL in omap_uwire.c
+Many thanks
 
-Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
-
---------------060405050801060101000004
-Content-Type: text/plain;
- name="omap_uwire_fixes.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="omap_uwire_fixes.txt"
-
-Index: linux-osk/drivers/spi/omap_uwire.c
-===================================================================
---- linux-osk.orig/drivers/spi/omap_uwire.c
-+++ linux-osk/drivers/spi/omap_uwire.c
-@@ -446,7 +446,7 @@ static int uwire_setup(struct spi_device
- 	struct uwire_state *ust = spi->controller_state;
- 
- 	if (ust == NULL) {
--		ust = kzalloc(sizeof(*ust), SLAB_KERNEL);
-+		ust = kzalloc(sizeof(*ust), GFP_KERNEL);
- 		if (ust == NULL)
- 			return -ENOMEM;
- 		spi->controller_state = ust;
-
-
-
---------------060405050801060101000004
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---------------060405050801060101000004--
+Dirk
