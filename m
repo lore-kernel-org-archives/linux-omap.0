@@ -1,14 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: fix workqueue changes
-Date: Fri, 22 Dec 2006 12:21:23 -0800
-Message-ID: <20061222202122.GG2449@atomide.com>
-References: <33307024.396441166765952040.JavaMail.weblogic@ep_ml29>
-	<200612221024.54833.david-b@pacbell.net>
+Subject: Re: [PATCH] ARM: OMAP: Fix ethernet IRQF_TRIGGER flag for apollon
+Date: Fri, 22 Dec 2006 12:26:16 -0800
+Message-ID: <20061222202616.GJ2449@atomide.com>
+References: <17512019.399221166767051091.JavaMail.weblogic@ep_ml29>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <200612221024.54833.david-b@pacbell.net>
+In-Reply-To: <17512019.399221166767051091.JavaMail.weblogic@ep_ml29>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,21 +17,20 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap-open-source@linux.omap.com
+To: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: "linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [061222 10:25]:
-> On Thursday 21 December 2006 9:39 pm, Kyungmin Park wrote:
-> > [PATCH] ARM: OMAP: fix workqueue changes
+* Kyungmin Park <kyungmin.park@samsung.com> [061221 21:57]:
 > 
-> This kind of patch needs to get submitted upstream ASAP, since
-> that's where the breakage is coming from ... as an MMC patch,
-> I think that means it should goto Pierre Ossman.
+> > Yeah, I believe the omap level gpios should work fine too. Kyungmin,
+> > do you have some special interrupt routing for your smc91x? Or do you
+> > see this only with the RT patches applied?
+> 
+> Yes It's problem on only RT environment.
+> But I think it's safe to set IRQF_TRIGGER_RISING instead of IRQF_TRIGGER_HIGH. even though it is level-sensive.
 
-Pushing today to linux-omap. Kyungmin, please send it to Pierre also.
-BTW, the patch was missing the last linefeed at the end to apply.
-
-Regards,
+OK, let's patch it and try to figure out later why GPIO level interrupts
+don't work prorperly with RT patches.
 
 Tony
