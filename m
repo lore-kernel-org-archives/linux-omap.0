@@ -1,13 +1,13 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Git tree tagged & updated 2.6.19-omap1 patch posted
-Date: Thu, 21 Dec 2006 18:10:58 -0800
-Message-ID: <20061222021057.GV10399@atomide.com>
-References: <17313541.368131166752739331.JavaMail.weblogic@ep_ml29>
+From: Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] ARM: OMAP: fix workqueue changes
+Date: Fri, 22 Dec 2006 05:39:12 +0000 (GMT)
+Message-ID: <33307024.396441166765952040.JavaMail.weblogic@ep_ml29>
+Reply-To: kyungmin.park@samsung.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <17313541.368131166752739331.JavaMail.weblogic@ep_ml29>
+Content-Type: multipart/mixed; boundary="===============0575616260=="
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-return: prohibited
+MIME-version: 1.0
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,29 +15,65 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: "linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kyungmin Park <kyungmin.park@samsung.com> [061221 17:59]:
-> Thank you,
-> 
-> I'm waiting the linux-2.6.19-omap1. :)
+--===============0575616260==
+Content-return: prohibited
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: base64
 
-Fixed a typo on the web page for that patch, it still said 2.6.18
-instead of 2.6.19.
- 
-> With updated. Do you test the kernel-2.6.20-rc1?
-> 
-> Actually I downloaded the latest kernel from kernel.org.
-> 
-> But it can't boot since some ioremap failed with "remap_area_pte: page already exists" (remap_area_pte()) in arch/arm/mm/ioremap.c
-> 
-> Is there anyone who have same experience?
+W1BBVENIXSBBUk06IE9NQVA6IGZpeCB3b3JrcXVldWUgY2hhbmdlcw0KDQpTaWduZWQtb2ZmLWJ5
+OiBLeXVuZ21pbiBQYXJrIDxreXVuZ21pbi5wYXJrQHNhbXN1bmcuY29tPg0KDQotLQ0KDQpkaWZm
+IC0tZ2l0IGEvZHJpdmVycy9tbWMvb21hcC5jIGIvZHJpdmVycy9tbWMvb21hcC5jDQppbmRleCAx
+ODUyMjY4Li5mNDZhZWQ3IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9tbWMvb21hcC5jDQorKysgYi9k
+cml2ZXJzL21tYy9vbWFwLmMNCkBAIC01ODIsOSArNTgyLDkgQEAgc3RhdGljIHZvaWQgbW1jX29t
+YXBfc3dpdGNoX3RpbWVyKHVuc2lnbmVkIGxvbmcgYXJnKQ0KIAlzY2hlZHVsZV93b3JrKCZob3N0
+LT5zd2l0Y2hfd29yayk7DQogfQ0KIA0KLXN0YXRpYyB2b2lkIG1tY19vbWFwX3N3aXRjaF9oYW5k
+bGVyKHZvaWQgKmRhdGEpDQorc3RhdGljIHZvaWQgbW1jX29tYXBfc3dpdGNoX2hhbmRsZXIoc3Ry
+dWN0IHdvcmtfc3RydWN0ICp3b3JrKQ0KIHsNCi0Jc3RydWN0IG1tY19vbWFwX2hvc3QgKmhvc3Qg
+PSAoc3RydWN0IG1tY19vbWFwX2hvc3QgKikgZGF0YTsNCisJc3RydWN0IG1tY19vbWFwX2hvc3Qg
+Kmhvc3QgPSBjb250YWluZXJfb2Yod29yaywgc3RydWN0IG1tY19vbWFwX2hvc3QsIHN3aXRjaF93
+b3JrKTsNCiAJc3RydWN0IG1tY19jYXJkICpjYXJkOw0KIAlzdGF0aWMgaW50IGNvbXBsYWluZWQg
+PSAwOw0KIAlpbnQgY2FyZHMgPSAwLCBjb3Zlcl9vcGVuOw0KQEAgLTExMjIsNyArMTEyMiw3IEBA
+IHN0YXRpYyBpbnQgX19pbml0IG1tY19vbWFwX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2Ug
+KnBkZXYpDQogCXBsYXRmb3JtX3NldF9kcnZkYXRhKHBkZXYsIGhvc3QpOw0KIA0KIAlpZiAoaG9z
+dC0+c3dpdGNoX3BpbiA+PSAwKSB7DQotCQlJTklUX1dPUksoJmhvc3QtPnN3aXRjaF93b3JrLCBt
+bWNfb21hcF9zd2l0Y2hfaGFuZGxlciwgaG9zdCk7DQorCQlJTklUX1dPUksoJmhvc3QtPnN3aXRj
+aF93b3JrLCBtbWNfb21hcF9zd2l0Y2hfaGFuZGxlcik7DQogCQlpbml0X3RpbWVyKCZob3N0LT5z
+d2l0Y2hfdGltZXIpOw0KIAkJaG9zdC0+c3dpdGNoX3RpbWVyLmZ1bmN0aW9uID0gbW1jX29tYXBf
+c3dpdGNoX3RpbWVyOw0KIAkJaG9zdC0+c3dpdGNoX3RpbWVyLmRhdGEgPSAodW5zaWduZWQgbG9u
+ZykgaG9zdDsNCmRpZmYgLS1naXQgYS9kcml2ZXJzL3NwaS9vbWFwMl9tY3NwaS5jIGIvZHJpdmVy
+cy9zcGkvb21hcDJfbWNzcGkuYw0KaW5kZXggNjM0YWNhMS4uYjhkMGVjMCAxMDA2NDQNCi0tLSBh
+L2RyaXZlcnMvc3BpL29tYXAyX21jc3BpLmMNCisrKyBiL2RyaXZlcnMvc3BpL29tYXAyX21jc3Bp
+LmMNCkBAIC02MzQsNyArNjM0LDcgQEAgc3RhdGljIGludCBvbWFwMl9tY3NwaV9zZXR1cChzdHJ1
+Y3Qgc3BpX2RldmljZSAqc3BpKQ0KIAltY3NwaV9kbWEgPSAmbWNzcGktPmRtYV9jaGFubmVsc1tz
+cGktPmNoaXBfc2VsZWN0XTsNCiANCiAJaWYgKCFjcykgew0KLQkJY3MgPSBremFsbG9jKHNpemVv
+ZiAqY3MsIFNMQUJfS0VSTkVMKTsNCisJCWNzID0ga3phbGxvYyhzaXplb2YgKmNzLCBHRlBfS0VS
+TkVMKTsNCiAJCWlmICghY3MpDQogCQkJcmV0dXJuIC1FTk9NRU07DQogCQlzcGktPmNvbnRyb2xs
+ZXJfc3RhdGUgPSBjczsNCkBAIC02NjksOSArNjY5LDkgQEAgc3RhdGljIHZvaWQgb21hcDJfbWNz
+cGlfY2xlYW51cChjb25zdCBzdHJ1Y3Qgc3BpX2RldmljZSAqc3BpKQ0KIH0NCiANCiANCi1zdGF0
+aWMgdm9pZCBvbWFwMl9tY3NwaV93b3JrKHZvaWQgKiBhcmcpDQorc3RhdGljIHZvaWQgb21hcDJf
+bWNzcGlfd29yayhzdHJ1Y3Qgd29ya19zdHJ1Y3QgKndvcmspDQogew0KLQlzdHJ1Y3Qgb21hcDJf
+bWNzcGkJKm1jc3BpID0gKHN0cnVjdCBvbWFwMl9tY3NwaSAqKSBhcmc7DQorCXN0cnVjdCBvbWFw
+Ml9tY3NwaQkqbWNzcGkgPSBjb250YWluZXJfb2Yod29yaywgc3RydWN0IG9tYXAyX21jc3BpLCB3
+b3JrKTsNCiAJdW5zaWduZWQgbG9uZwkJZmxhZ3M7DQogDQogCXNwaW5fbG9ja19pcnFzYXZlKCZt
+Y3NwaS0+bG9jaywgZmxhZ3MpOw0KQEAgLTgyMCw3ICs4MjAsNyBAQCBzdGF0aWMgaW50IF9fZGV2
+aW5pdCBvbWFwMl9tY3NwaV9wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQ0KIAkN
+CiAJbWNzcGktPmJhc2UgPSBpb19wMnYoci0+c3RhcnQpOw0KIA0KLQlJTklUX1dPUksoJm1jc3Bp
+LT53b3JrLCBvbWFwMl9tY3NwaV93b3JrLCBtY3NwaSk7DQorCUlOSVRfV09SSygmbWNzcGktPndv
+cmssIG9tYXAyX21jc3BpX3dvcmspOw0KIA0KIAlzcGluX2xvY2tfaW5pdCgmbWNzcGktPmxvY2sp
+Ow0KIAlJTklUX0xJU1RfSEVBRCgmbWNzcGktPm1zZ19xdWV1ZSk7
 
-Just got done with the compile fixes, haven't tried booting yet here.
-Have to continue tomorrow, anybody already have a patch for that?
 
-Tony
+
+--===============0575616260==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============0575616260==--
