@@ -1,13 +1,11 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] UpdateMakefile and Kconfig for TWL4030
-Date: Fri, 22 Dec 2006 13:19:15 -0800
-Message-ID: <20061222211914.GV2449@atomide.com>
-References: <77C7F7CB1230A74A9D19C0C111E6EDBE0207EE18@DLEE09.ent.ti.com>
+From: "Komal Shah" <komal.shah802003@gmail.com>
+Subject: [PATCH] ARM: OMAP: Fix workqueue changes for menelaus.c
+Date: Sat, 23 Dec 2006 20:24:34 +0530
+Message-ID: <3a5b1be00612230654g26dc9e9p107c32848a51df5a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="----=_Part_55838_16291630.1166885674319"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <77C7F7CB1230A74A9D19C0C111E6EDBE0207EE18@DLEE09.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,15 +15,68 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Syed Mohammed, Khasim <x0khasim@ti.com> [061203 12:36]:
-> 
-> The attached patch updates i2c/chips/Makefile and Kconfig for TWL4030
-> driver.
+------=_Part_55838_16291630.1166885674319
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Pushing today.
+compile tested only. Please test if one has access to H4 EVM.
 
-Tony
+-- 
+---Komal Shah
+http://komalshah.blogspot.com
+
+------=_Part_55838_16291630.1166885674319
+Content-Type: text/plain;
+	name=0001-ARM-OMAP-Fix-workqueue-changes-for-menelaus.c.txt;
+	charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_ew25j6y1
+Content-Disposition: attachment;
+	filename="0001-ARM-OMAP-Fix-workqueue-changes-for-menelaus.c.txt"
+
+RnJvbSAxNTViNmVhOTY0MGFiYmExNGMyYmU3YTNlMDVlNjBlN2E4Yzg0NmMyIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBLb21hbCBTaGFoIDxrb21hbF9zaGFoODAyMDAzQHlhaG9vLmNv
+bT4KRGF0ZTogU2F0LCAyMyBEZWMgMjAwNiAyMDoyMToxMCArMDUzMApTdWJqZWN0OiBbUEFUQ0hd
+IEFSTTogT01BUDogRml4IHdvcmtxdWV1ZSBjaGFuZ2VzIGZvciBtZW5lbGF1cy5jCgpTaWduZWQt
+b2ZmLWJ5OiBLb21hbCBTaGFoIDxrb21hbF9zaGFoODAyMDAzQHlhaG9vLmNvbT4KLS0tCiBkcml2
+ZXJzL2kyYy9jaGlwcy9tZW5lbGF1cy5jIHwgICAxMCArKysrKystLS0tCiAxIGZpbGVzIGNoYW5n
+ZWQsIDYgaW5zZXJ0aW9ucygrKSwgNCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJz
+L2kyYy9jaGlwcy9tZW5lbGF1cy5jIGIvZHJpdmVycy9pMmMvY2hpcHMvbWVuZWxhdXMuYwppbmRl
+eCBhZWI3ODljLi43OWU5NjI1IDEwMDY0NAotLS0gYS9kcml2ZXJzL2kyYy9jaGlwcy9tZW5lbGF1
+cy5jCisrKyBiL2RyaXZlcnMvaTJjL2NoaXBzL21lbmVsYXVzLmMKQEAgLTM2LDYgKzM2LDcgQEAK
+ICNpbmNsdWRlIDxsaW51eC9pbnRlcnJ1cHQuaD4KICNpbmNsdWRlIDxsaW51eC9zY2hlZC5oPgog
+I2luY2x1ZGUgPGxpbnV4L211dGV4Lmg+CisjaW5jbHVkZSA8bGludXgvd29ya3F1ZXVlLmg+CiAK
+ICNpbmNsdWRlIDxhc20vbWFjaC10eXBlcy5oPgogI2luY2x1ZGUgPGFzbS9tYWNoL2lycS5oPgpA
+QCAtMTI5LDcgKzEzMCw3IEBACiAjZGVmaW5lIE1FTkVMQVVTX1JFU0VSVkVEMTRfSVJRCQkxNAkv
+KiBSZXNlcnZlZCAqLwogI2RlZmluZSBNRU5FTEFVU19SRVNFUlZFRDE1X0lSUQkJMTUJLyogUmVz
+ZXJ2ZWQgKi8KIAotc3RhdGljIHZvaWQgbWVuZWxhdXNfd29yayh2b2lkICogX21lbmVsYXVzKTsK
+K3N0YXRpYyB2b2lkIG1lbmVsYXVzX3dvcmsoc3RydWN0IHdvcmtfc3RydWN0ICpfbWVuZWxhdXMp
+OwogCiAvKiBJbml0aWFsaXplZCBieSBtZW5lbGF1c19pbml0ICovCiBzdGF0aWMgdW5zaWduZWQg
+c2hvcnQgbm9ybWFsX2kyY1tdID0geyBNRU5FTEFVU19JMkNfQUREUkVTUywgSTJDX0NMSUVOVF9F
+TkQgfTsKQEAgLTY0Myw5ICs2NDQsMTAgQEAgRVhQT1JUX1NZTUJPTChtZW5lbGF1c19nZXRfc2xv
+dF9waW5fc3RhdAogLyotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSovCiAKIC8qIEhhbmRsZXMgTWVuZWxhdXMgaW50
+ZXJydXB0cy4gRG9lcyBub3QgcnVuIGluIGludGVycnVwdCBjb250ZXh0ICovCi1zdGF0aWMgdm9p
+ZCBtZW5lbGF1c193b3JrKHZvaWQgKiBfbWVuZWxhdXMpCitzdGF0aWMgdm9pZCBtZW5lbGF1c193
+b3JrKHN0cnVjdCB3b3JrX3N0cnVjdCAqX21lbmVsYXVzKQogewotCXN0cnVjdCBtZW5lbGF1c19j
+aGlwICptZW5lbGF1cyA9IF9tZW5lbGF1czsKKwlzdHJ1Y3QgbWVuZWxhdXNfY2hpcCAqbWVuZWxh
+dXMgPQorCQkJY29udGFpbmVyX29mKF9tZW5lbGF1cywgc3RydWN0IG1lbmVsYXVzX2NoaXAsIHdv
+cmspOwogCWludCAoKmhhbmRsZXIpKHN0cnVjdCBtZW5lbGF1c19jaGlwICptZW5lbGF1cyk7CiAK
+IAl3aGlsZSAoMSkgewpAQCAtNzM5LDcgKzc0MSw3IEBAIHN0YXRpYyBpbnQgbWVuZWxhdXNfcHJv
+YmUoc3RydWN0IGkyY19hZGEKIAl9CiAKIAltdXRleF9pbml0KCZtZW5lbGF1cy5sb2NrKTsKLQlJ
+TklUX1dPUksoJm1lbmVsYXVzLndvcmssIG1lbmVsYXVzX3dvcmssICZtZW5lbGF1cyk7CisJSU5J
+VF9XT1JLKCZtZW5lbGF1cy53b3JrLCBtZW5lbGF1c193b3JrKTsKIAogCWlmIChraW5kIDwgMCkK
+IAkJcHJfaW5mbygiTWVuZWxhdXMgcmV2ICVkLiVkXG4iLCByZXYgPj4gNCwgcmV2ICYgMHgwZik7
+Ci0tIAoxLjQuMy40Lmc4MmNjCgo=
+------=_Part_55838_16291630.1166885674319
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+------=_Part_55838_16291630.1166885674319--
