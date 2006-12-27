@@ -1,15 +1,12 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: Some questions about OMAP 2430 video output
-Date: Tue, 26 Dec 2006 22:01:11 -0600
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C470C4B2A@dlee13.ent.ti.com>
-References: <dbf1574b0612261834i4c3b0bb6q6086118b202b7a14@mail.gmail.com>
+From: "=?UTF-8?Q?Ragner_N_Magalh=C3=A3es?=" <ragner@users.sourceforge.net>
+Subject: OMAP: small patch fixes "error: field 'gpio_expa' has incomplete
+	type"
+Date: Wed, 27 Dec 2006 16:36:21 -0400
+Message-ID: <25c21ceb0612271236ped35f6t65da0e66c86fcd9a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed;
+	boundary="----=_Part_81152_5738041.1167251781511"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <dbf1574b0612261834i4c3b0bb6q6086118b202b7a14@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,40 +16,43 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: RobertChou <rbtchc@gmail.com>, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+------=_Part_81152_5738041.1167251781511
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-Yes, the screen size can be varied by changing the configuration
-parameters.
+SGksCnRoaXMgc21hbGwgcGF0Y2ggZml4ZXMgdGhpcyBlcnJvciBiZWxvdwoKSW4gZmlsZSBpbmNs
+dWRlZCBmcm9tIGFyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtaDIuYzo0MDoKaW5jbHVkZS9hc20v
+YXJjaC9pcmRhLmg6Mjc6IGVycm9yOiBmaWVsZCAnZ3Bpb19leHBhJyBoYXMgaW5jb21wbGV0ZSB0
+eXBlCgpCZXN0IHJlZ2FyZHMsCgotLSAKUmFnbmVyIE4gTWFnYWxow6NlcwpJbnN0aXR1dG8gTm9r
+aWEgZGUgVGVjbm9sb2dpYSAoSU5kVCkgLSBPU01SQwpFLW1haWw6IHJhZ25lci5tYWdhbGhhZXNA
+aW5kdC5vcmcuYnIK
+------=_Part_81152_5738041.1167251781511
+Content-Type: text/x-patch; name=patch-irda_h-incomplete_type.diff;
+	charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_ew87p4dy
+Content-Disposition: attachment; filename="patch-irda_h-incomplete_type.diff"
 
-For Framebuffer use the setvar. For Video drivers using the S_FMT to set
-the picture size and remember to configure the Video window size too.
+VGhpcyBwYXRjaCBmaXhlcyAiZXJyb3I6IGZpZWxkICdncGlvX2V4cGEnIGhhcyBpbmNvbXBsZXRl
+IHR5cGUiIGF0IGluY2x1ZGUvYXNtL2FyY2gvaXJkYS5oClNpZ25lZC1vZmYtYnk6IFJhZ25lciBN
+YWdhbGjjZXMgPHJhZ25lci5tYWdhbGhlc0BpbmR0Lm9yZy5icj4KLS0tCkluZGV4OiAyLjYtZGV2
+L2luY2x1ZGUvYXNtL2FyY2gvaXJkYS5oCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLS0tIDIuNi1kZXYub3JpZy9pbmNs
+dWRlL2FzbS9hcmNoL2lyZGEuaAkyMDA2LTEyLTI3IDEwOjI4OjA5LjAwMDAwMDAwMCAtMDQwMAor
+KysgMi42LWRldi9pbmNsdWRlL2FzbS9hcmNoL2lyZGEuaAkyMDA2LTEyLTI3IDEwOjI5OjA3LjAw
+MDAwMDAwMCAtMDQwMApAQCAtMTAsNiArMTAsOCBAQAogI2lmbmRlZiBBU01BUk1fQVJDSF9JUkRB
+X0gKICNkZWZpbmUgQVNNQVJNX0FSQ0hfSVJEQV9ICiAKKyNpbmNsdWRlIDxsaW51eC93b3JrcXVl
+dWUuaD4KKwogLyogYm9hcmQgc3BlY2lmaWMgdHJhbnNjZWl2ZXIgY2FwYWJpbGl0aWVzICovCiAK
+ICNkZWZpbmUgSVJfU0VMCQkxCS8qIFNlbGVjdHMgSXJEQSAqLwo=
+------=_Part_81152_5738041.1167251781511
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Regards,
-Khasim
 
-> -----Original Message-----
-> From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-
-> open-source-bounces@linux.omap.com] On Behalf Of RobertChou
-> Sent: Tuesday, December 26, 2006 8:35 PM
-> To: linux-omap-open-source@linux.omap.com
-> Subject: Some questions about OMAP 2430 video output
->=20
-> Dear all:
->=20
->    I'm currently using Linux-2.6.14-omap2 for OMAP 2430 SDP, and i'm
-> trying to output
-> the screen through video out. But the size of video out is restricted
-> at 240*320.
-> Is it possible to adjust the size by feeding parameter to framebuffer
-> or video driver??
-> Thx a lot :)
->=20
-> Robert
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+------=_Part_81152_5738041.1167251781511--
