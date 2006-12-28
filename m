@@ -1,13 +1,14 @@
-From: "Komal Shah" <komal.shah802003@gmail.com>
-Subject: Re: [PATCH]: Workqueue changes for board-h3
-Date: Fri, 29 Dec 2006 01:03:38 +0530
-Message-ID: <3a5b1be00612281133p5c3e870eybd6a3eacccc2e859@mail.gmail.com>
-References: <31e679430612280750l77e590e4ice853ef8b4c3d05f@mail.gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] ARM: OMAP: ISP1301 workqueue fixes
+Date: Thu, 28 Dec 2006 12:05:37 -0800
+Message-ID: <200612281205.37642.david-b@pacbell.net>
+References: <45937A00.1070803@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <31e679430612280750l77e590e4ice853ef8b4c3d05f@mail.gmail.com>
+In-Reply-To: <45937A00.1070803@gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,46 +19,18 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Felipe Balbi <felipebalbi@users.sourceforge.net>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On 12/28/06, Felipe Balbi <felipebalbi@users.sourceforge.net> wrote:
-> Hello Komal,
-> >> -static void set_trans_mode(void *data)
-> >> +static void set_trans_mode(struct work_struct *data)
-> >>  {
-> >> -       int *mode = data;
-> >> +       int *mode = (int *)data;
->
-> >Did you tested this patch.? I am not sure this casting is the correct
-> >way to go for it.
->
-> I'm wondering if that
-> >> +       int *mode = (int *)data;
->
-> shouldn't be
-> int *mode = (int *) data->data;
->
-> the second data is a atomic_long_t witch is a volatile int...
->
-> What does it mean these IrDA Flags??
->
-> #define IR_SEL          1       /* Selects IrDA */
+On Thursday 28 December 2006 12:02 am, Dirk Behme wrote:
+> =A0static void
+> -isp1301_work(void *data)
+> +isp1301_work(struct work_struct *data)
+> =A0{
+> -=A0=A0=A0=A0=A0=A0=A0struct isp1301=A0=A0*isp =3D data;
+> +=A0=A0=A0=A0=A0=A0=A0struct isp1301=A0=A0*isp =3D (struct isp1301 *)da=
+ta;
+> =A0=A0=A0=A0=A0=A0=A0=A0int=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0stop;
 
-Above is customized flag for H4/H3 EVM, as we need to select between
-the IrDA and aGPS module by programming through gpio expander. see
-board-h4.c and board-h3.c for its usage (for enabling/disabling the IR
-TX/RX).
-
-> #define IR_SIRMODE      2
-> #define IR_FIRMODE      4
-> #define IR_MIRMODE      8
->
-
-Above three denotes the capabilities of the transeciver, meaning which
-speeds are supported by it.
-
--- 
----Komal Shah
-http://komalshah.blogspot.com
+Clearly incorrect.  It should use container_of().  The work_struct
+is NOT the first member of that struct... this will be oopsing.
