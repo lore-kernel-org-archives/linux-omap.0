@@ -1,11 +1,13 @@
-From: =?utf-8?B?5p2O546u?= <coffeeyu531@126.com>
-Subject: i2c fo romap5912  help!
-Date: Thu, 28 Dec 2006 16:33:58 +0800
-Message-ID: <000001c72afe$454d1d90$420aa8c0@yfliwei>
-References: <20061224180003.6A3BE8062A@linux.omap.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: [PATCH] ARM: OMAP: ISP1301 workqueue fixes
+Date: Fri, 29 Dec 2006 09:36:22 +0100
+Message-ID: <4594D386.2050904@gmail.com>
+References: <45937A00.1070803@gmail.com>
+	<200612281205.37642.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1394292082=="
+Content-Type: multipart/mixed; boundary="------------030106010506090600050204"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <200612281205.37642.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,35 +20,134 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============1394292082==
+This is a multi-part message in MIME format.
+--------------030106010506090600050204
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+David Brownell wrote:
+> On Thursday 28 December 2006 12:02 am, Dirk Behme wrote:
+> 
+>> static void
+>>-isp1301_work(void *data)
+>>+isp1301_work(struct work_struct *data)
+>> {
+>>-       struct isp1301  *isp = data;
+>>+       struct isp1301  *isp = (struct isp1301 *)data;
+>>        int             stop;
+> 
+> 
+> Clearly incorrect.  It should use container_of().  The work_struct
+> is NOT the first member of that struct... this will be oopsing.
+
+Yes, I see. Thanks!
+
+So, next attempt ;) Below both, ISP1301 and board-h3. Again,
+only checked for compilation.
+
+Dirk
+
+--------------030106010506090600050204
 Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+ name="isp1301_workqueue_fix.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="isp1301_workqueue_fix.txt"
 
-SGksDQogICAgSSBhbSB1c2luZyBhbiBvc2s1OTEyIGFuZCB3b3VsZCBsaWtlIHRvIGxpZ2h0IHRo
-ZSBsZWQgRDMgDQpvbiB0aGUgYm9hcmQgdGhydSAgdGhlIGkyYyBkcml2ZXIuTm93IEkgaGF2ZSBz
-ZWVuIHRoZSBkZXYgZmlsZQ0KdW5kZXIgdGhlIC9kZXYgYW5kIGNhbiBvcGVuIHRoZSBmaWxlIC9k
-ZXYvaTJjLGJ1dCB3aGVuIGkgdXNlIGlvY3RsDQp0byBzZXQgaTJjLCBpdCBzYXlzIHRoYXQgRGV2
-aWNlIG9yIHJlc291cmUgYnVzeS5QbGVhc2UgaGVscCBtZSENCnRoYW5rcyENCm15IHRlc3QgcHJv
-Z3JhbSBpcyBmZWxsb3dlZC4NCg0KI2RlZmluZSBJMkNfU0xBVkUgICAgIDB4MDcwMw0KDQppbnQg
-bWFpbih2b2lkKQ0Kew0KIGludCBmaWxlOw0KIGludA0KIGludCBhZGFwdGVyX25yPTA7DQogaW50
-IGFkZHIgPSAweDQ4Ow0KIGNoYXIgZmlsZW5hbWVbMjBdID0gezB9Ow0KIHNwcmludGYoZmlsZW5h
-bWUsIi9kZXYvaTJjLSVkIixhZGFwdGVyX25yKTsgDQogaWYgKChmaWxlID0gb3BlbigiL2Rldi9p
-MmMvMCIsT19SRFdSKSkgPCAwKTsNCiB7DQogICAgIHBlcnJvcigiZXJyIik7DQogICAgIGV4aXQo
-MSk7DQogfQ0KIGlmKGlvY3RsKGZpbGUsSTJDX1NMQVZFLGFkZHIpIDwgMCApDQogew0KICAgICAg
-cGVycm9yKCJlcnIiKTsNCi8vICAgIGV4aXQoMSk7DQogIH0NCiAgDQogICBpbnQgcmVnID0gMHgx
-MDsNCiAgIGNoYXIgYnVmWzEwXT17MH07DQogICBidWZbMF0gPSByZWc7DQogICBidWZbMV0gPSAw
-eDQzOw0KICAgYnVmWzJdID0gMHg2NTsNCiAgYWJjID0gd3JpdGUoZmlsZSxidWYsMyk7DQogIHBy
-aW50ZigidGhlIGFiYyBpcyAlZFxuIixhYmMpOw0KICBjbG9zZShmaWxlKTsNCiAgIHJldHVybiAw
-Ow0KfQ0KDQoNCg0KDQoNCg0K
+Index: linux-osk/drivers/i2c/chips/isp1301_omap.c
+===================================================================
+--- linux-osk.orig/drivers/i2c/chips/isp1301_omap.c
++++ linux-osk/drivers/i2c/chips/isp1301_omap.c
+@@ -1119,9 +1119,9 @@ static u8 isp1301_clear_latch(struct isp
+ }
+ 
+ static void
+-isp1301_work(void *data)
++isp1301_work(struct work_struct *work)
+ {
+-	struct isp1301	*isp = data;
++	struct isp1301	*isp = container_of(work, struct isp1301, work);
+ 	int		stop;
+ 
+ 	/* implicit lock:  we're the only task using this device */
+@@ -1525,7 +1525,7 @@ static int isp1301_probe(struct i2c_adap
+ 	if (!isp)
+ 		return 0;
+ 
+-	INIT_WORK(&isp->work, isp1301_work, isp);
++	INIT_WORK(&isp->work, isp1301_work);
+ 	init_timer(&isp->timer);
+ 	isp->timer.function = isp1301_timer;
+ 	isp->timer.data = (unsigned long) isp;
 
 
 
---===============1394292082==
+
+--------------030106010506090600050204
+Content-Type: text/plain;
+ name="board_h3_workqueue_fix.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="board_h3_workqueue_fix.txt"
+
+Index: linux-osk/arch/arm/mach-omap1/board-h3.c
+===================================================================
+--- linux-osk.orig/arch/arm/mach-omap1/board-h3.c
++++ linux-osk/arch/arm/mach-omap1/board-h3.c
+@@ -296,9 +296,11 @@ static int h3_select_irda(struct device 
+ 	return err;
+ }
+ 
+-static void set_trans_mode(void *data)
++static void set_trans_mode(struct work_struct *work)
+ {
+-	int *mode = data;
++	struct omap_irda_config *irda_config =
++		container_of(work, struct omap_irda_config, gpio_expa.work);
++	int mode = irda_config->mode;
+ 	unsigned char expa;
+ 	int err = 0;
+ 
+@@ -308,7 +310,7 @@ static void set_trans_mode(void *data)
+ 
+ 	expa &= ~0x03;
+ 
+-	if (*mode & IR_SIRMODE) {
++	if (mode & IR_SIRMODE) {
+ 		expa |= 0x01;
+ 	} else { /* MIR/FIR */
+ 		expa |= 0x03;
+@@ -323,9 +325,9 @@ static int h3_transceiver_mode(struct de
+ {
+ 	struct omap_irda_config *irda_config = dev->platform_data;
+ 
++	irda_config->mode = mode;
+ 	cancel_delayed_work(&irda_config->gpio_expa);
+-	PREPARE_WORK(&irda_config->gpio_expa, set_trans_mode, &mode);
+-#error this is not permitted - mode is an argument variable
++	PREPARE_DELAYED_WORK(&irda_config->gpio_expa, set_trans_mode);
+ 	schedule_delayed_work(&irda_config->gpio_expa, 0);
+ 
+ 	return 0;
+Index: linux-osk/include/asm-arm/arch-omap/irda.h
+===================================================================
+--- linux-osk.orig/include/asm-arm/arch-omap/irda.h
++++ linux-osk/include/asm-arm/arch-omap/irda.h
+@@ -31,6 +31,7 @@ struct omap_irda_config {
+ 	unsigned long src_start;
+ 	int tx_trigger;
+ 	int rx_trigger;
++	int mode;
+ };
+ 
+ #endif
+
+
+--------------030106010506090600050204
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---===============1394292082==--
+--------------030106010506090600050204--
