@@ -1,12 +1,14 @@
-From: "=?GB2312?B?sNjH4Lat?=" <samwits@gmail.com>
-Subject: touchscreen driver for board omap5912osk with ads7846
-Date: Fri, 29 Dec 2006 21:38:50 +0800
-Message-ID: <e14857210612290538x5b4102b7l682d585b4b05ea92@mail.gmail.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: SMBus Quick command not supported, can't probe for chips
+Date: Fri, 29 Dec 2006 15:30:30 +0100
+Message-ID: <45952686.4090509@gmail.com>
+References: <25c21ceb0612281250n7ecfb240pa487c392a866b5c7@mail.gmail.com>
+	<25c21ceb0612290321y3423759ev4d3cdc600fdae1cc@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <25c21ceb0612290321y3423759ev4d3cdc600fdae1cc@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,21 +16,29 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: =?ISO-8859-1?Q?Ragner_N_Magalh=E3es?= <ragner@users.sourceforge.net>
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-At first, Thank You, David Brownell!
-Your suggestion is very helpful. Unfortunately, I have already chosen
-ads7846, which cannot be undone.
+Ragner N Magalh=E3es wrote:
+>> ...
+>> i2c-core: driver [isp1301_omap] registered
 
-Board: omap5912osk
-TSC: ads7846
-Kernel: linux-omap-2.6_fixdma
+Does this mean my isp1301 fix works for you? Do you tested=20
+my ISP1301 and board-h3 fixes?
 
-I do have the touchscreen driver for board omap5912osk and ads7846. But it
-seems not to work. I really have no idea whether it could work or not.
-May someone have other editions which could work well and be willing to
-share with me.
-Thank you!
+...
+>> i2c_adapter i2c-0: SMBus Quick command not supported, can't probe for
+>> chips
+...
+
+For this you can try
+
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/00823=
+2.html
+
+until I2C is fixed upstream.
+
+Dirk
