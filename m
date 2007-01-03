@@ -1,13 +1,10 @@
-From: Philip Balister <philip@balister.org>
-Subject: Re: 2.6.19 + omap patch on the OSK
-Date: Tue, 02 Jan 2007 16:02:38 -0500
-Message-ID: <459AC86E.7030802@balister.org>
-References: <459AB907.1030102@balister.org> <20070102201156.GA9733@atomide.com>
+From: "Carlos, John J DA CIV USA ATC" <john.carlos@atc.army.mil>
+Subject: Contacting Losteaka for OMAP petit board (UNCLASSIFIED)
+Date: Wed, 3 Jan 2007 08:27:04 -0500
+Message-ID: <22CECCE071A8DC4CAB2412DC44CBEDF1100A02B9@apgrb1atc-0058e.atc.army.mil>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070102201156.GA9733@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,29 +14,18 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: tony@atomide.com
-Cc: OMAP <Linux-omap-open-source@linux.omap.com>
+To: Linux-Omap-Open-Source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-tony@atomide.com wrote:
-> * Philip Balister <philip@balister.org> [070102 12:03]:
->> I just built a 2.6.19 + omap patch kernel for my OSK. When I tried 
->> booting it, the kernel oopsed when it started ALSA. Has anyone booted an 
->> OSK using this kernel version?
-> 
-> This is probably because of the zero byte scan missing from linux-omap
-> tree as we're trying to sync things with mainline.
-> 
-> Please try this patch:
-> 
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-October/008232.html
-> 
-> I'll apply it back to linux-omap tree as now there is a longer term
-> solution with David Brownell's I2C patches that should eventually
-> solve this problem for mainline kernel also.
+Classification:  UNCLASSIFIED 
+Caveats: NONE
 
-Adding this patch resolved my problem.
+Hello All,
 
-Thanks,
+	Has anyone purchased OMAP petit omap board from Losteaka?  I have
+attempted to contact the sales staff with no success, are they still around?
 
-Philip
+
+John 
+Classification:  UNCLASSIFIED 
+Caveats: NONE
