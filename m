@@ -1,9 +1,9 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP: Add missing include to dsp/mblog.c
-Date: Thu, 04 Jan 2007 17:16:26 +0100
-Message-ID: <459D285A.7080009@googlemail.com>
+Subject: [PATCH] ARM: OMAP: Workqueue changes for tahvo-usb
+Date: Thu, 04 Jan 2007 17:37:04 +0100
+Message-ID: <459D2D30.7040206@googlemail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070407050305020800000209"
+Content-Type: multipart/mixed; boundary="------------020504000903070400090200"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,43 +18,55 @@ To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------070407050305020800000209
+--------------020504000903070400090200
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
 
-ARM: OMAP: Add missing include to dsp/mblog.c to make it
-compile again.
+ARM: OMAP: Workqueue changes for tahvo-usb.c
 
 Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
 
 
---------------070407050305020800000209
+--------------020504000903070400090200
 Content-Type: text/plain;
- name="dsp_mblog_fix.txt"
+ name="tahvo_usb_workqueue_fix.txt"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="dsp_mblog_fix.txt"
+ filename="tahvo_usb_workqueue_fix.txt"
 
-Index: linux-osk/arch/arm/plat-omap/dsp/mblog.c
+Index: linux-osk/drivers/cbus/tahvo-usb.c
 ===================================================================
---- linux-osk.orig/arch/arm/plat-omap/dsp/mblog.c
-+++ linux-osk/arch/arm/plat-omap/dsp/mblog.c
-@@ -23,6 +23,7 @@
+--- linux-osk.orig/drivers/cbus/tahvo-usb.c
++++ linux-osk/drivers/cbus/tahvo-usb.c
+@@ -535,9 +535,9 @@ static int tahvo_usb_set_peripheral(stru
+ 	return 0;
+ }
  
- #include <linux/platform_device.h>
- #include <linux/init.h>
-+#include <linux/jiffies.h>
- #include <asm/arch/mailbox.h>
- #include "dsp_mbcmd.h"
- #include "dsp.h"
+-static void tahvo_usb_irq_work(void *data)
++static void tahvo_usb_irq_work(struct work_struct *work)
+ {
+-	struct tahvo_usb *tu = (struct tahvo_usb *)data;
++	struct tahvo_usb *tu = container_of(work, struct tahvo_usb, irq_work);
+ 
+ 	mutex_lock(&tu->serialize);
+ 	check_vbus_state(tu);
+@@ -631,7 +631,7 @@ static int tahvo_usb_probe(struct device
+ #endif
+ #endif
+ 
+-	INIT_WORK(&tu->irq_work, tahvo_usb_irq_work, tu);
++	INIT_WORK(&tu->irq_work, tahvo_usb_irq_work);
+ 	mutex_init(&tu->serialize);
+ 
+ 	/* Set initial state, so that we generate kevents only on
 
 
---------------070407050305020800000209
+--------------020504000903070400090200
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------070407050305020800000209--
+--------------020504000903070400090200--
