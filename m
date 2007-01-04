@@ -1,13 +1,11 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: [PATCH] ARM: OMAP: Fix section mismatch warnings in omap-rng
-Date: Thu, 04 Jan 2007 18:04:22 +0100
-Message-ID: <459D3396.8020604@googlemail.com>
-References: <459D1DFD.6080606@googlemail.com> <1168015759.7712.7.camel@balbi>
+Subject: innovator_ps2 broken
+Date: Thu, 04 Jan 2007 18:09:29 +0100
+Message-ID: <459D34C9.8060405@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1168015759.7712.7.camel@balbi>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,27 +15,26 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Felipe Balbi <felipe.lima@indt.org.br>, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Felipe Balbi wrote:
-> Hello Dirk,
-> 
-> 
->>-static int __init omap_rng_probe(struct platform_device *pdev)
->>+static int __devinit omap_rng_probe(struct platform_device *pdev)
->>-static int __exit omap_rng_remove(struct platform_device *pdev)
->>+static int __devexit omap_rng_remove(struct platform_device *pdev)
-> 
-> 
-> Actually, this will only be true if CONFIG_HOTPLUG is set to "y". This
-> way __devinit is defined to "null".
-> 
-> If we set CONFIG_HOTPLUG to "n" the same Section mismatch issue will
-> appear.
+Hi,
 
-Ah, yes, I see. Anybody with a better patch for this?
+looks like innovator_ps2 is broken:
 
-Thanks
+   CC [M]  drivers/input/keyboard/innovator_ps2.o
+drivers/input/keyboard/innovator_ps2.c: In function 
+'innovator_kbd_init':
+drivers/input/keyboard/innovator_ps2.c:1225: warning: 
+implicit declaration of function 'init_input_dev'
+WARNING: "init_input_dev" 
+[drivers/input/keyboard/innovator_ps2.ko] undefined!
+
+Anybody with a patch for this? Or should we remove it?
+
+Use make omap_innovator_1510_defconfig & make modules to 
+reproduce.
+
+Cheers
 
 Dirk
