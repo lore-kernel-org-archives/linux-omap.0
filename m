@@ -1,9 +1,12 @@
-From: "Andrzej Zaborowski" <balrog@zabor.org>
-Subject: [PATCH] Make omap-ir build with workqueue changes.
-Date: Thu,  4 Jan 2007 22:38:22 +0100
-Message-ID: <1167946702756-git-send-email-balrog@zabor.org>
-Reply-To: balrogg@gmail.com
+From: "Bhaskara Rao Kotla" <bhaskar12@gmail.com>
+Subject: Question about SRAM access
+Date: Thu, 4 Jan 2007 16:43:43 -0600
+Message-ID: <1c5b04b60701041443s1dc8ee2cja1ced88ef8af4934@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,35 +16,20 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-OMAP <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
+Hi,
+     I am new to linux driver development.
+     I have a question(may be blind Qns) regarding SRAM access on OMAP2430.
+     my task is write some chunk of data in SRAM from DDR SDRAM memory(data
+transfer from DDRSDRAM to SRAM) using DMA.
+     I have a question, how to allocate the SRAM memory(I mean, is it using
+kmalloc() or malloc? ). I can allocate a memory space  using kmalloc() in
+DDR SDRAM, by default kernel will do i guess.
 
----
- drivers/net/irda/omap-ir.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+Can someone suggest how to handle this?
 
-diff --git a/drivers/net/irda/omap-ir.c b/drivers/net/irda/omap-ir.c
-index 562c876..85658dc 100644
---- a/drivers/net/irda/omap-ir.c
-+++ b/drivers/net/irda/omap-ir.c
-@@ -54,6 +54,7 @@ #include <linux/ioport.h>
- #include <linux/dma-mapping.h>
- #include <linux/platform_device.h>
- #include <linux/i2c.h>
-+#include <linux/workqueue.h>
- 
- #include <net/irda/irda.h>
- #include <net/irda/irmod.h>
-@@ -849,7 +850,7 @@ static int omap_irda_probe(struct platfo
- 
- 	/* Any better way to avoid this? No. */
- 	if (machine_is_omap_h3() || machine_is_omap_h4())
--		INIT_WORK(&omap_ir->pdata->gpio_expa, NULL, NULL);
-+		INIT_DELAYED_WORK(&omap_ir->pdata->gpio_expa, NULL);
- 
- 	err = register_netdev(dev);
- 	if (!err)
--- 
-1.4.3.2
+
+Regards,
+Bhaskara
