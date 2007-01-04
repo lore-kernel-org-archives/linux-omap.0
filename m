@@ -1,9 +1,9 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP: Fix missing workqueue include in board-h2.c
-Date: Thu, 04 Jan 2007 16:30:09 +0100
-Message-ID: <459D1D81.4020308@googlemail.com>
+Subject: [PATCH] ARM: OMAP: Fix section mismatch warnings in omap-rng
+Date: Thu, 04 Jan 2007 16:32:13 +0100
+Message-ID: <459D1DFD.6080606@googlemail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060305030402000809080604"
+Content-Type: multipart/mixed; boundary="------------010200070505020907020009"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,46 +18,58 @@ To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------060305030402000809080604
+--------------010200070505020907020009
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
 
-ARM: OMAP: Fix missing #include <linux/workqueue.h> in
-board-h2.c resulting in
+ARM: OMAP: Fix warnings
 
-In file included from arch/arm/mach-omap1/board-h2.c:40:
-include/asm/arch/irda.h:27: error: field 'gpio_expa' has
-incomplete type
+WARNING: drivers/char/hw_random/omap-rng.o - Section
+mismatch: reference to .init.text: from .data between '$d'
+(at offset 0x0) and 'omap_rng_ops'
+WARNING: drivers/char/hw_random/omap-rng.o - Section
+mismatch: reference to .exit.text: from .data between '$d'
+(at offset 0x4) and 'omap_rng_ops'
 
 Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
 
---------------060305030402000809080604
+--------------010200070505020907020009
 Content-Type: text/plain;
- name="board_h2_compilation_fix.txt"
+ name="omap_rng_warning_fix.txt"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="board_h2_compilation_fix.txt"
+ filename="omap_rng_warning_fix.txt"
 
-Index: linux-osk/arch/arm/mach-omap1/board-h2.c
+Index: linux-osk/drivers/char/hw_random/omap-rng.c
 ===================================================================
---- linux-osk.orig/arch/arm/mach-omap1/board-h2.c
-+++ linux-osk/arch/arm/mach-omap1/board-h2.c
-@@ -27,6 +27,7 @@
- #include <linux/mtd/nand.h>
- #include <linux/mtd/partitions.h>
- #include <linux/input.h>
-+#include <linux/workqueue.h>
+--- linux-osk.orig/drivers/char/hw_random/omap-rng.c
++++ linux-osk/drivers/char/hw_random/omap-rng.c
+@@ -83,7 +83,7 @@ static struct hwrng omap_rng_ops = {
+ 	.data_read	= omap_rng_data_read,
+ };
  
- #include <asm/hardware.h>
- #include <asm/mach-types.h>
+-static int __init omap_rng_probe(struct platform_device *pdev)
++static int __devinit omap_rng_probe(struct platform_device *pdev)
+ {
+ 	struct resource *res, *mem;
+ 	int ret;
+@@ -133,7 +133,7 @@ static int __init omap_rng_probe(struct 
+ 	return 0;
+ }
+ 
+-static int __exit omap_rng_remove(struct platform_device *pdev)
++static int __devexit omap_rng_remove(struct platform_device *pdev)
+ {
+ 	struct resource *mem = dev_get_drvdata(&pdev->dev);
+ 
 
 
---------------060305030402000809080604
+--------------010200070505020907020009
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------060305030402000809080604--
+--------------010200070505020907020009--
