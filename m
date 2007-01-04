@@ -1,9 +1,9 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP: Add missing includes to board-nokia770
-Date: Thu, 04 Jan 2007 17:14:15 +0100
-Message-ID: <459D27D7.8060508@googlemail.com>
+Subject: [PATCH] ARM: OMAP: Add missing include to dsp/mblog.c
+Date: Thu, 04 Jan 2007 17:16:26 +0100
+Message-ID: <459D285A.7080009@googlemail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070807050303080407000009"
+Content-Type: multipart/mixed; boundary="------------070407050305020800000209"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,44 +18,43 @@ To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------070807050303080407000009
+--------------070407050305020800000209
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
 
-ARM: OMAP: Add missing includes to board-nokia770 to make it
+ARM: OMAP: Add missing include to dsp/mblog.c to make it
 compile again.
 
 Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
 
 
---------------070807050303080407000009
+--------------070407050305020800000209
 Content-Type: text/plain;
- name="board_n770_workqueue_changes.txt"
+ name="dsp_mblog_fix.txt"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="board_n770_workqueue_changes.txt"
+ filename="dsp_mblog_fix.txt"
 
-Index: linux-osk/arch/arm/mach-omap1/board-nokia770.c
+Index: linux-osk/arch/arm/plat-omap/dsp/mblog.c
 ===================================================================
---- linux-osk.orig/arch/arm/mach-omap1/board-nokia770.c
-+++ linux-osk/arch/arm/mach-omap1/board-nokia770.c
-@@ -16,6 +16,8 @@
+--- linux-osk.orig/arch/arm/plat-omap/dsp/mblog.c
++++ linux-osk/arch/arm/plat-omap/dsp/mblog.c
+@@ -23,6 +23,7 @@
  
- #include <linux/spi/spi.h>
- #include <linux/spi/ads7846.h>
-+#include <linux/workqueue.h>
-+#include <linux/delay.h>
- 
- #include <asm/hardware.h>
- #include <asm/mach-types.h>
+ #include <linux/platform_device.h>
+ #include <linux/init.h>
++#include <linux/jiffies.h>
+ #include <asm/arch/mailbox.h>
+ #include "dsp_mbcmd.h"
+ #include "dsp.h"
 
 
---------------070807050303080407000009
+--------------070407050305020800000209
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------070807050303080407000009--
+--------------070407050305020800000209--
