@@ -1,11 +1,15 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Pending December (January) patches
-Date: Fri, 05 Jan 2007 16:33:56 +0100
-Message-ID: <459E6FE4.5030208@googlemail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: getting error while building opensource u-boot
+Date: Fri, 5 Jan 2007 10:29:03 -0600
+Message-ID: <EA12F909C0431D458B9D18A176BEE4A50939BC8E@dlee02.ent.ti.com>
+References: <1c5b04b60701050825w76dcc83x98710765846fc712@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <1c5b04b60701050825w76dcc83x98710765846fc712@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,90 +17,98 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Bhaskara Rao Kotla <bhaskar12@gmail.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+This is a GCC bug.  We patched our GCC3.4 to work around this a couple
+years back.  Current GCC tool chains have this patch applied.  Its in
+the archives.
 
-I had some problems with mail to the list, so instead of a 
-pending december patches mail an update which includes 
-already our patches from yesterday. Yes, it's clear that 
-they can't be applied yet ;)
+Regards,
+Richard W.
 
-December 2006 pending patches
------------------------------
-
-1. [RFC][PATCH] Update MMC response types
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-December/008643.html
-
-Note: Is this already merged anywhere else? Or should this 
-be applied against OMAP git?
-
-
-Open, do not apply yet (see list archive for details)
------------------------------------------------------
-
-1. [PATCH] ARM: OMAP: PalmZ71 MPUIO monitoring
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008373.html
-
-- Does not apply cleanly, please update
-
-2. [PATCH] ARM: OMAP: omap-alsa-aic23.c cleanup. No code change
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-December/008572.html
-
-- Does not apply cleanly, please update
-
--> Note: Will we get updates for these, or should I remove 
-them from my list?
-
-
-  Pending OMAP patches January 2007
----------------------------------
-
-1. [PATCH] ARM: OMAP: Fix missing workqueue include in 
-board-h2.c
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008757.html
-
-2. [PATCH] ARM: OMAP: Update omap_h2_1610_defconfig
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008760.html
-
-3. [PATCH] ARM: OMAP: Workqueue changes for board-h4.c
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008761.html
-
-4. [PATCH] ARM: OMAP: Add missing includes to board-nokia770
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008762.html
-
-5. [PATCH] ARM: OMAP: Add missing include to dsp/mblog.c
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008763.html
-
-6. [PATCH] ARM: OMAP: Workqueue changes for tahvo-usb
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008764.html
-
-7. [PATCH] ARM: OMAP: Workqueue changes for retu-rtc
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008765.html
-
-8. [PATCH] ARM: OMAP: Fix section mismatch warnings in omap-rng
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008769.html
-
-9. [PATCH] ARM: OMAP: Make board-palmz71 compile again
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008770.html
-
-10. [PATCH] ARM: OMAP: Fix warnings in lcd_palmz71
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008771.html
-
-11. innovator_ps2 broken
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008772.html
-
-12. [PATCH] Make omap-ir build with workqueue changes.
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008773.html
-
-13. [PATCH] Make omap_bl build again after API change.
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008776.html
-
-As ususal, correct if anything is wrong or missing, 
-especially from december or older. Thanks to Tony for 
-merging all of our patches!
-
-Dirk
+> -----Original Message-----
+> From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-
+> open-source-bounces@linux.omap.com] On Behalf Of Bhaskara Rao Kotla
+> Sent: Friday, January 05, 2007 10:25 AM
+> To: linux-omap-open-source@linux.omap.com
+> Subject: getting error while building opensource u-boot
+>=20
+> Hi,
+>    I am trying to build opensource u-boot from the below location
+>
+http://linux.omap.com/pub/bootloader/2430sdp/source/u-boot-SEP1106.tar.g
+z
+> and followed below three steps
+>=20
+> export CROSS_COMPILE=3Darm-linux-
+> make mrproper
+> make omap2430sdp_config
+> make
+>=20
+> after doing this iam getting below errors...
+>=20
+> ##############################################
+> make[1]: Leaving directory
+> `/data/omap_development/Bhaskar/temp/Opensource/u-boot/common'
+> UNDEF_SYM=3D`arm-linux-objdump -x lib_generic/libgeneric.a
+> board/omap2430sdp/libomap2430sdp.a cpu/arm1136/libarm1136.a
+> lib_arm/libarm.a
+> fs/cramfs/libcramfs.a fs/fat/libfat.a fs/fdos/libfdos.a
+> fs/jffs2/libjffs2.a
+> fs/reiserfs/libreiserfs.a fs/ext2/libext2fs.a net/libnet.a
+disk/libdisk.a
+> rtc/librtc.a dtt/libdtt.a drivers/libdrivers.a
+> drivers/onenand/libonenand.a
+> drivers/nand/libnand.a drivers/nand_legacy/libnand_legacy.a
+> drivers/sk98lin/libsk98lin.a post/libpost.a post/cpu/libcpu.a
+> common/libcommon.a  |sed  -n -e
+> 's/.*\(__u_boot_cmd_.*\)/-u\1/p'|sort|uniq`;\
+>         arm-linux-ld -Bstatic -T
+>
+/data/omap_development/Bhaskar/temp/Opensource/u-boot/board/omap2430sdp/
+u-
+> boot.lds -Ttext 0x80e80000  $UNDEF_SYM cpu/arm1136/start.o \
+>                 --start-group lib_generic/libgeneric.a
+> board/omap2430sdp/libomap2430sdp.a cpu/arm1136/libarm1136.a
+> lib_arm/libarm.a
+> fs/cramfs/libcramfs.a fs/fat/libfat.a fs/fdos/libfdos.a
+> fs/jffs2/libjffs2.a
+> fs/reiserfs/libreiserfs.a fs/ext2/libext2fs.a net/libnet.a
+disk/libdisk.a
+> rtc/librtc.a dtt/libdtt.a drivers/libdrivers.a
+> drivers/onenand/libonenand.a
+> drivers/nand/libnand.a drivers/nand_legacy/libnand_legacy.a
+> drivers/sk98lin/libsk98lin.a post/libpost.a post/cpu/libcpu.a
+> common/libcommon.a  --end-group -L
+> /data/omapts/linux/arm-tc/gcc-3.4.0/bin/../lib/gcc/arm-linux/3.4.0
+> -lgcc \
+>                 -Map u-boot.map -o u-boot
+>
+lib_arm/libarm.a(_udivsi3.o)(.text+0x8c):/data/omap_development/Bhaskar/
+te
+> mp/Opensource/u-boot/lib_arm/_udivsi3.S:67:
+> relocation truncated to fit: R_ARM_PLT32 __div0
+>
+lib_arm/libarm.a(_umodsi3.o)(.text+0xa8):/data/omap_development/Bhaskar/
+te
+> mp/Opensource/u-boot/lib_arm/_umodsi3.S:79:
+> relocation truncated to fit: R_ARM_PLT32 __div0
+> make: *** [u-boot] Error 1
+>
+########################################################################
+##
+>=20
+> Can someone tell me what's going wrong or am i doing anything wrong?
+> Note: I am going to use it for OMAP2430 SDP V2.9 and V4.1 boards.
+>=20
+> Thanks,
+> Regards,
+> Bhaskara
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
