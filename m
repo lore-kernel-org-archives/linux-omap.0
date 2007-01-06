@@ -1,14 +1,11 @@
-From: "Komal Shah" <komal.shah802003@gmail.com>
-Subject: Re: Pending December (January) patches
-Date: Sat, 6 Jan 2007 12:38:36 +0530
-Message-ID: <3a5b1be00701052308g17f61738o1f6e42001a9e202a@mail.gmail.com>
-References: <459E6FE4.5030208@googlemail.com>
+From: "nishanth menon" <menon.nishanth@gmail.com>
+Subject: Patch: Make t2 core compile again for 2430
+Date: Sat, 6 Jan 2007 17:30:31 -0600
+Message-ID: <782515bb0701061530j591e38c7o10db570cd9b201dc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <459E6FE4.5030208@googlemail.com>
-Content-Disposition: inline
+Content-Type: multipart/mixed;
+	boundary="----=_Part_32524_14901088.1168126231772"
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,50 +13,79 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com, "Syed Mohammed, Khasim" <x0khasim@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 1/5/07, Dirk Behme <dirk.behme@googlemail.com> wrote:
-> Hi,
->
-> I had some problems with mail to the list, so instead of a
-> pending december patches mail an update which includes
-> already our patches from yesterday. Yes, it's clear that
-> they can't be applied yet ;)
->
-> December 2006 pending patches
-> -----------------------------
->
-> 1. [RFC][PATCH] Update MMC response types
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-December/008643.html
->
-> Note: Is this already merged anywhere else? Or should this
-> be applied against OMAP git?
->
->
-> Open, do not apply yet (see list archive for details)
-> -----------------------------------------------------
->
-> 1. [PATCH] ARM: OMAP: PalmZ71 MPUIO monitoring
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008373.html
->
-> - Does not apply cleanly, please update
->
-> 2. [PATCH] ARM: OMAP: omap-alsa-aic23.c cleanup. No code change
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-December/008572.html
->
-> - Does not apply cleanly, please update
->
-> -> Note: Will we get updates for these, or should I remove
-> them from my list?
->
+------=_Part_32524_14901088.1168126231772
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-You can remove this from list. I will re-submit this patch once I come
-back from 2wks vacation starting from Monday :)
+Hi khasim,
+Looks like some changes in t2 driver is needed to make it compile.
+Some small defn changes etc..
+Regards,
+Nishanth Menon
 
--- 
----Komal Shah
-http://komalshah.blogspot.com
+------=_Part_32524_14901088.1168126231772
+Content-Type: application/octet-stream; name=t2_patch1.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_ewmo4j6j
+Content-Disposition: attachment; filename="t2_patch1.patch"
+
+CmRpZmYgLS1naXQgYS9kcml2ZXJzL2kyYy9jaGlwcy90d2w0MDMwX2NvcmUuYyBiL2RyaXZlcnMv
+aTJjL2NoaXBzL3R3bDQwMzBfY29yZS5jCmluZGV4IGIxNjlhNjguLjk2MWIzYmEgMTAwNjQ0Ci0t
+LSBhL2RyaXZlcnMvaTJjL2NoaXBzL3R3bDQwMzBfY29yZS5jCisrKyBiL2RyaXZlcnMvaTJjL2No
+aXBzL3R3bDQwMzBfY29yZS5jCkBAIC0xMzUsNyArMTM1LDcgQEAgc3RhdGljIGludAogdHdsNDAz
+MF9kZXRlY3RfY2xpZW50KHN0cnVjdCBpMmNfYWRhcHRlciAqYWRhcHRlciwgdW5zaWduZWQgY2hh
+ciBzaWQpOwogc3RhdGljIGludCB0d2w0MDMwX2F0dGFjaF9hZGFwdGVyKHN0cnVjdCBpMmNfYWRh
+cHRlciAqYWRhcHRlcik7CiBzdGF0aWMgaW50IHR3bDQwMzBfZGV0YWNoX2NsaWVudChzdHJ1Y3Qg
+aTJjX2NsaWVudCAqY2xpZW50KTsKLXN0YXRpYyB2b2lkIGRvX3R3bDQwMzBfaXJxKHVuc2lnbmVk
+IGludCBpcnEsIHN0cnVjdCBpcnFkZXNjICpkZXNjKTsKK3N0YXRpYyB2b2lkIGRvX3R3bDQwMzBf
+aXJxKHVuc2lnbmVkIGludCBpcnEsIGlycV9kZXNjX3QgKmRlc2MpOwoKIHN0YXRpYyB2b2lkIHR3
+bF9pbml0X2lycSh2b2lkKTsKCkBAIC0yMzAsNyArMjMwLDcgQEAgc3RhdGljIHZvaWQgdHdsNDAz
+MF9pMmNfZGlzYWJsZWludCh1bnNpZ25lZCBpbnQgaXJxKSB7fQogc3RhdGljIHZvaWQgdHdsNDAz
+MF9pMmNfZW5hYmxlaW50KHVuc2lnbmVkIGludCBpcnEpIHt9CgogLyogaW5mb3JtYXRpb24gZm9y
+IHByb2Nlc3NpbmcgaW4gdGhlIFdvcmsgSXRlbSAqLwotc3RhdGljIHN0cnVjdCBpcnFjaGlwIHR3
+bDQwMzBfaXJxX2NoaXAgPSB7CitzdGF0aWMgc3RydWN0IGlycV9jaGlwIHR3bDQwMzBfaXJxX2No
+aXAgPSB7CiAgICAgICAgLmFjayAgICA9IHR3bDQwMzBfaTJjX2Fja2lycSwKICAgICAgICAubWFz
+ayAgID0gdHdsNDAzMF9pMmNfZGlzYWJsZWludCwKICAgICAgICAudW5tYXNrID0gdHdsNDAzMF9p
+MmNfZW5hYmxlaW50LApAQCAtMzg1LDcgKzM4NSw3IEBAIGludCB0d2w0MDMwX2kyY19yZWFkX3U4
+KHU4IG1vZF9ubywgdTggKiB2YWx1ZSwgdTggcmVnKQogICogbW9kdWxlIGludGVycnVwdHMuICBJ
+dCBleGVjdXRlcyBpbiBrZXJuZWwgdGhyZWFkIGNvbnRleHQuCiAgKiBPbiBlbnRyeSwgY3B1IGlu
+dGVycnVwdHMgYXJlIGRpc2FibGVkLgogICovCi1zdGF0aWMgdm9pZCBkb190d2w0MDMwX21vZHVs
+ZV9pcnEodW5zaWduZWQgaW50IGlycSwgc3RydWN0IGlycWRlc2MgKmRlc2MpCitzdGF0aWMgdm9p
+ZCBkb190d2w0MDMwX21vZHVsZV9pcnEodW5zaWduZWQgaW50IGlycSwgaXJxX2Rlc2NfdCAqZGVz
+YykKIHsKICAgICAgICBzdHJ1Y3QgaXJxYWN0aW9uICphY3Rpb247CiAgICAgICAgY29uc3QgdW5z
+aWduZWQgaW50IGNwdSA9IHNtcF9wcm9jZXNzb3JfaWQoKTsKQEAgLTQ0OSw3ICs0NDksNyBAQCBz
+dGF0aWMgdm9pZCBkb190d2w0MDMwX21vZHVsZV9pcnEodW5zaWduZWQgaW50IGlycSwgc3RydWN0
+IGlycWRlc2MgKmRlc2MpCiBzdGF0aWMgaW50IHR3bDQwMzBfaXJxX3RocmVhZCh2b2lkICpkYXRh
+KQogewogICAgICAgIGludCBpcnEgPSAoaW50KWRhdGE7Ci0gICAgICAgc3RydWN0IGlycWRlc2Mg
+KmRlc2MgPSBpcnFfZGVzYyArIGlycTsKKwkJaXJxX2Rlc2NfdCAqZGVzYyA9IGlycV9kZXNjICsg
+aXJxOwogICAgICAgIHN0YXRpYyB1bnNpZ25lZCBpMmNfZXJyb3JzOwogICAgICAgIGNvbnN0IHN0
+YXRpYyB1bnNpZ25lZCBtYXhfaTJjX2Vycm9ycyA9IDEwMDsKCkBAIC00NzUsNyArNDc1LDcgQEAg
+c3RhdGljIGludCB0d2w0MDMwX2lycV90aHJlYWQodm9pZCAqZGF0YSkKICAgICAgICAgICAgICAg
+IGZvciAobW9kdWxlX2lycSA9IElIX1RXTDQwMzBfQkFTRTsgMCAhPSBwaWhfaXNyOwogICAgICAg
+ICAgICAgICAgICAgICAgICAgcGloX2lzciA+Pj0gMSwgbW9kdWxlX2lycSsrKSB7CiAgICAgICAg
+ICAgICAgICAgICAgICAgIGlmIChwaWhfaXNyICYgMHgxKSB7Ci0gICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgc3RydWN0IGlycWRlc2MgKmQgPSBpcnFfZGVzYyArIG1vZHVsZV9pcnE7CisJ
+CQkJCWlycV9kZXNjX3QgKmQgPSBpcnFfZGVzYyArIG1vZHVsZV9pcnE7CgogICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgIGxvY2FsX2lycV9kaXNhYmxlKCk7CgpAQCAtNTA3LDcgKzUwNyw3
+IEBAIHN0YXRpYyBpbnQgdHdsNDAzMF9pcnFfdGhyZWFkKHZvaWQgKmRhdGEpCiAgKiB0aHJlYWQu
+ICBBbGwgd2UgZG8gaGVyZSBpcyBhY2tub3dsZWRnZSBhbmQgbWFzayB0aGUgaW50ZXJydXB0IGFu
+ZCB3YWtldXAKICAqIHRoZSBrZXJuZWwgdGhyZWFkLgogICovCi1zdGF0aWMgdm9pZCBkb190d2w0
+MDMwX2lycSh1bnNpZ25lZCBpbnQgaXJxLCBzdHJ1Y3QgaXJxZGVzYyAqZGVzYykKK3N0YXRpYyB2
+b2lkIGRvX3R3bDQwMzBfaXJxKHVuc2lnbmVkIGludCBpcnEsIGlycV9kZXNjX3QgKmRlc2MpCiB7
+CiAgICAgICAgY29uc3QgdW5zaWduZWQgaW50IGNwdSA9IHNtcF9wcm9jZXNzb3JfaWQoKTsKICAg
+ICAgICBzdHJ1Y3QgdGFza19zdHJ1Y3QgKnRocmVhZCA9IChzdHJ1Y3QgdGFza19zdHJ1Y3QgKilk
+ZXNjLT5jaGlwX2RhdGE7Cgo=
+------=_Part_32524_14901088.1168126231772
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+------=_Part_32524_14901088.1168126231772--
