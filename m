@@ -1,10 +1,10 @@
 From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
-Subject: [PATCH] lcd_mipid: workqueue fixes
-Date: Mon, 08 Jan 2007 11:14:25 +0100
-Message-ID: <85mz4tesfy.fsf@orfeo.duckcorp.org>
+Subject: [PATCH] ipt_IDLETIMER: worqueue fixes
+Date: Mon, 08 Jan 2007 11:15:29 +0100
+Message-ID: <85irfhese6.fsf@orfeo.duckcorp.org>
 Mime-Version: 1.0
 Content-Type: multipart/mixed; boundary="=-=-="
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,70 +12,59 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 --=-=-=
 
-
-This patch fixes the build of the lcd_mipid in current omap -git.
+This patch fixes the build of ipt_ILDETIMER with current omap -git
 
 Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
 ---
 
 --=-=-=
 Content-Type: text/x-patch
-Content-Disposition: inline; filename=mipid_workqueue.patch
+Content-Disposition: inline; filename=idle_timer_workqueue.patch
 
 ---
- drivers/video/omap/lcd_mipid.c |   10 	5 +	5 -	0 !
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ net/ipv4/netfilter/ipt_IDLETIMER.c |    7 	4 +	3 -	0 !
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-Index: linux-omap-2.6/drivers/video/omap/lcd_mipid.c
+Index: linux-omap-2.6/net/ipv4/netfilter/ipt_IDLETIMER.c
 ===================================================================
---- linux-omap-2.6.orig/drivers/video/omap/lcd_mipid.c	2007-01-07 20:13:21.000000000 +0100
-+++ linux-omap-2.6/drivers/video/omap/lcd_mipid.c	2007-01-07 20:53:37.000000000 +0100
-@@ -67,7 +67,7 @@ struct mipid_device {
- 	struct lcd_panel	panel;
+--- linux-omap-2.6.orig/net/ipv4/netfilter/ipt_IDLETIMER.c	2007-01-07 14:10:28.000000000 +0100
++++ linux-omap-2.6/net/ipv4/netfilter/ipt_IDLETIMER.c	2007-01-07 14:12:25.000000000 +0100
+@@ -33,6 +33,7 @@
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv4/ipt_IDLETIMER.h>
+ #include <linux/kobject.h>
++#include <linux/workqueue.h>
  
- 	struct workqueue_struct	*esd_wq;
--	struct work_struct	esd_work;
-+	struct delayed_work	esd_work;
- 	void			(*esd_check)(struct mipid_device *m);
- };
- 
-@@ -390,9 +390,9 @@ static void mipid_esd_stop_check(struct 
- 		cancel_rearming_delayed_workqueue(md->esd_wq, &md->esd_work);
+ #if 0
+ #define DEBUGP(format, args...) printk("%s:%s:" format, \
+@@ -68,9 +69,9 @@ static void utimer_delete(struct utimer_
+ 	kfree(timer);
  }
  
--static void mipid_esd_work(void *data)
-+static void mipid_esd_work(struct work_struct *work)
+-static void utimer_work(void * data)
++static void utimer_work(struct work_struct *work)
  {
--	struct mipid_device *md = data;
-+	struct mipid_device *md = container_of(work, struct mipid_device, esd_work.work);
+-	struct utimer_t *timer = (struct utimer_t *) data;
++	struct utimer_t *timer = container_of(work, struct utimer_t, work);
+ 	struct net_device *netdev;
  
- 	mutex_lock(&md->mutex);
- 	md->esd_check(md);
-@@ -468,7 +468,7 @@ static int mipid_init(struct lcd_panel *
- 		dev_err(&md->spi->dev, "can't create ESD workqueue\n");
- 		return -ENOMEM;
- 	}
--	INIT_WORK(&md->esd_work, mipid_esd_work, md);
-+	INIT_DELAYED_WORK(&md->esd_work, mipid_esd_work);
- 	mutex_init(&md->mutex);
+ 	netdev = dev_get_by_name(timer->name);
+@@ -110,7 +111,7 @@ static struct utimer_t *utimer_create(co
+ 	timer->timer.function = utimer_expired;
+ 	timer->timer.data = (unsigned long) timer;
  
- 	md->enabled = panel_enabled(md);
-@@ -558,7 +558,7 @@ static int mipid_spi_probe(struct spi_de
- 	struct mipid_device *md;
- 	int r;
+-	INIT_WORK(&timer->work, utimer_work, timer);
++	INIT_WORK(&timer->work, utimer_work);
  
--	md = kzalloc(sizeof(*md), SLAB_KERNEL);
-+	md = kzalloc(sizeof(*md), GFP_KERNEL);
- 	if (md == NULL) {
- 		dev_err(&md->spi->dev, "out of memory\n");
- 		return -ENOMEM;
+ 	DEBUGP("Created timer '%s'\n", timer->name);
+ 
 
 --=-=-=
 Content-Type: text/plain; charset="us-ascii"
