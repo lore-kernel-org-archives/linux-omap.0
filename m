@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] lcd_mipid: workqueue fixes
-Date: Tue, 9 Jan 2007 15:34:49 -0800
-Message-ID: <20070109233448.GR7384@atomide.com>
-References: <85mz4tesfy.fsf@orfeo.duckcorp.org>
+Subject: Re: [PATCH] Make omap_bl build again after API change.
+Date: Tue, 9 Jan 2007 15:32:45 -0800
+Message-ID: <20070109233244.GQ7384@atomide.com>
+References: <1167956787968-git-send-email-balrog@zabor.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <85mz4tesfy.fsf@orfeo.duckcorp.org>
+In-Reply-To: <1167956787968-git-send-email-balrog@zabor.org>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,64 +17,41 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Arnaud Patard <arnaud.patard@rtp-net.org>
-Cc: linux-omap-open-source@linux.omap.com
+To: balrogg@gmail.com
+Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Arnaud Patard <arnaud.patard@rtp-net.org> [070108 02:15]:
+* Andrzej Zaborowski <balrog@zabor.org> [070104 15:26]:
+> [Oops, I sent this to Dirk eariler and forgot to CC the list.]
+> Make omap_bl build again after API change.
 > 
-> This patch fixes the build of the lcd_mipid in current omap -git.
+> Breakage spotted by Dirk Behme.
+> Also remove comment about API glitch which has just been fixed.
 > 
-> Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
+> Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
 > ---
-
-> ---
->  drivers/video/omap/lcd_mipid.c |   10 	5 +	5 -	0 !
->  1 file changed, 5 insertions(+), 5 deletions(-)
+>  drivers/video/backlight/omap_bl.c |    8 ++------
+>  1 files changed, 2 insertions(+), 6 deletions(-)
 > 
-> Index: linux-omap-2.6/drivers/video/omap/lcd_mipid.c
-> ===================================================================
-> --- linux-omap-2.6.orig/drivers/video/omap/lcd_mipid.c	2007-01-07 20:13:21.000000000 +0100
-> +++ linux-omap-2.6/drivers/video/omap/lcd_mipid.c	2007-01-07 20:53:37.000000000 +0100
-> @@ -67,7 +67,7 @@ struct mipid_device {
->  	struct lcd_panel	panel;
->  
->  	struct workqueue_struct	*esd_wq;
-> -	struct work_struct	esd_work;
-> +	struct delayed_work	esd_work;
->  	void			(*esd_check)(struct mipid_device *m);
->  };
->  
-> @@ -390,9 +390,9 @@ static void mipid_esd_stop_check(struct 
->  		cancel_rearming_delayed_workqueue(md->esd_wq, &md->esd_work);
->  }
->  
-> -static void mipid_esd_work(void *data)
-> +static void mipid_esd_work(struct work_struct *work)
->  {
-> -	struct mipid_device *md = data;
-> +	struct mipid_device *md = container_of(work, struct mipid_device, esd_work.work);
->  
->  	mutex_lock(&md->mutex);
->  	md->esd_check(md);
-> @@ -468,7 +468,7 @@ static int mipid_init(struct lcd_panel *
->  		dev_err(&md->spi->dev, "can't create ESD workqueue\n");
+> diff --git a/drivers/video/backlight/omap_bl.c b/drivers/video/backlight/omap_bl.c
+> index 22189b1..3b57b27 100644
+> --- a/drivers/video/backlight/omap_bl.c
+> +++ b/drivers/video/backlight/omap_bl.c
+> @@ -152,12 +152,8 @@ static int omapbl_probe(struct platform_
+>  	if (unlikely(!bl))
 >  		return -ENOMEM;
->  	}
-> -	INIT_WORK(&md->esd_work, mipid_esd_work, md);
-> +	INIT_DELAYED_WORK(&md->esd_work, mipid_esd_work);
->  	mutex_init(&md->mutex);
 >  
->  	md->enabled = panel_enabled(md);
-> @@ -558,7 +558,7 @@ static int mipid_spi_probe(struct spi_de
->  	struct mipid_device *md;
->  	int r;
->  
-> -	md = kzalloc(sizeof(*md), SLAB_KERNEL);
-> +	md = kzalloc(sizeof(*md), GFP_KERNEL);
->  	if (md == NULL) {
->  		dev_err(&md->spi->dev, "out of memory\n");
->  		return -ENOMEM;
+> -	/* REVISIT backlight API glitch:  we can't associate the
+> -	 * class device with "pdev" ... probably pass &pdev->dev
+> -	 * instead of a string.
+> -	 */
+> -
+> -	dev = backlight_device_register("omap-bl", bl, &omapbl_data);
+> +	dev = backlight_device_register("omap-bl", &pdev->dev,
+> +			bl, &omapbl_data);
+>  	if (IS_ERR(dev)) {
+>  		kfree(bl);
+>  		return PTR_ERR(dev);
 
 Pushing today.
 
