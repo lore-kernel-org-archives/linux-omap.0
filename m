@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Fix warnings in lcd_palmz71
-Date: Tue, 9 Jan 2007 15:30:20 -0800
-Message-ID: <20070109233019.GO7384@atomide.com>
-References: <459D484C.3010202@googlemail.com>
+Subject: Re: [PATCH] Make omap-ir build with workqueue changes.
+Date: Tue, 9 Jan 2007 15:31:31 -0800
+Message-ID: <20070109233131.GP7384@atomide.com>
+References: <1167946702756-git-send-email-balrog@zabor.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <459D484C.3010202@googlemail.com>
+In-Reply-To: <1167946702756-git-send-email-balrog@zabor.org>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,61 +15,40 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: balrogg@gmail.com
+Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Dirk Behme <dirk.behme@googlemail.com> [070104 10:40]:
+* Andrzej Zaborowski <balrog@zabor.org> [070104 12:39]:
+> Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
 > 
-> ARM: OMAP: Fix warnings in lcd_palmz71.c about
-> "initialization from incompatible pointer type". Minor
-> formatting fix.
+> ---
+>  drivers/net/irda/omap-ir.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
 > 
-> Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
-> 
-
-> Index: linux-osk/drivers/video/omap/lcd_palmz71.c
-> ===================================================================
-> --- linux-osk.orig/drivers/video/omap/lcd_palmz71.c
-> +++ linux-osk/drivers/video/omap/lcd_palmz71.c
-> @@ -30,28 +30,29 @@
->  #include <asm/arch/gpio.h>
->  #include <asm/arch/omapfb.h>
+> diff --git a/drivers/net/irda/omap-ir.c b/drivers/net/irda/omap-ir.c
+> index 562c876..85658dc 100644
+> --- a/drivers/net/irda/omap-ir.c
+> +++ b/drivers/net/irda/omap-ir.c
+> @@ -54,6 +54,7 @@ #include <linux/ioport.h>
+>  #include <linux/dma-mapping.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/i2c.h>
+> +#include <linux/workqueue.h>
 >  
-> -static int palmz71_panel_init(struct omapfb_device *panel)
-> +static int palmz71_panel_init(struct lcd_panel *panel,
-> +			      struct omapfb_device *fbdev)
->  {
->  	return 0;
->  }
+>  #include <net/irda/irda.h>
+>  #include <net/irda/irmod.h>
+> @@ -849,7 +850,7 @@ static int omap_irda_probe(struct platfo
 >  
-> -static void palmz71_panel_cleanup(void)
-> +static void palmz71_panel_cleanup(struct lcd_panel *panel)
->  {
+>  	/* Any better way to avoid this? No. */
+>  	if (machine_is_omap_h3() || machine_is_omap_h4())
+> -		INIT_WORK(&omap_ir->pdata->gpio_expa, NULL, NULL);
+> +		INIT_DELAYED_WORK(&omap_ir->pdata->gpio_expa, NULL);
 >  
->  }
->  
-> -static int palmz71_panel_enable(void)
-> +static int palmz71_panel_enable(struct lcd_panel *panel)
->  {
->  	return 0;
->  }
->  
-> -static void palmz71_panel_disable(void)
-> +static void palmz71_panel_disable(struct lcd_panel *panel)
->  {
->  }
->  
-> -static unsigned long palmz71_panel_get_caps(void)
-> +static unsigned long palmz71_panel_get_caps(struct lcd_panel *panel)
->  {
-> -return OMAPFB_CAPS_SET_BACKLIGHT;
-> +	return OMAPFB_CAPS_SET_BACKLIGHT;
->  }
->  
->  struct lcd_panel palmz71_panel = {
+>  	err = register_netdev(dev);
+>  	if (!err)
 
 Pushing today.
 
