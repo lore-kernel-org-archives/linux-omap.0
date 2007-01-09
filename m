@@ -1,15 +1,13 @@
-From: "andrzej zaborowski" <balrog@zabor.org>
-Subject: Re: omap1710 h3: problem while accessing audio device
-Date: Tue, 9 Jan 2007 13:34:26 +0100
-Message-ID: <fb249edb0701090434h3b3e3151lb5c4411f3a458183@mail.gmail.com>
-References: <7b1b9c8b0701082322v2c927378u2a3d50a21fff2400@mail.gmail.com>
-Reply-To: balrogg@gmail.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: Fix missing workqueue include in board-h2.c
+Date: Tue, 9 Jan 2007 15:14:50 -0800
+Message-ID: <20070109231449.GF7384@atomide.com>
+References: <459D1D81.4020308@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <7b1b9c8b0701082322v2c927378u2a3d50a21fff2400@mail.gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
+In-Reply-To: <459D1D81.4020308@googlemail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,40 +15,37 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Prashant <prashantkhoje@gmail.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Dirk Behme <dirk.behme@googlemail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Dirk Behme <dirk.behme@googlemail.com> [070104 07:31]:
+> 
+> ARM: OMAP: Fix missing #include <linux/workqueue.h> in
+> board-h2.c resulting in
+> 
+> In file included from arch/arm/mach-omap1/board-h2.c:40:
+> include/asm/arch/irda.h:27: error: field 'gpio_expa' has
+> incomplete type
+> 
+> Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
 
-On 09/01/07, Prashant <prashantkhoje@gmail.com> wrote:
-> When I run command, "cat /dev/sound/dsp > /dev/sound/dsp"; kernel
-> prints that no such device is available. But I see such a node being
-> present in the filesystem.
+> Index: linux-osk/arch/arm/mach-omap1/board-h2.c
+> ===================================================================
+> --- linux-osk.orig/arch/arm/mach-omap1/board-h2.c
+> +++ linux-osk/arch/arm/mach-omap1/board-h2.c
+> @@ -27,6 +27,7 @@
+>  #include <linux/mtd/nand.h>
+>  #include <linux/mtd/partitions.h>
+>  #include <linux/input.h>
+> +#include <linux/workqueue.h>
+>  
+>  #include <asm/hardware.h>
+>  #include <asm/mach-types.h>
+> 
 
-If you tried ALSA instead, it should work.
+Pushing today.
 
->
-> #
-> # Sound
-> #
-> CONFIG_SOUND=y
->
-> #
-> # Advanced Linux Sound Architecture
-> #
-> CONFIG_SND=y
-> CONFIG_SND_TIMER=y
-> CONFIG_SND_PCM=y
-> # CONFIG_SND_SEQUENCER is not set
-> # CONFIG_SND_MIXER_OSS is not set
-> # CONFIG_SND_PCM_OSS is not set
-
-You have OSS compatibility disabled.
-
-Make sure other sound-related setting are correct too.
-
-Regards,
-Andrew
+Tony
