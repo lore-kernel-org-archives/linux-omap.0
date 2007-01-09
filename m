@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Workqueue changes for retu-rtc
-Date: Tue, 9 Jan 2007 15:23:23 -0800
-Message-ID: <20070109232323.GL7384@atomide.com>
-References: <459D2D8D.1060705@googlemail.com>
+Subject: Re: [PATCH] ARM: OMAP: Make board-palmz71 compile again
+Date: Tue, 9 Jan 2007 15:29:40 -0800
+Message-ID: <20070109232940.GN7384@atomide.com>
+References: <459D423D.2040109@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <459D2D8D.1060705@googlemail.com>
+In-Reply-To: <459D423D.2040109@googlemail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,42 +21,42 @@ To: Dirk Behme <dirk.behme@googlemail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Dirk Behme <dirk.behme@googlemail.com> [070104 08:39]:
+* Dirk Behme <dirk.behme@googlemail.com> [070104 10:07]:
 > 
-> ARM: OMAP: Workqueue changes for retu-rtc.c
+> ARM: OMAP: Fix compilation issues in board-palmz71.c
 > 
 > Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
 > 
 
-> Index: linux-osk/drivers/cbus/retu-rtc.c
+> Index: linux-osk/arch/arm/mach-omap1/board-palmz71.c
 > ===================================================================
-> --- linux-osk.orig/drivers/cbus/retu-rtc.c
-> +++ linux-osk/drivers/cbus/retu-rtc.c
-> @@ -40,6 +40,7 @@
->  #include <linux/completion.h>
->  #include <linux/platform_device.h>
->  #include <linux/mutex.h>
-> +#include <linux/workqueue.h>
+> --- linux-osk.orig/arch/arm/mach-omap1/board-palmz71.c
+> +++ linux-osk/arch/arm/mach-omap1/board-palmz71.c
+> @@ -260,7 +260,6 @@ static struct spi_board_info __initdata 
+>  				* 26	/* command + data + overhead */,
+>  	.bus_num	= 2,
+>  	.chip_select	= 0,
+> -	}
+>  } };
 >  
->  #include "cbus.h"
->  #include "retu.h"
-> @@ -312,13 +313,13 @@ static void retu_rtca_disable(void)
->  	retu_write_reg(RETU_REG_RTCHMAR, (24 << 8) | 60);
->  }
+>  static struct omap_usb_config palmz71_usb_config __initdata = {
+> @@ -295,7 +294,7 @@ static struct omap_board_config_kernel p
+>  };
 >  
-> -static void retu_rtca_expired(void *data)
-> +static void retu_rtca_expired(struct work_struct *unused)
+>  static irqreturn_t
+> -palmz71_powercable(int irq, void *dev_id, struct pt_regs *regs)
+> +palmz71_powercable(int irq, void *dev_id)
 >  {
->  	retu_rtca_disable();
->  	sysfs_notify(&retu_rtc_driver.kobj, NULL, "alarm_expired");
+>  	if (omap_get_gpio_datain(PALMZ71_USBDETECT_GPIO)) {
+>  		printk(KERN_INFO "PM: Power cable connected\n");
+> @@ -347,7 +346,7 @@ palmz71_gpio_setup(int early)
+>  				"palmz71-cable", 0))
+>  			printk(KERN_ERR
+>  			       "IRQ request for power cable failed!\n");
+> -		palmz71_powercable(OMAP_GPIO_IRQ(PALMZ71_USBDETECT_GPIO), 0, 0);
+> +		palmz71_powercable(OMAP_GPIO_IRQ(PALMZ71_USBDETECT_GPIO), 0);
+>  	}
 >  }
->  
-> -DECLARE_WORK(retu_rtca_work, retu_rtca_expired, NULL);
-> +DECLARE_WORK(retu_rtca_work, retu_rtca_expired);
->  
->  /*
->   * RTCHMR RTCHMAR RTCCAL must be accessed within 0.9 s since the seconds
-> 
 
 Pushing today.
 
