@@ -1,13 +1,14 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Pending December (January) patches
-Date: Tue, 9 Jan 2007 15:59:12 -0800
-Message-ID: <20070109235912.GX7384@atomide.com>
-References: <459E6FE4.5030208@googlemail.com>
+From: Pierre Ossman <drzeus-list@drzeus.cx>
+Subject: Re: [RFC][PATCH] Update MMC response types
+Date: Wed, 10 Jan 2007 06:46:25 +0100
+Message-ID: <45A47DB1.5090100@drzeus.cx>
+References: <4586B50A.9030700@indt.org.br> <4586D996.40009@drzeus.cx>
+	<20070109235606.GW7384@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <459E6FE4.5030208@googlemail.com>
+In-Reply-To: <20070109235606.GW7384@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,77 +18,23 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap-open-source@linux.omap.com, Ilias Biris <ilias.biris@indt.org.br>
 List-Id: linux-omap@vger.kernel.org
 
-* Dirk Behme <dirk.behme@googlemail.com> [070105 07:36]:
-> Hi,
-> 
-> I had some problems with mail to the list, so instead of a 
-> pending december patches mail an update which includes 
-> already our patches from yesterday. Yes, it's clear that 
-> they can't be applied yet ;)
-> 
-> December 2006 pending patches
-> -----------------------------
-> 
-> 1. [RFC][PATCH] Update MMC response types
-> http://linux.omap.com/pipermail/linux-omap-open-source/2006-December/008643.html
-> 
-> Note: Is this already merged anywhere else? Or should this 
-> be applied against OMAP git?
+Tony Lindgren wrote:
+> Pushing this to linux-omap tree. Pierre, is this in your MMC queue
+> already?
+>
+>   
 
-I've applied this to omap tree, should go also into Pierre's queue.
+Nope. It was marked as RFC, so I just commented on it.
 
-<snip>
- 
->  Pending OMAP patches January 2007
-> ---------------------------------
-> 
-> 1. [PATCH] ARM: OMAP: Fix missing workqueue include in 
-> board-h2.c
-> http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008757.html
-> 
-> 2. [PATCH] ARM: OMAP: Update omap_h2_1610_defconfig
-> http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008760.html
-> 
-> 3. [PATCH] ARM: OMAP: Workqueue changes for board-h4.c
-> http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008761.html
-> 
-> 4. [PATCH] ARM: OMAP: Add missing includes to board-nokia770
-> http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008762.html
-> 
-> 5. [PATCH] ARM: OMAP: Add missing include to dsp/mblog.c
-> http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008763.html
-> 
-> 6. [PATCH] ARM: OMAP: Workqueue changes for tahvo-usb
-> http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008764.html
-> 
-> 7. [PATCH] ARM: OMAP: Workqueue changes for retu-rtc
-> http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008765.html
-> 
-> 8. [PATCH] ARM: OMAP: Fix section mismatch warnings in omap-rng
-> http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008769.html
-> 
-> 9. [PATCH] ARM: OMAP: Make board-palmz71 compile again
-> http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008770.html
-> 
-> 10. [PATCH] ARM: OMAP: Fix warnings in lcd_palmz71
-> http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008771.html
-> 
-> 11. innovator_ps2 broken
-> http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008772.html
-> 
-> 12. [PATCH] Make omap-ir build with workqueue changes.
-> http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008773.html
-> 
-> 13. [PATCH] Make omap_bl build again after API change.
-> http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008776.html
+Rgds
 
-These should be applied now, everybody please check your patches got
-applied OK.
+-- 
+     -- Pierre Ossman
 
-Regards,
-
-Tony
+  Linux kernel, MMC maintainer        http://www.kernel.org
+  PulseAudio, core developer          http://pulseaudio.org
+  rdesktop, core developer          http://www.rdesktop.org
