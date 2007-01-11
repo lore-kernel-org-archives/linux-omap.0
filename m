@@ -1,10 +1,9 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.20-rc3-omap1] musb_hdrc workqueue build fix
-Date: Wed, 10 Jan 2007 17:17:17 -0800
-Message-ID: <200701101717.18559.david-b@pacbell.net>
+From: "Deepak Barua" <dbbarua@gmail.com>
+Subject: Tool Chain setting for OMAP 5912 board
+Date: Thu, 11 Jan 2007 09:04:28 +0530
+Message-ID: <b5a19cd20701101934k23cba1fak703661fe2d019f6e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
@@ -17,33 +16,25 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux OMAP <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Yet another workqueue-api-changed build fix.
+Hi ,
+      I have used crosstool to compile a tool chain for the OMAP 5912
+board the architecture i used is ARM v5 softfloat.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+I want to know how to change the gcc and include files to library path
+so i can use this cross compiler to compile a new kernel for the OMAP
+board.
 
---- h4.orig/drivers/usb/musb/plat_uds.c	2007-01-10 14:19:43.000000000 -0800
-+++ h4/drivers/usb/musb/plat_uds.c	2007-01-10 00:21:44.000000000 -0800
-@@ -1561,9 +1561,9 @@ static DEVICE_ATTR(cable, S_IRUGO, musb_
- #endif
- 
- /* Only used to provide cable state change events */
--static void musb_irq_work(void *data)
-+static void musb_irq_work(struct work_struct *data)
- {
--	struct musb *musb = (struct musb *)data;
-+	struct musb *musb = container_of(data, struct musb, irq_work);
- 
- 	sysfs_notify(&musb->controller->kobj, NULL, "cable");
- }
-@@ -1835,7 +1835,7 @@ fail:
- 		return status;
- 	}
- 
--	INIT_WORK(&pThis->irq_work, musb_irq_work, pThis);
-+	INIT_WORK(&pThis->irq_work, musb_irq_work);
- 
- #ifdef CONFIG_SYSFS
- 	status = device_create_file(dev, &dev_attr_mode);
+I tried changing /usr/bin/gcc to point to the new gcc and tried
+changing the dynamic linker too but it corrupted my system and i had
+to use a live cd to change it back to the original.
+
+What should i do ...?
+
+Regards
+Deepak
+
+-- 
+Code Code Code Away
