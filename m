@@ -1,14 +1,13 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Pending December (January) patches
-Date: Wed, 10 Jan 2007 11:17:20 -0800
-Message-ID: <20070110191720.GG3219@atomide.com>
-References: <459E6FE4.5030208@googlemail.com>
-	<20070109235912.GX7384@atomide.com> <45A51EC9.50007@googlemail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch 2.6.20-rc3-omap1] musb_hdrc workqueue build fix
+Date: Wed, 10 Jan 2007 17:17:17 -0800
+Message-ID: <200701101717.18559.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <45A51EC9.50007@googlemail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,66 +15,35 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Yet another workqueue-api-changed build fix.
 
-* Dirk Behme <dirk.behme@googlemail.com> [070110 09:14]:
-> Tony Lindgren wrote:
-> >These should be applied now, everybody please check your patches got
-> >applied OK.
-> 
-> Except the two patches which need update our pending patches 
-> list is now empty :) Thanks!
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 
-:)
+--- h4.orig/drivers/usb/musb/plat_uds.c	2007-01-10 14:19:43.000000000 -0800
++++ h4/drivers/usb/musb/plat_uds.c	2007-01-10 00:21:44.000000000 -0800
+@@ -1561,9 +1561,9 @@ static DEVICE_ATTR(cable, S_IRUGO, musb_
+ #endif
  
-> What do you think about preparing stuff for 2.6.21 upstream 
-> merge window now? 2.6.20-rc4 is there and it looks like this 
-> is a calmer release, maybe 2.6.20 is coming in time.
-
-Yes, I'll update that probably next week so we'll be ready well
-ahead.
+ /* Only used to provide cable state change events */
+-static void musb_irq_work(void *data)
++static void musb_irq_work(struct work_struct *data)
+ {
+-	struct musb *musb = (struct musb *)data;
++	struct musb *musb = container_of(data, struct musb, irq_work);
  
-> I think frist we should remove our old stuff from RMKs patch 
-> tracking system. It is still in incoming state [1]. Then 
-> send the updates so RMK can early comment on it. With some 
-> luck we hit the 2.6.21-rc1 window.
-
-I agree. If we have conflicting patches, it may cause some delays
-getting the big patch set applied. I just marked the previous core
-omap patches as superceded.
-
-Does anybody have bug fixes that should go to mainline before
-the big merge? If there aren't any urgent ones, I suggest we
-wait for 2.6.20 to make the big merge easier.
+ 	sysfs_notify(&musb->controller->kobj, NULL, "cable");
+ }
+@@ -1835,7 +1835,7 @@ fail:
+ 		return status;
+ 	}
  
-> Tony: Not sure about your current workload, maybe people can 
-> help?
->
-> All: Opinions?
-
-I've scheduled some time for this and the patch queue is now pretty
-easy to update. Also I've scripted out some parts :) So I think we're
-in good shape for sending out the core omap patches.
-
-Where people can help is picking an individual driver subsystem to
-clean up for sending it upstream.
-
-Imre will be sending out the framebuffer patches when he has a chance.
-But at least sound and v4l driver code should be cleaned up and
-sent upstream.
-
-Anybody interested in working on merging audio and/or v4l?
-
-Regards,
-
-Tony
+-	INIT_WORK(&pThis->irq_work, musb_irq_work, pThis);
++	INIT_WORK(&pThis->irq_work, musb_irq_work);
  
-
-> [1] 
-> http://www.arm.linux.org.uk/developer/patches/section.php?section=0
+ #ifdef CONFIG_SYSFS
+ 	status = device_create_file(dev, &dev_attr_mode);
