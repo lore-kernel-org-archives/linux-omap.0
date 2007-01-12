@@ -1,13 +1,12 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.20-rc3-omap1] musb_hdrc workqueue build fix
-Date: Thu, 11 Jan 2007 12:20:10 -0800
-Message-ID: <20070111202010.GC24713@atomide.com>
-References: <200701101717.18559.david-b@pacbell.net>
+From: "Raghunandan Dhongadi" <dk.raghu@gmail.com>
+Subject: Processing of command line mem=32M
+Date: Fri, 12 Jan 2007 16:37:27 +0530
+Message-ID: <7d8fdf6f0701120307gee02aa1j7ff80e5eac4eefe9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <200701101717.18559.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,39 +16,21 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
-Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [070110 17:18]:
-> Yet another workqueue-api-changed build fix.
-> 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> 
-> --- h4.orig/drivers/usb/musb/plat_uds.c	2007-01-10 14:19:43.000000000 -0800
-> +++ h4/drivers/usb/musb/plat_uds.c	2007-01-10 00:21:44.000000000 -0800
-> @@ -1561,9 +1561,9 @@ static DEVICE_ATTR(cable, S_IRUGO, musb_
->  #endif
->  
->  /* Only used to provide cable state change events */
-> -static void musb_irq_work(void *data)
-> +static void musb_irq_work(struct work_struct *data)
->  {
-> -	struct musb *musb = (struct musb *)data;
-> +	struct musb *musb = container_of(data, struct musb, irq_work);
->  
->  	sysfs_notify(&musb->controller->kobj, NULL, "cable");
->  }
-> @@ -1835,7 +1835,7 @@ fail:
->  		return status;
->  	}
->  
-> -	INIT_WORK(&pThis->irq_work, musb_irq_work, pThis);
-> +	INIT_WORK(&pThis->irq_work, musb_irq_work);
->  
->  #ifdef CONFIG_SYSFS
->  	status = device_create_file(dev, &dev_attr_mode);
+Hello All,
 
-Pushed.
+I have Linux kernel 2.6.14-7 for OMAP2430 SDP board. The SDP has 128MB
+of SDRAM memory. I want to share the 128MB into 64MB for ARM core and
+64MB for DSP core.
+I am giving the kernel command line parameter "mem=64M" but with this
+the boot process
+stops at "Uncompressing Kernel".
 
-Tony
+But if I give a minimum of "mem=113M" it boots fine. Wanted to know
+where does the processing of command line parameters happen and what
+could be the issue ?
+
+Warm Regards,
+Raghu
