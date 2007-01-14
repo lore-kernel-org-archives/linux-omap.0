@@ -1,7 +1,7 @@
 From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
-Subject: [PATCH] dsp: don't use registered_fb[1]
-Date: Sun, 14 Jan 2007 14:38:50 +0100
-Message-ID: <85ac0lg239.fsf@orfeo.duckcorp.org>
+Subject: [PATCH] omapfb: Add sanity check to omapfb_update_window_async
+Date: Sun, 14 Jan 2007 14:38:53 +0100
+Message-ID: <858xg5g236.fsf@orfeo.duckcorp.org>
 Mime-Version: 1.0
 Content-Type: multipart/mixed; boundary="=-=-="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
@@ -20,39 +20,42 @@ List-Id: linux-omap@vger.kernel.org
 --=-=-=
 
 
-According to dsp_fbexport(), the dsp code handles only the first
-registered framebuffer, so using registered_fb[1] in mbox_fbctl_upd is
-wrong. registered_fb[0] must be used instead. 
-This code has also the side effect to oops the kernel as
-registered_fb[1] is null and omapfb_update_window_async doesn't handle
-this case. The fix for omapfb_update_window_async is sent in an other
-mail.
-
+This patch makes sure that the fb_info pointer given to
+omapfb_update_window_async is not null.
 
 Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
 ---
 
 --=-=-=
 Content-Type: text/x-diff
-Content-Disposition: inline; filename=dsp_mem_registered_fb_fix.patch
+Content-Disposition: inline; filename=omapfb_update_window_async_check.patch
 
 ---
- arch/arm/plat-omap/dsp/dsp_mem.c |    2 	1 +	1 -	0 !
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/omap/omapfb_main.c |    9 	7 +	2 -	0 !
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-Index: linux-omap-2.6/arch/arm/plat-omap/dsp/dsp_mem.c
+Index: linux-omap-2.6/drivers/video/omap/omapfb_main.c
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/dsp/dsp_mem.c	2007-01-14 14:10:26.000000000 +0100
-+++ linux-omap-2.6/arch/arm/plat-omap/dsp/dsp_mem.c	2007-01-14 14:10:37.000000000 +0100
-@@ -2052,7 +2052,7 @@ void mbox_fbctl_upd(void)
- 		return;
- 	}
- 	//printk("calling omapfb_update_window_async()\n");
--	omapfb_update_window_async(registered_fb[1], &win, fbupd_cb, NULL);
-+	omapfb_update_window_async(registered_fb[0], &win, fbupd_cb, NULL);
- }
+--- linux-omap-2.6.orig/drivers/video/omap/omapfb_main.c	2007-01-14 14:10:26.000000000 +0100
++++ linux-omap-2.6/drivers/video/omap/omapfb_main.c	2007-01-14 14:10:29.000000000 +0100
+@@ -626,10 +626,15 @@ int omapfb_update_window_async(struct fb
+ 				void (*callback)(void *),
+ 				void *callback_data)
+ {
+-	struct omapfb_plane_struct *plane = fbi->par;
+-	struct omapfb_device *fbdev = plane->fbdev;
++	struct omapfb_plane_struct *plane;
++	struct omapfb_device *fbdev;
+ 	struct fb_var_screeninfo *var;
  
- #else /* CONFIG_FB_OMAP_LCDC_EXTERNAL */
++	if (!fbi)
++		return -EINVAL;
++
++	plane = fbi->par;
++	fbdev = plane->fbdev;
+ 	var = &fbi->var;
+ 
+ 	if (win->x >= var->xres || win->y >= var->yres)
 
 --=-=-=
 Content-Type: text/plain; charset="us-ascii"
