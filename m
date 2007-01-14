@@ -1,15 +1,10 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: Processing of command line mem=32M
-Date: Fri, 12 Jan 2007 12:38:43 -0600
-Message-ID: <EA12F909C0431D458B9D18A176BEE4A50956BDB1@dlee02.ent.ti.com>
-References: <ae36f8040701120820sbfbff61jeeaf10d73b387265@mail.gmail.com>
+From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
+Subject: [PATCH] dsp: don't use registered_fb[1]
+Date: Sun, 14 Jan 2007 14:38:50 +0100
+Message-ID: <85ac0lg239.fsf@orfeo.duckcorp.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="=-=-="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <ae36f8040701120820sbfbff61jeeaf10d73b387265@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,72 +14,51 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: =?iso-8859-1?Q?Lu=EDs_Vit=F3rio_Cargnini?= <lvcargnini@ieee.org>, Raghunandan Dhongadi <dk.raghu@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Yes, what you said is true but not his point.
+--=-=-=
 
-If he gives the command argument mem=3Dxyz the system does not boot.  =
-This is because of an off by one in a call to an mcr which generates a =
-fatal error.
 
-Regards,
-Richard W.
+According to dsp_fbexport(), the dsp code handles only the first
+registered framebuffer, so using registered_fb[1] in mbox_fbctl_upd is
+wrong. registered_fb[0] must be used instead. 
+This code has also the side effect to oops the kernel as
+registered_fb[1] is null and omapfb_update_window_async doesn't handle
+this case. The fix for omapfb_update_window_async is sent in an other
+mail.
 
-> It looks simple, allocate all memory normally to ARM during boot, in
-> execution time make an MMAP in DSPGateway in 64 Mb, and that is, a 64 =
-Mb
-> of
-> area to DSP, that could be accessed by ARM too.
->=20
-> On 1/12/07, Raghunandan Dhongadi <dk.raghu@gmail.com> wrote:
-> >
-> > Hello All,
-> >
-> > I have Linux kernel 2.6.14-7 for OMAP2430 SDP board. The SDP has =
-128MB
-> > of SDRAM memory. I want to share the 128MB into 64MB for ARM core =
-and
-> > 64MB for DSP core.
-> > I am giving the kernel command line parameter "mem=3D64M" but with =
-this
-> > the boot process
-> > stops at "Uncompressing Kernel".
-> >
-> > But if I give a minimum of "mem=3D113M" it boots fine. Wanted to =
-know
-> > where does the processing of command line parameters happen and what
-> > could be the issue ?
-> >
-> > Warm Regards,
-> > Raghu
-> > _______________________________________________
-> > Linux-omap-open-source mailing list
-> > Linux-omap-open-source@linux.omap.com
-> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> >
->=20
->=20
->=20
-> --
-> =
--------------------------------------------------------------------------=
--
-> ----
-> Thanks && Regards
-> Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
-> IEEE Member
-> Mastering Degree student @ PUC-RS
-> Electrical Engineer Faculty
-> Ipiranga Avenue, 6681 - Building 30
-> P.O. Box: 90619-900 - Porto Alegre/RS
-> Phone: +55 51 3320 3500  extension: 7696
-> =
--------------------------------------------------------------------------=
--
-> -------
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+
+Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
+---
+
+--=-=-=
+Content-Type: text/x-diff
+Content-Disposition: inline; filename=dsp_mem_registered_fb_fix.patch
+
+---
+ arch/arm/plat-omap/dsp/dsp_mem.c |    2 	1 +	1 -	0 !
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-omap-2.6/arch/arm/plat-omap/dsp/dsp_mem.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/dsp/dsp_mem.c	2007-01-14 14:10:26.000000000 +0100
++++ linux-omap-2.6/arch/arm/plat-omap/dsp/dsp_mem.c	2007-01-14 14:10:37.000000000 +0100
+@@ -2052,7 +2052,7 @@ void mbox_fbctl_upd(void)
+ 		return;
+ 	}
+ 	//printk("calling omapfb_update_window_async()\n");
+-	omapfb_update_window_async(registered_fb[1], &win, fbupd_cb, NULL);
++	omapfb_update_window_async(registered_fb[0], &win, fbupd_cb, NULL);
+ }
+ 
+ #else /* CONFIG_FB_OMAP_LCDC_EXTERNAL */
+
+--=-=-=
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--=-=-=--
