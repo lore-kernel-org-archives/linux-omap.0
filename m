@@ -1,13 +1,14 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
 Subject: Re: [Howto] 2430 kernel,uboot and filesystem
-Date: Mon, 15 Jan 2007 19:00:22 +0100
-Message-ID: <45ABC136.3060709@googlemail.com>
-References: <45A90A27.8030206@gmail.com>
+Date: Mon, 15 Jan 2007 20:09:33 +0100
+Message-ID: <45ABD16D.40108@googlemail.com>
+References: <B2EAB41A1AF603458C6A01E3CC809C4402E80E57@dbde01.ent.ti.com>	<8E8BB316C604E94AA019A54D0A5A82A21D43A1@dlee13.ent.ti.com>
+	<782515bb0701150804p76f9422bod20f80ae5611dd4f@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <45A90A27.8030206@gmail.com>
+In-Reply-To: <782515bb0701150804p76f9422bod20f80ae5611dd4f@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,25 +18,23 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Nishanth Menon <menon.nishanth@gmail.com>
-Cc: Linux OMAP List <linux-omap-open-source@linux.omap.com>
+To: nishanth menon <menon.nishanth@gmail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Nishanth Menon wrote:
-> Looking through some of the queries happening in the list, I had been
-> playing around trying to use as little of the pre-build files as
-> possible to do a 2430 boot up from scratch.
-> In the process of this, I decided to document all the steps I had done..
-> attached is a txt and pdf version of the same. I hope it will be useful
-> to someone who is starting off on the board for the first time.
+nishanth menon wrote:
+> Hi All,
 > 
-> Most of the document was written with a sleepy eye, so please let me
-> know if you find any bugs or ways to improve the document (the txt
-> version is a generated file so it will lack the images of the pdf...).
+> Looking at 
+> http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008838.html, 
+> 
+> I guess the zip file never made it.. Here is the uploaded pdf version:
+> http://www.geocities.com/crecmca98/Linux/omap2430_From_almost_scratch.pdf
 
-Can sleepy eye check if attachments are really there? Or are 
-my eyes too sleepy? ;)
+Thanks!
 
-Cheers
+Added the link to
+
+http://tree.celinuxforum.org/CelfPubWiki/OSK#head-014bcd654c60d5250fad2123b073b9c0ac3340f6
 
 Dirk
