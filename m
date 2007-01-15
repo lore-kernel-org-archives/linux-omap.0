@@ -1,10 +1,15 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: [Howto] 2430 kernel,uboot and filesystem
-Date: Sat, 13 Jan 2007 10:34:47 -0600
-Message-ID: <45A90A27.8030206@gmail.com>
+From: "Juergen Sievers" <JSievers@NADINE-Software.com>
+Subject: Help: OMAP5912 RS232 dies after kernel uncompressing.
+Date: Mon, 15 Jan 2007 16:22:26 +0100
+Message-ID: <000601c738b8$f7f0cd80$0700a8c0@NADHHLT01>
+References: <45A90A27.8030206@gmail.com>
+Reply-To: JSievers@NADINE-Software.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080002050404090502090200"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <45A90A27.8030206@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,33 +19,35 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux OMAP List <linux-omap-open-source@linux.omap.com>
+To: 'Linux OMAP List' <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080002050404090502090200
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 
-Hi All,
-Looking through some of the queries happening in the list, I had been
-playing around trying to use as little of the pre-build files as
-possible to do a 2430 boot up from scratch.
-In the process of this, I decided to document all the steps I had done..
-attached is a txt and pdf version of the same. I hope it will be useful
-to someone who is starting off on the board for the first time.
+Hello. 
 
-Most of the document was written with a sleepy eye, so please let me
-know if you find any bugs or ways to improve the document (the txt
-version is a generated file so it will lack the images of the pdf...).
-Regards,
-Nishanth Menon
+After I modified the environment by using setenv/saveenv I got the following
+problem.
 
---------------080002050404090502090200
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+The terminal connected to the OMAP5912 rs232 at 115200n8 is working as long
+as the kernel is uploaded and decompressing. The last message shown is
+".booting."
 
+After that message the rs232 line seems to be dead.
 
---------------080002050404090502090200--
+The kernel is mounting its root from nfs-server and is running normally
+except the console device could be used.
+
+I tried several kernels (2.6.16/2.6.19) including the pre-build kernel 2.4
+from the distribution CD All the same, the rs232 line dies after
+uncompressing the kernel.
+
+My bootags setting are:
+
+Bootargs = "mem=32 console=ttyS0,115200n8 ip=dhcp root=/dev/nfs rw
+nfsroot=192.168.0.50:/nfsroot"
+
+Has anybody an idea what I could do to get back my rs232 console ?
+
+Regards
+
+Juergen
