@@ -1,10 +1,13 @@
-From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
-Subject: [PATCH] omapfb: Add sanity check to omapfb_update_window_async
-Date: Sun, 14 Jan 2007 14:38:53 +0100
-Message-ID: <858xg5g236.fsf@orfeo.duckcorp.org>
+From: Pierre Ossman <drzeus-list@drzeus.cx>
+Subject: Re: [RFC][PATCH] Update MMC response types
+Date: Mon, 15 Jan 2007 06:35:51 +0100
+Message-ID: <45AB12B7.6020108@drzeus.cx>
+References: <4586B50A.9030700@indt.org.br>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-=-="
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <4586B50A.9030700@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,56 +15,34 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Cc: linux-omap-open-source@linux.omap.com, Ilias Biris <ilias.biris@indt.org.br>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
+Carlos Aguiar wrote:
+> Hi folks,
+>
+> This patch is a fix in order to update MMC response types. This modification
+> is needed to allow SD card support in OMAP platforms.
+>
+> It's based on previously work from Juha Yrjola.
+>
+> This modification was tested in H2 and H3 OMAP platforms using an
+> Transcend SD card 512MB.
+>
+>   
 
+Hmm... Actually, this patch isn't entirely needed as of the next release
+as R6 is being redefined to be identical to R1 (as it should really). So
+I'll make sure both make the cut for 2.6.20.
 
-This patch makes sure that the fb_info pointer given to
-omapfb_update_window_async is not null.
+Rgds
 
-Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
----
+-- 
+     -- Pierre Ossman
 
---=-=-=
-Content-Type: text/x-diff
-Content-Disposition: inline; filename=omapfb_update_window_async_check.patch
-
----
- drivers/video/omap/omapfb_main.c |    9 	7 +	2 -	0 !
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
-Index: linux-omap-2.6/drivers/video/omap/omapfb_main.c
-===================================================================
---- linux-omap-2.6.orig/drivers/video/omap/omapfb_main.c	2007-01-14 14:10:26.000000000 +0100
-+++ linux-omap-2.6/drivers/video/omap/omapfb_main.c	2007-01-14 14:10:29.000000000 +0100
-@@ -626,10 +626,15 @@ int omapfb_update_window_async(struct fb
- 				void (*callback)(void *),
- 				void *callback_data)
- {
--	struct omapfb_plane_struct *plane = fbi->par;
--	struct omapfb_device *fbdev = plane->fbdev;
-+	struct omapfb_plane_struct *plane;
-+	struct omapfb_device *fbdev;
- 	struct fb_var_screeninfo *var;
- 
-+	if (!fbi)
-+		return -EINVAL;
-+
-+	plane = fbi->par;
-+	fbdev = plane->fbdev;
- 	var = &fbi->var;
- 
- 	if (win->x >= var->xres || win->y >= var->yres)
-
---=-=-=
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---=-=-=--
+  Linux kernel, MMC maintainer        http://www.kernel.org
+  PulseAudio, core developer          http://pulseaudio.org
+  rdesktop, core developer          http://www.rdesktop.org
