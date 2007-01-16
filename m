@@ -1,15 +1,13 @@
 From: "Juergen Sievers" <JSievers@NADINE-Software.com>
-Subject: AW: AW: Help: OMAP5912 RS232 dies after kernel uncompressing.
-Date: Tue, 16 Jan 2007 13:01:51 +0100
-Message-ID: <000101c73966$1d1f33a0$0700a8c0@NADHHLT01>
-References: <45AC231B.5030507@gmail.com>
+Subject: Help: OMAP5912 RS232 dies after kernel uncompressing.
+Date: Tue, 16 Jan 2007 18:22:25 +0100
+Message-ID: <001501c73992$e6882900$0700a8c0@NADHHLT01>
 Reply-To: JSievers@NADINE-Software.com
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <45AC231B.5030507@gmail.com>
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,37 +15,33 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: 'Nishanth Menon' <menon.nishanth@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Nishanth.
+Oh, Oh! =20
 
-That is a good hint and I did this already but it was not the reason.
+=20
 
-Normal, before the ttyS0 was missing, the kernel's initializing messages
-were shown on the rs323 line. But now - nothing appears after the kernel
-code gets control.
+That is really embarrassing but I found my mistake.=20
 
-I will try to reset the whole environment block to create a new and well
-formatted environment. It seems to me something is wrong on these persistent
-environment settings. Possible I have typed in an invisible control
-character in one of these settings.
+=20
 
-Mfg.
-Juergen
+I have forgotten to append a =91M=92 to the =91mem=3Dxy=92 statement. So =
+my kernel was
+thinking there is only 32 byte of memory. =20
 
+Why it still was booting is a miracle too but with =91mem=3D32M=92 it =
+works proper
+again.
 
-> Opinion: check your /etc/inittab in the filesystem. maybe you have told
-> getty to hook on to the wrong terminal... some common issues is the
-> getty given wrong baud rate OR given tty0 while ttyS0 is being used
-> etc.. that is a nice place to check.. but do try this: give
-> "init=/bin/sh" along with ur boot options(given the rest of the
-> symptoms, this should work).. if u manage to boot off that.. u need to
-> look deep into ur boot sequence of filesystem -such as rc scripts etc if
-> you have any.
-> 
-> Regards,
-> Nishanth Menon
+=20
+
+Regards   0(=B0^=B0)0
+
+J.
+
+=20
+
+=20
