@@ -1,13 +1,11 @@
-From: "Boivin, Robin" <RBoivin@oerlikon.ca>
-Subject: RE: Reading gpio
-Date: Wed, 17 Jan 2007 09:00:46 -0500
-Message-ID: <B50FF75CBCFA2E4E8D23F26E18F52B10E7B2D9@mail.oerlikon.ca>
+From: Felipe Balbi <felipe.lima@indt.org.br>
+Subject: [PATCH] MUSB HDRC: RMMOD fixing
+Date: Wed, 17 Jan 2007 15:39:54 -0400
+Message-ID: <1169062794.14795.1.camel@balbi>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,53 +15,44 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hello guys,
 
-I had the same requirements but did'nt want to play in the Kernel space =
-to handle a single GPIO. The only solution I found is to use a program =
-that read/writes in the registers of the OMAP without having to write a =
-driver. So directly from the user space you can use the devmem2 =
-function. It is a simple program to read/write from/to any location in =
-memory. But be careful with that, you could get in trouble since other =
-threads from the Kernel could have concurrent accesses to your =
-ressources.
+musb_hdrc was failing when rmmoding,
 
-Just GOOGLE devmem2 and you'll find it.
-
-Robin
-
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com]On Behalf Of
-Arnold
-Sent: January 17, 2007 4:52 AM
-To: linux-omap-open-source@linux.omap.com
-Subject: Reading gpio
+this minimmun patch fixes the problem
 
 
-Hi,
 
-Is there anyone who knows how to read the gpio at the
-same time without using the omap_get_gpio_datain
-function? Using the omap_get_gpio_datain is taking so
-long especially when you read 4 gpio and it should be
-read with a time constraint. Is there anyone who can
-help? I am using an omap5912. Thank you very much.
+[PATCH] MUSB HDRC: RMMOD Fail-fixing
+	
+	musb_hdrc was failing when rmmoding. This little patch
+	fixes the problem.	
 
-Thanks,
-=20
+Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
+---
+
+Index: linux-omap-2.6/drivers/usb/musb/plat_uds.c
+===================================================================
+--- linux-omap-2.6.orig/drivers/usb/musb/plat_uds.c
++++ linux-omap-2.6/drivers/usb/musb/plat_uds.c
+@@ -1614,3 +1614,2 @@ static void musb_free(struct musb *musb)
+ 	musb_platform_exit(musb);
+-	musb_writeb(musb->pRegs, MGC_O_HDRC_DEVCTL, 0);
+ 
 
 
-=20
-_________________________________________________________________________=
-___________
-Do you Yahoo!?
-Everyone is raving about the all-new Yahoo! Mail beta.
-http://new.mail.yahoo.com
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+
+
+-- 
+Best Regards,
+
+Felipe Balbi
+felipe.lima@indt.org.br
+
+Nokia Institute of Technology - INdT
+Kernel Developers Team
+
++55 92 8127 0839
