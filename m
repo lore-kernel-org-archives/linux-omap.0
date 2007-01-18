@@ -1,15 +1,14 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: 2430SDP LCD initialization and logo display during U-Boot time
-Date: Thu, 18 Jan 2007 10:38:35 -0600
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C4710DB77@dlee13.ent.ti.com>
-References: <E8F32CF53D599A4F9F26D44E84E7B39D7388A6@dlee11.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: early printk
+Date: Thu, 18 Jan 2007 09:07:21 -0800
+Message-ID: <20070118170721.GB14425@atomide.com>
+References: <20070118101336.18C6B80778@linux.omap.com>
+	<0AB0CB5257FF3C43A27E201CC8AADA8602D085A0@dnce02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <E8F32CF53D599A4F9F26D44E84E7B39D7388A6@dlee11.ent.ti.com>
+Content-Disposition: inline
+In-Reply-To: <0AB0CB5257FF3C43A27E201CC8AADA8602D085A0@dnce02.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,39 +18,21 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Katorgi, Maher" <mkatorgi@ti.com>, linux-omap-open-source@linux.omap.com
+To: "Saint-Etienne, Eric" <e-saint-etienne@ti.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Saint-Etienne, Eric <e-saint-etienne@ti.com> [070118 03:00]:
+>   Hi,
+> 
+> I'm looking fwd to use an early printk for omap2 like it exists on other
+> architectures.
+> 
+> Did someone already released an early-printk patch?
 
-I think you are talking about Splash Screen. We don't have this support
-in 2430 u-boot.
+Do you mean something other than low level printk?
 
-The high level code does exists, we have to implement the OMAP DSS part,
-it's easy to implement though :)
+Low level printk should work, see CONFIG_DEBUG_LL and
+CONFIG_OMAP_LL_DEBUG_UART1 (or 2 or 3).
 
-Regards,
-Khasim
-
-> -----Original Message-----
-> From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-
-> open-source-bounces@linux.omap.com] On Behalf Of Katorgi, Maher
-> Sent: Thursday, January 18, 2007 9:54 AM
-> To: linux-omap-open-source@linux.omap.com
-> Subject: 2430SDP LCD initialization and logo display during U-Boot
-time
->=20
-> Folks,
->=20
-> Looking for code that initializes 2430SDP LCD and displays a bmp logo
-on
-> it during u-boot time.  Is anyone aware of such code and where can I
-> find?
->=20
-> Regards,
-> Maher
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+Tony
