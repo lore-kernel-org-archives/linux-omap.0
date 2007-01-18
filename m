@@ -1,12 +1,14 @@
-From: RobertChou <rbtchc@gmail.com>
-Subject: Help for omap2430sdp ALSA driver
-Date: Thu, 18 Jan 2007 15:46:00 +0800
-Message-ID: <dbf1574b0701172346n3a514c46hf4b94d0fef5722dd@mail.gmail.com>
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: RE: Help for omap2430sdp ALSA driver
+Date: Thu, 18 Jan 2007 02:03:58 -0600
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47080FBD@dlee13.ent.ti.com>
+References: <dbf1574b0701172346n3a514c46hf4b94d0fef5722dd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,19 +18,41 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: RobertChou <rbtchc@gmail.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
+
+Hi Robert,
+=20
+The 2.6.14 on TI's site doesn't support ALSA Audio. However it does =
+support OSS based Audio framework for TWL4030 (audio codec).
+=20
+There is no TSC2101 on 2430SDP.
+=20
+Regards,
+Khasim
+=20
+________________________________
+
+From: linux-omap-open-source-bounces@linux.omap.com on behalf of =
+RobertChou
+Sent: Thu 1/18/2007 1:46 AM
+To: linux-omap-open-source@linux.omap.com
+Subject: Help for omap2430sdp ALSA driver
+
+
 
 Hi:
 
-   I'm recently working on some audio applications on linux-2.6.14-omap2430sdp
+   I'm recently working on some audio applications on =
+linux-2.6.14-omap2430sdp
 downloaded from TI's webiste. And when I'm trying to config kernel with
 
  <*> Advanced Linux Sound Architecture
      ALSA ARM devices  --->
          <*> SOUND OMAP24XX_tsc2101 driver (24XX)
 
- the kernel compile will failed due to lack of "arm/arch/eac.h" header file.
+ the kernel compile will failed due to lack of "arm/arch/eac.h" header =
+file.
 Does anybody ever successfully build kernel w/ this driver?
 
 Also, I'm wondering that according to the spec., OMAP2430-SDP uses
@@ -45,12 +69,14 @@ Robert 2007.1.18
 
 
 Following is my kernel compile log...
---------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------=
+-------------------
   CC      sound/sound_core.o
   CC      sound/sound_firmware.o
   LD      sound/soundcore.o
   CC      sound/arm/omap-tsc2101.o
-sound/arm/omap-tsc2101.c:28:26: asm/arch/eac.h: No such file or directory
+sound/arm/omap-tsc2101.c:28:26: asm/arch/eac.h: No such file or =
+directory
 sound/arm/omap-tsc2101.c: In function `eac_init':
 sound/arm/omap-tsc2101.c:132: error: `OMAP24XX_EAC_SYSCONFIG'
 undeclared (first use in this function)
@@ -97,8 +123,14 @@ sound/arm/omap-tsc2101.c:560: warning: statement with no effect
 sound/arm/omap-tsc2101.c: At top level:
 sound/arm/omap-tsc2101.c:57: warning: 'ret' defined but not used
 sound/arm/omap-tsc2101.c:115: warning: 'McBSP_ops' defined but not used
-sound/arm/omap-tsc2101.c:161: warning: 'audio_dma_callback' defined but not used
-sound/arm/omap-tsc2101.c:817: warning: 'omap_sound_device' defined but not used
+sound/arm/omap-tsc2101.c:161: warning: 'audio_dma_callback' defined but =
+not used
+sound/arm/omap-tsc2101.c:817: warning: 'omap_sound_device' defined but =
+not used
 make[2]: *** [sound/arm/omap-tsc2101.o] Error 1
 make[1]: *** [sound/arm] Error 2
 make: *** [sound] Error 2
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
