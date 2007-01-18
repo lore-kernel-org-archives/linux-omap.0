@@ -1,13 +1,12 @@
-From: "Kim, Eun-Jung" <ejkim@ti.com>
-Subject: RE: feedback for kernel 2.6.14 boot failure on OMAP2430 SDP
-Date: Thu, 18 Jan 2007 12:42:55 +0800
-Message-ID: <3FBEC599FC2F564D90877669C608C5B602B36418@dqhe01.ent.ti.com>
-References: <9C23CDD79DA20A479D4615857B2E2C47080FB7@dlee13.ent.ti.com>
+From: RobertChou <rbtchc@gmail.com>
+Subject: Help for omap2430sdp ALSA driver
+Date: Thu, 18 Jan 2007 15:46:00 +0800
+Message-ID: <dbf1574b0701172346n3a514c46hf4b94d0fef5722dd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C73ABB.22C8E996"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47080FB7@dlee13.ent.ti.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,86 +16,89 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Syed Mohammed, Khasim" <x0khasim@ti.com>, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hi:
 
-------_=_NextPart_001_01C73ABB.22C8E996
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+   I'm recently working on some audio applications on linux-2.6.14-omap2430sdp
+downloaded from TI's webiste. And when I'm trying to config kernel with
 
-fyi.
+ <*> Advanced Linux Sound Architecture
+     ALSA ARM devices  --->
+         <*> SOUND OMAP24XX_tsc2101 driver (24XX)
 
-=20
+ the kernel compile will failed due to lack of "arm/arch/eac.h" header file.
+Does anybody ever successfully build kernel w/ this driver?
 
-Texas Instruments Korea, WTBU,
+Also, I'm wondering that according to the spec., OMAP2430-SDP uses
+TWL4030 chip as audio device. Is it possible to run SOUND
+OMAP24XX_tsc2101 driver to
+drive TWL4030?? (the comment in the $SRC_DIR/sound/arm/Makefile says
+it is the OMAP 2430SDP sound...)
 
-ejkim@ti.com <mailto:ejkim@ti.com> , +82-2-551-2814
+If not... is there any available TWL4030 ALSA driver for us to download?
 
-________________________________
+Thx a lot...
 
-From: Syed Mohammed, Khasim=20
-Sent: Thursday, January 18, 2007 1:40 PM
-To: Kim, Eun-Jung; linux-omap-open-source@linux.omap.com
-Subject: RE: feedback for kernel 2.6.14 boot failure on OMAP2430 SDP
-
-=20
-
-Hi EJ,
-
-=20
-
-The attachment is missing. Can you forward it directly?
-
-=20
-
-The combination u-boot "september version" and 2.6.14 kernel should work
-directly for 2430SDP. Anyway I will review your patch and take the
-necessary changes in next release.
-
-=20
-
-Thanks & Regards,
-
-Khasim
-
-________________________________
-
-From: linux-omap-open-source-bounces+x0khasim=3Dti.com@linux.omap.com on
-behalf of Kim, Eun-Jung
-Sent: Wed 1/17/2007 8:36 PM
-To: linux-omap-open-source@linux.omap.com
-Subject: feedback for kernel 2.6.14 boot failure on OMAP2430 SDP
-
-Hi.
-
-This is EJ, a FAE of TIK. While my customer is working on Linux kernel
-2.6.10 and 2.6.14, they found that 2.6.14 is not booting well on
-OMAP2430 SDP. They modified "mux.h" to make it work and gave me a
-feedback to enhance the BSP. We hope you review it apply to next release
-if it is right. Hope it is helpful to you.
-
-Regards,
-
-EJ.
+Robert 2007.1.18
 
 
-
-Texas Instruments Korea, WTBU,
-
-ejkim@ti.com <mailto:ejkim@ti.com> , +82-2-551-2814
-
-
-
-
-
-------_=_NextPart_001_01C73ABB.22C8E996
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
-------_=_NextPart_001_01C73ABB.22C8E996--
+Following is my kernel compile log...
+--------------------------------------------------------------------------------------------
+  CC      sound/sound_core.o
+  CC      sound/sound_firmware.o
+  LD      sound/soundcore.o
+  CC      sound/arm/omap-tsc2101.o
+sound/arm/omap-tsc2101.c:28:26: asm/arch/eac.h: No such file or directory
+sound/arm/omap-tsc2101.c: In function `eac_init':
+sound/arm/omap-tsc2101.c:132: error: `OMAP24XX_EAC_SYSCONFIG'
+undeclared (first use in this function)
+sound/arm/omap-tsc2101.c:132: error: (Each undeclared identifier is
+reported only once
+sound/arm/omap-tsc2101.c:132: error: for each function it appears in.)
+sound/arm/omap-tsc2101.c:137: error: `OMAP24XX_EAC_AGCTR' undeclared
+(first use in this function)
+sound/arm/omap-tsc2101.c:138: warning: implicit declaration of
+function `eac_configure'
+sound/arm/omap-tsc2101.c: In function `eac_shutdown':
+sound/arm/omap-tsc2101.c:155: error: `OMAP24XX_EAC_AGCTR' undeclared
+(first use in this function)
+sound/arm/omap-tsc2101.c: At top level:
+sound/arm/omap-tsc2101.c:403: warning: static declaration of
+'eac_configure' follows non-static declaration
+sound/arm/omap-tsc2101.c:138: warning: previous implicit declaration
+of 'eac_configure' was here
+sound/arm/omap-tsc2101.c: In function `eac_configure':
+sound/arm/omap-tsc2101.c:439: error: `OMAP24XX_EAC_CPTCTL' undeclared
+(first use in this function)
+sound/arm/omap-tsc2101.c:442: error: `OMAP24XX_EAC_AMSCFR' undeclared
+(first use in this function)
+sound/arm/omap-tsc2101.c: In function `eac_samplerate':
+sound/arm/omap-tsc2101.c:541: error: `OMAP24XX_EAC_AGCFR' undeclared
+(first use in this function)
+sound/arm/omap-tsc2101.c:560: error: `OMAP24XX_EAC_AGCFR3' undeclared
+(first use in this function)
+sound/arm/omap-tsc2101.c: At top level:
+sound/arm/omap-tsc2101.c:577: warning: initialization from
+incompatible pointer type
+sound/arm/omap-tsc2101.c:830: warning: initialization from
+incompatible pointer type
+sound/arm/omap-tsc2101.c:831: warning: initialization from
+incompatible pointer type
+sound/arm/omap-tsc2101.c: In function `eac_init':
+sound/arm/omap-tsc2101.c:132: warning: statement with no effect
+sound/arm/omap-tsc2101.c:137: warning: statement with no effect
+sound/arm/omap-tsc2101.c: In function `eac_shutdown':
+sound/arm/omap-tsc2101.c:155: warning: statement with no effect
+sound/arm/omap-tsc2101.c: In function `eac_samplerate':
+sound/arm/omap-tsc2101.c:541: warning: statement with no effect
+sound/arm/omap-tsc2101.c:560: warning: statement with no effect
+sound/arm/omap-tsc2101.c: At top level:
+sound/arm/omap-tsc2101.c:57: warning: 'ret' defined but not used
+sound/arm/omap-tsc2101.c:115: warning: 'McBSP_ops' defined but not used
+sound/arm/omap-tsc2101.c:161: warning: 'audio_dma_callback' defined but not used
+sound/arm/omap-tsc2101.c:817: warning: 'omap_sound_device' defined but not used
+make[2]: *** [sound/arm/omap-tsc2101.o] Error 1
+make[1]: *** [sound/arm] Error 2
+make: *** [sound] Error 2
