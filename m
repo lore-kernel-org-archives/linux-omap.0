@@ -1,15 +1,10 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] MUSB HDRC: RMMOD fixing
-Date: Thu, 18 Jan 2007 11:39:23 -0800
-Message-ID: <20070118193923.GI14425@atomide.com>
-References: <1169062794.14795.1.camel@balbi>
-	<200701171157.26218.david-b@pacbell.net>
-	<1169065683.14795.12.camel@balbi>
+From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
+Subject: SPI related oops
+Date: Thu, 18 Jan 2007 20:44:58 +0100
+Message-ID: <85mz4gdsqt.fsf@orfeo.duckcorp.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <1169065683.14795.12.camel@balbi>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,18 +14,23 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Felipe Balbi <felipe.lima@indt.org.br>
-Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Felipe Balbi <felipe.lima@indt.org.br> [070117 12:28]:
-> 
-> 	musb_writeb(musb->pRegs, MGC_O_HDRC_DEVCTL, 0);
-> 	musb_platform_exit(musb);
-> 	musb_writeb(musb->pRegs, MGC_O_HDRC_DEVCTL, 0);
+Hi,
 
-Basically musb_platform_exit() powers off the device so
-the musb_writeb() most likely fails unless the device
-happens to stay on a little while after.
+Since some time ago I was seeing a reboot as long as my n770 was
+booting recent kernels from the omap git. Now, I found out that the
+crash is due to a oops as soon as udev plays with the uevent file of the
+spi master. 
+After some debugging, I found that the following commit is the culprit : 
+http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=3bd0f6943520e459659d10f3282285e43d3990f1
 
-Tony
+Reverting it allows my kernel to boot but I think it's not a real
+fix. Has someone seen a similar issue and has a fix for it ?
+
+[ Also, I'm wondering why the spi_busnum_to_master() function exists
+because grepping the current omap git tree gives 0 user... ]
+
+Regards,
+Arnaud
