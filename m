@@ -1,7 +1,7 @@
 From: Nishanth Menon <menon.nishanth@gmail.com>
 Subject: Re: 2430 linux does not boot in nand
-Date: Thu, 18 Jan 2007 21:29:09 -0600
-Message-ID: <45B03B05.5000202@gmail.com>
+Date: Thu, 18 Jan 2007 21:29:45 -0600
+Message-ID: <45B03B29.2000702@gmail.com>
 References: <8bf247760701180640g1886b5edu4cadbeb2a4a2f7c2@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
