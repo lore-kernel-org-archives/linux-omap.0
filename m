@@ -1,9 +1,9 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP2: Fix warning in pm.c
-Date: Sat, 20 Jan 2007 08:04:59 +0100
-Message-ID: <45B1BF1B.8080800@googlemail.com>
+Subject: [PATCH] ARM: OMAP: Fix warnings in musb_procfs.c
+Date: Sat, 20 Jan 2007 08:10:10 +0100
+Message-ID: <45B1C052.4020809@googlemail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070106030004050402080907"
+Content-Type: multipart/mixed; boundary="------------030409080504020808000206"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,50 +18,64 @@ To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------070106030004050402080907
+--------------030409080504020808000206
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
 
-ARM: OMAP2: Fix warning in pm.c:
+ARM: OMAP: Fix warnings in musb_procfs.c:
 
-arch/arm/mach-omap2/pm.c: In function 'omap2_pm_init':
-arch/arm/mach-omap2/pm.c:854: warning: ignoring return value
-of 'subsys_create_file', declared with attribute
+drivers/usb/musb/musb_procfs.c: In function 'musb_proc_write':
+drivers/usb/musb/musb_procfs.c:651: warning: ignoring return
+value of 'copy_from_user', declared with attribute
+warn_unused_result
+drivers/usb/musb/musb_procfs.c:725: warning: ignoring return
+value of 'copy_from_user', declared with attribute
 warn_unused_result
 
 Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
 
 
---------------070106030004050402080907
+--------------030409080504020808000206
 Content-Type: text/plain;
- name="omap2_pm_warning_fix"
+ name="musb_procfs_warning_fix"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="omap2_pm_warning_fix"
+ filename="musb_procfs_warning_fix"
 
-Index: linux-osk/arch/arm/mach-omap2/pm.c
+Index: linux-osk/drivers/usb/musb/musb_procfs.c
 ===================================================================
---- linux-osk.orig/arch/arm/mach-omap2/pm.c
-+++ linux-osk/arch/arm/mach-omap2/pm.c
-@@ -851,7 +851,9 @@ int __init omap2_pm_init(void)
- 	pm_set_ops(&omap_pm_ops);
- 	pm_idle = omap2_pm_idle;
+--- linux-osk.orig/drivers/usb/musb/musb_procfs.c
++++ linux-osk/drivers/usb/musb/musb_procfs.c
+@@ -648,7 +648,8 @@ static int musb_proc_write(struct file *
  
--	subsys_create_file(&power_subsys, &sleep_while_idle_attr);
-+	l = subsys_create_file(&power_subsys, &sleep_while_idle_attr);
-+	if (l)
-+		printk(KERN_ERR "subsys_create_file failed: %d\n", l);
+ 	/* MOD_INC_USE_COUNT; */
  
- 	return 0;
- }
+-	copy_from_user(&cmd, buffer, 1);
++	if(unlikely(copy_from_user(&cmd, buffer, 1)))
++		return -EFAULT;
+ 	switch (cmd) {
+ 	case 'C':
+ 		if (pBase) {
+@@ -722,7 +723,10 @@ static int musb_proc_write(struct file *
+ 				int i = 0, level = 0, sign = 1;
+ 				int len = min(count - 1, (unsigned long)8);
+ 
+-				copy_from_user(&digits, &buffer[1], len);
++				if(unlikely(copy_from_user(&digits,
++							   &buffer[1],
++							   len)))
++					return -EFAULT;
+ 
+ 				/* optional sign */
+ 				if (*p == '-') {
 
 
---------------070106030004050402080907
+--------------030409080504020808000206
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------070106030004050402080907--
+--------------030409080504020808000206--
