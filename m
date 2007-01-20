@@ -1,10 +1,14 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP: Fix warnings in musb_procfs.c
-Date: Sat, 20 Jan 2007 08:10:10 +0100
-Message-ID: <45B1C052.4020809@googlemail.com>
+From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
+Subject: Re: SPI related oops
+Date: Sat, 20 Jan 2007 14:09:09 +0100
+Message-ID: <85ps99alqi.fsf@orfeo.duckcorp.org>
+References: <85mz4gdsqt.fsf@orfeo.duckcorp.org>
+	<200701191543.05564.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030409080504020808000206"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <200701191543.05564.david-b@pacbell.net> (David Brownell's
+	message of "Fri, 19 Jan 2007 15:43:04 -0800")
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,68 +18,39 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030409080504020808000206
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+David Brownell <david-b@pacbell.net> writes:
 
+> On Thursday 18 January 2007 11:44 am, Arnaud Patard wrote:
+>> Hi,
+>> 
+>> Since some time ago I was seeing a reboot as long as my n770 was
+>> booting recent kernels from the omap git. Now, I found out that the
+>> crash is due to a oops as soon as udev plays with the uevent file of the
+>> spi master. 
+>> After some debugging, I found that the following commit is the culprit : 
+>> http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=3bd0f6943520e459659d10f3282285e43d3990f1
+>> 
+>> Reverting it allows my kernel to boot but I think it's not a real
+>> fix. Has someone seen a similar issue and has a fix for it ?
+>
+> Yeah, that patch shouldn't have been merged.  Someone posted a
+> working patch on LKML not long ago, but I'd prefer a simpler fix.
 
-ARM: OMAP: Fix warnings in musb_procfs.c:
+Ok. Happy to see that it's not a local issue.
 
-drivers/usb/musb/musb_procfs.c: In function 'musb_proc_write':
-drivers/usb/musb/musb_procfs.c:651: warning: ignoring return
-value of 'copy_from_user', declared with attribute
-warn_unused_result
-drivers/usb/musb/musb_procfs.c:725: warning: ignoring return
-value of 'copy_from_user', declared with attribute
-warn_unused_result
+>
+>  
+>> [ Also, I'm wondering why the spi_busnum_to_master() function exists
+>> because grepping the current omap git tree gives 0 user... ]
+>
+> It exists to support non-integrated SPI adapters.  Consider a PCI
+> plug-in card with a couple SPI interfaces, or one accessed through
+> a USB link to a microcontroller.
 
-Signed-off-by: Dirk Behme <dirk.behme_at_gmail.com>
+Thanks for the explanation
 
-
---------------030409080504020808000206
-Content-Type: text/plain;
- name="musb_procfs_warning_fix"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="musb_procfs_warning_fix"
-
-Index: linux-osk/drivers/usb/musb/musb_procfs.c
-===================================================================
---- linux-osk.orig/drivers/usb/musb/musb_procfs.c
-+++ linux-osk/drivers/usb/musb/musb_procfs.c
-@@ -648,7 +648,8 @@ static int musb_proc_write(struct file *
- 
- 	/* MOD_INC_USE_COUNT; */
- 
--	copy_from_user(&cmd, buffer, 1);
-+	if(unlikely(copy_from_user(&cmd, buffer, 1)))
-+		return -EFAULT;
- 	switch (cmd) {
- 	case 'C':
- 		if (pBase) {
-@@ -722,7 +723,10 @@ static int musb_proc_write(struct file *
- 				int i = 0, level = 0, sign = 1;
- 				int len = min(count - 1, (unsigned long)8);
- 
--				copy_from_user(&digits, &buffer[1], len);
-+				if(unlikely(copy_from_user(&digits,
-+							   &buffer[1],
-+							   len)))
-+					return -EFAULT;
- 
- 				/* optional sign */
- 				if (*p == '-') {
-
-
---------------030409080504020808000206
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---------------030409080504020808000206--
+Arnaud
