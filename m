@@ -1,13 +1,11 @@
-From: Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Basic N800 support
-Date: Mon, 22 Jan 2007 07:55:04 +0000 (GMT)
-Message-ID: <13020905.97851169452503947.JavaMail.weblogic@ep_ml23>
-Reply-To: kyungmin.park@samsung.com
+From: "rajeev  s" <rajeev2174@rediffmail.com>
+Subject: Accessing DSP MMU on OMAP SDP2430
+Date: 22 Jan 2007 09:55:04 -0000
+Message-ID: <20070122095504.11749.qmail@webmail25.rediffmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1624520805=="
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-return: prohibited
-MIME-version: 1.0
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,38 +15,9 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
+To: linux_omap_open_source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============1624520805==
-Content-return: prohibited
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: base64
+Hi All,I have an sdp2430 board (OMAP2430 based).I want to access the DSP MMU registers from the ARM side .The Address base of this DSP MMU Register is on the Address range 0x5d000000. To access these registers from ARM to setup the MMU Translation i added the following code in the file:include/asm/arch-omap/io.h (Linux source is 2.6-19):#define IO_VIRT_DSP_L2_RAM&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0xED000000&nbsp; /* va of&nbsp;DSP MMU&nbsp;*/I arrived at this address using the following logic :0x5d000000&nbsp;+ 0x90000000 = 0xED000000.When i access the DSP MMU address registers from the Virtual Address base 0xED000000&nbsp;, i get an kernel crash.Also i have created an entry for this address in the io.c file as well.Could anybody let me know am i following the correct procedure.ThanksRajeev
 
-SGkgVG9ueSwNCg0KVGhhbmsgeW91IGZvciByZWxlYXNpbmcgTjgwMCBzb3VyY2UgY29kZS4NCkl0
-J3MgdmVyeSBoZWxwZnVsIGZvciBPTUFQMiBib2FyZCwgc3VjaCBhcyBBcG9sbG9uLg0KDQpJIGNo
-ZWNrZWQgYW5kIGRvd25sb2FkZWQgdGhlIHNvdXJjZSBjb2RlIGluIG1hZW1vLg0KSSdsbCBjaGVj
-ayB0aGUgT01BUDIgY29yZSBzdHVmZiBhbmQgT25lTkFORCBpbiBhcG9sbG9uIGJvYXJkLg0KDQpU
-aGFuayB5b3UsDQpLeXVuZ21pbiBQYXJrDQoNClAuUy4sIElzIGl0IHBvc3NpYmxlIHRvIGNoYW5n
-ZSAnb21hcDIuYycgaW4gZHJpdmVycy9tdGQvb25lbmFuZCB0byAnbjgwMC5jJyBvciBhbm90aGVy
-PyBJdCdzIG5vdCBnZW5lcmljIGZvciBPTUFQMi4gOikNCg0KDQotLS0tLS0tIE9yaWdpbmFsIE1l
-c3NhZ2UgLS0tLS0tLQ0KU2VuZGVyIDogVG9ueSBMaW5kZ3Jlbjx0b255QGF0b21pZGUuY29tPiAN
-CkRhdGUgICA6IEphbiAyMCwgMjAwNyAwNTo1Nw0KVGl0bGUgIDogW1BBVENIXSBCYXNpYyBOODAw
-IHN1cHBvcnQNCg0KSGksDQoNCkhlcmUncyBhIHF1aWNrIHBhdGNoIG9mIE44MDAgc3VwcG9ydCBh
-Z2FpbnN0IHRoZSBjdXJyZW50IGdpdCB0cmVlIGZvcg0KcGVvcGxlIHRvIHBsYXkgd2l0aCB1bnRp
-bCB3ZSBnZXQgTjgwMCBzdXBwb3J0IG1lcmdlZCBpbi4gSXQganVzdA0KY29udGFpbnMgdGhlIGJv
-YXJkIHN1cHBvcnQgYW5kIGJhc2ljIE5BTkQgY2hhbmdlcyB0byBnZXQgcm9vdCBtb3VudGVkLA0K
-c28gbW9zdCBkcml2ZXIgY2hhbmdlcyBhcmUgbm90IGluY2x1ZGVkLiANCg0KUmVnYXJkcywNCg0K
-VG9ueQ0KDQo=
-
-
-
---===============1624520805==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============1624520805==--
+raj
