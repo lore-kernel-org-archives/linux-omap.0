@@ -1,118 +1,54 @@
-From: "sandeep prabhu" <sandeep.mitian@gmail.com>
-Subject: Re: u-boot delay on OMAP2430 SDP
-Date: Mon, 22 Jan 2007 09:38:30 +0530
-Message-ID: <c04186510701212008h44a4180cy3738ffea9dc508ff@mail.gmail.com>
-References: <c04186510701210607w769944apb47cb0c576cb2431@mail.gmail.com>
+From: Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Basic N800 support
+Date: Mon, 22 Jan 2007 07:55:04 +0000 (GMT)
+Message-ID: <13020905.97851169452503947.JavaMail.weblogic@ep_ml23>
+Reply-To: kyungmin.park@samsung.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1659491310=="
-Return-path: <u-boot-users-bounces@lists.sourceforge.net>
-In-Reply-To: <c04186510701210607w769944apb47cb0c576cb2431@mail.gmail.com>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/u-boot-users>,
-	<mailto:u-boot-users-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=u-boot-users>
-List-Post: <mailto:u-boot-users@lists.sourceforge.net>
-List-Help: <mailto:u-boot-users-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/u-boot-users>,
-	<mailto:u-boot-users-request@lists.sourceforge.net?subject=subscribe>
-Sender: u-boot-users-bounces@lists.sourceforge.net
-Errors-To: u-boot-users-bounces@lists.sourceforge.net
-To: Linux-omap-open-source@linux.omap.com, u-boot-users@lists.sourceforge.net
+Content-Type: multipart/mixed; boundary="===============1624520805=="
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-return: prohibited
+MIME-version: 1.0
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============1659491310==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_202215_12267939.1169438910569"
+--===============1624520805==
+Content-return: prohibited
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: base64
 
-------=_Part_202215_12267939.1169438910569
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hi,
-
-I have removed udelay() in file board/omap2430sdp/sys_info.c and replaced it
-by sdelay() function which doesn't make use of timer. Now with this,
-OMAP2430 SDP is booting fine,
-
-Thanks Richard,
-sandeep
-
-
-On 1/21/07, sandeep prabhu <sandeep.mitian@gmail.com> wrote:
->
->
-> Hi,
->
-> I am using the "u-boot_16.3.tar.gz" ( u-boot version 1.1.4 ) sources
-> downloaded from the " linux.omap.com" site, for booting the OMAP2430 SDP board
-> from NOR flash. I built the sources for booting from NOR flash and burn it
-> using the CSST tool onto the OMAP2430 SDP board. It takes around 2 to 4
-> minutes for u-boot command prompt. I am also not able to boot the linux
-> kernel with this version.
->
-> I have tried to track exactly where is it getting delayed, as it hangs for
-> 2-3 minutes in  function "dram_init"  in file
-> "board/omap2430sdp/omap2430sdp.c". But it doesnt hang at the same code
-> everytime I test, the problem is not consistent.
-> I have tried with Icache both enabling and disabling, but it did not make
-> any difference.
->
-> Could anyone give some pointers about what could be the issue ?
->
-> Thanks in advance,
->
-> --
-> Warm Regards,
-> Sandeep
+SGkgVG9ueSwNCg0KVGhhbmsgeW91IGZvciByZWxlYXNpbmcgTjgwMCBzb3VyY2UgY29kZS4NCkl0
+J3MgdmVyeSBoZWxwZnVsIGZvciBPTUFQMiBib2FyZCwgc3VjaCBhcyBBcG9sbG9uLg0KDQpJIGNo
+ZWNrZWQgYW5kIGRvd25sb2FkZWQgdGhlIHNvdXJjZSBjb2RlIGluIG1hZW1vLg0KSSdsbCBjaGVj
+ayB0aGUgT01BUDIgY29yZSBzdHVmZiBhbmQgT25lTkFORCBpbiBhcG9sbG9uIGJvYXJkLg0KDQpU
+aGFuayB5b3UsDQpLeXVuZ21pbiBQYXJrDQoNClAuUy4sIElzIGl0IHBvc3NpYmxlIHRvIGNoYW5n
+ZSAnb21hcDIuYycgaW4gZHJpdmVycy9tdGQvb25lbmFuZCB0byAnbjgwMC5jJyBvciBhbm90aGVy
+PyBJdCdzIG5vdCBnZW5lcmljIGZvciBPTUFQMi4gOikNCg0KDQotLS0tLS0tIE9yaWdpbmFsIE1l
+c3NhZ2UgLS0tLS0tLQ0KU2VuZGVyIDogVG9ueSBMaW5kZ3Jlbjx0b255QGF0b21pZGUuY29tPiAN
+CkRhdGUgICA6IEphbiAyMCwgMjAwNyAwNTo1Nw0KVGl0bGUgIDogW1BBVENIXSBCYXNpYyBOODAw
+IHN1cHBvcnQNCg0KSGksDQoNCkhlcmUncyBhIHF1aWNrIHBhdGNoIG9mIE44MDAgc3VwcG9ydCBh
+Z2FpbnN0IHRoZSBjdXJyZW50IGdpdCB0cmVlIGZvcg0KcGVvcGxlIHRvIHBsYXkgd2l0aCB1bnRp
+bCB3ZSBnZXQgTjgwMCBzdXBwb3J0IG1lcmdlZCBpbi4gSXQganVzdA0KY29udGFpbnMgdGhlIGJv
+YXJkIHN1cHBvcnQgYW5kIGJhc2ljIE5BTkQgY2hhbmdlcyB0byBnZXQgcm9vdCBtb3VudGVkLA0K
+c28gbW9zdCBkcml2ZXIgY2hhbmdlcyBhcmUgbm90IGluY2x1ZGVkLiANCg0KUmVnYXJkcywNCg0K
+VG9ueQ0KDQo=
 
 
 
-
--- 
-Warm Regards,
-Sandeep
-
-------=_Part_202215_12267939.1169438910569
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hi,<br><br>I have removed udelay() in file <span style="font-weight: bold;">board/omap2430sdp/sys_info.c</span> and replaced it by sdelay() function which doesn&#39;t make use of timer. Now with this, OMAP2430 SDP is booting fine,
-<br><br>Thanks Richard,<br>sandeep<br><br><br><div><span class="gmail_quote">On 1/21/07, <b class="gmail_sendername">sandeep prabhu</b> &lt;<a href="mailto:sandeep.mitian@gmail.com">sandeep.mitian@gmail.com</a>&gt; wrote:
-</span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><br clear="all">Hi,<br><br>I am using the &quot;<span style="font-weight: bold;">u-boot_16.3.tar.gz
-</span>&quot; ( u-boot version 1.1.4 ) sources downloaded from the &quot;<span style="font-weight: bold;"><a href="http://linux.omap.com" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">
-linux.omap.com</a></span>&quot; site, for booting the <span style="font-weight: bold;">OMAP2430 SDP </span>board from NOR flash. I built the sources for booting from NOR flash and burn it using the CSST tool onto the  <span style="font-weight: bold;">
-
-OMAP2430 SDP </span>board. It takes around 2 to 4 minutes for u-boot command prompt. I am also not able to boot the linux kernel with this version.<br><br>I have tried to track exactly where is it getting delayed, as it hangs for 2-3 minutes in&nbsp; function &quot;dram_init&quot;&nbsp;  in file &quot;board/omap2430sdp/omap2430sdp.c&quot;. But it doesnt hang at the same code everytime I test, the problem is not consistent.
-<br>I have tried with Icache both enabling and disabling, but it did not make any difference.<br><br>Could anyone give some pointers about what could be the issue ?<br><br>Thanks in advance,<br><br>-- <br>Warm Regards,<br>
-<span class="sg">
-Sandeep
-
-</span></blockquote></div><br><br clear="all"><br>-- <br>Warm Regards,<br>Sandeep
-
-------=_Part_202215_12267939.1169438910569--
-
-
---===============1659491310==
+--===============1624520805==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
--------------------------------------------------------------------------
-Take Surveys. Earn Cash. Influence the Future of IT
-Join SourceForge.net's Techsay panel and you'll get the chance to share your
-opinions on IT & business topics through brief surveys - and earn cash
-http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
---===============1659491310==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-_______________________________________________
-U-Boot-Users mailing list
-U-Boot-Users@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/u-boot-users
-
---===============1659491310==--
+--===============1624520805==--
