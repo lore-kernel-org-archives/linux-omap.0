@@ -1,14 +1,13 @@
-From: "zhangshigeng" <zsg@dislab.nju.edu.cn>
-Subject: Errores arise when compiling a 2.6.8 kernel
-Date: Wed, 24 Jan 2007 22:47:40 +0800
-Message-ID: <200701241357.l0ODvrPW027928@dislab.nju.edu.cn>
-References: <20070123180003.0F0C78062B@linux.omap.com>
+From: "Krishna Prasad Herur" <kherur@nextwave.com>
+Subject: DMA transfer using McSPI driver
+Date: Wed, 24 Jan 2007 10:16:17 -0800
+Message-ID: <E6CCDC65B8C522458685D8D1F145FEA811BCC4@CA2-MSX-C01.nw.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="gb2312"
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070123180003.0F0C78062B@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,108 +15,51 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi, everybody. We are now following instructions in a document released =
-with
-OMAP5912 OSK to port a linux 2.6.8 kernel to the omap5912 board. The =
-kernel
-source we are using is downloaded from
-http://linux.omap.com(2.6.8-rc3080804.tar.bz2).
-We used scratchbox to set a arm-linux cross compiler. We passed the =
-command
-       make omap_osk_5912_defconfig=20
- But when we execute=20
-	  make=20
- the following errors arised:
-	/home/autom/2.6.8-rc3/scripts/basic/split-include: find: No such
-file or directory
-And the corresponding makefile is:
-# 	Split autoconf.h into include/linux/config/*
+Hi Gurus,
 
-705 include/config/MARKER: include/linux/autoconf.h
-706
-707
-708 	@echo '  SPLIT   include/linux/autoconf.h -> include/config/*'
-709
-/scratchbox/users/autom/home/autom/2.6.8-rc3/scripts/basic/split-include
-include/linux/autoconf.h include/config
-710 	@touch $@
-And in the "make omap_osk_5912_defconfig" step, the following warning
-appears:
-arch/arm/configs/omap_osk_5912_defconfig:52: trying to assign =
-nonexistent
-symbol ARCH_ADIFCC
-arch/arm/configs/omap_osk_5912_defconfig:543: trying to assign =
-nonexistent
-symbol INTERMEZZO_FS
+            Question about the McSPI driver. I was able to get raw data
+transfers over the McSPI bus on an Omap 2430 based platform running
+Linux 2.6. I am trying to do the same transmit using DMA. Is it possible
+to use DMA in polling mode?=20
 
-can anyone tell me how to fix this? Thanks.
-					=09
-ZHANG Shi-Geng
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
-linux-omap-open-source-request@linux.omap.com
-Sent: 2007=C4=EA1=D4=C224=C8=D5 2:00
-To: linux-omap-open-source@linux.omap.com
-Subject: Linux-omap-open-source Digest, Vol 33, Issue 40
+=20
 
-Send Linux-omap-open-source mailing list submissions to
-	linux-omap-open-source@linux.omap.com
+I have not registered interrupt handlers or dma handlers.  Below is the
+programming sequence I followed, after calling all the config macros.
 
-To subscribe or unsubscribe via the World Wide Web, visit
-	http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-or, via email, send a message with subject or body 'help' to
-	linux-omap-open-source-request@linux.omap.com
+=20
 
-You can reach the person managing the list at
-	linux-omap-open-source-owner@linux.omap.com
+      omap2_mcspi_request_interface(devPtr);
 
-When replying, please edit your Subject line so it is more specific
-than "Re: Contents of Linux-omap-open-source digest..."
+      omap2_mcspi_interface_reset(devPtr);
 
+      omap2_mcspi_get(devPtr);
 
-Today's Topics:
+      omap2_mcspi_config_channel(devPtr);
 
-   1. RE: Linux-omap-open-source Digest, Vol 33, Issue 38
-      (Woodruff, Richard)
+      omap2_mcspi_enable_channel(devPtr);
 
+      omap2_mcspi_dma_writereq(devPtr,OMAP2_McSPI_DMAW_ENABLE);
 
-----------------------------------------------------------------------
+      omap2_mcspi_transmit_buf(devPtr,dmaBuf,8);
 
-Message: 1
-Date: Tue, 23 Jan 2007 07:51:41 -0600
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: Linux-omap-open-source Digest, Vol 33, Issue 38
-To: "Leo Qin" <Leo.Qin@BENQ.COM>,
-	<linux-omap-open-source@linux.omap.com>
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D91302742928875B@dlee13.ent.ti.com>
-Content-Type: text/plain;	charset=3D"US-ASCII"
+=20
 
-> Hi,
-> has Linux been ported on OMAP1030V (Neptune ) ?
-> Anyone has tried it ?
+I get a DMA transaction error, and a soft lockup.=20
 
-It has been booted for sure.  Not sure if web trees have it, you might
-check the tar balls.  Beyond that you should inquire with your TI-Rep if
-it is something you really need.
+=20
+
+DMA transaction error occurred with device 35
+
+BUG: soft lockup detected on CPU#0!
+
+=20
 
 Regards,
-Richard W.
 
-
-
-------------------------------
-
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-
-
-End of Linux-omap-open-source Digest, Vol 33, Issue 40
-******************************************************
+-Prasad
