@@ -1,15 +1,12 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: Linux-omap-open-source Digest, Vol 33, Issue 38
-Date: Tue, 23 Jan 2007 07:51:41 -0600
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D91302742928875B@dlee13.ent.ti.com>
-References: <A00C960254B03941A1EBFB1155D12E81047C342A@BQC-MSV10.BQC.CORP.COM>
+From: RobertChou <rbtchc@gmail.com>
+Subject: Question about microphone usage on OMAP2430SDP
+Date: Wed, 24 Jan 2007 09:57:53 +0800
+Message-ID: <dbf1574b0701231757o7186a24dk39d9483ae371eab5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <A00C960254B03941A1EBFB1155D12E81047C342A@BQC-MSV10.BQC.CORP.COM>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,16 +16,29 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Leo Qin <Leo.Qin@BENQ.COM>, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-> Hi,
-> has Linux been ported on OMAP1030V (Neptune ) ?
-> Anyone has tried it ?
+hi,
 
-It has been booted for sure.  Not sure if web trees have it, you might
-check the tar balls.  Beyond that you should inquire with your TI-Rep if
-it is something you really need.
+  I'm trying to record some voice through Main/Sub & Headset microphone on
+OMAP2430SDP board. But only noises is recorded (does not sound like voice).
 
-Regards,
-Richard W.
+  I have used
+    1. cat /dev/dsp > audio.out & cat audio.out > /dev/dsp   --> failed
+    2. sample program from pjsip (open source sip protocol stack)
+        which config. sample rate=44100, ch=2, bits=16
+        (able to record sound in x86 system)                        --> failed
+
+   Besides main/sub mic, I noticed that the record source can be switch to
+Headset by ioctl OSS driver. I tried to use audio connector to 3.5mm microphone
+to the headset plug. But still doesn't work.
+
+   I'm using linux-2.6.14-omap2430 downloaded from TI webiste. Does anyone ever
+successfully record anything from OMAP2430 main/sub or headset mic? And how
+can i correctly connect microphone to on-board headset plug? I'm currently using
+audio connector grab from nokia mobile accessory. Thx for answering my question.
+
+Best Regards,
+
+Robert
