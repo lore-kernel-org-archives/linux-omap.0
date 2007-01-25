@@ -1,15 +1,16 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+From: "Kondaiah G, Manjunath" <manjugk@ti.com>
 Subject: RE: [RFC] TSC2101 support
-Date: Thu, 25 Jan 2007 00:08:11 -0600
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47080FEE@dlee13.ent.ti.com>
-References: <15215457.402191169687150749.JavaMail.weblogic@ep_ml23>
-	<45B8204C.5060206@cc.jyu.fi>
+Date: Thu, 25 Jan 2007 11:56:20 +0530
+Message-ID: <45F366B1BC4F7C4A895F0F34C41E61A502D1AB55@dbde01.ent.ti.com>
+References: <15215457.402191169687150749.JavaMail.weblogic@ep_ml23><45B8204C.5060206@cc.jyu.fi>
+	<9C23CDD79DA20A479D4615857B2E2C47080FEE@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
+In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47080FEE@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,23 +18,42 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: lamikr@cc.jyu.fi, kyungmin.park@samsung.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Syed Mohammed, Khasim" <x0khasim@ti.com>, lamikr@cc.jyu.fi, kyungmin.park@samsung.com
 Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Khasim,
+
+It will be better if single driver supports API's for both TSC2101 and
+TSC2301 controllers since TSC2301 is superset of TSC2101 which has
+additional features such as keypad, gpio pins etc.
+
+Regards,
+Manjunath
+
+-----Original Message-----
+From: linux-omap-open-source-bounces+manjugk=3Dti.com@linux.omap.com
+[mailto:linux-omap-open-source-bounces+manjugk=3Dti.com@linux.omap.com] =
+On
+Behalf Of Syed Mohammed, Khasim
+Sent: Thursday, January 25, 2007 11:38 AM
+To: lamikr@cc.jyu.fi; kyungmin.park@samsung.com
+Cc: Linux-omap-open-source@linux.omap.com
+Subject: RE: [RFC] TSC2101 support
+
 Kyungmin, thanks for the code.
 =20
-I was thinking on similar lines as Mika. We should have tsc2101 driver =
-independent of Touchscreen / Audio / battery etc. Basically it should =
-provide (export) read and write APIs using SPI. The TS part (GPIO =
-registration / passing data to input subsystem etc) should be part of =
-touch screen driver. The TS / Audio / Battery drivers should use these =
-exported APIs to talk to TSC2101. There by all TSC2101 dependent drivers =
+I was thinking on similar lines as Mika. We should have tsc2101 driver
+independent of Touchscreen / Audio / battery etc. Basically it should
+provide (export) read and write APIs using SPI. The TS part (GPIO
+registration / passing data to input subsystem etc) should be part of
+touch screen driver. The TS / Audio / Battery drivers should use these
+exported APIs to talk to TSC2101. There by all TSC2101 dependent drivers
 can be isolated from using direct SPI calls.
 =20
-If you agree with this design I can work on this part. But as Mika =
+If you agree with this design I can work on this part. But as Mika
 pointed it will change omapts.c, this is the only concern.=20
 =20
 Regards,
@@ -51,7 +71,7 @@ Subject: Re: [RFC] TSC2101 support
 
 It would replace the h2, h3, h6300 touchscreen driver in
 drivers/input/touchscreen/omap/ directory. (omapts.c and ts_hx.c).
-But if that can be made to work with h2 and h3, I think it would be =
+But if that can be made to work with h2 and h3, I think it would be
 fine.
 
 Byteway, what about the support for the temperature, battery and aux
@@ -78,18 +98,18 @@ Mika
 Kyungmin Park wrote:
 > Hi,
 >
-> A few days ago, Nokia released the their N800 source code. and I found =
-the TSC2301 source code. it's similar with TSC2101 except keypad, and =
+> A few days ago, Nokia released the their N800 source code. and I found
+the TSC2301 source code. it's similar with TSC2101 except keypad, and
 some registers.
 >
-> Now the TSC2101 chip is used in H4 and apollon. So I modified the =
+> Now the TSC2101 chip is used in H4 and apollon. So I modified the
 TSC2301 source code to run TSC2101 chip for quick enabling test.
-> However the TSC2101 use 32-bit spi protocol instead of 16-bit in =
-TSC2301. So we have to modify spi part for 32-bit. but it's main =
+> However the TSC2101 use 32-bit spi protocol instead of 16-bit in
+TSC2301. So we have to modify spi part for 32-bit. but it's main
 strutures are same.
 >
-> In my opinion, the TSC2301 is not merged in omap tree. So if you don't =
-mind we commit TSC2101 first, and after TSC2301 is merged. we  make one =
+> In my opinion, the TSC2301 is not merged in omap tree. So if you don't
+mind we commit TSC2101 first, and after TSC2301 is merged. we  make one
 driver to support both.
 >
 > I want to listen your opinions what is better approache
@@ -103,10 +123,10 @@ driver to support both.
 > index b8d0ec0..e3bdbfa 100644
 > --- a/drivers/spi/omap2_mcspi.c
 > +++ b/drivers/spi/omap2_mcspi.c
-> @@ -471,7 +473,7 @@ static int omap2_mcspi_setup_transfer(struct =
+> @@ -471,7 +473,7 @@ static int omap2_mcspi_setup_transfer(struct
 spi_device *spi,
 >=20
->       conf =3D (struct omap2_mcspi_device_config *) =
+>       conf =3D (struct omap2_mcspi_device_config *)
 spi->controller_data;
 >=20
 > -     if (conf->single_channel =3D=3D 1)
@@ -127,12 +147,12 @@ spi->controller_data;
 > + *
 > + * Modified for 32-bit SPI bus by Kyungmin Park
 > + *
-> + * Derived from TSC2301 written by Jarkko Oikarinen, Imre Deak and =
+> + * Derived from TSC2301 written by Jarkko Oikarinen, Imre Deak and
 Juha Yrjola
 > + *
-> + * This program is free software; you can redistribute it and/or =
+> + * This program is free software; you can redistribute it and/or
 modify
-> + * it under the terms of the GNU General Public License as published =
+> + * it under the terms of the GNU General Public License as published
 by
 > + * the Free Software Foundation; either version 2 of the License, or
 > + * (at your option) any later version.
@@ -144,7 +164,7 @@ by
 > + *
 > + * You should have received a copy of the GNU General Public License
 > + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA =
+> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 02111-1307 USA
 > + *
 > + */
@@ -173,16 +193,16 @@ by
 > + *  2) TSC2101 performs AD conversion
 > + *  3) After the conversion is done TSC2101 drives DAV line down
 > + *  4) GPIO IRQ is received and tsc2101_dav_irq_handler is called
-> + *  5) tsc2101_dav_irq_handler sets up tsc2101_ts_timer in =
+> + *  5) tsc2101_dav_irq_handler sets up tsc2101_ts_timer in
 TSC2101_TS_SCAN_TIME
 > + *  6) tsc2101_ts_timer disables the irq and requests spi driver
 > + *     to read X, Y, Z1 and Z2
-> + *  7) SPI framework calls tsc2101_ts_rx after the coordinates are =
+> + *  7) SPI framework calls tsc2101_ts_rx after the coordinates are
 read
 > + *  8) tsc2101_ts_rx reports coordinates to input layer and
-> + *     sets up tsc2101_ts_timer to be called after =
+> + *     sets up tsc2101_ts_timer to be called after
 TSC2101_TS_SCAN_TIME
-> + *  9) if tsc2101_tx_timer notices that the pen has been lifted, the =
+> + *  9) if tsc2101_tx_timer notices that the pen has been lifted, the
 lift event
 > + *     is sent, and irq is again enabled.
 > + */
@@ -272,9 +292,10 @@ lift event
 > +
 > +
 > +static const u32 tsc2101_ts_read_data =3D ((0x8000 | TSC2101_REG_X) =
-<< 16) ;
+<<
+16) ;
 > +
-> +static int tsc2101_ts_check_config(struct tsc2101_ts *ts, int =
+> +static int tsc2101_ts_check_config(struct tsc2101_ts *ts, int
 *hw_flags)
 > +{
 > +     int flags;
@@ -435,11 +456,11 @@ lift event
 > +static int device_suspended(struct device *dev)
 > +{
 > +     struct tsc2101 *tsc =3D dev_get_drvdata(dev);
-> +     return dev->power.power_state.event !=3D PM_EVENT_ON || =
+> +     return dev->power.power_state.event !=3D PM_EVENT_ON ||
 tsc->ts->disabled;
 > +}
 > +
-> +static void update_pen_state(struct tsc2101_ts *ts, int x, int y, int =
+> +static void update_pen_state(struct tsc2101_ts *ts, int x, int y, int
 pressure)
 > +{
 > +     int sync =3D 0;
@@ -467,7 +488,7 @@ pressure)
 > +}
 > +
 > +/*
-> + * This procedure is called by the SPI framework after the =
+> + * This procedure is called by the SPI framework after the
 coordinates
 > + * have been read from TSC2101
 > + */
@@ -493,12 +514,12 @@ coordinates
 > +     /* If pressure value is above a preset limit (pen is barely
 > +      * touching the screen) we can't trust the coordinate values.
 > +      */
-> +     if (pressure < ts->pressure_limit && x < MAX_12BIT && y < =
+> +     if (pressure < ts->pressure_limit && x < MAX_12BIT && y <
 MAX_12BIT) {
 > +             ts->pressure_limit =3D ts->max_pressure;
 > +             if (ts->ignore_last) {
 > +                     if (ts->sample_cnt)
-> +                             update_pen_state(ts, ts->x, ts->y, =
+> +                             update_pen_state(ts, ts->x, ts->y,
 ts->p);
 > +                     ts->x =3D x;
 > +                     ts->y =3D y;
@@ -546,15 +567,15 @@ ts->p);
 > +
 > +             r =3D spi_async(tsc->spi, &ts->read_msg);
 > +             if (r)
-> +                     dev_err(&tsc->spi->dev, "ts: spi_async() =
+> +                     dev_err(&tsc->spi->dev, "ts: spi_async()
 failed");
 > +     }
 > +}
 > +
 > +/*
-> + * This interrupt is called when pen is down and first coordinates =
+> + * This interrupt is called when pen is down and first coordinates
 are
-> + * available. That is indicated by a falling edge on DEV line.  IRQ =
+> + * available. That is indicated by a falling edge on DEV line.  IRQ
 is
 > + * disabled here because while the pen is down the coordinates are
 > + * read by a timer.
@@ -573,7 +594,7 @@ is
 > +             ts->pressure_limit =3D ts->touch_pressure;
 > +             ts->sample_cnt =3D 0;
 > +             mod_timer(&ts->timer,
-> +                       jiffies + =
+> +                       jiffies +
 msecs_to_jiffies(TSC2101_TS_SCAN_TIME));
 > +     }
 > +     spin_unlock_irqrestore(&ts->lock, flags);
@@ -683,11 +704,11 @@ msecs_to_jiffies(TSC2101_TS_SCAN_TIME));
 > +     return sprintf(buf, "%u\n", is_pen_down(tsc->ts));
 > +}
 > +
-> +static DEVICE_ATTR(pen_down, S_IRUGO, tsc2101_ts_pen_down_show, =
+> +static DEVICE_ATTR(pen_down, S_IRUGO, tsc2101_ts_pen_down_show,
 NULL);
 > +
 > +static ssize_t tsc2101_ts_disable_show(struct device *dev,
-> +                                    struct device_attribute *attr, =
+> +                                    struct device_attribute *attr,
 char *buf)
 > +{
 > +     struct tsc2101          *tsc =3D dev_get_drvdata(dev);
@@ -758,7 +779,7 @@ char *buf)
 > +     ts->x_plate_ohm =3D pdata->ts_x_plate_ohm ? : 280;
 > +     ts->hw_avg_max  =3D pdata->ts_hw_avg;
 > +     ts->max_pressure=3D pdata->ts_max_pressure ? : MAX_12BIT;
-> +     ts->touch_pressure =3D pdata->ts_touch_pressure ? : =
+> +     ts->touch_pressure =3D pdata->ts_touch_pressure ? :
 ts->max_pressure;
 > +     ts->ignore_last =3D pdata->ts_ignore_last;
 > +     ts->stab_time   =3D pdata->ts_stab_time;
@@ -809,7 +830,7 @@ ts->max_pressure;
 > +
 > +     r =3D input_register_device(idev);
 > +     if (r < 0) {
-> +             dev_err(&tsc->spi->dev, "can't register touchscreen =
+> +             dev_err(&tsc->spi->dev, "can't register touchscreen
 device\n");
 > +             goto err5;
 > +     }
@@ -874,14 +895,14 @@ device\n");
 > +     u32     ts_stab_time;   /* voltage settling time */
 > +     u8      ts_hw_avg;      /* HW assiseted averaging. Can be
 > +                                0, 4, 8, 16 samples per reading */
-> +     u32     ts_max_pressure;/* Samples with bigger pressure value =
+> +     u32     ts_max_pressure;/* Samples with bigger pressure value
 will
-> +                                be ignored, since the corresponding =
+> +                                be ignored, since the corresponding
 X, Y
 > +                                values are unreliable */
-> +     u32     ts_touch_pressure;      /* Pressure limit until we =
+> +     u32     ts_touch_pressure;      /* Pressure limit until we
 report a
-> +                                        touch event. After that we =
+> +                                        touch event. After that we
 switch
 > +                                        to ts_max_pressure. */
 > +     unsigned ts_ignore_last : 1;
@@ -895,7 +916,7 @@ switch
 > +     struct tsc2101_ts       *ts;
 > +};
 > +
-> +#define TSC2101_REG(page, addr)              (((page) << 11) | =
+> +#define TSC2101_REG(page, addr)              (((page) << 11) |
 ((addr) << 5))
 > +
 > +/* Page 0, Touchscreen data registers */
@@ -924,12 +945,12 @@ switch
 > +#define TSC2101_REG_PLL2     TSC2101_REG(2, 28)
 > +#define TSC2101_REG_AUDIO4   TSC2101_REG(2, 29)
 > +
-> +int tsc2101_ts_init(struct tsc2101 *, struct tsc2101_platform_data =
+> +int tsc2101_ts_init(struct tsc2101 *, struct tsc2101_platform_data
 *);
 > +void tsc2101_ts_exit(struct tsc2101 *);
 > +
 > +#endif
-> =
+>
 ------------------------------------------------------------------------
 >
 > _______________________________________________
@@ -937,6 +958,12 @@ switch
 > Linux-omap-open-source@linux.omap.com
 > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
 > =20
+
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+
 
 _______________________________________________
 Linux-omap-open-source mailing list
