@@ -1,10 +1,15 @@
-From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [PATCH] MMC: OMAP R6 response support
-Date: Thu, 25 Jan 2007 09:55:37 -0400
-Message-ID: <45B8B6D9.90006@indt.org.br>
+From: "Nemakal, Vijaya" <xnemakal@ti.com>
+Subject: RE: MTD NAND support in 2.6.19-omap1 kernel for OMAP2430 SDP
+Date: Thu, 25 Jan 2007 07:54:54 -0600
+Message-ID: <A17BD4D22DD44F4C8DAFFD5871A94E2B07E2FB@dlee13.ent.ti.com>
+References: <c04186510701241407r22200b50u9dc5dd1c0439a508@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------050300000601090106010903"
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <c04186510701241407r22200b50u9dc5dd1c0439a508@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,81 +19,68 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Pierre Ossman <drzeus-list@drzeus.cx>, Tony Lindgren <tony@atomide.com>, Juha Yrjola <juha.yrjola@solidboot.com>, "linux- >> omap-linux" <linux-omap-open-source@linux.omap.com>
+To: sandeep prabhu <sandeep.mitian@gmail.com>, Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050300000601090106010903
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Sandeep,
 
-Hi folks,
+> 1. Are there any patches for the MTD nand support  for OMAP2430 sdp
+for
+> 2.6.19 kernel ?
 
-Regarding the commit below
+We do not have support for NAND for 2.6.19 kernel as of yet, but that
+will get in soon.
 
-http://www.kernel.org/git/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=6f949909e8f9e5d7e5584dc48d9a5e060c52aed1
-,
+> 2. Can I port the driver from older kernel version like 2.6.14 ? The=20
+> design of MTD Nand subsystem seems to differ between kernel versions=20
+> 2.6.14 and 2.6.19
 
-the definition of response type R6 is the same as R1 and case
-MMC_RSP_R6 was removed on omap.c, causing a error when inserting a SD
-card on OMAP platforms.
+The mtd subsystem should not be of any concern and they will work
+seamlessly=20
+between 2.6.14 and 2.6.19 kernel. All you would require is to write a
+mapping driver for NAND part where you will be registering with mtd
+subsystem. And add the partition information either into your board
+specific file or into this mapping file.
+Pls look at drivers/mtd/onenad/omap-onenand.c. Your nand mapping driver
+looks almost similar to the one written for onenand.
 
-This error occur due following the MMC and SD specs, on CMD3, response
-type is R6 to SD cards and R1 to MMC cards.
+Regards
+Vijaya
 
-So, I'm proposing a patch that try to solve this problem. I've tested
-it with SD and MMC cards and looks fine.
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+sandeep prabhu
+Sent: Thursday, January 25, 2007 3:37 AM
+To: Linux-omap-open-source@linux.omap.com
+Subject: MTD NAND support in 2.6.19-omap1 kernel for OMAP2430 SDP
 
-Please, comments and suggestions are welcome.
+Hi,
+I am using 2.6.19 kernel ( from linux-omap.com site ) for OMAP2430 SDP
+board. I have applied the patch-2.6.19-omap1 from the same site and
+using it
+for booting the OMAP2430 SDP board.
 
-BR,
+I am not able to use  MTD Nand partitions on the on-board Nand  Flash (
+k9k1216
+). I can access only NOR flash partitions using this version of kernel.
 
-Carlos.
+1. Are there any patches for the MTD nand support  for OMAP2430 sdp for
+2.6.19 kernel ?
 
--- 
-Carlos Eduardo
-Nokia Institute of Technology - INdT
-Open Source Mobile Research Center - OSMRC
-E-mail: carlos.aguiar@indt.org.br
+2. Can I port the driver from older kernel version like 2.6.14 ? The
+design
+of MTD Nand subsystem seems to differ between kernel versions 2.6.14 and
+2.6.19
 
+could anyone help me how to get the MTD Nand support with 2.6.19, on
+omap
+2430 sdp ?
 
---------------050300000601090106010903
-Content-Type: text/plain;
- name="omap_r6.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="omap_r6.diff"
-
-On CMD3, response type is R6 to SD cards and R1 to MMC cards.
-
-Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-
-Index: linux-omap/drivers/mmc/omap.c
-===================================================================
---- linux-omap.orig/drivers/mmc/omap.c	2007-01-24 16:02:58.000000000 -0400
-+++ linux-omap/drivers/mmc/omap.c	2007-01-25 09:31:40.000000000 -0400
-@@ -209,8 +209,13 @@ mmc_omap_start_command(struct mmc_omap_h
- 		break;
- 	case MMC_RSP_R1:
- 	case MMC_RSP_R1B:
--		/* resp 1, resp 1b */
--		resptype = 1;
-+		if ((host->mmc->mode == MMC_MODE_SD) &&
-+			(host->cmd->opcode == SD_SEND_RELATIVE_ADDR))
-+			/* resp 6 */
-+			resptype = 6;
-+		else
-+			/* resp 1, 1b, 7 */
-+			resptype = 1;
- 		break;
- 	case MMC_RSP_R2:
- 		resptype = 2;
-
---------------050300000601090106010903
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---------------050300000601090106010903--
+--=20
+Warm Regards,
+Sandeep
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
