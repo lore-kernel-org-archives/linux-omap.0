@@ -1,13 +1,13 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: Noise causes gpio interrupt
-Date: Fri, 26 Jan 2007 15:15:22 +0100
-Message-ID: <45BA0CFA.5010409@googlemail.com>
-References: <740992.7549.qm@web55304.mail.re4.yahoo.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: FW: [RFC PATCH 5/5] DSB needed after masking an IRQ
+Date: Fri, 26 Jan 2007 11:09:54 -0800
+Message-ID: <20070126190953.GC29286@atomide.com>
+References: <3B6D69C3A9EBCA4BA5DA60D913027429330215@dlee13.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <740992.7549.qm@web55304.mail.re4.yahoo.com>
+Content-Disposition: inline
+In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D913027429330215@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,28 +17,21 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Arnold <abo_gwapo@yahoo.com>
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Arnold wrote:
-> ... However when the interupt comes from a
-> device and the transition of rise to fall is 20ns it
-> could not detect that an interrupt occured. I also
-> tried to increase the transition to 20ms and it was
-> able to detect the interrupt. ...
+* Woodruff, Richard <r-woodruff2@ti.com> [070125 07:29]:
+> As you may recall, I've repentantly submitted patches for doing this for
+> OMAP2's interrupt controller as it has the same issue as its off of the
+> peripheral port.
+>
+> Now that Catalin alo confirming does that help?  I'm still unsure what
+> that aspect was so bothersome.
 
-Maybe http://www.ti.com/litv/pdf/spru767a, section 1.6 or 
-page 28, can help:
+Looks like that should solve it at generic level by adding dsb(). Too
+bad nobody had time to work your patch into more generic one. 
 
-"Because of the sample operation with the functional clock, 
-the minimum pulse
-width on the input GPIO to trigger a synchronous interrupt 
-request is two times
-the functional clock period. This minimum pulse width must 
-be met before and
-after any expected level transition detection."
+Regards,
 
-Best regards
-
-Dirk
+Tony
