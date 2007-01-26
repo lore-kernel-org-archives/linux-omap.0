@@ -1,13 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Compile Time Issue
-Date: Fri, 26 Jan 2007 11:19:48 -0800
-Message-ID: <20070126191947.GD29286@atomide.com>
-References: <7d8fdf6f0701222030k4a683397qcff970c767b265dc@mail.gmail.com>
+Subject: Re: Errores arise when compiling a 2.6.8 kernel
+Date: Fri, 26 Jan 2007 11:24:26 -0800
+Message-ID: <20070126192425.GE29286@atomide.com>
+References: <20070123180003.0F0C78062B@linux.omap.com>
+	<200701241357.l0ODvrPW027928@dislab.nju.edu.cn>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <7d8fdf6f0701222030k4a683397qcff970c767b265dc@mail.gmail.com>
+In-Reply-To: <200701241357.l0ODvrPW027928@dislab.nju.edu.cn>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,22 +16,20 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Raghunandan Dhongadi <dk.raghu@gmail.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: zhangshigeng <zsg@dislab.nju.edu.cn>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Raghunandan Dhongadi <dk.raghu@gmail.com> [070122 20:31]:
-> Hello All,
-> 
-> We are trying to build the "DSP-LInk" for the muru Linux OMAP 2.6.19 with
-> the "patch-2.6.19-omap1", but we hit on a "compile time" error "DIVIDE BY
-> ZERO" which is caused in the "include/linux/jiffies.h" file. The macro
-> "CONFIG_HZ" is getting a default value of 100MHz. However even if we select
-> the 32KHz timer the CONFIG_HZ gets defined as 128MHz.Wanted to know if
-> anyone has fix for this ?
+* zhangshigeng <zsg@dislab.nju.edu.cn> [070124 06:54]:
+> Hi, everybody. We are now following instructions in a document released with
+> OMAP5912 OSK to port a linux 2.6.8 kernel to the omap5912 board. The kernel
+> source we are using is downloaded from
 
-Haven't seen that one, maybe "DSP-Link" specific issue?
+OSK is well supported in the current git tree, 2.6.8 is very old. I
+recommend something newer.
+
+Regards,
 
 Tony
