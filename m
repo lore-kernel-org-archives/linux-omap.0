@@ -1,15 +1,13 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: [PATCH] Basic N800 support
-Date: Sat, 27 Jan 2007 08:24:32 +0100
-Message-ID: <45BAFE30.5030705@googlemail.com>
-References: <20070119205723.GC16754@atomide.com>
-	<45B1BEE7.2000603@googlemail.com>
-	<20070126213126.GH29286@atomide.com>
+Subject: Re: Omap update for post 2.6.20 posted
+Date: Sat, 27 Jan 2007 08:34:24 +0100
+Message-ID: <45BB0080.1070409@googlemail.com>
+References: <20070126225129.GN29286@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070126213126.GH29286@atomide.com>
+In-Reply-To: <20070126225129.GN29286@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -24,22 +22,28 @@ Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 Tony Lindgren wrote:
-> Following two patches are still needed to compile and
-> mount root.
-...
-> --- a/arch/arm/tools/mach-types
-> +++ b/arch/arm/tools/mach-types
-> @@ -767,6 +767,7 @@
-...
->  nokia770		MACH_NOKIA770		NOKIA770		755
-> +nokia_n800		MACH_NOKIA_N800		NOKIA_N800		5555
->  pnx0106			MACH_PNX0106		PNX0106			756
+> I've updated the patch series for upstream and posted it to RMK's
+> patch tracking system. The git tree of the patches is available at:
+> 
+> http://www.kernel.org/git/?p=linux/kernel/git/tmlind/linux-omap-upstream.git;a=summary
+> 
+> And the upstream patches are in a branch like upstream-2007-01-26.
+> 
+> There are currently 87 patches in the series, I'll keep updating
+> that series based on comments from RMK. The patches  in RMK's
+> patch system are at:
+> 
+> http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=4113/1
+> http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=4114/1
+> http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=4115/1
+> http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=4116/1
+> 
+> Assuming we get these applied, we'll be switching over to using
+> the mainline tree for core omap stuff :) Only dsp code and sti
+> console will not be included.
 
-Any plans to get and use an official number?
+Great!
 
-But I suppose this would require a N800 bootloader and 
-kernel update ;)
-
-Cheers
+I'll keep my fingers crossed.
 
 Dirk
