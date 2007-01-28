@@ -1,14 +1,11 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH] dsp: don't use registered_fb[1]
-Date: Sun, 28 Jan 2007 07:13:05 +0200 (EET)
-Message-ID: <20070128.071305.12561026.Hiroshi.DOYU@nokia.com>
-References: <85ac0lg239.fsf@orfeo.duckcorp.org>
-	<20070126215123.GL29286@atomide.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: definite OMAP1610_IR-related typo
+Date: Sun, 28 Jan 2007 08:13:02 +0100
+Message-ID: <45BC4CFE.7050602@googlemail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070126215123.GL29286@atomide.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,52 +13,52 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: tony@atomide.com
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "Robert P. J. Day" <rpjday@mindspring.com>
+Cc: linux-omap-open-source@linux.omap.com, Linux kernel mailing list <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Acked.
+Robert P. J. Day wrote at LKML:
+ > not sure what to do with this, it's all yours:
+ >
+ > ========== OMAP1610_IR ==========
+ > ./arch/arm/mach-omap1/devices.c:#if 
+defined(CONFIG_OMAP1610_IR) ||
+ > defined(CONFIG_OMAP161O_IR_MODULE)
+ > ========== OMAP161O_IR ==========
+ > ./arch/arm/mach-omap1/devices.c:#if 
+defined(CONFIG_OMAP1610_IR) ||
+ > defined(CONFIG_OMAP161O_IR_MODULE)
+ >
+ > note first that one of those config vars has an "oh" 
+while the other
+ > has a *zero*. i'm pretty sure that's bad.
+ >
+ > in any event, there's no such config variable of *either* 
+spelling
+ > in any Kconfig file, but there *is* a more all-encompassing
+ > CONFIG_OMAP16XX confguration setting.
 
-From: "ext Tony Lindgren" <tony@atomide.com>
-Subject: Re: [PATCH] dsp: don't use registered_fb[1]
-Date: Fri, 26 Jan 2007 13:51:24 -0800
+This is fixed in recent OMAP git tree and OMAP patches we 
+prepared for upstream. Can you try OMAP patches 4113, 4114, 
+4115 and 4116 to be found in RMKs patch system [1]? Or, even 
+better, use current OMAP git [2]?
 
-> * Arnaud Patard <arnaud.patard@rtp-net.org> [070114 05:45]:
-> > 
-> > According to dsp_fbexport(), the dsp code handles only the first
-> > registered framebuffer, so using registered_fb[1] in mbox_fbctl_upd is
-> > wrong. registered_fb[0] must be used instead. 
-> > This code has also the side effect to oops the kernel as
-> > registered_fb[1] is null and omapfb_update_window_async doesn't handle
-> > this case. The fix for omapfb_update_window_async is sent in an other
-> > mail.
-> > 
-> > 
-> > Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
-> > ---
-> 
-> > ---
-> >  arch/arm/plat-omap/dsp/dsp_mem.c |    2 	1 +	1 -	0 !
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > Index: linux-omap-2.6/arch/arm/plat-omap/dsp/dsp_mem.c
-> > ===================================================================
-> > --- linux-omap-2.6.orig/arch/arm/plat-omap/dsp/dsp_mem.c	2007-01-14 14:10:26.000000000 +0100
-> > +++ linux-omap-2.6/arch/arm/plat-omap/dsp/dsp_mem.c	2007-01-14 14:10:37.000000000 +0100
-> > @@ -2052,7 +2052,7 @@ void mbox_fbctl_upd(void)
-> >  		return;
-> >  	}
-> >  	//printk("calling omapfb_update_window_async()\n");
-> > -	omapfb_update_window_async(registered_fb[1], &win, fbupd_cb, NULL);
-> > +	omapfb_update_window_async(registered_fb[0], &win, fbupd_cb, NULL);
-> >  }
-> >  
-> >  #else /* CONFIG_FB_OMAP_LCDC_EXTERNAL */
-> 
-> Toshihiro and Hiroshi, can you ack this one?
-> 
-> Regards,
-> 
-> Tony
+Regards
+
+Dirk
+
+P.S. #1: Would be nice to CC OMAP list [3] next time as well.
+
+P.S. #2: Sorry if mail references are wrong, I'm currently 
+not subscribed to LKML.
+
+[1] 
+http://www.arm.linux.org.uk/developer/patches/section.php?section=0
+
+[2] 
+http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=summary
+
+[3] 
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
