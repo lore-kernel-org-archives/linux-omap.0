@@ -1,16 +1,15 @@
-From: "andrzej zaborowski" <balrog@zabor.org>
-Subject: Re: Problem in linking with montavista toolchain for omap2420
-Date: Tue, 30 Jan 2007 15:55:25 +0100
-Message-ID: <fb249edb0701300655t50b86cc0g1cf00284a62bf44f@mail.gmail.com>
-References: <904DEC693BE1AB429622C6F5ABA7E0B801B2253C@is01ex02.ittiam.com>
-	<1170156349.4387.20.camel@localhost.localdomain>
-Reply-To: balrogg@gmail.com
+From: "Krishna Prasad Herur" <kherur@nextwave.com>
+Subject: RE: DMA transfer using McSPI driver
+Date: Tue, 30 Jan 2007 10:16:09 -0800
+Message-ID: <E6CCDC65B8C522458685D8D1F145FEA814F0F8@CA2-MSX-C01.nw.net>
+References: <E6CCDC65B8C522458685D8D1F145FEA811B9CE@CA2-MSX-C01.nw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <1170156349.4387.20.camel@localhost.localdomain>
-Content-Disposition: inline
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <E6CCDC65B8C522458685D8D1F145FEA811B9CE@CA2-MSX-C01.nw.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,39 +17,80 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Indraneel <indraneel.m@samsung.com>
-Cc: Madhava Gauranga <Madhava.Gauranga@ittiam.com>, Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+I think I know the reason for the soft lockup.
 
-On 30/01/07, Indraneel <indraneel.m@samsung.com> wrote:
-> LDFLAGS= -nostdlib -L/opt/montavista/devkit/arm/v5t_le/target/usr/lib
-> -L/opt/montavista/devkit/arm/v5t_le/lib/gcc-lib/armv5tl-hardhat-linux/3.3.1 -L/opt/montavista/devkit/arm/v5t_le/armv5tl-hardhat-linux/lib
->
-> With this i am past the previous error and the new error is
->
-> /opt/montavista/devkit/arm/v5t_le/lib/gcc-lib/armv5tl-hardhat-linux/3.3.1/../../../../armv5tl-hardhat-linux/bin/ld: warning: cannot find entry symbol _start; defaulting to 00008074
-> /tmp/cc0VA6xr.o(.text+0x8): In function `main':
-> : undefined reference to `puts'
-> collect2: ld returned 1 exit status
->
-> I guess it's something to do with path but i'm not sure what exactly.
+The omap 2430 errata says that the DMA Tx complete interrupt continues
+to be asserted after a transaction error. I found this to be the reason
+for the soft lockup. I am still unsure as to why there is a transaction
+error!=20
 
-These function (puts, _start) are part of the C library, which you
-disabled by passing -nostdlib so it's understandable that the linker
-is not finding them.
+=20
 
-Personally I'd just try a different toolchain. Tools like "scratchbox"
-or "crosstool" or Gentoo's "crossdev"  make it particularly easy to
-compile a working toolchain. You can also build it using only bare
-gcc, binutils and glibc/uclibc sources.
+The McSpi driver configuration for DMA transfer seems to be
+straightforward. The McSpi driver seems to be calling all the Dma driver
+functions with the right parameters.=20
 
-If you have libc.so but not libc.so.6 try symlinking libc.so.6 ->
-libc.so (not guarranted to work but may help, maybe someone forgot to
-pack the link).
+=20
+
+Does anyone had success doing DMA transfers to/from McSpi channels using
+the Omap McSpi driver?
 
 Regards,
-Andrew
+
+-Prasad
+
+=20
+
+________________________________
+
+From: Krishna Prasad Herur=20
+Sent: Tuesday, January 23, 2007 12:02 PM
+To: linux-omap-open-source@linux.omap.com
+Subject: DMA transfer using McSPI driver=20
+
+=20
+
+Hi Gurus,
+
+            I was able to get raw data transfers over the McSPI bus on
+an Omap 2430 based platform running Linux 2.6. I am trying to do the
+same transmit using DMA. Is it possible to use DMA in polling mode? I
+have not registered interrupt handlers or dma handlers.  Below is the
+programming sequence I followed, after calling all the config macros.
+
+=20
+
+      omap2_mcspi_request_interface(devPtr);
+
+      omap2_mcspi_interface_reset(devPtr);
+
+      omap2_mcspi_get(devPtr);
+
+      omap2_mcspi_config_channel(devPtr);
+
+      omap2_mcspi_enable_channel(devPtr);
+
+      omap2_mcspi_dma_writereq(devPtr,OMAP2_McSPI_DMAW_ENABLE);
+
+      omap2_mcspi_transmit_buf(devPtr,dmaBuf,8);
+
+=20
+
+I get a DMA transaction error, and a soft lockup.=20
+
+=20
+
+DMA transaction error occurred with device 35
+
+BUG: soft lockup detected on CPU#0!
+
+=20
+
+Regards,
+
+-Prasad
