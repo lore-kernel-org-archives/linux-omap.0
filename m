@@ -1,16 +1,14 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: Noise causes gpio interrupt
-Date: Mon, 29 Jan 2007 15:01:17 -0600
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429376608@dlee13.ent.ti.com>
-References: <740992.7549.qm@web55304.mail.re4.yahoo.com>
-	<45BA0CFA.5010409@googlemail.com>
+From: "Madhava Gauranga" <Madhava.Gauranga@ittiam.com>
+Subject: RE: Problem in linking with montavista toolchain for omap2420
+Date: Tue, 30 Jan 2007 11:46:11 +0530
+Message-ID: <904DEC693BE1AB429622C6F5ABA7E0B801B2253C@is01ex02.ittiam.com>
+References: <1169985183.16634.24.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
-In-Reply-To: <45BA0CFA.5010409@googlemail.com>
+In-Reply-To: <1169985183.16634.24.camel@localhost.localdomain>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,66 +16,80 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>, Arnold <abo_gwapo@yahoo.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Indraneel <indraneel.m@samsung.com>, Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-I generally interpret this to mean you can go low, high, low to fast
-else you will miss your high.  This is not what was indicated but it
-could be what is happening.  Your 'high' state must also obviously cross
-the signaling threshold value also.
+Hey indranil,
 
-If you go low to high quickly I'm not aware of that being an issue.  You
-just don't see it for a couple of gpio clocks (assuming you stay high
-long enough).
+I reckon u have copied the toolchain already installed somewhere,
+instead of installing them. try installing(perhaps from the cd(s)
+provided) the toolchain. The problem should be fixed then.
 
-It might be possible that the interrupt was dropped somewhere in
-software.  Back in 1510/5910 days this was possible given the way Linux
-configured things up and serviced interrupts (mismatch of internal
-polarity to configured ones along with quickly unmasked interrupts).
-This shouldn't be an issue for later ones like OMAP2 which hook them all
-internally as level and only offer edge's on external lines.  MV code at
-one point tried to peek at status registers and re-trigger to identify
-edges.  I've not looked at what the current code path is for open source
-versions here.
+Respect,
+Madhava Gauranga
+=20
+=20
+Ittiam Systems | www.ittiam.com
+A Red Herring Asia 100 Company, 2005
+Forward Concepts' Worlds Most Preferred DSP IP Supplier, 2004, 2005
 
-You may have a couple types of GPIOs, used to have ARMIO/MPUIO and GPIO.
-You might try moving your source to some different pins and see if they
-all behave the same way.
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+Indraneel
+Sent: Sunday, January 28, 2007 5:23 PM
+To: Linux-omap-open-source@linux.omap.com
+Subject: Problem in linking with montavista toolchain for omap2420
 
-If you have a debugger, you really should be able to sit in a stopped
-state then make a fast trigger event.  Then you should be able to read
-the GPIO registers directly and see if the event was caught.  It almost
-certainly will be.
+Hi,
+I'm trying to cross-compile a program using the montavista tool chain
+for arm_v5t_le architecture for the omap2420(h4 board). I get the
+following error when linking a simple c program:
 
-In the end I'd guess your source isn't driving the line high enough for
-the interrupt pulse, or the pulse width is to short.  I don't think the
-slope of the pulse should matter.  Just that it goes high enough for a
-long enough time before falling.
+$ arm_v5t_le-gcc -DPOSIX -DMD=3D2 rz.c
+/opt/montavista/devkit/arm/v5t_le/lib/gcc-lib/armv5tl-hardhat-linux/3.3.
+1/../../../../armv5tl-hardhat-linux/bin/ld: cannot find libc.so.6
+collect2: ld returned 1 exit status
+
+
+Surprisingly i couldn't find any file or link by the name libc.so.6 in
+the toolchain, although there was
+/opt/montavista/devkit/arm/v5t_le/target/usr/lib/libc.so
+
+Other info
+gcc
+version 3.3.1 (MontaVista 3.3.1-7.0.15.0500230 2005-02-20)
+--with-sysroot=3D/opt/montavista/devkit/arm/v5t_le/target
+
+GNU ld
+version 2.14 20030612 (MontaVista 2.14-11.0.7.0500230 2005-02-20)
+
+PATH=3D/opt/montavista/devkit/arm/v5t_le/bin:$PATH
+
+
+I have searched for the error but couldn't find anything definitive.
+
+Can anyone provide any clues as to what is wrong and how can i solve
+this linking issue?
+
+Any pointers will be appreciated.
 
 Regards,
-Richard W.
+Indraneel
 
-> Arnold wrote:
-> > ... However when the interupt comes from a
-> > device and the transition of rise to fall is 20ns it
-> > could not detect that an interrupt occured. I also
-> > tried to increase the transition to 20ms and it was
-> > able to detect the interrupt. ...
->=20
-> Maybe http://www.ti.com/litv/pdf/spru767a, section 1.6 or
-> page 28, can help:
->=20
-> "Because of the sample operation with the functional clock,
-> the minimum pulse
-> width on the input GPIO to trigger a synchronous interrupt
-> request is two times
-> the functional clock period. This minimum pulse width must
-> be met before and
-> after any expected level transition detection."
->=20
-> Best regards
->=20
-> Dirk
+
+
+
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+
+**********************************************************************
+This email and any files transmitted with it are confidential and
+intended solely for the use of the individual or entity to whom they
+are addressed. If you have received this email in error please notify
+helpdesk@ittiam.com.
+**********************************************************************
