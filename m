@@ -1,15 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] dsp: don't use registered_fb[1]
-Date: Wed, 31 Jan 2007 10:58:31 -0800
-Message-ID: <20070131185830.GM27224@atomide.com>
-References: <85ac0lg239.fsf@orfeo.duckcorp.org>
-	<20070126215123.GL29286@atomide.com>
-	<20070128.071305.12561026.Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH] ARM: OMAP: Convert irq flags SA_* to IRQF_*
+Date: Wed, 31 Jan 2007 11:16:19 -0800
+Message-ID: <20070131191619.GN27224@atomide.com>
+References: <45BDEC2B.3000601@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20070128.071305.12561026.Hiroshi.DOYU@nokia.com>
+In-Reply-To: <45BDEC2B.3000601@googlemail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,51 +17,51 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: linux_omap_open_source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [070127 21:05]:
-> Acked.
-> 
-> From: "ext Tony Lindgren" <tony@atomide.com>
-> Subject: Re: [PATCH] dsp: don't use registered_fb[1]
-> Date: Fri, 26 Jan 2007 13:51:24 -0800
-> 
-> > * Arnaud Patard <arnaud.patard@rtp-net.org> [070114 05:45]:
-> > > 
-> > > According to dsp_fbexport(), the dsp code handles only the first
-> > > registered framebuffer, so using registered_fb[1] in mbox_fbctl_upd is
-> > > wrong. registered_fb[0] must be used instead. 
-> > > This code has also the side effect to oops the kernel as
-> > > registered_fb[1] is null and omapfb_update_window_async doesn't handle
-> > > this case. The fix for omapfb_update_window_async is sent in an other
-> > > mail.
-> > > 
-> > > 
-> > > Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
-> > > ---
-> > 
-> > > ---
-> > >  arch/arm/plat-omap/dsp/dsp_mem.c |    2 	1 +	1 -	0 !
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > 
-> > > Index: linux-omap-2.6/arch/arm/plat-omap/dsp/dsp_mem.c
-> > > ===================================================================
-> > > --- linux-omap-2.6.orig/arch/arm/plat-omap/dsp/dsp_mem.c	2007-01-14 14:10:26.000000000 +0100
-> > > +++ linux-omap-2.6/arch/arm/plat-omap/dsp/dsp_mem.c	2007-01-14 14:10:37.000000000 +0100
-> > > @@ -2052,7 +2052,7 @@ void mbox_fbctl_upd(void)
-> > >  		return;
-> > >  	}
-> > >  	//printk("calling omapfb_update_window_async()\n");
-> > > -	omapfb_update_window_async(registered_fb[1], &win, fbupd_cb, NULL);
-> > > +	omapfb_update_window_async(registered_fb[0], &win, fbupd_cb, NULL);
-> > >  }
-> > >  
-> > >  #else /* CONFIG_FB_OMAP_LCDC_EXTERNAL */
-> > 
-> > Toshihiro and Hiroshi, can you ack this one?
+Hi,
 
-Pushing today.
+* Dirk Behme <dirk.behme@googlemail.com> [070129 04:45]:
+> Convert remaining interrupt flags SA_* to IRQF_* style.
+> 
+> Documentation/feature-removal-schedule.txt tells us:
+> 
+> What:    Interrupt only SA_* flags
+> When:    Januar 2007
+> Why:    The interrupt related SA_* flags are replaced by 
+> IRQF_* to move them
+>     out of the signal namespace.
+> 
+> and in linux/interrupt.h regarding SA_* we find
+> 
+> "Migration helpers. Scheduled for removal in 1/2007 Do not 
+> use for new code !"
+> 
+> Current -rt patches remove SA_* already, so seems to be time 
+> to convert all OMAP stuff.
+> 
+> In attachment there are 12 patches for this (feel free to 
+> regroup them):
+> 
+> 01 plat-omap directory conversion
+> 02 mach-omap1 directory conversion
+> (Note: mach-omap2 has no SA_*)
+> 03 ads7846 conversion
+> 04 omap-ts directory conversion
+> 05 i2c-chips directory conversion
+> 06 rtc-omap conversion
+> 07 tsc2102 conversion
+> 08 musbhsdma conversion
+> 09 tahvo-usb conversion
+> 10 omap-rtc conversion
+> 11 innovator-ps2 conversion
+> 12 omap16xxcam conversion
+
+Thanks, I've pushed them in two parts and added the omap core changes to
+the linux-omap-upstream tree too.
+
+Regards,
 
 Tony
