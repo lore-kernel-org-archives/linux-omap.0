@@ -1,15 +1,15 @@
-From: "Krishna Prasad Herur" <kherur@nextwave.com>
-Subject: RE: DMA transfer using McSPI driver
-Date: Wed, 31 Jan 2007 09:10:34 -0800
-Message-ID: <E6CCDC65B8C522458685D8D1F145FEA818909A@CA2-MSX-C01.nw.net>
-References: <46149.192.168.10.89.1170250434.squirrel@dbdmail.itg.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] dsp: don't use registered_fb[1]
+Date: Wed, 31 Jan 2007 10:58:31 -0800
+Message-ID: <20070131185830.GM27224@atomide.com>
+References: <85ac0lg239.fsf@orfeo.duckcorp.org>
+	<20070126215123.GL29286@atomide.com>
+	<20070128.071305.12561026.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <46149.192.168.10.89.1170250434.squirrel@dbdmail.itg.ti.com>
+Content-Disposition: inline
+In-Reply-To: <20070128.071305.12561026.Hiroshi.DOYU@nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,116 +19,51 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: girishsg@ti.com
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Thanks Girish,
-	I had made a "Linux newbie" mistake. I was passing in an address
-in virtual memory, which caused a DMA transaction error.
-Works much better when I pass the physical address. I may need to do a
-few cache flushes to get the actual data out, but I do not see the
-resets anymore.
-Thanks again.
--Prasad
+* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [070127 21:05]:
+> Acked.
+> 
+> From: "ext Tony Lindgren" <tony@atomide.com>
+> Subject: Re: [PATCH] dsp: don't use registered_fb[1]
+> Date: Fri, 26 Jan 2007 13:51:24 -0800
+> 
+> > * Arnaud Patard <arnaud.patard@rtp-net.org> [070114 05:45]:
+> > > 
+> > > According to dsp_fbexport(), the dsp code handles only the first
+> > > registered framebuffer, so using registered_fb[1] in mbox_fbctl_upd is
+> > > wrong. registered_fb[0] must be used instead. 
+> > > This code has also the side effect to oops the kernel as
+> > > registered_fb[1] is null and omapfb_update_window_async doesn't handle
+> > > this case. The fix for omapfb_update_window_async is sent in an other
+> > > mail.
+> > > 
+> > > 
+> > > Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
+> > > ---
+> > 
+> > > ---
+> > >  arch/arm/plat-omap/dsp/dsp_mem.c |    2 	1 +	1 -	0 !
+> > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > > 
+> > > Index: linux-omap-2.6/arch/arm/plat-omap/dsp/dsp_mem.c
+> > > ===================================================================
+> > > --- linux-omap-2.6.orig/arch/arm/plat-omap/dsp/dsp_mem.c	2007-01-14 14:10:26.000000000 +0100
+> > > +++ linux-omap-2.6/arch/arm/plat-omap/dsp/dsp_mem.c	2007-01-14 14:10:37.000000000 +0100
+> > > @@ -2052,7 +2052,7 @@ void mbox_fbctl_upd(void)
+> > >  		return;
+> > >  	}
+> > >  	//printk("calling omapfb_update_window_async()\n");
+> > > -	omapfb_update_window_async(registered_fb[1], &win, fbupd_cb, NULL);
+> > > +	omapfb_update_window_async(registered_fb[0], &win, fbupd_cb, NULL);
+> > >  }
+> > >  
+> > >  #else /* CONFIG_FB_OMAP_LCDC_EXTERNAL */
+> > 
+> > Toshihiro and Hiroshi, can you ack this one?
 
------Original Message-----
-From: Girish. S. G. [mailto:girishsg@ti.com]=20
-Sent: Wednesday, January 31, 2007 5:34 AM
-To: Krishna Prasad Herur
-Cc: linux-omap-open-source@linux.omap.com
-Subject: RE: DMA transfer using McSPI driver
+Pushing today.
 
-hi prasad,
-
-If you have called all config macros correctly (like, set and get
-transmission
-enable on line 1/0 etc,.) then there shoudn't b any problem.
-
-Just check once if you are allocating memory for DMA buf properly.
-
-regards,
-girish
-
-> I think I know the reason for the soft lockup.
->
-> The omap 2430 errata says that the DMA Tx complete interrupt continues
-> to be asserted after a transaction error. I found this to be the
-reason
-> for the soft lockup. I am still unsure as to why there is a
-transaction
-> error!
->
->
->
-> The McSpi driver configuration for DMA transfer seems to be
-> straightforward. The McSpi driver seems to be calling all the Dma
-driver
-> functions with the right parameters.
->
->
->
-> Does anyone had success doing DMA transfers to/from McSpi channels
-using
-> the Omap McSpi driver?
->
-> Regards,
->
-> -Prasad
->
->
->
-> ________________________________
->
-> From: Krishna Prasad Herur
-> Sent: Tuesday, January 23, 2007 12:02 PM
-> To: linux-omap-open-source@linux.omap.com
-> Subject: DMA transfer using McSPI driver
->
->
->
-> Hi Gurus,
->
->             I was able to get raw data transfers over the McSPI bus on
-> an Omap 2430 based platform running Linux 2.6. I am trying to do the
-> same transmit using DMA. Is it possible to use DMA in polling mode? I
-> have not registered interrupt handlers or dma handlers.  Below is the
-> programming sequence I followed, after calling all the config macros.
->
->
->
->       omap2_mcspi_request_interface(devPtr);
->
->       omap2_mcspi_interface_reset(devPtr);
->
->       omap2_mcspi_get(devPtr);
->
->       omap2_mcspi_config_channel(devPtr);
->
->       omap2_mcspi_enable_channel(devPtr);
->
->       omap2_mcspi_dma_writereq(devPtr,OMAP2_McSPI_DMAW_ENABLE);
->
->       omap2_mcspi_transmit_buf(devPtr,dmaBuf,8);
->
->
->
-> I get a DMA transaction error, and a soft lockup.
->
->
->
-> DMA transaction error occurred with device 35
->
-> BUG: soft lockup detected on CPU#0!
->
->
->
-> Regards,
->
-> -Prasad
->
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
+Tony
