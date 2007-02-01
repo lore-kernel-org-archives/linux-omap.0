@@ -1,41 +1,63 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [patch 2.6.20-rc6-rt6 0/6] ARM clockevent patches
-Date: Thu, 1 Feb 2007 09:29:27 +0100
-Message-ID: <20070201082927.GB18233@elte.hu>
-References: <20070201001300.820659000@mvista.com>
+From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
+Subject: [PATCH] gpio-switch.c: use right flags for interrupts
+Date: Thu, 01 Feb 2007 11:03:43 +0100
+Message-ID: <85wt32nqio.fsf@orfeo.duckcorp.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
-Content-Disposition: inline
-In-Reply-To: <20070201001300.820659000@mvista.com>
-List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://lists.arm.linux.org.uk/pipermail/linux-arm-kernel>
-List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
-List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
-List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
-To: Kevin Hilman <khilman@mvista.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, linux-omap-open-source@linux.omap.com, linux-arm-kernel@lists.arm.linux.org.uk
+Content-Type: multipart/mixed; boundary="=-=-="
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+--=-=-=
 
-* Kevin Hilman <khilman@mvista.com> wrote:
 
-> Thomas, Ingo,
-> 
-> Here are some updates to get a couple ARM platforms working with the 
-> latest -rt.  The platforms tested are OMAP and XScale IXP4xx.
-> 
-> Patches against 2.6.20-rc6-rt6
+Hi,
 
-thanks, i've applied all of them, they'll show up in -rc7-rt1.
 
-	Ingo
+The recent switch from SA_ to IRQF_ constants for interrupt flags
+introduced a typo in the gpio_switch driver (IRQF_SHIRQ doesn't exist
+but IRQF_SHARED does).
 
--------------------------------------------------------------------
-List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
-FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
-Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
+
+Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
+---
+
+--=-=-=
+Content-Type: text/x-diff
+Content-Disposition: inline; filename=irq_changes.patch
+
+---
+ arch/arm/plat-omap/gpio-switch.c |    2 	1 +	1 -	0 !
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-omap-2.6/arch/arm/plat-omap/gpio-switch.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/gpio-switch.c	2007-02-01 09:40:39.000000000 +0100
++++ linux-omap-2.6/arch/arm/plat-omap/gpio-switch.c	2007-02-01 09:42:02.000000000 +0100
+@@ -310,7 +310,7 @@ static int __init new_switch(struct gpio
+ 			trigger = IRQF_TRIGGER_RISING;
+ 	}
+ 	r = request_irq(OMAP_GPIO_IRQ(sw->gpio), gpio_sw_irq_handler,
+-			IRQF_SHIRQ | trigger, sw->name, sw);
++			IRQF_SHARED | trigger, sw->name, sw);
+ 	if (r < 0) {
+ 		printk(KERN_ERR "gpio-switch: request_irq() failed "
+ 		       "for GPIO %d\n", sw->gpio);
+
+--=-=-=
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--=-=-=--
