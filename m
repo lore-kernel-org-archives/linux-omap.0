@@ -1,191 +1,41 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: [patch 2.6.20-rc6-rt6 5/6] ARM: clockevent support for ixp4xx
-	platform
-Date: Wed, 31 Jan 2007 16:13:05 -0800
-Message-ID: <20070201001317.315496000@mvista.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [patch 2.6.20-rc6-rt6 0/6] ARM clockevent patches
+Date: Thu, 1 Feb 2007 09:29:27 +0100
+Message-ID: <20070201082927.GB18233@elte.hu>
 References: <20070201001300.820659000@mvista.com>
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline; filename=arm-ixp4xx-clockevents.patch
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>
-Cc: linux-omap-open-source@linux.omap.com, linux-arm-kernel@lists.arm.linux.org.uk
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
+Content-Disposition: inline
+In-Reply-To: <20070201001300.820659000@mvista.com>
+List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://lists.arm.linux.org.uk/pipermail/linux-arm-kernel>
+List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
+List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
+List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
+To: Kevin Hilman <khilman@mvista.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, linux-omap-open-source@linux.omap.com, linux-arm-kernel@lists.arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-Index: linux-2.6/arch/arm/mach-ixp4xx/common.c
-===================================================================
---- linux-2.6.orig/arch/arm/mach-ixp4xx/common.c
-+++ linux-2.6/arch/arm/mach-ixp4xx/common.c
-@@ -27,6 +27,7 @@
- #include <linux/time.h>
- #include <linux/timex.h>
- #include <linux/clocksource.h>
-+#include <linux/clockchips.h>
- 
- #include <asm/arch/udc.h>
- #include <asm/hardware.h>
-@@ -41,6 +42,8 @@
- #include <asm/mach/time.h>
- 
- static int __init ixp4xx_clocksource_init(void);
-+static int __init ixp4xx_clockevent_init(void);
-+static struct clock_event_device clockevent_ixp4xx;
- 
- /*************************************************************************
-  * IXP4xx chipset I/O mapping
-@@ -239,52 +242,40 @@ void __init ixp4xx_init_irq(void)
-  * counter as a source of real clock ticks to account for missed jiffies.
-  *************************************************************************/
- 
--static unsigned volatile last_jiffy_time;
--
--#define CLOCK_TICKS_PER_USEC	((CLOCK_TICK_RATE + USEC_PER_SEC/2) / USEC_PER_SEC)
--
- static irqreturn_t ixp4xx_timer_interrupt(int irq, void *dev_id)
- {
--	write_seqlock(&xtime_lock);
-+	struct clock_event_device *evt = &clockevent_ixp4xx;
- 
- 	/* Clear Pending Interrupt by writing '1' to it */
- 	*IXP4XX_OSST = IXP4XX_OSST_TIMER_1_PEND;
- 
--	/*
--	 * Catch up with the real idea of time
--	 */
--	while ((signed long)(*IXP4XX_OSTS - last_jiffy_time) >= LATCH) {
--		timer_tick();
--		last_jiffy_time += LATCH;
--	}
--
--	write_sequnlock(&xtime_lock);
-+	evt->event_handler(evt);
- 
- 	return IRQ_HANDLED;
- }
- 
- static struct irqaction ixp4xx_timer_irq = {
--	.name		= "IXP4xx Timer Tick",
-+	.name		= "timer1",
- 	.flags		= IRQF_DISABLED | IRQF_TIMER,
- 	.handler	= ixp4xx_timer_interrupt,
- };
- 
- static void __init ixp4xx_timer_init(void)
- {
-+	/* Reset/disable counter */
-+	*IXP4XX_OSRT1 = 0;
-+
- 	/* Clear Pending Interrupt by writing '1' to it */
- 	*IXP4XX_OSST = IXP4XX_OSST_TIMER_1_PEND;
- 
--	/* Setup the Timer counter value */
--	*IXP4XX_OSRT1 = (LATCH & ~IXP4XX_OST_RELOAD_MASK) | IXP4XX_OST_ENABLE;
--
- 	/* Reset time-stamp counter */
- 	*IXP4XX_OSTS = 0;
--	last_jiffy_time = 0;
- 
- 	/* Connect the interrupt handler and enable the interrupt */
- 	setup_irq(IRQ_IXP4XX_TIMER1, &ixp4xx_timer_irq);
- 
- 	ixp4xx_clocksource_init();
-+	ixp4xx_clockevent_init();
- }
- 
- struct sys_timer ixp4xx_timer = {
-@@ -384,6 +375,9 @@ void __init ixp4xx_sys_init(void)
- 			ixp4xx_exp_bus_size >> 20);
- }
- 
-+/*
-+ * clocksource
-+ */
- cycle_t ixp4xx_get_cycles(void)
- {
- 	return *IXP4XX_OSTS;
-@@ -408,3 +402,64 @@ static int __init ixp4xx_clocksource_ini
- 
- 	return 0;
- }
-+
-+/*
-+ * clockevents
-+ */
-+static int ixp4xx_set_next_event(unsigned long evt,
-+				 struct clock_event_device *unused)
-+{
-+	unsigned long opts = *IXP4XX_OSRT1 & IXP4XX_OST_RELOAD_MASK;
-+
-+	*IXP4XX_OSRT1 = (evt & ~IXP4XX_OST_RELOAD_MASK) | opts;
-+
-+	return 0;
-+}
-+
-+static void ixp4xx_set_mode(enum clock_event_mode mode,
-+			    struct clock_event_device *evt)
-+{
-+	unsigned long opts, osrt = *IXP4XX_OSRT1 & ~IXP4XX_OST_RELOAD_MASK;
-+
-+	switch (mode) {
-+	case CLOCK_EVT_MODE_PERIODIC:
-+		osrt = LATCH & ~IXP4XX_OST_RELOAD_MASK;
-+ 		opts = IXP4XX_OST_ENABLE;
-+		break;
-+	case CLOCK_EVT_MODE_ONESHOT:
-+		/* period set by 'set next_event' */
-+		osrt = 0;
-+		opts = IXP4XX_OST_ENABLE | IXP4XX_OST_ONE_SHOT;
-+		break;
-+	case CLOCK_EVT_MODE_SHUTDOWN:
-+	case CLOCK_EVT_MODE_UNUSED:
-+	default:
-+		osrt = opts = 0;
-+		break;
-+	}
-+
-+	*IXP4XX_OSRT1 = osrt | opts;
-+}
-+
-+static struct clock_event_device clockevent_ixp4xx = {
-+	.name		= "ixp4xx timer1",
-+	.features       = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
-+	.rating         = 200,
-+	.shift		= 24,
-+	.set_mode	= ixp4xx_set_mode,
-+	.set_next_event	= ixp4xx_set_next_event,
-+};
-+
-+static int __init ixp4xx_clockevent_init(void)
-+{
-+	clockevent_ixp4xx.mult = div_sc(FREQ, NSEC_PER_SEC,
-+					clockevent_ixp4xx.shift);
-+	clockevent_ixp4xx.max_delta_ns =
-+		clockevent_delta2ns(0xfffffffe, &clockevent_ixp4xx);
-+	clockevent_ixp4xx.min_delta_ns =
-+		clockevent_delta2ns(0xf, &clockevent_ixp4xx);
-+	clockevent_ixp4xx.cpumask = cpumask_of_cpu(0);
-+
-+	clockevents_register_device(&clockevent_ixp4xx);
-+	return 0;
-+}
-Index: linux-2.6/arch/arm/Kconfig
-===================================================================
---- linux-2.6.orig/arch/arm/Kconfig
-+++ linux-2.6/arch/arm/Kconfig
-@@ -255,6 +255,7 @@ config ARCH_IXP4XX
- 	bool "IXP4xx-based"
- 	depends on MMU
- 	select GENERIC_TIME
-+	select GENERIC_CLOCKEVENTS
- 	help
- 	  Support for Intel's IXP4XX (XScale) family of processors.
- 
 
---
+* Kevin Hilman <khilman@mvista.com> wrote:
+
+> Thomas, Ingo,
+> 
+> Here are some updates to get a couple ARM platforms working with the 
+> latest -rt.  The platforms tested are OMAP and XScale IXP4xx.
+> 
+> Patches against 2.6.20-rc6-rt6
+
+thanks, i've applied all of them, they'll show up in -rc7-rt1.
+
+	Ingo
+
+-------------------------------------------------------------------
+List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
+FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
+Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
