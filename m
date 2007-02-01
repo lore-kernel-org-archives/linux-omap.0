@@ -1,11 +1,11 @@
 From: Kevin Hilman <khilman@mvista.com>
-Subject: [patch 2.6.20-rc6-rt6 6/6] ARM: clockevent support for OMAP1
+Subject: [patch 2.6.20-rc6-rt6 5/6] ARM: clockevent support for ixp4xx
 	platform
-Date: Wed, 31 Jan 2007 16:13:06 -0800
-Message-ID: <20070201001317.702237000@mvista.com>
+Date: Wed, 31 Jan 2007 16:13:05 -0800
+Message-ID: <20070201001317.315496000@mvista.com>
 References: <20070201001300.820659000@mvista.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline; filename=arm-omap-clockevent-fixups.patch
+Content-Disposition: inline; filename=arm-ixp4xx-clockevents.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,183 +19,173 @@ To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>
 Cc: linux-omap-open-source@linux.omap.com, linux-arm-kernel@lists.arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-These are minor fixups to the clockevent support which is
-already in 2.6.20-rc6-rt6 for OMAP.
-
-Index: linux-2.6/arch/arm/plat-omap/common.c
+Index: linux-2.6/arch/arm/mach-ixp4xx/common.c
 ===================================================================
---- linux-2.6.orig/arch/arm/plat-omap/common.c
-+++ linux-2.6/arch/arm/plat-omap/common.c
-@@ -186,7 +186,7 @@ static struct clocksource clocksource_32
- 	.read		= omap_32k_read,
- 	.mask		= CLOCKSOURCE_MASK(32),
- 	.shift		= 10,
--	.is_continuous	= 1,
-+	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
- };
+--- linux-2.6.orig/arch/arm/mach-ixp4xx/common.c
++++ linux-2.6/arch/arm/mach-ixp4xx/common.c
+@@ -27,6 +27,7 @@
+ #include <linux/time.h>
+ #include <linux/timex.h>
+ #include <linux/clocksource.h>
++#include <linux/clockchips.h>
  
- static int __init omap_init_clocksource_32k(void)
-Index: linux-2.6/arch/arm/plat-omap/timer32k.c
-===================================================================
---- linux-2.6.orig/arch/arm/plat-omap/timer32k.c
-+++ linux-2.6/arch/arm/plat-omap/timer32k.c
-@@ -144,35 +144,16 @@ static inline void omap_32k_timer_ack_ir
+ #include <asm/arch/udc.h>
+ #include <asm/hardware.h>
+@@ -41,6 +42,8 @@
+ #include <asm/mach/time.h>
  
- #endif
+ static int __init ixp4xx_clocksource_init(void);
++static int __init ixp4xx_clockevent_init(void);
++static struct clock_event_device clockevent_ixp4xx;
  
--static void omap_32k_timer_set_next_event(unsigned long cycles,
--				    struct clock_event_device *evt)
--{
--	unsigned long flags;
+ /*************************************************************************
+  * IXP4xx chipset I/O mapping
+@@ -239,52 +242,40 @@ void __init ixp4xx_init_irq(void)
+  * counter as a source of real clock ticks to account for missed jiffies.
+  *************************************************************************/
+ 
+-static unsigned volatile last_jiffy_time;
 -
--	local_irq_save(flags);
--	omap_32k_timer_stop();
--	omap_32k_timer_start(cycles);
--	local_irq_restore(flags);
--}
+-#define CLOCK_TICKS_PER_USEC	((CLOCK_TICK_RATE + USEC_PER_SEC/2) / USEC_PER_SEC)
 -
- static void omap_32k_timer_set_mode(enum clock_event_mode mode,
--			      struct clock_event_device *evt)
-+				    struct clock_event_device *evt)
+ static irqreturn_t ixp4xx_timer_interrupt(int irq, void *dev_id)
  {
--	static int periodic_requests = 0;
+-	write_seqlock(&xtime_lock);
++	struct clock_event_device *evt = &clockevent_ixp4xx;
+ 
+ 	/* Clear Pending Interrupt by writing '1' to it */
+ 	*IXP4XX_OSST = IXP4XX_OSST_TIMER_1_PEND;
+ 
+-	/*
+-	 * Catch up with the real idea of time
+-	 */
+-	while ((signed long)(*IXP4XX_OSTS - last_jiffy_time) >= LATCH) {
+-		timer_tick();
+-		last_jiffy_time += LATCH;
+-	}
 -
- 	switch (mode) {
--	case CLOCK_EVT_ONESHOT:
--		/* 32k timer does not have one-shot support in hardware.
--		 * instead, wet just to a stop in the next_event hook,
--		 * and dont support PERIODIC */
-+	case CLOCK_EVT_MODE_ONESHOT:
-+	case CLOCK_EVT_MODE_PERIODIC:
-+		omap_32k_timer_start(OMAP_32K_TIMER_TICK_PERIOD);
- 		break;
--	case CLOCK_EVT_PERIODIC:
--		if (periodic_requests)
--			printk(KERN_ERR "32k-timer: CLOCK_EVT_PERIODIC "
--			       "is not supported.\n");
--		periodic_requests++;
--		break;
--	case CLOCK_EVT_SHUTDOWN:
-+	case CLOCK_EVT_MODE_UNUSED:
-+	case CLOCK_EVT_MODE_SHUTDOWN:
- 		omap_32k_timer_stop();
- 		break;
- 	}
-@@ -180,10 +161,8 @@ static void omap_32k_timer_set_mode(enum
- 
- static struct clock_event_device clockevent_32k_timer = {
- 	.name		= "32k-timer",
--	.capabilities	= CLOCK_CAP_NEXTEVT | CLOCK_CAP_TICK |
--			  CLOCK_CAP_UPDATE,
-+	.features       = CLOCK_EVT_FEAT_PERIODIC,
- 	.shift		= 32,
--	.set_next_event	= omap_32k_timer_set_next_event,
- 	.set_mode	= omap_32k_timer_set_mode,
- };
- 
-@@ -226,9 +205,10 @@ unsigned long long sched_clock(void)
- 
- static irqreturn_t omap_32k_timer_interrupt(int irq, void *dev_id)
- {
-+	struct clock_event_device *evt = &clockevent_32k_timer;
- 	omap_32k_timer_ack_irq();
- 
--	clockevent_32k_timer.event_handler();
+-	write_sequnlock(&xtime_lock);
 +	evt->event_handler(evt);
  
  	return IRQ_HANDLED;
  }
-@@ -259,8 +239,6 @@ static __init void omap_init_32k_timer(v
- 	}
- #endif
  
--	omap_32k_timer_start(OMAP_32K_TIMER_TICK_PERIOD);
--
- 	clockevent_32k_timer.mult = div_sc(OMAP_32K_TICKS_PER_SEC,
- 					   NSEC_PER_SEC,
- 					   clockevent_32k_timer.shift);
-@@ -269,7 +247,8 @@ static __init void omap_init_32k_timer(v
- 	clockevent_32k_timer.min_delta_ns =
- 		clockevent_delta2ns(1, &clockevent_32k_timer);
+ static struct irqaction ixp4xx_timer_irq = {
+-	.name		= "IXP4xx Timer Tick",
++	.name		= "timer1",
+ 	.flags		= IRQF_DISABLED | IRQF_TIMER,
+ 	.handler	= ixp4xx_timer_interrupt,
+ };
  
--	register_global_clockevent(&clockevent_32k_timer);
-+	clockevent_32k_timer.cpumask = cpumask_of_cpu(0);
-+	clockevents_register_device(&clockevent_32k_timer);
- }
- 
- /*
-Index: linux-2.6/arch/arm/mach-omap1/time.c
-===================================================================
---- linux-2.6.orig/arch/arm/mach-omap1/time.c
-+++ linux-2.6/arch/arm/mach-omap1/time.c
-@@ -137,31 +137,32 @@ static inline void omap_mpu_timer_start(
-  * MPU timer 1 ... count down to zero, interrupt, reload
-  * ---------------------------------------------------------------------------
-  */
--static void omap_mpu_set_next_event(unsigned long cycles,
-+static int omap_mpu_set_next_event(unsigned long cycles,
- 				    struct clock_event_device *evt)
+ static void __init ixp4xx_timer_init(void)
  {
- 	omap_mpu_timer_start(0, cycles, 0);
-+	return 0;
- }
- 
- static void omap_mpu_set_mode(enum clock_event_mode mode,
- 			      struct clock_event_device *evt)
- {
- 	switch (mode) {
--	case CLOCK_EVT_PERIODIC:
-+	case CLOCK_EVT_MODE_PERIODIC:
- 		omap_mpu_set_autoreset(0);
- 		break;
--	case CLOCK_EVT_ONESHOT:
-+	case CLOCK_EVT_MODE_ONESHOT:
- 		omap_mpu_remove_autoreset(0);
- 		break;
--	case CLOCK_EVT_SHUTDOWN:
-+	case CLOCK_EVT_MODE_UNUSED:
-+	case CLOCK_EVT_MODE_SHUTDOWN:
- 		break;
- 	}
- }
- 
- static struct clock_event_device clockevent_mpu_timer1 = {
- 	.name		= "mpu_timer1",
--	.capabilities	= CLOCK_CAP_NEXTEVT | CLOCK_CAP_TICK |
--			  CLOCK_CAP_UPDATE,
-+	.features       = CLOCK_EVT_FEAT_PERIODIC, CLOCK_EVT_FEAT_ONESHOT,
- 	.shift		= 32,
- 	.set_next_event	= omap_mpu_set_next_event,
- 	.set_mode	= omap_mpu_set_mode,
-@@ -169,7 +170,9 @@ static struct clock_event_device clockev
- 
- static irqreturn_t omap_mpu_timer1_interrupt(int irq, void *dev_id)
- {
--	clockevent_mpu_timer1.event_handler();
-+	struct clock_event_device *evt = &clockevent_mpu_timer1;
++	/* Reset/disable counter */
++	*IXP4XX_OSRT1 = 0;
 +
-+	evt->event_handler(evt);
+ 	/* Clear Pending Interrupt by writing '1' to it */
+ 	*IXP4XX_OSST = IXP4XX_OSST_TIMER_1_PEND;
  
- 	return IRQ_HANDLED;
+-	/* Setup the Timer counter value */
+-	*IXP4XX_OSRT1 = (LATCH & ~IXP4XX_OST_RELOAD_MASK) | IXP4XX_OST_ENABLE;
+-
+ 	/* Reset time-stamp counter */
+ 	*IXP4XX_OSTS = 0;
+-	last_jiffy_time = 0;
+ 
+ 	/* Connect the interrupt handler and enable the interrupt */
+ 	setup_irq(IRQ_IXP4XX_TIMER1, &ixp4xx_timer_irq);
+ 
+ 	ixp4xx_clocksource_init();
++	ixp4xx_clockevent_init();
  }
-@@ -194,7 +197,8 @@ static __init void omap_init_mpu_timer(u
- 	clockevent_mpu_timer1.min_delta_ns =
- 		clockevent_delta2ns(1, &clockevent_mpu_timer1);
  
--        register_global_clockevent(&clockevent_mpu_timer1);
-+	clockevent_mpu_timer1.cpumask = cpumask_of_cpu(0);
-+	clockevents_register_device(&clockevent_mpu_timer1);
+ struct sys_timer ixp4xx_timer = {
+@@ -384,6 +375,9 @@ void __init ixp4xx_sys_init(void)
+ 			ixp4xx_exp_bus_size >> 20);
  }
  
++/*
++ * clocksource
++ */
+ cycle_t ixp4xx_get_cycles(void)
+ {
+ 	return *IXP4XX_OSTS;
+@@ -408,3 +402,64 @@ static int __init ixp4xx_clocksource_ini
  
-@@ -229,7 +233,7 @@ static struct clocksource clocksource_mp
- 	.read		= mpu_read,
- 	.mask		= CLOCKSOURCE_MASK(32),
- 	.shift		= 24,
--	.is_continuous	= 1,
-+	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
- };
+ 	return 0;
+ }
++
++/*
++ * clockevents
++ */
++static int ixp4xx_set_next_event(unsigned long evt,
++				 struct clock_event_device *unused)
++{
++	unsigned long opts = *IXP4XX_OSRT1 & IXP4XX_OST_RELOAD_MASK;
++
++	*IXP4XX_OSRT1 = (evt & ~IXP4XX_OST_RELOAD_MASK) | opts;
++
++	return 0;
++}
++
++static void ixp4xx_set_mode(enum clock_event_mode mode,
++			    struct clock_event_device *evt)
++{
++	unsigned long opts, osrt = *IXP4XX_OSRT1 & ~IXP4XX_OST_RELOAD_MASK;
++
++	switch (mode) {
++	case CLOCK_EVT_MODE_PERIODIC:
++		osrt = LATCH & ~IXP4XX_OST_RELOAD_MASK;
++ 		opts = IXP4XX_OST_ENABLE;
++		break;
++	case CLOCK_EVT_MODE_ONESHOT:
++		/* period set by 'set next_event' */
++		osrt = 0;
++		opts = IXP4XX_OST_ENABLE | IXP4XX_OST_ONE_SHOT;
++		break;
++	case CLOCK_EVT_MODE_SHUTDOWN:
++	case CLOCK_EVT_MODE_UNUSED:
++	default:
++		osrt = opts = 0;
++		break;
++	}
++
++	*IXP4XX_OSRT1 = osrt | opts;
++}
++
++static struct clock_event_device clockevent_ixp4xx = {
++	.name		= "ixp4xx timer1",
++	.features       = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
++	.rating         = 200,
++	.shift		= 24,
++	.set_mode	= ixp4xx_set_mode,
++	.set_next_event	= ixp4xx_set_next_event,
++};
++
++static int __init ixp4xx_clockevent_init(void)
++{
++	clockevent_ixp4xx.mult = div_sc(FREQ, NSEC_PER_SEC,
++					clockevent_ixp4xx.shift);
++	clockevent_ixp4xx.max_delta_ns =
++		clockevent_delta2ns(0xfffffffe, &clockevent_ixp4xx);
++	clockevent_ixp4xx.min_delta_ns =
++		clockevent_delta2ns(0xf, &clockevent_ixp4xx);
++	clockevent_ixp4xx.cpumask = cpumask_of_cpu(0);
++
++	clockevents_register_device(&clockevent_ixp4xx);
++	return 0;
++}
+Index: linux-2.6/arch/arm/Kconfig
+===================================================================
+--- linux-2.6.orig/arch/arm/Kconfig
++++ linux-2.6/arch/arm/Kconfig
+@@ -255,6 +255,7 @@ config ARCH_IXP4XX
+ 	bool "IXP4xx-based"
+ 	depends on MMU
+ 	select GENERIC_TIME
++	select GENERIC_CLOCKEVENTS
+ 	help
+ 	  Support for Intel's IXP4XX (XScale) family of processors.
  
- static void __init omap_init_clocksource(unsigned long rate)
 
 --
