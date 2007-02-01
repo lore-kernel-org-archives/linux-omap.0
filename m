@@ -1,13 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] gpio-switch.c: use right flags for interrupts
-Date: Thu, 1 Feb 2007 10:13:31 -0800
-Message-ID: <20070201181330.GD19495@atomide.com>
-References: <85wt32nqio.fsf@orfeo.duckcorp.org>
+Subject: Re: [PATCH] mtd/cmdlinepart.c: remove static declaration of
+	mtdpart_setup
+Date: Thu, 1 Feb 2007 10:20:05 -0800
+Message-ID: <20070201182004.GF19495@atomide.com>
+References: <85odoenq89.fsf@orfeo.duckcorp.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <85wt32nqio.fsf@orfeo.duckcorp.org>
+In-Reply-To: <85odoenq89.fsf@orfeo.duckcorp.org>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,38 +22,18 @@ To: Arnaud Patard <arnaud.patard@rtp-net.org>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Arnaud Patard <arnaud.patard@rtp-net.org> [070201 02:05]:
-> 
+* Arnaud Patard <arnaud.patard@rtp-net.org> [070201 02:16]:
 > Hi,
 > 
-> 
-> The recent switch from SA_ to IRQF_ constants for interrupt flags
-> introduced a typo in the gpio_switch driver (IRQF_SHIRQ doesn't exist
-> but IRQF_SHARED does).
-> 
-> 
-> Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
-> ---
+> The n770 (and maybe the n800 too) are using a tag for setting the
+> mtd partition layout and not the command line. The commit in linus tree
+> ddacff1f20fc5c96cc73e2975258e05d298c97cc is setting mtdpart_setup as
+> static, preventing its use in the omap-hw driver and thus, is breaking
+> the build.
+> So, here's a patch to revert it. imho we'll have to carry it in the omap
+> tree until the omap-hw driver is merged.
 
-> ---
->  arch/arm/plat-omap/gpio-switch.c |    2 	1 +	1 -	0 !
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> Index: linux-omap-2.6/arch/arm/plat-omap/gpio-switch.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/plat-omap/gpio-switch.c	2007-02-01 09:40:39.000000000 +0100
-> +++ linux-omap-2.6/arch/arm/plat-omap/gpio-switch.c	2007-02-01 09:42:02.000000000 +0100
-> @@ -310,7 +310,7 @@ static int __init new_switch(struct gpio
->  			trigger = IRQF_TRIGGER_RISING;
->  	}
->  	r = request_irq(OMAP_GPIO_IRQ(sw->gpio), gpio_sw_irq_handler,
-> -			IRQF_SHIRQ | trigger, sw->name, sw);
-> +			IRQF_SHARED | trigger, sw->name, sw);
->  	if (r < 0) {
->  		printk(KERN_ERR "gpio-switch: request_irq() failed "
->  		       "for GPIO %d\n", sw->gpio);
-
-Pushing today, also adding to upstream queue.
+Pushing today.
 
 Regards,
 
