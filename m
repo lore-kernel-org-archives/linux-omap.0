@@ -1,15 +1,15 @@
-From: "Krishna Prasad Herur" <kherur@nextwave.com>
+From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
 Subject: RE: DMA transfer using McSPI driver
-Date: Thu, 1 Feb 2007 18:20:14 -0800
-Message-ID: <E6CCDC65B8C522458685D8D1F145FEA81897AD@CA2-MSX-C01.nw.net>
-References: <46149.192.168.10.89.1170250434.squirrel@dbdmail.itg.ti.com>
+Date: Fri, 2 Feb 2007 13:49:37 +0530
+Message-ID: <5DF83221BE20114E9C331F665ACBC08002843D3E@dbde01.ent.ti.com>
+References: <E6CCDC65B8C522458685D8D1F145FEA81897AD@CA2-MSX-C01.nw.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
-In-Reply-To: <46149.192.168.10.89.1170250434.squirrel@dbdmail.itg.ti.com>
+In-Reply-To: <E6CCDC65B8C522458685D8D1F145FEA81897AD@CA2-MSX-C01.nw.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,9 +19,28 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: girishsg@ti.com
+To: Krishna Prasad Herur <kherur@nextwave.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
+
+Hi,
+
+Mcspi transfer with raw mode can be done using the APIs
+omap2_mcspi_raw_writetochannel(), omap2_mcspi_raw_readfromchannel().
+Since it is a serial peripheral, you shall call these APIs in the tx/rx
+IRQ handlers registered by you.
+
+Regards,
+Senthil.
+
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+Krishna Prasad Herur
+Sent: Friday, February 02, 2007 7:50 AM
+To: Ghongadematt, Girish
+Cc: linux-omap-open-source@linux.omap.com
+Subject: RE: DMA transfer using McSPI driver
 
 If I understand the McSPI spec correctly, I should be able to enable a
 channel, and then do a mcspi_transmit_buf. Also, the McSpi driver code
@@ -153,3 +172,10 @@ using
 > Linux-omap-open-source@linux.omap.com
 > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
 >
+
+
+
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
