@@ -1,10 +1,15 @@
-From: Olav Kongas <ok@artecdesign.ee>
-Subject: N800: broken kernel signal handler restorer (2)
-Date: Fri, 2 Feb 2007 14:32:59 +0200 (EET)
-Message-ID: <Pine.LNX.4.63.0702021432080.7230@pcx>
+From: "Girish. S. G." <girishsg@ti.com>
+Subject: RE: DMA transfer using McSPI driver
+Date: Fri, 2 Feb 2007 19:25:05 +0530 (IST)
+Message-ID: <48612.192.168.10.88.1170424505.squirrel@dbdmail.itg.ti.com>
+References: <46149.192.168.10.89.1170250434.squirrel@dbdmail.itg.ti.com>
+	<E6CCDC65B8C522458685D8D1F145FEA81897AD@CA2-MSX-C01.nw.net>
+Reply-To: girishsg@ti.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <E6CCDC65B8C522458685D8D1F145FEA81897AD@CA2-MSX-C01.nw.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,135 +17,157 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Krishna Prasad Herur <kherur@nextwave.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Sorry, last time it went without the example code. Here it 
-comes again.
+After doing RAW mode transfer and then configuring to DMA mode transfer, =
+I
+never tried this combination though but still there shouldn=92t be any pr=
+oblem.
 
-----------
+May be you can try doing a soft reset of the module(after RAW mode transf=
+er)
+before switching to DMA mode transfer.
 
-Hi,
-
-N800, 2.6.18-omap1, built by Nokia. Briefly, the 
-kernel-installed signal handler restorer code does not work 
-with that kernel.
-
-If using sigaction(2) to install signal handler, uClibc and 
-I guess glibc install their own sa_restorer(). However, if 
-to install the signal handler without providing userspace 
-sa_restorer() then the kernel's signal handler restorer code 
-should be used. Below is the test program that fails on N800 
-if RELY_ON_USERSPACE_SA_RESTORER is undefined. In contrast, 
-that program works fine on other ARM platforms with 
-different kernels here, including a 2.4.x uclinux. 
-
-On N800, without RELY_ON_USERSPACE_SA_RESTORER, the signal 
-handler is requested to return to 0xffff0500 (that was the 
-value in lr on entry to signal handler). However, when 
-signal handler finishes and jumps there, the SIGILL on 
-0xffff0508 follows.
-
-Any ideas, is this problem specific to nokia kernel or omap 
-kernels in general or am I just doing something wrong? 
-Thanks in advance.
-
-Olav
-
-------------------- testcode -----------------------
-/*
-   I compiled it with: CFLAGS := -Wall -Os -static
-*/
-
-#include <signal.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <asm/unistd.h>
-
-/* For struct kernel_sigaction */
-#include <bits/kernel_sigaction.h>
-
-/* Comment out to trigger SIGILL on 2.6.18-omap1 on N800 */
-#define RELY_ON_USERSPACE_SA_RESTORER
+regards,
+girish
 
 
-/* Replacement of sigaction(2) to work around automagic userspace 
-   sa_restorer installation in popular libc's.
-
-   Expected to compile with -Os to:
-	swi	0x009000ae
-	mov	pc, lr
-*/
-static int my_rt_sigaction(int signum, struct kernel_sigaction *act,
-			struct kernel_sigaction *oldact, int len)
-{
-	register long r0 asm("r0") = (long) signum ;
-	register long r1 asm("r1") = (long) act;
-	register long r2 asm("r2") = (long) oldact;
-	register long r3 asm("r3") = (long) len;
-
-	asm volatile(
-			"swi	%1\n\t"
-			: "=&r"(r0)
-			: "i" (__NR_rt_sigaction),
-			"0"(r0), "r"(r1), "r"(r2), "r"(r3)
-                        : "memory");
-	return (int) r0;
-}
-
-
-#ifdef RELY_ON_USERSPACE_SA_RESTORER
-
-#define SA_RESTORER 0x04000000
-
-/* Expected to compile with -Os to:
-	swi	0x00900077
-	mov	pc, lr
-*/
-static void my_sa_restorer(void)
-{
-	asm volatile ("swi	%0\n\t" :: "i" (__NR_sigreturn));
-}
-
-#endif /* RELY_ON_USERSPACE_SA_RESTORER */
-
-
-static void sigchld_handler(int sig __attribute__((unused)))
-{
-	printf("%s: hello\n",__func__);
-}
-
-
-int main()
-{
-	int rc;
-	struct kernel_sigaction kact;
-
-	/* Install SIGCHLD handler */
-	kact.k_sa_handler = sigchld_handler;
-	kact.sa_flags = 0;
-	sigemptyset(&kact.sa_mask);
-#ifdef RELY_ON_USERSPACE_SA_RESTORER
-	kact.sa_restorer = my_sa_restorer;
-	kact.sa_flags |= SA_RESTORER;
-	printf("Userspace sa_restorer\n");
-#else
-	printf("Kernel sa_restorer\n");
-#endif
-
-	/* Install signal handler */
-	rc = my_rt_sigaction(SIGCHLD, & kact, 0, _NSIG / 8);
-	if(rc == -1) {
-		printf("%s: __my_rt_sigaction() failed\n",__func__);
-		return 1;
-	}
-
-	/* Signal ourselves. If the kernel's signal restorer code
-	   is borked AND we didn't provide our own sa_restorer,
-	   we'll get SIGILL */
-	kill(getpid(), SIGCHLD);
-
-	return 0;
-}
+> If I understand the McSPI spec correctly, I should be able to enable a
+> channel, and then do a mcspi_transmit_buf. Also, the McSpi driver code
+> talks about the client/user maintaining the RAW/DMA mode. I do not see
+> any functions or variables that retain such info. (other than the
+> omap2_mcspi_set_dma_write macro)
+>
+> In my case, I see the DMA data only when I configure the channel, do a
+> dma_transmit, and then enable the McSpi channel. This seems very weird,
+> and DMA transfers fail after switching from RAW mode to DMA mode. I hav=
+e
+> tried many combinations of reserving, releasing the channels before
+> switching from RAW to DMA mode.
+>
+> Can someone shed light on the procedure to switch from raw mode to DMA
+> mode?
+>
+> Here is how I got DMA to work.
+> <Call all config macros>
+> 	omap2_mcspi_set_dma_write(mySpiDev, OMAP2_McSPI_CHAN_DMA_WRITE);
+> 	omap2_mcspi_request_interface(devPtr);
+> 	omap2_mcspi_get(devPtr);
+> 	omap2_mcspi_config_channel(devPtr);
+> 	omap2_mcspi_dma_writereq(devPtr,OMAP2_McSPI_DMAW_ENABLE);
+> 	omap2_mcspi_transmit_buf(devPtr,virt_to_phys((u32
+> *)dmaBuf),256);
+> 	omap2_mcspi_enable_channel(devPtr);
+>
+> Thanks,
+> -Prasad
+>
+>
+> -----Original Message-----
+> From: Girish. S. G. [mailto:girishsg@ti.com]
+> Sent: Wednesday, January 31, 2007 5:34 AM
+> To: Krishna Prasad Herur
+> Cc: linux-omap-open-source@linux.omap.com
+> Subject: RE: DMA transfer using McSPI driver
+>
+> hi prasad,
+>
+> If you have called all config macros correctly (like, set and get
+> transmission
+> enable on line 1/0 etc,.) then there shoudn't b any problem.
+>
+> Just check once if you are allocating memory for DMA buf properly.
+>
+> regards,
+> girish
+>
+>> I think I know the reason for the soft lockup.
+>>
+>> The omap 2430 errata says that the DMA Tx complete interrupt continues
+>> to be asserted after a transaction error. I found this to be the
+> reason
+>> for the soft lockup. I am still unsure as to why there is a
+> transaction
+>> error!
+>>
+>>
+>>
+>> The McSpi driver configuration for DMA transfer seems to be
+>> straightforward. The McSpi driver seems to be calling all the Dma
+> driver
+>> functions with the right parameters.
+>>
+>>
+>>
+>> Does anyone had success doing DMA transfers to/from McSpi channels
+> using
+>> the Omap McSpi driver?
+>>
+>> Regards,
+>>
+>> -Prasad
+>>
+>>
+>>
+>> ________________________________
+>>
+>> From: Krishna Prasad Herur
+>> Sent: Tuesday, January 23, 2007 12:02 PM
+>> To: linux-omap-open-source@linux.omap.com
+>> Subject: DMA transfer using McSPI driver
+>>
+>>
+>>
+>> Hi Gurus,
+>>
+>>             I was able to get raw data transfers over the McSPI bus on
+>> an Omap 2430 based platform running Linux 2.6. I am trying to do the
+>> same transmit using DMA. Is it possible to use DMA in polling mode? I
+>> have not registered interrupt handlers or dma handlers.  Below is the
+>> programming sequence I followed, after calling all the config macros.
+>>
+>>
+>>
+>>       omap2_mcspi_request_interface(devPtr);
+>>
+>>       omap2_mcspi_interface_reset(devPtr);
+>>
+>>       omap2_mcspi_get(devPtr);
+>>
+>>       omap2_mcspi_config_channel(devPtr);
+>>
+>>       omap2_mcspi_enable_channel(devPtr);
+>>
+>>       omap2_mcspi_dma_writereq(devPtr,OMAP2_McSPI_DMAW_ENABLE);
+>>
+>>       omap2_mcspi_transmit_buf(devPtr,dmaBuf,8);
+>>
+>>
+>>
+>> I get a DMA transaction error, and a soft lockup.
+>>
+>>
+>>
+>> DMA transaction error occurred with device 35
+>>
+>> BUG: soft lockup detected on CPU#0!
+>>
+>>
+>>
+>> Regards,
+>>
+>> -Prasad
+>>
+>> _______________________________________________
+>> Linux-omap-open-source mailing list
+>> Linux-omap-open-source@linux.omap.com
+>> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>>
+>
+>
+>
+>
