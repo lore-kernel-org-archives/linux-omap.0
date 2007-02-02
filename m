@@ -1,7 +1,7 @@
 From: Felipe Balbi <felipe.lima@indt.org.br>
-Subject: [RFC] [PATCH 5/5]: Composite Devices Support
-Date: Fri, 02 Feb 2007 11:49:36 -0400
-Message-ID: <1170431376.23028.65.camel@balbi>
+Subject: [RFC] [PATCH 3/5]: Composite Devices Support
+Date: Fri, 02 Feb 2007 11:47:42 -0400
+Message-ID: <1170431262.23028.51.camel@balbi>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -18,442 +18,195 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-[PATCH] g_serial modification for it to become a USB_FUNCTION.
+[PATCH] g_ether modification for it to become a USB_FUNCTION.
 
 Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
 Signed-off-by: Ragner Magalhaes <ragner.magalhaes@indt.org.br>
 ---
 
-Index: 2.6-dev/drivers/usb/gadget/serial.c
+Index: 2.6-dev/drivers/usb/gadget/ether.c
 ===================================================================
---- 2.6-dev.orig/drivers/usb/gadget/serial.c	2007-01-29
-11:44:59.000000000 -0400
-+++ 2.6-dev/drivers/usb/gadget/serial.c	2007-01-29 11:45:11.000000000
+--- 2.6-dev.orig/drivers/usb/gadget/ether.c	2007-01-29
+11:45:37.000000000 -0400
++++ 2.6-dev/drivers/usb/gadget/ether.c	2007-01-29 11:46:00.000000000
 -0400
-@@ -45,6 +45,7 @@
- 
- #include <linux/usb_ch9.h>
- #include <linux/usb/cdc.h>
-+#include <linux/usb/composite.h>
- #include <linux/usb_gadget.h>
- 
- #include "gadget_chips.h"
-@@ -66,7 +67,12 @@
- #define GS_NUM_CONFIGS			1
- #define GS_NO_CONFIG_ID			0
- #define GS_BULK_CONFIG_ID		1
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+#define COMPOSITE_CONFIG_VALUE  3	/* composite config */
-+#define GS_ACM_CONFIG_ID		COMPOSITE_CONFIG_VALUE
-+#else
- #define GS_ACM_CONFIG_ID		2
-+#endif
- 
- #define GS_MAX_NUM_INTERFACES		2
- #define GS_BULK_INTERFACE_ID		0
-@@ -97,6 +103,8 @@
- #define GS_SPEED_SELECT(is_hs,hs,fs) (fs)
- #endif /* CONFIG_USB_GADGET_DUALSPEED */
- 
-+#define GS_DEBUG 1
-+
- /* debug settings */
- #ifdef GS_DEBUG
- static int debug = 1;
-@@ -189,7 +197,7 @@
- /* tty driver */
- static int gs_open(struct tty_struct *tty, struct file *file);
- static void gs_close(struct tty_struct *tty, struct file *file);
--static int gs_write(struct tty_struct *tty, 
-+static int gs_write(struct tty_struct *tty,
- 	const unsigned char *buf, int count);
- static void gs_put_char(struct tty_struct *tty, unsigned char ch);
- static void gs_flush_chars(struct tty_struct *tty);
-@@ -211,6 +219,16 @@
- static void gs_write_complete(struct usb_ep *ep, struct usb_request
-*req);
- 
- /* gadget driver */
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+static int gs_bind(struct usb_composite_dev *cdev);
-+static void gs_unbind(struct usb_composite_dev *cdev);
-+static int gs_setup(struct usb_composite_dev *cdev,
-+	const struct usb_ctrlrequest *ctrl);
-+static int gs_setup_standard(struct usb_composite_dev *cdev,
-+	const struct usb_ctrlrequest *ctrl);
-+static int gs_setup_class(struct usb_composite_dev *cdev,
-+	const struct usb_ctrlrequest *ctrl);
-+#else
- static int gs_bind(struct usb_gadget *gadget);
- static void gs_unbind(struct usb_gadget *gadget);
- static int gs_setup(struct usb_gadget *gadget,
-@@ -219,8 +237,13 @@
- 	const struct usb_ctrlrequest *ctrl);
- static int gs_setup_class(struct usb_gadget *gadget,
- 	const struct usb_ctrlrequest *ctrl);
-+#endif
- static void gs_setup_complete(struct usb_ep *ep, struct usb_request
-*req);
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+static void gs_disconnect(struct usb_composite_dev *cdev);
-+#else
- static void gs_disconnect(struct usb_gadget *gadget);
-+#endif
- static int gs_set_config(struct gs_dev *dev, unsigned config);
- static void gs_reset_config(struct gs_dev *dev);
- static int gs_build_config_buf(u8 *buf, enum usb_device_speed speed,
-@@ -286,7 +309,24 @@
- 	.chars_in_buffer =	gs_chars_in_buffer,
- };
- static struct tty_driver *gs_tty_driver;
-+static struct usb_gadget_strings gs_string_table;
-+struct usb_descriptor_header *gs_acm_fullspeed_function[];
- 
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+/* USB_FUNCTION */
-+struct usb_function gs_usb_function = {
-+	.name		= GS_LONG_NAME,
-+	.strings	= &gs_string_table,
-+	.descriptors	= gs_acm_fullspeed_function,
-+#ifdef CONFIG_USB_GADGET_DUALSPEED
-+	.hs_descriptors	= gs_acm_highspeed_function,
-+#endif
-+	.bind		= gs_bind,
-+	.unbind		= gs_unbind,
-+	.setup		= gs_setup,
-+	.disconnect	= gs_disconnect,
-+};
-+#else
- /* gadget driver struct */
- static struct usb_gadget_driver gs_gadget_driver = {
- #ifdef CONFIG_USB_GADGET_DUALSPEED
-@@ -303,10 +343,21 @@
- 		.name =		GS_SHORT_NAME,
- 	},
- };
-+#endif
+@@ -20,8 +20,8 @@
+  */
  
 
- /* USB descriptors */
+-// #define DEBUG 1
+-// #define VERBOSE
++#define DEBUG 1
++#define VERBOSE 1
  
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+@@ -50,6 +50,7 @@
+ #include <linux/usb_ch9.h>
+ #include <linux/usb/cdc.h>
+ #include <linux/usb_gadget.h>
++#include <linux/usb/composite.h>
+ 
+ #include <linux/random.h>
+ #include <linux/netdevice.h>
+@@ -398,7 +399,19 @@
+  * Ethernet functionality), they don't need the NOP altsetting, and the
+  * status transfer endpoint isn't optional.
+  */
+-
 +#if	defined(CONFIG_USB_COMPOSITE) ||
 defined(CONFIG_USB_COMPOSITE_MODULE)
 +/* eth[11-20], serial[21-27], storage[31-35] */
-+#define GS_MANUFACTURER_STR_ID	21
-+#define GS_PRODUCT_STR_ID	22
-+#define GS_SERIAL_STR_ID	23
-+#define GS_BULK_CONFIG_STR_ID	24
-+#define GS_ACM_CONFIG_STR_ID	25
-+#define GS_CONTROL_STR_ID	26
-+#define GS_DATA_STR_ID		27
++#define STRING_MANUFACTURER		11
++#define STRING_PRODUCT			12
++#define STRING_ETHADDR			13
++#define STRING_DATA			14
++#define STRING_CONTROL			15
++#define STRING_RNDIS_CONTROL		16
++#define STRING_CDC			17
++#define STRING_SUBSET			18
++#define STRING_RNDIS			19
++#define STRING_SERIALNUMBER		20
 +#else
- #define GS_MANUFACTURER_STR_ID	1
- #define GS_PRODUCT_STR_ID	2
- #define GS_SERIAL_STR_ID	3
-@@ -314,6 +365,7 @@
- #define GS_ACM_CONFIG_STR_ID	5
- #define GS_CONTROL_STR_ID	6
- #define GS_DATA_STR_ID		7
+ #define STRING_MANUFACTURER		1
+ #define STRING_PRODUCT			2
+ #define STRING_ETHADDR			3
+@@ -409,6 +422,7 @@
+ #define STRING_SUBSET			8
+ #define STRING_RNDIS			9
+ #define STRING_SERIALNUMBER		10
 +#endif /* End if Composite*/
  
- /* static strings, in UTF-8 */
- static char manufacturer[50];
-@@ -375,7 +427,7 @@
- 	.bMaxPower =		1,
- };
+ /* holds our biggest descriptor (or RNDIS response) */
+ #define USB_BUFSIZ	256
+@@ -423,8 +437,12 @@
+  * FIXME define some higher-powered configurations to make it easier
+  * to recharge batteries ...
+  */
+-
++#if	defined(CONFIG_USB_COMPOSITE) ||
+defined(CONFIG_USB_COMPOSITE_MODULE)
++#define COMPOSITE_CONFIG_VALUE  3	/* composite config */
++#define DEV_CONFIG_VALUE	COMPOSITE_CONFIG_VALUE
++#else
+ #define DEV_CONFIG_VALUE	1	/* cdc or subset */
++#endif
+ #define DEV_RNDIS_CONFIG_VALUE	2	/* rndis; optional */
  
--static const struct usb_interface_descriptor gs_bulk_interface_desc = {
-+struct usb_interface_descriptor gs_bulk_interface_desc = {
- 	.bLength =		USB_DT_INTERFACE_SIZE,
+ static struct usb_device_descriptor
+@@ -492,7 +510,7 @@
+  */
+ 
+ #ifdef	DEV_CONFIG_CDC
+-static struct usb_interface_descriptor
++struct usb_interface_descriptor
+ control_intf = {
+ 	.bLength =		sizeof control_intf,
  	.bDescriptorType =	USB_DT_INTERFACE,
- 	.bInterfaceNumber =	GS_BULK_INTERFACE_ID,
-@@ -386,7 +438,7 @@
- 	.iInterface =		GS_DATA_STR_ID,
+@@ -508,7 +526,7 @@
+ #endif
+ 
+ #ifdef	CONFIG_USB_ETH_RNDIS
+-static const struct usb_interface_descriptor
++struct usb_interface_descriptor
+ rndis_control_intf = {
+ 	.bLength =              sizeof rndis_control_intf,
+ 	.bDescriptorType =      USB_DT_INTERFACE,
+@@ -532,7 +550,7 @@
+ 	.bcdCDC =		__constant_cpu_to_le16 (0x0110),
  };
  
--static const struct usb_interface_descriptor gs_control_interface_desc
-= {
-+struct usb_interface_descriptor gs_control_interface_desc = {
- 	.bLength =		USB_DT_INTERFACE_SIZE,
- 	.bDescriptorType =	USB_DT_INTERFACE,
- 	.bInterfaceNumber =	GS_CONTROL_INTERFACE_ID,
-@@ -397,7 +449,7 @@
- 	.iInterface =		GS_CONTROL_STR_ID,
- };
- 
--static const struct usb_interface_descriptor gs_data_interface_desc = {
-+struct usb_interface_descriptor gs_data_interface_desc = {
- 	.bLength =		USB_DT_INTERFACE_SIZE,
- 	.bDescriptorType =	USB_DT_INTERFACE,
- 	.bInterfaceNumber =	GS_DATA_INTERFACE_ID,
-@@ -430,14 +482,14 @@
- 	.bmCapabilities = 	0,
- };
- 
--static const struct usb_cdc_union_desc gs_union_desc = {
-+static struct usb_cdc_union_desc gs_union_desc = {
- 	.bLength =		sizeof(gs_union_desc),
+-static const struct usb_cdc_union_desc union_desc = {
++static struct usb_cdc_union_desc union_desc = {
+ 	.bLength =		sizeof union_desc,
  	.bDescriptorType =	USB_DT_CS_INTERFACE,
  	.bDescriptorSubType =	USB_CDC_UNION_TYPE,
- 	.bMasterInterface0 =	0,	/* index of control interface */
- 	.bSlaveInterface0 =	1,	/* index of data interface */
- };
-- 
-+
- static struct usb_endpoint_descriptor gs_fullspeed_notify_desc = {
- 	.bLength =		USB_DT_ENDPOINT_SIZE,
- 	.bDescriptorType =	USB_DT_ENDPOINT,
-@@ -469,7 +521,7 @@
- 	NULL,
- };
+@@ -616,7 +634,7 @@
  
--static const struct usb_descriptor_header *gs_acm_fullspeed_function[]
-= {
-+struct usb_descriptor_header *gs_acm_fullspeed_function[] = {
- 	(struct usb_descriptor_header *) &gs_otg_descriptor,
- 	(struct usb_descriptor_header *) &gs_control_interface_desc,
- 	(struct usb_descriptor_header *) &gs_header_desc,
-@@ -523,7 +575,7 @@
- 	NULL,
- };
+ /* the default data interface has no endpoints ... */
  
--static const struct usb_descriptor_header *gs_acm_highspeed_function[]
-= {
-+struct usb_descriptor_header *gs_acm_highspeed_function[] = {
- 	(struct usb_descriptor_header *) &gs_otg_descriptor,
- 	(struct usb_descriptor_header *) &gs_control_interface_desc,
- 	(struct usb_descriptor_header *) &gs_header_desc,
-@@ -575,7 +627,11 @@
- 	int i;
- 	int retval;
+-static const struct usb_interface_descriptor
++struct usb_interface_descriptor
+ data_nop_intf = {
+ 	.bLength =		sizeof data_nop_intf,
+ 	.bDescriptorType =	USB_DT_INTERFACE,
+@@ -631,7 +649,7 @@
  
--	retval = usb_gadget_register_driver(&gs_gadget_driver);
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+		retval = usb_function_register(&gs_usb_function);
-+#else
-+		retval = usb_gadget_register_driver(&gs_gadget_driver);
-+#endif
- 	if (retval) {
- 		printk(KERN_ERR "gs_module_init: cannot register gadget driver, ret=%
-d\n", retval);
- 		return retval;
-@@ -601,7 +657,10 @@
+ /* ... but the "real" data interface has two bulk endpoints */
  
- 	retval = tty_register_driver(gs_tty_driver);
- 	if (retval) {
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+#else
- 		usb_gadget_unregister_driver(&gs_gadget_driver);
-+#endif
- 		put_tty_driver(gs_tty_driver);
- 		printk(KERN_ERR "gs_module_init: cannot register tty driver, ret=%d
-\n", retval);
- 		return retval;
-@@ -620,7 +679,11 @@
- {
- 	tty_unregister_driver(gs_tty_driver);
- 	put_tty_driver(gs_tty_driver);
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+	usb_function_unregister(&gs_usb_function);
-+#else
- 	usb_gadget_unregister_driver(&gs_gadget_driver);
-+#endif
+-static const struct usb_interface_descriptor
++struct usb_interface_descriptor
+ data_intf = {
+ 	.bLength =		sizeof data_intf,
+ 	.bDescriptorType =	USB_DT_INTERFACE,
+@@ -651,7 +669,7 @@
  
- 	printk(KERN_INFO "gs_module_exit: %s %s unloaded\n", GS_LONG_NAME,
-GS_VERSION_STR);
- }
-@@ -1351,8 +1414,14 @@
-  * Called on module load.  Allocates and initializes the device
-  * structure and a control request.
+ /* RNDIS doesn't activate by changing to the "real" altsetting */
+ 
+-static const struct usb_interface_descriptor
++struct usb_interface_descriptor
+ rndis_data_intf = {
+ 	.bLength =		sizeof rndis_data_intf,
+ 	.bDescriptorType =	USB_DT_INTERFACE,
+@@ -674,7 +692,7 @@
+  * full speed controllers can handle:  one interface, two bulk
+endpoints.
   */
--static int __init gs_bind(struct usb_gadget *gadget)
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+static int __devinit gs_bind(struct usb_composite_dev *cdev)
- {
-+	struct usb_gadget *gadget = cdev->gadget;
-+#else
-+static int __devinit gs_bind(struct usb_gadget *gadget)
-+{
-+#endif
- 	int ret;
- 	struct usb_ep *ep;
- 	struct gs_dev *dev;
-@@ -1377,7 +1446,10 @@
- 			__constant_cpu_to_le16(GS_VERSION_NUM|0x0099);
- 	}
  
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+#else
- 	usb_ep_autoconfig_reset(gadget);
-+#endif
+-static const struct usb_interface_descriptor
++struct usb_interface_descriptor
+ subset_data_intf = {
+ 	.bLength =		sizeof subset_data_intf,
+ 	.bDescriptorType =	USB_DT_INTERFACE,
+@@ -709,7 +727,7 @@
+ 	.bmAttributes =		USB_ENDPOINT_XFER_BULK,
+ };
  
- 	ep = usb_ep_autoconfig(gadget, &gs_fullspeed_in_desc);
- 	if (!ep)
-@@ -1441,15 +1513,26 @@
- 	dev->dev_gadget = gadget;
- 	spin_lock_init(&dev->dev_lock);
- 	INIT_LIST_HEAD(&dev->dev_req_list);
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+	cdev->current_func->driver_data = dev;
-+#else
- 	set_gadget_data(gadget, dev);
-+#endif
+-static const struct usb_descriptor_header *fs_eth_function [11] = {
++static struct usb_descriptor_header *fs_eth_function [11] = {
+ 	(struct usb_descriptor_header *) &otg_descriptor,
+ #ifdef DEV_CONFIG_CDC
+ 	/* "cdc" mode descriptors */
+@@ -806,7 +824,7 @@
+ 	.bNumConfigurations =	1,
+ };
  
- 	if ((ret=gs_alloc_ports(dev, GFP_KERNEL)) != 0) {
- 		printk(KERN_ERR "gs_bind: cannot allocate ports\n");
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+		gs_unbind(cdev);
-+#else
- 		gs_unbind(gadget);
-+#endif
- 		return ret;
- 	}
- 
- 	/* preallocate control response and buffer */
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+	dev->dev_ctrl_req = cdev->req;
-+#else
- 	dev->dev_ctrl_req = gs_alloc_req(gadget->ep0, GS_MAX_DESC_LEN,
- 		GFP_KERNEL);
- 	if (dev->dev_ctrl_req == NULL) {
-@@ -1459,9 +1542,13 @@
- 	dev->dev_ctrl_req->complete = gs_setup_complete;
- 
- 	gadget->ep0->driver_data = dev;
-+#endif
-+
- 
- 	printk(KERN_INFO "gs_bind: %s %s bound\n",
- 		GS_LONG_NAME, GS_VERSION_STR);
-+	printk(KERN_INFO "using %s, OUT %s IN %s STATUS %s\n",
-+		gadget->name, EP_OUT_NAME, EP_IN_NAME, EP_NOTIFY_NAME);
- 
- 	return 0;
- 
-@@ -1476,14 +1563,25 @@
-  * Called on module unload.  Frees the control request and device
-  * structure.
+-static const struct usb_descriptor_header *hs_eth_function [11] = {
++static struct usb_descriptor_header *hs_eth_function [11] = {
+ 	(struct usb_descriptor_header *) &otg_descriptor,
+ #ifdef DEV_CONFIG_CDC
+ 	/* "cdc" mode descriptors */
+@@ -1300,10 +1318,18 @@
+  *  - class-specific control requests
   */
+ static int
 +#if	defined(CONFIG_USB_COMPOSITE) ||
 defined(CONFIG_USB_COMPOSITE_MODULE)
-+static void /* __init_or_exit */ gs_unbind(struct usb_composite_dev
-*cdev)
-+{
-+	struct gs_dev	*dev = cdev->current_func->driver_data;
-+#else
- static void /* __init_or_exit */ gs_unbind(struct usb_gadget *gadget)
- {
- 	struct gs_dev *dev = get_gadget_data(gadget);
- 
-+#endif
- 	gs_device = NULL;
- 
- 	/* read/write requests already freed, only control request remains */
- 	if (dev != NULL) {
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+		dev->dev_ctrl_req = NULL;
-+		gs_free_ports(dev);
-+		kfree(dev);
-+#else
- 		if (dev->dev_ctrl_req != NULL) {
- 			gs_free_req(gadget->ep0, dev->dev_ctrl_req);
- 			dev->dev_ctrl_req = NULL;
-@@ -1491,6 +1589,7 @@
- 		gs_free_ports(dev);
- 		kfree(dev);
- 		set_gadget_data(gadget, NULL);
-+#endif
- 	}
- 
- 	printk(KERN_INFO "gs_unbind: %s %s unbound\n", GS_LONG_NAME,
-@@ -1506,11 +1605,19 @@
-  * Returns the size of the data sent to the host, or a negative
-  * error number.
-  */
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+static int gs_setup(struct usb_composite_dev *cdev,
-+	const struct usb_ctrlrequest *ctrl)
++eth_setup (struct usb_composite_dev *cdev, const struct usb_ctrlrequest
+*ctrl)
 +{
 +	struct usb_gadget *gadget = cdev->gadget;
-+	struct gs_dev *dev = cdev->current_func->driver_data;
++	struct eth_dev	*dev = cdev->current_func->driver_data;
++	struct usb_request	*req = dev->req;
 +#else
- static int gs_setup(struct usb_gadget *gadget,
- 	const struct usb_ctrlrequest *ctrl)
+ eth_setup (struct usb_gadget *gadget, const struct usb_ctrlrequest
+*ctrl)
  {
--	int ret = -EOPNOTSUPP;
- 	struct gs_dev *dev = get_gadget_data(gadget);
+ 	struct eth_dev		*dev = get_gadget_data (gadget);
+ 	struct usb_request	*req = dev->req;
 +#endif
-+	int ret = -EOPNOTSUPP;
- 	struct usb_request *req = dev->dev_ctrl_req;
- 	u16 wIndex = le16_to_cpu(ctrl->wIndex);
- 	u16 wValue = le16_to_cpu(ctrl->wValue);
-@@ -1518,11 +1625,22 @@
- 
- 	switch (ctrl->bRequestType & USB_TYPE_MASK) {
- 	case USB_TYPE_STANDARD:
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+		ret = gs_setup_standard(cdev,ctrl);
-+		/* Send to host only composite configuration */
-+		if( (wValue >> 8) == USB_REQ_SET_CONFIGURATION )
-+			goto done_composite;
-+#else
- 		ret = gs_setup_standard(gadget,ctrl);
-+#endif
+ 	int			value = -EOPNOTSUPP;
+ 	u16			wIndex = le16_to_cpu(ctrl->wIndex);
+ 	u16			wValue = le16_to_cpu(ctrl->wValue);
+@@ -1365,6 +1391,7 @@
+ 		spin_lock (&dev->lock);
+ 		value = eth_set_config (dev, wValue, GFP_ATOMIC);
+ 		spin_unlock (&dev->lock);
++		goto done_composite;
  		break;
- 
- 	case USB_TYPE_CLASS:
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+		ret = gs_setup_class(cdev,ctrl);
-+#else
- 		ret = gs_setup_class(gadget,ctrl);
-+#endif
- 		break;
- 
- 	default:
-@@ -1546,15 +1664,24 @@
- 		}
- 	}
- 
-+done_composite:
- 	/* device either stalls (ret < 0) or reports success */
- 	return ret;
- }
- 
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+static int gs_setup_standard(struct usb_composite_dev *cdev,
-+	const struct usb_ctrlrequest *ctrl)
-+{
-+	struct usb_gadget *gadget = cdev->gadget;
-+	struct gs_dev *dev = cdev->current_func->driver_data;
-+#else
- static int gs_setup_standard(struct usb_gadget *gadget,
- 	const struct usb_ctrlrequest *ctrl)
- {
--	int ret = -EOPNOTSUPP;
- 	struct gs_dev *dev = get_gadget_data(gadget);
-+#endif
-+	int ret = -EOPNOTSUPP;
- 	struct usb_request *req = dev->dev_ctrl_req;
- 	u16 wIndex = le16_to_cpu(ctrl->wIndex);
- 	u16 wValue = le16_to_cpu(ctrl->wValue);
-@@ -1620,13 +1747,19 @@
+ 	case USB_REQ_GET_CONFIGURATION:
+ 		if (ctrl->bRequestType != USB_DIR_IN)
+@@ -1374,6 +1401,9 @@
  		break;
  
  	case USB_REQ_SET_INTERFACE:
@@ -462,59 +215,239 @@ defined(CONFIG_USB_COMPOSITE_MODULE)
 +		wIndex = wIndex - cdev->current_func->interface_shift;
 +#endif
  		if (ctrl->bRequestType != USB_RECIP_INTERFACE
- 				|| !dev->dev_config
- 				|| wIndex >= GS_MAX_NUM_INTERFACES)
- 			break;
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+#else
- 		if (dev->dev_config == GS_BULK_CONFIG_ID
- 				&& wIndex != GS_BULK_INTERFACE_ID)
- 			break;
-+#endif
- 		/* no alternate interface settings */
- 		if (wValue != 0)
- 			break;
-@@ -1680,11 +1813,18 @@
- 	return ret;
+ 				|| !dev->config
+ 				|| wIndex > 1)
+@@ -1543,15 +1573,21 @@
+ 			eth_setup_complete (gadget->ep0, req);
+ 		}
+ 	}
+-
++done_composite:
+ 	/* host either stalls (value < 0) or reports success */
+ 	return value;
  }
  
+ static void
 +#if	defined(CONFIG_USB_COMPOSITE) ||
 defined(CONFIG_USB_COMPOSITE_MODULE)
-+static int gs_setup_class(struct usb_composite_dev *cdev,
-+	const struct usb_ctrlrequest *ctrl)
++eth_disconnect (struct usb_composite_dev *cdev)
 +{
-+	struct gs_dev *dev = cdev->current_func->driver_data;
++	struct eth_dev	*dev =  cdev->current_func->driver_data;
 +#else
- static int gs_setup_class(struct usb_gadget *gadget,
- 	const struct usb_ctrlrequest *ctrl)
+ eth_disconnect (struct usb_gadget *gadget)
  {
--	int ret = -EOPNOTSUPP;
- 	struct gs_dev *dev = get_gadget_data(gadget);
+ 	struct eth_dev		*dev = get_gadget_data (gadget);
 +#endif
-+	int ret = -EOPNOTSUPP;
- 	struct gs_port *port = dev->dev_port[0];	/* ACM only has one port */
- 	struct usb_request *req = dev->dev_ctrl_req;
- 	u16 wIndex = le16_to_cpu(ctrl->wIndex);
-@@ -1745,10 +1885,17 @@
-  * ports and disconnects open ports.  Open ports will be freed
-  * on close.  Then reallocates the ports for the next connection.
-  */
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+static void gs_disconnect(struct usb_composite_dev *cdev)
-+{
-+//	struct usb_gadget *gadget = cdev->gadget;
-+	struct gs_dev	*dev = cdev->current_func->driver_data;
-+#else
- static void gs_disconnect(struct usb_gadget *gadget)
- {
--	unsigned long flags;
- 	struct gs_dev *dev = get_gadget_data(gadget);
-+#endif
-+	unsigned long flags;
+ 	unsigned long		flags;
  
- 	spin_lock_irqsave(&dev->dev_lock, flags);
+ 	spin_lock_irqsave (&dev->lock, flags);
+@@ -2148,19 +2184,28 @@
+ 
+
+ static void /* __init_or_exit */
++#if	defined(CONFIG_USB_COMPOSITE) ||
+defined(CONFIG_USB_COMPOSITE_MODULE)
++eth_unbind (struct usb_composite_dev *cdev)
++{
++	struct eth_dev	*dev = cdev->current_func->driver_data;
++#else
+ eth_unbind (struct usb_gadget *gadget)
+ {
+ 	struct eth_dev		*dev = get_gadget_data (gadget);
++#endif
+ 
+ 	DEBUG (dev, "unbind\n");
+ 	rndis_deregister (dev->rndis_config);
+ 	rndis_exit ();
+-
++#if	defined(CONFIG_USB_COMPOSITE) ||
+defined(CONFIG_USB_COMPOSITE_MODULE)
++	dev->req = NULL;
++#else
+ 	/* we've already been disconnected ... no i/o is active */
+ 	if (dev->req) {
+ 		eth_req_free (gadget->ep0, dev->req);
+ 		dev->req = NULL;
+ 	}
++#endif
+ 	if (dev->stat_req) {
+ 		eth_req_free (dev->status_ep, dev->stat_req);
+ 		dev->stat_req = NULL;
+@@ -2171,7 +2216,10 @@
+ 
+ 	/* assuming we used keventd, it must quiesce too */
+ 	flush_scheduled_work ();
++#if	defined(CONFIG_USB_COMPOSITE) ||
+defined(CONFIG_USB_COMPOSITE_MODULE)
++#else
+ 	set_gadget_data (gadget, NULL);
++#endif
+ }
+ 
+ static u8 __devinit nibble (unsigned char c)
+@@ -2206,8 +2254,14 @@
+ }
+ 
+ static int __devinit
++#if	defined(CONFIG_USB_COMPOSITE) ||
+defined(CONFIG_USB_COMPOSITE_MODULE)
++eth_bind (struct usb_composite_dev *cdev)
++{
++	struct usb_gadget *gadget = cdev->gadget;
++#else
+ eth_bind (struct usb_gadget *gadget)
+ {
++#endif
+ 	struct eth_dev		*dev;
+ 	struct net_device	*net;
+ 	u8			cdc = 1, zlp = 1, rndis = 1;
+@@ -2308,8 +2362,11 @@
+ 		strlcpy(serial_number, iSerialNumber, sizeof serial_number);
+ 	}
+ 
++#if	defined(CONFIG_USB_COMPOSITE) ||
+defined(CONFIG_USB_COMPOSITE_MODULE)
++#else
+ 	/* all we really need is bulk IN/OUT */
+ 	usb_ep_autoconfig_reset (gadget);
++#endif
+ 	in_ep = usb_ep_autoconfig (gadget, &fs_source_desc);
+ 	if (!in_ep) {
+ autoconf_fail:
+@@ -2451,11 +2508,14 @@
+ 	SET_ETHTOOL_OPS(net, &ops);
+ 
+ 	/* preallocate control message data and buffer */
++#if	defined(CONFIG_USB_COMPOSITE) ||
+defined(CONFIG_USB_COMPOSITE_MODULE)
++	dev->req = cdev->req;
++#else
+ 	dev->req = eth_req_alloc (gadget->ep0, USB_BUFSIZ, GFP_KERNEL);
+ 	if (!dev->req)
+ 		goto fail;
+ 	dev->req->complete = eth_setup_complete;
+-
++#endif
+ 	/* ... and maybe likewise for status transfer */
+ #if defined(DEV_CONFIG_CDC) || defined(CONFIG_USB_ETH_RNDIS)
+ 	if (dev->status_ep) {
+@@ -2471,8 +2531,13 @@
+ 
+ 	/* finish hookup to lower layer ... */
+ 	dev->gadget = gadget;
++#if	defined(CONFIG_USB_COMPOSITE) ||
+defined(CONFIG_USB_COMPOSITE_MODULE)
++	cdev->current_func->driver_data = dev;
++#else
+ 	set_gadget_data (gadget, dev);
+ 	gadget->ep0->driver_data = dev;
++#endif
++
+ 
+ 	/* two kinds of host-initiated state changes:
+ 	 *  - iff DATA transfer is active, carrier is "on"
+@@ -2536,25 +2601,42 @@
+ fail1:
+ 	dev_dbg(&gadget->dev, "register_netdev failed, %d\n", status);
+ fail:
++#if	defined(CONFIG_USB_COMPOSITE) ||
+defined(CONFIG_USB_COMPOSITE_MODULE)
++	eth_unbind (cdev);
++#else
+ 	eth_unbind (gadget);
++#endif
+ 	return status;
+ }
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+ static void
++#if	defined(CONFIG_USB_COMPOSITE) ||
+defined(CONFIG_USB_COMPOSITE_MODULE)
++eth_suspend (struct usb_composite_dev *cdev)
++{
++	struct eth_dev	*dev = cdev->current_func->driver_data;
++
++#else
+ eth_suspend (struct usb_gadget *gadget)
+ {
+ 	struct eth_dev		*dev = get_gadget_data (gadget);
++#endif
+ 
+ 	DEBUG (dev, "suspend\n");
+ 	dev->suspended = 1;
+ }
+ 
+ static void
++#if	defined(CONFIG_USB_COMPOSITE) ||
+defined(CONFIG_USB_COMPOSITE_MODULE)
++eth_resume (struct usb_composite_dev *cdev)
++{
++	struct eth_dev	*dev = cdev->current_func->driver_data;
++#else
+ eth_resume (struct usb_gadget *gadget)
+ {
+ 	struct eth_dev		*dev = get_gadget_data (gadget);
++#endif
+ 
+ 	DEBUG (dev, "resume\n");
+ 	dev->suspended = 0;
+@@ -2562,6 +2644,23 @@
+ 
+ /*-------------------------------------------------------------------------*/
+ 
++
++#if	defined(CONFIG_USB_COMPOSITE) ||
+defined(CONFIG_USB_COMPOSITE_MODULE)
++static struct usb_function eth_usb_function = {
++	.name		= (char *) shortname,
++	.strings	= &stringtab,
++	.descriptors	= fs_eth_function,
++#ifdef CONFIG_USB_GADGET_DUALSPEED
++	.hs_descriptors	= hs_eth_function,
++#endif
++	.bind		= eth_bind,
++	.unbind		= eth_unbind,
++	.setup		= eth_setup,
++	.disconnect	= eth_disconnect,
++	.suspend	= eth_suspend,
++	.resume		= eth_resume,
++};
++#else
+ static struct usb_gadget_driver eth_driver = {
+ 	.speed		= DEVSPEED,
+ 
+@@ -2580,6 +2679,7 @@
+ 		.owner		= THIS_MODULE,
+ 	},
+ };
++#endif
+ 
+ MODULE_DESCRIPTION (DRIVER_DESC);
+ MODULE_AUTHOR ("David Brownell, Benedikt Spanger");
+@@ -2588,13 +2688,21 @@
+ 
+ static int __init init (void)
+ {
++#if	defined(CONFIG_USB_COMPOSITE) ||
+defined(CONFIG_USB_COMPOSITE_MODULE)
++	return usb_function_register (&eth_usb_function);
++#else
+ 	return usb_gadget_register_driver (&eth_driver);
++#endif
+ }
+ module_init (init);
+ 
+ static void __exit cleanup (void)
+ {
++#if	defined(CONFIG_USB_COMPOSITE) ||
+defined(CONFIG_USB_COMPOSITE_MODULE)
++	usb_function_unregister (&eth_usb_function);
++#else
+ 	usb_gadget_unregister_driver (&eth_driver);
++#endif
+ }
+ module_exit (cleanup);
  
 
 -- 
