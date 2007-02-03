@@ -1,11 +1,15 @@
-From: Felipe Balbi <felipe.lima@indt.org.br>
-Subject: [RFC] [PATCH 3/5]: Composite Devices Support
-Date: Fri, 02 Feb 2007 11:47:42 -0400
-Message-ID: <1170431262.23028.51.camel@balbi>
+From: "Krishna Prasad Herur" <kherur@nextwave.com>
+Subject: RE: DMA transfer using McSPI driver
+Date: Fri, 2 Feb 2007 16:59:35 -0800
+Message-ID: <E6CCDC65B8C522458685D8D1F145FEA8189B06@CA2-MSX-C01.nw.net>
+References: <5DF83221BE20114E9C331F665ACBC08002843D3E@dbde01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <5DF83221BE20114E9C331F665ACBC08002843D3E@dbde01.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,448 +19,211 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: OMAP-Linux <linux-omap-open-source@linux.omap.com>
+To: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-[PATCH] g_ether modification for it to become a USB_FUNCTION.
+Hi Senthil & Girish,
+	I appreciate your answers.=20
 
-Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
-Signed-off-by: Ragner Magalhaes <ragner.magalhaes@indt.org.br>
----
+I am not sure if I understand you completely. I have been able to raw
+reads and writes outside the IRQ handler.
 
-Index: 2.6-dev/drivers/usb/gadget/ether.c
-===================================================================
---- 2.6-dev.orig/drivers/usb/gadget/ether.c	2007-01-29
-11:45:37.000000000 -0400
-+++ 2.6-dev/drivers/usb/gadget/ether.c	2007-01-29 11:46:00.000000000
--0400
-@@ -20,8 +20,8 @@
-  */
- 
+Are you saying, I need to do a raw write followed by a dma transmit in
+the IRQ context?
 
--// #define DEBUG 1
--// #define VERBOSE
-+#define DEBUG 1
-+#define VERBOSE 1
- 
- #include <linux/module.h>
- #include <linux/kernel.h>
-@@ -50,6 +50,7 @@
- #include <linux/usb_ch9.h>
- #include <linux/usb/cdc.h>
- #include <linux/usb_gadget.h>
-+#include <linux/usb/composite.h>
- 
- #include <linux/random.h>
- #include <linux/netdevice.h>
-@@ -398,7 +399,19 @@
-  * Ethernet functionality), they don't need the NOP altsetting, and the
-  * status transfer endpoint isn't optional.
-  */
--
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+/* eth[11-20], serial[21-27], storage[31-35] */
-+#define STRING_MANUFACTURER		11
-+#define STRING_PRODUCT			12
-+#define STRING_ETHADDR			13
-+#define STRING_DATA			14
-+#define STRING_CONTROL			15
-+#define STRING_RNDIS_CONTROL		16
-+#define STRING_CDC			17
-+#define STRING_SUBSET			18
-+#define STRING_RNDIS			19
-+#define STRING_SERIALNUMBER		20
-+#else
- #define STRING_MANUFACTURER		1
- #define STRING_PRODUCT			2
- #define STRING_ETHADDR			3
-@@ -409,6 +422,7 @@
- #define STRING_SUBSET			8
- #define STRING_RNDIS			9
- #define STRING_SERIALNUMBER		10
-+#endif /* End if Composite*/
- 
- /* holds our biggest descriptor (or RNDIS response) */
- #define USB_BUFSIZ	256
-@@ -423,8 +437,12 @@
-  * FIXME define some higher-powered configurations to make it easier
-  * to recharge batteries ...
-  */
--
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+#define COMPOSITE_CONFIG_VALUE  3	/* composite config */
-+#define DEV_CONFIG_VALUE	COMPOSITE_CONFIG_VALUE
-+#else
- #define DEV_CONFIG_VALUE	1	/* cdc or subset */
-+#endif
- #define DEV_RNDIS_CONFIG_VALUE	2	/* rndis; optional */
- 
- static struct usb_device_descriptor
-@@ -492,7 +510,7 @@
-  */
- 
- #ifdef	DEV_CONFIG_CDC
--static struct usb_interface_descriptor
-+struct usb_interface_descriptor
- control_intf = {
- 	.bLength =		sizeof control_intf,
- 	.bDescriptorType =	USB_DT_INTERFACE,
-@@ -508,7 +526,7 @@
- #endif
- 
- #ifdef	CONFIG_USB_ETH_RNDIS
--static const struct usb_interface_descriptor
-+struct usb_interface_descriptor
- rndis_control_intf = {
- 	.bLength =              sizeof rndis_control_intf,
- 	.bDescriptorType =      USB_DT_INTERFACE,
-@@ -532,7 +550,7 @@
- 	.bcdCDC =		__constant_cpu_to_le16 (0x0110),
- };
- 
--static const struct usb_cdc_union_desc union_desc = {
-+static struct usb_cdc_union_desc union_desc = {
- 	.bLength =		sizeof union_desc,
- 	.bDescriptorType =	USB_DT_CS_INTERFACE,
- 	.bDescriptorSubType =	USB_CDC_UNION_TYPE,
-@@ -616,7 +634,7 @@
- 
- /* the default data interface has no endpoints ... */
- 
--static const struct usb_interface_descriptor
-+struct usb_interface_descriptor
- data_nop_intf = {
- 	.bLength =		sizeof data_nop_intf,
- 	.bDescriptorType =	USB_DT_INTERFACE,
-@@ -631,7 +649,7 @@
- 
- /* ... but the "real" data interface has two bulk endpoints */
- 
--static const struct usb_interface_descriptor
-+struct usb_interface_descriptor
- data_intf = {
- 	.bLength =		sizeof data_intf,
- 	.bDescriptorType =	USB_DT_INTERFACE,
-@@ -651,7 +669,7 @@
- 
- /* RNDIS doesn't activate by changing to the "real" altsetting */
- 
--static const struct usb_interface_descriptor
-+struct usb_interface_descriptor
- rndis_data_intf = {
- 	.bLength =		sizeof rndis_data_intf,
- 	.bDescriptorType =	USB_DT_INTERFACE,
-@@ -674,7 +692,7 @@
-  * full speed controllers can handle:  one interface, two bulk
-endpoints.
-  */
- 
--static const struct usb_interface_descriptor
-+struct usb_interface_descriptor
- subset_data_intf = {
- 	.bLength =		sizeof subset_data_intf,
- 	.bDescriptorType =	USB_DT_INTERFACE,
-@@ -709,7 +727,7 @@
- 	.bmAttributes =		USB_ENDPOINT_XFER_BULK,
- };
- 
--static const struct usb_descriptor_header *fs_eth_function [11] = {
-+static struct usb_descriptor_header *fs_eth_function [11] = {
- 	(struct usb_descriptor_header *) &otg_descriptor,
- #ifdef DEV_CONFIG_CDC
- 	/* "cdc" mode descriptors */
-@@ -806,7 +824,7 @@
- 	.bNumConfigurations =	1,
- };
- 
--static const struct usb_descriptor_header *hs_eth_function [11] = {
-+static struct usb_descriptor_header *hs_eth_function [11] = {
- 	(struct usb_descriptor_header *) &otg_descriptor,
- #ifdef DEV_CONFIG_CDC
- 	/* "cdc" mode descriptors */
-@@ -1300,10 +1318,18 @@
-  *  - class-specific control requests
-  */
- static int
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+eth_setup (struct usb_composite_dev *cdev, const struct usb_ctrlrequest
-*ctrl)
-+{
-+	struct usb_gadget *gadget = cdev->gadget;
-+	struct eth_dev	*dev = cdev->current_func->driver_data;
-+	struct usb_request	*req = dev->req;
-+#else
- eth_setup (struct usb_gadget *gadget, const struct usb_ctrlrequest
-*ctrl)
- {
- 	struct eth_dev		*dev = get_gadget_data (gadget);
- 	struct usb_request	*req = dev->req;
-+#endif
- 	int			value = -EOPNOTSUPP;
- 	u16			wIndex = le16_to_cpu(ctrl->wIndex);
- 	u16			wValue = le16_to_cpu(ctrl->wValue);
-@@ -1365,6 +1391,7 @@
- 		spin_lock (&dev->lock);
- 		value = eth_set_config (dev, wValue, GFP_ATOMIC);
- 		spin_unlock (&dev->lock);
-+		goto done_composite;
- 		break;
- 	case USB_REQ_GET_CONFIGURATION:
- 		if (ctrl->bRequestType != USB_DIR_IN)
-@@ -1374,6 +1401,9 @@
- 		break;
- 
- 	case USB_REQ_SET_INTERFACE:
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+		wIndex = wIndex - cdev->current_func->interface_shift;
-+#endif
- 		if (ctrl->bRequestType != USB_RECIP_INTERFACE
- 				|| !dev->config
- 				|| wIndex > 1)
-@@ -1543,15 +1573,21 @@
- 			eth_setup_complete (gadget->ep0, req);
- 		}
- 	}
--
-+done_composite:
- 	/* host either stalls (value < 0) or reports success */
- 	return value;
- }
- 
- static void
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+eth_disconnect (struct usb_composite_dev *cdev)
-+{
-+	struct eth_dev	*dev =  cdev->current_func->driver_data;
-+#else
- eth_disconnect (struct usb_gadget *gadget)
- {
- 	struct eth_dev		*dev = get_gadget_data (gadget);
-+#endif
- 	unsigned long		flags;
- 
- 	spin_lock_irqsave (&dev->lock, flags);
-@@ -2148,19 +2184,28 @@
- 
+Here is another weird thing I see. After loading the McSPI driver
+module, I configure, and enable the channel. I have not called the
+mcspi_transmit_buf function. I already see the interrupt happening. Is
+this normal? Below is the Debug log.
+---------------------------------------------------------
+MCSPI: exiting omap2_mcspi_register_isr ret: 0
+MCSPI: entering omap2_mcspi_dma_writereq
+MCSPI INFO: R[0xd8098000+0x2c]=3D0x12fc8
+MCSPI INFO: W[0xd8098000+0x2c]=3D0x12fc8
+MCSPI: entering omap2_mcspi_enable_channel
+MCSPI INFO: R[0xd8098000+0x34]=3D0x0
+MCSPI INFO: W[0xd8098000+0x34]=3D0x1
+MCSPI INFO: R[0xd8098000+0x18]=3D0x1
+MCSPI INFO: W[0xd8098000+0x34]=3D0x0
+MCSPI INFO: W[0xd8098000+0x18]=3D0x3
+McSpi Intr status =3D 3
+MCSPI: exiting omap2_mcspi_enable_channel ret: 0
+MCSPI: entering omap2_mcspi_transmit_buf
+MCSPI INFO: R[0xd8098000+0x2c]=3D0x12fc8
+MCSPI INFO: W[0xd8098000+0x2c]=3D0x16fc8
+MCSPI: entering spi_dma_write_channel
+MCSPI: exiting omap2_mcspi_transmit_buf ret: 0
+--------------------------------------------------------
 
- static void /* __init_or_exit */
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+eth_unbind (struct usb_composite_dev *cdev)
-+{
-+	struct eth_dev	*dev = cdev->current_func->driver_data;
-+#else
- eth_unbind (struct usb_gadget *gadget)
- {
- 	struct eth_dev		*dev = get_gadget_data (gadget);
-+#endif
- 
- 	DEBUG (dev, "unbind\n");
- 	rndis_deregister (dev->rndis_config);
- 	rndis_exit ();
--
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+	dev->req = NULL;
-+#else
- 	/* we've already been disconnected ... no i/o is active */
- 	if (dev->req) {
- 		eth_req_free (gadget->ep0, dev->req);
- 		dev->req = NULL;
- 	}
-+#endif
- 	if (dev->stat_req) {
- 		eth_req_free (dev->status_ep, dev->stat_req);
- 		dev->stat_req = NULL;
-@@ -2171,7 +2216,10 @@
- 
- 	/* assuming we used keventd, it must quiesce too */
- 	flush_scheduled_work ();
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+#else
- 	set_gadget_data (gadget, NULL);
-+#endif
- }
- 
- static u8 __devinit nibble (unsigned char c)
-@@ -2206,8 +2254,14 @@
- }
- 
- static int __devinit
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+eth_bind (struct usb_composite_dev *cdev)
-+{
-+	struct usb_gadget *gadget = cdev->gadget;
-+#else
- eth_bind (struct usb_gadget *gadget)
- {
-+#endif
- 	struct eth_dev		*dev;
- 	struct net_device	*net;
- 	u8			cdc = 1, zlp = 1, rndis = 1;
-@@ -2308,8 +2362,11 @@
- 		strlcpy(serial_number, iSerialNumber, sizeof serial_number);
- 	}
- 
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+#else
- 	/* all we really need is bulk IN/OUT */
- 	usb_ep_autoconfig_reset (gadget);
-+#endif
- 	in_ep = usb_ep_autoconfig (gadget, &fs_source_desc);
- 	if (!in_ep) {
- autoconf_fail:
-@@ -2451,11 +2508,14 @@
- 	SET_ETHTOOL_OPS(net, &ops);
- 
- 	/* preallocate control message data and buffer */
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+	dev->req = cdev->req;
-+#else
- 	dev->req = eth_req_alloc (gadget->ep0, USB_BUFSIZ, GFP_KERNEL);
- 	if (!dev->req)
- 		goto fail;
- 	dev->req->complete = eth_setup_complete;
--
-+#endif
- 	/* ... and maybe likewise for status transfer */
- #if defined(DEV_CONFIG_CDC) || defined(CONFIG_USB_ETH_RNDIS)
- 	if (dev->status_ep) {
-@@ -2471,8 +2531,13 @@
- 
- 	/* finish hookup to lower layer ... */
- 	dev->gadget = gadget;
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+	cdev->current_func->driver_data = dev;
-+#else
- 	set_gadget_data (gadget, dev);
- 	gadget->ep0->driver_data = dev;
-+#endif
-+
- 
- 	/* two kinds of host-initiated state changes:
- 	 *  - iff DATA transfer is active, carrier is "on"
-@@ -2536,25 +2601,42 @@
- fail1:
- 	dev_dbg(&gadget->dev, "register_netdev failed, %d\n", status);
- fail:
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+	eth_unbind (cdev);
-+#else
- 	eth_unbind (gadget);
-+#endif
- 	return status;
- }
- 
- /*-------------------------------------------------------------------------*/
- 
- static void
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+eth_suspend (struct usb_composite_dev *cdev)
-+{
-+	struct eth_dev	*dev = cdev->current_func->driver_data;
-+
-+#else
- eth_suspend (struct usb_gadget *gadget)
- {
- 	struct eth_dev		*dev = get_gadget_data (gadget);
-+#endif
- 
- 	DEBUG (dev, "suspend\n");
- 	dev->suspended = 1;
- }
- 
- static void
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+eth_resume (struct usb_composite_dev *cdev)
-+{
-+	struct eth_dev	*dev = cdev->current_func->driver_data;
-+#else
- eth_resume (struct usb_gadget *gadget)
- {
- 	struct eth_dev		*dev = get_gadget_data (gadget);
-+#endif
- 
- 	DEBUG (dev, "resume\n");
- 	dev->suspended = 0;
-@@ -2562,6 +2644,23 @@
- 
- /*-------------------------------------------------------------------------*/
- 
-+
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+static struct usb_function eth_usb_function = {
-+	.name		= (char *) shortname,
-+	.strings	= &stringtab,
-+	.descriptors	= fs_eth_function,
-+#ifdef CONFIG_USB_GADGET_DUALSPEED
-+	.hs_descriptors	= hs_eth_function,
-+#endif
-+	.bind		= eth_bind,
-+	.unbind		= eth_unbind,
-+	.setup		= eth_setup,
-+	.disconnect	= eth_disconnect,
-+	.suspend	= eth_suspend,
-+	.resume		= eth_resume,
-+};
-+#else
- static struct usb_gadget_driver eth_driver = {
- 	.speed		= DEVSPEED,
- 
-@@ -2580,6 +2679,7 @@
- 		.owner		= THIS_MODULE,
- 	},
- };
-+#endif
- 
- MODULE_DESCRIPTION (DRIVER_DESC);
- MODULE_AUTHOR ("David Brownell, Benedikt Spanger");
-@@ -2588,13 +2688,21 @@
- 
- static int __init init (void)
- {
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+	return usb_function_register (&eth_usb_function);
-+#else
- 	return usb_gadget_register_driver (&eth_driver);
-+#endif
- }
- module_init (init);
- 
- static void __exit cleanup (void)
- {
-+#if	defined(CONFIG_USB_COMPOSITE) ||
-defined(CONFIG_USB_COMPOSITE_MODULE)
-+	usb_function_unregister (&eth_usb_function);
-+#else
- 	usb_gadget_unregister_driver (&eth_driver);
-+#endif
- }
- module_exit (cleanup);
- 
+When I do not register dma_tx_callback function, and do a
+mcspi_transmit_buf, I see 2words of garbage, followed by good data. Do
+you know what could be causing this?
 
--- 
-Best Regards,
+Thanks,
+-Prasad
 
-Felipe Balbi
-felipe.lima@indt.org.br
 
-Nokia Institute of Technology - INdT
-Kernel Developers Team
+-----Original Message-----
+From: Guruswamy, Senthilvadivu [mailto:svadivu@ti.com]=20
+Sent: Friday, February 02, 2007 12:20 AM
+To: Krishna Prasad Herur
+Cc: linux-omap-open-source@linux.omap.com; Ghongadematt, Girish
+Subject: RE: DMA transfer using McSPI driver
 
-+55 92 2126 1003
+Hi,
+
+Mcspi transfer with raw mode can be done using the APIs
+omap2_mcspi_raw_writetochannel(), omap2_mcspi_raw_readfromchannel().
+Since it is a serial peripheral, you shall call these APIs in the tx/rx
+IRQ handlers registered by you.
+
+Regards,
+Senthil.
+
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+Krishna Prasad Herur
+Sent: Friday, February 02, 2007 7:50 AM
+To: Ghongadematt, Girish
+Cc: linux-omap-open-source@linux.omap.com
+Subject: RE: DMA transfer using McSPI driver
+
+If I understand the McSPI spec correctly, I should be able to enable a
+channel, and then do a mcspi_transmit_buf. Also, the McSpi driver code
+talks about the client/user maintaining the RAW/DMA mode. I do not see
+any functions or variables that retain such info. (other than the
+omap2_mcspi_set_dma_write macro)
+
+In my case, I see the DMA data only when I configure the channel, do a
+dma_transmit, and then enable the McSpi channel. This seems very weird,
+and DMA transfers fail after switching from RAW mode to DMA mode. I have
+tried many combinations of reserving, releasing the channels before
+switching from RAW to DMA mode.=20
+
+Can someone shed light on the procedure to switch from raw mode to DMA
+mode?
+
+Here is how I got DMA to work.
+<Call all config macros>
+	omap2_mcspi_set_dma_write(mySpiDev, OMAP2_McSPI_CHAN_DMA_WRITE);
+	omap2_mcspi_request_interface(devPtr);=09
+	omap2_mcspi_get(devPtr);
+	omap2_mcspi_config_channel(devPtr);
+	omap2_mcspi_dma_writereq(devPtr,OMAP2_McSPI_DMAW_ENABLE);
+	omap2_mcspi_transmit_buf(devPtr,virt_to_phys((u32
+*)dmaBuf),256);
+	omap2_mcspi_enable_channel(devPtr);
+
+Thanks,
+-Prasad
+
+
+-----Original Message-----
+From: Girish. S. G. [mailto:girishsg@ti.com]=20
+Sent: Wednesday, January 31, 2007 5:34 AM
+To: Krishna Prasad Herur
+Cc: linux-omap-open-source@linux.omap.com
+Subject: RE: DMA transfer using McSPI driver
+
+hi prasad,
+
+If you have called all config macros correctly (like, set and get
+transmission
+enable on line 1/0 etc,.) then there shoudn't b any problem.
+
+Just check once if you are allocating memory for DMA buf properly.
+
+regards,
+girish
+
+> I think I know the reason for the soft lockup.
+>
+> The omap 2430 errata says that the DMA Tx complete interrupt continues
+> to be asserted after a transaction error. I found this to be the
+reason
+> for the soft lockup. I am still unsure as to why there is a
+transaction
+> error!
+>
+>
+>
+> The McSpi driver configuration for DMA transfer seems to be
+> straightforward. The McSpi driver seems to be calling all the Dma
+driver
+> functions with the right parameters.
+>
+>
+>
+> Does anyone had success doing DMA transfers to/from McSpi channels
+using
+> the Omap McSpi driver?
+>
+> Regards,
+>
+> -Prasad
+>
+>
+>
+> ________________________________
+>
+> From: Krishna Prasad Herur
+> Sent: Tuesday, January 23, 2007 12:02 PM
+> To: linux-omap-open-source@linux.omap.com
+> Subject: DMA transfer using McSPI driver
+>
+>
+>
+> Hi Gurus,
+>
+>             I was able to get raw data transfers over the McSPI bus on
+> an Omap 2430 based platform running Linux 2.6. I am trying to do the
+> same transmit using DMA. Is it possible to use DMA in polling mode? I
+> have not registered interrupt handlers or dma handlers.  Below is the
+> programming sequence I followed, after calling all the config macros.
+>
+>
+>
+>       omap2_mcspi_request_interface(devPtr);
+>
+>       omap2_mcspi_interface_reset(devPtr);
+>
+>       omap2_mcspi_get(devPtr);
+>
+>       omap2_mcspi_config_channel(devPtr);
+>
+>       omap2_mcspi_enable_channel(devPtr);
+>
+>       omap2_mcspi_dma_writereq(devPtr,OMAP2_McSPI_DMAW_ENABLE);
+>
+>       omap2_mcspi_transmit_buf(devPtr,dmaBuf,8);
+>
+>
+>
+> I get a DMA transaction error, and a soft lockup.
+>
+>
+>
+> DMA transaction error occurred with device 35
+>
+> BUG: soft lockup detected on CPU#0!
+>
+>
+>
+> Regards,
+>
+> -Prasad
+>
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
+
+
+
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
