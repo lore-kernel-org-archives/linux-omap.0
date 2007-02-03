@@ -1,15 +1,15 @@
 From: "Krishna Prasad Herur" <kherur@nextwave.com>
 Subject: RE: DMA transfer using McSPI driver
-Date: Fri, 2 Feb 2007 16:59:35 -0800
-Message-ID: <E6CCDC65B8C522458685D8D1F145FEA8189B06@CA2-MSX-C01.nw.net>
-References: <5DF83221BE20114E9C331F665ACBC08002843D3E@dbde01.ent.ti.com>
+Date: Fri, 2 Feb 2007 19:00:23 -0800
+Message-ID: <E6CCDC65B8C522458685D8D1F145FEA8189B64@CA2-MSX-C01.nw.net>
+References: <E6CCDC65B8C522458685D8D1F145FEA8189B06@CA2-MSX-C01.nw.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-class: urn:content-classes:message
-In-Reply-To: <5DF83221BE20114E9C331F665ACBC08002843D3E@dbde01.ent.ti.com>
+In-Reply-To: <E6CCDC65B8C522458685D8D1F145FEA8189B06@CA2-MSX-C01.nw.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,11 +17,27 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Krishna Prasad Herur <kherur@nextwave.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
+
+Finally I was able to get McSpi dma transfers to go out reliably.
+I had to do a _cpuc_kern_flush_all before calling the transmit function.
+
+I still have to mask out tx interrupts. I still get tx interrupt as soon
+as I enable the channel.
+-Prasad
+
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+Krishna Prasad Herur
+Sent: Friday, February 02, 2007 5:00 PM
+To: Guruswamy, Senthilvadivu
+Cc: linux-omap-open-source@linux.omap.com
+Subject: RE: DMA transfer using McSPI driver
 
 Hi Senthil & Girish,
 	I appreciate your answers.=20
@@ -222,6 +238,11 @@ using
 >
 
 
+
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
 
 _______________________________________________
 Linux-omap-open-source mailing list
