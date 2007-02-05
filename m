@@ -1,15 +1,13 @@
-From: "Krishna Prasad Herur" <kherur@nextwave.com>
-Subject: RE: DMA transfer using McSPI driver
-Date: Fri, 2 Feb 2007 19:00:23 -0800
-Message-ID: <E6CCDC65B8C522458685D8D1F145FEA8189B64@CA2-MSX-C01.nw.net>
-References: <E6CCDC65B8C522458685D8D1F145FEA8189B06@CA2-MSX-C01.nw.net>
+From: "Eyal Shani" <Eyal.Shani@SanDisk.Com>
+Subject: SD support on omap 2430, kernel 2.6.10MV
+Date: Mon, 5 Feb 2007 16:54:59 +0200
+Message-ID: <13ECC251745F8F4BA0076A980813C7C2B81FA6@msl-ex02.corp.m-sys.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
-In-Reply-To: <E6CCDC65B8C522458685D8D1F145FEA8189B06@CA2-MSX-C01.nw.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,234 +15,126 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Krishna Prasad Herur <kherur@nextwave.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Finally I was able to get McSpi dma transfers to go out reliably.
-I had to do a _cpuc_kern_flush_all before calling the transmit function.
+Hi=20all,
 
-I still have to mask out tx interrupts. I still get tx interrupt as soon
-as I enable the channel.
--Prasad
+=20
 
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
-Krishna Prasad Herur
-Sent: Friday, February 02, 2007 5:00 PM
-To: Guruswamy, Senthilvadivu
-Cc: linux-omap-open-source@linux.omap.com
-Subject: RE: DMA transfer using McSPI driver
+I=20am=20trying=20to=20execute=20MMC/SD=20cards=20on=20omap2430=20platform=
+.
 
-Hi Senthil & Girish,
-	I appreciate your answers.=20
+I=20am=20using=202.6.10=20MobiLinux=20Linux=20of=20MontaVista.
 
-I am not sure if I understand you completely. I have been able to raw
-reads and writes outside the IRQ handler.
+Platform=20is=20OMAP=202430-v2.8.
 
-Are you saying, I need to do a raw write followed by a dma transmit in
-the IRQ context?
+=20
 
-Here is another weird thing I see. After loading the McSPI driver
-module, I configure, and enable the channel. I have not called the
-mcspi_transmit_buf function. I already see the interrupt happening. Is
-this normal? Below is the Debug log.
----------------------------------------------------------
-MCSPI: exiting omap2_mcspi_register_isr ret: 0
-MCSPI: entering omap2_mcspi_dma_writereq
-MCSPI INFO: R[0xd8098000+0x2c]=3D0x12fc8
-MCSPI INFO: W[0xd8098000+0x2c]=3D0x12fc8
-MCSPI: entering omap2_mcspi_enable_channel
-MCSPI INFO: R[0xd8098000+0x34]=3D0x0
-MCSPI INFO: W[0xd8098000+0x34]=3D0x1
-MCSPI INFO: R[0xd8098000+0x18]=3D0x1
-MCSPI INFO: W[0xd8098000+0x34]=3D0x0
-MCSPI INFO: W[0xd8098000+0x18]=3D0x3
-McSpi Intr status =3D 3
-MCSPI: exiting omap2_mcspi_enable_channel ret: 0
-MCSPI: entering omap2_mcspi_transmit_buf
-MCSPI INFO: R[0xd8098000+0x2c]=3D0x12fc8
-MCSPI INFO: W[0xd8098000+0x2c]=3D0x16fc8
-MCSPI: entering spi_dma_write_channel
-MCSPI: exiting omap2_mcspi_transmit_buf ret: 0
---------------------------------------------------------
+MMC=20card=20starts=20just=20fine.
 
-When I do not register dma_tx_callback function, and do a
-mcspi_transmit_buf, I see 2words of garbage, followed by good data. Do
-you know what could be causing this?
+SD=20card=20initializes,=20but=20gets=20some=20errors,=20and=20fails.
 
-Thanks,
--Prasad
+I=20am=20using=20Sandisk=20Ultra-II,=20512MB=20SD=20card.
 
+=20
 
------Original Message-----
-From: Guruswamy, Senthilvadivu [mailto:svadivu@ti.com]=20
-Sent: Friday, February 02, 2007 12:20 AM
-To: Krishna Prasad Herur
-Cc: linux-omap-open-source@linux.omap.com; Ghongadematt, Girish
-Subject: RE: DMA transfer using McSPI driver
+Specifically,=20the=20init=20sequence=20seems=20ok,=20until=20it=20is=20do=
+ing=20CMD2,=20which
+fails=20-=20as=20can=20be=20seen=20below=20in=20log.
 
-Hi,
+In=20MMC=20driver=20code,=20in=20KERNEL/drivers/mmc/=20I=20can=20see=20som=
+e=20OCR
+mentioning,=20and=20some=20notes=20claiming,mmc.c:=20
 
-Mcspi transfer with raw mode can be done using the APIs
-omap2_mcspi_raw_writetochannel(), omap2_mcspi_raw_readfromchannel().
-Since it is a serial peripheral, you shall call these APIs in the tx/rx
-IRQ handlers registered by you.
+"Send=20the=20selected=20OCR=20multiple=20times...=20until=20the=20cards=20=
+all=20get=20the
+idea=20that=20they=20should=20be=20ready=20for=20CMD2.=20(My=20SanDisk=20c=
+ard=20seems=20to=20need
+this.)"
 
-Regards,
-Senthil.
+=20
 
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
-Krishna Prasad Herur
-Sent: Friday, February 02, 2007 7:50 AM
-To: Ghongadematt, Girish
-Cc: linux-omap-open-source@linux.omap.com
-Subject: RE: DMA transfer using McSPI driver
+Well=20-=20it=20doesn't=20get=20the=20idea...
 
-If I understand the McSPI spec correctly, I should be able to enable a
-channel, and then do a mcspi_transmit_buf. Also, the McSpi driver code
-talks about the client/user maintaining the RAW/DMA mode. I do not see
-any functions or variables that retain such info. (other than the
-omap2_mcspi_set_dma_write macro)
+=20
 
-In my case, I see the DMA data only when I configure the channel, do a
-dma_transmit, and then enable the McSpi channel. This seems very weird,
-and DMA transfers fail after switching from RAW mode to DMA mode. I have
-tried many combinations of reserving, releasing the channels before
-switching from RAW to DMA mode.=20
+Any=20suggestions=20here?
 
-Can someone shed light on the procedure to switch from raw mode to DMA
-mode?
+=20
 
-Here is how I got DMA to work.
-<Call all config macros>
-	omap2_mcspi_set_dma_write(mySpiDev, OMAP2_McSPI_CHAN_DMA_WRITE);
-	omap2_mcspi_request_interface(devPtr);=09
-	omap2_mcspi_get(devPtr);
-	omap2_mcspi_config_channel(devPtr);
-	omap2_mcspi_dma_writereq(devPtr,OMAP2_McSPI_DMAW_ENABLE);
-	omap2_mcspi_transmit_buf(devPtr,virt_to_phys((u32
-*)dmaBuf),256);
-	omap2_mcspi_enable_channel(devPtr);
+=20
 
-Thanks,
--Prasad
+LOG::=20SD
+
+:
+
+:
+
+MMC:=20starting=20cmd=2029=20arg=2000300000=20flags=2000000001
+
+mmc1:=20CMD41,=20argument=200x00300000,=2032-bit=20response
+
+mmc1:=20Response=2000ff8000
+
+mmc1:=20End=20request,=20err=200
+
+MMC:=20req=20done=20(29):=200:=2000ff8000=2000000000=2000000000=2000000000=
 
 
------Original Message-----
-From: Girish. S. G. [mailto:girishsg@ti.com]=20
-Sent: Wednesday, January 31, 2007 5:34 AM
-To: Krishna Prasad Herur
-Cc: linux-omap-open-source@linux.omap.com
-Subject: RE: DMA transfer using McSPI driver
+MMC:=20starting=20cmd=2002=20arg=2000000000=20flags=200000000a
 
-hi prasad,
+mmc1:=20CMD2,=20argument=200x00000000,=20128-bit=20response,=20CRC
 
-If you have called all config macros correctly (like, set and get
-transmission
-enable on line 1/0 etc,.) then there shoudn't b any problem.
+mmc1:=20Response=20902e012a=200f5983cc=20f6da9fff=2000ff8000
 
-Just check once if you are allocating memory for DMA buf properly.
+mmc1:=20End=20request,=20err=201
 
-regards,
-girish
-
-> I think I know the reason for the soft lockup.
->
-> The omap 2430 errata says that the DMA Tx complete interrupt continues
-> to be asserted after a transaction error. I found this to be the
-reason
-> for the soft lockup. I am still unsure as to why there is a
-transaction
-> error!
->
->
->
-> The McSpi driver configuration for DMA transfer seems to be
-> straightforward. The McSpi driver seems to be calling all the Dma
-driver
-> functions with the right parameters.
->
->
->
-> Does anyone had success doing DMA transfers to/from McSpi channels
-using
-> the Omap McSpi driver?
->
-> Regards,
->
-> -Prasad
->
->
->
-> ________________________________
->
-> From: Krishna Prasad Herur
-> Sent: Tuesday, January 23, 2007 12:02 PM
-> To: linux-omap-open-source@linux.omap.com
-> Subject: DMA transfer using McSPI driver
->
->
->
-> Hi Gurus,
->
->             I was able to get raw data transfers over the McSPI bus on
-> an Omap 2430 based platform running Linux 2.6. I am trying to do the
-> same transmit using DMA. Is it possible to use DMA in polling mode? I
-> have not registered interrupt handlers or dma handlers.  Below is the
-> programming sequence I followed, after calling all the config macros.
->
->
->
->       omap2_mcspi_request_interface(devPtr);
->
->       omap2_mcspi_interface_reset(devPtr);
->
->       omap2_mcspi_get(devPtr);
->
->       omap2_mcspi_config_channel(devPtr);
->
->       omap2_mcspi_enable_channel(devPtr);
->
->       omap2_mcspi_dma_writereq(devPtr,OMAP2_McSPI_DMAW_ENABLE);
->
->       omap2_mcspi_transmit_buf(devPtr,dmaBuf,8);
->
->
->
-> I get a DMA transaction error, and a soft lockup.
->
->
->
-> DMA transaction error occurred with device 35
->
-> BUG: soft lockup detected on CPU#0!
->
->
->
-> Regards,
->
-> -Prasad
->
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
+MMC:=20req=20done=20(02):=201:=20902e012a=200f5983cc=20f6da9fff=2000ff8000=
 
 
+mmc1:=20CMD2,=20argument=200x00000000,=20128-bit=20response,=20CRC
 
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+mmc1:=20Response=20902e012a=200f5983cc=20f6da9fff=2000ff8000
 
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+mmc1:=20End=20request,=20err=201
+
+MMC:=20req=20done=20(02):=201:=20902e012a=200f5983cc=20f6da9fff=2000ff8000=
+
+
+mmc1:=20CMD2,=20argument=200x00000000,=20128-bit=20response,=20CRC
+
+mmc1:=20Response=20902e012a=200f5983cc=20f6da9fff=2000ff8000
+
+mmc1:=20End=20request,=20err=201
+
+MMC:=20req=20done=20(02):=201:=20902e012a=200f5983cc=20f6da9fff=2000ff8000=
+
+
+mmc1:=20CMD2,=20argument=200x00000000,=20128-bit=20response,=20CRC
+
+mmc1:=20Response=20902e012a=200f5983cc=20f6da9fff=2000ff8000
+
+mmc1:=20End=20request,=20err=201
+
+MMC:=20req=20done=20(02):=201:=20902e012a=200f5983cc=20f6da9fff=2000ff8000=
+
+
+mmc1:=20set_ios:=20clock=20400000Hz=20busmode=202=20powermode=202=20Vdd=20=
+14
+
+mmc1:=20set_ios:=20clock=200Hz=20busmode=201=20powermode=200=20Vdd=200
+
+=20
+
+10x,=20eyal.
+
+
+______________________________________________________________________
+This=20email=20has=20been=20scanned=20by=20the=20MessageLabs=20Email=20Sec=
+urity=20System.
+For=20more=20information=20please=20visit=20http://www.messagelabs.com/ema=
+il=20
+______________________________________________________________________
