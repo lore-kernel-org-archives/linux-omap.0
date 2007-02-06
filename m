@@ -1,11 +1,11 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: [PATCH] ARM: OMAP: Replace mach-omap/omap2 with mach-omap2
-Date: Tue, 6 Feb 2007 12:23:41 +0530
-Message-ID: <5d5443650702052253g7840386awe57eafcbacc081c@mail.gmail.com>
+From: Arnold <abo_gwapo@yahoo.com>
+Subject: Flash read/write
+Date: Tue, 6 Feb 2007 00:41:10 -0800 (PST)
+Message-ID: <229468.21740.qm@web55311.mail.re4.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_660_25357566.1170744821345"
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,93 +13,32 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-------=_Part_660_25357566.1170744821345
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi All,
 
-Hi,
+I am having problems writing a file to the flash. I am
+using omap5912 and kernel2.6.17. I have 2 problems
+here. First, when I create a file(which does not
+exist) using the standard linux open the return value
+is always -1 which I think is an error. However, when
+the file is existing, I can write succesfully. So what
+I did is create a tmpFile with zero bytes then include
+it in my filesystem, then use the cp to create the
+file that I can use. Is this a problem on the
+permission on jffs2 filesystem? The second problem is
+the speed in writing to the flash. If I write to the
+flash for the first time it is taking so long to
+finish compared to the second time I write to the
+flash. Could someone enlighten me?
 
-This patch replaces mach-omap/omap2 with mach-omap2 in file headers.
-
--- 
---Trilok Soni
-
-------=_Part_660_25357566.1170744821345
-Content-Type: application/octet-stream;
-	name=0001-ARM-OMAP-Replace-mach-omap-omap2-with-mach-omap2.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_extz8jhe
-Content-Disposition: attachment;
-	filename="0001-ARM-OMAP-Replace-mach-omap-omap2-with-mach-omap2.patch"
-
-RnJvbSBub2JvZHkgTW9uIFNlcCAxNyAwMDowMDowMCAyMDAxCkZyb206IFRyaWxvayBTb25pIDxz
-b25pLnRyaWxva0BnbWFpbC5jb20+CkRhdGU6IFR1ZSwgNiBGZWIgMjAwNyAxNzozNzo1NCArMDUz
-MApTdWJqZWN0OiBbUEFUQ0hdIEFSTTogT01BUDogUmVwbGFjZSBtYWNoLW9tYXAvb21hcDIgd2l0
-aCBtYWNoLW9tYXAyCgotIFVwZGF0ZSBmaWxlIGhlYWRlcnMgd2l0aCBjb3JyZWN0IGZpbGUgcGF0
-aHMuCgpTaWduZWQtb2ZmLWJ5OiBUcmlsb2sgU29uaSA8c29uaS50cmlsb2tAZ21haWwuY29tPgoK
-LS0tCgogYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1hcG9sbG9uLmMgICAgfCAgICAyICstCiBh
-cmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW44MDAtYXVkaW8uYyB8ICAgIDIgKy0KIGFyY2gvYXJt
-L21hY2gtb21hcDIvYm9hcmQtbjgwMC1mbGFzaC5jIHwgICAgMiArLQogYXJjaC9hcm0vbWFjaC1v
-bWFwMi9ib2FyZC1uODAwLXVzYi5jICAgfCAgICAyICstCiBhcmNoL2FybS9tYWNoLW9tYXAyL2Jv
-YXJkLW44MDAuYyAgICAgICB8ICAgIDIgKy0KIGFyY2gvYXJtL21hY2gtb21hcDIvdXNiLXR1c2I2
-MDEwLmMgICAgIHwgICAgMiArLQogNiBmaWxlcyBjaGFuZ2VkLCA2IGluc2VydGlvbnMoKyksIDYg
-ZGVsZXRpb25zKC0pCgo0YTcxYWJmYjEyNzY1ZTNlYTE5YTg3MDRmZjk2YmNkYThlNWE1ZTQzCmRp
-ZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLWFwb2xsb24uYyBiL2FyY2gvYXJt
-L21hY2gtb21hcDIvYm9hcmQtYXBvbGxvbi5jCmluZGV4IDVlMWNhZGEuLjU0ODg5NjEgMTAwNjQ0
-Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtYXBvbGxvbi5jCisrKyBiL2FyY2gvYXJt
-L21hY2gtb21hcDIvYm9hcmQtYXBvbGxvbi5jCkBAIC00LDcgKzQsNyBAQAogICogQ29weXJpZ2h0
-IChDKSAyMDA1LDIwMDYgU2Ftc3VuZyBFbGVjdHJvbmljcwogICogQXV0aG9yOiBLeXVuZ21pbiBQ
-YXJrIDxreXVuZ21pbi5wYXJrQHNhbXN1bmcuY29tPgogICoKLSAqIE1vZGlmaWVkIGZyb20gbWFj
-aC1vbWFwL29tYXAyL2JvYXJkLWg0LmMKKyAqIE1vZGlmaWVkIGZyb20gbWFjaC1vbWFwMi9ib2Fy
-ZC1oNC5jCiAgKgogICogQ29kZSBmb3IgYXBvbGxvbiBPTUFQMiBib2FyZC4gU2hvdWxkIHdvcmsg
-b24gbWFueSBPTUFQMiBzeXN0ZW1zIHdoZXJlCiAgKiB0aGUgYm9vdGxvYWRlciBwYXNzZXMgdGhl
-IGJvYXJkLXNwZWNpZmljIGRhdGEgdG8gdGhlIGtlcm5lbC4KZGlmZiAtLWdpdCBhL2FyY2gvYXJt
-L21hY2gtb21hcDIvYm9hcmQtbjgwMC1hdWRpby5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2Fy
-ZC1uODAwLWF1ZGlvLmMKaW5kZXggMTYwOGQzZC4uOGUzNjY5MSAxMDA2NDQKLS0tIGEvYXJjaC9h
-cm0vbWFjaC1vbWFwMi9ib2FyZC1uODAwLWF1ZGlvLmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFw
-Mi9ib2FyZC1uODAwLWF1ZGlvLmMKQEAgLTEsNSArMSw1IEBACiAvKgotICogbGludXgvYXJjaC9h
-cm0vbWFjaC1vbWFwL29tYXAyL2JvYXJkLW44MDAtYXVkaW8uYworICogbGludXgvYXJjaC9hcm0v
-bWFjaC1vbWFwMi9ib2FyZC1uODAwLWF1ZGlvLmMKICAqCiAgKiBDb3B5cmlnaHQgKEMpIDIwMDYg
-Tm9raWEgQ29ycG9yYXRpb24KICAqIENvbnRhY3Q6IEp1aGEgWXJqP2w/CmRpZmYgLS1naXQgYS9h
-cmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW44MDAtZmxhc2guYyBiL2FyY2gvYXJtL21hY2gtb21h
-cDIvYm9hcmQtbjgwMC1mbGFzaC5jCmluZGV4IDNhNGM1MmEuLmNkMzAyYWIgMTAwNjQ0Ci0tLSBh
-L2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtbjgwMC1mbGFzaC5jCisrKyBiL2FyY2gvYXJtL21h
-Y2gtb21hcDIvYm9hcmQtbjgwMC1mbGFzaC5jCkBAIC0xLDUgKzEsNSBAQAogLyoKLSAqIGxpbnV4
-L2FyY2gvYXJtL21hY2gtb21hcC9vbWFwMi9ib2FyZC1uODAwLWZsYXNoLmMKKyAqIGxpbnV4L2Fy
-Y2gvYXJtL21hY2gtb21hcDIvYm9hcmQtbjgwMC1mbGFzaC5jCiAgKgogICogQ29weXJpZ2h0IChD
-KSAyMDA2IE5va2lhIENvcnBvcmF0aW9uCiAgKiBBdXRob3I6IEp1aGEgWXJqb2xhCmRpZmYgLS1n
-aXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW44MDAtdXNiLmMgYi9hcmNoL2FybS9tYWNo
-LW9tYXAyL2JvYXJkLW44MDAtdXNiLmMKaW5kZXggNzUyNDNhYy4uZTQzNjkwZCAxMDA2NDQKLS0t
-IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1uODAwLXVzYi5jCisrKyBiL2FyY2gvYXJtL21h
-Y2gtb21hcDIvYm9hcmQtbjgwMC11c2IuYwpAQCAtMSw1ICsxLDUgQEAKIC8qCi0gKiBsaW51eC9h
-cmNoL2FybS9tYWNoLW9tYXAvb21hcDIvYm9hcmQtbjgwMC11c2IuYworICogbGludXgvYXJjaC9h
-cm0vbWFjaC1vbWFwMi9ib2FyZC1uODAwLXVzYi5jCiAgKgogICogQ29weXJpZ2h0IChDKSAyMDA2
-IE5va2lhIENvcnBvcmF0aW9uCiAgKiBBdXRob3I6IEp1aGEgWXJqP2w/CmRpZmYgLS1naXQgYS9h
-cmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW44MDAuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9h
-cmQtbjgwMC5jCmluZGV4IDIxODgyOTQuLjY5ZTVkMzYgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21h
-Y2gtb21hcDIvYm9hcmQtbjgwMC5jCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtbjgw
-MC5jCkBAIC0xLDUgKzEsNSBAQAogLyoKLSAqIGxpbnV4L2FyY2gvYXJtL21hY2gtb21hcC9vbWFw
-Mi9ib2FyZC1uODAwLmMKKyAqIGxpbnV4L2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtbjgwMC5j
-CiAgKgogICogQ29weXJpZ2h0IChDKSAyMDA1IE5va2lhIENvcnBvcmF0aW9uCiAgKiBBdXRob3I6
-IEp1aGEgWXJqP2w/IDxqdWhhLnlyam9sYUBub2tpYS5jb20+CmRpZmYgLS1naXQgYS9hcmNoL2Fy
-bS9tYWNoLW9tYXAyL3VzYi10dXNiNjAxMC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi91c2ItdHVz
-YjYwMTAuYwppbmRleCA0OTdmNzMzLi44MGJiNDJlIDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNo
-LW9tYXAyL3VzYi10dXNiNjAxMC5jCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvdXNiLXR1c2I2
-MDEwLmMKQEAgLTEsNSArMSw1IEBACiAvKgotICogbGludXgvYXJjaC9hcm0vbWFjaC1vbWFwL29t
-YXAyL3VzYi10dXNiNjAxMC5jCisgKiBsaW51eC9hcmNoL2FybS9tYWNoLW9tYXAyL3VzYi10dXNi
-NjAxMC5jCiAgKgogICogQ29weXJpZ2h0IChDKSAyMDA2IE5va2lhIENvcnBvcmF0aW9uCiAgKgot
-LSAKMS4zLjMKCg==
-------=_Part_660_25357566.1170744821345
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks,
+Arnold
 
 
-------=_Part_660_25357566.1170744821345--
+ 
+____________________________________________________________________________________
+Any questions? Get answers on any topic at www.Answers.yahoo.com.  Try it now.
