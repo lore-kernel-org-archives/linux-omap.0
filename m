@@ -1,13 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: linux for 243x
-Date: Tue, 6 Feb 2007 13:30:55 -0800
-Message-ID: <20070206213055.GG9311@atomide.com>
-References: <b493fc100702060628n2df37c9al9a37de84273e7345@mail.gmail.com>
+Subject: Re: Basic N800 support
+Date: Tue, 6 Feb 2007 13:36:49 -0800
+Message-ID: <20070206213648.GH9311@atomide.com>
+References: <13020905.97851169452503947.JavaMail.weblogic@ep_ml23>
+	<20070122171254.GD7382@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <b493fc100702060628n2df37c9al9a37de84273e7345@mail.gmail.com>
+In-Reply-To: <20070122171254.GD7382@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,35 +16,37 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: steve d <stevens0007@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: "linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Tony Lindgren <tony@atomide.com> [070122 09:14]:
+> * Kyungmin Park <kyungmin.park@samsung.com> [070121 23:55]:
+> > Hi Tony,
+> > 
+> > Thank you for releasing N800 source code.
+> > It's very helpful for OMAP2 board, such as Apollon.
+> 
+> Well I just took what Nokia published at maemo.org..
+>  
+> > I checked and downloaded the source code in maemo.
+> > I'll check the OMAP2 core stuff and OneNAND in apollon board.
+> > 
+> > Thank you,
+> > Kyungmin Park
+> > 
+> > P.S., Is it possible to change 'omap2.c' in drivers/mtd/onenand to 'n800.c' or another? It's not generic for OMAP2. :)
+> 
+> Sure, maybe there's some code that should be shared though?
 
-* steve d <stevens0007@gmail.com> [070206 06:34]:
-> Hi,
->  Am using 2430SDP. Downloaded linux-2.6.20-rc5 from git.
-> 
->   I find that full support for omap2430sdp is not provided in here. kernel
-> is of not much use.
->   just boots, support for interfaces dont exist.
-> 
->   Most of the drivers are missing from this version.  I do find
-> linux-2.6.14-rc7 (with linux.omap.com/pub/)
->   has support for SDP.
-> 
->   When can we expect the updated linux-2.6.20 which supports all the
-> interfaces.
-> 
->    Is anyone working on this?
+Kyungmin, can you list what else makes the N800 onenand support
+non-generic other than the GPMC timings that should come from
+board-*.c files?
 
-Syed Khasim <x0khasim@ti.com> was sending out some 2430 patches until
-few weeks ago, but I think he may still be on vacation.
-
-Meanwhile, patches are welcome if you have some :)
+I'd like to get this to linux-omap tree in some format to
+be able to mount root :)
 
 Regards,
 
