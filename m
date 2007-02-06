@@ -1,11 +1,12 @@
-From: Arnold <abo_gwapo@yahoo.com>
-Subject: Flash read/write
-Date: Tue, 6 Feb 2007 00:41:10 -0800 (PST)
-Message-ID: <229468.21740.qm@web55311.mail.re4.yahoo.com>
+From: "steve d" <stevens0007@gmail.com>
+Subject: linux for 243x
+Date: Tue, 6 Feb 2007 19:58:12 +0530
+Message-ID: <b493fc100702060628n2df37c9al9a37de84273e7345@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,27 +19,21 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi All,
+Hi,
+  Am using 2430SDP. Downloaded linux-2.6.20-rc5 from git.
 
-I am having problems writing a file to the flash. I am
-using omap5912 and kernel2.6.17. I have 2 problems
-here. First, when I create a file(which does not
-exist) using the standard linux open the return value
-is always -1 which I think is an error. However, when
-the file is existing, I can write succesfully. So what
-I did is create a tmpFile with zero bytes then include
-it in my filesystem, then use the cp to create the
-file that I can use. Is this a problem on the
-permission on jffs2 filesystem? The second problem is
-the speed in writing to the flash. If I write to the
-flash for the first time it is taking so long to
-finish compared to the second time I write to the
-flash. Could someone enlighten me?
+   I find that full support for omap2430sdp is not provided in here. kernel
+is of not much use.
+   just boots, support for interfaces dont exist.
 
-Thanks,
-Arnold
+   Most of the drivers are missing from this version.  I do find
+linux-2.6.14-rc7 (with linux.omap.com/pub/)
+   has support for SDP.
 
+   When can we expect the updated linux-2.6.20 which supports all the
+interfaces.
 
- 
-____________________________________________________________________________________
-Any questions? Get answers on any topic at www.Answers.yahoo.com.  Try it now.
+    Is anyone working on this?
+
+ Regards,
+steve
