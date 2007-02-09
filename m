@@ -1,12 +1,13 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: H4 boot with latest git kernel
-Date: Fri, 9 Feb 2007 16:54:39 +0530
-Message-ID: <5d5443650702090324g6048af71u17f20a55f823edda@mail.gmail.com>
+From: Ram <vshrirama@gmail.com>
+Subject: omap2430sdp fb and lcd - unable to see anything
+Date: Fri, 9 Feb 2007 20:13:34 +0530
+Message-ID: <8bf247760702090643u72e38ae4hf4243e16db64f1f2@mail.gmail.com>
+References: <8bf247760702090510y4e41d2feqc71070783f516e2f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="----=_Part_17272_19667833.1171032214628"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+In-Reply-To: <8bf247760702090510y4e41d2feqc71070783f516e2f@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,138 +20,149 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+------=_Part_17272_19667833.1171032214628
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
 Hi,
+   Have been trying to get linux-2.6.19-omap1 working with OMAP2430SDP.
 
-H4 booting sequence stops just after the following NET messages. I am
-using latest pull from git. I have tried disabling IrDA, thinking that
-it might had created some problems. Is it working for anyone out
-there?
+   Im using the code 2.6.14-7 (with linux.omap.com) as a reference.
 
-------
-Linux version 2.6.20-rc7-omap1-g4a71abfb-dirty (trilok@cauveri) (gcc
-version 4.1.
-1 (CodeSourcery ARM Sourcery G++ 2006q3-26)) #33 Fri Feb 9 22:20:38 IST 2007
-CPU: ARMv6-compatible processor [4107b362] revision 2 (ARMv6TEJ), cr=00c5387f
-Machine: OMAP2420 H4 board
-Memory policy: ECC disabled, Data cache writeback
-OMAP2420
-SRAM: Mapped pa 0x40200000 to va 0xd0000000 size: 0x100000
-CPU0: D VIPT write-back cache
-CPU0: I cache: 32768 bytes, associativity 4, 32 byte lines, 256 sets
-CPU0: D cache: 32768 bytes, associativity 4, 32 byte lines, 256 sets
-Built 1 zonelists.  Total pages: 32512
-Kernel command line: console=ttyS0,115200n8 noinitrd root=/dev/nfs rw nfsroot=10
-.203.97.28:/pub/fs/eabi,rsize=1024,wsize=1024 ip=10.203.97.29:10.203.97.28:255.2
-55.255.192:omap2:eth0
-Clocking rate (Crystal/DPLL/MPU): 12.0/600/300 MHz
-clock.c: Enable for dpll_ck without enable code
-GPMC revision 1.0
-IRQ: Found an INTC at 0xd80fe000 (revision 1.0) with 96 interrupts
-Total of 96 interrupts on 1 active controller
-OMAP242x GPIO hardware version 1.5
-PID hash table entries: 512 (order: 9, 2048 bytes)
-Console: colour dummy device 80x30
-Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
-Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
-Memory: 128MB 0MB = 128MB total
-Memory: 126848KB available (2568K code, 240K data, 112K init)
-Mount-cache hash table entries: 512
-CPU: Testing write buffer coherency: ok
-NET: Registered protocol family 16
-MUX: setup M15_24XX_GPIO92 (0x4800010a): 0x03 -> 0x03
-MUX: setup T19_24XX_KBR0 (0x48000106): 0x0f -> 0x1b
-MUX: setup R19_24XX_KBR1 (0x48000107): 0x0f -> 0x1b
-MUX: setup V18_24XX_KBR2 (0x48000139): 0x07 -> 0x1b
-MUX: setup M21_24XX_KBR3 (0x480000c9): 0x0f -> 0x1b
-MUX: setup E5__24XX_KBR4 (0x48000138): 0x0f -> 0x1b
-MUX: setup B3__24XX_KBR5 (0x48000030): 0x03 -> 0x1b
-MUX: setup AA4_24XX_KBC2 (0x480000e7): 0x03 -> 0x03
-MUX: setup B13_24XX_KBC6 (0x48000110): 0x03 -> 0x03
-MUX: setup R20_24XX_KBC0 (0x48000108): 0x0f -> 0x03
-MUX: setup M14_24XX_KBC1 (0x48000109): 0x1f -> 0x03
-MUX: setup V17_24XX_KBC3 (0x48000135): 0x07 -> 0x03
-MUX: setup P21_24XX_KBC4 (0x480000ca): 0x0f -> 0x03
-MUX: setup L14_24XX_KBC5 (0x4800010f): 0x0f -> 0x03
-MUX: setup H18_24XX_MMC_CMD (0x480000f4): 0x00 -> 0x00
-MUX: setup H15_24XX_MMC_CLKI (0x480000fe): 0x00 -> 0x00
-MUX: setup G19_24XX_MMC_CLKO (0x480000f3): 0x00 -> 0x00
-MUX: setup F20_24XX_MMC_DAT0 (0x480000f5): 0x00 -> 0x00
-MUX: setup F19_24XX_MMC_DAT_DIR0 (0x480000f9): 0x00 -> 0x00
-MUX: setup G18_24XX_MMC_CMD_DIR (0x480000fd): 0x00 -> 0x00
-MUX: setup H14_24XX_MMC_DAT1 (0x480000f6): 0x00 -> 0x00
-MUX: setup E19_24XX_MMC_DAT2 (0x480000f7): 0x00 -> 0x00
-MUX: setup D19_24XX_MMC_DAT3 (0x480000f8): 0x00 -> 0x00
-MUX: setup E20_24XX_MMC_DAT_DIR1 (0x480000fa): 0x00 -> 0x00
-MUX: setup F18_24XX_MMC_DAT_DIR2 (0x480000fb): 0x00 -> 0x00
-MUX: setup E18_24XX_MMC_DAT_DIR3 (0x480000fc): 0x00 -> 0x00
-MUX: setup M19_24XX_I2C1_SCL (0x48000111): 0x00 -> 0x00
-MUX: setup L15_24XX_I2C1_SDA (0x48000112): 0x00 -> 0x00
-OMAP DMA hardware revision 1.0
-Initializing OMAP McBSP system
-MUX: setup Y15_24XX_MCBSP2_CLKX (0x48000124): 0x0f -> 0x09
-MUX: setup R14_24XX_MCBSP2_FSX (0x48000125): 0x0f -> 0x09
-MUX: setup W15_24XX_MCBSP2_DR (0x48000126): 0x0f -> 0x09
-MUX: setup V15_24XX_MCBSP2_DX (0x48000127): 0x0f -> 0x09
-MUX: setup V14_24XX_GPIO117 (0x48000128): 0x0f -> 0x0b
-omap_dsp_init() done
-MUX: setup K18_24XX_USB0_DAT (0x48000123): 0x00 -> 0x00
-MUX: setup K19_24XX_USB0_TXEN (0x48000121): 0x00 -> 0x00
-MUX: setup J14_24XX_USB0_SE0 (0x48000122): 0x00 -> 0x00
-USB: hmc 0, usb0 3 wires
-i2c_omap i2c_omap.1: bus 1 rev3.1 at 100 kHz
-NET: Registered protocol family 2
-IP route cache hash table entries: 1024 (order: 0, 4096 bytes)
-TCP established hash table entries: 4096 (order: 2, 16384 bytes)
-TCP bind hash table entries: 2048 (order: 1, 8192 bytes)
-TCP: Hash tables configured (established 4096 bind 2048)
-TCP reno registered
-NetWinder Floating Point Emulator V0.97 (double precision)
-VFS: Disk quotas dquot_6.5.1
-Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
-JFFS2 version 2.2. (NAND) (C) 2001-2006 Red Hat, Inc.
-io scheduler noop registered
-io scheduler anticipatory registered (default)
-io scheduler deadline registered
-io scheduler cfq registered
-omapfb: configured for panel h4
-omapfb: DISPC version 1.0 initialized
-Console: switching to colour frame buffer device 30x40
-omapfb: Framebuffer initialized. Total vram 153600 planes 1
-omapfb: Pixclock 6250 kHz hfreq 18.3 kHz vfreq 58.6 Hz
-OMAP Watchdog Timer: initial timeout 60 sec
-Serial: 8250/16550 driver $Revision: 1.90 $ 4 ports, IRQ sharing enabled
-serial8250.0: ttyS0 at MMIO 0x4806a000 (irq = 72) is a ST16654
-serial8250.0: ttyS1 at MMIO 0x4806c000 (irq = 73) is a ST16654
-serial8250.0: ttyS2 at MMIO 0x4806e000 (irq = 74) is a ST16654
-RAMDISK driver initialized: 16 RAM disks of 16384K size 1024 blocksize
-loop: loaded (max 8 devices)
-smc91x.c: v1.1, sep 22 2004 by Nicolas Pitre <nico@cam.org>
-eth0: SMC91C94 (rev 9) at c8850300 IRQ 252 [nowait]
-eth0: Ethernet addr: 00:50:c2:27:1e:ab
-MUX: setup W19_24XX_SYS_NIRQ (0x4800012c): 0x00 -> 0x18
-Menelaus rev 1.1
-omapflash.0: Found 1 x16 devices at 0x0 in 16-bit bank
-omapflash.0: Found 1 x16 devices at 0x2000000 in 16-bit bank
- Intel/Sharp Extended Query Table at 0x010A
- Intel/Sharp Extended Query Table at 0x010A
- Intel/Sharp Extended Query Table at 0x010A
- Intel/Sharp Extended Query Table at 0x010A
- Intel/Sharp Extended Query Table at 0x010A
- Intel/Sharp Extended Query Table at 0x010A
-Using buffer write method
-cfi_cmdset_0001: Erase suspend on write enabled
-Creating 4 MTD partitions on "omapflash.0":
-0x00000000-0x00020000 : "bootloader"
-0x00020000-0x00040000 : "params"
-0x00040000-0x00240000 : "kernel"
-0x00240000-0x04000000 : "filesystem"
-OMAP Keypad Driver
-input: omap-keypad as /class/input/input0
-TCP cubic registered
-NET: Registered protocol family 1
-NET: Registered protocol family 17
-NET: Registered protocol family 15
-----
+   I have tried to port frame buffer driver and lcd driver to linux 2.6.19
 
--- 
---Trilok Soni
+   Im able to do
+         $ cat /bin/busybox > /dev/fb
+
+  But i dont see anything on the LCD. I also notice that the LED "CPLD Done"
+is not on.
+  The LED, is right below the LCD panel on the SDP.
+
+  Im not sure if the LCD panel is powered-on?.
+
+Please Advice, do let me know if im doing something im not supposed to do.
+
+Appending boot messages does this makes sense?.
+I see the fb and lcd getting registered.
+
+have a doubt on power and clock settings. not sure, hence the mail
+
+
+Please advice
+
+
+
+Regards,
+sriram
+
+------=_Part_17272_19667833.1171032214628
+Content-Type: text/plain; name=dmesg.txt; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_exxx6q0z
+Content-Disposition: attachment; filename="dmesg.txt"
+
+TGludXggdmVyc2lvbiAyLjYuMTktb21hcDEgKHNyaXJhbUBzcmlyYW0pIChnY2MgdmVyc2lvbiAz
+LjQuNCkgIzE1IEZyaSBGZWIgOSAwNjoxNTo1NiBJU1QgMjAwNwpDUFU6IFNvbWUgUmFuZG9tIFY2
+IFByb2Nlc3NvciBbNDEwN2IzNjZdIHJldmlzaW9uIDYgKEFSTXY2VEVKKSwgY3I9MDBjNTM4N2YK
+TWFjaGluZTogT01BUDI0MzAgc2RwMjQzMCBib2FyZApNZW1vcnkgcG9saWN5OiBFQ0MgZGlzYWJs
+ZWQsIERhdGEgY2FjaGUgd3JpdGViYWNrCk9uIG5vZGUgMCB0b3RhbHBhZ2VzOiA4MTkyCiAgRE1B
+IHpvbmU6IDY0IHBhZ2VzIHVzZWQgZm9yIG1lbW1hcAogIERNQSB6b25lOiAwIHBhZ2VzIHJlc2Vy
+dmVkCiAgRE1BIHpvbmU6IDgxMjggcGFnZXMsIExJRk8gYmF0Y2g6MAogIE5vcm1hbCB6b25lOiAw
+IHBhZ2VzIHVzZWQgZm9yIG1lbW1hcApPTUFQMjQzMDIKU1JBTTogTWFwcGVkIHBhIDB4NDAyMDAw
+MDAgdG8gdmEgMHhkMDAwMDAwMCBzaXplOiAweDEwMDAwMApDUFUwOiBEIFZJUFQgd3JpdGUtYmFj
+ayBjYWNoZQpDUFUwOiBJIGNhY2hlOiAzMjc2OCBieXRlcywgYXNzb2NpYXRpdml0eSA0LCAzMiBi
+eXRlIGxpbmVzLCAyNTYgc2V0cwpDUFUwOiBEIGNhY2hlOiAzMjc2OCBieXRlcywgYXNzb2NpYXRp
+dml0eSA0LCAzMiBieXRlIGxpbmVzLCAyNTYgc2V0cwpCdWlsdCAxIHpvbmVsaXN0cy4gIFRvdGFs
+IHBhZ2VzOiA4MTI4Cktlcm5lbCBjb21tYW5kIGxpbmU6IG1lbT0zMk0gY29uc29sZT10dHlTMCwx
+MTUyMDBuOCBydyByb290PS9kZXYvbmZzIG5mc3Jvb3Q9MTkyLjE2OC4xMy4yNTE6L2hvbWUvc3Jp
+cmFtL21pbnJvb3RmcyBpcD1kaGNwCkNsb2NraW5nIHJhdGUgKENyeXN0YWwvRFBMTC9NUFUpOiAx
+My4wLzUzMi8yNjYgTUh6CmNsb2NrLmM6IEVuYWJsZSBmb3IgZHBsbF9jayB3aXRob3V0IGVuYWJs
+ZSBjb2RlCkNsb2NrIGFwbGw1NF9jayBkaWRuJ3QgbG9jawpHUE1DIHJldmlzaW9uIDMuMApJUlE6
+IEZvdW5kIGFuIElOVEMgYXQgMHhkODBmZTAwMCAocmV2aXNpb24gMy4wKSB3aXRoIDk2IGludGVy
+cnVwdHMKVG90YWwgb2YgOTYgaW50ZXJydXB0cyBvbiAxIGFjdGl2ZSBjb250cm9sbGVyCk9NQVAy
+NDN4IEdQSU8gaGFyZHdhcmUgdmVyc2lvbiAyLjQKUElEIGhhc2ggdGFibGUgZW50cmllczogMTI4
+IChvcmRlcjogNywgNTEyIGJ5dGVzKQpDb25zb2xlOiBjb2xvdXIgZHVtbXkgZGV2aWNlIDgweDMw
+CkRlbnRyeSBjYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6IDQwOTYgKG9yZGVyOiAyLCAxNjM4NCBi
+eXRlcykKSW5vZGUtY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiAyMDQ4IChvcmRlcjogMSwgODE5
+MiBieXRlcykKTWVtb3J5OiAzMk1CID0gMzJNQiB0b3RhbApNZW1vcnk6IDI5NDg0S0IgYXZhaWxh
+YmxlICgyMzIwSyBjb2RlLCA1MDlLIGRhdGEsIDExNksgaW5pdCkKQ2FsaWJyYXRpbmcgZGVsYXkg
+bG9vcC4uLiAyNjUuNDIgQm9nb01JUFMgKGxwaj0xMzI3MTA0KQpNb3VudC1jYWNoZSBoYXNoIHRh
+YmxlIGVudHJpZXM6IDUxMgpDUFU6IFRlc3Rpbmcgd3JpdGUgYnVmZmVyIGNvaGVyZW5jeTogb2sK
+TkVUOiBSZWdpc3RlcmVkIHByb3RvY29sIGZhbWlseSAxNgpPTUFQIERNQSBoYXJkd2FyZSByZXZp
+c2lvbiA0LjAKSW5pdGlhbGl6aW5nIE9NQVAgTWNCU1Agc3lzdGVtCm9tYXBkc3A6IGNvdWxkIG5v
+dCBhY3F1aXJlIGRzcF9mY2sgaGFuZGxlLgpPTUFQIHZpcnR1YWwgYnVzZXMgaW5pdGlhbGl6ZWQK
+b21hcDJfZGlzcDogdGltZW91dCB3YWl0aW5nIGZvciBkaXNwbGF5IGNvbnRyb2xsZXIgcmVzZXQK
+T01BUCBEaXNwbGF5IGhhcmR3YXJlIHZlcnNpb24gMS4wClVTQjogTm8gYm9hcmQtc3BlY2lmaWMg
+cGxhdGZvcm0gY29uZmlnIGZvdW5kCmkyY19vbWFwIGkyY19vbWFwLjI6IGJ1cyAyIHJldjMuNyBh
+dCAxMDAga0h6CmkyY19vbWFwIGkyY19vbWFwLjE6IGJ1cyAxIHJldjMuNyBhdCAxMDAga0h6ClRX
+TDQwMzA6IFRSWSBhdHRhY2ggU2xhdmUgVFdMNDAzMC1JRDAgb24gQWRhcHRlciBPTUFQIEkyQyBh
+ZGFwdGVyWzFdWzFdClRXTDQwMzA6IFRSWSBhdHRhY2ggU2xhdmUgVFdMNDAzMC1JRDEgb24gQWRh
+cHRlciBPTUFQIEkyQyBhZGFwdGVyWzFdWzFdClRXTDQwMzA6IFRSWSBhdHRhY2ggU2xhdmUgVFdM
+NDAzMC1JRDIgb24gQWRhcHRlciBPTUFQIEkyQyBhZGFwdGVyWzFdWzFdClRXTDQwMzA6IFRSWSBh
+dHRhY2ggU2xhdmUgVFdMNDAzMC1JRDMgb24gQWRhcHRlciBPTUFQIEkyQyBhZGFwdGVyWzFdWzFd
+ClRXTDQwMzA6IERyaXZlciByZWdpc3RyYXRpb24gY29tcGxldGUuCk5FVDogUmVnaXN0ZXJlZCBw
+cm90b2NvbCBmYW1pbHkgMgpJUCByb3V0ZSBjYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6IDI1NiAo
+b3JkZXI6IC0yLCAxMDI0IGJ5dGVzKQpUQ1AgZXN0YWJsaXNoZWQgaGFzaCB0YWJsZSBlbnRyaWVz
+OiAxMDI0IChvcmRlcjogMCwgNDA5NiBieXRlcykKVENQIGJpbmQgaGFzaCB0YWJsZSBlbnRyaWVz
+OiA1MTIgKG9yZGVyOiAtMSwgMjA0OCBieXRlcykKVENQOiBIYXNoIHRhYmxlcyBjb25maWd1cmVk
+IChlc3RhYmxpc2hlZCAxMDI0IGJpbmQgNTEyKQpUQ1AgcmVubyByZWdpc3RlcmVkCk5ldFdpbmRl
+ciBGbG9hdGluZyBQb2ludCBFbXVsYXRvciBWMC45NyAoZG91YmxlIHByZWNpc2lvbikKVkZTOiBE
+aXNrIHF1b3RhcyBkcXVvdF82LjUuMQpEcXVvdC1jYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6IDEw
+MjQgKG9yZGVyIDAsIDQwOTYgYnl0ZXMpCkpGRlMyIHZlcnNpb24gMi4yLiAoTkFORCkgKEMpIDIw
+MDEtMjAwNiBSZWQgSGF0LCBJbmMuCmlvIHNjaGVkdWxlciBub29wIHJlZ2lzdGVyZWQKaW8gc2No
+ZWR1bGVyIGFudGljaXBhdG9yeSByZWdpc3RlcmVkIChkZWZhdWx0KQppbyBzY2hlZHVsZXIgZGVh
+ZGxpbmUgcmVnaXN0ZXJlZAppbyBzY2hlZHVsZXIgY2ZxIHJlZ2lzdGVyZWQKUmVnaXN0ZXJpbmcg
+T01BUCBkZXZpY2UgJ3NkcDI0MzBfbGNkOScuIFBhcmVudCBhdCBMMwpvbWFwMl9kaXNwX291dExD
+RCBwYW5lbCAyNDB4MzIwClJlZ2lzdGVyaW5nIE9NQVAgZGV2aWNlICdvbWFwMjR4eGZiNicuIFBh
+cmVudCBhdCBMMwpvbWFwMjR4eGZiOiBPcHRpb25zICI8TlVMTD4iCkNvbnNvbGU6IHN3aXRjaGlu
+ZyB0byBjb2xvdXIgZnJhbWUgYnVmZmVyIGRldmljZSAzMHg0MApvbWFwMjR4eGZiOiBmYjAgZnJh
+bWUgYnVmZmVyIGRldmljZSAKb21hcDI0eHhmYjogZGlzcGxheSBtb2RlIDI0MHgzMjB4MTYgaHN5
+bmMgMTlrSHogdnN5bmMgNTdIegpTZXJpYWw6IDgyNTAvMTY1NTAgZHJpdmVyICRSZXZpc2lvbjog
+MS45MCAkIDQgcG9ydHMsIElSUSBzaGFyaW5nIGVuYWJsZWQKc2VyaWFsODI1MC4wOiB0dHlTMCBh
+dCBNTUlPIDB4NDgwNmEwMDAgKGlycSA9IDcyKSBpcyBhIFNUMTY2NTQKc2VyaWFsODI1MC4wOiB0
+dHlTMSBhdCBNTUlPIDB4NDgwNmMwMDAgKGlycSA9IDczKSBpcyBhIFNUMTY2NTQKc2VyaWFsODI1
+MC4wOiB0dHlTMiBhdCBNTUlPIDB4NDgwNmUwMDAgKGlycSA9IDc0KSBpcyBhIFNUMTY2NTQKUkFN
+RElTSyBkcml2ZXIgaW5pdGlhbGl6ZWQ6IDE2IFJBTSBkaXNrcyBvZiAxNjM4NEsgc2l6ZSAxMDI0
+IGJsb2Nrc2l6ZQpsb29wOiBsb2FkZWQgKG1heCA4IGRldmljZXMpClJlZ2lzdGVyaW5nIE9NQVAg
+ZGV2aWNlICdvbWFwLXR3bDQwMzBydGMxNicuIFBhcmVudCBhdCBMNENPUkUKb21hcC10d2w0MDMw
+cnRjOlRXTDQwMzAtUlRDIFBvd2VyIHVwIHJlc2V0IGRldGVjdGVkLgpvbWFwLXR3bDQwMzBydGM6
+RW5hYmxpbmcgVFdMNDAzMC1SVEMuCnNtYzkxeC5jOiB2MS4xLCBzZXAgMjIgMjAwNCBieSBOaWNv
+bGFzIFBpdHJlIDxuaWNvQGNhbS5vcmc+CmV0aDA6IFNNQzkxQzk0IChyZXYgOSkgYXQgYzI4NTIz
+MDAgSVJRIDI0NSBbbm93YWl0XQpldGgwOiBFdGhlcm5ldCBhZGRyOiAwODowMDoyODowMTowYTpk
+ZQpldGgwOiBObyBQSFkgZm91bmQKb21hcGZsYXNoLjA6IEZvdW5kIDEgeDE2IGRldmljZXMgYXQg
+MHgwIGluIDE2LWJpdCBiYW5rCm9tYXBmbGFzaC4wOiBGb3VuZCAxIHgxNiBkZXZpY2VzIGF0IDB4
+MjAwMDAwMCBpbiAxNi1iaXQgYmFuawogSW50ZWwvU2hhcnAgRXh0ZW5kZWQgUXVlcnkgVGFibGUg
+YXQgMHgwMTBBCiBJbnRlbC9TaGFycCBFeHRlbmRlZCBRdWVyeSBUYWJsZSBhdCAweDAxMEEKIElu
+dGVsL1NoYXJwIEV4dGVuZGVkIFF1ZXJ5IFRhYmxlIGF0IDB4MDEwQQogSW50ZWwvU2hhcnAgRXh0
+ZW5kZWQgUXVlcnkgVGFibGUgYXQgMHgwMTBBCiBJbnRlbC9TaGFycCBFeHRlbmRlZCBRdWVyeSBU
+YWJsZSBhdCAweDAxMEEKIEludGVsL1NoYXJwIEV4dGVuZGVkIFF1ZXJ5IFRhYmxlIGF0IDB4MDEw
+QQpVc2luZyBidWZmZXIgd3JpdGUgbWV0aG9kCmNmaV9jbWRzZXRfMDAwMTogRXJhc2Ugc3VzcGVu
+ZCBvbiB3cml0ZSBlbmFibGVkCmVyYXNlIHJlZ2lvbiAwOiBvZmZzZXQ9MHgwLHNpemU9MHgyMDAw
+MCxibG9ja3M9MjU1CmVyYXNlIHJlZ2lvbiAxOiBvZmZzZXQ9MHgxZmUwMDAwLHNpemU9MHg4MDAw
+LGJsb2Nrcz00CmVyYXNlIHJlZ2lvbiAyOiBvZmZzZXQ9MHgyMDAwMDAwLHNpemU9MHgyMDAwMCxi
+bG9ja3M9MjU1CmVyYXNlIHJlZ2lvbiAzOiBvZmZzZXQ9MHgzZmUwMDAwLHNpemU9MHg4MDAwLGJs
+b2Nrcz00Cm9tYXBmbGFzaC4wOiAyIHNldChzKSBvZiAxIGludGVybGVhdmVkIGNoaXBzIC0tPiAz
+MiBwYXJ0aXRpb25zIG9mIDIwNDggS2lCCkNyZWF0aW5nIDQgTVREIHBhcnRpdGlvbnMgb24gIm9t
+YXBmbGFzaC4wIjoKMHgwMDAwMDAwMC0weDAwMDQwMDAwIDogImJvb3Rsb2FkZXIiCjB4MDAwNDAw
+MDAtMHgwMDA2MDAwMCA6ICJwYXJhbXMiCjB4MDAwNjAwMDAtMHgwMDI2MDAwMCA6ICJrZXJuZWwi
+CjB4MDAyNjAwMDAtMHgwNDAwMDAwMCA6ICJmaWxlc3lzdGVtIgpUQ1AgY3ViaWMgcmVnaXN0ZXJl
+ZApORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDEKTkVUOiBSZWdpc3RlcmVkIHByb3Rv
+Y29sIGZhbWlseSAxNwpORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDE1CmV0aDA6IGxp
+bmsgdXAKU2VuZGluZyBESENQIHJlcXVlc3RzIC4sIE9LCklQLUNvbmZpZzogR290IERIQ1AgYW5z
+d2VyIGZyb20gMC4wLjAuMCwgbXkgYWRkcmVzcyBpcyAxOTIuMTY4LjEzLjMzCklQLUNvbmZpZzog
+Q29tcGxldGU6CiAgICAgIGRldmljZT1ldGgwLCBhZGRyPTE5Mi4xNjguMTMuMzMsIG1hc2s9MjU1
+LjI1NS4yNTUuMCwgZ3c9MTkyLjE2OC4xMy4xLAogICAgIGhvc3Q9MTkyLjE2OC4xMy4zMywgZG9t
+YWluPSwgbmlzLWRvbWFpbj0obm9uZSksCiAgICAgYm9vdHNlcnZlcj0wLjAuMC4wLCByb290c2Vy
+dmVyPTE5Mi4xNjguMTMuMjUxLCByb290cGF0aD0KTG9va2luZyB1cCBwb3J0IG9mIFJQQyAxMDAw
+MDMvMiBvbiAxOTIuMTY4LjEzLjI1MQpMb29raW5nIHVwIHBvcnQgb2YgUlBDIDEwMDAwNS8xIG9u
+IDE5Mi4xNjguMTMuMjUxClZGUzogTW91bnRlZCByb290IChuZnMgZmlsZXN5c3RlbSkuCkZyZWVp
+bmcgaW5pdCBtZW1vcnk6IDExNksK
+------=_Part_17272_19667833.1171032214628
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+------=_Part_17272_19667833.1171032214628--
