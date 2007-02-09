@@ -1,13 +1,15 @@
-From: Ram <vshrirama@gmail.com>
-Subject: omap2430sdp fb and lcd - unable to see anything
-Date: Fri, 9 Feb 2007 20:13:34 +0530
-Message-ID: <8bf247760702090643u72e38ae4hf4243e16db64f1f2@mail.gmail.com>
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: RE: omap2430sdp fb and lcd - unable to see anything
+Date: Fri, 9 Feb 2007 09:42:24 -0600
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47081005@dlee13.ent.ti.com>
 References: <8bf247760702090510y4e41d2feqc71070783f516e2f@mail.gmail.com>
+	<8bf247760702090643u72e38ae4hf4243e16db64f1f2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_17272_19667833.1171032214628"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <8bf247760702090510y4e41d2feqc71070783f516e2f@mail.gmail.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,31 +19,49 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Ram <vshrirama@gmail.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-------=_Part_17272_19667833.1171032214628
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi Sriram,
+=20
+Can you just list the set of files that you are trying to port from =
+2.6.14 to 2.6.19?
+=20
+Yes, you have to enable power for UI board, its from T2 LDO. Please =
+refer to power_companion.c & omap2_disp_out.c
+=20
+Regards,
+Khasim
+
+________________________________
+
+From: linux-omap-open-source-bounces@linux.omap.com on behalf of Ram
+Sent: Fri 2/9/2007 8:43 AM
+To: linux-omap-open-source@linux.omap.com
+Subject: omap2430sdp fb and lcd - unable to see anything
+
+
 
 Hi,
    Have been trying to get linux-2.6.19-omap1 working with OMAP2430SDP.
 
    Im using the code 2.6.14-7 (with linux.omap.com) as a reference.
 
-   I have tried to port frame buffer driver and lcd driver to linux 2.6.19
+   I have tried to port frame buffer driver and lcd driver to linux =
+2.6.19
 
    Im able to do
          $ cat /bin/busybox > /dev/fb
 
-  But i dont see anything on the LCD. I also notice that the LED "CPLD Done"
+  But i dont see anything on the LCD. I also notice that the LED "CPLD =
+Done"
 is not on.
   The LED, is right below the LCD panel on the SDP.
 
   Im not sure if the LCD panel is powered-on?.
 
-Please Advice, do let me know if im doing something im not supposed to do.
+Please Advice, do let me know if im doing something im not supposed to =
+do.
 
 Appending boot messages does this makes sense?.
 I see the fb and lcd getting registered.
@@ -55,114 +75,3 @@ Please advice
 
 Regards,
 sriram
-
-------=_Part_17272_19667833.1171032214628
-Content-Type: text/plain; name=dmesg.txt; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_exxx6q0z
-Content-Disposition: attachment; filename="dmesg.txt"
-
-TGludXggdmVyc2lvbiAyLjYuMTktb21hcDEgKHNyaXJhbUBzcmlyYW0pIChnY2MgdmVyc2lvbiAz
-LjQuNCkgIzE1IEZyaSBGZWIgOSAwNjoxNTo1NiBJU1QgMjAwNwpDUFU6IFNvbWUgUmFuZG9tIFY2
-IFByb2Nlc3NvciBbNDEwN2IzNjZdIHJldmlzaW9uIDYgKEFSTXY2VEVKKSwgY3I9MDBjNTM4N2YK
-TWFjaGluZTogT01BUDI0MzAgc2RwMjQzMCBib2FyZApNZW1vcnkgcG9saWN5OiBFQ0MgZGlzYWJs
-ZWQsIERhdGEgY2FjaGUgd3JpdGViYWNrCk9uIG5vZGUgMCB0b3RhbHBhZ2VzOiA4MTkyCiAgRE1B
-IHpvbmU6IDY0IHBhZ2VzIHVzZWQgZm9yIG1lbW1hcAogIERNQSB6b25lOiAwIHBhZ2VzIHJlc2Vy
-dmVkCiAgRE1BIHpvbmU6IDgxMjggcGFnZXMsIExJRk8gYmF0Y2g6MAogIE5vcm1hbCB6b25lOiAw
-IHBhZ2VzIHVzZWQgZm9yIG1lbW1hcApPTUFQMjQzMDIKU1JBTTogTWFwcGVkIHBhIDB4NDAyMDAw
-MDAgdG8gdmEgMHhkMDAwMDAwMCBzaXplOiAweDEwMDAwMApDUFUwOiBEIFZJUFQgd3JpdGUtYmFj
-ayBjYWNoZQpDUFUwOiBJIGNhY2hlOiAzMjc2OCBieXRlcywgYXNzb2NpYXRpdml0eSA0LCAzMiBi
-eXRlIGxpbmVzLCAyNTYgc2V0cwpDUFUwOiBEIGNhY2hlOiAzMjc2OCBieXRlcywgYXNzb2NpYXRp
-dml0eSA0LCAzMiBieXRlIGxpbmVzLCAyNTYgc2V0cwpCdWlsdCAxIHpvbmVsaXN0cy4gIFRvdGFs
-IHBhZ2VzOiA4MTI4Cktlcm5lbCBjb21tYW5kIGxpbmU6IG1lbT0zMk0gY29uc29sZT10dHlTMCwx
-MTUyMDBuOCBydyByb290PS9kZXYvbmZzIG5mc3Jvb3Q9MTkyLjE2OC4xMy4yNTE6L2hvbWUvc3Jp
-cmFtL21pbnJvb3RmcyBpcD1kaGNwCkNsb2NraW5nIHJhdGUgKENyeXN0YWwvRFBMTC9NUFUpOiAx
-My4wLzUzMi8yNjYgTUh6CmNsb2NrLmM6IEVuYWJsZSBmb3IgZHBsbF9jayB3aXRob3V0IGVuYWJs
-ZSBjb2RlCkNsb2NrIGFwbGw1NF9jayBkaWRuJ3QgbG9jawpHUE1DIHJldmlzaW9uIDMuMApJUlE6
-IEZvdW5kIGFuIElOVEMgYXQgMHhkODBmZTAwMCAocmV2aXNpb24gMy4wKSB3aXRoIDk2IGludGVy
-cnVwdHMKVG90YWwgb2YgOTYgaW50ZXJydXB0cyBvbiAxIGFjdGl2ZSBjb250cm9sbGVyCk9NQVAy
-NDN4IEdQSU8gaGFyZHdhcmUgdmVyc2lvbiAyLjQKUElEIGhhc2ggdGFibGUgZW50cmllczogMTI4
-IChvcmRlcjogNywgNTEyIGJ5dGVzKQpDb25zb2xlOiBjb2xvdXIgZHVtbXkgZGV2aWNlIDgweDMw
-CkRlbnRyeSBjYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6IDQwOTYgKG9yZGVyOiAyLCAxNjM4NCBi
-eXRlcykKSW5vZGUtY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiAyMDQ4IChvcmRlcjogMSwgODE5
-MiBieXRlcykKTWVtb3J5OiAzMk1CID0gMzJNQiB0b3RhbApNZW1vcnk6IDI5NDg0S0IgYXZhaWxh
-YmxlICgyMzIwSyBjb2RlLCA1MDlLIGRhdGEsIDExNksgaW5pdCkKQ2FsaWJyYXRpbmcgZGVsYXkg
-bG9vcC4uLiAyNjUuNDIgQm9nb01JUFMgKGxwaj0xMzI3MTA0KQpNb3VudC1jYWNoZSBoYXNoIHRh
-YmxlIGVudHJpZXM6IDUxMgpDUFU6IFRlc3Rpbmcgd3JpdGUgYnVmZmVyIGNvaGVyZW5jeTogb2sK
-TkVUOiBSZWdpc3RlcmVkIHByb3RvY29sIGZhbWlseSAxNgpPTUFQIERNQSBoYXJkd2FyZSByZXZp
-c2lvbiA0LjAKSW5pdGlhbGl6aW5nIE9NQVAgTWNCU1Agc3lzdGVtCm9tYXBkc3A6IGNvdWxkIG5v
-dCBhY3F1aXJlIGRzcF9mY2sgaGFuZGxlLgpPTUFQIHZpcnR1YWwgYnVzZXMgaW5pdGlhbGl6ZWQK
-b21hcDJfZGlzcDogdGltZW91dCB3YWl0aW5nIGZvciBkaXNwbGF5IGNvbnRyb2xsZXIgcmVzZXQK
-T01BUCBEaXNwbGF5IGhhcmR3YXJlIHZlcnNpb24gMS4wClVTQjogTm8gYm9hcmQtc3BlY2lmaWMg
-cGxhdGZvcm0gY29uZmlnIGZvdW5kCmkyY19vbWFwIGkyY19vbWFwLjI6IGJ1cyAyIHJldjMuNyBh
-dCAxMDAga0h6CmkyY19vbWFwIGkyY19vbWFwLjE6IGJ1cyAxIHJldjMuNyBhdCAxMDAga0h6ClRX
-TDQwMzA6IFRSWSBhdHRhY2ggU2xhdmUgVFdMNDAzMC1JRDAgb24gQWRhcHRlciBPTUFQIEkyQyBh
-ZGFwdGVyWzFdWzFdClRXTDQwMzA6IFRSWSBhdHRhY2ggU2xhdmUgVFdMNDAzMC1JRDEgb24gQWRh
-cHRlciBPTUFQIEkyQyBhZGFwdGVyWzFdWzFdClRXTDQwMzA6IFRSWSBhdHRhY2ggU2xhdmUgVFdM
-NDAzMC1JRDIgb24gQWRhcHRlciBPTUFQIEkyQyBhZGFwdGVyWzFdWzFdClRXTDQwMzA6IFRSWSBh
-dHRhY2ggU2xhdmUgVFdMNDAzMC1JRDMgb24gQWRhcHRlciBPTUFQIEkyQyBhZGFwdGVyWzFdWzFd
-ClRXTDQwMzA6IERyaXZlciByZWdpc3RyYXRpb24gY29tcGxldGUuCk5FVDogUmVnaXN0ZXJlZCBw
-cm90b2NvbCBmYW1pbHkgMgpJUCByb3V0ZSBjYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6IDI1NiAo
-b3JkZXI6IC0yLCAxMDI0IGJ5dGVzKQpUQ1AgZXN0YWJsaXNoZWQgaGFzaCB0YWJsZSBlbnRyaWVz
-OiAxMDI0IChvcmRlcjogMCwgNDA5NiBieXRlcykKVENQIGJpbmQgaGFzaCB0YWJsZSBlbnRyaWVz
-OiA1MTIgKG9yZGVyOiAtMSwgMjA0OCBieXRlcykKVENQOiBIYXNoIHRhYmxlcyBjb25maWd1cmVk
-IChlc3RhYmxpc2hlZCAxMDI0IGJpbmQgNTEyKQpUQ1AgcmVubyByZWdpc3RlcmVkCk5ldFdpbmRl
-ciBGbG9hdGluZyBQb2ludCBFbXVsYXRvciBWMC45NyAoZG91YmxlIHByZWNpc2lvbikKVkZTOiBE
-aXNrIHF1b3RhcyBkcXVvdF82LjUuMQpEcXVvdC1jYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6IDEw
-MjQgKG9yZGVyIDAsIDQwOTYgYnl0ZXMpCkpGRlMyIHZlcnNpb24gMi4yLiAoTkFORCkgKEMpIDIw
-MDEtMjAwNiBSZWQgSGF0LCBJbmMuCmlvIHNjaGVkdWxlciBub29wIHJlZ2lzdGVyZWQKaW8gc2No
-ZWR1bGVyIGFudGljaXBhdG9yeSByZWdpc3RlcmVkIChkZWZhdWx0KQppbyBzY2hlZHVsZXIgZGVh
-ZGxpbmUgcmVnaXN0ZXJlZAppbyBzY2hlZHVsZXIgY2ZxIHJlZ2lzdGVyZWQKUmVnaXN0ZXJpbmcg
-T01BUCBkZXZpY2UgJ3NkcDI0MzBfbGNkOScuIFBhcmVudCBhdCBMMwpvbWFwMl9kaXNwX291dExD
-RCBwYW5lbCAyNDB4MzIwClJlZ2lzdGVyaW5nIE9NQVAgZGV2aWNlICdvbWFwMjR4eGZiNicuIFBh
-cmVudCBhdCBMMwpvbWFwMjR4eGZiOiBPcHRpb25zICI8TlVMTD4iCkNvbnNvbGU6IHN3aXRjaGlu
-ZyB0byBjb2xvdXIgZnJhbWUgYnVmZmVyIGRldmljZSAzMHg0MApvbWFwMjR4eGZiOiBmYjAgZnJh
-bWUgYnVmZmVyIGRldmljZSAKb21hcDI0eHhmYjogZGlzcGxheSBtb2RlIDI0MHgzMjB4MTYgaHN5
-bmMgMTlrSHogdnN5bmMgNTdIegpTZXJpYWw6IDgyNTAvMTY1NTAgZHJpdmVyICRSZXZpc2lvbjog
-MS45MCAkIDQgcG9ydHMsIElSUSBzaGFyaW5nIGVuYWJsZWQKc2VyaWFsODI1MC4wOiB0dHlTMCBh
-dCBNTUlPIDB4NDgwNmEwMDAgKGlycSA9IDcyKSBpcyBhIFNUMTY2NTQKc2VyaWFsODI1MC4wOiB0
-dHlTMSBhdCBNTUlPIDB4NDgwNmMwMDAgKGlycSA9IDczKSBpcyBhIFNUMTY2NTQKc2VyaWFsODI1
-MC4wOiB0dHlTMiBhdCBNTUlPIDB4NDgwNmUwMDAgKGlycSA9IDc0KSBpcyBhIFNUMTY2NTQKUkFN
-RElTSyBkcml2ZXIgaW5pdGlhbGl6ZWQ6IDE2IFJBTSBkaXNrcyBvZiAxNjM4NEsgc2l6ZSAxMDI0
-IGJsb2Nrc2l6ZQpsb29wOiBsb2FkZWQgKG1heCA4IGRldmljZXMpClJlZ2lzdGVyaW5nIE9NQVAg
-ZGV2aWNlICdvbWFwLXR3bDQwMzBydGMxNicuIFBhcmVudCBhdCBMNENPUkUKb21hcC10d2w0MDMw
-cnRjOlRXTDQwMzAtUlRDIFBvd2VyIHVwIHJlc2V0IGRldGVjdGVkLgpvbWFwLXR3bDQwMzBydGM6
-RW5hYmxpbmcgVFdMNDAzMC1SVEMuCnNtYzkxeC5jOiB2MS4xLCBzZXAgMjIgMjAwNCBieSBOaWNv
-bGFzIFBpdHJlIDxuaWNvQGNhbS5vcmc+CmV0aDA6IFNNQzkxQzk0IChyZXYgOSkgYXQgYzI4NTIz
-MDAgSVJRIDI0NSBbbm93YWl0XQpldGgwOiBFdGhlcm5ldCBhZGRyOiAwODowMDoyODowMTowYTpk
-ZQpldGgwOiBObyBQSFkgZm91bmQKb21hcGZsYXNoLjA6IEZvdW5kIDEgeDE2IGRldmljZXMgYXQg
-MHgwIGluIDE2LWJpdCBiYW5rCm9tYXBmbGFzaC4wOiBGb3VuZCAxIHgxNiBkZXZpY2VzIGF0IDB4
-MjAwMDAwMCBpbiAxNi1iaXQgYmFuawogSW50ZWwvU2hhcnAgRXh0ZW5kZWQgUXVlcnkgVGFibGUg
-YXQgMHgwMTBBCiBJbnRlbC9TaGFycCBFeHRlbmRlZCBRdWVyeSBUYWJsZSBhdCAweDAxMEEKIElu
-dGVsL1NoYXJwIEV4dGVuZGVkIFF1ZXJ5IFRhYmxlIGF0IDB4MDEwQQogSW50ZWwvU2hhcnAgRXh0
-ZW5kZWQgUXVlcnkgVGFibGUgYXQgMHgwMTBBCiBJbnRlbC9TaGFycCBFeHRlbmRlZCBRdWVyeSBU
-YWJsZSBhdCAweDAxMEEKIEludGVsL1NoYXJwIEV4dGVuZGVkIFF1ZXJ5IFRhYmxlIGF0IDB4MDEw
-QQpVc2luZyBidWZmZXIgd3JpdGUgbWV0aG9kCmNmaV9jbWRzZXRfMDAwMTogRXJhc2Ugc3VzcGVu
-ZCBvbiB3cml0ZSBlbmFibGVkCmVyYXNlIHJlZ2lvbiAwOiBvZmZzZXQ9MHgwLHNpemU9MHgyMDAw
-MCxibG9ja3M9MjU1CmVyYXNlIHJlZ2lvbiAxOiBvZmZzZXQ9MHgxZmUwMDAwLHNpemU9MHg4MDAw
-LGJsb2Nrcz00CmVyYXNlIHJlZ2lvbiAyOiBvZmZzZXQ9MHgyMDAwMDAwLHNpemU9MHgyMDAwMCxi
-bG9ja3M9MjU1CmVyYXNlIHJlZ2lvbiAzOiBvZmZzZXQ9MHgzZmUwMDAwLHNpemU9MHg4MDAwLGJs
-b2Nrcz00Cm9tYXBmbGFzaC4wOiAyIHNldChzKSBvZiAxIGludGVybGVhdmVkIGNoaXBzIC0tPiAz
-MiBwYXJ0aXRpb25zIG9mIDIwNDggS2lCCkNyZWF0aW5nIDQgTVREIHBhcnRpdGlvbnMgb24gIm9t
-YXBmbGFzaC4wIjoKMHgwMDAwMDAwMC0weDAwMDQwMDAwIDogImJvb3Rsb2FkZXIiCjB4MDAwNDAw
-MDAtMHgwMDA2MDAwMCA6ICJwYXJhbXMiCjB4MDAwNjAwMDAtMHgwMDI2MDAwMCA6ICJrZXJuZWwi
-CjB4MDAyNjAwMDAtMHgwNDAwMDAwMCA6ICJmaWxlc3lzdGVtIgpUQ1AgY3ViaWMgcmVnaXN0ZXJl
-ZApORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDEKTkVUOiBSZWdpc3RlcmVkIHByb3Rv
-Y29sIGZhbWlseSAxNwpORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDE1CmV0aDA6IGxp
-bmsgdXAKU2VuZGluZyBESENQIHJlcXVlc3RzIC4sIE9LCklQLUNvbmZpZzogR290IERIQ1AgYW5z
-d2VyIGZyb20gMC4wLjAuMCwgbXkgYWRkcmVzcyBpcyAxOTIuMTY4LjEzLjMzCklQLUNvbmZpZzog
-Q29tcGxldGU6CiAgICAgIGRldmljZT1ldGgwLCBhZGRyPTE5Mi4xNjguMTMuMzMsIG1hc2s9MjU1
-LjI1NS4yNTUuMCwgZ3c9MTkyLjE2OC4xMy4xLAogICAgIGhvc3Q9MTkyLjE2OC4xMy4zMywgZG9t
-YWluPSwgbmlzLWRvbWFpbj0obm9uZSksCiAgICAgYm9vdHNlcnZlcj0wLjAuMC4wLCByb290c2Vy
-dmVyPTE5Mi4xNjguMTMuMjUxLCByb290cGF0aD0KTG9va2luZyB1cCBwb3J0IG9mIFJQQyAxMDAw
-MDMvMiBvbiAxOTIuMTY4LjEzLjI1MQpMb29raW5nIHVwIHBvcnQgb2YgUlBDIDEwMDAwNS8xIG9u
-IDE5Mi4xNjguMTMuMjUxClZGUzogTW91bnRlZCByb290IChuZnMgZmlsZXN5c3RlbSkuCkZyZWVp
-bmcgaW5pdCBtZW1vcnk6IDExNksK
-------=_Part_17272_19667833.1171032214628
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
-------=_Part_17272_19667833.1171032214628--
