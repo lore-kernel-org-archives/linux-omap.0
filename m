@@ -1,16 +1,14 @@
-From: tony@atomide.com
-Subject: Re: [PATCH] - Fix MMC -- was  H4 boot with latest git kernel
-Date: Sat, 10 Feb 2007 11:08:45 -0800
-Message-ID: <20070210190845.GA19642@atomide.com>
-References: <5d5443650702090324g6048af71u17f20a55f823edda@mail.gmail.com>
-	<20070209165157.GB22121@atomide.com>
-	<3B6D69C3A9EBCA4BA5DA60D913027429509132@dlee13.ent.ti.com>
-	<20070210174121.GA5291@atomide.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: OMAP1 realtime patch
+Date: Sun, 11 Feb 2007 18:01:05 +0100
+Message-ID: <45CF4BD1.6010109@googlemail.com>
+References: <45C785A4.6080007@googlemail.com>
+	<1170882015.11368.25.camel@vence.hilman.org>
+	<45CB6775.7020500@googlemail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="lrZ03NoBR/3+SXJZ"
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20070210174121.GA5291@atomide.com>
+Content-Type: multipart/mixed; boundary="------------050203050002070502050909"
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <45CB6775.7020500@googlemail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,214 +16,337 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------050203050002070502050909
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
---lrZ03NoBR/3+SXJZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-* Tony Lindgren <tony@atomide.com> [070210 09:42]:
-> * Woodruff, Richard <r-woodruff2@ti.com> [070209 13:48]:
-> > Hi,
-> > 
-> > So took a quick look with the emulator and see its hanging in MMC.  I'm
-> > not an MMC expert but I don't see how you can send an init-stream
-> > command with no clocks running and if you did it looks like it should be
-> > 80clocks over 1ms.
-> > 
-> > The note in the upper layer in mmc.c says you power it first, then send
-> > clocks out.  mmc.c calls MMC_POWER_UP twice.  The first time with
-> > ios->clock = 0 and a second time with iso->clock=f_min.  To me that just
-> > says set the power bit in the first pass and set the initstream command
-> > in the second pass.
-> > 
-> > The below patch seems to work fine and would appear to be a long
-> > standing bug.
-> > 
-> > Signed-off-by: Richard Woodruff <r-woodruff2.com>
-> > 
-> > diff --git a/drivers/mmc/omap.c b/drivers/mmc/omap.c
-> > index 796172a..55075cc 100644
-> > --- a/drivers/mmc/omap.c
-> > +++ b/drivers/mmc/omap.c
-> > @@ -990,7 +990,7 @@ static void mmc_omap_set_ios(struct mmc_
-> >  	 * Writing to the CON register twice seems to do the trick. */
-> >  	for (i = 0; i < 2; i++)
-> >  		OMAP_MMC_WRITE(host, CON, dsor);
-> > -	if (ios->power_mode == MMC_POWER_UP) {
-> > +	if ((ios->power_mode == MMC_POWER_UP) && ios->clock) {
-> >  		/* Send clock cycles, poll completion */
-> >  		OMAP_MMC_WRITE(host, IE, 0);
-> >  		OMAP_MMC_WRITE(host, STAT, 0xffff);
-> > 
+Dirk Behme wrote:
+> Kevin Hilman wrote:
 > 
-> Thanks. Looks like we're still doing the MMC powerup wrong for omap
-> though. I made a patch for that a while back but it got forgotten
-> for some reason:
+>> Here is a patch which leaves out the raw_spinlock conversions.  It goes
+>> on the OMAP git tree on top of -rt5 (ignoring conflicts.)  I've left out
+>> all the raw_spinlock conversions.  This has been tested on an
+>> OMAP1623/H2 platform.
 > 
-> http://lkml.org/lkml/2006/5/4/44
+> Update of Kevins update. Tested on OSK.
 > 
-> I'll refresh that patch so we can make sure it works on all platforms.
+> Changes:
+> 
+> - Remove kernel/printk.c "+    zap_rt_locks();". It's already in -rt5.
+> 
+> - Re-add HRTIMER conversion to ads7846.c
+> 
+> With this patch I get Oops below after playing mp3 via NFS. Add 
+> raw_spinlock_t to sound/arm/omap/omap-alsa-dma.c like in my original 
+> patch doesn't seem to help.
 
-Here are the refreshed patches to try.
+Re-adding raw_spinlock_t to omap-alsa.h helps against this Oops.
 
-Regards,
+Updated patch-2.6.20-rt5-omap2 in attachment.
 
-Tony
+Dirk
 
---lrZ03NoBR/3+SXJZ
-Content-Type: text/plain; charset=us-ascii
+P.S.: As with Tony patches, omap2 stands here for "second 
+-rt5 omap patch" and not for OMAP2 chips.
+
+
+--------------050203050002070502050909
+Content-Type: text/plain;
+ name="patch-2.6.20-rt5-omap2"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
-	filename="0001-MMC-Fix-omap-to-use-MMC_POWER_ON.txt"
+ filename="patch-2.6.20-rt5-omap2"
 
->From fa6a7886da554980d7a250fc7232b8ed40168baf Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Sat, 10 Feb 2007 10:35:03 -0800
-Subject: MMC: OMAP: Fix omap to use MMC_POWER_ON
-
-As discussed earlier on LKML:
-
-http://lkml.org/lkml/2006/5/4/44
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/mmc/omap.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/mmc/omap.c b/drivers/mmc/omap.c
-index 796172a..7cc8972 100644
---- a/drivers/mmc/omap.c
-+++ b/drivers/mmc/omap.c
-@@ -973,8 +973,10 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
- 		mmc_omap_power(host, 0);
- 		break;
- 	case MMC_POWER_UP:
--	case MMC_POWER_ON:
-+		/* Cannot touch dsor yet, just power up MMC */
- 		mmc_omap_power(host, 1);
-+		return;
-+	case MMC_POWER_ON:
- 		dsor |= 1 << 11;
- 		break;
- 	}
-@@ -990,7 +992,7 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
- 	 * Writing to the CON register twice seems to do the trick. */
- 	for (i = 0; i < 2; i++)
- 		OMAP_MMC_WRITE(host, CON, dsor);
--	if (ios->power_mode == MMC_POWER_UP) {
-+	if (ios->power_mode == MMC_POWER_ON) {
- 		/* Send clock cycles, poll completion */
- 		OMAP_MMC_WRITE(host, IE, 0);
- 		OMAP_MMC_WRITE(host, STAT, 0xffff);
--- 
-1.4.4.2
-
-
---lrZ03NoBR/3+SXJZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline; filename="0002-MMC-Clean-up-omap-set_ios.txt"
-
->From 6e580793454d53e012e53581991dc54375c54143 Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Sat, 10 Feb 2007 10:40:31 -0800
-Subject: MMC: OMAP: Clean up omap set_ios and make MMC_POWER_ON work
-
-Move divisor calculation into a separate function and
-re-arrange the init order to make MMC_POWER_ON work.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/mmc/omap.c |   47 ++++++++++++++++++++++++++---------------------
- 1 files changed, 26 insertions(+), 21 deletions(-)
-
-diff --git a/drivers/mmc/omap.c b/drivers/mmc/omap.c
-index 7cc8972..2ae4c1b 100644
---- a/drivers/mmc/omap.c
-+++ b/drivers/mmc/omap.c
-@@ -940,33 +940,41 @@ static void mmc_omap_power(struct mmc_omap_host *host, int on)
- 	}
+Index: linux-osk/arch/arm/mach-omap1/time.c
+===================================================================
+--- linux-osk.orig/arch/arm/mach-omap1/time.c
++++ linux-osk/arch/arm/mach-omap1/time.c
+@@ -42,6 +42,7 @@
+ #include <linux/clk.h>
+ #include <linux/err.h>
+ #include <linux/clocksource.h>
++#include <linux/clockchips.h>
+ 
+ #include <asm/system.h>
+ #include <asm/hardware.h>
+@@ -102,15 +103,33 @@ static inline unsigned long omap_mpu_tim
+ 	return timer->read_tim;
  }
  
--static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
-+static int mmc_omap_calc_divisor(struct mmc_host *mmc, struct mmc_ios *ios)
+-static inline void omap_mpu_timer_start(int nr, unsigned long load_val)
++static inline void omap_mpu_set_autoreset(int nr)
  {
- 	struct mmc_omap_host *host = mmc_priv(mmc);
-+	int func_clk_rate = clk_get_rate(host->fclk);
- 	int dsor;
--	int realclock, i;
--
--	realclock = ios->clock;
+ 	volatile omap_mpu_timer_regs_t* timer = omap_mpu_timer_base(nr);
  
- 	if (ios->clock == 0)
--		dsor = 0;
--	else {
--		int func_clk_rate = clk_get_rate(host->fclk);
--
--		dsor = func_clk_rate / realclock;
--		if (dsor < 1)
--			dsor = 1;
-+		return 0;
- 
--		if (func_clk_rate / dsor > realclock)
--			dsor++;
-+	dsor = func_clk_rate / ios->clock;
-+	if (dsor < 1)
-+		dsor = 1;
- 
--		if (dsor > 250)
--			dsor = 250;
-+	if (func_clk_rate / dsor > ios->clock)
- 		dsor++;
- 
--		if (ios->bus_width == MMC_BUS_WIDTH_4)
--			dsor |= 1 << 15;
--	}
-+	if (dsor > 250)
-+		dsor = 250;
-+	dsor++;
-+
-+	if (ios->bus_width == MMC_BUS_WIDTH_4)
-+		dsor |= 1 << 15;
-+
-+	return dsor;
++	timer->cntl = timer->cntl | MPU_TIMER_AR;
 +}
 +
-+static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
++static inline void omap_mpu_remove_autoreset(int nr)
 +{
-+	struct mmc_omap_host *host = mmc_priv(mmc);
-+	int dsor;
-+	int i;
++	volatile omap_mpu_timer_regs_t* timer = omap_mpu_timer_base(nr);
 +
-+	dsor = mmc_omap_calc_divisor(mmc, ios);
-+	host->bus_mode = ios->bus_mode;
-+	host->hw_bus_mode = host->bus_mode;
++	timer->cntl = timer->cntl & ~MPU_TIMER_AR;
++}
++
++static inline void omap_mpu_timer_start(int nr, unsigned long load_val,
++					int autoreset)
++{
++	volatile omap_mpu_timer_regs_t* timer = omap_mpu_timer_base(nr);
++	unsigned int timerflags = (MPU_TIMER_CLOCK_ENABLE | MPU_TIMER_ST);
++
++	if (autoreset) timerflags |= MPU_TIMER_AR;
++
+ 	timer->cntl = MPU_TIMER_CLOCK_ENABLE;
+ 	udelay(1);
+ 	timer->load_tim = load_val;
+         udelay(1);
+-	timer->cntl = (MPU_TIMER_CLOCK_ENABLE | MPU_TIMER_AR | MPU_TIMER_ST);
++	timer->cntl = timerflags;
+ }
  
- 	switch (ios->power_mode) {
- 	case MMC_POWER_OFF:
-@@ -981,9 +989,6 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
- 		break;
+ /*
+@@ -118,12 +137,42 @@ static inline void omap_mpu_timer_start(
+  * MPU timer 1 ... count down to zero, interrupt, reload
+  * ---------------------------------------------------------------------------
+  */
++static int omap_mpu_set_next_event(unsigned long cycles,
++				    struct clock_event_device *evt)
++{
++	omap_mpu_timer_start(0, cycles, 0);
++	return 0;
++}
++
++static void omap_mpu_set_mode(enum clock_event_mode mode,
++			      struct clock_event_device *evt)
++{
++	switch (mode) {
++	case CLOCK_EVT_MODE_PERIODIC:
++		omap_mpu_set_autoreset(0);
++		break;
++	case CLOCK_EVT_MODE_ONESHOT:
++		omap_mpu_remove_autoreset(0);
++		break;
++	case CLOCK_EVT_MODE_UNUSED:
++	case CLOCK_EVT_MODE_SHUTDOWN:
++		break;
++	}
++}
++
++static struct clock_event_device clockevent_mpu_timer1 = {
++	.name		= "mpu_timer1",
++	.features	= CLOCK_EVT_FEAT_PERIODIC, CLOCK_EVT_FEAT_ONESHOT,
++	.shift		= 32,
++	.set_next_event	= omap_mpu_set_next_event,
++	.set_mode	= omap_mpu_set_mode,
++};
++
+ static irqreturn_t omap_mpu_timer1_interrupt(int irq, void *dev_id)
+ {
+-	write_seqlock(&xtime_lock);
+-	/* NOTE:  no lost-tick detection/handling! */
+-	timer_tick();
+-	write_sequnlock(&xtime_lock);
++	struct clock_event_device *evt = &clockevent_mpu_timer1;
++
++	evt->event_handler(evt);
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -139,7 +188,17 @@ static __init void omap_init_mpu_timer(u
+ 	set_cyc2ns_scale(rate / 1000);
+ 
+ 	setup_irq(INT_TIMER1, &omap_mpu_timer1_irq);
+-	omap_mpu_timer_start(0, (rate / HZ) - 1);
++	omap_mpu_timer_start(0, (rate / HZ) - 1, 1);
++
++	clockevent_mpu_timer1.mult = div_sc(rate, NSEC_PER_SEC,
++					    clockevent_mpu_timer1.shift);
++	clockevent_mpu_timer1.max_delta_ns =
++		clockevent_delta2ns(-1, &clockevent_mpu_timer1);
++	clockevent_mpu_timer1.min_delta_ns =
++		clockevent_delta2ns(1, &clockevent_mpu_timer1);
++
++	clockevent_mpu_timer1.cpumask = cpumask_of_cpu(0);
++	clockevents_register_device(&clockevent_mpu_timer1);
+ }
+ 
+ /*
+@@ -173,7 +232,7 @@ static struct clocksource clocksource_mp
+ 	.read		= mpu_read,
+ 	.mask		= CLOCKSOURCE_MASK(32),
+ 	.shift		= 24,
+-	.is_continuous	= 1,
++	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+ static void __init omap_init_clocksource(unsigned long rate)
+@@ -185,7 +244,7 @@ static void __init omap_init_clocksource
+ 		= clocksource_khz2mult(rate/1000, clocksource_mpu.shift);
+ 
+ 	setup_irq(INT_TIMER2, &omap_mpu_timer2_irq);
+-	omap_mpu_timer_start(1, ~0);
++	omap_mpu_timer_start(1, ~0, 1);
+ 
+ 	if (clocksource_register(&clocksource_mpu))
+ 		printk(err, clocksource_mpu.name);
+Index: linux-osk/arch/arm/plat-omap/timer32k.c
+===================================================================
+--- linux-osk.orig/arch/arm/plat-omap/timer32k.c
++++ linux-osk/arch/arm/plat-omap/timer32k.c
+@@ -43,6 +43,7 @@
+ #include <linux/err.h>
+ #include <linux/clk.h>
+ #include <linux/clocksource.h>
++#include <linux/clockchips.h>
+ 
+ #include <asm/system.h>
+ #include <asm/hardware.h>
+@@ -210,23 +211,10 @@ unsigned long long sched_clock(void)
+  */
+ static inline irqreturn_t _omap_32k_timer_interrupt(int irq, void *dev_id)
+ {
+-	unsigned long now;
+-
++	struct clock_event_device *evt = &clockevent_32k_timer;
+ 	omap_32k_timer_ack_irq();
+-	now = omap_32k_sync_timer_read();
+ 
+-	while ((signed long)(now - omap_32k_last_tick)
+-						>= OMAP_32K_TICKS_PER_HZ) {
+-		omap_32k_last_tick += OMAP_32K_TICKS_PER_HZ;
+-		timer_tick();
+-	}
+-
+-	/* Restart timer so we don't drift off due to modulo or dynamic tick.
+-	 * By default we program the next timer to be continuous to avoid
+-	 * latencies during high system load. During dynamic tick operation the
+-	 * continuous timer can be overridden from pm_idle to be longer.
+-	 */
+-	omap_32k_timer_start(omap_32k_last_tick + OMAP_32K_TICKS_PER_HZ - now);
++	evt->event_handler(evt);
+ 
+ 	return IRQ_HANDLED;
+ }
+Index: linux-osk/arch/arm/plat-omap/common.c
+===================================================================
+--- linux-osk.orig/arch/arm/plat-omap/common.c
++++ linux-osk/arch/arm/plat-omap/common.c
+@@ -212,7 +212,7 @@ static struct clocksource clocksource_32
+ 	.read		= omap_32k_read,
+ 	.mask		= CLOCKSOURCE_MASK(32),
+ 	.shift		= 10,
+-	.is_continuous	= 1,
++	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
+ static int __init omap_init_clocksource_32k(void)
+Index: linux-osk/kernel/irq/manage.c
+===================================================================
+--- linux-osk.orig/kernel/irq/manage.c
++++ linux-osk/kernel/irq/manage.c
+@@ -593,6 +593,7 @@ static void thread_simple_irq(irq_desc_t
+ 	unsigned int irq = desc - irq_desc;
+ 	irqreturn_t action_ret;
+ 
++	restart:
+ 	if (action && !desc->depth) {
+ 		spin_unlock(&desc->lock);
+ 		action_ret = handle_IRQ_event(irq, action);
+@@ -601,6 +602,19 @@ static void thread_simple_irq(irq_desc_t
+ 		if (!noirqdebug)
+ 			note_interrupt(irq, desc, action_ret);
+ 	}
++
++	/*
++	 * Some boards will disable an interrupt when it
++	 * sets IRQ_PENDING . So we have to remove the flag
++	 * and re-enable to handle it.
++	 */
++	if (desc->status & IRQ_PENDING) {
++		desc->status &= ~IRQ_PENDING;
++		if (desc->chip)
++			desc->chip->enable(irq);
++		goto restart;
++	}
++
+ 	desc->status &= ~IRQ_INPROGRESS;
+ }
+ 
+Index: linux-osk/drivers/input/touchscreen/ads7846.c
+===================================================================
+--- linux-osk.orig/drivers/input/touchscreen/ads7846.c
++++ linux-osk/drivers/input/touchscreen/ads7846.c
+@@ -454,7 +454,7 @@ static void ads7846_rx(void *ads)
+ 			ts->spi->dev.bus_id, ts->tc.ignore, Rt);
+ #endif
+ 		hrtimer_start(&ts->timer, ktime_set(0, TS_POLL_PERIOD),
+-			      HRTIMER_REL);
++			      HRTIMER_MODE_REL);
+ 		return;
  	}
  
--	host->bus_mode = ios->bus_mode;
--	host->hw_bus_mode = host->bus_mode;
--
- 	clk_enable(host->fclk);
+@@ -473,7 +473,8 @@ static void ads7846_rx(void *ads)
+ 		ads7846_sync_events(ts);
+ 	}
  
- 	/* On insanely high arm_per frequencies something sometimes
--- 
-1.4.4.2
+-	hrtimer_start(&ts->timer, ktime_set(0, TS_POLL_PERIOD), HRTIMER_REL);
++	hrtimer_start(&ts->timer, ktime_set(0, TS_POLL_PERIOD),
++		      HRTIMER_MODE_REL);
+ }
+ 
+ static int ads7846_debounce(void *ads, int data_idx, int *val)
+@@ -558,7 +559,7 @@ static void ads7846_rx_val(void *ads)
+ 				status);
+ }
+ 
+-static int ads7846_timer(struct hrtimer *handle)
++static enum hrtimer_restart ads7846_timer(struct hrtimer *handle)
+ {
+ 	struct ads7846	*ts = container_of(handle, struct ads7846, timer);
+ 	int		status = 0;
+@@ -609,7 +610,7 @@ static irqreturn_t ads7846_irq(int irq, 
+ 			disable_irq(ts->spi->irq);
+ 			ts->pending = 1;
+ 			hrtimer_start(&ts->timer, ktime_set(0, TS_POLL_DELAY),
+-					HRTIMER_REL);
++					HRTIMER_MODE_REL);
+ 		}
+ 	}
+ 	spin_unlock_irqrestore(&ts->lock, flags);
+@@ -747,7 +748,7 @@ static int __devinit ads7846_probe(struc
+ 	ts->input = input_dev;
+ 	ts->hwmon = hwmon;
+ 
+-	hrtimer_init(&ts->timer, CLOCK_MONOTONIC, HRTIMER_REL);
++	hrtimer_init(&ts->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+ 	ts->timer.function = ads7846_timer;
+ 
+ 	spin_lock_init(&ts->lock);
+Index: linux-osk/include/asm-arm/arch-omap/omap-alsa.h
+===================================================================
+--- linux-osk.orig/include/asm-arm/arch-omap/omap-alsa.h
++++ linux-osk/include/asm-arm/arch-omap/omap-alsa.h
+@@ -83,7 +83,7 @@ struct audio_stream {
+ 	int active:1;		/* we are using this stream for transfer now */
+ 	int period;		/* current transfer period */
+ 	int periods;		/* current count of periods registerd in the DMA engine */
+-	spinlock_t dma_lock;	/* for locking in DMA operations */
++	raw_spinlock_t dma_lock;	/* for locking in DMA operations */
+ 	snd_pcm_substream_t *stream;	/* the pcm stream */
+ 	unsigned linked:1;	/* dma channels linked */
+ 	int offset;		/* store start position of the last period in the alsa buffer */
 
-
---lrZ03NoBR/3+SXJZ
+--------------050203050002070502050909
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---lrZ03NoBR/3+SXJZ--
+--------------050203050002070502050909--
