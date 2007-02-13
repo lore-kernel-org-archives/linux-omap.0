@@ -1,9 +1,9 @@
-From: "=?ISO-8859-1?Q?Lu=EDs_Vit=F3rio_Cargnini?=" <lvcargnini@ieee.org>
-Subject: McBSP usage inside DSP processor
-Date: Tue, 13 Feb 2007 15:16:24 -0200
-Message-ID: <ae36f8040702130916j2ef9ca99le666600ae90af321@mail.gmail.com>
+From: "Lucas Vinicius Hartmann" <lucas.hartmann@gmail.com>
+Subject: Innovator 1510 Stacking Connectors
+Date: Tue, 13 Feb 2007 16:05:22 -0300
+Message-ID: <2a3728820702131105i3521ecaaw8ba68b2c15604f3d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
@@ -16,141 +16,31 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: OMAP <Linux-omap-open-source@linux.omap.com>, dspgateway-devel@lists.sourceforge.net
+To: Linux-OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Dears:
-I and my colleague are developing an application that will need to access a=
-n
-AD/DA, from DSP processor, we are trying the McBSP functions MCBSP_init(),
-read an write and so on. But we are having difficulties on execute this.
-Someone knows how to access an McBSP inside DSP side ?
-we are using DSPGateway.
-Something that we note is that MCBSP_init() do not exist and are always
-generating an error on compilation but CSL_init() works; someone could give
-some info about it ?
+Hello.
 
-here follow an code been developed by us:
-#define CHIP_5510PG2_2 1
+I've got a Ti Innovator for the OMAP 1510 and I"d like to build custom
+expansion boards for use with it.
 
-#include <std.h>
-#include <stdint.h>
-#include <math.h>
-#include <csl.h>
-#include <csl_dma.h>
-#include <csl_emif.h>
-#include <csl_irq.h>
-#include <csl_timer.h>
-#include <csl_mcbsp.h>
+What I need to know for sure is if these are the correct
+receptacle<http://www.molex.com/cgi-bin/bv/molex/jsp/products/datasheet.jsp=
+?productid=3D145671&Fam=3Dpcbreceptpn&FT_118=3D31950&FT_101=3D1270&selorder=
+=3D31950&btnSearch.y=3D13&Itemlist=3D145627,145657,145658,145671&btnSearch.=
+x=3D23&channel=3DProducts&Lang=3Den-US&FT_479=3D0&BV_SessionID=3D@@@@214543=
+3349.1171390342@@@@&BV_EngineID=3Dccccaddkefedkfhcflgcehedffgdfmk.0>and
+plug<http://www.molex.com/cgi-bin/bv/molex/jsp/products/datasheet.jsp?produ=
+ctid=3D143199&BV_SessionID=3D@@@@2145433349.1171390342@@@@&BV_EngineID=3Dcc=
+ccaddkefedkfhcflgcehedffgdfmk.0&channel=3DProducts&Lang=3Den-US>for
+the board.
 
-#include "tokliBIOS.h"
-
-#define MCBSP_DEV0 (0)
-#define MCBSP_DEV1 (1)
-#define MCBSP_DEV2 (2)
-
-#define BUFSIZ (0x10000/2)
-
-
-int count;
-void write_isr(void);
-
-MCBSP_Handle fd;
-MCBSP_Config configuracao =3D { /*tudo uint16*/
-0x0200,      //spcr1
-0x1800,      //spcr2
-0x0000,      //rcr1
-0x0020,      //rcr2
-0x0000,      //xcr1
-0x0060,      //xcr2
-0x3249,      //srgr1
-0x03FF,      //srgr2
-0x0040,      //mcr1
-0x00A0,      //mcr2
-0x00E0,      //pcr
-0x0000,      //rcera
-0x0000,      //rcerb
-0x0000,      //rcerc
-0x0000,      //rcerd
-0x0000,      //rcere
-0x0000,      //rcerf
-0x0000,      //rcerg
-0x0000,       //rcerh
-0x0000,       //xcera
-0x0000,       //xcerb
-0x0000,       //xcerc
-0x0000,       //xcerd
-0x0000,       //xcere
-0x0000,       //xcerf
-0x0000,       //xcerg
-0x0000       //xcerh
-};
-
-void write_isr(void)
-{
-while(!MCBSP_xrdy(fd));
-MCBSP_write16(fd, 1);
-while(!MCBSP_rrdy(fd));
-count =3D MCBSP_read16(fd);//o maximo eh 65536
-}
-
-static Uns mm_rcv_bksnd(struct dsptask *task, Uns bid, Uns cnt)
-{
-    Int i;
-    Uns *ipbp =3D ipbuf_d[bid];
-    Uns off, len;
-    #define OFF    0    /* arbitrary */
-    Uns bid2;
-    uint16_t  *addr =3D task->udata;
-
-    if (cnt !=3D 2)
-    {
-        //dbg(task, "[DSP]: illegal data cnt: %d\n", cnt);
-        unuse_ipbuf(task, bid);
-        return 0;
-    }
-
-    off =3D ipbp[0];    /* offset within the mapped space */
-    len =3D ipbp[1];    /* len (in word count) */
-    unuse_ipbuf(task, bid);
-
-    CSL_init();//inicializa a tudo
-    fd =3D MCBSP_open(MCBSP_DEV1, MCBSP_OPEN_RESET);//ok
-    MCBSP_reset(fd);
-    MCBSP_config(fd,&configuracao);
-    IRQ_clear(IRQ_EVT_INT1);
-        IRQ_configArgs(IRQ_EVT_INT1, write_isr, 0, 0, 0);
-        IRQ_enable(IRQ_EVT_INT1);   /* enable MCBSP1 transmit ready
-interrupt */
-    MCBSP_start(fd, MCBSP_RCV_START | MCBSP_XMIT_START | MCBSP_SRGR_START |
-MCBSP_SRGR_FRAMESYNC, 0x0010);
-
-    MCBSP_write16(fd,79);
-    busywait(2000000L);
-
-    while(!MCBSP_rrdy(fd));
-    count =3D MCBSP_read16(fd);//o maximo eh 65536
-    bid2 =3D get_free_ipbuf(task);
-    //if(bid2 =3D=3D MBCMD_BID_NULL)
-    //    return MBCMD_EID_STVBUF;
-    ipbp =3D ipbuf_d[bid2];
-    ipbp[0] =3D OFF;
-    ipbp[1] =3D count;
-    bksnd(task, bid2, 2);
-
-    return 0;
-}
-
+Thanks
 --=20
----------------------------------------------------------------------------=
----
-Thanks && Regards
-Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
-IEEE Member
-Mastering Degree student @ PUC-RS
-Electrical Engineer Faculty
-Ipiranga Avenue, 6681 =96 Building 30
-P.O. Box: 90619-900 =96 Porto Alegre/RS
-Phone: +55 51 3320 3500  extension: 7696
----------------------------------------------------------------------------=
-------
+Lucas Vinicius Hartmann
+(83) 9967-4628
+LEIAM - DEE - CEI
+Universidade Federal de Campina Grande - Para=EDba
+Campina Grande - PB - CEP 58109-970
+
+Divulgando meu site: http://hartmann.awardspace.com
