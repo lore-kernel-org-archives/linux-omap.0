@@ -1,16 +1,12 @@
-From: "AndyLu" <andy.lu@serialsys.com.hk>
-Subject: RE: about OSK5912 Flash Recovery Utility
-Date: Tue, 13 Feb 2007 22:06:15 +0800
-Message-ID: <22757.4850585826$1171375898@news.gmane.org>
-References: <000001c74939$32fdb600$98f92200$@lu@serialsys.com.hk>	<20070213.134102.30190321.kaminaga@sm.sony.co.jp>	<006101c74f36$d523ccf0$7f6b66d0$@lu@serialsys.com.hk>
-	<91C18455-B8EF-4E97-AF10-140BFE1BEAA5@capgo.com>
+From: "=?ISO-8859-1?Q?Lu=EDs_Vit=F3rio_Cargnini?=" <lvcargnini@ieee.org>
+Subject: McBSP usage inside DSP processor
+Date: Tue, 13 Feb 2007 15:16:24 -0200
+Message-ID: <ae36f8040702130916j2ef9ca99le666600ae90af321@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
+Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <91C18455-B8EF-4E97-AF10-140BFE1BEAA5@capgo.com>
-Content-Language: en-us
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,81 +16,141 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: 'Graham Henstridge' <graham@capgo.com>, 'OMAP Linux mailing list' <linux-omap-open-source@linux.omap.com>
+To: OMAP <Linux-omap-open-source@linux.omap.com>, dspgateway-devel@lists.sourceforge.net
 List-Id: linux-omap@vger.kernel.org
 
-Try this http://focus.ti.com/download/wtbu/OSTTools_NoSource_v2_5.zip
+Dears:
+I and my colleague are developing an application that will need to access a=
+n
+AD/DA, from DSP processor, we are trying the McBSP functions MCBSP_init(),
+read an write and so on. But we are having difficulties on execute this.
+Someone knows how to access an McBSP inside DSP side ?
+we are using DSPGateway.
+Something that we note is that MCBSP_init() do not exist and are always
+generating an error on compilation but CSL_init() works; someone could give
+some info about it ?
 
-Best regards
-Andy.Lu=20
-(Lu ZhiQing)
-SERIAL MICROELECTRONICS(HK) LTD,.
-MP:+86-13076968021
-TEL:+86-755-26935050-256=20
-FAX:+86-755-26935936
+here follow an code been developed by us:
+#define CHIP_5510PG2_2 1
 
------Original Message-----
-From: =
-linux-omap-open-source-bounces+andy.lu=3Dserialsys.com.hk@linux.omap.com
-[mailto:linux-omap-open-source-bounces+andy.lu=3Dserialsys.com.hk@linux.o=
-map.c
-om] On Behalf Of Graham Henstridge
-Sent: 2007=C4=EA2=D4=C213=C8=D5 6:25 PM
-To: OMAP Linux mailing list
-Subject: Re: about OSK5912 Flash Recovery Utility
+#include <std.h>
+#include <stdint.h>
+#include <math.h>
+#include <csl.h>
+#include <csl_dma.h>
+#include <csl_emif.h>
+#include <csl_irq.h>
+#include <csl_timer.h>
+#include <csl_mcbsp.h>
 
-Hi
-On the subject of OSK Flash recovery, we have developed a custom board =
-that
-we believe is identical to the OSK's (D) usb setup and associated =
-jumpers,
-yet fails to reload Flash. usb appears to enumerates ok but then hangs.
-Setup works fine on OSK boards. Any tips greatly appreciated.
+#include "tokliBIOS.h"
 
-Cheers
-Graham Henstridge
+#define MCBSP_DEV0 (0)
+#define MCBSP_DEV1 (1)
+#define MCBSP_DEV2 (2)
 
-On 13/02/2007, at 5:18 PM, AndyLu wrote:
+#define BUFSIZ (0x10000/2)
 
-> Dear HiroKi,
->
-> Thank you very much!!
-> I had modify the old version's OSK5912 Flash recovery utility and=20
-> supporting Rev.D now,
->
-> Best regards
-> Andy.Lu
->
->
-> -----Original Message-----
-> From: Hiroki Kaminaga [mailto:kaminaga@sm.sony.co.jp]
-> Sent: February 13, 2007 12:41 PM
-> To: andy.lu@serialsys.com.hk
-> Cc: linux-omap-open-source@linux.omap.com; kaminaga@sm.sony.co.jp
-> Subject: Re: about OSK5912 Flash Recovery Utility
->
->
->> If there anybody had the OSK5912 Flash Recovery Utility for OSK=20
->> Rev.D, please?
->
-> Have you tried:
-> http://tree.celinuxforum.org/CelfPubWiki/OSK
-> especially section:
->   8. Flash Recovery Utility
->
->
-> Best Regards,
->
-> (Hiroki Kaminaga)
-> t
-> --
->
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
 
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+int count;
+void write_isr(void);
+
+MCBSP_Handle fd;
+MCBSP_Config configuracao =3D { /*tudo uint16*/
+0x0200,      //spcr1
+0x1800,      //spcr2
+0x0000,      //rcr1
+0x0020,      //rcr2
+0x0000,      //xcr1
+0x0060,      //xcr2
+0x3249,      //srgr1
+0x03FF,      //srgr2
+0x0040,      //mcr1
+0x00A0,      //mcr2
+0x00E0,      //pcr
+0x0000,      //rcera
+0x0000,      //rcerb
+0x0000,      //rcerc
+0x0000,      //rcerd
+0x0000,      //rcere
+0x0000,      //rcerf
+0x0000,      //rcerg
+0x0000,       //rcerh
+0x0000,       //xcera
+0x0000,       //xcerb
+0x0000,       //xcerc
+0x0000,       //xcerd
+0x0000,       //xcere
+0x0000,       //xcerf
+0x0000,       //xcerg
+0x0000       //xcerh
+};
+
+void write_isr(void)
+{
+while(!MCBSP_xrdy(fd));
+MCBSP_write16(fd, 1);
+while(!MCBSP_rrdy(fd));
+count =3D MCBSP_read16(fd);//o maximo eh 65536
+}
+
+static Uns mm_rcv_bksnd(struct dsptask *task, Uns bid, Uns cnt)
+{
+    Int i;
+    Uns *ipbp =3D ipbuf_d[bid];
+    Uns off, len;
+    #define OFF    0    /* arbitrary */
+    Uns bid2;
+    uint16_t  *addr =3D task->udata;
+
+    if (cnt !=3D 2)
+    {
+        //dbg(task, "[DSP]: illegal data cnt: %d\n", cnt);
+        unuse_ipbuf(task, bid);
+        return 0;
+    }
+
+    off =3D ipbp[0];    /* offset within the mapped space */
+    len =3D ipbp[1];    /* len (in word count) */
+    unuse_ipbuf(task, bid);
+
+    CSL_init();//inicializa a tudo
+    fd =3D MCBSP_open(MCBSP_DEV1, MCBSP_OPEN_RESET);//ok
+    MCBSP_reset(fd);
+    MCBSP_config(fd,&configuracao);
+    IRQ_clear(IRQ_EVT_INT1);
+        IRQ_configArgs(IRQ_EVT_INT1, write_isr, 0, 0, 0);
+        IRQ_enable(IRQ_EVT_INT1);   /* enable MCBSP1 transmit ready
+interrupt */
+    MCBSP_start(fd, MCBSP_RCV_START | MCBSP_XMIT_START | MCBSP_SRGR_START |
+MCBSP_SRGR_FRAMESYNC, 0x0010);
+
+    MCBSP_write16(fd,79);
+    busywait(2000000L);
+
+    while(!MCBSP_rrdy(fd));
+    count =3D MCBSP_read16(fd);//o maximo eh 65536
+    bid2 =3D get_free_ipbuf(task);
+    //if(bid2 =3D=3D MBCMD_BID_NULL)
+    //    return MBCMD_EID_STVBUF;
+    ipbp =3D ipbuf_d[bid2];
+    ipbp[0] =3D OFF;
+    ipbp[1] =3D count;
+    bksnd(task, bid2, 2);
+
+    return 0;
+}
+
+--=20
+---------------------------------------------------------------------------=
+---
+Thanks && Regards
+Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
+IEEE Member
+Mastering Degree student @ PUC-RS
+Electrical Engineer Faculty
+Ipiranga Avenue, 6681 =96 Building 30
+P.O. Box: 90619-900 =96 Porto Alegre/RS
+Phone: +55 51 3320 3500  extension: 7696
+---------------------------------------------------------------------------=
+------
