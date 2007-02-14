@@ -1,12 +1,12 @@
-From: "Lucas Vinicius Hartmann" <lucas.hartmann@gmail.com>
-Subject: Innovator 1510 Stacking Connectors
-Date: Tue, 13 Feb 2007 16:05:22 -0300
-Message-ID: <2a3728820702131105i3521ecaaw8ba68b2c15604f3d@mail.gmail.com>
+From: "zil iram" <zil_iram@hotmail.com>
+Subject: SPI on omap5912
+Date: Wed, 14 Feb 2007 10:27:25 +0000
+Message-ID: <BAY130-F4DCEF5FF81D4F3D9E6F61F8970@phx.gbl>
+References: <000001c74f78$215d9740$6418c5c0$@lu@serialsys.com.hk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; format=flowed
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+In-Reply-To: <000001c74f78$215d9740$6418c5c0$@lu@serialsys.com.hk>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,31 +16,37 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-OMAP <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+Hi,
 
-I've got a Ti Innovator for the OMAP 1510 and I"d like to build custom
-expansion boards for use with it.
+I would like to ask you regarding the spi conroller (spi master/slave) on 
+omap. I looked at the document regarding the omap serial interfaces -- 
+spru760a-serial.pdf and from what I have read,
+the spi controller can hold the chipselect line to its active level to a 
+maximum of 32 bits of data,
 
-What I need to know for sure is if these are the correct
-receptacle<http://www.molex.com/cgi-bin/bv/molex/jsp/products/datasheet.jsp=
-?productid=3D145671&Fam=3Dpcbreceptpn&FT_118=3D31950&FT_101=3D1270&selorder=
-=3D31950&btnSearch.y=3D13&Itemlist=3D145627,145657,145658,145671&btnSearch.=
-x=3D23&channel=3DProducts&Lang=3Den-US&FT_479=3D0&BV_SessionID=3D@@@@214543=
-3349.1171390342@@@@&BV_EngineID=3Dccccaddkefedkfhcflgcehedffgdfmk.0>and
-plug<http://www.molex.com/cgi-bin/bv/molex/jsp/products/datasheet.jsp?produ=
-ctid=3D143199&BV_SessionID=3D@@@@2145433349.1171390342@@@@&BV_EngineID=3Dcc=
-ccaddkefedkfhcflgcehedffgdfmk.0&channel=3DProducts&Lang=3Den-US>for
-the board.
+	the device enable (nTSPENi) goes low once the WR bit is set and goes back 
+to high again once the transmission is complete.
+	the registers SPI_TX & SPI_RX which are 32bits wide are used for each 
+transmission, meaning, each transmission can only handle 32bits
+	therefore, the CS line can only be held to a maximum of 32 bits
 
-Thanks
---=20
-Lucas Vinicius Hartmann
-(83) 9967-4628
-LEIAM - DEE - CEI
-Universidade Federal de Campina Grande - Para=EDba
-Campina Grande - PB - CEP 58109-970
+Is there a way to hold the CS line longer? I would like to write 32bits to 
+an address on my sensor which is connected through SPI. To be able to do 
+that, I must
+first write the 8-bit address and then write the next 32 bits of data with 
+the CS line held low throughout the process. Currently, I could only write 
+24 bits of data after
+writing the 8 bit address since after this, the CS signal goes back to high.
 
-Divulgando meu site: http://hartmann.awardspace.com
+Is there a way to hold the CS line longer than 32 bits? Is there a way to 
+transfer more than 32 bits with the CS line held to its active level?
+
+Thanks,
+Lizette
+
+_________________________________________________________________
+Express yourself instantly with MSN Messenger! Download today it's FREE! 
+http://messenger.msn.click-url.com/go/onm00200471ave/direct/01/
