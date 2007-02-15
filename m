@@ -1,17 +1,13 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Omap update for post 2.6.20 posted
-Date: Wed, 14 Feb 2007 15:23:50 -0800
-Message-ID: <20070214232350.GC20543@atomide.com>
-References: <20070126225129.GN29286@atomide.com>
-	<45BB0080.1070409@googlemail.com>
-	<20070131193003.GO27224@atomide.com>
-	<20070205182716.GB20254@atomide.com>
-	<1171492468.4824.14.camel@vence.hilman.org>
+From: "Eyal Shani" <Eyal.Shani@SanDisk.Com>
+Subject: Embedded Benchmark for storage performance
+Date: Thu, 15 Feb 2007 12:14:46 +0200
+Message-ID: <13ECC251745F8F4BA0076A980813C7C2BF1EB0@msl-ex02.corp.m-sys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <1171492468.4824.14.camel@vence.hilman.org>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,29 +17,55 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kevin Hilman <khilman@mvista.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi=20All,
 
-* Kevin Hilman <khilman@mvista.com> [070214 14:34]:
-> On Mon, 2007-02-05 at 10:27 -0800, Tony Lindgren wrote:
-> 
-> > Rebased against 2.6.20 and remove the earlier branches to avoid
-> > confusion.
-> 
-> Tony, 
-> 
-> Have you heard anything from RMK on these?  How likely are these to go
-> into 2.6.21?
+=20
 
-I'm waiting on RMK for second round of comments. I guess he is pretty
-busy and is saying he is out of time.
+I=20am=20trying=20to=20use=20an=20industry=20known=20Benchmark=20for=20per=
+formance,=20on=20my
+OMAP=20platforms.
 
-I've asked him if it would help if I left out some patches so he would
-have more time to look at them. No response yet though.
+I=20have=20heard=20of=20various=20ones,=20but=20could=20not=20execute=20th=
+em=20from=20the
+platform,=20meaning=20in=20arm/linux=20mode.
 
-Regards,
+=20
 
-Tony
+F.E.:
+
+Could=20not=20find=20iozone3=20linux-arm=20src=20I=20could=20compile=20for=
+=20arm.=20Missing
+file...
+
+Hdbench=20clone=20seems=20to=20be=20a=20host=20utility=20-=20is=20it=20wor=
+king=20for=20embedded=20as
+well?
+
+=20
+
+The=20only=20one=20I=20was=20able=20to=20execute=20is=20Bonnie.
+
+I=20am=20not=20sure=20how=20industry=20known=20it=20is,=20but=20I=20can=20=
+see=20this=20is=20kind=20of=20a
+simple=20one,=20with=20not=20too=20many=20scenarios=20covered.
+
+=20
+
+I=20would=20appreciate=20your=20inputs=20here.
+
+=20
+
+Eyal=20
+
+=20
+
+
+______________________________________________________________________
+This=20email=20has=20been=20scanned=20by=20the=20MessageLabs=20Email=20Sec=
+urity=20System.
+For=20more=20information=20please=20visit=20http://www.messagelabs.com/ema=
+il=20
+______________________________________________________________________
