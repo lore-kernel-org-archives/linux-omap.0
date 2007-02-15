@@ -1,13 +1,15 @@
-From: Diogo Scolari <diogoscolari@yahoo.com.br>
+From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
 Subject: RE: McBSP usage inside DSP processor
-Date: Thu, 15 Feb 2007 17:54:58 +0000 (GMT)
-Message-ID: <483869.13204.qm@web55306.mail.re4.yahoo.com>
-References: <5DF83221BE20114E9C331F665ACBC08002976B7E@dbde01.ent.ti.com>
+Date: Thu, 15 Feb 2007 23:45:19 +0530
+Message-ID: <5DF83221BE20114E9C331F665ACBC08002976CCF@dbde01.ent.ti.com>
+References: <483869.13204.qm@web55306.mail.re4.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <5DF83221BE20114E9C331F665ACBC08002976B7E@dbde01.ent.ti.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <483869.13204.qm@web55306.mail.re4.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,10 +17,29 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Guruswamy, Senthilvadivu" <svadivu@ti.com>, OMAP <Linux-omap-open-source@linux.omap.com>, dspgateway-devel@lists.sourceforge.net
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Diogo Scolari <diogoscolari@yahoo.com.br>, =?iso-8859-1?Q?Lu=EDs=22_=22Vit=F3rio=22_Cargnini?= <lvcargnini@ieee.org>, OMAP <Linux-omap-open-source@linux.omap.com>, dspgateway-devel@lists.sourceforge.net
 List-Id: linux-omap@vger.kernel.org
+
+IF Mcbsp1 is accessible only by DSP, then it is necessary to go for DSP =
+side Mcbsp driver, which would be copy of the arm driver except for the =
+register addresses.
+
+If Mcbsp1 is a shared peripheral among ARM and DSP, then slight changes =
+in the Arm Mcbsp driver should be enough.  In this case, apart from the =
+register offsets, the buffer used by the driver should also be in =
+Arm/Dsp shared space.
+
+Regards,
+Senthil.
+
+-----Original Message-----
+From: Diogo Scolari [mailto:diogoscolari@yahoo.com.br]=20
+Sent: Thursday, February 15, 2007 11:25 PM
+To: Guruswamy, Senthilvadivu; Lu=EDs" "Vit=F3rio" Cargnini; OMAP; =
+dspgateway-devel@lists.sourceforge.net
+Subject: RE: McBSP usage inside DSP processor
 
 Hi Senthil
 
