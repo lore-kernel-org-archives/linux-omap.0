@@ -1,13 +1,15 @@
-From: Diogo Scolari <diogoscolari@yahoo.com.br>
+From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
 Subject: RE: McBSP usage inside DSP processor
-Date: Thu, 15 Feb 2007 19:02:47 +0000 (GMT)
-Message-ID: <173111.2557.qm@web55308.mail.re4.yahoo.com>
-References: <5DF83221BE20114E9C331F665ACBC08002976CCF@dbde01.ent.ti.com>
+Date: Fri, 16 Feb 2007 00:37:17 +0530
+Message-ID: <5DF83221BE20114E9C331F665ACBC08002976CE5@dbde01.ent.ti.com>
+References: <173111.2557.qm@web55308.mail.re4.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <5DF83221BE20114E9C331F665ACBC08002976CCF@dbde01.ent.ti.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <173111.2557.qm@web55308.mail.re4.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,9 +19,25 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+To: Diogo Scolari <diogoscolari@yahoo.com.br>
 Cc: dspgateway-devel@lists.sourceforge.net, Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
+
+I really don't know if there is any how to example in your package.
+
+I meant the Mcbsp accessible code written on DSP side.  If you are using =
+the CSL, then macros for Mcbsp access also should be available.
+
+If you are able to find the CSL APIs/macros for mcbsp2 on the DSP side, =
+mcbsp1 also shall use the similar APIs. =20
+
+-----Original Message-----
+From: Diogo Scolari [mailto:diogoscolari@yahoo.com.br]=20
+Sent: Friday, February 16, 2007 12:33 AM
+To: Guruswamy, Senthilvadivu
+Cc: lvcargnini@ieee.org; Linux-omap-open-source@linux.omap.com; =
+dspgateway-devel@lists.sourceforge.net
+Subject: RE: McBSP usage inside DSP processor
 
 Ok Senthil
 
