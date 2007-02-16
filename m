@@ -1,7 +1,7 @@
 From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
-Subject: [PATCH] mmc/omap.c: add missing '\n'
-Date: Fri, 16 Feb 2007 11:13:06 +0100
-Message-ID: <85sld62yx9.fsf@orfeo.duckcorp.org>
+Subject: omapfb: fix build for n770
+Date: Fri, 16 Feb 2007 11:19:31 +0100
+Message-ID: <85odnu2ymk.fsf@orfeo.duckcorp.org>
 Mime-Version: 1.0
 Content-Type: multipart/mixed; boundary="=-=-="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
@@ -19,34 +19,61 @@ List-Id: linux-omap@vger.kernel.org
 
 --=-=-=
 
+This patch fix the build breakage introduced by the n800 fb update. It
+has not been tested but at least the kernel is building now.
+The change from sossi_extif to omap1_ext_if has been suggested by the
+os2007on770 project
+(http://maemo.org/maemowiki/Os2007On770?highlight=%28os2007%29).
 
-This patch add a missing '\n' at the end of the 'cover is open' string
-in mmc_omap_switch_handler().
+[ Checking that the n770 defconfig is still building after adding a n800
+update would be nice. It's known that the n800 2.6.18 kernel has some
+not-n770-friendly changes ]
 
 Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
 ---
 
 --=-=-=
 Content-Type: text/x-diff
-Content-Disposition: inline; filename=mmc_cover_open_string.patch
+Content-Disposition: inline; filename=fix_n800fb_breakage.patch
 
 ---
- drivers/mmc/omap.c |    2 	1 +	1 -	0 !
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/omap/sossi.c       |    3 	2 +	1 -	0 !
+ include/asm-arm/arch-omap/irqs.h |    1 	1 +	0 -	0 !
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-Index: linux-omap-2.6/drivers/mmc/omap.c
+Index: linux-omap-2.6/include/asm-arm/arch-omap/irqs.h
 ===================================================================
---- linux-omap-2.6.orig/drivers/mmc/omap.c	2007-02-16 11:04:18.000000000 +0100
-+++ linux-omap-2.6/drivers/mmc/omap.c	2007-02-16 11:04:47.000000000 +0100
-@@ -606,7 +606,7 @@ static void mmc_omap_switch_handler(stru
- 	}
- 	if (mmc_omap_cover_is_open(host)) {
- 		if (!complained) {
--			dev_info(mmc_dev(host->mmc), "cover is open");
-+			dev_info(mmc_dev(host->mmc), "cover is open\n");
- 			complained = 1;
- 		}
- 		if (mmc_omap_enable_poll)
+--- linux-omap-2.6.orig/include/asm-arm/arch-omap/irqs.h	2007-02-16 09:37:44.000000000 +0100
++++ linux-omap-2.6/include/asm-arm/arch-omap/irqs.h	2007-02-16 11:01:42.000000000 +0100
+@@ -125,6 +125,7 @@
+ #define INT_UART2		(15 + IH2_BASE)
+ #define INT_BT_MCSI1TX		(16 + IH2_BASE)
+ #define INT_BT_MCSI1RX		(17 + IH2_BASE)
++#define INT_SOSSI_MATCH		(19 + IH2_BASE)
+ #define INT_USB_W2FC		(20 + IH2_BASE)
+ #define INT_1WIRE		(21 + IH2_BASE)
+ #define INT_OS_TIMER		(22 + IH2_BASE)
+Index: linux-omap-2.6/drivers/video/omap/sossi.c
+===================================================================
+--- linux-omap-2.6.orig/drivers/video/omap/sossi.c	2007-02-16 09:45:32.000000000 +0100
++++ linux-omap-2.6/drivers/video/omap/sossi.c	2007-02-16 09:52:09.000000000 +0100
+@@ -23,6 +23,7 @@
+ #include <linux/module.h>
+ #include <linux/mm.h>
+ #include <linux/clk.h>
++#include <linux/irq.h>
+ 
+ #include <asm/io.h>
+ 
+@@ -661,7 +662,7 @@ static void sossi_cleanup(void)
+ 	clk_put(sossi.fck);
+ }
+ 
+-struct lcd_ctrl_extif sossi_extif = {
++struct lcd_ctrl_extif omap1_ext_if = {
+ 	.init			= sossi_init,
+ 	.cleanup		= sossi_cleanup,
+ 	.get_clk_info		= sossi_get_clk_info,
 
 --=-=-=
 Content-Type: text/plain; charset="us-ascii"
