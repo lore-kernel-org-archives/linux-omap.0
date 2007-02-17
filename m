@@ -1,15 +1,11 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: Accessing Mailbox register on OMAP SDP2430
-Date: Fri, 16 Feb 2007 09:41:31 -0600
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C474535B6@dlee13.ent.ti.com>
-References: <1169480869.S.3614.7806.webmail19.rediffmail.com.old.replied.1171637341.28201@webmail.rediffmail.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: [PATCH] ARM: OMAP: convert dsp driver to use struct device
+Date: Sat, 17 Feb 2007 16:31:27 +0530
+Message-ID: <5d5443650702170301s2c0cd25bkc9a62250f851577e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <1169480869.S.3614.7806.webmail19.rediffmail.com.old.replied.1171637341.28201@webmail.rediffmail.com>
+Content-Type: multipart/mixed;
+	boundary="----=_Part_13049_25843993.1171710087891"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,51 +13,125 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: rajeev  s <rajeev2174@rediffmail.com>, linux_omap_open_source <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
+Cc: Hiroshi.DOYU@nokia.com
 List-Id: linux-omap@vger.kernel.org
 
-Did you try __raw_readl?=20
+------=_Part_13049_25843993.1171710087891
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-The size of the register might also matter, make sure you are accessing
-a 32bit register otherwise switch to __raw_readw or __raw_readb
+-- 
+--Trilok Soni
 
-Regards,
-Khasim
+------=_Part_13049_25843993.1171710087891
+Content-Type: text/plain;
+	name=0001-ARM-OMAP-convert-dsp-driver-to-use-struct-device.txt;
+	charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_ey9xz2pi
+Content-Disposition: attachment;
+	filename="0001-ARM-OMAP-convert-dsp-driver-to-use-struct-device.txt"
 
-> -----Original Message-----
-> From: linux-omap-open-source-bounces+x0khasim=3Dti.com@linux.omap.com
-> =
-[mailto:linux-omap-open-source-bounces+x0khasim=3Dti.com@linux.omap.com]
-On
-> Behalf Of rajeev s
-> Sent: Friday, February 16, 2007 8:49 AM
-> To: linux_omap_open_source
-> Subject: Accessing Mailbox register on OMAP SDP2430
->=20
-> Hi ,We are in the process of porting DSP/LINK to OMAP2430 (SDP2430).We
-are
-> programming the mail boxes for the interprocess communication, In the
-> process we are&nbsp;using the address 0x48094000.We did the ioremap of
-the
-> Address range (0x48094000) and could see that it returns an virtual
-> address, but the moment i access that virtual address&nbsp;the kernel
-> crashes.Please find the sample code below:Code
-> :&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; static unsigned int
->
-*arm_addr2=3DNULL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arm_addr=
-2
-=3D
-> (unsigned int *)ioremap(0x48094000,0xFFF
-> );&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; printk ( \" 0x48094000
-Virt
-> Addr =3D 0x%p\\n\", arm_addr2 );
-> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; temp_var =3D readl(arm_addr2);Can
-> anyone let me know is there anything wrong in the way these registers
-are
-> accessed ?ThanksRajeev
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+RnJvbSBub2JvZHkgTW9uIFNlcCAxNyAwMDowMDowMCAyMDAxCkZyb206IFRyaWxvayBTb25pIDxz
+b25pLnRyaWxva0BnbWFpbC5jb20+CkRhdGU6IFNhdCwgMTcgRmViIDIwMDcgMjE6NTg6MDkgKzA1
+MzAKU3ViamVjdDogW1BBVENIXSBBUk06IE9NQVA6IGNvbnZlcnQgZHNwIGRyaXZlciB0byB1c2Ug
+c3RydWN0IGRldmljZQoKQ29udmVydHMgZnJvbSB1c2luZyAiY2xhc3NfZGV2aWNlIiB0byAic3Ry
+dWN0IGRldmljZSIuCgpTaWduZWQtb2ZmLWJ5OiBUcmlsb2sgU29uaSA8c29uaS50cmlsb2tAZ21h
+aWwuY29tPgoKLS0tCgogYXJjaC9hcm0vcGxhdC1vbWFwL2RzcC9kc3BfY3RsX2NvcmUuYyB8ICAg
+MTAgKysrKystLS0tLQogYXJjaC9hcm0vcGxhdC1vbWFwL2RzcC90YXNrLmMgICAgICAgICB8ICAg
+IDggKysrKy0tLS0KIGFyY2gvYXJtL3BsYXQtb21hcC9tYWlsYm94LmMgICAgICAgICAgfCAgIDI2
+ICsrKysrKysrKysrKysrLS0tLS0tLS0tLS0tCiBpbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFwL21h
+aWxib3guaCAgIHwgICAgMiArLQogNCBmaWxlcyBjaGFuZ2VkLCAyNCBpbnNlcnRpb25zKCspLCAy
+MiBkZWxldGlvbnMoLSkKCmNhZWRhNzE4N2Y4NmE5MjdiMzgzNWQ4MjBlMjg3OWYzYTU0ZmRiM2YK
+ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL3BsYXQtb21hcC9kc3AvZHNwX2N0bF9jb3JlLmMgYi9hcmNo
+L2FybS9wbGF0LW9tYXAvZHNwL2RzcF9jdGxfY29yZS5jCmluZGV4IDA0NDIwZGYuLmQxN2E1Yzgg
+MTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL3BsYXQtb21hcC9kc3AvZHNwX2N0bF9jb3JlLmMKKysrIGIv
+YXJjaC9hcm0vcGxhdC1vbWFwL2RzcC9kc3BfY3RsX2NvcmUuYwpAQCAtMTA3LDEwICsxMDcsMTAg
+QEAgaW50IF9faW5pdCBkc3BfY3RsX2NvcmVfaW5pdCh2b2lkKQogCiAJZHNwX2N0bF9jbGFzcyA9
+IGNsYXNzX2NyZWF0ZShUSElTX01PRFVMRSwgImRzcGN0bCIpOwogCWZvciAoaSA9IDA7IGkgPCBB
+UlJBWV9TSVpFKGRldl9saXN0KTsgaSsrKSB7Ci0JCWNsYXNzX2RldmljZV9jcmVhdGUoZHNwX2N0
+bF9jbGFzcywgTlVMTCwKKwkJZGV2aWNlX2NyZWF0ZShkc3BfY3RsX2NsYXNzLCBOVUxMLAogCQkJ
+CSAgICBNS0RFVihPTUFQX0RTUF9DVExfTUFKT1IsCiAJCQkJCSAgZGV2X2xpc3RbaV0ubWlub3Ip
+LAotCQkJCSAgICBOVUxMLCBkZXZfbGlzdFtpXS5kZXZuYW1lKTsKKwkJCQkgICAgZGV2X2xpc3Rb
+aV0uZGV2bmFtZSk7CiAJfQogCiAJcmV0dXJuIDA7CkBAIC0xMjEsOSArMTIxLDkgQEAgdm9pZCBk
+c3BfY3RsX2NvcmVfZXhpdCh2b2lkKQogCWludCBpOwogCiAJZm9yIChpID0gMDsgaSA8IEFSUkFZ
+X1NJWkUoZGV2X2xpc3QpOyBpKyspIHsKLQkJY2xhc3NfZGV2aWNlX2Rlc3Ryb3koZHNwX2N0bF9j
+bGFzcywKLQkJCQkgICAgIE1LREVWKE9NQVBfRFNQX0NUTF9NQUpPUiwKLQkJCQkJICAgZGV2X2xp
+c3RbaV0ubWlub3IpKTsKKwkJZGV2aWNlX2Rlc3Ryb3koZHNwX2N0bF9jbGFzcywKKwkJCQlNS0RF
+VihPTUFQX0RTUF9DVExfTUFKT1IsCisJCQkJCWRldl9saXN0W2ldLm1pbm9yKSk7CiAJfQogCWNs
+YXNzX2Rlc3Ryb3koZHNwX2N0bF9jbGFzcyk7CiAKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL3BsYXQt
+b21hcC9kc3AvdGFzay5jIGIvYXJjaC9hcm0vcGxhdC1vbWFwL2RzcC90YXNrLmMKaW5kZXggODA3
+YzQwOC4uMTBlZWU5MCAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vcGxhdC1vbWFwL2RzcC90YXNrLmMK
+KysrIGIvYXJjaC9hcm0vcGxhdC1vbWFwL2RzcC90YXNrLmMKQEAgLTE4MjEsOSArMTgyMSw5IEBA
+IHN0YXRpYyBpbnQgdGFza2Rldl9pbml0KHN0cnVjdCB0YXNrZGV2ICoKIAlyZXQgfD0gZGV2aWNl
+X2NyZWF0ZV9maWxlKCZkZXYtPmRldiwgJmRldl9hdHRyX3Byb2NfbGlzdCk7CiAJaWYgKHJldCkK
+IAkJcHJpbnRrKEtFUk5fRVJSICJkZXZpY2VfY3JlYXRlX2ZpbGUgZmFpbGVkOiAlZFxuIiwgcmV0
+KTsKLQljbGFzc19kZXZpY2VfY3JlYXRlKGRzcF90YXNrX2NsYXNzLCBOVUxMLAotCQkJICAgIE1L
+REVWKE9NQVBfRFNQX1RBU0tfTUFKT1IsIG1pbm9yKSwKLQkJCSAgICBOVUxMLCAiZHNwdGFzayVk
+IiwgbWlub3IpOworCWRldmljZV9jcmVhdGUoZHNwX3Rhc2tfY2xhc3MsIE5VTEwsCisJCQlNS0RF
+VihPTUFQX0RTUF9UQVNLX01BSk9SLCBtaW5vciksCisJCQkiZHNwdGFzayVkIiwgbWlub3IpOwog
+CiAJaW5pdF93YWl0cXVldWVfaGVhZCgmZGV2LT5zdGF0ZV93YWl0X3EpOwogCWluaXRfcndzZW0o
+JmRldi0+c3RhdGVfc2VtKTsKQEAgLTE4NDAsNyArMTg0MCw3IEBAIHN0YXRpYyB2b2lkIHRhc2tk
+ZXZfZGVsZXRlKHVuc2lnbmVkIGNoYXIKIAlkZXZpY2VfcmVtb3ZlX2ZpbGUoJmRldi0+ZGV2LCAm
+ZGV2X2F0dHJfZGV2bmFtZSk7CiAJZGV2aWNlX3JlbW92ZV9maWxlKCZkZXYtPmRldiwgJmRldl9h
+dHRyX2RldnN0YXRlKTsKIAlkZXZpY2VfcmVtb3ZlX2ZpbGUoJmRldi0+ZGV2LCAmZGV2X2F0dHJf
+cHJvY19saXN0KTsKLQljbGFzc19kZXZpY2VfZGVzdHJveShkc3BfdGFza19jbGFzcywgTUtERVYo
+T01BUF9EU1BfVEFTS19NQUpPUiwgbWlub3IpKTsKKwlkZXZpY2VfZGVzdHJveShkc3BfdGFza19j
+bGFzcywgTUtERVYoT01BUF9EU1BfVEFTS19NQUpPUiwgbWlub3IpKTsKIAlkZXZpY2VfdW5yZWdp
+c3RlcigmZGV2LT5kZXYpOwogCXByb2NfbGlzdF9mbHVzaCgmZGV2LT5wcm9jX2xpc3RfbG9jaywg
+JmRldi0+cHJvY19saXN0KTsKIAl0YXNrZGV2W21pbm9yXSA9IE5VTEw7CmRpZmYgLS1naXQgYS9h
+cmNoL2FybS9wbGF0LW9tYXAvbWFpbGJveC5jIGIvYXJjaC9hcm0vcGxhdC1vbWFwL21haWxib3gu
+YwppbmRleCAyNmFjZTIzLi40ZTZkZjMzIDEwMDY0NAotLS0gYS9hcmNoL2FybS9wbGF0LW9tYXAv
+bWFpbGJveC5jCisrKyBiL2FyY2gvYXJtL3BsYXQtb21hcC9tYWlsYm94LmMKQEAgLTE3OCwxMiAr
+MTc4LDEzIEBAIHN0YXRpYyBpcnFyZXR1cm5fdCBtYm94X2ludGVycnVwdChpbnQgaXIKIC8qCiAg
+KiBzeXNmcyBmaWxlcwogICovCi1zdGF0aWMgc3NpemVfdCBtYm94X2F0dHJfd3JpdGUoc3RydWN0
+IGNsYXNzX2RldmljZSAqZGV2LCBjb25zdCBjaGFyICpidWYsCi0JCQkgICAgICBzaXplX3QgY291
+bnQpCitzdGF0aWMgc3NpemVfdCBtYm94X2F0dHJfd3JpdGUoc3RydWN0IGRldmljZSAqZGV2LAor
+CQkJICAgICAgIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLAorCQkJICAgICAgIGNvbnN0
+IGNoYXIgKmJ1Ziwgc2l6ZV90IGNvdW50KQogewogCWludCByZXQ7CiAJbWJveF9tc2dfdCBtc2c7
+Ci0Jc3RydWN0IG9tYXBfbWJveCAqbWJveCA9IGNsYXNzX2dldF9kZXZkYXRhKGRldik7CisJc3Ry
+dWN0IG9tYXBfbWJveCAqbWJveCA9IGRldl9nZXRfZHJ2ZGF0YShkZXYpOwogCiAJbXNnID0gKG1i
+b3hfbXNnX3QpIHNpbXBsZV9zdHJ0b3VsKGJ1ZiwgTlVMTCwgMTYpOwogCkBAIC0xOTQsMTQgKzE5
+NSwxNSBAQCBzdGF0aWMgc3NpemVfdCBtYm94X2F0dHJfd3JpdGUoc3RydWN0IGNsCiAJcmV0dXJu
+IGNvdW50OwogfQogCi1zdGF0aWMgc3NpemVfdCBtYm94X2F0dHJfcmVhZChzdHJ1Y3QgY2xhc3Nf
+ZGV2aWNlICpkZXYsIGNoYXIgKmJ1ZikKK3N0YXRpYyBzc2l6ZV90IG1ib3hfYXR0cl9yZWFkKHN0
+cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsCisJCQkgICAg
+ICBjaGFyICpidWYpCiB7Ci0Jc3RydWN0IG9tYXBfbWJveCAqbWJveCA9IGNsYXNzX2dldF9kZXZk
+YXRhKGRldik7CisJc3RydWN0IG9tYXBfbWJveCAqbWJveCA9IGRldl9nZXRfZHJ2ZGF0YShkZXYp
+OwogCiAJcmV0dXJuIHNwcmludGYoYnVmLCBtYm94LT5uYW1lKTsKIH0KIAotc3RhdGljIENMQVNT
+X0RFVklDRV9BVFRSKG1ib3gsIFNfSUFMTFVHTywgbWJveF9hdHRyX3JlYWQsIG1ib3hfYXR0cl93
+cml0ZSk7CitzdGF0aWMgREVWSUNFX0FUVFIobWJveCwgU19JQUxMVUdPLCBtYm94X2F0dHJfcmVh
+ZCwgbWJveF9hdHRyX3dyaXRlKTsKIAogc3RhdGljIHNzaXplX3QgbWJveF9zaG93KHN0cnVjdCBj
+bGFzcyAqY2xhc3MsIGNoYXIgKmJ1ZikKIHsKQEAgLTIyNCwxOCArMjI2LDE4IEBAIHN0YXRpYyBp
+bnQgb21hcF9tYm94X2luaXQoc3RydWN0IG9tYXBfbWIKIAkJCXJldHVybiByZXQ7CiAJfQogCi0J
+bWJveC0+Y2xhc3NfZGV2LmNsYXNzID0gJm9tYXBfbWJveF9jbGFzczsKLQlzdHJsY3B5KG1ib3gt
+PmNsYXNzX2Rldi5jbGFzc19pZCwgbWJveC0+bmFtZSwgS09CSl9OQU1FX0xFTik7Ci0JY2xhc3Nf
+c2V0X2RldmRhdGEoJm1ib3gtPmNsYXNzX2RldiwgbWJveCk7CisJbWJveC0+ZGV2LmNsYXNzID0g
+Jm9tYXBfbWJveF9jbGFzczsKKwlzdHJsY3B5KG1ib3gtPmRldi5idXNfaWQsIG1ib3gtPm5hbWUs
+IEtPQkpfTkFNRV9MRU4pOworCWRldl9zZXRfZHJ2ZGF0YSgmbWJveC0+ZGV2LCBtYm94KTsKIAot
+CXJldCA9IGNsYXNzX2RldmljZV9yZWdpc3RlcigmbWJveC0+Y2xhc3NfZGV2KTsKKwlyZXQgPSBk
+ZXZpY2VfcmVnaXN0ZXIoJm1ib3gtPmRldik7CiAJaWYgKHVubGlrZWx5KHJldCkpCiAJCXJldHVy
+biByZXQ7CiAKLQlyZXQgPSBjbGFzc19kZXZpY2VfY3JlYXRlX2ZpbGUoJm1ib3gtPmNsYXNzX2Rl
+diwgJmNsYXNzX2RldmljZV9hdHRyX21ib3gpOworCXJldCA9IGRldmljZV9jcmVhdGVfZmlsZSgm
+bWJveC0+ZGV2LCAmZGV2X2F0dHJfbWJveCk7CiAJaWYgKHVubGlrZWx5KHJldCkpIHsKIAkJcHJp
+bnRrKEtFUk5fRVJSCi0JCSAgICAgICAiY2xhc3NfZGV2aWNlX2NyZWF0ZV9maWxlIGZhaWxlZDog
+JWRcbiIsIHJldCk7CisJCSAgICAgICAiZGV2aWNlX2NyZWF0ZV9maWxlIGZhaWxlZDogJWRcbiIs
+IHJldCk7CiAJCWdvdG8gZmFpbDE7CiAJfQogCmRpZmYgLS1naXQgYS9pbmNsdWRlL2FzbS1hcm0v
+YXJjaC1vbWFwL21haWxib3guaCBiL2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvbWFpbGJveC5o
+CmluZGV4IDY2NjY5ZjAuLjg3Mzk1ZWEgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvYXNtLWFybS9hcmNo
+LW9tYXAvbWFpbGJveC5oCisrKyBiL2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvbWFpbGJveC5o
+CkBAIC01MSw3ICs1MSw3IEBAIHN0cnVjdCBvbWFwX21ib3ggewogCiAJbWJveF9tc2dfdCBzZXFf
+c25kLCBzZXFfcmN2OwogCi0Jc3RydWN0IGNsYXNzX2RldmljZSBjbGFzc19kZXY7CisJc3RydWN0
+IGRldmljZSBkZXY7CiAKIAl2b2lkICpwcml2OwogCi0tIAoxLjMuMwoK
+------=_Part_13049_25843993.1171710087891
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+------=_Part_13049_25843993.1171710087891--
