@@ -1,11 +1,12 @@
 From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: [PATCH] ARM: OMAP: convert dsp driver to use struct device
-Date: Sat, 17 Feb 2007 16:31:27 +0530
-Message-ID: <5d5443650702170301s2c0cd25bkc9a62250f851577e@mail.gmail.com>
+Subject: dspgw: illigal seq bit for demo_console.out
+Date: Sat, 17 Feb 2007 16:37:51 +0530
+Message-ID: <5d5443650702170307h3913acdasf7b950e8df1caad1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_13049_25843993.1171710087891"
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,125 +14,98 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 Cc: Hiroshi.DOYU@nokia.com
 List-Id: linux-omap@vger.kernel.org
 
-------=_Part_13049_25843993.1171710087891
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Doyu-San,
+
+I am trying to execute demo_console.out on H4 with latest git kernel,
+but it gives me DSP configuration failed message. What could be wrong?
+
+-----------------------------snip------------------------------
+#/usr/sbin/dspctl start demo_console.out
+<7>omapdsp: mapping in ARM MMU, v=0xe0fff000, p=0x80488000, sz=0x1000
+<7>omapdsp: mapping in ARM MMU, v=0xe0fce000, p=0x48008000, sz=0x1000
+<7>omapdsp: mapping in ARM MMU, v=0xe0fdc000, p=0x4807c000, sz=0x1000
+<7>omapdsp: mapping in ARM MMU, v=0xe0fdd000, p=0x4807e000, sz=0x1000
+<7>omapdsp: mapping in ARM MMU, v=0xe0fde000, p=0x48080000, sz=0x1000
+<7>omapdsp: mapping in ARM MMU, v=0xe0fdf000, p=0x48082000, sz=0x1000
+<7>omapdsp: mapping in ARM MMU, v=0xe0fe0000, p=0x48090000, sz=0x1000
+<7>omapdsp: mapping in ARM MMU, v=0xe0fe2000, p=0x48094000, sz=0x1000
+loading demo_console.out...
+dspgw_initcall  : adr = 0x000000, size=    0
+dspgw_task      : adr = 0x00d760, size=   36
+dspgw_version   : adr = 0x000000, size=    8  ... ignored.
+SARAM_seq       : adr = 0x010000, size=    8  ... initialized.
+DARAM_seq       : adr = 0x000100, size=    8  ... initialized.
+SDRAM_seq       : adr = 0xfffd00, size=    8  ... initialized.
+SDRAM_system_data : adr = 0xfffd08, size=  136  ... initialized.
+sleep_code      : adr = 0x000108, size=  224  ... initialized.
+sleep_data      : adr = 0x0001e8, size=    2  ... initialized.
+.vers           : adr = 0x000000, size=  120  ... ignored.
+.sysstack       : adr = 0x0001ec, size=  512  ... initialized.
+.clk    <7>mbox: sending   seq=0, cmd=70:00(DSPCFG:REQ), data=0000
+        : adr = 0x0003ec, size= <7>mbox: receiving seq=0, cmd=70:70(DSPCFG:PROTR
+EV), data=0019
+   8  ... initialized.
+.prd    <3>mbox: illegal seq bit! ignoring this command. (7028007f)
+        : adr = 0x0003f4, size= <3>mbox: illegal seq bit! ignoring this command.
+ (70a9fe88)
+  48  ... initialized.
+.swi    <3>mbox: illegal seq bit! ignoring this command. (23000000)
+        : adr = 0x000424, size=  160  ... initialized.
+.tsk            : adr = 0x0004c4, size=  264  ... initialized.
+.idl            : adr = 0x0005cc, size=    8  ... initialized.
+.hwi_disp_sec   : adr = 0x0005d4, size= 1024  ... initialized.
+.bss            : adr = 0x0009d4, size= 3410  ... initialized.
+.far            : adr = 0x000100, size=    0
+.sysdata        : adr = 0x001728, size=  348  ... initialized.
+.mem            : adr = 0x0001ea, size=    2  ... initialized.
+.cio            : adr = 0x000100, size=    0
+.sysregs        : adr = 0x000100, size=    0
+.switch         : adr = 0x000100, size=    0
+.trcdata        : adr = 0x001884, size=    6  ... initialized.
+.sem            : adr = 0x00188c, size=  176  ... initialized.
+.dsm            : adr = 0x000100, size=    0
+.data           : adr = 0x00193c, size=    4  ... initialized.
+.gio            : adr = 0x000100, size=    0
+.sys            : adr = 0x001940, size=   16  ... initialized.
+.cinit          : adr = 0x001950, size= 3386  ... initialized.
+.pinit          : adr = 0x00268c, size=    8  ... initialized.
+.pwrmdb         : adr = 0x000100, size=    0
+.gblinit        : adr = 0x002694, size=   74  ... initialized.
+.TSK_idle$stk   : adr = 0x0026e0, size= 2560  ... initialized.
+.TSK_sleep$stk  : adr = 0x0030e0, size= 2560  ... initialized.
+.TSK_super$stk  : adr = 0x003ae0, size= 2560  ... initialized.
+.const          : adr = 0x0044e0, size= 1638  ... initialized.
+.printf         : adr = 0x004b46, size=  340  ... ignored.
+.LOG_system$buf : adr = 0x004b80, size=  128  ... initialized.
+.args           : adr = 0x004b48, size=   16  ... initialized.
+.trace          : adr = 0x004c00, size= 1024  ... initialized.
+.stack          : adr = 0x005000, size= 2048  ... initialized.
+.hst            : adr = 0x000100, size=    0
+.log            : adr = 0x004b58, size=   20  ... initialized.
+.pip            : adr = 0x000100, size=    0
+.sts            : adr = 0x005800, size=   96  ... initialized.
+.DARAM$heap     : adr = 0x005860, size=32512
+frt             : adr = 0x010000, size=    0
+.bios           : adr = 0x010008, size=10570  ... initialized.
+.text           : adr = 0x012952, size=22020  ... initialized.
+.sysinit        : adr = 0x017f58, size=  864  ... initialized.
+.hwi            : adr = 0x010000, size=    0
+.SARAM$heap     : adr = 0x0182b8, size=   16
+.hwi_vec        : adr = 0xffff00, size=  256  ... initialized.
+ipbuf           : adr = 0x004b6c, size=   14  ... initialized.
+dbgbuf          : adr = 0x00d784, size= 4096  ... initialized.
+setting DSP reset vector to 0x01824a
+releasing DSP reset
+<3>omapdsp: configuration error!
+DSP configuration ... failed
+Invalid argument
+--------------------------------snip--------------------------------------------
 
 -- 
 --Trilok Soni
-
-------=_Part_13049_25843993.1171710087891
-Content-Type: text/plain;
-	name=0001-ARM-OMAP-convert-dsp-driver-to-use-struct-device.txt;
-	charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ey9xz2pi
-Content-Disposition: attachment;
-	filename="0001-ARM-OMAP-convert-dsp-driver-to-use-struct-device.txt"
-
-RnJvbSBub2JvZHkgTW9uIFNlcCAxNyAwMDowMDowMCAyMDAxCkZyb206IFRyaWxvayBTb25pIDxz
-b25pLnRyaWxva0BnbWFpbC5jb20+CkRhdGU6IFNhdCwgMTcgRmViIDIwMDcgMjE6NTg6MDkgKzA1
-MzAKU3ViamVjdDogW1BBVENIXSBBUk06IE9NQVA6IGNvbnZlcnQgZHNwIGRyaXZlciB0byB1c2Ug
-c3RydWN0IGRldmljZQoKQ29udmVydHMgZnJvbSB1c2luZyAiY2xhc3NfZGV2aWNlIiB0byAic3Ry
-dWN0IGRldmljZSIuCgpTaWduZWQtb2ZmLWJ5OiBUcmlsb2sgU29uaSA8c29uaS50cmlsb2tAZ21h
-aWwuY29tPgoKLS0tCgogYXJjaC9hcm0vcGxhdC1vbWFwL2RzcC9kc3BfY3RsX2NvcmUuYyB8ICAg
-MTAgKysrKystLS0tLQogYXJjaC9hcm0vcGxhdC1vbWFwL2RzcC90YXNrLmMgICAgICAgICB8ICAg
-IDggKysrKy0tLS0KIGFyY2gvYXJtL3BsYXQtb21hcC9tYWlsYm94LmMgICAgICAgICAgfCAgIDI2
-ICsrKysrKysrKysrKysrLS0tLS0tLS0tLS0tCiBpbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFwL21h
-aWxib3guaCAgIHwgICAgMiArLQogNCBmaWxlcyBjaGFuZ2VkLCAyNCBpbnNlcnRpb25zKCspLCAy
-MiBkZWxldGlvbnMoLSkKCmNhZWRhNzE4N2Y4NmE5MjdiMzgzNWQ4MjBlMjg3OWYzYTU0ZmRiM2YK
-ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL3BsYXQtb21hcC9kc3AvZHNwX2N0bF9jb3JlLmMgYi9hcmNo
-L2FybS9wbGF0LW9tYXAvZHNwL2RzcF9jdGxfY29yZS5jCmluZGV4IDA0NDIwZGYuLmQxN2E1Yzgg
-MTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL3BsYXQtb21hcC9kc3AvZHNwX2N0bF9jb3JlLmMKKysrIGIv
-YXJjaC9hcm0vcGxhdC1vbWFwL2RzcC9kc3BfY3RsX2NvcmUuYwpAQCAtMTA3LDEwICsxMDcsMTAg
-QEAgaW50IF9faW5pdCBkc3BfY3RsX2NvcmVfaW5pdCh2b2lkKQogCiAJZHNwX2N0bF9jbGFzcyA9
-IGNsYXNzX2NyZWF0ZShUSElTX01PRFVMRSwgImRzcGN0bCIpOwogCWZvciAoaSA9IDA7IGkgPCBB
-UlJBWV9TSVpFKGRldl9saXN0KTsgaSsrKSB7Ci0JCWNsYXNzX2RldmljZV9jcmVhdGUoZHNwX2N0
-bF9jbGFzcywgTlVMTCwKKwkJZGV2aWNlX2NyZWF0ZShkc3BfY3RsX2NsYXNzLCBOVUxMLAogCQkJ
-CSAgICBNS0RFVihPTUFQX0RTUF9DVExfTUFKT1IsCiAJCQkJCSAgZGV2X2xpc3RbaV0ubWlub3Ip
-LAotCQkJCSAgICBOVUxMLCBkZXZfbGlzdFtpXS5kZXZuYW1lKTsKKwkJCQkgICAgZGV2X2xpc3Rb
-aV0uZGV2bmFtZSk7CiAJfQogCiAJcmV0dXJuIDA7CkBAIC0xMjEsOSArMTIxLDkgQEAgdm9pZCBk
-c3BfY3RsX2NvcmVfZXhpdCh2b2lkKQogCWludCBpOwogCiAJZm9yIChpID0gMDsgaSA8IEFSUkFZ
-X1NJWkUoZGV2X2xpc3QpOyBpKyspIHsKLQkJY2xhc3NfZGV2aWNlX2Rlc3Ryb3koZHNwX2N0bF9j
-bGFzcywKLQkJCQkgICAgIE1LREVWKE9NQVBfRFNQX0NUTF9NQUpPUiwKLQkJCQkJICAgZGV2X2xp
-c3RbaV0ubWlub3IpKTsKKwkJZGV2aWNlX2Rlc3Ryb3koZHNwX2N0bF9jbGFzcywKKwkJCQlNS0RF
-VihPTUFQX0RTUF9DVExfTUFKT1IsCisJCQkJCWRldl9saXN0W2ldLm1pbm9yKSk7CiAJfQogCWNs
-YXNzX2Rlc3Ryb3koZHNwX2N0bF9jbGFzcyk7CiAKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL3BsYXQt
-b21hcC9kc3AvdGFzay5jIGIvYXJjaC9hcm0vcGxhdC1vbWFwL2RzcC90YXNrLmMKaW5kZXggODA3
-YzQwOC4uMTBlZWU5MCAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vcGxhdC1vbWFwL2RzcC90YXNrLmMK
-KysrIGIvYXJjaC9hcm0vcGxhdC1vbWFwL2RzcC90YXNrLmMKQEAgLTE4MjEsOSArMTgyMSw5IEBA
-IHN0YXRpYyBpbnQgdGFza2Rldl9pbml0KHN0cnVjdCB0YXNrZGV2ICoKIAlyZXQgfD0gZGV2aWNl
-X2NyZWF0ZV9maWxlKCZkZXYtPmRldiwgJmRldl9hdHRyX3Byb2NfbGlzdCk7CiAJaWYgKHJldCkK
-IAkJcHJpbnRrKEtFUk5fRVJSICJkZXZpY2VfY3JlYXRlX2ZpbGUgZmFpbGVkOiAlZFxuIiwgcmV0
-KTsKLQljbGFzc19kZXZpY2VfY3JlYXRlKGRzcF90YXNrX2NsYXNzLCBOVUxMLAotCQkJICAgIE1L
-REVWKE9NQVBfRFNQX1RBU0tfTUFKT1IsIG1pbm9yKSwKLQkJCSAgICBOVUxMLCAiZHNwdGFzayVk
-IiwgbWlub3IpOworCWRldmljZV9jcmVhdGUoZHNwX3Rhc2tfY2xhc3MsIE5VTEwsCisJCQlNS0RF
-VihPTUFQX0RTUF9UQVNLX01BSk9SLCBtaW5vciksCisJCQkiZHNwdGFzayVkIiwgbWlub3IpOwog
-CiAJaW5pdF93YWl0cXVldWVfaGVhZCgmZGV2LT5zdGF0ZV93YWl0X3EpOwogCWluaXRfcndzZW0o
-JmRldi0+c3RhdGVfc2VtKTsKQEAgLTE4NDAsNyArMTg0MCw3IEBAIHN0YXRpYyB2b2lkIHRhc2tk
-ZXZfZGVsZXRlKHVuc2lnbmVkIGNoYXIKIAlkZXZpY2VfcmVtb3ZlX2ZpbGUoJmRldi0+ZGV2LCAm
-ZGV2X2F0dHJfZGV2bmFtZSk7CiAJZGV2aWNlX3JlbW92ZV9maWxlKCZkZXYtPmRldiwgJmRldl9h
-dHRyX2RldnN0YXRlKTsKIAlkZXZpY2VfcmVtb3ZlX2ZpbGUoJmRldi0+ZGV2LCAmZGV2X2F0dHJf
-cHJvY19saXN0KTsKLQljbGFzc19kZXZpY2VfZGVzdHJveShkc3BfdGFza19jbGFzcywgTUtERVYo
-T01BUF9EU1BfVEFTS19NQUpPUiwgbWlub3IpKTsKKwlkZXZpY2VfZGVzdHJveShkc3BfdGFza19j
-bGFzcywgTUtERVYoT01BUF9EU1BfVEFTS19NQUpPUiwgbWlub3IpKTsKIAlkZXZpY2VfdW5yZWdp
-c3RlcigmZGV2LT5kZXYpOwogCXByb2NfbGlzdF9mbHVzaCgmZGV2LT5wcm9jX2xpc3RfbG9jaywg
-JmRldi0+cHJvY19saXN0KTsKIAl0YXNrZGV2W21pbm9yXSA9IE5VTEw7CmRpZmYgLS1naXQgYS9h
-cmNoL2FybS9wbGF0LW9tYXAvbWFpbGJveC5jIGIvYXJjaC9hcm0vcGxhdC1vbWFwL21haWxib3gu
-YwppbmRleCAyNmFjZTIzLi40ZTZkZjMzIDEwMDY0NAotLS0gYS9hcmNoL2FybS9wbGF0LW9tYXAv
-bWFpbGJveC5jCisrKyBiL2FyY2gvYXJtL3BsYXQtb21hcC9tYWlsYm94LmMKQEAgLTE3OCwxMiAr
-MTc4LDEzIEBAIHN0YXRpYyBpcnFyZXR1cm5fdCBtYm94X2ludGVycnVwdChpbnQgaXIKIC8qCiAg
-KiBzeXNmcyBmaWxlcwogICovCi1zdGF0aWMgc3NpemVfdCBtYm94X2F0dHJfd3JpdGUoc3RydWN0
-IGNsYXNzX2RldmljZSAqZGV2LCBjb25zdCBjaGFyICpidWYsCi0JCQkgICAgICBzaXplX3QgY291
-bnQpCitzdGF0aWMgc3NpemVfdCBtYm94X2F0dHJfd3JpdGUoc3RydWN0IGRldmljZSAqZGV2LAor
-CQkJICAgICAgIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLAorCQkJICAgICAgIGNvbnN0
-IGNoYXIgKmJ1Ziwgc2l6ZV90IGNvdW50KQogewogCWludCByZXQ7CiAJbWJveF9tc2dfdCBtc2c7
-Ci0Jc3RydWN0IG9tYXBfbWJveCAqbWJveCA9IGNsYXNzX2dldF9kZXZkYXRhKGRldik7CisJc3Ry
-dWN0IG9tYXBfbWJveCAqbWJveCA9IGRldl9nZXRfZHJ2ZGF0YShkZXYpOwogCiAJbXNnID0gKG1i
-b3hfbXNnX3QpIHNpbXBsZV9zdHJ0b3VsKGJ1ZiwgTlVMTCwgMTYpOwogCkBAIC0xOTQsMTQgKzE5
-NSwxNSBAQCBzdGF0aWMgc3NpemVfdCBtYm94X2F0dHJfd3JpdGUoc3RydWN0IGNsCiAJcmV0dXJu
-IGNvdW50OwogfQogCi1zdGF0aWMgc3NpemVfdCBtYm94X2F0dHJfcmVhZChzdHJ1Y3QgY2xhc3Nf
-ZGV2aWNlICpkZXYsIGNoYXIgKmJ1ZikKK3N0YXRpYyBzc2l6ZV90IG1ib3hfYXR0cl9yZWFkKHN0
-cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsCisJCQkgICAg
-ICBjaGFyICpidWYpCiB7Ci0Jc3RydWN0IG9tYXBfbWJveCAqbWJveCA9IGNsYXNzX2dldF9kZXZk
-YXRhKGRldik7CisJc3RydWN0IG9tYXBfbWJveCAqbWJveCA9IGRldl9nZXRfZHJ2ZGF0YShkZXYp
-OwogCiAJcmV0dXJuIHNwcmludGYoYnVmLCBtYm94LT5uYW1lKTsKIH0KIAotc3RhdGljIENMQVNT
-X0RFVklDRV9BVFRSKG1ib3gsIFNfSUFMTFVHTywgbWJveF9hdHRyX3JlYWQsIG1ib3hfYXR0cl93
-cml0ZSk7CitzdGF0aWMgREVWSUNFX0FUVFIobWJveCwgU19JQUxMVUdPLCBtYm94X2F0dHJfcmVh
-ZCwgbWJveF9hdHRyX3dyaXRlKTsKIAogc3RhdGljIHNzaXplX3QgbWJveF9zaG93KHN0cnVjdCBj
-bGFzcyAqY2xhc3MsIGNoYXIgKmJ1ZikKIHsKQEAgLTIyNCwxOCArMjI2LDE4IEBAIHN0YXRpYyBp
-bnQgb21hcF9tYm94X2luaXQoc3RydWN0IG9tYXBfbWIKIAkJCXJldHVybiByZXQ7CiAJfQogCi0J
-bWJveC0+Y2xhc3NfZGV2LmNsYXNzID0gJm9tYXBfbWJveF9jbGFzczsKLQlzdHJsY3B5KG1ib3gt
-PmNsYXNzX2Rldi5jbGFzc19pZCwgbWJveC0+bmFtZSwgS09CSl9OQU1FX0xFTik7Ci0JY2xhc3Nf
-c2V0X2RldmRhdGEoJm1ib3gtPmNsYXNzX2RldiwgbWJveCk7CisJbWJveC0+ZGV2LmNsYXNzID0g
-Jm9tYXBfbWJveF9jbGFzczsKKwlzdHJsY3B5KG1ib3gtPmRldi5idXNfaWQsIG1ib3gtPm5hbWUs
-IEtPQkpfTkFNRV9MRU4pOworCWRldl9zZXRfZHJ2ZGF0YSgmbWJveC0+ZGV2LCBtYm94KTsKIAot
-CXJldCA9IGNsYXNzX2RldmljZV9yZWdpc3RlcigmbWJveC0+Y2xhc3NfZGV2KTsKKwlyZXQgPSBk
-ZXZpY2VfcmVnaXN0ZXIoJm1ib3gtPmRldik7CiAJaWYgKHVubGlrZWx5KHJldCkpCiAJCXJldHVy
-biByZXQ7CiAKLQlyZXQgPSBjbGFzc19kZXZpY2VfY3JlYXRlX2ZpbGUoJm1ib3gtPmNsYXNzX2Rl
-diwgJmNsYXNzX2RldmljZV9hdHRyX21ib3gpOworCXJldCA9IGRldmljZV9jcmVhdGVfZmlsZSgm
-bWJveC0+ZGV2LCAmZGV2X2F0dHJfbWJveCk7CiAJaWYgKHVubGlrZWx5KHJldCkpIHsKIAkJcHJp
-bnRrKEtFUk5fRVJSCi0JCSAgICAgICAiY2xhc3NfZGV2aWNlX2NyZWF0ZV9maWxlIGZhaWxlZDog
-JWRcbiIsIHJldCk7CisJCSAgICAgICAiZGV2aWNlX2NyZWF0ZV9maWxlIGZhaWxlZDogJWRcbiIs
-IHJldCk7CiAJCWdvdG8gZmFpbDE7CiAJfQogCmRpZmYgLS1naXQgYS9pbmNsdWRlL2FzbS1hcm0v
-YXJjaC1vbWFwL21haWxib3guaCBiL2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvbWFpbGJveC5o
-CmluZGV4IDY2NjY5ZjAuLjg3Mzk1ZWEgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvYXNtLWFybS9hcmNo
-LW9tYXAvbWFpbGJveC5oCisrKyBiL2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvbWFpbGJveC5o
-CkBAIC01MSw3ICs1MSw3IEBAIHN0cnVjdCBvbWFwX21ib3ggewogCiAJbWJveF9tc2dfdCBzZXFf
-c25kLCBzZXFfcmN2OwogCi0Jc3RydWN0IGNsYXNzX2RldmljZSBjbGFzc19kZXY7CisJc3RydWN0
-IGRldmljZSBkZXY7CiAKIAl2b2lkICpwcml2OwogCi0tIAoxLjMuMwoK
-------=_Part_13049_25843993.1171710087891
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
-------=_Part_13049_25843993.1171710087891--
