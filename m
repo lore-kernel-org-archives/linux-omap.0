@@ -1,15 +1,10 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: 2.6.21-rc1 merge status
-Date: Mon, 19 Feb 2007 10:39:19 -0800
-Message-ID: <200702191039.19560.david-b@pacbell.net>
-References: <45D892A1.9040006@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <45D892A1.9040006@googlemail.com>
-Content-Disposition: inline
+From: Kevin Hilman <khilman@mvista.com>
+Subject: [RFC, PATCH 4/7] ARM: clockevent support for ixp4xx platform
+Date: Mon, 19 Feb 2007 13:47:23 -0800
+Message-ID: <20070219214740.473972000@mvista.com>
+References: <20070219214719.379287000@mvista.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline; filename=arm-ixp4xx-clockevents.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,51 +12,181 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: tglx@linutronix.de, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Sunday 18 February 2007 9:53 am, Dirk Behme wrote:
+Signed-off-by: Kevin Hilman <khilman@mvista.com>
 
-> Dave: Can you give us an update about I2C status in 
-> 2.6.21-rc1, what went in and what not? What's about the idea 
-> of "embedded I2C stack"? Many thanks!
+Index: linux-2.6/arch/arm/mach-ixp4xx/common.c
+===================================================================
+--- linux-2.6.orig/arch/arm/mach-ixp4xx/common.c
++++ linux-2.6/arch/arm/mach-ixp4xx/common.c
+@@ -27,6 +27,7 @@
+ #include <linux/time.h>
+ #include <linux/timex.h>
+ #include <linux/clocksource.h>
++#include <linux/clockchips.h>
+ 
+ #include <asm/arch/udc.h>
+ #include <asm/hardware.h>
+@@ -41,6 +42,8 @@
+ #include <asm/mach/time.h>
+ 
+ static int __init ixp4xx_clocksource_init(void);
++static int __init ixp4xx_clockevent_init(void);
++static struct clock_event_device clockevent_ixp4xx;
+ 
+ /*************************************************************************
+  * IXP4xx chipset I/O mapping
+@@ -239,52 +242,40 @@ void __init ixp4xx_init_irq(void)
+  * counter as a source of real clock ticks to account for missed jiffies.
+  *************************************************************************/
+ 
+-static unsigned volatile last_jiffy_time;
+-
+-#define CLOCK_TICKS_PER_USEC	((CLOCK_TICK_RATE + USEC_PER_SEC/2) / USEC_PER_SEC)
+-
+ static irqreturn_t ixp4xx_timer_interrupt(int irq, void *dev_id)
+ {
+-	write_seqlock(&xtime_lock);
++	struct clock_event_device *evt = &clockevent_ixp4xx;
+ 
+ 	/* Clear Pending Interrupt by writing '1' to it */
+ 	*IXP4XX_OSST = IXP4XX_OSST_TIMER_1_PEND;
+ 
+-	/*
+-	 * Catch up with the real idea of time
+-	 */
+-	while ((signed long)(*IXP4XX_OSTS - last_jiffy_time) >= LATCH) {
+-		timer_tick();
+-		last_jiffy_time += LATCH;
+-	}
+-
+-	write_sequnlock(&xtime_lock);
++	evt->event_handler(evt);
+ 
+ 	return IRQ_HANDLED;
+ }
+ 
+ static struct irqaction ixp4xx_timer_irq = {
+-	.name		= "IXP4xx Timer Tick",
++	.name		= "timer1",
+ 	.flags		= IRQF_DISABLED | IRQF_TIMER,
+ 	.handler	= ixp4xx_timer_interrupt,
+ };
+ 
+ static void __init ixp4xx_timer_init(void)
+ {
++	/* Reset/disable counter */
++	*IXP4XX_OSRT1 = 0;
++
+ 	/* Clear Pending Interrupt by writing '1' to it */
+ 	*IXP4XX_OSST = IXP4XX_OSST_TIMER_1_PEND;
+ 
+-	/* Setup the Timer counter value */
+-	*IXP4XX_OSRT1 = (LATCH & ~IXP4XX_OST_RELOAD_MASK) | IXP4XX_OST_ENABLE;
+-
+ 	/* Reset time-stamp counter */
+ 	*IXP4XX_OSTS = 0;
+-	last_jiffy_time = 0;
+ 
+ 	/* Connect the interrupt handler and enable the interrupt */
+ 	setup_irq(IRQ_IXP4XX_TIMER1, &ixp4xx_timer_irq);
+ 
+ 	ixp4xx_clocksource_init();
++	ixp4xx_clockevent_init();
+ }
+ 
+ struct sys_timer ixp4xx_timer = {
+@@ -384,6 +375,9 @@ void __init ixp4xx_sys_init(void)
+ 			ixp4xx_exp_bus_size >> 20);
+ }
+ 
++/*
++ * clocksource
++ */
+ cycle_t ixp4xx_get_cycles(void)
+ {
+ 	return *IXP4XX_OSTS;
+@@ -408,3 +402,64 @@ static int __init ixp4xx_clocksource_ini
+ 
+ 	return 0;
+ }
++
++/*
++ * clockevents
++ */
++static int ixp4xx_set_next_event(unsigned long evt,
++				 struct clock_event_device *unused)
++{
++	unsigned long opts = *IXP4XX_OSRT1 & IXP4XX_OST_RELOAD_MASK;
++
++	*IXP4XX_OSRT1 = (evt & ~IXP4XX_OST_RELOAD_MASK) | opts;
++
++	return 0;
++}
++
++static void ixp4xx_set_mode(enum clock_event_mode mode,
++			    struct clock_event_device *evt)
++{
++	unsigned long opts, osrt = *IXP4XX_OSRT1 & ~IXP4XX_OST_RELOAD_MASK;
++
++	switch (mode) {
++	case CLOCK_EVT_MODE_PERIODIC:
++		osrt = LATCH & ~IXP4XX_OST_RELOAD_MASK;
++ 		opts = IXP4XX_OST_ENABLE;
++		break;
++	case CLOCK_EVT_MODE_ONESHOT:
++		/* period set by 'set next_event' */
++		osrt = 0;
++		opts = IXP4XX_OST_ENABLE | IXP4XX_OST_ONE_SHOT;
++		break;
++	case CLOCK_EVT_MODE_SHUTDOWN:
++	case CLOCK_EVT_MODE_UNUSED:
++	default:
++		osrt = opts = 0;
++		break;
++	}
++
++	*IXP4XX_OSRT1 = osrt | opts;
++}
++
++static struct clock_event_device clockevent_ixp4xx = {
++	.name		= "ixp4xx timer1",
++	.features       = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
++	.rating         = 200,
++	.shift		= 24,
++	.set_mode	= ixp4xx_set_mode,
++	.set_next_event	= ixp4xx_set_next_event,
++};
++
++static int __init ixp4xx_clockevent_init(void)
++{
++	clockevent_ixp4xx.mult = div_sc(FREQ, NSEC_PER_SEC,
++					clockevent_ixp4xx.shift);
++	clockevent_ixp4xx.max_delta_ns =
++		clockevent_delta2ns(0xfffffffe, &clockevent_ixp4xx);
++	clockevent_ixp4xx.min_delta_ns =
++		clockevent_delta2ns(0xf, &clockevent_ixp4xx);
++	clockevent_ixp4xx.cpumask = cpumask_of_cpu(0);
++
++	clockevents_register_device(&clockevent_ixp4xx);
++	return 0;
++}
+Index: linux-2.6/arch/arm/Kconfig
+===================================================================
+--- linux-2.6.orig/arch/arm/Kconfig
++++ linux-2.6/arch/arm/Kconfig
+@@ -255,6 +255,7 @@ config ARCH_IXP4XX
+ 	bool "IXP4xx-based"
+ 	depends on MMU
+ 	select GENERIC_TIME
++	select GENERIC_CLOCKEVENTS
+ 	help
+ 	  Support for Intel's IXP4XX (XScale) family of processors.
+ 
 
-If you recall, the patches I did in November were eventually split
-into "Phase I" and "Phase II".
-
- - One of the "Phase I" patches is in RC1 ... adding new methods
-   for I2C drivers to suspend()/resume()/shutdown().  Ditto several
-   semi-related patches making I2C adapter drivers link up to their
-   adapter hardware device.  All are what I'd call minor updates,
-   most of which barely missed the 2.6.20 merge window.
-
- - The other "Phase I" issues are still pending, fixed I think in
-   in recent MM patch sets but expected to stay there unti 2.6.22
-   merge window opens.  The strategy to remove i2c_adapter_driver
-   mistake has done a 180-degree turn because of this new "remove
-   class_device" jihad (which you can NOT read about in the feature
-   removal schedule) ... much wasted time, without which I think
-   all that phase I stuff would have been in 2.6.21 (sigh).
-
- - Accordingly I see no way the "Phase II" stuff (most interesting
-   for OMAP, because it means the I2C stack can behave with adapters
-   that can't support SMBUS_QUICK) to merge before 2.6.22 starts.
-
-I recently refreshed the core "Phase II" patches, and Jean hopes to
-re-review those phase II patches this week.  With any luck that means
-they will then enter his patch queue (for 2.6.22).
-
-And then it'd be worth refreshing the patches which _use_ those
-new APIs ... e.g. the OSK patches I sent at some point.
-
-I don't see a rewrite of I2C coming any time soon, or teaching it
-how to do async messaging.  But the "Phase II" stuff should help
-resolve the main technical issues I recall motivating folk to think
-about wanting a whole new "embedded" I2C stack:  the requirement
-for SMBUS_QUICK, the inability to pass board-specific platform_data
-to drivers, the odd belief that I2C chips don't need to issue IRQs.
-
-- Dave
+--
