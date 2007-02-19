@@ -1,8 +1,10 @@
 From: Kevin Hilman <khilman@mvista.com>
-Subject: [RFC, PATCH 0/7] ARM support for hrtimers, dyntick
-Date: Mon, 19 Feb 2007 13:47:19 -0800
-Message-ID: <20070219214719.379287000@mvista.com>
+Subject: [RFC, PATCH 1/7] ARM: build fixups for hrtimers
+Date: Mon, 19 Feb 2007 13:47:20 -0800
+Message-ID: <20070219214739.523455000@mvista.com>
+References: <20070219214719.379287000@mvista.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline; filename=arm-build-fixups.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,13 +18,20 @@ To: linux-arm-kernel@lists.arm.linux.org.uk
 Cc: tglx@linutronix.de, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Here is support for hrtimers and dyntick on a few ARM platforms:
-ixp4xx, versatile and OMAP.  Patches are against today's Linus git
-tree.
+Signed-off-by: Kevin Hilman <khilman@mvista.com>
 
-For the time being, LED support is missing as the ARM-specific
-do_leds() is no longer used.  Based on feedback from my previous RFC,
-I think the right thing to do is to migrate any LED drivers to the new
-drivers/led framework.
+Index: linux-2.6/kernel/time/tick-sched.c
+===================================================================
+--- linux-2.6.orig/kernel/time/tick-sched.c
++++ linux-2.6/kernel/time/tick-sched.c
+@@ -21,6 +21,8 @@
+ #include <linux/sched.h>
+ #include <linux/tick.h>
+ 
++#include <asm/irq_regs.h>
++
+ #include "tick-internal.h"
+ 
+ /*
 
-Kevin
+--
