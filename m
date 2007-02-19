@@ -1,11 +1,15 @@
-From: Ram <vshrirama@gmail.com>
-Subject: I2C Timeout error OMAP2430
-Date: Mon, 19 Feb 2007 16:54:05 +0530
-Message-ID: <8bf247760702190324n7a5bb94u4c31b67b5ed0c677@mail.gmail.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: Linux support for OMAP 850
+Date: Mon, 19 Feb 2007 17:41:04 +0530
+Message-ID: <5d5443650702190411g1b968747n4c15166008f4f323@mail.gmail.com>
+References: <2d51cbf80702182130q22e7110fw39c1b47ba9bc0eea@mail.gmail.com>
+	<5d5443650702182149q4af0b2ady75849e995c6588cd@mail.gmail.com>
+	<2d51cbf80702190036v5fe86864i6fffc1a36d54db2f@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <2d51cbf80702190036v5fe86864i6fffc1a36d54db2f@mail.gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -14,53 +18,51 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: sandeep lahane <sandeep.lahane@gmail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-   Im using OMAP 2430. Im using OMAP2430SDP 4.0.1 and OMAP2430SDP V 2.80.
-   I have ported keypad driver, TWL drivers to linux 2.6.19.
+On 2/19/07, sandeep lahane <sandeep.lahane@gmail.com> wrote:
+> >
+>
+> Hi Trilok,
+>
+> Thanks for the reply. I have not looked in to the code yet and just
+> trying to get the high level view of the things. I am listing my
+> observations and inferences, please correct me if I am wrong.
+>
+>
+> 1. OMAP850 has got an optimized SRAM interface for better frame buffer
+> performance , which OMAP730 doesnt have.
+>
+> -> We need to change the frame buffer driver accordingly.
+>
+> 2. The OMAP 3.2 core is optimized for DDR and DMA performances.
+>
+> -> Modify corresponding drivers.
+>
+> 3. Camera driver has to be modified.
+>
+> 4. compactFlash interface has to be dropped.
+>
+> 5. GPIO driver to be modified.
+>
+> 6.External DMA request line has been added, support to be provided.
+>
+> 7.Traffic controller burst doubler feature added to OMAP 3.2 core
+> cache fill performance improvement etc (I am not very clear about
+> this)
 
-   Im getting interrupts whenever i press a key. However after 3/4 key presses.
-   Im getting I2C bus time out error.
+Please follow board-fsample.c for example. As OMAP730 and 850 are very
+much similar, cpu_is_omap7xx() stuff should work for your board. BTW,
+are you working 850 based custom board or EVM?. Please read
+Documentation/arm/omap/README. Most of the generic api/drivers stuff
+in arch/arm/plat-omap/ and mach-omap1 should work for you.
 
-   Im using the i2c-omap.c that comes with open source linux 2.6.19.
-   I have also tried with i2c-omap.c (i2c bus driver) thats there on
-the latest git tree.
+First get basic kernel with serial port driver working, then think of
+adding other drivers like camera.
 
-   I have tried Bus speeds, 2600, 400, 100.
-
-  But i get the same error. After trying a few reads, it terminates
-twl4030_irq_thread
-  saying "Maximum I2C error count exceeded.  Terminating twl4030_irq_thread"
-
-
-
-  How does one recover from such an error?. is resetting the i2c
-controller the only way?.
-
-   Has anyone faced this problem?.
-
-  Please Advice,
-
-
-  Regards,
-    sriram
-
-
-  Some of my debug prints are as follows:
- <7>i2c_adapter i2c-0: master_xfer[0] W, addr=0x49, len=1
- <7>i2c_adapter i2c-0: master_xfer[1] R, addr=0x49, len=1
- <4>i2c_omap i2c_omap.2: timeout waiting for bus ready
-  i2c_omap i2c_omap.2: timeout waiting for bus ready
-
-  <4>I2C error -110 while reading TWL4030 PIH ISR register.
-      I2C error -110 while reading TWL4030 PIH ISR register.
-
-
-   <4>I2C error -110 while reading TWL4030 PIH ISR register.
-        I2C error -110 while reading TWL4030 PIH ISR register.
-<3>Maximum I2C error count exceeded.  Terminating twl4030_irq_thread.
-Maximum I2C error count exceeded.  Terminating twl4030_irq_thread.
+-- 
+--Trilok Soni
