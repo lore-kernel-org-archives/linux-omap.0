@@ -1,18 +1,17 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] - Fix MMC -- was  H4 boot with latest git kernel
-Date: Tue, 20 Feb 2007 01:23:33 -0800
-Message-ID: <20070220092331.GE14954@atomide.com>
-References: <5d5443650702090324g6048af71u17f20a55f823edda@mail.gmail.com>
-	<20070209165157.GB22121@atomide.com>
-	<3B6D69C3A9EBCA4BA5DA60D913027429509132@dlee13.ent.ti.com>
-	<20070210174121.GA5291@atomide.com>
-	<20070210190845.GA19642@atomide.com>
-	<3B6D69C3A9EBCA4BA5DA60D9130274295B9C49@dlee13.ent.ti.com>
+From: "sandeep lahane" <sandeep.lahane@gmail.com>
+Subject: Re: Linux support for OMAP 850
+Date: Tue, 20 Feb 2007 16:36:25 +0530
+Message-ID: <2d51cbf80702200306x66143ec4xea3d053210e9ea06@mail.gmail.com>
+References: <2d51cbf80702182130q22e7110fw39c1b47ba9bc0eea@mail.gmail.com>
+	<5d5443650702182149q4af0b2ady75849e995c6588cd@mail.gmail.com>
+	<2d51cbf80702190036v5fe86864i6fffc1a36d54db2f@mail.gmail.com>
+	<5d5443650702190411g1b968747n4c15166008f4f323@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <5d5443650702190411g1b968747n4c15166008f4f323@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D9130274295B9C49@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,28 +21,60 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>, Carlos Aguiar <carlos.aguiar@indt.org.br>, Anderson Briglia <anderson.briglia@indt.org.br>
+To: Trilok Soni <soni.trilok@gmail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Woodruff, Richard <r-woodruff2@ti.com> [070219 08:05]:
-> > > Thanks. Looks like we're still doing the MMC powerup wrong for omap
-> > > though. I made a patch for that a while back but it got forgotten
-> > > for some reason:
+On 2/19/07, Trilok Soni <soni.trilok@gmail.com> wrote:
+> On 2/19/07, sandeep lahane <sandeep.lahane@gmail.com> wrote:
 > > >
-> > > http://lkml.org/lkml/2006/5/4/44
-> > >
-> > > I'll refresh that patch so we can make sure it works on all
-> platforms.
-> > 
-> > Here are the refreshed patches to try.
-> 
-> The board does work with these patches also.  It's a cleaner way to fix
-> it up even if it is more than a line ;)
+> >
+> > Hi Trilok,
+> >
+> > Thanks for the reply. I have not looked in to the code yet and just
+> > trying to get the high level view of the things. I am listing my
+> > observations and inferences, please correct me if I am wrong.
+> >
+> >
+> > 1. OMAP850 has got an optimized SRAM interface for better frame buffer
+> > performance , which OMAP730 doesnt have.
+> >
+> > -> We need to change the frame buffer driver accordingly.
+> >
+> > 2. The OMAP 3.2 core is optimized for DDR and DMA performances.
+> >
+> > -> Modify corresponding drivers.
+> >
+> > 3. Camera driver has to be modified.
+> >
+> > 4. compactFlash interface has to be dropped.
+> >
+> > 5. GPIO driver to be modified.
+> >
+> > 6.External DMA request line has been added, support to be provided.
+> >
+> > 7.Traffic controller burst doubler feature added to OMAP 3.2 core
+> > cache fill performance improvement etc (I am not very clear about
+> > this)
+>
+> Please follow board-fsample.c for example. As OMAP730 and 850 are very
+> much similar, cpu_is_omap7xx() stuff should work for your board. BTW,
+> are you working 850 based custom board or EVM?. Please read
+> Documentation/arm/omap/README. Most of the generic api/drivers stuff
+> in arch/arm/plat-omap/ and mach-omap1 should work for you.
+>
+> First get basic kernel with serial port driver working, then think of
+> adding other drivers like camera.
+>
+> --
+> --Trilok Soni
+>
 
-Great, let's plan on pushing them then. Anderson & Carlos, have you guys
-had a chance to test these two patches on other boards?
+
+I am working on OMAP 850 based custom board. I think in this case,
+apart from most of the generic drivers which might work (since 850 and
+730 are similar), I might need to do some board specific stuff too.
+-- 
 
 Regards,
-
-Tony
+Sandeep.
