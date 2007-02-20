@@ -1,15 +1,13 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: [PATCH 0/3] OMAP MMU framework patches
-Date: Tue, 20 Feb 2007 13:51:10 +0530
-Message-ID: <5d5443650702200021x304d2004jb9e98d186684608b@mail.gmail.com>
-References: <5d5443650702192251k1cf06891x4414b0188ede7216@mail.gmail.com>
-	<20070220095420.5d93f64c.Hiroshi.DOYU@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: 2.6.21-rc1 merge status
+Date: Tue, 20 Feb 2007 01:20:10 -0800
+Message-ID: <20070220092009.GD14954@atomide.com>
+References: <45D892A1.9040006@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070220095420.5d93f64c.Hiroshi.DOYU@nokia.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
+In-Reply-To: <45D892A1.9040006@googlemail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,46 +15,66 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Doyu-San,
+Hi,
 
-On 2/20/07, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
+* Dirk Behme <dirk.behme@googlemail.com> [070218 09:54]:
+> 
+> 2) Merging our OMAP patches via Russells patch system to 
+> mainline failed [2]. There was some background discussion 
+> between Tony, Russell and Andrew how to merge our patches in 
+> last week. Tony sent some updated patches based on Russells 
+> comments, but it was too much for Russell for a proper 
+> review. Russell mentioned ~17klines of changes.
 
-> First off, though this code was enough tested with N800(omap2), it can
-> _break_ omap1 compatibility. So we should make sure that this would work
-> fine with omap1, at least with some dspgw test programs, preferably N770.
+Yes, it's a big pile of patches :)
+ 
+> Now, we have to find a proper way how to get our (at the 
+> moment) large changes merged upstream. Looks like getting 
+> everything merged in the usual two week merge window isn't 
+> possible. First we should remove our patchset from Russells 
+> incoming queue and then discuss how to go on.
 
-I don't have access to OMAP1 or N770. I only have H4, 2430 and soon OMAP3.
+Yeah, Andrew Morton suggested that we post the linux-omap patch series
+to appropriate mailing lists for larger review. I will post the patch
+series to LKML few weeks before 2.6.22 opens for review, and will also
+notify the linux-arm-kernel list asking for people to comment on it.
 
->
-> Secondly, this MMU framework can be used with iva and camera
-> driver. So kernel config should be separated as CONFIG_OMAP_MMU_FRW or
-> something.
+There are some patches that can be already sent as fixes against
+2.6.21-rxX, so that will cut down the size of the patch series a bit.
 
-Yes, I am aware of this. It is on my TO-DO list, including seq_bit
-simplification.
+As we're trying to have all the core omap code in sync with mainline
+kernel, I'd like to start using branches in our linux-omap tree to
+make things easier.
 
->
-> Thirdly, it's necessary to make sure that this can be compiled as
-> kernel module, along with dspgw and mailbox compiled as kernel module.
+Here's what I see working pretty nicely with branches in linux-omap tree:
 
-Yes, I wanted to push this drivers to mailing list so that others can
-start reviewing it, but again I am going to make it compile as module.
-So, expect patches on above items.
+Linus' mainline tree
+\
+ omap-fixes                            (Fixes for 2.6.21-rcX)
+           \
+            omap-upstream              (Queue for when 2.6.22 opens) 
+                         \
+                          omap-drivers (Patches to send to driver lists)
+                                      \
+                                       linux-omap (Non mergeable hacks)
+ 
+So to checkout the current linux-omap tree, you would just use
+"git-checkout linux-omap" instead of checking out the master branch as
+we currently do.
 
->
-> For reference I've attached the patch for omap1, but I havn't had
-> enough time to test this with N770, probably something is still
-> missing.
+This way we can easily rebase the branches against the mainline tree
+using git-rebase command. Please also note that we can add other temporary
+branches between the branches above if necessary.
 
-Thanx. Let's see what Tony suggest. If he wants to me to integrate all
-above changes and re-produce the patches OR submit them as incremental
-patches.
+I'll try to set this up this week to try it out, and then we can
+change over to it next week assuming there are no problems.
 
--- 
---Trilok Soni
+Regards,
+
+Tony
