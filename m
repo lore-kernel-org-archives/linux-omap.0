@@ -1,11 +1,15 @@
-From: Zgembo Adislic <adislic_zgembo@yahoo.com>
-Subject: Kernel compilation problem
-Date: Thu, 22 Feb 2007 05:01:33 -0800 (PST)
-Message-ID: <63576.32055.qm@web30611.mail.mud.yahoo.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: Kernel compilation problem
+Date: Thu, 22 Feb 2007 07:10:27 -0600
+Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429682D08@dlee13.ent.ti.com>
+References: <63576.32055.qm@web30611.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <63576.32055.qm@web30611.mail.mud.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,18 +19,25 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Zgembo Adislic <adislic_zgembo@yahoo.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
- 
- I using linux kernel 2.6.8.1 for my embedded ARM target and I am able to compile it without any problems using gcc-3.4-0 cross-compiler. For some reason I had to modify one of my device drivers to work with files and I had to include "stdio.h" library for that reason. But now when I execute make command I got an error that says that
- 
- "stdio.h: No such file or directory"
-And all functions that I used form that library are not recognized. 
- 
- I really see no reason why this should not work?! All suggestions are welcome.
- 
----------------------------------
-8:00? 8:25? 8:40?  Find a flick in no time
- with theYahoo! Search movie showtime shortcut.
+>  "stdio.h: No such file or directory"
+> And all functions that I used form that library are not recognized.
+
+They don't exist in that form in the kernel context.  Only
+user/application context is this available.
+
+>  I really see no reason why this should not work?! All suggestions are
+> welcome.
+
+Your expectation is not correct.  Things in the kernel are built and
+have different attributes as compared for things meant for user space.
+
+Subsets of the common C Library functions are available in the kernel.
+They do not always carry all the features of the
+glibc/uclibc/newlibc/... counterparts.  The kernel environment is much
+more restrictive.
+
+Regards,
+Richard W.
