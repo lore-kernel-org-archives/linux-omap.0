@@ -1,15 +1,12 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: Kernel compilation problem
-Date: Thu, 22 Feb 2007 07:10:27 -0600
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429682D08@dlee13.ent.ti.com>
-References: <63576.32055.qm@web30611.mail.mud.yahoo.com>
+From: "Pharaoh ." <pharaoh137@gmail.com>
+Subject: OMAP730 - Linux port
+Date: Thu, 22 Feb 2007 19:39:25 +0530
+Message-ID: <61445c750702220609q42c552bt8f150ad33ea8e427@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <63576.32055.qm@web30611.mail.mud.yahoo.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,25 +16,20 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Zgembo Adislic <adislic_zgembo@yahoo.com>, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
->  "stdio.h: No such file or directory"
-> And all functions that I used form that library are not recognized.
+Hi,
 
-They don't exist in that form in the kernel context.  Only
-user/application context is this available.
+I just saw
+http://linux.omap.com/pipermail/linux-omap-open-source/2004-May/000848.html
+and according to this, 2.6 kernel port for omap750 is minimal (i.e. only
+serial console, NOR and a network driver are available). But, this was the
+case back in 2004. Has Linux 2.6 been ported to omap 730 fully?
 
->  I really see no reason why this should not work?! All suggestions are
-> welcome.
+Also, I know that Montavista has full 2.4 kernel support for omap 730 but it
+is not made available publicly. So, has any Linux kernel (2.4 onwards) been
+ported fully to omap 730? And is it available publicly?
 
-Your expectation is not correct.  Things in the kernel are built and
-have different attributes as compared for things meant for user space.
 
-Subsets of the common C Library functions are available in the kernel.
-They do not always carry all the features of the
-glibc/uclibc/newlibc/... counterparts.  The kernel environment is much
-more restrictive.
-
-Regards,
-Richard W.
+-Pharaoh.
