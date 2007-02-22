@@ -1,15 +1,12 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: Problem running ALSA utilities
-Date: Thu, 22 Feb 2007 05:16:17 -0600
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47510EFA@dlee13.ent.ti.com>
-References: <45DD431E.6060400@procsys.com>
+From: "Pharaoh ." <pharaoh137@gmail.com>
+Subject: omap850/f-sample patches
+Date: Thu, 22 Feb 2007 18:02:26 +0530
+Message-ID: <61445c750702220432l282cdd9dsfcc5310e949261f1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <45DD431E.6060400@procsys.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,44 +14,28 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Priya <priya@procsys.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-As of now we don't support ASLA for TWL4030 based audio. For now the
-only available option is to go with OSS :(
+Hello,
 
-Regards,
-Khasim
+I saw a similar thread recently but I received it in a digest mode, and I
+dont know how to reply so that my queries go in same thread. So, apologies
+for spawning new thread for almost same topic.
 
->-----Original Message-----
->From: linux-omap-open-source-bounces@linux.omap.com [mailto:linux-omap-
->open-source-bounces@linux.omap.com] On Behalf Of Priya
->Sent: Thursday, February 22, 2007 1:16 AM
->To: linux-omap-open-source@linux.omap.com
->Subject: Problem running ALSA utilities
->
->Hi,
->I am relatively new to linux. Iam trying to bring up ALSA on OMAP2430
->board. Iam using 2.6 kernel version with the ALSA driver built in. I
->have cross compiled ALSA libraries and ALSA utilities and intstalled
->them successfully.  But when i run aplay i get the following error
->
->ALSA lib pcm.c:2143:(snd_pcm_open_noupdate) Unknown PCM default
->aplay: main:508: audio open error: No such file or directory
->
->The proc/asound/ direcory does not seem to list my sound card (codec).
->
->But i see that my kernel is compiled with OSS option for my sound card
->(Trition -2 TWL4030). Can anybody please tell me how to get ALSA up for
->Trition -2 based sound system.
->
->Thanks in advance
->priya
->
->
->_______________________________________________
->Linux-omap-open-source mailing list
->Linux-omap-open-source@linux.omap.com
->http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+I am working on a omap850 based board and I have seen patches for
+omap850/f-sample on this list. But afaik, these patches are just a starting
+point for providing linux support for omap850 i.e. there provide core
+support and I think they have been integrated in 2.6.20 kernel officially.
+But, various drivers are not integrated in main kernel yet (e.g. in linux
+omap git, one can see /drivers/media/video/omap folder but in Linus's
+repository it is not there). Does it mean that, full support for omap850 (
+i.e. drivers are modified/written to take care of all features of 850 which
+are different from previous omaps) is there but not official yet?
+
+So can I assume that the generic drivers etc will work for omap850 with some
+tweaking? Board specific stuff remains to be done separately.
+
+-Pharaoh
