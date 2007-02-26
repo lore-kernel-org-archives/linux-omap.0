@@ -1,14 +1,19 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Philips TEA5761 Radio driver for N800
-Date: Sun, 25 Feb 2007 23:42:35 -0800
-Message-ID: <20070226074233.GD970@atomide.com>
-References: <5d5443650702150509k7c5b4577geec0b2bfffe31a07@mail.gmail.com>
-	<5d5443650702242323l1d02fa49y939b2f1e1940c7f1@mail.gmail.com>
+From: Anderson Briglia <anderson.briglia@indt.org.br>
+Subject: Re: [PATCH] - Fix MMC -- was  H4 boot with latest git kernel
+Date: Mon, 26 Feb 2007 11:12:17 -0400
+Message-ID: <45E2F8D1.40004@indt.org.br>
+References: <5d5443650702090324g6048af71u17f20a55f823edda@mail.gmail.com>
+	<20070209165157.GB22121@atomide.com>
+	<3B6D69C3A9EBCA4BA5DA60D913027429509132@dlee13.ent.ti.com>
+	<20070210174121.GA5291@atomide.com>
+	<20070210190845.GA19642@atomide.com>
+	<3B6D69C3A9EBCA4BA5DA60D9130274295B9C49@dlee13.ent.ti.com>
+	<20070220092331.GE14954@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <5d5443650702242323l1d02fa49y939b2f1e1940c7f1@mail.gmail.com>
+In-Reply-To: <20070220092331.GE14954@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,23 +23,34 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Trilok Soni <soni.trilok@gmail.com>
+To: ext Tony Lindgren <tony@atomide.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Trilok Soni <soni.trilok@gmail.com> [070224 23:24]:
-> Tony,
+ext Tony Lindgren wrote:
+> * Woodruff, Richard <r-woodruff2@ti.com> [070219 08:05]:
+>>>> Thanks. Looks like we're still doing the MMC powerup wrong for omap
+>>>> though. I made a patch for that a while back but it got forgotten
+>>>> for some reason:
+>>>>
+>>>> http://lkml.org/lkml/2006/5/4/44
+>>>>
+>>>> I'll refresh that patch so we can make sure it works on all
+>> platforms.
+>>> Here are the refreshed patches to try.
+>> The board does work with these patches also.  It's a cleaner way to fix
+>> it up even if it is more than a line ;)
 > 
-> On 2/15/07, Trilok Soni <soni.trilok@gmail.com> wrote:
-> >AM/FM Radio driver patch for N800. Compile Tested Only. Please test if
-> >one has access to N800.
-> >
+> Great, let's plan on pushing them then. Anderson & Carlos, have you guys
+> had a chance to test these two patches on other boards?
 > 
-> Please push this patch if there are no comments.
 
-Patience, I'll try to get the redone tree stuff to work first :) It
-turned out to be a bit more work than I estimated.
+Hi Tony,
+
+Sorry about the delay.
+Carlos tested on H2 and H3 and it is working, but seems that the patches are not working on H4. He is investigating what
+is wrong and will send a response asap. We are using the latest git tree.
 
 Regards,
 
-Tony
+Anderson Briglia
