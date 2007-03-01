@@ -1,15 +1,18 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: [PATCH] OMAP2 camera and TCM825x sensor drivers
-Date: Wed, 28 Feb 2007 10:39:13 -0600
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C475C9521@dlee13.ent.ti.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP2: Camera: Adapt to 2.6.20.
+Date: Thu, 1 Mar 2007 10:58:18 +0530
+Message-ID: <5d5443650702282128v6d3e7ab6jff886249e300db6e@mail.gmail.com>
 References: <45E5A489.2040108@nokia.com>
+	<11726783562347-git-send-email-sakari.ailus@nokia.com>
+	<11726783562842-git-send-email-sakari.ailus@nokia.com>
+	<11726783561918-git-send-email-sakari.ailus@nokia.com>
+	<1172678356543-git-send-email-sakari.ailus@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <45E5A489.2040108@nokia.com>
+In-Reply-To: <1172678356543-git-send-email-sakari.ailus@nokia.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,60 +22,34 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Sakari Ailus <sakari.ailus@nokia.com>, linux-omap-open-source@linux.omap.com
+To: Sakari Ailus <sakari.ailus@nokia.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-If some patches are for review please mark them as "RFC". "Patch" is
-when it has to go into tree - Some one can correct me if I am wrong.
+On 2/28/07, Sakari Ailus <sakari.ailus@nokia.com> wrote:
+> Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
+> ---
+>  drivers/media/video/omap/omap24xxcam-sensor.c |    6 ++++--
+>  drivers/media/video/omap/omap24xxcam.c        |   12 +++++++-----
+>  drivers/media/video/omap/omap24xxcam.h        |    2 +-
+>  3 files changed, 12 insertions(+), 8 deletions(-)
+>
 
-Sakari,
+I think you have not looked at patches posted by me about OMAP2420
+camera. Part of the changes are taken from N800 kernel tree and TI's
+tree. Those sensor interface changes are also changed to adapt TI
+Micron sensor. I believe you should have worked on those changes and
+modified sensor interface for N800. Why re-work?
 
-Thanks for the code, do you have any kind of design doc or ppt that
-gives a brief overview of what the code is and the interface considered
-etc. Its bit hard to go directly to code :(
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-February/009062.html
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-February/009063.html
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-February/009069.html
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-February/009064.html
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-February/009065.html
 
-The second issue is merging TI's camera code with this. I can post our
-design considerations for camera. We can see how to integrate TIs sensor
-and additional functionality provided by TI's camera code (like
-rotation, scatter gather dma, multiple sensors handling etc).
+Please help me to review above patches instead, then we will have less
+re-work and come to conclusion, whose patches should be integrated
+instead. BTW, I have N800 so I can test this sensor now.
 
-Please do comment if you find any issues with the same.
-
-Regards,
-Khasim
-
->-----Original Message-----
->From: linux-omap-open-source-bounces@linux.omap.com [mailto:linux-omap-
->open-source-bounces@linux.omap.com] On Behalf Of Sakari Ailus
->Sent: Wednesday, February 28, 2007 9:49 AM
->To: linux-omap-open-source@linux.omap.com
->Subject: [PATCH] OMAP2 camera and TCM825x sensor drivers
->
->Hi,
->
->I'm about to send a patch set of OMAP 2 camera and a TCM825x sensor
->drivers. Compared to those from maemo.org, there are clean-ups and the
->overlay support has been removed, among other things.
->
->This is all still very much work in progress but I'd be glad to hear
->comments about it.
->
->Both drivers should compile, and also function with 2.6.18 from
->maemo.org. (Except that there's a bug in VIDIOC_DQBUF in 2.6.18.) Some
->N800-specific code is missing for the moment. Also locking is in sore
->state. The interface changes (temporarily) break existing OMAP 1 camera
->driver and the ov9640 sensor driver.
->
->These patches are against Tony's tree.
->
->I recommend not to apply these for the time being. :)
->
->Regards,
->
->--
->Sakari Ailus
->sakari.ailus@nokia.com
->_______________________________________________
->Linux-omap-open-source mailing list
->Linux-omap-open-source@linux.omap.com
->http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+-- 
+--Trilok Soni
