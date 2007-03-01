@@ -1,17 +1,14 @@
 From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: [PATCH] ARM: OMAP2: Camera: Adapt to 2.6.20.
-Date: Thu, 1 Mar 2007 10:58:18 +0530
-Message-ID: <5d5443650702282128v6d3e7ab6jff886249e300db6e@mail.gmail.com>
+Subject: Re: [PATCH] OMAP2 camera and TCM825x sensor drivers
+Date: Thu, 1 Mar 2007 11:18:32 +0530
+Message-ID: <5d5443650702282148n4fd5f586te9d0814875f6b59c@mail.gmail.com>
 References: <45E5A489.2040108@nokia.com>
-	<11726783562347-git-send-email-sakari.ailus@nokia.com>
-	<11726783562842-git-send-email-sakari.ailus@nokia.com>
-	<11726783561918-git-send-email-sakari.ailus@nokia.com>
-	<1172678356543-git-send-email-sakari.ailus@nokia.com>
+	<9C23CDD79DA20A479D4615857B2E2C475C9521@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1172678356543-git-send-email-sakari.ailus@nokia.com>
+In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C475C9521@dlee13.ent.ti.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -22,34 +19,39 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Sakari Ailus <sakari.ailus@nokia.com>
+To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On 2/28/07, Sakari Ailus <sakari.ailus@nokia.com> wrote:
-> Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
-> ---
->  drivers/media/video/omap/omap24xxcam-sensor.c |    6 ++++--
->  drivers/media/video/omap/omap24xxcam.c        |   12 +++++++-----
->  drivers/media/video/omap/omap24xxcam.h        |    2 +-
->  3 files changed, 12 insertions(+), 8 deletions(-)
+Syed,
+
+On 2/28/07, Syed Mohammed, Khasim <x0khasim@ti.com> wrote:
+> If some patches are for review please mark them as "RFC". "Patch" is
+> when it has to go into tree - Some one can correct me if I am wrong.
 >
+> Sakari,
+>
+> Thanks for the code, do you have any kind of design doc or ppt that
+> gives a brief overview of what the code is and the interface considered
+> etc. Its bit hard to go directly to code :(
 
-I think you have not looked at patches posted by me about OMAP2420
-camera. Part of the changes are taken from N800 kernel tree and TI's
-tree. Those sensor interface changes are also changed to adapt TI
-Micron sensor. I believe you should have worked on those changes and
-modified sensor interface for N800. Why re-work?
+I don't think that you will need this. What interface you would like
+to understand? Please phrase the questions based on the code and may
+Sakari can help you to understand :) I believe some of the changes in
+N800 camera driver was also done to reduce the interrupt latencies and
+bugs in video-buf.
 
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-February/009062.html
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-February/009063.html
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-February/009069.html
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-February/009064.html
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-February/009065.html
+>
+> The second issue is merging TI's camera code with this. I can post our
+> design considerations for camera. We can see how to integrate TIs sensor
+> and additional functionality provided by TI's camera code (like
+> rotation, scatter gather dma, multiple sensors handling etc).
 
-Please help me to review above patches instead, then we will have less
-re-work and come to conclusion, whose patches should be integrated
-instead. BTW, I have N800 so I can test this sensor now.
+Do you mean "rotation" of the preview window ? See, preview in camera
+driver is just a add-on functionality _but_ not must. I would not use
+this auto preview functionality, instead captured stream will go to
+/dev/fb1 and then shown on the LCD/TV out and rotated based on the
+N800 sensor or app commands.
 
 -- 
 --Trilok Soni
