@@ -1,12 +1,13 @@
-From: "Kyungmin Park" <kmpark@infradead.org>
-Subject: [PATCH] OneNAND driver update for N800 kernel
-Date: Fri, 2 Mar 2007 09:48:04 +0900
-Message-ID: <00aa01c75c64$718f4c10$c7a3580a@swcenter.sec.samsung.co.kr>
-Reply-To: kmpark@infradead.org
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: [RFC] V4L2 Based Video driver.
+Date: Thu, 1 Mar 2007 19:56:08 -0600
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47622700@dlee13.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_00AB_01C75CAF.E176F410"
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,1578 +15,2171 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
-Cc: 'Adrian Hunter' <ext-adrian.hunter@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hi,
 
-------=_NextPart_000_00AB_01C75CAF.E176F410
-Content-Type: text/plain;
-	charset="ks_c_5601-1987"
-Content-Transfer-Encoding: 7bit
+Here is a patch for V4L2 based Video driver.
 
-Hi all,
+- Uses Video1 and Video2 pipeline of DSS.
+- Supports RGB565/24 packed-unpacked/YUYV/UYVY
+- Scaling (up/down)
+- Mirroring (with & without VRFB)
+- Windowing + Cropping
+- Transparency color key (source/destination)
+- Rotation with VRFB (0/90/180/270)
+- All the above combinations
 
-Here's recent OneNAND driver update patch for N800.
+Needs more clean up. Please do let me know your comments.
 
-This patch is generaged against N800 kernel.
+Regards,
+Khasim
 
-Thank you,
-Kyungmin Park
-
-------=_NextPart_000_00AB_01C75CAF.E176F410
-Content-Type: application/octet-stream;
-	name="onenand-n800.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="onenand-n800.patch"
-
-Index: drivers/mtd/onenand/onenand_base.c=0A=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
-RCS file: =
-/home/cvsroot/linux-2.6.18-n800/drivers/mtd/onenand/onenand_base.c,v=0A=
-retrieving revision 1.1.1.1=0A=
-diff -u -p -r1.1.1.1 onenand_base.c=0A=
---- drivers/mtd/onenand/onenand_base.c	27 Feb 2007 04:52:35 -0000	1.1.1.1=0A=
-+++ drivers/mtd/onenand/onenand_base.c	28 Feb 2007 05:11:15 -0000=0A=
-@@ -1,7 +1,7 @@=0A=
- /*=0A=
-  *  linux/drivers/mtd/onenand/onenand_base.c=0A=
-  *=0A=
-- *  Copyright (C) 2005-2006 Samsung Electronics=0A=
-+ *  Copyright (C) 2005-2007 Samsung Electronics=0A=
-  *  Kyungmin Park <kyungmin.park@samsung.com>=0A=
-  *=0A=
-  * This program is free software; you can redistribute it and/or modify=0A=
-@@ -90,16 +90,9 @@ static void onenand_writew(unsigned shor=0A=
-  */=0A=
- static int onenand_block_address(struct onenand_chip *this, int block)=0A=
- {=0A=
--	if (this->device_id & ONENAND_DEVICE_IS_DDP) {=0A=
--		/* Device Flash Core select, NAND Flash Block Address */=0A=
--		int dfs =3D 0;=0A=
--=0A=
--		if (block & this->density_mask)=0A=
--			dfs =3D 1;=0A=
--=0A=
--		return (dfs << ONENAND_DDP_SHIFT) |=0A=
--			(block & (this->density_mask - 1));=0A=
--	}=0A=
-+	/* Device Flash Core select, NAND Flash Block Address */=0A=
-+	if (block & this->density_mask)=0A=
-+		return ONENAND_DDP_CHIP1 | (block ^ this->density_mask);=0A=
- =0A=
- 	return block;=0A=
- }=0A=
-@@ -114,17 +107,11 @@ static int onenand_block_address(struct =0A=
-  */=0A=
- static int onenand_bufferram_address(struct onenand_chip *this, int =
-block)=0A=
- {=0A=
--	if (this->device_id & ONENAND_DEVICE_IS_DDP) {=0A=
--		/* Device BufferRAM Select */=0A=
--		int dbs =3D 0;=0A=
--=0A=
--		if (block & this->density_mask)=0A=
--			dbs =3D 1;=0A=
-+	/* Device BufferRAM Select */=0A=
-+	if (block & this->density_mask)=0A=
-+		return ONENAND_DDP_CHIP1;=0A=
- =0A=
--		return (dbs << ONENAND_DDP_SHIFT);=0A=
--	}=0A=
--=0A=
--	return 0;=0A=
-+	return ONENAND_DDP_CHIP0;=0A=
- }=0A=
- =0A=
- /**=0A=
-@@ -188,8 +175,6 @@ static int onenand_command(struct mtd_in=0A=
- 	struct onenand_chip *this =3D mtd->priv;=0A=
- 	int value, readcmd =3D 0, block_cmd =3D 0;=0A=
- 	int block, page;=0A=
--	/* Now we use page size operation */=0A=
--	int sectors =3D 4, count =3D 4;=0A=
- =0A=
- 	/* Address translation */=0A=
- 	switch (cmd) {=0A=
-@@ -241,6 +226,8 @@ static int onenand_command(struct mtd_in=0A=
- 	}=0A=
- =0A=
- 	if (page !=3D -1) {=0A=
-+		/* Now we use page size operation */=0A=
-+		int sectors =3D 4, count =3D 4;=0A=
- 		int dataram;=0A=
- =0A=
- 		switch (cmd) {=0A=
-@@ -294,7 +281,7 @@ static int onenand_wait(struct mtd_info =0A=
- 	unsigned long timeout;=0A=
- 	unsigned int flags =3D ONENAND_INT_MASTER;=0A=
- 	unsigned int interrupt =3D 0;=0A=
--	unsigned int ctrl, ecc;=0A=
-+	unsigned int ctrl;=0A=
- =0A=
- 	/* The 20 msec is enough */=0A=
- 	timeout =3D jiffies + msecs_to_jiffies(20);=0A=
-@@ -306,7 +293,6 @@ static int onenand_wait(struct mtd_info =0A=
- =0A=
- 		if (state !=3D FL_READING)=0A=
- 			cond_resched();=0A=
--		touch_softlockup_watchdog();=0A=
- 	}=0A=
- 	/* To get correct interrupt status in timeout case */=0A=
- 	interrupt =3D this->read_word(this->base + ONENAND_REG_INTERRUPT);=0A=
-@@ -314,23 +300,25 @@ static int onenand_wait(struct mtd_info =0A=
- 	ctrl =3D this->read_word(this->base + ONENAND_REG_CTRL_STATUS);=0A=
- =0A=
- 	if (ctrl & ONENAND_CTRL_ERROR) {=0A=
--		/* It maybe occur at initial bad block */=0A=
--		DEBUG(MTD_DEBUG_LEVEL0, "onenand_wait: controller error =3D =
-0x%04x\n", ctrl);=0A=
--		/* Clear other interrupt bits for preventing ECC error */=0A=
--		interrupt &=3D ONENAND_INT_MASTER;=0A=
--	}=0A=
--=0A=
--	if (ctrl & ONENAND_CTRL_LOCK) {=0A=
--		DEBUG(MTD_DEBUG_LEVEL0, "onenand_wait: it's locked error =3D =
-0x%04x\n", ctrl);=0A=
--		return -EACCES;=0A=
-+		printk(KERN_ERR "onenand_wait: controller error =3D 0x%04x\n", ctrl);=0A=
-+		if (ctrl & ONENAND_CTRL_LOCK)=0A=
-+			printk(KERN_ERR "onenand_wait: it's locked error.\n");=0A=
-+		return ctrl;=0A=
- 	}=0A=
- =0A=
- 	if (interrupt & ONENAND_INT_READ) {=0A=
--		ecc =3D this->read_word(this->base + ONENAND_REG_ECC_STATUS);=0A=
--		if (ecc & ONENAND_ECC_2BIT_ALL) {=0A=
--			DEBUG(MTD_DEBUG_LEVEL0, "onenand_wait: ECC error =3D 0x%04x\n", ecc);=0A=
--			return -EBADMSG;=0A=
--		}=0A=
-+		int ecc =3D this->read_word(this->base + ONENAND_REG_ECC_STATUS);=0A=
-+		if (ecc) {=0A=
-+			printk(KERN_ERR "onenand_wait: ECC error =3D 0x%04x\n", ecc);=0A=
-+			if (ecc & ONENAND_ECC_2BIT_ALL) {=0A=
-+				mtd->ecc_stats.failed++;=0A=
-+				return ecc;=0A=
-+			} else if (ecc & ONENAND_ECC_1BIT_ALL)=0A=
-+				mtd->ecc_stats.corrected++;=0A=
-+		}=0A=
-+	} else if (state =3D=3D FL_READING) {=0A=
-+		printk(KERN_ERR "onenand_wait: read timeout! ctrl=3D0x%04x =
-intr=3D0x%04x\n", ctrl, interrupt);=0A=
-+		return -EIO;=0A=
- 	}=0A=
- =0A=
- 	return 0;=0A=
-@@ -486,22 +474,32 @@ static int onenand_write_bufferram(struc=0A=
- static int onenand_check_bufferram(struct mtd_info *mtd, loff_t addr)=0A=
- {=0A=
- 	struct onenand_chip *this =3D mtd->priv;=0A=
--	int block, page;=0A=
--	int i;=0A=
-+	int blockpage, found =3D 0;=0A=
-+	unsigned int i;=0A=
- =0A=
--	block =3D (int) (addr >> this->erase_shift);=0A=
--	page =3D (int) (addr >> this->page_shift);=0A=
--	page &=3D this->page_mask;=0A=
-+	blockpage =3D (int) (addr >> this->page_shift);=0A=
- =0A=
-+	/* Is there valid data? */=0A=
- 	i =3D ONENAND_CURRENT_BUFFERRAM(this);=0A=
-+	if (this->bufferram[i].blockpage =3D=3D blockpage)=0A=
-+		found =3D 1;=0A=
-+	else {=0A=
-+		/* Check another BufferRAM */=0A=
-+		i =3D ONENAND_NEXT_BUFFERRAM(this);=0A=
-+		if (this->bufferram[i].blockpage =3D=3D blockpage) {=0A=
-+			ONENAND_SET_NEXT_BUFFERRAM(this);=0A=
-+			found =3D 1;=0A=
-+		}=0A=
-+	}=0A=
- =0A=
--	/* Is there valid data? */=0A=
--	if (this->bufferram[i].block =3D=3D block &&=0A=
--	    this->bufferram[i].page =3D=3D page &&=0A=
--	    this->bufferram[i].valid)=0A=
--		return 1;=0A=
-+	if (found && ONENAND_IS_DDP(this)) {=0A=
-+		/* Select DataRAM for DDP */=0A=
-+		int block =3D (int) (addr >> this->erase_shift);=0A=
-+		int value =3D onenand_bufferram_address(this, block);=0A=
-+		this->write_word(value, this->base + ONENAND_REG_START_ADDRESS2);=0A=
-+	}=0A=
- =0A=
--	return 0;=0A=
-+	return found;=0A=
- }=0A=
- =0A=
- /**=0A=
-@@ -512,31 +510,49 @@ static int onenand_check_bufferram(struc=0A=
-  *=0A=
-  * Update BufferRAM information=0A=
-  */=0A=
--static int onenand_update_bufferram(struct mtd_info *mtd, loff_t addr,=0A=
-+static void onenand_update_bufferram(struct mtd_info *mtd, loff_t addr,=0A=
- 		int valid)=0A=
- {=0A=
- 	struct onenand_chip *this =3D mtd->priv;=0A=
--	int block, page;=0A=
--	int i;=0A=
-+	int blockpage;=0A=
-+	unsigned int i;=0A=
- =0A=
--	block =3D (int) (addr >> this->erase_shift);=0A=
--	page =3D (int) (addr >> this->page_shift);=0A=
--	page &=3D this->page_mask;=0A=
-+	blockpage =3D (int) (addr >> this->page_shift);=0A=
- =0A=
--	/* Invalidate BufferRAM */=0A=
--	for (i =3D 0; i < MAX_BUFFERRAM; i++) {=0A=
--		if (this->bufferram[i].block =3D=3D block &&=0A=
--		    this->bufferram[i].page =3D=3D page)=0A=
--			this->bufferram[i].valid =3D 0;=0A=
--	}=0A=
-+	/* Invalidate another BufferRAM */=0A=
-+	i =3D ONENAND_NEXT_BUFFERRAM(this);=0A=
-+	if (this->bufferram[i].blockpage =3D=3D blockpage)=0A=
-+		this->bufferram[i].blockpage =3D -1;=0A=
- =0A=
- 	/* Update BufferRAM */=0A=
- 	i =3D ONENAND_CURRENT_BUFFERRAM(this);=0A=
--	this->bufferram[i].block =3D block;=0A=
--	this->bufferram[i].page =3D page;=0A=
--	this->bufferram[i].valid =3D valid;=0A=
-+	if (valid)=0A=
-+		this->bufferram[i].blockpage =3D blockpage;=0A=
-+	else=0A=
-+		this->bufferram[i].blockpage =3D -1;=0A=
-+}=0A=
- =0A=
--	return 0;=0A=
-+/**=0A=
-+ * onenand_invalidate_bufferram - [GENERIC] Invalidate BufferRAM =
-information=0A=
-+ * @param mtd		MTD data structure=0A=
-+ * @param addr		start address to invalidate=0A=
-+ * @param len		length to invalidate=0A=
-+ *=0A=
-+ * Invalidate BufferRAM information=0A=
-+ */=0A=
-+static void onenand_invalidate_bufferram(struct mtd_info *mtd, loff_t =
-addr,=0A=
-+		unsigned int len)=0A=
-+{=0A=
-+	struct onenand_chip *this =3D mtd->priv;=0A=
-+	int i;=0A=
-+	loff_t end_addr =3D addr + len;=0A=
-+=0A=
-+	/* Invalidate BufferRAM */=0A=
-+	for (i =3D 0; i < MAX_BUFFERRAM; i++) {=0A=
-+		loff_t buf_addr =3D this->bufferram[i].blockpage << this->page_shift;=0A=
-+		if (buf_addr >=3D addr && buf_addr < end_addr)=0A=
-+			this->bufferram[i].blockpage =3D -1;=0A=
-+	}=0A=
- }=0A=
- =0A=
- /**=0A=
-@@ -606,15 +622,16 @@ static int onenand_read(struct mtd_info =0A=
- 	size_t *retlen, u_char *buf)=0A=
- {=0A=
- 	struct onenand_chip *this =3D mtd->priv;=0A=
-+	struct mtd_ecc_stats stats;=0A=
- 	int read =3D 0, column;=0A=
- 	int thislen;=0A=
--	int ret =3D 0;=0A=
-+	int ret =3D 0, boundary =3D 0;=0A=
- =0A=
- 	DEBUG(MTD_DEBUG_LEVEL3, "onenand_read: from =3D 0x%08x, len =3D %i\n", =
-(unsigned int) from, (int) len);=0A=
- =0A=
- 	/* Do not allow reads past end of device */=0A=
- 	if ((from + len) > mtd->size) {=0A=
--		DEBUG(MTD_DEBUG_LEVEL0, "onenand_read: Attempt read beyond end of =
-device\n");=0A=
-+		printk(KERN_ERR "onenand_read: Attempt read beyond end of device\n");=0A=
- 		*retlen =3D 0;=0A=
- 		return -EINVAL;=0A=
- 	}=0A=
-@@ -622,40 +639,60 @@ static int onenand_read(struct mtd_info =0A=
- 	/* Grab the lock and see if the device is available */=0A=
- 	onenand_get_device(mtd, FL_READING);=0A=
- =0A=
--	/* TODO handling oob */=0A=
--=0A=
--	while (read < len) {=0A=
--		thislen =3D min_t(int, mtd->writesize, len - read);=0A=
--=0A=
--		column =3D from & (mtd->writesize - 1);=0A=
--		if (column + thislen > mtd->writesize)=0A=
--			thislen =3D mtd->writesize - column;=0A=
-+	stats =3D mtd->ecc_stats;=0A=
-+	/* Read-while-load method */=0A=
- =0A=
-+	/* Do first load to bufferRAM */=0A=
-+	if (read < len) {=0A=
- 		if (!onenand_check_bufferram(mtd, from)) {=0A=
- 			this->command(mtd, ONENAND_CMD_READ, from, mtd->writesize);=0A=
--=0A=
- 			ret =3D this->wait(mtd, FL_READING);=0A=
--			/* First copy data and check return value for ECC handling */=0A=
--			onenand_update_bufferram(mtd, from, 1);=0A=
-+			onenand_update_bufferram(mtd, from, !ret);=0A=
- 		}=0A=
-+	}=0A=
- =0A=
--		this->read_bufferram(mtd, ONENAND_DATARAM, buf, column, thislen);=0A=
-+	thislen =3D min_t(int, mtd->writesize, len - read);=0A=
-+	column =3D from & (mtd->writesize - 1);=0A=
-+	if (column + thislen > mtd->writesize)=0A=
-+		thislen =3D mtd->writesize - column;=0A=
- =0A=
-+	while (!ret) {=0A=
-+		/* If there is more to load then start next load */=0A=
-+		from +=3D thislen;=0A=
-+		if (read + thislen < len) {=0A=
-+			this->command(mtd, ONENAND_CMD_READ, from, mtd->writesize);=0A=
-+			/*=0A=
-+			 * Chip boundary handling in DDP=0A=
-+			 * Now we issued chip 1 read and pointed chip 1=0A=
-+			 * bufferam so we have to point chip 0 bufferam.=0A=
-+			 */=0A=
-+			if (ONENAND_IS_DDP(this) &&=0A=
-+			    unlikely(from =3D=3D (this->chipsize >> 1))) {=0A=
-+				this->write_word(ONENAND_DDP_CHIP0, this->base + =
-ONENAND_REG_START_ADDRESS2);=0A=
-+				boundary =3D 1;=0A=
-+			} else=0A=
-+				boundary =3D 0;=0A=
-+			ONENAND_SET_PREV_BUFFERRAM(this);=0A=
-+		}=0A=
-+		/* While load is going, read from last bufferRAM */=0A=
-+		this->read_bufferram(mtd, ONENAND_DATARAM, buf, column, thislen);=0A=
-+		/* See if we are done */=0A=
- 		read +=3D thislen;=0A=
--=0A=
- 		if (read =3D=3D len)=0A=
- 			break;=0A=
--=0A=
--		if (ret) {=0A=
--			DEBUG(MTD_DEBUG_LEVEL0, "onenand_read: read failed =3D %d\n", ret);=0A=
--			goto out;=0A=
--		}=0A=
--=0A=
--		from +=3D thislen;=0A=
-+		/* Set up for next read from bufferRAM */=0A=
-+		if (unlikely(boundary))=0A=
-+			this->write_word(ONENAND_DDP_CHIP1, this->base + =
-ONENAND_REG_START_ADDRESS2);=0A=
-+		ONENAND_SET_NEXT_BUFFERRAM(this);=0A=
- 		buf +=3D thislen;=0A=
-+		thislen =3D min_t(int, mtd->writesize, len - read);=0A=
-+		column =3D 0;=0A=
-+		cond_resched();=0A=
-+		/* Now wait for load */=0A=
-+		ret =3D this->wait(mtd, FL_READING);=0A=
-+		onenand_update_bufferram(mtd, from, !ret);=0A=
- 	}=0A=
- =0A=
--out:=0A=
- 	/* Deselect and wake up anyone waiting on the device */=0A=
- 	onenand_release_device(mtd);=0A=
- =0A=
-@@ -665,7 +702,52 @@ out:=0A=
- 	 * retlen =3D=3D desired len and result =3D=3D -EBADMSG=0A=
- 	 */=0A=
- 	*retlen =3D read;=0A=
--	return ret;=0A=
-+=0A=
-+	if (mtd->ecc_stats.failed - stats.failed)=0A=
-+		return -EBADMSG;=0A=
-+=0A=
-+	if (ret)=0A=
-+		return ret;=0A=
-+=0A=
-+	return mtd->ecc_stats.corrected - stats.corrected ? -EUCLEAN : 0;=0A=
-+}=0A=
-+=0A=
-+/**=0A=
-+ * onenand_transfer_auto_oob - [Internal] oob auto-placement transfer=0A=
-+ * @param mtd		MTD device structure=0A=
-+ * @param buf		destination address=0A=
-+ * @param column	oob offset to read from=0A=
-+ * @param thislen	oob length to read=0A=
-+ */=0A=
-+static int onenand_transfer_auto_oob(struct mtd_info *mtd, uint8_t =
-*buf, int column,=0A=
-+				int thislen)=0A=
-+{=0A=
-+	struct onenand_chip *this =3D mtd->priv;=0A=
-+	struct nand_oobfree *free;=0A=
-+	int readcol =3D column;=0A=
-+	int readend =3D column + thislen;=0A=
-+	int lastgap =3D 0;=0A=
-+	uint8_t *oob_buf =3D this->page_buf + mtd->writesize;=0A=
-+=0A=
-+	for (free =3D this->ecclayout->oobfree; free->length; ++free) {=0A=
-+		if (readcol >=3D lastgap)=0A=
-+			readcol +=3D free->offset - lastgap;=0A=
-+		if (readend >=3D lastgap)=0A=
-+			readend +=3D free->offset - lastgap;=0A=
-+		lastgap =3D free->offset + free->length;=0A=
-+	}=0A=
-+	this->read_bufferram(mtd, ONENAND_SPARERAM, oob_buf, 0, mtd->oobsize);=0A=
-+	for (free =3D this->ecclayout->oobfree; free->length; ++free) {=0A=
-+		int free_end =3D free->offset + free->length;=0A=
-+		if (free->offset < readend && free_end > readcol) {=0A=
-+			int st =3D max_t(int,free->offset,readcol);=0A=
-+			int ed =3D min_t(int,free_end,readend);=0A=
-+			int n =3D ed - st;=0A=
-+			memcpy(buf, oob_buf + st, n);=0A=
-+			buf +=3D n;=0A=
-+		}=0A=
-+	}=0A=
-+	return 0;=0A=
- }=0A=
- =0A=
- /**=0A=
-@@ -675,14 +757,15 @@ out:=0A=
-  * @param len		number of bytes to read=0A=
-  * @param retlen	pointer to variable to store the number of read bytes=0A=
-  * @param buf		the databuffer to put data=0A=
-+ * @param mode		operation mode=0A=
-  *=0A=
-  * OneNAND read out-of-band data from the spare area=0A=
-  */=0A=
--int onenand_do_read_oob(struct mtd_info *mtd, loff_t from, size_t len,=0A=
--			size_t *retlen, u_char *buf)=0A=
-+static int onenand_do_read_oob(struct mtd_info *mtd, loff_t from, =
-size_t len,=0A=
-+			size_t *retlen, u_char *buf, mtd_oob_mode_t mode)=0A=
- {=0A=
- 	struct onenand_chip *this =3D mtd->priv;=0A=
--	int read =3D 0, thislen, column;=0A=
-+	int read =3D 0, thislen, column, oobsize;=0A=
- 	int ret =3D 0;=0A=
- =0A=
- 	DEBUG(MTD_DEBUG_LEVEL3, "onenand_read_oob: from =3D 0x%08x, len =3D =
-%i\n", (unsigned int) from, (int) len);=0A=
-@@ -690,19 +773,33 @@ int onenand_do_read_oob(struct mtd_info =0A=
- 	/* Initialize return length value */=0A=
- 	*retlen =3D 0;=0A=
- =0A=
-+	if (mode =3D=3D MTD_OOB_AUTO)=0A=
-+		oobsize =3D this->ecclayout->oobavail;=0A=
-+	else=0A=
-+		oobsize =3D mtd->oobsize;=0A=
-+=0A=
-+	column =3D from & (mtd->oobsize - 1);=0A=
-+=0A=
-+	if (unlikely(column >=3D oobsize)) {=0A=
-+		printk(KERN_ERR "onenand_read_oob: Attempted to start read outside =
-oob\n");=0A=
-+		return -EINVAL;=0A=
-+	}=0A=
-+=0A=
- 	/* Do not allow reads past end of device */=0A=
--	if (unlikely((from + len) > mtd->size)) {=0A=
--		DEBUG(MTD_DEBUG_LEVEL0, "onenand_read_oob: Attempt read beyond end of =
-device\n");=0A=
-+	if (unlikely(from >=3D mtd->size ||=0A=
-+		     column + len > ((mtd->size >> this->page_shift) -=0A=
-+				     (from >> this->page_shift)) * oobsize)) {=0A=
-+		printk(KERN_ERR "onenand_read_oob: Attempted to read beyond end of =
-device\n");=0A=
- 		return -EINVAL;=0A=
- 	}=0A=
- =0A=
- 	/* Grab the lock and see if the device is available */=0A=
- 	onenand_get_device(mtd, FL_READING);=0A=
- =0A=
--	column =3D from & (mtd->oobsize - 1);=0A=
--=0A=
- 	while (read < len) {=0A=
--		thislen =3D mtd->oobsize - column;=0A=
-+		cond_resched();=0A=
-+=0A=
-+		thislen =3D oobsize - column;=0A=
- 		thislen =3D min_t(int, thislen, len);=0A=
- =0A=
- 		this->command(mtd, ONENAND_CMD_READOOB, from, mtd->oobsize);=0A=
-@@ -712,18 +809,21 @@ int onenand_do_read_oob(struct mtd_info =0A=
- 		ret =3D this->wait(mtd, FL_READING);=0A=
- 		/* First copy data and check return value for ECC handling */=0A=
- =0A=
--		this->read_bufferram(mtd, ONENAND_SPARERAM, buf, column, thislen);=0A=
-+		if (mode =3D=3D MTD_OOB_AUTO)=0A=
-+			onenand_transfer_auto_oob(mtd, buf, column, thislen);=0A=
-+		else=0A=
-+			this->read_bufferram(mtd, ONENAND_SPARERAM, buf, column, thislen);=0A=
-+=0A=
-+		if (ret) {=0A=
-+			printk(KERN_ERR "onenand_read_oob: read failed =3D 0x%x\n", ret);=0A=
-+			break;=0A=
-+		}=0A=
- =0A=
- 		read +=3D thislen;=0A=
- =0A=
- 		if (read =3D=3D len)=0A=
- 			break;=0A=
- =0A=
--		if (ret) {=0A=
--			DEBUG(MTD_DEBUG_LEVEL0, "onenand_read_oob: read failed =3D %d\n", =
-ret);=0A=
--			goto out;=0A=
--		}=0A=
--=0A=
- 		buf +=3D thislen;=0A=
- =0A=
- 		/* Read more? */=0A=
-@@ -734,7 +834,6 @@ int onenand_do_read_oob(struct mtd_info =0A=
- 		}=0A=
- 	}=0A=
- =0A=
--out:=0A=
- 	/* Deselect and wake up anyone waiting on the device */=0A=
- 	onenand_release_device(mtd);=0A=
- =0A=
-@@ -744,17 +843,140 @@ out:=0A=
- =0A=
- /**=0A=
-  * onenand_read_oob - [MTD Interface] NAND write data and/or out-of-band=0A=
-- * @mtd:	MTD device structure=0A=
-- * @from:	offset to read from=0A=
-- * @ops:	oob operation description structure=0A=
-+ * @param mtd:		MTD device structure=0A=
-+ * @param from:		offset to read from=0A=
-+ * @param ops:		oob operation description structure=0A=
-  */=0A=
- static int onenand_read_oob(struct mtd_info *mtd, loff_t from,=0A=
- 			    struct mtd_oob_ops *ops)=0A=
- {=0A=
--	BUG_ON(ops->mode !=3D MTD_OOB_PLACE);=0A=
-+	switch (ops->mode) {=0A=
-+	case MTD_OOB_PLACE:=0A=
-+	case MTD_OOB_AUTO:=0A=
-+		break;=0A=
-+	case MTD_OOB_RAW:=0A=
-+		/* Not implemented yet */=0A=
-+	default:=0A=
-+		return -EINVAL;=0A=
-+	}=0A=
- =0A=
- 	return onenand_do_read_oob(mtd, from + ops->ooboffs, ops->len,=0A=
--				   &ops->retlen, ops->oobbuf);=0A=
-+				   &ops->retlen, ops->oobbuf, ops->mode);=0A=
-+}=0A=
-+=0A=
-+/**=0A=
-+ * onenand_bbt_wait - [DEFAULT] wait until the command is done=0A=
-+ * @param mtd		MTD device structure=0A=
-+ * @param state		state to select the max. timeout value=0A=
-+ *=0A=
-+ * Wait for command done.=0A=
-+ */=0A=
-+static int onenand_bbt_wait(struct mtd_info *mtd, int state)=0A=
-+{=0A=
-+	struct onenand_chip *this =3D mtd->priv;=0A=
-+	unsigned long timeout;=0A=
-+	unsigned int interrupt;=0A=
-+	unsigned int ctrl;=0A=
-+=0A=
-+	/* The 20 msec is enough */=0A=
-+	timeout =3D jiffies + msecs_to_jiffies(20);=0A=
-+	while (time_before(jiffies, timeout)) {=0A=
-+		interrupt =3D this->read_word(this->base + ONENAND_REG_INTERRUPT);=0A=
-+		if (interrupt & ONENAND_INT_MASTER)=0A=
-+			break;=0A=
-+	}=0A=
-+	/* To get correct interrupt status in timeout case */=0A=
-+	interrupt =3D this->read_word(this->base + ONENAND_REG_INTERRUPT);=0A=
-+	ctrl =3D this->read_word(this->base + ONENAND_REG_CTRL_STATUS);=0A=
-+=0A=
-+	if (ctrl & ONENAND_CTRL_ERROR) {=0A=
-+		printk(KERN_DEBUG "onenand_bbt_wait: controller error =3D 0x%04x\n", =
-ctrl);=0A=
-+		/* Initial bad block case */=0A=
-+		if (ctrl & ONENAND_CTRL_LOAD)=0A=
-+			return ONENAND_BBT_READ_ERROR;=0A=
-+		return ONENAND_BBT_READ_FATAL_ERROR;=0A=
-+	}=0A=
-+=0A=
-+	if (interrupt & ONENAND_INT_READ) {=0A=
-+		int ecc =3D this->read_word(this->base + ONENAND_REG_ECC_STATUS);=0A=
-+		if (ecc & ONENAND_ECC_2BIT_ALL)=0A=
-+			return ONENAND_BBT_READ_ERROR;=0A=
-+	} else {=0A=
-+		printk(KERN_ERR "onenand_bbt_wait: read timeout!"=0A=
-+			"ctrl=3D0x%04x intr=3D0x%04x\n", ctrl, interrupt);=0A=
-+		return ONENAND_BBT_READ_FATAL_ERROR;=0A=
-+	}=0A=
-+=0A=
-+	return 0;=0A=
-+}=0A=
-+=0A=
-+/**=0A=
-+ * onenand_bbt_read_oob - [MTD Interface] OneNAND read out-of-band for =
-bbt scan=0A=
-+ * @param mtd		MTD device structure=0A=
-+ * @param from		offset to read from=0A=
-+ * @param ops		oob operation description structure=0A=
-+ *=0A=
-+ * OneNAND read out-of-band data from the spare area for bbt scan=0A=
-+ */=0A=
-+int onenand_bbt_read_oob(struct mtd_info *mtd, loff_t from,=0A=
-+			struct mtd_oob_ops *ops)=0A=
-+{=0A=
-+	struct onenand_chip *this =3D mtd->priv;=0A=
-+	int read =3D 0, thislen, column;=0A=
-+	int ret =3D 0;=0A=
-+	size_t len =3D ops->ooblen;=0A=
-+	u_char *buf =3D ops->oobbuf;=0A=
-+=0A=
-+	DEBUG(MTD_DEBUG_LEVEL3, "onenand_bbt_read_oob: from =3D 0x%08x, len =
-=3D %i\n", (unsigned int) from, len);=0A=
-+=0A=
-+	/* Initialize return value */=0A=
-+	ops->retlen =3D 0;=0A=
-+=0A=
-+	/* Do not allow reads past end of device */=0A=
-+	if (unlikely((from + len) > mtd->size)) {=0A=
-+		printk(KERN_ERR "onenand_bbt_read_oob: Attempt read beyond end of =
-device\n");=0A=
-+		return ONENAND_BBT_READ_FATAL_ERROR;=0A=
-+	}=0A=
-+=0A=
-+	/* Grab the lock and see if the device is available */=0A=
-+	onenand_get_device(mtd, FL_READING);=0A=
-+=0A=
-+	column =3D from & (mtd->oobsize - 1);=0A=
-+=0A=
-+	while (read < len) {=0A=
-+		cond_resched();=0A=
-+=0A=
-+		thislen =3D mtd->oobsize - column;=0A=
-+		thislen =3D min_t(int, thislen, len);=0A=
-+=0A=
-+		this->command(mtd, ONENAND_CMD_READOOB, from, mtd->oobsize);=0A=
-+=0A=
-+		onenand_update_bufferram(mtd, from, 0);=0A=
-+=0A=
-+		ret =3D onenand_bbt_wait(mtd, FL_READING);=0A=
-+		if (ret)=0A=
-+			break;=0A=
-+=0A=
-+		this->read_bufferram(mtd, ONENAND_SPARERAM, buf, column, thislen);=0A=
-+		read +=3D thislen;=0A=
-+		if (read =3D=3D len)=0A=
-+			break;=0A=
-+=0A=
-+		buf +=3D thislen;=0A=
-+=0A=
-+		/* Read more? */=0A=
-+		if (read < len) {=0A=
-+			/* Update Page size */=0A=
-+			from +=3D mtd->writesize;=0A=
-+			column =3D 0;=0A=
-+		}=0A=
-+	}=0A=
-+=0A=
-+	/* Deselect and wake up anyone waiting on the device */=0A=
-+	onenand_release_device(mtd);=0A=
-+=0A=
-+	ops->retlen =3D read;=0A=
-+	return ret;=0A=
- }=0A=
- =0A=
- #ifdef CONFIG_MTD_ONENAND_VERIFY_WRITE=0A=
-@@ -763,14 +985,12 @@ static int onenand_read_oob(struct mtd_i=0A=
-  * @param mtd		MTD device structure=0A=
-  * @param buf		the databuffer to verify=0A=
-  * @param to		offset to read from=0A=
-- * @param len		number of bytes to read and compare=0A=
-  *=0A=
-  */=0A=
--static int onenand_verify_oob(struct mtd_info *mtd, const u_char *buf, =
-loff_t to, int len)=0A=
-+static int onenand_verify_oob(struct mtd_info *mtd, const u_char *buf, =
-loff_t to)=0A=
- {=0A=
- 	struct onenand_chip *this =3D mtd->priv;=0A=
--	char *readp =3D this->page_buf;=0A=
--	int column =3D to & (mtd->oobsize - 1);=0A=
-+	char oobbuf[64];=0A=
- 	int status, i;=0A=
- =0A=
- 	this->command(mtd, ONENAND_CMD_READOOB, to, mtd->oobsize);=0A=
-@@ -779,47 +999,60 @@ static int onenand_verify_oob(struct mtd=0A=
- 	if (status)=0A=
- 		return status;=0A=
- =0A=
--	this->read_bufferram(mtd, ONENAND_SPARERAM, readp, column, len);=0A=
--=0A=
--	for(i =3D 0; i < len; i++)=0A=
--		if (buf[i] !=3D 0xFF && buf[i] !=3D readp[i])=0A=
-+	this->read_bufferram(mtd, ONENAND_SPARERAM, oobbuf, 0, mtd->oobsize);=0A=
-+	for (i =3D 0; i < mtd->oobsize; i++)=0A=
-+		if (buf[i] !=3D 0xFF && buf[i] !=3D oobbuf[i])=0A=
- 			return -EBADMSG;=0A=
- =0A=
- 	return 0;=0A=
- }=0A=
- =0A=
- /**=0A=
-- * onenand_verify_page - [GENERIC] verify the chip contents after a =
-write=0A=
-+ * onenand_verify - [GENERIC] verify the chip contents after a write=0A=
-  * @param mtd		MTD device structure=0A=
-  * @param buf		the databuffer to verify=0A=
-+ * @param addr		offset to read from=0A=
-+ * @param len		number of bytes to read and compare=0A=
-  *=0A=
-- * Check DataRAM area directly=0A=
-  */=0A=
--static int onenand_verify_page(struct mtd_info *mtd, u_char *buf, =
-loff_t addr)=0A=
-+static int onenand_verify(struct mtd_info *mtd, const u_char *buf, =
-loff_t addr, size_t len)=0A=
- {=0A=
- 	struct onenand_chip *this =3D mtd->priv;=0A=
--	void __iomem *dataram0, *dataram1;=0A=
-+	void __iomem *dataram;=0A=
- 	int ret =3D 0;=0A=
-+	int thislen, column;=0A=
- =0A=
--	this->command(mtd, ONENAND_CMD_READ, addr, mtd->writesize);=0A=
-+	while (len !=3D 0) {=0A=
-+		thislen =3D min_t(int, mtd->writesize, len);=0A=
-+		column =3D addr & (mtd->writesize - 1);=0A=
-+		if (column + thislen > mtd->writesize)=0A=
-+			thislen =3D mtd->writesize - column;=0A=
- =0A=
--	ret =3D this->wait(mtd, FL_READING);=0A=
--	if (ret)=0A=
--		return ret;=0A=
-+		this->command(mtd, ONENAND_CMD_READ, addr, mtd->writesize);=0A=
- =0A=
--	onenand_update_bufferram(mtd, addr, 1);=0A=
-+		onenand_update_bufferram(mtd, addr, 0);=0A=
- =0A=
--	/* Check, if the two dataram areas are same */=0A=
--	dataram0 =3D this->base + ONENAND_DATARAM;=0A=
--	dataram1 =3D dataram0 + mtd->writesize;=0A=
-+		ret =3D this->wait(mtd, FL_READING);=0A=
-+		if (ret)=0A=
-+			return ret;=0A=
- =0A=
--	if (memcmp(dataram0, dataram1, mtd->writesize))=0A=
--		return -EBADMSG;=0A=
-+		onenand_update_bufferram(mtd, addr, 1);=0A=
-+=0A=
-+		dataram =3D this->base + ONENAND_DATARAM;=0A=
-+		dataram +=3D onenand_bufferram_offset(mtd, ONENAND_DATARAM);=0A=
-+=0A=
-+		if (memcmp(buf, dataram + column, thislen))=0A=
-+			return -EBADMSG;=0A=
-+=0A=
-+		len -=3D thislen;=0A=
-+		buf +=3D thislen;=0A=
-+		addr +=3D thislen;=0A=
-+	}=0A=
- =0A=
- 	return 0;=0A=
- }=0A=
- #else=0A=
--#define onenand_verify_page(...)	(0)=0A=
-+#define onenand_verify(...)		(0)=0A=
- #define onenand_verify_oob(...)		(0)=0A=
- #endif=0A=
- =0A=
-@@ -841,6 +1074,7 @@ static int onenand_write(struct mtd_info=0A=
- 	struct onenand_chip *this =3D mtd->priv;=0A=
- 	int written =3D 0;=0A=
- 	int ret =3D 0;=0A=
-+	int column, subpage;=0A=
- =0A=
- 	DEBUG(MTD_DEBUG_LEVEL3, "onenand_write: to =3D 0x%08x, len =3D %i\n", =
-(unsigned int) to, (int) len);=0A=
- =0A=
-@@ -849,55 +1083,70 @@ static int onenand_write(struct mtd_info=0A=
- =0A=
- 	/* Do not allow writes past end of device */=0A=
- 	if (unlikely((to + len) > mtd->size)) {=0A=
--		DEBUG(MTD_DEBUG_LEVEL0, "onenand_write: Attempt write to past end of =
-device\n");=0A=
-+		printk(KERN_ERR "onenand_write: Attempt write to past end of =
-device\n");=0A=
- 		return -EINVAL;=0A=
- 	}=0A=
- =0A=
- 	/* Reject writes, which are not page aligned */=0A=
-         if (unlikely(NOTALIGNED(to)) || unlikely(NOTALIGNED(len))) {=0A=
--                DEBUG(MTD_DEBUG_LEVEL0, "onenand_write: Attempt to =
-write not page aligned data\n");=0A=
-+                printk(KERN_ERR "onenand_write: Attempt to write not =
-page aligned data\n");=0A=
-                 return -EINVAL;=0A=
-         }=0A=
- =0A=
-+	column =3D to & (mtd->writesize - 1);=0A=
-+=0A=
- 	/* Grab the lock and see if the device is available */=0A=
- 	onenand_get_device(mtd, FL_WRITING);=0A=
- =0A=
- 	/* Loop until all data write */=0A=
- 	while (written < len) {=0A=
--		int thislen =3D min_t(int, mtd->writesize, len - written);=0A=
-+		int thislen =3D min_t(int, mtd->writesize - column, len - written);=0A=
-+		u_char *wbuf =3D (u_char *) buf;=0A=
-+=0A=
-+		cond_resched();=0A=
- =0A=
--		this->command(mtd, ONENAND_CMD_BUFFERRAM, to, mtd->writesize);=0A=
-+		this->command(mtd, ONENAND_CMD_BUFFERRAM, to, thislen);=0A=
- =0A=
--		this->write_bufferram(mtd, ONENAND_DATARAM, buf, 0, thislen);=0A=
-+		/* Partial page write */=0A=
-+		subpage =3D thislen < mtd->writesize;=0A=
-+		if (subpage) {=0A=
-+			memset(this->page_buf, 0xff, mtd->writesize);=0A=
-+			memcpy(this->page_buf + column, buf, thislen);=0A=
-+			wbuf =3D this->page_buf;=0A=
-+		}=0A=
-+=0A=
-+		this->write_bufferram(mtd, ONENAND_DATARAM, wbuf, 0, mtd->writesize);=0A=
- 		this->write_bufferram(mtd, ONENAND_SPARERAM, ffchars, 0, =
-mtd->oobsize);=0A=
- =0A=
- 		this->command(mtd, ONENAND_CMD_PROG, to, mtd->writesize);=0A=
- =0A=
--		onenand_update_bufferram(mtd, to, 1);=0A=
--=0A=
- 		ret =3D this->wait(mtd, FL_WRITING);=0A=
-+=0A=
-+		/* In partial page write we don't update bufferram */=0A=
-+		onenand_update_bufferram(mtd, to, !ret && !subpage);=0A=
-+=0A=
- 		if (ret) {=0A=
--			DEBUG(MTD_DEBUG_LEVEL0, "onenand_write: write filaed %d\n", ret);=0A=
--			goto out;=0A=
-+			printk(KERN_ERR "onenand_write: write filaed %d\n", ret);=0A=
-+			break;=0A=
- 		}=0A=
- =0A=
--		written +=3D thislen;=0A=
--=0A=
- 		/* Only check verify write turn on */=0A=
--		ret =3D onenand_verify_page(mtd, (u_char *) buf, to);=0A=
-+		ret =3D onenand_verify(mtd, (u_char *) wbuf, to, thislen);=0A=
- 		if (ret) {=0A=
--			DEBUG(MTD_DEBUG_LEVEL0, "onenand_write: verify failed %d\n", ret);=0A=
--			goto out;=0A=
-+			printk(KERN_ERR "onenand_write: verify failed %d\n", ret);=0A=
-+			break;=0A=
- 		}=0A=
- =0A=
-+		written +=3D thislen;=0A=
-+=0A=
- 		if (written =3D=3D len)=0A=
- 			break;=0A=
- =0A=
-+		column =3D 0;=0A=
- 		to +=3D thislen;=0A=
- 		buf +=3D thislen;=0A=
- 	}=0A=
- =0A=
--out:=0A=
- 	/* Deselect and wake up anyone waiting on the device */=0A=
- 	onenand_release_device(mtd);=0A=
- =0A=
-@@ -907,49 +1156,114 @@ out:=0A=
- }=0A=
- =0A=
- /**=0A=
-+ * onenand_fill_auto_oob - [Internal] oob auto-placement transfer=0A=
-+ * @param mtd		MTD device structure=0A=
-+ * @param oob_buf	oob buffer=0A=
-+ * @param buf		source address=0A=
-+ * @param column	oob offset to write to=0A=
-+ * @param thislen	oob length to write=0A=
-+ */=0A=
-+static int onenand_fill_auto_oob(struct mtd_info *mtd, u_char *oob_buf,=0A=
-+				const u_char *buf, int column, int thislen)=0A=
-+{=0A=
-+	struct onenand_chip *this =3D mtd->priv;=0A=
-+	struct nand_oobfree *free;=0A=
-+	int writecol =3D column;=0A=
-+	int writeend =3D column + thislen;=0A=
-+	int lastgap =3D 0;=0A=
-+=0A=
-+	for (free =3D this->ecclayout->oobfree; free->length; ++free) {=0A=
-+		if (writecol >=3D lastgap)=0A=
-+			writecol +=3D free->offset - lastgap;=0A=
-+		if (writeend >=3D lastgap)=0A=
-+			writeend +=3D free->offset - lastgap;=0A=
-+		lastgap =3D free->offset + free->length;=0A=
-+	}=0A=
-+	for (free =3D this->ecclayout->oobfree; free->length; ++free) {=0A=
-+		int free_end =3D free->offset + free->length;=0A=
-+		if (free->offset < writeend && free_end > writecol) {=0A=
-+			int st =3D max_t(int,free->offset,writecol);=0A=
-+			int ed =3D min_t(int,free_end,writeend);=0A=
-+			int n =3D ed - st;=0A=
-+			memcpy(oob_buf + st, buf, n);=0A=
-+			buf +=3D n;=0A=
-+		}=0A=
-+	}=0A=
-+	return 0;=0A=
-+}=0A=
-+=0A=
-+/**=0A=
-  * onenand_do_write_oob - [Internal] OneNAND write out-of-band=0A=
-  * @param mtd		MTD device structure=0A=
-  * @param to		offset to write to=0A=
-  * @param len		number of bytes to write=0A=
-  * @param retlen	pointer to variable to store the number of written =
-bytes=0A=
-  * @param buf		the data to write=0A=
-+ * @param mode		operation mode=0A=
-  *=0A=
-  * OneNAND write out-of-band=0A=
-  */=0A=
- static int onenand_do_write_oob(struct mtd_info *mtd, loff_t to, size_t =
-len,=0A=
--				size_t *retlen, const u_char *buf)=0A=
-+				size_t *retlen, const u_char *buf, mtd_oob_mode_t mode)=0A=
- {=0A=
- 	struct onenand_chip *this =3D mtd->priv;=0A=
--	int column, ret =3D 0;=0A=
-+	int column, ret =3D 0, oobsize;=0A=
- 	int written =3D 0;=0A=
-+	u_char *oobbuf;=0A=
- =0A=
- 	DEBUG(MTD_DEBUG_LEVEL3, "onenand_write_oob: to =3D 0x%08x, len =3D =
-%i\n", (unsigned int) to, (int) len);=0A=
- =0A=
- 	/* Initialize retlen, in case of early exit */=0A=
- 	*retlen =3D 0;=0A=
- =0A=
--	/* Do not allow writes past end of device */=0A=
--	if (unlikely((to + len) > mtd->size)) {=0A=
--		DEBUG(MTD_DEBUG_LEVEL0, "onenand_write_oob: Attempt write to past end =
-of device\n");=0A=
-+	if (mode =3D=3D MTD_OOB_AUTO)=0A=
-+		oobsize =3D this->ecclayout->oobavail;=0A=
-+	else=0A=
-+		oobsize =3D mtd->oobsize;=0A=
-+=0A=
-+	column =3D to & (mtd->oobsize - 1);=0A=
-+=0A=
-+	if (unlikely(column >=3D oobsize)) {=0A=
-+		printk(KERN_ERR "onenand_write_oob: Attempted to start write outside =
-oob\n");=0A=
-+		return -EINVAL;=0A=
-+	}=0A=
-+=0A=
-+	/* For compatibility with NAND: Do not allow write past end of page */=0A=
-+	if (unlikely(column + len > oobsize)) {=0A=
-+		printk(KERN_ERR "onenand_write_oob: "=0A=
-+			"Attempt to write past end of page\n");=0A=
-+		return -EINVAL;=0A=
-+	}=0A=
-+=0A=
-+	/* Do not allow reads past end of device */=0A=
-+	if (unlikely(to >=3D mtd->size ||=0A=
-+		    column + len > ((mtd->size >> this->page_shift) -=0A=
-+			    (to >> this->page_shift)) * oobsize)) {=0A=
-+		printk(KERN_ERR "onenand_write_oob: Attempted to write past end of =
-device\n");=0A=
- 		return -EINVAL;=0A=
- 	}=0A=
- =0A=
- 	/* Grab the lock and see if the device is available */=0A=
- 	onenand_get_device(mtd, FL_WRITING);=0A=
- =0A=
-+	oobbuf =3D this->page_buf + mtd->writesize;=0A=
-+=0A=
- 	/* Loop until all data write */=0A=
- 	while (written < len) {=0A=
--		int thislen =3D min_t(int, mtd->oobsize, len - written);=0A=
-+		int thislen =3D min_t(int, oobsize, len - written);=0A=
- =0A=
--		column =3D to & (mtd->oobsize - 1);=0A=
-+		cond_resched();=0A=
- =0A=
- 		this->command(mtd, ONENAND_CMD_BUFFERRAM, to, mtd->oobsize);=0A=
- =0A=
- 		/* We send data to spare ram with oobsize=0A=
- 		 * to prevent byte access */=0A=
--		memset(this->page_buf, 0xff, mtd->oobsize);=0A=
--		memcpy(this->page_buf + column, buf, thislen);=0A=
--		this->write_bufferram(mtd, ONENAND_SPARERAM, this->page_buf, 0, =
-mtd->oobsize);=0A=
-+		memset(oobbuf, 0xff, mtd->oobsize);=0A=
-+		if (mode =3D=3D MTD_OOB_AUTO)=0A=
-+			onenand_fill_auto_oob(mtd, oobbuf, buf, column, thislen);=0A=
-+		else=0A=
-+			memcpy(oobbuf + column, buf, thislen);=0A=
-+		this->write_bufferram(mtd, ONENAND_SPARERAM, oobbuf, 0, mtd->oobsize);=0A=
- =0A=
- 		this->command(mtd, ONENAND_CMD_PROGOOB, to, mtd->oobsize);=0A=
- =0A=
-@@ -957,26 +1271,25 @@ static int onenand_do_write_oob(struct m=0A=
- =0A=
- 		ret =3D this->wait(mtd, FL_WRITING);=0A=
- 		if (ret) {=0A=
--			DEBUG(MTD_DEBUG_LEVEL0, "onenand_write_oob: write filaed %d\n", ret);=0A=
--			goto out;=0A=
-+			printk(KERN_ERR "onenand_write_oob: write failed %d\n", ret);=0A=
-+			break;=0A=
- 		}=0A=
- =0A=
--		ret =3D onenand_verify_oob(mtd, buf, to, thislen);=0A=
-+		ret =3D onenand_verify_oob(mtd, oobbuf, to);=0A=
- 		if (ret) {=0A=
--			DEBUG(MTD_DEBUG_LEVEL0, "onenand_write_oob: verify failed %d\n", =
-ret);=0A=
--			goto out;=0A=
-+			printk(KERN_ERR "onenand_write_oob: verify failed %d\n", ret);=0A=
-+			break;=0A=
- 		}=0A=
- =0A=
- 		written +=3D thislen;=0A=
--=0A=
- 		if (written =3D=3D len)=0A=
- 			break;=0A=
- =0A=
--		to +=3D thislen;=0A=
-+		to +=3D mtd->writesize;=0A=
- 		buf +=3D thislen;=0A=
-+		column =3D 0;=0A=
- 	}=0A=
- =0A=
--out:=0A=
- 	/* Deselect and wake up anyone waiting on the device */=0A=
- 	onenand_release_device(mtd);=0A=
- =0A=
-@@ -994,10 +1307,18 @@ out:=0A=
- static int onenand_write_oob(struct mtd_info *mtd, loff_t to,=0A=
- 			     struct mtd_oob_ops *ops)=0A=
- {=0A=
--	BUG_ON(ops->mode !=3D MTD_OOB_PLACE);=0A=
-+	switch (ops->mode) {=0A=
-+	case MTD_OOB_PLACE:=0A=
-+	case MTD_OOB_AUTO:=0A=
-+		break;=0A=
-+	case MTD_OOB_RAW:=0A=
-+		/* Not implemented yet */=0A=
-+	default:=0A=
-+		return -EINVAL;=0A=
-+	}=0A=
- =0A=
- 	return onenand_do_write_oob(mtd, to + ops->ooboffs, ops->len,=0A=
--				    &ops->retlen, ops->oobbuf);=0A=
-+				    &ops->retlen, ops->oobbuf, ops->mode);=0A=
- }=0A=
- =0A=
- /**=0A=
-@@ -1040,19 +1361,19 @@ static int onenand_erase(struct mtd_info=0A=
- =0A=
- 	/* Start address must align on block boundary */=0A=
- 	if (unlikely(instr->addr & (block_size - 1))) {=0A=
--		DEBUG(MTD_DEBUG_LEVEL0, "onenand_erase: Unaligned address\n");=0A=
-+		printk(KERN_ERR "onenand_erase: Unaligned address\n");=0A=
- 		return -EINVAL;=0A=
- 	}=0A=
- =0A=
- 	/* Length must align on block boundary */=0A=
- 	if (unlikely(instr->len & (block_size - 1))) {=0A=
--		DEBUG(MTD_DEBUG_LEVEL0, "onenand_erase: Length not block aligned\n");=0A=
-+		printk(KERN_ERR "onenand_erase: Length not block aligned\n");=0A=
- 		return -EINVAL;=0A=
- 	}=0A=
- =0A=
- 	/* Do not allow erase past end of device */=0A=
- 	if (unlikely((instr->len + instr->addr) > mtd->size)) {=0A=
--		DEBUG(MTD_DEBUG_LEVEL0, "onenand_erase: Erase past end of device\n");=0A=
-+		printk(KERN_ERR "onenand_erase: Erase past end of device\n");=0A=
- 		return -EINVAL;=0A=
- 	}=0A=
- =0A=
-@@ -1068,6 +1389,7 @@ static int onenand_erase(struct mtd_info=0A=
- 	instr->state =3D MTD_ERASING;=0A=
- =0A=
- 	while (len) {=0A=
-+		cond_resched();=0A=
- =0A=
- 		/* Check if we have a bad block, we do not erase bad blocks */=0A=
- 		if (onenand_block_checkbad(mtd, addr, 0, 0)) {=0A=
-@@ -1078,13 +1400,12 @@ static int onenand_erase(struct mtd_info=0A=
- =0A=
- 		this->command(mtd, ONENAND_CMD_ERASE, addr, block_size);=0A=
- =0A=
-+		onenand_invalidate_bufferram(mtd, addr, block_size);=0A=
-+=0A=
- 		ret =3D this->wait(mtd, FL_ERASING);=0A=
- 		/* Check, if it is write protected */=0A=
- 		if (ret) {=0A=
--			if (ret =3D=3D -EPERM)=0A=
--				DEBUG(MTD_DEBUG_LEVEL0, "onenand_erase: Device is write =
-protected!!!\n");=0A=
--			else=0A=
--				DEBUG(MTD_DEBUG_LEVEL0, "onenand_erase: Failed erase, block %d\n", =
-(unsigned) (addr >> this->erase_shift));=0A=
-+			printk(KERN_ERR "onenand_erase: Failed erase, block %d\n", =
-(unsigned) (addr >> this->erase_shift));=0A=
- 			instr->state =3D MTD_ERASE_FAILED;=0A=
- 			instr->fail_addr =3D addr;=0A=
- 			goto erase_exit;=0A=
-@@ -1166,7 +1487,7 @@ static int onenand_default_block_markbad=0A=
- =0A=
-         /* We write two bytes, so we dont have to mess with 16 bit =
-access */=0A=
-         ofs +=3D mtd->oobsize + (bbm->badblockpos & ~0x01);=0A=
--        return onenand_do_write_oob(mtd, ofs , 2, &retlen, buf);=0A=
-+        return onenand_do_write_oob(mtd, ofs , 2, &retlen, buf, =
-MTD_OOB_PLACE);=0A=
- }=0A=
- =0A=
- /**=0A=
-@@ -1282,7 +1603,6 @@ static int onenand_lock(struct mtd_info =0A=
- 	return onenand_do_lock_cmd(mtd, ofs, len, ONENAND_CMD_LOCK);=0A=
- }=0A=
- =0A=
--=0A=
- /**=0A=
-  * onenand_unlock - [MTD Interface] Unlock block(s)=0A=
-  * @param mtd		MTD device structure=0A=
-@@ -1336,6 +1656,8 @@ static int onenand_unlock_all(struct mtd=0A=
- 	struct onenand_chip *this =3D mtd->priv;=0A=
- =0A=
- 	if (this->options & ONENAND_HAS_UNLOCK_ALL) {=0A=
-+		/* Set start block address */=0A=
-+		this->write_word(0, this->base + ONENAND_REG_START_BLOCK_ADDRESS);=0A=
- 		/* Write unlock command */=0A=
- 		this->command(mtd, ONENAND_CMD_UNLOCK_ALL, 0, 0);=0A=
- =0A=
-@@ -1348,13 +1670,10 @@ static int onenand_unlock_all(struct mtd=0A=
- 			continue;=0A=
- =0A=
- 		/* Workaround for all block unlock in DDP */=0A=
--		if (this->device_id & ONENAND_DEVICE_IS_DDP) {=0A=
--			loff_t ofs;=0A=
--			size_t len;=0A=
--=0A=
-+		if (ONENAND_IS_DDP(this)) {=0A=
- 			/* 1st block on another chip */=0A=
--			ofs =3D this->chipsize >> 1;=0A=
--			len =3D 1 << this->erase_shift;=0A=
-+			loff_t ofs =3D this->chipsize >> 1;=0A=
-+			size_t len =3D mtd->erasesize;=0A=
- =0A=
- 			onenand_unlock(mtd, ofs, len);=0A=
- 		}=0A=
-@@ -1462,7 +1781,7 @@ static int do_otp_lock(struct mtd_info *=0A=
- 	this->command(mtd, ONENAND_CMD_OTP_ACCESS, 0, 0);=0A=
- 	this->wait(mtd, FL_OTPING);=0A=
- =0A=
--	ret =3D onenand_do_write_oob(mtd, from, len, retlen, buf);=0A=
-+	ret =3D onenand_do_write_oob(mtd, from, len, retlen, buf, =
-MTD_OOB_PLACE);=0A=
- =0A=
- 	/* Exit OTP access mode */=0A=
- 	this->command(mtd, ONENAND_CMD_RESET, 0, 0);=0A=
-@@ -1668,12 +1987,13 @@ static int onenand_lock_user_prot_reg(st=0A=
- #endif	/* CONFIG_MTD_ONENAND_OTP */=0A=
- =0A=
- /**=0A=
-- * onenand_lock_scheme - Check and set OneNAND lock scheme=0A=
-+ * onenand_check_features - Check and set OneNAND features=0A=
-  * @param mtd		MTD data structure=0A=
-  *=0A=
-- * Check and set OneNAND lock scheme=0A=
-+ * Check and set OneNAND features=0A=
-+ * - lock scheme=0A=
-  */=0A=
--static void onenand_lock_scheme(struct mtd_info *mtd)=0A=
-+static void onenand_check_features(struct mtd_info *mtd)=0A=
- {=0A=
- 	struct onenand_chip *this =3D mtd->priv;=0A=
- 	unsigned int density, process;=0A=
-@@ -1792,7 +2112,7 @@ static int onenand_probe(struct mtd_info=0A=
- 	/* Read manufacturer and device IDs from Register */=0A=
- 	maf_id =3D this->read_word(this->base + ONENAND_REG_MANUFACTURER_ID);=0A=
- 	dev_id =3D this->read_word(this->base + ONENAND_REG_DEVICE_ID);=0A=
--	ver_id=3D this->read_word(this->base + ONENAND_REG_VERSION_ID);=0A=
-+	ver_id =3D this->read_word(this->base + ONENAND_REG_VERSION_ID);=0A=
- =0A=
- 	/* Check OneNAND device */=0A=
- 	if (maf_id !=3D bram_maf_id || dev_id !=3D bram_dev_id)=0A=
-@@ -1806,26 +2126,28 @@ static int onenand_probe(struct mtd_info=0A=
- 	density =3D dev_id >> ONENAND_DEVICE_DENSITY_SHIFT;=0A=
- 	this->chipsize =3D (16 << density) << 20;=0A=
- 	/* Set density mask. it is used for DDP */=0A=
--	this->density_mask =3D (1 << (density + 6));=0A=
-+	if (ONENAND_IS_DDP(this))=0A=
-+		this->density_mask =3D (1 << (density + 6));=0A=
-+	else=0A=
-+		this->density_mask =3D 0;=0A=
- =0A=
- 	/* OneNAND page size & block size */=0A=
- 	/* The data buffer size is equal to page size */=0A=
- 	mtd->writesize =3D this->read_word(this->base + =
-ONENAND_REG_DATA_BUFFER_SIZE);=0A=
- 	mtd->oobsize =3D mtd->writesize >> 5;=0A=
--	/* Pagers per block is always 64 in OneNAND */=0A=
-+	/* Pages per a block are always 64 in OneNAND */=0A=
- 	mtd->erasesize =3D mtd->writesize << 6;=0A=
- =0A=
- 	this->erase_shift =3D ffs(mtd->erasesize) - 1;=0A=
- 	this->page_shift =3D ffs(mtd->writesize) - 1;=0A=
--	this->ppb_shift =3D (this->erase_shift - this->page_shift);=0A=
--	this->page_mask =3D (mtd->erasesize / mtd->writesize) - 1;=0A=
-+	this->page_mask =3D (1 << (this->erase_shift - this->page_shift)) - 1;=0A=
- =0A=
- 	/* REVIST: Multichip handling */=0A=
- =0A=
- 	mtd->size =3D this->chipsize;=0A=
- =0A=
--	/* Check OneNAND lock scheme */=0A=
--	onenand_lock_scheme(mtd);=0A=
-+	/* Check OneNAND features */=0A=
-+	onenand_check_features(mtd);=0A=
- =0A=
- 	return 0;=0A=
- }=0A=
-@@ -1866,6 +2188,7 @@ static void onenand_resume(struct mtd_in=0A=
-  */=0A=
- int onenand_scan(struct mtd_info *mtd, int maxchips)=0A=
- {=0A=
-+	int i;=0A=
- 	struct onenand_chip *this =3D mtd->priv;=0A=
- =0A=
- 	if (!this->read_word)=0A=
-@@ -1913,6 +2236,9 @@ int onenand_scan(struct mtd_info *mtd, i=0A=
- 	init_waitqueue_head(&this->wq);=0A=
- 	spin_lock_init(&this->chip_lock);=0A=
- =0A=
-+	/*=0A=
-+	 * Allow subpage writes up to oobsize.=0A=
-+	 */=0A=
- 	switch (mtd->oobsize) {=0A=
- 	case 64:=0A=
- 		this->ecclayout =3D &onenand_oob_64;=0A=
-@@ -1930,6 +2256,15 @@ int onenand_scan(struct mtd_info *mtd, i=0A=
- 		break;=0A=
- 	}=0A=
- =0A=
-+	/*=0A=
-+	 * The number of bytes available for a client to place data into=0A=
-+	 * the out of band area=0A=
-+	 */=0A=
-+	this->ecclayout->oobavail =3D 0;=0A=
-+	for (i =3D 0; this->ecclayout->oobfree[i].length; i++)=0A=
-+		this->ecclayout->oobavail +=3D=0A=
-+			this->ecclayout->oobfree[i].length;=0A=
-+=0A=
- 	mtd->ecclayout =3D this->ecclayout;=0A=
- =0A=
- 	/* Fill in remaining MTD driver data */=0A=
-@@ -1982,8 +2317,11 @@ void onenand_release(struct mtd_info *mt=0A=
- 	del_mtd_device (mtd);=0A=
- =0A=
- 	/* Free bad block table memory, if allocated */=0A=
--	if (this->bbm)=0A=
-+	if (this->bbm) {=0A=
-+		struct bbm_info *bbm =3D this->bbm;=0A=
-+		kfree(bbm->bbt);=0A=
- 		kfree(this->bbm);=0A=
-+	}=0A=
- 	/* Buffer allocated by onenand_scan */=0A=
- 	if (this->options & ONENAND_PAGEBUF_ALLOC)=0A=
- 		kfree(this->page_buf);=0A=
-Index: drivers/mtd/onenand/onenand_bbt.c=0A=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
-RCS file: =
-/home/cvsroot/linux-2.6.18-n800/drivers/mtd/onenand/onenand_bbt.c,v=0A=
-retrieving revision 1.1.1.1=0A=
-diff -u -p -r1.1.1.1 onenand_bbt.c=0A=
---- drivers/mtd/onenand/onenand_bbt.c	27 Feb 2007 04:52:35 -0000	1.1.1.1=0A=
-+++ drivers/mtd/onenand/onenand_bbt.c	28 Feb 2007 05:06:02 -0000=0A=
-@@ -17,8 +17,8 @@=0A=
- #include <linux/mtd/onenand.h>=0A=
- #include <linux/mtd/compatmac.h>=0A=
- =0A=
--extern int onenand_do_read_oob(struct mtd_info *mtd, loff_t from, =
-size_t len,=0A=
--			       size_t *retlen, u_char *buf);=0A=
-+extern int onenand_bbt_read_oob(struct mtd_info *mtd, loff_t from,=0A=
-+		struct mtd_oob_ops *ops);=0A=
- =0A=
- /**=0A=
-  * check_short_pattern - [GENERIC] check if a pattern is in the buffer=0A=
-@@ -65,10 +65,11 @@ static int create_bbt(struct mtd_info *m=0A=
- 	int startblock;=0A=
- 	loff_t from;=0A=
- 	size_t readlen, ooblen;=0A=
-+	struct mtd_oob_ops ops;=0A=
- =0A=
- 	printk(KERN_INFO "Scanning device for bad blocks\n");=0A=
- =0A=
--	len =3D 1;=0A=
-+	len =3D 2;=0A=
- =0A=
- 	/* We need only read few bytes from the OOB area */=0A=
- 	scanlen =3D ooblen =3D 0;=0A=
-@@ -82,24 +83,29 @@ static int create_bbt(struct mtd_info *m=0A=
- 	startblock =3D 0;=0A=
- 	from =3D 0;=0A=
- =0A=
-+	ops.mode =3D MTD_OOB_PLACE;=0A=
-+	ops.ooblen =3D readlen;=0A=
-+	ops.oobbuf =3D buf;=0A=
-+	ops.len =3D ops.ooboffs =3D ops.retlen =3D 0;=0A=
-+=0A=
- 	for (i =3D startblock; i < numblocks; ) {=0A=
- 		int ret;=0A=
- =0A=
- 		for (j =3D 0; j < len; j++) {=0A=
--			size_t retlen;=0A=
- =0A=
- 			/* No need to read pages fully,=0A=
- 			 * just read required OOB bytes */=0A=
--			ret =3D onenand_do_read_oob(mtd, from + j * mtd->writesize + =
-bd->offs,=0A=
--						  readlen, &retlen, &buf[0]);=0A=
-+			ret =3D onenand_bbt_read_oob(mtd, from + j * mtd->writesize + =
-bd->offs, &ops);=0A=
- =0A=
--			if (ret)=0A=
--				return ret;=0A=
-+			/* If it is a initial bad block, just ignore it */=0A=
-+			if (ret =3D=3D ONENAND_BBT_READ_FATAL_ERROR)=0A=
-+				return -EIO;=0A=
- =0A=
--			if (check_short_pattern(&buf[j * scanlen], scanlen, mtd->writesize, =
-bd)) {=0A=
-+			if (ret || check_short_pattern(&buf[j * scanlen], scanlen, =
-mtd->writesize, bd)) {=0A=
- 				bbm->bbt[i >> 3] |=3D 0x03 << (i & 0x6);=0A=
- 				printk(KERN_WARNING "Bad eraseblock %d at 0x%08x\n",=0A=
- 					i >> 1, (unsigned int) from);=0A=
-+				mtd->ecc_stats.badblocks++;=0A=
- 				break;=0A=
- 			}=0A=
- 		}=0A=
-@@ -166,8 +172,8 @@ static int onenand_isbad_bbt(struct mtd_=0A=
-  * marked good / bad blocks and writes the bad block table(s) to=0A=
-  * the selected place.=0A=
-  *=0A=
-- * The bad block table memory is allocated here. It must be freed=0A=
-- * by calling the onenand_free_bbt function.=0A=
-+ * The bad block table memory is allocated here. It is freed=0A=
-+ * by the onenand_release function.=0A=
-  *=0A=
-  */=0A=
- int onenand_scan_bbt(struct mtd_info *mtd, struct nand_bbt_descr *bd)=0A=
-Index: fs/jffs2/scan.c=0A=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
-RCS file: /home/cvsroot/linux-2.6.18-n800/fs/jffs2/scan.c,v=0A=
-retrieving revision 1.1.1.1=0A=
-diff -u -p -r1.1.1.1 scan.c=0A=
---- fs/jffs2/scan.c	27 Feb 2007 04:52:39 -0000	1.1.1.1=0A=
-+++ fs/jffs2/scan.c	28 Feb 2007 05:13:00 -0000=0A=
-@@ -139,6 +139,8 @@ int jffs2_scan_medium(struct jffs2_sb_in=0A=
- 	for (i=3D0; i<c->nr_blocks; i++) {=0A=
- 		struct jffs2_eraseblock *jeb =3D &c->blocks[i];=0A=
- =0A=
-+		cond_resched();=0A=
-+=0A=
- 		/* reset summary info for next eraseblock scan */=0A=
- 		jffs2_sum_reset_collected(s);=0A=
- =0A=
-Index: fs/jffs2/summary.c=0A=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
-RCS file: /home/cvsroot/linux-2.6.18-n800/fs/jffs2/summary.c,v=0A=
-retrieving revision 1.1.1.1=0A=
-diff -u -p -r1.1.1.1 summary.c=0A=
---- fs/jffs2/summary.c	27 Feb 2007 04:52:39 -0000	1.1.1.1=0A=
-+++ fs/jffs2/summary.c	28 Feb 2007 05:13:16 -0000=0A=
-@@ -398,6 +398,8 @@ static int jffs2_sum_process_sum_data(st=0A=
- 	for (i=3D0; i<je32_to_cpu(summary->sum_num); i++) {=0A=
- 		dbg_summary("processing summary index %d\n", i);=0A=
- =0A=
-+		cond_resched();=0A=
-+=0A=
- 		/* Make sure there's a spare ref for dirty space */=0A=
- 		err =3D jffs2_prealloc_raw_node_refs(c, jeb, 2);=0A=
- 		if (err)=0A=
-Index: include/linux/mtd/bbm.h=0A=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
-RCS file: /home/cvsroot/linux-2.6.18-n800/include/linux/mtd/bbm.h,v=0A=
-retrieving revision 1.1.1.1=0A=
-diff -u -p -r1.1.1.1 bbm.h=0A=
---- include/linux/mtd/bbm.h	27 Feb 2007 04:53:12 -0000	1.1.1.1=0A=
-+++ include/linux/mtd/bbm.h	28 Feb 2007 03:19:20 -0000=0A=
-@@ -92,6 +92,13 @@ struct nand_bbt_descr {=0A=
-  */=0A=
- #define ONENAND_BADBLOCK_POS	0=0A=
- =0A=
-+/*=0A=
-+ * Bad block scanning errors=0A=
-+ */=0A=
-+#define ONENAND_BBT_READ_ERROR		1=0A=
-+#define ONENAND_BBT_READ_ECC_ERROR	2=0A=
-+#define ONENAND_BBT_READ_FATAL_ERROR	4=0A=
-+=0A=
- /**=0A=
-  * struct bbm_info - [GENERIC] Bad Block Table data structure=0A=
-  * @bbt_erase_shift:	[INTERN] number of address bits in a bbt entry=0A=
-Index: include/linux/mtd/onenand.h=0A=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
-RCS file: /home/cvsroot/linux-2.6.18-n800/include/linux/mtd/onenand.h,v=0A=
-retrieving revision 1.1.1.1=0A=
-diff -u -p -r1.1.1.1 onenand.h=0A=
---- include/linux/mtd/onenand.h	27 Feb 2007 04:53:12 -0000	1.1.1.1=0A=
-+++ include/linux/mtd/onenand.h	28 Feb 2007 03:12:02 -0000=0A=
-@@ -1,7 +1,7 @@=0A=
- /*=0A=
-  *  linux/include/linux/mtd/onenand.h=0A=
-  *=0A=
-- *  Copyright (C) 2005-2006 Samsung Electronics=0A=
-+ *  Copyright (C) 2005-2007 Samsung Electronics=0A=
-  *  Kyungmin Park <kyungmin.park@samsung.com>=0A=
-  *=0A=
-  * This program is free software; you can redistribute it and/or modify=0A=
-@@ -41,14 +41,10 @@ typedef enum {=0A=
- =0A=
- /**=0A=
-  * struct onenand_bufferram - OneNAND BufferRAM Data=0A=
-- * @block:		block address in BufferRAM=0A=
-- * @page:		page address in BufferRAM=0A=
-- * @valid:		valid flag=0A=
-+ * @blockpage:		block & page address in BufferRAM=0A=
-  */=0A=
- struct onenand_bufferram {=0A=
--	int block;=0A=
--	int page;=0A=
--	int valid;=0A=
-+	int	blockpage;=0A=
- };=0A=
- =0A=
- /**=0A=
-@@ -62,7 +58,6 @@ struct onenand_bufferram {=0A=
-  *			partly be set to inform onenand_scan about=0A=
-  * @erase_shift:	[INTERN] number of address bits in a block=0A=
-  * @page_shift:		[INTERN] number of address bits in a page=0A=
-- * @ppb_shift:		[INTERN] number of address bits in a pages per block=0A=
-  * @page_mask:		[INTERN] a page per block mask=0A=
-  * @bufferram_index:	[INTERN] BufferRAM index=0A=
-  * @bufferram:		[INTERN] BufferRAM info=0A=
-@@ -87,6 +82,7 @@ struct onenand_bufferram {=0A=
-  *			operation is in progress=0A=
-  * @state:		[INTERN] the current state of the OneNAND device=0A=
-  * @page_buf:		data buffer=0A=
-+ * @subpagesize:	[INTERN] holds the subpagesize=0A=
-  * @ecclayout:		[REPLACEABLE] the default ecc placement scheme=0A=
-  * @bbm:		[REPLACEABLE] pointer to Bad Block Management=0A=
-  * @priv:		[OPTIONAL] pointer to private chip date=0A=
-@@ -101,7 +97,6 @@ struct onenand_chip {=0A=
- =0A=
- 	unsigned int		erase_shift;=0A=
- 	unsigned int		page_shift;=0A=
--	unsigned int		ppb_shift;	/* Pages per block shift */=0A=
- 	unsigned int		page_mask;=0A=
- =0A=
- 	unsigned int		bufferram_index;=0A=
-@@ -124,6 +119,7 @@ struct onenand_chip {=0A=
- 	onenand_state_t		state;=0A=
- 	unsigned char		*page_buf;=0A=
- =0A=
-+	int			subpagesize;=0A=
- 	struct nand_ecclayout	*ecclayout;=0A=
- =0A=
- 	void			*bbm;=0A=
-@@ -137,12 +133,16 @@ struct onenand_chip {=0A=
- #define ONENAND_CURRENT_BUFFERRAM(this)		(this->bufferram_index)=0A=
- #define ONENAND_NEXT_BUFFERRAM(this)		(this->bufferram_index ^ 1)=0A=
- #define ONENAND_SET_NEXT_BUFFERRAM(this)	(this->bufferram_index ^=3D 1)=0A=
-+#define ONENAND_SET_PREV_BUFFERRAM(this)	(this->bufferram_index ^=3D 1)=0A=
- =0A=
- #define ONENAND_GET_SYS_CFG1(this)					\=0A=
- 	(this->read_word(this->base + ONENAND_REG_SYS_CFG1))=0A=
- #define ONENAND_SET_SYS_CFG1(v, this)					\=0A=
- 	(this->write_word(v, this->base + ONENAND_REG_SYS_CFG1))=0A=
- =0A=
-+#define ONENAND_IS_DDP(this)						\=0A=
-+	(this->device_id & ONENAND_DEVICE_IS_DDP)=0A=
-+=0A=
- /* Check byte access in OneNAND */=0A=
- #define ONENAND_CHECK_BYTE_ACCESS(addr)		(addr & 0x1)=0A=
- =0A=
-Index: include/linux/mtd/onenand_regs.h=0A=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
-RCS file: =
-/home/cvsroot/linux-2.6.18-n800/include/linux/mtd/onenand_regs.h,v=0A=
-retrieving revision 1.1.1.1=0A=
-diff -u -p -r1.1.1.1 onenand_regs.h=0A=
---- include/linux/mtd/onenand_regs.h	27 Feb 2007 04:53:12 -0000	1.1.1.1=0A=
-+++ include/linux/mtd/onenand_regs.h	28 Feb 2007 00:51:46 -0000=0A=
-@@ -3,7 +3,8 @@=0A=
-  *=0A=
-  *  OneNAND Register header file=0A=
-  *=0A=
-- *  Copyright (C) 2005-2006 Samsung Electronics=0A=
-+ *  Copyright (C) 2005-2007 Samsung Electronics=0A=
-+ *  Kyungmin Park <kyungmin.park@samsung.com>=0A=
-  *=0A=
-  * This program is free software; you can redistribute it and/or modify=0A=
-  * it under the terms of the GNU General Public License version 2 as=0A=
-@@ -80,9 +81,11 @@=0A=
- #define ONENAND_VERSION_PROCESS_SHIFT	(8)=0A=
- =0A=
- /*=0A=
-- * Start Address 1 F100h (R/W)=0A=
-+ * Start Address 1 F100h (R/W) & Start Address 2 F101h (R/W)=0A=
-  */=0A=
- #define ONENAND_DDP_SHIFT		(15)=0A=
-+#define ONENAND_DDP_CHIP0		(0)=0A=
-+#define ONENAND_DDP_CHIP1		(1 << ONENAND_DDP_SHIFT)=0A=
- =0A=
- /*=0A=
-  * Start Address 8 F107h (R/W)=0A=
-@@ -179,6 +182,7 @@=0A=
-  * ECC Status Reigser FF00h (R)=0A=
-  */=0A=
- #define ONENAND_ECC_1BIT		(1 << 0)=0A=
-+#define ONENAND_ECC_1BIT_ALL		(0x5555)=0A=
- #define ONENAND_ECC_2BIT		(1 << 1)=0A=
- #define ONENAND_ECC_2BIT_ALL		(0xAAAA)=0A=
- =0A=
-
-------=_NextPart_000_00AB_01C75CAF.E176F410
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
-------=_NextPart_000_00AB_01C75CAF.E176F410--
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+diff -purN linux-omap/drivers/media/video/omap/omap24xxvout.c
+lin_for_twl/drivers/media/video/omap/omap24xxvout.c
+--- linux-omap/drivers/media/video/omap/omap24xxvout.c	1969-12-31
+18:00:00.000000000 -0600
++++ lin_for_twl/drivers/media/video/omap/omap24xxvout.c	2007-02-26
+10:32:29.000000000 -0600
+@@ -0,0 +1,1925 @@
++/*
++ * drivers/media/video/omap24xx/omap24xxvout.c
++ *
++ * Copyright (C) 2005-2006 Texas Instruments.
++ *
++ * This file is licensed under the terms of the GNU General Public
+License
++ * version 2. This program is licensed "as is" without any warranty of
+any
++ * kind, whether express or implied.
++ *
++ * Leveraged code from the OMAP2 camera driver
++ * Video-for-Linux (Version 2) camera capture driver for
++ * the OMAP24xx camera controller.
++ * Initial code : Andy Lowe (source@mvista.com)
++ *
++ * Copyright (C) 2004 MontaVista Software, Inc.
++ * Copyright (C) 2004 Texas Instruments.
++ *
++ */
++
++#include <linux/config.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/delay.h>
++#include <linux/errno.h>
++#include <linux/fs.h>
++#include <linux/kernel.h>
++#include <linux/vmalloc.h>
++#include <linux/slab.h>
++#include <linux/sched.h>
++#include <linux/smp_lock.h>
++#include <linux/interrupt.h>
++#include <linux/kdev_t.h>
++#include <linux/types.h>
++#include <linux/wait.h>
++#include <linux/videodev.h>
++#include <media/video-buf.h>
++#include <linux/input.h>
++#include <linux/dma-mapping.h>
++
++#ifdef CONFIG_PM
++#include <linux/notifier.h>
++#include <linux/pm.h>
++#endif
++#ifdef CONFIG_DPM
++#include <linux/dpm.h>
++#endif
++
++#include <asm/arch/display.h>
++
++#include <asm/io.h>
++#include <asm/byteorder.h>
++#include <asm/irq.h>
++#include <asm/semaphore.h>
++#include <asm/processor.h>
++#include <asm/arch/bus.h>
++#include <asm/arch/dma.h>
++
++#include "omap24xxlib.h"
++
++/*
++ * Un-comment this to use Debug Write call
++ */
++/* #define DEBUG_ALLOW_WRITE */
++
++#include "omap24xxvoutdef.h"
++
++extern const char *global_mode_option;
++
++/*
++ * Uncomment this if debugging support needs to be enabled
++ */
++
++/* #define DEBUG */
++
++#undef DEBUG
++#ifdef DEBUG
++#define DPRINTK(ARGS...)  printk("<%s>: ",__FUNCTION__);printk(ARGS)
++#else
++#define DPRINTK( x... )
++#endif
++
++/*
++ * -1 means rotation support is disabled
++ * 0/90/180/270 are initial rotation angles
++ */
++
++static int rotation_support =3D -1;
++
++/* configuration macros */
++#define VOUT_NAME		"omap24xxvout"
++#define V1OUT_NAME		"omap24xxvout1"
++#define V2OUT_NAME		"omap24xxvout2"
++
++#define VGA_WIDTH		640
++#define VGA_HEIGHT		480
++#define QQVGA_WIDTH		160
++#define QQVGA_HEIGHT		120
++#define BYTESPERPIXEL		2
++#define DMA_CHAN_ALLOTED	1
++#define DMA_CHAN_NOT_ALLOTED	0
++#define NUM_OF_VIDEO_CHANNELS	2
++#define VRF_SIZE		MAX_PIXELS_PER_LINE * MAX_LINES * 4
++#define SMS_RGB_PIXSIZE	2
++#define SMS_YUYV_PIXSIZE	4
++#define VRFB_TX_TIMEOUT	1000
++
++static struct omap24xxvout_device *saved_v1out, *saved_v2out;
++
++/*
++ * this is the layer being linked to (slave layer). possible values
+are:
++ * OMAP2_VIDEO1:  V1 is linked to V2. V1 uses V2's pix and crop.
++ * OMAP2_VIDEO2:  V2 is linked to V1. V2 uses V1's pix and crop.
++ * -1: no link.
++ */
++
++static int vout_linked;
++static spinlock_t vout_link_lock;
++
++static struct videobuf_queue_ops dummy_vbq_ops;
++
++/* module parameters */
++
++/*
++ * Maximum amount of memory to use for rendering buffers.
++ * Default is enough to four (RGB24) VGA buffers.
++ */
++#define MAX_ALLOWED_VIDBUFFERS		4
++static int render_mem =3D VGA_WIDTH * VGA_HEIGHT * 4 *
+MAX_ALLOWED_VIDBUFFERS;
++
++/* list of image formats supported by OMAP2 video pipelines */
++const static struct v4l2_fmtdesc omap2_formats[] =3D {
++{
++	/* Note:  V4L2 defines RGB565 as:
++	 *
++	 *	  Byte 0			Byte 1
++	 *	  g2 g1 g0 r4 r3 r2 r1 r0   b4 b3 b2 b1 b0 g5 g4 g3
++	 *
++	 * We interpret RGB565 as:
++	 *
++	 *	  Byte 0			Byte 1
++	 *	  g2 g1 g0 b4 b3 b2 b1 b0   r4 r3 r2 r1 r0 g5 g4 g3
++	 */
++	.description	=3D "RGB565, le",
++	.pixelformat	=3D V4L2_PIX_FMT_RGB565,
++},
++{
++	/* Note:  V4L2 defines RGB565X as:
++	 *
++	 *	  Byte 0			Byte 1
++	 *	  b4 b3 b2 b1 b0 g5 g4 g3   g2 g1 g0 r4 r3 r2 r1 r0
++	 *
++	 * We interpret RGB565X as:
++	 *
++	 *	  Byte 0			Byte 1
++	 *	  r4 r3 r2 r1 r0 g5 g4 g3   g2 g1 g0 b4 b3 b2 b1 b0
++	 */
++	.description	=3D "RGB565, be",
++	.pixelformat	=3D V4L2_PIX_FMT_RGB565X,
++},
++{
++	/* Note:  V4L2 defines RGB32 as: RGB-8-8-8-8  we use
++	 *	this for RGB24 unpack mode, the last 8 bits are ignored
++	 *
++	 */
++	.description	=3D "RGB32, le",
++	.pixelformat	=3D V4L2_PIX_FMT_RGB32,
++},
++{
++	/* Note:  V4L2 defines RGB24 as: RGB-8-8-8  we use
++	 *	this for RGB24 packed mode
++	 *
++	 */
++	.description	=3D "RGB24, le",
++	.pixelformat	=3D V4L2_PIX_FMT_RGB24,
++},
++{
++	.description	=3D "YUYV (YUV 4:2:2), packed",
++	.pixelformat	=3D V4L2_PIX_FMT_YUYV,
++},
++{
++	.description	=3D "UYVY, packed",
++	.pixelformat	=3D V4L2_PIX_FMT_UYVY,
++},
++};
++
++#define NUM_OUTPUT_FORMATS
+(sizeof(omap2_formats)/sizeof(omap2_formats[0]))
++
++/* CONFIG_PM */
++#ifdef CONFIG_PM
++#define omap24xxvout_suspend_lockout(s,f) \
++	if ((s)->suspended) {\
++		if ((f)->f_flags & O_NONBLOCK)\
++			return -EBUSY;\
++		wait_event_interruptible((s)->suspend_wq,\
++					(s)->suspended =3D=3D 0);\
++	}
++#else
++#define omap24xxvout_suspend_lockout(s, f) do {(s)->suspended =3D 0;}
+while(0)
++#endif
++
++/*
+------------------------------------------------------------------------
+-- */
++
++static int
++try_format (struct v4l2_pix_format *pix)
++{
++	int ifmt,bpp =3D0;
++
++	if (pix->width > VGA_WIDTH)
++		pix->width =3D VGA_WIDTH;
++	if (pix->height > VGA_HEIGHT)
++		pix->height =3D VGA_HEIGHT;
++
++	for (ifmt =3D 0; ifmt < NUM_OUTPUT_FORMATS; ifmt++) {
++		if (pix->pixelformat =3D=3D omap2_formats[ifmt].pixelformat)
++			break;
++	}
++
++	if (ifmt =3D=3D NUM_OUTPUT_FORMATS)
++		ifmt =3D 0;
++
++	pix->pixelformat =3D omap2_formats[ifmt].pixelformat;
++	pix->field =3D V4L2_FIELD_NONE;
++	pix->priv =3D 0;
++
++	switch (pix->pixelformat) {
++	case V4L2_PIX_FMT_YUYV:
++	case V4L2_PIX_FMT_UYVY:
++	default:
++		pix->colorspace =3D V4L2_COLORSPACE_JPEG;
++		bpp =3D YUYV_BPP;
++	break;
++	case V4L2_PIX_FMT_RGB565:
++	case V4L2_PIX_FMT_RGB565X:
++		pix->colorspace =3D V4L2_COLORSPACE_SRGB;
++		bpp =3D RGB565_BPP;
++	break;
++	case V4L2_PIX_FMT_RGB24:
++		pix->colorspace =3D V4L2_COLORSPACE_SRGB;
++		bpp =3D RGB24_BPP;
++	break;
++	case V4L2_PIX_FMT_RGB32:
++		pix->colorspace =3D V4L2_COLORSPACE_SRGB;
++		bpp =3D RGB32_BPP;
++	break;
++	}
++	pix->bytesperline =3D pix->width * bpp;
++	pix->sizeimage =3D pix->bytesperline * pix->height;
++	return(bpp);
++}
++
++static void
++vrfb_dma_tx_callback (int lch, u16 ch_status, void *data)
++{
++	struct vid_vrfb_dma *t =3D (struct vid_vrfb_dma *) data;
++	t->tx_status =3D 1;
++	wake_up_interruptible (&t->wait);
++}
++
++static void
++omap24xxvout_sync (struct omap24xxvout_device *dest,
++			struct omap24xxvout_device *src)
++{
++	/*
++	 * once linked, dest shares src's framebuffer, pix and crop
++	 */
++
++	dest->pix =3D src->pix;
++	dest->crop =3D src->crop;
++
++	if (src->streaming)
++		omap2_disp_config_vlayer (dest->vid, &dest->pix,
+&dest->crop, &dest->win,
++			dest->rotation, dest->mirror);
++}
++
++static int
++omap24xxvout_do_ioctl (struct inode *inode, struct file *file,
++				unsigned int cmd, void *arg)
++{
++	struct omap24xxvout_fh *fh =3D (struct omap24xxvout_fh
+*)file->private_data;
++	struct omap24xxvout_device *vout =3D fh->vout;
++	int err;
++
++	switch (cmd) {
++	case VIDIOC_ENUMOUTPUT:
++	{
++		struct v4l2_output *output =3D (struct v4l2_output *) arg;
++		int index =3D output->index;
++
++		if (index > 0)
++			return -EINVAL;
++
++		memset (output, 0, sizeof (*output));
++		output->index =3D index;
++
++		strncpy (output->name, "video out", sizeof
+(output->name));
++		output->type =3D V4L2_OUTPUT_TYPE_MODULATOR;
++		return 0;
++	}
++
++	case VIDIOC_G_OUTPUT:
++	{
++		unsigned int *output =3D arg;
++		*output =3D 0;
++		return 0;
++	}
++
++	case VIDIOC_S_OUTPUT:
++	{
++		unsigned int *output =3D arg;
++
++		if (*output > 0)
++			return -EINVAL;
++		return 0;
++	}
++
++	case VIDIOC_QUERYCAP:
++	{
++		struct v4l2_capability *cap =3D (struct v4l2_capability *)
+arg;
++		memset (cap, 0, sizeof (*cap));
++		strncpy (cap->driver, VOUT_NAME, sizeof (cap->driver));
++		strncpy (cap->card, vout->vfd->name, sizeof
+(cap->card));
++		cap->bus_info[0] =3D '\0';
++		cap->capabilities =3D V4L2_CAP_STREAMING |
+V4L2_CAP_VIDEO_OUTPUT;
++		return 0;
++	}
++	case VIDIOC_ENUM_FMT:
++	{
++		struct v4l2_fmtdesc *fmt =3D arg;
++		int index =3D fmt->index;
++		enum v4l2_buf_type type =3D fmt->type;
++		memset (fmt, 0, sizeof (*fmt));
++		fmt->index =3D index;
++		fmt->type =3D type;
++
++		switch (fmt->type) {
++			case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++	  		case V4L2_BUF_TYPE_VIDEO_OVERLAY:
++			if (index >=3D NUM_OUTPUT_FORMATS)
++				return -EINVAL;
++			break;
++			default:
++			return -EINVAL;
++		}
++
++		fmt->flags =3D omap2_formats[index].flags;
++		strncpy (fmt->description,
+omap2_formats[index].description,
++			sizeof (fmt->description));
++		fmt->pixelformat =3D omap2_formats[index].pixelformat;
++
++		return 0;
++	}
++	case VIDIOC_G_FMT:
++	{
++		struct v4l2_format *f =3D (struct v4l2_format *) arg;
++
++		switch (f->type) {
++		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		{
++			struct v4l2_pix_format *pix =3D &f->fmt.pix;
++			memset (pix, 0, sizeof (*pix));
++			*pix =3D vout->pix;
++			return 0;
++		}
++
++		case V4L2_BUF_TYPE_VIDEO_OVERLAY:
++		{
++			struct v4l2_window *win =3D &f->fmt.win;
++			memset (win, 0, sizeof (*win));
++
++			/*
++			 * The API has a bit of a problem here.
++			 * We're returning a v4l2_window
++			 * structure, but that structure
++			 * contains pointers to variable-sized
++			 * objects for clipping rectangles and
++			 * clipping bitmaps.  We will just
++			 * return NULLs for those pointers.
++			 */
++
++			win->w =3D vout->win.w;
++			win->field =3D vout->win.field;
++			win->chromakey =3D vout->win.chromakey;
++			return 0;
++		}
++		default:
++		return -EINVAL;
++		}
++	}
++	case VIDIOC_TRY_FMT:
++	{
++		struct v4l2_format *f =3D (struct v4l2_format *) arg;
++
++		if (vout->streaming)
++			return -EBUSY;
++
++		/* We dont support RGB24-packed mode if vrfb rotation is
+enabled*/
++		if (vout->rotation !=3D -1 && f->fmt.pix.pixelformat =3D=3D
+V4L2_PIX_FMT_RGB24)
++			return -EINVAL;
++
++		switch (f->type) {
++
++		case V4L2_BUF_TYPE_VIDEO_OVERLAY:
++		{
++			struct v4l2_window *win =3D &f->fmt.win;
++			err =3D omap24xxvout_try_window (&vout->fbuf,
+win);
++			return err;
++		}
++
++		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		{
++			/* don't allow to change img for the linked
+layer */
++			if (vout->vid =3D=3D vout_linked)
++				return -EINVAL;
++			try_format (&f->fmt.pix);
++			return 0;
++		}
++		default:
++			return -EINVAL;
++		}
++	}
++	case VIDIOC_S_FMT:
++	{
++		struct v4l2_format *f =3D (struct v4l2_format *) arg;
++
++		if (vout->streaming)
++			return -EBUSY;
++
++		/* We dont support RGB24-packed mode if vrfb rotation is
+enabled*/
++		if (vout->rotation !=3D -1 && f->fmt.pix.pixelformat =3D=3D
+V4L2_PIX_FMT_RGB24 )
++			return -EINVAL;
++
++		/* get the framebuffer parameters */
++		if (vout->rotation =3D=3D 90 || vout->rotation =3D=3D 270) {
++			omap2_disp_get_panel_size
+(omap2_disp_get_output_dev (vout->vid),
++
+&(vout->fbuf.fmt.height),&(vout->fbuf.fmt.width));
++		}
++		else{
++			omap2_disp_get_panel_size
+(omap2_disp_get_output_dev (vout->vid),
++				&(vout->fbuf.fmt.width),
+&(vout->fbuf.fmt.height));
++
++		}
++
++		switch (f->type) {
++		case V4L2_BUF_TYPE_VIDEO_OVERLAY:
++		{
++			struct v4l2_window *win =3D &f->fmt.win;
++
++
++			err =3D omap24xxvout_new_window (&vout->crop,
+&vout->win,
++				&vout->fbuf, win);
++			return err;
++		}
++		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		{
++			int bpp;
++			/*
++			 * don't allow to change img for the linked
+layer
++			 */
++			if (vout->vid =3D=3D vout_linked)
++				return -EINVAL;
++
++			/* change to samller size is OK */
++			bpp =3D try_format (&f->fmt.pix);
++			f->fmt.pix.sizeimage =3D f->fmt.pix.width *
+f->fmt.pix.height *bpp;
++
++			/* try & set the new output format */
++			vout->bpp =3D bpp;
++			vout->pix =3D f->fmt.pix;
++			vout->vrfb_bpp =3D 1;
++			/* If YUYV then vrfb bpp is 2, for others its
+1*/
++			if (V4L2_PIX_FMT_YUYV =3D=3D vout->pix.pixelformat
++				|| V4L2_PIX_FMT_UYVY =3D=3D
+vout->pix.pixelformat)
++				vout->vrfb_bpp =3D 2;
++
++			/* set default crop and win */
++			omap24xxvout_new_format (&vout->pix,
+&vout->fbuf, &vout->crop,
++				&vout->win);
++
++			return 0;
++		}
++
++		default:
++			return -EINVAL;
++		}
++	}
++	case VIDIOC_CROPCAP:
++	{
++		struct v4l2_cropcap *cropcap =3D (struct v4l2_cropcap *)
+arg;
++		enum v4l2_buf_type type =3D cropcap->type;
++
++		memset (cropcap, 0, sizeof (*cropcap));
++		cropcap->type =3D type;
++		switch (type) {
++		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		{
++			struct v4l2_pix_format *pix =3D &vout->pix;
++			cropcap->bounds.width =3D pix->width & ~1;
++			cropcap->bounds.height =3D pix->height & ~1;
++			omap24xxvout_default_crop (&vout->pix,
+&vout->fbuf,
++					 &cropcap->defrect);
++			cropcap->pixelaspect.numerator =3D 1;
++			cropcap->pixelaspect.denominator =3D 1;
++			return 0;
++		}
++		default:
++			return -EINVAL;
++		}
++	}
++	case VIDIOC_G_CROP:
++	{
++		struct v4l2_crop *crop =3D (struct v4l2_crop *) arg;
++
++		switch (crop->type) {
++		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		{
++			crop->c =3D vout->crop;
++			return 0;
++		}
++		default:
++			return -EINVAL;
++		}
++	}
++	case VIDIOC_S_CROP:
++	{
++		struct v4l2_crop *crop =3D (struct v4l2_crop *) arg;
++		if (vout->streaming)
++			return -EBUSY;
++
++		/* get the framebuffer parameters */
++		if (vout->rotation =3D=3D 90 || vout->rotation =3D=3D 270) {
++			omap2_disp_get_panel_size
+(omap2_disp_get_output_dev (vout->vid),
++
+&(vout->fbuf.fmt.height),&(vout->fbuf.fmt.width));
++		}
++		else{
++			omap2_disp_get_panel_size
+(omap2_disp_get_output_dev (vout->vid),
++				&(vout->fbuf.fmt.width),
+&(vout->fbuf.fmt.height));
++
++		}
++
++		switch (crop->type) {
++		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		{
++			err =3D
++			omap24xxvout_new_crop (&vout->pix, &vout->crop,
+&vout->win,
++				&vout->fbuf, &crop->c);
++			return err;
++		}
++		default:
++			return -EINVAL;
++		}
++	}
++	case VIDIOC_REQBUFS:
++	{
++		struct v4l2_requestbuffers *req =3D (struct
+v4l2_requestbuffers *) arg;
++		struct videobuf_queue *q =3D &fh->vbq;
++		unsigned int phy_addr, virt_addr;
++		unsigned int count, i;
++
++		/* don't allow to buffer request for the linked layer */
++		if (vout->vid =3D=3D vout_linked)
++			return -EINVAL;
++
++		if (req->count > VIDEO_MAX_FRAME)
++			req->count =3D VIDEO_MAX_FRAME;
++
++		/* we allow req->count =3D=3D 0 */
++		if ((req->type !=3D V4L2_BUF_TYPE_VIDEO_OUTPUT) ||
+(req->count < 0))
++			return -EINVAL;
++
++		if (req->memory !=3D V4L2_MEMORY_MMAP)
++			return -EINVAL;
++
++		if (vout->streaming)
++			return -EBUSY;
++
++		/* reuse old buffers */
++		if (vout->buffer_allocated && vout->buffer_size >=3D
+vout->pix.sizeimage) {
++			if (req->count) {
++				req->count =3D vout->buffer_allocated;
++				return 0;
++			}
++		}
++
++		/*
++		 * We allow re-request as long as old buffers are not
+mmaped.
++		 * We will need to free old buffers first.
++		 */
++
++		/* either no buffer allocated or too small */
++		if (vout->buffer_allocated) {
++			if (vout->mmap_count)
++				return -EBUSY;
++			down (&q->lock);
++			for (i =3D 0; i < vout->buffer_allocated; i++) {
++
++				dma_free_coherent(NULL,
+vout->buffer_size,
++					(void *)
+q->bufs[i]->dma.vmalloc,
++					q->bufs[i]->dma.bus_addr);
++				q->bufs[i] =3D NULL;
++			}
++			vout->buffer_allocated =3D 0;
++			vout->buffer_size =3D 0;
++			up (&q->lock);
++			videobuf_mmap_free(q);
++		}
++		/* user intends to free buffer */
++		if (!req->count)
++			return 0;
++
++		down (&q->lock);
++		count =3D req->count;
++		while (PAGE_ALIGN(vout->pix.sizeimage) * count >
+render_mem)
++			count--;
++
++		vout->buffer_size =3D PAGE_ALIGN(vout->pix.sizeimage);
++		for (i =3D 0; i < count; i++) {
++			virt_addr =3D
++			(unsigned int)dma_alloc_coherent(NULL,
++				vout->buffer_size,
++				(dma_addr_t *) & phy_addr,
++				GFP_KERNEL | GFP_DMA);
++
++			if (!virt_addr)
++				break;
++			memset((void *) virt_addr, 0,
+vout->buffer_size);
++
++			DPRINTK("REQBUFS: buffer %d: virt=3D0x%x,
+phy=3D0x%x, size=3D0x%x\n",
++				i, virt_addr, phy_addr,
+vout->buffer_size);
++
++			q->bufs[i] =3D videobuf_alloc (q->msize);
++			if (q->bufs[i] =3D=3D NULL) {
++				dma_free_coherent(NULL,
+vout->buffer_size,
++					(void *) virt_addr,
++					(dma_addr_t) phy_addr);
++				break;
++			}
++			q->bufs[i]->i =3D i;
++			q->bufs[i]->input =3D UNSET;
++			q->bufs[i]->memory =3D req->memory;
++			q->bufs[i]->bsize =3D vout->buffer_size;
++			q->bufs[i]->boff =3D vout->buffer_size * i;
++			q->bufs[i]->dma.vmalloc =3D (void *) (virt_addr);
++			q->bufs[i]->dma.bus_addr =3D phy_addr;
++			q->bufs[i]->state =3D STATE_PREPARED;
++
++			vout->buf_virt_addr[i] =3D (unsigned long)
+q->bufs[i]->dma.vmalloc;
++			vout->buf_phy_addr[i] =3D
+q->bufs[i]->dma.bus_addr;
++
++			vout->buffer_allocated++;
++		}
++		vout->buf_memory_type =3D req->memory;
++
++		/* return -ENOMEM if we are not able to allocate a
+single buffer
++		 * we have to seperate the case which user requests 0
+buffer which
++		 * means user wants to free the already allocated
+buffers
++		 */
++
++		if (vout->buffer_allocated =3D=3D 0 && req->count !=3D 0) {
++			up (&q->lock);
++			vout->buffer_size =3D 0;
++			return -ENOMEM;
++		}
++		req->count =3D vout->buffer_allocated;
++		up (&q->lock);
++		return 0;
++	}
++	case VIDIOC_QUERYBUF:
++		return videobuf_querybuf (&fh->vbq, arg);
++
++	case VIDIOC_QBUF:
++	{
++		struct v4l2_buffer *buffer =3D (struct v4l2_buffer *) arg;
++		struct videobuf_queue *q =3D &fh->vbq;
++		struct omap24xxvout_device *dest;
++		int dest_frame_index =3D 0, src_element_index =3D 0;
++		int dest_element_index =3D 0, src_frame_index =3D 0;
++		int elem_count =3D 0, frame_count =3D 0, pixsize =3D
+2,mir_rot_deg =3D 0;
++
++		/* don't allow to queue buffer for the linked layer */
++		if (vout->vid =3D=3D vout_linked)
++			return -EINVAL;
++
++		if (buffer->index >=3D vout->buffer_allocated)
++			return -EINVAL;
++
++		if (vout->rotation >=3D 0
++			&& vout->vrfb_dma_tx.req_status =3D=3D
+DMA_CHAN_NOT_ALLOTED)
++			return -EINVAL;
++
++		DPRINTK ("queuing buffer %d ...\n", buffer->index);
++
++		if (!vout->streaming)
++			return -EINVAL;
++
++		down (&q->lock);
++
++		/*
++		 * If rotation is enabled then copy the image data from
+the
++		 * MMAPPED area to SMS area
++		 */
++
++		if (vout->rotation >=3D 0) {
++			pixsize =3D vout->bpp * vout->vrfb_bpp;
++			/*
++			 * DMA transfer in double index mode
++			 */
++
++			/* Frame index */
++			dest_frame_index =3D
++				((MAX_PIXELS_PER_LINE * pixsize) -
+(vout->pix.width * vout->bpp)) + 1;
++
++			/* Source and destination parameters */
++			src_element_index =3D 0;
++			src_frame_index =3D 0;
++			dest_element_index =3D 1;
++
++			/* Number of elements per frame */
++			elem_count =3D vout->pix.width * vout->bpp;
++			frame_count =3D vout->pix.height;
++			vout->vrfb_dma_tx.tx_status =3D 0;
++			omap_set_dma_transfer_params
+(vout->vrfb_dma_tx.dma_ch,
++				OMAP_DMA_DATA_TYPE_S8,elem_count,
+frame_count,
++
+OMAP_DMA_SYNC_ELEMENT,vout->vrfb_dma_tx.dev_id, 0x0);
++
++			omap_set_dma_src_params
+(vout->vrfb_dma_tx.dma_ch,
++
+OMAP_DMA_AMODE_POST_INC,q->bufs[buffer->index]->dma.bus_addr,
++				src_element_index, src_frame_index);
++
++			if (vout->mirror =3D=3D 1) {
++				mir_rot_deg =3D (vout->rotation =3D=3D
+90)?(270/90):
++						(vout->rotation =3D=3D
+270)?(90/90):
++							(vout->rotation
+=3D=3D 180)?(0/90):(180/90);
++
++				omap_set_dma_dest_params
+(vout->vrfb_dma_tx.dma_ch,OMAP_DMA_AMODE_DOUBLE_IDX,
++
+vout->sms_rot_phy[mir_rot_deg],dest_element_index, dest_frame_index);
++			}
++			else{ /* No Mirroring */
++				omap_set_dma_dest_params
+(vout->vrfb_dma_tx.dma_ch,OMAP_DMA_AMODE_DOUBLE_IDX,
++
+vout->sms_rot_phy[vout->rotation/90],dest_element_index,
+dest_frame_index);
++			}
++			omap_start_dma (vout->vrfb_dma_tx.dma_ch);
++			interruptible_sleep_on_timeout
+(&vout->vrfb_dma_tx.wait,
++						VRFB_TX_TIMEOUT);
++
++			if (vout->vrfb_dma_tx.tx_status =3D=3D 0) {
++				omap_stop_dma
+(vout->vrfb_dma_tx.dma_ch);
++				up (&q->lock);
++				return -EINVAL;
++			}
++			if (vout->mirror =3D=3D 1) {
++				mir_rot_deg =3D (vout->rotation =3D=3D 90)?
+270:
++						(vout->rotation =3D=3D 270)?
+90:
++							(vout->rotation
+=3D=3D 180)? 0:180;
++				omap2_disp_start_vlayer
+(vout->vid,&vout->pix, &vout->crop,
++						vout->sms_rot_phy[0],
+mir_rot_deg, vout->mirror);
++			}
++			else{
++				omap2_disp_start_vlayer
+(vout->vid,&vout->pix,&vout->crop,
++				vout->sms_rot_phy[0], vout->rotation,
+vout->mirror);
++			}
++		}/*if rotation */
++		else{
++			omap2_disp_start_vlayer (vout->vid, &vout->pix,
+&vout->crop,
++
+q->bufs[buffer->index]->dma.bus_addr,vout->rotation, vout->mirror);
++		}
++
++		up (&q->lock);
++		/* start slave layer if V1 and V2 are linked */
++		if (vout_linked !=3D -1) {
++			dest =3D (vout_linked =3D=3D OMAP2_VIDEO1) ?
+saved_v1out : saved_v2out;
++			if (dest->streaming) {
++				if (dest->rotation >=3D 0) {
++					/* if rotation and mirroring */
++					if (dest->mirror =3D=3D 1) {
++						mir_rot_deg =3D
+(dest->rotation =3D=3D 90)? 270:
++							(dest->rotation
+=3D=3D 270)? 90:
++
+(dest->rotation =3D=3D 180)? 0:180;
++
++
+omap2_disp_start_vlayer(dest->vid,&dest->pix,
++						&dest->crop,
+vout->sms_rot_phy[0], mir_rot_deg,
++						dest->mirror);
++					}
++					/* if no mirroring but rotation
+*/
++					else{
++
+omap2_disp_start_vlayer(dest->vid,&dest->pix,
++
+&dest->crop,vout->sms_rot_phy[0],
++
+dest->rotation,dest->mirror);
++					}
++				}
++				else {
++					omap2_disp_start_vlayer (dest->
+vid, &dest->pix, &dest-> crop,
++
+q->bufs[buffer->index]->dma.bus_addr, dest->rotation,
++					dest->mirror);
++				}		/* if no rotation and
+mirroring */
++			}
++		}
++		return 0;
++	}
++	case VIDIOC_DQBUF:
++	{
++		/* don't allow to dequeue buffer for the linked layer */
++		if (vout->vid =3D=3D vout_linked)
++			return -EINVAL;
++		return 0;
++	}
++	case VIDIOC_STREAMON:
++	{
++		if (vout->streaming)
++			return -EBUSY;
++		/*
++		 * If rotation mode is selected then allocate a
++		 *  dummy or hidden buffer to map the SMS virtual space
++		 */
++		if (vout->vid !=3D vout_linked) {
++			if (vout->rotation >=3D 0) {
++
++				/* Align the image size with respect to
+tile size */
++				u32 image_width =3D 0, image_height =3D 0;
++
++				image_width =3D vout->pix.width /
+TILE_SIZE;
++				if (vout->pix.width % TILE_SIZE)
++					image_width++;
++				image_width =3D image_width * TILE_SIZE;
++
++				image_height =3D vout->pix.height /
+TILE_SIZE;
++				if (vout->pix.height % TILE_SIZE)
++					image_height++;
++				image_height =3D image_height * TILE_SIZE;
++
++				/* Required to free */
++				vout->tile_aligned_psize =3D image_width *
+image_height * vout->bpp * vout->vrfb_bpp;
++
++				/* have to free and re-allocate */
++				if (vout->smsshado_size &&
+vout->smsshado_size < vout->tile_aligned_psize) {
++					dma_free_coherent(NULL,
+vout->smsshado_size,
++						(void
+*)vout->smsshado_virt_addr,
++
+(dma_addr_t)vout->smsshado_phy_addr);
++					vout->smsshado_size =3D 0;
++					vout->smsshado_virt_addr =3D 0;
++				}
++
++				/* Allocate the actual physical space
+for VRFB */
++				/*
++				 * The allocation is rounded to tile
+size as we are
++				 * taking care of the offset while
+reading the data
++				 * and also we will always fill the 0
+degree space with
++				 * the image data and read the data
+requested space (rotation degree)
++				 */
++				if (!vout->smsshado_virt_addr)
++				vout->smsshado_virt_addr =3D (unsigned
+int)
++					dma_alloc_coherent(NULL,
+PAGE_ALIGN(vout->tile_aligned_psize),
++						(dma_addr_t *)
+&vout->smsshado_phy_addr, GFP_KERNEL | GFP_DMA);
++
++				if (!vout->smsshado_virt_addr)
++					return -ENOMEM;
++
++				vout->smsshado_size =3D
+PAGE_ALIGN(vout->tile_aligned_psize);
++				memset((void *)
+vout->smsshado_virt_addr, 0, vout->smsshado_size);
++
++				if (vout->rotation =3D=3D 90 ||
+vout->rotation =3D=3D 270) {
++					omap2_disp_set_vrfb (vout->vid,
+vout->smsshado_phy_addr,
++						vout->pix.height,
+vout->pix.width, vout->bpp * vout->vrfb_bpp);
++				}
++				else{
++					omap2_disp_set_vrfb (vout->vid,
+vout->smsshado_phy_addr,
++						vout->pix.width,
+vout->pix.height, vout->bpp * vout->vrfb_bpp);
++				}
++			}
++		}
++
++		/* set flag here. Next QBUF will start DMA */
++		vout->streaming =3D fh;
++
++		/* DMA will be started by QBUF */
++		omap2_disp_config_vlayer (vout->vid, &vout->pix,
+&vout->crop,
++				  &vout->win, vout->rotation,
+vout->mirror);
++		return 0;
++	}
++
++	case VIDIOC_STREAMOFF:
++	{
++		/*
++		 * only allow the file handler that started streaming to
++		 * stop streaming
++		 */
++
++		if (vout->streaming =3D=3D fh) {
++			omap2_disp_disable_layer (vout->vid);
++			vout->streaming =3D NULL;
++
++			/* stop the slave layer */
++			if (vout_linked !=3D -1 && vout_linked !=3D
+vout->vid) {
++				omap2_disp_disable_layer ((vout->vid =3D=3D
+OMAP2_VIDEO1)
++					  ? OMAP2_VIDEO2 :
+OMAP2_VIDEO1);
++			}
++			return 0;
++		}
++		else
++			return -EINVAL;
++	}
++
++
++	case VIDIOC_S_OMAP2_LINK:
++	{
++		int *link =3D arg;
++
++		spin_lock (&vout_link_lock);
++
++		if ((*link =3D=3D 0) && (vout_linked =3D=3D vout->vid))
++			vout_linked =3D -1;
++
++		if ((*link =3D=3D 1) && (vout_linked =3D=3D -1 || vout_linked =3D=3D
+vout->vid)) {
++			vout_linked =3D vout->vid;
++
++			if (vout_linked =3D=3D OMAP2_VIDEO2) {
++				/* sync V2 to V1 for img and crop */
++				omap24xxvout_sync (saved_v2out,
+saved_v1out);
++			}
++			else{
++				/* sync V1 to V2 */
++				omap24xxvout_sync (saved_v1out,
+saved_v2out);
++			}
++		}
++
++		spin_unlock (&vout_link_lock);
++		return 0;
++	}
++	case VIDIOC_G_OMAP2_LINK:
++	{
++		int *link =3D arg;
++
++		spin_lock (&vout_link_lock);
++		if (vout_linked =3D=3D vout->vid) *link =3D 1;
++		else *link =3D 0;
++		spin_unlock (&vout_link_lock);
++		return 0;
++	}
++	case VIDIOC_S_OMAP2_MIRROR:
++	{
++		int *mirror =3D arg;
++		if ((*mirror =3D=3D 0) && (vout->mirror =3D=3D 1)) {
++			vout->mirror =3D 0;
++			return 0;
++		}
++		else if ((*mirror =3D=3D 1) && (vout->mirror =3D=3D 0)) {
++			vout->mirror =3D 1;
++			return 0;
++		}
++		return -EINVAL;
++	}
++	case VIDIOC_G_OMAP2_MIRROR:
++	{
++		int *mirror =3D arg;
++		*mirror =3D vout->mirror;
++		return 0;
++	}
++
++	case VIDIOC_S_OMAP2_ROTATION:
++	{
++		int *rotation =3D arg;
++
++		if ((*rotation =3D=3D 0) || (*rotation =3D=3D 90) || (*rotation
+=3D=3D 180)
++			|| (*rotation =3D=3D 270) || (*rotation =3D=3D -1)) {
++			vout->rotation =3D (*rotation =3D=3D
+90)?270:(*rotation =3D=3D 270)?90:*rotation;
++			rotation_support =3D vout->rotation;
++			return 0;
++		}
++		else
++			return -EINVAL;
++	}
++
++	case VIDIOC_G_OMAP2_ROTATION:
++	{
++		int *rotation =3D arg;
++		*rotation =3D (vout->rotation =3D=3D 90)?270:(vout->rotation
+=3D=3D 270)?90:vout->rotation;
++		return 0;
++	}
++	case VIDIOC_S_OMAP2_COLORKEY:
++	{
++		struct omap24xxvout_colorkey *colorkey =3D
++		(struct omap24xxvout_colorkey *) arg;
++
++		if ((colorkey->output_dev !=3D OMAP2_OUTPUT_LCD &&
++			colorkey->output_dev !=3D OMAP2_OUTPUT_TV) ||
++			(colorkey->key_type !=3D OMAP2_GFX_DESTINATION
++			&& colorkey->key_type !=3D OMAP2_VIDEO_SOURCE))
++			return -EINVAL;
++
++		omap2_disp_set_colorkey (colorkey->output_dev,
+colorkey->key_type,
++			colorkey->key_val);
++		return 0;
++
++	}
++	case VIDIOC_G_OMAP2_COLORKEY:
++	{
++		struct omap24xxvout_colorkey *colorkey =3D
++		(struct omap24xxvout_colorkey *) arg;
++
++		if (colorkey->output_dev !=3D OMAP2_OUTPUT_LCD
++			&& colorkey->output_dev !=3D OMAP2_OUTPUT_TV)
++		return -EINVAL;
++		omap2_disp_get_colorkey (colorkey->output_dev,
+&colorkey->key_type,
++				 &colorkey->key_val);
++		return 0;
++
++	}
++	case VIDIOC_S_OMAP2_BGCOLOR:
++	{
++		struct omap24xxvout_bgcolor *bgcolor =3D
++		(struct omap24xxvout_bgcolor *) arg;
++
++		if (bgcolor->output_dev !=3D OMAP2_OUTPUT_LCD
++			&& bgcolor->output_dev !=3D OMAP2_OUTPUT_TV)
++			return -EINVAL;
++
++		omap2_disp_set_bg_color (bgcolor->output_dev,
+bgcolor->color);
++		return 0;
++	}
++	case VIDIOC_G_OMAP2_BGCOLOR:
++	{
++		struct omap24xxvout_bgcolor *bgcolor =3D
++			(struct omap24xxvout_bgcolor *) arg;
++
++		if (bgcolor->output_dev !=3D OMAP2_OUTPUT_LCD
++			&& bgcolor->output_dev !=3D OMAP2_OUTPUT_TV)
++		return -EINVAL;
++
++		omap2_disp_get_bg_color (bgcolor->output_dev,
+&bgcolor->color);
++		return 0;
++	}
++	case VIDIOC_OMAP2_COLORKEY_ENABLE:
++	{
++		int *output_dev =3D arg;
++
++		if (*output_dev !=3D OMAP2_OUTPUT_LCD && *output_dev !=3D
+OMAP2_OUTPUT_TV)
++		return -EINVAL;
++
++		omap2_disp_enable_colorkey (*output_dev);
++		return 0;
++	}
++
++	case VIDIOC_OMAP2_COLORKEY_DISABLE:
++	{
++		int *output_dev =3D arg;
++
++		if (*output_dev !=3D OMAP2_OUTPUT_LCD && *output_dev !=3D
+OMAP2_OUTPUT_TV)
++			return -EINVAL;
++		omap2_disp_disable_colorkey (*output_dev);
++		return 0;
++	}
++
++	case VIDIOC_S_OMAP2_COLORCONV:
++	{
++		int v;
++		struct omap24xxvout_colconv *ccmtx =3D
++			(struct omap24xxvout_colconv *) arg;
++
++		if (vout->vid =3D=3D OMAP2_VIDEO1) v =3D0;
++		else v =3D1;
++
++		current_colorconv_values[v][0][0]=3Dccmtx->RY;
++		current_colorconv_values[v][0][1]=3Dccmtx->RCr;
++		current_colorconv_values[v][0][2]=3Dccmtx->RCb;
++		current_colorconv_values[v][1][0]=3Dccmtx->GY;
++		current_colorconv_values[v][1][1]=3Dccmtx->GCr;
++		current_colorconv_values[v][1][2]=3Dccmtx->GCb;
++		current_colorconv_values[v][2][0]=3Dccmtx->BY;
++		current_colorconv_values[v][2][1]=3Dccmtx->BCr;
++		current_colorconv_values[v][2][2]=3Dccmtx->BCb;
++		omap2_disp_set_colorconv(vout->vid, &vout->pix);
++		return 0;
++	}
++
++	case VIDIOC_G_OMAP2_COLORCONV:
++	{
++		int v;
++		struct omap24xxvout_colconv *ccmtx =3D
++			(struct omap24xxvout_colconv *) arg;
++
++		if (vout->vid =3D=3D OMAP2_VIDEO1) v =3D0;
++		else v =3D1;
++
++		ccmtx->RY =3D current_colorconv_values[v][0][0];
++		ccmtx->RCr=3D current_colorconv_values[v][0][1];
++		ccmtx->RCb=3D current_colorconv_values[v][0][2];
++		ccmtx->GY =3D current_colorconv_values[v][1][0];
++		ccmtx->GCr=3D current_colorconv_values[v][1][1];
++		ccmtx->GCb=3D current_colorconv_values[v][1][2];
++		ccmtx->BY =3D current_colorconv_values[v][2][0];
++		ccmtx->BCr=3D current_colorconv_values[v][2][1];
++		ccmtx->BCb=3D current_colorconv_values[v][2][2];
++
++		return 0;
++	}
++
++	case VIDIOC_S_OMAP2_DEFCOLORCONV:
++	{
++		omap2_disp_set_default_colorconv(vout->vid, &vout->pix);
++		return 0;
++	}
++
++	default:
++		/* unrecognized ioctl */
++		return -ENOIOCTLCMD;
++
++	}				/* switch */
++
++	return 0;
++}
++
++/*
+------------------------------------------------------------------------
+-- */
++
++/*
++ *  file operations
++ */
++
++#ifdef DEBUG_ALLOW_WRITE
++
++static ssize_t
++omap24xxvout_write (struct file *file, const char *data, size_t count,
++			loff_t * ppos)
++{
++	struct omap24xxvout_fh *fh =3D file->private_data;
++	struct omap24xxvout_device *vout =3D fh->vout;
++
++	omap24xxvout_suspend_lockout (vout, file);
++	if ((*ppos) >=3D vout->pix.sizeimage)
++		return 0;
++	if (count + (*ppos) > vout->pix.sizeimage)
++		count =3D vout->pix.sizeimage - (*ppos);
++	if (copy_from_user
++		((void *) (vout->framebuffer_base + (*ppos)), data,
+count)) {
++		printk ("error in copying data");
++	}
++	*ppos +=3D count;
++
++	#if 1
++		if (*ppos =3D=3D vout->pix.sizeimage)
++		mdelay (5000);
++	#endif
++	return count;
++}
++
++#endif
++
++static void
++omap24xxvout_vm_open (struct vm_area_struct *vma)
++{
++	struct omap24xxvout_device *vout =3D vma->vm_private_data;
++	DPRINTK ("vm_open [vma=3D%08lx-%08lx]\n", vma->vm_start,
+vma->vm_end);
++	vout->mmap_count++;
++}
++
++static void
++omap24xxvout_vm_close (struct vm_area_struct *vma)
++{
++	struct omap24xxvout_device *vout =3D vma->vm_private_data;
++	DPRINTK ("vm_close [vma=3D%08lx-%08lx]\n", vma->vm_start,
+vma->vm_end);
++	vout->mmap_count--;
++}
++
++static struct vm_operations_struct omap24xxvout_vm_ops =3D {
++	.open	=3D omap24xxvout_vm_open,
++	.close	=3D omap24xxvout_vm_close,
++};
++
++static int
++omap24xxvout_mmap (struct file *file, struct vm_area_struct *vma)
++{
++	struct omap24xxvout_fh *fh =3D file->private_data;
++	struct omap24xxvout_device *vout =3D fh->vout;
++	struct videobuf_queue *q =3D &fh->vbq;
++	int size, i;
++
++	DPRINTK ("pgoff=3D0x%x, start=3D0x%x, end=3D0x%x\n", vma->vm_pgoff,
++		vma->vm_start,	vma->vm_end);
++
++	size =3D vma->vm_end - vma->vm_start;
++
++	down (&q->lock);
++
++	/* look for the buffer to map */
++	for (i =3D 0; i < VIDEO_MAX_FRAME; i++) {
++		if (NULL =3D=3D q->bufs[i])	continue;
++		if (V4L2_MEMORY_MMAP !=3D q->bufs[i]->memory)
++			continue;
++		if (q->bufs[i]->boff =3D=3D (vma->vm_pgoff << PAGE_SHIFT))
++			break;
++	}
++
++	if (VIDEO_MAX_FRAME =3D=3D i) {
++		DPRINTK ("offset invalid [offset=3D0x%lx]\n",
++			(vma->vm_pgoff << PAGE_SHIFT));
++		up (&q->lock);
++		return -EINVAL;
++	}
++
++	vma->vm_flags |=3D VM_RESERVED;
++	vma->vm_page_prot =3D pgprot_writecombine (vma->vm_page_prot);
++	vma->vm_ops =3D &omap24xxvout_vm_ops;
++	vma->vm_private_data =3D (void *) vout;
++
++	if (remap_pfn_range(vma, vma->vm_start,
++		q->bufs[i]->dma.bus_addr>>PAGE_SHIFT, size,
+vma->vm_page_prot)) {
++		up (&q->lock);
++		return -EAGAIN;
++	}
++	vma->vm_flags &=3D ~VM_IO; /* using shared anonymous pages */
++
++	up (&q->lock);
++	vout->mmap_count++;
++	return 0;
++}
++
++static int
++omap24xxvout_ioctl (struct inode *inode, struct file *file, unsigned
+int cmd,
++			unsigned long arg)
++{
++	struct omap24xxvout_fh *fh =3D file->private_data;
++	struct omap24xxvout_device *vout =3D fh->vout;
++
++	omap24xxvout_suspend_lockout (vout, file);
++	return video_usercopy (inode, file, cmd, arg,
+omap24xxvout_do_ioctl);
++}
++
++static int
++omap24xxvout_release (struct inode *inode, struct file *file)
++{
++	struct omap24xxvout_fh *fh =3D file->private_data;
++	struct omap24xxvout_device *vout;
++	struct videobuf_queue *q;
++
++	DPRINTK ("entering\n");
++
++	if (fh =3D=3D 0)
++		return 0;
++	if ((vout =3D fh->vout) =3D=3D 0)
++		return 0;
++	q =3D &fh->vbq;
++
++	omap24xxvout_suspend_lockout (vout, file);
++
++	/*
++	 * Check if the hidden buffer transfer is happening with DMA
++	 * if yes then stop it
++	 */
++
++	if (vout->rotation !=3D -1) {
++		if (vout->vrfb_dma_tx.tx_status =3D=3D 0) {
++
++			/*
++			 * DMA will be stopped once here and again after
+wakeup to
++			 * avoid race conditions due to time taken to
+wakeup the
++			 * sleeping process
++			 */
++
++			omap_stop_dma (vout->vrfb_dma_tx.dma_ch);
++			wake_up_interruptible(&vout->vrfb_dma_tx.wait);
++		}
++	}
++
++	omap2_disp_disable_layer (vout->vid);
++
++	if ((vout_linked !=3D -1) && (vout->vid !=3D vout_linked))
++	omap2_disp_disable_layer ((vout->vid =3D=3D
++					OMAP2_VIDEO1) ? OMAP2_VIDEO2 :
+OMAP2_VIDEO1);
++
++#ifdef DEBUG_ALLOW_WRITE
++	if (vout->framebuffer_base) {
++
++		dma_free_coherent(NULL, vout->framebuffer_size,
++					(void *) vout->framebuffer_base,
++					vout->framebuffer_base_phys);
++		vout->framebuffer_base =3D 0;
++	}
++	vout->framebuffer_base_phys =3D 0;
++#endif
++
++	if (vout->streaming =3D=3D fh) vout->streaming =3D NULL;
++
++	if (vout->mmap_count !=3D 0) {
++		vout->mmap_count =3D 0;
++		printk("mmap count is not zero!\n");
++	}
++
++	omap2_disp_release_layer (vout->vid);
++	omap2_disp_put_dss ();
++	vout->opened -=3D 1;
++	file->private_data =3D NULL;
++
++	if (vout->buffer_allocated)
++		videobuf_mmap_free(q);
++
++	kfree (fh);
++
++	/* need to remove the link when the either slave or master is
+gone */
++	spin_lock (&vout_link_lock);
++	if (vout_linked !=3D -1) {
++		vout_linked =3D -1;
++	}
++	spin_unlock (&vout_link_lock);
++
++	return 0;
++}
++
++/* define this to allow videobuf_mmap_free to work */
++static void dummy_vbq_release(struct videobuf_queue *q, struct
+videobuf_buffer *vb)
++{
++}
++static int
++omap24xxvout_open (struct inode *inode, struct file *file)
++{
++	int minor =3D MINOR (file->f_dentry->d_inode->i_rdev);
++	struct omap24xxvout_device *vout =3D NULL;
++	struct omap24xxvout_fh *fh;
++	struct videobuf_queue *q;
++	int i;
++
++	DPRINTK ("entering\n");
++
++	if (saved_v1out && saved_v1out->vfd && (saved_v1out->vfd->minor
+=3D=3D minor)) {
++		vout =3D saved_v1out;
++	}
++
++	if (vout =3D=3D NULL) {
++		if (saved_v2out && saved_v2out->vfd
++			&& (saved_v2out->vfd->minor =3D=3D minor)) {
++		vout =3D saved_v2out;
++		}
++	}
++
++	if (vout =3D=3D NULL)
++		return -ENODEV;
++
++	/* for now, we only support single open */
++	if (vout->opened)
++		return -EBUSY;
++
++	vout->opened +=3D 1;
++	if (!omap2_disp_request_layer (vout->vid)) {
++		vout->opened -=3D 1;
++		return -ENODEV;
++	}
++
++	omap2_disp_get_dss ();
++	omap24xxvout_suspend_lockout (vout, file);
++	/* allocate per-filehandle data */
++	fh =3D kmalloc (sizeof (*fh), GFP_KERNEL);
++	if (NULL =3D=3D fh) {
++		omap2_disp_release_layer (vout->vid);
++		omap2_disp_put_dss ();
++		vout->opened -=3D 1;
++		return -ENOMEM;
++	}
++
++	file->private_data =3D fh;
++	fh->vout =3D vout;
++	fh->type =3D V4L2_BUF_TYPE_VIDEO_OUTPUT;
++
++#ifdef DEBUG_ALLOW_WRITE
++	vout->framebuffer_size =3D VGA_HEIGHT * VGA_HEIGHT * 2;
++	vout->framebuffer_base =3D
+dma_alloc_coherent(NULL,vout->framebuffer_size,
++			(dma_addr_t *) & vout->	framebuffer_base_phys,
++			GFP_KERNEL | GFP_DMA);
++
++	if (!vout->framebuffer_base) {
++		kfree (fh);
++		omap2_disp_release_layer (vout->vid);
++		omap2_disp_put_dss ();
++		vout->opened -=3D 1;
++		return -ENOMEM;
++	}
++	memset ((void *) vout->framebuffer_base, 0,
+vout->framebuffer_size);
++		omap2_disp_config_vlayer (vout->vid, &vout->pix,
+&vout->crop, &vout->win,
++		vout->rotation, vout->mirror);
++	omap2_disp_start_vlayer (vout->vid, &vout->pix, &vout->crop,
++		vout->framebuffer_base_phys, vout->rotation,
++		vout->mirror);
++#endif
++
++	q =3D &fh->vbq;
++	dummy_vbq_ops.buf_release =3D dummy_vbq_release;
++	videobuf_queue_init (q, &dummy_vbq_ops, NULL, &vout->vbq_lock,
++		fh->type, V4L2_FIELD_NONE, sizeof (struct
+videobuf_buffer), fh);
++
++	/* restore info for mmap */
++	for (i =3D 0; i < vout->buffer_allocated; i++) {
++		q->bufs[i] =3D videobuf_alloc (q->msize);
++		if (q->bufs[i] =3D=3D NULL) {
++			dma_free_coherent(NULL, vout->buffer_size,
++					(void *) vout->buf_virt_addr[i],
++					(dma_addr_t)
+vout->buf_phy_addr[i]);
++			/* we have to give up some old buffers */
++			vout->buffer_allocated =3D i;
++			break;
++		}
++		q->bufs[i]->i =3D i;
++		q->bufs[i]->input =3D UNSET;
++		q->bufs[i]->memory =3D vout->buf_memory_type;
++		q->bufs[i]->bsize =3D vout->buffer_size;
++		q->bufs[i]->boff =3D vout->buffer_size * i;
++		q->bufs[i]->dma.vmalloc =3D (void *)
+vout->buf_virt_addr[i];
++		q->bufs[i]->dma.bus_addr =3D vout->buf_phy_addr[i];
++		q->bufs[i]->state =3D STATE_PREPARED;
++	}
++
++	return 0;
++}
++
++static struct file_operations omap24xxvout_fops =3D {
++	.owner	=3D THIS_MODULE,
++	.llseek	=3D no_llseek,
++#ifdef DEBUG_ALLOW_WRITE
++	.write	=3D omap24xxvout_write,
++#endif
++	.ioctl	=3D omap24xxvout_ioctl,
++	.mmap	=3D omap24xxvout_mmap,
++	.open	=3D omap24xxvout_open,
++	.release	=3D omap24xxvout_release,
++};
++
++/*
+------------------------------------------------------------------------
+-- */
++#ifdef CONFIG_PM
++static int
++omap24xxvout_suspend (struct omap_dev *dev, u32 state)
++{
++	struct omap24xxvout_device *vout =3D omap_get_drvdata (dev);
++
++	/* lock-out applications during suspend */
++	if (vout->suspended =3D=3D 1) return 0;
++	if (vout->opened) {
++		/* stall vid DMA */
++		if (vout->streaming) {
++			omap2_disp_disable_layer (vout->vid);
++			/*
++			 * Check if the hidden buffer transfer is
+happening with DMA
++			 * if yes then stop it
++			 */
++
++			if (vout->rotation !=3D -1) {
++				if (vout->vrfb_dma_tx.tx_status =3D=3D 0) {
++					/*
++					 * DMA will be stopped once here
+and again after wakeup to
++					 * avoid race conditions due to
+time taken to wakeup the
++				 	 * sleeping process
++				 	 */
++					omap_stop_dma
+(vout->vrfb_dma_tx.dma_ch);
++					wake_up_interruptible
+(&vout->vrfb_dma_tx.wait);
++				}
++			}
++		}
++		vout->suspended =3D 1;
++		omap2_disp_put_dss ();
++	}
++	return 0;
++}
++
++static int
++omap24xxvout_resume (struct omap_dev *dev)
++{
++	struct omap24xxvout_device *vout =3D omap_get_drvdata (dev);
++	if (vout->suspended =3D=3D 0) return 0;
++	if (vout->opened)
++	{
++		omap2_disp_get_dss ();
++
++		/* resume vid DMA */
++		if (vout->streaming)
++			omap2_disp_enable_layer (vout->vid);
++
++		/* wake up applications waiting on suspend queue */
++		vout->suspended =3D 0;
++		wake_up (&vout->suspend_wq);
++	}
++	return 0;
++}
++
++
++#ifdef CONFIG_DPM
++
++static struct constraints omap24xxvout_constraints =3D {
++	.count	=3D 2,
++	.param =3D {
++		{DPM_MD_V, OMAP24XX_V_MIN, OMAP24XX_V_MAX},
++		{DPM_MD_SLEEP_MODE, PM_SUSPEND_STANDBY, PM_SUSPEND_MEM},
++	},
++};
++
++static int
++omap24xxvout_scale (int vid, struct notifier_block *op, unsigned long
+level)
++{
++	struct omap24xxvout_device *vout;
++	vout =3D (vid =3D=3D OMAP2_VIDEO1) ? saved_v1out : saved_v2out;
++	if (!vout->opened)
++		return 0;
++	switch (level) {
++	case SCALE_PRECHANGE:
++		if (vout->streaming) {
++			omap2_disp_disable_layer (vout->vid);
++			if (vout->rotation !=3D -1) {
++				if (vout->vrfb_dma_tx.tx_status =3D=3D 0) {
++					omap_stop_dma
+(vout->vrfb_dma_tx.dma_ch);
++				}
++			}
++		}
++	break;
++	case SCALE_POSTCHANGE:
++		if (vout->streaming) {
++			omap2_disp_enable_layer (vout->vid);
++			if (vout->rotation !=3D -1) {
++				if (vout->vrfb_dma_tx.tx_status =3D=3D 0) {
++					omap_start_dma
+(vout->vrfb_dma_tx.dma_ch);
++				}
++			}
++		}
++	break;
++	}
++	return 0;
++}
++
++static int
++omap24xxv1out_scale (struct notifier_block *op, unsigned long level,
+void *ptr)
++{
++	return omap24xxvout_scale (OMAP2_VIDEO1, op, level);
++}
++
++static int
++omap24xxv2out_scale (struct notifier_block *op, unsigned long level,
+void *ptr)
++{
++	return omap24xxvout_scale (OMAP2_VIDEO2, op, level);
++}
++
++static struct notifier_block omap24xxv1out_pre_scale =3D {
++	.notifier_call	=3D omap24xxv1out_scale,
++};
++
++static struct notifier_block omap24xxv1out_post_scale =3D {
++	.notifier_call	=3D omap24xxv1out_scale,
++};
++
++static struct notifier_block omap24xxv2out_pre_scale =3D {
++	.notifier_call	=3D omap24xxv2out_scale,
++};
++
++static struct notifier_block omap24xxv2out_post_scale =3D {
++	.notifier_call	=3D omap24xxv2out_scale,
++};
++
++#endif
++#endif /* PM */
++
++static int
++omap24xxvout_probe (struct omap_dev *dev)
++{
++	return 0;
++}
++
++static struct omap_dev omap24xxv1out_dev =3D {
++	.name	=3D V1OUT_NAME,
++	.devid	=3D OMAP24xx_V1OUT_DEVID,
++	.busid	=3D OMAP_BUS_L3,
++	.dev =3D {
++#ifdef CONFIG_DPM
++		.constraints	=3D &omap24xxvout_constraints,
++#endif
++	},
++};
++
++static struct omap_dev omap24xxv2out_dev =3D {
++	.name	=3D V2OUT_NAME,
++	.devid	=3D OMAP24xx_V2OUT_DEVID,
++	.busid	=3D OMAP_BUS_L3,
++	.dev =3D {
++#ifdef CONFIG_DPM
++		.constraints	=3D &omap24xxvout_constraints,
++#endif
++	},
++};
++
++static struct omap_driver omap24xxv1out_driver =3D {
++	.drv =3D {
++		.name =3D V1OUT_NAME
++	},
++	.devid		=3D OMAP24xx_V1OUT_DEVID,
++	.busid		=3D OMAP_BUS_L3,
++	.clocks		=3D 0,
++	.probe		=3D omap24xxvout_probe,
++#ifdef CONFIG_PM
++	.suspend	=3D omap24xxvout_suspend,
++	.resume		=3D omap24xxvout_resume,
++#endif
++};
++
++static struct omap_driver omap24xxv2out_driver =3D {
++	.drv =3D {
++		.name =3D V2OUT_NAME
++	},
++	.devid		=3D OMAP24xx_V2OUT_DEVID,
++	.busid		=3D OMAP_BUS_L3,
++	.clocks		=3D 0,
++	.probe		=3D omap24xxvout_probe,
++#ifdef CONFIG_PM
++	.suspend	=3D omap24xxvout_suspend,
++	.resume		=3D omap24xxvout_resume,
++#endif
++};
++
++/*
+------------------------------------------------------------------------
+-- */
++
++static void
++cleanup_vout_device (int vid)
++{
++	struct video_device *vfd;
++	struct omap24xxvout_device *vout;
++
++	vout =3D (vid =3D=3D OMAP2_VIDEO1) ? saved_v1out : saved_v2out;
++	if (!vout)
++		return;
++	vfd =3D vout->vfd;
++
++	if (vfd) {
++		if (vfd->minor =3D=3D -1) {
++			/*
++			 * The device was never registered, so release
+the
++			 * video_device struct directly.
++			 */
++			video_device_release (vfd);
++		}
++		else{
++			/*
++			 * The unregister function will release the
+video_device
++			 * struct as well as unregistering it.
++			 */
++			video_unregister_device (vfd);
++		}
++	}
++
++	if (vout->rotation !=3D -1) {
++		release_mem_region (vout->sms_rot_phy[3], VRF_SIZE);
++		release_mem_region (vout->sms_rot_phy[2], VRF_SIZE);
++		release_mem_region (vout->sms_rot_phy[1], VRF_SIZE);
++		release_mem_region (vout->sms_rot_phy[0], VRF_SIZE);
++	}
++
++	if (vout->vrfb_dma_tx.req_status =3D=3D DMA_CHAN_ALLOTED) {
++		vout->vrfb_dma_tx.req_status =3D DMA_CHAN_NOT_ALLOTED;
++		omap_free_dma (vout->vrfb_dma_tx.dma_ch);
++	}
++
++	omap_device_unregister ((vid =3D=3D	OMAP2_VIDEO1) ?
+&omap24xxv1out_dev :
++		&omap24xxv2out_dev);
++	omap_driver_unregister ((vid =3D=3D OMAP2_VIDEO1) ?
+&omap24xxv1out_driver :
++		&omap24xxv2out_driver);
++
++#ifdef CONFIG_DPM
++	if (vid =3D=3D OMAP2_VIDEO1) {
++
+dpm_unregister_scale(&omap24xxv1out_pre_scale,SCALE_PRECHANGE);
++
+dpm_unregister_scale(&omap24xxv1out_post_scale,SCALE_POSTCHANGE);
++	}
++	else{
++
+dpm_unregister_scale(&omap24xxv2out_pre_scale,SCALE_PRECHANGE);
++
+dpm_unregister_scale(&omap24xxv2out_pre_scale,SCALE_POSTCHANGE);
++	}
++#endif
++
++	kfree (vout);
++
++	if (vid =3D=3D OMAP2_VIDEO1)
++		saved_v1out =3D NULL;
++	else
++		saved_v2out =3D NULL;
++}
++
++static struct omap24xxvout_device *
++init_vout_device (int vid)
++{
++	int r;
++	struct omap24xxvout_device *vout;
++	struct video_device *vfd;
++	struct v4l2_pix_format *pix;
++	struct omap_driver *this_driver;
++	struct omap_dev *this_dev;
++
++	vout =3D kmalloc (sizeof (struct omap24xxvout_device),
+GFP_KERNEL);
++	if (!vout) {
++		printk (KERN_ERR VOUT_NAME ": could not allocate
+memory\n");
++		return NULL;
++	}
++
++	memset (vout, 0, sizeof (struct omap24xxvout_device));
++	vout->vid =3D vid;
++	vout->rotation =3D rotation_support;
++
++	/* set the default pix */
++	pix =3D &vout->pix;
++	pix->width =3D QQVGA_WIDTH;
++	pix->height =3D QQVGA_HEIGHT;
++
++	pix->pixelformat =3D V4L2_PIX_FMT_RGB565;
++	pix->field =3D V4L2_FIELD_NONE;
++	pix->bytesperline =3D pix->width * 2;
++	pix->sizeimage =3D pix->bytesperline * pix->height;
++	pix->priv =3D 0;
++	pix->colorspace =3D V4L2_COLORSPACE_JPEG;
++
++	vout->bpp =3D RGB565_BPP;
++	vout->vrfb_bpp =3D 1;
++
++	/* get the screen parameters */
++	omap2_disp_get_panel_size (omap2_disp_get_output_dev
+(vout->vid),
++		&(vout->fbuf.fmt.width),&(vout->fbuf.fmt.height));
++
++	/* set default crop and win */
++	omap24xxvout_new_format (pix, &vout->fbuf, &vout->crop,
+&vout->win);
++
++	/* initialize the video_device struct */
++	vfd =3D vout->vfd =3D video_device_alloc ();
++	if (!vfd) {
++		printk (KERN_ERR VOUT_NAME": could not allocate video
+device struct\n");
++		kfree (vout);
++		return NULL;
++	}
++	vfd->release =3D video_device_release;
++
++	strncpy (vfd->name, VOUT_NAME, sizeof (vfd->name));
++	vfd->type =3D VID_TYPE_OVERLAY | VID_TYPE_CHROMAKEY;
++	/* need to register for a VID_HARDWARE_* ID in videodev.h */
++	vfd->hardware =3D 0;
++	vfd->fops =3D &omap24xxvout_fops;
++	video_set_drvdata (vfd, vout);
++	vfd->minor =3D -1;
++
++	/* SMS memory starts from 0x70000000 - 256 MB region */
++	vout->sms_rot_phy[0] =3D (vid =3D=3D OMAP2_VIDEO1) ? 0x74000000 :
+0x78000000;
++	vout->sms_rot_phy[1] =3D (vid =3D=3D OMAP2_VIDEO1) ? 0x75000000 :
+0x79000000;
++	vout->sms_rot_phy[2] =3D (vid =3D=3D OMAP2_VIDEO1) ? 0x76000000 :
+0x7A000000;
++	vout->sms_rot_phy[3] =3D (vid =3D=3D OMAP2_VIDEO1) ? 0x77000000 :
+0x7B000000;
++
++	/* let's request memory region for them */
++	/* request the mem region for the SMS space */
++	if (!request_mem_region (vout->sms_rot_phy[0], VRF_SIZE,
+vfd->name)) {
++		printk (KERN_ERR VOUT_NAME": cannot reserve sms I/O
+region - 0 \n");
++		goto init_error;
++	}
++	if (!request_mem_region (vout->sms_rot_phy[1], VRF_SIZE,
+vfd->name)) {
++		printk (KERN_ERR VOUT_NAME ": cannot reserve sms I/O
+region - 1\n");
++		goto rotation_sms_free_0;
++	}
++	if (!request_mem_region (vout->sms_rot_phy[2], VRF_SIZE,
+vfd->name)) {
++		printk (KERN_ERR VOUT_NAME ": cannot reserve sms I/O
+region - 2\n");
++		goto rotation_sms_free_90;
++	}
++	if (!request_mem_region (vout->sms_rot_phy[3], VRF_SIZE,
+vfd->name)) {
++		printk (KERN_ERR VOUT_NAME ": cannot reserve sms I/O
+region - 3\n");
++		goto rotation_sms_free_180;
++		/* free them in reverse order - otherewise you will free
++			extra stuff and get caught */
++	}
++
++	vout->suspended =3D 0;
++	init_waitqueue_head (&vout->suspend_wq);
++
++	if (video_register_device (vfd, VFL_TYPE_GRABBER, vid) < 0) {
++		printk (KERN_ERR VOUT_NAME": could not register Video
+for Linux device\n");
++		vfd->minor =3D -1;
++		if (vout->rotation !=3D -1)
++			goto rotation_sms_free_270;
++		else
++			goto init_error;
++	}
++
++	this_driver =3D (vid =3D=3D OMAP2_VIDEO1) ? &omap24xxv1out_driver :
+&omap24xxv2out_driver;
++	this_dev =3D (vid =3D=3D OMAP2_VIDEO1) ? &omap24xxv1out_dev :
+&omap24xxv2out_dev;
++	if (omap_driver_register (this_driver) !=3D 0) {
++		printk (KERN_ERR VOUT_NAME": could not register Video
+driver\n");
++		cleanup_vout_device (vid);
++		return NULL;
++	}
++	if (omap_device_register (this_dev) !=3D 0) {
++		printk (KERN_ERR VOUT_NAME": could not register Video
+device\n");
++		cleanup_vout_device (vid);
++		return NULL;
++	}
++	/* set driver specific data to use in power mgmt functions */
++	omap_set_drvdata (this_dev, vout);
++
++#ifdef CONFIG_DPM
++	/* Scaling is enabled only when DPM is enabled */
++	if (vid =3D=3D OMAP2_VIDEO1) {
++
+dpm_register_scale(&omap24xxv1out_pre_scale,SCALE_PRECHANGE);
++
+dpm_register_scale(&omap24xxv1out_post_scale,SCALE_POSTCHANGE);
++	}
++	else{
++
+dpm_register_scale(&omap24xxv2out_pre_scale,SCALE_PRECHANGE);
++
+dpm_register_scale(&omap24xxv2out_post_scale,SCALE_POSTCHANGE);
++	}
++#endif
++
++	/*
++	 * Request and Initialize DMA, for DMA based VRFB transfer
++	 */
++	vout->vrfb_dma_tx.dev_id =3D OMAP_DMA_NO_DEVICE;
++	vout->vrfb_dma_tx.dma_ch =3D -1;
++	vout->vrfb_dma_tx.req_status =3D DMA_CHAN_ALLOTED;
++	r =3D omap_request_dma (vout->vrfb_dma_tx.dev_id,
++		"VRFB DMA TX", vrfb_dma_tx_callback,(void *)
+&vout->vrfb_dma_tx,
++			&vout->vrfb_dma_tx.dma_ch);
++	if (r)
++		vout->vrfb_dma_tx.req_status =3D DMA_CHAN_NOT_ALLOTED;
++	init_waitqueue_head (&vout->vrfb_dma_tx.wait);
++
++	/*if rotation support */
++	printk (KERN_INFO VOUT_NAME ": registered device video%d
+[v4l2]\n",
++		vfd->minor);
++	return vout;
++
++rotation_sms_free_270:
++	release_mem_region (vout->sms_rot_phy[3], VRF_SIZE);
++rotation_sms_free_180:
++	release_mem_region (vout->sms_rot_phy[2], VRF_SIZE);
++rotation_sms_free_90:
++	release_mem_region (vout->sms_rot_phy[1], VRF_SIZE);
++rotation_sms_free_0:
++	release_mem_region (vout->sms_rot_phy[0], VRF_SIZE);
++
++init_error:
++	video_device_release (vfd);
++	kfree (vout);
++	return NULL;
++}
++
++static int __init
++omap24xxvout_init (void)
++{
++	saved_v1out =3D init_vout_device (OMAP2_VIDEO1);
++	if (saved_v1out =3D=3D NULL)
++		return -ENODEV;
++	omap2_disp_save_initstate(OMAP2_VIDEO1);
++
++	saved_v2out =3D init_vout_device (OMAP2_VIDEO2);
++	if (saved_v2out =3D=3D NULL) {
++		cleanup_vout_device (OMAP2_VIDEO1);
++		return -ENODEV;
++	}
++	omap2_disp_save_initstate(OMAP2_VIDEO2);
++
++	vout_linked =3D -1;
++	spin_lock_init (&vout_link_lock);
++	return 0;
++}
++
++static void
++omap24xxvout_cleanup (void)
++{
++	cleanup_vout_device (OMAP2_VIDEO1);
++	cleanup_vout_device (OMAP2_VIDEO2);
++}
++
++#ifndef MODULE
++/*
++ *	omap24xxvout_setup - process command line options
++ *	@options: string of options
++ *
++ *	NOTE: This function is a __setup and __init function.
++ *
++ *	Returns zero.
++ */
++int __init
++omap24xxvout_setup (char *options)
++{
++	char *this_opt;
++	int i;
++
++	if (!options || !*options)return 0;
++
++	DPRINTK ("Options \"%s\"\n", options);
++	i =3D strlen (VOUT_NAME);
++	if (!strncmp (options, VOUT_NAME, i) && options[i] =3D=3D ':') {
++		this_opt =3D options + i + 1;
++		if (!this_opt || !*this_opt)
++			return 0;
++
++		if (!strncmp (this_opt, "rotation=3D", 9)) {
++			int deg =3D simple_strtoul (this_opt + 9, NULL,
+0);
++			switch (deg) {
++			case 0:
++			case 90:
++			case 180:
++			case 270:
++				rotation_support =3D (deg =3D=3D 90)?270:(deg
+=3D=3D 270)?90:deg;
++			break;
++			default:
++				rotation_support =3D -1;
++			break;
++			}
++			printk (KERN_INFO VOUT_NAME ": Rotation %s\n",
++			(rotation_support =3D=3D -1) ? "none (supported:
+\"rotation=3D[-1|0|90|180|270]\")" :
++			this_opt + 9);
++		}
++		else
++			printk (KERN_INFO VOUT_NAME ": Invalid parameter
+\"%s\" "
++			"(supported: \"rotation=3D[-1|0|90|180|270]\")\n",
+this_opt);
++			return 0;
++	}
++
++	/*
++	 * If we get here no fb was specified.
++	 * We consider the argument to be a global video mode option.
++	 */
++	global_mode_option =3D options;
++	return 0;
++}
++
++__setup ("videoout=3D", omap24xxvout_setup);
++#endif
++
++MODULE_AUTHOR ("Texas Instruments.");
++MODULE_DESCRIPTION ("OMAP24xx Video for Linux Video out driver");
++MODULE_LICENSE ("GPL");
++MODULE_PARM (render_mem, "i");
++MODULE_PARM_DESC (render_mem,
++		  "Maximum rendering memory size (default 1.2MB)");
++
++module_init (omap24xxvout_init);
++module_exit (omap24xxvout_cleanup);
