@@ -1,15 +1,13 @@
 From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: [PATCH] ARM: OMAP2: Camera: Add OMAP2 24xx camera driver.
-Date: Fri, 2 Mar 2007 09:18:08 -0600
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47622854@dlee13.ent.ti.com>
-References: <11726783562347-git-send-email-sakari.ailus@nokia.com>
+Subject: [PATCH] Micron Camera sensor support
+Date: Fri, 2 Mar 2007 09:38:47 -0600
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C4762287D@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-class: urn:content-classes:message
-In-Reply-To: <11726783562347-git-send-email-sakari.ailus@nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,4042 +15,2649 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Sakari Ailus <sakari.ailus@nokia.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Sakari,
+Hi,
 
-I am yet to review this patch completely. One immediate topic that I
-want to bring up is about DMA files. In Jian's code to David and Komal
-he had DMA driver integrated into camera driver and David moved the DMA
-part to new file. Which according to me was an OK one, but in your patch
-set I see around 3 DMA related files. I really don't see a necessity for
-this split.=20
+Here is the patch for micron camera sensor support. This should be
+applied on Top of Trilok's patches for 24xx camera support.
 
-If you really want to clean up the DMA part of it then its better to
-upgrade the dma.c file for OMAP2, the CAM_DMA and system_DMA are same.
-Why not add this functionality there? Or use the existing DMA
-functionality instead of duplicating the code.
+Please let me know if you have any comments.
 
-Also, looking at the future Camera work for 3430 I feel this DMA
-framework is definitely going totally different (FYI there is no
-integrated CAM DMA in ISP). We have to use MMU here and we are looking
-at adopting Trilok's and DOYU-san's MMU framework.
-
-Can you please give some insight into this DMA split?
-
-Thanks & Regards,
+Regards,
 Khasim
-=20
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 
->-----Original Message-----
->From: linux-omap-open-source-bounces+x0khasim=3Dti.com@linux.omap.com
->[mailto:linux-omap-open-source-bounces+x0khasim=3Dti.com@linux.omap.com]=
-
-On
->Behalf Of Sakari Ailus
->Sent: Wednesday, February 28, 2007 9:59 AM
->To: linux-omap-open-source@linux.omap.com
->Subject: [PATCH] ARM: OMAP2: Camera: Add OMAP2 24xx camera driver.
->
->This is a modified version of the camera driver originally from
-Montavista.
->
->Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
->---
-> drivers/media/video/omap/Makefile             |    1 +
-> drivers/media/video/omap/omap24xxcam-core.c   |  202 ++++
-> drivers/media/video/omap/omap24xxcam-dma.c    |  320 +++++++
-> drivers/media/video/omap/omap24xxcam-dma.h    |   65 ++
-> drivers/media/video/omap/omap24xxcam-dmahw.c  |  224 +++++
-> drivers/media/video/omap/omap24xxcam-sensor.c |  226 +++++
-> drivers/media/video/omap/omap24xxcam-sgdma.c  |  298 ++++++
-> drivers/media/video/omap/omap24xxcam-vbq.c    |  370 ++++++++
-> drivers/media/video/omap/omap24xxcam.c        | 1216
->+++++++++++++++++++++++++
-> drivers/media/video/omap/omap24xxcam.h        |  659 +++++++++++++
-> 10 files changed, 3581 insertions(+), 0 deletions(-)
-> create mode 100644 drivers/media/video/omap/omap24xxcam-core.c
-> create mode 100644 drivers/media/video/omap/omap24xxcam-dma.c
-> create mode 100644 drivers/media/video/omap/omap24xxcam-dma.h
-> create mode 100644 drivers/media/video/omap/omap24xxcam-dmahw.c
-> create mode 100644 drivers/media/video/omap/omap24xxcam-sensor.c
-> create mode 100644 drivers/media/video/omap/omap24xxcam-sgdma.c
-> create mode 100644 drivers/media/video/omap/omap24xxcam-vbq.c
-> create mode 100644 drivers/media/video/omap/omap24xxcam.c
-> create mode 100644 drivers/media/video/omap/omap24xxcam.h
->
->diff --git a/drivers/media/video/omap/Makefile
->b/drivers/media/video/omap/Makefile
->index 36ae615..4ca1d1d 100644
->--- a/drivers/media/video/omap/Makefile
->+++ b/drivers/media/video/omap/Makefile
->@@ -4,6 +4,7 @@ obj-$(CONFIG_VIDEO_OMAP_CAMERA) +=3D omapcamera.o
-> obj-$(CONFIG_VIDEO_CAMERA_SENSOR_OV9640) +=3D sensor_ov9640.o
->
-> objs-y$(CONFIG_ARCH_OMAP16XX) +=3D omap16xxcam.o camera_core.o
->+objs-y$(CONFIG_ARCH_OMAP24XX) +=3D omap24xxcam.o omap24xxcam-sgdma.o
->omap24xxcam-dma.o omap24xxcam-dmahw.o omap24xxcam-core.o omap24xxcam-
->sensor.o omap24xxcam-vbq.o
-> objs-y$(CONFIG_MACH_OMAP_H3) +=3D h3_sensor_power.o
-> objs-y$(CONFIG_MACH_OMAP_H4) +=3D h4_sensor_power.o
->
->diff --git a/drivers/media/video/omap/omap24xxcam-core.c
->b/drivers/media/video/omap/omap24xxcam-core.c
->new file mode 100644
->index 0000000..1e30768
->--- /dev/null
->+++ b/drivers/media/video/omap/omap24xxcam-core.c
->@@ -0,0 +1,202 @@
->+/*
->+ * OMAP 24xx camera high-level DMA (not hardware) and scatter-gather
->+ * DMA handling
->+ *
->+ * Author: Andy Lowe (source@mvista.com)
->+ *
->+ * Copyright (C) 2004 MontaVista Software, Inc.
->+ * Copyright (C) 2004 Texas Instruments.
->+ * Copyright (C) 2007 Nokia Corporation.
->+ *
->+ * Contact: Sakari Ailus <sakari.ailus@nokia.com>
->+ *
->+ * This program is free software; you can redistribute it and/or
->+ * modify it under the terms of the GNU General Public License
->+ * version 2 as published by the Free Software Foundation.
->+ *
->+ * This program is distributed in the hope that it will be useful, but
->+ * WITHOUT ANY WARRANTY; without even the implied warranty of
->+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
->+ * General Public License for more details.
->+ *
->+ * You should have received a copy of the GNU General Public License
->+ * along with this program; if not, write to the Free Software
->+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
->+ * 02110-1301 USA
->+ */
->+
->+#include <linux/errno.h>
->+#include <linux/fs.h>
->+#include <linux/kernel.h>
->+#include <linux/vmalloc.h>
->+#include <linux/slab.h>
->+#include <linux/sched.h>
->+#include <linux/smp_lock.h>
->+#include <linux/types.h>
->+#include <linux/wait.h>
->+#include <linux/videodev.h>
->+#include <linux/pci.h>		/* needed for videobufs */
->+#include <media/video-buf.h>
->+#include <linux/dma-mapping.h>
->+#include <linux/input.h>
->+#include <linux/version.h>
->+
->+#include <asm/io.h>
->+#include <asm/byteorder.h>
->+#include <asm/scatterlist.h>
->+#include <asm/irq.h>
->+#include <asm/semaphore.h>
->+
->+#include "omap24xxcam.h"
->+
->+/* Program the camera interface xclk for the frequency cam->img.xclk
-based
->on
->+ * the functional clock frequency cam->img.mclk.  If the specifed cam-
->>img.xclk
->+ * frequency is not possible based on the value of cam->img.mclk, then
-the
->+ * closest xclk frequency lower than the specified xclk will be
-selected.
->+ * The actual xclk frequency is returned in cam->img.xclk.  If cam-
->>img.xclk is zero,
->+ * then xclk is turned off (stable low value).
->+ */
->+
->+void omap24xxcam_core_init(struct omap24xxcam_core *core,
->+			   unsigned long base)
->+{
->+	DBG;
->+
->+	core->base =3D base;
->+
->+	/* Setting the camera core AUTOIDLE bit causes problems with
-frame
->+	 * synchronization, so we will clear the AUTOIDLE bit instead.
->+	 */
->+	//omap24xxcam_reg_out(cam, CC_SYSCONFIG, 0);
->+	omap24xxcam_reg_out(core->base, CC_SYSCONFIG,
-CC_SYSCONFIG_AUTOIDLE);
->+
->+	core->xclk_enabled =3D 0;
->+}
->+
->+void omap24xxcam_core_exit(const struct omap24xxcam_core *core)
->+{
->+}
->+
->+/* Enable the camera core interface. */
->+void omap24xxcam_core_enable(struct omap24xxcam_core *core)
->+{
->+	DBG;
->+
->+	/* program the camera interface DMA packet size */
->+	omap24xxcam_reg_out(core->base, CC_CTRL_DMA,
->+		   CC_CTRL_DMA_EN | (DMA_THRESHOLD / 4 - 1));
->+
->+	/* enable camera core error interrupts */
->+	omap24xxcam_reg_out(core->base, CC_IRQENABLE,
->+		   CC_IRQENABLE_FW_ERR_IRQ | CC_IRQENABLE_FSC_ERR_IRQ
->+		   | CC_IRQENABLE_SSC_ERR_IRQ |
-CC_IRQENABLE_FIFO_OF_IRQ);
->+
->+	/* enable the camera interface */
->+	omap24xxcam_reg_out(core->base, CC_CTRL,
->+		   CC_CTRL_NOBT_SYNCHRO
->+		   | CC_CTRL_PAR_MODE_NOBT8
->+		   | CC_CTRL_CC_EN);
->+
->+	if (core->xclk_enabled)
->+		omap24xxcam_core_xclk_enable(core);
->+}
->+
->+void omap24xxcam_core_disable(struct omap24xxcam_core *core)
->+{
->+	omap24xxcam_reg_out(core->base, CC_CTRL, 0);
->+	omap24xxcam_reg_out(core->base, CC_CTRL, CC_CTRL_CC_RST);
->+}
->+
->+void omap24xxcam_core_enable_callback(struct omap24xxcam_device *cam)
->+{
->+	omap24xxcam_core_enable(&cam->core);
->+}
->+/* reset core fifo and dma */
->+/* void omap24xxcam_core_reset(struct omap24xxcam_device *cam) */
->+/* { */
->+/* 	omap24xxcam_reg_out(cam, CC_CTRL, CC_CTRL_CC_RST); */
->+/* } */
->+
->+/* Interrupt service routine for camera core interrupts. */
->+void omap24xxcam_core_isr(struct omap24xxcam_core *core)
->+{
->+	unsigned long cc_irqstatus;
->+	const unsigned long cc_irqstatus_err =3D
->+		CC_IRQSTATUS_FW_ERR_IRQ
->+		| CC_IRQSTATUS_FSC_ERR_IRQ
->+		| CC_IRQSTATUS_SSC_ERR_IRQ
->+		| CC_IRQSTATUS_FIFO_UF_IRQ
->+		| CC_IRQSTATUS_FIFO_OF_IRQ;
->+
->+	DBG;
->+
->+	cc_irqstatus =3D omap24xxcam_reg_in(core->base, CC_IRQSTATUS);
->+	omap24xxcam_reg_out(core->base, CC_IRQSTATUS, cc_irqstatus);
->+
->+	if (cc_irqstatus & cc_irqstatus_err) {
->+		printk("%s: scheduling camera reset, cc_irqstatus
-0x%lx\n",
->+		       __FUNCTION__, cc_irqstatus);
->+		omap24xxcam_camera_reset_schedule(
->+			container_of(core, struct omap24xxcam_device,
-core));
->+	} else {
->+		if (cc_irqstatus & 0xffff)
->+			printk("%s: cc_irqstatus 0x%lx\n",
->+			       __FUNCTION__, cc_irqstatus);
->+	}
->+
->+}
->+
->+static void xclk_set(struct omap24xxcam_core *core)
->+{
->+	unsigned long divisor =3D core->mclk / core->xclk;
->+
->+	if (core->xclk_enabled) {
->+		if (divisor =3D=3D 1)
->+			omap24xxcam_reg_out(core->base, CC_CTRL_XCLK,
->+				   CC_CTRL_XCLK_DIV_BYPASS);
->+		else
->+			omap24xxcam_reg_out(core->base, CC_CTRL_XCLK,
-divisor);
->+	} else
->+		omap24xxcam_reg_out(core->base, CC_CTRL_XCLK,
->+			   CC_CTRL_XCLK_DIV_STABLE_LOW);
->+
->+}
->+
->+void omap24xxcam_core_xclk_enable(struct omap24xxcam_core *core)
->+{
->+	core->xclk_enabled =3D 1;
->+	xclk_set(core);
->+}
->+
->+void omap24xxcam_core_xclk_disable(struct omap24xxcam_core *core)
->+{
->+
->+	core->xclk_enabled =3D 0;
->+	xclk_set(core);
->+}
->+
->+void omap24xxcam_core_xclk_set(struct omap24xxcam_core *core,
->+			       unsigned long xclk)
->+{
->+	unsigned long divisor;
->+
->+	DBG;
->+
->+	if (xclk > core->mclk)
->+		xclk =3D core->mclk;
->+
->+	divisor =3D core->mclk / xclk;
->+	if (xclk * divisor < core->mclk)
->+		divisor +=3D 1;
->+	if (divisor > 30)
->+		divisor =3D 30;
->+	core->xclk =3D core->mclk / divisor;
->+
->+	xclk_set(core);
->+}
->+
->+void omap24xxcam_core_mclk_set(struct omap24xxcam_core *core,
->+			       unsigned long mclk)
->+{
->+	core->mclk =3D mclk;
->+}
->diff --git a/drivers/media/video/omap/omap24xxcam-dma.c
->b/drivers/media/video/omap/omap24xxcam-dma.c
->new file mode 100644
->index 0000000..d10f1c8
->--- /dev/null
->+++ b/drivers/media/video/omap/omap24xxcam-dma.c
->@@ -0,0 +1,320 @@
->+/*
->+ * drivers/media/video/omap/omap24xxcam-dma.c
->+ *
->+ * Video-for-Linux (Version 2) camera capture driver for
->+ * the OMAP24xx camera controller.
->+ *
->+ * Author: David Cohen <david.cohen@indt.org.br>
->+ * Based on: omap24xxcam.c by Andy Lowe (source@mvista.com)
->+ *
->+ * Copyright (C) 2004 MontaVista Software, Inc.
->+ * Copyright (C) 2004 Texas Instruments.
->+ *
->+ * This file is licensed under the terms of the GNU General Public
+diff -purN linux-omap/drivers/media/video/omap/sensor_ex3691.c
+lin_for_twl/drivers/media/video/omap/sensor_ex3691.c
+--- linux-omap/drivers/media/video/omap/sensor_ex3691.c	1969-12-31
+18:00:00.000000000 -0600
++++ lin_for_twl/drivers/media/video/omap/sensor_ex3691.c
+2007-03-02 09:29:00.000000000 -0600
+@@ -0,0 +1,2516 @@
++/*
++ * drivers/media/video/omap/sensor_ex3691.c
++ *
++ * Copyright (C) 2006 Texas Instruments.
++ *
++ * This file is licensed under the terms of the GNU General Public
 License
->+ * version 2. This program is licensed "as is" without any warranty of
++ * version 2. This program is licensed "as is" without any warranty of
 any
->+ * kind, whether express or implied.
->+ *
->+ * History:
->+ * 2005/nov - David Cohen <david.cohen@indt.org.br>
->+ *            Updated the driver for the Linux Device Model and new
->version of V4L2.
->+ */
->+
->+#include <linux/errno.h>
->+#include <linux/fs.h>
->+#include <linux/kernel.h>
->+#include <linux/vmalloc.h>
->+#include <linux/slab.h>
->+#include <linux/sched.h>
->+#include <linux/smp_lock.h>
->+#include <linux/types.h>
->+#include <linux/wait.h>
->+#include <linux/videodev.h>
->+#include <linux/pci.h>		/* needed for videobufs */
->+#include <media/video-buf.h>
->+#include <linux/dma-mapping.h>
->+#include <linux/input.h>
->+#include <linux/version.h>
->+
->+#include <asm/io.h>
->+#include <asm/byteorder.h>
->+#include <asm/scatterlist.h>
->+#include <asm/irq.h>
->+#include <asm/semaphore.h>
->+
->+#include "omap24xxcam.h"
->+#include "omap24xxcam-dma.h"
->+
->+/* configuration macros */
->+#define CAM_NAME 	"omap24xxcam"
->+#define CONFIG_H4
->+
->+/* Start a DMA transfer from the camera to memory.
->+ * Returns zero if the transfer was successfully started, or non-zero
-if
->all
->+ * DMA channels are already in use or starting is currently inhibited.
->+ */
->+int
->+omap24xxcam_dma_start(struct omap24xxcam_dma *dma, dma_addr_t start,
->+	unsigned long len, dma_callback_t callback, void *arg)
->+{
->+	unsigned long irqflags;
->+	int dmach;
->+	void (*dma_notify)(struct omap24xxcam_device *cam);
->+
->+	DBG;
->+
->+	spin_lock_irqsave(&dma->lock, irqflags);
->+
->+	if (!dma->free_dmach || dma->dma_stop) {
->+		spin_unlock_irqrestore(&dma->lock, irqflags);
->+		DBG_MID(3);
->+		return -EBUSY;
->+	}
->+
->+	dmach =3D dma->next_dmach;
->+
->+	dma->ch_state[dmach].callback =3D callback;
->+	dma->ch_state[dmach].arg =3D arg;
->+
->+	omap24xxcam_dmahw_transfer_setup(dma->base, dmach, start, len);
->+
->+	/* We're ready to start the DMA transfer. */
->+
->+	if (dma->free_dmach < NUM_CAMDMA_CHANNELS) {
->+		/* A transfer is already in progress, so try to chain to
-it. */
->+		omap24xxcam_dmahw_transfer_chain(dma->base, dmach, dma-
->>free_dmach);
->+	}
->+	else {
->+		/* No transfer is in progress, so we'll just start this
-one
->+		 * now.
->+		 */
->+		omap24xxcam_dmahw_transfer_start(dma->base, dmach);
->+	}
->+
->+	dma->next_dmach =3D (dma->next_dmach + 1) % NUM_CAMDMA_CHANNELS;
->+	dma->free_dmach--;
->+
->+	dma_notify =3D dma->dma_notify;
->+	dma->dma_notify =3D NULL;
->+
->+	spin_unlock_irqrestore(&dma->lock, irqflags);
->+
->+	if (dma_notify)
->+		(*dma_notify)(container_of(container_of(dma, struct
->omap24xxcam_sgdma, dma), struct omap24xxcam_device, sgdma));
->+
->+	DBG_END;
->+
->+	return 0;
->+}
->+
->+/* Abort all chained DMA transfers.  After all transfers have been
-aborted
->and
->+ * the DMA controller is idle, the completion routines for any aborted
->transfers
->+ * will be called in sequence.  The DMA controller may not be idle
-after
->this
->+ * routine completes, because the completion routines might start new
->transfers.
->+ */
->+void
->+omap24xxcam_dma_abort(struct omap24xxcam_dma *dma, unsigned long csr)
->+{
->+	unsigned long irqflags;
->+	int dmach, i, free_dmach;
->+	dma_callback_t callback;
->+	void *arg;
->+
->+	DBG;
->+
->+	spin_lock_irqsave(&dma->lock, irqflags);
->+
->+	/* stop any DMA transfers in progress */
->+	dmach =3D (dma->next_dmach + dma->free_dmach) %
-NUM_CAMDMA_CHANNELS;
->+	for (i =3D 0; i < NUM_CAMDMA_CHANNELS; i++) {
->+		omap24xxcam_dmahw_abort_ch(dma->base, dmach);
->+		dmach =3D (dmach + 1) % NUM_CAMDMA_CHANNELS;
->+	}
->+
->+	/* We have to be careful here because the callback routine might
->start
->+	 * a new DMA transfer, and we only want to abort transfers that
-were
->+	 * started before this routine was called.
->+	 */
->+	free_dmach =3D dma->free_dmach;
->+	while ((dma->free_dmach < NUM_CAMDMA_CHANNELS) &&
->+	       (free_dmach < NUM_CAMDMA_CHANNELS)) {
->+		dmach =3D (dma->next_dmach + dma->free_dmach)
->+		    % NUM_CAMDMA_CHANNELS;
->+		callback =3D dma->ch_state[dmach].callback;
->+		arg =3D dma->ch_state[dmach].arg;
->+		dma->free_dmach++;
->+		free_dmach++;
->+		if (callback) {
->+			/* leave interrupts disabled during callback */
->+			spin_unlock(&dma->lock);
->+			(*callback) (dma, csr, arg);
->+			spin_lock(&dma->lock);
->+		}
->+	}
->+
->+	spin_unlock_irqrestore(&dma->lock, irqflags);
->+}
->+
->+/* Abort all chained DMA transfers.  After all transfers have been
-aborted
->and
->+ * the DMA controller is idle, the completion routines for any aborted
->transfers
->+ * will be called in sequence.  If the completion routines attempt to
->start a
->+ * new DMA transfer it will fail, so the DMA controller will be idle
-after
->this
->+ * routine completes.
->+ */
->+void
->+omap24xxcam_dma_stop(struct omap24xxcam_dma *dma, unsigned long csr)
->+{
->+	unsigned long irqflags;
->+
->+	DBG;
->+
->+	spin_lock_irqsave(&dma->lock, irqflags);
->+	dma->dma_stop++;
->+	spin_unlock_irqrestore(&dma->lock, irqflags);
->+	omap24xxcam_dma_abort(dma, csr);
->+	spin_lock_irqsave(&dma->lock, irqflags);
->+	dma->dma_stop--;
->+	spin_unlock_irqrestore(&dma->lock, irqflags);
->+}
->+
->+/* Register a routine to be called once immediately after a DMA
-transfer
->is
->+ * started.  The purpose of this is to allow the camera interface to
-be
->+ * started only after a DMA transaction has been queued in order to
-avoid
->+ * DMA overruns.  The registered callback routine will only be called
-one
->+ * time and then discarded.  Only one callback routine may be
-registered
->at a
->+ * time.
->+ * Returns zero if successful, or a non-zero error code if a different
->callback
->+ * routine has already been registered.
->+ */
->+int
->+omap24xxcam_dma_notify(struct omap24xxcam_dma *dma,
->+		       void (*callback) (struct omap24xxcam_device *
-cam))
->+{
->+	unsigned long irqflags;
->+
->+	DBG;
->+
->+	spin_lock_irqsave(&dma->lock, irqflags);
->+
->+	if (dma->dma_notify && (dma->dma_notify !=3D callback)) {
->+		spin_unlock_irqrestore(&dma->lock, irqflags);
->+		return -EBUSY;
->+	}
->+
->+	dma->dma_notify =3D callback;
->+
->+	spin_unlock_irqrestore(&dma->lock, irqflags);
->+
->+	return 0;
->+}
->+
->+/* Camera DMA interrupt service routine. */
->+void omap24xxcam_dma_isr(struct omap24xxcam_dma *dma)
->+{
->+	int dmach;
->+	dma_callback_t callback;
->+	void *arg;
->+	unsigned long csr;
->+	const unsigned long csr_error =3D CAMDMA_CSR_MISALIGNED_ERR
->+	    | CAMDMA_CSR_SUPERVISOR_ERR | CAMDMA_CSR_SECURE_ERR
->+	    | CAMDMA_CSR_TRANS_ERR | CAMDMA_CSR_DROP;
->+
->+	DBG;
->+
->+	spin_lock(&dma->lock);
->+
->+	if (dma->free_dmach =3D=3D NUM_CAMDMA_CHANNELS) {
->+		/* A camera DMA interrupt occurred while all channels
-are idle,
->+		 * so we'll acknowledge the interrupt in the IRQSTATUS
-register
->+		 * and exit.
->+		 */
->+		omap24xxcam_dmahw_ack_all(dma->base);
->+		spin_unlock(&dma->lock);
->+		return;
->+	}
->+
->+	while (dma->free_dmach < NUM_CAMDMA_CHANNELS) {
->+		dmach =3D (dma->next_dmach + dma->free_dmach)
->+		    % NUM_CAMDMA_CHANNELS;
->+		if (omap24xxcam_dmahw_running(dma->base, dmach)) {
->+			/* This buffer hasn't finished yet, so we're
-done. */
->+			break;
->+		}
->+		csr =3D omap24xxcam_dmahw_ack_ch(dma->base, dmach);
->+		if (csr & csr_error) {
->+			/* A DMA error occurred, so stop all DMA
-transfers in
->+			 * progress.
->+			 */
->+			spin_unlock(&dma->lock);
->+			omap24xxcam_dma_stop(dma, csr);
->+			return;
->+		} else {
->+			callback =3D dma->ch_state[dmach].callback;
->+			arg =3D dma->ch_state[dmach].arg;
->+			dma->free_dmach++;
->+			if (callback) {
->+				spin_unlock(&dma->lock);
->+				(*callback) (dma, csr, arg);
->+				spin_lock(&dma->lock);
->+			}
->+		}
->+	}
->+
->+	spin_unlock(&dma->lock);
->+
->+	omap24xxcam_sgdma_process(container_of(dma, struct
-omap24xxcam_sgdma,
->dma));
->+}
->+
->+void omap24xxcam_dma_init(struct omap24xxcam_dma *dma, unsigned long
-base)
->+{
->+	int ch;
->+
->+	DBG;
->+
->+	/* group all channels on DMA IRQ0 and unmask irq */
->+	spin_lock_init(&dma->lock);
->+	dma->base =3D base;
->+	dma->free_dmach =3D NUM_CAMDMA_CHANNELS;
->+	dma->next_dmach =3D 0;
->+	for (ch =3D 0; ch < NUM_CAMDMA_CHANNELS; ch++) {
->+		dma->ch_state[ch].callback =3D NULL;
->+		dma->ch_state[ch].arg =3D NULL;
->+	}
->+}
->+
->+/* Shutdown the camera DMA driver and controller. */
->+void
->+omap24xxcam_dma_exit(struct omap24xxcam_dma *dma)
->+{
->+	DBG;
->+
->+	omap24xxcam_dma_disable(dma);
->+}
->+
->+void omap24xxcam_dma_enable(struct omap24xxcam_dma *dma)
->+{
->+	unsigned long flags;
->+
->+	spin_lock_irqsave(&dma->lock, flags);
->+
->+	omap24xxcam_dmahw_init(dma->base);
->+	omap24xxcam_dmahw_unmask_irq0(dma->base);
->+
->+	spin_unlock_irqrestore(&dma->lock, flags);
->+}
->+
->+void omap24xxcam_dma_disable(struct omap24xxcam_dma *dma)
->+{
->+	int ch;
->+	unsigned long flags;
->+
->+	spin_lock_irqsave(&dma->lock, flags);
->+
->+	/* Mask all DMA interrupts */
->+	omap24xxcam_dmahw_mask_all(dma->base);
->+
->+	/* disable all DMA channels */
->+	for (ch =3D 0; ch < NUM_CAMDMA_CHANNELS; ch++)
->+		omap24xxcam_dmahw_disable_ch(dma->base, ch);
->+
->+	spin_unlock_irqrestore(&dma->lock, flags);
->+}
->diff --git a/drivers/media/video/omap/omap24xxcam-dma.h
->b/drivers/media/video/omap/omap24xxcam-dma.h
->new file mode 100644
->index 0000000..5898fd9
->--- /dev/null
->+++ b/drivers/media/video/omap/omap24xxcam-dma.h
->@@ -0,0 +1,65 @@
->+/*
->+ * drivers/media/video/omap/omap24xxcam-dma.h
->+ *
->+ * Copyright (C) 2006 Instituto Nokia de Tecnolodia
->+ *
->+ * Author: David Cohen <david.cohen@indt.org.br>
->+ *
->+ * This file is licensed under the terms of the GNU General Public
-License
->+ * version 2. This program is licensed "as is" without any warranty of
-any
->+ * kind, whether express or implied.
->+ */
->+
->+/* sg_dma prototypes */
->+
->+void omap24xxcam_sgdma_process(struct omap24xxcam_sgdma *sgdma);
->+int
->+omap24xxcam_sgdma_queue(struct omap24xxcam_sgdma *sgdma,
->+			const struct scatterlist *sglist, int sglen, int
-len,
->+			 sgdma_callback_t callback, void *arg);
->+void
->+omap24xxcam_sgdma_sync(struct omap24xxcam_sgdma *sgdma, unsigned long
->csr);
->+void omap24xxcam_sgdma_init(struct omap24xxcam_sgdma *sgdma, unsigned
-long
->base);
->+void omap24xxcam_sgdma_exit(struct omap24xxcam_sgdma *sgdma);
->+void omap24xxcam_sgdma_enable(struct omap24xxcam_sgdma *sgdma);
->+void omap24xxcam_sgdma_disable(struct omap24xxcam_sgdma *sgdma);
->+
->+/* dma prototypes */
->+
->+int
->+omap24xxcam_dma_start(struct omap24xxcam_dma *dma, dma_addr_t start,
->+		      unsigned long len, dma_callback_t callback, void
-*arg);
->+void
->+omap24xxcam_dma_abort(struct omap24xxcam_dma *dma, unsigned long csr);
->+void
->+omap24xxcam_dma_stop(struct omap24xxcam_dma *dma, unsigned long csr);
->+int
->+omap24xxcam_dma_notify(struct omap24xxcam_dma *dma,
->+		       void (*callback) (struct omap24xxcam_device *
-cam));
->+void omap24xxcam_dma_isr(struct omap24xxcam_dma *dma);
->+void
->+omap24xxcam_dma_init(struct omap24xxcam_dma *dma, unsigned long base);
->+void
->+omap24xxcam_dma_exit(struct omap24xxcam_dma *dma);
->+void
->+omap24xxcam_dma_enable(struct omap24xxcam_dma *dma);
->+void
->+omap24xxcam_dma_disable(struct omap24xxcam_dma *dma);
->+
->+/* dmahw prototypes */
->+
->+void omap24xxcam_dmahw_ack_all(unsigned long base);
->+unsigned long omap24xxcam_dmahw_ack_ch(unsigned long base, int dmach);
->+int omap24xxcam_dmahw_running(unsigned long base, int dmach);
->+void omap24xxcam_dmahw_transfer_setup(unsigned long base, int dmach,
->+				      dma_addr_t start, unsigned long
-len);
->+void omap24xxcam_dmahw_transfer_chain(unsigned long base, int dmach,
->+				      int free_dmach);
->+void omap24xxcam_dmahw_transfer_start(unsigned long base, int dmach);
->+void
->+omap24xxcam_dmahw_abort_ch(unsigned long base, int dmach);
->+void omap24xxcam_dmahw_mask_all(unsigned long base);
->+void omap24xxcam_dmahw_unmask_irq0(unsigned long base);
->+void omap24xxcam_dmahw_disable_ch(unsigned long base, int ch);
->+void omap24xxcam_dmahw_init(unsigned long base);
->+
->diff --git a/drivers/media/video/omap/omap24xxcam-dmahw.c
->b/drivers/media/video/omap/omap24xxcam-dmahw.c
->new file mode 100644
->index 0000000..21d23db
->--- /dev/null
->+++ b/drivers/media/video/omap/omap24xxcam-dmahw.c
->@@ -0,0 +1,224 @@
->+/*
->+ * drivers/media/video/omap/omap24xxcam-dma.c
->+ *
->+ * Video-for-Linux (Version 2) camera capture driver for
->+ * the OMAP24xx camera controller.
->+ *
->+ * Author: David Cohen <david.cohen@indt.org.br>
->+ * Based on: omap24xxcam.c by Andy Lowe (source@mvista.com)
->+ *
->+ * Copyright (C) 2004 MontaVista Software, Inc.
->+ * Copyright (C) 2004 Texas Instruments.
->+ *
->+ * This file is licensed under the terms of the GNU General Public
-License
->+ * version 2. This program is licensed "as is" without any warranty of
-any
->+ * kind, whether express or implied.
->+ *
->+ * History:
->+ * 2005/nov - David Cohen <david.cohen@indt.org.br>
->+ *            Updated the driver for the Linux Device Model and new
->version of V4L2.
->+ */
->+
->+#include <linux/errno.h>
->+#include <linux/fs.h>
->+#include <linux/kernel.h>
->+#include <linux/vmalloc.h>
->+#include <linux/slab.h>
->+#include <linux/sched.h>
->+#include <linux/smp_lock.h>
->+#include <linux/types.h>
->+#include <linux/wait.h>
->+#include <linux/videodev.h>
->+#include <linux/pci.h>		/* needed for videobufs */
->+#include <media/video-buf.h>
->+#include <linux/dma-mapping.h>
->+#include <linux/input.h>
->+#include <linux/version.h>
->+
->+#include <asm/io.h>
->+#include <asm/byteorder.h>
->+#include <asm/scatterlist.h>
->+#include <asm/irq.h>
->+#include <asm/semaphore.h>
->+
->+#include "omap24xxcam.h"
->+#include "omap24xxcam-dma.h"
->+
->+/* configuration macros */
->+#define CAM_NAME 	"omap24xxcam"
->+#define CONFIG_H4
->+
->+/* Ack all interrupt on CSR and IRQSTATUS_L0 */
->+void omap24xxcam_dmahw_ack_all(unsigned long base)
->+{
->+	unsigned long csr;
->+	int i;
->+
->+	for (i =3D 0; i< 4; ++i) {
->+		csr =3D omap24xxcam_reg_in(base, CAMDMA_CSR(i));
->+		/* ack interrupt in CSR */
->+		omap24xxcam_reg_out(base, CAMDMA_CSR(i), csr);
->+	}
->+	omap24xxcam_reg_out(base, CAMDMA_IRQSTATUS_L0, 0xffffffff);
->+}
->+
->+/* Ack dmach on CSR and IRQSTATUS_L0 */
->+unsigned long omap24xxcam_dmahw_ack_ch(unsigned long base, int dmach)
->+{
->+	unsigned long csr;
->+
->+	csr =3D omap24xxcam_reg_in(base, CAMDMA_CSR(dmach));
->+	/* ack interrupt in CSR */
->+	omap24xxcam_reg_out(base, CAMDMA_CSR(dmach), csr);
->+	/* ack interrupt in IRQSTATUS */
->+	omap24xxcam_reg_out(base, CAMDMA_IRQSTATUS_L0, (1 << dmach));
->+
->+	return csr;
->+}
->+
->+int omap24xxcam_dmahw_running(unsigned long base, int dmach)
->+{
->+	return omap24xxcam_reg_in(base, CAMDMA_CCR(dmach)) &
->CAMDMA_CCR_ENABLE;
->+}
->+
->+void omap24xxcam_dmahw_transfer_setup(unsigned long base, int dmach,
->+			     dma_addr_t start, unsigned long len)
->+{
->+	omap24xxcam_reg_out(base, CAMDMA_CCR(dmach),
->+		       CAMDMA_CCR_SEL_SRC_DST_SYNC
->+		       | CAMDMA_CCR_BS
->+		       | CAMDMA_CCR_DST_AMODE_POST_INC
->+		       | CAMDMA_CCR_SRC_AMODE_POST_INC
->+		       | CAMDMA_CCR_FS
->+		       | CAMDMA_CCR_WR_ACTIVE
->+		       | CAMDMA_CCR_RD_ACTIVE
->+		       | CAMDMA_CCR_SYNCHRO_CAMERA);
->+	omap24xxcam_reg_out(base, CAMDMA_CLNK_CTRL(dmach), 0);
->+	omap24xxcam_reg_out(base, CAMDMA_CEN(dmach), len);
->+	omap24xxcam_reg_out(base, CAMDMA_CFN(dmach), 1);
->+	omap24xxcam_reg_out(base, CAMDMA_CSDP(dmach),
->+		       CAMDMA_CSDP_WRITE_MODE_POSTED
->+		       | CAMDMA_CSDP_DST_BURST_EN_32
->+		       | CAMDMA_CSDP_DST_PACKED
->+		       | CAMDMA_CSDP_SRC_BURST_EN_32
->+		       | CAMDMA_CSDP_SRC_PACKED
->+		       | CAMDMA_CSDP_DATA_TYPE_8BITS);
->+	omap24xxcam_reg_out(base, CAMDMA_CSSA(dmach), 0);
->+	omap24xxcam_reg_out(base, CAMDMA_CDSA(dmach), start);
->+	omap24xxcam_reg_out(base, CAMDMA_CSEI(dmach), 0);
->+	omap24xxcam_reg_out(base, CAMDMA_CSFI(dmach), DMA_THRESHOLD);
->+	omap24xxcam_reg_out(base, CAMDMA_CDEI(dmach), 0);
->+	omap24xxcam_reg_out(base, CAMDMA_CDFI(dmach), 0);
->+	omap24xxcam_reg_out(base, CAMDMA_CSR(dmach),
->+		       CAMDMA_CSR_MISALIGNED_ERR
->+		       | CAMDMA_CSR_SUPERVISOR_ERR
->+		       | CAMDMA_CSR_SECURE_ERR
->+		       | CAMDMA_CSR_TRANS_ERR
->+		       | CAMDMA_CSR_BLOCK
->+		       | CAMDMA_CSR_DROP);
->+	omap24xxcam_reg_out(base, CAMDMA_CICR(dmach),
->+		       CAMDMA_CICR_MISALIGNED_ERR_IE
->+		       | CAMDMA_CICR_SUPERVISOR_ERR_IE
->+		       | CAMDMA_CICR_SECURE_ERR_IE
->+		       | CAMDMA_CICR_TRANS_ERR_IE
->+		       | CAMDMA_CICR_BLOCK_IE
->+		       | CAMDMA_CICR_DROP_IE);
->+}
->+
->+void omap24xxcam_dmahw_transfer_chain(unsigned long base, int dmach,
->+				      int free_dmach)
->+{
->+	int prev_dmach, ch;
->+
->+	if (dmach =3D=3D 0)
->+		prev_dmach =3D NUM_CAMDMA_CHANNELS - 1;
->+	else
->+		prev_dmach =3D dmach - 1;
->+	omap24xxcam_reg_out(base, CAMDMA_CLNK_CTRL(prev_dmach),
->+		       CAMDMA_CLNK_CTRL_ENABLE_LNK | dmach);
->+	/* Did we chain the DMA transfer before the previous one
->+	 * finished?
->+	 */
->+	ch =3D (dmach + free_dmach) % NUM_CAMDMA_CHANNELS;
->+	DBG_MID(1);
->+	while (!(omap24xxcam_reg_in(base, CAMDMA_CCR(ch))
->+		 & CAMDMA_CCR_ENABLE))
->+	{
->+		if (ch =3D=3D dmach) {
->+			/* The previous transfer has ended and this one
->+			 * hasn't started, so we must not have chained
->+			 * to the previous one in time.  We'll have to
->+			 * start it now.
->+			 */
->+			omap24xxcam_dmahw_transfer_start(base, dmach);
->+			break;
->+		} else
->+			ch =3D (ch + 1) % NUM_CAMDMA_CHANNELS;
->+	}
->+	DBG_MID(2);
->+}
->+
->+void omap24xxcam_dmahw_transfer_start(unsigned long base, int dmach)
->+{
->+	omap24xxcam_reg_out(base, CAMDMA_CCR(dmach),
->+		       CAMDMA_CCR_SEL_SRC_DST_SYNC
->+		       | CAMDMA_CCR_BS
->+		       | CAMDMA_CCR_DST_AMODE_POST_INC
->+		       | CAMDMA_CCR_SRC_AMODE_POST_INC
->+		       | CAMDMA_CCR_ENABLE
->+		       | CAMDMA_CCR_FS
->+		       | CAMDMA_CCR_SYNCHRO_CAMERA);
->+}
->+
->+/* Abort all chained DMA transfers.  After all transfers have been
-aborted
->and
->+ * the DMA controller is idle, the completion routines for any aborted
->transfers
->+ * will be called in sequence.  The DMA controller may not be idle
-after
->this
->+ * routine completes, because the completion routines might start new
->transfers.
->+ */
->+void
->+omap24xxcam_dmahw_abort_ch(unsigned long base, int dmach)
->+{
->+	/* mask all interrupts from this channel */
->+	omap24xxcam_reg_out(base, CAMDMA_CICR(dmach), 0);
->+	/* unlink this channel */
->+	omap24xxcam_reg_merge(base, CAMDMA_CLNK_CTRL(dmach), 0,
->+			CAMDMA_CLNK_CTRL_ENABLE_LNK);
->+	/* disable this channel */
->+	omap24xxcam_reg_merge(base, CAMDMA_CCR(dmach), 0,
-CAMDMA_CCR_ENABLE);
->+}
->+
->+/* Mask all DMA interrupts */
->+void omap24xxcam_dmahw_mask_all(unsigned long base)
->+{
->+	omap24xxcam_reg_out(base, CAMDMA_IRQENABLE_L0, 0);
->+	omap24xxcam_reg_out(base, CAMDMA_IRQENABLE_L1, 0);
->+	omap24xxcam_reg_out(base, CAMDMA_IRQENABLE_L2, 0);
->+	omap24xxcam_reg_out(base, CAMDMA_IRQENABLE_L3, 0);
->+}
->+
->+/* group all channels on DMA IRQ0 and unmask irq */
->+void omap24xxcam_dmahw_unmask_irq0(unsigned long base)
->+{
->+	omap24xxcam_reg_out(base, CAMDMA_IRQENABLE_L0, 0xffffffff);
->+	omap24xxcam_reg_out(base, CAMDMA_IRQENABLE_L1, 0);
->+	omap24xxcam_reg_out(base, CAMDMA_IRQENABLE_L2, 0);
->+	omap24xxcam_reg_out(base, CAMDMA_IRQENABLE_L3, 0);
->+}
->+
->+void omap24xxcam_dmahw_disable_ch(unsigned long base, int ch)
->+{
->+	omap24xxcam_reg_out(base, CAMDMA_CCR(ch), 0);
->+}
->+
->+void omap24xxcam_dmahw_init(unsigned long base)
->+{
->+	DBG;
->+	omap24xxcam_reg_out(base, CAMDMA_OCP_SYSCONFIG,
->+		CAMDMA_OCP_SYSCONFIG_MIDLEMODE_FSTANDBY
->+	      | CAMDMA_OCP_SYSCONFIG_SIDLEMODE_FIDLE
->+	      | CAMDMA_OCP_SYSCONFIG_AUTOIDLE);
->+
->+	omap24xxcam_reg_merge(base, CAMDMA_GCR, 0x10,
->+		CAMDMA_GCR_MAX_CHANNEL_FIFO_DEPTH);
->+}
->+
->diff --git a/drivers/media/video/omap/omap24xxcam-sensor.c
->b/drivers/media/video/omap/omap24xxcam-sensor.c
->new file mode 100644
->index 0000000..bde7429
->--- /dev/null
->+++ b/drivers/media/video/omap/omap24xxcam-sensor.c
->@@ -0,0 +1,226 @@
->+/*
->+ * drivers/media/video/omap/omap24xxcam-dma.c
->+ *
->+ * Video-for-Linux (Version 2) camera capture driver for
->+ * the OMAP24xx camera controller.
->+ *
->+ * Author: David Cohen <david.cohen@indt.org.br>
->+ * Based on: omap24xxcam.c by Andy Lowe (source@mvista.com)
->+ *
->+ * Copyright (C) 2004 MontaVista Software, Inc.
->+ * Copyright (C) 2004 Texas Instruments.
->+ *
->+ * This file is licensed under the terms of the GNU General Public
-License
->+ * version 2. This program is licensed "as is" without any warranty of
-any
->+ * kind, whether express or implied.
->+ *
->+ * History:
->+ * 2005/nov - David Cohen <david.cohen@indt.org.br>
->+ *            Updated the driver for the Linux Device Model and new
->version of V4L2.
->+ */
->+
->+#include <linux/errno.h>
->+#include <linux/fs.h>
->+#include <linux/kernel.h>
->+#include <linux/vmalloc.h>
->+#include <linux/slab.h>
->+#include <linux/sched.h>
->+#include <linux/smp_lock.h>
->+#include <linux/types.h>
->+#include <linux/wait.h>
->+#include <linux/videodev.h>
->+#include <linux/pci.h>		/* needed for videobufs */
->+#include <media/video-buf.h>
->+#include <linux/dma-mapping.h>
->+#include <linux/input.h>
->+#include <linux/version.h>
->+
->+#include <asm/io.h>
->+#include <asm/byteorder.h>
->+#include <asm/scatterlist.h>
->+#include <asm/irq.h>
->+#include <asm/semaphore.h>
->+
->+#include "omap24xxcam.h"
->+#include "sensor_if.h"
->+#include "omap24xxcam-dma.h"
->+
->+/* camera driver: initialise sensor */
->+int omap24xxcam_sensor_init(struct omap24xxcam_device *cam)
->+{
->+	int err =3D 0;
->+
->+	if (cam->sensor =3D=3D NULL)
->+		return -ENODEV;
->+
->+	if (cam->sensor_alive)
->+		return 0;
->+
->+	omap24xxcam_clock_on(cam);
->+	omap24xxcam_core_xclk_enable(&cam->core);
->+
->+	/* power up sensor during sensor initialization */
->+	if (cam->sensor->power_on)
->+		cam->sensor->power_on(cam->sensor);
->+
->+	/* initialize the sensor and define a default capture format
-cam-
->>img.pix */
->+	err =3D cam->sensor->init(cam->sensor,
->+				&cam->img.pix,
->+				&omap24xxcam_camera);
->+	if (err) {
->+		printk(KERN_ERR CAM_NAME
->+		       ": cannot initialize sensor, error %d\n", err);
->+		goto out;
->+	}
->+	printk(KERN_INFO "Sensor is %s\n", cam->sensor->name);
->+
->+out:
->+	omap24xxcam_core_xclk_disable(&cam->core);
->+	omap24xxcam_clock_off(cam);
->+
->+	if (cam->sensor->power_off)
->+		cam->sensor->power_off(cam->sensor);
->+
->+	cam->sensor_alive =3D 1;
->+
->+	return err;
->+}
->+
->+void omap24xxcam_sensor_exit(struct omap24xxcam_device *cam)
->+{
->+	if (cam->sensor =3D=3D NULL)
->+		return;
->+	if (!cam->sensor_alive)
->+		return;
->+
->+	omap24xxcam_sensor_disable(cam);
->+	cam->sensor->cleanup(cam->sensor);
->+	cam->sensor_alive =3D 0;
->+}
->+
->+/* Power-up and configure camera sensor */
->+int omap24xxcam_sensor_enable(struct omap24xxcam_device *cam)
->+{
->+	omap24xxcam_clock_on(cam);
->+
->+	/* calculate xclk based on the default capture format and
-default
->+	 * frame rate
->+	 */
->+	omap24xxcam_core_xclk_set(
->+		&cam->core,
->+		cam->sensor->calc_xclk(
->+			cam->sensor,
->+			&cam->img.pix,
->+			&cam->img.cparm.timeperframe));
->+	omap24xxcam_core_xclk_enable(&cam->core);
->+
->+ 	if (cam->sensor->power_on)
->+		cam->sensor->power_on(cam->sensor);
->+
->+	/* program the sensor for the default capture format and rate */
->+	cam->sensor->configure(cam->sensor, &cam->img.pix,
->+			       cam->core.xclk,
-&cam->img.cparm.timeperframe);
->+
->+	return 0;
->+}
->+
->+void omap24xxcam_sensor_disable(struct omap24xxcam_device *cam)
->+{
->+	omap24xxcam_core_xclk_disable(&cam->core);
->+	omap24xxcam_clock_off(cam);
->+	if (cam->sensor->power_off)
->+		cam->sensor->power_off(cam->sensor);
->+}
->+
->+void omap24xxcam_sensor_reset_work(void * data)
->+{
->+	struct omap24xxcam_device *cam =3D (struct omap24xxcam_device
-*)data;
->+
->+	omap24xxcam_sensor_disable(cam);
->+
->+	omap24xxcam_sensor_enable(cam);
->+}
->+
->+void omap24xxcam_sensor_reset_schedule(struct omap_camera *oc,
->+				       struct omap_camera_sensor *os)
->+{
->+	struct omap24xxcam_device *cam =3D oc->priv;
->+
->+	schedule_work(&cam->sensor_reset_work);
->+}
->+
->+EXPORT_SYMBOL(omap24xxcam_sensor_reset_schedule);
->+
->+unsigned long omap24xxcam_sensor_calc_xclk(struct omap24xxcam_device
-*cam,
->+					   struct v4l2_pix_format *pix,
->+					   struct v4l2_fract
-*timeperframe)
->+{
->+	return cam->sensor->calc_xclk(cam->sensor,
->+				      pix,
->+				      timeperframe);
->+}
->+
->+int omap24xxcam_sensor_try_format(struct omap24xxcam_device *cam,
->+				  struct v4l2_pix_format *pix)
->+{
->+	return cam->sensor->try_format(cam->sensor,
->+				       pix);
->+}
->+
->+int omap24xxcam_sensor_set_format(struct omap24xxcam_device *cam,
->+				  struct v4l2_pix_format *pix,
->+				  struct v4l2_fract *timeperframe,
->+				  unsigned long *xclk)
->+{
->+	int err;
->+
->+	if (timeperframe->numerator =3D=3D 0
->+	    || timeperframe->denominator =3D=3D 0)
->+		return -EINVAL;
->+
->+	*xclk =3D cam->sensor->calc_xclk(cam->sensor, pix, timeperframe);
->+
->+	omap24xxcam_core_xclk_set(&cam->core, *xclk);
->+
->+	err =3D cam->sensor->configure(cam->sensor, pix, *xclk,
-timeperframe);
->+
->+	return err;
->+}
->+
->+/* This should be called by the sensor code whenever it's ready */
->+int omap24xxcam_sensor_register(struct omap_camera *oc,
->+				struct omap_camera_sensor *os)
->+{
->+	struct omap24xxcam_device *cam =3D oc->priv;
->+	int rval;
->+
->+	/* the device has not been initialised yet */
->+	if (cam =3D=3D NULL)
->+		return -ENODEV;
->+	if (os =3D=3D NULL)
->+		return -EINVAL;
->+	if (cam->sensor !=3D NULL)
->+		return -EBUSY;
->+
->+	cam->sensor =3D os;
->+	rval =3D omap24xxcam_device_enable(cam);
->+
->+	if (rval)
->+		cam->sensor =3D NULL;
->+	return rval;
->+}
->+
->+EXPORT_SYMBOL(omap24xxcam_sensor_register);
->+
->+void omap24xxcam_sensor_unregister(struct omap_camera *oc,
->+				   struct omap_camera_sensor *os)
->+{
->+	struct omap24xxcam_device *cam =3D oc->priv;
->+
->+	BUG_ON(cam->users !=3D 0);
->+	BUG_ON(cam->sensor =3D=3D NULL);
->+
->+	cam->sensor =3D NULL;
->+}
->+
->+EXPORT_SYMBOL(omap24xxcam_sensor_unregister);
->diff --git a/drivers/media/video/omap/omap24xxcam-sgdma.c
->b/drivers/media/video/omap/omap24xxcam-sgdma.c
->new file mode 100644
->index 0000000..0243a59
->--- /dev/null
->+++ b/drivers/media/video/omap/omap24xxcam-sgdma.c
->@@ -0,0 +1,298 @@
->+/*
->+ * OMAP 24xx camera high-level DMA (not hardware) and scatter-gather
->+ * DMA handling
->+ *
->+ * Author: Andy Lowe (source@mvista.com)
->+ *
->+ * Copyright (C) 2004 MontaVista Software, Inc.
->+ * Copyright (C) 2004 Texas Instruments.
->+ * Copyright (C) 2007 Nokia Corporation.
->+ *
->+ * Contact: Sakari Ailus <sakari.ailus@nokia.com>
->+ *
->+ * This program is free software; you can redistribute it and/or
->+ * modify it under the terms of the GNU General Public License
->+ * version 2 as published by the Free Software Foundation.
->+ *
->+ * This program is distributed in the hope that it will be useful, but
->+ * WITHOUT ANY WARRANTY; without even the implied warranty of
->+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
->+ * General Public License for more details.
->+ *
->+ * You should have received a copy of the GNU General Public License
->+ * along with this program; if not, write to the Free Software
->+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
->+ * 02110-1301 USA
->+ */
->+
->+#include <linux/errno.h>
->+#include <linux/fs.h>
->+#include <linux/kernel.h>
->+#include <linux/vmalloc.h>
->+#include <linux/slab.h>
->+#include <linux/sched.h>
->+#include <linux/smp_lock.h>
->+#include <linux/types.h>
->+#include <linux/wait.h>
->+#include <linux/videodev.h>
->+#include <linux/pci.h>		/* needed for videobufs */
->+#include <media/video-buf.h>
->+#include <linux/dma-mapping.h>
->+#include <linux/input.h>
->+#include <linux/version.h>
->+
->+#include <asm/io.h>
->+#include <asm/byteorder.h>
->+#include <asm/scatterlist.h>
->+#include <asm/irq.h>
->+#include <asm/semaphore.h>
->+
->+#include "omap24xxcam.h"
->+#include "omap24xxcam-dma.h"
->+
->+/*
->+ * Scatter-gather DMA
->+ *
->+ * High-level DMA construct for transferring whole picture frames to
->+ * memory that is discontinuous.
->+ */
->+
->+/* DMA completion routine for the scatter-gather DMA fragments. */
->+static void
->+omap24xxcam_sgdma_callback(struct omap24xxcam_dma *dma, unsigned long
-csr,
->+			    void *arg)
->+{
->+	struct omap24xxcam_sgdma *sgdma =3D
->+		container_of(dma, struct omap24xxcam_sgdma, dma);
->+	int sgslot =3D (int)arg;
->+	struct sgdma_state *sg_state;
->+	const unsigned long csr_error =3D CAMDMA_CSR_MISALIGNED_ERR
->+	    | CAMDMA_CSR_SUPERVISOR_ERR | CAMDMA_CSR_SECURE_ERR
->+	    | CAMDMA_CSR_TRANS_ERR | CAMDMA_CSR_DROP;
->+
->+	DBG;
->+
->+	spin_lock(&sgdma->lock);
->+
->+	/* We got an interrupt, we can remove the timer */
->+	del_timer(&sgdma->reset_timer);
->+
->+	sg_state =3D sgdma->sg_state + sgslot;
->+	if (!sg_state->queued_sglist) {
->+		spin_unlock(&sgdma->lock);
->+		printk(KERN_DEBUG CAM_NAME
->+		       ": sgdma completed when none queued!\n");
->+		return;
->+	}
->+
->+	sg_state->csr |=3D csr;
->+	if (!--sg_state->queued_sglist) {
->+		/* Queue for this sglist is empty, so check to see if
-we're
->+		 * done.
->+		 */
->+		if ((sg_state->next_sglist =3D=3D sg_state->sglen)
->+		    || (sg_state->csr & csr_error)) {
->+			sgdma_callback_t callback =3D sg_state->callback;
->+			void *arg =3D sg_state->arg;
->+			unsigned long sg_csr =3D sg_state->csr;
->+			/* All done with this sglist */
->+			sgdma->free_sgdma++;
->+			if (callback) {
->+				spin_unlock(&sgdma->lock);
->+				(*callback) (sgdma, sg_csr, arg);
->+				return;
->+			}
->+		}
->+	}
->+
->+	spin_unlock(&sgdma->lock);
->+}
->+
->+/* Process the scatter-gather DMA queue by starting queued transfers.
-*/
->+void omap24xxcam_sgdma_process(struct omap24xxcam_sgdma *sgdma)
->+{
->+	unsigned long irqflags;
->+	int queued_sgdma, sgslot;
->+	struct sgdma_state *sg_state;
->+	const unsigned long csr_error =3D CAMDMA_CSR_MISALIGNED_ERR
->+	    | CAMDMA_CSR_SUPERVISOR_ERR | CAMDMA_CSR_SECURE_ERR
->+	    | CAMDMA_CSR_TRANS_ERR | CAMDMA_CSR_DROP;
->+
->+	DBG;
->+
->+	spin_lock_irqsave(&sgdma->lock, irqflags);
->+
->+	queued_sgdma =3D NUM_SG_DMA - sgdma->free_sgdma;
->+	sgslot =3D (sgdma->next_sgdma + sgdma->free_sgdma) % NUM_SG_DMA;
->+	while (queued_sgdma > 0) {
->+		sg_state =3D sgdma->sg_state + sgslot;
->+		while ((sg_state->next_sglist < sg_state->sglen) &&
->+		       !(sg_state->csr & csr_error)) {
->+			const struct scatterlist *sglist;
->+			unsigned int len;
->+
->+			sglist =3D sg_state->sglist +
-sg_state->next_sglist;
->+			/* try to start the next DMA transfer */
->+			if ( sg_state->next_sglist + 1 =3D=3D
-sg_state->sglen ) {
->+				/*
->+				 *  On the last sg, we handle the case
-where
->+				 *  cam->img.pix.sizeimage % PAGE_ALIGN
-!=3D 0
->+				 */
->+				len =3D sg_state->len -
-sg_state->bytes_read;
->+			} else {
->+				len =3D sg_dma_len(sglist);
->+			}
->+
->+			if (omap24xxcam_dma_start(&sgdma->dma,
->sg_dma_address(sglist),
->+						  len,
->+
-omap24xxcam_sgdma_callback,
->+						  (void *)sgslot)) {
->+				/* DMA start failed */
->+				spin_unlock_irqrestore(&sgdma->lock,
-irqflags);
->+				return;
->+			} else {
->+				unsigned long expires;
->+				/* DMA start was successful */
->+				sg_state->next_sglist++;
->+				sg_state->bytes_read +=3D len;
->+				sg_state->queued_sglist++;
->+
->+				/* We start the reset timer */
->+				expires =3D jiffies + HZ;
->+				mod_timer(&sgdma->reset_timer, expires);
->+			}
->+		}
->+		queued_sgdma--;
->+		sgslot =3D (sgslot + 1) % NUM_SG_DMA;
->+	}
->+
->+	spin_unlock_irqrestore(&sgdma->lock, irqflags);
->+	DBG_END;
->+}
->+
->+/* Queue a scatter-gather DMA transfer from the camera to memory.
->+ * Returns zero if the transfer was successfully queued, or
->+ * non-zero if all of the scatter-gather slots are already in use.
->+ */
->+int
->+omap24xxcam_sgdma_queue(struct omap24xxcam_sgdma *sgdma,
->+			const struct scatterlist *sglist, int sglen, int
-len,
->+			 sgdma_callback_t callback, void *arg)
->+{
->+	unsigned long irqflags;
->+	struct sgdma_state *sg_state;
->+
->+	DBG;
->+
->+	if ((sglen < 0) || ((sglen > 0) & !sglist))
->+		return -EINVAL;
->+
->+	spin_lock_irqsave(&sgdma->lock, irqflags);
->+
->+	if (!sgdma->free_sgdma) {
->+		spin_unlock_irqrestore(&sgdma->lock, irqflags);
->+		return -EBUSY;
->+	}
->+
->+	sg_state =3D sgdma->sg_state + sgdma->next_sgdma;
->+
->+	sg_state->sglist =3D sglist;
->+	sg_state->sglen =3D sglen;
->+	sg_state->next_sglist =3D 0;
->+	sg_state->bytes_read =3D 0;
->+	sg_state->len =3D len;
->+	sg_state->queued_sglist =3D 0;
->+	sg_state->csr =3D 0;
->+	sg_state->callback =3D callback;
->+	sg_state->arg =3D arg;
->+
->+	sgdma->next_sgdma =3D (sgdma->next_sgdma + 1) % NUM_SG_DMA;
->+	sgdma->free_sgdma--;
->+
->+	spin_unlock_irqrestore(&sgdma->lock, irqflags);
->+
->+	omap24xxcam_sgdma_process(sgdma);
->+
->+	return 0;
->+}
->+
->+/* Sync scatter-gather DMA by aborting any DMA transfers currently in
->progress.
->+ * Any queued scatter-gather DMA transactions that have not yet been
->started
->+ * will remain queued.  The DMA controller will be idle after this
-routine
->+ * completes.  When the scatter-gather queue is restarted, the next
->+ * scatter-gather DMA transfer will begin at the start of a new
->transaction.
->+ */
->+void
->+omap24xxcam_sgdma_sync(struct omap24xxcam_sgdma *sgdma, unsigned long
-csr)
->+{
->+	unsigned long irqflags;
->+	int sgslot;
->+	struct sgdma_state *sg_state;
->+
->+	DBG;
->+
->+	/* stop any DMA transfers in progress */
->+	omap24xxcam_dma_stop(&sgdma->dma, csr);
->+
->+	spin_lock_irqsave(&sgdma->lock, irqflags);
->+
->+	if (sgdma->free_sgdma < NUM_SG_DMA) {
->+		sgslot =3D (sgdma->next_sgdma + sgdma->free_sgdma) %
-NUM_SG_DMA;
->+		sg_state =3D sgdma->sg_state + sgslot;
->+		if (sg_state->next_sglist !=3D 0) {
->+			/* This DMA transfer was in progress, so abort
-it. */
->+			sgdma_callback_t callback =3D sg_state->callback;
->+			void *arg =3D sg_state->arg;
->+			sgdma->free_sgdma++;
->+			if (callback) {
->+				/* leave interrupts masked */
->+				spin_unlock(&sgdma->lock);
->+				(*callback) (sgdma, csr, arg);
->+				spin_lock(&sgdma->lock);
->+			}
->+		}
->+	}
->+
->+	spin_unlock_irqrestore(&sgdma->lock, irqflags);
->+}
->+
->+
->+void omap24xxcam_sgdma_init(struct omap24xxcam_sgdma *sgdma, unsigned
-long
->base)
->+{
->+	int sg;
->+
->+	DBG;
->+
->+	spin_lock_init(&sgdma->lock);
->+	sgdma->free_sgdma =3D NUM_SG_DMA;
->+	sgdma->next_sgdma =3D 0;
->+	for (sg =3D 0; sg < NUM_SG_DMA; sg++) {
->+		sgdma->sg_state[sg].sglen =3D 0;
->+		sgdma->sg_state[sg].next_sglist =3D 0;
->+		sgdma->sg_state[sg].bytes_read =3D 0;
->+		sgdma->sg_state[sg].queued_sglist =3D 0;
->+		sgdma->sg_state[sg].csr =3D 0;
->+		sgdma->sg_state[sg].callback =3D NULL;
->+		sgdma->sg_state[sg].arg =3D NULL;
->+	}
->+
->+	omap24xxcam_dma_init(&sgdma->dma, base);
->+}
->+
->+void omap24xxcam_sgdma_exit(struct omap24xxcam_sgdma *sgdma)
->+{
->+	omap24xxcam_sgdma_sync(sgdma, CAMDMA_CSR_TRANS_ERR);
->+	omap24xxcam_dma_exit(&sgdma->dma);
->+}
->+
->+void omap24xxcam_sgdma_enable(struct omap24xxcam_sgdma *sgdma)
->+{
->+	omap24xxcam_dma_enable(&sgdma->dma);
->+	omap24xxcam_sgdma_process(sgdma);
->+}
->+
->+void omap24xxcam_sgdma_disable(struct omap24xxcam_sgdma *sgdma)
->+{
->+	omap24xxcam_sgdma_sync(sgdma, CAMDMA_CSR_TRANS_ERR);
->+	omap24xxcam_dma_disable(&sgdma->dma);
->+}
->diff --git a/drivers/media/video/omap/omap24xxcam-vbq.c
->b/drivers/media/video/omap/omap24xxcam-vbq.c
->new file mode 100644
->index 0000000..f6d8803
->--- /dev/null
->+++ b/drivers/media/video/omap/omap24xxcam-vbq.c
->@@ -0,0 +1,370 @@
->+/*
->+ * OMAP 24xx camera high-level DMA (not hardware) and scatter-gather
->+ * DMA handling
->+ *
->+ * Author: Andy Lowe (source@mvista.com)
->+ *
->+ * Copyright (C) 2004 MontaVista Software, Inc.
->+ * Copyright (C) 2004 Texas Instruments.
->+ * Copyright (C) 2007 Nokia Corporation.
->+ *
->+ * Contact: Sakari Ailus <sakari.ailus@nokia.com>
->+ *
->+ * This program is free software; you can redistribute it and/or
->+ * modify it under the terms of the GNU General Public License
->+ * version 2 as published by the Free Software Foundation.
->+ *
->+ * This program is distributed in the hope that it will be useful, but
->+ * WITHOUT ANY WARRANTY; without even the implied warranty of
->+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
->+ * General Public License for more details.
->+ *
->+ * You should have received a copy of the GNU General Public License
->+ * along with this program; if not, write to the Free Software
->+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
->+ * 02110-1301 USA
->+ */
->+
->+#include <linux/errno.h>
->+#include <linux/fs.h>
->+#include <linux/kernel.h>
->+#include <linux/vmalloc.h>
->+#include <linux/slab.h>
->+#include <linux/sched.h>
->+#include <linux/smp_lock.h>
->+#include <linux/types.h>
->+#include <linux/wait.h>
->+#include <linux/videodev.h>
->+#include <linux/pci.h>		/* needed for videobufs */
->+#include <media/video-buf.h>
->+#include <linux/dma-mapping.h>
->+#include <linux/input.h>
->+#include <linux/version.h>
->+
->+#include <asm/io.h>
->+#include <asm/byteorder.h>
->+#include <asm/scatterlist.h>
->+#include <asm/irq.h>
->+#include <asm/semaphore.h>
->+
->+#include "omap24xxcam.h"
->+#include "omap24xxcam-dma.h"
->+
->+static void
->+omap24xxcam_vbq_free_mmap_buffer(struct videobuf_buffer *vb)
->+{
->+	int i;
->+	size_t alloc_size;
->+	struct page *page;
->+
->+	if (vb->dma.sglist =3D=3D NULL)
->+		return;
->+
->+	i =3D vb->dma.sglen;
->+	while (i) {
->+		i--;
->+		alloc_size =3D vb->dma.sglist[i].length;
->+		page =3D vb->dma.sglist[i].page;
->+		do {
->+			ClearPageReserved(page++);
->+		} while (alloc_size -=3D PAGE_SIZE);
->+		__free_pages(vb->dma.sglist[i].page,
->+			     get_order(vb->dma.sglist[i].length));
->+	}
->+
->+	kfree(vb->dma.sglist);
->+	vb->dma.sglist =3D NULL;
->+}
->+
->+/* Allocate physically as contiguous as possible buffer for video
-frame
->and
->+ * build DMA scatter-gather list for it
->+ */
->+static int
->+omap24xxcam_vbq_alloc_mmap_buffer(struct videobuf_buffer *vb)
->+{
->+	unsigned long order;
->+	size_t alloc_size, size =3D vb->bsize; /* vb->bsize is page
-aligned */
->+	struct page *page;
->+	int max_pages, err =3D 0, i =3D 0;
->+
->+	/* allocate maximum size scatter-gather list. Note this is
-overhead.
->We
->+	 * may not use as many entries as we allocate */
->+	max_pages =3D vb->bsize >> PAGE_SHIFT;
->+	vb->dma.sglist =3D kcalloc(max_pages, sizeof(*vb->dma.sglist),
->GFP_KERNEL);
->+	if (vb->dma.sglist =3D=3D NULL) {
->+		err =3D -ENOMEM;
->+		goto out;
->+	}
->+
->+	while (size) {
->+		order =3D get_order(size);
->+		/* do not over-allocate even if we would get larger
-contiguous
->+		 * chunk that way */
->+		if ((PAGE_SIZE << order) > size)
->+			order--;
->+
->+		/* try to allocate as many contiguous pages as possible
-*/
->+		page =3D alloc_pages(GFP_KERNEL | GFP_DMA, order);
->+		/* if allocation fails, try to allocate smaller amount
-*/
->+		while (page =3D=3D NULL) {
->+			order--;
->+			page =3D alloc_pages(GFP_KERNEL | GFP_DMA, order);
->+			if (page =3D=3D NULL && !order) {
->+				err =3D -ENOMEM;
->+				goto out;
->+			}
->+		}
->+		size -=3D (PAGE_SIZE << order);
->+
->+		/* append allocated chunk of pages into scatter-gather
++ * kind, whether express or implied.
++ *
++ * TI EX3691 (also known as Micron MT9D111) camera SOC driver. It
+implements
++ * the sensor interface defined in sensor_if.h.
++ *
++ * March 2006 - v2. Added crop support for digital zoom & view finder.
++ */
++
++#include <linux/module.h>
++#include <linux/errno.h>
++#include <linux/i2c.h>
++#include <linux/videodev.h>
++#include <linux/sched.h>
++#include <media/video-buf.h>
++#include <linux/delay.h>
++#include <asm/mach-types.h>
++#include <asm/arch/gpio.h>
++#include <asm/arch/clock.h>
++#ifdef CONFIG_MACH_OMAP_2430SDP
++#include <asm/arch/twl4030.h>
++#endif
++
++#include "sensor_if.h"
++#include "ex3691.h"
++
++#ifdef CONFIG_VIDEO_OMAP24XX_CAMERA_EX3691
++//#define EX3691_DEBUG
++#define EX3691_REG_DUMP
++
++#define MOD_NAME "EX3691:"
++
++#ifdef EX3691_DEBUG
++#define DPRINTK(format,...)\
++	printk(KERN_ERR MOD_NAME format "\n", ## __VA_ARGS__)
++#else
++#define DPRINTK(format,...)
++#endif
++
++#ifdef EX3691_REG_DUMP
++void dump_key_ex3691_regs(void *priv);
++#endif
++
++/* Board specific code. Currently the only supported board is
+OMAP2430SDP.
++ * This code can be moved to a board file.
++ */
++#ifdef CONFIG_MACH_OMAP_2430SDP
++/* The EX3691 I2C camera chip has a fixed slave address of 0x48 or 0x5D
++   depending on SADDR is LOW or HIGH. It is 0x48 on 2430SDP. */
++#define EX3691_I2C_ADDR		0x48
++
++#define CAMERA_STANDBY_GPIO 	32
++#define CAMERA_RESET_GPIO  	128
++#define MENELAUS_I2C_ADAP_ID   	0
++
++#define VAUX3_2_8_V			0x03
++#define VAUX3_DEV_GRP_P1		0x20
++#define VAUX3_DEV_GRP_NONE	0x00
++
++static int
++board_init(void)
++{
++#ifdef CONFIG_TWL4030_CORE_M1
++	struct i2c_adapter *adap;
++	struct i2c_msg msg[1];
++	unsigned char data[2];
++
++	adap =3D i2c_get_adapter(MENELAUS_I2C_ADAP_ID);
++	if (!adap) {
++		DPRINTK("Unable to get I2C adapter");
++		return -EIO;
++	}
++	msg->addr =3D 0x72;/* I2C address of Menelaus Chip */
++	msg->flags =3D 0;
++	msg->len =3D 2;
++	msg->buf =3D data;
++	data[0] =3D 0x0A; /*  */
++	data[1] =3D 0xB5;	/* Set VAUX power rail to 2.8V */
++	if (i2c_transfer(adap, msg, 1) > 2) {
++		return -EIO;
++	}
++	data[0] =3D 0x0F; /*  */
++	data[1] =3D 0x03;	/* Enable bits for the 2.8V VAUX power rail */
++	if (i2c_transfer(adap, msg, 1) > 2) {
++		return -EIO;
++	}
++#elif defined(CONFIG_TWL4030_CORE_T2)
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECIEVER,
++		VAUX3_2_8_V, TWL4030_VAUX3_DEDICATED);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECIEVER,
++		VAUX3_DEV_GRP_P1,TWL4030_VAUX3_DEV_GRP);
++#elif
++#error "no power companion board defined!"
++#endif
++
++	/* Request and configure gpio pins */
++	if (omap_request_gpio(CAMERA_STANDBY_GPIO) !=3D 0)
++		return -EIO;
++	/* set to output mode */
++	omap_set_gpio_direction(CAMERA_STANDBY_GPIO,
+OMAP24XX_DIR_OUTPUT);
++	if (omap_request_gpio(CAMERA_RESET_GPIO) !=3D 0) {
++		omap_free_gpio(CAMERA_STANDBY_GPIO);
++		return -EIO;
++	}
++	/* set to output mode */
++	omap_set_gpio_direction(CAMERA_RESET_GPIO, OMAP24XX_DIR_OUTPUT);
++
++ 	/* disable STANDBY */
++ 	omap_set_gpio_dataout(CAMERA_STANDBY_GPIO, 0);
++
++ 	/* have to put sensor to reset to guarantee detection */
++ 	omap_set_gpio_dataout(CAMERA_RESET_GPIO, 0);
++	udelay(100);
++
++	/* nRESET is active LOW. set HIGH to release reset */
++ 	omap_set_gpio_dataout(CAMERA_RESET_GPIO, 1);
++	/* give sensor sometime to get out of the reset */
++	udelay(500);
++
++	return 0;
++}
++
++static void
++board_cleanup(void)
++{
++#ifdef CONFIG_TWL4030_CORE_M1
++	struct i2c_adapter *adap;
++	struct i2c_msg msg[1];
++	unsigned char data[2];
++
++	adap =3D i2c_get_adapter(MENELAUS_I2C_ADAP_ID);
++	if (!adap) {
++		DPRINTK("Unable to get I2C adapter");
++		return;
++	}
++	msg->addr =3D 0x72;/* I2C address of Menelaus Chip */
++	msg->flags =3D 0;
++	msg->len =3D 2;
++	msg->buf =3D data;
++	data[0] =3D 0x0F; /*  */
++	data[1] =3D 0x00;	/* Disable bits for the VAUX power rail */
++	i2c_transfer(adap, msg, 1);
++#elif defined(CONFIG_TWL4030_CORE_T2)
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECIEVER,
++		VAUX3_DEV_GRP_NONE,TWL4030_VAUX3_DEV_GRP);
++#elif
++#error "no power companion board defined!"
++#endif
++
++	omap_free_gpio(CAMERA_STANDBY_GPIO);
++	omap_free_gpio(CAMERA_RESET_GPIO);
++}
++
++static void
++board_exit_standby(void)
++{
++ 	omap_set_gpio_dataout(CAMERA_STANDBY_GPIO, 0);
++}
++static void
++board_enter_standby(void)
++{
++	omap_set_gpio_dataout(CAMERA_STANDBY_GPIO, 1);
++}
++#endif  /* CONFIG_MACH_OMAP_2430SDP */
++
++#define EX3691_DEF_MCLK_MHZ	40
++#define EX3691_MAX_MCLK_MHZ	80
++#define EX3691_XCLK_HZ		24000000
++
++#define EX3691_MIN_FPS		10
++#define EX3691_DEF_FPS		15   /* At 40MHz mclk */
++#define EX3691_MAX_FPS		30   /* At 80MHz mclk */
++
++#define QCIF_WIDTH		176
++#define QCIF_HEIGHT		144
++#define QVGA_WIDTH		320
++#define QVGA_HEIGHT		240
++#define SVGA_WIDTH		800
++#define SVGA_HEIGHT		600
++#define UXGA_WIDTH		1600
++#define UXGA_HEIGHT		1200
++
++#define EX3691_I2C_DELAY	3  /* msec delay b/w accesses */
++
++static struct ex3691_sensor {
++	/* I2C parameters */
++	struct i2c_client client;
++	struct i2c_driver driver;
++
++	int ver; 	/* SOC version */
++	int mclk; 	/* sensor master clock in MHz */
++
++	unsigned long width_a;
++	unsigned long height_a;
++	int pfmt_a;
++	int swapbyte_a;
++	struct v4l2_rect crop_rect_a;
++	unsigned long width_b;
++	unsigned long height_b;
++	int pfmt_b;
++	int swapbyte_b;
++	struct v4l2_rect crop_rect_b;
++} ex3691;
++
++/* list of image formats supported by the sensor driver */
++const static struct v4l2_fmtdesc ex3691_formats[] =3D {
++	{
++		/* Note:  V4L2 defines RGB565 as:
++		 *
++		 *	Byte 0			  Byte 1
++		 *	g2 g1 g0 r4 r3 r2 r1 r0	  b4 b3 b2 b1 b0 g5 g4
+g3
++		 *
++		 * We interpret RGB565 as:
++		 *
++		 *	Byte 0			  Byte 1
++		 *	g2 g1 g0 b4 b3 b2 b1 b0	  r4 r3 r2 r1 r0 g5 g4
+g3
++		 */
++		.description	=3D "RGB565, le",
++		.pixelformat	=3D V4L2_PIX_FMT_RGB565,
++	},{
++		/* Note:  V4L2 defines RGB565X as:
++		 *
++		 *	Byte 0			  Byte 1
++		 *	b4 b3 b2 b1 b0 g5 g4 g3	  g2 g1 g0 r4 r3 r2 r1
+r0
++		 *
++		 * We interpret RGB565X as:
++		 *
++		 *	Byte 0			  Byte 1
++		 *	r4 r3 r2 r1 r0 g5 g4 g3	  g2 g1 g0 b4 b3 b2 b1
+b0
++		 */
++		.description	=3D "RGB565, be",
++		.pixelformat	=3D V4L2_PIX_FMT_RGB565X,
++	},
++	{
++		.description	=3D "YUYV (YUV 4:2:2), packed",
++		.pixelformat	=3D V4L2_PIX_FMT_YUYV,
++	},{
++		.description	=3D "UYVY, packed",
++		.pixelformat	=3D V4L2_PIX_FMT_UYVY,
++	},
++	{
++		/* Note:  V4L2 defines RGB555 as:
++		 *
++		 *	Byte 0			  Byte 1
++		 *	g2 g1 g0 r4 r3 r2 r1 r0	  x  b4 b3 b2 b1 b0 g4
+g3
++		 *
++		 * We interpret RGB555 as:
++		 *
++		 *	Byte 0			  Byte 1
++		 *	g2 g1 g0 b4 b3 b2 b1 b0	  x  r4 r3 r2 r1 r0 g4
+g3
++		 */
++		.description	=3D "RGB555, le",
++		.pixelformat	=3D V4L2_PIX_FMT_RGB555,
++	},{
++		/* Note:  V4L2 defines RGB555X as:
++		 *
++		 *	Byte 0			  Byte 1
++		 *	x  b4 b3 b2 b1 b0 g4 g3	  g2 g1 g0 r4 r3 r2 r1
+r0
++		 *
++		 * We interpret RGB555X as:
++		 *
++		 *	Byte 0			  Byte 1
++		 *	x  r4 r3 r2 r1 r0 g4 g3	  g2 g1 g0 b4 b3 b2 b1
+b0
++		 */
++		.description	=3D "RGB555, be",
++		.pixelformat	=3D V4L2_PIX_FMT_RGB555X,
++	}
++};
++#define NUM_CAPTURE_FORMATS
+(sizeof(ex3691_formats)/sizeof(ex3691_formats[0]))
++
++/* define a structure for EX3691 register initialization values */
++struct ex3691_reg {
++	u8	page;	/* page number */
++	u8 	reg;	/* 8-bit offset */
++	u16 	val;	/* 16-bit value */
++};
++
++enum pixel_format {RGB565, RGB565X, RGB555, RGB555X, YUYV, UYVY};
++#define NUM_PIXEL_FORMATS 6
++
++#define EX3691_TOK_TERM 	0xFF	/* terminating token for reg
 list */
->+		vb->dma.sglist[i].page =3D page;
->+		vb->dma.sglist[i].length =3D (PAGE_SIZE << order);
->+		vb->dma.sglen++;
->+		i++;
->+
->+		alloc_size =3D (PAGE_SIZE << order);
->+
->+		/* clear pages before giving them to user space */
->+		memset(page_address(page), 0, alloc_size);
->+
->+		/* mark allocated pages reserved */
->+		do {
->+			SetPageReserved(page++);
->+		} while (alloc_size -=3D PAGE_SIZE);
->+	}
->+	/* REVISIT: not fully correct to assign nr_pages =3D=3D sglen but
-video-
->buf
->+	 * is passing nr_pages for e.g. unmap_sg calls */
->+	vb->dma.nr_pages =3D vb->dma.sglen;
->+	vb->dma.direction =3D PCI_DMA_FROMDEVICE;
->+
->+	return 0;
->+
->+out:
->+	omap24xxcam_vbq_free_mmap_buffer(vb);
->+	return err;
->+}
->+
->+int
->+omap24xxcam_vbq_alloc_mmap_buffers(struct videobuf_queue *vbq,
->+				   unsigned int count)
->+{
->+	int i, err =3D 0;
->+
->+	mutex_lock(&vbq->lock);
->+	for (i =3D 0; i < count; i++) {
->+		err =3D omap24xxcam_vbq_alloc_mmap_buffer(vbq->bufs[i]);
->+		if (err)
->+			goto out;
->+		printk("%s: sglen is %d for buffer %d\n",
->+		       __FUNCTION__, vbq->bufs[i]->dma.sglen, i);
->+	}
->+	mutex_unlock(&vbq->lock);
->+
->+	return 0;
->+out:
->+	while (i) {
->+		i--;
->+		omap24xxcam_vbq_free_mmap_buffer(vbq->bufs[i]);
->+	}
->+	mutex_unlock(&vbq->lock);
->+
->+	return err;
->+}
->+
->+/* This routine is called from interrupt context when a scatter-gather
-DMA
->+ * transfer of a videobuf_buffer completes.
->+ */
->+void
->+omap24xxcam_vbq_complete(struct omap24xxcam_sgdma *sgdma, unsigned
-long
->csr,
->+			 void *arg)
->+{
->+	struct omap24xxcam_device *cam =3D
->+		container_of(sgdma, struct omap24xxcam_device, sgdma);
->+	struct omap24xxcam_capture *capture =3D &cam->capture;
->+	struct videobuf_buffer *vb =3D (struct videobuf_buffer *)arg;
->+	const unsigned long csr_error =3D CAMDMA_CSR_MISALIGNED_ERR
->+	    | CAMDMA_CSR_SUPERVISOR_ERR | CAMDMA_CSR_SECURE_ERR
->+	    | CAMDMA_CSR_TRANS_ERR | CAMDMA_CSR_DROP;
->+
->+	DBG;
->+
->+	spin_lock(&capture->lock);
->+
->+	do_gettimeofday(&vb->ts);
->+	vb->field_count =3D capture->field_count;
->+	capture->field_count +=3D 2;
->+	if (csr & csr_error) {
->+		vb->state =3D STATE_ERROR;
->+		printk(KERN_INFO "%s: scheduling camera reset, csr
-0x%lx\n",
->+		       __FUNCTION__, csr);
->+		omap24xxcam_camera_reset_schedule(cam);
->+	} else
->+		vb->state =3D STATE_DONE;
->+	wake_up(&vb->done);
->+	spin_unlock(&capture->lock);
->+}
->+
->+void
->+omap24xxcam_vbq_release(struct videobuf_queue *vbq, struct
-videobuf_buffer
->*vb)
->+{
->+	struct videobuf_dmabuf *dma =3D &vb->dma;
->+	DBG;
->+
->+	videobuf_waiton(vb, 0, 0);
->+	if (vb->memory =3D=3D V4L2_MEMORY_MMAP) {
->+		dma_unmap_sg(vbq->dev, dma->sglist, dma->sglen,
->+			     dma->direction);
->+		dma->direction =3D PCI_DMA_NONE;
->+		omap24xxcam_vbq_free_mmap_buffer(vb);
->+	} else {
->+		videobuf_dma_unmap(vbq, &vb->dma);
->+		videobuf_dma_free(&vb->dma);
->+	}
->+
->+	vb->state =3D STATE_NEEDS_INIT;
->+}
->+
->+/* Limit the number of available kernel image capture buffers based on
++#define EX3691_TOK_DELAY	100	/* delay token for reg list */
++
++/* The following EX3691 commands are generated by DevWare. To keep the
+original
++   format, we don't convert the C++ comment */
++/* EX3691 SOC register initialization for all image sizes, pixel
+formats
++ */
++const static struct ex3691_reg initial_list[]=3D {
++	{0, 0x33, 0x0343 	}, // RESERVED_CORE_33
++		{1, 0xC6, 0xA115	}, //SEQ_LLMODE
++	{1, 0xC8, 0x0020	}, //SEQ_LLMODE
++	{0, 0x38, 0x0866 	}, // RESERVED_CORE_38
++	{EX3691_TOK_DELAY, 0x00, 0x0064 }, // Delay =3D100ms
++	{2, 0x80, 0x0168 	}, // LENS_CORRECTION_CONTROL
++	{2, 0x81, 0x6432 	}, // ZONE_BOUNDS_X1_X2
++	{2, 0x82, 0x3296 	}, // ZONE_BOUNDS_X0_X3
++	{2, 0x83, 0x9664 	}, // ZONE_BOUNDS_X4_X5
++	{2, 0x84, 0x5028 	}, // ZONE_BOUNDS_Y1_Y2
++	{2, 0x85, 0x2878 	}, // ZONE_BOUNDS_Y0_Y3
++	{2, 0x86, 0x7850 	}, // ZONE_BOUNDS_Y4_Y5
++	{2, 0x87, 0x0000 	}, // CENTER_OFFSET
++	{2, 0x88, 0x0152 	}, // FX_RED
++	{2, 0x89, 0x015C 	}, // FX_GREEN
++	{2, 0x8A, 0x00F4 	}, // FX_BLUE
++	{2, 0x8B, 0x0108 	}, // FY_RED
++	{2, 0x8C, 0x00FA 	}, // FY_GREEN
++	{2, 0x8D, 0x00CF 	}, // FY_BLUE
++	{2, 0x8E, 0x09AD 	}, // DF_DX_RED
++	{2, 0x8F, 0x091E 	}, // DF_DX_GREEN
++	{2, 0x90, 0x0B3F 	}, // DF_DX_BLUE
++	{2, 0x91, 0x0C85 	}, // DF_DY_RED
++	{2, 0x92, 0x0CFF 	}, // DF_DY_GREEN
++	{2, 0x93, 0x0D86 	}, // DF_DY_BLUE
++	{2, 0x94, 0x163A 	}, // SECOND_DERIV_ZONE_0_RED
++	{2, 0x95, 0x0E47 	}, // SECOND_DERIV_ZONE_0_GREEN
++	{2, 0x96, 0x103C 	}, // SECOND_DERIV_ZONE_0_BLUE
++	{2, 0x97, 0x1D35 	}, // SECOND_DERIV_ZONE_1_RED
++	{2, 0x98, 0x173E 	}, // SECOND_DERIV_ZONE_1_GREEN
++	{2, 0x99, 0x1119 	}, // SECOND_DERIV_ZONE_1_BLUE
++	{2, 0x9A, 0x1663 	}, // SECOND_DERIV_ZONE_2_RED
++	{2, 0x9B, 0x1569 	}, // SECOND_DERIV_ZONE_2_GREEN
++	{2, 0x9C, 0x104C 	}, // SECOND_DERIV_ZONE_2_BLUE
++	{2, 0x9D, 0x1015 	}, // SECOND_DERIV_ZONE_3_RED
++	{2, 0x9E, 0x1010 	}, // SECOND_DERIV_ZONE_3_GREEN
++	{2, 0x9F, 0x0B0A 	}, // SECOND_DERIV_ZONE_3_BLUE
++	{2, 0xA0, 0x0D53 	}, // SECOND_DERIV_ZONE_4_RED
++	{2, 0xA1, 0x0D51 	}, // SECOND_DERIV_ZONE_4_GREEN
++	{2, 0xA2, 0x0A44 	}, // SECOND_DERIV_ZONE_4_BLUE
++	{2, 0xA3, 0x1545 	}, // SECOND_DERIV_ZONE_5_RED
++	{2, 0xA4, 0x1643 	}, // SECOND_DERIV_ZONE_5_GREEN
++	{2, 0xA5, 0x1231 	}, // SECOND_DERIV_ZONE_5_BLUE
++	{2, 0xA6, 0x0047 	}, // SECOND_DERIV_ZONE_6_RED
++	{2, 0xA7, 0x035C 	}, // SECOND_DERIV_ZONE_6_GREEN
++	{2, 0xA8, 0xFE30 	}, // SECOND_DERIV_ZONE_6_BLUE
++	{2, 0xA9, 0x4625 	}, // SECOND_DERIV_ZONE_7_RED
++	{2, 0xAA, 0x47F3 	}, // SECOND_DERIV_ZONE_7_GREEN
++	{2, 0xAB, 0x5859 	}, // SECOND_DERIV_ZONE_7_BLUE
++	{2, 0xAC, 0x0000 	}, // X2_FACTORS
++	{2, 0xAD, 0x0000 	}, // GLOBAL_OFFSET_FXY_FUNCTION
++	{2, 0xAE, 0x0000 	}, // K_FACTOR_IN_K_FX_FY
++	{1, 0x08, 0x01FC 	}, // COLOR_PIPELINE_CONTROL
++	{EX3691_TOK_DELAY, 0x00, 0x0064 }, // Delay =3D100ms
++	{1, 0xBE, 0x0004 	}, // YUV_YCBCR_CONTROL
++	{0, 0x65, 0xA000 	}, // CLOCK_ENABLING
++	{EX3691_TOK_DELAY, 0x00, 0x0064 }, // Delay =3D100ms
++	{1, 0xC6, 0x104C 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x0000 	}, // MCU_DATA_0
++	{1, 0xC6, 0x0400 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x3736 	}, // MCU_DATA_0
++	{1, 0xC9, 0x3C3C 	}, // MCU_DATA_1
++	{1, 0xCA, 0x3C3C 	}, // MCU_DATA_2
++	{1, 0xCB, 0x30EC 	}, // MCU_DATA_3
++	{1, 0xCC, 0x08BD 	}, // MCU_DATA_4
++	{1, 0xCD, 0xA1B6 	}, // MCU_DATA_5
++	{1, 0xCE, 0xD6A9 	}, // MCU_DATA_6
++	{1, 0xCF, 0xF102 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0410 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xBD22 	}, // MCU_DATA_0
++	{1, 0xC9, 0x6DF6 	}, // MCU_DATA_1
++	{1, 0xCA, 0x02BE 	}, // MCU_DATA_2
++	{1, 0xCB, 0x4F30 	}, // MCU_DATA_3
++	{1, 0xCC, 0xED06 	}, // MCU_DATA_4
++	{1, 0xCD, 0xF602 	}, // MCU_DATA_5
++	{1, 0xCE, 0xC1ED 	}, // MCU_DATA_6
++	{1, 0xCF, 0x04EC 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0420 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x06A3 	}, // MCU_DATA_0
++	{1, 0xC9, 0x04ED 	}, // MCU_DATA_1
++	{1, 0xCA, 0x02D6 	}, // MCU_DATA_2
++	{1, 0xCB, 0xA94F 	}, // MCU_DATA_3
++	{1, 0xCC, 0xED00 	}, // MCU_DATA_4
++	{1, 0xCD, 0xF602 	}, // MCU_DATA_5
++	{1, 0xCE, 0xBDBD 	}, // MCU_DATA_6
++	{1, 0xCF, 0xD268 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0430 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xF602 	}, // MCU_DATA_0
++	{1, 0xC9, 0xBE30 	}, // MCU_DATA_1
++	{1, 0xCA, 0xE003 	}, // MCU_DATA_2
++	{1, 0xCB, 0xF702 	}, // MCU_DATA_3
++	{1, 0xCC, 0xC7F6 	}, // MCU_DATA_4
++	{1, 0xCD, 0x02BF 	}, // MCU_DATA_5
++	{1, 0xCE, 0x4FED 	}, // MCU_DATA_6
++	{1, 0xCF, 0x06F6 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0440 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x02C2 	}, // MCU_DATA_0
++	{1, 0xC9, 0xED04 	}, // MCU_DATA_1
++	{1, 0xCA, 0xEC06 	}, // MCU_DATA_2
++	{1, 0xCB, 0xA304 	}, // MCU_DATA_3
++	{1, 0xCC, 0xED02 	}, // MCU_DATA_4
++	{1, 0xCD, 0xD6A9 	}, // MCU_DATA_5
++	{1, 0xCE, 0x4FED 	}, // MCU_DATA_6
++	{1, 0xCF, 0x00F6 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0450 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x02BD 	}, // MCU_DATA_0
++	{1, 0xC9, 0xBDD2 	}, // MCU_DATA_1
++	{1, 0xCA, 0x68F6 	}, // MCU_DATA_2
++	{1, 0xCB, 0x02BF 	}, // MCU_DATA_3
++	{1, 0xCC, 0x30E0 	}, // MCU_DATA_4
++	{1, 0xCD, 0x03F7 	}, // MCU_DATA_5
++	{1, 0xCE, 0x02C8 	}, // MCU_DATA_6
++	{1, 0xCF, 0xF602 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0460 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xC04F 	}, // MCU_DATA_0
++	{1, 0xC9, 0xED06 	}, // MCU_DATA_1
++	{1, 0xCA, 0xF602 	}, // MCU_DATA_2
++	{1, 0xCB, 0xC3ED 	}, // MCU_DATA_3
++	{1, 0xCC, 0x04EC 	}, // MCU_DATA_4
++	{1, 0xCD, 0x06A3 	}, // MCU_DATA_5
++	{1, 0xCE, 0x04ED 	}, // MCU_DATA_6
++	{1, 0xCF, 0x02D6 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0470 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xA94F 	}, // MCU_DATA_0
++	{1, 0xC9, 0xED00 	}, // MCU_DATA_1
++	{1, 0xCA, 0xF602 	}, // MCU_DATA_2
++	{1, 0xCB, 0xBDBD 	}, // MCU_DATA_3
++	{1, 0xCC, 0xD268 	}, // MCU_DATA_4
++	{1, 0xCD, 0xF602 	}, // MCU_DATA_5
++	{1, 0xCE, 0xC07E 	}, // MCU_DATA_6
++	{1, 0xCF, 0x050B 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0480 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xF602 	}, // MCU_DATA_0
++	{1, 0xC9, 0xC44F 	}, // MCU_DATA_1
++	{1, 0xCA, 0x30ED 	}, // MCU_DATA_2
++	{1, 0xCB, 0x06F6 	}, // MCU_DATA_3
++	{1, 0xCC, 0x02C1 	}, // MCU_DATA_4
++	{1, 0xCD, 0xED04 	}, // MCU_DATA_5
++	{1, 0xCE, 0xEC06 	}, // MCU_DATA_6
++	{1, 0xCF, 0xA304 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0490 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xED02 	}, // MCU_DATA_0
++	{1, 0xC9, 0xD6A8 	}, // MCU_DATA_1
++	{1, 0xCA, 0x4FED 	}, // MCU_DATA_2
++	{1, 0xCB, 0x06D6 	}, // MCU_DATA_3
++	{1, 0xCC, 0xA9ED 	}, // MCU_DATA_4
++	{1, 0xCD, 0x04EC 	}, // MCU_DATA_5
++	{1, 0xCE, 0x06A3 	}, // MCU_DATA_6
++	{1, 0xCF, 0x04ED 	}, // MCU_DATA_7
++	{1, 0xC6, 0x04A0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x00F6 	}, // MCU_DATA_0
++	{1, 0xC9, 0x02BD 	}, // MCU_DATA_1
++	{1, 0xCA, 0x4FBD 	}, // MCU_DATA_2
++	{1, 0xCB, 0xD268 	}, // MCU_DATA_3
++	{1, 0xCC, 0xF602 	}, // MCU_DATA_4
++	{1, 0xCD, 0xC430 	}, // MCU_DATA_5
++	{1, 0xCE, 0xE003 	}, // MCU_DATA_6
++	{1, 0xCF, 0xF702 	}, // MCU_DATA_7
++	{1, 0xC6, 0x04B0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xC7F6 	}, // MCU_DATA_0
++	{1, 0xC9, 0x02C5 	}, // MCU_DATA_1
++	{1, 0xCA, 0x4FED 	}, // MCU_DATA_2
++	{1, 0xCB, 0x06F6 	}, // MCU_DATA_3
++	{1, 0xCC, 0x02C2 	}, // MCU_DATA_4
++	{1, 0xCD, 0xED04 	}, // MCU_DATA_5
++	{1, 0xCE, 0xEC06 	}, // MCU_DATA_6
++	{1, 0xCF, 0xA304 	}, // MCU_DATA_7
++	{1, 0xC6, 0x04C0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xED02 	}, // MCU_DATA_0
++	{1, 0xC9, 0xD6A8 	}, // MCU_DATA_1
++	{1, 0xCA, 0x4FED 	}, // MCU_DATA_2
++	{1, 0xCB, 0x06D6 	}, // MCU_DATA_3
++	{1, 0xCC, 0xA9ED 	}, // MCU_DATA_4
++	{1, 0xCD, 0x04EC 	}, // MCU_DATA_5
++	{1, 0xCE, 0x06A3 	}, // MCU_DATA_6
++	{1, 0xCF, 0x04ED 	}, // MCU_DATA_7
++	{1, 0xC6, 0x04D0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x00F6 	}, // MCU_DATA_0
++	{1, 0xC9, 0x02BD 	}, // MCU_DATA_1
++	{1, 0xCA, 0x4FBD 	}, // MCU_DATA_2
++	{1, 0xCB, 0xD268 	}, // MCU_DATA_3
++	{1, 0xCC, 0xF602 	}, // MCU_DATA_4
++	{1, 0xCD, 0xC530 	}, // MCU_DATA_5
++	{1, 0xCE, 0xE003 	}, // MCU_DATA_6
++	{1, 0xCF, 0xF702 	}, // MCU_DATA_7
++	{1, 0xC6, 0x04E0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xC8F6 	}, // MCU_DATA_0
++	{1, 0xC9, 0x02C6 	}, // MCU_DATA_1
++	{1, 0xCA, 0x4FED 	}, // MCU_DATA_2
++	{1, 0xCB, 0x06F6 	}, // MCU_DATA_3
++	{1, 0xCC, 0x02C3 	}, // MCU_DATA_4
++	{1, 0xCD, 0xED04 	}, // MCU_DATA_5
++	{1, 0xCE, 0xEC06 	}, // MCU_DATA_6
++	{1, 0xCF, 0xA304 	}, // MCU_DATA_7
++	{1, 0xC6, 0x04F0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xED02 	}, // MCU_DATA_0
++	{1, 0xC9, 0xD6A8 	}, // MCU_DATA_1
++	{1, 0xCA, 0x4FED 	}, // MCU_DATA_2
++	{1, 0xCB, 0x06D6 	}, // MCU_DATA_3
++	{1, 0xCC, 0xA9ED 	}, // MCU_DATA_4
++	{1, 0xCD, 0x04EC 	}, // MCU_DATA_5
++	{1, 0xCE, 0x06A3 	}, // MCU_DATA_6
++	{1, 0xCF, 0x04ED 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0500 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x00F6 	}, // MCU_DATA_0
++	{1, 0xC9, 0x02BD 	}, // MCU_DATA_1
++	{1, 0xCA, 0x4FBD 	}, // MCU_DATA_2
++	{1, 0xCB, 0xD268 	}, // MCU_DATA_3
++	{1, 0xCC, 0xF602 	}, // MCU_DATA_4
++	{1, 0xCD, 0xC630 	}, // MCU_DATA_5
++	{1, 0xCE, 0xE003 	}, // MCU_DATA_6
++	{1, 0xCF, 0xF702 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0510 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xC9EE 	}, // MCU_DATA_0
++	{1, 0xC9, 0x08EC 	}, // MCU_DATA_1
++	{1, 0xCA, 0x0030 	}, // MCU_DATA_2
++	{1, 0xCB, 0xED02 	}, // MCU_DATA_3
++	{1, 0xCC, 0xF602 	}, // MCU_DATA_4
++	{1, 0xCD, 0xC74F 	}, // MCU_DATA_5
++	{1, 0xCE, 0xED00 	}, // MCU_DATA_6
++	{1, 0xCF, 0xCC00 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0520 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x80BD 	}, // MCU_DATA_0
++	{1, 0xC9, 0xD268 	}, // MCU_DATA_1
++	{1, 0xCA, 0x301A 	}, // MCU_DATA_2
++	{1, 0xCB, 0xEE08 	}, // MCU_DATA_3
++	{1, 0xCC, 0xEC02 	}, // MCU_DATA_4
++	{1, 0xCD, 0x18ED 	}, // MCU_DATA_5
++	{1, 0xCE, 0x00EE 	}, // MCU_DATA_6
++	{1, 0xCF, 0x08EC 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0530 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x0230 	}, // MCU_DATA_0
++	{1, 0xC9, 0xED02 	}, // MCU_DATA_1
++	{1, 0xCA, 0xF602 	}, // MCU_DATA_2
++	{1, 0xCB, 0xC84F 	}, // MCU_DATA_3
++	{1, 0xCC, 0xED00 	}, // MCU_DATA_4
++	{1, 0xCD, 0xCC00 	}, // MCU_DATA_5
++	{1, 0xCE, 0x80BD 	}, // MCU_DATA_6
++	{1, 0xCF, 0xD268 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0540 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x301A 	}, // MCU_DATA_0
++	{1, 0xC9, 0xEE08 	}, // MCU_DATA_1
++	{1, 0xCA, 0xEC02 	}, // MCU_DATA_2
++	{1, 0xCB, 0x18ED 	}, // MCU_DATA_3
++	{1, 0xCC, 0x02EE 	}, // MCU_DATA_4
++	{1, 0xCD, 0x08EC 	}, // MCU_DATA_5
++	{1, 0xCE, 0x0430 	}, // MCU_DATA_6
++	{1, 0xCF, 0xED02 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0550 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xF602 	}, // MCU_DATA_0
++	{1, 0xC9, 0xC94F 	}, // MCU_DATA_1
++	{1, 0xCA, 0xED00 	}, // MCU_DATA_2
++	{1, 0xCB, 0xCC00 	}, // MCU_DATA_3
++	{1, 0xCC, 0x80BD 	}, // MCU_DATA_4
++	{1, 0xCD, 0xD268 	}, // MCU_DATA_5
++	{1, 0xCE, 0x301A 	}, // MCU_DATA_6
++	{1, 0xCF, 0xEE08 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0560 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xEC02 	}, // MCU_DATA_0
++	{1, 0xC9, 0x18ED 	}, // MCU_DATA_1
++	{1, 0xCA, 0x0430 	}, // MCU_DATA_2
++	{1, 0xCB, 0xC60A 	}, // MCU_DATA_3
++	{1, 0xCC, 0x3A35 	}, // MCU_DATA_4
++	{1, 0xCD, 0x3930 	}, // MCU_DATA_5
++	{1, 0xCE, 0x8FC3 	}, // MCU_DATA_6
++	{1, 0xCF, 0xFFE5 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0570 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x8F35 	}, // MCU_DATA_0
++	{1, 0xC9, 0x6F1A 	}, // MCU_DATA_1
++	{1, 0xCA, 0xDC8C 	}, // MCU_DATA_2
++	{1, 0xCB, 0x2C02 	}, // MCU_DATA_3
++	{1, 0xCC, 0x6C1A 	}, // MCU_DATA_4
++	{1, 0xCD, 0xDC8E 	}, // MCU_DATA_5
++	{1, 0xCE, 0x2C06 	}, // MCU_DATA_6
++	{1, 0xCF, 0xE61A 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0580 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xCB02 	}, // MCU_DATA_0
++	{1, 0xC9, 0xE71A 	}, // MCU_DATA_1
++	{1, 0xCA, 0xDC90 	}, // MCU_DATA_2
++	{1, 0xCB, 0x2C06 	}, // MCU_DATA_3
++	{1, 0xCC, 0xE61A 	}, // MCU_DATA_4
++	{1, 0xCD, 0xCB04 	}, // MCU_DATA_5
++	{1, 0xCE, 0xE71A 	}, // MCU_DATA_6
++	{1, 0xCF, 0xDC94 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0590 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x2C06 	}, // MCU_DATA_0
++	{1, 0xC9, 0xE61A 	}, // MCU_DATA_1
++	{1, 0xCA, 0xCB08 	}, // MCU_DATA_2
++	{1, 0xCB, 0xE71A 	}, // MCU_DATA_3
++	{1, 0xCC, 0xDC96 	}, // MCU_DATA_4
++	{1, 0xCD, 0x2C06 	}, // MCU_DATA_5
++	{1, 0xCE, 0xE61A 	}, // MCU_DATA_6
++	{1, 0xCF, 0xCB10 	}, // MCU_DATA_7
++	{1, 0xC6, 0x05A0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xE71A 	}, // MCU_DATA_0
++	{1, 0xC9, 0xDC98 	}, // MCU_DATA_1
++	{1, 0xCA, 0x2C06 	}, // MCU_DATA_2
++	{1, 0xCB, 0xE61A 	}, // MCU_DATA_3
++	{1, 0xCC, 0xCB20 	}, // MCU_DATA_4
++	{1, 0xCD, 0xE71A 	}, // MCU_DATA_5
++	{1, 0xCE, 0x5F4F 	}, // MCU_DATA_6
++	{1, 0xCF, 0xED0D 	}, // MCU_DATA_7
++	{1, 0xC6, 0x05B0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xED0B 	}, // MCU_DATA_0
++	{1, 0xC9, 0xC608 	}, // MCU_DATA_1
++	{1, 0xCA, 0xE709 	}, // MCU_DATA_2
++	{1, 0xCB, 0x4FE6 	}, // MCU_DATA_3
++	{1, 0xCC, 0x092A 	}, // MCU_DATA_4
++	{1, 0xCD, 0x0143 	}, // MCU_DATA_5
++	{1, 0xCE, 0x058F 	}, // MCU_DATA_6
++	{1, 0xCF, 0xEC8A 	}, // MCU_DATA_7
++	{1, 0xC6, 0x05C0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x30ED 	}, // MCU_DATA_0
++	{1, 0xC9, 0x0F2C 	}, // MCU_DATA_1
++	{1, 0xCA, 0x065F 	}, // MCU_DATA_2
++	{1, 0xCB, 0x4FA3 	}, // MCU_DATA_3
++	{1, 0xCC, 0x0FED 	}, // MCU_DATA_4
++	{1, 0xCD, 0x0FC6 	}, // MCU_DATA_5
++	{1, 0xCE, 0x04E7 	}, // MCU_DATA_6
++	{1, 0xCF, 0x0A20 	}, // MCU_DATA_7
++	{1, 0xC6, 0x05D0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x07EC 	}, // MCU_DATA_0
++	{1, 0xC9, 0x0F04 	}, // MCU_DATA_1
++	{1, 0xCA, 0xED0F 	}, // MCU_DATA_2
++	{1, 0xCB, 0x6A0A 	}, // MCU_DATA_3
++	{1, 0xCC, 0x6D0F 	}, // MCU_DATA_4
++	{1, 0xCD, 0x2704 	}, // MCU_DATA_5
++	{1, 0xCE, 0x6D0A 	}, // MCU_DATA_6
++	{1, 0xCF, 0x26F1 	}, // MCU_DATA_7
++	{1, 0xC6, 0x05E0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x4FE6 	}, // MCU_DATA_0
++	{1, 0xC9, 0x092A 	}, // MCU_DATA_1
++	{1, 0xCA, 0x0143 	}, // MCU_DATA_2
++	{1, 0xCB, 0xED06 	}, // MCU_DATA_3
++	{1, 0xCC, 0x8FC3 	}, // MCU_DATA_4
++	{1, 0xCD, 0x0011 	}, // MCU_DATA_5
++	{1, 0xCE, 0x30E3 	}, // MCU_DATA_6
++	{1, 0xCF, 0x0618 	}, // MCU_DATA_7
++	{1, 0xC6, 0x05F0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x8FE6 	}, // MCU_DATA_0
++	{1, 0xC9, 0x1018 	}, // MCU_DATA_1
++	{1, 0xCA, 0xE700 	}, // MCU_DATA_2
++	{1, 0xCB, 0xE609 	}, // MCU_DATA_3
++	{1, 0xCC, 0xC104 	}, // MCU_DATA_4
++	{1, 0xCD, 0x2F10 	}, // MCU_DATA_5
++	{1, 0xCE, 0xEC0B 	}, // MCU_DATA_6
++	{1, 0xCF, 0x0505 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0600 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x05ED 	}, // MCU_DATA_0
++	{1, 0xC9, 0x0BE6 	}, // MCU_DATA_1
++	{1, 0xCA, 0x0A4F 	}, // MCU_DATA_2
++	{1, 0xCB, 0xE30B 	}, // MCU_DATA_3
++	{1, 0xCC, 0xED0B 	}, // MCU_DATA_4
++	{1, 0xCD, 0x200E 	}, // MCU_DATA_5
++	{1, 0xCE, 0xEC0D 	}, // MCU_DATA_6
++	{1, 0xCF, 0x0505 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0610 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x05ED 	}, // MCU_DATA_0
++	{1, 0xC9, 0x0DE6 	}, // MCU_DATA_1
++	{1, 0xCA, 0x0A4F 	}, // MCU_DATA_2
++	{1, 0xCB, 0xE30D 	}, // MCU_DATA_3
++	{1, 0xCC, 0xED0D 	}, // MCU_DATA_4
++	{1, 0xCD, 0x6A09 	}, // MCU_DATA_5
++	{1, 0xCE, 0x6D09 	}, // MCU_DATA_6
++	{1, 0xCF, 0x2C96 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0620 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xCC01 	}, // MCU_DATA_0
++	{1, 0xC9, 0x60ED 	}, // MCU_DATA_1
++	{1, 0xCA, 0x00EC 	}, // MCU_DATA_2
++	{1, 0xCB, 0x0DBD 	}, // MCU_DATA_3
++	{1, 0xCC, 0xD350 	}, // MCU_DATA_4
++	{1, 0xCD, 0xCC01 	}, // MCU_DATA_5
++	{1, 0xCE, 0x6130 	}, // MCU_DATA_6
++	{1, 0xCF, 0xED00 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0630 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xEC0B 	}, // MCU_DATA_0
++	{1, 0xC9, 0xBDD3 	}, // MCU_DATA_1
++	{1, 0xCA, 0x5030 	}, // MCU_DATA_2
++	{1, 0xCB, 0xE612 	}, // MCU_DATA_3
++	{1, 0xCC, 0x4F17 	}, // MCU_DATA_4
++	{1, 0xCD, 0x5FED 	}, // MCU_DATA_5
++	{1, 0xCE, 0x0FE6 	}, // MCU_DATA_6
++	{1, 0xCF, 0x114F 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0640 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xE30F 	}, // MCU_DATA_0
++	{1, 0xC9, 0xED0F 	}, // MCU_DATA_1
++	{1, 0xCA, 0xCC01 	}, // MCU_DATA_2
++	{1, 0xCB, 0x62ED 	}, // MCU_DATA_3
++	{1, 0xCC, 0x00EC 	}, // MCU_DATA_4
++	{1, 0xCD, 0x0FBD 	}, // MCU_DATA_5
++	{1, 0xCE, 0xD350 	}, // MCU_DATA_6
++	{1, 0xCF, 0x30E6 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0650 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x144F 	}, // MCU_DATA_0
++	{1, 0xC9, 0x175F 	}, // MCU_DATA_1
++	{1, 0xCA, 0xED0F 	}, // MCU_DATA_2
++	{1, 0xCB, 0xE613 	}, // MCU_DATA_3
++	{1, 0xCC, 0x4FE3 	}, // MCU_DATA_4
++	{1, 0xCD, 0x0FED 	}, // MCU_DATA_5
++	{1, 0xCE, 0x0FCC 	}, // MCU_DATA_6
++	{1, 0xCF, 0x0163 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0660 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xED00 	}, // MCU_DATA_0
++	{1, 0xC9, 0xEC0F 	}, // MCU_DATA_1
++	{1, 0xCA, 0xBDD3 	}, // MCU_DATA_2
++	{1, 0xCB, 0x5030 	}, // MCU_DATA_3
++	{1, 0xCC, 0xE616 	}, // MCU_DATA_4
++	{1, 0xCD, 0x4F17 	}, // MCU_DATA_5
++	{1, 0xCE, 0x5FED 	}, // MCU_DATA_6
++	{1, 0xCF, 0x0FE6 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0670 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x154F 	}, // MCU_DATA_0
++	{1, 0xC9, 0xE30F 	}, // MCU_DATA_1
++	{1, 0xCA, 0xED0F 	}, // MCU_DATA_2
++	{1, 0xCB, 0xCC01 	}, // MCU_DATA_3
++	{1, 0xCC, 0x64ED 	}, // MCU_DATA_4
++	{1, 0xCD, 0x00EC 	}, // MCU_DATA_5
++	{1, 0xCE, 0x0FBD 	}, // MCU_DATA_6
++	{1, 0xCF, 0xD350 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0680 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x30E6 	}, // MCU_DATA_0
++	{1, 0xC9, 0x184F 	}, // MCU_DATA_1
++	{1, 0xCA, 0x175F 	}, // MCU_DATA_2
++	{1, 0xCB, 0xED0F 	}, // MCU_DATA_3
++	{1, 0xCC, 0xE617 	}, // MCU_DATA_4
++	{1, 0xCD, 0x4FE3 	}, // MCU_DATA_5
++	{1, 0xCE, 0x0FED 	}, // MCU_DATA_6
++	{1, 0xCF, 0x0FCC 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0690 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x0165 	}, // MCU_DATA_0
++	{1, 0xC9, 0xED00 	}, // MCU_DATA_1
++	{1, 0xCA, 0xEC0F 	}, // MCU_DATA_2
++	{1, 0xCB, 0xBDD3 	}, // MCU_DATA_3
++	{1, 0xCC, 0x5030 	}, // MCU_DATA_4
++	{1, 0xCD, 0xE61A 	}, // MCU_DATA_5
++	{1, 0xCE, 0x4F17 	}, // MCU_DATA_6
++	{1, 0xCF, 0x5FED 	}, // MCU_DATA_7
++	{1, 0xC6, 0x06A0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x0FE6 	}, // MCU_DATA_0
++	{1, 0xC9, 0x194F 	}, // MCU_DATA_1
++	{1, 0xCA, 0xE30F 	}, // MCU_DATA_2
++	{1, 0xCB, 0xED0F 	}, // MCU_DATA_3
++	{1, 0xCC, 0xCC01 	}, // MCU_DATA_4
++	{1, 0xCD, 0x66ED 	}, // MCU_DATA_5
++	{1, 0xCE, 0x00EC 	}, // MCU_DATA_6
++	{1, 0xCF, 0x0FBD 	}, // MCU_DATA_7
++	{1, 0xC6, 0x06B0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xD350 	}, // MCU_DATA_0
++	{1, 0xC9, 0x13AB 	}, // MCU_DATA_1
++	{1, 0xCA, 0x0406 	}, // MCU_DATA_2
++	{1, 0xCB, 0xCC7F 	}, // MCU_DATA_3
++	{1, 0xCC, 0x8030 	}, // MCU_DATA_4
++	{1, 0xCD, 0x207A 	}, // MCU_DATA_5
++	{1, 0xCE, 0xDC9C 	}, // MCU_DATA_6
++	{1, 0xCF, 0x30ED 	}, // MCU_DATA_7
++	{1, 0xC6, 0x06C0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x02D6 	}, // MCU_DATA_0
++	{1, 0xC9, 0xA44F 	}, // MCU_DATA_1
++	{1, 0xCA, 0xED00 	}, // MCU_DATA_2
++	{1, 0xCB, 0xCC00 	}, // MCU_DATA_3
++	{1, 0xCC, 0x80BD 	}, // MCU_DATA_4
++	{1, 0xCD, 0xD268 	}, // MCU_DATA_5
++	{1, 0xCE, 0x30E6 	}, // MCU_DATA_6
++	{1, 0xCF, 0x03E7 	}, // MCU_DATA_7
++	{1, 0xC6, 0x06D0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x11DC 	}, // MCU_DATA_0
++	{1, 0xC9, 0x9EED 	}, // MCU_DATA_1
++	{1, 0xCA, 0x02D6 	}, // MCU_DATA_2
++	{1, 0xCB, 0xA64F 	}, // MCU_DATA_3
++	{1, 0xCC, 0xED00 	}, // MCU_DATA_4
++	{1, 0xCD, 0xCC00 	}, // MCU_DATA_5
++	{1, 0xCE, 0x80BD 	}, // MCU_DATA_6
++	{1, 0xCF, 0xD268 	}, // MCU_DATA_7
++	{1, 0xC6, 0x06E0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x30E6 	}, // MCU_DATA_0
++	{1, 0xC9, 0x03E7 	}, // MCU_DATA_1
++	{1, 0xCA, 0x12E6 	}, // MCU_DATA_2
++	{1, 0xCB, 0x11A6 	}, // MCU_DATA_3
++	{1, 0xCC, 0x123D 	}, // MCU_DATA_4
++	{1, 0xCD, 0xED0F 	}, // MCU_DATA_5
++	{1, 0xCE, 0x6F0A 	}, // MCU_DATA_6
++	{1, 0xCF, 0x2007 	}, // MCU_DATA_7
++	{1, 0xC6, 0x06F0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xEC0F 	}, // MCU_DATA_0
++	{1, 0xC9, 0x04ED 	}, // MCU_DATA_1
++	{1, 0xCA, 0x0F6C 	}, // MCU_DATA_2
++	{1, 0xCB, 0x0AEC 	}, // MCU_DATA_3
++	{1, 0xCC, 0x0F1A 	}, // MCU_DATA_4
++	{1, 0xCD, 0x8300 	}, // MCU_DATA_5
++	{1, 0xCE, 0x2024 	}, // MCU_DATA_6
++	{1, 0xCF, 0xF183 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0700 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x0010 	}, // MCU_DATA_0
++	{1, 0xC9, 0xED0F 	}, // MCU_DATA_1
++	{1, 0xCA, 0xC3E8 	}, // MCU_DATA_2
++	{1, 0xCB, 0xFB8F 	}, // MCU_DATA_3
++	{1, 0xCC, 0xE600 	}, // MCU_DATA_4
++	{1, 0xCD, 0x30E7 	}, // MCU_DATA_5
++	{1, 0xCE, 0x08E6 	}, // MCU_DATA_6
++	{1, 0xCF, 0x0A86 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0710 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x203D 	}, // MCU_DATA_0
++	{1, 0xC9, 0xEB08 	}, // MCU_DATA_1
++	{1, 0xCA, 0xC040 	}, // MCU_DATA_2
++	{1, 0xCB, 0xE708 	}, // MCU_DATA_3
++	{1, 0xCC, 0xD6BA 	}, // MCU_DATA_4
++	{1, 0xCD, 0x4FED 	}, // MCU_DATA_5
++	{1, 0xCE, 0x06E6 	}, // MCU_DATA_6
++	{1, 0xCF, 0x08ED 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0720 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x04E3 	}, // MCU_DATA_0
++	{1, 0xC9, 0x06ED 	}, // MCU_DATA_1
++	{1, 0xCA, 0x0F17 	}, // MCU_DATA_2
++	{1, 0xCB, 0x5FED 	}, // MCU_DATA_3
++	{1, 0xCC, 0x0FD6 	}, // MCU_DATA_4
++	{1, 0xCD, 0xB94F 	}, // MCU_DATA_5
++	{1, 0xCE, 0xED06 	}, // MCU_DATA_6
++	{1, 0xCF, 0xE608 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0730 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xED04 	}, // MCU_DATA_0
++	{1, 0xC9, 0xE306 	}, // MCU_DATA_1
++	{1, 0xCA, 0xE30F 	}, // MCU_DATA_2
++	{1, 0xCB, 0xED0F 	}, // MCU_DATA_3
++	{1, 0xCC, 0xCC01 	}, // MCU_DATA_4
++	{1, 0xCD, 0x52ED 	}, // MCU_DATA_5
++	{1, 0xCE, 0x00EC 	}, // MCU_DATA_6
++	{1, 0xCF, 0x0FBD 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0740 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xD350 	}, // MCU_DATA_0
++	{1, 0xC9, 0x30C6 	}, // MCU_DATA_1
++	{1, 0xCA, 0x1B3A 	}, // MCU_DATA_2
++	{1, 0xCB, 0x3539 	}, // MCU_DATA_3
++	{1, 0xCC, 0x3C3C 	}, // MCU_DATA_4
++	{1, 0xCD, 0x34C6 	}, // MCU_DATA_5
++	{1, 0xCE, 0x18F7 	}, // MCU_DATA_6
++	{1, 0xCF, 0x02BD 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0750 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xC6B4 	}, // MCU_DATA_0
++	{1, 0xC9, 0xF702 	}, // MCU_DATA_1
++	{1, 0xCA, 0xBEC6 	}, // MCU_DATA_2
++	{1, 0xCB, 0x96F7 	}, // MCU_DATA_3
++	{1, 0xCC, 0x02BF 	}, // MCU_DATA_4
++	{1, 0xCD, 0xC680 	}, // MCU_DATA_5
++	{1, 0xCE, 0xF702 	}, // MCU_DATA_6
++	{1, 0xCF, 0xC0F7 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0760 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x02C1 	}, // MCU_DATA_0
++	{1, 0xC9, 0xF702 	}, // MCU_DATA_1
++	{1, 0xCA, 0xC2F7 	}, // MCU_DATA_2
++	{1, 0xCB, 0x02C3 	}, // MCU_DATA_3
++	{1, 0xCC, 0xF702 	}, // MCU_DATA_4
++	{1, 0xCD, 0xC4F7 	}, // MCU_DATA_5
++	{1, 0xCE, 0x02C5 	}, // MCU_DATA_6
++	{1, 0xCF, 0xF702 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0770 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xC6CC 	}, // MCU_DATA_0
++	{1, 0xC9, 0x02AB 	}, // MCU_DATA_1
++	{1, 0xCA, 0x30ED 	}, // MCU_DATA_2
++	{1, 0xCB, 0x02FE 	}, // MCU_DATA_3
++	{1, 0xCC, 0x1050 	}, // MCU_DATA_4
++	{1, 0xCD, 0xEC06 	}, // MCU_DATA_5
++	{1, 0xCE, 0xFD02 	}, // MCU_DATA_6
++	{1, 0xCF, 0xA7FE 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0780 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x02A7 	}, // MCU_DATA_0
++	{1, 0xC9, 0xEC00 	}, // MCU_DATA_1
++	{1, 0xCA, 0xFD02 	}, // MCU_DATA_2
++	{1, 0xCB, 0xA930 	}, // MCU_DATA_3
++	{1, 0xCC, 0x6F04 	}, // MCU_DATA_4
++	{1, 0xCD, 0xE604 	}, // MCU_DATA_5
++	{1, 0xCE, 0x4F05 	}, // MCU_DATA_6
++	{1, 0xCF, 0xF302 	}, // MCU_DATA_7
++	{1, 0xC6, 0x0790 	}, // MCU_ADDRESS
++	{1, 0xC8, 0xA98F 	}, // MCU_DATA_0
++	{1, 0xC9, 0xEC00 	}, // MCU_DATA_1
++	{1, 0xCA, 0x30ED 	}, // MCU_DATA_2
++	{1, 0xCB, 0x00E6 	}, // MCU_DATA_3
++	{1, 0xCC, 0x044F 	}, // MCU_DATA_4
++	{1, 0xCD, 0x05E3 	}, // MCU_DATA_5
++	{1, 0xCE, 0x0218 	}, // MCU_DATA_6
++	{1, 0xCF, 0x8FEC 	}, // MCU_DATA_7
++	{1, 0xC6, 0x07A0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x0018 	}, // MCU_DATA_0
++	{1, 0xC9, 0xED00 	}, // MCU_DATA_1
++	{1, 0xCA, 0x6C04 	}, // MCU_DATA_2
++	{1, 0xCB, 0xE604 	}, // MCU_DATA_3
++	{1, 0xCC, 0xC109 	}, // MCU_DATA_4
++	{1, 0xCD, 0x25DE 	}, // MCU_DATA_5
++	{1, 0xCE, 0xEE02 	}, // MCU_DATA_6
++	{1, 0xCF, 0xCC05 	}, // MCU_DATA_7
++	{1, 0xC6, 0x07B0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x6BED 	}, // MCU_DATA_0
++	{1, 0xC9, 0x0830 	}, // MCU_DATA_1
++	{1, 0xCA, 0xEE02 	}, // MCU_DATA_2
++	{1, 0xCB, 0xCC04 	}, // MCU_DATA_3
++	{1, 0xCC, 0x00ED 	}, // MCU_DATA_4
++	{1, 0xCD, 0x0ECC 	}, // MCU_DATA_5
++	{1, 0xCE, 0x02AB 	}, // MCU_DATA_6
++	{1, 0xCF, 0xDD58 	}, // MCU_DATA_7
++	{1, 0xC6, 0x07C0 	}, // MCU_ADDRESS
++	{1, 0xC8, 0x3838 	}, // MCU_DATA_0
++	{1, 0xC9, 0x3139 	}, // MCU_DATA_1
++	{1, 0xC6, 0x2003	}, //MON_ARG1
++	{1, 0xC8, 0x0748	}, //MON_ARG1
++	{1, 0xC6, 0xA002	}, //MON_CMD
++	{1, 0xC8, 0x0001	}, //MON_CMD
++	{EX3691_TOK_DELAY, 0x00, 0x01F4 }, //Delay =3D 500ms
++	{1, 0xC6, 0xA361	}, //AWB_TG_MIN0
++	{1, 0xC8, 0x00E2	}, //AWB_TG_MIN0
++	{1, 0x1F, 0x0018 	}, // RESERVED_SOC1_1F
++	{1, 0x51, 0x7F40 	}, // RESERVED_SOC1_51
++	{EX3691_TOK_DELAY, 0x00, 0x3E8  }, //Delay =3D 1000ms
++	{0, 0x33, 0x0343 	}, // RESERVED_CORE_33
++	{0, 0x38, 0x0868 	}, // RESERVED_CORE_38
++	{1, 0xC6, 0xA10F	}, //SEQ_RESET_LEVEL_TH
++	{1, 0xC8, 0x0042	}, //SEQ_RESET_LEVEL_TH
++	{1, 0x1F, 0x0020 	}, // RESERVED_SOC1_1F
++	{1, 0xC6, 0xAB04	}, //HG_MAX_DLEVEL
++	{1, 0xC8, 0x0008	}, //HG_MAX_DLEVEL
++	{1, 0xC6, 0xA120	}, //SEQ_CAP_MODE
++	{1, 0xC8, 0x0002	}, //SEQ_CAP_MODE
++	{1, 0xC6, 0xA103	}, //SEQ_CMD
++	{1, 0xC8, 0x0001	}, //SEQ_CMD
++	{EX3691_TOK_DELAY, 0x00, 0x03E8 }, // Delay =3D1000ms
++	{1, 0xC6, 0xA102	}, //SEQ_MODE
++	{1, 0xC8, 0x001F	}, //SEQ_MODE
++	{1, 0x08, 0x01FC 	}, // COLOR_PIPELINE_CONTROL
++	{1, 0x08, 0x01EC 	}, // COLOR_PIPELINE_CONTROL
++	{1, 0x08, 0x01FC 	}, // COLOR_PIPELINE_CONTROL
++	{1, 0x36, 0x0F08 	}, // APERTURE_PARAMETERS
++	{1, 0xC6, 0x270B	}, //MODE_CONFIG
++	{1, 0xC8, 0x0030	}, //MODE_CONFIG, JPEG disabled for A
+and B
++	{1, 0xC6, 0xA121	}, //SEQ_CAP_MODE
++	{1, 0xC8, 0x007f	}, //SEQ_CAP_MODE (127 frames before
+switching to Preview)
++	{0, 0x05, 0x011E 	}, // HORZ_BLANK_B
++	{0, 0x06, 0x006F 	}, // VERT_BLANK_B
++	{0, 0x07, 0xFE 		}, // HORZ_BLANK_A
++	{0, 0x08, 19 		}, // VERT_BLANK_A
++	{0, 0x20, 0x0303 	}, // READ_MODE_B (Image flip settings)
++	{0, 0x21, 0x8400 	}, // READ_MODE_A (1ADC)
++	{1, 0xC6, 0x2717	}, //MODE_SENSOR_X_DELAY_A
++	{1, 0xC8, 792		}, //MODE_SENSOR_X_DELAY_A
++	{1, 0xC6, 0x270F	}, //MODE_SENSOR_ROW_START_A
++	{1, 0xC8, 0x001C	}, //MODE_SENSOR_ROW_START_A
++	{1, 0xC6, 0x2711	}, //MODE_SENSOR_COL_START_A
++	{1, 0xC8, 0x003C	}, //MODE_SENSOR_COL_START_A
++	{1, 0xC6, 0x2713	}, //MODE_SENSOR_ROW_HEIGHT_A
++	{1, 0xC8, 0x04B0	}, //MODE_SENSOR_ROW_HEIGHT_A
++	{1, 0xC6, 0x2715	}, //MODE_SENSOR_COL_WIDTH_A
++	{1, 0xC8, 0x0640	}, //MODE_SENSOR_COL_WIDTH_A
++	{1, 0xC6, 0x2719	}, //MODE_SENSOR_ROW_SPEED_A
++	{1, 0xC8, 0x0011	}, //MODE_SENSOR_ROW_SPEED_A
++	{1, 0xC6, 0x2707	}, //MODE_OUTPUT_WIDTH_B
++	{1, 0xC8, 0x0640	}, //MODE_OUTPUT_WIDTH_B
++	{1, 0xC6, 0x2709	}, //MODE_OUTPUT_HEIGHT_B
++	{1, 0xC8, 0x04B0	}, //MODE_OUTPUT_HEIGHT_B
++	{1, 0xC6, 0x271B	}, //MODE_SENSOR_ROW_START_B
++	{1, 0xC8, 0x001C	}, //MODE_SENSOR_ROW_START_B
++	{1, 0xC6, 0x271D	}, //MODE_SENSOR_COL_START_B
++	{1, 0xC8, 0x003C	}, //MODE_SENSOR_COL_START_B
++	{1, 0xC6, 0x271F	}, //MODE_SENSOR_ROW_HEIGHT_B
++	{1, 0xC8, 0x04B0	}, //MODE_SENSOR_ROW_HEIGHT_B
++	{1, 0xC6, 0x2721	}, //MODE_SENSOR_COL_WIDTH_B
++	{1, 0xC8, 0x0640	}, //MODE_SENSOR_COL_WIDTH_B
++	{1, 0xC6, 0x2723	}, //MODE_SENSOR_X_DELAY_B
++	{1, 0xC8, 0x0716	}, //MODE_SENSOR_X_DELAY_B
++	{1, 0xC6, 0x2725	}, //MODE_SENSOR_ROW_SPEED_B
++	{1, 0xC8, 0x0011	}, //MODE_SENSOR_ROW_SPEED_B
++	//Maximum Slew-Rate on IO-Pads (for Mode A)
++	{1, 0xC6, 0x276B	}, //MODE_FIFO_CONF0_A
++	{1, 0xC8, 0x0027	}, //MODE_FIFO_CONF0_A
++	{1, 0xC6, 0x276D	}, //MODE_FIFO_CONF1_A
++	{1, 0xC8, 0xE1E1	}, //MODE_FIFO_CONF1_A
++	{1, 0xC6, 0xA76F	}, //MODE_FIFO_CONF2_A
++	{1, 0xC8, 0x00E1	}, //MODE_FIFO_CONF2_A
++	//Maximum Slew-Rate on IO-Pads (for Mode B)
++	{1, 0xC6, 0x2772	}, //MODE_FIFO_CONF0_B
++	{1, 0xC8, 0x0027	}, //MODE_FIFO_CONF0_B
++	{1, 0xC6, 0x2774	}, //MODE_FIFO_CONF1_B
++	{1, 0xC8, 0xE1E1	}, //MODE_FIFO_CONF1_B
++	{1, 0xC6, 0xA776	}, //MODE_FIFO_CONF2_B
++	{1, 0xC8, 0x00E1	}, //MODE_FIFO_CONF2_B
++	//Set maximum integration time to get a minimum of 15 fps at
+45MHz
++	{1, 0xC6, 0xA20E	}, //AE_MAX_INDEX
++	{1, 0xC8, 0x0004	}, //AE_MAX_INDEX
++	//Set minimum integration time to get a maximum of 15 fps at
+45MHz
++	{1, 0xC6, 0xA20D	}, //AE_MAX_INDEX
++	{1, 0xC8, 0x0004	}, //AE_MAX_INDEX
++	// Configue all GPIO for output and set low to save power
++	{1, 0xC6, 0x9078	},
++	{1, 0xC8, 0x0000	},
++	{1, 0xC6, 0x9079	},
++	{1, 0xC8, 0x0000	},
++	{1, 0xC6, 0x9070	},
++	{1, 0xC8, 0x0000	},
++	{1, 0xC6, 0x9071	},
++	{1, 0xC8, 0x0000	},
++	// gamma and contrast
++	{1, 0xC6, 0xA743	}, // MODE_GAM_CONT_A
++	{1, 0xC8, 0x0003	}, // MODE_GAM_CONT_A
++	{1, 0xC6, 0xA744	}, // MODE_GAM_CONT_B
++	{1, 0xC8, 0x0003	}, // MODE_GAM_CONT_B
++	{EX3691_TOK_DELAY, 0x00, 0x01F4 }, // Delay =3D500m
++	{EX3691_TOK_TERM, 0, 0 }
++};
++/* I/p freq =3D 24MHz, O/p freq =3D 40MHz, Slew rate =3D 7
++ * This translates to a frame rate of 15fps.
++*/
++#define INDEX_PLL_M		3
++#define MASK_PLL_M		0x00FF
++#define SHIFT_PLL_M		8
++static struct ex3691_reg default_freq_list[]=3D {
++	{0, 0x65, 0xA000 	},	// Disable PLL
++	{0, 0x65, 0xE000 	},	// Power DOWN PLL
++	{EX3691_TOK_DELAY, 0x00, 0x01F4 },	// Delay =3D500ms
++	{0, 0x66, 0x500b	},	// Set value in PLL_REG for i/p
+24MHz, and o/p 40MHz
++	{0, 0x67, 0x0201 	},	// Set value in PLL2_REG
++	{0, 0x65, 0xA000 	},	// Power-up PLL
++	{EX3691_TOK_DELAY, 0x00, 0x01F4 }, // Delay =3D500ms
++	{0, 0x65, 0x2000  	}, //Enable PLL
++	{EX3691_TOK_DELAY, 0x00, 0x01F4 }, // Delay =3D500ms
++	{EX3691_TOK_TERM, 0, 0 }
++};
++
++#define INDEX_SIZE_WIDTH		1
++#define INDEX_SIZE_HEIGHT		3
++/* Default context A image size QCIF (for preview and streaming) */
++static struct ex3691_reg default_size_a_list[]=3D
++{
++	{1, 0xC6, 0x2703	}, //MODE_OUTPUT_WIDTH_A
++	{1, 0xC8, 0x00B0	}, //MODE_OUTPUT_WIDTH_A
++	{1, 0xC6, 0x2705	}, //MODE_OUTPUT_HEIGHT_A
++	{1, 0xC8, 0x0090	}, //MODE_OUTPUT_HEIGHT_A
++	{1, 0xC6, 0xA103	}, //SEQ_CMD
++	{1, 0xC8, 0x0005	}, //SEQ_CMD
++	{EX3691_TOK_TERM, 0, 0 }
++};
++/* Default context B image size QVGA (for still image capturing */
++static struct ex3691_reg default_size_b_list[]=3D
++{
++	{1, 0xC6, 0x2707	}, //MODE_OUTPUT_WIDTH_B
++	{1, 0xC8, 0x0140	}, //MODE_OUTPUT_WIDTH_B
++	{1, 0xC6, 0x2709	}, //MODE_OUTPUT_HEIGHT_B
++	{1, 0xC8, 0x00F0	}, //MODE_OUTPUT_HEIGHT_B
++	{1, 0xC6, 0xA103	}, //SEQ_CMD
++	{1, 0xC8, 0x0005	}, //SEQ_CMD
++	{EX3691_TOK_TERM, 0, 0 }
++};
++
++const static struct ex3691_reg context_a_list[]=3D {
++	{1, 0xC6, 0xA103	}, //SEQ_CMD
++	{1, 0xC8, 0x0001	}, //SEQ_CMD, Do Preview
++	{EX3691_TOK_TERM, 0, 0 }
++};
++const static struct ex3691_reg context_b_list[]=3D {
++	{1, 0xC6, 0xA103	}, //SEQ_CMD
++	{1, 0xC8, 0x0002	}, //SEQ_CMD, Do capture
++	{EX3691_TOK_TERM, 0, 0 }
++};
++
++const static struct ex3691_reg a_rgb565_list[]=3D {
++	{1, 0xC6, 0xA77D	}, //MODE_OUTPUT_FORMAT_A
++	{1, 0xC8, 0x0020	}, //MODE_OUTPUT_FORMAT_A; RGB565
++	{1, 0xC6, 0xA103	}, //SEQ_CMD
++	{1, 0xC8, 0x0005	}, //SEQ_CMD, refresh
++	{EX3691_TOK_TERM, 0, 0 }
++};
++const static struct ex3691_reg a_yuyv_list[]=3D {
++	{1, 0xC6, 0xA77D	}, //MODE_OUTPUT_FORMAT_A
++	{1, 0xC8, 0x0002	}, //MODE_OUTPUT_FORMAT_A; Y-Cb-Y-Cr
+swap y & c
++	{1, 0xC6, 0xA103	}, //SEQ_CMD
++	{1, 0xC8, 0x0005	}, //SEQ_CMD, refresh
++	{EX3691_TOK_TERM, 0, 0 }
++};
++const static struct ex3691_reg a_rgb555_list[]=3D {
++	{1, 0xC6, 0xA77D	}, //MODE_OUTPUT_FORMAT_A
++	{1, 0xC8, 0x0060	}, //MODE_OUTPUT_FORMAT_A
++	{1, 0xC6, 0xA103	}, //SEQ_CMD
++	{1, 0xC8, 0x0005	}, //SEQ_CMD, refresh
++	{EX3691_TOK_TERM, 0, 0 }
++};
++const static
++struct ex3691_reg *ex3691_setup_a_format[NUM_PIXEL_FORMATS] =3D
++{
++	a_rgb565_list,
++	a_rgb565_list,
++	a_rgb555_list,
++	a_rgb555_list,
++	a_yuyv_list,
++	a_yuyv_list,
++};
++const static struct ex3691_reg b_rgb565_list[]=3D {
++	{1, 0xC6, 0xA77E	}, //MODE_OUTPUT_FORMAT_B
++	{1, 0xC8, 0x0020	}, //MODE_OUTPUT_FORMAT_B; RGB565
++	{1, 0xC6, 0xA103	}, //SEQ_CMD
++	{1, 0xC8, 0x0005	}, //SEQ_CMD, refresh
++	{EX3691_TOK_TERM, 0, 0 }
++};
++const static struct ex3691_reg b_yuyv_list[]=3D {
++	{1, 0xC6, 0xA77E	}, //MODE_OUTPUT_FORMAT_B
++	{1, 0xC8, 0x0002	}, //MODE_OUTPUT_FORMAT_B; Y-Cb-Y-Cr
++	{1, 0xC6, 0xA103	}, //SEQ_CMD
++	{1, 0xC8, 0x0005	}, //SEQ_CMD, refresh
++	{EX3691_TOK_TERM, 0, 0 }
++};
++const static struct ex3691_reg b_rgb555_list[]=3D {
++	{1, 0xC6, 0xA77E	}, //MODE_OUTPUT_FORMAT_B
++	{1, 0xC8, 0x0060	}, //MODE_OUTPUT_FORMAT_B
++	{1, 0xC6, 0xA103	}, //SEQ_CMD
++	{1, 0xC8, 0x0005	}, //SEQ_CMD, refresh
++	{EX3691_TOK_TERM, 0, 0 }
++};
++const static
++struct ex3691_reg *ex3691_setup_b_format[NUM_PIXEL_FORMATS] =3D
++{
++	b_rgb565_list,
++	b_rgb565_list,
++	b_rgb555_list,
++	b_rgb555_list,
++	b_yuyv_list,
++	b_yuyv_list,
++};
++
++const static struct ex3691_reg enter_standby_list[]=3D {
++	{1, 0xC6, 0xA103	}, //SEQ_CMD
++	{1, 0xC8, 0x0003	}, //SEQ_CMD, standby
++	{EX3691_TOK_TERM, 0, 0 }
++};
++const static struct ex3691_reg bypass_pll_list[]=3D {
++	{0, 0x65, 0xA000 	},	// Disable PLL
++	{EX3691_TOK_DELAY, 0x00, 0x01F4 }, // Delay =3D500ms
++	{EX3691_TOK_TERM, 0, 0 }
++};
++const static struct ex3691_reg enable_pll_list[]=3D {
++	{0, 0x65, 0x2000 	},	// Enable PLL
++	{EX3691_TOK_DELAY, 0x00, 0x01F4 }, // Delay =3D500ms
++	{EX3691_TOK_TERM, 0, 0 }
++};
++
++#define INDEX_SWAP_ENABLE	1
++#define MASK_SWAP_ENABLE	0x7F
++#define SHIFT_SWAP_ENABLE	7
++static struct ex3691_reg a_default_swapbyte_list[]=3D {
++	{1, 0xC6, 0x276B	}, //MODE_FIFO_CONF0_A
++	{1, 0xC8, 0x0027	}, //MODE_FIFO_CONF0_A
++	{1, 0xC6, 0xA103	}, //SEQ_CMD
++	{1, 0xC8, 0x0005	}, //SEQ_CMD, refresh
++	{EX3691_TOK_TERM, 0, 0 }
++};
++static struct ex3691_reg b_default_swapbyte_list[]=3D {
++	{1, 0xC6, 0x2772	}, //MODE_FIFO_CONF0_B
++	{1, 0xC8, 0x0027	}, //MODE_FIFO_CONF0_B
++	{1, 0xC6, 0xA103	}, //SEQ_CMD
++	{1, 0xC8, 0x0005	}, //SEQ_CMD, refresh
++	{EX3691_TOK_TERM, 0, 0 }
++};
++
++#define MIN_BRIGHTNESS 		0
++#define MAX_BRIGHTNESS 		15
++#define DEF_BRIGHTNESS 		8
++#define BRIGHTNESS_STEP 		1
++#define INDEX_BRIGHTNESS		1
++static struct ex3691_reg default_brightness_list[]=3D {
++	{1, 0xC6, 0xA206	}, //AE_TARGET
++	{1, 0xC8, DEF_BRIGHTNESS*4+10}, //AE_TARGET
++	{1, 0xC6, 0xA103	}, //SEQ_CMD
++	{1, 0xC8, 0x0005	}, //SEQ_CMD, refresh
++	{EX3691_TOK_TERM, 0, 0 }
++};
++
++#define GAM_TABLE_START_A		0xA745
++#define GAM_TABLE_START_B		0xA758
++#define GAM_TABLE_LENGTH		19
++#define MIN_CONTRAST	 		0
++#define MAX_CONTRAST	 		15
++#define DEF_CONTRAST 			5
++#define CONTRAST_STEP	 		1
++#define CONTARST_LEVEL			(MAX_CONTRAST - MIN_CONTRAST +
+1)
++static struct ex3691_reg a_default_contrast_list[]=3D {
++	{1, 0xC6, 0xA745	}, // MODE_GAM_TABLE_A_0
++	{1, 0xC8, 0x0000	}, // MODE_GAM_TABLE_A_0
++	{1, 0xC6, 0xA746	}, // MODE_GAM_TABLE_A_1
++	{1, 0xC8, 0x001A	}, // MODE_GAM_TABLE_A_1
++	{1, 0xC6, 0xA747	}, // MODE_GAM_TABLE_A_2
++	{1, 0xC8, 0x0026	}, // MODE_GAM_TABLE_A_2
++	{1, 0xC6, 0xA748	}, // MODE_GAM_TABLE_A_3
++	{1, 0xC8, 0x0037	}, // MODE_GAM_TABLE_A_3
++	{1, 0xC6, 0xA749	}, // MODE_GAM_TABLE_A_4
++	{1, 0xC8, 0x0051	}, // MODE_GAM_TABLE_A_4
++	{1, 0xC6, 0xA74A	}, // MODE_GAM_TABLE_A_5
++	{1, 0xC8, 0x0066	}, // MODE_GAM_TABLE_A_5
++	{1, 0xC6, 0xA74B	}, // MODE_GAM_TABLE_A_6
++	{1, 0xC8, 0x0077	}, // MODE_GAM_TABLE_A_6
++	{1, 0xC6, 0xA74C	}, // MODE_GAM_TABLE_A_7
++	{1, 0xC8, 0x0086	}, // MODE_GAM_TABLE_A_7
++	{1, 0xC6, 0xA74D	}, // MODE_GAM_TABLE_A_8
++	{1, 0xC8, 0x0095	}, // MODE_GAM_TABLE_A_8
++	{1, 0xC6, 0xA74E	}, // MODE_GAM_TABLE_A_9
++	{1, 0xC8, 0x00A2	}, // MODE_GAM_TABLE_A_9
++	{1, 0xC6, 0xA74F	}, // MODE_GAM_TABLE_A_10
++	{1, 0xC8, 0x00AE	}, // MODE_GAM_TABLE_A_10
++	{1, 0xC6, 0xA750	}, // MODE_GAM_TABLE_A_11
++	{1, 0xC8, 0x00BA	}, // MODE_GAM_TABLE_A_11
++	{1, 0xC6, 0xA751	}, // MODE_GAM_TABLE_A_12
++	{1, 0xC8, 0x00C5	}, // MODE_GAM_TABLE_A_12
++	{1, 0xC6, 0xA752	}, // MODE_GAM_TABLE_A_13
++	{1, 0xC8, 0x00D0	}, // MODE_GAM_TABLE_A_13
++	{1, 0xC6, 0xA753	}, // MODE_GAM_TABLE_A_14
++	{1, 0xC8, 0x00DA	}, // MODE_GAM_TABLE_A_14
++	{1, 0xC6, 0xA754	}, // MODE_GAM_TABLE_A_15
++	{1, 0xC8, 0x00E3	}, // MODE_GAM_TABLE_A_15
++	{1, 0xC6, 0xA755	}, // MODE_GAM_TABLE_A_16
++	{1, 0xC8, 0x00ED	}, // MODE_GAM_TABLE_A_16
++	{1, 0xC6, 0xA756	}, // MODE_GAM_TABLE_A_17
++	{1, 0xC8, 0x00F6	}, // MODE_GAM_TABLE_A_17
++	{1, 0xC6, 0xA757	}, // MODE_GAM_TABLE_A_18
++	{1, 0xC8, 0x00FF	}, // MODE_GAM_TABLE_A_18
++	{1, 0xC6, 0xA103	}, //SEQ_CMD
++	{1, 0xC8, 0x0005	}, //SEQ_CMD, refresh
++	{EX3691_TOK_TERM, 0, 0 }
++};
++
++/* pre-calcuated gamma correction table for each contrast levels 0-15
+*/
++static const u16 gamma_table[CONTARST_LEVEL][GAM_TABLE_LENGTH] =3D {
++	{0x0000, 0x0030, 0x0040, 0x0054, 0x006F, 0x0083, 0x0092,
++	 0x00A0, 0x00AC, 0x00B7, 0x00C1, 0x00CB, 0x00D3, 0x00DC,
++	 0x00E3, 0x00EB, 0x00F2, 0x00F9, 0x00FF}, /* 0.40 */
++	{0x0000, 0x0027, 0x0036, 0x0049, 0x0064, 0x0078, 0x0089,
++	 0x0097, 0x00A4, 0x00B0, 0x00BB, 0x00C5, 0x00CE, 0x00D7,
++	 0x00E0, 0x00E8, 0x00F0, 0x00F8, 0x00FF}, /* 0.45 */
++	{0x0000, 0x0020, 0x002D, 0x0040, 0x005A, 0x006E, 0x0080,
++	 0x008F, 0x009C, 0x00A9, 0x00B4, 0x00BF, 0x00CA, 0x00D3,
++	 0x00DD, 0x00E6, 0x00EF, 0x00F7, 0x00FF}, /* 0.50 */
++	{0x0000, 0x001A, 0x0026, 0x0037, 0x0051, 0x0066, 0x0077,
++	 0x0086, 0x0095, 0x00A2, 0x00AE, 0x00BA, 0x00C5, 0x00D0,
++	 0x00DA, 0x00E3, 0x00ED, 0x00F6, 0x00FF}, /* 0.55 */
++	{0x0000, 0x0015, 0x0020, 0x0030, 0x0049, 0x005D, 0x006F,
++	 0x007F, 0x008E, 0x009B, 0x00A8, 0x00B5, 0x00C0, 0x00CC,
++	 0x00D7, 0x00E1, 0x00EB, 0x00F5, 0x00FF}, /* 0.60 */
++	{0x0000, 0x0011, 0x001B, 0x002A, 0x0042, 0x0056, 0x0068,
++	 0x0078, 0x0087, 0x0095, 0x00A3, 0x00AF, 0x00BC, 0x00C8,
++	 0x00D4, 0x00DF, 0x00EA, 0x00F5, 0x00FF}, /* 0.65 */
++	{0x0000, 0x000E, 0x0017, 0x0025, 0x003B, 0x004F, 0x0061,
++	 0x0071, 0x0080, 0x008F, 0x009D, 0x00AA, 0x00B8, 0x00C4,
++	 0x00D0, 0x00DD, 0x00E8, 0x00F4, 0x00FF}, /* 0.70 */
++	{0x0000, 0x000B, 0x0013, 0x0020, 0x0036, 0x0049, 0x005A,
++	 0x006B, 0x007A, 0x0089, 0x0098, 0x00A6, 0x00B3, 0x00C1,
++	 0x00CE, 0x00DA, 0x00E7, 0x00F3, 0x00FF}, /* 0.75 */
++	{0x0000, 0x0009, 0x0010, 0x001C, 0x0030, 0x0043, 0x0054,
++	 0x0065, 0x0074, 0x0084, 0x0092, 0x00A1, 0x00AF, 0x00BD,
++	 0x00CB, 0x00D8, 0x00E5, 0x00F2, 0x00FF}, /* 0.80 */
++	{0x0000, 0x0007, 0x000D, 0x0018, 0x002C, 0x003D, 0x004E,
++	 0x005F, 0x006F, 0x007E, 0x008D, 0x009C, 0x00AB, 0x00B9,
++	 0x00C8, 0x00D6, 0x00E4, 0x00F1, 0x00FF}, /* 0.85 */
++	{0x0000, 0x0006, 0x000B, 0x0015, 0x0027, 0x0039, 0x0049,
++	 0x005A, 0x0069, 0x0079, 0x0089, 0x0098, 0x00A7, 0x00B6,
++	 0x00C5, 0x00D4, 0x00E2, 0x00F1, 0x00FF}, /* 0.90 */
++	{0x0000, 0x0005, 0x0009, 0x0012, 0x0023, 0x0034, 0x0044,
++	 0x0054, 0x0064, 0x0074, 0x0084, 0x0094, 0x00A3, 0x00B3,
++	 0x00C2, 0x00D1, 0x00E1, 0x00F0, 0x00FF}, /* 0.95 */
++	{0x0000, 0x0004, 0x0008, 0x0010, 0x0020, 0x0030, 0x0040,
++	 0x0050, 0x0060, 0x0070, 0x0080, 0x008F, 0x009F, 0x00AF,
++	 0x00BF, 0x00CF, 0x00DF, 0x00EF, 0x00FF}, /* 1.00 */
++	{0x0000, 0x0003, 0x0007, 0x000E, 0x001D, 0x002C, 0x003B,
++	 0x004B, 0x005B, 0x006B, 0x007B, 0x008B, 0x009C, 0x00AC,
++	 0x00BD, 0x00CD, 0x00DE, 0x00EE, 0x00FF}, /* 1.05 */
++	{0x0000, 0x0003, 0x0006, 0x000C, 0x001A, 0x0028, 0x0037,
++	 0x0047, 0x0057, 0x0067, 0x0077, 0x0087, 0x0098, 0x00A9,
++	 0x00BA, 0x00CB, 0x00DC, 0x00EE, 0x00FF}, /* 1.10 */
++	{0x0000, 0x0002, 0x0005, 0x000B, 0x0017, 0x0025, 0x0034,
++	 0x0043, 0x0053, 0x0063, 0x0073, 0x0084, 0x0095, 0x00A6,
++	 0x00B7, 0x00C9, 0x00DB, 0x00ED, 0x00FF}, /* 1.15 */
++};
++
++#define INDEX_CROP_X0		1
++#define INDEX_CROP_X1		3
++#define INDEX_CROP_Y0		5
++#define INDEX_CROP_Y1		7
++static struct ex3691_reg a_crop_list[]=3D {
++	{1, 0xC6, 0x2727	}, //MODE_CROP_X0_A
++	{1, 0xC8, 0x0000	}, //MODE_CROP_X0_A
++	{1, 0xC6, 0x2729	}, //MODE_CROP_X1_A
++	{1, 0xC8, SVGA_WIDTH	}, //MODE_CROP_X1_A
++	{1, 0xC6, 0x272B	}, //MODE_CROP_Y0_A
++	{1, 0xC8, 0x0000	}, //MODE_CROP_Y0_A
++	{1, 0xC6, 0x272D	}, //MODE_CROP_Y1_A
++	{1, 0xC8, SVGA_HEIGHT	}, //MODE_CROP_Y1_A
++	{1, 0xC6, 0xA103	}, //SEQ_CMD
++	{1, 0xC8, 0x0005	}, //SEQ_CMD, refresh
++	{EX3691_TOK_TERM, 0, 0 }
++};
++static struct ex3691_reg b_crop_list[]=3D {
++	{1, 0xC6, 0x2735	}, //MODE_CROP_X0_B
++	{1, 0xC8, 0x0000	}, //MODE_CROP_X0_B
++	{1, 0xC6, 0x2737	}, //MODE_CROP_X1_B
++	{1, 0xC8, UXGA_WIDTH	}, //MODE_CROP_X1_B
++	{1, 0xC6, 0x2739	}, //MODE_CROP_Y0_B
++	{1, 0xC8, 0x0000	}, //MODE_CROP_Y0_B
++	{1, 0xC6, 0x273B	}, //MODE_CROP_Y1_B
++	{1, 0xC8, UXGA_HEIGHT	}, //MODE_CROP_Y1_B
++	{1, 0xC6, 0xA103	}, //SEQ_CMD
++	{1, 0xC8, 0x0005	}, //SEQ_CMD, refresh
++	{EX3691_TOK_TERM, 0, 0 }
++};
++
++static struct vcontrol {
++	struct v4l2_queryctrl qc;
++	int current_value;
++} control[] =3D {
++	{ {V4L2_CID_BRIGHTNESS, V4L2_CTRL_TYPE_INTEGER, "Brightness",
++		MIN_BRIGHTNESS, MAX_BRIGHTNESS, BRIGHTNESS_STEP,
+DEF_BRIGHTNESS},
++	  DEF_BRIGHTNESS},
++	{ {V4L2_CID_CONTRAST, V4L2_CTRL_TYPE_INTEGER, "Contrast",
++		MIN_CONTRAST, MAX_CONTRAST, CONTRAST_STEP,
+DEF_CONTRAST},
++	  DEF_CONTRAST},
++};
++#define NUM_CONTROLS (sizeof(control)/sizeof(control[0]))
++
++/*
++ * Read a 16-bit value from a register.  The value is returned in
+'val'.
++ * Returns zero if successful, or non-zero otherwise.
++ */
++static int
++ex3691_read_reg(struct i2c_client *client, u8 reg, u16 *val)
++{
++	int err;
++	struct i2c_msg msg[1];
++	unsigned char data[2];
++
++	if (!client->adapter)
++		return -ENODEV;
++
++	msg->addr =3D client->addr;
++	msg->flags =3D I2C_M_WR;
++	msg->len =3D 1;
++	msg->buf =3D data;
++	*data =3D reg;
++	err =3D i2c_transfer(client->adapter, msg, 1);
++	if (err >=3D 0) {
++		mdelay(EX3691_I2C_DELAY);
++		msg->len =3D 2;
++		msg->flags =3D I2C_M_RD;
++		err =3D i2c_transfer(client->adapter, msg, 1);
++	}
++	if (err >=3D 0) {
++		/* high byte comes first so need to swap */
++		*val =3D data[1] + (data[0] << 8);
++		return 0;
++	}
++	DPRINTK("read from offset 0x%x error %d", reg, err);
++	return err;
++}
++
++/* It is observed that the SOC fails to ACK the I2C bus when the master
+clock
++ * is higher (e.g. max 80MHz). Retry seems to be working.
++ */
++#define RETRY_COUNT		5
++
++/* Write a 16-bit value to a register.
++ * Returns zero if successful, or non-zero otherwise.
++ */
++static int
++ex3691_write_reg(struct i2c_client *client, u8 reg, u16 val)
++{
++	int err;
++	struct i2c_msg msg[1];
++	unsigned char data[3];
++	int retry =3D 0;
++
++	if (!client->adapter)
++		return -ENODEV;
++
++again:
++	msg->addr =3D client->addr;
++	msg->flags =3D I2C_M_WR;
++	msg->len =3D 3;
++	msg->buf =3D data;
++	data[0] =3D reg;
++	/* high byte goes out first */
++	data[1] =3D (u8) (val >> 8);
++	data[2] =3D (u8) (val & 0xff);
++	err =3D i2c_transfer(client->adapter, msg, 1);
++	if (err >=3D 0)
++		return 0;
++
++	DPRINTK("wrote 0x%x to offset 0x%x error %d", val, reg, err);
++	if (retry <=3D RETRY_COUNT) {
++		DPRINTK("retry ... %d", retry);
++		retry++;
++		set_current_state(TASK_UNINTERRUPTIBLE);
++		schedule_timeout(msecs_to_jiffies(20));
++		goto again;
++	}
++	return err;
++}
++
++static int
++ex3691_write_mcu_data(struct i2c_client *client, u8* mcu_data, int num)
++{
++	int err;
++	struct i2c_msg msg[1];
++	int retry =3D 0;
++
++	if (!client->adapter)
++		return -ENODEV;
++
++again:
++	msg->addr =3D client->addr;
++	msg->flags =3D 0;
++	msg->len =3D num;
++	msg->buf =3D mcu_data;
++	err =3D i2c_transfer(client->adapter, msg, 1);
++	if (err >=3D 0)
++		return 0;
++
++	DPRINTK("wrote mcu data error=3D%d, [0x%x, 0x%x, 0x%x]",
++			err, mcu_data[0], mcu_data[1], mcu_data[2]);
++	if (retry <=3D RETRY_COUNT) {
++		DPRINTK("retry ... %d", retry);
++		retry++;
++		set_current_state(TASK_UNINTERRUPTIBLE);
++		schedule_timeout(msecs_to_jiffies(20));
++		goto again;
++	}
++	return err;
++}
++
++/*
++ * Read a 8/16-bit value from a firmware driver given the driver ID and
 the
->+ * number requested, the currently selected image size, and the
-maximum
->+ * amount of memory permitted for kernel capture buffers.
->+ */
->+static int
->+omap24xxcam_vbq_setup(struct videobuf_queue *vbq, unsigned int *cnt,
->+		      unsigned int *size)
->+{
->+	struct omap24xxcam_device *cam =3D vbq->priv_data;
->+
->+	DBG;
->+
->+	if (*cnt <=3D 0)
->+		*cnt =3D VIDEO_MAX_FRAME;	/* supply a default number of
-buffers
->*/
->+
->+	if (*cnt > VIDEO_MAX_FRAME)
->+		*cnt =3D VIDEO_MAX_FRAME;
->+
->+	spin_lock(&cam->img.img_lock);
->+
->+	*size =3D cam->img.pix.sizeimage;
->+
->+	spin_unlock(&cam->img.img_lock);
->+
->+	while (*size * *cnt > cam->capture_mem)
->+		(*cnt)--;
->+
->+	return 0;
->+}
->+
->+static int
->+omap24xxcam_dma_iolock(struct videobuf_queue* vbq, struct
-videobuf_dmabuf
->*dma)
->+{
->+	int err =3D 0;
->+
->+	dma->direction =3D PCI_DMA_FROMDEVICE;
->+	if (!dma_map_sg(vbq->dev, dma->sglist, dma->sglen,
-dma->direction)) {
->+		kfree(dma->sglist);
->+		dma->sglist =3D NULL;
->+		dma->sglen =3D 0;
->+		err =3D -EIO;
->+	}
->+
->+	return err;
->+}
->+
->+static int
->+omap24xxcam_vbq_prepare(struct videobuf_queue *vbq, struct
-videobuf_buffer
->*vb,
->+			enum v4l2_field field)
->+{
->+	struct omap24xxcam_device *cam =3D vbq->priv_data;
->+	int err =3D 0;
->+
->+	DBG;
->+
->+	spin_lock(&cam->img.img_lock);
->+
->+	if (vb->baddr) {
->+		/* This is a userspace buffer. */
->+		if (cam->img.pix.sizeimage > vb->bsize) {
->+			/* The buffer isn't big enough. */
->+			err =3D -EINVAL;
->+		} else
->+			vb->size =3D cam->img.pix.sizeimage;
->+	} else if (!vb->baddr) {
->+		if (vb->state !=3D STATE_NEEDS_INIT) {
->+			/* We have a kernel bounce buffer that has
-already been
->+			 * allocated.
->+			 */
->+			if (cam->img.pix.sizeimage > vb->size) {
->+				/* The image size has been changed to a
-larger
->+				 * size since this buffer was allocated,
-so we
->+				 * need to free and reallocate it.
->+				 */
->+				spin_unlock(&cam->img.img_lock);
->+				omap24xxcam_vbq_release(vbq, vb);
->+				spin_lock(&cam->img.img_lock);
->+				vb->size =3D cam->img.pix.sizeimage;
->+			}
->+		} else {
->+			/* We need to allocate a new kernel bounce
-buffer. */
->+			vb->size =3D cam->img.pix.sizeimage;
->+		}
->+	}
->+
->+	vb->width =3D cam->img.pix.width;
->+	vb->height =3D cam->img.pix.height;
->+	vb->field =3D field;
->+
->+	spin_unlock(&cam->img.img_lock);
->+
->+	if (err)
->+		return err;
->+
->+	if (vb->state =3D=3D STATE_NEEDS_INIT) {
->+		if (vb->memory =3D=3D V4L2_MEMORY_MMAP)
->+			/* we have built the scatter-gather list by
-ourself so
->+			 * do the scatter-gather mapping as well */
->+			err =3D omap24xxcam_dma_iolock(vbq, &vb->dma);
->+		else
->+			err =3D videobuf_iolock(vbq, vb, NULL);
->+	}
->+
->+	if (!err)
->+		vb->state =3D STATE_PREPARED;
->+	else
->+		omap24xxcam_vbq_release(vbq, vb);
->+
->+	return err;
->+}
->+
->+static void
->+omap24xxcam_vbq_queue(struct videobuf_queue *vbq, struct
-videobuf_buffer
->*vb)
->+{
->+	struct omap24xxcam_device *cam =3D vbq->priv_data;
->+	enum videobuf_state state =3D vb->state;
->+	int err;
->+
->+	DBG;
->+
->+	vb->state =3D STATE_QUEUED;
->+	err =3D omap24xxcam_sgdma_queue(&cam->sgdma, vb->dma.sglist, vb-
->>dma.sglen,
->+				      cam->img.pix.sizeimage,
->+				       omap24xxcam_vbq_complete, vb);
->+	if (err) {
->+		/* Oops.  We're not supposed to get any errors here.
-The only
->+		 * way we could get an error is if we ran out of
-scatter-gather
->+		 * DMA slots, but we are supposed to have at least as
-many
->+		 * scatter-gather DMA slots as video buffers so that
-can't
->+		 * happen.
->+		 */
->+		printk(KERN_DEBUG CAM_NAME
->+		       ": Failed to queue a video buffer for DMA!\n");
->+		vb->state =3D state;
->+	}
->+}
->+
->+struct videobuf_queue_ops omap24xxcam_vbq_ops =3D {
->+ 	.buf_setup =3D omap24xxcam_vbq_setup,
->+	.buf_prepare =3D omap24xxcam_vbq_prepare,
->+	.buf_queue =3D omap24xxcam_vbq_queue,
->+	.buf_release =3D omap24xxcam_vbq_release,
->+};
->+
->diff --git a/drivers/media/video/omap/omap24xxcam.c
->b/drivers/media/video/omap/omap24xxcam.c
->new file mode 100644
->index 0000000..4f954ed
->--- /dev/null
->+++ b/drivers/media/video/omap/omap24xxcam.c
->@@ -0,0 +1,1216 @@
->+/*
->+ * drivers/media/video/omap/omap24xxcam.c
->+ *
->+ * Video-for-Linux (Version 2) camera capture driver for
->+ * the OMAP24xx camera controller.
->+ *
->+ * Author: Andy Lowe (source@mvista.com)
->+ *
->+ * Copyright (C) 2004 MontaVista Software, Inc.
->+ * Copyright (C) 2004 Texas Instruments.
->+ *
->+ * This file is licensed under the terms of the GNU General Public
-License
->+ * version 2. This program is licensed "as is" without any warranty of
-any
->+ * kind, whether express or implied.
->+ *
->+ * History:
->+ * 2005/nov - David Cohen <david.cohen@indt.org.br>
->+ *            Updated the driver for the Linux Device Model and new
->version of V4L2.
->+ */
->+
->+#include <linux/init.h>
->+#include <linux/module.h>
->+#include <linux/moduleparam.h>
->+#include <linux/delay.h>
->+#include <linux/timer.h>
->+#include <linux/errno.h>
->+#include <linux/fs.h>
->+#include <linux/kernel.h>
->+#include <linux/vmalloc.h>
->+#include <linux/slab.h>
->+#include <linux/sched.h>
->+#include <linux/smp_lock.h>
->+#include <linux/interrupt.h>
->+#include <linux/kdev_t.h>
->+#include <linux/types.h>
->+#include <linux/wait.h>
->+#include <linux/i2c.h>
->+#include <linux/videodev2.h>
->+#include <linux/pci.h>		/* needed for videobufs */
->+#include <linux/dma-mapping.h>
->+#include <linux/device.h>
->+#include <linux/input.h>
->+#include <linux/version.h>
->+#include <linux/platform_device.h>
->+#include <linux/clk.h>
->+
->+#include <media/video-buf.h>
->+#include <media/v4l2-common.h>
->+
->+#include <asm/io.h>
->+#include <asm/byteorder.h>
->+#include <asm/scatterlist.h>
->+#include <asm/irq.h>
->+#include <asm/semaphore.h>
->+#include <asm/processor.h>
->+
->+#include <asm/arch/clock.h>
->+
->+#include "omap24xxcam.h"
->+#include "omap24xxcam-dma.h"
->+
->+#include "sensor_if.h"
->+
->+/* configuration macros */
->+
->+//#define DEBUG_CAM
->+#ifdef DEBUG_CAM
->+#define DBG		printk(KERN_INFO CAM_NAME ": %s\n",
-__FUNCTION__)
->+#define DBG_END 	printk(KERN_INFO CAM_NAME ": %s END!\n",
-__FUNCTION__)
->+#define DBG_MID(x)	printk(KERN_INFO CAM_NAME ": %s - %d\n",
->__FUNCTION__, x)
->+#else
->+#define DBG
->+#define DBG_END
->+#define DBG_MID(x)
->+#endif
->+
->+#define RESET_TIMEOUT (HZ / 5)
->+
->+struct omap_camera omap24xxcam_camera =3D {
->+	.sensor_register =3D &omap24xxcam_sensor_register,
->+	.sensor_unregister =3D &omap24xxcam_sensor_unregister,
->+	.sensor_reset =3D &omap24xxcam_sensor_reset_schedule,
->+};
->+
->+struct omap24xxcam_device *camera_module;
->+
->+static struct platform_device omap24xxcam_dev;
->+
->+static int omap24xxcam_remove(struct platform_device *pdev);
->+
->+/* module parameters */
->+static int video_nr =3D -1;	/* video device minor (-1 =3D=3D> auto
-assign) */
->+/* Maximum amount of memory to use for capture buffers.
->+ * Default is 4800KB, enough to double-buffer SXGA.
->+ */
->+static int capture_mem =3D 1280 * 960 * 2 * 2;
->+
->+/*
------------------------------------------------------------------------
->--- */
->+
->+/* Initialize the camera subsystem (camera core, camera DMA, and
-camera
->MMU) */
->+static void omap24xxcam_reset(const struct omap24xxcam_device *cam)
->+{
->+	unsigned long timeout;
->+
->+	DBG;
->+
->+	omap24xxcam_reg_out(cam->mmio_base,
->+			    CAM_SYSCONFIG,
->+			    CAM_SYSCONFIG_SOFTRESET);
->+
->+	/* wait for reset to complete */
->+	timeout =3D jiffies + RESET_TIMEOUT;
->+
->+	while (!(omap24xxcam_reg_in(cam->mmio_base, CAM_SYSSTATUS)
->+		 & CAM_SYSSTATUS_RESETDONE)
->+	       && time_before(jiffies, timeout)) {
->+		msleep(1);
->+	}
->+
->+	if (!(omap24xxcam_reg_in(cam->mmio_base, CAM_SYSSTATUS)
->+	      & CAM_SYSSTATUS_RESETDONE)) {
->+		printk(KERN_WARNING CAM_NAME
->+		       ": timeout waiting for camera subsystem
-reset\n");
->+	}
->+
->+	/* set the camera subsystem autoidle bit */
->+	omap24xxcam_reg_out(cam->mmio_base, CAM_SYSCONFIG,
->+			    CAM_SYSCONFIG_AUTOIDLE);
->+
->+	/* initialize the camera MMU */
->+	/* set the camera MMU autoidle bit */
->+	omap24xxcam_reg_out(cam->mmio_base,
->+			    CAMMMU_REG_OFFSET + CAMMMU_SYSCONFIG,
->+			    CAMMMU_SYSCONFIG_AUTOIDLE);
->+}
->+
->+/* This gets called whenever a DMA transfer is stalled */
->+static void omap24xxcam_reset_timer(unsigned long data)
->+{
->+	struct omap24xxcam_device *cam =3D (struct omap24xxcam_device
-*)data;
->+
->+	printk("%s()\n", __FUNCTION__);
->+
->+	/*
->+	 * Sensor reset must not be called from
->+	 * interrupt context as it may sleep
->+	 */
->+	omap24xxcam_camera_reset_schedule(cam);
->+}
->+
->+void omap24xxcam_camera_reset_work(void * data)
->+{
->+	struct omap24xxcam_device *cam =3D (struct omap24xxcam_device
-*)data;
->+
->+	/* Disable and reset the camera interface. */
->+	omap24xxcam_core_disable(&cam->core);
->+
->+ 	/* Stop the DMA controller and frame sync scatter-gather DMA. */
->+	omap24xxcam_sgdma_disable(&cam->sgdma);
->+
->+	/* Reset and re-initialize the entire camera subsystem.
->+	 * Resetting the camera FIFO via the CC_RST bit in the CC_CTRL
->+	 * register is supposed to be sufficient to recover from a
->+	 * camera interface error, but it doesn't seem to be enough.  If
->+	 * we only do that then subsequent image captures are out of
-sync
->+	 * by either one or two times DMA_THRESHOLD bytes.  Resetting
-and
->+	 * re-initializing the entire camera subsystem prevents the
-problem
->+	 * with frame synchronization.  Calling cam_init() from an ISR
-is
->+	 * undesirable since it waits an indeterminate amount of time
-for the
->+	 * camera subsystem reset to complete.  If we ever figure out
-exactly
->+	 * what needs to be reset to recover from a camera interface
-error,
->+	 * maybe we can replace this global reset with something less
->drastic.
->+	 */
->+	omap24xxcam_reset(cam);
->+	omap24xxcam_core_enable(&cam->core);
->+
->+	if (cam->capture.streaming) {
->+		/* Preview or capture is in progress, so we need to
-register
->+		 * our routine to restart the camera interface the next
-time a
->+		 * DMA transfer is queued.
->+		 */
->+		omap24xxcam_dma_notify(&cam->sgdma.dma,
->omap24xxcam_core_enable_callback);
->+	}
->+
->+	omap24xxcam_sgdma_enable(&cam->sgdma);
->+}
->+
->+void omap24xxcam_camera_reset_schedule(struct omap24xxcam_device *cam)
->+{
->+	schedule_work(&cam->camera_reset_work);
->+}
->+
->+static irqreturn_t omap24xxcam_isr(int irq, void *arg, struct pt_regs
->*regs)
->+{
->+	struct omap24xxcam_device *cam =3D (struct omap24xxcam_device
-*)arg;
->+	unsigned long irqstatus;
->+	unsigned int irqhandled =3D 0;
->+
->+	DBG;
->+
->+	irqstatus =3D omap24xxcam_reg_in(cam->mmio_base, CAM_IRQSTATUS);
->+
->+	if (irqstatus &
->+	    (CAM_IRQSTATUS_DMA_IRQ2 | CAM_IRQSTATUS_DMA_IRQ1
->+	     | CAM_IRQSTATUS_DMA_IRQ0)) {
->+		omap24xxcam_dma_isr(&cam->sgdma.dma);
->+		irqhandled =3D 1;
->+	}
->+	if (irqstatus & CAM_IRQSTATUS_CC_IRQ) {
->+		omap24xxcam_core_isr(&cam->core);
->+		irqhandled =3D 1;
->+	}
->+	if (irqstatus & CAM_IRQSTATUS_MMU_IRQ)
->+		printk(KERN_ERR CAM_NAME ": Unhandled camera MMU
->interrupt!\n");
->+
->+	return IRQ_RETVAL(irqhandled);
->+}
->+
->+/*
------------------------------------------------------------------------
->--- */
->+
->+static int vidioc_querycap(struct file *file, void *fh,
->+			   struct v4l2_capability *cap)
->+{
->+	struct omap24xxcam_fh *ofh =3D fh;
->+	struct omap24xxcam_device *cam =3D ofh->cam;
->+
->+	memset(cap, 0, sizeof(*cap));
->+	strlcpy(cap->driver, CAM_NAME, sizeof(cap->driver));
->+	strlcpy(cap->card, cam->vfd->name, sizeof(cap->card));
->+	cap->bus_info[0] =3D '\0';
->+	cap->version =3D KERNEL_VERSION(0, 0, 0);
->+	cap->capabilities =3D
->+		V4L2_CAP_VIDEO_CAPTURE
->+		| V4L2_CAP_READWRITE
->+		| V4L2_CAP_STREAMING;
->+
->+	return 0;
->+}
->+
->+static int vidioc_enum_input(struct file *file, void *fh,
->+			     struct v4l2_input *inp)
->+{
->+	/* default handler assumes 1 video input (the camera) */
->+	int index =3D inp->index;
->+
->+	memset(inp, 0, sizeof(*inp));
->+	inp->index =3D index;
->+
->+	if (index > 0)
->+		return -EINVAL;
->+
->+	strlcpy(inp->name, "camera", sizeof(inp->name));
->+	inp->type =3D V4L2_INPUT_TYPE_CAMERA;
->+
->+	return 0;
->+}
->+
->+static int vidioc_g_input(struct file *file, void *fh, unsigned int
-*i)
->+{
->+	*i =3D 0;
->+
->+	return 0;
->+
->+}
->+
->+static int vidioc_s_input(struct file *file, void *fh, unsigned int i)
->+{
->+	if (i > 0)
->+		return -EINVAL;
->+
->+	return 0;
->+}
->+
->+static int vidioc_g_fmt_cap(struct file *file, void *fh,
->+			    struct v4l2_format *f)
->+{
->+	struct omap24xxcam_fh *ofh =3D fh;
->+	struct omap24xxcam_device *cam =3D ofh->cam;
->+	struct v4l2_pix_format *pix =3D &f->fmt.pix;
->+
->+	memset(pix, 0, sizeof(*pix));
->+	spin_lock(&cam->img.img_lock);
->+	*pix =3D cam->img.pix;
->+	spin_unlock(&cam->img.img_lock);
->+	return 0;
->+}
->+
->+static int vidioc_try_fmt_cap(struct file *file, void *fh,
->+			      struct v4l2_format *f)
->+{
->+	struct omap24xxcam_fh *ofh =3D fh;
->+	struct omap24xxcam_device *cam =3D ofh->cam;
->+
->+	return omap24xxcam_sensor_try_format(cam, &f->fmt.pix);
->+}
->+
->+static int vidioc_s_fmt_cap(struct file *file, void *fh,
->+			    struct v4l2_format *f)
->+{
->+	struct omap24xxcam_fh *ofh =3D fh;
->+	struct omap24xxcam_device *cam =3D ofh->cam;
->+	struct omap24xxcam_capture *capture =3D &cam->capture;
->+	int err;
->+
->+	spin_lock(&capture->lock);
->+	if (capture->streaming) {
->+		spin_unlock(&capture->lock);
->+		return -EBUSY;
->+	}
->+	spin_unlock(&capture->lock);
->+	spin_lock(&cam->img.img_lock);
->+	omap24xxcam_sensor_try_format(cam, &f->fmt.pix);
->+	/* set the new capture format */
->+	cam->img.pix =3D f->fmt.pix;
->+	/* adjust the capture frame rate */
->+	err =3D omap24xxcam_sensor_set_format(cam,
->+					    &cam->img.pix,
->+
-&cam->img.cparm.timeperframe,
->+					    &cam->core.xclk);
->+	spin_unlock(&cam->img.img_lock);
->+	return err;
->+}
->+
->+static int vidioc_g_parm(struct file *file, void *fh,
->+			 struct v4l2_streamparm *a) {
->+	struct omap24xxcam_fh *ofh =3D fh;
->+	struct omap24xxcam_device *cam =3D ofh->cam;
->+
->+	enum v4l2_buf_type type =3D a->type;
->+
->+	memset(a, 0, sizeof(*a));
->+	a->type =3D type;
->+	if (type !=3D V4L2_BUF_TYPE_VIDEO_CAPTURE)
->+		return -EINVAL;
->+	spin_lock(&cam->img.img_lock);
->+	a->parm.capture =3D cam->img.cparm;
->+	spin_unlock(&cam->img.img_lock);
->+	return 0;
->+}
->+
->+static int vidioc_s_parm(struct file *file, void *fh,
->+			 struct v4l2_streamparm *a)
->+{
->+	struct omap24xxcam_fh *ofh =3D fh;
->+	struct omap24xxcam_device *cam =3D ofh->cam;
->+	struct omap24xxcam_capture *capture =3D &cam->capture;
->+	int err;
->+	struct v4l2_captureparm *cparm =3D &a->parm.capture;
->+
->+	if (a->type !=3D V4L2_BUF_TYPE_VIDEO_CAPTURE)
->+		return -EINVAL;
->+	spin_lock(&capture->lock);
->+	if (capture->streaming) {
->+		spin_unlock(&capture->lock);
->+		return -EBUSY;
->+	}
->+	spin_unlock(&capture->lock);
->+	spin_lock(&cam->img.img_lock);
->+	err =3D omap24xxcam_sensor_set_format(
->+		cam,
->+		&cam->img.pix,
->+		&cparm->timeperframe,
->+		&cam->core.xclk);
->+	if (!err) {
->+		cam->img.cparm.capturemode =3D cparm->capturemode;
->+		cam->img.cparm.timeperframe =3D
->+			cparm->timeperframe;
->+		spin_unlock(&cam->img.img_lock);
->+	} else {
->+		spin_unlock(&cam->img.img_lock);
->+	}
->+	return 0;
->+}
->+
->+static int vidioc_reqbufs(struct file *file, void *fh,
->+			  struct v4l2_requestbuffers *b)
->+{
->+	struct omap24xxcam_fh *ofh =3D fh;
->+
->+	int err =3D videobuf_reqbufs(&ofh->vbq, b);
->+	if (b->memory =3D=3D V4L2_MEMORY_MMAP && !err) {
->+		err =3D omap24xxcam_vbq_alloc_mmap_buffers(&ofh->vbq,
->+							 b->count);
->+		if (err) {
->+			/* REVISIT: is this proper reverse for
->+			 * videobuf_reqbufs? */
->+			videobuf_mmap_free(&ofh->vbq);
->+		}
->+	}
->+	return err;
->+}
->+
->+static int vidioc_querybuf(struct file *file, void *fh,
->+			   struct v4l2_buffer *b)
->+{
->+	struct omap24xxcam_fh *ofh =3D fh;
->+
->+	return videobuf_querybuf(&ofh->vbq, b);
->+}
->+
->+static int vidioc_qbuf(struct file *file, void *fh, struct v4l2_buffer
-*b)
->+{
->+	struct omap24xxcam_fh *ofh =3D fh;
->+
->+	return videobuf_qbuf(&ofh->vbq, b);
->+}
->+
->+static int vidioc_dqbuf(struct file *file, void *fh, struct
-v4l2_buffer
->*b)
->+{
->+	struct omap24xxcam_fh *ofh =3D fh;
->+	struct omap24xxcam_device *cam =3D ofh->cam;
->+	struct videobuf_buffer *vb;
->+	int rval;
->+
->+	rval =3D videobuf_dqbuf(&ofh->vbq, b,
->+			      file->f_flags & O_NONBLOCK);
->+
->+	if (rval < 0)
->+		return rval;
->+	vb =3D ofh->vbq.bufs[b->index];
->+
->+	if (cam->sensor->frame_check)
->+		rval =3D cam->sensor->frame_check(
->+			cam->sensor,
->+			&cam->img.pix,
->+			(void *)vb->baddr);
->+
->+	return rval;
->+
->+}
->+
->+static int vidioc_streamon(struct file *file, void *fh, enum
-v4l2_buf_type
->i)
->+{
->+	struct omap24xxcam_fh *ofh =3D fh;
->+	struct omap24xxcam_device *cam =3D ofh->cam;
->+	struct omap24xxcam_capture *capture =3D &cam->capture;
->+
->+	spin_lock(&capture->lock);
->+	if (capture->streaming) {
->+		spin_unlock(&capture->lock);
->+		return -EBUSY;
->+	} else
->+		capture->streaming =3D file;
->+	spin_unlock(&capture->lock);
->+
->+	omap24xxcam_dma_notify(&cam->sgdma.dma,
->omap24xxcam_core_enable_callback);
->+	return videobuf_streamon(&ofh->vbq);
->+}
->+
->+static int vidioc_streamoff(struct file *file, void *fh, enum
->v4l2_buf_type i)
->+{
->+	struct omap24xxcam_fh *ofh =3D fh;
->+	struct omap24xxcam_device *cam =3D ofh->cam;
->+	struct omap24xxcam_capture *capture =3D &cam->capture;
->+	struct videobuf_queue *q =3D &ofh->vbq;
->+	int j;
->+	int err;
->+
->+	/* video-buf lib has trouble to turn off streaming while
->+	   any buffer is still in QUEUED state. Let's wait until
->+	   all queued buffers are filled.
->+	*/
->+	for (j =3D 0; j < VIDEO_MAX_FRAME; j++) {
->+		if (NULL =3D=3D q->bufs[j])
->+			continue;
->+		videobuf_waiton(q->bufs[j], 0, 0);
->+	}
->+
->+	err =3D videobuf_streamoff(q);
->+
->+	if (err < 0)
->+		return err;
->+
->+	spin_lock(&capture->lock);
->+	if (capture->streaming =3D=3D file)
->+		capture->streaming =3D NULL;
->+	spin_unlock(&capture->lock);
->+	return 0;
->+}
->+static int vidioc_g_ctrl(struct file *file, void *fh,
->+			 struct v4l2_control *a)
->+{
->+	struct omap24xxcam_fh *ofh =3D fh;
->+	struct omap24xxcam_device *cam =3D ofh->cam;
->+
->+	return cam->sensor->get_control(cam->sensor, a);
->+}
->+
->+static int vidioc_s_ctrl(struct file *file, void *fh,
->+			 struct v4l2_control *a)
->+{
->+	struct omap24xxcam_fh *ofh =3D fh;
->+	struct omap24xxcam_device *cam =3D ofh->cam;
->+
->+	return cam->sensor->set_control(cam->sensor, a);
->+}
->+
->+static int vidioc_queryctrl(struct file *file, void *fh,
->+			    struct v4l2_queryctrl *a) {
->+	struct omap24xxcam_fh *ofh =3D fh;
->+	struct omap24xxcam_device *cam =3D ofh->cam;
->+
->+	return cam->sensor->query_control(cam->sensor, a);
->+}
->+
->+static int vidioc_enum_fmt_cap(struct file *file, void *fh,
->+			       struct v4l2_fmtdesc *f)
->+{
->+	struct omap24xxcam_fh *ofh =3D fh;
->+	struct omap24xxcam_device *cam =3D ofh->cam;
->+
->+	return cam->sensor->enum_pixformat(cam->sensor,
->+					   f);
->+}
->+
->+/*
------------------------------------------------------------------------
->--- */
->+
->+	/*
->+	 *  file operations
->+	 */
->+
->+static unsigned
->+int omap24xxcam_poll(struct file *file, struct poll_table_struct
-*wait)
->+{
->+	struct omap24xxcam_fh *fh =3D file->private_data;
->+	struct omap24xxcam_device *cam =3D fh->cam;
->+	struct omap24xxcam_capture *capture =3D &cam->capture;
->+	struct videobuf_buffer *vb;
->+	enum v4l2_field field;
->+
->+	DBG;
->+
->+	spin_lock(&capture->lock);
->+
->+	if (capture->streaming =3D=3D file) {
->+		spin_unlock(&capture->lock);
->+		/* streaming capture */
->+		if (list_empty(&fh->vbq.stream))
->+			return POLLERR;
->+		vb =3D list_entry(fh->vbq.stream.next, struct
-videobuf_buffer,
->+				stream);
->+	} else if (capture->streaming) {
->+		/* streaming I/O is in progress on another file
-descriptor */
->+		spin_unlock(&capture->lock);
->+		return POLLERR;
->+	} else {
->+		/* read() capture */
->+		spin_unlock(&capture->lock);
->+		mutex_lock(&fh->vbq.lock);
->+		if (fh->vbq.read_buf =3D=3D NULL) {
->+			/* need to capture a new image */
->+			fh->vbq.read_buf =3D
->+				videobuf_alloc(fh->vbq.msize);
->+			if (fh->vbq.read_buf =3D=3D NULL) {
->+				mutex_unlock(&fh->vbq.lock);
->+				return POLLERR;
->+			}
->+			fh->vbq.read_buf->memory =3D V4L2_MEMORY_USERPTR;
->+			field =3D videobuf_next_field(&fh->vbq);
->+			if (fh->vbq.ops->buf_prepare(&fh->vbq,
->+						     fh->vbq.read_buf,
->+						     field) !=3D 0) {
->+				mutex_unlock(&fh->vbq.lock);
->+				return POLLERR;
->+			}
->+
->+			omap24xxcam_dma_notify(&cam->sgdma.dma,
->omap24xxcam_core_enable_callback);
->+			fh->vbq.ops->buf_queue(&fh->vbq,
->+					       fh->vbq.read_buf);
->+			fh->vbq.read_off =3D 0;
->+		}
->+		mutex_unlock(&fh->vbq.lock);
->+		vb =3D (struct videobuf_buffer *)fh->vbq.read_buf;
->+	}
->+
->+	omap24xxcam_dma_notify(&cam->sgdma.dma,
->omap24xxcam_core_enable_callback);
->+	poll_wait(file, &vb->done, wait);
->+	if (vb->state =3D=3D STATE_DONE || vb->state =3D=3D STATE_ERROR)
->+		return POLLIN | POLLRDNORM;
->+
->+	return 0;
->+}
->+
->+static ssize_t
->+omap24xxcam_read(struct file *file, char *data, size_t count, loff_t *
->ppos)
->+{
->+	struct omap24xxcam_fh *fh =3D file->private_data;
->+	struct omap24xxcam_device *cam =3D fh->cam;
->+	struct omap24xxcam_capture *capture =3D &cam->capture;
->+	int err;
->+
->+	DBG;
->+
->+	spin_lock(&capture->lock);
->+	if (capture->streaming) {
->+		spin_unlock(&capture->lock);
->+		return -EBUSY;
->+	}
->+	spin_unlock(&capture->lock);
->+
->+	omap24xxcam_dma_notify(&cam->sgdma.dma,
->omap24xxcam_core_enable_callback);
->+
->+	err =3D
->+		videobuf_read_one(&fh->vbq, data, count, ppos,
->+				  file->f_flags & O_NONBLOCK);
->+
->+	DBG_END;
->+
->+	return err;
->+}
->+
->+static int
->+omap24xxcam_mmap_buffers(struct file *file, struct vm_area_struct
-*vma)
->+{
->+	struct omap24xxcam_fh *fh =3D file->private_data;
->+	struct videobuf_queue *vbq =3D &fh->vbq;
->+	struct videobuf_buffer *vb;
->+	unsigned int first, last, size, i, j;
->+	int err =3D 0;
->+
->+	mutex_lock(&vbq->lock);
->+
->+	/* look for first buffer to map */
->+	for (first =3D 0; first < VIDEO_MAX_FRAME; first++) {
->+		if (NULL =3D=3D vbq->bufs[first])
->+			continue;
->+		if (V4L2_MEMORY_MMAP !=3D vbq->bufs[first]->memory)
->+			continue;
->+		if (vbq->bufs[first]->boff =3D=3D (vma->vm_pgoff <<
-PAGE_SHIFT))
->+			break;
->+	}
->+
->+	/* look for last buffer to map */
->+	for (size =3D 0, last =3D first; last < VIDEO_MAX_FRAME; last++) {
->+		if (NULL =3D=3D vbq->bufs[last])
->+			continue;
->+		if (V4L2_MEMORY_MMAP !=3D vbq->bufs[last]->memory)
->+			continue;
->+		size +=3D vbq->bufs[last]->bsize;
->+		if (size =3D=3D (vma->vm_end - vma->vm_start))
->+			break;
->+	}
->+
->+	size =3D 0;
->+	for (i =3D first; i <=3D last; i++) {
->+		vb =3D vbq->bufs[i];
->+		for (j =3D 0; j < vb->dma.sglen; j++) {
->+			err =3D remap_pfn_range(vma, vma->vm_start + size,
->+				page_to_pfn(vb->dma.sglist[j].page),
->+				vb->dma.sglist[j].length,
-vma->vm_page_prot);
->+			if (err)
->+				goto out;
->+			size +=3D vb->dma.sglist[j].length;
->+		}
->+	}
->+
->+out:
->+	mutex_unlock(&vbq->lock);
->+
->+	return err;
->+}
->+
->+static int
->+omap24xxcam_mmap(struct file *file, struct vm_area_struct *vma)
->+{
->+	struct omap24xxcam_fh *fh =3D file->private_data;
->+	int err;
->+
->+	/* let the video-buf mapper check arguments and set-up
-structures */
->+	err =3D videobuf_mmap_mapper(&fh->vbq, vma);
->+	if (err)
->+		goto err1;
->+
->+	vma->vm_page_prot =3D pgprot_noncached(vma->vm_page_prot);
->+
->+	/* do mapping to our allocated buffers */
->+	err =3D omap24xxcam_mmap_buffers(file, vma);
->+	if (err)
->+		goto err2;
->+
->+	return 0;
->+
->+err2:
->+	if (vma->vm_private_data)
->+		kfree(vma->vm_private_data);
->+err1:
->+
->+	return err;
->+}
->+
->+static int omap24xxcam_clock_get(struct omap24xxcam_device *cam)
->+{
->+	cam->img.fck =3D clk_get(0, "cam_fck");
->+	if (IS_ERR((cam->img.fck))) {
->+		dev_err(cam->dev, "can't get cam_fck");
->+		return PTR_ERR(cam->img.fck);
->+	}
->+
->+	cam->img.ick =3D clk_get(0, "cam_ick");
->+	if (IS_ERR((cam->img.ick))) {
->+		dev_err(cam->dev, "can't get cam_ick");
->+		clk_put(cam->img.fck);
->+		return PTR_ERR(cam->img.ick);
->+	}
->+
->+	return 0;
->+}
->+
->+static void omap24xxcam_clock_put(struct omap24xxcam_device *cam)
->+{
->+	if (cam->img.ick =3D=3D NULL)
->+		return;
->+
->+	clk_put(cam->img.ick);
->+	clk_put(cam->img.fck);
->+}
->+
->+/*
->+ * Do some sanity check, set clock rate, starts it and
->+ *  turn codec audio on
->+ */
->+int omap24xxcam_clock_on(struct omap24xxcam_device *cam)
->+{
->+
->+	clk_enable(cam->img.fck);
->+	clk_enable(cam->img.ick);
->+
->+	printk(KERN_DEBUG
->+	       "FCLK =3D %d [%d], usecount =3D %d\n",
->+	       (uint) clk_get_rate(cam->img.fck), CAM_CLOCK,
->+	       clk_get_usecount(cam->img.fck));
->+
->+	return 0;
->+}
->+
->+/*
->+ * Do some sanity check, turn clock off and then turn
->+ *  codec audio off
->+ */
->+int omap24xxcam_clock_off(struct omap24xxcam_device *cam)
->+{
->+	if (cam->img.ick =3D=3D NULL)
->+		return 0;
->+
->+	if (clk_get_usecount(cam->img.fck) > 0) {
->+		if (clk_get_rate(cam->img.fck) !=3D CAM_CLOCK) {
->+			printk(KERN_WARNING
->+			       "FCLK for camera should be %d Hz. But is
-%d Hz\n",
->+			       (uint) clk_get_rate(cam->img.fck),
-CAM_CLOCK);
->+		}
->+
->+		clk_disable(cam->img.fck);
->+		clk_disable(cam->img.ick);
->+	}
->+
->+	return 0;
->+}
->+
->+static int omap24xxcam_release(struct inode *inode, struct file *file)
->+{
->+	struct omap24xxcam_fh *fh =3D file->private_data;
->+	struct omap24xxcam_device *cam =3D fh->cam;
->+	struct omap24xxcam_capture *capture =3D &cam->capture;
->+
->+	DBG;
->+
->+	spin_lock(&capture->lock);
->+
->+	/* stop streaming capture */
->+	if (capture->streaming =3D=3D file) {
->+		capture->streaming =3D NULL;
->+		spin_unlock(&capture->lock);
->+		videobuf_streamoff(&fh->vbq);
->+		spin_lock(&capture->lock);
->+	}
->+
->+	/* release read_buf videobuf_buffer struct */
->+	if (fh->vbq.read_buf) {
->+		omap24xxcam_vbq_release(&fh->vbq, fh->vbq.read_buf);
->+		kfree(fh->vbq.read_buf);
->+	}
->+	spin_unlock(&capture->lock);
->+
->+	mutex_lock(&cam->mutex);
->+	if (--cam->users =3D=3D 0) {
->+		/* power down the sensor */
->+		omap24xxcam_core_disable(&cam->core);
->+		omap24xxcam_sgdma_disable(&cam->sgdma);
->+		omap24xxcam_sensor_disable(cam);
->+	}
->+	mutex_unlock(&cam->mutex);
->+
->+	file->private_data =3D NULL;
->+
->+	module_put(cam->sensor->module);
->+	kfree(fh);
->+
->+	return 0;
->+}
->+
->+static int omap24xxcam_open(struct inode *inode, struct file *file)
->+{
->+	int minor =3D iminor(inode);
->+	struct omap24xxcam_device *cam =3D camera_module;
->+	struct omap24xxcam_capture *capture =3D &cam->capture;
->+	struct omap24xxcam_fh *fh;
->+
->+	DBG;
->+
->+	if (!cam || !cam->vfd || (cam->vfd->minor !=3D minor))
->+		return -ENODEV;
->+
->+	if (!try_module_get(cam->sensor->module))
->+		return -ENODEV;
->+
->+	fh =3D kzalloc(sizeof(struct omap24xxcam_fh), GFP_KERNEL);
->+
->+	if (fh =3D=3D NULL)
->+		return -ENOMEM;
->+
->+	fh->cam =3D cam;
->+	file->private_data =3D fh;
->+
->+	videobuf_queue_init(&fh->vbq, &omap24xxcam_vbq_ops, NULL,
->+			    &capture->lock, V4L2_BUF_TYPE_VIDEO_CAPTURE,
->+			    V4L2_FIELD_NONE,
->+			    sizeof(struct videobuf_buffer), cam);
->+
->+	mutex_lock(&cam->mutex);
->+	if (cam->users =3D=3D 0) {
->+		omap24xxcam_sgdma_enable(&cam->sgdma);
->+		omap24xxcam_sensor_enable(cam);
->+
->+	}
->+	cam->users++;
->+	mutex_unlock(&cam->mutex);
->+
->+	return 0;
->+}
->+
->+static struct file_operations omap24xxcam_fops =3D {
->+	.owner =3D THIS_MODULE,
->+	.llseek =3D no_llseek,
->+	.read =3D omap24xxcam_read,
->+	.poll =3D omap24xxcam_poll,
->+	.ioctl =3D video_ioctl2,
->+	.mmap =3D omap24xxcam_mmap,
->+	.open =3D omap24xxcam_open,
->+	.release =3D omap24xxcam_release,
->+};
->+
->+/*
------------------------------------------------------------------------
->--- */
->+#ifdef CONFIG_PM
->+static int omap24xxcam_suspend(struct platform_device *pdev,
-pm_message_t
->state)
->+{
->+	struct omap24xxcam_device *cam =3D platform_get_drvdata(pdev);
->+
->+	DBG;
->+
->+	mutex_lock(&cam->mutex);
->+	if (cam->users =3D=3D 0) {
->+		mutex_unlock(&cam->mutex);
->+		return 0;
->+	}
->+	mutex_unlock(&cam->mutex);
->+
->+	/* Disable the camera interface. */
->+	omap24xxcam_core_disable(&cam->core);
->+
->+	/* Stop the DMA controller and frame sync scatter-gather DMA. */
->+	omap24xxcam_sgdma_disable(&cam->sgdma);
->+
->+	/* power down the sensor */
->+	omap24xxcam_sensor_disable(cam);
->+
->+	return 0;
->+}
->+static int omap24xxcam_resume(struct platform_device *pdev)
->+{
->+	struct omap24xxcam_device *cam =3D platform_get_drvdata(pdev);
->+
->+	DBG;
->+
->+	mutex_lock(&cam->mutex);
->+	if (cam->users =3D=3D 0) {
->+		mutex_unlock(&cam->mutex);
->+		return 0;
->+	}
->+	mutex_unlock(&cam->mutex);
->+
->+	/* FIXME: what clocks need to be enabled now? None? */
->+	omap24xxcam_core_enable(&cam->core);
->+
->+	if (cam->capture.streaming) {
->+		/* capture was in progress, so we need to register
->+		 * our routine to restart the camera interface the next
-time a
->+		 * DMA transfer is queued.
->+		 */
->+		omap24xxcam_dma_notify(&cam->sgdma.dma,
->omap24xxcam_core_enable_callback);
->+	}
->+
->+	/* Restart the scatter-gather DMA queue. */
->+	omap24xxcam_sgdma_enable(&cam->sgdma);
->+
->+	/* power-up and re-configure the sensor */
->+	omap24xxcam_sensor_enable(cam);
->+
->+	/* camera interface will be enabled through dma_notify function
->+	 ** automatically when new dma starts
->+	 */
->+
->+	return 0;
->+}
->+#endif /* CONFIG_PM */
->+
->+int omap24xxcam_device_enable(struct omap24xxcam_device *cam)
->+{
->+	struct video_device *vfd;
->+	int rval;
->+
->+	if (cam =3D=3D NULL || !cam->camera_block_alive || cam->vfd !=3D =
-NULL)
->+		return -EBUSY;
->+
->+	/* initialize the video_device struct */
->+	vfd =3D cam->vfd =3D video_device_alloc();
->+	if (!vfd) {
->+		printk(KERN_ERR CAM_NAME
->+		       ": could not allocate video device struct\n");
->+		rval =3D -ENOMEM;
->+		goto err;
->+	}
->+	vfd->release =3D video_device_release;
->+
->+	strlcpy(vfd->name, CAM_NAME, sizeof(vfd->name));
->+	vfd->type =3D VID_TYPE_CAPTURE | VID_TYPE_CHROMAKEY;
->+	/* need to register for a VID_HARDWARE_* ID in videodev.h */
->+	vfd->hardware =3D 0;
->+	vfd->fops =3D &omap24xxcam_fops;
->+	/* FIXME: need to use the full v4l2 API */
->+	vfd->priv =3D camera_module;
->+	vfd->minor =3D -1;
->+
->+	vfd->vidioc_querycap =3D &vidioc_querycap;
->+	vfd->vidioc_enum_input =3D &vidioc_enum_input;
->+	vfd->vidioc_g_input =3D &vidioc_g_input;
->+	vfd->vidioc_s_input =3D &vidioc_s_input;
->+	vfd->vidioc_g_fmt_cap =3D &vidioc_g_fmt_cap;
->+	vfd->vidioc_try_fmt_cap =3D &vidioc_try_fmt_cap;
->+	vfd->vidioc_s_fmt_cap =3D &vidioc_s_fmt_cap;
->+	vfd->vidioc_g_parm =3D &vidioc_g_parm;
->+	vfd->vidioc_s_parm =3D &vidioc_s_parm;
->+	vfd->vidioc_reqbufs =3D &vidioc_reqbufs;
->+	vfd->vidioc_querybuf =3D &vidioc_querybuf;
->+	vfd->vidioc_qbuf =3D &vidioc_qbuf;
->+	vfd->vidioc_dqbuf =3D &vidioc_dqbuf;
->+	vfd->vidioc_streamon =3D &vidioc_streamon;
->+	vfd->vidioc_streamoff =3D &vidioc_streamoff;
->+	vfd->vidioc_g_ctrl =3D &vidioc_g_ctrl;
->+	vfd->vidioc_s_ctrl =3D &vidioc_s_ctrl;
->+	vfd->vidioc_queryctrl =3D &vidioc_queryctrl;
->+	vfd->vidioc_enum_fmt_cap =3D &vidioc_enum_fmt_cap;
->+
->+	/* Enable the xclk output.  The sensor may (and does, in the
-case of
->+	 * the OV9640) require an xclk input in order for its
-initialization
->+	 * routine to work.
->+	 */
->+	/* choose an arbitrary xclk frequency */
->+	omap24xxcam_core_xclk_set(&cam->core, 12000000);
->+
->+	omap24xxcam_camera.priv =3D cam;
->+
->+	if ((rval =3D omap24xxcam_sensor_init(cam))) {
->+		goto err;
->+	}
->+
->+	if (video_register_device(vfd, VFL_TYPE_GRABBER, video_nr) < 0)
++ * var offset. It assumes logic address.
++ * The value is returned if successful, or 0xFFFF otherwise.
++ */
++static u16
++ex3691_read_firmware_var(struct i2c_client *client, int id, int offset,
+int byte)
++{
++	u16 val;
++
++	/* always use logical address */
++	val =3D VAR_ADDRESS_TYPE_LOGIC << VAR_ADDRESS_TYPE_SHIFT;
++	val |=3D (byte << VAR_LENGTH_SHIFT);
++	val |=3D (id << VAR_DRV_ID_SHIFT);
++	val |=3D (offset << VAR_ADDRESS_SHIFT);
++
++	/* setup page pointer */
++	if (ex3691_write_reg(client, REG_PAGE, PAGE_IFP1))
++		return 0xffff;
++	/* setup var pointer */
++	if (ex3691_write_reg(client, REG_VAR_ADDR, val))
++		return 0xffff;
++	DPRINTK("sent 0x%x to read var at (%d, %d, %d):", val, id,
+offset, byte);
++	/* read the var */
++	if (ex3691_read_reg(client, REG_VAR_DATA, &val))
++		return 0xffff;
++	DPRINTK("Got 0x%x", val);
++
++	if (byte =3D=3D VAR_LENGTH_8BIT)
++		val &=3D 0xff;
++	return val;
++}
++
++/* Initialize a list of EX3691 registers.
++ * The list of registers is terminated by EX3691_TOK_TERM.
++ * Returns zero if successful, or non-zero otherwise.
++ */
++#define OPTIMIZE_MCP_WRITE		1
++static int
++ex3691_write_regs(struct i2c_client *client, const struct ex3691_reg
+reglist[])
++{
++	int err, i;
++	u8 page =3D 0xFF;
++	u8 mcu_data[19], *p;
++	const struct ex3691_reg *next =3D reglist;
++
++	for (; next->page !=3D EX3691_TOK_TERM; next++) {
++		if (next->page =3D=3D EX3691_TOK_DELAY) {
++			set_current_state(TASK_UNINTERRUPTIBLE);
++			schedule_timeout((next->val/2)/10);
++			continue;
++		}
++
++		if (page !=3D next->page) {
++			/* need to select a new page */
++			err =3D ex3691_write_reg(client, REG_PAGE,
+next->page);
++			if (err)
++				return err;
++			page =3D next->page;
++		}
++
++#ifdef OPTIMIZE_MCP_WRITE
++		if ((page =3D=3D PAGE_IFP1) && (next->reg =3D=3D REG_VAR_DATA))
 {
->+		printk(KERN_ERR CAM_NAME
->+		       ": could not register Video for Linux device\n");
->+		vfd->minor =3D -1;
->+		rval =3D -EBUSY;
->+		goto err;
->+	}
->+
->+	printk(KERN_INFO CAM_NAME
->+	       ": registered device video%d [v4l2]\n", vfd->minor);
->+
->+	return 0;
->+
->+err:
->+	omap24xxcam_device_disable(cam);
->+
->+	return rval;
->+}
->+
->+void omap24xxcam_device_disable(struct omap24xxcam_device *cam)
->+{
->+	omap24xxcam_sensor_exit(cam);
->+
->+	if (cam->vfd) {
->+		if (cam->vfd->minor =3D=3D -1) {
->+			/* The device was never registered, so release
-the
->+			 * video_device struct directly.
->+			 */
->+			video_device_release(cam->vfd);
->+		} else {
->+			/* The unregister function will release the
-video_device
->+			 * struct as well as unregistering it.
->+			 */
->+			video_unregister_device(cam->vfd);
->+		}
->+		cam->vfd =3D NULL;
->+	}
->+}
->+
->+static int omap24xxcam_probe(struct platform_device *pdev)
->+{
->+	struct omap24xxcam_device *cam;
->+	DBG;
->+
->+	cam =3D camera_module =3D kzalloc(sizeof(struct omap24xxcam_device),
->+				      GFP_KERNEL);
->+	if (!cam) {
->+		printk(KERN_ERR CAM_NAME ": could not allocate
-memory\n");
->+		goto err;
->+	}
->+	cam->dev =3D &pdev->dev;
->+
->+	/* initialize the videobuf queue ops */
->+	spin_lock_init(&cam->capture.lock);
->+
->+	/* Impose a lower limit on the amount of memory allocated for
->capture.
->+	 * We require at least enough memory to double-buffer QVGA
-(300KB).
->+	 */
->+	if (capture_mem < 320 * 240 * 2 * 2)
->+		capture_mem =3D 320 * 240 * 2 * 2;
->+	cam->capture_mem =3D capture_mem;
->+
->+	/* request the mem region for the camera registers */
->+	if (!request_mem_region(CAM_REG_BASE, CAM_REG_SIZE, CAM_NAME)) {
->+		printk(KERN_ERR CAM_NAME
->+		       ": cannot reserve camera register I/O region\n");
->+		goto err;
->+	}
->+	cam->mmio_base_phys =3D CAM_REG_BASE;
->+	cam->mmio_size =3D CAM_REG_SIZE;
->+
->+	/* map the region */
->+	cam->mmio_base =3D (unsigned long)
->+		ioremap_nocache(cam->mmio_base_phys,
->+				cam->mmio_size);
->+	if (!cam->mmio_base) {
->+		printk(KERN_ERR CAM_NAME
->+		       ": cannot map camera register I/O region\n");
->+		goto err;
->+	}
->+
->+	/* initialize the camera interface */
->+	omap24xxcam_reset(cam);
->+
->+	init_timer(&cam->sgdma.reset_timer);
->+	cam->sgdma.reset_timer.function =3D omap24xxcam_reset_timer;
->+	cam->sgdma.reset_timer.data =3D (unsigned long)cam;
->+	INIT_WORK(&cam->camera_reset_work,
->+		  omap24xxcam_camera_reset_work, cam);
->+	INIT_WORK(&cam->sensor_reset_work,
->+		  omap24xxcam_sensor_reset_work, cam);
->+
->+	/* initialize the spinlock used to serialize access to the image
->+	 * parameters
->+	 */
->+	spin_lock_init(&cam->img.img_lock);
->+
->+	/* initialize the camera interface functional clock frequency */
->+	omap24xxcam_core_mclk_set(&cam->core, 96000000); /* 96MHz */
->+	if (omap24xxcam_clock_get(cam) < 0)
->+		goto err;
->+
->+	/* initialize the streaming capture parameters */
->+	cam->img.cparm.readbuffers =3D 1;
->+	cam->img.cparm.capability =3D V4L2_CAP_TIMEPERFRAME;
->+
->+	/* select an arbitrary default capture frame rate of 5fps */
->+	cam->img.cparm.timeperframe.numerator =3D 1;
->+	cam->img.cparm.timeperframe.denominator =3D 15;
->+
->+	omap24xxcam_core_init(&cam->core, cam->mmio_base +
-CC_REG_OFFSET);
->+	omap24xxcam_sgdma_init(&cam->sgdma, cam->mmio_base +
->CAMDMA_REG_OFFSET);
->+
->+	/* install the interrupt service routine */
->+	if (request_irq(INT_24XX_CAM_IRQ, omap24xxcam_isr,
-IRQF_DISABLED,
->+			CAM_NAME, cam)) {
->+		printk(KERN_ERR CAM_NAME
->+		       ": could not install interrupt service
-routine\n");
->+		goto err;
->+	}
->+	cam->irq =3D INT_24XX_CAM_IRQ;
->+
->+	/* set driver specific data to use in power management functions
-*/
->+	platform_set_drvdata(pdev, cam);
->+
->+	mutex_init(&cam->mutex);
->+	cam->users =3D 0;
->+
->+	cam->camera_block_alive =3D 1;
->+
->+	omap24xxcam_device_enable(cam);
->+
->+	return 0;
->+
->+err:
->+	omap24xxcam_remove(&omap24xxcam_dev);
->+	return -ENODEV;
->+}
->+
->+static int omap24xxcam_remove(struct platform_device *pdev)
->+{
->+	struct omap24xxcam_device *cam =3D camera_module;
->+
->+	if (!cam)
->+		return 0;
->+
->+	omap24xxcam_device_disable(cam);
->+
->+	if (cam->irq) {
->+		free_irq(cam->irq, cam);
->+		cam->irq =3D 0;
->+	}
->+
->+	omap24xxcam_sgdma_exit(&cam->sgdma);
->+	omap24xxcam_core_exit(&cam->core);
->+
->+	omap24xxcam_clock_off(cam);
->+	omap24xxcam_clock_put(cam);
->+
->+	if (cam->mmio_base) {
->+		iounmap((void *)cam->mmio_base);
->+		cam->mmio_base =3D 0;
->+	}
->+
->+	if (cam->mmio_base_phys) {
->+		release_mem_region(cam->mmio_base_phys,
->+				   cam->mmio_size);
->+		cam->mmio_base_phys =3D 0;
->+	}
->+
->+	kfree(cam);
->+	camera_module =3D NULL;
->+
->+	return 0;
->+}
->+
->+static struct platform_driver omap24xxcam_driver =3D {
->+	.probe =3D omap24xxcam_probe,
->+	.remove =3D omap24xxcam_remove,
->+#ifdef CONFIG_PM
->+	.suspend =3D omap24xxcam_suspend,
->+	.resume =3D omap24xxcam_resume,
->+#else
->+	.suspend =3D NULL,
->+	.resume =3D NULL,
->+#endif
->+	.shutdown =3D NULL,
->+	.driver =3D {
->+		.name =3D CAM_NAME,
->+	},
->+};
->+
->+static struct platform_device omap24xxcam_dev =3D {
->+	.name =3D CAM_NAME,
->+	.dev =3D {
->+		.release =3D NULL,
->+		},
->+	.id =3D 0,
->+};
->+
->+int __init omap24xxcam_init(void)
->+{
->+	int ret;
->+
->+	DBG;
->+
->+	ret =3D platform_driver_register(&omap24xxcam_driver);
->+	if (ret !=3D 0)
->+		return ret;
->+
->+	ret =3D platform_device_register(&omap24xxcam_dev);
->+	if (ret !=3D 0) {
->+		platform_driver_unregister(&omap24xxcam_driver);
->+		return ret;
->+	}
->+
->+	return 0;
->+}
->+
->+void __exit omap24xxcam_cleanup(void)
->+{
->+	DBG;
->+
->+	platform_device_unregister(&omap24xxcam_dev);
->+	platform_driver_unregister(&omap24xxcam_driver);
->+
->+	omap24xxcam_remove(&omap24xxcam_dev);
->+}
->+
->+MODULE_AUTHOR("MontaVista Software, Inc.");
->+MODULE_DESCRIPTION("OMAP24xx Video for Linux camera driver");
->+MODULE_LICENSE("GPL");
->+module_param(video_nr, int, 0);
->+MODULE_PARM_DESC(video_nr,
->+		 "Minor number for video device (-1 =3D=3D> auto assign)");
->+module_param(capture_mem, int, 0);
->+MODULE_PARM_DESC(capture_mem,
->+		 "Maximum amount of memory for capture buffers (default
->4800KB)");
->+
->+module_init(omap24xxcam_init);
->+module_exit(omap24xxcam_cleanup);
->diff --git a/drivers/media/video/omap/omap24xxcam.h
->b/drivers/media/video/omap/omap24xxcam.h
->new file mode 100644
->index 0000000..eba5ea6
->--- /dev/null
->+++ b/drivers/media/video/omap/omap24xxcam.h
->@@ -0,0 +1,659 @@
->+/*
->+ * drivers/media/video/omap24xxcam.h
->+ *
->+ * Video-for-Linux (Version 2) camera capture driver for
->+ * the OMAP24xx camera controller.
->+ *
->+ * Author: Andy Lowe (source@mvista.com)
->+ *
->+ * Copyright (C) 2004 MontaVista Software, Inc.
->+ * Copyright (C) 2004 Texas Instruments.
->+ *
->+ * This file is licensed under the terms of the GNU General Public
-License
->+ * version 2. This program is licensed "as is" without any warranty of
-any
->+ * kind, whether express or implied.
->+ */
->+
->+#ifndef OMAP24XXCAM_H
->+#define OMAP24XXCAM_H
->+
->+#include "sensor_if.h"
->+
->+//#define DEBUG_CAM
->+
->+#define CAM_NAME 	"omap24xxcam"
->+
->+#ifdef DEBUG_CAM
->+#define DBG		printk(KERN_INFO CAM_NAME ": %s\n",
-__FUNCTION__)
->+#define DBG_END 	printk(KERN_INFO CAM_NAME ": %s END!\n",
-__FUNCTION__)
->+#define DBG_MID(x)	printk(KERN_INFO CAM_NAME ": %s - %d\n",
->__FUNCTION__, x)
->+#else
->+#define DBG
->+#define DBG_END
->+#define DBG_MID(x)
->+#endif
->+
->+#define CAM_CLOCK		96000000
->+
->+/* physical memory map definitions */
->+	/* camera subsystem */
->+#define CAM_REG_BASE		0x48052000
->+#define CAM_REG_SIZE		0x00001000
->+	/* camera core */
->+#define CC_REG_OFFSET		0x00000400
->+	/* camera DMA */
->+#define CAMDMA_REG_OFFSET	0x00000800
->+	/* camera MMU */
->+#define CAMMMU_REG_OFFSET	0x00000C00
->+
->+/* define camera subsystem register offsets */
->+#define CAM_REVISION			0x000
->+#define CAM_SYSCONFIG			0x010
->+#define CAM_SYSSTATUS			0x014
->+#define CAM_IRQSTATUS			0x018
->+#define CAM_GPO				0x040
->+#define CAM_GPI				0x050
->+
->+/* define camera core register offsets */
->+#define CC_REVISION			0x000
->+#define CC_SYSCONFIG			0x010
->+#define CC_SYSSTATUS			0x014
->+#define CC_IRQSTATUS			0x018
->+#define CC_IRQENABLE			0x01C
->+#define CC_CTRL				0x040
->+#define CC_CTRL_DMA			0x044
->+#define CC_CTRL_XCLK			0x048
->+#define CC_FIFODATA			0x04C
->+#define CC_TEST				0x050
->+#define CC_GENPAR			0x054
->+#define CC_CCPFSCR			0x058
->+#define CC_CCPFECR			0x05C
->+#define CC_CCPLSCR			0x060
->+#define CC_CCPLECR			0x064
->+#define CC_CCPDFR			0x068
->+
->+/* define camera dma register offsets */
->+#define CAMDMA_REVISION			0x000
->+#define CAMDMA_IRQSTATUS_L0		0x008
->+#define CAMDMA_IRQSTATUS_L1		0x00C
->+#define CAMDMA_IRQSTATUS_L2		0x010
->+#define CAMDMA_IRQSTATUS_L3		0x014
->+#define CAMDMA_IRQENABLE_L0		0x018
->+#define CAMDMA_IRQENABLE_L1		0x01C
->+#define CAMDMA_IRQENABLE_L2		0x020
->+#define CAMDMA_IRQENABLE_L3		0x024
->+#define CAMDMA_SYSSTATUS		0x028
->+#define CAMDMA_OCP_SYSCONFIG		0x02C
->+#define CAMDMA_CAPS_0			0x064
->+#define CAMDMA_CAPS_2			0x06C
->+#define CAMDMA_CAPS_3			0x070
->+#define CAMDMA_CAPS_4			0x074
->+#define CAMDMA_GCR			0x078
->+#define CAMDMA_CCR(n)			(0x080 + (n)*0x60)
->+#define CAMDMA_CLNK_CTRL(n)		(0x084 + (n)*0x60)
->+#define CAMDMA_CICR(n)			(0x088 + (n)*0x60)
->+#define CAMDMA_CSR(n)			(0x08C + (n)*0x60)
->+#define CAMDMA_CSDP(n)			(0x090 + (n)*0x60)
->+#define CAMDMA_CEN(n)			(0x094 + (n)*0x60)
->+#define CAMDMA_CFN(n)			(0x098 + (n)*0x60)
->+#define CAMDMA_CSSA(n)			(0x09C + (n)*0x60)
->+#define CAMDMA_CDSA(n)			(0x0A0 + (n)*0x60)
->+#define CAMDMA_CSEI(n)			(0x0A4 + (n)*0x60)
->+#define CAMDMA_CSFI(n)			(0x0A8 + (n)*0x60)
->+#define CAMDMA_CDEI(n)			(0x0AC + (n)*0x60)
->+#define CAMDMA_CDFI(n)			(0x0B0 + (n)*0x60)
->+#define CAMDMA_CSAC(n)			(0x0B4 + (n)*0x60)
->+#define CAMDMA_CDAC(n)			(0x0B8 + (n)*0x60)
->+#define CAMDMA_CCEN(n)			(0x0BC + (n)*0x60)
->+#define CAMDMA_CCFN(n)			(0x0C0 + (n)*0x60)
->+#define CAMDMA_COLOR(n)			(0x0C4 + (n)*0x60)
->+
->+/* define camera mmu register offsets */
->+#define CAMMMU_REVISION			0x000
->+#define CAMMMU_SYSCONFIG		0x010
->+#define CAMMMU_SYSSTATUS		0x014
->+#define CAMMMU_IRQSTATUS		0x018
->+#define CAMMMU_IRQENABLE		0x01C
->+#define CAMMMU_WALKING_ST		0x040
->+#define CAMMMU_CNTL			0x044
->+#define CAMMMU_FAULT_AD			0x048
->+#define CAMMMU_TTB			0x04C
->+#define CAMMMU_LOCK			0x050
->+#define CAMMMU_LD_TLB			0x054
->+#define CAMMMU_CAM			0x058
->+#define CAMMMU_RAM			0x05C
->+#define CAMMMU_GFLUSH			0x060
->+#define CAMMMU_FLUSH_ENTRY		0x064
->+#define CAMMMU_READ_CAM			0x068
->+#define CAMMMU_READ_RAM			0x06C
->+#define CAMMMU_EMU_FAULT_AD		0x070
->+
->+/* Define bit fields within selected registers */
->+#define CAM_REVISION_MAJOR				(15 << 4)
->+#define CAM_REVISION_MAJOR_SHIFT			4
->+#define CAM_REVISION_MINOR				(15 << 0)
->+#define CAM_REVISION_MINOR_SHIFT			0
->+
->+#define CAM_SYSCONFIG_SOFTRESET				(1 <<
-1)
->+#define CAM_SYSCONFIG_AUTOIDLE				(1 <<
-0)
->+
->+#define CAM_SYSSTATUS_RESETDONE				(1 <<
-0)
->+
->+#define CAM_IRQSTATUS_CC_IRQ				(1 <<  4)
->+#define CAM_IRQSTATUS_MMU_IRQ				(1 <<  3)
->+#define CAM_IRQSTATUS_DMA_IRQ2				(1 <<
-2)
->+#define CAM_IRQSTATUS_DMA_IRQ1				(1 <<
-1)
->+#define CAM_IRQSTATUS_DMA_IRQ0				(1 <<
-0)
->+
->+#define CAM_GPO_CAM_S_P_EN				(1 <<  1)
->+#define CAM_GPO_CAM_CCP_MODE				(1 <<  0)
->+
->+#define CAM_GPI_CC_DMA_REQ1				(1 << 24)
->+#define CAP_GPI_CC_DMA_REQ0				(1 << 23)
->+#define CAP_GPI_CAM_MSTANDBY				(1 << 21)
->+#define CAP_GPI_CAM_WAIT				(1 << 20)
->+#define CAP_GPI_CAM_S_DATA				(1 << 17)
->+#define CAP_GPI_CAM_S_CLK				(1 << 16)
->+#define CAP_GPI_CAM_P_DATA				(0xFFF << 3)
->+#define CAP_GPI_CAM_P_DATA_SHIFT			3
->+#define CAP_GPI_CAM_P_VS				(1 <<  2)
->+#define CAP_GPI_CAM_P_HS				(1 <<  1)
->+#define CAP_GPI_CAM_P_CLK				(1 <<  0)
->+
->+#define CC_REVISION_MAJOR				(15 << 4)
->+#define CC_REVISION_MAJOR_SHIFT				4
->+#define CC_REVISION_MINOR				(15 << 0)
->+#define CC_REVISION_MINOR_SHIFT				0
->+
->+#define CC_SYSCONFIG_SIDLEMODE				(3 <<
-3)
->+#define CC_SYSCONFIG_SIDLEMODE_FIDLE			(0 <<  3)
->+#define CC_SYSCONFIG_SIDLEMODE_NIDLE			(1 <<  3)
->+#define CC_SYSCONFIG_SOFTRESET				(1 <<
-1)
->+#define CC_SYSCONFIG_AUTOIDLE				(1 <<  0)
->+
->+#define CC_SYSSTATUS_RESETDONE				(1 <<
-0)
->+
->+#define CC_IRQSTATUS_FS_IRQ				(1 << 19)
->+#define CC_IRQSTATUS_LE_IRQ				(1 << 18)
->+#define CC_IRQSTATUS_LS_IRQ				(1 << 17)
->+#define CC_IRQSTATUS_FE_IRQ				(1 << 16)
->+#define CC_IRQSTATUS_FW_ERR_IRQ				(1 <<
-10)
->+#define CC_IRQSTATUS_FSC_ERR_IRQ			(1 <<  9)
->+#define CC_IRQSTATUS_SSC_ERR_IRQ			(1 <<  8)
->+#define CC_IRQSTATUS_FIFO_NOEMPTY_IRQ			(1 <<  4)
->+#define CC_IRQSTATUS_FIFO_FULL_IRQ			(1 <<  3)
->+#define CC_IRQSTATUS_FIFO_THR_IRQ			(1 <<  2)
->+#define CC_IRQSTATUS_FIFO_OF_IRQ			(1 <<  1)
->+#define CC_IRQSTATUS_FIFO_UF_IRQ			(1 <<  0)
->+
->+#define CC_IRQENABLE_FS_IRQ				(1 << 19)
->+#define CC_IRQENABLE_LE_IRQ				(1 << 18)
->+#define CC_IRQENABLE_LS_IRQ				(1 << 17)
->+#define CC_IRQENABLE_FE_IRQ				(1 << 16)
->+#define CC_IRQENABLE_FW_ERR_IRQ				(1 <<
-10)
->+#define CC_IRQENABLE_FSC_ERR_IRQ			(1 <<  9)
->+#define CC_IRQENABLE_SSC_ERR_IRQ			(1 <<  8)
->+#define CC_IRQENABLE_FIFO_NOEMPTY_IRQ			(1 <<  4)
->+#define CC_IRQENABLE_FIFO_FULL_IRQ			(1 <<  3)
->+#define CC_IRQENABLE_FIFO_THR_IRQ			(1 <<  2)
->+#define CC_IRQENABLE_FIFO_OF_IRQ			(1 <<  1)
->+#define CC_IRQENABLE_FIFO_UF_IRQ			(1 <<  0)
->+
->+#define CC_CTRL_CC_ONE_SHOT				(1 << 20)
->+#define CC_CTRL_CC_IF_SYNCHRO				(1 << 19)
->+#define CC_CTRL_CC_RST					(1 <<
-18)
->+#define CC_CTRL_CC_FRAME_TRIG				(1 << 17)
->+#define CC_CTRL_CC_EN					(1 << 16)
->+#define CC_CTRL_NOBT_SYNCHRO				(1 << 13)
->+#define CC_CTRL_BT_CORRECT				(1 << 12)
->+#define CC_CTRL_PAR_ORDERCAM				(1 << 11)
->+#define CC_CTRL_PAR_CLK_POL				(1 << 10)
->+#define CC_CTRL_NOBT_HS_POL				(1 <<  9)
->+#define CC_CTRL_NOBT_VS_POL				(1 <<  8)
->+#define CC_CTRL_PAR_MODE				(7 <<  1)
->+#define CC_CTRL_PAR_MODE_SHIFT				1
->+#define CC_CTRL_PAR_MODE_NOBT8				(0 <<
-1)
->+#define CC_CTRL_PAR_MODE_NOBT10				(1 <<
-1)
->+#define CC_CTRL_PAR_MODE_NOBT12				(2 <<
-1)
->+#define CC_CTRL_PAR_MODE_BT8				(4 <<  1)
->+#define CC_CTRL_PAR_MODE_BT10				(5 <<  1)
->+#define CC_CTRL_PAR_MODE_FIFOTEST			(7 <<  1)
->+#define CC_CTRL_CCP_MODE				(1 <<  0)
->+
->+#define CC_CTRL_DMA_EN					(1 <<
-8)
->+#define CC_CTRL_DMA_FIFO_THRESHOLD			(0x7F << 0)
->+#define CC_CTRL_DMA_FIFO_THRESHOLD_SHIFT		0
->+
->+#define CC_CTRL_XCLK_DIV				(0x1F << 0)
->+#define CC_CTRL_XCLK_DIV_SHIFT				0
->+#define CC_CTRL_XCLK_DIV_STABLE_LOW			(0 <<  0)
->+#define CC_CTRL_XCLK_DIV_STABLE_HIGH			(1 <<  0)
->+#define CC_CTRL_XCLK_DIV_BYPASS				(31 <<
-0)
->+
->+#define CC_TEST_FIFO_RD_POINTER				(0xFF <<
-24)
->+#define CC_TEST_FIFO_RD_POINTER_SHIFT			24
->+#define CC_TEST_FIFO_WR_POINTER				(0xFF <<
-16)
->+#define CC_TEST_FIFO_WR_POINTER_SHIFT			16
->+#define CC_TEST_FIFO_LEVEL				(0xFF <<  8)
->+#define CC_TEST_FIFO_LEVEL_SHIFT			8
->+#define CC_TEST_FIFO_LEVEL_PEAK				(0xFF <<
-0)
->+#define CC_TEST_FIFO_LEVEL_PEAK_SHIFT			0
->+
->+#define CC_GENPAR_FIFO_DEPTH				(7 <<  0)
->+#define CC_GENPAR_FIFO_DEPTH_SHIFT			0
->+
->+#define CC_CCPDFR_ALPHA					(0xFF <<
-8)
->+#define CC_CCPDFR_ALPHA_SHIFT				8
->+#define CC_CCPDFR_DATAFORMAT				(15 <<  0)
->+#define CC_CCPDFR_DATAFORMAT_SHIFT			0
->+#define CC_CCPDFR_DATAFORMAT_YUV422BE			( 0 <<  0)
->+#define CC_CCPDFR_DATAFORMAT_YUV422			( 1 <<  0)
->+#define CC_CCPDFR_DATAFORMAT_YUV420			( 2 <<  0)
->+#define CC_CCPDFR_DATAFORMAT_RGB444			( 4 <<  0)
->+#define CC_CCPDFR_DATAFORMAT_RGB565			( 5 <<  0)
->+#define CC_CCPDFR_DATAFORMAT_RGB888NDE			( 6 <<
-0)
->+#define CC_CCPDFR_DATAFORMAT_RGB888			( 7 <<  0)
->+#define CC_CCPDFR_DATAFORMAT_RAW8NDE			( 8 <<  0)
->+#define CC_CCPDFR_DATAFORMAT_RAW8			( 9 <<  0)
->+#define CC_CCPDFR_DATAFORMAT_RAW10NDE			(10 <<  0)
->+#define CC_CCPDFR_DATAFORMAT_RAW10			(11 <<  0)
->+#define CC_CCPDFR_DATAFORMAT_RAW12NDE			(12 <<  0)
->+#define CC_CCPDFR_DATAFORMAT_RAW12			(13 <<  0)
->+#define CC_CCPDFR_DATAFORMAT_JPEG8			(15 <<  0)
->+
->+#define CAMDMA_REVISION_MAJOR				(15 << 4)
->+#define CAMDMA_REVISION_MAJOR_SHIFT			4
->+#define CAMDMA_REVISION_MINOR				(15 << 0)
->+#define CAMDMA_REVISION_MINOR_SHIFT			0
->+
->+#define CAMDMA_OCP_SYSCONFIG_MIDLEMODE			(3 <<
-12)
->+#define CAMDMA_OCP_SYSCONFIG_MIDLEMODE_FSTANDBY		(0 <<
-12)
->+#define CAMDMA_OCP_SYSCONFIG_MIDLEMODE_NSTANDBY		(1 <<
-12)
->+#define CAMDMA_OCP_SYSCONFIG_MIDLEMODE_SSTANDBY		(2 <<
-12)
->+#define CAMDMA_OCP_SYSCONFIG_FUNC_CLOCK			(1 <<
-9)
->+#define CAMDMA_OCP_SYSCONFIG_OCP_CLOCK			(1 <<
-8)
->+#define CAMDMA_OCP_SYSCONFIG_EMUFREE			(1 <<  5)
->+#define CAMDMA_OCP_SYSCONFIG_SIDLEMODE			(3 <<
-3)
->+#define CAMDMA_OCP_SYSCONFIG_SIDLEMODE_FIDLE		(0 <<  3)
->+#define CAMDMA_OCP_SYSCONFIG_SIDLEMODE_NIDLE		(1 <<  3)
->+#define CAMDMA_OCP_SYSCONFIG_SIDLEMODE_SIDLE		(2 <<  3)
->+#define CAMDMA_OCP_SYSCONFIG_SOFTRESET			(1 <<
-1)
->+#define CAMDMA_OCP_SYSCONFIG_AUTOIDLE			(1 <<  0)
->+
->+#define CAMDMA_SYSSTATUS_RESETDONE			(1 <<  0)
->+
->+#define CAMDMA_GCR_ARBITRATION_RATE			(0xFF << 16)
->+#define CAMDMA_GCR_ARBITRATION_RATE_SHIFT		16
->+#define CAMDMA_GCR_MAX_CHANNEL_FIFO_DEPTH		(0xFF << 0)
->+#define CAMDMA_GCR_MAX_CHANNEL_FIFO_DEPTH_SHIFT		0
->+
->+#define CAMDMA_CCR_SEL_SRC_DST_SYNC			(1 << 24)
->+#define CAMDMA_CCR_PREFETCH				(1 << 23)
->+#define CAMDMA_CCR_SUPERVISOR				(1 << 22)
->+#define CAMDMA_CCR_SECURE				(1 << 21)
->+#define CAMDMA_CCR_BS					(1 << 18)
->+#define CAMDMA_CCR_TRANSPARENT_COPY_ENABLE		(1 << 17)
->+#define CAMDMA_CCR_CONSTANT_FILL_ENABLE			(1 <<
-16)
->+#define CAMDMA_CCR_DST_AMODE				(3 << 14)
->+#define CAMDMA_CCR_DST_AMODE_CONST_ADDR			(0 <<
-14)
->+#define CAMDMA_CCR_DST_AMODE_POST_INC			(1 << 14)
->+#define CAMDMA_CCR_DST_AMODE_SGL_IDX			(2 << 14)
->+#define CAMDMA_CCR_DST_AMODE_DBL_IDX			(3 << 14)
->+#define CAMDMA_CCR_SRC_AMODE				(3 << 12)
->+#define CAMDMA_CCR_SRC_AMODE_CONST_ADDR			(0 <<
-12)
->+#define CAMDMA_CCR_SRC_AMODE_POST_INC			(1 << 12)
->+#define CAMDMA_CCR_SRC_AMODE_SGL_IDX			(2 << 12)
->+#define CAMDMA_CCR_SRC_AMODE_DBL_IDX			(3 << 12)
->+#define CAMDMA_CCR_WR_ACTIVE				(1 << 10)
->+#define CAMDMA_CCR_RD_ACTIVE				(1 <<  9)
->+#define CAMDMA_CCR_SUSPEND_SENSITIVE			(1 <<  8)
->+#define CAMDMA_CCR_ENABLE				(1 <<  7)
->+#define CAMDMA_CCR_PRIO					(1 <<
-6)
->+#define CAMDMA_CCR_FS					(1 <<  5)
->+#define CAMDMA_CCR_SYNCHRO				((3 << 19) | (31
-<< 0))
->+#define CAMDMA_CCR_SYNCHRO_CAMERA			0x01
->+
->+#define CAMDMA_CLNK_CTRL_ENABLE_LNK			(1 << 15)
->+#define CAMDMA_CLNK_CTRL_NEXTLCH_ID			(0x1F << 0)
->+#define CAMDMA_CLNK_CTRL_NEXTLCH_ID_SHIFT		0
->+
->+#define CAMDMA_CICR_MISALIGNED_ERR_IE			(1 << 11)
->+#define CAMDMA_CICR_SUPERVISOR_ERR_IE			(1 << 10)
->+#define CAMDMA_CICR_SECURE_ERR_IE			(1 <<  9)
->+#define CAMDMA_CICR_TRANS_ERR_IE			(1 <<  8)
->+#define CAMDMA_CICR_PACKET_IE				(1 <<  7)
->+#define CAMDMA_CICR_BLOCK_IE				(1 <<  5)
->+#define CAMDMA_CICR_LAST_IE				(1 <<  4)
->+#define CAMDMA_CICR_FRAME_IE				(1 <<  3)
->+#define CAMDMA_CICR_HALF_IE				(1 <<  2)
->+#define CAMDMA_CICR_DROP_IE				(1 <<  1)
->+
->+#define CAMDMA_CSR_MISALIGNED_ERR			(1 << 11)
->+#define CAMDMA_CSR_SUPERVISOR_ERR			(1 << 10)
->+#define CAMDMA_CSR_SECURE_ERR				(1 <<  9)
->+#define CAMDMA_CSR_TRANS_ERR				(1 <<  8)
->+#define CAMDMA_CSR_PACKET				(1 <<  7)
->+#define CAMDMA_CSR_SYNC					(1 <<
-6)
->+#define CAMDMA_CSR_BLOCK				(1 <<  5)
->+#define CAMDMA_CSR_LAST					(1 <<
-4)
->+#define CAMDMA_CSR_FRAME				(1 <<  3)
->+#define CAMDMA_CSR_HALF					(1 <<
-2)
->+#define CAMDMA_CSR_DROP					(1 <<
-1)
->+
->+#define CAMDMA_CSDP_SRC_ENDIANNESS			(1 << 21)
->+#define CAMDMA_CSDP_SRC_ENDIANNESS_LOCK			(1 <<
-20)
->+#define CAMDMA_CSDP_DST_ENDIANNESS			(1 << 19)
->+#define CAMDMA_CSDP_DST_ENDIANNESS_LOCK			(1 <<
-18)
->+#define CAMDMA_CSDP_WRITE_MODE				(3 <<
-16)
->+#define CAMDMA_CSDP_WRITE_MODE_WRNP			(0 << 16)
->+#define CAMDMA_CSDP_WRITE_MODE_POSTED			(1 << 16)
->+#define CAMDMA_CSDP_WRITE_MODE_POSTED_LAST_WRNP		(2 <<
-16)
->+#define CAMDMA_CSDP_DST_BURST_EN			(3 << 14)
->+#define CAMDMA_CSDP_DST_BURST_EN_1			(0 << 14)
->+#define CAMDMA_CSDP_DST_BURST_EN_16			(1 << 14)
->+#define CAMDMA_CSDP_DST_BURST_EN_32			(2 << 14)
->+#define CAMDMA_CSDP_DST_BURST_EN_64			(3 << 14)
->+#define CAMDMA_CSDP_DST_PACKED				(1 <<
-13)
->+#define CAMDMA_CSDP_WR_ADD_TRSLT			(15 << 9)
->+#define CAMDMA_CSDP_WR_ADD_TRSLT_ENABLE_MREQADD		(3 <<
-9)
->+#define CAMDMA_CSDP_SRC_BURST_EN			(3 <<  7)
->+#define CAMDMA_CSDP_SRC_BURST_EN_1			(0 <<  7)
->+#define CAMDMA_CSDP_SRC_BURST_EN_16			(1 <<  7)
->+#define CAMDMA_CSDP_SRC_BURST_EN_32			(2 <<  7)
->+#define CAMDMA_CSDP_SRC_BURST_EN_64			(3 <<  7)
->+#define CAMDMA_CSDP_SRC_PACKED				(1 <<
-6)
->+#define CAMDMA_CSDP_RD_ADD_TRSLT			(15 << 2)
->+#define CAMDMA_CSDP_RD_ADD_TRSLT_ENABLE_MREQADD		(3 <<
-2)
->+#define CAMDMA_CSDP_DATA_TYPE				(3 <<  0)
->+#define CAMDMA_CSDP_DATA_TYPE_8BITS			(0 <<  0)
->+#define CAMDMA_CSDP_DATA_TYPE_16BITS			(1 <<  0)
->+#define CAMDMA_CSDP_DATA_TYPE_32BITS			(2 <<  0)
->+
->+#define CAMMMU_SYSCONFIG_AUTOIDLE			(1 <<  0)
->+
->+struct omap24xx_cc_regs {
->+	u32 revision;		/* 0x000 */
->+	u32 res1[3];
->+	u32 sysconfig;		/* 0x010 */
->+	u32 sysstatus;		/* 0x014 */
->+	u32 irqstatus;		/* 0x018 */
->+	u32 irqenable;		/* 0x01C */
->+	u32 res2[8];
->+	u32 ctrl;		/* 0x040 */
->+	u32 ctrl_dma;		/* 0x044 */
->+	u32 ctrl_xclk;		/* 0x048 */
->+	u32 fifodata;		/* 0x04C */
->+	u32 test;		/* 0x050 */
->+	u32 genpar;		/* 0x054 */
->+	u32 ccpfscr;		/* 0x058 */
->+	u32 ccpfecr;		/* 0x05C */
->+	u32 ccplscr;		/* 0x060 */
->+	u32 ccplecr;		/* 0x064 */
->+	u32 ccpdfr;		/* 0x068 */
->+};
->+struct omap24xx_vid2_format {
->+	struct v4l2_pix_format pix;
->+	__s32 left;		/* following two members are defined to
-*/
->+	__s32 top;		/* position the video2 layer on the lcd
-*/
->+
->+};
->+
->+/* forward declarations */
->+struct omap24xxcam_fh;
->+struct omap24xxcam_device;
->+struct omap24xxcam_sgdma;
->+struct omap24xxcam_dma;
->+
->+extern struct omap_camera omap24xxcam_camera;
->+extern struct omap24xxcam_device *camera_module;
->+extern struct videobuf_queue_ops omap24xxcam_vbq_ops;
->+
->+/* camera DMA definitions */
->+#define DMA_THRESHOLD 32		/* number of bytes transferred
-per DMA
->request */
->+/* NUM_CAMDMA_CHANNELS is the number of logical channels provided by
-the
->camera
->+ * DMA controller.
->+ */
->+#define NUM_CAMDMA_CHANNELS 4
->+/* NUM_SG_DMA is the number of scatter-gather DMA transfers that can
-be
->queued.
->+ * We need it to be 2 greater than the maximum number of video frames
++			p =3D mcu_data;
++			*p++ =3D REG_VAR_DATA;
++			*p++ =3D (u8) (next->val >> 8);
++			*p++ =3D (u8) (next->val & 0xff);
++			i =3D 1;
++			while ((next + i)->reg =3D=3D (REG_VAR_DATA + i)) {
++				*p++ =3D (u8) ((next+i)->val >> 8);
++				*p++ =3D (u8) ((next+i)->val & 0xff);
++				i++;
++			}
++
++			/* optimize multiple MCU data write */
++			err =3D ex3691_write_mcu_data(client, mcu_data,
+2*i+1);
++			/* adjust pointer */
++			next +=3D (i-1);
++		}
++		else
++#endif
++		{
++			err =3D ex3691_write_reg(client, next->reg,
+next->val);
++		}
++		if (err)
++			return err;
++		mdelay(EX3691_I2C_DELAY);
++	}
++	return 0;
++}
++
++static int
++wait_for_seq_state(struct i2c_client *client, int state)
++{
++	int i, new_state;
++
++	for (i =3D 0; i < 100; i++) {
++		new_state =3D ex3691_read_firmware_var(client, SEQ_DRV_ID,
++				SEQ_STATE_OFFSET, 1);
++		DPRINTK("seq state %d", new_state);
++		if (new_state =3D=3D state)
++			return 0;
++		mdelay(1);
++	}
++	DPRINTK("timeout waiting state %d", state);
++	return -EIO;
++}
++
++/* Returns the index of the requested ID from the control structure
+array */
++static int
++find_vctrl(int id)
++{
++	int i;
++
++	if (id < V4L2_CID_BASE)
++		return -EDOM;
++
++	for (i =3D NUM_CONTROLS - 1; i >=3D 0; i--)
++		if (control[i].qc.id =3D=3D id)
++			break;
++	if (i < 0)
++		i =3D -EINVAL;
++	return i;
++}
++
++/* Set the camera brightness level. Return 0 on success. */
++static int
++ex3691_set_brightness(struct i2c_client *client, int level)
++{
++	/* the caller passes us a valid level */
++	DPRINTK("new brightness level %d", level);
++	/* brightness control is context-less */
++	default_brightness_list[INDEX_BRIGHTNESS].val =3D level*4+10;
++	if (ex3691_write_regs(client, default_brightness_list))
++		return -EIO;
++
++	/* We force a 50ms brightness setting interval. */
++	set_current_state(TASK_UNINTERRUPTIBLE);
++	schedule_timeout(msecs_to_jiffies(50));
++	return 0;
++}
++
++/* Set the camera contrast level. Return 0 on success. */
++static int
++ex3691_set_contrast(struct i2c_client *client, int level)
++{
++	int i;
++
++	/* the caller passes us a valid level */
++	DPRINTK("new contrast level %d", level);
++
++	/* The SOC fireware shadows the gamma table for both contexts,
 so
->that
->+ * we can use 2 slots for overlay while still having VIDEO_MAX_FRAME
-slots
->left
->+ * for streaming.
->+ */
->+#define NUM_SG_DMA (VIDEO_MAX_FRAME+2)
->+
->+typedef void (*sgdma_callback_t) (struct omap24xxcam_sgdma * cam,
->+				unsigned long status, void *arg);
->+typedef void (*dma_callback_t) (struct omap24xxcam_dma * cam,
->+				unsigned long status, void *arg);
->+
->+struct channel_state {
->+	dma_callback_t callback;
->+	void *arg;
->+};
->+
->+/* sgdma state for each of the possible videobuf_buffers + 2 overlays
-*/
->+struct sgdma_state {
->+	const struct scatterlist *sglist;
->+	int sglen;		 /* number of sglist entries */
->+	int next_sglist;	 /* index of next sglist entry to
-process */
->+	unsigned int bytes_read; /* number of bytes read */
->+	unsigned int len;        /* total length of sglist (excluding
-bytes
->due to page alignment) */
->+	int queued_sglist;	 /* number of sglist entries queued for
-DMA
->*/
->+	unsigned long csr;	 /* DMA return code */
->+	sgdma_callback_t callback;
->+	void *arg;
->+};
->+
->+/* physical DMA channel management */
->+struct omap24xxcam_dma {
->+	spinlock_t lock;
->+
->+	unsigned long base; /* base address for dma controller */
->+
->+	/* While dma_stop!=3D0, an attempt to start a new DMA transfer
-will
->+	 * fail.
->+	 */
->+	int dma_stop;
->+	int free_dmach;		/* number of dma channels free */
->+	int next_dmach;		/* index of next dma channel to use */
->+	struct channel_state ch_state[NUM_CAMDMA_CHANNELS];
->+	/* dma_notify is a pointer to a callback routine for
-notification
->when
->+	 * a DMA transfer has been started.
->+	 */
->+	void (*dma_notify) (struct omap24xxcam_device * cam);
->+};
->+
->+/* scatter-gather DMA (scatterlist stuff) management */
->+struct omap24xxcam_sgdma {
->+	struct omap24xxcam_dma dma;
->+
->+	spinlock_t lock;
->+	int free_sgdma;		/* number of free sg dma slots */
->+	int next_sgdma;		/* index of next sg dma slot to use */
->+	struct sgdma_state sg_state[NUM_SG_DMA];
->+
->+	/* Reset timer data */
->+	struct timer_list reset_timer;
->+};
->+
->+/* videobuf_queue */
->+struct omap24xxcam_capture {
->+	spinlock_t lock;	/* spinlock for videobuf queues */
->+	/* We allow streaming from at most one filehandle at a time.
->+	 * non-NULL means streaming is in progress.
->+	 */
->+	unsigned long field_count;	/* field counter for
-videobuf_buffer */
->+	struct file *streaming;
->+};
->+
->+/* image parameters */
->+struct omap24xxcam_img {
->+	/* The img_lock is used to serialize access to the image
-parameters
->for
->+	 * overlay and capture.
->+	 */
->+	spinlock_t img_lock;
->+
->+	/* Access to everything below here is locked by img_lock */
->+
->+	/* capture parameters (frame rate, number of buffers) */
->+	struct v4l2_captureparm cparm;
->+
->+	/* pix defines the size and pixel format of the image captured
-by the
->+	 * sensor.  This also defines the size of the framebuffers.  The
->+	 * same pool of framebuffers is used for video capture and video
->+	 * overlay.  These parameters are set/queried by the
->+	 * VIDIOC_S_FMT/VIDIOC_G_FMT ioctls with a CAPTURE buffer type.
->+	 */
->+	struct v4l2_pix_format pix;
->+
->+	/* Camera module clocks */
->+	struct clk *fck;
->+	struct clk *ick;
->+};
->+
->+struct omap24xxcam_core {
->+	/* camera core base address */
->+	unsigned long base;
->+
->+	/* If non-zero, enable xclk immediately after _enable */
->+	int xclk_enabled;
->+
->+	/* frequency (in Hz) of camera interface xclk output */
->+	unsigned long xclk;
->+
->+	/* frequncy (in Hz) of camera interface functional clock (MCLK)
-*/
->+	unsigned long mclk;
->+};
->+
->+/* per-device data structure */
->+struct omap24xxcam_device {
->+	/*
->+	 * Lock mutex before accessing users. Mutex also serialises
->+	 * sensor (de)initialisation.
->+	 */
->+	struct mutex mutex;
->+	int users;
->+	int sensor_alive;
->+	int camera_block_alive;
->+	int camera_init;
->+
->+	struct omap24xxcam_sgdma sgdma;
->+
->+	struct omap24xxcam_capture capture;
->+
->+	struct omap24xxcam_img img;
->+
->+	struct omap24xxcam_core core;
->+
->+	unsigned int irq;
->+
->+	unsigned long mmio_base;
->+	unsigned long mmio_base_phys;
->+	unsigned long mmio_size;
->+
->+	struct omap_camera_sensor *sensor;
->+
->+	struct device *dev;
->+	struct video_device *vfd;
->+
->+	struct work_struct camera_reset_work;
->+	struct work_struct sensor_reset_work;
->+
->+	int capture_mem;
->+};
->+
->+struct omap24xxcam_fh {
->+	struct videobuf_queue vbq;
->+	struct omap24xxcam_device *cam;
->+};
->+
->+/*
->+ * camera subsystem register I/O routines
->+ */
->+
->+static __inline__ u32 omap24xxcam_reg_in(unsigned long base, u32
-offset)
->+{
->+	return readl(base + offset);
->+}
->+
->+static __inline__ u32 omap24xxcam_reg_out(unsigned long base, u32
-offset,
->+					  u32 val)
->+{
->+	writel(val, base + offset);
->+	return val;
->+}
->+
->+static __inline__ u32 omap24xxcam_reg_merge(unsigned long base, u32
->offset,
->+					    u32 val, u32 mask)
->+{
->+	u32 addr =3D base + offset;
->+	u32 new_val =3D (readl(addr) & ~mask) | (val & mask);
->+
->+	writel(new_val, addr);
->+	return new_val;
->+}
->+
->+/* camera core function prototypes */
->+
->+void omap24xxcam_core_init(struct omap24xxcam_core *core,
->+			   unsigned long base);
->+void omap24xxcam_core_exit(const struct omap24xxcam_core *core);
->+void omap24xxcam_core_enable(struct omap24xxcam_core *core);
->+void omap24xxcam_core_disable(struct omap24xxcam_core *core);
->+void omap24xxcam_core_enable_callback(struct omap24xxcam_device *cam);
->+void omap24xxcam_core_isr(struct omap24xxcam_core *core);
->+
->+void omap24xxcam_core_xclk_enable(struct omap24xxcam_core *core);
->+void omap24xxcam_core_xclk_disable(struct omap24xxcam_core *core);
->+void omap24xxcam_core_xclk_set(struct omap24xxcam_core *core, unsigned
->long xclk);
->+void omap24xxcam_core_mclk_set(struct omap24xxcam_core *core,
->+			       unsigned long mclk);
->+
->+/* sensor function prototypes */
->+
->+int omap24xxcam_sensor_init(struct omap24xxcam_device *cam);
->+void omap24xxcam_sensor_exit(struct omap24xxcam_device *cam);
->+int omap24xxcam_sensor_enable(struct omap24xxcam_device *cam);
->+void omap24xxcam_sensor_disable(struct omap24xxcam_device *cam);
->+void omap24xxcam_sensor_reset_work(void * data);
->+void omap24xxcam_sensor_reset_schedule(struct omap_camera *oc,
->+				       struct omap_camera_sensor *os);
->+unsigned long omap24xxcam_sensor_calc_xclk(struct omap24xxcam_device
-*cam,
->+					   struct v4l2_pix_format *pix,
->+					   struct v4l2_fract
-*timeperframe);
->+int omap24xxcam_sensor_try_format(struct omap24xxcam_device *cam,
->+				  struct v4l2_pix_format *pix);
->+int omap24xxcam_sensor_set_format(struct omap24xxcam_device *cam,
->+				  struct v4l2_pix_format *pix,
->+				  struct v4l2_fract *timeperframe,
->+				  unsigned long *xclk);
->+int omap24xxcam_sensor_register(struct omap_camera *oc,
->+				struct omap_camera_sensor *os);
->+void omap24xxcam_sensor_unregister(struct omap_camera *oc,
->+				   struct omap_camera_sensor *os);
->+
->+/* vbq function prototypes */
->+
->+int
->+omap24xxcam_vbq_alloc_mmap_buffers(struct videobuf_queue *vbq,
->+				   unsigned int count);
->+void
->+omap24xxcam_vbq_complete(struct omap24xxcam_sgdma *sgdma, unsigned
-long
->csr,
->+			 void *arg);
->+void
->+omap24xxcam_vbq_release(struct videobuf_queue *vbq, struct
-videobuf_buffer
->*vb);
->+
->+/* misc. stuff */
->+
->+void omap24xxcam_camera_reset_schedule(struct omap24xxcam_device
-*cam);
->+
->+int omap24xxcam_clock_on(struct omap24xxcam_device *cam);
->+int omap24xxcam_clock_off(struct omap24xxcam_device *cam);
->+void omap24xxcam_dispc_clock_on(struct omap24xxcam_device *cam);
->+void omap24xxcam_dispc_clock_off(struct omap24xxcam_device *cam);
->+void omap24xxcam_new_capture_format(struct omap24xxcam_device *cam);
->+
->+int omap24xxcam_device_enable(struct omap24xxcam_device *cam);
->+void omap24xxcam_device_disable(struct omap24xxcam_device *cam);
->+
->+#endif				/* ifndef OMAP24XXCAM_H */
->--
->1.5.0.1
->
->_______________________________________________
->Linux-omap-open-source mailing list
->Linux-omap-open-source@linux.omap.com
->http://linux.omap.com/mailman/listinfo/linux-omap-open-source
++	 * contrast control is context-based. This driver doesn't allow
+control
++	 * contrast for individual context. Any new contrast is
+programmed to
++	 * both contexts.
++	 */
++	/* get the right gamma table values */
++	for (i =3D 0; i < GAM_TABLE_LENGTH; i++)
++		a_default_contrast_list[2*i+1].val =3D
+gamma_table[level][i];
++
++	/* program the valus to the context A */
++	for (i =3D 0; i < GAM_TABLE_LENGTH; i++)
++		a_default_contrast_list[2*i].val =3D  GAM_TABLE_START_A +
+i;
++	if (ex3691_write_regs(client, a_default_contrast_list))
++		return -EIO;
++
++	/* program the values to the context B */
++	for (i =3D 0; i < GAM_TABLE_LENGTH; i++)
++		a_default_contrast_list[2*i].val =3D  GAM_TABLE_START_B +
+i;
++	if (ex3691_write_regs(client, a_default_contrast_list))
++		return -EIO;
++
++	/* We force a 50ms contrast setting interval. */
++	set_current_state(TASK_UNINTERRUPTIBLE);
++	schedule_timeout(msecs_to_jiffies(50));
++	return 0;
++}
++
++/* Detect if an Ex3691 is present, and if so which revision.
++ * Returns a negative error number if no device is detected, or the
++ * non-negative value of the version ID register if a device is
+detected.
++ */
++static int
++ex3691_detect(struct i2c_client *client)
++{
++	u16 ver;
++	if (!client)
++		return -ENODEV;
++
++	if (ex3691_write_reg(client, REG_PAGE, PAGE_SENSOR_CORE))
++		return -ENODEV;
++	if (ex3691_read_reg(client, REG_SENSOR_VER, &ver))
++		return -ENODEV;
++
++	if (ver !=3D EX3691_ID) {
++		/* We didn't read the values we expected, so
++		 * this must not be an EX3691.
++		 */
++		return -ENODEV;
++	}
++	return ver;
++}
++
++/* This function registers an I2C client via i2c_attach_client() for
+the
++ * sensor device.  If 'probe' is non-zero, then the I2C client is only
++ * registered if the device can be detected.  If 'probe' is zero, then
+no
++ * device detection is attempted and the I2C client is always
+registered.
++ * Returns zero if an I2C client is successfully registered, or
+non-zero
++ * otherwise.
++ */
++static int
++ex3691_i2c_attach_client(struct i2c_adapter *adap, int addr, int probe)
++{
++	struct ex3691_sensor *sensor =3D &ex3691;
++	struct i2c_client *client =3D &sensor->client;
++	int err;
++
++	if (client->adapter)
++		return -EBUSY;	/* our client is already attached */
++
++	client->addr =3D addr;
++	client->flags =3D I2C_CLIENT_ALLOW_USE;
++	i2c_set_clientdata(&sensor->client, sensor);
++	client->driver =3D &sensor->driver;
++	client->adapter =3D adap;
++
++	err =3D i2c_attach_client(client);
++	if (err) {
++		client->adapter =3D NULL;
++		return err;
++	}
++
++	if (probe) {
++		err =3D ex3691_detect(client);
++		if (err < 0) {
++			i2c_detach_client(client);
++			client->adapter =3D NULL;
++			return err;
++		}
++		sensor->ver =3D err;
++	}
++	return 0;
++}
++
++/* This function is called by i2c_del_adapter() and i2c_del_driver()
++ * if the adapter or driver with which this I2C client is associated is
++ * removed.  This function unregisters the client via
+i2c_detach_client().
++ * Returns zero if the client is successfully detached, or non-zero
++ * otherwise.
++ */
++static int
++ex3691_i2c_detach_client(struct i2c_client *client)
++{
++	int err;
++
++	if (!client->adapter)
++		return -ENODEV;	/* our client isn't attached */
++
++	err =3D i2c_detach_client(client);
++	client->adapter =3D NULL;
++
++	return err;
++}
++
++/* This function will be called for each registered I2C bus adapter
+when our
++ * I2C driver is registered via i2c_add_driver().  It will also be
+called
++ * whenever a new I2C adapter is registered after our I2C driver is
+registered.
++ * This function probes the specified I2C bus adapter to determine if
+an
++ * EX3691 sensor device is present.  If a device is detected, an I2C
+client
++ * is registered for it via ex3691_i2c_attach_client().  Note that we
+can't use
++ * the standard i2c_probe() function to look for the sensor because the
+OMAP
++ * I2C controller doesn't support probing.
++ * Returns zero if an EX3691 device is detected and an I2C client
+successfully
++ * registered for it, or non-zero otherwise.
++ */
++static int
++ex3691_i2c_probe_adapter(struct i2c_adapter *adap)
++{
++	return ex3691_i2c_attach_client(adap, EX3691_I2C_ADDR, 1);
++}
++
++/*
+---------------------------------------------------------------------
++ * Following are sensor interface functions implemented by
++ * EX3691 sensor driver. They are named ex3691sensor_<name>
++ */
++static int
++ex3691sensor_power_on(void *priv)
++{
++	struct ex3691_sensor *sensor =3D (struct ex3691_sensor *) priv;
++	int err;
++
++	/* the caller already enabled our XCLK, wait to make sure it is
+stable */
++	udelay(100);
++	/* release STANDBY line */
++	board_exit_standby();
++	/* wait 1ms before enable PLL per Micron Tech. Note */
++	mdelay(1);
++
++	err =3D ex3691_write_regs(&sensor->client, enable_pll_list);
++	if (err)
++		return err;
++	err =3D ex3691_write_regs(&sensor->client, context_a_list);
++	if (err)
++		return err;
++	err =3D wait_for_seq_state(&sensor->client, SEQ_STATE_PREVIEW);
++	return err;
++}
++
++/* we standby the camera in this call. Based on Micron Tech. Note, the
+hard
++ *  standby we are using should only consume maximum 100uA.
++ */
++static int
++ex3691sensor_power_off(void *priv)
++{
++	struct ex3691_sensor *sensor =3D (struct ex3691_sensor *) priv;
++	int err;
++
++	/* have to standby in sequencer preview mode */
++	if (ex3691_read_firmware_var(&sensor->client, SEQ_DRV_ID,
++		SEQ_STATE_OFFSET, 1) !=3D SEQ_STATE_PREVIEW) {
++		printk(KERN_ERR MOD_NAME
++			"calling power_off while not in preview
+state!\n");
++		return -EIO;
++	}
++
++	/* Issue standby command to sequencer */
++	err =3D ex3691_write_regs(&sensor->client, enter_standby_list);
++ 	if (err)
++ 		return err;
++	/* Poll the sequencer until it enters standby state */
++	err =3D wait_for_seq_state(&sensor->client, SEQ_STATE_STANDBY);
++	if (err)
++		return err;
++	/* bypass PLL */
++	err =3D ex3691_write_regs(&sensor->client, bypass_pll_list);
++	if (err)
++		return err;
++
++	/* assert STANDBY line */
++	board_enter_standby();
++	/* the caller can cut off XCLK now */
++	return 0;
++}
++
++static int
++ex3691sensor_cropcap(struct v4l2_cropcap *cropcap, void *priv)
++{
++	/* we have a unified crop coordination for both buffer types */
++	cropcap->bounds.left =3D cropcap->bounds.top =3D 0;
++	cropcap->bounds.width =3D UXGA_WIDTH;
++	cropcap->bounds.height =3D UXGA_HEIGHT;
++	cropcap->defrect =3D cropcap->bounds;
++	cropcap->pixelaspect.numerator =3D 1;
++	cropcap->pixelaspect.denominator =3D 1;
++	return 0;
++}
++
++static int
++ex3691sensor_get_crop(struct  v4l2_crop *crop, void *priv)
++{
++	struct ex3691_sensor *sensor =3D (struct ex3691_sensor *) priv;
++
++	if (crop->type =3D=3D V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		crop->c =3D sensor->crop_rect_a;
++	else if (crop->type =3D=3D V4L2_BUF_TYPE_STILL_CAPTURE)
++		crop->c =3D sensor->crop_rect_b;
++	else
++		return -EINVAL;
++	return 0;
++}
++
++static int
++ex3691sensor_set_crop(struct  v4l2_crop *crop, void *priv)
++{
++	struct ex3691_sensor *sensor =3D (struct ex3691_sensor *) priv;
++	struct v4l2_rect *cur_rect;
++	unsigned long *cur_width, *cur_height;
++	struct ex3691_reg *crop_list;
++	int fps, err;
++
++	switch (crop->type) {
++		case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++			cur_rect =3D &sensor->crop_rect_a;
++			cur_width =3D &sensor->width_a;
++			cur_height =3D &sensor->height_a;
++			crop_list =3D a_crop_list;
++			break;
++		case V4L2_BUF_TYPE_STILL_CAPTURE:
++			cur_rect =3D &sensor->crop_rect_b;
++			cur_width =3D &sensor->width_b;
++			cur_height =3D &sensor->height_b;
++			crop_list =3D b_crop_list;
++			break;
++		default:
++			/* invalid buffer type */
++			return -EINVAL;
++	}
++
++	if ((crop->c.left =3D=3D cur_rect->left) &&
++		(crop->c.width =3D=3D cur_rect->width) &&
++		(crop->c.top =3D=3D cur_rect->top) &&
++		(crop->c.height =3D=3D cur_rect->height))
++		return 0;
++
++	/* out of range? then return the current crop rectangle */
++	if ((crop->c.left + crop->c.width) > UXGA_WIDTH ||
++		(crop->c.top + crop->c.height) > UXGA_HEIGHT) {
++		crop->c =3D *cur_rect;
++		return 0;
++	}
++
++	/* The EX3691 SOC resizer can only scale down so we need to
++	 * make sure that the scale factor is no bigger than 1.
++	 */
++	/* need /2 for context A */
++	if (crop->type =3D=3D V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++		if ((crop->c.width >> 1) < *cur_width)
++			crop->c.width =3D (*cur_width) << 1;
++		if ((crop->c.height >> 1) < *cur_height)
++			crop->c.height =3D (*cur_height) << 1;
++	}
++	else {
++		if (crop->c.width < *cur_width)
++			crop->c.width =3D *cur_width;
++		if (crop->c.height < *cur_height)
++			crop->c.height =3D *cur_height;
++	}
++
++	/* adjust the parameters accordingly */
++	crop_list[INDEX_CROP_X0].val =3D crop->c.left;
++	crop_list[INDEX_CROP_X1].val =3D crop->c.left + crop->c.width;
++	crop_list[INDEX_CROP_Y0].val =3D crop->c.top;
++	crop_list[INDEX_CROP_Y1].val =3D crop->c.top + crop->c.height;
++	/* need /2 for context A */
++	if (crop->type =3D=3D V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++		crop_list[INDEX_CROP_X0].val >>=3D 1;
++		crop_list[INDEX_CROP_X1].val >>=3D 1;
++		crop_list[INDEX_CROP_Y0].val >>=3D 1;
++		crop_list[INDEX_CROP_Y1].val >>=3D 1;
++	}
++
++	/* configure the SOC resizer */
++	DPRINTK("Crop comamnd sequence for %s...",
++		(crop->type =3D=3D V4L2_BUF_TYPE_VIDEO_CAPTURE)?"A":"B");
++	DPRINTK("old (%d, %d) (%d, %d), new (%d, %d) (%d, %d)",
++		cur_rect->left, cur_rect->top, cur_rect->width,
+cur_rect->height,
++		crop->c.left, crop->c.top, crop->c.width,
+crop->c.height);
++	err =3D ex3691_write_regs(&sensor->client, crop_list);
++	if (err)
++		return err;
++
++	/* save back */
++	*cur_rect =3D crop->c;
++
++	/* Setting crop too fast can cause frame out-of-sync.
++	 * We force a crop setting interval of a 1.5-Context_A frames.
++	 */
++	fps =3D (sensor->mclk * EX3691_MAX_FPS) / EX3691_MAX_MCLK_MHZ;
++	set_current_state(TASK_UNINTERRUPTIBLE);
++	schedule_timeout(msecs_to_jiffies(3000/(fps*2)));
++	return 0;
++}
++
++static int
++ex3691sensor_enter_still_capture(int frames, void *priv)
++{
++	struct ex3691_sensor *sensor =3D (struct ex3691_sensor *) priv;
++	int err;
++
++	DPRINTK("Context B comamnd sequence ...");
++	err =3D ex3691_write_regs(&sensor->client, context_b_list);
++	if (err)
++		return err;
++
++	/* wait until the seq driver state change */
++	err =3D wait_for_seq_state(&sensor->client, SEQ_STATE_CAPTURE);
++	if (err)
++		return err;
++
++	/* need a few frames delay to stablize the output */
++	set_current_state(TASK_UNINTERRUPTIBLE);
++	schedule_timeout(msecs_to_jiffies(200));
++	return 0;
++}
++static int
++ex3691sensor_exit_still_capture(void *priv)
++{
++	struct ex3691_sensor *sensor =3D (struct ex3691_sensor *) priv;
++	int err;
++
++	DPRINTK("Context A comamnd sequence ...");
++	err =3D ex3691_write_regs(&sensor->client, context_a_list);
++	if (err)
++		return err;
++	/* wait until the seq driver state change */
++	err =3D wait_for_seq_state(&sensor->client, SEQ_STATE_PREVIEW);
++	return err;
++}
++
++static int
++ex3691sensor_query_control(struct v4l2_queryctrl *qc, void *priv)
++{
++	int i;
++
++	i =3D find_vctrl (qc->id);
++	if (i =3D=3D -EINVAL) {
++		qc->flags =3D V4L2_CTRL_FLAG_DISABLED;
++		return 0;
++	}
++	if (i < 0)
++		return -EINVAL;
++
++	*qc =3D control[i].qc;
++	return 0;
++}
++
++static int
++ex3691sensor_get_control(struct v4l2_control *vc, void *priv)
++{
++	struct vcontrol *lvc;
++	int i;
++
++	i =3D find_vctrl(vc->id);
++	if (i < 0)
++		return -EINVAL;
++
++	lvc =3D &control[i];
++	switch (lvc->qc.id) {
++		case V4L2_CID_BRIGHTNESS:
++		case V4L2_CID_CONTRAST:
++			vc->value =3D lvc->current_value;
++			break;
++		default:
++			return -EINVAL;
++	}
++	return 0;
++}
++
++static int
++ex3691sensor_set_control(struct v4l2_control *vc, void *priv)
++{
++	struct ex3691_sensor *sensor =3D (struct ex3691_sensor *) priv;
++	struct i2c_client *client =3D &sensor->client;
++	struct vcontrol *lvc;
++	int val =3D vc->value;
++	int i, err;
++
++	i =3D find_vctrl(vc->id);
++	if (i < 0)
++		return -EINVAL;
++
++	lvc =3D &control[i];
++	if (val < lvc->qc.minimum || val > lvc->qc.maximum)
++		return -ERANGE;
++
++	switch (lvc->qc.id) {
++		case V4L2_CID_BRIGHTNESS:
++			err =3D ex3691_set_brightness(client, val);
++			if (err)
++				return err;
++			lvc->current_value =3D val;
++			break;
++		case V4L2_CID_CONTRAST:
++			err =3D ex3691_set_contrast(client, val);
++			if (err)
++				return err;
++			lvc->current_value =3D val;
++			break;
++		default:
++			return -EINVAL;
++	}
++	return 0;
++}
++
++/* Implement the VIDIOC_ENUM_FMT ioctl for the CAPTURE buffer type.
++ */
++static int
++ex3691sensor_enum_pixformat(struct v4l2_fmtdesc *fmt, void *priv)
++{
++	int index =3D fmt->index;
++	enum v4l2_buf_type type =3D fmt->type;
++
++	memset(fmt, 0, sizeof(*fmt));
++	fmt->index =3D index;
++	fmt->type =3D type;
++
++	switch (fmt->type) {
++		case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++		if (index >=3D NUM_CAPTURE_FORMATS)
++			return -EINVAL;
++		break;
++
++		case V4L2_BUF_TYPE_VIDEO_OVERLAY:
++		if (index >=3D NUM_CAPTURE_FORMATS)
++			return -EINVAL;
++		break;
++
++		default:
++			return -EINVAL;
++	}
++
++	fmt->flags =3D ex3691_formats[index].flags;
++	strncpy(fmt->description, ex3691_formats[index].description,
+sizeof(fmt->description));
++	fmt->pixelformat =3D ex3691_formats[index].pixelformat;
++
++	return 0;
++}
++
++static int
++fill_format_info(struct v4l2_pix_format *pix)
++{
++	int ifmt;
++
++	for (ifmt =3D 0; ifmt < NUM_CAPTURE_FORMATS; ifmt++) {
++		if (pix->pixelformat =3D=3D
+ex3691_formats[ifmt].pixelformat)
++			break;
++	}
++	if (ifmt =3D=3D NUM_CAPTURE_FORMATS)
++		ifmt =3D 0;
++	pix->pixelformat =3D ex3691_formats[ifmt].pixelformat;
++	pix->field =3D V4L2_FIELD_NONE;
++	pix->bytesperline =3D pix->width*2;
++	pix->sizeimage =3D pix->bytesperline*pix->height;
++	pix->priv =3D 0;
++	switch (pix->pixelformat) {
++		case V4L2_PIX_FMT_YUYV:
++		case V4L2_PIX_FMT_UYVY:
++		default:
++			pix->colorspace =3D V4L2_COLORSPACE_JPEG;
++			break;
++		case V4L2_PIX_FMT_RGB565:
++		case V4L2_PIX_FMT_RGB565X:
++		case V4L2_PIX_FMT_RGB555:
++		case V4L2_PIX_FMT_RGB555X:
++			pix->colorspace =3D V4L2_COLORSPACE_SRGB;
++			break;
++	}
++	return 0;
++}
++/* Implement the VIDIOC_TRY_FMT ioctl for the CAPTURE buffer type.
+This
++ * ioctl is used to negotiate the image capture size and pixel format
++ * without actually making it take effect.
++ * We have to make sure that the agreed image isn't bigger than the
+crop.
++ * This is due to the fact that SOC IFP can only scale down.
++ */
++static int
++ex3691sensor_try_format(struct v4l2_pix_format *pix, void *priv)
++{
++	/* max resolution for video is SVGA */
++	if (pix->width > SVGA_WIDTH)
++		pix->width =3D SVGA_WIDTH;
++	if (pix->height > SVGA_HEIGHT)
++		pix->height =3D SVGA_HEIGHT;
++	/* make sure the line is a mutiple of 32-bit word */
++	pix->width &=3D ~1;
++
++	return fill_format_info(pix);
++}
++static int
++ex3691sensor_try_format_still_capture(struct v4l2_pix_format *pix, void
+*priv)
++{
++	/* max resolution for still image is UXGA */
++	if (pix->width > UXGA_WIDTH)
++		pix->width =3D UXGA_WIDTH;
++	if (pix->height > UXGA_HEIGHT)
++		pix->height =3D UXGA_HEIGHT;
++	/* make sure the line is a mutiple of 32-bit word */
++	pix->width &=3D ~1;
++
++	return fill_format_info(pix);
++}
++
++/* Given the image capture format in pix, the nominal frame period in
++ * timeperframe, calculate the required xclk frequency
++ * This sensor driver is designed to utilize on-chip PLL so the input
++ * clock from the host is fixed at 24MHZ.
++ */
++static unsigned long
++ex3691sensor_calc_xclk(struct v4l2_pix_format *pix,
++			struct v4l2_fract *timeperframe, void *priv)
++{
++	int fps;
++
++	if ((timeperframe->numerator =3D=3D 0)
++		|| (timeperframe->denominator =3D=3D 0)) {
++		/* supply a default nominal_timeperframe */
++		timeperframe->numerator =3D 1;
++		timeperframe->denominator =3D EX3691_DEF_FPS;
++	}
++	fps =3D timeperframe->denominator/timeperframe->numerator;
++	if (fps < EX3691_MIN_FPS)
++		fps =3D EX3691_MIN_FPS;
++	else if (fps > EX3691_MAX_FPS)
++			fps =3D EX3691_MAX_FPS;
++	timeperframe->numerator =3D 1;
++	timeperframe->denominator =3D fps;
++
++	return EX3691_XCLK_HZ;
++}
++
++
++static int
++configure_master_clock(struct ex3691_sensor *sensor, int mclk)
++{
++	int err;
++
++	DPRINTK("%d MHz master clock", mclk);
++	default_freq_list[INDEX_PLL_M].val &=3D MASK_PLL_M;
++	default_freq_list[INDEX_PLL_M].val |=3D ((2 * mclk) <<
+SHIFT_PLL_M);
++	err =3D ex3691_write_regs(&sensor->client, default_freq_list);
++	if (!err)
++		sensor->mclk =3D mclk;
++	return err;
++}
++
++static enum pixel_format
++get_pixel_format(struct v4l2_pix_format *pix, int *swapbyte)
++{
++  	enum pixel_format pfmt;
++
++	*swapbyte =3D 0;
++	switch (pix->pixelformat) {
++		case V4L2_PIX_FMT_RGB565X:
++			pfmt =3D RGB565X;
++			break;
++		case V4L2_PIX_FMT_RGB565:
++			pfmt =3D RGB565;
++			break;
++		case V4L2_PIX_FMT_RGB555X:
++			pfmt =3D RGB555X;
++			break;
++		case V4L2_PIX_FMT_RGB555:
++			pfmt =3D RGB555;
++			break;
++		case V4L2_PIX_FMT_UYVY:
++			pfmt =3D UYVY;
++			break;
++		case V4L2_PIX_FMT_YUYV:
++		default:
++			pfmt =3D YUYV;
++ 	}
++	return pfmt;
++}
++/* Given a capture format in pix, the frame period in timeperframe, and
++ * the xclk frequency, configure the EX3691 context A for a specified
++ * image size, pixel format, and frame period.
++ * Returns zero if successful, or non-zero otherwise.
++ * The actual frame period will be returned in timeperframe.
++ */
++static int
++ex3691sensor_configure(struct v4l2_pix_format *pix, unsigned long xclk,
++			struct v4l2_fract *timeperframe, void *priv)
++{
++	struct ex3691_sensor *sensor =3D (struct ex3691_sensor *) priv;
++  	enum pixel_format pfmt;
++	int swapbyte =3D 0, mclk;
++	int err;
++
++	/* configure frame rate if it changes. assumes the caller
+already
++		normalized the frame rate by calling calc_xclk */
++	mclk =3D ((timeperframe->denominator/timeperframe->numerator)
++		* EX3691_MAX_MCLK_MHZ) / EX3691_MAX_FPS;
++	if (mclk !=3D sensor->mclk) {
++		err =3D configure_master_clock(sensor, mclk);
++		if (err)
++			return err;
++	}
++
++	/* configure image pixel format only if it changes */
++	pfmt =3D get_pixel_format(pix, &swapbyte);
++
++	if (sensor->pfmt_a !=3D pfmt) {
++		DPRINTK("Context A image fmt %d ...", pfmt);
++		err =3D ex3691_write_regs(&sensor->client,
+ex3691_setup_a_format[pfmt]);
++		if (err)
++			return err;
++		sensor->pfmt_a =3D pfmt;
++	}
++
++	/* configure image size if it changes */
++	if ((sensor->width_a !=3D pix->width) || (sensor->height_a !=3D
+pix->height)) {
++		/* set crop to default for the new image size */
++		a_crop_list[INDEX_CROP_X0].val =3D 0;
++		a_crop_list[INDEX_CROP_X1].val =3D UXGA_WIDTH >> 1;
++		a_crop_list[INDEX_CROP_Y0].val =3D 0;
++		a_crop_list[INDEX_CROP_Y1].val =3D UXGA_HEIGHT >> 1;
++		DPRINTK("Context A default Crop...");
++		err =3D ex3691_write_regs(&sensor->client, a_crop_list);
++		if (err)
++			return err;
++		sensor->crop_rect_a.left =3D sensor->crop_rect_a.top =3D 0;
++		sensor->crop_rect_a.width =3D UXGA_WIDTH;
++		sensor->crop_rect_a.height =3D UXGA_HEIGHT;
++		DPRINTK("Context A image size (%d, %d)...", pix->width,
+pix->height);
++		default_size_a_list[INDEX_SIZE_WIDTH].val =3D pix->width;
++		default_size_a_list[INDEX_SIZE_HEIGHT].val =3D
+pix->height;
++		err =3D ex3691_write_regs(&sensor->client,
+default_size_a_list);
++		if (err)
++			return err;
++		sensor->width_a =3D pix->width;
++		sensor->height_a =3D pix->height;
++	}
++
++	/* configure swapbyte if it changes */
++	if (sensor->swapbyte_a !=3D swapbyte) {
++		a_default_swapbyte_list[INDEX_SWAP_ENABLE].val &=3D
+MASK_SWAP_ENABLE;
++		if (swapbyte)
++			a_default_swapbyte_list[INDEX_SWAP_ENABLE].val
+|=3D (1 << SHIFT_SWAP_ENABLE);
++		DPRINTK("Context A byte swap %d...", swapbyte);
++		err =3D ex3691_write_regs(&sensor->client,
+a_default_swapbyte_list);
++		if (err)
++			return err;
++		sensor->swapbyte_a =3D swapbyte;
++	}
++
++	return 0;
++}
++
++/* Context B configuration */
++static int
++ex3691sensor_configure_still_capture(struct v4l2_pix_format *pix,
+unsigned long xclk,
++			struct v4l2_fract *timeperframe, void *priv)
++{
++	struct ex3691_sensor *sensor =3D (struct ex3691_sensor *) priv;
++  	enum pixel_format pfmt;
++	int swapbyte =3D 0;
++	int err;
++
++	/* configure image pixel format only if it changes */
++	pfmt =3D get_pixel_format(pix, &swapbyte);
++	if (sensor->pfmt_b !=3D pfmt) {
++		DPRINTK("Context B image fmt %d ...", pfmt);
++		err =3D ex3691_write_regs(&sensor->client,
+ex3691_setup_b_format[pfmt]);
++		if (err)
++			return err;
++		sensor->pfmt_b =3D pfmt;
++	}
++
++	/* configure image size if it changes */
++	if ((sensor->width_b !=3D pix->width) || (sensor->height_b !=3D
+pix->height)) {
++		/* set crop to default for the new image size */
++		b_crop_list[INDEX_CROP_X0].val =3D 0;
++		b_crop_list[INDEX_CROP_X1].val =3D UXGA_WIDTH;
++		b_crop_list[INDEX_CROP_Y0].val =3D 0;
++		b_crop_list[INDEX_CROP_Y1].val =3D UXGA_HEIGHT;
++		DPRINTK("Context B default Crop...");
++		err =3D ex3691_write_regs(&sensor->client, b_crop_list);
++		if (err)
++			return err;
++		sensor->crop_rect_b.left =3D sensor->crop_rect_a.top =3D 0;
++		sensor->crop_rect_b.width =3D UXGA_WIDTH;
++		sensor->crop_rect_b.height =3D UXGA_HEIGHT;
++		DPRINTK("Context B image size (%d, %d)...", pix->width,
+pix->height);
++		default_size_b_list[INDEX_SIZE_WIDTH].val =3D pix->width;
++		default_size_b_list[INDEX_SIZE_HEIGHT].val =3D
+pix->height;
++		err =3D ex3691_write_regs(&sensor->client,
+default_size_b_list);
++		if (err)
++			return err;
++		sensor->width_b =3D pix->width;
++		sensor->height_b =3D pix->height;
++	}
++
++	/* configure swapbyte if it changes */
++	if (sensor->swapbyte_b !=3D swapbyte) {
++		b_default_swapbyte_list[INDEX_SWAP_ENABLE].val &=3D
+MASK_SWAP_ENABLE;
++		if (swapbyte)
++			b_default_swapbyte_list[INDEX_SWAP_ENABLE].val
+|=3D (1 << SHIFT_SWAP_ENABLE);
++		err =3D ex3691_write_regs(&sensor->client,
+b_default_swapbyte_list);
++		if (err)
++			return err;
++		sensor->swapbyte_b =3D swapbyte;
++	}
++	return 0;
++}
++
++/* Prepare for the driver to exit. Balances ex3691sensor_init().
++ * This function must de-initialize the sensor and its associated data
++ * structures.
++ */
++static int
++ex3691sensor_cleanup(void *priv)
++{
++	struct ex3691_sensor *sensor =3D (struct ex3691_sensor *) priv;
++
++	if (sensor) {
++		i2c_del_driver(&sensor->driver);
++		board_cleanup();
++ 	}
++	return 0;
++}
++
++
++/* Initialize the EX3691 SOC.
++ * This routine allocates and initializes the data structure for the
+sensor,
++ * powers up the sensor, registers the I2C driver, sends initilization
+sequence,
++ * and sets a default image capture format in pix for both contexts.
+The capture
++ * format is not actually programmed into the sensor by this routine.
+The camera
++ * I/F driver configures the sensor for the needed format through
+_configure API
++ *
++ * This function must return a non-NULL value to indicate that
++ * initialization is successful.
++ */
++static void *
++ex3691sensor_init(struct v4l2_pix_format *pix, struct v4l2_pix_format
+*pix2)
++{
++	struct ex3691_sensor *sensor =3D &ex3691;
++	struct i2c_driver *driver =3D &sensor->driver;
++ 	int err;
++
++	if (board_init())
++		return NULL;
++	memset(sensor, 0, sizeof(*sensor));
++
++	strncpy(driver->name, "EX3691 I2C driver",
+sizeof(driver->name));
++	driver->id =3D I2C_DRIVERID_EXP0;
++	driver->flags =3D I2C_DF_NOTIFY;
++	driver->class =3D I2C_CLASS_HWMON;
++	driver->attach_adapter =3D ex3691_i2c_probe_adapter;
++	driver->detach_client =3D ex3691_i2c_detach_client;
++
++	err =3D i2c_add_driver(driver);
++	if (err) {
++		printk(KERN_ERR
++			MOD_NAME "Failed to register EX3691 I2C
+client.\n");
++		ex3691sensor_cleanup((void *)sensor);
++		return NULL;
++	}
++	if (!sensor->client.adapter) {
++		printk(KERN_WARNING
++			MOD_NAME "Failed to detect EX3691 SOC.\n");
++		ex3691sensor_cleanup((void *)sensor);
++		return NULL;
++	}
++	else {
++		printk(KERN_INFO
++			MOD_NAME "SOC detected 0x%02x (Monitor
+0x%02x)\n", sensor->ver,
++			ex3691_read_firmware_var(&sensor->client,
+MON_DRV_ID, MON_VER_OFFSET, 1));
++	}
++
++	DPRINTK("Initial command sequence ...");
++	if (ex3691_write_regs(&sensor->client, initial_list)) {
++		ex3691sensor_cleanup((void *)sensor);
++		return NULL;
++	}
++	DPRINTK("Configure PLL ...");
++	if (configure_master_clock(sensor, EX3691_DEF_MCLK_MHZ)) {
++		ex3691sensor_cleanup((void *)sensor);
++		return NULL;
++	}
++
++	/* Set the default brightness and contrast */
++	ex3691_set_brightness(&sensor->client, DEF_BRIGHTNESS);
++	ex3691_set_contrast(&sensor->client, DEF_CONTRAST);
++
++	/* Set the default crop */
++	ex3691_write_regs(&sensor->client, a_crop_list);
++	ex3691_write_regs(&sensor->client, b_crop_list);
++	sensor->crop_rect_a.left =3D sensor->crop_rect_a.top =3D 0;
++	sensor->crop_rect_a.width =3D UXGA_WIDTH;
++	sensor->crop_rect_a.height =3D UXGA_HEIGHT;
++	sensor->crop_rect_b.left =3D sensor->crop_rect_b.top =3D 0;
++	sensor->crop_rect_b.width =3D UXGA_WIDTH;
++	sensor->crop_rect_b.height =3D UXGA_HEIGHT;
++
++	/* little endian for both */
++	sensor->swapbyte_a =3D 0;
++	sensor->swapbyte_b =3D 0;
++
++	/* Make the default format QCIF RGB565 for context A */
++	pix->width =3D QCIF_WIDTH;
++	pix->height =3D QCIF_HEIGHT;
++	pix->pixelformat =3D V4L2_PIX_FMT_RGB565;
++	ex3691sensor_try_format(pix, (void *)sensor);
++	/* Make the default format QVGA RGB565 for context B */
++	pix2->width =3D QVGA_WIDTH;
++	pix2->height =3D QVGA_HEIGHT;
++	pix2->pixelformat =3D V4L2_PIX_FMT_RGB565;
++	ex3691sensor_try_format_still_capture(pix2, (void *)sensor);
++	/* default sizes and formats not configured yet */
++	sensor->pfmt_a =3D sensor->pfmt_b =3D -1;
++
++	return (void *)sensor;
++}
++
++
++struct camera_sensor camera_sensor_if =3D {
++	version: 	0x02,
++	name:		"EX3691",
++	parallel_mode:	PAR_MODE_NOBT8,
++	hs_polarity:	SYNC_ACTIVE_HIGH,
++	vs_polarity:	SYNC_ACTIVE_HIGH,
++	image_swap:	0,
++	init: 		ex3691sensor_init,
++	cleanup:	ex3691sensor_cleanup,
++	power_on:	ex3691sensor_power_on,
++	power_off:	ex3691sensor_power_off,
++	enum_pixformat:	ex3691sensor_enum_pixformat,
++	try_format:	ex3691sensor_try_format,
++	calc_xclk:	ex3691sensor_calc_xclk,
++	configure:	ex3691sensor_configure,
++	query_control:	ex3691sensor_query_control,
++	get_control:	ex3691sensor_get_control,
++	set_control:	ex3691sensor_set_control,
++	/* we allow capturing the cropped images so we implement the
+following
++	 * optional crop functions.
++	 */
++	cropcap:	ex3691sensor_cropcap,
++	get_crop:	ex3691sensor_get_crop,
++	set_crop:	ex3691sensor_set_crop,
++	/* we support dual-context so we implement the following
+optional
++	 * functions that are exclusively for the still image context.
++	 */
++	try_format_still_capture:
+ex3691sensor_try_format_still_capture,
++	configure_still_capture:
+ex3691sensor_configure_still_capture,
++	enter_still_capture:
+ex3691sensor_enter_still_capture,
++	exit_still_capture:		ex3691sensor_exit_still_capture,
++};
++
++EXPORT_SYMBOL(camera_sensor_if);
++
++MODULE_AUTHOR("Texas Instruments.");
++MODULE_DESCRIPTION("EX3691 Sensor Driver");
++MODULE_LICENSE("GPL");
++
++#ifdef EX3691_REG_DUMP
++static struct ex3691_reg_read {
++	u8 page;
++	u8 reg;
++} read_reg_list[] =3D {
++	{0, 0x01},	// Row Start
++	{0, 0x02},	// Col Start
++	{0, 0x03},	// Row Width
++	{0, 0x04},	// Col Width
++	{0, 0x05},	// H Blanking B
++	{0, 0x06},	// V Blanking B
++	{0, 0x07},	// H Blanking A
++	{0, 0x08},	// V Blanking A
++	{0, 0x05},	// H Blanking B
++	{0, 0x0A},	// Row Speed
++	{0, 0x0B},	// Extra Delay
++	{0, 0x0D},	// Reset
++	{0, 0x20},	// Read Mode B
++	{0, 0x21},	// Read Mode A
++	{0, 0x65},	// Clock
++	{0, 0x66},	// PLL Control 1
++	{0, 0x67},	// PLL Control 2
++	{0, 0xF2},	// Context Control
++	{1, 0x08},	// Color Pipeline Control
++	{1, 0x09},	// Factory Bypass
++	{1, 0x11},	// Crop x0
++	{1, 0x12},	// Crop x1
++	{1, 0x13},	// Crop y0
++	{1, 0x14},	// Crop y1
++	{1, 0x15},	// Decimator Control
++	{1, 0x16},	// Weight for H decimation
++	{1, 0x17},	// Weight for V decimation
++	{1, 0x97},	// Output Format
++	{2, 0x00},	// JPEG Control
++	{2, 0x0a},	// JPEG Bypass
++	{2, 0x0d},	// output configure
++	{2, 0x0e},	// pclk1 & pclk2 configure
++	{2, 0x0f},	// pclk3 configure
++	{EX3691_TOK_TERM, 0}
++};
++void dump_key_ex3691_regs(void *priv)
++{
++	struct ex3691_sensor *sensor =3D (struct ex3691_sensor *) priv;
++	struct i2c_client *client =3D &sensor->client;
++	struct ex3691_reg_read *next =3D read_reg_list;
++	u16 val;
++	u8 page =3D 0xFF;
++
++	for (; next->page !=3D EX3691_TOK_TERM; next++) {
++		if (page !=3D next->page) {
++			/* need to select a new page */
++			if (ex3691_write_reg(client, REG_PAGE,
+next->page))
++				return;
++			page =3D next->page;
++			mdelay(EX3691_I2C_DELAY);
++		}
++		if (ex3691_read_reg(client, next->reg, &val))
++			return;
++		printk("Page %d, Reg0x%x =3D 0x%x\n", next->page,
+next->reg, val);
++		mdelay(EX3691_I2C_DELAY);
++	}
++}
++#endif
++
++#endif	/* ifdef CONFIG_VIDEO_OMAP24XX_CAMERA_EX3691 */
++
++
++
++
++
++
