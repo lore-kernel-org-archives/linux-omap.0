@@ -1,15 +1,14 @@
 From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
-Subject: Re: [PATCH] ARM: OMAP2: Update N800 defconfig
-Date: Sun, 04 Mar 2007 21:04:49 +0100
-Message-ID: <85zm6sdbby.fsf@orfeo.duckcorp.org>
-References: <45EA9F87.6090300@googlemail.com>
-	<85649hjnnp.fsf@orfeo.duckcorp.org> <45EAB2E7.1000607@googlemail.com>
-	<85y7mdgpww.fsf@orfeo.duckcorp.org> <45EAF579.50404@googlemail.com>
+Subject: Re: [PATCH] add ssi/Kconfig to arch/arm/Kconfig
+Date: Sun, 04 Mar 2007 21:20:04 +0100
+Message-ID: <85r6s4damj.fsf@orfeo.duckcorp.org>
+References: <85ps7pgphq.fsf@orfeo.duckcorp.org>
+	<45EAFDBA.9010406@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <45EAF579.50404@googlemail.com> (Dirk Behme's message of "Sun, 04
-	Mar 2007 17:36:09 +0100")
+In-Reply-To: <45EAFDBA.9010406@googlemail.com> (Dirk Behme's message of "Sun,
+	04 Mar 2007 18:11:22 +0100")
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -26,36 +25,43 @@ List-Id: linux-omap@vger.kernel.org
 Dirk Behme <dirk.behme@googlemail.com> writes:
 
 > Arnaud Patard (Rtp) wrote:
->> Dirk Behme <dirk.behme@googlemail.com> writes:
->>
->>
->>>Arnaud Patard (Rtp) wrote:
->>>
->>>>>Update N800 defconfig, mainly to disable netfilter which
->>>>>doesn't compile:
->>>>
->>>> Fixing the build may be a better idea than disabling it.
->>>
->>>Yes, your are right ;) But this is something we can't do here on OMAP
->>>list.
->>
->>
->> I disagree. This driver afaik can only be found in the omap tree and
->> it's only a matter of taking few minutes to update the driver to follow
->> upstream changes. So, unless the original author of the driver fixes it
->> (which I doubt), it's up to us to fix it.
+>> If one wants to use ssi/Kconfig on arm, it should be added to
+>> arch/arm/Kconfig.
 >
-> Uups, we have some OMAP specifc stuff in net/ipv4/netfilter? I wasn't
-
-yeah :(
-
-> aware of this. Yes, then your are right that we have to fix it. I
-> thought it is an upstream issue. Then, forget my N800 defconfig
-
-
-I though too until I've started looking for a newer/fixed version.
-
-> changes, thanks for the correction and the patch.
+> Yes, I found this as well by getting
 >
+> sound/arm/Kconfig:55:warning: 'select' used by config symbol
+> 'SND_OMAP_TSC2101' refer to undefined symbol 'OMAP_TSC2101'
+> sound/arm/Kconfig:56:warning: 'select' used by config symbol
+> 'SND_OMAP_TSC2101' refer to undefined symbol 'OMAP_UWIRE'
+>
+> Kconfig warnings.
+
+same here :)
+
+>
+> While touching this, what do you think about doing some more
+> clean up:
+>
+> - omap_uwire.c is now in drivers/spi [], remove (old?) one from
+> drivers/ssi
+
+I had the same patch but you send it before me :)
+
+>
+> - Replace OMAP_UWIRE in Kconfig by SPI_OMAP_UWIRE pointing
+> to drivers/spi
+>
+> ?
+>
+
+Even if I'm not a omap dev, I'll be happy to see the ssi stuff go to
+/dev/null. Unfortunately, grep is telling us that there are still users
+of the old omap_uwire. Moreover, it seems that it's possible to build a
+kernel without the OMAP_UWIRE and with the drivers using it. The drivers
+using the old ssi stuff should either depends on it or select it...
+(see drivers/video/omap/lcd_{p,h}2.c).
+Until this is solved, we won't be able to remove it :(
+
 
 Arnaud
