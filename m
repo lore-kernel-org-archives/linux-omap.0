@@ -1,7 +1,7 @@
 From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
-Subject: [PATCH] OMAP1: Add clock for the SOSSI
-Date: Sun, 04 Mar 2007 12:35:42 +0100
-Message-ID: <85irdhi6lt.fsf@orfeo.duckcorp.org>
+Subject: [PATCH] board_nokia770: add hwa742 platform data
+Date: Sun, 04 Mar 2007 12:39:02 +0100
+Message-ID: <85ejo5i6g9.fsf@orfeo.duckcorp.org>
 Mime-Version: 1.0
 Content-Type: multipart/mixed; boundary="=-=-="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
@@ -20,132 +20,94 @@ List-Id: linux-omap@vger.kernel.org
 --=-=-=
 
 
-Due to the n800fb changes, the sossi video driver needs a new clock
-called ck_sossi. This patch adds the sossi clock definitions made in
-the n800 kernel from maemo.org.
+The n800fb changes introduced some platform_data for the hwa742 and
+needs now to be defined for getting it working.  This patch adds the
+necessary bits needed for getting fb working again on n770.
+This patch comes from the n800 kernel from maemo.org
+
 
 Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
 
+
 --=-=-=
 Content-Type: text/x-diff
-Content-Disposition: inline; filename=add_sossi_clk.patch
+Content-Disposition: inline; filename=n770_add_hwa_clocks.patch
 
 ---
- arch/arm/mach-omap1/clock.c |   36 	35 +	1 -	0 !
- arch/arm/mach-omap1/clock.h |   18 	17 +	1 -	0 !
- 2 files changed, 52 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap1/board-nokia770.c |   45 	45 +	0 -	0 !
+ 1 file changed, 45 insertions(+)
 
-Index: linux-omap-2.6/arch/arm/mach-omap1/clock.c
+Index: linux-omap-2.6/arch/arm/mach-omap1/board-nokia770.c
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap1/clock.c	2007-03-02 21:55:31.000000000 +0100
-+++ linux-omap-2.6/arch/arm/mach-omap1/clock.c	2007-03-03 17:27:50.000000000 +0100
-@@ -49,6 +49,16 @@ static void omap1_uart_recalc(struct clk
- 		clk->rate = 12000000;
- }
+--- linux-omap-2.6.orig/arch/arm/mach-omap1/board-nokia770.c	2007-03-02 23:21:40.000000000 +0100
++++ linux-omap-2.6/arch/arm/mach-omap1/board-nokia770.c	2007-03-03 17:26:59.000000000 +0100
+@@ -34,7 +34,9 @@
+ #include <asm/arch/dsp_common.h>
+ #include <asm/arch/aic23.h>
+ #include <asm/arch/gpio.h>
++#include <asm/arch/omapfb.h>
+ #include <asm/arch/lcd_mipid.h>
++#include <asm/arch/hwa742.h>
  
-+static void omap1_sossi_recalc(struct clk *clk)
-+{
-+	u32 div = omap_readl(MOD_CONF_CTRL_1);
-+
-+	div = (div >> 17) & 0x7;
-+	div++;
-+	clk->rate = clk->parent->rate / div;
-+}
-+
-+
- static int omap1_clk_enable_dsp_domain(struct clk *clk)
- {
- 	int retval;
-@@ -396,6 +406,31 @@ static int omap1_set_ext_clk_rate(struct
- 	return 0;
- }
+ #include "../plat-omap/dsp/dsp_common.h"
  
-+static int omap1_set_sossi_rate(struct clk *clk, unsigned long rate)
+@@ -164,6 +166,48 @@ static struct spi_board_info nokia770_sp
+ 	},
+ };
+ 
++static struct {
++	struct clk *sys_ck;
++} hwa742;
++
++static int hwa742_get_clocks(void)
 +{
-+	u32 l;
-+	int div;
-+	unsigned long p_rate;
-+
-+	p_rate = clk->parent->rate;
-+	/* Round towards slower frequency */
-+	div = (p_rate + rate - 1) / rate;
-+	div--;
-+	if (div < 0 || div > 7)
-+		return -EINVAL;
-+
-+	l = omap_readl(MOD_CONF_CTRL_1);
-+	l &= ~(7 << 17);
-+	l |= div << 17;
-+	omap_writel(l, MOD_CONF_CTRL_1);
-+
-+	clk->rate = p_rate / (div + 1);
-+	if (unlikely(clk->flags & RATE_PROPAGATES))
-+		propagate_rate(clk);
-+
++	hwa742.sys_ck = clk_get(NULL, "bclk");
++	if (IS_ERR(hwa742.sys_ck)) {
++		printk(KERN_ERR "can't get HWA742 clock\n");
++		return PTR_ERR(hwa742.sys_ck);
++	}
 +	return 0;
 +}
 +
- static long omap1_round_ext_clk_rate(struct clk * clk, unsigned long rate)
- {
- 	return 96000000 / calc_ext_dsor(rate);
-@@ -617,7 +652,6 @@ static void __init omap1_clk_disable_unu
- 	/* FIXME: This clock seems to be necessary but no-one
- 	 * has asked for its activation. */
- 	if (clk == &tc2_ck		// FIX: pm.c (SRAM), CCP, Camera
--	    || clk == &ck_dpll1out.clk	// FIX: SoSSI, SSR
- 	    || clk == &arm_gpio_ck	// FIX: GPIO code for 1510
- 		) {
- 		printk(KERN_INFO "FIXME: Clock \"%s\" seems unused\n",
-Index: linux-omap-2.6/arch/arm/mach-omap1/clock.h
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap1/clock.h	2007-03-02 21:55:31.000000000 +0100
-+++ linux-omap-2.6/arch/arm/mach-omap1/clock.h	2007-03-03 17:27:50.000000000 +0100
-@@ -23,6 +23,8 @@ static int omap1_clk_set_rate_dsp_domain
- static void omap1_clk_disable_dsp_domain(struct clk * clk);
- static int omap1_set_uart_rate(struct clk * clk, unsigned long rate);
- static void omap1_uart_recalc(struct clk * clk);
-+static int omap1_set_sossi_rate(struct clk *clk, unsigned long rate);
-+static void omap1_sossi_recalc(struct clk *clk);
- static int omap1_clk_enable_uart_functional(struct clk * clk);
- static void omap1_clk_disable_uart_functional(struct clk * clk);
- static int omap1_set_ext_clk_rate(struct clk * clk, unsigned long rate);
-@@ -170,7 +172,8 @@ static struct arm_idlect1_clk ck_dpll1ou
- 	.clk = {
- 	       	.name		= "ck_dpll1out",
- 		.parent		= &ck_dpll1,
--		.flags		= CLOCK_IN_OMAP16XX | CLOCK_IDLE_CONTROL,
-+		.flags		= CLOCK_IN_OMAP16XX | CLOCK_IDLE_CONTROL |
-+				  ENABLE_REG_32BIT | RATE_PROPAGATES,
- 		.enable_reg	= (void __iomem *)ARM_IDLECT2,
- 		.enable_bit	= EN_CKOUT_ARM,
- 		.recalc		= &followparent_recalc,
-@@ -179,6 +182,18 @@ static struct arm_idlect1_clk ck_dpll1ou
- 	},
- 	.idlect_shift	= 12,
- };
-+static struct clk sossi_ck = {
-+	.name           = "ck_sossi",
-+	.parent         = &ck_dpll1out.clk,
-+	.flags          = CLOCK_IN_OMAP16XX | CLOCK_NO_IDLE_PARENT |
-+			  ENABLE_REG_32BIT,
-+	.enable_reg     = (void __iomem *)MOD_CONF_CTRL_1,
-+	.enable_bit     = 16,
-+	.recalc         = &omap1_sossi_recalc,
-+	.set_rate       = &omap1_set_sossi_rate,
-+	.enable         = &omap1_clk_enable_generic,
-+	.disable        = &omap1_clk_disable_generic,
++static unsigned long hwa742_get_clock_rate(struct device *dev)
++{
++	return clk_get_rate(hwa742.sys_ck);
++}
++
++static void hwa742_power_up(struct device *dev)
++{
++	clk_enable(hwa742.sys_ck);
++}
++
++static void hwa742_power_down(struct device *dev)
++{
++	clk_disable(hwa742.sys_ck);
++}
++
++static struct hwa742_platform_data nokia770_hwa742_platform_data = {
++	.get_clock_rate	= hwa742_get_clock_rate,
++	.power_up	= hwa742_power_up,
++	.power_down	= hwa742_power_down,
++	.te_connected	= 1,
 +};
++
++static void hwa742_dev_init(void)
++{
++	hwa742_get_clocks();
++	omapfb_set_ctrl_platform_data(&nokia770_hwa742_platform_data);
++}
++
  
- static struct clk arm_ck = {
- 	.name		= "arm_ck",
-@@ -760,6 +775,7 @@ static struct clk * onchip_clks[] = {
- 	&ck_dpll1,
- 	/* CK_GEN1 clocks */
- 	&ck_dpll1out.clk,
-+	&sossi_ck,
- 	&arm_ck,
- 	&armper_ck.clk,
- 	&arm_gpio_ck,
+ /* assume no Mini-AB port */
+ 
+@@ -332,6 +376,7 @@ static void __init omap_nokia770_init(vo
+ 	omap_gpio_init();
+ 	omap_serial_init();
+ 	omap_dsp_init();
++	hwa742_dev_init();
+ 	lph8923_dev_init();
+ 	ads7846_dev_init();
+ }
 
 --=-=-=
 Content-Type: text/plain; charset="us-ascii"
