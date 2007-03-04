@@ -1,16 +1,15 @@
 From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
-Subject: Re: Broken ads7846 touchscreen,
-	was: [PATCH] ARM: OMAP: Fix SPI merge issues and reintroduce
-	omap_uwire.c
-Date: Sun, 04 Mar 2007 21:05:59 +0100
-Message-ID: <85vehgdba0.fsf@orfeo.duckcorp.org>
-References: <45EAB7F5.2040603@googlemail.com>
-	<85tzx1gple.fsf@orfeo.duckcorp.org> <45EAF60C.5070207@googlemail.com>
+Subject: Re: [PATCH] ARM: OMAP2: Update N800 defconfig
+Date: Sun, 04 Mar 2007 21:04:49 +0100
+Message-ID: <85zm6sdbby.fsf@orfeo.duckcorp.org>
+References: <45EA9F87.6090300@googlemail.com>
+	<85649hjnnp.fsf@orfeo.duckcorp.org> <45EAB2E7.1000607@googlemail.com>
+	<85y7mdgpww.fsf@orfeo.duckcorp.org> <45EAF579.50404@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <45EAF60C.5070207@googlemail.com> (Dirk Behme's message of "Sun,
-	04 Mar 2007 17:38:36 +0100")
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <45EAF579.50404@googlemail.com> (Dirk Behme's message of "Sun, 04
+	Mar 2007 17:36:09 +0100")
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,8 +17,8 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: Dirk Behme <dirk.behme@googlemail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
@@ -30,22 +29,33 @@ Dirk Behme <dirk.behme@googlemail.com> writes:
 >> Dirk Behme <dirk.behme@googlemail.com> writes:
 >>
 >>
->>>Is there any special reason why
+>>>Arnaud Patard (Rtp) wrote:
 >>>
->>>http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=ba6d3cf6f7900c7586cca6bbd9dca55d7c6386fb
+>>>>>Update N800 defconfig, mainly to disable netfilter which
+>>>>>doesn't compile:
+>>>>
+>>>> Fixing the build may be a better idea than disabling it.
 >>>
->>>deleted drivers/spi/omap_uwire.c?
+>>>Yes, your are right ;) But this is something we can't do here on OMAP
+>>>list.
 >>
 >>
->> looks like forgotten git-update-index or something like that. I didn't
->> check closely but I bet that this conflicts explains also why the
->> ads7846 touchscreen driver doesn't work. I had to take the versions from
->> the old linux-omap-2.6 tree to get my touchscreen back :(
+>> I disagree. This driver afaik can only be found in the omap tree and
+>> it's only a matter of taking few minutes to update the driver to follow
+>> upstream changes. So, unless the original author of the driver fixes it
+>> (which I doubt), it's up to us to fix it.
 >
-> Do you can make a diff between the old and new version and send a
-> patch?
+> Uups, we have some OMAP specifc stuff in net/ipv4/netfilter? I wasn't
 
-Sure. I'll send it in a new mail and it will probably need review from the
-ads784x guys.
+yeah :(
+
+> aware of this. Yes, then your are right that we have to fix it. I
+> thought it is an upstream issue. Then, forget my N800 defconfig
+
+
+I though too until I've started looking for a newer/fixed version.
+
+> changes, thanks for the correction and the patch.
+>
 
 Arnaud
