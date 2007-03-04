@@ -1,10 +1,14 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP: Fix SPI merge issues and reintroduce omap_uwire.c
-Date: Sun, 04 Mar 2007 13:13:41 +0100
-Message-ID: <45EAB7F5.2040603@googlemail.com>
+From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
+Subject: Re: [PATCH] ARM: OMAP2: Update N800 defconfig
+Date: Sun, 04 Mar 2007 13:21:35 +0100
+Message-ID: <85y7mdgpww.fsf@orfeo.duckcorp.org>
+References: <45EA9F87.6090300@googlemail.com>
+	<85649hjnnp.fsf@orfeo.duckcorp.org> <45EAB2E7.1000607@googlemail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080804050909020607090006"
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: multipart/mixed; boundary="=-=-="
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <45EAB2E7.1000607@googlemail.com> (Dirk Behme's message of "Sun,
+	04 Mar 2007 12:52:07 +0100")
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,664 +16,208 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080804050909020607090006
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+--=-=-=
+
+Dirk Behme <dirk.behme@googlemail.com> writes:
+
+> Arnaud Patard (Rtp) wrote:
+>>>Update N800 defconfig, mainly to disable netfilter which
+>>>doesn't compile:
+>>  Fixing the build may be a better idea than disabling it.
+>
+> Yes, your are right ;) But this is something we can't do here on OMAP
+> list.
+
+I disagree. This driver afaik can only be found in the omap tree and
+it's only a matter of taking few minutes to update the driver to follow
+upstream changes. So, unless the original author of the driver fixes it
+(which I doubt), it's up to us to fix it.
+
+As I said, I have a patch for it. I'm attaching it to this mail for
+reference because I'm now thinking that I won't be able to test it on my
+n770.
+
+Arnaud
 
 
-Is there any special reason why
+--=-=-=
+Content-Type: text/x-diff
+Content-Disposition: inline; filename=IDLETIMER_fix.patch
 
-http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=ba6d3cf6f7900c7586cca6bbd9dca55d7c6386fb
+---
+ net/ipv4/netfilter/ipt_IDLETIMER.c |   45 	20 +	25 -	0 !
+ 1 file changed, 20 insertions(+), 25 deletions(-)
 
-deleted drivers/spi/omap_uwire.c?
-
-If not, reintroduce it and remove double entries in Kconfig
-and Makefile. Please check if I hit the most recent version
-of omap_uwire.c.
-
-Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
-
-
---------------080804050909020607090006
-Content-Type: text/plain;
- name="omap1_spi_uwire_patch.txt"
-Content-Disposition: inline;
- filename="omap1_spi_uwire_patch.txt"
-Content-Transfer-Encoding: quoted-printable
-X-MIME-Autoconverted: from 8bit to quoted-printable by arroyo.ext.ti.com id l24CE2xG002042
-
-Index: linux-osk/drivers/spi/Makefile
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-osk.orig/drivers/spi/Makefile
-+++ linux-osk/drivers/spi/Makefile
-@@ -16,7 +16,6 @@ obj-$(CONFIG_SPI_ATMEL)			+=3D atmel_spi.o
- obj-$(CONFIG_SPI_BUTTERFLY)		+=3D spi_butterfly.o
- obj-$(CONFIG_SPI_IMX)			+=3D spi_imx.o
- obj-$(CONFIG_SPI_PXA2XX)		+=3D pxa2xx_spi.o
--obj-$(CONFIG_SPI_OMAP_UWIRE)		+=3D omap_uwire.o
- obj-$(CONFIG_SPI_MPC83xx)		+=3D spi_mpc83xx.o
- obj-$(CONFIG_SPI_S3C24XX_GPIO)		+=3D spi_s3c24xx_gpio.o
- obj-$(CONFIG_SPI_S3C24XX)		+=3D spi_s3c24xx.o
-Index: linux-osk/drivers/spi/Kconfig
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-osk.orig/drivers/spi/Kconfig
-+++ linux-osk/drivers/spi/Kconfig
-@@ -132,13 +132,6 @@ config SPI_S3C24XX_GPIO
- 	  the inbuilt hardware cannot provide the transfer mode, or
- 	  where the board is using non hardware connected pins.
-=20
--config SPI_OMAP_UWIRE
--	tristate "OMAP MicroWire"
--	depends on SPI_MASTER && ARCH_OMAP
--	select SPI_BITBANG
--	help
--	  This hooks up to the MicroWire controller on OMAP chips.
+Index: linux-omap-2.6/net/ipv4/netfilter/ipt_IDLETIMER.c
+===================================================================
+--- linux-omap-2.6.orig/net/ipv4/netfilter/ipt_IDLETIMER.c	2007-03-02 00:40:19.000000000 +0100
++++ linux-omap-2.6/net/ipv4/netfilter/ipt_IDLETIMER.c	2007-03-02 00:58:07.000000000 +0100
+@@ -30,7 +30,7 @@
+ #include <linux/notifier.h>
+ #include <linux/netfilter.h>
+ #include <linux/rtnetlink.h>
+-#include <linux/netfilter_ipv4/ip_tables.h>
++#include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_ipv4/ipt_IDLETIMER.h>
+ #include <linux/kobject.h>
+ #include <linux/workqueue.h>
+@@ -45,8 +45,8 @@
+ /*
+  * Internal timer management.
+  */
+-static ssize_t utimer_attr_show(struct class_device *, char *buf);
+-static ssize_t utimer_attr_store(struct class_device *,
++static ssize_t utimer_attr_show(struct device *, struct device_attribute *attr, char *buf);
++static ssize_t utimer_attr_store(struct device *, struct device_attribute *attr,
+ 				 const char *buf, size_t count);
+ 
+ struct utimer_t {
+@@ -58,7 +58,7 @@ struct utimer_t {
+ 
+ static LIST_HEAD(active_utimer_head);
+ static DEFINE_SPINLOCK(list_lock);
+-static CLASS_DEVICE_ATTR(idletimer, 0644, utimer_attr_show, utimer_attr_store);
++static DEVICE_ATTR(idletimer, 0644, utimer_attr_show, utimer_attr_store);
+ 
+ static void utimer_delete(struct utimer_t *timer)
+ {
+@@ -77,7 +77,7 @@ static void utimer_work(struct work_stru
+ 	netdev = dev_get_by_name(timer->name);
+ 
+ 	if (netdev != NULL) {
+-		sysfs_notify(&netdev->class_dev.kobj, NULL,
++		sysfs_notify(&netdev->dev.kobj, NULL,
+ 			     "idletimer");
+ 		dev_put(netdev);
+ 	}
+@@ -145,13 +145,14 @@ static void utimer_modify(const char *na
+ 	spin_unlock_bh(&list_lock);
+ }
+ 
+-static ssize_t utimer_attr_show(struct class_device *dev, char *buf)
++static ssize_t utimer_attr_show(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct utimer_t *timer;
+ 	unsigned long expires = 0;
++	struct net_device *netdev = container_of(dev, struct net_device, dev);
+ 
+ 	spin_lock_bh(&list_lock);
+-	timer = __utimer_find(dev->class_id);
++	timer = __utimer_find(netdev->name);
+ 	if (timer)
+ 		expires = timer->timer.expires;
+ 	spin_unlock_bh(&list_lock);
+@@ -162,14 +163,15 @@ static ssize_t utimer_attr_show(struct c
+ 	return sprintf(buf, "0\n");
+ }
+ 
+-static ssize_t utimer_attr_store(struct class_device *dev,
++static ssize_t utimer_attr_store(struct device *dev, struct device_attribute *attr,
+ 				 const char *buf, size_t count)
+ {
+ 	int expires;
++	struct net_device *netdev = container_of(dev, struct net_device, dev);
+ 
+ 	if (sscanf(buf, "%d", &expires) == 1) {
+ 		if (expires > 0)
+-			utimer_modify(dev->class_id,
++			utimer_modify(netdev->name,
+ 				      jiffies+HZ*(unsigned long)expires);
+ 	}
+ 
+@@ -184,13 +186,13 @@ static int utimer_notifier_call(struct n
+ 	switch (event) {
+ 	case NETDEV_UP:
+ 		DEBUGP("NETDEV_UP: %s\n", dev->name);
+-		class_device_create_file(&dev->class_dev,
+-					 &class_device_attr_idletimer);
++		device_create_file(&dev->dev,
++					 &dev_attr_idletimer);
+ 		break;
+ 	case NETDEV_DOWN:
+ 		DEBUGP("NETDEV_DOWN: %s\n", dev->name);
+-		class_device_remove_file(&dev->class_dev,
+-					 &class_device_attr_idletimer);
++		device_remove_file(&dev->dev,
++					 &dev_attr_idletimer);
+ 		break;
+ 	}
+ 
+@@ -231,8 +233,7 @@ static unsigned int ipt_idletimer_target
+ 					 const struct net_device *out,
+ 					 unsigned int hooknum,
+ 					 const struct xt_target *xttarget,
+-					 const void *targinfo,
+-					 void *userinfo)
++					 const void *targinfo)
+ {
+ 	struct ipt_idletimer_info *target = (struct ipt_idletimer_info*) targinfo;
+ 	unsigned long expires;
+@@ -245,24 +246,18 @@ static unsigned int ipt_idletimer_target
+ 	if (out != NULL)
+ 		utimer_modify(out->name, expires);
+ 
+-	return IPT_CONTINUE;
++	return XT_CONTINUE;
+ }
+ 
+ static int ipt_idletimer_checkentry(const char *tablename,
+ 				    const void *e,
+ 				    const struct xt_target *target,
+ 				    void *targinfo,
+-				    unsigned int targinfosize,
+ 				    unsigned int hookmask)
+ {
+ 	struct ipt_idletimer_info *info =
+ 		(struct ipt_idletimer_info *) targinfo;
+ 
+-	if (targinfosize != IPT_ALIGN(sizeof(struct ipt_idletimer_info))) {
+-		DEBUGP("targinfosize %u != 0\n", targinfosize);
+-		return 0;
+-	}
 -
- config SPI_OMAP24XX
- 	bool "McSPI driver for OMAP24xx"
- 	depends on SPI_MASTER && ARCH_OMAP24XX
-Index: linux-osk/drivers/spi/omap_uwire.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- /dev/null
-+++ linux-osk/drivers/spi/omap_uwire.c
-@@ -0,0 +1,567 @@
-+/*
-+ * omap_uwire.c -- MicroWire interface driver for OMAP
-+ *
-+ * Copyright 2003 MontaVista Software Inc. <source@mvista.com>
-+ *
-+ * Ported to 2.6 OMAP uwire interface.
-+ * Copyright (C) 2004 Texas Instruments.
-+ *
-+ * Generalization patches by Juha Yrj=F6l=E4 <juha.yrjola@nokia.com>
-+ *
-+ * Copyright (C) 2005 David Brownell (ported to 2.6 SPI interface)
-+ *
-+ * This program is free software; you can redistribute it and/or modify =
-it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at you=
-r
-+ * option) any later version.
-+ *
-+ * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, =
-BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND O=
-N
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TO=
-RT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE=
- OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License alo=
-ng
-+ * with this program; if not, write to the Free Software Foundation, Inc=
-.,
-+ * 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/interrupt.h>
-+#include <linux/err.h>
-+#include <linux/clk.h>
-+
-+#include <linux/spi/spi.h>
-+#include <linux/spi/spi_bitbang.h>
-+
-+#include <asm/system.h>
-+#include <asm/irq.h>
-+#include <asm/hardware.h>
-+#include <asm/io.h>
-+#include <asm/mach-types.h>
-+
-+#include <asm/arch/mux.h>
-+#include <asm/arch/omap730.h>	/* OMAP730_IO_CONF registers */
-+
-+
-+/* FIXME address is now a platform device resource,
-+ * and irqs should show there too...
-+ */
-+#define UWIRE_BASE_PHYS		0xFFFB3000
-+#define UWIRE_BASE		((void *__iomem)IO_ADDRESS(UWIRE_BASE_PHYS))
-+
-+/* uWire Registers: */
-+#define UWIRE_IO_SIZE 0x20
-+#define UWIRE_TDR     0x00
-+#define UWIRE_RDR     0x00
-+#define UWIRE_CSR     0x01
-+#define UWIRE_SR1     0x02
-+#define UWIRE_SR2     0x03
-+#define UWIRE_SR3     0x04
-+#define UWIRE_SR4     0x05
-+#define UWIRE_SR5     0x06
-+
-+/* CSR bits */
-+#define	RDRB	(1 << 15)
-+#define	CSRB	(1 << 14)
-+#define	START	(1 << 13)
-+#define	CS_CMD	(1 << 12)
-+
-+/* SR1 or SR2 bits */
-+#define UWIRE_READ_FALLING_EDGE		0x0001
-+#define UWIRE_READ_RISING_EDGE		0x0000
-+#define UWIRE_WRITE_FALLING_EDGE	0x0000
-+#define UWIRE_WRITE_RISING_EDGE		0x0002
-+#define UWIRE_CS_ACTIVE_LOW		0x0000
-+#define UWIRE_CS_ACTIVE_HIGH		0x0004
-+#define UWIRE_FREQ_DIV_2		0x0000
-+#define UWIRE_FREQ_DIV_4		0x0008
-+#define UWIRE_FREQ_DIV_8		0x0010
-+#define UWIRE_CHK_READY			0x0020
-+#define UWIRE_CLK_INVERTED		0x0040
-+
-+
-+struct uwire_spi {
-+	struct spi_bitbang	bitbang;
-+	struct clk		*ck;
-+};
-+
-+struct uwire_state {
-+	unsigned	bits_per_word;
-+	unsigned	div1_idx;
-+};
-+
-+/* REVISIT compile time constant for idx_shift? */
-+static unsigned int uwire_idx_shift;
-+
-+static inline void uwire_write_reg(int idx, u16 val)
-+{
-+	__raw_writew(val, UWIRE_BASE + (idx << uwire_idx_shift));
-+}
-+
-+static inline u16 uwire_read_reg(int idx)
-+{
-+	return __raw_readw(UWIRE_BASE + (idx << uwire_idx_shift));
-+}
-+
-+static inline void omap_uwire_configure_mode(u8 cs, unsigned long flags)
-+{
-+	u16	w, val =3D 0;
-+	int	shift, reg;
-+
-+	if (flags & UWIRE_CLK_INVERTED)
-+		val ^=3D 0x03;
-+	val =3D flags & 0x3f;
-+	if (cs & 1)
-+		shift =3D 6;
-+	else
-+		shift =3D 0;
-+	if (cs <=3D 1)
-+		reg =3D UWIRE_SR1;
-+	else
-+		reg =3D UWIRE_SR2;
-+
-+	w =3D uwire_read_reg(reg);
-+	w &=3D ~(0x3f << shift);
-+	w |=3D val << shift;
-+	uwire_write_reg(reg, w);
-+}
-+
-+static int wait_uwire_csr_flag(u16 mask, u16 val, int might_not_catch)
-+{
-+	u16 w;
-+	int c =3D 0;
-+	unsigned long max_jiffies =3D jiffies + HZ;
-+
-+	for (;;) {
-+		w =3D uwire_read_reg(UWIRE_CSR);
-+		if ((w & mask) =3D=3D val)
-+			break;
-+		if (time_after(jiffies, max_jiffies)) {
-+			printk(KERN_ERR "%s: timeout. reg=3D%#06x "
-+					"mask=3D%#06x val=3D%#06x\n",
-+			       __FUNCTION__, w, mask, val);
-+			return -1;
-+		}
-+		c++;
-+		if (might_not_catch && c > 64)
-+			break;
-+	}
-+	return 0;
-+}
-+
-+static void uwire_set_clk1_div(int div1_idx)
-+{
-+	u16 w;
-+
-+	w =3D uwire_read_reg(UWIRE_SR3);
-+	w &=3D ~(0x03 << 1);
-+	w |=3D div1_idx << 1;
-+	uwire_write_reg(UWIRE_SR3, w);
-+}
-+
-+static void uwire_chipselect(struct spi_device *spi, int value)
-+{
-+	struct	uwire_state *ust =3D spi->controller_state;
-+	u16	w;
-+	int	old_cs;
-+
-+
-+	BUG_ON(wait_uwire_csr_flag(CSRB, 0, 0));
-+
-+	w =3D uwire_read_reg(UWIRE_CSR);
-+	old_cs =3D (w >> 10) & 0x03;
-+	if (value =3D=3D BITBANG_CS_INACTIVE || old_cs !=3D spi->chip_select) {
-+		/* Deselect this CS, or the previous CS */
-+		w &=3D ~CS_CMD;
-+		uwire_write_reg(UWIRE_CSR, w);
-+	}
-+	/* activate specfied chipselect */
-+	if (value =3D=3D BITBANG_CS_ACTIVE) {
-+		uwire_set_clk1_div(ust->div1_idx);
-+		/* invert clock? */
-+		if (spi->mode & SPI_CPOL)
-+			uwire_write_reg(UWIRE_SR4, 1);
-+		else
-+			uwire_write_reg(UWIRE_SR4, 0);
-+
-+		w =3D spi->chip_select << 10;
-+		w |=3D CS_CMD;
-+		uwire_write_reg(UWIRE_CSR, w);
-+	}
-+}
-+
-+static int uwire_txrx(struct spi_device *spi, struct spi_transfer *t)
-+{
-+	struct uwire_state *ust =3D spi->controller_state;
-+	unsigned	len =3D t->len;
-+	unsigned	bits =3D ust->bits_per_word;
-+	unsigned	bytes;
-+	u16		val, w;
-+	int		status =3D 0;;
-+
-+	if (!t->tx_buf && !t->rx_buf)
-+		return 0;
-+
-+	/* Microwire doesn't read and write concurrently */
-+	if (t->tx_buf && t->rx_buf)
-+		return -EPERM;
-+
-+	w =3D spi->chip_select << 10;
-+	w |=3D CS_CMD;
-+
-+	if (t->tx_buf) {
-+		const u8	*buf =3D t->tx_buf;
-+
-+		/* NOTE:  DMA could be used for TX transfers */
-+
-+		/* write one or two bytes at a time */
-+		while (len >=3D 1) {
-+			/* tx bit 15 is first sent; we byteswap multibyte words
-+			 * (msb-first) on the way out from memory.
-+			 */
-+			val =3D *buf++;
-+			if (bits > 8) {
-+				bytes =3D 2;
-+				val |=3D *buf++ << 8;
-+			} else
-+				bytes =3D 1;
-+			val <<=3D 16 - bits;
-+
-+#ifdef	VERBOSE
-+			pr_debug("%s: write-%d =3D%04x\n",
-+					spi->dev.bus_id, bits, val);
-+#endif
-+			if (wait_uwire_csr_flag(CSRB, 0, 0))
-+				goto eio;
-+
-+			uwire_write_reg(UWIRE_TDR, val);
-+
-+			/* start write */
-+			val =3D START | w | (bits << 5);
-+
-+			uwire_write_reg(UWIRE_CSR, val);
-+			len -=3D bytes;
-+
-+			/* Wait till write actually starts.
-+			 * This is needed with MPU clock 60+ MHz.
-+			 * REVISIT: we may not have time to catch it...
-+			 */
-+			if (wait_uwire_csr_flag(CSRB, CSRB, 1))
-+				goto eio;
-+
-+			status +=3D bytes;
-+		}
-+
-+		/* REVISIT:  save this for later to get more i/o overlap */
-+		if (wait_uwire_csr_flag(CSRB, 0, 0))
-+			goto eio;
-+
-+	} else if (t->rx_buf) {
-+		u8		*buf =3D t->rx_buf;
-+
-+		/* read one or two bytes at a time */
-+		while (len) {
-+			if (bits > 8) {
-+				bytes =3D 2;
-+			} else
-+				bytes =3D 1;
-+
-+			/* start read */
-+			val =3D START | w | (bits << 0);
-+			uwire_write_reg(UWIRE_CSR, val);
-+			len -=3D bytes;
-+
-+			/* Wait till read actually starts */
-+			(void) wait_uwire_csr_flag(CSRB, CSRB, 1);
-+
-+			if (wait_uwire_csr_flag(RDRB | CSRB,
-+						RDRB, 0))
-+				goto eio;
-+
-+			/* rx bit 0 is last received; multibyte words will
-+			 * be properly byteswapped on the way to memory.
-+			 */
-+			val =3D uwire_read_reg(UWIRE_RDR);
-+			val &=3D (1 << bits) - 1;
-+			*buf++ =3D (u8) val;
-+			if (bytes =3D=3D 2)
-+				*buf++ =3D val >> 8;
-+			status +=3D bytes;
-+#ifdef	VERBOSE
-+			pr_debug("%s: read-%d =3D%04x\n",
-+					spi->dev.bus_id, bits, val);
-+#endif
-+
-+		}
-+	}
-+	return status;
-+eio:
-+	return -EIO;
-+}
-+
-+static int uwire_setup_transfer(struct spi_device *spi, struct spi_trans=
-fer *t)
-+{
-+	struct uwire_state	*ust =3D spi->controller_state;
-+	struct uwire_spi	*uwire;
-+	unsigned		flags =3D 0;
-+	unsigned		bits;
-+	unsigned		hz;
-+	unsigned long		rate;
-+	int			div1_idx;
-+	int			div1;
-+	int			div2;
-+	int			status;
-+
-+	uwire =3D spi_master_get_devdata(spi->master);
-+
-+	if (spi->chip_select > 3) {
-+		pr_debug("%s: cs%d?\n", spi->dev.bus_id, spi->chip_select);
-+		status =3D -ENODEV;
-+		goto done;
-+	}
-+
-+	bits =3D spi->bits_per_word;
-+	if (t !=3D NULL && t->bits_per_word)
-+		bits =3D t->bits_per_word;
-+	if (!bits)
-+		bits =3D 8;
-+
-+	if (bits > 16) {
-+		pr_debug("%s: wordsize %d?\n", spi->dev.bus_id, bits);
-+		status =3D -ENODEV;
-+		goto done;
-+	}
-+	ust->bits_per_word =3D bits;
-+
-+	/* mode 0..3, clock inverted separately;
-+	 * standard nCS signaling;
-+	 * don't treat DI=3Dhigh as "not ready"
-+	 */
-+	if (spi->mode & SPI_CS_HIGH)
-+		flags |=3D UWIRE_CS_ACTIVE_HIGH;
-+
-+	if (spi->mode & SPI_CPOL)
-+		flags |=3D UWIRE_CLK_INVERTED;
-+
-+	switch (spi->mode & (SPI_CPOL | SPI_CPHA)) {
-+	case SPI_MODE_0:
-+	case SPI_MODE_3:
-+		flags |=3D UWIRE_WRITE_RISING_EDGE | UWIRE_READ_FALLING_EDGE;
-+		break;
-+	case SPI_MODE_1:
-+	case SPI_MODE_2:
-+		flags |=3D UWIRE_WRITE_FALLING_EDGE | UWIRE_READ_RISING_EDGE;
-+		break;
-+	}
-+
-+	/* assume it's already enabled */
-+	rate =3D clk_get_rate(uwire->ck);
-+
-+	hz =3D spi->max_speed_hz;
-+	if (t !=3D NULL && t->speed_hz)
-+		hz =3D t->speed_hz;
-+
-+	if (!hz) {
-+		pr_debug("%s: zero speed?\n", spi->dev.bus_id);
-+		status =3D -EINVAL;
-+		goto done;
-+	}
-+
-+	/* F_INT =3D mpu_xor_clk / DIV1 */
-+	for (div1_idx =3D 0; div1_idx < 4; div1_idx++) {
-+		switch (div1_idx) {
-+		case 0:
-+			div1 =3D 2;
-+			break;
-+		case 1:
-+			div1 =3D 4;
-+			break;
-+		case 2:
-+			div1 =3D 7;
-+			break;
-+		default:
-+		case 3:
-+			div1 =3D 10;
-+			break;
-+		}
-+		div2 =3D (rate / div1 + hz - 1) / hz;
-+		if (div2 <=3D 8)
-+			break;
-+	}
-+	if (div1_idx =3D=3D 4) {
-+		pr_debug("%s: lowest clock %ld, need %d\n",
-+			spi->dev.bus_id, rate / 10 / 8, hz);
-+			status =3D -EDOM;
-+			goto done;
-+	}
-+
-+	/* we have to cache this and reset in uwire_chipselect as this is a
-+	 * global parameter and another uwire device can change it under
-+	 * us */
-+	ust->div1_idx =3D div1_idx;
-+	uwire_set_clk1_div(div1_idx);
-+
-+	rate /=3D div1;
-+
-+	switch (div2) {
-+	case 0:
-+	case 1:
-+	case 2:
-+		flags |=3D UWIRE_FREQ_DIV_2;
-+		rate /=3D 2;
-+		break;
-+	case 3:
-+	case 4:
-+		flags |=3D UWIRE_FREQ_DIV_4;
-+		rate /=3D 4;
-+		break;
-+	case 5:
-+	case 6:
-+	case 7:
-+	case 8:
-+		flags |=3D UWIRE_FREQ_DIV_8;
-+		rate /=3D 8;
-+		break;
-+	}
-+	omap_uwire_configure_mode(spi->chip_select, flags);
-+	pr_debug("%s: uwire flags %02x, armxor %lu KHz, SCK %lu KHz\n",
-+			__FUNCTION__, flags,
-+			clk_get_rate(uwire->ck) / 1000,
-+			rate / 1000);
-+	status =3D 0;
-+done:
-+	return status;
-+}
-+
-+static int uwire_setup(struct spi_device *spi)
-+{
-+	struct uwire_state *ust =3D spi->controller_state;
-+
-+	if (ust =3D=3D NULL) {
-+		ust =3D kzalloc(sizeof(*ust), GFP_KERNEL);
-+		if (ust =3D=3D NULL)
-+			return -ENOMEM;
-+		spi->controller_state =3D ust;
-+	}
-+
-+	return uwire_setup_transfer(spi, NULL);
-+}
-+
-+static void uwire_cleanup(const struct spi_device *spi)
-+{
-+	kfree(spi->controller_state);
-+}
-+
-+static void uwire_off(struct uwire_spi *uwire)
-+{
-+	uwire_write_reg(UWIRE_SR3, 0);
-+	clk_disable(uwire->ck);
-+	clk_put(uwire->ck);
-+	spi_master_put(uwire->bitbang.master);
-+}
-+
-+static int uwire_probe(struct platform_device *pdev)
-+{
-+	struct spi_master	*master;
-+	struct uwire_spi	*uwire;
-+	int			status;
-+
-+	master =3D spi_alloc_master(&pdev->dev, sizeof *uwire);
-+	if (!master)
-+		return -ENODEV;
-+
-+	uwire =3D spi_master_get_devdata(master);
-+	dev_set_drvdata(&pdev->dev, uwire);
-+
-+	uwire->ck =3D clk_get(&pdev->dev, "armxor_ck");
-+	if (!uwire->ck || IS_ERR(uwire->ck)) {
-+		dev_dbg(&pdev->dev, "no mpu_xor_clk ?\n");
-+		spi_master_put(master);
-+		return -ENODEV;
-+	}
-+	clk_enable(uwire->ck);
-+
-+	if (cpu_is_omap730())
-+		uwire_idx_shift =3D 1;
-+	else
-+		uwire_idx_shift =3D 2;
-+
-+	uwire_write_reg(UWIRE_SR3, 1);
-+
-+	master->bus_num =3D 2;	/* "official" */
-+	master->num_chipselect =3D 4;
-+	master->setup =3D uwire_setup;
-+	master->cleanup =3D uwire_cleanup;
-+
-+	uwire->bitbang.master =3D master;
-+	uwire->bitbang.chipselect =3D uwire_chipselect;
-+	uwire->bitbang.setup_transfer =3D uwire_setup_transfer;
-+	uwire->bitbang.txrx_bufs =3D uwire_txrx;
-+
-+	status =3D spi_bitbang_start(&uwire->bitbang);
-+	if (status < 0)
-+		uwire_off(uwire);
-+	return status;
-+}
-+
-+static int uwire_remove(struct platform_device *pdev)
-+{
-+	struct uwire_spi	*uwire =3D dev_get_drvdata(&pdev->dev);
-+	int			status;
-+
-+	// FIXME remove all child devices, somewhere ...
-+
-+	status =3D spi_bitbang_stop(&uwire->bitbang);
-+	uwire_off(uwire);
-+	return status;
-+}
-+
-+static struct platform_driver uwire_driver =3D {
-+	.driver =3D {
-+		.name		=3D "omap_uwire",
-+		.bus		=3D &platform_bus_type,
-+		.owner		=3D THIS_MODULE,
-+	},
-+	.probe		=3D uwire_probe,
-+	.remove		=3D uwire_remove,
-+	// suspend ... unuse ck
-+	// resume ... use ck
-+};
-+
-+static int __init omap_uwire_init(void)
-+{
-+	/* FIXME move these into the relevant board init code. also, include
-+	 * H3 support; it uses tsc2101 like H2 (on a different chipselect).
-+	 */
-+
-+	if (machine_is_omap_h2()) {
-+		/* defaults: W21 SDO, U18 SDI, V19 SCL */
-+		omap_cfg_reg(N14_1610_UWIRE_CS0);
-+		omap_cfg_reg(N15_1610_UWIRE_CS1);
-+	}
-+	if (machine_is_omap_perseus2()) {
-+		/* configure pins: MPU_UW_nSCS1, MPU_UW_SDO, MPU_UW_SCLK */
-+		int val =3D omap_readl(OMAP730_IO_CONF_9) & ~0x00EEE000;
-+		omap_writel(val | 0x00AAA000, OMAP730_IO_CONF_9);
-+	}
-+
-+	return platform_driver_register(&uwire_driver);
-+}
-+
-+static void __exit omap_uwire_exit(void)
-+{
-+	platform_driver_unregister(&uwire_driver);
-+}
-+
-+subsys_initcall(omap_uwire_init);
-+module_exit(omap_uwire_exit);
-+
-+MODULE_LICENSE("GPL");
+ 	if (info->timeout == 0) {
+ 		DEBUGP("timeout value is zero\n");
+ 		return 0;
+@@ -271,7 +266,7 @@ static int ipt_idletimer_checkentry(cons
+ 	return 1;
+ }
+ 
+-static struct ipt_target ipt_idletimer = {
++static struct xt_target ipt_idletimer = {
+ 	.name		= "IDLETIMER",
+ 	.target		= ipt_idletimer_target,
+ 	.checkentry	= ipt_idletimer_checkentry,
+@@ -287,7 +282,7 @@ static int __init init(void)
+ 	if (ret)
+ 		return ret;
+ 
+-	if (ipt_register_target(&ipt_idletimer)) {
++	if (xt_register_target(&ipt_idletimer)) {
+ 		utimer_fini();
+ 		return -EINVAL;
+ 	}
+@@ -297,7 +292,7 @@ static int __init init(void)
+ 
+ static void __exit fini(void)
+ {
+-	ipt_unregister_target(&ipt_idletimer);
++	xt_unregister_target(&ipt_idletimer);
+ 	utimer_fini();
+ }
+ 
 
-
-
-
---------------080804050909020607090006
+--=-=-=
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Disposition: inline
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 
---------------080804050909020607090006--
+--=-=-=--
