@@ -1,18 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Broken ads7846 touchscreen,
-	was: [PATCH] ARM: OMAP: Fix SPI merge issues and reintroduce
-	omap_uwire.c
-Date: Mon, 5 Mar 2007 01:59:46 -0800
-Message-ID: <20070305095626.GB17801@atomide.com>
-References: <45EAB7F5.2040603@googlemail.com>
-	<85tzx1gple.fsf@orfeo.duckcorp.org>
-	<45EAF60C.5070207@googlemail.com>
-	<85vehgdba0.fsf@orfeo.duckcorp.org>
+Subject: Re: [PATCH] add ssi/Kconfig to arch/arm/Kconfig
+Date: Mon, 5 Mar 2007 02:01:38 -0800
+Message-ID: <20070305100136.GC17801@atomide.com>
+References: <85ps7pgphq.fsf@orfeo.duckcorp.org>
+	<45EAFDBA.9010406@googlemail.com>
+	<85r6s4damj.fsf@orfeo.duckcorp.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <85vehgdba0.fsf@orfeo.duckcorp.org>
+In-Reply-To: <85r6s4damj.fsf@orfeo.duckcorp.org>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -26,38 +23,50 @@ To: Arnaud Patard <arnaud.patard@rtp-net.org>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Arnaud Patard <arnaud.patard@rtp-net.org> [070304 12:07]:
+* Arnaud Patard <arnaud.patard@rtp-net.org> [070304 12:25]:
 > Dirk Behme <dirk.behme@googlemail.com> writes:
 > 
 > > Arnaud Patard (Rtp) wrote:
-> >> Dirk Behme <dirk.behme@googlemail.com> writes:
-> >>
-> >>
-> >>>Is there any special reason why
-> >>>
-> >>>http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=ba6d3cf6f7900c7586cca6bbd9dca55d7c6386fb
-> >>>
-> >>>deleted drivers/spi/omap_uwire.c?
-> >>
-> >>
-> >> looks like forgotten git-update-index or something like that. I didn't
-> >> check closely but I bet that this conflicts explains also why the
-> >> ads7846 touchscreen driver doesn't work. I had to take the versions from
-> >> the old linux-omap-2.6 tree to get my touchscreen back :(
-
-Sorry, I must have hosed it while merging. I'll make sure drivers/spi
-is in sync with mainline today. If we still have some necessary fixes for
-spi, they should be sent to LKML for integration.
-
-> > Do you can make a diff between the old and new version and send a
-> > patch?
+> >> If one wants to use ssi/Kconfig on arm, it should be added to
+> >> arch/arm/Kconfig.
+> >
+> > Yes, I found this as well by getting
+> >
+> > sound/arm/Kconfig:55:warning: 'select' used by config symbol
+> > 'SND_OMAP_TSC2101' refer to undefined symbol 'OMAP_TSC2101'
+> > sound/arm/Kconfig:56:warning: 'select' used by config symbol
+> > 'SND_OMAP_TSC2101' refer to undefined symbol 'OMAP_UWIRE'
+> >
+> > Kconfig warnings.
 > 
-> Sure. I'll send it in a new mail and it will probably need review from the
-> ads784x guys.
+> same here :)
+> 
+> >
+> > While touching this, what do you think about doing some more
+> > clean up:
+> >
+> > - omap_uwire.c is now in drivers/spi [], remove (old?) one from
+> > drivers/ssi
+> 
+> I had the same patch but you send it before me :)
+> 
+> >
+> > - Replace OMAP_UWIRE in Kconfig by SPI_OMAP_UWIRE pointing
+> > to drivers/spi
+> >
+> > ?
+> >
+> 
+> Even if I'm not a omap dev, I'll be happy to see the ssi stuff go to
+> /dev/null. Unfortunately, grep is telling us that there are still users
+> of the old omap_uwire. Moreover, it seems that it's possible to build a
+> kernel without the OMAP_UWIRE and with the drivers using it. The drivers
+> using the old ssi stuff should either depends on it or select it...
+> (see drivers/video/omap/lcd_{p,h}2.c).
+> Until this is solved, we won't be able to remove it :(
 
-We should make use the ads784x code is also in sync with mainline.
+I agree, let's get rid of the old drivers/ssi, anything using it should
+be updated to use drivers/spi.
 
 Regards,
 
