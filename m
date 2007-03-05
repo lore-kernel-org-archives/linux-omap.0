@@ -1,13 +1,16 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 1/1] ARM: Removed duplicated omap Kconfig entry
-Date: Mon, 05 Mar 2007 15:12:31 +0200 (EET)
-Message-ID: <20070305.151231.62027711.Hiroshi.DOYU@nokia.com>
-References: <11731000582964-git-send-email-Hiroshi.DOYU@nokia.com>
+From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
+Subject: Re: [PATCH] ARM: OMAP2: Update N800 defconfig
+Date: Mon, 05 Mar 2007 14:10:37 +0100
+Message-ID: <85mz2r7s4y.fsf@orfeo.duckcorp.org>
+References: <45EA9F87.6090300@googlemail.com>
+	<85649hjnnp.fsf@orfeo.duckcorp.org> <45EAB2E7.1000607@googlemail.com>
+	<85y7mdgpww.fsf@orfeo.duckcorp.org>
+	<20070305114831.GD17801@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11731000582964-git-send-email-Hiroshi.DOYU@nokia.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20070305114831.GD17801@atomide.com> (Tony Lindgren's message of
+	"Mon, 5 Mar 2007 03:48:32 -0800")
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,40 +18,51 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Ignore it. It seems that I didn't noticed the previous mail;)
+Tony Lindgren <tony@atomide.com> writes:
 
-From: Hiroshi.DOYU@nokia.com
-Subject: [PATCH 1/1] ARM: Removed duplicated omap Kconfig entry
-Date: Mon,  5 Mar 2007 15:07:38 +0200
+Hi,
 
-> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> 
-> 
-> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> ---
->  drivers/video/Kconfig |    4 ----
->  1 files changed, 0 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-> index e37bf87..be824c0 100644
-> --- a/drivers/video/Kconfig
-> +++ b/drivers/video/Kconfig
-> @@ -1635,10 +1635,6 @@ config FB_PS3_DEFAULT_SIZE_M
->  	  The default value can be overridden on the kernel command line
->  	  using the "ps3fb" option (e.g. "ps3fb=9M");
+> * Arnaud Patard <arnaud.patard@rtp-net.org> [070304 04:27]:
+>> Dirk Behme <dirk.behme@googlemail.com> writes:
+>> 
+>> > Arnaud Patard (Rtp) wrote:
+>> >>>Update N800 defconfig, mainly to disable netfilter which
+>> >>>doesn't compile:
+>> >>  Fixing the build may be a better idea than disabling it.
+>> >
+>> > Yes, your are right ;) But this is something we can't do here on OMAP
+>> > list.
+>> 
+>> I disagree. This driver afaik can only be found in the omap tree and
+>> it's only a matter of taking few minutes to update the driver to follow
+>> upstream changes. So, unless the original author of the driver fixes it
+>> (which I doubt), it's up to us to fix it.
+>
+> Thanks, can you please add a Signed-off-by to this thread? I'll add
+> your patch to the "Add iptables IDLETIMER target" patch in omap-drivers
+> branch. Once it's been tested we should try to send it upstream when the
+> next merge window opens.
+
+Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
+
+(I can send it in a new mail if it makes things easier for you)
+
 >  
-> -if ARCH_OMAP
-> -	source "drivers/video/omap/Kconfig"
-> -endif
-> -
->  config FB_VIRTUAL
->  	tristate "Virtual Frame Buffer support (ONLY FOR TESTING!)"
->  	depends on FB
-> -- 
-> 1.5.0.3.271.g5ced
-> 
+>> As I said, I have a patch for it. I'm attaching it to this mail for
+>> reference because I'm now thinking that I won't be able to test it on my
+>> n770.
+>
+> Binary firmware issue with compiling wlan driver I suppose? :(
+
+yeah. I managed to build the old cx3110x driver from the garage project
+(the only one that has the .lib file) but it's crashing when I try to
+use the wifi. I'll see if something can be done on the prism54 side but
+I fear it will take ages :(
+
+Arnaud
