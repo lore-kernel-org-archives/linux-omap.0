@@ -1,14 +1,8 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Convert OMAP ALSA core and AIC23 to new ALSA
-	struct usage
-Date: Mon, 5 Mar 2007 05:02:44 -0800
-Message-ID: <20070305130243.GH17801@atomide.com>
-References: <45EB0901.7010306@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Hiroshi.DOYU@nokia.com
+Subject: [PATCH 1/1] ARM: Removed duplicated omap Kconfig entry
+Date: Mon,  5 Mar 2007 15:07:38 +0200
+Message-ID: <11731000582964-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <45EB0901.7010306@googlemail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,15 +12,32 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Dirk Behme <dirk.behme@googlemail.com> [070304 10:05]:
-> 
-> ARM: OMAP: Convert OMAP ALSA core and AIC23 to new ALSA
-> struct usage.
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-Thanks, pushing today.
 
-Tony
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ drivers/video/Kconfig |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+index e37bf87..be824c0 100644
+--- a/drivers/video/Kconfig
++++ b/drivers/video/Kconfig
+@@ -1635,10 +1635,6 @@ config FB_PS3_DEFAULT_SIZE_M
+ 	  The default value can be overridden on the kernel command line
+ 	  using the "ps3fb" option (e.g. "ps3fb=9M");
+ 
+-if ARCH_OMAP
+-	source "drivers/video/omap/Kconfig"
+-endif
+-
+ config FB_VIRTUAL
+ 	tristate "Virtual Frame Buffer support (ONLY FOR TESTING!)"
+ 	depends on FB
+-- 
+1.5.0.3.271.g5ced
