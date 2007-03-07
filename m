@@ -1,14 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] board_nokia770: add hwa742 platform data
-Date: Wed, 7 Mar 2007 00:26:54 -0800
-Message-ID: <20070307082652.GD21093@atomide.com>
-References: <85ejo5i6g9.fsf@orfeo.duckcorp.org>
-	<20070306164814.GB4450@bitbox.mine.nu>
+Subject: Re: [PATCH] ARM: OMAP: Philips TEA5761 Radio driver for N800
+Date: Wed, 7 Mar 2007 00:34:15 -0800
+Message-ID: <20070307083412.GF21093@atomide.com>
+References: <5d5443650702150509k7c5b4577geec0b2bfffe31a07@mail.gmail.com>
+	<5d5443650702242323l1d02fa49y939b2f1e1940c7f1@mail.gmail.com>
+	<20070226074233.GD970@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20070306164814.GB4450@bitbox.mine.nu>
+In-Reply-To: <20070226074233.GD970@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,29 +19,24 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Imre Deak <imre.deak@solidboot.com>
+To: Trilok Soni <soni.trilok@gmail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Imre Deak <imre.deak@solidboot.com> [070306 08:55]:
-> On Sun, Mar 04, 2007 at 12:39:02PM +0100, Arnaud Patard wrote:
+* Tony Lindgren <tony@atomide.com> [070225 23:44]:
+> * Trilok Soni <soni.trilok@gmail.com> [070224 23:24]:
+> > Tony,
 > > 
-> > The n800fb changes introduced some platform_data for the hwa742 and
-> > needs now to be defined for getting it working.  This patch adds the
-> > necessary bits needed for getting fb working again on n770.
-> > This patch comes from the n800 kernel from maemo.org
+> > On 2/15/07, Trilok Soni <soni.trilok@gmail.com> wrote:
+> > >AM/FM Radio driver patch for N800. Compile Tested Only. Please test if
+> > >one has access to N800.
+> > >
 > > 
-> > 
-> > Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
+> > Please push this patch if there are no comments.
 > 
-> Thanks for pointing this out. In this updated patch I adding missing init
-> / registration for other devices, as well as API fixes for the SoSSI /
-> HWA742 code.
-> 
-> With these LCD, touchscreen should work ok on the N770, after the
-> omap_uwire code is merged from upstream.
+> Patience, I'll try to get the redone tree stuff to work first :) It
+> turned out to be a bit more work than I estimated.
 
-Pushing patch 1 to omap-upstream, 2 - 3 to omap-drivers, and 4 to master
-branch.
+OK, pushing today with From: Timo Teras <timo.teras@solidboot.com>
 
 Tony
