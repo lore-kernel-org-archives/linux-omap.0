@@ -1,17 +1,15 @@
-From: Imre Deak <imre.deak@solidboot.com>
-Subject: Re: [PATCH] add ssi/Kconfig to arch/arm/Kconfig
-Date: Thu, 8 Mar 2007 12:36:59 +0200
-Message-ID: <20070308103659.GA4315@bitbox.mine.nu>
-References: <85ps7pgphq.fsf@orfeo.duckcorp.org>
-	<45EAFDBA.9010406@googlemail.com>
-	<85r6s4damj.fsf@orfeo.duckcorp.org>
-	<20070305100136.GC17801@atomide.com>
-	<45EC7605.8060808@googlemail.com>
+From: "Kipisz, Steven" <s-kipisz2@ti.com>
+Subject: RE: Writing x-loader using u-boot.
+Date: Thu, 8 Mar 2007 05:44:40 -0600
+Message-ID: <B62D67BD8EC3324C8A3DACEEA1A0D6C6D3EB04@dlee12.ent.ti.com>
+References: <8bf247760703080155x3474688ew85f7a3dbe9d2f477@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <45EC7605.8060808@googlemail.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <8bf247760703080155x3474688ew85f7a3dbe9d2f477@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,44 +19,43 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: linux-omap-open-source@linux.omap.com, jekyll@mail.jekyll.idv.tw, lastjp_fr@yahoo.fr
+To: Ram <vshrirama@gmail.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+You cannot use u-boot as-is to flash the x-loader.  The ECC algorithms
+are different between CSST and u-boot.  The one in CSST forms a 3-byte
+ECC that is the same as the boot ROM.  I haven't looked at the one in
+u-boot lately, but I suspect it is not a 3-byte ECC that the boot ROM
+understands.
+
+Steve K.
+
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Ram
+Sent: Thursday, March 08, 2007 3:55 AM
+To: linux-omap-open-source@linux.omap.com
+Subject: Writing x-loader using u-boot.
+
 Hi,
+  Im using OMAP2430. Im trying to write x-loader using u-boot. for
+some reason i dont want to use CSST.  I want to use u-boot only to
+flash x-loader and u-boot (nand).
 
-On Mon, Mar 05, 2007 at 08:56:53PM +0100, Dirk Behme wrote:
-[...]
-> 
-> All: Following files need update. Let's try the names in 
-> file headers:
-> 
-> * drivers/video/omap/lcd_h2.c
-> 
-> -> update to use drivers/spi/omap-uwire
-> -> Imre?
+   u-boot nand - im able to write/read it back - no issues.
 
-It's dependent on the tsc2101 driver, but I'll take a look at both.
+   I am able to write x-loader to nand flash using u-boot, i have
+checked the contents of nand flash by reading it back. It is also same
+as x-loader as written by CSST.
 
---Imre
+   But when i boot - it doesnt work?. Does CSST do anything special
+other than writing it to nand flash?.
 
-> 
-> * drivers/video/omap/lcd_p2.c
-> 
-> -> update to use drivers/spi/omap-uwire
-> -> jekyll & B Jp & Brian Swetland?
-> 
-> * drivers/ssi/omap-tsc2101.{c,h}
-> 
-> -> update to use drivers/spi/omap-uwire and move it to 
-> drivers/spi
-> -> Nishanth?
-> 
-> Anything else?
-> 
-> Until this is done, only thing we can do to make Kconfig 
-> happy is
-> 
-> http://linux.omap.com/pipermail/linux-omap-open-source/2007-March/009220.html
-> 
-> Dirk
+   Has anyone tried writing x-load using u-boot?
+
+Regards,
+sriram
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
