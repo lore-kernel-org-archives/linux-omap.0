@@ -1,25 +1,12 @@
-From: "Kyungmin Park" <kmpark@infradead.org>
-Subject: RE: [PATCH] Move N800 specific OneNand setup to N800 platform file,
-	was: Basic N800 support
-Date: Thu, 8 Mar 2007 18:34:06 +0900
-Message-ID: <007401c76164$f03d6dd0$c7a3580a@swcenter.sec.samsung.co.kr>
-References: <13020905.97851169452503947.JavaMail.weblogic@ep_ml23>
-	<20070122171254.GD7382@atomide.com>
-	<20070206213648.GH9311@atomide.com>
-	<000101c74a77$39e94120$c7a3580a@swcenter.sec.samsung.co.kr>
-	<20070301134533.GA15801@angel.research.nokia.com>
-	<00a901c75c64$01b1e830$c7a3580a@swcenter.sec.samsung.co.kr>
-	<20070302164855.GA313@angel.research.nokia.com>
-	<45EA99D0.8010103@googlemail.com>
-	<20070307115754.GH21093@atomide.com>
-	<004201c7611f$bae52b90$c7a3580a@swcenter.sec.samsung.co.kr>
-Reply-To: kmpark@infradead.org
+From: Ram <vshrirama@gmail.com>
+Subject: Writing x-loader using u-boot.
+Date: Thu, 8 Mar 2007 15:25:28 +0530
+Message-ID: <8bf247760703080155x3474688ew85f7a3dbe9d2f477@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ks_c_5601-1987"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-reply-to: <004201c7611f$bae52b90$c7a3580a@swcenter.sec.samsung.co.kr>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -27,45 +14,26 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: 'Tony Lindgren' <tony@atomide.com>, 'Dirk Behme' <dirk.behme@googlemail.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
+  Im using OMAP2430. Im trying to write x-loader using u-boot. for
+some reason i dont want to use CSST.  I want to use u-boot only to
+flash x-loader and u-boot (nand).
 
-> > 
-> > * Dirk Behme <dirk.behme@googlemail.com> [070304 02:11]:
-> > > Jarkko Lavinen wrote:
-> > > >>If you don't need async mode settings, it also don't need it.
-> > > >
-> > > >Yes. It is obvious. Removed async part. New patch attached.
-> > > 
-> > > Are there any dependencies to apply this patch I missed? 
-> I tried to 
-> > > apply it on top of  01-onenand.patch posted by Tony [1] but got 
-> > > rejects.
-> > > 
-> > > If not, sligthly modified patch that cleanly applies on top
-> > of [1] in
-> > > attachment. I additionally removed duplication of
-> > omap2_onenand_readw
-> > > and writew. Can you please test if it is still okay? ;)
-> > 
-> > I've pushed Jarkko's onenand patches as two parts:
-> > 
-> > omap-drivers: onenand support for omap2 that can be sent to mtd list
-> 
-> I will push it mtd list
+   u-boot nand - im able to write/read it back - no issues.
 
-Umm, there's omap tree dependency.
-omap2_block_sleep() & omap2_allow_sleep().
+   I am able to write x-loader to nand flash using u-boot, i have
+checked the contents of nand flash by reading it back. It is also same
+as x-loader as written by CSST.
 
-It just increase and decrease sleep_block variable atomically
+   But when i boot - it doesnt work?. Does CSST do anything special
+other than writing it to nand flash?.
 
-Just remove it or define dummy macro?
+   Has anyone tried writing x-load using u-boot?
 
-Please give your opinions.
-
-Thank you,
-Kyungmin Park
+Regards,
+sriram
