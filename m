@@ -1,8 +1,24 @@
-From: Hiroshi.DOYU@nokia.com
-Subject: [PATCH 1/1] OMAP: Add TWL support for omap mmu framework
-Date: Fri,  9 Mar 2007 19:53:55 +0200
-Message-ID: <11734628353340-git-send-email-Hiroshi.DOYU@nokia.com>
+From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Subject: Re: [PATCH] Move N800 specific OneNand setup to N800 platform file,
+	was: Basic N800 support
+Date: Fri, 9 Mar 2007 21:29:02 +0200
+Message-ID: <20070309192902.GA12786@angel.research.nokia.com>
+References: <13020905.97851169452503947.JavaMail.weblogic@ep_ml23>
+	<20070122171254.GD7382@atomide.com>
+	<20070206213648.GH9311@atomide.com>
+	<000101c74a77$39e94120$c7a3580a@swcenter.sec.samsung.co.kr>
+	<20070301134533.GA15801@angel.research.nokia.com>
+	<00a901c75c64$01b1e830$c7a3580a@swcenter.sec.samsung.co.kr>
+	<20070302164855.GA313@angel.research.nokia.com>
+	<45EA99D0.8010103@googlemail.com>
+	<20070307115754.GH21093@atomide.com>
+	<004201c7611f$bae52b90$c7a3580a@swcenter.sec.samsung.co.kr>
+Reply-To: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="lrZ03NoBR/3+SXJZ"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <004201c7611f$bae52b90$c7a3580a@swcenter.sec.samsung.co.kr>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,383 +28,171 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: Kyungmin Park <kmpark@infradead.org>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-This enables MMU hardware page table walk and can be used for DSP,
-IVA?, CAMERA devices.
+--lrZ03NoBR/3+SXJZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Hi Kyungmin
+
+Thank you for your comments and irq handler fix. 
+
+> If this patch is applied, we have to add all platform files to add
+> onenand_readw, onenand_writew.
+
+We could pass the needed methods to the setup. This would also allow 
+to add more fields if new omap2 devices with more complex setups are
+needed.
+
+> Umm, there's omap tree dependency. omap2_block_sleep() & omap2_allow_sleep().
+> ...
+> Just remove it or define dummy macro?
+
+The log message in our internal tree says the sleep prevention was added
+to maximise speed when reading from bufferram. 
+
+I vote for dummy macro, which can then presumably be overdriven by a custom 
+definion from some device specific header.
+
+Regards
+Jarkko Lavinen
+
+--lrZ03NoBR/3+SXJZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment;
+	filename="0002-Fix-request_irq-compile-error-and-pass-readw-and-writew-methods-to-platform-setup.txt"
+
+>From a6200a8f8f029193cce157a3efe90809104c353f Mon Sep 17 00:00:00 2001
+From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Date: Fri, 9 Mar 2007 20:56:39 +0200
+Subject: [PATCH] Fix request_irq compile error and pass readw, and writew methods to platform setup.
+Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 ---
- arch/arm/mach-omap1/mmu.h       |    2 +-
- arch/arm/mach-omap2/mmu.c       |   26 ++++++-
- arch/arm/mach-omap2/mmu.h       |    2 +-
- arch/arm/plat-omap/mmu.c        |  147 +++++++++++++++++++++++++++++++++++++--
- include/asm-arm/arch-omap/mmu.h |   12 +++
- 5 files changed, 177 insertions(+), 12 deletions(-)
+ arch/arm/mach-omap2/board-n800-flash.c |   27 +++++++++++----------------
+ drivers/mtd/onenand/omap2.c            |    6 +++++-
+ include/asm-arm/arch-omap/onenand.h    |    8 +++++++-
+ 3 files changed, 23 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/mmu.h b/arch/arm/mach-omap1/mmu.h
-index 3acbb84..74542e4 100644
---- a/arch/arm/mach-omap1/mmu.h
-+++ b/arch/arm/mach-omap1/mmu.h
-@@ -110,7 +110,7 @@ omap_mmu_read_reg(struct omap_mmu *mmu, unsigned long reg)
- 	return __raw_readw(mmu->base + reg);
- }
+diff --git a/arch/arm/mach-omap2/board-n800-flash.c b/arch/arm/mach-omap2/board-n800-flash.c
+index 4005cfb..08678dc 100644
+--- a/arch/arm/mach-omap2/board-n800-flash.c
++++ b/arch/arm/mach-omap2/board-n800-flash.c
+@@ -21,7 +21,7 @@
  
--static void omap_mmu_write_reg(struct omap_mmu *mmu,
-+static inline void omap_mmu_write_reg(struct omap_mmu *mmu,
- 			       unsigned short val, unsigned long reg)
- {
- 	__raw_writew(val, mmu->base + reg);
-diff --git a/arch/arm/mach-omap2/mmu.c b/arch/arm/mach-omap2/mmu.c
-index be8764d..a66ee0d 100644
---- a/arch/arm/mach-omap2/mmu.c
-+++ b/arch/arm/mach-omap2/mmu.c
-@@ -63,7 +63,7 @@ static void exmap_setup_iomap_page(struct omap_mmu *mmu, unsigned long phys,
- 	exmap_set_armmmu((unsigned long)virt, phys, PAGE_SIZE);
- 	INIT_EXMAP_TBL_ENTRY_4KB_PRESERVED(mmu->exmap_tbl + index, NULL, virt);
- 	INIT_TLB_ENTRY_4KB_ES32_PRESERVED(&tlb_ent, dspadr, phys);
--	omap_mmu_load_tlb_entry(mmu, &tlb_ent);
-+	omap_mmu_load_pte_entry(mmu, &tlb_ent);
- }
+ static struct mtd_partition n800_partitions[8];
  
- static void exmap_clear_iomap_page(struct omap_mmu *mmu,
-@@ -137,8 +137,7 @@ static void exmap_clear_preserved_entries(struct omap_mmu *mmu)
- 	(OMAP_MMU_IRQ_MULTIHITFAULT | \
- 	 OMAP_MMU_IRQ_TABLEWALKFAULT | \
- 	 OMAP_MMU_IRQ_EMUMISS | \
--	 OMAP_MMU_IRQ_TRANSLATIONFAULT | \
--	 OMAP_MMU_IRQ_TLBMISS)
-+	 OMAP_MMU_IRQ_TRANSLATIONFAULT)
+-static int n800_onenand_setup(void __iomem *);
++static int n800_onenand_setup(struct omap_onenand_setup_data *sdata);
  
- static int omap2_mmu_startup(struct omap_mmu *mmu)
- {
-@@ -276,6 +275,26 @@ static inline int omap2_mmu_cam_ram_valid(struct cam_ram_regset *cr)
- 	return cr->cam & OMAP_MMU_CAM_V;
- }
- 
-+static u32 omap2_mmu_pte_attr(struct omap_mmu_tlb_entry *e)
-+{
-+	u32 val, attr;
-+	const unsigned int pgsz = e->pgsz;
-+
-+	attr = e->mixed << 5;
-+	attr |= e->endian;
-+	attr |= e->elsz >> 3;
-+	attr <<= (istwll2(pgsz)? 0:6);
-+
-+	/* 64KB? */
-+	val = (istwll2(pgsz) && istwllarge(pgsz)) ? 1:2;
-+	/* 16MB? */
-+	val |= ((!istwll2(pgsz) && istwllarge(pgsz)) ? (1<<18):0);
-+
-+	BUG_ON(attr&val);
-+	val |= attr;
-+	return val;
-+}
-+
- struct omap_mmu_ops omap2_mmu_ops = {
- 	.startup	= omap2_mmu_startup,
- 	.shutdown	= omap2_mmu_shutdown,
-@@ -285,6 +304,7 @@ struct omap_mmu_ops omap2_mmu_ops = {
- 	.cam_va		= omap2_mmu_cam_va,
- 	.cam_ram_alloc	= omap2_mmu_cam_ram_alloc,
- 	.cam_ram_valid	= omap2_mmu_cam_ram_valid,
-+	.pte_attr	= omap2_mmu_pte_attr,
+ static struct omap_onenand_platform_data n800_onenand_data = {
+ 	.cs = 0,
+@@ -39,17 +39,7 @@ static struct platform_device n800_onenand_device = {
+ 	},
  };
- EXPORT_SYMBOL_GPL(omap2_mmu_ops);
  
-diff --git a/arch/arm/mach-omap2/mmu.h b/arch/arm/mach-omap2/mmu.h
-index 56b7055..3f8d950 100644
---- a/arch/arm/mach-omap2/mmu.h
-+++ b/arch/arm/mach-omap2/mmu.h
-@@ -88,7 +88,7 @@ omap_mmu_read_reg(struct omap_mmu *mmu, unsigned long reg)
- 	return __raw_readl(mmu->base + reg);
- }
- 
--static void omap_mmu_write_reg(struct omap_mmu *mmu,
-+static inline void omap_mmu_write_reg(struct omap_mmu *mmu,
- 			       unsigned long val, unsigned long reg)
+-static unsigned short omap2_onenand_readw(void __iomem *addr)
+-{
+-	return readw(addr);
+-}
+-
+-static void omap2_onenand_writew(unsigned short value, void __iomem *addr)
+-{
+-	writew(value, addr);
+-}
+-
+-static int omap2_onenand_set_sync_mode(int cs, void __iomem *onenand_base)
++static int omap2_onenand_set_sync_mode(int cs, struct omap_onenand_setup_data *sdata)
  {
- 	__raw_writel(val, mmu->base + reg);
-diff --git a/arch/arm/plat-omap/mmu.c b/arch/arm/plat-omap/mmu.c
-index a7c0642..0cac9e6 100644
---- a/arch/arm/plat-omap/mmu.c
-+++ b/arch/arm/plat-omap/mmu.c
-@@ -8,6 +8,8 @@
-  * Written by Toshihiro Kobayashi <toshihiro.kobayashi@nokia.com>
-  *        and Paul Mundt <paul.mundt@nokia.com>
-  *
-+ * Added TWL support by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-+ *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation; either version 2 of the License, or
-@@ -58,6 +60,20 @@
- #define ORDER_64KB	(16 - PAGE_SHIFT)
- #define ORDER_4KB	(12 - PAGE_SHIFT)
+ 	const int min_gpmc_clk_period = 18;
+ 	struct gpmc_timings t;
+@@ -65,12 +55,12 @@ static int omap2_onenand_set_sync_mode(int cs, void __iomem *onenand_base)
+ 		latency = 4;
  
-+#define NUM4KBIN64KB	(ORDER_64KB - ORDER_4KB)
-+#define NUM1MBIN16MB	(NUM4KBIN64KB)
-+#define TWLL1INX_OFFSET 20
-+#define TWLL2INX_OFFSET 12
-+#define TWLL2INX_SIZE	8
-+#define NUMTWL1TBLENT	4096
-+#define TWL1TBLSZ	(4*NUMTWL1TBLENT)
-+#define NUMTWL2TBLENT	256
-+#define TWL2TBLSZ	(4*NUMTWL2TBLENT)
-+
-+#define MMU_CNTL_EMUTLBUPDATE	(1<<3)
-+#define MMU_CNTL_TWLENABLE	(1<<2)
-+#define MMU_CNTL_MMUENABLE	(1<<1)
-+
- static mempool_t *mempool_1M;
- static mempool_t *mempool_64K;
+ 	/* Configure OneNAND for sync read */
+-	reg = omap2_onenand_readw(onenand_base + ONENAND_REG_SYS_CFG1);
++	reg = (sdata->readw)(sdata->iobase + ONENAND_REG_SYS_CFG1);
+ 	reg &= ~((0x7 << ONENAND_SYS_CFG1_BRL_SHIFT) | (0x7 << 9));
+ 	reg |=	(latency << ONENAND_SYS_CFG1_BRL_SHIFT) |
+ 		ONENAND_SYS_CFG1_SYNC_READ |
+ 		ONENAND_SYS_CFG1_BL_16;
+-	omap2_onenand_writew(reg, onenand_base + ONENAND_REG_SYS_CFG1);
++	(sdata->writew)(reg, sdata->iobase + ONENAND_REG_SYS_CFG1);
  
-@@ -365,7 +381,75 @@ omap_mmu_virt_to_phys(struct omap_mmu *mmu, void *vadr, size_t *len)
- EXPORT_SYMBOL_GPL(omap_mmu_virt_to_phys);
- 
- /*
-- * MMU operations
-+ * PTE operations
-+ */
-+static int omap_mmu_load_pte(struct omap_mmu *mmu,
-+			     struct omap_mmu_tlb_entry *e)
-+{
-+	u32 val, num, pa, pa_offset;
-+	u32 *pte = (u32 *)mmu->twl_tbl + (e->va >> TWLL1INX_OFFSET);
-+
-+	/* L2? */
-+	if (istwll2(e->pgsz)) {
-+		u32 *l2v;
-+		if (*pte) {
-+			if (((*pte)&3) != 1)
-+				return -EBADSLT;
-+			l2v = (u32 *)phys_to_virt((*pte) & ~((1<<TWLL2INX_OFFSET) - 1));
-+		} else {
-+			u32 temp;
-+			l2v = kzalloc(TWL2TBLSZ, GFP_KERNEL);
-+			if (!l2v)
-+				return -ENOMEM;
-+			temp = virt_to_phys(l2v);
-+			temp |= 1; /* mark page */
-+			*pte = temp;
-+		}
-+		/* Shift L2 entry */
-+		l2v += ((e->va >> TWLL2INX_OFFSET) & ((1<<TWLL2INX_SIZE)-1));
-+		pte = l2v;
-+	}
-+
-+	pa_offset = istwll2(e->pgsz)? TWLL2INX_OFFSET:TWLL1INX_OFFSET;
-+	pa = e->pa & ~((1<<pa_offset) - 1);
-+
-+	val = mmu->ops->pte_attr(e);
-+
-+	BUG_ON(val&pa);
-+
-+	val |= pa;
-+
-+	num = istwllarge(e->pgsz) ? NUM4KBIN64KB:1;/* same as NUM1MBIN16MB */
-+	while (num--)
-+		*pte++ = val;
-+
-+	return 0;
-+}
-+
-+static int omap_mmu_clear_pte(struct omap_mmu *mmu, unsigned long vadr)
-+{
-+	u32 val, num;
-+	u32 *pte = (u32 *)mmu->twl_tbl + (vadr >> TWLL1INX_OFFSET);
-+
-+	val = *pte;
-+	if (cpu_is_omap24xx()) /* XXX mach ops? */
-+		num = (val&(1<<18)) ? NUM1MBIN16MB:1;
-+
-+	/* L2? */
-+	if ((val&0x3) == 1) {
-+		pte = (u32 *)phys_to_virt((*pte) & ~((1<<TWLL2INX_OFFSET) - 1));
-+		pte += ((vadr >> TWLL2INX_OFFSET) & ((1<<TWLL2INX_SIZE)-1));
-+		val = *pte;
-+		num = (val&2) ? NUM4KBIN64KB:1;/* same as NUM1MBIN16MB */
-+	}
-+
-+	while (num--)
-+		*pte++ = 0;
-+	return 0;
-+}
-+
-+/*
-+ * TLB operations
-  */
- static struct cam_ram_regset *
- omap_mmu_cam_ram_alloc(struct omap_mmu *mmu, struct omap_mmu_tlb_entry *entry)
-@@ -538,6 +622,37 @@ static void omap_mmu_gflush(struct omap_mmu *mmu)
- 	clk_disable(mmu->clk);
+ 	/* FIXME: Get timings from platform data */
+ 	/* Set syncronous read timings */
+@@ -114,13 +104,18 @@ static int omap2_onenand_set_sync_mode(int cs, void __iomem *onenand_base)
+ 	return gpmc_cs_set_timings(cs, &t);
  }
  
-+int omap_mmu_load_pte_entry(struct omap_mmu *mmu,
-+			    struct omap_mmu_tlb_entry *entry)
-+{
-+	int ret;
-+	if (mmu->ops->pte_attr) {
-+		ret = omap_mmu_load_pte(mmu, entry);
-+		if (ret)
-+			return ret;
-+	}
-+	ret = omap_mmu_load_tlb_entry(mmu, entry);
-+	if (ret)
-+		return ret;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(omap_mmu_load_pte_entry);
-+
-+int omap_mmu_clear_pte_entry(struct omap_mmu *mmu, unsigned long vadr)
-+{
-+	int ret;
-+	if (mmu->ops->pte_attr) {
-+		ret = omap_mmu_clear_pte(mmu, vadr);
-+		if (ret)
-+			return ret;
-+	}
-+	ret = omap_mmu_clear_tlb_entry(mmu, vadr);
-+	if (ret)
-+		return ret;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(omap_mmu_clear_pte_entry);
-+
- /*
-  * omap_mmu_exmap()
-  *
-@@ -679,9 +794,9 @@ found_free:
- 	if (status < 0)
- 		goto fail;
+-static int n800_onenand_setup(void __iomem *onenand_base)
++static int n800_onenand_setup(struct omap_onenand_setup_data *sdata)
+ {
+ 	struct omap_onenand_platform_data *datap = &n800_onenand_data;
+ 	struct device *dev = &n800_onenand_device.dev;
  
--	/* loading DSP TLB entry */
-+	/* loading DSP PTE entry */
- 	INIT_TLB_ENTRY(&tlb_ent, _dspadr, _padr, pgsz);
--	status = omap_mmu_load_tlb_entry(mmu, &tlb_ent);
-+	status = omap_mmu_load_pte_entry(mmu, &tlb_ent);
- 	if (status < 0) {
- 		exmap_clear_armmmu((unsigned long)_vadr, unit);
- 		goto fail;
-@@ -763,8 +878,8 @@ found_map:
- 		up_write(&mmu->exmap_sem);
++	if (sdata == NULL) {
++		dev_err(dev, "setup data is a NULL pointer\n");
++		return -EINVAL;
++	}
++
+ 	/* Set sync timings in GPMC */
+-	if (omap2_onenand_set_sync_mode(datap->cs, onenand_base) < 0) {
++	if (omap2_onenand_set_sync_mode(datap->cs, sdata) < 0) {
+ 		dev_err(dev, "Unable to set synchronous mode\n");
  		return -EINVAL;
  	}
--	/* clearing DSP TLB entry */
--	omap_mmu_clear_tlb_entry(mmu, dspadr);
-+	/* clearing DSP PTE entry */
-+	omap_mmu_clear_pte_entry(mmu, dspadr);
+diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+index 96fcb5f..fb1c15c 100644
+--- a/drivers/mtd/onenand/omap2.c
++++ b/drivers/mtd/onenand/omap2.c
+@@ -337,7 +337,11 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
+ 	}
  
- 	/* clear ARM MMU and free buffer */
- 	size = unmap_free_arm(ent);
-@@ -832,7 +947,7 @@ void exmap_setup_preserved_mem_page(struct omap_mmu *mmu, void *buf,
- 	exmap_set_armmmu((unsigned long)virt, phys, PAGE_SIZE);
- 	INIT_EXMAP_TBL_ENTRY_4KB_PRESERVED(mmu->exmap_tbl + index, buf, virt);
- 	INIT_TLB_ENTRY_4KB_PRESERVED(&tlb_ent, dspadr, phys);
--	omap_mmu_load_tlb_entry(mmu, &tlb_ent);
-+	omap_mmu_load_pte_entry(mmu, &tlb_ent);
- }
- EXPORT_SYMBOL_GPL(exmap_setup_preserved_mem_page);
+ 	if (pdata->onenand_setup != NULL) {
+-		r = pdata->onenand_setup(info->onenand.base);
++		struct omap_onenand_setup_data data;
++		data.iobase = info->onenand.base;
++		data.readw  = omap2_onenand_readw;
++		data.writew = omap2_onenand_writew;
++		r = pdata->onenand_setup(&data);
+ 		if (r < 0) {
+ 			dev_err(&pdev->dev, "Onenand platform setup failed: %d\n", r);
+ 			goto err_iounmap;                       
+diff --git a/include/asm-arm/arch-omap/onenand.h b/include/asm-arm/arch-omap/onenand.h
+index 3e8ab2f..a7670af 100644
+--- a/include/asm-arm/arch-omap/onenand.h
++++ b/include/asm-arm/arch-omap/onenand.h
+@@ -11,10 +11,16 @@
  
-@@ -864,10 +979,19 @@ EXPORT_SYMBOL_GPL(omap_mmu_disable);
+ #include <linux/mtd/partitions.h>
  
- void omap_mmu_enable(struct omap_mmu *mmu, int reset)
- {
-+	u32 pa = (u32)virt_to_phys(mmu->twl_tbl);
-+	BUG_ON(!is_aligned(pa, TWL1TBLSZ));
++struct omap_onenand_setup_data {
++	void __iomem            *iobase;
++	unsigned short          (*readw)(void __iomem *);
++	void                    (*writew)(unsigned short, void __iomem *);
++};
 +
- 	if (likely(reset))
- 		omap_mmu_reset(mmu);
- 
--	omap_mmu_write_reg(mmu, 0x2, MMU_CNTL);
-+	omap_mmu_write_reg(mmu,
-+			   pa,
-+			   MMU_TTB);
-+
-+	omap_mmu_write_reg(mmu,
-+			   (MMU_CNTL_TWLENABLE | MMU_CNTL_MMUENABLE),
-+			   MMU_CNTL);
- }
- EXPORT_SYMBOL_GPL(omap_mmu_enable);
- 
-@@ -1261,6 +1385,12 @@ int omap_mmu_register(struct omap_mmu *mmu)
- 	if (!mmu->exmap_tbl)
- 		return -ENOMEM;
- 
-+	mmu->twl_tbl = kzalloc(TWL1TBLSZ, GFP_KERNEL);
-+	if (!mmu->twl_tbl) {
-+		ret = -ENOMEM;
-+		goto err_alloc_twl;
-+	}
-+
- 	ret = device_register(&mmu->dev);
- 	if (unlikely(ret))
- 		goto err_dev_register;
-@@ -1301,6 +1431,8 @@ err_dev_create_mmu:
- err_mmu_init:
- 	device_unregister(&mmu->dev);
- err_dev_register:
-+	kfree(mmu->twl_tbl);
-+err_alloc_twl:
- 	kfree(mmu->exmap_tbl);
- 	mmu->exmap_tbl = NULL;
- 	return ret;
-@@ -1321,6 +1453,7 @@ void omap_mmu_unregister(struct omap_mmu *mmu)
- 
- 	kfree(mmu->exmap_tbl);
- 	mmu->exmap_tbl = NULL;
-+	kfree(mmu->twl_tbl);
- 
- 	device_unregister(&mmu->dev);
- }
-diff --git a/include/asm-arm/arch-omap/mmu.h b/include/asm-arm/arch-omap/mmu.h
-index dd2a09a..38547ef 100644
---- a/include/asm-arm/arch-omap/mmu.h
-+++ b/include/asm-arm/arch-omap/mmu.h
-@@ -94,6 +94,9 @@ struct omap_mmu_ops {
- 	/* Memory operations */
- 	int (*mem_enable)(struct omap_mmu *, void *);
- 	int (*mem_disable)(struct omap_mmu *, void *);
-+
-+	/* PTE attribute operations */
-+	u32 (*pte_attr)(struct omap_mmu_tlb_entry *);
+ struct omap_onenand_platform_data {
+ 	int			cs;
+ 	int			gpio_irq;
+ 	struct mtd_partition	*parts;
+ 	int			nr_parts;
+-	int                     (*onenand_setup)(void __iomem *);
++	int                     (*onenand_setup)(struct omap_onenand_setup_data *);
  };
- 
- struct omap_mmu {
-@@ -114,6 +117,8 @@ struct omap_mmu {
- 	unsigned int nr_tlb_entries;
- 	unsigned int nr_exmap_preserved;
- 
-+	unsigned long *twl_tbl;
-+
- 	/* Size of virtual address space, in bits */
- 	unsigned int addrspace;
- 
-@@ -150,6 +155,9 @@ do {							\
- 	(ent)->link.prev	= -1;			\
- } while (0)
- 
-+#define istwllarge(x)	(x&1)
-+#define istwll2(x)	((x&1)^(x>>1))
-+
- #define omap_mmu_to_virt(mmu, db)	((void *)((mmu)->membase + (db)))
- #define virt_to_omap_mmu(mmu, va) \
- 	(((unsigned long)(va) - (mmu)->membase))
-@@ -170,6 +178,10 @@ void omap_mmu_read_tlb(struct omap_mmu *mmu, struct omap_mmu_tlb_lock *lock,
- int omap_mmu_load_tlb_entry(struct omap_mmu *, struct omap_mmu_tlb_entry *);
- int omap_mmu_clear_tlb_entry(struct omap_mmu *, unsigned long vadr);
- 
-+int omap_mmu_load_pte_entry(struct omap_mmu *mmu,
-+			    struct omap_mmu_tlb_entry *entry);
-+int omap_mmu_clear_pte_entry(struct omap_mmu *mmu, unsigned long vadr);
-+
- int omap_mmu_kmem_reserve(struct omap_mmu *mmu, unsigned long size);
- void omap_mmu_kmem_release(void);
- 
 -- 
-1.5.0.3.271.g5ced
+1.4.4.4
+
+
+--lrZ03NoBR/3+SXJZ
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--lrZ03NoBR/3+SXJZ--
