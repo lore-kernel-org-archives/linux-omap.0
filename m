@@ -1,17 +1,15 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: MMC performance upgrade on OMAP2
-Date: Thu, 8 Mar 2007 07:16:54 -0600
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47081037@dlee13.ent.ti.com>
-References: <00e501c7608c$6ec71fe0$c7a3580a@swcenter.sec.samsung.co.kr><005a01c76147$dd2d8a30$c7a3580a@swcenter.sec.samsung.co.kr><45EFA96D.9010604@drzeus.cx>
-	<007001c76153$523fc800$c7a3580a@swcenter.sec.samsung.co.kr>
-	<9C23CDD79DA20A479D4615857B2E2C47081032@dlee13.ent.ti.com>
-	<45F00C93.2000305@drzeus.cx>
+From: "Sriram, Kannan" <ksriram@ti.com>
+Subject: RE: Writing x-loader using u-boot.
+Date: Fri, 9 Mar 2007 07:29:03 +0530
+Message-ID: <45F366B1BC4F7C4A895F0F34C41E61A5030E1F3C@dbde01.ent.ti.com>
+References: <B62D67BD8EC3324C8A3DACEEA1A0D6C6D3EB04@dlee12.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
+In-Reply-To: <B62D67BD8EC3324C8A3DACEEA1A0D6C6D3EB04@dlee12.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,34 +19,80 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Pierre Ossman <drzeus@drzeus.cx>
-Cc: linux-omap-open-source@linux.omap.com, kmpark@infradead.org
+To: "Kipisz, Steven" <s-kipisz2@ti.com>, Ram <vshrirama@gmail.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Pierre,
-=20
-I can't give specs, but I can definitely pass you required data. Will =
-mail you later.
-=20
+
+Ram,
+
+I think both u-boot and ROM Code use the same 3-byte ECC; but they may
+be storing the ECC in different locations in the spare area (I've seen
+this happen in other OS's).
+
+For example, CSST uses the first 1 or 2 bytes (depending on 8-bit or
+16-bit NAND) for the "bad block marker", and then immediately stores/
+reads the 3 byte ECC. But the Samsung standard is different -> the first
+1/2 bytes for BI is still the same, but the ECC is stored at a different
+offset (byte offset #9 I believe).
+
+So, when you write Xloader to NAND using u-boot, the ROM code while it
+tries to load the Xloader into SRAM, will think the ECC doesn't match -
+so bad content. This is why you wouldn't see it to boot.
+
+You can confirm this using CSST - instead of "Download", choose the
+"Read" option in CSST, and provide the "number of bytes to read" as 16
+(and not any other value). This will dump the spare area content.
+
 Regards,
-Khasim
+Sriram.
 
-________________________________
-
-From: Pierre Ossman [mailto:drzeus@drzeus.cx]
-Sent: Thu 3/8/2007 7:16 AM
-To: Syed Mohammed, Khasim
-Cc: kmpark@infradead.org; linux-omap-open-source@linux.omap.com
-Subject: Re: [PATCH] ARM: OMAP: MMC performance upgrade on OMAP2
-
-
-
-Syed Mohammed, Khasim wrote:
-> Hi Kyungmin,
+> -----Original Message-----
+> From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-
+> open-source-bounces@linux.omap.com] On Behalf Of Kipisz, Steven
+> Sent: Thursday, March 08, 2007 8:45 PM
+> To: Ram; linux-omap-open-source@linux.omap.com
+> Subject: RE: Writing x-loader using u-boot.
 >=20
-> OMAP2420 doesn't support High Speed. OMAP2430 does support Highspeed.
+> You cannot use u-boot as-is to flash the x-loader.  The ECC algorithms
+> are different between CSST and u-boot.  The one in CSST forms a 3-byte
+> ECC that is the same as the boot ROM.  I haven't looked at the one in
+> u-boot lately, but I suspect it is not a 3-byte ECC that the boot ROM
+> understands.
 >=20
-> Please see our code for 2430 (its on linux.omap.com).
+> Steve K.
 >=20
-
-Do you have some specs for the 2430 with timing info?
+> -----Original Message-----
+> From: linux-omap-open-source-bounces@linux.omap.com
+> [mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+Ram
+> Sent: Thursday, March 08, 2007 3:55 AM
+> To: linux-omap-open-source@linux.omap.com
+> Subject: Writing x-loader using u-boot.
+>=20
+> Hi,
+>   Im using OMAP2430. Im trying to write x-loader using u-boot. for
+> some reason i dont want to use CSST.  I want to use u-boot only to
+> flash x-loader and u-boot (nand).
+>=20
+>    u-boot nand - im able to write/read it back - no issues.
+>=20
+>    I am able to write x-loader to nand flash using u-boot, i have
+> checked the contents of nand flash by reading it back. It is also same
+> as x-loader as written by CSST.
+>=20
+>    But when i boot - it doesnt work?. Does CSST do anything special
+> other than writing it to nand flash?.
+>=20
+>    Has anyone tried writing x-load using u-boot?
+>=20
+> Regards,
+> sriram
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
