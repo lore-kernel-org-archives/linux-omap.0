@@ -1,15 +1,15 @@
 From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
 Subject: RE: [PATCH] ARM: OMAP: MMC performance upgrade on OMAP2
-Date: Fri, 9 Mar 2007 00:16:18 -0600
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C476F28A6@dlee13.ent.ti.com>
-References: <008e01c76210$26ef8a60$c7a3580a@swcenter.sec.samsung.co.kr>
+Date: Fri, 9 Mar 2007 00:40:33 -0600
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C476F28A7@dlee13.ent.ti.com>
+References: <45F0FC9F.3070701@drzeus.cx>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
-In-Reply-To: <008e01c76210$26ef8a60$c7a3580a@swcenter.sec.samsung.co.kr>
+In-Reply-To: <45F0FC9F.3070701@drzeus.cx>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,240 +17,77 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: kmpark@infradead.org, Pierre Ossman <drzeus@drzeus.cx>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Pierre Ossman <drzeus@drzeus.cx>, kmpark@infradead.org
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
->I think highspeed depends on host clock. Is it right?
+Hi Pierre,
 
-Yes.
+If I am not wrong what you mean is,
+
+If (card_is_4.0) then its HS {
+	If (it supports 26 && 52) and ur controller can generate 52 Mhz
+clk=20
+	then configure MMC_CLK to operate at 52Mhz
+
+	If (card supports only 26) then configure MMC_CLK at 26Mhz.
+
+	If (card can support upto 52 but controller can only support
+till 48)=20
+	then configure MMC_CLK to 48 and issue a CMD4 to modify DSR (for
+new=20
+	timing values).
+
+	Now this DSR timing depends on what Controller can offer and it
+doesn't depend on the frequency as such. Is this what you mean?
+
+}
+Else{
+Not an HS
+}
 
 Regards,
 Khasim
 
 
+
+
 >-----Original Message-----
->From: Kyungmin Park [mailto:kmpark@infradead.org]
->Sent: Friday, March 09, 2007 12:00 AM
->To: Syed Mohammed, Khasim; 'Pierre Ossman'
->Cc: linux-omap-open-source@linux.omap.com
->Subject: RE: [PATCH] ARM: OMAP: MMC performance upgrade on OMAP2
+>From: Pierre Ossman [mailto:drzeus@drzeus.cx]
+>Sent: Friday, March 09, 2007 12:20 AM
+>To: kmpark@infradead.org
+>Cc: Syed Mohammed, Khasim; linux-omap-open-source@linux.omap.com
+>Subject: Re: [PATCH] ARM: OMAP: MMC performance upgrade on OMAP2
 >
->Yes, that's my understanding.
->
->If the card is 4.0 compliant and OMAP2 supports up to 48MHz. then we
+>Kyungmin Park wrote:
+>> Yes, that's my understanding.
+>>
+>> If the card is 4.0 compliant and OMAP2 supports up to 48MHz. then we
 use
->this 48MHz clock.
->
->But current mmc code down-grade to 20MHz since it's not set highspeed.
->
->If the card is 4.0 compliant and even though host don't support
+>> this 48MHz clock.
+>>
+>> But current mmc code down-grade to 20MHz since it's not set
+highspeed.
+>>
+>> If the card is 4.0 compliant and even though host don't support
 highspeed
->feature, we set the highspeed flags for support host max clocks.
->I think highspeed depends on host clock. Is it right?
+>> feature, we set the highspeed flags for support host max clocks.
+>> I think highspeed depends on host clock. Is it right?
+>>
 >
->Thank you,
->Kyungmin Park
+>No, high-speed is a _timing_ capability, not one of frequency (although
+the
+>new
+>timing allows a higher maximum frequency). Hence, maximum clock has
+>_nothing_ to
+>do with what it can support. All it can tell you is that reasonably,
+this
+>controller should support at least one of SD or MMC high-speed, but it
+>cannot
+>tell you which.
 >
->> -----Original Message-----
->> From: Syed Mohammed, Khasim [mailto:x0khasim@ti.com]
->> Sent: Friday, March 09, 2007 2:18 PM
->> To: Syed Mohammed, Khasim; kmpark@infradead.org; Pierre Ossman
->> Cc: linux-omap-open-source@linux.omap.com
->> Subject: RE: [PATCH] ARM: OMAP: MMC performance upgrade on OMAP2
->>
->> Sorry, small correction. It can support from 0 to 26 Mhz or 0
->> to 52 Mhz We should be able to configure 48Mhz.
->>
->> Regards,
->> Khasim
->>
->> >-----Original Message-----
->> >From: linux-omap-open-source-bounces@linux.omap.com
->> [mailto:linux-omap-
->> >open-source-bounces@linux.omap.com] On Behalf Of Syed
->> Mohammed, Khasim
->> >Sent: Thursday, March 08, 2007 11:11 PM
->> >To: kmpark@infradead.org; Pierre Ossman
->> >Cc: linux-omap-open-source@linux.omap.com
->> >Subject: RE: [PATCH] ARM: OMAP: MMC performance upgrade on OMAP2
->> >
->> >Hi Kyungmin,
->> >
->> >I haven't gone through the entire code as such, here is my
->> >understanding.
->> >
->> >>So if the the csd->mmca_vsn is CSD_SPEC_VER_4 then it always set
->> >highspeed.
->> >Yes, if card is 4.0 compliant then it's HS Card.
->> >
->> >>then what makes the highspeed enabled? host or card?
->> >Both - right? First controller should support such clock rates, and
->> card
->> >should be 4.0 (or more) compliant.
->> >
->> >>If the host supports up to 48MHz clock and card supports the
->> highspeed.
->> >>then what's the correct clock?
->> >If controller supports upto 48Mhz then I think we can only support
->> 26Mhz
->> >max. There are some special bits in 2430 processor to support 52 Mhz
->> >
->> >According to spec, a card can support both 52 & 26 or 26
->> (0x1 or 0x3).
->> >So, if our controller doesn't support 52Mhz clock rates then
->> we should
->> >stick to 26Mhz.
->> >
->> >Regards,
->> >Khasim
->> >
->> >>-----Original Message-----
->> >>From: Kyungmin Park [mailto:kmpark@infradead.org]
->> >>Sent: Thursday, March 08, 2007 8:42 PM
->> >>To: Syed Mohammed, Khasim; 'Pierre Ossman'
->> >>Cc: linux-omap-open-source@linux.omap.com
->> >>Subject: RE: [PATCH] ARM: OMAP: MMC performance upgrade on OMAP2
->> >>
->> >>Hi Khasim,
->> >>
->> >>I checked the mmc code in linux-2.6.14-omap2420-omap2430. It is
-used
->> >the
->> >>old samsung patch (mmcplus) in mmc core.
->> >>So if the the csd->mmca_vsn is CSD_SPEC_VER_4 then it always set
->> >highspeed.
->> >>the follwing code is always true if the chip is correct.
->> >>
->> >>              if ((ext_csd->card_type & MMCPLUS_26MHZ) || (ext_csd-
->> >>>card_type & MMCPLUS_52MHZ)) {
->> >>                        err =3D mmc_switch_hsmode(host, card);
->> >>                        if (err !=3D MMC_ERR_NONE) {
->> >>                                mmc_card_set_dead(card);
->> >>                                continue;
->> >>                        }
->> >>                }
->> >>
->> >>then what makes the highspeed enabled? host or card?
->> >>If the host supports up to 48MHz clock and card supports the
->> highspeed.
->> >>then what's the correct clock?
->> >>
->> >>Currently if we don't set HIGHSPPED flags, it always set 20MHz as
-in
->> >the
->> >>Spec. Since it is calculated from card->csd.max_dtr in
->> >>mmc_calculate_clock().
->> >>
->> >>        list_for_each_entry(card, &host->cards, node)
->> >>                if (!mmc_card_dead(card)) {
->> >>                        if (mmc_card_highspeed(card) &&
->> >mmc_card_sd(card))
->> >>{
->> >>                                if (max_dtr >
->> card->sw_caps.hs_max_dtr)
->> >>                                        max_dtr =3D
->> >card->sw_caps.hs_max_dtr;
->> >>                        } else if (mmc_card_highspeed(card) &&
->> >>!mmc_card_sd(card)) {
->> >>                                if (max_dtr >
->> card->ext_csd.hs_max_dtr)
->> >>                                        max_dtr =3D
->> >card->ext_csd.hs_max_dtr;
->> >>                        } else if (max_dtr > card->csd.max_dtr) {
->> >>                                max_dtr =3D card->csd.max_dtr;
->> >>                        }
->> >>                }
->> >>
->> >>Okay I will check the MMC Spec.
->> >>
->> >>Thank you,
->> >>Kyungmin Park
->> >>
->> >>
->> >>________________________________
->> >>
->> >>	From: Syed Mohammed, Khasim [mailto:x0khasim@ti.com]
->> >>	Sent: Thursday, March 08, 2007 9:02 PM
->> >>	To: kmpark@infradead.org; Pierre Ossman
->> >>	Cc: linux-omap-open-source@linux.omap.com
->> >>	Subject: RE: [PATCH] ARM: OMAP: MMC performance upgrade on OMAP2
->> >>
->> >>
->> >>	Hi Kyungmin,
->> >>
->> >>	OMAP2420 doesn't support High Speed. OMAP2430 does
->> support Highspeed.
->> >>
->> >>	Please see our code for 2430 (its on linux.omap.com).
->> >>
->> >>	Regards,
->> >>	Khasim
->> >>
->> >>________________________________
->> >>
->> >>	From: linux-omap-open-source-bounces@linux.omap.com on
->> behalf of
->> >>Kyungmin Park
->> >>	Sent: Thu 3/8/2007 1:28 AM
->> >>	To: 'Pierre Ossman'
->> >>	Cc: linux-omap-open-source@linux.omap.com
->> >>	Subject: RE: [PATCH] ARM: OMAP: MMC performance upgrade on OMAP2
->> >>
->> >>
->> >>
->> >>
->> >>	> Do _not_ take these flags lightly. If you enable them when
->> >>	> the hardware doesn't support the alternative timing, you have
->> >>	> a good chance of cards not working. So to me this looks very
->> >>	> wrong as the pre-48MHz controllers probably only follow the
->> >>	> legacy timing requirements.
->> >>	>
->> >>
->> >>	I'm not sure OMAP2 MMC supports highspeed feature. I can't find
->> >>anytings in
->> >>	OMAP2 TRM.
->> >>
->> >>	        if (cpu_class_is_omap2())
->> >>	                mmc->caps |=3D MMC_CAP_MMC_HIGHSPEED |
->> >>MMC_CAP_SD_HIGHSPEED;
->> >>
->> >>	mmc0: selected 48.000MHz transfer rate
->> >>	mmc0: clock 48000000Hz busmode 2 powermode 2 cs 0 Vdd
->> 20 width 2
->> >>timing 1
->> >>
->> >>	Then is it dependent on platform?
->> >>
->> >>	        if (minfo->highspeed)
->> >>	                mmc->caps |=3D MMC_CAP_MMC_HIGHSPEED |
->> >>MMC_CAP_SD_HIGHSPEED;
->> >>
->> >>	And even though we set HIGHSPEED, the card set their
->> clock correctly.
->> >>Is it
->> >>	right?
->> >>
->> >>	mmc0: selected 26.000MHz transfer rate
->> >>	mmc0: clock 26000000Hz busmode 2 powermode 2 cs 0 Vdd
->> 20 width 2
->> >>timing 1
->> >>
->> >>	Thank you,
->> >>	Kyungmin Park
->> >>
->> >>	_______________________________________________
->> >>	Linux-omap-open-source mailing list
->> >>	Linux-omap-open-source@linux.omap.com
->> >>	http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->> >>
->> >>
->> >
->> >_______________________________________________
->> >Linux-omap-open-source mailing list
->> >Linux-omap-open-source@linux.omap.com
->> >http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->>
->>
+>Rgds
+>Pierre
+>
