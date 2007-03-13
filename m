@@ -1,16 +1,11 @@
-From: "Hunter, Jon" <jon-hunter@ti.com>
-Subject: RE: Please help me get TI OMAP5912 OSK preview kit
-	installationpassword.
-Date: Mon, 12 Mar 2007 16:26:47 -0500
-Message-ID: <5573C19A4BBDB441BED2A44157E97053C3D67C@dlee12.ent.ti.com>
-References: <03C18DC8E51A4C4E861C9F7179B6E08A207C25@dqhe02.ent.ti.com>
+From: vikash sharma <vikas_538@yahoo.com>
+Subject: regarding OMAP 5912
+Date: Mon, 12 Mar 2007 20:56:03 -0700 (PDT)
+Message-ID: <20070313035603.40853.qmail@web33515.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <03C18DC8E51A4C4E861C9F7179B6E08A207C25@dqhe02.ent.ti.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,31 +13,21 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "Tang, Tony" <tony-tang@ti.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-> I registered from  http://www.montavista.com/previewkit/index.html
-> according Montavista linux CD guide, but I didn't receive password
-email,
-> just received a "thank you" acknowledgement, anybody have encountered
-this
-> problem ever?
->=20
-> Why and how?
+hello,
+     i am vikas & have just started working on omap 5912 processor.
+     i am not getting how to start working with it. 
+     is it necessary that i should have linux installed on my system??
+  thnx & regards,
+    Vikas
 
-Unfortunately, for whatever reason, I have heard of several customers
-and TI people having this problem. Montavista really need to address
-this. You can try contacting their support to see if they can help.
 
-Please note that the MontaVista previewkit comes with a linux 2.4
-kernel. If you would rather use a 2.6 kernel then I would recommend that
-you visit the following site for getting started:
-http://oskfordummies.hp.infoseek.co.jp/
-
-Also see for getting access to the open-source git tree:
-http://www.muru.com/linux/omap/=20
-
-Cheers
-Jon
+"cogito ergo sum"
+ 
+---------------------------------
+Need Mail bonding?
+Go to the Yahoo! Mail Q&A for great tips from Yahoo! Answers users.
