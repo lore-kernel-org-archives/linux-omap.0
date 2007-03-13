@@ -1,14 +1,14 @@
 From: "Wael Adel" <showairovic@gmail.com>
 Subject: Re: OMAP5912 OSK
-Date: Tue, 13 Mar 2007 11:56:40 +0200
-Message-ID: <bd205c5f0703130256l3ad85616m10f7be4c66e4169d@mail.gmail.com>
-References: <bd205c5f0703130229o3e8f84f9m13b7d8e99ff7736@mail.gmail.com>
-	<5DF83221BE20114E9C331F665ACBC08002B660A9@dbde01.ent.ti.com>
+Date: Tue, 13 Mar 2007 12:02:01 +0200
+Message-ID: <bd205c5f0703130302g7cf590b1yfbe2c59f8aac99b6@mail.gmail.com>
+References: <bd205c5f0703130255t1412c413j3a36b8785fe1b57f@mail.gmail.com>
+	<5DF83221BE20114E9C331F665ACBC08002B660D0@dbde01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <5DF83221BE20114E9C331F665ACBC08002B660A9@dbde01.ent.ti.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <5DF83221BE20114E9C331F665ACBC08002B660D0@dbde01.ent.ti.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -17,17 +17,41 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: "Pandita, Vikram" <vikram.pandita@ti.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-so u mean that i can put the VID and PID any numbers? please tell me this in
-a simple way, i m just a new in using omap kit
-thanks in advance.
+so do u have any suggestion about this?
+i mean is there someone tries VID and PID and works well?
+thanks a lot for your help
+
 
 On 3/13/07, Pandita, Vikram <vikram.pandita@ti.com> wrote:
+>
+>  Your gadget device descriptor can have any VID/PID that you wish.. but
+> then the host to which you connect should recognize this pair and load the
+> corresponding class driver
+>
+>
+>   ------------------------------
+>
+> *From:* Wael Adel [mailto:showairovic@gmail.com]
+> *Sent:* Tuesday, March 13, 2007 3:26 PM
+> *To:* Pandita, Vikram
+> *Subject:* Re: OMAP5912 OSK
+>
+>
+>
+> so u mean that i can put the VID and PID any numbers? please tell me this
+> in a simple way, i m just a new in using omap kit
+>
+> thanks in advance.
+>
+>
+>
+> On 3/13/07, *Pandita, Vikram* <vikram.pandita@ti.com> wrote:
 >
 >
 > My understanding is that OMAP device as such does not have any specific
@@ -70,4 +94,6 @@ On 3/13/07, Pandita, Vikram <vikram.pandita@ti.com> wrote:
 > > Linux-omap-open-source mailing list
 > > Linux-omap-open-source@linux.omap.com
 > > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
+>
 >
