@@ -1,12 +1,14 @@
-From: Ram <vshrirama@gmail.com>
-Subject: omap2430 camera driver
-Date: Wed, 14 Mar 2007 18:28:47 +0530
-Message-ID: <8bf247760703140558l1764e195q74e73f0fd8380835@mail.gmail.com>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: TSC2101/2102
+Date: Wed, 14 Mar 2007 08:21:24 -0500
+Message-ID: <45F7F6D4.20203@gmail.com>
+References: <20070309140650.GC4399@bitbox.mine.nu>
+	<fb249edb0703090623o367ec663h85dc581644cb258d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <fb249edb0703090623o367ec663h85dc581644cb258d@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,42 +16,28 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: balrogg@gmail.com
+Cc: Linux OMAP ML <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-    Im using OMAP2430SDP.
-    Im trying to get the camera working on OMAP2430SDP for linux 2.6.19.
-
-    Im using the following files:
-          1) omap24xxlib.c
-          2) omap24xxvout.c
-          3)sensor_ex3691.c
-          4)omap24xxcam.c
-          5)omap24xxcam-dma.c
-          6)arch/arm/plat-omap/dma-ti.c (taken from 2.6.14-7 - with
-linux.omap.com)
-     Some of these were taken from the patch trilok posted recently
-and some from 2.6.14-7 available with linux.omap.com.
-
-    Frame buffer is working well on my kernel.
-
-    omap24xxcam_probe ( ) from omap24xxcam.c is failing when it tries
-to allocate memory for the overlay framebuffer using
-dma_alloc_coherent ( ). The size it is trying to allocate is
- for 600KB. which should be okay.
-
-  I traced the code to a function __dma_alloc ( ) in /arch/arm/mm/consistent.c
-  It is failing in vm_region_alloc ( ) (it gets you a virtual address
-for a memory region).
-
-  Am i missing something?.
-
- Has anyone got camera working for the latest kernels (2.6.19 upwards).
-
-  Please Advice,
-
+andrzej zaborowski stated on 3/9/2007 8:23 AM:
+> On 09/03/07, Imre Deak <imre.deak@solidboot.com> wrote:
+>> I'm wondering about the proper way to convert the existing omap-tsc2101
+>> driver to the SPI framework. Would it make sense to handle it with the
+>> tsc2102 driver? omap-tsc2101 has only the register read / write
+>> interface
+>> which is the same as in tsc2102.
+>
+> How about maybe a header file <linux/spi/tsc2xxx.h> shared between
+> tsc2101/2102 with the register access functions as "static inline"
+> functions?
+Some TODOs:
+1. should interrupt muxing be done here?
+2. There are some TSC2005 devices(TS only).. so it will be interesting
+to see xxxx.h scales to all..
+3. rename this to tsc2xxx_core.[ch]
+4. use SPI framework (would not break uwire support I believe).
 Regards,
-sriram
+Nishanth Menon
