@@ -1,19 +1,11 @@
-From: "Cliff Brake" <cliff.brake@gmail.com>
-Subject: Re: Regarding use of DirectFB
-Date: Thu, 15 Mar 2007 13:09:54 -0400
-Message-ID: <f96d234e0703151009t112ee8a7uac2c1a7489817118@mail.gmail.com>
-References: <20070309140650.GC4399@bitbox.mine.nu>
-	<fb249edb0703090623o367ec663h85dc581644cb258d@mail.gmail.com>
-	<45F7F6D4.20203@gmail.com> <20070314170952.GB10230@bitbox.mine.nu>
-	<002801c7669f$d0fe2be0$c7a3580a@swcenter.sec.samsung.co.kr>
-	<20070315102325.GA4555@bitbox.mine.nu>
-	<10043.59.144.85.207.1173968602.squirrel@mail.sqlstar.com>
+From: Steve Poulsen <spoulsen@css-design.us>
+Subject: omap_udc does not respond to SETUP transfer properly (OMAP5912)
+Date: Thu, 15 Mar 2007 13:42:57 -0500
+Message-ID: <45F993B1.9040008@css-design.us>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <10043.59.144.85.207.1173968602.squirrel@mail.sqlstar.com>
-Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -23,26 +15,28 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Raja Mallik <raja.mallik@sqlstar.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On 3/15/07, Raja Mallik <raja.mallik@sqlstar.com> wrote:
+When I plug our device into a Windows PC, we receive the SETUP message 
+(USB_REQ_GET_DESCRIPTOR).  The IRQ handler sets the EP_NUM values per 
+Figure 16 of SPRU761A (EP_NUM.EPU_NUM = 0, EP_DIR = 1, EP_SEL = 1, 
+SETUP_SEL=0), then it writes the response into the fifo.  After writing, 
+FIFO_EN is set to 1, then EP_SEL to 0.  I then find it remains in this 
+state forever (or at least until Windows decides the device is 
+problematic and turns it off).
+I have looked at the STAT register at the start of the IRQ and it shows 
+the FIFO is empty (0x02).  After writing the STAT register shows (0x04) 
+as expected.  However, even waiting 500 ms after the write, the STAT 
+still shows 0x04.
 
-> I am working on to run some DirectFB application on my board that has
-> omap5912  core. I am using linux-2.6.20 git kernel port and arm toolchain
-> built with gcc-4.1.2, bin utils-2.17, glibc-2.5.
->
-> We found that Ti' omap frame buffer is working fine.
-> Has there been any port of directfb applications running on omap5912?
+I have confirmed the HHC and DC clocks are enabled by looking at 
+SOFT_REQ_REG and MOD_CONF_CTRL_0.
 
-http://openembedded.org supports directfb, and I have heard reports
-that people are successfully using it on PXA270 based systems.  I
-suspect directfb apps would also run fine on omap.
+Shouldn't the STAT 0x04 bit go to zero eventually and it show the fifo 
+empty once again?
 
-Cliff
 
--- 
-=======================
-Cliff Brake
-http://bec-systems.com
+Thanks,
+
+Steve
