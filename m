@@ -1,11 +1,19 @@
-From: Steve Poulsen <spoulsen@css-design.us>
-Subject: omap_udc does not respond to SETUP transfer properly (OMAP5912)
-Date: Thu, 15 Mar 2007 13:42:57 -0500
-Message-ID: <45F993B1.9040008@css-design.us>
+From: "Kyungmin Park" <kmpark@infradead.org>
+Subject: RE: TSC2101/2102
+Date: Fri, 16 Mar 2007 09:28:24 +0900
+Message-ID: <004901c76762$06d66bc0$c7a3580a@swcenter.sec.samsung.co.kr>
+References: <20070309140650.GC4399@bitbox.mine.nu>
+	<fb249edb0703090623o367ec663h85dc581644cb258d@mail.gmail.com>
+	<45F7F6D4.20203@gmail.com> <20070314170952.GB10230@bitbox.mine.nu>
+	<002801c7669f$d0fe2be0$c7a3580a@swcenter.sec.samsung.co.kr>
+	<20070315102325.GA4555@bitbox.mine.nu>
+Reply-To: kmpark@infradead.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="ks_c_5601-1987"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-reply-to: <20070315102325.GA4555@bitbox.mine.nu>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,28 +23,28 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: 'Imre Deak' <imre.deak@solidboot.com>
+Cc: 'Linux OMAP ML' <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-When I plug our device into a Windows PC, we receive the SETUP message 
-(USB_REQ_GET_DESCRIPTOR).  The IRQ handler sets the EP_NUM values per 
-Figure 16 of SPRU761A (EP_NUM.EPU_NUM = 0, EP_DIR = 1, EP_SEL = 1, 
-SETUP_SEL=0), then it writes the response into the fifo.  After writing, 
-FIFO_EN is set to 1, then EP_SEL to 0.  I then find it remains in this 
-state forever (or at least until Windows decides the device is 
-problematic and turns it off).
-I have looked at the STAT register at the start of the IRQ and it shows 
-the FIFO is empty (0x02).  After writing the STAT register shows (0x04) 
-as expected.  However, even waiting 500 ms after the write, the STAT 
-still shows 0x04.
+Hi, 
 
-I have confirmed the HHC and DC clocks are enabled by looking at 
-SOFT_REQ_REG and MOD_CONF_CTRL_0.
+> 
+> I needed only the basic register read / write interface to access the
+> TSC2101 GPIO lines. The TS part you wrote is still needed, 
+> it's init function being called from the tsc2101.c probe, as 
+> it's done in tsc2301-core.c.
+> 
+> > The current code only supports 16-bit tsc2101 for OMAP1.
+> > We have to consider OMAP2 tsc2101 for H4 and apollon.
+> 
+> Is the 32-bit interface some alternate interface 
+> configuration for the chip?
 
-Shouldn't the STAT 0x04 bit go to zero eventually and it show the fifo 
-empty once again?
+No. it's only needed in SPI protocol.
 
+I don't know it's possible to use 16-bit mode in OMAP2. but most driver
+which uses tsc2101 on OMAP2 uses 32-bit access.
 
-Thanks,
-
-Steve
+Thank you,
+Kyungmin Park
