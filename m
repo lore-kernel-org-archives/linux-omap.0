@@ -1,20 +1,13 @@
-From: Imre Deak <imre.deak@solidboot.com>
-Subject: Re: TSC2101/2102
-Date: Fri, 16 Mar 2007 11:49:27 +0200
-Message-ID: <20070316094926.GA4519@bitbox.mine.nu>
-References: <20070309140650.GC4399@bitbox.mine.nu>
-	<fb249edb0703090623o367ec663h85dc581644cb258d@mail.gmail.com>
-	<45F7F6D4.20203@gmail.com> <20070314170952.GB10230@bitbox.mine.nu>
-	<002801c7669f$d0fe2be0$c7a3580a@swcenter.sec.samsung.co.kr>
-	<20070315102325.GA4555@bitbox.mine.nu>
-	<004901c76762$06d66bc0$c7a3580a@swcenter.sec.samsung.co.kr>
-	<20070316074157.GA1133@bitbox.mine.nu>
-	<004401c767a1$f1489590$c7a3580a@swcenter.sec.samsung.co.kr>
+From: Steve Poulsen <spoulsen@css-design.us>
+Subject: Re: omap_udc does not respond to SETUP transfer properly (OMAP5912)
+Date: Fri, 16 Mar 2007 10:26:03 -0500
+Message-ID: <45FAB70B.2090202@css-design.us>
+References: <5DF83221BE20114E9C331F665ACBC08002B66C56@dbde01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <004401c767a1$f1489590$c7a3580a@swcenter.sec.samsung.co.kr>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <5DF83221BE20114E9C331F665ACBC08002B66C56@dbde01.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,97 +15,95 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kyungmin Park <kmpark@infradead.org>
-Cc: 'Linux OMAP ML' <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Mar 16, 2007 at 05:05:58PM +0900, Kyungmin Park wrote:
-> 
-> > > > 
-> > > > I needed only the basic register read / write interface to access 
-> > > > the
-> > > > TSC2101 GPIO lines. The TS part you wrote is still 
-> > needed, it's init 
-> > > > function being called from the tsc2101.c probe, as it's done in 
-> > > > tsc2301-core.c.
-> > > > 
-> > > > > The current code only supports 16-bit tsc2101 for OMAP1.
-> > > > > We have to consider OMAP2 tsc2101 for H4 and apollon.
-> > > > 
-> > > > Is the 32-bit interface some alternate interface 
-> > configuration for 
-> > > > the chip?
-> > > 
-> > > No. it's only needed in SPI protocol.
-> > > 
-> > > I don't know it's possible to use 16-bit mode in OMAP2. but most 
-> > > driver which uses tsc2101 on OMAP2 uses 32-bit access.
-> > 
-> > The following is an example how you setup the transfer for 32-bit
-> > transfer:
-> > 
-> > +static void tsc2101_ts_setup_spi_xfer(struct tsc2101 *tsc) {
-> > +	struct tsc2101_ts *ts = tsc->ts;
-> > +	struct spi_message *m = &ts->read_msg;
-> > +	struct spi_transfer *x = &ts->read_xfer[0];
-> > +
-> > +	ts->address[0] = (0x8000 | TSC2101_REG_X) << 16;
-> > +	ts->address[1] = (0x8000 | TSC2101_REG_Y) << 16;
-> > +	ts->address[2] = (0x8000 | TSC2101_REG_Z1) << 16;
-> > +	ts->address[3] = (0x8000 | TSC2101_REG_Z2) << 16;
-> > +
-> > +	spi_message_init(m);
-> > +
-> > +	x->tx_buf = &ts->address;
-> > +	x->rx_buf = &ts->data;
-> > +	x->len = 16;
-> > +	spi_message_add_tail(x, m);
-> > +
-> > +	m->complete = tsc2101_ts_rx;
-> > +	m->context = tsc;
-> > +}
-> > 
-> > While this may work, I'm not sure the driver should have 
-> > support for such an alternate protocol. What's the benifit of 
-> > it? The TSC2xxx chips have a register address auto increment 
-> > feature, so you need to send only the starting address and 
-> > then do a read for each consecutive registers. Did you try 
-> > the 16-bit mode in SPI_MODE_0 as it's done in the TSC2301 driver?
-> 
-> No, it's not work if we provide the one address
-> 
-> /* XXX: tsc2101 specific */
-> static const u32 tsc2101_ts_read_data[4] = {
->         (0x8000 | TSC2101_REG_X) << 16,
->         (0x8000 | TSC2101_REG_Y) << 16,
->         (0x8000 | TSC2101_REG_Z1) << 16,
->         (0x8000 | TSC2101_REG_Z2) << 16,
-> };
-> 
-> static void tsc2101_ts_setup_spi_xfer(struct tsc2101 *tsc)
-> {
->         struct tsc2101_ts *ts = tsc->ts;
->         struct spi_message *m = &ts->read_msg;
->         struct spi_transfer *x = &ts->read_xfer[0];
-> 
->         spi_message_init(m);
-> 
->         x->tx_buf = &tsc2101_ts_read_data;
->         x->rx_buf = &ts->data;
->         x->len = 16;
->         spi_message_add_tail(x, m);
-> 
->         m->complete = tsc2101_ts_rx;
->         m->context = tsc;
-> }
-> 
-> No, I don't try to use 16-bit mode. since it's working well 32-bit mode, I
-> just use it for a long time.
+Thanks for the quick response.  Yes, this is the mode that I am using.  
+I get only one interrupt for the SETUP and then nothing there-after.  If 
+I cut-out the function calls and some unimportant code (for simplicity), 
+here are the steps the Linux drivers go through for this GET_DESCRIPTOR:
 
-Could you try it with debugging enabled in omap2_mcspi? Would be interesting
-to see where the problem is.
+        do {
+            UDC_EP_NUM_REG = UDC_SETUP_SEL;
+            /* two bytes at a time */
+            u.word[0] = UDC_DATA_REG;
+            u.word[1] = UDC_DATA_REG;
+            u.word[2] = UDC_DATA_REG;
+            u.word[3] = UDC_DATA_REG;
+            UDC_EP_NUM_REG = 0;
+        } while (UDC_IRQ_SRC_REG & UDC_SETUP);
 
---Imre
-> 
+        UDC_EP_NUM_REG = UDC_EP_SEL|UDC_EP_DIR;
+        write_packet();  // Loops to write the whole packet to UDC_DATA_REG
+        UDC_CTRL_REG = UDC_SET_FIFO_EN;
+        UDC_EP_NUM_REG &= ~UDC_EP_SEL;
+
+Thanks,
+
+Steve
+
+Or course, this is all from the driver and using printk() I have 
+determined this is the flow through the driver.
+
+Pandita, Vikram wrote:
+> Have you tried the Interrupt mode of transfer.
+> In this mode you will be writing directly to the FIFO the response of
+> GET_DESCRIPTOR. Later you can debug the DMA path.
+>
+>
+>   
+>> -----Original Message-----
+>> From: linux-omap-open-source-bounces@linux.omap.com
+>>     
+> [mailto:linux-omap-
+>   
+>> open-source-bounces@linux.omap.com] On Behalf Of Steve Poulsen
+>> Sent: Friday, March 16, 2007 12:13 AM
+>> To: Linux-omap-open-source@linux.omap.com
+>> Subject: omap_udc does not respond to SETUP transfer properly
+>>     
+> (OMAP5912)
+>   
+>> When I plug our device into a Windows PC, we receive the SETUP message
+>> (USB_REQ_GET_DESCRIPTOR).  The IRQ handler sets the EP_NUM values per
+>> Figure 16 of SPRU761A (EP_NUM.EPU_NUM = 0, EP_DIR = 1, EP_SEL = 1,
+>> SETUP_SEL=0), then it writes the response into the fifo.  After
+>>     
+> writing,
+>   
+>> FIFO_EN is set to 1, then EP_SEL to 0.  I then find it remains in this
+>> state forever (or at least until Windows decides the device is
+>> problematic and turns it off).
+>> I have looked at the STAT register at the start of the IRQ and it
+>>     
+> shows
+>   
+>> the FIFO is empty (0x02).  After writing the STAT register shows
+>>     
+> (0x04)
+>   
+>> as expected.  However, even waiting 500 ms after the write, the STAT
+>> still shows 0x04.
+>>
+>> I have confirmed the HHC and DC clocks are enabled by looking at
+>> SOFT_REQ_REG and MOD_CONF_CTRL_0.
+>>
+>> Shouldn't the STAT 0x04 bit go to zero eventually and it show the fifo
+>> empty once again?
+>>
+>>
+>> Thanks,
+>>
+>> Steve
+>>
+>> _______________________________________________
+>> Linux-omap-open-source mailing list
+>> Linux-omap-open-source@linux.omap.com
+>> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>>     
+>
+>
+>   
