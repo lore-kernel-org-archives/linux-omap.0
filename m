@@ -1,14 +1,10 @@
-From: tony@atomide.com
-Subject: Re: Git tree updated
-Date: Mon, 19 Mar 2007 09:39:37 -0300
-Message-ID: <20070319123935.GA7044@atomide.com>
-References: <20070301143330.GF26097@atomide.com>
-	<45FAE88A.1090904@googlemail.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: [PATCH] ARM: OMAP: Fix warnings in devices.c for 2430sdp config
+Date: Mon, 19 Mar 2007 18:35:07 +0100
+Message-ID: <45FEC9CB.9010602@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="------------010709030107090103080309"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <45FAE88A.1090904@googlemail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,50 +14,89 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+This is a multi-part message in MIME format.
+--------------010709030107090103080309
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-* Dirk Behme <dirk.behme@googlemail.com> [070316 15:57]:
-> Tony Lindgren wrote:
-> >Now we have following branches:
-> >
-> >linus
-> >     \
-> >      omap-fixes
-> >                \
-> >                 omap-upstream
-> >                              \
-> >                               omap-drivers
-> >                                           \
-> >                                            master
-> >
-> >The branches have following purpose:
-> >
-> >linus		Linus' mainline tree
-> >omap-fixes	Queue of omap fixes for -rcN series
-> 
-> Looks like this starts to work:
-> 
-> http://www.ussg.iu.edu/hypermail/linux/kernel/0703.2/0246.html
-> 
-> http://www.uwsg.iu.edu/hypermail/linux/kernel/0703.0/2536.html
-> 
-> -> search for "OMAP"
-> 
-> :)
 
-Yeah!
+Fix warnings
+
+arch/arm/plat-omap/devices.c:159: warning: 'omap_init_kp' 
+defined but not used
+arch/arm/plat-omap/devices.c:282: warning: 'omap_init_mmc' 
+defined but not used
+arch/arm/plat-omap/devices.c:436: warning: 'omap_init_wdt' 
+defined but not used
+arch/arm/plat-omap/devices.c:469: warning: 'omap_init_rng' 
+defined but not used
+
+if using omap_2430sdp_defconfig.
+
+Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
+
+
+--------------010709030107090103080309
+Content-Type: text/plain;
+ name="devices_warnings_fix.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="devices_warnings_fix.txt"
+
+Index: linux-osk/arch/arm/plat-omap/devices.c
+===================================================================
+--- linux-osk.orig/arch/arm/plat-omap/devices.c
++++ linux-osk/arch/arm/plat-omap/devices.c
+@@ -153,7 +153,8 @@ static inline void omap_init_i2c(void) {
+ #endif
  
-> How do the changes in omap-fixes find their way to Linus? 
-> Does Linus pull directly from omap-fixes? How is this triggered?
+ /*-------------------------------------------------------------------------*/
+-#if	defined(CONFIG_KEYBOARD_OMAP) || defined(CONFIG_KEYBOARD_OMAP_MODULE)
++#if	(defined(CONFIG_KEYBOARD_OMAP) || defined(CONFIG_KEYBOARD_OMAP_MODULE)) && \
++        !defined(CONFIG_MACH_OMAP_2430SDP)
+ 
+ static void omap_init_kp(void)
+ {
+@@ -210,7 +211,8 @@ static inline void omap_init_kp(void) {}
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+-#if	defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
++#if	(defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)) && \
++        !defined(CONFIG_MACH_OMAP_2430SDP)
+ 
+ #ifdef CONFIG_ARCH_OMAP24XX
+ #define	OMAP_MMC1_BASE		0x4809c000
+@@ -409,7 +411,8 @@ static inline void omap_init_uwire(void)
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+-#if	defined(CONFIG_OMAP_WATCHDOG) || defined(CONFIG_OMAP_WATCHDOG_MODULE)
++#if	(defined(CONFIG_OMAP_WATCHDOG) || defined(CONFIG_OMAP_WATCHDOG_MODULE)) && \
++        !defined(CONFIG_MACH_OMAP_2430SDP)
+ 
+ #ifdef CONFIG_ARCH_OMAP24XX
+ #define	OMAP_WDT_BASE		0x48022000
+@@ -442,7 +445,8 @@ static inline void omap_init_wdt(void) {
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+-#if defined(CONFIG_HW_RANDOM_OMAP) || defined(CONFIG_HW_RANDOM_OMAP_MODULE)
++#if     (defined(CONFIG_HW_RANDOM_OMAP) || defined(CONFIG_HW_RANDOM_OMAP_MODULE)) && \
++        !defined(CONFIG_MACH_OMAP_2430SDP)
+ 
+ #ifdef CONFIG_ARCH_OMAP24XX
+ #define	OMAP_RNG_BASE		0x480A0000
 
-I post the omap-fixes to Russell's patch system and then
-Russell pulls them.
 
-I'll be cleaning up the omap-upstream queue more to get ready for
-post 2.6.21 merge :)
+--------------010709030107090103080309
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Tony
+
+--------------010709030107090103080309--
