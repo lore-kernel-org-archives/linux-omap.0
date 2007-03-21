@@ -1,13 +1,10 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP: 243x: Add mappings for SDRC and SMS
-Date: Tue, 20 Mar 2007 14:20:06 -0400
-Message-ID: <20070320182005.GG8596@atomide.com>
-References: <20070314010641.009385000@mvista.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20070314010641.009385000@mvista.com>
+From: Kevin Hilman <khilman@mvista.com>
+Subject: [PATCH 2/2] ARM: OMAP: Fix PRCM base register usage for 243x
+Date: Tue, 20 Mar 2007 17:07:50 -0700
+Message-ID: <20070321000827.284905000@mvista.com>
+References: <20070321000748.659921000@mvista.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline; filename=prcm-base.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,32 +12,41 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Kevin Hilman <khilman@mvista.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@mvista.com> [070313 21:12]:
-> Add mappings for SDRC ans SMS so that omap2_memory_init() works on the
-> 2430.  This also allows the mpurate= command-line option to work.
+The PRCM base register is different on 242x and 243x.  Use
+the #ifdef'd #define from omap24xx.h instead of the locally
+defined one.
 
-> --- dev.orig/include/asm-arm/arch-omap/io.h
-> +++ dev/include/asm-arm/arch-omap/io.h
-> @@ -80,6 +80,13 @@
->  #define OMAP243X_GPMC_PHYS	OMAP243X_GPMC_BASE	/* 0x49000000 */
->  #define OMAP243X_GPMC_VIRT	0xFE000000
->  #define OMAP243X_GPMC_SIZE	SZ_1M
-> +#define OMAP243X_SDRC_PHYS      OMAP24XX_SDRC_BASE
-> +#define OMAP243X_SDRC_VIRT      0xFD000000
-> +#define OMAP243X_SDRC_SIZE      SZ_1M
-> +#define OMAP243X_SMS_PHYS       OMAP243X_SMS_BASE
-> +#define OMAP243X_SMS_VIRT       0xFC000000
-> +#define OMAP243X_SMS_SIZE       SZ_1M
-> +
->  #endif
->  
+Signed-off-by: Kevin Hilman <khilman@mvista.com>
 
-Tabified these & pushing today.
+---
+ arch/arm/mach-omap2/pm.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Tony
+Index: dev/arch/arm/mach-omap2/pm.c
+===================================================================
+--- dev.orig/arch/arm/mach-omap2/pm.c
++++ dev/arch/arm/mach-omap2/pm.c
+@@ -51,7 +51,6 @@
+ #include <asm/arch/dma.h>
+ #include <asm/arch/board.h>
+ 
+-#define PRCM_BASE		0x48008000
+ #define PRCM_REVISION		0x000
+ #define PRCM_SYSCONFIG		0x010
+ #define PRCM_IRQSTATUS_MPU	0x018
+@@ -150,7 +149,7 @@ static void (*omap2_sram_idle)(void);
+ static void (*omap2_sram_suspend)(int dllctrl);
+ static void (*saved_idle)(void);
+ 
+-static u32 prcm_base = IO_ADDRESS(PRCM_BASE);
++static u32 prcm_base = IO_ADDRESS(OMAP24XX_PRCM_BASE);
+ 
+ static inline void prcm_write_reg(int idx, u32 val)
+ {
+
+--
