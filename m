@@ -1,8 +1,8 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: [RFC/PATCH] ARM: OMAP: OneNAND support for 2430SDP
-Date: Tue, 20 Mar 2007 17:40:30 -0700
-Message-ID: <20070321004030.424076000@mvista.com>
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+From: Hiroshi.DOYU@nokia.com
+Subject: [PATCH 1/2] ARM:OMAP: Add interrupt handling interface in MMU FWK
+Date: Wed, 21 Mar 2007 09:43:13 +0200
+Message-ID: <11744629942386-git-send-email-Hiroshi.DOYU@nokia.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -10,398 +10,293 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-Adds platform device for use of existing OMAP2 driver.  Also, the
-following changes are made to the existing driver:
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-- add option for not using DMA (by passing dma_channel = -1)
-- removes obsoleted pt_regs arg from interrupt handler
+This adds the entry point in omap mmu framework to handle mmu
+interrupt. Users of this framework can use its workqueue interface in
+order to accomplish their irq-driven work.
 
-RFC: Notice the change to onenand_base.c which comments out the last
-     OOB chunk.  Without this, it would not work.  Previous drivers
-     for this board such as the 2.6.10-based MV kernel have this
-     same change.  Anyone know what is going on here?
-
-Signed-off-by: Kevin Hilman <khilman@mvista.com>
-
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 ---
- arch/arm/mach-omap2/Makefile              |    3 
- arch/arm/mach-omap2/board-2430sdp-flash.c |  108 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-2430sdp.c       |    4 +
- arch/arm/mach-omap2/gpmc.c                |    1 
- drivers/mtd/onenand/omap2.c               |  103 +++++++++++++++++-----------
- drivers/mtd/onenand/onenand_base.c        |    2 
- include/asm-arm/arch-omap/gpmc.h          |    7 +
- include/asm-arm/arch-omap/onenand.h       |    1 
- 8 files changed, 187 insertions(+), 42 deletions(-)
+ arch/arm/mach-omap1/mmu.c       |   66 +++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap1/mmu.h       |    4 +-
+ arch/arm/mach-omap2/mmu.c       |   22 +++++++++++++
+ arch/arm/mach-omap2/mmu.h       |    6 ++-
+ arch/arm/plat-omap/mmu.c        |   23 +++++++++++++-
+ include/asm-arm/arch-omap/mmu.h |    8 +++++
+ 6 files changed, 124 insertions(+), 5 deletions(-)
 
-Index: dev/arch/arm/mach-omap2/Makefile
-===================================================================
---- dev.orig/arch/arm/mach-omap2/Makefile
-+++ dev/arch/arm/mach-omap2/Makefile
-@@ -20,7 +20,8 @@ mmu_mach-objs			:= mmu.o
- # Specific board support
- obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
- obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
--obj-$(CONFIG_MACH_OMAP_2430SDP)		+= board-2430sdp.o
-+obj-$(CONFIG_MACH_OMAP_2430SDP)		+= board-2430sdp.o \
-+					   board-2430sdp-flash.o
- obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o
- obj-$(CONFIG_MACH_NOKIA_N800)		+= board-n800.o board-n800-flash.o \
- 					   board-n800-mmc.o board-n800-bt.o \
-Index: dev/arch/arm/mach-omap2/board-2430sdp-flash.c
-===================================================================
---- /dev/null
-+++ dev/arch/arm/mach-omap2/board-2430sdp-flash.c
-@@ -0,0 +1,108 @@
-+/*
-+ * linux/arch/arm/mach-omap2/board-2430sdp-flash.c
-+ *
-+ * Copyright (C) 2007 MontaVista Software, Inc. <source@mvista.com>
-+ * Author: Kevin Hilman
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/platform_device.h>
-+#include <asm/mach/flash.h>
-+#include <linux/mtd/mtd.h>
-+#include <linux/mtd/partitions.h>
-+#include <linux/mtd/onenand_regs.h>
-+
-+#include <asm/io.h>
-+#include <asm/arch/onenand.h>
-+#include <asm/arch/board.h>
-+#include <asm/arch/gpmc.h>
-+
-+#define ONENAND_MAP 0x20000000
-+
-+static struct mtd_partition onenand_partitions[] = {
-+	{
-+		.name		= "(OneNAND)X-Loader",
-+		.offset		= 0,
-+		.size		= 4*(64*2048),  /* 0-3 blks reserved.
-+						   Mandated by ROM code */
-+		.mask_flags	= MTD_WRITEABLE	/* force read-only */
-+	},
-+	{
-+		.name		= "(OneNAND)U-Boot",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		=  2*(64*2048),
-+		.mask_flags	= MTD_WRITEABLE	/* force read-only */
-+	},
-+	{
-+		.name		= "(OneNAND)U-Boot Environment",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= 1*(64*2048),
-+	},
-+	{
-+		.name		= "(OneNAND)Kernel",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= 4*(64*2048),
-+	},
-+	{
-+		.name		= "(OneNAND)File System",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= MTDPART_SIZ_FULL,
-+	},
-+};
-+
-+static struct omap_onenand_platform_data sdp_onenand_data = {
-+	.parts	       = onenand_partitions,
-+	.nr_parts      = ARRAY_SIZE(onenand_partitions),
-+	.dma_channel   = -1,  /* disable DMA in OMAP OneNAND driver */
-+};
-+
-+static struct platform_device sdp_onenand_device = {
-+	.name		= "omap2-onenand",
-+	.id		= -1,
-+	.dev = {
-+		.platform_data = &sdp_onenand_data,
-+	},
-+};
-+
-+void __init sdp2430_flash_init(void)
+diff --git a/arch/arm/mach-omap1/mmu.c b/arch/arm/mach-omap1/mmu.c
+index 7417124..789783c 100644
+--- a/arch/arm/mach-omap1/mmu.c
++++ b/arch/arm/mach-omap1/mmu.c
+@@ -260,6 +260,71 @@ static inline int omap1_mmu_cam_ram_valid(struct cam_ram_regset *cr)
+ 	return cr->cam_l & OMAP_MMU_CAM_V;
+ }
+ 
++static void omap1_mmu_interrupt(struct omap_mmu *mmu)
 +{
-+	unsigned long gpmc_base_add, gpmc_cs_base_add;
-+	unsigned char cs=0;
++	unsigned long status;
++	unsigned long adh, adl;
++	unsigned long dp;
++	unsigned long va;
 +
-+	gpmc_base_add = OMAP243X_GPMC_VIRT;
-+	while (cs < GPMC_CS_NUM) {
-+		int ret = 0;
++	status = omap_mmu_read_reg(mmu, MMU_FAULT_ST);
++	adh = omap_mmu_read_reg(mmu, MMU_FAULT_AD_H);
++	adl = omap_mmu_read_reg(mmu, MMU_FAULT_AD_L);
++	dp = adh & MMU_FAULT_AD_H_DP;
++	va = MK32(adh & MMU_FAULT_AD_H_ADR_MASK, adl);
 +
-+		/* Each GPMC set for a single CS is at offset 0x30 */
-+		gpmc_cs_base_add = (gpmc_base_add + GPMC_CONFIG1_0 + (cs*0x30));
-+
-+		/* xloader/Uboot would have programmed the oneNAND
-+		 * base address for us This is a ugly hack. The proper
-+		 * way of doing this is to pass the setup of u-boot up
-+		 * to kernel using kernel params - something on the
-+		 * lines of machineID. Check if oneNAND is
-+		 * configured */
-+		ret = __raw_readl(gpmc_cs_base_add + GPMC_CS_CONFIG7);
-+		if ((ret & 0x3F) == (ONENAND_MAP >> 24)) {
-+			/* Found it!! */
-+			break;
++	/* if the fault is masked, nothing to do */
++	if ((status & MMUFAULT_MASK) == 0) {
++		pr_debug( "MMU interrupt, but ignoring.\n");
++		/*
++		 * note: in OMAP1710,
++		 * when CACHE + DMA domain gets out of idle in DSP,
++		 * MMU interrupt occurs but MMU_FAULT_ST is not set.
++		 * in this case, we just ignore the interrupt.
++		 */
++		if (status) {
++			pr_debug( "%s%s%s%s\n",
++				  (status & MMU_FAULT_ST_PREF)?
++				  "  (prefetch err)" : "",
++				  (status & MMU_FAULT_ST_PERM)?
++				  "  (permission fault)" : "",
++				  (status & MMU_FAULT_ST_TLB_MISS)?
++				  "  (TLB miss)" : "",
++				  (status & MMU_FAULT_ST_TRANS) ?
++				  "  (translation fault)": "");
++			pr_debug( "fault address = %#08x\n", va);
 +		}
-+		cs++;
-+	}
-+	if (cs >= GPMC_CS_NUM) {
-+		printk("OneNAND: Unable to find oneNAND configuration in GPMC "
-+		       " - not registering.\n");
++		enable_irq(mmu->irq);
 +		return;
 +	}
 +
-+	sdp_onenand_data.cs = cs;
++	pr_info("%s%s%s%s\n",
++		(status & MMU_FAULT_ST_PREF)?
++		(MMUFAULT_MASK & MMU_FAULT_ST_PREF)?
++		"  prefetch err":
++		"  (prefetch err)":
++		"",
++		(status & MMU_FAULT_ST_PERM)?
++		(MMUFAULT_MASK & MMU_FAULT_ST_PERM)?
++		"  permission fault":
++		"  (permission fault)":
++		"",
++		(status & MMU_FAULT_ST_TLB_MISS)?
++		(MMUFAULT_MASK & MMU_FAULT_ST_TLB_MISS)?
++		"  TLB miss":
++		"  (TLB miss)":
++		"",
++		(status & MMU_FAULT_ST_TRANS)?
++		(MMUFAULT_MASK & MMU_FAULT_ST_TRANS)?
++		"  translation fault":
++		"  (translation fault)":
++		"");
++	pr_info("fault address = %#08x\n", va);
 +
-+	if (platform_device_register(&sdp_onenand_device) < 0) {
-+		printk(KERN_ERR "Unable to register OneNAND device\n");
-+		return;
-+	}
++	mmu->fault_address = va;
++	schedule_work(&mmu->irq_work);
 +}
-Index: dev/arch/arm/mach-omap2/board-2430sdp.c
-===================================================================
---- dev.orig/arch/arm/mach-omap2/board-2430sdp.c
-+++ dev/arch/arm/mach-omap2/board-2430sdp.c
-@@ -192,12 +192,16 @@ static struct omap_board_config_kernel s
- 	{OMAP_TAG_UART, &sdp2430_uart_config},
++
+ struct omap_mmu_ops omap1_mmu_ops = {
+ 	.startup	= omap1_mmu_startup,
+ 	.shutdown	= omap1_mmu_shutdown,
+@@ -271,5 +336,6 @@ struct omap_mmu_ops omap1_mmu_ops = {
+ 	.cam_va		= omap1_mmu_cam_va,
+ 	.cam_ram_alloc	= omap1_mmu_cam_ram_alloc,
+ 	.cam_ram_valid	= omap1_mmu_cam_ram_valid,
++	.interrupt	= omap1_mmu_interrupt,
  };
- 
-+extern void __init sdp2430_flash_init(void);
-+
- static void __init omap_2430sdp_init(void)
- {
- 	platform_add_devices(sdp2430_devices, ARRAY_SIZE(sdp2430_devices));
- 	omap_board_config = sdp2430_config;
- 	omap_board_config_size = ARRAY_SIZE(sdp2430_config);
- 	omap_serial_init();
-+
-+	sdp2430_flash_init();
+ EXPORT_SYMBOL_GPL(omap1_mmu_ops);
+diff --git a/arch/arm/mach-omap1/mmu.h b/arch/arm/mach-omap1/mmu.h
+index 3acbb84..9bda297 100644
+--- a/arch/arm/mach-omap1/mmu.h
++++ b/arch/arm/mach-omap1/mmu.h
+@@ -110,7 +110,7 @@ omap_mmu_read_reg(struct omap_mmu *mmu, unsigned long reg)
+ 	return __raw_readw(mmu->base + reg);
  }
  
- static void __init omap_2430sdp_map_io(void)
-Index: dev/arch/arm/mach-omap2/gpmc.c
-===================================================================
---- dev.orig/arch/arm/mach-omap2/gpmc.c
-+++ dev/arch/arm/mach-omap2/gpmc.c
-@@ -51,7 +51,6 @@
- #define GPMC_CS0		0x60
- #define GPMC_CS_SIZE		0x30
+-static void omap_mmu_write_reg(struct omap_mmu *mmu,
++static inline void omap_mmu_write_reg(struct omap_mmu *mmu,
+ 			       unsigned short val, unsigned long reg)
+ {
+ 	__raw_writew(val, mmu->base + reg);
+@@ -119,7 +119,7 @@ static void omap_mmu_write_reg(struct omap_mmu *mmu,
+ int omap_dsp_request_mem(void);
+ void omap_dsp_release_mem(void);
  
--#define GPMC_CS_NUM		8
- #define GPMC_MEM_START		0x00000000
- #define GPMC_MEM_END		0x3FFFFFFF
- #define BOOT_ROM_SPACE		0x100000	/* 1MB */
-Index: dev/drivers/mtd/onenand/omap2.c
-===================================================================
---- dev.orig/drivers/mtd/onenand/omap2.c
-+++ dev/drivers/mtd/onenand/omap2.c
-@@ -80,8 +80,7 @@ static void omap2_onenand_dma_cb(int lch
- 	complete(&info->dma_done);
+-static inline void __dsp_mmu_itack(struct omap_mmu *mmu)
++static inline void omap_mmu_itack(struct omap_mmu *mmu)
+ {
+ 	omap_mmu_write_reg(mmu, OMAP_MMU_IT_ACK_IT_ACK, OMAP_MMU_IT_ACK);
+ }
+diff --git a/arch/arm/mach-omap2/mmu.c b/arch/arm/mach-omap2/mmu.c
+index be8764d..f94057e 100644
+--- a/arch/arm/mach-omap2/mmu.c
++++ b/arch/arm/mach-omap2/mmu.c
+@@ -27,6 +27,7 @@
+ #include <linux/rwsem.h>
+ #include <linux/device.h>
+ #include <linux/mm.h>
++#include <linux/interrupt.h>
+ #include "mmu.h"
+ #include <asm/arch/mmu.h>
+ #include <asm/tlbflush.h>
+@@ -276,6 +277,26 @@ static inline int omap2_mmu_cam_ram_valid(struct cam_ram_regset *cr)
+ 	return cr->cam & OMAP_MMU_CAM_V;
  }
  
--static irqreturn_t omap2_onenand_interrupt(int irq, void *dev_id,
--					   struct pt_regs *regs)
-+static irqreturn_t omap2_onenand_interrupt(int irq, void *dev_id)
++static void omap2_mmu_interrupt(struct omap_mmu *mmu)
++{
++	unsigned long status, va;
++
++	status = MMU_IRQ_MASK & omap_mmu_read_reg(mmu, MMU_IRQSTATUS);
++	va = omap_mmu_read_reg(mmu, MMU_FAULT_AD);
++
++	pr_info("%s\n", (status & OMAP_MMU_IRQ_MULTIHITFAULT)		? "multi hit":"");
++	pr_info("%s\n", (status & OMAP_MMU_IRQ_TABLEWALKFAULT)		? "table walk fault":"");
++	pr_info("%s\n", (status & OMAP_MMU_IRQ_EMUMISS)			? "EMU miss":"");
++	pr_info("%s\n", (status & OMAP_MMU_IRQ_TRANSLATIONFAULT)	? "translation fault":"");
++	pr_info("%s\n", (status & OMAP_MMU_IRQ_TLBMISS)			? "TLB miss":"");
++	pr_info("fault address = %#08lx\n", va);
++
++	omap_mmu_disable(mmu);
++	omap_mmu_write_reg(mmu, status, MMU_IRQSTATUS);
++
++	mmu->fault_address = va;
++	schedule_work(&mmu->irq_work);
++}
+ struct omap_mmu_ops omap2_mmu_ops = {
+ 	.startup	= omap2_mmu_startup,
+ 	.shutdown	= omap2_mmu_shutdown,
+@@ -285,6 +306,7 @@ struct omap_mmu_ops omap2_mmu_ops = {
+ 	.cam_va		= omap2_mmu_cam_va,
+ 	.cam_ram_alloc	= omap2_mmu_cam_ram_alloc,
+ 	.cam_ram_valid	= omap2_mmu_cam_ram_valid,
++	.interrupt	= omap2_mmu_interrupt,
+ };
+ EXPORT_SYMBOL_GPL(omap2_mmu_ops);
+ 
+diff --git a/arch/arm/mach-omap2/mmu.h b/arch/arm/mach-omap2/mmu.h
+index 56b7055..6e721fd 100644
+--- a/arch/arm/mach-omap2/mmu.h
++++ b/arch/arm/mach-omap2/mmu.h
+@@ -88,10 +88,12 @@ omap_mmu_read_reg(struct omap_mmu *mmu, unsigned long reg)
+ 	return __raw_readl(mmu->base + reg);
+ }
+ 
+-static void omap_mmu_write_reg(struct omap_mmu *mmu,
++static inline void omap_mmu_write_reg(struct omap_mmu *mmu,
+ 			       unsigned long val, unsigned long reg)
  {
- 	struct omap2_onenand *info = dev_id;
- 
-@@ -111,11 +110,15 @@ static int omap2_onenand_wait(struct mtd
- 		omap2_onenand_writew(syscfg, info->onenand.base + ONENAND_REG_SYS_CFG1);
- 
- 		INIT_COMPLETION(info->irq_done);
--		result = omap_get_gpio_datain(info->gpio_irq);
--		if (result == -1) {
--			ctrl = omap2_onenand_readw(info->onenand.base + ONENAND_REG_CTRL_STATUS);
--			printk(KERN_ERR "onenand_wait: gpio error, state = %d, ctrl = 0x%04x\n", state, ctrl);
--			return -EIO;
-+		if (info->gpio_irq) {
-+			result = omap_get_gpio_datain(info->gpio_irq);
-+			if (result == -1) {
-+				ctrl = omap2_onenand_readw(info->onenand.base + ONENAND_REG_CTRL_STATUS);
-+				printk(KERN_ERR "onenand_wait: gpio error, state = %d, ctrl = 0x%04x\n", state, ctrl);
-+				return -EIO;
-+			}
-+		} else {
-+			result = 0;
- 		}
- 		if (result == 0) {
- 			int retry_cnt = 0;
-@@ -317,6 +320,11 @@ static int __devinit omap2_onenand_probe
- 	init_completion(&info->dma_done);
- 	info->gpmc_cs = pdata->cs;
- 	info->gpio_irq = pdata->gpio_irq;
-+	info->dma_channel = pdata->dma_channel;
-+	if (info->dma_channel < 0) {
-+		/* if -1, don't use DMA */
-+		info->gpio_irq = 0;
-+	}
- 
- 	r = gpmc_cs_request(info->gpmc_cs, ONENAND_IO_SIZE, &info->phys_base);
- 	if (r < 0) {
-@@ -345,31 +353,41 @@ static int __devinit omap2_onenand_probe
- 		}
-         }
- 
--	if ((r = omap_request_gpio(info->gpio_irq)) < 0) {
--		dev_err(&pdev->dev,  "Failed to request GPIO%d for OneNAND\n",
--		        info->gpio_irq);
--		goto err_iounmap;
--	}
--	omap_set_gpio_direction(info->gpio_irq, 1);
+ 	__raw_writel(val, mmu->base + reg);
+ }
 -
--	if ((r = request_irq(OMAP_GPIO_IRQ(info->gpio_irq),
--			     omap2_onenand_interrupt, SA_TRIGGER_RISING,
--			     pdev->dev.driver->name, info)) < 0)
--		goto err_release_gpio;
++static inline void omap_mmu_itack(struct omap_mmu *mmu)
++{
++}
+ #endif /* __MACH_OMAP2_MMU_H */
+diff --git a/arch/arm/plat-omap/mmu.c b/arch/arm/plat-omap/mmu.c
+index 6b5868e..3f572fd 100644
+--- a/arch/arm/plat-omap/mmu.c
++++ b/arch/arm/plat-omap/mmu.c
+@@ -28,6 +28,7 @@
+ #include <linux/delay.h>
+ #include <linux/clk.h>
+ #include <linux/device.h>
++#include <linux/interrupt.h>
+ #include <asm/uaccess.h>
+ #include <asm/io.h>
+ #include <asm/pgalloc.h>
+@@ -871,6 +872,16 @@ void omap_mmu_enable(struct omap_mmu *mmu, int reset)
+ }
+ EXPORT_SYMBOL_GPL(omap_mmu_enable);
+ 
++static irqreturn_t omap_mmu_interrupt(int irq, void *dev_id)
++{
++	struct omap_mmu *mmu = dev_id;
++
++	if (likely(mmu->ops->interrupt))
++		mmu->ops->interrupt(mmu);
++
++	return IRQ_HANDLED;
++}
++
+ static int omap_mmu_init(struct omap_mmu *mmu)
+ {
+ 	struct omap_mmu_tlb_lock tlb_lock;
+@@ -880,6 +891,14 @@ static int omap_mmu_init(struct omap_mmu *mmu)
+ 	omap_dsp_request_mem();
+ 	down_write(&mmu->exmap_sem);
+ 
++	ret = request_irq(mmu->irq, omap_mmu_interrupt, IRQF_DISABLED,
++			  mmu->name,  mmu);
++	if (ret < 0) {
++		printk(KERN_ERR
++		       "failed to register MMU interrupt: %d\n", ret);
++		goto fail;
++	}
++
+ 	omap_mmu_disable(mmu);	/* clear all */
+ 	udelay(100);
+ 	omap_mmu_enable(mmu, 1);
+@@ -889,7 +908,7 @@ static int omap_mmu_init(struct omap_mmu *mmu)
+ 
+ 	if (unlikely(mmu->ops->startup))
+ 		ret = mmu->ops->startup(mmu);
 -
--	r = omap_request_dma(0, pdev->dev.driver->name,
--			     omap2_onenand_dma_cb, (void *) info,
--			     &info->dma_channel);
--	if (r == 0) {
--		omap_set_dma_write_mode(info->dma_channel, OMAP_DMA_WRITE_NON_POSTED);
--		omap_set_dma_src_data_pack(info->dma_channel, 1);
--		omap_set_dma_src_burst_mode(info->dma_channel, OMAP_DMA_DATA_BURST_8);
--		omap_set_dma_dest_data_pack(info->dma_channel, 1);
--		omap_set_dma_dest_burst_mode(info->dma_channel, OMAP_DMA_DATA_BURST_8);
--	} else {
--		dev_info(&pdev->dev,
--			 "failed to allocate DMA for OneNAND, using PIO instead\n");
--		info->dma_channel = -1;
-+	if (info->gpio_irq) {
-+		if ((r = omap_request_gpio(info->gpio_irq)) < 0) {
-+			dev_err(&pdev->dev,
-+				"Failed to request GPIO%d for OneNAND\n",
-+				info->gpio_irq);
-+			goto err_iounmap;
-+		}
-+		omap_set_gpio_direction(info->gpio_irq, 1);
-+
-+		if ((r = request_irq(OMAP_GPIO_IRQ(info->gpio_irq),
-+				     omap2_onenand_interrupt,
-+				     SA_TRIGGER_RISING,
-+				     pdev->dev.driver->name, info)) < 0)
-+			goto err_release_gpio;
-+	}
-+
-+	if (info->dma_channel >= 0) {
-+		r = omap_request_dma(0, pdev->dev.driver->name,
-+				     omap2_onenand_dma_cb, (void *) info,
-+				     &info->dma_channel);
-+		if (r == 0) {
-+			omap_set_dma_write_mode(info->dma_channel,
-+						OMAP_DMA_WRITE_NON_POSTED);
-+			omap_set_dma_src_data_pack(info->dma_channel, 1);
-+			omap_set_dma_src_burst_mode(info->dma_channel,
-+						    OMAP_DMA_DATA_BURST_8);
-+			omap_set_dma_dest_data_pack(info->dma_channel, 1);
-+			omap_set_dma_dest_burst_mode(info->dma_channel,
-+						     OMAP_DMA_DATA_BURST_8);
-+		} else {
-+			dev_info(&pdev->dev,
-+				 "failed to allocate DMA for OneNAND, "
-+				 "using PIO instead\n");
-+			info->dma_channel = -1;
-+		}
- 	}
++ fail:
+ 	up_write(&mmu->exmap_sem);
+ 	omap_dsp_release_mem();
+ 	clk_disable(mmu->clk);
+@@ -899,6 +918,8 @@ static int omap_mmu_init(struct omap_mmu *mmu)
  
- 	dev_info(&pdev->dev, "initializing on CS%d, phys base 0x%08lx, virtual base %p\n",
-@@ -379,9 +397,12 @@ static int __devinit omap2_onenand_probe
- 	info->mtd.name = pdev->dev.bus_id;
- 	info->mtd.priv = &info->onenand;
- 	info->mtd.owner = THIS_MODULE;
--	info->onenand.wait = omap2_onenand_wait;
--	info->onenand.read_bufferram = omap2_onenand_read_bufferram;
--	info->onenand.write_bufferram = omap2_onenand_write_bufferram;
+ static void omap_mmu_shutdown(struct omap_mmu *mmu)
+ {
++	free_irq(mmu->irq, mmu);
 +
-+	if (info->dma_channel >= 0) {
-+		info->onenand.wait = omap2_onenand_wait;
-+		info->onenand.read_bufferram = omap2_onenand_read_bufferram;
-+		info->onenand.write_bufferram = omap2_onenand_write_bufferram;
-+	}
+ 	if (unlikely(mmu->ops->shutdown))
+ 		mmu->ops->shutdown(mmu);
  
- 	if ((r = onenand_scan(&info->mtd, 1)) < 0)
- 		goto err_release_dma;
-@@ -404,9 +425,11 @@ err_release_onenand:
- err_release_dma:
- 	if (info->dma_channel != -1)
- 		omap_free_dma(info->dma_channel);
--	free_irq(OMAP_GPIO_IRQ(info->gpio_irq), info);
-+	if (info->gpio_irq)
-+		free_irq(OMAP_GPIO_IRQ(info->gpio_irq), info);
- err_release_gpio:
--	omap_free_gpio(info->gpio_irq);
-+	if (info->gpio_irq)
-+		omap_free_gpio(info->gpio_irq);
- err_iounmap:
- 	iounmap(info->onenand.base);
- err_release_mem_region:
-@@ -439,8 +462,10 @@ static int __devexit omap2_onenand_remov
- 		omap_free_dma(info->dma_channel);
- 	omap2_onenand_shutdown(pdev);
- 	platform_set_drvdata(pdev, NULL);
--	free_irq(OMAP_GPIO_IRQ(info->gpio_irq), info);
--	omap_free_gpio(info->gpio_irq);
-+	if (info->gpio_irq) {
-+		free_irq(OMAP_GPIO_IRQ(info->gpio_irq), info);
-+		omap_free_gpio(info->gpio_irq);
-+	}
- 	iounmap(info->onenand.base);
- 	release_mem_region(info->phys_base, ONENAND_IO_SIZE);
- 	kfree(info);
-Index: dev/drivers/mtd/onenand/onenand_base.c
-===================================================================
---- dev.orig/drivers/mtd/onenand/onenand_base.c
-+++ dev/drivers/mtd/onenand/onenand_base.c
-@@ -39,7 +39,7 @@ static struct nand_ecclayout onenand_oob
- 		},
- 	.oobfree	= {
- 		{2, 3}, {14, 2}, {18, 3}, {30, 2},
--		{34, 3}, {46, 2}, {50, 3}, {62, 2}
-+		{34, 3}, {46, 2}, {50, 3}, /* {62, 2} */
- 	}
+diff --git a/include/asm-arm/arch-omap/mmu.h b/include/asm-arm/arch-omap/mmu.h
+index dd2a09a..62b0fa5 100644
+--- a/include/asm-arm/arch-omap/mmu.h
++++ b/include/asm-arm/arch-omap/mmu.h
+@@ -2,6 +2,7 @@
+ #define __ARCH_OMAP_MMU_H
+ 
+ #include <linux/device.h>
++#include <linux/workqueue.h>
+ 
+ #define MMU_REVISION		0x00
+ #define MMU_SYSCONFIG		0x10
+@@ -94,6 +95,8 @@ struct omap_mmu_ops {
+ 	/* Memory operations */
+ 	int (*mem_enable)(struct omap_mmu *, void *);
+ 	int (*mem_disable)(struct omap_mmu *, void *);
++
++	void (*interrupt)(struct omap_mmu *);
  };
  
-Index: dev/include/asm-arm/arch-omap/gpmc.h
-===================================================================
---- dev.orig/include/asm-arm/arch-omap/gpmc.h
-+++ dev/include/asm-arm/arch-omap/gpmc.h
-@@ -11,6 +11,9 @@
- #ifndef __OMAP2_GPMC_H
- #define __OMAP2_GPMC_H
+ struct omap_mmu {
+@@ -117,6 +120,11 @@ struct omap_mmu {
+ 	/* Size of virtual address space, in bits */
+ 	unsigned int addrspace;
  
-+/* Maximum Number of Chip Selects */
-+#define GPMC_CS_NUM		8
++	/* Interrupt */
++	unsigned int irq;
++	unsigned long fault_address;
++	struct work_struct irq_work;
 +
- #define GPMC_CS_CONFIG1		0x00
- #define GPMC_CS_CONFIG2		0x04
- #define GPMC_CS_CONFIG3		0x08
-@@ -22,6 +25,10 @@
- #define GPMC_CS_NAND_ADDRESS	0x20
- #define GPMC_CS_NAND_DATA	0x24
- 
-+#define GPMC_CONFIG		0x50
-+#define GPMC_STATUS		0x54
-+#define GPMC_CONFIG1_0		0x60
-+
- #define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
- #define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
- #define GPMC_CONFIG1_READTYPE_ASYNC     (0 << 29)
-Index: dev/include/asm-arm/arch-omap/onenand.h
-===================================================================
---- dev.orig/include/asm-arm/arch-omap/onenand.h
-+++ dev/include/asm-arm/arch-omap/onenand.h
-@@ -17,4 +17,5 @@ struct omap_onenand_platform_data {
- 	struct mtd_partition	*parts;
- 	int			nr_parts;
- 	int                     (*onenand_setup)(void __iomem *);
-+	int			dma_channel;
+ 	struct omap_mmu_ops *ops;
  };
---
+ 
+-- 
+1.5.1.rc1
