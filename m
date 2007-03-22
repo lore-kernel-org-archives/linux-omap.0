@@ -1,17 +1,12 @@
-From: Paul Mundt <lethal@linux-sh.org>
-Subject: Re: [PATCH 1/2] ARM:OMAP: Add interrupt handling interface in MMU
-	FWK
-Date: Thu, 22 Mar 2007 16:07:37 +0900
-Message-ID: <20070322070737.GA19849@linux-sh.org>
-References: <11744629942386-git-send-email-Hiroshi.DOYU@nokia.com>
-	<11744629971941-git-send-email-Hiroshi.DOYU@nokia.com>
-	<11744629942386-git-send-email-Hiroshi.DOYU@nokia.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: [PATCH 4/4] ARM: OMAP: Update TSC2301 touchscreen config name in
+ board-n800.c
+Date: Thu, 22 Mar 2007 11:15:02 +0200
+Message-ID: <20070322111502.8988f08a.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <11744629971941-git-send-email-Hiroshi.DOYU@nokia.com>
-	<11744629942386-git-send-email-Hiroshi.DOYU@nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,28 +16,26 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Hiroshi.DOYU@nokia.com
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Mar 21, 2007 at 09:43:13AM +0200, Hiroshi.DOYU@nokia.com wrote:
-> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> 
-> This adds the entry point in omap mmu framework to handle mmu
-> interrupt. Users of this framework can use its workqueue interface in
-> order to accomplish their irq-driven work.
-> 
-> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+---
+ arch/arm/mach-omap2/board-n800.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-
-On Wed, Mar 21, 2007 at 09:43:14AM +0200, Hiroshi.DOYU@nokia.com wrote:
-> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> 
-> - Add a new member, a pointer of "struct omap_mmu" in "struct
->   omap_dsp"
-> - Register dsp's interrupt work to MMU FWK
-> 
-> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-
-Acked-by: Paul Mundt <lethal@linux-sh.org>
+diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/board-n800.c
+index 69e5d36..bb805cf 100644
+--- a/arch/arm/mach-omap2/board-n800.c
++++ b/arch/arm/mach-omap2/board-n800.c
+@@ -409,7 +409,7 @@ static struct platform_device n800_keypad_led_device = {
+ };
+ #endif
+ 
+-#if defined(CONFIG_SPI_TSC2301_TOUCHSCREEN)
++#if defined(CONFIG_TOUCHSCREEN_TSC2301)
+ static void __init n800_ts_set_config(void)
+ {
+ 	const struct omap_lcd_config *conf;
+-- 
+1.4.4.4
