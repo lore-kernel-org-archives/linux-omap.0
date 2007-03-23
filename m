@@ -1,21 +1,17 @@
-From: "Kyungmin Park" <kmpark@infradead.org>
-Subject: RE: [RFC/PATCH] ARM: OMAP: OneNAND support for 2430SDP
-Date: Fri, 23 Mar 2007 13:40:52 +0900
-Message-ID: <010701c76d05$725314e0$c7a3580a@swcenter.sec.samsung.co.kr>
-References: <7CE53CF447F0304FBE701B5B442CA3E5648411@dlee13.ent.ti.com>
-	<1174506610.15255.101.camel@vence.hilman.org>
-	<00c001c76c1e$4861dbe0$c7a3580a@swcenter.sec.samsung.co.kr>
-	<4601F48F.6000506@mvista.com>
-	<00c401c76c3d$930c7320$c7a3580a@swcenter.sec.samsung.co.kr>
-	<00c501c76c3f$3f97a230$c7a3580a@swcenter.sec.samsung.co.kr>
-	<1174582390.8614.54.camel@vence.hilman.org>
-Reply-To: kmpark@infradead.org
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP: TCM825x: Add driver.
+Date: Fri, 23 Mar 2007 18:54:54 +0530
+Message-ID: <5d5443650703230624h79d5b046u65fa094ee7e79719@mail.gmail.com>
+References: <4602B745.7000006@nokia.com>
+	<11745832253226-git-send-email-sakari.ailus@nokia.com>
+	<11745832251620-git-send-email-sakari.ailus@nokia.com>
+	<11745832251952-git-send-email-sakari.ailus@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ks_c_5601-1987"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-reply-to: <1174582390.8614.54.camel@vence.hilman.org>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <11745832251952-git-send-email-sakari.ailus@nokia.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -23,101 +19,82 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: 'Kevin Hilman' <khilman@mvista.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Sakari Ailus <sakari.ailus@nokia.com>
+Cc: eduardo.valentin@indt.org.br, linux-omap-open-source@linux.omap.com, ilias.biris@indt.org.br
 List-Id: linux-omap@vger.kernel.org
 
+On 3/22/07, Sakari Ailus <sakari.ailus@nokia.com> wrote:
+> Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
+> ---
+>  drivers/media/video/omap/sensor_tcm825x.c | 1097 +++++++++++++++++++++++++++++
+>  drivers/media/video/omap/tcm825x.h        |  179 +++++
+>  2 files changed, 1276 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/omap/sensor_tcm825x.c
+>  create mode 100644 drivers/media/video/omap/tcm825x.h
+>
+> diff --git a/drivers/media/video/omap/sensor_tcm825x.c b/drivers/media/video/omap/sensor_tcm825x.c
+> new file mode 100644
+> index 0000000..dd01851
+> --- /dev/null
+> +++ b/drivers/media/video/omap/sensor_tcm825x.c
+> @@ -0,0 +1,1097 @@
+> +/*
+> + * drivers/media/video/omap/sensor_tcm825x.c
+> + *
+> + * TCM825X Sensor driver for OMAP camera sensor interface
+> + *
+> + * Author: David Cohen (david.cohen@indt.org.br)
+> + *
+> + * This file is licensed under the terms of the GNU General Public License
+> + * version 2. This program is licensed "as is" without any warranty of any
+> + * kind, whether express or implied.
+> + *
+> + * This driver was based on ov9640 sensor driver from MontaVista
+> + */
+> +
+> +#include <linux/errno.h>
+> +#include <linux/i2c.h>
+> +#include <linux/videodev.h>
+> +#include <linux/delay.h>
+> +#include <media/video-buf.h>
+> +
+> +#include <asm/mach-types.h>
+> +
+> +#include <asm/arch/board.h>
+> +#include <asm/arch/gpio.h>
+> +
+> +#include "sensor_if.h"
+> +#include "tcm825x.h"
+> +
+> +#define OMAP24XX_CAMERA_JAM_HACK
+> +
+> +#ifdef OMAP24XX_CAMERA_JAM_HACK
+> +/*
+> + * We don't need to check every pixel to assume that the frame is
+> + * corrupt and the sensor is jammed. CHECK_X and CHECK_Y are the
+> + * number of u32s to check per line / row, plus there are two lines in
+> + * the bottom of the frame.
+> + */
+> +#define CHECK_X 8
+> +#define CHECK_Y 6
+> +/*
+> + * Start checking after this many frames since resetting the sensor.
+> + * Sometimes the first frame(s) is(/are) black which could trigger
+> + * unwanted reset(s).
+> + */
+> +#define JAM_CHECK_AFTER 3
+> +/*
+> + * If the sensor is quickly brough into bright conditions from dark,
+> + * it may temporarily be saturated, leaving out the normal background
+> + * noise. This many saturated frames may go through before the sensor
+> + * is considered jammed.
+> + */
 
-> > > > 
-> > > > Kyungmin Park wrote:
-> > > > >>>> RFC: Notice the change to onenand_base.c which comments 
-> > > > >> out the last
-> > > > >>>>      OOB chunk.  Without this, it would not work.  
-> > > > >> Previous drivers
-> > > > >>>>      for this board such as the 2.6.10-based MV kernel 
-> > > have this
-> > > > >>>>      same change.  Anyone know what is going on here?
-> > > > >>>>
-> > > > >>> We got this change from MV in the patch he sent to fix an 
-> > > > >> issue we were
-> > > > >>> seeing with mounting an empty jffs2 partition. Here are 
-> > > > the comments
-> > > > >>> that came in with it
-> > > > >>>
-> > > > >>> " The oobfree list in the MTD OneNAND driver is of 
-> > > length 8.  This
-> > > > >>> exceeds the maximum length of 7, because the eighth entry 
-> > > > >> must be used
-> > > > >>> as a null terminator.  The absence of a terminator causes a 
-> > > > >> variety of
-> > > > >>> problems in various places (especially JFFS2 and 
-> > > YAFFS2) where the
-> > > > >>> oobfree list is scanned.  The fix is to do without the 
-> > > > >> eighth entry. 
-> > > > > 
-> > > > > Colud you point out the source code line where used the 
-> > > > eightn entry used as a
-> > > > > null terminator?
-> > > > > 
-> > > > 
-> > > > There are several loops in both the NAND and the OneNAND code 
-> > > > where the
-> > > > oobfree list is walked and the loop only terminates when it 
-> > > > finds a NULL
-> > > > entry (specifically, one with a zero length.)
-> > > > 
-> > > > For example, look in onenand_fill_auto_oob() where you 
-> have a couple
-> > > > loops like this:
-> > > > 
-> > > >     for (free = this->ecclayout->oobfree; free->length; 
-> ++free) {
-> > > >     }
-> > > > 
-> > > > In the case where there is 8 non-zero entries in the oobfree 
-> > > > list, this
-> > > > loop will walk off the end of the list before it terminates, 
-> > > > and having
-> > > > undefined results depending on what is after the oobfree list 
-> > > > in memory.
-> > > > 
-> > > > Instead, these loops should probably loop over 
-> > > > MTD_MAX_OOBFREE_ENTRIES,
-> > > > and break out early if they find a zero-length entry.
-> > > 
-> > > Yes, you're right. It met the same problem in the 
-> previous mail [1]. 
-> > > Could you apply patch [2] and test again. it will be work.
-> > > 
-> > > Anyway I will fix it to check array length.
-> > 
-> > 
-> > Here's patch. Yes I know it's maybe wordwrapped. Sorry :)
-> 
-> You missed the loop in onenand_scan() which walks the freelist.  Patch
-> below covers all the cases, and was tested to work on 2430.
+typo. s/brough/brought
 
-Ah yes, thank you for point out.
-Then is it OK to work on 2430?
+I will see if I can test this new sensor interface changes with ov9640 on H4.
 
-> 
-> Note that you should raise this on linux-mtd as there are 
-> similar loops
-> in the drivers/mtd/nand* code.  The problem has never come up because
-> all the drivers have less than 8 oobfree chunks defined.
-> 
-
-I commit it to OneNAND MTD tree.
-
-http://git.infradead.org/?p=users/kmpark/onenand-mtd-
-2.6.git;a=commitdiff;h=f8405f395dc8a53426ba4ed629a90955b9a46ade
-
-Frankly why do we calculate the oobavail variable? It's fixed. is it?
-
-I prepared to patch moving from data section to rodata section by make static
-const.
-
-Thank you,
-Kyungmin Park
+-- 
+--Trilok Soni
