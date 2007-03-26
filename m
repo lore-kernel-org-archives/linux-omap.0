@@ -1,10 +1,10 @@
-From: Philip Balister <philip@balister.org>
-Subject: /proc/pic/smaps output
-Date: Sun, 25 Mar 2007 14:21:26 -0400
-Message-ID: <4606BDA6.70907@balister.org>
+From: Zgembo Adislic <adislic_zgembo@yahoo.com>
+Subject: Difference between OMAP5910 and OMAP1510
+Date: Mon, 26 Mar 2007 02:24:05 -0700 (PDT)
+Message-ID: <687308.67525.qm@web30615.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,23 +15,19 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-Omap-Open-Source <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-I am using pmap to try and estimate process memory usage on the OSK 
-(with the 2.6.20 omap kernel). Here is a short section of output:
+Hello,
 
-40024000   1340K  r-x--  /usr/lib/libomniORB4.so.0.7
-40173000     32K  -----  /usr/lib/libomniORB4.so.0.7
-4017b000     44K  rw---  /usr/lib/libomniORB4.so.0.7
+Can anyone give me some explanation about differences between OMAP5910 and OMAP1510. I am a little confused!
 
-I am not sure how to interpret the section marked -----. If I look 
-directly at the output of /proc/<pid>/smaps, the ----- corresponds to 
----p . If I look on my x86 machine, this section appears be r-xp.
+If I am using OMAP5910 and would like to move to better platform is it better to consider OMAP2 as may successor or DaVinci DM644x.
 
-Does anyone have any insight into this? I do not understand why a 
-library would be maped as unreadble, unwritable, and not executable.
+Tnx,
+Zgembo Adislic 
 
-Thanks,
-
-Philip
+ 
+---------------------------------
+Don't be flakey. Get Yahoo! Mail for Mobile and 
+always stay connected to friends.
