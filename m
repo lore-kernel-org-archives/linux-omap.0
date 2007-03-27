@@ -1,15 +1,12 @@
-From: "Zhang, Jian" <jzhang@ti.com>
-Subject: RE: ALSA on OMAP2
-Date: Tue, 27 Mar 2007 10:42:50 -0500
-Message-ID: <4044722E22DAA544B0D1A88BE9CE24DD0B2CA9@dlee15.ent.ti.com>
-References: <46093950.7030004@mvista.com>
+From: "Wael Adel" <showairovic@gmail.com>
+Subject: connecting omap and comp using usb cable
+Date: Tue, 27 Mar 2007 11:46:52 -0400
+Message-ID: <bd205c5f0703270846o18660b1cw6c9440f1bfd27627@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <46093950.7030004@mvista.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,35 +16,72 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kevin Hilman <khilman@mvista.com>, OMAP-Linux <linux-omap-open-source@linux.omap.com>
-Cc: hnagalla@ti.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Kevin,
+hi all,
+i want to communicate with the OMAP kit through the usb cable.
 
-I have put a quick ALSA driver for 2430SDP last fall. Hari took the work
-on our 2.6.14 tree. The playback/record/config functionalities are all
-implemented as far as I know. We like to work with you to push our code
-to the community.=20
+so i made the following small program as a first step  to open the
+device as follows: (Note that i have made by taking copy of flash
+recovery program omapf1)
+********************************************************************************************************
+#include <stdio.h>
+#include <string.h>
+#include <usb.h>
 
-Regards,
-Jian
+#define OMAP_VENDOR     0x0451
+#define OMAP_PRODUCT    0x3f00
+#define IN_EP   0x81
+#define OUT_EP  0x02
 
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
-Kevin Hilman
-Sent: Tuesday, March 27, 2007 10:34 AM
-To: OMAP-Linux
-Subject: ALSA on OMAP2
+int main(int argc, char *argv[])
+{
+  usb_init();
+  usb_find_busses();
 
-Is anyone using ALSA on the 2420?
 
-I'm starting to work on ALSA for the TWL4030 on the 2430 but wanted to
-know if anyone has tried on it on any other OMAP2 platforms yet.
+       fprintf (stderr, "Waiting to OMAP-USB connection\n");
+        for (;;)
+        {
+                sleep (1);
 
-Kevin
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+                int     n= usb_find_devices ();
+                if (n)
+                {
+                        struct usb_bus  *bus;
+                        for (bus= usb_get_busses (); bus; bus= bus->next)
+                        {
+                                struct usb_device       *dev;
+
+                                for (dev= bus->devices; dev; dev= dev->next)
+                                {
+                                        usb_dev_handle  *handle;
+                                        if (dev->descriptor.idVendor
+== OMAP_VENDOR  &&
+
+dev->descriptor.idProduct == OMAP_PRODUCT  &&
+                                                (handle= usb_open
+(dev)) != NULL)
+                                        {
+                                                printf("Device is
+opened successfully\n");
+                                        }
+                                }
+                        }
+                }
+        }
+  return 0;
+}
+********************************************************************************************************************
+
+but u guess what?
+when i run this small program,i got the following output:
+
+Waiting to OMAP-USB connection
+
+note that i checked that the usb cable is connected well between my
+comp and the kit.
+Also i checked that jumper 3 is set to pins (1,2)
+do u have any ideas why the device is not found?
+thanks in advance.
