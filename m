@@ -1,12 +1,15 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.21-rc4-omap1] partial LED fixes
-Date: Wed, 28 Mar 2007 13:09:36 -0700
-Message-ID: <200703281309.36356.david-b@pacbell.net>
+Subject: Re: [PATCH 1/4] FB: sync with N800 tree (support for dynamic SRAM
+	allocations)
+Date: Wed, 28 Mar 2007 16:38:14 -0700
+Message-ID: <200703281638.14657.david-b@pacbell.net>
+References: <20070305120706.GA4435@bitbox.mine.nu>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20070305120706.GA4435@bitbox.mine.nu>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -20,53 +23,43 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Partial fix for CONFIG_LEDS breakage ... at least allow platforms
-using the debug-leds support (H4 for now) to build with the generic
-LED support, and default the LED that would be the timer LED to
-trigger using the "heartbeat" (timer driven, rate depends on load).
+On Monday 05 March 2007 4:07 am, Imre Deak wrote:
+> - in addition to fixed FB regions - as passed by the bootloader -
+>   allow dynamic allocations
+> - do some more checking against overlapping / reserved regions
+> - move the FB specific parts out from sram.c to fb.c
+> 
+> Signed-off-by: Imre Deak <imre.deak@solidboot.com>
+> ---
+>  arch/arm/mach-omap1/io.c           |    4 +-
+>  arch/arm/mach-omap2/io.c           |    3 +-
+>  arch/arm/plat-omap/fb.c            |  271 ++++++++++++++++++++++++++++++++----
+>  arch/arm/plat-omap/sram.c          |   60 ++-------
+>  include/asm-arm/arch-omap/omapfb.h |    5 +
+>  include/asm-arm/arch-omap/sram.h   |    3 -
+>  6 files changed, 261 insertions(+), 85 deletions(-)
 
-Right now only H2 and P2 seem to have working LED support; this
-at least makes H4 less broken.
+OK, I verified:  reverting this lets my H4 board boot.
+Alternatively, the fix is to get rid of a GCC warning,
+so that stack garbage doesn't get used ...
+
+=========	CUT HERE
+Fix GCC-reported compile time bug which prevents booting
+when the framebuffer code is disabled.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 
---- a/arch/arm/plat-omap/debug-leds.c
-+++ b/arch/arm/plat-omap/debug-leds.c
-@@ -39,12 +39,6 @@ static struct h2p2_dbg_fpga __iomem	*fpg
- static u16				led_state, hw_led_state;
+--- a/arch/arm/plat-omap/fb.c
++++ b/arch/arm/plat-omap/fb.c
+@@ -327,7 +327,10 @@ unsigned long omapfb_reserve_sram(unsign
+ 				  unsigned long sram_vstart,
+ 				  unsigned long sram_size,
+ 				  unsigned long start_avail,
+-				  unsigned long size_avail) {}
++				  unsigned long size_avail)
++{
++	return 0;
++}
  
  
--#ifdef	CONFIG_LEDS
--#define old_led_api()	1
--#else
--#define old_led_api()	0
--#endif
--
- #ifdef	CONFIG_LEDS_OMAP_DEBUG
- #define new_led_api()	1
- #else
-@@ -202,7 +196,8 @@ struct dbg_led {
- static struct dbg_led dbg_leds[] = {
- 	/* REVISIT at least H2 uses different timer & cpu leds... */
- #ifndef CONFIG_LEDS_TIMER
--	{ .mask = 1 << 0,  .cdev.name =  "d4:green", },		/* timer */
-+	{ .mask = 1 << 0,  .cdev.name =  "d4:green",
-+		.cdev.default_trigger = "heartbeat", },
  #endif
- #ifndef CONFIG_LEDS_CPU
- 	{ .mask = 1 << 1,  .cdev.name =  "d5:green", },		/* !idle */
-@@ -274,10 +269,10 @@ static int /* __init */ fpga_probe(struc
- 	fpga = ioremap(iomem->start, H2P2_DBG_FPGA_SIZE);
- 	__raw_writew(~0, &fpga->leds);
- 
--	if (old_led_api()) {
--		leds_event = h2p2_dbg_leds_event;
--		leds_event(led_start);
--	}
-+#ifdef	CONFIG_LEDS
-+	leds_event = h2p2_dbg_leds_event;
-+	leds_event(led_start);
-+#endif
- 
- 	if (new_led_api()) {
- 		newled_init(&pdev->dev);
