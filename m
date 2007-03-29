@@ -1,13 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.21-rc4-omap1] partial LED fixes
-Date: Thu, 29 Mar 2007 16:28:41 -0400
-Message-ID: <20070329202840.GL3638@atomide.com>
-References: <200703281309.36356.david-b@pacbell.net>
+Subject: Re: TSC2101/2102
+Date: Thu, 29 Mar 2007 16:26:06 -0400
+Message-ID: <20070329202600.GJ3638@atomide.com>
+References: <20070309140650.GC4399@bitbox.mine.nu>
+	<fb249edb0703090623o367ec663h85dc581644cb258d@mail.gmail.com>
+	<45F7F6D4.20203@gmail.com> <20070314170952.GB10230@bitbox.mine.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <200703281309.36356.david-b@pacbell.net>
+In-Reply-To: <20070314170952.GB10230@bitbox.mine.nu>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,62 +19,37 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap-open-source@linux.omap.com
+To: Imre Deak <imre.deak@solidboot.com>
+Cc: Linux OMAP ML <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [070328 17:20]:
-> Partial fix for CONFIG_LEDS breakage ... at least allow platforms
-> using the debug-leds support (H4 for now) to build with the generic
-> LED support, and default the LED that would be the timer LED to
-> trigger using the "heartbeat" (timer driven, rate depends on load).
+* Imre Deak <imre.deak@solidboot.com> [070314 13:16]:
+> On Wed, Mar 14, 2007 at 08:21:24AM -0500, Nishanth Menon wrote:
+> > andrzej zaborowski stated on 3/9/2007 8:23 AM:
+> > > On 09/03/07, Imre Deak <imre.deak@solidboot.com> wrote:
+> > >> I'm wondering about the proper way to convert the existing omap-tsc2101
+> > >> driver to the SPI framework. Would it make sense to handle it with the
+> > >> tsc2102 driver? omap-tsc2101 has only the register read / write
+> > >> interface
+> > >> which is the same as in tsc2102.
+> > >
+> > > How about maybe a header file <linux/spi/tsc2xxx.h> shared between
+> > > tsc2101/2102 with the register access functions as "static inline"
+> > > functions?
+> > Some TODOs:
+> > 1. should interrupt muxing be done here?
+> > 2. There are some TSC2005 devices(TS only).. so it will be interesting
+> > to see xxxx.h scales to all..
+> > 3. rename this to tsc2xxx_core.[ch]
+> > 4. use SPI framework (would not break uwire support I believe).
 > 
-> Right now only H2 and P2 seem to have working LED support; this
-> at least makes H4 less broken.
+> The attached patches try to do #4. Please review it / sign it off as
+> necessary.
 > 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> 
-> --- a/arch/arm/plat-omap/debug-leds.c
-> +++ b/arch/arm/plat-omap/debug-leds.c
-> @@ -39,12 +39,6 @@ static struct h2p2_dbg_fpga __iomem	*fpg
->  static u16				led_state, hw_led_state;
->  
->  
-> -#ifdef	CONFIG_LEDS
-> -#define old_led_api()	1
-> -#else
-> -#define old_led_api()	0
-> -#endif
-> -
->  #ifdef	CONFIG_LEDS_OMAP_DEBUG
->  #define new_led_api()	1
->  #else
-> @@ -202,7 +196,8 @@ struct dbg_led {
->  static struct dbg_led dbg_leds[] = {
->  	/* REVISIT at least H2 uses different timer & cpu leds... */
->  #ifndef CONFIG_LEDS_TIMER
-> -	{ .mask = 1 << 0,  .cdev.name =  "d4:green", },		/* timer */
-> +	{ .mask = 1 << 0,  .cdev.name =  "d4:green",
-> +		.cdev.default_trigger = "heartbeat", },
->  #endif
->  #ifndef CONFIG_LEDS_CPU
->  	{ .mask = 1 << 1,  .cdev.name =  "d5:green", },		/* !idle */
-> @@ -274,10 +269,10 @@ static int /* __init */ fpga_probe(struc
->  	fpga = ioremap(iomem->start, H2P2_DBG_FPGA_SIZE);
->  	__raw_writew(~0, &fpga->leds);
->  
-> -	if (old_led_api()) {
-> -		leds_event = h2p2_dbg_leds_event;
-> -		leds_event(led_start);
-> -	}
-> +#ifdef	CONFIG_LEDS
-> +	leds_event = h2p2_dbg_leds_event;
-> +	leds_event(led_start);
-> +#endif
->  
->  	if (new_led_api()) {
->  		newled_init(&pdev->dev);
+> There is an upcoming TSC2301 patch, that should also be taken
+> into account when creating a tsc2xxx-core.[ch] based on the existing
+> TSC driver implementations.
 
-Pushing today.
+I'll push these 3 patches today.
 
 Tony
