@@ -1,15 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] FB: sync with N800 tree (support for dynamic SRAM
-	allocations)
-Date: Thu, 29 Mar 2007 16:30:19 -0400
-Message-ID: <20070329203017.GO3638@atomide.com>
-References: <20070305120706.GA4435@bitbox.mine.nu>
-	<200703281638.14657.david-b@pacbell.net>
+Subject: Re: [patch 2.6.21-rc4-omap1] fix H4 dependencies again
+Date: Thu, 29 Mar 2007 16:28:18 -0400
+Message-ID: <20070329202817.GK3638@atomide.com>
+References: <200703281302.10190.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <200703281638.14657.david-b@pacbell.net>
+In-Reply-To: <200703281302.10190.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,53 +15,41 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap-open-source@linux.omap.com
+Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [070328 19:39]:
-> On Monday 05 March 2007 4:07 am, Imre Deak wrote:
-> > - in addition to fixed FB regions - as passed by the bootloader -
-> >   allow dynamic allocations
-> > - do some more checking against overlapping / reserved regions
-> > - move the FB specific parts out from sram.c to fb.c
-> > 
-> > Signed-off-by: Imre Deak <imre.deak@solidboot.com>
-> > ---
-> >  arch/arm/mach-omap1/io.c           |    4 +-
-> >  arch/arm/mach-omap2/io.c           |    3 +-
-> >  arch/arm/plat-omap/fb.c            |  271 ++++++++++++++++++++++++++++++++----
-> >  arch/arm/plat-omap/sram.c          |   60 ++-------
-> >  include/asm-arm/arch-omap/omapfb.h |    5 +
-> >  include/asm-arm/arch-omap/sram.h   |    3 -
-> >  6 files changed, 261 insertions(+), 85 deletions(-)
-> 
-> OK, I verified:  reverting this lets my H4 board boot.
-> Alternatively, the fix is to get rid of a GCC warning,
-> so that stack garbage doesn't get used ...
-> 
-> =========	CUT HERE
-> Fix GCC-reported compile time bug which prevents booting
-> when the framebuffer code is disabled.
+* David Brownell <david-b@pacbell.net> [070328 17:24]:
+> Fix Kconfig sequencing:  the 2430 SDP keeps getting stuffed
+> in the middle of H4 dependencies, so the various H4-specific
+> config options aren't displayed as depending on H4.
 > 
 > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 > 
-> --- a/arch/arm/plat-omap/fb.c
-> +++ b/arch/arm/plat-omap/fb.c
-> @@ -327,7 +327,10 @@ unsigned long omapfb_reserve_sram(unsign
->  				  unsigned long sram_vstart,
->  				  unsigned long sram_size,
->  				  unsigned long start_avail,
-> -				  unsigned long size_avail) {}
-> +				  unsigned long size_avail)
-> +{
-> +	return 0;
-> +}
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -37,10 +37,6 @@ config MACH_OMAP_H4
+>  	select OMAP_DEBUG_DEVICES
+>  	select GPIOEXPANDER_OMAP
 >  
->  
->  #endif
+> -config MACH_OMAP_2430SDP
+> -	bool "OMAP 2430 SDP board"
+> -	depends on ARCH_OMAP2 && ARCH_OMAP24XX
+> -
+>  config MACH_OMAP_H4_TUSB
+>  	bool "TUSB 6010 EVM board"
+>  	depends on MACH_OMAP_H4
+> @@ -78,3 +74,8 @@ config MACH_OMAP2_H4_USB1
+>  config MACH_OMAP_APOLLON
+>  	bool "OMAP 2420 Apollon board"
+>  	depends on ARCH_OMAP2 && ARCH_OMAP24XX
+> +
+> +config MACH_OMAP_2430SDP
+> +	bool "OMAP 2430 SDP board"
+> +	depends on ARCH_OMAP2 && ARCH_OMAP24XX
+> +
 
 Pushing today.
 
