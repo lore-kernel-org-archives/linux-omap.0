@@ -1,16 +1,13 @@
-From: "sandeep lahane" <sandeep.lahane@gmail.com>
-Subject: Re: CSMI driver for OMAP 730
-Date: Thu, 29 Mar 2007 16:27:48 +0530
-Message-ID: <2d51cbf80703290357l7daa94e0y3df96dde4aa2e9eb@mail.gmail.com>
-References: <2d51cbf80703280451k64d9e3c6hea75ff532ebc1599@mail.gmail.com>
-	<2d51cbf80703290326j5ee09943ha59f869dfecc177f@mail.gmail.com>
-	<000901c771f0$3a2484b0$4ddfa8c0@ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] Basic support for OMAP24xx EAC
+Date: Thu, 29 Mar 2007 16:08:11 -0400
+Message-ID: <20070329200809.GF3638@atomide.com>
+References: <20070302125947.84276a06.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <000901c771f0$3a2484b0$4ddfa8c0@ent.ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
+In-Reply-To: <20070302125947.84276a06.jarkko.nikula@nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,60 +15,26 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Srikrishna <srikrishna@ti.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On 3/29/07, Srikrishna <srikrishna@ti.com> wrote:
-> Hi Sandeep,
-> CSMI driver is TI  proprietary.And one has to get from TI , If you are from
-> ODN they contact ODN support. If  you are not then you need to use Monsta
-> vista licensed version of BSP for OMAP 730.
-> Thanks & Regds,
-> Krishna
-> TI -  MCS
-> Ph: +91 80 66944167
-> ----- Original Message -----
-> From: "sandeep lahane" <sandeep.lahane@gmail.com>
-> To: <linux-omap-open-source@linux.omap.com>
-> Sent: Thursday, March 29, 2007 3:56 PM
-> Subject: Re: CSMI driver for OMAP 730
->
->
-> > On 3/28/07, sandeep lahane <sandeep.lahane@gmail.com> wrote:
-> >> Hello,
-> >>
-> >> I have read some where while googling that CSMI driver for OMAP 730 is
-> >> already there, couldn't find it though. Any pointers will be helpful.
-> >>
-> >>
-> >> --
-> >>
-> >> Regards,
-> >> Sandeep.
-> >>
-> >
-> > Has anyone ever written/seen any CSMI driver for any of the OMAPs (not
-> > necessarily for OMAP 730)? This driver is supposed to handle
-> > coprocessor shared memory interface i.e. communication like sync etc
-> > between the ARM MPU and the base band processor.
-> >
-> > --
-> >
-> > Regards,
-> > Sandeep.
-> > _______________________________________________
-> > Linux-omap-open-source mailing list
-> > Linux-omap-open-source@linux.omap.com
-> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> >
->
->
+Hi,
 
-Thanks Srikrishna.
--- 
+* Jarkko Nikula <jarkko.nikula@nokia.com> [070302 07:06]:
+> Hi
+> 
+> I'm sending here patches to have basic support for OMAP24xx Enhanced Audio Controller. This is pretty much useless without DSP and does contain support only for I2S link.
+> 
+> Basically this is mostly same what was in released N800 source code. Only functional difference is small fix in eac_enable_clocks function and some long line clean-ups.
+> 
+> Major difference is that I removed ugly register description comments and then put them back as a separate patch. These are originated, IIRC, from some reference implementation header file. That second patch we don't want to push :-)
+> 
+> 1/2: Actual EAC patch for review/push
+> 2/2: DON'T push, just for reference
 
-Regards,
-Sandeep.
+Pushing these today. I split the board init into a separate patch.
+
+Tony
