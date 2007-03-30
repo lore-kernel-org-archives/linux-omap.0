@@ -1,12 +1,17 @@
-From: "Eduardo Valentin" <edubezval@gmail.com>
-Subject: Zoom, crop and scaling v4l2 device capabilities
-Date: Mon, 2 Apr 2007 15:08:29 -0400
-Message-ID: <a0580c510704021208p2ea32c9cma87fad250a687226@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM:OMAP: Add interrupt handling interface in MMU
+	FWK
+Date: Fri, 30 Mar 2007 15:00:24 -0400
+Message-ID: <20070330190022.GF18375@atomide.com>
+References: <11744629942386-git-send-email-Hiroshi.DOYU@nokia.com>
+	<11744629971941-git-send-email-Hiroshi.DOYU@nokia.com>
+	<11744629942386-git-send-email-Hiroshi.DOYU@nokia.com>
+	<20070322070737.GA19849@linux-sh.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
+In-Reply-To: <20070322070737.GA19849@linux-sh.org>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,43 +21,33 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux OMAP ML <linux-omap-open-source@linux.omap.com>
+To: Paul Mundt <lethal@linux-sh.org>
+Cc: linux-omap-open-source@linux.omap.com, Hiroshi.DOYU@nokia.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello all,
+* Paul Mundt <lethal@linux-sh.org> [070322 03:11]:
+> On Wed, Mar 21, 2007 at 09:43:13AM +0200, Hiroshi.DOYU@nokia.com wrote:
+> > From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> > 
+> > This adds the entry point in omap mmu framework to handle mmu
+> > interrupt. Users of this framework can use its workqueue interface in
+> > order to accomplish their irq-driven work.
+> > 
+> > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> 
+> Acked-by: Paul Mundt <lethal@linux-sh.org>
+> 
+> On Wed, Mar 21, 2007 at 09:43:14AM +0200, Hiroshi.DOYU@nokia.com wrote:
+> > From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> > 
+> > - Add a new member, a pointer of "struct omap_mmu" in "struct
+> >   omap_dsp"
+> > - Register dsp's interrupt work to MMU FWK
+> > 
+> > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> 
+> Acked-by: Paul Mundt <lethal@linux-sh.org>
 
+Pushing today.
 
-  I'm currently starting to work with v4l. I'm not sure if this is
-the right place to post this question, but as this group has relation
-with v4l, I'll try also here.
-
-  The question is about digital zoom capabilities. I'm a little
-confused about how to implement crop related ioctls in a v4l2 driver.
-
-  First of all, what is the common application flow to probe zoom
-capabilities from
-a v4l2 driver? What is the common application flow to get and set current zoom
-settings from a v4l2 driver? AFAIU, applications must combine
-VIDIOC_CROPCAP, VIDIOC_[S,G]_CROP with VIDIOC_[S,G]_FMT.
-What application is a good example for this issue?
-
-  Suppose a device which supports following modes:
-- mode 1 (640, 480),
-- mode 2 (320, 240) from window (0,0) to (640, 480) and
-- mode 3 (320, 240) from  window (161, 121) to (480, 360)
-
-  What is the best way to implement this support? I can see at least
-one option here: export the bounds and defrect for cropcap as 640x480.
-When applications request formats, return to them what best fits
-between 640x480 or 320x240. And then, when applications request crop
-window modification, the behaviour would be, if they request a crop
-window equal to defrect, the device is changed to mode 1 or 2
-(depending on the current format).  however if the crop window
-requested is smaller then defrect, the mode 3 is configured. Is this
-behaviour expected or I misunderstood something?
-
-
-Cheers,
-
---
-Eduardo Bezerra Valentin
+Tony
