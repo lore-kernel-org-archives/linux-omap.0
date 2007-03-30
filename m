@@ -1,15 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP: Kconfig: replace ARCH_OMAP243X with
-	ARCH_OMAP2430
-Date: Fri, 30 Mar 2007 14:57:45 -0400
-Message-ID: <20070330185743.GD18375@atomide.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP: Fix PRCM base register usage for 243x
+Date: Fri, 30 Mar 2007 14:58:18 -0400
+Message-ID: <20070330185816.GE18375@atomide.com>
 References: <20070321000748.659921000@mvista.com>
-	<20070321000826.983707000@mvista.com>
+	<20070321000827.284905000@mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20070321000826.983707000@mvista.com>
+In-Reply-To: <20070321000827.284905000@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -24,14 +23,38 @@ Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 * Kevin Hilman <khilman@mvista.com> [070320 20:09]:
+> The PRCM base register is different on 242x and 243x.  Use
+> the #ifdef'd #define from omap24xx.h instead of the locally
+> defined one.
+> 
 > Signed-off-by: Kevin Hilman <khilman@mvista.com>
+> 
 > ---
->  arch/arm/configs/omap_2430sdp_defconfig |  322 ++++++++++++++++++++++++++++----
->  arch/arm/mach-omap2/prcm-regs.h         |    4 
->  drivers/usb/musb/musbdefs.h             |    2 
->  drivers/usb/musb/omap2430.h             |    2 
->  drivers/usb/musb/plat_uds.c             |    2 
->  5 files changed, 287 insertions(+), 45 deletions(-)
+>  arch/arm/mach-omap2/pm.c |    3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> Index: dev/arch/arm/mach-omap2/pm.c
+> ===================================================================
+> --- dev.orig/arch/arm/mach-omap2/pm.c
+> +++ dev/arch/arm/mach-omap2/pm.c
+> @@ -51,7 +51,6 @@
+>  #include <asm/arch/dma.h>
+>  #include <asm/arch/board.h>
+>  
+> -#define PRCM_BASE		0x48008000
+>  #define PRCM_REVISION		0x000
+>  #define PRCM_SYSCONFIG		0x010
+>  #define PRCM_IRQSTATUS_MPU	0x018
+> @@ -150,7 +149,7 @@ static void (*omap2_sram_idle)(void);
+>  static void (*omap2_sram_suspend)(int dllctrl);
+>  static void (*saved_idle)(void);
+>  
+> -static u32 prcm_base = IO_ADDRESS(PRCM_BASE);
+> +static u32 prcm_base = IO_ADDRESS(OMAP24XX_PRCM_BASE);
+>  
+>  static inline void prcm_write_reg(int idx, u32 val)
+>  {
+> 
 
 Pushing today.
 
