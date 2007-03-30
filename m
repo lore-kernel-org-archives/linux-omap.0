@@ -1,15 +1,22 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: TSC2101/2102
-Date: Thu, 29 Mar 2007 16:26:06 -0400
-Message-ID: <20070329202600.GJ3638@atomide.com>
-References: <20070309140650.GC4399@bitbox.mine.nu>
-	<fb249edb0703090623o367ec663h85dc581644cb258d@mail.gmail.com>
-	<45F7F6D4.20203@gmail.com> <20070314170952.GB10230@bitbox.mine.nu>
+Date: Fri, 30 Mar 2007 14:49:34 -0400
+Message-ID: <20070330184933.GB18375@atomide.com>
+References: <00f201c769ca$a8e022c0$c7a3580a@swcenter.sec.samsung.co.kr>
+	<20070319093721.bd0df13e.jarkko.nikula@nokia.com>
+	<010f01c769fd$4ab24d30$c7a3580a@swcenter.sec.samsung.co.kr>
+	<20070319103711.36ffe999.jarkko.nikula@nokia.com>
+	<006e01c76a91$8ee234e0$c7a3580a@swcenter.sec.samsung.co.kr>
+	<20070320132757.GB19913@atomide.com>
+	<20070320155455.c1a3219b.jarkko.nikula@nokia.com>
+	<20070320153812.GI19913@atomide.com>
+	<a0580c510703211224y60c9283bv822276225c3e2c08@mail.gmail.com>
+	<20070322084830.1a91c99c.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20070314170952.GB10230@bitbox.mine.nu>
+In-Reply-To: <20070322084830.1a91c99c.jarkko.nikula@nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,39 +24,41 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Imre Deak <imre.deak@solidboot.com>
-Cc: Linux OMAP ML <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: Kyungmin Park <kmpark@infradead.org>, Linux OMAP ML <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Imre Deak <imre.deak@solidboot.com> [070314 13:16]:
-> On Wed, Mar 14, 2007 at 08:21:24AM -0500, Nishanth Menon wrote:
-> > andrzej zaborowski stated on 3/9/2007 8:23 AM:
-> > > On 09/03/07, Imre Deak <imre.deak@solidboot.com> wrote:
-> > >> I'm wondering about the proper way to convert the existing omap-tsc2101
-> > >> driver to the SPI framework. Would it make sense to handle it with the
-> > >> tsc2102 driver? omap-tsc2101 has only the register read / write
-> > >> interface
-> > >> which is the same as in tsc2102.
-> > >
-> > > How about maybe a header file <linux/spi/tsc2xxx.h> shared between
-> > > tsc2101/2102 with the register access functions as "static inline"
-> > > functions?
-> > Some TODOs:
-> > 1. should interrupt muxing be done here?
-> > 2. There are some TSC2005 devices(TS only).. so it will be interesting
-> > to see xxxx.h scales to all..
-> > 3. rename this to tsc2xxx_core.[ch]
-> > 4. use SPI framework (would not break uwire support I believe).
+* Jarkko Nikula <jarkko.nikula@nokia.com> [070322 02:50]:
+> On Wed, 21 Mar 2007 15:24:21 -0400
+> "ext Eduardo Valentin" <edubezval@gmail.com> wrote:
 > 
-> The attached patches try to do #4. Please review it / sign it off as
-> necessary.
+> > This patch (patch-lcd-h2-spi-fix.diff) applies on top of Imre Deak's
+> > patch (spi-tsc2101-patch.diff).
+> > 
+> Hi, my two cents. It seems that almost everyone forgot to update/remove
+> path names in comment section when moving files to another directory :-)
 > 
-> There is an upcoming TSC2301 patch, that should also be taken
-> into account when creating a tsc2xxx-core.[ch] based on the existing
-> TSC driver implementations.
+> spi-tsc2101-patch.diff:
+> 
+> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
+> +++ linux-omap-2.6/drivers/spi/tsc2101.c	2007-03-21
+> 15:12:49.000000000 -0400 @@ -0,0 +1,327 @@
+> +/*
+> + * linux/drivers/ssi/omap-tsc2101.c
+> + *
+> 
+> ===================================================================
+> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
+> +++ linux-omap-2.6/include/linux/spi/tsc2101.h	2007-03-21
+> 15:12:49.000000000 -0400 @@ -0,0 +1,43 @@
+> +/*
+> + * linux/drivers/ssi/omap-tsc2101.h
+> + *
+> 
 
-I'll push these 3 patches today.
+Kyungmin, Eduardo & Jarkko, please sign your patches above so I can
+apply them!
 
 Tony
