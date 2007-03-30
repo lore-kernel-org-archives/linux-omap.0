@@ -1,14 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP: Fix PRCM base register usage for 243x
-Date: Fri, 30 Mar 2007 14:58:18 -0400
-Message-ID: <20070330185816.GE18375@atomide.com>
-References: <20070321000748.659921000@mvista.com>
-	<20070321000827.284905000@mvista.com>
+Subject: Re: TSC2301 update patches
+Date: Fri, 30 Mar 2007 15:07:01 -0400
+Message-ID: <20070330190657.GG18375@atomide.com>
+References: <20070319105537.54888cfc.jarkko.nikula@nokia.com>
+	<20070330185239.GC18375@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20070321000827.284905000@mvista.com>
+In-Reply-To: <20070330185239.GC18375@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,44 +18,22 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kevin Hilman <khilman@mvista.com>
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@mvista.com> [070320 20:09]:
-> The PRCM base register is different on 242x and 243x.  Use
-> the #ifdef'd #define from omap24xx.h instead of the locally
-> defined one.
+* Tony Lindgren <tony@atomide.com> [070330 14:54]:
+> * Jarkko Nikula <jarkko.nikula@nokia.com> [070319 09:06]:
+> > First two patches here update recently pushed TSC2301 protocol driver:
+> > 
+> > http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=a7b9b17c9025066cd05f555bbba5542bcf16df3a
+> > 
+> > Third one will change TSC2301 config names in N800 board files.
+> > 
+> > I'm sending these as attachments since first one is from Imre. These were generated against ftp://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git tree. I'll test them against mvista tree when cloning is ready...
 > 
-> Signed-off-by: Kevin Hilman <khilman@mvista.com>
-> 
-> ---
->  arch/arm/mach-omap2/pm.c |    3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> Index: dev/arch/arm/mach-omap2/pm.c
-> ===================================================================
-> --- dev.orig/arch/arm/mach-omap2/pm.c
-> +++ dev/arch/arm/mach-omap2/pm.c
-> @@ -51,7 +51,6 @@
->  #include <asm/arch/dma.h>
->  #include <asm/arch/board.h>
->  
-> -#define PRCM_BASE		0x48008000
->  #define PRCM_REVISION		0x000
->  #define PRCM_SYSCONFIG		0x010
->  #define PRCM_IRQSTATUS_MPU	0x018
-> @@ -150,7 +149,7 @@ static void (*omap2_sram_idle)(void);
->  static void (*omap2_sram_suspend)(int dllctrl);
->  static void (*saved_idle)(void);
->  
-> -static u32 prcm_base = IO_ADDRESS(PRCM_BASE);
-> +static u32 prcm_base = IO_ADDRESS(OMAP24XX_PRCM_BASE);
->  
->  static inline void prcm_write_reg(int idx, u32 val)
->  {
-> 
+> Pushing today.
 
-Pushing today.
+Correction, using the split out better patches instead.
 
 Tony
