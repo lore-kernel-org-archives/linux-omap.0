@@ -1,12 +1,11 @@
-From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: Re: [PATCH] SD working on OMAP platforms
-Date: Sat, 31 Mar 2007 18:07:40 -0400
-Message-ID: <460EDBAC.9050301@indt.org.br>
-References: <460D72E0.7050206@indt.org.br> <460DFCB9.4070102@drzeus.cx>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: MMU FWK changes break OMAP1 compilation
+Date: Sun, 01 Apr 2007 11:31:11 +0200
+Message-ID: <460F7BDF.4060105@googlemail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000900050700070303010708"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <460DFCB9.4070102@drzeus.cx>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,87 +15,48 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: ext Pierre Ossman <drzeus-list@drzeus.cx>
-Cc: omap-linux <linux-omap-open-source@linux.omap.com>, ext Philip Langdale <philipl@overt.org>
+To: Linux OMAP ML <linux-omap-open-source@linux.omap.com>, Hiroshi.DOYU@nokia.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000900050700070303010708
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 
-ext Pierre Ossman wrote:
-> Carlos Aguiar wrote:
->   
->> On CMD3, response type is R6 to SD cards and R1 to MMC cards.
->> This fix ignores the buggy SD handling on CMD3.
->>
->> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
->>
->>   
->>     
->
-> NAK. Includes opcodes.
->
-> I assume 0x4000 is that darn CERR, so have the if-statement test just
-> (status == 0x4000).
->
-> Rgds
->
->   
-Ok,
+Recent MMU FWK changes [1] and [2] break at least OMAP1 
+compilation.
 
-Now, without opcodes and if-statement test just
-(status == 0x4000).
+Issues:
 
-BR,
+- omap1_mmu_interrupt() in arch/arm/mach-omap1/mmu.c uses 
+various MMU_xxx macros, but in arch/arm/mach-omap1/mmu.h 
+they are called OMAP_MMU_xxx.
 
-Carlos.
+- omap1_mmu_interrupt() uses MK32 macro, which is defined in 
+./plat-omap/dsp/dsp.h, which isn't included.
 
--- 
-Carlos Eduardo
-Nokia Institute of Technology - INdT
-Open Source Mobile Research Center - OSMRC
-Phone: +55 92 2126-1079
-Mobile: +55 92 8127-1797
-E-mail: carlos.aguiar@indt.org.br
+- omap1_mmu_interrupt() still uses MMUFAULT_MASK, which is 
+removed from arch/arm/plat-omap/dsp/mmu.h by [2]. So [1] 
+introduces MMUFAULT_MASK to mach-omap1/mmu.c while [2] 
+removes it from dsp/mmu.h.
 
+- dsp_mmu_itack() in arch/arm/plat-omap/dsp/mmu.h still uses 
+dsp_fault_adr which is removed in same file by [2].
 
---------------000900050700070303010708
-Content-Type: text/plain;
- name="sd_buggy_handling.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="sd_buggy_handling.diff"
+- Some compiler warnings:
 
-On CMD3, response type is R6 to SD cards and R1 to MMC cards.
-This fix ignores the buggy SD handling on CMD3.
+arch/arm/plat-omap/dsp/dsp_mem.c: In function 'dsp_mem_ioctl':
+arch/arm/plat-omap/dsp/dsp_mem.c:348: warning: unused 
+variable 'ret'
+arch/arm/plat-omap/dsp/dsp_mem.c:347: warning: unused 
+variable 'dspadr'
+arch/arm/plat-omap/dsp/mmu.h:88: warning: 'dspadr' is used 
+uninitialized in this function
 
-Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+Anybody with a fix for these?
 
-Index: linux-omap/drivers/mmc/omap.c
-===================================================================
---- linux-omap.orig/drivers/mmc/omap.c	2007-03-30 09:39:08.000000000 -0400
-+++ linux-omap/drivers/mmc/omap.c	2007-03-31 18:03:49.000000000 -0400
-@@ -462,6 +462,12 @@ static irqreturn_t mmc_omap_irq(int irq,
- 		mmc_omap_report_irq(status);
- 		printk("\n");
- #endif
-+		if (status == 0x4000) {
-+			dev_dbg(mmc_dev(host->mmc),
-+				"buggy SD handling, ignoring it\n");
-+			status = 0x0001;
-+		}
-+
- 		if (host->total_bytes_left) {
- 			if ((status & OMAP_MMC_STAT_A_FULL) ||
- 			    (status & OMAP_MMC_STAT_END_OF_DATA))
+Cheers
 
---------------000900050700070303010708
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Dirk
 
+[1] 
+<http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=6b13d95d4979ca9df91420fb5ab18fbfee3f9386>
 
---------------000900050700070303010708--
+[2] 
+<http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=68a575f924dbe0326ee1e4178f854cfed7933492>
