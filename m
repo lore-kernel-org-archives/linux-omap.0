@@ -1,13 +1,13 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: MMU FWK changes break OMAP1 compilation
-Date: Mon, 02 Apr 2007 09:11:04 +0300 (EEST)
-Message-ID: <20070402.091104.22581331.Hiroshi.DOYU@nokia.com>
-References: <460F7BDF.4060105@googlemail.com>
+Subject: Re: Pending March patches
+Date: Mon, 02 Apr 2007 09:21:48 +0300 (EEST)
+Message-ID: <20070402.092148.06273156.Hiroshi.DOYU@nokia.com>
+References: <460FD29D.7070707@googlemail.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <460F7BDF.4060105@googlemail.com>
+In-Reply-To: <460FD29D.7070707@googlemail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,51 +21,25 @@ To: dirk.behme@googlemail.com
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-I will take care of this.
-
 From: "ext Dirk Behme" <dirk.behme@googlemail.com>
-Subject: MMU FWK changes break OMAP1 compilation
-Date: Sun, 01 Apr 2007 11:31:11 +0200
+Subject: Pending March patches
+Date: Sun, 01 Apr 2007 17:41:17 +0200
 
 > 
-> Recent MMU FWK changes [1] and [2] break at least OMAP1 
-> compilation.
+> Please find below my list of pending OMAP patches for March 
+> 2007. As ususal, if you think anything is wrong, missing or 
+> already applied, please correct.
 > 
-> Issues:
 > 
-> - omap1_mmu_interrupt() in arch/arm/mach-omap1/mmu.c uses 
-> various MMU_xxx macros, but in arch/arm/mach-omap1/mmu.h 
-> they are called OMAP_MMU_xxx.
+> Pending OMAP patches March 2007
+> -------------------------------
 > 
-> - omap1_mmu_interrupt() uses MK32 macro, which is defined in 
-> ./plat-omap/dsp/dsp.h, which isn't included.
-> 
-> - omap1_mmu_interrupt() still uses MMUFAULT_MASK, which is 
-> removed from arch/arm/plat-omap/dsp/mmu.h by [2]. So [1] 
-> introduces MMUFAULT_MASK to mach-omap1/mmu.c while [2] 
-> removes it from dsp/mmu.h.
-> 
-> - dsp_mmu_itack() in arch/arm/plat-omap/dsp/mmu.h still uses 
-> dsp_fault_adr which is removed in same file by [2].
-> 
-> - Some compiler warnings:
-> 
-> arch/arm/plat-omap/dsp/dsp_mem.c: In function 'dsp_mem_ioctl':
-> arch/arm/plat-omap/dsp/dsp_mem.c:348: warning: unused 
-> variable 'ret'
-> arch/arm/plat-omap/dsp/dsp_mem.c:347: warning: unused 
-> variable 'dspadr'
-> arch/arm/plat-omap/dsp/mmu.h:88: warning: 'dspadr' is used 
-> uninitialized in this function
-> 
-> Anybody with a fix for these?
-> 
-> Cheers
-> 
-> Dirk
-> 
-> [1] 
-> <http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=6b13d95d4979ca9df91420fb5ab18fbfee3f9386>
-> 
-> [2] 
-> <http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=68a575f924dbe0326ee1e4178f854cfed7933492>
+> 3. [PATCH 1/1] OMAP: Add TWL support for omap mmu framework
+> http://linux.omap.com/pipermail/linux-omap-open-source/2007-March/009313.html
+
+This is being rewritten to use ARM MMU mechanism because their logic
+is almost same as ARM MMU and "mm_struct" and "vm_area_struct" can be
+used to manage virtual address for omap mmu framework. This would be
+much simpler and better. I will re-send the patch later.
+
+  Hiroshi DOYU
