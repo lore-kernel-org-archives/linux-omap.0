@@ -1,14 +1,23 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: Can DSP Gateway be used with OMAP 730
-Date: Mon, 02 Apr 2007 15:29:56 +0300 (EEST)
-Message-ID: <20070402.152956.88622893.Hiroshi.DOYU@nokia.com>
-References: <61445c750704012346r17b0e84r8e160994e390af05@mail.gmail.com>
-	<61445c750704020134g738c9550j365621d2c3ddf0e5@mail.gmail.com>
+From: "Eduardo Valentin" <edubezval@gmail.com>
+Subject: Re: TSC2101/2102
+Date: Mon, 2 Apr 2007 09:43:58 -0400
+Message-ID: <a0580c510704020643k6c29da26h548385a1dd1b348f@mail.gmail.com>
+References: <010f01c769fd$4ab24d30$c7a3580a@swcenter.sec.samsung.co.kr>
+	<006e01c76a91$8ee234e0$c7a3580a@swcenter.sec.samsung.co.kr>
+	<20070320132757.GB19913@atomide.com>
+	<20070320155455.c1a3219b.jarkko.nikula@nokia.com>
+	<20070320153812.GI19913@atomide.com>
+	<a0580c510703211224y60c9283bv822276225c3e2c08@mail.gmail.com>
+	<20070322084830.1a91c99c.jarkko.nikula@nokia.com>
+	<20070330184933.GB18375@atomide.com>
+	<a0580c510703310552h2d455e30qb145270bec2be37f@mail.gmail.com>
+	<20070331170100.GA2565@bitbox>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <61445c750704020134g738c9550j365621d2c3ddf0e5@mail.gmail.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20070331170100.GA2565@bitbox>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,43 +25,78 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: pharaoh137@gmail.com
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Imre Deak <imre.deak@solidboot.com>
+Cc: Kyungmin Park <kmpark@infradead.org>, Linux OMAP ML <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: "ext Pharaoh ." <pharaoh137@gmail.com>
-Subject: Re: Can DSP Gateway be used with OMAP 730
-Date: Mon, 2 Apr 2007 14:04:43 +0530
+Hi Imre Deak,
 
-> On 4/2/07, Pharaoh . <pharaoh137@gmail.com> wrote:
-> > Hello,
-> >
-> > I am working on a OMAP 730 based board. We are supposed to have a
-> > software module called CSMI (coprocessor shared memory interface)
-> > which is needed for communications between the ARM9EJS and the DBB
-> > part of OMAP 730. While googling I found DSP Gateway which is a smilar
-> > kind of mechanism. My question is, can this be used with OMAP 730?
-> > According to the website it does not support OMAP 730. Has anyone made
-> > it work for OMAP 730? Can this be modified to work with OMAP 730? Am I
-> > thinking in the right direction or it just a different thing
-> > altogether?
-> >
-> >
-> > -Pharaoh.
-> >
-> 
-> 
-> I think I have found the answer for my previous query, not sure
-> though. DSP Gateway can be used to communicate between the ARM core
-> and the DSP. For example in case of OMAP 1710 there is an ARM926 core
-> and a DSP, DSP gateway is used for communicating between them. In case
-> for OMAPs like OMAP 730 etc the arch is little bit different i.e. ARM
-> 926 is used as an application processor and on the DBB side there is
-> ARM 7 and a DSP.
 
-Though I don't have any information about OMAP730, if TI's DSP/BIOS
-runs on/supports DBB side and only C54x(not ARM7) is used to
-communicate with ARM926 through mailbox and shared memory, in that
-case, the difference may be not huge....
+
+
+On 3/31/07, Imre Deak <imre.deak@solidboot.com> wrote:
+> On Sat, Mar 31, 2007 at 08:52:17AM -0400, Eduardo Valentin wrote:
+> > Hello Tony,
+> >
+> >
+> >    This is an updated patch to fix lcd for H2 board. This one is
+> > applied against
+> > current linux omap (commit ).
+> >
+> >    The patch is a merge of what was discussed here and what is already
+> >    pushed.
+> >
+> > Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+> >
+> > BR,
+> >
+> > Eduardo Valentin
+> >
+> > [...]
+> >
+> > Index: linux-omap-2.6/arch/arm/mach-omap1/board-h2.c
+> > ===================================================================
+> > --- linux-omap-2.6.orig/arch/arm/mach-omap1/board-h2.c        2007-03-30 14:26:13.000000000 -0400
+> > +++ linux-omap-2.6/arch/arm/mach-omap1/board-h2.c     2007-03-30 14:36:53.000000000 -0400
+> > @@ -305,6 +305,19 @@ struct {
+> >  #define TSC2101_MUX_MCLK_ON  R10_1610_MCLK_ON
+> >  #define TSC2101_MUX_MCLK_OFF R10_1610_MCLK_OFF
+> >
+> > +static void h2_lcd_dev_init(struct spi_device *tsc2101)
+> > +{
+> > +     /* The LCD is connected to the GPIO pins of the TSC2101, so
+> > +      * we have to tie them here. We can also register the LCD driver
+> > +      * first only here, where we know that the TSC driver is ready.
+> > +      */
+> > +
+> > +     device_initialize(&h2_lcd_device.dev);
+> > +
+> > +     dev_set_drvdata(&h2_lcd_device.dev, tsc2101);
+>
+> Is this really necessary? Why isn't it ok to pass it through the
+> platform_data?
+
+   I tested also with
+h2_lcd_device.dev.platform_data = tsc2101;
+
+   But the lcd is not initialized using this line. During the board
+boot, it prints:
+lcd_h2 lcd_h2: no platform data
+
+  I know that it is weird, but that's why I used dev_set_drvdata().
+
+
+BR,
+
+Eduardo Valentin
+
+>
+> --Imre
+>
+>
+
+
+-- 
+Eduardo Bezerra Valentin
