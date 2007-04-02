@@ -1,14 +1,12 @@
-From: "Eduardo Valentin" <edubezval@gmail.com>
-Subject: Re: Zoom, crop and scaling v4l2 device capabilities
-Date: Mon, 2 Apr 2007 16:02:59 -0400
-Message-ID: <a0580c510704021302me0ae0a1k441240db6a251b20@mail.gmail.com>
-References: <a0580c510704021208p2ea32c9cma87fad250a687226@mail.gmail.com>
-	<4044722E22DAA544B0D1A88BE9CE24DD113007@dlee15.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch 2.6.21-rc5-git] omap_cf oops-in-suspend fix
+Date: Mon, 2 Apr 2007 12:51:47 -0700
+Message-ID: <200704021251.48245.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <4044722E22DAA544B0D1A88BE9CE24DD113007@dlee15.ent.ti.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -17,95 +15,119 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Zhang, Jian" <jzhang@ti.com>
-Cc: Linux OMAP ML <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-pcmcia@lists.infradead.org
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello Jian,
+Convert omap_cf into a platform_driver ... this resolves oopsing during
+suspend/resume.
 
-   Thanks for your response. I saw David post, but currently, there is
-only one reference for crop under drivers/media/video/omap into
-linux-omap tree.
-   Was the crop support dropped? Why? Were you facing problems with it?
+Evidently folk haven't tried suspend/resume on an OSK (the main platform
+for this driver) since September or so, which is when platform_device
+learned about suspend_late()/resume_early() and stopped being able to
+suspend/resume without a having a real platform_driver.
 
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+Could I get an ACK if this gets merged via linux-pcmcia?  The last time
+I submitted a patch it didn't get merged, so I'm wondering if that list
+is functioning for patch submission.
 
-Cheers,
-
-Eduardo Valentin
-
-
-On 4/2/07, Zhang, Jian <jzhang@ti.com> wrote:
->
->
-> Yes, you can do what you wanted via CROP abd FMT IOCTLS. We have
-> supported this feature one year ago. The camera patch from David has it.
->
-> For your cases, your crop bundary will be (0,0)(640, 480) then:
-> - mode 1 (640, 480),
-> FMT has 640*480, crop is the same as crop boundary.
-> - mode 2 (320, 240) from window (0,0) to (640, 480) and
-> FMT has 320*240. crop is the same as crop boundary. You will scale
-> 640*480 down to 320*240. You have the full filed-of-view.
-> - mode 3 (320, 240) from  window (161, 121) to (480, 360)
-> FMT has 320*240. crop is the (161, 121) (320, 240). You zoom-in (don't
-> have the full filed-of-view.). No scaling.
->
-> Regards,
-> Jian
-> -----Original Message-----
-> From: linux-omap-open-source-bounces@linux.omap.com
-> [mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
-> Eduardo Valentin
-> Sent: Monday, April 02, 2007 2:08 PM
-> To: Linux OMAP ML
-> Subject: Zoom, crop and scaling v4l2 device capabilities
->
-> Hello all,
->
->
->   I'm currently starting to work with v4l. I'm not sure if this is
-> the right place to post this question, but as this group has relation
-> with v4l, I'll try also here.
->
->   The question is about digital zoom capabilities. I'm a little
-> confused about how to implement crop related ioctls in a v4l2 driver.
->
->   First of all, what is the common application flow to probe zoom
-> capabilities from
-> a v4l2 driver? What is the common application flow to get and set
-> current zoom
-> settings from a v4l2 driver? AFAIU, applications must combine
-> VIDIOC_CROPCAP, VIDIOC_[S,G]_CROP with VIDIOC_[S,G]_FMT.
-> What application is a good example for this issue?
->
->   Suppose a device which supports following modes:
-> - mode 1 (640, 480),
-> - mode 2 (320, 240) from window (0,0) to (640, 480) and
-> - mode 3 (320, 240) from  window (161, 121) to (480, 360)
->
->   What is the best way to implement this support? I can see at least
-> one option here: export the bounds and defrect for cropcap as 640x480.
-> When applications request formats, return to them what best fits
-> between 640x480 or 320x240. And then, when applications request crop
-> window modification, the behaviour would be, if they request a crop
-> window equal to defrect, the device is changed to mode 1 or 2
-> (depending on the current format).  however if the crop window
-> requested is smaller then defrect, the mode 3 is configured. Is this
-> behaviour expected or I misunderstood something?
->
->
-> Cheers,
->
-> --
-> Eduardo Bezerra Valentin
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
-
-
--- 
-Eduardo Bezerra Valentin
+--- osk2.orig/drivers/pcmcia/omap_cf.c	2007-03-17 21:00:49.000000000 -0700
++++ osk2/drivers/pcmcia/omap_cf.c	2007-04-01 22:05:16.000000000 -0700
+@@ -202,15 +202,14 @@ static struct pccard_operations omap_cf_
+  * "what chipselect is used".  Boards could want more.
+  */
+ 
+-static int __devinit omap_cf_probe(struct device *dev)
++static int __init omap_cf_probe(struct platform_device *pdev)
+ {
+ 	unsigned		seg;
+ 	struct omap_cf_socket	*cf;
+-	struct platform_device	*pdev = to_platform_device(dev);
+ 	int			irq;
+ 	int			status;
+ 
+-	seg = (int) dev->platform_data;
++	seg = (int) pdev->dev.platform_data;
+ 	if (seg == 0 || seg > 3)
+ 		return -ENODEV;
+ 
+@@ -227,7 +226,7 @@ static int __devinit omap_cf_probe(struc
+ 	cf->timer.data = (unsigned long) cf;
+ 
+ 	cf->pdev = pdev;
+-	dev_set_drvdata(dev, cf);
++	platform_set_drvdata(pdev, cf);
+ 
+ 	/* this primarily just shuts up irq handling noise */
+ 	status = request_irq(irq, omap_cf_irq, IRQF_SHARED,
+@@ -291,7 +290,7 @@ static int __devinit omap_cf_probe(struc
+ 		omap_cf_present() ? "present" : "(not present)");
+ 
+ 	cf->socket.owner = THIS_MODULE;
+-	cf->socket.dev.parent = dev;
++	cf->socket.dev.parent = &pdev->dev;
+ 	cf->socket.ops = &omap_cf_ops;
+ 	cf->socket.resource_ops = &pccard_static_ops;
+ 	cf->socket.features = SS_CAP_PCCARD | SS_CAP_STATIC_MAP
+@@ -318,9 +317,9 @@ fail0:
+ 	return status;
+ }
+ 
+-static int __devexit omap_cf_remove(struct device *dev)
++static int __exit omap_cf_remove(struct platform_device *pdev)
+ {
+-	struct omap_cf_socket *cf = dev_get_drvdata(dev);
++	struct omap_cf_socket *cf = platform_get_drvdata(pdev);
+ 
+ 	cf->active = 0;
+ 	pcmcia_unregister_socket(&cf->socket);
+@@ -332,26 +331,36 @@ static int __devexit omap_cf_remove(stru
+ 	return 0;
+ }
+ 
+-static struct device_driver omap_cf_driver = {
+-	.name		= (char *) driver_name,
+-	.bus		= &platform_bus_type,
+-	.probe		= omap_cf_probe,
+-	.remove		= __devexit_p(omap_cf_remove),
+-	.suspend	= pcmcia_socket_dev_suspend,
+-	.resume		= pcmcia_socket_dev_resume,
++static int omap_cf_suspend(struct platform_device *pdev, pm_message_t mesg)
++{
++	return pcmcia_socket_dev_suspend(&pdev->dev, mesg);
++}
++
++static int omap_cf_resume(struct platform_device *pdev)
++{
++	return pcmcia_socket_dev_resume(&pdev->dev);
++}
++
++static struct platform_driver omap_cf_driver = {
++	.driver = {
++		.name	= (char *) driver_name,
++	},
++	.remove		= __exit_p(omap_cf_remove),
++	.suspend	= omap_cf_suspend,
++	.resume		= omap_cf_resume,
+ };
+ 
+ static int __init omap_cf_init(void)
+ {
+ 	if (cpu_is_omap16xx())
+-		return driver_register(&omap_cf_driver);
++		return platform_driver_probe(&omap_cf_driver, omap_cf_probe);
+ 	return -ENODEV;
+ }
+ 
+ static void __exit omap_cf_exit(void)
+ {
+ 	if (cpu_is_omap16xx())
+-		driver_unregister(&omap_cf_driver);
++		platform_driver_unregister(&omap_cf_driver);
+ }
+ 
+ module_init(omap_cf_init);
