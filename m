@@ -1,15 +1,9 @@
-From: Ram <vshrirama@gmail.com>
-Subject: Re: X-loader and Micron Nand
-Date: Mon, 2 Apr 2007 21:13:15 +0530
-Message-ID: <8bf247760704020843v7a8fac9dqdbe16677532fa049@mail.gmail.com>
-References: <8bf247760704020833p73b0b709pa45e2ae61639d2e@mail.gmail.com>
-	<B62D67BD8EC3324C8A3DACEEA1A0D6C6010B6A84@dlee12.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Daniel Stone <daniel.stone@nokia.com>
+Subject: [PATCH] ARM: OMAP: FB: Properly initialise struct in full-screen
+	update
+Date: Mon, 2 Apr 2007 17:53:36 +0300
+Message-ID: <20070402162902.EEAF5CEF47@intune.research.nokia.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <B62D67BD8EC3324C8A3DACEEA1A0D6C6010B6A84@dlee12.ent.ti.com>
-Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,82 +16,30 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Im trying to write my own flashing utility to write x-loader.
-I just need to know what the ROM code expects. Where it is writing ECC
-and the structure of spare area. im trying to incorporate that into
-u-boot.
+Make sure out_x, out_y, out_width and out_height are initialised when we
+perform a full-screen update.
 
-Regarding CSST, CSST is specific for OMAP2430SDP which uses samsung nand flash
-with a page size of 512 bytes.
+This hunk appears to have been dropped from the N800 omapfb merge.
 
+Signed-off-by: Daniel Stone <daniel.stone@nokia.com>
+---
+ drivers/video/omap/omapfb_main.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-Regards,
-sriram
-
-On 4/2/07, Kipisz, Steven <s-kipisz2@ti.com> wrote:
-> You cannot use u-boot to flash the x-loader to NAND.  The location where
-> the ECC is saved is different between u-boot and where the boot ROM
-> expects it.
->
-> CSST is the supported flashing tool for flashing the x-loader.
-> Unfortunately you must get the source and write your own flash writer
-> for large page NAND.
->
-> Steve Kipisz
->
-> -----Original Message-----
-> From: linux-omap-open-source-bounces@linux.omap.com
-> [mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Ram
-> Sent: Monday, April 02, 2007 10:33 AM
-> To: linux-omap-open-source@linux.omap.com
-> Subject: X-loader and Micron Nand
->
-> Hi,
->    Im using a custom board of OMAP 2430 which has a micron nand flash
-> (large page size - 2K)
->
->    I trying to boot out of nand. Im running u-boot from RAM and trying
-> to write X-loader and u-boot from u-boot.
->
->    Im able to write x-loader and when i read it back using nand read -
-> im able to read the contents back.
->
->    However, when i reset the board, the board doesnt boot.
->
->   Im trying to debug using ROM code using CCS. the ROM code doesnt
-> load the x-loader
->  in the location specified by x-loader.ift.
->
->   I suspect it is a formatting issue - the way x-loader should be
-> written onto the nand flash.
->
->  The spare area and the format of the spare area.
->
->   I have tried the following schemes:
-> Scheme 1:
->    Page 0: <2048 bytes of x-loader> <12 bytes of CRC>
->    Page 1:<2048 bytes of x-loader> <12 bytes of CRC>
->    page 2: <2048 bytes of x-loader> <12 bytes of CRC>
->    page 4:<2048 bytes of x-loader> <12 bytes of CRC>
->
-> Scheme 2:
->    Page 0: <2048 bytes of x-loader> <64 bytes of CRC>
->    Page 1: <2048 bytes of x-loader> <64 bytes of CRC>
->    Page 2: <2048 bytes of x-loader> <64 bytes of CRC>
->    Page 3: <2048 bytes of x-loader> <64 bytes of CRC>
->
->  Am i missing something?.
->
->  Has anyone successfully written x-loader on a nand flash with 2K page
-> sizes. if so, what is the structure of the spare area?
->
-> please Advice,
->
->
-> Regards,
-> sriram
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
+diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
+index 52de408..7915b1e 100644
+--- a/drivers/video/omap/omapfb_main.c
++++ b/drivers/video/omap/omapfb_main.c
+@@ -756,6 +756,10 @@ static int omapfb_update_full_screen(str
+ 	win.y = 0;
+ 	win.width = fbi->var.xres;
+ 	win.height = fbi->var.yres;
++	win.out_x = 0;
++	win.out_y = 0;
++	win.out_width = fbi->var.xres;
++	win.out_height = fbi->var.yres;
+ 	win.format = 0;
+ 
+ 	omapfb_rqueue_lock(fbdev);
+-- 
+1.4.1
