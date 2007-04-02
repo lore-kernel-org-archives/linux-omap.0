@@ -1,8 +1,14 @@
-From: Hiroshi.DOYU@nokia.com
-Subject: [PATCH 1/1] DSP: Fix build problem with OMAP1
-Date: Mon,  2 Apr 2007 15:10:16 +0300
-Message-ID: <11755158162460-git-send-email-Hiroshi.DOYU@nokia.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: Can DSP Gateway be used with OMAP 730
+Date: Mon, 02 Apr 2007 15:29:56 +0300 (EEST)
+Message-ID: <20070402.152956.88622893.Hiroshi.DOYU@nokia.com>
+References: <61445c750704012346r17b0e84r8e160994e390af05@mail.gmail.com>
+	<61445c750704020134g738c9550j365621d2c3ddf0e5@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <61445c750704020134g738c9550j365621d2c3ddf0e5@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,163 +18,41 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: pharaoh137@gmail.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+From: "ext Pharaoh ." <pharaoh137@gmail.com>
+Subject: Re: Can DSP Gateway be used with OMAP 730
+Date: Mon, 2 Apr 2007 14:04:43 +0530
 
-Based on Dirk Behme's comment:
+> On 4/2/07, Pharaoh . <pharaoh137@gmail.com> wrote:
+> > Hello,
+> >
+> > I am working on a OMAP 730 based board. We are supposed to have a
+> > software module called CSMI (coprocessor shared memory interface)
+> > which is needed for communications between the ARM9EJS and the DBB
+> > part of OMAP 730. While googling I found DSP Gateway which is a smilar
+> > kind of mechanism. My question is, can this be used with OMAP 730?
+> > According to the website it does not support OMAP 730. Has anyone made
+> > it work for OMAP 730? Can this be modified to work with OMAP 730? Am I
+> > thinking in the right direction or it just a different thing
+> > altogether?
+> >
+> >
+> > -Pharaoh.
+> >
+> 
+> 
+> I think I have found the answer for my previous query, not sure
+> though. DSP Gateway can be used to communicate between the ARM core
+> and the DSP. For example in case of OMAP 1710 there is an ARM926 core
+> and a DSP, DSP gateway is used for communicating between them. In case
+> for OMAPs like OMAP 730 etc the arch is little bit different i.e. ARM
+> 926 is used as an application processor and on the DBB side there is
+> ARM 7 and a DSP.
 
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-April/009461.html
-
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- arch/arm/mach-omap1/mmu.c        |   43 +++++++++++++++++++++----------------
- arch/arm/plat-omap/dsp/dsp_mem.c |    6 +++-
- arch/arm/plat-omap/dsp/mmu.h     |    2 +-
- 3 files changed, 29 insertions(+), 22 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/mmu.c b/arch/arm/mach-omap1/mmu.c
-index 789783c..e1e29e0 100644
---- a/arch/arm/mach-omap1/mmu.c
-+++ b/arch/arm/mach-omap1/mmu.c
-@@ -28,6 +28,7 @@
- #include <linux/device.h>
- #include <linux/kernel.h>
- #include <linux/mm.h>
-+#include <linux/interrupt.h>
- #include <linux/err.h>
- #include "mmu.h"
- #include <asm/tlbflush.h>
-@@ -35,6 +36,10 @@
- static void *dspvect_page;
- #define DSP_INIT_PAGE	0xfff000
- 
-+#define MMUFAULT_MASK (OMAP_MMU_FAULT_ST_PERM |\
-+		       OMAP_MMU_FAULT_ST_TLB_MISS |\
-+		       OMAP_MMU_FAULT_ST_TRANS)
-+
- static unsigned int get_cam_l_va_mask(u16 pgsz)
- {
- 	switch (pgsz) {
-@@ -267,11 +272,11 @@ static void omap1_mmu_interrupt(struct omap_mmu *mmu)
- 	unsigned long dp;
- 	unsigned long va;
- 
--	status = omap_mmu_read_reg(mmu, MMU_FAULT_ST);
--	adh = omap_mmu_read_reg(mmu, MMU_FAULT_AD_H);
--	adl = omap_mmu_read_reg(mmu, MMU_FAULT_AD_L);
--	dp = adh & MMU_FAULT_AD_H_DP;
--	va = MK32(adh & MMU_FAULT_AD_H_ADR_MASK, adl);
-+	status = omap_mmu_read_reg(mmu, OMAP_MMU_FAULT_ST);
-+	adh = omap_mmu_read_reg(mmu, OMAP_MMU_FAULT_AD_H);
-+	adl = omap_mmu_read_reg(mmu, OMAP_MMU_FAULT_AD_L);
-+	dp = adh & OMAP_MMU_FAULT_AD_H_DP;
-+	va = (((adh & OMAP_MMU_FAULT_AD_H_ADR_MASK) << 16) | adl);
- 
- 	/* if the fault is masked, nothing to do */
- 	if ((status & MMUFAULT_MASK) == 0) {
-@@ -284,42 +289,42 @@ static void omap1_mmu_interrupt(struct omap_mmu *mmu)
- 		 */
- 		if (status) {
- 			pr_debug( "%s%s%s%s\n",
--				  (status & MMU_FAULT_ST_PREF)?
-+				  (status & OMAP_MMU_FAULT_ST_PREF)?
- 				  "  (prefetch err)" : "",
--				  (status & MMU_FAULT_ST_PERM)?
-+				  (status & OMAP_MMU_FAULT_ST_PERM)?
- 				  "  (permission fault)" : "",
--				  (status & MMU_FAULT_ST_TLB_MISS)?
-+				  (status & OMAP_MMU_FAULT_ST_TLB_MISS)?
- 				  "  (TLB miss)" : "",
--				  (status & MMU_FAULT_ST_TRANS) ?
-+				  (status & OMAP_MMU_FAULT_ST_TRANS) ?
- 				  "  (translation fault)": "");
--			pr_debug( "fault address = %#08x\n", va);
-+			pr_debug( "fault address = %#08lx\n", va);
- 		}
- 		enable_irq(mmu->irq);
- 		return;
- 	}
- 
- 	pr_info("%s%s%s%s\n",
--		(status & MMU_FAULT_ST_PREF)?
--		(MMUFAULT_MASK & MMU_FAULT_ST_PREF)?
-+		(status & OMAP_MMU_FAULT_ST_PREF)?
-+		(MMUFAULT_MASK & OMAP_MMU_FAULT_ST_PREF)?
- 		"  prefetch err":
- 		"  (prefetch err)":
- 		"",
--		(status & MMU_FAULT_ST_PERM)?
--		(MMUFAULT_MASK & MMU_FAULT_ST_PERM)?
-+		(status & OMAP_MMU_FAULT_ST_PERM)?
-+		(MMUFAULT_MASK & OMAP_MMU_FAULT_ST_PERM)?
- 		"  permission fault":
- 		"  (permission fault)":
- 		"",
--		(status & MMU_FAULT_ST_TLB_MISS)?
--		(MMUFAULT_MASK & MMU_FAULT_ST_TLB_MISS)?
-+		(status & OMAP_MMU_FAULT_ST_TLB_MISS)?
-+		(MMUFAULT_MASK & OMAP_MMU_FAULT_ST_TLB_MISS)?
- 		"  TLB miss":
- 		"  (TLB miss)":
- 		"",
--		(status & MMU_FAULT_ST_TRANS)?
--		(MMUFAULT_MASK & MMU_FAULT_ST_TRANS)?
-+		(status & OMAP_MMU_FAULT_ST_TRANS)?
-+		(MMUFAULT_MASK & OMAP_MMU_FAULT_ST_TRANS)?
- 		"  translation fault":
- 		"  (translation fault)":
- 		"");
--	pr_info("fault address = %#08x\n", va);
-+	pr_info("fault address = %#08lx\n", va);
- 
- 	mmu->fault_address = va;
- 	schedule_work(&mmu->irq_work);
-diff --git a/arch/arm/plat-omap/dsp/dsp_mem.c b/arch/arm/plat-omap/dsp/dsp_mem.c
-index d5a652c..eab57b5 100644
---- a/arch/arm/plat-omap/dsp/dsp_mem.c
-+++ b/arch/arm/plat-omap/dsp/dsp_mem.c
-@@ -344,8 +344,6 @@ static int dsp_mem_ioctl(struct inode *inode, struct file *file,
- 			 unsigned int cmd, unsigned long arg)
- {
- 	struct omap_dsp_mapinfo mapinfo;
--	dsp_long_t dspadr;
--	int ret;
- 	__u32 size;
- 
- 	switch (cmd) {
-@@ -370,6 +368,9 @@ static int dsp_mem_ioctl(struct inode *inode, struct file *file,
- 		return 0;
- #ifdef CONFIG_OMAP_DSP_FBEXPORT
- 	case MEM_IOCTL_FBEXPORT:
-+	{
-+		dsp_long_t dspadr;
-+		int ret;
- 		if (copy_from_user(&dspadr, (void __user *)arg,
- 				   sizeof(dsp_long_t)))
- 			return -EFAULT;
-@@ -378,6 +379,7 @@ static int dsp_mem_ioctl(struct inode *inode, struct file *file,
- 				 sizeof(dsp_long_t)))
- 			return -EFAULT;
- 		return ret;
-+	}
- #endif
- 	case MEM_IOCTL_MMUITACK:
- 		return dsp_mmu_itack();
-diff --git a/arch/arm/plat-omap/dsp/mmu.h b/arch/arm/plat-omap/dsp/mmu.h
-index 78189f0..ca47b7b 100644
---- a/arch/arm/plat-omap/dsp/mmu.h
-+++ b/arch/arm/plat-omap/dsp/mmu.h
-@@ -83,7 +83,7 @@ static int dsp_mmu_itack(void)
- 		printk(KERN_ERR "omapdsp: DSP MMU error has not been set.\n");
- 		return -EINVAL;
- 	}
--	dspadr = dsp_fault_adr & ~(SZ_4K-1);
-+	dspadr = dsp_mmu.fault_address & ~(SZ_4K-1);
- 	/* FIXME: reserve TLB entry for this */
- 	omap_mmu_exmap(&dsp_mmu, dspadr, 0, SZ_4K, EXMAP_TYPE_MEM);
- 	pr_info("omapdsp: falling into recovery runlevel...\n");
--- 
-1.5.1.rc2.18.g9c88
+Though I don't have any information about OMAP730, if TI's DSP/BIOS
+runs on/supports DBB side and only C54x(not ARM7) is used to
+communicate with ARM926 through mailbox and shared memory, in that
+case, the difference may be not huge....
