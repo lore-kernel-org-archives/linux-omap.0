@@ -1,23 +1,15 @@
-From: "Eduardo Valentin" <edubezval@gmail.com>
-Subject: Re: TSC2101/2102
-Date: Mon, 2 Apr 2007 16:41:45 -0400
-Message-ID: <a0580c510704021341y476604b7l129b11f6a8ce4f57@mail.gmail.com>
-References: <006e01c76a91$8ee234e0$c7a3580a@swcenter.sec.samsung.co.kr>
-	<20070320155455.c1a3219b.jarkko.nikula@nokia.com>
-	<20070320153812.GI19913@atomide.com>
-	<a0580c510703211224y60c9283bv822276225c3e2c08@mail.gmail.com>
-	<20070322084830.1a91c99c.jarkko.nikula@nokia.com>
-	<20070330184933.GB18375@atomide.com>
-	<a0580c510703310552h2d455e30qb145270bec2be37f@mail.gmail.com>
-	<20070331170100.GA2565@bitbox>
-	<a0580c510704020643k6c29da26h548385a1dd1b348f@mail.gmail.com>
-	<20070402202325.GA23808@bitbox>
+From: "Zhang, Jian" <jzhang@ti.com>
+Subject: RE: Zoom, crop and scaling v4l2 device capabilities
+Date: Mon, 2 Apr 2007 16:02:47 -0500
+Message-ID: <4044722E22DAA544B0D1A88BE9CE24DD11306B@dlee15.ent.ti.com>
+References: <a0580c510704021302me0ae0a1k441240db6a251b20@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070402202325.GA23808@bitbox>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
+In-Reply-To: <a0580c510704021302me0ae0a1k441240db6a251b20@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -27,115 +19,108 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Imre Deak <imre.deak@solidboot.com>
-Cc: Kyungmin Park <kmpark@infradead.org>, Linux OMAP ML <linux-omap-open-source@linux.omap.com>
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: Linux OMAP ML <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello Imre
+David's post didn't go into GIT tree. He may not include all I sent to
+him. You can find more complete code at
+http://linux.omap.com/pub/kernel/2430sdp/
 
-On 4/2/07, Imre Deak <imre.deak@solidboot.com> wrote:
-> On Mon, Apr 02, 2007 at 09:43:58AM -0400, Eduardo Valentin wrote:
-> > Hi Imre Deak,
-> >
-> >
-> >
-> >
-> > On 3/31/07, Imre Deak <imre.deak@solidboot.com> wrote:
-> > >On Sat, Mar 31, 2007 at 08:52:17AM -0400, Eduardo Valentin wrote:
-> > >> Hello Tony,
-> > >>
-> > >>
-> > >>    This is an updated patch to fix lcd for H2 board. This one is
-> > >> applied against
-> > >> current linux omap (commit ).
-> > >>
-> > >>    The patch is a merge of what was discussed here and what is already
-> > >>    pushed.
-> > >>
-> > >> Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
-> > >>
-> > >> BR,
-> > >>
-> > >> Eduardo Valentin
-> > >>
-> > >> [...]
-> > >>
-> > >> Index: linux-omap-2.6/arch/arm/mach-omap1/board-h2.c
-> > >> ===================================================================
-> > >> --- linux-omap-2.6.orig/arch/arm/mach-omap1/board-h2.c        2007-03-30
-> > >14:26:13.000000000 -0400
-> > >> +++ linux-omap-2.6/arch/arm/mach-omap1/board-h2.c     2007-03-30
-> > >14:36:53.000000000 -0400
-> > >> @@ -305,6 +305,19 @@ struct {
-> > >>  #define TSC2101_MUX_MCLK_ON  R10_1610_MCLK_ON
-> > >>  #define TSC2101_MUX_MCLK_OFF R10_1610_MCLK_OFF
-> > >>
-> > >> +static void h2_lcd_dev_init(struct spi_device *tsc2101)
-> > >> +{
-> > >> +     /* The LCD is connected to the GPIO pins of the TSC2101, so
-> > >> +      * we have to tie them here. We can also register the LCD driver
-> > >> +      * first only here, where we know that the TSC driver is ready.
-> > >> +      */
-> > >> +
-> > >> +     device_initialize(&h2_lcd_device.dev);
-> > >> +
-> > >> +     dev_set_drvdata(&h2_lcd_device.dev, tsc2101);
-> > >
-> > >Is this really necessary? Why isn't it ok to pass it through the
-> > >platform_data?
-> >
-> >   I tested also with
-> > h2_lcd_device.dev.platform_data = tsc2101;
-> >
-> >   But the lcd is not initialized using this line. During the board
-> > boot, it prints:
-> > lcd_h2 lcd_h2: no platform data
->
-> Odd. Calling platform_device_add is one bug at least so that should be
-> fixed as follows:
->
-> +static void h2_lcd_dev_init(struct spi_device *tsc2101)
-> +{
-> +       /* The LCD is connected to the GPIO pins of the TSC2101, so
-> +        * we have to tie them here. We can also register the LCD driver
-> +        * first only here, where we know that the TSC driver is ready.
-> +        */
-> +       h2_lcd_device.dev.platform_data = tsc2101;
-> +
-> +       platform_device_register(&h2_lcd_device);
-> +}
->
-> >
-> >  I know that it is weird, but that's why I used dev_set_drvdata().
->
-> I think it's not a good thing to do, since the related field is for driver
-> private data.
+Regards,
+Jian
 
-Yes, I agree with you. It is odd ! :) But with this sequence:
+-----Original Message-----
+From: Eduardo Valentin [mailto:edubezval@gmail.com]=20
+Sent: Monday, April 02, 2007 3:03 PM
+To: Zhang, Jian
+Cc: Linux OMAP ML
+Subject: Re: Zoom, crop and scaling v4l2 device capabilities
 
-	h2_lcd_device.dev.platform_data = tsc2101;
-	platform_device_register(&h2_lcd_device);
+Hello Jian,
 
-The lcd does not initialize properly. During the boot process, it prints:
+   Thanks for your response. I saw David post, but currently, there is
+only one reference for crop under drivers/media/video/omap into
+linux-omap tree.
+   Was the crop support dropped? Why? Were you facing problems with it?
 
-lcd_h2 lcd_h2: no platform data
-tsc2101 spi2.1: initialized
-
-and the lcd device is not powered on.
-
-This is what I'm currently getting here on my H2. Maybe someone would
-test this patch also :)
 
 Cheers,
 
-
 Eduardo Valentin
 
+
+On 4/2/07, Zhang, Jian <jzhang@ti.com> wrote:
 >
-> --Imre
 >
+> Yes, you can do what you wanted via CROP abd FMT IOCTLS. We have
+> supported this feature one year ago. The camera patch from David has
+it.
+>
+> For your cases, your crop bundary will be (0,0)(640, 480) then:
+> - mode 1 (640, 480),
+> FMT has 640*480, crop is the same as crop boundary.
+> - mode 2 (320, 240) from window (0,0) to (640, 480) and
+> FMT has 320*240. crop is the same as crop boundary. You will scale
+> 640*480 down to 320*240. You have the full filed-of-view.
+> - mode 3 (320, 240) from  window (161, 121) to (480, 360)
+> FMT has 320*240. crop is the (161, 121) (320, 240). You zoom-in (don't
+> have the full filed-of-view.). No scaling.
+>
+> Regards,
+> Jian
+> -----Original Message-----
+> From: linux-omap-open-source-bounces@linux.omap.com
+> [mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+> Eduardo Valentin
+> Sent: Monday, April 02, 2007 2:08 PM
+> To: Linux OMAP ML
+> Subject: Zoom, crop and scaling v4l2 device capabilities
+>
+> Hello all,
+>
+>
+>   I'm currently starting to work with v4l. I'm not sure if this is
+> the right place to post this question, but as this group has relation
+> with v4l, I'll try also here.
+>
+>   The question is about digital zoom capabilities. I'm a little
+> confused about how to implement crop related ioctls in a v4l2 driver.
+>
+>   First of all, what is the common application flow to probe zoom
+> capabilities from
+> a v4l2 driver? What is the common application flow to get and set
+> current zoom
+> settings from a v4l2 driver? AFAIU, applications must combine
+> VIDIOC_CROPCAP, VIDIOC_[S,G]_CROP with VIDIOC_[S,G]_FMT.
+> What application is a good example for this issue?
+>
+>   Suppose a device which supports following modes:
+> - mode 1 (640, 480),
+> - mode 2 (320, 240) from window (0,0) to (640, 480) and
+> - mode 3 (320, 240) from  window (161, 121) to (480, 360)
+>
+>   What is the best way to implement this support? I can see at least
+> one option here: export the bounds and defrect for cropcap as 640x480.
+> When applications request formats, return to them what best fits
+> between 640x480 or 320x240. And then, when applications request crop
+> window modification, the behaviour would be, if they request a crop
+> window equal to defrect, the device is changed to mode 1 or 2
+> (depending on the current format).  however if the crop window
+> requested is smaller then defrect, the mode 3 is configured. Is this
+> behaviour expected or I misunderstood something?
+>
+>
+> Cheers,
+>
+> --
+> Eduardo Bezerra Valentin
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
 >
 
 
--- 
+--=20
 Eduardo Bezerra Valentin
