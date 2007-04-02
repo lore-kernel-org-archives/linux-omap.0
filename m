@@ -1,9 +1,13 @@
-From: Daniel Stone <daniel.stone@nokia.com>
-Subject: [PATCH] ARM: OMAP: FB: Properly initialise struct in full-screen
-	update
-Date: Mon, 2 Apr 2007 17:53:36 +0300
-Message-ID: <20070402162902.EEAF5CEF47@intune.research.nokia.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: [PATCH 1/1] DSP: Fix build problem with OMAP1
+Date: Mon, 02 Apr 2007 20:09:17 +0200
+Message-ID: <461146CD.7000601@googlemail.com>
+References: <11755158162460-git-send-email-Hiroshi.DOYU@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <11755158162460-git-send-email-Hiroshi.DOYU@nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,33 +17,21 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Hiroshi.DOYU@nokia.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Make sure out_x, out_y, out_width and out_height are initialised when we
-perform a full-screen update.
+Hiroshi.DOYU@nokia.com wrote:
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> 
+> Based on Dirk Behme's comment:
+> 
+> http://linux.omap.com/pipermail/linux-omap-open-source/2007-April/009461.html
+> 
+> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-This hunk appears to have been dropped from the N800 omapfb merge.
+Tested and works fine.
 
-Signed-off-by: Daniel Stone <daniel.stone@nokia.com>
----
- drivers/video/omap/omapfb_main.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+Many thanks,
 
-diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
-index 52de408..7915b1e 100644
---- a/drivers/video/omap/omapfb_main.c
-+++ b/drivers/video/omap/omapfb_main.c
-@@ -756,6 +756,10 @@ static int omapfb_update_full_screen(str
- 	win.y = 0;
- 	win.width = fbi->var.xres;
- 	win.height = fbi->var.yres;
-+	win.out_x = 0;
-+	win.out_y = 0;
-+	win.out_width = fbi->var.xres;
-+	win.out_height = fbi->var.yres;
- 	win.format = 0;
- 
- 	omapfb_rqueue_lock(fbdev);
--- 
-1.4.1
+Dirk
