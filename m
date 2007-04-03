@@ -1,14 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: FB: Properly initialise struct in
-	full-screen update
-Date: Tue, 3 Apr 2007 14:24:14 -0400
-Message-ID: <20070403182409.GC32591@atomide.com>
-References: <20070402162902.EEAF5CEF47@intune.research.nokia.com>
+Subject: Re: [PATCH] ARM: OMAP: Activate MPU retention code in omap2/pm.c
+Date: Tue, 3 Apr 2007 14:52:40 -0400
+Message-ID: <20070403185238.GG32591@atomide.com>
+References: <20070403153826.a614fb57.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20070402162902.EEAF5CEF47@intune.research.nokia.com>
+In-Reply-To: <20070403153826.a614fb57.jarkko.nikula@nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,42 +15,37 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Daniel Stone <daniel.stone@nokia.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Daniel Stone <daniel.stone@nokia.com> [070402 16:43]:
-> Make sure out_x, out_y, out_width and out_height are initialised when we
-> perform a full-screen update.
+* Jarkko Nikula <jarkko.nikula@nokia.com> [070403 08:40]:
+> FIXME section in function omap2_allow_mpu_retention didn't allow MPU to
+> enter into retention even if system was idle. MPU retention works fine at
+> least in Nokia N800.
 > 
-> This hunk appears to have been dropped from the N800 omapfb merge.
-> 
-> Signed-off-by: Daniel Stone <daniel.stone@nokia.com>
+> Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
 > ---
->  drivers/video/omap/omapfb_main.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/pm.c |    3 +--
+>  1 files changed, 1 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
-> index 52de408..7915b1e 100644
-> --- a/drivers/video/omap/omapfb_main.c
-> +++ b/drivers/video/omap/omapfb_main.c
-> @@ -756,6 +756,10 @@ static int omapfb_update_full_screen(str
->  	win.y = 0;
->  	win.width = fbi->var.xres;
->  	win.height = fbi->var.yres;
-> +	win.out_x = 0;
-> +	win.out_y = 0;
-> +	win.out_width = fbi->var.xres;
-> +	win.out_height = fbi->var.yres;
->  	win.format = 0;
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index cb1ae46..ef2c067 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -573,8 +573,7 @@ static int omap2_allow_mpu_retention(void)
+>  	if (sti_console_enabled)
+>  		return 0;
 >  
->  	omapfb_rqueue_lock(fbdev);
+> -	/* FIXME: Enable soon */
+> -	return 0;
+> +	return 1;
+>  }
+>  
+>  static void omap2_enter_mpu_retention(void)
 
-Thanks, will merge this into Imre's "Add support for OMAP framebuffer"
-patch in omap-drivers branch. (Assuming Imre is OK with it :)
-
-Regards,
+Pushing to omap-upstream.
 
 Tony
