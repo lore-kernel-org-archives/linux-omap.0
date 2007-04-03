@@ -1,14 +1,16 @@
-From: Pierre Ossman <drzeus-list@drzeus.cx>
-Subject: Re: [PATCH] SD working on OMAP platforms
-Date: Tue, 03 Apr 2007 06:37:28 +0200
-Message-ID: <4611DA08.7020102@drzeus.cx>
-References: <460D72E0.7050206@indt.org.br> <460DFCB9.4070102@drzeus.cx>
-	<460EDBAC.9050301@indt.org.br>
+From: "Pharaoh ." <pharaoh137@gmail.com>
+Subject: Re: Can DSP Gateway be used with OMAP 730
+Date: Tue, 3 Apr 2007 12:31:49 +0530
+Message-ID: <61445c750704030001w222840d4hfc75f4e8eac151b2@mail.gmail.com>
+References: <61445c750704012346r17b0e84r8e160994e390af05@mail.gmail.com>
+	<61445c750704020134g738c9550j365621d2c3ddf0e5@mail.gmail.com>
+	<20070402.152956.88622893.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <460EDBAC.9050301@indt.org.br>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20070402.152956.88622893.Hiroshi.DOYU@nokia.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,38 +18,55 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Cc: omap-linux <linux-omap-open-source@linux.omap.com>, ext Philip Langdale <philipl@overt.org>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Carlos Aguiar wrote:
-> On CMD3, response type is R6 to SD cards and R1 to MMC cards.
-> This fix ignores the buggy SD handling on CMD3.
+On 4/2/07, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
+> From: "ext Pharaoh ." <pharaoh137@gmail.com>
+> Subject: Re: Can DSP Gateway be used with OMAP 730
+> Date: Mon, 2 Apr 2007 14:04:43 +0530
 >
->   
+> > On 4/2/07, Pharaoh . <pharaoh137@gmail.com> wrote:
+> > > Hello,
+> > >
+> > > I am working on a OMAP 730 based board. We are supposed to have a
+> > > software module called CSMI (coprocessor shared memory interface)
+> > > which is needed for communications between the ARM9EJS and the DBB
+> > > part of OMAP 730. While googling I found DSP Gateway which is a smilar
+> > > kind of mechanism. My question is, can this be used with OMAP 730?
+> > > According to the website it does not support OMAP 730. Has anyone made
+> > > it work for OMAP 730? Can this be modified to work with OMAP 730? Am I
+> > > thinking in the right direction or it just a different thing
+> > > altogether?
+> > >
+> > >
+> > > -Pharaoh.
+> > >
+> >
+> >
+> > I think I have found the answer for my previous query, not sure
+> > though. DSP Gateway can be used to communicate between the ARM core
+> > and the DSP. For example in case of OMAP 1710 there is an ARM926 core
+> > and a DSP, DSP gateway is used for communicating between them. In case
+> > for OMAPs like OMAP 730 etc the arch is little bit different i.e. ARM
+> > 926 is used as an application processor and on the DBB side there is
+> > ARM 7 and a DSP.
+>
+> Though I don't have any information about OMAP730, if TI's DSP/BIOS
+> runs on/supports DBB side and only C54x(not ARM7) is used to
+> communicate with ARM926 through mailbox and shared memory, in that
+> case, the difference may be not huge....
+>
 
-This is misleading. The problem is the OMAP controller trying to be
-smart with the end result of it doing something completely wrong. The
-controller parses data when it has no idea what we want parsed.
 
-> +		if (status == 0x4000) {
-> +			dev_dbg(mmc_dev(host->mmc),
-> +				"buggy SD handling, ignoring it\n");
-> +			status = 0x0001;
-> +		}
-> +
->   
 
-Some defines for those constants would be nice. And the debug message
-should be more general
+ Okay, now it is clear. DSP Gateway can not be used for OMAP 730. Since
+ the arch is different and OMAP 9 doesn't directly communicate with the
+ DSP, rather it communicates with ARM 7. So it is a different thing
+ altogether. The communication mechanism and and protocol more or less
+ is same i.e. using mailbox IPIs and shared memory.
 
-Rgds
-
--- 
-     -- Pierre Ossman
-
-  Linux kernel, MMC maintainer        http://www.kernel.org
-  PulseAudio, core developer          http://pulseaudio.org
-  rdesktop, core developer          http://www.rdesktop.org
+ -Pharaoh.
