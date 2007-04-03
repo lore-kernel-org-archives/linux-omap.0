@@ -1,23 +1,12 @@
-From: "Eduardo Valentin" <edubezval@gmail.com>
-Subject: Re: TSC2101/2102
-Date: Tue, 3 Apr 2007 07:22:57 -0400
-Message-ID: <a0580c510704030422u1ce3df44n45c4617fa2abb1a8@mail.gmail.com>
-References: <006e01c76a91$8ee234e0$c7a3580a@swcenter.sec.samsung.co.kr>
-	<20070320153812.GI19913@atomide.com>
-	<a0580c510703211224y60c9283bv822276225c3e2c08@mail.gmail.com>
-	<20070322084830.1a91c99c.jarkko.nikula@nokia.com>
-	<20070330184933.GB18375@atomide.com>
-	<a0580c510703310552h2d455e30qb145270bec2be37f@mail.gmail.com>
-	<20070331170100.GA2565@bitbox>
-	<a0580c510704020643k6c29da26h548385a1dd1b348f@mail.gmail.com>
-	<20070402202325.GA23808@bitbox>
-	<a0580c510704021341y476604b7l129b11f6a8ce4f57@mail.gmail.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: [PATCH] SPI: Merge improved clock management from N800 tree into
+ OMAP2 McSPI
+Date: Tue, 3 Apr 2007 15:38:52 +0300
+Message-ID: <20070403153852.8baf4a23.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <a0580c510704021341y476604b7l129b11f6a8ce4f57@mail.gmail.com>
-Content-Disposition: inline
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -25,151 +14,282 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Imre Deak <imre.deak@solidboot.com>
-Cc: Kyungmin Park <kmpark@infradead.org>, Linux OMAP ML <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello again Imre,
+Patch makes the OMAP2 McSPI module to use interface and functional clocks
+only when needed and inserts timeout handling in function
+omap2_mcspi_txrx_pio.
 
+These are originally developed by Samuel Ortiz <samuel.ortiz@solidboot.com>
+and Juha Yrjola <juha.yrjola@solidboot.com>.
 
-   I didn't understand properly your question. My bad. Sorry.
-   I used set_drvdata because it is used into lcd_h2.c (accordingly to
-my previous patch):
-@@ -117,6 +97,19 @@ struct lcd_panel h2_panel = {
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+---
+ drivers/spi/omap2_mcspi.c |   85 +++++++++++++++++++++++++++++++++++---------
+ 1 files changed, 67 insertions(+), 18 deletions(-)
 
- static int h2_panel_probe(struct platform_device *pdev)
- {
-+	struct spi_device *tsc2101;
+diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+index e558187..5f38556 100644
+--- a/drivers/spi/omap2_mcspi.c
++++ b/drivers/spi/omap2_mcspi.c
+@@ -37,6 +37,7 @@
+ #include <asm/io.h>
+ #include <asm/arch/dma.h>
+ #include <asm/arch/mcspi.h>
++#include <asm/arch/clock.h>
+ 
+ #define OMAP2_MCSPI_MAX_FREQ		48000000
+ 
+@@ -248,7 +249,7 @@ static void omap2_mcspi_txrx_dma(struct spi_device *spi,
+ 		data_type = OMAP_DMA_DATA_TYPE_S32;
+ 		element_count = count >> 2;
+ 	} else
+-		return;
++		goto out;
+ 
+ 	/* RX_ONLY mode needs dummy data in TX reg */
+ 	if (tx == NULL)
+@@ -287,7 +288,7 @@ static void omap2_mcspi_txrx_dma(struct spi_device *spi,
+ 			if (tx != NULL)
+ 				dma_unmap_single(NULL, xfer->tx_dma,
+ 						 count, DMA_TO_DEVICE);
+-			return;
++			goto out;
+ 		}
+ 
+ 		omap_set_dma_transfer_params(mcspi_dma->dma_rx_channel,
+@@ -323,10 +324,22 @@ static void omap2_mcspi_txrx_dma(struct spi_device *spi,
+ 		wait_for_completion(&mcspi_dma->dma_rx_completion);
+ 		dma_unmap_single(NULL, xfer->rx_dma, count, DMA_FROM_DEVICE);
+ 	}
+-
++out:
+ 	omap2_mcspi_set_enable(spi, 0);
+ }
+ 
++static int mcspi_wait_for_reg_bit(unsigned long reg, unsigned long bit)
++{
++	unsigned long timeout;
 +
-+	tsc2101 = dev_get_drvdata(&pdev->dev);
-+	if (tsc2101 == NULL) {
-+		dev_err(&pdev->dev, "no platform data\n");
-+		return -ENODEV;
++	timeout = jiffies + msecs_to_jiffies(1000);
++	while (!(__raw_readl(reg) & bit)) {
++		if (time_after(jiffies, timeout))
++			return -1;
 +	}
-
-   Of course, it is clear enough that this dev_err message is wrong.
-It must be "no driver data". My bad again. However, why do you suggest
-use platform_data instead of driver_data?
-
-
-Cheers,
-
-
-Eduardo Valentin
-
-On 4/2/07, Eduardo Valentin <edubezval@gmail.com> wrote:
-> Hello Imre
->
-> On 4/2/07, Imre Deak <imre.deak@solidboot.com> wrote:
-> > On Mon, Apr 02, 2007 at 09:43:58AM -0400, Eduardo Valentin wrote:
-> > > Hi Imre Deak,
-> > >
-> > >
-> > >
-> > >
-> > > On 3/31/07, Imre Deak <imre.deak@solidboot.com> wrote:
-> > > >On Sat, Mar 31, 2007 at 08:52:17AM -0400, Eduardo Valentin wrote:
-> > > >> Hello Tony,
-> > > >>
-> > > >>
-> > > >>    This is an updated patch to fix lcd for H2 board. This one is
-> > > >> applied against
-> > > >> current linux omap (commit ).
-> > > >>
-> > > >>    The patch is a merge of what was discussed here and what is already
-> > > >>    pushed.
-> > > >>
-> > > >> Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
-> > > >>
-> > > >> BR,
-> > > >>
-> > > >> Eduardo Valentin
-> > > >>
-> > > >> [...]
-> > > >>
-> > > >> Index: linux-omap-2.6/arch/arm/mach-omap1/board-h2.c
-> > > >> ===================================================================
-> > > >> --- linux-omap-2.6.orig/arch/arm/mach-omap1/board-h2.c        2007-03-30
-> > > >14:26:13.000000000 -0400
-> > > >> +++ linux-omap-2.6/arch/arm/mach-omap1/board-h2.c     2007-03-30
-> > > >14:36:53.000000000 -0400
-> > > >> @@ -305,6 +305,19 @@ struct {
-> > > >>  #define TSC2101_MUX_MCLK_ON  R10_1610_MCLK_ON
-> > > >>  #define TSC2101_MUX_MCLK_OFF R10_1610_MCLK_OFF
-> > > >>
-> > > >> +static void h2_lcd_dev_init(struct spi_device *tsc2101)
-> > > >> +{
-> > > >> +     /* The LCD is connected to the GPIO pins of the TSC2101, so
-> > > >> +      * we have to tie them here. We can also register the LCD driver
-> > > >> +      * first only here, where we know that the TSC driver is ready.
-> > > >> +      */
-> > > >> +
-> > > >> +     device_initialize(&h2_lcd_device.dev);
-> > > >> +
-> > > >> +     dev_set_drvdata(&h2_lcd_device.dev, tsc2101);
-> > > >
-> > > >Is this really necessary? Why isn't it ok to pass it through the
-> > > >platform_data?
-> > >
-> > >   I tested also with
-> > > h2_lcd_device.dev.platform_data = tsc2101;
-> > >
-> > >   But the lcd is not initialized using this line. During the board
-> > > boot, it prints:
-> > > lcd_h2 lcd_h2: no platform data
-> >
-> > Odd. Calling platform_device_add is one bug at least so that should be
-> > fixed as follows:
-> >
-> > +static void h2_lcd_dev_init(struct spi_device *tsc2101)
-> > +{
-> > +       /* The LCD is connected to the GPIO pins of the TSC2101, so
-> > +        * we have to tie them here. We can also register the LCD driver
-> > +        * first only here, where we know that the TSC driver is ready.
-> > +        */
-> > +       h2_lcd_device.dev.platform_data = tsc2101;
-> > +
-> > +       platform_device_register(&h2_lcd_device);
-> > +}
-> >
-> > >
-> > >  I know that it is weird, but that's why I used dev_set_drvdata().
-> >
-> > I think it's not a good thing to do, since the related field is for driver
-> > private data.
->
-> Yes, I agree with you. It is odd ! :) But with this sequence:
->
->         h2_lcd_device.dev.platform_data = tsc2101;
->         platform_device_register(&h2_lcd_device);
->
-> The lcd does not initialize properly. During the boot process, it prints:
->
-> lcd_h2 lcd_h2: no platform data
-> tsc2101 spi2.1: initialized
->
-> and the lcd device is not powered on.
->
-> This is what I'm currently getting here on my H2. Maybe someone would
-> test this patch also :)
->
-> Cheers,
->
->
-> Eduardo Valentin
->
-> >
-> > --Imre
-> >
-> >
->
->
-> --
-> Eduardo Bezerra Valentin
->
-
-
++	return 0;
++}
++
+ static void omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ {
+ 	struct omap2_mcspi * mcspi;
+@@ -371,7 +384,10 @@ static void omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xf
+ 
+ 		while (c--) {
+ 			if (tx != NULL) {
+-				while (!(__raw_readl(chstat_reg) & OMAP2_MCSPI_CHSTAT_TXS));
++				if (mcspi_wait_for_reg_bit(chstat_reg, OMAP2_MCSPI_CHSTAT_TXS) < 0) {
++					dev_err(&spi->dev, "TXS timed out\n");
++					goto out;
++				}
+ #ifdef VERBOSE
+ 				dev_dbg(&spi->dev, "write-%d %02x\n",
+ 						word_len, *tx);
+@@ -379,7 +395,10 @@ static void omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xf
+ 				__raw_writel(*tx, tx_reg);
+ 			}
+ 			if (rx != NULL) {
+-				while (!(__raw_readl(chstat_reg) & OMAP2_MCSPI_CHSTAT_RXS));
++				if (mcspi_wait_for_reg_bit(chstat_reg, OMAP2_MCSPI_CHSTAT_RXS) < 0) {
++					dev_err(&spi->dev, "RXS timed out\n");
++					goto out;
++				}
+ 				if (c == 0 && tx == NULL)
+ 					omap2_mcspi_set_enable(spi, 0);
+ 				*rx++ = __raw_readl(rx_reg);
+@@ -398,7 +417,10 @@ static void omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xf
+ 		c >>= 1;
+ 		while (c--) {
+ 			if (tx != NULL) {
+-				while (!(__raw_readl(chstat_reg) & OMAP2_MCSPI_CHSTAT_TXS));
++				if (mcspi_wait_for_reg_bit(chstat_reg, OMAP2_MCSPI_CHSTAT_TXS) < 0) {
++					dev_err(&spi->dev, "TXS timed out\n");
++					goto out;
++				}
+ #ifdef VERBOSE
+ 				dev_dbg(&spi->dev, "write-%d %04x\n",
+ 						word_len, *tx);
+@@ -406,7 +428,10 @@ static void omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xf
+ 				__raw_writel(*tx++, tx_reg);
+ 			}
+ 			if (rx != NULL) {
+-				while (!(__raw_readl(chstat_reg) & OMAP2_MCSPI_CHSTAT_RXS));
++				if (mcspi_wait_for_reg_bit(chstat_reg, OMAP2_MCSPI_CHSTAT_RXS) < 0) {
++					dev_err(&spi->dev, "RXS timed out\n");
++					goto out;
++				}
+ 				if (c == 0 && tx == NULL)
+ 					omap2_mcspi_set_enable(spi, 0);
+ 				*rx++ = __raw_readl(rx_reg);
+@@ -425,7 +450,10 @@ static void omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xf
+ 		c >>= 2;
+ 		while (c--) {
+ 			if (tx != NULL) {
+-				while (!(__raw_readl(chstat_reg) & OMAP2_MCSPI_CHSTAT_TXS));
++				if (mcspi_wait_for_reg_bit(chstat_reg, OMAP2_MCSPI_CHSTAT_TXS) < 0) {
++					dev_err(&spi->dev, "TXS timed out\n");
++					goto out;
++				}
+ #ifdef VERBOSE
+ 				dev_dbg(&spi->dev, "write-%d %04x\n",
+ 						word_len, *tx);
+@@ -433,7 +461,10 @@ static void omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xf
+ 				__raw_writel(*tx++, tx_reg);
+ 			}
+ 			if (rx != NULL) {
+-				while (!(__raw_readl(chstat_reg) & OMAP2_MCSPI_CHSTAT_RXS));
++				if (mcspi_wait_for_reg_bit(chstat_reg, OMAP2_MCSPI_CHSTAT_RXS) < 0) {
++					dev_err(&spi->dev, "RXS timed out\n");
++					goto out;
++				}
+ 				if (c == 0 && tx == NULL)
+ 					omap2_mcspi_set_enable(spi, 0);
+ 				*rx++ = __raw_readl(rx_reg);
+@@ -446,8 +477,13 @@ static void omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xf
+ 	}
+ 
+ 	if (xfer->tx_buf != NULL) {
+-		while (!(__raw_readl(chstat_reg) & OMAP2_MCSPI_CHSTAT_TXS));
+-		while (!(__raw_readl(chstat_reg) & OMAP2_MCSPI_CHSTAT_EOT));
++		if (mcspi_wait_for_reg_bit(chstat_reg, OMAP2_MCSPI_CHSTAT_TXS) < 0) {
++			dev_err(&spi->dev, "TXS timed out\n");
++			goto out;
++		}
++		if (mcspi_wait_for_reg_bit(chstat_reg, OMAP2_MCSPI_CHSTAT_EOT) < 0)
++			dev_err(&spi->dev, "EOT timed out\n");
++out:
+ 		omap2_mcspi_set_enable(spi, 0);
+ 	}
+ }
+@@ -457,9 +493,12 @@ static int omap2_mcspi_setup_transfer(struct spi_device *spi,
+ {
+ 	struct omap2_mcspi_cs *cs = spi->controller_state;
+ 	struct omap2_mcspi_device_config *conf;
++	struct omap2_mcspi * mcspi;
+ 	u32 l = 0, div = 0;
+ 	u8 word_len = spi->bits_per_word;
+ 
++	mcspi = class_get_devdata(&spi->master->cdev);
++
+ 	if (t != NULL && t->bits_per_word)
+ 		word_len = t->bits_per_word;
+ 	if (!word_len)
+@@ -471,6 +510,9 @@ static int omap2_mcspi_setup_transfer(struct spi_device *spi,
+ 
+ 	conf = (struct omap2_mcspi_device_config *) spi->controller_data;
+ 
++	clk_enable(mcspi->ick);
++	clk_enable(mcspi->fck);
++
+ 	if (conf->single_channel == 1)
+ 		omap2_mcspi_set_master_mode(spi, 1);
+ 	else
+@@ -486,6 +528,8 @@ static int omap2_mcspi_setup_transfer(struct spi_device *spi,
+ 	    word_len < 4 || word_len > 32 ||
+ 	    div > 15) {
+ 		dev_err(&spi->dev, "Invalid McSPI channel setting\n");
++		clk_disable(mcspi->fck);
++		clk_disable(mcspi->ick);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -516,6 +560,9 @@ static int omap2_mcspi_setup_transfer(struct spi_device *spi,
+ 			(spi->mode & SPI_CPHA) ? "odd" : "even",
+ 			(spi->mode & SPI_CPOL) ? "" : "not");
+ 
++	clk_disable(mcspi->fck);
++	clk_disable(mcspi->ick);
++
+ 	return 0;
+ }
+ 
+@@ -668,7 +715,6 @@ static void omap2_mcspi_cleanup(struct spi_device *spi)
+ 	}
+ }
+ 
+-
+ static void omap2_mcspi_work(struct work_struct *work)
+ {
+ 	struct omap2_mcspi	*mcspi = container_of(work, struct omap2_mcspi, work);
+@@ -709,6 +755,9 @@ static void omap2_mcspi_work(struct work_struct *work)
+ 					par_override = 0;
+ 			}
+ 
++			clk_enable(mcspi->ick);
++			clk_enable(mcspi->fck);
++
+ 			if (!cs_active) {
+ 				omap2_mcspi_force_cs(spi, 1);
+ 				cs_active = 1;
+@@ -727,8 +776,12 @@ static void omap2_mcspi_work(struct work_struct *work)
+ 					omap2_mcspi_force_cs(spi, 0);
+ 				cs_active = 0;
+ 			}
++			clk_disable(mcspi->ick);
++			clk_disable(mcspi->fck);
+ 		}
+ 
++		clk_enable(mcspi->ick);
++		clk_enable(mcspi->fck);
+ 		/* Restore defaults they are overriden */
+ 		if (par_override) {
+ 			par_override = 0;
+@@ -737,6 +790,8 @@ static void omap2_mcspi_work(struct work_struct *work)
+ 
+ 		if (cs_active)
+ 			omap2_mcspi_force_cs(spi, 0);
++		clk_disable(mcspi->ick);
++		clk_disable(mcspi->fck);
+ 
+ 		m->status = status;
+ 		m->complete(m->context);
+@@ -831,14 +886,12 @@ static int __devinit omap2_mcspi_probe(struct platform_device *pdev)
+ 		status = PTR_ERR(mcspi->ick);
+ 		goto err1;
+ 	}
+-	clk_enable(mcspi->ick);
+ 	mcspi->fck = clk_get(&pdev->dev, "mcspi_fck");
+ 	if (IS_ERR(mcspi->fck)) {
+ 		dev_err(&pdev->dev, "can't get mcspi_fck\n");
+ 		status = PTR_ERR(mcspi->fck);
+ 		goto err2;
+ 	}
+-	clk_enable(mcspi->fck);
+ 
+ 	mcspi->dma_channels =
+ 		(struct omap2_mcspi_dma *)kzalloc(master->num_chipselect *
+@@ -865,10 +918,8 @@ static int __devinit omap2_mcspi_probe(struct platform_device *pdev)
+ err4:
+ 	kfree(mcspi->dma_channels);
+ err3:
+-	clk_disable(mcspi->fck);
+ 	clk_put(mcspi->fck);
+ err2:
+-	clk_disable(mcspi->ick);
+ 	clk_put(mcspi->ick);
+ err1:
+ 	class_device_put(&master->cdev);
+@@ -885,9 +936,7 @@ static int __devexit omap2_mcspi_remove(struct platform_device *pdev)
+ 
+ 	spi_unregister_master(master);
+ 	mcspi = class_get_devdata(&master->cdev);
+-	clk_disable(mcspi->fck);
+ 	clk_put(mcspi->fck);
+-	clk_disable(mcspi->ick);
+ 	clk_put(mcspi->ick);
+ 	class_device_put(&master->cdev);
+ 	kfree(mcspi->dma_channels);
 -- 
-Eduardo Bezerra Valentin
+1.4.4.4
