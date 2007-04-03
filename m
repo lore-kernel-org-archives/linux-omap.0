@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.21-rc5-omap1-git] fix OMAP1 mpuio suspend/resume oops
-Date: Tue, 3 Apr 2007 14:51:37 -0400
-Message-ID: <20070403185136.GE32591@atomide.com>
-References: <200704021246.47873.david-b@pacbell.net>
+Subject: Re: [patch 2.6.21-rc5-omap1-git] OSK led fixes
+Date: Tue, 3 Apr 2007 14:52:08 -0400
+Message-ID: <20070403185206.GF32591@atomide.com>
+References: <200704021248.10783.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <200704021246.47873.david-b@pacbell.net>
+In-Reply-To: <200704021248.10783.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,22 +21,16 @@ To: David Brownell <david-b@pacbell.net>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [070402 17:11]:
-> Fix oops in omap16xx mpuio suspend/resume code; field wasn't initialized 
+* David Brownell <david-b@pacbell.net> [070402 16:47]:
+> Bugfixes for the OSK led support:
 > 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+>  - Fix Kconfig merge glitches:  Mistral handles idle and timer leds just fine
+>  - Fix pm_suspend() runtime botch:  can't sleep, so can't touch tps65010 leds 
 > 
-> --- osk2.orig/arch/arm/plat-omap/gpio.c	2007-04-01 09:46:56.000000000 -0700
-> +++ osk2/arch/arm/plat-omap/gpio.c	2007-04-01 22:13:35.000000000 -0700
-> @@ -1178,6 +1178,8 @@ static struct platform_device omap_mpuio
->  
->  static inline void mpuio_init(void)
->  {
-> +	platform_set_drvdata(&omap_mpuio_device, &gpio_bank_1610[0]);
-> +
->  	if (platform_driver_register(&omap_mpuio_driver) == 0)
->  		(void) platform_device_register(&omap_mpuio_device);
->  }
+> Improvements:
+>  - Switch sense of Mistral idle led, so idle == off
+> 
+> Probably the TPS65010 leds should be handled only by the "new led" API.
 
 Pushing to omap-upstream.
 
