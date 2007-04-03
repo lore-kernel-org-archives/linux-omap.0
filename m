@@ -1,16 +1,22 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: Can DSP Gateway be used with OMAP 730
-Date: Tue, 3 Apr 2007 14:20:41 +0530
-Message-ID: <5d5443650704030150y508df10ej58a4f35ba811f86f@mail.gmail.com>
-References: <61445c750704012346r17b0e84r8e160994e390af05@mail.gmail.com>
-	<61445c750704020134g738c9550j365621d2c3ddf0e5@mail.gmail.com>
-	<20070402.152956.88622893.Hiroshi.DOYU@nokia.com>
-	<61445c750704030001w222840d4hfc75f4e8eac151b2@mail.gmail.com>
+From: "Eduardo Valentin" <edubezval@gmail.com>
+Subject: Re: TSC2101/2102
+Date: Tue, 3 Apr 2007 07:22:57 -0400
+Message-ID: <a0580c510704030422u1ce3df44n45c4617fa2abb1a8@mail.gmail.com>
+References: <006e01c76a91$8ee234e0$c7a3580a@swcenter.sec.samsung.co.kr>
+	<20070320153812.GI19913@atomide.com>
+	<a0580c510703211224y60c9283bv822276225c3e2c08@mail.gmail.com>
+	<20070322084830.1a91c99c.jarkko.nikula@nokia.com>
+	<20070330184933.GB18375@atomide.com>
+	<a0580c510703310552h2d455e30qb145270bec2be37f@mail.gmail.com>
+	<20070331170100.GA2565@bitbox>
+	<a0580c510704020643k6c29da26h548385a1dd1b348f@mail.gmail.com>
+	<20070402202325.GA23808@bitbox>
+	<a0580c510704021341y476604b7l129b11f6a8ce4f57@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <61445c750704030001w222840d4hfc75f4e8eac151b2@mail.gmail.com>
+In-Reply-To: <a0580c510704021341y476604b7l129b11f6a8ce4f57@mail.gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -21,29 +27,149 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Pharaoh ." <pharaoh137@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: Imre Deak <imre.deak@solidboot.com>
+Cc: Kyungmin Park <kmpark@infradead.org>, Linux OMAP ML <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Pharaoh,
+Hello again Imre,
 
-On 4/3/07, Pharaoh . <pharaoh137@gmail.com> wrote:
 
+   I didn't understand properly your question. My bad. Sorry.
+   I used set_drvdata because it is used into lcd_h2.c (accordingly to
+my previous patch):
+@@ -117,6 +97,19 @@ struct lcd_panel h2_panel = {
+
+ static int h2_panel_probe(struct platform_device *pdev)
+ {
++	struct spi_device *tsc2101;
++
++	tsc2101 = dev_get_drvdata(&pdev->dev);
++	if (tsc2101 == NULL) {
++		dev_err(&pdev->dev, "no platform data\n");
++		return -ENODEV;
++	}
+
+   Of course, it is clear enough that this dev_err message is wrong.
+It must be "no driver data". My bad again. However, why do you suggest
+use platform_data instead of driver_data?
+
+
+Cheers,
+
+
+Eduardo Valentin
+
+On 4/2/07, Eduardo Valentin <edubezval@gmail.com> wrote:
+> Hello Imre
 >
->  Okay, now it is clear. DSP Gateway can not be used for OMAP 730. Since
->  the arch is different and OMAP 9 doesn't directly communicate with the
->  DSP, rather it communicates with ARM 7. So it is a different thing
->  altogether. The communication mechanism and and protocol more or less
->  is same i.e. using mailbox IPIs and shared memory.
+> On 4/2/07, Imre Deak <imre.deak@solidboot.com> wrote:
+> > On Mon, Apr 02, 2007 at 09:43:58AM -0400, Eduardo Valentin wrote:
+> > > Hi Imre Deak,
+> > >
+> > >
+> > >
+> > >
+> > > On 3/31/07, Imre Deak <imre.deak@solidboot.com> wrote:
+> > > >On Sat, Mar 31, 2007 at 08:52:17AM -0400, Eduardo Valentin wrote:
+> > > >> Hello Tony,
+> > > >>
+> > > >>
+> > > >>    This is an updated patch to fix lcd for H2 board. This one is
+> > > >> applied against
+> > > >> current linux omap (commit ).
+> > > >>
+> > > >>    The patch is a merge of what was discussed here and what is already
+> > > >>    pushed.
+> > > >>
+> > > >> Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+> > > >>
+> > > >> BR,
+> > > >>
+> > > >> Eduardo Valentin
+> > > >>
+> > > >> [...]
+> > > >>
+> > > >> Index: linux-omap-2.6/arch/arm/mach-omap1/board-h2.c
+> > > >> ===================================================================
+> > > >> --- linux-omap-2.6.orig/arch/arm/mach-omap1/board-h2.c        2007-03-30
+> > > >14:26:13.000000000 -0400
+> > > >> +++ linux-omap-2.6/arch/arm/mach-omap1/board-h2.c     2007-03-30
+> > > >14:36:53.000000000 -0400
+> > > >> @@ -305,6 +305,19 @@ struct {
+> > > >>  #define TSC2101_MUX_MCLK_ON  R10_1610_MCLK_ON
+> > > >>  #define TSC2101_MUX_MCLK_OFF R10_1610_MCLK_OFF
+> > > >>
+> > > >> +static void h2_lcd_dev_init(struct spi_device *tsc2101)
+> > > >> +{
+> > > >> +     /* The LCD is connected to the GPIO pins of the TSC2101, so
+> > > >> +      * we have to tie them here. We can also register the LCD driver
+> > > >> +      * first only here, where we know that the TSC driver is ready.
+> > > >> +      */
+> > > >> +
+> > > >> +     device_initialize(&h2_lcd_device.dev);
+> > > >> +
+> > > >> +     dev_set_drvdata(&h2_lcd_device.dev, tsc2101);
+> > > >
+> > > >Is this really necessary? Why isn't it ok to pass it through the
+> > > >platform_data?
+> > >
+> > >   I tested also with
+> > > h2_lcd_device.dev.platform_data = tsc2101;
+> > >
+> > >   But the lcd is not initialized using this line. During the board
+> > > boot, it prints:
+> > > lcd_h2 lcd_h2: no platform data
+> >
+> > Odd. Calling platform_device_add is one bug at least so that should be
+> > fixed as follows:
+> >
+> > +static void h2_lcd_dev_init(struct spi_device *tsc2101)
+> > +{
+> > +       /* The LCD is connected to the GPIO pins of the TSC2101, so
+> > +        * we have to tie them here. We can also register the LCD driver
+> > +        * first only here, where we know that the TSC driver is ready.
+> > +        */
+> > +       h2_lcd_device.dev.platform_data = tsc2101;
+> > +
+> > +       platform_device_register(&h2_lcd_device);
+> > +}
+> >
+> > >
+> > >  I know that it is weird, but that's why I used dev_set_drvdata().
+> >
+> > I think it's not a good thing to do, since the related field is for driver
+> > private data.
+>
+> Yes, I agree with you. It is odd ! :) But with this sequence:
+>
+>         h2_lcd_device.dev.platform_data = tsc2101;
+>         platform_device_register(&h2_lcd_device);
+>
+> The lcd does not initialize properly. During the boot process, it prints:
+>
+> lcd_h2 lcd_h2: no platform data
+> tsc2101 spi2.1: initialized
+>
+> and the lcd device is not powered on.
+>
+> This is what I'm currently getting here on my H2. Maybe someone would
+> test this patch also :)
+>
+> Cheers,
+>
+>
+> Eduardo Valentin
+>
+> >
+> > --Imre
+> >
+> >
+>
+>
+> --
+> Eduardo Bezerra Valentin
 >
 
-Yes, DSPGW can't be used as is unless you have ARM9/11 and DSPC55x
-combination as in case of OMAP1/OMAP2 series (except OMAP730 I
-believe). But as you said it has ARM7 on the other side having
-interface like mailbox and shared memory to talk with ARM9. In this
-case you can develop similar interface like in current DSPGW (and most
-of the code can be re-used). Think of IVA1.0 in OMAP2420. It is ARM7
-with bunch of co-processor having their own SRAM's.
 
 -- 
---Trilok Soni
+Eduardo Bezerra Valentin
