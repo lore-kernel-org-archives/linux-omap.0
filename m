@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.21-rc5-omap1-git] fix OMAP1 dmtimer build warning
-Date: Tue, 3 Apr 2007 14:51:18 -0400
-Message-ID: <20070403185116.GD32591@atomide.com>
-References: <200704021245.50935.david-b@pacbell.net>
+Subject: Re: [patch 2.6.21-rc5-omap1-git] fix OMAP1 mpuio suspend/resume oops
+Date: Tue, 3 Apr 2007 14:51:37 -0400
+Message-ID: <20070403185136.GE32591@atomide.com>
+References: <200704021246.47873.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <200704021245.50935.david-b@pacbell.net>
+In-Reply-To: <200704021246.47873.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,27 +22,22 @@ Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 * David Brownell <david-b@pacbell.net> [070402 17:11]:
-> Remove the OMAP1 version of omap_dm_timer_get_fclk(), and its associated
-> compile-time warning.  It would only BUG() if called, while it's only
-> called on OMAP2.
+> Fix oops in omap16xx mpuio suspend/resume code; field wasn't initialized 
 > 
 > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 > 
-> --- a/arch/arm/plat-omap/dmtimer.c
-> +++ b/arch/arm/plat-omap/dmtimer.c
-> @@ -271,11 +271,6 @@ int omap_dm_timer_get_irq(struct omap_dm_timer *timer)
+> --- osk2.orig/arch/arm/plat-omap/gpio.c	2007-04-01 09:46:56.000000000 -0700
+> +++ osk2/arch/arm/plat-omap/gpio.c	2007-04-01 22:13:35.000000000 -0700
+> @@ -1178,6 +1178,8 @@ static struct platform_device omap_mpuio
 >  
->  #if defined(CONFIG_ARCH_OMAP1)
->  
-> -struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer)
-> -{
-> -	BUG();
-> -}
-> -
->  /**
->   * omap_dm_timer_modify_idlect_mask - Check if any running timers use ARMXOR
->   * @inputmask: current value of idlect mask
+>  static inline void mpuio_init(void)
+>  {
+> +	platform_set_drvdata(&omap_mpuio_device, &gpio_bank_1610[0]);
+> +
+>  	if (platform_driver_register(&omap_mpuio_driver) == 0)
+>  		(void) platform_device_register(&omap_mpuio_device);
+>  }
 
-Pushing to omap-upstream branch.
+Pushing to omap-upstream.
 
 Tony
