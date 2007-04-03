@@ -1,12 +1,14 @@
-From: "nishanth menon" <menon.nishanth@gmail.com>
-Subject: [RFC-PATCH] Move i2c adaptor speed from a module parameter to
-	platform device resource
-Date: Mon, 2 Apr 2007 19:14:29 -0500
-Message-ID: <782515bb0704021714n18bb7e53ndac2047e1960b87d@mail.gmail.com>
+From: Pierre Ossman <drzeus-list@drzeus.cx>
+Subject: Re: [PATCH] SD working on OMAP platforms
+Date: Tue, 03 Apr 2007 06:37:28 +0200
+Message-ID: <4611DA08.7020102@drzeus.cx>
+References: <460D72E0.7050206@indt.org.br> <460DFCB9.4070102@drzeus.cx>
+	<460EDBAC.9050301@indt.org.br>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_101113_32285900.1175559269747"
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <460EDBAC.9050301@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,160 +16,38 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Cc: omap-linux <linux-omap-open-source@linux.omap.com>, ext Philip Langdale <philipl@overt.org>
 List-Id: linux-omap@vger.kernel.org
 
-------=_Part_101113_32285900.1175559269747
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Carlos Aguiar wrote:
+> On CMD3, response type is R6 to SD cards and R1 to MMC cards.
+> This fix ignores the buggy SD handling on CMD3.
+>
+>   
 
-Hi All,
+This is misleading. The problem is the OMAP controller trying to be
+smart with the end result of it doing something completely wrong. The
+controller parses data when it has no idea what we want parsed.
 
-Please find attached patch to move the i2c speed parameter from module
-to bus specific resource.
+> +		if (status == 0x4000) {
+> +			dev_dbg(mmc_dev(host->mmc),
+> +				"buggy SD handling, ignoring it\n");
+> +			status = 0x0001;
+> +		}
+> +
+>   
 
-To Discuss:
-* Is IORESOURCE_IO the best way of defining speed for i2c bus?
+Some defines for those constants would be nice. And the debug message
+should be more general
 
-This, however, requires the following follow up patches:
-* Move i2c platform from plat-omap to respective board files.
-*    Reasoning: I2C speed at 100Khz is not always optimal for I2C1 by
-*      default (e.g. 3430).
-*    Impact: all board files will need to have it...but it will ensure
-*    that the i2c init is done in the proper sequence - 1 followed by 2.
-* Support FIFO mode of data transfer - this is supported on newer I2C h/w
-*     revs
-*    Options: support all in a single driver/split them up? have i2c-omap.c
-*     and i2c-omap2.c?
-* Support High speed transfers at a bus level
-*    Will depend of FIFO implementation as polled/interrupt mode is too
-*     slow and causes underrun.
-* Support all known Erratas for i2c module.. make features
-*    i2c_module_hardware_revision based.
-* Support proper bus speed support
-*    Multiple devices on the same bus can have varied speed requirements.
-*    Infact speed could be a parameter for i2c messages?
-*    Impact: I2c corelevel changes required.i2c list disc.
+Rgds
 
-Regards,
-Nishanth Menon
+-- 
+     -- Pierre Ossman
 
-------=_Part_101113_32285900.1175559269747
-Content-Type: application/octet-stream;
-	name=0001-Move-i2c-adaptor-speed-from-a-module-parameter-to-pl.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f01lkv9v
-Content-Disposition: attachment;
-	filename="0001-Move-i2c-adaptor-speed-from-a-module-parameter-to-pl.patch"
-
-RnJvbSAzMWYwNDYyNDdkYjhkNjgyMTQ4MTJhZmFlM2JiNDU3YjNkZWE4OWZjIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBOaXNoYW50aCBNZW5vbiA8bWVub24ubmlzaGFudGhAZ21haWwu
-Y29tPgpEYXRlOiBNb24sIDIgQXByIDIwMDcgMTk6MDc6NTggLTA1MDAKU3ViamVjdDogW1BBVENI
-XSBNb3ZlIGkyYyBhZGFwdG9yIHNwZWVkIGZyb20gYSBtb2R1bGUgcGFyYW1ldGVyIHRvIHBsYXRm
-b3JtIGRldmljZSByZXNvdXJjZQpUbyBEaXNjdXNzOgoqIElzIElPUkVTT1VSQ0VfSU8gdGhlIGJl
-c3Qgd2F5IG9mIGRlZmluaW5nIHNwZWVkIGZvciBpMmMgYnVzPwoKVGhpcywgaG93ZXZlciwgcmVx
-dWlyZXMgdGhlIGZvbGxvd2luZyBmb2xsb3cgdXAgcGF0Y2hlczoKKiBNb3ZlIGkyYyBwbGF0Zm9y
-bSBmcm9tIHBsYXQtb21hcCB0byByZXNwZWN0aXZlIGJvYXJkIGZpbGVzLgoqICAgIFJlYXNvbmlu
-ZzogSTJDIHNwZWVkIGF0IDEwMEtoeiBpcyBub3QgYWx3YXlzIG9wdGltYWwgZm9yIEkyQzEgYnkK
-KiAgICAgIGRlZmF1bHQgKGUuZy4gMzQzMCkuCiogICAgSW1wYWN0OiBhbGwgYm9hcmQgZmlsZXMg
-d2lsbCBuZWVkIHRvIGhhdmUgaXQuLi5idXQgaXQgd2lsbCBlbnN1cmUKKiAgICB0aGF0IHRoZSBp
-MmMgaW5pdCBpcyBkb25lIGluIHRoZSBwcm9wZXIgc2VxdWVuY2UgLSAxIGZvbGxvd2VkIGJ5IDIu
-CiogU3VwcG9ydCBGSUZPIG1vZGUgb2YgZGF0YSB0cmFuc2ZlciAtIHRoaXMgaXMgc3VwcG9ydGVk
-IG9uIG5ld2VyIEkyQyBoL3cKKiAgICAgcmV2cwoqICAgIE9wdGlvbnM6IHN1cHBvcnQgYWxsIGlu
-IGEgc2luZ2xlIGRyaXZlci9zcGxpdCB0aGVtIHVwPyBoYXZlIGkyYy1vbWFwLmMKKiAgICAgYW5k
-IGkyYy1vbWFwMi5jPwoqIFN1cHBvcnQgSGlnaCBzcGVlZCB0cmFuc2ZlcnMgYXQgYSBidXMgbGV2
-ZWwKKiAgICBXaWxsIGRlcGVuZCBvZiBGSUZPIGltcGxlbWVudGF0aW9uIGFzIHBvbGxlZC9pbnRl
-cnJ1cHQgbW9kZSBpcyB0b28KKiAgICAgc2xvdyBhbmQgY2F1c2VzIHVuZGVycnVuLgoqIFN1cHBv
-cnQgYWxsIGtub3duIEVycmF0YXMgZm9yIGkyYyBtb2R1bGUuLiBtYWtlIGZlYXR1cmVzCiogICAg
-aTJjX21vZHVsZV9oYXJkd2FyZV9yZXZpc2lvbiBiYXNlZC4KKiBTdXBwb3J0IHByb3BlciBidXMg
-c3BlZWQgc3VwcG9ydAoqICAgIE11bHRpcGxlIGRldmljZXMgb24gdGhlIHNhbWUgYnVzIGNhbiBo
-YXZlIHZhcmllZCBzcGVlZCByZXF1aXJlbWVudHMuCiogICAgSW5mYWN0IHNwZWVkIGNvdWxkIGJl
-IGEgcGFyYW1ldGVyIGZvciBpMmMgbWVzc2FnZXM/CiogICAgSW1wYWN0OiBJMmMgY29yZWxldmVs
-IGNoYW5nZXMgcmVxdWlyZWQuaTJjIGxpc3QgZGlzYy4KLS0tCiBhcmNoL2FybS9tYWNoLW9tYXAy
-L2RldmljZXMuYyB8ICAgIDYgKysrKystCiBhcmNoL2FybS9wbGF0LW9tYXAvZGV2aWNlcy5jICB8
-ICAgIDQgKysrKwogZHJpdmVycy9pMmMvYnVzc2VzL2kyYy1vbWFwLmMgfCAgIDM0ICsrKysrKysr
-KysrKysrKysrKy0tLS0tLS0tLS0tLS0tLS0KIDMgZmlsZXMgY2hhbmdlZCwgMjcgaW5zZXJ0aW9u
-cygrKSwgMTcgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9k
-ZXZpY2VzLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2RldmljZXMuYwppbmRleCA3NjcxNDBjLi4w
-YzBjMmU4IDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2RldmljZXMuYworKysgYi9h
-cmNoL2FybS9tYWNoLW9tYXAyL2RldmljZXMuYwpAQCAtMzcsNiArMzcsMTAgQEAgc3RhdGljIHN0
-cnVjdCByZXNvdXJjZSBpMmNfcmVzb3VyY2VzMltdID0gewogCQkuZmxhZ3MJCT0gSU9SRVNPVVJD
-RV9NRU0sCiAJfSwKIAl7CisJCS5lbmQJCT0gMzQwMCwKKwkJLmZsYWdzCQk9IElPUkVTT1VSQ0Vf
-SU8sCisJfSwKKwl7CiAJCS5zdGFydAkJPSBPTUFQMl9JMkNfSU5UMiwKIAkJLmZsYWdzCQk9IElP
-UkVTT1VSQ0VfSVJRLAogCX0sCkBAIC02MCw3ICs2NCw3IEBAIHN0YXRpYyB2b2lkIG9tYXBfaW5p
-dF9pMmModm9pZCkKIAkJb21hcF9jZmdfcmVnKEoxNV8yNFhYX0kyQzJfU0NMKTsKIAkJb21hcF9j
-ZmdfcmVnKEgxOV8yNFhYX0kyQzJfU0RBKTsKIAl9Ci0JKHZvaWQpIHBsYXRmb3JtX2RldmljZV9y
-ZWdpc3Rlcigmb21hcF9pMmNfZGV2aWNlMik7CisJKHZvaWQpcGxhdGZvcm1fZGV2aWNlX3JlZ2lz
-dGVyKCZvbWFwX2kyY19kZXZpY2UyKTsKIH0KIAogI2Vsc2UKZGlmZiAtLWdpdCBhL2FyY2gvYXJt
-L3BsYXQtb21hcC9kZXZpY2VzLmMgYi9hcmNoL2FybS9wbGF0LW9tYXAvZGV2aWNlcy5jCmluZGV4
-IDI3YjUzNTMuLjc3MWNhNmYgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL3BsYXQtb21hcC9kZXZpY2Vz
-LmMKKysrIGIvYXJjaC9hcm0vcGxhdC1vbWFwL2RldmljZXMuYwpAQCAtMTA3LDYgKzEwNywxMCBA
-QCBzdGF0aWMgc3RydWN0IHJlc291cmNlIGkyY19yZXNvdXJjZXMxW10gPSB7CiAJCS5zdGFydAkJ
-PSAwLAogCQkuZmxhZ3MJCT0gSU9SRVNPVVJDRV9JUlEsCiAJfSwKKwl7CisJCS5lbmQJCT0gMTAw
-LAorCQkuZmxhZ3MJCT0gSU9SRVNPVVJDRV9JTywKKwl9LAogfTsKIAogLyogRE1BIG5vdCB1c2Vk
-OyB3b3JrcyBhcm91bmQgZXJyYXR1bSB3cml0aW5nIHRvIG5vbi1lbXB0eSBpMmMgZmlmbyAqLwpk
-aWZmIC0tZ2l0IGEvZHJpdmVycy9pMmMvYnVzc2VzL2kyYy1vbWFwLmMgYi9kcml2ZXJzL2kyYy9i
-dXNzZXMvaTJjLW9tYXAuYwppbmRleCA1MzA4ZDY3Li5iMjA1MDllIDEwMDY0NAotLS0gYS9kcml2
-ZXJzL2kyYy9idXNzZXMvaTJjLW9tYXAuYworKysgYi9kcml2ZXJzL2kyYy9idXNzZXMvaTJjLW9t
-YXAuYwpAQCAtMTEzLDE2ICsxMTMsMTEgQEAKIC8qIEkyQyBTeXN0ZW0gQ29uZmlndXJhdGlvbiBS
-ZWdpc3RlciAoT01BUF9JMkNfU1lTQyk6ICovCiAjZGVmaW5lIE9NQVBfSTJDX1NZU0NfU1JTVAkJ
-KDEgPDwgMSkJLyogU29mdCBSZXNldCAqLwogCi0vKiBSRVZJU0lUOiBVc2UgcGxhdGZvcm1fZGF0
-YSBpbnN0ZWFkIG9mIG1vZHVsZSBwYXJhbWV0ZXJzICovCi0vKiBGYXN0IE1vZGUgPSA0MDAga0h6
-LCBTdGFuZGFyZCA9IDEwMCBrSHogKi8KLXN0YXRpYyBpbnQgY2xvY2sgPSAxMDA7IC8qIERlZmF1
-bHQ6IDEwMCBrSHogKi8KLW1vZHVsZV9wYXJhbShjbG9jaywgaW50LCAwKTsKLU1PRFVMRV9QQVJN
-X0RFU0MoY2xvY2ssICJTZXQgSTJDIGNsb2NrIGluIGtIejogNDAwPWZhc3QgbW9kZSAoZGVmYXVs
-dCA9PSAxMDApIik7Ci0KIHN0cnVjdCBvbWFwX2kyY19kZXYgewogCXN0cnVjdCBkZXZpY2UJCSpk
-ZXY7CiAJdm9pZCBfX2lvbWVtCQkqYmFzZTsJCS8qIHZpcnR1YWwgKi8KIAlpbnQJCQlpcnE7CisJ
-aW50IAkJCXNwZWVkOwkJLyogRGVmYXVsdDogMTAwIGtIeiAqLwogCXN0cnVjdCBjbGsJCSppY2xr
-OwkJLyogSW50ZXJmYWNlIGNsb2NrICovCiAJc3RydWN0IGNsawkJKmZjbGs7CQkvKiBGdW5jdGlv
-bmFsIGNsb2NrICovCiAJc3RydWN0IGNvbXBsZXRpb24JY21kX2NvbXBsZXRlOwpAQCAtMjQ4LDkg
-KzI0Myw5IEBAIHN0YXRpYyBpbnQgb21hcF9pMmNfaW5pdChzdHJ1Y3Qgb21hcF9pMmNfZGV2ICpk
-ZXYpCiAJCXBzYyA9IDI7CiAKIAlvbWFwX2kyY193cml0ZV9yZWcoZGV2LCBPTUFQX0kyQ19TQ0xM
-X1JFRywKLQkJCSAgIGZjbGtfcmF0ZSAvIChjbG9jayAqIDIpIC0gNyArIHBzYyk7CisJCQkgICBm
-Y2xrX3JhdGUgLyAoZGV2LT5zcGVlZCAqIDIpIC0gNyArIHBzYyk7CiAJb21hcF9pMmNfd3JpdGVf
-cmVnKGRldiwgT01BUF9JMkNfU0NMSF9SRUcsCi0JCQkgICBmY2xrX3JhdGUgLyAoY2xvY2sgKiAy
-KSAtIDcgKyBwc2MpOworCQkJICAgZmNsa19yYXRlIC8gKGRldi0+c3BlZWQgKiAyKSAtIDcgKyBw
-c2MpOwogCiAJLyogVGFrZSB0aGUgSTJDIG1vZHVsZSBvdXQgb2YgcmVzZXQ6ICovCiAJb21hcF9p
-MmNfd3JpdGVfcmVnKGRldiwgT01BUF9JMkNfQ09OX1JFRywgT01BUF9JMkNfQ09OX0VOKTsKQEAg
-LTU3OSw3ICs1NzQsNyBAQCBvbWFwX2kyY19wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpw
-ZGV2KQogewogCXN0cnVjdCBvbWFwX2kyY19kZXYJKmRldjsKIAlzdHJ1Y3QgaTJjX2FkYXB0ZXIJ
-KmFkYXA7Ci0Jc3RydWN0IHJlc291cmNlCQkqbWVtLCAqaXJxLCAqaW9hcmVhOworCXN0cnVjdCBy
-ZXNvdXJjZQkJKm1lbSwgKmlycSwgKmlvYXJlYSwgKnNwZWVkOwogCWludCByOwogCiAJLyogTk9U
-RTogZHJpdmVyIHVzZXMgdGhlIHN0YXRpYyByZWdpc3RlciBtYXBwaW5nICovCkBAIC01OTMsNiAr
-NTg4LDggQEAgb21hcF9pMmNfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAkJ
-ZGV2X2VycigmcGRldi0+ZGV2LCAibm8gaXJxIHJlc291cmNlP1xuIik7CiAJCXJldHVybiAtRU5P
-REVWOwogCX0KKwlzcGVlZCA9IHBsYXRmb3JtX2dldF9yZXNvdXJjZShwZGV2LCBJT1JFU09VUkNF
-X0lPLCAwKTsKKwkvKiBJdCBpcyBvayB0byBoYXZlIGEgTlVMTCBzcGVlZCAtd2Ugd2lsbCB1c2Ug
-ZGVmYXVsdHMgKi8KIAogCWlvYXJlYSA9IHJlcXVlc3RfbWVtX3JlZ2lvbihtZW0tPnN0YXJ0LCAo
-bWVtLT5lbmQgLSBtZW0tPnN0YXJ0KSArIDEsCiAJCQlwZGV2LT5uYW1lKTsKQEAgLTYwMSwxNyAr
-NTk4LDIyIEBAIG9tYXBfaTJjX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCiAJ
-CXJldHVybiAtRUJVU1k7CiAJfQogCi0JaWYgKGNsb2NrID4gMjAwKQotCQljbG9jayA9IDQwMDsJ
-LyogRmFzdCBtb2RlICovCi0JZWxzZQotCQljbG9jayA9IDEwMDsJLyogU3RhbmRhcmQgbW9kZSAq
-LwotCiAJZGV2ID0ga3phbGxvYyhzaXplb2Yoc3RydWN0IG9tYXBfaTJjX2RldiksIEdGUF9LRVJO
-RUwpOwogCWlmICghZGV2KSB7CiAJCXIgPSAtRU5PTUVNOwogCQlnb3RvIGVycl9yZWxlYXNlX3Jl
-Z2lvbjsKIAl9CiAKKwlpZiAoIXNwZWVkKSB7CisJCWRldi0+c3BlZWQgPSAxMDA7IC8qIHVzZSBz
-dGFuZGFyZCAqLworCX0gZWxzZSB7CisJCWRldi0+c3BlZWQgPSBzcGVlZC0+ZW5kOworCX0KKwkv
-KiBUT0RPOiBBZGQgc3VwcG9ydCBmb3IgSGdoc3BlZWQgKi8KKwlpZiAoZGV2LT5zcGVlZCA+IDIw
-MCkKKwkJZGV2LT5zcGVlZCA9IDQwMDsJLyogRmFzdCBtb2RlICovCisJZWxzZQorCQlkZXYtPnNw
-ZWVkID0gMTAwOwkvKiBTdGFuZGFyZCBtb2RlICovCiAJZGV2LT5kZXYgPSAmcGRldi0+ZGV2Owog
-CWRldi0+aXJxID0gaXJxLT5zdGFydDsKIAlkZXYtPmJhc2UgPSAodm9pZCBfX2lvbWVtICopIElP
-X0FERFJFU1MobWVtLT5zdGFydCk7CkBAIC02MzYsOCArNjM4LDggQEAgb21hcF9pMmNfcHJvYmUo
-c3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAkJZ290byBlcnJfdW51c2VfY2xvY2tzOwog
-CX0KIAlyID0gb21hcF9pMmNfcmVhZF9yZWcoZGV2LCBPTUFQX0kyQ19SRVZfUkVHKSAmIDB4ZmY7
-Ci0JZGV2X2luZm8oZGV2LT5kZXYsICJidXMgJWQgcmV2JWQuJWQgYXQgJWQga0h6XG4iLAotCQkg
-cGRldi0+aWQsIHIgPj4gNCwgciAmIDB4ZiwgY2xvY2spOworCWRldl9pbmZvKGRldi0+ZGV2LCAi
-YnVzICVkIHJldiVkLiVkIGF0ICVkIGtIeihyZXF1ZXN0ZWQgJWQga0h6KVxuIiwKKwkJIHBkZXYt
-PmlkLCByID4+IDQsIHIgJiAweGYsIGRldi0+c3BlZWQsIChzcGVlZCk/IHNwZWVkLT5lbmQ6MCk7
-CiAKIAlhZGFwID0gJmRldi0+YWRhcHRlcjsKIAlpMmNfc2V0X2FkYXBkYXRhKGFkYXAsIGRldik7
-Ci0tIAoxLjUuMC41Cgo=
-------=_Part_101113_32285900.1175559269747
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
-------=_Part_101113_32285900.1175559269747--
+  Linux kernel, MMC maintainer        http://www.kernel.org
+  PulseAudio, core developer          http://pulseaudio.org
+  rdesktop, core developer          http://www.rdesktop.org
