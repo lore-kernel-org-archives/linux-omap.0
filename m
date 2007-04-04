@@ -1,12 +1,15 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: [PATCH 2/2] ARM: OMAP: Update EAC codec port mode in
- board-n800-audio.c
-Date: Wed, 4 Apr 2007 14:13:13 +0300
-Message-ID: <20070404141313.c4eab06d.jarkko.nikula@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Pending March patches
+Date: Wed, 4 Apr 2007 09:04:51 -0400
+Message-ID: <20070404130449.GB29129@atomide.com>
+References: <460FD29D.7070707@googlemail.com>
+	<20070403193046.GA24864@atomide.com>
+	<20070404.102028.56387043.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <20070404.102028.56387043.Hiroshi.DOYU@nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,28 +17,45 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
----
- arch/arm/mach-omap2/board-n800-audio.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Hi,
 
-diff --git a/arch/arm/mach-omap2/board-n800-audio.c b/arch/arm/mach-omap2/board-n800-audio.c
-index fa6ab86..f44aeb4 100644
---- a/arch/arm/mach-omap2/board-n800-audio.c
-+++ b/arch/arm/mach-omap2/board-n800-audio.c
-@@ -127,7 +127,7 @@ static int n800_audio_register_controls(void *pdata, struct snd_card *card)
- 
- static struct eac_codec n800_eac_codec = {
- 	.mclk_src = EAC_MCLK_EXT_2x12288000,
--	.codec_mode = EAC_CODEC_I2S,
-+	.codec_mode = EAC_CODEC_I2S_MASTER,
- 	.codec_conf.i2s.polarity_changed_mode = 0,
- 	.codec_conf.i2s.sync_delay_enable = 0,
- 	.default_rate = 48000,
--- 
-1.4.4.4
+* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [070404 03:17]:
+> Tony,
+> 
+> I confirmed that everything is in "master" branch and the other
+> branches have not been updated yet, which are related to "mmu
+> fw"/mailbox/dspgw(?).
+
+OK, thanks for confirming.
+
+> Though I don't know how to deal with dspgw code, I guess, at least,
+> "mailbox" and "mmu fw" can be merged into mainline?
+
+Yes, ideally we would have DSP power on/off, mailbox, mmu fw in
+plat-omap.
+
+Then I suggest we move the rest of the DSP code into drivers/dsp/omap.
+
+I don't think we can get the arch/arm/plat-omap/dsp integrated to
+the mainline. So the chances of getting it integrated would be better
+under drivers/dsp/omap.
+
+What are your thoughts on that? I'm thinking that we could do it few
+weeks after 2.6.21 after a stable 2.6.21-omap release.
+
+> Also there's something strange. There's just small part of dsp code in
+> "omap-drivers", but it's only a few files, they are not enough.
+
+OK, that needs to be checked. Sounds like they should be only in master,
+except for DSP power on/off, mailbox and  mmu fw. And those should be
+in omap-upstream.
+
+Regards,
+
+Tony
