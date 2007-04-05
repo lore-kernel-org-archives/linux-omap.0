@@ -1,16 +1,17 @@
-From: Tony Lindgren <tony@atomide.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
 Subject: Re: [PATCH] WATCHDOG: use base address from platform resources and
 	make 2430 boot again
-Date: Thu, 5 Apr 2007 09:30:57 -0400
-Message-ID: <20070405133055.GD24297@atomide.com>
+Date: Thu, 5 Apr 2007 19:12:46 +0530
+Message-ID: <5d5443650704050642n2fcebf7dg34b5e94be428de96@mail.gmail.com>
 References: <782515bb0704041855x4ff69d3bp19d386805eaecf16@mail.gmail.com>
 	<5d5443650704050320t242adc8ak46c76cfbc69449ed@mail.gmail.com>
 	<4614EF05.6050606@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
 In-Reply-To: <4614EF05.6050606@gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -24,22 +25,43 @@ To: Nishanth Menon <menon.nishanth@gmail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <menon.nishanth@gmail.com> [070405 08:44]:
-> Hi Trilok,
-> Thanks for your time in helping review the patch. :)
-> 
-> Trilok Soni stated on 4/5/2007 5:20 AM:
+Hi Nishanth,
+
+On 4/5/07, Nishanth Menon <menon.nishanth@gmail.com> wrote:
 > >
-> > Changelog goes in the SCM metadata, not source files. Please avoid this.
-> Is this a new convention? No offence intended, but I like my signature
-> on the files I touch extensively.. since it is not denied by
-> coding_standards.txt, kinda pulling on leeway here.. :)
+> good catch.. missed that one.
 
-The problem with this is that we will always get nailed on that
-trying to send the patches upstream, see current omap update on LKML
-right now for example. So we should generate patches that do not
-leave any reason for anybody to complain.
+Nop. You have only made change in wdt_probe, but missed wdt_remove for
+setting drvdata to NULL. Please do the same there.
 
-Regards,
+>
+>  static int omap_wdt_remove(struct platform_device *pdev)
+>  {
+> -       struct resource *mem = platform_get_drvdata(pdev);
+> -       misc_deregister(&omap_wdt_miscdev);
+> -       release_resource(mem);
+> -       if (armwdt_ck)
+> -               clk_put(armwdt_ck);
+> -       if (mpu_wdt_ick)
+> -               clk_put(mpu_wdt_ick);
+> -       if (mpu_wdt_fck)
+> -               clk_put(mpu_wdt_fck);
+> +       struct omap_wdt_dev *wdev;
+> +       wdev = (struct omap_wdt_dev *) platform_get_drvdata(pdev);
+> +
+> +       misc_deregister(&(wdev->omap_wdt_miscdev));
+> +       release_resource(wdev->mem);
+> +       if (wdev->armwdt_ck)
+> +               clk_put(wdev->armwdt_ck);
+> +       if (wdev->mpu_wdt_ick)
+> +               clk_put(wdev->mpu_wdt_ick);
+> +       if (wdev->mpu_wdt_fck)
+> +               clk_put(wdev->mpu_wdt_fck);
+> +       kfree(wdev);
+> +       omap_wdt_dev = NULL;
+>         return 0;
+>  }
+>
 
-Tony
+-- 
+--Trilok Soni
