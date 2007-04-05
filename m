@@ -1,15 +1,13 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: [PATCH] WATCHDOG: use base address from platform resources and
-	make 2430 boot again
-Date: Thu, 5 Apr 2007 15:50:17 +0530
-Message-ID: <5d5443650704050320t242adc8ak46c76cfbc69449ed@mail.gmail.com>
-References: <782515bb0704041855x4ff69d3bp19d386805eaecf16@mail.gmail.com>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: OMAP2430 NAND Boot
+Date: Thu, 05 Apr 2007 06:16:59 -0500
+Message-ID: <4614DAAB.4090405@gmail.com>
+References: <42E999AD7A0E4647BF159F467EE4FBCB014B1391@BLR-SGM-MSG01.wipro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <782515bb0704041855x4ff69d3bp19d386805eaecf16@mail.gmail.com>
-Content-Disposition: inline
+In-Reply-To: <42E999AD7A0E4647BF159F467EE4FBCB014B1391@BLR-SGM-MSG01.wipro.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,60 +17,28 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: nishanth menon <menon.nishanth@gmail.com>
+To: sathish.madhava@wipro.com
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Nishanth,
-
-On 4/5/07, nishanth menon <menon.nishanth@gmail.com> wrote:
-> Hi All,
-> Here is a patch for making 2430 bark again. In the process cleaned up
-> the watchdog timer driver a bit.
-> Details:
-> Watchdog fixes for 2430
-> * modfied watchdog driver to use base address provided in platform defn
-> * in the process cleaned up a bunch of statics used.
-> * added 2430 baseaddress defn
-
-Few comments:
-
-+ * ***
-+ * History:
-+ * --------
-+ * 2007-04-04 Nishanth Menon - move to depend on platform resource and clean
-+ *                             statics
-  */
-
-Changelog goes in the SCM metadata, not source files. Please avoid this.
-
--static void omap_wdt_ping(void)
-+static void omap_wdt_ping(struct omap_wdt_dev *wdev)
- {
-+	void __iomem    *base=wdev->base;
-
-
-space between *base and wdev->base is required for readability.
-
-+	void __iomem *base;
-+	base = wdev->base;
-
-Please add atleast one empty line between above sentences and same
-with all other places in the driver.
-
-+	wdev = (struct omap_wdt_dev *) platform_get_drvdata(omap_wdt_dev);
-
-You don't need casting here, I think.
-
-+	file->private_data = (void *) wdev;
-+	wdev = (struct omap_wdt_dev *) file->private_data;
-
-No need of casting.
-
-You should also set drvdata to NULL on wdt remove and error recovery
-path in wdt_probe.
-
-+	platform_set_drvdata(pdev, NULL);
-
--- 
---Trilok Soni
+sathish.madhava@wipro.com stated on 4/4/2007 10:55 PM:
+> 1. What kind of tool is to be used to convert x-load.raw into
+> x-load.raw.ift ?
+>   
+CSST can help here..
+> 2. Where can I get this tool ?
+>   
+http://focus.ti.com/general/docs/wtbu/wtbugencontent.tsp?contentId=14645&navigationId=12013&templateId=6123
+> 3. Or is it just editing some data in x-load.raw file or something else
+> ?
+>   
+no.. it is a matter of signint it.. read thru the quick start guide..
+also the release notes.
+> I have used u-boot to burn itself back into NAND flash and now trying to
+> program Xloader with CSST.
+>   
+:) U knew it :).... u can actually do flashing of all using csst.. not
+just signing.. in fact there are stuff in the csst tool that will allow
+u to do board diagnostics also..
+Regards,
+Nishanth Menon
