@@ -1,16 +1,13 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: [RFC-PATCH] Move i2c adaptor speed from a module parameter
-	toplatform device resource
-Date: Fri, 6 Apr 2007 17:00:25 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47A19D34@dlee13.ent.ti.com>
-References: <782515bb0704021714n18bb7e53ndac2047e1960b87d@mail.gmail.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: BUG: at kernel/sched.c:4031 __schedule()
+Date: Sat, 07 Apr 2007 09:49:49 +0200
+Message-ID: <46174D1D.90401@googlemail.com>
+References: <46164B23.9080202@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <782515bb0704021714n18bb7e53ndac2047e1960b87d@mail.gmail.com>
+In-Reply-To: <46164B23.9080202@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,90 +17,59 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: nishanth menon <menon.nishanth@gmail.com>, linux-omap-open-source@linux.omap.com
+To: Oleg Kechin <okechin@gmail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Nishanth,
+Oleg Kechin wrote:
+> Hi
+> I run 2.6.20-rt8 kernel on board like innovator1510 (OMAP5910 cpu)
+> I notice in boot string:
+> BUG: at kernel/sched.c:4031 __schedule()
+> kernel complain interrupts are enabled after schedule.
+> 
+> digging in sched.c I figured out that interrupts are disabled when cpu 
+> enter __sched(),
+> but are enabled when it went out.
+> Playing with the code i can find out, that problem is in the next 
+> fragment: (line 4024)
+> 
+>    if (likely(prev != next)) {
+>        next->timestamp = now;
+>        rq->nr_switches++;
+>        rq->curr = next;
+>        ++*switch_count;
+> 
+>        prepare_task_switch(rq, next);
+>        prev = context_switch(rq, prev, next);
+>        barrier();
+>        trace_special_pid(prev->pid, PRIO(prev), PRIO(current));
+>        /*
+>         * this_rq must be evaluated again because prev may have moved
+>         * CPUs since it called schedule(), thus the 'rq' on its stack
+>         * frame will be invalid.
+>         */
+>        finish_task_switch(this_rq(), prev);
+>        __preempt_enable_no_resched();
+>    } else {
+> 
+> in prepare_task_switch(rq, next); interrupts are enabled,
+> but in finish_task_switch(this_rq(), prev); interrupts not disabled
+> (it look not symmetrical for me).
+> 
+> Can anybody tell - is this right behavior?
+> I think interrupts should be disabled somewhere in this fragment,
+> or may be, scheduler should not complain?
 
->-----Original Message-----
->From: linux-omap-open-source-bounces@linux.omap.com [mailto:linux-omap-
->open-source-bounces@linux.omap.com] On Behalf Of nishanth menon
->Sent: Monday, April 02, 2007 7:14 PM
->To: linux-omap-open-source@linux.omap.com
->Subject: [RFC-PATCH] Move i2c adaptor speed from a module parameter
->toplatform device resource
->
->Hi All,
->
->Please find attached patch to move the i2c speed parameter from module
->to bus specific resource.
->
->To Discuss:
->* Is IORESOURCE_IO the best way of defining speed for i2c bus?
->
-I think we will be giving a different meaning to IORESOURCE_IO by doing
-this. Other drivers mainly use this for IO space handling purposes.=20
+Looks to me that this isn't an OMAP specific question. I 
+think linux-rt-users@vger.kernel.org list [1] is a better 
+place for this question.
 
-I thought some I2C config structure would have been better, like one
-available for SPI/MMC. I don't know if this gets formally approved.
+Did you try a more recent -rt patch? They are updated 
+frequently with additional fixes.
 
-The other option I thought was,=20
+Regards
 
-static int omap2_i2c2_clkrate =3D 400;
+Dirk
 
-static struct platform_device omap_i2c_device2 =3D {
-        .name           =3D "i2c_omap",
-        .id             =3D 2,
-        .num_resources  =3D ARRAY_SIZE(i2c_resources2),
-        .resource       =3D i2c_resources2,
-        .dev            =3D {
-                .platform_data =3D &omap2_i2c2_clkrate,
-        },
-};
-
-:),=20
-
->This, however, requires the following follow up patches:
->* Move i2c platform from plat-omap to respective board files.
->*    Reasoning: I2C speed at 100Khz is not always optimal for I2C1 by
->*      default (e.g. 3430).
->*    Impact: all board files will need to have it...but it will ensure
->*    that the i2c init is done in the proper sequence - 1 followed by
-2.
-
-We had discussed this before, but Tony was not "for" this approach.
-http://linux.omap.com/pipermail/linux-omap-open-source/2006-November/008
-398.html
-
->* Support FIFO mode of data transfer - this is supported on newer I2C
-h/w
->*     revs
->*    Options: support all in a single driver/split them up? have
-i2c-omap.c
->*     and i2c-omap2.c?
-
-We can add all new functionality to existing i2c-omap.c.
-
->* Support High speed transfers at a bus level
->*    Will depend of FIFO implementation as polled/interrupt mode is too
->*     slow and causes underrun.
-
-
-We can...
-
->* Support all known Erratas for i2c module.. make features
->*    i2c_module_hardware_revision based.
->* Support proper bus speed support
->*    Multiple devices on the same bus can have varied speed
-requirements.
->*    Infact speed could be a parameter for i2c messages?
->*    Impact: I2c corelevel changes required.i2c list disc.
-
-No specific comments as of now. This activity can be handled once we are
-done with all of the above
-
->Regards,
->Nishanth Menon
-
-Regards,
-Khasim
+[1] http://rt.wiki.kernel.org/index.php/Mailinglists
