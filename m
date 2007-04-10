@@ -1,13 +1,13 @@
-From: Juha Yrjola <juha.yrjola@solidboot.com>
+From: Ville Tervo <ville.tervo@nokia.com>
 Subject: Re: [PATCH] serial: Add driver for OMAP UARTs
-Date: Tue, 10 Apr 2007 13:07:24 +0300
-Message-ID: <461B61DC.6050005@solidboot.com>
-References: <9C23CDD79DA20A479D4615857B2E2C47A1A4FB@dlee13.ent.ti.com>
+Date: Tue, 10 Apr 2007 15:28:10 +0300
+Message-ID: <20070410122810.GF2841@null.research.nokia.com>
+References: <20070409204433.GA23320@mail.solidboot.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47A1A4FB@dlee13.ent.ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <20070409204433.GA23320@mail.solidboot.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,36 +15,38 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Khasim,
+Hi Juha,
 
-Syed Mohammed, Khasim wrote:
+Some reviewing and testing done. Some comments.
 
-> One concern I had here was, as we know OMAP supports multiple (3)
-> UART  ports and they can be used for IrDA (UART3), Bluetooth (UART2/1),
- > Serial applications etc. All these drivers should configure/use
-> similar register sets. So if we could,
-> 
-> - make the arch/arm/mach-omap2/serial.c more kind of a generic UART
->   API library that can be used by all UART drivers.
-> 	- the UART library should handle overall clock /power management policy.
-> 	- Centralized interrupt handler.
-> 	- DMA / Polling / Interrupt based read/writes.
+> +	/* Reset the UART */
+> +	serial_out(up, UART_OMAP_MDR1, 0x07);
+> +	udelay(50);
+> +	serial_out(up, UART_OMAP_MDR1, 0x00);
 
-It is certainly a good idea.  You probably meant to write 
-plat-omap/serial.c, since obviously the implementation shouldn't be 
-limited to OMAP2.
+I think that this doesn't really reset UART. And the result is some
+garbage coming from serial port after opening it.
 
-I suppose the UART library will not be trivial, though.  I don't know 
-what kind of special needs Bluetooth and IrDA have, but for example the 
-serial console code needs specific handling for the Magic SysRQ 
-characters in the RX loop.  The N800 Bluetooth driver does some funky 
-stuff related to PM, as well.
+serial_out(up, UART_OMAP_SYSC, 0x02);
+udelay(50);
 
-Cheers,
-Juha
+should be used instead?
+
+
+> +	if (co->index == -1 || co->index >= serial_omap_reg.nr ||
+> +	    serial_omap_console_ports[co->index] == NULL)
+> +		co->index = 0;
+
+I don't understand what is point in this code but following observation.
+Kernel hits null pointer if this code is in and multible ports are
+enabled from bootloader.
+
+Without this code multible ports work fine.
+
+-- 
+Ville
