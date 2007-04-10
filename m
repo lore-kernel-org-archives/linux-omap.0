@@ -1,15 +1,15 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: [PATCH] serial: Add driver for OMAP UARTs
-Date: Tue, 10 Apr 2007 00:36:00 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47A1A4FB@dlee13.ent.ti.com>
-References: <20070409204433.GA23320@mail.solidboot.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: Pending March patches -- OMAP DPSGW code migration
+Date: Tue, 10 Apr 2007 10:36:25 +0300 (EEST)
+Message-ID: <20070410.103625.110115446.Hiroshi.DOYU@nokia.com>
+References: <20070404130449.GB29129@atomide.com>
+	<20070404.171005.129442185.Hiroshi.DOYU@nokia.com>
+	<20070404143651.GD29129@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <20070409204433.GA23320@mail.solidboot.com>
+In-Reply-To: <20070404143651.GD29129@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,75 +19,96 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: =?iso-8859-1?B?SnVoYSBZcmr2bOQ=?= <juha.yrjola@solidboot.com>, linux-omap-open-source@linux.omap.com
+To: tony@atomide.com
+Cc: Toshihiro.Kobayashi@nokia.com, linux-omap-open-source@linux.omap.com, Komal.shah802003@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Juha,
+Hi,
 
-The serial driver presented is really good, as you said we can enhance =
-the same for DMA, High speed UART, Power Management etc.
-
-One concern I had here was, as we know OMAP supports multiple (3) UART =
-ports and they can be used for IrDA (UART3), Bluetooth (UART2/1), Serial =
-applications etc. All these drivers should configure/use similar =
-register sets. So if we could,=20
-
-- make the arch/arm/mach-omap2/serial.c more kind of a generic UART API =
-library that can be used by all UART drivers.
-	- the UART library should handle overall clock /power management =
-policy.
-	- Centralized interrupt handler.
-	- DMA / Polling / Interrupt based read/writes.
-
-- The serial driver implemented by you, IrDA and other UART dependent =
-drivers should use the APIs exported by UART library.
-
-- Basically UART dependent drivers should get registered with =
-centralized UART library for interrupt, clock, power and data transfer.=20
-
-This will avoid redundant code (for DMA, interrupt, PM, clk) in multiple =
-drivers. If we like/agree on this design, I can probably post a patch =
-(RFC) for the same.=20
-
-Please do let me know your comments / suggestions.
-
-Regards,
-Khasim
-
->-----Original Message-----
->From: linux-omap-open-source-bounces+x0khasim=3Dti.com@linux.omap.com
->[mailto:linux-omap-open-source-bounces+x0khasim=3Dti.com@linux.omap.com]=
- On
->Behalf Of Juha Yrj=F6l=E4
->Sent: Monday, April 09, 2007 3:45 PM
->To: linux-omap-open-source@linux.omap.com
->Subject: [PATCH] serial: Add driver for OMAP UARTs
+> > > What are your thoughts on that? I'm thinking that we could do it few
+> > > weeks after 2.6.21 after a stable 2.6.21-omap release.
+> >
+> > Agreed. It would be cleaner and easy to handle other implementation also.
 >
->>From 1b812d197f1451fc03335a999472a25e8c1830c6 Mon Sep 17 00:00:00 2001
->From: Juha Yrjola <juha.yrjola@solidboot.com>
->Date: Mon, 9 Apr 2007 23:43:34 +0300
->Subject: [PATCH] serial: Add driver for OMAP UARTs
+> OK. I'll drop the "ARM: OMAP: Add DSP common code" patch from
+> omap-upstream for now. Then we can put together the minimal DSP init
+> patch later on for 2.6.23 or something. The omap-upstream queue is
+> already painfully big :)
 >
->An OMAP-specific UART driver is needed when support for advanced
->functionality (such as DMA transfers and power management) is added.
->Currently it helps to work around UART initialization bugs at least
->in the OMAP2420 silicon.
+> What do you think we should keep in plat-omap?
 >
->Only OMAP24xx CPUs are supported at the moment, although adding
->support for OMAP1 should not be a big deal.
->
->Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
->---
-> arch/arm/configs/n800_defconfig              |    8 +-
-> arch/arm/configs/omap_2430sdp_defconfig      |   12 +-
-> arch/arm/configs/omap_apollon_2420_defconfig |   12 +-
-> arch/arm/configs/omap_generic_2420_defconfig |    7 +-
-> arch/arm/configs/omap_h4_2420_defconfig      |   12 +-
-> arch/arm/mach-omap2/serial.c                 |  190 ++----
-> drivers/serial/Kconfig                       |   23 +
-> drivers/serial/Makefile                      |    1 +
-> drivers/serial/omap.c                        |  893
->++++++++++++++++++++++++++
-> include/linux/serial_core.h                  |    2 +
-> 10 files changed, 994 insertions(+), 166 deletions(-)
-> create mode 100644 drivers/serial/omap.c
+> Maybe just something to power up and idle the DSP, and allow using McBSP
+> for audio?
+
+Yes, it may be like that.
+
+I think that it is time to consider DSPGW implementation again to
+support multiple bridge implementation and H/W combination at this
+transition.
+
+"DSPGW" was originally designed to support just ARM+C55x on OMAP1,
+only one combination, then OMAP2 now. It is composed of MPU side
+S/W(kernel/userland) and DSP side S/W(including DSP/BIOS).
+
+Now there are some H/W combinations coming, like ARM+IVA1, ARM?+IVA2,
+, OMAP730, ARM?+?. Also there exists TI's S/W bridge implementation
+and TI's middlewares on the top of that. All of them uses the same
+kind of "interrupt based mailbox", "shared memory" and "MMU control"
+to communicate between MPU and DSP, though their implementations are
+somewhat different. So, now the situation is getting complicated
+because there are the several kind of S/W and H/W combinations.
+
+At the point of MPU(ARM) side bridge S/W, it may be better that OMAP
+DSP bridge driver provides a collection of "BASIC S/W COMPONENTS" at
+first, and then builds up several kind of "USER INTERFACE" on the top
+of them, in order to support multiple H/W and S/W combinations,
+sharing their code as much as possible.
+
+For "BASIC S/W COMPONENTS", at least, there may be following modules
+
+  - OMAP non-MPU MMU FW
+  - MAILBOX
+  - IPC message protocol
+  - Shared memory management
+  - DSP processor management/control
+  - DSP TASK/NODE, STREAM management
+  - DSP COFF/DOFF loader
+
+Basically each of them should be _independent_ and just provides its
+basic feature for their users as APIs, though some of them have to be
+stacked as layer.
+
+For "USER INTERFACE", there are/will be some implementations
+below. They are just interfaces to make use of/be composed of, some or
+all of the above BASIC COMPONENTS. User can choose any interface among
+them. In other words, these user interfaces may be exclusive.
+
+  - character device interface "/dev/dsptask?"	(ex: DSPGW)
+  - user defined "ioctl()" messages		(ex: TI's bridge)
+  - DSP specified filesystem, "DSPFS"		(most reasonable one)
+  - userland device driver
+  - nice fancy interfaces?                      (no idea for me, now)
+
+The above interfaces can be wrapped by userland library API to keep
+the compatibility for the existing middleware interfaces.
+
+Also there may be a trade-off that how much work userland application
+take care of. For example, userland application can be something like
+just "userland device driver" which just uses "MAILBOX" and "MMU FW"
+interfaces to control "DSP". Or most of the work can be done within
+kernel module.
+
+So I think that, once the above "BASIC S/W COMPONENTS" are implemented,
+it would be easier to implement another interfaces on the top of them,
+because an interface can choose some/all of components which it
+requires to build their interface/API for users.
+
+Now the problem is current DSPGW's components are a little bit too
+related each other to support multiple
+combinations/implementations. Along with this DSPGW code migration, we
+had better solve this complexity, at least some extent;) to introduce
+further/another implementations later.
+
+Any comments would be appreciated.
+
+    Hiroshi DOYU
