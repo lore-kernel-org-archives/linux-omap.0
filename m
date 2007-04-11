@@ -1,7 +1,7 @@
 From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: [PATCH / RFC] TWL4030 Keypad driver support (resending)
-Date: Wed, 11 Apr 2007 13:46:55 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47A95614@dlee13.ent.ti.com>
+Subject: [PATCH / RFC] TWL4030 GPIO driver (resending)
+Date: Wed, 11 Apr 2007 13:46:51 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47A95613@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -20,566 +20,109 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-
-This patch adds TWL4030 Keypad driver support for 2430 SDP.=20
+This patch adds TWL4030 GPIO driver. Required for TWL4030 Keypad and
+other TWL4030 GPIO dependent modules.
 
 Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
 
 Files:
- drivers/input/keyboard/Kconfig
- drivers/input/keyboard/Makefile
- drivers/input/keyboard/omap-twl4030keypad.c
- drivers/input/keyboard/twl4030-keypad.h=20
- include/asm-arm/arch-omap/board-2430sdp.h
- include/asm-arm/arch-omap/twl4030.h
- arch/arm/mach-omap2/board-2430sdp.c
-=20
+ drivers/i2c/chips/Kconfig
+ drivers/i2c/chips/Makefile
+ drivers/i2c/chips/twl4030_core.c
+ drivers/i2c/chips/twl4030_gpio.c=20
+
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-diff -purN linux-omap/drivers/input/keyboard/Kconfig
-lin_for_hsi2c/drivers/input/keyboard/Kconfig
---- linux-omap/drivers/input/keyboard/Kconfig	2007-04-02
-02:30:03.000000000 -0500
-+++ lin_for_hsi2c/drivers/input/keyboard/Kconfig	2007-04-10
-15:23:03.000000000 -0500
-@@ -203,6 +203,15 @@ config KEYBOARD_OMAP
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called omap-keypad.
+diff -purN linux-omap/drivers/i2c/chips/Kconfig
+lin_for_hsi2c/drivers/i2c/chips/Kconfig
+--- linux-omap/drivers/i2c/chips/Kconfig	2007-01-08
+18:56:31.000000000 -0600
++++ lin_for_hsi2c/drivers/i2c/chips/Kconfig	2007-04-10
+14:59:38.000000000 -0500
+@@ -127,6 +127,10 @@ config TWL4030_CORE
+ 	help
+ 	  Say yes here if you have TWL4030 chip on your board
 =20
-+config KEYBOARD_TWL4030
-+	tristate "TI TWL4030 keypad support"
-+	depends on INPUT_KEYBOARD && TWL4030_CORE && MACH_OMAP_2430SDP
-+	help
-+	  Say Y here if you want to use the OMAP TWL4030 keypad.
++config TWL4030_GPIO
++	bool "TWL4030 GPIO Driver"
++	depends on TWL4030_CORE
 +
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called omap-twl4030keypad.
-+
- config OMAP_PS2
- 	tristate "TI OMAP Innovator 1510 PS/2 keyboard & mouse support"
- 	depends on ARCH_OMAP15XX && MACH_OMAP_INNOVATOR
-diff -purN linux-omap/drivers/input/keyboard/Makefile
-lin_for_hsi2c/drivers/input/keyboard/Makefile
---- linux-omap/drivers/input/keyboard/Makefile	2007-04-02
-02:30:03.000000000 -0500
-+++ lin_for_hsi2c/drivers/input/keyboard/Makefile	2007-04-10
-15:21:15.000000000 -0500
-@@ -21,4 +21,4 @@ obj-$(CONFIG_OMAP_PS2)			+=3D
-innovator_ps
- obj-$(CONFIG_KEYBOARD_AAED2000)         +=3D aaed2000_kbd.o
- obj-$(CONFIG_KEYBOARD_GPIO)		+=3D gpio_keys.o
- obj-$(CONFIG_KEYBOARD_TSC2301)		+=3D tsc2301_kp.o
+ config SENSORS_M41T00
+ 	tristate "ST M41T00 RTC chip"
+ 	depends on I2C && PPC32
+diff -purN linux-omap/drivers/i2c/chips/Makefile
+lin_for_hsi2c/drivers/i2c/chips/Makefile
+--- linux-omap/drivers/i2c/chips/Makefile	2007-01-08
+18:56:31.000000000 -0600
++++ lin_for_hsi2c/drivers/i2c/chips/Makefile	2007-04-10
+14:58:05.000000000 -0500
+@@ -16,6 +16,7 @@ obj-$(CONFIG_SENSORS_TLV320AIC23) +=3D tlv
+ obj-$(CONFIG_GPIOEXPANDER_OMAP)	+=3D gpio_expander_omap.o
+ obj-$(CONFIG_MENELAUS)		+=3D menelaus.o
+ obj-$(CONFIG_TWL4030_CORE)      +=3D twl4030_core.o
++obj-$(CONFIG_TWL4030_GPIO)	  +=3D twl4030_gpio.o
+ obj-$(CONFIG_RTC_X1205_I2C)	+=3D x1205.o
+=20
+ ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
+diff -purN linux-omap/drivers/i2c/chips/twl4030_core.c
+lin_for_hsi2c/drivers/i2c/chips/twl4030_core.c
+--- linux-omap/drivers/i2c/chips/twl4030_core.c	2007-02-16
+09:43:31.000000000 -0600
++++ lin_for_hsi2c/drivers/i2c/chips/twl4030_core.c	2007-04-10
+17:23:20.000000000 -0500
+@@ -325,6 +325,7 @@ int twl4030_i2c_read(u8 mod_no, u8 * val
+ 	msg =3D &(client->xfer_msg[0]);
+ 	msg->addr =3D client->address;
+ 	msg->len =3D 1;
++	msg->flags =3D 0;	/* Read the register value */
+ 	val =3D twl4030_map[mod_no].base + reg;
+ 	msg->buf =3D &val;
+ 	/* [MSG2] fill the data rx buffer */
+@@ -393,7 +394,7 @@ static void do_twl4030_module_irq(unsign
+ 	/*
+ 	 * Earlier this was desc->triggered =3D 1;
+ 	 */
+-	desc->status =3D IRQ_INPROGRESS;
++	desc->status |=3D IRQ_LEVEL;
+=20
+ 	/*
+ 	 * The desc->handle method would normally call the
+desc->chip->ack
+@@ -510,12 +511,11 @@ static int twl4030_irq_thread(void *data
+ static void do_twl4030_irq(unsigned int irq, irq_desc_t *desc)
+ {
+ 	const unsigned int cpu =3D smp_processor_id();
+-	struct task_struct *thread =3D (struct task_struct
+*)desc->chip_data;
 -
-+obj-$(CONFIG_KEYBOARD_TWL4030)	  +=3D omap-twl4030keypad.o
-diff -purN linux-omap/drivers/input/keyboard/omap-twl4030keypad.c
-lin_for_hsi2c/drivers/input/keyboard/omap-twl4030keypad.c
---- linux-omap/drivers/input/keyboard/omap-twl4030keypad.c
-1969-12-31 18:00:00.000000000 -0600
-+++ lin_for_hsi2c/drivers/input/keyboard/omap-twl4030keypad.c
-2007-04-11 13:05:20.000000000 -0500
-@@ -0,0 +1,458 @@
-+/*
-+ * drivers/input/omap-twl4030keypad.c
-+ *
-+ * Copyright (C) 2007 Texas Instruments, Inc.
-+ *
-+ * Code re-arranged and cleaned up for 2430SDP by:
-+ * Syed Mohammed Khasim <x0khasim@ti.com>
-+ *
-+ * Initial Code:
-+ * Manjunatha G K <manjugk@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
-USA
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/types.h>
-+#include <linux/input.h>
-+#include <linux/kernel.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/i2c.h>
-+#include <asm/irq.h>
-+#include <asm/arch/keypad.h>
-+#include <asm/arch/twl4030.h>
-+#include "twl4030-keypad.h"
-+
-+#define OMAP_TWL4030KEYPAD_LOG_LEVEL	1
-+
-+#define KEY(col, row, val)	(((col) << 28) | ((row) << 24) | (val))
-+#define NUM_ROWS		5
-+#define NUM_COLS		6
-+
-+#define ROW_MASK		((1<<NUM_ROWS)-1)
-+
-+#define SCAN_RATE		HZ/20
-+#define KEYNUM_MASK		0xFF000000
-+#define ROWCOL_MASK		0x00FFFFFF
-+
-+/* Driver Name */
-+#define OMAP_TWL4030KEYPAD_NAME		"omap_twl4030keypad"
-+
-+#ifndef CONFIG_TWL4030KEY_AUTORPT
-+#define CONFIG_TWL4030KEY_AUTORPT	100
-+#endif
-+
-+#define SCAN_RATE			HZ/20
-+
-+#if (OMAP_TWL4030KEYPAD_LOG_LEVEL >=3D 1)
-+char *switch_name[NUM_ROWS][NUM_COLS] =3D {
-+	{"S2_L", "S2_D", "S2_S", "S3", "S4", "S23"},
-+	{"S2_R", "S2_U", "S5", "S6", "S7", "S24"},
-+	{"S8", "S9", "S10", "S11", "S12", "S25"},
-+	{"S13", "S14", "S15", "S16", "S17", "S26"},
-+	{"S18", "S19", "S20", "S21", "S22", "S27"},
-+};
-+#endif
-+
-+/* Global variables */
-+static int *keymap;
-+static unsigned char keypad_state[NUM_ROWS];
-+
-+/* Function Templates */
-+static struct input_dev *omap_twl4030kp;
-+struct timer_list kptimer;
-+static void omap_kp_timer(unsigned long);
-+static void twl4030_keypad_scan(void);
-+struct work_struct timer_work;
-+void twl4030_kp_work(void *data);
-+void twl4030_timer_work(void *data);
-+
-+static int twl4030_kpread_u8(u32 module, u8 * data, u32 reg)
-+{
-+	int ret;
-+	ret =3D twl4030_i2c_read_u8(module, data, reg);
-+	if (ret < 0) {
-+		printk(KERN_WARNING
-+			"Could not read TWL4030 register %X - returned
-%d[%x]\n",
-+			reg, ret, ret);
-+		return ret;
-+	}
-+	return ret;
-+}
-+
-+static int twl4030_kpwrite_u8(u32 module, u8 data, u32 reg)
-+{
-+	int ret;
-+	ret =3D twl4030_i2c_write_u8(module, data, reg);
-+	if (ret < 0) {
-+		printk(KERN_WARNING
-+			"Could not write TWL4030 register %X - returned
-%d[%x]\n",
-+			reg, ret, ret);
-+		return ret;
-+	}
-+	return ret;
-+}
-+
-+static inline int omap_kp_find_key(int col, int row)
-+{
-+	int i, key;
-+
-+	key =3D KEY(col, row, 0);
-+	for (i =3D 0; keymap[i] !=3D 0; i++) {
-+		if ((keymap[i] & KEYNUM_MASK) =3D=3D key) {
-+			return keymap[i] & ROWCOL_MASK;
-+		}
-+	}
-+	return -EINVAL;
-+}
-+
-+static void twl4030_keypad_scan(void) {
-+
-+	unsigned char new_state[NUM_ROWS], changed, key_down =3D 0;
-+	u8 col, row, spurious =3D 0;
-+	u8 code_reg =3D REG_FULL_CODE_7_0;
-+	int ret;
-+
-+	/* check for any changes */
-+	ret =3D
-+		twl4030_i2c_read(TWL4030_MODULE_KEYPAD, new_state,
-code_reg,
-+				 NUM_ROWS);
-+	if (ret < 0) {
-+		printk(KERN_WARNING
-+				"Could not read TWL4030 register %X -
-returned %d[%x]\n",
-+				code_reg, ret, ret);
-+	}
-+
-+	/* check for changes and print those */
-+	for (row =3D 0; row < NUM_ROWS; row++) {
-+		changed =3D new_state[row] ^ keypad_state[row];
-+		key_down |=3D new_state[row];
-+
-+		if (changed =3D=3D 0)
-+			continue;
-+
-+		for (col =3D 0; col < NUM_COLS; col++) {
-+			int key;
-+			if (!(changed & (1 << col)))
-+				continue;
-+
-+#if (OMAP_TWL4030KEYPAD_LOG_LEVEL >=3D 1)
-+			printk("key %s %s\n", switch_name[row][col],
-+				(new_state[row] & (1 << col)) ? "press"
-: "release");
-+#endif
-+			key =3D omap_kp_find_key(col, row);
-+			if (key < 0) {
-+				printk(KERN_WARNING
-+						"omap-keypad: Spurious
-key event %d-%d\n",
-+						col, row);
-+				/* We scan again after a couple of
-seconds */
-+				spurious =3D 1;
-+				continue;
-+			}
-+
-+			input_report_key(omap_twl4030kp, key,
-+					 new_state[row] & (1 << col));
-+		}
-+	}
-+	if (key_down) {
-+		/*
-+		 * some key is pressed - keep irq disabled and use timer
-+		 * to poll for key release
-+		 */
-+		if (spurious)
-+			mod_timer(&kptimer, jiffies + SCAN_RATE * 2);
-+		else
-+			mod_timer(&kptimer, jiffies + SCAN_RATE);
-+	}
-+	memcpy(keypad_state, new_state, sizeof(keypad_state));
-+}
-+
-+void twl4030_timer_work(void *data)
-+{
-+	twl4030_keypad_scan();
-+}
-+
-+void omap_kp_timer(unsigned long data)
-+{
-+	schedule_work(&timer_work);
-+}
-+
-+/*
-+ * Keypad interrupt handler
-+ */
-+static irqreturn_t do_kp_irq(int irq, void *dev_id)
-+{
-+	u8 reg;
-+	int ret;
-+
-+	/* Mask keypad interrupts */
-+	reg =3D KEYP_IMR1_MASK;
-+	ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg,
-REG_KEYP_IMR1);
-+
-+	/*
-+	 * Scan keypad for any changes
-+	 * in keypad matrix.
-+	 */
-+	twl4030_keypad_scan();
-+
-+	/* Clear TWL4030 PIH interrupt */
-+	ret =3D twl4030_kpread_u8(TWL4030_MODULE_KEYPAD, &reg,
-REG_KEYP_ISR1);
-+
-+	/* Enable interrupts */
-+	reg =3D KEYP_IMR1_UNMASK;
-+	ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg,
-REG_KEYP_IMR1);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/*
-+ * Registers keypad device with input sub system
-+ * and configures TWL4030 keypad registers
-+ *
-+ */
-+static int __init omap_kp_probe(struct platform_device *pdev)
-+{
-+	u8 reg, i;
-+	u8 code_reg =3D REG_FULL_CODE_7_0;
-+	int ret =3D 0;
-+	struct omap_kp_platform_data *pdata =3D  pdev->dev.platform_data;
-+
-+#ifdef CONFIG_TWL4030KEYPAD_AUTORPT
-+	int keyreptime =3D 0;
-+#endif
-+
-+	if (!pdata->rows || !pdata->cols || !pdata->keymap) {
-+		printk(KERN_ERR "No rows, cols or keymap from pdata\n");
-+		return -EINVAL;
-+	}
-+
-+	omap_twl4030kp =3D input_allocate_device();
-+		if (omap_twl4030kp =3D=3D NULL) {
-+		return -ENOMEM;
-+	}
-+
-+	keymap =3D pdata->keymap;
-+
-+	/* setup input device */
-+	set_bit(EV_KEY, omap_twl4030kp->evbit);
-+
-+	/* Enable auto repeat feature of Linux input subsystem */
-+
-+	set_bit(EV_REP, omap_twl4030kp->evbit);
-+	for (i =3D 0; keymap[i] !=3D 0; i++)
-+		set_bit(keymap[i] & 0x00ffffff, omap_twl4030kp->keybit);
-+	omap_twl4030kp->name =3D OMAP_TWL4030KEYPAD_NAME;
-+	input_register_device(omap_twl4030kp);
-+
-+	init_timer(&kptimer);
-+	kptimer.function =3D omap_kp_timer;
-+
-+	/*
-+	 * Since keypad driver uses I2C for reading
-+	 * twl4030 keypad registers, tasklets cannot
-+	 * be used.
-+ 	 */
-+
-+	INIT_WORK(&timer_work, twl4030_timer_work);
-+
-+#ifdef CONFIG_TWL4030KEYPAD_AUTORPT
-+	keyreptime =3D
-+		(CONFIG_TWL4030KEY_AUTORPT) / (31.25 * 32 * 0.001) - 1;
-+
-+	/* Reset keypad module */
-+	reg =3D 0;
-+	ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg,
-REG_KEYP_CTRL_REG);
-+	if (ret < 0)
-+		goto exit_path4;
-+
-+	/*
-+	 *  mask all events - dont care abt result - should
-+	 *  be done by default on a reset of KP module.. still..
-+	 */
-+	(void)twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, 0xff,
-REG_KEYP_IMR1);
-+
-+	/*
-+	 * Set keypad control register to Normal operation,
-+	 * hardware decoding,hardware key auto repeat feature
-+	 * and keypad power on
-+	 */
-+	reg =3D KEYP_CTRL_REG_MASK_AUTORPT;
-+#else
-+
-+	reg =3D KEYP_CTRL_REG_MASK_NOAUTORPT;
-+
-+#endif
-+	ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg,
-REG_KEYP_CTRL_REG);
-+	if (ret < 0)
-+		goto exit_path3;
-+
-+	/* Set all events to Falling Edge detection */
-+	reg =3D KEYP_EDR_MASK;
-+	ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg,
-REG_KEYP_EDR);
-+	if (ret < 0)
-+		goto exit_path3;
-+
-+	/* Set Pre Scalar Field PTV to 4 */
-+	reg =3D BIT_LK_PTV_REG_PTV_M & (BIT_PTV_REG_PTV4 <<
-BIT_LK_PTV_REG_PTV);
-+
-+#ifdef CONFIG_TWL4030KEYPAD_AUTORPT
-+	/* Set 4 bit MSB auto repeat key value in PTV reg */
-+	reg |=3D BIT_LK_PTV_REG_MSB_LK_M & ((keyreptime >> 8)
-+					<< BIT_LK_PTV_REG_MSB_LK);
-+#endif
-+
-+	ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg,
-REG_LK_PTV_REG);
-+	if (ret < 0)
-+		goto exit_path3;
-+
-+	/*
-+	 * Set key debounce time to 10 ms using equation
-+	 * Tint =3D Tclk * (LOAD_TIM+1) * 2^(PTV+1)
-+	 * Where Tclk =3D 31.25 us ( since kbd_if_clk is 32KHz)
-+	 * PTV =3D 4 for all the operations.
-+	 */
-+	ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, 0x3f,
-REG_KEY_DEB_REG);
-+	if (ret < 0)
-+		goto exit_path3;
-+
-+#ifdef CONFIG_TWL4030KEYPAD_AUTORPT
-+	reg =3D 0;
-+	/*
-+	 * Set LSB 8 bit timer value for key auto repeat.
-+	 * Use the above formula to compute the Timer value
-+	 * Ex:
-+	 * 100 ms , LOAD_TIM =3D 63
-+	 * 200 ms , LOAD_TIM =3D c7
-+	 * 300 ms , LOAD_TIM =3D 12B
-+	 * 500 ms , LOAD_TIM =3D 1F3
-+	 * 1 sec,	LOAD_TIM =3D 3E7
-+	 * Default is set to 100 ms.
-+	 */
-+	reg =3D BIT_LONG_KEY_REG1_LSB_LK_M &
-+		(keyreptime << BIT_LONG_KEY_REG1_LSB_LK);
-+
-+	ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg,
-REG_LONG_KEY_REG1);
-+	if (ret < 0)
-+		goto exit_path3;
-+#endif
-+
-+	/* Set SIH Ctrl register */
-+	reg =3D KEYP_SIH_CTRL_MASK;
-+	ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg,
-REG_KEYP_SIH_CTRL);
-+	if (ret < 0)
-+		goto exit_path3;
-+
-+	/*
-+	 * This ISR will always execute in kernel thread context because
-of
-+	 * the need to access the TWL4030 over the I2C bus.
-+	 */
-+	ret =3D request_irq(TWL4030_MODIRQ_KEYPAD, do_kp_irq,
-+		SA_INTERRUPT, "TWL4030 Keypad", omap_twl4030kp);
-+	if (ret < 0) {
-+		printk(KERN_INFO
-+				"request_irq failed for irq no=3D%d\n",
-+				TWL4030_MODIRQ_KEYPAD);
-+		goto exit_path3;
-+	} else {
-+		/* Enable keypad module interrupts now. */
-+		reg =3D KEYP_IMR1_UNMASK;
-+		ret =3D
-+			twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg,
-+						REG_KEYP_IMR1);
-+		if (ret < 0) {
-+			/* mask all events - dont care abt result */
-+			(void)twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD,
-0xff,
-+						 REG_KEYP_IMR1);
-+			goto exit_path4;
-+		}
-+	}
-+
-+#if (OMAP_TWL4030KEYPAD_LOG_LEVEL >=3D 1)
-+	printk
-+	  ("********TWL4030 keypad module configuration registers
-dump*********\n");
-+	twl4030_kpread_u8(TWL4030_MODULE_KEYPAD, &reg,
-REG_KEYP_CTRL_REG);
-+	printk("Register REG_KEYP_CTRL_REG : %X\n", reg);
-+	twl4030_kpread_u8(TWL4030_MODULE_KEYPAD, &reg, REG_KEYP_EDR);
-+	printk("Register REG_KEYP_EDR: %X\n", reg);
-+	twl4030_kpread_u8(TWL4030_MODULE_KEYPAD, &reg, REG_LK_PTV_REG);
-+	printk("Register REG_LK_PTV_REG: %X\n", reg);
-+	twl4030_kpread_u8(TWL4030_MODULE_KEYPAD, &reg, REG_KEY_DEB_REG);
-+	printk("Register REG_KEY_DEB_REG: %X\n", reg);
-+	twl4030_kpread_u8(TWL4030_MODULE_KEYPAD, &reg,
-REG_LONG_KEY_REG1);
-+	printk("Register REG_LONG_KEY_REG1: %X\n", reg);
-+	twl4030_kpread_u8(TWL4030_MODULE_KEYPAD, &reg,
-REG_KEYP_SIH_CTRL);
-+	printk("Register REG_KEYP_SIH_CTRL: %X\n", reg);
-+	twl4030_kpread_u8(TWL4030_MODULE_KEYPAD, &reg, REG_KEYP_IMR1);
-+	printk("Register REG_KEYP_IMR1: %X\n", reg);
-+	printk("****************END******************\n");
-+#endif
-+	/* Read initial state of keypad matrix. */
-+	ret =3D twl4030_i2c_read(TWL4030_MODULE_KEYPAD, keypad_state,
-code_reg,
-+		NUM_ROWS);
-+	if (ret < 0) {
-+		printk(KERN_WARNING
-+				"Could not read TWL4030 register %X -
-returned %d[%x]\n",
-+				reg, ret, ret);
-+		goto exit_path4;
-+	}
-+
-+	return (ret);
-+exit_path4:
-+	free_irq(TWL4030_MODIRQ_KEYPAD, NULL);
-+exit_path3:
-+	input_unregister_device(omap_twl4030kp);
-+	return -ENODEV;
-+}
-+
-+static int omap_kp_remove(struct platform_device *pdev)
-+{
-+	free_irq(TWL4030_MODIRQ_KEYPAD, NULL);
-+	del_timer_sync(&kptimer);
-+
-+	input_unregister_device(omap_twl4030kp);
-+	return 0;
-+}
-+
-+
-+static struct platform_driver omap_kp_driver =3D {
-+	.probe		=3D omap_kp_probe,
-+	.remove		=3D omap_kp_remove,
-+	.driver		=3D {
-+		.name	=3D OMAP_TWL4030KEYPAD_NAME,
-+	},
-+};
-+
-+/*
-+ * OMAP TWL4030 Keypad init
-+ */
-+static int __devinit omap_kp_init(void)
-+{
-+	printk(KERN_INFO "OMAP Keypad Driver\n");
-+	return platform_driver_register(&omap_kp_driver);
-+}
-+
-+static void __exit omap_kp_exit(void)
-+{
-+	platform_driver_unregister(&omap_kp_driver);
-+}
-+
-+module_init(omap_kp_init);
-+module_exit(omap_kp_exit);
-+MODULE_AUTHOR("Texas Instruments");
-+MODULE_DESCRIPTION("OMAP TWL4030 Keypad Driver");
-+MODULE_LICENSE("GPL");
-diff -purN linux-omap/drivers/input/keyboard/twl4030-keypad.h
-lin_for_hsi2c/drivers/input/keyboard/twl4030-keypad.h
---- linux-omap/drivers/input/keyboard/twl4030-keypad.h	1969-12-31
++	struct task_struct *thread =3D get_irq_data(irq);
+ 	/*
+ 	 * Earlier this was desc->triggered =3D 1;
+ 	 */
+-	desc->status =3D IRQ_INPROGRESS;
++	desc->status |=3D IRQ_LEVEL;
+=20
+ 	/*
+ 	 * Acknowledge, clear _AND_ disable the interrupt.
+diff -purN linux-omap/drivers/i2c/chips/twl4030_gpio.c
+lin_for_hsi2c/drivers/i2c/chips/twl4030_gpio.c
+--- linux-omap/drivers/i2c/chips/twl4030_gpio.c	1969-12-31
 18:00:00.000000000 -0600
-+++ lin_for_hsi2c/drivers/input/keyboard/twl4030-keypad.h
-2007-04-11 13:08:16.000000000 -0500
-@@ -0,0 +1,376 @@
++++ lin_for_hsi2c/drivers/i2c/chips/twl4030_gpio.c	2007-04-11
+12:53:49.000000000 -0500
+@@ -0,0 +1,836 @@
 +/*
-+ * drivers/input/twl4030-keypad.h - Register defines for TWL4030 keypad
-module
++ * linux/drivers/i2c/chips/twl4030_gpio.c
 + *
 + * Copyright (C) 2006-2007 Texas Instruments, Inc.
++ * Copyright (C) 2006 MontaVista Software, Inc.
 + *
 + * Code re-arranged and cleaned up by:
 + * 	Syed Mohammed Khasim <x0khasim@ti.com>
++ *
++ * Initial Code:
++ * 	Andy Lowe / Nishanth Menon
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License as published by
@@ -595,513 +138,853 @@ module
 + * along with this program; if not, write to the Free Software
 + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
 USA
++ *
 + */
-+#ifndef __TWL4030_KEYPAD_H__
-+#define __TWL4030_KEYPAD_H__
 +
-+/* Register Definitions */
-+#define REG_KEYP_CTRL_REG			(0x0)
-+#define REG_KEY_DEB_REG				(0x1)
-+#define REG_LONG_KEY_REG1			(0x2)
-+#define REG_LK_PTV_REG				(0x3)
-+#define REG_TIME_OUT_REG1			(0x4)
-+#define REG_TIME_OUT_REG2			(0x5)
-+#define REG_KBC_REG				(0x6)
-+#define REG_KBR_REG				(0x7)
-+#define REG_KEYP_SMS				(0x8)
-+#define REG_FULL_CODE_7_0			(0x9)
-+#define REG_FULL_CODE_15_8			(0xA)
-+#define REG_FULL_CODE_23_16			(0xB)
-+#define REG_FULL_CODE_31_24			(0xC)
-+#define REG_FULL_CODE_39_32			(0xD)
-+#define REG_FULL_CODE_47_40			(0xE)
-+#define REG_FULL_CODE_55_48			(0xF)
-+#define REG_FULL_CODE_63_56			(0x10)
-+#define REG_KEYP_ISR1				(0x11)
-+#define REG_KEYP_IMR1				(0x12)
-+#define REG_KEYP_ISR2				(0x13)
-+#define REG_KEYP_IMR2				(0x14)
-+#define REG_KEYP_SIR				(0x15)
-+#define REG_KEYP_EDR				(0x16)
-+#define REG_KEYP_SIH_CTRL			(0x17)
++#include <linux/module.h>
++#include <linux/kernel_stat.h>
++#include <linux/init.h>
++#include <linux/time.h>
++#include <linux/interrupt.h>
++#include <linux/random.h>
++#include <linux/syscalls.h>
++#include <linux/kthread.h>
 +
-+/* BitField Definitions */
++#include <linux/i2c.h>
++#include <linux/slab.h>
 +
-+/* KEYP_CTRL_REG Fields */
-+#define BIT_KEYP_CTRL_REG_SOFT_NRST		(0x000)
-+#define BIT_KEYP_CTRL_REG_SOFT_NRST_M		(0x00000001)
-+#define BIT_KEYP_CTRL_REG_SOFTMODEN		(0x001)
-+#define BIT_KEYP_CTRL_REG_SOFTMODEN_M		(0x00000002)
-+#define BIT_KEYP_CTRL_REG_LK_EN			(0x002)
-+#define BIT_KEYP_CTRL_REG_LK_EN_M		(0x00000004)
-+#define BIT_KEYP_CTRL_REG_TOE_EN		(0x003)
-+#define BIT_KEYP_CTRL_REG_TOE_EN_M		(0x00000008)
-+#define BIT_KEYP_CTRL_REG_TOLE_EN		(0x004)
-+#define BIT_KEYP_CTRL_REG_TOLE_EN_M		(0x00000010)
-+#define BIT_KEYP_CTRL_REG_RP_EN			(0x005)
-+#define BIT_KEYP_CTRL_REG_RP_EN_M		(0x00000020)
-+#define BIT_KEYP_CTRL_REG_KBD_ON		(0x006)
-+#define BIT_KEYP_CTRL_REG_KBD_ON_M		(0x00000040)
++#include <asm/arch/twl4030.h>
++#include <asm/arch/irqs.h>
++#include <asm/irq.h>
++#include <asm/mach/irq.h>
++#include <asm/arch/gpio.h>
++#include <asm/arch/mux.h>
 +
-+#define KEYP_CTRL_REG_MASK_AUTORPT
-BIT_KEYP_CTRL_REG_SOFT_NRST_M |\
++#include <linux/device.h>
 +
-BIT_KEYP_CTRL_REG_RP_EN_M |\
++/****************************************
++*  GPIO Block Register definitions
++****************************************/
 +
-BIT_KEYP_CTRL_REG_SOFTMODEN_M |\
++#define REG_GPIODATAIN1			(0x0)
++#define REG_GPIODATAIN2			(0x1)
++#define REG_GPIODATAIN3			(0x2)
++#define REG_GPIODATADIR1		(0x3)
++#define REG_GPIODATADIR2		(0x4)
++#define REG_GPIODATADIR3		(0x5)
++#define REG_GPIODATAOUT1		(0x6)
++#define REG_GPIODATAOUT2		(0x7)
++#define REG_GPIODATAOUT3		(0x8)
++#define REG_CLEARGPIODATAOUT1		(0x9)
++#define REG_CLEARGPIODATAOUT2		(0xA)
++#define REG_CLEARGPIODATAOUT3		(0xB)
++#define REG_SETGPIODATAOUT1		(0xC)
++#define REG_SETGPIODATAOUT2		(0xD)
++#define REG_SETGPIODATAOUT3		(0xE)
++#define REG_GPIO_DEBEN1			(0xF)
++#define REG_GPIO_DEBEN2			(0x10)
++#define REG_GPIO_DEBEN3			(0x11)
++#define REG_GPIO_CTRL			(0x12)
++#define REG_GPIOPUPDCTR1		(0x13)
++#define REG_GPIOPUPDCTR2		(0x14)
++#define REG_GPIOPUPDCTR3		(0x15)
++#define REG_GPIOPUPDCTR4		(0x16)
++#define REG_GPIOPUPDCTR5		(0x17)
++#define REG_GPIO_ISR1A			(0x19)
++#define REG_GPIO_ISR2A			(0x1A)
++#define REG_GPIO_ISR3A			(0x1B)
++#define REG_GPIO_IMR1A			(0x1C)
++#define REG_GPIO_IMR2A			(0x1D)
++#define REG_GPIO_IMR3A			(0x1E)
++#define REG_GPIO_ISR1B			(0x1F)
++#define REG_GPIO_ISR2B			(0x20)
++#define REG_GPIO_ISR3B			(0x21)
++#define REG_GPIO_IMR1B			(0x22)
++#define REG_GPIO_IMR2B			(0x23)
++#define REG_GPIO_IMR3B			(0x24)
++#define REG_GPIO_EDR1			(0x28)
++#define REG_GPIO_EDR2			(0x29)
++#define REG_GPIO_EDR3			(0x2A)
++#define REG_GPIO_EDR4			(0x2B)
++#define REG_GPIO_EDR5			(0x2C)
++#define REG_GPIO_SIH_CTRL		(0x2D)
 +
-BIT_KEYP_CTRL_REG_KBD_ON_M
++/**** BitField Definitions */
 +
-+#define KEYP_CTRL_REG_MASK_NOAUTORPT
-BIT_KEYP_CTRL_REG_SOFT_NRST_M |\
++/***** Data banks : 3 banks for 8 gpios each */
++#define DATA_BANK_MAX				8
++#define GET_GPIO_DATA_BANK(x)			((x)/DATA_BANK_MAX)
++#define GET_GPIO_DATA_OFF(x)			((x)%DATA_BANK_MAX)
 +
-BIT_KEYP_CTRL_REG_SOFTMODEN_M |\
++/* GPIODATADIR Fields each block 0-7 */
++#define BIT_GPIODATADIR_GPIOxDIR(x)		(x)
++#define MASK_GPIODATADIR_GPIOxDIR(x)		(0x01<<(x))
 +
-BIT_KEYP_CTRL_REG_KBD_ON_M
++/* GPIODATAIN Fields each block 0-7 */
++#define BIT_GPIODATAIN_GPIOxIN(x)		(x)
++#define MASK_GPIODATAIN_GPIOxIN(x)		(0x01<<(x))
 +
-+/* KEY_DEB_REG Fields */
-+#define BIT_KEY_DEB_REG_KEYP_DEB		(0x000)
-+#define BIT_KEY_DEB_REG_KEYP_DEB_M		(0x0000003F)
-+#define BIT_KEY_DEB9				(0x9)
++/* GPIODATAOUT Fields each block 0-7 */
++#define BIT_GPIODATAOUT_GPIOxOUT(x)		(x)
++#define MASK_GPIODATAOUT_GPIOxOUT(x)		(0x01<<(x))
 +
-+/* LONG_KEY_REG1 Fields */
-+#define BIT_LONG_KEY_REG1_LSB_LK		(0x000)
-+#define BIT_LONG_KEY_REG1_LSB_LK_M		(0x000000FF)
-+#define BIT_LONG_KEY_100MS			(0x63)
++/* CLEARGPIODATAOUT Fields */
++#define BIT_CLEARGPIODATAOUT_GPIOxOUT(x)	(x)
++#define MASK_CLEARGPIODATAOUT_GPIOxOUT(x)	(0x01<<(x))
 +
-+/* LK_PTV_REG Fields */
-+#define BIT_LK_PTV_REG_MSB_LK			(0x000)
-+#define BIT_LK_PTV_REG_MSB_LK_M			(0x0000000F)
-+#define BIT_LK_PTV_REG_PTV			(0x005)
-+#define BIT_LK_PTV_REG_PTV_M			(0x000000E0)
-+#define BIT_PTV_REG_PTV4			(0x4)
++/* SETGPIODATAOUT Fields */
++#define BIT_SETGPIODATAOUT_GPIOxOUT(x)		(x)
++#define MASK_SETGPIODATAOUT_GPIOxOUT(x)		(0x01<<(x))
 +
-+/* TIME_OUT_REG1 Fields */
-+#define BIT_TIME_OUT_REG1_LSB_TO		(0x000)
-+#define BIT_TIME_OUT_REG1_LSB_TO_M		(0x000000FF)
++/* GPIO_DEBEN Fields */
++#define BIT_GPIO_DEBEN_GPIOxDEB(x)		(x)
++#define MASK_GPIO_DEBEN_GPIOxDEB(x)		(0x01<<(x))
 +
-+/* TIME_OUT_REG2 Fields */
-+#define BIT_TIME_OUT_REG2_MSB_TO		(0x000)
-+#define BIT_TIME_OUT_REG2_MSB_TO_M		(0x000000FF)
++/* GPIO_ISR1A Fields */
++#define BIT_GPIO_ISR_GPIOxISR(x)		(x)
++#define MASK_GPIO_ISR_GPIOxISR(x)		(0x01<<(x))
 +
-+/* KBC_REG Fields */
-+#define BIT_KBC_REG_KBC0			(0x000)
-+#define BIT_KBC_REG_KBC0_M			(0x00000001)
-+#define BIT_KBC_REG_KBC1			(0x001)
-+#define BIT_KBC_REG_KBC1_M			(0x00000002)
-+#define BIT_KBC_REG_KBC2			(0x002)
-+#define BIT_KBC_REG_KBC2_M			(0x00000004)
-+#define BIT_KBC_REG_KBC3			(0x003)
-+#define BIT_KBC_REG_KBC3_M			(0x00000008)
-+#define BIT_KBC_REG_KBC4			(0x004)
-+#define BIT_KBC_REG_KBC4_M			(0x00000010)
-+#define BIT_KBC_REG_KBC5			(0x005)
-+#define BIT_KBC_REG_KBC5_M			(0x00000020)
-+#define BIT_KBC_REG_KBC6			(0x006)
-+#define BIT_KBC_REG_KBC6_M			(0x00000040)
-+#define BIT_KBC_REG_KBC7			(0x007)
-+#define BIT_KBC_REG_KBC7_M			(0x00000080)
++/* GPIO_IMR1A Fields */
++#define BIT_GPIO_IMR1A_GPIOxIMR(x)		(x)
++#define MASK_GPIO_IMR1A_GPIOxIMR(x)		(0x01<<(x))
 +
-+/* KBR_REG Fields */
-+#define BIT_KBR_REG_KBR0			(0x000)
-+#define BIT_KBR_REG_KBR0_M			(0x00000001)
-+#define BIT_KBR_REG_KBR1			(0x001)
-+#define BIT_KBR_REG_KBR1_M			(0x00000002)
-+#define BIT_KBR_REG_KBR2			(0x002)
-+#define BIT_KBR_REG_KBR2_M			(0x00000004)
-+#define BIT_KBR_REG_KBR3			(0x003)
-+#define BIT_KBR_REG_KBR3_M			(0x00000008)
-+#define BIT_KBR_REG_KBR4			(0x004)
-+#define BIT_KBR_REG_KBR4_M			(0x00000010)
-+#define BIT_KBR_REG_KBR5			(0x005)
-+#define BIT_KBR_REG_KBR5_M			(0x00000020)
-+#define BIT_KBR_REG_KBR6			(0x006)
-+#define BIT_KBR_REG_KBR6_M			(0x00000040)
-+#define BIT_KBR_REG_KBR7			(0x007)
-+#define BIT_KBR_REG_KBR7_M			(0x00000080)
++/* GPIO_SIR1 Fields */
++#define BIT_GPIO_SIR1_GPIOxSIR(x)		(x)
++#define MASK_GPIO_SIR1_GPIO0SIR			(0x01<<(x))
 +
-+/* KEYP_SMS Fields */
-+#define BIT_KEYP_SMS_STMSTS			(0x000)
-+#define BIT_KEYP_SMS_STMSTS_M			(0x0000000F)
-+#define BIT_KEYP_SMS_SIR_EN			(0x004)
-+#define BIT_KEYP_SMS_SIR_EN_M			(0x00000010)
-+#define BIT_KEYP_SMS_MISS_EN			(0x005)
-+#define BIT_KEYP_SMS_MISS_EN_M			(0x00000020)
 +
-+/* FULL_CODE_7_0 Fields */
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K0		(0x000)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K0_M	(0x00000001)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K1		(0x001)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K1_M	(0x00000002)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K2		(0x002)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K2_M	(0x00000004)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K3		(0x003)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K3_M	(0x00000008)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K4		(0x004)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K4_M	(0x00000010)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K5		(0x005)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K5_M	(0x00000020)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K6		(0x006)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K6_M	(0x00000040)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K7		(0x007)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K7_M	(0x00000080)
++/**** Control banks : 5 banks for 4 gpios each */
++#define DATA_CTL_MAX			4
++#define GET_GPIO_CTL_BANK(x)		((x)/DATA_CTL_MAX)
++#define GET_GPIO_CTL_OFF(x)		((x)%DATA_CTL_MAX)
++#define GPIO_BANK_MAX
+GET_GPIO_CTL_BANK(TWL4030_GPIO_MAX)
 +
-+/* FULL_CODE_15_8 Fields */
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K8		(0x000)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K8_M	(0x00000001)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K9		(0x001)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K9_M	(0x00000002)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K10	(0x002)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K10_M	(0x00000004)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K11	(0x003)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K11_M	(0x00000008)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K12	(0x004)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K12_M	(0x00000010)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K13	(0x005)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K13_M	(0x00000020)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K14	(0x006)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K14_M	(0x00000040)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K15	(0x007)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K15_M	(0x00000080)
++/* GPIOPUPDCTRx Fields 5 banks of 4 gpios each */
++#define BIT_GPIOPUPDCTR1_GPIOxPD(x)	(2 *(x))
++#define MASK_GPIOPUPDCTR1_GPIOxPD(x)	(0x01<<(2*(x)))
++#define BIT_GPIOPUPDCTR1_GPIOxPU(x)	((x) + 1)
++#define MASK_GPIOPUPDCTR1_GPIOxPU(x)	(0x01<<(((2*(x)) + 1)))
 +
-+/* FULL_CODE_23_16 Fields */
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K16	(0x000)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K16_M	(0x00000001)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K17	(0x001)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K17_M	(0x00000002)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K18	(0x002)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K18_M	(0x00000004)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K19	(0x003)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K19_M	(0x00000008)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K20	(0x004)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K20_M	(0x00000010)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K21	(0x005)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K21_M	(0x00000020)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K22	(0x006)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K22_M	(0x00000040)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K23	(0x007)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K23_M	(0x00000080)
++/* GPIO_EDR1 Fields */
++#define BIT_GPIO_EDR1_GPIOxFALLING(x)	(2 *(x))
++#define MASK_GPIO_EDR1_GPIOxFALLING(x)	(0x01<<(2*(x)))
++#define BIT_GPIO_EDR1_GPIOxRISING(x)	((x) + 1)
++#define MASK_GPIO_EDR1_GPIOxRISING(x)	(0x01<<(((2*(x)) + 1)))
 +
-+/* FULL_CODE_31_24 Fields */
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K24	(0x000)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K24_M	(0x00000001)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K25	(0x001)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K25_M	(0x00000002)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K26	(0x002)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K26_M	(0x00000004)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K27	(0x003)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K27_M	(0x00000008)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K28	(0x004)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K28_M	(0x00000010)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K29	(0x005)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K29_M	(0x00000020)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K30	(0x006)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K30_M	(0x00000040)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K31	(0x007)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K31_M	(0x00000080)
++/* GPIO_SIH_CTRL Fields */
++#define BIT_GPIO_SIH_CTRL_EXCLEN	(0x000)
++#define MASK_GPIO_SIH_CTRL_EXCLEN	(0x00000001)
++#define BIT_GPIO_SIH_CTRL_PENDDIS	(0x001)
++#define MASK_GPIO_SIH_CTRL_PENDDIS	(0x00000002)
++#define BIT_GPIO_SIH_CTRL_COR		(0x002)
++#define MASK_GPIO_SIH_CTRL_COR		(0x00000004)
 +
-+/* FULL_CODE_39_32 Fields */
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K32	(0x000)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K32_M	(0x00000001)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K33	(0x001)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K33_M	(0x00000002)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K34	(0x002)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K34_M	(0x00000004)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K35	(0x003)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K35_M	(0x00000008)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K36	(0x004)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K36_M	(0x00000010)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K37	(0x005)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K37_M	(0x00000020)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K38	(0x006)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K38_M	(0x00000040)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K39	(0x007)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K39_M	(0x00000080)
++/* GPIO_CTRL Fields */
++#define BIT_GPIO_CTRL_GPIO0CD1		(0x000)
++#define MASK_GPIO_CTRL_GPIO0CD1		(0x00000001)
++#define BIT_GPIO_CTRL_GPIO1CD2		(0x001)
++#define MASK_GPIO_CTRL_GPIO1CD2		(0x00000002)
++#define BIT_GPIO_CTRL_GPIO_ON		(0x002)
++#define MASK_GPIO_CTRL_GPIO_ON		(0x00000004)
 +
-+/* FULL_CODE_47_40 Fields */
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K40	(0x000)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K40_M	(0x00000001)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K41	(0x001)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K41_M	(0x00000002)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K42	(0x002)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K42_M	(0x00000004)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K43	(0x003)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K43_M	(0x00000008)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K44	(0x004)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K44_M	(0x00000010)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K45	(0x005)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K45_M	(0x00000020)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K46	(0x006)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K46_M	(0x00000040)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K47	(0x007)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K47_M	(0x00000080)
++/* Mask for GPIO registers when aggregated into a 32-bit integer */
++#define GPIO_32_MASK			0x0003ffff
 +
-+/* FULL_CODE_55_48 Fields */
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K48	(0x000)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K48_M	(0x00000001)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K49	(0x001)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K49_M	(0x00000002)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K50	(0x002)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K50_M	(0x00000004)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K51	(0x003)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K51_M	(0x00000008)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K52	(0x004)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K52_M	(0x00000010)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K53	(0x005)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K53_M	(0x00000020)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K54	(0x006)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K54_M	(0x00000040)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K55	(0x007)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K55_M	(0x00000080)
++/* Data structures */
++static struct semaphore gpio_sem;
 +
-+/* FULL_CODE_63_56 Fields */
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K56	(0x000)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K56_M	(0x00000001)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K57	(0x001)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K57_M	(0x00000002)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K58	(0x002)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K58_M	(0x00000004)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K59	(0x003)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K59_M	(0x00000008)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K60	(0x004)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K60_M	(0x00000010)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K61	(0x005)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K61_M	(0x00000020)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K62	(0x006)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K62_M	(0x00000040)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K63	(0x007)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K63_M	(0x00000080)
++/* store usage of each GPIO. - each bit represents one GPIO */
++static unsigned int gpio_usage_count;
 +
-+/* KEYP_ISR1 Fields */
-+#define BIT_KEYP_ISR1_ITKPISR1			(0x000)
-+#define BIT_KEYP_ISR1_ITKPISR1_M		(0x00000001)
-+#define BIT_KEYP_ISR1_ITLKISR1			(0x001)
-+#define BIT_KEYP_ISR1_ITLKISR1_M		(0x00000002)
-+#define BIT_KEYP_ISR1_ITTOISR1			(0x002)
-+#define BIT_KEYP_ISR1_ITTOISR1_M		(0x00000004)
-+#define BIT_KEYP_ISR1_ITMISR1			(0x003)
-+#define BIT_KEYP_ISR1_ITMISR1_M			(0x00000008)
-+#define KEYP_ISR1_CLEAR				(0x0F)
++/* shadow the imr register */
++static unsigned int gpio_imr_shadow;
 +
-+/* KEYP_IMR1 Fields */
-+#define BIT_KEYP_IMR1_ITKPIMR1			(0x000)
-+#define BIT_KEYP_IMR1_ITKPIMR1_M		(0x00000001)
-+#define BIT_KEYP_IMR1_ITLKIMR1			(0x001)
-+#define BIT_KEYP_IMR1_ITLKIMR1_M		(0x00000002)
-+#define BIT_KEYP_IMR1_ITTOIMR1			(0x002)
-+#define BIT_KEYP_IMR1_ITTOIMR1_M		(0x00000004)
-+#define BIT_KEYP_IMR1_ITMISIMR1			(0x003)
-+#define BIT_KEYP_IMR1_ITMISIMR1_M		(0x00000008)
-+#define KEYP_IMR1_MASK				(0x0F)
-+#define KEYP_IMR1_UNMASK			(0x00)
++/* bitmask of pending requests to unmask gpio interrupts */
++static unsigned int gpio_pending_unmask;
 +
-+/* KEYP_ISR2 Fields */
-+#define BIT_KEYP_ISR2_ITKPISR2			(0x000)
-+#define BIT_KEYP_ISR2_ITKPISR2_M		(0x00000001)
-+#define BIT_KEYP_ISR2_ITLKISR2			(0x001)
-+#define BIT_KEYP_ISR2_ITLKISR2_M		(0x00000002)
-+#define BIT_KEYP_ISR2_ITTOISR2			(0x002)
-+#define BIT_KEYP_ISR2_ITTOISR2_M		(0x00000004)
-+#define BIT_KEYP_ISR2_ITMISR2			(0x003)
-+#define BIT_KEYP_ISR2_ITMISR2_M			(0x00000008)
++/* pointer to gpio unmask thread struct */
++static struct task_struct *gpio_unmask_thread;
 +
-+/* KEYP_IMR2 Fields */
-+#define BIT_KEYP_IMR2_ITKPIMR2			(0x000)
-+#define BIT_KEYP_IMR2_ITKPIMR2_M		(0x00000001)
-+#define BIT_KEYP_IMR2_ITLKIMR2			(0x001)
-+#define BIT_KEYP_IMR2_ITLKIMR2_M		(0x00000002)
-+#define BIT_KEYP_IMR2_ITTOIMR2			(0x002)
-+#define BIT_KEYP_IMR2_ITTOIMR2_M		(0x00000004)
-+#define BIT_KEYP_IMR2_ITMISIMR2			(0x003)
-+#define BIT_KEYP_IMR2_ITMISIMR2_M		(0x00000008)
++static inline int gpio_twl4030_read(u8 address);
++static inline int gpio_twl4030_write(u8 address, u8 data);
 +
-+/* KEYP_SIR Fields */
-+#define BIT_KEYP_SIR_ITKPSIR			(0x000)
-+#define BIT_KEYP_SIR_ITKPSIR_M			(0x00000001)
-+#define BIT_KEYP_SIR_ITLKSIR			(0x001)
-+#define BIT_KEYP_SIR_ITLKSIR_M			(0x00000002)
-+#define BIT_KEYP_SIR_ITTOSIR			(0x002)
-+#define BIT_KEYP_SIR_ITTOSIR_M			(0x00000004)
-+#define BIT_KEYP_SIR_ITMISSIR			(0x003)
-+#define BIT_KEYP_SIR_ITMISSIR_M			(0x00000008)
-+
-+/* KEYP_EDR Fields */
-+#define BIT_KEYP_EDR_ITKPFALLING		(0x000)
-+#define BIT_KEYP_EDR_ITKPFALLING_M		(0x00000001)
-+#define BIT_KEYP_EDR_ITKPRISING			(0x001)
-+#define BIT_KEYP_EDR_ITKPRISING_M		(0x00000002)
-+#define BIT_KEYP_EDR_ITLKFALLING		(0x002)
-+#define BIT_KEYP_EDR_ITLKFALLING_M		(0x00000004)
-+#define BIT_KEYP_EDR_ITLKRISING			(0x003)
-+#define BIT_KEYP_EDR_ITLKRISING_M		(0x00000008)
-+#define BIT_KEYP_EDR_ITTOFALLING		(0x004)
-+#define BIT_KEYP_EDR_ITTOFALLING_M		(0x00000010)
-+#define BIT_KEYP_EDR_ITTORISING			(0x005)
-+#define BIT_KEYP_EDR_ITTORISING_M		(0x00000020)
-+#define BIT_KEYP_EDR_ITMISFALLING		(0x006)
-+#define BIT_KEYP_EDR_ITMISFALLING_M		(0x00000040)
-+#define BIT_KEYP_EDR_ITMISRISING		(0x007)
-+#define BIT_KEYP_EDR_ITMISRISING_M		(0x00000080)
-+
-+#define KEYP_EDR_MASK
-BIT_KEYP_EDR_ITKPFALLING_M |\
-+
-BIT_KEYP_EDR_ITLKFALLING_M |\
-+
-BIT_KEYP_EDR_ITTOFALLING_M |\
-+
-BIT_KEYP_EDR_ITMISFALLING_M
-+/* KEYP_SIH_CTRL Fields */
-+#define BIT_KEYP_SIH_CTRL_EXCLEN		(0x000)
-+#define BIT_KEYP_SIH_CTRL_EXCLEN_M		(0x00000001)
-+#define BIT_KEYP_SIH_CTRL_PENDDIS		(0x001)
-+#define BIT_KEYP_SIH_CTRL_PENDDIS_M		(0x00000002)
-+#define BIT_KEYP_SIH_CTRL_COR			(0x002)
-+#define BIT_KEYP_SIH_CTRL_COR_M			(0x00000004)
-+#define KEYP_SIH_CTRL_MASK			(0x04)
-+
-+#endif	/* End of __TWL4030-KEYPAD_H__ */
-
-diff -purN linux-omap/include/asm-arm/arch-omap/board-2430sdp.h
-lin_for_hsi2c/include/asm-arm/arch-omap/board-2430sdp.h
---- linux-omap/include/asm-arm/arch-omap/board-2430sdp.h
-2006-12-17 08:56:42.000000000 -0600
-+++ lin_for_hsi2c/include/asm-arm/arch-omap/board-2430sdp.h
-2007-04-11 13:13:42.000000000 -0500
-@@ -30,7 +30,7 @@
- #define __ASM_ARCH_OMAP_2430SDP_H
-=20
- /* Placeholder for 2430SDP specific defines */
--#define OMAP24XX_ETHR_START		 0x08000300
-+#define OMAP24XX_ETHR_START		0x08000300
- #define OMAP24XX_ETHR_GPIO_IRQ		149
- #define SDP2430_CS0_BASE		0x04000000
-=20
-@@ -39,6 +39,10 @@
- /* TWL4030 Primary Interrupt Handler (PIH) interrupts */
- #define IH_TWL4030_BASE			IH_BOARD_BASE
- #define IH_TWL4030_END			(IH_TWL4030_BASE+8)
--#define NR_IRQS				(IH_TWL4030_END)
-+
-+/* TWL4030 GPIO Interrupts */
-+#define IH_TWL4030_GPIO_BASE		(IH_TWL4030_END)
-+#define IH_TWL4030_GPIO_END		(IH_TWL4030_BASE+18)
-+#define NR_IRQS				(IH_TWL4030_GPIO_END)
-=20
- #endif /* __ASM_ARCH_OMAP_2430SDP_H */
-diff -purN linux-omap/include/asm-arm/arch-omap/twl4030.h
-lin_for_hsi2c/include/asm-arm/arch-omap/twl4030.h
---- linux-omap/include/asm-arm/arch-omap/twl4030.h	2007-01-08
-18:57:20.000000000 -0600
-+++ lin_for_hsi2c/include/asm-arm/arch-omap/twl4030.h	2007-04-10
-15:20:42.000000000 -0500
-@@ -72,6 +72,23 @@
- #define TWL4030_VAUX3_DEV_GRP		0x1F
- #define TWL4030_VAUX3_DEDICATED		0x22
-=20
-+/* TWL4030 GPIO interrupt definitions */
-+
-+#define TWL4030_GPIO_MIN		0
-+#define TWL4030_GPIO_MAX		18
-+#define TWL4030_GPIO_MAX_CD		2
-+#define TWL4030_GPIO_IRQ_NO(n)		(IH_TWL4030_GPIO_BASE+n)
-+#define TWL4030_GPIO_IS_INPUT		1
-+#define TWL4030_GPIO_IS_OUTPUT		0
-+#define TWL4030_GPIO_IS_ENABLE		1
-+#define TWL4030_GPIO_IS_DISABLE		0
-+#define TWL4030_GPIO_PULL_UP		0
-+#define TWL4030_GPIO_PULL_DOWN		1
-+#define TWL4030_GPIO_PULL_NONE		2
-+#define TWL4030_GPIO_EDGE_NONE		0
-+#define TWL4030_GPIO_EDGE_RISING	1
-+#define TWL4030_GPIO_EDGE_FALLING	2
-+
- /* Functions to read and write from TWL4030 */
-=20
- /*
-
---- linux-omap/arch/arm/mach-omap2/board-2430sdp.c	2007-03-02
-17:12:25.000000000 -0600
-+++ lin_for_hsi2c/arch/arm/mach-omap2/board-2430sdp.c	2007-04-10
-15:31:49.000000000 -0500
-@@ -19,6 +19,7 @@
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
- #include <linux/delay.h>
-+#include <linux/input.h>
- #include <linux/err.h>
- #include <linux/clk.h>
-=20
-@@ -32,6 +33,7 @@
- #include <asm/arch/mux.h>
- #include <asm/arch/board.h>
- #include <asm/arch/common.h>
-+#include <asm/arch/keypad.h>
- #include <asm/arch/gpmc.h>
- #include "prcm-regs.h"
-=20
-@@ -114,9 +116,64 @@ static struct platform_device sdp2430_sm
- 	.resource	=3D sdp2430_smc91x_resources,
- };
-=20
 +/*
-+ * Key mapping for 2430 SDP board
++ * Helper functions to read and write the GPIO ISR and IMR registers as
++ * 32-bit integers. Functions return 0 on success, non-zero otherwise.
++ * The caller must hold a lock on gpio_sem.
 + */
 +
-+static int sdp2430_keymap[] =3D {
-+	KEY(0, 0, KEY_LEFT),
-+	KEY(0, 1, KEY_RIGHT),
-+	KEY(0, 2, KEY_A),
-+	KEY(0, 3, KEY_B),
-+	KEY(0, 4, KEY_C),
-+	KEY(1, 0, KEY_DOWN),
-+	KEY(1, 1, KEY_UP),
-+	KEY(1, 2, KEY_E),
-+	KEY(1, 3, KEY_F),
-+	KEY(1, 4, KEY_G),
-+	KEY(2, 0, KEY_ENTER),
-+	KEY(2, 1, KEY_I),
-+	KEY(2, 2, KEY_J),
-+	KEY(2, 3, KEY_K),
-+	KEY(2, 4, KEY_3),
-+	KEY(3, 0, KEY_M),
-+	KEY(3, 1, KEY_N),
-+	KEY(3, 2, KEY_O),
-+	KEY(3, 3, KEY_P),
-+	KEY(3, 4, KEY_Q),
-+	KEY(4, 0, KEY_R),
-+	KEY(4, 1, KEY_4),
-+	KEY(4, 2, KEY_T),
-+	KEY(4, 3, KEY_U),
-+	KEY(4, 4, KEY_D),
-+	KEY(5, 0, KEY_V),
-+	KEY(5, 1, KEY_W),
-+	KEY(5, 2, KEY_L),
-+	KEY(5, 3, KEY_S),
-+	KEY(5, 4, KEY_H),
-+	0
++static int gpio_read_isr(unsigned int *isr)
++{
++	int ret;
++
++	*isr =3D 0;
++	ret =3D twl4030_i2c_read(TWL4030_MODULE_GPIO, (u8 *) isr,
++			REG_GPIO_ISR1A, 3);
++	le32_to_cpup(isr);
++	*isr &=3D GPIO_32_MASK;
++
++	return ret;
++}
++
++static int gpio_write_isr(unsigned int isr)
++{
++	int ret;
++
++	isr &=3D GPIO_32_MASK;
++	/*
++	 * The buffer passed to the twl4030_i2c_write() routine must
+have an
++	 * extra byte at the beginning reserved for its internal use.
++	 */
++	isr <<=3D 8;
++	isr =3D cpu_to_le32(isr);
++	ret =3D twl4030_i2c_write(TWL4030_MODULE_GPIO, (u8 *) &isr,
++				REG_GPIO_ISR1A, 3);
++	return ret;
++}
++
++static int gpio_write_imr(unsigned int imr)
++{
++	int ret;
++
++	imr &=3D GPIO_32_MASK;
++	/*
++	 * The buffer passed to the twl4030_i2c_write() routine must
+have an
++	 * extra byte at the beginning reserved for its internal use.
++	 */
++	imr <<=3D 8;
++	imr =3D cpu_to_le32(imr);
++	ret =3D twl4030_i2c_write(TWL4030_MODULE_GPIO, (u8 *) &imr,
++				REG_GPIO_IMR1A, 3);
++	return ret;
++}
++
++/*
++ * These routines are analagous to the irqchip methods, but they are
+designed
++ * to be called from thread context with cpu interrupts enabled and
+with no
++ * locked spinlocks.  We call these routines from our custom IRQ
+handler
++ * instead of the usual irqchip methods.
++ */
++static void twl4030_gpio_mask_and_ack(unsigned int irq)
++{
++	int gpio =3D irq - IH_TWL4030_GPIO_BASE;
++
++	down(&gpio_sem);
++	/* mask */
++	gpio_imr_shadow |=3D (1 << gpio);
++	gpio_write_imr(gpio_imr_shadow);
++	/* ack */
++	gpio_write_isr(1 << gpio);
++	up(&gpio_sem);
++}
++
++static void twl4030_gpio_unmask(unsigned int irq)
++{
++	int gpio =3D irq - IH_TWL4030_GPIO_BASE;
++
++	down(&gpio_sem);
++	gpio_imr_shadow &=3D ~(1 << gpio);
++	gpio_write_imr(gpio_imr_shadow);
++	up(&gpio_sem);
++}
++
++/*
++ * These are the irqchip methods for the TWL4030 GPIO interrupts.
++ * Our IRQ handle method doesn't call these, but they will be called by
++ * other routines such as setup_irq() and enable_irq().  They are
+called
++ * with cpu interrupts disabled and with a lock on the
+irq_controller_lock
++ * spinlock.  This complicates matters, because accessing the TWL4030
+GPIO
++ * interrupt controller requires I2C bus transactions that can't be
+initiated
++ * in this context.  Our solution is to defer accessing the interrupt
++ * controller to a kernel thread.  We only need to support the unmask
+method.
++ */
++
++static void twl4030_gpio_mask_and_ack_irqchip(unsigned int irq) {}
++static void twl4030_gpio_mask_irqchip(unsigned int irq) {}
++
++static void twl4030_gpio_unmask_irqchip(unsigned int irq)
++{
++	int gpio =3D irq - IH_TWL4030_GPIO_BASE;
++
++	gpio_pending_unmask |=3D (1 << gpio);
++	if (gpio_unmask_thread && gpio_unmask_thread->state !=3D
+TASK_RUNNING)
++		wake_up_process(gpio_unmask_thread);
++}
++
++static struct irq_chip twl4030_gpio_irq_chip =3D {
++	.ack	=3D twl4030_gpio_mask_and_ack_irqchip,
++	.mask	=3D twl4030_gpio_mask_irqchip,
++	.unmask	=3D twl4030_gpio_unmask_irqchip,
 +};
 +
-+static struct omap_kp_platform_data sdp2430_kp_data =3D {
-+	.rows		=3D 5,
-+	.cols		=3D 6,
-+	.keymap 	=3D sdp2430_keymap,
-+	.keymapsize 	=3D ARRAY_SIZE(sdp2430_keymap),
-+	.rep		=3D 1,
++/*
++ * These are the irqchip methods for the TWL4030 PIH GPIO module
+interrupt.
++ * The PIH module doesn't have interrupt masking capability, so these
++ * methods are NULL.
++ */
++static void twl4030_gpio_module_ack(unsigned int irq) {}
++static void twl4030_gpio_module_mask(unsigned int irq) {}
++static void twl4030_gpio_module_unmask(unsigned int irq) {}
++static struct irq_chip twl4030_gpio_module_irq_chip =3D {
++	.ack	=3D twl4030_gpio_module_ack,
++	.mask	=3D twl4030_gpio_module_mask,
++	.unmask	=3D twl4030_gpio_module_unmask,
 +};
 +
-+static struct platform_device sdp2430_kp_device =3D {
-+	.name		=3D "omap_twl4030keypad",
-+	.id		=3D -1,
-+	.dev		=3D {
-+		.platform_data	=3D &sdp2430_kp_data,
-+	},
-+};
++/*
++ * twl4030 GPIO request function
++ */
++int twl4030_request_gpio(int gpio)
++{
++	int ret =3D 0;
 +
- static struct platform_device *sdp2430_devices[] __initdata =3D {
- 	&sdp2430_smc91x_device,
- 	&sdp2430_flash_device,
-+	&sdp2430_kp_device,
- };
-=20
- static inline void __init sdp2430_init_smc91x(void)
++	if (unlikely(gpio >=3D TWL4030_GPIO_MAX)) {
++		return -EPERM;
++	}
++
++	down(&gpio_sem);
++	if (gpio_usage_count & (0x1 << gpio)) {
++		ret =3D -EBUSY;
++	} else {
++		u8 clear_pull[6] =3D { 0, 0, 0, 0, 0, 0 };
++		/* First time usage? - switch on GPIO module */
++		if (!gpio_usage_count) {
++			ret =3D
++			gpio_twl4030_write(REG_GPIO_CTRL,
++					MASK_GPIO_CTRL_GPIO_ON);
++			ret =3D gpio_twl4030_write(REG_GPIO_SIH_CTRL,
+0x00);
++		}
++		if (!ret) {
++			gpio_usage_count |=3D (0x1 << gpio);
++		}
++		ret =3D
++		twl4030_i2c_write(TWL4030_MODULE_GPIO, clear_pull,
++				REG_GPIOPUPDCTR1, 5);
++	}
++	up(&gpio_sem);
++	return ret;
++}
++
++/*
++ * TWL4030 GPIO free module
++ */
++int twl4030_free_gpio(int gpio)
++{
++	int ret =3D 0;
++	if (unlikely(gpio >=3D TWL4030_GPIO_MAX)) {
++		return -EPERM;
++	}
++	down(&gpio_sem);
++	if ((gpio_usage_count & (0x1 << gpio)) =3D=3D 0) {
++		ret =3D -EPERM;
++	} else {
++		gpio_usage_count &=3D ~(0x1 << gpio);
++	}
++	/* Last time usage? - switch off GPIO module */
++	if (!gpio_usage_count) {
++		ret =3D gpio_twl4030_write(REG_GPIO_CTRL, 0x0);
++	}
++	up(&gpio_sem);
++	return ret;
++}
++
++/*
++ * Set direction for TWL4030 GPIO
++ */
++int twl4030_set_gpio_direction(int gpio, int is_input)
++{
++	u8 d_bnk =3D GET_GPIO_DATA_BANK(gpio);
++	u8 d_msk =3D MASK_GPIODATADIR_GPIOxDIR(GET_GPIO_DATA_OFF(gpio));
++	u8 reg =3D 0;
++	u8 base =3D 0;
++	int ret =3D 0;
++	if (unlikely((gpio >=3D TWL4030_GPIO_MAX)
++		|| !(gpio_usage_count & (0x1 << gpio)))) {
++		return -EPERM;
++	}
++	base =3D REG_GPIODATADIR1 + d_bnk;
++
++	down(&gpio_sem);
++	ret =3D gpio_twl4030_read(base);
++	if (ret >=3D 0) {
++		if (is_input) {
++			reg =3D (u8) ((ret) & ~(d_msk));
++		} else {
++			reg =3D (u8) ((ret) | (d_msk));
++		}
++		ret =3D gpio_twl4030_write(base, reg);
++	}
++	up(&gpio_sem);
++	return ret;
++}
++
++/*
++ * To enable/disable GPIO pin on TWL4030
++ */
++int twl4030_set_gpio_dataout(int gpio, int enable)
++{
++	u8 d_bnk =3D GET_GPIO_DATA_BANK(gpio);
++	u8 d_msk =3D MASK_GPIODATAOUT_GPIOxOUT(GET_GPIO_DATA_OFF(gpio));
++	u8 base =3D 0;
++	int ret =3D 0;
++	if (unlikely((gpio >=3D TWL4030_GPIO_MAX)
++		|| !(gpio_usage_count & (0x1 << gpio)))) {
++		return -EPERM;
++	}
++	if (enable) {
++		base =3D REG_SETGPIODATAOUT1 + d_bnk;
++	} else {
++		base =3D REG_CLEARGPIODATAOUT1 + d_bnk;
++	}
++	down(&gpio_sem);
++	ret =3D gpio_twl4030_write(base, d_msk);
++	up(&gpio_sem);
++	return ret;
++}
++
++/*
++ * To get the status of a GPIO pin on TWL4030
++ */
++int twl4030_get_gpio_datain(int gpio)
++{
++	u8 d_bnk =3D GET_GPIO_DATA_BANK(gpio);
++	u8 d_off =3D BIT_GPIODATAIN_GPIOxIN(GET_GPIO_DATA_OFF(gpio));
++	u8 base =3D 0;
++	int ret =3D 0;
++	if (unlikely((gpio >=3D TWL4030_GPIO_MAX)
++		|| !(gpio_usage_count & (0x1 << gpio)))) {
++		return -EPERM;
++	}
++	base =3D REG_GPIODATAIN1 + d_bnk;
++	down(&gpio_sem);
++	ret =3D gpio_twl4030_read(base);
++	up(&gpio_sem);
++	if (ret > 0) {
++		ret =3D (ret >> d_off) & 0x1;
++	}
++	return ret;
++}
++
++/*
++ * Configure PULL type for a GPIO pin on TWL4030
++ */
++int twl4030_set_gpio_pull(int gpio, int pull_dircn)
++{
++	u8 c_bnk =3D GET_GPIO_CTL_BANK(gpio);
++	u8 c_off =3D GET_GPIO_CTL_OFF(gpio);
++	u8 c_msk =3D 0;
++	u8 reg =3D 0;
++	u8 base =3D 0;
++	int ret =3D 0;
++	if (unlikely((gpio >=3D TWL4030_GPIO_MAX)	||
++		!(gpio_usage_count & (0x1 << gpio)))) {
++		return -EPERM;
++	}
++	base =3D REG_GPIOPUPDCTR1 + c_bnk;
++	if (pull_dircn =3D=3D TWL4030_GPIO_PULL_DOWN) {
++		c_msk =3D MASK_GPIOPUPDCTR1_GPIOxPD(c_off);
++	} else if (pull_dircn =3D=3D TWL4030_GPIO_PULL_UP) {
++		c_msk =3D MASK_GPIOPUPDCTR1_GPIOxPU(c_off);
++	}
++	down(&gpio_sem);
++	ret =3D gpio_twl4030_read(base);
++	if (ret >=3D 0) {
++		/* clear the previous up/down values */
++		reg =3D (u8) (ret);
++		reg &=3D ~(MASK_GPIOPUPDCTR1_GPIOxPU(c_off) |
++			MASK_GPIOPUPDCTR1_GPIOxPD(c_off));
++		reg |=3D c_msk;
++		ret =3D gpio_twl4030_write(base, reg);
++	}
++	up(&gpio_sem);
++	return ret;
++}
++
++/*
++ * Configure Edge control for a GPIO pin on TWL4030
++ */
++int twl4030_set_gpio_edge_ctrl(int gpio, int edge)
++{
++	u8 c_bnk =3D GET_GPIO_CTL_BANK(gpio);
++	u8 c_off =3D GET_GPIO_CTL_OFF(gpio);
++	u8 c_msk =3D 0;
++	u8 reg =3D 0;
++	u8 base =3D 0;
++	int ret =3D 0;
++	if (unlikely((gpio >=3D TWL4030_GPIO_MAX)
++		|| !(gpio_usage_count & (0x1 << gpio)))) {
++		return -EPERM;
++	}
++	base =3D REG_GPIO_EDR1 + c_bnk;
++	if (edge & TWL4030_GPIO_EDGE_RISING) {
++		c_msk |=3D MASK_GPIO_EDR1_GPIOxRISING(c_off);
++	}
++	if (edge & TWL4030_GPIO_EDGE_FALLING) {
++		c_msk |=3D MASK_GPIO_EDR1_GPIOxFALLING(c_off);
++	}
++	down(&gpio_sem);
++	ret =3D gpio_twl4030_read(base);
++	if (ret >=3D 0) {
++		/* clear the previous rising/falling values */
++		reg =3D
++		(u8) (ret &
++			~(MASK_GPIO_EDR1_GPIOxFALLING(c_off) |
++			MASK_GPIO_EDR1_GPIOxRISING(c_off)));
++		reg |=3D c_msk;
++		ret =3D gpio_twl4030_write(base, reg);
++	}
++	up(&gpio_sem);
++	return ret;
++}
++
++/*
++ * Configure debounce timing value for a GPIO pin on TWL4030
++ */
++int twl4030_set_gpio_debounce(int gpio, int enable)
++{
++	u8 d_bnk =3D GET_GPIO_DATA_BANK(gpio);
++	u8 d_msk =3D MASK_GPIO_DEBEN_GPIOxDEB(GET_GPIO_DATA_OFF(gpio));
++	u8 reg =3D 0;
++	u8 base =3D 0;
++	int ret =3D 0;
++	if (unlikely((gpio >=3D TWL4030_GPIO_MAX)
++		|| !(gpio_usage_count & (0x1 << gpio)))) {
++		return -EPERM;
++	}
++	base =3D REG_GPIO_DEBEN1 + d_bnk;
++	down(&gpio_sem);
++	ret =3D gpio_twl4030_read(base);
++	if (ret >=3D 0) {
++		if (enable) {
++			reg =3D (u8) ((ret) | (d_msk));
++		} else {
++			reg =3D (u8) ((ret) & ~(d_msk));
++		}
++		ret =3D gpio_twl4030_write(base, reg);
++	}
++	up(&gpio_sem);
++	return ret;
++}
++
++/*
++ * Configure Card detect for GPIO pin on TWL4030
++ */
++int twl4030_set_gpio_card_detect(int gpio, int enable)
++{
++	u8 reg =3D 0;
++	u8 msk =3D (1 << gpio);
++	int ret =3D 0;
++	/* Only GPIO 0 or 1 can be used for CD feature.. */
++	if (unlikely((gpio >=3D TWL4030_GPIO_MAX)
++		|| !(gpio_usage_count & (0x1 << gpio))
++		|| (gpio >=3D TWL4030_GPIO_MAX_CD))) {
++		return -EPERM;
++	}
++
++	down(&gpio_sem);
++	ret =3D gpio_twl4030_read(REG_GPIO_CTRL);
++	if (ret >=3D 0) {
++		if (enable) {
++			reg =3D (u8) (ret | msk);
++		} else {
++			reg =3D (u8) (ret & ~msk);
++		}
++		ret =3D gpio_twl4030_write(REG_GPIO_CTRL, reg);
++	}
++	up(&gpio_sem);
++	return (ret);
++}
++
++/**** MODULE FUNCTIONS ***/
++
++/*
++ * To configure TWL4030 GPIO module registers
++ */
++static inline int gpio_twl4030_write(u8 address, u8 data)
++{
++	int ret =3D 0;
++	ret =3D twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, data, address);
++	return ret;
++}
++
++/*
++ * To read a TWL4030 GPIO module register
++ */
++static inline int gpio_twl4030_read(u8 address)
++{
++	u8 data;
++	int ret =3D 0;
++	ret =3D twl4030_i2c_read_u8(TWL4030_MODULE_GPIO, &data, address);
++	if (ret >=3D 0)
++		ret =3D data;
++	return ret;
++}
++
++/*
++ * gpio_unmask_thread() runs as a kernel thread.  It is awakened by the
+unmask
++ * method for the GPIO interrupts.  It unmasks all of the GPIO
+interrupts
++ * specified in the gpio_pending_unmask bitmask.  We have to do the
+unmasking
++ * in a kernel thread rather than directly in the unmask method because
+of the
++ * need to access the TWL4030 via the I2C bus.  Note that we don't need
+to be
++ * concerned about race conditions where the request to unmask a GPIO
+interrupt
++ * has already been cancelled before this thread does the unmasking.
+If a GPIO
++ * interrupt is improperly unmasked, then the IRQ handler for it will
+mask it
++ * when an interrupt occurs.
++ */
++static int twl4030_gpio_unmask_thread(void *data)
++{
++	current->flags |=3D PF_NOFREEZE;
++
++	while (!kthread_should_stop()) {
++		int irq;
++		unsigned int gpio_unmask;
++
++		local_irq_disable();
++		gpio_unmask =3D gpio_pending_unmask;
++		gpio_pending_unmask =3D 0;
++		local_irq_enable();
++
++		for (irq =3D IH_TWL4030_GPIO_BASE; 0 !=3D gpio_unmask;
++				gpio_unmask >>=3D 1, irq++) {
++			if (gpio_unmask & 0x1)
++				twl4030_gpio_unmask(irq);
++		}
++
++		local_irq_disable();
++		if (!gpio_pending_unmask)
++			set_current_state(TASK_INTERRUPTIBLE);
++		local_irq_enable();
++
++		schedule();
++	}
++	set_current_state(TASK_RUNNING);
++	return 0;
++}
++
++/*
++ * do_twl4030_gpio_irq() is the desc->handle method for each of the
+twl4030
++ * gpio interrupts.  It executes in kernel thread context.
++ * On entry, cpu interrupts are enabled.
++ */
++static void do_twl4030_gpio_irq(unsigned int irq, irq_desc_t *desc)
++{
++	struct irqaction *action;
++	const unsigned int cpu =3D smp_processor_id();
++
++	desc->status |=3D IRQ_LEVEL;
++
++	/*
++	 * Acknowledge, clear _AND_ disable the interrupt.
++	 */
++	twl4030_gpio_mask_and_ack(irq);
++
++	if (!desc->depth) {
++		kstat_cpu(cpu).irqs[irq]++;
++
++		action =3D desc->action;
++		if (action) {
++			int ret;
++			int status =3D 0;
++			int retval =3D 0;
++			do {
++				/* Call the ISR with cpu interrupts
+enabled. */
++				ret =3D action->handler(irq,
+action->dev_id);
++				if (ret =3D=3D IRQ_HANDLED)
++					status |=3D action->flags;
++				retval |=3D ret;
++				action =3D action->next;
++			} while (action);
++
++			if (retval !=3D IRQ_HANDLED) {
++				printk(KERN_ERR "ISR for TWL4030 GPIO"
++					" irq %d can't handle
+interrupt\n",
++					irq);
++			}
++
++			if (!desc->depth)
++				twl4030_gpio_unmask(irq);
++		}
++	}
++}
++
++/*
++ * do_twl4030_gpio_module_irq() is the desc->handle method for the
+twl4030 gpio
++ * module interrupt.  It executes in kernel thread context.
++ * This is a chained interrupt, so there is no desc->action method for
+it.
++ * We query the gpio module interrupt controller in the twl4030 to
+determine
++ * which gpio lines are generating interrupt requests, and then call
+the
++ * desc->handle method for each gpio that needs service.
++ * On entry, cpu interrupts are disabled.
++ */
++static void do_twl4030_gpio_module_irq(unsigned int irq, irq_desc_t
+*desc)
++{
++	const unsigned int cpu =3D smp_processor_id();
++
++	desc->status |=3D IRQ_LEVEL;
++	/*
++	* The desc->handle method would normally call the
+desc->chip->ack
++	* method here, but we won't bother since our ack method is NULL.
++	*/
++	if (!desc->depth) {
++		int gpio_irq;
++		unsigned int gpio_isr;
++
++		kstat_cpu(cpu).irqs[irq]++;
++		local_irq_enable();
++
++		down(&gpio_sem);
++		if (gpio_read_isr(&gpio_isr))
++			gpio_isr =3D 0;
++		up(&gpio_sem);
++
++		for (gpio_irq =3D IH_TWL4030_GPIO_BASE; 0 !=3D gpio_isr;
++			gpio_isr >>=3D 1, gpio_irq++)
++		{
++			if (gpio_isr & 0x1) {
++				irq_desc_t *d =3D irq_desc + gpio_irq;
++				d->handle_irq(gpio_irq, d);
++			}
++		}
++
++		local_irq_disable();
++		/*
++		 * Here is where we should call the unmask method, but
+again we
++		 * won't bother since it is NULL.
++		 */
++	}
++}
++
++/* TWL4030 Initialization module */
++static int __init gpio_twl4030_init(void)
++{
++	int ret;
++	int irq =3D 0;
++
++	/* init the global locking sem */
++	sema_init(&gpio_sem, 1);
++
++	/* All GPIO interrupts are initially masked */
++	gpio_pending_unmask =3D 0;
++	gpio_imr_shadow =3D GPIO_32_MASK;
++	ret =3D gpio_write_imr(gpio_imr_shadow);
++	if (!ret) {
++		/*
++		* Create a kernel thread to handle deferred unmasking of
+gpio
++		* interrupts.
++		*/
++		gpio_unmask_thread =3D
+kthread_create(twl4030_gpio_unmask_thread,
++			NULL, "twl4030 gpio");
++		if (!gpio_unmask_thread) {
++			printk(KERN_ERR
++				"%s: could not create twl4030 gpio
+unmask thread!\n",
++				__FUNCTION__);
++			ret =3D -ENOMEM;
++		}
++	}
++
++	if (!ret) {
++		/* install an irq handler for each of the gpio
+interrupts */
++		for (irq =3D IH_TWL4030_GPIO_BASE; irq <
+IH_TWL4030_GPIO_END;
++			irq++)
++		{
++			set_irq_chip(irq, &twl4030_gpio_irq_chip);
++			set_irq_handler(irq, do_twl4030_gpio_irq);
++			set_irq_flags(irq, IRQF_VALID);
++		}
++
++		/*
++		 * Install an irq handler to demultiplex the gpio module
++		 * interrupt.
++		 */
++		set_irq_chip(TWL4030_MODIRQ_GPIO,
++			&twl4030_gpio_module_irq_chip);
++		set_irq_chained_handler(TWL4030_MODIRQ_GPIO,
++			do_twl4030_gpio_module_irq);
++	}
++
++	printk(KERN_INFO "TWL4030 GPIO Demux: IRQ Range %d to %d,"
++		" Initialization %s\n", IH_TWL4030_GPIO_BASE,
++		IH_TWL4030_GPIO_END, (ret) ? "Failed" : "Success");
++	return ret;
++}
++
++/* TWL GPIO exit module */
++static void __exit gpio_twl4030_exit(void)
++{
++	int irq;
++
++	/* uninstall the gpio demultiplexing interrupt handler */
++	set_irq_handler(TWL4030_MODIRQ_GPIO, NULL);
++	set_irq_flags(TWL4030_MODIRQ_GPIO, 0);
++
++	/* uninstall the irq handler for each of the gpio interrupts */
++	for (irq =3D IH_TWL4030_GPIO_BASE; irq < IH_TWL4030_GPIO_END;
+irq++)
++	{
++		set_irq_handler(irq, NULL);
++		set_irq_flags(irq, 0);
++	}
++
++	/* stop the gpio unmask kernel thread */
++	if (gpio_unmask_thread) {
++		kthread_stop(gpio_unmask_thread);
++		gpio_unmask_thread =3D NULL;
++	}
++
++	return;
++}
++
++module_init(gpio_twl4030_init);
++module_exit(gpio_twl4030_exit);
++
++EXPORT_SYMBOL(twl4030_request_gpio);
++EXPORT_SYMBOL(twl4030_free_gpio);
++EXPORT_SYMBOL(twl4030_set_gpio_direction);
++EXPORT_SYMBOL(twl4030_set_gpio_dataout);
++EXPORT_SYMBOL(twl4030_get_gpio_datain);
++EXPORT_SYMBOL(twl4030_set_gpio_pull);
++EXPORT_SYMBOL(twl4030_set_gpio_edge_ctrl);
++EXPORT_SYMBOL(twl4030_set_gpio_debounce);
++EXPORT_SYMBOL(twl4030_set_gpio_card_detect);
++
++MODULE_AUTHOR("Texas Instruments, Inc.");
++MODULE_DESCRIPTION("GPIO interface for TWL4030");
++MODULE_LICENSE("GPL");
