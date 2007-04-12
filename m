@@ -1,16 +1,14 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: about OMAP usb Speed?
-Date: Thu, 12 Apr 2007 08:48:58 -0500
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429BDB8E9@dlee13.ent.ti.com>
-References: <bd205c5f0704111728u57837375j22960eed269e4489@mail.gmail.com>
-	<200704121530.04125.marek.vasut@gmail.com>
+From: Raja Mallik <raja.mallik@sqlstar.com>
+Subject: Testing SPI on omap5912
+Date: Thu, 12 Apr 2007 19:53:26 +0530 (IST)
+Message-ID: <10049.122.169.143.113.1176387806.squirrel@mail.sqlstar.com>
+References: <20070409204433.GA23320@mail.solidboot.com>
+	<20070412133710.GA9104@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <200704121530.04125.marek.vasut@gmail.com>
+In-Reply-To: <20070412133710.GA9104@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,87 +18,29 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: =?iso-8859-2?Q?Marek_Va=B9ut?= <marek.vasut@gmail.com>, linux-omap-open-source@linux.omap.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-You do actually need to be careful at times.  Specification-ly speaking, =
-you shouldn't make the simple association of (USB-1.1 =3D=3D Full Speed) =
-and (USB2.0 =3D=3D High Speed).  You need to look a bit closer.
+hI,
 
-OMAP's currently have few USB IP blocks in play (and more for the =
-future).
+I am trying to test SPI driver on omap5912. I have found I can't use
+Sd/MMC as SPI slave device for it's host controller in-built on the
+development board. I have found several ways to test SPI driver on my
+development board.
 
-15xx: USB-hostA, USB-clientA
-16/17xx/2420: USB-hostA, USB-clientA, USB-OTGA
-2430/3430-es1: USB-hostA, USB-clientA, USB-OTGA, USB-hostB, USB-clientB, =
-USB-OTGB
+Internal SPI slave device possibility:
 
-If you read different TRMs and Data manuals at some point you see that =
-some of the Full Speed only devices might be identified as USB2.0 =
-compliant even though they don't support High Speed.  For a client you =
-just need to advertise what you can and can't do to make 2.0.  You need =
-not support everything.
+   AIC23 codec uses I2C. We can use the SPI bus. Length work to write the
+   SPI protocol driver. -- need reference to proceed..
 
-Also as I recall, OTG didn't come about until the USB2.0 time frame.  I =
-don't think you will find an OTG which claims to be 1.1.  Usually it is =
-2.0 compliant and adheres to some supplement level.
+   Another possibility of using the TOUCHSCREEN driver which uses MCBSP
+   interface to use enabled SPI mode. --need reference
 
-Even on USB2.0's which support HS, depending on the software and the =
-hardware implementations you might find yourself a ways from the 480Mb/s =
-max spec rate.  Summary is, if some IP says 2.0 you still need to look a =
-bit.=20
+External SPI slave device:
 
-Regards,
-Richard W.
+   any flash device -- any reference...
 
+I am actualy looking out to test any SPI application using linux-2.6.20
+git kernel port to my development board that has omap5912 core.
 
-
-> -----Original Message-----
-> From: =
-linux-omap-open-source-bounces+r-woodruff2=3Dti.com@linux.omap.com
-> =
-[mailto:linux-omap-open-source-bounces+r-woodruff2=3Dti.com@linux.omap.co=
-m]
-> On Behalf Of Marek Va=B9ut
-> Sent: Thursday, April 12, 2007 8:30 AM
-> To: linux-omap-open-source@linux.omap.com
-> Subject: Re: about OMAP usb Speed?
->=20
-> Yeah, right ... as some people here said, it's impossible per default =
-to
-> make
-> it support usb2. I now have board with Cypress SX2 controller which is
-> quite
-> simple to understand and adds usb2.0 gadget support. Also Cypress put =
-out
-> all
-> datasheets and even a example of driver for VxWorks (written in C; =
-vxworks
-> -
-> embedded "os"). Im now working on driver for that SX2, but I also have =
-a
-> lot
-> of school so it can take long.
->=20
-> BR
-> Marex
->=20
-> Dne =E8tvrtek 12 duben 2007 02:28 Wael Adel napsal(a):
-> > hi all,
-> > i have an OMAP-OSK5912, as for its usb bus i know that it is a
-> > full-speed (12Mbps)
-> > isnt there any way or any patch that make it support for high-speed
-> > (240Mbps)?
-> >
-> > or it is an impossible to do that?
-> > if it is impossible tell me why please?
-> >
-> > thanks in advance
-> > _______________________________________________
-> > Linux-omap-open-source mailing list
-> > Linux-omap-open-source@linux.omap.com
-> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+-Raja
