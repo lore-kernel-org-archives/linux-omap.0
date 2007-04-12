@@ -1,14 +1,13 @@
-From: Raja Mallik <raja.mallik@sqlstar.com>
-Subject: Testing SPI on omap5912
-Date: Thu, 12 Apr 2007 19:53:26 +0530 (IST)
-Message-ID: <10049.122.169.143.113.1176387806.squirrel@mail.sqlstar.com>
-References: <20070409204433.GA23320@mail.solidboot.com>
-	<20070412133710.GA9104@mvista.com>
+From: =?ISO-8859-1?Q?Mathias_K=FCster?= <kesmtp@freenet.de>
+Subject: Re: JTAG debugger on Linux Environment
+Date: Thu, 12 Apr 2007 23:34:20 +0200
+Message-ID: <461EA5DC.7010306@freenet.de>
+References: <20060508040747.29661.qmail@web36404.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070412133710.GA9104@mvista.com>
+In-Reply-To: <20060508040747.29661.qmail@web36404.mail.mud.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,29 +17,37 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-hI,
+Hello,
 
-I am trying to test SPI driver on omap5912. I have found I can't use
-Sd/MMC as SPI slave device for it's host controller in-built on the
-development board. I have found several ways to test SPI driver on my
-development board.
+you can try the latest openocd version (svn 139). I have test it with
+the omap5912 osk board and it works for me.
 
-Internal SPI slave device possibility:
 
-   AIC23 codec uses I2C. We can use the SPI bus. Length work to write the
-   SPI protocol driver. -- need reference to proceed..
+website:
 
-   Another possibility of using the TOUCHSCREEN driver which uses MCBSP
-   interface to use enabled SPI mode. --need reference
+http://openocd.berlios.de/web/
 
-External SPI slave device:
+config files:
 
-   any flash device -- any reference...
+http://openfacts.berlios.de/index-en.phtml?title=OpenOCD_scripts
 
-I am actualy looking out to test any SPI application using linux-2.6.20
-git kernel port to my development board that has omap5912 core.
 
--Raja
+
+Best Regards,
+
+Mathias
+
+
+Tung Dang wrote:
+> Hi all,
+> I am using OMAP5912 Starter Kit without JTAG debugger , 
+> I am planning to develop a DSP application on Linux Environment (not windows)
+> Can i use a JTAG debugger on Linux Environment ? and what is the JTAG debugger suitable for me . 
+> Does the BDI2000 supports OMAP5912 ? ( is BDI2000 support only OMAP1510 ?)
+> 
+> 		
+> ---------------------------------
+> Get amazing travel prices for air and hotel in one click on Yahoo! FareChase 
