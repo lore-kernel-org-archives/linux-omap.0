@@ -1,12 +1,15 @@
-From: "Wael Adel" <showairovic@gmail.com>
-Subject: about OMAP usb Speed?
-Date: Thu, 12 Apr 2007 02:28:08 +0200
-Message-ID: <bd205c5f0704111728u57837375j22960eed269e4489@mail.gmail.com>
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: RE: Will resend I2C/TWL GPIO/ Keypad patches.
+Date: Wed, 11 Apr 2007 20:19:19 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47A95872@dlee13.ent.ti.com>
+References: <461D728B.5060605@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <461D728B.5060605@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,17 +17,29 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Kevin Hilman <khilman@mvista.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-hi all,
-i have an OMAP-OSK5912, as for its usb bus i know that it is a
-full-speed (12Mbps)
-isnt there any way or any patch that make it support for high-speed (240Mbps)?
+>-----Original Message-----
+>From: Kevin Hilman [mailto:khilman@mvista.com]
+>Sent: Wednesday, April 11, 2007 6:43 PM
+>To: Syed Mohammed, Khasim
+>Cc: linux-omap-open-source@linux.omap.com
+>Subject: Re: Will resend I2C/TWL GPIO/ Keypad patches.
+>
+>
+>Khasim,
+>
+>Your mailer is still wrapping your patches, so they do not cleanly
+apply.
+>
+>Kevin
 
-or it is an impossible to do that?
-if it is impossible tell me why please?
+OK, forgot to notice this one, will try once again :(=20
 
-thanks in advance
+Sorry again....
+
+Khasim
