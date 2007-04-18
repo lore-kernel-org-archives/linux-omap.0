@@ -1,15 +1,12 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Compiling latest kernel (from kernel.org,
-	linux-omap git version) in n800
-Date: Wed, 18 Apr 2007 19:38:55 +0000
-Message-ID: <20070418193854.GB7181@atomide.com>
-References: <5bc4c4570704181008w51ce9c3fg36769d80bf245fbc@mail.gmail.com>
-	<462663D7.6040308@googlemail.com>
+From: "Budhee Jamaich" <budheej@gmail.com>
+Subject: prebuilt toolchain for OMAP2430 ?
+Date: Wed, 18 Apr 2007 22:56:27 +0300
+Message-ID: <57314e840704181256t5485b398n18aa402562839e83@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="FkmkrVfFsRoUs1wW"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <462663D7.6040308@googlemail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,102 +16,12 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Hello,
 
---FkmkrVfFsRoUs1wW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Is there a (free) prebuilt toolchain suitable for OMAP2430 out there ?
 
-Hi,
-
-* Dirk Behme <dirk.behme@googlemail.com> [070418 18:31]:
-> Leandro Melo de Sales wrote:
-> >Hi list,
-> >
-> > I download the git version and then, after some commands I got the 
-> >following:
-> >
-> >[sbox-SDK_ARMEL: ~/maemo_kernel_git/linux-omap] > make zImage
-> > CHK     include/linux/version.h
-> >make[1]: `include/asm-arm/mach-types.h' is up to date.
-> > CHK     include/linux/utsrelease.h
-> > CHK     include/linux/compile.h
-> > CC      arch/arm/mach-omap2/board-n800.o
-> >arch/arm/mach-omap2/board-n800.c:507: error: `MACH_TYPE_NOKIA_N800'
-> >undeclared here (not in a function)
-> >arch/arm/mach-omap2/board-n800.c:507: error: initializer element is not 
-> >constant
-> >arch/arm/mach-omap2/board-n800.c:507: error: (near initialization for
-> >`__mach_desc_NOKIA_N800.nr')
-> >make[1]: *** [arch/arm/mach-omap2/board-n800.o] Error 1
-> >make: *** [arch/arm/mach-omap2] Error 2
-> >
-> >What is the problem?
-> 
-> MACH_TYPE_NOKIA_N800 used by Nokia isn't available by 
-> Russels (ARM kernel maintainer) machine registry [1]. It's 
-> currently just a 'hack' Nokia (?) made locally to 
-> arch/arm/tools/mach-types. Because of this 'hack' status it 
-> isn't checked in.
-> 
-> So you have to manually apply a patch:
-> 
-> http://linux.omap.com/pipermail/linux-omap-open-source/2007-January/008958.html
-> 
-> (second patch of this mail, 02-mach-types-hack.patch)
-> 
-> Regards
-> 
-> Dirk
-> 
-> Btw.: Just noticed that Kai Svahn registered mach number 
-> 1271 for N800 in machine registry.
-> 
-> [1] http://www.arm.linux.org.uk/developer/machines/
-
-The latest bootloader uses the 1271 id already so here's the updated
-patch.
-
-Tony
-
-
---FkmkrVfFsRoUs1wW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline; filename="0001-Add-N800-mach-types-hack.txt"
-
->From 7cf75f37488e3bdcb8c08fe88341deb2acf0c492 Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Thu, 1 Feb 2007 14:39:51 -0800
-Subject: [PATCH] Add N800 mach-types hack
-
----
- arch/arm/tools/mach-types |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/tools/mach-types b/arch/arm/tools/mach-types
-index bd78058..3179f9f 100644
---- a/arch/arm/tools/mach-types
-+++ b/arch/arm/tools/mach-types
-@@ -767,6 +767,7 @@ e310			MACH_E310		E310			752
- e330			MACH_E330		E330			753
- rt3000			MACH_RT3000		RT3000			754
- nokia770		MACH_NOKIA770		NOKIA770		755
-+nokia_n800		MACH_NOKIA_N800		NOKIA_N800		1271
- pnx0106			MACH_PNX0106		PNX0106			756
- hx21xx			MACH_HX21XX		HX21XX			757
- faraday			MACH_FARADAY		FARADAY			758
--- 
-1.4.4.2
-
-
---FkmkrVfFsRoUs1wW
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---FkmkrVfFsRoUs1wW--
+Thank You
+Budhee
