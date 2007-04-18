@@ -1,7 +1,8 @@
-From: "Budhee Jamaich" <budheej@gmail.com>
-Subject: OMAP2430 source tree possibilities
-Date: Wed, 18 Apr 2007 16:37:53 +0300
-Message-ID: <57314e840704180637o4fe61de6j80cf192130f70a5a@mail.gmail.com>
+From: "Leandro Melo de Sales" <leandroal@gmail.com>
+Subject: Compiling latest kernel (from kernel.org,
+	linux-omap git version) in n800
+Date: Wed, 18 Apr 2007 14:08:05 -0300
+Message-ID: <5bc4c4570704181008w51ce9c3fg36769d80bf245fbc@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -19,22 +20,36 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello List,
+Hi list,
 
-In http://linux.omap.com/pub/kernel/2430sdp/source/ there are two alternative
-source trees: 2.6.14 and 2.6.10.
+  I download the git version and then, after some commands I got the following:
 
-The advantage of taking 2.6.14 are obvious. 8 month of kernel work is
-a lot of time.
+[sbox-SDK_ARMEL: ~/maemo_kernel_git/linux-omap] > make zImage
+  CHK     include/linux/version.h
+make[1]: `include/asm-arm/mach-types.h' is up to date.
+  CHK     include/linux/utsrelease.h
+  CHK     include/linux/compile.h
+  CC      arch/arm/mach-omap2/board-n800.o
+arch/arm/mach-omap2/board-n800.c:507: error: `MACH_TYPE_NOKIA_N800'
+undeclared here (not in a function)
+arch/arm/mach-omap2/board-n800.c:507: error: initializer element is not constant
+arch/arm/mach-omap2/board-n800.c:507: error: (near initialization for
+`__mach_desc_NOKIA_N800.nr')
+make[1]: *** [arch/arm/mach-omap2/board-n800.o] Error 1
+make: *** [arch/arm/mach-omap2] Error 2
 
-But, there still is the 2.6.10 there so I wonder - why ?
+What is the problem? I'm using scratchbox and before make zImage, I
+did make n800_defconfig.
 
-Is there a reason to pick the 2.6.10 ?
+Any clue will be greatfully appreciated.
 
-I am afraid to use 2.6.14 just because it sounds better... I want to
-do even this step wisely and consider the possibilities..
+Thank you,
+Leandro.
 
-what do you say ppl ?
-
-Thnk You a lot
-budhee
+-- 
+Leandro Melo de Sales.
+Computer Science MSc Candidate
+Pervasive and Embedded Computing Lab - embedded.ufcg.edu.br
+Center of Electrical Engineering and Informatics at Federal University
+of Campina Grande - UFCG / Brazil
+083 33101404 (extension 208)
