@@ -1,16 +1,12 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: Compiling latest kernel (from kernel.org, linux-omap git
- version) in n800
-Date: Thu, 19 Apr 2007 08:45:57 +0300
-Message-ID: <20070419084557.ef1d19a7.jarkko.nikula@nokia.com>
-References: <5bc4c4570704181008w51ce9c3fg36769d80bf245fbc@mail.gmail.com>
-	<462663D7.6040308@googlemail.com>
-	<20070418193854.GB7181@atomide.com>
+From: "Tiago Maluta" <tiago.maluta@gmail.com>
+Subject: Installing Linux on a device
+Date: Thu, 19 Apr 2007 12:06:13 -0300
+Message-ID: <600adaf50704190806h4bcab799o7313aa992b4cae7f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070418193854.GB7181@atomide.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,28 +16,25 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: leandroal@gmail.com
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 18 Apr 2007 19:38:55 +0000
-"ext Tony Lindgren" <tony@atomide.com> wrote:
+Hi,
 
-> * Dirk Behme <dirk.behme@googlemail.com> [070418 18:31]:
-> > Btw.: Just noticed that Kai Svahn registered mach number 
-> > 1271 for N800 in machine registry.
-> > 
-> > [1] http://www.arm.linux.org.uk/developer/machines/
-> 
-> The latest bootloader uses the 1271 id already so here's the updated
-> patch.
-> 
-For machine id 1271, reflash the device with latest OS 2007 release
+I think it's a newbie question, but I didn't found any text about in the
+internet.
 
-https://maemo.org/#date_23032007
+I have a Nokia E62 device, I've got in nokia-tunning.net that my device
+users a OMAP 1710.
+I'd like to know if is possible to install a Linux on it, in other words, i=
+s
+it possible uninstall the Symbian OS and set up another.
 
-That should update the bootloader also to use official id 1271.
+Thanks.
+- Tiago M
 
-
--- 
-Jarkko
+--=20
+Tiago M. <maluta(at)unifei.edu.br>
+Federal University of Itajub=E1 - Computer Engineering
+Linux User #256703 - UIN 51190341
+http://pgp.mit.edu:11371/pks/lookup?op=3Dget&search=3D0xF064F605
