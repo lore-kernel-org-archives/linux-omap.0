@@ -1,15 +1,17 @@
-From: "Budhee Jamaich" <budheej@gmail.com>
-Subject: Re: prebuilt toolchain for OMAP2430 ?
-Date: Fri, 20 Apr 2007 18:22:04 +0300
-Message-ID: <57314e840704200822t3b92bcf4xe0608b862f26afa8@mail.gmail.com>
-References: <57314e840704181256t5485b398n18aa402562839e83@mail.gmail.com>
-	<20070420135753.GD12101@mvista.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Pending March patches -- OMAP DPSGW code migration
+Date: Fri, 20 Apr 2007 21:31:44 +0000
+Message-ID: <20070420213144.GC25938@atomide.com>
+References: <20070404130449.GB29129@atomide.com>
+	<20070404.171005.129442185.Hiroshi.DOYU@nokia.com>
+	<20070404143651.GD29129@atomide.com>
+	<20070410.103625.110115446.Hiroshi.DOYU@nokia.com>
+	<20070410195648.GA19808@linux-sh.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070420135753.GD12101@mvista.com>
 Content-Disposition: inline
+In-Reply-To: <20070410195648.GA19808@linux-sh.org>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,24 +21,101 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "George G. Davis" <gdavis@mvista.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Paul Mundt <lethal@linux-sh.org>
+Cc: Toshihiro.Kobayashi@nokia.com, linux-omap-open-source@linux.omap.com, Komal.shah802003@gmail.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 4/20/07, George G. Davis <gdavis@mvista.com> wrote:
-> On Wed, Apr 18, 2007 at 10:56:27PM +0300, Budhee Jamaich wrote:
-> > Hello,
-> >
-> > Is there a (free) prebuilt toolchain suitable for OMAP2430 out there ?
->
-> Go to http://linux.omap.com , follow the "Downloads" link, look for your
-> target and follow the links for same.
+Hi,
 
-Thank You,
-will check that out.
+* Paul Mundt <lethal@linux-sh.org> [070410 20:00]:
+> On Tue, Apr 10, 2007 at 10:36:25AM +0300, Hiroshi DOYU wrote:
+> > > OK. I'll drop the "ARM: OMAP: Add DSP common code" patch from
+> > > omap-upstream for now. Then we can put together the minimal DSP init
+> > > patch later on for 2.6.23 or something. The omap-upstream queue is
+> > > already painfully big :)
+> > >
+> > > What do you think we should keep in plat-omap?
+> > >
+> > > Maybe just something to power up and idle the DSP, and allow using McBSP
+> > > for audio?
+> > 
+> > Yes, it may be like that.
+> > 
+> It's probably worth pushing the MMU framework bits also, since it will
+> also be required for things like the camera MMU. Though it's not worth
+> pushing infrastructure if there are no in-tree users.
 
->
-> --
-> Regards,
-> George
->
+Yeah, the MMU framework could be pushed after 2.6.22.
+
+> > Now there are some H/W combinations coming, like ARM+IVA1, ARM?+IVA2,
+> > , OMAP730, ARM?+?. Also there exists TI's S/W bridge implementation
+> > and TI's middlewares on the top of that. All of them uses the same
+> > kind of "interrupt based mailbox", "shared memory" and "MMU control"
+> > to communicate between MPU and DSP, though their implementations are
+> > somewhat different. So, now the situation is getting complicated
+> > because there are the several kind of S/W and H/W combinations.
+> > 
+> The other thing to consider also is how generic these sorts of things can
+> be made. We're in a position now where both spufs and dspgw take very
+> different approaches to a fairly common problem. Trying to maintain API
+> or ABI compatability with the old code is likely not worth the trouble in
+> the long run, particularly as that's not something that has a lot of
+> chance of being merged upstream.
+> 
+> > For "BASIC S/W COMPONENTS", at least, there may be following modules
+> > 
+> >   - OMAP non-MPU MMU FW
+> >   - MAILBOX
+> >   - IPC message protocol
+> >   - Shared memory management
+> >   - DSP processor management/control
+> 
+> It should be possible to do these generically from an API level at least.
+
+I'd say let's only keep the minimum to boot omap under
+arch/arm/plat-omap:
+
+- Minimal DSP support to idle the DSP
+- Support for enabling audio McBSP clocks
+- MMU framework as it is shared with camera
+
+The rest can go to drivers/dsp/omap.
+
+> >   - DSP TASK/NODE, STREAM management
+> 
+> This has to be platform specific.
+> 
+> >   - DSP COFF/DOFF loader
+> > 
+> And this can mostly be in userspace. Other platforms for instance do use
+> in-kernel loaders, but generally only for ELF. The MIPS VPEs are an
+> example of this, albeit for a slightly different usecase.
+> 
+> >   - character device interface "/dev/dsptask?"	(ex: DSPGW)
+> >   - user defined "ioctl()" messages		(ex: TI's bridge)
+> >   - DSP specified filesystem, "DSPFS"		(most reasonable one)
+> >   - userland device driver
+> >   - nice fancy interfaces?                      (no idea for me, now)
+> > 
+> I would like to see a consolidation between dspfs and process context as
+> per the RidgeRun TaskBridge. Rolling a special library and interfaces
+> makes little sense for places where regular system calls will suffice
+> just fine. The SPU libraries end up doing this via pthreads, but I
+> suppose kernel threads will be required for most of these cases (this is
+> what TaskBridge did also).
+
+As far as I remember, the RidgeRun bridge had a cool feature of piping
+data to the DSP processes :)
+
+> > The above interfaces can be wrapped by userland library API to keep
+> > the compatibility for the existing middleware interfaces.
+> > 
+> That's another problem entirely. Writing userspace wrappers around this
+> stuff for API compatability is of course an option, but it's not worth
+> carrying extra weight around on the kernel side to try and accomodate
+> this sort of thing, especially if there's a better way to do codec
+> manipulation.
+
+Regards,
+
+Tony
