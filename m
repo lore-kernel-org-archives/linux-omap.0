@@ -1,12 +1,13 @@
-From: mirmit <mirmit@bouillot.org>
-Subject: Keypad on H4
-Date: Fri, 20 Apr 2007 11:31:40 +0200
-Message-ID: <986017390704200231ta355cb3we1c7772ae4e9fd28@mail.gmail.com>
+From: "George G. Davis" <gdavis@mvista.com>
+Subject: Re: prebuilt toolchain for OMAP2430 ?
+Date: Fri, 20 Apr 2007 09:57:53 -0400
+Message-ID: <20070420135753.GD12101@mvista.com>
+References: <57314e840704181256t5485b398n18aa402562839e83@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
+In-Reply-To: <57314e840704181256t5485b398n18aa402562839e83@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,27 +17,18 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Budhee Jamaich <budheej@gmail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Wed, Apr 18, 2007 at 10:56:27PM +0300, Budhee Jamaich wrote:
+> Hello,
+> 
+> Is there a (free) prebuilt toolchain suitable for OMAP2430 out there ?
 
-I compiled linux kernel 2.6.21-rc7 for Omap2420 H4. I added busybox 1.5.0.
-The system boot up correctly. I have a full console/shell on TTYS0. I added
-a tty7 with "mknod tty7 c 4 1", added a new shell entry in the inittab with
-askfirst.
+Go to http://linux.omap.com , follow the "Downloads" link, look for your
+target and follow the links for same.
 
-I have the starting console prompt displayed on the lcd, and if I press the
-top left button on the keypad, I have the shell prompt.
-
-However, none of latter keypress are reflected in this console. Even the top
-left key which seem to be mapped to the return (\n) key doesn't seem to have
-any effect.
-
-Has anybody have a clue?
-
-I the PS2 type keyboard already supported on this board?
-
-Thanks
-
-Mirmit
+--
+Regards,
+George
