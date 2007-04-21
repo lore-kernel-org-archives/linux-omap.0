@@ -1,18 +1,19 @@
 From: "Leandro Melo de Sales" <leandroal@gmail.com>
-Subject: Fwd: Compiling latest kernel (from kernel.org,
+Subject: Re: Compiling latest kernel (from kernel.org,
 	linux-omap git version) in n800
-Date: Sat, 21 Apr 2007 23:18:32 +0100
-Message-ID: <5bc4c4570704211518p1168ec99qd8d44fb8f14f5979@mail.gmail.com>
+Date: Sat, 21 Apr 2007 23:19:39 +0100
+Message-ID: <5bc4c4570704211519q1cc49e46j3fc25dd013d3332d@mail.gmail.com>
 References: <5bc4c4570704181008w51ce9c3fg36769d80bf245fbc@mail.gmail.com>
 	<462663D7.6040308@googlemail.com> <20070418193854.GB7181@atomide.com>
 	<20070419084557.ef1d19a7.jarkko.nikula@nokia.com>
 	<5bc4c4570704191356q6a6d89e9y745bc8fb661d36c5@mail.gmail.com>
 	<5bc4c4570704191417u6c27c752se688d8347eadec9c@mail.gmail.com>
+	<5bc4c4570704211518p1168ec99qd8d44fb8f14f5979@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <5bc4c4570704191417u6c27c752se688d8347eadec9c@mail.gmail.com>
+In-Reply-To: <5bc4c4570704211518p1168ec99qd8d44fb8f14f5979@mail.gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -76,12 +77,3 @@ Leandro.
 > --
 > Jarkko
 >
-
-
--- 
-Leandro Melo de Sales.
-Computer Science MSc Candidate
-Pervasive and Embedded Computing Lab - embedded.ufcg.edu.br
-Center of Electrical Engineering and Informatics at Federal University
-of Campina Grande - UFCG / Brazil
-083 33101404 (extension 208)
