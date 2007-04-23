@@ -1,23 +1,15 @@
-From: "Leandro Melo de Sales" <leandroal@gmail.com>
-Subject: Re: Compiling latest kernel (from kernel.org,
-	linux-omap git version) in n800
-Date: Mon, 23 Apr 2007 19:34:34 -0300
-Message-ID: <5bc4c4570704231534o76a5dbe0oc5de23e1f5845986@mail.gmail.com>
-References: <5bc4c4570704211518p1168ec99qd8d44fb8f14f5979@mail.gmail.com>
-	<20070423090244.e7a39073.jarkko.nikula@nokia.com>
-	<5bc4c4570704231118q47974273qfd36e41970a02635@mail.gmail.com>
-	<31e679430704231123v6a73cc8fqd6b67918be28a5a9@mail.gmail.com>
-	<5bc4c4570704231129r7bff6759xc97eedc3d8ee26c7@mail.gmail.com>
-	<20070423183514.GI19866@intune.research.nokia.com>
-	<5bc4c4570704231153p788a3936ue36041eeb7e06f8e@mail.gmail.com>
-	<20070423185719.GJ19866@intune.research.nokia.com>
-	<5bc4c4570704231216m15565ed0l8e8bb976ac8c0828@mail.gmail.com>
-	<5bc4c4570704231239w32060adcq2d026e7956452064@mail.gmail.com>
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: RE: TV-out problem
+Date: Mon, 23 Apr 2007 18:24:54 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47BC8086@dlee13.ent.ti.com>
+References: <BAY111-F218508B8D3123563BC5EFA64B0@phx.gbl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_189973_651222.1177367674401"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <5bc4c4570704231239w32060adcq2d026e7956452064@mail.gmail.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <BAY111-F218508B8D3123563BC5EFA64B0@phx.gbl>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -27,119 +19,76 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: jarkko.nikula@nokia.com, linux-omap-open-source@linux.omap.com
+To: Hades Liu <lcc0917@msn.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-------=_Part_189973_651222.1177367674401
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-Other thing just to you know. After I flash the new kernel, everything
-(except the WLAN interface works fine), but the screen, after n800
-enter in stand-by mode, the screen seems to lost sync. I don't know
-how to explain exactly, so I'm sending to you some images. Sorry the
-poor quality of the images.
-  Before stand-by the screen is like DSC01927.JPG. After standy-by,
-like DSC01921.JPG.
-  When I say stand-by I mean after the user stop to use for about 1min.
+>My code base is the newest version, 2.6.14, on linux.omap.com. But my =
+LCD's
+>resulution is 800x480 and the  frame buffer is the same, too.
 
-Leandro.
+The VENC registers are configured for 640x480 only. If you need 800x480 =
+then you might have to play around with VENC configuration a bit :(.=20
+I don't know where exactly you are configuring this, may be by default =
+its getting set to 640x480 just double check.
 
-2007/4/23, Leandro Melo de Sales <leandroal@gmail.com>:
-> Hi Jarkko,
+>I found that the problem is caused by wrong frame buffer settings. I =
+had
+>changed the default output device from LCD to TV, and the initialling
+>function will initialize frame buffer for default output device. The =
+tv-out
+>will work when set as default output device.
 >
->   First of all, I'd like to thank you about all help that you are done
-> to me. Well, as I said, I can't use my WLAN interface after I compiled
-> the omap git kernel and flash it into my n800. But Daniel Stone
-> suggested me to use the cx3110x driver. From your post at
-> http://maemo.org/pipermail/maemo-developers/2007-February/007809.html,
-> I read that the driver will be available as soon as possible. Does
-> cx3110x driver correspond to the driver that you mentioned the that
-> post?
->   Please, let me know from now how can I use the driver with my
-> compiled kernel. Daniel suggested me some process, but I don't know
-> how can I do it.
+>However, when I change output device in kernel console via command,
+>echo tv > /sys/class/display_control/omap_disp_control/graphics,
+>the frame buffer seems not be reset for tv-out. The output result is =
+not
+>correct and showen as descripted in before e-mail.Therefore, the frame
+>buffer should be reset for tv-out while changing the output device
+>dynamically.
 >
-> Thank you,
-> Leandro.
+>Is my absorbing correct?=20
+Partially correct. The console command just provides a way to switch the =
+pipeline to TV or LCD, its user's responsibility to do the corresponding =
+setting to FBDEV layer by changing the default var structure.
+After switching the console, I do something like shown below from app =
+layer.
+
+/* h4_tv_var can be found in drivers/video/omap/omap2_disp_out.c */
+if (output_dev =3D=3D OMAP2_OUTPUT_TV)
+		vp =3D &h4_tv_var;
+else
+		vp =3D &h4_lcd_var;
+
+if(ret =3D ioctl(fd, FBIOPUT_VSCREENINFO, vp))
+		printf("setvar ioctl error\n");
+=20
+>If it is correct, willTI modify the code for this
+>issue in future version?
 >
-> 2007/4/23, Leandro Melo de Sales <leandroal@gmail.com>:
-> > Hi Daniel,
-> >
-> >   garage.maemo.org I know! I just didn't understand when you said
-> > IIRC, in all case, thank you. I get mkfs.jffs2 and download the source
-> > of cx3110x driver. I extracted from tar.gz and type make modules, but
-> > I got the following:
-> >
-> > [sbox-SDK_ARMEL: ~/maemo/linux-omap-dev-2.6.git/cx3110x-1.2] > make modules
-> > make -C src/ modules CONFIG_CX3110X_PROD=m
-> > make[1]: Entering directory
-> > `/home/leandro/maemo/linux-omap-dev-2.6.git/cx3110x-1.2/src'
-> > /scratchbox/tools/bin/make -C
-> > SUBDIRS=/home/leandro/maemo/linux-omap-dev-2.6.git/cx3110x-1.2/src
-> > modules
-> > make: *** SUBDIRS=/home/leandro/maemo/linux-omap-dev-2.6.git/cx3110x-1.2/src:
-> > No such file or directory.  Stop.
-> > make: Entering an unknown directorymake: Leaving an unknown
-> > directorymake[1]: *** [modules] Error 2
-> > make[1]: Leaving directory
-> > `/home/leandro/maemo/linux-omap-dev-2.6.git/cx3110x-1.2/src'
-> > make: *** [modules] Error 2
-> > [sbox-SDK_ARMEL: ~/maemo/linux-omap-dev-2.6.git/cx3110x-1.2] > ls
-> > COPYING  Makefile  src
-> > [sbox-SDK_ARMEL: ~/maemo/linux-omap-dev-2.6.git/cx3110x-1.2] >
-> >
-> > What is wrong?
-> >
-> > Thank you,
-> > Leandro.
-> >
-> > 2007/4/23, Daniel Stone <daniel.stone@nokia.com>:
-> > > On Mon, Apr 23, 2007 at 03:53:56PM -0300, ext Leandro Melo de Sales wrote:
-> > > >  please, I'd like you explain me this process in more details. Sorry
-> > > > but I'm a newbie into maemo platform, although I have been working
-> > > > with linux for many years. I'm taking my master degree at federal
-> > > > university of campina grande, Brazil, where we have projects with
-> > > > INdT/Brazil (Instituto Nokia de Tecnologia).
-> > > > First of all, when you say garage.maemo.org IIRC, do you mean the
-> > > > maemo channel of irc.freenode.net? what do you mean IIRC? Second, when
-> > > > you say copy into the initfs, does /mnt/initfs is a read-only area,
-> > > > doesn't it? How can I do it? About extract initfs.jffs2 from FIASCO,
-> > > > how can I do that? I tried to use flasher with -u option like this:
-> > > >
-> > > > ./flasher --unpack RX-34_2007SE_3.2007.10-7_PR_COMBINED_MR0_ARM.bin
-> > > > flasher v0.8.7 (Oct 17 2006)
-> > > >
-> > > > but flasher do nothing. I'm using scratchbox and I don't have
-> > > > mkfs.jffs2 command, where can I get it?
-> > >
-> > > Hi,
-> > > garage.maemo.org is a website: http://garage.maemo.org.  I don't believe
-> > > /mnt/initfs is mount-only.  You can get mkfs.jffs2 from your
-> > > distribution, and you need to pass -F to flasher as well: flasher -u -F
-> > > blah.bin.
-> > >
-> > > Cheers,
-> > > Daniel
-> > >
-> > > -----BEGIN PGP SIGNATURE-----
-> > > Version: GnuPG v1.4.3 (GNU/Linux)
-> > >
-> > > iD8DBQFGLQGP68xJuWtYYdURAsY6AKCbUFQXT5pRSdoFIZt4pZROMBGJ8gCfevY/
-> > > OkIH0CkExKfoFzuLmAQrdbQ=
-> > > =PY9j
-> > > -----END PGP SIGNATURE-----
-> > >
-> > >
-> >
+I don't consider this as an issue, its just a different approach of =
+handling the switching, there are other better ways like using IOCTL =
+instead of console command which we can be added - don't know when :( - =
+sorry
+
+>Another question: Is it possible to output to LCD and tv-out =
+concurrently
+>with a single frame buffer?
 >
+Hardware doesn't allow us to connect a single pipeline to two output =
+devices, like we cannot connect GFX pipeline to both LCD and TV at same =
+time.
 
-------=_Part_189973_651222.1177367674401
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+However in our Video driver for Video pipelines we did a work around by =
+passing same framebuffer address (as in Video1) to Video2 and connecting =
+Video1 to LCD / Video 2 to TV. It will look like same data is being =
+displayed on LCD and TV simultaneously but internally we will be using =
+another pipeline to do the same. This is a good one, basically you can =
+scale or mirror or crop one of them and keep the other same.=20
 
+If it's needed for your product, you can actually do some kind of hack =
+in Framebuffer driver to use video1/video2 pipeline and pass same buffer =
+address to one of them and connect them to TV/LCD.=20
 
-------=_Part_189973_651222.1177367674401--
+Regards,
+Khasim
