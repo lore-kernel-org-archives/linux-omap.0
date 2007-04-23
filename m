@@ -1,10 +1,9 @@
-From: "Leandro Melo de Sales" <leandroal@gmail.com>
+From: Daniel Stone <daniel.stone@nokia.com>
 Subject: Re: Compiling latest kernel (from kernel.org,
 	linux-omap git version) in n800
-Date: Mon, 23 Apr 2007 15:29:26 -0300
-Message-ID: <5bc4c4570704231129r7bff6759xc97eedc3d8ee26c7@mail.gmail.com>
-References: <5bc4c4570704181008w51ce9c3fg36769d80bf245fbc@mail.gmail.com>
-	<5bc4c4570704191356q6a6d89e9y745bc8fb661d36c5@mail.gmail.com>
+Date: Mon, 23 Apr 2007 21:35:14 +0300
+Message-ID: <20070423183514.GI19866@intune.research.nokia.com>
+References: <5bc4c4570704191356q6a6d89e9y745bc8fb661d36c5@mail.gmail.com>
 	<5bc4c4570704191417u6c27c752se688d8347eadec9c@mail.gmail.com>
 	<5bc4c4570704211518p1168ec99qd8d44fb8f14f5979@mail.gmail.com>
 	<5bc4c4570704211519q1cc49e46j3fc25dd013d3332d@mail.gmail.com>
@@ -13,12 +12,12 @@ References: <5bc4c4570704181008w51ce9c3fg36769d80bf245fbc@mail.gmail.com>
 	<20070423090244.e7a39073.jarkko.nikula@nokia.com>
 	<5bc4c4570704231118q47974273qfd36e41970a02635@mail.gmail.com>
 	<31e679430704231123v6a73cc8fqd6b67918be28a5a9@mail.gmail.com>
+	<5bc4c4570704231129r7bff6759xc97eedc3d8ee26c7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <31e679430704231123v6a73cc8fqd6b67918be28a5a9@mail.gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
+In-Reply-To: <5bc4c4570704231129r7bff6759xc97eedc3d8ee26c7@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -26,160 +25,22 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Felipe Balbi <felipebalbi@users.sourceforge.net>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: ext Leandro Melo de Sales <leandroal@gmail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Really? I need to take some wireless performance tests using a
-modified transport protocol and wifi and I cannot? Is there another
-way to do that?
+On Mon, Apr 23, 2007 at 03:29:26PM -0300, ext Leandro Melo de Sales wrote:
+> Really? I need to take some wireless performance tests using a
+> modified transport protocol and wifi and I cannot? Is there another
+> way to do that?
 
-Thanks,
-Leandro
+You can build the cx3110x driver against the new kernel (it's on
+garage.maemo.org IIRC), but I guess you'll have to copy it into the
+initfs by hand.  It's mounted as /mnt/initfs on the device, or you can
+extract initfs.jffs2 from the FIASCO image and rebuild it from there
+with mkfs.jffs2 and sumtool.
 
-2007/4/23, Felipe Balbi <felipebalbi@users.sourceforge.net>:
-> That was expected. AFAIK the Wifi driver is proprietary, you won't get
-> it working with linux-omap git tree.
->
->
-> On 4/23/07, Leandro Melo de Sales <leandroal@gmail.com> wrote:
-> > Hi Jarkko,
-> >
-> >   I used the patch that you sent to me. Now I can boot using the git
-> > kernel, but the system can't find any wireless access point
-> > (infraestructure). I think that is necessary to enable some kernel
-> > option, which one? I already enabled some wireless 802.11 options,
-> > including WEP crypt, flash kernel again and nothing changed.
-> >
-> > Thanks the the help,
-> > Leandro.
-> >
-> > 2007/4/23, Jarkko Nikula <jarkko.nikula@nokia.com>:
-> > > Hi Leandro,
-> > >
-> > > I just noticed that n800_defconfig doesn't enable Blizzard framebuffer
-> > > and thus the screen is white. Could you try are you able to boot-up
-> > > using attached patch to n800_defconfig?
-> > >
-> > > That patch also enables EAC and TSC2301 drivers in order to get audio,
-> > > keypad and touschreen working.
-> > >
-> > >
-> > >         Jarkko
-> > >
-> > > On Sun, 22 Apr 2007 14:23:43 -0300
-> > > "ext Leandro Melo de Sales" <leandroal@gmail.com> wrote:
-> > >
-> > > > Hello Felipe,
-> > > >
-> > > >   still in problems! :( I did what you suggested and after the latest
-> > > > ./flasher command I unplug the charger and the usb cable. When I turn
-> > > > on the device, I got just a white screen. Even the Nokia logo is not
-> > > > shown anymore.
-> > > >   What can I do now?
-> > > >
-> > > > Best regards,
-> > > > Leandro
-> > > >
-> > > > 2007/4/21, Felipe Balbi <felipebalbi@users.sourceforge.net>:
-> > > > > Hello Leandro,
-> > > > >
-> > > > > The device just keeps on Nokia,
-> > > > > it doesn't reboots on something like that??
-> > > > >
-> > > > > try this:
-> > > > >
-> > > > > ./flasher --enable-rd-mode -f
-> > > > >
-> > > > > ./flasher -k <your kernel> -f
-> > > > >
-> > > > > ./flasher --set-rd-flags=no-lifeguard-reset -f
-> > > > >
-> > > > > I think this will do the trick, hopefully
-> > > > >
-> > > > >
-> > > > > On 4/22/07, Leandro Melo de Sales <leandroal@gmail.com> wrote:
-> > > > > > Hi,
-> > > > > >
-> > > > > >   I finally compile linux-omap git version in my scratchbox. So, I
-> > > > > > tried to flash the new zImage generated by the compilation process
-> > > > > > into my n800. I plugged the device using usb cable and typed:
-> > > > > >
-> > > > > > ./flasher-3.0 -f -k
-> > > > > > /scratchbox/users/leandro/home/leandro/maemo_kernel_git/linux-omap-dev-2.6.git/arch/arm/boot/zImage
-> > > > > >
-> > > > > > The kernel image is transfered to n800 as shown bellow:
-> > > > > >
-> > > > > > USB device found found at bus 005, device address 011
-> > > > > > Found device RX-34, hardware revision 1301
-> > > > > > NOLO version 1.1.6
-> > > > > > Version of 'sw-release': <no version>
-> > > > > > Sending kernel image (1436 kB)...
-> > > > > > 100% (1436 of 1436 kB, avg. 21438 kB/s)
-> > > > > > Flashing kernel... done.
-> > > > > >
-> > > > > > But when I switch on the device, just the name "Nokia" is shown
-> > > > > > and nothing more!
-> > > > > >
-> > > > > > I reflashed the device with latest OS 2007 release.
-> > > > > >
-> > > > > > Any clue?
-> > > > > > Leandro.
-> > > > > >
-> > > > > > 2007/4/19, Jarkko Nikula <jarkko.nikula@nokia.com>:
-> > > > > > > On Wed, 18 Apr 2007 19:38:55 +0000
-> > > > > > > "ext Tony Lindgren" <tony@atomide.com> wrote:
-> > > > > > >
-> > > > > > > > * Dirk Behme <dirk.behme@googlemail.com> [070418 18:31]:
-> > > > > > > > > Btw.: Just noticed that Kai Svahn registered mach number
-> > > > > > > > > 1271 for N800 in machine registry.
-> > > > > > > > >
-> > > > > > > > > [1] http://www.arm.linux.org.uk/developer/machines/
-> > > > > > > >
-> > > > > > > > The latest bootloader uses the 1271 id already so here's the
-> > > > > > > > updated patch.
-> > > > > > > >
-> > > > > > > For machine id 1271, reflash the device with latest OS 2007
-> > > > > > > release
-> > > > > > >
-> > > > > > > https://maemo.org/#date_23032007
-> > > > > > >
-> > > > > > > That should update the bootloader also to use official id 1271.
-> > > > > > >
-> > > > > > >
-> > > > > > > --
-> > > > > > > Jarkko
-> > > > > > >
-> > > > > > _______________________________________________
-> > > > > > Linux-omap-open-source mailing list
-> > > > > > Linux-omap-open-source@linux.omap.com
-> > > > > > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> > > > > >
-> > > > >
-> > > > >
-> > > > > --
-> > > > > Best Regards,
-> > > > >
-> > > > > Felipe Balbi
-> > > > > felipebalbi@users.sourceforge.net
-> > > > >
-> > > > _______________________________________________
-> > > > Linux-omap-open-source mailing list
-> > > > Linux-omap-open-source@linux.omap.com
-> > > > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> > >
-> > >
-> > _______________________________________________
-> > Linux-omap-open-source mailing list
-> > Linux-omap-open-source@linux.omap.com
-> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> >
->
->
-> --
-> Best Regards,
->
-> Felipe Balbi
-> felipebalbi@users.sourceforge.net
->
+Cheers,
+Daniel
