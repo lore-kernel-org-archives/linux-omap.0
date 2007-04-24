@@ -1,24 +1,13 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: Compiling latest kernel (from kernel.org, linux-omap git
- version) in n800
-Date: Tue, 24 Apr 2007 08:40:13 +0300
-Message-ID: <20070424084013.c53f4aac.jarkko.nikula@nokia.com>
-References: <5bc4c4570704211518p1168ec99qd8d44fb8f14f5979@mail.gmail.com>
-	<20070423090244.e7a39073.jarkko.nikula@nokia.com>
-	<5bc4c4570704231118q47974273qfd36e41970a02635@mail.gmail.com>
-	<31e679430704231123v6a73cc8fqd6b67918be28a5a9@mail.gmail.com>
-	<5bc4c4570704231129r7bff6759xc97eedc3d8ee26c7@mail.gmail.com>
-	<20070423183514.GI19866@intune.research.nokia.com>
-	<5bc4c4570704231153p788a3936ue36041eeb7e06f8e@mail.gmail.com>
-	<20070423185719.GJ19866@intune.research.nokia.com>
-	<5bc4c4570704231216m15565ed0l8e8bb976ac8c0828@mail.gmail.com>
-	<5bc4c4570704231239w32060adcq2d026e7956452064@mail.gmail.com>
-	<5bc4c4570704231534o76a5dbe0oc5de23e1f5845986@mail.gmail.com>
+From: "chandrashekhar singh" <cp_singh@faith.co.jp>
+Subject: Problem with compiling 2.6.10  kernel for OMAP2420 board
+Date: Tue, 24 Apr 2007 18:05:30 +0900
+Message-ID: <007b01c7864f$b9ad01d0$5811a80a@cpsingh>
+Reply-To: chandrashekhar singh <cp_singh@faith.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <5bc4c4570704231534o76a5dbe0oc5de23e1f5845986@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -28,26 +17,23 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: ext Leandro Melo de Sales <leandroal@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 23 Apr 2007 19:34:34 -0300
-"ext Leandro Melo de Sales" <leandroal@gmail.com> wrote:
+Dear All,
+I have downloaded linux kernel 2.6.10 from TI site for OMAP 2420 but
+unable to compile as it gives the error of architecture as follows:
 
-> Other thing just to you know. After I flash the new kernel, everything
-> (except the WLAN interface works fine), but the screen, after n800
-> enter in stand-by mode, the screen seems to lost sync. I don't know
-> how to explain exactly, so I'm sending to you some images. Sorry the
-> poor quality of the images.
->   Before stand-by the screen is like DSC01927.JPG. After standy-by,
-> like DSC01921.JPG.
->   When I say stand-by I mean after the user stop to use for about
-> 1min.
-> 
-This patch should fix the problem:
+Assembler message:
+Error: unknown architecture 'armv6'
 
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-April/009478.html
+Though the old version compile well but the latest version does not.
+ Would you please advise me what to do to over come this problem.
 
-
-	Jarkko
+Thanks in advance.
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+\    chandrashekhar singh
+ \   cp_singh@faith.co.jp
+ /   Faith Inc. Tokyo
+/  www.faith.co.jp
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
