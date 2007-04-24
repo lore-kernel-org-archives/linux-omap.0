@@ -1,24 +1,11 @@
-From: "Leandro Melo de Sales" <leandroal@gmail.com>
-Subject: Re: Compiling latest kernel (from kernel.org,
-	linux-omap git version) in n800
-Date: Tue, 24 Apr 2007 13:29:55 -0300
-Message-ID: <5bc4c4570704240929g4861dd3kc6fd474f1a08aaf6@mail.gmail.com>
-References: <5bc4c4570704211518p1168ec99qd8d44fb8f14f5979@mail.gmail.com>
-	<5bc4c4570704231129r7bff6759xc97eedc3d8ee26c7@mail.gmail.com>
-	<20070423183514.GI19866@intune.research.nokia.com>
-	<5bc4c4570704231153p788a3936ue36041eeb7e06f8e@mail.gmail.com>
-	<20070423185719.GJ19866@intune.research.nokia.com>
-	<5bc4c4570704231216m15565ed0l8e8bb976ac8c0828@mail.gmail.com>
-	<5bc4c4570704231239w32060adcq2d026e7956452064@mail.gmail.com>
-	<5bc4c4570704231250m34f325b6s45939ffd0a6b28a8@mail.gmail.com>
-	<87wt028igg.fsf@nokia.com>
-	<5bc4c4570704240856j5e01da7alf16a64ece7ff0b78@mail.gmail.com>
+From: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Subject: [PATCH 0/3] Aligning omap.c from Linux-OMAP to mainline kernel
+Date: Tue, 24 Apr 2007 16:37:03 -0400
+Message-ID: <462E6A6F.1090702@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <5bc4c4570704240856j5e01da7alf16a64ece7ff0b78@mail.gmail.com>
-Content-Disposition: inline
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -26,51 +13,29 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Pierre Ossman <drzeus-list@drzeus.cx>, "linu >> omap-linux" <linux-omap-open-source@linux.omap.com>, "Anderson F. Briglia" <anderson.briglia@indt.org.br>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kalle,
+Hi Pierre,
 
-   It is a bad news! :( Is there a plan to make umac.ko source code
-available? And about cx3110x updates, when do you plan to update it?
-   What is the latest linux-omap kernel version that it is possible to
-compile cx3110x and flash it into n800?
+Find in this series the pending patches from Linux-OMAP to mainline for
+drivers/mmc/omap.c
 
-In all case, thank you.
-Leandro.
+The patches series was applied against Linus' tree 2.6.21-rc7-git6.
 
-2007/4/24, Kalle Valo <Kalle.Valo@nokia.com>:
-> "Leandro Melo de Sales" <leandroal@gmail.com> writes:
->
-> > Hi Kalle,
-> >
-> >  I compiled the omap git kernel version 2.6.21 and flash it into
-> > n800. But I can't use my WLAN interface after I compiled.
->
-> Currently there's no way to use WLAN interface with 2.6.21. The
-> biggest problem is umac.ko, because the sources are not available for
-> that module. Also cx3110x needs some updates because of the workqueue
-> interface has changed in the kernel.
->
-> > Daniel Stone (also from nokia) suggested me to use the cx3110x
-> > driver. Please, let me know from now how can I use the driver with
-> > my compiled kernel. Daniel suggested me some process, but I don't
-> > know how can I do it.
->
-> You need to specify few variables for make. Take a look at here for an
-> example:
->
-> http://maemo.org/pipermail/maemo-developers/2006-August/005368.html
->
-> But I admit that cx3110x is badly documented, sorry about that.
->
-> BTW, in the future please send your questions to maemo-devel and CC me
-> (so that I don't miss it). That way more people can benefit from our
-> discussion. I usually don't answer to private questions, but I made an
-> exception in this case :)
->
-> --
-> Kalle Valo
->
+Anyway, it was tested on OMAP H2 (using omap_h2_1610_defconfig available
+on linus' tree).
+
+BR,
+
+Carlos.
+
+-- 
+Carlos Eduardo
+Nokia Institute of Technology - INdT
+Open Source Mobile Research Center - OSMRC
+Phone: +55 92 2126-1079
+Mobile: +55 92 8127-1797
+E-mail: carlos.aguiar@indt.org.br
