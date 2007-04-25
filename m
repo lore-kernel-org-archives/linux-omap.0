@@ -1,13 +1,15 @@
-From: Steve Poulsen <spoulsen@css-design.us>
-Subject: Re: is there any tool for burning omap730 image under linux?
-Date: Wed, 25 Apr 2007 10:49:11 -0500
-Message-ID: <462F7877.3050305@css-design.us>
-References: <OF9C83F916.25673C7B-ON482572C8.000EADD1-482572C8.000D3CF6@konka.com>
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: RE: TV-out problem
+Date: Wed, 25 Apr 2007 11:24:22 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47C33D8D@dlee13.ent.ti.com>
+References: <BAY111-F2834F47ABBF2631D0C2EA3A6490@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <OF9C83F916.25673C7B-ON482572C8.000EADD1-482572C8.000D3CF6@konka.com>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <BAY111-F2834F47ABBF2631D0C2EA3A6490@phx.gbl>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,48 +17,40 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: jiangqingdong@konka.com
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Hades Liu <lcc0917@msn.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Since you ask how to burn under linux, I assume you already have a 
-flashed u-boot and are able to boot Linux. 
+>When my board outputs image to tv-out, the output image is not =
+completed.
+>The partials of top and left are cut. Please reference to the attached
+>file,
+This is expected issue with any normal TV set. If you have a LCD TV then =
+you should be able to see them properly.=20
+Yes, the image gets chopped off from top/left and bottom / Right too.
 
-Make sure you have MTD support in your kernel.  If configured properly, 
-you should be able to simply copy a binary image to the proper device 
-file.  One issue in doing this comes up if you flash supports protected 
-sectors.  You will get errors about trying to write to protected flash.  
-I wrote a simple application using mtd ioctl's to unprotect, program, 
-then protect.  Before you can even use such an application, you need to 
-get the /dev/mtd* files created and working.  Check the /proc folder.  I 
-recall there is a /proc/mtd (or something like that) if MTD is in your 
-kernel.  It shows you how your flash is divided.  NOTE, I may remember 
-it wrong and it is not /proc but actually a sysfs file.  Another 
-solution may be to unprotect using u-boot, boot the kernel, then copy to 
-the proper /dev/mtd* file.  I would avoid /dev/mtd0 and /dev/mtd1 until 
-you are confident in the procedure.   These are typically u-boot and 
-u-boot config.   /dev/mtd2 should be the kernel part of the flash and 
-/dev/mtd3 is the flashed file system.  Another thing to consider is that 
-you could have MTD configured different than u-boot expects and 
-everything will still work....until you go to copy using /dev/mtd* that 
-is *watch out*.
+>I had tried to set several different video mode parameters such =
+pixclock,
+>left_margin, hsync_len, and so on in data structure h4_tv_var, file
+>omap2_disp_out.c. But it doesn't improve anything. :(
+The tv_var structure will not help here as TV settings are controlled by =
+VENC and not the DISPC as such. So you might have to play around with =
+VENC register configuration a bit. But it's kind of a TV issue and not a =
+problem with encoder. If you see same image on a different TV you see =
+less chopped one. On a flat panel + LCD based TV you shouldn't see any =
+chopped image.
 
-If your question is more basic than this, I suggest the OSK newbie 
-guide.  That will get your application programmed outside of Linux.  To 
-program the first u-boot, I like to use the toolchain to make a u-boot 
-that can be loaded by the emulator through CCS. 
-
-Steve
-
-jiangqingdong@konka.com wrote:
-> is there any tool for burning omap730 image under linux?
+>What can I do to solve this problem? Or it is NTSC's constraints and I
+>should reserve 16 pixes from top and left while writting data to frame
+>buffer for tv-out?
 >
-> thanks
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
->   
+If you really need entire picture as is on TV, On Video pipeline you can =
+downscale it to some factor that fits your TV. On Graphics pipeline you =
+can pad with some data.
+
+Why is your image shifted? It should just be chopped and not shifted. Is =
+this your image capturing/drawing problem?
+
+Regards,
+Khasim
