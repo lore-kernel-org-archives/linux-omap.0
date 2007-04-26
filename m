@@ -1,46 +1,165 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH / RFC] Resubmitting : Basic OMAP2430 High speed I2C &
-	Speed handling
-Date: Thu, 26 Apr 2007 18:52:40 +0000
-Message-ID: <20070426185239.GJ9764@atomide.com>
-References: <9C23CDD79DA20A479D4615857B2E2C47BC80EA@dlee13.ent.ti.com>
+From: Dmitry Krivoschekov <dmitry.krivoschekov@gmail.com>
+Subject: Re: [PATCH] power management: remove some useless code
+	from	arm platforms
+Date: Fri, 27 Apr 2007 01:12:26 +0400
+Message-ID: <463115BA.70505@gmail.com>
+References: <1177604177.6814.81.camel@johannes.berg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47BC80EA@dlee13.ent.ti.com>
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <1177604177.6814.81.camel@johannes.berg>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Johannes Berg <johannes@sipsolutions.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-omap-open-source@linux.omap.com, linux-pm <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Syed Mohammed, Khasim <x0khasim@ti.com> [070424 00:52]:
-> Resubmitting after incorporating review comments
-> 
-> This patch moves I2C speed parameter (from module) to platform data.
-> Also added basic High Speed support based on I2C bus speed. 
-> 
-> This patch is tested for high speed I2C (with TWL4030 Keypad) and works as
-> expected.
-> 
-> Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
-> 
-> Files:
->  drivers/i2c/busses/i2c-omap.c
->  arch/arm/mach-omap2/clock.h
->  arch/arm/mach-omap2/devices.c
->  arch/arm/plat-omap/devices.c 
->  arch/arm/mach-omap2/board-2430sdp.c
-> 
+Johannes Berg wrote:
+> This patch kills some useless code omap1/omap2.
+Although the change looks harmless it'd be nice  CC-ing
+appropriate "arch" or "mach" lists.
 
-Pushing today. I've split the driver into a separate patch.
+Added omap list to CC.
 
-Tony
+BTW, you change OMAP stuff only, so your subject is slightly irrelevant.
+
+
+Regards,
+Dmitry
+>
+> Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+>
+> ---
+>  arch/arm/mach-omap1/pm.c |   36 ++++++------------------------------
+>  arch/arm/mach-omap2/pm.c |   38 ++++++--------------------------------
+>  2 files changed, 12 insertions(+), 62 deletions(-)
+>
+> --- wireless-dev.orig/arch/arm/mach-omap1/pm.c	2007-04-26 17:23:20.263249310 +0200
+> +++ wireless-dev/arch/arm/mach-omap1/pm.c	2007-04-26 17:28:00.003249310 +0200
+> @@ -620,26 +620,11 @@ static void (*saved_idle)(void) = NULL;
+>   */
+>  static int omap_pm_prepare(suspend_state_t state)
+>  {
+> -	int error = 0;
+> -
+>  	/* We cannot sleep in idle until we have resumed */
+>  	saved_idle = pm_idle;
+>  	pm_idle = NULL;
+>  
+> -	switch (state)
+> -	{
+> -	case PM_SUSPEND_STANDBY:
+> -	case PM_SUSPEND_MEM:
+> -		break;
+> -
+> -	case PM_SUSPEND_DISK:
+> -		return -ENOTSUPP;
+> -
+> -	default:
+> -		return -EINVAL;
+> -	}
+> -
+> -	return error;
+> +	return 0;
+>  }
+>  
+>  
+> @@ -651,20 +636,11 @@ static int omap_pm_prepare(suspend_state
+>  
+>  static int omap_pm_enter(suspend_state_t state)
+>  {
+> -	switch (state)
+> -	{
+> -	case PM_SUSPEND_STANDBY:
+> -	case PM_SUSPEND_MEM:
+> -		omap_pm_suspend();
+> -		break;
+> -
+> -	case PM_SUSPEND_DISK:
+> -		return -ENOTSUPP;
+> -
+> -	default:
+> -		return -EINVAL;
+> -	}
+> -
+> +	/*
+> +	 * since we mark only "mem" as valid
+> +	 * there's no need to check "state" here
+> +	 */
+> +	omap_pm_suspend();
+>  	return 0;
+>  }
+>  
+> --- wireless-dev.orig/arch/arm/mach-omap2/pm.c	2007-04-26 17:23:20.403249310 +0200
+> +++ wireless-dev/arch/arm/mach-omap2/pm.c	2007-04-26 17:28:20.323249310 +0200
+> @@ -73,26 +73,11 @@ void omap2_pm_idle(void)
+>  
+>  static int omap2_pm_prepare(suspend_state_t state)
+>  {
+> -	int error = 0;
+> -
+>  	/* We cannot sleep in idle until we have resumed */
+>  	saved_idle = pm_idle;
+>  	pm_idle = NULL;
+>  
+> -	switch (state)
+> -	{
+> -	case PM_SUSPEND_STANDBY:
+> -	case PM_SUSPEND_MEM:
+> -		break;
+> -
+> -	case PM_SUSPEND_DISK:
+> -		return -ENOTSUPP;
+> -
+> -	default:
+> -		return -EINVAL;
+> -	}
+> -
+> -	return error;
+> +	return 0;
+>  }
+>  
+>  #define INT0_WAKE_MASK	(OMAP_IRQ_BIT(INT_24XX_GPIO_BANK1) |	\
+> @@ -345,22 +330,11 @@ static int omap2_pm_suspend(void)
+>  
+>  static int omap2_pm_enter(suspend_state_t state)
+>  {
+> -	int ret = 0;
+> -
+> -	switch (state)
+> -	{
+> -	case PM_SUSPEND_STANDBY:
+> -	case PM_SUSPEND_MEM:
+> -		ret = omap2_pm_suspend();
+> -		break;
+> -	case PM_SUSPEND_DISK:
+> -		ret = -ENOTSUPP;
+> -		break;
+> -	default:
+> -		ret = -EINVAL;
+> -	}
+> -
+> -	return ret;
+> +	/*
+> +	 * since we mark only 'mem' as valid, there's
+> +	 * no need to check 'state' here
+> +	 */
+> +	return omap2_pm_suspend();
+>  }
+>  
+>  static int omap2_pm_finish(suspend_state_t state)
+>
+>
+> _______________________________________________
+> linux-pm mailing list
+> linux-pm@lists.linux-foundation.org
+> https://lists.linux-foundation.org/mailman/listinfo/linux-pm
+>
