@@ -1,15 +1,14 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: [PATCH]Re-submitting TWL4030 Keypad driver support
-Date: Mon, 30 Apr 2007 20:09:29 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47081082@dlee13.ent.ti.com>
-References: <9C23CDD79DA20A479D4615857B2E2C47C8F1AF@dlee13.ent.ti.com>
-	<5d5443650704292345t37f92df8l7c9781078b367176@mail.gmail.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: [PATCH] Resubmitting TWL4030 GPIO driver
+Date: Tue, 1 May 2007 14:49:01 +0530
+Message-ID: <5d5443650705010219p17ccb899j1be55fc0df1159ad@mail.gmail.com>
+References: <9C23CDD79DA20A479D4615857B2E2C47C8EC6C@dlee13.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-class: urn:content-classes:message
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47C8EC6C@dlee13.ent.ti.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,568 +16,660 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Trilok Soni <soni.trilok@gmail.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Trilok,
-=20
-Many thanks for the comments. I will incorporate the review comments and =
-re-post the patch.
-=20
-It would be very kind of you if you can give a look & comment TWL GPIO =
-driver too :)
-=20
-Thanks & Regards,
-Khasim
-
-________________________________
-
-From: Trilok Soni [mailto:soni.trilok@gmail.com]
-Sent: Mon 4/30/2007 1:45 AM
-To: Syed Mohammed, Khasim
-Cc: linux-omap-open-source@linux.omap.com
-Subject: Re: [PATCH]Re-submitting TWL4030 Keypad driver support
-
-
-
 Hi Khasim,
 
-On 4/28/07, Syed Mohammed, Khasim <x0khasim@ti.com> wrote:
-> This patch adds TWL4030 Keypad driver support for 2430 SDP.
+On 4/27/07, Syed Mohammed, Khasim <x0khasim@ti.com> wrote:
 >
-
-Review comments on twl4030 keypad driver.
-
+> This adds TWL4030 GPIO driver support. Required for TWL4030 Keypad and other
+> TWL4030 GPIO dependent modules.
+>
 > Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
 >
->
-> +config KEYBOARD_TWL4030
-> +       tristate "TI TWL4030 keypad support"
-> +       depends on INPUT_KEYBOARD && TWL4030_CORE && MACH_OMAP_2430SDP
 
-We don't require INPUT_KEYBOARD dependency above as it is included in
-"if INPUT_KEYBOARD".
+Just added comments for code which require few cosmetic changes
+related to coding style.
 
-Please also give a link to this chip in help text.
-
+> +
 > +/*
-> + * drivers/input/omap-twl4030keypad.c
-
-This should be drivers/input/keyboard/<your-file>.c
-
+> + * These are the irqchip methods for the TWL4030 GPIO interrupts.
+> + * Our IRQ handle method doesn't call these, but they will be called by
+> + * other routines such as setup_irq() and enable_irq().  They are called
+> + * with cpu interrupts disabled and with a lock on the irq_controller_lock
+> + * spinlock.  This complicates matters, because accessing the TWL4030 GPIO
+> + * interrupt controller requires I2C bus transactions that can't be initiated
+> + * in this context.  Our solution is to defer accessing the interrupt
+> + * controller to a kernel thread.  We only need to support the unmask method.
+> + */
 > +
-> +#define OMAP_TWL4030KEYPAD_LOG_LEVEL   1
-
-It would be better if you use KP/kp instead of KEYPAD/keypad everywhere.
-
+> +static void twl4030_gpio_mask_and_ack_irqchip(unsigned int irq) {}
+> +static void twl4030_gpio_mask_irqchip(unsigned int irq) {}
 > +
-> +#define KEY(col, row, val)     (((col) << 28) | ((row) << 24) | =
-(val))
-> +#define NUM_ROWS               5
-> +#define NUM_COLS               6
+> +static void twl4030_gpio_unmask_irqchip(unsigned int irq)
+> +{
+> +       int gpio = irq - IH_TWL4030_GPIO_BASE;
 > +
-> +#define ROW_MASK               ((1<<NUM_ROWS)-1)
+> +       gpio_pending_unmask |= (1 << gpio);
+> +       if (gpio_unmask_thread && gpio_unmask_thread->state != TASK_RUNNING)
+> +               wake_up_process(gpio_unmask_thread);
+> +}
 > +
-> +#define SCAN_RATE              HZ/20
-> +#define KEYNUM_MASK            0xFF000000
-> +#define ROWCOL_MASK            0x00FFFFFF
-> +
-> +/* Driver Name */
-> +#define OMAP_TWL4030KEYPAD_NAME                "omap_twl4030keypad"
-> +
-> +#ifndef CONFIG_TWL4030KEY_AUTORPT
-> +#define CONFIG_TWL4030KEY_AUTORPT      100
-> +#endif
-
-Is this a Kconfig option? I don't find any.
-
-> +
-> +#define SCAN_RATE                      HZ/20
-> +
-> +#if (OMAP_TWL4030KEYPAD_LOG_LEVEL >=3D 1)
-> +char *switch_name[NUM_ROWS][NUM_COLS] =3D {
-> +       {"S2_L", "S2_D", "S2_S", "S3", "S4", "S23"},
-> +       {"S2_R", "S2_U", "S5", "S6", "S7", "S24"},
-> +       {"S8", "S9", "S10", "S11", "S12", "S25"},
-> +       {"S13", "S14", "S15", "S16", "S17", "S26"},
-> +       {"S18", "S19", "S20", "S21", "S22", "S27"},
+> +static struct irq_chip twl4030_gpio_irq_chip = {
+> +       .ack    = twl4030_gpio_mask_and_ack_irqchip,
+> +       .mask   = twl4030_gpio_mask_irqchip,
+> +       .unmask = twl4030_gpio_unmask_irqchip,
 > +};
-> +#endif
-> +
-> +/* Global variables */
-> +static int *keymap;
-> +static unsigned char keypad_state[NUM_ROWS];
-> +
-> +/* Function Templates */
-> +static struct input_dev *omap_twl4030kp;
-> +struct timer_list kptimer;
-> +static void omap_kp_timer(unsigned long);
-> +static void twl4030_keypad_scan(void);
-> +struct work_struct timer_work;
-> +void twl4030_kp_work(void *data);
-> +void twl4030_timer_work(void *data);
-
-How about putting some these globals into local structure and use
-platform_get_drvdata whenever required it as omap-keypad.c?
-
-> +
-> +static int twl4030_kpread_u8(u32 module, u8 * data, u32 reg)
-> +{
-> +       int ret;
-> +       ret =3D twl4030_i2c_read_u8(module, data, reg);
-
-Please add one empty line between above sentences and other places in
-the driver code.
-
-> +       if (ret < 0) {
-> +               printk(KERN_WARNING
-> +                       "Couldn't read TWL4030 register %X - ret =
-%d[%x]\n",
-> +                       reg, ret, ret);
-> +               return ret;
-> +       }
-> +       return ret;
-> +}
-> +
-> +static int twl4030_kpwrite_u8(u32 module, u8 data, u32 reg)
-> +{
-> +       int ret;
-> +       ret =3D twl4030_i2c_write_u8(module, data, reg);
-> +       if (ret < 0) {
-> +               printk(KERN_WARNING
-> +                       "Could not write TWL4030 register %X - ret =
-%d[%x]\n",
-> +                       reg, ret, ret);
-> +               return ret;
-> +       }
-> +       return ret;
-> +}
-> +
-> +static inline int omap_kp_find_key(int col, int row)
-> +{
-> +       int i, key;
-> +
-> +       key =3D KEY(col, row, 0);
-> +       for (i =3D 0; keymap[i] !=3D 0; i++) {
-> +               if ((keymap[i] & KEYNUM_MASK) =3D=3D key) {
-> +                       return keymap[i] & ROWCOL_MASK;
-> +               }
-> +       }
-> +       return -EINVAL;
-> +}
-> +
-> +static void twl4030_keypad_scan(void) {
-> +
-> +       unsigned char new_state[NUM_ROWS], changed, key_down =3D 0;
-> +       u8 col, row, spurious =3D 0;
-> +       u8 code_reg =3D REG_FULL_CODE_7_0;
-> +       int ret;
-> +
-> +       /* check for any changes */
-> +       ret =3D
-> +               twl4030_i2c_read(TWL4030_MODULE_KEYPAD, new_state, =
-code_reg,
-> +                                NUM_ROWS);
-> +       if (ret < 0) {
-> +               printk(KERN_WARNING
-> +                       "Could not read TWL4030 register %X - ret =
-%d[%x]\n",
-> +                               code_reg, ret, ret);
-> +       }
-> +
-> +       /* check for changes and print those */
-> +       for (row =3D 0; row < NUM_ROWS; row++) {
-> +               changed =3D new_state[row] ^ keypad_state[row];
-> +               key_down |=3D new_state[row];
-> +
-> +               if (changed =3D=3D 0)
-> +                       continue;
-> +
-> +               for (col =3D 0; col < NUM_COLS; col++) {
-> +                       int key;
-> +                       if (!(changed & (1 << col)))
-> +                               continue;
-> +
-> +#if (OMAP_TWL4030KEYPAD_LOG_LEVEL >=3D 1)
-> +                       printk("key %s %s\n", switch_name[row][col],
-> +                               (new_state[row] & (1 << col)) ?
-> +                               "press" : "release");
-> +#endif
-> +                       key =3D omap_kp_find_key(col, row);
-> +                       if (key < 0) {
-> +                               printk(KERN_WARNING
-> +                                       "omap-kp: Spurious key event =
-%d-%d\n",
-> +                                       col, row);
-> +                               /* We scan again after a couple of =
-seconds */
-> +                               spurious =3D 1;
-> +                               continue;
-> +                       }
-> +
-> +                       input_report_key(omap_twl4030kp, key,
-> +                                        new_state[row] & (1 << col));
-> +               }
-> +       }
-> +       if (key_down) {
-> +               /*
-> +                * some key is pressed - keep irq disabled and use =
-timer
-> +                * to poll for key release
-> +                */
-> +               if (spurious)
-> +                       mod_timer(&kptimer, jiffies + SCAN_RATE * 2);
-> +               else
-> +                       mod_timer(&kptimer, jiffies + SCAN_RATE);
-> +       }
-> +       memcpy(keypad_state, new_state, sizeof(keypad_state));
-> +}
-> +
-> +void twl4030_timer_work(void *data)
-> +{
-> +       twl4030_keypad_scan();
-> +}
-> +
-> +void omap_kp_timer(unsigned long data)
-> +{
-> +       schedule_work(&timer_work);
-> +}
 > +
 > +/*
-> + * Keypad interrupt handler
+> + * These are the irqchip methods for the TWL4030 PIH GPIO module interrupt.
+> + * The PIH module doesn't have interrupt masking capability, so these
+> + * methods are NULL.
 > + */
-> +static irqreturn_t do_kp_irq(int irq, void *dev_id)
-> +{
-> +       u8 reg;
-> +       int ret;
+> +static void twl4030_gpio_module_ack(unsigned int irq) {}
+> +static void twl4030_gpio_module_mask(unsigned int irq) {}
+> +static void twl4030_gpio_module_unmask(unsigned int irq) {}
+> +static struct irq_chip twl4030_gpio_module_irq_chip = {
+> +       .ack    = twl4030_gpio_module_ack,
+> +       .mask   = twl4030_gpio_module_mask,
+> +       .unmask = twl4030_gpio_module_unmask,
+> +};
 > +
-> +       /* Mask keypad interrupts */
-> +       reg =3D KEYP_IMR1_MASK;
-> +       ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg, =
-REG_KEYP_IMR1);
-> +
-> +       /*
-> +        * Scan keypad for any changes
-> +        * in keypad matrix.
-> +        */
-> +       twl4030_keypad_scan();
-> +
-> +       /* Clear TWL4030 PIH interrupt */
-> +       ret =3D twl4030_kpread_u8(TWL4030_MODULE_KEYPAD, &reg, =
-REG_KEYP_ISR1);
-> +
-> +       /* Enable interrupts */
-> +       reg =3D KEYP_IMR1_UNMASK;
-> +       ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg, =
-REG_KEYP_IMR1);
-> +
-> +       return IRQ_HANDLED;
-> +}
-> +
+
+You don't want to fill "name" field for entry in /proc/interrupts ?
+
+
 > +/*
-> + * Registers keypad device with input sub system
-> + * and configures TWL4030 keypad registers
-> + *
+> + * twl4030 GPIO request function
 > + */
-> +static int __init omap_kp_probe(struct platform_device *pdev)
+> +int twl4030_request_gpio(int gpio)
 > +{
-> +       u8 reg, i;
-> +       u8 code_reg =3D REG_FULL_CODE_7_0;
-> +       int ret =3D 0;
-> +       struct omap_kp_platform_data *pdata =3D  =
-pdev->dev.platform_data;
+> +       int ret = 0;
 > +
-> +#ifdef CONFIG_TWL4030KEYPAD_AUTORPT
-> +       int keyreptime =3D 0;
-> +#endif
-> +
-> +       if (!pdata->rows || !pdata->cols || !pdata->keymap) {
-> +               printk(KERN_ERR "No rows, cols or keymap from =
-pdata\n");
-> +               return -EINVAL;
+> +       if (unlikely(gpio >= TWL4030_GPIO_MAX)) {
+> +               return -EPERM;
 > +       }
 > +
-> +       omap_twl4030kp =3D input_allocate_device();
-> +               if (omap_twl4030kp =3D=3D NULL) {
-> +               return -ENOMEM;
-> +       }
-
-Looks like indenting problem above.
-
-> +
-> +       keymap =3D pdata->keymap;
-> +
-> +       /* setup input device */
-> +       set_bit(EV_KEY, omap_twl4030kp->evbit);
-> +
-> +       /* Enable auto repeat feature of Linux input subsystem */
-> +
-> +       set_bit(EV_REP, omap_twl4030kp->evbit);
-> +       for (i =3D 0; keymap[i] !=3D 0; i++)
-> +               set_bit(keymap[i] & 0x00ffffff, =
-omap_twl4030kp->keybit);
-> +       omap_twl4030kp->name =3D OMAP_TWL4030KEYPAD_NAME;
-
-Please also set "phys", "cdev.dev", "private"  and other remaining
-members of "input_dev" structure. This is _must_have_ requirement from
-upstream maintainers. Please try to follow "omap-keypad.c" driver and
-check the review comments of omap-keypad.c in upstream when Komal
-submitted it.
-
-> +       input_register_device(omap_twl4030kp);
-
-Please check the return value of input_register_device, it is =
-must_check.
-
-> +
-> +       init_timer(&kptimer);
-> +       kptimer.function =3D omap_kp_timer;
-
-You may like to use setup_timer.
-
-> +
-> +       /*
-> +        * Since keypad driver uses I2C for reading
-> +        * twl4030 keypad registers, tasklets cannot
-> +        * be used.
-> +        */
-> +
-> +       INIT_WORK(&timer_work, twl4030_timer_work);
-> +
-> +#ifdef CONFIG_TWL4030KEYPAD_AUTORPT
-> +       keyreptime =3D
-> +               (CONFIG_TWL4030KEY_AUTORPT) / (31.25 * 32 * 0.001) - =
-1;
-> +
-> +       /* Reset keypad module */
-> +       reg =3D 0;
-> +       ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg,
-> +                                               REG_KEYP_CTRL_REG);
-> +       if (ret < 0)
-> +               goto exit_path4;
-> +
-> +       /*
-> +        *  mask all events - dont care abt result - should
-> +        *  be done by default on a reset of KP module.. still..
-> +        */
-
-"don't care about result" is better.
-
-> +       (void)twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, 0xff, =
-REG_KEYP_IMR1);
-> +
-> +       /*
-> +        * Set keypad control register to Normal operation,
-> +        * hardware decoding,hardware key auto repeat feature
-> +        * and keypad power on
-> +        */
-> +       reg =3D KEYP_CTRL_REG_MASK_AUTORPT;
-> +#else
-> +
-> +       reg =3D KEYP_CTRL_REG_MASK_NOAUTORPT;
-> +
-> +#endif
-> +       ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg,
-> +                                               REG_KEYP_CTRL_REG);
-> +       if (ret < 0)
-> +               goto exit_path3;
-> +
-> +       /* Set all events to Falling Edge detection */
-> +       reg =3D KEYP_EDR_MASK;
-> +       ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg, =
-REG_KEYP_EDR);
-> +       if (ret < 0)
-> +               goto exit_path3;
-> +
-> +       /* Set Pre Scalar Field PTV to 4 */
-> +       reg =3D BIT_LK_PTV_REG_PTV_M & (BIT_PTV_REG_PTV4 << =
-BIT_LK_PTV_REG_PTV);
-> +
-> +#ifdef CONFIG_TWL4030KEYPAD_AUTORPT
-> +       /* Set 4 bit MSB auto repeat key value in PTV reg */
-> +       reg |=3D BIT_LK_PTV_REG_MSB_LK_M & ((keyreptime >> 8)
-> +                                       << BIT_LK_PTV_REG_MSB_LK);
-> +#endif
-> +
-> +       ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg, =
-REG_LK_PTV_REG);
-> +       if (ret < 0)
-> +               goto exit_path3;
-> +
-> +       /*
-> +        * Set key debounce time to 10 ms using equation
-> +        * Tint =3D Tclk * (LOAD_TIM+1) * 2^(PTV+1)
-> +        * Where Tclk =3D 31.25 us ( since kbd_if_clk is 32KHz)
-> +        * PTV =3D 4 for all the operations.
-> +        */
-> +       ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, 0x3f,
-> +                                               REG_KEY_DEB_REG);
-> +       if (ret < 0)
-> +               goto exit_path3;
-> +
-> +#ifdef CONFIG_TWL4030KEYPAD_AUTORPT
-> +       reg =3D 0;
-> +       /*
-> +        * Set LSB 8 bit timer value for key auto repeat.
-> +        * Use the above formula to compute the Timer value
-> +        * Ex:
-> +        * 100 ms , LOAD_TIM =3D 63
-> +        * 200 ms , LOAD_TIM =3D c7
-> +        * 300 ms , LOAD_TIM =3D 12B
-> +        * 500 ms , LOAD_TIM =3D 1F3
-> +        * 1 sec,       LOAD_TIM =3D 3E7
-> +        * Default is set to 100 ms.
-> +        */
-> +       reg =3D BIT_LONG_KEY_REG1_LSB_LK_M &
-> +               (keyreptime << BIT_LONG_KEY_REG1_LSB_LK);
-> +
-> +       ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg,
-> +                                               REG_LONG_KEY_REG1);
-> +       if (ret < 0)
-> +               goto exit_path3;
-> +#endif
-> +
-> +       /* Set SIH Ctrl register */
-> +       reg =3D KEYP_SIH_CTRL_MASK;
-> +       ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg,
-> +                                               REG_KEYP_SIH_CTRL);
-> +       if (ret < 0)
-> +               goto exit_path3;
-> +
-> +       /*
-> +        * This ISR will always execute in kernel thread context =
-because of
-> +        * the need to access the TWL4030 over the I2C bus.
-> +        */
-> +       ret =3D request_irq(TWL4030_MODIRQ_KEYPAD, do_kp_irq,
-> +               SA_INTERRUPT, "TWL4030 Keypad", omap_twl4030kp);
-
-SA_INTERRUPT is deprecated now.
-
-> +       if (ret < 0) {
-> +               printk(KERN_INFO
-> +                               "request_irq failed for irq =
-no=3D%d\n",
-> +                               TWL4030_MODIRQ_KEYPAD);
-> +               goto exit_path3;
+> +       down(&gpio_sem);
+> +       if (gpio_usage_count & (0x1 << gpio)) {
+> +               ret = -EBUSY;
 > +       } else {
-> +               /* Enable keypad module interrupts now. */
-> +               reg =3D KEYP_IMR1_UNMASK;
-> +               ret =3D
-> +                       twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg,
-> +                                               REG_KEYP_IMR1);
-> +               if (ret < 0) {
-> +                       /* mask all events - dont care abt result */
-> +                       =
-(void)twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, 0xff,
-> +                                                REG_KEYP_IMR1);
-> +                       goto exit_path4;
+> +               u8 clear_pull[6] = { 0, 0, 0, 0, 0, 0 };
+> +               /* First time usage? - switch on GPIO module */
+> +               if (!gpio_usage_count) {
+> +                       ret =
+> +                       gpio_twl4030_write(REG_GPIO_CTRL,
+> +                                       MASK_GPIO_CTRL_GPIO_ON);
+> +                       ret = gpio_twl4030_write(REG_GPIO_SIH_CTRL, 0x00);
 > +               }
+> +               if (!ret) {
+> +                       gpio_usage_count |= (0x1 << gpio);
+> +               }
+> +               ret =
+> +               twl4030_i2c_write(TWL4030_MODULE_GPIO, clear_pull,
+> +                               REG_GPIOPUPDCTR1, 5);
 > +       }
-> +
-> +#if (OMAP_TWL4030KEYPAD_LOG_LEVEL >=3D 1)
-> +       printk
-> +         ("****TWL4030 keypad module configuration registers =
-dump****\n");
-> +       twl4030_kpread_u8(TWL4030_MODULE_KEYPAD, &reg, =
-REG_KEYP_CTRL_REG);
-> +       printk("Register REG_KEYP_CTRL_REG : %X\n", reg);
-> +       twl4030_kpread_u8(TWL4030_MODULE_KEYPAD, &reg, REG_KEYP_EDR);
-> +       printk("Register REG_KEYP_EDR: %X\n", reg);
-> +       twl4030_kpread_u8(TWL4030_MODULE_KEYPAD, &reg, =
-REG_LK_PTV_REG);
-> +       printk("Register REG_LK_PTV_REG: %X\n", reg);
-> +       twl4030_kpread_u8(TWL4030_MODULE_KEYPAD, &reg, =
-REG_KEY_DEB_REG);
-> +       printk("Register REG_KEY_DEB_REG: %X\n", reg);
-> +       twl4030_kpread_u8(TWL4030_MODULE_KEYPAD, &reg, =
-REG_LONG_KEY_REG1);
-> +       printk("Register REG_LONG_KEY_REG1: %X\n", reg);
-> +       twl4030_kpread_u8(TWL4030_MODULE_KEYPAD, &reg, =
-REG_KEYP_SIH_CTRL);
-> +       printk("Register REG_KEYP_SIH_CTRL: %X\n", reg);
-> +       twl4030_kpread_u8(TWL4030_MODULE_KEYPAD, &reg, REG_KEYP_IMR1);
-> +       printk("Register REG_KEYP_IMR1: %X\n", reg);
-> +       printk("****************END******************\n");
-> +#endif
-
-I hope we plan to remove above debug printks later.
-
-> +       /* Read initial state of keypad matrix. */
-> +       ret =3D twl4030_i2c_read(TWL4030_MODULE_KEYPAD, keypad_state, =
-code_reg,
-> +               NUM_ROWS);
-> +       if (ret < 0) {
-> +               printk(KERN_WARNING
-> +                               "Could not read TWL4030 register %X - =
-ret %d[%x]\n",
-> +                               reg, ret, ret);
-> +               goto exit_path4;
-> +       }
-> +
-> +       return (ret);
-> +exit_path4:
-> +       free_irq(TWL4030_MODIRQ_KEYPAD, NULL);
-> +exit_path3:
-> +       input_unregister_device(omap_twl4030kp);
-> +       return -ENODEV;
-
-There is no input_free_device in error return path.
-
+> +       up(&gpio_sem);
+> +       return ret;
 > +}
 > +
-> +static int omap_kp_remove(struct platform_device *pdev)
+> +/*
+> + * TWL4030 GPIO free module
+> + */
+> +int twl4030_free_gpio(int gpio)
 > +{
-> +       free_irq(TWL4030_MODIRQ_KEYPAD, NULL);
-> +       del_timer_sync(&kptimer);
+> +       int ret = 0;
+> +       if (unlikely(gpio >= TWL4030_GPIO_MAX)) {
+> +               return -EPERM;
+> +       }
+> +       down(&gpio_sem);
+> +       if ((gpio_usage_count & (0x1 << gpio)) == 0) {
+> +               ret = -EPERM;
+> +       } else {
+> +               gpio_usage_count &= ~(0x1 << gpio);
+> +       }
+> +       /* Last time usage? - switch off GPIO module */
+> +       if (!gpio_usage_count) {
+> +               ret = gpio_twl4030_write(REG_GPIO_CTRL, 0x0);
+> +       }
+> +       up(&gpio_sem);
+> +       return ret;
+> +}
 > +
-> +       input_unregister_device(omap_twl4030kp);
+> +/**
+> + * @brief twl4030_set_gpio_direction
+> + *
+> + * @param gpio
+> + * @param is_input
+> + *
+> + * @return
+> + */
+> +int twl4030_set_gpio_direction(int gpio, int is_input)
+> +{
+> +       u8 d_bnk = GET_GPIO_DATA_BANK(gpio);
+> +       u8 d_msk = MASK_GPIODATADIR_GPIOxDIR(GET_GPIO_DATA_OFF(gpio));
+> +       u8 reg = 0;
+> +       u8 base = 0;
+> +       int ret = 0;
+> +       if (unlikely((gpio >= TWL4030_GPIO_MAX)
+> +               || !(gpio_usage_count & (0x1 << gpio)))) {
+> +               return -EPERM;
+> +       }
+> +       base = REG_GPIODATADIR1 + d_bnk;
+> +
+> +       down(&gpio_sem);
+> +       ret = gpio_twl4030_read(base);
+> +       if (ret >= 0) {
+> +               if (is_input) {
+> +                       reg = (u8) ((ret) & ~(d_msk));
+> +               } else {
+> +                       reg = (u8) ((ret) | (d_msk));
+> +               }
+> +               ret = gpio_twl4030_write(base, reg);
+> +       }
+> +       up(&gpio_sem);
+> +       return ret;
+> +}
+> +
+> +/**
+> + * @brief twl4030_set_gpio_dataout
+> + *
+> + * @param gpio
+> + * @param enable
+> + *
+> + * @return
+> + */
+> +int twl4030_set_gpio_dataout(int gpio, int enable)
+> +{
+> +       u8 d_bnk = GET_GPIO_DATA_BANK(gpio);
+> +       u8 d_msk = MASK_GPIODATAOUT_GPIOxOUT(GET_GPIO_DATA_OFF(gpio));
+> +       u8 base = 0;
+> +       int ret = 0;
+> +       if (unlikely((gpio >= TWL4030_GPIO_MAX)
+> +               || !(gpio_usage_count & (0x1 << gpio)))) {
+> +               return -EPERM;
+> +       }
+> +       if (enable) {
+> +               base = REG_SETGPIODATAOUT1 + d_bnk;
+> +       } else {
+> +               base = REG_CLEARGPIODATAOUT1 + d_bnk;
+> +       }
+> +       down(&gpio_sem);
+> +       ret = gpio_twl4030_write(base, d_msk);
+> +       up(&gpio_sem);
+> +       return ret;
+> +}
+> +
+> +/**
+> + * @brief twl4030_get_gpio_datain
+> + *
+> + * @param gpio
+> + *
+> + * @return
+> + */
+> +int twl4030_get_gpio_datain(int gpio)
+> +{
+> +       u8 d_bnk = GET_GPIO_DATA_BANK(gpio);
+> +       u8 d_off = BIT_GPIODATAIN_GPIOxIN(GET_GPIO_DATA_OFF(gpio));
+> +       u8 base = 0;
+> +       int ret = 0;
+> +       if (unlikely((gpio >= TWL4030_GPIO_MAX)
+> +               || !(gpio_usage_count & (0x1 << gpio)))) {
+> +               return -EPERM;
+> +       }
+> +       base = REG_GPIODATAIN1 + d_bnk;
+> +       down(&gpio_sem);
+> +       ret = gpio_twl4030_read(base);
+> +       up(&gpio_sem);
+> +       if (ret > 0) {
+> +               ret = (ret >> d_off) & 0x1;
+> +       }
+> +       return ret;
+> +}
+> +
+> +/**
+> + * @brief twl4030_set_gpio_pull
+> + *
+> + * @param gpio
+> + * @param pull_dircn
+> + *
+> + * @return
+> + */
+> +int twl4030_set_gpio_pull(int gpio, int pull_dircn)
+> +{
+> +       u8 c_bnk = GET_GPIO_CTL_BANK(gpio);
+> +       u8 c_off = GET_GPIO_CTL_OFF(gpio);
+> +       u8 c_msk = 0;
+> +       u8 reg = 0;
+> +       u8 base = 0;
+> +       int ret = 0;
+> +       if (unlikely((gpio >= TWL4030_GPIO_MAX) ||
+> +               !(gpio_usage_count & (0x1 << gpio)))) {
+> +               return -EPERM;
+> +       }
+> +       base = REG_GPIOPUPDCTR1 + c_bnk;
+> +       if (pull_dircn == TWL4030_GPIO_PULL_DOWN) {
+> +               c_msk = MASK_GPIOPUPDCTR1_GPIOxPD(c_off);
+> +       } else if (pull_dircn == TWL4030_GPIO_PULL_UP) {
+> +               c_msk = MASK_GPIOPUPDCTR1_GPIOxPU(c_off);
+> +       }
+> +       down(&gpio_sem);
+> +       ret = gpio_twl4030_read(base);
+> +       if (ret >= 0) {
+> +               /* clear the previous up/down values */
+> +               reg = (u8) (ret);
+> +               reg &= ~(MASK_GPIOPUPDCTR1_GPIOxPU(c_off) |
+> +                       MASK_GPIOPUPDCTR1_GPIOxPD(c_off));
+> +               reg |= c_msk;
+> +               ret = gpio_twl4030_write(base, reg);
+> +       }
+> +       up(&gpio_sem);
+> +       return ret;
+> +}
+> +
+> +/**
+> + * @brief twl4030_set_gpio_edge_ctrl
+> + *
+> + * @param gpio
+> + * @param edge
+> + *
+> + * @return
+> + */
+> +int twl4030_set_gpio_edge_ctrl(int gpio, int edge)
+> +{
+> +       u8 c_bnk = GET_GPIO_CTL_BANK(gpio);
+> +       u8 c_off = GET_GPIO_CTL_OFF(gpio);
+> +       u8 c_msk = 0;
+> +       u8 reg = 0;
+> +       u8 base = 0;
+> +       int ret = 0;
+> +       if (unlikely((gpio >= TWL4030_GPIO_MAX)
+> +               || !(gpio_usage_count & (0x1 << gpio)))) {
+> +               return -EPERM;
+> +       }
+> +       base = REG_GPIO_EDR1 + c_bnk;
+> +       if (edge & TWL4030_GPIO_EDGE_RISING) {
+> +               c_msk |= MASK_GPIO_EDR1_GPIOxRISING(c_off);
+> +       }
+> +       if (edge & TWL4030_GPIO_EDGE_FALLING) {
+> +               c_msk |= MASK_GPIO_EDR1_GPIOxFALLING(c_off);
+> +       }
+> +       down(&gpio_sem);
+> +       ret = gpio_twl4030_read(base);
+> +       if (ret >= 0) {
+> +               /* clear the previous rising/falling values */
+> +               reg =
+> +               (u8) (ret &
+> +                       ~(MASK_GPIO_EDR1_GPIOxFALLING(c_off) |
+> +                       MASK_GPIO_EDR1_GPIOxRISING(c_off)));
+> +               reg |= c_msk;
+> +               ret = gpio_twl4030_write(base, reg);
+> +       }
+> +       up(&gpio_sem);
+> +       return ret;
+> +}
+> +
+> +/**
+> + * @brief twl4030_set_gpio_debounce
+> + *
+> + * @param gpio
+> + * @param enable
+> + *
+> + * @return
+> + */
+> +int twl4030_set_gpio_debounce(int gpio, int enable)
+> +{
+> +       u8 d_bnk = GET_GPIO_DATA_BANK(gpio);
+> +       u8 d_msk = MASK_GPIO_DEBEN_GPIOxDEB(GET_GPIO_DATA_OFF(gpio));
+> +       u8 reg = 0;
+> +       u8 base = 0;
+> +       int ret = 0;
+> +       if (unlikely((gpio >= TWL4030_GPIO_MAX)
+
+Add one empty line above.
+
+> +               || !(gpio_usage_count & (0x1 << gpio)))) {
+> +               return -EPERM;
+> +       }
+> +       base = REG_GPIO_DEBEN1 + d_bnk;
+> +       down(&gpio_sem);
+> +       ret = gpio_twl4030_read(base);
+> +       if (ret >= 0) {
+> +               if (enable) {
+> +                       reg = (u8) ((ret) | (d_msk));
+> +               } else {
+> +                       reg = (u8) ((ret) & ~(d_msk));
+> +               }
+> +               ret = gpio_twl4030_write(base, reg);
+> +       }
+> +       up(&gpio_sem);
+> +       return ret;
+> +}
+> +
+> +/**
+> + * @brief twl4030_set_gpio_card_detect
+> + *
+> + * @param gpio
+> + * @param cd
+> + * @param enable
+> + *
+> + * @return
+> + */
+> +int twl4030_set_gpio_card_detect(int gpio, int enable)
+> +{
+> +       u8 reg = 0;
+> +       u8 msk = (1 << gpio);
+> +       int ret = 0;
+> +       /* Only GPIO 0 or 1 can be used for CD feature.. */
+
+Add one empty line above.
+
+> +       if (unlikely((gpio >= TWL4030_GPIO_MAX)
+> +               || !(gpio_usage_count & (0x1 << gpio))
+> +               || (gpio >= TWL4030_GPIO_MAX_CD))) {
+> +               return -EPERM;
+> +       }
+> +
+> +       down(&gpio_sem);
+> +       ret = gpio_twl4030_read(REG_GPIO_CTRL);
+> +       if (ret >= 0) {
+> +               if (enable) {
+> +                       reg = (u8) (ret | msk);
+> +               } else {
+> +                       reg = (u8) (ret & ~msk);
+> +               }
+> +               ret = gpio_twl4030_write(REG_GPIO_CTRL, reg);
+> +       }
+> +       up(&gpio_sem);
+> +       return (ret);
+> +}
+> +
+> +/**** MODULE FUNCTIONS ***/
+> +
+> +/**
+> + * @brief gpio_twl4030_write
+> + *
+> + * @param address
+> + * @param data
+> + *
+> + * @return  0 if successful
+> + */
+> +static inline int gpio_twl4030_write(u8 address, u8 data)
+> +{
+> +       int ret = 0;
+> +       ret = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, data, address);
+
+Add one empty line above.
+
+> +       return ret;
+> +}
+> +
+> +/**
+> + * @brief gpio_twl4030_read
+> + *
+> + * @param address
+> + *
+> + * @return  data if successful else return negative error value
+> + */
+> +static inline int gpio_twl4030_read(u8 address)
+> +{
+> +       u8 data;
+> +       int ret = 0;
+> +       ret = twl4030_i2c_read_u8(TWL4030_MODULE_GPIO, &data, address);
+
+Add one empty line above.
+
+> +       if (ret >= 0)
+> +               ret = data;
+> +       return ret;
+> +}
+> +
+> +/*
+> + * gpio_unmask_thread() runs as a kernel thread.  It is awakened by the unmask
+> + * method for the GPIO interrupts.  It unmasks all of the GPIO interrupts
+> + * specified in the gpio_pending_unmask bitmask.  We have to do the unmasking
+> + * in a kernel thread rather than directly in the unmask method because of the
+> + * need to access the TWL4030 via the I2C bus.  Note that we don't need to be
+> + * concerned about race conditions where the request to unmask a GPIO interrupt
+> + * has already been cancelled before this thread does the unmasking.  If a GPIO
+> + * interrupt is improperly unmasked, then the IRQ handler for it will mask it
+> + * when an interrupt occurs.
+> + */
+> +static int twl4030_gpio_unmask_thread(void *data)
+> +{
+> +       current->flags |= PF_NOFREEZE;
+> +
+> +       while (!kthread_should_stop()) {
+> +               int irq;
+> +               unsigned int gpio_unmask;
+> +
+> +               local_irq_disable();
+> +               gpio_unmask = gpio_pending_unmask;
+> +               gpio_pending_unmask = 0;
+> +               local_irq_enable();
+> +
+> +               for (irq = IH_TWL4030_GPIO_BASE; 0 != gpio_unmask;
+> +                               gpio_unmask >>= 1, irq++) {
+> +                       if (gpio_unmask & 0x1)
+> +                               twl4030_gpio_unmask(irq);
+> +               }
+> +
+> +               local_irq_disable();
+> +               if (!gpio_pending_unmask)
+> +                       set_current_state(TASK_INTERRUPTIBLE);
+> +               local_irq_enable();
+> +
+> +               schedule();
+> +       }
+> +       set_current_state(TASK_RUNNING);
 > +       return 0;
 > +}
 > +
-> +
-> +static struct platform_driver omap_kp_driver =3D {
-> +       .probe          =3D omap_kp_probe,
-> +       .remove         =3D omap_kp_remove,
-> +       .driver         =3D {
-> +               .name   =3D OMAP_TWL4030KEYPAD_NAME,
-> +       },
-> +};
-> +
 > +/*
-> + * OMAP TWL4030 Keypad init
+> + * do_twl4030_gpio_irq() is the desc->handle method for each of the twl4030
+> + * gpio interrupts.  It executes in kernel thread context.
+> + * On entry, cpu interrupts are enabled.
 > + */
-> +static int __devinit omap_kp_init(void)
+> +static void do_twl4030_gpio_irq(unsigned int irq, irq_desc_t *desc)
 > +{
-> +       printk(KERN_INFO "OMAP Keypad Driver\n");
-> +       return platform_driver_register(&omap_kp_driver);
+> +       struct irqaction *action;
+> +       const unsigned int cpu = smp_processor_id();
+> +
+> +       desc->status |= IRQ_LEVEL;
+> +
+> +       /*
+> +        * Acknowledge, clear _AND_ disable the interrupt.
+> +        */
+> +       twl4030_gpio_mask_and_ack(irq);
+> +
+> +       if (!desc->depth) {
+> +               kstat_cpu(cpu).irqs[irq]++;
+> +
+> +               action = desc->action;
+> +               if (action) {
+> +                       int ret;
+> +                       int status = 0;
+> +                       int retval = 0;
+> +                       do {
+> +                               /* Call the ISR with cpu interrupts enabled. */
+> +                               ret = action->handler(irq, action->dev_id);
+> +                               if (ret == IRQ_HANDLED)
+> +                                       status |= action->flags;
+> +                               retval |= ret;
+> +                               action = action->next;
+> +                       } while (action);
+> +
+> +                       if (retval != IRQ_HANDLED) {
+> +                               printk(KERN_ERR "ISR for TWL4030 GPIO"
+> +                                       " irq %d can't handle interrupt\n",
+> +                                       irq);
+> +                       }
+> +
+> +                       if (!desc->depth)
+> +                               twl4030_gpio_unmask(irq);
+> +               }
+> +       }
 > +}
 > +
-> +static void __exit omap_kp_exit(void)
-> +{
-> +       platform_driver_unregister(&omap_kp_driver);
-> +}
-> +
-> +module_init(omap_kp_init);
-> +module_exit(omap_kp_exit);
-> +MODULE_AUTHOR("Texas Instruments");
-> +MODULE_DESCRIPTION("OMAP TWL4030 Keypad Driver");
-> +MODULE_LICENSE("GPL");
-> diff -purN linux-omap/drivers/input/keyboard/twl4030-keypad.h =
-lin_for_hsi2c/drivers/input/keyboard/twl4030-keypad.h
-> --- linux-omap/drivers/input/keyboard/twl4030-keypad.h  1969-12-31 =
-18:00:00.000000000 -0600
-> +++ lin_for_hsi2c/drivers/input/keyboard/twl4030-keypad.h       =
-2007-04-11 13:08:16.000000000 -0500
-> @@ -0,0 +1,376 @@
 > +/*
-> + * drivers/input/twl4030-keypad.h - Register defines for TWL4030 =
-keypad module
+> + * do_twl4030_gpio_module_irq() is the desc->handle method for the twl4030 gpio
+> + * module interrupt.  It executes in kernel thread context.
+> + * This is a chained interrupt, so there is no desc->action method for it.
+> + * We query the gpio module interrupt controller in the twl4030 to determine
+> + * which gpio lines are generating interrupt requests, and then call the
+> + * desc->handle method for each gpio that needs service.
+> + * On entry, cpu interrupts are disabled.
+> + */
+> +static void do_twl4030_gpio_module_irq(unsigned int irq, irq_desc_t *desc)
+> +{
+> +       const unsigned int cpu = smp_processor_id();
+> +
+> +       desc->status |= IRQ_LEVEL;
+> +       /*
+> +       * The desc->handle method would normally call the desc->chip->ack
+> +       * method here, but we won't bother since our ack method is NULL.
+> +       */
+> +       if (!desc->depth) {
+> +               int gpio_irq;
+> +               unsigned int gpio_isr;
+> +
+> +               kstat_cpu(cpu).irqs[irq]++;
+> +               local_irq_enable();
+> +
+> +               down(&gpio_sem);
+> +               if (gpio_read_isr(&gpio_isr))
+> +                       gpio_isr = 0;
+> +               up(&gpio_sem);
+> +
+> +               for (gpio_irq = IH_TWL4030_GPIO_BASE; 0 != gpio_isr;
+> +                       gpio_isr >>= 1, gpio_irq++)
+> +               {
+> +                       if (gpio_isr & 0x1) {
+> +                               irq_desc_t *d = irq_desc + gpio_irq;
+> +                               d->handle_irq(gpio_irq, d);
+> +                       }
+> +               }
 
-Add keyboard in path.
+Coding style not correct for curly brackets around for loop.
 
---
+> +
+> +               local_irq_disable();
+> +               /*
+> +                * Here is where we should call the unmask method, but again we
+> +                * won't bother since it is NULL.
+> +                */
+> +       }
+> +}
+> +
+> +/* TWL4030 Initialization module */
+> +static int __init gpio_twl4030_init(void)
+> +{
+> +       int ret;
+> +       int irq = 0;
+> +
+> +       /* init the global locking sem */
+> +       sema_init(&gpio_sem, 1);
+> +
+> +       /* All GPIO interrupts are initially masked */
+> +       gpio_pending_unmask = 0;
+> +       gpio_imr_shadow = GPIO_32_MASK;
+> +       ret = gpio_write_imr(gpio_imr_shadow);
+> +       if (!ret) {
+> +               /*
+> +               * Create a kernel thread to handle deferred unmasking of gpio
+> +               * interrupts.
+> +               */
+> +               gpio_unmask_thread = kthread_create(twl4030_gpio_unmask_thread,
+> +                       NULL, "twl4030 gpio");
+> +               if (!gpio_unmask_thread) {
+> +                       printk(KERN_ERR
+> +                               "%s: could not create twl4030 gpio unmask thread!\n",
+> +                               __FUNCTION__);
+> +                       ret = -ENOMEM;
+> +               }
+> +       }
+> +
+> +       if (!ret) {
+> +               /* install an irq handler for each of the gpio interrupts */
+> +               for (irq = IH_TWL4030_GPIO_BASE; irq < IH_TWL4030_GPIO_END;
+> +                       irq++)
+> +               {
+> +                       set_irq_chip(irq, &twl4030_gpio_irq_chip);
+> +                       set_irq_handler(irq, do_twl4030_gpio_irq);
+> +                       set_irq_flags(irq, IRQF_VALID);
+> +               }
+
+Coding style not correct for curly brackets.
+
+> +
+> +               /*
+> +                * Install an irq handler to demultiplex the gpio module
+> +                * interrupt.
+> +                */
+> +               set_irq_chip(TWL4030_MODIRQ_GPIO,
+> +                       &twl4030_gpio_module_irq_chip);
+> +               set_irq_chained_handler(TWL4030_MODIRQ_GPIO,
+> +                       do_twl4030_gpio_module_irq);
+> +       }
+> +
+> +       printk(KERN_INFO "TWL4030 GPIO Demux: IRQ Range %d to %d,"
+> +               " Initialization %s\n", IH_TWL4030_GPIO_BASE,
+> +               IH_TWL4030_GPIO_END, (ret) ? "Failed" : "Success");
+> +       return ret;
+> +}
+> +
+> +/* TWL GPIO exit module */
+> +static void __exit gpio_twl4030_exit(void)
+> +{
+> +       int irq;
+> +
+> +       /* uninstall the gpio demultiplexing interrupt handler */
+> +       set_irq_handler(TWL4030_MODIRQ_GPIO, NULL);
+> +       set_irq_flags(TWL4030_MODIRQ_GPIO, 0);
+> +
+> +       /* uninstall the irq handler for each of the gpio interrupts */
+> +       for (irq = IH_TWL4030_GPIO_BASE; irq < IH_TWL4030_GPIO_END; irq++)
+> +       {
+> +               set_irq_handler(irq, NULL);
+> +               set_irq_flags(irq, 0);
+> +       }
+
+Coding style not correct for curly brackets.
+
+> +
+> +       /* stop the gpio unmask kernel thread */
+> +       if (gpio_unmask_thread) {
+> +               kthread_stop(gpio_unmask_thread);
+> +               gpio_unmask_thread = NULL;
+> +       }
+> +
+> +       return;
+
+"return" is not required above.
+
+> +}
+> +
+> +module_init(gpio_twl4030_init);
+> +module_exit(gpio_twl4030_exit);
+> +
+> +EXPORT_SYMBOL(twl4030_request_gpio);
+> +EXPORT_SYMBOL(twl4030_free_gpio);
+> +EXPORT_SYMBOL(twl4030_set_gpio_direction);
+> +EXPORT_SYMBOL(twl4030_set_gpio_dataout);
+> +EXPORT_SYMBOL(twl4030_get_gpio_datain);
+> +EXPORT_SYMBOL(twl4030_set_gpio_pull);
+> +EXPORT_SYMBOL(twl4030_set_gpio_edge_ctrl);
+> +EXPORT_SYMBOL(twl4030_set_gpio_debounce);
+> +EXPORT_SYMBOL(twl4030_set_gpio_card_detect);
+> +
+> +MODULE_AUTHOR("Texas Instruments, Inc.");
+> +MODULE_DESCRIPTION("GPIO interface for TWL4030");
+> +MODULE_LICENSE("GPL");
+>
+
+-- 
 --Trilok Soni
