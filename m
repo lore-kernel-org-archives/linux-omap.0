@@ -1,14 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap2_get_clksel(): fix suspicious assignment
-Date: Wed, 2 May 2007 17:33:24 +0000
-Message-ID: <20070502173323.GF3520@atomide.com>
-References: <Pine.LNX.4.64.0705020845350.19145@utopia.booyaka.com>
-	<3B6D69C3A9EBCA4BA5DA60D913027429E55242@dlee13.ent.ti.com>
+Subject: Re: [PATCH] ARM: OMAP: Fix warning in lcdc.c
+Date: Wed, 2 May 2007 17:36:18 +0000
+Message-ID: <20070502173617.GG3520@atomide.com>
+References: <46373FBC.40808@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D913027429E55242@dlee13.ent.ti.com>
+In-Reply-To: <46373FBC.40808@googlemail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,21 +15,40 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Woodruff, Richard <r-woodruff2@ti.com> [070502 15:57]:
->  > mach-omap2/clock.c contains a suspicious assignment that 
-> > almost certainly should be a equality test, in omap2_get_clksel().
+* Dirk Behme <dirk.behme@googlemail.com> [070501 13:30]:
 > 
-> Yes, its obviously wrong.  Nice to fix.
+> Fix warning
 > 
-> Strangely, my pre-translated trees are correct for this.  Generally,
-> I've tried to keep this aspect in bug fix sync.
+> drivers/video/omap/lcdc.c:878: warning: initialization from
+> incompatible pointer type
+> 
+> Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
 
-Thanks, pushing today.
+> Index: linux-osk/drivers/video/omap/lcdc.c
+> ===================================================================
+> --- linux-osk.orig/drivers/video/omap/lcdc.c
+> +++ linux-osk/drivers/video/omap/lcdc.c
+> @@ -611,9 +611,9 @@ static void omap_lcdc_resume(void)
+>  	}
+>  }
+>  
+> -static unsigned long omap_lcdc_get_caps(void)
+> +static void omap_lcdc_get_caps(int plane, struct omapfb_caps *caps)
+>  {
+> -	return 0;
+> +	return;
+>  }
+>  
+>  int omap_lcdc_set_dma_callback(void (*callback)(void *data), void *data)
+> 
+> 
+
+Pushing today.
 
 Tony
