@@ -1,15 +1,12 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH] omap2_get_clksel(): fix suspicious assignment
-Date: Wed, 2 May 2007 10:53:06 -0500
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429E55242@dlee13.ent.ti.com>
-References: <Pine.LNX.4.64.0705020845350.19145@utopia.booyaka.com>
+From: "sandeep prabhu" <sandeep.mitian@gmail.com>
+Subject: omap 2430 sdp - reboot doesnt work.
+Date: Wed, 2 May 2007 22:34:57 +0530
+Message-ID: <c04186510705021004o6baad54dp2319fcbb18978b63@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <Pine.LNX.4.64.0705020845350.19145@utopia.booyaka.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,16 +16,16 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Paul Walmsley <paul@pwsan.com>, linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
- > mach-omap2/clock.c contains a suspicious assignment that=20
-> almost certainly should be a equality test, in omap2_get_clksel().
+Hi,
+Reboot command does not work on omap 2430 SDP. It just hangs.
 
-Yes, its obviously wrong.  Nice to fix.
+Im using 2.6.14 Linux kernel sources.
 
-Strangely, my pre-translated trees are correct for this.  Generally,
-I've tried to keep this aspect in bug fix sync.
+Do we have a patch/how does one fix it?
 
-Regards,
-Richard W.
+-- 
+Warm Regards,
+Sandeep
