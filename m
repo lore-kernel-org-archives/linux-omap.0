@@ -1,13 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Fix warning in lcdc.c
-Date: Wed, 2 May 2007 17:36:18 +0000
-Message-ID: <20070502173617.GG3520@atomide.com>
-References: <46373FBC.40808@googlemail.com>
+Subject: Re: [RFC/PATCH] ARM: OMAP: OneNAND support for 2430SDP
+Date: Wed, 2 May 2007 17:45:27 +0000
+Message-ID: <20070502174526.GH3520@atomide.com>
+References: <20070321004030.424076000@mvista.com>
+	<20070426173507.GB9764@atomide.com>
+	<1177972442.32350.9.camel@paris.hilman.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <46373FBC.40808@googlemail.com>
+In-Reply-To: <1177972442.32350.9.camel@paris.hilman.org>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,38 +19,48 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
+To: Kevin Hilman <khilman@mvista.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Dirk Behme <dirk.behme@googlemail.com> [070501 13:30]:
+* Kevin Hilman <khilman@mvista.com> [070430 22:39]:
+> On Thu, 2007-04-26 at 17:35 +0000, Tony Lindgren wrote:
+> > * Kevin Hilman <khilman@mvista.com> [070321 00:49]:
+> > > Adds platform device for use of existing OMAP2 driver.  Also, the
+> > > following changes are made to the existing driver:
+> > > 
+> > > - add option for not using DMA (by passing dma_channel = -1)
+> > > - removes obsoleted pt_regs arg from interrupt handler
+> > > 
+> > > RFC: Notice the change to onenand_base.c which comments out the last
+> > >      OOB chunk.  Without this, it would not work.  Previous drivers
+> > >      for this board such as the 2.6.10-based MV kernel have this
+> > >      same change.  Anyone know what is going on here?
+> > 
+> > Can you please refresh this one and split it into two patches:
+> > 
+> > >  arch/arm/mach-omap2/Makefile              |    3 
+> > >  arch/arm/mach-omap2/board-2430sdp-flash.c |  108 ++++++++++++++++++++++++++++++
+> > >  arch/arm/mach-omap2/board-2430sdp.c       |    4 +
+> > >  arch/arm/mach-omap2/gpmc.c                |    1 
+> > >  include/asm-arm/arch-omap/gpmc.h          |    7 +
+> > >  include/asm-arm/arch-omap/onenand.h       |    1 
+> > 
+> > The above could be one patch ready for omap-upstream queue.
+> > 
+> > >  drivers/mtd/onenand/omap2.c               |  103 +++++++++++++++++-----------
+> > >  drivers/mtd/onenand/onenand_base.c        |    2 
+> > 
+> > This should be separate and sent to MTD list.
 > 
-> Fix warning
+> Kyungmin,
 > 
-> drivers/video/omap/lcdc.c:878: warning: initialization from
-> incompatible pointer type
+> What's the status of the patch you submitted to the MTD list for this
+> fix?
 > 
-> Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
+> FWIW, attached is a patch which fixes the walking of the ooblist, as
+> well as an update to the omap2 driver for the non-DMA case.
 
-> Index: linux-osk/drivers/video/omap/lcdc.c
-> ===================================================================
-> --- linux-osk.orig/drivers/video/omap/lcdc.c
-> +++ linux-osk/drivers/video/omap/lcdc.c
-> @@ -611,9 +611,9 @@ static void omap_lcdc_resume(void)
->  	}
->  }
->  
-> -static unsigned long omap_lcdc_get_caps(void)
-> +static void omap_lcdc_get_caps(int plane, struct omapfb_caps *caps)
->  {
-> -	return 0;
-> +	return;
->  }
->  
->  int omap_lcdc_set_dma_callback(void (*callback)(void *data), void *data)
-> 
-> 
-
-Pushing today.
+The attached patch did not seem to make it to the mailing list.
 
 Tony
