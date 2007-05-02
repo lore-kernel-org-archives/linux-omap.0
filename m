@@ -1,14 +1,10 @@
-From: "nishanth menon" <menon.nishanth@gmail.com>
-Subject: Re: Building Linux on OMAP-2430 SDP
-Date: Wed, 2 May 2007 07:15:31 -0500
-Message-ID: <782515bb0705020515l4a96c0f7wd15759185503d7c8@mail.gmail.com>
-References: <KIEKKGBMLLBPKHIELIEEEEJCCBAA.raghuts@tivr.co.in>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] omap2_get_clksel(): fix suspicious assignment
+Date: Wed, 2 May 2007 08:46:58 -0600 (MDT)
+Message-ID: <Pine.LNX.4.64.0705020845350.19145@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <KIEKKGBMLLBPKHIELIEEEEJCCBAA.raghuts@tivr.co.in>
-Content-Disposition: inline
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,20 +12,30 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Raghu TS <raghuts@tivr.co.in>
-Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On 5/2/07, Raghu TS <raghuts@tivr.co.in> wrote:
-> What I understand is I have to build the Linux kernel for SDP, download the
-> same into  it and boot it. I referred to the document
-> "http://linux.omap.com/pub/documentation/OMAP_SDP.pdf" and built the Linux
-> Kernel image on a Fedora Linux-3 host PC. Now to downloand & boot this
-> kernel image, the document refers to
-> "http://linux.omap.com/pub/documentation/U-Boot%20for%20the%20OMAP16xx%20SDP
-> .pdf". It is here I am getting stuck as the last 'make' command in the
-try this: http://www.geocities.com/crecmca98/Linux/omap2430_From_almost_scratch.pdf
-Regards,
-NM
+
+mach-omap2/clock.c contains a suspicious assignment that 
+almost certainly should be a equality test, in omap2_get_clksel().
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+  arch/arm/mach-omap2/clock.c |    2 +-
+  1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-omap-2.6/arch/arm/mach-omap2/clock.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/clock.c
++++ linux-omap-2.6/arch/arm/mach-omap2/clock.c
+@@ -651,7 +651,7 @@ static u32 omap2_get_clksel(u32 *div_sel
+  		break;
+  	case CM_SYSCLKOUT_SEL1:
+  		div_addr = (u32)&PRCM_CLKOUT_CTRL;
+-		if ((div_off == 3) || (div_off = 11))
++		if ((div_off == 3) || (div_off == 11))
+  			mask= 0x3;
+  		break;
+  	case CM_CORE_SEL1:
