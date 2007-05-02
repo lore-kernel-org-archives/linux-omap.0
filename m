@@ -1,13 +1,12 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: JFFS2 on NAND Flash
-Date: Wed, 02 May 2007 06:34:46 -0500
-Message-ID: <46387756.5040107@gmail.com>
-References: <2EE5E03B4244D94F850FC93C0B7172234C45F0@BLR-SGM-MSG01.wipro.com>
+From: "Raghu TS" <raghuts@tivr.co.in>
+Subject: Building Linux on OMAP-2430 SDP
+Date: Wed, 2 May 2007 17:35:52 +0530
+Message-ID: <KIEKKGBMLLBPKHIELIEEEEJCCBAA.raghuts@tivr.co.in>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <2EE5E03B4244D94F850FC93C0B7172234C45F0@BLR-SGM-MSG01.wipro.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,21 +16,32 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: parthasarathy.muniswamy@wipro.com
-Cc: linux-omap-open-source@linux.omap.com
+To: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-parthasarathy.muniswamy@wipro.com stated on 5/2/2007 6:20 AM:
-> ------------
->
-> # nftl_format /dev/mtd12
->
-> /sbin/nftl_format: 1: Syntax error: "(" unexpected
->
-> ---------
-first see which binary is executing - "which nftl_format"-same as what
-you intended.., then try strace. Looks most probably to be a filesystem
-issue.. mebbe check thru the mtd compilation path once.. do a "file
-binary_name" to see ABI versions etc..
-Regards,
-NM
+Hello Linux Experts,
+
+I am a newbie to embedded world specially Linux, though have a bit of
+experience in DSP side programming. I have developed a multimedia codec on
+OMAP-2430 SDP which will run on the DSP side. Now I need to make the codec
+API call from ARM side. I have been trying to do this using Open source
+Linux, but in vain. Please help me to do it.
+
+What I understand is I have to build the Linux kernel for SDP, download the
+same into  it and boot it. I referred to the document
+"http://linux.omap.com/pub/documentation/OMAP_SDP.pdf" and built the Linux
+Kernel image on a Fedora Linux-3 host PC. Now to downloand & boot this
+kernel image, the document refers to
+"http://linux.omap.com/pub/documentation/U-Boot%20for%20the%20OMAP16xx%20SDP
+.pdf". It is here I am getting stuck as the last 'make' command in the
+Section-7 of this document is not compiling and is citing a 'divsion by zero
+error'. Also further in the document, in Section-9, it refers to IBoot Host
+& IBoot Console software used to flash U-Boot on the OMAP1610 SDP which is
+shipped with it. I don't have any such software from my OMAP-2430 SDP
+shipment.
+
+Am I doing the right things or missing a trick or two? Please guide me on
+how to proceed.
+
+Thanks & Regards,
+Raghu TS
