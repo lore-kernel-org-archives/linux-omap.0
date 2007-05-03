@@ -1,13 +1,22 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] musb_hdrc: Allow tusb dma to transfer various data sizes
-Date: Thu,  3 May 2007 16:41:54 +0000
-Message-ID: <11782105221042-git-send-email-tony@atomide.com>
-References: musb-2007-05-03-164131
-	<11782105181141-git-send-email-tony@atomide.com>
-	<11782105222073-git-send-email-tony@atomide.com>
-	<11782105223370-git-send-email-tony@atomide.com>
+Subject: Re: Pending April patches
+Date: Thu, 3 May 2007 16:44:02 +0000
+Message-ID: <20070503164401.GF28985@atomide.com>
+References: <46374339.4030102@googlemail.com>
+	<20070502084714.4a23397d.jarkko.nikula@nokia.com>
+	<57314e840705012317m45e2d42y3120f2247393d8f7@mail.gmail.com>
+	<5d5443650705020134n55148159i4d30a35b12695a66@mail.gmail.com>
+	<57314e840705020149v194e4807j886a7efaa15f324@mail.gmail.com>
+	<5d5443650705020246v3e4427b9t9290d3e18de4ff4b@mail.gmail.com>
+	<57314e840705020407q4823911i508d7ad24da47302@mail.gmail.com>
+	<20070502172108.GD3520@atomide.com>
+	<3B6D69C3A9EBCA4BA5DA60D913027429E55356@dlee13.ent.ti.com>
+	<57314e840705022226g26570b06y6040df6ec3462f55@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11782105223370-git-send-email-tony@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <57314e840705022226g26570b06y6040df6ec3462f55@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,62 +26,33 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Budhee Jamaich <budheej@gmail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-With this patch tusb can transfer sizes that are not
-multiples of 32 bytes.
+* Budhee Jamaich <budheej@gmail.com> [070503 05:26]:
+> On 5/2/07, Woodruff, Richard <r-woodruff2@ti.com> wrote:
+> >The root of all 2.6 trees is kernel.org, then linux-omap tree.  The TI
+> >_downloadable_ trees branch off at a point in time as Tony said, usually
+> >for pre/new-silicon or other major engagements which are not easily done
+> >on the live tree.  Then beyond that you will have vendor trees like
+> >MontaVista or WindRiver. These vendors combine aspects off all trees
+> >into their final bundles. In cases I'm familiar with these final trees
+> >are what go into production in multi-million quantities.
+> 
+> Thank you so much people for the help.
+> I'm really trying to understand the hows the process works, and you really
+> help.
+> One last questions please:
+> What is the process of moving new code from Linus' git tree to
+> the linux-omap tree ?
+> I bet it is not simple to merge many of Linus' commits..
+> Thank you once again and sorry for the questions...
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/usb/musb/tusb6010_omap.c |   27 +++++++++++++++++++--------
- 1 files changed, 19 insertions(+), 8 deletions(-)
+We pull from Linus' tree to linux-omap on regular basis, usually every
+time there's a new -rc release or something important gets merged.
 
-diff --git a/drivers/usb/musb/tusb6010_omap.c b/drivers/usb/musb/tusb6010_omap.c
-index 07f9efe..8e864d6 100644
---- a/drivers/usb/musb/tusb6010_omap.c
-+++ b/drivers/usb/musb/tusb6010_omap.c
-@@ -171,7 +171,22 @@ static void tusb_omap_dma_cb(int lch, u16 ch_status, void *data)
- 	remaining = TUSB_EP_CONFIG_XFR_SIZE(remaining);
- 	channel->dwActualLength = chdat->transfer_len - remaining;
- 
--	DBG(2, "remaining %lu/%u\n", remaining, chdat->transfer_len);
-+	DBG(2, "DMA remaining %lu/%u\n", remaining, chdat->transfer_len);
-+
-+	/* Transfer remaining 1 - 31 bytes if DMA worked */
-+	if (remaining == 0) {
-+		u32	pio;
-+		u8	*buf;
-+
-+		pio = chdat->len - channel->dwActualLength;
-+		buf = phys_to_virt((u32)chdat->dma_addr)
-+				+ chdat->transfer_len;
-+		if (chdat->tx)
-+			musb_write_fifo(hw_ep, pio, buf);
-+		else
-+			musb_read_fifo(hw_ep, pio, buf);
-+		channel->dwActualLength += pio;
-+	}
- 
- 	if (!dmareq_works())
- 		tusb_omap_free_shared_dmareq(chdat);
-@@ -224,14 +239,10 @@ static int tusb_omap_dma_program(struct dma_channel *channel, u16 packet_sz,
- 	s8				dmareq;
- 	s8				sync_dev;
- 
--	if (unlikely(dma_addr & 0x1))
--		return FALSE;
--	if (len < 32)
--		return FALSE;
--	if ((len % 32 != 0))
-+	if (unlikely(dma_addr & 0x1) || len < 32)
- 		return FALSE;
--	else
--		chdat->transfer_len = len;
-+
-+	chdat->transfer_len = len & ~0x1f;
- 
- 	if (len < packet_sz)
- 		chdat->transfer_packet_sz = chdat->transfer_len;
--- 
-1.4.4.2
+Then we try to send all omap patches upstream, so eventually we should
+be using Linus' tree + some omap driver patches.
+
+Tony
