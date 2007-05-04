@@ -1,15 +1,11 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: Uploaded Latest 2.6.14 on linux.omap.com
-Date: Thu, 3 May 2007 20:39:12 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C4708108D@dlee13.ent.ti.com>
-References: <9C23CDD79DA20A479D4615857B2E2C47D02242@dlee13.ent.ti.com>
-	<986017390705030058xe1b2e88j9b80afc1454aeff1@mail.gmail.com>
+From: "andrzej zaborowski" <balrogg@gmail.com>
+Subject: [PATCH] ARM: OMAP: Palm T|E board definition update
+Date: Fri, 4 May 2007 04:38:59 +0200
+Message-ID: <fb249edb0705031938w6edf1757ga81d5821c3cde57a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed;
+	boundary="----=_Part_35310_2823789.1178246339399"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,126 +18,152 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi all:
-=20
-Now you should be able to see/download the tarball.
-=20
->>What functionality/feature level is for 2420 SDP board, as it seem =
-this release is also for H4?
-=20
-This boots for sure on H4. We have not done any H4 driver validation as =
-such, but with my understanding I believe, display , camera , I2C , DMA, =
-keypad and few others should be working.
-=20
->>Which toolchain is recommended to use with? I guess the one at =
-linux.omap.com <http://linux.omap.com/>  is >>not suitable (3.2.2). But =
-maybe latest from codesourcery is more indicated.
+------=_Part_35310_2823789.1178246339399
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-This source compiles and boots fine with Code Sourcery toolchain.
-http://www.codesourcery.com/gnu_toolch ains/arm/download.html =
-<http://www.codesourcery.com/gnu_toolch ains/arm/download.html>   ARM =
-2006q3-27 Release
-=20
-Regards,
-Khasim
+Update board-palmte.c with chages including:
+ - reflect the APM header change to make the file build again,
+ - use the gpio-switch driver for the task of GPIO polling,
+ - fix a fatal typo with wrong shift size,
+ - update the copyright notice.
 
-________________________________
+Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
 
-From: alexandre.bouillot@gmail.com on behalf of mirmit
-Sent: Thu 5/3/2007 2:58 AM
-To: Syed Mohammed, Khasim
-Cc: linux-omap-open-source@linux.omap.com
-Subject: Re: Uploaded Latest 2.6.14 on linux.omap.com
+------=_Part_35310_2823789.1178246339399
+Content-Type: text/plain; name=0003-Palm-T-E-board-definition-update.txt;
+	charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f1a3jxd8
+Content-Disposition: attachment;
+	filename="0003-Palm-T-E-board-definition-update.txt"
+
+RnJvbSBlMDQ2OGJmMDg3N2E5ZWYyNTA5OWI3ZWJkMjM2NjFiNDZiOGYyNzRkIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBBbmRyemVqIFphYm9yb3dza2kgPGJhbHJvZ0B6YWJvci5vcmc+
+CkRhdGU6IEZyaSwgNCBNYXkgMjAwNyAwNToyNzo0NiArMDIwMApTdWJqZWN0OiBbUEFUQ0hdIFBh
+bG0gVHxFIGJvYXJkIGRlZmluaXRpb24gdXBkYXRlLgoKLS0tCiBhcmNoL2FybS9tYWNoLW9tYXAx
+L2JvYXJkLXBhbG10ZS5jIHwgIDExNCArKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tLS0t
+LQogMSBmaWxlcyBjaGFuZ2VkLCA1NSBpbnNlcnRpb25zKCspLCA1OSBkZWxldGlvbnMoLSkKCmRp
+ZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLXBhbG10ZS5jIGIvYXJjaC9hcm0v
+bWFjaC1vbWFwMS9ib2FyZC1wYWxtdGUuYwppbmRleCBjMjNlOGI2Li5jMGJjMWU1IDEwMDY0NAot
+LS0gYS9hcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLXBhbG10ZS5jCisrKyBiL2FyY2gvYXJtL21h
+Y2gtb21hcDEvYm9hcmQtcGFsbXRlLmMKQEAgLTEwLDYgKzEwLDggQEAKICAqIE1haW50YWludGVy
+cyA6IGh0dHA6Ly9wYWxtdGVsaW51eC5zZi5uZXQKICAqICAgICAgICAgICAgICAgIHBhbG10ZWxp
+bnV4LWRldmVsb3BwZXJzQGxpc3RzLnNmLm5ldAogICoKKyAqIENvcHlyaWdodCAoYykgMjAwNiBB
+bmRyemVqIFphYm9yb3dza2kgIDxiYWxyb2dAemFib3Iub3JnPgorICoKICAqIFRoaXMgcHJvZ3Jh
+bSBpcyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5
+CiAgKiBpdCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNl
+IHZlcnNpb24gMiBhcwogICogcHVibGlzaGVkIGJ5IHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRp
+b24uCkBAIC0yNCw4ICsyNiw4IEBACiAjaW5jbHVkZSA8bGludXgvc3BpL3NwaS5oPgogI2luY2x1
+ZGUgPGxpbnV4L3NwaS90c2MyMTAyLmg+CiAjaW5jbHVkZSA8bGludXgvaW50ZXJydXB0Lmg+Cisj
+aW5jbHVkZSA8bGludXgvYXBtLWVtdWxhdGlvbi5oPgogCi0jaW5jbHVkZSA8YXNtL2FwbS5oPgog
+I2luY2x1ZGUgPGFzbS9oYXJkd2FyZS5oPgogI2luY2x1ZGUgPGFzbS9tYWNoLXR5cGVzLmg+CiAj
+aW5jbHVkZSA8YXNtL21hY2gvYXJjaC5oPgpAQCAtNDMsNiArNDUsNyBAQAogI2luY2x1ZGUgPGFz
+bS9hcmNoL2NvbW1vbi5oPgogI2luY2x1ZGUgPGFzbS9hcmNoL21jYnNwLmg+CiAjaW5jbHVkZSA8
+YXNtL2FyY2gvb21hcC1hbHNhLmg+CisjaW5jbHVkZSA8YXNtL2FyY2gvZ3Bpby1zd2l0Y2guaD4K
+IAogc3RhdGljIHZvaWQgX19pbml0IG9tYXBfcGFsbXRlX2luaXRfaXJxKHZvaWQpCiB7CkBAIC01
+MSwxMSArNTQsMTEgQEAgc3RhdGljIHZvaWQgX19pbml0IG9tYXBfcGFsbXRlX2luaXRfaXJxKHZv
+aWQpCiAJb21hcF9ncGlvX2luaXQoKTsKIH0KIAotc3RhdGljIGludCBwYWxtdGVfa2V5bWFwW10g
+PSB7Ci0JS0VZKDAsIDAsIEtFWV9GMSksCi0JS0VZKDAsIDEsIEtFWV9GMiksCi0JS0VZKDAsIDIs
+IEtFWV9GMyksCi0JS0VZKDAsIDMsIEtFWV9GNCksCitzdGF0aWMgY29uc3QgaW50IHBhbG10ZV9r
+ZXltYXBbXSA9IHsKKwlLRVkoMCwgMCwgS0VZX0YxKSwJCS8qIENhbGVuZGFyICovCisJS0VZKDAs
+IDEsIEtFWV9GMiksCQkvKiBDb250YWN0cyAqLworCUtFWSgwLCAyLCBLRVlfRjMpLAkJLyogVGFz
+a3MgTGlzdCAqLworCUtFWSgwLCAzLCBLRVlfRjQpLAkJLyogTm90ZSBQYWQgKi8KIAlLRVkoMCwg
+NCwgS0VZX1BPV0VSKSwKIAlLRVkoMSwgMCwgS0VZX0xFRlQpLAogCUtFWSgxLCAxLCBLRVlfRE9X
+TiksCkBAIC02OCw3ICs3MSw3IEBAIHN0YXRpYyBpbnQgcGFsbXRlX2tleW1hcFtdID0gewogc3Rh
+dGljIHN0cnVjdCBvbWFwX2twX3BsYXRmb3JtX2RhdGEgcGFsbXRlX2twX2RhdGEgPSB7CiAJLnJv
+d3MJPSA4LAogCS5jb2xzCT0gOCwKLQkua2V5bWFwID0gcGFsbXRlX2tleW1hcCwKKwkua2V5bWFw
+ID0gKGludCAqKSBwYWxtdGVfa2V5bWFwLAogCS5yZXAJPSAxLAogCS5kZWxheQk9IDEyLAogfTsK
+QEAgLTE4MCw3ICsxODMsNyBAQCBzdGF0aWMgc3RydWN0IHBsYXRmb3JtX2RldmljZSBwYWxtdGVf
+aXJkYV9kZXZpY2UgPSB7CiAJLnJlc291cmNlCT0gcGFsbXRlX2lyZGFfcmVzb3VyY2VzLAogfTsK
+IAotc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKmRldmljZXNbXSBfX2luaXRkYXRhID0g
+eworc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBhbG10ZV9kZXZpY2VzW10gX19pbml0
+ZGF0YSA9IHsKIAkmcGFsbXRlX3JvbV9kZXZpY2UsCiAJJnBhbG10ZV9rcF9kZXZpY2UsCiAJJnBh
+bG10ZV9sY2RfZGV2aWNlLApAQCAtMjczLDcgKzI3Niw3IEBAIHN0YXRpYyB2b2lkIHBhbG10ZV9n
+ZXRfcG93ZXJfc3RhdHVzKHN0cnVjdCBhcG1fcG93ZXJfaW5mbyAqaW5mbywgaW50ICpiYXR0ZXJ5
+KQogCQlpbmZvLT50aW1lID0gMDsKIAl9IGVsc2UgewogCQl3aGlsZSAoaGkgPiBsbyArIDEpIHsK
+LQkJCW1pZCA9IChoaSArIGxvKSA+PiAyOworCQkJbWlkID0gKGhpICsgbG8pID4+IDE7CiAJCQlp
+ZiAoYmF0dCA8PSBwYWxtdGVfYmF0dGVyeV9zYW1wbGVbbWlkXSkKIAkJCQlsbyA9IG1pZDsKIAkJ
+CWVsc2UKQEAgLTMzOSw3NCArMzQyLDY0IEBAIHN0YXRpYyBzdHJ1Y3Qgc3BpX2JvYXJkX2luZm8g
+cGFsbXRlX3NwaV9pbmZvW10gX19pbml0ZGF0YSA9IHsKIAl9LAogfTsKIAotLyogUGVyaW9kaWNh
+bGx5IGNoZWNrIGZvciBjaGFuZ2VzIG9uIGltcG9ydGFudCBpbnB1dCBwaW5zICovCi1zdHJ1Y3Qg
+dGltZXJfbGlzdCBwYWxtdGVfcGluX3RpbWVyOwotaW50IHByZXZfcG93ZXIsIHByZXZfaGVhZHBo
+b25lczsKLQotc3RhdGljIHZvaWQgcGFsbXRlX3Bpbl9oYW5kbGVyKHVuc2lnbmVkIGxvbmcgZGF0
+YSkgewotCWludCBwb3dlciwgaGVhZHBob25lczsKLQotCXBvd2VyID0gIW9tYXBfZ2V0X2dwaW9f
+ZGF0YWluKFBBTE1URV9EQ19HUElPKTsKLQloZWFkcGhvbmVzID0gb21hcF9nZXRfZ3Bpb19kYXRh
+aW4oUEFMTVRFX0hFQURQSE9ORVNfR1BJTyk7Ci0KLQlpZiAocG93ZXIgJiYgIXByZXZfcG93ZXIp
+Ci0JCXByaW50ayhLRVJOX0lORk8gIlBNOiBjYWJsZSBjb25uZWN0ZWRcbiIpOwotCWVsc2UgaWYg
+KCFwb3dlciAmJiBwcmV2X3Bvd2VyKQotCQlwcmludGsoS0VSTl9JTkZPICJQTTogY2FibGUgZGlz
+Y29ubmVjdGVkXG4iKTsKLQotCWlmIChoZWFkcGhvbmVzICYmICFwcmV2X2hlYWRwaG9uZXMpIHsK
+K3N0YXRpYyB2b2lkIHBhbG10ZV9oZWFkcGhvbmVzX2RldGVjdCh2b2lkICpkYXRhLCBpbnQgc3Rh
+dGUpIHsKKwlpZiAoc3RhdGUpIHsKIAkJLyogSGVhZHBob25lcyBjb25uZWN0ZWQsIGRpc2FibGUg
+c3BlYWtlciAqLwogCQlvbWFwX3NldF9ncGlvX2RhdGFvdXQoUEFMTVRFX1NQRUFLRVJfR1BJTywg
+MCk7CiAJCXByaW50ayhLRVJOX0lORk8gIlBNOiBzcGVha2VyIG9mZlxuIik7Ci0JfSBlbHNlIGlm
+ICghaGVhZHBob25lcyAmJiBwcmV2X2hlYWRwaG9uZXMpIHsKKwl9IGVsc2UgewogCQkvKiBIZWFk
+cGhvbmVzIHVucGx1Z2dlZCwgcmUtZW5hYmxlIHNwZWFrZXIgKi8KIAkJb21hcF9zZXRfZ3Bpb19k
+YXRhb3V0KFBBTE1URV9TUEVBS0VSX0dQSU8sIDEpOwogCQlwcmludGsoS0VSTl9JTkZPICJQTTog
+c3BlYWtlciBvblxuIik7CiAJfQotCi0JcHJldl9wb3dlciA9IHBvd2VyOwotCXByZXZfaGVhZHBo
+b25lcyA9IGhlYWRwaG9uZXM7Ci0JbW9kX3RpbWVyKCZwYWxtdGVfcGluX3RpbWVyLCBqaWZmaWVz
+ICsgbXNlY3NfdG9famlmZmllcyg1MDApKTsKIH0KIAotc3RhdGljIHZvaWQgX19pbml0IHBhbG10
+ZV9ncGlvX3NldHVwKHZvaWQpCitzdGF0aWMgc3RydWN0IG9tYXBfZ3Bpb19zd2l0Y2ggcGFsbXRl
+X3N3aXRjaGVzW10gX19pbml0ZGF0YSA9IHsKKwkvKiBTcGVha2VyLWVuYWJsZSBwaW4gaXMgYW4g
+b3V0cHV0ICovCisJeworCQkubmFtZQk9ICJzcGVha2VyLWVuYWJsZSIsCisJCS5ncGlvCT0gUEFM
+TVRFX1NQRUFLRVJfR1BJTywKKwkJLnR5cGUJPSBPTUFQX0dQSU9fU1dJVENIX1RZUEVfQUNUSVZJ
+VFksCisJCS5mbGFncwk9IE9NQVBfR1BJT19TV0lUQ0hfRkxBR19PVVRQVVQgfAorCQkJT01BUF9H
+UElPX1NXSVRDSF9GTEFHX0lOVkVSVEVELAorCX0sCisJLyogSW5kaWNhdGVzIHdoZXRoZXIgcG93
+ZXIgaXMgZnJvbSBEQy1JTiBvciBiYXR0ZXJ5ICovCisJeworCQkubmFtZQk9ICJkYy1pbiIsCisJ
+CS5ncGlvCT0gUEFMTVRFX0RDX0dQSU8sCisJCS50eXBlCT0gT01BUF9HUElPX1NXSVRDSF9UWVBF
+X0NPTk5FQ1RJT04sCisJCS5mbGFncwk9IE9NQVBfR1BJT19TV0lUQ0hfRkxBR19JTlZFUlRFRCwK
+Kwl9LAorCS8qIEluZGljYXRlcyB3aGV0aGVyIGEgVVNCIGhvc3QgaXMgb24gdGhlIG90aGVyIGVu
+ZCBvZiB0aGUgY2FibGUgKi8KKwl7CisJCS5uYW1lCT0gInVzYiIsCisJCS5ncGlvCT0gUEFMTVRF
+X1VTQkRFVEVDVF9HUElPLAorCQkudHlwZQk9IE9NQVBfR1BJT19TV0lUQ0hfVFlQRV9DT05ORUNU
+SU9OLAorCX0sCisJLyogSGlnaCB3aGVuIGhlYWRwaG9uZXMgamFjayBpcyBwbHVnZ2VkIGluICov
+CisJeworCQkubmFtZQk9ICJoZWFkcGhvbmVzIiwKKwkJLmdwaW8JPSBQQUxNVEVfSEVBRFBIT05F
+U19HUElPLAorCQkudHlwZQk9IE9NQVBfR1BJT19TV0lUQ0hfVFlQRV9DT05ORUNUSU9OLAorCQku
+bm90aWZ5CT0gcGFsbXRlX2hlYWRwaG9uZXNfZGV0ZWN0LAorCX0sCit9OworCitzdGF0aWMgdm9p
+ZCBfX2luaXQgcGFsbXRlX21pc2NfZ3Bpb19zZXR1cCh2b2lkKQogewotCS8qIFNldCBUU0MyMTAy
+IFBJTlREQVYgcGluIGFzIGlucHV0ICovCisJLyogU2V0IFRTQzIxMDIgUElOVERBViBwaW4gYXMg
+aW5wdXQgKHVzZWQgYnkgVFNDMjEwMiBkcml2ZXIpICovCiAJaWYgKG9tYXBfcmVxdWVzdF9ncGlv
+KFBBTE1URV9QSU5UREFWX0dQSU8pKSB7CiAJCXByaW50ayhLRVJOX0VSUiAiQ291bGQgbm90IHJl
+c2VydmUgUElOVERBViBHUElPIVxuIik7CiAJCXJldHVybjsKIAl9CiAJb21hcF9zZXRfZ3Bpb19k
+aXJlY3Rpb24oUEFMTVRFX1BJTlREQVZfR1BJTywgMSk7CiAKLQkvKiBNb25pdG9yIGNhYmxlLWNv
+bm5lY3RlZCBzaWduYWxzICovCi0JaWYgKG9tYXBfcmVxdWVzdF9ncGlvKFBBTE1URV9EQ19HUElP
+KSB8fAotCQkJb21hcF9yZXF1ZXN0X2dwaW8oUEFMTVRFX1VTQl9PUl9EQ19HUElPKSB8fAotCQkJ
+b21hcF9yZXF1ZXN0X2dwaW8oUEFMTVRFX1VTQkRFVEVDVF9HUElPKSkgeworCS8qIFNldCBVU0It
+b3ItREMtSU4gcGluIGFzIGlucHV0ICh1bnVzZWQpICovCisJaWYgKG9tYXBfcmVxdWVzdF9ncGlv
+KFBBTE1URV9VU0JfT1JfRENfR1BJTykpIHsKIAkJcHJpbnRrKEtFUk5fRVJSICJDb3VsZCBub3Qg
+cmVzZXJ2ZSBjYWJsZSBzaWduYWwgR1BJTyFcbiIpOwogCQlyZXR1cm47CiAJfQotCW9tYXBfc2V0
+X2dwaW9fZGlyZWN0aW9uKFBBTE1URV9EQ19HUElPLCAxKTsKIAlvbWFwX3NldF9ncGlvX2RpcmVj
+dGlvbihQQUxNVEVfVVNCX09SX0RDX0dQSU8sIDEpOwotCW9tYXBfc2V0X2dwaW9fZGlyZWN0aW9u
+KFBBTE1URV9VU0JERVRFQ1RfR1BJTywgMSk7Ci0KLQkvKiBTZXQgc3BlYWtlci1lbmFibGUgcGlu
+IGFzIG91dHB1dCAqLwotCWlmIChvbWFwX3JlcXVlc3RfZ3BpbyhQQUxNVEVfU1BFQUtFUl9HUElP
+KSkgewotCQlwcmludGsoS0VSTl9FUlIgIkNvdWxkIG5vdCByZXNlcnZlIHNwZWFrZXIgR1BJTyFc
+biIpOwotCQlyZXR1cm47Ci0JfQotCW9tYXBfc2V0X2dwaW9fZGlyZWN0aW9uKFBBTE1URV9TUEVB
+S0VSX0dQSU8sIDApOwotCi0JLyogTW9uaXRvciB0aGUgaGVhZHBob25lcy1jb25uZWN0ZWQgc2ln
+bmFsICovCi0JaWYgKG9tYXBfcmVxdWVzdF9ncGlvKFBBTE1URV9IRUFEUEhPTkVTX0dQSU8pKSB7
+Ci0JCXByaW50ayhLRVJOX0VSUiAiQ291bGQgbm90IHJlc2VydmUgaGVhZHBob25lcyBzaWduYWwg
+R1BJTyFcbiIpOwotCQlyZXR1cm47Ci0JfQotCW9tYXBfc2V0X2dwaW9fZGlyZWN0aW9uKFBBTE1U
+RV9IRUFEUEhPTkVTX0dQSU8sIDEpOwotCi0JcHJldl9wb3dlciA9IG9tYXBfZ2V0X2dwaW9fZGF0
+YWluKFBBTE1URV9EQ19HUElPKTsKLQlwcmV2X2hlYWRwaG9uZXMgPSAhb21hcF9nZXRfZ3Bpb19k
+YXRhaW4oUEFMTVRFX0hFQURQSE9ORVNfR1BJTyk7Ci0Jc2V0dXBfdGltZXIoJnBhbG10ZV9waW5f
+dGltZXIsIHBhbG10ZV9waW5faGFuZGxlciwgMCk7Ci0JcGFsbXRlX3Bpbl9oYW5kbGVyKDApOwog
+fQogCiBzdGF0aWMgdm9pZCBfX2luaXQgb21hcF9wYWxtdGVfaW5pdCh2b2lkKQpAQCAtNDE0LDEy
+ICs0MDcsMTUgQEAgc3RhdGljIHZvaWQgX19pbml0IG9tYXBfcGFsbXRlX2luaXQodm9pZCkKIAlv
+bWFwX2JvYXJkX2NvbmZpZyA9IHBhbG10ZV9jb25maWc7CiAJb21hcF9ib2FyZF9jb25maWdfc2l6
+ZSA9IEFSUkFZX1NJWkUocGFsbXRlX2NvbmZpZyk7CiAKLQlwbGF0Zm9ybV9hZGRfZGV2aWNlcyhk
+ZXZpY2VzLCBBUlJBWV9TSVpFKGRldmljZXMpKTsKKwlwbGF0Zm9ybV9hZGRfZGV2aWNlcyhwYWxt
+dGVfZGV2aWNlcywgQVJSQVlfU0laRShwYWxtdGVfZGV2aWNlcykpOwogCiAJc3BpX3JlZ2lzdGVy
+X2JvYXJkX2luZm8ocGFsbXRlX3NwaV9pbmZvLCBBUlJBWV9TSVpFKHBhbG10ZV9zcGlfaW5mbykp
+OwogCisJb21hcF9yZWdpc3Rlcl9ncGlvX3N3aXRjaGVzKHBhbG10ZV9zd2l0Y2hlcywKKwkJCUFS
+UkFZX1NJWkUocGFsbXRlX3N3aXRjaGVzKSk7CisKKwlwYWxtdGVfbWlzY19ncGlvX3NldHVwKCk7
+CiAJb21hcF9zZXJpYWxfaW5pdCgpOwotCXBhbG10ZV9ncGlvX3NldHVwKCk7CiB9CiAKIHN0YXRp
+YyB2b2lkIF9faW5pdCBvbWFwX3BhbG10ZV9tYXBfaW8odm9pZCkKLS0gCjEuNC40LjMKCg==
+------=_Part_35310_2823789.1178246339399
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 
-Hi Khasim,
-
-I haven't found it - yet- at =
-http://linux.omap.com/pub/kernel/2430sdp/source/, which seem the logical =
-place for it. only Feb release is present there.=20
-
-What functionality/feature level is for 2420 SDP board, as it seem this =
-release is also for H4?
-
-Which toolchain is recommended to use with? I guess the one at =
-linux.omap.com <http://linux.omap.com/>  is not suitable (3.2.2). But =
-maybe latest from codesourcery is more indicated.
-
-Regards,
-
-Mirmit
-
-
-2007/5/3, Syed Mohammed, Khasim <x0khasim@ti.com >:=20
-
-	All:
-=09
-	FYI, I have uploaded latest version of Linux kernel "version 2.6.14" on =
-linux.omap.com <http://linux.omap.com/>=20
-=09
-	linux-2.6.14-omap2420-omap2430-new.tgz 02-May-2007 19:00   49M
-=09
-	Features for OMAP2430 (validated on TI's 2430 SDP)
-	=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=20
-=09
-	New Features
-	=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-=09
-	*       EABI back ported to 2.6.14 (Enabled by default).
-	*       Support for SDHC (SD High Capacity) cards
-	*       Support for ALSA audio driver and enabled as default.
-=09
-	Supported Features
-	=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-=09
-	*       Support for Framebuffer.
-	*       Support for Debug UART port.
-	*       Support for DMA framework.
-	*       Support for TV out.
-	*       Support for Camera driver.=20
-	*       Support for Video post-processing (rotation, mirroring, =
-cropping, overlay, up/down-sampling).
-	*       Support for High-Speed MMC (52MHz, 4-bit, slot 1 or 2).
-	*       Support for NFS file system.
-	*       Support for Ethernet.=20
-	*       Support for Interrupt controller.
-	*       Support for SD and SDIO cards.
-	*       Support for TWL4030 (T2) audio CODEC.
-	*       Support for TWL4030 (T2) RTC.
-	*       Support for TSC2046 Touchscreen controller.=20
-	*       Support for Keypad.
-	*       Support for HS-I2C.
-	*       Support for 26Mhz input clock rate.
-	*       DSS change to support 2430 Errata
-	*       The EX3691 Camera is supported.
-	*       Support for HDQ.=20
-	*       OneNAND flash is supported as the default
-	*       SibleyNOR flash is supported as the default
-	*       Support for McBSP.
-	*       McSPI library, including DMA support.
-	*       Support for OMAP2430 version 4.0 ES 2.1 as default.
-	*       PRCM 2 supported as default.
-	*       Watchdog driver
-	*       Full-speed USB Host and Gadget using Philips ISP1301 or TWL4030 =
-(T2) FS USB transceiver
-	*       Support for Battery driver=20
-	*       High Speed USB OTG using Philips ISP1504 transceiver
-	*       Support for SDIO card interrupt
-	*       Support for LED
-	*       Support for Sound services(Vibrator)
-	*       Support for Camera burst mode=20
-	*       Support for Suspend and resume functionality
-	*       Support for EABI and VFP.
-	*       Support for ALSA Audio driver.
-	*       Support for activity monitoring interface for DVFS.
-=09
-	Regards,
-	Khasim=20
-=09
-	_______________________________________________
-	Linux-omap-open-source mailing list
-	Linux-omap-open-source@linux.omap.com
-	http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-=09
+------=_Part_35310_2823789.1178246339399--
