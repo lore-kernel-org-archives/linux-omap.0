@@ -1,10 +1,13 @@
 From: Kevin Hilman <khilman@mvista.com>
-Subject: [PATCH 2/2] ARM: OMAP: TSC2046 touchscreen support for 2430
-Date: Fri, 04 May 2007 14:40:30 -0700
-Message-ID: <20070504214039.632228613@mvista.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP: TSC2046 touchscreen support for 2430
+Date: Fri, 04 May 2007 14:53:26 -0700
+Message-ID: <1178315606.13479.1.camel@paris.hilman.org>
 References: <20070504214028.649198901@mvista.com>
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline; filename=touchscreen-tsc2046.patch
+	<20070504214039.632228613@mvista.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="=-hba5idsOv7O4NciQ2TqB"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20070504214039.632228613@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,743 +15,375 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a rework of the tsc2046 driver from TI's tree, based
-on the tsc2301 driver and using the new SPI framework.
 
-Signed-off-by: Kevin Hilman <khilman@mvista.com>
+--=-hba5idsOv7O4NciQ2TqB
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
----
- arch/arm/mach-omap2/board-2430sdp.c    |   32 +
- drivers/input/touchscreen/Kconfig      |    6 
- drivers/input/touchscreen/Makefile     |    1 
- drivers/input/touchscreen/tsc2046_ts.c |  555 +++++++++++++++++++++++++++++++++
- include/linux/spi/tsc2046.h            |   60 +++
- 5 files changed, 654 insertions(+)
+Tony,
 
-Index: dev/arch/arm/mach-omap2/board-2430sdp.c
-===================================================================
---- dev.orig/arch/arm/mach-omap2/board-2430sdp.c
-+++ dev/arch/arm/mach-omap2/board-2430sdp.c
-@@ -21,6 +21,8 @@
- #include <linux/delay.h>
- #include <linux/err.h>
- #include <linux/clk.h>
-+#include <linux/spi/spi.h>
-+#include <linux/spi/tsc2046.h>
- 
- #include <asm/hardware.h>
- #include <asm/mach-types.h>
-@@ -33,6 +35,7 @@
- #include <asm/arch/board.h>
- #include <asm/arch/common.h>
- #include <asm/arch/gpmc.h>
-+#include <asm/arch/mcspi.h>
- #include "prcm-regs.h"
- 
- #include <asm/io.h>
-@@ -40,6 +43,9 @@
- #define	SDP2430_FLASH_CS	0
- #define	SDP2430_SMC91X_CS	5
- 
-+/* TSC2046 (touchscreen) */
-+#define TS_GPIO                 24
-+
- static struct mtd_partition sdp2430_partitions[] = {
- 	/* bootloader (U-Boot, etc) in first sector */
- 	{
-@@ -119,6 +125,29 @@ static struct platform_device *sdp2430_d
- 	&sdp2430_flash_device,
- };
- 
-+static struct tsc2046_platform_data tsc2046_config = {
-+	.dav_gpio       = TS_GPIO,
-+	.gpio_debounce  = 0xa,
-+};
-+
-+static struct omap2_mcspi_device_config tsc2046_mcspi_config = {
-+	.turbo_mode	= 0,
-+	.single_channel = 0,  /* 0: slave, 1: master */
-+};
-+
-+static struct spi_board_info sdp2430_spi_board_info[] __initdata = {
-+	[0] = {
-+		/* TSC2046 operates at a max freqency of 2MHz, so
-+		 * operate slightly below at 1.5MHz */
-+		.modalias	= "tsc2046",
-+		.bus_num	= 1,
-+		.chip_select	= 0,
-+		.max_speed_hz   = 1500000,
-+		.controller_data= &tsc2046_mcspi_config,
-+		.platform_data  = &tsc2046_config,
-+	},
-+};
-+
- static inline void __init sdp2430_init_smc91x(void)
- {
- 	int eth_cs;
-@@ -198,6 +227,9 @@ static void __init omap_2430sdp_init(voi
- 	omap_board_config = sdp2430_config;
- 	omap_board_config_size = ARRAY_SIZE(sdp2430_config);
- 	omap_serial_init();
-+
-+	spi_register_board_info(sdp2430_spi_board_info,
-+				ARRAY_SIZE(sdp2430_spi_board_info));
- }
- 
- static void __init omap_2430sdp_map_io(void)
-Index: dev/drivers/input/touchscreen/Kconfig
-===================================================================
---- dev.orig/drivers/input/touchscreen/Kconfig
-+++ dev/drivers/input/touchscreen/Kconfig
-@@ -165,4 +165,10 @@ config TOUCHSCREEN_TSC2301
- 	help
- 	  Say Y here for if you are using the touchscreen features of TSC2301.
- 
-+config TOUCHSCREEN_TSC2046
-+	tristate "TSC2046 touchscreen support"
-+	default MACH_OMAP2430SDP
-+	  help
-+	  Say Y here for if you are using the touchscreen features of TSC2046
-+
- endif
-Index: dev/drivers/input/touchscreen/Makefile
-===================================================================
---- dev.orig/drivers/input/touchscreen/Makefile
-+++ dev/drivers/input/touchscreen/Makefile
-@@ -19,3 +19,4 @@ obj-$(CONFIG_TOUCHSCREEN_UCB1400)	+= ucb
- obj-$(CONFIG_TOUCHSCREEN_TSC2102)	+= tsc2102_ts.o
- obj-$(CONFIG_TOUCHSCREEN_OMAP)	+= omap/
- obj-$(CONFIG_TOUCHSCREEN_TSC2301)	+= tsc2301_ts.o
-+obj-$(CONFIG_TOUCHSCREEN_TSC2046)	+= tsc2046_ts.o
-Index: dev/drivers/input/touchscreen/tsc2046_ts.c
-===================================================================
---- /dev/null
-+++ dev/drivers/input/touchscreen/tsc2046_ts.c
-@@ -0,0 +1,555 @@
-+/*
-+ * TSC2046 Touchscreen driver
-+ *
-+ * Author: Kevin Hilman, MontaVista Software, Inc. <source@mvista.com>
-+ *
-+ * Communication details from original TI driver
-+ * Copyright (C) 2004-2005 Texas Instruments, Inc.
-+ *
-+ * Structure based heavily on TSC2301 driver
-+ * Copyright (C) 2005-2006 Nokia Corporation
-+ *
-+ * 2007 (c) MontaVista Software, Inc. This file is licensed under
-+ * the terms of the GNU General Public License version 2. This program
-+ * is licensed "as is" without any warranty of any kind, whether express
-+ * or implied.
-+ *
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/input.h>
-+#include <linux/interrupt.h>
-+#include <linux/delay.h>
-+#include <linux/spi/spi.h>
-+
-+#ifdef CONFIG_ARCH_OMAP
-+#include <asm/arch/gpio.h>
-+#endif
-+
-+#include <linux/spi/tsc2046.h>
-+
-+/* TSC2046 commands */
-+#define START_BYTE		0x8000
-+#define	X_CMDWD			0xd300
-+#define Y_CMDWD			0x9300
-+#define Z1_CMDWD		0xb300
-+#define Z2_CMDWD		0xc300
-+
-+#define TSC2046_TS_SCAN_TIME	1
-+#define MAX_12BIT		((1 << 12) - 1)
-+
-+struct tsc2046_ts {
-+	struct input_dev	*idev;
-+	char			phys[32];
-+	struct timer_list	timer;
-+	spinlock_t		lock;
-+
-+	struct spi_transfer	read_xfer[3];
-+	struct spi_message	read_msg;
-+	struct spi_message	enable_msg;
-+	u16                     data[5];
-+
-+	u16			x;
-+	u16			y;
-+	u16			p;
-+	int			sample_cnt;
-+
-+	int			ignore_last : 1;
-+	u16			x_plate_ohm;
-+	int			max_pressure;
-+	int			touch_pressure;
-+	int			pressure_limit;
-+
-+	u16			irq_enabled:1;
-+	u16			pen_down:1;
-+	u16			disabled:1;
-+	u16			pending:1;
-+
-+	s16			dav_gpio;
-+	int			irq;
-+};
-+
-+static const u16 tsc2046_ts_cmd_data[] = {
-+	START_BYTE, X_CMDWD, Y_CMDWD, Z1_CMDWD, Z2_CMDWD,
-+};
-+
-+static int device_suspended(struct device *dev)
-+{
-+	struct tsc2046 *tsc = dev_get_drvdata(dev);
-+	return dev->power.power_state.event != PM_EVENT_ON || tsc->ts->disabled;
-+}
-+
-+static void update_pen_state(struct tsc2046 *tsc, int x, int y, int pressure)
-+{
-+	struct tsc2046_ts *ts = tsc->ts;
-+	int sync = 0;
-+
-+	if (pressure) {
-+		input_report_abs(ts->idev, ABS_X, x);
-+		input_report_abs(ts->idev, ABS_Y, y);
-+		input_report_abs(ts->idev, ABS_PRESSURE, pressure);
-+		if (!ts->pen_down)
-+			input_report_key(ts->idev, BTN_TOUCH, 1);
-+		sync = 1;
-+	} else if (ts->pen_down) {
-+		input_report_abs(ts->idev, ABS_PRESSURE, 0);
-+		input_report_key(ts->idev, BTN_TOUCH, 0);
-+		sync = 1;
-+	}
-+
-+	if (sync)
-+		input_sync(ts->idev);
-+
-+	ts->pen_down = pressure ? 1 : 0;
-+
-+#ifdef VERBOSE
-+	dev_dbg(&tsc->spi->dev, "x %4d y %4d p %4d\n", x, y, pressure);
-+#endif
-+}
-+
-+#define CONV_DATA(d1, d2) \
-+  (((d1 & 0x7f) << 5) | ((d2 >> 11) & 0x1f))
-+
-+/*
-+ * This procedure is called by the SPI framework after the coordinates
-+ * have been read from TSC2046
-+ */
-+static void tsc2046_ts_rx(void *arg)
-+{
-+	struct tsc2046 *tsc = arg;
-+	struct tsc2046_ts *ts = tsc->ts;
-+	unsigned int x, y, z1, z2, pressure;
-+
-+	x  = CONV_DATA(ts->data[2], ts->data[3]);
-+	y  = CONV_DATA(ts->data[1], ts->data[2]);
-+	z1 = CONV_DATA(ts->data[3], ts->data[4]);
-+	z2 = CONV_DATA(ts->data[4], 0);
-+
-+	if (z1) {
-+		pressure = ts->x_plate_ohm * x;
-+		pressure /= 4096;
-+		pressure *= z2 - z1;
-+		pressure /= z1;
-+	} else
-+		pressure = 0;
-+
-+	/* If pressure value is above a preset limit (pen is barely
-+	 * touching the screen) we can't trust the coordinate values.
-+	 */
-+	if (pressure < ts->pressure_limit && x < MAX_12BIT && y < MAX_12BIT) {
-+		ts->pressure_limit = ts->max_pressure;
-+		if (ts->ignore_last) {
-+			if (ts->sample_cnt)
-+				update_pen_state(tsc, ts->x, ts->y, ts->p);
-+			ts->x = x;
-+			ts->y = y;
-+			ts->p = pressure;
-+		} else
-+			update_pen_state(tsc, x, y, pressure);
-+		ts->sample_cnt++;
-+	}
-+
-+	mod_timer(&ts->timer,
-+		  jiffies + msecs_to_jiffies(TSC2046_TS_SCAN_TIME));
-+}
-+
-+static int is_pen_down(struct tsc2046_ts *ts)
-+{
-+	return ts->pen_down;
-+}
-+
-+/*
-+ * Timer is called every TSC2046_TS_SCAN_TIME when the pen is down
-+ */
-+static void tsc2046_ts_timer(unsigned long arg)
-+{
-+	struct tsc2046 *tsc = (void *) arg;
-+	struct tsc2046_ts *ts = tsc->ts;
-+	unsigned long flags;
-+	int ndav;
-+	int r;
-+
-+	spin_lock_irqsave(&ts->lock, flags);
-+	ndav = omap_get_gpio_datain(ts->dav_gpio);
-+	if (ndav || device_suspended(&tsc->spi->dev)) {
-+		/* Pen has been lifted */
-+		if (!device_suspended(&tsc->spi->dev) &&
-+		    !ts->irq_enabled) {
-+			ts->irq_enabled = 1;
-+			enable_irq(ts->irq);
-+		}
-+		update_pen_state(tsc, 0, 0, 0);
-+		ts->pending = 0;
-+		spin_unlock_irqrestore(&ts->lock, flags);
-+
-+	} else {
-+		ts->pen_down = 1;
-+		spin_unlock_irqrestore(&ts->lock, flags);
-+
-+		r = spi_async(tsc->spi, &ts->read_msg);
-+		if (r)
-+			dev_err(&tsc->spi->dev, "ts: spi_async() failed");
-+	}
-+}
-+
-+/*
-+ * This interrupt is called when pen is down and first coordinates are
-+ * available. That is indicated by a falling edge on DEV line.  IRQ is
-+ * disabled here because while the pen is down the coordinates are
-+ * read by a timer.
-+ */
-+static irqreturn_t tsc2046_ts_irq_handler(int irq, void *dev_id)
-+{
-+	struct tsc2046 *tsc = dev_id;
-+	struct tsc2046_ts *ts = tsc->ts;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ts->lock, flags);
-+	if (ts->irq_enabled) {
-+		ts->irq_enabled = 0;
-+		disable_irq(ts->irq);
-+		ts->pending = 1;
-+		ts->pressure_limit = ts->touch_pressure;
-+		ts->sample_cnt = 0;
-+		mod_timer(&ts->timer,
-+			  jiffies + msecs_to_jiffies(TSC2046_TS_SCAN_TIME));
-+	}
-+	spin_unlock_irqrestore(&ts->lock, flags);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/* Must be called with ts->lock held */
-+static void tsc2046_ts_disable(struct tsc2046 *tsc)
-+{
-+	struct tsc2046_ts *ts = tsc->ts;
-+
-+	if (ts->disabled)
-+		return;
-+
-+	ts->disabled = 1;
-+	if (!ts->pending) {
-+		ts->irq_enabled = 0;
-+		disable_irq(ts->irq);
-+	} else {
-+		while (ts->pending) {
-+			spin_unlock_irq(&ts->lock);
-+			msleep(1);
-+			spin_lock_irq(&ts->lock);
-+		}
-+	}
-+}
-+
-+static void tsc2046_ts_enable(struct tsc2046 *tsc)
-+{
-+	struct tsc2046_ts *ts = tsc->ts;
-+
-+	if (!ts->disabled)
-+		return;
-+
-+	ts->disabled = 0;
-+	ts->irq_enabled = 1;
-+	enable_irq(ts->irq);
-+}
-+
-+#ifdef CONFIG_PM
-+int tsc2046_ts_suspend(struct tsc2046 *tsc)
-+{
-+	struct tsc2046_ts *ts = tsc->ts;
-+
-+	spin_lock_irq(&ts->lock);
-+	tsc2046_ts_disable(tsc);
-+	spin_unlock_irq(&ts->lock);
-+
-+	return 0;
-+}
-+
-+void tsc2046_ts_resume(struct tsc2046 *tsc)
-+{
-+	struct tsc2046_ts *ts = tsc->ts;
-+
-+	spin_lock_irq(&ts->lock);
-+	tsc2046_ts_enable(tsc);
-+	spin_unlock_irq(&ts->lock);
-+}
-+#endif
-+
-+static void tsc2046_ts_setup_spi_xfer(struct tsc2046 *tsc)
-+{
-+	struct tsc2046_ts *ts = tsc->ts;
-+	struct spi_message *m = &ts->read_msg;
-+	struct spi_transfer *x = &ts->read_xfer[1];
-+
-+	spi_message_init(m);
-+
-+	/* read and write data in one transaction */
-+	x->tx_buf = &tsc2046_ts_cmd_data;
-+	x->rx_buf = &ts->data;
-+	x->len    = 10;
-+	spi_message_add_tail(x, m);
-+
-+	/* send another START_BYTE to (re)enable pen interrupts */
-+	x++;
-+	x->tx_buf = &tsc2046_ts_cmd_data[0];
-+	x->len = 2;
-+	spi_message_add_tail(x, m);
-+
-+	m->complete = tsc2046_ts_rx;
-+	m->context = tsc;
-+}
-+
-+static ssize_t tsc2046_ts_pen_down_show(struct device *dev,
-+					struct device_attribute *attr,
-+					char *buf)
-+{
-+	struct tsc2046 *tsc = dev_get_drvdata(dev);
-+
-+	return sprintf(buf, "%u\n", is_pen_down(tsc->ts));
-+}
-+
-+static DEVICE_ATTR(pen_down, S_IRUGO, tsc2046_ts_pen_down_show, NULL);
-+
-+static ssize_t tsc2046_ts_disable_show(struct device *dev,
-+				       struct device_attribute *attr, char *buf)
-+{
-+	struct tsc2046		*tsc = dev_get_drvdata(dev);
-+	struct tsc2046_ts	*ts = tsc->ts;
-+
-+	return sprintf(buf, "%u\n", ts->disabled);
-+}
-+
-+static ssize_t tsc2046_ts_disable_store(struct device *dev,
-+					struct device_attribute *attr,
-+					const char *buf, size_t count)
-+{
-+	struct tsc2046		*tsc = dev_get_drvdata(dev);
-+	struct tsc2046_ts	*ts = tsc->ts;
-+	char *endp;
-+	int i;
-+
-+	i = simple_strtoul(buf, &endp, 10);
-+	spin_lock_irq(&ts->lock);
-+
-+	if (i)
-+		tsc2046_ts_disable(tsc);
-+	else
-+		tsc2046_ts_enable(tsc);
-+
-+	spin_unlock_irq(&ts->lock);
-+
-+	return count;
-+}
-+
-+static DEVICE_ATTR(disable_ts, 0664, tsc2046_ts_disable_show,
-+		   tsc2046_ts_disable_store);
-+
-+int __devinit tsc2046_ts_init(struct tsc2046 *tsc,
-+			      struct tsc2046_platform_data *pdata)
-+{
-+	struct tsc2046_ts *ts;
-+	struct input_dev *idev;
-+	int dav_gpio, r;
-+
-+	if (pdata->dav_gpio < 0) {
-+		dev_err(&tsc->spi->dev, "need DAV GPIO");
-+		return -EINVAL;
-+	}
-+	dav_gpio = pdata->dav_gpio;
-+
-+	ts = kzalloc(sizeof(*ts), GFP_KERNEL);
-+	if (ts == NULL)
-+		return -ENOMEM;
-+	tsc->ts = ts;
-+
-+	ts->dav_gpio = dav_gpio;
-+#ifdef CONFIG_ARCH_OMAP
-+	r = omap_request_gpio(dav_gpio);
-+	if (r < 0) {
-+		dev_err(&tsc->spi->dev, "unable to get DAV GPIO");
-+		goto err1;
-+	}
-+	omap_set_gpio_direction(dav_gpio, 1);
-+	if (pdata->gpio_debounce) {
-+		omap_set_gpio_debounce(tsc->gpio, 1);
-+		omap_set_gpio_debounce_time(tsc->gpio, pdata->gpio_debounce);
-+	}
-+
-+	ts->irq = OMAP_GPIO_IRQ(dav_gpio);
-+#endif
-+	init_timer(&ts->timer);
-+	ts->timer.data = (unsigned long) tsc;
-+	ts->timer.function = tsc2046_ts_timer;
-+
-+	spin_lock_init(&ts->lock);
-+
-+	ts->x_plate_ohm	= pdata->ts_x_plate_ohm ? : 280;
-+	ts->max_pressure= pdata->ts_max_pressure ? : MAX_12BIT;
-+	ts->touch_pressure = pdata->ts_touch_pressure ? : ts->max_pressure;
-+	ts->ignore_last	= pdata->ts_ignore_last;
-+
-+	idev = input_allocate_device();
-+	if (idev == NULL) {
-+		r = -ENOMEM;
-+		goto err2;
-+	}
-+	idev->name = "TSC2046 touchscreen";
-+	snprintf(ts->phys, sizeof(ts->phys),
-+		 "%s/input-ts", tsc->spi->dev.bus_id);
-+	idev->phys = ts->phys;
-+
-+	idev->evbit[0] = BIT(EV_ABS) | BIT(EV_KEY);
-+	idev->absbit[0] = BIT(ABS_X) | BIT(ABS_Y) | BIT(ABS_PRESSURE);
-+	ts->idev = idev;
-+
-+	tsc2046_ts_setup_spi_xfer(tsc);
-+
-+	/* These parameters should perhaps be configurable? */
-+	input_set_abs_params(idev, ABS_X, 0, 4096, 0, 0);
-+	input_set_abs_params(idev, ABS_Y, 0, 4096, 0, 0);
-+	input_set_abs_params(idev, ABS_PRESSURE, 0, 1024, 0, 0);
-+
-+	ts->irq_enabled = 1;
-+	r = request_irq(ts->irq, tsc2046_ts_irq_handler,
-+			SA_SAMPLE_RANDOM | SA_TRIGGER_FALLING,
-+			"tsc2046-ts", tsc);
-+	if (r < 0) {
-+		dev_err(&tsc->spi->dev, "unable to get DAV IRQ");
-+		goto err3;
-+	}
-+	set_irq_wake(ts->irq, 1);
-+
-+	if (device_create_file(&tsc->spi->dev, &dev_attr_pen_down) < 0)
-+		goto err4;
-+	if (device_create_file(&tsc->spi->dev, &dev_attr_disable_ts) < 0)
-+		goto err5;
-+
-+	r = input_register_device(idev);
-+	if (r < 0) {
-+		dev_err(&tsc->spi->dev, "can't register touchscreen device\n");
-+		goto err6;
-+	}
-+
-+	/* kick off a transaction to enable pen interrupts */
-+	spi_async(tsc->spi, &ts->read_msg);
-+
-+	return 0;
-+err6:
-+	device_remove_file(&tsc->spi->dev, &dev_attr_disable_ts);
-+err5:
-+	device_remove_file(&tsc->spi->dev, &dev_attr_pen_down);
-+err4:
-+	free_irq(ts->irq, tsc);
-+err3:
-+	input_free_device(idev);
-+err2:
-+#ifdef CONFIG_ARCH_OMAP
-+	omap_free_gpio(dav_gpio);
-+#endif
-+ err1:
-+	kfree(ts);
-+	return r;
-+}
-+EXPORT_SYMBOL(tsc2046_ts_init);
-+
-+void __devexit tsc2046_ts_exit(struct tsc2046 *tsc)
-+{
-+	struct tsc2046_ts *ts = tsc->ts;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ts->lock, flags);
-+	tsc2046_ts_disable(tsc);
-+	spin_unlock_irqrestore(&ts->lock, flags);
-+
-+	device_remove_file(&tsc->spi->dev, &dev_attr_disable_ts);
-+	device_remove_file(&tsc->spi->dev, &dev_attr_pen_down);
-+
-+	free_irq(ts->irq, tsc);
-+	input_unregister_device(ts->idev);
-+
-+#ifdef CONFIG_ARCH_OMAP
-+	omap_free_gpio(ts->dav_gpio);
-+#endif
-+	kfree(ts);
-+}
-+EXPORT_SYMBOL(tsc2046_ts_exit);
-+
-+
-+static int __devinit tsc2046_probe(struct spi_device *spi)
-+{
-+	struct tsc2046			*tsc;
-+	struct tsc2046_platform_data	*pdata = spi->dev.platform_data;
-+	int r = -ENODEV;
-+
-+	dev_dbg(&spi->dev, "%s\n", __FUNCTION__);
-+
-+	if (!pdata) {
-+		dev_dbg(&spi->dev, "no platform data?\n");
-+		return -ENODEV;
-+	}
-+
-+	tsc = kzalloc(sizeof(*tsc), GFP_KERNEL);
-+	if (tsc == NULL)
-+		return -ENOMEM;
-+
-+	dev_set_drvdata(&spi->dev, tsc);
-+	tsc->spi = spi;
-+	spi->dev.power.power_state = PMSG_ON;
-+
-+	spi->mode = SPI_MODE_1;
-+	spi->bits_per_word = 16;
-+
-+	/* The max speed might've been defined by the board-specific
-+	 * struct */
-+	if (!spi->max_speed_hz)
-+		spi->max_speed_hz = TSC2046_HZ;
-+	spi_setup(spi);
-+
-+	r = tsc2046_ts_init(tsc, pdata);
-+	if (r)
-+		goto err1;
-+
-+	return 0;
-+ err1:
-+	kfree(tsc);
-+	return r;
-+}
-+
-+static int __devexit tsc2046_remove(struct spi_device *spi)
-+{
-+	struct tsc2046 *tsc = dev_get_drvdata(&spi->dev);
-+
-+	dev_dbg(&tsc->spi->dev, "%s\n", __FUNCTION__);
-+
-+        tsc2046_ts_exit(tsc);
-+	kfree(tsc);
-+
-+	return 0;
-+}
-+
-+static struct spi_driver tsc2046_driver = {
-+	.driver = {
-+		   .name = "tsc2046",
-+		   .bus = &spi_bus_type,
-+		   .owner = THIS_MODULE,
-+	},
-+	.probe = tsc2046_probe,
-+	.remove = __devexit_p(tsc2046_remove),
-+};
-+
-+static int __init tsc2046_init(void)
-+{
-+	printk("TSC2046 driver initializing\n");
-+
-+	return spi_register_driver(&tsc2046_driver);
-+}
-+module_init(tsc2046_init);
-+
-+static void __exit tsc2046_exit(void)
-+{
-+	spi_unregister_driver(&tsc2046_driver);
-+}
-+module_exit(tsc2046_exit);
-+
-+MODULE_AUTHOR("Kevin Hilman <khilman@mvista.com>");
-+MODULE_LICENSE("GPL");
-Index: dev/include/linux/spi/tsc2046.h
-===================================================================
---- /dev/null
-+++ dev/include/linux/spi/tsc2046.h
-@@ -0,0 +1,60 @@
-+#ifndef _LINUX_SPI_TSC2046_H
-+#define _LINUX_SPI_TSC2046_H
-+
-+#include <linux/types.h>
-+#include <linux/timer.h>
-+
-+struct tsc2046_platform_data {
-+	s16	dav_gpio;
-+	s16	gpio_debounce;
-+	u16	ts_x_plate_ohm;
-+	u32	ts_max_pressure;  /* Samples with bigger pressure value will
-+				     be ignored, since the corresponding X, Y
-+				     values are unreliable */
-+	u32	ts_touch_pressure;/* Pressure limit until we report a
-+				     touch event. After that we switch
-+				     to ts_max_pressure. */
-+	unsigned ts_ignore_last : 1;
-+
-+};
-+
-+struct tsc2046_ts;
-+
-+struct tsc2046 {
-+	struct spi_device	*spi;
-+	int                     gpio;
-+
-+	struct tsc2046_ts	*ts;
-+};
-+
-+/* The TSC2046 operates at a maximum speed of 2MHz */
-+#define TSC2046_HZ	2000000
-+
-+#define TSC2046_DECL_MOD(module)					\
-+extern int  tsc2046_##module##_init(struct tsc2046 *tsc,		\
-+			   struct tsc2046_platform_data *pdata);	\
-+extern void tsc2046_##module##_exit(struct tsc2046 *tsc);		\
-+extern int  tsc2046_##module##_suspend(struct tsc2046 *tsc);		\
-+extern void tsc2046_##module##_resume(struct tsc2046 *tsc);
-+
-+#define TSC2046_DECL_EMPTY_MOD(module)					\
-+static inline int tsc2046_##module##_init(struct tsc2046 *tsc,		\
-+			   struct tsc2046_platform_data *pdata)		\
-+{									\
-+	return 0;							\
-+}									\
-+static inline void tsc2046_##module##_exit(struct tsc2046 *tsc) {}	\
-+static inline int  tsc2046_##module##_suspend(struct tsc2046 *tsc)	\
-+{									\
-+	return 0;							\
-+}									\
-+static inline void tsc2046_##module##_resume(struct tsc2046 *tsc) {}
-+
-+#if defined(CONFIG_TOUCHSCREEN_TSC2046) || \
-+    defined(CONFIG_TOUCHSCREEN_TSC2046_MODULE)
-+TSC2046_DECL_MOD(ts)
-+#else
-+TSC2046_DECL_EMPTY_MOD(ts)
-+#endif
-+
-+#endif
+Here's a minor update so it applies on the (already pushed) onenand
+patch.
 
---
+Kevin
+
+
+
+--=-hba5idsOv7O4NciQ2TqB
+Content-Disposition: attachment; filename=touchscreen-tsc2046.patch
+Content-Transfer-Encoding: base64
+Content-Type: text/x-patch; name=touchscreen-tsc2046.patch; charset=utf-8
+
+U3ViamVjdDogQVJNOiBPTUFQOiBUU0MyMDQ2IHRvdWNoc2NyZWVuIHN1cHBvcnQgZm9yIDI0MzAN
+Cg0KVGhpcyBpcyBhIHJld29yayBvZiB0aGUgdHNjMjA0NiBkcml2ZXIgZnJvbSBUSSdzIHRyZWUs
+IGJhc2VkDQpvbiB0aGUgdHNjMjMwMSBkcml2ZXIgYW5kIHVzaW5nIHRoZSBuZXcgU1BJIGZyYW1l
+d29yay4NCg0KU2lnbmVkLW9mZi1ieTogS2V2aW4gSGlsbWFuIDxraGlsbWFuQG12aXN0YS5jb20+
+DQoNCi0tLQ0KIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtMjQzMHNkcC5jICAgIHwgICAzMiAr
+DQogZHJpdmVycy9pbnB1dC90b3VjaHNjcmVlbi9LY29uZmlnICAgICAgfCAgICA2IA0KIGRyaXZl
+cnMvaW5wdXQvdG91Y2hzY3JlZW4vTWFrZWZpbGUgICAgIHwgICAgMSANCiBkcml2ZXJzL2lucHV0
+L3RvdWNoc2NyZWVuL3RzYzIwNDZfdHMuYyB8ICA1NTUgKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrDQogaW5jbHVkZS9saW51eC9zcGkvdHNjMjA0Ni5oICAgICAgICAgICAgfCAgIDYw
+ICsrKw0KIDUgZmlsZXMgY2hhbmdlZCwgNjU0IGluc2VydGlvbnMoKykNCg0KSW5kZXg6IGRldi9h
+cmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLTI0MzBzZHAuYw0KPT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KLS0tIGRldi5v
+cmlnL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtMjQzMHNkcC5jDQorKysgZGV2L2FyY2gvYXJt
+L21hY2gtb21hcDIvYm9hcmQtMjQzMHNkcC5jDQpAQCAtMjEsNiArMjEsOCBAQA0KICNpbmNsdWRl
+IDxsaW51eC9kZWxheS5oPg0KICNpbmNsdWRlIDxsaW51eC9lcnIuaD4NCiAjaW5jbHVkZSA8bGlu
+dXgvY2xrLmg+DQorI2luY2x1ZGUgPGxpbnV4L3NwaS9zcGkuaD4NCisjaW5jbHVkZSA8bGludXgv
+c3BpL3RzYzIwNDYuaD4NCiANCiAjaW5jbHVkZSA8YXNtL2hhcmR3YXJlLmg+DQogI2luY2x1ZGUg
+PGFzbS9tYWNoLXR5cGVzLmg+DQpAQCAtMzMsNiArMzUsNyBAQA0KICNpbmNsdWRlIDxhc20vYXJj
+aC9ib2FyZC5oPg0KICNpbmNsdWRlIDxhc20vYXJjaC9jb21tb24uaD4NCiAjaW5jbHVkZSA8YXNt
+L2FyY2gvZ3BtYy5oPg0KKyNpbmNsdWRlIDxhc20vYXJjaC9tY3NwaS5oPg0KICNpbmNsdWRlICJw
+cmNtLXJlZ3MuaCINCiANCiAjaW5jbHVkZSA8YXNtL2lvLmg+DQpAQCAtNDAsNiArNDMsOSBAQA0K
+ICNkZWZpbmUJU0RQMjQzMF9GTEFTSF9DUwkwDQogI2RlZmluZQlTRFAyNDMwX1NNQzkxWF9DUwk1
+DQogDQorLyogVFNDMjA0NiAodG91Y2hzY3JlZW4pICovDQorI2RlZmluZSBUU19HUElPICAgICAg
+ICAgICAgICAgICAyNA0KKw0KIHN0YXRpYyBzdHJ1Y3QgbXRkX3BhcnRpdGlvbiBzZHAyNDMwX3Bh
+cnRpdGlvbnNbXSA9IHsNCiAJLyogYm9vdGxvYWRlciAoVS1Cb290LCBldGMpIGluIGZpcnN0IHNl
+Y3RvciAqLw0KIAl7DQpAQCAtMTE5LDYgKzEyNSwyOSBAQCBzdGF0aWMgc3RydWN0IHBsYXRmb3Jt
+X2RldmljZSAqc2RwMjQzMF9kDQogCSZzZHAyNDMwX2ZsYXNoX2RldmljZSwNCiB9Ow0KIA0KK3N0
+YXRpYyBzdHJ1Y3QgdHNjMjA0Nl9wbGF0Zm9ybV9kYXRhIHRzYzIwNDZfY29uZmlnID0gew0KKwku
+ZGF2X2dwaW8gICAgICAgPSBUU19HUElPLA0KKwkuZ3Bpb19kZWJvdW5jZSAgPSAweGEsDQorfTsN
+CisNCitzdGF0aWMgc3RydWN0IG9tYXAyX21jc3BpX2RldmljZV9jb25maWcgdHNjMjA0Nl9tY3Nw
+aV9jb25maWcgPSB7DQorCS50dXJib19tb2RlCT0gMCwNCisJLnNpbmdsZV9jaGFubmVsID0gMCwg
+IC8qIDA6IHNsYXZlLCAxOiBtYXN0ZXIgKi8NCit9Ow0KKw0KK3N0YXRpYyBzdHJ1Y3Qgc3BpX2Jv
+YXJkX2luZm8gc2RwMjQzMF9zcGlfYm9hcmRfaW5mb1tdIF9faW5pdGRhdGEgPSB7DQorCVswXSA9
+IHsNCisJCS8qIFRTQzIwNDYgb3BlcmF0ZXMgYXQgYSBtYXggZnJlcWVuY3kgb2YgMk1Ieiwgc28N
+CisJCSAqIG9wZXJhdGUgc2xpZ2h0bHkgYmVsb3cgYXQgMS41TUh6ICovDQorCQkubW9kYWxpYXMJ
+PSAidHNjMjA0NiIsDQorCQkuYnVzX251bQk9IDEsDQorCQkuY2hpcF9zZWxlY3QJPSAwLA0KKwkJ
+Lm1heF9zcGVlZF9oeiAgID0gMTUwMDAwMCwNCisJCS5jb250cm9sbGVyX2RhdGE9ICZ0c2MyMDQ2
+X21jc3BpX2NvbmZpZywNCisJCS5wbGF0Zm9ybV9kYXRhICA9ICZ0c2MyMDQ2X2NvbmZpZywNCisJ
+fSwNCit9Ow0KKw0KIHN0YXRpYyBpbmxpbmUgdm9pZCBfX2luaXQgc2RwMjQzMF9pbml0X3NtYzkx
+eCh2b2lkKQ0KIHsNCiAJaW50IGV0aF9jczsNCkBAIC0yMDIsNiArMjMxLDkgQEAgc3RhdGljIHZv
+aWQgX19pbml0IG9tYXBfMjQzMHNkcF9pbml0KHZvaQ0KIAlvbWFwX3NlcmlhbF9pbml0KCk7DQog
+DQogCXNkcDI0MzBfZmxhc2hfaW5pdCgpOw0KKw0KKwlzcGlfcmVnaXN0ZXJfYm9hcmRfaW5mbyhz
+ZHAyNDMwX3NwaV9ib2FyZF9pbmZvLA0KKwkJCQlBUlJBWV9TSVpFKHNkcDI0MzBfc3BpX2JvYXJk
+X2luZm8pKTsNCiB9DQogDQogc3RhdGljIHZvaWQgX19pbml0IG9tYXBfMjQzMHNkcF9tYXBfaW8o
+dm9pZCkNCkluZGV4OiBkZXYvZHJpdmVycy9pbnB1dC90b3VjaHNjcmVlbi9LY29uZmlnDQo9PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09DQotLS0gZGV2Lm9yaWcvZHJpdmVycy9pbnB1dC90b3VjaHNjcmVlbi9LY29uZmlnDQor
+KysgZGV2L2RyaXZlcnMvaW5wdXQvdG91Y2hzY3JlZW4vS2NvbmZpZw0KQEAgLTE2NSw0ICsxNjUs
+MTAgQEAgY29uZmlnIFRPVUNIU0NSRUVOX1RTQzIzMDENCiAJaGVscA0KIAkgIFNheSBZIGhlcmUg
+Zm9yIGlmIHlvdSBhcmUgdXNpbmcgdGhlIHRvdWNoc2NyZWVuIGZlYXR1cmVzIG9mIFRTQzIzMDEu
+DQogDQorY29uZmlnIFRPVUNIU0NSRUVOX1RTQzIwNDYNCisJdHJpc3RhdGUgIlRTQzIwNDYgdG91
+Y2hzY3JlZW4gc3VwcG9ydCINCisJZGVmYXVsdCBNQUNIX09NQVAyNDMwU0RQDQorCSAgaGVscA0K
+KwkgIFNheSBZIGhlcmUgZm9yIGlmIHlvdSBhcmUgdXNpbmcgdGhlIHRvdWNoc2NyZWVuIGZlYXR1
+cmVzIG9mIFRTQzIwNDYNCisNCiBlbmRpZg0KSW5kZXg6IGRldi9kcml2ZXJzL2lucHV0L3RvdWNo
+c2NyZWVuL01ha2VmaWxlDQo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09DQotLS0gZGV2Lm9yaWcvZHJpdmVycy9pbnB1dC90
+b3VjaHNjcmVlbi9NYWtlZmlsZQ0KKysrIGRldi9kcml2ZXJzL2lucHV0L3RvdWNoc2NyZWVuL01h
+a2VmaWxlDQpAQCAtMTksMyArMTksNCBAQCBvYmotJChDT05GSUdfVE9VQ0hTQ1JFRU5fVUNCMTQw
+MCkJKz0gdWNiDQogb2JqLSQoQ09ORklHX1RPVUNIU0NSRUVOX1RTQzIxMDIpCSs9IHRzYzIxMDJf
+dHMubw0KIG9iai0kKENPTkZJR19UT1VDSFNDUkVFTl9PTUFQKQkrPSBvbWFwLw0KIG9iai0kKENP
+TkZJR19UT1VDSFNDUkVFTl9UU0MyMzAxKQkrPSB0c2MyMzAxX3RzLm8NCitvYmotJChDT05GSUdf
+VE9VQ0hTQ1JFRU5fVFNDMjA0NikJKz0gdHNjMjA0Nl90cy5vDQpJbmRleDogZGV2L2RyaXZlcnMv
+aW5wdXQvdG91Y2hzY3JlZW4vdHNjMjA0Nl90cy5jDQo9PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQotLS0gL2Rldi9udWxs
+DQorKysgZGV2L2RyaXZlcnMvaW5wdXQvdG91Y2hzY3JlZW4vdHNjMjA0Nl90cy5jDQpAQCAtMCww
+ICsxLDU1NSBAQA0KKy8qDQorICogVFNDMjA0NiBUb3VjaHNjcmVlbiBkcml2ZXINCisgKg0KKyAq
+IEF1dGhvcjogS2V2aW4gSGlsbWFuLCBNb250YVZpc3RhIFNvZnR3YXJlLCBJbmMuIDxzb3VyY2VA
+bXZpc3RhLmNvbT4NCisgKg0KKyAqIENvbW11bmljYXRpb24gZGV0YWlscyBmcm9tIG9yaWdpbmFs
+IFRJIGRyaXZlcg0KKyAqIENvcHlyaWdodCAoQykgMjAwNC0yMDA1IFRleGFzIEluc3RydW1lbnRz
+LCBJbmMuDQorICoNCisgKiBTdHJ1Y3R1cmUgYmFzZWQgaGVhdmlseSBvbiBUU0MyMzAxIGRyaXZl
+cg0KKyAqIENvcHlyaWdodCAoQykgMjAwNS0yMDA2IE5va2lhIENvcnBvcmF0aW9uDQorICoNCisg
+KiAyMDA3IChjKSBNb250YVZpc3RhIFNvZnR3YXJlLCBJbmMuIFRoaXMgZmlsZSBpcyBsaWNlbnNl
+ZCB1bmRlcg0KKyAqIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2Ug
+dmVyc2lvbiAyLiBUaGlzIHByb2dyYW0NCisgKiBpcyBsaWNlbnNlZCAiYXMgaXMiIHdpdGhvdXQg
+YW55IHdhcnJhbnR5IG9mIGFueSBraW5kLCB3aGV0aGVyIGV4cHJlc3MNCisgKiBvciBpbXBsaWVk
+Lg0KKyAqDQorICovDQorDQorI2luY2x1ZGUgPGxpbnV4L2tlcm5lbC5oPg0KKyNpbmNsdWRlIDxs
+aW51eC9tb2R1bGUuaD4NCisjaW5jbHVkZSA8bGludXgvaW5wdXQuaD4NCisjaW5jbHVkZSA8bGlu
+dXgvaW50ZXJydXB0Lmg+DQorI2luY2x1ZGUgPGxpbnV4L2RlbGF5Lmg+DQorI2luY2x1ZGUgPGxp
+bnV4L3NwaS9zcGkuaD4NCisNCisjaWZkZWYgQ09ORklHX0FSQ0hfT01BUA0KKyNpbmNsdWRlIDxh
+c20vYXJjaC9ncGlvLmg+DQorI2VuZGlmDQorDQorI2luY2x1ZGUgPGxpbnV4L3NwaS90c2MyMDQ2
+Lmg+DQorDQorLyogVFNDMjA0NiBjb21tYW5kcyAqLw0KKyNkZWZpbmUgU1RBUlRfQllURQkJMHg4
+MDAwDQorI2RlZmluZQlYX0NNRFdECQkJMHhkMzAwDQorI2RlZmluZSBZX0NNRFdECQkJMHg5MzAw
+DQorI2RlZmluZSBaMV9DTURXRAkJMHhiMzAwDQorI2RlZmluZSBaMl9DTURXRAkJMHhjMzAwDQor
+DQorI2RlZmluZSBUU0MyMDQ2X1RTX1NDQU5fVElNRQkxDQorI2RlZmluZSBNQVhfMTJCSVQJCSgo
+MSA8PCAxMikgLSAxKQ0KKw0KK3N0cnVjdCB0c2MyMDQ2X3RzIHsNCisJc3RydWN0IGlucHV0X2Rl
+dgkqaWRldjsNCisJY2hhcgkJCXBoeXNbMzJdOw0KKwlzdHJ1Y3QgdGltZXJfbGlzdAl0aW1lcjsN
+CisJc3BpbmxvY2tfdAkJbG9jazsNCisNCisJc3RydWN0IHNwaV90cmFuc2ZlcglyZWFkX3hmZXJb
+M107DQorCXN0cnVjdCBzcGlfbWVzc2FnZQlyZWFkX21zZzsNCisJc3RydWN0IHNwaV9tZXNzYWdl
+CWVuYWJsZV9tc2c7DQorCXUxNiAgICAgICAgICAgICAgICAgICAgIGRhdGFbNV07DQorDQorCXUx
+NgkJCXg7DQorCXUxNgkJCXk7DQorCXUxNgkJCXA7DQorCWludAkJCXNhbXBsZV9jbnQ7DQorDQor
+CWludAkJCWlnbm9yZV9sYXN0IDogMTsNCisJdTE2CQkJeF9wbGF0ZV9vaG07DQorCWludAkJCW1h
+eF9wcmVzc3VyZTsNCisJaW50CQkJdG91Y2hfcHJlc3N1cmU7DQorCWludAkJCXByZXNzdXJlX2xp
+bWl0Ow0KKw0KKwl1MTYJCQlpcnFfZW5hYmxlZDoxOw0KKwl1MTYJCQlwZW5fZG93bjoxOw0KKwl1
+MTYJCQlkaXNhYmxlZDoxOw0KKwl1MTYJCQlwZW5kaW5nOjE7DQorDQorCXMxNgkJCWRhdl9ncGlv
+Ow0KKwlpbnQJCQlpcnE7DQorfTsNCisNCitzdGF0aWMgY29uc3QgdTE2IHRzYzIwNDZfdHNfY21k
+X2RhdGFbXSA9IHsNCisJU1RBUlRfQllURSwgWF9DTURXRCwgWV9DTURXRCwgWjFfQ01EV0QsIFoy
+X0NNRFdELA0KK307DQorDQorc3RhdGljIGludCBkZXZpY2Vfc3VzcGVuZGVkKHN0cnVjdCBkZXZp
+Y2UgKmRldikNCit7DQorCXN0cnVjdCB0c2MyMDQ2ICp0c2MgPSBkZXZfZ2V0X2RydmRhdGEoZGV2
+KTsNCisJcmV0dXJuIGRldi0+cG93ZXIucG93ZXJfc3RhdGUuZXZlbnQgIT0gUE1fRVZFTlRfT04g
+fHwgdHNjLT50cy0+ZGlzYWJsZWQ7DQorfQ0KKw0KK3N0YXRpYyB2b2lkIHVwZGF0ZV9wZW5fc3Rh
+dGUoc3RydWN0IHRzYzIwNDYgKnRzYywgaW50IHgsIGludCB5LCBpbnQgcHJlc3N1cmUpDQorew0K
+KwlzdHJ1Y3QgdHNjMjA0Nl90cyAqdHMgPSB0c2MtPnRzOw0KKwlpbnQgc3luYyA9IDA7DQorDQor
+CWlmIChwcmVzc3VyZSkgew0KKwkJaW5wdXRfcmVwb3J0X2Ficyh0cy0+aWRldiwgQUJTX1gsIHgp
+Ow0KKwkJaW5wdXRfcmVwb3J0X2Ficyh0cy0+aWRldiwgQUJTX1ksIHkpOw0KKwkJaW5wdXRfcmVw
+b3J0X2Ficyh0cy0+aWRldiwgQUJTX1BSRVNTVVJFLCBwcmVzc3VyZSk7DQorCQlpZiAoIXRzLT5w
+ZW5fZG93bikNCisJCQlpbnB1dF9yZXBvcnRfa2V5KHRzLT5pZGV2LCBCVE5fVE9VQ0gsIDEpOw0K
+KwkJc3luYyA9IDE7DQorCX0gZWxzZSBpZiAodHMtPnBlbl9kb3duKSB7DQorCQlpbnB1dF9yZXBv
+cnRfYWJzKHRzLT5pZGV2LCBBQlNfUFJFU1NVUkUsIDApOw0KKwkJaW5wdXRfcmVwb3J0X2tleSh0
+cy0+aWRldiwgQlROX1RPVUNILCAwKTsNCisJCXN5bmMgPSAxOw0KKwl9DQorDQorCWlmIChzeW5j
+KQ0KKwkJaW5wdXRfc3luYyh0cy0+aWRldik7DQorDQorCXRzLT5wZW5fZG93biA9IHByZXNzdXJl
+ID8gMSA6IDA7DQorDQorI2lmZGVmIFZFUkJPU0UNCisJZGV2X2RiZygmdHNjLT5zcGktPmRldiwg
+InggJTRkIHkgJTRkIHAgJTRkXG4iLCB4LCB5LCBwcmVzc3VyZSk7DQorI2VuZGlmDQorfQ0KKw0K
+KyNkZWZpbmUgQ09OVl9EQVRBKGQxLCBkMikgXA0KKyAgKCgoZDEgJiAweDdmKSA8PCA1KSB8ICgo
+ZDIgPj4gMTEpICYgMHgxZikpDQorDQorLyoNCisgKiBUaGlzIHByb2NlZHVyZSBpcyBjYWxsZWQg
+YnkgdGhlIFNQSSBmcmFtZXdvcmsgYWZ0ZXIgdGhlIGNvb3JkaW5hdGVzDQorICogaGF2ZSBiZWVu
+IHJlYWQgZnJvbSBUU0MyMDQ2DQorICovDQorc3RhdGljIHZvaWQgdHNjMjA0Nl90c19yeCh2b2lk
+ICphcmcpDQorew0KKwlzdHJ1Y3QgdHNjMjA0NiAqdHNjID0gYXJnOw0KKwlzdHJ1Y3QgdHNjMjA0
+Nl90cyAqdHMgPSB0c2MtPnRzOw0KKwl1bnNpZ25lZCBpbnQgeCwgeSwgejEsIHoyLCBwcmVzc3Vy
+ZTsNCisNCisJeCAgPSBDT05WX0RBVEEodHMtPmRhdGFbMl0sIHRzLT5kYXRhWzNdKTsNCisJeSAg
+PSBDT05WX0RBVEEodHMtPmRhdGFbMV0sIHRzLT5kYXRhWzJdKTsNCisJejEgPSBDT05WX0RBVEEo
+dHMtPmRhdGFbM10sIHRzLT5kYXRhWzRdKTsNCisJejIgPSBDT05WX0RBVEEodHMtPmRhdGFbNF0s
+IDApOw0KKw0KKwlpZiAoejEpIHsNCisJCXByZXNzdXJlID0gdHMtPnhfcGxhdGVfb2htICogeDsN
+CisJCXByZXNzdXJlIC89IDQwOTY7DQorCQlwcmVzc3VyZSAqPSB6MiAtIHoxOw0KKwkJcHJlc3N1
+cmUgLz0gejE7DQorCX0gZWxzZQ0KKwkJcHJlc3N1cmUgPSAwOw0KKw0KKwkvKiBJZiBwcmVzc3Vy
+ZSB2YWx1ZSBpcyBhYm92ZSBhIHByZXNldCBsaW1pdCAocGVuIGlzIGJhcmVseQ0KKwkgKiB0b3Vj
+aGluZyB0aGUgc2NyZWVuKSB3ZSBjYW4ndCB0cnVzdCB0aGUgY29vcmRpbmF0ZSB2YWx1ZXMuDQor
+CSAqLw0KKwlpZiAocHJlc3N1cmUgPCB0cy0+cHJlc3N1cmVfbGltaXQgJiYgeCA8IE1BWF8xMkJJ
+VCAmJiB5IDwgTUFYXzEyQklUKSB7DQorCQl0cy0+cHJlc3N1cmVfbGltaXQgPSB0cy0+bWF4X3By
+ZXNzdXJlOw0KKwkJaWYgKHRzLT5pZ25vcmVfbGFzdCkgew0KKwkJCWlmICh0cy0+c2FtcGxlX2Nu
+dCkNCisJCQkJdXBkYXRlX3Blbl9zdGF0ZSh0c2MsIHRzLT54LCB0cy0+eSwgdHMtPnApOw0KKwkJ
+CXRzLT54ID0geDsNCisJCQl0cy0+eSA9IHk7DQorCQkJdHMtPnAgPSBwcmVzc3VyZTsNCisJCX0g
+ZWxzZQ0KKwkJCXVwZGF0ZV9wZW5fc3RhdGUodHNjLCB4LCB5LCBwcmVzc3VyZSk7DQorCQl0cy0+
+c2FtcGxlX2NudCsrOw0KKwl9DQorDQorCW1vZF90aW1lcigmdHMtPnRpbWVyLA0KKwkJICBqaWZm
+aWVzICsgbXNlY3NfdG9famlmZmllcyhUU0MyMDQ2X1RTX1NDQU5fVElNRSkpOw0KK30NCisNCitz
+dGF0aWMgaW50IGlzX3Blbl9kb3duKHN0cnVjdCB0c2MyMDQ2X3RzICp0cykNCit7DQorCXJldHVy
+biB0cy0+cGVuX2Rvd247DQorfQ0KKw0KKy8qDQorICogVGltZXIgaXMgY2FsbGVkIGV2ZXJ5IFRT
+QzIwNDZfVFNfU0NBTl9USU1FIHdoZW4gdGhlIHBlbiBpcyBkb3duDQorICovDQorc3RhdGljIHZv
+aWQgdHNjMjA0Nl90c190aW1lcih1bnNpZ25lZCBsb25nIGFyZykNCit7DQorCXN0cnVjdCB0c2My
+MDQ2ICp0c2MgPSAodm9pZCAqKSBhcmc7DQorCXN0cnVjdCB0c2MyMDQ2X3RzICp0cyA9IHRzYy0+
+dHM7DQorCXVuc2lnbmVkIGxvbmcgZmxhZ3M7DQorCWludCBuZGF2Ow0KKwlpbnQgcjsNCisNCisJ
+c3Bpbl9sb2NrX2lycXNhdmUoJnRzLT5sb2NrLCBmbGFncyk7DQorCW5kYXYgPSBvbWFwX2dldF9n
+cGlvX2RhdGFpbih0cy0+ZGF2X2dwaW8pOw0KKwlpZiAobmRhdiB8fCBkZXZpY2Vfc3VzcGVuZGVk
+KCZ0c2MtPnNwaS0+ZGV2KSkgew0KKwkJLyogUGVuIGhhcyBiZWVuIGxpZnRlZCAqLw0KKwkJaWYg
+KCFkZXZpY2Vfc3VzcGVuZGVkKCZ0c2MtPnNwaS0+ZGV2KSAmJg0KKwkJICAgICF0cy0+aXJxX2Vu
+YWJsZWQpIHsNCisJCQl0cy0+aXJxX2VuYWJsZWQgPSAxOw0KKwkJCWVuYWJsZV9pcnEodHMtPmly
+cSk7DQorCQl9DQorCQl1cGRhdGVfcGVuX3N0YXRlKHRzYywgMCwgMCwgMCk7DQorCQl0cy0+cGVu
+ZGluZyA9IDA7DQorCQlzcGluX3VubG9ja19pcnFyZXN0b3JlKCZ0cy0+bG9jaywgZmxhZ3MpOw0K
+Kw0KKwl9IGVsc2Ugew0KKwkJdHMtPnBlbl9kb3duID0gMTsNCisJCXNwaW5fdW5sb2NrX2lycXJl
+c3RvcmUoJnRzLT5sb2NrLCBmbGFncyk7DQorDQorCQlyID0gc3BpX2FzeW5jKHRzYy0+c3BpLCAm
+dHMtPnJlYWRfbXNnKTsNCisJCWlmIChyKQ0KKwkJCWRldl9lcnIoJnRzYy0+c3BpLT5kZXYsICJ0
+czogc3BpX2FzeW5jKCkgZmFpbGVkIik7DQorCX0NCit9DQorDQorLyoNCisgKiBUaGlzIGludGVy
+cnVwdCBpcyBjYWxsZWQgd2hlbiBwZW4gaXMgZG93biBhbmQgZmlyc3QgY29vcmRpbmF0ZXMgYXJl
+DQorICogYXZhaWxhYmxlLiBUaGF0IGlzIGluZGljYXRlZCBieSBhIGZhbGxpbmcgZWRnZSBvbiBE
+RVYgbGluZS4gIElSUSBpcw0KKyAqIGRpc2FibGVkIGhlcmUgYmVjYXVzZSB3aGlsZSB0aGUgcGVu
+IGlzIGRvd24gdGhlIGNvb3JkaW5hdGVzIGFyZQ0KKyAqIHJlYWQgYnkgYSB0aW1lci4NCisgKi8N
+CitzdGF0aWMgaXJxcmV0dXJuX3QgdHNjMjA0Nl90c19pcnFfaGFuZGxlcihpbnQgaXJxLCB2b2lk
+ICpkZXZfaWQpDQorew0KKwlzdHJ1Y3QgdHNjMjA0NiAqdHNjID0gZGV2X2lkOw0KKwlzdHJ1Y3Qg
+dHNjMjA0Nl90cyAqdHMgPSB0c2MtPnRzOw0KKwl1bnNpZ25lZCBsb25nIGZsYWdzOw0KKw0KKwlz
+cGluX2xvY2tfaXJxc2F2ZSgmdHMtPmxvY2ssIGZsYWdzKTsNCisJaWYgKHRzLT5pcnFfZW5hYmxl
+ZCkgew0KKwkJdHMtPmlycV9lbmFibGVkID0gMDsNCisJCWRpc2FibGVfaXJxKHRzLT5pcnEpOw0K
+KwkJdHMtPnBlbmRpbmcgPSAxOw0KKwkJdHMtPnByZXNzdXJlX2xpbWl0ID0gdHMtPnRvdWNoX3By
+ZXNzdXJlOw0KKwkJdHMtPnNhbXBsZV9jbnQgPSAwOw0KKwkJbW9kX3RpbWVyKCZ0cy0+dGltZXIs
+DQorCQkJICBqaWZmaWVzICsgbXNlY3NfdG9famlmZmllcyhUU0MyMDQ2X1RTX1NDQU5fVElNRSkp
+Ow0KKwl9DQorCXNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJnRzLT5sb2NrLCBmbGFncyk7DQorDQor
+CXJldHVybiBJUlFfSEFORExFRDsNCit9DQorDQorLyogTXVzdCBiZSBjYWxsZWQgd2l0aCB0cy0+
+bG9jayBoZWxkICovDQorc3RhdGljIHZvaWQgdHNjMjA0Nl90c19kaXNhYmxlKHN0cnVjdCB0c2My
+MDQ2ICp0c2MpDQorew0KKwlzdHJ1Y3QgdHNjMjA0Nl90cyAqdHMgPSB0c2MtPnRzOw0KKw0KKwlp
+ZiAodHMtPmRpc2FibGVkKQ0KKwkJcmV0dXJuOw0KKw0KKwl0cy0+ZGlzYWJsZWQgPSAxOw0KKwlp
+ZiAoIXRzLT5wZW5kaW5nKSB7DQorCQl0cy0+aXJxX2VuYWJsZWQgPSAwOw0KKwkJZGlzYWJsZV9p
+cnEodHMtPmlycSk7DQorCX0gZWxzZSB7DQorCQl3aGlsZSAodHMtPnBlbmRpbmcpIHsNCisJCQlz
+cGluX3VubG9ja19pcnEoJnRzLT5sb2NrKTsNCisJCQltc2xlZXAoMSk7DQorCQkJc3Bpbl9sb2Nr
+X2lycSgmdHMtPmxvY2spOw0KKwkJfQ0KKwl9DQorfQ0KKw0KK3N0YXRpYyB2b2lkIHRzYzIwNDZf
+dHNfZW5hYmxlKHN0cnVjdCB0c2MyMDQ2ICp0c2MpDQorew0KKwlzdHJ1Y3QgdHNjMjA0Nl90cyAq
+dHMgPSB0c2MtPnRzOw0KKw0KKwlpZiAoIXRzLT5kaXNhYmxlZCkNCisJCXJldHVybjsNCisNCisJ
+dHMtPmRpc2FibGVkID0gMDsNCisJdHMtPmlycV9lbmFibGVkID0gMTsNCisJZW5hYmxlX2lycSh0
+cy0+aXJxKTsNCit9DQorDQorI2lmZGVmIENPTkZJR19QTQ0KK2ludCB0c2MyMDQ2X3RzX3N1c3Bl
+bmQoc3RydWN0IHRzYzIwNDYgKnRzYykNCit7DQorCXN0cnVjdCB0c2MyMDQ2X3RzICp0cyA9IHRz
+Yy0+dHM7DQorDQorCXNwaW5fbG9ja19pcnEoJnRzLT5sb2NrKTsNCisJdHNjMjA0Nl90c19kaXNh
+YmxlKHRzYyk7DQorCXNwaW5fdW5sb2NrX2lycSgmdHMtPmxvY2spOw0KKw0KKwlyZXR1cm4gMDsN
+Cit9DQorDQordm9pZCB0c2MyMDQ2X3RzX3Jlc3VtZShzdHJ1Y3QgdHNjMjA0NiAqdHNjKQ0KK3sN
+CisJc3RydWN0IHRzYzIwNDZfdHMgKnRzID0gdHNjLT50czsNCisNCisJc3Bpbl9sb2NrX2lycSgm
+dHMtPmxvY2spOw0KKwl0c2MyMDQ2X3RzX2VuYWJsZSh0c2MpOw0KKwlzcGluX3VubG9ja19pcnEo
+JnRzLT5sb2NrKTsNCit9DQorI2VuZGlmDQorDQorc3RhdGljIHZvaWQgdHNjMjA0Nl90c19zZXR1
+cF9zcGlfeGZlcihzdHJ1Y3QgdHNjMjA0NiAqdHNjKQ0KK3sNCisJc3RydWN0IHRzYzIwNDZfdHMg
+KnRzID0gdHNjLT50czsNCisJc3RydWN0IHNwaV9tZXNzYWdlICptID0gJnRzLT5yZWFkX21zZzsN
+CisJc3RydWN0IHNwaV90cmFuc2ZlciAqeCA9ICZ0cy0+cmVhZF94ZmVyWzFdOw0KKw0KKwlzcGlf
+bWVzc2FnZV9pbml0KG0pOw0KKw0KKwkvKiByZWFkIGFuZCB3cml0ZSBkYXRhIGluIG9uZSB0cmFu
+c2FjdGlvbiAqLw0KKwl4LT50eF9idWYgPSAmdHNjMjA0Nl90c19jbWRfZGF0YTsNCisJeC0+cnhf
+YnVmID0gJnRzLT5kYXRhOw0KKwl4LT5sZW4gICAgPSAxMDsNCisJc3BpX21lc3NhZ2VfYWRkX3Rh
+aWwoeCwgbSk7DQorDQorCS8qIHNlbmQgYW5vdGhlciBTVEFSVF9CWVRFIHRvIChyZSllbmFibGUg
+cGVuIGludGVycnVwdHMgKi8NCisJeCsrOw0KKwl4LT50eF9idWYgPSAmdHNjMjA0Nl90c19jbWRf
+ZGF0YVswXTsNCisJeC0+bGVuID0gMjsNCisJc3BpX21lc3NhZ2VfYWRkX3RhaWwoeCwgbSk7DQor
+DQorCW0tPmNvbXBsZXRlID0gdHNjMjA0Nl90c19yeDsNCisJbS0+Y29udGV4dCA9IHRzYzsNCit9
+DQorDQorc3RhdGljIHNzaXplX3QgdHNjMjA0Nl90c19wZW5fZG93bl9zaG93KHN0cnVjdCBkZXZp
+Y2UgKmRldiwNCisJCQkJCXN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLA0KKwkJCQkJY2hh
+ciAqYnVmKQ0KK3sNCisJc3RydWN0IHRzYzIwNDYgKnRzYyA9IGRldl9nZXRfZHJ2ZGF0YShkZXYp
+Ow0KKw0KKwlyZXR1cm4gc3ByaW50ZihidWYsICIldVxuIiwgaXNfcGVuX2Rvd24odHNjLT50cykp
+Ow0KK30NCisNCitzdGF0aWMgREVWSUNFX0FUVFIocGVuX2Rvd24sIFNfSVJVR08sIHRzYzIwNDZf
+dHNfcGVuX2Rvd25fc2hvdywgTlVMTCk7DQorDQorc3RhdGljIHNzaXplX3QgdHNjMjA0Nl90c19k
+aXNhYmxlX3Nob3coc3RydWN0IGRldmljZSAqZGV2LA0KKwkJCQkgICAgICAgc3RydWN0IGRldmlj
+ZV9hdHRyaWJ1dGUgKmF0dHIsIGNoYXIgKmJ1ZikNCit7DQorCXN0cnVjdCB0c2MyMDQ2CQkqdHNj
+ID0gZGV2X2dldF9kcnZkYXRhKGRldik7DQorCXN0cnVjdCB0c2MyMDQ2X3RzCSp0cyA9IHRzYy0+
+dHM7DQorDQorCXJldHVybiBzcHJpbnRmKGJ1ZiwgIiV1XG4iLCB0cy0+ZGlzYWJsZWQpOw0KK30N
+CisNCitzdGF0aWMgc3NpemVfdCB0c2MyMDQ2X3RzX2Rpc2FibGVfc3RvcmUoc3RydWN0IGRldmlj
+ZSAqZGV2LA0KKwkJCQkJc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsDQorCQkJCQljb25z
+dCBjaGFyICpidWYsIHNpemVfdCBjb3VudCkNCit7DQorCXN0cnVjdCB0c2MyMDQ2CQkqdHNjID0g
+ZGV2X2dldF9kcnZkYXRhKGRldik7DQorCXN0cnVjdCB0c2MyMDQ2X3RzCSp0cyA9IHRzYy0+dHM7
+DQorCWNoYXIgKmVuZHA7DQorCWludCBpOw0KKw0KKwlpID0gc2ltcGxlX3N0cnRvdWwoYnVmLCAm
+ZW5kcCwgMTApOw0KKwlzcGluX2xvY2tfaXJxKCZ0cy0+bG9jayk7DQorDQorCWlmIChpKQ0KKwkJ
+dHNjMjA0Nl90c19kaXNhYmxlKHRzYyk7DQorCWVsc2UNCisJCXRzYzIwNDZfdHNfZW5hYmxlKHRz
+Yyk7DQorDQorCXNwaW5fdW5sb2NrX2lycSgmdHMtPmxvY2spOw0KKw0KKwlyZXR1cm4gY291bnQ7
+DQorfQ0KKw0KK3N0YXRpYyBERVZJQ0VfQVRUUihkaXNhYmxlX3RzLCAwNjY0LCB0c2MyMDQ2X3Rz
+X2Rpc2FibGVfc2hvdywNCisJCSAgIHRzYzIwNDZfdHNfZGlzYWJsZV9zdG9yZSk7DQorDQoraW50
+IF9fZGV2aW5pdCB0c2MyMDQ2X3RzX2luaXQoc3RydWN0IHRzYzIwNDYgKnRzYywNCisJCQkgICAg
+ICBzdHJ1Y3QgdHNjMjA0Nl9wbGF0Zm9ybV9kYXRhICpwZGF0YSkNCit7DQorCXN0cnVjdCB0c2My
+MDQ2X3RzICp0czsNCisJc3RydWN0IGlucHV0X2RldiAqaWRldjsNCisJaW50IGRhdl9ncGlvLCBy
+Ow0KKw0KKwlpZiAocGRhdGEtPmRhdl9ncGlvIDwgMCkgew0KKwkJZGV2X2VycigmdHNjLT5zcGkt
+PmRldiwgIm5lZWQgREFWIEdQSU8iKTsNCisJCXJldHVybiAtRUlOVkFMOw0KKwl9DQorCWRhdl9n
+cGlvID0gcGRhdGEtPmRhdl9ncGlvOw0KKw0KKwl0cyA9IGt6YWxsb2Moc2l6ZW9mKCp0cyksIEdG
+UF9LRVJORUwpOw0KKwlpZiAodHMgPT0gTlVMTCkNCisJCXJldHVybiAtRU5PTUVNOw0KKwl0c2Mt
+PnRzID0gdHM7DQorDQorCXRzLT5kYXZfZ3BpbyA9IGRhdl9ncGlvOw0KKyNpZmRlZiBDT05GSUdf
+QVJDSF9PTUFQDQorCXIgPSBvbWFwX3JlcXVlc3RfZ3BpbyhkYXZfZ3Bpbyk7DQorCWlmIChyIDwg
+MCkgew0KKwkJZGV2X2VycigmdHNjLT5zcGktPmRldiwgInVuYWJsZSB0byBnZXQgREFWIEdQSU8i
+KTsNCisJCWdvdG8gZXJyMTsNCisJfQ0KKwlvbWFwX3NldF9ncGlvX2RpcmVjdGlvbihkYXZfZ3Bp
+bywgMSk7DQorCWlmIChwZGF0YS0+Z3Bpb19kZWJvdW5jZSkgew0KKwkJb21hcF9zZXRfZ3Bpb19k
+ZWJvdW5jZSh0c2MtPmdwaW8sIDEpOw0KKwkJb21hcF9zZXRfZ3Bpb19kZWJvdW5jZV90aW1lKHRz
+Yy0+Z3BpbywgcGRhdGEtPmdwaW9fZGVib3VuY2UpOw0KKwl9DQorDQorCXRzLT5pcnEgPSBPTUFQ
+X0dQSU9fSVJRKGRhdl9ncGlvKTsNCisjZW5kaWYNCisJaW5pdF90aW1lcigmdHMtPnRpbWVyKTsN
+CisJdHMtPnRpbWVyLmRhdGEgPSAodW5zaWduZWQgbG9uZykgdHNjOw0KKwl0cy0+dGltZXIuZnVu
+Y3Rpb24gPSB0c2MyMDQ2X3RzX3RpbWVyOw0KKw0KKwlzcGluX2xvY2tfaW5pdCgmdHMtPmxvY2sp
+Ow0KKw0KKwl0cy0+eF9wbGF0ZV9vaG0JPSBwZGF0YS0+dHNfeF9wbGF0ZV9vaG0gPyA6IDI4MDsN
+CisJdHMtPm1heF9wcmVzc3VyZT0gcGRhdGEtPnRzX21heF9wcmVzc3VyZSA/IDogTUFYXzEyQklU
+Ow0KKwl0cy0+dG91Y2hfcHJlc3N1cmUgPSBwZGF0YS0+dHNfdG91Y2hfcHJlc3N1cmUgPyA6IHRz
+LT5tYXhfcHJlc3N1cmU7DQorCXRzLT5pZ25vcmVfbGFzdAk9IHBkYXRhLT50c19pZ25vcmVfbGFz
+dDsNCisNCisJaWRldiA9IGlucHV0X2FsbG9jYXRlX2RldmljZSgpOw0KKwlpZiAoaWRldiA9PSBO
+VUxMKSB7DQorCQlyID0gLUVOT01FTTsNCisJCWdvdG8gZXJyMjsNCisJfQ0KKwlpZGV2LT5uYW1l
+ID0gIlRTQzIwNDYgdG91Y2hzY3JlZW4iOw0KKwlzbnByaW50Zih0cy0+cGh5cywgc2l6ZW9mKHRz
+LT5waHlzKSwNCisJCSAiJXMvaW5wdXQtdHMiLCB0c2MtPnNwaS0+ZGV2LmJ1c19pZCk7DQorCWlk
+ZXYtPnBoeXMgPSB0cy0+cGh5czsNCisNCisJaWRldi0+ZXZiaXRbMF0gPSBCSVQoRVZfQUJTKSB8
+IEJJVChFVl9LRVkpOw0KKwlpZGV2LT5hYnNiaXRbMF0gPSBCSVQoQUJTX1gpIHwgQklUKEFCU19Z
+KSB8IEJJVChBQlNfUFJFU1NVUkUpOw0KKwl0cy0+aWRldiA9IGlkZXY7DQorDQorCXRzYzIwNDZf
+dHNfc2V0dXBfc3BpX3hmZXIodHNjKTsNCisNCisJLyogVGhlc2UgcGFyYW1ldGVycyBzaG91bGQg
+cGVyaGFwcyBiZSBjb25maWd1cmFibGU/ICovDQorCWlucHV0X3NldF9hYnNfcGFyYW1zKGlkZXYs
+IEFCU19YLCAwLCA0MDk2LCAwLCAwKTsNCisJaW5wdXRfc2V0X2Fic19wYXJhbXMoaWRldiwgQUJT
+X1ksIDAsIDQwOTYsIDAsIDApOw0KKwlpbnB1dF9zZXRfYWJzX3BhcmFtcyhpZGV2LCBBQlNfUFJF
+U1NVUkUsIDAsIDEwMjQsIDAsIDApOw0KKw0KKwl0cy0+aXJxX2VuYWJsZWQgPSAxOw0KKwlyID0g
+cmVxdWVzdF9pcnEodHMtPmlycSwgdHNjMjA0Nl90c19pcnFfaGFuZGxlciwNCisJCQlTQV9TQU1Q
+TEVfUkFORE9NIHwgU0FfVFJJR0dFUl9GQUxMSU5HLA0KKwkJCSJ0c2MyMDQ2LXRzIiwgdHNjKTsN
+CisJaWYgKHIgPCAwKSB7DQorCQlkZXZfZXJyKCZ0c2MtPnNwaS0+ZGV2LCAidW5hYmxlIHRvIGdl
+dCBEQVYgSVJRIik7DQorCQlnb3RvIGVycjM7DQorCX0NCisJc2V0X2lycV93YWtlKHRzLT5pcnEs
+IDEpOw0KKw0KKwlpZiAoZGV2aWNlX2NyZWF0ZV9maWxlKCZ0c2MtPnNwaS0+ZGV2LCAmZGV2X2F0
+dHJfcGVuX2Rvd24pIDwgMCkNCisJCWdvdG8gZXJyNDsNCisJaWYgKGRldmljZV9jcmVhdGVfZmls
+ZSgmdHNjLT5zcGktPmRldiwgJmRldl9hdHRyX2Rpc2FibGVfdHMpIDwgMCkNCisJCWdvdG8gZXJy
+NTsNCisNCisJciA9IGlucHV0X3JlZ2lzdGVyX2RldmljZShpZGV2KTsNCisJaWYgKHIgPCAwKSB7
+DQorCQlkZXZfZXJyKCZ0c2MtPnNwaS0+ZGV2LCAiY2FuJ3QgcmVnaXN0ZXIgdG91Y2hzY3JlZW4g
+ZGV2aWNlXG4iKTsNCisJCWdvdG8gZXJyNjsNCisJfQ0KKw0KKwkvKiBraWNrIG9mZiBhIHRyYW5z
+YWN0aW9uIHRvIGVuYWJsZSBwZW4gaW50ZXJydXB0cyAqLw0KKwlzcGlfYXN5bmModHNjLT5zcGks
+ICZ0cy0+cmVhZF9tc2cpOw0KKw0KKwlyZXR1cm4gMDsNCitlcnI2Og0KKwlkZXZpY2VfcmVtb3Zl
+X2ZpbGUoJnRzYy0+c3BpLT5kZXYsICZkZXZfYXR0cl9kaXNhYmxlX3RzKTsNCitlcnI1Og0KKwlk
+ZXZpY2VfcmVtb3ZlX2ZpbGUoJnRzYy0+c3BpLT5kZXYsICZkZXZfYXR0cl9wZW5fZG93bik7DQor
+ZXJyNDoNCisJZnJlZV9pcnEodHMtPmlycSwgdHNjKTsNCitlcnIzOg0KKwlpbnB1dF9mcmVlX2Rl
+dmljZShpZGV2KTsNCitlcnIyOg0KKyNpZmRlZiBDT05GSUdfQVJDSF9PTUFQDQorCW9tYXBfZnJl
+ZV9ncGlvKGRhdl9ncGlvKTsNCisjZW5kaWYNCisgZXJyMToNCisJa2ZyZWUodHMpOw0KKwlyZXR1
+cm4gcjsNCit9DQorRVhQT1JUX1NZTUJPTCh0c2MyMDQ2X3RzX2luaXQpOw0KKw0KK3ZvaWQgX19k
+ZXZleGl0IHRzYzIwNDZfdHNfZXhpdChzdHJ1Y3QgdHNjMjA0NiAqdHNjKQ0KK3sNCisJc3RydWN0
+IHRzYzIwNDZfdHMgKnRzID0gdHNjLT50czsNCisJdW5zaWduZWQgbG9uZyBmbGFnczsNCisNCisJ
+c3Bpbl9sb2NrX2lycXNhdmUoJnRzLT5sb2NrLCBmbGFncyk7DQorCXRzYzIwNDZfdHNfZGlzYWJs
+ZSh0c2MpOw0KKwlzcGluX3VubG9ja19pcnFyZXN0b3JlKCZ0cy0+bG9jaywgZmxhZ3MpOw0KKw0K
+KwlkZXZpY2VfcmVtb3ZlX2ZpbGUoJnRzYy0+c3BpLT5kZXYsICZkZXZfYXR0cl9kaXNhYmxlX3Rz
+KTsNCisJZGV2aWNlX3JlbW92ZV9maWxlKCZ0c2MtPnNwaS0+ZGV2LCAmZGV2X2F0dHJfcGVuX2Rv
+d24pOw0KKw0KKwlmcmVlX2lycSh0cy0+aXJxLCB0c2MpOw0KKwlpbnB1dF91bnJlZ2lzdGVyX2Rl
+dmljZSh0cy0+aWRldik7DQorDQorI2lmZGVmIENPTkZJR19BUkNIX09NQVANCisJb21hcF9mcmVl
+X2dwaW8odHMtPmRhdl9ncGlvKTsNCisjZW5kaWYNCisJa2ZyZWUodHMpOw0KK30NCitFWFBPUlRf
+U1lNQk9MKHRzYzIwNDZfdHNfZXhpdCk7DQorDQorDQorc3RhdGljIGludCBfX2RldmluaXQgdHNj
+MjA0Nl9wcm9iZShzdHJ1Y3Qgc3BpX2RldmljZSAqc3BpKQ0KK3sNCisJc3RydWN0IHRzYzIwNDYJ
+CQkqdHNjOw0KKwlzdHJ1Y3QgdHNjMjA0Nl9wbGF0Zm9ybV9kYXRhCSpwZGF0YSA9IHNwaS0+ZGV2
+LnBsYXRmb3JtX2RhdGE7DQorCWludCByID0gLUVOT0RFVjsNCisNCisJZGV2X2RiZygmc3BpLT5k
+ZXYsICIlc1xuIiwgX19GVU5DVElPTl9fKTsNCisNCisJaWYgKCFwZGF0YSkgew0KKwkJZGV2X2Ri
+Zygmc3BpLT5kZXYsICJubyBwbGF0Zm9ybSBkYXRhP1xuIik7DQorCQlyZXR1cm4gLUVOT0RFVjsN
+CisJfQ0KKw0KKwl0c2MgPSBremFsbG9jKHNpemVvZigqdHNjKSwgR0ZQX0tFUk5FTCk7DQorCWlm
+ICh0c2MgPT0gTlVMTCkNCisJCXJldHVybiAtRU5PTUVNOw0KKw0KKwlkZXZfc2V0X2RydmRhdGEo
+JnNwaS0+ZGV2LCB0c2MpOw0KKwl0c2MtPnNwaSA9IHNwaTsNCisJc3BpLT5kZXYucG93ZXIucG93
+ZXJfc3RhdGUgPSBQTVNHX09OOw0KKw0KKwlzcGktPm1vZGUgPSBTUElfTU9ERV8xOw0KKwlzcGkt
+PmJpdHNfcGVyX3dvcmQgPSAxNjsNCisNCisJLyogVGhlIG1heCBzcGVlZCBtaWdodCd2ZSBiZWVu
+IGRlZmluZWQgYnkgdGhlIGJvYXJkLXNwZWNpZmljDQorCSAqIHN0cnVjdCAqLw0KKwlpZiAoIXNw
+aS0+bWF4X3NwZWVkX2h6KQ0KKwkJc3BpLT5tYXhfc3BlZWRfaHogPSBUU0MyMDQ2X0haOw0KKwlz
+cGlfc2V0dXAoc3BpKTsNCisNCisJciA9IHRzYzIwNDZfdHNfaW5pdCh0c2MsIHBkYXRhKTsNCisJ
+aWYgKHIpDQorCQlnb3RvIGVycjE7DQorDQorCXJldHVybiAwOw0KKyBlcnIxOg0KKwlrZnJlZSh0
+c2MpOw0KKwlyZXR1cm4gcjsNCit9DQorDQorc3RhdGljIGludCBfX2RldmV4aXQgdHNjMjA0Nl9y
+ZW1vdmUoc3RydWN0IHNwaV9kZXZpY2UgKnNwaSkNCit7DQorCXN0cnVjdCB0c2MyMDQ2ICp0c2Mg
+PSBkZXZfZ2V0X2RydmRhdGEoJnNwaS0+ZGV2KTsNCisNCisJZGV2X2RiZygmdHNjLT5zcGktPmRl
+diwgIiVzXG4iLCBfX0ZVTkNUSU9OX18pOw0KKw0KKyAgICAgICAgdHNjMjA0Nl90c19leGl0KHRz
+Yyk7DQorCWtmcmVlKHRzYyk7DQorDQorCXJldHVybiAwOw0KK30NCisNCitzdGF0aWMgc3RydWN0
+IHNwaV9kcml2ZXIgdHNjMjA0Nl9kcml2ZXIgPSB7DQorCS5kcml2ZXIgPSB7DQorCQkgICAubmFt
+ZSA9ICJ0c2MyMDQ2IiwNCisJCSAgIC5idXMgPSAmc3BpX2J1c190eXBlLA0KKwkJICAgLm93bmVy
+ID0gVEhJU19NT0RVTEUsDQorCX0sDQorCS5wcm9iZSA9IHRzYzIwNDZfcHJvYmUsDQorCS5yZW1v
+dmUgPSBfX2RldmV4aXRfcCh0c2MyMDQ2X3JlbW92ZSksDQorfTsNCisNCitzdGF0aWMgaW50IF9f
+aW5pdCB0c2MyMDQ2X2luaXQodm9pZCkNCit7DQorCXByaW50aygiVFNDMjA0NiBkcml2ZXIgaW5p
+dGlhbGl6aW5nXG4iKTsNCisNCisJcmV0dXJuIHNwaV9yZWdpc3Rlcl9kcml2ZXIoJnRzYzIwNDZf
+ZHJpdmVyKTsNCit9DQorbW9kdWxlX2luaXQodHNjMjA0Nl9pbml0KTsNCisNCitzdGF0aWMgdm9p
+ZCBfX2V4aXQgdHNjMjA0Nl9leGl0KHZvaWQpDQorew0KKwlzcGlfdW5yZWdpc3Rlcl9kcml2ZXIo
+JnRzYzIwNDZfZHJpdmVyKTsNCit9DQorbW9kdWxlX2V4aXQodHNjMjA0Nl9leGl0KTsNCisNCitN
+T0RVTEVfQVVUSE9SKCJLZXZpbiBIaWxtYW4gPGtoaWxtYW5AbXZpc3RhLmNvbT4iKTsNCitNT0RV
+TEVfTElDRU5TRSgiR1BMIik7DQpJbmRleDogZGV2L2luY2x1ZGUvbGludXgvc3BpL3RzYzIwNDYu
+aA0KPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PQ0KLS0tIC9kZXYvbnVsbA0KKysrIGRldi9pbmNsdWRlL2xpbnV4L3NwaS90
+c2MyMDQ2LmgNCkBAIC0wLDAgKzEsNjAgQEANCisjaWZuZGVmIF9MSU5VWF9TUElfVFNDMjA0Nl9I
+DQorI2RlZmluZSBfTElOVVhfU1BJX1RTQzIwNDZfSA0KKw0KKyNpbmNsdWRlIDxsaW51eC90eXBl
+cy5oPg0KKyNpbmNsdWRlIDxsaW51eC90aW1lci5oPg0KKw0KK3N0cnVjdCB0c2MyMDQ2X3BsYXRm
+b3JtX2RhdGEgew0KKwlzMTYJZGF2X2dwaW87DQorCXMxNglncGlvX2RlYm91bmNlOw0KKwl1MTYJ
+dHNfeF9wbGF0ZV9vaG07DQorCXUzMgl0c19tYXhfcHJlc3N1cmU7ICAvKiBTYW1wbGVzIHdpdGgg
+YmlnZ2VyIHByZXNzdXJlIHZhbHVlIHdpbGwNCisJCQkJICAgICBiZSBpZ25vcmVkLCBzaW5jZSB0
+aGUgY29ycmVzcG9uZGluZyBYLCBZDQorCQkJCSAgICAgdmFsdWVzIGFyZSB1bnJlbGlhYmxlICov
+DQorCXUzMgl0c190b3VjaF9wcmVzc3VyZTsvKiBQcmVzc3VyZSBsaW1pdCB1bnRpbCB3ZSByZXBv
+cnQgYQ0KKwkJCQkgICAgIHRvdWNoIGV2ZW50LiBBZnRlciB0aGF0IHdlIHN3aXRjaA0KKwkJCQkg
+ICAgIHRvIHRzX21heF9wcmVzc3VyZS4gKi8NCisJdW5zaWduZWQgdHNfaWdub3JlX2xhc3QgOiAx
+Ow0KKw0KK307DQorDQorc3RydWN0IHRzYzIwNDZfdHM7DQorDQorc3RydWN0IHRzYzIwNDYgew0K
+KwlzdHJ1Y3Qgc3BpX2RldmljZQkqc3BpOw0KKwlpbnQgICAgICAgICAgICAgICAgICAgICBncGlv
+Ow0KKw0KKwlzdHJ1Y3QgdHNjMjA0Nl90cwkqdHM7DQorfTsNCisNCisvKiBUaGUgVFNDMjA0NiBv
+cGVyYXRlcyBhdCBhIG1heGltdW0gc3BlZWQgb2YgMk1IeiAqLw0KKyNkZWZpbmUgVFNDMjA0Nl9I
+WgkyMDAwMDAwDQorDQorI2RlZmluZSBUU0MyMDQ2X0RFQ0xfTU9EKG1vZHVsZSkJCQkJCVwNCitl
+eHRlcm4gaW50ICB0c2MyMDQ2XyMjbW9kdWxlIyNfaW5pdChzdHJ1Y3QgdHNjMjA0NiAqdHNjLAkJ
+XA0KKwkJCSAgIHN0cnVjdCB0c2MyMDQ2X3BsYXRmb3JtX2RhdGEgKnBkYXRhKTsJXA0KK2V4dGVy
+biB2b2lkIHRzYzIwNDZfIyNtb2R1bGUjI19leGl0KHN0cnVjdCB0c2MyMDQ2ICp0c2MpOwkJXA0K
+K2V4dGVybiBpbnQgIHRzYzIwNDZfIyNtb2R1bGUjI19zdXNwZW5kKHN0cnVjdCB0c2MyMDQ2ICp0
+c2MpOwkJXA0KK2V4dGVybiB2b2lkIHRzYzIwNDZfIyNtb2R1bGUjI19yZXN1bWUoc3RydWN0IHRz
+YzIwNDYgKnRzYyk7DQorDQorI2RlZmluZSBUU0MyMDQ2X0RFQ0xfRU1QVFlfTU9EKG1vZHVsZSkJ
+CQkJCVwNCitzdGF0aWMgaW5saW5lIGludCB0c2MyMDQ2XyMjbW9kdWxlIyNfaW5pdChzdHJ1Y3Qg
+dHNjMjA0NiAqdHNjLAkJXA0KKwkJCSAgIHN0cnVjdCB0c2MyMDQ2X3BsYXRmb3JtX2RhdGEgKnBk
+YXRhKQkJXA0KK3sJCQkJCQkJCQlcDQorCXJldHVybiAwOwkJCQkJCQlcDQorfQkJCQkJCQkJCVwN
+CitzdGF0aWMgaW5saW5lIHZvaWQgdHNjMjA0Nl8jI21vZHVsZSMjX2V4aXQoc3RydWN0IHRzYzIw
+NDYgKnRzYykge30JXA0KK3N0YXRpYyBpbmxpbmUgaW50ICB0c2MyMDQ2XyMjbW9kdWxlIyNfc3Vz
+cGVuZChzdHJ1Y3QgdHNjMjA0NiAqdHNjKQlcDQorewkJCQkJCQkJCVwNCisJcmV0dXJuIDA7CQkJ
+CQkJCVwNCit9CQkJCQkJCQkJXA0KK3N0YXRpYyBpbmxpbmUgdm9pZCB0c2MyMDQ2XyMjbW9kdWxl
+IyNfcmVzdW1lKHN0cnVjdCB0c2MyMDQ2ICp0c2MpIHt9DQorDQorI2lmIGRlZmluZWQoQ09ORklH
+X1RPVUNIU0NSRUVOX1RTQzIwNDYpIHx8IFwNCisgICAgZGVmaW5lZChDT05GSUdfVE9VQ0hTQ1JF
+RU5fVFNDMjA0Nl9NT0RVTEUpDQorVFNDMjA0Nl9ERUNMX01PRCh0cykNCisjZWxzZQ0KK1RTQzIw
+NDZfREVDTF9FTVBUWV9NT0QodHMpDQorI2VuZGlmDQorDQorI2VuZGlmDQo=
+
+
+--=-hba5idsOv7O4NciQ2TqB
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--=-hba5idsOv7O4NciQ2TqB--
