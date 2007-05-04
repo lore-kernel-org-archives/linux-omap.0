@@ -1,14 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP2: Remove redundant check on osc refcount
-Date: Fri, 4 May 2007 09:23:27 -0700
-Message-ID: <20070504162326.GD12331@atomide.com>
-References: <20070502182859.GK3520@atomide.com>
-	<1178284764.21647.27.camel@Dogbert.NOE.nokia.com>
+Subject: Re: [PATCH 0/7] musb/tusb6010 fixes for host mode
+Date: Fri, 4 May 2007 09:48:07 -0700
+Message-ID: <20070504164807.GE12331@atomide.com>
+References: <11782105181141-git-send-email-tony@atomide.com>
+	<1178295770.2017.67.camel@paris.hilman.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <1178284764.21647.27.camel@Dogbert.NOE.nokia.com>
+In-Reply-To: <1178295770.2017.67.camel@paris.hilman.org>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,37 +18,29 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Igor Stoppa <igor.stoppa@nokia.com>
+To: Kevin Hilman <khilman@mvista.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Igor Stoppa <igor.stoppa@nokia.com> [070504 06:21]:
-> The usage of the external oscillator is handled already by
-> sleep_block and doesn't require any extra checking.
-> Incidentally this fixes a bug where N800 wouldn't enter retention
-> the first time the display would blank.
+* Kevin Hilman <khilman@mvista.com> [070504 09:23]:
+> On Thu, 2007-05-03 at 16:41 +0000, Tony Lindgren wrote:
 > 
-> Signed-off-by: Klaus Pedersen <klaus.k.pedersen@nokia.com>
+> > Here are some USB patches that make tusb6010 host mode work
+> > finally reliably on at least N800. Now all testusb cases pass
+> > with N800 running as a host.
 > 
-> Signed-off-by: Igor Stoppa <igor.stoppa@nokia.com>
-> ---
->  arch/arm/mach-omap2/pm.c |    2 --
->  1 files changed, 0 insertions(+), 2 deletions(-)
+> Tony,
 > 
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index b3a0d9d..63e380f 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -621,8 +621,6 @@ static int omap2_can_sleep(void)
->  		return 0;
->  	if (atomic_read(&sleep_block) > 0)
->  		return 0;
-> -	if (clk_get_usecount(osc_ck) > 1)
-> -		return 0;
->  	if (omap_dma_running())
->  		return 0;
->  
+> There are some uses of tusb_dma_omap() that are not defined when
+> compiling for !tusb platforms.  The hack below gets it to compile on
+> 2430, but is probably not "the right thing."
 
-Thanks, pushing today.
+Thanks, looks like I missed that. That's how it should be :) I'll push
+it today.
+
+> Also, with your fixes, it's still not working on 2430.  Looks like I
+> have some more digging to do.
+
+Is the peripheral working OK?
 
 Tony
