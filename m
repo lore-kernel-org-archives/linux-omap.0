@@ -1,15 +1,11 @@
-From: Felipe Balbi <ext-felipe.lima@nokia.com>
-Subject: Re: [PATCH] Fix mis-reporting USB Mode on sysfs
-Date: Fri, 4 May 2007 09:02:16 +0300
-Message-ID: <20070504060216.GB5850@1BRL00624.research.nokia.com>
-References: <31e679430705031244rc7018b8o5cf0025e63058b3b@mail.gmail.com>
-	<20070503201158.GJ28985@atomide.com>
-Reply-To: ext-felipe.lima@nokia.com
+From: Nagaraj <raj-0555@hotmail.com>
+Subject: Regarding ost_host... omap 1710 sdp
+Date: Fri, 4 May 2007 14:15:19 +0530
+Message-ID: <BAY119-W13028383025D2C3B1A85B89E400@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20070503201158.GJ28985@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,46 +15,54 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 03, 2007 at 08:11:59PM +0000, ext Tony Lindgren wrote:
-> * Felipe Balbi <felipebalbi@users.sourceforge.net> [070503 19:45]:
-> > 	This small patch fixes the mode reporting on sysfs.
-> > 	Whithout this, we will always see the device as in
-> > 	otg mode.
-> 
-> Hmmm, it should not be necessary to change the mode here as if the
-> mode changes, the interrupt should set it correctly.
-> 
-> Maybe should have some additional modes though:
-> 
-> host
-> peripheral
-> otg_host
-> otg_peripheral
 
-yeah, tought about it but didn't wanna change so much the current code.
+Hi all,
+=20
+I am using omap 1710 software development platform (SDP1710 v2.1.1).
+my aim is to download uboot.
+There are few problems encounted. please help in this issues.
+1. Setting the switchs as said in the "ost_tool_reference_guide.pdf".
+SW101 (Boot Mode)
+SW101 (1-4) - OFF, ON, ON, OFF (CS0 Mode)
+SW101 (1-4) - ON, ON, ON, OFF (CS3 Mode)
+SW401 (DB9/irda)
+SW401 (1-4) - OFF, OFF, ON, ON
+SW1501 (USB dev or otg)
+SW1501 (1-3) - ON, ON, OFF (USB Dev)
+SW1501 (1-3) - OFF, OFF, ON (USB OTG)
+i connected one end of the usb cable to pc and other end to usb dev on the =
+board. my pc is showing unknown device detected. when i am updating the dri=
+vers pc is unable to load the drivers for the usb dev.
+By changing the switch setting to (usb otg ) if connect one end of the usb =
+cable to pc and other end to usb otg . my pc not at all dectecting the usb.
+=20
+2. i compiled uboot image for omap1710. after that i rename the file u-boot=
+.bin.raw.
+The Image file, is selected by File and Image Option in the menu in Ost_Hos=
+t
 
-anyway, i'll check this and provide a better patch then.
-
-> 
-> I guess host and peripheral should be possible to compile in without
-> OTG eventually. And if just say otg, we don't know if it's currently
-> host or peripheral.
-> 
-> Tony
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-
--- 
-Best Regards,
-
-Felipe Balbi
-felipe.lima@indt.org.br
-+55 92 2126-1003
-
-Kernel Developers Team
+Board settings:
+# SW101 OFF ON ON OFF=20
+# SW1501 1-OFF, 2-OFF, 3-ON, 4-OFF, 5-OFF, 6-OFF, 7-OFF, 8-OFF
+Switch ON H3
+i used following setting in ost_host=20
+=20
+Flashing u-boot:=20
+1. Settings->Configuration->Platform->16xx_17xx DDR
+2. Settings->Configuration->Interface->com1=20
+3. Settings->Configuration->Flash Type->NOR=20
+4. Settings->Configuration->Device->HS or EMU=20
+5. Select "Image Download and flashing" on the Main Window=20
+6. Click "Download To Target"=20
+error showing=20
+"Unable to open the file Not Set"
+"Error in Flash Firmware file name" .
+please give me help in thes issues..
+Thanks & Regards,
+Nagaraju.P
+_________________________________________________________________
+Sign in and get updated with all the action!
+http://content.msn.co.in/Sports/FormulaOne/Default=
