@@ -1,10 +1,15 @@
-From: David Boosalis <david.boosalis@trolltech.com>
-Subject: Getting boot prompt with Minicom
-Date: Mon, 07 May 2007 08:44:10 -0700
-Message-ID: <463F494A.8030702@trolltech.com>
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: RE: Getting boot prompt with Minicom
+Date: Mon, 7 May 2007 10:54:38 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47D5EADC@dlee13.ent.ti.com>
+References: <463F494A.8030702@trolltech.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030308000803060400080700"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <463F494A.8030702@trolltech.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,42 +19,22 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: David Boosalis <david.boosalis@trolltech.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030308000803060400080700
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi,
 
-Hi All
+>I fired up my demo board, which is a SDP2430.  I  also have  connected
+>my PC to the board via a serial cable attached to Port 1 (J9) .  I have
+>set my Minicom settings to 115200 8 N 1, but am unable to get any =
+prompt
+>of any type.
 
-My first post to this group, very much a newbie question for which I 
-apologize.
+If you are using u-boot as bootloder then your UART cable should be =
+connected to J8 (UART 1 2). Next to the Ethernet switch.
 
-I fired up my demo board, which is a SDP2430.  I  also have  connected 
-my PC to the board via a serial cable attached to Port 1 (J9) .  I have 
-set my Minicom settings to 115200 8 N 1, but am unable to get any prompt 
-of any type. 
+>Are  these minicom settings correct ?
+Minicom settings looks correct.
 
-Are  these minicom settings correct ?
-
-Should I have hardware flow control on ?
-
-
-Thanks in advance for any help
-
--David
-
-
-
-
-
---------------030308000803060400080700
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---------------030308000803060400080700--
+Regards,
+Khasim
