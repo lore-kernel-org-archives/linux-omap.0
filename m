@@ -1,14 +1,10 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Broken uwire usage in lcd_p2.c, was: Unable to compile Linux 2.6.21
- from source.mvista.com
-Date: Mon, 07 May 2007 16:39:35 +0200
-Message-ID: <463F3A27.3000501@googlemail.com>
-References: <61445c750705070659v1d2fd55akbd8ed2d1108459f9@mail.gmail.com>
+From: David Boosalis <david.boosalis@trolltech.com>
+Subject: Getting boot prompt with Minicom
+Date: Mon, 07 May 2007 08:44:10 -0700
+Message-ID: <463F494A.8030702@trolltech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <61445c750705070659v1d2fd55akbd8ed2d1108459f9@mail.gmail.com>
+Content-Type: multipart/mixed; boundary="------------030308000803060400080700"
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,41 +12,44 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "Pharaoh ." <pharaoh137@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Pharaoh . wrote:
-> I am latest 2.6.21 source from source.mvista.com. I am trying to compile 
-> the
-> kernel for my omap 850 based board.
-> 
-> I am getting following error:
-> 
-> 1. make ARCH=arm omap_perseus2_730_defconfig => works well
-> 
-> 2. make ARCH=arm
-> 
-> CC      drivers/video/omap/lcd_p2.o
-> drivers/video/omap/lcd_p2.c:151:39: ../drivers/ssi/omap-uwire.h: No such
-> file or directory
-> drivers/video/omap/lcd_p2.c: In function `p2_panel_enable':
-> drivers/video/omap/lcd_p2.c:185: warning: implicit declaration of function
-> `omap_uwire_configure_mode'
-> drivers/video/omap/lcd_p2.c:187: warning: implicit declaration of function
-> `omap_uwire_data_transfer
-> 
-> 
-> There is no file like ../drivers/ssi/omap-uwire.h, I have checked. Please
-> enlighten.
+This is a multi-part message in MIME format.
+--------------030308000803060400080700
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-uwire code moved to drivers/spi. Unfortunately, lcd_p2.c isn't 
-converted to new uwire code yet, see [1]. Do you like to send a patch 
-for this? Looks like lcd_h2.c was converted, maybe this can help.
+Hi All
 
-Dirk
+My first post to this group, very much a newbie question for which I 
+apologize.
 
-[1] 
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-March/009254.html
+I fired up my demo board, which is a SDP2430.  I  also have  connected 
+my PC to the board via a serial cable attached to Port 1 (J9) .  I have 
+set my Minicom settings to 115200 8 N 1, but am unable to get any prompt 
+of any type. 
+
+Are  these minicom settings correct ?
+
+Should I have hardware flow control on ?
+
+
+Thanks in advance for any help
+
+-David
+
+
+
+
+
+--------------030308000803060400080700
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--------------030308000803060400080700--
