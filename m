@@ -1,15 +1,16 @@
 From: "Trilok Soni" <soni.trilok@gmail.com>
 Subject: Re: [PATCH 2/2] ARM: OMAP: TSC2046 touchscreen support for 2430
-Date: Mon, 7 May 2007 14:32:24 +0530
-Message-ID: <5d5443650705070202w50514779o9066e482f67d2019@mail.gmail.com>
+Date: Mon, 7 May 2007 15:53:38 +0530
+Message-ID: <5d5443650705070323r7ffa5e3bi9bc4e7b42574a8bc@mail.gmail.com>
 References: <20070504214028.649198901@mvista.com>
 	<20070504214039.632228613@mvista.com>
 	<3a5b1be00705050128m7de63c62hc5f1c34eb1f91613@mail.gmail.com>
+	<5d5443650705070202w50514779o9066e482f67d2019@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="----=_Part_76984_12196291.1178528544780"
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <3a5b1be00705050128m7de63c62hc5f1c34eb1f91613@mail.gmail.com>
+	boundary="----=_Part_78044_1514672.1178533418588"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <5d5443650705070202w50514779o9066e482f67d2019@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,133 +18,91 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-------=_Part_76984_12196291.1178528544780
+------=_Part_78044_1514672.1178533418588
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Tony,
-
-On 5/5/07, Komal Shah <komal.shah802003@gmail.com> wrote:
-> Kevin,
+On 5/7/07, Trilok Soni <soni.trilok@gmail.com> wrote:
+> Tony,
 >
-> On 5/5/07, Kevin Hilman <khilman@mvista.com> wrote:
-> > This is a rework of the tsc2046 driver from TI's tree, based
-> > on the tsc2301 driver and using the new SPI framework.
+> On 5/5/07, Komal Shah <komal.shah802003@gmail.com> wrote:
+> > Kevin,
 > >
-> > Signed-off-by: Kevin Hilman <khilman@mvista.com>
+> > On 5/5/07, Kevin Hilman <khilman@mvista.com> wrote:
+> > > This is a rework of the tsc2046 driver from TI's tree, based
+> > > on the tsc2301 driver and using the new SPI framework.
+> > >
+> > > Signed-off-by: Kevin Hilman <khilman@mvista.com>
+> >
+> > Very small changes required in order to confirm CodingStyle.
+> >
 >
-> Very small changes required in order to confirm CodingStyle.
+> I have attached two patches implementing changes as suggested by
+> Komal. They are compile tested only.
 >
 
-I have attached two patches implementing changes as suggested by
-Komal. They are compile tested only.
+Attached 3rd patch fixes suspend/resume functions, as TSC2046 is TS
+only device not like TSC2301, so we don't need to make non-static
+functions like TSC2301_TS which gets called from it's core driver on
+suspend/resume.
+
+This patch is also compile-tested only. Kevin please test it.
 
 -- 
 --Trilok Soni
 
-------=_Part_76984_12196291.1178528544780
+------=_Part_78044_1514672.1178533418588
 Content-Type: text/x-patch;
-	name=0001-ARM-OMAP-TSC2046-CodingStyle-cleanup.patch;
+	name=0003-SPI-TSC2046-Fix-supend-resume-functions.patch;
 	charset=ANSI_X3.4-1968
 Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f1epf46i
+X-Attachment-Id: f_f1esc5r8
 Content-Disposition: attachment;
-	filename="0001-ARM-OMAP-TSC2046-CodingStyle-cleanup.patch"
+	filename="0003-SPI-TSC2046-Fix-supend-resume-functions.patch"
 
-RnJvbSBmMzRmYWM0NmFiZDBlM2M2ZjlmNzc2MGE4M2U5MWI2NGFiNjAyZDIxIE1vbiBTZXAgMTcg
+RnJvbSA3N2Q0YWUxOTNiZGQyNzViZmZhY2Q2ZTQ0Njc2ODc2NGM3OTAyZGQ4IE1vbiBTZXAgMTcg
 MDA6MDA6MDAgMjAwMQpGcm9tOiBUcmlsb2sgU29uaSA8c29uaS50cmlsb2tAZ21haWwuY29tPgpE
-YXRlOiBNb24sIDcgTWF5IDIwMDcgMTc6NTA6NDkgKzA1MzAKU3ViamVjdDogW1BBVENIXSBBUk06
-IE9NQVA6IFRTQzIwNDYgQ29kaW5nU3R5bGUgY2xlYW51cC4KClNpZ25lZC1vZmYtYnk6IFRyaWxv
-ayBTb25pIDxzb25pLnRyaWxva0BnbWFpbC5jb20+Ci0tLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9i
-b2FyZC0yNDMwc2RwLmMgfCAgIDE4ICsrKysrKysrKystLS0tLS0tLQogMSBmaWxlcyBjaGFuZ2Vk
-LCAxMCBpbnNlcnRpb25zKCspLCA4IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJt
-L21hY2gtb21hcDIvYm9hcmQtMjQzMHNkcC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0y
-NDMwc2RwLmMKaW5kZXggNWVlOTcwYi4uZWJkMjYzMCAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFj
-aC1vbWFwMi9ib2FyZC0yNDMwc2RwLmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0y
-NDMwc2RwLmMKQEAgLTEzNywxNCArMTM3LDE2IEBAIHN0YXRpYyBzdHJ1Y3Qgb21hcDJfbWNzcGlf
-ZGV2aWNlX2NvbmZpZyB0c2MyMDQ2X21jc3BpX2NvbmZpZyA9IHsKIAogc3RhdGljIHN0cnVjdCBz
-cGlfYm9hcmRfaW5mbyBzZHAyNDMwX3NwaV9ib2FyZF9pbmZvW10gX19pbml0ZGF0YSA9IHsKIAlb
-MF0gPSB7Ci0JCS8qIFRTQzIwNDYgb3BlcmF0ZXMgYXQgYSBtYXggZnJlcWVuY3kgb2YgMk1Ieiwg
-c28KLQkJICogb3BlcmF0ZSBzbGlnaHRseSBiZWxvdyBhdCAxLjVNSHogKi8KLQkJLm1vZGFsaWFz
-CT0gInRzYzIwNDYiLAotCQkuYnVzX251bQk9IDEsCi0JCS5jaGlwX3NlbGVjdAk9IDAsCi0JCS5t
-YXhfc3BlZWRfaHogICA9IDE1MDAwMDAsCi0JCS5jb250cm9sbGVyX2RhdGE9ICZ0c2MyMDQ2X21j
-c3BpX2NvbmZpZywKLQkJLnBsYXRmb3JtX2RhdGEgID0gJnRzYzIwNDZfY29uZmlnLAorCQkvKgor
-CQkgKiBUU0MyMDQ2IG9wZXJhdGVzIGF0IGEgbWF4IGZyZXFlbmN5IG9mIDJNSHosIHNvCisJCSAq
-IG9wZXJhdGUgc2xpZ2h0bHkgYmVsb3cgYXQgMS41TUh6CisJCSAqLworCQkubW9kYWxpYXMJID0g
-InRzYzIwNDYiLAorCQkuYnVzX251bQkgPSAxLAorCQkuY2hpcF9zZWxlY3QJID0gMCwKKwkJLm1h
-eF9zcGVlZF9oeiAgICA9IDE1MDAwMDAsCisJCS5jb250cm9sbGVyX2RhdGEgPSAmdHNjMjA0Nl9t
-Y3NwaV9jb25maWcsCisJCS5wbGF0Zm9ybV9kYXRhICAgPSAmdHNjMjA0Nl9jb25maWcsCiAJfSwK
-IH07CiAKLS0gCjEuNS4wCgo=
-------=_Part_76984_12196291.1178528544780
-Content-Type: text/x-patch;
-	name=0002-SPI-TSC2046-driver-CodingStyle-cleanup.patch;
-	charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f1epg5zm
-Content-Disposition: attachment;
-	filename="0002-SPI-TSC2046-driver-CodingStyle-cleanup.patch"
-
-RnJvbSAyOWQ2N2UzODIxYjNmNWUyN2RlNWQ4MjQ3YTZmYzM5ZjViYWQwNmRiIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBUcmlsb2sgU29uaSA8c29uaS50cmlsb2tAZ21haWwuY29tPgpE
-YXRlOiBNb24sIDcgTWF5IDIwMDcgMTg6MTM6NDMgKzA1MzAKU3ViamVjdDogW1BBVENIXSBTUEk6
-IFRTQzIwNDYgZHJpdmVyIENvZGluZ1N0eWxlIGNsZWFudXAuCgpTaWduZWQtb2ZmLWJ5OiBUcmls
-b2sgU29uaSA8c29uaS50cmlsb2tAZ21haWwuY29tPgotLS0KIGRyaXZlcnMvaW5wdXQvdG91Y2hz
-Y3JlZW4vdHNjMjA0Nl90cy5jIHwgICAyMyArKysrKysrKysrKystLS0tLS0tLS0tLQogMSBmaWxl
-cyBjaGFuZ2VkLCAxMiBpbnNlcnRpb25zKCspLCAxMSBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQg
-YS9kcml2ZXJzL2lucHV0L3RvdWNoc2NyZWVuL3RzYzIwNDZfdHMuYyBiL2RyaXZlcnMvaW5wdXQv
-dG91Y2hzY3JlZW4vdHNjMjA0Nl90cy5jCmluZGV4IGE1NmFlNWEuLmE1MDk5ODYgMTAwNjQ0Ci0t
-LSBhL2RyaXZlcnMvaW5wdXQvdG91Y2hzY3JlZW4vdHNjMjA0Nl90cy5jCisrKyBiL2RyaXZlcnMv
-aW5wdXQvdG91Y2hzY3JlZW4vdHNjMjA0Nl90cy5jCkBAIC0xMzQsNyArMTM0LDggQEAgc3RhdGlj
-IHZvaWQgdHNjMjA0Nl90c19yeCh2b2lkICphcmcpCiAJfSBlbHNlCiAJCXByZXNzdXJlID0gMDsK
-IAotCS8qIElmIHByZXNzdXJlIHZhbHVlIGlzIGFib3ZlIGEgcHJlc2V0IGxpbWl0IChwZW4gaXMg
-YmFyZWx5CisJLyoKKwkgKiBJZiBwcmVzc3VyZSB2YWx1ZSBpcyBhYm92ZSBhIHByZXNldCBsaW1p
-dCAocGVuIGlzIGJhcmVseQogCSAqIHRvdWNoaW5nIHRoZSBzY3JlZW4pIHdlIGNhbid0IHRydXN0
-IHRoZSBjb29yZGluYXRlIHZhbHVlcy4KIAkgKi8KIAlpZiAocHJlc3N1cmUgPCB0cy0+cHJlc3N1
-cmVfbGltaXQgJiYgeCA8IE1BWF8xMkJJVCAmJiB5IDwgTUFYXzEyQklUKSB7CkBAIC0zNzcsMTQg
-KzM3OCwxMiBAQCBpbnQgX19kZXZpbml0IHRzYzIwNDZfdHNfaW5pdChzdHJ1Y3QgdHNjMjA0NiAq
-dHNjLAogCiAJdHMtPmlycSA9IE9NQVBfR1BJT19JUlEoZGF2X2dwaW8pOwogI2VuZGlmCi0JaW5p
-dF90aW1lcigmdHMtPnRpbWVyKTsKLQl0cy0+dGltZXIuZGF0YSA9ICh1bnNpZ25lZCBsb25nKSB0
-c2M7Ci0JdHMtPnRpbWVyLmZ1bmN0aW9uID0gdHNjMjA0Nl90c190aW1lcjsKKwlzZXR1cF90aW1l
-cigmdHMtPnRpbWVyLCB0c2MyMDQ2X3RzX3RpbWVyLCAodW5zaWduZWQgbG9uZyl0c2MpOwogCiAJ
-c3Bpbl9sb2NrX2luaXQoJnRzLT5sb2NrKTsKIAogCXRzLT54X3BsYXRlX29obQk9IHBkYXRhLT50
-c194X3BsYXRlX29obSA/IDogMjgwOwotCXRzLT5tYXhfcHJlc3N1cmU9IHBkYXRhLT50c19tYXhf
-cHJlc3N1cmUgPyA6IE1BWF8xMkJJVDsKKwl0cy0+bWF4X3ByZXNzdXJlID0gcGRhdGEtPnRzX21h
-eF9wcmVzc3VyZSA/IDogTUFYXzEyQklUOwogCXRzLT50b3VjaF9wcmVzc3VyZSA9IHBkYXRhLT50
-c190b3VjaF9wcmVzc3VyZSA/IDogdHMtPm1heF9wcmVzc3VyZTsKIAl0cy0+aWdub3JlX2xhc3QJ
-PSBwZGF0YS0+dHNfaWdub3JlX2xhc3Q7CiAKQEAgLTQxMSw3ICs0MTAsNyBAQCBpbnQgX19kZXZp
-bml0IHRzYzIwNDZfdHNfaW5pdChzdHJ1Y3QgdHNjMjA0NiAqdHNjLAogCiAJdHMtPmlycV9lbmFi
-bGVkID0gMTsKIAlyID0gcmVxdWVzdF9pcnEodHMtPmlycSwgdHNjMjA0Nl90c19pcnFfaGFuZGxl
-ciwKLQkJCVNBX1NBTVBMRV9SQU5ET00gfCBTQV9UUklHR0VSX0ZBTExJTkcsCisJCQlJUlFGX1NB
-TVBMRV9SQU5ET00gfCBJUlFGX1RSSUdHRVJfRkFMTElORywKIAkJCSJ0c2MyMDQ2LXRzIiwgdHNj
-KTsKIAlpZiAociA8IDApIHsKIAkJZGV2X2VycigmdHNjLT5zcGktPmRldiwgInVuYWJsZSB0byBn
-ZXQgREFWIElSUSIpOwpAQCAtNDQ2LDcgKzQ0NSw3IEBAIGVycjI6CiAjaWZkZWYgQ09ORklHX0FS
-Q0hfT01BUAogCW9tYXBfZnJlZV9ncGlvKGRhdl9ncGlvKTsKICNlbmRpZgotIGVycjE6CitlcnIx
-OgogCWtmcmVlKHRzKTsKIAlyZXR1cm4gcjsKIH0KQEAgLTQ5OSw4ICs0OTgsMTAgQEAgc3RhdGlj
-IGludCBfX2RldmluaXQgdHNjMjA0Nl9wcm9iZShzdHJ1Y3Qgc3BpX2RldmljZSAqc3BpKQogCXNw
-aS0+bW9kZSA9IFNQSV9NT0RFXzE7CiAJc3BpLT5iaXRzX3Blcl93b3JkID0gMTY7CiAKLQkvKiBU
-aGUgbWF4IHNwZWVkIG1pZ2h0J3ZlIGJlZW4gZGVmaW5lZCBieSB0aGUgYm9hcmQtc3BlY2lmaWMK
-LQkgKiBzdHJ1Y3QgKi8KKwkvKgorCSAqIFRoZSBtYXggc3BlZWQgbWlnaHQndmUgYmVlbiBkZWZp
-bmVkIGJ5IHRoZSBib2FyZC1zcGVjaWZpYworCSAqIHN0cnVjdAorCSAqLwogCWlmICghc3BpLT5t
-YXhfc3BlZWRfaHopCiAJCXNwaS0+bWF4X3NwZWVkX2h6ID0gVFNDMjA0Nl9IWjsKIAlzcGlfc2V0
-dXAoc3BpKTsKQEAgLTUxMCw3ICs1MTEsNyBAQCBzdGF0aWMgaW50IF9fZGV2aW5pdCB0c2MyMDQ2
-X3Byb2JlKHN0cnVjdCBzcGlfZGV2aWNlICpzcGkpCiAJCWdvdG8gZXJyMTsKIAogCXJldHVybiAw
-OwotIGVycjE6CitlcnIxOgogCWtmcmVlKHRzYyk7CiAJcmV0dXJuIHI7CiB9CkBAIC01MjEsNyAr
-NTIyLDcgQEAgc3RhdGljIGludCBfX2RldmV4aXQgdHNjMjA0Nl9yZW1vdmUoc3RydWN0IHNwaV9k
-ZXZpY2UgKnNwaSkKIAogCWRldl9kYmcoJnRzYy0+c3BpLT5kZXYsICIlc1xuIiwgX19GVU5DVElP
-Tl9fKTsKIAotICAgICAgICB0c2MyMDQ2X3RzX2V4aXQodHNjKTsKKwl0c2MyMDQ2X3RzX2V4aXQo
-dHNjKTsKIAlrZnJlZSh0c2MpOwogCiAJcmV0dXJuIDA7Ci0tIAoxLjUuMAoK
-------=_Part_76984_12196291.1178528544780
+YXRlOiBNb24sIDcgTWF5IDIwMDcgMjE6MjE6MTUgKzA1MzAKU3ViamVjdDogW1BBVENIXSBTUEk6
+IFRTQzIwNDYgRml4IHN1cGVuZC9yZXN1bWUgZnVuY3Rpb25zCgotIEFkZCBzdXNwZW5kLCByZXN1
+bWUgZnVuY3Rpb24gdG8gdHNjMjA0NiBkZXZpY2UgZHJpdmVyLgotIENoYW5nZSB0c2MyMDQ2X3N1
+c3BlbmQvcmVzdW1lIGZ1bmN0aW9uIGFjY29yYWRpbmdseSwKICBhcyB0c2MyMDQ2IGlzIFRTIG9u
+bHkgZGV2aWNlIG5vdCBsaWtlIFRTQzIzMDEuCgpTaWduZWQtb2ZmLWJ5OiBUcmlsb2sgU29uaSA8
+c29uaS50cmlsb2tAZ21haWwuY29tPgotLS0KIGRyaXZlcnMvaW5wdXQvdG91Y2hzY3JlZW4vdHNj
+MjA0Nl90cy5jIHwgICAxMiArKysrKysrKysrLS0KIDEgZmlsZXMgY2hhbmdlZCwgMTAgaW5zZXJ0
+aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2lucHV0L3RvdWNo
+c2NyZWVuL3RzYzIwNDZfdHMuYyBiL2RyaXZlcnMvaW5wdXQvdG91Y2hzY3JlZW4vdHNjMjA0Nl90
+cy5jCmluZGV4IGE1MDk5ODYuLjQ2ODlmYjYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvaW5wdXQvdG91
+Y2hzY3JlZW4vdHNjMjA0Nl90cy5jCisrKyBiL2RyaXZlcnMvaW5wdXQvdG91Y2hzY3JlZW4vdHNj
+MjA0Nl90cy5jCkBAIC0yNTUsOCArMjU1LDkgQEAgc3RhdGljIHZvaWQgdHNjMjA0Nl90c19lbmFi
+bGUoc3RydWN0IHRzYzIwNDYgKnRzYykKIH0KIAogI2lmZGVmIENPTkZJR19QTQotaW50IHRzYzIw
+NDZfdHNfc3VzcGVuZChzdHJ1Y3QgdHNjMjA0NiAqdHNjKQorc3RhdGljIGludCB0c2MyMDQ2X3N1
+c3BlbmQoc3RydWN0IHNwaV9kZXZpY2UgKnNwaSwgcG1fbWVzc2FnZV90IG1lc2cpCiB7CisJc3Ry
+dWN0IHRzYzIwNDYgKnRzYyA9IGRldl9nZXRfZHJ2ZGF0YSgmc3BpLT5kZXYpOwogCXN0cnVjdCB0
+c2MyMDQ2X3RzICp0cyA9IHRzYy0+dHM7CiAKIAlzcGluX2xvY2tfaXJxKCZ0cy0+bG9jayk7CkBA
+IC0yNjYsMTMgKzI2NywxNiBAQCBpbnQgdHNjMjA0Nl90c19zdXNwZW5kKHN0cnVjdCB0c2MyMDQ2
+ICp0c2MpCiAJcmV0dXJuIDA7CiB9CiAKLXZvaWQgdHNjMjA0Nl90c19yZXN1bWUoc3RydWN0IHRz
+YzIwNDYgKnRzYykKK3N0YXRpYyBpbnQgdHNjMjA0Nl9yZXN1bWUoc3RydWN0IHNwaV9kZXZpY2Ug
+KnNwaSkKIHsKKwlzdHJ1Y3QgdHNjMjA0NiAqdHNjID0gZGV2X2dldF9kcnZkYXRhKCZzcGktPmRl
+dik7CiAJc3RydWN0IHRzYzIwNDZfdHMgKnRzID0gdHNjLT50czsKIAogCXNwaW5fbG9ja19pcnEo
+JnRzLT5sb2NrKTsKIAl0c2MyMDQ2X3RzX2VuYWJsZSh0c2MpOwogCXNwaW5fdW5sb2NrX2lycSgm
+dHMtPmxvY2spOworCisJcmV0dXJuIDA7CiB9CiAjZW5kaWYKIApAQCAtNTM2LDYgKzU0MCwxMCBA
+QCBzdGF0aWMgc3RydWN0IHNwaV9kcml2ZXIgdHNjMjA0Nl9kcml2ZXIgPSB7CiAJfSwKIAkucHJv
+YmUgPSB0c2MyMDQ2X3Byb2JlLAogCS5yZW1vdmUgPSBfX2RldmV4aXRfcCh0c2MyMDQ2X3JlbW92
+ZSksCisjaWZkZWYgQ09ORklHX1BNCisJLnN1c3BlbmQgPSB0c2MyMDQ2X3N1c3BlbmQsCisJLnJl
+c3VtZSA9IHRzYzIwNDZfcmVzdW1lLAorI2VuZGlmCiB9OwogCiBzdGF0aWMgaW50IF9faW5pdCB0
+c2MyMDQ2X2luaXQodm9pZCkKLS0gCjEuNS4wCgo=
+------=_Part_78044_1514672.1178533418588
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
-------=_Part_76984_12196291.1178528544780--
+------=_Part_78044_1514672.1178533418588--
