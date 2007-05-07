@@ -1,55 +1,34 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: How to implement JFFS2 filesystem on NAND
-Date: Mon, 7 May 2007 07:01:10 -0500
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429EAA69D@dlee13.ent.ti.com>
-References: <42E999AD7A0E4647BF159F467EE4FBCB017B50DF@BLR-SGM-MSG01.wipro.com>
+From: karthik <skarthikeyan_17@yahoo.com>
+Subject: regarding webcam in osk5912
+Date: Mon, 7 May 2007 05:37:27 -0700 (PDT)
+Message-ID: <273511.83213.qm@web51405.mail.re2.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <42E999AD7A0E4647BF159F467EE4FBCB017B50DF@BLR-SGM-MSG01.wipro.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: linux-mtd-bounces@lists.infradead.org
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: sathish.madhava@wipro.com, linux-omap-open-source@linux.omap.com
-Cc: linux-mtd@lists.infradead.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-> 
-> VFS: Mounted root (jffs2 filesystem).
-> 
-> Freeing init memory: 124K
-> 
-> Warning: unable to open an initial console.
-> 
-> /sbin/init exit code: -2
-> 
-> /etc/init exit code: -2
-> 
-> /bin/init exit code: -2
-> 
-> /bin/sh exit code: -2
-> 
-> Kernel panic - not syncing: No init found.  Try passing init= option
-to
-> kernel.
+Hi,
+i had mailed to this list already, regarding osk5912 usb host not being able power up my webcam. i got suggestions to use an external powered hub. But the issue is that i am not able to get such hub here (new delhi.. duh).  (i got one, but it does not stick to the spec.)
 
-Looks like your file system has no device nodes in /dev.
+Can someone throw light on the y cable method?.. if anyone has done it.. or if someone can tell me a shop (anywhere in india). where i can buy this thing. 
 
-For older kernels devfs would allow this to work.  On newer ones you
-need all your nodes, or a properly configured udev, and some hotplug
-support.
+Please do reply.
 
-Regards,
-Richard W.
+Regards
+karthik
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+       
+---------------------------------
+Ahhh...imagining that irresistible "new car" smell?
+ Check outnew cars at Yahoo! Autos.
