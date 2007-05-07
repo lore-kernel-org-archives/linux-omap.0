@@ -1,15 +1,15 @@
-From: "Komal Shah" <komal.shah802003@gmail.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
 Subject: Re: [PATCH 2/2] ARM: OMAP: TSC2046 touchscreen support for 2430
-Date: Sat, 5 May 2007 13:58:39 +0530
-Message-ID: <3a5b1be00705050128m7de63c62hc5f1c34eb1f91613@mail.gmail.com>
+Date: Mon, 7 May 2007 14:32:24 +0530
+Message-ID: <5d5443650705070202w50514779o9066e482f67d2019@mail.gmail.com>
 References: <20070504214028.649198901@mvista.com>
 	<20070504214039.632228613@mvista.com>
+	<3a5b1be00705050128m7de63c62hc5f1c34eb1f91613@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="----=_Part_76984_12196291.1178528544780"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070504214039.632228613@mvista.com>
-Content-Disposition: inline
+In-Reply-To: <3a5b1be00705050128m7de63c62hc5f1c34eb1f91613@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,302 +19,131 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kevin Hilman <khilman@mvista.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Kevin,
+------=_Part_76984_12196291.1178528544780
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On 5/5/07, Kevin Hilman <khilman@mvista.com> wrote:
-> This is a rework of the tsc2046 driver from TI's tree, based
-> on the tsc2301 driver and using the new SPI framework.
+Tony,
+
+On 5/5/07, Komal Shah <komal.shah802003@gmail.com> wrote:
+> Kevin,
 >
-> Signed-off-by: Kevin Hilman <khilman@mvista.com>
+> On 5/5/07, Kevin Hilman <khilman@mvista.com> wrote:
+> > This is a rework of the tsc2046 driver from TI's tree, based
+> > on the tsc2301 driver and using the new SPI framework.
+> >
+> > Signed-off-by: Kevin Hilman <khilman@mvista.com>
+>
+> Very small changes required in order to confirm CodingStyle.
+>
 
-Very small changes required in order to confirm CodingStyle.
-
-...
-
-> +
-> +static struct omap2_mcspi_device_config tsc2046_mcspi_config = {
-> +       .turbo_mode     = 0,
-> +       .single_channel = 0,  /* 0: slave, 1: master */
-> +};
-> +
-> +static struct spi_board_info sdp2430_spi_board_info[] __initdata = {
-> +       [0] = {
-> +               /* TSC2046 operates at a max freqency of 2MHz, so
-> +                * operate slightly below at 1.5MHz */
-
-multi-line comments block should be like this:
-/*
- * TSC2046 operates at a max freqency of 2MHz, so
- * operate slightly below at 1.5MHz
- */
-
-> +               .modalias       = "tsc2046",
-> +               .bus_num        = 1,
-> +               .chip_select    = 0,
-> +               .max_speed_hz   = 1500000,
-> +               .controller_data= &tsc2046_mcspi_config,
-
-Space before "=".
-
-> +               .platform_data  = &tsc2046_config,
-> +       },
-> +};
-> +
-
-....
-
-> +/*
-> + * This procedure is called by the SPI framework after the coordinates
-> + * have been read from TSC2046
-> + */
-> +static void tsc2046_ts_rx(void *arg)
-> +{
-> +       struct tsc2046 *tsc = arg;
-> +       struct tsc2046_ts *ts = tsc->ts;
-> +       unsigned int x, y, z1, z2, pressure;
-> +
-> +       x  = CONV_DATA(ts->data[2], ts->data[3]);
-> +       y  = CONV_DATA(ts->data[1], ts->data[2]);
-> +       z1 = CONV_DATA(ts->data[3], ts->data[4]);
-> +       z2 = CONV_DATA(ts->data[4], 0);
-> +
-> +       if (z1) {
-> +               pressure = ts->x_plate_ohm * x;
-> +               pressure /= 4096;
-> +               pressure *= z2 - z1;
-> +               pressure /= z1;
-> +       } else
-> +               pressure = 0;
-> +
-> +       /* If pressure value is above a preset limit (pen is barely
-> +        * touching the screen) we can't trust the coordinate values.
-> +        */
-
-same here for multi-line comment block style.
-
-> +       if (pressure < ts->pressure_limit && x < MAX_12BIT && y < MAX_12BIT) {
-> +               ts->pressure_limit = ts->max_pressure;
-> +               if (ts->ignore_last) {
-> +                       if (ts->sample_cnt)
-> +                               update_pen_state(tsc, ts->x, ts->y, ts->p);
-> +                       ts->x = x;
-> +                       ts->y = y;
-> +                       ts->p = pressure;
-> +               } else
-> +                       update_pen_state(tsc, x, y, pressure);
-> +               ts->sample_cnt++;
-> +       }
-> +
-> +       mod_timer(&ts->timer,
-> +                 jiffies + msecs_to_jiffies(TSC2046_TS_SCAN_TIME));
-> +}
-> +
-
-....
-
-> +
-> +int __devinit tsc2046_ts_init(struct tsc2046 *tsc,
-> +                             struct tsc2046_platform_data *pdata)
-> +{
-> +       struct tsc2046_ts *ts;
-> +       struct input_dev *idev;
-> +       int dav_gpio, r;
-> +
-> +       if (pdata->dav_gpio < 0) {
-> +               dev_err(&tsc->spi->dev, "need DAV GPIO");
-> +               return -EINVAL;
-> +       }
-> +       dav_gpio = pdata->dav_gpio;
-> +
-> +       ts = kzalloc(sizeof(*ts), GFP_KERNEL);
-> +       if (ts == NULL)
-> +               return -ENOMEM;
-> +       tsc->ts = ts;
-> +
-> +       ts->dav_gpio = dav_gpio;
-> +#ifdef CONFIG_ARCH_OMAP
-> +       r = omap_request_gpio(dav_gpio);
-> +       if (r < 0) {
-> +               dev_err(&tsc->spi->dev, "unable to get DAV GPIO");
-> +               goto err1;
-> +       }
-> +       omap_set_gpio_direction(dav_gpio, 1);
-> +       if (pdata->gpio_debounce) {
-> +               omap_set_gpio_debounce(tsc->gpio, 1);
-> +               omap_set_gpio_debounce_time(tsc->gpio, pdata->gpio_debounce);
-> +       }
-> +
-> +       ts->irq = OMAP_GPIO_IRQ(dav_gpio);
-> +#endif
-> +       init_timer(&ts->timer);
-> +       ts->timer.data = (unsigned long) tsc;
-> +       ts->timer.function = tsc2046_ts_timer;
-
-setup_timer ?
-
-> +
-> +       spin_lock_init(&ts->lock);
-> +
-> +       ts->x_plate_ohm = pdata->ts_x_plate_ohm ? : 280;
-> +       ts->max_pressure= pdata->ts_max_pressure ? : MAX_12BIT;
-
-space before "=".
-
-> +       ts->touch_pressure = pdata->ts_touch_pressure ? : ts->max_pressure;
-> +       ts->ignore_last = pdata->ts_ignore_last;
-> +
-> +       idev = input_allocate_device();
-> +       if (idev == NULL) {
-> +               r = -ENOMEM;
-> +               goto err2;
-> +       }
-> +       idev->name = "TSC2046 touchscreen";
-> +       snprintf(ts->phys, sizeof(ts->phys),
-> +                "%s/input-ts", tsc->spi->dev.bus_id);
-> +       idev->phys = ts->phys;
-> +
-> +       idev->evbit[0] = BIT(EV_ABS) | BIT(EV_KEY);
-> +       idev->absbit[0] = BIT(ABS_X) | BIT(ABS_Y) | BIT(ABS_PRESSURE);
-> +       ts->idev = idev;
-> +
-> +       tsc2046_ts_setup_spi_xfer(tsc);
-> +
-> +       /* These parameters should perhaps be configurable? */
-> +       input_set_abs_params(idev, ABS_X, 0, 4096, 0, 0);
-> +       input_set_abs_params(idev, ABS_Y, 0, 4096, 0, 0);
-> +       input_set_abs_params(idev, ABS_PRESSURE, 0, 1024, 0, 0);
-> +
-> +       ts->irq_enabled = 1;
-> +       r = request_irq(ts->irq, tsc2046_ts_irq_handler,
-> +                       SA_SAMPLE_RANDOM | SA_TRIGGER_FALLING,
-> +                       "tsc2046-ts", tsc);
-
-deprecated SA_* flags.
-
-> +       if (r < 0) {
-> +               dev_err(&tsc->spi->dev, "unable to get DAV IRQ");
-> +               goto err3;
-> +       }
-> +       set_irq_wake(ts->irq, 1);
-> +
-> +       if (device_create_file(&tsc->spi->dev, &dev_attr_pen_down) < 0)
-> +               goto err4;
-> +       if (device_create_file(&tsc->spi->dev, &dev_attr_disable_ts) < 0)
-> +               goto err5;
-> +
-> +       r = input_register_device(idev);
-> +       if (r < 0) {
-> +               dev_err(&tsc->spi->dev, "can't register touchscreen device\n");
-> +               goto err6;
-> +       }
-> +
-> +       /* kick off a transaction to enable pen interrupts */
-> +       spi_async(tsc->spi, &ts->read_msg);
-> +
-> +       return 0;
-> +err6:
-> +       device_remove_file(&tsc->spi->dev, &dev_attr_disable_ts);
-> +err5:
-> +       device_remove_file(&tsc->spi->dev, &dev_attr_pen_down);
-> +err4:
-> +       free_irq(ts->irq, tsc);
-> +err3:
-> +       input_free_device(idev);
-> +err2:
-> +#ifdef CONFIG_ARCH_OMAP
-> +       omap_free_gpio(dav_gpio);
-> +#endif
-> + err1:
-> +       kfree(ts);
-> +       return r;
-> +}
-> +EXPORT_SYMBOL(tsc2046_ts_init);
-> +
-> +void __devexit tsc2046_ts_exit(struct tsc2046 *tsc)
-> +{
-> +       struct tsc2046_ts *ts = tsc->ts;
-> +       unsigned long flags;
-> +
-> +       spin_lock_irqsave(&ts->lock, flags);
-> +       tsc2046_ts_disable(tsc);
-> +       spin_unlock_irqrestore(&ts->lock, flags);
-> +
-> +       device_remove_file(&tsc->spi->dev, &dev_attr_disable_ts);
-> +       device_remove_file(&tsc->spi->dev, &dev_attr_pen_down);
-> +
-> +       free_irq(ts->irq, tsc);
-> +       input_unregister_device(ts->idev);
-> +
-> +#ifdef CONFIG_ARCH_OMAP
-> +       omap_free_gpio(ts->dav_gpio);
-> +#endif
-> +       kfree(ts);
-> +}
-> +EXPORT_SYMBOL(tsc2046_ts_exit);
-> +
-> +
-> +static int __devinit tsc2046_probe(struct spi_device *spi)
-> +{
-> +       struct tsc2046                  *tsc;
-> +       struct tsc2046_platform_data    *pdata = spi->dev.platform_data;
-> +       int r = -ENODEV;
-> +
-> +       dev_dbg(&spi->dev, "%s\n", __FUNCTION__);
-> +
-> +       if (!pdata) {
-> +               dev_dbg(&spi->dev, "no platform data?\n");
-> +               return -ENODEV;
-> +       }
-> +
-> +       tsc = kzalloc(sizeof(*tsc), GFP_KERNEL);
-> +       if (tsc == NULL)
-> +               return -ENOMEM;
-> +
-> +       dev_set_drvdata(&spi->dev, tsc);
-> +       tsc->spi = spi;
-> +       spi->dev.power.power_state = PMSG_ON;
-> +
-> +       spi->mode = SPI_MODE_1;
-> +       spi->bits_per_word = 16;
-> +
-> +       /* The max speed might've been defined by the board-specific
-> +        * struct */
-
-same comment for multi-line comments style as pointed earlier.
-
-> +       if (!spi->max_speed_hz)
-> +               spi->max_speed_hz = TSC2046_HZ;
-> +       spi_setup(spi);
-> +
-> +       r = tsc2046_ts_init(tsc, pdata);
-> +       if (r)
-> +               goto err1;
-> +
-> +       return 0;
-> + err1:
-> +       kfree(tsc);
-> +       return r;
-> +}
-> +
-> +static int __devexit tsc2046_remove(struct spi_device *spi)
-> +{
-> +       struct tsc2046 *tsc = dev_get_drvdata(&spi->dev);
-> +
-> +       dev_dbg(&tsc->spi->dev, "%s\n", __FUNCTION__);
-> +
-> +        tsc2046_ts_exit(tsc);
-
-This doesn't look to me a tab.
-
-> +       kfree(tsc);
-> +
-> +       return 0;
-> +}
+I have attached two patches implementing changes as suggested by
+Komal. They are compile tested only.
 
 -- 
----Komal Shah
-http://komalshah.blogspot.com
+--Trilok Soni
+
+------=_Part_76984_12196291.1178528544780
+Content-Type: text/x-patch;
+	name=0001-ARM-OMAP-TSC2046-CodingStyle-cleanup.patch;
+	charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f1epf46i
+Content-Disposition: attachment;
+	filename="0001-ARM-OMAP-TSC2046-CodingStyle-cleanup.patch"
+
+RnJvbSBmMzRmYWM0NmFiZDBlM2M2ZjlmNzc2MGE4M2U5MWI2NGFiNjAyZDIxIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBUcmlsb2sgU29uaSA8c29uaS50cmlsb2tAZ21haWwuY29tPgpE
+YXRlOiBNb24sIDcgTWF5IDIwMDcgMTc6NTA6NDkgKzA1MzAKU3ViamVjdDogW1BBVENIXSBBUk06
+IE9NQVA6IFRTQzIwNDYgQ29kaW5nU3R5bGUgY2xlYW51cC4KClNpZ25lZC1vZmYtYnk6IFRyaWxv
+ayBTb25pIDxzb25pLnRyaWxva0BnbWFpbC5jb20+Ci0tLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9i
+b2FyZC0yNDMwc2RwLmMgfCAgIDE4ICsrKysrKysrKystLS0tLS0tLQogMSBmaWxlcyBjaGFuZ2Vk
+LCAxMCBpbnNlcnRpb25zKCspLCA4IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJt
+L21hY2gtb21hcDIvYm9hcmQtMjQzMHNkcC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0y
+NDMwc2RwLmMKaW5kZXggNWVlOTcwYi4uZWJkMjYzMCAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFj
+aC1vbWFwMi9ib2FyZC0yNDMwc2RwLmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0y
+NDMwc2RwLmMKQEAgLTEzNywxNCArMTM3LDE2IEBAIHN0YXRpYyBzdHJ1Y3Qgb21hcDJfbWNzcGlf
+ZGV2aWNlX2NvbmZpZyB0c2MyMDQ2X21jc3BpX2NvbmZpZyA9IHsKIAogc3RhdGljIHN0cnVjdCBz
+cGlfYm9hcmRfaW5mbyBzZHAyNDMwX3NwaV9ib2FyZF9pbmZvW10gX19pbml0ZGF0YSA9IHsKIAlb
+MF0gPSB7Ci0JCS8qIFRTQzIwNDYgb3BlcmF0ZXMgYXQgYSBtYXggZnJlcWVuY3kgb2YgMk1Ieiwg
+c28KLQkJICogb3BlcmF0ZSBzbGlnaHRseSBiZWxvdyBhdCAxLjVNSHogKi8KLQkJLm1vZGFsaWFz
+CT0gInRzYzIwNDYiLAotCQkuYnVzX251bQk9IDEsCi0JCS5jaGlwX3NlbGVjdAk9IDAsCi0JCS5t
+YXhfc3BlZWRfaHogICA9IDE1MDAwMDAsCi0JCS5jb250cm9sbGVyX2RhdGE9ICZ0c2MyMDQ2X21j
+c3BpX2NvbmZpZywKLQkJLnBsYXRmb3JtX2RhdGEgID0gJnRzYzIwNDZfY29uZmlnLAorCQkvKgor
+CQkgKiBUU0MyMDQ2IG9wZXJhdGVzIGF0IGEgbWF4IGZyZXFlbmN5IG9mIDJNSHosIHNvCisJCSAq
+IG9wZXJhdGUgc2xpZ2h0bHkgYmVsb3cgYXQgMS41TUh6CisJCSAqLworCQkubW9kYWxpYXMJID0g
+InRzYzIwNDYiLAorCQkuYnVzX251bQkgPSAxLAorCQkuY2hpcF9zZWxlY3QJID0gMCwKKwkJLm1h
+eF9zcGVlZF9oeiAgICA9IDE1MDAwMDAsCisJCS5jb250cm9sbGVyX2RhdGEgPSAmdHNjMjA0Nl9t
+Y3NwaV9jb25maWcsCisJCS5wbGF0Zm9ybV9kYXRhICAgPSAmdHNjMjA0Nl9jb25maWcsCiAJfSwK
+IH07CiAKLS0gCjEuNS4wCgo=
+------=_Part_76984_12196291.1178528544780
+Content-Type: text/x-patch;
+	name=0002-SPI-TSC2046-driver-CodingStyle-cleanup.patch;
+	charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f1epg5zm
+Content-Disposition: attachment;
+	filename="0002-SPI-TSC2046-driver-CodingStyle-cleanup.patch"
+
+RnJvbSAyOWQ2N2UzODIxYjNmNWUyN2RlNWQ4MjQ3YTZmYzM5ZjViYWQwNmRiIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBUcmlsb2sgU29uaSA8c29uaS50cmlsb2tAZ21haWwuY29tPgpE
+YXRlOiBNb24sIDcgTWF5IDIwMDcgMTg6MTM6NDMgKzA1MzAKU3ViamVjdDogW1BBVENIXSBTUEk6
+IFRTQzIwNDYgZHJpdmVyIENvZGluZ1N0eWxlIGNsZWFudXAuCgpTaWduZWQtb2ZmLWJ5OiBUcmls
+b2sgU29uaSA8c29uaS50cmlsb2tAZ21haWwuY29tPgotLS0KIGRyaXZlcnMvaW5wdXQvdG91Y2hz
+Y3JlZW4vdHNjMjA0Nl90cy5jIHwgICAyMyArKysrKysrKysrKystLS0tLS0tLS0tLQogMSBmaWxl
+cyBjaGFuZ2VkLCAxMiBpbnNlcnRpb25zKCspLCAxMSBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQg
+YS9kcml2ZXJzL2lucHV0L3RvdWNoc2NyZWVuL3RzYzIwNDZfdHMuYyBiL2RyaXZlcnMvaW5wdXQv
+dG91Y2hzY3JlZW4vdHNjMjA0Nl90cy5jCmluZGV4IGE1NmFlNWEuLmE1MDk5ODYgMTAwNjQ0Ci0t
+LSBhL2RyaXZlcnMvaW5wdXQvdG91Y2hzY3JlZW4vdHNjMjA0Nl90cy5jCisrKyBiL2RyaXZlcnMv
+aW5wdXQvdG91Y2hzY3JlZW4vdHNjMjA0Nl90cy5jCkBAIC0xMzQsNyArMTM0LDggQEAgc3RhdGlj
+IHZvaWQgdHNjMjA0Nl90c19yeCh2b2lkICphcmcpCiAJfSBlbHNlCiAJCXByZXNzdXJlID0gMDsK
+IAotCS8qIElmIHByZXNzdXJlIHZhbHVlIGlzIGFib3ZlIGEgcHJlc2V0IGxpbWl0IChwZW4gaXMg
+YmFyZWx5CisJLyoKKwkgKiBJZiBwcmVzc3VyZSB2YWx1ZSBpcyBhYm92ZSBhIHByZXNldCBsaW1p
+dCAocGVuIGlzIGJhcmVseQogCSAqIHRvdWNoaW5nIHRoZSBzY3JlZW4pIHdlIGNhbid0IHRydXN0
+IHRoZSBjb29yZGluYXRlIHZhbHVlcy4KIAkgKi8KIAlpZiAocHJlc3N1cmUgPCB0cy0+cHJlc3N1
+cmVfbGltaXQgJiYgeCA8IE1BWF8xMkJJVCAmJiB5IDwgTUFYXzEyQklUKSB7CkBAIC0zNzcsMTQg
+KzM3OCwxMiBAQCBpbnQgX19kZXZpbml0IHRzYzIwNDZfdHNfaW5pdChzdHJ1Y3QgdHNjMjA0NiAq
+dHNjLAogCiAJdHMtPmlycSA9IE9NQVBfR1BJT19JUlEoZGF2X2dwaW8pOwogI2VuZGlmCi0JaW5p
+dF90aW1lcigmdHMtPnRpbWVyKTsKLQl0cy0+dGltZXIuZGF0YSA9ICh1bnNpZ25lZCBsb25nKSB0
+c2M7Ci0JdHMtPnRpbWVyLmZ1bmN0aW9uID0gdHNjMjA0Nl90c190aW1lcjsKKwlzZXR1cF90aW1l
+cigmdHMtPnRpbWVyLCB0c2MyMDQ2X3RzX3RpbWVyLCAodW5zaWduZWQgbG9uZyl0c2MpOwogCiAJ
+c3Bpbl9sb2NrX2luaXQoJnRzLT5sb2NrKTsKIAogCXRzLT54X3BsYXRlX29obQk9IHBkYXRhLT50
+c194X3BsYXRlX29obSA/IDogMjgwOwotCXRzLT5tYXhfcHJlc3N1cmU9IHBkYXRhLT50c19tYXhf
+cHJlc3N1cmUgPyA6IE1BWF8xMkJJVDsKKwl0cy0+bWF4X3ByZXNzdXJlID0gcGRhdGEtPnRzX21h
+eF9wcmVzc3VyZSA/IDogTUFYXzEyQklUOwogCXRzLT50b3VjaF9wcmVzc3VyZSA9IHBkYXRhLT50
+c190b3VjaF9wcmVzc3VyZSA/IDogdHMtPm1heF9wcmVzc3VyZTsKIAl0cy0+aWdub3JlX2xhc3QJ
+PSBwZGF0YS0+dHNfaWdub3JlX2xhc3Q7CiAKQEAgLTQxMSw3ICs0MTAsNyBAQCBpbnQgX19kZXZp
+bml0IHRzYzIwNDZfdHNfaW5pdChzdHJ1Y3QgdHNjMjA0NiAqdHNjLAogCiAJdHMtPmlycV9lbmFi
+bGVkID0gMTsKIAlyID0gcmVxdWVzdF9pcnEodHMtPmlycSwgdHNjMjA0Nl90c19pcnFfaGFuZGxl
+ciwKLQkJCVNBX1NBTVBMRV9SQU5ET00gfCBTQV9UUklHR0VSX0ZBTExJTkcsCisJCQlJUlFGX1NB
+TVBMRV9SQU5ET00gfCBJUlFGX1RSSUdHRVJfRkFMTElORywKIAkJCSJ0c2MyMDQ2LXRzIiwgdHNj
+KTsKIAlpZiAociA8IDApIHsKIAkJZGV2X2VycigmdHNjLT5zcGktPmRldiwgInVuYWJsZSB0byBn
+ZXQgREFWIElSUSIpOwpAQCAtNDQ2LDcgKzQ0NSw3IEBAIGVycjI6CiAjaWZkZWYgQ09ORklHX0FS
+Q0hfT01BUAogCW9tYXBfZnJlZV9ncGlvKGRhdl9ncGlvKTsKICNlbmRpZgotIGVycjE6CitlcnIx
+OgogCWtmcmVlKHRzKTsKIAlyZXR1cm4gcjsKIH0KQEAgLTQ5OSw4ICs0OTgsMTAgQEAgc3RhdGlj
+IGludCBfX2RldmluaXQgdHNjMjA0Nl9wcm9iZShzdHJ1Y3Qgc3BpX2RldmljZSAqc3BpKQogCXNw
+aS0+bW9kZSA9IFNQSV9NT0RFXzE7CiAJc3BpLT5iaXRzX3Blcl93b3JkID0gMTY7CiAKLQkvKiBU
+aGUgbWF4IHNwZWVkIG1pZ2h0J3ZlIGJlZW4gZGVmaW5lZCBieSB0aGUgYm9hcmQtc3BlY2lmaWMK
+LQkgKiBzdHJ1Y3QgKi8KKwkvKgorCSAqIFRoZSBtYXggc3BlZWQgbWlnaHQndmUgYmVlbiBkZWZp
+bmVkIGJ5IHRoZSBib2FyZC1zcGVjaWZpYworCSAqIHN0cnVjdAorCSAqLwogCWlmICghc3BpLT5t
+YXhfc3BlZWRfaHopCiAJCXNwaS0+bWF4X3NwZWVkX2h6ID0gVFNDMjA0Nl9IWjsKIAlzcGlfc2V0
+dXAoc3BpKTsKQEAgLTUxMCw3ICs1MTEsNyBAQCBzdGF0aWMgaW50IF9fZGV2aW5pdCB0c2MyMDQ2
+X3Byb2JlKHN0cnVjdCBzcGlfZGV2aWNlICpzcGkpCiAJCWdvdG8gZXJyMTsKIAogCXJldHVybiAw
+OwotIGVycjE6CitlcnIxOgogCWtmcmVlKHRzYyk7CiAJcmV0dXJuIHI7CiB9CkBAIC01MjEsNyAr
+NTIyLDcgQEAgc3RhdGljIGludCBfX2RldmV4aXQgdHNjMjA0Nl9yZW1vdmUoc3RydWN0IHNwaV9k
+ZXZpY2UgKnNwaSkKIAogCWRldl9kYmcoJnRzYy0+c3BpLT5kZXYsICIlc1xuIiwgX19GVU5DVElP
+Tl9fKTsKIAotICAgICAgICB0c2MyMDQ2X3RzX2V4aXQodHNjKTsKKwl0c2MyMDQ2X3RzX2V4aXQo
+dHNjKTsKIAlrZnJlZSh0c2MpOwogCiAJcmV0dXJuIDA7Ci0tIAoxLjUuMAoK
+------=_Part_76984_12196291.1178528544780
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+------=_Part_76984_12196291.1178528544780--
