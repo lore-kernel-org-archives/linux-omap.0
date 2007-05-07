@@ -1,11 +1,12 @@
-From: karthik <skarthikeyan_17@yahoo.com>
-Subject: regarding webcam in osk5912
-Date: Mon, 7 May 2007 05:37:27 -0700 (PDT)
-Message-ID: <273511.83213.qm@web51405.mail.re2.yahoo.com>
+From: "Pharaoh ." <pharaoh137@gmail.com>
+Subject: Unable to compile Linux 2.6.21 from source.mvista.com
+Date: Mon, 7 May 2007 19:29:39 +0530
+Message-ID: <61445c750705070659v1d2fd55akbd8ed2d1108459f9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,17 +19,26 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-i had mailed to this list already, regarding osk5912 usb host not being able power up my webcam. i got suggestions to use an external powered hub. But the issue is that i am not able to get such hub here (new delhi.. duh).  (i got one, but it does not stick to the spec.)
+Hi
 
-Can someone throw light on the y cable method?.. if anyone has done it.. or if someone can tell me a shop (anywhere in india). where i can buy this thing. 
+I am latest 2.6.21 source from source.mvista.com. I am trying to compile the
+kernel for my omap 850 based board.
 
-Please do reply.
+I am getting following error:
 
-Regards
-karthik
+1. make ARCH=arm omap_perseus2_730_defconfig => works well
 
-       
----------------------------------
-Ahhh...imagining that irresistible "new car" smell?
- Check outnew cars at Yahoo! Autos.
+2. make ARCH=arm
+
+CC      drivers/video/omap/lcd_p2.o
+drivers/video/omap/lcd_p2.c:151:39: ../drivers/ssi/omap-uwire.h: No such
+file or directory
+drivers/video/omap/lcd_p2.c: In function `p2_panel_enable':
+drivers/video/omap/lcd_p2.c:185: warning: implicit declaration of function
+`omap_uwire_configure_mode'
+drivers/video/omap/lcd_p2.c:187: warning: implicit declaration of function
+`omap_uwire_data_transfer
+
+
+There is no file like ../drivers/ssi/omap-uwire.h, I have checked. Please
+enlighten.
