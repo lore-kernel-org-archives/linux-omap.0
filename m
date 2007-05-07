@@ -1,17 +1,11 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP: TSC2046 touchscreen support for 2430
-Date: Mon, 07 May 2007 10:02:51 -0700
-Message-ID: <1178557371.32585.22.camel@paris.hilman.org>
-References: <20070504214028.649198901@mvista.com>
-	<20070504214039.632228613@mvista.com>
-	<3a5b1be00705050128m7de63c62hc5f1c34eb1f91613@mail.gmail.com>
-	<5d5443650705070202w50514779o9066e482f67d2019@mail.gmail.com>
-	<5d5443650705070323r7ffa5e3bi9bc4e7b42574a8bc@mail.gmail.com>
+From: Tim Bird <tim.bird@am.sony.com>
+Subject: Kconfig undefined references (on other platforms)
+Date: Mon, 07 May 2007 12:41:27 -0700
+Message-ID: <463F80E7.9040201@am.sony.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <5d5443650705070323r7ffa5e3bi9bc4e7b42574a8bc@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,42 +15,34 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Trilok Soni <soni.trilok@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 2007-05-07 at 15:53 +0530, Trilok Soni wrote:
-> On 5/7/07, Trilok Soni <soni.trilok@gmail.com> wrote:
-> > Tony,
-> >
-> > On 5/5/07, Komal Shah <komal.shah802003@gmail.com> wrote:
-> > > Kevin,
-> > >
-> > > On 5/5/07, Kevin Hilman <khilman@mvista.com> wrote:
-> > > > This is a rework of the tsc2046 driver from TI's tree, based
-> > > > on the tsc2301 driver and using the new SPI framework.
-> > > >
-> > > > Signed-off-by: Kevin Hilman <khilman@mvista.com>
-> > >
-> > > Very small changes required in order to confirm CodingStyle.
-> > >
-> >
-> > I have attached two patches implementing changes as suggested by
-> > Komal. They are compile tested only.
-> >
-> 
-> Attached 3rd patch fixes suspend/resume functions, as TSC2046 is TS
-> only device not like TSC2301, so we don't need to make non-static
-> functions like TSC2301_TS which gets called from it's core driver on
-> suspend/resume.
-> 
-> This patch is also compile-tested only. Kevin please test it.
+Hi all,
 
-Trilok,
+I'm using patch-2.6.20-omap1, with a kernel that I compile
+for multiple boards. When I compile the kernel for a MIPS board,
+I get some Kconfig warnings on OMAP symbols.
 
-Thanks for the cleanups and PM support.  I have tested all 3 patches and
-the driver is still working well.
+>From the compile:
+scripts/kconfig/conf -s arch/mips/Kconfig
+sound/arm/Kconfig:42:warning: 'select' used by config symbol 'SND_OMAP_AIC23' refer to undefined symbol 'OMAP_MCBSP'
+sound/arm/Kconfig:57:warning: 'select' used by config symbol 'SND_OMAP_TSC2101' refer to undefined symbol 'OMAP_MCBSP'
+sound/arm/Kconfig:70:warning: 'select' used by config symbol 'SND_SX1' refer to undefined symbol 'OMAP_MCBSP'
+
+It looks like sound/arm/Kconfig is included (unconditionally) in
+sound/Kconfig. OMAP_MCBSP is defined in arch/arm/plat-omap1/Kconfig,
+which is not included during my build on MIPS.
+
+Does anyone know what the proper technique is for making either the
+selects or the includes conditional, or otherwise quieting these
+types of reference warnings?
 
 Thanks,
+ -- Tim
 
-Kevin
+=============================
+Tim Bird
+Architecture Group Chair, CE Linux Forum
+Senior Staff Engineer, Sony Electronics
+=============================
