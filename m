@@ -1,10 +1,14 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] fix recent MMC driver compile breakage
-Date: Tue, 08 May 2007 17:20:29 -0600
-Message-ID: <20070508232045.583862612@pwsan.com>
-References: <20070508232028.416620727@pwsan.com>
+From: Paul Mundt <lethal@linux-sh.org>
+Subject: Re: [PATCH] fix sti-netlink.c compilation failure
+Date: Wed, 9 May 2007 08:31:24 +0900
+Message-ID: <20070508233124.GA16352@linux-sh.org>
+References: <20070508200109.272063491@pwsan.com>
+	<20070508200138.420874830@pwsan.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline; filename=fix-mmc-driver.patch
+Content-Disposition: inline
+In-Reply-To: <20070508200138.420874830@pwsan.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,55 +18,25 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-The OMAP MMC driver previously supported multiple cards per MMC host,
-but upper-layer support for this was recently removed (commit
-b855885e3b60cf6f9452848712a62517b94583eb).  So, remove this support from
-this driver, and add a missing include.  
+On Tue, May 08, 2007 at 02:01:10PM -0600, Paul Walmsley wrote:
+> Fix this compilation error in current linux-omap-2.6 git head:
+> 
+>   CC      arch/arm/plat-omap/sti/sti-netlink.o
+> arch/arm/plat-omap/sti/sti-netlink.c: In function 'sti_netlink_init':
+> arch/arm/plat-omap/sti/sti-netlink.c:145: warning: passing argument 4 of 'netlink_kernel_create' from incompatible pointer type
+> arch/arm/plat-omap/sti/sti-netlink.c:145: error: too few arguments to function 'netlink_kernel_create'
+> make[2]: *** [arch/arm/plat-omap/sti/sti-netlink.o] Error 1
+> make[1]: *** [arch/arm/plat-omap/sti] Error 2
+> make: *** [arch/arm/plat-omap] Error 2
+> 
+> Compile-tested only. 
+> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> 
+Looks reasonable.
 
-Compile-tested only.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-
----
- drivers/mmc/host/omap.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
-
-Index: linux-omap-2.6/drivers/mmc/host/omap.c
-===================================================================
---- linux-omap-2.6.orig/drivers/mmc/host/omap.c
-+++ linux-omap-2.6/drivers/mmc/host/omap.c
-@@ -21,6 +21,7 @@
- #include <linux/delay.h>
- #include <linux/spinlock.h>
- #include <linux/timer.h>
-+#include <linux/mmc/mmc.h>
- #include <linux/mmc/host.h>
- #include <linux/mmc/card.h>
- #include <linux/clk.h>
-@@ -587,9 +588,8 @@ static void mmc_omap_switch_timer(unsign
- static void mmc_omap_switch_handler(struct work_struct *work)
- {
- 	struct mmc_omap_host *host = container_of(work, struct mmc_omap_host, switch_work);
--	struct mmc_card *card;
- 	static int complained = 0;
--	int cards = 0, cover_open;
-+	int cover_open;
- 
- 	if (host->switch_pin == -1)
- 		return;
-@@ -599,10 +599,6 @@ static void mmc_omap_switch_handler(stru
- 		host->switch_last_state = cover_open;
- 	}
- 	mmc_detect_change(host->mmc, 0);
--	list_for_each_entry(card, &host->mmc->cards, node) {
--		if (mmc_card_present(card))
--			cards++;
--	}
- 	if (mmc_omap_cover_is_open(host)) {
- 		if (!complained) {
- 			dev_info(mmc_dev(host->mmc), "cover is open\n");
-
--- 
+Acked-by: Paul Mundt <lethal@linux-sh.org>
