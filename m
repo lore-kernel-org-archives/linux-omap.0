@@ -1,7 +1,8 @@
 From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: [PATCH] TWLGPIO driver after review comments.
-Date: Tue, 8 May 2007 17:43:55 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47DCCA3F@dlee13.ent.ti.com>
+Subject: [PATCH] TWLGPIO driver after review comments - corrected trailing
+	spaces
+Date: Tue, 8 May 2007 17:49:22 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47DCCA48@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -20,7 +21,8 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-After incorporating review comments from Tony / Trilok,
+
+Sorry, Corrected few trailing spaces - Retrying.
 
 This adds TWL4030 GPIO driver support. Required for TWL4030 Keypad and =
 other
@@ -67,7 +69,7 @@ lin_for_hsi2c/drivers/i2c/chips/Makefile
  obj-$(CONFIG_GPIOEXPANDER_OMAP)	+=3D gpio_expander_omap.o
  obj-$(CONFIG_MENELAUS)		+=3D menelaus.o
  obj-$(CONFIG_TWL4030_CORE)      +=3D twl4030_core.o
-+obj-$(CONFIG_TWL4030_GPIO)      +=3D twl4030_gpio.o
++obj-$(CONFIG_TWL4030_GPIO)	  +=3D twl4030_gpio.o
  obj-$(CONFIG_RTC_X1205_I2C)	+=3D x1205.o
 =20
  ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
@@ -135,7 +137,7 @@ lin_for_hsi2c/drivers/i2c/chips/twl4030_gpio.c
 + *
 + * Code re-arranged and cleaned up by:
 + * 	Syed Mohammed Khasim <x0khasim@ti.com>
-+ *=20
++ *
 + * Initial Code:
 + * 	Andy Lowe / Nishanth Menon
 + *
@@ -465,7 +467,7 @@ interrupt.
 +
 +	if (unlikely(gpio >=3D TWL4030_GPIO_MAX))
 +		return -EPERM;
-+=09
++
 +	down(&gpio_sem);
 +	if (gpio_usage_count & (0x1 << gpio))
 +		ret =3D -EBUSY;
@@ -478,9 +480,9 @@ interrupt.
 +					MASK_GPIO_CTRL_GPIO_ON);
 +			ret =3D gpio_twl4030_write(REG_GPIO_SIH_CTRL, 0x00);
 +		}
-+		if (!ret)=20
++		if (!ret)
 +			gpio_usage_count |=3D (0x1 << gpio);
-+	=09
++
 +		ret =3D
 +		twl4030_i2c_write(TWL4030_MODULE_GPIO, clear_pull,
 +				REG_GPIOPUPDCTR1, 5);
@@ -500,7 +502,7 @@ interrupt.
 +		return -EPERM;
 +
 +	down(&gpio_sem);
-+=09
++
 +	if ((gpio_usage_count & (0x1 << gpio)) =3D=3D 0)
 +		ret =3D -EPERM;
 +	else
@@ -509,13 +511,13 @@ interrupt.
 +	/* Last time usage? - switch off GPIO module */
 +	if (!gpio_usage_count)
 +		ret =3D gpio_twl4030_write(REG_GPIO_CTRL, 0x0);
-+=09
++
 +	up(&gpio_sem);
 +	return ret;
 +}
 +
 +/*
-+ * Set direction for TWL4030 GPIO=20
++ * Set direction for TWL4030 GPIO
 + */
 +int twl4030_set_gpio_direction(int gpio, int is_input)
 +{
@@ -524,7 +526,7 @@ interrupt.
 +	u8 reg =3D 0;
 +	u8 base =3D 0;
 +	int ret =3D 0;
-+=09
++
 +	if (unlikely((gpio >=3D TWL4030_GPIO_MAX)
 +		|| !(gpio_usage_count & (0x1 << gpio))))
 +		return -EPERM;
@@ -534,11 +536,11 @@ interrupt.
 +	down(&gpio_sem);
 +	ret =3D gpio_twl4030_read(base);
 +	if (ret >=3D 0) {
-+		if (is_input)=20
++		if (is_input)
 +			reg =3D (u8) ((ret) & ~(d_msk));
 +		else
 +			reg =3D (u8) ((ret) | (d_msk));
-+	=09
++
 +		ret =3D gpio_twl4030_write(base, reg);
 +	}
 +	up(&gpio_sem);
@@ -554,16 +556,16 @@ interrupt.
 +	u8 d_msk =3D MASK_GPIODATAOUT_GPIOxOUT(GET_GPIO_DATA_OFF(gpio));
 +	u8 base =3D 0;
 +	int ret =3D 0;
-+=09
++
 +	if (unlikely((gpio >=3D TWL4030_GPIO_MAX)
 +		|| !(gpio_usage_count & (0x1 << gpio))))
 +		return -EPERM;
 +
-+	if (enable)=20
++	if (enable)
 +		base =3D REG_SETGPIODATAOUT1 + d_bnk;
 +	else
 +		base =3D REG_CLEARGPIODATAOUT1 + d_bnk;
-+=09
++
 +	down(&gpio_sem);
 +	ret =3D gpio_twl4030_write(base, d_msk);
 +	up(&gpio_sem);
@@ -579,7 +581,7 @@ interrupt.
 +	u8 d_off =3D BIT_GPIODATAIN_GPIOxIN(GET_GPIO_DATA_OFF(gpio));
 +	u8 base =3D 0;
 +	int ret =3D 0;
-+=09
++
 +	if (unlikely((gpio >=3D TWL4030_GPIO_MAX)
 +		|| !(gpio_usage_count & (0x1 << gpio))))
 +		return -EPERM;
@@ -605,8 +607,8 @@ interrupt.
 +	u8 reg =3D 0;
 +	u8 base =3D 0;
 +	int ret =3D 0;
-+=09
-+	if (unlikely((gpio >=3D TWL4030_GPIO_MAX)	||=20
++
++	if (unlikely((gpio >=3D TWL4030_GPIO_MAX)	||
 +		!(gpio_usage_count & (0x1 << gpio))))
 +		return -EPERM;
 +
@@ -615,7 +617,7 @@ interrupt.
 +		c_msk =3D MASK_GPIOPUPDCTR1_GPIOxPD(c_off);
 +	else if (pull_dircn =3D=3D TWL4030_GPIO_PULL_UP)
 +		c_msk =3D MASK_GPIOPUPDCTR1_GPIOxPU(c_off);
-+=09
++
 +	down(&gpio_sem);
 +	ret =3D gpio_twl4030_read(base);
 +	if (ret >=3D 0) {
@@ -641,13 +643,13 @@ interrupt.
 +	u8 reg =3D 0;
 +	u8 base =3D 0;
 +	int ret =3D 0;
-+=09
++
 +	if (unlikely((gpio >=3D TWL4030_GPIO_MAX)
 +		|| !(gpio_usage_count & (0x1 << gpio))))
 +		return -EPERM;
-+=09
++
 +	base =3D REG_GPIO_EDR1 + c_bnk;
-+=09
++
 +	if (edge & TWL4030_GPIO_EDGE_RISING)
 +		c_msk |=3D MASK_GPIO_EDR1_GPIOxRISING(c_off);
 +
@@ -737,7 +739,7 @@ interrupt.
 +static inline int gpio_twl4030_write(u8 address, u8 data)
 +{
 +	int ret =3D 0;
-+=09
++
 +	ret =3D twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, data, address);
 +	return ret;
 +}
@@ -749,9 +751,9 @@ interrupt.
 +{
 +	u8 data;
 +	int ret =3D 0;
-+=09
++
 +	ret =3D twl4030_i2c_read_u8(TWL4030_MODULE_GPIO, &data, address);
-+	if (ret >=3D 0)=20
++	if (ret >=3D 0)
 +		ret =3D data;
 +	return ret;
 +}
@@ -788,7 +790,7 @@ mask it
 +		gpio_pending_unmask =3D 0;
 +		local_irq_enable();
 +
-+		for (irq =3D IH_TWL4030_GPIO_BASE; 0 !=3D gpio_unmask;=20
++		for (irq =3D IH_TWL4030_GPIO_BASE; 0 !=3D gpio_unmask;
 +				gpio_unmask >>=3D 1, irq++) {
 +			if (gpio_unmask & 0x1)
 +				twl4030_gpio_unmask(irq);
@@ -815,8 +817,8 @@ twl4030
 +{
 +	struct irqaction *action;
 +	const unsigned int cpu =3D smp_processor_id();
-+=09
-+	desc->status |=3D IRQ_LEVEL;=20
++
++	desc->status |=3D IRQ_LEVEL;
 +
 +	/*
 +	 * Acknowledge, clear _AND_ disable the interrupt.
