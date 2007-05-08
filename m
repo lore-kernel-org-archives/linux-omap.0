@@ -1,14 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] fix sti-netlink.c compilation failure
-Date: Tue, 8 May 2007 14:39:39 -0700
-Message-ID: <20070508213939.GL32547@atomide.com>
-References: <20070508200109.272063491@pwsan.com>
-	<20070508200138.420874830@pwsan.com>
+Subject: Re: [PATCH] fix ipt_IDLETIMER.c compilation
+Date: Tue, 8 May 2007 14:40:09 -0700
+Message-ID: <20070508214008.GM32547@atomide.com>
+References: <20070508210138.371687586@pwsan.com>
+	<20070508210156.312789620@pwsan.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20070508200138.420874830@pwsan.com>
+In-Reply-To: <20070508210156.312789620@pwsan.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,47 +16,50 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [070508 13:04]:
-> Fix this compilation error in current linux-omap-2.6 git head:
+* Paul Walmsley <paul@pwsan.com> [070508 14:03]:
+> Update net/ipv4/netfilter/ipt_IDLETIMER.c to compile after recent
+> changes to include/linux/netdevice.h (commit
+> 4e9cac2ba437fcb093c7417b1cd91a77ebd1756a).  Compile-tested only.
 > 
->   CC      arch/arm/plat-omap/sti/sti-netlink.o
-> arch/arm/plat-omap/sti/sti-netlink.c: In function 'sti_netlink_init':
-> arch/arm/plat-omap/sti/sti-netlink.c:145: warning: passing argument 4 of 'netlink_kernel_create' from incompatible pointer type
-> arch/arm/plat-omap/sti/sti-netlink.c:145: error: too few arguments to function 'netlink_kernel_create'
-> make[2]: *** [arch/arm/plat-omap/sti/sti-netlink.o] Error 1
-> make[1]: *** [arch/arm/plat-omap/sti] Error 2
-> make: *** [arch/arm/plat-omap] Error 2
+>   CC      net/ipv4/netfilter/ipt_IDLETIMER.o
+> net/ipv4/netfilter/ipt_IDLETIMER.c: In function 'utimer_notifier_call':
+> net/ipv4/netfilter/ipt_IDLETIMER.c:189: warning: ignoring return value of 'device_create_file', declared with attribute warn_unused_result
+> net/ipv4/netfilter/ipt_IDLETIMER.c: In function 'utimer_fini':
+> net/ipv4/netfilter/ipt_IDLETIMER.c:222: error: 'dev_base' undeclared (first use in this function)
+> net/ipv4/netfilter/ipt_IDLETIMER.c:222: error: (Each undeclared identifier is reported only once
+> net/ipv4/netfilter/ipt_IDLETIMER.c:222: error: for each function it appears in.)
+> net/ipv4/netfilter/ipt_IDLETIMER.c:222: error: 'struct net_device' has no member named 'next'
+> make[3]: *** [net/ipv4/netfilter/ipt_IDLETIMER.o] Error 1
 > 
-> Compile-tested only. 
 > 
 > Signed-off-by: Paul Walmsley <paul@pwsan.com>
 > 
 > ---
->  arch/arm/plat-omap/sti/sti-netlink.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+>  net/ipv4/netfilter/ipt_IDLETIMER.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> Index: linux-omap-2.6/arch/arm/plat-omap/sti/sti-netlink.c
+> Index: linux-omap-2.6/net/ipv4/netfilter/ipt_IDLETIMER.c
 > ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/plat-omap/sti/sti-netlink.c
-> +++ linux-omap-2.6/arch/arm/plat-omap/sti/sti-netlink.c
-> @@ -142,7 +142,8 @@ static void sti_netlink_receive(struct s
->  static int __init sti_netlink_init(void)
->  {
->  	sti_sock = netlink_kernel_create(NETLINK_USERSOCK, 0,
-> -					 sti_netlink_receive, THIS_MODULE);
-> +					 sti_netlink_receive, NULL,
-> +					 THIS_MODULE);
->  	if (!sti_sock) {
->  		printk(KERN_ERR "STI: Failed to create netlink socket\n");
->  		return -ENODEV;
+> --- linux-omap-2.6.orig/net/ipv4/netfilter/ipt_IDLETIMER.c
+> +++ linux-omap-2.6/net/ipv4/netfilter/ipt_IDLETIMER.c
+> @@ -219,7 +219,7 @@ static void utimer_fini(void)
+>  
+>  	rtnl_lock();
+>  	unregister_netdevice_notifier(&utimer_notifier_block);
+> -	for (dev = dev_base; dev; dev = dev->next)
+> +	for_each_netdev(dev)
+>  		utimer_notifier_call(&utimer_notifier_block,
+>  				     NETDEV_DOWN, dev);
+>  	rtnl_unlock();
 > 
+> -- 
 
-Thanks, pushing today.
+Pushing this one too.
 
 Tony
