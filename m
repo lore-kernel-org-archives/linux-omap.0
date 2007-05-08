@@ -1,14 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] update mach-omap2/pm.c for struct subsystem removal
-Date: Tue, 8 May 2007 14:48:03 -0700
-Message-ID: <20070508214802.GN32547@atomide.com>
-References: <20070508213856.893570384@pwsan.com>
-	<20070508213943.119220524@pwsan.com>
+Subject: Re: [PATCH] Resubmitting TWL4030 GPIO driver
+Date: Tue, 8 May 2007 15:20:13 -0700
+Message-ID: <20070508222012.GP32547@atomide.com>
+References: <9C23CDD79DA20A479D4615857B2E2C47DCC861@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20070508213943.119220524@pwsan.com>
+In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47DCC861@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,51 +17,59 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Paul Walmsley <paul@pwsan.com>
+To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [070508 14:41]:
-> 'struct subsystem' is no more, replaced with 'struct kset': commit
-> 823bccfc4002296ba88c3ad0f049e1abd8108d30.  Fixes the following
-> warnings:
-> 
->   CC      arch/arm/mach-omap2/pm.o
-> arch/arm/mach-omap2/pm.c:410: warning: 'struct subsystem' declared inside parameter list
-> arch/arm/mach-omap2/pm.c:410: warning: its scope is only this definition or declaration, which is probably not what you want
-> arch/arm/mach-omap2/pm.c:417: warning: 'struct subsystem' declared inside parameter list
-> arch/arm/mach-omap2/pm.c:434: warning: initialization from incompatible pointer type
-> arch/arm/mach-omap2/pm.c:435: warning: initialization from incompatible pointer type
-> 
-> Compile-tested only.
-> 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> 
-> ---
->  arch/arm/mach-omap2/pm.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> Index: linux-omap-2.6/arch/arm/mach-omap2/pm.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/pm.c
-> +++ linux-omap-2.6/arch/arm/mach-omap2/pm.c
-> @@ -407,12 +407,12 @@ static inline void serial_console_fclk_m
->  
->  static unsigned short enable_dyn_sleep = 0; /* disabled till drivers are fixed */
->  
-> -static ssize_t omap_pm_sleep_while_idle_show(struct subsystem * subsys, char *buf)
-> +static ssize_t omap_pm_sleep_while_idle_show(struct kset * subsys, char *buf)
->  {
->  	return sprintf(buf, "%hu\n", enable_dyn_sleep);
->  }
->  
-> -static ssize_t omap_pm_sleep_while_idle_store(struct subsystem * subsys,
-> +static ssize_t omap_pm_sleep_while_idle_store(struct kset * subsys,
->  					      const char * buf,
->  					      size_t n)
->  {
-> 
+Hi,
 
-Thanks, pushing today.
+* Syed Mohammed, Khasim <x0khasim@ti.com> [070508 12:29]:
+> After Incorporating Review comments.
+> 
+> This adds TWL4030 GPIO driver support. Required for TWL4030 Keypad and other
+> TWL4030 GPIO dependent modules.
+
+...
+
+> +/*
+> + * twl4030 GPIO request function
+> + */
+> +int twl4030_request_gpio(int gpio)
+> +{
+> +	int ret = 0;
+> +
+> +	if (unlikely(gpio >= TWL4030_GPIO_MAX)) {
+> +		return -EPERM;
+> +	}
+> +
+> +	down(&gpio_sem);
+> +	if (gpio_usage_count & (0x1 << gpio)) {
+> +		ret = -EBUSY;
+> +	} else {
+> +		u8 clear_pull[6] = { 0, 0, 0, 0, 0, 0 };
+> +		/* First time usage? - switch on GPIO module */
+> +		if (!gpio_usage_count) {
+> +			ret =
+> +			gpio_twl4030_write(REG_GPIO_CTRL,
+> +					MASK_GPIO_CTRL_GPIO_ON);
+> +			ret = gpio_twl4030_write(REG_GPIO_SIH_CTRL, 0x00);
+> +		}
+> +		if (!ret) {
+> +			gpio_usage_count |= (0x1 << gpio);
+> +		}
+> +		ret =
+> +		twl4030_i2c_write(TWL4030_MODULE_GPIO, clear_pull,
+> +				REG_GPIOPUPDCTR1, 5);
+> +	}
+> +	up(&gpio_sem);
+> +	return ret;
+> +}
+
+Can you please remove the unnecessary braces used for one liners
+throughout the code?
+
+This is something that will cause comments when trying to send this
+to I2C list. Ideally all the new patches we integrate will be ready
+be sent upstream also :)
 
 Tony
