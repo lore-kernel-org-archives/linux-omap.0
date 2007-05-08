@@ -1,13 +1,10 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: ARM: OMAP: Select GENERIC_CLOCKEVENTS patch
-Date: Tue, 08 May 2007 14:01:28 -0700
-Message-ID: <1178658088.18074.25.camel@vence.hilman.org>
-References: <5d5443650705080007v3bb5a154p6883082280e8de47@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] fix ipt_IDLETIMER.c compilation
+Date: Tue, 08 May 2007 15:01:41 -0600
+Message-ID: <20070508210156.312789620@pwsan.com>
+References: <20070508210138.371687586@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <5d5443650705080007v3bb5a154p6883082280e8de47@mail.gmail.com>
+Content-Disposition: inline; filename=fix-ipt-idletimer.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,47 +14,42 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Trilok Soni <soni.trilok@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 2007-05-08 at 12:37 +0530, Trilok Soni wrote:
+Update net/ipv4/netfilter/ipt_IDLETIMER.c to compile after recent
+changes to include/linux/netdevice.h (commit
+4e9cac2ba437fcb093c7417b1cd91a77ebd1756a).  Compile-tested only.
 
-> "select GENERIC_CLOCKEVENTS" patch makes H4 build with default MPU
-> timer selected to fail because timer_tick() is only available if
-> CLOCKEVENTS is not defined.
-> 
-> Do we really need to select GENERIC_CLOCKEVENTS by default? Other
-> solution is then to add !GENERIC_CLOCKEVENT as dependency in MPU_TIMER
-> KConfig.
+  CC      net/ipv4/netfilter/ipt_IDLETIMER.o
+net/ipv4/netfilter/ipt_IDLETIMER.c: In function 'utimer_notifier_call':
+net/ipv4/netfilter/ipt_IDLETIMER.c:189: warning: ignoring return value of 'device_create_file', declared with attribute warn_unused_result
+net/ipv4/netfilter/ipt_IDLETIMER.c: In function 'utimer_fini':
+net/ipv4/netfilter/ipt_IDLETIMER.c:222: error: 'dev_base' undeclared (first use in this function)
+net/ipv4/netfilter/ipt_IDLETIMER.c:222: error: (Each undeclared identifier is reported only once
+net/ipv4/netfilter/ipt_IDLETIMER.c:222: error: for each function it appears in.)
+net/ipv4/netfilter/ipt_IDLETIMER.c:222: error: 'struct net_device' has no member named 'next'
+make[3]: *** [net/ipv4/netfilter/ipt_IDLETIMER.o] Error 1
 
-GENERIC_CLOCKEVENTS is not quite ready for OMAP2.  I will have it ready
-in a week or so.  In the mean time, this patch will only enable
-GENERIC_CLOCKEVENTS for OMAP1.
 
-Signed-off-by: Kevin Hilman <khilman@mvista.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
-Index: dev/arch/arm/Kconfig
+---
+ net/ipv4/netfilter/ipt_IDLETIMER.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-omap-2.6/net/ipv4/netfilter/ipt_IDLETIMER.c
 ===================================================================
---- dev.orig/arch/arm/Kconfig
-+++ dev/arch/arm/Kconfig
-@@ -380,7 +380,6 @@ config ARCH_OMAP
- 	bool "TI OMAP"
- 	select GENERIC_GPIO
- 	select GENERIC_TIME
--	select GENERIC_CLOCKEVENTS
- 	help
- 	  Support for TI's OMAP platform (OMAP1 and OMAP2).
+--- linux-omap-2.6.orig/net/ipv4/netfilter/ipt_IDLETIMER.c
++++ linux-omap-2.6/net/ipv4/netfilter/ipt_IDLETIMER.c
+@@ -219,7 +219,7 @@ static void utimer_fini(void)
  
-Index: dev/arch/arm/plat-omap/Kconfig
-===================================================================
---- dev.orig/arch/arm/plat-omap/Kconfig
-+++ dev/arch/arm/plat-omap/Kconfig
-@@ -11,6 +11,7 @@ choice
- 
- config ARCH_OMAP1
- 	bool "TI OMAP1"
-+	select GENERIC_CLOCKEVENTS
- 
- config ARCH_OMAP2
- 	bool "TI OMAP2"
+ 	rtnl_lock();
+ 	unregister_netdevice_notifier(&utimer_notifier_block);
+-	for (dev = dev_base; dev; dev = dev->next)
++	for_each_netdev(dev)
+ 		utimer_notifier_call(&utimer_notifier_block,
+ 				     NETDEV_DOWN, dev);
+ 	rtnl_unlock();
+
+-- 
