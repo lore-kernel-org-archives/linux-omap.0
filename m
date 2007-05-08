@@ -1,10 +1,13 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] fix sti-netlink.c compilation failure
-Date: Tue, 08 May 2007 14:01:10 -0600
-Message-ID: <20070508200138.420874830@pwsan.com>
-References: <20070508200109.272063491@pwsan.com>
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline; filename=sti-netlink-compilation-fix.patch
+From: Kevin Hilman <khilman@mvista.com>
+Subject: Re: ARM: OMAP: Select GENERIC_CLOCKEVENTS patch
+Date: Tue, 08 May 2007 14:01:28 -0700
+Message-ID: <1178658088.18074.25.camel@vence.hilman.org>
+References: <5d5443650705080007v3bb5a154p6883082280e8de47@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <5d5443650705080007v3bb5a154p6883082280e8de47@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,42 +15,49 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Trilok Soni <soni.trilok@gmail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Fix this compilation error in current linux-omap-2.6 git head:
+On Tue, 2007-05-08 at 12:37 +0530, Trilok Soni wrote:
 
-  CC      arch/arm/plat-omap/sti/sti-netlink.o
-arch/arm/plat-omap/sti/sti-netlink.c: In function 'sti_netlink_init':
-arch/arm/plat-omap/sti/sti-netlink.c:145: warning: passing argument 4 of 'netlink_kernel_create' from incompatible pointer type
-arch/arm/plat-omap/sti/sti-netlink.c:145: error: too few arguments to function 'netlink_kernel_create'
-make[2]: *** [arch/arm/plat-omap/sti/sti-netlink.o] Error 1
-make[1]: *** [arch/arm/plat-omap/sti] Error 2
-make: *** [arch/arm/plat-omap] Error 2
+> "select GENERIC_CLOCKEVENTS" patch makes H4 build with default MPU
+> timer selected to fail because timer_tick() is only available if
+> CLOCKEVENTS is not defined.
+> 
+> Do we really need to select GENERIC_CLOCKEVENTS by default? Other
+> solution is then to add !GENERIC_CLOCKEVENT as dependency in MPU_TIMER
+> KConfig.
 
-Compile-tested only. 
+GENERIC_CLOCKEVENTS is not quite ready for OMAP2.  I will have it ready
+in a week or so.  In the mean time, this patch will only enable
+GENERIC_CLOCKEVENTS for OMAP1.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Kevin Hilman <khilman@mvista.com>
 
----
- arch/arm/plat-omap/sti/sti-netlink.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-Index: linux-omap-2.6/arch/arm/plat-omap/sti/sti-netlink.c
+Index: dev/arch/arm/Kconfig
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/sti/sti-netlink.c
-+++ linux-omap-2.6/arch/arm/plat-omap/sti/sti-netlink.c
-@@ -142,7 +142,8 @@ static void sti_netlink_receive(struct s
- static int __init sti_netlink_init(void)
- {
- 	sti_sock = netlink_kernel_create(NETLINK_USERSOCK, 0,
--					 sti_netlink_receive, THIS_MODULE);
-+					 sti_netlink_receive, NULL,
-+					 THIS_MODULE);
- 	if (!sti_sock) {
- 		printk(KERN_ERR "STI: Failed to create netlink socket\n");
- 		return -ENODEV;
-
--- 
+--- dev.orig/arch/arm/Kconfig
++++ dev/arch/arm/Kconfig
+@@ -380,7 +380,6 @@ config ARCH_OMAP
+ 	bool "TI OMAP"
+ 	select GENERIC_GPIO
+ 	select GENERIC_TIME
+-	select GENERIC_CLOCKEVENTS
+ 	help
+ 	  Support for TI's OMAP platform (OMAP1 and OMAP2).
+ 
+Index: dev/arch/arm/plat-omap/Kconfig
+===================================================================
+--- dev.orig/arch/arm/plat-omap/Kconfig
++++ dev/arch/arm/plat-omap/Kconfig
+@@ -11,6 +11,7 @@ choice
+ 
+ config ARCH_OMAP1
+ 	bool "TI OMAP1"
++	select GENERIC_CLOCKEVENTS
+ 
+ config ARCH_OMAP2
+ 	bool "TI OMAP2"
