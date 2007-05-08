@@ -1,14 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] TWLGPIO driver after review comments - corrected
-	trailing spaces
-Date: Tue, 8 May 2007 16:35:56 -0700
-Message-ID: <20070508233556.GU32547@atomide.com>
-References: <9C23CDD79DA20A479D4615857B2E2C47DCCA48@dlee13.ent.ti.com>
+Subject: Re: [PATCH] fix recent MMC driver compile breakage
+Date: Tue, 8 May 2007 16:36:28 -0700
+Message-ID: <20070508233627.GV32547@atomide.com>
+References: <20070508232028.416620727@pwsan.com>
+	<20070508232045.583862612@pwsan.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47DCCA48@dlee13.ent.ti.com>
+In-Reply-To: <20070508232045.583862612@pwsan.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,33 +16,62 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Syed Mohammed, Khasim <x0khasim@ti.com> [070508 15:50]:
+* Paul Walmsley <paul@pwsan.com> [070508 16:23]:
+> The OMAP MMC driver previously supported multiple cards per MMC host,
+> but upper-layer support for this was recently removed (commit
+> b855885e3b60cf6f9452848712a62517b94583eb).  So, remove this support from
+> this driver, and add a missing include.  
 > 
-> Sorry, Corrected few trailing spaces - Retrying.
-
-Thanks.
-
-> This adds TWL4030 GPIO driver support. Required for TWL4030 Keypad and other
-> TWL4030 GPIO dependent modules.
-> @@ -891,9 +891,7 @@ static int __init twl4030_init(void)
->  
->  static void __exit twl4030_exit(void)
+> Compile-tested only.
+> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> 
+> ---
+>  drivers/mmc/host/omap.c |    8 ++------
+>  1 file changed, 2 insertions(+), 6 deletions(-)
+> 
+> Index: linux-omap-2.6/drivers/mmc/host/omap.c
+> ===================================================================
+> --- linux-omap-2.6.orig/drivers/mmc/host/omap.c
+> +++ linux-omap-2.6/drivers/mmc/host/omap.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/delay.h>
+>  #include <linux/spinlock.h>
+>  #include <linux/timer.h>
+> +#include <linux/mmc/mmc.h>
+>  #include <linux/mmc/host.h>
+>  #include <linux/mmc/card.h>
+>  #include <linux/clk.h>
+> @@ -587,9 +588,8 @@ static void mmc_omap_switch_timer(unsign
+>  static void mmc_omap_switch_handler(struct work_struct *work)
 >  {
-> -	if (i2c_del_driver(&twl4030_driver))
-> -		printk(KERN_ERR
-> -			"TWL4030: Driver remove failed, module not removed\n");
-> +	i2c_del_driver(&twl4030_driver);
->  	twl_irq_used = FREE;
->  }
+>  	struct mmc_omap_host *host = container_of(work, struct mmc_omap_host, switch_work);
+> -	struct mmc_card *card;
+>  	static int complained = 0;
+> -	int cards = 0, cover_open;
+> +	int cover_open;
 >  
+>  	if (host->switch_pin == -1)
+>  		return;
+> @@ -599,10 +599,6 @@ static void mmc_omap_switch_handler(stru
+>  		host->switch_last_state = cover_open;
+>  	}
+>  	mmc_detect_change(host->mmc, 0);
+> -	list_for_each_entry(card, &host->mmc->cards, node) {
+> -		if (mmc_card_present(card))
+> -			cards++;
+> -	}
+>  	if (mmc_omap_cover_is_open(host)) {
+>  		if (!complained) {
+>  			dev_info(mmc_dev(host->mmc), "cover is open\n");
+> 
 
-Pushing today & leaving out this hunk as it's been already fixed in
-the tree.
+Thanks, pushing today.
 
 Tony
