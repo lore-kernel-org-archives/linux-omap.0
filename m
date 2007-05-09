@@ -1,14 +1,11 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] fix recent MMC driver compile breakage
-Date: Tue, 8 May 2007 16:36:28 -0700
-Message-ID: <20070508233627.GV32547@atomide.com>
-References: <20070508232028.416620727@pwsan.com>
-	<20070508232045.583862612@pwsan.com>
+From: "nishanth menon" <menon.nishanth@gmail.com>
+Subject: [PATCH] mkuboot.sh: quit elegantly on not finding mkimage
+Date: Tue, 8 May 2007 19:17:33 -0500
+Message-ID: <782515bb0705081717jaea0fdbj3b4cbd3325fcbbe3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="----=_Part_134064_29772870.1178669853552"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20070508232045.583862612@pwsan.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,60 +15,51 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [070508 16:23]:
-> The OMAP MMC driver previously supported multiple cards per MMC host,
-> but upper-layer support for this was recently removed (commit
-> b855885e3b60cf6f9452848712a62517b94583eb).  So, remove this support from
-> this driver, and add a missing include.  
-> 
-> Compile-tested only.
-> 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> 
-> ---
->  drivers/mmc/host/omap.c |    8 ++------
->  1 file changed, 2 insertions(+), 6 deletions(-)
-> 
-> Index: linux-omap-2.6/drivers/mmc/host/omap.c
-> ===================================================================
-> --- linux-omap-2.6.orig/drivers/mmc/host/omap.c
-> +++ linux-omap-2.6/drivers/mmc/host/omap.c
-> @@ -21,6 +21,7 @@
->  #include <linux/delay.h>
->  #include <linux/spinlock.h>
->  #include <linux/timer.h>
-> +#include <linux/mmc/mmc.h>
->  #include <linux/mmc/host.h>
->  #include <linux/mmc/card.h>
->  #include <linux/clk.h>
-> @@ -587,9 +588,8 @@ static void mmc_omap_switch_timer(unsign
->  static void mmc_omap_switch_handler(struct work_struct *work)
->  {
->  	struct mmc_omap_host *host = container_of(work, struct mmc_omap_host, switch_work);
-> -	struct mmc_card *card;
->  	static int complained = 0;
-> -	int cards = 0, cover_open;
-> +	int cover_open;
->  
->  	if (host->switch_pin == -1)
->  		return;
-> @@ -599,10 +599,6 @@ static void mmc_omap_switch_handler(stru
->  		host->switch_last_state = cover_open;
->  	}
->  	mmc_detect_change(host->mmc, 0);
-> -	list_for_each_entry(card, &host->mmc->cards, node) {
-> -		if (mmc_card_present(card))
-> -			cards++;
-> -	}
->  	if (mmc_omap_cover_is_open(host)) {
->  		if (!complained) {
->  			dev_info(mmc_dev(host->mmc), "cover is open\n");
-> 
+------=_Part_134064_29772870.1178669853552
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Thanks, pushing today.
+Hi All,
+A tiny patch: when mkimage is not found return 1 instead of 0. helps
+to ensure that the make uImage fails if mkimage is not in path.
 
-Tony
+Could not find a vgers list for scripts.. hence posting here..
+
+Regards,
+Nishanth menon
+
+------=_Part_134064_29772870.1178669853552
+Content-Type: application/octet-stream;
+	name=01-mkuboot.sh-quit-elegantly-on-not-finding-mkimage.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f1h199vi
+Content-Disposition: attachment;
+	filename="01-mkuboot.sh-quit-elegantly-on-not-finding-mkimage.patch"
+
+bWt1Ym9vdC5zaDogcXVpdCBlbGVnYW50bHkgb24gbm90IGZpbmRpbmcgbWtpbWFnZQoKU2lnbmVk
+LW9mZi1ieTogTmlzaGFudGggTWVub24gPG1lbm9uLm5pc2hhbnRoQGdtYWlsLmNvbT4KCi0tLQpj
+b21taXQgNGM5N2NkYzQ5ODVhMzk3Y2ZmYWY0OGRiMjMwMjgwMmQwNDNmYmVhOAp0cmVlIDYzNTlk
+Y2Q2NzUxMTE4YzVjMDVjNWI4N2FhNWRlYjkyZjk3MTYzNTYKcGFyZW50IGQ3MmUwMThiNzdmNWI1
+MTNhYjA1YTU5ZTAyYWMwNzI2MDIxNWY3OWMKYXV0aG9yIE5pc2hhbnRoIE1lbm9uIDxtZW5vbi5u
+aXNoYW50aEBnbWFpbC5jb20+IFR1ZSwgMDggTWF5IDIwMDcgMTg6NTY6MDUgLTA1MDAKY29tbWl0
+dGVyIE5pc2hhbnRoIE1lbm9uIDxtZW5vbi5uaXNoYW50aEBnbWFpbC5jb20+IFR1ZSwgMDggTWF5
+IDIwMDcgMTg6NTY6MDUgLTA1MDAKCiBzY3JpcHRzL21rdWJvb3Quc2ggfCAgICAyICstCiAxIGZp
+bGVzIGNoYW5nZWQsIDEgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQg
+YS9zY3JpcHRzL21rdWJvb3Quc2ggYi9zY3JpcHRzL21rdWJvb3Quc2gKaW5kZXggMmUzZDNjZC4u
+NDQ2NzM5YyAxMDA3NTUKLS0tIGEvc2NyaXB0cy9ta3Vib290LnNoCisrKyBiL3NjcmlwdHMvbWt1
+Ym9vdC5zaApAQCAtMTEsNyArMTEsNyBAQCBpZiBbIC16ICIke01LSU1BR0V9IiBdOyB0aGVuCiAJ
+aWYgWyAteiAiJHtNS0lNQUdFfSIgXTsgdGhlbgogCQkjIERvZXNuJ3QgZXhpc3QKIAkJZWNobyAn
+Im1raW1hZ2UiIGNvbW1hbmQgbm90IGZvdW5kIC0gVS1Cb290IGltYWdlcyB3aWxsIG5vdCBiZSBi
+dWlsdCcgPiYyCi0JCWV4aXQgMDsKKwkJZXhpdCAxOwogCWZpCiBmaQogCg==
+------=_Part_134064_29772870.1178669853552
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+------=_Part_134064_29772870.1178669853552--
