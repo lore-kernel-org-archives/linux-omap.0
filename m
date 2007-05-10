@@ -1,16 +1,12 @@
-From: "AndyLu" <andy.lu@serialsys.com.hk>
-Subject: RE: display for osk5912 boards ?
-Date: Thu, 10 May 2007 14:33:55 +0800
-Message-ID: <25213.6639589027$1178779146@news.gmane.org>
-References: <B62D67BD8EC3324C8A3DACEEA1A0D6C60161DD95@dlee12.ent.ti.com>	<4641F76B.2080207@googlemail.com>
-	<4642968F.2020904@mindtree.com>
+From: "sandeep lahane" <sandeep.lahane@gmail.com>
+Subject: lcd driver for omap 850 - f-sample
+Date: Thu, 10 May 2007 17:31:38 +0530
+Message-ID: <2d51cbf80705100501r7b63033dl8ef770156fbfb57f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <4642968F.2020904@mindtree.com>
-Content-Language: en-us
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,112 +14,26 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: 'Zaheer' <zaheer_mugad@mindtree.com>, 'Dirk Behme' <dirk.behme@googlemail.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Dear All,
+Hello,
 
-I had full schematic and Linux drivers for this display board. 
-Please ask me if you want ,full free. 
+I have seen patches providing omap 850 f-sample core support and
+lcd_p2.c was also tweaked a bit for some f-sample specific
+initialization.
+AFAIK, the core support patches have been intergrated in to the latest
+kernel but the lcd driver specific stuff doesn't seem to be
+integrated? Any specific reason or it just needs some more time?
 
-Best regards
-Andy.Lu 
-(Lu ZhiQing) 
+Also, the build is broken if lcd_p2.c is included as it was pointed
+out on this list couple of times before. It refers to non-existant
+file omap_uwire.h. I have got an idea about how to fix this but if
+some one  has already done this then any pointers will be useful. Any
+patches/fixes floating around?
+-- 
 
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Zaheer
-Sent: May 10, 2007 11:51 AM
-To: Dirk Behme
-Cc: linux-omap-open-source@linux.omap.com
-Subject: Re: display for osk5912 boards ?
-
-Hello All,
-
-I went through these links before, and did not find it to be affordable.
-I am looking out for some non-expensive displays.
-I would like to know if any one has used any other displays.
-
-Any one knows which displays other than the below mentioned are supported on
-the OSK5912 boards.
-
-Warm Regards,
-Zaheer.
-
-Dirk Behme wrote:
-> Kipisz, Steven wrote:
->> Mistral sells a fairly expensive QVGA LCD with touchscreen
->> http://www.mistralsoftware.com/html/product/omap_products/products-om
->> ap5
->> 912_starterkit.php.
->
-> And there is an "Aditec Graphic LCD Module (AGLM)". See
->
-> http://tree.celinuxforum.org/CelfPubWiki/OSK
->
-> Dirk
->
->> -----Original Message-----
->> From: linux-omap-open-source-bounces@linux.omap.com
->> [mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of 
->> Zaheer
->> Sent: Wednesday, May 09, 2007 1:44 AM
->> To: linux-omap-open-source@linux.omap.com
->> Subject: display for osk5912 boards ?
->>
->> Hi,
->>
->> I have a Omap5912-OSK board without a display.
->> I would like to know if any one out there has been able to connect a 
->> Dispay to the OSK and run any GUI applications on it.
->> I would also like to know if there are any vendors who can provide me 
->> with a display which works with OSK5912 boards.
->> What effort will it take to enable the display in the 2.6 kernel ?
->>
->> Thanks and Warm Regards,
->> Zaheer.
->>
->>
->> DISCLAIMER:
->> This message (including attachment if any) is confidential and may be 
->> privileged. Before opening attachments please check them for viruses 
->> and defects. MindTree Consulting Limited (MindTree) will not be 
->> responsible for any viruses or defects or any forwarded attachments 
->> emanating either from within MindTree or outside. If you have 
->> received this message by mistake please notify the sender by return  
->> e-mail and delete this message from your system. Any unauthorized use 
->> or dissemination of this message in whole or in part is strictly 
->> prohibited.  Please note that e-mails are susceptible to change and 
->> MindTree shall not be liable for any improper, untimely or incomplete
-transmission.
->> _______________________________________________
->> Linux-omap-open-source mailing list
->> Linux-omap-open-source@linux.omap.com
->> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->> _______________________________________________
->> Linux-omap-open-source mailing list
->> Linux-omap-open-source@linux.omap.com
->> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->>
->
-
-
-
-DISCLAIMER:
-This message (including attachment if any) is confidential and may be
-privileged. Before opening attachments please check them for viruses and
-defects. MindTree Consulting Limited (MindTree) will not be responsible for
-any viruses or defects or any forwarded attachments emanating either from
-within MindTree or outside. If you have received this message by mistake
-please notify the sender by return  e-mail and delete this message from your
-system. Any unauthorized use or dissemination of this message in whole or in
-part is strictly prohibited.  Please note that e-mails are susceptible to
-change and MindTree shall not be liable for any improper, untimely or
-incomplete transmission.
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+Regards,
+Sandeep.
