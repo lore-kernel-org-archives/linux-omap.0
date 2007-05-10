@@ -1,12 +1,13 @@
-From: "sandeep lahane" <sandeep.lahane@gmail.com>
-Subject: lcd driver for omap 850 - f-sample
-Date: Thu, 10 May 2007 17:31:38 +0530
-Message-ID: <2d51cbf80705100501r7b63033dl8ef770156fbfb57f@mail.gmail.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: Git tree updated
+Date: Thu, 10 May 2007 17:49:18 +0200
+Message-ID: <46433EFE.4020409@googlemail.com>
+References: <20070508031945.GH31968@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20070508031945.GH31968@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,26 +15,19 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+Tony Lindgren wrote:
+> I've updated our git tree to be in sync with mainline tree as Russell
+> has merged some of our pending patches.
 
-I have seen patches providing omap 850 f-sample core support and
-lcd_p2.c was also tweaked a bit for some f-sample specific
-initialization.
-AFAIK, the core support patches have been intergrated in to the latest
-kernel but the lcd driver specific stuff doesn't seem to be
-integrated? Any specific reason or it just needs some more time?
+Looks like some stuff went upstream:
 
-Also, the build is broken if lcd_p2.c is included as it was pointed
-out on this list couple of times before. It refers to non-existant
-file omap_uwire.h. I have got an idea about how to fix this but if
-some one  has already done this then any pointers will be useful. Any
-patches/fixes floating around?
--- 
+http://git.kernel.org/?p=linux%2Fkernel%2Fgit%2Ftorvalds%2Flinux-2.6.git&a=search&h=HEAD&st=commit&s=OMAP
 
-Regards,
-Sandeep.
+:)
+
+Dirk
