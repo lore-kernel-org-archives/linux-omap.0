@@ -1,14 +1,11 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: [PATCH] TWL KEYPAD driver - after incorporating further review
-	comments.
-Date: Thu, 10 May 2007 23:49:06 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47E268F5@dlee13.ent.ti.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: [WIP] [PATCH] ARM: OMAP: Use new style I2C driver for Menelaus chip.
+Date: Fri, 11 May 2007 14:50:29 +0530
+Message-ID: <5d5443650705110220j3d091db2t79047c29c5ee2b54@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed;
+	boundary="----=_Part_157726_5169277.1178875229019"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,986 +18,266 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Incorporated few more review comments
+------=_Part_157726_5169277.1178875229019
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-This patch adds TWL4030 Keypad driver support for 2430 SDP.=20
+Tony/David,
 
-Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
+I have attached the wip version of converting menelaus chip to use new
+style I2C driver bindings. I have tested it on H4 and it is working.
+It will break N800 as I have removed the late init functionalities
+from driver as it should come from board specific file using new
+i2c_register_board_info function.
 
-Files:
- arch/arm/mach-omap2/board-2430sdp.c                       |   57 ++
- drivers/input/keyboard/Kconfig              |   10
- drivers/input/keyboard/Makefile             |    2
- drivers/input/keyboard/omap-twl4030keypad.c |  392   ++++++++++++++
- drivers/input/keyboard/twl4030-keypad.h     |  376   +++++++++++++
- include/asm-arm/arch-omap/board-2430sdp.h   |    8
- include/asm-arm/arch-omap/twl4030.h         |   17
-       7 files changed, 859 insertions(+), 3 deletions(-)
+As I will not have access to h/w for few days, I would appreciate if
+some one reviews and make it work for n800 and submit patch for the
+same.
 
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-omap/arch/arm/mach-omap2/board-2430sdp.c	2007-05-09 =
-00:30:56.000000000 -0500
-+++ lin_for_hsi2c/arch/arm/mach-omap2/board-2430sdp.c	2007-05-09 =
-14:48:03.000000000 -0500
-@@ -19,6 +19,7 @@
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
- #include <linux/delay.h>
-+#include <linux/input.h>
- #include <linux/err.h>
- #include <linux/clk.h>
- #include <linux/spi/spi.h>
-@@ -34,6 +35,7 @@
- #include <asm/arch/mux.h>
- #include <asm/arch/board.h>
- #include <asm/arch/common.h>
-+#include <asm/arch/keypad.h>
- #include <asm/arch/gpmc.h>
- #include <asm/arch/mcspi.h>
- #include "prcm-regs.h"
-@@ -120,9 +122,64 @@ static struct platform_device sdp2430_sm
- 	.resource	=3D sdp2430_smc91x_resources,
- };
-=20
-+/*
-+ * Key mapping for 2430 SDP board
-+ */
-+
-+static int sdp2430_keymap[] =3D {
-+	KEY(0, 0, KEY_LEFT),
-+	KEY(0, 1, KEY_RIGHT),
-+	KEY(0, 2, KEY_A),
-+	KEY(0, 3, KEY_B),
-+	KEY(0, 4, KEY_C),
-+	KEY(1, 0, KEY_DOWN),
-+	KEY(1, 1, KEY_UP),
-+	KEY(1, 2, KEY_E),
-+	KEY(1, 3, KEY_F),
-+	KEY(1, 4, KEY_G),
-+	KEY(2, 0, KEY_ENTER),
-+	KEY(2, 1, KEY_I),
-+	KEY(2, 2, KEY_J),
-+	KEY(2, 3, KEY_K),
-+	KEY(2, 4, KEY_3),
-+	KEY(3, 0, KEY_M),
-+	KEY(3, 1, KEY_N),
-+	KEY(3, 2, KEY_O),
-+	KEY(3, 3, KEY_P),
-+	KEY(3, 4, KEY_Q),
-+	KEY(4, 0, KEY_R),
-+	KEY(4, 1, KEY_4),
-+	KEY(4, 2, KEY_T),
-+	KEY(4, 3, KEY_U),
-+	KEY(4, 4, KEY_D),
-+	KEY(5, 0, KEY_V),
-+	KEY(5, 1, KEY_W),
-+	KEY(5, 2, KEY_L),
-+	KEY(5, 3, KEY_S),
-+	KEY(5, 4, KEY_H),
-+	0
-+};
-+
-+static struct omap_kp_platform_data sdp2430_kp_data =3D {
-+	.rows		=3D 5,
-+	.cols		=3D 6,
-+	.keymap 	=3D sdp2430_keymap,
-+	.keymapsize 	=3D ARRAY_SIZE(sdp2430_keymap),
-+	.rep		=3D 1,
-+};
-+
-+static struct platform_device sdp2430_kp_device =3D {
-+	.name		=3D "omap_twl4030keypad",
-+	.id		=3D -1,
-+	.dev		=3D {
-+		.platform_data	=3D &sdp2430_kp_data,
-+	},
-+};
-+
- static struct platform_device *sdp2430_devices[] __initdata =3D {
- 	&sdp2430_smc91x_device,
- 	&sdp2430_flash_device,
-+	&sdp2430_kp_device,
- };
-=20
- static struct tsc2046_platform_data tsc2046_config =3D {
-diff -purN linux-omap/include/asm-arm/arch-omap/board-2430sdp.h =
-lin_for_hsi2c/include/asm-arm/arch-omap/board-2430sdp.h
---- linux-omap/include/asm-arm/arch-omap/board-2430sdp.h	2006-12-17 =
-08:56:42.000000000 -0600
-+++ lin_for_hsi2c/include/asm-arm/arch-omap/board-2430sdp.h	2007-05-09 =
-14:48:03.000000000 -0500
-@@ -30,7 +30,7 @@
- #define __ASM_ARCH_OMAP_2430SDP_H
-=20
- /* Placeholder for 2430SDP specific defines */
--#define OMAP24XX_ETHR_START		 0x08000300
-+#define OMAP24XX_ETHR_START		0x08000300
- #define OMAP24XX_ETHR_GPIO_IRQ		149
- #define SDP2430_CS0_BASE		0x04000000
-=20
-@@ -39,6 +39,10 @@
- /* TWL4030 Primary Interrupt Handler (PIH) interrupts */
- #define IH_TWL4030_BASE			IH_BOARD_BASE
- #define IH_TWL4030_END			(IH_TWL4030_BASE+8)
--#define NR_IRQS				(IH_TWL4030_END)
-+
-+/* TWL4030 GPIO Interrupts */
-+#define IH_TWL4030_GPIO_BASE		(IH_TWL4030_END)
-+#define IH_TWL4030_GPIO_END		(IH_TWL4030_BASE+18)
-+#define NR_IRQS				(IH_TWL4030_GPIO_END)
-=20
- #endif /* __ASM_ARCH_OMAP_2430SDP_H */
-diff -purN linux-omap/include/asm-arm/arch-omap/twl4030.h =
-lin_for_hsi2c/include/asm-arm/arch-omap/twl4030.h
---- linux-omap/include/asm-arm/arch-omap/twl4030.h	2007-01-08 =
-18:57:20.000000000 -0600
-+++ lin_for_hsi2c/include/asm-arm/arch-omap/twl4030.h	2007-05-09 =
-14:48:03.000000000 -0500
-@@ -72,6 +72,23 @@
- #define TWL4030_VAUX3_DEV_GRP		0x1F
- #define TWL4030_VAUX3_DEDICATED		0x22
-=20
-+/* TWL4030 GPIO interrupt definitions */
-+
-+#define TWL4030_GPIO_MIN		0
-+#define TWL4030_GPIO_MAX		18
-+#define TWL4030_GPIO_MAX_CD		2
-+#define TWL4030_GPIO_IRQ_NO(n)		(IH_TWL4030_GPIO_BASE+n)
-+#define TWL4030_GPIO_IS_INPUT		1
-+#define TWL4030_GPIO_IS_OUTPUT		0
-+#define TWL4030_GPIO_IS_ENABLE		1
-+#define TWL4030_GPIO_IS_DISABLE		0
-+#define TWL4030_GPIO_PULL_UP		0
-+#define TWL4030_GPIO_PULL_DOWN		1
-+#define TWL4030_GPIO_PULL_NONE		2
-+#define TWL4030_GPIO_EDGE_NONE		0
-+#define TWL4030_GPIO_EDGE_RISING	1
-+#define TWL4030_GPIO_EDGE_FALLING	2
-+
- /* Functions to read and write from TWL4030 */
-=20
- /*
+Note:
+This patch still needs more cosmetic changes and improvements.
 
-diff -purN linux-omap/drivers/input/keyboard/Kconfig =
-lin_for_hsi2c/drivers/input/keyboard/Kconfig
---- linux-omap/drivers/input/keyboard/Kconfig	2007-05-07 =
-20:59:21.000000000 -0500
-+++ lin_for_hsi2c/drivers/input/keyboard/Kconfig	2007-05-09 =
-14:48:03.000000000 -0500
-@@ -214,6 +214,16 @@ config KEYBOARD_OMAP
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called omap-keypad.
-=20
-+config KEYBOARD_TWL4030
-+	tristate "TI TWL4030 keypad support"
-+	depends on TWL4030_CORE && MACH_OMAP_2430SDP
-+	help
-+	  Say Y here if you want to use the OMAP TWL4030 keypad.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called omap-twl4030keypad. This driver depends on
-+	  TWL4030 Core and TWL4030 GPIO I2C client driver
-+
- config OMAP_PS2
- 	tristate "TI OMAP Innovator 1510 PS/2 keyboard & mouse support"
- 	depends on ARCH_OMAP15XX && MACH_OMAP_INNOVATOR
-diff -purN linux-omap/drivers/input/keyboard/Makefile =
-lin_for_hsi2c/drivers/input/keyboard/Makefile
---- linux-omap/drivers/input/keyboard/Makefile	2007-05-07 =
-20:59:21.000000000 -0500
-+++ lin_for_hsi2c/drivers/input/keyboard/Makefile	2007-05-09 =
-14:48:03.000000000 -0500
-@@ -23,4 +23,4 @@ obj-$(CONFIG_KEYBOARD_PXA27x)		+=3D pxa27x
- obj-$(CONFIG_KEYBOARD_AAED2000)         +=3D aaed2000_kbd.o
- obj-$(CONFIG_KEYBOARD_GPIO)		+=3D gpio_keys.o
- obj-$(CONFIG_KEYBOARD_TSC2301)		+=3D tsc2301_kp.o
--
-+obj-$(CONFIG_KEYBOARD_TWL4030)	  +=3D omap-twl4030keypad.o
-diff -purN linux-omap/drivers/input/keyboard/omap-twl4030keypad.c =
-lin_for_hsi2c/drivers/input/keyboard/omap-twl4030keypad.c
---- linux-omap/drivers/input/keyboard/omap-twl4030keypad.c	1969-12-31 =
-18:00:00.000000000 -0600
-+++ lin_for_hsi2c/drivers/input/keyboard/omap-twl4030keypad.c	2007-05-10 =
-23:34:27.000000000 -0500
-@@ -0,0 +1,392 @@
-+/*
-+ * drivers/input/keyboard/omap-twl4030keypad.c
-+ *
-+ * Copyright (C) 2007 Texas Instruments, Inc.
-+ *
-+ * Code re-written for 2430SDP by:
-+ * Syed Mohammed Khasim <x0khasim@ti.com>
-+ *
-+ * Initial Code:
-+ * Manjunatha G K <manjugk@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 =
-USA
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/types.h>
-+#include <linux/input.h>
-+#include <linux/kernel.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/i2c.h>
-+#include <asm/irq.h>
-+#include <asm/arch/keypad.h>
-+#include <asm/arch/twl4030.h>
-+#include "twl4030-keypad.h"
-+
-+#define OMAP_TWL4030KP_LOG_LEVEL	0
-+
-+#define KEY(col, row, val)	(((col) << 28) | ((row) << 24) | (val))
-+#define NUM_ROWS		5
-+#define NUM_COLS		6
-+
-+#define ROW_MASK		((1<<NUM_ROWS)-1)
-+
-+#define SCAN_RATE		HZ/20
-+#define KEYNUM_MASK		0xFF000000
-+#define ROWCOL_MASK		0x00FFFFFF
-+
-+#if (OMAP_TWL4030KP_LOG_LEVEL >=3D 1)
-+static char *switch_name[NUM_ROWS][NUM_COLS] =3D {
-+	{"S2_L", "S2_D", "S2_S", "S3", "S4", "S23"},
-+	{"S2_R", "S2_U", "S5", "S6", "S7", "S24"},
-+	{"S8", "S9", "S10", "S11", "S12", "S25"},
-+	{"S13", "S14", "S15", "S16", "S17", "S26"},
-+	{"S18", "S19", "S20", "S21", "S22", "S27"},
-+};
-+#endif
-+
-+/* Global variables */
-+static int *keymap;
-+static unsigned char kp_state[NUM_ROWS];
-+
-+/* Function Templates */
-+static struct input_dev *omap_twl4030kp;
-+struct timer_list kptimer;
-+static void omap_kp_timer(unsigned long);
-+static void twl4030_kp_scan(void);
-+struct work_struct timer_work;
-+void twl4030_kp_work(void *data);
-+void twl4030_timer_work(struct work_struct *unused);
-+
-+static int twl4030_kpread_u8(u32 module, u8 * data, u32 reg)
-+{
-+	int ret;
-+
-+	ret =3D twl4030_i2c_read_u8(module, data, reg);
-+	if (ret < 0) {
-+		printk(KERN_WARNING
-+			"Couldn't read TWL4030 register %X - ret %d[%x]\n",
-+			reg, ret, ret);
-+		return ret;
-+	}
-+	return ret;
-+}
-+
-+static int twl4030_kpwrite_u8(u32 module, u8 data, u32 reg)
-+{
-+	int ret;
-+
-+	ret =3D twl4030_i2c_write_u8(module, data, reg);
-+	if (ret < 0) {
-+		printk(KERN_WARNING
-+			"Could not write TWL4030 register %X - ret %d[%x]\n",
-+			reg, ret, ret);
-+		return ret;
-+	}
-+	return ret;
-+}
-+
-+static inline int omap_kp_find_key(int col, int row)
-+{
-+	int i, key;
-+
-+	key =3D KEY(col, row, 0);
-+	for (i =3D 0; keymap[i] !=3D 0; i++)
-+		if ((keymap[i] & KEYNUM_MASK) =3D=3D key)
-+			return keymap[i] & ROWCOL_MASK;
-+
-+	return -EINVAL;
-+}
-+
-+static void twl4030_kp_scan(void) {
-+
-+	unsigned char new_state[NUM_ROWS], changed, key_down =3D 0;
-+	u8 col, row, spurious =3D 0;
-+	u8 code_reg =3D REG_FULL_CODE_7_0;
-+	int ret;
-+
-+	/* check for any changes */
-+	ret =3D
-+		twl4030_i2c_read(TWL4030_MODULE_KEYPAD, new_state, code_reg,
-+				 NUM_ROWS);
-+	if (ret < 0)
-+		printk(KERN_WARNING
-+			"Could not read TWL4030 register %X - ret %d[%x]\n",
-+				code_reg, ret, ret);
-+
-+	/* check for changes and print those */
-+	for (row =3D 0; row < NUM_ROWS; row++) {
-+		changed =3D new_state[row] ^ kp_state[row];
-+		key_down |=3D new_state[row];
-+
-+		if (changed =3D=3D 0)
-+			continue;
-+
-+		for (col =3D 0; col < NUM_COLS; col++) {
-+			int key;
-+
-+			if (!(changed & (1 << col)))
-+				continue;
-+
-+#if (OMAP_TWL4030KP_LOG_LEVEL >=3D 1)
-+			printk("key %s %s\n", switch_name[row][col],
-+				(new_state[row] & (1 << col)) ?
-+				"press" : "release");
-+#endif
-+			key =3D omap_kp_find_key(col, row);
-+			if (key < 0) {
-+				printk(KERN_WARNING
-+					"omap-kp: Spurious key event %d-%d\n",
-+					col, row);
-+				/* We scan again after a couple of seconds */
-+				spurious =3D 1;
-+				continue;
-+			}
-+			input_report_key(omap_twl4030kp, key,
-+					 new_state[row] & (1 << col));
-+		}
-+	}
-+	if (key_down) {
-+		/*
-+		 * some key is pressed - keep irq disabled and use timer
-+		 * to poll for key release
-+		 */
-+		if (spurious)
-+			mod_timer(&kptimer, jiffies + SCAN_RATE * 2);
-+		else
-+			mod_timer(&kptimer, jiffies + SCAN_RATE);
-+	}
-+	memcpy(kp_state, new_state, sizeof(kp_state));
-+}
-+
-+void twl4030_timer_work(struct work_struct *unused)
-+{
-+	twl4030_kp_scan();
-+}
-+
-+void omap_kp_timer(unsigned long data)
-+{
-+	schedule_work(&timer_work);
-+}
-+
-+/*
-+ * Keypad interrupt handler
-+ */
-+static irqreturn_t do_kp_irq(int irq, void *dev_id)
-+{
-+	u8 reg;
-+	int ret;
-+
-+	/* Mask keypad interrupts */
-+	reg =3D KEYP_IMR1_MASK;
-+	ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg, REG_KEYP_IMR1);
-+
-+	/*
-+	 * Scan keypad for any changes
-+	 * in keypad matrix.
-+	 */
-+	twl4030_kp_scan();
-+
-+	/* Clear TWL4030 PIH interrupt */
-+	ret =3D twl4030_kpread_u8(TWL4030_MODULE_KEYPAD, &reg, REG_KEYP_ISR1);
-+
-+	/* Enable interrupts */
-+	reg =3D KEYP_IMR1_UNMASK;
-+	ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg, REG_KEYP_IMR1);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/*
-+ * Registers keypad device with input sub system
-+ * and configures TWL4030 keypad registers
-+ *
-+ */
-+static int __init omap_kp_probe(struct platform_device *pdev)
-+{
-+	u8 reg, i;
-+	u8 code_reg =3D REG_FULL_CODE_7_0;
-+	int ret =3D 0;
-+	struct omap_kp_platform_data *pdata =3D  pdev->dev.platform_data;
-+
-+	if (!pdata->rows || !pdata->cols || !pdata->keymap) {
-+		printk(KERN_ERR "No rows, cols or keymap from pdata\n");
-+		return -EINVAL;
-+	}
-+
-+	omap_twl4030kp =3D input_allocate_device();
-+	if (omap_twl4030kp =3D=3D NULL)
-+		return -ENOMEM;
-+
-+	keymap =3D pdata->keymap;
-+
-+	/* setup input device */
-+	set_bit(EV_KEY, omap_twl4030kp->evbit);
-+
-+	/* Enable auto repeat feature of Linux input subsystem */
-+	set_bit(EV_REP, omap_twl4030kp->evbit);
-+
-+	for (i =3D 0; keymap[i] !=3D 0; i++)
-+		set_bit(keymap[i] & 0x00ffffff, omap_twl4030kp->keybit);
-+
-+	omap_twl4030kp->name 		=3D "omap_twl4030keypad";
-+	omap_twl4030kp->phys 		=3D "omap_twl4030keypad/input0";
-+	omap_twl4030kp->dev.parent 	=3D &pdev->dev;
-+
-+	omap_twl4030kp->id.bustype	=3D BUS_HOST;
-+	omap_twl4030kp->id.vendor	=3D 0x0001;
-+	omap_twl4030kp->id.product	=3D 0x0001;
-+	omap_twl4030kp->id.version	=3D 0x0003;
-+
-+	omap_twl4030kp->keycode		=3D keymap;
-+	omap_twl4030kp->keycodesize	=3D sizeof(unsigned int);
-+	omap_twl4030kp->keycodemax	=3D pdata->keymapsize;
-+
-+	ret =3D input_register_device(omap_twl4030kp);
-+	if (ret < 0) {
-+		printk(KERN_ERR "Unable to register twl4030 keypad device\n");
-+		goto err2;
-+	}
-+
-+	setup_timer(&kptimer,omap_kp_timer,(unsigned long) omap_twl4030kp);
-+
-+	/*
-+	 * Since keypad driver uses I2C for reading
-+	 * twl4030 keypad registers, tasklets cannot
-+	 * be used.
-+ 	 */
-+	INIT_WORK(&timer_work, twl4030_timer_work);
-+
-+	reg =3D KEYP_CTRL_REG_MASK_NOAUTORPT;
-+	ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg,
-+						REG_KEYP_CTRL_REG);
-+	if (ret < 0)
-+		goto err3;
-+
-+	/* Set all events to Falling Edge detection */
-+	reg =3D KEYP_EDR_MASK;
-+	ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg, REG_KEYP_EDR);
-+	if (ret < 0)
-+		goto err3;
-+
-+	/* Set Pre Scalar Field PTV to 4 */
-+	reg =3D BIT_LK_PTV_REG_PTV_M & (BIT_PTV_REG_PTV4 << =
-BIT_LK_PTV_REG_PTV);
-+
-+	ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg, =
-REG_LK_PTV_REG);
-+	if (ret < 0)
-+		goto err3;
-+
-+	/*
-+	 * Set key debounce time to 10 ms using equation
-+	 * Tint =3D Tclk * (LOAD_TIM+1) * 2^(PTV+1)
-+	 * Where Tclk =3D 31.25 us ( since kbd_if_clk is 32KHz)
-+	 * PTV =3D 4 for all the operations.
-+	 */
-+	ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, 0x3f,
-+						REG_KEY_DEB_REG);
-+	if (ret < 0)
-+		goto err3;
-+
-+	/* Set SIH Ctrl register */
-+	reg =3D KEYP_SIH_CTRL_MASK;
-+	ret =3D twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg,
-+						REG_KEYP_SIH_CTRL);
-+	if (ret < 0)
-+		goto err3;
-+
-+	/*
-+	 * This ISR will always execute in kernel thread context because of
-+	 * the need to access the TWL4030 over the I2C bus.
-+	 */
-+	ret =3D request_irq(TWL4030_MODIRQ_KEYPAD, do_kp_irq,
-+		IRQF_DISABLED, "TWL4030 Keypad", omap_twl4030kp);
-+	if (ret < 0) {
-+		printk(KERN_INFO
-+				"request_irq failed for irq no=3D%d\n",
-+				TWL4030_MODIRQ_KEYPAD);
-+		goto err3;
-+	} else {
-+		/* Enable keypad module interrupts now. */
-+		reg =3D KEYP_IMR1_UNMASK;
-+		ret =3D
-+			twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, reg,
-+						REG_KEYP_IMR1);
-+		if (ret < 0) {
-+			/* mask all events - dont care abt result */
-+			(void)twl4030_kpwrite_u8(TWL4030_MODULE_KEYPAD, 0xff,
-+						 REG_KEYP_IMR1);
-+			goto err4;
-+		}
-+	}
-+
-+	/* Read initial state of keypad matrix. */
-+	ret =3D twl4030_i2c_read(TWL4030_MODULE_KEYPAD, kp_state, code_reg,
-+		NUM_ROWS);
-+	if (ret < 0) {
-+		printk(KERN_WARNING
-+				"Could not read TWL4030 register %X - ret %d[%x]\n",
-+				reg, ret, ret);
-+		goto err4;
-+	}
-+	return (ret);
-+err4:
-+	free_irq(TWL4030_MODIRQ_KEYPAD, NULL);
-+err3:
-+	input_unregister_device(omap_twl4030kp);
-+err2:
-+	input_free_device(omap_twl4030kp);
-+	return -ENODEV;
-+}
-+
-+static int omap_kp_remove(struct platform_device *pdev)
-+{
-+	free_irq(TWL4030_MODIRQ_KEYPAD, NULL);
-+	del_timer_sync(&kptimer);
-+
-+	input_unregister_device(omap_twl4030kp);
-+	return 0;
-+}
-+
-+
-+static struct platform_driver omap_kp_driver =3D {
-+	.probe		=3D omap_kp_probe,
-+	.remove		=3D omap_kp_remove,
-+	.driver		=3D {
-+		.name	=3D "omap_twl4030keypad",
-+	},
-+};
-+
-+/*
-+ * OMAP TWL4030 Keypad init
-+ */
-+static int __devinit omap_kp_init(void)
-+{
-+	printk(KERN_INFO "OMAP TWL4030 Keypad Driver\n");
-+	return platform_driver_register(&omap_kp_driver);
-+}
-+
-+static void __exit omap_kp_exit(void)
-+{
-+	platform_driver_unregister(&omap_kp_driver);
-+}
-+
-+module_init(omap_kp_init);
-+module_exit(omap_kp_exit);
-+MODULE_AUTHOR("Texas Instruments");
-+MODULE_DESCRIPTION("OMAP TWL4030 Keypad Driver");
-+MODULE_LICENSE("GPL");
-diff -purN linux-omap/drivers/input/keyboard/twl4030-keypad.h =
-lin_for_hsi2c/drivers/input/keyboard/twl4030-keypad.h
---- linux-omap/drivers/input/keyboard/twl4030-keypad.h	1969-12-31 =
-18:00:00.000000000 -0600
-+++ lin_for_hsi2c/drivers/input/keyboard/twl4030-keypad.h	2007-05-10 =
-12:18:11.000000000 -0500
-@@ -0,0 +1,376 @@
-+/*
-+ * drivers/input/keyboard/twl4030-keypad.h
-+ *
-+ * Copyright (C) 2006-2007 Texas Instruments, Inc.
-+ *
-+ * Intial Code:
-+ *	Syed Mohammed Khasim <x0khasim@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 =
- USA
-+ */
-+#ifndef __TWL4030_KEYPAD_H__
-+#define __TWL4030_KEYPAD_H__
-+
-+/* Register Definitions */
-+#define REG_KEYP_CTRL_REG			(0x0)
-+#define REG_KEY_DEB_REG				(0x1)
-+#define REG_LONG_KEY_REG1			(0x2)
-+#define REG_LK_PTV_REG				(0x3)
-+#define REG_TIME_OUT_REG1			(0x4)
-+#define REG_TIME_OUT_REG2			(0x5)
-+#define REG_KBC_REG				(0x6)
-+#define REG_KBR_REG				(0x7)
-+#define REG_KEYP_SMS				(0x8)
-+#define REG_FULL_CODE_7_0			(0x9)
-+#define REG_FULL_CODE_15_8			(0xA)
-+#define REG_FULL_CODE_23_16			(0xB)
-+#define REG_FULL_CODE_31_24			(0xC)
-+#define REG_FULL_CODE_39_32			(0xD)
-+#define REG_FULL_CODE_47_40			(0xE)
-+#define REG_FULL_CODE_55_48			(0xF)
-+#define REG_FULL_CODE_63_56			(0x10)
-+#define REG_KEYP_ISR1				(0x11)
-+#define REG_KEYP_IMR1				(0x12)
-+#define REG_KEYP_ISR2				(0x13)
-+#define REG_KEYP_IMR2				(0x14)
-+#define REG_KEYP_SIR				(0x15)
-+#define REG_KEYP_EDR				(0x16)
-+#define REG_KEYP_SIH_CTRL			(0x17)
-+
-+/* BitField Definitions */
-+
-+/* KEYP_CTRL_REG Fields */
-+#define BIT_KEYP_CTRL_REG_SOFT_NRST		(0x000)
-+#define BIT_KEYP_CTRL_REG_SOFT_NRST_M		(0x00000001)
-+#define BIT_KEYP_CTRL_REG_SOFTMODEN		(0x001)
-+#define BIT_KEYP_CTRL_REG_SOFTMODEN_M		(0x00000002)
-+#define BIT_KEYP_CTRL_REG_LK_EN			(0x002)
-+#define BIT_KEYP_CTRL_REG_LK_EN_M		(0x00000004)
-+#define BIT_KEYP_CTRL_REG_TOE_EN		(0x003)
-+#define BIT_KEYP_CTRL_REG_TOE_EN_M		(0x00000008)
-+#define BIT_KEYP_CTRL_REG_TOLE_EN		(0x004)
-+#define BIT_KEYP_CTRL_REG_TOLE_EN_M		(0x00000010)
-+#define BIT_KEYP_CTRL_REG_RP_EN			(0x005)
-+#define BIT_KEYP_CTRL_REG_RP_EN_M		(0x00000020)
-+#define BIT_KEYP_CTRL_REG_KBD_ON		(0x006)
-+#define BIT_KEYP_CTRL_REG_KBD_ON_M		(0x00000040)
-+
-+#define KEYP_CTRL_REG_MASK_AUTORPT		BIT_KEYP_CTRL_REG_SOFT_NRST_M |\
-+						BIT_KEYP_CTRL_REG_RP_EN_M |\
-+						BIT_KEYP_CTRL_REG_SOFTMODEN_M |\
-+								BIT_KEYP_CTRL_REG_KBD_ON_M
-+
-+#define KEYP_CTRL_REG_MASK_NOAUTORPT		BIT_KEYP_CTRL_REG_SOFT_NRST_M |\
-+						BIT_KEYP_CTRL_REG_SOFTMODEN_M |\
-+						BIT_KEYP_CTRL_REG_KBD_ON_M
-+
-+/* KEY_DEB_REG Fields */
-+#define BIT_KEY_DEB_REG_KEYP_DEB		(0x000)
-+#define BIT_KEY_DEB_REG_KEYP_DEB_M		(0x0000003F)
-+#define BIT_KEY_DEB9				(0x9)
-+
-+/* LONG_KEY_REG1 Fields */
-+#define BIT_LONG_KEY_REG1_LSB_LK		(0x000)
-+#define BIT_LONG_KEY_REG1_LSB_LK_M		(0x000000FF)
-+#define BIT_LONG_KEY_100MS			(0x63)
-+
-+/* LK_PTV_REG Fields */
-+#define BIT_LK_PTV_REG_MSB_LK			(0x000)
-+#define BIT_LK_PTV_REG_MSB_LK_M			(0x0000000F)
-+#define BIT_LK_PTV_REG_PTV			(0x005)
-+#define BIT_LK_PTV_REG_PTV_M			(0x000000E0)
-+#define BIT_PTV_REG_PTV4			(0x4)
-+
-+/* TIME_OUT_REG1 Fields */
-+#define BIT_TIME_OUT_REG1_LSB_TO		(0x000)
-+#define BIT_TIME_OUT_REG1_LSB_TO_M		(0x000000FF)
-+
-+/* TIME_OUT_REG2 Fields */
-+#define BIT_TIME_OUT_REG2_MSB_TO		(0x000)
-+#define BIT_TIME_OUT_REG2_MSB_TO_M		(0x000000FF)
-+
-+/* KBC_REG Fields */
-+#define BIT_KBC_REG_KBC0			(0x000)
-+#define BIT_KBC_REG_KBC0_M			(0x00000001)
-+#define BIT_KBC_REG_KBC1			(0x001)
-+#define BIT_KBC_REG_KBC1_M			(0x00000002)
-+#define BIT_KBC_REG_KBC2			(0x002)
-+#define BIT_KBC_REG_KBC2_M			(0x00000004)
-+#define BIT_KBC_REG_KBC3			(0x003)
-+#define BIT_KBC_REG_KBC3_M			(0x00000008)
-+#define BIT_KBC_REG_KBC4			(0x004)
-+#define BIT_KBC_REG_KBC4_M			(0x00000010)
-+#define BIT_KBC_REG_KBC5			(0x005)
-+#define BIT_KBC_REG_KBC5_M			(0x00000020)
-+#define BIT_KBC_REG_KBC6			(0x006)
-+#define BIT_KBC_REG_KBC6_M			(0x00000040)
-+#define BIT_KBC_REG_KBC7			(0x007)
-+#define BIT_KBC_REG_KBC7_M			(0x00000080)
-+
-+/* KBR_REG Fields */
-+#define BIT_KBR_REG_KBR0			(0x000)
-+#define BIT_KBR_REG_KBR0_M			(0x00000001)
-+#define BIT_KBR_REG_KBR1			(0x001)
-+#define BIT_KBR_REG_KBR1_M			(0x00000002)
-+#define BIT_KBR_REG_KBR2			(0x002)
-+#define BIT_KBR_REG_KBR2_M			(0x00000004)
-+#define BIT_KBR_REG_KBR3			(0x003)
-+#define BIT_KBR_REG_KBR3_M			(0x00000008)
-+#define BIT_KBR_REG_KBR4			(0x004)
-+#define BIT_KBR_REG_KBR4_M			(0x00000010)
-+#define BIT_KBR_REG_KBR5			(0x005)
-+#define BIT_KBR_REG_KBR5_M			(0x00000020)
-+#define BIT_KBR_REG_KBR6			(0x006)
-+#define BIT_KBR_REG_KBR6_M			(0x00000040)
-+#define BIT_KBR_REG_KBR7			(0x007)
-+#define BIT_KBR_REG_KBR7_M			(0x00000080)
-+
-+/* KEYP_SMS Fields */
-+#define BIT_KEYP_SMS_STMSTS			(0x000)
-+#define BIT_KEYP_SMS_STMSTS_M			(0x0000000F)
-+#define BIT_KEYP_SMS_SIR_EN			(0x004)
-+#define BIT_KEYP_SMS_SIR_EN_M			(0x00000010)
-+#define BIT_KEYP_SMS_MISS_EN			(0x005)
-+#define BIT_KEYP_SMS_MISS_EN_M			(0x00000020)
-+
-+/* FULL_CODE_7_0 Fields */
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K0		(0x000)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K0_M	(0x00000001)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K1		(0x001)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K1_M	(0x00000002)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K2		(0x002)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K2_M	(0x00000004)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K3		(0x003)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K3_M	(0x00000008)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K4		(0x004)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K4_M	(0x00000010)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K5		(0x005)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K5_M	(0x00000020)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K6		(0x006)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K6_M	(0x00000040)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K7		(0x007)
-+#define BIT_FULL_CODE_7_0_FULL_CODE_K7_M	(0x00000080)
-+
-+/* FULL_CODE_15_8 Fields */
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K8		(0x000)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K8_M	(0x00000001)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K9		(0x001)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K9_M	(0x00000002)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K10	(0x002)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K10_M	(0x00000004)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K11	(0x003)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K11_M	(0x00000008)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K12	(0x004)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K12_M	(0x00000010)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K13	(0x005)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K13_M	(0x00000020)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K14	(0x006)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K14_M	(0x00000040)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K15	(0x007)
-+#define BIT_FULL_CODE_15_8_FULL_CODE_K15_M	(0x00000080)
-+
-+/* FULL_CODE_23_16 Fields */
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K16	(0x000)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K16_M	(0x00000001)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K17	(0x001)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K17_M	(0x00000002)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K18	(0x002)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K18_M	(0x00000004)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K19	(0x003)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K19_M	(0x00000008)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K20	(0x004)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K20_M	(0x00000010)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K21	(0x005)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K21_M	(0x00000020)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K22	(0x006)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K22_M	(0x00000040)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K23	(0x007)
-+#define BIT_FULL_CODE_23_16_FULL_CODE_K23_M	(0x00000080)
-+
-+/* FULL_CODE_31_24 Fields */
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K24	(0x000)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K24_M	(0x00000001)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K25	(0x001)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K25_M	(0x00000002)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K26	(0x002)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K26_M	(0x00000004)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K27	(0x003)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K27_M	(0x00000008)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K28	(0x004)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K28_M	(0x00000010)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K29	(0x005)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K29_M	(0x00000020)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K30	(0x006)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K30_M	(0x00000040)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K31	(0x007)
-+#define BIT_FULL_CODE_31_24_FULL_CODE_K31_M	(0x00000080)
-+
-+/* FULL_CODE_39_32 Fields */
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K32	(0x000)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K32_M	(0x00000001)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K33	(0x001)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K33_M	(0x00000002)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K34	(0x002)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K34_M	(0x00000004)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K35	(0x003)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K35_M	(0x00000008)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K36	(0x004)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K36_M	(0x00000010)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K37	(0x005)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K37_M	(0x00000020)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K38	(0x006)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K38_M	(0x00000040)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K39	(0x007)
-+#define BIT_FULL_CODE_39_32_FULL_CODE_K39_M	(0x00000080)
-+
-+/* FULL_CODE_47_40 Fields */
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K40	(0x000)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K40_M	(0x00000001)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K41	(0x001)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K41_M	(0x00000002)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K42	(0x002)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K42_M	(0x00000004)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K43	(0x003)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K43_M	(0x00000008)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K44	(0x004)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K44_M	(0x00000010)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K45	(0x005)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K45_M	(0x00000020)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K46	(0x006)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K46_M	(0x00000040)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K47	(0x007)
-+#define BIT_FULL_CODE_47_40_FULL_CODE_K47_M	(0x00000080)
-+
-+/* FULL_CODE_55_48 Fields */
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K48	(0x000)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K48_M	(0x00000001)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K49	(0x001)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K49_M	(0x00000002)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K50	(0x002)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K50_M	(0x00000004)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K51	(0x003)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K51_M	(0x00000008)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K52	(0x004)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K52_M	(0x00000010)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K53	(0x005)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K53_M	(0x00000020)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K54	(0x006)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K54_M	(0x00000040)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K55	(0x007)
-+#define BIT_FULL_CODE_55_48_FULL_CODE_K55_M	(0x00000080)
-+
-+/* FULL_CODE_63_56 Fields */
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K56	(0x000)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K56_M	(0x00000001)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K57	(0x001)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K57_M	(0x00000002)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K58	(0x002)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K58_M	(0x00000004)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K59	(0x003)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K59_M	(0x00000008)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K60	(0x004)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K60_M	(0x00000010)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K61	(0x005)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K61_M	(0x00000020)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K62	(0x006)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K62_M	(0x00000040)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K63	(0x007)
-+#define BIT_FULL_CODE_63_56_FULL_CODE_K63_M	(0x00000080)
-+
-+/* KEYP_ISR1 Fields */
-+#define BIT_KEYP_ISR1_ITKPISR1			(0x000)
-+#define BIT_KEYP_ISR1_ITKPISR1_M		(0x00000001)
-+#define BIT_KEYP_ISR1_ITLKISR1			(0x001)
-+#define BIT_KEYP_ISR1_ITLKISR1_M		(0x00000002)
-+#define BIT_KEYP_ISR1_ITTOISR1			(0x002)
-+#define BIT_KEYP_ISR1_ITTOISR1_M		(0x00000004)
-+#define BIT_KEYP_ISR1_ITMISR1			(0x003)
-+#define BIT_KEYP_ISR1_ITMISR1_M			(0x00000008)
-+#define KEYP_ISR1_CLEAR				(0x0F)
-+
-+/* KEYP_IMR1 Fields */
-+#define BIT_KEYP_IMR1_ITKPIMR1			(0x000)
-+#define BIT_KEYP_IMR1_ITKPIMR1_M		(0x00000001)
-+#define BIT_KEYP_IMR1_ITLKIMR1			(0x001)
-+#define BIT_KEYP_IMR1_ITLKIMR1_M		(0x00000002)
-+#define BIT_KEYP_IMR1_ITTOIMR1			(0x002)
-+#define BIT_KEYP_IMR1_ITTOIMR1_M		(0x00000004)
-+#define BIT_KEYP_IMR1_ITMISIMR1			(0x003)
-+#define BIT_KEYP_IMR1_ITMISIMR1_M		(0x00000008)
-+#define KEYP_IMR1_MASK				(0x0F)
-+#define KEYP_IMR1_UNMASK			(0x00)
-+
-+/* KEYP_ISR2 Fields */
-+#define BIT_KEYP_ISR2_ITKPISR2			(0x000)
-+#define BIT_KEYP_ISR2_ITKPISR2_M		(0x00000001)
-+#define BIT_KEYP_ISR2_ITLKISR2			(0x001)
-+#define BIT_KEYP_ISR2_ITLKISR2_M		(0x00000002)
-+#define BIT_KEYP_ISR2_ITTOISR2			(0x002)
-+#define BIT_KEYP_ISR2_ITTOISR2_M		(0x00000004)
-+#define BIT_KEYP_ISR2_ITMISR2			(0x003)
-+#define BIT_KEYP_ISR2_ITMISR2_M			(0x00000008)
-+
-+/* KEYP_IMR2 Fields */
-+#define BIT_KEYP_IMR2_ITKPIMR2			(0x000)
-+#define BIT_KEYP_IMR2_ITKPIMR2_M		(0x00000001)
-+#define BIT_KEYP_IMR2_ITLKIMR2			(0x001)
-+#define BIT_KEYP_IMR2_ITLKIMR2_M		(0x00000002)
-+#define BIT_KEYP_IMR2_ITTOIMR2			(0x002)
-+#define BIT_KEYP_IMR2_ITTOIMR2_M		(0x00000004)
-+#define BIT_KEYP_IMR2_ITMISIMR2			(0x003)
-+#define BIT_KEYP_IMR2_ITMISIMR2_M		(0x00000008)
-+
-+/* KEYP_SIR Fields */
-+#define BIT_KEYP_SIR_ITKPSIR			(0x000)
-+#define BIT_KEYP_SIR_ITKPSIR_M			(0x00000001)
-+#define BIT_KEYP_SIR_ITLKSIR			(0x001)
-+#define BIT_KEYP_SIR_ITLKSIR_M			(0x00000002)
-+#define BIT_KEYP_SIR_ITTOSIR			(0x002)
-+#define BIT_KEYP_SIR_ITTOSIR_M			(0x00000004)
-+#define BIT_KEYP_SIR_ITMISSIR			(0x003)
-+#define BIT_KEYP_SIR_ITMISSIR_M			(0x00000008)
-+
-+/* KEYP_EDR Fields */
-+#define BIT_KEYP_EDR_ITKPFALLING		(0x000)
-+#define BIT_KEYP_EDR_ITKPFALLING_M		(0x00000001)
-+#define BIT_KEYP_EDR_ITKPRISING			(0x001)
-+#define BIT_KEYP_EDR_ITKPRISING_M		(0x00000002)
-+#define BIT_KEYP_EDR_ITLKFALLING		(0x002)
-+#define BIT_KEYP_EDR_ITLKFALLING_M		(0x00000004)
-+#define BIT_KEYP_EDR_ITLKRISING			(0x003)
-+#define BIT_KEYP_EDR_ITLKRISING_M		(0x00000008)
-+#define BIT_KEYP_EDR_ITTOFALLING		(0x004)
-+#define BIT_KEYP_EDR_ITTOFALLING_M		(0x00000010)
-+#define BIT_KEYP_EDR_ITTORISING			(0x005)
-+#define BIT_KEYP_EDR_ITTORISING_M		(0x00000020)
-+#define BIT_KEYP_EDR_ITMISFALLING		(0x006)
-+#define BIT_KEYP_EDR_ITMISFALLING_M		(0x00000040)
-+#define BIT_KEYP_EDR_ITMISRISING		(0x007)
-+#define BIT_KEYP_EDR_ITMISRISING_M		(0x00000080)
-+
-+#define KEYP_EDR_MASK				BIT_KEYP_EDR_ITKPFALLING_M |\
-+						BIT_KEYP_EDR_ITLKFALLING_M |\
-+						BIT_KEYP_EDR_ITTOFALLING_M |\
-+						BIT_KEYP_EDR_ITMISFALLING_M
-+/* KEYP_SIH_CTRL Fields */
-+#define BIT_KEYP_SIH_CTRL_EXCLEN		(0x000)
-+#define BIT_KEYP_SIH_CTRL_EXCLEN_M		(0x00000001)
-+#define BIT_KEYP_SIH_CTRL_PENDDIS		(0x001)
-+#define BIT_KEYP_SIH_CTRL_PENDDIS_M		(0x00000002)
-+#define BIT_KEYP_SIH_CTRL_COR			(0x002)
-+#define BIT_KEYP_SIH_CTRL_COR_M			(0x00000004)
-+#define KEYP_SIH_CTRL_MASK			(0x04)
-+
-+#endif	/* End of __TWL4030-KEYPAD_H__ */
+-- 
+--Trilok Soni
+
+------=_Part_157726_5169277.1178875229019
+Content-Type: text/x-patch;
+	name=0001-ARM-OMAP-Use-new-style-I2C-driver-for-Menelaus-chip.patch;
+	charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f1kfs2p4
+Content-Disposition: attachment;
+	filename="0001-ARM-OMAP-Use-new-style-I2C-driver-for-Menelaus-chip.patch"
+
+RnJvbSAyNWVjZjAyZmI2YWY3OGIyNDY5YTRlOWQxMDkyN2FjNTlhMzJhNTA3IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBUcmlsb2sgU29uaSA8c29uaS50cmlsb2tAZ21haWwuY29tPgpE
+YXRlOiBGcmksIDExIE1heSAyMDA3IDAxOjM5OjA4ICswNTMwClN1YmplY3Q6IFtQQVRDSF0gQVJN
+OiBPTUFQOiBVc2UgbmV3IHN0eWxlIEkyQyBkcml2ZXIgZm9yIE1lbmVsYXVzIGNoaXAuCgpTaWdu
+ZWQtb2ZmLWJ5OiBUcmlsb2sgU29uaSA8c29uaS50cmlsb2tAZ21haWwuY29tPgotLS0KIGFyY2gv
+YXJtL21hY2gtb21hcDIvYm9hcmQtaDQuYyB8ICAgMTMgKysrCiBkcml2ZXJzL2kyYy9jaGlwcy9t
+ZW5lbGF1cy5jICAgfCAgMTc2ICsrKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0KIDIgZmlsZXMgY2hhbmdlZCwgODQgaW5zZXJ0aW9ucygrKSwgMTA1IGRlbGV0aW9ucygtKQoK
+ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtaDQuYyBiL2FyY2gvYXJtL21h
+Y2gtb21hcDIvYm9hcmQtaDQuYwppbmRleCBhYTViNjU3Li45OTlkZTEzIDEwMDY0NAotLS0gYS9h
+cmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLWg0LmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9i
+b2FyZC1oNC5jCkBAIC0yMSw2ICsyMSw3IEBACiAjaW5jbHVkZSA8bGludXgvaW5wdXQuaD4KICNp
+bmNsdWRlIDxsaW51eC9lcnIuaD4KICNpbmNsdWRlIDxsaW51eC9jbGsuaD4KKyNpbmNsdWRlIDxs
+aW51eC9pMmMuaD4KIAogI2luY2x1ZGUgPGFzbS9oYXJkd2FyZS5oPgogI2luY2x1ZGUgPGFzbS9t
+YWNoLXR5cGVzLmg+CkBAIC00OTIsNiArNDkzLDE1IEBAIHN0YXRpYyB2b2lkIF9faW5pdCB0dXNi
+X2V2bV9zZXR1cCh2b2lkKQogCiAjZW5kaWYKIAorc3RhdGljIHN0cnVjdCBpMmNfYm9hcmRfaW5m
+byBfX2luaXRkYXRhIGg0X2kyY19ib2FyZF9pbmZvW10gPSB7CisjaWZkZWYgQ09ORklHX01FTkVM
+QVVTCisJeworCQlJMkNfQk9BUkRfSU5GTygibWVuZWxhdXMiLCAweDcyKSwKKwkJLmlycSA9IElO
+VF8yNFhYX1NZU19OSVJRLAorCX0sCisjZW5kaWYKK307CisKIHN0YXRpYyB2b2lkIF9faW5pdCBv
+bWFwX2g0X2luaXQodm9pZCkKIHsKIAkvKgpAQCAtNTIwLDYgKzUzMCw5IEBAIHN0YXRpYyB2b2lk
+IF9faW5pdCBvbWFwX2g0X2luaXQodm9pZCkKIAlvbWFwX2NmZ19yZWcoVjE5XzI0WFhfVVNCMV9S
+Q1YpOwogI2VuZGlmCiAKKwlpMmNfcmVnaXN0ZXJfYm9hcmRfaW5mbygxLCBoNF9pMmNfYm9hcmRf
+aW5mbywKKwkJCUFSUkFZX1NJWkUoaDRfaTJjX2JvYXJkX2luZm8pKTsKKwogCXBsYXRmb3JtX2Fk
+ZF9kZXZpY2VzKGg0X2RldmljZXMsIEFSUkFZX1NJWkUoaDRfZGV2aWNlcykpOwogCW9tYXBfYm9h
+cmRfY29uZmlnID0gaDRfY29uZmlnOwogCW9tYXBfYm9hcmRfY29uZmlnX3NpemUgPSBBUlJBWV9T
+SVpFKGg0X2NvbmZpZyk7CmRpZmYgLS1naXQgYS9kcml2ZXJzL2kyYy9jaGlwcy9tZW5lbGF1cy5j
+IGIvZHJpdmVycy9pMmMvY2hpcHMvbWVuZWxhdXMuYwppbmRleCA1MDA0OTE1Li4yYTNhMjgxIDEw
+MDY0NAotLS0gYS9kcml2ZXJzL2kyYy9jaGlwcy9tZW5lbGF1cy5jCisrKyBiL2RyaXZlcnMvaTJj
+L2NoaXBzL21lbmVsYXVzLmMKQEAgLTEzNCwxNSArMTM0LDkgQEAKIAogc3RhdGljIHZvaWQgbWVu
+ZWxhdXNfd29yayhzdHJ1Y3Qgd29ya19zdHJ1Y3QgKl9tZW5lbGF1cyk7CiAKLS8qIEluaXRpYWxp
+emVkIGJ5IG1lbmVsYXVzX2luaXQgKi8KLXN0YXRpYyB1bnNpZ25lZCBzaG9ydCBub3JtYWxfaTJj
+W10gPSB7IE1FTkVMQVVTX0kyQ19BRERSRVNTLCBJMkNfQ0xJRU5UX0VORCB9OwotCi1JMkNfQ0xJ
+RU5UX0lOU01PRDsKLQogc3RydWN0IG1lbmVsYXVzX2NoaXAgewotCXVuc2lnbmVkIGxvbmcJCWlu
+aXRpYWxpemVkOwogCXN0cnVjdCBtdXRleAkJbG9jazsKLQlzdHJ1Y3QgaTJjX2NsaWVudAljbGll
+bnQ7CisJc3RydWN0IGkyY19jbGllbnQJKmNsaWVudDsKIAlzdHJ1Y3Qgd29ya19zdHJ1Y3QJd29y
+azsKIAlpbnQJCQlpcnE7CiAJdW5zaWduZWQJCXZjb3JlX2h3X21vZGU6MTsKQEAgLTE1MSwxMiAr
+MTQ1LDExIEBAIHN0cnVjdCBtZW5lbGF1c19jaGlwIHsKIAl2b2lkCQkJKm1tY19jYWxsYmFja19k
+YXRhOwogfTsKIAotc3RhdGljIHN0cnVjdCBtZW5lbGF1c19jaGlwIG1lbmVsYXVzOwotc3RhdGlj
+IHN0cnVjdCBtZW5lbGF1c19wbGF0Zm9ybV9kYXRhICptZW5lbGF1c19wZGF0YTsKK3N0YXRpYyBz
+dHJ1Y3QgbWVuZWxhdXNfY2hpcCAqdGhlX21lbmVsYXVzOwogCiBzdGF0aWMgaW50IG1lbmVsYXVz
+X3dyaXRlX3JlZyhpbnQgcmVnLCB1OCB2YWx1ZSkKIHsKLQlpbnQgdmFsID0gaTJjX3NtYnVzX3dy
+aXRlX2J5dGVfZGF0YSgmbWVuZWxhdXMuY2xpZW50LCByZWcsIHZhbHVlKTsKKwlpbnQgdmFsID0g
+aTJjX3NtYnVzX3dyaXRlX2J5dGVfZGF0YSh0aGVfbWVuZWxhdXMtPmNsaWVudCwgcmVnLCB2YWx1
+ZSk7CiAKIAlpZiAodmFsIDwgMCkgewogCQlwcl9lcnIoIndyaXRlIGVycm9yIik7CkBAIC0xNjgs
+NyArMTYxLDcgQEAgc3RhdGljIGludCBtZW5lbGF1c193cml0ZV9yZWcoaW50IHJlZywgdTggdmFs
+dWUpCiAKIHN0YXRpYyBpbnQgbWVuZWxhdXNfcmVhZF9yZWcoaW50IHJlZykKIHsKLQlpbnQgdmFs
+ID0gaTJjX3NtYnVzX3JlYWRfYnl0ZV9kYXRhKCZtZW5lbGF1cy5jbGllbnQsIHJlZyk7CisJaW50
+IHZhbCA9IGkyY19zbWJ1c19yZWFkX2J5dGVfZGF0YSh0aGVfbWVuZWxhdXMtPmNsaWVudCwgcmVn
+KTsKIAogCWlmICh2YWwgPCAwKQogCQlwcl9lcnIoInJlYWQgZXJyb3IiKTsKQEAgLTIxMywxMCAr
+MjA2LDEwIEBAIHN0YXRpYyBpbnQgbWVuZWxhdXNfYWRkX2lycV93b3JrKGludCBpcnEsIHZvaWQg
+KiBoYW5kbGVyKQogewogCWludCByZXQgPSAwOwogCi0JbXV0ZXhfbG9jaygmbWVuZWxhdXMubG9j
+ayk7Ci0JbWVuZWxhdXMuaGFuZGxlcnNbaXJxXSA9IGhhbmRsZXI7CisJbXV0ZXhfbG9jaygmdGhl
+X21lbmVsYXVzLT5sb2NrKTsKKwl0aGVfbWVuZWxhdXMtPmhhbmRsZXJzW2lycV0gPSBoYW5kbGVy
+OwogCXJldCA9IG1lbmVsYXVzX2VuYWJsZV9pcnEoaXJxKTsKLQltdXRleF91bmxvY2soJm1lbmVs
+YXVzLmxvY2spOworCW11dGV4X3VubG9jaygmdGhlX21lbmVsYXVzLT5sb2NrKTsKIAogCXJldHVy
+biByZXQ7CiB9CkBAIC0yMjYsMTAgKzIxOSwxMCBAQCBzdGF0aWMgaW50IG1lbmVsYXVzX3JlbW92
+ZV9pcnFfd29yayhpbnQgaXJxKQogewogCWludCByZXQgPSAwOwogCi0JbXV0ZXhfbG9jaygmbWVu
+ZWxhdXMubG9jayk7CisJbXV0ZXhfbG9jaygmdGhlX21lbmVsYXVzLT5sb2NrKTsKIAlyZXQgPSBt
+ZW5lbGF1c19kaXNhYmxlX2lycShpcnEpOwotCW1lbmVsYXVzLmhhbmRsZXJzW2lycV0gPSBOVUxM
+OwotCW11dGV4X3VubG9jaygmbWVuZWxhdXMubG9jayk7CisJdGhlX21lbmVsYXVzLT5oYW5kbGVy
+c1tpcnFdID0gTlVMTDsKKwltdXRleF91bmxvY2soJnRoZV9tZW5lbGF1cy0+bG9jayk7CiAKIAly
+ZXR1cm4gcmV0OwogfQpAQCAtMjcxLDEwICsyNjQsMTAgQEAgaW50IG1lbmVsYXVzX3NldF9tbWNf
+b3BlbmRyYWluKGludCBzbG90LCBpbnQgZW5hYmxlKQogCiAJaWYgKHNsb3QgIT0gMSAmJiBzbG90
+ICE9IDIpCiAJCXJldHVybiAtRUlOVkFMOwotCW11dGV4X2xvY2soJm1lbmVsYXVzLmxvY2spOwor
+CW11dGV4X2xvY2soJnRoZV9tZW5lbGF1cy0+bG9jayk7CiAJcmV0ID0gbWVuZWxhdXNfcmVhZF9y
+ZWcoTUVORUxBVVNfTUNUX0NUUkwxKTsKIAlpZiAocmV0IDwgMCkgewotCQltdXRleF91bmxvY2so
+Jm1lbmVsYXVzLmxvY2spOworCQltdXRleF91bmxvY2soJnRoZV9tZW5lbGF1cy0+bG9jayk7CiAJ
+CXJldHVybiByZXQ7CiAJfQogCXZhbCA9IHJldDsKQEAgLTI5MCw3ICsyODMsNyBAQCBpbnQgbWVu
+ZWxhdXNfc2V0X21tY19vcGVuZHJhaW4oaW50IHNsb3QsIGludCBlbmFibGUpCiAJCQl2YWwgJj0g
+figxIDw8IDMpOwogCX0KIAlyZXQgPSBtZW5lbGF1c193cml0ZV9yZWcoTUVORUxBVVNfTUNUX0NU
+UkwxLCB2YWwpOwotCW11dGV4X3VubG9jaygmbWVuZWxhdXMubG9jayk7CisJbXV0ZXhfdW5sb2Nr
+KCZ0aGVfbWVuZWxhdXMtPmxvY2spOwogCiAJcmV0dXJuIHJldDsKIH0KQEAgLTMwMCw3ICsyOTMs
+NyBAQCBpbnQgbWVuZWxhdXNfc2V0X3Nsb3Rfc2VsKGludCBlbmFibGUpCiB7CiAJaW50IHJldDsK
+IAotCW11dGV4X2xvY2soJm1lbmVsYXVzLmxvY2spOworCW11dGV4X2xvY2soJnRoZV9tZW5lbGF1
+cy0+bG9jayk7CiAJcmV0ID0gbWVuZWxhdXNfcmVhZF9yZWcoTUVORUxBVVNfR1BJT19DVFJMKTsK
+IAlpZiAocmV0IDwgMCkKIAkJZ290byBvdXQ7CkBAIC0zMTEsNyArMzA0LDcgQEAgaW50IG1lbmVs
+YXVzX3NldF9zbG90X3NlbChpbnQgZW5hYmxlKQogCQlyZXQgJj0gfigxIDw8IDUpOwogCXJldCA9
+IG1lbmVsYXVzX3dyaXRlX3JlZyhNRU5FTEFVU19HUElPX0NUUkwsIHJldCk7CiBvdXQ6Ci0JbXV0
+ZXhfdW5sb2NrKCZtZW5lbGF1cy5sb2NrKTsKKwltdXRleF91bmxvY2soJnRoZV9tZW5lbGF1cy0+
+bG9jayk7CiAJcmV0dXJuIHJldDsKIH0KIEVYUE9SVF9TWU1CT0wobWVuZWxhdXNfc2V0X3Nsb3Rf
+c2VsKTsKQEAgLTMyNSw3ICszMTgsNyBAQCBpbnQgbWVuZWxhdXNfc2V0X21tY19zbG90KGludCBz
+bG90LCBpbnQgZW5hYmxlLCBpbnQgcG93ZXIsIGludCBjZF9lbikKIAlpZiAocG93ZXIgPj0gMykK
+IAkJcmV0dXJuIC1FSU5WQUw7CiAKLQltdXRleF9sb2NrKCZtZW5lbGF1cy5sb2NrKTsKKwltdXRl
+eF9sb2NrKCZ0aGVfbWVuZWxhdXMtPmxvY2spOwogCiAJcmV0ID0gbWVuZWxhdXNfcmVhZF9yZWco
+TUVORUxBVVNfTUNUX0NUUkwyKTsKIAlpZiAocmV0IDwgMCkKQEAgLTM3Myw3ICszNjYsNyBAQCBp
+bnQgbWVuZWxhdXNfc2V0X21tY19zbG90KGludCBzbG90LCBpbnQgZW5hYmxlLCBpbnQgcG93ZXIs
+IGludCBjZF9lbikKIAl2YWwgJj0gfigweDAzIDw8IDIpOwogCXJldCA9IG1lbmVsYXVzX3dyaXRl
+X3JlZyhNRU5FTEFVU19NQ1RfQ1RSTDMsIHZhbCk7CiBvdXQ6Ci0JbXV0ZXhfdW5sb2NrKCZtZW5l
+bGF1cy5sb2NrKTsKKwltdXRleF91bmxvY2soJnRoZV9tZW5lbGF1cy0+bG9jayk7CiAJcmV0dXJu
+IHJldDsKIH0KIEVYUE9SVF9TWU1CT0wobWVuZWxhdXNfc2V0X21tY19zbG90KTsKQEAgLTM4NSw4
+ICszNzgsOCBAQCBpbnQgbWVuZWxhdXNfcmVnaXN0ZXJfbW1jX2NhbGxiYWNrKHZvaWQgKCpjYWxs
+YmFjaykodm9pZCAqZGF0YSwgdTggY2FyZF9tYXNrKSwKIHsKIAlpbnQgcmV0ID0gMDsKIAotCW1l
+bmVsYXVzLm1tY19jYWxsYmFja19kYXRhID0gZGF0YTsKLQltZW5lbGF1cy5tbWNfY2FsbGJhY2sg
+PSBjYWxsYmFjazsKKwl0aGVfbWVuZWxhdXMtPm1tY19jYWxsYmFja19kYXRhID0gZGF0YTsKKwl0
+aGVfbWVuZWxhdXMtPm1tY19jYWxsYmFjayA9IGNhbGxiYWNrOwogCXJldCA9IG1lbmVsYXVzX2Fk
+ZF9pcnFfd29yayhNRU5FTEFVU19NTUNfUzFDRF9JUlEsCiAJCQkJICAgIG1lbmVsYXVzX21tY19j
+ZF93b3JrKTsKIAlpZiAocmV0IDwgMCkKQEAgLTQxMyw4ICs0MDYsOCBAQCB2b2lkIG1lbmVsYXVz
+X3VucmVnaXN0ZXJfbW1jX2NhbGxiYWNrKHZvaWQpCiAJbWVuZWxhdXNfcmVtb3ZlX2lycV93b3Jr
+KE1FTkVMQVVTX01NQ19TMUQxX0lSUSk7CiAJbWVuZWxhdXNfcmVtb3ZlX2lycV93b3JrKE1FTkVM
+QVVTX01NQ19TMkQxX0lSUSk7CiAKLQltZW5lbGF1cy5tbWNfY2FsbGJhY2sgPSBOVUxMOwotCW1l
+bmVsYXVzLm1tY19jYWxsYmFja19kYXRhID0gMDsKKwl0aGVfbWVuZWxhdXMtPm1tY19jYWxsYmFj
+ayA9IE5VTEw7CisJdGhlX21lbmVsYXVzLT5tbWNfY2FsbGJhY2tfZGF0YSA9IDA7CiB9CiBFWFBP
+UlRfU1lNQk9MKG1lbmVsYXVzX3VucmVnaXN0ZXJfbW1jX2NhbGxiYWNrKTsKIApAQCAtNDM2LDcg
+KzQyOSw3IEBAIHN0YXRpYyBpbnQgbWVuZWxhdXNfc2V0X3ZvbHRhZ2UoY29uc3Qgc3RydWN0IG1l
+bmVsYXVzX3Z0ZyAqdnRnLCBpbnQgbVYsCiB7CiAJaW50IHZhbCwgcmV0OwogCi0JbXV0ZXhfbG9j
+aygmbWVuZWxhdXMubG9jayk7CisJbXV0ZXhfbG9jaygmdGhlX21lbmVsYXVzLT5sb2NrKTsKIAlp
+ZiAodnRnID09IDApCiAJCWdvdG8gc2V0X3ZvbHRhZ2U7CiAKQEAgLTQ1NSw3ICs0NDgsNyBAQCBz
+dGF0aWMgaW50IG1lbmVsYXVzX3NldF92b2x0YWdlKGNvbnN0IHN0cnVjdCBtZW5lbGF1c192dGcg
+KnZ0ZywgaW50IG1WLAogc2V0X3ZvbHRhZ2U6CiAJcmV0ID0gbWVuZWxhdXNfd3JpdGVfcmVnKHZ0
+Zy0+bW9kZV9yZWcsIG1vZGUpOwogb3V0OgotCW11dGV4X3VubG9jaygmbWVuZWxhdXMubG9jayk7
+CisJbXV0ZXhfdW5sb2NrKCZ0aGVfbWVuZWxhdXMtPmxvY2spOwogCWlmIChyZXQgPT0gMCkgewog
+CQkvKiBXYWl0IGZvciB2b2x0YWdlIHRvIHN0YWJpbGl6ZSAqLwogCQltc2xlZXAoMSk7CkBAIC01
+MTYsMTEgKzUwOSwxMSBAQCBpbnQgbWVuZWxhdXNfc2V0X3Zjb3JlX3N3KHVuc2lnbmVkIGludCBt
+VikKICNlbmRpZgogCiAJLyogU2V0IFNXIG1vZGUgYW5kIHRoZSB2b2x0YWdlIGluIG9uZSBnby4g
+Ki8KLQltdXRleF9sb2NrKCZtZW5lbGF1cy5sb2NrKTsKKwltdXRleF9sb2NrKCZ0aGVfbWVuZWxh
+dXMtPmxvY2spOwogCXJldCA9IG1lbmVsYXVzX3dyaXRlX3JlZyhNRU5FTEFVU19WQ09SRV9DVFJM
+MSwgdmFsKTsKIAlpZiAocmV0ID09IDApCi0JCW1lbmVsYXVzLnZjb3JlX2h3X21vZGUgPSAwOwot
+CW11dGV4X3VubG9jaygmbWVuZWxhdXMubG9jayk7CisJCXRoZV9tZW5lbGF1cy0+dmNvcmVfaHdf
+bW9kZSA9IDA7CisJbXV0ZXhfdW5sb2NrKCZ0aGVfbWVuZWxhdXMtPmxvY2spOwogCW1zbGVlcCgx
+KTsKIAogCXJldHVybiByZXQ7CkBAIC01NDIsMjIgKzUzNSwyMiBAQCBpbnQgbWVuZWxhdXNfc2V0
+X3Zjb3JlX2h3KHVuc2lnbmVkIGludCByb29mX21WLCB1bnNpZ25lZCBpbnQgZmxvb3JfbVYpCiAJ
+ICAgICAgIGZsb29yX21WLCByb29mX21WKTsKICNlbmRpZgogCi0JbXV0ZXhfbG9jaygmbWVuZWxh
+dXMubG9jayk7CisJbXV0ZXhfbG9jaygmdGhlX21lbmVsYXVzLT5sb2NrKTsKIAlyZXQgPSBtZW5l
+bGF1c193cml0ZV9yZWcoTUVORUxBVVNfVkNPUkVfQ1RSTDMsIGZ2YWwpOwogCWlmIChyZXQgPCAw
+KQogCQlnb3RvIG91dDsKIAlyZXQgPSBtZW5lbGF1c193cml0ZV9yZWcoTUVORUxBVVNfVkNPUkVf
+Q1RSTDQsIHJ2YWwpOwogCWlmIChyZXQgPCAwKQogCQlnb3RvIG91dDsKLQlpZiAoIW1lbmVsYXVz
+LnZjb3JlX2h3X21vZGUpIHsKKwlpZiAoIXRoZV9tZW5lbGF1cy0+dmNvcmVfaHdfbW9kZSkgewog
+CQl2YWwgPSBtZW5lbGF1c19yZWFkX3JlZyhNRU5FTEFVU19WQ09SRV9DVFJMMSk7CiAJCXZhbCB8
+PSAoKDEgPDwgNykgfCAoMSA8PCA1KSk7IC8qIEhXIG1vZGUsIHR1cm4gT0ZGIGJ5dGUgY29tcGFy
+YXRvciAqLwogCQlyZXQgPSBtZW5lbGF1c193cml0ZV9yZWcoTUVORUxBVVNfVkNPUkVfQ1RSTDEs
+IHZhbCk7Ci0JCW1lbmVsYXVzLnZjb3JlX2h3X21vZGUgPSAxOworCQl0aGVfbWVuZWxhdXMtPnZj
+b3JlX2h3X21vZGUgPSAxOwogCX0KIAltc2xlZXAoMSk7CiBvdXQ6Ci0JbXV0ZXhfdW5sb2NrKCZt
+ZW5lbGF1cy5sb2NrKTsKKwltdXRleF91bmxvY2soJnRoZV9tZW5lbGF1cy0+bG9jayk7CiAJcmV0
+dXJuIHJldDsKIH0KIApAQCAtNzM2LDcgKzcyOSw3IEBAIGludCBtZW5lbGF1c19zZXRfcmVndWxh
+dG9yX3NsZWVwKGludCBlbmFibGUsIHUzMiB2YWwpCiB7CiAJaW50IHQsIHJldDsKIAotICAgICAg
+ICBtdXRleF9sb2NrKCZtZW5lbGF1cy5sb2NrKTsKKyAgICAgICAgbXV0ZXhfbG9jaygmdGhlX21l
+bmVsYXVzLT5sb2NrKTsKIAlyZXQgPSBtZW5lbGF1c193cml0ZV9yZWcoTUVORUxBVVNfU0xFRVBf
+Q1RSTDIsIHZhbCk7CiAJaWYgKHJldCA8IDApCiAJCWdvdG8gb3V0OwpAQCAtNzUzLDcgKzc0Niw3
+IEBAIGludCBtZW5lbGF1c19zZXRfcmVndWxhdG9yX3NsZWVwKGludCBlbmFibGUsIHUzMiB2YWwp
+CiAJCXJldCAmPSB+dDsKIAlyZXQgPSBtZW5lbGF1c193cml0ZV9yZWcoTUVORUxBVVNfR1BJT19D
+VFJMLCByZXQpOwogb3V0OgotCW11dGV4X3VubG9jaygmbWVuZWxhdXMubG9jayk7CisJbXV0ZXhf
+dW5sb2NrKCZ0aGVfbWVuZWxhdXMtPmxvY2spOwogCXJldHVybiByZXQ7CiB9CiAKQEAgLTgwOCwz
+NyArODAxLDM2IEBAIHN0YXRpYyBpcnFyZXR1cm5fdCBtZW5lbGF1c19pcnEoaW50IGlycSwgdm9p
+ZCAqX21lbmVsYXVzKQogCiBzdGF0aWMgc3RydWN0IGkyY19kcml2ZXIgbWVuZWxhdXNfaTJjX2Ry
+aXZlcjsKIAotc3RhdGljIGludCBtZW5lbGF1c19wcm9iZShzdHJ1Y3QgaTJjX2FkYXB0ZXIgKmFk
+YXB0ZXIsIGludCBhZGRyZXNzLCBpbnQga2luZCkKK3N0YXRpYyBpbnQgbWVuZWxhdXNfcHJvYmUo
+c3RydWN0IGkyY19jbGllbnQgKmNsaWVudCkKIHsKLQlzdHJ1Y3QgaTJjX2NsaWVudAkqYzsKKwlz
+dHJ1Y3QgbWVuZWxhdXNfY2hpcAkqbWVuZWxhdXM7CiAJaW50CQkJcmV2ID0gMCwgdmFsOwogCWlu
+dAkJCWVyciA9IDA7CisJc3RydWN0IG1lbmVsYXVzX3BsYXRmb3JtX2RhdGEgKm1lbmVsYXVzX3Bk
+YXRhID0KKwkJCQkJY2xpZW50LT5kZXYucGxhdGZvcm1fZGF0YTsKIAotCWlmICh0ZXN0X2FuZF9z
+ZXRfYml0KDAsICZtZW5lbGF1cy5pbml0aWFsaXplZCkpCi0JCXJldHVybiAtRUJVU1k7CisJaWYg
+KHRoZV9tZW5lbGF1cykKKwkJcmV0dXJuIC1FTk9ERVY7CiAKLQljID0gJm1lbmVsYXVzLmNsaWVu
+dDsKLQlzdHJuY3B5KGMtPm5hbWUsIERSSVZFUl9OQU1FLCBzaXplb2YoYy0+bmFtZSkpOwotCWMt
+PmFkZHIJCT0gYWRkcmVzczsKLQljLT5hZGFwdGVyCT0gYWRhcHRlcjsKLQljLT5kcml2ZXIJPSAm
+bWVuZWxhdXNfaTJjX2RyaXZlcjsKLQljLT5mbGFncwk9IDA7CisJbWVuZWxhdXMgPSBremFsbG9j
+KHNpemVvZiAqbWVuZWxhdXMsIEdGUF9LRVJORUwpOworCWlmICghbWVuZWxhdXMpCisJCXJldHVy
+biAtRU5PTUVNOwogCi0JaWYgKChlcnIgPSBpMmNfYXR0YWNoX2NsaWVudChjKSkgPCAwKSB7Ci0J
+CXByX2VycigiY291bGRuJ3QgYXR0YWNoXG4iKTsKLQkJZ290byBmYWlsMTsKLQl9CisJaTJjX3Nl
+dF9jbGllbnRkYXRhKGNsaWVudCwgbWVuZWxhdXMpOworCisJdGhlX21lbmVsYXVzID0gbWVuZWxh
+dXM7CisJbWVuZWxhdXMtPmNsaWVudCA9IGNsaWVudDsKIAogCS8qIElmIGEgdHJ1ZSBwcm9iZSBj
+aGVjayB0aGUgZGV2aWNlICovCi0JaWYgKGtpbmQgPCAwICYmIChyZXYgPSBtZW5lbGF1c19yZWFk
+X3JlZyhNRU5FTEFVU19SRVYpKSA8IDApIHsKKwlpZiAoKHJldiA9IG1lbmVsYXVzX3JlYWRfcmVn
+KE1FTkVMQVVTX1JFVikpIDwgMCkgewogCQlwcl9lcnIoImRldmljZSBub3QgZm91bmQiKTsKIAkJ
+ZXJyID0gLUVOT0RFVjsKLQkJZ290byBmYWlsMjsKKwkJZ290byBmYWlsMTsKIAl9CiAKIAkvKiBN
+b3N0IGxpa2VseSBNZW5lbGF1cyBpbnRlcnJ1cHQgaXMgYXQgU1lTX05JUlEgKi8KIAlvbWFwX2Nm
+Z19yZWcoVzE5XzI0WFhfU1lTX05JUlEpOwotCW1lbmVsYXVzLmlycSA9IElOVF8yNFhYX1NZU19O
+SVJROworCQltZW5lbGF1cy0+aXJxID0gY2xpZW50LT5pcnE7CiAKIAkvKiBBY2sgYW5kIGRpc2Fi
+bGUgYWxsIE1lbmVsYXVzIGludGVycnVwdHMgKi8KIAltZW5lbGF1c193cml0ZV9yZWcoTUVORUxB
+VVNfSU5UX0FDSzEsIDB4ZmYpOwpAQCAtODQ5LDgxICs4NDEsNjAgQEAgc3RhdGljIGludCBtZW5l
+bGF1c19wcm9iZShzdHJ1Y3QgaTJjX2FkYXB0ZXIgKmFkYXB0ZXIsIGludCBhZGRyZXNzLCBpbnQg
+a2luZCkKIAkvKiBTZXQgb3V0cHV0IGJ1ZmZlciBzdHJlbmd0aHMgKi8KIAltZW5lbGF1c193cml0
+ZV9yZWcoTUVORUxBVVNfTUNUX0NUUkwxLCAweDczKTsKIAotCWVyciA9IHJlcXVlc3RfaXJxKG1l
+bmVsYXVzLmlycSwgbWVuZWxhdXNfaXJxLCBJUlFGX0RJU0FCTEVELAotCQkJICBEUklWRVJfTkFN
+RSwgJm1lbmVsYXVzKTsKLQlpZiAoZXJyKSB7Ci0JCXByaW50ayhLRVJOX0VSUiAiQ291bGQgbm90
+IGdldCBNZW5lbGF1cyBJUlFcbiIpOwotCQlnb3RvIGZhaWwyOworCWlmIChjbGllbnQtPmlycSA+
+IDApIHsKKwkJZXJyID0gcmVxdWVzdF9pcnEoY2xpZW50LT5pcnEsIG1lbmVsYXVzX2lycSwgSVJR
+Rl9ESVNBQkxFRCwKKwkJCQkgIERSSVZFUl9OQU1FLCBtZW5lbGF1cyk7CisJCWlmIChlcnIpIHsK
+KwkJCXByaW50ayhLRVJOX0VSUiAiQ291bGQgbm90IGdldCBNZW5lbGF1cyBJUlFcbiIpOworCQkJ
+Z290byBmYWlsMTsKKwkJfQogCX0KIAotCW11dGV4X2luaXQoJm1lbmVsYXVzLmxvY2spOwotCUlO
+SVRfV09SSygmbWVuZWxhdXMud29yaywgbWVuZWxhdXNfd29yayk7CisJbXV0ZXhfaW5pdCgmbWVu
+ZWxhdXMtPmxvY2spOworCUlOSVRfV09SSygmbWVuZWxhdXMtPndvcmssIG1lbmVsYXVzX3dvcmsp
+OwogCi0JaWYgKGtpbmQgPCAwKQotCQlwcl9pbmZvKCJNZW5lbGF1cyByZXYgJWQuJWRcbiIsIHJl
+diA+PiA0LCByZXYgJiAweDBmKTsKKwlwcl9pbmZvKCJNZW5lbGF1cyByZXYgJWQuJWRcbiIsIHJl
+diA+PiA0LCByZXYgJiAweDBmKTsKIAogCXZhbCA9IG1lbmVsYXVzX3JlYWRfcmVnKE1FTkVMQVVT
+X1ZDT1JFX0NUUkwxKTsKIAlpZiAodmFsIDwgMCkKLQkJZ290byBmYWlsMzsKKwkJZ290byBmYWls
+MjsKIAlpZiAodmFsICYgKDEgPDwgNykpCi0JCW1lbmVsYXVzLnZjb3JlX2h3X21vZGUgPSAxOwor
+CQltZW5lbGF1cy0+dmNvcmVfaHdfbW9kZSA9IDE7CiAJZWxzZQotCQltZW5lbGF1cy52Y29yZV9o
+d19tb2RlID0gMDsKKwkJbWVuZWxhdXMtPnZjb3JlX2h3X21vZGUgPSAwOwogCiAJaWYgKG1lbmVs
+YXVzX3BkYXRhICE9IE5VTEwgJiYgbWVuZWxhdXNfcGRhdGEtPmxhdGVfaW5pdCAhPSBOVUxMKSB7
+Ci0JCWVyciA9IG1lbmVsYXVzX3BkYXRhLT5sYXRlX2luaXQoJmMtPmRldik7CisJCWVyciA9IG1l
+bmVsYXVzX3BkYXRhLT5sYXRlX2luaXQoJmNsaWVudC0+ZGV2KTsKIAkJaWYgKGVyciA8IDApCi0J
+CQlnb3RvIGZhaWwzOworCQkJZ290byBmYWlsMjsKIAl9CiAKIAlyZXR1cm4gMDsKLWZhaWwzOgot
+CWZyZWVfaXJxKG1lbmVsYXVzLmlycSwgJm1lbmVsYXVzKTsKLQlmbHVzaF9zY2hlZHVsZWRfd29y
+aygpOwogZmFpbDI6Ci0JaTJjX2RldGFjaF9jbGllbnQoYyk7CisJZnJlZV9pcnEoY2xpZW50LT5p
+cnEsIG1lbmVsYXVzKTsKKwlmbHVzaF9zY2hlZHVsZWRfd29yaygpOwogZmFpbDE6Ci0JY2xlYXJf
+Yml0KDAsICZtZW5lbGF1cy5pbml0aWFsaXplZCk7CisJa2ZyZWUobWVuZWxhdXMpOwogCXJldHVy
+biBlcnI7CiB9CiAKIHN0YXRpYyBpbnQgbWVuZWxhdXNfcmVtb3ZlKHN0cnVjdCBpMmNfY2xpZW50
+ICpjbGllbnQpCiB7Ci0JaW50IGVycjsKLQotCWZyZWVfaXJxKG1lbmVsYXVzLmlycSwgJm1lbmVs
+YXVzKTsKLQotCWlmICgoZXJyID0gaTJjX2RldGFjaF9jbGllbnQoY2xpZW50KSkpIHsKLQkJcHJf
+ZXJyKCJjbGllbnQgZGVyZWdpc3RyYXRpb24gZmFpbGVkXG4iKTsKLQkJcmV0dXJuIGVycjsKLQl9
+Ci0KLQljbGVhcl9iaXQoMCwgJm1lbmVsYXVzLmluaXRpYWxpemVkKTsKKwlzdHJ1Y3QgbWVuZWxh
+dXNfY2hpcAkqbWVuZWxhdXMgPSBpMmNfZ2V0X2NsaWVudGRhdGEoY2xpZW50KTsKIAorCWZyZWVf
+aXJxKGNsaWVudC0+aXJxLCBtZW5lbGF1cyk7CisJdGhlX21lbmVsYXVzID0gTlVMTDsKIAlyZXR1
+cm4gMDsKIH0KIAotLyotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSovCi0KLXN0YXRpYyBpbnQgbWVuZWxhdXNfc2Nh
+bl9idXMoc3RydWN0IGkyY19hZGFwdGVyICpidXMpCi17Ci0JaWYgKCFpMmNfY2hlY2tfZnVuY3Rp
+b25hbGl0eShidXMsIEkyQ19GVU5DX1NNQlVTX0JZVEVfREFUQSB8Ci0JCQkJCSAgSTJDX0ZVTkNf
+U01CVVNfV1JJVEVfQllURSkpIHsKLQkJcHJfZXJyKCJpbnZhbGlkIGkyYyBidXMgZnVuY3Rpb25h
+bGl0eVxuIik7Ci0JCXJldHVybiAtRUlOVkFMOwotCX0KLQotCXJldHVybiBpMmNfcHJvYmUoYnVz
+LCAmYWRkcl9kYXRhLCBtZW5lbGF1c19wcm9iZSk7Ci19Ci0KIHN0YXRpYyBzdHJ1Y3QgaTJjX2Ry
+aXZlciBtZW5lbGF1c19pMmNfZHJpdmVyID0gewogCS5kcml2ZXIgPSB7CiAJCS5uYW1lCQk9IERS
+SVZFUl9OQU1FLAogCX0sCiAJLmlkCQk9IEkyQ19EUklWRVJJRF9NSVNDLCAvKkZJWE1FOmFjY3Jv
+ZGluZyB0byBpMmMtaWRzLmggKi8KIAkuY2xhc3MJCT0gSTJDX0NMQVNTX0hXTU9OLAotCS5hdHRh
+Y2hfYWRhcHRlcgk9IG1lbmVsYXVzX3NjYW5fYnVzLAotCS5kZXRhY2hfY2xpZW50CT0gbWVuZWxh
+dXNfcmVtb3ZlLAorCS5wcm9iZQkJPSBtZW5lbGF1c19wcm9iZSwKKwkucmVtb3ZlCQk9IG1lbmVs
+YXVzX3JlbW92ZSwKIH07CiAKIHN0YXRpYyBpbnQgX19pbml0IG1lbmVsYXVzX2luaXQodm9pZCkK
+QEAgLTk0NSwxMSArOTE2LDYgQEAgc3RhdGljIHZvaWQgX19leGl0IG1lbmVsYXVzX2V4aXQodm9p
+ZCkKIAkvKiBGSVhNRTogU2h1dGRvd24gbWVuZWxhdXMgcGFydHMgdGhhdCBjYW4gYmUgc2h1dCBk
+b3duICovCiB9CiAKLXZvaWQgX19pbml0IG1lbmVsYXVzX3NldF9wbGF0Zm9ybV9kYXRhKHN0cnVj
+dCBtZW5lbGF1c19wbGF0Zm9ybV9kYXRhICpwZGF0YSkKLXsKLQltZW5lbGF1c19wZGF0YSA9IHBk
+YXRhOwotfQotCiBNT0RVTEVfQVVUSE9SKCJUZXhhcyBJbnN0cnVtZW50cywgSW5jLiIpOwogTU9E
+VUxFX0RFU0NSSVBUSU9OKCJJMkMgaW50ZXJmYWNlIGZvciBNZW5lbGF1cy4iKTsKIE1PRFVMRV9M
+SUNFTlNFKCJHUEwiKTsKLS0gCjEuNS4wCgo=
+------=_Part_157726_5169277.1178875229019
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+------=_Part_157726_5169277.1178875229019--
