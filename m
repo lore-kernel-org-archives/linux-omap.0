@@ -1,9 +1,10 @@
-From: Amr Ayoub <amrgermany@yahoo.com>
-Subject: osk5912bsl.lib has incompatible ABI
-Date: Mon, 14 May 2007 05:54:23 -0700 (PDT)
-Message-ID: <64263.30576.qm@web56107.mail.re3.yahoo.com>
+From: Geoffrey Tam <geoffrey@evertz.com>
+Subject: RE: Cannot stall an endpoint 0 control transfer from a data stage
+	cal lback function
+Date: Mon, 14 May 2007 14:24:26 -0400
+Message-ID: <0474A5584072DA1197F50007E90E6B1141D470@PORTIA>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ascii
+Content-Type: text/plain
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -14,24 +15,64 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: "'tony@atomide.com'" <tony@atomide.com>
+Cc: "'linux-omap-open-source@linux.omap.com'" <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Dear all,
+I have tried using g_ep0.c from the linux-omap git tree
+(git://source.mvista.com/git/linux-omap-2.6.git). This resulted in compiler
+errors.
 
-I have a linking error which says "'C:\CCStudio_v3.1\boards\osk5912\lib\osk5912bsl.lib' has
-incompatible ABI ".
+So, I tried copying all USB files:
+- driver/usb/* using "cp -R drivers/usb/*"
+- include/linux using "cp include/linux/usb*" and "cp include/linux/usb/*"
+This resulted in compiler errors when building the modules using "make
+ARCH=arm CROSS_COMPILE=arm_v5t_le- modules". Building the kernel worked
+fine. I'm not sure if there is a problem with my config.
 
-I have read the URL that was posted by Thomas Maughan to Alex Schneidman but still got the same error.
-ftp://ftp.ti.com/pub/private-cs/armcgt_releases/tms470_releases.html
+I took a look at the code in the git tree. It did not look like any of my
+patch was implemented. Perhaps, I grabbed the wrong git tree?
 
-Could you please brief me with the solution.
+My main problem is I need to stall endpoint 0 from the callback function
+when it is called either in the setup or data stage. The code seems to set
+the software state machine back to MGC_END0_STAGE_SETUP before the callback
+is called. This prevents software from setting the stall condition using
+musb_g_ep0_halt(). Also, the driver signals to the hardware before the
+callback is called that the data stage has completed. This prevents the
+hardware from setting the stall condition from the callback function.
 
-Best regards,
-Amr Ayoub
+I am not sure why the mass storage gadget fails to enumerate with my fixes.
+Unfortunately, my Davinci eval board does not like Linux 2.6.20 - it hangs
+shortly after it is loaded. So, I cannot look into this.
+
+I will try again when I get the chance.
+
+Geoffrey
+
+-----Original Message-----
+From: tony@atomide.com [mailto:tony@atomide.com]
+Sent: Friday, May 11, 2007 2:11 PM
+To: Geoffrey Tam
+Cc: 'linux-omap-open-source@linux.omap.com'
+Subject: Re: Cannot stall an endpoint 0 control transfer from a data
+stage cal lback function
 
 
+* Geoffrey Tam <geoffrey@evertz.com> [070509 11:12]:
+> Also sent to 'linux-usb-devel@lists.sourceforge.net'.
+> 
+> patch was created as per Documentation/SubmittingPatches.
 
-       
-____________________________________________________________________________________Building a website is a piece of cake. Yahoo! Small Business gives you all the tools to get online.
-http://smallbusiness.yahoo.com/webhosting 
+Thanks, I tried it out quickly and looks like the last part of your
+patch is already in the linux-omap git tree.
+
+After applying the other parts, the mass storage gadget did not
+enumerate though... I'll look into it again when I have a chance.
+
+Do you have any chance to  try the current linux-omap git
+tree and see how it works for you, then see what happens with
+your patch?
+
+Regards,
+
+Tony
