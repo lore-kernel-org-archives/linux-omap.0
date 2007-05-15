@@ -1,10 +1,12 @@
-From: Geoffrey Tam <geoffrey@evertz.com>
-Subject: RE: Cannot stall an endpoint 0 control transfer from a data stage
-	cal lback function
-Date: Mon, 14 May 2007 14:24:26 -0400
-Message-ID: <0474A5584072DA1197F50007E90E6B1141D470@PORTIA>
+From: "Kyungmin Park" <kmpark@infradead.org>
+Subject: [PATCH] ARM: OMAP: Update recent gpio-keys changes in apollon board
+Date: Tue, 15 May 2007 13:52:42 +0900
+Message-ID: <001101c796ac$ed7aae50$e1ac580a@swcenter.sec.samsung.co.kr>
+Reply-To: kmpark@infradead.org
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,64 +17,54 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "'tony@atomide.com'" <tony@atomide.com>
-Cc: "'linux-omap-open-source@linux.omap.com'" <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-I have tried using g_ep0.c from the linux-omap git tree
-(git://source.mvista.com/git/linux-omap-2.6.git). This resulted in compiler
-errors.
+[PATCH] ARM: OMAP: Update recent gpio-keys changes in apollon board
 
-So, I tried copying all USB files:
-- driver/usb/* using "cp -R drivers/usb/*"
-- include/linux using "cp include/linux/usb*" and "cp include/linux/usb/*"
-This resulted in compiler errors when building the modules using "make
-ARCH=arm CROSS_COMPILE=arm_v5t_le- modules". Building the kernel worked
-fine. I'm not sure if there is a problem with my config.
+- Also fix section mismatch: reference to .init.text: from .text in apollon
+board
 
-I took a look at the code in the git tree. It did not look like any of my
-patch was implemented. Perhaps, I grabbed the wrong git tree?
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-My main problem is I need to stall endpoint 0 from the callback function
-when it is called either in the setup or data stage. The code seems to set
-the software state machine back to MGC_END0_STAGE_SETUP before the callback
-is called. This prevents software from setting the stall condition using
-musb_g_ep0_halt(). Also, the driver signals to the hardware before the
-callback is called that the data stage has completed. This prevents the
-hardware from setting the stall condition from the callback function.
-
-I am not sure why the mass storage gadget fails to enumerate with my fixes.
-Unfortunately, my Davinci eval board does not like Linux 2.6.20 - it hangs
-shortly after it is loaded. So, I cannot look into this.
-
-I will try again when I get the chance.
-
-Geoffrey
-
------Original Message-----
-From: tony@atomide.com [mailto:tony@atomide.com]
-Sent: Friday, May 11, 2007 2:11 PM
-To: Geoffrey Tam
-Cc: 'linux-omap-open-source@linux.omap.com'
-Subject: Re: Cannot stall an endpoint 0 control transfer from a data
-stage cal lback function
-
-
-* Geoffrey Tam <geoffrey@evertz.com> [070509 11:12]:
-> Also sent to 'linux-usb-devel@lists.sourceforge.net'.
-> 
-> patch was created as per Documentation/SubmittingPatches.
-
-Thanks, I tried it out quickly and looks like the last part of your
-patch is already in the linux-omap git tree.
-
-After applying the other parts, the mass storage gadget did not
-enumerate though... I'll look into it again when I have a chance.
-
-Do you have any chance to  try the current linux-omap git
-tree and see how it works for you, then see what happens with
-your patch?
-
-Regards,
-
-Tony
+diff --git a/arch/arm/mach-omap2/board-apollon-keys.c
+b/arch/arm/mach-omap2/board-apollon-keys.c
+index 6cd29ec..8cd2e52 100644
+--- a/arch/arm/mach-omap2/board-apollon-keys.c
++++ b/arch/arm/mach-omap2/board-apollon-keys.c
+@@ -24,17 +24,17 @@
+ 
+ static struct gpio_keys_button apollon_gpio_keys_buttons[] = {
+ 	[0] = {
+-		.keycode	= KEY_ENTER,
++		.code		= KEY_ENTER,
+ 		.gpio		= SW_ENTER_GPIO16,
+ 		.desc		= "enter sw",
+ 	},
+ 	[1] = {
+-		.keycode	= KEY_UP,
++		.code		= KEY_UP,
+ 		.gpio		= SW_UP_GPIO17,
+ 		.desc		= "up sw",
+ 	},
+ 	[2] = {
+-		.keycode	= KEY_DOWN,
++		.code		= KEY_DOWN,
+ 		.gpio		= SW_DOWN_GPIO58,
+ 		.desc		= "down sw",
+ 	},
+diff --git a/arch/arm/mach-omap2/board-apollon.c
+b/arch/arm/mach-omap2/board-apollon.c
+index 9e6dd0b..60adb62 100644
+--- a/arch/arm/mach-omap2/board-apollon.c
++++ b/arch/arm/mach-omap2/board-apollon.c
+@@ -270,7 +270,7 @@ static struct omap_lcd_config apollon_lcd_config __initdata
+= {
+ 	.ctrl_name	= "internal",
+ };
+ 
+-static struct omap_board_config_kernel apollon_config[] = {
++static struct omap_board_config_kernel apollon_config[] __initdata = {
+ 	{ OMAP_TAG_UART,	&apollon_uart_config },
+ 	{ OMAP_TAG_MMC,		&apollon_mmc_config },
+ 	{ OMAP_TAG_USB,		&apollon_usb_config },
