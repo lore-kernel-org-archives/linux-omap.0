@@ -1,11 +1,11 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 1/3] omap2: add SDRC register defines
-Date: Wed, 16 May 2007 18:05:37 -0600
-Message-ID: <20070517001009.065756967@pwsan.com>
-References: <20070517000943.977105773@pwsan.com>
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Subject: [PATCH 4/5] omap2: use SDRC_BASE in place of OMAP24XX_SDRC_BASE
+Date: Wed, 16 May 2007 16:58:54 -0600
+Message-ID: <20070516231342.414350673@pwsan.com>
+References: <20070516225850.075133914@pwsan.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline;
-	filename=0001-omap2-add-SDRC-register-defines.patch
+	filename=0004-omap2-use-SDRC_BASE-in-place-of-OMAP24XX_SDRC_BASE.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,75 +13,117 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Create sdrc.h, containing symbolic constants for SDRC registers and
-sdrc_{read,write}_reg() to read and write those registers.
+Change users of OMAP24XX_SDRC_BASE to use SDRC_BASE.  Remove the
+OMAP24XX_SDRC_BASE define.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/sdrc.h |   49 ++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 49 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/sdrc.h
+ arch/arm/mach-omap2/prcm-regs.h      |   14 +++++++-------
+ arch/arm/mach-omap2/sleep.S          |   10 ++++++----
+ arch/arm/mach-omap2/sram-fn.S        |    4 ++--
+ include/asm-arm/arch-omap/io.h       |    2 +-
+ include/asm-arm/arch-omap/omap24xx.h |    1 -
+ 5 files changed, 16 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/sdrc.h b/arch/arm/mach-omap2/sdrc.h
-new file mode 100644
-index 0000000..4becc5f
---- /dev/null
-+++ b/arch/arm/mach-omap2/sdrc.h
-@@ -0,0 +1,49 @@
-+#ifndef __ARCH_ARM_MACH_OMAP2_SDRC_H
-+#define __ARCH_ARM_MACH_OMAP2_SDRC_H
+diff --git a/arch/arm/mach-omap2/prcm-regs.h b/arch/arm/mach-omap2/prcm-regs.h
+index c5bb9b6..3c0688c 100644
+--- a/arch/arm/mach-omap2/prcm-regs.h
++++ b/arch/arm/mach-omap2/prcm-regs.h
+@@ -199,7 +199,7 @@
+ #define UART1_SYSCONFIG		__REG32(OMAP24XX_L4_IO_BASE + 0x6A054)
+ #define UART2_SYSCONFIG		__REG32(OMAP24XX_L4_IO_BASE + 0x6C054)
+ #define UART3_SYSCONFIG		__REG32(OMAP24XX_L4_IO_BASE + 0x6E054)
+-#define SDRC_SYSCONFIG		__REG32(OMAP24XX_SDRC_BASE + 0x10)
++#define SDRC_SYSCONFIG		__REG32(SDRC_BASE + 0x10)
+ #define OMAP24XX_SMS_BASE	(L3_24XX_BASE + 0x8000)
+ #define SMS_SYSCONFIG		__REG32(OMAP24XX_SMS_BASE + 0x10)
+ #define SSI_SYSCONFIG		__REG32(DISP_BASE + 0x8010)
+@@ -263,12 +263,12 @@
+ #define GPTIMER3_TISR		__REG32(OMAP24XX_L4_IO_BASE + 0x78018)
+ 
+ /* SDRC */
+-#define SDRC_DLLA_CTRL		__REG32(OMAP24XX_SDRC_BASE + 0x060)
+-#define SDRC_DLLA_STATUS	__REG32(OMAP24XX_SDRC_BASE + 0x064)
+-#define SDRC_DLLB_CTRL		__REG32(OMAP24XX_SDRC_BASE + 0x068)
+-#define SDRC_DLLB_STATUS	__REG32(OMAP24XX_SDRC_BASE + 0x06C)
+-#define SDRC_POWER		__REG32(OMAP24XX_SDRC_BASE + 0x070)
+-#define SDRC_MR_0		__REG32(OMAP24XX_SDRC_BASE + 0x084)
++#define SDRC_DLLA_CTRL		__REG32(SDRC_BASE + 0x060)
++#define SDRC_DLLA_STATUS	__REG32(SDRC_BASE + 0x064)
++#define SDRC_DLLB_CTRL		__REG32(SDRC_BASE + 0x068)
++#define SDRC_DLLB_STATUS	__REG32(SDRC_BASE + 0x06C)
++#define SDRC_POWER		__REG32(SDRC_BASE + 0x070)
++#define SDRC_MR_0		__REG32(SDRC_BASE + 0x084)
+ 
+ /* GPIO 1 */
+ #define GPIO1_BASE		GPIOX_BASE(1)
+diff --git a/arch/arm/mach-omap2/sleep.S b/arch/arm/mach-omap2/sleep.S
+index a67bc18..ce9005d 100644
+--- a/arch/arm/mach-omap2/sleep.S
++++ b/arch/arm/mach-omap2/sleep.S
+@@ -30,11 +30,13 @@
+ #include <asm/arch/io.h>
+ #include <asm/arch/pm.h>
+ 
+-#define A_SDRC_DLLA_CTRL_V	IO_ADDRESS(OMAP24XX_SDRC_BASE+0x60)
+-#define	A_SDRC_POWER_V		IO_ADDRESS(OMAP24XX_SDRC_BASE+0x70)
+-#define A_SDRC_RFR_CTRL_V	IO_ADDRESS(OMAP24XX_SDRC_BASE+0xA4)
++#include <asm/arch/omap24xx.h>
 +
-+/*
-+ * OMAP2 SDRC register definitions
-+ *
-+ * Copyright (C) 2007 Texas Instruments, Inc.
-+ * Copyright (C) 2007 Nokia Corporation
-+ *
-+ * Written by Paul Walmsley
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <asm/arch/io.h>
-+
-+
-+#define OMAP_SDRC_REGADDR(reg)	(void __iomem *)IO_ADDRESS(SDRC_BASE + reg)
-+
-+/* SDRC register offsets - read/write with sdrc_{read,write}_reg() */
-+
-+#define SDRC_SYSCONFIG		0x010
-+#define SDRC_DLLA_CTRL		0x060
-+#define SDRC_DLLA_STATUS	0x064
-+#define SDRC_DLLB_CTRL		0x068
-+#define SDRC_DLLB_STATUS	0x06C
-+#define SDRC_POWER		0x070
-+#define SDRC_MR_0		0x084
-+
-+
-+/* SDRC global register get/set */
-+
-+static void __attribute__((unused)) sdrc_write_reg(u32 val, u16 reg)
-+{
-+	pr_debug("sdrc_write_reg: writing 0x%0x to 0x%0x\n", val,
-+		 (u32)OMAP_SDRC_REGADDR(reg));
-+
-+	__raw_writel(val, OMAP_SDRC_REGADDR(reg));
-+}
-+
-+static u32 __attribute__((unused)) sdrc_read_reg(u16 reg)
-+{
-+	return __raw_readl(OMAP_SDRC_REGADDR(reg));
-+}
-+
-+#endif
++#define A_SDRC_DLLA_CTRL_V	IO_ADDRESS(SDRC_BASE + 0x60)
++#define	A_SDRC_POWER_V		IO_ADDRESS(SDRC_BASE + 0x70)
++#define A_SDRC_RFR_CTRL_V	IO_ADDRESS(SDRC_BASE + 0xA4)
+ #define A_SDRC0_V		(0xC0000000)
+-#define A_SDRC_MANUAL_V		IO_ADDRESS(OMAP24XX_SDRC_BASE+0xA8)
++#define A_SDRC_MANUAL_V		IO_ADDRESS(SDRC_BASE + 0xA8)
+ 
+ 	.text
+ 
+diff --git a/arch/arm/mach-omap2/sram-fn.S b/arch/arm/mach-omap2/sram-fn.S
+index c9c53e6..3fe3a34 100644
+--- a/arch/arm/mach-omap2/sram-fn.S
++++ b/arch/arm/mach-omap2/sram-fn.S
+@@ -38,8 +38,8 @@
+ #define CM_IDLEST_CKGEN_V	IO_ADDRESS(PRCM_BASE + 0x520)
+ #define CM_CLKSEL1_PLL_V	IO_ADDRESS(PRCM_BASE + 0x540)
+ 
+-#define SDRC_DLLA_CTRL_V	IO_ADDRESS(OMAP24XX_SDRC_BASE + 0x060)
+-#define SDRC_RFR_CTRL_V		IO_ADDRESS(OMAP24XX_SDRC_BASE + 0x0a4)
++#define SDRC_DLLA_CTRL_V	IO_ADDRESS(SDRC_BASE + 0x060)
++#define SDRC_RFR_CTRL_V		IO_ADDRESS(SDRC_BASE + 0x0a4)
+ 
+ 	.text
+ 
+diff --git a/include/asm-arm/arch-omap/io.h b/include/asm-arm/arch-omap/io.h
+index 28ae4d9..403b707 100644
+--- a/include/asm-arm/arch-omap/io.h
++++ b/include/asm-arm/arch-omap/io.h
+@@ -80,7 +80,7 @@
+ #define OMAP243X_GPMC_PHYS	OMAP243X_GPMC_BASE	/* 0x49000000 */
+ #define OMAP243X_GPMC_VIRT	0xFE000000
+ #define OMAP243X_GPMC_SIZE	SZ_1M
+-#define OMAP243X_SDRC_PHYS	OMAP24XX_SDRC_BASE
++#define OMAP243X_SDRC_PHYS	OMAP243X_SDRC_BASE
+ #define OMAP243X_SDRC_VIRT	0xFD000000
+ #define OMAP243X_SDRC_SIZE	SZ_1M
+ #define OMAP243X_SMS_PHYS	OMAP243X_SMS_BASE
+diff --git a/include/asm-arm/arch-omap/omap24xx.h b/include/asm-arm/arch-omap/omap24xx.h
+index 5f5b40b..fd9d48b 100644
+--- a/include/asm-arm/arch-omap/omap24xx.h
++++ b/include/asm-arm/arch-omap/omap24xx.h
+@@ -73,7 +73,6 @@
+ #endif
+ 
+ /* Temporary defines to be cleaned up in following patches */
+-#define OMAP24XX_SDRC_BASE	SDRC_BASE
+ #define OMAP24XX_CTRL_BASE	CTRL_BASE
+ 
+ #endif /* __ASM_ARCH_OMAP24XX_H */
 -- 
 1.5.1.3
 
