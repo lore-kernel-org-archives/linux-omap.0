@@ -1,17 +1,16 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] TWL4030 Keypad driver - incorporated review comments
-Date: Wed, 16 May 2007 15:04:51 -0700
-Message-ID: <20070516220450.GE15281@atomide.com>
-References: <9C23CDD79DA20A479D4615857B2E2C47E26872@dlee13.ent.ti.com>
-	<4643C033.3020209@gmail.com>
-	<782515bb0705111750k20d59341r7ddda0c68e520b99@mail.gmail.com>
-	<20070516161319.GE20297@atomide.com> <464B3D19.4080703@gmail.com>
-	<9C23CDD79DA20A479D4615857B2E2C470810AC@dlee13.ent.ti.com>
+From: "nishanth menon" <menon.nishanth@gmail.com>
+Subject: Re: [PATCH] mkuboot.sh: quit elegantly on not finding mkimage
+Date: Wed, 16 May 2007 18:07:43 -0500
+Message-ID: <782515bb0705161607s3d893efdm93bc4c5200b48bb2@mail.gmail.com>
+References: <782515bb0705081717jaea0fdbj3b4cbd3325fcbbe3@mail.gmail.com>
+	<20070516151838.GC20297@atomide.com>
+	<E7B2429D-CC5F-4B4B-9436-03DE1DF0CF6E@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <E7B2429D-CC5F-4B4B-9436-03DE1DF0CF6E@mvista.com>
 Content-Disposition: inline
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C470810AC@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,21 +20,20 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: "George G. Davis" <gdavis@mvista.com>
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Syed Mohammed, Khasim <x0khasim@ti.com> [070516 10:33]:
-> 
-> >while testing the TWL4030 keypad driver I found that it causes I2C errors,
-> >but Nishant's  "FIFO Handling support and broken hw workaround" patch fixes
-> >the problem. So, the problem is not in the keypad driver itself
-> >but it's in i2c-omap driver. Tony, consider pushing the I2C fix too.
-> 
-> Yes, it does fix I2C issues as it adds FIFO support to existing I2C driver. Tony please consider this patch.
-> 
-> Let me know if you have any comments, I can fix them along with TWLKEYPAD patch.
+On 5/16/07, George G. Davis <gdavis@mvista.com> wrote:
+> I submitted a fix for this to LKML long ago and the PPC folks shot it
+> down
+> because they want silent failure for the case where mkimage is not
+> found.
+Thanks George. Got the thread:
+http://lkml.org/lkml/2005/3/13/33
 
-Pushing today.
+And the counter argument here:
+http://www.uwsg.iu.edu/hypermail/linux/kernel/0503.1/1002.html
 
-Tony
+Regards,
+Nishanth Menon
