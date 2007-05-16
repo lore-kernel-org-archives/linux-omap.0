@@ -1,13 +1,13 @@
-From: stefano babic <stefano.babic@babic.homelinux.org>
-Subject: [PATCH] OMAP Backlight driver
-Date: Wed, 16 May 2007 17:28:08 +0200
-Message-ID: <200705161728.09017.stefano.babic@babic.homelinux.org>
+From: tony@atomide.com
+Subject: Re: [PATCH] ARM: OMAP: Fix 32k clockevents for 2430
+Date: Wed, 16 May 2007 08:56:50 -0700
+Message-ID: <20070516155649.GD20297@atomide.com>
+References: <20070512003654.258174663@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: multipart/mixed; boundary="y0ulUmNC+osPPQO6"
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
+In-Reply-To: <20070512003654.258174663@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,105 +15,109 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Kevin Hilman <khilman@mvista.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
 
-in the actual repository the video backlight API is already updated to the new 
-one in kernel 2.6.22-rc1 (include/linux/backlight.h).
-Some drivers are updated,too.
-However, the backlight driver for Omap (drivers/video/backlight/omap_bl.c) ist 
-not yet updated to the new API and for this reason cannot be compiled.
+--y0ulUmNC+osPPQO6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I changed the file according to the new interface :
+* Kevin Hilman <khilman@mvista.com> [070511 17:39]:
+> 32k timer driver was using wrong base addr for 32k sync timer.
+> Also fix unsupported one-shot mode in set_mode hook.
 
-diff --git a/drivers/video/backlight/omap_bl.c 
-b/drivers/video/backlight/omap_bl.c
-index 3b57b27..a9532fd 100644
---- a/drivers/video/backlight/omap_bl.c
-+++ b/drivers/video/backlight/omap_bl.c
-@@ -109,34 +109,34 @@ static int omapbl_update_status(struct b
+Thanks, I've refreshed  omap-fixes and and applied it to omap-fixes.
+Also updated the comments accordingly, see below.
+
+Tony
+
+--y0ulUmNC+osPPQO6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline; filename=apply
+
+From: Kevin Hilman <khilman@mvista.com>
+Subject: ARM: OMAP: Fix 32k timer unsupported one-shot mode
+
+Fix unsupported one-shot mode in set_mode hook.
+
+Signed-off-by: Kevin Hilman <khilman@mvista.com>
+
+---
+ arch/arm/plat-omap/common.c   |    6 ++----
+ arch/arm/plat-omap/timer32k.c |   10 ++++------
+ 2 files changed, 6 insertions(+), 10 deletions(-)
+
+Index: linux-omap-2.6/arch/arm/plat-omap/common.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/common.c	2007-05-16 07:53:23.000000000 -0700
++++ linux-omap-2.6/arch/arm/plat-omap/common.c	2007-05-16 08:48:35.000000000 -0700
+@@ -172,7 +172,7 @@ console_initcall(omap_add_serial_console
+ #if defined(CONFIG_ARCH_OMAP16XX)
+ #define TIMER_32K_SYNCHRONIZED		0xfffbc410
+ #elif defined(CONFIG_ARCH_OMAP24XX)
+-#define TIMER_32K_SYNCHRONIZED		0x48004010
++#define TIMER_32K_SYNCHRONIZED		(OMAP24XX_32KSYNCT_BASE + 0x10)
+ #endif
+ 
+ #ifdef	TIMER_32K_SYNCHRONIZED
+Index: linux-omap-2.6/arch/arm/plat-omap/timer32k.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/timer32k.c	2007-05-16 07:53:24.000000000 -0700
++++ linux-omap-2.6/arch/arm/plat-omap/timer32k.c	2007-05-16 08:22:05.000000000 -0700
+@@ -71,7 +71,7 @@ struct sys_timer omap_timer;
+ #if defined(CONFIG_ARCH_OMAP16XX)
+ #define TIMER_32K_SYNCHRONIZED		0xfffbc410
+ #elif defined(CONFIG_ARCH_OMAP24XX)
+-#define TIMER_32K_SYNCHRONIZED		0x48004010
++#define TIMER_32K_SYNCHRONIZED		(OMAP24XX_32KSYNCT_BASE + 0x10)
+ #else
+ #error OMAP 32KHz timer does not currently work on 15XX!
+ #endif
+@@ -147,14 +147,15 @@ static inline void omap_32k_timer_ack_ir
+ static void omap_32k_timer_set_mode(enum clock_event_mode mode,
+ 				    struct clock_event_device *evt)
  {
- 	struct omap_backlight *bl = class_get_devdata(&dev->class_dev);
- 
--	if (bl->current_intensity != dev->props->brightness) {
--		if (dev->props->brightness < 0)
-+	if (bl->current_intensity != dev->props.brightness) {
-+		if (dev->props.brightness < 0)
- 			return -EPERM;	/* Leave current_intensity untouched */
- 
- 		if (bl->powermode == FB_BLANK_UNBLANK)
--			omapbl_send_intensity(dev->props->brightness);
--		bl->current_intensity = dev->props->brightness;
-+			omapbl_send_intensity(dev->props.brightness);
-+		bl->current_intensity = dev->props.brightness;
++	omap_32k_timer_stop();
++
+ 	switch (mode) {
+-	case CLOCK_EVT_MODE_ONESHOT:
+ 	case CLOCK_EVT_MODE_PERIODIC:
+ 		omap_32k_timer_start(OMAP_32K_TIMER_TICK_PERIOD);
+ 		break;
++	case CLOCK_EVT_MODE_ONESHOT:
+ 	case CLOCK_EVT_MODE_UNUSED:
+ 	case CLOCK_EVT_MODE_SHUTDOWN:
+-		omap_32k_timer_stop();
+ 		break;
  	}
- 
--	if (dev->props->fb_blank != bl->powermode)
--		omapbl_set_power(dev, dev->props->fb_blank);
-+	if (dev->props.fb_blank != bl->powermode)
-+		omapbl_set_power(dev, dev->props.fb_blank);
- 
- 	return 0;
+ }
+@@ -192,8 +193,6 @@ omap_32k_ticks_to_nsecs(unsigned long ti
+ 	return (unsigned long long) ticks_32k * 1000 * 5*5*5*5*5*5 >> 9;
  }
  
-+
- static int omapbl_get_intensity(struct backlight_device *dev)
+-static unsigned long omap_32k_last_tick = 0;
+-
+ /*
+  * Returns current time from boot in nsecs. It's OK for this to wrap
+  * around for now, as it's just a relative time stamp.
+@@ -223,7 +222,6 @@ static __init void omap_init_32k_timer(v
  {
- 	struct omap_backlight *bl = class_get_devdata(&dev->class_dev);
- 	return bl->current_intensity;
- }
+ 	if (cpu_class_is_omap1())
+ 		setup_irq(INT_OS_TIMER, &omap_32k_timer_irq);
+-	omap_32k_last_tick = omap_32k_sync_timer_read();
  
--static struct backlight_properties omapbl_data = {
--	.owner		= THIS_MODULE,
--	.get_brightness	= omapbl_get_intensity,
--	.update_status	= omapbl_update_status,
--	.max_brightness = OMAPBL_MAX_INTENSITY,
-+static struct backlight_ops omapbl_ops = {
-+	.get_brightness = omapbl_get_intensity,
-+	.update_status  = omapbl_update_status,
- };
- 
-+
- static int omapbl_probe(struct platform_device *pdev)
- {
- 	struct backlight_device *dev;
-@@ -146,14 +146,14 @@ static int omapbl_probe(struct platform_
- 	if (!pdata)
- 		return -ENXIO;
- 
--	omapbl_data.check_fb = pdata->check_fb;
-+	omapbl_ops.check_fb = pdata->check_fb;
- 
- 	bl = kzalloc(sizeof(struct omap_backlight), GFP_KERNEL);
- 	if (unlikely(!bl))
- 		return -ENOMEM;
- 
- 	dev = backlight_device_register("omap-bl", &pdev->dev,
--			bl, &omapbl_data);
-+			bl, &omapbl_ops);
- 	if (IS_ERR(dev)) {
- 		kfree(bl);
- 		return PTR_ERR(dev);
-@@ -169,8 +169,8 @@ static int omapbl_probe(struct platform_
- 
- 	omap_cfg_reg(PWL);	/* Conflicts with UART3 */
- 
--	omapbl_data.fb_blank = FB_BLANK_UNBLANK;
--	omapbl_data.brightness = pdata->default_intensity;
-+	dev->props.fb_blank = FB_BLANK_UNBLANK;
-+	dev->props.brightness = pdata->default_intensity;
- 	omapbl_update_status(dev);
- 
- 	printk(KERN_INFO "OMAP LCD backlight initialised\n");
+ #ifdef CONFIG_ARCH_OMAP2
+ 	/* REVISIT: Check 24xx TIOCP_CFG settings after idle works */
 
-Regards,
-stefano b.
+--y0ulUmNC+osPPQO6
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
--- 
-stefano <stefano.babic@babic.homelinux.org>
-GPG Key: 0x55814DDE 
-Fingerprint 4E85 2A66 4CBA 497A 2A7B D3BF 5973 F216 5581 4DDE
+
+--y0ulUmNC+osPPQO6--
