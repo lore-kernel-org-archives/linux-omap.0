@@ -1,15 +1,13 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: [PATCH] TWL4030 Keypad driver - incorporated review comments
-Date: Wed, 16 May 2007 12:31:58 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C470810AC@dlee13.ent.ti.com>
-References: <9C23CDD79DA20A479D4615857B2E2C47E26872@dlee13.ent.ti.com>	<4643C033.3020209@gmail.com>	<782515bb0705111750k20d59341r7ddda0c68e520b99@mail.gmail.com>
-	<20070516161319.GE20297@atomide.com> <464B3D19.4080703@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] HS-USB support for 2430SDP
+Date: Wed, 16 May 2007 10:46:15 -0700
+Message-ID: <20070516174615.GG20297@atomide.com>
+References: <20070510183405.565400315@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <20070510183405.565400315@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,31 +15,19 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dmitry Krivoschekov <dmitry.krivoschekov@gmail.com>, tony@atomide.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Kevin Hilman <khilman@mvista.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+* Kevin Hilman <khilman@mvista.com> [070510 11:40]:
+> Here is base support for MUSB on the 2430SDP.  It adds mux fixup and
+> mux regs for HS-USB and the MUSB platform setup code.  Currently works
+> for gadget only.
+> 
+> Tested on OMAP2430SDP-v2.2 and v5.0.
 
->while testing the TWL4030 keypad driver I found that it causes I2C =
-errors,
->but Nishant's  "FIFO Handling support and broken hw workaround" patch =
-fixes
->the problem. So, the problem is not in the keypad driver itself
->but it's in i2c-omap driver. Tony, consider pushing the I2C fix too.
+Pushing these today.
 
-Yes, it does fix I2C issues as it adds FIFO support to existing I2C =
-driver. Tony please consider this patch.
-
-Let me know if you have any comments, I can fix them along with =
-TWLKEYPAD patch.
-
-Regards,
-Khasim
-
-
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+Tony
