@@ -1,15 +1,13 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: Bridge vs DSP/BIOS Link
-Date: Wed, 16 May 2007 09:55:38 -0500
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429FD0A30@dlee13.ent.ti.com>
-References: <8f4c83bc0705160632l288fdbdcibdbef525f75c97a0@mail.gmail.com>
+From: tony@atomide.com
+Subject: Re: Kconfig undefined references (on other platforms)
+Date: Wed, 16 May 2007 08:16:36 -0700
+Message-ID: <20070516151635.GB20297@atomide.com>
+References: <463F80E7.9040201@am.sony.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <8f4c83bc0705160632l288fdbdcibdbef525f75c97a0@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <463F80E7.9040201@am.sony.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,52 +17,32 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Josh Ostrander <jostrand@gmail.com>, linux-omap-open-source@linux.omap.com
+To: Tim Bird <tim.bird@am.sony.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-> Curious if anyone knows what the difference is between the=20
-> DSPBridge OMAP DSP driver and the DSP/BIOS Link driver.  I=20
-> did see a question posted about a year ago on this mailing=20
-> list but sadly there was no response.  This is what I know:
+* Tim Bird <tim.bird@am.sony.com> [070507 12:43]:
+> Hi all,
+> 
+> I'm using patch-2.6.20-omap1, with a kernel that I compile
+> for multiple boards. When I compile the kernel for a MIPS board,
+> I get some Kconfig warnings on OMAP symbols.
+> 
+> >From the compile:
+> scripts/kconfig/conf -s arch/mips/Kconfig
+> sound/arm/Kconfig:42:warning: 'select' used by config symbol 'SND_OMAP_AIC23' refer to undefined symbol 'OMAP_MCBSP'
+> sound/arm/Kconfig:57:warning: 'select' used by config symbol 'SND_OMAP_TSC2101' refer to undefined symbol 'OMAP_MCBSP'
+> sound/arm/Kconfig:70:warning: 'select' used by config symbol 'SND_SX1' refer to undefined symbol 'OMAP_MCBSP'
+> 
+> It looks like sound/arm/Kconfig is included (unconditionally) in
+> sound/Kconfig. OMAP_MCBSP is defined in arch/arm/plat-omap1/Kconfig,
+> which is not included during my build on MIPS.
+> 
+> Does anyone know what the proper technique is for making either the
+> selects or the includes conditional, or otherwise quieting these
+> types of reference warnings?
 
-Well a complete answer is to much to write and I wouldn't do it justice
-as I don't know the whole picture.  But in short:
+Sounds like it would be best to have board-*.c functions take care
+of of the mcbsp read/write for omap.
 
-Give OMAPs ARM+DSP/s architecture TI has done reference implementations
-of bridge and link for the major operating systems as required by
-demand.
-
-Bridge came first.  The bridge framework and associated pieces go up
-high into an OS and do some media management aspects.  There are bridge
-pieces on the ARM side and the DSP side (in addition to DSP BIOS).  The
-sum of this is a large and complex package aimed at rich multimedia,
-codec's and the like all fall in here as well.  If you look at
-http://www.khronos.org/ you get the idea of what gets logically bundled
-with full solution (OpenMax, ...).
-
-For some customers bridge and upper related layers were to much given
-their needs.  For these customers a "link" was created it does many of
-the lower layers of the bridge function.  It doesn't try and integrate
-as high up and doesn't provide the same level of features.
-
-For Linux reference bridges do exist and they have evolved over time.
-Customers have used this either directly or as a reference in
-implementations of their own bridges.  Links also do exist for Linux.
-If you look inside products you likely will find a few different ones
-about.  At the bottom they are similar as you go up and they integrate
-in to multimedia they diverge.
-
-The low layer concepts between the bridges are similar.  The use of
-mailbox hardware to exchange messages, idea of a DSP at the other end
-likely running DSP BIOS, DSP-MMU usage, you need to
-init/load/create&control-xmit-recv-data-streams.  Across OMAP1-2-3 the
-DSP block's capabilities have been going up.  So you find the upper
-layers of the bridge growing.
-
-Nokia did contribute their version of bridge/link a couple years back
-(dspgateway).  This is used in their 770 and 800 products.
-
-Hope that helps.
-
-Regards,
-Richard W.
+Tony
