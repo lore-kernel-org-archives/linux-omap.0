@@ -1,14 +1,8 @@
-From: "nishanth menon" <menon.nishanth@gmail.com>
-Subject: Re: [PATCH] TWL4030 Keypad Driver - after merging Nishanth's patch.
-Date: Wed, 16 May 2007 19:26:55 -0500
-Message-ID: <782515bb0705161726t9077dfen15866e5b73c366e2@mail.gmail.com>
-References: <9C23CDD79DA20A479D4615857B2E2C47EA0681@dlee13.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47EA0681@dlee13.ent.ti.com>
-Content-Disposition: inline
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 0/5] Clean up omap24xx.h symbolic constants
+Date: Wed, 16 May 2007 16:58:50 -0600
+Message-ID: <20070516225850.075133914@pwsan.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,13 +10,34 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On 5/16/07, Syed Mohammed, Khasim <x0khasim@ti.com> wrote:
-> Incorporated Review comments and have merged Nishanth's patch.
-<Acked>. Thanks.
-Nishanth Menon
+These patches clean up the symbolic constants defined in
+include/asm-arm/arch-omap/omap24xx.h.  The names of some constants,
+like OMAP24XX_SDRC_BASE, denote that their values are the same on all
+OMAP24XX platforms.  This isn't so - the constant is defined to
+different values depending on the Kconfig architecture parameters.
+Also, we'd eventually like to create kernels that can be used on
+both 2420 or 2430, with runtime CPU detection.  These types of
+defines prevent that from happening.
+
+Fix these defines by explicitly defining separate constants for both
+architectures, when the values are different.  Use ifdefs to control
+which value is assigned to the "base name" of the constant.
+
+So, to continue the example above, the OMAP24XX_SDRC_BASE constant
+will be removed, and replaced with two defines: OMAP2420_SDRC_BASE and
+OMAP243X_SDRC_BASE.  Depending on which CONFIG_ARCH_OMAP* Kconfig
+parameter is specified, we then set an SDRC_BASE define to point to
+one of the two architecture-specific values.
+
+These patches are necessary prerequisites for the forthcoming PRCM
+cleanup series.
+
+
+- Paul
+
+-- 
