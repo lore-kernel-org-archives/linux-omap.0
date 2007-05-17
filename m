@@ -1,14 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Fix section mismatch: reference to .init.text: from
-	.text warning
-Date: Thu, 17 May 2007 10:38:21 -0700
-Message-ID: <20070517173820.GA8556@atomide.com>
-References: <000001c79814$fec527d0$e1ac580a@swcenter.sec.samsung.co.kr>
+Subject: Re: [PATCH 0/5] Clean up omap24xx.h symbolic constants
+Date: Thu, 17 May 2007 10:43:28 -0700
+Message-ID: <20070517174328.GB8556@atomide.com>
+References: <20070516225850.075133914@pwsan.com> <464C123F.6050005@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <000001c79814$fec527d0$e1ac580a@swcenter.sec.samsung.co.kr>
+In-Reply-To: <464C123F.6050005@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,64 +15,29 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kyungmin Park <kmpark@infradead.org>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Dmitry Krivoschekov <dmitry.krivoschekov@gmail.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kyungmin Park <kmpark@infradead.org> [070516 16:51]:
-> Fix section mismatch: reference to .init.text: from .text warning of omap_timer
+* Dmitry Krivoschekov <dmitry.krivoschekov@gmail.com> [070517 01:29]:
+> Hello,
 > 
-> I tested with OMAP2 only, but OMAP1 also has same warning.
-> 
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> --
-> 
-> index 3705d20..0ba739c 100644
-> --- a/arch/arm/mach-omap1/time.c
-> +++ b/arch/arm/mach-omap1/time.c
-> @@ -289,6 +289,6 @@ static void __init omap_timer_init(void)
->  	omap_init_clocksource(rate);
->  }
->  
-> -struct sys_timer omap_timer = {
-> +struct sys_timer omap_timer __initdata = {
->  	.init		= omap_timer_init,
->  };
-> diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-> index 8f380a1..948d7ec 100644
-> --- a/arch/arm/mach-omap2/timer-gp.c
-> +++ b/arch/arm/mach-omap2/timer-gp.c
-> @@ -175,6 +175,6 @@ static void __init omap2_gp_timer_init(void)
->  	omap2_gp_clocksource_init();
->  }
->  
-> -struct sys_timer omap_timer = {
-> +struct sys_timer omap_timer __initdata = {
->  	.init	= omap2_gp_timer_init,
->  };
-> diff --git a/arch/arm/plat-omap/timer32k.c b/arch/arm/plat-omap/timer32k.c
-> index 2474597..e7e1960 100644
-> --- a/arch/arm/plat-omap/timer32k.c
-> +++ b/arch/arm/plat-omap/timer32k.c
-> @@ -262,6 +262,6 @@ static void __init omap_timer_init(void)
->  	omap_init_32k_timer();
->  }
->  
-> -struct sys_timer omap_timer = {
-> +struct sys_timer omap_timer __initdata = {
->  	.init		= omap_timer_init,
->  };
-> 
+> Paul Walmsley wrote:
+> > So, to continue the example above, the OMAP24XX_SDRC_BASE constant
+> > will be removed, and replaced with two defines: OMAP2420_SDRC_BASE and
+> > OMAP243X_SDRC_BASE.  Depending on which CONFIG_ARCH_OMAP* Kconfig
+> > parameter is specified, we then set an SDRC_BASE define to point to
+> > one of the two architecture-specific values.
+> >
+> >   
+> IMHO, using of SDRC_BASE as well as CTRL_BASE, PRCM_BASE etc.,
+> can lead to name collision, the names is not so unique as may
+> seem. I suggest using of OMAP_ prefix for these names.
 
-We cannot mark sys_timer as __initdata as it is used for all
-timer stuff. There is a patch on linux-arm-kernel to ignore
-sys_timer for the check. So these warnings may not be correct
-always.
-
-BTW, we should check that struct omap_board_config_kernel
-entries really can be __initdata from modules point of view.
+Good point. We could use OMAP_ prefix and in case of conflicts
+with omap1 defines, we could rename them to have OMAP1_ prefix.
 
 Regards,
 
