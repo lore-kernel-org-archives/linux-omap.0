@@ -1,13 +1,12 @@
-From: Dmitry Krivoschekov <dmitry.krivoschekov@gmail.com>
-Subject: Re: [PATCH 0/5] Clean up omap24xx.h symbolic constants
-Date: Thu, 17 May 2007 12:28:47 +0400
-Message-ID: <464C123F.6050005@gmail.com>
-References: <20070516225850.075133914@pwsan.com>
+From: "Budhee Jamaich" <budheej@gmail.com>
+Subject: OMAP2430: networking errors
+Date: Thu, 17 May 2007 16:39:18 +0300
+Message-ID: <57314e840705170639j410cdd26s40370f492fec6f00@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070516225850.075133914@pwsan.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,24 +16,28 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+Hello list,
 
-Paul Walmsley wrote:
-> So, to continue the example above, the OMAP24XX_SDRC_BASE constant
-> will be removed, and replaced with two defines: OMAP2420_SDRC_BASE and
-> OMAP243X_SDRC_BASE.  Depending on which CONFIG_ARCH_OMAP* Kconfig
-> parameter is specified, we then set an SDRC_BASE define to point to
-> one of the two architecture-specific values.
->
->   
-IMHO, using of SDRC_BASE as well as CTRL_BASE, PRCM_BASE etc.,
-can lead to name collision, the names is not so unique as may
-seem. I suggest using of OMAP_ prefix for these names.
+I'm having networking problems with my OMAP.
 
+I tried a few booting schemes, but all failed.
+I tried DHCP auto-IP configurations and
+NFS root-fs, but they fail to connect to the server.
 
-Regards,
-Dmitry
+When I'm running tcpdump on the server,
+I can see that the OMAP sends the "arp who-has x.x.x.x",
+looking for my server's MAC address,
+and I see the server's response: "arp reply x.x.x.x is-at ZZ:ZZ:ZZ:ZZ:ZZ:ZZ (oui
+Unknown)",
+
+but the OMAP doesn't see the arp reply,
+and keep sending the arp who-has packets... :(
+
+anyone knows why this may be happening ?
+or any ideas how to debug this further ?
+
+Thank You All,
+Budhee
