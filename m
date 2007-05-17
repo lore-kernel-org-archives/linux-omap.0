@@ -1,11 +1,12 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 7/7] omap2: add OMAP3430 base defines
-Date: Wed, 16 May 2007 18:56:45 -0600
-Message-ID: <20070517011703.349319591@pwsan.com>
+Subject: [PATCH 4/7] omap2: add OMAP3430 Power/Reset Management register
+	defines to prm.h
+Date: Wed, 16 May 2007 18:56:42 -0600
+Message-ID: <20070517011703.067388307@pwsan.com>
 References: <20070517005638.997832459@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline;
-	filename=0007-omap2-add-OMAP3430-base-defines.patch
+	filename=0004-omap2-add-OMAP3430-Power-Reset-Management-register.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,99 +19,92 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Add symbolic constants for OMAP3430 base addresses; include that file
-in hardware.h.  Remove #error in omap24xx.h on unknown architecture
-type.
+Add symbolic constants to prm.h for Power/Reset Management registers
+on the OMAP3430.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- include/asm-arm/arch-omap/hardware.h |    1 
- include/asm-arm/arch-omap/omap24xx.h |    3 --
- include/asm-arm/arch-omap/omap34xx.h |   44 +++++++++++++++++++++++++++++++++++
- 3 files changed, 45 insertions(+), 3 deletions(-)
- create mode 100644 include/asm-arm/arch-omap/omap34xx.h
+ arch/arm/mach-omap2/prm.h |   52 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 51 insertions(+), 1 deletions(-)
 
-Index: linux-omap/include/asm-arm/arch-omap/hardware.h
-===================================================================
---- linux-omap.orig/include/asm-arm/arch-omap/hardware.h
-+++ linux-omap/include/asm-arm/arch-omap/hardware.h
-@@ -285,6 +285,7 @@
- #include "omap1510.h"
- #include "omap24xx.h"
- #include "omap16xx.h"
-+#include "omap34xx.h"
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+index 7e1738c..cf2348f 100644
+--- a/arch/arm/mach-omap2/prm.h
++++ b/arch/arm/mach-omap2/prm.h
+@@ -2,7 +2,7 @@
+ #define __ARCH_ARM_MACH_OMAP2_PRM_H
  
- #ifndef __ASSEMBLER__
+ /*
+- * OMAP2 Power/Reset Management (PRM) register definitions
++ * OMAP2/3 Power/Reset Management (PRM) register definitions
+  *
+  * Copyright (C) 2007 Texas Instruments, Inc.
+  * Copyright (C) 2007 Nokia Corporation
+@@ -48,6 +48,45 @@
+ #define OMAP24XX_PRCM_CLKSSETUP		OMAP_PRM_REGADDR(OCP_MOD, 0x0094)
+ #define OMAP24XX_PRCM_POLCTRL		OMAP_PRM_REGADDR(OCP_MOD, 0x0098)
  
-Index: linux-omap/include/asm-arm/arch-omap/omap24xx.h
-===================================================================
---- linux-omap.orig/include/asm-arm/arch-omap/omap24xx.h
-+++ linux-omap/include/asm-arm/arch-omap/omap24xx.h
-@@ -51,7 +51,6 @@
- /* Mailbox */
- #define OMAP24XX_MAILBOX_BASE	(L4_24XX_BASE + 0x94000)
++#define OMAP3430_PRM_REVISION		OMAP_PRM_REGADDR(OCP_MOD, 0x0004)
++#define OMAP3430_PRM_SYSCONFIG		OMAP_PRM_REGADDR(OCP_MOD, 0x0014)
++
++#define OMAP3430_PRM_IRQSTATUS_MPU	OMAP_PRM_REGADDR(OCP_MOD, 0x0018)
++#define OMAP3430_PRM_IRQENABLE_MPU	OMAP_PRM_REGADDR(OCP_MOD, 0x001c)
++
++
++#define OMAP3430_PRM_VC_SMPS_SA		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0020)
++#define OMAP3430_PRM_VC_SMPS_VOL_RA	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0024)
++#define OMAP3430_PRM_VC_SMPS_CMD_RA	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0028)
++#define OMAP3430_PRM_VC_CMD_VAL_0	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x002c)
++#define OMAP3430_PRM_VC_CMD_VAL_1	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0030)
++#define OMAP3430_PRM_VC_CH_CONF		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0034)
++#define OMAP3430_PRM_VC_I2C_CFG		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0038)
++#define OMAP3430_PRM_VC_BYPASS_VAL	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x003c)
++#define OMAP3430_PRM_RSTCTRL		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0050)
++#define OMAP3430_PRM_RSTTIME		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0054)
++#define OMAP3430_PRM_RSTST		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0058)
++#define OMAP3430_PRM_VOLTCTRL		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0060)
++#define OMAP3430_PRM_SRAM_PCHARGE	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0064)
++#define OMAP3430_PRM_CLKSRC_CTRL	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0070)
++#define OMAP3430_PRM_VOLTSETUP1		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0090)
++#define OMAP3430_PRM_VOLTOFFSET		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0094)
++#define OMAP3430_PRM_CLKSETUP		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0098)
++#define OMAP3430_PRM_POLCTRL		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x009c)
++#define OMAP3430_PRM_VOLTSETUP2		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00a0)
++#define OMAP3430_PRM_VP1_CONFIG		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00b0)
++#define OMAP3430_PRM_VP1_VSTEPMIN	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00b4)
++#define OMAP3430_PRM_VP1_VSTEPMAX	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00b8)
++#define OMAP3430_PRM_VP1_VLIMITTO	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00bc)
++#define OMAP3430_PRM_VP1_VOLTAGE	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00c0)
++#define OMAP3430_PRM_VP1_STATUS		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00c4)
++#define OMAP3430_PRM_VP2_CONFIG		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00d0)
++#define OMAP3430_PRM_VP2_VSTEPMIN	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00d4)
++#define OMAP3430_PRM_VP2_VSTEPMAX	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00d8)
++#define OMAP3430_PRM_VP2_VLIMITTO	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00dc)
++#define OMAP3430_PRM_VP2_VOLTAGE	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e0)
++#define OMAP3430_PRM_VP2_STATUS		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e4)
++
  
--
- #if defined(CONFIG_ARCH_OMAP2420)
+ /* Power/reset management global register get/set */
  
- #define OMAP_32KSYNCT_BASE	OMAP2420_32KSYNCT_BASE
-@@ -76,8 +75,6 @@
- #define VA_IC_BASE		IO_ADDRESS(OMAP24XX_IC_BASE)
- #define CTRL_BASE		OMAP243X_CTRL_BASE
+@@ -92,6 +131,17 @@ static u32 __attribute__((unused)) prm_read_reg(void __iomem *addr)
+ #define PM_PWSTCTRL					0x00e0
+ #define PM_PWSTST					0x00e4
  
--#else
--#error "Unknown architecture"
- #endif
++#define OMAP3430_PM_MPUGRPSEL				0x00a4
++#define OMAP3430_PM_MPUGRPSEL1				OMAP3430_PM_MPUGRPSEL
++
++#define OMAP3430_PM_IVAGRPSEL				0x00a8
++#define OMAP3430_PM_IVAGRPSEL1				OMAP3430_PM_IVAGRPSEL
++
++#define OMAP3430_PM_PREPWSTST				0x00e8
++
++#define OMAP3430_PRM_IRQSTATUS_IVA2			0x00f8
++#define OMAP3430_PRM_IRQENABLE_IVA2			0x00fc
++
  
+ /* Architecture-specific registers */
  
-Index: linux-omap/include/asm-arm/arch-omap/omap34xx.h
-===================================================================
---- /dev/null
-+++ linux-omap/include/asm-arm/arch-omap/omap34xx.h
-@@ -0,0 +1,44 @@
-+#ifndef __ASM_ARCH_OMAP34XX_H
-+#define __ASM_ARCH_OMAP34XX_H
-+
-+/*
-+ * Please place only base defines here and put the rest in device
-+ * specific headers.
-+ */
-+
-+#define OMAP3430_32KSYNCT_BASE	0x48320000
-+#define OMAP3430_CM_BASE	0x48004800
-+#define OMAP3430_PRM_BASE	0x48306800
-+#define OMAP343X_SMS_BASE	0x6C000000
-+#define OMAP343X_SDRC_BASE	0x6D000000
-+#define OMAP34XX_GPMC_BASE	0x6E000000
-+#define OMAP3430_SCM_BASE	0x48002000
-+#define OMAP3430_CTRL_BASE	OMAP3430_SCM_BASE
-+
-+#define OMAP34XX_IC_BASE	0x48200000
-+#define OMAP34XX_IVA_INTC_BASE	0x40000000
-+#define IRQ_SIR_IRQ		0x0040
-+
-+
-+#if defined(CONFIG_ARCH_OMAP3430)
-+
-+#define OMAP_32KSYNCT_BASE	OMAP3430_32KSYNCT_BASE
-+#define CM_BASE			OMAP3430_CM_BASE
-+#define PRM_BASE		OMAP3430_PRM_BASE
-+#define SDRC_BASE		OMAP343X_SDRC_BASE
-+#define SMS_BASE		OMAP343X_SMS_BASE
-+#define L4_OMAP_BASE		L4_34XX_BASE
-+#define VA_IC_BASE		IO_ADDRESS(OMAP34XX_IC_BASE)
-+#define CTRL_BASE		OMAP3430_CTRL_BASE
-+
-+#endif
-+
-+
-+#define OMAP34XX_DSP_BASE	0x58000000
-+#define OMAP34XX_DSP_MEM_BASE	(OMAP34XX_DSP_BASE + 0x0)
-+#define OMAP34XX_DSP_IPI_BASE	(OMAP34XX_DSP_BASE + 0x1000000)
-+#define OMAP34XX_DSP_MMU_BASE	(OMAP34XX_DSP_BASE + 0x2000000)
-+
-+
-+#endif /* __ASM_ARCH_OMAP34XX_H */
-+
+-- 
+1.5.1.3
 
 -- 
