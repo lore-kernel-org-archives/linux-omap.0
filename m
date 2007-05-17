@@ -1,12 +1,10 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 15/18] omap2: convert clock.h to use symbolic register bit
-	defines
-Date: Wed, 16 May 2007 18:11:47 -0600
-Message-ID: <20070517005444.581904817@pwsan.com>
+Subject: [PATCH 18/18] omap2: remove prcm-regs.h
+Date: Wed, 16 May 2007 18:11:50 -0600
+Message-ID: <20070517005444.865670691@pwsan.com>
 References: <20070517001132.652728079@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline;
-	filename=0015-omap2-convert-clock.h-to-use-symbolic-register-bit.patch
+Content-Disposition: inline; filename=0018-omap2-remove-prcm-regs.h.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,1094 +17,490 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Convert magic numbers in the enable_bit member of the struct clk
-definitions in clock.h to use the new-style register bit defines from
-{prm,cm}_regbits_24xx.h.
+All of the users of prcm-regs.h have been patched - remove prcm-regs.h.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock.h |  239 ++++++++++++++++++++++---------------------
- 1 files changed, 121 insertions(+), 118 deletions(-)
+ arch/arm/mach-omap2/prcm-regs.h |  472 ----------------------------------------
+ 1 file changed, 472 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/prcm-regs.h
 
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index e6616b9..78da556 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -19,6 +19,8 @@
- 
- #include "prm.h"
- #include "cm.h"
-+#include "prm_regbits_24xx.h"
-+#include "cm_regbits_24xx.h"
- 
- static void omap2_sys_clk_recalc(struct clk * clk);
- static void omap2_clksel_recalc(struct clk * clk);
-@@ -643,7 +645,7 @@ static struct clk apll96_ck = {
- 	.flags		= CLOCK_IN_OMAP242X |CLOCK_IN_OMAP243X |
- 				RATE_FIXED | RATE_PROPAGATES,
- 	.enable_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
--	.enable_bit	= 0x2,
-+	.enable_bit	= OMAP24XX_EN_96M_PLL_SHIFT,
- 	.recalc		= &omap2_propagate_rate,
- };
- 
-@@ -654,7 +656,7 @@ static struct clk apll54_ck = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				RATE_FIXED | RATE_PROPAGATES,
- 	.enable_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
--	.enable_bit	= 0x6,
-+	.enable_bit	= OMAP24XX_EN_54M_PLL_SHIFT,
- 	.recalc		= &omap2_propagate_rate,
- };
- 
-@@ -739,7 +741,7 @@ static struct clk sys_clkout = {
- 				CM_SYSCLKOUT_SEL1 | RATE_CKCTL,
- 	.src_offset	= 0,
- 	.enable_reg	= OMAP24XX_PRCM_CLKOUT_CTRL,
--	.enable_bit	= 7,
-+	.enable_bit	= OMAP24XX_CLKOUT_EN_SHIFT,
- 	.rate_offset	= 3,
- 	.recalc		= &omap2_clksel_recalc,
- };
-@@ -753,7 +755,7 @@ static struct clk sys_clkout2 = {
- 				CM_SYSCLKOUT_SEL1 | RATE_CKCTL,
- 	.src_offset	= 8,
- 	.enable_reg	= OMAP24XX_PRCM_CLKOUT_CTRL,
--	.enable_bit	= 15,
-+	.enable_bit	= OMAP2420_CLKOUT2_EN_SHIFT,
- 	.rate_offset	= 11,
- 	.recalc		= &omap2_clksel_recalc,
- };
-@@ -763,7 +765,7 @@ static struct clk emul_ck = {
- 	.parent		= &func_54m_ck,
- 	.flags		= CLOCK_IN_OMAP242X,
- 	.enable_reg	= OMAP24XX_PRCM_CLKEMUL_CTRL,
--	.enable_bit	= 0,
-+	.enable_bit	= OMAP24XX_EMULATION_EN_SHIFT,
- 	.recalc		= &omap2_propagate_rate,
- 
- };
-@@ -802,7 +804,7 @@ static struct clk iva2_1_fck = {
- 				CONFIG_PARTICIPANT,
- 	.rate_offset	= 0,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, OMAP24XX_CM_FCLKEN),
--	.enable_bit	= 0,
-+	.enable_bit	= OMAP24XX_CM_FCLKEN_DSP_EN_DSP_SHIFT,
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
-@@ -828,7 +830,7 @@ static struct clk dsp_fck = {
- 			DELAYED_APP | CONFIG_PARTICIPANT | RATE_PROPAGATES,
- 	.rate_offset	= 0,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, OMAP24XX_CM_FCLKEN),
--	.enable_bit	= 0,
-+	.enable_bit	= OMAP24XX_CM_FCLKEN_DSP_EN_DSP_SHIFT,
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
-@@ -839,7 +841,7 @@ static struct clk dsp_ick = {
- 				DELAYED_APP | CONFIG_PARTICIPANT,
- 	.rate_offset	= 5,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, CM_ICLKEN),
--	.enable_bit	= 1,		/* for ipi */
-+	.enable_bit	= OMAP2420_EN_DSP_IPI_SHIFT,		/* for ipi */
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
-@@ -850,7 +852,7 @@ static struct clk iva1_ifck = {
- 			CONFIG_PARTICIPANT | RATE_PROPAGATES | DELAYED_APP,
- 	.rate_offset	= 8,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, OMAP24XX_CM_FCLKEN),
--	.enable_bit	= 10,
-+	.enable_bit	= OMAP2420_EN_IVA_COP_SHIFT,
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
-@@ -860,7 +862,7 @@ static struct clk iva1_mpu_int_ifck = {
- 	.parent		= &iva1_ifck,
- 	.flags		= CLOCK_IN_OMAP242X | RATE_CKCTL | CM_DSP_SEL1,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, OMAP24XX_CM_FCLKEN),
--	.enable_bit	= 8,
-+	.enable_bit	= OMAP2420_EN_IVA_MPU_SHIFT,
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
-@@ -901,7 +903,7 @@ static struct clk usb_l4_ick = {	/* FS-USB interface clock */
- 				RATE_CKCTL | CM_CORE_SEL1 | DELAYED_APP |
- 				CONFIG_PARTICIPANT,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
--	.enable_bit	= 0,
-+	.enable_bit	= OMAP24XX_EN_USB_SHIFT,
- 	.rate_offset	= 25,
- 	.recalc		= &omap2_clksel_recalc,
- };
-@@ -920,7 +922,7 @@ static struct clk ssi_ssr_sst_fck = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				RATE_CKCTL | CM_CORE_SEL1 | DELAYED_APP,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),	/* bit 1 */
--	.enable_bit	= 1,
-+	.enable_bit	= OMAP24XX_EN_SSI_SHIFT,
- 	.rate_offset	= 20,
- 	.recalc		= &omap2_clksel_recalc,
- };
-@@ -942,7 +944,7 @@ static struct clk gfx_3d_fck = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				RATE_CKCTL | CM_GFX_SEL1,
- 	.enable_reg	= OMAP_CM_REGADDR(GFX_MOD, OMAP24XX_CM_FCLKEN),
--	.enable_bit	= 2,
-+	.enable_bit	= OMAP24XX_EN_3D_SHIFT,
- 	.rate_offset	= 0,
- 	.recalc		= &omap2_clksel_recalc,
- };
-@@ -953,7 +955,7 @@ static struct clk gfx_2d_fck = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				RATE_CKCTL | CM_GFX_SEL1,
- 	.enable_reg	= OMAP_CM_REGADDR(GFX_MOD, OMAP24XX_CM_FCLKEN),
--	.enable_bit	= 1,
-+	.enable_bit	= OMAP24XX_EN_2D_SHIFT,
- 	.rate_offset	= 0,
- 	.recalc		= &omap2_clksel_recalc,
- };
-@@ -964,7 +966,7 @@ static struct clk gfx_ick = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				RATE_CKCTL,
- 	.enable_reg	= OMAP_CM_REGADDR(GFX_MOD, CM_ICLKEN),	/* bit 0 */
--	.enable_bit	= 0,
-+	.enable_bit	= OMAP_EN_GFX_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -981,7 +983,7 @@ static struct clk mdm_ick = {		/* used both as a ick and fck */
- 				DELAYED_APP | CONFIG_PARTICIPANT,
- 	.rate_offset	= 0,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP2430_MDM_MOD, CM_ICLKEN),
--	.enable_bit	= 0,
-+	.enable_bit	= OMAP2430_CM_ICLKEN_MDM_EN_MDM_SHIFT,
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
-@@ -991,7 +993,7 @@ static struct clk mdm_osc_ck = {
- 	.parent		= &osc_ck,
- 	.flags		= CLOCK_IN_OMAP243X | RATE_FIXED,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP2430_MDM_MOD, OMAP24XX_CM_FCLKEN),
--	.enable_bit	= 1,
-+	.enable_bit	= OMAP2430_EN_OSC_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1017,7 +1019,7 @@ static struct clk ssi_l4_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X | RATE_CKCTL,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),	/* bit 1 */
--	.enable_bit	= 1,
-+	.enable_bit	= OMAP24XX_EN_SSI_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1034,7 +1036,7 @@ static struct clk dss_ick = {		/* Enables both L3,L4 ICLK's */
- 	.parent		= &l4_ck,	/* really both l3 and l4 */
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X | RATE_CKCTL,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 0,
-+	.enable_bit	= OMAP24XX_EN_DSS1_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1044,7 +1046,7 @@ static struct clk dss1_fck = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				RATE_CKCTL | CM_CORE_SEL1 | DELAYED_APP,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 0,
-+	.enable_bit	= OMAP24XX_EN_DSS1_SHIFT,
- 	.rate_offset	= 8,
- 	.src_offset	= 8,
- 	.recalc		= &omap2_clksel_recalc,
-@@ -1057,7 +1059,7 @@ static struct clk dss2_fck = {		/* Alt clk used in power management */
- 				RATE_CKCTL | CM_CORE_SEL1 | RATE_FIXED |
- 				DELAYED_APP,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 1,
-+	.enable_bit	= OMAP24XX_EN_DSS2_SHIFT,
- 	.src_offset	= 13,
- 	.recalc		= &omap2_followparent_recalc,
- };
-@@ -1069,7 +1071,7 @@ static struct clk dss_54m_fck = {	/* Alt clk used in power management */
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				RATE_FIXED | RATE_PROPAGATES,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 2,
-+	.enable_bit	= OMAP24XX_EN_DSS2_SHIFT,
- 	.recalc		= &omap2_propagate_rate,
- };
- 
-@@ -1084,7 +1086,7 @@ static struct clk gpt1_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),	/* Bit0 */
--	.enable_bit	= 0,
-+	.enable_bit	= OMAP24XX_EN_GPT1_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1094,7 +1096,7 @@ static struct clk gpt1_fck = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				CM_WKUP_SEL1,
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, OMAP24XX_CM_FCLKEN),	/* Bit0 */
--	.enable_bit	= 0,
-+	.enable_bit	= OMAP24XX_EN_GPT1_SHIFT,
- 	.src_offset	= 0,
- 	.recalc		= &omap2_followparent_recalc,
- };
-@@ -1104,7 +1106,7 @@ static struct clk gpt2_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),	/* Bit4 */
--	.enable_bit	= 4,
-+	.enable_bit	= OMAP24XX_EN_GPT2_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1114,7 +1116,7 @@ static struct clk gpt2_fck = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 4,
-+	.enable_bit	= OMAP24XX_EN_GPT2_SHIFT,
- 	.src_offset	= 2,
- 	.recalc		= &omap2_followparent_recalc,
- };
-@@ -1124,7 +1126,7 @@ static struct clk gpt3_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),	/* Bit5 */
--	.enable_bit	= 5,
-+	.enable_bit	= OMAP24XX_EN_GPT3_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1134,7 +1136,7 @@ static struct clk gpt3_fck = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 5,
-+	.enable_bit	= OMAP24XX_EN_GPT3_SHIFT,
- 	.src_offset	= 4,
- 	.recalc		= &omap2_followparent_recalc,
- };
-@@ -1144,7 +1146,7 @@ static struct clk gpt4_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),	/* Bit6 */
--	.enable_bit	= 6,
-+	.enable_bit	= OMAP24XX_EN_GPT4_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1154,7 +1156,7 @@ static struct clk gpt4_fck = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 6,
-+	.enable_bit	= OMAP24XX_EN_GPT4_SHIFT,
- 	.src_offset	= 6,
- 	.recalc		= &omap2_followparent_recalc,
- };
-@@ -1164,7 +1166,7 @@ static struct clk gpt5_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),	 /* Bit7 */
--	.enable_bit	= 7,
-+	.enable_bit	= OMAP24XX_EN_GPT5_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1174,7 +1176,7 @@ static struct clk gpt5_fck = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 7,
-+	.enable_bit	= OMAP24XX_EN_GPT5_SHIFT,
- 	.src_offset	= 8,
- 	.recalc		= &omap2_followparent_recalc,
- };
-@@ -1183,7 +1185,7 @@ static struct clk gpt6_ick = {
- 	.name		= "gpt6_ick",
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_bit	= 8,
-+	.enable_bit	= OMAP24XX_EN_GPT6_SHIFT,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),	 /* bit8 */
- 	.recalc		= &omap2_followparent_recalc,
- };
-@@ -1194,7 +1196,7 @@ static struct clk gpt6_fck = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 8,
-+	.enable_bit	= OMAP24XX_EN_GPT6_SHIFT,
- 	.src_offset	= 10,
- 	.recalc		= &omap2_followparent_recalc,
- };
-@@ -1204,7 +1206,7 @@ static struct clk gpt7_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),	 /* bit9 */
--	.enable_bit	= 9,
-+	.enable_bit	= OMAP24XX_EN_GPT7_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1214,7 +1216,7 @@ static struct clk gpt7_fck = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 9,
-+	.enable_bit	= OMAP24XX_EN_GPT7_SHIFT,
- 	.src_offset	= 12,
- 	.recalc		= &omap2_followparent_recalc,
- };
-@@ -1224,7 +1226,7 @@ static struct clk gpt8_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),	 /* bit10 */
--	.enable_bit	= 10,
-+	.enable_bit	= OMAP24XX_EN_GPT8_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1234,7 +1236,7 @@ static struct clk gpt8_fck = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 10,
-+	.enable_bit	= OMAP24XX_EN_GPT8_SHIFT,
- 	.src_offset	= 14,
- 	.recalc		= &omap2_followparent_recalc,
- };
-@@ -1244,7 +1246,7 @@ static struct clk gpt9_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 11,
-+	.enable_bit	= OMAP24XX_EN_GPT9_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1254,7 +1256,7 @@ static struct clk gpt9_fck = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 					CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 11,
-+	.enable_bit	= OMAP24XX_EN_GPT9_SHIFT,
- 	.src_offset	= 16,
- 	.recalc		= &omap2_followparent_recalc,
- };
-@@ -1264,7 +1266,7 @@ static struct clk gpt10_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 12,
-+	.enable_bit	= OMAP24XX_EN_GPT10_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1274,7 +1276,7 @@ static struct clk gpt10_fck = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 					CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 12,
-+	.enable_bit	= OMAP24XX_EN_GPT10_SHIFT,
- 	.src_offset	= 18,
- 	.recalc		= &omap2_followparent_recalc,
- };
-@@ -1284,7 +1286,7 @@ static struct clk gpt11_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 13,
-+	.enable_bit	= OMAP24XX_EN_GPT11_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1294,7 +1296,7 @@ static struct clk gpt11_fck = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 					CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 13,
-+	.enable_bit	= OMAP24XX_EN_GPT11_SHIFT,
- 	.src_offset	= 20,
- 	.recalc		= &omap2_followparent_recalc,
- };
-@@ -1304,7 +1306,7 @@ static struct clk gpt12_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),	 /* bit14 */
--	.enable_bit	= 14,
-+	.enable_bit	= OMAP24XX_EN_GPT12_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1314,17 +1316,18 @@ static struct clk gpt12_fck = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 					CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 14,
-+	.enable_bit	= OMAP24XX_EN_GPT12_SHIFT,
- 	.src_offset	= 22,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-+/* REVISIT: bit comment below wrong? */
- static struct clk mcbsp1_ick = {
- 	.name		= "mcbsp1_ick",
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),	 /* bit16 */
--	.enable_bit	= 15,
-+	.enable_bit	= OMAP24XX_EN_MCBSP1_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1333,7 +1336,7 @@ static struct clk mcbsp1_fck = {
- 	.parent		= &func_96m_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 15,
-+	.enable_bit	= OMAP24XX_EN_MCBSP1_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1342,7 +1345,7 @@ static struct clk mcbsp2_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 16,
-+	.enable_bit	= OMAP24XX_EN_MCBSP2_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1351,7 +1354,7 @@ static struct clk mcbsp2_fck = {
- 	.parent		= &func_96m_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 16,
-+	.enable_bit	= OMAP24XX_EN_MCBSP2_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1360,7 +1363,7 @@ static struct clk mcbsp3_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
--	.enable_bit	= 3,
-+	.enable_bit	= OMAP2430_EN_MCBSP3_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1369,7 +1372,7 @@ static struct clk mcbsp3_fck = {
- 	.parent		= &func_96m_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
--	.enable_bit	= 3,
-+	.enable_bit	= OMAP2430_EN_MCBSP3_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1378,7 +1381,7 @@ static struct clk mcbsp4_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
--	.enable_bit	= 4,
-+	.enable_bit	= OMAP2430_EN_MCBSP4_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1387,7 +1390,7 @@ static struct clk mcbsp4_fck = {
- 	.parent		= &func_96m_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
--	.enable_bit	= 4,
-+	.enable_bit	= OMAP2430_EN_MCBSP4_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1396,7 +1399,7 @@ static struct clk mcbsp5_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
--	.enable_bit	= 5,
-+	.enable_bit	= OMAP2430_EN_MCBSP5_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1405,7 +1408,7 @@ static struct clk mcbsp5_fck = {
- 	.parent		= &func_96m_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
--	.enable_bit	= 5,
-+	.enable_bit	= OMAP2430_EN_MCBSP5_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1415,7 +1418,7 @@ static struct clk mcspi1_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 17,
-+	.enable_bit	= OMAP24XX_EN_MCSPI1_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1425,7 +1428,7 @@ static struct clk mcspi1_fck = {
- 	.parent		= &func_48m_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 17,
-+	.enable_bit	= OMAP24XX_EN_MCSPI1_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1435,7 +1438,7 @@ static struct clk mcspi2_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 18,
-+	.enable_bit	= OMAP24XX_EN_MCSPI2_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1445,7 +1448,7 @@ static struct clk mcspi2_fck = {
- 	.parent		= &func_48m_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 18,
-+	.enable_bit	= OMAP24XX_EN_MCSPI2_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1455,7 +1458,7 @@ static struct clk mcspi3_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
--	.enable_bit	= 9,
-+	.enable_bit	= OMAP2430_EN_MCSPI3_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1465,7 +1468,7 @@ static struct clk mcspi3_fck = {
- 	.parent		= &func_48m_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
--	.enable_bit	= 9,
-+	.enable_bit	= OMAP2430_EN_MCSPI3_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1474,7 +1477,7 @@ static struct clk uart1_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 21,
-+	.enable_bit	= OMAP24XX_EN_UART1_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1483,7 +1486,7 @@ static struct clk uart1_fck = {
- 	.parent		= &func_48m_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 21,
-+	.enable_bit	= OMAP24XX_EN_UART1_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1492,7 +1495,7 @@ static struct clk uart2_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 22,
-+	.enable_bit	= OMAP24XX_EN_UART2_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1501,7 +1504,7 @@ static struct clk uart2_fck = {
- 	.parent		= &func_48m_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 22,
-+	.enable_bit	= OMAP24XX_EN_UART2_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1510,7 +1513,7 @@ static struct clk uart3_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
--	.enable_bit	= 2,
-+	.enable_bit	= OMAP24XX_EN_UART3_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1519,7 +1522,7 @@ static struct clk uart3_fck = {
- 	.parent		= &func_48m_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
--	.enable_bit	= 2,
-+	.enable_bit	= OMAP24XX_EN_UART3_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1528,7 +1531,7 @@ static struct clk gpios_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
--	.enable_bit	= 2,
-+	.enable_bit	= OMAP24XX_EN_GPIOS_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1537,7 +1540,7 @@ static struct clk gpios_fck = {
- 	.parent		= &func_32k_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, OMAP24XX_CM_FCLKEN),
--	.enable_bit	= 2,
-+	.enable_bit	= OMAP24XX_EN_GPIOS_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1546,7 +1549,7 @@ static struct clk mpu_wdt_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
--	.enable_bit	= 3,
-+	.enable_bit	= OMAP24XX_EN_MPU_WDT_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1555,7 +1558,7 @@ static struct clk mpu_wdt_fck = {
- 	.parent		= &func_32k_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, OMAP24XX_CM_FCLKEN),
--	.enable_bit	= 3,
-+	.enable_bit	= OMAP24XX_EN_MPU_WDT_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1564,7 +1567,7 @@ static struct clk sync_32k_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
--	.enable_bit	= 1,
-+	.enable_bit	= OMAP24XX_EN_32KSYNC_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- static struct clk wdt1_ick = {
-@@ -1572,7 +1575,7 @@ static struct clk wdt1_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
--	.enable_bit	= 4,
-+	.enable_bit	= OMAP24XX_EN_WDT1_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- static struct clk omapctrl_ick = {
-@@ -1580,7 +1583,7 @@ static struct clk omapctrl_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
--	.enable_bit	= 5,
-+	.enable_bit	= OMAP24XX_EN_OMAPCTRL_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- static struct clk icr_ick = {
-@@ -1588,7 +1591,7 @@ static struct clk icr_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
--	.enable_bit	= 6,
-+	.enable_bit	= OMAP2430_EN_ICR_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1597,7 +1600,7 @@ static struct clk cam_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 31,
-+	.enable_bit	= OMAP24XX_EN_CAM_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1606,7 +1609,7 @@ static struct clk cam_fck = {
- 	.parent		= &func_96m_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 31,
-+	.enable_bit	= OMAP24XX_EN_CAM_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1615,7 +1618,7 @@ static struct clk mailboxes_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 30,
-+	.enable_bit	= OMAP24XX_EN_MAILBOXES_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1624,7 +1627,7 @@ static struct clk wdt4_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 29,
-+	.enable_bit	= OMAP24XX_EN_WDT4_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1633,7 +1636,7 @@ static struct clk wdt4_fck = {
- 	.parent		= &func_32k_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 29,
-+	.enable_bit	= OMAP24XX_EN_WDT4_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1642,7 +1645,7 @@ static struct clk wdt3_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 28,
-+	.enable_bit	= OMAP2420_EN_WDT3_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1651,7 +1654,7 @@ static struct clk wdt3_fck = {
- 	.parent		= &func_32k_ck,
- 	.flags		= CLOCK_IN_OMAP242X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 28,
-+	.enable_bit	= OMAP2420_EN_WDT3_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1660,7 +1663,7 @@ static struct clk mspro_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 27,
-+	.enable_bit	= OMAP24XX_EN_MSPRO_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1669,7 +1672,7 @@ static struct clk mspro_fck = {
- 	.parent		= &func_96m_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 27,
-+	.enable_bit	= OMAP24XX_EN_MSPRO_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1678,7 +1681,7 @@ static struct clk mmc_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 26,
-+	.enable_bit	= OMAP2420_EN_MMC_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1687,7 +1690,7 @@ static struct clk mmc_fck = {
- 	.parent		= &func_96m_ck,
- 	.flags		= CLOCK_IN_OMAP242X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 26,
-+	.enable_bit	= OMAP2420_EN_MMC_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1696,7 +1699,7 @@ static struct clk fac_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 25,
-+	.enable_bit	= OMAP24XX_EN_FAC_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1705,7 +1708,7 @@ static struct clk fac_fck = {
- 	.parent		= &func_12m_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 25,
-+	.enable_bit	= OMAP24XX_EN_FAC_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1714,7 +1717,7 @@ static struct clk eac_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 24,
-+	.enable_bit	= OMAP2420_EN_EAC_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1723,7 +1726,7 @@ static struct clk eac_fck = {
- 	.parent		= &func_96m_ck,
- 	.flags		= CLOCK_IN_OMAP242X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 24,
-+	.enable_bit	= OMAP2420_EN_EAC_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1732,7 +1735,7 @@ static struct clk hdq_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 23,
-+	.enable_bit	= OMAP24XX_EN_HDQ_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1741,7 +1744,7 @@ static struct clk hdq_fck = {
- 	.parent		= &func_12m_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 23,
-+	.enable_bit	= OMAP24XX_EN_HDQ_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1751,7 +1754,7 @@ static struct clk i2c2_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 20,
-+	.enable_bit	= OMAP2420_EN_I2C2_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1761,7 +1764,7 @@ static struct clk i2c2_fck = {
- 	.parent		= &func_12m_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 20,
-+	.enable_bit	= OMAP2420_EN_I2C2_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1771,7 +1774,7 @@ static struct clk i2chs2_fck = {
- 	.parent		= &func_96m_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
--	.enable_bit	= 20,
-+	.enable_bit	= OMAP2430_EN_I2CHS2_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1781,7 +1784,7 @@ static struct clk i2c1_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 19,
-+	.enable_bit	= OMAP2420_EN_I2C1_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1791,7 +1794,7 @@ static struct clk i2c1_fck = {
- 	.parent		= &func_12m_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 19,
-+	.enable_bit	= OMAP2420_EN_I2C1_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1801,7 +1804,7 @@ static struct clk i2chs1_fck = {
- 	.parent		= &func_96m_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
--	.enable_bit	= 19,
-+	.enable_bit	= OMAP2430_EN_I2CHS1_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1810,7 +1813,7 @@ static struct clk vlynq_ick = {
- 	.parent		= &core_l3_ck,
- 	.flags		= CLOCK_IN_OMAP242X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
--	.enable_bit	= 3,
-+	.enable_bit	= OMAP2420_EN_VLYNQ_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1819,7 +1822,7 @@ static struct clk vlynq_fck = {
- 	.parent		= &func_96m_ck,
- 	.flags		= CLOCK_IN_OMAP242X  | RATE_CKCTL | CM_CORE_SEL1 | DELAYED_APP,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= 3,
-+	.enable_bit	= OMAP2420_EN_VLYNQ_SHIFT,
- 	.src_offset	= 15,
- 	.recalc		= &omap2_followparent_recalc,
- };
-@@ -1829,7 +1832,7 @@ static struct clk sdrc_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP2430_CM_ICLKEN3),
--	.enable_bit	= 2,
-+	.enable_bit	= OMAP2430_EN_SDRC_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1838,7 +1841,7 @@ static struct clk des_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP243X | CLOCK_IN_OMAP242X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_ICLKEN4),
--	.enable_bit	= 0,
-+	.enable_bit	= OMAP24XX_EN_DES_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1847,7 +1850,7 @@ static struct clk sha_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP243X | CLOCK_IN_OMAP242X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_ICLKEN4),
--	.enable_bit	= 1,
-+	.enable_bit	= OMAP24XX_EN_SHA_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1856,7 +1859,7 @@ static struct clk rng_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP243X | CLOCK_IN_OMAP242X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_ICLKEN4),
--	.enable_bit	= 2,
-+	.enable_bit	= OMAP24XX_EN_RNG_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1865,7 +1868,7 @@ static struct clk aes_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP243X | CLOCK_IN_OMAP242X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_ICLKEN4),
--	.enable_bit	= 3,
-+	.enable_bit	= OMAP24XX_EN_AES_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1874,7 +1877,7 @@ static struct clk pka_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP243X | CLOCK_IN_OMAP242X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_ICLKEN4),
--	.enable_bit	= 4,
-+	.enable_bit	= OMAP24XX_EN_PKA_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1883,7 +1886,7 @@ static struct clk usb_fck = {
- 	.parent		= &func_48m_ck,
- 	.flags		= CLOCK_IN_OMAP243X | CLOCK_IN_OMAP242X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
--	.enable_bit	= 0,
-+	.enable_bit	= OMAP24XX_EN_USB_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1892,7 +1895,7 @@ static struct clk usbhs_ick = {
- 	.parent		= &core_l3_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
--	.enable_bit	= 6,
-+	.enable_bit	= OMAP2430_EN_USBHS_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1901,7 +1904,7 @@ static struct clk mmchs1_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
--	.enable_bit	= 7,
-+	.enable_bit	= OMAP2430_EN_MMCHS1_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1910,7 +1913,7 @@ static struct clk mmchs1_fck = {
- 	.parent		= &func_96m_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
--	.enable_bit	= 7,
-+	.enable_bit	= OMAP2430_EN_MMCHS1_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1919,7 +1922,7 @@ static struct clk mmchs2_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
--	.enable_bit	= 8,
-+	.enable_bit	= OMAP2430_EN_MMCHS2_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1928,7 +1931,7 @@ static struct clk mmchs2_fck = {
- 	.parent		= &func_96m_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
--	.enable_bit	= 8,
-+	.enable_bit	= OMAP2430_EN_MMCHS2_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1937,7 +1940,7 @@ static struct clk gpio5_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
--	.enable_bit	= 10,
-+	.enable_bit	= OMAP2430_EN_GPIO5_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1946,7 +1949,7 @@ static struct clk gpio5_fck = {
- 	.parent		= &func_32k_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
--	.enable_bit	= 10,
-+	.enable_bit	= OMAP2430_EN_GPIO5_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1955,7 +1958,7 @@ static struct clk mdm_intc_ick = {
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
--	.enable_bit	= 11,
-+	.enable_bit	= OMAP2430_EN_MDM_INTC_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1964,7 +1967,7 @@ static struct clk mmchsdb1_fck = {
- 	.parent		= &func_32k_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
--	.enable_bit	= 16,
-+	.enable_bit	= OMAP2430_EN_MMCHSDB1_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
-@@ -1973,7 +1976,7 @@ static struct clk mmchsdb2_fck = {
- 	.parent		= &func_32k_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
--	.enable_bit	= 17,
-+	.enable_bit	= OMAP2430_EN_MMCHSDB2_SHIFT,
- 	.recalc		= &omap2_followparent_recalc,
- };
- 
--- 
-1.5.1.3
+Index: linux-omap/arch/arm/mach-omap2/prcm-regs.h
+===================================================================
+--- linux-omap.orig/arch/arm/mach-omap2/prcm-regs.h
++++ /dev/null
+@@ -1,472 +0,0 @@
+-/*
+- * linux/arch/arm/mach-omap2/prcm-regs.h
+- *
+- * OMAP24XX Power Reset and Clock Management (PRCM) registers
+- *
+- * Copyright (C) 2005 Texas Instruments, Inc.
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+- */
+-
+-#ifndef __ARCH_ARM_MACH_OMAP2_PRCM_H
+-#define __ARCH_ARM_MACH_OMAP2_PRCM_H
+-
+-/* SET_PERFORMANCE_LEVEL PARAMETERS */
+-#define PRCM_HALF_SPEED 1
+-#define PRCM_FULL_SPEED 2
+-
+-#ifndef __ASSEMBLER__
+-
+-#define PRCM_REG32(offset)	__REG32(PRCM_BASE + (offset))
+-
+-#define PRCM_REVISION		PRCM_REG32(0x000)
+-#define PRCM_SYSCONFIG		PRCM_REG32(0x010)
+-#define PRCM_IRQSTATUS_MPU	PRCM_REG32(0x018)
+-#define PRCM_IRQENABLE_MPU	PRCM_REG32(0x01C)
+-#define PRCM_VOLTCTRL		PRCM_REG32(0x050)
+-#define PRCM_VOLTST		PRCM_REG32(0x054)
+-#define PRCM_CLKSRC_CTRL	PRCM_REG32(0x060)
+-#define PRCM_CLKOUT_CTRL	PRCM_REG32(0x070)
+-#define PRCM_CLKEMUL_CTRL	PRCM_REG32(0x078)
+-#define PRCM_CLKCFG_CTRL	PRCM_REG32(0x080)
+-#define PRCM_CLKCFG_STATUS	PRCM_REG32(0x084)
+-#define PRCM_VOLTSETUP		PRCM_REG32(0x090)
+-#define PRCM_CLKSSETUP		PRCM_REG32(0x094)
+-#define PRCM_POLCTRL		PRCM_REG32(0x098)
+-
+-/* GENERAL PURPOSE */
+-#define GENERAL_PURPOSE1	PRCM_REG32(0x0B0)
+-#define GENERAL_PURPOSE2	PRCM_REG32(0x0B4)
+-#define GENERAL_PURPOSE3	PRCM_REG32(0x0B8)
+-#define GENERAL_PURPOSE4	PRCM_REG32(0x0BC)
+-#define GENERAL_PURPOSE5	PRCM_REG32(0x0C0)
+-#define GENERAL_PURPOSE6	PRCM_REG32(0x0C4)
+-#define GENERAL_PURPOSE7	PRCM_REG32(0x0C8)
+-#define GENERAL_PURPOSE8	PRCM_REG32(0x0CC)
+-#define GENERAL_PURPOSE9	PRCM_REG32(0x0D0)
+-#define GENERAL_PURPOSE10	PRCM_REG32(0x0D4)
+-#define GENERAL_PURPOSE11	PRCM_REG32(0x0D8)
+-#define GENERAL_PURPOSE12	PRCM_REG32(0x0DC)
+-#define GENERAL_PURPOSE13	PRCM_REG32(0x0E0)
+-#define GENERAL_PURPOSE14	PRCM_REG32(0x0E4)
+-#define GENERAL_PURPOSE15	PRCM_REG32(0x0E8)
+-#define GENERAL_PURPOSE16	PRCM_REG32(0x0EC)
+-#define GENERAL_PURPOSE17	PRCM_REG32(0x0F0)
+-#define GENERAL_PURPOSE18	PRCM_REG32(0x0F4)
+-#define GENERAL_PURPOSE19	PRCM_REG32(0x0F8)
+-#define GENERAL_PURPOSE20	PRCM_REG32(0x0FC)
+-
+-/* MPU */
+-#define CM_CLKSEL_MPU		PRCM_REG32(0x140)
+-#define CM_CLKSTCTRL_MPU	PRCM_REG32(0x148)
+-#define RM_RSTST_MPU		PRCM_REG32(0x158)
+-#define PM_WKDEP_MPU		PRCM_REG32(0x1C8)
+-#define PM_EVGENCTRL_MPU	PRCM_REG32(0x1D4)
+-#define PM_EVEGENONTIM_MPU	PRCM_REG32(0x1D8)
+-#define PM_EVEGENOFFTIM_MPU	PRCM_REG32(0x1DC)
+-#define PM_PWSTCTRL_MPU		PRCM_REG32(0x1E0)
+-#define PM_PWSTST_MPU		PRCM_REG32(0x1E4)
+-
+-/* CORE */
+-#define CM_FCLKEN1_CORE		PRCM_REG32(0x200)
+-#define CM_FCLKEN2_CORE		PRCM_REG32(0x204)
+-#define CM_FCLKEN3_CORE		PRCM_REG32(0x208)
+-#define CM_ICLKEN1_CORE		PRCM_REG32(0x210)
+-#define CM_ICLKEN2_CORE		PRCM_REG32(0x214)
+-#define CM_ICLKEN3_CORE		PRCM_REG32(0x218)
+-#define CM_ICLKEN4_CORE		PRCM_REG32(0x21C)
+-#define CM_IDLEST1_CORE		PRCM_REG32(0x220)
+-#define CM_IDLEST2_CORE		PRCM_REG32(0x224)
+-#define CM_IDLEST3_CORE		PRCM_REG32(0x228)
+-#define CM_IDLEST4_CORE		PRCM_REG32(0x22C)
+-#define CM_AUTOIDLE1_CORE	PRCM_REG32(0x230)
+-#define CM_AUTOIDLE2_CORE	PRCM_REG32(0x234)
+-#define CM_AUTOIDLE3_CORE	PRCM_REG32(0x238)
+-#define CM_AUTOIDLE4_CORE	PRCM_REG32(0x23C)
+-#define CM_CLKSEL1_CORE		PRCM_REG32(0x240)
+-#define CM_CLKSEL2_CORE		PRCM_REG32(0x244)
+-#define CM_CLKSTCTRL_CORE	PRCM_REG32(0x248)
+-#define PM_WKEN1_CORE		PRCM_REG32(0x2A0)
+-#define PM_WKEN2_CORE		PRCM_REG32(0x2A4)
+-#define PM_WKST1_CORE		PRCM_REG32(0x2B0)
+-#define PM_WKST2_CORE		PRCM_REG32(0x2B4)
+-#define PM_WKDEP_CORE		PRCM_REG32(0x2C8)
+-#define PM_PWSTCTRL_CORE	PRCM_REG32(0x2E0)
+-#define PM_PWSTST_CORE		PRCM_REG32(0x2E4)
+-
+-/* GFX */
+-#define CM_FCLKEN_GFX		PRCM_REG32(0x300)
+-#define CM_ICLKEN_GFX		PRCM_REG32(0x310)
+-#define CM_IDLEST_GFX		PRCM_REG32(0x320)
+-#define CM_CLKSEL_GFX		PRCM_REG32(0x340)
+-#define CM_CLKSTCTRL_GFX	PRCM_REG32(0x348)
+-#define RM_RSTCTRL_GFX		PRCM_REG32(0x350)
+-#define RM_RSTST_GFX		PRCM_REG32(0x358)
+-#define PM_WKDEP_GFX		PRCM_REG32(0x3C8)
+-#define PM_PWSTCTRL_GFX		PRCM_REG32(0x3E0)
+-#define PM_PWSTST_GFX		PRCM_REG32(0x3E4)
+-
+-/* WAKE-UP */
+-#define CM_FCLKEN_WKUP		PRCM_REG32(0x400)
+-#define CM_ICLKEN_WKUP		PRCM_REG32(0x410)
+-#define CM_IDLEST_WKUP		PRCM_REG32(0x420)
+-#define CM_AUTOIDLE_WKUP	PRCM_REG32(0x430)
+-#define CM_CLKSEL_WKUP		PRCM_REG32(0x440)
+-#define RM_RSTCTRL_WKUP		PRCM_REG32(0x450)
+-#define RM_RSTTIME_WKUP		PRCM_REG32(0x454)
+-#define RM_RSTST_WKUP		PRCM_REG32(0x458)
+-#define PM_WKEN_WKUP		PRCM_REG32(0x4A0)
+-#define PM_WKST_WKUP		PRCM_REG32(0x4B0)
+-
+-/* CLOCKS */
+-#define CM_CLKEN_PLL		PRCM_REG32(0x500)
+-#define CM_IDLEST_CKGEN		PRCM_REG32(0x520)
+-#define CM_AUTOIDLE_PLL		PRCM_REG32(0x530)
+-#define CM_CLKSEL1_PLL		PRCM_REG32(0x540)
+-#define CM_CLKSEL2_PLL		PRCM_REG32(0x544)
+-
+-/* DSP */
+-#define CM_FCLKEN_DSP		PRCM_REG32(0x800)
+-#define CM_ICLKEN_DSP		PRCM_REG32(0x810)
+-#define CM_IDLEST_DSP		PRCM_REG32(0x820)
+-#define CM_AUTOIDLE_DSP		PRCM_REG32(0x830)
+-#define CM_CLKSEL_DSP		PRCM_REG32(0x840)
+-#define CM_CLKSTCTRL_DSP	PRCM_REG32(0x848)
+-#define RM_RSTCTRL_DSP		PRCM_REG32(0x850)
+-#define RM_RSTST_DSP		PRCM_REG32(0x858)
+-#define PM_WKEN_DSP		PRCM_REG32(0x8A0)
+-#define PM_WKDEP_DSP		PRCM_REG32(0x8C8)
+-#define PM_PWSTCTRL_DSP		PRCM_REG32(0x8E0)
+-#define PM_PWSTST_DSP		PRCM_REG32(0x8E4)
+-#define PRCM_IRQSTATUS_DSP	PRCM_REG32(0x8F0)
+-#define PRCM_IRQENABLE_DSP	PRCM_REG32(0x8F4)
+-
+-/* IVA */
+-#define PRCM_IRQSTATUS_IVA	PRCM_REG32(0x8F8)
+-#define PRCM_IRQENABLE_IVA	PRCM_REG32(0x8FC)
+-
+-/* Modem on 2430 */
+-#define CM_FCLKEN_MDM		PRCM_REG32(0xC00)
+-#define CM_ICLKEN_MDM		PRCM_REG32(0xC10)
+-#define CM_IDLEST_MDM		PRCM_REG32(0xC20)
+-#define CM_AUTOIDLE_MDM		PRCM_REG32(0xC30)
+-#define CM_CLKSEL_MDM		PRCM_REG32(0xC40)
+-#define CM_CLKSTCTRL_MDM	PRCM_REG32(0xC48)
+-#define RM_RSTCTRL_MDM		PRCM_REG32(0xC50)
+-#define RM_RSTST_MDM		PRCM_REG32(0xC58)
+-#define PM_WKEN_MDM		PRCM_REG32(0xCA0)
+-#define PM_WKST_MDM		PRCM_REG32(0xCB0)
+-#define PM_WKDEP_MDM		PRCM_REG32(0xCC8)
+-#define PM_PWSTCTRL_MDM		PRCM_REG32(0xCE0)
+-#define PM_PWSTST_MDM		PRCM_REG32(0xCE4)
+-
+-#define OMAP24XX_L4_IO_BASE	0x48000000
+-
+-#define DISP_BASE		(OMAP24XX_L4_IO_BASE + 0x50000)
+-#define DISP_REG32(offset)	__REG32(DISP_BASE + (offset))
+-
+-#define OMAP24XX_GPMC_BASE	(L3_24XX_BASE + 0xa000)
+-#define GPMC_REG32(offset)	__REG32(OMAP24XX_GPMC_BASE + (offset))
+-
+-/* FIXME: Move these to timer code */
+-#define GPT1_BASE		(0x48028000)
+-#define GPT1_REG32(offset)	__REG32(GPT1_BASE + (offset))
+-
+-/* Misc sysconfig */
+-#define DISPC_SYSCONFIG		DISP_REG32(0x410)
+-#define SPI_BASE		(OMAP24XX_L4_IO_BASE + 0x98000)
+-#define MCSPI1_SYSCONFIG	__REG32(SPI_BASE + 0x10)
+-#define MCSPI2_SYSCONFIG	__REG32(SPI_BASE + 0x2000 + 0x10)
+-#define MCSPI3_SYSCONFIG	__REG32(OMAP24XX_L4_IO_BASE + 0xb8010)
+-
+-#define CAMERA_MMU_SYSCONFIG	__REG32(DISP_BASE + 0x2C10)
+-#define CAMERA_DMA_SYSCONFIG	__REG32(DISP_BASE + 0x282C)
+-#define SYSTEM_DMA_SYSCONFIG	__REG32(DISP_BASE + 0x602C)
+-#define GPMC_SYSCONFIG		GPMC_REG32(0x010)
+-#define MAILBOXES_SYSCONFIG	__REG32(OMAP24XX_L4_IO_BASE + 0x94010)
+-#define UART1_SYSCONFIG		__REG32(OMAP24XX_L4_IO_BASE + 0x6A054)
+-#define UART2_SYSCONFIG		__REG32(OMAP24XX_L4_IO_BASE + 0x6C054)
+-#define UART3_SYSCONFIG		__REG32(OMAP24XX_L4_IO_BASE + 0x6E054)
+-#define OMAP24XX_SMS_BASE	(L3_24XX_BASE + 0x8000)
+-#define SMS_SYSCONFIG		__REG32(OMAP24XX_SMS_BASE + 0x10)
+-#define SSI_SYSCONFIG		__REG32(DISP_BASE + 0x8010)
+-
+-/* rkw - good cannidates for PM_ to start what nm was trying */
+-#define OMAP24XX_GPT2		(OMAP24XX_L4_IO_BASE + 0x2A000)
+-#define OMAP24XX_GPT3		(OMAP24XX_L4_IO_BASE + 0x78000)
+-#define OMAP24XX_GPT4		(OMAP24XX_L4_IO_BASE + 0x7A000)
+-#define OMAP24XX_GPT5		(OMAP24XX_L4_IO_BASE + 0x7C000)
+-#define OMAP24XX_GPT6		(OMAP24XX_L4_IO_BASE + 0x7E000)
+-#define OMAP24XX_GPT7		(OMAP24XX_L4_IO_BASE + 0x80000)
+-#define OMAP24XX_GPT8		(OMAP24XX_L4_IO_BASE + 0x82000)
+-#define OMAP24XX_GPT9		(OMAP24XX_L4_IO_BASE + 0x84000)
+-#define OMAP24XX_GPT10		(OMAP24XX_L4_IO_BASE + 0x86000)
+-#define OMAP24XX_GPT11		(OMAP24XX_L4_IO_BASE + 0x88000)
+-#define OMAP24XX_GPT12		(OMAP24XX_L4_IO_BASE + 0x8A000)
+-
+-/* FIXME: Move these to timer code */
+-#define GPTIMER1_SYSCONFIG	GPT1_REG32(0x010)
+-#define GPTIMER2_SYSCONFIG	__REG32(OMAP24XX_GPT2 + 0x10)
+-#define GPTIMER3_SYSCONFIG	__REG32(OMAP24XX_GPT3 + 0x10)
+-#define GPTIMER4_SYSCONFIG	__REG32(OMAP24XX_GPT4 + 0x10)
+-#define GPTIMER5_SYSCONFIG	__REG32(OMAP24XX_GPT5 + 0x10)
+-#define GPTIMER6_SYSCONFIG	__REG32(OMAP24XX_GPT6 + 0x10)
+-#define GPTIMER7_SYSCONFIG	__REG32(OMAP24XX_GPT7 + 0x10)
+-#define GPTIMER8_SYSCONFIG	__REG32(OMAP24XX_GPT8 + 0x10)
+-#define GPTIMER9_SYSCONFIG	__REG32(OMAP24XX_GPT9 + 0x10)
+-#define GPTIMER10_SYSCONFIG	__REG32(OMAP24XX_GPT10 + 0x10)
+-#define GPTIMER11_SYSCONFIG	__REG32(OMAP24XX_GPT11 + 0x10)
+-#define GPTIMER12_SYSCONFIG	__REG32(OMAP24XX_GPT12 + 0x10)
+-
+-/* FIXME: Move these to gpio code */
+-#define OMAP24XX_GPIO_BASE	0x48018000
+-#define GPIOX_BASE(X)		(OMAP24XX_GPIO_BASE + (0x2000 * ((X) - 1)))
+-
+-#define GPIO1_SYSCONFIG		__REG32((GPIOX_BASE(1) + 0x10))
+-#define GPIO2_SYSCONFIG		__REG32((GPIOX_BASE(2) + 0x10))
+-#define GPIO3_SYSCONFIG		__REG32((GPIOX_BASE(3) + 0x10))
+-#define GPIO4_SYSCONFIG		__REG32((GPIOX_BASE(4) + 0x10))
+-
+-#if defined(CONFIG_ARCH_OMAP2430)
+-#define GPIO5_SYSCONFIG		__REG32((OMAP24XX_GPIO5_BASE + 0x10))
+-#endif
+-
+-/* GP TIMER 1 */
+-#define GPTIMER1_TISTAT		GPT1_REG32(0x014)
+-#define GPTIMER1_TISR		GPT1_REG32(0x018)
+-#define GPTIMER1_TIER		GPT1_REG32(0x01C)
+-#define GPTIMER1_TWER		GPT1_REG32(0x020)
+-#define GPTIMER1_TCLR		GPT1_REG32(0x024)
+-#define GPTIMER1_TCRR		GPT1_REG32(0x028)
+-#define GPTIMER1_TLDR		GPT1_REG32(0x02C)
+-#define GPTIMER1_TTGR		GPT1_REG32(0x030)
+-#define GPTIMER1_TWPS		GPT1_REG32(0x034)
+-#define GPTIMER1_TMAR		GPT1_REG32(0x038)
+-#define GPTIMER1_TCAR1		GPT1_REG32(0x03C)
+-#define GPTIMER1_TSICR		GPT1_REG32(0x040)
+-#define GPTIMER1_TCAR2		GPT1_REG32(0x044)
+-
+-/* rkw -- base fix up please... */
+-#define GPTIMER3_TISR		__REG32(OMAP24XX_L4_IO_BASE + 0x78018)
+-
+-/* GPIO 1 */
+-#define GPIO1_BASE		GPIOX_BASE(1)
+-#define GPIO1_REG32(offset)	__REG32(GPIO1_BASE + (offset))
+-#define GPIO1_IRQENABLE1	GPIO1_REG32(0x01C)
+-#define GPIO1_IRQSTATUS1	GPIO1_REG32(0x018)
+-#define GPIO1_IRQENABLE2	GPIO1_REG32(0x02C)
+-#define GPIO1_IRQSTATUS2	GPIO1_REG32(0x028)
+-#define GPIO1_WAKEUPENABLE	GPIO1_REG32(0x020)
+-#define GPIO1_RISINGDETECT	GPIO1_REG32(0x048)
+-#define GPIO1_DATAIN		GPIO1_REG32(0x038)
+-#define GPIO1_OE		GPIO1_REG32(0x034)
+-#define GPIO1_DATAOUT		GPIO1_REG32(0x03C)
+-
+-/* GPIO2 */
+-#define GPIO2_BASE		GPIOX_BASE(2)
+-#define GPIO2_REG32(offset)	__REG32(GPIO2_BASE + (offset))
+-#define GPIO2_IRQENABLE1	GPIO2_REG32(0x01C)
+-#define GPIO2_IRQSTATUS1	GPIO2_REG32(0x018)
+-#define GPIO2_IRQENABLE2	GPIO2_REG32(0x02C)
+-#define GPIO2_IRQSTATUS2	GPIO2_REG32(0x028)
+-#define GPIO2_WAKEUPENABLE	GPIO2_REG32(0x020)
+-#define GPIO2_RISINGDETECT	GPIO2_REG32(0x048)
+-#define GPIO2_DATAIN		GPIO2_REG32(0x038)
+-#define GPIO2_OE		GPIO2_REG32(0x034)
+-#define GPIO2_DATAOUT		GPIO2_REG32(0x03C)
+-#define GPIO2_DEBOUNCENABLE	GPIO2_REG32(0x050)
+-#define GPIO2_DEBOUNCINGTIME	GPIO2_REG32(0x054)
+-
+-/* GPIO 3 */
+-#define GPIO3_BASE		GPIOX_BASE(3)
+-#define GPIO3_REG32(offset)	__REG32(GPIO3_BASE + (offset))
+-#define GPIO3_IRQENABLE1	GPIO3_REG32(0x01C)
+-#define GPIO3_IRQSTATUS1	GPIO3_REG32(0x018)
+-#define GPIO3_IRQENABLE2	GPIO3_REG32(0x02C)
+-#define GPIO3_IRQSTATUS2	GPIO3_REG32(0x028)
+-#define GPIO3_WAKEUPENABLE	GPIO3_REG32(0x020)
+-#define GPIO3_RISINGDETECT	GPIO3_REG32(0x048)
+-#define GPIO3_FALLINGDETECT	GPIO3_REG32(0x04C)
+-#define GPIO3_DATAIN		GPIO3_REG32(0x038)
+-#define GPIO3_OE		GPIO3_REG32(0x034)
+-#define GPIO3_DATAOUT		GPIO3_REG32(0x03C)
+-#define GPIO3_DEBOUNCENABLE	GPIO3_REG32(0x050)
+-#define GPIO3_DEBOUNCINGTIME	GPIO3_REG32(0x054)
+-#define GPIO3_DEBOUNCENABLE	GPIO3_REG32(0x050)
+-#define GPIO3_DEBOUNCINGTIME	GPIO3_REG32(0x054)
+-
+-/* GPIO 4 */
+-#define GPIO4_BASE		GPIOX_BASE(4)
+-#define GPIO4_REG32(offset)	__REG32(GPIO4_BASE + (offset))
+-#define GPIO4_IRQENABLE1	GPIO4_REG32(0x01C)
+-#define GPIO4_IRQSTATUS1	GPIO4_REG32(0x018)
+-#define GPIO4_IRQENABLE2	GPIO4_REG32(0x02C)
+-#define GPIO4_IRQSTATUS2	GPIO4_REG32(0x028)
+-#define GPIO4_WAKEUPENABLE	GPIO4_REG32(0x020)
+-#define GPIO4_RISINGDETECT	GPIO4_REG32(0x048)
+-#define GPIO4_FALLINGDETECT	GPIO4_REG32(0x04C)
+-#define GPIO4_DATAIN		GPIO4_REG32(0x038)
+-#define GPIO4_OE		GPIO4_REG32(0x034)
+-#define GPIO4_DATAOUT		GPIO4_REG32(0x03C)
+-#define GPIO4_DEBOUNCENABLE	GPIO4_REG32(0x050)
+-#define GPIO4_DEBOUNCINGTIME	GPIO4_REG32(0x054)
+-
+-#if defined(CONFIG_ARCH_OMAP2430)
+-/* GPIO 5 */
+-#define GPIO5_REG32(offset)	__REG32((OMAP24XX_GPIO5_BASE + (offset)))
+-#define GPIO5_IRQENABLE1	GPIO5_REG32(0x01C)
+-#define GPIO5_IRQSTATUS1	GPIO5_REG32(0x018)
+-#define GPIO5_IRQENABLE2	GPIO5_REG32(0x02C)
+-#define GPIO5_IRQSTATUS2	GPIO5_REG32(0x028)
+-#define GPIO5_WAKEUPENABLE	GPIO5_REG32(0x020)
+-#define GPIO5_RISINGDETECT	GPIO5_REG32(0x048)
+-#define GPIO5_FALLINGDETECT	GPIO5_REG32(0x04C)
+-#define GPIO5_DATAIN		GPIO5_REG32(0x038)
+-#define GPIO5_OE		GPIO5_REG32(0x034)
+-#define GPIO5_DATAOUT		GPIO5_REG32(0x03C)
+-#define GPIO5_DEBOUNCENABLE	GPIO5_REG32(0x050)
+-#define GPIO5_DEBOUNCINGTIME	GPIO5_REG32(0x054)
+-#endif
+-
+-/* IO CONFIG */
+-#define CONTROL_REG32(offset)		__REG32(CTRL_BASE + (offset))
+-#define CONTROL_PADCONF_SPI1_NCS2	CONTROL_REG32(0x104)
+-#define CONTROL_PADCONF_SYS_XTALOUT	CONTROL_REG32(0x134)
+-#define CONTROL_PADCONF_UART1_RX	CONTROL_REG32(0x0C8)
+-#define CONTROL_PADCONF_MCBSP1_DX	CONTROL_REG32(0x10C)
+-#define CONTROL_PADCONF_GPMC_NCS4	CONTROL_REG32(0x090)
+-#define CONTROL_PADCONF_DSS_D5		CONTROL_REG32(0x0B8)
+-#define CONTROL_PADCONF_DSS_D9		CONTROL_REG32(0x0BC)	/* 2420 */
+-#define CONTROL_PADCONF_DSS_D13		CONTROL_REG32(0x0C0)
+-#define CONTROL_PADCONF_DSS_VSYNC	CONTROL_REG32(0x0CC)
+-#define CONTROL_PADCONF_SYS_NIRQW0	CONTROL_REG32(0x0BC)	/* 2430 */
+-#define CONTROL_PADCONF_SSI1_FLAG_TX	CONTROL_REG32(0x108)	/* 2430 */
+-
+-/* CONTROL */
+-#define CONTROL_DEVCONF		CONTROL_REG32(0x274)
+-#define CONTROL_DEVCONF1	CONTROL_REG32(0x2E8)
+-
+-/* INTERRUPT CONTROLLER */
+-#define INTC_BASE		((L4_24XX_BASE) + 0xfe000)
+-#define INTC_REG32(offset)	__REG32(INTC_BASE + (offset))
+-
+-#define INTC1_U_BASE		INTC_REG32(0x000)
+-#define INTC_MIR0		INTC_REG32(0x084)
+-#define INTC_MIR_SET0		INTC_REG32(0x08C)
+-#define INTC_MIR_CLEAR0		INTC_REG32(0x088)
+-#define INTC_ISR_CLEAR0		INTC_REG32(0x094)
+-#define INTC_MIR1		INTC_REG32(0x0A4)
+-#define INTC_MIR_SET1		INTC_REG32(0x0AC)
+-#define INTC_MIR_CLEAR1		INTC_REG32(0x0A8)
+-#define INTC_ISR_CLEAR1		INTC_REG32(0x0B4)
+-#define INTC_MIR2		INTC_REG32(0x0C4)
+-#define INTC_MIR_SET2		INTC_REG32(0x0CC)
+-#define INTC_MIR_CLEAR2		INTC_REG32(0x0C8)
+-#define INTC_ISR_CLEAR2		INTC_REG32(0x0D4)
+-#define INTC_SIR_IRQ		INTC_REG32(0x040)
+-#define INTC_CONTROL		INTC_REG32(0x048)
+-#define INTC_ILR11		INTC_REG32(0x12C)	/* PRCM on MPU PIC */
+-#define INTC_ILR30		INTC_REG32(0x178)
+-#define INTC_ILR31		INTC_REG32(0x17C)
+-#define INTC_ILR32		INTC_REG32(0x180)
+-#define INTC_ILR37		INTC_REG32(0x194)	/* GPIO4 on MPU PIC */
+-#define INTC_SYSCONFIG		INTC_REG32(0x010)	/* GPT1 on MPU PIC */
+-
+-/* RAM FIREWALL */
+-#define RAMFW_BASE		(0x68005000)
+-#define RAMFW_REG32(offset)	__REG32(RAMFW_BASE + (offset))
+-
+-#define RAMFW_REQINFOPERM0	RAMFW_REG32(0x048)
+-#define RAMFW_READPERM0		RAMFW_REG32(0x050)
+-#define RAMFW_WRITEPERM0	RAMFW_REG32(0x058)
+-
+-/* GPMC CS1 FPGA ON USER INTERFACE MODULE */
+-//#define DEBUG_BOARD_LED_REGISTER 0x04000014
+-
+-/* GPMC CS0 */
+-#define GPMC_CONFIG1_0		GPMC_REG32(0x060)
+-#define GPMC_CONFIG2_0		GPMC_REG32(0x064)
+-#define GPMC_CONFIG3_0		GPMC_REG32(0x068)
+-#define GPMC_CONFIG4_0		GPMC_REG32(0x06C)
+-#define GPMC_CONFIG5_0		GPMC_REG32(0x070)
+-#define GPMC_CONFIG6_0		GPMC_REG32(0x074)
+-#define GPMC_CONFIG7_0		GPMC_REG32(0x078)
+-
+-/* GPMC CS1 */
+-#define GPMC_CONFIG1_1		GPMC_REG32(0x090)
+-#define GPMC_CONFIG2_1		GPMC_REG32(0x094)
+-#define GPMC_CONFIG3_1		GPMC_REG32(0x098)
+-#define GPMC_CONFIG4_1		GPMC_REG32(0x09C)
+-#define GPMC_CONFIG5_1		GPMC_REG32(0x0a0)
+-#define GPMC_CONFIG6_1		GPMC_REG32(0x0a4)
+-#define GPMC_CONFIG7_1		GPMC_REG32(0x0a8)
+-
+-/* GPMC CS3 */
+-#define GPMC_CONFIG1_3		GPMC_REG32(0x0F0)
+-#define GPMC_CONFIG2_3		GPMC_REG32(0x0F4)
+-#define GPMC_CONFIG3_3		GPMC_REG32(0x0F8)
+-#define GPMC_CONFIG4_3		GPMC_REG32(0x0FC)
+-#define GPMC_CONFIG5_3		GPMC_REG32(0x100)
+-#define GPMC_CONFIG6_3		GPMC_REG32(0x104)
+-#define GPMC_CONFIG7_3		GPMC_REG32(0x108)
+-
+-/* DSS */
+-#define DSS_CONTROL		DISP_REG32(0x040)
+-#define DISPC_CONTROL		DISP_REG32(0x440)
+-#define DISPC_SYSSTATUS		DISP_REG32(0x414)
+-#define DISPC_IRQSTATUS		DISP_REG32(0x418)
+-#define DISPC_IRQENABLE		DISP_REG32(0x41C)
+-#define DISPC_CONFIG		DISP_REG32(0x444)
+-#define DISPC_DEFAULT_COLOR0	DISP_REG32(0x44C)
+-#define DISPC_DEFAULT_COLOR1	DISP_REG32(0x450)
+-#define DISPC_TRANS_COLOR0	DISP_REG32(0x454)
+-#define DISPC_TRANS_COLOR1	DISP_REG32(0x458)
+-#define DISPC_LINE_NUMBER	DISP_REG32(0x460)
+-#define DISPC_TIMING_H		DISP_REG32(0x464)
+-#define DISPC_TIMING_V		DISP_REG32(0x468)
+-#define DISPC_POL_FREQ		DISP_REG32(0x46C)
+-#define DISPC_DIVISOR		DISP_REG32(0x470)
+-#define DISPC_SIZE_DIG		DISP_REG32(0x478)
+-#define DISPC_SIZE_LCD		DISP_REG32(0x47C)
+-#define DISPC_GFX_BA0		DISP_REG32(0x480)
+-#define DISPC_GFX_BA1		DISP_REG32(0x484)
+-#define DISPC_GFX_POSITION	DISP_REG32(0x488)
+-#define DISPC_GFX_SIZE		DISP_REG32(0x48C)
+-#define DISPC_GFX_ATTRIBUTES	DISP_REG32(0x4A0)
+-#define DISPC_GFX_FIFO_THRESHOLD	DISP_REG32(0x4A4)
+-#define DISPC_GFX_ROW_INC	DISP_REG32(0x4AC)
+-#define DISPC_GFX_PIXEL_INC	DISP_REG32(0x4B0)
+-#define DISPC_GFX_WINDOW_SKIP	DISP_REG32(0x4B4)
+-#define DISPC_GFX_TABLE_BA	DISP_REG32(0x4B8)
+-#define DISPC_DATA_CYCLE1	DISP_REG32(0x5D4)
+-#define DISPC_DATA_CYCLE2	DISP_REG32(0x5D8)
+-#define DISPC_DATA_CYCLE3	DISP_REG32(0x5DC)
+-
+-/* HSUSB Suspend */
+-#define HSUSB_CTRL		__REG8(0x480AC001)
+-#define USBOTG_POWER		__REG32(0x480AC000)
+-
+-/* HS MMC */
+-#define MMCHS1_SYSCONFIG	__REG32(0x4809C010)
+-#define MMCHS2_SYSCONFIG	__REG32(0x480b4010)
+-
+-#endif	/* __ASSEMBLER__ */
+-
+-#endif
+-
+-
+-
+-
+-
 
 -- 
