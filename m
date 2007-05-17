@@ -1,12 +1,12 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 1/5] omap2: modify omap24xx.h to improve constant names and
-	prepare for multi-arch kernels
-Date: Wed, 16 May 2007 16:58:51 -0600
-Message-ID: <20070516231342.136038563@pwsan.com>
-References: <20070516225850.075133914@pwsan.com>
+Subject: [PATCH 2/3] omap2: convert existing SDRC register users to use
+	sdrc.h
+Date: Wed, 16 May 2007 18:05:38 -0600
+Message-ID: <20070517001009.129045161@pwsan.com>
+References: <20070517000943.977105773@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline;
-	filename=0001-omap2-modify-omap24xx.h-to-improve-constant-names-a.patch
+	filename=0002-omap2-convert-existing-SDRC-register-users-to-use-s.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,138 +19,136 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Redo the defines in omap24xx.h to fix poorly-named defines, such as
-OMAP24XX_SDRC_BASE, which is different between 2420 and 2430.  Also,
-prepare for future multi-architecture kernels by removing the
-architecture prefixes from several of the defines.  (Presumably in the
-future these will be assigned to 'static void __iomem *'s by runtime
-init code depending on the CPU type.)
+Convert files that use SDRC registers in mach-omap2/ to use sdrc.h
+symbolic constants and sdrc_{read,write}_reg().
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- include/asm-arm/arch-omap/io.h       |    6 +-
- include/asm-arm/arch-omap/omap24xx.h |   72 ++++++++++++++++++++++-----------
- 2 files changed, 51 insertions(+), 27 deletions(-)
+ arch/arm/mach-omap2/clock.c  |    4 +++-
+ arch/arm/mach-omap2/memory.c |   21 +++++++++++----------
+ arch/arm/mach-omap2/pm.c     |    7 ++++---
+ 3 files changed, 18 insertions(+), 14 deletions(-)
 
-diff --git a/include/asm-arm/arch-omap/io.h b/include/asm-arm/arch-omap/io.h
-index d2fe0d0..28ae4d9 100644
---- a/include/asm-arm/arch-omap/io.h
-+++ b/include/asm-arm/arch-omap/io.h
-@@ -95,13 +95,13 @@
- #define io_v2p(va)	((va) - IO_OFFSET)	/* Works for L3 and L4 */
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index d60d171..1d02406 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -32,6 +32,7 @@
+ #include "prcm-regs.h"
+ #include "memory.h"
+ #include "clock.h"
++#include "sdrc.h"
  
- /* DSP */
--#define DSP_MEM_24XX_PHYS	OMAP24XX_DSP_MEM_BASE	/* 0x58000000 */
-+#define DSP_MEM_24XX_PHYS	OMAP2420_DSP_MEM_BASE	/* 0x58000000 */
- #define DSP_MEM_24XX_VIRT	0xe0000000
- #define DSP_MEM_24XX_SIZE	0x28000
--#define DSP_IPI_24XX_PHYS	OMAP24XX_DSP_IPI_BASE	/* 0x59000000 */
-+#define DSP_IPI_24XX_PHYS	OMAP2420_DSP_IPI_BASE	/* 0x59000000 */
- #define DSP_IPI_24XX_VIRT	0xe1000000
- #define DSP_IPI_24XX_SIZE	SZ_4K
--#define DSP_MMU_24XX_PHYS	OMAP24XX_DSP_MMU_BASE	/* 0x5a000000 */
-+#define DSP_MMU_24XX_PHYS	OMAP2420_DSP_MMU_BASE	/* 0x5a000000 */
- #define DSP_MMU_24XX_VIRT	0xe2000000
- #define DSP_MMU_24XX_SIZE	SZ_4K
+ #undef DEBUG
  
-diff --git a/include/asm-arm/arch-omap/omap24xx.h b/include/asm-arm/arch-omap/omap24xx.h
-index d38572e..249438d 100644
---- a/include/asm-arm/arch-omap/omap24xx.h
-+++ b/include/asm-arm/arch-omap/omap24xx.h
-@@ -13,46 +13,70 @@
+@@ -447,7 +448,8 @@ static long omap2_clk_round_rate(struct clk *clk, unsigned long rate)
+  */
+ static u32 omap2_dll_force_needed(void)
+ {
+-	u32 dll_state = SDRC_DLLA_CTRL;		/* dlla and dllb are a set */
++	/* dlla and dllb are a set */
++	u32 dll_state = sdrc_read_reg(SDRC_DLLA_CTRL);
  
- /* interrupt controller */
- #define OMAP24XX_IC_BASE	(L4_24XX_BASE + 0xfe000)
--#define VA_IC_BASE		IO_ADDRESS(OMAP24XX_IC_BASE)
- #define OMAP24XX_IVA_INTC_BASE	0x40000000
- #define IRQ_SIR_IRQ		0x0040
+ 	if ((dll_state & (1 << 2)) == (1 << 2))
+ 		return 1;
+diff --git a/arch/arm/mach-omap2/memory.c b/arch/arm/mach-omap2/memory.c
+index 3e5d8cd..7b44a96 100644
+--- a/arch/arm/mach-omap2/memory.c
++++ b/arch/arm/mach-omap2/memory.c
+@@ -27,9 +27,10 @@
+ #include <asm/arch/clock.h>
+ #include <asm/arch/sram.h>
  
- #define OMAP24XX_CONTROL_STATUS	(L4_24XX_BASE + 0x2f8)
+-#include "prcm-regs.h"
+ #include "memory.h"
++#include "sdrc.h"
  
--#ifdef CONFIG_ARCH_OMAP2420
--#define OMAP24XX_32KSYNCT_BASE	(L4_24XX_BASE + 0x4000)
--#define OMAP24XX_PRCM_BASE	(L4_24XX_BASE + 0x8000)
--#define OMAP24XX_SDRC_BASE	(L3_24XX_BASE + 0x9000)
--#define OMAP24XX_CTRL_BASE	L4_24XX_BASE
--#endif
-+#define OMAP2420_CTRL_BASE	L4_24XX_BASE
-+#define OMAP2420_32KSYNCT_BASE	(L4_24XX_BASE + 0x4000)
-+#define OMAP2420_PRCM_BASE	(L4_24XX_BASE + 0x8000)
-+#define OMAP2420_SDRC_BASE	(L3_24XX_BASE + 0x9000)
-+#define OMAP2420_SMS_BASE	0x68008000
++#define SMS_SYSCONFIG			(SMS_BASE + 0x010)
+ 
+ static struct memory_timings mem_timings;
+ 
+@@ -53,7 +54,7 @@ void omap2_init_memory_params(u32 force_lock_to_unlock_mode)
+ 	unsigned long dll_cnt;
+ 	u32 fast_dll = 0;
+ 
+-	mem_timings.m_type = !((SDRC_MR_0 & 0x3) == 0x1); /* DDR = 1, SDR = 0 */
++	mem_timings.m_type = !((sdrc_read_reg(SDRC_MR_0) & 0x3) == 0x1); /* DDR = 1, SDR = 0 */
+ 
+ 	/* 2422 es2.05 and beyond has a single SIP DDR instead of 2 like others.
+ 	 * In the case of 2422, its ok to use CS1 instead of CS0.
+@@ -73,11 +74,11 @@ void omap2_init_memory_params(u32 force_lock_to_unlock_mode)
+ 		mem_timings.dll_mode = M_LOCK;
+ 
+ 	if (mem_timings.base_cs == 0) {
+-		fast_dll = SDRC_DLLA_CTRL;
+-		dll_cnt = SDRC_DLLA_STATUS & 0xff00;
++		fast_dll = sdrc_read_reg(SDRC_DLLA_CTRL);
++		dll_cnt = sdrc_read_reg(SDRC_DLLA_STATUS) & 0xff00;
+ 	} else {
+-		fast_dll = SDRC_DLLB_CTRL;
+-		dll_cnt = SDRC_DLLB_STATUS & 0xff00;
++		fast_dll = sdrc_read_reg(SDRC_DLLB_CTRL);
++		dll_cnt = sdrc_read_reg(SDRC_DLLB_STATUS) & 0xff00;
+ 	}
+ 	if (force_lock_to_unlock_mode) {
+ 		fast_dll &= ~0xff00;
+@@ -106,14 +107,14 @@ void __init omap2_init_memory(void)
+ {
+ 	u32 l;
+ 
+-	l = SMS_SYSCONFIG;
++	l = omap_readl(SMS_SYSCONFIG);
+ 	l &= ~(0x3 << 3);
+ 	l |= (0x2 << 3);
+-	SMS_SYSCONFIG = l;
++	omap_writel(l, SMS_SYSCONFIG);
+ 
+-	l = SDRC_SYSCONFIG;
++	l = sdrc_read_reg(SDRC_SYSCONFIG);
+ 	l &= ~(0x3 << 3);
+ 	l |= (0x2 << 3);
+-	SDRC_SYSCONFIG = l;
++	sdrc_write_reg(l, SDRC_SYSCONFIG);
+ 
+ }
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 887c95d..931ad86 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -46,6 +46,8 @@
+ #include <asm/arch/board.h>
+ #include <asm/arch/gpio.h>
+ 
++#include "sdrc.h"
 +
-+#define OMAP2430_32KSYNCT_BASE	(L4_WK_243X_BASE + 0x20000)
-+#define OMAP2430_PRCM_BASE	(L4_WK_243X_BASE + 0x6000)
+ #define PRCM_REVISION		0x000
+ #define PRCM_SYSCONFIG		0x010
+ #define PRCM_IRQSTATUS_MPU	0x018
+@@ -141,7 +143,7 @@
+ #define PM_PWSTST_DSP		0x8e4
  
--#ifdef CONFIG_ARCH_OMAP2430
--#define OMAP24XX_32KSYNCT_BASE	(L4_WK_243X_BASE + 0x20000)
--#define OMAP24XX_PRCM_BASE	(L4_WK_243X_BASE + 0x6000)
- #define OMAP243X_SMS_BASE	0x6C000000
--#define OMAP24XX_SDRC_BASE	0x6D000000
-+#define OMAP243X_SDRC_BASE	0x6D000000
- #define OMAP243X_GPMC_BASE	0x6E000000
- #define OMAP243X_SCM_BASE	(L4_WK_243X_BASE + 0x2000)
--#define OMAP24XX_CTRL_BASE	OMAP243X_SCM_BASE
-+#define OMAP243X_CTRL_BASE	OMAP243X_SCM_BASE
- #define OMAP243X_HS_BASE	(L4_24XX_BASE + 0x000ac000)
--#endif
+ static void (*omap2_sram_idle)(void);
+-static void (*omap2_sram_suspend)(int dllctrl);
++static void (*omap2_sram_suspend)(void __iomem *dllctrl);
+ static void (*saved_idle)(void);
  
- /* DSP SS */
--#ifdef CONFIG_ARCH_OMAP2420
--#define OMAP24XX_DSP_BASE	0x58000000
--#define OMAP24XX_DSP_MEM_BASE	(OMAP24XX_DSP_BASE + 0x0)
--#define OMAP24XX_DSP_IPI_BASE	(OMAP24XX_DSP_BASE + 0x1000000)
--#define OMAP24XX_DSP_MMU_BASE	(OMAP24XX_DSP_BASE + 0x2000000)
--#endif
-+#define OMAP2420_DSP_BASE	0x58000000
-+#define OMAP2420_DSP_MEM_BASE	(OMAP2420_DSP_BASE + 0x0)
-+#define OMAP2420_DSP_IPI_BASE	(OMAP2420_DSP_BASE + 0x1000000)
-+#define OMAP2420_DSP_MMU_BASE	(OMAP2420_DSP_BASE + 0x2000000)
+ static u32 prcm_base = IO_ADDRESS(PRCM_BASE);
+@@ -438,7 +440,6 @@ static struct subsys_attribute sleep_while_idle_attr = {
+ static struct clk *osc_ck, *emul_ck;
  
--#ifdef CONFIG_ARCH_OMAP2430
--#define OMAP24XX_DSP_BASE	0x5C000000
--#define OMAP24XX_DSP_MEM_BASE	(OMAP24XX_DSP_BASE + 0x0)
--#define OMAP24XX_DSP_MMU_BASE	(OMAP24XX_DSP_BASE + 0x1000000)
--#endif
-+#define OMAP243X_DSP_BASE	0x5C000000
-+#define OMAP243X_DSP_MEM_BASE	(OMAP243X_DSP_BASE + 0x0)
-+#define OMAP243X_DSP_MMU_BASE	(OMAP243X_DSP_BASE + 0x1000000)
+ #define CONTROL_DEVCONF		__REG32(0x48000274)
+-#define SDRC_DLLA_CTRL		__REG32(0x68009060)
  
- /* Mailbox */
- #define OMAP24XX_MAILBOX_BASE	(L4_24XX_BASE + 0x94000)
+ static int omap2_fclks_active(void)
+ {
+@@ -516,7 +517,7 @@ static void omap2_enter_full_retention(void)
  
-+
-+#if defined(CONFIG_ARCH_OMAP2420)
-+
-+#define OMAP_32KSYNCT_BASE	OMAP2420_32KSYNCT_BASE
-+#define PRCM_BASE		OMAP2420_PRCM_BASE
-+#define SDRC_BASE		OMAP2420_SDRC_BASE
-+#define SMS_BASE		OMAP2420_SMS_BASE
-+#define L4_OMAP_BASE		L4_24XX_BASE
-+#define VA_IC_BASE		IO_ADDRESS(OMAP24XX_IC_BASE)
-+#define CTRL_BASE		OMAP2420_CTRL_BASE
-+
-+#elif defined(CONFIG_ARCH_OMAP2430)
-+
-+#define OMAP_32KSYNCT_BASE	OMAP2430_32KSYNCT_BASE
-+#define PRCM_BASE		OMAP2430_PRCM_BASE
-+#define SDRC_BASE		OMAP243X_SDRC_BASE
-+#define SMS_BASE		OMAP243X_SMS_BASE
-+#define L4_OMAP_BASE		L4_24XX_BASE
-+#define VA_IC_BASE		IO_ADDRESS(OMAP24XX_IC_BASE)
-+#define CTRL_BASE		OMAP243X_CTRL_BASE
-+
-+#else
-+#error "Unknown architecture"
-+#endif
-+
-+/* Temporary defines to be cleaned up in following patches */
-+#define OMAP24XX_32KSYNCT_BASE	OMAP_32KSYNCT_BASE
-+#define OMAP24XX_SDRC_BASE	SDRC_BASE
-+#define OMAP24XX_PRCM_BASE	PRCM_BASE
-+#define OMAP24XX_CTRL_BASE	CTRL_BASE
-+
- #endif /* __ASM_ARCH_OMAP24XX_H */
+ 	serial_console_sleep(1);
+ 	/* Jump to SRAM suspend code */
+-	omap2_sram_suspend(SDRC_DLLA_CTRL);
++	omap2_sram_suspend(OMAP_SDRC_REGADDR(SDRC_DLLA_CTRL));
+ no_sleep:
+ 	serial_console_sleep(0);
  
 -- 
 1.5.1.3
