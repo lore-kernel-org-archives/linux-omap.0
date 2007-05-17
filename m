@@ -1,11 +1,11 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 17/18] omap2: remove remaining prcm-regs.h includes
-Date: Wed, 16 May 2007 18:11:49 -0600
-Message-ID: <20070517005444.766640256@pwsan.com>
-References: <20070517001132.652728079@pwsan.com>
+Subject: [PATCH 1/7] omap2: add OMAP3430 modules to prcm_common.h
+Date: Wed, 16 May 2007 18:56:39 -0600
+Message-ID: <20070517011702.795228654@pwsan.com>
+References: <20070517005638.997832459@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline;
-	filename=0017-omap2-remove-remaining-prcm-regs.h-includes.patch
+	filename=0001-omap2-add-OMAP3430-modules-to-prcm_common.h.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,64 +18,42 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Remove remaining prcm-regs.h includes.  Most of these files don't
-use prcm-regs.h anyway.
+Add 3430-specific module offset defines to prcm_common.h.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/board-2430sdp.c |    1 -
- arch/arm/mach-omap2/board-apollon.c |    1 -
- arch/arm/mach-omap2/board-h4.c      |    1 -
- arch/arm/mach-omap2/mmu.h           |    1 -
- 4 files changed, 0 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/prcm_common.h |   12 +++++++++++-
+ 1 files changed, 11 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index 5ee970b..b97a50b 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -36,7 +36,6 @@
- #include <asm/arch/common.h>
- #include <asm/arch/gpmc.h>
- #include <asm/arch/mcspi.h>
--#include "prcm-regs.h"
+diff --git a/arch/arm/mach-omap2/prcm_common.h b/arch/arm/mach-omap2/prcm_common.h
+index 5220b05..d2e1bfc 100644
+--- a/arch/arm/mach-omap2/prcm_common.h
++++ b/arch/arm/mach-omap2/prcm_common.h
+@@ -2,7 +2,7 @@
+ #define __ARCH_ASM_MACH_OMAP2_PRCM_COMMON_H
  
- #include <asm/io.h>
+ /*
+- * OMAP2 PRCM base and module definitions
++ * OMAP2/3 PRCM base and module definitions
+  *
+  * Copyright (C) 2007 Texas Instruments, Inc.
+  * Copyright (C) 2007 Nokia Corporation
+@@ -32,6 +32,16 @@
  
-diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
-index 9e6dd0b..68d941c 100644
---- a/arch/arm/mach-omap2/board-apollon.c
-+++ b/arch/arm/mach-omap2/board-apollon.c
-@@ -39,7 +39,6 @@
- #include <asm/arch/board.h>
- #include <asm/arch/common.h>
- #include <asm/arch/gpmc.h>
--#include "prcm-regs.h"
+ #define OMAP2430_MDM_MOD				0xc00
  
- /* LED & Switch macros */
- #define LED0_GPIO13		13
-diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-index aa5b657..d51b7aa 100644
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -39,7 +39,6 @@
- #include <asm/arch/menelaus.h>
- #include <asm/arch/dma.h>
- #include <asm/arch/gpmc.h>
--#include "prcm-regs.h"
++/* IVA2 module is < base on 3430 */
++#define OMAP3430_IVA2_MOD				-0x800
++#define OMAP3430_CCR_MOD				PLL_MOD
++#define OMAP3430_DSS_MOD				0x600
++#define OMAP3430_CAM_MOD				0x700
++#define OMAP3430_PER_MOD				0x800
++#define OMAP3430_EMU_MOD				0x900
++#define OMAP3430_GR_MOD					0xa00
++#define OMAP3430_NEON_MOD				0xb00
++
  
- #include <asm/io.h>
- 
-diff --git a/arch/arm/mach-omap2/mmu.h b/arch/arm/mach-omap2/mmu.h
-index cbc82af..7520f91 100644
---- a/arch/arm/mach-omap2/mmu.h
-+++ b/arch/arm/mach-omap2/mmu.h
-@@ -1,7 +1,6 @@
- #ifndef __MACH_OMAP2_MMU_H
- #define __MACH_OMAP2_MMU_H
- 
--#include "prcm-regs.h"
- #include <asm/arch/mmu.h>
- #include <asm/io.h>
+ /* 24XX register bits shared between CM & PRM registers */
  
 -- 
 1.5.1.3
