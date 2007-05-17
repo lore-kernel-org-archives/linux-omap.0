@@ -1,12 +1,12 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 12/18] omap2: convert prcm.c to use symbolic register &
-	register bit constants
-Date: Wed, 16 May 2007 18:11:44 -0600
-Message-ID: <20070517005444.313530559@pwsan.com>
-References: <20070517001132.652728079@pwsan.com>
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Subject: [PATCH 3/7] omap2: add OMAP3430 Clock Management register defines
+	to cm.h
+Date: Wed, 16 May 2007 18:56:41 -0600
+Message-ID: <20070517011702.978830429@pwsan.com>
+References: <20070517005638.997832459@pwsan.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline;
-	filename=0012-omap2-convert-prcm.c-to-use-symbolic-register-reg.patch
+	filename=0003-omap2-add-OMAP3430-Clock-Management-register-define.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,49 +14,63 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Replace magic numbers and prcm-regs.h-sourced defines, for readability
-and in preparation to remove prcm-regs.h.
+Add symbolic constants to cm.h for Clock Management registers for the
+OMAP3430.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/prcm.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/cm.h |   19 +++++++++++++++++--
+ 1 files changed, 17 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-index 90f5305..9af8848 100644
---- a/arch/arm/mach-omap2/prcm.c
-+++ b/arch/arm/mach-omap2/prcm.c
-@@ -17,19 +17,22 @@
- #include <linux/init.h>
- #include <linux/clk.h>
+diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
+index 48999ce..4c30fae 100644
+--- a/arch/arm/mach-omap2/cm.h
++++ b/arch/arm/mach-omap2/cm.h
+@@ -2,7 +2,7 @@
+ #define __ARCH_ASM_MACH_OMAP2_CM_H
  
--#include "prcm-regs.h"
-+#include "prm.h"
-+#include "prm_regbits_24xx.h"
+ /*
+- * OMAP2 Clock Management (CM) register definitions
++ * OMAP2/3 Clock Management (CM) register definitions
+  *
+  * Copyright (C) 2007 Texas Instruments, Inc.
+  * Copyright (C) 2007 Nokia Corporation
+@@ -26,7 +26,10 @@
+  * Use cm_{read,write}_reg() with these registers.
+  */
  
- extern void omap2_clk_prepare_for_reboot(void);
+-/* None currently */
++#define OMAP3430_CM_REVISION		OMAP_CM_REGADDR(OCP_MOD, 0x0000)
++#define OMAP3430_CM_SYSCONFIG		OMAP_CM_REGADDR(OCP_MOD, 0x0010)
++#define OMAP3430_CM_POLCTRL		OMAP_CM_REGADDR(OCP_MOD, 0x009c)
++
  
- u32 omap_prcm_get_reset_sources(void)
- {
--	return RM_RSTST_WKUP & 0x7f;
-+	return prm_read_mod_reg(WKUP_MOD, RM_RSTST) & 0x7f;
- }
- EXPORT_SYMBOL(omap_prcm_get_reset_sources);
+ /* Clock management global register get/set */
  
- /* Resets clock rates and reboots the system. Only called from system.h */
- void omap_prcm_arch_reset(char mode)
- {
-+	u32 wkup;
- 	omap2_clk_prepare_for_reboot();
--	RM_RSTCTRL_WKUP |= 2;
-+	wkup = prm_read_mod_reg(WKUP_MOD, RM_RSTCTRL) | OMAP_RST_DPLL3;
-+	prm_write_mod_reg(wkup, WKUP_MOD, RM_RSTCTRL);
- }
+@@ -104,6 +107,18 @@ static u32 __attribute__((unused)) cm_read_mod_reg(s16 module, s16 idx)
+ /* CM_IDLEST_GFX */
+ #define OMAP_ST_GFX					(1 << 0)
+ 
++#define OMAP3430_CM_CLKEN_PLL				0x0004
++#define OMAP3430_CM_IDLEST_PLL				CM_IDLEST2
++#define OMAP3430_CM_AUTOIDLE_PLL			CM_AUTOIDLE2
++#define OMAP3430_CM_CLKSEL1				CM_CLKSEL
++#define OMAP3430_CM_CLKSEL1_PLL				CM_CLKSEL
++#define OMAP3430_CM_CLKSEL2_PLL				CM_CLKSEL2
++#define OMAP3430_CM_SLEEPDEP				CM_CLKSEL2
++#define OMAP3430_CM_CLKSEL3				CM_CLKSTCTRL
++#define OMAP3430_CM_CLKSTST				0x004c
++#define OMAP3430_CM_CLKSEL2_EMU				0x0050
++#define OMAP3430_CM_CLKSEL3_EMU				0x0054
++
+ 
+ 
+ #endif
 -- 
 1.5.1.3
 
