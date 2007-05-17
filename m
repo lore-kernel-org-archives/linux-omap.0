@@ -1,13 +1,11 @@
-From: "Budhee Jamaich" <budheej@gmail.com>
-Subject: Re: OMAP2430: networking errors
-Date: Thu, 17 May 2007 17:28:25 +0300
-Message-ID: <57314e840705170728o66c63eaagfaf5d5574eb1dff0@mail.gmail.com>
-References: <57314e840705170639j410cdd26s40370f492fec6f00@mail.gmail.com>
+From: "Pharaoh ." <pharaoh137@gmail.com>
+Subject: OMAP 730 audio driver
+Date: Thu, 17 May 2007 19:58:54 +0530
+Message-ID: <61445c750705170728ubbf884cn1b34df8f196834ea@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <57314e840705170639j410cdd26s40370f492fec6f00@mail.gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -21,18 +19,16 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Thanks Richard and Steve,
+Hi,
+I am working on OMAP 730 based p2-sample board. AFAIK, there is no audio
+driver support for this board. I have found
+2.4 drivers for the same board which I have ported to 2.6, but it is an OSS
+driver.
 
-On 5/17/07, Budhee Jamaich <budheej@gmail.com> wrote:
-> Hello list,
->
-> the OMAP doesn't see the arp reply,
-> and keep sending the arp who-has packets... :(
+So, the question:
+1. Do I need to migrate these drivers to be ALSA compliant?
+2. Has anyone written ALSA drivers for the above mentioned board? Any
+pointers will be helpful regarding the same.
 
-this is from the kernel boot messages:
-smc91x.c: v1.1, sep 22 2004 by Nicolas Pitre <nico@cam.org>
-eth0: SMC91C94 (rev 9) at 0xc8864300 IRQ 245 [nowait]
-eth0: Ethernet addr: yy:yy:yy:yy:yy:yy
 
-Thanks All
-Budhee
+-pharaoh.
