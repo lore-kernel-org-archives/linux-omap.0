@@ -1,11 +1,12 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 03/18] omap2: add OMAP24XX Clock Management register defines
-Date: Wed, 16 May 2007 18:11:35 -0600
-Message-ID: <20070517005443.488879612@pwsan.com>
+Subject: [PATCH 13/18] omap2: convert sram-fn.S to use {PRM,
+	CM}_BASE rather than PRCM_BASE
+Date: Wed, 16 May 2007 18:11:45 -0600
+Message-ID: <20070517005444.400653340@pwsan.com>
 References: <20070517001132.652728079@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline;
-	filename=0003-omap2-add-OMAP24XX-Clock-Management-register-define.patch
+	filename=0013-omap2-convert-sram-fn.S-to-use-PRM-CM-_BASE-rather.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,120 +19,41 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Add symbolic constants for OMAP24XX Clock Management registers,
-along with read/write functions.  The registers are divided into two
-groups: global registers and module registers.  Global registers appear
-only once on the chip, and are used with cm_{read,write}_reg().  Module
-registers generally appear more than once, in different OMAP modules,
-and have similar functions in each module.  They are used with
-cm_{read,write}_mod_reg().
+Use PRM_BASE and CM_BASE in sram-fn.s to prepare for the OMAP3430
+conversion.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/cm.h |   94 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 94 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/cm.h
+ arch/arm/mach-omap2/sram-fn.S |   14 ++++++--------
+ 1 files changed, 6 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
-new file mode 100644
-index 0000000..659e089
---- /dev/null
-+++ b/arch/arm/mach-omap2/cm.h
-@@ -0,0 +1,94 @@
-+#ifndef __ARCH_ASM_MACH_OMAP2_CM_H
-+#define __ARCH_ASM_MACH_OMAP2_CM_H
-+
-+/*
-+ * OMAP2 Clock Management (CM) register definitions
-+ *
-+ * Copyright (C) 2007 Texas Instruments, Inc.
-+ * Copyright (C) 2007 Nokia Corporation
-+ *
-+ * Written by Paul Walmsley
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <asm/io.h>
-+#include "prcm_common.h"
-+
-+
-+#define OMAP_CM_REGADDR(module, reg)	 (void __iomem *)IO_ADDRESS(CM_BASE + module + reg)
-+
-+/*
-+ * Architecture-specific global CM registers
-+ * Use cm_{read,write}_reg() with these registers.
-+ */
-+
-+/* None currently */
-+
-+/* Clock management global register get/set */
-+
-+static void __attribute__((unused)) cm_write_reg(u32 val, void __iomem *addr)
-+{
-+	pr_debug("cm_write_reg: writing 0x%0x to 0x%0x\n", val, (u32)addr);
-+
-+	__raw_writel(val, addr);
-+}
-+
-+static u32 __attribute__((unused)) cm_read_reg(void __iomem *addr)
-+{
-+	return __raw_readl(addr);
-+}
-+
-+
-+/*
-+ * Module specific CM registers from CM_BASE + domain offset
-+ * Use cm_{read,write}_mod_reg() with these registers.
-+ */
-+
-+/* Common between 24xx and 34xx */
-+
-+#define CM_FCLKEN1					0x0000
-+#define CM_CLKEN					CM_FCLKEN1
-+#define CM_ICLKEN1					0x0010
-+#define CM_ICLKEN					CM_ICLKEN1
-+#define CM_ICLKEN2					0x0014
-+#define CM_IDLEST1					0x0020
-+#define CM_IDLEST                                       CM_IDLEST1
-+#define CM_IDLEST2					0x0024
-+#define CM_AUTOIDLE					0x0030
-+#define CM_AUTOIDLE1					0x0030
-+#define CM_AUTOIDLE2					0x0034
-+#define CM_CLKSEL					0x0040
-+#define CM_CLKSEL1					CM_CLKSEL
-+#define CM_CLKSEL2					0x0044
-+#define CM_CLKSTCTRL					0x0048
-+
-+
-+/* Architecture-specific registers */
-+
-+#define OMAP24XX_CM_FCLKEN				CM_FCLKEN1
-+#define OMAP24XX_CM_FCLKEN2				0x0004
-+#define OMAP24XX_CM_ICLKEN4				0x001c
-+#define OMAP24XX_CM_AUTOIDLE3				0x0038
-+#define OMAP24XX_CM_AUTOIDLE4				0x003c
-+
-+#define OMAP2430_CM_ICLKEN3				0x0018
-+#define OMAP2430_CM_IDLEST3				0x0028
-+
-+
-+/* Clock management domain register get/set */
-+
-+static void __attribute__((unused)) cm_write_mod_reg(u32 val, s16 module, s16 idx)
-+{
-+	cm_write_reg(val, OMAP_CM_REGADDR(module, idx));
-+}
-+
-+static u32 __attribute__((unused)) cm_read_mod_reg(s16 module, s16 idx)
-+{
-+	return cm_read_reg(OMAP_CM_REGADDR(module, idx));
-+}
-+
-+#endif
+diff --git a/arch/arm/mach-omap2/sram-fn.S b/arch/arm/mach-omap2/sram-fn.S
+index 3fe3a34..297b00e 100644
+--- a/arch/arm/mach-omap2/sram-fn.S
++++ b/arch/arm/mach-omap2/sram-fn.S
+@@ -27,16 +27,14 @@
+ #include <asm/arch/io.h>
+ #include <asm/hardware.h>
+ 
+-#include "prcm-regs.h"
+-
+ #define TIMER_32KSYNCT_CR_V	IO_ADDRESS(OMAP_32KSYNCT_BASE + 0x010)
+ 
+-#define CM_CLKSEL2_PLL_V	IO_ADDRESS(PRCM_BASE + 0x544)
+-#define PRCM_VOLTCTRL_V		IO_ADDRESS(PRCM_BASE + 0x050)
+-#define PRCM_CLKCFG_CTRL_V	IO_ADDRESS(PRCM_BASE + 0x080)
+-#define CM_CLKEN_PLL_V		IO_ADDRESS(PRCM_BASE + 0x500)
+-#define CM_IDLEST_CKGEN_V	IO_ADDRESS(PRCM_BASE + 0x520)
+-#define CM_CLKSEL1_PLL_V	IO_ADDRESS(PRCM_BASE + 0x540)
++#define CM_CLKSEL2_PLL_V	IO_ADDRESS(CM_BASE + 0x544)
++#define PRCM_VOLTCTRL_V		IO_ADDRESS(PRM_BASE + 0x050)
++#define PRCM_CLKCFG_CTRL_V	IO_ADDRESS(PRM_BASE + 0x080)
++#define CM_CLKEN_PLL_V		IO_ADDRESS(CM_BASE + 0x500)
++#define CM_IDLEST_CKGEN_V	IO_ADDRESS(CM_BASE + 0x520)
++#define CM_CLKSEL1_PLL_V	IO_ADDRESS(CM_BASE + 0x540)
+ 
+ #define SDRC_DLLA_CTRL_V	IO_ADDRESS(SDRC_BASE + 0x060)
+ #define SDRC_RFR_CTRL_V		IO_ADDRESS(SDRC_BASE + 0x0a4)
 -- 
 1.5.1.3
 
