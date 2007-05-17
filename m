@@ -1,15 +1,11 @@
-From: "Budhee Jamaich" <budheej@gmail.com>
-Subject: Re: OMAP2430: networking errors
-Date: Thu, 17 May 2007 19:35:27 +0300
-Message-ID: <57314e840705170935u4791b98cs29504cf57523cbc2@mail.gmail.com>
-References: <57314e840705170701k79f76c5k79649f929bc63066@mail.gmail.com>
-	<3B6D69C3A9EBCA4BA5DA60D913027429010256C1@dlee13.ent.ti.com>
+From: Geoffrey Tam <geoffrey@evertz.com>
+Subject: RE: Cannot stall an endpoint 0 control transfer from a data stage
+	cal lback function
+Date: Thu, 17 May 2007 12:35:32 -0400
+Message-ID: <0474A5584072DA1197F50007E90E6B1141D483@PORTIA>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D913027429010256C1@dlee13.ent.ti.com>
-Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,37 +15,75 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: "'linux-omap-open-source@linux.omap.com'" <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 5/17/07, Woodruff, Richard <r-woodruff2@ti.com> wrote:
->
-> > it's a development board. how do I know which ethernet chip is on it ?
->
-> Ok.  Is it the TI-SDP2430 development board?
-yes. ethernet chip: SMC 91C96.
+For some reason, this did not make it into the mailing list archive, so I'm
+sending again.
 
->
-> If so, what images are you using?  Did you build them or use pre-built
-> ones.
-I built it. used TI's BSP. it is based on kernel 2.6.10.
-I am now cloning myself a copy of Tony's git tree.
-I will try to build it, maybe that will help.
+-----Original Message-----
+From: Geoffrey Tam 
+Sent: Monday, May 14, 2007 2:24 PM
+To: 'tony@atomide.com'
+Cc: 'linux-omap-open-source@linux.omap.com'
+Subject: RE: Cannot stall an endpoint 0 control transfer from a data
+stage cal lback function
 
-otherwise I guess I would have no choice but debug smc91x.c ?
 
->
-> Why do you report your MAC address as  yy:yy:yy:yy:yy:yy.  Is that what
-> the driver said or did you remove it for some reason.
-oh, you will have to forgive me here.
-I usually remove personal data from posts to public mailing lists.
+I have tried using g_ep0.c from the linux-omap git tree
+(git://source.mvista.com/git/linux-omap-2.6.git). This resulted in compiler
+errors.
 
->
-> If it works sometimes and not other times that is odd.  Are you using
-> the same MAC address on multiple board or something?
-hmm, the MAC address is the real hardware one. AFAIK it is
-unique for that specific board.
+So, I tried copying all USB files:
+- driver/usb/* using "cp -R drivers/usb/*"
+- include/linux using "cp include/linux/usb*" and "cp include/linux/usb/*"
+This resulted in compiler errors when building the modules using "make
+ARCH=arm CROSS_COMPILE=arm_v5t_le- modules". Building the kernel worked
+fine. I'm not sure if there is a problem with my config.
 
-Thank You !
-Budhee
+I took a look at the code in the git tree. It did not look like any of my
+patch was implemented. Perhaps, I grabbed the wrong git tree?
+
+My main problem is I need to stall endpoint 0 from the callback function
+when it is called either in the setup or data stage. The code seems to set
+the software state machine back to MGC_END0_STAGE_SETUP before the callback
+is called. This prevents software from setting the stall condition using
+musb_g_ep0_halt(). Also, the driver signals to the hardware before the
+callback is called that the data stage has completed. This prevents the
+hardware from setting the stall condition from the callback function.
+
+I am not sure why the mass storage gadget fails to enumerate with my fixes.
+Unfortunately, my Davinci eval board does not like Linux 2.6.20 - it hangs
+shortly after it is loaded. So, I cannot look into this.
+
+I will try again when I get the chance.
+
+Geoffrey
+
+-----Original Message-----
+From: tony@atomide.com [mailto:tony@atomide.com]
+Sent: Friday, May 11, 2007 2:11 PM
+To: Geoffrey Tam
+Cc: 'linux-omap-open-source@linux.omap.com'
+Subject: Re: Cannot stall an endpoint 0 control transfer from a data
+stage cal lback function
+
+
+* Geoffrey Tam <geoffrey@evertz.com> [070509 11:12]:
+> Also sent to 'linux-usb-devel@lists.sourceforge.net'.
+> 
+> patch was created as per Documentation/SubmittingPatches.
+
+Thanks, I tried it out quickly and looks like the last part of your
+patch is already in the linux-omap git tree.
+
+After applying the other parts, the mass storage gadget did not
+enumerate though... I'll look into it again when I have a chance.
+
+Do you have any chance to  try the current linux-omap git
+tree and see how it works for you, then see what happens with
+your patch?
+
+Regards,
+
+Tony
