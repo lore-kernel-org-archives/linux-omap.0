@@ -1,12 +1,11 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/5] omap2: use OMAP24XX_32KSYNCT_BASE in place of
-	OMAP_32KSYNCT_BASE
-Date: Wed, 16 May 2007 16:58:52 -0600
-Message-ID: <20070516231342.227719185@pwsan.com>
-References: <20070516225850.075133914@pwsan.com>
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Subject: [PATCH 1/3] omap2: add SDRC register defines
+Date: Wed, 16 May 2007 18:05:37 -0600
+Message-ID: <20070517001009.065756967@pwsan.com>
+References: <20070517000943.977105773@pwsan.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline;
-	filename=0002-omap2-use-OMAP24XX_32KSYNCT_BASE-in-place-of-OMAP_3.patch
+	filename=0001-omap2-add-SDRC-register-defines.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,89 +13,75 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Change users of OMAP24XX_32KSYNCT_BASE to use OMAP_32KSYNCT_BASE, in
-preparation to remove OMAP24XX_32KSYNCT_BASE.  Convert the 32K sync timer
-reference in pm.c to use a symbolic constant rather than a magic number.
-Remove the OMAP24XX_32KSYNCT_BASE define.
+Create sdrc.h, containing symbolic constants for SDRC registers and
+sdrc_{read,write}_reg() to read and write those registers.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/pm.c             |    2 +-
- arch/arm/mach-omap2/sram-fn.S        |    2 +-
- arch/arm/plat-omap/common.c          |    2 +-
- arch/arm/plat-omap/timer32k.c        |    2 +-
- include/asm-arm/arch-omap/omap24xx.h |    1 -
- 5 files changed, 4 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/sdrc.h |   49 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 49 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/sdrc.h
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 13d05a5..0c84a18 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -158,7 +158,7 @@ static inline u32 prcm_read_reg(int idx)
- 
- static u32 omap2_read_32k_sync_counter(void)
- {
--        return omap_readl(0x48004010);
-+        return omap_readl(OMAP_32KSYNCT_BASE + 0x0010);
- }
- 
- #ifdef CONFIG_PM_DEBUG
-diff --git a/arch/arm/mach-omap2/sram-fn.S b/arch/arm/mach-omap2/sram-fn.S
-index b275766..9109b02 100644
---- a/arch/arm/mach-omap2/sram-fn.S
-+++ b/arch/arm/mach-omap2/sram-fn.S
-@@ -29,7 +29,7 @@
- 
- #include "prcm-regs.h"
- 
--#define TIMER_32KSYNCT_CR_V	IO_ADDRESS(OMAP24XX_32KSYNCT_BASE + 0x010)
-+#define TIMER_32KSYNCT_CR_V	IO_ADDRESS(OMAP_32KSYNCT_BASE + 0x010)
- 
- #define CM_CLKSEL2_PLL_V	IO_ADDRESS(OMAP24XX_PRCM_BASE + 0x544)
- #define PRCM_VOLTCTRL_V		IO_ADDRESS(OMAP24XX_PRCM_BASE + 0x050)
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index e03ace4..e9ebdd8 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -192,7 +192,7 @@ console_initcall(omap_add_serial_console);
- #if defined(CONFIG_ARCH_OMAP16XX)
- #define TIMER_32K_SYNCHRONIZED		0xfffbc410
- #elif defined(CONFIG_ARCH_OMAP24XX)
--#define TIMER_32K_SYNCHRONIZED		(OMAP24XX_32KSYNCT_BASE + 0x10)
-+#define TIMER_32K_SYNCHRONIZED		(OMAP_32KSYNCT_BASE + 0x10)
- #endif
- 
- #ifdef	TIMER_32K_SYNCHRONIZED
-diff --git a/arch/arm/plat-omap/timer32k.c b/arch/arm/plat-omap/timer32k.c
-index 2474597..10fa89d 100644
---- a/arch/arm/plat-omap/timer32k.c
-+++ b/arch/arm/plat-omap/timer32k.c
-@@ -71,7 +71,7 @@ struct sys_timer omap_timer;
- #if defined(CONFIG_ARCH_OMAP16XX)
- #define TIMER_32K_SYNCHRONIZED		0xfffbc410
- #elif defined(CONFIG_ARCH_OMAP24XX)
--#define TIMER_32K_SYNCHRONIZED		(OMAP24XX_32KSYNCT_BASE + 0x10)
-+#define TIMER_32K_SYNCHRONIZED		(OMAP_32KSYNCT_BASE + 0x10)
- #else
- #error OMAP 32KHz timer does not currently work on 15XX!
- #endif
-diff --git a/include/asm-arm/arch-omap/omap24xx.h b/include/asm-arm/arch-omap/omap24xx.h
-index 249438d..a56a431 100644
---- a/include/asm-arm/arch-omap/omap24xx.h
-+++ b/include/asm-arm/arch-omap/omap24xx.h
-@@ -73,7 +73,6 @@
- #endif
- 
- /* Temporary defines to be cleaned up in following patches */
--#define OMAP24XX_32KSYNCT_BASE	OMAP_32KSYNCT_BASE
- #define OMAP24XX_SDRC_BASE	SDRC_BASE
- #define OMAP24XX_PRCM_BASE	PRCM_BASE
- #define OMAP24XX_CTRL_BASE	CTRL_BASE
+diff --git a/arch/arm/mach-omap2/sdrc.h b/arch/arm/mach-omap2/sdrc.h
+new file mode 100644
+index 0000000..4becc5f
+--- /dev/null
++++ b/arch/arm/mach-omap2/sdrc.h
+@@ -0,0 +1,49 @@
++#ifndef __ARCH_ARM_MACH_OMAP2_SDRC_H
++#define __ARCH_ARM_MACH_OMAP2_SDRC_H
++
++/*
++ * OMAP2 SDRC register definitions
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Copyright (C) 2007 Nokia Corporation
++ *
++ * Written by Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <asm/arch/io.h>
++
++
++#define OMAP_SDRC_REGADDR(reg)	(void __iomem *)IO_ADDRESS(SDRC_BASE + reg)
++
++/* SDRC register offsets - read/write with sdrc_{read,write}_reg() */
++
++#define SDRC_SYSCONFIG		0x010
++#define SDRC_DLLA_CTRL		0x060
++#define SDRC_DLLA_STATUS	0x064
++#define SDRC_DLLB_CTRL		0x068
++#define SDRC_DLLB_STATUS	0x06C
++#define SDRC_POWER		0x070
++#define SDRC_MR_0		0x084
++
++
++/* SDRC global register get/set */
++
++static void __attribute__((unused)) sdrc_write_reg(u32 val, u16 reg)
++{
++	pr_debug("sdrc_write_reg: writing 0x%0x to 0x%0x\n", val,
++		 (u32)OMAP_SDRC_REGADDR(reg));
++
++	__raw_writel(val, OMAP_SDRC_REGADDR(reg));
++}
++
++static u32 __attribute__((unused)) sdrc_read_reg(u16 reg)
++{
++	return __raw_readl(OMAP_SDRC_REGADDR(reg));
++}
++
++#endif
 -- 
 1.5.1.3
 
