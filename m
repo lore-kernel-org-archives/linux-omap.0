@@ -1,9 +1,9 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP: Fix warning in dsp_ctl_core.c
-Date: Fri, 18 May 2007 09:13:20 +0200
-Message-ID: <464D5210.6040001@googlemail.com>
+Subject: [PATCH] ARM: OMAP: Fix section mismatch warning in board-osk.c
+Date: Fri, 18 May 2007 09:13:52 +0200
+Message-ID: <464D5230.6020603@googlemail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040208000806070105020702"
+Content-Type: multipart/mixed; boundary="------------080403000405070107010108"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,48 +18,42 @@ To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040208000806070105020702
+--------------080403000405070107010108
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
 
-Fix warning
-
-arch/arm/plat-omap/dsp/dsp_ctl_core.c: In function 'dsp_ctl_core_open':
-arch/arm/plat-omap/dsp/dsp_ctl_core.c:46: warning: ignoring return
-value of 'mutex_lock_interruptible', declared with attribute
-warn_unused_result
+Fix section mismatch reference to .init.data: from .data in 'osk_config'
 
 Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
 
---------------040208000806070105020702
+--------------080403000405070107010108
 Content-Type: text/plain;
- name="dsp_ctl_core_warning_fix.txt"
+ name="fix_section_mismatch_board_osk.txt"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="dsp_ctl_core_warning_fix.txt"
+ filename="fix_section_mismatch_board_osk.txt"
 
-Index: linux-osk/arch/arm/plat-omap/dsp/dsp_ctl_core.c
+Index: linux-osk/arch/arm/mach-omap1/board-osk.c
 ===================================================================
---- linux-osk.orig/arch/arm/plat-omap/dsp/dsp_ctl_core.c
-+++ linux-osk/arch/arm/plat-omap/dsp/dsp_ctl_core.c
-@@ -43,7 +43,8 @@ static int dsp_ctl_core_open(struct inod
- 	static DEFINE_MUTEX(open_lock);
- 	int ret = 0;
+--- linux-osk.orig/arch/arm/mach-omap1/board-osk.c
++++ linux-osk/arch/arm/mach-omap1/board-osk.c
+@@ -237,7 +237,7 @@ static struct omap_lcd_config osk_lcd_co
+ };
+ #endif
  
--	mutex_lock_interruptible(&open_lock);
-+	if (mutex_lock_interruptible(&open_lock))
-+		return -EINTR;
- 	if (omap_dsp->initialized == 0) {
- 		ret = dsp_late_init();
- 		if (ret != 0) {
+-static struct omap_board_config_kernel osk_config[] = {
++static struct omap_board_config_kernel osk_config[] __initdata = {
+ 	{ OMAP_TAG_USB,           &osk_usb_config },
+ 	{ OMAP_TAG_UART,		&osk_uart_config },
+ #ifdef	CONFIG_OMAP_OSK_MISTRAL
 
 
---------------040208000806070105020702
+--------------080403000405070107010108
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------040208000806070105020702--
+--------------080403000405070107010108--
