@@ -1,9 +1,9 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP: Fix section mismatch in board-n800.c
-Date: Sat, 19 May 2007 17:12:53 +0200
-Message-ID: <464F13F5.6050404@googlemail.com>
+Subject: [PATCH] ARM: OMAP: Fix section mismatch in board-p2.c
+Date: Sat, 19 May 2007 17:13:34 +0200
+Message-ID: <464F141E.8090905@googlemail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000202060304020504030702"
+Content-Type: multipart/mixed; boundary="------------030504030606070000090106"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,42 +18,42 @@ To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------000202060304020504030702
+--------------030504030606070000090106
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
 
-Fix section mismatch in board-n800.c
+Fix section mismatch in board-p2.c
 
 Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
 
 
---------------000202060304020504030702
+--------------030504030606070000090106
 Content-Type: text/plain;
- name="fix_section_mismatch_board_n800.txt"
+ name="fix_section_mismatch_board_p2.txt"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="fix_section_mismatch_board_n800.txt"
+ filename="fix_section_mismatch_board_p2.txt"
 
-Index: linux-osk/arch/arm/mach-omap2/board-n800.c
+Index: linux-osk/arch/arm/mach-omap1/board-perseus2.c
 ===================================================================
---- linux-osk.orig/arch/arm/mach-omap2/board-n800.c
-+++ linux-osk/arch/arm/mach-omap2/board-n800.c
-@@ -285,7 +285,7 @@ static inline void n800_cam_init(void) {
+--- linux-osk.orig/arch/arm/mach-omap1/board-perseus2.c
++++ linux-osk/arch/arm/mach-omap1/board-perseus2.c
+@@ -217,7 +217,7 @@ static struct omap_lcd_config perseus2_l
+ 	.ctrl_name	= "internal",
+ };
  
- #endif
- 
--static struct omap_board_config_kernel n800_config[] = {
-+static struct omap_board_config_kernel n800_config[] __initdata = {
- 	{ OMAP_TAG_UART,	                &n800_uart_config },
- #ifdef SUPPORT_SENSOR
- 	{ OMAP_TAG_CAMERA_SENSOR,		&n800_sensor_config },
+-static struct omap_board_config_kernel perseus2_config[] = {
++static struct omap_board_config_kernel perseus2_config[] __initdata = {
+ 	{ OMAP_TAG_UART,	&perseus2_uart_config },
+ 	{ OMAP_TAG_LCD,		&perseus2_lcd_config },
+ };
 
---------------000202060304020504030702
+--------------030504030606070000090106
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------000202060304020504030702--
+--------------030504030606070000090106--
