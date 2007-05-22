@@ -1,11 +1,13 @@
-From: "andrzej zaborowski" <balrogg@gmail.com>
-Subject: [PATCH] Re-add a lost TSC2102 touchscreen Kconfig entry
-Date: Tue, 22 May 2007 19:22:12 +0200
-Message-ID: <fb249edb0705221022s5bec31d4r77bfc16373262b4e@mail.gmail.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: [PATCH] ARM: OMAP: Convert devdata to drvdata in rtc-omap.c
+Date: Tue, 22 May 2007 19:34:50 +0200
+Message-ID: <465329BA.6070903@googlemail.com>
+References: <464F0D7B.5040600@googlemail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_62223_29248146.1179854532578"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <464F0D7B.5040600@googlemail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,72 +17,18 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux OMAP ML <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-------=_Part_62223_29248146.1179854532578
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Dirk Behme wrote:
+> 
+> Convert devdata to drvdata in rtc-omap.c to make this compile again.
+> 
+> Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
 
-The TSC2102 option in drivers/input/touchscreen/Kconfig got lost
-somewhere in January (although the commit is not visible in git-web),
-so adding it back.  Also remove the input_dev.dev assignment due to an
-upstream change.
+Got a short notice from David that this is already fixed in 
+2.6.22-rc2. So please ignore this patch.
 
-Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
+Thanks for the info!
 
-------=_Part_62223_29248146.1179854532578
-Content-Type: text/plain;
-	name=0004-Re-add-a-lost-TSC2102-touchscreen-Kconfig-entry.txt;
-	charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f20p1j3z
-Content-Disposition: attachment;
-	filename="0004-Re-add-a-lost-TSC2102-touchscreen-Kconfig-entry.txt"
-
-RnJvbSA0OTJlNWNiZTM5NjEzZjA2YjgxNDZjMTJiZmY5NTAwMjU5NzM5ZmQ1IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBBbmRyemVqIFphYm9yb3dza2kgPGJhbHJvZ0B6YWJvci5vcmc+
-CkRhdGU6IFR1ZSwgMjIgTWF5IDIwMDcgMjA6MDg6NDcgKzAyMDAKU3ViamVjdDogW1BBVENIXSBS
-ZS1hZGQgYSBsb3N0IFRTQzIxMDIgdG91Y2hzY3JlZW4gS2NvbmZpZyBlbnRyeS4KClRoZSBUU0My
-MTAyIG9wdGlvbiBpbiBkcml2ZXJzL2lucHV0L3RvdWNoc2NyZWVuL0tjb25maWcgZ290IGxvc3Qg
-c29tZXdoZXJlCmluIEphbnVhcnkgKGFsdGhvdWdoIHRoZSBjb21taXQgaXMgbm90IHZpc2libGUg
-aW4gZ2l0LXdlYiksIHNvIGFkZGluZyBpdApiYWNrLiAgQWxzbyByZW1vdmUgdGhlIGlucHV0X2Rl
-di5kZXYgYXNzaWdubWVudCBkdWUgdG8gYW4gdXBzdHJlYW0gY2hhbmdlLgotLS0KIGRyaXZlcnMv
-aW5wdXQvdG91Y2hzY3JlZW4vS2NvbmZpZyAgICAgIHwgICAxNSArKysrKysrKysrKysrKysKIGRy
-aXZlcnMvaW5wdXQvdG91Y2hzY3JlZW4vdHNjMjEwMl90cy5jIHwgICAgMSAtCiAyIGZpbGVzIGNo
-YW5nZWQsIDE1IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJp
-dmVycy9pbnB1dC90b3VjaHNjcmVlbi9LY29uZmlnIGIvZHJpdmVycy9pbnB1dC90b3VjaHNjcmVl
-bi9LY29uZmlnCmluZGV4IDU4ZmU3OTYuLmFjZDBkZmYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvaW5w
-dXQvdG91Y2hzY3JlZW4vS2NvbmZpZworKysgYi9kcml2ZXJzL2lucHV0L3RvdWNoc2NyZWVuL0tj
-b25maWcKQEAgLTE2NCw2ICsxNjQsMjEgQEAgY29uZmlnIFRPVUNIU0NSRUVOX1VDQjE0MDAKIAkg
-IFRvIGNvbXBpbGUgdGhpcyBkcml2ZXIgYXMgYSBtb2R1bGUsIGNob29zZSBNIGhlcmU6IHRoZQog
-CSAgbW9kdWxlIHdpbGwgYmUgY2FsbGVkIHVjYjE0MDBfdHMuCiAKK2NvbmZpZyBUT1VDSFNDUkVF
-Tl9UU0MyMTAyCisJdHJpc3RhdGUgIlRTQyAyMTAyIGJhc2VkIHRvdWNoc2NyZWVucyIKKwlkZXBl
-bmRzIG9uIFNQSV9NQVNURVIKKwlzZWxlY3QgU1BJX1RTQzIxMDIKKwloZWxwCisJICBTYXkgWSBo
-ZXJlIGlmIHlvdSBoYXZlIGEgdG91Y2hzY3JlZW4gaW50ZXJmYWNlIHVzaW5nIHRoZQorCSAgVEkg
-VFNDIDIxMDIgY29udHJvbGxlciwgYW5kIHlvdXIgYm9hcmQtc3BlY2lmaWMgaW5pdGlhbGl6YXRp
-b24KKwkgIGNvZGUgaW5jbHVkZXMgdGhhdCBpbiBpdHMgdGFibGUgb2YgU1BJIGRldmljZXMuICBB
-bHNvIG1ha2UKKwkgIHN1cmUgdGhlIHByb3BlciBTUEkgY29udHJvbGxlciBpcyBzZWxlY3RlZC4K
-KworCSAgSWYgdW5zdXJlLCBzYXkgTiAoYnV0IGl0J3Mgc2FmZSB0byBzYXkgIlkiKS4KKworCSAg
-VG8gY29tcGlsZSB0aGlzIGRyaXZlciBhcyBhIG1vZHVsZSwgY2hvb3NlIE0gaGVyZTogdGhlCisJ
-ICBtb2R1bGUgd2lsbCBiZSBjYWxsZWQgdHNjMjEwMl90cy4KKwogY29uZmlnIFRPVUNIU0NSRUVO
-X1RTQzIzMDEKIAl0cmlzdGF0ZSAiVFNDMjMwMSB0b3VjaHNjcmVlbiBzdXBwb3J0IgogCWRlcGVu
-ZHMgb24gU1BJX1RTQzIzMDEKZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5wdXQvdG91Y2hzY3JlZW4v
-dHNjMjEwMl90cy5jIGIvZHJpdmVycy9pbnB1dC90b3VjaHNjcmVlbi90c2MyMTAyX3RzLmMKaW5k
-ZXggODE4ODI2My4uYjZlZDkyNyAxMDA2NDQKLS0tIGEvZHJpdmVycy9pbnB1dC90b3VjaHNjcmVl
-bi90c2MyMTAyX3RzLmMKKysrIGIvZHJpdmVycy9pbnB1dC90b3VjaHNjcmVlbi90c2MyMTAyX3Rz
-LmMKQEAgLTgxLDcgKzgxLDYgQEAgc3RhdGljIGludCB0c2MyMTAyX3RzX3Byb2JlKHN0cnVjdCBw
-bGF0Zm9ybV9kZXZpY2UgKnBkZXYpCiAJfQogCiAJZGV2LT5uYW1lID0gIlRTQzIxMDIgVG91Y2hz
-Y3JlZW4iOwotCWRldi0+ZGV2ID0gJnBkZXYtPmRldjsKIAlkZXYtPmNkZXYuZGV2ID0gJnBkZXYt
-PmRldjsKIAlkZXYtPmV2Yml0WzBdID0gQklUKEVWX0tFWSkgfCBCSVQoRVZfQUJTKTsKIAlkZXYt
-PmtleWJpdFtMT05HKEJUTl9UT1VDSCldIHw9IEJJVChCVE5fVE9VQ0gpOwotLSAKMS40LjQuMwoK
-
-------=_Part_62223_29248146.1179854532578
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
-------=_Part_62223_29248146.1179854532578--
+Dirk
