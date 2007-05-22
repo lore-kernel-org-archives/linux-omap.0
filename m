@@ -1,15 +1,15 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: [PATCH] OMAP: MUSB HOST support on 2430SDP
-Date: Tue, 22 May 2007 18:28:29 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47F8DE61@dlee13.ent.ti.com>
-References: <1179874038.6122.63.camel@vence.hilman.org>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] Re-add a lost TSC2102 touchscreen Kconfig entry
+Date: Tue, 22 May 2007 16:40:50 -0700
+Message-ID: <200705221640.51098.david-b@pacbell.net>
+References: <fb249edb0705221022s5bec31d4r77bfc16373262b4e@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <1179874038.6122.63.camel@vence.hilman.org>
+In-Reply-To: <fb249edb0705221022s5bec31d4r77bfc16373262b4e@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,53 +19,39 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kevin Hilman <khilman@mvista.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
+To: andrzej zaborowski <balrogg@gmail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Vikram,=20
+On Tuesday 22 May 2007, andrzej zaborowski wrote:
+> The TSC2102 option in drivers/input/touchscreen/Kconfig got lost
+> somewhere in January (although the commit is not visible in git-web),
+> so adding it back. 
 
->
->These patches are line-wrapped.  Can you resend without the wraps.
->
+I noticed that ... by the way, it looked to me like it should be
+very possible to make this TSC2102 touchscreen code work on the
+TSC2101 too.  I think someone should
 
-Here is how we do it for OUTLOOK.
+  - Make such a common touchscreen core (maybe there's stuff to
+    be borrowed from the tsc2301 touchscreen too, but not all
+    the relevant page 1 registers are the same on tsc2301).
 
-In OUTLOOK, Tools > Options > Mail Format > International Options =
-"deselect the check box for Auto select encoding for outgoing messages". =
+  - Move more of the IRQ handling logic from tsc2102.c into the
+    shared touchscreen code ... have it manage irqs etc, it can
+    get the number from a platform_device resource as usual.
 
-Select Preferred encoding for outgoing messages as Western European =
-(ISO).=20
+  - Have proper hwmon support for the other ADC devices on the
+    two chips (battery, aux, and temp sensors ... the chips have
+    different numbers of each).
 
-Regards,
-Khasim
-_______________________________________________
+    Looks tricky to safely split touchscreen ADC client code
+    from the hwmon sensors, so I'd suggest keeping it together
+    in one module.  (That's what ads7846 does, FWIW.)
 
->-----Original Message-----
->From: linux-omap-open-source-bounces+x0khasim=3Dti.com@linux.omap.com
->[mailto:linux-omap-open-source-bounces+x0khasim=3Dti.com@linux.omap.com]=
- On
->Behalf Of Kevin Hilman
->Sent: Tuesday, May 22, 2007 5:47 PM
->To: Pandita, Vikram
->Cc: linux-omap-open-source@linux.omap.com
->Subject: Re: [PATCH] OMAP: MUSB HOST support on 2430SDP
->
->On Mon, 2007-05-21 at 12:58 +0530, Pandita, Vikram wrote:
->> Fix Mentor controller DMA for OMAP2430/3430
->>
->> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
->> Signed-off-by: Nishant Kamat <nskamat@ti.com>
->
->Vikram,
->
->These patches are line-wrapped.  Can you resend without the wraps.
->
->Thanks,
->
->Kevin
->
->_______________________________________________
->Linux-omap-open-source mailing list
->Linux-omap-open-source@linux.omap.com
->http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+Looks to me like other than the audio support (which should also
+probably convert to use the new sound/soc/* framework), large parts
+of the tsc2101 and tsc2102 drivers should be identical.  There
+are a few bits that would need to have "switch(chiptype){...}",
+but core code can -- should! -- be the same.
+
+- Dave
