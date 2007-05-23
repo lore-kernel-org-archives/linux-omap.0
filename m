@@ -1,15 +1,14 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] MUSB HSET driver
-Date: Wed, 23 May 2007 03:02:14 -0700
-Message-ID: <200705230302.15259.david-b@pacbell.net>
-References: <5DF83221BE20114E9C331F665ACBC0800305CC70@dbde01.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Re-add a lost TSC2102 touchscreen Kconfig entry
+Date: Wed, 23 May 2007 08:41:00 -0700
+Message-ID: <20070523154059.GE26513@atomide.com>
+References: <fb249edb0705221022s5bec31d4r77bfc16373262b4e@mail.gmail.com>
+	<200705221640.51098.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <5DF83221BE20114E9C331F665ACBC0800305CC70@dbde01.ent.ti.com>
 Content-Disposition: inline
+In-Reply-To: <200705221640.51098.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,35 +18,26 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
+To: David Brownell <david-b@pacbell.net>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-
-> >A much cleaner approach is to just do this in userspace with
-> >usbfs ... issuing control requests to the hub ports.  That
-> >will work with *ANY* high speed controller.
+* David Brownell <david-b@pacbell.net> [070522 16:42]:
+> On Tuesday 22 May 2007, andrzej zaborowski wrote:
+> > The TSC2102 option in drivers/input/touchscreen/Kconfig got lost
+> > somewhere in January (although the commit is not visible in git-web),
+> > so adding it back. 
 > 
-> I think Felipe Balbi will be looking into that aspect.
-> 
-> But how will that work for HSET tests with OPT card with OMAP as host.
+> I noticed that ...
 
-The same way.  Those newish "key by VID/PID" test modes don't
-do anything different ... they just change the user interface
-for the test, so the (embedded) host requirements are even less.
+The git automerge has been causing issues... And I may have missed
+something with manual merges.
 
+The manual merge issues are  mostly solved now in git 1.5, as
+git-mergetool is able to use kdiff3 to resolve conflicts.
+To use it, just git-mergetool on that file while merging,
+thanks again Paul for the tip!
 
-> We still need to write a class driver that issues the TEST command
-> to hub based on VID/PID sent by OPT. And that is what I am proposing. 
-> Comments please.
+Regards,
 
-Just look at the device IDs through usbfs, and use that to
-decide what root hub USB_PORT_FEAT_TEST to set.  If you need
-any ULPI stuff to implement those features, that should be
-part of the root hub code.  (I can imagine that different
-integrations of the hdrc core might have slightly different
-requirements there, implying a platform hook...)
-
-That is, you shouldn't need a kernel driver to do that stuff.
-
-- Dave
+Tony
