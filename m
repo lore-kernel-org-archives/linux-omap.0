@@ -1,7 +1,7 @@
 From: "nishanth menon" <menon.nishanth@gmail.com>
-Subject: [PATCH 1/2] OMAP: Kill compile warnings
-Date: Fri, 25 May 2007 18:04:47 -0500
-Message-ID: <782515bb0705251604l20d57f49h45584f2ab7f28f36@mail.gmail.com>
+Subject: [PATCH 2/2] OMAP: Kill compile warnings
+Date: Fri, 25 May 2007 18:06:04 -0500
+Message-ID: <782515bb0705251606n3089cbedv904bfae641a2f34d@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -19,28 +19,29 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Got the subject wrong last time.. Sorry..
-kill warning1: remove link to .init.text
-omap_timer refers to __init omap2_gp_timer_init function causing a warning
-while the linking is done
-
-Signed-off-by: Nishanth Menon <menon.nishanth@gmail.com>
+Re-sending..
+Kill warning: twl4030 keypad
+struct input_dev has not moved to struct device from class_device. Kill the
+re-init till this happens
 ---
- arch/arm/mach-omap2/timer-gp.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/input/keyboard/omap-twl4030keypad.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-index 8f380a1..f4cf6fe 100644
---- a/arch/arm/mach-omap2/timer-gp.c
-+++ b/arch/arm/mach-omap2/timer-gp.c
-@@ -175,6 +175,6 @@ static void __init omap2_gp_timer_init(void)
- 	omap2_gp_clocksource_init();
- }
+diff --git a/drivers/input/keyboard/omap-twl4030keypad.c
+b/drivers/input/keyboard/omap-twl4030keypad.c
+index b96e84f..4750dba 100644
+--- a/drivers/input/keyboard/omap-twl4030keypad.c
++++ b/drivers/input/keyboard/omap-twl4030keypad.c
+@@ -253,9 +253,6 @@ static int __init omap_kp_probe(struct
+platform_device *pdev)
+ 	omap_twl4030kp->keycodesize	= sizeof(unsigned int);
+ 	omap_twl4030kp->keycodemax	= pdata->keymapsize;
 
--struct sys_timer omap_timer = {
--	.init	= omap2_gp_timer_init,
-+struct sys_timer omap_timer __initdata = {
-+	.init	 = omap2_gp_timer_init,
- };
+-	/* Get the debug Device to omap keypad device */
+-	dbg_dev = &(omap_twl4030kp->dev);
+-
+ 	ret = input_register_device(omap_twl4030kp);
+ 	if (ret < 0) {
+ 		dev_err(dbg_dev, "Unable to register twl4030 keypad device\n");
 -- 
 1.5.0.6
