@@ -1,12 +1,12 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 02/18] omap2: add OMAP24XX register bit defines shared
-	between CM and PRM
-Date: Fri, 25 May 2007 02:23:24 -0600
-Message-ID: <20070525082501.324647928@pwsan.com>
+Subject: [PATCH 08/18] omap2: add OMAP24XX Clock Management register bit
+	defines
+Date: Fri, 25 May 2007 02:23:30 -0600
+Message-ID: <20070525082501.935568869@pwsan.com>
 References: <20070525082322.168056647@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline;
-	filename=0002-omap2-add-OMAP24XX-register-bit-defines-shared-betw.patch
+	filename=0008-omap2-add-OMAP24XX-Clock-Management-register-bit-de.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,129 +19,419 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Add OMAP24XX register bit defines that are shared between the Clock
-Management and Power/Reset Management registers.
+Add symbolic constants for Clock Management register bits for the OMAP2420
+and OMAP2430 architectures.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/prcm_common.h |  105 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 105 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/cm_regbits_24xx.h |  398 +++++++++++++++++++++++++++++++++
+ 1 files changed, 398 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/cm_regbits_24xx.h
 
-diff --git a/arch/arm/mach-omap2/prcm_common.h b/arch/arm/mach-omap2/prcm_common.h
-index 6275cae..5220b05 100644
---- a/arch/arm/mach-omap2/prcm_common.h
-+++ b/arch/arm/mach-omap2/prcm_common.h
-@@ -33,5 +33,110 @@
- #define OMAP2430_MDM_MOD				0xc00
- 
- 
-+/* 24XX register bits shared between CM & PRM registers */
+diff --git a/arch/arm/mach-omap2/cm_regbits_24xx.h b/arch/arm/mach-omap2/cm_regbits_24xx.h
+new file mode 100644
+index 0000000..efd7c17
+--- /dev/null
++++ b/arch/arm/mach-omap2/cm_regbits_24xx.h
+@@ -0,0 +1,398 @@
++#ifndef __ARCH_ARM_MACH_OMAP2_CM_REGBITS_24XX_H
++#define __ARCH_ARM_MACH_OMAP2_CM_REGBITS_24XX_H
 +
-+/* CM_FCLKEN1_CORE, CM_ICLKEN1_CORE, PM_WKEN1_CORE shared bits */
-+#define OMAP2420_EN_MMC_SHIFT				26
-+#define OMAP2420_EN_MMC					(1 << 26)
-+#define OMAP24XX_EN_UART2_SHIFT				22
-+#define OMAP24XX_EN_UART2				(1 << 22)
-+#define OMAP24XX_EN_UART1_SHIFT				21
-+#define OMAP24XX_EN_UART1				(1 << 21)
-+#define OMAP24XX_EN_MCSPI2_SHIFT			18
-+#define OMAP24XX_EN_MCSPI2				(1 << 18)
-+#define OMAP24XX_EN_MCSPI1_SHIFT			17
-+#define OMAP24XX_EN_MCSPI1				(1 << 17)
-+#define OMAP24XX_EN_MCBSP2_SHIFT			16
-+#define OMAP24XX_EN_MCBSP2				(1 << 16)
-+#define OMAP24XX_EN_MCBSP1_SHIFT			15
-+#define OMAP24XX_EN_MCBSP1				(1 << 15)
-+#define OMAP24XX_EN_GPT12_SHIFT				14
-+#define OMAP24XX_EN_GPT12				(1 << 14)
-+#define OMAP24XX_EN_GPT11_SHIFT				13
-+#define OMAP24XX_EN_GPT11				(1 << 13)
-+#define OMAP24XX_EN_GPT10_SHIFT				12
-+#define OMAP24XX_EN_GPT10				(1 << 12)
-+#define OMAP24XX_EN_GPT9_SHIFT				11
-+#define OMAP24XX_EN_GPT9				(1 << 11)
-+#define OMAP24XX_EN_GPT8_SHIFT				10
-+#define OMAP24XX_EN_GPT8				(1 << 10)
-+#define OMAP24XX_EN_GPT7_SHIFT				9
-+#define OMAP24XX_EN_GPT7				(1 << 9)
-+#define OMAP24XX_EN_GPT6_SHIFT				8
-+#define OMAP24XX_EN_GPT6				(1 << 8)
-+#define OMAP24XX_EN_GPT5_SHIFT				7
-+#define OMAP24XX_EN_GPT5				(1 << 7)
-+#define OMAP24XX_EN_GPT4_SHIFT				6
-+#define OMAP24XX_EN_GPT4				(1 << 6)
-+#define OMAP24XX_EN_GPT3_SHIFT				5
-+#define OMAP24XX_EN_GPT3				(1 << 5)
-+#define OMAP24XX_EN_GPT2_SHIFT				4
-+#define OMAP24XX_EN_GPT2				(1 << 4)
-+#define OMAP2420_EN_VLYNQ_SHIFT				3
-+#define OMAP2420_EN_VLYNQ				(1 << 3)
++/*
++ * OMAP24XX Clock Management register bits
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Copyright (C) 2007 Nokia Corporation
++ *
++ * Written by Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+/* CM_FCLKEN2_CORE, CM_ICLKEN2_CORE, PM_WKEN2_CORE shared bits */
-+#define OMAP2430_EN_GPIO5_SHIFT				10
-+#define OMAP2430_EN_GPIO5				(1 << 10)
-+#define OMAP2430_EN_MCSPI3_SHIFT			9
-+#define OMAP2430_EN_MCSPI3				(1 << 9)
-+#define OMAP2430_EN_MMCHS2_SHIFT			8
-+#define OMAP2430_EN_MMCHS2				(1 << 8)
-+#define OMAP2430_EN_MMCHS1_SHIFT			7
-+#define OMAP2430_EN_MMCHS1				(1 << 7)
-+#define OMAP24XX_EN_UART3_SHIFT				2
-+#define OMAP24XX_EN_UART3				(1 << 2)
-+#define OMAP24XX_EN_USB_SHIFT				0
-+#define OMAP24XX_EN_USB					(1 << 0)
++#include "cm.h"
 +
-+/* CM_ICLKEN2_CORE, PM_WKEN2_CORE shared bits */
-+#define OMAP2430_EN_MDM_INTC_SHIFT			11
-+#define OMAP2430_EN_MDM_INTC				(1 << 11)
-+#define OMAP2430_EN_USBHS_SHIFT				6
-+#define OMAP2430_EN_USBHS				(1 << 6)
++/* Bits shared between registers */
 +
-+/* CM_IDLEST1_CORE, PM_WKST1_CORE shared bits */
-+#define OMAP2420_ST_MMC					(1 << 26)
-+#define OMAP24XX_ST_UART2				(1 << 22)
-+#define OMAP24XX_ST_UART1				(1 << 21)
-+#define OMAP24XX_ST_MCSPI2				(1 << 18)
-+#define OMAP24XX_ST_MCSPI1				(1 << 17)
-+#define OMAP24XX_ST_GPT12				(1 << 14)
-+#define OMAP24XX_ST_GPT11				(1 << 13)
-+#define OMAP24XX_ST_GPT10				(1 << 12)
-+#define OMAP24XX_ST_GPT9				(1 << 11)
-+#define OMAP24XX_ST_GPT8				(1 << 10)
-+#define OMAP24XX_ST_GPT7				(1 << 9)
-+#define OMAP24XX_ST_GPT6				(1 << 8)
-+#define OMAP24XX_ST_GPT5				(1 << 7)
-+#define OMAP24XX_ST_GPT4				(1 << 6)
-+#define OMAP24XX_ST_GPT3				(1 << 5)
-+#define OMAP24XX_ST_GPT2				(1 << 4)
-+#define OMAP2420_ST_VLYNQ				(1 << 3)
++/* CM_FCLKEN1_CORE and CM_ICLKEN1_CORE shared bits */
++#define OMAP24XX_EN_CAM_SHIFT				31
++#define OMAP24XX_EN_CAM					(1 << 31)
++#define OMAP24XX_EN_WDT4_SHIFT				29
++#define OMAP24XX_EN_WDT4				(1 << 29)
++#define OMAP2420_EN_WDT3_SHIFT				28
++#define OMAP2420_EN_WDT3				(1 << 28)
++#define OMAP24XX_EN_MSPRO_SHIFT				27
++#define OMAP24XX_EN_MSPRO				(1 << 27)
++#define OMAP24XX_EN_FAC_SHIFT				25
++#define OMAP24XX_EN_FAC					(1 << 25)
++#define OMAP2420_EN_EAC_SHIFT				24
++#define OMAP2420_EN_EAC					(1 << 24)
++#define OMAP24XX_EN_HDQ_SHIFT				23
++#define OMAP24XX_EN_HDQ					(1 << 23)
++#define OMAP2420_EN_I2C2_SHIFT				20
++#define OMAP2420_EN_I2C2				(1 << 20)
++#define OMAP2420_EN_I2C1_SHIFT				19
++#define OMAP2420_EN_I2C1				(1 << 19)
 +
-+/* CM_IDLEST2_CORE, PM_WKST2_CORE shared bits */
-+#define OMAP2430_ST_MDM_INTC				(1 << 11)
-+#define OMAP2430_ST_GPIO5				(1 << 10)
-+#define OMAP2430_ST_MCSPI3				(1 << 9)
-+#define OMAP2430_ST_MMCHS2				(1 << 8)
-+#define OMAP2430_ST_MMCHS1				(1 << 7)
-+#define OMAP2430_ST_USBHS				(1 << 6)
-+#define OMAP24XX_ST_UART3				(1 << 2)
-+#define OMAP24XX_ST_USB					(1 << 0)
++/* CM_FCLKEN2_CORE and CM_ICLKEN2_CORE shared bits */
++#define OMAP2430_EN_MCBSP5_SHIFT			5
++#define OMAP2430_EN_MCBSP5				(1 << 5)
++#define OMAP2430_EN_MCBSP4_SHIFT			4
++#define OMAP2430_EN_MCBSP4				(1 << 4)
++#define OMAP2430_EN_MCBSP3_SHIFT			3
++#define OMAP2430_EN_MCBSP3				(1 << 3)
++#define OMAP24XX_EN_SSI_SHIFT				1
++#define OMAP24XX_EN_SSI					(1 << 1)
 +
-+/* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
-+#define OMAP24XX_EN_GPIOS_SHIFT				2
-+#define OMAP24XX_EN_GPIOS				(1 << 2)
-+#define OMAP24XX_EN_GPT1_SHIFT				0
-+#define OMAP24XX_EN_GPT1				(1 << 0)
++/* CM_FCLKEN_WKUP and CM_ICLKEN_WKUP shared bits */
++#define OMAP24XX_EN_MPU_WDT_SHIFT			3
++#define OMAP24XX_EN_MPU_WDT				(1 << 3)
 +
-+/* PM_WKST_WKUP, CM_IDLEST_WKUP shared bits */
-+#define OMAP24XX_ST_GPIOS				(1 << 2)
-+#define OMAP24XX_ST_GPT1				(1 << 0)
++/* Bits specific to each register */
 +
-+/* CM_IDLEST_MDM and PM_WKST_MDM shared bits */
-+#define OMAP2430_ST_MDM					(1 << 0)
++/* CM_IDLEST_MPU */
++/* 2430 only */
++#define OMAP2430_ST_MPU					(1 << 0)
 +
++/* CM_CLKSEL_MPU */
++#define OMAP24XX_CLKSEL_MPU_SHIFT			0
++#define OMAP24XX_CLKSEL_MPU_MASK			(0x1f << 0)
 +
- #endif
- 
++/* CM_CLKSTCTRL_MPU */
++#define OMAP24XX_AUTOSTATE_MPU				(1 << 0)
++
++/* CM_FCLKEN1_CORE specific bits*/
++#define OMAP24XX_EN_TV_SHIFT				2
++#define OMAP24XX_EN_TV					(1 << 2)
++#define OMAP24XX_EN_DSS2_SHIFT				1
++#define OMAP24XX_EN_DSS2				(1 << 1)
++#define OMAP24XX_EN_DSS1_SHIFT				0
++#define OMAP24XX_EN_DSS1				(1 << 0)
++
++/* CM_FCLKEN2_CORE specific bits */
++#define OMAP2430_EN_I2CHS2_SHIFT			20
++#define OMAP2430_EN_I2CHS2				(1 << 20)
++#define OMAP2430_EN_I2CHS1_SHIFT			19
++#define OMAP2430_EN_I2CHS1				(1 << 19)
++#define OMAP2430_EN_MMCHSDB2_SHIFT			17
++#define OMAP2430_EN_MMCHSDB2				(1 << 17)
++#define OMAP2430_EN_MMCHSDB1_SHIFT			16
++#define OMAP2430_EN_MMCHSDB1				(1 << 16)
++
++/* CM_ICLKEN1_CORE specific bits */
++#define OMAP24XX_EN_MAILBOXES_SHIFT			30
++#define OMAP24XX_EN_MAILBOXES				(1 << 30)
++#define OMAP24XX_EN_DSS_SHIFT				0
++#define OMAP24XX_EN_DSS					(1 << 0)
++
++/* CM_ICLKEN2_CORE specific bits */
++
++/* CM_ICLKEN3_CORE */
++/* 2430 only */
++#define OMAP2430_EN_SDRC_SHIFT				2
++#define OMAP2430_EN_SDRC				(1 << 2)
++
++/* CM_ICLKEN4_CORE */
++#define OMAP24XX_EN_PKA_SHIFT				4
++#define OMAP24XX_EN_PKA					(1 << 4)
++#define OMAP24XX_EN_AES_SHIFT				3
++#define OMAP24XX_EN_AES					(1 << 3)
++#define OMAP24XX_EN_RNG_SHIFT				2
++#define OMAP24XX_EN_RNG					(1 << 2)
++#define OMAP24XX_EN_SHA_SHIFT				1
++#define OMAP24XX_EN_SHA					(1 << 1)
++#define OMAP24XX_EN_DES_SHIFT				0
++#define OMAP24XX_EN_DES					(1 << 0)
++
++/* CM_IDLEST1_CORE specific bits */
++#define OMAP24XX_ST_MAILBOXES				(1 << 30)
++#define OMAP24XX_ST_WDT4				(1 << 29)
++#define OMAP2420_ST_WDT3				(1 << 28)
++#define OMAP24XX_ST_MSPRO				(1 << 27)
++#define OMAP24XX_ST_FAC					(1 << 25)
++#define OMAP2420_ST_EAC					(1 << 24)
++#define OMAP24XX_ST_HDQ					(1 << 23)
++#define OMAP24XX_ST_I2C2				(1 << 20)
++#define OMAP24XX_ST_I2C1				(1 << 19)
++#define OMAP24XX_ST_MCBSP2				(1 << 16)
++#define OMAP24XX_ST_MCBSP1				(1 << 15)
++#define OMAP24XX_ST_DSS					(1 << 0)
++
++/* CM_IDLEST2_CORE */
++#define OMAP2430_ST_MCBSP5				(1 << 5)
++#define OMAP2430_ST_MCBSP4				(1 << 4)
++#define OMAP2430_ST_MCBSP3				(1 << 3)
++#define OMAP24XX_ST_SSI					(1 << 1)
++
++/* CM_IDLEST3_CORE */
++/* 2430 only */
++#define OMAP2430_ST_SDRC				(1 << 2)
++
++/* CM_IDLEST4_CORE */
++#define OMAP24XX_ST_PKA					(1 << 4)
++#define OMAP24XX_ST_AES					(1 << 3)
++#define OMAP24XX_ST_RNG					(1 << 2)
++#define OMAP24XX_ST_SHA					(1 << 1)
++#define OMAP24XX_ST_DES					(1 << 0)
++
++/* CM_AUTOIDLE1_CORE */
++#define OMAP24XX_AUTO_CAM				(1 << 31)
++#define OMAP24XX_AUTO_MAILBOXES				(1 << 30)
++#define OMAP24XX_AUTO_WDT4				(1 << 29)
++#define OMAP2420_AUTO_WDT3				(1 << 28)
++#define OMAP24XX_AUTO_MSPRO				(1 << 27)
++#define OMAP2420_AUTO_MMC				(1 << 26)
++#define OMAP24XX_AUTO_FAC				(1 << 25)
++#define OMAP2420_AUTO_EAC				(1 << 24)
++#define OMAP24XX_AUTO_HDQ				(1 << 23)
++#define OMAP24XX_AUTO_UART2				(1 << 22)
++#define OMAP24XX_AUTO_UART1				(1 << 21)
++#define OMAP24XX_AUTO_I2C2				(1 << 20)
++#define OMAP24XX_AUTO_I2C1				(1 << 19)
++#define OMAP24XX_AUTO_MCSPI2				(1 << 18)
++#define OMAP24XX_AUTO_MCSPI1				(1 << 17)
++#define OMAP24XX_AUTO_MCBSP2				(1 << 16)
++#define OMAP24XX_AUTO_MCBSP1				(1 << 15)
++#define OMAP24XX_AUTO_GPT12				(1 << 14)
++#define OMAP24XX_AUTO_GPT11				(1 << 13)
++#define OMAP24XX_AUTO_GPT10				(1 << 12)
++#define OMAP24XX_AUTO_GPT9				(1 << 11)
++#define OMAP24XX_AUTO_GPT8				(1 << 10)
++#define OMAP24XX_AUTO_GPT7				(1 << 9)
++#define OMAP24XX_AUTO_GPT6				(1 << 8)
++#define OMAP24XX_AUTO_GPT5				(1 << 7)
++#define OMAP24XX_AUTO_GPT4				(1 << 6)
++#define OMAP24XX_AUTO_GPT3				(1 << 5)
++#define OMAP24XX_AUTO_GPT2				(1 << 4)
++#define OMAP2420_AUTO_VLYNQ				(1 << 3)
++#define OMAP24XX_AUTO_DSS				(1 << 0)
++
++/* CM_AUTOIDLE2_CORE */
++#define OMAP2430_AUTO_MDM_INTC				(1 << 11)
++#define OMAP2430_AUTO_GPIO5				(1 << 10)
++#define OMAP2430_AUTO_MCSPI3				(1 << 9)
++#define OMAP2430_AUTO_MMCHS2				(1 << 8)
++#define OMAP2430_AUTO_MMCHS1				(1 << 7)
++#define OMAP2430_AUTO_USBHS				(1 << 6)
++#define OMAP2430_AUTO_MCBSP5				(1 << 5)
++#define OMAP2430_AUTO_MCBSP4				(1 << 4)
++#define OMAP2430_AUTO_MCBSP3				(1 << 3)
++#define OMAP24XX_AUTO_UART3				(1 << 2)
++#define OMAP24XX_AUTO_SSI				(1 << 1)
++#define OMAP24XX_AUTO_USB				(1 << 0)
++
++/* CM_AUTOIDLE3_CORE */
++#define OMAP24XX_AUTO_SDRC				(1 << 2)
++#define OMAP24XX_AUTO_GPMC				(1 << 1)
++#define OMAP24XX_AUTO_SDMA				(1 << 0)
++
++/* CM_AUTOIDLE4_CORE */
++#define OMAP24XX_AUTO_PKA				(1 << 4)
++#define OMAP24XX_AUTO_AES				(1 << 3)
++#define OMAP24XX_AUTO_RNG				(1 << 2)
++#define OMAP24XX_AUTO_SHA				(1 << 1)
++#define OMAP24XX_AUTO_DES				(1 << 0)
++
++/* CM_CLKSEL1_CORE */
++#define OMAP24XX_CLKSEL_USB_SHIFT			25
++#define OMAP24XX_CLKSEL_USB_MASK			(0x7 << 25)
++#define OMAP24XX_CLKSEL_SSI_SHIFT			20
++#define OMAP24XX_CLKSEL_SSI_MASK			(0x1f << 20)
++#define OMAP2420_CLKSEL_VLYNQ_SHIFT			15
++#define OMAP2420_CLKSEL_VLYNQ_MASK			(0x1f << 15)
++#define OMAP24XX_CLKSEL_DSS2_SHIFT			13
++#define OMAP24XX_CLKSEL_DSS2_MASK			(0x1 << 13)
++#define OMAP24XX_CLKSEL_DSS1_SHIFT			8
++#define OMAP24XX_CLKSEL_DSS1_MASK			(0x1f << 8)
++#define OMAP24XX_CLKSEL_L4_SHIFT			5
++#define OMAP24XX_CLKSEL_L4_MASK				(0x3 << 5)
++#define OMAP24XX_CLKSEL_L3_SHIFT			0
++#define OMAP24XX_CLKSEL_L3_MASK				(0x1f << 0)
++
++/* CM_CLKSEL2_CORE */
++#define OMAP24XX_CLKSEL_GPT12_SHIFT			22
++#define OMAP24XX_CLKSEL_GPT12_MASK			(0x3 << 22)
++#define OMAP24XX_CLKSEL_GPT11_SHIFT			20
++#define OMAP24XX_CLKSEL_GPT11_MASK			(0x3 << 20)
++#define OMAP24XX_CLKSEL_GPT10_SHIFT			18
++#define OMAP24XX_CLKSEL_GPT10_MASK			(0x3 << 18)
++#define OMAP24XX_CLKSEL_GPT9_SHIFT			16
++#define OMAP24XX_CLKSEL_GPT9_MASK			(0x3 << 16)
++#define OMAP24XX_CLKSEL_GPT8_SHIFT			14
++#define OMAP24XX_CLKSEL_GPT8_MASK			(0x3 << 14)
++#define OMAP24XX_CLKSEL_GPT7_SHIFT			12
++#define OMAP24XX_CLKSEL_GPT7_MASK			(0x3 << 12)
++#define OMAP24XX_CLKSEL_GPT6_SHIFT			10
++#define OMAP24XX_CLKSEL_GPT6_MASK			(0x3 << 10)
++#define OMAP24XX_CLKSEL_GPT5_SHIFT			8
++#define OMAP24XX_CLKSEL_GPT5_MASK			(0x3 << 8)
++#define OMAP24XX_CLKSEL_GPT4_SHIFT			6
++#define OMAP24XX_CLKSEL_GPT4_MASK			(0x3 << 6)
++#define OMAP24XX_CLKSEL_GPT3_SHIFT			4
++#define OMAP24XX_CLKSEL_GPT3_MASK			(0x3 << 4)
++#define OMAP24XX_CLKSEL_GPT2_SHIFT			2
++#define OMAP24XX_CLKSEL_GPT2_MASK			(0x3 << 2)
++
++/* CM_CLKSTCTRL_CORE */
++#define OMAP24XX_AUTOSTATE_DSS				(1 << 2)
++#define OMAP24XX_AUTOSTATE_L4				(1 << 1)
++#define OMAP24XX_AUTOSTATE_L3				(1 << 0)
++
++/* CM_FCLKEN_GFX */
++#define OMAP24XX_EN_3D_SHIFT				2
++#define OMAP24XX_EN_3D					(1 << 2)
++#define OMAP24XX_EN_2D_SHIFT				1
++#define OMAP24XX_EN_2D					(1 << 1)
++
++/* CM_ICLKEN_GFX specific bits */
++
++/* CM_IDLEST_GFX specific bits */
++
++/* CM_CLKSEL_GFX specific bits */
++
++/* CM_CLKSTCTRL_GFX */
++#define OMAP24XX_AUTOSTATE_GFX				(1 << 0)
++
++/* CM_FCLKEN_WKUP specific bits */
++
++/* CM_ICLKEN_WKUP specific bits */
++#define OMAP2430_EN_ICR_SHIFT				6
++#define OMAP2430_EN_ICR					(1 << 6)
++#define OMAP24XX_EN_OMAPCTRL_SHIFT			5
++#define OMAP24XX_EN_OMAPCTRL				(1 << 5)
++#define OMAP24XX_EN_WDT1_SHIFT				4
++#define OMAP24XX_EN_WDT1				(1 << 4)
++#define OMAP24XX_EN_32KSYNC_SHIFT			1
++#define OMAP24XX_EN_32KSYNC				(1 << 1)
++
++/* CM_IDLEST_WKUP specific bits */
++#define OMAP2430_ST_ICR					(1 << 6)
++#define OMAP24XX_ST_OMAPCTRL				(1 << 5)
++#define OMAP24XX_ST_WDT1				(1 << 4)
++#define OMAP24XX_ST_MPU_WDT				(1 << 3)
++#define OMAP24XX_ST_32KSYNC				(1 << 1)
++
++/* CM_AUTOIDLE_WKUP */
++#define OMAP24XX_AUTO_OMAPCTRL				(1 << 5)
++#define OMAP24XX_AUTO_WDT1				(1 << 4)
++#define OMAP24XX_AUTO_MPU_WDT				(1 << 3)
++#define OMAP24XX_AUTO_GPIOS				(1 << 2)
++#define OMAP24XX_AUTO_32KSYNC				(1 << 1)
++#define OMAP24XX_AUTO_GPT1				(1 << 0)
++
++/* CM_CLKSEL_WKUP */
++#define OMAP24XX_CLKSEL_GPT1_SHIFT			0
++#define OMAP24XX_CLKSEL_GPT1_MASK			(0x3 << 0)
++
++/* CM_CLKEN_PLL */
++#define OMAP24XX_EN_54M_PLL_SHIFT			6
++#define OMAP24XX_EN_54M_PLL_MASK			(0x3 << 6)
++#define OMAP24XX_EN_96M_PLL_SHIFT			2
++#define OMAP24XX_EN_96M_PLL_MASK			(0x3 << 2)
++#define OMAP24XX_EN_DPLL_SHIFT				0
++#define OMAP24XX_EN_DPLL_MASK				(0x3 << 0)
++
++/* CM_IDLEST_CKGEN */
++#define OMAP24XX_ST_54M_APLL				(1 << 9)
++#define OMAP24XX_ST_96M_APLL				(1 << 8)
++#define OMAP24XX_ST_54M_CLK				(1 << 6)
++#define OMAP24XX_ST_12M_CLK				(1 << 5)
++#define OMAP24XX_ST_48M_CLK				(1 << 4)
++#define OMAP24XX_ST_96M_CLK				(1 << 2)
++#define OMAP24XX_ST_CORE_CLK_SHIFT			0
++#define OMAP24XX_ST_CORE_CLK_MASK			(0x3 << 0)
++
++/* CM_AUTOIDLE_PLL */
++#define OMAP24XX_AUTO_54M_SHIFT				6
++#define OMAP24XX_AUTO_54M_MASK				(0x3 << 6)
++#define OMAP24XX_AUTO_96M_SHIFT				2
++#define OMAP24XX_AUTO_96M_MASK				(0x3 << 2)
++#define OMAP24XX_AUTO_DPLL_SHIFT			0
++#define OMAP24XX_AUTO_DPLL_MASK				(0x3 << 0)
++
++/* CM_CLKSEL1_PLL */
++#define OMAP2430_MAXDPLLFASTLOCK_SHIFT			28
++#define OMAP2430_MAXDPLLFASTLOCK_MASK			(0x7 << 28)
++#define OMAP24XX_APLLS_CLKIN_SHIFT			23
++#define OMAP24XX_APLLS_CLKIN_MASK			(0x7 << 23)
++#define OMAP24XX_DPLL_MULT_SHIFT			12
++#define OMAP24XX_DPLL_MULT_MASK				(0x3ff << 12)
++#define OMAP24XX_DPLL_DIV_SHIFT				8
++#define OMAP24XX_DPLL_DIV_MASK				(0xf << 8)
++#define OMAP24XX_54M_SOURCE				(1 << 5)
++#define OMAP2430_96M_SOURCE				(1 << 4)
++#define OMAP24XX_48M_SOURCE				(1 << 3)
++#define OMAP2430_ALTCLK_SOURCE_SHIFT			0
++#define OMAP2430_ALTCLK_SOURCE_MASK			(0x7 << 0)
++
++/* CM_CLKSEL2_PLL */
++#define OMAP24XX_CORE_CLK_SRC_SHIFT			0
++#define OMAP24XX_CORE_CLK_SRC_MASK			(0x3 << 0)
++
++/* CM_FCLKEN_DSP */
++#define OMAP2420_EN_IVA_COP_SHIFT			10
++#define OMAP2420_EN_IVA_COP				(1 << 10)
++#define OMAP2420_EN_IVA_MPU_SHIFT			8
++#define OMAP2420_EN_IVA_MPU				(1 << 8)
++#define OMAP24XX_CM_FCLKEN_DSP_EN_DSP_SHIFT		0
++#define OMAP24XX_CM_FCLKEN_DSP_EN_DSP			(1 << 0)
++
++/* CM_ICLKEN_DSP */
++#define OMAP2420_EN_DSP_IPI_SHIFT			1
++#define OMAP2420_EN_DSP_IPI				(1 << 1)
++
++/* CM_IDLEST_DSP */
++#define OMAP2420_ST_IVA					(1 << 8)
++#define OMAP2420_ST_IPI					(1 << 1)
++#define OMAP24XX_ST_DSP					(1 << 0)
++
++/* CM_AUTOIDLE_DSP */
++#define OMAP2420_AUTO_DSP_IPI				(1 << 1)
++
++/* CM_CLKSEL_DSP */
++#define OMAP2420_SYNC_IVA				(1 << 13)
++#define OMAP2420_CLKSEL_IVA_SHIFT			8
++#define OMAP2420_CLKSEL_IVA_MASK			(0x1f << 8)
++#define OMAP24XX_SYNC_DSP				(1 << 7)
++#define OMAP24XX_CLKSEL_DSP_IF_SHIFT			5
++#define OMAP24XX_CLKSEL_DSP_IF_MASK			(0x3 << 5)
++#define OMAP24XX_CLKSEL_DSP_SHIFT			0
++#define OMAP24XX_CLKSEL_DSP_MASK			(0x1f << 0)
++
++/* CM_CLKSTCTRL_DSP */
++#define OMAP2420_AUTOSTATE_IVA				(1 << 8)
++#define OMAP24XX_AUTOSTATE_DSP				(1 << 0)
++
++/* CM_FCLKEN_MDM */
++/* 2430 only */
++#define OMAP2430_EN_OSC_SHIFT				1
++#define OMAP2430_EN_OSC					(1 << 1)
++
++/* CM_ICLKEN_MDM */
++/* 2430 only */
++#define OMAP2430_CM_ICLKEN_MDM_EN_MDM_SHIFT		0
++#define OMAP2430_CM_ICLKEN_MDM_EN_MDM			(1 << 0)
++
++/* CM_IDLEST_MDM specific bits */
++/* 2430 only */
++
++/* CM_AUTOIDLE_MDM */
++/* 2430 only */
++#define OMAP2430_AUTO_OSC				(1 << 1)
++#define OMAP2430_AUTO_MDM				(1 << 0)
++
++/* CM_CLKSEL_MDM */
++/* 2430 only */
++#define OMAP2430_SYNC_MDM				(1 << 4)
++#define OMAP2430_CLKSEL_MDM_SHIFT			0
++#define OMAP2430_CLKSEL_MDM_MASK			(0xf << 0)
++
++/* CM_CLKSTCTRL_MDM */
++/* 2430 only */
++#define OMAP2430_AUTOSTATE_MDM				(1 << 0)
++
++#endif
 -- 
 1.5.1.3
 
