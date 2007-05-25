@@ -1,15 +1,13 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Pending patches, was: [PATCH] ARM: OMAP: Fix section mismatch in
- OMAP2 board-generic.c
-Date: Fri, 25 May 2007 15:23:25 +0200
-Message-ID: <4656E34D.5070804@googlemail.com>
-References: <464FFDED.9000204@googlemail.com>
-	<20070525003027.GB19506@atomide.com>
+From: "George G. Davis" <gdavis@mvista.com>
+Subject: Re: osk5912 webcam: surprising
+Date: Fri, 25 May 2007 10:21:28 -0400
+Message-ID: <20070525142128.GG3519@mvista.com>
+References: <311188.55599.qm@web51404.mail.re2.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070525003027.GB19506@atomide.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <311188.55599.qm@web51404.mail.re2.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,34 +15,33 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: karthik <skarthikeyan_17@yahoo.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren wrote:
-> * Dirk Behme <dirk.behme@googlemail.com> [070520 00:56]:
->> Fix section mismatch in OMAP2 board-generic.c
+On Fri, May 25, 2007 at 01:55:19AM -0700, karthik wrote:
+> Hi
+> I had earlier mailed to this group about being not able to interface a webcam via the USB interface (power budget exceeded). recently i got hold of a hub with an external power adapter. 
 > 
-> Pushing all your fixes today.
+> Now here is the funny thing
+> 
+> I connect the camera straight to the kit, it does NOT work (it says powerbudget exceeded).
+> 
+> But if I connect it via the hub WITHOUT the hub's external power adapterm,  it works (it gets registered at minor 0). I am able to record videos.
+> 
+> i have another hub, but shows the same power budget problem with that.
+> Any explanation?? just curious (and frustrated).
 
-:)  Thanks!
+Perhaps the working non-externally powered hub lied and said that it is
+self powered, i.e. it does not comply with USB specs?
 
-Short status from my pending patches list then:
+-- 
+Regards,
+George
 
-Except Paul Walmsleys patch sets, I have only two or three patches in 
-my list:
-
-1. [RESUBMIT PATCH] OMAP: MUSB HOST support on 2430SDP
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-May/009995.html
-
-2. [RESUBMIT PATCH] OMAP: MUSB plat_uds.c fix
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-May/009996.html
-
-and maybe
-
-3. [WIP] [PATCH] ARM: OMAP: Use new style I2C driver for Menelaus chip.
-http://linux.omap.com/pipermail/linux-omap-open-source/2007-May/009839.html
-
-Dirk
+    _____   __o   George G. Davis - Software Engineer           (o>
+-------    -\<,   MontaVista Sofware - Platform to Innovate     //\
+ ------ ( )/ ( )  www.mvista.com                                V_/_
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
