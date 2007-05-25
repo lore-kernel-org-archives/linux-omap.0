@@ -1,13 +1,15 @@
-From: "George G. Davis" <gdavis@mvista.com>
-Subject: Re: osk5912 webcam: surprising
-Date: Fri, 25 May 2007 10:21:28 -0400
-Message-ID: <20070525142128.GG3519@mvista.com>
-References: <311188.55599.qm@web51404.mail.re2.yahoo.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: [PATCH] Fix section mismatch: reference to .init.text:
+ from	.text warning
+Date: Fri, 25 May 2007 20:25:25 +0200
+Message-ID: <46572A15.8020506@googlemail.com>
+References: <000001c79814$fec527d0$e1ac580a@swcenter.sec.samsung.co.kr>
+	<20070517173820.GA8556@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <311188.55599.qm@web51404.mail.re2.yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20070517173820.GA8556@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,33 +17,76 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: karthik <skarthikeyan_17@yahoo.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>, Kyungmin Park <kmpark@infradead.org>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, May 25, 2007 at 01:55:19AM -0700, karthik wrote:
-> Hi
-> I had earlier mailed to this group about being not able to interface a webcam via the USB interface (power budget exceeded). recently i got hold of a hub with an external power adapter. 
+Tony Lindgren wrote:
+> * Kyungmin Park <kmpark@infradead.org> [070516 16:51]:
+>> Fix section mismatch: reference to .init.text: from .text warning of omap_timer
+>>
+>> I tested with OMAP2 only, but OMAP1 also has same warning.
+>>
+>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> --
+>>
+>> index 3705d20..0ba739c 100644
+>> --- a/arch/arm/mach-omap1/time.c
+>> +++ b/arch/arm/mach-omap1/time.c
+>> @@ -289,6 +289,6 @@ static void __init omap_timer_init(void)
+>>  	omap_init_clocksource(rate);
+>>  }
+>>  
+>> -struct sys_timer omap_timer = {
+>> +struct sys_timer omap_timer __initdata = {
+>>  	.init		= omap_timer_init,
+>>  };
+>> diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
+>> index 8f380a1..948d7ec 100644
+>> --- a/arch/arm/mach-omap2/timer-gp.c
+>> +++ b/arch/arm/mach-omap2/timer-gp.c
+>> @@ -175,6 +175,6 @@ static void __init omap2_gp_timer_init(void)
+>>  	omap2_gp_clocksource_init();
+>>  }
+>>  
+>> -struct sys_timer omap_timer = {
+>> +struct sys_timer omap_timer __initdata = {
+>>  	.init	= omap2_gp_timer_init,
+>>  };
+>> diff --git a/arch/arm/plat-omap/timer32k.c b/arch/arm/plat-omap/timer32k.c
+>> index 2474597..e7e1960 100644
+>> --- a/arch/arm/plat-omap/timer32k.c
+>> +++ b/arch/arm/plat-omap/timer32k.c
+>> @@ -262,6 +262,6 @@ static void __init omap_timer_init(void)
+>>  	omap_init_32k_timer();
+>>  }
+>>  
+>> -struct sys_timer omap_timer = {
+>> +struct sys_timer omap_timer __initdata = {
+>>  	.init		= omap_timer_init,
+>>  };
+>>
 > 
-> Now here is the funny thing
+> We cannot mark sys_timer as __initdata as it is used for all
+> timer stuff. There is a patch on linux-arm-kernel to ignore
+> sys_timer for the check. So these warnings may not be correct
+> always.
 > 
-> I connect the camera straight to the kit, it does NOT work (it says powerbudget exceeded).
-> 
-> But if I connect it via the hub WITHOUT the hub's external power adapterm,  it works (it gets registered at minor 0). I am able to record videos.
-> 
-> i have another hub, but shows the same power budget problem with that.
-> Any explanation?? just curious (and frustrated).
+> BTW, we should check that struct omap_board_config_kernel
+> entries really can be __initdata from modules point of view.
 
-Perhaps the working non-externally powered hub lied and said that it is
-self powered, i.e. it does not comply with USB specs?
+I think you are talking here about this one
 
--- 
-Regards,
-George
+WARNING: arch/arm/plat-omap/built-in.o(.data+0xd68): Section mismatch:
+reference to .init.text: (between 'omap_timer' and 'omap_32k_timer_irq')
 
-    _____   __o   George G. Davis - Software Engineer           (o>
--------    -\<,   MontaVista Sofware - Platform to Innovate     //\
- ------ ( )/ ( )  www.mvista.com                                V_/_
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+?
+
+This is the last section mismatch I get after update to recent git.
+What's the best way to remove this now? Remove __init/__initdata?
+
+Cheers
+
+Dirk
