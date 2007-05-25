@@ -1,11 +1,12 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 7/7] omap2: add OMAP3430 base defines
-Date: Fri, 25 May 2007 02:31:52 -0600
-Message-ID: <20070525083243.819445302@pwsan.com>
-References: <20070525083145.236366049@pwsan.com>
+Subject: [PATCH 16/18] omap2: convert DSP code to use new PRCM functions &
+	defines
+Date: Fri, 25 May 2007 02:23:38 -0600
+Message-ID: <20070525082502.654505806@pwsan.com>
+References: <20070525082322.168056647@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline;
-	filename=0007-omap2-add-OMAP3430-base-defines.patch
+	filename=0016-omap2-convert-DSP-code-to-use-new-PRCM-functions.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,99 +19,106 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Add symbolic constants for OMAP3430 base addresses; include that file
-in hardware.h.  Remove #error in omap24xx.h on unknown architecture
-type.
+Convert the OMAP2-specific code in plat-omap/dsp to use the new PRCM
+read/write functions and symbolic constants for registers and register
+bits.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- include/asm-arm/arch-omap/hardware.h |    1 
- include/asm-arm/arch-omap/omap24xx.h |    3 --
- include/asm-arm/arch-omap/omap34xx.h |   44 +++++++++++++++++++++++++++++++++++
- 3 files changed, 45 insertions(+), 3 deletions(-)
- create mode 100644 include/asm-arm/arch-omap/omap34xx.h
+ arch/arm/plat-omap/dsp/dsp_common.h |   39 ++++++++++++++++++++++++++---------
+ arch/arm/plat-omap/dsp/omap2_dsp.h  |    1 -
+ 2 files changed, 29 insertions(+), 11 deletions(-)
 
-Index: linux-omap/include/asm-arm/arch-omap/hardware.h
-===================================================================
---- linux-omap.orig/include/asm-arm/arch-omap/hardware.h
-+++ linux-omap/include/asm-arm/arch-omap/hardware.h
-@@ -285,6 +285,7 @@
- #include "omap1510.h"
- #include "omap24xx.h"
- #include "omap16xx.h"
-+#include "omap34xx.h"
+diff --git a/arch/arm/plat-omap/dsp/dsp_common.h b/arch/arm/plat-omap/dsp/dsp_common.h
+index 898c9ea..2369dad 100644
+--- a/arch/arm/plat-omap/dsp/dsp_common.h
++++ b/arch/arm/plat-omap/dsp/dsp_common.h
+@@ -28,6 +28,11 @@
+ #include <asm/arch/mmu.h>
+ #include "hardware_dsp.h"
  
- #ifndef __ASSEMBLER__
++#include "../../mach-omap2/prm.h"
++#include "../../mach-omap2/prm_regbits_24xx.h"
++#include "../../mach-omap2/cm.h"
++#include "../../mach-omap2/cm_regbits_24xx.h"
++
+ #define DSPSPACE_SIZE	0x1000000
  
-Index: linux-omap/include/asm-arm/arch-omap/omap24xx.h
-===================================================================
---- linux-omap.orig/include/asm-arm/arch-omap/omap24xx.h
-+++ linux-omap/include/asm-arm/arch-omap/omap24xx.h
-@@ -51,7 +51,6 @@
- /* Mailbox */
- #define OMAP24XX_MAILBOX_BASE	(L4_24XX_BASE + 0x94000)
+ #define omap_set_bit_regw(b,r) \
+@@ -97,17 +102,21 @@
+ #ifdef CONFIG_ARCH_OMAP2
+ /*
+  * PRCM / IPI control logic
++ *
++ * REVISIT: these macros should probably be static inline functions
+  */
+-#define RSTCTRL_RST1_DSP	0x00000001
+-#define RSTCTRL_RST2_DSP	0x00000002
+ #define __dsp_core_enable() \
+-	do { RM_RSTCTRL_DSP &= ~RSTCTRL_RST1_DSP; } while (0)
++	do { prm_write_mod_reg(prm_read_mod_reg(OMAP24XX_DSP_MOD, RM_RSTCTRL) \
++	     & ~OMAP24XX_RST1_DSP, OMAP24XX_DSP_MOD, RM_RSTCTRL); } while (0)
+ #define __dsp_core_disable() \
+-	do { RM_RSTCTRL_DSP |= RSTCTRL_RST1_DSP; } while (0)
++	do { prm_write_mod_reg(prm_read_mod_reg(OMAP24XX_DSP_MOD, RM_RSTCTRL) \
++	     | OMAP24XX_RST1_DSP, OMAP24XX_DSP_MOD, RM_RSTCTRL); } while (0)
+ #define __dsp_per_enable() \
+-	do { RM_RSTCTRL_DSP &= ~RSTCTRL_RST2_DSP; } while (0)
++	do { prm_write_mod_reg(prm_read_mod_reg(OMAP24XX_DSP_MOD, RM_RSTCTRL) \
++	     & ~OMAP24XX_RST2_DSP, OMAP24XX_DSP_MOD, RM_RSTCTRL); } while (0)
+ #define __dsp_per_disable() \
+-	do { RM_RSTCTRL_DSP |= RSTCTRL_RST2_DSP; } while (0)
++	do { prm_write_mod_reg(prm_read_mod_reg(OMAP24XX_DSP_MOD, RM_RSTCTRL) \
++	     | OMAP24XX_RST2_DSP, OMAP24XX_DSP_MOD, RM_RSTCTRL); } while (0)
+ #endif /* CONFIG_ARCH_OMAP2 */
  
--
- #if defined(CONFIG_ARCH_OMAP2420)
+ typedef u32 dsp_long_t;	/* must have ability to carry TADD_ABORTADR */
+@@ -150,10 +159,19 @@ static inline void dsp_clk_disable(void) {}
+ #elif defined(CONFIG_ARCH_OMAP2)
+ static inline void dsp_clk_enable(void)
+ {
++	u32 r;
++
+ 	/*XXX should be handled in mach-omap[1,2] XXX*/
+-	PM_PWSTCTRL_DSP = (1 << 18) | (1 << 0);
+-	CM_AUTOIDLE_DSP |= (1 << 1);
+-	CM_CLKSTCTRL_DSP |= (1 << 0);
++	prm_write_mod_reg(OMAP24XX_FORCESTATE | (1 << OMAP_POWERSTATE_SHIFT),
++			  OMAP24XX_DSP_MOD, PM_PWSTCTRL);
++
++	r = cm_read_mod_reg(OMAP24XX_DSP_MOD, CM_AUTOIDLE);
++	r |= OMAP2420_AUTO_DSP_IPI;
++	cm_write_mod_reg(r, OMAP24XX_DSP_MOD, CM_AUTOIDLE);
++
++	r = cm_read_mod_reg(OMAP24XX_DSP_MOD, CM_CLKSTCTRL);
++	r |= OMAP24XX_AUTOSTATE_DSP;
++	cm_write_mod_reg(r, OMAP24XX_DSP_MOD, CM_CLKSTCTRL);
  
- #define OMAP2_32KSYNCT_BASE	OMAP2420_32KSYNCT_BASE
-@@ -76,8 +75,6 @@
- #define OMAP2_VA_IC_BASE	IO_ADDRESS(OMAP24XX_IC_BASE)
- #define OMAP2_CTRL_BASE		OMAP243X_CTRL_BASE
+ 	clk_enable(dsp_fck_handle);
+ 	clk_enable(dsp_ick_handle);
+@@ -165,7 +183,8 @@ static inline void dsp_clk_disable(void)
+ 	clk_disable(dsp_ick_handle);
+ 	clk_disable(dsp_fck_handle);
  
--#else
--#error "Unknown architecture"
+-	PM_PWSTCTRL_DSP = (1 << 18) | (3 << 0);
++	prm_write_mod_reg(OMAP24XX_FORCESTATE | (3 << OMAP_POWERSTATE_SHIFT),
++			  OMAP24XX_DSP_MOD, PM_PWSTCTRL);
+ }
  #endif
  
- #endif /* __ASM_ARCH_OMAP24XX_H */
-Index: linux-omap/include/asm-arm/arch-omap/omap34xx.h
-===================================================================
---- /dev/null
-+++ linux-omap/include/asm-arm/arch-omap/omap34xx.h
-@@ -0,0 +1,44 @@
-+#ifndef __ASM_ARCH_OMAP34XX_H
-+#define __ASM_ARCH_OMAP34XX_H
-+
-+/*
-+ * Please place only base defines here and put the rest in device
-+ * specific headers.
-+ */
-+
-+#define OMAP3430_32KSYNCT_BASE	0x48320000
-+#define OMAP3430_CM_BASE	0x48004800
-+#define OMAP3430_PRM_BASE	0x48306800
-+#define OMAP343X_SMS_BASE	0x6C000000
-+#define OMAP343X_SDRC_BASE	0x6D000000
-+#define OMAP34XX_GPMC_BASE	0x6E000000
-+#define OMAP3430_SCM_BASE	0x48002000
-+#define OMAP3430_CTRL_BASE	OMAP3430_SCM_BASE
-+
-+#define OMAP34XX_IC_BASE	0x48200000
-+#define OMAP34XX_IVA_INTC_BASE	0x40000000
-+#define IRQ_SIR_IRQ		0x0040
-+
-+
-+#if defined(CONFIG_ARCH_OMAP3430)
-+
-+#define OMAP2_32KSYNCT_BASE	OMAP3430_32KSYNCT_BASE
-+#define OMAP2_CM_BASE		OMAP3430_CM_BASE
-+#define OMAP2_PRM_BASE		OMAP3430_PRM_BASE
-+#define OMAP2_SDRC_BASE		OMAP343X_SDRC_BASE
-+#define OMAP2_SMS_BASE		OMAP343X_SMS_BASE
-+#define OMAP2_L4_BASE		L4_34XX_BASE
-+#define OMAP2_VA_IC_BASE	IO_ADDRESS(OMAP34XX_IC_BASE)
-+#define OMAP2_CTRL_BASE		OMAP3430_CTRL_BASE
-+
-+#endif
-+
-+
-+#define OMAP34XX_DSP_BASE	0x58000000
-+#define OMAP34XX_DSP_MEM_BASE	(OMAP34XX_DSP_BASE + 0x0)
-+#define OMAP34XX_DSP_IPI_BASE	(OMAP34XX_DSP_BASE + 0x1000000)
-+#define OMAP34XX_DSP_MMU_BASE	(OMAP34XX_DSP_BASE + 0x2000000)
-+
-+
-+#endif /* __ASM_ARCH_OMAP34XX_H */
-+
+diff --git a/arch/arm/plat-omap/dsp/omap2_dsp.h b/arch/arm/plat-omap/dsp/omap2_dsp.h
+index 28a98ad..2e90835 100644
+--- a/arch/arm/plat-omap/dsp/omap2_dsp.h
++++ b/arch/arm/plat-omap/dsp/omap2_dsp.h
+@@ -32,7 +32,6 @@
+ #endif
+ 
+ #include <asm/arch/hardware.h>
+-#include "../../mach-omap2/prcm-regs.h"
+ 
+ /*
+  * DSP IPI registers: mapped to 0xe1000000 -- use readX(), writeX()
+-- 
+1.5.1.3
 
 -- 
