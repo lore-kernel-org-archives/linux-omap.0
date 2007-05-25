@@ -1,13 +1,17 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: updated SDRC, PRCM, 3430 PRCM patch sets
-Date: Fri, 25 May 2007 11:54:52 -0700
-Message-ID: <20070525185452.GM19506@atomide.com>
-References: <Pine.LNX.4.64.0705250227520.11652@utopia.booyaka.com>
+From: Khem Raj <kraj@mvista.com>
+Subject: Re: [PATCH 16/18] omap2: convert DSP code to use new PRCM functions
+	& defines
+Date: Fri, 25 May 2007 14:32:43 -0700
+Message-ID: <200705251432.44056.kraj@mvista.com>
+References: <20070517001132.652728079@pwsan.com>
+	<20070517005444.675356053@pwsan.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20070517005444.675356053@pwsan.com>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0705250227520.11652@utopia.booyaka.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,23 +19,39 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
+Cc: Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [070525 01:40]:
+On Wednesday 16 May 2007 17:11:48 Paul Walmsley wrote:
+> Convert the OMAP2-specific code in plat-omap/dsp to use the new PRCM
+> read/write functions and symbolic constants for registers and register
+> bits.
 >
-> Hi,
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> ---
+>  arch/arm/plat-omap/dsp/dsp_common.h |   39
+> ++++++++++++++++++++++++++--------- arch/arm/plat-omap/dsp/omap2_dsp.h  |  
+>  1 -
+>  2 files changed, 29 insertions(+), 11 deletions(-)
 >
-> following this message are the updated versions of the SDRC cleanup, PRCM 
-> cleanup, and 3430 PRCM patchsets.  These are intended to be applied on top 
-> of the omap24xx.h cleanup patchset that I posted a few days ago.
+> diff --git a/arch/arm/plat-omap/dsp/dsp_common.h
+> b/arch/arm/plat-omap/dsp/dsp_common.h index 898c9ea..2369dad 100644
+> --- a/arch/arm/plat-omap/dsp/dsp_common.h
+> +++ b/arch/arm/plat-omap/dsp/dsp_common.h
+> @@ -28,6 +28,11 @@
+>  #include <asm/arch/mmu.h>
+>  #include "hardware_dsp.h"
+>
+> +#include "../../mach-omap2/prm.h"
+> +#include "../../mach-omap2/prm_regbits_24xx.h"
+> +#include "../../mach-omap2/cm.h"
+> +#include "../../mach-omap2/cm_regbits_24xx.h"
+> +
 
-Pushing all of them today, please everybody verify that things work
-the same way as before for your omap2 boards.
-
-Regards,
-
-Tony
+I think the above includes will break OMAP1. Shouldn't they be included 
+conditionally in
+#ifdef CONFIG_ARCH_OMAP2
+#endif
