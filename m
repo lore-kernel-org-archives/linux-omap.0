@@ -1,14 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: updated SDRC, PRCM, 3430 PRCM patch sets
-Date: Fri, 25 May 2007 14:45:13 -0700
-Message-ID: <20070525214511.GA21314@atomide.com>
+Date: Fri, 25 May 2007 14:51:02 -0700
+Message-ID: <20070525215102.GB21314@atomide.com>
 References: <Pine.LNX.4.64.0705250227520.11652@utopia.booyaka.com>
 	<20070525185452.GM19506@atomide.com> <465757EE.4060403@mvista.com>
+	<20070525214511.GA21314@atomide.com> <465759A8.1030607@mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <465757EE.4060403@mvista.com>
+In-Reply-To: <465759A8.1030607@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,28 +17,16 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: Kevin Hilman <khilman@mvista.com>
 Cc: Paul Walmsley <paul@pwsan.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@mvista.com> [070525 14:41]:
-> Tony Lindgren wrote:
-> > * Paul Walmsley <paul@pwsan.com> [070525 01:40]:
-> >> Hi,
-> >>
-> >> following this message are the updated versions of the SDRC cleanup, PRCM 
-> >> cleanup, and 3430 PRCM patchsets.  These are intended to be applied on top 
-> >> of the omap24xx.h cleanup patchset that I posted a few days ago.
-> > 
-> > Pushing all of them today, please everybody verify that things work
-> > the same way as before for your omap2 boards.
-> > 
+* Kevin Hilman <khilman@mvista.com> [070525 14:48]:
+> Fix OMAP1 builds after SDRC/PRCM updates.
 > 
-> OMAP2430 builds/boots ok for me, but as Khem just pointed out, OMAP1 builds are broken.
-> 
-> This patch gets OMAP1 buildlng again:
+> Signed-off-by: Kevin Hilman <khilman@mvista.com>
 > 
 > --- a/arch/arm/plat-omap/dsp/dsp_common.h
 > +++ b/arch/arm/plat-omap/dsp/dsp_common.h
@@ -54,7 +43,8 @@ List-Id: linux-omap@vger.kernel.org
 >  
 >  #define DSPSPACE_SIZE	0x1000000
 >  
+> 
 
-Thanks, can you reply with your Signed-off-by?
+Thanks, pushed.
 
 Tony
