@@ -1,15 +1,15 @@
 From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: [PATCH 1/2] OMAP: Kill compile warnings
-Date: Fri, 25 May 2007 18:17:25 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47FF0C48@dlee13.ent.ti.com>
-References: <20070525231215.GL21314@atomide.com>
+Subject: RE: [PATCH] OMAP: 2430SDP: Support LCD display as a FB device
+Date: Fri, 25 May 2007 18:20:58 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47FF0C4B@dlee13.ent.ti.com>
+References: <200705251518.13137.hyau@mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
-In-Reply-To: <20070525231215.GL21314@atomide.com>
+In-Reply-To: <200705251518.13137.hyau@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,110 +19,31 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>, nishanth menon <menon.nishanth@gmail.com>
-Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
+To: Hunyue Yau <hyau@mvista.com>, Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 
+>Add glue to control the 2430SDP LCD as a frame buffer device
+>using the existing dispc.c driver under omapfb.
 >
->This warning is wrong, and we cannot mark sys_timer as initdata. See
->other mails related to this on this list. I'd assume this will get =
-fixed
->once sys_timer is added to the list of things to ignore.
->
->Tony
+>Signed-off-by: Hunyue Yau <hyau@mvista.com>
+>Signed-off-by: Kevin Hilman <khilman@mvista.com>
 
-Yes, I had a similar discussion with Dirk, he passed me few pointers =
-yesterday, please see through if it helps....
+Generally if we are putting a new file to list, it's better to mark it =
+as an RFC or RFC / PATCH. So that Tony takes up this in his next series =
+of pushes and we get some chance to review the code.
 
+And for 2430 LCD please have discussions on list before working. Imre =
+and I had a discussion a month back but due to other priorities we were =
+not able to sync up again. There are good pointers that we have which =
+can bring the code in a better shape.
 
------Original Message-----
-From: Dirk Behme [mailto:dirk.behme@googlemail.com]=20
-Sent: Friday, May 25, 2007 7:56 AM
-To: Syed Mohammed, Khasim
-Subject: Re: Compiler warning in omap-twl4030keypad.c
+We have to work on 2420 2430 3430 Display subsystem for many boards that =
+have different kind of interfaces like parallel, RFBI, DSI etc and =
+software stack interface to FBDEV, V4L, etc.
 
-Syed Mohammed, Khasim wrote:
-> Hi Dirk,
-> =20
-> Thanks for the info. I was kind of busy with other stuff. Will look =
-into=20
-> this later this week and submit a patch.
+Lets re-start a thread may be early next week with Imre, Kevin, Hunyue. =
+Let's come up with a framework later who ever gets time can contribute.
 
-I got the following stuff from Felipe Balbi regarding this in private=20
-mail:
-
-1) -- cut --
-I don't think the problem is with TI's code for the omap-twl4030. If
-you check the definition of struct input_dev, at
-include/linux/input.h:
-
-     union {            /* temporarily so while we switching to struct=20
-device */
-         struct device *parent;
-     } dev;
-
-Probably, we just need to wait until they switch to struct device=20
-completely.
-Or maybe this code will help if we assume that omap_twl4030->cdev->dev
-points to the same place as omap_twl4030->dev. I would need any of you
-guys to test it:
-
-diff --git a/drivers/input/keyboard/omap-twl4030keypad.c
-b/drivers/input/keyboard/omap-twl4030keypad.c
-index b96e84f..3776f97 100644
---- a/drivers/input/keyboard/omap-twl4030keypad.c
-+++ b/drivers/input/keyboard/omap-twl4030keypad.c
-@@ -254,7 +254,7 @@ static int __init omap_kp_probe(struct
-platform_device *pdev)
-        omap_twl4030kp->keycodemax      =3D pdata->keymapsize;
-
-        /* Get the debug Device to omap keypad device */
--       dbg_dev =3D &(omap_twl4030kp->dev);
-+       dbg_dev =3D omap_twl4030kp->dev.parent;
-
-        ret =3D input_register_device(omap_twl4030kp);
-        if (ret < 0) {
--- cut --
-
-2) -- cut --
-I forgot to change the text... sorry...
-I'm not using the struct class_device here... I'm just accessing the
-struct device member inside the union dev.
-
-This is an ugly hack :-P ... but it seems to work.
--- cut --
-
-3) -- cut --
-Still a hack, but probably looks better:
-
-diff --git a/drivers/input/keyboard/omap-twl4030keypad.c
-b/drivers/input/keyboard/omap-twl4030keypad.c
-index b96e84f..5eb3ece 100644
---- a/drivers/input/keyboard/omap-twl4030keypad.c
-+++ b/drivers/input/keyboard/omap-twl4030keypad.c
-@@ -50,6 +50,8 @@
-#define KEYNUM_MASK            0xFF000000
-#define ROWCOL_MASK            0x00FFFFFF
-
-+#define get_dbg_dev(d)         (d).parent
-+
-static char *switch_name[NUM_ROWS][NUM_COLS] =3D {
-        {"S2_L", "S2_D", "S2_S", "S3", "S4", "S23"},
-        {"S2_R", "S2_U", "S5", "S6", "S7", "S24"},
-@@ -254,7 +256,7 @@ static int __init omap_kp_probe(struct
-platform_device *pdev)
-        omap_twl4030kp->keycodemax      =3D pdata->keymapsize;
-
-        /* Get the debug Device to omap keypad device */
--       dbg_dev =3D &(omap_twl4030kp->dev);
-+       dbg_dev =3D get_dbg_dev(omap_twl4030kp->dev);
-
-        ret =3D input_register_device(omap_twl4030kp);
-        if (ret < 0) {
-
--- cut --
-
-Regards
-
-Dirk
+Regards,
+Khasim
