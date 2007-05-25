@@ -1,12 +1,12 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/7] omap2: add OMAP3430 register bit defines shared between
-	CM and PRM
-Date: Fri, 25 May 2007 02:31:47 -0600
-Message-ID: <20070525083243.240774947@pwsan.com>
+Subject: [PATCH 4/7] omap2: add OMAP3430 Power/Reset Management register
+	defines to prm.h
+Date: Fri, 25 May 2007 02:31:49 -0600
+Message-ID: <20070525083243.416578065@pwsan.com>
 References: <20070525083145.236366049@pwsan.com>
 Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline;
-	filename=0002-omap2-add-OMAP3430-register-bit-defines-shared-betw.patch
+	filename=0004-omap2-add-OMAP3430-Power-Reset-Management-register.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,141 +19,90 @@ Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Add OMAP3430 register bit defines that are shared between the Clock
-Management and Power/Reset Management registers.
+Add symbolic constants to prm.h for Power/Reset Management registers
+on the OMAP3430.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/prcm_common.h |  118 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 118 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/prm.h |   52 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 51 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prcm_common.h b/arch/arm/mach-omap2/prcm_common.h
-index d2e1bfc..6fd64bf 100644
---- a/arch/arm/mach-omap2/prcm_common.h
-+++ b/arch/arm/mach-omap2/prcm_common.h
-@@ -148,5 +148,123 @@
- #define OMAP2430_ST_MDM					(1 << 0)
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+index 7e1738c..cf2348f 100644
+--- a/arch/arm/mach-omap2/prm.h
++++ b/arch/arm/mach-omap2/prm.h
+@@ -2,7 +2,7 @@
+ #define __ARCH_ARM_MACH_OMAP2_PRM_H
  
+ /*
+- * OMAP2 Power/Reset Management (PRM) register definitions
++ * OMAP2/3 Power/Reset Management (PRM) register definitions
+  *
+  * Copyright (C) 2007 Texas Instruments, Inc.
+  * Copyright (C) 2007 Nokia Corporation
+@@ -48,6 +48,45 @@
+ #define OMAP24XX_PRCM_CLKSSETUP		OMAP_PRM_REGADDR(OCP_MOD, 0x0094)
+ #define OMAP24XX_PRCM_POLCTRL		OMAP_PRM_REGADDR(OCP_MOD, 0x0098)
  
-+/* 3430 register bits shared between CM & PRM registers */
++#define OMAP3430_PRM_REVISION		OMAP_PRM_REGADDR(OCP_MOD, 0x0004)
++#define OMAP3430_PRM_SYSCONFIG		OMAP_PRM_REGADDR(OCP_MOD, 0x0014)
 +
-+/* CM_REVISION, PRM_REVISION shared bits */
-+#define OMAP3430_REV_SHIFT				0
-+#define OMAP3430_REV_MASK				(0xff << 0)
++#define OMAP3430_PRM_IRQSTATUS_MPU	OMAP_PRM_REGADDR(OCP_MOD, 0x0018)
++#define OMAP3430_PRM_IRQENABLE_MPU	OMAP_PRM_REGADDR(OCP_MOD, 0x001c)
 +
-+/* CM_SYSCONFIG, PRM_SYSCONFIG shared bits */
-+#define OMAP3430_AUTOIDLE				(1 << 0)
 +
-+/* CM_FCLKEN1_CORE, CM_ICLKEN1_CORE, PM_WKEN1_CORE shared bits */
-+#define OMAP3430_EN_MMC2				(1 << 25)
-+#define OMAP3430_EN_MMC1				(1 << 24)
-+#define OMAP3430_EN_MCSPI4				(1 << 21)
-+#define OMAP3430_EN_MCSPI3				(1 << 20)
-+#define OMAP3430_EN_MCSPI2				(1 << 19)
-+#define OMAP3430_EN_MCSPI1				(1 << 18)
-+#define OMAP3430_EN_I2C3				(1 << 17)
-+#define OMAP3430_EN_I2C2				(1 << 16)
-+#define OMAP3430_EN_I2C1				(1 << 15)
-+#define OMAP3430_EN_UART2				(1 << 14)
-+#define OMAP3430_EN_UART1				(1 << 13)
-+#define OMAP3430_EN_GPT11				(1 << 12)
-+#define OMAP3430_EN_GPT10				(1 << 11)
-+#define OMAP3430_EN_MCBSP5				(1 << 10)
-+#define OMAP3430_EN_MCBSP1				(1 << 9)
-+#define OMAP3430_EN_FSHOSTUSB				(1 << 5)
-+#define OMAP3430_EN_D2D					(1 << 3)
++#define OMAP3430_PRM_VC_SMPS_SA		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0020)
++#define OMAP3430_PRM_VC_SMPS_VOL_RA	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0024)
++#define OMAP3430_PRM_VC_SMPS_CMD_RA	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0028)
++#define OMAP3430_PRM_VC_CMD_VAL_0	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x002c)
++#define OMAP3430_PRM_VC_CMD_VAL_1	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0030)
++#define OMAP3430_PRM_VC_CH_CONF		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0034)
++#define OMAP3430_PRM_VC_I2C_CFG		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0038)
++#define OMAP3430_PRM_VC_BYPASS_VAL	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x003c)
++#define OMAP3430_PRM_RSTCTRL		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0050)
++#define OMAP3430_PRM_RSTTIME		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0054)
++#define OMAP3430_PRM_RSTST		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0058)
++#define OMAP3430_PRM_VOLTCTRL		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0060)
++#define OMAP3430_PRM_SRAM_PCHARGE	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0064)
++#define OMAP3430_PRM_CLKSRC_CTRL	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0070)
++#define OMAP3430_PRM_VOLTSETUP1		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0090)
++#define OMAP3430_PRM_VOLTOFFSET		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0094)
++#define OMAP3430_PRM_CLKSETUP		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0098)
++#define OMAP3430_PRM_POLCTRL		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x009c)
++#define OMAP3430_PRM_VOLTSETUP2		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00a0)
++#define OMAP3430_PRM_VP1_CONFIG		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00b0)
++#define OMAP3430_PRM_VP1_VSTEPMIN	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00b4)
++#define OMAP3430_PRM_VP1_VSTEPMAX	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00b8)
++#define OMAP3430_PRM_VP1_VLIMITTO	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00bc)
++#define OMAP3430_PRM_VP1_VOLTAGE	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00c0)
++#define OMAP3430_PRM_VP1_STATUS		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00c4)
++#define OMAP3430_PRM_VP2_CONFIG		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00d0)
++#define OMAP3430_PRM_VP2_VSTEPMIN	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00d4)
++#define OMAP3430_PRM_VP2_VSTEPMAX	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00d8)
++#define OMAP3430_PRM_VP2_VLIMITTO	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00dc)
++#define OMAP3430_PRM_VP2_VOLTAGE	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e0)
++#define OMAP3430_PRM_VP2_STATUS		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e4)
 +
-+/* CM_ICLKEN1_CORE, PM_WKEN1_CORE shared bits */
-+#define OMAP3430_EN_HSOTGUSB				(1 << 4)
+ 
+ /* Power/reset management global register get/set */
+ 
+@@ -92,6 +131,17 @@ static u32 __attribute__((unused)) prm_read_reg(void __iomem *addr)
+ #define PM_PWSTCTRL					0x00e0
+ #define PM_PWSTST					0x00e4
+ 
++#define OMAP3430_PM_MPUGRPSEL				0x00a4
++#define OMAP3430_PM_MPUGRPSEL1				OMAP3430_PM_MPUGRPSEL
 +
-+/* PM_WKST1_CORE, CM_IDLEST1_CORE shared bits */
-+#define OMAP3430_ST_MMC2				(1 << 25)
-+#define OMAP3430_ST_MMC1				(1 << 24)
-+#define OMAP3430_ST_MCSPI4				(1 << 21)
-+#define OMAP3430_ST_MCSPI3				(1 << 20)
-+#define OMAP3430_ST_MCSPI2				(1 << 19)
-+#define OMAP3430_ST_MCSPI1				(1 << 18)
-+#define OMAP3430_ST_I2C3				(1 << 17)
-+#define OMAP3430_ST_I2C2				(1 << 16)
-+#define OMAP3430_ST_I2C1				(1 << 15)
-+#define OMAP3430_ST_UART2				(1 << 14)
-+#define OMAP3430_ST_UART1				(1 << 13)
-+#define OMAP3430_ST_GPT11				(1 << 12)
-+#define OMAP3430_ST_GPT10				(1 << 11)
-+#define OMAP3430_ST_MCBSP5				(1 << 10)
-+#define OMAP3430_ST_MCBSP1				(1 << 9)
-+#define OMAP3430_ST_FSHOSTUSB				(1 << 5)
-+#define OMAP3430_ST_HSOTGUSB				(1 << 4)
-+#define OMAP3430_ST_D2D					(1 << 3)
++#define OMAP3430_PM_IVAGRPSEL				0x00a8
++#define OMAP3430_PM_IVAGRPSEL1				OMAP3430_PM_IVAGRPSEL
 +
-+/* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
-+#define OMAP3430_EN_GPIO1				(1 << 3)
-+#define OMAP3430_EN_GPT1				(1 << 0)
++#define OMAP3430_PM_PREPWSTST				0x00e8
 +
-+/* CM_FCLKEN_WKUP, PM_WKEN_WKUP shared bits */
-+#define OMAP3430_EN_SR2					(1 << 7)
-+#define OMAP3430_EN_SR1					(1 << 6)
++#define OMAP3430_PRM_IRQSTATUS_IVA2			0x00f8
++#define OMAP3430_PRM_IRQENABLE_IVA2			0x00fc
 +
-+/* CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
-+#define OMAP3430_EN_GPT12				(1 << 1)
-+
-+/* CM_IDLEST_WKUP, PM_WKST_WKUP shared bits */
-+#define OMAP3430_ST_SR2					(1 << 7)
-+#define OMAP3430_ST_SR1					(1 << 6)
-+#define OMAP3430_ST_GPIO1				(1 << 3)
-+#define OMAP3430_ST_GPT12				(1 << 1)
-+#define OMAP3430_ST_GPT1				(1 << 0)
-+
-+/*
-+ * CM_SLEEPDEP_GFX, CM_SLEEPDEP_DSS, CM_SLEEPDEP_CAM,
-+ * CM_SLEEPDEP_PER, PM_WKDEP_IVA2, PM_WKDEP_GFX,
-+ * PM_WKDEP_DSS, PM_WKDEP_CAM, PM_WKDEP_PER, PM_WKDEP_NEON shared bits
-+ */
-+#define OMAP3430_EN_MPU					(1 << 1)
-+
-+/* CM_FCLKEN_PER, CM_ICLKEN_PER, PM_WKEN_PER shared bits */
-+#define OMAP3430_EN_GPIO6				(1 << 17)
-+#define OMAP3430_EN_GPIO5				(1 << 16)
-+#define OMAP3430_EN_GPIO4				(1 << 15)
-+#define OMAP3430_EN_GPIO3				(1 << 14)
-+#define OMAP3430_EN_GPIO2				(1 << 13)
-+#define OMAP3430_EN_UART3				(1 << 11)
-+#define OMAP3430_EN_GPT9				(1 << 10)
-+#define OMAP3430_EN_GPT8				(1 << 9)
-+#define OMAP3430_EN_GPT7				(1 << 8)
-+#define OMAP3430_EN_GPT6				(1 << 7)
-+#define OMAP3430_EN_GPT5				(1 << 6)
-+#define OMAP3430_EN_GPT4				(1 << 5)
-+#define OMAP3430_EN_GPT3				(1 << 4)
-+#define OMAP3430_EN_GPT2				(1 << 3)
-+
-+/* CM_FCLKEN_PER, CM_ICLKEN_PER, PM_WKEN_PER, PM_WKST_PER shared bits */
-+/* XXX Possible TI documentation bug: should the PM_WKST_PER EN_* bits
-+ * be ST_* bits instead? */
-+#define OMAP3430_EN_MCBSP4				(1 << 2)
-+#define OMAP3430_EN_MCBSP3				(1 << 1)
-+#define OMAP3430_EN_MCBSP2				(1 << 0)
-+
-+/* CM_IDLEST_PER, PM_WKST_PER shared bits */
-+#define OMAP3430_ST_GPIO6				(1 << 17)
-+#define OMAP3430_ST_GPIO5				(1 << 16)
-+#define OMAP3430_ST_GPIO4				(1 << 15)
-+#define OMAP3430_ST_GPIO3				(1 << 14)
-+#define OMAP3430_ST_GPIO2				(1 << 13)
-+#define OMAP3430_ST_UART3				(1 << 11)
-+#define OMAP3430_ST_GPT9				(1 << 10)
-+#define OMAP3430_ST_GPT8				(1 << 9)
-+#define OMAP3430_ST_GPT7				(1 << 8)
-+#define OMAP3430_ST_GPT6				(1 << 7)
-+#define OMAP3430_ST_GPT5				(1 << 6)
-+#define OMAP3430_ST_GPT4				(1 << 5)
-+#define OMAP3430_ST_GPT3				(1 << 4)
-+#define OMAP3430_ST_GPT2				(1 << 3)
-+
-+/* CM_SLEEPDEP_PER, PM_WKDEP_IVA2, PM_WKDEP_MPU, PM_WKDEP_PER shared bits */
-+#define OMAP3430_EN_CORE				(1 << 0)
-+
- #endif
+ 
+ /* Architecture-specific registers */
  
 -- 
 1.5.1.3
