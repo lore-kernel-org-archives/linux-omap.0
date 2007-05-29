@@ -1,13 +1,14 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: ADDING OMAP 3430 Support
-Date: Tue, 29 May 2007 16:33:45 +0200
-Message-ID: <465C39C9.3030209@googlemail.com>
-References: <9C23CDD79DA20A479D4615857B2E2C47FF0E2C@dlee13.ent.ti.com>
+Subject: Re: [PATCH] Make SRP passes in all Electrical Tests
+Date: Tue, 29 May 2007 16:39:09 +0200
+Message-ID: <465C3B0D.1080808@googlemail.com>
+References: <11804401622277-git-send-email-felipebalbi@users.sourceforge.net>	<11804401651954-git-send-email-felipebalbi@users.sourceforge.net>	<11804401662563-git-send-email-felipebalbi@users.sourceforge.net>	<11804401722783-git-send-email-felipebalbi@users.sourceforge.net>	<1180440173922-git-send-email-felipebalbi@users.sourceforge.net>	<11804401741522-git-send-email-felipebalbi@users.sourceforge.net>	<11804401752426-git-send-email-felipebalbi@users.sourceforge.net>	<1180440176127-git-send-email-felipebalbi@users.sourceforge.net>	<11804401773555-git-send-email-felipebalbi@users.sourceforge.net>	<11804401782736-git-send-email-felipebalbi@users.sourceforge.net>	<11804401803413-git-send-email-felipebalbi@users.sourceforge.net>
+	<11804401811364-git-send-email-felipebalbi@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47FF0E2C@dlee13.ent.ti.com>
+In-Reply-To: <11804401811364-git-send-email-felipebalbi@users.sourceforge.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,13 +18,16 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
+To: Felipe Balbi <felipebalbi@users.sourceforge.net>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Syed Mohammed, Khasim wrote:
-> OMAP 3430 is an ARM Cortex A8 based Multimedia Application processor. 
+Felipe Balbi wrote:
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
 
-Which compiler should be used for this? I assume a CodeSourcery one?
+Mmmh, this is empty?
 
 Dirk
