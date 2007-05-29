@@ -1,14 +1,10 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: MontaVista Linux Preview Kit 3.1 Password
-Date: Tue, 29 May 2007 13:40:30 +0530
-Message-ID: <5d5443650705290110u2a8f5901lbff12b228b6b476b@mail.gmail.com>
-References: <001301c7a1c6$b3b48fe0$fa00a8c0@BGP>
+From: Nagesh.Sonone@lntinfotech.com
+Subject: OMAP2430 NAND x-loader + U-Boot
+Date: Tue, 29 May 2007 10:06:36 +0530
+Message-ID: <OFD625DC92.2F6D3100-ON652572EA.00186B66-652572EA.0018DDEF@lntinfotech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="US-ASCII"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <001301c7a1c6$b3b48fe0$fa00a8c0@BGP>
-Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,21 +14,25 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "bhavesh.pethani" <bhavesh.pethani@ssplindia.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Bhavesh,
+Hi All,
+   I have compiled NAND x-loader for OMAP2430 and is running successfully 
+( showing the message "x-loader hangs" eventually, and also showing Bad 
+Blocks sometimes). I have also compiled NAND U-Boot for the same.
+       I had assumed that it will work well if I put my NAND U-Boot at 
+NAND offset 0x40000 ( as x-loader looks for this address for U-boot 
+image,I believe), but its not working.
+  Please can anybody tell me how to make it work for NAND? 
+( I am also not much cleared with NAND booting , It will be great help to 
+me if somebody can elobarate some more on this with regard to ROM Code , 
+Internal RAM)
 
-On 5/29/07, bhavesh.pethani <bhavesh.pethani@ssplindia.com> wrote:
-> Dear,
->
-> How to get password of MontaVista Linux Preview Kit 3.1.
->
-> http://www.mvista.com/previewkit dose not work.
+Thanks & Regards,
+Nagesh R. Sonone,
+Software Engineer,
+L&T Infotech Ltd. 
 
-Then please ask MontaVista. This list is specifically for Open Source
-OMAP Linux kernel development only.
 
--- 
---Trilok Soni
+______________________________________________________________________
