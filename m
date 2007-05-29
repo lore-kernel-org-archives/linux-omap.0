@@ -1,17 +1,15 @@
-From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
-Subject: Re: [PATCH] USB: Fix OTG HNP for hub.c
-Date: Tue, 29 May 2007 22:24:56 +0300
-Message-ID: <31e679430705291224h5f1e8552paf8bff92f97f7f3f@mail.gmail.com>
-References: <11804401622277-git-send-email-felipebalbi@users.sourceforge.net>
-	<11804401752426-git-send-email-felipebalbi@users.sourceforge.net>
-	<1180440176127-git-send-email-felipebalbi@users.sourceforge.net>
-	<200705291221.20343.david-b@pacbell.net>
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: RE: [PATCH 5/11] Adding OMAP3430 support to mach-omap2
+Date: Tue, 29 May 2007 14:49:32 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47FF12A7@dlee13.ent.ti.com>
+References: <20070529164859.GA26322@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <200705291221.20343.david-b@pacbell.net>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
+In-Reply-To: <20070529164859.GA26322@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,69 +19,72 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap-open-source@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Tony,
 
-On 5/29/07, David Brownell <david-b@pacbell.net> wrote:
-> On Tuesday 29 May 2007, Felipe Balbi wrote:
-> > From: Tony Lindgren <tony@atomide.com>
-> >
-> > This patch makes makes OTG Host Negotiation Protocol (HNP)
-> > to behave.
->
-> Not really.  It makes it strongly *MIS* behave in fact,
-> since it always kicks off HNP ... even when it should not
-> do so, because the device is in the whitelist.  (Called
-> the "Targeted Peripherals List", TPL, in jargonese.)
->
-> The two blocks of code are in the wrong order ...
->
->
-> A more limited patch would help.  Specifically, just
-> fixing whatever bug was seen in the original code,
-> rather than abstracting it into a new subroutine and
-> changing the logic while doing so.
+One quick clarification,
 
-Tony do you have any comments?
-Do you mind if I try to re-work you patch?
+>> diff -purN linux-omap/arch/arm/mach-omap2/io.c
+>val_3430_GIT/arch/arm/mach-omap2/io.c
+>> --- linux-omap/arch/arm/mach-omap2/io.c	2007-05-16=20
+>>
+<snip>
+>> +#if defined(CONFIG_ARCH_OMAP24XX)
+>> +
+>> +#define L3_VIRT		L3_24XX_VIRT
+>> +#define L3_PHYS		L3_24XX_PHYS
+>> +#define L3_SIZE		L3_24XX_SIZE
+>> +
+>> +#define L4_VIRT		L4_24XX_VIRT
+>> +#define L4_PHYS		L4_24XX_PHYS
+>> +#define L4_SIZE		L4_24XX_SIZE
+>> +
+>> +#define L4_WK_VIRT	L4_WK_243X_VIRT
+>> +#define L4_WK_PHYS	L4_WK_243X_PHYS
+>> +#define L4_WK_SIZE	L4_WK_243X_SIZE
+>> +
+<snip>
+>> +#elif defined(CONFIG_ARCH_OMAP34XX)
+>> +
+>> +#define L3_VIRT		L3_34XX_VIRT
+>> +#define L3_PHYS		L3_34XX_PHYS
+>> +#define L3_SIZE		L3_34XX_SIZE
+>> +
+>> +#define L4_VIRT		L4_34XX_VIRT
+>> +#define L4_PHYS		L4_34XX_PHYS
+>> +#define L4_SIZE		L4_34XX_SIZE
+>> +
+>> +#define L4_PER_VIRT	L4_PER_34XX_VIRT
+>> +#define L4_PER_PHYS	L4_PER_34XX_PHYS
+>> +#define L4_PER_SIZE	L4_PER_34XX_SIZE
+>> +
+>> +#define L4_WK_VIRT	L4_WK_34XX_VIRT
+>> +#define L4_WK_PHYS	L4_WK_34XX_PHYS
+>> +#define L4_WK_SIZE	L4_WK_34XX_SIZE
+>> +
+>> +
+<snip>
+>> +#endif
+>
+>Let's rather change the #elif to #if to potentially compile in both
+>(altought unoptimized).=20
+If we try to opt for different map descriptor table for OMAP2 and OMAP3 =
+then these definitions might not be needed at all.
 
->
-> - Dave
->
->
-> > +     /* If B-device wants to do HNP, it will do it after we suspend */
-> > +     if (bus->b_hnp_enable) {
-> > +             dev_err(&udev->dev, "trying HNP, suspending bus\n");
-> > +             err = __usb_port_suspend(udev, udev->bus->otg_port);
-> > +             if (err < 0) {
-> > +                     dev_err(&udev->dev, "suspend for HNP failed\n");
-> > +                     return -ENODEV;
-> > +             }
-> > +
-> > +             /* TB_ASE0_BRST, minimum 3.125 ms */
-> > +             mdelay(4);
-> > +
-> > +             /* Failed resume means B-device took over the bus with HNP */
-> > +             err = usb_port_resume(udev);
-> > +             if (err < 0) {
-> > +                     dev_err(&udev->dev, "HNP success\n");
-> > +                     return -ENODEV;
-> > +             }
-> > +     }
-> > +
-> > +     /* HNP failed. Reject B-devices not in our whitelist */
-> > +     if (!is_targeted(udev))
-> > +             return -ENODEV;
-> > +
+>I guess that also means changing L3_VIRT to be
+>L3_VIRT_34XX and so on.
 >
 >
+The reason these definitions were defined was to re-use the common =
+fields (between 2430 / 3430) in map descriptor table.
 
+If we change L3_VIRT to be L3_VIRT_34XX, this will make the map =
+descriptor table look more redundant in code...=20
 
--- 
-Best Regards,
+Did you mean creating a two separate map descriptor tables?
 
-Felipe Balbi
-felipebalbi@users.sourceforge.net
+Regards,
+Khasim
