@@ -1,12 +1,12 @@
 From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: [PATCH 1/11] Add VFP support for ARM V7 - OMAP 3430 support
-Date: Tue, 29 May 2007 01:19:59 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47FF0E2D@dlee13.ent.ti.com>
+Subject: [PATCH 3/11] Add OMAP3 support
+Date: Tue, 29 May 2007 01:21:02 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47FF0E2F@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,173 +15,45 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-
-Add VFP support for ARM V7, derived from ARM's Cortex patch
+Add OMAP3 support in arch/arm/Makefile and mm/Kconfig
 
 Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
 
 Files Changed:
- Kconfig         |   16 ++++++++++++++--
- vfp/vfp.h       |    5 +++++
- vfp/vfphw.S     |   21 ++++++++++++++++++++-
- vfp/vfpmodule.c |    8 ++++++++
- 4 files changed, 47 insertions(+), 3 deletions(-)
+ Makefile   |    1 +
+ mm/Kconfig |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-diff -purN linux-omap/arch/arm/Kconfig val_3430_GIT/arch/arm/Kconfig
---- linux-omap/arch/arm/Kconfig	2007-05-25 13:27:02.000000000 -0500
-+++ val_3430_GIT/arch/arm/Kconfig	2007-05-25 23:05:30.000000000 -0500
-@@ -393,7 +393,7 @@ config ARCH_OMAP
- 	select GENERIC_TIME
- 	select GENERIC_CLOCKEVENTS
- 	help
--	  Support for TI's OMAP platform (OMAP1 and OMAP2).
-+	  Support for TI's OMAP platform (OMAP1, OMAP2 and OMAP3).
-=20
- endchoice
-=20
-@@ -925,7 +925,7 @@ config FPE_FASTFPE
-=20
- config VFP
- 	bool "VFP-format floating point maths"
--	depends on CPU_V6 || CPU_ARM926T
-+	depends on CPU_V6 || CPU_ARM926T || CPU_V7
- 	help
- 	  Say Y to include VFP support code in the kernel. This is needed
- 	  if your hardware includes a VFP unit.
-@@ -935,6 +935,18 @@ config VFP
-=20
- 	  Say N if your target does not have VFP hardware.
-=20
-+config VFPv3
-+	bool
-+	depends on VFP
-+	default y if CPU_V7
-+
-+config NEON
-+	bool "NEON Advanced SIMD Extension support"
-+	depends on VFPv3 && CPU_V7
-+	help
-+	  Say Y to include support code for NEON, the ARMv7 Advanced SIMD
-+	  Extensions.
-+
- endmenu
-=20
- menu "Userspace binary formats"
-=20
-diff -purN linux-omap/arch/arm/vfp/vfp.h val_3430_GIT/arch/arm/vfp/vfp.h
---- linux-omap/arch/arm/vfp/vfp.h	2007-02-16 09:43:28.000000000 -0600
-+++ val_3430_GIT/arch/arm/vfp/vfp.h	2007-05-25 22:32:46.000000000 -0500
-@@ -265,7 +265,12 @@ struct vfp_double {
-  * which returns (double)0.0.  This is useful for the compare with
-  * zero instructions.
-  */
-+#ifdef CONFIG_VFPv3
-+#define VFP_REG_ZERO	32
-+#else
- #define VFP_REG_ZERO	16
-+#endif
-+
- extern u64 vfp_get_double(unsigned int reg);
- extern void vfp_put_double(u64 val, unsigned int reg);
-=20
-diff -purN linux-omap/arch/arm/vfp/vfphw.S =
-val_3430_GIT/arch/arm/vfp/vfphw.S
---- linux-omap/arch/arm/vfp/vfphw.S	2007-02-16 09:43:28.000000000 -0600
-+++ val_3430_GIT/arch/arm/vfp/vfphw.S	2007-05-25 22:32:46.000000000 =
--0500
-@@ -100,10 +100,12 @@ vfp_support_entry:
- 	cmp	r4, #0
- 	beq	no_old_VFP_process
- 	VFPFMRX	r5, FPSCR		@ current status
-+#ifndef CONFIG_VFPv3
- 	VFPFMRX	r6, FPINST		@ FPINST (always there, rev0 onwards)
- 	tst	r1, #FPEXC_FPV2		@ is there an FPINST2 to read?
- 	VFPFMRX	r8, FPINST2, NE		@ FPINST2 if needed - avoids reading
- 					@ nonexistant reg on rev0
-+#endif
- 	VFPFSTMIA r4 			@ save the working registers
- 	stmia	r4, {r1, r5, r6, r8}	@ save FPEXC, FPSCR, FPINST, FPINST2
- 					@ and point r4 at the word at the
-@@ -117,10 +119,12 @@ no_old_VFP_process:
- 	VFPFLDMIA r10	 		@ reload the working registers while
- 					@ FPEXC is in a safe state
- 	ldmia	r10, {r1, r5, r6, r8}	@ load FPEXC, FPSCR, FPINST, FPINST2
-+#ifndef CONFIG_VFPv3
- 	tst	r1, #FPEXC_FPV2		@ is there an FPINST2 to write?
- 	VFPFMXR	FPINST2, r8, NE		@ FPINST2 if needed - avoids writing
- 					@ nonexistant reg on rev0
- 	VFPFMXR	FPINST, r6
-+#endif
- 	VFPFMXR	FPSCR, r5		@ restore status
-=20
- check_for_exception:
-@@ -217,8 +221,15 @@ vfp_get_double:
- 	fmrrd	r0, r1, d\dr
- 	mov	pc, lr
- 	.endr
-+#ifdef CONFIG_VFPv3
-+	@ d16 - d31 registers
-+	.irp	dr,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
-+	mrrc	p11, 3, r0, r1, c\dr	@ fmrrd r0, r1, d\dr
-+	mov	pc, lr
-+	.endr
-+#endif
-=20
--	@ virtual register 16 for compare with zero
-+	@ virtual register 16 (or 32 if VFPv3) for compare with zero
- 	mov	r0, #0
- 	mov	r1, #0
- 	mov	pc, lr
-@@ -231,3 +242,11 @@ vfp_put_double:
- 	fmdrr	d\dr, r0, r1
- 	mov	pc, lr
- 	.endr
-+#ifdef CONFIG_VFPv3
-+	@ d16 - d31 registers
-+	.irp	dr,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
-+	mcrr	p11, 3, r1, r2, c\dr	@ fmdrr r1, r2, d\dr
-+	mov	pc, lr
-+	.endr
-+#endif
-+
-diff -purN linux-omap/arch/arm/vfp/vfpmodule.c =
-val_3430_GIT/arch/arm/vfp/vfpmodule.c
---- linux-omap/arch/arm/vfp/vfpmodule.c	2007-02-16 09:43:28.000000000 =
--0600
-+++ val_3430_GIT/arch/arm/vfp/vfpmodule.c	2007-05-25 22:32:46.000000000 =
--0500
-@@ -261,11 +261,16 @@ void VFP9_bounce(u32 trigger, u32 fpexc,
- 	 * FPEXC bounce reason, but this appears to be unreliable.
- 	 * Emulate the bounced instruction instead.
- 	 */
-+#ifndef CONFIG_VFPv3
- 	inst =3D fmrx(FPINST);
-+#else
-+	inst =3D trigger;
-+#endif
- 	exceptions =3D vfp_emulate_instruction(inst, fpscr, regs);
- 	if (exceptions)
- 		vfp_raise_exceptions(exceptions, inst, orig_fpscr, regs);
-=20
-+#ifndef CONFIG_VFPv3
- 	/*
- 	 * If there isn't a second FP instruction, exit now.
- 	 */
-@@ -279,6 +284,9 @@ void VFP9_bounce(u32 trigger, u32 fpexc,
- 	barrier();
- 	trigger =3D fmrx(FPINST2);
- 	orig_fpscr =3D fpscr =3D fmrx(FPSCR);
-+#else
-+	return;
-+#endif
-=20
-  emulate:
- 	exceptions =3D vfp_emulate_instruction(trigger, fpscr, regs);
+diff -purN linux-omap/arch/arm/Makefile val_3430_GIT/arch/arm/Makefile
+--- linux-omap/arch/arm/Makefile	2007-05-16 14:32:39.000000000 -0500
++++ val_3430_GIT/arch/arm/Makefile	2007-05-25 23:06:30.000000000 -0500
+@@ -121,6 +121,7 @@ endif
+  machine-$(CONFIG_ARCH_IXP23XX)    :=3D ixp23xx
+  machine-$(CONFIG_ARCH_OMAP1)	   :=3D omap1
+  machine-$(CONFIG_ARCH_OMAP2)	   :=3D omap2
++ machine-$(CONFIG_ARCH_OMAP3)		:=3D omap2
+   incdir-$(CONFIG_ARCH_OMAP)	   :=3D omap
+  machine-$(CONFIG_ARCH_S3C2410)	   :=3D s3c2410
+  machine-$(CONFIG_ARCH_LH7A40X)	   :=3D lh7a40x
+
+diff -purN linux-omap/arch/arm/mm/Kconfig =
+val_3430_GIT/arch/arm/mm/Kconfig
+--- linux-omap/arch/arm/mm/Kconfig	2007-05-25 13:27:03.000000000 -0500
++++ val_3430_GIT/arch/arm/mm/Kconfig	2007-05-25 23:07:56.000000000 -0500
+@@ -370,7 +370,7 @@ config CPU_32v6K
+ # ARMv7
+ config CPU_V7
+ 	bool "Support ARM V7 processor"
+-	depends on ARCH_INTEGRATOR
++	depends on ARCH_INTEGRATOR || ARCH_OMAP3
+ 	select CPU_32v6K
+ 	select CPU_32v7
+ 	select CPU_ABRT_EV7
