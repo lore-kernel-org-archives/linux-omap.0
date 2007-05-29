@@ -1,15 +1,11 @@
 From: Felipe Balbi <felipebalbi@users.sourceforge.net>
-Subject: [PATCH] musb_hdrc: Make HNP work
-Date: Tue, 29 May 2007 15:02:37 +0300
-Message-ID: <11804401752426-git-send-email-felipebalbi@users.sourceforge.net>
+Subject: [PATCH] musb_hdrc: Implement workaround for tusb3.0 wbus bug rev2
+Date: Tue, 29 May 2007 15:02:33 +0300
+Message-ID: <11804401662563-git-send-email-felipebalbi@users.sourceforge.net>
 References: <11804401622277-git-send-email-felipebalbi@users.sourceforge.net>
 	<11804401651954-git-send-email-felipebalbi@users.sourceforge.net>
-	<11804401662563-git-send-email-felipebalbi@users.sourceforge.net>
-	<11804401722783-git-send-email-felipebalbi@users.sourceforge.net>
-	<1180440173922-git-send-email-felipebalbi@users.sourceforge.net>
-	<11804401741522-git-send-email-felipebalbi@users.sourceforge.net>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11804401741522-git-send-email-felipebalbi@users.sourceforge.net>
+In-Reply-To: <11804401651954-git-send-email-felipebalbi@users.sourceforge.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -24,353 +20,161 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Tony Lindgren <tony@atomide.com>
 
-This patch makes Host Negotiation Protocol (HNP) mostly work.
-To enable HNP to turn B-device into B-host, do:
+Without this workaround tusb3.0 will wake-up spontaneously
+on USB suspend.
 
-# echo 1 > /sys/devices/platform/musb_hdrc/hnp
-
-To disable B-host:
-
-# echo 0 > /sys/devices/platform/musb_hdrc/hnp
-
-Currently you probably need to replug the B-device
-after stopping HNP to have it detected.
+Patch also moves revision functions to the top of the file.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
 ---
 
-Index: linux-omap-2.6/drivers/usb/musb/g_ep0.c
+Index: linux-omap-2.6/drivers/usb/musb/tusb6010.c
 ===================================================================
---- linux-omap-2.6.orig/drivers/usb/musb/g_ep0.c	2007-05-28 01:39:42.000000000 +0300
-+++ linux-omap-2.6/drivers/usb/musb/g_ep0.c	2007-05-28 13:18:58.000000000 +0300
-@@ -201,6 +201,21 @@
- }
+--- linux-omap-2.6.orig/drivers/usb/musb/tusb6010.c	2007-05-25 14:12:31.000000000 +0300
++++ linux-omap-2.6/drivers/usb/musb/tusb6010.c	2007-05-25 14:12:34.000000000 +0300
+@@ -25,6 +25,67 @@
+ 
+ #include "musbdefs.h"
+ 
++/*
++ * Checks the revision. We need to use the DMA register as 3.0 does not
++ * have correct versions for TUSB_PRCM_REV or TUSB_INT_CTRL_REV.
++ */
++static u8 tusb_get_revision(struct musb *musb)
++{
++	void __iomem	*base = musb->ctrl_base;
++
++	return musb_readl(base, TUSB_DMA_CTRL_REV) & 0xff;
++}
++
++#define TUSB_REV_MAJOR(reg_val)		((reg_val >> 4) & 0xf)
++#define TUSB_REV_MINOR(reg_val)		(reg_val & 0xf)
++
++static int __init tusb_print_revision(struct musb *musb)
++{
++	void __iomem	*base = musb->ctrl_base;
++
++	pr_info("tusb: Revisions: %s%i.%i %s%i.%i %s%i.%i %s%i.%i\n",
++		"prcm",
++		TUSB_REV_MAJOR(musb_readl(base, TUSB_PRCM_REV)),
++		TUSB_REV_MINOR(musb_readl(base, TUSB_PRCM_REV)),
++		"int",
++		TUSB_REV_MAJOR(musb_readl(base, TUSB_INT_CTRL_REV)),
++		TUSB_REV_MINOR(musb_readl(base, TUSB_INT_CTRL_REV)),
++		"gpio",
++		TUSB_REV_MAJOR(musb_readl(base, TUSB_GPIO_REV)),
++		TUSB_REV_MINOR(musb_readl(base, TUSB_GPIO_REV)),
++		"dma",
++		TUSB_REV_MAJOR(musb_readl(base, TUSB_DMA_CTRL_REV)),
++		TUSB_REV_MINOR(musb_readl(base, TUSB_DMA_CTRL_REV)));
++
++	return TUSB_REV_MAJOR(musb_readl(base, TUSB_INT_CTRL_REV));
++}
++
++static void tusb_wbus_quirk(struct musb *musb, int enabled)
++{
++	void __iomem	*base = musb->ctrl_base;
++	static u32	phy_otg_ctrl = 0;
++
++	if (enabled) {
++		DBG(2, "Enabling tusb wbus quirk\n");
++		musb_writel(base, TUSB_PHY_OTG_CTRL_ENABLE,
++				TUSB_PHY_OTG_CTRL_WRPROTECT |
++				TUSB_PHY_OTG_CTRL_TESTM2 |
++				TUSB_PHY_OTG_CTRL_TESTM1 |
++				TUSB_PHY_OTG_CTRL_TESTM0);
++		phy_otg_ctrl = musb_readl(base, TUSB_PHY_OTG_CTRL);
++		musb_writel(base, TUSB_PHY_OTG_CTRL,
++				TUSB_PHY_OTG_CTRL_WRPROTECT |
++				TUSB_PHY_OTG_CTRL_TESTM2);
++	} else if (musb_readl(base, TUSB_PHY_OTG_CTRL_ENABLE)
++			& TUSB_PHY_OTG_CTRL_TESTM2) {
++		DBG(3, "Disabling tusb wbus quirk\n");
++		musb_writel(base, TUSB_PHY_OTG_CTRL,
++			TUSB_PHY_OTG_CTRL_WRPROTECT | phy_otg_ctrl);
++		musb_writel(base, TUSB_PHY_OTG_CTRL_ENABLE,
++			TUSB_PHY_OTG_CTRL_WRPROTECT);
++		phy_otg_ctrl = 0;
++	}
++}
  
  /*
-+ * Tries to start B-device HNP negotiation if enabled via sysfs
-+ */
-+static inline void musb_try_b_hnp_enable(struct musb *musb)
-+{
-+	void __iomem	*pBase = musb->pRegs;
-+	u8		devctl;
-+
-+	if (musb->is_hnp_enabled) {
-+		DBG(1, "HNP: Setting HR\n");
-+		devctl = musb_readb(pBase, MGC_O_HDRC_DEVCTL);
-+		musb_writeb(pBase, MGC_O_HDRC_DEVCTL, devctl | MGC_M_DEVCTL_HR);
-+	}
-+}
-+
-+/*
-  * Handle all control requests with no DATA stage, including standard
-  * requests such as:
-  * USB_REQ_SET_CONFIGURATION, USB_REQ_SET_INTERFACE, unrecognized
-@@ -326,17 +341,8 @@
- 				case USB_DEVICE_B_HNP_ENABLE:
- 					if (!musb->g.is_otg)
- 						goto stall;
--					{ u8 devctl;
- 					musb->g.b_hnp_enable = 1;
--					devctl = musb_readb(pBase,
--							MGC_O_HDRC_DEVCTL);
--					/* NOTE:  at least DaVinci doesn't
--					 * like to set HR ...
--					 */
--					DBG(1, "set HR\n");
--					musb_writeb(pBase, MGC_O_HDRC_DEVCTL,
--						devctl | MGC_M_DEVCTL_HR);
--					}
-+					musb_try_b_hnp_enable(musb);
- 					break;
- 				case USB_DEVICE_A_HNP_SUPPORT:
- 					if (!musb->g.is_otg)
-Index: linux-omap-2.6/drivers/usb/musb/musb_gadget.c
-===================================================================
---- linux-omap-2.6.orig/drivers/usb/musb/musb_gadget.c	2007-05-28 13:18:47.000000000 +0300
-+++ linux-omap-2.6/drivers/usb/musb/musb_gadget.c	2007-05-28 13:18:58.000000000 +0300
-@@ -1872,6 +1872,11 @@
- 	 */
+  * TUSB 6010 may use a parallel bus that doesn't support byte ops;
+@@ -253,6 +314,11 @@
+ 	void __iomem	*base = musb->ctrl_base;
+ 	u32		reg;
  
- 	spin_lock_irqsave(&musb->Lock, flags);
++	if ((wakeup_enables & TUSB_PRCM_WBUS)
++			&& musb_platform_get_vbus_status(musb)
++			&& (tusb_get_revision(musb) == TUSB_REV_30))
++		tusb_wbus_quirk(musb, 1);
 +
-+#ifdef	CONFIG_USB_MUSB_OTG
-+	musb_hnp_stop(musb);
-+#endif
-+
- 	if (musb->pGadgetDriver == driver) {
- 		musb->xceiv.state = OTG_STATE_UNDEFINED;
- 		stop_activity(musb, driver);
-@@ -1984,6 +1989,9 @@
- #ifdef	CONFIG_USB_MUSB_OTG
- 		musb->xceiv.state = OTG_STATE_A_IDLE;
- 		break;
-+	case OTG_STATE_A_PERIPHERAL:
-+		musb->xceiv.state = OTG_STATE_A_WAIT_VFALL;
-+		break;
- 	case OTG_STATE_B_WAIT_ACON:
- 	case OTG_STATE_B_HOST:
- #endif
-Index: linux-omap-2.6/drivers/usb/musb/musbdefs.h
-===================================================================
---- linux-omap-2.6.orig/drivers/usb/musb/musbdefs.h	2007-05-28 13:18:47.000000000 +0300
-+++ linux-omap-2.6/drivers/usb/musb/musbdefs.h	2007-05-28 13:18:58.000000000 +0300
-@@ -469,6 +469,8 @@
- #ifdef CONFIG_USB_MUSB_OTG
- 	/* FIXME this can't be OTG-specific ... ? */
- 	u8 bDelayPortPowerOff;
-+
-+	unsigned		is_hnp_enabled:1;
- #endif
+ 	tusb_set_clock_source(musb, 0);
  
- #ifdef MUSB_CONFIG_PROC_FS
-@@ -508,6 +510,8 @@
- extern void musb_platform_enable(struct musb *musb);
- extern void musb_platform_disable(struct musb *musb);
+ 	wakeup_enables |= TUSB_PRCM_WNORCS;
+@@ -302,7 +368,7 @@
+ 		musb_writel(base, TUSB_PRCM_MNGMT, prcm_mngmt);
+ 	}
  
-+extern void musb_hnp_stop(struct musb *musb);
-+
- #ifdef CONFIG_USB_TUSB6010
- extern void musb_platform_try_idle(struct musb *musb);
- extern int musb_platform_get_vbus_status(struct musb *musb);
-Index: linux-omap-2.6/drivers/usb/musb/plat_uds.c
-===================================================================
---- linux-omap-2.6.orig/drivers/usb/musb/plat_uds.c	2007-05-28 13:18:52.000000000 +0300
-+++ linux-omap-2.6/drivers/usb/musb/plat_uds.c	2007-05-28 13:18:58.000000000 +0300
-@@ -281,6 +281,70 @@
- 
- /*-------------------------------------------------------------------------*/
- 
-+#ifdef	CONFIG_USB_MUSB_OTG
-+
-+/*
-+ * See also USB_OTG_1-3.pdf 6.6.5 Timers
-+ * REVISIT: Are the other timers done in the hardware?
-+ */
-+#define TB_ASE0_BRST		100	/* Min 3.125 ms */
-+
-+/*
-+ * Handles OTG hnp timeouts, such ad b_ase0_brst
-+ */
-+void musb_otg_timer_func(unsigned long data)
-+{
-+	struct musb	*musb = (struct musb *)data;
-+	void __iomem	*pBase = musb->pRegs;
-+	unsigned long	flags;
-+	u8		devctl;
-+
-+	spin_lock_irqsave(&musb->Lock, flags);
-+	if (musb->xceiv.state == OTG_STATE_B_WAIT_ACON) {
-+		DBG(1, "HNP: B_WAIT_ACON timeout, going back to B_PERIPHERAL\n");
-+		devctl = musb_readb(pBase, MGC_O_HDRC_DEVCTL);
-+		musb_writeb(pBase, MGC_O_HDRC_DEVCTL, devctl & ~MGC_M_DEVCTL_HR);
-+		musb->xceiv.state = OTG_STATE_B_PERIPHERAL;
-+	}
-+	spin_unlock_irqrestore(&musb->Lock, flags);
-+}
-+
-+static DEFINE_TIMER(musb_otg_timer, musb_otg_timer_func, 0, 0);
-+
-+/*
-+ * Stops the B-device HNP state. Caller must take care of locking.
-+ */
-+void musb_hnp_stop(struct musb *musb)
-+{
-+	struct usb_hcd	*hcd = musb_to_hcd(musb);
-+	void __iomem	*pBase = musb->pRegs;
-+	u8	reg;
-+
-+	switch (musb->xceiv.state) {
-+	case OTG_STATE_A_PERIPHERAL:
-+	case OTG_STATE_A_WAIT_VFALL:
-+		DBG(1, "HNP: Switching back to A-host\n");
-+		musb_g_disconnect(musb);
-+		musb->xceiv.state = OTG_STATE_B_IDLE;
-+		/* REVISIT: Reset session here? Or wait for SESSION_REQUEST? */
-+		break;
-+	case OTG_STATE_B_HOST:
-+		DBG(1, "HNP: Disabling HR\n");
-+		hcd->self.is_b_host = 0;
-+		musb->xceiv.state = OTG_STATE_B_PERIPHERAL;
-+		reg = musb_readb(pBase, MGC_O_HDRC_POWER);
-+		reg |= MGC_M_POWER_SUSPENDM;
-+		musb_writeb(pBase, MGC_O_HDRC_POWER, reg);
-+		/* REVISIT: Start SESSION_REQUEST here? */
-+		break;
-+	default:
-+		DBG(1, "HNP: Stopping in unknown state %s\n",
-+			otg_state_string(musb));
-+	}
-+}
-+
-+#endif
-+
- /*
-  * Interrupt Service Routine to record USB "global" interrupts.
-  * Since these do not happen often and signify things of
-@@ -519,12 +583,16 @@
- 		/* indicate new connection to OTG machine */
- 		switch (pThis->xceiv.state) {
- 		case OTG_STATE_B_WAIT_ACON:
-+			DBG(1, "HNP: Waiting to switch to b_host state\n");
- 			pThis->xceiv.state = OTG_STATE_B_HOST;
-+			hcd->self.is_b_host = 1;
- 			break;
- 		default:
- 			if ((devctl & MGC_M_DEVCTL_VBUS)
--					== (3 << MGC_S_DEVCTL_VBUS))
-+					== (3 << MGC_S_DEVCTL_VBUS)) {
- 				pThis->xceiv.state = OTG_STATE_A_HOST;
-+				hcd->self.is_b_host = 0;
-+			}
- 			break;
- 		}
- 		DBG(1, "CONNECT (%s) devctl %02x\n",
-@@ -631,8 +699,10 @@
- 			break;
- #endif	/* HOST */
- #ifdef CONFIG_USB_MUSB_OTG
--		case OTG_STATE_A_PERIPHERAL:
- 		case OTG_STATE_B_HOST:
-+			musb_hnp_stop(pThis);
-+			/* FALLTHROUGH */
-+		case OTG_STATE_A_PERIPHERAL:
- 			musb_root_disconnect(pThis);
- 			/* FALLTHROUGH */
- 		case OTG_STATE_B_WAIT_ACON:
-@@ -657,13 +727,25 @@
- 		handled = IRQ_HANDLED;
- 
- 		switch (pThis->xceiv.state) {
-+		case OTG_STATE_A_PERIPHERAL:
-+			musb_hnp_stop(pThis);
-+			break;
- 		case OTG_STATE_B_PERIPHERAL:
- 			musb_g_suspend(pThis);
- 			pThis->is_active = is_otg_enabled(pThis)
- 					&& pThis->xceiv.gadget->b_hnp_enable;
- 			if (pThis->is_active) {
- 				pThis->xceiv.state = OTG_STATE_B_WAIT_ACON;
--				/* REVISIT timeout for b_ase0_brst, etc */
-+#ifdef	CONFIG_USB_MUSB_OTG
-+				/* Handle timeout for b_ase0_brst */
-+				if (pThis->is_hnp_enabled == 0)
-+					break;
-+				DBG(1, "HNP: Setting timer for b_ase0_brst\n");
-+				musb_otg_timer.data = (unsigned long)pThis;
-+				musb_otg_timer.expires =
-+					jiffies + msecs_to_jiffies(TB_ASE0_BRST);
-+				add_timer(&musb_otg_timer);
-+#endif
- 			}
- 			break;
- 		case OTG_STATE_A_HOST:
-@@ -671,6 +753,16 @@
- 			pThis->is_active = is_otg_enabled(pThis)
- 					&& pThis->xceiv.host->b_hnp_enable;
- 			break;
-+#if 0
-+		case OTG_STATE_A_PERIPHERAL:
-+			/* Transition to a_wait_vfall, see 6.8.1.6 p 41 */
-+			DBG(1, "REVISIT: SUSPEND as A_PERIPHERAL\n");
-+			break;
-+#endif
-+		case OTG_STATE_B_HOST:
-+			/* Transition to B_PERIPHERAL, see 6.8.2.6 p 44 */
-+			DBG(1, "REVISIT: SUSPEND as B_HOST\n");
-+			break;
- 		default:
- 			/* "should not happen" */
- 			pThis->is_active = 0;
-@@ -1497,17 +1589,7 @@
- 	int ret = -EINVAL;
- 
- 	spin_lock_irqsave(&musb->Lock, flags);
--	switch (musb->board_mode) {
--	case MUSB_HOST:
--		ret = sprintf(buf, "host\n");
--		break;
--	case MUSB_PERIPHERAL:
--		ret = sprintf(buf, "peripheral\n");
--		break;
--	case MUSB_OTG:
--		ret = sprintf(buf, "otg\n");
--		break;
--	}
-+	ret = sprintf(buf, "%s\n", otg_state_string(musb));
- 	spin_unlock_irqrestore(&musb->Lock, flags);
+-	if (otg_stat & TUSB_DEV_OTG_STAT_VBUS_SENSE)
++	if (otg_stat & TUSB_DEV_OTG_STAT_VBUS_VALID)
+ 		ret = 1;
  
  	return ret;
-@@ -1533,6 +1615,8 @@
+@@ -651,6 +717,9 @@
+ 		u32	reg;
+ 		u32	i;
+ 
++		if (tusb_get_revision(musb) == TUSB_REV_30)
++			tusb_wbus_quirk(musb, 0);
++
+ 		/* there are issues re-locking the PLL on wakeup ... */
+ 
+ 		/* work around issue 8 */
+@@ -829,30 +898,6 @@
+ 	musb_writel(base, TUSB_WAIT_COUNT, 1);
  }
- static DEVICE_ATTR(mode, 0644, musb_mode_show, musb_mode_store);
  
-+
-+
- static ssize_t
- musb_cable_show(struct device *dev, struct device_attribute *attr, char *buf)
+-#define TUSB_REV_MAJOR(reg_val)		((reg_val >> 4) & 0xf)
+-#define TUSB_REV_MINOR(reg_val)		(reg_val & 0xf)
+-
+-static int __init tusb_print_revision(struct musb *musb)
+-{
+-	void __iomem	*base = musb->ctrl_base;
+-
+-	pr_info("tusb: Revisions: %s%i.%i %s%i.%i %s%i.%i %s%i.%i\n",
+-		"prcm",
+-		TUSB_REV_MAJOR(musb_readl(base, TUSB_PRCM_REV)),
+-		TUSB_REV_MINOR(musb_readl(base, TUSB_PRCM_REV)),
+-		"int",
+-		TUSB_REV_MAJOR(musb_readl(base, TUSB_INT_CTRL_REV)),
+-		TUSB_REV_MINOR(musb_readl(base, TUSB_INT_CTRL_REV)),
+-		"gpio",
+-		TUSB_REV_MAJOR(musb_readl(base, TUSB_GPIO_REV)),
+-		TUSB_REV_MINOR(musb_readl(base, TUSB_GPIO_REV)),
+-		"dma",
+-		TUSB_REV_MAJOR(musb_readl(base, TUSB_DMA_CTRL_REV)),
+-		TUSB_REV_MINOR(musb_readl(base, TUSB_DMA_CTRL_REV)));
+-
+-	return TUSB_REV_MAJOR(musb_readl(base, TUSB_INT_CTRL_REV));
+-}
+-
+ static int __init tusb_start(struct musb *musb)
  {
-@@ -1653,6 +1737,47 @@
+ 	void __iomem	*base = musb->ctrl_base;
+Index: linux-omap-2.6/drivers/usb/musb/tusb6010.h
+===================================================================
+--- linux-omap-2.6.orig/drivers/usb/musb/tusb6010.h	2007-05-25 14:12:31.000000000 +0300
++++ linux-omap-2.6/drivers/usb/musb/tusb6010.h	2007-05-25 14:12:34.000000000 +0300
+@@ -216,6 +216,10 @@
+ #define TUSB_PROD_TEST_RESET_VAL		0xa596
+ #define TUSB_EP_FIFO(ep)			(TUSB_FIFO_BASE + (ep) * 0x20)
  
- #ifdef CONFIG_USB_MUSB_OTG
- static ssize_t
-+musb_hnp_show(struct device *dev, struct device_attribute *attr, char *buf)
-+{
-+	struct musb *musb = dev_to_musb(dev);
-+	unsigned long flags;
-+	int ret = -EINVAL;
++#define TUSB_REV_1	0x10
++#define TUSB_REV_2	0x20
++#define TUSB_REV_30	0x30
 +
-+	spin_lock_irqsave(&musb->Lock, flags);
-+	if (musb->is_hnp_enabled == 0)
-+		ret = sprintf(buf, "disabled\n");
-+	else
-+		ret = sprintf(buf, "enabled\n");
-+	spin_unlock_irqrestore(&musb->Lock, flags);
-+
-+	return ret;
-+}
-+
-+static ssize_t
-+musb_hnp_store(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t n)
-+{
-+	struct musb	*musb = dev_to_musb(dev);
-+	unsigned long	flags;
-+	unsigned short	val;
-+
-+	if (sscanf(buf, "%hu", &val) != 1
-+			|| (val != 0 && val != 1)) {
-+		printk(KERN_ERR "HNP: Value must be 0 or 1\n");
-+		return -EINVAL;
-+	}
-+
-+	spin_lock_irqsave(&musb->Lock, flags);
-+	if (val == 0 && musb->is_hnp_enabled != 0)
-+		musb_hnp_stop(musb);
-+	musb->is_hnp_enabled = val;
-+	spin_unlock_irqrestore(&musb->Lock, flags);
-+
-+	return n;
-+}
-+static DEVICE_ATTR(hnp, 0644, musb_hnp_show, musb_hnp_store);
-+
-+static ssize_t
- musb_srp_store(struct device *dev, struct device_attribute *attr,
- 		const char *buf, size_t n)
- {
-@@ -1749,6 +1874,7 @@
- 	device_remove_file(musb->controller, &dev_attr_vbus);
- #ifdef CONFIG_USB_MUSB_OTG
- 	device_remove_file(musb->controller, &dev_attr_srp);
-+	device_remove_file(musb->controller, &dev_attr_hnp);
- #endif
- #endif
+ /*----------------------------------------------------------------------------*/
  
-@@ -1981,6 +2107,7 @@
- 	status = device_create_file(dev, &dev_attr_vbus);
- #ifdef CONFIG_USB_MUSB_OTG
- 	status = device_create_file(dev, &dev_attr_srp);
-+	status = device_create_file(dev, &dev_attr_hnp);
- #endif /* CONFIG_USB_MUSB_OTG */
- 	status = 0;
- #endif
+ #ifdef CONFIG_USB_TUSB6010
