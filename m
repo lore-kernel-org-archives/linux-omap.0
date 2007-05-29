@@ -1,14 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 10/11] Adding header file for OMAP3430
-Date: Tue, 29 May 2007 09:56:17 -0700
-Message-ID: <20070529165617.GD26322@atomide.com>
-References: <5d5443650705290009l54024cc6k3eeaec3462512210@mail.gmail.com>
-	<9C23CDD79DA20A479D4615857B2E2C47FF1060@dlee13.ent.ti.com>
+Subject: Re: [PATCH 8/11] Compiling dsp-common if DSP is enabled.
+Date: Tue, 29 May 2007 09:55:28 -0700
+Message-ID: <20070529165528.GC26322@atomide.com>
+References: <9C23CDD79DA20A479D4615857B2E2C47FF0E34@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47FF1060@dlee13.ent.ti.com>
+In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47FF0E34@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,35 +21,35 @@ To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
 Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Syed Mohammed, Khasim <x0khasim@ti.com> [070529 08:46]:
-> Hi Trilok,
+* Syed Mohammed, Khasim <x0khasim@ti.com> [070528 23:22]:
 > 
-> >> =======================================================================
-> >> diff -purN linux-omap/include/asm-arm/arch-omap/omap34xx.h
-> >val_3430_GIT/include/asm-arm/arch-omap/omap34xx.h
-> >> --- linux-omap/include/asm-arm/arch-omap/omap34xx.h     2007-05-25
-> >15:52:27.000000000 -0500
-> >> +++ val_3430_GIT/include/asm-arm/arch-omap/omap34xx.h   2007-05-28
-> >21:55:30.000000000 -0500
-> >> @@ -1,3 +1,26 @@
-> >> +/*
-> >> + * include/asm-arm/arch-omap/omap34xx.h
-> >> + *
-> >> + * This file contains the processor specific definitions of the TI
-> >OMAP34XX.
-> >> + *
-> >> + * Copyright (C) 2007 Texas Insturments.
-> >> + * Copyright (C) 2007 Nokia Coporation.
-> >
-> >Why Copyright Nokia here?
-> >
+> Compile dsp_common only if DSP is enabled.
 > 
-> Actually this file was pushed by Paul last week, it was missing GPL header and copyrights. I added more 3430 definitions to this file and TI copyrights to header. Since it was originally written by Paul, thought of adding Nokia Copyrights too.
+> Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
 > 
-> Tony, any suggestions? should I keep Nokia Copyrights to this header?
+> Files Changed:
+>  Makefile |    2 +-
+>  1 files changed, 1 insertion(+), 1 deletion(-)
+> 
+> =======================================================================
+> diff -purN linux-omap/arch/arm/plat-omap/dsp/Makefile val_3430_GIT/arch/arm/plat-omap/dsp/Makefile
+> --- linux-omap/arch/arm/plat-omap/dsp/Makefile	2006-11-20 21:54:05.000000000 -0600
+> +++ val_3430_GIT/arch/arm/plat-omap/dsp/Makefile	2007-05-28 13:30:09.000000000 -0500
+> @@ -4,7 +4,7 @@
+>  
+>  # The target object and module list name.
+>  
+> -obj-y := dsp_common.o
+> +obj-$(CONFIG_OMAP_DSP) := dsp_common.o
+>  
+>  obj-$(CONFIG_OMAP_DSP) += dsp.o
 
-Well personally I don't care, but I'd assume anything that's written
-by Nokia must have the Nokia copyright.
+We should compile DSP for omap1 (and aybe 24xx?) to keep
+audio McBSP clock functioning. And eventually we should have common
+dsp init that works for all of them.
+
+What if you just add an early return to dsp init code for now with
+a revisit comment?
 
 Regards,
 
