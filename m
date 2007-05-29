@@ -1,14 +1,17 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/11] Adding OMAP3430 support to mach-omap2
-Date: Tue, 29 May 2007 13:23:01 -0700
-Message-ID: <20070529202301.GA27603@atomide.com>
-References: <20070529164859.GA26322@atomide.com>
-	<9C23CDD79DA20A479D4615857B2E2C47FF12A7@dlee13.ent.ti.com>
+Subject: Re: [PATCH] USB: Fix OTG HNP for hub.c
+Date: Tue, 29 May 2007 13:34:58 -0700
+Message-ID: <20070529203458.GB27603@atomide.com>
+References: <11804401622277-git-send-email-felipebalbi@users.sourceforge.net>
+	<11804401752426-git-send-email-felipebalbi@users.sourceforge.net>
+	<1180440176127-git-send-email-felipebalbi@users.sourceforge.net>
+	<200705291221.20343.david-b@pacbell.net>
+	<31e679430705291224h5f1e8552paf8bff92f97f7f3f@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47FF12A7@dlee13.ent.ti.com>
+In-Reply-To: <31e679430705291224h5f1e8552paf8bff92f97f7f3f@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,78 +19,55 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Felipe Balbi <felipebalbi@users.sourceforge.net>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Syed Mohammed, Khasim <x0khasim@ti.com> [070529 12:49]:
-> Hi Tony,
-> 
-> One quick clarification,
-> 
-> >> diff -purN linux-omap/arch/arm/mach-omap2/io.c
-> >val_3430_GIT/arch/arm/mach-omap2/io.c
-> >> --- linux-omap/arch/arm/mach-omap2/io.c	2007-05-16 
-> >>
-> <snip>
-> >> +#if defined(CONFIG_ARCH_OMAP24XX)
-> >> +
-> >> +#define L3_VIRT		L3_24XX_VIRT
-> >> +#define L3_PHYS		L3_24XX_PHYS
-> >> +#define L3_SIZE		L3_24XX_SIZE
-> >> +
-> >> +#define L4_VIRT		L4_24XX_VIRT
-> >> +#define L4_PHYS		L4_24XX_PHYS
-> >> +#define L4_SIZE		L4_24XX_SIZE
-> >> +
-> >> +#define L4_WK_VIRT	L4_WK_243X_VIRT
-> >> +#define L4_WK_PHYS	L4_WK_243X_PHYS
-> >> +#define L4_WK_SIZE	L4_WK_243X_SIZE
-> >> +
-> <snip>
-> >> +#elif defined(CONFIG_ARCH_OMAP34XX)
-> >> +
-> >> +#define L3_VIRT		L3_34XX_VIRT
-> >> +#define L3_PHYS		L3_34XX_PHYS
-> >> +#define L3_SIZE		L3_34XX_SIZE
-> >> +
-> >> +#define L4_VIRT		L4_34XX_VIRT
-> >> +#define L4_PHYS		L4_34XX_PHYS
-> >> +#define L4_SIZE		L4_34XX_SIZE
-> >> +
-> >> +#define L4_PER_VIRT	L4_PER_34XX_VIRT
-> >> +#define L4_PER_PHYS	L4_PER_34XX_PHYS
-> >> +#define L4_PER_SIZE	L4_PER_34XX_SIZE
-> >> +
-> >> +#define L4_WK_VIRT	L4_WK_34XX_VIRT
-> >> +#define L4_WK_PHYS	L4_WK_34XX_PHYS
-> >> +#define L4_WK_SIZE	L4_WK_34XX_SIZE
-> >> +
-> >> +
-> <snip>
-> >> +#endif
-> >
-> >Let's rather change the #elif to #if to potentially compile in both
-> >(altought unoptimized). 
-> If we try to opt for different map descriptor table for OMAP2 and OMAP3 then these definitions might not be needed at all.
+* Felipe Balbi <felipebalbi@users.sourceforge.net> [070529 12:25]:
+> Hi,
+>
+> On 5/29/07, David Brownell <david-b@pacbell.net> wrote:
+>> On Tuesday 29 May 2007, Felipe Balbi wrote:
+>> > From: Tony Lindgren <tony@atomide.com>
+>> >
+>> > This patch makes makes OTG Host Negotiation Protocol (HNP)
+>> > to behave.
+>>
+>> Not really.  It makes it strongly *MIS* behave in fact,
+>> since it always kicks off HNP ... even when it should not
+>> do so, because the device is in the whitelist.  (Called
+>> the "Targeted Peripherals List", TPL, in jargonese.)
+>>
+>> The two blocks of code are in the wrong order ...
 
-True.
+Hmm, are you sure about that? My patch is based on
+USB_TG_1-3.pdf and playing with usbcv13.exe and two N800s.
 
-> >I guess that also means changing L3_VIRT to be
-> >L3_VIRT_34XX and so on.
-> >
-> >
-> The reason these definitions were defined was to re-use the common fields (between 2430 / 3430) in map descriptor table.
-> 
-> If we change L3_VIRT to be L3_VIRT_34XX, this will make the map descriptor table look more redundant in code... 
-> 
-> Did you mean creating a two separate map descriptor tables?
+I'm under the impression that if the peripheral supports HNP, the
+host must offer HNP at least once during the session.
 
-Yeah, that is the best solution in the long run to support various
-processors. That could also be a pre-3430 patch, and that will shrink
-down the actual 3430 patch.
+And as I understand, the whitelist is for peripherals the host
+supports, with HNP or no HNP.
+
+With my patch, we offer to do HNP right in the beginning of the
+session. Then the peripheral can use it or not use depending if
+HNP is enabled on peripheral.
+
+>> A more limited patch would help.  Specifically, just
+>> fixing whatever bug was seen in the original code,
+>> rather than abstracting it into a new subroutine and
+>> changing the logic while doing so.
+
+Dave, did you ever get HNP working with any device and test
+it with usbcv13.exe and OPT?
+
+> Tony do you have any comments?
+> Do you mind if I try to re-work you patch?
+
+Felipe I guess you're the only one with OPT right now, and that's
+really what we should use for doing the HNP. So go ahead!
 
 Regards,
 
