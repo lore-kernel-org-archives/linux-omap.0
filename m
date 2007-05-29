@@ -1,13 +1,14 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: [PATCH 10/11] Adding header file for OMAP3430
-Date: Tue, 29 May 2007 01:22:55 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47FF0E36@dlee13.ent.ti.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: [PATCH 1/11] Add VFP support for ARM V7 - OMAP 3430 support
+Date: Tue, 29 May 2007 12:09:33 +0530
+Message-ID: <5d5443650705282339i479d448fm7c4910d971ae0cad@mail.gmail.com>
+References: <9C23CDD79DA20A479D4615857B2E2C47FF0E2D@dlee13.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47FF0E2D@dlee13.ent.ti.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,83 +18,60 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux OMAP <linux-omap-open-source@linux.omap.com>
+To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-New Header file for OMAP 3430 related definitions
+On 5/29/07, Syed Mohammed, Khasim <x0khasim@ti.com> wrote:
+>
+> Add VFP support for ARM V7, derived from ARM's Cortex patch
+>
+> Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
+>
+> Files Changed:
+>  Kconfig         |   16 ++++++++++++++--
+>  vfp/vfp.h       |    5 +++++
+>  vfp/vfphw.S     |   21 ++++++++++++++++++++-
+>  vfp/vfpmodule.c |    8 ++++++++
+>  4 files changed, 47 insertions(+), 3 deletions(-)
+>
+> =======================================================================
+> diff -purN linux-omap/arch/arm/Kconfig val_3430_GIT/arch/arm/Kconfig
+> --- linux-omap/arch/arm/Kconfig 2007-05-25 13:27:02.000000000 -0500
+> +++ val_3430_GIT/arch/arm/Kconfig       2007-05-25 23:05:30.000000000 -0500
+> @@ -393,7 +393,7 @@ config ARCH_OMAP
+>         select GENERIC_TIME
+>         select GENERIC_CLOCKEVENTS
+>         help
+> -         Support for TI's OMAP platform (OMAP1 and OMAP2).
+> +         Support for TI's OMAP platform (OMAP1, OMAP2 and OMAP3).
+>
+>  endchoice
+>
+> @@ -925,7 +925,7 @@ config FPE_FASTFPE
+>
+>  config VFP
+>         bool "VFP-format floating point maths"
+> -       depends on CPU_V6 || CPU_ARM926T
+> +       depends on CPU_V6 || CPU_ARM926T || CPU_V7
+>         help
+>           Say Y to include VFP support code in the kernel. This is needed
+>           if your hardware includes a VFP unit.
+> @@ -935,6 +935,18 @@ config VFP
+>
+>           Say N if your target does not have VFP hardware.
+>
+> +config VFPv3
+> +       bool
+> +       depends on VFP
+> +       default y if CPU_V7
+> +
 
-Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
+Could you please check that ARMv7 and VFPv3 code is latest and same as
+available on http://www.linux-arm.og/git ?
 
-Files Changed:
- omap34xx.h |   36 ++++++++++++++++++++++++++++++++++--
- 1 files changed, 34 insertions(+), 2 deletions(-)
+Catalin seems to update this tree with his new patches and better than
+taking patch from arm.com/linux .
 
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-diff -purN linux-omap/include/asm-arm/arch-omap/omap34xx.h =
-val_3430_GIT/include/asm-arm/arch-omap/omap34xx.h
---- linux-omap/include/asm-arm/arch-omap/omap34xx.h	2007-05-25 =
-15:52:27.000000000 -0500
-+++ val_3430_GIT/include/asm-arm/arch-omap/omap34xx.h	2007-05-28 =
-21:55:30.000000000 -0500
-@@ -1,3 +1,26 @@
-+/*
-+ * include/asm-arm/arch-omap/omap34xx.h
-+ *
-+ * This file contains the processor specific definitions of the TI =
-OMAP34XX.
-+ *
-+ * Copyright (C) 2007 Texas Insturments.
-+ * Copyright (C) 2007 Nokia Coporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 =
- USA
-+ */
-+
- #ifndef __ASM_ARCH_OMAP34XX_H
- #define __ASM_ARCH_OMAP34XX_H
-=20
-@@ -6,6 +29,17 @@
-  * specific headers.
-  */
-=20
-+#define L4_34XX_BASE		0x48000000
-+#define L4_OMAP_BASE		L4_34XX_BASE
-+#define L4_WK_34XX_BASE	 0x48300000
-+#define L4_WK_OMAP_BASE	 L4_WK_OMAP_BASE
-+#define L4_PER_34XX_BASE	0x49000000
-+#define L4_PER_OMAP_BASE	L4_PER_34XX_BASE
-+#define L4_34XX_EMU_BASE	0x54000000
-+#define L4_EMU_BASE		 L4_34XX_EMU_BASE
-+#define L3_34XX_BASE		0x68000000
-+#define L3_OMAP_BASE		L3_34XX_BASE
-+
- #define OMAP3430_32KSYNCT_BASE	0x48320000
- #define OMAP3430_CM_BASE	0x48004800
- #define OMAP3430_PRM_BASE	0x48306800
-@@ -33,12 +67,10 @@
-=20
- #endif
-=20
--
- #define OMAP34XX_DSP_BASE	0x58000000
- #define OMAP34XX_DSP_MEM_BASE	(OMAP34XX_DSP_BASE + 0x0)
- #define OMAP34XX_DSP_IPI_BASE	(OMAP34XX_DSP_BASE + 0x1000000)
- #define OMAP34XX_DSP_MMU_BASE	(OMAP34XX_DSP_BASE + 0x2000000)
-=20
--
- #endif /* __ASM_ARCH_OMAP34XX_H */
-=20
+-- 
+--Trilok Soni
