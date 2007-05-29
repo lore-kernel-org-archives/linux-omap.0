@@ -1,16 +1,12 @@
 From: Felipe Balbi <felipebalbi@users.sourceforge.net>
-Subject: [PATCH] USB: Fix OTG HNP for hub.c
-Date: Tue, 29 May 2007 15:02:38 +0300
-Message-ID: <1180440176127-git-send-email-felipebalbi@users.sourceforge.net>
+Subject: [PATCH] musb_hdrc: Add SRP Interface and control it through sysfs
+Date: Tue, 29 May 2007 15:02:34 +0300
+Message-ID: <11804401722783-git-send-email-felipebalbi@users.sourceforge.net>
 References: <11804401622277-git-send-email-felipebalbi@users.sourceforge.net>
 	<11804401651954-git-send-email-felipebalbi@users.sourceforge.net>
 	<11804401662563-git-send-email-felipebalbi@users.sourceforge.net>
-	<11804401722783-git-send-email-felipebalbi@users.sourceforge.net>
-	<1180440173922-git-send-email-felipebalbi@users.sourceforge.net>
-	<11804401741522-git-send-email-felipebalbi@users.sourceforge.net>
-	<11804401752426-git-send-email-felipebalbi@users.sourceforge.net>
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <11804401752426-git-send-email-felipebalbi@users.sourceforge.net>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <11804401662563-git-send-email-felipebalbi@users.sourceforge.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,169 +14,127 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
+From: Felipe Balbi <felipe.lima@indt.org.br>
 
-This patch makes makes OTG Host Negotiation Protocol (HNP)
-to behave.
+	This patch adds a method to start SRP and a userspace
+	interface to control it through sysfs.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
 ---
 
-Index: linux-omap-2.6/drivers/usb/core/hub.c
+Index: linux-omap-2.6/drivers/usb/musb/musb_gadget.c
 ===================================================================
---- linux-omap-2.6.orig/drivers/usb/core/hub.c	2007-05-25 14:12:31.000000000 +0300
-+++ linux-omap-2.6/drivers/usb/core/hub.c	2007-05-25 14:17:02.000000000 +0300
-@@ -1252,6 +1252,81 @@
- #ifdef	CONFIG_USB_OTG
- #include "otg_whitelist.h"
- static int __usb_port_suspend(struct usb_device *, int port1);
+--- linux-omap-2.6.orig/drivers/usb/musb/musb_gadget.c	2007-05-28 01:40:16.000000000 +0300
++++ linux-omap-2.6/drivers/usb/musb/musb_gadget.c	2007-05-28 13:18:47.000000000 +0300
+@@ -2056,3 +2056,29 @@
+ 	(void) musb_gadget_vbus_draw(&musb->g,
+ 			is_otg_enabled(musb) ? 8 : 100);
+ }
 +
-+/*
-+ * OTG-aware devices on OTG-capable root hubs may be able to use SRP,
-+ * to wake us after we've powered off VBUS; and HNP, switching roles
-+ * "host" to "peripheral".  The OTG descriptor helps figure this out.
-+ */
-+static int usb_new_device_offer_hnp(struct usb_device *udev)
++/* called when we want to send a Session Request. Caller must hold the lock */
++void musb_g_srp(struct musb *musb)
 +{
-+	struct usb_bus			*bus = udev->bus;
-+	unsigned			port1 = udev->portnum;
-+	struct usb_otg_descriptor	*desc = 0;
-+	int				err;
++	void __iomem	*base = musb->pRegs;
++	u8	devctl = musb_readb(base, MGC_O_HDRC_DEVCTL);
 +
-+	if (udev->bus->is_b_host || !udev->config
-+			|| udev->parent != udev->bus->root_hub)
-+		return 0;
++	DBG(3, "Starting SRP\n");
 +
-+	/* Descriptor may appear anywhere in config */
-+	err = __usb_get_extra_descriptor(udev->rawdescriptors[0],
-+				le16_to_cpu(udev->config[0].desc.wTotalLength),
-+				USB_DT_OTG, (void **) &desc);
-+	if (err < 0)
-+		return 0;
++	musb_writeb(base, MGC_O_HDRC_DEVCTL, devctl | MGC_M_DEVCTL_BDEVICE);
 +
-+	if (!(desc->bmAttributes & USB_OTG_HNP))
-+		return 0;
++	/* In order to start SRP we need to ensure that Vbus is below the
++	 * Session Valid Threshold.
++	 * On MUSB this means that  MGC_M_DEVCTL_VBUS and MGC_S_DEVCTL_VBUS
++	 * are set to 00.
++	 */
++	devctl &= MGC_M_DEVCTL_VBUS & MGC_S_DEVCTL_VBUS;
 +
-+	dev_info(&udev->dev, "Dual-Role OTG device on %sHNP port\n",
-+				(port1 == bus->otg_port) ? "" : "non-");
++	if (!devctl) {
++		devctl = musb_readb(base, MGC_O_HDRC_DEVCTL);
++		devctl |= MGC_M_DEVCTL_SESSION | MGC_M_DEVCTL_BDEVICE;
 +
-+	/* Tell B-device if we support HNP */
-+	if (port1 == bus->otg_port)
-+		bus->b_hnp_enable = 1;
-+	err = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
-+			USB_REQ_SET_FEATURE, 0,
-+			bus->b_hnp_enable ? USB_DEVICE_B_HNP_ENABLE
-+			: USB_DEVICE_A_ALT_HNP_SUPPORT,
-+			0, NULL, 0, USB_CTRL_SET_TIMEOUT);
-+	if (err < 0) {
-+		/*
-+		 * OTG MESSAGE: report errors here, customize to match your
-+		 * product.
-+		 */
-+		dev_err(&udev->dev, "can't set HNP mode; %d\n", err);
-+		bus->b_hnp_enable = 0;
-+		return 0;
-+	}
-+
-+	/* If B-device wants to do HNP, it will do it after we suspend */
-+	if (bus->b_hnp_enable) {
-+		dev_err(&udev->dev, "trying HNP, suspending bus\n");
-+		err = __usb_port_suspend(udev, udev->bus->otg_port);
-+		if (err < 0) {
-+			dev_err(&udev->dev, "suspend for HNP failed\n");
-+			return -ENODEV;
-+		}
-+
-+		/* TB_ASE0_BRST, minimum 3.125 ms */
-+		mdelay(4);
-+
-+		/* Failed resume means B-device took over the bus with HNP */
-+		err = usb_port_resume(udev);
-+		if (err < 0) {
-+			dev_err(&udev->dev, "HNP success\n");
-+			return -ENODEV;
-+		}
-+	}
-+
-+	/* HNP failed. Reject B-devices not in our whitelist */
-+	if (!is_targeted(udev))
-+		return -ENODEV;
-+
-+	return 0;
++		musb_writeb(base, MGC_O_HDRC_DEVCTL, devctl);
++	} else
++		DBG(7, "Cannot Start SRP: devctl = %02x\n" , devctl);
 +}
+Index: linux-omap-2.6/drivers/usb/musb/musbdefs.h
+===================================================================
+--- linux-omap-2.6.orig/drivers/usb/musb/musbdefs.h	2007-05-28 01:40:16.000000000 +0300
++++ linux-omap-2.6/drivers/usb/musb/musbdefs.h	2007-05-28 13:18:47.000000000 +0300
+@@ -124,6 +124,7 @@
+ extern void musb_g_reset(struct musb *);
+ extern void musb_g_suspend(struct musb *);
+ extern void musb_g_resume(struct musb *);
++extern void musb_g_srp(struct musb *);
+ extern void musb_g_disconnect(struct musb *);
+ 
+ #else
+@@ -134,6 +135,7 @@
+ static inline void musb_g_reset(struct musb *m) {}
+ static inline void musb_g_suspend(struct musb *m) {}
+ static inline void musb_g_resume(struct musb *m) {}
++static inline void musb_g_srp(struct musb *m) {}
+ static inline void musb_g_disconnect(struct musb *m) {}
+ 
+ #endif
+Index: linux-omap-2.6/drivers/usb/musb/plat_uds.c
+===================================================================
+--- linux-omap-2.6.orig/drivers/usb/musb/plat_uds.c	2007-05-28 01:40:16.000000000 +0300
++++ linux-omap-2.6/drivers/usb/musb/plat_uds.c	2007-05-28 13:18:47.000000000 +0300
+@@ -1579,6 +1579,32 @@
+ }
+ static DEVICE_ATTR(cable, S_IRUGO, musb_cable_show, NULL);
+ 
++#ifdef CONFIG_USB_MUSB_OTG
++static ssize_t
++musb_srp_store(struct device *dev, struct device_attribute *attr,
++		const char *buf, size_t n)
++{
++	struct musb	*musb=dev_to_musb(dev);
++	unsigned long	flags;
++	unsigned short	srp;
++
++	if (sscanf(buf, "%hu", &srp) != 1
++			|| (srp != 1)) {
++		printk (KERN_ERR "SRP: Value must be 1\n");
++		return -EINVAL;
++	}
++
++	spin_lock_irqsave(&musb->Lock, flags);
++	if (srp == 1){
++		musb_g_srp(musb);
++	}
++	spin_unlock_irqrestore(&musb->Lock, flags);
++
++	return n;
++}
++static DEVICE_ATTR(srp, 0644, NULL, musb_srp_store);
++#endif /* CONFIG_USB_MUSB_OTG */
 +
  #endif
  
- /**
-@@ -1305,63 +1380,8 @@
- 	show_string(udev, "SerialNumber", udev->serial);
- 
- #ifdef	CONFIG_USB_OTG
--	/*
--	 * OTG-aware devices on OTG-capable root hubs may be able to use SRP,
--	 * to wake us after we've powered off VBUS; and HNP, switching roles
--	 * "host" to "peripheral".  The OTG descriptor helps figure this out.
--	 */
--	if (!udev->bus->is_b_host
--			&& udev->config
--			&& udev->parent == udev->bus->root_hub) {
--		struct usb_otg_descriptor	*desc = 0;
--		struct usb_bus			*bus = udev->bus;
--
--		/* descriptor may appear anywhere in config */
--		if (__usb_get_extra_descriptor (udev->rawdescriptors[0],
--					le16_to_cpu(udev->config[0].desc.wTotalLength),
--					USB_DT_OTG, (void **) &desc) == 0) {
--			if (desc->bmAttributes & USB_OTG_HNP) {
--				unsigned		port1 = udev->portnum;
--
--				dev_info(&udev->dev,
--					"Dual-Role OTG device on %sHNP port\n",
--					(port1 == bus->otg_port)
--						? "" : "non-");
--
--				/* enable HNP before suspend, it's simpler */
--				if (port1 == bus->otg_port)
--					bus->b_hnp_enable = 1;
--				err = usb_control_msg(udev,
--					usb_sndctrlpipe(udev, 0),
--					USB_REQ_SET_FEATURE, 0,
--					bus->b_hnp_enable
--						? USB_DEVICE_B_HNP_ENABLE
--						: USB_DEVICE_A_ALT_HNP_SUPPORT,
--					0, NULL, 0, USB_CTRL_SET_TIMEOUT);
--				if (err < 0) {
--					/* OTG MESSAGE: report errors here,
--					 * customize to match your product.
--					 */
--					dev_info(&udev->dev,
--						"can't set HNP mode; %d\n",
--						err);
--					bus->b_hnp_enable = 0;
--				}
--			}
--		}
--	}
--
--	if (!is_targeted(udev)) {
--
--		/* Maybe it can talk to us, though we can't talk to it.
--		 * (Includes HNP test device.)
--		 */
--		if (udev->bus->b_hnp_enable || udev->bus->is_b_host) {
--			err = __usb_port_suspend(udev, udev->bus->otg_port);
--			if (err < 0)
--				dev_dbg(&udev->dev, "HNP fail, %d\n", err);
--		}
--		err = -ENODEV;
-+	err = usb_new_device_offer_hnp(udev);
-+	if (err < 0) {
- 		goto fail;
- 	}
+ /* Only used to provide cable state change events */
+@@ -1648,6 +1674,9 @@
+ #ifdef CONFIG_SYSFS
+ 	device_remove_file(musb->controller, &dev_attr_mode);
+ 	device_remove_file(musb->controller, &dev_attr_cable);
++#ifdef CONFIG_USB_MUSB_OTG
++	device_remove_file(musb->controller, &dev_attr_srp);
++#endif
  #endif
+ 
+ #ifdef CONFIG_USB_GADGET_MUSB_HDRC
+@@ -1876,6 +1905,9 @@
+ #ifdef CONFIG_SYSFS
+ 	status = device_create_file(dev, &dev_attr_mode);
+ 	status = device_create_file(dev, &dev_attr_cable);
++#ifdef CONFIG_USB_MUSB_OTG
++	status = device_create_file(dev, &dev_attr_srp);
++#endif /* CONFIG_USB_MUSB_OTG */
+ 	status = 0;
+ #endif
+ 
