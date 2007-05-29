@@ -1,15 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 8/11] Compiling dsp-common if DSP is enabled.
-Date: Tue, 29 May 2007 10:08:56 -0700
-Message-ID: <20070529170856.GF26322@atomide.com>
-References: <9C23CDD79DA20A479D4615857B2E2C47FF0E34@dlee13.ent.ti.com>
-	<20070529165528.GC26322@atomide.com>
-	<3B6D69C3A9EBCA4BA5DA60D913027429011588FB@dlee13.ent.ti.com>
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: RE: [PATCH 5/11] Adding OMAP3430 support to mach-omap2
+Date: Tue, 29 May 2007 12:33:27 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47FF1167@dlee13.ent.ti.com>
+References: <20070529164859.GA26322@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D913027429011588FB@dlee13.ent.ti.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <20070529164859.GA26322@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,28 +19,48 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Woodruff, Richard <r-woodruff2@ti.com> [070529 10:02]:
-> > We should compile DSP for omap1 (and aybe 24xx?) to keep
-> > audio McBSP clock functioning. And eventually we should have common
-> > dsp init that works for all of them.
-> > 
-> > What if you just add an early return to dsp init code for now with
-> > a revisit comment?
-> 
-> The McBSP clocks in OMAP2 have no coupling to the DSP as they did in OMAP1.  In 1510's systems there was some ownership which required you to mess in the DSP address space.  This is not there in OMAP2/3.
-> 
-> Depending on the overall system architecture you might very well have the DSP driving a McBSP directly but that is another issue.
-> 
-> ... How does DSP gateway share or allocate resources, like a McBSP away from the ARM?  Is this static?  Does it even make sense to declare it as some sort of platform resource?
+Hi Tony,
 
-The basic DSP resources should be shared across dspgateway and
-TI's bridge. Then the rest can go to drivers/dsp/omap/dspgateway and
-drivers/dsp/omap/dspbridge or someting.
+>>  clock_34xx.c | 1255
+>+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>
+><snip>
+>
+>Well clock_34xx.c can be merged to existing clock.c. With Pau's PRCM
+>patches, only few registers are different now.
+>
+
+Can we keep this for now? We can start a different thread for Clock and =
+PRCM for 3430. It will take a while before it gets stabilized. Mean =
+while can we get 3430 booting in tree.
+
+>>  void __init omap2_check_revision(void)
+>> @@ -119,7 +119,11 @@ void __init omap2_check_revision(void)
+>>  	system_rev |=3D rev << 8;
+>>
+>>  	/* Add the cpu class info (24xx) */
+>> +#ifndef CONFIG_ARCH_OMAP3
+>>  	system_rev |=3D 0x24;
+>> +#else
+>> +	system_rev |=3D 0x34;
+>> +#endif
+>>
+>>  	pr_info("OMAP%04x", system_rev >> 16);
+>>  	if ((system_rev >> 8) & 0x0f)
+>
+>This is yet another artificial barrier to compile in many revisions,
+>let's try to avoid that. You should be able to set system_rev based
+>on the hardware register values.
+
+The current 3430 version doesn't populate these kind of registers, we =
+have to wait for a while for second version. Till then we have to use =
+this kind of mechanism. The 2430 ones support these registers, but it =
+will be a different patch to deal with. For, 3430 I will prefer keeping =
+same thing for a while.
 
 Regards,
-
-Tony
+Khasim
