@@ -1,7 +1,7 @@
 From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: [PATCH 5/11] Adding OMAP3430 support to mach-omap2
-Date: Tue, 29 May 2007 01:21:40 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47FF0E31@dlee13.ent.ti.com>
+Subject: [PATCH 4/11] OMAP 3430 SDP default config
+Date: Tue, 29 May 2007 01:21:16 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47FF0E30@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -20,1671 +20,1084 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Adding OMAP 3430 support to arch/arm/mach-omap2
+
+Default configuration file for OMAP3430 based TI's OMAP3430 SDP
 
 Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
 
 Files Changed:
- Kconfig      |   14
- Makefile     |    6
- clock.h      |    1
- clock_34xx.c | 1255 =
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- gpmc.c       |   10
- id.c         |   16
- io.c         |  129 +++++-
- irq.c        |    8
-=20
+ omap_3430sdp_defconfig | 1058 =
++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 1058 insertions(+)
+
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-diff -purN linux-omap/arch/arm/mach-omap2/Kconfig =
-val_3430_GIT/arch/arm/mach-omap2/Kconfig
---- linux-omap/arch/arm/mach-omap2/Kconfig	2007-04-02 02:29:57.000000000 =
--0500
-+++ val_3430_GIT/arch/arm/mach-omap2/Kconfig	2007-05-28 =
-12:47:12.000000000 -0500
-@@ -5,6 +5,10 @@ config ARCH_OMAP24XX
- 	bool "OMAP24xx Based System"
- 	depends on ARCH_OMAP2
-=20
-+config ARCH_OMAP34XX
-+	bool "OMAP34xx Based System"
-+	depends on ARCH_OMAP3
-+
- config ARCH_OMAP2420
- 	bool "OMAP2420 support"
- 	depends on ARCH_OMAP24XX
-@@ -15,8 +19,12 @@ config ARCH_OMAP2430
- 	bool "OMAP2430 support"
- 	depends on ARCH_OMAP24XX
-=20
-+config ARCH_OMAP3430
-+	bool "OMAP3430 support"
-+	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+
- comment "OMAP Board Type"
--	depends on ARCH_OMAP2
-+	depends on ARCH_OMAP2 || ARCH_OMAP3
-=20
- config MACH_OMAP_GENERIC
- 	bool "Generic OMAP board"
-@@ -37,6 +45,10 @@ config MACH_OMAP_H4
- 	select OMAP_DEBUG_DEVICES
- 	select GPIOEXPANDER_OMAP
-=20
-+
-+config MACH_OMAP_3430SDP
-+	bool "OMAP 3430 SDP board"
-+	depends on ARCH_OMAP3 && ARCH_OMAP34XX
- config MACH_OMAP_H4_TUSB
- 	bool "TUSB 6010 EVM board"
- 	depends on MACH_OMAP_H4
-diff -purN linux-omap/arch/arm/mach-omap2/Makefile =
-val_3430_GIT/arch/arm/mach-omap2/Makefile
---- linux-omap/arch/arm/mach-omap2/Makefile	2007-05-16 =
-14:32:40.000000000 -0500
-+++ val_3430_GIT/arch/arm/mach-omap2/Makefile	2007-05-25 =
-23:53:23.000000000 -0500
-@@ -3,9 +3,12 @@
- #
-=20
- # Common support
--obj-y :=3D irq.o id.o io.o sram-fn.o memory.o prcm.o clock.o mux.o =
-devices.o \
-+obj-y :=3D irq.o id.o io.o sram-fn.o memory.o prcm.o mux.o devices.o \
- 	 serial.o gpmc.o
-=20
-+obj-$(CONFIG_ARCH_OMAP24XX) +=3D clock.o
-+obj-$(CONFIG_ARCH_OMAP34XX) +=3D clock_34xx.o
-+
- obj-$(CONFIG_OMAP_MPU_TIMER)		+=3D timer-gp.o
-=20
- # Power Management
-@@ -23,6 +26,7 @@ obj-$(CONFIG_MACH_OMAP_H4)		+=3D board-h4.
- obj-$(CONFIG_MACH_OMAP_2430SDP)		+=3D board-2430sdp.o \
- 					   board-2430sdp-flash.o \
- 					   board-2430sdp-usb.o
-+obj-$(CONFIG_MACH_OMAP_3430SDP)		+=3D board-3430sdp.o
- obj-$(CONFIG_MACH_OMAP_APOLLON)		+=3D board-apollon.o \
- 					   board-apollon-keys.o
- obj-$(CONFIG_MACH_NOKIA_N800)		+=3D board-n800.o board-n800-flash.o \
-
-diff -purN linux-omap/arch/arm/mach-omap2/clock.h =
-val_3430_GIT/arch/arm/mach-omap2/clock.h
---- linux-omap/arch/arm/mach-omap2/clock.h	2007-05-25 15:52:23.000000000 =
--0500
-+++ val_3430_GIT/arch/arm/mach-omap2/clock.h	2007-05-28 =
-12:47:13.000000000 -0500
-@@ -39,6 +39,7 @@ static u32 omap2_clksel_get_divisor(stru
-=20
- #define RATE_IN_242X	(1 << 0)
- #define RATE_IN_243X	(1 << 1)
-+#define RATE_IN_343X	(1 << 2)
-=20
- /* Key dividers which make up a PRCM set. Ratio's for a PRCM are =
-mandated.
-  * xtal_speed, dpll_speed, mpu_speed, CM_CLKSEL_MPU,CM_CLKSEL_DSP
-diff -purN linux-omap/arch/arm/mach-omap2/clock_34xx.c =
-val_3430_GIT/arch/arm/mach-omap2/clock_34xx.c
---- linux-omap/arch/arm/mach-omap2/clock_34xx.c	1969-12-31 =
+diff -purN linux-omap/arch/arm/configs/omap_3430sdp_defconfig =
+val_3430_GIT/arch/arm/configs/omap_3430sdp_defconfig
+--- linux-omap/arch/arm/configs/omap_3430sdp_defconfig	1969-12-31 =
 18:00:00.000000000 -0600
-+++ val_3430_GIT/arch/arm/mach-omap2/clock_34xx.c	2007-05-28 =
-12:47:13.000000000 -0500
-@@ -0,0 +1,1255 @@
-+/*
-+ *  linux/arch/arm/mach-omap2/clock_34xx.c
-+ *
-+ *  Copyright (C) 2005 Texas Instruments Inc.
-+ *  Richard Woodruff <r-woodruff2@ti.com>
-+ *  Created for OMAP2.
-+ *
-+ *  Cleaned up and modified to use omap shared clock framework by
-+ *  Tony Lindgren <tony@atomide.com>
-+ *
-+ *  Based on mach-omap2/clock.c, Copyright (C) 2004 - 2005 Nokia =
-corporation
-+ *  Written by Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/device.h>
-+#include <linux/list.h>
-+#include <linux/errno.h>
-+#include <linux/delay.h>
-+#include <linux/clk.h>
-+
-+#include <asm/io.h>
-+
-+#include <asm/arch/clock.h>
-+#include <asm/arch/sram.h>
-+#include <asm/div64.h>
-+
-+#include "memory.h"
-+#include "clock.h"
-+#include "prm.h"
-+#include "prm_regbits_34xx.h"
-+#include "cm.h"
-+#include "cm_regbits_34xx.h"
-+#include "sdrc.h"
-+
-+#undef DEBUG
-+
-+/* SET_PERFORMANCE_LEVEL PARAMETERS */
-+#define PRCM_HALF_SPEED		1
-+#define PRCM_FULL_SPEED		2
-+
-+//#define DOWN_VARIABLE_DPLL 1			/* Experimental */
-+
-+static struct prcm_config *curr_prcm_set;
-+static u32 curr_perf_level =3D PRCM_FULL_SPEED;
-+static struct clk *vclk;
-+static struct clk *sclk;
-+
-+/*----------------------------------------------------------------------=
----
-+ * Omap2 specific clock functions
-+ =
-*------------------------------------------------------------------------=
--*/
-+
-+/* Recalculate SYST_CLK */
-+static void omap2_sys_clk_recalc(struct clk * clk)
-+{
-+#if 0
-+	u32 div =3D prm_read_reg(OMAP24XX_PRCM_CLKSRC_CTRL);
-+	/* Test if ext clk divided by 1 or 2 */
-+	div &=3D (0x3 << OMAP_SYSCLKDIV_SHIFT);
-+	div >>=3D clk->rate_offset;
-+	clk->rate =3D (clk->parent->rate / div);
-+#endif
-+	propagate_rate(clk);
-+}
-+
-+/* REVISIT: This must be changed for 3430 */
-+static u32 omap2_get_dpll_rate(struct clk * tclk)
-+{
-+	long long dpll_clk;
-+	int dpll_mult, dpll_div, amult;
-+	u32 dpll;
-+
-+	dpll =3D cm_read_mod_reg(PLL_MOD, CM_CLKSEL1);
-+
-+	dpll_mult =3D dpll & OMAP24XX_DPLL_MULT_MASK;
-+	dpll_mult >>=3D OMAP24XX_DPLL_MULT_SHIFT;		/* 10 bits */
-+	dpll_div =3D dpll & OMAP24XX_DPLL_DIV_MASK;
-+	dpll_div >>=3D OMAP24XX_DPLL_DIV_SHIFT;		/* 4 bits */
-+	dpll_clk =3D (long long)tclk->parent->rate * dpll_mult;
-+	do_div(dpll_clk, dpll_div + 1);
-+	amult =3D cm_read_mod_reg(PLL_MOD, CM_CLKSEL2);
-+	amult &=3D OMAP24XX_CORE_CLK_SRC_MASK;
-+	dpll_clk *=3D amult;
-+
-+	return dpll_clk;
-+}
-+
-+static void omap2_followparent_recalc(struct clk *clk)
-+{
-+	followparent_recalc(clk);
-+}
-+
-+static void omap2_propagate_rate(struct clk * clk)
-+{
-+	if (!(clk->flags & RATE_FIXED))
-+		clk->rate =3D clk->parent->rate;
-+
-+	propagate_rate(clk);
-+}
-+
-+/* REVISIT: pjw updated this for 3430, needs closer look */
-+static void omap2_set_osc_ck(int enable)
-+{
-+	u32 pcc;
-+
-+	pcc =3D prm_read_reg(OMAP3430_PRM_CLKSRC_CTRL);
-+
-+	if (enable)
-+		prm_write_reg(pcc & ~OMAP3430_AUTOEXTCLKMODE_MASK,
-+				  OMAP3430_PRM_CLKSRC_CTRL);
-+	else
-+		prm_write_reg(pcc | OMAP3430_AUTOEXTCLKMODE_MASK,
-+				  OMAP3430_PRM_CLKSRC_CTRL);
-+}
-+
-+/* Enable an APLL if off */
-+/* REVISIT: This will need updating for 3430 */
-+static void omap2_clk_fixed_enable(struct clk *clk)
-+{
-+	u32 cval, i=3D0;
-+
-+	if (clk->enable_bit =3D=3D PARENT_CONTROLS_CLOCK)	/* Parent will do it =
-*/
-+		return;
-+
-+	cval =3D cm_read_mod_reg(PLL_MOD, CM_CLKEN);
-+
-+	if ((cval & (0x3 << clk->enable_bit)) =3D=3D (0x3 << clk->enable_bit))
-+		return;
-+
-+	cval &=3D ~(0x3 << clk->enable_bit);
-+	cval |=3D (0x3 << clk->enable_bit);
-+	cm_write_mod_reg(cval, PLL_MOD, CM_CLKEN);
-+
-+	if (clk =3D=3D &apll96_ck)
-+		cval =3D OMAP24XX_ST_96M_APLL;
-+	else if (clk =3D=3D &apll54_ck)
-+		cval =3D OMAP24XX_ST_54M_CLK;
-+
-+	/* Wait for lock */
-+	while (!(cm_read_mod_reg(PLL_MOD, CM_IDLEST) & cval)) {
-+		++i;
-+		udelay(1);
-+		if (i =3D=3D 100000) {
-+			printk(KERN_ERR "Clock %s didn't lock\n", clk->name);
-+			break;
-+		}
-+	}
-+}
-+
-+/* REVISIT: This will need updating for 3430 */
-+static void omap2_clk_wait_ready(struct clk *clk)
-+{
-+	unsigned long reg, other_reg, st_reg;
-+	u32 bit;
-+	int i;
-+
-+	reg =3D (unsigned long) clk->enable_reg;
-+	if (reg =3D=3D (unsigned long)OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1) ||
-+		reg =3D=3D (unsigned long)OMAP_CM_REGADDR(CORE_MOD, =
-OMAP24XX_CM_FCLKEN2))
-+		other_reg =3D (reg & ~0xf0) | 0x10; /* CM_ICLKEN* */
-+	else if (reg =3D=3D (unsigned long)OMAP_CM_REGADDR(CORE_MOD, =
-CM_ICLKEN1) ||
-+		 reg =3D=3D (unsigned long)OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2))
-+		other_reg =3D (reg & ~0xf0) | 0x00; /* CM_FCLKEN* */
-+	else
-+		return;
-+
-+	/* No check for DSS or cam clocks */
-+	if ((reg & 0x0f) =3D=3D 0) {
-+		if (clk->enable_bit <=3D 1 || clk->enable_bit =3D=3D 31)
-+			return;
-+	}
-+
-+	/* Check if both functional and interface clocks
-+	 * are running. */
-+	bit =3D 1 << clk->enable_bit;
-+	if (!(cm_read_reg((void __iomem *)other_reg) & bit))
-+		return;
-+	st_reg =3D (other_reg & ~0xf0) | 0x20; /* CM_IDLEST* */
-+	i =3D 0;
-+	while (!(cm_read_reg((void __iomem *)st_reg) & bit)) {
-+		i++;
-+		if (i =3D=3D 100000) {
-+			printk(KERN_ERR "Timeout enabling clock %s\n", clk->name);
-+			break;
-+		}
-+	}
-+	if (i)
-+		pr_debug("Clock %s stable after %d loops\n", clk->name, i);
-+}
-+
-+/* Enables clock without considering parent dependencies or use count
-+ * REVISIT: Maybe change this to use clk->enable like on omap1?
-+ * REVISIT: This will need fixing for 3430
-+ */
-+static int _omap2_clk_enable(struct clk * clk)
-+{
-+	u32 regval32;
-+
-+	if (clk->flags & ALWAYS_ENABLED)
-+		return 0;
-+
-+	if (unlikely(clk =3D=3D &osc_ck)) {
-+		omap2_set_osc_ck(1);
-+		return 0;
-+	}
-+
-+	if (unlikely(clk->enable_reg =3D=3D 0)) {
-+		printk(KERN_ERR "clock_34xx.c: Enable for %s without enable code\n",
-+				clk->name);
-+		return 0;
-+	}
-+
-+	if (clk->enable_reg =3D=3D (void __iomem *)OMAP_CM_REGADDR(PLL_MOD, =
-CM_CLKEN)) {
-+		omap2_clk_fixed_enable(clk);
-+		return 0;
-+	}
-+
-+	regval32 =3D cm_read_reg(clk->enable_reg);
-+	regval32 |=3D (1 << clk->enable_bit);
-+	cm_write_reg(regval32, clk->enable_reg);
-+	wmb();
-+
-+	omap2_clk_wait_ready(clk);
-+
-+	return 0;
-+}
-+
-+/* Stop APLL */
-+/* REVISIT: This will need fixing for 3430 */
-+static void omap2_clk_fixed_disable(struct clk *clk)
-+{
-+	u32 cval;
-+
-+	if (clk->enable_bit =3D=3D PARENT_CONTROLS_CLOCK)
-+		return;		/* let parent off do it */
-+
-+	cval =3D cm_read_mod_reg(PLL_MOD, CM_CLKEN);
-+	cval &=3D ~(0x3 << clk->enable_bit);
-+	cm_write_mod_reg(cval, PLL_MOD, CM_CLKEN);
-+}
-+
-+/* Disables clock without considering parent dependencies or use count =
-*/
-+static void _omap2_clk_disable(struct clk *clk)
-+{
-+	u32 regval32;
-+
-+	if (unlikely(clk =3D=3D &osc_ck)) {
-+		omap2_set_osc_ck(0);
-+		return;
-+	}
-+
-+	if (clk->enable_reg =3D=3D 0)
-+		return;
-+
-+	if (clk->enable_reg =3D=3D (void __iomem *)OMAP_CM_REGADDR(PLL_MOD, =
-CM_CLKEN)) {
-+		omap2_clk_fixed_disable(clk);
-+		return;
-+	}
-+
-+	regval32 =3D cm_read_reg(clk->enable_reg);
-+	regval32 &=3D ~(1 << clk->enable_bit);
-+	cm_write_reg(regval32, clk->enable_reg);
-+	wmb();
-+}
-+
-+static int omap2_clk_enable(struct clk *clk)
-+{
-+	int ret =3D 0;
-+
-+	if (clk->usecount++ =3D=3D 0) {
-+		if (likely((u32)clk->parent))
-+			ret =3D omap2_clk_enable(clk->parent);
-+
-+		if (unlikely(ret !=3D 0)) {
-+			clk->usecount--;
-+			return ret;
-+		}
-+
-+		ret =3D _omap2_clk_enable(clk);
-+
-+		if (unlikely(ret !=3D 0) && clk->parent) {
-+			omap2_clk_disable(clk->parent);
-+			clk->usecount--;
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+static void omap2_clk_disable(struct clk *clk)
-+{
-+	if (clk->usecount > 0 && !(--clk->usecount)) {
-+		_omap2_clk_disable(clk);
-+		if (likely((u32)clk->parent))
-+			omap2_clk_disable(clk->parent);
-+	}
-+}
-+
-+/*
-+ * Uses the current prcm set to tell if a rate is valid.
-+ * You can go slower, but not faster within a given rate set.
-+ * REVISIT: This will need to be fixed for 3430
-+ */
-+static u32 omap2_dpll_round_rate(unsigned long target_rate)
-+{
-+	u32 high, low, core_clk_src;
-+
-+	core_clk_src =3D cm_read_mod_reg(PLL_MOD, CM_CLKSEL2);
-+	core_clk_src &=3D OMAP24XX_CORE_CLK_SRC_MASK;
-+
-+	if (core_clk_src =3D=3D 1) {	/* DPLL clockout */
-+		high =3D curr_prcm_set->dpll_speed * 2;
-+		low =3D curr_prcm_set->dpll_speed;
-+	} else {				/* DPLL clockout x 2 */
-+		high =3D curr_prcm_set->dpll_speed;
-+		low =3D curr_prcm_set->dpll_speed / 2;
-+	}
-+
-+#ifdef DOWN_VARIABLE_DPLL
-+	if (target_rate > high)
-+		return high;
-+	else
-+		return target_rate;
-+#else
-+	if (target_rate > low)
-+		return high;
-+	else
-+		return low;
-+#endif
-+
-+}
-+
-+/*
-+ * Used for clocks that are part of CLKSEL_xyz governed clocks.
-+ * REVISIT: Maybe change to use clk->enable() functions like on omap1?
-+ * REVISIT: Will need to be fixed for 3430
-+ */
-+static void omap2_clksel_recalc(struct clk * clk)
-+{
-+#if 0
-+	u32 fixed =3D 0, div =3D 0;
-+	u32 clksel1_core;
-+
-+	if (clk =3D=3D &dpll_ck) {
-+		clk->rate =3D omap2_get_dpll_rate(clk);
-+		fixed =3D 1;
-+		div =3D 0;
-+	}
-+
-+	if (clk =3D=3D &iva1_mpu_int_ifck) {
-+		div =3D 2;
-+		fixed =3D 1;
-+	}
-+
-+	clksel1_core =3D cm_read_mod_reg(CORE_MOD, CM_CLKSEL1);
-+
-+	if ((clk =3D=3D &dss1_fck) &&
-+		(clksel1_core & OMAP24XX_CLKSEL_DSS1_MASK) =3D=3D 0) {
-+		clk->rate =3D sys_ck.rate;
-+		return;
-+	}
-+
-+	if (!fixed) {
-+		div =3D omap2_clksel_get_divisor(clk);
-+		if (div =3D=3D 0)
-+			return;
-+	}
-+
-+	if (div !=3D 0) {
-+		if (unlikely(clk->rate =3D=3D clk->parent->rate / div))
-+			return;
-+		clk->rate =3D clk->parent->rate / div;
-+	}
-+
-+#endif
-+	if (unlikely(clk->flags & RATE_PROPAGATES))
-+		propagate_rate(clk);
-+}
-+
-+/*
-+ * Finds best divider value in an array based on the source and target
-+ * rates. The divider array must be sorted with smallest divider first.
-+ */
-+static inline u32 omap2_divider_from_table(u32 size, u32 *div_array,
-+						u32 src_rate, u32 tgt_rate)
-+{
-+	int i, test_rate;
-+
-+	if (div_array =3D=3D NULL)
-+		return ~1;
-+
-+	for (i=3D0; i < size; i++) {
-+		test_rate =3D src_rate / *div_array;
-+		if (test_rate <=3D tgt_rate)
-+			return *div_array;
-+		++div_array;
-+	}
-+
-+	return ~0;	/* No acceptable divider */
-+}
-+
-+/*
-+ * Find divisor for the given clock and target rate.
-+ *
-+ * Note that this will not work for clocks which are part of =
-CONFIG_PARTICIPANT,
-+ * they are only settable as part of virtual_prcm set.
-+ */
-+static u32 omap2_clksel_round_rate(struct clk *tclk, u32 target_rate,
-+	u32 *new_div)
-+{
-+	u32 gfx_div[] =3D {2, 3, 4};
-+	u32 sysclkout_div[] =3D {1, 2, 4, 8, 16};
-+	u32 dss1_div[] =3D {1, 2, 3, 4, 5, 6, 8, 9, 12, 16};
-+	u32 vylnq_div[] =3D {1, 2, 3, 4, 6, 8, 9, 12, 16, 18};
-+	u32 best_div =3D ~0, asize =3D 0;
-+	u32 *div_array =3D NULL;
-+
-+	switch (tclk->flags & SRC_RATE_SEL_MASK) {
-+	case CM_GFX_SEL1:
-+		asize =3D 3;
-+		div_array =3D gfx_div;
-+		break;
-+	case CM_PLL_SEL1:
-+		return omap2_dpll_round_rate(target_rate);
-+	case CM_SYSCLKOUT_SEL1:
-+		asize =3D 5;
-+		div_array =3D sysclkout_div;
-+		break;
-+	case CM_CORE_SEL1:
-+		if (tclk =3D=3D &dss1_fck) {
-+			if (tclk->parent =3D=3D &core_ck) {
-+				asize =3D 10;
-+				div_array =3D dss1_div;
-+			} else {
-+				*new_div =3D 0; /* fixed clk */
-+				return(tclk->parent->rate);
-+			}
-+		} else if ((tclk =3D=3D &vlynq_fck) && cpu_is_omap2420()) {
-+			if (tclk->parent =3D=3D &core_ck) {
-+				asize =3D 10;
-+				div_array =3D vylnq_div;
-+			} else {
-+				*new_div =3D 0; /* fixed clk */
-+				return(tclk->parent->rate);
-+			}
-+		}
-+		break;
-+	}
-+
-+	best_div =3D omap2_divider_from_table(asize, div_array,
-+	 tclk->parent->rate, target_rate);
-+	if (best_div =3D=3D ~0) {
-+		*new_div =3D 1;
-+		return best_div; /* signal error */
-+	}
-+
-+	*new_div =3D best_div;
-+	return (tclk->parent->rate / best_div);
-+}
-+
-+/* Given a clock and a rate apply a clock specific rounding function */
-+static long omap2_clk_round_rate(struct clk *clk, unsigned long rate)
-+{
-+	u32 new_div =3D 0;
-+	int valid_rate;
-+
-+	if (clk->flags & RATE_FIXED)
-+		return clk->rate;
-+
-+	if (clk->flags & RATE_CKCTL) {
-+		valid_rate =3D omap2_clksel_round_rate(clk, rate, &new_div);
-+		return valid_rate;
-+	}
-+
-+	if (clk->round_rate !=3D 0)
-+		return clk->round_rate(clk, rate);
-+
-+	return clk->rate;
-+}
-+
-+/*
-+ * Check the DLL lock state, and return tue if running in unlock mode.
-+ * This is needed to compenste for the shifted DLL value in unlock =
-mode.
-+ */
-+static u32 omap2_dll_force_needed(void)
-+{
-+	/* dlla and dllb are a set */
-+	u32 dll_state =3D sdrc_read_reg(SDRC_DLLA_CTRL);
-+
-+	if ((dll_state & (1 << 2)) =3D=3D (1 << 2))
-+		return 1;
-+	else
-+		return 0;
-+}
-+
-+/* REVISIT: Will need to be fixed for 3430 */
-+static u32 omap2_reprogram_sdrc(u32 level, u32 force)
-+{
-+	u32 slow_dll_ctrl, fast_dll_ctrl, m_type;
-+	u32 prev =3D curr_perf_level, flags;
-+
-+	if ((curr_perf_level =3D=3D level) && !force)
-+		return prev;
-+
-+	m_type =3D omap2_memory_get_type();
-+	slow_dll_ctrl =3D omap2_memory_get_slow_dll_ctrl();
-+	fast_dll_ctrl =3D omap2_memory_get_fast_dll_ctrl();
-+
-+	if (level =3D=3D PRCM_HALF_SPEED) {
-+		local_irq_save(flags);
-+		prm_write_reg(0xffff, OMAP24XX_PRCM_VOLTSETUP);
-+		omap2_sram_reprogram_sdrc(PRCM_HALF_SPEED,
-+					  slow_dll_ctrl, m_type);
-+		curr_perf_level =3D PRCM_HALF_SPEED;
-+		local_irq_restore(flags);
-+	}
-+	if (level =3D=3D PRCM_FULL_SPEED) {
-+		local_irq_save(flags);
-+		prm_write_reg(0xffff, OMAP24XX_PRCM_VOLTSETUP);
-+		omap2_sram_reprogram_sdrc(PRCM_FULL_SPEED,
-+					  fast_dll_ctrl, m_type);
-+		curr_perf_level =3D PRCM_FULL_SPEED;
-+		local_irq_restore(flags);
-+	}
-+
-+	return prev;
-+}
-+
-+/* REVISIT: Will need to be fixed for 3430 */
-+static int omap2_reprogram_dpll(struct clk * clk, unsigned long rate)
-+{
-+	u32 flags, cur_rate, low, mult, div, valid_rate, done_rate;
-+	u32 bypass =3D 0;
-+	struct prcm_config tmpset;
-+	int ret =3D -EINVAL;
-+
-+	local_irq_save(flags);
-+	cur_rate =3D omap2_get_dpll_rate(&dpll_ck);
-+	mult =3D cm_read_mod_reg(PLL_MOD, CM_CLKSEL2);
-+	mult &=3D OMAP24XX_CORE_CLK_SRC_MASK;
-+
-+	if ((rate =3D=3D (cur_rate / 2)) && (mult =3D=3D 2)) {
-+		omap2_reprogram_sdrc(PRCM_HALF_SPEED, 1);
-+	} else if ((rate =3D=3D (cur_rate * 2)) && (mult =3D=3D 1)) {
-+		omap2_reprogram_sdrc(PRCM_FULL_SPEED, 1);
-+	} else if (rate !=3D cur_rate) {
-+		valid_rate =3D omap2_dpll_round_rate(rate);
-+		if (valid_rate !=3D rate)
-+			goto dpll_exit;
-+
-+		if (mult =3D=3D 1)
-+			low =3D curr_prcm_set->dpll_speed;
-+		else
-+			low =3D curr_prcm_set->dpll_speed / 2;
-+
-+		/* REVISIT: This sets several reserved bits? */
-+		tmpset.cm_clksel1_pll	=3D cm_read_mod_reg(PLL_MOD, CM_CLKSEL1);
-+		tmpset.cm_clksel1_pll &=3D ~(0x3FFF << 8);
-+		div =3D ((curr_prcm_set->xtal_speed / 1000000) - 1);
-+		tmpset.cm_clksel2_pll	=3D cm_read_mod_reg(PLL_MOD, CM_CLKSEL2);
-+		tmpset.cm_clksel2_pll &=3D ~OMAP24XX_CORE_CLK_SRC_MASK;
-+		if (rate > low) {
-+			tmpset.cm_clksel2_pll |=3D 0x2;
-+			mult =3D ((rate / 2) / 1000000);
-+			done_rate =3D PRCM_FULL_SPEED;
-+		} else {
-+			tmpset.cm_clksel2_pll |=3D 0x1;
-+			mult =3D (rate / 1000000);
-+			done_rate =3D PRCM_HALF_SPEED;
-+		}
-+		tmpset.cm_clksel1_pll |=3D (div << OMAP24XX_DPLL_DIV_SHIFT);
-+		tmpset.cm_clksel1_pll |=3D (mult << OMAP24XX_DPLL_MULT_SHIFT);
-+
-+		/* Worst case */
-+		tmpset.base_sdrc_rfr =3D V24XX_SDRC_RFR_CTRL_BYPASS;
-+
-+		if (rate =3D=3D curr_prcm_set->xtal_speed)	/* If asking for 1-1 */
-+			bypass =3D 1;
-+
-+		omap2_reprogram_sdrc(PRCM_FULL_SPEED, 1); /* For init_mem */
-+
-+		/* Force dll lock mode */
-+		omap2_set_prcm(tmpset.cm_clksel1_pll, tmpset.base_sdrc_rfr,
-+					bypass);
-+
-+		/* Errata: ret dll entry state */
-+		omap2_init_memory_params(omap2_dll_force_needed());
-+		omap2_reprogram_sdrc(done_rate, 0);
-+	}
-+	omap2_clksel_recalc(&dpll_ck);
-+	ret =3D 0;
-+
-+dpll_exit:
-+	local_irq_restore(flags);
-+	return(ret);
-+}
-+
-+/* Just return the MPU speed */
-+static void omap2_mpu_recalc(struct clk * clk)
-+{
-+	clk->rate =3D curr_prcm_set->mpu_speed;
-+}
-+
-+/*
-+ * Look for a rate equal or less than the target rate given a =
-configuration set.
-+ *
-+ * What's not entirely clear is "which" field represents the key field.
-+ * Some might argue L3-DDR, others ARM, others IVA. This code is simple =
-and
-+ * just uses the ARM rates.
-+ */
-+static long omap2_round_to_table_rate(struct clk * clk, unsigned long =
-rate)
-+{
-+	struct prcm_config * ptr;
-+	long highest_rate;
-+
-+	if (clk !=3D &virt_prcm_set)
-+		return -EINVAL;
-+
-+	highest_rate =3D -EINVAL;
-+
-+	for (ptr =3D rate_table; ptr->mpu_speed; ptr++) {
-+		if (ptr->xtal_speed !=3D sys_ck.rate)
-+			continue;
-+
-+		highest_rate =3D ptr->mpu_speed;
-+
-+		/* Can check only after xtal frequency check */
-+		if (ptr->mpu_speed <=3D rate)
-+			break;
-+	}
-+	return highest_rate;
-+}
-+
-+/*
-+ * omap2_convert_field_to_div() - turn field value into integer divider
-+ */
-+static u32 omap2_clksel_to_divisor(u32 div_sel, u32 field_val)
-+{
-+	u32 i;
-+	u32 clkout_array[] =3D {1, 2, 4, 8, 16};
-+
-+	if ((div_sel & SRC_RATE_SEL_MASK) =3D=3D CM_SYSCLKOUT_SEL1) {
-+		for (i =3D 0; i < 5; i++) {
-+			if (field_val =3D=3D i)
-+				return clkout_array[i];
-+		}
-+		return ~0;
-+	} else
-+		return field_val;
-+}
-+
-+/*
-+ * Returns the CLKSEL divider register value
-+ * REVISIT: This should be cleaned up to work nicely with void __iomem =
-*
-+ * REVISIT: Will need to be fixed for 3430
-+ */
-+static u32 omap2_get_clksel(u32 *div_sel, u32 *field_mask,
-+				struct clk *clk)
-+{
-+	int ret =3D ~0;
-+	u32 reg_val, div_off;
-+	void __iomem *div_addr =3D 0;
-+	u32 mask =3D ~0;
-+
-+	div_off =3D clk->rate_offset;
-+
-+	switch ((*div_sel & SRC_RATE_SEL_MASK)) {
-+	case CM_MPU_SEL1:
-+		div_addr =3D OMAP_CM_REGADDR(MPU_MOD, CM_CLKSEL);
-+		mask =3D OMAP24XX_CLKSEL_MPU_MASK;
-+		break;
-+	case CM_DSP_SEL1:
-+		div_addr =3D OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, CM_CLKSEL);
-+		if (cpu_is_omap2420()) {
-+			if (div_off =3D=3D OMAP24XX_CLKSEL_DSP_SHIFT)
-+				mask =3D OMAP24XX_CLKSEL_DSP_MASK;
-+			else if (div_off =3D=3D OMAP2420_CLKSEL_IVA_SHIFT)
-+				mask =3D OMAP2420_CLKSEL_IVA_MASK;
-+			else if (div_off =3D=3D OMAP24XX_CLKSEL_DSP_IF_SHIFT)
-+				mask =3D OMAP24XX_CLKSEL_DSP_IF_MASK;
-+		} else if (cpu_is_omap2430()) {
-+			if (div_off =3D=3D OMAP24XX_CLKSEL_DSP_SHIFT)
-+				mask =3D OMAP24XX_CLKSEL_DSP_MASK;
-+			else if (div_off =3D=3D OMAP24XX_CLKSEL_DSP_IF_SHIFT)
-+				mask =3D OMAP24XX_CLKSEL_DSP_IF_MASK;
-+		}
-+		break;
-+	case CM_GFX_SEL1:
-+		div_addr =3D OMAP_CM_REGADDR(GFX_MOD, CM_CLKSEL);
-+		if (div_off =3D=3D OMAP_CLKSEL_GFX_SHIFT)
-+			mask =3D OMAP_CLKSEL_GFX_MASK;
-+		break;
-+	case CM_MODEM_SEL1:
-+		div_addr =3D OMAP_CM_REGADDR(OMAP2430_MDM_MOD, CM_CLKSEL);
-+		if (div_off =3D=3D OMAP2430_CLKSEL_MDM_SHIFT)
-+			mask =3D OMAP2430_CLKSEL_MDM_MASK;
-+		break;
-+	case CM_SYSCLKOUT_SEL1:
-+		div_addr =3D OMAP24XX_PRCM_CLKOUT_CTRL;
-+		if (div_off =3D=3D OMAP24XX_CLKOUT_DIV_SHIFT)
-+			mask =3D OMAP24XX_CLKOUT_DIV_MASK;
-+		else if (div_off =3D=3D OMAP2420_CLKOUT2_DIV_SHIFT)
-+			mask =3D OMAP2420_CLKOUT2_DIV_MASK;
-+		break;
-+	case CM_CORE_SEL1:
-+		div_addr =3D OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL1);
-+		switch (div_off) {
-+		case OMAP24XX_CLKSEL_L3_SHIFT:
-+			mask =3D OMAP24XX_CLKSEL_L3_MASK;
-+			break;
-+		case OMAP24XX_CLKSEL_L4_SHIFT:
-+			mask =3D OMAP24XX_CLKSEL_L4_MASK;
-+			break;
-+		case OMAP24XX_CLKSEL_DSS1_SHIFT:
-+			mask =3D OMAP24XX_CLKSEL_DSS1_MASK;
-+			break;
-+		case OMAP24XX_CLKSEL_DSS2_SHIFT:
-+			mask =3D OMAP24XX_CLKSEL_DSS2_MASK;
-+			break;
-+		case OMAP2420_CLKSEL_VLYNQ_SHIFT:
-+			mask =3D OMAP2420_CLKSEL_VLYNQ_MASK;
-+			break;
-+		case OMAP24XX_CLKSEL_SSI_SHIFT:
-+			mask =3D OMAP24XX_CLKSEL_SSI_MASK;
-+			break;
-+		case OMAP24XX_CLKSEL_USB_SHIFT:
-+			mask =3D OMAP24XX_CLKSEL_USB_MASK;
-+			break;
-+		}
-+	}
-+
-+	*field_mask =3D (mask >> div_off);
-+
-+	if (unlikely(mask =3D=3D ~0))
-+		div_addr =3D 0;
-+
-+	*div_sel =3D (u32)div_addr;
-+
-+	if (unlikely(div_addr =3D=3D 0))
-+		return ret;
-+
-+	/* Isolate field */
-+	reg_val =3D cm_read_reg(div_addr) & mask;
-+
-+	/* Normalize back to divider value */
-+	reg_val >>=3D div_off;
-+
-+	return reg_val;
-+}
-+
-+/*
-+ * Return divider to be applied to parent clock.
-+ * Return 0 on error.
-+ */
-+static u32 omap2_clksel_get_divisor(struct clk *clk)
-+{
-+	int ret =3D 0;
-+	u32 div, div_sel, div_off, field_mask, field_val;
-+
-+	/* isolate control register */
-+	div_sel =3D (SRC_RATE_SEL_MASK & clk->flags);
-+
-+	div_off =3D clk->rate_offset;
-+	field_val =3D omap2_get_clksel(&div_sel, &field_mask, clk);
-+	if (div_sel =3D=3D 0)
-+		return ret;
-+
-+	div_sel =3D (SRC_RATE_SEL_MASK & clk->flags);
-+	div =3D omap2_clksel_to_divisor(div_sel, field_val);
-+
-+	return div;
-+}
-+
-+/* Set the clock rate for a clock source */
-+static int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
-+
-+{
-+	int ret =3D -EINVAL;
-+	void __iomem * reg;
-+	u32 div_sel, div_off, field_mask, field_val, reg_val, validrate;
-+	u32 new_div =3D 0;
-+
-+	if (!(clk->flags & CONFIG_PARTICIPANT) && (clk->flags & RATE_CKCTL)) {
-+		if (clk =3D=3D &dpll_ck)
-+			return omap2_reprogram_dpll(clk, rate);
-+
-+		/* Isolate control register */
-+		div_sel =3D (SRC_RATE_SEL_MASK & clk->flags);
-+		div_off =3D clk->rate_offset;
-+
-+		validrate =3D omap2_clksel_round_rate(clk, rate, &new_div);
-+		if (validrate !=3D rate)
-+			return(ret);
-+
-+		field_val =3D omap2_get_clksel(&div_sel, &field_mask, clk);
-+		if (div_sel =3D=3D 0)
-+			return ret;
-+
-+		if (clk->flags & CM_SYSCLKOUT_SEL1) {
-+			switch (new_div) {
-+			case 16:
-+				field_val =3D 4;
-+				break;
-+			case 8:
-+				field_val =3D 3;
-+				break;
-+			case 4:
-+				field_val =3D 2;
-+				break;
-+			case 2:
-+				field_val =3D 1;
-+				break;
-+			case 1:
-+				field_val =3D 0;
-+				break;
-+			}
-+		} else
-+			field_val =3D new_div;
-+
-+		reg =3D (void __iomem *)div_sel;
-+
-+		reg_val =3D cm_read_reg(reg);
-+		reg_val &=3D ~(field_mask << div_off);
-+		reg_val |=3D (field_val << div_off);
-+		cm_write_reg(reg_val, reg);
-+		wmb();
-+		clk->rate =3D clk->parent->rate / field_val;
-+
-+		if (clk->flags & DELAYED_APP) {
-+			prm_write_reg(OMAP24XX_VALID_CONFIG,
-+					  OMAP24XX_PRCM_CLKCFG_CTRL);
-+			wmb();
-+		}
-+		ret =3D 0;
-+	} else if (clk->set_rate !=3D 0)
-+		ret =3D clk->set_rate(clk, rate);
-+
-+	if (unlikely(ret =3D=3D 0 && (clk->flags & RATE_PROPAGATES)))
-+		propagate_rate(clk);
-+
-+	return ret;
-+}
-+
-+/* Converts encoded control register address into a full address */
-+static u32 omap2_get_src_field(u32 *type_to_addr, u32 reg_offset,
-+					struct clk *src_clk, u32 *field_mask)
-+{
-+	u32 val =3D ~0, mask =3D 0;
-+	void __iomem *src_reg_addr =3D 0;
-+
-+	/* Find target control register.*/
-+	switch ((*type_to_addr & SRC_RATE_SEL_MASK)) {
-+	case CM_CORE_SEL1:
-+		src_reg_addr =3D OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL1);
-+		if (reg_offset =3D=3D OMAP24XX_CLKSEL_DSS2_SHIFT) {
-+			mask =3D OMAP24XX_CLKSEL_DSS2_MASK;
-+			mask >>=3D OMAP24XX_CLKSEL_DSS2_SHIFT;
-+			if (src_clk =3D=3D &sys_ck)
-+				val =3D 0;
-+			if (src_clk =3D=3D &func_48m_ck)
-+				val =3D 1;
-+		} else if (reg_offset =3D=3D OMAP24XX_CLKSEL_DSS1_SHIFT) {
-+			mask =3D OMAP24XX_CLKSEL_DSS1_MASK;
-+			mask >>=3D OMAP24XX_CLKSEL_DSS1_SHIFT;
-+			if (src_clk =3D=3D &sys_ck)
-+				val =3D 0;
-+			else if (src_clk =3D=3D &core_ck)	/* divided clock */
-+				val =3D 0x10;		/* rate needs fixing */
-+		} else if ((reg_offset =3D=3D OMAP2420_CLKSEL_VLYNQ_SHIFT) &&
-+				cpu_is_omap2420()) {
-+			mask =3D OMAP2420_CLKSEL_VLYNQ_MASK;
-+			mask >>=3D OMAP2420_CLKSEL_VLYNQ_SHIFT;
-+			if (src_clk =3D=3D &func_96m_ck)
-+				val =3D 0;
-+			else if (src_clk =3D=3D &core_ck)
-+				val =3D 0x10;
-+		}
-+		break;
-+	case CM_CORE_SEL2:
-+		src_reg_addr =3D OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL2);
-+		mask =3D 0x3;
-+		if (src_clk =3D=3D &func_32k_ck)
-+			val =3D 0x0;
-+		if (src_clk =3D=3D &sys_ck)
-+			val =3D 0x1;
-+		if (src_clk =3D=3D &alt_ck)
-+			val =3D 0x2;
-+		break;
-+	case CM_WKUP_SEL1:
-+		src_reg_addr =3D OMAP_CM_REGADDR(WKUP_MOD, CM_CLKSEL);
-+		mask =3D 0x3;
-+		if (src_clk =3D=3D &func_32k_ck)
-+			val =3D 0x0;
-+		if (src_clk =3D=3D &sys_ck)
-+			val =3D 0x1;
-+		if (src_clk =3D=3D &alt_ck)
-+			val =3D 0x2;
-+		break;
-+	case CM_PLL_SEL1:
-+		src_reg_addr =3D OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1);
-+		mask =3D 0x1;
-+		if (reg_offset =3D=3D 0x3) {
-+			if (src_clk =3D=3D &apll96_ck)
-+				val =3D 0;
-+			if (src_clk =3D=3D &alt_ck)
-+				val =3D 1;
-+		}
-+		else if (reg_offset =3D=3D 0x5) {
-+			if (src_clk =3D=3D &apll54_ck)
-+				val =3D 0;
-+			if (src_clk =3D=3D &alt_ck)
-+				val =3D 1;
-+		}
-+		break;
-+	case CM_PLL_SEL2:
-+		src_reg_addr =3D OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL2);
-+		mask =3D 0x3;
-+		if (src_clk =3D=3D &func_32k_ck)
-+			val =3D 0x0;
-+		if (src_clk =3D=3D &dpll_ck)
-+			val =3D 0x2;
-+		break;
-+	case CM_SYSCLKOUT_SEL1:
-+		src_reg_addr =3D OMAP24XX_PRCM_CLKOUT_CTRL;
-+		mask =3D 0x3;
-+		if (src_clk =3D=3D &dpll_ck)
-+			val =3D 0;
-+		if (src_clk =3D=3D &sys_ck)
-+			val =3D 1;
-+		if (src_clk =3D=3D &func_96m_ck)
-+			val =3D 2;
-+		if (src_clk =3D=3D &func_54m_ck)
-+			val =3D 3;
-+		break;
-+	}
-+
-+	if (val =3D=3D ~0)			/* Catch errors in offset */
-+		*type_to_addr =3D 0;
-+	else
-+		*type_to_addr =3D (u32)src_reg_addr;
-+	*field_mask =3D mask;
-+
-+	return val;
-+}
-+
-+/* REVISIT: Needs to be fixed for 3430 */
-+static int omap2_clk_set_parent(struct clk *clk, struct clk =
-*new_parent)
-+{
-+	void __iomem * reg;
-+	u32 src_sel, src_off, field_val, field_mask, reg_val, rate;
-+	int ret =3D -EINVAL;
-+
-+	if (unlikely(clk->flags & CONFIG_PARTICIPANT))
-+		return ret;
-+
-+	if (clk->flags & SRC_SEL_MASK) {	/* On-chip SEL collection */
-+		src_sel =3D (SRC_RATE_SEL_MASK & clk->flags);
-+		src_off =3D clk->src_offset;
-+
-+		if (src_sel =3D=3D 0)
-+			goto set_parent_error;
-+
-+		field_val =3D omap2_get_src_field(&src_sel, src_off, new_parent,
-+						&field_mask);
-+
-+		reg =3D (void __iomem *)src_sel;
-+
-+		if (clk->usecount > 0)
-+			_omap2_clk_disable(clk);
-+
-+		/* Set new source value (previous dividers if any in effect) */
-+		reg_val =3D __raw_readl(reg) & ~(field_mask << src_off);
-+		reg_val |=3D (field_val << src_off);
-+		__raw_writel(reg_val, reg);
-+		wmb();
-+
-+		if (clk->flags & DELAYED_APP) {
-+			prm_write_reg(OMAP24XX_VALID_CONFIG,
-+					  OMAP24XX_PRCM_CLKCFG_CTRL);
-+			wmb();
-+		}
-+		if (clk->usecount > 0)
-+			_omap2_clk_enable(clk);
-+
-+		clk->parent =3D new_parent;
-+
-+		/* SRC_RATE_SEL_MASK clocks follow their parents rates.*/
-+		if ((new_parent =3D=3D &core_ck) && (clk =3D=3D &dss1_fck))
-+			clk->rate =3D new_parent->rate / 0x10;
-+		else
-+			clk->rate =3D new_parent->rate;
-+
-+		if (unlikely(clk->flags & RATE_PROPAGATES))
-+			propagate_rate(clk);
-+
-+		return 0;
-+	} else {
-+		clk->parent =3D new_parent;
-+		rate =3D new_parent->rate;
-+		omap2_clk_set_rate(clk, rate);
-+		ret =3D 0;
-+	}
-+
-+ set_parent_error:
-+	return ret;
-+}
-+
-+/* Sets basic clocks based on the specified rate */
-+/* REVISIT: Needs to be fixed for 3430 */
-+static int omap2_select_table_rate(struct clk * clk, unsigned long =
-rate)
-+{
-+	u32 flags, cur_rate, done_rate, bypass =3D 0;
-+	u8 cpu_mask =3D 0;
-+	struct prcm_config *prcm;
-+	unsigned long found_speed =3D 0;
-+
-+	if (clk !=3D &virt_prcm_set)
-+		return -EINVAL;
-+
-+	/* FIXME: Change cpu_is_omap2420() to cpu_is_omap242x() */
-+	if (cpu_is_omap2420())
-+		cpu_mask =3D RATE_IN_242X;
-+	else if (cpu_is_omap2430())
-+		cpu_mask =3D RATE_IN_243X;
-+	else if (cpu_is_omap3430())
-+		cpu_mask =3D RATE_IN_343X;
-+
-+	for (prcm =3D rate_table; prcm->mpu_speed; prcm++) {
-+		if (!(prcm->flags & cpu_mask))
-+			continue;
-+
-+		if (prcm->xtal_speed !=3D sys_ck.rate)
-+			continue;
-+
-+		if (prcm->mpu_speed <=3D rate) {
-+			found_speed =3D prcm->mpu_speed;
-+			break;
-+		}
-+	}
-+
-+	if (!found_speed) {
-+		printk(KERN_INFO "Could not set MPU rate to %luMHz\n",
-+	 rate / 1000000);
-+		return -EINVAL;
-+	}
-+
-+	curr_prcm_set =3D prcm;
-+	cur_rate =3D omap2_get_dpll_rate(&dpll_ck);
-+
-+	if (prcm->dpll_speed =3D=3D cur_rate / 2) {
-+		omap2_reprogram_sdrc(PRCM_HALF_SPEED, 1);
-+	} else if (prcm->dpll_speed =3D=3D cur_rate * 2) {
-+		omap2_reprogram_sdrc(PRCM_FULL_SPEED, 1);
-+	} else if (prcm->dpll_speed !=3D cur_rate) {
-+		local_irq_save(flags);
-+
-+		if (prcm->dpll_speed =3D=3D prcm->xtal_speed)
-+			bypass =3D 1;
-+
-+		if ((prcm->cm_clksel2_pll & OMAP24XX_CORE_CLK_SRC_MASK) =3D=3D 2)
-+			done_rate =3D PRCM_FULL_SPEED;
-+		else
-+			done_rate =3D PRCM_HALF_SPEED;
-+
-+		/* MPU divider */
-+		cm_write_mod_reg(prcm->cm_clksel_mpu, MPU_MOD, CM_CLKSEL);
-+
-+		/* dsp + iva1 div(2420), iva2.1(2430) */
-+		cm_write_mod_reg(prcm->cm_clksel_dsp,
-+				 OMAP24XX_DSP_MOD, CM_CLKSEL);
-+
-+		cm_write_mod_reg(prcm->cm_clksel_gfx, GFX_MOD, CM_CLKSEL);
-+
-+		/* Major subsystem dividers */
-+		cm_write_mod_reg(prcm->cm_clksel1_core, CORE_MOD, CM_CLKSEL1);
-+		if (cpu_is_omap2430())
-+			cm_write_mod_reg(prcm->cm_clksel_mdm,
-+					 OMAP2430_MDM_MOD, CM_CLKSEL);
-+
-+		/* x2 to enter init_mem */
-+		omap2_reprogram_sdrc(PRCM_FULL_SPEED, 1);
-+
-+		omap2_set_prcm(prcm->cm_clksel1_pll, prcm->base_sdrc_rfr,
-+					bypass);
-+
-+		omap2_init_memory_params(omap2_dll_force_needed());
-+		omap2_reprogram_sdrc(done_rate, 0);
-+
-+		local_irq_restore(flags);
-+	}
-+	omap2_clksel_recalc(&dpll_ck);
-+
-+	return 0;
-+}
-+
-+/*----------------------------------------------------------------------=
----
-+ * Omap2 clock reset and init functions
-+ =
-*------------------------------------------------------------------------=
--*/
-+
-+#ifdef CONFIG_OMAP_RESET_CLOCKS
-+static void __init omap2_clk_disable_unused(struct clk *clk)
-+{
-+	u32 regval32;
-+
-+	regval32 =3D cm_read_reg(clk->enable_reg);
-+	if ((regval32 & (1 << clk->enable_bit)) =3D=3D 0)
-+		return;
-+
-+	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
-+	_omap2_clk_disable(clk);
-+}
-+#else
-+#define omap2_clk_disable_unused	NULL
-+#endif
-+
-+static struct clk_functions omap2_clk_functions =3D {
-+	.clk_enable		=3D omap2_clk_enable,
-+	.clk_disable		=3D omap2_clk_disable,
-+	.clk_round_rate		=3D omap2_clk_round_rate,
-+	.clk_set_rate		=3D omap2_clk_set_rate,
-+	.clk_set_parent		=3D omap2_clk_set_parent,
-+	.clk_disable_unused	=3D omap2_clk_disable_unused,
-+};
-+
-+/* REVISIT: Needs fixing for 3430 */
-+static void __init omap2_get_crystal_rate(struct clk *osc, struct clk =
-*sys)
-+{
-+	u32 div, aplls, sclk =3D 13000000;
-+
-+	aplls =3D cm_read_mod_reg(PLL_MOD, CM_CLKSEL1);
-+	aplls &=3D OMAP24XX_APLLS_CLKIN_MASK;
-+	aplls >>=3D OMAP24XX_APLLS_CLKIN_SHIFT;	/* Isolate field, 0,2,3 */
-+
-+	if (aplls =3D=3D 0)
-+		sclk =3D 19200000;
-+	else if (aplls =3D=3D 2)
-+		sclk =3D 13000000;
-+	else if (aplls =3D=3D 3)
-+		sclk =3D 12000000;
-+
-+	div =3D prm_read_reg(OMAP24XX_PRCM_CLKSRC_CTRL);
-+	div &=3D OMAP_SYSCLKDIV_MASK;
-+	div >>=3D sys->rate_offset;
-+
-+	osc->rate =3D sclk * div;
-+	sys->rate =3D sclk;
-+}
-+
-+/*
-+ * Set clocks for bypass mode for reboot to work.
-+ */
-+void omap2_clk_prepare_for_reboot(void)
-+{
-+	u32 rate;
-+
-+	if (vclk =3D=3D NULL || sclk =3D=3D NULL)
-+		return;
-+
-+	rate =3D clk_get_rate(sclk);
-+	clk_set_rate(vclk, rate);
-+}
-+
-+/*
-+ * Switch the MPU rate if specified on cmdline.
-+ * We cannot do this early until cmdline is parsed.
-+ */
-+static int __init omap2_clk_arch_init(void)
-+{
-+	if (!mpurate)
-+		return -EINVAL;
-+
-+	if (omap2_select_table_rate(&virt_prcm_set, mpurate))
-+		printk(KERN_ERR "Could not find matching MPU rate\n");
-+
-+	propagate_rate(&osc_ck);		/* update main root fast */
-+	propagate_rate(&func_32k_ck);		/* update main root slow */
-+
-+	printk(KERN_INFO "Switched to new clocking rate (Crystal/DPLL/MPU): "
-+			"%ld.%01ld/%ld/%ld MHz\n",
-+			(sys_ck.rate / 1000000), (sys_ck.rate / 100000) % 10,
-+			(dpll_ck.rate / 1000000), (mpu_ck.rate / 1000000)) ;
-+
-+	return 0;
-+}
-+#if 0
-+arch_initcall(omap2_clk_arch_init);
-+#endif
-+
-+int __init omap2_clk_init(void)
-+{
-+	struct prcm_config *prcm;
-+	struct clk ** clkp;
-+	u32 clkrate;
-+
-+	clk_init(&omap2_clk_functions);
-+#if 0
-+	omap2_get_crystal_rate(&osc_ck, &sys_ck);
-+#endif
-+	for (clkp =3D onchip_clks; clkp < onchip_clks + =
-ARRAY_SIZE(onchip_clks);
-+		 clkp++) {
-+
-+		if ((*clkp)->flags & CLOCK_IN_OMAP242X && (cpu_is_omap2420() || =
-cpu_is_omap34xx())) {
-+			clk_register(*clkp);
-+			continue;
-+		}
-+
-+		if ((*clkp)->flags & CLOCK_IN_OMAP243X && (cpu_is_omap2430() || =
-cpu_is_omap34xx())) {
-+			clk_register(*clkp);
-+			continue;
-+		}
-+	}
-+
-+	/* Check the MPU rate set by bootloader */
-+	clkrate =3D omap2_get_dpll_rate(&dpll_ck);
-+	for (prcm =3D rate_table; prcm->mpu_speed; prcm++) {
-+		if (prcm->xtal_speed !=3D sys_ck.rate)
-+			continue;
-+		if (prcm->dpll_speed <=3D clkrate)
-+			 break;
-+	}
-+	curr_prcm_set =3D prcm;
-+
-+	propagate_rate(&osc_ck);		/* update main root fast */
-+	propagate_rate(&func_32k_ck);		/* update main root slow */
-+#if 0
-+	printk(KERN_INFO "Clocking rate (Crystal/DPLL/MPU): "
-+			"%ld.%01ld/%ld/%ld MHz\n",
-+			(sys_ck.rate / 1000000), (sys_ck.rate / 100000) % 10,
-+			(dpll_ck.rate / 1000000), (mpu_ck.rate / 1000000)) ;
-+
-+	/*
-+	 * Only enable those clocks we will need, let the drivers
-+	 * enable other clocks as necessary
-+	 */
-+	clk_enable(&sync_32k_ick);
-+	clk_enable(&omapctrl_ick);
-+
-+	/* Force the APLLs always active. The clocks are idled
-+	 * automatically by hardware. */
-+	clk_enable(&apll96_ck);
-+	clk_enable(&apll54_ck);
-+
-+	if (cpu_is_omap2430())
-+		clk_enable(&sdrc_ick);
-+
-+	/* Avoid sleeping sleeping during omap2_clk_prepare_for_reboot() */
-+	vclk =3D clk_get(NULL, "virt_prcm_set");
-+	sclk =3D clk_get(NULL, "sys_ck");
-+#endif
-+	return 0;
-+}
-diff -purN linux-omap/arch/arm/mach-omap2/gpmc.c =
-val_3430_GIT/arch/arm/mach-omap2/gpmc.c
---- linux-omap/arch/arm/mach-omap2/gpmc.c	2007-05-16 14:32:40.000000000 =
--0500
-+++ val_3430_GIT/arch/arm/mach-omap2/gpmc.c	2007-05-28 =
-12:47:13.000000000 -0500
-@@ -22,12 +22,12 @@
-=20
- #undef DEBUG
-=20
--#ifdef CONFIG_ARCH_OMAP2420
-+#if defined(CONFIG_ARCH_OMAP2420)
- #define GPMC_BASE		0x6800a000
--#endif
--
--#ifdef CONFIG_ARCH_OMAP2430
--#define GPMC_BASE		0x6E000000
-+#elif defined(CONFIG_ARCH_OMAP2430)
-+#define GPMC_BASE		0x6e000000
-+#elif defined(CONFIG_ARCH_OMAP3430)
-+#define GPMC_BASE		0x6e000000
- #endif
-=20
- #define GPMC_REVISION		0x00
-diff -purN linux-omap/arch/arm/mach-omap2/id.c =
-val_3430_GIT/arch/arm/mach-omap2/id.c
---- linux-omap/arch/arm/mach-omap2/id.c	2006-11-20 21:54:01.000000000 =
--0600
-+++ val_3430_GIT/arch/arm/mach-omap2/id.c	2007-05-28 12:47:13.000000000 =
--0500
-@@ -18,11 +18,11 @@
- #include <asm/io.h>
-=20
- #if defined(CONFIG_ARCH_OMAP2420)
--#define OMAP24XX_TAP_BASE	io_p2v(0x48014000)
--#endif
--
--#if defined(CONFIG_ARCH_OMAP2430)
--#define OMAP24XX_TAP_BASE	io_p2v(0x4900A000)
-+#define TAP_BASE	io_p2v(0x48014000)
-+#elif defined(CONFIG_ARCH_OMAP2430)
-+#define TAP_BASE	io_p2v(0x4900A000)
-+#elif defined(CONFIG_ARCH_OMAP34XX)
-+#define TAP_BASE	io_p2v(0x54004000)
- #endif
-=20
- #define OMAP_TAP_IDCODE		0x0204
-@@ -58,7 +58,7 @@ static struct omap_id omap_ids[] __initd
-=20
- static u32 __init read_tap_reg(int reg)
- {
--	return __raw_readl(OMAP24XX_TAP_BASE + reg);
-+	return __raw_readl(TAP_BASE + reg);
- }
-=20
- void __init omap2_check_revision(void)
-@@ -119,7 +119,11 @@ void __init omap2_check_revision(void)
- 	system_rev |=3D rev << 8;
-=20
- 	/* Add the cpu class info (24xx) */
-+#ifndef CONFIG_ARCH_OMAP3
- 	system_rev |=3D 0x24;
-+#else
-+	system_rev |=3D 0x34;
-+#endif
-=20
- 	pr_info("OMAP%04x", system_rev >> 16);
- 	if ((system_rev >> 8) & 0x0f)
-diff -purN linux-omap/arch/arm/mach-omap2/io.c =
-val_3430_GIT/arch/arm/mach-omap2/io.c
---- linux-omap/arch/arm/mach-omap2/io.c	2007-05-16 14:32:40.000000000 =
--0500
-+++ val_3430_GIT/arch/arm/mach-omap2/io.c	2007-05-28 13:12:04.000000000 =
--0500
-@@ -4,8 +4,11 @@
-  * OMAP2 I/O mapping code
-  *
-  * Copyright (C) 2005 Nokia Corporation
-- * Author: Juha Yrjola<juha.yrjola@nokia.com>
-- * Updated map desc to add 2430 support : <x0khasim@ti.com>
-+ * Copyright (C) 2007 Texas Instruments
-+ *
-+ * Author:
-+ * Juha Yrjola <juha.yrjola@nokia.com>
-+ * Syed Khasim <x0khasim@ti.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -31,36 +34,104 @@ extern void omap2_init_memory(void);
- extern void gpmc_init(void);
- extern void omapfb_reserve_sdram(void);
-=20
-+#if defined(CONFIG_ARCH_OMAP24XX)
-+
-+#define L3_VIRT		L3_24XX_VIRT
-+#define L3_PHYS		L3_24XX_PHYS
-+#define L3_SIZE		L3_24XX_SIZE
-+
-+#define L4_VIRT		L4_24XX_VIRT
-+#define L4_PHYS		L4_24XX_PHYS
-+#define L4_SIZE		L4_24XX_SIZE
-+
-+#define L4_WK_VIRT	L4_WK_243X_VIRT
-+#define L4_WK_PHYS	L4_WK_243X_PHYS
-+#define L4_WK_SIZE	L4_WK_243X_SIZE
-+
-+#define GPMC_VIRT	OMAP243X_GPMC_VIRT
-+#define GPMC_PHYS	OMAP243X_GPMC_PHYS
-+#define GPMC_SIZE	OMAP243X_GPMC_SIZE
-+
-+#define DSP_MEM_VIRT	DSP_MEM_24XX_VIRT
-+#define DSP_MEM_PHYS	DSP_MEM_24XX_PHYS
-+#define DSP_MEM_SIZE	DSP_MEM_24XX_SIZE
-+
-+#define DSP_IPI_VIRT	DSP_IPI_24XX_VIRT
-+#define DSP_IPI_PHYS	DSP_IPI_24XX_PHYS
-+#define DSP_IPI_SIZE	DSP_IPI_24XX_SIZE
-+
-+#define DSP_MMU_VIRT	DSP_MMU_24XX_VIRT
-+#define DSP_MMU_PHYS	DSP_MMU_24XX_PHYS
-+#define DSP_MMU_SIZE	DSP_MMU_24XX_SIZE
-+
-+#elif defined(CONFIG_ARCH_OMAP34XX)
-+
-+#define L3_VIRT		L3_34XX_VIRT
-+#define L3_PHYS		L3_34XX_PHYS
-+#define L3_SIZE		L3_34XX_SIZE
-+
-+#define L4_VIRT		L4_34XX_VIRT
-+#define L4_PHYS		L4_34XX_PHYS
-+#define L4_SIZE		L4_34XX_SIZE
-+
-+#define L4_PER_VIRT	L4_PER_34XX_VIRT
-+#define L4_PER_PHYS	L4_PER_34XX_PHYS
-+#define L4_PER_SIZE	L4_PER_34XX_SIZE
-+
-+#define L4_WK_VIRT	L4_WK_34XX_VIRT
-+#define L4_WK_PHYS	L4_WK_34XX_PHYS
-+#define L4_WK_SIZE	L4_WK_34XX_SIZE
-+
-+#define GPMC_VIRT	OMAP34XX_GPMC_VIRT
-+#define GPMC_PHYS	OMAP34XX_GPMC_PHYS
-+#define GPMC_SIZE	OMAP34XX_GPMC_SIZE
-+
-+#define DSP_MEM_VIRT	DSP_MEM_34XX_VIRT
-+#define DSP_MEM_PHYS	DSP_MEM_34XX_PHYS
-+#define DSP_MEM_SIZE	DSP_MEM_34XX_SIZE
-+
-+#define DSP_IPI_VIRT	DSP_IPI_34XX_VIRT
-+#define DSP_IPI_PHYS	DSP_IPI_34XX_PHYS
-+#define DSP_IPI_SIZE	DSP_IPI_34XX_SIZE
-+
-+#define DSP_MMU_VIRT	DSP_MMU_34XX_VIRT
-+#define DSP_MMU_PHYS	DSP_MMU_34XX_PHYS
-+#define DSP_MMU_SIZE	DSP_MMU_34XX_SIZE
-+
-+#endif
-+
- /*
-  * The machine specific code may provide the extra mapping besides the
-  * default mapping provided here.
-  */
- static struct map_desc omap2_io_desc[] __initdata =3D {
- 	{
--		.virtual	=3D L3_24XX_VIRT,
--		.pfn		=3D __phys_to_pfn(L3_24XX_PHYS),
--		.length		=3D L3_24XX_SIZE,
-+		.virtual	=3D L3_VIRT,
-+		.pfn		=3D __phys_to_pfn(L3_PHYS),
-+		.length		=3D L3_SIZE,
- 		.type		=3D MT_DEVICE
- 	},
- 	{
--		.virtual	=3D L4_24XX_VIRT,
--		.pfn		=3D __phys_to_pfn(L4_24XX_PHYS),
--		.length		=3D L4_24XX_SIZE,
-+		.virtual	=3D L4_VIRT,
-+		.pfn		=3D __phys_to_pfn(L4_PHYS),
-+		.length		=3D L4_SIZE,
- 		.type		=3D MT_DEVICE
- 	},
--#ifdef CONFIG_ARCH_OMAP2430
-+#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
- 	{
--		.virtual	=3D L4_WK_243X_VIRT,
--		.pfn		=3D __phys_to_pfn(L4_WK_243X_PHYS),
--		.length		=3D L4_WK_243X_SIZE,
-+		.virtual	=3D L4_WK_VIRT,
-+		.pfn		=3D __phys_to_pfn(L4_WK_PHYS),
-+		.length		=3D L4_WK_SIZE,
- 		.type		=3D MT_DEVICE
- 	},
- 	{
--		.virtual	=3D OMAP243X_GPMC_VIRT,
--		.pfn		=3D __phys_to_pfn(OMAP243X_GPMC_PHYS),
--		.length		=3D OMAP243X_GPMC_SIZE,
-+		.virtual	=3D GPMC_VIRT,
-+		.pfn		=3D __phys_to_pfn(GPMC_PHYS),
-+		.length		=3D GPMC_SIZE,
- 		.type		=3D MT_DEVICE
- 	},
-+#endif
-+#if defined(CONFIG_ARCH_OMAP2430)
- 	{
- 		.virtual	=3D OMAP243X_SDRC_VIRT,
- 		.pfn		=3D __phys_to_pfn(OMAP243X_SDRC_PHYS),
-@@ -74,6 +145,33 @@ static struct map_desc omap2_io_desc[] _
- 		.type		=3D MT_DEVICE
- 	},
- #endif
-+#if defined(CONFIG_ARCH_OMAP34XX)
-+	{
-+		.virtual	=3D OMAP343X_SMS_VIRT,
-+		.pfn		=3D __phys_to_pfn(OMAP343X_SMS_PHYS),
-+		.length		=3D OMAP343X_SMS_SIZE,
-+		.type		=3D MT_DEVICE
-+	},
-+	{
-+		.virtual	=3D OMAP343X_SDRC_VIRT,
-+		.pfn		=3D __phys_to_pfn(OMAP343X_SDRC_PHYS),
-+		.length		=3D OMAP343X_SDRC_SIZE,
-+		.type		=3D MT_DEVICE
-+	},
-+	{
-+		.virtual	=3D L4_PER_VIRT,
-+		.pfn		=3D __phys_to_pfn(L4_PER_PHYS),
-+		.length		=3D L4_PER_SIZE,
-+		.type		=3D MT_DEVICE
-+	},
-+	{
-+		.virtual	=3D L4_EMU_34XX_VIRT,
-+		.pfn		=3D __phys_to_pfn(L4_EMU_34XX_PHYS),
-+		.length		=3D L4_EMU_34XX_SIZE,
-+		.type		=3D MT_DEVICE
-+	},
-+#endif
-+#if defined(CONFIG_ARCH_OMAP2420) || defined(CONFIG_ARCH_OMAP2430)
- 	{
- 		.virtual	=3D DSP_MEM_24XX_VIRT,
- 		.pfn		=3D __phys_to_pfn(DSP_MEM_24XX_PHYS),
-@@ -94,6 +192,7 @@ static struct map_desc omap2_io_desc[] _
- 		.length		=3D DSP_MMU_24XX_SIZE,
- 		.type		=3D MT_DEVICE
- 	},
-+#endif
- };
-=20
- void __init omap2_map_common_io(void)
-diff -purN linux-omap/arch/arm/mach-omap2/irq.c =
-val_3430_GIT/arch/arm/mach-omap2/irq.c
---- linux-omap/arch/arm/mach-omap2/irq.c	2007-01-08 18:55:58.000000000 =
--0600
-+++ val_3430_GIT/arch/arm/mach-omap2/irq.c	2007-05-28 12:47:13.000000000 =
--0500
-@@ -18,6 +18,12 @@
- #include <asm/irq.h>
- #include <asm/io.h>
-=20
-+#if defined(CONFIG_ARCH_OMAP24XX)
-+#define IC_BASE		OMAP24XX_IC_BASE
-+#elif defined(CONFIG_ARCH_OMAP34XX)
-+#define IC_BASE		OMAP34XX_IC_BASE
-+#endif
-+
- #define INTC_REVISION	0x0000
- #define INTC_SYSCONFIG	0x0010
- #define INTC_SYSSTATUS	0x0014
-@@ -37,7 +43,7 @@ static struct omap_irq_bank {
- } __attribute__ ((aligned(4))) irq_banks[] =3D {
- 	{
- 		/* MPU INTC */
--		.base_reg	=3D IO_ADDRESS(OMAP24XX_IC_BASE),
-+		.base_reg	=3D IO_ADDRESS(IC_BASE),
- 		.nr_irqs	=3D 96,
- 	}, {
- 		/* XXX: DSP INTC */
++++ val_3430_GIT/arch/arm/configs/omap_3430sdp_defconfig	2007-05-28 =
+22:15:09.000000000 -0500
+@@ -0,0 +1,1058 @@
++#
++# Automatically generated make config: don't edit
++# Linux kernel version: 2.6.22-rc2-omap1
++# Mon May 28 22:14:57 2007
++#
++CONFIG_ARM=3Dy
++CONFIG_SYS_SUPPORTS_APM_EMULATION=3Dy
++CONFIG_GENERIC_GPIO=3Dy
++CONFIG_GENERIC_TIME=3Dy
++CONFIG_GENERIC_CLOCKEVENTS=3Dy
++CONFIG_MMU=3Dy
++# CONFIG_NO_IOPORT is not set
++CONFIG_GENERIC_HARDIRQS=3Dy
++CONFIG_STACKTRACE_SUPPORT=3Dy
++CONFIG_LOCKDEP_SUPPORT=3Dy
++CONFIG_TRACE_IRQFLAGS_SUPPORT=3Dy
++CONFIG_HARDIRQS_SW_RESEND=3Dy
++CONFIG_GENERIC_IRQ_PROBE=3Dy
++CONFIG_RWSEM_GENERIC_SPINLOCK=3Dy
++# CONFIG_ARCH_HAS_ILOG2_U32 is not set
++# CONFIG_ARCH_HAS_ILOG2_U64 is not set
++CONFIG_GENERIC_HWEIGHT=3Dy
++CONFIG_GENERIC_CALIBRATE_DELAY=3Dy
++CONFIG_ZONE_DMA=3Dy
++CONFIG_VECTORS_BASE=3D0xffff0000
++CONFIG_DEFCONFIG_LIST=3D"/lib/modules/$UNAME_RELEASE/.config"
++
++#
++# Code maturity level options
++#
++CONFIG_EXPERIMENTAL=3Dy
++CONFIG_BROKEN_ON_SMP=3Dy
++CONFIG_INIT_ENV_ARG_LIMIT=3D32
++
++#
++# General setup
++#
++CONFIG_LOCALVERSION=3D""
++CONFIG_LOCALVERSION_AUTO=3Dy
++CONFIG_SWAP=3Dy
++CONFIG_SYSVIPC=3Dy
++# CONFIG_IPC_NS is not set
++CONFIG_SYSVIPC_SYSCTL=3Dy
++# CONFIG_POSIX_MQUEUE is not set
++CONFIG_BSD_PROCESS_ACCT=3Dy
++# CONFIG_BSD_PROCESS_ACCT_V3 is not set
++# CONFIG_TASKSTATS is not set
++# CONFIG_UTS_NS is not set
++# CONFIG_AUDIT is not set
++# CONFIG_IKCONFIG is not set
++CONFIG_LOG_BUF_SHIFT=3D14
++CONFIG_SYSFS_DEPRECATED=3Dy
++# CONFIG_RELAY is not set
++CONFIG_BLK_DEV_INITRD=3Dy
++CONFIG_INITRAMFS_SOURCE=3D""
++CONFIG_CC_OPTIMIZE_FOR_SIZE=3Dy
++CONFIG_SYSCTL=3Dy
++CONFIG_EMBEDDED=3Dy
++CONFIG_UID16=3Dy
++# CONFIG_SYSCTL_SYSCALL is not set
++CONFIG_KALLSYMS=3Dy
++# CONFIG_KALLSYMS_ALL is not set
++CONFIG_KALLSYMS_EXTRA_PASS=3Dy
++CONFIG_HOTPLUG=3Dy
++CONFIG_PRINTK=3Dy
++CONFIG_BUG=3Dy
++CONFIG_ELF_CORE=3Dy
++CONFIG_BASE_FULL=3Dy
++CONFIG_FUTEX=3Dy
++CONFIG_ANON_INODES=3Dy
++CONFIG_EPOLL=3Dy
++CONFIG_SIGNALFD=3Dy
++CONFIG_TIMERFD=3Dy
++CONFIG_EVENTFD=3Dy
++CONFIG_SHMEM=3Dy
++CONFIG_VM_EVENT_COUNTERS=3Dy
++CONFIG_SLAB=3Dy
++# CONFIG_SLUB is not set
++# CONFIG_SLOB is not set
++CONFIG_RT_MUTEXES=3Dy
++# CONFIG_TINY_SHMEM is not set
++CONFIG_BASE_SMALL=3D0
++
++#
++# Loadable module support
++#
++CONFIG_MODULES=3Dy
++CONFIG_MODULE_UNLOAD=3Dy
++# CONFIG_MODULE_FORCE_UNLOAD is not set
++CONFIG_MODVERSIONS=3Dy
++CONFIG_MODULE_SRCVERSION_ALL=3Dy
++CONFIG_KMOD=3Dy
++
++#
++# Block layer
++#
++CONFIG_BLOCK=3Dy
++# CONFIG_LBD is not set
++# CONFIG_BLK_DEV_IO_TRACE is not set
++# CONFIG_LSF is not set
++
++#
++# IO Schedulers
++#
++CONFIG_IOSCHED_NOOP=3Dy
++CONFIG_IOSCHED_AS=3Dy
++CONFIG_IOSCHED_DEADLINE=3Dy
++CONFIG_IOSCHED_CFQ=3Dy
++CONFIG_DEFAULT_AS=3Dy
++# CONFIG_DEFAULT_DEADLINE is not set
++# CONFIG_DEFAULT_CFQ is not set
++# CONFIG_DEFAULT_NOOP is not set
++CONFIG_DEFAULT_IOSCHED=3D"anticipatory"
++
++#
++# System Type
++#
++# CONFIG_ARCH_AAEC2000 is not set
++# CONFIG_ARCH_INTEGRATOR is not set
++# CONFIG_ARCH_REALVIEW is not set
++# CONFIG_ARCH_VERSATILE is not set
++# CONFIG_ARCH_AT91 is not set
++# CONFIG_ARCH_CLPS7500 is not set
++# CONFIG_ARCH_CLPS711X is not set
++# CONFIG_ARCH_CO285 is not set
++# CONFIG_ARCH_EBSA110 is not set
++# CONFIG_ARCH_EP93XX is not set
++# CONFIG_ARCH_FOOTBRIDGE is not set
++# CONFIG_ARCH_NETX is not set
++# CONFIG_ARCH_H720X is not set
++# CONFIG_ARCH_IMX is not set
++# CONFIG_ARCH_IOP13XX is not set
++# CONFIG_ARCH_IOP32X is not set
++# CONFIG_ARCH_IOP33X is not set
++# CONFIG_ARCH_IXP23XX is not set
++# CONFIG_ARCH_IXP2000 is not set
++# CONFIG_ARCH_IXP4XX is not set
++# CONFIG_ARCH_L7200 is not set
++# CONFIG_ARCH_KS8695 is not set
++# CONFIG_ARCH_NS9XXX is not set
++# CONFIG_ARCH_PNX4008 is not set
++# CONFIG_ARCH_PXA is not set
++# CONFIG_ARCH_RPC is not set
++# CONFIG_ARCH_SA1100 is not set
++# CONFIG_ARCH_S3C2410 is not set
++# CONFIG_ARCH_SHARK is not set
++# CONFIG_ARCH_LH7A40X is not set
++# CONFIG_ARCH_DAVINCI is not set
++CONFIG_ARCH_OMAP=3Dy
++
++#
++# TI OMAP Implementations
++#
++# CONFIG_ARCH_OMAP1 is not set
++# CONFIG_ARCH_OMAP2 is not set
++CONFIG_ARCH_OMAP3=3Dy
++
++#
++# OMAP Feature Selections
++#
++# CONFIG_OMAP_RESET_CLOCKS is not set
++CONFIG_OMAP_BOOT_TAG=3Dy
++CONFIG_OMAP_BOOT_REASON=3Dy
++# CONFIG_OMAP_COMPONENT_VERSION is not set
++# CONFIG_OMAP_GPIO_SWITCH is not set
++CONFIG_OMAP_MUX=3Dy
++CONFIG_OMAP_MUX_DEBUG=3Dy
++CONFIG_OMAP_MUX_WARNINGS=3Dy
++# CONFIG_OMAP_MCBSP is not set
++# CONFIG_OMAP_MMU_FWK is not set
++# CONFIG_OMAP_MBOX_FWK is not set
++CONFIG_OMAP_MPU_TIMER=3Dy
++# CONFIG_OMAP_32K_TIMER is not set
++CONFIG_OMAP_DM_TIMER=3Dy
++CONFIG_OMAP_LL_DEBUG_UART1=3Dy
++# CONFIG_OMAP_LL_DEBUG_UART2 is not set
++# CONFIG_OMAP_LL_DEBUG_UART3 is not set
++CONFIG_OMAP_SERIAL_WAKE=3Dy
++CONFIG_ARCH_OMAP34XX=3Dy
++CONFIG_ARCH_OMAP3430=3Dy
++
++#
++# OMAP Board Type
++#
++CONFIG_MACH_OMAP_3430SDP=3Dy
++
++#
++# Processor Type
++#
++CONFIG_CPU_32=3Dy
++CONFIG_CPU_32v6K=3Dy
++CONFIG_CPU_V7=3Dy
++CONFIG_CPU_32v7=3Dy
++CONFIG_CPU_ABRT_EV7=3Dy
++CONFIG_CPU_CACHE_V7=3Dy
++CONFIG_CPU_CACHE_VIPT=3Dy
++CONFIG_CPU_COPY_V6=3Dy
++CONFIG_CPU_TLB_V6=3Dy
++CONFIG_CPU_HAS_ASID=3Dy
++CONFIG_CPU_CP15=3Dy
++CONFIG_CPU_CP15_MMU=3Dy
++
++#
++# Processor Features
++#
++CONFIG_ARM_THUMB=3Dy
++# CONFIG_CPU_ICACHE_DISABLE is not set
++# CONFIG_CPU_DCACHE_DISABLE is not set
++CONFIG_CPU_L2CACHE_DISABLE=3Dy
++# CONFIG_CPU_BPREDICT_DISABLE is not set
++CONFIG_HAS_TLS_REG=3Dy
++# CONFIG_OUTER_CACHE is not set
++
++#
++# Bus support
++#
++# CONFIG_ARCH_SUPPORTS_MSI is not set
++
++#
++# PCCARD (PCMCIA/CardBus) support
++#
++# CONFIG_PCCARD is not set
++
++#
++# Kernel Features
++#
++# CONFIG_TICK_ONESHOT is not set
++# CONFIG_NO_HZ is not set
++# CONFIG_HIGH_RES_TIMERS is not set
++# CONFIG_PREEMPT is not set
++CONFIG_HZ=3D100
++CONFIG_AEABI=3Dy
++CONFIG_OABI_COMPAT=3Dy
++# CONFIG_ARCH_DISCONTIGMEM_ENABLE is not set
++CONFIG_SELECT_MEMORY_MODEL=3Dy
++CONFIG_FLATMEM_MANUAL=3Dy
++# CONFIG_DISCONTIGMEM_MANUAL is not set
++# CONFIG_SPARSEMEM_MANUAL is not set
++CONFIG_FLATMEM=3Dy
++CONFIG_FLAT_NODE_MEM_MAP=3Dy
++# CONFIG_SPARSEMEM_STATIC is not set
++CONFIG_SPLIT_PTLOCK_CPUS=3D4
++# CONFIG_RESOURCES_64BIT is not set
++CONFIG_ZONE_DMA_FLAG=3D1
++# CONFIG_LEDS is not set
++CONFIG_ALIGNMENT_TRAP=3Dy
++
++#
++# Boot options
++#
++CONFIG_ZBOOT_ROM_TEXT=3D0x0
++CONFIG_ZBOOT_ROM_BSS=3D0x0
++CONFIG_CMDLINE=3D"root=3D/dev/nfs =
+nfsroot=3D192.168.0.1:/home/user/buildroot =
+ip=3D192.168.0.2:192.168.0.1:192.168.0.1:255.255.255.0:tgt:eth0:off rw =
+console=3DttyS2,115200n8"
++# CONFIG_XIP_KERNEL is not set
++# CONFIG_KEXEC is not set
++
++#
++# CPU Frequency scaling
++#
++# CONFIG_CPU_FREQ is not set
++
++#
++# Floating point emulation
++#
++
++#
++# At least one emulation must be selected
++#
++CONFIG_FPE_NWFPE=3Dy
++# CONFIG_FPE_NWFPE_XP is not set
++# CONFIG_FPE_FASTFPE is not set
++CONFIG_VFP=3Dy
++CONFIG_VFPv3=3Dy
++# CONFIG_NEON is not set
++
++#
++# Userspace binary formats
++#
++CONFIG_BINFMT_ELF=3Dy
++# CONFIG_BINFMT_AOUT is not set
++CONFIG_BINFMT_MISC=3Dy
++
++#
++# Power management options
++#
++# CONFIG_PM is not set
++
++#
++# Networking
++#
++CONFIG_NET=3Dy
++
++#
++# Networking options
++#
++CONFIG_PACKET=3Dy
++# CONFIG_PACKET_MMAP is not set
++CONFIG_UNIX=3Dy
++CONFIG_XFRM=3Dy
++# CONFIG_XFRM_USER is not set
++# CONFIG_XFRM_SUB_POLICY is not set
++# CONFIG_XFRM_MIGRATE is not set
++CONFIG_NET_KEY=3Dy
++# CONFIG_NET_KEY_MIGRATE is not set
++CONFIG_INET=3Dy
++# CONFIG_IP_MULTICAST is not set
++# CONFIG_IP_ADVANCED_ROUTER is not set
++CONFIG_IP_FIB_HASH=3Dy
++CONFIG_IP_PNP=3Dy
++CONFIG_IP_PNP_DHCP=3Dy
++CONFIG_IP_PNP_BOOTP=3Dy
++CONFIG_IP_PNP_RARP=3Dy
++# CONFIG_NET_IPIP is not set
++# CONFIG_NET_IPGRE is not set
++# CONFIG_ARPD is not set
++# CONFIG_SYN_COOKIES is not set
++# CONFIG_INET_AH is not set
++# CONFIG_INET_ESP is not set
++# CONFIG_INET_IPCOMP is not set
++# CONFIG_INET_XFRM_TUNNEL is not set
++# CONFIG_INET_TUNNEL is not set
++CONFIG_INET_XFRM_MODE_TRANSPORT=3Dy
++CONFIG_INET_XFRM_MODE_TUNNEL=3Dy
++CONFIG_INET_XFRM_MODE_BEET=3Dy
++CONFIG_INET_DIAG=3Dy
++CONFIG_INET_TCP_DIAG=3Dy
++# CONFIG_TCP_CONG_ADVANCED is not set
++CONFIG_TCP_CONG_CUBIC=3Dy
++CONFIG_DEFAULT_TCP_CONG=3D"cubic"
++# CONFIG_TCP_MD5SIG is not set
++# CONFIG_IPV6 is not set
++# CONFIG_INET6_XFRM_TUNNEL is not set
++# CONFIG_INET6_TUNNEL is not set
++# CONFIG_NETWORK_SECMARK is not set
++# CONFIG_NETFILTER is not set
++
++#
++# DCCP Configuration (EXPERIMENTAL)
++#
++# CONFIG_IP_DCCP is not set
++
++#
++# SCTP Configuration (EXPERIMENTAL)
++#
++# CONFIG_IP_SCTP is not set
++
++#
++# TIPC Configuration (EXPERIMENTAL)
++#
++# CONFIG_TIPC is not set
++# CONFIG_ATM is not set
++# CONFIG_BRIDGE is not set
++# CONFIG_VLAN_8021Q is not set
++# CONFIG_DECNET is not set
++# CONFIG_LLC2 is not set
++# CONFIG_IPX is not set
++# CONFIG_ATALK is not set
++# CONFIG_X25 is not set
++# CONFIG_LAPB is not set
++# CONFIG_ECONET is not set
++# CONFIG_WAN_ROUTER is not set
++
++#
++# QoS and/or fair queueing
++#
++# CONFIG_NET_SCHED is not set
++
++#
++# Network testing
++#
++# CONFIG_NET_PKTGEN is not set
++# CONFIG_HAMRADIO is not set
++# CONFIG_IRDA is not set
++# CONFIG_BT is not set
++# CONFIG_AF_RXRPC is not set
++
++#
++# Wireless
++#
++# CONFIG_CFG80211 is not set
++# CONFIG_WIRELESS_EXT is not set
++# CONFIG_MAC80211 is not set
++# CONFIG_IEEE80211 is not set
++# CONFIG_RFKILL is not set
++
++#
++# Device Drivers
++#
++
++#
++# Generic Driver Options
++#
++CONFIG_STANDALONE=3Dy
++CONFIG_PREVENT_FIRMWARE_BUILD=3Dy
++# CONFIG_FW_LOADER is not set
++# CONFIG_DEBUG_DRIVER is not set
++# CONFIG_DEBUG_DEVRES is not set
++# CONFIG_SYS_HYPERVISOR is not set
++
++#
++# Connector - unified userspace <-> kernelspace linker
++#
++# CONFIG_CONNECTOR is not set
++CONFIG_MTD=3Dy
++# CONFIG_MTD_DEBUG is not set
++CONFIG_MTD_CONCAT=3Dy
++CONFIG_MTD_PARTITIONS=3Dy
++# CONFIG_MTD_REDBOOT_PARTS is not set
++CONFIG_MTD_CMDLINE_PARTS=3Dy
++# CONFIG_MTD_AFS_PARTS is not set
++
++#
++# User Modules And Translation Layers
++#
++CONFIG_MTD_CHAR=3Dy
++CONFIG_MTD_BLKDEVS=3Dy
++CONFIG_MTD_BLOCK=3Dy
++# CONFIG_FTL is not set
++# CONFIG_NFTL is not set
++# CONFIG_INFTL is not set
++# CONFIG_RFD_FTL is not set
++# CONFIG_SSFDC is not set
++
++#
++# RAM/ROM/Flash chip drivers
++#
++CONFIG_MTD_CFI=3Dy
++# CONFIG_MTD_JEDECPROBE is not set
++CONFIG_MTD_GEN_PROBE=3Dy
++# CONFIG_MTD_CFI_ADV_OPTIONS is not set
++CONFIG_MTD_MAP_BANK_WIDTH_1=3Dy
++CONFIG_MTD_MAP_BANK_WIDTH_2=3Dy
++CONFIG_MTD_MAP_BANK_WIDTH_4=3Dy
++# CONFIG_MTD_MAP_BANK_WIDTH_8 is not set
++# CONFIG_MTD_MAP_BANK_WIDTH_16 is not set
++# CONFIG_MTD_MAP_BANK_WIDTH_32 is not set
++CONFIG_MTD_CFI_I1=3Dy
++CONFIG_MTD_CFI_I2=3Dy
++# CONFIG_MTD_CFI_I4 is not set
++# CONFIG_MTD_CFI_I8 is not set
++CONFIG_MTD_CFI_INTELEXT=3Dy
++# CONFIG_MTD_CFI_AMDSTD is not set
++# CONFIG_MTD_CFI_STAA is not set
++CONFIG_MTD_CFI_UTIL=3Dy
++# CONFIG_MTD_RAM is not set
++# CONFIG_MTD_ROM is not set
++# CONFIG_MTD_ABSENT is not set
++
++#
++# Mapping drivers for chip access
++#
++# CONFIG_MTD_COMPLEX_MAPPINGS is not set
++# CONFIG_MTD_PHYSMAP is not set
++# CONFIG_MTD_ARM_INTEGRATOR is not set
++CONFIG_MTD_OMAP_NOR=3Dy
++# CONFIG_MTD_PLATRAM is not set
++
++#
++# Self-contained MTD device drivers
++#
++# CONFIG_MTD_SLRAM is not set
++# CONFIG_MTD_PHRAM is not set
++# CONFIG_MTD_MTDRAM is not set
++# CONFIG_MTD_BLOCK2MTD is not set
++
++#
++# Disk-On-Chip Device Drivers
++#
++# CONFIG_MTD_DOC2000 is not set
++# CONFIG_MTD_DOC2001 is not set
++# CONFIG_MTD_DOC2001PLUS is not set
++# CONFIG_MTD_NAND is not set
++CONFIG_MTD_ONENAND=3Dy
++CONFIG_MTD_ONENAND_VERIFY_WRITE=3Dy
++# CONFIG_MTD_ONENAND_GENERIC is not set
++# CONFIG_MTD_ONENAND_OTP is not set
++
++#
++# UBI - Unsorted block images
++#
++# CONFIG_MTD_UBI is not set
++
++#
++# Parallel port support
++#
++# CONFIG_PARPORT is not set
++
++#
++# Plug and Play support
++#
++# CONFIG_PNPACPI is not set
++
++#
++# Block devices
++#
++# CONFIG_BLK_DEV_COW_COMMON is not set
++CONFIG_BLK_DEV_LOOP=3Dy
++# CONFIG_BLK_DEV_CRYPTOLOOP is not set
++# CONFIG_BLK_DEV_NBD is not set
++CONFIG_BLK_DEV_RAM=3Dy
++CONFIG_BLK_DEV_RAM_COUNT=3D16
++CONFIG_BLK_DEV_RAM_SIZE=3D16384
++CONFIG_BLK_DEV_RAM_BLOCKSIZE=3D1024
++# CONFIG_CDROM_PKTCDVD is not set
++# CONFIG_ATA_OVER_ETH is not set
++
++#
++# SCSI device support
++#
++# CONFIG_RAID_ATTRS is not set
++# CONFIG_SCSI is not set
++# CONFIG_SCSI_NETLINK is not set
++# CONFIG_ATA is not set
++
++#
++# Multi-device support (RAID and LVM)
++#
++# CONFIG_MD is not set
++
++#
++# Network device support
++#
++CONFIG_NETDEVICES=3Dy
++# CONFIG_DUMMY is not set
++# CONFIG_BONDING is not set
++# CONFIG_EQUALIZER is not set
++# CONFIG_TUN is not set
++# CONFIG_PHYLIB is not set
++
++#
++# Ethernet (10 or 100Mbit)
++#
++CONFIG_NET_ETHERNET=3Dy
++CONFIG_MII=3Dy
++CONFIG_SMC91X=3Dy
++# CONFIG_DM9000 is not set
++CONFIG_NETDEV_1000=3Dy
++CONFIG_NETDEV_10000=3Dy
++
++#
++# Token Ring devices
++#
++
++#
++# Wireless LAN
++#
++# CONFIG_WLAN_PRE80211 is not set
++# CONFIG_WLAN_80211 is not set
++# CONFIG_WAN is not set
++# CONFIG_PPP is not set
++# CONFIG_SLIP is not set
++# CONFIG_SHAPER is not set
++# CONFIG_NETCONSOLE is not set
++# CONFIG_NETPOLL is not set
++# CONFIG_NET_POLL_CONTROLLER is not set
++
++#
++# ISDN subsystem
++#
++# CONFIG_ISDN is not set
++
++#
++# Input device support
++#
++CONFIG_INPUT=3Dy
++# CONFIG_INPUT_FF_MEMLESS is not set
++
++#
++# Userland interfaces
++#
++# CONFIG_INPUT_MOUSEDEV is not set
++# CONFIG_INPUT_JOYDEV is not set
++# CONFIG_INPUT_TSDEV is not set
++CONFIG_INPUT_EVDEV=3Dy
++# CONFIG_INPUT_EVBUG is not set
++
++#
++# Input Device Drivers
++#
++CONFIG_INPUT_KEYBOARD=3Dy
++# CONFIG_KEYBOARD_ATKBD is not set
++# CONFIG_KEYBOARD_SUNKBD is not set
++# CONFIG_KEYBOARD_LKKBD is not set
++# CONFIG_KEYBOARD_XTKBD is not set
++# CONFIG_KEYBOARD_NEWTON is not set
++# CONFIG_KEYBOARD_STOWAWAY is not set
++# CONFIG_KEYBOARD_GPIO is not set
++# CONFIG_INPUT_MOUSE is not set
++# CONFIG_INPUT_JOYSTICK is not set
++# CONFIG_INPUT_TABLET is not set
++# CONFIG_INPUT_TOUCHSCREEN is not set
++# CONFIG_INPUT_MISC is not set
++
++#
++# Hardware I/O ports
++#
++# CONFIG_SERIO is not set
++# CONFIG_GAMEPORT is not set
++
++#
++# Character devices
++#
++CONFIG_VT=3Dy
++CONFIG_VT_CONSOLE=3Dy
++CONFIG_HW_CONSOLE=3Dy
++# CONFIG_VT_HW_CONSOLE_BINDING is not set
++# CONFIG_SERIAL_NONSTANDARD is not set
++
++#
++# Serial drivers
++#
++CONFIG_SERIAL_8250=3Dy
++CONFIG_SERIAL_8250_CONSOLE=3Dy
++CONFIG_SERIAL_8250_NR_UARTS=3D32
++CONFIG_SERIAL_8250_RUNTIME_UARTS=3D4
++CONFIG_SERIAL_8250_EXTENDED=3Dy
++CONFIG_SERIAL_8250_MANY_PORTS=3Dy
++CONFIG_SERIAL_8250_SHARE_IRQ=3Dy
++CONFIG_SERIAL_8250_DETECT_IRQ=3Dy
++CONFIG_SERIAL_8250_RSA=3Dy
++
++#
++# Non-8250 serial port support
++#
++CONFIG_SERIAL_CORE=3Dy
++CONFIG_SERIAL_CORE_CONSOLE=3Dy
++CONFIG_UNIX98_PTYS=3Dy
++# CONFIG_LEGACY_PTYS is not set
++
++#
++# IPMI
++#
++# CONFIG_IPMI_HANDLER is not set
++CONFIG_WATCHDOG=3Dy
++CONFIG_WATCHDOG_NOWAYOUT=3Dy
++
++#
++# Watchdog Device Drivers
++#
++# CONFIG_SOFT_WATCHDOG is not set
++CONFIG_HW_RANDOM=3Dy
++# CONFIG_NVRAM is not set
++# CONFIG_R3964 is not set
++# CONFIG_RAW_DRIVER is not set
++
++#
++# TPM devices
++#
++# CONFIG_TCG_TPM is not set
++# CONFIG_I2C is not set
++
++#
++# SPI support
++#
++# CONFIG_SPI is not set
++# CONFIG_SPI_MASTER is not set
++
++#
++# Dallas's 1-wire bus
++#
++# CONFIG_W1 is not set
++# CONFIG_HWMON is not set
++
++#
++# Misc devices
++#
++# CONFIG_BLINK is not set
++
++#
++# Multifunction device drivers
++#
++# CONFIG_MFD_SM501 is not set
++
++#
++# LED devices
++#
++# CONFIG_NEW_LEDS is not set
++
++#
++# LED drivers
++#
++
++#
++# LED Triggers
++#
++
++#
++# Multimedia devices
++#
++# CONFIG_VIDEO_DEV is not set
++# CONFIG_DVB_CORE is not set
++CONFIG_DAB=3Dy
++
++#
++# Graphics support
++#
++# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
++
++#
++# Display device support
++#
++# CONFIG_DISPLAY_SUPPORT is not set
++# CONFIG_VGASTATE is not set
++# CONFIG_FB is not set
++
++#
++# Console display driver support
++#
++# CONFIG_VGA_CONSOLE is not set
++CONFIG_DUMMY_CONSOLE=3Dy
++
++#
++# Sound
++#
++# CONFIG_SOUND is not set
++
++#
++# HID Devices
++#
++CONFIG_HID=3Dy
++# CONFIG_HID_DEBUG is not set
++
++#
++# USB support
++#
++CONFIG_USB_ARCH_HAS_HCD=3Dy
++CONFIG_USB_ARCH_HAS_OHCI=3Dy
++# CONFIG_USB_ARCH_HAS_EHCI is not set
++# CONFIG_USB is not set
++
++#
++# Enable Host or Gadget support to see Inventra options
++#
++
++#
++# NOTE: USB_STORAGE enables SCSI, and 'SCSI disk support'
++#
++
++#
++# USB Gadget Support
++#
++# CONFIG_USB_GADGET is not set
++CONFIG_MMC=3Dy
++# CONFIG_MMC_DEBUG is not set
++# CONFIG_MMC_UNSAFE_RESUME is not set
++
++#
++# MMC/SD Card Drivers
++#
++CONFIG_MMC_BLOCK=3Dy
++
++#
++# MMC/SD Host Controller Drivers
++#
++CONFIG_MMC_OMAP=3Dy
++
++#
++# Real Time Clock
++#
++CONFIG_RTC_LIB=3Dy
++# CONFIG_RTC_CLASS is not set
++
++#
++# CBUS support
++#
++# CONFIG_CBUS is not set
++
++#
++# File systems
++#
++CONFIG_EXT2_FS=3Dy
++# CONFIG_EXT2_FS_XATTR is not set
++# CONFIG_EXT2_FS_XIP is not set
++CONFIG_EXT3_FS=3Dy
++# CONFIG_EXT3_FS_XATTR is not set
++# CONFIG_EXT4DEV_FS is not set
++CONFIG_JBD=3Dy
++# CONFIG_JBD_DEBUG is not set
++# CONFIG_REISERFS_FS is not set
++# CONFIG_JFS_FS is not set
++# CONFIG_FS_POSIX_ACL is not set
++# CONFIG_XFS_FS is not set
++# CONFIG_GFS2_FS is not set
++# CONFIG_OCFS2_FS is not set
++# CONFIG_MINIX_FS is not set
++# CONFIG_ROMFS_FS is not set
++CONFIG_INOTIFY=3Dy
++CONFIG_INOTIFY_USER=3Dy
++CONFIG_QUOTA=3Dy
++# CONFIG_QFMT_V1 is not set
++CONFIG_QFMT_V2=3Dy
++CONFIG_QUOTACTL=3Dy
++CONFIG_DNOTIFY=3Dy
++# CONFIG_AUTOFS_FS is not set
++# CONFIG_AUTOFS4_FS is not set
++# CONFIG_FUSE_FS is not set
++
++#
++# CD-ROM/DVD Filesystems
++#
++# CONFIG_ISO9660_FS is not set
++# CONFIG_UDF_FS is not set
++
++#
++# DOS/FAT/NT Filesystems
++#
++CONFIG_FAT_FS=3Dy
++CONFIG_MSDOS_FS=3Dy
++CONFIG_VFAT_FS=3Dy
++CONFIG_FAT_DEFAULT_CODEPAGE=3D437
++CONFIG_FAT_DEFAULT_IOCHARSET=3D"iso8859-1"
++# CONFIG_NTFS_FS is not set
++
++#
++# Pseudo filesystems
++#
++CONFIG_PROC_FS=3Dy
++CONFIG_PROC_SYSCTL=3Dy
++CONFIG_SYSFS=3Dy
++CONFIG_TMPFS=3Dy
++# CONFIG_TMPFS_POSIX_ACL is not set
++# CONFIG_HUGETLB_PAGE is not set
++CONFIG_RAMFS=3Dy
++# CONFIG_CONFIGFS_FS is not set
++
++#
++# Miscellaneous filesystems
++#
++# CONFIG_ADFS_FS is not set
++# CONFIG_AFFS_FS is not set
++# CONFIG_HFS_FS is not set
++# CONFIG_HFSPLUS_FS is not set
++# CONFIG_BEFS_FS is not set
++# CONFIG_BFS_FS is not set
++# CONFIG_EFS_FS is not set
++CONFIG_JFFS2_FS=3Dy
++CONFIG_JFFS2_FS_DEBUG=3D0
++CONFIG_JFFS2_FS_WRITEBUFFER=3Dy
++# CONFIG_JFFS2_SUMMARY is not set
++# CONFIG_JFFS2_FS_XATTR is not set
++CONFIG_JFFS2_COMPRESSION_OPTIONS=3Dy
++CONFIG_JFFS2_ZLIB=3Dy
++CONFIG_JFFS2_RTIME=3Dy
++# CONFIG_JFFS2_RUBIN is not set
++# CONFIG_JFFS2_CMODE_NONE is not set
++CONFIG_JFFS2_CMODE_PRIORITY=3Dy
++# CONFIG_JFFS2_CMODE_SIZE is not set
++# CONFIG_CRAMFS is not set
++# CONFIG_VXFS_FS is not set
++# CONFIG_HPFS_FS is not set
++# CONFIG_QNX4FS_FS is not set
++# CONFIG_SYSV_FS is not set
++# CONFIG_UFS_FS is not set
++
++#
++# Network File Systems
++#
++CONFIG_NFS_FS=3Dy
++CONFIG_NFS_V3=3Dy
++# CONFIG_NFS_V3_ACL is not set
++CONFIG_NFS_V4=3Dy
++# CONFIG_NFS_DIRECTIO is not set
++# CONFIG_NFSD is not set
++CONFIG_ROOT_NFS=3Dy
++CONFIG_LOCKD=3Dy
++CONFIG_LOCKD_V4=3Dy
++CONFIG_NFS_COMMON=3Dy
++CONFIG_SUNRPC=3Dy
++CONFIG_SUNRPC_GSS=3Dy
++# CONFIG_SUNRPC_BIND34 is not set
++CONFIG_RPCSEC_GSS_KRB5=3Dy
++# CONFIG_RPCSEC_GSS_SPKM3 is not set
++# CONFIG_SMB_FS is not set
++# CONFIG_CIFS is not set
++# CONFIG_NCP_FS is not set
++# CONFIG_CODA_FS is not set
++# CONFIG_AFS_FS is not set
++# CONFIG_9P_FS is not set
++
++#
++# Partition Types
++#
++CONFIG_PARTITION_ADVANCED=3Dy
++# CONFIG_ACORN_PARTITION is not set
++# CONFIG_OSF_PARTITION is not set
++# CONFIG_AMIGA_PARTITION is not set
++# CONFIG_ATARI_PARTITION is not set
++# CONFIG_MAC_PARTITION is not set
++CONFIG_MSDOS_PARTITION=3Dy
++# CONFIG_BSD_DISKLABEL is not set
++# CONFIG_MINIX_SUBPARTITION is not set
++# CONFIG_SOLARIS_X86_PARTITION is not set
++# CONFIG_UNIXWARE_DISKLABEL is not set
++# CONFIG_LDM_PARTITION is not set
++# CONFIG_SGI_PARTITION is not set
++# CONFIG_ULTRIX_PARTITION is not set
++# CONFIG_SUN_PARTITION is not set
++# CONFIG_KARMA_PARTITION is not set
++# CONFIG_EFI_PARTITION is not set
++# CONFIG_SYSV68_PARTITION is not set
++
++#
++# Native Language Support
++#
++CONFIG_NLS=3Dy
++CONFIG_NLS_DEFAULT=3D"iso8859-1"
++CONFIG_NLS_CODEPAGE_437=3Dy
++# CONFIG_NLS_CODEPAGE_737 is not set
++# CONFIG_NLS_CODEPAGE_775 is not set
++# CONFIG_NLS_CODEPAGE_850 is not set
++# CONFIG_NLS_CODEPAGE_852 is not set
++# CONFIG_NLS_CODEPAGE_855 is not set
++# CONFIG_NLS_CODEPAGE_857 is not set
++# CONFIG_NLS_CODEPAGE_860 is not set
++# CONFIG_NLS_CODEPAGE_861 is not set
++# CONFIG_NLS_CODEPAGE_862 is not set
++# CONFIG_NLS_CODEPAGE_863 is not set
++# CONFIG_NLS_CODEPAGE_864 is not set
++# CONFIG_NLS_CODEPAGE_865 is not set
++# CONFIG_NLS_CODEPAGE_866 is not set
++# CONFIG_NLS_CODEPAGE_869 is not set
++# CONFIG_NLS_CODEPAGE_936 is not set
++# CONFIG_NLS_CODEPAGE_950 is not set
++# CONFIG_NLS_CODEPAGE_932 is not set
++# CONFIG_NLS_CODEPAGE_949 is not set
++# CONFIG_NLS_CODEPAGE_874 is not set
++# CONFIG_NLS_ISO8859_8 is not set
++# CONFIG_NLS_CODEPAGE_1250 is not set
++# CONFIG_NLS_CODEPAGE_1251 is not set
++# CONFIG_NLS_ASCII is not set
++# CONFIG_NLS_ISO8859_1 is not set
++# CONFIG_NLS_ISO8859_2 is not set
++# CONFIG_NLS_ISO8859_3 is not set
++# CONFIG_NLS_ISO8859_4 is not set
++# CONFIG_NLS_ISO8859_5 is not set
++# CONFIG_NLS_ISO8859_6 is not set
++# CONFIG_NLS_ISO8859_7 is not set
++# CONFIG_NLS_ISO8859_9 is not set
++# CONFIG_NLS_ISO8859_13 is not set
++# CONFIG_NLS_ISO8859_14 is not set
++# CONFIG_NLS_ISO8859_15 is not set
++# CONFIG_NLS_KOI8_R is not set
++# CONFIG_NLS_KOI8_U is not set
++# CONFIG_NLS_UTF8 is not set
++
++#
++# Distributed Lock Manager
++#
++# CONFIG_DLM is not set
++
++#
++# Profiling support
++#
++# CONFIG_PROFILING is not set
++
++#
++# Kernel hacking
++#
++# CONFIG_PRINTK_TIME is not set
++CONFIG_ENABLE_MUST_CHECK=3Dy
++CONFIG_MAGIC_SYSRQ=3Dy
++# CONFIG_UNUSED_SYMBOLS is not set
++# CONFIG_DEBUG_FS is not set
++# CONFIG_HEADERS_CHECK is not set
++CONFIG_DEBUG_KERNEL=3Dy
++# CONFIG_DEBUG_SHIRQ is not set
++CONFIG_DETECT_SOFTLOCKUP=3Dy
++# CONFIG_SCHEDSTATS is not set
++# CONFIG_TIMER_STATS is not set
++# CONFIG_DEBUG_SLAB is not set
++# CONFIG_DEBUG_RT_MUTEXES is not set
++# CONFIG_RT_MUTEX_TESTER is not set
++# CONFIG_DEBUG_SPINLOCK is not set
++CONFIG_DEBUG_MUTEXES=3Dy
++# CONFIG_DEBUG_LOCK_ALLOC is not set
++# CONFIG_PROVE_LOCKING is not set
++# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
++# CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
++# CONFIG_DEBUG_KOBJECT is not set
++# CONFIG_DEBUG_BUGVERBOSE is not set
++# CONFIG_DEBUG_INFO is not set
++# CONFIG_DEBUG_VM is not set
++# CONFIG_DEBUG_LIST is not set
++CONFIG_FRAME_POINTER=3Dy
++CONFIG_FORCED_INLINING=3Dy
++# CONFIG_RCU_TORTURE_TEST is not set
++# CONFIG_FAULT_INJECTION is not set
++# CONFIG_DEBUG_USER is not set
++# CONFIG_DEBUG_ERRORS is not set
++CONFIG_DEBUG_LL=3Dy
++# CONFIG_DEBUG_ICEDCC is not set
++
++#
++# Security options
++#
++# CONFIG_KEYS is not set
++# CONFIG_SECURITY is not set
++
++#
++# Cryptographic options
++#
++CONFIG_CRYPTO=3Dy
++CONFIG_CRYPTO_ALGAPI=3Dy
++CONFIG_CRYPTO_BLKCIPHER=3Dy
++CONFIG_CRYPTO_MANAGER=3Dy
++# CONFIG_CRYPTO_HMAC is not set
++# CONFIG_CRYPTO_XCBC is not set
++# CONFIG_CRYPTO_NULL is not set
++# CONFIG_CRYPTO_MD4 is not set
++CONFIG_CRYPTO_MD5=3Dy
++# CONFIG_CRYPTO_SHA1 is not set
++# CONFIG_CRYPTO_SHA256 is not set
++# CONFIG_CRYPTO_SHA512 is not set
++# CONFIG_CRYPTO_WP512 is not set
++# CONFIG_CRYPTO_TGR192 is not set
++# CONFIG_CRYPTO_GF128MUL is not set
++CONFIG_CRYPTO_ECB=3Dm
++CONFIG_CRYPTO_CBC=3Dy
++CONFIG_CRYPTO_PCBC=3Dm
++# CONFIG_CRYPTO_LRW is not set
++# CONFIG_CRYPTO_CRYPTD is not set
++CONFIG_CRYPTO_DES=3Dy
++# CONFIG_CRYPTO_FCRYPT is not set
++# CONFIG_CRYPTO_BLOWFISH is not set
++# CONFIG_CRYPTO_TWOFISH is not set
++# CONFIG_CRYPTO_SERPENT is not set
++# CONFIG_CRYPTO_AES is not set
++# CONFIG_CRYPTO_CAST5 is not set
++# CONFIG_CRYPTO_CAST6 is not set
++# CONFIG_CRYPTO_TEA is not set
++# CONFIG_CRYPTO_ARC4 is not set
++# CONFIG_CRYPTO_KHAZAD is not set
++# CONFIG_CRYPTO_ANUBIS is not set
++# CONFIG_CRYPTO_DEFLATE is not set
++# CONFIG_CRYPTO_MICHAEL_MIC is not set
++# CONFIG_CRYPTO_CRC32C is not set
++# CONFIG_CRYPTO_CAMELLIA is not set
++# CONFIG_CRYPTO_TEST is not set
++
++#
++# Hardware crypto devices
++#
++
++#
++# Library routines
++#
++CONFIG_BITREVERSE=3Dy
++CONFIG_CRC_CCITT=3Dy
++# CONFIG_CRC16 is not set
++# CONFIG_CRC_ITU_T is not set
++CONFIG_CRC32=3Dy
++CONFIG_LIBCRC32C=3Dy
++CONFIG_ZLIB_INFLATE=3Dy
++CONFIG_ZLIB_DEFLATE=3Dy
++CONFIG_PLIST=3Dy
++CONFIG_HAS_IOMEM=3Dy
++CONFIG_HAS_IOPORT=3Dy
++CONFIG_HAS_DMA=3Dy
