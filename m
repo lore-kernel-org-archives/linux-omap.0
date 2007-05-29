@@ -1,12 +1,12 @@
 From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: [PATCH 2/11] ARM V7 support in head.S - OMAP 3430 support
-Date: Tue, 29 May 2007 01:20:16 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47FF0E2E@dlee13.ent.ti.com>
+Subject: [PATCH 6/11] Board file for OMAP3430 SDP
+Date: Tue, 29 May 2007 01:22:00 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47FF0E32@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,137 +15,332 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add ARM V7 support to head.S, derived from ARM's Cortex Patch
-
+Adding new Board file for OMAP3430 SDP
+=20
 Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
 
 Files Changed:
- head.S |   77 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 76 insertions(+), 1 deletion(-)
+ board-3430sdp.c |  304 =
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 304 insertions(+)
 
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-diff -purN linux-omap/arch/arm/boot/compressed/head.S =
-val_3430_GIT/arch/arm/boot/compressed/head.S
---- linux-omap/arch/arm/boot/compressed/head.S	2006-11-20 =
-21:53:55.000000000 -0600
-+++ val_3430_GIT/arch/arm/boot/compressed/head.S	2007-05-25 =
-21:08:47.000000000 -0500
-@@ -447,6 +447,20 @@ __arm6_mmu_cache_on:
- 		mcr	p15, 0, r0, c5, c0, 0	@ invalidate whole TLB v3
- 		mov	pc, r12
-=20
-+__armv7_mmu_cache_on:
-+		mov	r12, lr			@ L1 only please
-+		bl	__setup_mmu
-+		mov	r0, #0
-+		mcr	p15, 0, r0, c7, c5, 0	@ invalidate icache
-+		mcr	p15, 0, r0, c8, c7, 0	@ invalidate TLBs
-+		mrc	p15, 0, r0, c1, c0, 0	@ read control reg
-+		orr	r0, r0, #0x1800		@ I-cache + BTB enable
-+		bl	__common_mmu_cache_on
-+		mov	r0, #0
-+		mcr	p15, 0, r0, c8, c7, 0	@ invalidate TLBs
-+		mov	pc, r12
+diff -purN linux-omap/arch/arm/mach-omap2/board-3430sdp.c =
+val_3430_GIT/arch/arm/mach-omap2/board-3430sdp.c
+--- linux-omap/arch/arm/mach-omap2/board-3430sdp.c	1969-12-31 =
+18:00:00.000000000 -0600
++++ val_3430_GIT/arch/arm/mach-omap2/board-3430sdp.c	2007-05-28 =
+22:03:29.000000000 -0500
+@@ -0,0 +1,304 @@
++/*
++ * linux/arch/arm/mach-omap3/board-3430sdp.c
++ *
++ * Copyright (C) 2007 Texas Instruments
++ *
++ * Modified from mach-omap2/board-generic.c
++ *
++ * Initial code: Syed Mohammed Khasim
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/partitions.h>
++#include <linux/delay.h>
++#include <linux/workqueue.h>
++#include <linux/input.h>
++#include <linux/err.h>
++#include <linux/clk.h>
 +
- __common_mmu_cache_on:
- #ifndef DEBUG
- 		orr	r0, r0, #0x000d		@ Write buffer, mmu
-@@ -624,6 +638,12 @@ proc_types:
- 		b	__armv4_mmu_cache_off
- 		b	__armv6_mmu_cache_flush
-=20
-+		.word	0x000fc000		@ ARMv7
-+		.word	0x000ff000
-+		b	__armv7_mmu_cache_on
-+		b	__armv7_mmu_cache_off
-+		b	__armv7_mmu_cache_flush
++#include <asm/hardware.h>
++#include <asm/mach-types.h>
++#include <asm/mach/arch.h>
++#include <asm/mach/map.h>
++#include <asm/mach/flash.h>
 +
- 		.word	0			@ unrecognised type
- 		.word	0
- 		mov	pc, lr
-@@ -717,7 +737,7 @@ __armv4_mpu_cache_flush:
- 		mcrne	p15, 0, ip, c7, c5, 0	@ invalidate I cache
- 		mcr	p15, 0, ip, c7, c10, 4	@ drain WB
- 		mov	pc, lr
--	=09
++#include <asm/arch/gpio.h>
++#include <asm/arch/gpioexpander.h>
++#include <asm/arch/mux.h>
++#include <asm/arch/usb.h>
++#include <asm/arch/irda.h>
++#include <asm/arch/board.h>
++#include <asm/arch/common.h>
++#include <asm/arch/keypad.h>
++#include <asm/arch/menelaus.h>
++#include <asm/arch/dma.h>
++#include <asm/arch/gpmc.h>
 +
-=20
- __armv6_mmu_cache_flush:
- 		mov	r1, #0
-@@ -727,6 +747,52 @@ __armv6_mmu_cache_flush:
- 		mcr	p15, 0, r1, c7, c10, 4	@ drain WB
- 		mov	pc, lr
-=20
-+__armv7_mmu_cache_flush:
-+		adr	sp, no_cache_id		@ hack, non-v7 code is temp stack
-+		stmfd	sp!, {r0-r12}
-+		mrc	p15, 1, r0, c0, c0, 1	@ read clidr
-+		ands	r3, r0, #0x7000000	@ extract loc from clidr
-+		mov	r3, r3, lsr #23		@ left align loc bit field
-+		beq	finished		@ if loc is 0, then no need to clean
-+		mov	r10, #0			@ start clean at cache level 0
-+loop1:
-+		add	r2, r10, r10, lsr #1	@ work out 3x current cache
-+level
-+		mov	r1, r0, lsr r2		@ extract cache type bits from clidr
-+		and	r1, r1, #7		@ mask of the bits for current cache only
-+		cmp	r1, #2			@ see what cache we have at this level
-+		blt	skip			@ skip if no cache, or just i-cache
-+		mcr	p15, 2, r10, c0, c0, 0	@ select current cache level in cssr
-+		mov	r1, #0
-+		mcr	p15, 0, r1, c7, c5, 4	@ prefetchflush to sych the new cssr&csidr
-+		mrc	p15, 1, r1, c0, c0, 0	@ read the new csidr
-+		and	r2, r1, #7		@ extract the length of the cache lines
-+		add	r2, r2, #4		@ add 4 (line length offset)
-+		ldr	r4, =3D0x3ff
-+		ands	r4, r4, r1, lsr #3	@ find maximum number on the way size
-+		clz	r5, r4			@ find bit position of way size increment
-+		ldr	r7, =3D0x7fff
-+		ands	r7, r7, r1, lsr #13	@ extract max number of the index size
-+loop2:
-+		mov	r9, r4			@ create working copy of max way size
-+loop3:
-+		orr	r11, r10, r9, lsl r5	@ factor way and cache number into r11
-+		orr	r11, r11, r7, lsl r2	@ factor index number into r11
-+		mcr	p15, 0, r11, c7, c14, 2	@ clean & invalidate by set/way
-+		subs	r9, r9, #1		@ decrement the way
-+		bge	loop3
-+		subs	r7, r7, #1		@ decrement the index
-+		bge	loop2
-+skip:
-+		add	r10, r10, #2		@ increment cache number
-+		cmp	r3, r10
-+		bgt	loop1
-+finished:
-+		mov	r0, #0
-+		mcr	p15, 0, r0, c7, c5, 0	@ I+BTB cache invalidate
-+		ldmfd	sp!, {r0-r12}
-+		mov	pc, lr
++#include <asm/io.h>
++#include <asm/delay.h>
 +
- __armv4_mmu_cache_flush:
- 		mov	r2, #64*1024		@ default: 32K dcache size (*2)
- 		mov	r11, #32		@ default: 32 byte line size
-@@ -761,6 +827,15 @@ __armv3_mpu_cache_flush:
- 		mcr	p15, 0, r0, c7, c0, 0	@ invalidate whole cache v3
- 		mov	pc, lr
-=20
-+__armv7_mmu_cache_off:
-+		mrc	p15, 0, r0, c1, c0
-+		bic	r0, r0, #0x000d	 @ dcache & mmu off (icache still on)
-+		mcr	p15, 0, r0, c1, c0, 0	@ turn MMU and cache off
-+		mov	r0, #0
-+		mcr	p15, 0, r0, c7, c5, 0	@ invalidate icache
-+		mcr	p15, 0, r10, c8, c7, 0	@ invalidate I + D TLBs
-+		mov	pc, lr
++#define	SDP3430_FLASH_CS	0
++#define	SDP3430_SMC91X_CS	3
 +
- /*
-  * Various debugging routines for printing hex characters and
-  * memory, which again must be relocatable.
++#ifdef CONFIG_USB_MUSB_HDRC
++#include <linux/usb_musb.h>
++#endif
++
++static struct mtd_partition sdp3430_partitions[] =3D {
++	/* bootloader (U-Boot, etc) in first sector */
++	{
++		  .name		=3D "bootloader",
++		  .offset		=3D 0,
++		  .size		=3D SZ_256K,
++		  .mask_flags	=3D MTD_WRITEABLE, /* force read-only */
++	},
++	/* bootloader params in the next sector */
++	{
++		  .name		=3D "params",
++		  .offset		=3D MTDPART_OFS_APPEND,
++		  .size		=3D SZ_128K,
++		  .mask_flags	=3D 0,
++	},
++	/* kernel */
++	{
++		  .name		=3D "kernel",
++		  .offset		=3D MTDPART_OFS_APPEND,
++		  .size		=3D SZ_2M,
++		  .mask_flags	=3D 0
++	},
++	/* file system */
++	{
++		  .name		=3D "filesystem",
++		  .offset		=3D MTDPART_OFS_APPEND,
++		  .size		=3D MTDPART_SIZ_FULL,
++		  .mask_flags	=3D 0
++	}
++};
++
++static struct flash_platform_data sdp3430_flash_data =3D {
++	.map_name	=3D "cfi_probe",
++	.width		=3D 2,
++	.parts		=3D sdp3430_partitions,
++	.nr_parts	=3D ARRAY_SIZE(sdp3430_partitions),
++};
++
++static struct resource sdp3430_flash_resource =3D {
++	.start		=3D FLASH_BASE,
++	.end		=3D FLASH_BASE + SZ_64M - 1,
++	.flags		=3D IORESOURCE_MEM,
++};
++
++static struct platform_device sdp3430_flash_device =3D {
++	.name		=3D "omapflash",
++	.id		=3D 0,
++	.dev		=3D {
++		.platform_data	=3D &sdp3430_flash_data,
++	},
++	.num_resources	=3D 1,
++	.resource	=3D &sdp3430_flash_resource,
++};
++
++static struct resource sdp3430_smc91x_resources[] =3D {
++	[0] =3D {
++		.start	=3D OMAP34XX_ETHR_START,
++		.end	=3D OMAP34XX_ETHR_START + SZ_4K,
++		.flags		=3D IORESOURCE_MEM,
++		  },
++	[1] =3D {
++		.start		=3D OMAP_GPIO_IRQ(OMAP34XX_ETHR_GPIO_IRQ),
++		.end	=3D 0,
++		.flags		=3D IORESOURCE_IRQ,
++		  },
++};
++
++static struct platform_device sdp3430_smc91x_device =3D {
++	.name		=3D "smc91x",
++	.id		=3D -1,
++	.num_resources	=3D ARRAY_SIZE(sdp3430_smc91x_resources),
++	.resource	=3D sdp3430_smc91x_resources,
++};
++
++#ifdef CONFIG_USB_MUSB_HDRC
++static struct resource musb_resources[] =3D {
++	[0] =3D {
++		 .start	=3D OMAP343X_HS_BASE,
++		 .end	=3D OMAP343X_HS_BASE + SZ_8K,
++		 .flags	=3D IORESOURCE_MEM,
++		  },
++	[1] =3D {	/* general IRQ */
++		 .start	=3D INT_HS_USB_MC_NINT,
++		 .flags	=3D IORESOURCE_IRQ,
++		  },
++	[2] =3D {		/* DMA IRQ */
++		 .start	=3D INT_HS_USB_DMA_NINT,
++		 .flags	=3D IORESOURCE_IRQ,
++		  },
++};
++
++static struct musb_hdrc_platform_data musb_plat =3D {
++#ifdef CONFIG_USB_MUSB_OTG
++	.mode		=3D MUSB_OTG,
++#elif CONFIG_USB_MUSB_HDRC_HCD
++	.mode		=3D MUSB_HOST,
++#elif CONFIG_USB_GADGET_MUSB_HDRC
++	.mode		=3D MUSB_PERIPHERAL,
++#endif
++	.multipoint	=3D 1,
++};
++
++static u64 musb_dmamask =3D ~(u32)0;
++
++static struct platform_device musb_device =3D {
++	.name		=3D "musb_hdrc",
++	.id		=3D 0,
++	.dev =3D {
++		.dma_mask		=3D &musb_dmamask,
++		.coherent_dma_mask	=3D 0xffffffff,
++		.platform_data		=3D &musb_plat,
++	},
++	.num_resources	=3D ARRAY_SIZE(musb_resources),
++	.resource	=3D musb_resources,
++};
++#endif /* CONFIG_USB_MUSB_HDRC */
++static struct platform_device *sdp3430_devices[] __initdata =3D {
++	&sdp3430_smc91x_device,
++	&sdp3430_flash_device,
++#ifdef CONFIG_USB_MUSB_HDRC
++	&musb_device,
++#endif
++};
++#if 	defined(CONFIG_USB_OMAP24XX_FS_PORT0)
++static struct omap_usb_config fsusb_otg0_config __initdata =3D {
++	/* usb0 has a Mini-AB port and external isp1301 transceiver */
++	.otg		=3D 1,
++
++#ifdef	CONFIG_USB_GADGET_OMAP
++	.hmc_mode	=3D 0x0,	// 0:dev/otg 1:disabled 2:disabled
++
++#elif	defined(CONFIG_USB_OHCI_HCD) || =
+defined(CONFIG_USB_OHCI_HCD_MODULE)
++	.hmc_mode	=3D 0x1,	// 0:host|otg 1:host 2:host
++#endif
++
++	.pins[0]	=3D 3,
++};
++
++#elif	defined(CONFIG_USB_OMAP24XX_FS_PORT1)
++static struct omap_usb_config fsusb_host1_config __initdata =3D {
++	.register_host	=3D 1,
++	.hmc_mode	=3D 0x1,	// 0:host|otg 1:host 2:host
++	.pins[1]	=3D 3,
++};
++#endif
++
++static inline void __init sdp3430_init_smc91x(void)
++{
++	int eth_cs;
++	unsigned long cs_mem_base;
++	unsigned int rate;
++	struct clk *l3ck;
++
++	eth_cs	=3D SDP3430_SMC91X_CS;
++
++	l3ck =3D clk_get(NULL, "core_l3_ck");
++	if (IS_ERR(l3ck))
++		rate =3D 100000000;
++	else
++		rate =3D clk_get_rate(l3ck);
++
++	if (gpmc_cs_request(eth_cs, SZ_16M, &cs_mem_base) < 0) {
++		printk(KERN_ERR "Failed to request GPMC mem for smc91x\n");
++		return;
++	}
++
++	sdp3430_smc91x_resources[0].start =3D cs_mem_base + 0x0;
++	sdp3430_smc91x_resources[0].end   =3D cs_mem_base + 0xf;
++	udelay(100);
++	if (omap_request_gpio(OMAP34XX_ETHR_GPIO_IRQ) < 0) {
++		printk(KERN_ERR "Failed to request GPIO%d for smc91x IRQ\n",
++			OMAP34XX_ETHR_GPIO_IRQ);
++		return;
++	}
++	omap_set_gpio_direction(OMAP34XX_ETHR_GPIO_IRQ, 1);
++}
++
++static void __init sdp3430_init_flash(void)
++{
++	unsigned long base;
++
++	if (gpmc_cs_request(SDP3430_FLASH_CS, SZ_64M, &base) < 0) {
++		printk("Can't request GPMC CS for flash\n");
++		return;
++	}
++	sdp3430_flash_resource.start	=3D base;
++	sdp3430_flash_resource.end	=3D base + SZ_64M - 1;
++}
++
++static void __init omap_3430sdp_init_irq(void)
++{
++	omap2_init_common_hw();
++	omap_init_irq();
++	omap_gpio_init();
++	sdp3430_init_smc91x();
++}
++
++static struct omap_uart_config sdp3430_uart_config __initdata =3D {
++	.enabled_uarts	=3D ((1 << 0) | (1 << 1) | (1 << 2)),
++};
++
++static struct omap_mmc_config sdp3430_mmc_config __initdata =3D {
++	.mmc [0] =3D {
++		.enabled	=3D 1,
++		.wire4		=3D -1,
++		.wp_pin		=3D -1,
++		.power_pin	=3D -1,
++		.switch_pin	=3D 0,
++	},
++	.mmc [1] =3D {
++		.enabled	=3D 1,
++		.wire4		=3D -1,
++		.wp_pin		=3D -1,
++		.power_pin	=3D -1,
++		.switch_pin	=3D 1,
++	},
++};
++
++static struct omap_board_config_kernel sdp3430_config[] =3D {
++	{ OMAP_TAG_UART,	&sdp3430_uart_config },
++	{ OMAP_TAG_MMC,	&sdp3430_mmc_config },
++#if	defined(CONFIG_USB_OMAP24XX_FS_PORT0)
++	{ OMAP_TAG_USB,	&fsusb_otg0_config },
++#elif	defined(CONFIG_USB_OMAP24XX_FS_PORT1)
++	{ OMAP_TAG_USB,	&fsusb_host1_config },
++#endif
++};
++
++static void __init omap_3430sdp_init(void)
++{
++	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
++	omap_board_config =3D sdp3430_config;
++	omap_board_config_size =3D ARRAY_SIZE(sdp3430_config);
++	omap_serial_init();
++}
++
++static void __init omap_3430sdp_map_io(void)
++{
++	omap2_map_common_io();
++}
++
++MACHINE_START(OMAP_SDP3430, "OMAP3430 sdp3430 board")
++	/* Maintainer: Syed Khasim - Texas Instruments Inc */
++	.phys_io	=3D 0x48000000,
++	.io_pg_offst	=3D ((0xd8000000) >> 18) & 0xfffc,
++	.boot_params	=3D 0x80000100,
++	.map_io		=3D omap_3430sdp_map_io,
++	.init_irq	=3D omap_3430sdp_init_irq,
++	.init_machine	=3D omap_3430sdp_init,
++	.timer		=3D &omap_timer,
++MACHINE_END
