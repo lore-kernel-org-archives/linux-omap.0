@@ -1,14 +1,18 @@
-From: Amit Kucheria <amit.kucheria@nokia.com>
-Subject: Re: [PATCH 3/11] Add OMAP3 support
-Date: Tue, 29 May 2007 14:16:26 +0300
-Message-ID: <1180437386.17658.0.camel@amit-laptop>
-References: <9C23CDD79DA20A479D4615857B2E2C47FF0E2F@dlee13.ent.ti.com>
-Reply-To: amit.kucheria@nokia.com
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47FF0E2F@dlee13.ent.ti.com>
+From: Felipe Balbi <felipebalbi@users.sourceforge.net>
+Subject: [PATCH] Leave GPIO[7:6] pullups enabled.
+Date: Tue, 29 May 2007 15:02:40 +0300
+Message-ID: <11804401782736-git-send-email-felipebalbi@users.sourceforge.net>
+References: <11804401622277-git-send-email-felipebalbi@users.sourceforge.net>
+	<11804401651954-git-send-email-felipebalbi@users.sourceforge.net>
+	<11804401662563-git-send-email-felipebalbi@users.sourceforge.net>
+	<11804401722783-git-send-email-felipebalbi@users.sourceforge.net>
+	<1180440173922-git-send-email-felipebalbi@users.sourceforge.net>
+	<11804401741522-git-send-email-felipebalbi@users.sourceforge.net>
+	<11804401752426-git-send-email-felipebalbi@users.sourceforge.net>
+	<1180440176127-git-send-email-felipebalbi@users.sourceforge.net>
+	<11804401773555-git-send-email-felipebalbi@users.sourceforge.net>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <11804401773555-git-send-email-felipebalbi@users.sourceforge.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,32 +20,40 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "ext Syed Mohammed, Khasim" <x0khasim@ti.com>
-Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 2007-05-29 at 01:21 -0500, ext Syed Mohammed, Khasim wrote:
-> Add OMAP3 support in arch/arm/Makefile and mm/Kconfig
-> 
-> Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
-> 
-> Files Changed:
->  Makefile   |    1 +
->  mm/Kconfig |    2 +-
->  2 files changed, 2 insertions(+), 1 deletion(-)
-> 
-> =======================================================================
-> diff -purN linux-omap/arch/arm/Makefile val_3430_GIT/arch/arm/Makefile
-> --- linux-omap/arch/arm/Makefile	2007-05-16 14:32:39.000000000 -0500
-> +++ val_3430_GIT/arch/arm/Makefile	2007-05-25 23:06:30.000000000 -0500
-> @@ -121,6 +121,7 @@ endif
->   machine-$(CONFIG_ARCH_IXP23XX)    := ixp23xx
->   machine-$(CONFIG_ARCH_OMAP1)	   := omap1
->   machine-$(CONFIG_ARCH_OMAP2)	   := omap2
-> + machine-$(CONFIG_ARCH_OMAP3)		:= omap2
-                                             ^^^^^
-Surely you mean omap3 here?
+From: Felipe Balbi <felipe.lima@indt.org.br>
 
-/Amit
+GPIO7 and GPIO6 are configured as default wake-up sources for
+tusb6010.
+
+without this patch MUSB is not able to enumerate
+any device that draw power from it.
+
+After applying this patch, we're passing in almost
+all OTG Electrical Tests.
+
+Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
+---
+
+Index: linux-omap-2.6/drivers/usb/musb/tusb6010.c
+===================================================================
+--- linux-omap-2.6.orig/drivers/usb/musb/tusb6010.c	2007-05-28 13:18:46.000000000 +0300
++++ linux-omap-2.6/drivers/usb/musb/tusb6010.c	2007-05-28 13:26:28.000000000 +0300
+@@ -879,8 +879,11 @@
+ {
+ 	void __iomem	*base = musb->ctrl_base;
+ 
+-	/* Disable GPIO[7:0] pullups (used as output DMA requests) */
+-	musb_writel(base, TUSB_PULLUP_1_CTRL, 0x000000FF);
++	/* GPIO[7:6] are the default wake-up sources for tusb6010.
++	 * We cannot disable their pullups.
++	 *
++	 * Disable GPIO[5:0] pullups (used as output DMA requests) */
++	musb_writel(base, TUSB_PULLUP_1_CTRL, 0x0000003F);
+ 	/* Disable all pullups on NOR IF, DMAREQ0 and DMAREQ1 */
+ 	musb_writel(base, TUSB_PULLUP_2_CTRL, 0x01FFFFFF);
+ 
