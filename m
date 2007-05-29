@@ -1,13 +1,14 @@
 From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: [PATCH 11/11] OMAP 3430 support in include/arm/arch-omap
-Date: Tue, 29 May 2007 12:27:56 +0530
-Message-ID: <5d5443650705282357w1e67ff00gdb6ac3158fb7d1bd@mail.gmail.com>
-References: <9C23CDD79DA20A479D4615857B2E2C47FF0E37@dlee13.ent.ti.com>
+Subject: Re: [PATCH 1/11] Add VFP support for ARM V7 - OMAP 3430 support
+Date: Tue, 29 May 2007 12:29:40 +0530
+Message-ID: <5d5443650705282359l36210f66m7862c01d04fccf@mail.gmail.com>
+References: <9C23CDD79DA20A479D4615857B2E2C47FF0E2D@dlee13.ent.ti.com>
+	<5d5443650705282339i479d448fm7c4910d971ae0cad@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47FF0E37@dlee13.ent.ti.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <5d5443650705282339i479d448fm7c4910d971ae0cad@mail.gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -16,50 +17,63 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
 Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 5/29/07, Syed Mohammed, Khasim <x0khasim@ti.com> wrote:
->
-> Adding OMAP3430 support to include/asm-arm/arch-omap
->
-> Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
->
-> Files Changed:
->  clock.h       |    1
->  cpu.h         |   28 +++++++++++++++++++++++
->  debug-macro.S |   12 ++++++++++
->  dma.h         |   68 +++++++++++++++++++++++++++++-----------------------------
->  entry-macro.S |    6 ++++-
->  hardware.h    |   12 +++++++++-
->  io.h          |   57 ++++++++++++++++++++++++++++++++++++++++++++++++
->  irqs.h        |   17 ++++++++++++++
->  mcbsp.h       |    2 -
->  memory.h      |    2 -
->  serial.h      |    5 ++++
->
-
-...
-
+On 5/29/07, Trilok Soni <soni.trilok@gmail.com> wrote:
+> On 5/29/07, Syed Mohammed, Khasim <x0khasim@ti.com> wrote:
 > >
-> diff -purN linux-omap/include/asm-arm/arch-omap/serial.h val_3430_GIT/include/asm-arm/arch-omap/serial.h
-> --- linux-omap/include/asm-arm/arch-omap/serial.h       2006-11-20 21:56:59.000000000 -0600
-> +++ val_3430_GIT/include/asm-arm/arch-omap/serial.h     2007-05-25 22:59:27.000000000 -0500
-> @@ -20,6 +20,11 @@
->  #define OMAP_UART1_BASE                0x4806a000
->  #define OMAP_UART2_BASE                0x4806c000
->  #define OMAP_UART3_BASE                0x4806e000
-> +#elif defined(CONFIG_ARCH_OMAP3)
-> +/* OMAP3 serial ports */
-> +#define OMAP_UART1_BASE                0x4806a000
-> +#define OMAP_UART2_BASE                0x4806c000
-> +#define OMAP_UART3_BASE                0x49020000
->  #endif
+> > Add VFP support for ARM V7, derived from ARM's Cortex patch
+> >
+> > Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
+> >
+> > Files Changed:
+> >  Kconfig         |   16 ++++++++++++++--
+> >  vfp/vfp.h       |    5 +++++
+> >  vfp/vfphw.S     |   21 ++++++++++++++++++++-
+> >  vfp/vfpmodule.c |    8 ++++++++
+> >  4 files changed, 47 insertions(+), 3 deletions(-)
+> >
+> > =======================================================================
+> > diff -purN linux-omap/arch/arm/Kconfig val_3430_GIT/arch/arm/Kconfig
+> > --- linux-omap/arch/arm/Kconfig 2007-05-25 13:27:02.000000000 -0500
+> > +++ val_3430_GIT/arch/arm/Kconfig       2007-05-25 23:05:30.000000000 -0500
+> > @@ -393,7 +393,7 @@ config ARCH_OMAP
+> >         select GENERIC_TIME
+> >         select GENERIC_CLOCKEVENTS
+> >         help
+> > -         Support for TI's OMAP platform (OMAP1 and OMAP2).
+> > +         Support for TI's OMAP platform (OMAP1, OMAP2 and OMAP3).
+> >
+> >  endchoice
+> >
+> > @@ -925,7 +925,7 @@ config FPE_FASTFPE
+> >
+> >  config VFP
+> >         bool "VFP-format floating point maths"
+> > -       depends on CPU_V6 || CPU_ARM926T
+> > +       depends on CPU_V6 || CPU_ARM926T || CPU_V7
+> >         help
+> >           Say Y to include VFP support code in the kernel. This is needed
+> >           if your hardware includes a VFP unit.
+> > @@ -935,6 +935,18 @@ config VFP
+> >
+> >           Say N if your target does not have VFP hardware.
+> >
+> > +config VFPv3
+> > +       bool
+> > +       depends on VFP
+> > +       default y if CPU_V7
+> > +
+>
+> Could you please check that ARMv7 and VFPv3 code is latest and same as
+> available on http://www.linux-arm.og/git ?
 
-Why not just #ifdefing UART3, as it is the only differs in base address.?
+Typo. correct link http://www.linux-arm.org/git
+
 
 -- 
 --Trilok Soni
