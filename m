@@ -1,16 +1,11 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] USB: Fix OTG HNP for hub.c
-Date: Tue, 29 May 2007 14:26:46 -0700
-Message-ID: <20070529212646.GE27603@atomide.com>
-References: <11804401622277-git-send-email-felipebalbi@users.sourceforge.net>
-	<31e679430705291224h5f1e8552paf8bff92f97f7f3f@mail.gmail.com>
-	<20070529203458.GB27603@atomide.com>
-	<200705291411.01343.david-b@pacbell.net>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: [PATCH/RFC] Reduce OMAP2420 active current by ~30%
+Date: Tue, 29 May 2007 20:24:24 -0500
+Message-ID: <3B6D69C3A9EBCA4BA5DA60D91302742901158C39@dlee13.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <200705291411.01343.david-b@pacbell.net>
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C7A259.4222ABE2"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,111 +13,168 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [070529 14:11]:
-> On Tuesday 29 May 2007, Tony Lindgren wrote:
-> > * Felipe Balbi <felipebalbi@users.sourceforge.net> [070529 12:25]:
-> > > Hi,
-> > >
-> > > On 5/29/07, David Brownell <david-b@pacbell.net> wrote:
-> > >> On Tuesday 29 May 2007, Felipe Balbi wrote:
-> > >> > From: Tony Lindgren <tony@atomide.com>
-> > >> >
-> > >> > This patch makes makes OTG Host Negotiation Protocol (HNP)
-> > >> > to behave.
-> > >>
-> > >> Not really.  It makes it strongly *MIS* behave in fact,
-> > >> since it always kicks off HNP ... even when it should not
-> > >> do so, because the device is in the whitelist.  (Called
-> > >> the "Targeted Peripherals List", TPL, in jargonese.)
-> > >>
-> > >> The two blocks of code are in the wrong order ...
-> > 
-> > Hmm, are you sure about that? My patch is based on
-> > USB_TG_1-3.pdf and playing with usbcv13.exe and two N800s.
-> > 
-> > I'm under the impression that if the peripheral supports HNP, the
-> > host must offer HNP at least once during the session.
-> 
-> See section 6.8.1.4 of the OTG 1.2 spec which says that the A-device
-> first sets up communication with the B-device, when it's on the TPL.
-> 
-> You might be thinking about the later part of 6.8.1.4 which says
-> that "before ending the session" the A-device gives the B-device
-> an opportunity to be the master.  That may be a "new" requirement,
-> added by OTG 1.2 and not in OTG 1.0a.  But in any case, that's
-> after having done normal "work" (if any).
+This is a multi-part message in MIME format.
 
-But HNP can also be offered early in addition to autosuspend
-(which I have missed). Does "sets up communications with b-device"
-really mean use it as a peripheral? Or does it mean set up
-communications to configure b-device?
+------_=_NextPart_001_01C7A259.4222ABE2
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-If the b-device has b_host mode enabled, it does not want to be
-a peripheral at that point.
+Hi,
 
-> The mechanism for that is to enter the A_SUSPEND state after
-> enabling HNP.  Right now I'd expect autosuspend to make that
-> happen ... that's a new mechanism, we may need to re-evaluate
-> stting B_HNP_ENABLE that early.
-> 
-> 
-> > And as I understand, the whitelist is for peripherals the host
-> > supports, with HNP or no HNP.
-> 
-> Yes ... and see 6.8.1.4 too.  Devices NOT on the whitelist get
-> the A_BUS_REQ = FALSE treatment, triggering HNP or disconnect.
-> 
-> But ones on the whitelist keep A_BUS_REQ = TRUE until they're
-> done getting work done.
+This follows up on my power management tip yesterday to make sure to =
+enable module auto idles.  I was curious the savings on a 2420.  The =
+formatting needs some fix up (access & sharing for 2430) but it should =
+easily show the point.  This will apply against a git-pull from today.
 
-Yes, I still don't see a conflict with my patch and 6.8.1.4,
-if we assume communcations with b-device means just configure it.
+Module level auto idle allows active mode clock gating.  On my H4 this =
+results in ~30% VCORE savings when sitting at a shell prompt after boot =
+up.  I would expect a similar savings on an N800.
 
-> > With my patch, we offer to do HNP right in the beginning of the
-> > session. Then the peripheral can use it or not use depending if
-> > HNP is enabled on peripheral.
-> 
-> There are two requirements.  For HNP the only requirement is to
-> try it by the end of the session.  But for devices that have not
-> been blacklisted, there's another requirement:  first, set up
-> normal communication with that peripheral.
+Even with this OMAP2 active-idle and retention currents are high =
+directly using the GIT tree as measured on the _H4_.  Simple hacks like =
+the above to the generic code might get as much as %50, more elaborate =
+ones could be much more.
 
-Hmmm, I ended up doing it this way to get usbcv13.exe OTG tests
-to pass. I guess it boils down what "sets up communication with
-b-device" means.
-
-> > >> A more limited patch would help.  Specifically, just
-> > >> fixing whatever bug was seen in the original code,
-> > >> rather than abstracting it into a new subroutine and
-> > >> changing the logic while doing so.
-> > 
-> > Dave, did you ever get HNP working with any device and test
-> > it with usbcv13.exe and OPT?
-> 
-> HNP was certainly working on H2 back around 2.6.10/11 using
-> the original OPT ... that's before usbcv13.exe or the very
-> latest (mucho expensivo, high speed capable) OPT hardware.
-
-OK, that's good to hear.
-
-> I believe the OMAP tree has code changes in isp1301_omap (from
-> TI) which allegedly made it work on H3, but broke it on H2.
-> (The OMAP1 OTG core changed a bit between OMAP 1611 and 1710.)
-> Those changes have not yet gone upstream, on the grounds that
-> they'd be a regression.
-> 
-> I may take that H2 out of storage and see how it behaves
-> on current kernels ... it's possible that usbcore changes
-> have broken that support.
-
-Yeh, I suspect it will fail at least usbcv13.exe OTG tests.
+Signed-off-by: Richard Woodruff <r-woodruff2@ti.com>
 
 Regards,
+Richard W.
 
-Tony
+------_=_NextPart_001_01C7A259.4222ABE2
+Content-Type: application/octet-stream;
+	name="2420_auto_idle.diff"
+Content-Transfer-Encoding: base64
+Content-Description: 2420_auto_idle.diff
+Content-Disposition: attachment;
+	filename="2420_auto_idle.diff"
+
+LS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9NYWtlZmlsZQorKysgYi9hcmNoL2FybS9tYWNoLW9t
+YXAyL01ha2VmaWxlCkBAIC05LDcgKzksNyBAQCBvYmoteSA6PSBpcnEubyBpZC5vIGlvLm8gc3Jh
+bS1mbi5vIG1lbW9yeS5vIHByY20ubyBjbG9jay5vIG11eC5vIGRldmljZXMubyBcCiBvYmotJChD
+T05GSUdfT01BUF9NUFVfVElNRVIpCQkrPSB0aW1lci1ncC5vCiAKICMgUG93ZXIgTWFuYWdlbWVu
+dAotb2JqLSQoQ09ORklHX1BNKSArPSBwbS5vIHNsZWVwLm8KK29iai0kKENPTkZJR19QTSkgKz0g
+aWRsZV9tb2R1bGVzLm8gcG0ubyBzbGVlcC5vCiAKICMgRFNQCiBvYmotJChDT05GSUdfT01BUF9N
+TVVfRldLKQkrPSBtbXVfbWFjaC5vCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2lk
+bGVfbW9kdWxlcy5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9pZGxlX21vZHVsZXMuYwpuZXcgZmls
+ZSBtb2RlIDEwMDY0NAppbmRleCAwMDAwMDAwLi5lODhhNTI0Ci0tLSAvZGV2L251bGwKKysrIGIv
+YXJjaC9hcm0vbWFjaC1vbWFwMi9pZGxlX21vZHVsZXMuYwpAQCAtMCwwICsxLDE2MiBAQAorLyoK
+KyAqIGFyY2gvYXJtL21hY2gtb21hcDIvaWRsZV9tb2R1bGVzLmMKKyAqCisgKiBDb3B5cmlnaHQg
+KEMpIDIwMDcgVGV4YXMgSW5zdHJ1bWVudHMsIEluYy4KKyAqIFJpY2hhcmQgV29vZHJ1ZmYgPHIt
+d29vZHJ1ZmYyQHRpLmNvbT4gIAorICoKKyAqIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJl
+OyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5CisgKiBpdCB1bmRlciB0aGUg
+dGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIHZlcnNpb24gMiBhcworICog
+cHVibGlzaGVkIGJ5IHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24uCisgKgorICogVEhJUyBQ
+QUNLQUdFIElTIFBST1ZJREVEIGBgQVMgSVMnJyBBTkQgV0lUSE9VVCBBTlkgRVhQUkVTUyBPUgor
+ICogSU1QTElFRCBXQVJSQU5USUVTLCBJTkNMVURJTkcsIFdJVEhPVVQgTElNSVRBVElPTiwgVEhF
+IElNUExJRUQKKyAqIFdBUlJBTlRJRVMgT0YgTUVSQ0hBTlRJQklMSVRZIEFORCBGSVRORVNTIEZP
+UiBBIFBBUlRJQ1VMQVIgUFVSUE9TRS4KKyovCisKKyNpbmNsdWRlIDxsaW51eC9kZWxheS5oPgor
+I2luY2x1ZGUgPGFzbS9hcmNoL2lvLmg+CisKKy8qIEdlbmVyaWMgT0NQIHdyYXBwZXIgZGVmaW5l
+cyBmb3IgTW9kdWxlcyAqLworI2RlZmluZSBzZXQoUkVHLCBtYXNrLCB2YWx1ZSkgKChSRUcgPSAo
+UkVHICYgfm1hc2spIHwgdmFsdWUgKSkKKworI2RlZmluZSBDTV9GQ0xLRU4xX0NPUkUJCV9fUkVH
+MzIoMHg0ODAwODIwMCkKKyNkZWZpbmUgQ01fRkNMS0VOMl9DT1JFCQlfX1JFRzMyKDB4NDgwMDgy
+MDQpCisjZGVmaW5lIENNX0ZDTEtFTl9XS1VQCQlfX1JFRzMyKDB4NDgwMDg0MDApCisjZGVmaW5l
+IENNX0lDTEtFTjFfQ09SRQkJX19SRUczMigweDQ4MDA4MjEwKQorI2RlZmluZSBDTV9JQ0xLRU4y
+X0NPUkUJCV9fUkVHMzIoMHg0ODAwODIxNCkKKyNkZWZpbmUgQ01fSUNMS0VONF9DT1JFCQlfX1JF
+RzMyKDB4NDgwMDgyMWMpCisjZGVmaW5lIENNX0lDTEtFTl9XS1VQCQlfX1JFRzMyKDB4NDgwMDg0
+MTApCisKKy8qIDI0MnggVFJNIG9yZGVyICovCisjZGVmaW5lIE1BSUxCT1hFU19TWVNDT05GSUcJ
+X19SRUczMigweDQ4MDk0MDEwKQorI2RlZmluZSBDT05UUk9MX1NZU0NPTkZJRwlfX1JFRzMyKDB4
+NDgwMDAwMTApCisjZGVmaW5lIFBSQ01fU1lTQ09ORklHCQlfX1JFRzMyKDB4NDgwMDgwMTApCisj
+ZGVmaW5lIFNNQlRNU1RBVEVfTAkJX19SRUczMigweDY4MDAwRDk4KQorI2RlZmluZSBDQU1FUkFf
+TU1VX1NZU0NPTkZJRwlfX1JFRzMyKDB4NDgwNTJjMTApCisjZGVmaW5lIENBTUVSQV9ETUFfU1lT
+Q09ORklHCV9fUkVHMzIoMHg0ODA1MjgyQykKKyNkZWZpbmUgU1lTVEVNX0RNQV9TWVNDT05GSUcJ
+X19SRUczMigweDQ4MDU2MDJDKQorI2RlZmluZSBJTlRDX1NZU0NPTkZJRwkJX19SRUczMigweDQ4
+MEZFMDEwKQorI2RlZmluZSBHUE1DX1NZU0NPTkZJRwkJX19SRUczMigweDY4MDBhMDEwKQorI2Rl
+ZmluZSBTTVNfU1lTQ09ORklHCQlfX1JFRzMyKDB4NjgwMDgwMTApCisjZGVmaW5lIFNNU19QT1df
+Q1RSTAkJX19SRUczMigweDY4MDA4MEY4KQorI2RlZmluZSBDQU1fU1lTQ09ORklHCQlfX1JFRzMy
+KDB4NDgwNTIwMTApCisjZGVmaW5lIENBTUMxX0NDX1NZU0NPTkZJRwlfX1JFRzMyKDB4NDgwNTI0
+MTApCisjZGVmaW5lIERTU19TWVNDT05GSUcJCV9fUkVHMzIoMHg0ODA1MDAxMCkKKyNkZWZpbmUg
+RElTUENfU1lTQ09ORklHCQlfX1JFRzMyKDB4NDgwNTA0MTApCisjZGVmaW5lIFJGQklfU1lTQ09O
+RklHCQlfX1JFRzMyKDB4NDgwNTA4MTApCisjZGVmaW5lIEdQVElNRVIxX1NZU0NPTkZJRwlfX1JF
+RzMyKDB4NDgwMjgwMTApCisjZGVmaW5lIEdQVElNRVIyX1NZU0NPTkZJRwlfX1JFRzMyKDB4NDgw
+MkEwMTApCisjZGVmaW5lIEdQVElNRVIzX1NZU0NPTkZJRwlfX1JFRzMyKDB4NDgwNzgwMTApCisj
+ZGVmaW5lIEdQVElNRVI0X1NZU0NPTkZJRwlfX1JFRzMyKDB4NDgwN0EwMTApCisjZGVmaW5lIEdQ
+VElNRVI1X1NZU0NPTkZJRwlfX1JFRzMyKDB4NDgwN0MwMTApCisjZGVmaW5lIEdQVElNRVI2X1NZ
+U0NPTkZJRwlfX1JFRzMyKDB4NDgwN0UwMTApCisjZGVmaW5lIEdQVElNRVI3X1NZU0NPTkZJRwlf
+X1JFRzMyKDB4NDgwODAwMTApCisjZGVmaW5lIEdQVElNRVI4X1NZU0NPTkZJRwlfX1JFRzMyKDB4
+NDgwODIwMTApCisjZGVmaW5lIEdQVElNRVI5X1NZU0NPTkZJRwlfX1JFRzMyKDB4NDgwODQwMTAp
+CisjZGVmaW5lIEdQVElNRVIxMF9TWVNDT05GSUcJX19SRUczMigweDQ4MDg2MDEwKQorI2RlZmlu
+ZSBHUFRJTUVSMTFfU1lTQ09ORklHCV9fUkVHMzIoMHg0ODA4ODAxMCkKKyNkZWZpbmUgR1BUSU1F
+UjEyX1NZU0NPTkZJRwlfX1JFRzMyKDB4NDgwOEEwMTApCisvLyNkZWZpbmUgV0RUMV9TWVNDT05G
+SUcJX19SRUczMigweDQ4MDIwMDEwKSAvLyBzZWN1cmUgbGVhdmUgYWxvbmUKKyNkZWZpbmUgV0RU
+Ml9TWVNDT05GSUcJCV9fUkVHMzIoMHg0ODAyMjAxMCkKKyNkZWZpbmUgV0RUM19TWVNDT05GSUcJ
+CV9fUkVHMzIoMHg0ODAyNDAxMCkKKyNkZWZpbmUgV0RUNF9TWVNDT05GSUcJCV9fUkVHMzIoMHg0
+ODAyNjAxMCkKKyNkZWZpbmUgRkFDX1NZU0NPTkZJRwkJX19SRUcxNigweDQ4MDkyMDE4KQorI2Rl
+ZmluZSBVQVJUMV9TWVNDT05GSUcJCV9fUkVHMTYoMHg0ODA2QTA1NCkKKyNkZWZpbmUgVUFSVDJf
+U1lTQ09ORklHCQlfX1JFRzE2KDB4NDgwNkMwNTQpCisjZGVmaW5lIFVBUlQzX1NZU0NPTkZJRwkJ
+X19SRUcxNigweDQ4MDZFMDU0KQorLy8jZGVmaW5lIFYyMF9TWVNDT05GSUcJCV9fUkVHMzIoMHg2
+N2ZmZmUxMCkgIC8vIG5vIG1hcCB0byBhY2Nlc3MKKyNkZWZpbmUgU1NJX1NZU0NPTkZJRwkJX19S
+RUczMigweDQ4MDU4MDEwKQorI2RlZmluZSBNQ1NQSTFfU1lTQ09ORklHCV9fUkVHMzIoMHg0ODA5
+ODAxMCkKKyNkZWZpbmUgTUNTUEkyX1NZU0NPTkZJRwlfX1JFRzMyKDB4NDgwOUEwMTApCisjZGVm
+aW5lIEhEUV9TWVNDT05GSUcJCV9fUkVHMzIoMHg0ODBCMjAxNCkKKyNkZWZpbmUgR1BJTzFfU1lT
+Q09ORklHCQlfX1JFRzMyKDB4NDgwMTgwMTApCisjZGVmaW5lIE9TUExfU1lTQ09ORklHCQlfX1JF
+RzMyKDB4NDgwMTkwMTApCisjZGVmaW5lIEdQSU8yX1NZU0NPTkZJRwkJX19SRUczMigweDQ4MDFh
+MDEwKQorI2RlZmluZSBHUElPM19TWVNDT05GSUcJCV9fUkVHMzIoMHg0ODAxYzAxMCkKKyNkZWZp
+bmUgR1BJTzRfU1lTQ09ORklHCQlfX1JFRzMyKDB4NDgwMWUwMTApCisjZGVmaW5lIFJOR19NQVNL
+CQlfX1JFRzMyKDB4NDgwQTAwNDApCisjZGVmaW5lIERFU19NQVNLCQlfX1JFRzMyKDB4NDgwQTIw
+MzApCisjZGVmaW5lIFNIQV9NQVNLCQlfX1JFRzMyKDB4NDgwQTQwNjApCisjZGVmaW5lIEFFU19N
+QVNLCQlfX1JFRzMyKDB4NDgwQTYwNDgpCisjZGVmaW5lIFBLQV9NQVNLCQlfX1JFRzMyKDB4NDgw
+QTgwMzApCisKK3ZvaWQgc2V0X21vZHVsZV9hdXRvX2lkbGVzKHZvaWQpCit7CisjaWZkZWYgQ09O
+RklHX0FSQ0hfT01BUDI0MjAKKwl1bnNpZ25lZCBpbnQgZjEsIGYyLCBmdywgaTEsIGkyLCBpNCwg
+aXc7CisKKwlmMSA9IENNX0ZDTEtFTjFfQ09SRTsKKwlmMiA9IENNX0ZDTEtFTjJfQ09SRTsKKwlm
+dyA9IENNX0ZDTEtFTl9XS1VQOworCWkxID0gQ01fSUNMS0VOMV9DT1JFOworCWkyID0gQ01fSUNM
+S0VOMl9DT1JFOworCWk0ID0gQ01fSUNMS0VONF9DT1JFOworCWl3ID0gQ01fSUNMS0VOX1dLVVA7
+CisKKwlDTV9GQ0xLRU4xX0NPUkUgPSAweGJmZmZmZmZmOworCUNNX0ZDTEtFTjJfQ09SRSA9IDB4
+MDAwMDAwMDY7CisJQ01fRkNMS0VOX1dLVVAgPSAweDU7CisJQ01fSUNMS0VOMV9DT1JFID0gMHhj
+ZmZmZmZmOTsKKwlDTV9JQ0xLRU4yX0NPUkUgPSAweDAwMDAwMDA2OworCUNNX0lDTEtFTjRfQ09S
+RSA9IDB4MWY7CisJQ01fSUNMS0VOX1dLVVAgPSAweDI3OworCisJbWRlbGF5KDUpOworCisJc2V0
+KE1BSUxCT1hFU19TWVNDT05GSUcsMSwxKTsKKwlzZXQoQ09OVFJPTF9TWVNDT05GSUcsMSwxKTsK
+KwlzZXQoUFJDTV9TWVNDT05GSUcsMSwxKTsKKwlzZXQoU01CVE1TVEFURV9MLDB4ZmZmZjAwMDAs
+MHgwMDA0MDAwMCk7CisJc2V0KENBTUVSQV9NTVVfU1lTQ09ORklHLDEsMSk7CisJc2V0KENBTUVS
+QV9ETUFfU1lTQ09ORklHLDEsMSk7CisJc2V0KFNZU1RFTV9ETUFfU1lTQ09ORklHLDEsMSk7CisJ
+c2V0KElOVENfU1lTQ09ORklHLDEsMSk7CisJc2V0KEdQTUNfU1lTQ09ORklHLDEsMSk7CisJc2V0
+KFNNU19TWVNDT05GSUcsMSwxKTsKKwlzZXQoU01TX1BPV19DVFJMLDB4ZmZmZiwyKTsKKwlzZXQo
+Q0FNX1NZU0NPTkZJRywxLDEpOworCXNldChDQU1DMV9DQ19TWVNDT05GSUcsMSwxKTsKKwlzZXQo
+RFNTX1NZU0NPTkZJRywxLDEpOworCXNldChESVNQQ19TWVNDT05GSUcsMSwxKTsKKwlzZXQoUkZC
+SV9TWVNDT05GSUcsMSwxKTsKKwlzZXQoR1BUSU1FUjFfU1lTQ09ORklHLDEsMSk7CisJc2V0KEdQ
+VElNRVIyX1NZU0NPTkZJRywxLDEpOworCXNldChHUFRJTUVSM19TWVNDT05GSUcsMSwxKTsKKwlz
+ZXQoR1BUSU1FUjRfU1lTQ09ORklHLDEsMSk7CisJc2V0KEdQVElNRVI1X1NZU0NPTkZJRywxLDEp
+OworCXNldChHUFRJTUVSNl9TWVNDT05GSUcsMSwxKTsKKwlzZXQoR1BUSU1FUjdfU1lTQ09ORklH
+LDEsMSk7CisJc2V0KEdQVElNRVI4X1NZU0NPTkZJRywxLDEpOworCXNldChHUFRJTUVSOV9TWVND
+T05GSUcsMSwxKTsKKwlzZXQoR1BUSU1FUjEwX1NZU0NPTkZJRywxLDEpOworCXNldChHUFRJTUVS
+MTFfU1lTQ09ORklHLDEsMSk7CisJc2V0KEdQVElNRVIxMl9TWVNDT05GSUcsMSwxKTsKKwlzZXQo
+RkFDX1NZU0NPTkZJRywxLDEpOworCXNldChTU0lfU1lTQ09ORklHLDEsMSk7CisJc2V0KE1DU1BJ
+MV9TWVNDT05GSUcsMSwxKTsKKwlzZXQoTUNTUEkyX1NZU0NPTkZJRywxLDEpOworCXNldChIRFFf
+U1lTQ09ORklHLDEsMSk7CisJc2V0KEdQSU8xX1NZU0NPTkZJRywxLDEpOworCXNldChPU1BMX1NZ
+U0NPTkZJRywxLDEpOworCXNldChHUElPMl9TWVNDT05GSUcsMSwxKTsKKwlzZXQoR1BJTzNfU1lT
+Q09ORklHLDEsMSk7CisJc2V0KEdQSU80X1NZU0NPTkZJRywxLDEpOworCXNldChSTkdfTUFTSywx
+LDEpOworCXNldChERVNfTUFTSywxLDEpOworCXNldChTSEFfTUFTSywxLDEpOworCXNldChBRVNf
+TUFTSywxLDEpOworCXNldChQS0FfTUFTSywxLDEpOworCisJbWRlbGF5KDUpOworCisJQ01fRkNM
+S0VOMV9DT1JFID0gZjE7CisJQ01fRkNMS0VOMl9DT1JFID0gZjI7CisJQ01fRkNMS0VOX1dLVVAg
+PSBmdzsKKwlDTV9JQ0xLRU4xX0NPUkUgPSBpMTsKKwlDTV9JQ0xLRU4yX0NPUkUgPSBpMjsKKwlD
+TV9JQ0xLRU40X0NPUkUgPSBpNDsKKwlDTV9JQ0xLRU5fV0tVUCA9IGl3OworI2VuZGlmCit9CisK
+KwpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9wbS5jIGIvYXJjaC9hcm0vbWFjaC1v
+bWFwMi9wbS5jCmluZGV4IGQ2YzgxZGQuLjUzMGM4ZjggMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21h
+Y2gtb21hcDIvcG0uYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL3BtLmMKQEAgLTY0OCwxMSAr
+NjQ4LDE0IEBAIHN0YXRpYyBzdHJ1Y3QgcG1fb3BzIG9tYXBfcG1fb3BzID0gewogCiBzdGF0aWMg
+dm9pZCBfX2luaXQgcHJjbV9zZXR1cF9yZWdzKHZvaWQpCiB7CisJdm9pZCBzZXRfbW9kdWxlX2F1
+dG9faWRsZXModm9pZCk7CiAJdTMyIGw7CiAKIAkvKiBFbmFibGUgYXV0b2lkbGUgKi8KIAlwcm1f
+d3JpdGVfcmVnKE9NQVAyNFhYX0FVVE9JRExFLCBPTUFQMjRYWF9QUkNNX1NZU0NPTkZJRyk7CiAK
+KwlzZXRfbW9kdWxlX2F1dG9faWRsZXMoKTsKKwogCS8qIFNldCBhbGwgZG9tYWluIHdha2V1cCBk
+ZXBlbmRlbmNpZXMgKi8KIAlwcm1fd3JpdGVfbW9kX3JlZyhPTUFQX0VOX1dLVVAsIE1QVV9NT0Qs
+IFBNX1dLREVQKTsKIAlwcm1fd3JpdGVfbW9kX3JlZygwLCBPTUFQMjRYWF9EU1BfTU9ELCBQTV9X
+S0RFUCk7Cg==
+
+------_=_NextPart_001_01C7A259.4222ABE2
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+------_=_NextPart_001_01C7A259.4222ABE2--
