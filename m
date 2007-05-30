@@ -1,12 +1,16 @@
-From: Paul Walmsley <paul@booyaka.com>
-Subject: Re: [PATCH/RFC] Reduce OMAP2420 active current by ~30%
-Date: Tue, 29 May 2007 20:08:36 -0600 (MDT)
-Message-ID: <Pine.LNX.4.64.0705292005550.19832@utopia.booyaka.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH/RFC] Reduce OMAP2420 active current by ~30%
+Date: Tue, 29 May 2007 22:51:01 -0500
+Message-ID: <3B6D69C3A9EBCA4BA5DA60D91302742901158C9E@dlee13.ent.ti.com>
 References: <3B6D69C3A9EBCA4BA5DA60D91302742901158C39@dlee13.ent.ti.com>
+	<Pine.LNX.4.64.0705292005550.19832@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D91302742901158C39@dlee13.ent.ti.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <Pine.LNX.4.64.0705292005550.19832@utopia.booyaka.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,38 +20,47 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
+To: Paul Walmsley <paul@booyaka.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 29 May 2007, Woodruff, Richard wrote:
+Hi Paul,
 
-> This follows up on my power management tip yesterday to make sure to 
-> enable module auto idles.  I was curious the savings on a 2420.  The 
-> formatting needs some fix up (access & sharing for 2430) but it should 
-> easily show the point.  This will apply against a git-pull from today.
+> took a quick look at the patch - is there any reason why this stuff
+can't
+> use the new PRCM register and bit definitions?  That way you could
+drop
+> stuff like this:
 
-Hi Richard,
+There is no reason it can't use it. I wrote this up in an hour to see
+what the difference would be.
 
-took a quick look at the patch - is there any reason why this stuff can't 
-use the new PRCM register and bit definitions?  That way you could drop 
-stuff like this:
+> +#define CM_FCLKEN1_CORE                __REG32(0x48008200)
+> +#define CM_FCLKEN2_CORE                __REG32(0x48008204)
+> +#define CM_FCLKEN_WKUP         __REG32(0x48008400)
+> +#define CM_ICLKEN1_CORE                __REG32(0x48008210)
+> +#define CM_ICLKEN2_CORE                __REG32(0x48008214)
+> +#define CM_ICLKEN4_CORE                __REG32(0x4800821c)
+> +#define CM_ICLKEN_WKUP         __REG32(0x48008410)
+>=20
+> and make code like this a little more self-documenting:
+>=20
+> +       CM_FCLKEN1_CORE =3D 0xbfffffff;
+> +       CM_FCLKEN2_CORE =3D 0x00000006;
+> +       CM_FCLKEN_WKUP =3D 0x5;
+> +       CM_ICLKEN1_CORE =3D 0xcffffff9;
+> +       CM_ICLKEN2_CORE =3D 0x00000006;
 
-+#define CM_FCLKEN1_CORE                __REG32(0x48008200)
-+#define CM_FCLKEN2_CORE                __REG32(0x48008204)
-+#define CM_FCLKEN_WKUP         __REG32(0x48008400)
-+#define CM_ICLKEN1_CORE                __REG32(0x48008210)
-+#define CM_ICLKEN2_CORE                __REG32(0x48008214)
-+#define CM_ICLKEN4_CORE                __REG32(0x4800821c)
-+#define CM_ICLKEN_WKUP         __REG32(0x48008410)
+Yes it could be.  Basically I did it as quickly as possible.
 
-and make code like this a little more self-documenting:
+The bits above represent valid OMAP2420 bit positions, minus watchdog
+bits.
 
-+       CM_FCLKEN1_CORE = 0xbfffffff;
-+       CM_FCLKEN2_CORE = 0x00000006;
-+       CM_FCLKEN_WKUP = 0x5;
-+       CM_ICLKEN1_CORE = 0xcffffff9;
-+       CM_ICLKEN2_CORE = 0x00000006;
+Cleaning it to be OMAP243x and OMAP242x is a next step in making it
+better.  It could be reorganized any number of ways.
 
+Generally, the results were good enough that I thought I'd send a patch
+out to allow anyone to test with.
 
-- Paul
+Regards,
+Richard W.
