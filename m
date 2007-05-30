@@ -1,14 +1,13 @@
-From: Amit Kucheria <amit.kucheria@nokia.com>
-Subject: RE: [PATCH 3/11] Add OMAP3 support
-Date: Wed, 30 May 2007 11:24:51 +0300
-Message-ID: <1180513491.19479.24.camel@amit-laptop>
-References: <9C23CDD79DA20A479D4615857B2E2C47FF102B@dlee13.ent.ti.com>
-Reply-To: amit.kucheria@nokia.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC] irq.c for OMAP3430
+Date: Wed, 30 May 2007 06:34:04 -0700
+Message-ID: <20070530133403.GC28353@atomide.com>
+References: <9C23CDD79DA20A479D4615857B2E2C470106287A@dlee13.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47FF102B@dlee13.ent.ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C470106287A@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,29 +15,62 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "ext Syed Mohammed, Khasim" <x0khasim@ti.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
 Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 2007-05-29 at 10:30 -0500, ext Syed Mohammed, Khasim wrote:
-> Hi Amit,
+* Syed Mohammed, Khasim <x0khasim@ti.com> [070529 21:08]:
+> Hi Tony,
 > 
-> >> + machine-$(CONFIG_ARCH_OMAP3)		:= omap2
-> >                                             ^^^^^
-> >Surely you mean omap3 here?
-> >
+> I have incorporated your review comments for irq.c. 
 > 
-> We are using mach-omap2 directory for omap3, so omap2 is correct.
-
-Right.
-
-I got clarification about the intention to use mach-omap2 directory
-since a lot of the code is shared.
-
-/Amit
-
-> If we give omap3, then we need to create or have a mach-omap3 directory.
+> Please do let me know if you find any further issues with the same.
 > 
-> Here is what happens when I change this to omap3.
+> Regards,
+> Khasim
+> 
+> ===============================================================
+> --- linux-omap/arch/arm/mach-omap2/irq.c	2007-01-08 18:55:58.000000000 -0600
+> +++ val_3430_GIT/arch/arm/mach-omap2/irq.c	2007-05-29 20:21:42.000000000 -0500
+> @@ -37,11 +37,9 @@ static struct omap_irq_bank {
+>  } __attribute__ ((aligned(4))) irq_banks[] = {
+>  	{
+>  		/* MPU INTC */
+> -		.base_reg	= IO_ADDRESS(OMAP24XX_IC_BASE),
+> +		.base_reg	= 0,
+>  		.nr_irqs	= 96,
+> -	}, {
+> -		/* XXX: DSP INTC */
+> -	}
+> +	},
+>  };
+>  
+>  /* XXX: FIQ and additional INTC support (only MPU at the moment) */
+> @@ -118,10 +116,16 @@ void __init omap_init_irq(void)
+>  	for (i = 0; i < ARRAY_SIZE(irq_banks); i++) {
+>  		struct omap_irq_bank *bank = irq_banks + i;
+>  
+> -		/* XXX */
+> -		if (!bank->base_reg)
+> -			continue;
+> -
+> +#ifdef CONFIG_ARCH_OMAP24XX
+> +		if (cpu_is_omap24xx()) {
+> +			bank->base_reg = IO_ADDRESS(OMAP24XX_IC_BASE);
+> +		}
+> +#endif
+> +#ifdef CONFIG_ARCH_OMAP34XX
+> +		if (cpu_is_omap34xx()) {
+> +			bank->base_reg = IO_ADDRESS(OMAP34XX_IC_BASE);
+> +		}
+> +#endif
+>  		omap_irq_bank_init_one(bank);
+>  
+>  		nr_irqs += bank->nr_irqs;
+> 
+
+Looks good, thanks!
+
+Tony
