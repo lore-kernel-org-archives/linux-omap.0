@@ -1,63 +1,101 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] io.c for OMAP3430
-Date: Wed, 30 May 2007 06:41:48 -0700
-Message-ID: <20070530134148.GD28353@atomide.com>
-References: <9C23CDD79DA20A479D4615857B2E2C470106287E@dlee13.ent.ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: Removing Gadget File Storage module
+Date: Wed, 30 May 2007 11:01:35 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0705301059230.2564-100000@iolanthe.rowland.org>
+References: <25c21ceb0705290822l69271364pcdc6ded14dcde9e3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C470106287E@dlee13.ent.ti.com>
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-usb-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <25c21ceb0705290822l69271364pcdc6ded14dcde9e3@mail.gmail.com>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
+List-Post: <mailto:linux-usb-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: linux-usb-devel-bounces@lists.sourceforge.net
+Errors-To: linux-usb-devel-bounces@lists.sourceforge.net
+To: =?ISO-8859-1?Q?Ragner_N_Magalh=E3es?= <ragner@users.sourceforge.net>
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>, linux-usb-devel@lists.sourceforge.net
 List-Id: linux-omap@vger.kernel.org
 
-* Syed Mohammed, Khasim <x0khasim@ti.com> [070529 21:13]:
-> Hi Tony,
-> 
-> I have incorporated your review comments for io.c. 
-> 
-> Please do let me know if you find any further issues.
-> 
-> I have incorporated other review comments from Andrew and Trilok, will regenerate and publish
-> the patch set once we agree upon these (irq.c and io.c) patch set.
+On Tue, 29 May 2007, Ragner N Magalh=E3es wrote:
 
-Well I was thinking we'd have different structs:
+> On 5/28/07, Alan Stern <stern@rowland.harvard.edu> wrote:
+> > On Mon, 28 May 2007, Ragner N Magalh=E3es wrote:
+> >
+> > > Hi all,
+> > >  I am working with OMAP H2 and when I run "rmmod g_file_storage", it
+> > > stay waiting some thing and not terminate ...
+> > >
+> > >  Somebody know some thing about this ?
+> >
+> > Which version of the Linux kernel are you using?
+> =
 
-#ifdef CONFIG_ARCH_OMAP24XX
-static struct map_desc omap24xx_io_desc[] __initdata = {
-       ...
-};
-#endif
+> I am using the last omap git tree from
+> http://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
 
-#ifdef CONFIG_ARCH_OMAP34XX
-static struct map_desc omap34xx_io_desc[] __initdata = {
-       ...
-       };
-#endif
-       
-void __init omap2_map_common_io(void)
-{
- 	if (cpu_is_omap24xx()) {
-        	iotable_init(omap24xx_io_desc, ARRAY_SIZE(omap24xx_io_desc));
-	} else if (cpu_is_omap34xx()) {
-		iotable_init(omap34xx_io_desc, ARRAY_SIZE(omap34xx_io_desc));
-	}
-	...
-}
+The same thing happened to me when I tried using g_file_storage on a
+recent kernel.  The answer turns out to be that signal handling for
+kernel threads was changed in 2.6.22.  The patch below fixed the driver
+on my system.
 
-We should actually have separate one for 2420 and 2430 too to avoid
-ifdefs within the structs.
+Alan Stern
 
-Regards,
 
-Tony
+Index: usb-2.6/drivers/usb/gadget/file_storage.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- usb-2.6.orig/drivers/usb/gadget/file_storage.c
++++ usb-2.6/drivers/usb/gadget/file_storage.c
+@@ -686,7 +686,6 @@ struct fsg_dev {
+ 	int			thread_wakeup_needed;
+ 	struct completion	thread_notifier;
+ 	struct task_struct	*thread_task;
+-	sigset_t		thread_signal_mask;
+ =
+
+ 	int			cmnd_size;
+ 	u8			cmnd[MAX_COMMAND_SIZE];
+@@ -3277,8 +3276,7 @@ static void handle_exception(struct fsg_
+ 	/* Clear the existing signals.  Anything but SIGUSR1 is converted
+ 	 * into a high-priority EXIT exception. */
+ 	for (;;) {
+-		sig =3D dequeue_signal_lock(current, &fsg->thread_signal_mask,
+-				&info);
++		sig =3D dequeue_signal_lock(current, &current->blocked, &info);
+ 		if (!sig)
+ 			break;
+ 		if (sig !=3D SIGUSR1) {
+@@ -3431,10 +3429,10 @@ static int fsg_main_thread(void *fsg_)
+ =
+
+ 	/* Allow the thread to be killed by a signal, but set the signal mask
+ 	 * to block everything but INT, TERM, KILL, and USR1. */
+-	siginitsetinv(&fsg->thread_signal_mask, sigmask(SIGINT) |
+-			sigmask(SIGTERM) | sigmask(SIGKILL) |
+-			sigmask(SIGUSR1));
+-	sigprocmask(SIG_SETMASK, &fsg->thread_signal_mask, NULL);
++	allow_signal(SIGINT);
++	allow_signal(SIGTERM);
++	allow_signal(SIGKILL);
++	allow_signal(SIGUSR1);
+ =
+
+ 	/* Arrange for userspace references to be interpreted as kernel
+ 	 * pointers.  That way we can pass a kernel pointer to a routine
+
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by DB2 Express
+Download DB2 Express C - the FREE version of DB2 express and take
+control of your XML. No limits. Just data. Click to get it now.
+http://sourceforge.net/powerbar/db2/
+_______________________________________________
+linux-usb-devel@lists.sourceforge.net
+To unsubscribe, use the last form field at:
+https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
