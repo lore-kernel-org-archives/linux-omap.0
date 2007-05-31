@@ -1,15 +1,13 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: TWL4030 core misc. cleanups.
-Date: Thu, 31 May 2007 15:50:00 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47010633D0@dlee13.ent.ti.com>
-References: <5d5443650705310348i5b7773d8rb4e7e7cb606fd157@mail.gmail.com>
+From: Kevin Hilman <khilman@mvista.com>
+Subject: Re: [PATCH 1/12] Add VFP support for ARM V7 - OMAP 3430 support
+Date: Thu, 31 May 2007 14:33:54 -0700
+Message-ID: <465F3F42.1020805@mvista.com>
+References: <9C23CDD79DA20A479D4615857B2E2C470106320C@dlee13.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <5d5443650705310348i5b7773d8rb4e7e7cb606fd157@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C470106320C@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,21 +15,35 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Trilok Soni <soni.trilok@gmail.com>, Linux OMAP <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Trilok,
+Syed Mohammed, Khasim wrote:
+> Add VFP support for ARM V7, derived from ARM's Cortex patch
+> 
 
->Syed/Tony,
->
->Attached twl4030 core cleanup patch and it is compile tested only.
->Syed please test.=20
+Sorry to not speak up sooner, but I think we need to rebase this whole patchset on top of Catalin's ARMv7 patches which he has in his tree[1]
 
-I tested this patch (using Keypad driver) it works as expected.=20
+I just did a quick test and all his patches apply cleanly to the current OMAP git tree.  Here's the git magic for how I do it: (you might need a recent git for this, I use 1.5.2)
 
-Thanks
+$ git remote add arm git://linux-arm.org/linux-2.6.git
 
-Regards,
-Khasim
+Then fetch his changes into your repo
+
+$ git fetch arm
+
+Then cherry-pick the commits from his tree into your tree.  To me it seems like the following range is useful his ARMv7 + NEON + VFP3 + Thumb-2 userland support:
+
+$ git-rev-list --reverse arm/origin..654441661e3655df22fb7b85a7fc64201c09f4d0
+
+Then, cherry-pick them into your OMAP tree (this cmd should be all on one line)
+
+$ for commit in `git-rev-list --reverse arm/origin..654441661e3655df22fb7b85a7fc64201c09f4d0`; do git-cherry-pick -x ${commit}; done
+
+Kevin
+
+
+[1] http://www.linux-arm.org/git
