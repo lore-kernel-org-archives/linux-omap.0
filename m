@@ -1,13 +1,15 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: [PATCH 1/12] Add VFP support for ARM V7 - OMAP 3430 support
-Date: Thu, 31 May 2007 14:33:54 -0700
-Message-ID: <465F3F42.1020805@mvista.com>
-References: <9C23CDD79DA20A479D4615857B2E2C470106320C@dlee13.ent.ti.com>
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: RE: [PATCH 1/12] Add VFP support for ARM V7 - OMAP 3430 support
+Date: Thu, 31 May 2007 16:58:05 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C4701063467@dlee13.ent.ti.com>
+References: <465F3F42.1020805@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C470106320C@dlee13.ent.ti.com>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <465F3F42.1020805@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,35 +17,38 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Kevin Hilman <khilman@mvista.com>
 Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Syed Mohammed, Khasim wrote:
-> Add VFP support for ARM V7, derived from ARM's Cortex patch
-> 
+Hi Kevin,
 
-Sorry to not speak up sooner, but I think we need to rebase this whole patchset on top of Catalin's ARMv7 patches which he has in his tree[1]
+>Sorry to not speak up sooner, but I think we need to rebase this whole
+>patchset on top of Catalin's ARMv7 patches which he has in his tree[1]
+>
+Similar comment was passed by Trilok.=20
 
-I just did a quick test and all his patches apply cleanly to the current OMAP git tree.  Here's the git magic for how I do it: (you might need a recent git for this, I use 1.5.2)
+I understand what you guys are trying to communicate but still I would =
+like to base our Cortex development for OMAP tree on =
+Patch-2.6.19-arm2.gz from http://www.arm.com/linux/linux_download.html.=20
 
-$ git remote add arm git://linux-arm.org/linux-2.6.git
+The reason is, AFAIK, this snapshot was tested by ARM on different ARM =
+platforms. We can pull stuff from ARM's GIT but then I don't know how =
+far they are being tested on other ARM platforms. Basically it will be =
+difficult to test all ARM platforms from our end, I am anyway testing my =
+patches on 2420, 2430, 3430 now.
 
-Then fetch his changes into your repo
+We have a limited interest for Cortex developments on OMAP GIT. I think =
+for now we are satisfied if it works to an extent where we could get all =
+our 3430 drivers on OMAP GIT. In the mean time Cortex support might be =
+improved on RMK's tree. If we find something missing/important then we =
+can pull only that on OMAP GIT.
 
-$ git fetch arm
+We can discuss with Catalin and get his views on the same.
 
-Then cherry-pick the commits from his tree into your tree.  To me it seems like the following range is useful his ARMv7 + NEON + VFP3 + Thumb-2 userland support:
+Thanks.
 
-$ git-rev-list --reverse arm/origin..654441661e3655df22fb7b85a7fc64201c09f4d0
-
-Then, cherry-pick them into your OMAP tree (this cmd should be all on one line)
-
-$ for commit in `git-rev-list --reverse arm/origin..654441661e3655df22fb7b85a7fc64201c09f4d0`; do git-cherry-pick -x ${commit}; done
-
-Kevin
-
-
-[1] http://www.linux-arm.org/git
+Regards,
+Khasim
