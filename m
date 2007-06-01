@@ -1,15 +1,15 @@
-From: Marek =?utf-8?q?Va=C5=A1ut?= <marek.vasut@gmail.com>
-Subject: Re: REGARDING THE LINUX DRIVERS for OSK5912
-Date: Fri, 1 Jun 2007 16:59:22 +0200
-Message-ID: <200706011659.22745.marek.vasut@gmail.com>
-References: <20070601103035.25708.qmail@webmail94.rediffmail.com>
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: RE: [PATCH 1/12] Add VFP support for ARM V7 - OMAP 3430 support
+Date: Fri, 1 Jun 2007 17:37:01 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47010BAFD3@dlee13.ent.ti.com>
+References: <9C23CDD79DA20A479D4615857B2E2C4701063467@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070601103035.25708.qmail@webmail94.rediffmail.com>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
+In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C4701063467@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,30 +19,27 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: narayanamb@rediffmail.com, linux-omap-open-source@linux.omap.com
+To: "Syed Mohammed, Khasim" <x0khasim@ti.com>, Kevin Hilman <khilman@mvista.com>
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-why dont you just clone the omap-linux git tree as everyone else?
+Hi:
 
-br
-Marex
+>We can discuss with Catalin and get his views on the same.
+>
+We had a discussion with Catalin, he suggested us to use patches from =
+Master repo of his branch. Below lines are pasted from his mail.=20
 
-Dne p=C3=A1tek 01 =C4=8Derven 2007 12:30 balaji narayanam napsal(a):
-> DEAR Mr. Andy.Lu (Lu ZhiQing)
->
-> You said that you  had full schematic and Linux drivers for this display
-> board of osk5912.
->
-> I request you to please send me the schematic and linux drivers
->
-> Thank you very much.
->
-> With regards
->
-> Balaji
->
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>> The master branch contains 4 additional ARMv7 patches. The most =
+important=20
+>> for you might be the VFPv3 and the Neon support. I plan to submit =
+them=20
+>> post 2.6.22. The Thumb-2 user-space support will probably be =
+submitted by=20
+>> Paul Brook from CodeSourcery directly as he implemented it.
+
+Tony, I will be reposting the VFP V3 patch - Please consider this patch =
+as it has latest updates from ARM - GIT VFP3 patch set.
+
+Regards,
+Khasim
