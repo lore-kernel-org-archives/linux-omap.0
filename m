@@ -1,11 +1,12 @@
-From: Dmitry Krivoschekov <dmitry.krivoschekov@gmail.com>
-Subject: [PATCH 0/1] TWL4030 Real-Time Clock (v2)
-Date: Fri, 01 Jun 2007 11:08:48 +0400
-Message-ID: <20070601070835.5266.13212.stgit@T60>
+From: "Pharaoh ." <pharaoh137@gmail.com>
+Subject: Question regarding OMAP ALSA framework
+Date: Fri, 1 Jun 2007 14:56:45 +0530
+Message-ID: <61445c750706010226j6786e3b3oe7cf3772861fc9d3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,29 +14,25 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hello,
 
-the following patch adds support for Real-Time Clock device which is 
-an internal subdevice of TWL4030 chip. Issues found by Trilok in previous
-patch are fixed. 
+I am referring files omap-alsa.c, omap-alsa-dma.c and omap-alsa-xxxx.c
+where xxxx is the name of codec (residing in linux/sound/arm/omap/).
+As per my understanding the omap-alsa.c and omap-alsa-dma.c are meant
+for comman omap specific handling but after going through I realized
+that those files are derived from omap15XX based files since dma
+chaining support etc is provided which was peculiar for omap15xx (as
+per my understanding again!).
 
-The driver is based on TI's one from 2.6.14 tree. Comparing with TI's driver, 
-this driver misses periodic IRQ functionality (RTC_IRQP_..., RTC_PIE_... ),
-since TWL4030 RTC hardware supports too large periods (1s/1m/1h/1d) to be set 
-via frequiencies (Hz) except 1s period which is 1Hz and is already supported 
-as update IRQs. To support 1m/1h/1d interrups, probably new ioctls should be
-added.
+So the question is:
 
-Known issue:
+Can I use these files as a template for my omap 730 audio driver? Or
+any other omap specific driver? Are the drivers supposed to follow the
+same framework? Any other pointers will also be useful.
 
-    The alarm IRQ doesn't work after power reset until RTC time (RTC_SET_TIME) 
-    is not set, the issue is also observed with original TI's driver.
-    
-    
-Regards,
-Dmitry
+-pharaoh.
