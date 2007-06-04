@@ -1,14 +1,14 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] io.c for OMAP3430
-Date: Mon, 4 Jun 2007 03:02:36 -0700
-Message-ID: <20070604100235.GB27034@atomide.com>
-References: <9C23CDD79DA20A479D4615857B2E2C4701062E30@dlee13.ent.ti.com>
-	<9C23CDD79DA20A479D4615857B2E2C4701062ED3@dlee13.ent.ti.com>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: Fwd: OMAP 2430 nand/nor booting
+Date: Mon, 04 Jun 2007 06:22:30 -0500
+Message-ID: <4663F5F6.6030609@gmail.com>
+References: <78d6ed630706021205t3d8885afv5129f50f4da04548@mail.gmail.com>
+	<78d6ed630706030702r1480faf5j3af7f1b5b64dd9ce@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C4701062ED3@dlee13.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <78d6ed630706030702r1480faf5j3af7f1b5b64dd9ce@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,230 +16,45 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Amit Gupta <amit_jobs05@inbox.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Amit,
+Amit Gupta stated on 6/3/2007 9:02 AM:
+> While as per my documents study, it's clear that after reset the code is
+> relocated from NOR to different location for execution . But why is
+> this not
+> happening automatically in my case.
+>
+Code relocation does not happen automatically. If ur boot code/sample
+code desires to relocate itself to SDRAM or any other location. it needs
+to be done by itself.
+> I also heard that NAND flash also has some
+> XIP region.
+The 2430 SDP has two nands: one is a 16 bit Samsung SLC NAND and other
+is a OneNAND device. The Onenand has limited XIP support, but the 16 bit
+nand is not XIP.
+> The logic is clear that NAND and (NOR image after reset) is not executing
+> until and unless you have copy code to relocate it to SRAM or SDRAM( if
+> SDRAM has already been initialized prior to relocation).
+>
+The code to relocate is part of your image. so it is upto your image to
+decide how it should work.
+> Kindly tell me that is my above understanding true or Boot ROM code does
+> copy some part of code because even if we have copy section within the
+> code,
+> it needs to be executed before the copy actually takes place.
+rom code behavior depends on the type of device:
+in the case of NOR: instruction execution is given straight to the NOR
+flash offset 0x0.
+in the case of NAND: a limited number of pages is copied to SRAM and
+execution commences in SRAM. note the fact of limited pages. the image
+in those initial pages should be self sustaining and should be capable
+of loading the rest of the image from nand and proceeding with
+execution.. this is the role of X-Loader - a stripped down version of uboot.
 
-* Syed Mohammed, Khasim <x0khasim@ti.com> [070530 20:38]:
-> Hi all:
-> 
-> >
-> >>		if (cpu_is_omap242x()) {
-> >>			iotable_init(omap242x_io_desc,
-> >>ARRAY_SIZE(omap242x_io_desc));
-> >>		} else if (cpu_is_omap243x()) {
-> >>			iotable_init(omap243x_io_desc,
-> >>ARRAY_SIZE(omap243x_io_desc));
-> >>		}
-> >We cannot put this kind of check in common_io function. I was trying to
-> >validate 2420 / 2430 platforms and I found that "cpu_is_" function calls
-> >returning "0" (when "1" was expected).
-> 
-> Please let me know your views on the following approach for io.c.
-> 
-> =========================================================================
-> 
-> /*
->  * linux/arch/arm/mach-omap2/io.c
->  *
->  * OMAP2 I/O mapping code
->  *
->  * Copyright (C) 2005 Nokia Corporation
->  * Copyright (C) 2007 Texas Instruments
->  *
->  * Author:
->  *	Juha Yrjola <juha.yrjola@nokia.com>
->  *	Syed Khasim <x0khasim@ti.com>
->  *
->  * This program is free software; you can redistribute it and/or modify
->  * it under the terms of the GNU General Public License version 2 as
->  * published by the Free Software Foundation.
->  */
-> 
-> #include <linux/module.h>
-> #include <linux/kernel.h>
-> #include <linux/init.h>
-> 
-> #include <asm/tlb.h>
-> #include <asm/io.h>
-> 
-> #include <asm/mach/map.h>
-> 
-> #include <asm/arch/mux.h>
-> #include <asm/arch/omapfb.h>
-> 
-> extern void omap_sram_init(void);
-> extern int omap2_clk_init(void);
-> extern void omap2_check_revision(void);
-> extern void omap2_init_memory(void);
-> extern void gpmc_init(void);
-> extern void omapfb_reserve_sdram(void);
-> 
-> /*
->  * The machine specific code may provide the extra mapping besides the
->  * default mapping provided here.
->  */
-> 
-> #ifdef CONFIG_ARCH_OMAP24XX
-> static struct map_desc omap24xx_io_desc[] __initdata = {
-> 	{
-> 		.virtual	= L3_24XX_VIRT,
-> 		.pfn		= __phys_to_pfn(L3_24XX_PHYS),
-> 		.length		= L3_24XX_SIZE,
-> 		.type		= MT_DEVICE
-> 	},
-> 	{
-> 		.virtual	= L4_24XX_VIRT,
-> 		.pfn		= __phys_to_pfn(L4_24XX_PHYS),
-> 		.length		= L4_24XX_SIZE,
-> 		.type		= MT_DEVICE
-> 	},
-> };
-> 
-> #ifdef CONFIG_ARCH_OMAP2420
-> static struct map_desc omap242x_io_desc[] __initdata = {
-> 	{
-> 		.virtual	= DSP_MEM_24XX_VIRT,
-> 		.pfn		= __phys_to_pfn(DSP_MEM_24XX_PHYS),
-> 		.length		= DSP_MEM_24XX_SIZE,
-> 		.type		= MT_DEVICE
-> 	},
-> 	{
-> 		.virtual	= DSP_IPI_24XX_VIRT,
-> 		.pfn		= __phys_to_pfn(DSP_IPI_24XX_PHYS),
-> 		.length		= DSP_IPI_24XX_SIZE,
-> 		.type		= MT_DEVICE
-> 	},
-> 	{
-> 		.virtual	= DSP_MMU_24XX_VIRT,
-> 		.pfn		= __phys_to_pfn(DSP_MMU_24XX_PHYS),
-> 		.length		= DSP_MMU_24XX_SIZE,
-> 		.type		= MT_DEVICE
-> 	},
-> };
-> 
-> #endif
-> 
-> #ifdef CONFIG_ARCH_OMAP2430
-> static struct map_desc omap243x_io_desc[] __initdata = {
-> 	{
-> 		.virtual	= L4_WK_243X_VIRT,
-> 		.pfn		= __phys_to_pfn(L4_WK_243X_PHYS),
-> 		.length		= L4_WK_243X_SIZE,
-> 		.type		= MT_DEVICE
-> 	},
-> 	{
-> 		.virtual	= OMAP243X_GPMC_VIRT,
-> 		.pfn		= __phys_to_pfn(OMAP243X_GPMC_PHYS),
-> 		.length		= OMAP243X_GPMC_SIZE,
-> 		.type		= MT_DEVICE
-> 	},
-> 	{
-> 		.virtual	= OMAP243X_SDRC_VIRT,
-> 		.pfn		= __phys_to_pfn(OMAP243X_SDRC_PHYS),
-> 		.length		= OMAP243X_SDRC_SIZE,
-> 		.type		= MT_DEVICE
-> 	},
-> 	{
-> 		.virtual	= OMAP243X_SMS_VIRT,
-> 		.pfn		= __phys_to_pfn(OMAP243X_SMS_PHYS),
-> 		.length		= OMAP243X_SMS_SIZE,
-> 		.type		= MT_DEVICE
-> 	},
-> };
-> #endif
-> #endif
-> 
-> #ifdef	CONFIG_ARCH_OMAP34XX
-> static struct map_desc omap34xx_io_desc[] __initdata = {
-> 	{
-> 		.virtual	= L3_34XX_VIRT,
-> 		.pfn		= __phys_to_pfn(L3_34XX_PHYS),
-> 		.length		= L3_34XX_SIZE,
-> 		.type		= MT_DEVICE
-> 	},
-> 	{
-> 		.virtual	= L4_34XX_VIRT,
-> 		.pfn		= __phys_to_pfn(L4_34XX_PHYS),
-> 		.length		= L4_34XX_SIZE,
-> 		.type		= MT_DEVICE
-> 	},
-> 	{
-> 		.virtual	= L4_WK_34XX_VIRT,
-> 		.pfn		= __phys_to_pfn(L4_WK_34XX_PHYS),
-> 		.length		= L4_WK_34XX_SIZE,
-> 		.type		= MT_DEVICE
-> 	},
-> 	{
-> 		.virtual	= OMAP34XX_GPMC_VIRT,
-> 		.pfn		= __phys_to_pfn(OMAP34XX_GPMC_PHYS),
-> 		.length		= OMAP34XX_GPMC_SIZE,
-> 		.type		= MT_DEVICE
-> 	},
-> 	{
-> 		.virtual	= OMAP343X_SMS_VIRT,
-> 		.pfn		= __phys_to_pfn(OMAP343X_SMS_PHYS),
-> 		.length		= OMAP343X_SMS_SIZE,
-> 		.type		= MT_DEVICE
-> 	},
-> 	{
-> 		.virtual	= OMAP343X_SDRC_VIRT,
-> 		.pfn		= __phys_to_pfn(OMAP343X_SDRC_PHYS),
-> 		.length		= OMAP343X_SDRC_SIZE,
-> 		.type		= MT_DEVICE
-> 	},
-> 	{
-> 		.virtual	= L4_PER_34XX_VIRT,
-> 		.pfn		= __phys_to_pfn(L4_PER_34XX_PHYS),
-> 		.length		= L4_PER_34XX_SIZE,
-> 		.type		= MT_DEVICE
-> 	},
-> 	{
-> 		.virtual	= L4_EMU_34XX_VIRT,
-> 		.pfn		= __phys_to_pfn(L4_EMU_34XX_PHYS),
-> 		.length		= L4_EMU_34XX_SIZE,
-> 		.type		= MT_DEVICE
-> 	},
-> };
-> #endif
-> 
-> void __init omap2_map_common_io(void)
-> {
-> #if defined(CONFIG_ARCH_OMAP2420)
-> 	iotable_init(omap24xx_io_desc, ARRAY_SIZE(omap24xx_io_desc));
-> 	iotable_init(omap242x_io_desc, ARRAY_SIZE(omap242x_io_desc));
-> #elif defined(CONFIG_ARCH_OMAP2430)
-> 	iotable_init(omap24xx_io_desc, ARRAY_SIZE(omap24xx_io_desc));
-> 	iotable_init(omap243x_io_desc, ARRAY_SIZE(omap243x_io_desc));
-> #elif defined(CONFIG_ARCH_OMAP34XX)
-> 	iotable_init(omap34xx_io_desc, ARRAY_SIZE(omap34xx_io_desc));
-> #endif
-> 	/* Normally devicemaps_init() would flush caches and tlb after
-> 	 * mdesc->map_io(), but we must also do it here because of the CPU
-> 	 * revision check below.
-> 	 */
-> 	local_flush_tlb_all();
-> 	flush_cache_all();
-> 
-> 	omap2_check_revision();
-> 	omap_sram_init();
-> 	omapfb_reserve_sdram();
-> }
-> 
-> void __init omap2_init_common_hw(void)
-> {
-> 	omap2_mux_init();
-> 	omap2_clk_init();
-> 	omap2_init_memory();
-> 	gpmc_init();
-> }
-> 
-
-Looks good to me. We can improve it further once the hardware based
-detection issues are solved.
-
-Tony
+Regards,
+Nishanth Menon
