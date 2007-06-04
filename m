@@ -1,11 +1,15 @@
-From: "andrzej zaborowski" <balrogg@gmail.com>
-Subject: SD response type 6 vs. 1
-Date: Mon, 4 Jun 2007 17:41:50 +0200
-Message-ID: <fb249edb0706040841m222daab2xc7a4833e7b1c96cb@mail.gmail.com>
+From: "Amit Gupta" <amit_jobs05@inbox.com>
+Subject: Re: Fwd: OMAP 2430 nand/nor booting
+Date: Mon, 4 Jun 2007 23:36:38 +0530
+Message-ID: <78d6ed630706041106m24955647q2269b2001191f4e6@mail.gmail.com>
+References: <78d6ed630706021205t3d8885afv5129f50f4da04548@mail.gmail.com>
+	<78d6ed630706030702r1480faf5j3af7f1b5b64dd9ce@mail.gmail.com>
+	<4663F5F6.6030609@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <4663F5F6.6030609@gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -16,185 +20,103 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux OMAP <linux-omap-open-source@linux.omap.com>, Pierre Ossman <drzeus-list@drzeus.cx>
+To: Nishanth Menon <menon.nishanth@gmail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-  Linux has the same values for MMC_RSP_R1 and MMC_RSP_R6 thus making
-the two response formats indistinguishable for mmc/sd hosts. Hardware
-like my OMAP310 needs to know exactly whether to expect an R1 or R6
-format, otherwise CMD3 fails.
+Hello
 
-Sure it would be nice if it didn't care, but nevertheless, it's not a
-hardware bug - the two formats are specified separately in SD specs
-because they *are* different. So the hardware has full right to know
-the right response type. Rather it's a hack to rely on R1 and R6
-having the same size, like Linux does now. It would also be a hack to
-allow the CMD3 to fail with CRC error and ignore the error, like
-omap.c did before, because it makes an assumption that's not in the
-OMAP specs.
+Thanks for your reply.
 
-The following is an ugly fix. It's ugly because host code should be
-agnostic to opcodes, as mentioned by Pierre Ossman.
-I believe this was already submitted by Carlos Aguiar and rejected by
-Pierre, which resulted in leaving the driver broken on some boards.
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -22,6 +22,7 @@
- #include <linux/spinlock.h>
- #include <linux/timer.h>
- #include <linux/mmc/mmc.h>
-+#include <linux/mmc/sd.h>
- #include <linux/mmc/host.h>
- #include <linux/mmc/card.h>
- #include <linux/clk.h>
-@@ -211,6 +221,9 @@ mmc_omap_start_command(struct mmc_omap_host *host,
-struct mmc_command *cmd)
-        case MMC_RSP_R1B:
-                /* resp 1, 1b, 6, 7 */
-                resptype = 1;
-+               if (mmc_card_sd(host->mmc->card) &&
-+                               cmd->opcode == SD_SEND_RELATIVE_ADDR)
-+                       resptype = 6;
-                break;
-        case MMC_RSP_R2:
-                resptype = 2;
-----8<---------------------------------
+But i am sure that after reset of processor with NOR settings the
+reset address is not that of NOR. Its different because NOR shares its
+switch settings with mDOC and some other device.
 
-A more correct and more intrusive fix would look like this:
-diff --git a/include/linux/mmc/core.h b/include/linux/mmc/core.h
---- a/include/linux/mmc/core.h
-+++ b/include/linux/mmc/core.h
-@@ -25,11 +25,12 @@ struct mmc_command {
- #define MMC_RSP_CRC    (1 << 2)                /* expect valid crc */
- #define MMC_RSP_BUSY   (1 << 3)                /* card may send busy */
- #define MMC_RSP_OPCODE (1 << 4)                /* response contains opcode */
--#define MMC_CMD_MASK   (3 << 5)                /* command type */
--#define MMC_CMD_AC     (0 << 5)
--#define MMC_CMD_ADTC   (1 << 5)
--#define MMC_CMD_BC     (2 << 5)
--#define MMC_CMD_BCR    (3 << 5)
-+#define MMC_RSP_RCA    (1 << 5)                /* response contains an rca */
-+#define MMC_CMD_MASK   (3 << 6)                /* command type */
-+#define MMC_CMD_AC     (0 << 6)
-+#define MMC_CMD_ADTC   (1 << 6)
-+#define MMC_CMD_BC     (2 << 6)
-+#define MMC_CMD_BCR    (3 << 6)
+So after reset it does not executes from NOR location,so it does relocate
+the
+NOR code and there is an offset I suppose.
 
- /*
-  * These are the response types, and correspond to valid bit
-@@ -41,10 +42,10 @@ struct mmc_command {
- #define MMC_RSP_R1B
-(MMC_RSP_PRESENT|MMC_RSP_CRC|MMC_RSP_OPCODE|MMC_RSP_BUSY)
- #define MMC_RSP_R2     (MMC_RSP_PRESENT|MMC_RSP_136|MMC_RSP_CRC)
- #define MMC_RSP_R3     (MMC_RSP_PRESENT)
--#define MMC_RSP_R6     (MMC_RSP_PRESENT|MMC_RSP_CRC|MMC_RSP_OPCODE)
-+#define MMC_RSP_R6     (MMC_RSP_PRESENT|MMC_RSP_RCA)
- #define MMC_RSP_R7     (MMC_RSP_PRESENT|MMC_RSP_CRC|MMC_RSP_OPCODE)
+Now this is logical since my processor is sharing its switch settings with
+other memory regions so my processsor wont be knowing that my image does
+exists
+in NOR or mDOC.
 
--#define mmc_resp_type(cmd)     ((cmd)->flags &
-(MMC_RSP_PRESENT|MMC_RSP_136|MMC_RSP_CRC|MMC_RSP_BUSY|MMC_RSP_OPCODE))
-+#define mmc_resp_type(cmd)     ((cmd)->flags &
-(MMC_RSP_PRESENT|MMC_RSP_136|MMC_RSP_CRC|MMC_RSP_BUSY|MMC_RSP_OPCODE|MMC_RSP_RCA))
+And  I dont think I need to relocate my NOR source code to this offset
+location
+since this should be carried out by boot ROM code.
 
- /*
-  * These are the command types.
-diff --git a/drivers/mmc/host/au1xmmc.c b/drivers/mmc/host/au1xmmc.c
---- a/drivers/mmc/host/au1xmmc.c
-+++ b/drivers/mmc/host/au1xmmc.c
-@@ -206,6 +206,9 @@ static int au1xmmc_send_command(struct
-au1xmmc_host *host, int wait,
-        case MMC_RSP_R3:
-                mmccmd |= SD_CMD_RT_3;
-                break;
-+       case MMC_RSP_R6:
-+               mmccmd |= SD_CMD_RT_6;
-+               break;
-        default:
-                printk(KERN_INFO "au1xmmc: unhandled response type %02x\n",
-                        mmc_resp_type(cmd));
-diff --git a/drivers/mmc/host/imxmmc.c b/drivers/mmc/host/imxmmc.c
---- a/drivers/mmc/host/imxmmc.c
-+++ b/drivers/mmc/host/imxmmc.c
-@@ -350,6 +350,9 @@ static void imxmci_start_cmd(struct imxmci_host
-*host, struct mmc_command *cmd,
-        case MMC_RSP_R3: /* short */
-                cmdat |= CMD_DAT_CONT_RESPONSE_FORMAT_R3;
-                break;
-+       case MMC_RSP_R6: /* short RCA */
-+               cmdat |= CMD_DAT_CONT_RESPONSE_FORMAT_R6;
-+               break;
-        default:
-                break;
-        }
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -209,7 +219,7 @@ mmc_omap_start_command(struct mmc_omap_host *host,
-struct mmc_command *cmd)
-                break;
-        case MMC_RSP_R1:
-        case MMC_RSP_R1B:
--               /* resp 1, 1b, 6, 7 */
-+               /* resp 1, 1b, 7 */
-                resptype = 1;
-                break;
-        case MMC_RSP_R2:
-@@ -218,6 +228,9 @@ mmc_omap_start_command(struct mmc_omap_host *host,
-struct mmc_command *cmd)
-        case MMC_RSP_R3:
-                resptype = 3;
-                break;
-+       case MMC_RSP_R6:
-+               resptype = 6;
-+               break;
-        default:
-                dev_err(mmc_dev(host->mmc), "Invalid response type:
-%04x\n", mmc_resp_type(cmd));
-                break;
-diff --git a/drivers/mmc/host/pxamci.c b/drivers/mmc/host/pxamci.c
---- a/drivers/mmc/host/pxamci.c
-+++ b/drivers/mmc/host/pxamci.c
-@@ -170,7 +170,8 @@ static void pxamci_start_cmd(struct pxamci_host
-*host, struct mmc_command *cmd,
+Small Example which I carried out :-
 
- #define RSP_TYPE(x)    ((x) & ~(MMC_RSP_BUSY|MMC_RSP_OPCODE))
-        switch (RSP_TYPE(mmc_resp_type(cmd))) {
--       case RSP_TYPE(MMC_RSP_R1): /* r1, r1b, r6, r7 */
-+       case RSP_TYPE(MMC_RSP_R1): /* r1, r1b, r7 */
-+       case RSP_TYPE(MMC_RSP_R6):
-                cmdat |= CMDAT_RESP_SHORT;
-                break;
-        case RSP_TYPE(MMC_RSP_R3):
-diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
---- a/drivers/mmc/host/sdhci.c
-+++ b/drivers/mmc/host/sdhci.c
-@@ -549,7 +549,7 @@ static void sdhci_send_command(struct sdhci_host
-*host, struct mmc_command *cmd)
+I had writtten small LCD program which I downloaded through CSST in
+NOR at addresss at location 0x04000000 and I ticked execute after download
+at location 0x04000000 and the LCD got correct vaoue and hence image
+executed sucessfully but
+when I reset the processor, the image did not executed and the LCD did not
+changed
 
-        if (cmd->flags & MMC_RSP_CRC)
-                flags |= SDHCI_CMD_CRC;
--       if (cmd->flags & MMC_RSP_OPCODE)
-+       if (cmd->flags & (MMC_RSP_OPCODE | MMC_RSP_RCA))
-                flags |= SDHCI_CMD_INDEX;
-        if (cmd->data)
-                flags |= SDHCI_CMD_DATA;
-diff --git a/drivers/mmc/host/tifm_sd.c b/drivers/mmc/host/tifm_sd.c
---- a/drivers/mmc/host/tifm_sd.c
-+++ b/drivers/mmc/host/tifm_sd.c
-@@ -345,6 +345,9 @@ static unsigned int tifm_sd_op_flags(struct
-mmc_command *cmd)
-        case MMC_RSP_R3:
-                rc |= TIFM_MMCSD_RSP_R3;
-                break;
-+       case MMC_RSP_R6:
-+               rc |= TIFM_MMCSD_RSP_R6;
-+               break;
-        default:
-                BUG();
-        }
+This makes sure that even with NOR settings the PC does not jumps to NOR
+strating location of 0X04000000 but rather it moves at an offset which is at
+location
+0x08000000 i suppose( which I saw in case of sample image)
+Now in the Linux uboot and xload  code there have been some aprtial SRAM and
+full SRAM configurations
+happening which tells that some code executed in SRAM and part in SDRAM and
+in the other case completely
+in SDRAM. Do i need to do it explicitly for making the image execute after
+reset but
+still what is important to know is the reset address and how the boot loader
+copies from NOR to that address.
 
-What's the preferred way to resolve this?
+With the NAND image is not at all executing, I dont understand why but I
+suppose I will get the clue once I get answer to this.
 
-Regards,
-Andrzej
+Thanks & Regards
+
+Aman
+
+
+On 6/4/07, Nishanth Menon <menon.nishanth@gmail.com> wrote:
+>
+> Hi Amit,
+> Amit Gupta stated on 6/3/2007 9:02 AM:
+> > While as per my documents study, it's clear that after reset the code is
+> > relocated from NOR to different location for execution . But why is
+> > this not
+> > happening automatically in my case.
+> >
+> Code relocation does not happen automatically. If ur boot code/sample
+> code desires to relocate itself to SDRAM or any other location. it needs
+> to be done by itself.
+> > I also heard that NAND flash also has some
+> > XIP region.
+> The 2430 SDP has two nands: one is a 16 bit Samsung SLC NAND and other
+> is a OneNAND device. The Onenand has limited XIP support, but the 16 bit
+> nand is not XIP.
+> > The logic is clear that NAND and (NOR image after reset) is not
+> executing
+> > until and unless you have copy code to relocate it to SRAM or SDRAM( if
+> > SDRAM has already been initialized prior to relocation).
+> >
+> The code to relocate is part of your image. so it is upto your image to
+> decide how it should work.
+> > Kindly tell me that is my above understanding true or Boot ROM code does
+> > copy some part of code because even if we have copy section within the
+> > code,
+> > it needs to be executed before the copy actually takes place.
+> rom code behavior depends on the type of device:
+> in the case of NOR: instruction execution is given straight to the NOR
+> flash offset 0x0.
+> in the case of NAND: a limited number of pages is copied to SRAM and
+> execution commences in SRAM. note the fact of limited pages. the image
+> in those initial pages should be self sustaining and should be capable
+> of loading the rest of the image from nand and proceeding with
+> execution.. this is the role of X-Loader - a stripped down version of
+> uboot.
+>
+> Regards,
+> Nishanth Menon
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
