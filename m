@@ -1,13 +1,13 @@
-From: "balaji  narayanam" <narayanamb@rediffmail.com>
-Subject: REGARDING THE CMOS CAMERA INTEFACE WITH OSK 5912
-Date: 5 Jun 2007 11:05:35 -0000
-Message-ID: <20070605110535.27117.qmail@webmail104.rediffmail.com>
-Reply-To: balaji narayanam <narayanamb@rediffmail.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP: Add menelaus chip info for N800
+Date: Tue, 5 Jun 2007 16:59:39 +0530
+Message-ID: <5d5443650706050429w4dd1f9a3i88bea4880c988b2f@mail.gmail.com>
+References: <5d5443650705260129v3f118e25pc4ded86b1ccb57f3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <5d5443650705260129v3f118e25pc4ded86b1ccb57f3@mail.gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -21,10 +21,14 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
- =A0=0AHi ,=0A=0AI am trying to interface the C3188A cmos Image sensor to t=
-he Expansion connector pins of the OMAP5912 OSK.=0A=0AFOR THAT WE DESIGNED =
-A SIMPLE PCB.=0A=0ACAN ANY ONE SUGGEST HOW TO OPEN, READ AND WRITE THE IMAG=
-E FROM THE EXPANSION CONNECTOR PINS.=0A=0AI KNOW THAT I NEED TO CONFIGURE T=
-HE CAMERA PINS FOR INTERFACING THE =0AC3188A IMAGE SENSOR AND OSK 5912.=0A=
-=0ACAN ANY BODY SUGGEST HOW TO CONFIGURE THE CAMERA PINS AND HOW TO TEST TH=
-E CONFIGURED CAMERA PINS=0A=0ATHANK YOU  =0A=0AWITH REGARDS=0A
+Let me know if anybody tested this patch on N800. Thanx.
+
+---Trilok Soni
+
+On 5/26/07, Trilok Soni <soni.trilok@gmail.com> wrote:
+> n800 changes are compile tested only. Please test.
+>
+> --
+> --Trilok Soni
+>
+>
