@@ -1,16 +1,22 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Fix building with CONFIG_OMAP_GPIO_SWITCH
-	off.
-Date: Tue, 5 Jun 2007 03:34:58 -0700
-Message-ID: <20070605103458.GH859@atomide.com>
-References: <fb249edb0705221025s4447c7e1s2119e5a62ebb2198@mail.gmail.com>
-	<20070525003430.GE19506@atomide.com>
-	<fb249edb0705270557r5e6b912en994e04d35830aae@mail.gmail.com>
+Subject: Re: [PATCH] Leave GPIO[7:6] pullups enabled.
+Date: Tue, 5 Jun 2007 04:02:18 -0700
+Message-ID: <20070605110217.GI859@atomide.com>
+References: <11804401622277-git-send-email-felipebalbi@users.sourceforge.net>
+	<11804401651954-git-send-email-felipebalbi@users.sourceforge.net>
+	<11804401662563-git-send-email-felipebalbi@users.sourceforge.net>
+	<11804401722783-git-send-email-felipebalbi@users.sourceforge.net>
+	<1180440173922-git-send-email-felipebalbi@users.sourceforge.net>
+	<11804401741522-git-send-email-felipebalbi@users.sourceforge.net>
+	<11804401752426-git-send-email-felipebalbi@users.sourceforge.net>
+	<1180440176127-git-send-email-felipebalbi@users.sourceforge.net>
+	<11804401773555-git-send-email-felipebalbi@users.sourceforge.net>
+	<11804401782736-git-send-email-felipebalbi@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <fb249edb0705270557r5e6b912en994e04d35830aae@mail.gmail.com>
+In-Reply-To: <11804401782736-git-send-email-felipebalbi@users.sourceforge.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,50 +24,46 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: andrzej zaborowski <balrogg@gmail.com>
-Cc: Linux OMAP ML <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Felipe Balbi <felipebalbi@users.sourceforge.net>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* andrzej zaborowski <balrogg@gmail.com> [070527 05:57]:
-> On 25/05/07, Tony Lindgren <tony@atomide.com> wrote:
->> * andrzej zaborowski <balrogg@gmail.com> [070522 10:26]:
->> > Define omap_register_gpio_switches when CONFIG_OMAP_GPIO_SWITCH is
->> > off. This will prevent adding a CONFIG_OMAP_GPIO_SWITCH check in the
->> > board files and enable building board-palmte.c with gpio-switch off.
->> > Also add __initdata to the two variables in gpio-switch that are used 
->> only
->> > during init.
->> >
->> > Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
->>
->> > @@ -48,7 +49,12 @@ struct omap_gpio_switch {
->> >  };
->> >
->> >  /* Call at init time only */
->> > -extern void omap_register_gpio_switches(const struct omap_gpio_switch 
->> *tbl,
->> > -                                     int count);
->> > +#ifdef CONFIG_OMAP_GPIO_SWITCH
->> > +extern void omap_register_gpio_switches(
->> > +             const struct omap_gpio_switch *tbl, int count);
->> > +#else
->> > +static inline void omap_register_gpio_switches(
->> > +             const struct omap_gpio_switch *tbl, int count) {}
->> > +#endif
->> >
->> >  #endif
->> > --
->> > 1.4.4.3
->> >
->>
->> Can you please put the extern functions into a header file?
->> We got some comments on that on LKML few weeks ago.
->
-> Sorry, not sure which functions/header you mean?
+* Felipe Balbi <felipebalbi@users.sourceforge.net> [070529 05:04]:
+> From: Felipe Balbi <felipe.lima@indt.org.br>
+> 
+> GPIO7 and GPIO6 are configured as default wake-up sources for
+> tusb6010.
+> 
+> without this patch MUSB is not able to enumerate
+> any device that draw power from it.
+> 
+> After applying this patch, we're passing in almost
+> all OTG Electrical Tests.
+> 
+> Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
+> ---
+> 
+> Index: linux-omap-2.6/drivers/usb/musb/tusb6010.c
+> ===================================================================
+> --- linux-omap-2.6.orig/drivers/usb/musb/tusb6010.c	2007-05-28 13:18:46.000000000 +0300
+> +++ linux-omap-2.6/drivers/usb/musb/tusb6010.c	2007-05-28 13:26:28.000000000 +0300
+> @@ -879,8 +879,11 @@
+>  {
+>  	void __iomem	*base = musb->ctrl_base;
+>  
+> -	/* Disable GPIO[7:0] pullups (used as output DMA requests) */
+> -	musb_writel(base, TUSB_PULLUP_1_CTRL, 0x000000FF);
+> +	/* GPIO[7:6] are the default wake-up sources for tusb6010.
+> +	 * We cannot disable their pullups.
+> +	 *
+> +	 * Disable GPIO[5:0] pullups (used as output DMA requests) */
+> +	musb_writel(base, TUSB_PULLUP_1_CTRL, 0x0000003F);
+>  	/* Disable all pullups on NOR IF, DMAREQ0 and DMAREQ1 */
+>  	musb_writel(base, TUSB_PULLUP_2_CTRL, 0x01FFFFFF);
+>  
 
-We are not supposed to have prototypes for extern functions in .c files,
-they should be in .h files.
+Pushing this one today, I edited the comments a bit.
 
 Tony
