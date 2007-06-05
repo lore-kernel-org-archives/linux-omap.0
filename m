@@ -1,13 +1,14 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: [PATCH] Re-posting DMA Macros updated to use DMA V4 base address
-Date: Tue, 5 Jun 2007 08:43:50 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47010BB939@dlee13.ent.ti.com>
+From: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Subject: Re: [PATCH 3/3] ARM: OMAP: Add menelaus chip info for N800
+Date: Tue, 05 Jun 2007 10:41:57 -0400
+Message-ID: <46657635.7060902@indt.org.br>
+References: <5d5443650705260129v3f118e25pc4ded86b1ccb57f3@mail.gmail.com>
+	<5d5443650706050429w4dd1f9a3i88bea4880c988b2f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+In-Reply-To: <5d5443650706050429w4dd1f9a3i88bea4880c988b2f@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,165 +18,50 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux OMAP <linux-omap-open-source@linux.omap.com>
+To: ext Trilok Soni <soni.trilok@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Modified DMA macros to use DMA V4 Base, to support all DMA V4 based OMAP
-platforms.
+ext Trilok Soni wrote:
+> Let me know if anybody tested this patch on N800. Thanx.
+>
+> ---Trilok Soni
+>
+> On 5/26/07, Trilok Soni <soni.trilok@gmail.com> wrote:
+>> n800 changes are compile tested only. Please test.
+>>
+>> -- 
+>> --Trilok Soni
+>>
+>>
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
+Hi Tony and Trilok,
 
-Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
+I've tested the patches
+0001-ARM-OMAP-Use-new-style-I2C-driver-for-Menelaus-chip.patch
+(http://linux.omap.com/pipermail/linux-omap-open-source/2007-May/010100.html)
+and 0003-ARM-OMAP-Add-menelaus-chip-info-for-N800.patch
+(http://linux.omap.com/pipermail/linux-omap-open-source/2007-May/010102.html)
 
-Files:
- dma.h
- omap24xx.h
- 1 files changed, 34 insertions(+), 34 deletions(-)
+by applying it together over MMC multislot support patches series for
+N800 and looks fine (both slots with MMC, SD and SDHC cards).
 
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-diff -purN linux-omap/include/asm-arm/arch-omap/dma.h =
-val_3430_GIT/include/asm-arm/arch-omap/dma.h
---- linux-omap/include/asm-arm/arch-omap/dma.h	2007-05-16 =
-14:33:06.000000000 -0500
-+++ val_3430_GIT/include/asm-arm/arch-omap/dma.h	2007-05-25 =
-22:59:27.000000000 -0500
-@@ -45,22 +45,22 @@
- #define OMAP_DMA_PCHD_SR		(OMAP_DMA_BASE + 0x4c0)
-=20
- /* Hardware registers for omap2 */
--#define OMAP24XX_DMA_BASE		(L4_24XX_BASE + 0x56000)
--#define OMAP_DMA4_REVISION		(OMAP24XX_DMA_BASE + 0x00)
--#define OMAP_DMA4_GCR_REG		(OMAP24XX_DMA_BASE + 0x78)
--#define OMAP_DMA4_IRQSTATUS_L0		(OMAP24XX_DMA_BASE + 0x08)
--#define OMAP_DMA4_IRQSTATUS_L1		(OMAP24XX_DMA_BASE + 0x0c)
--#define OMAP_DMA4_IRQSTATUS_L2		(OMAP24XX_DMA_BASE + 0x10)
--#define OMAP_DMA4_IRQSTATUS_L3		(OMAP24XX_DMA_BASE + 0x14)
--#define OMAP_DMA4_IRQENABLE_L0		(OMAP24XX_DMA_BASE + 0x18)
--#define OMAP_DMA4_IRQENABLE_L1		(OMAP24XX_DMA_BASE + 0x1c)
--#define OMAP_DMA4_IRQENABLE_L2		(OMAP24XX_DMA_BASE + 0x20)
--#define OMAP_DMA4_IRQENABLE_L3		(OMAP24XX_DMA_BASE + 0x24)
--#define OMAP_DMA4_SYSSTATUS		(OMAP24XX_DMA_BASE + 0x28)
--#define OMAP_DMA4_CAPS_0		(OMAP24XX_DMA_BASE + 0x64)
--#define OMAP_DMA4_CAPS_2		(OMAP24XX_DMA_BASE + 0x6c)
--#define OMAP_DMA4_CAPS_3		(OMAP24XX_DMA_BASE + 0x70)
--#define OMAP_DMA4_CAPS_4		(OMAP24XX_DMA_BASE + 0x74)
-+#define OMAP_DMA4_BASE			(L4_OMAP_BASE + 0x56000)
-+#define OMAP_DMA4_REVISION		(OMAP_DMA4_BASE + 0x00)
-+#define OMAP_DMA4_GCR_REG		(OMAP_DMA4_BASE + 0x78)
-+#define OMAP_DMA4_IRQSTATUS_L0		(OMAP_DMA4_BASE + 0x08)
-+#define OMAP_DMA4_IRQSTATUS_L1		(OMAP_DMA4_BASE + 0x0c)
-+#define OMAP_DMA4_IRQSTATUS_L2		(OMAP_DMA4_BASE + 0x10)
-+#define OMAP_DMA4_IRQSTATUS_L3		(OMAP_DMA4_BASE + 0x14)
-+#define OMAP_DMA4_IRQENABLE_L0		(OMAP_DMA4_BASE + 0x18)
-+#define OMAP_DMA4_IRQENABLE_L1		(OMAP_DMA4_BASE + 0x1c)
-+#define OMAP_DMA4_IRQENABLE_L2		(OMAP_DMA4_BASE + 0x20)
-+#define OMAP_DMA4_IRQENABLE_L3		(OMAP_DMA4_BASE + 0x24)
-+#define OMAP_DMA4_SYSSTATUS		(OMAP_DMA4_BASE + 0x28)
-+#define OMAP_DMA4_CAPS_0		(OMAP_DMA4_BASE + 0x64)
-+#define OMAP_DMA4_CAPS_2		(OMAP_DMA4_BASE + 0x6c)
-+#define OMAP_DMA4_CAPS_3		(OMAP_DMA4_BASE + 0x70)
-+#define OMAP_DMA4_CAPS_4		(OMAP_DMA4_BASE + 0x74)
-=20
- #ifdef CONFIG_ARCH_OMAP1
-=20
-@@ -86,19 +86,19 @@
- #define OMAP_LOGICAL_DMA_CH_COUNT	32	/* REVISIT: Is this 32 + 2? */
-=20
- /* Common channel specific registers for omap2 */
--#define OMAP_DMA_CCR_REG(n)		__REG32(OMAP24XX_DMA_BASE + 0x60 * (n) + =
-0x80)
--#define OMAP_DMA_CLNK_CTRL_REG(n)	__REG32(OMAP24XX_DMA_BASE + 0x60 * =
-(n) + 0x84)
--#define OMAP_DMA_CICR_REG(n)		__REG32(OMAP24XX_DMA_BASE + 0x60 * (n) + =
-0x88)
--#define OMAP_DMA_CSR_REG(n)		__REG32(OMAP24XX_DMA_BASE + 0x60 * (n) + =
-0x8c)
--#define OMAP_DMA_CSDP_REG(n)		__REG32(OMAP24XX_DMA_BASE + 0x60 * (n) + =
-0x90)
--#define OMAP_DMA_CEN_REG(n)		__REG32(OMAP24XX_DMA_BASE + 0x60 * (n) + =
-0x94)
--#define OMAP_DMA_CFN_REG(n)		__REG32(OMAP24XX_DMA_BASE + 0x60 * (n) + =
-0x98)
--#define OMAP_DMA_CSEI_REG(n)		__REG32(OMAP24XX_DMA_BASE + 0x60 * (n) + =
-0xa4)
--#define OMAP_DMA_CSFI_REG(n)		__REG32(OMAP24XX_DMA_BASE + 0x60 * (n) + =
-0xa8)
--#define OMAP_DMA_CDEI_REG(n)		__REG32(OMAP24XX_DMA_BASE + 0x60 * (n) + =
-0xac)
--#define OMAP_DMA_CDFI_REG(n)		__REG32(OMAP24XX_DMA_BASE + 0x60 * (n) + =
-0xb0)
--#define OMAP_DMA_CSAC_REG(n)		__REG32(OMAP24XX_DMA_BASE + 0x60 * (n) + =
-0xb4)
--#define OMAP_DMA_CDAC_REG(n)		__REG32(OMAP24XX_DMA_BASE + 0x60 * (n) + =
-0xb8)
-+#define OMAP_DMA_CCR_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + =
-0x80)
-+#define OMAP_DMA_CLNK_CTRL_REG(n)	__REG32(OMAP_DMA4_BASE + 0x60 * (n) + =
-0x84)
-+#define OMAP_DMA_CICR_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + =
-0x88)
-+#define OMAP_DMA_CSR_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + =
-0x8c)
-+#define OMAP_DMA_CSDP_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + =
-0x90)
-+#define OMAP_DMA_CEN_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + =
-0x94)
-+#define OMAP_DMA_CFN_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + =
-0x98)
-+#define OMAP_DMA_CSEI_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + =
-0xa4)
-+#define OMAP_DMA_CSFI_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + =
-0xa8)
-+#define OMAP_DMA_CDEI_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + =
-0xac)
-+#define OMAP_DMA_CDFI_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + =
-0xb0)
-+#define OMAP_DMA_CSAC_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + =
-0xb4)
-+#define OMAP_DMA_CDAC_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + =
-0xb8)
-=20
- #endif
-=20
-@@ -113,11 +113,11 @@
- #define OMAP1_DMA_LCH_CTRL_REG(n)	__REG16(OMAP_DMA_BASE + 0x40 * (n) + =
-0x2a)
-=20
- /* Channel specific registers only on omap2 */
--#define OMAP2_DMA_CSSA_REG(n)		__REG32(OMAP24XX_DMA_BASE + 0x60 * (n) + =
-0x9c)
--#define OMAP2_DMA_CDSA_REG(n)		__REG32(OMAP24XX_DMA_BASE + 0x60 * (n) + =
-0xa0)
--#define OMAP2_DMA_CCEN_REG(n)		__REG32(OMAP24XX_DMA_BASE + 0x60 * (n) + =
-0xbc)
--#define OMAP2_DMA_CCFN_REG(n)		__REG32(OMAP24XX_DMA_BASE + 0x60 * (n) + =
-0xc0)
--#define OMAP2_DMA_COLOR_REG(n)		__REG32(OMAP24XX_DMA_BASE + 0x60 * (n) =
-+ 0xc4)
-+#define OMAP2_DMA_CSSA_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + =
-0x9c)
-+#define OMAP2_DMA_CDSA_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + =
-0xa0)
-+#define OMAP2_DMA_CCEN_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + =
-0xbc)
-+#define OMAP2_DMA_CCFN_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + =
-0xc0)
-+#define OMAP2_DMA_COLOR_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + =
-0xc4)
-=20
- =
-/*-----------------------------------------------------------------------=
------*/
-=20
---- linux-omap/include/asm-arm/arch-omap/omap24xx.h	2007-05-25 =
-15:52:27.000000000 -0500
-+++ val_3430_GIT/include/asm-arm/arch-omap/omap24xx.h	2007-06-05 =
-08:27:07.000000000 -0500
-@@ -10,6 +10,7 @@
- #define L4_24XX_BASE		0x48000000
- #define L4_WK_243X_BASE		0x49000000
- #define L3_24XX_BASE		0x68000000
-+#define L4_OMAP_BASE		L4_24XX_BASE
-=20
- /* interrupt controller */
- #define OMAP24XX_IC_BASE	(L4_24XX_BASE + 0xfe000)
+To test it, I'm using linux-omap tree, on commit
+9a0fba3f2ca8e58a1465d6c3c18f9f334d054304). Today I'll test with most
+updated tree.
+
+Thanks in advance,
+
+Carlos.
+
+-- 
+Carlos Eduardo
+Nokia Institute of Technology - INdT
+Open Source Mobile Research Center - OSMRC
+Phone: +55 92 2126-1079
+Mobile: +55 92 8127-1797
+E-mail: carlos.aguiar@indt.org.br
