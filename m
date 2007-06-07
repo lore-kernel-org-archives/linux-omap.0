@@ -1,11 +1,18 @@
-From: "andrzej zaborowski" <balrogg@gmail.com>
-Subject: [PATCH] Update SX1 audio to current ALSA typenames
-Date: Thu, 7 Jun 2007 04:50:30 +0200
-Message-ID: <fb249edb0706061950t2a1a5596h55911911365608d3@mail.gmail.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP: Add menelaus chip info for N800
+Date: Thu, 7 Jun 2007 10:59:05 +0530
+Message-ID: <5d5443650706062229w3c65145ekee52f30dfc2d014e@mail.gmail.com>
+References: <5d5443650705260129v3f118e25pc4ded86b1ccb57f3@mail.gmail.com>
+	<5d5443650706050429w4dd1f9a3i88bea4880c988b2f@mail.gmail.com>
+	<46657635.7060902@indt.org.br>
+	<5d5443650706060034o7ded97a7red9b02ca549a9d28@mail.gmail.com>
+	<46670F42.40800@indt.org.br>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_31595_23554957.1181184630520"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <46670F42.40800@indt.org.br>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,59 +22,89 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux OMAP <linux-omap-open-source@linux.omap.com>
+To: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-------=_Part_31595_23554957.1181184630520
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On 6/7/07, Carlos Aguiar <carlos.aguiar@indt.org.br> wrote:
+> ext Trilok Soni wrote:
+> > On 6/5/07, Carlos Aguiar <carlos.aguiar@indt.org.br> wrote:
+> >> ext Trilok Soni wrote:
+> >> > Let me know if anybody tested this patch on N800. Thanx.
+> >> >
+> >> > ---Trilok Soni
+> >> >
+> >> > On 5/26/07, Trilok Soni <soni.trilok@gmail.com> wrote:
+> >> >> n800 changes are compile tested only. Please test.
+> >> >>
+> >> >> --
+> >> >> --Trilok Soni
+> >> >>
+> >> >>
+> >> > _______________________________________________
+> >> > Linux-omap-open-source mailing list
+> >> > Linux-omap-open-source@linux.omap.com
+> >> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> >> >
+> >> Hi Tony and Trilok,
+> >>
+> >> I've tested the patches
+> >> 0001-ARM-OMAP-Use-new-style-I2C-driver-for-Menelaus-chip.patch
+> >> (http://linux.omap.com/pipermail/linux-omap-open-source/2007-May/010100.html)
+> >>
+> >> and 0003-ARM-OMAP-Add-menelaus-chip-info-for-N800.patch
+> >> (http://linux.omap.com/pipermail/linux-omap-open-source/2007-May/010102.html)
+> >>
+> >>
+> >> by applying it together over MMC multislot support patches series for
+> >> N800 and looks fine (both slots with MMC, SD and SDHC cards).
+> >>
+> >> To test it, I'm using linux-omap tree, on commit
+> >> 9a0fba3f2ca8e58a1465d6c3c18f9f334d054304). Today I'll test with most
+> >> updated tree.
+> >>
+> >
+> > Thanx for the testing. Please share the result once you test it with
+> > latest tree.
+> >
+> Hi folks,
+>
+> Well, testing with most update linux-omap tree, I'm having some warnings
+> compilations (with or without patches series applied):
+>
+> WARNING: arch/arm/mach-omap2/built-in.o(.data+0x674): Section mismatch:
+> reference to .init.text:omap2_clk_disable_unused (between
+> 'omap2_clk_functions' and 'onchip_clks')
+> WARNING: arch/arm/vfp/built-in.o(.data+0x0): Section mismatch: reference
+> to .init.text:vfp_testing_entry (between 'vfp_vector' and
+> 'vfp_notifier_block')
+> WARNING: arch/arm/plat-omap/built-in.o(.data+0x95c): Section mismatch:
+> reference to .init.text:omap_timer_init (between 'omap_timer' and
+> 'omap_32k_timer_irq'
 
-Update to newer ALSA structs in order to fix building.
+These warnings are already discussed on mailing list. Better to ignore
+it for now.
 
-Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
+>
+> and when starting the device I get the following message:
+>
+> ...
+> Starting MAEMO AF Desktop
+> matchbox-wm: can't open display! check your DISPLAY variable.
+> DSME: process '/usr/bin/matchbox-window-manager -theme default
+> -use_titlebar yes -use_desktop_mode plain -use_lowlight no -use_cursor
+> yes -use_dialog_mode s1DSME: process '/usr/bin/matchbox-window-manager
+> -theme default -use_titlebar yes -use_desktop_mode plain -use_lowlight
+> no -use_cursor yes -use_dialog_mode sd and restarted with pid 1646
+> Segmentation fault
+> ...
+>
+> And then not starting the graphical environment. :(
+>
+> Anyway, by enabling debugging messages, the MMC looks fine.
+>
 
-------=_Part_31595_23554957.1181184630520
-Content-Type: text/plain;
-	name=0008-ARM-OMAP-Update-SX1-audio-to-current-ALSA-typenames.txt;
-	charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f2motw8k
-Content-Disposition: attachment;
-	filename="0008-ARM-OMAP-Update-SX1-audio-to-current-ALSA-typenames.txt"
+Thanx. Tony, please push menelaus related patches from me and David.
 
-RnJvbSAzMDdkNGVhMzBmODczMWEyNzU0OTRhOTdlNWQ3Yjc1NTVhNmUyMDljIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBBbmRyemVqIFphYm9yb3dza2kgPGJhbHJvZ0B6YWJvci5vcmc+
-CkRhdGU6IFRodSwgNyBKdW4gMjAwNyAwNToyODoyNCArMDIwMApTdWJqZWN0OiBbUEFUQ0hdIEFS
-TTogT01BUDogVXBkYXRlIFNYMSBhdWRpbyB0byBjdXJyZW50IEFMU0EgdHlwZW5hbWVzLgoKLS0t
-CiBzb3VuZC9hcm0vb21hcC9vbWFwLWFsc2Etc3gxLmMgfCAgICA2ICsrKy0tLQogMSBmaWxlcyBj
-aGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvc291
-bmQvYXJtL29tYXAvb21hcC1hbHNhLXN4MS5jIGIvc291bmQvYXJtL29tYXAvb21hcC1hbHNhLXN4
-MS5jCmluZGV4IGVhZGFlNjguLmM0NjkxY2QgMTAwNjQ0Ci0tLSBhL3NvdW5kL2FybS9vbWFwL29t
-YXAtYWxzYS1zeDEuYworKysgYi9zb3VuZC9hcm0vb21hcC9vbWFwLWFsc2Etc3gxLmMKQEAgLTgy
-LDEzICs4MiwxMyBAQCBzdGF0aWMgdW5zaWduZWQgaW50IHJhdGVzW10gPSB7CiAJIDMyMDAwLCA0
-NDEwMCwgNDgwMDAsCiB9OwogCi1zdGF0aWMgc25kX3BjbV9od19jb25zdHJhaW50X2xpc3RfdCBl
-Z29sZF9od19jb25zdHJhaW50c19yYXRlcyA9IHsKK3N0YXRpYyBzdHJ1Y3Qgc25kX3BjbV9od19j
-b25zdHJhaW50X2xpc3QgZWdvbGRfaHdfY29uc3RyYWludHNfcmF0ZXMgPSB7CiAJLmNvdW50CT0g
-QVJSQVlfU0laRShyYXRlcyksCiAJLmxpc3QJPSByYXRlcywKIAkubWFzawk9IDAsCiB9OwogCi1z
-dGF0aWMgc25kX3BjbV9oYXJkd2FyZV90IGVnb2xkX3NuZF9vbWFwX2Fsc2FfcGxheWJhY2sgPSB7
-CitzdGF0aWMgc3RydWN0IHNuZF9wY21faGFyZHdhcmUgZWdvbGRfc25kX29tYXBfYWxzYV9wbGF5
-YmFjayA9IHsKIAkuaW5mbyA9IChTTkRSVl9QQ01fSU5GT19JTlRFUkxFQVZFRCB8IFNORFJWX1BD
-TV9JTkZPX0JMT0NLX1RSQU5TRkVSIHwKIAkJIFNORFJWX1BDTV9JTkZPX01NQVAgfCBTTkRSVl9Q
-Q01fSU5GT19NTUFQX1ZBTElEKSwKIAkuZm9ybWF0cyA9IChTTkRSVl9QQ01fRk1UQklUX1MxNl9M
-RSksCkBAIC0xMDksNyArMTA5LDcgQEAgc3RhdGljIHNuZF9wY21faGFyZHdhcmVfdCBlZ29sZF9z
-bmRfb21hcF9hbHNhX3BsYXliYWNrID0gewogCS5maWZvX3NpemUJCT0gMCwKIH07CiAKLXN0YXRp
-YyBzbmRfcGNtX2hhcmR3YXJlX3QgZWdvbGRfc25kX29tYXBfYWxzYV9jYXB0dXJlID0geworc3Rh
-dGljIHN0cnVjdCBzbmRfcGNtX2hhcmR3YXJlIGVnb2xkX3NuZF9vbWFwX2Fsc2FfY2FwdHVyZSA9
-IHsKIAkuaW5mbyA9IChTTkRSVl9QQ01fSU5GT19JTlRFUkxFQVZFRCB8IFNORFJWX1BDTV9JTkZP
-X0JMT0NLX1RSQU5TRkVSIHwKIAkJIFNORFJWX1BDTV9JTkZPX01NQVAgfCBTTkRSVl9QQ01fSU5G
-T19NTUFQX1ZBTElEKSwKIAkuZm9ybWF0cyA9IChTTkRSVl9QQ01fRk1UQklUX1MxNl9MRSksCi0t
-IAoxLjQuNC4zCgo=
-------=_Part_31595_23554957.1181184630520
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
-------=_Part_31595_23554957.1181184630520--
+-- 
+--Trilok Soni
