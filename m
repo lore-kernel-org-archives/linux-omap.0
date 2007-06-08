@@ -1,14 +1,18 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: 2430SDP: minor fixups for fb driver
-Date: Fri, 8 Jun 2007 03:28:07 -0700
-Message-ID: <20070608102806.GK28556@atomide.com>
-References: <11810916331121-git-send-email-khilman@mvista.com>
-	<11810916333338-git-send-email-khilman@mvista.com>
+Subject: Re: [PATCH] ARM: OMAP: Define use internal clock field
+	inMMCconfiguration
+Date: Fri, 8 Jun 2007 03:28:57 -0700
+Message-ID: <20070608102856.GL28556@atomide.com>
+References: <01ff01c7a0c3$bccee110$e1ac580a@swcenter.sec.samsung.co.kr>
+	<5d5443650705280124i522a005fyd8287c9c5eb2e9ac@mail.gmail.com>
+	<020401c7a103$b44baa60$e1ac580a@swcenter.sec.samsung.co.kr>
+	<20070605102622.GE859@atomide.com>
+	<009101c7a898$8de1a860$e1ac580a@swcenter.sec.samsung.co.kr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <11810916333338-git-send-email-khilman@mvista.com>
+In-Reply-To: <009101c7a898$8de1a860$e1ac580a@swcenter.sec.samsung.co.kr>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,50 +22,28 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kevin Hilman <khilman@mvista.com>
+To: Kyungmin Park <kmpark@infradead.org>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@mvista.com> [070605 18:04]:
-> Remove redundant #defines
-> Fix LCD pixelclock to 5.4 MHz
+* Kyungmin Park <kmpark@infradead.org> [070606 17:13]:
+> Hi, Tony
 > 
-> Signed-off-by: Hunyue Yau <hyau@mvista.com>
-> Signed-off-by: Kevin Hilman <khilman@mvista.com>
-> ---
->  drivers/video/omap/lcd_2430sdp.c |    8 ++------
->  1 files changed, 2 insertions(+), 6 deletions(-)
+> > > diff --git a/arch/arm/mach-omap2/board-apollon.c
+> > > b/arch/arm/mach-omap2/board-apollon.c
+> > > index 1276f1f..16428f6 100644
+> > > --- a/arch/arm/mach-omap2/board-apollon.c
+> > > +++ b/arch/arm/mach-omap2/board-apollon.c
+> > > @@ -251,6 +251,8 @@ static struct omap_mmc_config apollon_mmc_config
+> > __initdata
+> > > = {
+> > 
+> > Your patch was wrapped again...
 > 
-> diff --git a/drivers/video/omap/lcd_2430sdp.c b/drivers/video/omap/lcd_2430sdp.c
-> index 0c50d10..6e5b603 100644
-> --- a/drivers/video/omap/lcd_2430sdp.c
-> +++ b/drivers/video/omap/lcd_2430sdp.c
-> @@ -31,14 +31,10 @@
->  
->  #define LCD_PANEL_BACKLIGHT_GPIO	91
->  #define LCD_PANEL_ENABLE_GPIO		154
-> -#define H4_LCD_PIXCLOCK_MAX		185186 /* freq 5.4 MHz */
-> +#define LCD_PIXCLOCK_MAX		5400 /* freq 5.4 MHz */
->  #define PM_RECEIVER             TWL4030_MODULE_PM_RECIEVER
->  #define ENABLE_VAUX2_DEDICATED  0x09
->  #define ENABLE_VAUX2_DEV_GRP    0x20
-> -#define TWL4030_VAUX2_DEV_GRP           0x1B
-> -#define TWL4030_VAUX2_DEDICATED         0x1E
-> -#define TWL4030_MODULE_PM_RECIEVER  0x13
-> -
->  
->  
->  #define t2_out(c, r, v) twl4030_i2c_write_u8(c, r, v)
-> @@ -99,7 +95,7 @@ struct lcd_panel sdp2430_panel = {
->  	.vfp		= 2,		/* lower_margin */
->  	.vbp		= 7,		/* upper_margin (8) - 1 */
->  
-> -	.pixel_clock	= H4_LCD_PIXCLOCK_MAX,
-> +	.pixel_clock	= LCD_PIXCLOCK_MAX,
->  
->  	.init		= sdp2430_panel_init,
->  	.cleanup	= sdp2430_panel_cleanup,
+> Umm, I set the Outlook configuration as suggested one.
+> Next time, I try to use another mail client to send the patch.
 
-Pushing today.
+Great, it's nice to apply patches directly without any editing with
+git-am :)
 
 Tony
