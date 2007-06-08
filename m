@@ -1,13 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Fix omap1510-generic board compilation.
-Date: Fri, 8 Jun 2007 03:31:26 -0700
-Message-ID: <20070608103126.GM28556@atomide.com>
-References: <fb249edb0706061945n20d12010scf13154d981c0657@mail.gmail.com>
+Subject: Re: [PATCH] ARM: OMAP: 2430SDP: minor fixups for fb driver
+Date: Fri, 8 Jun 2007 03:28:07 -0700
+Message-ID: <20070608102806.GK28556@atomide.com>
+References: <11810916331121-git-send-email-khilman@mvista.com>
+	<11810916333338-git-send-email-khilman@mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <fb249edb0706061945n20d12010scf13154d981c0657@mail.gmail.com>
+In-Reply-To: <11810916333338-git-send-email-khilman@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,59 +16,52 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: andrzej zaborowski <balrogg@gmail.com>
-Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Kevin Hilman <khilman@mvista.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* andrzej zaborowski <balrogg@gmail.com> [070606 19:46]:
-> Move an #endif so that it doesn't hide the mmc config declaration.
-> Minor formatting change.
->
-> Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
-
-> From d0ec40c4888e8d0281ae38abd5de4caba5adfc3f Mon Sep 17 00:00:00 2001
-> From: Andrzej Zaborowski <balrog@zabor.org>
-> Date: Thu, 7 Jun 2007 05:26:43 +0200
-> Subject: [PATCH] ARM: OMAP: Fix omap1510-generic building out of defconfig.
+* Kevin Hilman <khilman@mvista.com> [070605 18:04]:
+> Remove redundant #defines
+> Fix LCD pixelclock to 5.4 MHz
 > 
+> Signed-off-by: Hunyue Yau <hyau@mvista.com>
+> Signed-off-by: Kevin Hilman <khilman@mvista.com>
 > ---
->  arch/arm/mach-omap1/board-generic.c |    7 +++----
->  1 files changed, 3 insertions(+), 4 deletions(-)
+>  drivers/video/omap/lcd_2430sdp.c |    8 ++------
+>  1 files changed, 2 insertions(+), 6 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap1/board-generic.c b/arch/arm/mach-omap1/board-generic.c
-> index 33d01ad..29fa364 100644
-> --- a/arch/arm/mach-omap1/board-generic.c
-> +++ b/arch/arm/mach-omap1/board-generic.c
-> @@ -55,6 +55,7 @@ static struct omap_usb_config generic1610_usb_config __initdata = {
->  	.hmc_mode	= 16,
->  	.pins[0]	= 6,
->  };
-> +#endif
+> diff --git a/drivers/video/omap/lcd_2430sdp.c b/drivers/video/omap/lcd_2430sdp.c
+> index 0c50d10..6e5b603 100644
+> --- a/drivers/video/omap/lcd_2430sdp.c
+> +++ b/drivers/video/omap/lcd_2430sdp.c
+> @@ -31,14 +31,10 @@
 >  
->  static struct omap_mmc_config generic_mmc_config __initdata = {
->  	.mmc [0] = {
-> @@ -73,15 +74,13 @@ static struct omap_mmc_config generic_mmc_config __initdata = {
->  	},
->  };
->  
-> -#endif
+>  #define LCD_PANEL_BACKLIGHT_GPIO	91
+>  #define LCD_PANEL_ENABLE_GPIO		154
+> -#define H4_LCD_PIXCLOCK_MAX		185186 /* freq 5.4 MHz */
+> +#define LCD_PIXCLOCK_MAX		5400 /* freq 5.4 MHz */
+>  #define PM_RECEIVER             TWL4030_MODULE_PM_RECIEVER
+>  #define ENABLE_VAUX2_DEDICATED  0x09
+>  #define ENABLE_VAUX2_DEV_GRP    0x20
+> -#define TWL4030_VAUX2_DEV_GRP           0x1B
+> -#define TWL4030_VAUX2_DEDICATED         0x1E
+> -#define TWL4030_MODULE_PM_RECIEVER  0x13
 > -
->  static struct omap_uart_config generic_uart_config __initdata = {
->  	.enabled_uarts = ((1 << 0) | (1 << 1) | (1 << 2)),
->  };
 >  
->  static struct omap_board_config_kernel generic_config[] = {
-> -	{ OMAP_TAG_USB,           NULL },
-> -	{ OMAP_TAG_MMC,           &generic_mmc_config },
-> +	{ OMAP_TAG_USB,		NULL },
-> +	{ OMAP_TAG_MMC,		&generic_mmc_config },
->  	{ OMAP_TAG_UART,	&generic_uart_config },
->  };
 >  
+>  #define t2_out(c, r, v) twl4030_i2c_write_u8(c, r, v)
+> @@ -99,7 +95,7 @@ struct lcd_panel sdp2430_panel = {
+>  	.vfp		= 2,		/* lower_margin */
+>  	.vbp		= 7,		/* upper_margin (8) - 1 */
+>  
+> -	.pixel_clock	= H4_LCD_PIXCLOCK_MAX,
+> +	.pixel_clock	= LCD_PIXCLOCK_MAX,
+>  
+>  	.init		= sdp2430_panel_init,
+>  	.cleanup	= sdp2430_panel_cleanup,
 
-This one does not seem to apply, did you forget to send your patch
-0006 that this depends on?
+Pushing today.
 
 Tony
