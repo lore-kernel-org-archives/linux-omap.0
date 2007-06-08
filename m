@@ -1,12 +1,12 @@
 From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: [PATCH] Adding copyright header to omap24xx.h
-Date: Thu, 7 Jun 2007 18:58:10 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C4701121806@dlee13.ent.ti.com>
+Subject: [PATCH] Remove duplicate omap34xx.h entry
+Date: Thu, 7 Jun 2007 19:11:09 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C470112180E@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,53 +15,33 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Adding Copyright header
+Please apply this on top of OMAP3430 patch set.
+
+Remove duplicate omap34xx.h from hardware.h
 
 Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
 
 Files:
- omap24xx.h |   25 +++++++++++++++++++++++++
- 1 files changed, 25 insertions(+)
+ hardware.h |    1 -
+ 1 files changed, 1 deletion(-)
 
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-
---- linux-omap/include/asm-arm/arch-omap/omap24xx.h	2007-05-25 =
-15:52:27.000000000 -0500
-+++ val_3430_GIT/include/asm-arm/arch-omap/omap24xx.h	2007-06-07 =
-18:52:49.000000000 -0500
-@@ -1,3 +1,28 @@
-+/*
-+ * include/asm-arm/arch-omap/omap24xx.h
-+ *
-+ * This file contains the processor specific definitions
-+ * of the TI OMAP24XX.
-+ *
-+ * Copyright (C) 2007 Texas Instruments.
-+ * Copyright (C) 2007 Nokia Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 =
- USA
-+ *
-+ */
-+
- #ifndef __ASM_ARCH_OMAP24XX_H
- #define __ASM_ARCH_OMAP24XX_H
+--- linux-omap/include/asm-arm/arch-omap/hardware.h	2007-06-07 =
+19:04:50.000000000 -0500
++++ val_3430_GIT/include/asm-arm/arch-omap/hardware.h	2007-06-07 =
+19:05:20.000000000 -0500
+@@ -284,7 +284,6 @@
+ #include "omap730.h"
+ #include "omap1510.h"
+ #include "omap16xx.h"
+-#include "omap34xx.h"
+=20
+ #ifdef CONFIG_ARCH_OMAP24XX
+ #include "omap24xx.h"
