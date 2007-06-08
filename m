@@ -1,44 +1,40 @@
-From: =?iso-8859-1?q?Hans-J=FCrgen_Koch?= <hjk@linutronix.de>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: PROBLEMS WITH DNS
-Date: Fri, 8 Jun 2007 21:32:37 +0200
-Message-ID: <200706082132.37911.hjk@linutronix.de>
+Date: Fri, 8 Jun 2007 20:38:41 +0100
+Message-ID: <20070608193840.GA12975@flint.arm.linux.org.uk>
 References: <c7af2a170706081023w25076e1eq4a791b02a977f9f@mail.gmail.com>
-	<4669A194.8090108@mbdsys.com> <4669A88D.4070008@grupopie.com>
+	<4669945F.5070708@mbdsys.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
-In-Reply-To: <4669A88D.4070008@grupopie.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://lists.arm.linux.org.uk/pipermail/linux-arm-kernel>
-List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
-List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
-List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap-open-source@linux.omap.com
+In-Reply-To: <4669945F.5070708@mbdsys.com>
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Vadim Lebedev <vadim@mbdsys.com>
+Cc: linux-omap-open-source@linux.omap.com, linux-arm-kernel@lists.arm.linux.org.uk, Eduardo Franceschini <edumontenegro@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Am Freitag 08 Juni 2007 21:05 schrieb Paulo Marques:
+On Fri, Jun 08, 2007 at 07:39:43PM +0200, Vadim Lebedev wrote:
+> this DHCP request are sent by kernel mode dhcp client,  which has no access
+> to resolv.conf to store retrived information
 
-> 
-> The only other argument I can see for in-kernel dhcp is that it is 
-> easier to configure than it is to setup an initramfs filesystem. As soon 
-> as that problem is somehow solved, I don't see the advantage in keeping 
-> the in-kernel version.
+The kernel mode dhcp client is for supporting root-NFS, where you
+need to bring up a network interface in order to access your root
+filesystem.
 
-Please don't forget the people who mount their root file system via NFS.
-I'd say this is the main reason for having DHCP in the kernel.
+It's not supposed to be a subsitute for having a dhcp client in your
+local rootfs if you have a local rootfs.
 
-Hans
+> I'dont now if somebody have developped a possibility to retriev this 
+> info using user-mode app and store it into resolv.conf...
 
-
--------------------------------------------------------------------
-List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
-FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
-Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
+The kernel doesn't even ask for DNS information when querying the DHCP
+server, so the DHCP server doesn't supply that information.
