@@ -1,10 +1,11 @@
 From: Vivien Chappelier <vivien.chappelier@free.fr>
-Subject: [PATCH 5/12] Add OMAP850 identification.
-Date: Sat, 9 Jun 2007 20:41:01 +0200
-Message-ID: <20070609184101.GE1889@varda>
+Subject: [PATCH 6/12] Allow framebuffer in SRAM and do not touch framebuffer
+	SRAM on boot.
+Date: Sat, 9 Jun 2007 20:41:40 +0200
+Message-ID: <20070609184140.GF1889@varda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -13,44 +14,67 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Add signature for the OMAP850 CPU of the HTC Tornado.
+On HTC smartphones, the LCD controller is already running in SRAM at boot time.
+Therefore, clearing the SRAM before the controller is turned off will hang it,
+and attemps to reset it later during the initialization of the LCD will not
+work. This patch reserves the SRAM part where the framebuffer 'palette' is
+located so that it is not cleared at boot time on HTC phones. It also fixes
+support for LCD DMA in the SRAM region.
 
 Signed-off-by: Vivien Chappelier <vivien.chappelier@free.fr>
 
 ---
- arch/arm/mach-omap1/id.c        |    1 +
- include/asm-arm/arch-omap/cpu.h |    2 +-
- 2 files changed, 2 insertions(+), 1 deletions(-)
+ arch/arm/plat-omap/dma.c  |   12 ++++++++++++
+ arch/arm/plat-omap/sram.c |    2 ++
+ 2 files changed, 14 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/id.c b/arch/arm/mach-omap1/id.c
-index da13c3e..63f604a 100644
---- a/arch/arm/mach-omap1/id.c
-+++ b/arch/arm/mach-omap1/id.c
-@@ -36,6 +36,7 @@ static struct omap_id omap_ids[] __initdata = {
- 	{ .jtag_id = 0xb574, .die_rev = 0x2, .omap_id = 0x03310315, .type = 0x03100000},
- 	{ .jtag_id = 0x355f, .die_rev = 0x0, .omap_id = 0x03320000, .type = 0x07300100},
- 	{ .jtag_id = 0xb55f, .die_rev = 0x0, .omap_id = 0x03320000, .type = 0x07300300},
-+	{ .jtag_id = 0xb62c, .die_rev = 0x0, .omap_id = 0x03320500, .type = 0x07500100},
- 	{ .jtag_id = 0xb470, .die_rev = 0x0, .omap_id = 0x03310100, .type = 0x15100000},
- 	{ .jtag_id = 0xb576, .die_rev = 0x0, .omap_id = 0x03320000, .type = 0x16100000},
- 	{ .jtag_id = 0xb576, .die_rev = 0x2, .omap_id = 0x03320100, .type = 0x16110000},
-diff --git a/include/asm-arm/arch-omap/cpu.h b/include/asm-arm/arch-omap/cpu.h
-index ec7eb67..057a865 100644
---- a/include/asm-arm/arch-omap/cpu.h
-+++ b/include/asm-arm/arch-omap/cpu.h
-@@ -245,7 +245,7 @@ IS_OMAP_TYPE(2430, 0x2430)
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 05a3849..6e83f85 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -47,6 +47,8 @@
+ 
+ #define OMAP_FUNC_MUX_ARM_BASE	(0xfffe1000 + 0xec)
+ 
++#define OMAP_SRAM_BASE          0x20000000
++
+ static int enable_1510_mode = 0;
+ 
+ struct omap_dma_lch {
+@@ -1176,6 +1178,16 @@ static void set_b1_regs(void)
+ 	}
+ 
+ 	if (omap_dma_in_1510_mode()) {
++
++		if(top >= OMAP_SRAM_BASE && bottom >= OMAP_SRAM_BASE) {
++			omap_writew(1 << 6, OMAP1510_DMA_LCD_CTRL); /* SRAM */
++		} else if(top < OMAP_SRAM_BASE && bottom < OMAP_SRAM_BASE) {
++			omap_writew(0, OMAP1510_DMA_LCD_CTRL);     /* SDRAM */
++		} else {
++			printk(KERN_ERR "LCD DMA across SDRAM and SRAM\n");
++			BUG();
++		}
++
+ 		omap_writew(top >> 16, OMAP1510_DMA_LCD_TOP_F1_U);
+ 		omap_writew(top, OMAP1510_DMA_LCD_TOP_F1_L);
+ 		omap_writew(bottom >> 16, OMAP1510_DMA_LCD_BOT_F1_U);
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index 1f23f04..2e0b267 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -33,6 +33,8 @@
+ 
+ #if defined(CONFIG_ARCH_OMAP24XX)
+ #define SRAM_BOOTLOADER_SZ	0x00
++#elif defined(CONFIG_MACH_TYPHOON) /* don't touch framebuffer until DMA off */
++#define SRAM_BOOTLOADER_SZ      0x1020
+ #else
+ #define SRAM_BOOTLOADER_SZ	0x80
  #endif
- 
- /* Macros to detect if we have OMAP1 or OMAP2 */
--#define cpu_class_is_omap1()	(cpu_is_omap730() || cpu_is_omap15xx() || \
-+#define cpu_class_is_omap1()	(cpu_is_omap7xx() || cpu_is_omap15xx() || \
- 				cpu_is_omap16xx())
- #define cpu_class_is_omap2()	cpu_is_omap24xx()
- 
 -- 
 1.5.1.3
