@@ -1,7 +1,7 @@
 From: Vivien Chappelier <vivien.chappelier@free.fr>
-Subject: [PATCH 7/12] USB fixes for OMAP730
-Date: Sat, 9 Jun 2007 20:42:05 +0200
-Message-ID: <20070609184205.GG1889@varda>
+Subject: [PATCH 8/12] MMC fixes for OMAP730.
+Date: Sat, 9 Jun 2007 20:46:13 +0200
+Message-ID: <20070609184613.GH1889@varda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
@@ -18,121 +18,102 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This patch fixes support for USB on OMAP730/850. It also adds support to 
-disable DMA as it is not working on OMAP730. Finally it adds HTC phones to the
-list of devices that do not know how to do VBUS sensing.
+This patch fixes the MMC register definitions for OMAP730. It also fixes an
+incorrect error reporting from the controller when sending the
+SD_SEND_RELATIVE_ADDR command during SD card initialization.
 
 Signed-off-by: Vivien Chappelier <vivien.chappelier@free.fr>
 
 ---
- arch/arm/plat-omap/usb.c      |   14 ++++++++++----
- drivers/usb/gadget/omap_udc.c |   34 +++++++++++++++++++++++++++++++---
- 2 files changed, 41 insertions(+), 7 deletions(-)
+ drivers/mmc/host/omap.c |   56 +++++++++++++++++++++++++++++++++++++++++------
+ 1 files changed, 49 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/plat-omap/usb.c b/arch/arm/plat-omap/usb.c
-index a5aedf9..667ebfa 100644
---- a/arch/arm/plat-omap/usb.c
-+++ b/arch/arm/plat-omap/usb.c
-@@ -148,9 +148,11 @@ static u32 __init omap_usb0_init(unsigned nwires, unsigned is_device)
- 		 *  - OTG support on this port not yet written
- 		 */
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index 383bd54..6904cad 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -39,6 +39,33 @@
+ #include <asm/arch/tps65010.h>
+ #include <asm/arch/board-sx1.h>
  
--		USB_TRANSCEIVER_CTRL_REG &= ~(7 << 4);
--		if (!is_device)
--			USB_TRANSCEIVER_CTRL_REG |= (3 << 1);
-+		if(!cpu_is_omap730()) {
-+			USB_TRANSCEIVER_CTRL_REG &= ~(7 << 4);
-+			if (!is_device)
-+				USB_TRANSCEIVER_CTRL_REG |= (3 << 1);
-+		}
- 
- 		return 3 << 16;
- 	}
-@@ -574,7 +576,11 @@ omap_otg_init(struct omap_usb_config *config)
- 	if (config->otg || config->register_dev) {
- 		syscon &= ~DEV_IDLE_EN;
- 		udc_device.dev.platform_data = config;
--		/* FIXME patch IRQ numbers for omap730 */
-+		if (cpu_is_omap730()) {
-+			udc_resources[1].start = INT_730_USB_GENI;
-+			udc_resources[2].start = INT_730_USB_NON_ISO;
-+			udc_resources[3].start = INT_730_USB_ISO;
-+		}
- 		status = platform_device_register(&udc_device);
- 		if (status)
- 			pr_debug("can't register UDC device, %d\n", status);
-diff --git a/drivers/usb/gadget/omap_udc.c b/drivers/usb/gadget/omap_udc.c
-index 1577254..4e2ded7 100644
---- a/drivers/usb/gadget/omap_udc.c
-+++ b/drivers/usb/gadget/omap_udc.c
-@@ -101,7 +101,7 @@ static unsigned fifo_mode = 0;
- #endif
- 
- /* "modprobe omap_udc fifo_mode=42", or else as a kernel
-- * boot parameter "omap_udc:fifo_mode=42"
-+ * boot parameter "omap_udc=fifo_mode:42"
-  */
- module_param (fifo_mode, uint, 0);
- MODULE_PARM_DESC (fifo_mode, "endpoint configuration");
-@@ -109,8 +109,8 @@ MODULE_PARM_DESC (fifo_mode, "endpoint configuration");
- #ifdef	USE_DMA
- static unsigned use_dma = 1;
- 
--/* "modprobe omap_udc use_dma=y", or else as a kernel
-- * boot parameter "omap_udc:use_dma=y"
-+/* "modprobe omap_udc use_dma=n", or else as a kernel
-+ * boot parameter "omap_udc=nodma" to disable DMA
-  */
- module_param (use_dma, bool, 0);
- MODULE_PARM_DESC (use_dma, "enable/disable DMA");
-@@ -2160,6 +2160,7 @@ static inline int machine_without_vbus_sense(void)
- 		|| machine_is_omap_h4()
- #endif
- 		|| machine_is_sx1()
-+		|| machine_is_typhoon()
- 		);
- }
- 
-@@ -2664,6 +2665,7 @@ omap_ep_setup(char *name, u8 addr, u8 type,
- 		 */
- 		if ((!use_dma && (addr & USB_DIR_IN))
- 				|| machine_is_omap_apollon()
-+				|| machine_is_typhoon()
- 				|| cpu_is_omap15xx())
- 			dbuf = 0;
- 
-@@ -3176,6 +3178,32 @@ static struct platform_driver udc_driver = {
- 	},
- };
- 
-+#ifndef MODULE
-+/* Process kernel command line parameters */
-+static int __init udc_setup(char *this_opt)
-+{
-+	char *options;
-+
-+	if (!this_opt || !*this_opt)
-+		return 0;
-+
-+	while ((options = strsep(&this_opt, ",")) != NULL) {
-+		if (!strncmp(options, "fifo_mode:", 10)) {
-+			options += 10;
-+			if (*options)
-+				fifo_mode = 
-+					simple_strtoul(options, &options, 10);
-+		}
-+
-+		if (!strncmp(options, "nodma", 5))
-+			use_dma = 0;
-+	}
-+	return 0;
-+}
-+
-+__setup("omap_udc=", udc_setup);
++#ifdef CONFIG_ARCH_OMAP730
++#define	OMAP_MMC_REG_CMD	0x00
++#define	OMAP_MMC_REG_ARGL	0x02
++#define	OMAP_MMC_REG_ARGH	0x04
++#define	OMAP_MMC_REG_CON	0x06
++#define	OMAP_MMC_REG_STAT	0x08
++#define	OMAP_MMC_REG_IE		0x0a
++#define	OMAP_MMC_REG_CTO	0x0c
++#define	OMAP_MMC_REG_DTO	0x0e
++#define	OMAP_MMC_REG_DATA	0x10
++#define	OMAP_MMC_REG_BLEN	0x12
++#define	OMAP_MMC_REG_NBLK	0x14
++#define	OMAP_MMC_REG_BUF	0x16
++#define	OMAP_MMC_REG_SDIO	0x1a
++#define	OMAP_MMC_REG_REV	0x1e
++#define	OMAP_MMC_REG_RSP0	0x20
++#define	OMAP_MMC_REG_RSP1	0x22
++#define	OMAP_MMC_REG_RSP2	0x24
++#define	OMAP_MMC_REG_RSP3	0x26
++#define	OMAP_MMC_REG_RSP4	0x28
++#define	OMAP_MMC_REG_RSP5	0x2a
++#define	OMAP_MMC_REG_RSP6	0x2c
++#define	OMAP_MMC_REG_RSP7	0x2e
++#define	OMAP_MMC_REG_IOSR	0x30
++#define	OMAP_MMC_REG_SYSC	0x32
++#define	OMAP_MMC_REG_SYSS	0x34
++#else
+ #define	OMAP_MMC_REG_CMD	0x00
+ #define	OMAP_MMC_REG_ARGL	0x04
+ #define	OMAP_MMC_REG_ARGH	0x08
+@@ -64,6 +91,7 @@
+ #define	OMAP_MMC_REG_IOSR	0x60
+ #define	OMAP_MMC_REG_SYSC	0x64
+ #define	OMAP_MMC_REG_SYSS	0x68
 +#endif
+ 
+ #define	OMAP_MMC_STAT_CARD_ERR		(1 << 14)
+ #define	OMAP_MMC_STAT_CARD_IRQ		(1 << 13)
+@@ -524,19 +552,33 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 		}
+ 
+ 		if (status & OMAP_MMC_STAT_CARD_ERR) {
+-			if (host->cmd && host->cmd->opcode == MMC_STOP_TRANSMISSION) {
++			if (host->cmd) {
+ 				u32 response = OMAP_MMC_READ(host, RSP6)
+ 					| (OMAP_MMC_READ(host, RSP7) << 16);
 +
- static int __init udc_init(void)
- {
- 	INFO("%s, version: " DRIVER_VERSION
++				switch (host->cmd->opcode) {
+ 				/* STOP sometimes sets must-ignore bits */
+-				if (!(response & (R1_CC_ERROR
+-								| R1_ILLEGAL_COMMAND
+-								| R1_COM_CRC_ERROR))) {
+-					end_command = 1;
+-					continue;
++				case MMC_STOP_TRANSMISSION:
++					if (!(response & (R1_CC_ERROR |
++							  R1_ILLEGAL_COMMAND |
++							  R1_COM_CRC_ERROR))) {
++						end_command = 1;
++						continue;
++					}
++					break;
++				case MMC_SET_RELATIVE_ADDR:
++					if (!(response & (R1_WP_ERASE_SKIP |
++							  R1_CARD_ECC_DISABLED |
++							  R1_ERASE_RESET))) {
++						end_command = 1;
++						continue;
++					}
++					break;
+ 				}
+ 			}
+ 
+-			dev_dbg(mmc_dev(host->mmc), "card status error (CMD%d)\n",
++			dev_dbg(mmc_dev(host->mmc),
++				"card status error (CMD%d)\n",
+ 				host->cmd->opcode);
+ 			if (host->cmd) {
+ 				host->cmd->error = MMC_ERR_FAILED;
 -- 
 1.5.1.3
