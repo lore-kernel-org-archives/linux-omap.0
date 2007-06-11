@@ -1,60 +1,62 @@
-From: Paulo Marques <pmarques@grupopie.com>
-Subject: Re: PROBLEMS WITH DNS
-Date: Mon, 11 Jun 2007 12:35:29 +0100
-Message-ID: <466D3381.1070304@grupopie.com>
-References: <c7af2a170706081023w25076e1eq4a791b02a977f9f@mail.gmail.com>
-	<4669A194.8090108@mbdsys.com> <4669A88D.4070008@grupopie.com>
-	<200706082132.37911.hjk@linutronix.de>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: twl4030 - converting to new I2C style
+Date: Mon, 11 Jun 2007 17:24:56 +0530
+Message-ID: <5d5443650706110454r1203365exacb8337c11ab1f09@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
-In-Reply-To: <200706082132.37911.hjk@linutronix.de>
-List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://lists.arm.linux.org.uk/pipermail/linux-arm-kernel>
-List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
-List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
-List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
-To: =?ISO-8859-1?Q?Hans-J=FCrgen_Koch?= <hjk@linutronix.de>
-Cc: linux-omap-open-source@linux.omap.com, linux-arm-kernel@lists.arm.linux.org.uk
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: David Brownell <david-b@pacbell.net>, Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hans-Jürgen Koch wrote:
-> Am Freitag 08 Juni 2007 21:05 schrieb Paulo Marques:
-> 
->> The only other argument I can see for in-kernel dhcp is that it is 
->> easier to configure than it is to setup an initramfs filesystem. As soon 
->> as that problem is somehow solved, I don't see the advantage in keeping 
->> the in-kernel version.
-> 
-> Please don't forget the people who mount their root file system via NFS.
-> I'd say this is the main reason for having DHCP in the kernel.
+David,
 
-I can't forget about them, since I'm one of them ;)
+I would like to convert twl4030_core.c (driver for TWL4030 chip
+available on OMAP2430/3430 TI EVM) [1] to new I2C style bindings. But
+it doesn't look straightforward to me compared to menelaus, because
 
-initramfs is built _into_ the kernel image, so it is as available as the 
-kernel image itself.
+* this chip can decode upto four slave addresses (0x48, 0x49, 0x4A,
+0x4B), which we can consider as four different module chips inside one
+twl4030.
 
-The great thing about having initramfs mounting your root filesystem is 
-that it is much more flexible than the kernel can ever be. You can, for 
-instance, setup an ssh tunnel into the nfs server and mount your root 
-file system through there.
+Now as per new I2C style, we bind one i2c_driver with one client,
+matching it (i2c_match) based on it's name in I2C_BOARD_INFO to the
+driver name in order to call probe on that.
 
-There is no ending to the options you have with user space. The problem 
-is that the really simple setups that are today handled internally by 
-the kernel would require more work to setup :(
+Now mapping the same concept here we have four clients which should
+have different name which registering with i2c_regsiter_board_info,
+like this ?
 
++static struct i2c_board_info __initdata sdp2430_i2c_board_info[] = {
++       {
++               I2C_BOARD_INFO("twl4030:0", 0x48),
++       },
++       {
++               I2C_BOARD_INFO("twl4030:1", 0x49),
++       },
++       {
++               I2C_BOARD_INFO("twl4030:2", 0x4A),
++       },
++       {
++               I2C_BOARD_INFO("twl4030:3", 0x4B),
++       },
++};
++
+
+OR should we keep the same name as in i2c_driver.driver.name for all
+four clients above?
+
+[1]
+http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=blob;f=drivers/i2c/chips/twl4030_core.c;h=6123ce893ee731d5fcb0ed3467066e79f3c29571;hb=HEAD
 -- 
-Paulo Marques - www.grupopie.com
-
-"As far as we know, our computer has never had an undetected error."
-Weisert
-
--------------------------------------------------------------------
-List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
-FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
-Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
+--Trilok Soni
