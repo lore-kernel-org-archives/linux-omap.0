@@ -1,12 +1,18 @@
-From: Thiago Rivera Back <thiago.back@lactec.org.br>
-Subject: Linux and timers
-Date: Mon, 11 Jun 2007 10:22:19 -0300
-Message-ID: <1D091BF5B91DF24EBE23721416789F692DC4EA1A38@prcpex.LACTEC.NET>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP: Add menelaus chip info for N800
+Date: Mon, 11 Jun 2007 06:31:22 -0700
+Message-ID: <20070611133121.GL16039@atomide.com>
+References: <5d5443650705260129v3f118e25pc4ded86b1ccb57f3@mail.gmail.com>
+	<5d5443650706050429w4dd1f9a3i88bea4880c988b2f@mail.gmail.com>
+	<46657635.7060902@indt.org.br>
+	<5d5443650706060034o7ded97a7red9b02ca549a9d28@mail.gmail.com>
+	<46670F42.40800@indt.org.br>
+	<5d5443650706062229w3c65145ekee52f30dfc2d014e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Language: pt-BR
+Content-Disposition: inline
+In-Reply-To: <5d5443650706062229w3c65145ekee52f30dfc2d014e@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,6 +22,93 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Lista OMAP <linux-omap-open-source@linux.omap.com>
+To: Trilok Soni <soni.trilok@gmail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+* Trilok Soni <soni.trilok@gmail.com> [070606 22:29]:
+> On 6/7/07, Carlos Aguiar <carlos.aguiar@indt.org.br> wrote:
+>> ext Trilok Soni wrote:
+>> > On 6/5/07, Carlos Aguiar <carlos.aguiar@indt.org.br> wrote:
+>> >> ext Trilok Soni wrote:
+>> >> > Let me know if anybody tested this patch on N800. Thanx.
+>> >> >
+>> >> > ---Trilok Soni
+>> >> >
+>> >> > On 5/26/07, Trilok Soni <soni.trilok@gmail.com> wrote:
+>> >> >> n800 changes are compile tested only. Please test.
+>> >> >>
+>> >> >> --
+>> >> >> --Trilok Soni
+>> >> >>
+>> >> >>
+>> >> > _______________________________________________
+>> >> > Linux-omap-open-source mailing list
+>> >> > Linux-omap-open-source@linux.omap.com
+>> >> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>> >> >
+>> >> Hi Tony and Trilok,
+>> >>
+>> >> I've tested the patches
+>> >> 0001-ARM-OMAP-Use-new-style-I2C-driver-for-Menelaus-chip.patch
+>> >> 
+>> (http://linux.omap.com/pipermail/linux-omap-open-source/2007-May/010100.html)
+>> >>
+>> >> and 0003-ARM-OMAP-Add-menelaus-chip-info-for-N800.patch
+>> >> 
+>> (http://linux.omap.com/pipermail/linux-omap-open-source/2007-May/010102.html)
+>> >>
+>> >>
+>> >> by applying it together over MMC multislot support patches series for
+>> >> N800 and looks fine (both slots with MMC, SD and SDHC cards).
+>> >>
+>> >> To test it, I'm using linux-omap tree, on commit
+>> >> 9a0fba3f2ca8e58a1465d6c3c18f9f334d054304). Today I'll test with most
+>> >> updated tree.
+>> >>
+>> >
+>> > Thanx for the testing. Please share the result once you test it with
+>> > latest tree.
+>> >
+>> Hi folks,
+>>
+>> Well, testing with most update linux-omap tree, I'm having some warnings
+>> compilations (with or without patches series applied):
+>>
+>> WARNING: arch/arm/mach-omap2/built-in.o(.data+0x674): Section mismatch:
+>> reference to .init.text:omap2_clk_disable_unused (between
+>> 'omap2_clk_functions' and 'onchip_clks')
+>> WARNING: arch/arm/vfp/built-in.o(.data+0x0): Section mismatch: reference
+>> to .init.text:vfp_testing_entry (between 'vfp_vector' and
+>> 'vfp_notifier_block')
+>> WARNING: arch/arm/plat-omap/built-in.o(.data+0x95c): Section mismatch:
+>> reference to .init.text:omap_timer_init (between 'omap_timer' and
+>> 'omap_32k_timer_irq'
+>
+> These warnings are already discussed on mailing list. Better to ignore
+> it for now.
+>
+>>
+>> and when starting the device I get the following message:
+>>
+>> ...
+>> Starting MAEMO AF Desktop
+>> matchbox-wm: can't open display! check your DISPLAY variable.
+>> DSME: process '/usr/bin/matchbox-window-manager -theme default
+>> -use_titlebar yes -use_desktop_mode plain -use_lowlight no -use_cursor
+>> yes -use_dialog_mode s1DSME: process '/usr/bin/matchbox-window-manager
+>> -theme default -use_titlebar yes -use_desktop_mode plain -use_lowlight
+>> no -use_cursor yes -use_dialog_mode sd and restarted with pid 1646
+>> Segmentation fault
+>> ...
+>>
+>> And then not starting the graphical environment. :(
+>>
+>> Anyway, by enabling debugging messages, the MMC looks fine.
+>>
+>
+> Thanx. Tony, please push menelaus related patches from me and David.
+
+Yeah I will.
+
+Tony
