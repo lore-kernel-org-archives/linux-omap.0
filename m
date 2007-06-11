@@ -1,14 +1,12 @@
-From: Thiago Rivera Back <thiago.back@lactec.org.br>
-Subject: Linux and timers
-Date: Mon, 11 Jun 2007 11:13:07 -0300
-Message-ID: <1D091BF5B91DF24EBE23721416789F692DC4EA1A39@prcpex.LACTEC.NET>
-References: <1D091BF5B91DF24EBE23721416789F692DC4EA1A38@prcpex.LACTEC.NET>
+From: "Pharaoh ." <pharaoh137@gmail.com>
+Subject: Query regarding omap_set_dma_transfer_params()
+Date: Mon, 11 Jun 2007 20:26:11 +0530
+Message-ID: <61445c750706110756k39f09613ge0e7eedd0befe51f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1D091BF5B91DF24EBE23721416789F692DC4EA1A38@prcpex.LACTEC.NET>
-Content-Language: pt-BR
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,6 +16,35 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Thiago Rivera Back <thiago.back@lactec.org.br>, Lista OMAP <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
+
+I am trying to configure the DMA channels in my ALSA driver.  Functions like
+
+
+void omap_set_dma_dest_params(int lch, int dest_port, int dest_amode,
+                              unsigned long dest_start,
+                              int dst_ei, int dst_fi)
+and omap_set_dma_src_params() are used for configuration.
+
+What the last two fields i.e dst_ie and dst_fi mean here?
+
+I think this has to do something with interrupts etc but not sure about it.
+Also
+I couldn't see those fields being populated anywhere in source (they are 0
+everywhere).
+I am referring 2.6.19-omap1.
+
+Also, I think that these are unnecessarily exported, since the function
+omap_set_dma_params()
+is already exported and it calls the above mentioned functions.  And
+normally the sequence of
+configuring the DMA channel is like
+
+-set src params
+-set dest params
+-set transfer params
+
+-pharaoh.
