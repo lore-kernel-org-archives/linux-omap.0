@@ -1,13 +1,14 @@
-From: Cyrille Chartrain <cyrille.chartrain@purplelabs.com>
+From: mirmit <mirmit@bouillot.org>
 Subject: Re: OMAP1710 - Accessing audio codec from arm cpu
-Date: Tue, 12 Jun 2007 11:24:51 +0200
-Message-ID: <466E6663.1080202@purplelabs.com>
-References: <466D6E01.1020402@purplelabs.com>
+Date: Tue, 12 Jun 2007 11:55:07 +0200
+Message-ID: <986017390706120255n1b5336b2ub696e9174df1ec9a@mail.gmail.com>
+References: <9057093.1181555121733.JavaMail.root@ps5>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <466D6E01.1020402@purplelabs.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <9057093.1181555121733.JavaMail.root@ps5>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,27 +16,44 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "lbozzi@tiscali.it" <lbozzi@tiscali.it>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Cyrille Chartrain wrote:
-> I do not know the N80, but if the DSP is used, then your audio codec 
-> is probably connected to the DSP via the McBSP1, which is in the DSP 
-> domain.
-> Accessing the audio samples via the ARM would be possible if McBSP2 is 
-> used instead of McBSP1 since McBSP2 is in the ARM domain.
-> So without a HW modification, I do not see a possibility here.
->
-> Regards,
->
-> Cyrille
->
-Correction: McBSP1 is accessible by the DSP but also by ARM according to 
-the datasheet (this is not clearly written, but the McBSP registers
-section gives the MPU address for McBSP1).
-So if you manage to stop the DSP execution, you might have a solution.
-Sorry for the first wrong answer.
+Are you talking about N80 or N800? N80 is not running Linux - out of the box
+- and more likely doesn't expose API to talk with the DSP or control the
+hardware. However, there is plenty of API to take advantage of the
+multimedia peripheral of the device.
 
-Cyrille
+Maybe you can elaborate a bit.
+
+Mirmit
+
+2007/6/11, lbozzi@tiscali.it <lbozzi@tiscali.it>:
+>
+>
+> Hi all,
+>
+> I'm a newbie in omap architectures, so I beg your pardon If my question
+> has an obvious answer.
+>
+> I'd like to know if it's possible read/write audio samples in omap1710
+> (it's a Nokia N80) directly from arm cpu, "bypassing" C55xx DSP. I'm
+> developing a custom application for such a device but cannot modify DSP
+> code.
+>
+> Thanks in advance for your replies,
+>
+> Best Regards,
+>
+> --Luciano BOZZI
+> Naviga e telefona senza limiti con Tiscali
+> Scopri le promozioni Tiscali Adsl: navighi e telefoni senza canone Telecom
+> http://abbonati.tiscali.it/adsl/
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
