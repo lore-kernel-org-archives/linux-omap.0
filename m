@@ -1,13 +1,14 @@
 From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: [PATCH 10/12] Add support for HTC Typhoon leds.
-Date: Tue, 12 Jun 2007 17:04:02 +0530
-Message-ID: <5d5443650706120434o582ca28ahddd393fa9d258e5f@mail.gmail.com>
-References: <466AE46B.3010605@free.fr>
+Subject: Re: [PATCH 11/12] Add support for keys setting multiple bits in the
+	scan
+Date: Tue, 12 Jun 2007 17:17:47 +0530
+Message-ID: <5d5443650706120447s5ca15d8ctb15464eba0a24f35@mail.gmail.com>
+References: <466AE4CF.2010103@free.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <466AE46B.3010605@free.fr>
+In-Reply-To: <466AE4CF.2010103@free.fr>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -23,266 +24,300 @@ Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
 On 6/9/07, Vivien Chappelier <vivien.chappelier@free.fr> wrote:
-> This patch add support for the HTC Typhoon tricolor led.
+> This patch adds support for keypads with keys setting multiple bits in
+> the scan
+> when they are pressed. An example of such keys is the HTC Typhoon stick for
+> which scanning column zero will return the following bit patterns
+> depending on
+> the direction:
+>
+> LEFT:  00000011
+> RIGHT: 00001100
+> UP:    00000101
+> DOWN:  00001010
+>
+> In this case, the key being pressed cannot be determined from a single bit.
 >
 > Signed-off-by: Vivien Chappelier <vivien.chappelier@free.fr>
 >
 > ---
->  arch/arm/mach-omap1/Makefile       |    1 +
->  arch/arm/mach-omap1/leds-typhoon.c |  184
-> ++++++++++++++++++++++++++++++++++++
->  arch/arm/mach-omap1/leds.c         |    3 +
->  arch/arm/mach-omap1/leds.h         |    1 +
->  4 files changed, 189 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/mach-omap1/leds-typhoon.c
+>  arch/arm/mach-omap1/board-ams-delta.c |    2 -
+>  arch/arm/mach-omap1/board-fsample.c   |    1 -
+>  arch/arm/mach-omap1/board-h2.c        |    3 +-
+>  arch/arm/mach-omap1/board-h3.c        |    3 +-
+>  arch/arm/mach-omap1/board-innovator.c |    3 +-
+>  arch/arm/mach-omap1/board-nokia770.c  |    1 -
+>  arch/arm/mach-omap1/board-osk.c       |    1 -
+>  arch/arm/mach-omap1/board-palmte.c    |    1 -
+>  arch/arm/mach-omap1/board-palmz71.c   |    1 -
+>  arch/arm/mach-omap1/board-perseus2.c  |    3 +-
+>  arch/arm/mach-omap1/board-sx1.c       |    1 -
+>  arch/arm/mach-omap1/board-typhoon.c   |   61 +++++++++++++++++
+>  arch/arm/mach-omap2/board-2430sdp.c   |    1 -
+>  arch/arm/mach-omap2/board-h4.c        |    3 +-
+>  drivers/input/keyboard/omap-keypad.c  |  117
+> +++++++++++++++++----------------
+>  include/asm-arm/arch-omap/keypad.h    |   12 +++-
+>  16 files changed, 134 insertions(+), 80 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-> index 9f6bcbb..5153e43 100644
-> --- a/arch/arm/mach-omap1/Makefile
-> +++ b/arch/arm/mach-omap1/Makefile
-> @@ -46,4 +46,5 @@ led-$(CONFIG_MACH_OMAP_H3)        += leds-h2p2-debug.o
->  led-$(CONFIG_MACH_OMAP_INNOVATOR)    += leds-innovator.o
->  led-$(CONFIG_MACH_OMAP_PERSEUS2)    += leds-h2p2-debug.o
->  led-$(CONFIG_MACH_OMAP_OSK)        += leds-osk.o
-> +led-$(CONFIG_MACH_TYPHOON)        += leds-typhoon.o
->  obj-$(CONFIG_LEDS)            += $(led-y)
-> diff --git a/arch/arm/mach-omap1/leds-typhoon.c
-> b/arch/arm/mach-omap1/leds-typhoon.c
-> new file mode 100644
-> index 0000000..eff868f
-> --- /dev/null
-> +++ b/arch/arm/mach-omap1/leds-typhoon.c
-> @@ -0,0 +1,184 @@
-> +/*
-> + * linux/arch/arm/mach-omap1/leds-typhoon.c
+
+...
+
+> +
+> +static struct resource kp_resources[] = {
+
+better if it is renamed as "typhoon_kp_resources"
+
+> +    [0] = {
+> +        .start    = INT_730_MPUIO_KEYPAD,
+> +        .end    = INT_730_MPUIO_KEYPAD,
+> +        .flags    = IORESOURCE_IRQ,
+> +    },
+> +};
+> +
+> +static struct omap_kp_platform_data kp_data = {
+
+better if it is renamed as "typhoon_kp_data"
+
+> +    .rows        = 8,
+> +    .cols        = 8,
+> +    .keymap        = typhoon_keymap,
+> +    .keymapsize    = ARRAY_SIZE(typhoon_keymap),
+> +    .delay        = 20, /* XXX: find actual value */
+> +};
+> +
+> +static struct platform_device kp_device = {
+
+better if it is renamed as "typhoon_kp_device"
+
+> +    .name        = "omap-keypad",
+> +    .id        = -1,
+> +    .dev        = {
+> +        .platform_data = &kp_data,
+> +    },
+> +    .num_resources    = ARRAY_SIZE(kp_resources),
+> +    .resource    = kp_resources,
+> +};
+> +
+
+...
+
+> --- a/drivers/input/keyboard/omap-keypad.c
+> +++ b/drivers/input/keyboard/omap-keypad.c
+> @@ -9,6 +9,9 @@
+>   * Added support for H2 & H3 Keypad
+>   * Copyright (C) 2004 Texas Instruments
+>   *
+> + * Added support for HTC Typhoon and multiple key events
+> + * Copyright (C) 2005 Vivien Chappelier
 > + *
-> + * Copyright 2005 Vivien Chappelier <vivien.chappelier@free.fr>
-> + *   Modified from leds-h2p2-debug.c
-> + *
-> + * The HTC Typhoon has a tricolor led. Timers can be setup the 'red'
-> + * and 'green' components for blinking. The 'blue' component is on/off
-> only.
-> + */
-> +#include <linux/init.h>
-> +#include <linux/kernel_stat.h>
-> +#include <linux/sched.h>
-> +#include <linux/version.h>
+>   * This program is free software; you can redistribute it and/or modify
+>   * it under the terms of the GNU General Public License as published by
+>   * the Free Software Foundation; either version 2 of the License, or
+> @@ -49,7 +52,7 @@
+>  static void omap_kp_tasklet(unsigned long);
+>  static void omap_kp_timer(unsigned long);
+>
+> -static unsigned char keypad_state[8];
+> +static u64 keypad_state;
+>  static DEFINE_MUTEX(kp_enable_mutex);
+>  static int kp_enable = 1;
+>  static int kp_cur_group = -1;
+> @@ -68,7 +71,8 @@ struct omap_kp {
+>
+>  DECLARE_TASKLET_DISABLED(kp_tasklet, omap_kp_tasklet, 0);
+>
+> -static int *keymap;
+> +static unsigned int keymap_size;
+> +static struct kp_key *keymap;
+>  static unsigned int *row_gpios;
+>  static unsigned int *col_gpios;
+>
+> @@ -131,9 +135,11 @@ static void omap_kp_timer(unsigned long data)
+>      tasklet_schedule(&kp_tasklet);
+>  }
+>
+> -static void omap_kp_scan_keypad(struct omap_kp *omap_kp, unsigned char
+> *state)
+> +static u64 omap_kp_scan_keypad(struct omap_kp *omap_kp)
+>  {
+> -    int col = 0;
+> +    u64 state = 0;
+> +    u64 reg;
+> +    int col;
+>
+>      /* read the keypad status */
+>      if (cpu_is_omap24xx()) {
+> @@ -144,7 +150,8 @@ static void omap_kp_scan_keypad(struct omap_kp
+> *omap_kp, unsigned char *state)
+>          /* read the keypad status */
+>          for (col = 0; col < omap_kp->cols; col++) {
+>              set_col_gpio_val(omap_kp, ~(1 << col));
+> -            state[col] = ~(get_row_gpio_val(omap_kp)) & 0x3f;
+> +            state |= ((u64) ~(get_row_gpio_val(omap_kp)) & 0x3f)
+> +                << (8 * col);
+>          }
+>          set_col_gpio_val(omap_kp, 0);
+>
+> @@ -160,74 +167,67 @@ static void omap_kp_scan_keypad(struct omap_kp
+> *omap_kp, unsigned char *state)
+>
+>              udelay(omap_kp->delay);
+>
+> -            state[col] = ~omap_readw(OMAP_MPUIO_BASE +
+> -                         OMAP_MPUIO_KBR_LATCH) & 0xff;
+> +            reg = omap_readw(OMAP_MPUIO_BASE +
+> +                     OMAP_MPUIO_KBR_LATCH);
+> +            state |= ((u64) ~reg & 0xff) << (8 * col);
+>          }
+>          omap_writew(0x00, OMAP_MPUIO_BASE + OMAP_MPUIO_KBC);
+>          udelay(2);
+>      }
+> -}
+>
+> -static inline int omap_kp_find_key(int col, int row)
+> -{
+> -    int i, key;
+> -
+> -    key = KEY(col, row, 0);
+> -    for (i = 0; keymap[i] != 0; i++)
+> -        if ((keymap[i] & 0xff000000) == key)
+> -            return keymap[i] & 0x00ffffff;
+> -    return -1;
+> +    return(state);
+>  }
+>
+>  static void omap_kp_tasklet(unsigned long data)
+>  {
+>      struct omap_kp *omap_kp_data = (struct omap_kp *) data;
+> -    unsigned char new_state[8], changed, key_down = 0;
+> -    int col, row;
+> +    u64 keycode, keymask, pending;
+> +    int i;
+> +    int key, pressed;
+>      int spurious = 0;
+>
+>      /* check for any changes */
+> -    omap_kp_scan_keypad(omap_kp_data, new_state);
+> -
+> -    /* check for changes and print those */
+> -    for (col = 0; col < omap_kp_data->cols; col++) {
+> -        changed = new_state[col] ^ keypad_state[col];
+> -        key_down |= new_state[col];
+> -        if (changed == 0)
+> -            continue;
+> -
+> -        for (row = 0; row < omap_kp_data->rows; row++) {
+> -            int key;
+> -            if (!(changed & (1 << row)))
+> -                continue;
+> +    keycode = omap_kp_scan_keypad(omap_kp_data);
+> +    keymask = keycode ^ keypad_state;
 > +
-> +#include <asm/io.h>
-> +#include <asm/hardware.h>
-> +#include <asm/leds.h>
-> +#include <asm/system.h>
-> +
-> +#include <asm/arch/gpio.h>
-> +#include <asm/arch/board-typhoon.h>
-> +
-> +#include "leds.h"
-> +
-> +/* led registers */
-> +#define TYPHOON_LED_STATUS_ON       1
-> +#define TYPHOON_LED_STATUS_OFF      0
-> +#define TYPHOON_LED_STATUS_BLINK(on, off) (((on) << 2) | ((off) << 17))
-> +
-> +#define TYPHOON_LED_BASE   0xfffba800
-> +#define TYPHOON_LED_ENABLE 0xfffba801
-> +#    define LED_ON         (1 << 7)
-> +#    define LED_BLINK      (1 << 6)
-> +#    define LED_ONTIME(x)  ((x) & 0x7)
-> +#    define LED_OFFTIME(x) (((x) & 0x7) << 3)
-> +
-> +/* led status */
-> +#define LED_STATE_ENABLED     (1 << 7)
-> +#define LED_STATE_CLAIMED     (1 << 6)
-> +#define LED_BLUE  (1 <<  0)
-> +#define LED_GREEN (1 <<  1)
-> +#define LED_RED   (1 <<  2)
-> +#define LED_MASK (LED_BLUE | LED_GREEN | LED_RED)
-> +
-> +#define LED_TIMER LED_GREEN
-> +#define LED_CPU   LED_RED
-> +
-> +/* route power to the tricolor led */
-> +static void typhoon_start_led(void)
-> +{
-> +    omap_writel(omap_readl(OMAP730_IO_CONF_10) & ~0x20,
-> OMAP730_IO_CONF_10);
-> +    omap_writel(omap_readl(OMAP730_IO_CONF_10) |  0xd0,
-> OMAP730_IO_CONF_10);
-> +    omap_set_gpio_direction(TYPHOON_GPIO_LED_BLUE, 0); /* out */
-> +
-> +    omap_writel(omap_readl(OMAP730_MODE_1) | (1 << 29), OMAP730_MODE_1);
-> +    omap_writeb(LED_ON, TYPHOON_LED_BASE);
-> +    omap_writeb(1, TYPHOON_LED_ENABLE);
-> +}
-> +
-> +/* power off the tricolor led */
-> +static void typhoon_stop_led(void)
-> +{
-> +    omap_writel(omap_readl(OMAP730_MODE_1) & ~(1 << 29), OMAP730_MODE_1);
-> +    omap_writeb(0, TYPHOON_LED_BASE);
-> +    omap_writeb(0, TYPHOON_LED_ENABLE);
-> +}
-> +
-> +/* set the 'blue', 'green' and 'red' components of the tricolor led */
-> +static void typhoon_set_led(int led)
-> +{
-> +    if(led & LED_BLUE)
+>  #ifdef NEW_BOARD_LEARNING_MODE
+> -            printk(KERN_INFO "omap-keypad: key %d-%d %s\n", col,
+> -                   row, (new_state[col] & (1 << row)) ?
+> -                   "pressed" : "released");
+> +    if(keymask)
 
 space before opening parenthesis.
 
-> +        omap_set_gpio_dataout(TYPHOON_GPIO_LED_BLUE, 1);
-> +    else
-> +        omap_set_gpio_dataout(TYPHOON_GPIO_LED_BLUE, 0);
-> +
-> +    if(led & (LED_RED | LED_GREEN)) {
+> +        printk(KERN_INFO "omap-keypad: key 0x%llx %s\n",
+> +               keymask, (keycode & keymask) ? "pressed" : "released");
+>  #else
+> -            key = omap_kp_find_key(col, row);
+> -            if (key < 0) {
+> -                printk(KERN_WARNING
+> -                      "omap-keypad: Spurious key event %d-%d\n",
+> -                       col, row);
+> -                /* We scan again after a couple of seconds */
+> -                spurious = 1;
+> -                continue;
+> +    /* find the corresponding key */
+> +    pending = 0;
+> +    for (i = 0; i < keymap_size; i++)
+> +        if (keymap[i].keycode & keymask) {
+> +            if((keymap[i].keycode & keymask) != keymap[i].keycode)
 
-Ditto.
+space before opening parenthesis.
 
-> +        if(led & LED_GREEN) {
-
-Ditto.
-> +            omap_set_gpio_direction(TYPHOON_GPIO_LED_GREEN, 1);
-> +        } else {
-> +            omap_set_gpio_direction(TYPHOON_GPIO_LED_GREEN, 0);
-> +            omap_set_gpio_dataout(TYPHOON_GPIO_LED_GREEN, 0);
-> +        }
+> +                pending |= keymask & keymap[i].keycode;
+> +            else {
+> +                /* all key events received */
+> +                key = keymap[i].key;
+> +                pressed = (keycode & keymap[i].keycode)?1:0;
+> +                pending &= ~keymap[i].keycode;
+> +                keymask &= ~keymap[i].keycode;
+> +                if (!(kp_cur_group == (key & GROUP_MASK) ||
+> +                      kp_cur_group == -1))
+> +                    continue;
 > +
-> +        if(led & LED_RED) {
-
-Ditto.
-
-> +            omap_set_gpio_direction(TYPHOON_GPIO_LED_RED, 1);
-> +        } else {
-> +            omap_set_gpio_direction(TYPHOON_GPIO_LED_RED, 0);
-> +            omap_set_gpio_dataout(TYPHOON_GPIO_LED_RED, 0);
-> +        }
-> +    } else {
-> +        omap_set_gpio_direction(TYPHOON_GPIO_LED_GREEN, 0);
-> +        omap_set_gpio_dataout(TYPHOON_GPIO_LED_GREEN, 0);
-> +        omap_set_gpio_direction(TYPHOON_GPIO_LED_RED, 0);
-> +        omap_set_gpio_dataout(TYPHOON_GPIO_LED_RED, 0);
-> +    }
-> +}
+> +                kp_cur_group = key & GROUP_MASK;
+> +                input_report_key(omap_kp_data->input,
+> +                         key & ~GROUP_MASK, pressed);
+>              }
+> -
+> -            if (!(kp_cur_group == (key & GROUP_MASK) ||
+> -                  kp_cur_group == -1))
+> -                continue;
+> -
+> -            kp_cur_group = key & GROUP_MASK;
+> -            input_report_key(omap_kp_data->input, key & ~GROUP_MASK,
+> -                     new_state[col] & (1 << row));
+> -#endif
+>          }
 > +
-> +
-> +void typhoon_leds_event(led_event_t evt)
-> +{
-> +    unsigned long flags;
-> +
-> +    static u16 led_state, hw_led_state;
-> +
-> +    local_irq_save(flags);
-> +
-> +    if (!(led_state & LED_STATE_ENABLED) && evt != led_start)
-> +        goto done;
-> +
-> +    switch (evt) {
-> +    case led_start:
-> +        typhoon_start_led();
-> +        led_state |= LED_STATE_ENABLED;
-> +        break;
-> +
-> +    case led_stop:
-> +    case led_halted:
-> +        /* all leds off during suspend or shutdown */
-> +        typhoon_set_led(0);
-> +        typhoon_stop_led();
-> +        goto done;
-> +
-> +    case led_claim:
-> +        led_state |= LED_STATE_CLAIMED;
-> +        hw_led_state = 0;
-> +        break;
-> +
-> +    case led_release:
-> +        led_state &= ~LED_STATE_CLAIMED;
-> +        break;
-> +
-> +#ifdef CONFIG_LEDS_TIMER
-> +    case led_timer:
-> +        led_state ^= LED_TIMER;
-> +        break;
+> +    if (keymask & ~pending) {
+> +        printk(KERN_WARNING "omap-keypad: Spurious key event 0x%llx\n",
+> +               keymask);
+> +        /* We scan again after a couple of seconds */
+> +        spurious = 1;
+> +        keymask &= pending;
+>      }
+> -    memcpy(keypad_state, new_state, sizeof(keypad_state));
 > +#endif
-> +
-> +#ifdef CONFIG_LEDS_CPU
-> +    case led_idle_start:
-> +        led_state &= ~LED_CPU;
-> +        break;
-> +
-> +    case led_idle_end:
-> +        led_state |= LED_CPU;
-> +        break;
-> +#endif
-> +
-> +    case led_green_on:
-> +        hw_led_state |= LED_GREEN;
-> +        break;
-> +    case led_green_off:
-> +        hw_led_state &= ~LED_GREEN;
-> +        break;
-> +
-> +    case led_red_on:
-> +        hw_led_state |= LED_RED;
-> +        break;
-> +    case led_red_off:
-> +        hw_led_state &= ~LED_RED;
-> +        break;
-> +
-> +    case led_blue_on:
-> +        hw_led_state |= LED_BLUE;
-> +        break;
-> +    case led_blue_off:
-> +        hw_led_state &= ~LED_BLUE;
-> +        break;
-> +
-> +    default:
-> +        break;
-> +    }
-> +
-> +
-> +    /*
-> +     *  Actually burn the LEDs
-> +     */
-> +    if (led_state & LED_STATE_CLAIMED)
-> +        typhoon_set_led(hw_led_state);
-> +    else
-> +        typhoon_set_led(led_state & LED_MASK);
-> +
-> +done:
-> +    local_irq_restore(flags);
-> +}
-> diff --git a/arch/arm/mach-omap1/leds.c b/arch/arm/mach-omap1/leds.c
-> index 3f9dcac..59b7135 100644
-> --- a/arch/arm/mach-omap1/leds.c
-> +++ b/arch/arm/mach-omap1/leds.c
-> @@ -28,6 +28,9 @@ omap_leds_init(void)
->      else if (machine_is_omap_osk())
->          leds_event = osk_leds_event;
+> +    keypad_state = keycode ^ keymask;
 >
-> +    else if (machine_is_typhoon())
-> +        leds_event = typhoon_leds_event;
-> +
->      else
->          return -1;
+> -    if (key_down) {
+> +    if (keycode) {
+>                  int delay = HZ / 20;
+>          /* some key is pressed - keep irq disabled and use timer
+>           * to poll the keypad */
+> @@ -343,6 +343,7 @@ static int __init omap_kp_probe(struct
+> platform_device *pdev)
+>          omap_writew(1, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
 >
-> diff --git a/arch/arm/mach-omap1/leds.h b/arch/arm/mach-omap1/leds.h
-> index a1e9fed..1760eb0 100644
-> --- a/arch/arm/mach-omap1/leds.h
-> +++ b/arch/arm/mach-omap1/leds.h
-> @@ -1,3 +1,4 @@
->  extern void innovator_leds_event(led_event_t evt);
->  extern void h2p2_dbg_leds_event(led_event_t evt);
->  extern void osk_leds_event(led_event_t evt);
-> +extern void typhoon_leds_event(led_event_t evt);
-> --
-> 1.5.1.3
+>      keymap = pdata->keymap;
+> +    keymap_size = pdata->keymapsize;
 >
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>      if (pdata->rep)
+>          set_bit(EV_REP, input_dev->evbit);
+> @@ -393,9 +394,9 @@ static int __init omap_kp_probe(struct
+> platform_device *pdev)
 >
+>      /* setup input device */
+>      set_bit(EV_KEY, input_dev->evbit);
+> -    for (i = 0; keymap[i] != 0; i++)
+> -        set_bit(keymap[i] & KEY_MAX, input_dev->keybit);
+> -    input_dev->name = "omap-keypad";
+> +    for (i = 0; i < keymap_size; i++)
+> +        set_bit(keymap[i].key & KEY_MAX, input_dev->keybit);
+> +     input_dev->name = "omap-keypad";
+>      input_dev->phys = "omap-keypad/input0";
+>      input_dev->dev.parent = &pdev->dev;
+>
+> @@ -418,7 +419,7 @@ static int __init omap_kp_probe(struct
+> platform_device *pdev)
+>          omap_writew(0xff, OMAP_MPUIO_BASE + OMAP_MPUIO_GPIO_DEBOUNCING);
+>
+>      /* scan current status and enable interrupt */
+> -    omap_kp_scan_keypad(omap_kp, keypad_state);
+> +    keypad_state = omap_kp_scan_keypad(omap_kp);
+>      if (!cpu_is_omap24xx()) {
+>          omap_kp->irq = platform_get_irq(pdev, 0);
+>          if (omap_kp->irq >= 0) {
 
+...
 
 -- 
 --Trilok Soni
