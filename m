@@ -1,14 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 6/12] Allow framebuffer in SRAM and do not touch
-	framebuffer SRAM on boot.
-Date: Tue, 12 Jun 2007 06:27:16 -0700
-Message-ID: <20070612132715.GE28834@atomide.com>
-References: <466AE339.4060506@free.fr>
+Subject: Re: [PATCH 12/12] Move omap_timer to the initdata section.
+Date: Tue, 12 Jun 2007 06:31:29 -0700
+Message-ID: <20070612133129.GF28834@atomide.com>
+References: <466AE4F5.3010101@free.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <466AE339.4060506@free.fr>
+In-Reply-To: <466AE4F5.3010101@free.fr>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,50 +21,30 @@ To: Vivien Chappelier <vivien.chappelier@free.fr>
 Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Vivien Chappelier <vivien.chappelier@free.fr> [070609 10:31]:
-> On HTC smartphones, the LCD controller is already running in SRAM at boot 
-> time.
-> Therefore, clearing the SRAM before the controller is turned off will hang 
-> it,
-> and attemps to reset it later during the initialization of the LCD will not
-> work. This patch reserves the SRAM part where the framebuffer 'palette' is
-> located so that it is not cleared at boot time on HTC phones. It also fixes
-> support for LCD DMA in the SRAM region.
+* Vivien Chappelier <vivien.chappelier@free.fr> [070609 10:41]:
+> This patch fixes a warning due to omap_timer not belonging to the 
+> __initdata
+> section as it should.
 >
 > Signed-off-by: Vivien Chappelier <vivien.chappelier@free.fr>
 >
 > ---
-> arch/arm/plat-omap/dma.c  |   12 ++++++++++++
-> arch/arm/plat-omap/sram.c |    2 ++
-> 2 files changed, 14 insertions(+), 0 deletions(-)
+> arch/arm/mach-omap1/time.c |    2 +-
+> 1 files changed, 1 insertions(+), 1 deletions(-)
 >
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index 05a3849..6e83f85 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -47,6 +47,8 @@
-> #define OMAP_FUNC_MUX_ARM_BASE    (0xfffe1000 + 0xec)
-> +#define OMAP_SRAM_BASE          0x20000000
-> +
-> static int enable_1510_mode = 0;
-> struct omap_dma_lch {
-> @@ -1176,6 +1178,16 @@ static void set_b1_regs(void)
->     }
->     if (omap_dma_in_1510_mode()) {
-> +
-> +        if(top >= OMAP_SRAM_BASE && bottom >= OMAP_SRAM_BASE) {
-> +            omap_writew(1 << 6, OMAP1510_DMA_LCD_CTRL); /* SRAM */
-> +        } else if(top < OMAP_SRAM_BASE && bottom < OMAP_SRAM_BASE) {
-> +            omap_writew(0, OMAP1510_DMA_LCD_CTRL);     /* SDRAM */
-> +        } else {
-> +            printk(KERN_ERR "LCD DMA across SDRAM and SRAM\n");
-> +            BUG();
-> +        }
-> +
->         omap_writew(top >> 16, OMAP1510_DMA_LCD_TOP_F1_U);
->         omap_writew(top, OMAP1510_DMA_LCD_TOP_F1_L);
->         omap_writew(bottom >> 16, OMAP1510_DMA_LCD_BOT_F1_U);
+> diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
+> index 3705d20..0ba739c 100644
+> --- a/arch/arm/mach-omap1/time.c
+> +++ b/arch/arm/mach-omap1/time.c
+> @@ -289,6 +289,6 @@ static void __init omap_timer_init(void)
+>     omap_init_clocksource(rate);
+> }
+> -struct sys_timer omap_timer = {
+> +struct sys_timer omap_timer __initdata = {
+>     .init        = omap_timer_init,
+> };
 
-Please tabify above, and add a space after if( to be if (.
+We cannot drop sys_timer, it's needed. There have been posts about
+this on the list before :)
 
 Tony
