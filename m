@@ -1,9 +1,8 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
 Subject: RE: new PRCM breakage: 2430 FB
-Date: Mon, 11 Jun 2007 22:58:30 -0500
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429012C43D6@dlee13.ent.ti.com>
-References: <9C23CDD79DA20A479D4615857B2E2C47011217D9@dlee13.ent.ti.com><46689339.5000304@mvista.com>
-	<Pine.LNX.4.64.0706111821110.28778@utopia.booyaka.com>
+Date: Mon, 11 Jun 2007 23:25:41 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C470117CC01@dlee13.ent.ti.com>
+References: <Pine.LNX.4.64.0706111821110.28778@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -24,34 +23,19 @@ To: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@mvista.com>
 Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-> > omapfb omapfb: soft reset failed
-> >
-> > omapfb omapfb: controller initialization failed (-19)
->=20
-> Hi Kevin,
->=20
-> the 'soft reset failed' message is coming from
-> drivers/video/omap/dispc.c:1391.
->=20
-> The only PRCM-related code near that function is the display clock
-> enable code, which, as Khasim mentioned, uses dss_ick, dss1_fck, and
-> dss_54m_fck.  I just went back and checked the PRCM changes for those
-> three clocks and omap2_clk_enable(), and they look good.
 
-The 2420 usually gives something like that for DSS.
+>Could be a TWL4030 problem given the lack of power.
 
-If you just look at the IDLST bit it won't show accessible.  The DSS is =
-supposed to be a combination initiator/target.  However the target side =
-is not internally hooked up.
+Actually the LDO enabling logic should not be part of LCD, the UI Board =
+peripherals TouchScreen, LCD, IrDA~ depends on this.=20
 
-The status bit won't show proper status unless the DSS initiator is out =
-of mute.  I've found a write to the OCP wrapper will result in it coming =
-to life.  This was one of the exceptions when compared to other modules. =
- There is a deterministic wait time which can be applied after turning =
-on clocks.
+This functionality should be moved to board dependent files and should =
+be independently called from respective drivers (all), the usage count =
+should control the enable/disable part.
 
-Generally, after sleep you apply this, and then do the write to wake.  =
-If you do a read you will get an abort.
+With existing logic Touchsceen will not work if LCD is disabled.
+
+Kevin, do you want me to modify this part?=20
 
 Regards,
-Richard W.
+Khasim
