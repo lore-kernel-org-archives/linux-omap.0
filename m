@@ -1,14 +1,14 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: Update generic omap1510 board defconfig
-Date: Tue, 12 Jun 2007 11:45:41 -0700
-Message-ID: <20070612184541.GG29514@atomide.com>
-References: <fb249edb0706100459w731695c7odce6714b414e3b91@mail.gmail.com>
-	<20070612183523.GF29514@atomide.com>
+From: Vivien Chappelier <vivien.chappelier@free.fr>
+Subject: Re: [PATCH 3/12] Add an option to disable debug UART.
+Date: Tue, 12 Jun 2007 23:42:29 +0200
+Message-ID: <466F1345.8090703@free.fr>
+References: <466AE1C3.8090506@free.fr> <20070612132154.GD28834@atomide.com>
+	<20070612133623.GG28834@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20070612183523.GF29514@atomide.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20070612133623.GG28834@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,19 +16,31 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: andrzej zaborowski <balrogg@gmail.com>
-Cc: OMAP <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [070612 11:36]:
-> * andrzej zaborowski <balrogg@gmail.com> [070610 05:00]:
-> > Update generic omap1510 board defconfig, enable the newer OMAP RTC by 
-> > default.
-> 
-> Pushing.
+Hi,
 
-Actually I'll push them all as one commit.
+Tony Lindgren wrote:
+>> Hmm, is the extra + before busyuart above intentional?
+>>     
+>
+> I guess I should be looking at the updated patch set instead...
+>   
+Yes, sorry for the mess...
+Most of the syntactic mistakes still apply though, so I'll update my 
+patches to take them into account.
 
-Tony
+I've just noticed I've forgotten to use 'struct kp_key' for a few boards in
+'[PATCH 11/12] Add support for keys setting multiple bits in the scan', 
+so I'll fix that as well.
+
+Concerning patches which add new config options such as in
+'[PATCH 3/12] Add an option to disable debug UART.', should I also 
+provide a patch to update all defconfigs or is it ok not to do so?
+
+Thanks for your time,
+Vivien.
