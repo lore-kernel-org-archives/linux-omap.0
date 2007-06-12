@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 12/12] Move omap_timer to the initdata section.
-Date: Tue, 12 Jun 2007 06:31:29 -0700
-Message-ID: <20070612133129.GF28834@atomide.com>
-References: <466AE4F5.3010101@free.fr>
+Subject: Re: [PATCH 3/12] Add an option to disable debug UART.
+Date: Tue, 12 Jun 2007 06:36:23 -0700
+Message-ID: <20070612133623.GG28834@atomide.com>
+References: <466AE1C3.8090506@free.fr> <20070612132154.GD28834@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <466AE4F5.3010101@free.fr>
+In-Reply-To: <20070612132154.GD28834@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,30 +21,50 @@ To: Vivien Chappelier <vivien.chappelier@free.fr>
 Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Vivien Chappelier <vivien.chappelier@free.fr> [070609 10:41]:
-> This patch fixes a warning due to omap_timer not belonging to the 
-> __initdata
-> section as it should.
->
-> Signed-off-by: Vivien Chappelier <vivien.chappelier@free.fr>
->
-> ---
-> arch/arm/mach-omap1/time.c |    2 +-
-> 1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
-> index 3705d20..0ba739c 100644
-> --- a/arch/arm/mach-omap1/time.c
-> +++ b/arch/arm/mach-omap1/time.c
-> @@ -289,6 +289,6 @@ static void __init omap_timer_init(void)
->     omap_init_clocksource(rate);
-> }
-> -struct sys_timer omap_timer = {
-> +struct sys_timer omap_timer __initdata = {
->     .init        = omap_timer_init,
-> };
+t* Tony Lindgren <tony@atomide.com> [070612 06:22]:
+> * Vivien Chappelier <vivien.chappelier@free.fr> [070609 10:23]:
+> > This patch adds an option to boot without any debug UART.
+> >
+> > Signed-off-by: Vivien Chappelier <vivien.chappelier@free.fr>
+> >
+> > ---
+> > arch/arm/plat-omap/Kconfig              |    3 +++
+> > include/asm-arm/arch-omap/debug-macro.S |   10 +++++++++-
+> > include/asm-arm/arch-omap/uncompress.h  |    2 +-
+> > 3 files changed, 13 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+> > index 6facd96..a02e954 100644
+> > --- a/arch/arm/plat-omap/Kconfig
+> > +++ b/arch/arm/plat-omap/Kconfig
+> > @@ -178,6 +178,9 @@ choice
+> >     depends on ARCH_OMAP
+> >     default OMAP_LL_DEBUG_UART1
+> > +config OMAP_LL_DEBUG_NONE
+> > +    bool "NONE"
+> > +
+> > config OMAP_LL_DEBUG_UART1
+> >     bool "UART1"
+> > diff --git a/include/asm-arm/arch-omap/debug-macro.S 
+> > b/include/asm-arm/arch-omap/debug-macro.S
+> > index ca4f577..4051420 100644
+> > --- a/include/asm-arm/arch-omap/debug-macro.S
+> > +++ b/include/asm-arm/arch-omap/debug-macro.S
+> > @@ -38,6 +38,13 @@
+> > #endif
+> >         .endm
+> > +#ifdef CONFIG_OMAP_LL_DEBUG_NONE
+> > +        .macro    senduart,rd,rx
+> > +        .endm
+> > +    +        .macro    busyuart,rd,rx
+> > +        .endm
+> > +#else
+> >         .macro    senduart,rd,rx
+> >         strb    \rd, [\rx]
+> >         .endm
+> 
+> Hmm, is the extra + before busyuart above intentional?
 
-We cannot drop sys_timer, it's needed. There have been posts about
-this on the list before :)
+I guess I should be looking at the updated patch set instead...
 
 Tony
