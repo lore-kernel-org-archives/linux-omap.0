@@ -1,13 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Query regarding omap_set_dma_transfer_params()
-Date: Tue, 12 Jun 2007 06:43:00 -0700
-Message-ID: <20070612134259.GH28834@atomide.com>
-References: <61445c750706110756k39f09613ge0e7eedd0befe51f@mail.gmail.com>
+Subject: Re: [PATCH 0/3] Update menelaus chip driver to new I2C core changes
+Date: Tue, 12 Jun 2007 06:58:36 -0700
+Message-ID: <20070612135836.GJ28834@atomide.com>
+References: <5d5443650705260125r2d424136g51f68f1d0d107a39@mail.gmail.com>
+	<5d5443650706080400s505b38b6jc0cc61ebcb32d119@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <61445c750706110756k39f09613ge0e7eedd0befe51f@mail.gmail.com>
+In-Reply-To: <5d5443650706080400s505b38b6jc0cc61ebcb32d119@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,46 +16,33 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "Pharaoh ." <pharaoh137@gmail.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Trilok Soni <soni.trilok@gmail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Pharaoh . <pharaoh137@gmail.com> [070611 08:02]:
-> Hi,
+* Trilok Soni <soni.trilok@gmail.com> [070608 04:00]:
+> Tony,
 >
-> I am trying to configure the DMA channels in my ALSA driver.  Functions 
-> like
+> On 5/26/07, Trilok Soni <soni.trilok@gmail.com> wrote:
+>> Tony/David,
+>>
+>> First two patches are same as the patch I have sent earlier as WIP.
+>> Third patch has changes related to n800 board and it is compile-tested
+>> only. Please see that I have removed board-n800-pm.c in the 3rd patch,
+>> if not accepted then please suggest better way to integrate with
+>> menelaus-i2c changes.
+>>
 >
->
-> void omap_set_dma_dest_params(int lch, int dest_port, int dest_amode,
->                              unsigned long dest_start,
->                              int dst_ei, int dst_fi)
-> and omap_set_dma_src_params() are used for configuration.
->
-> What the last two fields i.e dst_ie and dst_fi mean here?
+> Please consider these patches for omap-git or do I need to rebase?
 
-See dma.h, ei = element index and fi = frame index. Some of these are
-documented in the 2912 TRM pdf.
+Can you please rebase? Looks like there is one comment from Dave
+regarding the omap_cfg_reg() that should be removed. Or else I'm just
+having hard time keeping up :)
 
-> I think this has to do something with interrupts etc but not sure about it.
-> Also
-> I couldn't see those fields being populated anywhere in source (they are 0
-> everywhere).
-> I am referring 2.6.19-omap1.
->
-> Also, I think that these are unnecessarily exported, since the function
-> omap_set_dma_params()
-> is already exported and it calls the above mentioned functions.  And
-> normally the sequence of
-> configuring the DMA channel is like
->
-> -set src params
-> -set dest params
-> -set transfer params
+Please also post Dave's patches in your series with From: as needed.
 
-Well you can do it both ways, sometimes you just want to update the
-source or destination between transfers.
+Regards,
 
 Tony
