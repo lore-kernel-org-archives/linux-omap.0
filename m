@@ -1,14 +1,13 @@
 From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: [PATCH 1/12] Add support for the HTC Typhoon,
-	Hurricane and Tornado smartphone
-Date: Tue, 12 Jun 2007 16:58:22 +0530
-Message-ID: <5d5443650706120428p53e6d6afw6cbba17a29f9b13f@mail.gmail.com>
-References: <466ADDB9.60708@free.fr>
+Subject: Re: [PATCH 10/12] Add support for HTC Typhoon leds.
+Date: Tue, 12 Jun 2007 17:04:02 +0530
+Message-ID: <5d5443650706120434o582ca28ahddd393fa9d258e5f@mail.gmail.com>
+References: <466AE46B.3010605@free.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <466ADDB9.60708@free.fr>
+In-Reply-To: <466AE46B.3010605@free.fr>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -24,216 +23,266 @@ Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
 On 6/9/07, Vivien Chappelier <vivien.chappelier@free.fr> wrote:
-> This patch adds support for the HTC smartphone boards based on the
-> OMAP730 and
-> OMAP850 platform. Phone model is detected at runtime.
+> This patch add support for the HTC Typhoon tricolor led.
 >
 > Signed-off-by: Vivien Chappelier <vivien.chappelier@free.fr>
 >
->
 > ---
->  arch/arm/mach-omap1/Kconfig               |    7 +
->  arch/arm/mach-omap1/Makefile              |    1 +
->  arch/arm/mach-omap1/board-typhoon.c       |  301
-> +++++++++++++++++++++++++++++
->  include/asm-arm/arch-omap/board-typhoon.h |   62 ++++++
->  4 files changed, 371 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/mach-omap1/board-typhoon.c
->  create mode 100644 include/asm-arm/arch-omap/board-typhoon.h
+>  arch/arm/mach-omap1/Makefile       |    1 +
+>  arch/arm/mach-omap1/leds-typhoon.c |  184
+> ++++++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap1/leds.c         |    3 +
+>  arch/arm/mach-omap1/leds.h         |    1 +
+>  4 files changed, 189 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap1/leds-typhoon.c
 >
-> diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
-> index 79f0b1f..eb12ca5 100644
-> --- a/arch/arm/mach-omap1/Kconfig
-> +++ b/arch/arm/mach-omap1/Kconfig
-> @@ -125,6 +125,13 @@ config MACH_NOKIA770
->        Support for the Nokia 770 Internet Tablet. Say Y here if you
->        have such a device.
->
-> +config MACH_TYPHOON
-> +    bool "HTC Typhoon"
-> +    depends on ARCH_OMAP1 && ARCH_OMAP730
-> +    help
-> +      Support for the HTC Typhoon/Tornado smartphone. Say Y here if you
-> +      have such a phone.
-> +
->  config MACH_AMS_DELTA
->      bool "Amstrad E3 (Delta)"
->      depends on ARCH_OMAP1 && ARCH_OMAP15XX
 > diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-> index 8377665..9f6bcbb 100644
+> index 9f6bcbb..5153e43 100644
 > --- a/arch/arm/mach-omap1/Makefile
 > +++ b/arch/arm/mach-omap1/Makefile
-> @@ -31,6 +31,7 @@ obj-$(CONFIG_MACH_OMAP_PALMTE)        += board-palmte.o
->  obj-$(CONFIG_MACH_OMAP_PALMZ71)        += board-palmz71.o
->  obj-$(CONFIG_MACH_OMAP_PALMTT)        += board-palmtt.o
->  obj-$(CONFIG_MACH_NOKIA770)        += board-nokia770.o
-> +obj-$(CONFIG_MACH_TYPHOON)        += board-typhoon.o
->  obj-$(CONFIG_MACH_AMS_DELTA)        += board-ams-delta.o
->  obj-$(CONFIG_MACH_SX1)            += board-sx1.o
->
-> diff --git a/arch/arm/mach-omap1/board-typhoon.c
-> b/arch/arm/mach-omap1/board-typhoon.c
+> @@ -46,4 +46,5 @@ led-$(CONFIG_MACH_OMAP_H3)        += leds-h2p2-debug.o
+>  led-$(CONFIG_MACH_OMAP_INNOVATOR)    += leds-innovator.o
+>  led-$(CONFIG_MACH_OMAP_PERSEUS2)    += leds-h2p2-debug.o
+>  led-$(CONFIG_MACH_OMAP_OSK)        += leds-osk.o
+> +led-$(CONFIG_MACH_TYPHOON)        += leds-typhoon.o
+>  obj-$(CONFIG_LEDS)            += $(led-y)
+> diff --git a/arch/arm/mach-omap1/leds-typhoon.c
+> b/arch/arm/mach-omap1/leds-typhoon.c
 > new file mode 100644
-> index 0000000..814cf3f
+> index 0000000..eff868f
 > --- /dev/null
-> +++ b/arch/arm/mach-omap1/board-typhoon.c
-> @@ -0,0 +1,301 @@
+> +++ b/arch/arm/mach-omap1/leds-typhoon.c
+> @@ -0,0 +1,184 @@
 > +/*
-> + * linux/arch/arm/mach-omap1/board-typhoon.c
-> + *
-> + * Modified from board-perseus2.c
+> + * linux/arch/arm/mach-omap1/leds-typhoon.c
 > + *
 > + * Copyright 2005 Vivien Chappelier <vivien.chappelier@free.fr>
-> + * Original OMAP730 support by Jean Pihet <j-pihet@ti.com>
-> + * Updated for 2.6 by Kevin Hilman <kjh@hilman.org>
+> + *   Modified from leds-h2p2-debug.c
 > + *
-> + * MMC and watchdog reinitialization by Nicolas Schichan
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
+> + * The HTC Typhoon has a tricolor led. Timers can be setup the 'red'
+> + * and 'green' components for blinking. The 'blue' component is on/off
+> only.
 > + */
-> +
-> +#include <linux/kernel.h>
 > +#include <linux/init.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/device.h>
-> +#include <linux/delay.h>
-> +#include <linux/mtd/mtd.h>
-> +#include <linux/mtd/partitions.h>
-> +#include <linux/input.h>
-> +#include <linux/bootmem.h>
+> +#include <linux/kernel_stat.h>
+> +#include <linux/sched.h>
+> +#include <linux/version.h>
 > +
+> +#include <asm/io.h>
 > +#include <asm/hardware.h>
-> +#include <asm/mach-types.h>
-> +#include <asm/mach/arch.h>
-> +#include <asm/mach/flash.h>
-> +#include <asm/mach/map.h>
+> +#include <asm/leds.h>
+> +#include <asm/system.h>
 > +
 > +#include <asm/arch/gpio.h>
-> +#include <asm/arch/mux.h>
-> +#include <asm/arch/fpga.h>
-> +#include <asm/arch/common.h>
-> +
-> +#include <asm/arch/board.h>
-> +#include <asm/arch/usb.h>
 > +#include <asm/arch/board-typhoon.h>
 > +
-> +/* LCD device */
-> +static struct platform_device lcd_device = {
-> +    .name        = "lcd_typhoon",
-> +    .id        = -1,
-> +};
+> +#include "leds.h"
 > +
-> +/* GSM device */
-> +#define TYPHOON_GSM_PHYS_START        0x11d80000 /* end of RAM */
-> +#define TYPHOON_GSM_PHYS_SIZE        0x00280000 /* 2.5 MB code/data/fifo */
+> +/* led registers */
+> +#define TYPHOON_LED_STATUS_ON       1
+> +#define TYPHOON_LED_STATUS_OFF      0
+> +#define TYPHOON_LED_STATUS_BLINK(on, off) (((on) << 2) | ((off) << 17))
 > +
-> +#define TORNADO_GSM_PHYS_START        0x13c00000 /* end of RAM */
-> +#define TORNADO_GSM_PHYS_SIZE        0x00400000 /* 4.0 MB code/data/fifo */
+> +#define TYPHOON_LED_BASE   0xfffba800
+> +#define TYPHOON_LED_ENABLE 0xfffba801
+> +#    define LED_ON         (1 << 7)
+> +#    define LED_BLINK      (1 << 6)
+> +#    define LED_ONTIME(x)  ((x) & 0x7)
+> +#    define LED_OFFTIME(x) (((x) & 0x7) << 3)
 > +
-> +static struct resource gsm_resources[] = {
-> +    {    /* GSM DSP MMU */
-> +        .start        = IO_ADDRESS(OMAP730_DSP_MMU_BASE),
-> +        .end        = IO_ADDRESS(OMAP730_DSP_MMU_BASE) + 0x54,
-
-Is it tabs or spaces? use tabs not spaces for indentation.
-
-> +        .flags        = IORESOURCE_MEM,
-> +    },
-> +    {    /* GSM software interrupt */
-> +        .start        = INT_730_ICR,
-> +        .flags        = IORESOURCE_IRQ,
-> +    },
-> +    {       /* GSM radio interrupt */
-> +        .start        = INT_730_DBB_RF_EN,
-> +        .flags        = IORESOURCE_IRQ,
-> +    },
-> +};
+> +/* led status */
+> +#define LED_STATE_ENABLED     (1 << 7)
+> +#define LED_STATE_CLAIMED     (1 << 6)
+> +#define LED_BLUE  (1 <<  0)
+> +#define LED_GREEN (1 <<  1)
+> +#define LED_RED   (1 <<  2)
+> +#define LED_MASK (LED_BLUE | LED_GREEN | LED_RED)
 > +
-> +static struct platform_device gsm_device = {
-> +        .name           = "typhoon-gsm",
-> +        .id             = 1,
-> +    .num_resources    = ARRAY_SIZE(gsm_resources),
-> +    .resource    = gsm_resources,
-> +};
-
-Ditto. Please check other parts of files too.
-
-....
-
+> +#define LED_TIMER LED_GREEN
+> +#define LED_CPU   LED_RED
 > +
-> +# define       OMAP_MMC_REG_SYSC       (0xfffb7800 + 0x32)
-> +# define       OMAP_MMC_REG_SYSS       (0xfffb7800 + 0x34)
-> +# define       OMAP_MMC_REG_CTO        (0xfffb7800 + 0x0e)
-> +# define       OMAP_MMC_REG_DTO        (0xfffb7800 + 0x1c)
+> +/* route power to the tricolor led */
+> +static void typhoon_start_led(void)
+> +{
+> +    omap_writel(omap_readl(OMAP730_IO_CONF_10) & ~0x20,
+> OMAP730_IO_CONF_10);
+> +    omap_writel(omap_readl(OMAP730_IO_CONF_10) |  0xd0,
+> OMAP730_IO_CONF_10);
+> +    omap_set_gpio_direction(TYPHOON_GPIO_LED_BLUE, 0); /* out */
 > +
-> +       /* put mmc host into reset ... */
-> +       omap_writew(1, OMAP_MMC_REG_SYSC);
-> +
-> +       tries = 100;
-> +       while (omap_readw(OMAP_MMC_REG_SYSS) == 0 && tries) {
-> +               mdelay(50);
-> +               --tries;
-> +       }
-> +       printk("MMC host reset done: remaining tries: %i\n", tries);
-
-KERN_* facility level is required.
-
-> +
-> +       /* force mode 0 for D_SMC_DAT3, D_SMC_DAT2, D_SMC, no pull up
-> enable */
-
-multiline comment format is not correct.
-
-It should be /*
-                   * start here
-                   */
-
-> +       omap_writel(omap_readl(OMAP730_IO_CONF_2) & ~(0xF << 8),
-> OMAP730_IO_CONF_2);
-> +       omap_writel(omap_readl(OMAP730_IO_CONF_2) & ~(0xF << 12),
-> OMAP730_IO_CONF_2);
-> +       omap_writel(omap_readl(OMAP730_IO_CONF_2) & ~(0xF << 16),
-> OMAP730_IO_CONF_2);
+> +    omap_writel(omap_readl(OMAP730_MODE_1) | (1 << 29), OMAP730_MODE_1);
+> +    omap_writeb(LED_ON, TYPHOON_LED_BASE);
+> +    omap_writeb(1, TYPHOON_LED_ENABLE);
 > +}
 > +
-> +static void omap_typhoon_lcd_init(void)
+> +/* power off the tricolor led */
+> +static void typhoon_stop_led(void)
 > +{
-> +    u32 reg;
+> +    omap_writel(omap_readl(OMAP730_MODE_1) & ~(1 << 29), OMAP730_MODE_1);
+> +    omap_writeb(0, TYPHOON_LED_BASE);
+> +    omap_writeb(0, TYPHOON_LED_ENABLE);
+> +}
 > +
-> +# define       OMAP_LCDC_CONTROL               (0xfffec000 + 0x00)
-> +# define       OMAP_LCDC_STATUS                (0xfffec000 + 0x10)
-> +# define       OMAP_DMA_LCD_CCR                (0xfffee300 + 0xc2)
-> +# define       OMAP_DMA_LCD_CTRL               (0xfffee300 + 0xc4)
-> +# define       OMAP_LCDC_CTRL_LCD_EN           (1 << 0)
-> +# define       OMAP_LCDC_STAT_DONE             (1 << 0)
-> +
-> +    /* disable controller if active */
-> +    reg = omap_readl(OMAP_LCDC_CONTROL);
-> +    if (reg & OMAP_LCDC_CTRL_LCD_EN) {
-> +        reg &= ~OMAP_LCDC_CTRL_LCD_EN;
-> +        omap_writel(reg, OMAP_LCDC_CONTROL);
-> +
-> +        /* wait for end of frame */
-> +        while(!(omap_readl(OMAP_LCDC_STATUS) & OMAP_LCDC_STAT_DONE));
+> +/* set the 'blue', 'green' and 'red' components of the tricolor led */
+> +static void typhoon_set_led(int led)
+> +{
+> +    if(led & LED_BLUE)
 
 space before opening parenthesis.
 
+> +        omap_set_gpio_dataout(TYPHOON_GPIO_LED_BLUE, 1);
+> +    else
+> +        omap_set_gpio_dataout(TYPHOON_GPIO_LED_BLUE, 0);
 > +
-> +        /* turn off DMA */
-> +        reg = omap_readw(OMAP_DMA_LCD_CCR);
-> +        reg &= ~(1 << 7);
-> +        omap_writew(reg, OMAP_DMA_LCD_CCR);
+> +    if(led & (LED_RED | LED_GREEN)) {
+
+Ditto.
+
+> +        if(led & LED_GREEN) {
+
+Ditto.
+> +            omap_set_gpio_direction(TYPHOON_GPIO_LED_GREEN, 1);
+> +        } else {
+> +            omap_set_gpio_direction(TYPHOON_GPIO_LED_GREEN, 0);
+> +            omap_set_gpio_dataout(TYPHOON_GPIO_LED_GREEN, 0);
+> +        }
 > +
-> +        reg = omap_readw(OMAP_DMA_LCD_CTRL);
-> +        reg &= ~(1 << 8);
-> +        omap_writew(reg, OMAP_DMA_LCD_CTRL);
+> +        if(led & LED_RED) {
+
+Ditto.
+
+> +            omap_set_gpio_direction(TYPHOON_GPIO_LED_RED, 1);
+> +        } else {
+> +            omap_set_gpio_direction(TYPHOON_GPIO_LED_RED, 0);
+> +            omap_set_gpio_dataout(TYPHOON_GPIO_LED_RED, 0);
+> +        }
+> +    } else {
+> +        omap_set_gpio_direction(TYPHOON_GPIO_LED_GREEN, 0);
+> +        omap_set_gpio_dataout(TYPHOON_GPIO_LED_GREEN, 0);
+> +        omap_set_gpio_direction(TYPHOON_GPIO_LED_RED, 0);
+> +        omap_set_gpio_dataout(TYPHOON_GPIO_LED_RED, 0);
 > +    }
 > +}
 > +
+> +
+> +void typhoon_leds_event(led_event_t evt)
+> +{
+> +    unsigned long flags;
+> +
+> +    static u16 led_state, hw_led_state;
+> +
+> +    local_irq_save(flags);
+> +
+> +    if (!(led_state & LED_STATE_ENABLED) && evt != led_start)
+> +        goto done;
+> +
+> +    switch (evt) {
+> +    case led_start:
+> +        typhoon_start_led();
+> +        led_state |= LED_STATE_ENABLED;
+> +        break;
+> +
+> +    case led_stop:
+> +    case led_halted:
+> +        /* all leds off during suspend or shutdown */
+> +        typhoon_set_led(0);
+> +        typhoon_stop_led();
+> +        goto done;
+> +
+> +    case led_claim:
+> +        led_state |= LED_STATE_CLAIMED;
+> +        hw_led_state = 0;
+> +        break;
+> +
+> +    case led_release:
+> +        led_state &= ~LED_STATE_CLAIMED;
+> +        break;
+> +
+> +#ifdef CONFIG_LEDS_TIMER
+> +    case led_timer:
+> +        led_state ^= LED_TIMER;
+> +        break;
+> +#endif
+> +
+> +#ifdef CONFIG_LEDS_CPU
+> +    case led_idle_start:
+> +        led_state &= ~LED_CPU;
+> +        break;
+> +
+> +    case led_idle_end:
+> +        led_state |= LED_CPU;
+> +        break;
+> +#endif
+> +
+> +    case led_green_on:
+> +        hw_led_state |= LED_GREEN;
+> +        break;
+> +    case led_green_off:
+> +        hw_led_state &= ~LED_GREEN;
+> +        break;
+> +
+> +    case led_red_on:
+> +        hw_led_state |= LED_RED;
+> +        break;
+> +    case led_red_off:
+> +        hw_led_state &= ~LED_RED;
+> +        break;
+> +
+> +    case led_blue_on:
+> +        hw_led_state |= LED_BLUE;
+> +        break;
+> +    case led_blue_off:
+> +        hw_led_state &= ~LED_BLUE;
+> +        break;
+> +
+> +    default:
+> +        break;
+> +    }
+> +
+> +
+> +    /*
+> +     *  Actually burn the LEDs
+> +     */
+> +    if (led_state & LED_STATE_CLAIMED)
+> +        typhoon_set_led(hw_led_state);
+> +    else
+> +        typhoon_set_led(led_state & LED_MASK);
+> +
+> +done:
+> +    local_irq_restore(flags);
+> +}
+> diff --git a/arch/arm/mach-omap1/leds.c b/arch/arm/mach-omap1/leds.c
+> index 3f9dcac..59b7135 100644
+> --- a/arch/arm/mach-omap1/leds.c
+> +++ b/arch/arm/mach-omap1/leds.c
+> @@ -28,6 +28,9 @@ omap_leds_init(void)
+>      else if (machine_is_omap_osk())
+>          leds_event = osk_leds_event;
+>
+> +    else if (machine_is_typhoon())
+> +        leds_event = typhoon_leds_event;
+> +
+>      else
+>          return -1;
+>
+> diff --git a/arch/arm/mach-omap1/leds.h b/arch/arm/mach-omap1/leds.h
+> index a1e9fed..1760eb0 100644
+> --- a/arch/arm/mach-omap1/leds.h
+> +++ b/arch/arm/mach-omap1/leds.h
+> @@ -1,3 +1,4 @@
+>  extern void innovator_leds_event(led_event_t evt);
+>  extern void h2p2_dbg_leds_event(led_event_t evt);
+>  extern void osk_leds_event(led_event_t evt);
+> +extern void typhoon_leds_event(led_event_t evt);
+> --
+> 1.5.1.3
+>
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
 
-...
 
 -- 
 --Trilok Soni
