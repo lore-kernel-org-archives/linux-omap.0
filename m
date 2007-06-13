@@ -1,14 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: What is the correct approach for common board devices...?
-Date: Tue, 12 Jun 2007 23:02:57 -0700
-Message-ID: <20070613060256.GB4030@atomide.com>
-References: <20070612181652.GS28834@atomide.com>
-	<9C23CDD79DA20A479D4615857B2E2C47011E5951@dlee13.ent.ti.com>
+Subject: Re: [PATCH 5/12] OMAP3430 support in mach-omap2 folder
+Date: Tue, 12 Jun 2007 23:05:44 -0700
+Message-ID: <20070613060543.GC4030@atomide.com>
+References: <20070612182341.GA29514@atomide.com>
+	<9C23CDD79DA20A479D4615857B2E2C47011E594C@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47011E5951@dlee13.ent.ti.com>
+In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47011E594C@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,18 +22,52 @@ To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
 Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Syed Mohammed, Khasim <x0khasim@ti.com> [070612 21:01]:
-> Hi Tony,
+* Syed Mohammed, Khasim <x0khasim@ti.com> [070612 20:48]:
+> >> > We have now common debug card interface. Check
+> >> > arch/arm/plat-omap/debug-devices.c and do similar calls like
+> >> > board-h4.c {debug_card_init}.
+> >>
+> >> For now, I would like to continue with this. I will incorporate this
+> >comment as a separate clean up patch.
+> >
+> >Can you please fix what Trilok suggested? Remember, we want to use
+> >the same patch for sending it upstream eventually.
+> >
+> I think it's not a correct approach to use debug_card_init for 2430 SDP. I have following view point.
 > 
-> There are some devices like TS, Keypad, I2C, Flash, etc that are almost common between 2430 and 3430 SDPs. 
+> 1. There is no debug card on 3430 or 2430 SDP as it was on H4.
 > 
-> Today in tree we have files like board-2430sdp-flash.c which can be reused for 3430 too.
+> 2. There will be #if's for 2430 and 3430 because many statements doesn't hold correct for 2430 / 3430
 > 
-> The board-2430sdp.c has Keymap that holds good for 3430 too.
+>         smc91x_resources[0].start = addr + 0x300;
+>         smc91x_resources[0].end   = addr + 0x30f;
 > 
-> Can you please suggest the correct way to organize these kind of devices in mach-omap2 directory?
+> The offset address for 3430 is 0x0 and 0x0f so, one if here.
+> 
+>         led_resources[0].start = addr;
+>         led_resources[0].end   = addr + SZ_4K - 1;
+> 
+> These things are not required. If tomorrow we add more for 2430 / 3430 then this function has to be split anyway.
+> 
+> 3. The function is exported as an extern from board.h. Which is mainly meant for Nokia N series, this should be corrected. Why should we include board.h for other boards that might not use these structures.
+> 
+> 4. The Configuration doesn't show in Menuconfig as there is no statement next to bool.
+> 	config OMAP_DEBUG_DEVICES
+>         bool
+>         help
+>           For debug cards on TI reference boards.
+> 
+> The macro CONFIG_OMAP_DEBUG_DEVICES doesn't get enabled for 2430 / 3430.
+> 
+> 5. Having a complete debug_devices and corresponding file for 2430 / 3430 doesn't make sense, there are no LEDs or such debug devices on these boards. Unfortuanely SMSC is same, so its bit confusing I believe. But this Ethernet controller can be handled in a much simpler way, why to unnecessarily complex it?
+> 
+> Please don't take me in a defensive mood. I am trying to convince that this method doesn't hold good for 2430 / 3430. And what ever we were doing in posted patch is a more optimal approach. But if still you feel that this is what has to be done, then fine, I can add more ifs and elses and get the code working for 2430 / 3430.
+> 
+> Let me know your views at the earliest.
 
-How about creating something like arch/arm/mach-omap2/sdp-common.c
-for them?
+OK, thanks for explaining. Let's keep what you had, then later on we
+can use the sdp-common.c for 2430-sdp and 3430-sdp.
+
+Regards,
 
 Tony
