@@ -1,15 +1,16 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: What is the correct approach for common board devices...?
-Date: Tue, 12 Jun 2007 23:01:12 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47011E5951@dlee13.ent.ti.com>
-References: <20070612181652.GS28834@atomide.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: [PATCH 0/3] Update menelaus chip driver to new I2C core changes
+Date: Wed, 13 Jun 2007 11:18:08 +0530
+Message-ID: <5d5443650706122248w62777dbk3646ce9be4786ba7@mail.gmail.com>
+References: <5d5443650705260125r2d424136g51f68f1d0d107a39@mail.gmail.com>
+	<5d5443650706080400s505b38b6jc0cc61ebcb32d119@mail.gmail.com>
+	<20070612135836.GJ28834@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <20070612181652.GS28834@atomide.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20070612135836.GJ28834@atomide.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,24 +18,42 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+On 6/12/07, Tony Lindgren <tony@atomide.com> wrote:
+> * Trilok Soni <soni.trilok@gmail.com> [070608 04:00]:
+> > Tony,
+> >
+> > On 5/26/07, Trilok Soni <soni.trilok@gmail.com> wrote:
+> >> Tony/David,
+> >>
+> >> First two patches are same as the patch I have sent earlier as WIP.
+> >> Third patch has changes related to n800 board and it is compile-tested
+> >> only. Please see that I have removed board-n800-pm.c in the 3rd patch,
+> >> if not accepted then please suggest better way to integrate with
+> >> menelaus-i2c changes.
+> >>
+> >
+> > Please consider these patches for omap-git or do I need to rebase?
+>
+> Can you please rebase? Looks like there is one comment from Dave
+> regarding the omap_cfg_reg() that should be removed. Or else I'm just
+> having hard time keeping up :)
 
-There are some devices like TS, Keypad, I2C, Flash, etc that are almost =
-common between 2430 and 3430 SDPs.=20
+omap_cfg_reg() is already removed from menelaus.c in the follow up
+patch posted by David here.
 
-Today in tree we have files like board-2430sdp-flash.c which can be =
-reused for 3430 too.
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-May/010105.html
 
-The board-2430sdp.c has Keymap that holds good for 3430 too.
+>
+> Please also post Dave's patches in your series with From: as needed.
+>
 
-Can you please suggest the correct way to organize these kind of devices =
-in mach-omap2 directory?
+I will try to rebase and post the patches.
 
-Regards,
-Khasim
+-- 
+--Trilok Soni
