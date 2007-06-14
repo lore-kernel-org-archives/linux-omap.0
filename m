@@ -1,7 +1,7 @@
 From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: [PATCH 1/ 12] Kconfig and Makefile for OMAP3
-Date: Thu, 14 Jun 2007 00:00:16 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47011E6090@dlee13.ent.ti.com>
+Subject: [PATCH 4 / 12 ] Mach-omap2 Makefile / Kconfig updates
+Date: Thu, 14 Jun 2007 00:01:06 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47011E6093@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -20,56 +20,83 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Kconfig and Makefile changes for OMAP3
+Makefile and Kconfig updating for OMAP3
 
 Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
 
 Files:
-arch/arm/Kconfig
-arch/arm/Makefile
-
+ arch/arm/mach-omap2/Makefile=20
+ arch/arm/mach-omap2/Kconfig
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-diff -purN linux-omap/arch/arm/Kconfig val_3430_GIT/arch/arm/Kconfig
---- linux-omap/arch/arm/Kconfig	2007-06-12 15:08:45.000000000 -0500
-+++ val_3430_GIT/arch/arm/Kconfig	2007-06-12 15:12:08.000000000 -0500
-@@ -393,7 +393,7 @@ config ARCH_OMAP
- 	select GENERIC_TIME
- 	select GENERIC_CLOCKEVENTS
- 	help
--	  Support for TI's OMAP platform (OMAP1 and OMAP2).
-+	  Support for TI's OMAP platform (OMAP1, OMAP2 and OMAP3).
+--- linux-omap/arch/arm/mach-omap2/Makefile	2007-06-13 =
+16:33:00.000000000 -0500
++++ val_3430_GIT/arch/arm/mach-omap2/Makefile	2007-06-13 =
+22:26:29.000000000 -0500
+@@ -3,9 +3,12 @@
+ #
 =20
- endchoice
+ # Common support
+-obj-y :=3D irq.o id.o io.o sram-fn.o memory.o prcm.o clock.o mux.o =
+devices.o \
++obj-y :=3D irq.o id.o io.o sram-fn.o memory.o prcm.o mux.o devices.o \
+ 	 serial.o gpmc.o
 =20
-@@ -947,6 +947,18 @@ config NEON
- 	  Say Y to include support code for NEON, the ARMv7 Advanced SIMD
- 	  Extensions.
-=20
-+config VFPv3
-+	bool
-+	depends on VFP
-+	default y if CPU_V7
++obj-$(CONFIG_ARCH_OMAP24XX) +=3D clock.o
++obj-$(CONFIG_ARCH_OMAP34XX) +=3D clock_34xx.o
 +
-+config NEON
-+	bool "NEON Advanced SIMD Extension support"
-+	depends on VFPv3 && CPU_V7
-+	help
-+	  Say Y to include support code for NEON, the ARMv7 Advanced SIMD
-+	  Extensions.
-+
- endmenu
+ obj-$(CONFIG_OMAP_MPU_TIMER)		+=3D timer-gp.o
 =20
- menu "Userspace binary formats"
-diff -purN linux-omap/arch/arm/Makefile val_3430_GIT/arch/arm/Makefile
---- linux-omap/arch/arm/Makefile	2007-05-16 14:32:39.000000000 -0500
-+++ val_3430_GIT/arch/arm/Makefile	2007-06-12 15:12:08.000000000 -0500
-@@ -121,6 +121,7 @@ endif
-  machine-$(CONFIG_ARCH_IXP23XX)    :=3D ixp23xx
-  machine-$(CONFIG_ARCH_OMAP1)	   :=3D omap1
-  machine-$(CONFIG_ARCH_OMAP2)	   :=3D omap2
-+ machine-$(CONFIG_ARCH_OMAP3)		:=3D omap2
-   incdir-$(CONFIG_ARCH_OMAP)	   :=3D omap
-  machine-$(CONFIG_ARCH_S3C2410)	   :=3D s3c2410
-  machine-$(CONFIG_ARCH_LH7A40X)	   :=3D lh7a40x
+ # Power Management
+@@ -23,6 +26,7 @@ obj-$(CONFIG_MACH_OMAP_H4)		+=3D board-h4.
+ obj-$(CONFIG_MACH_OMAP_2430SDP)		+=3D board-2430sdp.o \
+ 					   board-2430sdp-flash.o \
+ 					   board-2430sdp-usb.o
++obj-$(CONFIG_MACH_OMAP_3430SDP)		+=3D board-3430sdp.o
+ obj-$(CONFIG_MACH_OMAP_APOLLON)		+=3D board-apollon.o \
+ 					   board-apollon-keys.o
+ obj-$(CONFIG_MACH_NOKIA_N800)		+=3D board-n800.o board-n800-flash.o \
+
+diff -purN linux-omap/arch/arm/mach-omap2/Kconfig =
+val_3430_GIT/arch/arm/mach-omap2/Kconfig
+--- linux-omap/arch/arm/mach-omap2/Kconfig	2007-04-02 02:29:57.000000000 =
+-0500
++++ val_3430_GIT/arch/arm/mach-omap2/Kconfig	2007-06-12 =
+15:12:08.000000000 -0500
+@@ -5,6 +5,10 @@ config ARCH_OMAP24XX
+ 	bool "OMAP24xx Based System"
+ 	depends on ARCH_OMAP2
+=20
++config ARCH_OMAP34XX
++	bool "OMAP34xx Based System"
++	depends on ARCH_OMAP3
++
+ config ARCH_OMAP2420
+ 	bool "OMAP2420 support"
+ 	depends on ARCH_OMAP24XX
+@@ -15,8 +19,12 @@ config ARCH_OMAP2430
+ 	bool "OMAP2430 support"
+ 	depends on ARCH_OMAP24XX
+=20
++config ARCH_OMAP3430
++	bool "OMAP3430 support"
++	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++
+ comment "OMAP Board Type"
+-	depends on ARCH_OMAP2
++	depends on ARCH_OMAP2 || ARCH_OMAP3
+=20
+ config MACH_OMAP_GENERIC
+ 	bool "Generic OMAP board"
+@@ -37,6 +45,10 @@ config MACH_OMAP_H4
+ 	select OMAP_DEBUG_DEVICES
+ 	select GPIOEXPANDER_OMAP
+=20
++
++config MACH_OMAP_3430SDP
++	bool "OMAP 3430 SDP board"
++	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+ config MACH_OMAP_H4_TUSB
+ 	bool "TUSB 6010 EVM board"
+ 	depends on MACH_OMAP_H4
