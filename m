@@ -1,15 +1,13 @@
 From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: [PATCH 6 / 12] Mach omap2 updation for 3430
-Date: Thu, 14 Jun 2007 16:03:01 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47011E659F@dlee13.ent.ti.com>
-References: <20070614114651.GF28804@atomide.com>
+Subject: [PATCH] Pre 3430 patch for io.c map table cleanup
+Date: Thu, 14 Jun 2007 16:16:01 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47011E65C4@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
-In-Reply-To: <20070614114651.GF28804@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,71 +17,123 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
+To: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Cleanup map descriptor table in io.c for 2420 and 2430
 
->> +#ifdef CONFIG_ARCH_OMAP24XX
->> +		if (cpu_is_omap24xx()) {
->> +			bank->base_reg =3D IO_ADDRESS(OMAP24XX_IC_BASE);
->> +		}
->> +#endif
->> +#ifdef CONFIG_ARCH_OMAP34XX
->> +		if (cpu_is_omap34xx()) {
->> +			bank->base_reg =3D IO_ADDRESS(OMAP34XX_IC_BASE);
->> +		}
->> +#endif
->>  		omap_irq_bank_init_one(bank);
->>
->>  		nr_irqs +=3D bank->nr_irqs;
->>
->
->You should be able to leave out the ifdefs above, if one of the omaps
->is disabled, then it will get optimized out as it will be if (0) {}.
+Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
 
-In few more places I found this kind of issue. I think this kind of =
-common definition issues will be more in future.
+Files:
+ arch/arm/mach-omap2/io.c
 
->This is assuming the _IC_BASE defines are visible to both, of course.
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 
-Basically we have omap24xx.h and omap34xx.h for OMAP2/3 specific =
-definitions. Now for the above illustrated approach we should have two =
-different definitions, where to define such Macros?=20
-
-Note: We will not include omap24xx.h for 34xx compilation (vice versa).
-
-Option 1: Having such Macros with same name in both 24xx and 34xx .h =
-files
-
-In omap24xx.h:
-#define OMAP_IC_BASE	<OMAP2 IC BASE VALUE>
-
-In omap34xx.h
-#define OMAP_IC_BASE	< OMAP3 IC BASE VALUE >
-
-Option 2: Having a separate header file for such macros.
-
-omap_common.h
-#define OMAP24XX_IC_BASE	< OMAP2 IC BASE VALUE >
-#define OMAP34XX_IC_BASE	< OMAP3 IC BASE VALUE >
-
-This common header file can be included in both 24xx and 34xx board =
-files
-
-Option 3: Define both macros in 24xx and 34xx header files (Crap).
-
-In omap24xx.h:
-#define OMAP24XX_IC_BASE	< OMAP2 IC BASE VALUE >
-#define OMAP34XX_IC_BASE	< OMAP3 IC BASE VALUE >#define OMAP_IC_BASE
-
-In omap34xx.h
-#define OMAP24XX_IC_BASE	< OMAP2 IC BASE VALUE >
-#define OMAP34XX_IC_BASE	< OMAP3 IC BASE VALUE >#define OMAP_IC_BASE
-
-
-Kindly let me know your views on the same.
-
-Regards,
-Khasim
+--- linux-omap/arch/arm/mach-omap2/io.c	2007-05-30 14:02:43.000000000 =
+-0500
++++ lin_for_mmc/arch/arm/mach-omap2/io.c	2007-06-14 15:40:42.000000000 =
+-0500
+@@ -4,8 +4,11 @@
+  * OMAP2 I/O mapping code
+  *
+  * Copyright (C) 2005 Nokia Corporation
+- * Author: Juha Yrjola<juha.yrjola@nokia.com>
+- * Updated map desc to add 2430 support : <x0khasim@ti.com>
++ * Copyright (C) 2007 Texas Instruments
++ *
++ * Author:
++ *	Juha Yrjola <juha.yrjola@nokia.com>
++ *	Syed Khasim <x0khasim@ti.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -35,7 +38,9 @@ extern void omapfb_reserve_sdram(void);
+  * The machine specific code may provide the extra mapping besides the
+  * default mapping provided here.
+  */
+-static struct map_desc omap2_io_desc[] __initdata =3D {
++
++#ifdef CONFIG_ARCH_OMAP24XX
++static struct map_desc omap24xx_io_desc[] __initdata =3D {
+ 	{
+ 		.virtual	=3D L3_24XX_VIRT,
+ 		.pfn		=3D __phys_to_pfn(L3_24XX_PHYS),
+@@ -48,7 +53,34 @@ static struct map_desc omap2_io_desc[] _
+ 		.length		=3D L4_24XX_SIZE,
+ 		.type		=3D MT_DEVICE
+ 	},
++};
++
++#ifdef CONFIG_ARCH_OMAP2420
++static struct map_desc omap242x_io_desc[] __initdata =3D {
++	{
++		.virtual	=3D DSP_MEM_24XX_VIRT,
++		.pfn		=3D __phys_to_pfn(DSP_MEM_24XX_PHYS),
++		.length		=3D DSP_MEM_24XX_SIZE,
++		.type		=3D MT_DEVICE
++	},
++	{
++		.virtual	=3D DSP_IPI_24XX_VIRT,
++		.pfn		=3D __phys_to_pfn(DSP_IPI_24XX_PHYS),
++		.length		=3D DSP_IPI_24XX_SIZE,
++		.type		=3D MT_DEVICE
++	},
++	{
++		.virtual	=3D DSP_MMU_24XX_VIRT,
++		.pfn		=3D __phys_to_pfn(DSP_MMU_24XX_PHYS),
++		.length		=3D DSP_MMU_24XX_SIZE,
++		.type		=3D MT_DEVICE
++	},
++};
++
++#endif
++
+ #ifdef CONFIG_ARCH_OMAP2430
++static struct map_desc omap243x_io_desc[] __initdata =3D {
+ 	{
+ 		.virtual	=3D L4_WK_243X_VIRT,
+ 		.pfn		=3D __phys_to_pfn(L4_WK_243X_PHYS),
+@@ -73,33 +105,19 @@ static struct map_desc omap2_io_desc[] _
+ 		.length		=3D OMAP243X_SMS_SIZE,
+ 		.type		=3D MT_DEVICE
+ 	},
++};
+ #endif
+-	{
+-		.virtual	=3D DSP_MEM_24XX_VIRT,
+-		.pfn		=3D __phys_to_pfn(DSP_MEM_24XX_PHYS),
+-		.length		=3D DSP_MEM_24XX_SIZE,
+-		.type		=3D MT_DEVICE
+-	},
+-#ifdef CONFIG_ARCH_OMAP2420
+-	{
+-		.virtual	=3D DSP_IPI_24XX_VIRT,
+-		.pfn		=3D __phys_to_pfn(DSP_IPI_24XX_PHYS),
+-		.length		=3D DSP_IPI_24XX_SIZE,
+-		.type		=3D MT_DEVICE
+-	},
+ #endif
+-	{
+-		.virtual	=3D DSP_MMU_24XX_VIRT,
+-		.pfn		=3D __phys_to_pfn(DSP_MMU_24XX_PHYS),
+-		.length		=3D DSP_MMU_24XX_SIZE,
+-		.type		=3D MT_DEVICE
+-	},
+-};
+=20
+ void __init omap2_map_common_io(void)
+ {
+-	iotable_init(omap2_io_desc, ARRAY_SIZE(omap2_io_desc));
+-
++#if defined(CONFIG_ARCH_OMAP2420)
++	iotable_init(omap24xx_io_desc, ARRAY_SIZE(omap24xx_io_desc));
++	iotable_init(omap242x_io_desc, ARRAY_SIZE(omap242x_io_desc));
++#elif defined(CONFIG_ARCH_OMAP2430)
++	iotable_init(omap24xx_io_desc, ARRAY_SIZE(omap24xx_io_desc));
++	iotable_init(omap243x_io_desc, ARRAY_SIZE(omap243x_io_desc));
++#endif
+ 	/* Normally devicemaps_init() would flush caches and tlb after
+ 	 * mdesc->map_io(), but we must also do it here because of the CPU
+ 	 * revision check below.
