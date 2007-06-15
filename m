@@ -1,11 +1,14 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: ARM: OMAP: Remove .id and .class in menelaus I2C driver
-Date: Fri, 15 Jun 2007 11:33:50 +0530
-Message-ID: <5d5443650706142303p2a8c7791y68d1bf60e96fa73a@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 6 / 12] Mach omap2 updation for 3430
+Date: Fri, 15 Jun 2007 01:13:24 -0700
+Message-ID: <20070615081323.GD10128@atomide.com>
+References: <20070614114651.GF28804@atomide.com>
+	<9C23CDD79DA20A479D4615857B2E2C47011E659F@dlee13.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_49245_19910045.1181887430314"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47011E659F@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,52 +18,73 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux OMAP <linux-omap-open-source@linux.omap.com>
+To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-------=_Part_49245_19910045.1181887430314
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+* Syed Mohammed, Khasim <x0khasim@ti.com> [070614 14:03]:
+> Hi Tony,
+> 
+> >> +#ifdef CONFIG_ARCH_OMAP24XX
+> >> +		if (cpu_is_omap24xx()) {
+> >> +			bank->base_reg = IO_ADDRESS(OMAP24XX_IC_BASE);
+> >> +		}
+> >> +#endif
+> >> +#ifdef CONFIG_ARCH_OMAP34XX
+> >> +		if (cpu_is_omap34xx()) {
+> >> +			bank->base_reg = IO_ADDRESS(OMAP34XX_IC_BASE);
+> >> +		}
+> >> +#endif
+> >>  		omap_irq_bank_init_one(bank);
+> >>
+> >>  		nr_irqs += bank->nr_irqs;
+> >>
+> >
+> >You should be able to leave out the ifdefs above, if one of the omaps
+> >is disabled, then it will get optimized out as it will be if (0) {}.
+> 
+> In few more places I found this kind of issue. I think this kind of common definition issues will be more in future.
+> 
+> >This is assuming the _IC_BASE defines are visible to both, of course.
+> 
+> Basically we have omap24xx.h and omap34xx.h for OMAP2/3 specific definitions. Now for the above illustrated approach we should have two different definitions, where to define such Macros? 
+> 
+> Note: We will not include omap24xx.h for 34xx compilation (vice versa).
 
--- 
---Trilok Soni
+We can include them, it should not hurt as the defines have 24XX or
+34XX prefix.
 
-------=_Part_49245_19910045.1181887430314
-Content-Type: text/x-patch;
-	name=0001-ARM-OMAP-Remove-.id-and-.class-in-menelaus-I2C-driver.patch;
-	charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f2y9853w
-Content-Disposition: attachment;
-	filename="0001-ARM-OMAP-Remove-.id-and-.class-in-menelaus-I2C-driver.patch"
+> Option 1: Having such Macros with same name in both 24xx and 34xx .h files
+> 
+> In omap24xx.h:
+> #define OMAP_IC_BASE	<OMAP2 IC BASE VALUE>
+> 
+> In omap34xx.h
+> #define OMAP_IC_BASE	< OMAP3 IC BASE VALUE >
+> 
+> Option 2: Having a separate header file for such macros.
+> 
+> omap_common.h
+> #define OMAP24XX_IC_BASE	< OMAP2 IC BASE VALUE >
+> #define OMAP34XX_IC_BASE	< OMAP3 IC BASE VALUE >
+> 
+> This common header file can be included in both 24xx and 34xx board files
+> 
+> Option 3: Define both macros in 24xx and 34xx header files (Crap).
+> 
+> In omap24xx.h:
+> #define OMAP24XX_IC_BASE	< OMAP2 IC BASE VALUE >
+> #define OMAP34XX_IC_BASE	< OMAP3 IC BASE VALUE >#define OMAP_IC_BASE
+> 
+> In omap34xx.h
+> #define OMAP24XX_IC_BASE	< OMAP2 IC BASE VALUE >
+> #define OMAP34XX_IC_BASE	< OMAP3 IC BASE VALUE >#define OMAP_IC_BASE
+> 
+> 
+> Kindly let me know your views on the same.
 
-RnJvbSBlZDg1ZjUyYjc2YWY4NjZkNWVmYjMzMWQ2OTY0YmE1MGI4YTg0MmI1IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBUcmlsb2sgU29uaSA8c29uaS50cmlsb2tAZ21haWwuY29tPgpE
-YXRlOiBGcmksIDE1IEp1biAyMDA3IDE3OjAxOjUzICswNTMwClN1YmplY3Q6IFtQQVRDSF0gQVJN
-OiBPTUFQOiBSZW1vdmUgLmlkIGFuZCAuY2xhc3MgaW4gbWVuZWxhdXMgSTJDIGRyaXZlcgoKLSAu
-aWQgYW5kIC5jbGFzcyBtZW1iZXJzIGFyZSBub3QgcmVxdWlyZWQgbm93LgotIFJlYWxseSBrZnJl
-ZSB0aGUgbWVuZWxhdXNfY2hpcC4KClNpZ25lZC1vZmYtYnk6IFRyaWxvayBTb25pIDxzb25pLnRy
-aWxva0BnbWFpbC5jb20+Ci0tLQogZHJpdmVycy9pMmMvY2hpcHMvbWVuZWxhdXMuYyB8ICAgIDMg
-Ky0tCiAxIGZpbGVzIGNoYW5nZWQsIDEgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKCmRp
-ZmYgLS1naXQgYS9kcml2ZXJzL2kyYy9jaGlwcy9tZW5lbGF1cy5jIGIvZHJpdmVycy9pMmMvY2hp
-cHMvbWVuZWxhdXMuYwppbmRleCBlYWE0ZTFjLi40ODRhMjNlIDEwMDY0NAotLS0gYS9kcml2ZXJz
-L2kyYy9jaGlwcy9tZW5lbGF1cy5jCisrKyBiL2RyaXZlcnMvaTJjL2NoaXBzL21lbmVsYXVzLmMK
-QEAgLTEyMzksNiArMTIzOSw3IEBAIHN0YXRpYyBpbnQgX19leGl0IG1lbmVsYXVzX3JlbW92ZShz
-dHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50KQogCXN0cnVjdCBtZW5lbGF1c19jaGlwCSptZW5lbGF1
-cyA9IGkyY19nZXRfY2xpZW50ZGF0YShjbGllbnQpOwogCiAJZnJlZV9pcnEoY2xpZW50LT5pcnEs
-IG1lbmVsYXVzKTsKKwlrZnJlZShtZW5lbGF1cyk7CiAJdGhlX21lbmVsYXVzID0gTlVMTDsKIAly
-ZXR1cm4gMDsKIH0KQEAgLTEyNDcsOCArMTI0OCw2IEBAIHN0YXRpYyBzdHJ1Y3QgaTJjX2RyaXZl
-ciBtZW5lbGF1c19pMmNfZHJpdmVyID0gewogCS5kcml2ZXIgPSB7CiAJCS5uYW1lCQk9IERSSVZF
-Ul9OQU1FLAogCX0sCi0JLmlkCQk9IEkyQ19EUklWRVJJRF9NSVNDLCAvKkZJWE1FOmFjY3JvZGlu
-ZyB0byBpMmMtaWRzLmggKi8KLQkuY2xhc3MJCT0gSTJDX0NMQVNTX0hXTU9OLAogCS5wcm9iZQkJ
-PSBtZW5lbGF1c19wcm9iZSwKIAkucmVtb3ZlCQk9IF9fZXhpdF9wKG1lbmVsYXVzX3JlbW92ZSks
-CiB9OwotLSAKMS41LjAKCg==
-------=_Part_49245_19910045.1181887430314
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Well I think option 2 or 3 may still be the best if we eventually want
+to compile both 24xx and 34xx into the same kernel. Maybe just have it
+defined in irq.c or .h if not needed elsewhere?
 
-
-------=_Part_49245_19910045.1181887430314--
+Tony
