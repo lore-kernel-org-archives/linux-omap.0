@@ -1,7 +1,7 @@
 From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
 Subject: RE: [PATCH 9 /12 ] Plat-omap files updating to support OMAP3
-Date: Thu, 14 Jun 2007 16:27:22 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C470123C582@dlee13.ent.ti.com>
+Date: Thu, 14 Jun 2007 22:27:35 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C470123C687@dlee13.ent.ti.com>
 References: <20070614115821.GH28804@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -23,26 +23,32 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
->> --- linux-omap/arch/arm/plat-omap/gpio.c	2007-05-07
->20:57:49.000000000 -0500
->> +++ val_3430_GIT/arch/arm/plat-omap/gpio.c	2007-06-13
->16:45:33.000000000 -0500
+>This adds an extra artificial barrier to compiling in omap2 and omap3.
+>Could you please change to be something like this:
+>
+>#ifdef CONFIG_ARCH_OMAP1
 >...
->> @@ -1290,7 +1328,7 @@ static int __init _omap_gpio_init(void)
->>  				clk_enable(gpio5_fck);
->>  		}
->>  #endif
->> -}
->> +	}
->>
->>  #ifdef CONFIG_ARCH_OMAP15XX
->>  	if (cpu_is_omap15xx()) {
 >
->Is the formatting change above correct?
+>#elif defined(CONFIG_ARCH_OMAP2)
 >
-Double Checked, the formatting is correct...
+>#ifdef CONFIG_ARCH_OMAP24XX
+>static struct omap_dm_timer omap24xx_dmtimers[] =3D {
+>...
+>};
+>#endif
+>
+>#ifdef CONFIG_ARCH_OMAP34XX
+>static struct omap34xx_dmtimers[] =3D {
+>...
+>};
+>#endif
+>#endif
+>
+>Then just put the right table in place during init like you did
+>in io.c.
+>
+
+I am posting an RFC for this, please comment and let me know your views.
 
 Regards,
 Khasim
