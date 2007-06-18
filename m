@@ -1,12 +1,15 @@
-From: "Jorge Andrade" <jorge.omap@gmail.com>
-Subject: Help, I need OMAP1611 H2 hardware info.
-Date: Sat, 16 Jun 2007 18:55:09 -0500
-Message-ID: <7bb487210706161655u2f7da9ak4054ca9cc033f625@mail.gmail.com>
+From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+Subject: RE: OMAP1710 - Accessing audio codec from arm cpu
+Date: Mon, 18 Jun 2007 12:40:06 +0530
+Message-ID: <5DF83221BE20114E9C331F665ACBC0800323F019@dbde01.ent.ti.com>
+References: <9057093.1181555121733.JavaMail.root@ps5>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <9057093.1181555121733.JavaMail.root@ps5>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,24 +17,43 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: lbozzi@tiscali.it, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+If you are able to bypass DSP, then write your own code to access DSP
+Mcbsp in the armside to send the audio samples.  HW supports it.
 
-Recently in my work I've received a TI OMAP1611_H2 development board,
-released by Prodsys. But I have a couple of problems, 'cause I don't have
-any hardware information about it, and the web page of Prodsys (
-www.prodsys.com) seems that is not working any more.
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+lbozzi@tiscali.it
+Sent: Monday, June 11, 2007 3:15 PM
+To: linux-omap-open-source@linux.omap.com
+Subject: OMAP1710 - Accessing audio codec from arm cpu
 
-I wonder if any of you could help me with hardware information about it
-(diagrams, user's guides, etc).
 
-Thanks a lot & congratulations for this mailing list!
+Hi all,
 
-Best regards,
+I'm a newbie in omap architectures, so I beg your pardon If my question
+has an obvious answer.
 
-Jorge Andrade
-jorge.omap@gmail.com
+I'd like to know if it's possible read/write audio samples in omap1710
+(it's a Nokia N80) directly from arm cpu, "bypassing" C55xx DSP. I'm
+developing a custom application for such a device but cannot modify DSP
+code.
+
+Thanks in advance for your replies,
+
+Best Regards,
+
+--Luciano BOZZI
+Naviga e telefona senza limiti con Tiscali    =20
+Scopri le promozioni Tiscali Adsl: navighi e telefoni senza canone
+Telecom
+http://abbonati.tiscali.it/adsl/
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
