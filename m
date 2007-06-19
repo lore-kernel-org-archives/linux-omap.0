@@ -1,10 +1,14 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 1/1] OMAP2: Fix dss_54m_fck enable_bit
-Date: Tue, 19 Jun 2007 17:46:01 -0600
-Message-ID: <20070619234629.190236844@pwsan.com>
-References: <20070619234600.427958900@pwsan.com>
+From: sree <sreesamb@gmail.com>
+Subject: Fwd: Help in regard of MMC slot with SDP2430
+Date: Tue, 19 Jun 2007 16:56:19 -0700
+Message-ID: <80f873930706191656o4f12d175of42d4b6f0825dd6f@mail.gmail.com>
+References: <80f873930706191431s3ed5e123r96aff028f0b1ed09@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline; filename=fix-dss_54m_fck-bug.patch
+In-Reply-To: <80f873930706191431s3ed5e123r96aff028f0b1ed09@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,29 +21,16 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Fix an incorrect enable_bit for the OMAP2 clock dss_54m_fck; prevents 
-the LCD backlight from lighting up on 2430 SDP.  Problem noted by Kevin
-Hilman <khilman@mvista.com>; debugging assistance from Khasim Syed Mohammed
-<x0khasim@ti.com> and Richard Woodruff <r-woodruff2@ti.com>.
+Hi
+I am working on MMC drivers for SDP2430 with 2.6.20 kernel and with
+reference to the 2.6.14. The LED related to the MMC slot is not
+on.whichmeans the power for MMC slot is not
+enabled.Is it related to the TWL4030 board drivers or they related to the
+Host MMC controllers.I am little confused on this, need the correct way to
+solve this. Any help please
+thanks
+sree
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
----
- arch/arm/mach-omap2/clock.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Index: linux-omap/arch/arm/mach-omap2/clock.h
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/clock.h
-+++ linux-omap/arch/arm/mach-omap2/clock.h
-@@ -1071,7 +1071,7 @@ static struct clk dss_54m_fck = {	/* Alt
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				RATE_FIXED | RATE_PROPAGATES,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= OMAP24XX_EN_DSS2_SHIFT,
-+	.enable_bit	= OMAP24XX_EN_TV_SHIFT,
- 	.recalc		= &omap2_propagate_rate,
- };
- 
-
--- 
+--
