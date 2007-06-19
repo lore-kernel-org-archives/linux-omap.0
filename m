@@ -1,12 +1,10 @@
-From: "Jason Huang" <jason.huang@wescongroup.com>
-Subject: Both OHCI and Function USB on Innovator/5910
-Date: Tue, 19 Jun 2007 07:28:57 -0700
-Message-ID: <005c01c7b27e$2e37a2d0$a064a8c0@dv2000z>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 1/1] OMAP2: Fix dss_54m_fck enable_bit
+Date: Tue, 19 Jun 2007 17:46:01 -0600
+Message-ID: <20070619234629.190236844@pwsan.com>
+References: <20070619234600.427958900@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline; filename=fix-dss_54m_fck-bug.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,16 +17,29 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-We are working on a custom board based Innovator/OMAP5910 and cannot =
-have
-both host and function USB at the same time.
+Fix an incorrect enable_bit for the OMAP2 clock dss_54m_fck; prevents 
+the LCD backlight from lighting up on 2430 SDP.  Problem noted by Kevin
+Hilman <khilman@mvista.com>; debugging assistance from Khasim Syed Mohammed
+<x0khasim@ti.com> and Richard Woodruff <r-woodruff2@ti.com>.
 
-I tried 2.6.11-omap1, 2.6.16-omap1, 2.6.16-omap2 as well as current git
-tree.
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
-Is there anyone had both OHCI and function/device USB working?
+---
+ arch/arm/mach-omap2/clock.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+Index: linux-omap/arch/arm/mach-omap2/clock.h
+===================================================================
+--- linux-omap.orig/arch/arm/mach-omap2/clock.h
++++ linux-omap/arch/arm/mach-omap2/clock.h
+@@ -1071,7 +1071,7 @@ static struct clk dss_54m_fck = {	/* Alt
+ 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
+ 				RATE_FIXED | RATE_PROPAGATES,
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+-	.enable_bit	= OMAP24XX_EN_DSS2_SHIFT,
++	.enable_bit	= OMAP24XX_EN_TV_SHIFT,
+ 	.recalc		= &omap2_propagate_rate,
+ };
+ 
 
-Best Regards.
-=A0
-Jason Huang
+-- 
