@@ -1,12 +1,12 @@
 From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: [PATCH] Add 3430 support in irq.c
-Date: Wed, 20 Jun 2007 22:17:55 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47012A513A@dlee13.ent.ti.com>
+Subject: [PATCH] Add 3430 support in hardware.h
+Date: Wed, 20 Jun 2007 22:16:59 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47012A5137@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,52 +15,43 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Add 3430 support in irq.c
+Add 3430 support in hardware.h
 
 Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
 
 Files:
- arch/arm/mach-omap2/irq.c
+ include/asm-arm/arch-omap/hardware.h
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-omap/arch/arm/mach-omap2/irq.c	2007-01-08 18:55:58.000000000 =
--0600
-+++ val_3430_GIT/arch/arm/mach-omap2/irq.c	2007-06-20 14:44:42.000000000 =
--0500
-@@ -37,11 +37,9 @@ static struct omap_irq_bank {
- } __attribute__ ((aligned(4))) irq_banks[] =3D {
- 	{
- 		/* MPU INTC */
--		.base_reg	=3D IO_ADDRESS(OMAP24XX_IC_BASE),
-+		.base_reg	=3D 0,
- 		.nr_irqs	=3D 96,
--	}, {
--		/* XXX: DSP INTC */
--	}
-+	},
- };
+--- linux-omap/include/asm-arm/arch-omap/hardware.h	2007-06-08 =
+08:09:45.000000000 -0500
++++ val_3430_GIT/include/asm-arm/arch-omap/hardware.h	2007-06-20 =
+21:38:55.000000000 -0500
+@@ -283,8 +283,9 @@
 =20
- /* XXX: FIQ and additional INTC support (only MPU at the moment) */
-@@ -118,10 +116,12 @@ void __init omap_init_irq(void)
- 	for (i =3D 0; i < ARRAY_SIZE(irq_banks); i++) {
- 		struct omap_irq_bank *bank =3D irq_banks + i;
+ #include "omap730.h"
+ #include "omap1510.h"
+-#include "omap24xx.h"
+ #include "omap16xx.h"
++#include "omap24xx.h"
++#include "omap34xx.h"
 =20
--		/* XXX */
--		if (!bank->base_reg)
--			continue;
--
-+		if (cpu_is_omap24xx()) {
-+			bank->base_reg =3D IO_ADDRESS(OMAP24XX_IC_BASE);
-+		}
-+		if (cpu_is_omap34xx()) {
-+			bank->base_reg =3D IO_ADDRESS(OMAP34XX_IC_BASE);
-+		}
- 		omap_irq_bank_init_one(bank);
+ #ifndef __ASSEMBLER__
 =20
- 		nr_irqs +=3D bank->nr_irqs;
+@@ -322,6 +323,10 @@
+ #include "board-2430sdp.h"
+ #endif
+=20
++#ifdef CONFIG_MACH_OMAP_3430SDP
++#include "board-3430sdp.h"
++#endif
++
+ #ifdef CONFIG_MACH_OMAP_APOLLON
+ #include "board-apollon.h"
+ #endif
