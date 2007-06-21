@@ -1,13 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: dss2 dvfs fix.
-Date: Thu, 21 Jun 2007 04:47:14 -0700
-Message-ID: <20070621114712.GF20283@atomide.com>
-References: <3B6D69C3A9EBCA4BA5DA60D91302742901403565@dlee13.ent.ti.com>
+Subject: Re: [PATCH 1/1] OMAP2: Fix dss_54m_fck enable_bit
+Date: Thu, 21 Jun 2007 04:51:02 -0700
+Message-ID: <20070621115101.GG20283@atomide.com>
+References: <20070619234600.427958900@pwsan.com>
+	<20070619234629.190236844@pwsan.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D91302742901403565@dlee13.ent.ti.com>
+In-Reply-To: <20070619234629.190236844@pwsan.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,49 +18,35 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Woodruff, Richard <r-woodruff2@ti.com> [070620 18:49]:
-> Hi,
+* Paul Walmsley <paul@pwsan.com> [070619 16:55]:
+> Fix an incorrect enable_bit for the OMAP2 clock dss_54m_fck; prevents 
+> the LCD backlight from lighting up on 2430 SDP.  Problem noted by Kevin
+> Hilman <khilman@mvista.com>; debugging assistance from Khasim Syed Mohammed
+> <x0khasim@ti.com> and Richard Woodruff <r-woodruff2@ti.com>.
 > 
-> While testing low power refresh I noticed the DSS2 clock setting wasn't
-> being perserved across DVFS changes.  The below makes sure to not change
-> the source for DSS2.
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
 > 
-> Signed-off-by: Richard Woodruff  <r-woodruff2@ti.com>
+> ---
+>  arch/arm/mach-omap2/clock.h |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-> index f6da2bd..a7792d3 100644
-> --- a/arch/arm/mach-omap2/clock.c
-> +++ b/arch/arm/mach-omap2/clock.c
-> @@ -995,7 +995,7 @@ static int omap2_clk_set_parent(struct clk *clk,
-> struct clk *new_parent)
->  /* Sets basic clocks based on the specified rate */
->  static int omap2_select_table_rate(struct clk * clk, unsigned long
-> rate)
->  {
-> -	u32 flags, cur_rate, done_rate, bypass = 0;
-> +	u32 flags, cur_rate, done_rate, bypass = 0, tmp;
->  	u8 cpu_mask = 0;
->  	struct prcm_config *prcm;
->  	unsigned long found_speed = 0;
-> @@ -1056,7 +1056,8 @@ static int omap2_select_table_rate(struct clk *
-> clk, unsigned long rate)
->  		cm_write_mod_reg(prcm->cm_clksel_gfx, GFX_MOD,
-> CM_CLKSEL);
->  
->  		/* Major subsystem dividers */
-> -		cm_write_mod_reg(prcm->cm_clksel1_core, CORE_MOD,
-> CM_CLKSEL1);
-> +		tmp = cm_read_mod_reg(CORE_MOD, CM_CLKSEL1) & 0x2000;
-> +		cm_write_mod_reg(prcm->cm_clksel1_core | tmp, CORE_MOD,
-> CM_CLKSEL1);
->  		if (cpu_is_omap2430())
->  			cm_write_mod_reg(prcm->cm_clksel_mdm,
->  					 OMAP2430_MDM_MOD, CM_CLKSEL);
+> Index: linux-omap/arch/arm/mach-omap2/clock.h
+> ===================================================================
+> --- linux-omap.orig/arch/arm/mach-omap2/clock.h
+> +++ linux-omap/arch/arm/mach-omap2/clock.h
+> @@ -1071,7 +1071,7 @@ static struct clk dss_54m_fck = {	/* Alt
+>  	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
+>  				RATE_FIXED | RATE_PROPAGATES,
+>  	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+> -	.enable_bit	= OMAP24XX_EN_DSS2_SHIFT,
+> +	.enable_bit	= OMAP24XX_EN_TV_SHIFT,
+>  	.recalc		= &omap2_propagate_rate,
+>  };
 
-Thanks, pushing today. Patch was wrapped BTW...
+Thanks, pushing today.
 
 Tony
