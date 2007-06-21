@@ -1,7 +1,7 @@
 From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: [PATCH] Add 3430 support in hardware.h
-Date: Wed, 20 Jun 2007 22:16:59 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47012A5137@dlee13.ent.ti.com>
+Subject: [PATCH] Add 3430 support in dma.h
+Date: Wed, 20 Jun 2007 22:17:28 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47012A5139@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -20,38 +20,30 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Add 3430 support in hardware.h
+Add 3430 support in dma.h
 
 Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
 
 Files:
- include/asm-arm/arch-omap/hardware.h
+ include/asm-arm/arch-omap/dma.h
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-omap/include/asm-arm/arch-omap/hardware.h	2007-06-08 =
-08:09:45.000000000 -0500
-+++ val_3430_GIT/include/asm-arm/arch-omap/hardware.h	2007-06-20 =
-21:38:55.000000000 -0500
-@@ -283,8 +283,9 @@
+--- linux-omap/include/asm-arm/arch-omap/dma.h	2007-06-12 =
+15:08:51.000000000 -0500
++++ val_3430_GIT/include/asm-arm/arch-omap/dma.h	2007-06-20 =
+14:36:59.000000000 -0500
+@@ -45,7 +45,12 @@
+ #define OMAP_DMA_PCHD_SR		(OMAP_DMA_BASE + 0x4c0)
 =20
- #include "omap730.h"
- #include "omap1510.h"
--#include "omap24xx.h"
- #include "omap16xx.h"
-+#include "omap24xx.h"
-+#include "omap34xx.h"
-=20
- #ifndef __ASSEMBLER__
-=20
-@@ -322,6 +323,10 @@
- #include "board-2430sdp.h"
- #endif
-=20
-+#ifdef CONFIG_MACH_OMAP_3430SDP
-+#include "board-3430sdp.h"
+ /* Hardware registers for omap2 */
+-#define OMAP_DMA4_BASE			(L4_OMAP_BASE + 0x56000)
++#if defined(CONFIG_ARCH_OMAP3)
++#define OMAP_DMA4_BASE			(L4_34XX_BASE + 0x56000)
++#elif defined(CONFIG_ARCH_OMAP2)
++#define OMAP_DMA4_BASE			(L4_24XX_BASE + 0x56000)
 +#endif
 +
- #ifdef CONFIG_MACH_OMAP_APOLLON
- #include "board-apollon.h"
- #endif
+ #define OMAP_DMA4_REVISION		(OMAP_DMA4_BASE + 0x00)
+ #define OMAP_DMA4_GCR_REG		(OMAP_DMA4_BASE + 0x78)
+ #define OMAP_DMA4_IRQSTATUS_L0		(OMAP_DMA4_BASE + 0x08)
