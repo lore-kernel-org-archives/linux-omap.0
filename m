@@ -1,12 +1,13 @@
-From: "Veda N" <veda74@gmail.com>
-Subject: soft Lockup
-Date: Thu, 21 Jun 2007 12:57:34 +0530
-Message-ID: <a5eaedfa0706210027l3ad9bf63wcf367f00432117fc@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Pre-3430 patch for dmtimer.c
+Date: Thu, 21 Jun 2007 03:15:21 -0700
+Message-ID: <20070621101519.GC20283@atomide.com>
+References: <9C23CDD79DA20A479D4615857B2E2C47012A5132@dlee13.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
+In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47012A5132@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,25 +17,18 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-  I get messages like
+* Syed Mohammed, Khasim <x0khasim@ti.com> [070620 20:14]:
+> Cleanup DM timer list for OMAP2 and OMAP1
 
-BUG: soft lockup detected on CPU#0!
+I've cleaned it up further to get rid of unnecessary casts etc.
+Committed as a67825f661980a324aacf22e89af66afa4e4ff59.
 
-Wondering what it could be?.
-
-
-I get this when i try execution of audio
-streaming.
-
-Is it because of compiler optimisations?.
-
-
-Is it a kernel bug? or a protection mechanism?.
-
+Hmmm, looks like the BUG_ON() can be removed too...
 
 Regards,
-veda
+
+Tony
