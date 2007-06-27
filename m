@@ -1,14 +1,14 @@
-From: "Pharaoh ." <pharaoh137@gmail.com>
-Subject: Re: DMA or IRQ trouble while testing ALSA driver for omap
-Date: Wed, 27 Jun 2007 17:10:44 +0530
-Message-ID: <61445c750706270440j39f42c4bw41c81ceae42b638d@mail.gmail.com>
-References: <61445c750706270356j385b788am9b0309c915cda8a6@mail.gmail.com>
+From: Andray Kaganovsky <andrayk@m-sys.com>
+Subject: linux-2.6.14-omap2-v3.tgz won't compile for OMAP2420
+Date: Wed, 27 Jun 2007 13:32:06 -0400
+Message-ID: <1866982549.20070627133206@m-sys.com>
+References: <1775705074.20070627125646@m-sys.com>
+Reply-To: Andray Kaganovsky <andrayk@m-sys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <61445c750706270356j385b788am9b0309c915cda8a6@mail.gmail.com>
-Content-Disposition: inline
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <1775705074.20070627125646@m-sys.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,35 +16,45 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-OMAP 15XX has ARM925 right? and it has MMU. But, the DMA buffer is
-allocated using
-SNDRV_DMA_TYPE_CONTINUOUS. If the processor doesn't use a MMU, then
-the memory addresses as seen by the CPU are the same as those used by
-a device using DMA.  In that case, you could use
-SNDRV_DMA_TYPE_CONTINUOUS and the correct address would be available
-as runtime->dma_area but otherwise it might just fail right?
- A novice question indeed.
+Hello,
 
+I got compilation errors when I tried to compile linux-2.6.14-omap2-v3.tgz
+(from http://linux.omap.com/pub/kernel/2430sdp/source/ ) for OMAP2420
+H4 board.
 
-On 6/27/07, Pharaoh . <pharaoh137@gmail.com> wrote:
-> Hi
->
-> I am using omap osk board and while testing the alsa driver in linux-omap1
-> tree,
-> I am getting the following errrors:
->
-> >ALSA sound/core/pcm_lib.c:1733: playback write error (DMA or IRQ trouble?)
->
-> After debugging it was revealed that the pointer function is not
-> working as expected
-> and it is returning wrong pos in hw buffer. I am referring file
-> omap-alsa.c. I have not modified the driver and other settings like
-> sample rate etc are set appropriately.
->
-> -pharaoh
->
+I did:
+
+    make omap_h4_2420_defconfig
+    make uImage
+    
+and I got:
+
+arch/arm/mach-omap2/prcm_lib1.c: In function `prcm_set_idlemode_handshake':
+arch/arm/mach-omap2/prcm_lib1.c:2133: error: `OMAP243X_CORE_L4_IO_BASE' undeclared (first use in this function)
+arch/arm/mach-omap2/prcm_lib1.c:2133: error: (Each undeclared identifier is reported only once
+arch/arm/mach-omap2/prcm_lib1.c:2133: error: for each function it appears in.)
+arch/arm/mach-omap2/prcm_lib1.c:2162: error: `OMAP243X_WAKEUP_L4_IO_BASE' undeclared (first use in this function)
+arch/arm/mach-omap2/prcm_lib1.c:2225: error: `GPIO5_SYSCONFIG' undeclared (first use in this function)
+arch/arm/mach-omap2/prcm_lib1.c: In function `prcm_wakeup_ctrl':
+arch/arm/mach-omap2/prcm_lib1.c:2446: error: `OMAP243X_CORE_L4_IO_BASE' undeclared (first use in this function)
+arch/arm/mach-omap2/prcm_lib1.c:2457: error: `GPIO5_SYSCONFIG' undeclared (first use in this function)
+arch/arm/mach-omap2/prcm_lib1.c: In function `prcm_softreset_ctrl':
+arch/arm/mach-omap2/prcm_lib1.c:2529: error: `OMAP243X_CORE_L4_IO_BASE' undeclared (first use in this function)
+arch/arm/mach-omap2/prcm_lib1.c:2609: error: `OMAP243X_WAKEUP_L4_IO_BASE' undeclared (first use in this function)
+arch/arm/mach-omap2/prcm_lib1.c:2704: error: `GPIO5_SYSCONFIG' undeclared (first use in this function)
+arch/arm/mach-omap2/prcm_lib1.c: In function `prcm_autoidle_ctrl':
+arch/arm/mach-omap2/prcm_lib1.c:2772: error: `OMAP243X_WAKEUP_L4_IO_BASE' undeclared (first use in this function)
+arch/arm/mach-omap2/prcm_lib1.c:2781: error: `OMAP243X_CORE_L4_IO_BASE' undeclared (first use in this function)
+arch/arm/mach-omap2/prcm_lib1.c:2932: error: `GPIO5_SYSCONFIG' undeclared (first use in this function)
+make[1]: *** [arch/arm/mach-omap2/prcm_lib1.o] Error 1
+make: *** [arch/arm/mach-omap2] Error 2
+
+Where do I go from here ? I would appreciate any advice.
+
+Thanks and regards,
+Andray
