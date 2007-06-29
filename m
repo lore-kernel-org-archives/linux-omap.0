@@ -1,15 +1,13 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: twl4030 - converting to new I2C style
-Date: Thu, 28 Jun 2007 23:17:11 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47013BF459@dlee13.ent.ti.com>
-References: <5d5443650706110454r1203365exacb8337c11ab1f09@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Fixing cpu_class_is_omap2() parentheses warning
+Date: Fri, 29 Jun 2007 00:21:01 -0700
+Message-ID: <20070629072100.GB23421@atomide.com>
+References: <20070625182249.19564.42233.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <5d5443650706110454r1203365exacb8337c11ab1f09@mail.gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <20070625182249.19564.42233.stgit@localhost.localdomain>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,27 +15,38 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Trilok Soni <soni.trilok@gmail.com>, David Brownell <david-b@pacbell.net>, Linux OMAP <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Ragner Magalhaes <ragner.magalhaes@indt.org.br>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi David / Trilok,
+* Ragner Magalhaes <ragner.magalhaes@indt.org.br> [070625 11:35]:
+> From: Ragner Magalhaes <ragner.magalhaes@indt.org.br>
+> 
+> Fixing the follow warning 
+> arch/arm/plat-omap/usb.c: In function 'omap_usb0_init':
+> arch/arm/plat-omap/usb.c:136: warning: suggest parentheses around && within ||
+> 
+> Signed-off-by: Ragner Magalhaes <ragner.magalhaes@indt.org.br>
+> ---
+> 
+>  include/asm-arm/arch-omap/cpu.h |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/include/asm-arm/arch-omap/cpu.h b/include/asm-arm/arch-omap/cpu.h
+> index 4eea68b..b9399a8 100644
+> --- a/include/asm-arm/arch-omap/cpu.h
+> +++ b/include/asm-arm/arch-omap/cpu.h
+> @@ -273,6 +273,6 @@ IS_OMAP_TYPE(3430, 0x3430)
+>  /* Macros to detect if we have OMAP1 or OMAP2 */
+>  #define cpu_class_is_omap1()	(cpu_is_omap730() || cpu_is_omap15xx() || \
+>  				cpu_is_omap16xx())
+> -#define cpu_class_is_omap2()	cpu_is_omap24xx() || cpu_is_omap34xx()
+> +#define cpu_class_is_omap2()	(cpu_is_omap24xx() || cpu_is_omap34xx())
+>  
+>  #endif
 
->-----Original Message-----
->From: linux-omap-open-source-bounces@linux.omap.com [mailto:linux-omap-
->open-source-bounces@linux.omap.com] On Behalf Of Trilok Soni
->Sent: Monday, June 11, 2007 6:55 AM
->To: David Brownell; Linux OMAP
->Subject: twl4030 - converting to new I2C style
->
-<snip>
+Thanks, pushing today.
 
-Is there any update on this? I would like to repost 3430 patch set along =
-with TWL4030 driver (as 3430 SDP uses TWL4030). I can correct the driver =
-as required by new model.
-
-Thanks.
-
-Regards,
-Khasim
+Tony
