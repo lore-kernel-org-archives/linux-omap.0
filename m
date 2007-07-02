@@ -1,15 +1,16 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: twl4030 - converting to new I2C style
-Date: Fri, 29 Jun 2007 10:26:56 -0700
-Message-ID: <200706291026.56794.david-b@pacbell.net>
-References: <5d5443650706110454r1203365exacb8337c11ab1f09@mail.gmail.com>
+From: "Kyungmin Park" <kyungmin.park@samsung.com>
+Subject: RE: Why does it increase the dsor value in MMC?
+Date: Mon, 2 Jul 2007 11:14:10 +0900
+Message-ID: <002701c7bc4e$b1c70670$e1ac580a@swcenter.sec.samsung.co.kr>
+References: <3E32F84CD6CB95498A35B353CA3B930C0672DD@fioues08.ebgroup.elektrobit.com>
+	<9C23CDD79DA20A479D4615857B2E2C47013BF5FA@dlee13.ent.ti.com>
+Reply-To: kmpark@infradead.org
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+	charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <5d5443650706110454r1203365exacb8337c11ab1f09@mail.gmail.com>
-Content-Disposition: inline
+In-reply-to: <9C23CDD79DA20A479D4615857B2E2C47013BF5FA@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,76 +20,25 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Trilok Soni <soni.trilok@gmail.com>
-Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
+To: "'Syed Mohammed, Khasim'" <x0khasim@ti.com>, Tuukka.Tikkanen@elektrobit.com, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 11 June 2007, Trilok Soni wrote:
-> David,
 > 
-> I would like to convert twl4030_core.c (driver for TWL4030 chip
-> available on OMAP2430/3430 TI EVM) [1] to new I2C style bindings. But
-> it doesn't look straightforward to me compared to menelaus, because
-> 
-> * this chip can decode upto four slave addresses (0x48, 0x49, 0x4A,
-> 0x4B), which we can consider as four different module chips inside one
-> twl4030.
+> >Removing the line improves performance for most people, but might break
+> >some hardware combinations (the above case). If you can verify from TRM
+> >that the value written to register is the actual divisor (and not like
+> >1=0, 2=1 etc),
+> It is like this, writing 0 will disable the clock and 1 to 0x3FF are valid
+> values.
 
-I'm assuming it makes no sense to have four different
-drivers here ... right?
+Then how about to append the following code?
 
-FWIW a similar issue comes up with 24c00 EEPROMs, which
-take eight addresses for no good reason, and some larger
-EEPROMS (which use 2, or 4, or 8 addresses to grow more
-address space, which seem like decent reasons overall).
+/* If the dsor is zero, we increase the dsor value to enable the clock */
+if (dsor == 0)
+	dsor++;
 
+It not only assigns the correct dsor values, but also enables the other
+platform. 
 
-> Now as per new I2C style, we bind one i2c_driver with one client,
-> matching it (i2c_match) based on it's name in I2C_BOARD_INFO to the
-> driver name in order to call probe on that.
-> 
-> Now mapping the same concept here we have four clients which should
-> have different name which registering with i2c_regsiter_board_info,
-> like this ?
-> 
-> +static struct i2c_board_info __initdata sdp2430_i2c_board_info[] = {
-> +       {
-> +               I2C_BOARD_INFO("twl4030:0", 0x48),
-> +       },
-> +       {
-> +               I2C_BOARD_INFO("twl4030:1", 0x49),
-> +       },
-> +       {
-> +               I2C_BOARD_INFO("twl4030:2", 0x4A),
-> +       },
-> +       {
-> +               I2C_BOARD_INFO("twl4030:3", 0x4B),
-> +       },
-> +};
-> +
-> 
-> OR should we keep the same name as in i2c_driver.driver.name for all
-> four clients above?
-
-I'd use the same name, unless four different drivers really
-makes sense.  Your probe() would likely need to look at the
-address it's given and then do some magic to hook up to the
-other devices sharing that address ... the USB approach
-doesn't quite work here, since when you're probed several
-of those interfaces may not yet exist.
-
-What I question is whether all four addresses should be listed
-in the boardinfo table.  That's one of several defensible
-stances; probably not the easiest one to work with though.
-I'd suggest asking (on the i2c list) whether anyone has a
-better proposal for how to handle such chips.
-
-- Dave
-
-
-
-> [1]
-> http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=blob;f=drivers/i2c/chips/twl4030_core.c;h=6123ce893ee731d5fcb0ed3467066e79f3c29571;hb=HEAD
-> -- 
-> --Trilok Soni
-> 
+Thank you,
+Kyungmin Park
