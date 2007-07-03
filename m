@@ -1,7 +1,7 @@
 From: "arun c" <arun.edarath@gmail.com>
-Subject: Hi-SDRAM changes
-Date: Tue, 3 Jul 2007 10:33:25 +0530
-Message-ID: <c656a4d20707022203u34355f04qe511e4fb2b9cda2f@mail.gmail.com>
+Subject: What is NAND sector size?
+Date: Tue, 3 Jul 2007 12:36:49 +0530
+Message-ID: <c656a4d20707030006u71af1aaej1eac87122d195f67@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -19,17 +19,24 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+HI,
 
-I am working with omap2430SDP board with pop SDRAM.
-The only difference between this board and normal sdp is the POP SDRAM
-and its 64Mb.
+I am porting uboot to a new omap board.
 
-I want to port uboot and x-loader to this board.
-Please anybody suggest me where i should make changes in uboot sources
-so that it will
-work with pop memory.
+My nand details are given below
+page size=2111(2047+64)
+block size=64 pages
+total size=2047 blocks
+
+while going through the uboot configurations i met this NAND settings.
+#define    SECTORSIZE                  512
+#define CFG_MAX_FLASH_SECT   (259)
 
 
-Thanks&Warm regards
-Arun c
+Is this sector size=pagesize?
+In my case do i need to change this to 2048?
+
+And what is CFG_MAX_FLASH_SECT for my nand device?
+
+Regards
+Arun
