@@ -1,12 +1,13 @@
-From: "arun c" <arun.edarath@gmail.com>
-Subject: What is NAND sector size?
-Date: Tue, 3 Jul 2007 12:36:49 +0530
-Message-ID: <c656a4d20707030006u71af1aaej1eac87122d195f67@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Nokia N800 - USB Host mode issues
+Date: Tue, 3 Jul 2007 02:26:41 -0700
+Message-ID: <20070703092628.GA7062@atomide.com>
+References: <468535CE.5070401@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
+In-Reply-To: <468535CE.5070401@gmx.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,27 +17,61 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Robert Schuster <theBohemian@gmx.net>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-HI,
+Hi,
 
-I am porting uboot to a new omap board.
+* Robert Schuster <theBohemian@gmx.net> [070629 09:41]:
+> Hi,
+> I am using the patches available from
+> http://www.muru.com/linux/n800-usb-host/
+> 
+> to enable the USB Host mode capability of the N800 device
+> 
+> .. and have some questions:
+> 
+> I connected an external powered USB Hub to it and tried a few devices.
+> 
+> a)
+> First of all: It works fine and I can for instance transmit big amount
+> of data through a USB ethernet device (using the pegasus.ko driver).
+> However it does not seem to like plugging devices of. Because after
+> doing so (in case of the ethernet device I did ifconfig eth0 down first)
+> the host will not accept the device anymore. It also seems to have
+> trouble communicating to the hub at all.
 
-My nand details are given below
-page size=2111(2047+64)
-block size=64 pages
-total size=2047 blocks
+Thanks for the info. Sounds like some of the issues have been
+fixed already.
 
-while going through the uboot configurations i met this NAND settings.
-#define    SECTORSIZE                  512
-#define CFG_MAX_FLASH_SECT   (259)
+> b)
+> The host did not accept an USB keyboard of mine which has two built-in
+> USB 1.1 ports (the real HUB is an USB 2.0 one).
 
+Turns out it's because the babble interrupts are fatal for HS
+devices, but must be ignored for LS/FS devices... This is already fixed
+in the linux-omap git tree.
 
-Is this sector size=pagesize?
-In my case do i need to change this to 2048?
+> Has any development happened on the USB Hostdriver for the N800 after
+> the release of the above mentioned patches?
 
-And what is CFG_MAX_FLASH_SECT for my nand device?
+Yes, but the changes have been only in the linux-omap git tree. I've
+just refreshed the N800 usb host patches [1] to be in sync with linux-omap
+tree. Can you please see if these work better for you?
 
-Regards
-Arun
+> Is there any interest to debug the problems a) and b) further? If so,
+> what info should I provide?
+
+Yes, musb chips are integrated in 2430 and 3430, and tusb uses this chip
+too. So development is going on, please post any patches you may have
+to this mailing list :)
+
+For the information to provide, knowing what kind of devices don't
+work after updating to the latest series of patches would be nice.
+
+Regards,
+
+Tony
+
+[1] http://www.muru.com/linux/n800-usb-host/
