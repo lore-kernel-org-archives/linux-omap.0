@@ -1,12 +1,14 @@
-From: "arun c" <arun.edarath@gmail.com>
-Subject: Does Uboot do lowlevel clock settings if it is in RAM?
-Date: Tue, 3 Jul 2007 20:42:58 +0530
-Message-ID: <c656a4d20707030812i313e111at9eff98700e3c50fd@mail.gmail.com>
+From: Kevin Hilman <khilman@mvista.com>
+Subject: Re: Problem with source.mvista.com and muru.com
+Date: Tue, 03 Jul 2007 09:45:49 -0700
+Message-ID: <468A7D3D.7000001@mvista.com>
+References: <9C23CDD79DA20A479D4615857B2E2C47013C0207@dlee13.ent.ti.com>
+	<20070703093022.GB7062@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+In-Reply-To: <20070703093022.GB7062@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,27 +18,26 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+Tony Lindgren wrote:
+> * Syed Mohammed, Khasim <x0khasim@ti.com> [070702 19:49]:
+>> Hi,
+>>
+>> I was not able to access muru.com and am not able to update GIT from source.mvista.com. I think there is some problem with these servers. 
+> 
+> I've restarted apache on muru.com, looks like OOM killer again.
+> 
+>> In Tony's absence who will correct these?
+> 
+> I'm still checking emails here and there although mostly on vacation
+> right now :)
+> 
+>> Kevin, can you please help with these?
+> 
+> I can't do anything about source.mvista.com if it's down, so we'll
+> have to wait to hear from Kevin on that.
 
-i am working with omap2430sdp.
-
-i am downloading the uboot.bin file through JTAG using CCS.
-its downloading sucessfully. But after running it nothing comes
-in the serial port.
-
-we checked the clock settings. its going wrong after we start
-running uboot(its fine untill we download through JTAG).
-
-But what i understood that uboot won't change any clock settings
-if it is running from RAM.
-
-I want to know whether uboot changes clock settings if its
-running from RAM??
-
-please somebody help me out.
-
-Regards
-Arun
+source.mvista.com is back up.
