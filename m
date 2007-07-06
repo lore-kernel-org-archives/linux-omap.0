@@ -1,12 +1,12 @@
 From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: [PATCH 2/11] NON V7 code changes to head.S
-Date: Thu, 5 Jul 2007 23:38:50 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C470142E618@dlee13.ent.ti.com>
+Subject: [PATCH 1/ 11] Kconfig and Makefile updates for OMAP3
+Date: Thu, 5 Jul 2007 23:38:26 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C470142E616@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,30 +15,41 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
+
+Kconfig and Makefile updates for OMAP3
 
 Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
 
 Files:
- arch/arm/boot/compressed/head.S
-=20
+ arch/arm/Kconfig
+ arch/arm/Makefile
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-diff -purN linux-omap/arch/arm/boot/compressed/head.S =
-val_3430_GIT/arch/arm/boot/compressed/head.S
---- linux-omap/arch/arm/boot/compressed/head.S	2007-06-21 =
-08:19:03.000000000 -0500
-+++ val_3430_GIT/arch/arm/boot/compressed/head.S	2007-07-05 =
-17:59:22.000000000 -0500
-@@ -776,6 +776,7 @@ __armv7_mmu_cache_flush:
- 		mcr	p15, 0, r10, c7, c14, 0	@ clean+invalidate D
- 		b	iflush
- hierarchical:
-+		adr	sp, no_cache_id		@ non-v7 code is temp stack
- 		stmfd	sp!, {r0-r5, r7, r9-r11}
- 		mrc	p15, 1, r0, c0, c0, 1	@ read clidr
- 		ands	r3, r0, #0x7000000	@ extract loc from clidr
+diff -purN linux-omap/arch/arm/Kconfig val_3430_GIT/arch/arm/Kconfig
+--- linux-omap/arch/arm/Kconfig	2007-06-12 15:08:45.000000000 -0500
++++ val_3430_GIT/arch/arm/Kconfig	2007-07-05 19:05:32.000000000 -0500
+@@ -393,7 +393,7 @@ config ARCH_OMAP
+ 	select GENERIC_TIME
+ 	select GENERIC_CLOCKEVENTS
+ 	help
+-	  Support for TI's OMAP platform (OMAP1 and OMAP2).
++	  Support for TI's OMAP platform (OMAP1, OMAP2 and OMAP3).
+=20
+ endchoice
+=20
+diff -purN linux-omap/arch/arm/Makefile val_3430_GIT/arch/arm/Makefile
+--- linux-omap/arch/arm/Makefile	2007-05-16 14:32:39.000000000 -0500
++++ val_3430_GIT/arch/arm/Makefile	2007-07-05 17:09:49.000000000 -0500
+@@ -121,6 +121,7 @@ endif
+  machine-$(CONFIG_ARCH_IXP23XX)    :=3D ixp23xx
+  machine-$(CONFIG_ARCH_OMAP1)	   :=3D omap1
+  machine-$(CONFIG_ARCH_OMAP2)	   :=3D omap2
++ machine-$(CONFIG_ARCH_OMAP3)		:=3D omap2
+   incdir-$(CONFIG_ARCH_OMAP)	   :=3D omap
+  machine-$(CONFIG_ARCH_S3C2410)	   :=3D s3c2410
+  machine-$(CONFIG_ARCH_LH7A40X)	   :=3D lh7a40x
