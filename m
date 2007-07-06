@@ -1,7 +1,7 @@
 From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: [PATCH 5/11] Clock updates for OMAP3430
-Date: Thu, 5 Jul 2007 23:39:38 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C470142E61C@dlee13.ent.ti.com>
+Subject: [PATCH 6/11] Update OMAP3430 config in mach-omap2
+Date: Thu, 5 Jul 2007 23:39:49 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C470142E61D@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -23,61 +23,65 @@ List-Id: linux-omap@vger.kernel.org
 Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
 
 Files:
- arch/arm/mach-omap2/clock.c
- arch/arm/mach-omap2/clock.h
+ arch/arm/mach-omap2/Kconfig
+ arch/arm/mach-omap2/Makefile
 =20
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-diff -purN linux-omap/arch/arm/mach-omap2/clock.c =
-val_3430_GIT/arch/arm/mach-omap2/clock.c
---- linux-omap/arch/arm/mach-omap2/clock.c	2007-06-21 08:19:03.000000000 =
+diff -purN linux-omap/arch/arm/mach-omap2/Kconfig =
+val_3430_GIT/arch/arm/mach-omap2/Kconfig
+--- linux-omap/arch/arm/mach-omap2/Kconfig	2007-04-02 02:29:57.000000000 =
 -0500
-+++ val_3430_GIT/arch/arm/mach-omap2/clock.c	2007-07-05 =
-18:03:11.000000000 -0500
-@@ -58,11 +58,15 @@ static u8 cpu_mask;
- /* Recalculate SYST_CLK */
- static void omap2_sys_clk_recalc(struct clk * clk)
- {
--	u32 div =3D prm_read_reg(OMAP24XX_PRCM_CLKSRC_CTRL);
--	/* Test if ext clk divided by 1 or 2 */
--	div &=3D (0x3 << OMAP_SYSCLKDIV_SHIFT);
--	div >>=3D clk->rate_offset;
--	clk->rate =3D (clk->parent->rate / div);
-+	u32 div;
-+
-+	if (!cpu_is_omap34xx()) {
-+		div =3D prm_read_reg(OMAP24XX_PRCM_CLKSRC_CTRL);
-+		/* Test if ext clk divided by 1 or 2 */
-+		div &=3D (0x3 << OMAP_SYSCLKDIV_SHIFT);
-+		div >>=3D clk->rate_offset;
-+		clk->rate =3D (clk->parent->rate / div);
-+	}
- 	propagate_rate(clk);
- }
-=20
-@@ -1181,7 +1185,7 @@ int __init omap2_clk_init(void)
- 			continue;
- 		}
-=20
--		if ((*clkp)->flags & CLOCK_IN_OMAP243X && cpu_is_omap2430()) {
-+		if ((*clkp)->flags & CLOCK_IN_OMAP243X && (cpu_is_omap2430() || =
-cpu_is_omap34xx())) {
- 			clk_register(*clkp);
- 			continue;
- 		}
-diff -purN linux-omap/arch/arm/mach-omap2/clock.h =
-val_3430_GIT/arch/arm/mach-omap2/clock.h
---- linux-omap/arch/arm/mach-omap2/clock.h	2007-06-21 08:19:04.000000000 =
--0500
-+++ val_3430_GIT/arch/arm/mach-omap2/clock.h	2007-07-05 =
++++ val_3430_GIT/arch/arm/mach-omap2/Kconfig	2007-07-05 =
 17:09:49.000000000 -0500
-@@ -39,6 +39,7 @@ static u32 omap2_clksel_get_divisor(stru
+@@ -5,6 +5,10 @@ config ARCH_OMAP24XX
+ 	bool "OMAP24xx Based System"
+ 	depends on ARCH_OMAP2
 =20
- #define RATE_IN_242X	(1 << 0)
- #define RATE_IN_243X	(1 << 1)
-+#define RATE_IN_343X	(1 << 2)
++config ARCH_OMAP34XX
++	bool "OMAP34xx Based System"
++	depends on ARCH_OMAP3
++
+ config ARCH_OMAP2420
+ 	bool "OMAP2420 support"
+ 	depends on ARCH_OMAP24XX
+@@ -15,8 +19,12 @@ config ARCH_OMAP2430
+ 	bool "OMAP2430 support"
+ 	depends on ARCH_OMAP24XX
 =20
- /* Key dividers which make up a PRCM set. Ratio's for a PRCM are =
-mandated.
-  * xtal_speed, dpll_speed, mpu_speed, CM_CLKSEL_MPU,CM_CLKSEL_DSP
++config ARCH_OMAP3430
++	bool "OMAP3430 support"
++	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++
+ comment "OMAP Board Type"
+-	depends on ARCH_OMAP2
++	depends on ARCH_OMAP2 || ARCH_OMAP3
+=20
+ config MACH_OMAP_GENERIC
+ 	bool "Generic OMAP board"
+@@ -37,6 +45,10 @@ config MACH_OMAP_H4
+ 	select OMAP_DEBUG_DEVICES
+ 	select GPIOEXPANDER_OMAP
+=20
++
++config MACH_OMAP_3430SDP
++	bool "OMAP 3430 SDP board"
++	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+ config MACH_OMAP_H4_TUSB
+ 	bool "TUSB 6010 EVM board"
+ 	depends on MACH_OMAP_H4
+diff -purN linux-omap/arch/arm/mach-omap2/Makefile =
+val_3430_GIT/arch/arm/mach-omap2/Makefile
+--- linux-omap/arch/arm/mach-omap2/Makefile	2007-06-13 =
+16:33:00.000000000 -0500
++++ val_3430_GIT/arch/arm/mach-omap2/Makefile	2007-07-05 =
+18:00:25.000000000 -0500
+@@ -23,6 +23,7 @@ obj-$(CONFIG_MACH_OMAP_H4)		+=3D board-h4.
+ obj-$(CONFIG_MACH_OMAP_2430SDP)		+=3D board-2430sdp.o \
+ 					   board-2430sdp-flash.o \
+ 					   board-2430sdp-usb.o
++obj-$(CONFIG_MACH_OMAP_3430SDP)		+=3D board-3430sdp.o
+ obj-$(CONFIG_MACH_OMAP_APOLLON)		+=3D board-apollon.o \
+ 					   board-apollon-keys.o
+ obj-$(CONFIG_MACH_NOKIA_N800)		+=3D board-n800.o board-n800-flash.o \
