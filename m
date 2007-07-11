@@ -1,17 +1,13 @@
-From: Hunyue Yau <hyau@mvista.com>
-Subject: Re: 2430 FB driver issues
-Date: Mon, 9 Jul 2007 12:04:20 -0700
-Message-ID: <200707091204.21320.hyau@mvista.com>
-References: <782515bb0707031706l32231cbbv34a67572068b835f@mail.gmail.com>
-	<468E9632.1080205@mvista.com>
-	<Pine.LNX.4.64.0707081657410.5848@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP: Define more OMAP24XX GPIOs pinout
+Date: Wed, 11 Jul 2007 03:52:22 -0700
+Message-ID: <20070711105217.GB19166@atomide.com>
+References: <002c01c7bc7b$6ccd1f50$e1ac580a@swcenter.sec.samsung.co.kr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <Pine.LNX.4.64.0707081657410.5848@utopia.booyaka.com>
 Content-Disposition: inline
+In-Reply-To: <002c01c7bc7b$6ccd1f50$e1ac580a@swcenter.sec.samsung.co.kr>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,46 +17,55 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
-Cc: Paul Walmsley <paul@pwsan.com>
+To: kmpark@infradead.org
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Paul,
+* Kyungmin Park <kyungmin.park@samsung.com> [070702 00:36]:
+> [PATCH] OMAP: Define more OMAP24XX GPIOs pinout
+> 
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> --
+> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> index 4c82860..37e364d 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -78,6 +78,10 @@ MUX_CFG_24XX("AA8_242X_GPIO58",		0x0ea,	3,
+> 0,	0,	1)
+>  MUX_CFG_24XX("Y20_24XX_GPIO60",		0x12c,	3,	0,	0,
+> 1)
+>  MUX_CFG_24XX("W4__24XX_GPIO74",		0x0f2,	3,	0,	0,
+> 1)
+>  MUX_CFG_24XX("M15_24XX_GPIO92",		0x10a,	3,	0,	0,
+> 1)
+> +MUX_CFG_24XX("P20_24XX_GPIO93",		0x10b,	3,	0,	0,
+> 1)
+> +MUX_CFG_24XX("P18_24XX_GPIO95",		0x10d,	3,	0,	0,
+> 1)
+> +MUX_CFG_24XX("M18_24XX_GPIO96",		0x10e,	3,	0,	0,
+> 1)
+> +MUX_CFG_24XX("L14_24XX_GPIO97",		0x10f,	3,	0,	0,
+> 1)
+>  MUX_CFG_24XX("J15_24XX_GPIO99",		0x113,	3,	1,	1,
+> 1)
+>  MUX_CFG_24XX("V14_24XX_GPIO117",	0x128,	3,	1,	0,	1)
+>  MUX_CFG_24XX("P14_24XX_GPIO125",	0x140,	3,	1,	1,	1)
+> diff --git a/include/asm-arm/arch-omap/mux.h b/include/asm-arm/arch-omap/mux.h
+> index 90e454e..fc682b5 100644
+> --- a/include/asm-arm/arch-omap/mux.h
+> +++ b/include/asm-arm/arch-omap/mux.h
+> @@ -470,6 +470,10 @@ enum omap24xx_index {
+>  	Y20_24XX_GPIO60,
+>  	W4__24XX_GPIO74,
+>  	M15_24XX_GPIO92,
+> +	P20_24XX_GPIO93,
+> +	P18_24XX_GPIO95,
+> +	M18_24XX_GPIO96,
+> +	L14_24XX_GPIO97,
+>  	J15_24XX_GPIO99,
+>  	V14_24XX_GPIO117,
+>  	P14_24XX_GPIO125,
 
-It should have been working when it went it. The commit entry 
-adding it should be:
+Pushing after manual merging because of wrapping.
 
-commit 4ed427693dd7e0d4fd00a493988cefaa17accebc
-Author: Hunyue Yau <hyau@mvista.com>
-Date:   Fri May 25 15:33:08 2007 -0700
-
-    OMAP: 2430SDP: Support LCD display as a FB device
-    
-    Add glue to control the 2430SDP LCD as a frame buffer device
-    using the existing dispc.c driver under omapfb.
-    
-    Signed-off-by: Hunyue Yau <hyau@mvista.com>
-    Signed-off-by: Kevin Hilman <khilman@mvista.com>
-    Signed-off-by: Tony Lindgren <tony@atomide.com>
-
--- Hunyue
-
-On Sunday 08 July 2007 16:01, Paul Walmsley wrote:
-> Hi Kevin,
-> 
-> On Fri, 6 Jul 2007, Kevin Hilman wrote:
-> 
-> > FWIW, I have the same errors, but have not debugged it further.
-> 
-> You mentioned earlier that this code formerly worked for you before the 
-> PRCM changes.  Do you have a commit ID or revision from a working version? 
-> if so then perhaps Nishanth or someone else with a 2430 SDP might be able 
-> to git-bisect to find which commit broke it.
-> 
-> 
-> - Paul
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> 
+Tony
