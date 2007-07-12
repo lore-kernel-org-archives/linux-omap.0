@@ -1,17 +1,12 @@
-From: "=?ISO-8859-1?Q?Lu=EDs_Vit=F3rio_Cargnini?=" <lvcargnini@ieee.org>
-Subject: Re: Git tree updated
-Date: Wed, 11 Jul 2007 22:44:29 -0300
-Message-ID: <ae36f8040707111844k55e1571dqd163adf152ffd79d@mail.gmail.com>
-References: <20070711130446.GC20693@atomide.com>
-	<9C23CDD79DA20A479D4615857B2E2C4701502B94@dlee13.ent.ti.com>
-	<001801c7c412$9c3edf50$e1ac580a@swcenter.sec.samsung.co.kr>
-	<ae36f8040707111843m274eb2fdlc0c38042c6af8daa@mail.gmail.com>
+From: Shawn RONG <shawn.rong@st.com>
+Subject: question about nand_do_read_oob/nand_do_read_ops
+ when "mtd_oob_ops.mode==MTD_OOB_PLACE"?
+Date: Thu, 12 Jul 2007 09:48:40 +0800 (HKT)
+Message-ID: <20070712094840.CJS07601@mail1.sha.st.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <ae36f8040707111843m274eb2fdlc0c38042c6af8daa@mail.gmail.com>
-Content-Disposition: inline
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,74 +14,48 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: OMAP <Linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-is the git tree of kernel org updated ?
+Hi all,
 
-On 7/11/07, Lu=EDs Cargnini <lvcargnini@gmail.com> wrote:
->
-> s the git tree of kernel org updated ?
->
-> On 7/11/07, Kyungmin Park <kyungmin.park@samsung.com> wrote:
-> >
-> > > >I've updated our git tree to 2.6.22 and posted 2.6.22-omap1 to the
-> > > >usual places.
-> > > >
-> > > >I've also merged Khasim's 3430 patches which should not affect other
-> > > >platforms. Please report in case you see some breakage.
-> > > >
-> > > >I'm mostly on vacation during July, so my response time may be slow,
-> > > >I'll try to check my email few times a week though :)
-> > > >
-> > >
-> > > I validated 2420 H4, 2430 SDP and 3430 SDP on this merge. Every thing
-> > seems to be booting fine, I
-> > > didn't find any new issues as such.
-> > >
-> >
-> > It's OK with 2420 Apollon & Apollon Plus.
-> >
-> > Thank you,
-> > Kyungmin Park
-> >
-> > _______________________________________________
-> > Linux-omap-open-source mailing list
-> > Linux-omap-open-source@linux.omap.com
-> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> >
->
->
->
-> --
->
-> -------------------------------------------------------------------------=
------
-> Thanks && Regards
-> Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
-> IEEE Member
-> Electrical Engineer Faculty @ PUCRS
-> Ipiranga Avenue, 6681 =96 Building 30
-> P.O. Box: 90619-900 =96 Porto Alegre/RS
-> Phone: +55 51 3320 3500  extension: 7696
-> -------------------------------------------------------------------------=
---------
->
->
+Based on doc "[MTD] Rework the out of band handling completely", I think when MTD_OOB_PLACE is selected, the read length should have nothing to do with value of mtd_oob_ops.oobavail, which is only related with MTD_OOB_AUTO mode.(See reference in the end)
 
+while in function nand_do_read_oob() and nand_do_read_ops() in nand_base.c, the read length is affected by value of mtd_oob_ops.oobavail, e.g.
+========================================================
+nand_do_read_oob():
+if (ops->mode == MTD_OOB_RAW)
+len = mtd->oobsize;
+else
+len = chip->ecc.layout->oobavail;
+========================================================
+nand_do_read_ops():
+if (ops->mode != MTD_OOB_RAW) {
+int toread = min(oobreadlen,
+chip->ecc.layout->oobavail);
+if (toread) {
+oob = nand_transfer_oob(chip,
+oob, ops, toread);
+oobreadlen -= toread;
+}
+} else
+buf = nand_transfer_oob(chip,
+buf, ops, mtd->oobsize);
+========================================================
 
+Could anyone tell me why? I think handle above for mode MTD_OOB_PLACE should be same to MTD_OOB_RAW, not MTD_OOB_AUTO.
 
---=20
----------------------------------------------------------------------------=
----
-Thanks && Regards
-Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
-IEEE Member
-Electrical Engineer Faculty @ PUCRS
-Ipiranga Avenue, 6681 =96 Building 30
-P.O. Box: 90619-900 =96 Porto Alegre/RS
-Phone: +55 51 3320 3500  extension: 7696
----------------------------------------------------------------------------=
-------
+Someone has also the same question: http://lists.infradead.org/pipermail/linux-mtd/2007-February/017469.html
+
+In his test, maybe this is a bug?
+
+Any feedback would be appreciated, thanks!
+
+Reference:
+========================================================
+http://lists.infradead.org/pipermail/linux-mtd-cvs/2006-May/005519.html
+
+MTD_OOB_PLACE puts/gets the given oob data exactly to/from the place which is described by the ooboffs and ooblen fields of the mtd_oob_ops strcuture. It's up to the caller to make sure that the byte positions are not used by the ECC placement algorithms.
+========================================================
