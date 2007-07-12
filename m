@@ -1,12 +1,14 @@
-From: Shawn RONG <shawn.rong@st.com>
-Subject: question about nand_do_read_oob/nand_do_read_ops
- when "mtd_oob_ops.mode==MTD_OOB_PLACE"?
-Date: Thu, 12 Jul 2007 09:48:40 +0800 (HKT)
-Message-ID: <20070712094840.CJS07601@mail1.sha.st.com>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: Git tree updated
+Date: Wed, 11 Jul 2007 21:03:08 -0500
+Message-ID: <46958BDC.5050005@gmail.com>
+References: <20070711130446.GC20693@atomide.com>	<9C23CDD79DA20A479D4615857B2E2C4701502B94@dlee13.ent.ti.com>	<001801c7c412$9c3edf50$e1ac580a@swcenter.sec.samsung.co.kr>	<ae36f8040707111843m274eb2fdlc0c38042c6af8daa@mail.gmail.com>
+	<ae36f8040707111844k55e1571dqd163adf152ffd79d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <ae36f8040707111844k55e1571dqd163adf152ffd79d@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,46 +18,30 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: =?windows-1252?Q?Lu=EDs_Vit=F3rio_Cargnini?= <lvcargnini@ieee.org>
+Cc: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+Lu=EDs Vit=F3rio Cargnini stated on 7/11/2007 8:44 PM:
+> is the git tree of kernel org updated ?
+>
+http://source.mvista.com/git/gitweb.cgi?p=3Dlinux-omap-2.6.git;a=3Dsummar=
+y
+and
+http://git.kernel.org/?p=3Dlinux/kernel/git/tmlind/linux-omap-2.6.git;a=3D=
+summary
+the history look the same... or is it some other tree that you are
+looking for?
 
-Based on doc "[MTD] Rework the out of band handling completely", I think when MTD_OOB_PLACE is selected, the read length should have nothing to do with value of mtd_oob_ops.oobavail, which is only related with MTD_OOB_AUTO mode.(See reference in the end)
+I am not sure of the tags though..
+http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dsu=
+mmary
+shows a 2.6.22 tag of 3 days back, but omap tags 2.6.22-rc4! My
+inexperience of git tells me the 2.6.22 merge is not complete.. but i
+could be badly wrong..
 
-while in function nand_do_read_oob() and nand_do_read_ops() in nand_base.c, the read length is affected by value of mtd_oob_ops.oobavail, e.g.
-========================================================
-nand_do_read_oob():
-if (ops->mode == MTD_OOB_RAW)
-len = mtd->oobsize;
-else
-len = chip->ecc.layout->oobavail;
-========================================================
-nand_do_read_ops():
-if (ops->mode != MTD_OOB_RAW) {
-int toread = min(oobreadlen,
-chip->ecc.layout->oobavail);
-if (toread) {
-oob = nand_transfer_oob(chip,
-oob, ops, toread);
-oobreadlen -= toread;
-}
-} else
-buf = nand_transfer_oob(chip,
-buf, ops, mtd->oobsize);
-========================================================
+> On 7/11/07, Lu=EDs Cargnini <lvcargnini@gmail.com> wrote:
+Please dont top post..
 
-Could anyone tell me why? I think handle above for mode MTD_OOB_PLACE should be same to MTD_OOB_RAW, not MTD_OOB_AUTO.
-
-Someone has also the same question: http://lists.infradead.org/pipermail/linux-mtd/2007-February/017469.html
-
-In his test, maybe this is a bug?
-
-Any feedback would be appreciated, thanks!
-
-Reference:
-========================================================
-http://lists.infradead.org/pipermail/linux-mtd-cvs/2006-May/005519.html
-
-MTD_OOB_PLACE puts/gets the given oob data exactly to/from the place which is described by the ooboffs and ooblen fields of the mtd_oob_ops strcuture. It's up to the caller to make sure that the byte positions are not used by the ECC placement algorithms.
-========================================================
+Regards,
+Nishanth Menon
