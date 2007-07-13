@@ -1,8 +1,12 @@
-From: Sakari Ailus <sakari.ailus@nokia.com>
-Subject: [PATCH] ARM: OMAP2: Add camera block base address definition.
-Date: Fri, 13 Jul 2007 11:35:51 +0300
-Message-ID: <11843157513870-git-send-email-sakari.ailus@nokia.com>
+From: Ari Saastamoinen <arzka@gamedude.fi>
+Subject: Re: Cannot ping localhost
+Date: Fri, 13 Jul 2007 13:23:37 +0300 (EEST)
+Message-ID: <Pine.LNX.4.64.0707131322340.2465@titan.hyper.fi>
+References: <395493.54739.qm@web72703.mail.tp2.yahoo.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <395493.54739.qm@web72703.mail.tp2.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,24 +19,23 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
----
- include/asm-arm/arch-omap/omap24xx.h |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+On Fri, 13 Jul 2007, simonchu47@yahoo.com.tw wrote:
 
-diff --git a/include/asm-arm/arch-omap/omap24xx.h b/include/asm-arm/arch-omap/omap24xx.h
-index 675b78f..e552ce8 100644
---- a/include/asm-arm/arch-omap/omap24xx.h
-+++ b/include/asm-arm/arch-omap/omap24xx.h
-@@ -77,6 +77,9 @@
- /* Mailbox */
- #define OMAP24XX_MAILBOX_BASE	(L4_24XX_BASE + 0x94000)
- 
-+/* Camera */
-+#define OMAP24XX_CAMERA_BASE	(L4_24XX_BASE + 0x52000)
-+
- #if defined(CONFIG_ARCH_OMAP2420)
- 
- #define OMAP2_32KSYNCT_BASE	OMAP2420_32KSYNCT_BASE
+> # ping localhost
+> ping: bad address 'localhost'
+
+> 127.0.0.1               localhost.localdomain
+> localhost
+
+Is that really TWO lines? Or did email program add that newline?
+
+> But it doesn't work. Can anybody tell me why?
+
+If I remember correctly there is an option to use builtin hostname 
+resolver in busybox. Are you using it or are you using resolver offered by 
+libc? What libc version you are using? If glibc, are you using dynamic or 
+static nss libraries? If dynamic, do you have libnss_files installed? Is 
+the nsswitch.conf configured correctly?
+
 -- 
-1.5.0.6
+Arzka
