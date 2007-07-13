@@ -1,17 +1,11 @@
-From: "=?ISO-8859-1?Q?Lu=EDs_Vit=F3rio_Cargnini?=" <lvcargnini@ieee.org>
-Subject: Re: Help with McBSP of OSK 5912
-Date: Thu, 12 Jul 2007 01:10:51 -0300
-Message-ID: <ae36f8040707112110t5694cadewf47fcde70e990059@mail.gmail.com>
-References: <ae36f8040707111158s39061553ybb964d3aecd76a76@mail.gmail.com>
-	<9C23CDD79DA20A479D4615857B2E2C4701502CBE@dlee13.ent.ti.com>
-	<ae36f8040707111841l40c841f6q222dab011027f4b0@mail.gmail.com>
-	<D2AA76D761FD63448DAD827F5671A739115054@dlee16.ent.ti.com>
+From: <simonchu47@yahoo.com.tw>
+Subject: Cannot ping localhost
+Date: Fri, 13 Jul 2007 09:27:01 +0800 (CST)
+Message-ID: <395493.54739.qm@web72703.mail.tp2.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
+Content-Type: text/plain; charset=big5
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <D2AA76D761FD63448DAD827F5671A739115054@dlee16.ent.ti.com>
-Content-Disposition: inline
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,28 +13,38 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: OMAP <Linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Tanks Ishigami
+Hi:
+I am using an OMAP5912 OSK board, and I have build a
+kernal image and root file system running in it.
+After booting up, I found that I cannot ping
+localhost, but my application needs to chect it.
+The error is as following:
 
-On 7/11/07, Ishigami, Tatsuya <ishigami@ti.com> wrote:
->
->
-> http://www.ti.com/litv/pdf/spru752c
->
->
---=20
----------------------------------------------------------------------------=
----
-Thanks && Regards
-Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
-IEEE Member
-Electrical Engineer Faculty @ PUCRS
-Ipiranga Avenue, 6681 =96 Building 30
-P.O. Box: 90619-900 =96 Porto Alegre/RS
-Phone: +55 51 3320 3500  extension: 7696
----------------------------------------------------------------------------=
-------
+# ping localhost
+ping: bad address 'localhost'
+
+my U-Boot is 1.1.5, Linux kernel version 2.6.12-omap1,
+and BusyBox v1.5.0. I have added /etc/hosts and
+/etc/host.conf
+
+# cat /etc/hosts
+# Do not remove the following line, or various
+programs
+# that require network functionality will fail.
+127.0.0.1               localhost.localdomain
+localhost
+
+But it doesn't work. Can anybody tell me why?
+
+
+      ___________________________________________________________________=
+_________________
+=B7Q=A4=CE=AE=C9=B3q=AA=BE=B3q=B0T=BF=FD=B8=CC=AA=BA=A9=D2=A6=B3=BF=CB=AA=
+B=A6n=A4=CD=A6n=AE=F8=AE=A7=A1A=B4N=A8=D3 Yahoo!=A9_=BC=AF=B9q=A4l=ABH=BD=
+c=B5o=C2=B2=B0T=A1I
+http://tw.mobile.yahoo.com/texts/mail.php
