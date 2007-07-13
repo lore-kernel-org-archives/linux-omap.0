@@ -1,12 +1,16 @@
-From: Ari Saastamoinen <arzka@gamedude.fi>
-Subject: Re: Cannot ping localhost
-Date: Fri, 13 Jul 2007 13:23:37 +0300 (EEST)
-Message-ID: <Pine.LNX.4.64.0707131322340.2465@titan.hyper.fi>
-References: <395493.54739.qm@web72703.mail.tp2.yahoo.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: Common code for TSC 2101 and 2102
+Date: Fri, 13 Jul 2007 11:38:06 -0700
+Message-ID: <200707131138.06247.david-b@pacbell.net>
+References: <fb249edb0706040644w55ac4c55k495ae2050f94aea0@mail.gmail.com>
+	<5d5443650707122346n5d9e6fcfyfb3bb0fc2df54d57@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <395493.54739.qm@web72703.mail.tp2.yahoo.com>
+In-Reply-To: <5d5443650707122346n5d9e6fcfyfb3bb0fc2df54d57@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,26 +20,38 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Trilok Soni <soni.trilok@gmail.com>
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 13 Jul 2007, simonchu47@yahoo.com.tw wrote:
+On Thursday 12 July 2007, Trilok Soni wrote:
+> Hi All,
+> 
+> On 6/4/07, andrzej zaborowski <balrogg@gmail.com> wrote:
+> > Hi,
+> >   here's a proposition of a common driver for TSC 2101 and 2102 based
+> > on the previous 2102 code - the difference between the two chips'
+> > registers turns out to be minimal, not considering the audio part.
+> > 2101 provides a superset of 2102 functionality for the most part.
+> 
+> Anybody on list who can review this approach. We need to get this
+> thing sorted out and have alsa-audio ASoC support on 2420 H4 and
+> finally in mainline.
 
-> # ping localhost
-> ping: bad address 'localhost'
+ISTR my first reaction was positive ... but I've had other things
+ahead of it in my review-and-test queue.  They're nearly done.
 
-> 127.0.0.1               localhost.localdomain
-> localhost
 
-Is that really TWO lines? Or did email program add that newline?
-
-> But it doesn't work. Can anybody tell me why?
-
-If I remember correctly there is an option to use builtin hostname 
-resolver in busybox. Are you using it or are you using resolver offered by 
-libc? What libc version you are using? If glibc, are you using dynamic or 
-static nss libraries? If dynamic, do you have libnss_files installed? Is 
-the nsswitch.conf configured correctly?
-
--- 
-Arzka
+> > I will appreciate if anyone with a board using a TSC2101 could test
+> > how this works for them, and even more if they can fix the parts that
+> > possibly don't work. The part that needs to go into the board file is
+> > similar to that in arch/arm/mach-omap1/board-palmte.c. Audio is not
+> > expected to work, but touchscreen and hwmon parts work for me.
+> 
+> I will try to review this patch, and not sure when I can test it
+> touchscreen part on H4.
+> 
+> 
+> -- 
+> --Trilok Soni
+> 
