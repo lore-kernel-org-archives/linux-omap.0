@@ -1,16 +1,14 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: I2C not working in uboot
-Date: Tue, 17 Jul 2007 10:47:00 -0500
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D9130274290170DEE3@dlee13.ent.ti.com>
-References: <c656a4d20707170409g6f9b294eyec6f9f798c9b25d3@mail.gmail.com><3B6D69C3A9EBCA4BA5DA60D9130274290170DCCC@dlee13.ent.ti.com>
-	<c656a4d20707170824r68b3adc4y85f42eb8f94bbd39@mail.gmail.com>
+From: "Amit Gupta" <amit_jobs05@inbox.com>
+Subject: Re: USB functionality on OMAP2430 SDP
+Date: Wed, 18 Jul 2007 00:10:36 +0530
+Message-ID: <78d6ed630707171140u7358c429v37d1869155748f60@mail.gmail.com>
+References: <20070704142900.67B087AF01@ws5-10.us4.outblaze.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <c656a4d20707170824r68b3adc4y85f42eb8f94bbd39@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20070704142900.67B087AF01@ws5-10.us4.outblaze.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,140 +16,200 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: arun c <arun.edarath@gmail.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Kanagesh R <kanagesh@india.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Arun,
+*Kanagesh/all*
 
-I just tried on my 243x on an SDP and I have no problem reading/writing =
-to either bus.
+I have been trying to use *OAMP2430 SDP FSUSB port 0 - J51* act as a host.
+I have made S6-6 ON and S-6-7 ON which is mandatory to route the signal
+through this USB.
+But when I connect my mass storage device to the port its not getting
+powered up.
+It should provide a voltage of 5 volts acrosss V+ and GND pin so that the
+OMAP board can act as a host and power up the device and when I check the
+voltage across the ports , its giving me a strange figure of 3.2 Volts .
 
-The bit of configuration you showed below seems fine.  Now there are =
-several other spots which may be mis-configured or some hardware issue =
-could exist which is stopping you.
+Can any one explain that are there any hardware settings that need to be
+carried out to configure the J51 as a host port or we need to do this via
+software but I am not sure if it will happpen through s/w since thre are no
+power interfaces of OMAP board with the host controller. Only clock
+interface is there through PRCM. The power needs to be supplied through
+ISP1301 transceiver but unfortunately I am not able to trace how it needs to
+be given
 
-I suggest you try the same experiment you are doing on your custom board =
-on the SDP2430.  It might be you just need to unlock or enable the T2 =
-register set you are interested in before you can write to it.  Some T2 =
-internal registers need a key sequence before to allow changes to them.  =
-A test on the SDP should resolve this aspect quickly.
+Kindly help me in this issue.
 
-Below is some example usage on my 2430SDP.
 
-OMAP243X SDP # imm 49 b9
-000000b9: 00 ?
-000000ba: ff ?
-000000bb: ff ?
-000000bc: 03 ?
-000000bd: 00 ?
-000000be: 00 ?
-000000bf: 00 ?
-000000c0: 00 ?
-000000c1: 00 ?
-000000c2: 00 ? .
-OMAP243X SDP # imd 49 b9
-00b9: 00 ff ff 03 00 00 00 00 00 00 00 00 01 00 00 00    =
-................
+Thnaks & Regards
 
-OMAP243X SDP # help ibus
-ibus bus_index speed
-    - Selects the bus index and sets the speed =
-(0x64(ST),0x190(FS),0xD48(HS))
-      (reports success/failure)
+Aman
 
-OMAP243X SDP # ibus 1 64
-Setting bus[1] to Speed[100]: PASS
-OMAP243X SDP # iprobe
-Valid chip addresses: 48 49 4A 4B
-OMAP243X SDP # ibus 0 64
-Setting bus[0] to Speed[100]: PASS
-OMAP243X SDP # iprobe
-Valid chip addresses: 2D
-OMAP243X SDP # ibus 1 64
-Setting bus[1] to Speed[100]: PASS
-OMAP243X SDP #
-
-> -----Original Message-----
-> From: linux-omap-open-source-bounces@linux.omap.com =
-[mailto:linux-omap-
-> open-source-bounces@linux.omap.com] On Behalf Of arun c
-> Sent: Tuesday, July 17, 2007 10:24 AM
-> To: linux-omap-open-source@linux.omap.com
-> Subject: Re: I2C not working in uboot
->=20
-> Hi all,
->=20
-> Thanks Woodruff for the reply.
-> I am able to probe the 4 I2C chips on T2 using iprobe.
-> The iprobe is giving me output 48,49,4a,4b.(4 chip addresses)
->=20
-> I am able to use the command "imm" and modify the registers(RW).
-> But while reading back i am getting only zeros, not the values
-> I have written.
->=20
-> As i understand oamp2430 is having 2 I2C buses.My I2C device
-> is on bus 2.I think that i am not configuring the second I2C bus.
->=20
-> The following uboot settings are only for I2C bus 1???
->=20
-> #define CFG_I2C_SPEED          100
-> #define CFG_I2C_SLAVE          1
-> #define CFG_I2C_BUS            0
-> #define CFG_I2C_BUS_SELECT     1
-> #define CONFIG_DRIVER_OMAP24XX_I2C 1
->=20
-> Do i need to configure the second I2C as the same way as given
-> above???
->=20
-> Best regards
-> Arun
->=20
->=20
->=20
->=20
->=20
->=20
-> On 7/17/07, Woodruff, Richard <r-woodruff2@ti.com> wrote:
-> > > Please somebody tell me the correct way use the
-> > > I2C bus for checking the keypad in uboot.
+On 7/4/07, *Kanagesh *R <kanagesh@india.com> wrote:
+>
+> > ----- Original Message -----
+> > From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+> > To: "Kanagesh R" <kanagesh@india.com>,
+> linux-omap-open-source@linux.omap.com
+> > Subject: RE: USB functionality on OMAP2430 SDP
+> > Date: Tue, 3 Jul 2007 09:58:59 -0500
 > >
-> > - I'll assume you used the u-boot snapshot from the TI download site =
-for
-> 2430.
 > >
-> > - I've used the i2c commands in the past with out issues for =
-24xx/343x
-> targets.  I've not tried this is a while on 24xx but it worked last =
-time I
-> tried.
 > >
-> > - T2 shows up as 4 separate i2c chips.  Below is an example =
-accessing
-> into it.  You should be able to go look at the revision register and
-> others.
+> > > May I have the .config file for the kernel or the configurations for
+> the
+> > > USB and ISP1301 that you made to get the kernel working with USB
+> Gadget on
+> > > the SDP?
+> > >
+> > > Could you also tell me the positions of Switch 6 (HSUSB_nFS) and
+> Switch 7
+> > > (HSVBUS_nFS) in Dip Switch S6 on the SDP?
+> > >
 > >
-> > - Below is an example writing to the power section to select a high
-> voltage level.  The example was part of some over clocking tests which
-> required a higher voltage.
-> >
-> > OMAP34XX SDP # imm 4b b9
-> > 000000b9: 30 ?
-> > 000000ba: 00 ?
-> > 000000bb: 00 ? 43
-> > 000000bc: 00 ? 43
-> > 000000bd: 00 ? .
-> > OMAP34XX SDP # imm 4b b9
-> > 000000b9: 30 ?
-> > 000000ba: 00 ? 3
-> > 000000bb: 43 ? .
+> > Attached is the defconfig that we used. You also need to set SW6 [6
+> > ON, 7 ON] on SDP in order to enable FSUSB.
 > >
 > > Regards,
-> > Richard W.
+> > Khasim
+> > << FSUSBGadget.config >>
+>
 > >
-> >
+>
+> Hello Khasim,
+>
+> I built the kernel with the same configurations as in the config file
+> received.  I am still not able to get the interrupts on insertion of the USB
+> cable.  A log from my serial console is as follows:
+>
+> root]#/sbin/ifconfig -a
+> eth0      Link encap:Ethernet  HWaddr 08:00:28:01:0A:DE
+>          inet addr:192.168.13.153  Bcast:192.168.13.255  Mask:
+> 255.255.255.0
+>          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+>          RX packets:2159 errors:0 dropped:0 overruns:0 frame:0
+>          TX packets:897 errors:0 dropped:0 overruns:0 carrier:0
+>          collisions:268 txqueuelen:1000
+>          RX bytes:2717362 (2.5 MiB)  TX bytes:147602 (144.1 KiB)
+>          Interrupt:245 Base address:0x4300 DMA chan:ff
+>
+> lo        Link encap:Local Loopback
+>          inet addr:127.0.0.1  Mask:255.0.0.0
+>          UP LOOPBACK RUNNING  MTU:16436  Metric:1
+>          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+>          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+>          collisions:0 txqueuelen:0
+>          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+>
+> [root]#modprobe g_ether
+> usb0: Ethernet Gadget, version: May Day 2005
+> usb0: using omap_udc, OUT ep2out-bulk IN ep1in-bulk STATUS ep3in-int
+> usb0: MAC 36:4c:87:28:3f:83
+> usb0: HOST MAC 12:a2:e0:58:f7:4c
+> usb0: RNDIS ready
+> isp1301_omap 0-002d: B-Peripheral sessions ok
+> [root]#/sbin/ifconfig -a
+> eth0      Link encap:Ethernet  HWaddr 08:00:28:01:0A:DE
+>          inet addr:192.168.13.153  Bcast:192.168.13.255  Mask:
+> 255.255.255.0
+>          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+>          RX packets:2517 errors:0 dropped:0 overruns:0 frame:0
+>          TX packets:1059 errors:0 dropped:0 overruns:0 carrier:0
+>          collisions:296 txqueuelen:1000
+>          RX bytes:3125456 (2.9 MiB)  TX bytes:173494 (169.4 KiB)
+>          Interrupt:245 Base address:0x4300 DMA chan:ff
+>
+> lo        Link encap:Local Loopback
+>          inet addr:127.0.0.1  Mask:255.0.0.0
+>          UP LOOPBACK RUNNING  MTU:16436  Metric:1
+>          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+>          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+>          collisions:0 txqueuelen:0
+>          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+>
+> usb0      Link encap:Ethernet  HWaddr 36:4C:87:28:3F:83
+>          BROADCAST MULTICAST  MTU:1500  Metric:1
+>          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+>          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+>          collisions:0 txqueuelen:1000
+>          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+>
+> [root]#
+> [root]#
+> [root]#
+> [root]#
+> < plug in USB Cable now >
+> [root]#cat /proc/interrupts
+>           CPU0
+> 12:          0   OMAP24XX DMA IRQ demux
+> 24:          0   omap24xxcam
+> 25:          0   OMAP2 Display
+> 38:       8591   OMAP2 gptimer
+> 39:          0   OMAP2 gptimer
+> 56:        477   i2c-omap243x-1
+> 57:        138   i2c-omap243x-2
+> 58:          0   OMAP HDQ
+> 65:          0   mcspi_master_isr
+> 66:          0   mcspi_master_isr
+> 72:        328   serial
+> 75:          0   omap_udc
+> 76:          0   omap_udc pio
+> 77:          0   omap_udc iso
+> 83:          9   omap2430-mmc1
+> 86:          9   omap2430-mmc2
+> 91:          0   mcspi_master_isr
+> 120:          0   omap_tsc2046_ts
+> 174:          0   isp1301_omap
+> 245:       3012   eth0
+> 258:          0   TWL4030 Keypad
+> 262:          0   omap-twl4030rtc
+> 265:          0   omap2430-mmc1
+> 266:          0   omap2430-mmc2
+> Err:          0
+> [root@OMAP2430SDP /]#
+>
+> When I plug in the cable to the SDP board I am supposed to get the USB
+> interrupts, which are not occuring.
+>
+> The only difference between the configuration of my kernel from the
+> configuration that I received  is that I am using a non-EABI toolchain to
+> build the kernel sources.  I built this toolchain using crosstool.  The
+> SDRAM settings that I was using intially was PRCM_5A but I have made changes
+> in the kernel and u-boot for SDRAM settings as per PRCM_2 aswell.
+>
+> Some more information:
+> - On the host system, I am running Fedora Core 5.
+> - My /proc/bus/devices/usb does not show any entry for 'Gadget'.
+> - On the board, I have ensured that switches 6 and 7 of Dip Switch S6 is
+> in the 'On' position
+> - Of the four USB connectors on the SDP board, I am connecting to
+> connector J51 (connector closest to the DIP switches), which is the
+> interface to ISP1301
+> - The cable I am using is a USB Type-A to Mini-B cable
+>
+> I have checked the Interrupt enable registers for IRQs that the omap_udc
+> driver is registering to and ensured that they have been unmasked and
+> enabled.  What could I do to check on the interrupts?
+>
+> Thank you very much for your time.
+>
+> Regards,
+> Kanagesh
+>
+>
+>
+> =
+>
+>
+> --
+> _______________________________________________
+> Search for products and services at:
+> http://search.mail.com
 > _______________________________________________
 > Linux-omap-open-source mailing list
 > Linux-omap-open-source@linux.omap.com
 > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
