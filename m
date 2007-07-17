@@ -1,13 +1,11 @@
-From: <simonchu47@yahoo.com.tw>
-Subject: Re: Cannot ping localhost
-Date: Tue, 17 Jul 2007 14:53:36 +0800 (CST)
-Message-ID: <201231.39280.qm@web72702.mail.tp2.yahoo.com>
-References: <Pine.LNX.4.64.0707131322340.2465@titan.hyper.fi>
+From: Steve Poulsen <spoulsen@css-design.us>
+Subject: OMAP5912 and McBSP2 with DMA
+Date: Tue, 17 Jul 2007 05:55:03 -0500
+Message-ID: <469CA007.5090003@css-design.us>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=big5
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <Pine.LNX.4.64.0707131322340.2465@titan.hyper.fi>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,72 +15,21 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Ari Saastamoinen <arzka@gamedude.fi>, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Could someone tell me what the port should be for DMA with McBSP2?  
+Since it is an ARM peripheral (as opposed to McBSP1 and McBSP3), then I 
+expect it to be as follows.  However, I get a timeout error.
 
+    omap_set_dma_dest_params(cs4384_data.dma_tx_ch,
+            OMAP_DMA_PORT_TIPB,
+            OMAP_DMA_AMODE_CONSTANT,
+            OMAP1610_MCBSP2_BASE + OMAP_MCBSP_REG_DXR2,
+            0, 0);
 
+If I change the code to use MCBSP1 (and MPUI as the port), all is well.
 
-> On Fri, 13 Jul 2007, simonchu47@yahoo.com.tw wrote:
->=20
-> > # ping localhost
-> > ping: bad address 'localhost'
->=20
-> > 127.0.0.1               localhost.localdomain
-> > localhost
->=20
-> Is that really TWO lines? Or did email program add
-> that newline?
+Thanks,
 
-No, it's the same line.
->=20
-> > But it doesn't work. Can anybody tell me why?
->=20
-> If I remember correctly there is an option to use
-> builtin hostname=20
-> resolver in busybox. Are you using it or are you
-> using resolver offered by=20
-> libc? What libc version you are using? If glibc, are
-
-I have tried dnsd of busybox. Do you mean that? I have
-never found "nameresolver" option of busybox while
-execuating "make menuconfig".
-
-
-> you using dynamic or=20
-> static nss libraries? If dynamic, do you have
-> libnss_files installed? Is=20
-> the nsswitch.conf configured correctly?
-
-I have tried to build a test program using
-"getaddrinfo"function, which should be called from
-glibc. And I printout the return value of the
-function. The following is the result:
-=20
-OMAP5912OSK
--2
-getaddrinfo() failed: Name or service not known
-
-PS:OMAP5912OSK is the hostname.
-
-My cross compiler is arm-linux-gcc, and the version is
-3.3.2. Can anyone tell me how to solve the problem?
-
-
->=20
-> --=20
-> Arzka
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
->
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->=20
-
-
-
-      ___________________________________________________________________=
-_________________
-=A7=F9=B5=B4=BA=F4=B8=F4=C0b=AB=C8=A1A=ABO=BB=D9=B1b=B8=B9=A6w=A5=FE - =B0=
-=A8=A4W=B3]=A9w Yahoo!=A9_=BC=AF=A6w=A5=FE=B9=CF=B3=B9http://tw.info.yaho=
-o.com/seal/index.html
+Steve
