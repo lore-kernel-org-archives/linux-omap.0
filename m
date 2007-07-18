@@ -1,14 +1,15 @@
-From: "Girish" <girishsg@ti.com>
-Subject: RE: Problem with McSPI as Slave
-Date: Wed, 18 Jul 2007 10:59:09 +0530
-Message-ID: <200707180529.l6I5T9Ih019984@dbdp31.itg.ti.com>
-References: <4.3.2.7.2.20070717115551.01febf80@fantasia.intra.kyocera-wireless.com>
+From: "Amit Gupta" <amit_jobs05@inbox.com>
+Subject: Re: USB functionality on OMAP2430 SDP
+Date: Thu, 19 Jul 2007 01:30:47 +0530
+Message-ID: <78d6ed630707181300w366ed86xcdac8e8935ed856c@mail.gmail.com>
+References: <20070704142900.67B087AF01@ws5-10.us4.outblaze.com>
+	<78d6ed630707171140u7358c429v37d1869155748f60@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <4.3.2.7.2.20070717115551.01febf80@fantasia.intra.kyocera-wireless.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <78d6ed630707171140u7358c429v37d1869155748f60@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,168 +17,231 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: 'Timothy Tang' <ttang@ktrc-na.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Some comments embedded bellow.
-
- 
-
-Regards,
-
-girish
-
- 
-
->> -----Original Message-----
-
->> From: linux-omap-open-source-bounces@linux.omap.com [mailto:linux-omap-
-
->> open-source-bounces@linux.omap.com] On Behalf Of Timothy Tang
-
->> Sent: Wednesday, July 18, 2007 4:23 AM
-
->> To: linux-omap-open-source@linux.omap.com
-
->> Subject: Problem with McSPI as Slave
-
->> 
-
->> Hi All,
-
->> 
-
->> I am trying to establish SPI communication between two 2430sdp boards.  I
-
->> have configured one board as master and
-
->> the other as slave.  Both master and slave use McSPI3 channel 0 (Only
-
->> channel 0 can be used as slave) and they are
-
->> physically connected via SPI bus as shown below:
-
->> 
-
->> Master                         Slave
-
->> ======================
-
->> CS0     ----------------------  CS0
-
->> SCLK   ----------------------  SCLK
-
->> MOSI   ----------------------  MOSI
-
->> MISO   ----------------------  MISO
-
->> GND    ----------------------  GND
-
- 
-
-Did you made sure the correct muxing of pins? You need to check that first.
-
->> 
-
->> Both master and slave run the 2.6.22rc5 kernel from the MontaVista git
-
->> tree.  For the master, the default omap2_mcspi
-
->> master controller driver is used.  The only change made to the master
-
->> driver is to deactivate CS0 between SPI words
-
->> as required by the slave.  For the slave, I had to change the default
-
->> driver to configure McSPI3 as slave by setting
-
->> the MS bit to 1 in McSPI3's module control register.  I also configured
-
-And also have you taken care of single/multi channel bit in module control? 
-
- 
-
->> MOSI as input and MISO as output for the slave.
-
->> Both master and slave use polling and programmed I/O and they are
-
->> configured with identical SPI bus parameters such
-
->> as CS polarity and mode.
-
->> 
-
->> When both master and slave are up running, the master transmits the same
-
->> word to the slave continuously.  The slave
-
->> keeps polling the RXS bit in the McSPI3.Ch0 channel status register to
-
->> check if a word has been received or not.
-
->> 
-
->> The master works fine, generating the correct waveforms on the SPI
-
->> bus.  The problem is that the slave was not able to
-
->> receive any thing from the SPI bus.  The slave always timed out waiting
-
->> for
-
->> the RXS bit to set, even with a very long time
-
->> out period.
-
->> 
-
->> I have verified the physical connections between the two boards and they
-
->> are definitely connected correctly.
-
->> 
-
->> I am not sure why the slave was not able to detect the signals generated
-
->> by
-
->> the master and I don't know what is the best
-
->> way of debugging this issue.
-
-You might check the data transfer vice-versa with the same set-up, i.e.,
-sending word from slave to master. And check if slave is able to transmit
-and generate wave forms as expected. 
-
->> 
-
->> Has anyone successfully made McSPI working as slave on 2430sdp?  Any tip
-
->> to
-
->> help me debug this issue will be highly
-
->> appreciated.
-
-Even we had faced some problems testing master/slave in polling mode;
-actually we can't rely on wires connecting externally. 
-
- 
-
->> 
-
->> Best regards,
-
->> Timothy Tang
-
->> 
-
->> _______________________________________________
-
->> Linux-omap-open-source mailing list
-
->> Linux-omap-open-source@linux.omap.com
-
->> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+Hello
+
+Kindly help me with this issue since I am struck with it and am not able
+to get any help.
+
+In continuation of my previous mail:-
+
+The FS USB port 0 on OMAP2430 SDP is not acting as host i suppose
+after attaching the mini B cable. I think two solutions for making ot
+configure into host port
+are possible:-
+
+1.Do I need to program the transceiver in the host mode for making that
+port into host mode ? or
+
+2.Do I require mini A cable connected to mini AB type FSUSB port ?
+
+Kindly suggest me the correct one since I am finding difficulty
+in getting mini Type A connector cable.
+
+Hoping to get a response from someone soon
+
+Thanks in advance
+
+Regards
+
+Aman
+
+On 7/18/07, Amit Gupta <amit_jobs05@inbox.com> wrote:
+>
+> *Kanagesh/all*
+>
+> I have been trying to use *OAMP2430 SDP FSUSB port 0 - J51* act as a host.
+> I have made S6-6 ON and S-6-7 ON which is mandatory to route the signal
+> through this USB.
+> But when I connect my mass storage device to the port its not getting
+> powered up.
+> It should provide a voltage of 5 volts acrosss V+ and GND pin so that the
+> OMAP board can act as a host and power up the device and when I check the
+> voltage across the ports , its giving me a strange figure of 3.2 Volts .
+>
+> Can any one explain that are there any hardware settings that need to be
+> carried out to configure the J51 as a host port or we need to do this via
+> software but I am not sure if it will happpen through s/w since thre are no
+> power interfaces of OMAP board with the host controller. Only clock
+> interface is there through PRCM. The power needs to be supplied through
+> ISP1301 transceiver but unfortunately I am not able to trace how it needs to
+> be given
+>
+> Kindly help me in this issue.
+>
+>
+> Thnaks & Regards
+>
+> Aman
+>
+> On 7/4/07, *Kanagesh *R <kanagesh@india.com> wrote:
+> >
+> > > ----- Original Message -----
+> > > From: "Syed Mohammed, Khasim" < x0khasim@ti.com>
+> > > To: "Kanagesh R" <kanagesh@india.com>,
+> > linux-omap-open-source@linux.omap.com
+> > > Subject: RE: USB functionality on OMAP2430 SDP
+> > > Date: Tue, 3 Jul 2007 09:58:59 -0500
+> > >
+> > >
+> > >
+> > > > May I have the .config file for the kernel or the configurations for
+> > the
+> > > > USB and ISP1301 that you made to get the kernel working with USB
+> > Gadget on
+> > > > the SDP?
+> > > >
+> > > > Could you also tell me the positions of Switch 6 (HSUSB_nFS) and
+> > Switch 7
+> > > > (HSVBUS_nFS) in Dip Switch S6 on the SDP?
+> > > >
+> > >
+> > > Attached is the defconfig that we used. You also need to set SW6 [6
+> > > ON, 7 ON] on SDP in order to enable FSUSB.
+> > >
+> > > Regards,
+> > > Khasim
+> > > << FSUSBGadget.config >>
+> >
+> > >
+> >
+> > Hello Khasim,
+> >
+> > I built the kernel with the same configurations as in the config file
+> > received.  I am still not able to get the interrupts on insertion of the USB
+> > cable.  A log from my serial console is as follows:
+> >
+> > root]#/sbin/ifconfig -a
+> > eth0      Link encap:Ethernet  HWaddr 08:00:28:01:0A:DE
+> >          inet addr:192.168.13.153  Bcast:192.168.13.255   Mask:
+> > 255.255.255.0
+> >          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+> >          RX packets:2159 errors:0 dropped:0 overruns:0 frame:0
+> >          TX packets:897 errors:0 dropped:0 overruns:0 carrier:0
+> >          collisions:268 txqueuelen:1000
+> >          RX bytes:2717362 (2.5 MiB)  TX bytes:147602 (144.1 KiB)
+> >          Interrupt:245 Base address:0x4300 DMA chan:ff
+> >
+> > lo        Link encap:Local Loopback
+> >          inet addr: 127.0.0.1  Mask:255.0.0.0
+> >          UP LOOPBACK RUNNING  MTU:16436  Metric:1
+> >          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+> >          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+> >          collisions:0 txqueuelen:0
+> >          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+> >
+> > [root]#modprobe g_ether
+> > usb0: Ethernet Gadget, version: May Day 2005
+> > usb0: using omap_udc, OUT ep2out-bulk IN ep1in-bulk STATUS ep3in-int
+> > usb0: MAC 36:4c:87:28:3f:83
+> > usb0: HOST MAC 12:a2:e0:58:f7:4c
+> > usb0: RNDIS ready
+> > isp1301_omap 0-002d: B-Peripheral sessions ok
+> > [root]#/sbin/ifconfig -a
+> > eth0      Link encap:Ethernet  HWaddr 08:00:28:01:0A:DE
+> >          inet addr:192.168.13.153  Bcast:192.168.13.255  Mask:
+> > 255.255.255.0
+> >          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+> >          RX packets:2517 errors:0 dropped:0 overruns:0 frame:0
+> >          TX packets:1059 errors:0 dropped:0 overruns:0 carrier:0
+> >          collisions:296 txqueuelen:1000
+> >          RX bytes:3125456 (2.9 MiB)  TX bytes:173494 ( 169.4 KiB)
+> >          Interrupt:245 Base address:0x4300 DMA chan:ff
+> >
+> > lo        Link encap:Local Loopback
+> >          inet addr:127.0.0.1  Mask:255.0.0.0
+> >          UP LOOPBACK RUNNING  MTU:16436  Metric:1
+> >          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+> >          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+> >          collisions:0 txqueuelen:0
+> >          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+> >
+> > usb0      Link encap:Ethernet  HWaddr 36:4C:87:28:3F:83
+> >          BROADCAST MULTICAST  MTU:1500  Metric:1
+> >          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+> >          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+> >          collisions:0 txqueuelen:1000
+> >          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+> >
+> > [root]#
+> > [root]#
+> > [root]#
+> > [root]#
+> > < plug in USB Cable now >
+> > [root]#cat /proc/interrupts
+> >           CPU0
+> > 12:          0   OMAP24XX DMA IRQ demux
+> > 24:          0   omap24xxcam
+> > 25:          0   OMAP2 Display
+> > 38:       8591   OMAP2 gptimer
+> > 39:          0   OMAP2 gptimer
+> > 56:        477   i2c-omap243x-1
+> > 57:        138   i2c-omap243x-2
+> > 58:          0   OMAP HDQ
+> > 65:          0   mcspi_master_isr
+> > 66:          0   mcspi_master_isr
+> > 72:        328   serial
+> > 75:          0   omap_udc
+> > 76:          0   omap_udc pio
+> > 77:          0   omap_udc iso
+> > 83:          9   omap2430-mmc1
+> > 86:          9   omap2430-mmc2
+> > 91:          0   mcspi_master_isr
+> > 120:          0   omap_tsc2046_ts
+> > 174:          0   isp1301_omap
+> > 245:       3012   eth0
+> > 258:          0   TWL4030 Keypad
+> > 262:          0   omap-twl4030rtc
+> > 265:          0   omap2430-mmc1
+> > 266:          0   omap2430-mmc2
+> > Err:          0
+> > [root@OMAP2430SDP /]#
+> >
+> > When I plug in the cable to the SDP board I am supposed to get the USB
+> > interrupts, which are not occuring.
+> >
+> > The only difference between the configuration of my kernel from the
+> > configuration that I received  is that I am using a non-EABI toolchain to
+> > build the kernel sources.  I built this toolchain using crosstool.  The
+> > SDRAM settings that I was using intially was PRCM_5A but I have made changes
+> > in the kernel and u-boot for SDRAM settings as per PRCM_2 aswell.
+> >
+> > Some more information:
+> > - On the host system, I am running Fedora Core 5.
+> > - My /proc/bus/devices/usb does not show any entry for 'Gadget'.
+> > - On the board, I have ensured that switches 6 and 7 of Dip Switch S6 is
+> > in the 'On' position
+> > - Of the four USB connectors on the SDP board, I am connecting to
+> > connector J51 (connector closest to the DIP switches), which is the
+> > interface to ISP1301
+> > - The cable I am using is a USB Type-A to Mini-B cable
+> >
+> > I have checked the Interrupt enable registers for IRQs that the omap_udc
+> > driver is registering to and ensured that they have been unmasked and
+> > enabled.  What could I do to check on the interrupts?
+> >
+> > Thank you very much for your time.
+> >
+> > Regards,
+> > Kanagesh
+> >
+> >
+> >
+> > =
+> >
+> >
+> > --
+> > _______________________________________________
+> > Search for products and services at:
+> > http://search.mail.com
+> > _______________________________________________
+> > Linux-omap-open-source mailing list
+> > Linux-omap-open-source@linux.omap.com
+> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> >
+>
+>
