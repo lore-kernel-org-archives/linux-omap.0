@@ -1,17 +1,13 @@
-From: "nishanth menon" <menon.nishanth@gmail.com>
-Subject: Re: USB functionality on OMAP2430 SDP
-Date: Thu, 19 Jul 2007 18:16:11 -0500
-Message-ID: <782515bb0707191616w71a8898fje4f2a1f28833e1e3@mail.gmail.com>
-References: <20070704142900.67B087AF01@ws5-10.us4.outblaze.com>
-	<78d6ed630707171140u7358c429v37d1869155748f60@mail.gmail.com>
-	<78d6ed630707181300w366ed86xcdac8e8935ed856c@mail.gmail.com>
-	<782515bb0707181613o1240f75cr5262ebdf9ff4788d@mail.gmail.com>
-	<78d6ed630707191148y75c3fb59m522dba6e99b45b8a@mail.gmail.com>
+From: "andrzej zaborowski" <balrogg@gmail.com>
+Subject: Re: OMAP5912 and McBSP2 with DMA
+Date: Fri, 20 Jul 2007 01:18:40 +0100
+Message-ID: <fb249edb0707191718w3fe217dch19ad4192f74c3eaf@mail.gmail.com>
+References: <469CA007.5090003@css-design.us>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <78d6ed630707191148y75c3fb59m522dba6e99b45b8a@mail.gmail.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <469CA007.5090003@css-design.us>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -20,36 +16,26 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Amit Gupta <amit_jobs05@inbox.com>
-Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Steve Poulsen <spoulsen@css-design.us>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Aman, Kangesh,
-Gentle request: Please dont TOP post... if you use gmail, and open the
-mail... I spend 10 seconds for scrolling down to the next email -
-multiply me with 1k users or so on this list.... Please refer to
-http://www.arm.linux.org.uk/mailinglists/etiquette.php.
+Hi,
 
-On 7/19/07, Amit Gupta <amit_jobs05@inbox.com> wrote:
-> Mine is OMAP2430 SPD v4.0 and I have an external transceiver ISP1301
-> for FSUSB port (J51) and I am not able to power on my port to make
-> it act as host ( 5 Volts is not available ).
-> I am connecting my mini AB port on J51 to mini B connector to
-> standard A connector (and std A connector connected to female to female
-> cable)
-> and USB mass storage device connected to other end of female cable.
-I am no expert in USB... but, I think you need to check up on the
-quick start guide for the SDP, see the descriptions of S6-2, S6-6 and
-S6-7 of these S6-6 is important since it makes a decision to route
-FSUSB signals either to T2 or legacy (1301).
-I have a 5.0 SDP and glanced at a 4.0 board, and J51 looks very much
-tagged with a silk screen label as HSUSB port. The HSUSB lines from
-OMAP are connected to 1504 to my knowledge - so no use connecting
-there.. try the port next to it.. near the 2 line character LCD. if u
-can get ur gadget mode working in FSUSB over 1301.. then  u'd know the
-port is working at least..
+On 17/07/07, Steve Poulsen <spoulsen@css-design.us> wrote:
+> Could someone tell me what the port should be for DMA with McBSP2?
+> Since it is an ARM peripheral (as opposed to McBSP1 and McBSP3), then I
+> expect it to be as follows.  However, I get a timeout error.
+>
+>     omap_set_dma_dest_params(cs4384_data.dma_tx_ch,
+>             OMAP_DMA_PORT_TIPB,
+>             OMAP_DMA_AMODE_CONSTANT,
+>             OMAP1610_MCBSP2_BASE + OMAP_MCBSP_REG_DXR2,
+>             0, 0);
 
-Regards,
-Nishanth Menon
+I believe McBSP2 is on the TIPB-MPUI port, which has the value of 5
+(as opposed to 3 for TIPB) but I don't remember the macro name.
+
+Cheers
