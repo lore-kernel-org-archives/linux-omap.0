@@ -1,13 +1,11 @@
-From: "andrzej zaborowski" <balrogg@gmail.com>
-Subject: Re: OMAP5912 and McBSP2 with DMA
-Date: Fri, 20 Jul 2007 01:18:40 +0100
-Message-ID: <fb249edb0707191718w3fe217dch19ad4192f74c3eaf@mail.gmail.com>
-References: <469CA007.5090003@css-design.us>
+From: "Veda N" <veda74@gmail.com>
+Subject: clock trees
+Date: Fri, 20 Jul 2007 17:25:00 +0530
+Message-ID: <a5eaedfa0707200455k21535ba9l5f3aa2dc8aa0c959@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <469CA007.5090003@css-design.us>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -16,26 +14,27 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Steve Poulsen <spoulsen@css-design.us>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
+    OMAP 2430 supports 5 clock frequencies 12 MHZ, 13 MHZ, 19.2-MHz, 24MHZ,
+26MHZ
 
-On 17/07/07, Steve Poulsen <spoulsen@css-design.us> wrote:
-> Could someone tell me what the port should be for DMA with McBSP2?
-> Since it is an ARM peripheral (as opposed to McBSP1 and McBSP3), then I
-> expect it to be as follows.  However, I get a timeout error.
->
->     omap_set_dma_dest_params(cs4384_data.dma_tx_ch,
->             OMAP_DMA_PORT_TIPB,
->             OMAP_DMA_AMODE_CONSTANT,
->             OMAP1610_MCBSP2_BASE + OMAP_MCBSP_REG_DXR2,
->             0, 0);
+    There is a rate_table clock.h/clock.c in linux kernel which has support
+for 13MHZ.
 
-I believe McBSP2 is on the TIPB-MPUI port, which has the value of 5
-(as opposed to 3 for TIPB) but I don't remember the macro name.
+    If the crystal frequency is 12/19.2 MHZ. What changes do we need to make
 
-Cheers
+    in the linux kernel to support the new frequencies.
+
+    Does kernel really need these clock tables as they are set in the
+bootloader.
+
+    Does the kernel change the values of clocks set in the bootloader.
+
+
+Regards,
+vedan
