@@ -1,13 +1,11 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: Regarding the GPIO  PROGRAMMING of OSK5912
-Date: Mon, 23 Jul 2007 17:30:00 +0200
-Message-ID: <46A4C978.8010209@googlemail.com>
-References: <20070723083004.10528.qmail@f5mail11.rediffmail.com>
+From: "=?gb2312?B?yq/R8w==?=" <shy828301@126.com>
+Subject: OMAP2430sdp MMC driver for 2.6.21
+Date: Mon, 23 Jul 2007 18:32:02 +0800 (CST)
+Message-ID: <46A483A2.0000A7.03863@bj126app59.126.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070723083004.10528.qmail@f5mail11.rediffmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,89 +15,137 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: balaji narayanam <narayanamb@rediffmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-balaji narayanam wrote:
-> Dear Mr.Dirk,
-> 
-> I am trying to configure the GPIO PINS of OSK5912.
-> 
-> I had also gone through the "GPIO API's How To." explained by you in
-> http://tree.celinuxforum.org/CelfPubWiki/OSK#head-0bda81ff448870f0aa282eb95524f2c157ca3e83
-> 
-> Based on this I had written the following c-program to activate the gpio 
-> pin3
-> 
-> #include<include/asm/arch/gpio.h>
-> main()
-> {
-> int ret;                      /* Return value */
-> 
-> omap_request_gpio(3);          /* Request for gpio pin */
-> omap_set_gpio_direction(3,0);
-> omap_set_set_dataout(3,1);    /* Writing a 1 to gpio pin # 3: */
-> ret = omap_get_datain(3);      /* Reading the value of pin # 3 */
-> printk("value of pin # 3 = %d\n",ret);
-> omap_free_gpio(3);            /* Freeing gpio pin # 3 */
-> 
-> }
-> 
-> But it is giving error
-> "gpioprog.c:1:27: asm/arch/gpio.h: No such file or directory"
-> 
-> Then I included the complete path of gpio.h as follow
-> #include<linux2.6.22/include/asm/arch/gpio.h>
-> Then it requested for the irqs.h
-> After giving the path for irqs.h file it is giving the following error
-> 
-> /tmp/cc7Vui9c.o(.text+0x14): In function `main':
-> : undefined reference to `omap_request_gpio'
-> /tmp/cc7Vui9c.o(.text+0x20): In function `main':
-> : undefined reference to `omap_set_gpio_direction'
-> /tmp/cc7Vui9c.o(.text+0x2c): In function `main':
-> : undefined reference to `omap_set_set_dataout'
-> /tmp/cc7Vui9c.o(.text+0x34): In function `main':
-> : undefined reference to `omap_get_datain'
-> /tmp/cc7Vui9c.o(.text+0x48): In function `main':
-> : undefined reference to `printk'
-> /tmp/cc7Vui9c.o(.text+0x50): In function `main':
-> : undefined reference to `omap_free_gpio'
-> collect2: ld returned 1 exit status
-> [root@localhost arch]# arm-linux-gcc gpioprog.c
-> /tmp/ccqF1BLf.o(.text+0x14): In function `main':
-> : undefined reference to `omap_request_gpio'
-> /tmp/ccqF1BLf.o(.text+0x20): In function `main':
-> : undefined reference to `omap_set_gpio_direction'
-> /tmp/ccqF1BLf.o(.text+0x2c): In function `main':
-> : undefined reference to `omap_set_set_dataout'
-> /tmp/ccqF1BLf.o(.text+0x34): In function `main':
-> : undefined reference to `omap_get_datain'
-> /tmp/ccqF1BLf.o(.text+0x48): In function `main':
-> : undefined reference to `printk'
-> /tmp/ccqF1BLf.o(.text+0x50): In function `main':
-> : undefined reference to `omap_free_gpio'
-> collect2: ld returned 1 exit status
-> 
-> 
-> Please help
+Hi folks,
 
-If I understand you correctly, you want to access gpio interface from 
-Linux user space with a user space program using main()? Then, there 
-is a misunderstanding: GPIO API described in
+I'm doing on OMAP2430sdp MMC driver for 2.6.21.5. I  based on minimal OMA=
+P2430 patch on this mailing list and ported twl4030 GPIO and virtual buss=
+es drivers form 2.6.14.7.  Now kernel works well on my board. I2C also wo=
+rks well on 2.6.21.5, following is I2C log message:
 
-OMAP GPIO API's HowTo
+i2c_omap i2c_omap.2: bus 2 rev3.7 at 100 kHz
+i2c_omap i2c_omap.1: bus 1 rev3.7 at 100 kHz
+TWL4030: TRY attach Slave TWL4030-ID0 on Adapter OMAP I2C adapter[1][1]
+TWL4030: TRY attach Slave TWL4030-ID1 on Adapter OMAP I2C adapter[1][1]
+TWL4030: TRY attach Slave TWL4030-ID2 on Adapter OMAP I2C adapter[1][1]
+TWL4030: TRY attach Slave TWL4030-ID3 on Adapter OMAP I2C adapter[1][1]
+TWL4030 Power Companion Active
+TWL4030: Driver registration complete.
 
-is about how to access kernels gpio driver by other Linux kernel 
-drivers. This GPIO API can't be used by Linux user space programs. If 
-you write e.g. an I2C kernel driver and have to access some OMAP GPIO 
-pins for this, you have to use the GPIO API as described throughout 
-this how to. But you can't use it from user space.
+TWL4030 GPIO Demux: IRQ Range 329 to 338, Initialization Success
 
-Hth,
+ 56:          0        INTC  i2c_omap
+ 57:        130        INTC  i2c_omap
 
-Dirk
+So I ported MMC driver from 2.6.14.7. New driver can initialize host colt=
+roller successfully. It seems power supply, clocks and interrupt work wel=
+l. Following is MMC log message:
 
-Btw.: Better ask publically on omap mailing list instead of private 
-mails. Subscription system is hopefully back soon.
+Registering OMAP device 'omap2430-mmc12'. Parent at L3
+
+mmc0: set_ios: clock 0Hz busmode 1 powermode 0 Vdd 0 Bus Width 0
+
+Advanced Linux Sound Architecture Driver Version 1.0.14rc3 (Wed Mar 14 07=
+:25:50 2007 UTC).
+mmc0: set_ios: clock 0Hz busmode 1 powermode 1 Vdd 15 Bus Width 0
+mmc0: set_ios: clock 400000Hz busmode 1 powermode 2 Vdd 15 Bus Width 0
+mmc0: set_ios: clock 400000Hz busmode 1 powermode 2 Vdd 15 Bus Width 0
+mmc0: set_ios: clock 400000Hz busmode 1 powermode 2 Vdd 15 Bus Width 0
+ALSA device list:
+
+OMAP GPIO switch handler initializing
+mmc0: set_ios: clock 400000Hz busmode 1 powermode 2 Vdd 14 Bus Width 0
+mmc0: set_ios: clock 400000Hz busmode 1 powermode 2 Vdd 14 Bus Width 0
+mmc0: set_ios: clock 400000Hz busmode 1 powermode 2 Vdd 14 Bus Width 0
+
+ 72:         74        INTC  serial
+ 83:        114        INTC  omap2430-mmc1
+309:       2302        GPIO  eth0
+
+There is a SD card in slot 1 on my board. But drvier can't detect this ca=
+rd. I printed SYSCTL, CAPA, CUR_CAPA and HCTL registers' values(SYSCTL is=
+ e0007. CAPA is 6e10080. CUR_CAPA is 0. HCTL is d00.), they are same as 2=
+=2E6.14.7. And I enabled debug message for MMC driver. I found driver can=
+ send CMD1 command, but CMD1's reponse value always is 0x00ff8000. But ac=
+cording manual, the right reponse value should be 0x80ff8000. So CMD2 is =
+always timeout. Following is the debug message:
+
+=2E..
+mmc0: CMD1, argument 0x00300000
+
+, 32-bit response,
+
+Status in IRQ 1
+
+mmc0: Response 00ff8000
+
+mmc0: End request, err 0
+
+mmc0: CMD1, argument 0x00300000
+
+, 32-bit response,
+
+Status in IRQ 1
+
+mmc0: Response 00ff8000
+
+mmc0: End request, err 0
+
+mmc0: CMD2, argument 0x00000000
+
+, 128-bit response, CRC
+
+Status in IRQ 18000
+
+mmc0: Response 00000000 00000000 00000000 00ff8000
+
+mmc0: End request, err 1
+
+mmc0: CMD2, argument 0x00000000
+
+, 128-bit response, CRC
+
+Status in IRQ 18000
+
+mmc0: Response 00000000 00000000 00000000 00ff8000
+
+mmc0: End request, err 1
+
+mmc0: CMD2, argument 0x00000000
+
+, 128-bit response, CRC
+
+Status in IRQ 18000
+
+mmc0: Response 00000000 00000000 00000000 00ff8000
+
+mmc0: End request, err 1
+
+mmc0: CMD2, argument 0x00000000
+,  128-bit response, CRC
+
+Status in IRQ 18000
+
+mmc0: Response 00000000 00000000 00000000 00ff8000
+
+mmc0: End request, err 1
+
+mmc0: set_ios: clock 400000Hz busmode 2 powermode 2 Vdd 14 Bus Width 0
+
+mmc0: set_ios: clock 0Hz busmode 1 powermode 0 Vdd 0 Bus Width 0
+
+
+I suspected the root cause is not in MMC driver, maybe I forgot something=
+ else. So could anyone please give me some hints? Thanks.
+
+Best Regards,
+Yang Shi
+
+ =20
+
+
+=A1=B6=B4=F3 =BB=B0 =CE=F7 =D3=CE 3=A1=B7 =CA=D7 =BD=EC =CD=E6 =BC=D2 =BC=
+=FB =C3=E6 =BB=E1 =BC=B4 =BD=AB =D4=DA =B9=E3 =D6=DD =D5=D9 =BF=AA=A3=A1=BE=
+=B4 =C7=EB =B9=D8 =D7=A2 >>=20
