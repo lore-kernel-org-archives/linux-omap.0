@@ -1,16 +1,13 @@
-From: "andrzej zaborowski" <balrogg@gmail.com>
-Subject: Re: OMAP5912 and McBSP2 with DMA
-Date: Mon, 23 Jul 2007 23:19:01 +0200
-Message-ID: <fb249edb0707231419o6ad24b47id84c4aca1634ea86@mail.gmail.com>
-References: <469CA007.5090003@css-design.us>
-	<fb249edb0707191718w3fe217dch19ad4192f74c3eaf@mail.gmail.com>
-	<ce87d8040707220229v6a7c83b4q4e2cd78e3834dc5@mail.gmail.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: Regarding the GPIO  PROGRAMMING of OSK5912
+Date: Mon, 23 Jul 2007 17:30:00 +0200
+Message-ID: <46A4C978.8010209@googlemail.com>
+References: <20070723083004.10528.qmail@f5mail11.rediffmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <ce87d8040707220229v6a7c83b4q4e2cd78e3834dc5@mail.gmail.com>
-Content-Disposition: inline
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20070723083004.10528.qmail@f5mail11.rediffmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,54 +15,91 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Oleg Kechin <okechin@gmail.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: balaji narayanam <narayanamb@rediffmail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On 22/07/07, Oleg Kechin <okechin@gmail.com> wrote:
-> On 7/20/07, andrzej zaborowski <balrogg@gmail.com> wrote:
-> >
-> > Hi,
-> >
-> > On 17/07/07, Steve Poulsen <spoulsen@css-design.us> wrote:
-> > > Could someone tell me what the port should be for DMA with McBSP2?
-> > > Since it is an ARM peripheral (as opposed to McBSP1 and McBSP3), then I
-> > > expect it to be as follows.  However, I get a timeout error.
-> > >
-> > >     omap_set_dma_dest_params(cs4384_data.dma_tx_ch,
-> > >             OMAP_DMA_PORT_TIPB,
-> > >             OMAP_DMA_AMODE_CONSTANT,
-> > >             OMAP1610_MCBSP2_BASE + OMAP_MCBSP_REG_DXR2,
-> > >             0, 0);
-> >
-> > I believe McBSP2 is on the TIPB-MPUI port, which has the value of 5
-> > (as opposed to 3 for TIPB) but I don't remember the macro name.
-> >
-> > Cheers
-> > _______________________________________________
-> > Linux-omap-open-source mailing list
-> > Linux-omap-open-source@linux.omap.com
-> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> >
->
-> I disagree.
-> ===
-> " but the MPUI port is a dedicated port used for MPU or system DMA initiated
-> transfers
-> to DSP subsystem resources."
-> ===
-> sprs231b.pdf page 165. So for MCBSP2 port type is TIPB bus I think. (I use
-> it by myself in OMAP5910 and it is work fine).
+balaji narayanam wrote:
+> Dear Mr.Dirk,
+> 
+> I am trying to configure the GPIO PINS of OSK5912.
+> 
+> I had also gone through the "GPIO API's How To." explained by you in
+> http://tree.celinuxforum.org/CelfPubWiki/OSK#head-0bda81ff448870f0aa282eb95524f2c157ca3e83
+> 
+> Based on this I had written the following c-program to activate the gpio 
+> pin3
+> 
+> #include<include/asm/arch/gpio.h>
+> main()
+> {
+> int ret;                      /* Return value */
+> 
+> omap_request_gpio(3);          /* Request for gpio pin */
+> omap_set_gpio_direction(3,0);
+> omap_set_set_dataout(3,1);    /* Writing a 1 to gpio pin # 3: */
+> ret = omap_get_datain(3);      /* Reading the value of pin # 3 */
+> printk("value of pin # 3 = %d\n",ret);
+> omap_free_gpio(3);            /* Freeing gpio pin # 3 */
+> 
+> }
+> 
+> But it is giving error
+> "gpioprog.c:1:27: asm/arch/gpio.h: No such file or directory"
+> 
+> Then I included the complete path of gpio.h as follow
+> #include<linux2.6.22/include/asm/arch/gpio.h>
+> Then it requested for the irqs.h
+> After giving the path for irqs.h file it is giving the following error
+> 
+> /tmp/cc7Vui9c.o(.text+0x14): In function `main':
+> : undefined reference to `omap_request_gpio'
+> /tmp/cc7Vui9c.o(.text+0x20): In function `main':
+> : undefined reference to `omap_set_gpio_direction'
+> /tmp/cc7Vui9c.o(.text+0x2c): In function `main':
+> : undefined reference to `omap_set_set_dataout'
+> /tmp/cc7Vui9c.o(.text+0x34): In function `main':
+> : undefined reference to `omap_get_datain'
+> /tmp/cc7Vui9c.o(.text+0x48): In function `main':
+> : undefined reference to `printk'
+> /tmp/cc7Vui9c.o(.text+0x50): In function `main':
+> : undefined reference to `omap_free_gpio'
+> collect2: ld returned 1 exit status
+> [root@localhost arch]# arm-linux-gcc gpioprog.c
+> /tmp/ccqF1BLf.o(.text+0x14): In function `main':
+> : undefined reference to `omap_request_gpio'
+> /tmp/ccqF1BLf.o(.text+0x20): In function `main':
+> : undefined reference to `omap_set_gpio_direction'
+> /tmp/ccqF1BLf.o(.text+0x2c): In function `main':
+> : undefined reference to `omap_set_set_dataout'
+> /tmp/ccqF1BLf.o(.text+0x34): In function `main':
+> : undefined reference to `omap_get_datain'
+> /tmp/ccqF1BLf.o(.text+0x48): In function `main':
+> : undefined reference to `printk'
+> /tmp/ccqF1BLf.o(.text+0x50): In function `main':
+> : undefined reference to `omap_free_gpio'
+> collect2: ld returned 1 exit status
+> 
+> 
+> Please help
 
-Sorry, I confused the ports. It's McBSP1 and McBSP3 that use the other
-bus (just checked in sound/arm/omap/omap-alsa-dma.c now):
+If I understand you correctly, you want to access gpio interface from 
+Linux user space with a user space program using main()? Then, there 
+is a misunderstanding: GPIO API described in
 
-        omap_set_dma_dest_params(channel, 0x05, 0x00,
-                                 (OMAP1510_MCBSP1_BASE + 0x06),
-                                 0, 0);
+OMAP GPIO API's HowTo
 
-whie for McBSP2 the value is indeed 0x3.
+is about how to access kernels gpio driver by other Linux kernel 
+drivers. This GPIO API can't be used by Linux user space programs. If 
+you write e.g. an I2C kernel driver and have to access some OMAP GPIO 
+pins for this, you have to use the GPIO API as described throughout 
+this how to. But you can't use it from user space.
 
-Regards
+Hth,
+
+Dirk
+
+Btw.: Better ask publically on omap mailing list instead of private 
+mails. Subscription system is hopefully back soon.
