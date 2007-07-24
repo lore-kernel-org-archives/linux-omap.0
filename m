@@ -1,13 +1,15 @@
-From: "Krishna Prasad Herur" <kherur@nextwave.com>
-Subject: Trouble downloading bootloader using CSST onto 2430SDP
-Date: Mon, 23 Jul 2007 15:17:37 -0700
-Message-ID: <E6CCDC65B8C522458685D8D1F145FEA89E330E@CA2-MSX-C01.nw.net>
+From: "Kipisz, Steven" <s-kipisz2@ti.com>
+Subject: RE: Trouble downloading bootloader using CSST onto 2430SDP
+Date: Mon, 23 Jul 2007 20:27:01 -0500
+Message-ID: <B62D67BD8EC3324C8A3DACEEA1A0D6C6020E0328@dlee12.ent.ti.com>
+References: <E6CCDC65B8C522458685D8D1F145FEA89E330E@CA2-MSX-C01.nw.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
+In-Reply-To: <E6CCDC65B8C522458685D8D1F145FEA89E330E@CA2-MSX-C01.nw.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,8 +19,24 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Krishna Prasad Herur <kherur@nextwave.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
+
+If I am correct, you cannot use UART3 for downloading or using CSST with
+the 5.0 SDP.  Only USB is available.  Can you check your CSST
+documentation to see if it supports the 5.0 SDP?  If it does not mention
+5.0 SDP you might want to get a newer version of CSST.  I think it is up
+to 1.11.
+
+Steve K.
+
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
+Krishna Prasad Herur
+Sent: Monday, July 23, 2007 5:18 PM
+To: linux-omap-open-source@linux.omap.com
+Subject: Trouble downloading bootloader using CSST onto 2430SDP
 
 Hi,
 
@@ -133,3 +151,7 @@ OFF   |
 +-----------------------------------------------------------------------
 ---+
 =20
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
