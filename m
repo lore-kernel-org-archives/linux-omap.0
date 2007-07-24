@@ -1,16 +1,12 @@
-From: "Krishna Prasad Herur" <kherur@nextwave.com>
-Subject: RE: Trouble downloading bootloader using CSST onto 2430SDP
-Date: Mon, 23 Jul 2007 18:45:10 -0700
-Message-ID: <E6CCDC65B8C522458685D8D1F145FEA89E34DC@CA2-MSX-C01.nw.net>
-References: <E6CCDC65B8C522458685D8D1F145FEA89E330E@CA2-MSX-C01.nw.net>
-	<B62D67BD8EC3324C8A3DACEEA1A0D6C6020E0328@dlee12.ent.ti.com>
+From: sree <sreesamb@gmail.com>
+Subject: OMAP2430sdp MMC driver for 2.6.21
+Date: Mon, 23 Jul 2007 19:01:28 -0700
+Message-ID: <80f873930707231901k540f1c31o299a90cf007e8d64@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <B62D67BD8EC3324C8A3DACEEA1A0D6C6020E0328@dlee12.ent.ti.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,150 +16,58 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Kipisz, Steven" <s-kipisz2@ti.com>, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Aah, you are right. I do have 5.0 SDP, and the documentation does say
-UART not supported. I will try with the latest CSST tool.
-Thanks,
--Prasad
+Hi
+Regarding MMC/SD drivers
+There is no need of porting the old TWL4030 drivers,
+But I took the virtual Bus support from the 2.6.14 kernel
+and able to read the data in SD card, and write the SD card with the new git
+kernel
+and my dmesg looks like
 
------Original Message-----
-From: Kipisz, Steven [mailto:s-kipisz2@ti.com]=20
-Sent: Monday, July 23, 2007 6:27 PM
-To: Krishna Prasad Herur; linux-omap-open-source@linux.omap.com
-Subject: RE: Trouble downloading bootloader using CSST onto 2430SDP
+mmc0: starting CMD6 arg 00000002 flags 00000009
+mmc0: set_ios: clock 400000Hz busmode 2 powermode 2 Vdd 14 Bus Width 2
+MMC/SD card has been selected
+mmc0: starting CMD16 arg 00000200 flags 00000009
+mmc0: starting CMD16 arg 00000200 flags 00000009
+<6>mmcblk0: mmc0:2199 SD512 500224KiB
+<6> mmcblk0: mmcblk0:mmc0: starting CMD18 arg 00000000 flags 00000009
+mmc0: starting CMD13 arg 21990000 flags 00000009
 
-If I am correct, you cannot use UART3 for downloading or using CSST with
-the 5.0 SDP.  Only USB is available.  Can you check your CSST
-documentation to see if it supports the 5.0 SDP?  If it does not mention
-5.0 SDP you might want to get a newer version of CSST.  I think it is up
-to 1.11.
+and I have to clean the driver and also I am having problem with the card
+insertion and removal with the IRQ handling
+the kernel crashes whenever I remove the card or Insert the card.I am
+digging the problem
+As soon as I do that I will get back again
 
-Steve K.
+the kernel crash :
+PC is at queue_delayed_work+0x64/0xd8
+PC is at queue_delayed_work+0x64/0xd8
+LR is at 0xc1c67fe0
+LR is at 0xc1c67fe0
+pc : [<c004ed88>]    lr : [<c1c67fe0>]    Not tainted
+sp : c0359f10  ip : c1c67fd0  fp : c0359f24
+pc : [<c004ed88>]    lr : [<c1c67fe0>]    Not tainted
+sp : c0359f10  ip : c1c67fd0  fp : c0359f24
+r10: 00000000  r9 : 00000000  r8 : c033fda0
+r10: 00000000  r9 : 00000000  r8 : c033fda0
+r7 : c019d5b4  r6 : c0358000  r5 : 00000014  r4 : c0336960
+r7 : c019d5b4  r6 : c0358000  r5 : 00000014  r4 : c0336960
+r3 : c1c67fd4  r2 : 00000000  r1 : 00000000  r0 : c0336960
+r3 : c1c67fd4  r2 : 00000000  r1 : 00000000  r0 : c0336960
+Flags: nzcvFlags: nzcv  IRQs on  FIQs on  Mode SVC_32  Segment kernel
+  IRQs on  FIQs on  Mode SVC_32  Segment kernel
+Control: C5387F
+Control: C5387F
+Table: 8186C000  DAC: 00000017
+Table: 8186C000  DAC: 00000017
+Process events/0 (pid: 4, stack limit = 0xc0358248)
+Process events/0 (pid: 4, stack limit = 0xc0358248)
+Stack: (0xc0359f10 to 0xc035a000)
+Stack: (0xc0359f10 to 0xc035a000)
 
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com
-[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of
-Krishna Prasad Herur
-Sent: Monday, July 23, 2007 5:18 PM
-To: linux-omap-open-source@linux.omap.com
-Subject: Trouble downloading bootloader using CSST onto 2430SDP
-
-Hi,
-
- I am using Omap2430 SDP v5.0.1, and CSST 1.9.0.3. I am not able to get
-CSST to connect to the SDP (in Monitor mode) using UART or HS USB.=20
-
-=20
-
-I am using the CSST tool in Monitor mode, and I click on the Connect
-button. For UART I get a message saying "Could not get module info from
-target. Possible timeout." For USB I get the message, "Error
-establishing connection to target. Possible timeout".=20
-
-=20
-
-I am thinking there is an issue with my dip switch setting. I am using
-the default Dip Switch settings provided in the QuickStart guide, which
-seems to indicate that it should enable UART3 (J9). I have looked at
-this document created by Nishanth at
-http://www.geocities.com/crecmca98/Linux/omap2430_From_almost_scratch.pd
-f
-
-=20
-
-The LCD on the main board displays "**Flash Boot** Led =3D 0x0000" Is =
-this
-what I am supposed to see before downloading the bootloader? If anyone
-can confirm my dip switch settings (below), that would help me a lot.
-
-Thanks,
-
--Prasad
-
-=20
-
-=20
-+-----------------------------------------------------------------------
----+
-   |S10                                   |        |        |        |
-|
-=20
-|--------------------------------------+--------+--------+--------+-----
----|
-   |    1    | =06  2    |    3    |   4    |        |        |        |
-|
-=20
-|---------+---------+---------+--------+--------+--------+--------+-----
----|
-   |   ON    |   ON    |   ON    |   ON   |        |        |        |
-|
-=20
-|-----------------------------------------------------------------------
----|
-   |S9
-|
-=20
-|-----------------------------------------------------------------------
----|
-   |    1    |    2    |    3    |   4    |   5    |   6    |   7    |
-8    |
-=20
-|---------+---------+---------+--------+--------+--------+--------+-----
----|
-   |   ON    |   OFF   |   ON    |   OFF  |   OFF  |   ON   |   ON   |
-OFF   |
-=20
-|-----------------------------------------------------------------------
----|
-   |S8
-|
-=20
-|-----------------------------------------------------------------------
----|
-   |    1    |    2    |    3    |   4    |   5    |   6    |   7    |
-8    |
-=20
-|---------+---------+---------+--------+--------+--------+--------+-----
----|
-   |   ON    |   ON    |   ON    |   ON   |   ON   |   ON   |   OFF  |
-ON    |
-=20
-|-----------------------------------------------------------------------
----|
-   |S6
-|
-=20
-|-----------------------------------------------------------------------
----|
-   |    1    |    2    |    3    |   4    |   5    |   6    |   7    |
-8    |
-=20
-|---------+---------+---------+--------+--------+--------+--------+-----
----|
-   |   ON    |   ON    |   OFF   |  OFF   |  ON    |  OFF   |  OFF   |
-ON   |
-=20
-|-----------------------------------------------------------------------
----|
-   |S4
-|
-=20
-|-----------------------------------------------------------------------
----|
-   |    1    |    2    |    3    |   4    |   5    |   6    |   7    |
-8    |
-=20
-|---------+---------+---------+--------+--------+--------+--------+-----
----|
-   |   OFF   |   OFF   |   OFF   |  OFF   |   ON   |   ON   |  OFF   |
-OFF   |
-=20
-+-----------------------------------------------------------------------
----+
-=20
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+It might be because of the different work scheduling in the new kernel
+thanks
+-sree
