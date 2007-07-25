@@ -1,12 +1,11 @@
-From: sree <sreesamb@gmail.com>
-Subject: Re: OMAP2430sdp MMC driver for 2.6.21
-Date: Wed, 25 Jul 2007 10:17:06 -0700
-Message-ID: <80f873930707251017r2c557aa1mf642132e3930c964@mail.gmail.com>
-References: <46A784AF.000063.16530@bj126app26.126.com>
+From: "=?gb2312?B?yq/R8w==?=" <shy828301@126.com>
+Subject: RE: OMAP2430sdp MMC driver for 2.6.21
+Date: Thu, 26 Jul 2007 01:13:19 +0800 (CST)
+Message-ID: <46A784AF.000063.16530@bj126app26.126.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1833709474=="
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <46A784AF.000063.16530@bj126app26.126.com>
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,45 +13,41 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: =?BIG5?B?pdusdg==?= <shy828301@126.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: sreesamb@gmail.com
 Cc: "linux-omap-open-sour..." <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============1833709474==
-Content-Type: text/plain; charset=GB2312; format=flowed
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+ Hi Sree,
 
-SGkKSSBkaWRudCB1c2VkIHRoZSBwYXRjaCBzZW50IGJ5IEtoYXNpbQpJIHRvb2sgdGhlIHZpcnR1
-YWwgQnVzIHN1cHBvcnQgZnJvbSAyLjYuMTQga2VybmVsCmFuZCBjaGFuZ2VkIHRoZSBtbWNfMjQz
-MHNkcC5jIGFuZCBvbWFwX2hzbW1jLmMgYXMgcGVyIHRoZSAyLjYuMjEga2VybmVsCkkgd2lsbCBz
-ZW5kIHRoZSBwYXRjaCB3aGVuZXZlciBJIGZpbmlzaGVkIGNsZWFuaW5nIGl0Li4KCnRoYW5rcwpz
-cmVlCgoKT24gNy8yNS8wNywgyq/R8yA8c2h5ODI4MzAxQDEyNi5jb20+IHdyb3RlOgo+Cj4gSGkg
-U3JlZSwKPgo+IEkgc2F3IHlvdSBlbmFibGVkIFNEIGNhcmQgc3VjY2Vzc2Z1bGx5IG9uIE9NQVAy
-NDMwc2RwIGZvciAyLjYuMjEgb24KPiBsaW51eC1vbWFwIG1haWxpbmcgbGlzdC4gRGlkIHlvdSB1
-c2UgdGhlIGRyaXZlcnMgcG9zdGVkIGJ5IEtoYXNpbT8gQ291bGQgeW91Cj4gcGxlYXNlIHNoYXJl
-IHlvdXIgcGF0Y2ggb3IgZ2l2ZSBtZSBzb21lIGhpbnRzPyBJIGFsc28gZ290IHRoZSBuZXcgZ2l0
-Cj4ga2VybmVsLCBidXQgSSBjYW4ndCBtYWtlIFNEIGNhcmQgd29yayB3ZWxsLiBJJ20gYmxvY2tl
-ZCBoZXJlIGZvciB0d28gd2Vla3MuCj4gRm9sbG93aW5nIGlzIG15IGJvYXJkJ3MgdS1ib290IGJv
-b3QgbWVzc2FnZToKPgo+IFUtQm9vdCAxLjEuNCAoU2VwIDE4IDIwMDYgLSAxNjo0Njo0MykKPgo+
-IE9NQVAyNDMwQy1HUCByZXZpc2lvbiAzLCBQUkNNICM1QQo+IFRJIDI0MzBTRFAgMC4xIFZlcnNp
-b24gKyBtRERSIChCb290IE5PUikKPiBEUkFNOiAxMjggTUIKPiBGbGFzaDogMTkyIE1CCj4gTXV4
-ZWQgT25lTkFORCAxMjhNQiAxLjhWIDE2LWJpdCAoMHgzMCkKPiBTY2FubmluZyBkZXZpY2UgZm9y
-IGJhZCBibG9ja3MKPiBudW0gb2YgYmxvY2tzID0gMjA0OAo+IEJhZCBlcmFzZWJsb2NrIDEyMCBh
-dCAweDAwZjAwMDAwCj4gSW46IHNlcmlhbAo+IE91dDogc2VyaWFsCj4gRXJyOiBzZXJpYWwKPiBP
-TUFQMjQzWCBTRFAgIwo+Cj4gVGhhbmtzLgo+Cj4gQmVzdCBSZWdhcmRzLAo+IFlhbmcgU2hpCj4K
-PiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KPiBpUG9koaLN8iC14yC+3iC27iC14yC/
-qKGivbEg0acgvfChraGtuqMgwb8gvbEgxrejrM/rIMTDIL7NIMTDo6EKPiA8aHR0cDovL2V2ZW50
-Lm1haWwuMTYzLmNvbS9jaGFuZWwveHlxXzA3c3VtbWVyLmh0bT9mcm9tPTEyNl9OTzg+CgoKCgot
-LSAKU3JlZWRoYXIgU2FtYmFuZ2kKTVMgaW4gRWxlY3RyaWNhbCBFbmdnClNhbiBEaWVnbyBTdGF0
-ZSBVbml2ZXJzaXR5Cg==
---===============1833709474==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I saw you enabled SD card successfully on OMAP2430sdp for 2.6.21 on linux=
+-omap mailing list. Did you use the drivers posted by Khasim? Could you p=
+lease share your patch or give me some hints? I also got the new git kern=
+el, but I can't make SD card work well. I'm blocked here for two weeks. F=
+ollowing is my board's u-boot boot message:
+
+U-Boot 1.1.4 (Sep 18 2006 - 16:46:43)
+
+OMAP2430C-GP revision 3, PRCM #5A
+TI 2430SDP 0.1 Version + mDDR (Boot NOR)
+DRAM:  128 MB
+Flash: 192 MB
+Muxed OneNAND 128MB 1.8V 16-bit (0x30)
+Scanning device for bad blocks
+num of blocks =3D 2048
+Bad eraseblock 120 at 0x00f00000
+In:    serial
+Out:   serial
+Err:   serial
+OMAP243X SDP #
+
+Thanks.
+
+Best Regards,
+Yang Shi
 
 
---===============1833709474==--
+iPod=A1=A2=CD=F2 =B5=E3 =BE=DE =B6=EE =B5=E3 =BF=A8=A1=A2=BD=B1 =D1=A7 =BD=
+=F0=A1=AD=A1=AD=BA=A3 =C1=BF =BD=B1 =C6=B7=A3=AC=CF=EB =C4=C3 =BE=CD =C4=C3=
+=A3=A1=20
