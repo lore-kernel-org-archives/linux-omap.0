@@ -1,11 +1,15 @@
-From: "=?gb2312?B?yq/R8w==?=" <shy828301@126.com>
-Subject: RE: OMAP2430sdp MMC driver for 2.6.21
-Date: Thu, 26 Jul 2007 01:13:19 +0800 (CST)
-Message-ID: <46A784AF.000063.16530@bj126app26.126.com>
+From: "andrzej zaborowski" <balrogg@gmail.com>
+Subject: Re: OMAP2430sdp MMC driver for 2.6.21
+Date: Wed, 25 Jul 2007 21:22:21 +0200
+Message-ID: <fb249edb0707251222u42e0aff4pa176536c1e1468fb@mail.gmail.com>
+References: <46A784AF.000063.16530@bj126app26.126.com>
+	<80f873930707251017r2c557aa1mf642132e3930c964@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <80f873930707251017r2c557aa1mf642132e3930c964@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,39 +19,22 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: sreesamb@gmail.com
-Cc: "linux-omap-open-sour..." <linux-omap-open-source@linux.omap.com>
+To: "linux-omap-open-sour..." <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
- Hi Sree,
+Hi,
+this may be unrelated but I found that the (not so) recent change in
+mmc_omap_set_ios() broke SD support on OMAP310. I was digging into the
+driver maybe two month sago and found that the change made the MMC
+host send the init sequence to the card far too often during
+initialisation. Sending it only once or reverting the following
+commit:
 
-I saw you enabled SD card successfully on OMAP2430sdp for 2.6.21 on linux=
--omap mailing list. Did you use the drivers posted by Khasim? Could you p=
-lease share your patch or give me some hints? I also got the new git kern=
-el, but I can't make SD card work well. I'm blocked here for two weeks. F=
-ollowing is my board's u-boot boot message:
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commitdiff;h=46a6730e3ff9add5089ddd007f998b97fb4e8571
 
-U-Boot 1.1.4 (Sep 18 2006 - 16:46:43)
+made it work better. I haven't posted any information because I had to
+give up before I managed to make the driver work completely, like it
+did in 2.6.20. The issue of setting R1 response type instead of R6 and
+other issues are still unresolved.
 
-OMAP2430C-GP revision 3, PRCM #5A
-TI 2430SDP 0.1 Version + mDDR (Boot NOR)
-DRAM:  128 MB
-Flash: 192 MB
-Muxed OneNAND 128MB 1.8V 16-bit (0x30)
-Scanning device for bad blocks
-num of blocks =3D 2048
-Bad eraseblock 120 at 0x00f00000
-In:    serial
-Out:   serial
-Err:   serial
-OMAP243X SDP #
-
-Thanks.
-
-Best Regards,
-Yang Shi
-
-
-iPod=A1=A2=CD=F2 =B5=E3 =BE=DE =B6=EE =B5=E3 =BF=A8=A1=A2=BD=B1 =D1=A7 =BD=
-=F0=A1=AD=A1=AD=BA=A3 =C1=BF =BD=B1 =C6=B7=A3=AC=CF=EB =C4=C3 =BE=CD =C4=C3=
-=A3=A1=20
+Regards
