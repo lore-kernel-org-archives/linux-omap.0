@@ -1,7 +1,7 @@
 From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: [RFC 3/5] MMC/SD Controller driver for OMAP2430
-Date: Wed, 25 Jul 2007 19:19:10 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47016A3483@dlee13.ent.ti.com>
+Subject: [RFC 5/5] MMC/SD Controller driver for OMAP2430
+Date: Wed, 25 Jul 2007 19:19:31 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47016A3485@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -20,152 +20,126 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
 
-Continuing with rest of the patch series on linux.omap.com.=20
-
-This should help others in getting MMC/SD working on 2430 SDP.
+plat-omap/device.c updated to support OMAP2430 MMC controller.
 
 Regards,
 Khasim
-
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-diff -purN linux-omap/arch/arm/mach-omap2/Makefile =
-lin_for_mmc/arch/arm/mach-omap2/Makefile
---- linux-omap/arch/arm/mach-omap2/Makefile	2007-07-11 =
-09:55:16.000000000 -0500
-+++ lin_for_mmc/arch/arm/mach-omap2/Makefile	2007-07-18 =
-12:00:31.000000000 -0500
-@@ -22,7 +22,8 @@ obj-$(CONFIG_MACH_OMAP_GENERIC)		+=3D boar
- obj-$(CONFIG_MACH_OMAP_H4)		+=3D board-h4.o
- obj-$(CONFIG_MACH_OMAP_2430SDP)		+=3D board-2430sdp.o \
- 					   board-2430sdp-flash.o \
--					   board-2430sdp-usb.o
-+					   board-2430sdp-usb.o \
-+					   board-sdp-hsmmc.o
- obj-$(CONFIG_MACH_OMAP_3430SDP)		+=3D board-3430sdp.o
- obj-$(CONFIG_MACH_OMAP_APOLLON)		+=3D board-apollon.o \
- 					   board-apollon-keys.o
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 
-diff -purN linux-omap/arch/arm/mach-omap2/board-2430sdp.c =
-lin_for_mmc/arch/arm/mach-omap2/board-2430sdp.c
---- linux-omap/arch/arm/mach-omap2/board-2430sdp.c	2007-06-08 =
-08:09:33.000000000 -0500
-+++ lin_for_mmc/arch/arm/mach-omap2/board-2430sdp.c	2007-07-25 =
-18:27:32.000000000 -0500
-@@ -31,6 +31,7 @@
+diff -purN linux-omap/arch/arm/plat-omap/devices.c =
+lin_for_mmc/arch/arm/plat-omap/devices.c
+--- linux-omap/arch/arm/plat-omap/devices.c	2007-07-11 =
+09:55:17.000000000 -0500
++++ lin_for_mmc/arch/arm/plat-omap/devices.c	2007-07-24 =
+00:59:14.000000000 -0500
+@@ -19,6 +19,7 @@
+ #include <asm/mach-types.h>
  #include <asm/mach/map.h>
- #include <asm/mach/flash.h>
 =20
 +#include <asm/arch/mmc.h>
- #include <asm/arch/gpio.h>
- #include <asm/arch/mux.h>
+ #include <asm/arch/tc.h>
  #include <asm/arch/board.h>
-@@ -53,6 +54,8 @@
+ #include <asm/arch/mux.h>
+@@ -231,7 +232,11 @@ static inline void omap_init_kp(void) {}
+ #endif
+ #define	OMAP_MMC2_BASE		0xfffb7c00	/* omap16xx only */
 =20
- #define TWL4030_MSECURE_GPIO	118
++#if	defined(CONFIG_ARCH_OMAP2430)
++static struct omap_mmc_platform_data mmc1_conf;
++#else
+ static struct omap_mmc_conf mmc1_conf;
++#endif
 =20
-+extern void __init sdp_mmc_init(void);
-+
- static struct mtd_partition sdp2430_partitions[] =3D {
- 	/* bootloader (U-Boot, etc) in first sector */
- 	{
-@@ -441,6 +444,7 @@ static void __init omap_2430sdp_init(voi
- 	spi_register_board_info(sdp2430_spi_board_info,
- 				ARRAY_SIZE(sdp2430_spi_board_info));
- 	ads7846_dev_init();
-+	sdp_mmc_init();
+ static u64 mmc1_dmamask =3D 0xffffffff;
+=20
+@@ -294,10 +299,18 @@ static void __init omap_init_mmc(void)
+ 	const struct omap_mmc_config	*mmc_conf;
+ 	const struct omap_mmc_conf	*mmc;
+=20
+-	/* REVISIT: 2430 has HS MMC */
+-	if (cpu_is_omap2430() || cpu_is_omap34xx())
++	/* REVISIT: 3430 HS MMC is TBD */
++	if (cpu_is_omap34xx())
+ 		return;
+=20
++#if	defined(CONFIG_ARCH_OMAP2430)
++	if (cpu_is_omap243x()) {
++		if (mmc1_conf.enabled){
++			(void) platform_device_register(&mmc_omap_device1);
++		}
++		return;
++	}
++#else
+ 	/* NOTE:  assumes MMC was never (wrongly) enabled */
+ 	mmc_conf =3D omap_get_config(OMAP_TAG_MMC, struct omap_mmc_config);
+ 	if (!mmc_conf)
+@@ -306,7 +319,7 @@ static void __init omap_init_mmc(void)
+ 	/* block 1 is always available and has just one pinout option */
+ 	mmc =3D &mmc_conf->mmc[0];
+ 	if (mmc->enabled) {
+-		if (cpu_is_omap24xx()) {
++		if (cpu_is_omap242x()) {
+ 			omap_cfg_reg(H18_24XX_MMC_CMD);
+ 			omap_cfg_reg(H15_24XX_MMC_CLKI);
+ 			omap_cfg_reg(G19_24XX_MMC_CLKO);
+@@ -324,7 +337,7 @@ static void __init omap_init_mmc(void)
+ 			}
+ 		}
+ 		if (mmc->wire4) {
+-			if (cpu_is_omap24xx()) {
++			if (cpu_is_omap242x()) {
+ 				omap_cfg_reg(H14_24XX_MMC_DAT1);
+ 				omap_cfg_reg(E19_24XX_MMC_DAT2);
+ 				omap_cfg_reg(D19_24XX_MMC_DAT3);
+@@ -344,7 +357,7 @@ static void __init omap_init_mmc(void)
+ 			 * Use internal loop-back in MMC/SDIO
+ 			 * Module Input Clock selection
+ 			 */
+-			if (cpu_is_omap24xx()) {
++			if (cpu_is_omap242x()) {
+ 				u32 v =3D omap_readl(OMAP24XX_CONTROL_DEVCONF);
+ 				v |=3D (1 << 24);
+ 				omap_writel(v, OMAP24XX_CONTROL_DEVCONF);
+@@ -353,6 +366,7 @@ static void __init omap_init_mmc(void)
+ 		mmc1_conf =3D *mmc;
+ 		(void) platform_device_register(&mmc_omap_device1);
+ 	}
++#endif
+=20
+ #ifdef	CONFIG_ARCH_OMAP16XX
+ 	/* block 2 is on newer chips, and has many pinout options */
+@@ -385,8 +399,27 @@ static void __init omap_init_mmc(void)
+ #endif
+ 	return;
  }
-=20
- static void __init omap_2430sdp_map_io(void)
-
-diff -purN linux-omap/arch/arm/mach-omap2/clock.h =
-lin_for_mmc/arch/arm/mach-omap2/clock.h
---- linux-omap/arch/arm/mach-omap2/clock.h	2007-07-11 09:55:16.000000000 =
--0500
-+++ lin_for_mmc/arch/arm/mach-omap2/clock.h	2007-07-20 =
-00:38:39.000000000 -0500
-@@ -1901,7 +1901,8 @@ static struct clk usbhs_ick =3D {
- };
-=20
- static struct clk mmchs1_ick =3D {
--	.name		=3D "mmchs1_ick",
-+	.name		=3D "mmchs_ick",
-+	.id             =3D 1,
- 	.parent		=3D &l4_ck,
- 	.flags		=3D CLOCK_IN_OMAP243X,
- 	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
-@@ -1910,7 +1911,8 @@ static struct clk mmchs1_ick =3D {
- };
-=20
- static struct clk mmchs1_fck =3D {
--	.name		=3D "mmchs1_fck",
-+	.name		=3D "mmchs_fck",
-+	.id             =3D 1,
- 	.parent		=3D &func_96m_ck,
- 	.flags		=3D CLOCK_IN_OMAP243X,
- 	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
-@@ -1919,7 +1921,8 @@ static struct clk mmchs1_fck =3D {
- };
-=20
- static struct clk mmchs2_ick =3D {
--	.name		=3D "mmchs2_ick",
-+	.name		=3D "mmchs_ick",
-+	.id             =3D 2,
- 	.parent		=3D &l4_ck,
- 	.flags		=3D CLOCK_IN_OMAP243X,
- 	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
-@@ -1928,7 +1931,8 @@ static struct clk mmchs2_ick =3D {
- };
-=20
- static struct clk mmchs2_fck =3D {
--	.name		=3D "mmchs2_fck",
-+	.name		=3D "mmchs_fck",
-+	.id             =3D 2,
- 	.parent		=3D &func_96m_ck,
- 	.flags		=3D CLOCK_IN_OMAP243X,
- 	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
-@@ -1964,7 +1968,8 @@ static struct clk mdm_intc_ick =3D {
- };
-=20
- static struct clk mmchsdb1_fck =3D {
--	.name		=3D "mmchsdb1_fck",
-+	.name		=3D "mmchsdb_fck",
-+	.id             =3D 1,
- 	.parent		=3D &func_32k_ck,
- 	.flags		=3D CLOCK_IN_OMAP243X,
- 	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
-@@ -1973,7 +1978,8 @@ static struct clk mmchsdb1_fck =3D {
- };
-=20
- static struct clk mmchsdb2_fck =3D {
--	.name		=3D "mmchsdb2_fck",
-+	.name		=3D "mmchsdb_fck",
-+	.id             =3D 2,
- 	.parent		=3D &func_32k_ck,
- 	.flags		=3D CLOCK_IN_OMAP243X,
- 	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
-
-diff -purN linux-omap/drivers/mmc/host/Makefile =
-lin_for_mmc/drivers/mmc/host/Makefile
---- linux-omap/drivers/mmc/host/Makefile	2007-05-07 20:59:45.000000000 =
--0500
-+++ lin_for_mmc/drivers/mmc/host/Makefile	2007-07-13 11:53:07.000000000 =
--0500
-@@ -12,7 +12,12 @@ obj-$(CONFIG_MMC_IMX)		+=3D imxmmc.o
- obj-$(CONFIG_MMC_SDHCI)		+=3D sdhci.o
- obj-$(CONFIG_MMC_WBSD)		+=3D wbsd.o
- obj-$(CONFIG_MMC_AU1X)		+=3D au1xmmc.o
--obj-$(CONFIG_MMC_OMAP)		+=3D omap.o
 +
-+ifeq ($(CONFIG_ARCH_OMAP2430),y)
-+	obj-$(CONFIG_MMC_OMAP)		+=3D omap_hsmmc.o
-+else
-+	obj-$(CONFIG_MMC_OMAP)		+=3D omap.o
-+endif
-+
- obj-$(CONFIG_MMC_AT91)		+=3D at91_mci.o
- obj-$(CONFIG_MMC_TIFM_SD)	+=3D tifm_sd.o
--
++void omap_set_mmc_info(int host, const struct omap_mmc_platform_data =
+*info)
++{
++	switch (host) {
++	case 1:
++		mmc1_conf =3D *info;
++		break;
++#ifdef	CONFIG_ARCH_OMAP16XX
++	case 2:
++		mmc2_conf =3D *info;
++		break;
++#endif
++	default:
++		BUG();
++	}
++}
+ #else
+ static inline void omap_init_mmc(void) {}
++void omap_set_mmc_info(int host, const struct omap_mmc_platform_data =
+*info)
++{
++}
+ #endif
+=20
+ =
+/*-----------------------------------------------------------------------=
+--*/
