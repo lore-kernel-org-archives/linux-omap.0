@@ -1,16 +1,12 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: Das u-boot : relocation truncated to fit: R_ARM_PLT32 __div0
-Date: Mon, 30 Jul 2007 13:38:45 -0500
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429018A889F@dlee13.ent.ti.com>
-References: <3B6D69C3A9EBCA4BA5DA60D9130274290182BDD7@dlee13.ent.ti.com>
-	<BAY141-F328C5CFCA0C23CF253B114BDEE0@phx.gbl>
+From: "Amit Gupta" <amitjobs05@gmail.com>
+Subject: FSUSB Port on OMAP2430 SDP
+Date: Tue, 31 Jul 2007 01:04:18 +0530
+Message-ID: <78d6ed630707301234k2b14adb9mec1aecfd50a5eb22@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <BAY141-F328C5CFCA0C23CF253B114BDEE0@phx.gbl>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,16 +16,30 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Farhad Rahimi <frk85@hotmail.com>, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Hello
 
-> Well, I am using omap5912. I changed to the gcc4.1.1 and the warnings =
-are
-> gone now.
+I am using OMAP 2430 SDP v4.0 and trying to configure the FS USB port 0(J51
+on the main board) as host. I am using kernel v2.6.14
 
-If you go to cpu/arm926ejs/config.mk and switch the type from armv4 to =
-armv5 it will likely be fine.
 
-Regards,
-Richard W.
+
+I am not getting any of the interrupts after connecting the cable/and
+device. And the device (mass storage device) is not getting configured.
+
+
+
+=B7        Does the port need to configure as OTG port and then make it as
+host? That's how it seems to me from the code.
+
+
+
+=B7        Do we need to make any changes in the files for making it to wor=
+k?
+Also kindly send the config file for the same.
+
+ Thanks & Regards
+
+Amit
