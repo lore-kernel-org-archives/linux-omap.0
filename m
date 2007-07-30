@@ -1,14 +1,16 @@
-From: Hiroshi.DOYU@nokia.com
-Subject: [PATCH 6/8] DSPGW: Use ALIGN macro instead of homemade one
-Date: Mon, 30 Jul 2007 14:04:03 +0300
-Message-ID: <11857934584117-git-send-email-Hiroshi.DOYU@nokia.com>
-References: <11857934452717-git-send-email-Hiroshi.DOYU@nokia.com>
-	<11857934482616-git-send-email-Hiroshi.DOYU@nokia.com>
-	<11857934501598-git-send-email-Hiroshi.DOYU@nokia.com>
-	<11857934533223-git-send-email-Hiroshi.DOYU@nokia.com>
-	<11857934552591-git-send-email-Hiroshi.DOYU@nokia.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: Das u-boot : relocation truncated to fit: R_ARM_PLT32 __div0
+Date: Mon, 30 Jul 2007 06:43:00 -0500
+Message-ID: <3B6D69C3A9EBCA4BA5DA60D9130274290182BDD7@dlee13.ent.ti.com>
+References: <3B6D69C3A9EBCA4BA5DA60D9130274290182BD1F@dlee13.ent.ti.com>
+	<BAY141-F2704C56A3D1CFA10479B9FBDED0@phx.gbl>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11857934552591-git-send-email-Hiroshi.DOYU@nokia.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <BAY141-F2704C56A3D1CFA10479B9FBDED0@phx.gbl>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,40 +20,103 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: Farhad Rahimi <frk85@hotmail.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Hi,
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- arch/arm/plat-omap/dsp/task.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+=20
 
-diff --git a/arch/arm/plat-omap/dsp/task.c b/arch/arm/plat-omap/dsp/task.c
-index 0e2b5c7..2b2ab76 100644
---- a/arch/arm/plat-omap/dsp/task.c
-+++ b/arch/arm/plat-omap/dsp/task.c
-@@ -44,8 +44,6 @@
- #include "ipbuf.h"
- #include "proclist.h"
- 
--#define is_aligned(adr,align)	(!((adr)&((align)-1)))
--
- /*
-  * devstate: task device state machine
-  * NOTASK:	task is not attached.
-@@ -493,8 +491,8 @@ static int dsp_task_config(struct dsptask *task, u8 tid)
- 
- 	/* mmap buffer configuration check */
- 	if ((task->map_length > 0) &&
--	    ((!is_aligned((unsigned long)task->map_base, PAGE_SIZE)) ||
--	     (!is_aligned(task->map_length, PAGE_SIZE)) ||
-+	    ((!ALIGN((unsigned long)task->map_base, PAGE_SIZE)) ||
-+	     (!ALIGN(task->map_length, PAGE_SIZE)) ||
- 	     (dsp_mem_type(task->map_base, task->map_length) != MEM_TYPE_EXTERN))) {
- 		printk(KERN_ERR
- 		       "omapdsp: illegal mmap buffer address(0x%p) or "
--- 
-1.5.3.rc3.24.g83b3d
+That is good.  Hope it will boot.
+
+=20
+
+Which chip are you compiling for anyway?  Seems like you need to compile =
+for at least ARMv5 (something which supports the bx instruction) to get =
+the warnings away in the configuration they provide.
+
+=20
+
+Regards,
+
+Richard W.
+
+=20
+
+________________________________
+
+From: Farhad Rahimi [mailto:frk85@hotmail.com]=20
+Sent: Sunday, July 29, 2007 12:32 PM
+To: Woodruff, Richard; linux-omap-open-source@linux.omap.com
+Subject: RE: Das u-boot : relocation truncated to fit: R_ARM_PLT32 =
+__div0
+
+=20
+
+Hi Richard,
+
+I found it, it was in the Makefile, under ARM ARCH, I was grep the whole =
+"arm-linux-gcc", which I should only search for "arm-linux-".
+
+PS, why  there are so much warning, that "target CPU does not suppost =
+interworking" ?
+
+Regards
+
+Farhad
+
+
+
+=09
+________________________________
+
+
+	From:  "Woodruff, Richard" <r-woodruff2@ti.com>
+	To:  "Farhad Rahimi" <frk85@hotmail.com>, =
+<linux-omap-open-source@linux.omap.com>
+	Subject:  RE: Das u-boot : relocation truncated to fit: R_ARM_PLT32 =
+__div0
+	Date:  Sun, 29 Jul 2007 11:04:24 -0500
+	>There are 2 fixes for this.
+	>
+	>Early GCC3.4 had a bug which the patch you are looking at is for
+	>(patching and rebuilding your tool chain).  Next you can build u-boot
+	>with out issue.
+	>
+	>Later GCC version fixes this so no patch should be necessary.
+	>
+	>It seems like the very latest u-boot sources may not have this issue =
+as
+	>someone had went though code and change function usage to try and =
+avoid
+	>functions which result in this.  The ports likely haven't been =
+refreshed
+	>to make use of this.  Using a CodeSourcry tool chain direcly is likely
+	>the easiest thing to do.
+	>
+	>Regards,
+	>Richard W.
+	>
+	> > -----Original Message-----
+	> > From: linux-omap-open-source-bounces@linux.omap.com
+	>[mailto:linux-omap-
+	> > open-source-bounces@linux.omap.com] On Behalf Of Farhad Rahimi
+	> > Sent: Sunday, July 29, 2007 4:01 AM
+	> > To: linux-omap-open-source@linux.omap.com
+	> > Subject: Das u-boot : relocation truncated to fit: R_ARM_PLT32 =
+__div0
+	> >
+	> >
+	> > _______________________________________________
+	> > Linux-omap-open-source mailing list
+	> > Linux-omap-open-source@linux.omap.com
+	> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+
+
+
+
+________________________________
+
+Ta' p=E5 udsalg =E5ret rundt p=E5 MSN Shopping =
+<http://g.msn.com/8HMAENDK/2755??PS=3D47575> hvor du altid finder de =
+bedste priser
