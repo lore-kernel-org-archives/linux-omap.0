@@ -1,8 +1,13 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: [PATCH] ARM: OMAP: twl4030: make power_companion_init static
-Date: Tue, 31 Jul 2007 11:18:37 -0700
-Message-ID: <20070731181837.518602875@mvista.com>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: Regarding the I2C error
+Date: Tue, 31 Jul 2007 20:27:46 -0500
+Message-ID: <46AFE192.3000003@gmail.com>
+References: <20070731142629.30975.qmail@f5mail11.rediffmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20070731142629.30975.qmail@f5mail11.rediffmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,27 +17,25 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: balaji narayanam <narayanamb@rediffmail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is not used outside twl4030, make it static.
+balaji narayanam stated on 7/31/2007 9:26 AM:
+>   
+> But in the U-boot log we are not getting any OV7620 chip detected message. I am not getting any response at the i2c node in /dev/i2c-0 of OSK5912. 
+> when I give  # cat /dev/i2c-0
+> I am getting the following error
+>
+> i2c_omap i2c_omap.1: timeout waiting for bus ready
+> cat: Read error: Connection timed out.
+>   
 
-Signed-off-by: Kevin Hilman <khilman@mvista.com>
----
- drivers/i2c/chips/twl4030_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Usually camera sensors need a power up sequence and clock before they
+start responding on i2c.. am not sure of ov sensors.. micron does at
+least... so u'd need to know the datasheet of the sensor to be sure at
+what stage u can start communicating with the sensor in i2c. I usually
+would do it in kernel as lots more things would be functional there..
 
-Index: linux-2.6.21/drivers/i2c/chips/twl4030_core.c
-===================================================================
---- linux-2.6.21.orig/drivers/i2c/chips/twl4030_core.c
-+++ linux-2.6.21/drivers/i2c/chips/twl4030_core.c
-@@ -669,7 +669,7 @@ static int unprotect_pm_master(void)
- 	return e;
- }
- 
--int power_companion_init(void)
-+static int power_companion_init(void)
- {
- 	struct clk *osc;
- 	u32 rate, ctrl = HFCLK_FREQ_26_MHZ;
---
+Regards,
+NM
