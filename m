@@ -1,10 +1,10 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 07/22] omap2 clock: get rid of sleep_ck
-Date: Thu, 02 Aug 2007 12:10:09 -0600
-Message-ID: <20070802181142.112945862@pwsan.com>
+Subject: [PATCH 12/22] omap2 clock: vlynq_fck is missing clksel divider code
+Date: Thu, 02 Aug 2007 12:10:14 -0600
+Message-ID: <20070802181142.674723905@pwsan.com>
 References: <20070802181002.792550043@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline; filename=drop_sleep_ck.patch
+Content-Disposition: inline; filename=fix-up-vlynq-core-clock.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,43 +17,38 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-According to the 2420 TRM rev J, SLEEP_CLK doesn't have any registers
-or bits associated with it, so it's outside software control.  It's
-also a leaf clock - no software-controllable clocks use it as a
-parent.  There's nothing we can do with it in software.  So, drop it.
+vlynq_fck is a clksel clock.  But omap2_clk_set_parent() is missing
+the code to divide its parent's rate down appropriately when vlynq_fck
+is set to use a core_ck parent.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
 ---
- arch/arm/mach-omap2/clock.h |    9 ---------
- 1 file changed, 9 deletions(-)
+ arch/arm/mach-omap2/clock.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Index: linux-omap/arch/arm/mach-omap2/clock.h
+Index: linux-omap/arch/arm/mach-omap2/clock.c
 ===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/clock.h
-+++ linux-omap/arch/arm/mach-omap2/clock.h
-@@ -684,14 +684,6 @@ static struct clk core_ck = {
- 	.recalc		= &omap2_propagate_rate,
- };
+--- linux-omap.orig/arch/arm/mach-omap2/clock.c
++++ linux-omap/arch/arm/mach-omap2/clock.c
+@@ -823,7 +823,7 @@ static u32 omap2_get_src_field(u32 *type
+ 			if (src_clk == &func_96m_ck)
+ 				val = 0;
+ 			else if (src_clk == &core_ck)
+-				val = 0x10;
++				val = 0x10;             /* rate needs fixing */
+ 		}
+ 		break;
+ 	case CM_CORE_SEL2:
+@@ -934,7 +934,8 @@ static int omap2_clk_set_parent(struct c
+ 		clk->parent = new_parent;
  
--static struct clk sleep_ck = {		/* sys_clk or 32k */
--	.name		= "sleep_ck",
--	.parent		= &func_32k_ck,
--	.rate		= 32000,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.recalc		= &omap2_propagate_rate,
--};
--
- static struct clk func_96m_ck = {
- 	.name		= "func_96m_ck",
- 	.parent		= &apll96_ck,
-@@ -2017,7 +2009,6 @@ static struct clk *onchip_clks[] = {
- 	/* internal prcm root sources */
- 	&func_54m_ck,
- 	&core_ck,
--	&sleep_ck,
- 	&func_96m_ck,
- 	&func_48m_ck,
- 	&func_12m_ck,
+ 		/* SRC_RATE_SEL_MASK clocks follow their parents rates.*/
+-		if ((new_parent == &core_ck) && (clk == &dss1_fck))
++		if ((new_parent == &core_ck) &&
++		    (clk == &dss1_fck || clk == &vlynq_fck))
+ 			clk->rate = new_parent->rate / 0x10;
+ 		else
+ 			clk->rate = new_parent->rate;
 
 -- 
