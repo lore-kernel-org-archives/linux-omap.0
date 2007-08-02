@@ -1,11 +1,11 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 19/22] omap2 clock: use dedicated omap2_dpll_recalc() for
-	DPLL recalc func
-Date: Thu, 02 Aug 2007 12:10:21 -0600
-Message-ID: <20070802181143.471303581@pwsan.com>
+Subject: [PATCH 14/22] omap2 clock: omap2 clock.c: Consolidate wait-for-lock
+	code
+Date: Thu, 02 Aug 2007 12:10:16 -0600
+Message-ID: <20070802181142.901869865@pwsan.com>
 References: <20070802181002.792550043@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline; filename=use-dpll-specific-recalc-code.patch
+Content-Disposition: inline; filename=consolidate-wait-for-lock.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,87 +18,138 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-dpll_ck is not a clksel clock, and so it does not really fit well into
-omap2_clksel_recalc().  Split off its recalc code into its own function,
-omap2_dpll_recalc().
+omap2 clock.c contains two nearly identical wait-for-clock-enable routines.
+Consolidate them into one omap2_wait_clock_ready() function.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
 ---
- arch/arm/mach-omap2/clock.c |   17 +++++++++--------
- arch/arm/mach-omap2/clock.h |    3 ++-
- 2 files changed, 11 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/clock.c |   77 +++++++++++++++++++++++++-------------------
+ 1 file changed, 45 insertions(+), 32 deletions(-)
 
 Index: linux-omap/arch/arm/mach-omap2/clock.c
 Index: linux-omap/arch/arm/mach-omap2/clock.c
 ===================================================================
 --- linux-omap.orig/arch/arm/mach-omap2/clock.c
 +++ linux-omap/arch/arm/mach-omap2/clock.c
-@@ -387,6 +387,13 @@ static u32 omap2_dpll_round_rate(unsigne
+@@ -42,6 +42,8 @@
+ #define CLKSEL_VLYNQ_96MHZ		0
+ #define CLKSEL_VLYNQ_CORECLK_16		0x10
  
++#define MAX_PLL_LOCK_WAIT		100000
++
+ //#define DOWN_VARIABLE_DPLL 1			/* Experimental */
+ 
+ static struct prcm_config *curr_prcm_set;
+@@ -117,10 +119,37 @@ static void omap2_set_osc_ck(int enable)
+ 			      OMAP24XX_PRCM_CLKSRC_CTRL);
  }
  
-+static void omap2_dpll_recalc(struct clk *clk)
++/*
++ * omap2_wait_clock_ready - wait for PLL to lock
++ *
++ * Returns 1 if the PLL locked, 0 if it failed to lock.
++ */
++static int omap2_wait_clock_ready(void __iomem *reg, u32 cval, const char *name)
 +{
-+	clk->rate = omap2_get_dpll_rate(clk);
++	int i = 0;
 +
-+	propagate_rate(clk);
-+}
++	/* Wait for lock */
++	while (!(cm_read_reg(reg) & cval)) {
++		++i;
++		udelay(1);
++		if (i == MAX_PLL_LOCK_WAIT) {
++			printk(KERN_ERR "Clock %s didn't lock in %d tries\n",
++			       name, MAX_PLL_LOCK_WAIT);
++			break;
++		}
++	}
 +
- /*
-  * Used for clocks that are part of CLKSEL_xyz governed clocks.
-  * REVISIT: Maybe change to use clk->enable() functions like on omap1?
-@@ -396,12 +403,6 @@ static void omap2_clksel_recalc(struct c
- 	u32 fixed = 0, div = 0;
- 	u32 clksel1_core;
++	if (i)
++		pr_debug("Clock %s stable after %d loops\n", name, i);
++
++	return (i < MAX_PLL_LOCK_WAIT) ? 1 : 0;
++};
++
++
+ /* Enable an APLL if off */
+ static void omap2_clk_fixed_enable(struct clk *clk)
+ {
+-	u32 cval, i=0;
++	u32 cval;
  
--	if (clk == &dpll_ck) {
--		clk->rate = omap2_get_dpll_rate(clk);
--		fixed = 1;
--		div = 0;
+ 	cval = cm_read_mod_reg(PLL_MOD, CM_CLKEN);
+ 
+@@ -136,35 +165,27 @@ static void omap2_clk_fixed_enable(struc
+ 	else if (clk == &apll54_ck)
+ 		cval = OMAP24XX_ST_54M_CLK;
+ 
+-	/* Wait for lock */
+-	while (!(cm_read_mod_reg(PLL_MOD, CM_IDLEST) & cval)) {
+-		++i;
+-		udelay(1);
+-		if (i == 100000) {
+-			printk(KERN_ERR "Clock %s didn't lock\n", clk->name);
+-			break;
+-		}
 -	}
--
- 	if (clk == &iva1_mpu_int_ifck) {
- 		div = 2;
- 		fixed = 1;
-@@ -594,7 +595,7 @@ static int omap2_reprogram_dpll(struct c
- 		omap2_init_memory_params(omap2_dll_force_needed());
- 		omap2_reprogram_sdrc(done_rate, 0);
- 	}
--	omap2_clksel_recalc(&dpll_ck);
-+	omap2_dpll_recalc(&dpll_ck);
- 	ret = 0;
- 
- dpll_exit:
-@@ -1093,7 +1094,7 @@ static int omap2_select_table_rate(struc
- 
- 		local_irq_restore(flags);
- 	}
--	omap2_clksel_recalc(&dpll_ck);
-+	omap2_dpll_recalc(&dpll_ck);
- 
- 	return 0;
++	omap2_wait_clock_ready(OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST), cval,
++			    clk->name);
  }
-Index: linux-omap/arch/arm/mach-omap2/clock.h
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/clock.h
-+++ linux-omap/arch/arm/mach-omap2/clock.h
-@@ -33,6 +33,7 @@ static void omap2_clk_disable(struct clk
- static void omap2_sys_clk_recalc(struct clk * clk);
- static u32 omap2_clksel_to_divisor(u32 div_sel, u32 field_val);
- static u32 omap2_clksel_get_divisor(struct clk *clk);
-+static void omap2_dpll_recalc(struct clk *clk);
  
- #define RATE_IN_242X	(1 << 0)
- #define RATE_IN_243X	(1 << 1)
-@@ -632,7 +633,7 @@ static struct clk dpll_ck = {
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				RATE_PROPAGATES | RATE_CKCTL | CM_PLL_SEL1 |
- 				ALWAYS_ENABLED,
--	.recalc		= &omap2_clksel_recalc,
-+	.recalc		= &omap2_dpll_recalc,
- };
+ static void omap2_clk_wait_ready(struct clk *clk)
+ {
+-	unsigned long reg, other_reg, st_reg;
++	void __iomem *reg, *other_reg, *st_reg;
+ 	u32 bit;
+-	int i;
  
- static struct clk apll96_ck = {
+-	reg = (unsigned long) clk->enable_reg;
+-	if (reg == (unsigned long)OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1) ||
+-	    reg == (unsigned long)OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2))
+-		other_reg = (reg & ~0xf0) | 0x10; /* CM_ICLKEN* */
+-	else if (reg == (unsigned long)OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1) ||
+-		 reg == (unsigned long)OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2))
+-		other_reg = (reg & ~0xf0) | 0x00; /* CM_FCLKEN* */
++	reg = clk->enable_reg;
++	if (reg == OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1) ||
++	    reg == OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2))
++		other_reg = (void __iomem *)(((u32)reg & ~0xf0) | 0x10); /* CM_ICLKEN* */
++	else if (reg == OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1) ||
++		 reg == OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2))
++		other_reg = (void __iomem *)(((u32)reg & ~0xf0) | 0x00); /* CM_FCLKEN* */
+ 	else
+ 		return;
+ 
+ 	/* No check for DSS or cam clocks */
+-	if ((reg & 0x0f) == 0) {
++	if (((u32)reg & 0x0f) == 0) { /* CM_{F,I}CLKEN1 */
+ 		if (clk->enable_bit <= 1 || clk->enable_bit == 31)
+ 			return;
+ 	}
+@@ -172,19 +193,11 @@ static void omap2_clk_wait_ready(struct 
+ 	/* Check if both functional and interface clocks
+ 	 * are running. */
+ 	bit = 1 << clk->enable_bit;
+-	if (!(cm_read_reg((void __iomem *)other_reg) & bit))
++	if (!(cm_read_reg(other_reg) & bit))
+ 		return;
+-	st_reg = (other_reg & ~0xf0) | 0x20; /* CM_IDLEST* */
+-	i = 0;
+-	while (!(cm_read_reg((void __iomem *)st_reg) & bit)) {
+-		i++;
+-		if (i == 100000) {
+-			printk(KERN_ERR "Timeout enabling clock %s\n", clk->name);
+-			break;
+-		}
+-	}
+-	if (i)
+-		pr_debug("Clock %s stable after %d loops\n", clk->name, i);
++	st_reg = (void __iomem *)(((u32)other_reg & ~0xf0) | 0x20); /* CM_IDLEST* */
++
++	omap2_wait_clock_ready(st_reg, bit, clk->name);
+ }
+ 
+ /* Enables clock without considering parent dependencies or use count
 
 -- 
