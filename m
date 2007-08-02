@@ -1,8 +1,8 @@
 From: "Woodruff, Richard" <r-woodruff2@ti.com>
 Subject: RE: [PATCH 11/22] omap2 clock: fix some clocks incorrectly marked
 	aspresent on OMAP2430
-Date: Thu, 2 Aug 2007 13:45:04 -0500
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429018FF1EC@dlee13.ent.ti.com>
+Date: Thu, 2 Aug 2007 14:05:19 -0500
+Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429018FF233@dlee13.ent.ti.com>
 References: <20070802181002.792550043@pwsan.com>
 	<20070802181142.567475486@pwsan.com>
 Mime-Version: 1.0
@@ -26,25 +26,15 @@ List-Id: linux-omap@vger.kernel.org
 
 Hi Paul,
 
-Looks like you have gone the next level into the clock code.  So far the =
-fixes and cleanups I've looked at seem good.  This is nice.
+CLOCKOUT2 is in the latest functional spec.  This might be a TRM error =
+or the removed the ball for later ES versions.
 
-As for the below I think this matches the current TRM.  The bits were =
-removed from the TRM a while back.  The clocks are actually there it's =
-just not recommended.  Previously there was a kind of messy description =
-about how to use one or the other clock source.  Early on seems we used =
-the first version while some bugs were being fixed.  Later it switched =
-or should have.
+In 2420ES1 there was no clockout2 it was added for ES2 and beyond.
 
-In particular on the 2430 it is very important to not set undefined =
-bits.  Its design was such that it was meant to be used in combination =
-with several chips.  Non-documented bits can turn on things which =
-silently can kill your ability to hit chip retention.  Long ago this bit =
-me as some NAND xloader code set some 2420 clocks then cleared them.
+Need to see if it can be mux'ed to a ball.
 
 Regards,
 Richard W.
-
 
 > Several clocks are marked as present on OMAP2430, even though they are
 > 2420-only.  Drop CLOCK_IN_OMAP243X from those clocks' flags.
