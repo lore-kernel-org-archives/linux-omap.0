@@ -1,17 +1,8 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH 11/22] omap2 clock: fix some clocks incorrectly marked
-	aspresent on OMAP2430
-Date: Thu, 2 Aug 2007 14:05:19 -0500
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429018FF233@dlee13.ent.ti.com>
-References: <20070802181002.792550043@pwsan.com>
-	<20070802181142.567475486@pwsan.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <20070802181142.567475486@pwsan.com>
+From: Felipe Balbi <felipe.lima@indt.org.br>
+Subject: [PATCH] MENELAUS: Remove unnecessary pr_err definition
+Date: Fri,  3 Aug 2007 07:50:54 -0400
+Message-ID: <11861418543360-git-send-email-felipe.lima@indt.org.br>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,90 +10,80 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Paul Walmsley <paul@pwsan.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Paul,
+Instead of defining a pr_err() macro, we can use dev_err() macro.
 
-CLOCKOUT2 is in the latest functional spec.  This might be a TRM error =
-or the removed the ball for later ES versions.
+Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
+---
+ drivers/i2c/chips/menelaus.c |   13 +++++--------
+ 1 files changed, 5 insertions(+), 8 deletions(-)
 
-In 2420ES1 there was no clockout2 it was added for ES2 and beyond.
-
-Need to see if it can be mux'ed to a ball.
-
-Regards,
-Richard W.
-
-> Several clocks are marked as present on OMAP2430, even though they are
-> 2420-only.  Drop CLOCK_IN_OMAP243X from those clocks' flags.
->=20
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
->=20
-> ---
->  arch/arm/mach-omap2/clock.h |   11 +++++------
->  1 file changed, 5 insertions(+), 6 deletions(-)
->=20
-> Index: linux-omap/arch/arm/mach-omap2/clock.h
-> =
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-omap.orig/arch/arm/mach-omap2/clock.h
-> +++ linux-omap/arch/arm/mach-omap2/clock.h
-> @@ -742,8 +742,7 @@ static struct clk sys_clkout2 =3D {
->  	.name		=3D "sys_clkout2",
->  	.parent		=3D &func_54m_ck,
->  	.rate		=3D 54000000,
-> -	.flags		=3D CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-> -				CM_SYSCLKOUT_SEL1 | RATE_CKCTL,
-> +	.flags		=3D CLOCK_IN_OMAP242X | CM_SYSCLKOUT_SEL1 |
-> RATE_CKCTL,
->  	.src_offset	=3D OMAP2420_CLKOUT2_SOURCE_SHIFT,
->  	.enable_reg	=3D OMAP24XX_PRCM_CLKOUT_CTRL,
->  	.enable_bit	=3D OMAP2420_CLKOUT2_EN_SHIFT,
-> @@ -1740,7 +1739,7 @@ static struct clk i2c2_ick =3D {
->  	.name		=3D "i2c_ick",
->  	.id		=3D 2,
->  	.parent		=3D &l4_ck,
-> -	.flags		=3D CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-> +	.flags		=3D CLOCK_IN_OMAP242X,
->  	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
->  	.enable_bit	=3D OMAP2420_EN_I2C2_SHIFT,
->  	.recalc		=3D &omap2_followparent_recalc,
-> @@ -1750,7 +1749,7 @@ static struct clk i2c2_fck =3D {
->  	.name		=3D "i2c_fck",
->  	.id		=3D 2,
->  	.parent		=3D &func_12m_ck,
-> -	.flags		=3D CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-> +	.flags		=3D CLOCK_IN_OMAP242X,
->  	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
->  	.enable_bit	=3D OMAP2420_EN_I2C2_SHIFT,
->  	.recalc		=3D &omap2_followparent_recalc,
-> @@ -1770,7 +1769,7 @@ static struct clk i2c1_ick =3D {
->  	.name		=3D "i2c_ick",
->  	.id		=3D 1,
->  	.parent		=3D &l4_ck,
-> -	.flags		=3D CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-> +	.flags		=3D CLOCK_IN_OMAP242X,
->  	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
->  	.enable_bit	=3D OMAP2420_EN_I2C1_SHIFT,
->  	.recalc		=3D &omap2_followparent_recalc,
-> @@ -1780,7 +1779,7 @@ static struct clk i2c1_fck =3D {
->  	.name		=3D "i2c_fck",
->  	.id		=3D 1,
->  	.parent		=3D &func_12m_ck,
-> -	.flags		=3D CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-> +	.flags		=3D CLOCK_IN_OMAP242X,
->  	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
->  	.enable_bit	=3D OMAP2420_EN_I2C1_SHIFT,
->  	.recalc		=3D &omap2_followparent_recalc,
->=20
-> --
->=20
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+diff --git a/drivers/i2c/chips/menelaus.c b/drivers/i2c/chips/menelaus.c
+index 484a23e..cc5940c 100644
+--- a/drivers/i2c/chips/menelaus.c
++++ b/drivers/i2c/chips/menelaus.c
+@@ -1,4 +1,3 @@
+-#define DEBUG
+ /*
+  * drivers/i2c/chips/menelaus.c
+  *
+@@ -51,8 +50,6 @@
+ 
+ #define DRIVER_NAME			"menelaus"
+ 
+-#define pr_err(fmt, arg...)	printk(KERN_ERR DRIVER_NAME ": ", ## arg);
+-
+ #define MENELAUS_I2C_ADDRESS		0x72
+ 
+ #define MENELAUS_REV			0x01
+@@ -157,7 +154,7 @@ static int menelaus_write_reg(int reg, u8 value)
+ 	int val = i2c_smbus_write_byte_data(the_menelaus->client, reg, value);
+ 
+ 	if (val < 0) {
+-		pr_err("write error");
++		dev_err(&the_menelaus->client->dev, "write error");
+ 		return val;
+ 	}
+ 
+@@ -169,7 +166,7 @@ static int menelaus_read_reg(int reg)
+ 	int val = i2c_smbus_read_byte_data(the_menelaus->client, reg);
+ 
+ 	if (val < 0)
+-		pr_err("read error");
++		dev_err(&the_menelaus->client->dev, "read error");
+ 
+ 	return val;
+ }
+@@ -1178,7 +1175,7 @@ static int menelaus_probe(struct i2c_client *client)
+ 
+ 	/* If a true probe check the device */
+ 	if ((rev = menelaus_read_reg(MENELAUS_REV)) < 0) {
+-		pr_err("device not found");
++		dev_err(&client->dev, "device not found");
+ 		err = -ENODEV;
+ 		goto fail1;
+ 	}
+@@ -1207,7 +1204,7 @@ static int menelaus_probe(struct i2c_client *client)
+ 	mutex_init(&menelaus->lock);
+ 	INIT_WORK(&menelaus->work, menelaus_work);
+ 
+-	pr_info("Menelaus rev %d.%d\n", rev >> 4, rev & 0x0f);
++	dev_info(&client->dev, "Menelaus rev %d.%d\n", rev >> 4, rev & 0x0f);
+ 
+ 	val = menelaus_read_reg(MENELAUS_VCORE_CTRL1);
+ 	if (val < 0)
+@@ -1257,7 +1254,7 @@ static int __init menelaus_init(void)
+ 	int res;
+ 
+ 	if ((res = i2c_add_driver(&menelaus_i2c_driver)) < 0) {
+-		pr_err("driver registration failed\n");
++		dev_err(&the_menelaus->client->dev, "driver registration failed\n");
+ 		return res;
+ 	}
+ 
+-- 
+1.5.3.rc3.107.g73a7
