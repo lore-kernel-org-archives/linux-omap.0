@@ -1,17 +1,12 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 11/22] omap2 clock: fix some clocks incorrectly marked
- aspresent on OMAP2430
-Date: Sat, 4 Aug 2007 09:56:03 -0600 (MDT)
-Message-ID: <Pine.LNX.4.64.0708040951470.2982@utopia.booyaka.com>
-References: <20070802181002.792550043@pwsan.com>
-	<20070802181142.567475486@pwsan.com>
-	<3B6D69C3A9EBCA4BA5DA60D913027429018FF233@dlee13.ent.ti.com>
-	<Pine.LNX.4.64.0708031204130.30569@utopia.booyaka.com>
-	<3B6D69C3A9EBCA4BA5DA60D913027429018FF8C3@dlee13.ent.ti.com>
+From: "Amit Gupta" <amitjobs05@gmail.com>
+Subject: FSUSB Port 0 in OAMP2430 SDP
+Date: Sun, 5 Aug 2007 01:07:44 +0530
+Message-ID: <78d6ed630708041237v56338867hd88514c428a56b54@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D913027429018FF8C3@dlee13.ent.ti.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,34 +16,44 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 3 Aug 2007, Woodruff, Richard wrote:
+Hi
 
-> The current TRM for both 243x and 242x is version Q as of July 07.
+Thanks for the series of prompt replies.
 
-That would explain it.  I will pick up the more recent revisions.  In the 
-meantime, I will fix the patch to preserve sys_clkout2 for 2430, and also 
-to fix the register bits to indicate that they are not 2420-only.
+I am still struck up in the code. I have gonr through the code of
+isp1301_omap.c.
+The Vbus_drv bit has already been set in the linux code in the
+isp1301_set_host() in the following statement :-
 
-> So you need h, i, j, k, l, m, n, o, p, and q :).  The documentation just keeps getting better.
+isp1301_set_bits(isp, ISP1301_OTG_CONTROL_1, OTG1_VBUS_DRV);
 
-Does TI publish revision histories?  Might be easier than diff'ing 11 
-3500-page PDFs :-)
+So this means the care has already been taken care of setting the Vbus
+to 5 volts.
+And as per the statement above this line states the care has already
+been taken care
+of using mini A plug /mini B plug in the mini AB receptacle.
 
->>> In 2420ES1 there was no clockout2 it was added for ES2 and beyond.
->>
->> hmm, wonder if we should add some clock flags for ES revisions...
->
-> Well, the difference between ES1 and ES2 can be noticeable (especially 
-> for 242x).  But no one has gone to production on an ES1 either.  There 
-> shouldn't be so many to warrant a flag.  In the past we have tracked 
-> this to keep the pain down in transition from ES1 to ES2 but as time 
-> goes on most everyone gets updated.
+So the question arises that why is my port not getting powered up.
+I am not sure what exactly needs to be done if I want to configure the
+FSUSB port 0 as host port only since I am not aware of the OTG
+configuratins/state machines.
+And i am not sure how ISP1301_omap.c takes care of the host , device
+and OTG configurations seperately.
 
-Ok, thanks, sounds like we can do without it for the time being.
+Can any one suggest me settings I need to do within the ISP-1301 for
+OMAP to act as host only since my OMAP gost controller is already
+configured and is sending SOF interrupt messages but my port is not
+getting powered up.
 
+Also kindly tell me the current capablity support for the port. Will
+it be able to power up the USB mouse.
 
-- Paul
+Also how are the connections for FSUSB port 1 . Are they through
+ISP-1301 transceiver only ?
+
+Thanks & Regards
+
+Amit
