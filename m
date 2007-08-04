@@ -1,15 +1,17 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: Subject: [PATCH 3/3] [ARM] OMAP: Adding Support for 2K nand	page
- support on omap2430
-Date: Sat, 04 Aug 2007 08:39:47 -0500
-Message-ID: <46B481A3.8090204@gmail.com>
-References: <809D758398CC1F49AA8E493528AD4A27014DF6AF@ntxsjombx02.micron.com>	<8bf247760707310753h7ca6cb78u3af809454d159a59@mail.gmail.com>	<809D758398CC1F49AA8E493528AD4A27014DF6B8@ntxsjombx02.micron.com>
-	<8bf247760708031016m3bf55e45pe2161a51c65e1c46@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH 11/22] omap2 clock: fix some clocks incorrectly marked
+ aspresent on OMAP2430
+Date: Sat, 4 Aug 2007 09:56:03 -0600 (MDT)
+Message-ID: <Pine.LNX.4.64.0708040951470.2982@utopia.booyaka.com>
+References: <20070802181002.792550043@pwsan.com>
+	<20070802181142.567475486@pwsan.com>
+	<3B6D69C3A9EBCA4BA5DA60D913027429018FF233@dlee13.ent.ti.com>
+	<Pine.LNX.4.64.0708031204130.30569@utopia.booyaka.com>
+	<3B6D69C3A9EBCA4BA5DA60D913027429018FF8C3@dlee13.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <8bf247760708031016m3bf55e45pe2161a51c65e1c46@mail.gmail.com>
+In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D913027429018FF8C3@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,19 +21,34 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Ram <vshrirama@gmail.com>
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Ram,
-Ram stated on 8/3/2007 12:16 PM:
->   My nand chip is a 128 MB chip. hence the base address i have taken
-> is 0x10000000
->   which is 128MB boundary.
->   hence my chip address and mask will become 0x850.(0x6e000078)
-it is a nand chip rt? Nands are I/O dev accessed using
-GPMC_ADDR,CMD,DATA regs. So gpmc config wise, it does not matter where u
-put it.. and u dont need to allocate 128M/put it on 128M boundary.
-boundary restrictions are more valid for NOR-like devices.
-Regards,
-Nishanth Menon
+On Fri, 3 Aug 2007, Woodruff, Richard wrote:
+
+> The current TRM for both 243x and 242x is version Q as of July 07.
+
+That would explain it.  I will pick up the more recent revisions.  In the 
+meantime, I will fix the patch to preserve sys_clkout2 for 2430, and also 
+to fix the register bits to indicate that they are not 2420-only.
+
+> So you need h, i, j, k, l, m, n, o, p, and q :).  The documentation just keeps getting better.
+
+Does TI publish revision histories?  Might be easier than diff'ing 11 
+3500-page PDFs :-)
+
+>>> In 2420ES1 there was no clockout2 it was added for ES2 and beyond.
+>>
+>> hmm, wonder if we should add some clock flags for ES revisions...
+>
+> Well, the difference between ES1 and ES2 can be noticeable (especially 
+> for 242x).  But no one has gone to production on an ES1 either.  There 
+> shouldn't be so many to warrant a flag.  In the past we have tracked 
+> this to keep the pain down in transition from ES1 to ES2 but as time 
+> goes on most everyone gets updated.
+
+Ok, thanks, sounds like we can do without it for the time being.
+
+
+- Paul
