@@ -1,18 +1,13 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: [PATCH 4/8] Add kfifo_get_to_user to copy data to userland
-	directly
-Date: Mon, 6 Aug 2007 19:01:10 +0530
-Message-ID: <5d5443650708060631y7e14b285ve475a4f4f28fbad8@mail.gmail.com>
-References: <11857934452717-git-send-email-Hiroshi.DOYU@nokia.com>
-	<11857934482616-git-send-email-Hiroshi.DOYU@nokia.com>
-	<11857934501598-git-send-email-Hiroshi.DOYU@nokia.com>
-	<11857934533223-git-send-email-Hiroshi.DOYU@nokia.com>
+From: Kevin Hilman <khilman@mvista.com>
+Subject: Re: [PATCH] ARM: OMAP: silence Kconfig warnings for non-ARM build
+Date: Mon, 06 Aug 2007 08:02:41 -0700
+Message-ID: <46B73811.6070202@mvista.com>
+References: <11861784532833-git-send-email-khilman@mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11857934533223-git-send-email-Hiroshi.DOYU@nokia.com>
-Content-Disposition: inline
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <11861784532833-git-send-email-khilman@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,38 +15,14 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Doyu-San,
+Kevin Hilman wrote:
+> Not sure if this is the right Kconfig magic, but when the OMAP patches
+> are applied and the kernel is built for a non-ARM target, there are
+> a handful of Kconfig warnings.  This patch cleans that up.
 
-On 7/30/07, Hiroshi.DOYU@nokia.com <Hiroshi.DOYU@nokia.com> wrote:
-> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
->
-> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> ---
->  include/linux/kfifo.h |   35 ++++++++++++++++++++++++++++++
->  kernel/kfifo.c        |   57 +++++++++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 92 insertions(+), 0 deletions(-)
->
-> diff --git a/include/linux/kfifo.h b/include/linux/kfifo.h
-> index 404f446..2dd610d 100644
-> --- a/include/linux/kfifo.h
-> +++ b/include/linux/kfifo.h
-> @@ -43,6 +43,9 @@ extern unsigned int __kfifo_put(struct kfifo *fifo,
->                                 unsigned char *buffer, unsigned int len);
->  extern unsigned int __kfifo_get(struct kfifo *fifo,
->                                 unsigned char *buffer, unsigned int len);
-> +extern unsigned int __kfifo_get_to_user(struct kfifo *fifo,
-> +                                       unsigned char __user *buffer,
-> +                                       unsigned int len);
->
-
-Thanx. Finally that local fifo implementation is gone. Could you
-please submit this patch to LKML also?
-
--- 
---Trilok Soni
+Ignore this one.  It doesn't actually work.  Will send a better one.
