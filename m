@@ -1,13 +1,17 @@
 From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: Git tree updated to 2.6.23-rc2
-Date: Mon, 6 Aug 2007 18:56:01 +0530
-Message-ID: <5d5443650708060626j18300bedxf3dea1cd324ba2cc@mail.gmail.com>
-References: <20070806125225.GA2312@atomide.com>
+Subject: Re: [PATCH 4/8] Add kfifo_get_to_user to copy data to userland
+	directly
+Date: Mon, 6 Aug 2007 19:01:10 +0530
+Message-ID: <5d5443650708060631y7e14b285ve475a4f4f28fbad8@mail.gmail.com>
+References: <11857934452717-git-send-email-Hiroshi.DOYU@nokia.com>
+	<11857934482616-git-send-email-Hiroshi.DOYU@nokia.com>
+	<11857934501598-git-send-email-Hiroshi.DOYU@nokia.com>
+	<11857934533223-git-send-email-Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070806125225.GA2312@atomide.com>
+In-Reply-To: <11857934533223-git-send-email-Hiroshi.DOYU@nokia.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,26 +22,36 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
+To: "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Hi Doyu-San,
 
-On 8/6/07, Tony Lindgren <tony@atomide.com> wrote:
-> Hi all,
+On 7/30/07, Hiroshi.DOYU@nokia.com <Hiroshi.DOYU@nokia.com> wrote:
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 >
-> I've just updated our git tree to 2.6.23-rc2. Thanks to Trilok, now
-> the omap framebuffer code is integrated to the mainline kernel :)
+> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> ---
+>  include/linux/kfifo.h |   35 ++++++++++++++++++++++++++++++
+>  kernel/kfifo.c        |   57 +++++++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 92 insertions(+), 0 deletions(-)
 >
-> There are quite a few pending patches, I will be looking at them
-> this week.
+> diff --git a/include/linux/kfifo.h b/include/linux/kfifo.h
+> index 404f446..2dd610d 100644
+> --- a/include/linux/kfifo.h
+> +++ b/include/linux/kfifo.h
+> @@ -43,6 +43,9 @@ extern unsigned int __kfifo_put(struct kfifo *fifo,
+>                                 unsigned char *buffer, unsigned int len);
+>  extern unsigned int __kfifo_get(struct kfifo *fifo,
+>                                 unsigned char *buffer, unsigned int len);
+> +extern unsigned int __kfifo_get_to_user(struct kfifo *fifo,
+> +                                       unsigned char __user *buffer,
+> +                                       unsigned int len);
+>
 
-Currently mainline kernel for omap2 is broken if you enable menelaus,
-as pdata structure from menelaus.h is not submitted, and omap mmc also
-fails to build.
-
-Also H4 doesn't boot, as L4 entry is missing from io.c in mainline kernel.
+Thanx. Finally that local fifo implementation is gone. Could you
+please submit this patch to LKML also?
 
 -- 
 --Trilok Soni
