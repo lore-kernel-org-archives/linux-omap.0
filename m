@@ -1,16 +1,15 @@
-From: "Kyungmin Park" <kyungmin.park@samsung.com>
-Subject: RE: Git tree updated to 2.6.23-rc2
-Date: Tue, 7 Aug 2007 08:17:12 +0900
-Message-ID: <006001c7d87f$f0d055e0$e1ac580a@swcenter.sec.samsung.co.kr>
-References: <20070806125225.GA2312@atomide.com>
-	<5d5443650708060626j18300bedxf3dea1cd324ba2cc@mail.gmail.com>
-Reply-To: kmpark@infradead.org
+From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Subject: RE: Pending patches, was: Git tree updated to 2.6.23-rc2
+Date: Mon, 6 Aug 2007 18:28:31 -0500
+Message-ID: <9C23CDD79DA20A479D4615857B2E2C47017EF86F@dlee13.ent.ti.com>
+References: <46B73C93.5090202@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-reply-to: <5d5443650708060626j18300bedxf3dea1cd324ba2cc@mail.gmail.com>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <46B73C93.5090202@googlemail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,31 +17,38 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: 'Trilok Soni' <soni.trilok@gmail.com>, 'Tony Lindgren' <tony@atomide.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Dirk Behme <dirk.behme@googlemail.com>, Tony Lindgren <tony@atomide.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-> >
-> > I've just updated our git tree to 2.6.23-rc2. Thanks to Trilok, now
-> > the omap framebuffer code is integrated to the mainline kernel :)
-> >
-> > There are quite a few pending patches, I will be looking at them
-> > this week.
-> 
-> Currently mainline kernel for omap2 is broken if you enable menelaus,
-> as pdata structure from menelaus.h is not submitted, and omap mmc also
-> fails to build.
-> 
-> Also H4 doesn't boot, as L4 entry is missing from io.c in mainline kernel.
-> 
 
-Also Apollon can't compile and doesn't boot. There is mismatch between arch/arm/mach-omap2/* and
-include/asm-arm/arch-omap/*.
+>
+>Tony Lindgren wrote:
+>> I've just updated our git tree to 2.6.23-rc2.
+>
+>:)  Thanks!
+>
+>> There are quite a few pending patches, I will be looking at them
+>> this week.
+>
+>25. [PATCH] Enable Kernel based uncompressing for OMAP3
+>
 
-I'm waiting for merging the omap tree with mainline tree.
+This patch is not required.
 
-Thank you,
-Kyungmin Park
+There were few more patches from Kevin Hilman and me on TWL4030 I don't =
+see them in list.=20
+
+I just validated 2430 and 3430 booting with this merge both seems to =
+work as expected - thanks Tony.
+
+What is the time line we should be expecting for OMAP1/2 patches to be =
+merged to mainline? Like 23 RC-??=20
+
+Was curious why is OMAP patches taking so long? They were submitted =
+months back. Where as FB and SPI went into main line with in few days =
+... :(
+
+Regards,
+Khasim
