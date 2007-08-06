@@ -1,16 +1,16 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 4/8] Add kfifo_get_to_user to copy data to userland
- directly
-Date: Tue, 07 Aug 2007 12:58:55 +0300 (EEST)
-Message-ID: <20070807.125855.68055973.Hiroshi.DOYU@nokia.com>
-References: <11857934501598-git-send-email-Hiroshi.DOYU@nokia.com>
-	<11857934533223-git-send-email-Hiroshi.DOYU@nokia.com>
-	<5d5443650708060631y7e14b285ve475a4f4f28fbad8@mail.gmail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: FSUSB Port 0 in OAMP2430 SDP
+Date: Mon, 6 Aug 2007 14:29:22 -0500
+Message-ID: <3B6D69C3A9EBCA4BA5DA60D91302742901967083@dlee13.ent.ti.com>
+References: <78d6ed630708041237v56338867hd88514c428a56b54@mail.gmail.com><31e679430708051718q6b760029te6bb80c21f805dde@mail.gmail.com><78d6ed630708061154w5ed11bd3m5a8ee11e5a3e64fd@mail.gmail.com>
+	<31e679430708061211n33200287wb057d6e520621462@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <5d5443650708060631y7e14b285ve475a4f4f28fbad8@mail.gmail.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <31e679430708061211n33200287wb057d6e520621462@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,39 +20,36 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: soni.trilok@gmail.com
-Cc: linux-omap-open-source@linux.omap.com
+To: Felipe Balbi <felipebalbi@users.sourceforge.net>, Amit Gupta <amit_jobs05@inbox.com>
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: "ext Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: [PATCH 4/8] Add kfifo_get_to_user to copy data to userland directly
-Date: Mon, 6 Aug 2007 19:01:10 +0530
+> I'm pretty sure you'll need a self-powered hub anyway 'cause MUSB can
+> only provide 100mA and if you wanna power a non-otg usb device it uses
+> up to 500mA. The self-powered hub masks this limits to the controller
+> as it'll power the usb devices itself.
 
-> Hi Doyu-San,
-> 
-> On 7/30/07, Hiroshi.DOYU@nokia.com <Hiroshi.DOYU@nokia.com> wrote:
-> > From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> >
-> > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> > ---
-> >  include/linux/kfifo.h |   35 ++++++++++++++++++++++++++++++
-> >  kernel/kfifo.c        |   57 +++++++++++++++++++++++++++++++++++++++++++++++++
-> >  2 files changed, 92 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/include/linux/kfifo.h b/include/linux/kfifo.h
-> > index 404f446..2dd610d 100644
-> > --- a/include/linux/kfifo.h
-> > +++ b/include/linux/kfifo.h
-> > @@ -43,6 +43,9 @@ extern unsigned int __kfifo_put(struct kfifo *fifo,
-> >                                 unsigned char *buffer, unsigned int len);
-> >  extern unsigned int __kfifo_get(struct kfifo *fifo,
-> >                                 unsigned char *buffer, unsigned int len);
-> > +extern unsigned int __kfifo_get_to_user(struct kfifo *fifo,
-> > +                                       unsigned char __user *buffer,
-> > +                                       unsigned int len);
-> >
-> 
-> Thanx. Finally that local fifo implementation is gone. Could you
-> please submit this patch to LKML also?
+I think you are both right and wrong.  Its been a few years since I =
+looked, so their probably have been some changes.
 
-I got it. In that case, "__kfifo_put_from_user()" may be also necessary.
+MUSB likely doesn't supply power to anyone.  The board's power supply =
+will do this.  What its capacity is depends on how it was setup.  To be =
+OTG stamp on it a device might need to stay at or below 100mA (might be =
+self powered also).  For the omap-device to get the stamp it might have =
+to at least supply 100.  Do both ends have the USB logo on them?  Do you =
+need them to be?
+
+An OTG device to get certified need to support many devices ether.  You =
+can have a white list which allows limited support.
+
+It might be you need to manually turn on some LDO or other on some =
+detection interrupt.  There was one board with the fs-usb block which =
+had this kind of logic I dealt with.  It had 2 ports, one gave just =
+enough power for a target peripheral and another port gave lots of =
+power.
+
+I seem to recall some noise about raising the limits but that may have =
+been a dream.
+
+Regards,
+Richard W.
