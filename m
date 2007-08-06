@@ -1,21 +1,14 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH 11/22] omap2 clock: fix some clocks incorrectly marked
-	aspresent on OMAP2430
-Date: Sat, 4 Aug 2007 17:02:01 -0500
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429018FFAB9@dlee13.ent.ti.com>
-References: <20070802181002.792550043@pwsan.com>
-	<20070802181142.567475486@pwsan.com>
-	<3B6D69C3A9EBCA4BA5DA60D913027429018FF233@dlee13.ent.ti.com>
-	<Pine.LNX.4.64.0708031204130.30569@utopia.booyaka.com>
-	<3B6D69C3A9EBCA4BA5DA60D913027429018FF8C3@dlee13.ent.ti.com>
-	<Pine.LNX.4.64.0708040951470.2982@utopia.booyaka.com>
+From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
+Subject: Re: FSUSB Port 0 in OAMP2430 SDP
+Date: Sun, 5 Aug 2007 20:18:27 -0400
+Message-ID: <31e679430708051718q6b760029te6bb80c21f805dde@mail.gmail.com>
+References: <78d6ed630708041237v56338867hd88514c428a56b54@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <Pine.LNX.4.64.0708040951470.2982@utopia.booyaka.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <78d6ed630708041237v56338867hd88514c428a56b54@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -23,34 +16,76 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Amit Gupta <amitjobs05@gmail.com>
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-> > The current TRM for both 243x and 242x is version Q as of July 07.
->=20
-> That would explain it.  I will pick up the more recent revisions.  In
-the
-> meantime, I will fix the patch to preserve sys_clkout2 for 2430, and
-also
-> to fix the register bits to indicate that they are not 2420-only.
+On 8/4/07, Amit Gupta <amitjobs05@gmail.com> wrote:
+> Hi
+>
+> Thanks for the series of prompt replies.
+>
+> I am still struck up in the code. I have gonr through the code of
+> isp1301_omap.c.
+> The Vbus_drv bit has already been set in the linux code in the
+> isp1301_set_host() in the following statement :-
+>
+> isp1301_set_bits(isp, ISP1301_OTG_CONTROL_1, OTG1_VBUS_DRV);
+>
+> So this means the care has already been taken care of setting the Vbus
+> to 5 volts.
+> And as per the statement above this line states the care has already
+> been taken care
+> of using mini A plug /mini B plug in the mini AB receptacle.
+>
+> So the question arises that why is my port not getting powered up.
+> I am not sure what exactly needs to be done if I want to configure the
+> FSUSB port 0 as host port only since I am not aware of the OTG
+> configuratins/state machines.
+> And i am not sure how ISP1301_omap.c takes care of the host , device
+> and OTG configurations seperately.
 
-You might just hold off.  I didn't see it in rev Q either.  It was added
-into the basic functional spec. The F-spec's are the original document
-from designers, started a couple years before TRMs and are built up
-along with the chips.  Later, TRMs are spun off.
+afaik OMAP2430SDP uses MUSB core inside OMAP chip. MUSB is an OTG core
+and it changes roles by detecting the state of the id pin. This
+detection is made on hardware not on software so it'll be a lot easier
+to hack a mini-B cable and ground its id pin in order to convert it to
+mini-A connector. This way, musb will know you're trying to become usb
+host.
 
-> > So you need h, i, j, k, l, m, n, o, p, and q :).  The documentation
-just
-> keeps getting better.
->=20
-> Does TI publish revision histories?  Might be easier than diff'ing 11
-> 3500-page PDFs :-)
+>
+> Can any one suggest me settings I need to do within the ISP-1301 for
+> OMAP to act as host only since my OMAP gost controller is already
+> configured and is sending SOF interrupt messages but my port is not
+> getting powered up.
 
-Yes they do for OMAP2/3.  I tend to keep 3 back.  I don't have my main
-computer handy otherwise I'll send you a document number.
+SOF can happen on device also. Use the hacked-miniB cable and try again, please
 
-Regards,
-Richard W.
+>
+> Also kindly tell me the current capablity support for the port. Will
+> it be able to power up the USB mouse.
+
+As an OTG controller, it can only provide 100mA current on the bus...
+this is not enough for a usb mouse. But you can use a powered HUB
+connected to fsusb port and the mouse connected through the hub
+
+>
+> Also how are the connections for FSUSB port 1 . Are they through
+> ISP-1301 transceiver only ?
+>
+> Thanks & Regards
+>
+> Amit
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
+
+
+-- 
+Best Regards,
+
+Felipe Balbi
+felipebalbi@users.sourceforge.net
