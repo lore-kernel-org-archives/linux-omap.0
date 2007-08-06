@@ -1,10 +1,13 @@
-From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [PATCH] ARM: OMAP: Remove unnecessary N800 PM board specific file
-Date: Mon, 06 Aug 2007 11:10:43 -0400
-Message-ID: <46B739F3.6040403@indt.org.br>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Pending patches, was: Git tree updated to 2.6.23-rc2
+Date: Mon, 06 Aug 2007 17:21:55 +0200
+Message-ID: <46B73C93.5090202@googlemail.com>
+References: <20070806125225.GA2312@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------050307040704070907030902"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20070806125225.GA2312@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,137 +17,126 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "lin >> Tony Lindgren" <tony@atomide.com>, ext Trilok Soni <soni.trilok@gmail.com>
-Cc: "linu >> omap-linux" <linux-omap-open-source@linux.omap.com>
+To: Tony Lindgren <tony@atomide.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050307040704070907030902
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Tony Lindgren wrote:
+> I've just updated our git tree to 2.6.23-rc2. 
 
-From: Trilok Soni <soni.trilok@gmail.com>
-From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+:)  Thanks!
 
-Remove unnecessary N800 PM board specific file
+> There are quite a few pending patches, I will be looking at them
+> this week.
 
-- Remove unnecessary arch/arm/mach-omap2/board-n800-pm.c file, according with 
-Trilok's early patch [1], that moves board-n800-pm.c code to board-n800.c
+Ah, I love collecting patches! ;)
 
-[1] http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commitdiff;h=0d6d581ffec0296f429a777187945943f2127e8f
+I have a loosely, not well maintained and tracked list of pending 
+patches since May ;) . Most probably, most of them are outdated, need 
+update, are already applied etc. Anyhow, maybe it is somehow useful 
+and people can help and comment which are still up to date and should 
+be applied. Then we can ignore all others. If anything is missing, 
+then please a short note as well. With this, I will reset my pending 
+patches list then.
 
-Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
-Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+Best regards
 
+Dirk
 
+List of pending OMAP patches:
 
---------------050307040704070907030902
-Content-Type: text/plain;
-	name*0="0001-ARM-OMAP-Remove-unnecessary-N800-PM-board-specific-file.dif";
-	name*1="f"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename*0="0001-ARM-OMAP-Remove-unnecessary-N800-PM-board-specific-file";
-	filename*1=".diff"
+1. [PATCH] USB: Disable file_storage USB_CONFIG_ATT_WAKEUP
 
-Remove unnecessary N800 PM board specific file
+2. [PATCH] musb_hdrc: Implement workaround for tusb3.0 wbus bug rev2
 
-Remove unnecessary arch/arm/mach-omap2/board-n800-pm.c file, according
-with Trilok's early patch, that moves board-n800-pm.c code to board-n800.c
+3. [PATCH] musb_hdrc: Add SRP Interface and control it through sysfs
 
-Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
-Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+4. [PATCH] Add Sysfs Interface to Control Vbus states
 
-Index: linux-omap/arch/arm/mach-omap2/board-n800-pm.c
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/board-n800-pm.c	2007-06-26 16:04:20.000000000 -0400
-+++ /dev/null	1970-01-01 00:00:00.000000000 +0000
-@@ -1,79 +0,0 @@
--/*
-- * Nokia N800 PM code
-- *
-- * Copyright (C) 2006 Nokia Corporation
-- * Author: Amit Kucheria <amit.kucheria@nokia.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/kernel.h>
--#include <linux/module.h>
--#include <asm/arch/menelaus.h>
--
--#ifdef CONFIG_MENELAUS
--
--static int n800_auto_sleep_regulators(void)
--{
--	u32 val;
--	int ret;
--
--	val = EN_VPLL_SLEEP | EN_VMMC_SLEEP    \
--		| EN_VAUX_SLEEP | EN_VIO_SLEEP \
--		| EN_VMEM_SLEEP | EN_DC3_SLEEP \
--		| EN_VC_SLEEP | EN_DC2_SLEEP;
--
--	ret = menelaus_set_regulator_sleep(1, val);
--	if (ret < 0) {
--		printk(KERN_ERR "Could not set regulators to sleep on "
--			"menelaus: %u\n", ret);
--		return ret;
--	}
--	return 0;
--}
--
--static int n800_auto_voltage_scale(void)
--{
--	int ret;
--
--	ret = menelaus_set_vcore_hw(1400, 1050);
--	if (ret < 0) {
--		printk(KERN_ERR "Could not set VCORE voltage on "
--			"menelaus: %u\n", ret);
--		return ret;
--	}
--	return 0;
--}
--
--static int n800_menelaus_init(struct device *dev)
--{
--	int ret;
--
--	ret = n800_auto_voltage_scale();
--	if (ret < 0)
--		return ret;
--	ret = n800_auto_sleep_regulators();
--	if (ret < 0)
--		return ret;
--	return 0;
--}
--
--static struct menelaus_platform_data n800_menelaus_platform_data = {
--	.late_init = n800_menelaus_init,
--};
--
--void __init n800_pm_init(void)
--{
--	menelaus_set_platform_data(&n800_menelaus_platform_data);
--}
--
--#else
--
--void __init n800_pm_init(void)
--{
--}
--
--#endif
--
+5. [PATCH] Add more Test Modes
 
---------------050307040704070907030902
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+6. [PATCH] musb_hdrc: Make HNP work
 
+7. [PATCH] USB: Fix OTG HNP for hub.c
 
---------------050307040704070907030902--
+8. [PATCH] HSET tool for the MUSB Controler
+
+9. [PATCH] Make SRP passes in all Electrical Tests
+
+10. [PATCH/RFC] Reduce OMAP2420 active current by ~30%
+
+11. [PATCH 1/1] ARM: OMAP2: TWL4030 RTC driver (v2)
+
+12. Common code for TSC 2101 and 2102
+
+13. [PATCH] Fixing SD response type 6 vs. 1
+
+14. [PATCH 1/12] Add support for the HTC Typhoon, Hurricane and 
+Tornado smartphone
+
+15. [PATCH 2/12] Default config for the HTC Typhoon
+
+16. [PATCH 3/12] Add an option to disable debug UART.
+
+17. [PATCH 4/12] Add OMAP730 clocks.
+
+18. [PATCH 5/12] Add OMAP850 identification.
+
+19. [PATCH 7/12] USB fixes for OMAP730
+
+20. [PATCH 8/12] MMC fixes for OMAP730.
+
+21. [PATCH 9/12] Add support for HTC Typhoon and Hurricane/Tornado LCD 
+panels.
+
+22. [PATCH 10/12] Add support for HTC Typhoon leds.
+
+23. [PATCH 11/12] Add support for keys setting multiple bits in the scan
+
+24. [RFC / Patch] Cleanup DM timer list for OMAP2 and OMAP1
+
+25. [PATCH] Enable Kernel based uncompressing for OMAP3
+
+26. [PATCH] ARM: OMAP2: Add camera block base address definition.
+
+27. [PATCH] VIDEO OMAP: camera_core whitespace cleanup
+
+28. [PATCH] OMAP VIDEO: Convert printk to dev_{dbg,err,info} macros
+
+29. [PATCH] ARM: OMAP: full-retention fix for 2430
+
+30. [PATCH] ARM: OMAP: fix suspend for twl4030
+
+31. [PATCH 1/3] [ARM] OMAP: Adding Support for 2K nand page support 
+for	omap2430
+
+32. [PATCH 2/3] OMAP: Adding Support for 2K nand page support for omap2430
+
+33. [PATCH 3/3] [ARM] OMAP: Adding Support for 2K nand page support on 
+omap2430
+
+34. [PATCH 1/8] ARM: OMAP: Fix omap mmu framework for omap1
+
+35. [PATCH 2/8] ARM: OMAP: Fix omap mmu framework for omap1
+
+36. [PATCH 3/8] DSPGW: Remove CONFIG_OMAP_DSP_TASK_MULTIOPEN
+
+37. [PATCH 4/8] Add kfifo_get_to_user to copy data to userland directly
+
+38. [PATCH 5/8] DSPGW: Use kfifo APIs instead of homemade ones
+
+39. [PATCH 6/8] DSPGW: Use ALIGN macro instead of homemade one
+
+40. [PATCH 7/8] ARM: OMAP: Fix Unbalanced enable for IRQ in omap mailbox
+
+41. [PATCH 8/8] ARM: OMAP: Add MMU TWL support for omap1
+
+42. [PATCH] ARM: OMAP: 2430SDP: turn off secondary LCD backlight on boot
+
+43. [PATCH] ARM: OMAP: twl4030: make power_companion_init static
+
+44. - 66. omap2 clock: Bugfixes and cleanups in OMAP2 clock framework
+
+67. [PATCH] MENELAUS: Remove unnecessary pr_err definition
+
+68. [PATCH omap-fixes] ARM: OMAP: cleanup: remove OMAP_MCBSP Kconfig 
+warnings
