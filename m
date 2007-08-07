@@ -1,15 +1,16 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: Pending patches, was: Git tree updated to 2.6.23-rc2
-Date: Mon, 6 Aug 2007 18:28:31 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C47017EF86F@dlee13.ent.ti.com>
-References: <46B73C93.5090202@googlemail.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 4/8] Add kfifo_get_to_user to copy data to userland
+ directly
+Date: Tue, 07 Aug 2007 12:58:55 +0300 (EEST)
+Message-ID: <20070807.125855.68055973.Hiroshi.DOYU@nokia.com>
+References: <11857934501598-git-send-email-Hiroshi.DOYU@nokia.com>
+	<11857934533223-git-send-email-Hiroshi.DOYU@nokia.com>
+	<5d5443650708060631y7e14b285ve475a4f4f28fbad8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <46B73C93.5090202@googlemail.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <5d5443650708060631y7e14b285ve475a4f4f28fbad8@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,38 +18,41 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>, Tony Lindgren <tony@atomide.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: soni.trilok@gmail.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+From: "ext Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: [PATCH 4/8] Add kfifo_get_to_user to copy data to userland directly
+Date: Mon, 6 Aug 2007 19:01:10 +0530
 
->
->Tony Lindgren wrote:
->> I've just updated our git tree to 2.6.23-rc2.
->
->:)  Thanks!
->
->> There are quite a few pending patches, I will be looking at them
->> this week.
->
->25. [PATCH] Enable Kernel based uncompressing for OMAP3
->
+> Hi Doyu-San,
+> 
+> On 7/30/07, Hiroshi.DOYU@nokia.com <Hiroshi.DOYU@nokia.com> wrote:
+> > From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> >
+> > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> > ---
+> >  include/linux/kfifo.h |   35 ++++++++++++++++++++++++++++++
+> >  kernel/kfifo.c        |   57 +++++++++++++++++++++++++++++++++++++++++++++++++
+> >  2 files changed, 92 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/include/linux/kfifo.h b/include/linux/kfifo.h
+> > index 404f446..2dd610d 100644
+> > --- a/include/linux/kfifo.h
+> > +++ b/include/linux/kfifo.h
+> > @@ -43,6 +43,9 @@ extern unsigned int __kfifo_put(struct kfifo *fifo,
+> >                                 unsigned char *buffer, unsigned int len);
+> >  extern unsigned int __kfifo_get(struct kfifo *fifo,
+> >                                 unsigned char *buffer, unsigned int len);
+> > +extern unsigned int __kfifo_get_to_user(struct kfifo *fifo,
+> > +                                       unsigned char __user *buffer,
+> > +                                       unsigned int len);
+> >
+> 
+> Thanx. Finally that local fifo implementation is gone. Could you
+> please submit this patch to LKML also?
 
-This patch is not required.
-
-There were few more patches from Kevin Hilman and me on TWL4030 I don't =
-see them in list.=20
-
-I just validated 2430 and 3430 booting with this merge both seems to =
-work as expected - thanks Tony.
-
-What is the time line we should be expecting for OMAP1/2 patches to be =
-merged to mainline? Like 23 RC-??=20
-
-Was curious why is OMAP patches taking so long? They were submitted =
-months back. Where as FB and SPI went into main line with in few days =
-... :(
-
-Regards,
-Khasim
+I got it. In that case, "__kfifo_put_from_user()" may be also necessary.
