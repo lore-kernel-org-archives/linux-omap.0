@@ -1,13 +1,19 @@
-From: =?ISO-8859-1?Q?Lu=EDs_Vit=F3rio_Cargnini?= <lvcargnini@gmail.com>
-Subject: Re: Compiling an image for OMAP
-Date: Wed, 08 Aug 2007 15:19:33 -0300
-Message-ID: <46BA0935.7010807@gmail.com>
-References: <600adaf50708080613q3a85196cq56fbbcc139fd990f@mail.gmail.com>
+From: "Amit Gupta" <amitjobs05@gmail.com>
+Subject: Fwd: FSUSB Port 0 in OAMP2430 SDP
+Date: Thu, 9 Aug 2007 01:58:19 +0530
+Message-ID: <78d6ed630708081328v100f0275l8029d113ce009392@mail.gmail.com>
+References: <78d6ed630708041237v56338867hd88514c428a56b54@mail.gmail.com>
+	<31e679430708051718q6b760029te6bb80c21f805dde@mail.gmail.com>
+	<78d6ed630708061154w5ed11bd3m5a8ee11e5a3e64fd@mail.gmail.com>
+	<31e679430708061211n33200287wb057d6e520621462@mail.gmail.com>
+	<3B6D69C3A9EBCA4BA5DA60D91302742901967083@dlee13.ent.ti.com>
+	<78d6ed630708061310y2febb009s3d8640c054f5e4f7@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <600adaf50708080613q3a85196cq56fbbcc139fd990f@mail.gmail.com>
+In-Reply-To: <78d6ed630708061310y2febb009s3d8640c054f5e4f7@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,158 +23,89 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tiago Maluta <tiago.maluta@gmail.com>, omap <linux-omap-open-source@linux.omap.com>
+To: felipebalbi@users.sourceforge.net, "Kamat, Nishant" <nskamat@ti.com>, Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi Felipe/Nishan/all
 
-Dear fellow,
+I have been able to sucessfully get an USB host interrupt by pulling
+up voltage levels in Transceiver but its configuring device as low
+powered device. Also I am getting host interrupt even without
+connecting the device since pulling up the voltage levels resulted in
+maybe D+/D- pull up which is sensed as an host interrupt by OMAP
+board.
 
-Which is your toolchain ?
+You seem to be correct in your saying that transceiver does more than
+just sensing the voltage levels and passig the interrupts. But I am
+not able to understand the sequence of thing happening like before
+connecting the device should the port be powered up to 5 volts or it
+should happen when device connected pulls up/down D+/D- pin. And once
+this is done then interrupt is also sent and enumeration starts ?
 
-try make help and look for which config best fit your initial needs
+I am going through the USB specs to know this but I suppose one who
+has worked in USB can immediately answer to my this query since its
+very urgent.
+
+Thanks & Regards
+
+Amit
+
+---------- Forwarded message ----------
+From: Amit Gupta <amit_jobs05@inbox.com>
+Date: Aug 7, 2007 1:40 AM
+Subject: Re: FSUSB Port 0 in OAMP2430 SDP
+To:
+Cc: Felipe Balbi <felipebalbi@users.sourceforge.net>, Linux OMAP
+<linux-omap-open-source@linux.omap.com>, "Woodruff, Richard"
+<r-woodruff2@ti.com>, "Kamat, Nishant" <nskamat@ti.com>
 
 
+>>I think more stuff happens in hardware then just setting those
+>>registers. Probably the transceiver is applying some pull-up and/or
+>>pull-down resistors when ID pin is grounded. I'd read musb & otg docs
+>>again to remember what really happens there.
 
-Tiago Maluta wrote:
-> Hi,
->=20
-> I'm trying to compile a kernel image for OMAP platform.
->=20
-> I'm using the sources from kernel.org and from documentation, I put in =
-a
-> Makefile:
->=20
-> #--------------------------------------------
-> ARCH =3D arm
-> CROSS_COMPILE =3D arm-none-linux-gnueabi-
-> #--------------------------------------------
->=20
->=20
-> linux-2.6.22.1 # make
->=20
-> scripts/kconfig/conf -s arch/arm/Kconfig
->   CHK     include/linux/version.h
->   SYMLINK include/asm-arm/arch -> include/asm-arm/arch-omap
-> make[1]: `include/asm-arm/mach-types.h' est=E1 atualizado.
->   CHK     include/linux/utsrelease.h
->   CC      arch/arm/kernel/asm-offsets.s
-> In file included from include/linux/irqflags.h:46,
->                  from include/asm/system.h:78,
->                  from include/asm/bitops.h:23,
->                  from include/linux/bitops.h:9,
->                  from include/linux/thread_info.h:20,
->                  from include/linux/preempt.h:9,
->                  from include/linux/spinlock.h:49,
->                  from include/linux/capability.h:47,
->                  from include/linux/sched.h:46,
->                  from arch/arm/kernel/asm-offsets.c:13:
-> include/asm/irqflags.h:11:5: warning: "__LINUX_ARM_ARCH__" is not defin=
-ed
-> In file included from include/asm/bitops.h:23,
->                  from include/linux/bitops.h:9,
->                  from include/linux/thread_info.h:20,
->                  from include/linux/preempt.h:9,
->                  from include/linux/spinlock.h:49,
->                  from include/linux/capability.h:47,
->                  from include/linux/sched.h:46,
->                  from arch/arm/kernel/asm-offsets.c:13:
-> include/asm/system.h:153:5: warning: "__LINUX_ARM_ARCH__" is not define=
-d
-> include/asm/system.h:159:5: warning: "__LINUX_ARM_ARCH__" is not define=
-d
-> include/asm/system.h:163:35: warning: "__LINUX_ARM_ARCH__" is not defin=
-ed
-> include/asm/system.h:293:5: warning: "__LINUX_ARM_ARCH__" is not define=
-d
-> include/asm/system.h:298:5: warning: "__LINUX_ARM_ARCH__" is not define=
-d
-> In file included from include/linux/bitops.h:9,
->                  from include/linux/thread_info.h:20,
->                  from include/linux/preempt.h:9,
->                  from include/linux/spinlock.h:49,
->                  from include/linux/capability.h:47,
->                  from include/linux/sched.h:46,
->                  from arch/arm/kernel/asm-offsets.c:13:
-> include/asm/bitops.h:233:5: warning: "__LINUX_ARM_ARCH__" is not define=
-d
-> In file included from include/asm/thread_info.h:16,
->                  from include/linux/thread_info.h:21,
->                  from include/linux/preempt.h:9,
->                  from include/linux/spinlock.h:49,
->                  from include/linux/capability.h:47,
->                  from include/linux/sched.h:46,
->                  from arch/arm/kernel/asm-offsets.c:13:
-> include/asm/fpstate.h:28:5: warning: "__LINUX_ARM_ARCH__" is not define=
-d
-> In file included from include/linux/spinlock.h:326,
->                  from include/linux/capability.h:47,
->                  from include/linux/sched.h:46,
->                  from arch/arm/kernel/asm-offsets.c:13:
-> include/asm/atomic.h:25:5: warning: "__LINUX_ARM_ARCH__" is not defined
-> In file included from include/linux/jiffies.h:4,
->                  from include/linux/sched.h:51,
->                  from arch/arm/kernel/asm-offsets.c:13:
-> include/linux/calc64.h: In function 'do_div_llr':
-> include/linux/calc64.h:25: error: '__LINUX_ARM_ARCH__' undeclared (firs=
-t
-> use in this function)
-> include/linux/calc64.h:25: error: (Each undeclared identifier is
-> reported only once
-> include/linux/calc64.h:25: error: for each function it appears in.)
-> In file included from include/linux/prefetch.h:14,
->                  from include/linux/list.h:8,
->                  from include/linux/wait.h:22,
->                  from include/asm/semaphore.h:9,
->                  from include/linux/sched.h:59,
->                  from arch/arm/kernel/asm-offsets.c:13:
-> include/asm/processor.h:103:5: warning: "__LINUX_ARM_ARCH__" is not def=
-ined
-> In file included from include/asm/semaphore.h:13,
->                  from include/linux/sched.h:59,
->                  from arch/arm/kernel/asm-offsets.c:13:
-> include/asm/locks.h:15:5: warning: "__LINUX_ARM_ARCH__" is not defined
-> In file included from include/asm/page.h:32,
->                  from include/linux/sched.h:60,
->                  from arch/arm/kernel/asm-offsets.c:13:
-> include/asm/glue.h:119:2: error: #error Unknown data abort handler type
-> In file included from include/linux/sched.h:60,
->                  from arch/arm/kernel/asm-offsets.c:13:
-> include/asm/page.h:106:2: error: #error Unknown user operations model
-> include/asm/page.h:189:31: warning: "__LINUX_ARM_ARCH__" is not defined
-> make[1]: ** [arch/arm/kernel/asm-offsets.s] Erro 1
->=20
-> -
-> I saw a similar thread in the arm-gnu mail list, but I didn't found
-> the solution.
-> http://www.codesourcery.com/archives/arm-gnu/msg01214.html
->=20
-> Any suggetions will be helpful.
->=20
-> Thanks,
-> - tiago
->=20
+>>If you check OTG specs rev 1.3 it presents what happens when you
+>>ground ID pin.
 
-- --
--
--------------------------------------------------------------------------=
------
-Thanks && Regards
-Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
-IEEE Member
-Electrical Engineer Faculty @ PUCRS
-Ipiranga Avenue, 6681 - Building 30
-P.O. Box: 90619-900 - Porto Alegre/RS
-Phone: +55 51 3320 3500  extension: 7696
--
--------------------------------------------------------------------------=
---------
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.5 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+I was going through OTG specs 1.3. Its difficult to go through
+completely but then it Pg 23 tells a bit which I was onterested in. It
+tells that Vbus switcjing can also take place through an application.
+It says that bus is powered up only when application tries to call ot
+there is b_srp_init, In the first case if the application is trigering
+the bus to power on then its definitely happening through software
+only. Also it talks about bus powered USB device initialting the
+session. Now it clearly says that it will post an event/interrupt.
 
-iD8DBQFGugk1KNrSZaSIZoURAjYpAJ0ai5C7T2JXhRxMKHzWoO6Y0i967ACZAW/I
-1hXFScE+JRHhrSPQ47y8wTA=3D
-=3DRJDm
------END PGP SIGNATURE-----
+But still you may be correct that lots of things might be hapening
+within the transeiver  hardware like pull up/pull down but I  need to
+know that do that so that I can program the Transceiver accordingly.
+
+Thanks in advance
+
+Regards
+
+Amit
+On 8/7/07, Woodruff, Richard <r-woodruff2@ti.com> wrote:
+> > I'm pretty sure you'll need a self-powered hub anyway 'cause MUSB can
+> > only provide 100mA and if you wanna power a non-otg usb device it uses
+> > up to 500mA. The self-powered hub masks this limits to the controller
+> > as it'll power the usb devices itself.
+>
+> I think you are both right and wrong.  Its been a few years since I looked, so their probably have been some changes.
+>
+> MUSB likely doesn't supply power to anyone.  The board's power supply will do this.  What its capacity is depends on how it was setup.  To be OTG stamp on it a device might need to stay at or below 100mA (might be self powered also).  For the omap-device to get the stamp it might have to at least supply 100.  Do both ends have the USB logo on them?  Do you need them to be?
+>
+> An OTG device to get certified need to support many devices ether.  You can have a white list which allows limited support.
+>
+> It might be you need to manually turn on some LDO or other on some detection interrupt.  There was one board with the fs-usb block which had this kind of logic I dealt with.  It had 2 ports, one gave just enough power for a target peripheral and another port gave lots of power.
+>
+> I seem to recall some noise about raising the limits but that may have been a dream.
+>
+> Regards,
+> Richard W.
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
