@@ -1,18 +1,19 @@
-From: "Amit Gupta" <amitjobs05@gmail.com>
-Subject: Fwd: FSUSB Port 0 in OAMP2430 SDP
-Date: Thu, 9 Aug 2007 01:58:19 +0530
-Message-ID: <78d6ed630708081328v100f0275l8029d113ce009392@mail.gmail.com>
+From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
+Subject: Re: FSUSB Port 0 in OAMP2430 SDP
+Date: Wed, 8 Aug 2007 16:39:17 -0400
+Message-ID: <31e679430708081339y1c0315b8i8f9b907ff6e235ae@mail.gmail.com>
 References: <78d6ed630708041237v56338867hd88514c428a56b54@mail.gmail.com>
 	<31e679430708051718q6b760029te6bb80c21f805dde@mail.gmail.com>
 	<78d6ed630708061154w5ed11bd3m5a8ee11e5a3e64fd@mail.gmail.com>
 	<31e679430708061211n33200287wb057d6e520621462@mail.gmail.com>
 	<3B6D69C3A9EBCA4BA5DA60D91302742901967083@dlee13.ent.ti.com>
 	<78d6ed630708061310y2febb009s3d8640c054f5e4f7@mail.gmail.com>
+	<78d6ed630708081328v100f0275l8029d113ce009392@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <78d6ed630708061310y2febb009s3d8640c054f5e4f7@mail.gmail.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <78d6ed630708081328v100f0275l8029d113ce009392@mail.gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -21,91 +22,118 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: felipebalbi@users.sourceforge.net, "Kamat, Nishant" <nskamat@ti.com>, Linux OMAP <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Amit Gupta <amitjobs05@gmail.com>
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe/Nishan/all
+Hi,
 
-I have been able to sucessfully get an USB host interrupt by pulling
-up voltage levels in Transceiver but its configuring device as low
-powered device. Also I am getting host interrupt even without
-connecting the device since pulling up the voltage levels resulted in
-maybe D+/D- pull up which is sensed as an host interrupt by OMAP
-board.
-
-You seem to be correct in your saying that transceiver does more than
-just sensing the voltage levels and passig the interrupts. But I am
-not able to understand the sequence of thing happening like before
-connecting the device should the port be powered up to 5 volts or it
-should happen when device connected pulls up/down D+/D- pin. And once
-this is done then interrupt is also sent and enumeration starts ?
-
-I am going through the USB specs to know this but I suppose one who
-has worked in USB can immediately answer to my this query since its
-very urgent.
-
-Thanks & Regards
-
-Amit
-
----------- Forwarded message ----------
-From: Amit Gupta <amit_jobs05@inbox.com>
-Date: Aug 7, 2007 1:40 AM
-Subject: Re: FSUSB Port 0 in OAMP2430 SDP
-To:
-Cc: Felipe Balbi <felipebalbi@users.sourceforge.net>, Linux OMAP
-<linux-omap-open-source@linux.omap.com>, "Woodruff, Richard"
-<r-woodruff2@ti.com>, "Kamat, Nishant" <nskamat@ti.com>
-
-
->>I think more stuff happens in hardware then just setting those
->>registers. Probably the transceiver is applying some pull-up and/or
->>pull-down resistors when ID pin is grounded. I'd read musb & otg docs
->>again to remember what really happens there.
-
->>If you check OTG specs rev 1.3 it presents what happens when you
->>ground ID pin.
-
-I was going through OTG specs 1.3. Its difficult to go through
-completely but then it Pg 23 tells a bit which I was onterested in. It
-tells that Vbus switcjing can also take place through an application.
-It says that bus is powered up only when application tries to call ot
-there is b_srp_init, In the first case if the application is trigering
-the bus to power on then its definitely happening through software
-only. Also it talks about bus powered USB device initialting the
-session. Now it clearly says that it will post an event/interrupt.
-
-But still you may be correct that lots of things might be hapening
-within the transeiver  hardware like pull up/pull down but I  need to
-know that do that so that I can program the Transceiver accordingly.
-
-Thanks in advance
-
-Regards
-
-Amit
-On 8/7/07, Woodruff, Richard <r-woodruff2@ti.com> wrote:
-> > I'm pretty sure you'll need a self-powered hub anyway 'cause MUSB can
-> > only provide 100mA and if you wanna power a non-otg usb device it uses
-> > up to 500mA. The self-powered hub masks this limits to the controller
-> > as it'll power the usb devices itself.
+On 8/8/07, Amit Gupta <amitjobs05@gmail.com> wrote:
+> Hi Felipe/Nishan/all
 >
-> I think you are both right and wrong.  Its been a few years since I looked, so their probably have been some changes.
+> I have been able to sucessfully get an USB host interrupt by pulling
+> up voltage levels in Transceiver but its configuring device as low
+> powered device. Also I am getting host interrupt even without
+> connecting the device since pulling up the voltage levels resulted in
+> maybe D+/D- pull up which is sensed as an host interrupt by OMAP
+> board.
 >
-> MUSB likely doesn't supply power to anyone.  The board's power supply will do this.  What its capacity is depends on how it was setup.  To be OTG stamp on it a device might need to stay at or below 100mA (might be self powered also).  For the omap-device to get the stamp it might have to at least supply 100.  Do both ends have the USB logo on them?  Do you need them to be?
+> You seem to be correct in your saying that transceiver does more than
+> just sensing the voltage levels and passig the interrupts. But I am
+> not able to understand the sequence of thing happening like before
+> connecting the device should the port be powered up to 5 volts or it
+> should happen when device connected pulls up/down D+/D- pin. And once
+> this is done then interrupt is also sent and enumeration starts ?
+
+It can only power up 5V after sensing a device connected and its
+pullups are connected. After that, it'll start the enumeration.
+
+Actually, every host/otg controller has to provide means for you to
+force Vbus on, but it'll only work if you have any load between 5V and
+Vbus (try with 300 Ohm resistor) and you can also add a 1K Ohm
+resistor between D+/D-
+
+To understand how to force the controller to power Vbus, read its docs
+since it's completely HW dependent.
+
 >
-> An OTG device to get certified need to support many devices ether.  You can have a white list which allows limited support.
+> I am going through the USB specs to know this but I suppose one who
+> has worked in USB can immediately answer to my this query since its
+> very urgent.
+
+hopefully I could help you ;-)
+
 >
-> It might be you need to manually turn on some LDO or other on some detection interrupt.  There was one board with the fs-usb block which had this kind of logic I dealt with.  It had 2 ports, one gave just enough power for a target peripheral and another port gave lots of power.
+> Thanks & Regards
 >
-> I seem to recall some noise about raising the limits but that may have been a dream.
+> Amit
 >
-> Regards,
-> Richard W.
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> ---------- Forwarded message ----------
+> From: Amit Gupta <amit_jobs05@inbox.com>
+> Date: Aug 7, 2007 1:40 AM
+> Subject: Re: FSUSB Port 0 in OAMP2430 SDP
+> To:
+> Cc: Felipe Balbi <felipebalbi@users.sourceforge.net>, Linux OMAP
+> <linux-omap-open-source@linux.omap.com>, "Woodruff, Richard"
+> <r-woodruff2@ti.com>, "Kamat, Nishant" <nskamat@ti.com>
 >
+>
+> >>I think more stuff happens in hardware then just setting those
+> >>registers. Probably the transceiver is applying some pull-up and/or
+> >>pull-down resistors when ID pin is grounded. I'd read musb & otg docs
+> >>again to remember what really happens there.
+>
+> >>If you check OTG specs rev 1.3 it presents what happens when you
+> >>ground ID pin.
+>
+> I was going through OTG specs 1.3. Its difficult to go through
+> completely but then it Pg 23 tells a bit which I was onterested in. It
+> tells that Vbus switcjing can also take place through an application.
+> It says that bus is powered up only when application tries to call ot
+> there is b_srp_init, In the first case if the application is trigering
+> the bus to power on then its definitely happening through software
+> only. Also it talks about bus powered USB device initialting the
+> session. Now it clearly says that it will post an event/interrupt.
+>
+> But still you may be correct that lots of things might be hapening
+> within the transeiver  hardware like pull up/pull down but I  need to
+> know that do that so that I can program the Transceiver accordingly.
+>
+> Thanks in advance
+>
+> Regards
+>
+> Amit
+> On 8/7/07, Woodruff, Richard <r-woodruff2@ti.com> wrote:
+> > > I'm pretty sure you'll need a self-powered hub anyway 'cause MUSB can
+> > > only provide 100mA and if you wanna power a non-otg usb device it uses
+> > > up to 500mA. The self-powered hub masks this limits to the controller
+> > > as it'll power the usb devices itself.
+> >
+> > I think you are both right and wrong.  Its been a few years since I looked, so their probably have been some changes.
+> >
+> > MUSB likely doesn't supply power to anyone.  The board's power supply will do this.  What its capacity is depends on how it was setup.  To be OTG stamp on it a device might need to stay at or below 100mA (might be self powered also).  For the omap-device to get the stamp it might have to at least supply 100.  Do both ends have the USB logo on them?  Do you need them to be?
+> >
+> > An OTG device to get certified need to support many devices ether.  You can have a white list which allows limited support.
+> >
+> > It might be you need to manually turn on some LDO or other on some detection interrupt.  There was one board with the fs-usb block which had this kind of logic I dealt with.  It had 2 ports, one gave just enough power for a target peripheral and another port gave lots of power.
+> >
+> > I seem to recall some noise about raising the limits but that may have been a dream.
+> >
+> > Regards,
+> > Richard W.
+> > _______________________________________________
+> > Linux-omap-open-source mailing list
+> > Linux-omap-open-source@linux.omap.com
+> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> >
+>
+
+
+-- 
+Best Regards,
+
+Felipe Balbi
+felipebalbi@users.sourceforge.net
