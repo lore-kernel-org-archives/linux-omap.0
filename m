@@ -1,14 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Pending patches, was: Git tree updated to 2.6.23-rc2
-Date: Fri, 10 Aug 2007 00:08:03 -0700
-Message-ID: <20070810070802.GC8658@atomide.com>
-References: <46B73C93.5090202@googlemail.com>
-	<9C23CDD79DA20A479D4615857B2E2C47017EF86F@dlee13.ent.ti.com>
+Subject: Re: [RFC] Generic DMA chaining APIs
+Date: Fri, 10 Aug 2007 00:33:03 -0700
+Message-ID: <20070810073303.GF8658@atomide.com>
+References: <9C23CDD79DA20A479D4615857B2E2C4701120BC1@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47017EF86F@dlee13.ent.ti.com>
+In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C4701120BC1@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,53 +18,41 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Syed Mohammed, Khasim <x0khasim@ti.com> [070806 16:29]:
+* Syed Mohammed, Khasim <x0khasim@ti.com> [070605 22:07]:
+> Hi all:
 > 
-> >
-> >Tony Lindgren wrote:
-> >> I've just updated our git tree to 2.6.23-rc2.
-> >
-> >:)  Thanks!
-> >
-> >> There are quite a few pending patches, I will be looking at them
-> >> this week.
-> >
-> >25. [PATCH] Enable Kernel based uncompressing for OMAP3
-> >
+> I would like to port Generic DMA chaining API support from TI's 2430 DMA driver to our OMAP GIT DMA driver.
 > 
-> This patch is not required.
+> - Basically these APIs give flexibility for handling DMA chaining for drivers like McBSP (for audio), McSPI (for LCD), UART, etc. 
 > 
-> There were few more patches from Kevin Hilman and me on TWL4030 I don't see them in list. 
+> - Chaining is very important for drivers like Audio, LCD etc.
+> 
+> - Our current DMA driver on GIT does support APIs to enable /configure DMA logical channel chaining, but they have to be again used in client drivers to implement the queuing logic.
+> 
+> - Since there are multiple drivers in need of these kind of chaining support, it's preferable to implement them in a generic way so that all other drivers can leverage the code instead of creating a redundant copy in every driver.
+> 
+> A code snippet (from TI's DMA driver) is as shown below. Please do let me know if you find any issues with this kind of implementation/approach before I start (this week) this porting activity.
+> 
+> Thanks in advance.
+> 
+> APIs to be ported are:
+> =====================
+> omap_request_dma_chain
+> omap_free_dma_chain
+> omap_dma_chain_a_transfer
+> omap_modify_dma_chain_params
+> omap_start_dma_chain_transfers
+> omap_stop_dma_chain_transfers
+> 
+> omap_dma_chain_status
+> omap_get_dma_chain_index
+> omap_get_dma_chain_dst_pos
+> omap_get_dma_chain_src_pos
 
-I only found this:
-
-Jul 25 Syed Mohammed,  (  71)  [PATCH] To Cleanup TWL-Core driver
-
-Any other patches?
-
-> I just validated 2430 and 3430 booting with this merge both seems to work as expected - thanks Tony.
-
-Great, can you please diff the ARMv7 patches against the mainline? I
-left some of that out and you may want to manually merge some of the
-code back. Or maybe they are not needed any longer?
-
-Anyways, those changes should be discussed on linux-arm-kernel list.
-
-> What is the time line we should be expecting for OMAP1/2 patches to be merged to mainline? Like 23 RC-?? 
-
-Hopefully we'll get most of the patch pile merged for 2.6.24. I'll redo
-our pending patches trying to collapse some of them in order to have
-fewer patches.
-
-> Was curious why is OMAP patches taking so long? They were submitted months back. Where as FB and SPI went into main line with in few days ... :(
-
-Russell does not have enough time to review the patches, and there
-are lots of patches. But we'll get them integrated eventually :)
+The new functions look OK to me.
 
 Regards,
 
