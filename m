@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 42/52] musb_hdrc: Search and replace bMode with mode
-Date: Mon, 13 Aug 2007 06:49:17 -0700
-Message-ID: <11870130811602-git-send-email-tony@atomide.com>
+Subject: [PATCH 47/52] musb_hdrc: Search and replace bRecip with recip
+Date: Mon, 13 Aug 2007 06:49:22 -0700
+Message-ID: <11870130932989-git-send-email-tony@atomide.com>
 References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<11870129702817-git-send-email-tony@atomide.com>
 	<11870129721700-git-send-email-tony@atomide.com>
@@ -44,8 +44,13 @@ References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<11870130741506-git-send-email-tony@atomide.com>
 	<11870130771666-git-send-email-tony@atomide.com>
 	<11870130793168-git-send-email-tony@atomide.com>
+	<11870130811602-git-send-email-tony@atomide.com>
+	<1187013084570-git-send-email-tony@atomide.com>
+	<11870130862981-git-send-email-tony@atomide.com>
+	<11870130891386-git-send-email-tony@atomide.com>
+	<11870130913983-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11870130793168-git-send-email-tony@atomide.com>
+In-Reply-To: <11870130913983-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -58,83 +63,55 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Search and replace bMode with mode
+Search and replace bRecip with recip
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/dma.h       |    4 ++--
- drivers/usb/musb/musbhsdma.c |   12 ++++++------
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/usb/musb/g_ep0.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/drivers/usb/musb/dma.h
-+++ b/drivers/usb/musb/dma.h
-@@ -126,7 +126,7 @@ struct dma_channel {
-  *
-  * @channel: pointer to a channel obtained by channel_alloc
-  * @maxpacket: the maximum packet size
-- * @bMode: TRUE if mode 1; FALSE if mode 0
-+ * @mode: TRUE if mode 1; FALSE if mode 0
-  * @dma_addr: base address of data (in DMA space)
-  * @length: the number of bytes to transfer; no larger than the channel's
-  *	reported max_len
-@@ -136,7 +136,7 @@ struct dma_channel {
- typedef int (*MGC_pfDmaProgramChannel) (
- 		struct dma_channel	*channel,
- 		u16			maxpacket,
--		u8			bMode,
-+		u8			mode,
- 		dma_addr_t		dma_addr,
- 		u32			length);
+--- a/drivers/usb/musb/g_ep0.c
++++ b/drivers/usb/musb/g_ep0.c
+@@ -77,11 +77,11 @@ static int service_tx_status_request(
+ 	void __iomem	*mbase = musb->mregs;
+ 	int handled = 1;
+ 	u8 result[2], epnum = 0;
+-	const u8 bRecip = ctrlrequest->bRequestType & USB_RECIP_MASK;
++	const u8 recip = ctrlrequest->bRequestType & USB_RECIP_MASK;
  
---- a/drivers/usb/musb/musbhsdma.c
-+++ b/drivers/usb/musb/musbhsdma.c
-@@ -171,7 +171,7 @@ static void dma_channel_release(struct dma_channel *pChannel)
- }
+ 	result[1] = 0;
  
- static void configure_channel(struct dma_channel *pChannel,
--				u16 wPacketSize, u8 bMode,
-+				u16 wPacketSize, u8 mode,
- 				dma_addr_t dma_addr, u32 dwLength)
+-	switch (bRecip) {
++	switch (recip) {
+ 	case USB_RECIP_DEVICE:
+ 		result[0] = musb->is_self_powered << USB_DEVICE_SELF_POWERED;
+ 		result[0] |= musb->may_wakeup << USB_DEVICE_REMOTE_WAKEUP;
+@@ -231,7 +231,7 @@ __acquires(musb->lock)
  {
- 	struct musb_dma_channel *pImplChannel =
-@@ -182,9 +182,9 @@ static void configure_channel(struct dma_channel *pChannel,
- 	u16 wCsr = 0;
+ 	int handled = -EINVAL;
+ 	void __iomem *mbase = musb->mregs;
+-	const u8 bRecip = ctrlrequest->bRequestType & USB_RECIP_MASK;
++	const u8 recip = ctrlrequest->bRequestType & USB_RECIP_MASK;
  
- 	DBG(4, "%p, pkt_sz %d, addr 0x%x, len %d, mode %d\n",
--	    pChannel, wPacketSize, dma_addr, dwLength, bMode);
-+	    pChannel, wPacketSize, dma_addr, dwLength, mode);
+ 	/* the gadget driver handles everything except what we MUST handle */
+ 	if ((ctrlrequest->bRequestType & USB_TYPE_MASK)
+@@ -245,7 +245,7 @@ __acquires(musb->lock)
+ 			break;
  
--	if (bMode) {
-+	if (mode) {
- 		wCsr |= 1 << MGC_S_HSDMA_MODE1;
- 		if (dwLength < wPacketSize) {
- 			return FALSE;
-@@ -221,7 +221,7 @@ static void configure_channel(struct dma_channel *pChannel,
- }
+ 		case USB_REQ_CLEAR_FEATURE:
+-			switch (bRecip) {
++			switch (recip) {
+ 			case USB_RECIP_DEVICE:
+ 				if (ctrlrequest->wValue
+ 						!= USB_DEVICE_REMOTE_WAKEUP)
+@@ -289,7 +289,7 @@ __acquires(musb->lock)
+ 			break;
  
- static int dma_channel_program(struct dma_channel * pChannel,
--				u16 wPacketSize, u8 bMode,
-+				u16 wPacketSize, u8 mode,
- 				dma_addr_t dma_addr, u32 dwLength)
- {
- 	struct musb_dma_channel *pImplChannel =
-@@ -230,7 +230,7 @@ static int dma_channel_program(struct dma_channel * pChannel,
- 	DBG(2, "ep%d-%s pkt_sz %d, dma_addr 0x%x length %d, mode %d\n",
- 		pImplChannel->epnum,
- 		pImplChannel->bTransmit ? "Tx" : "Rx",
--		wPacketSize, dma_addr, dwLength, bMode);
-+		wPacketSize, dma_addr, dwLength, mode);
- 
- 	BUG_ON(pChannel->status == MGC_DMA_STATUS_UNKNOWN ||
- 		pChannel->status == MGC_DMA_STATUS_BUSY);
-@@ -241,7 +241,7 @@ static int dma_channel_program(struct dma_channel * pChannel,
- 	pImplChannel->wMaxPacketSize = wPacketSize;
- 	pChannel->status = MGC_DMA_STATUS_BUSY;
- 
--	if ((bMode == 1) && (dwLength >= wPacketSize)) {
-+	if ((mode == 1) && (dwLength >= wPacketSize)) {
- 		configure_channel(pChannel, wPacketSize, 1, dma_addr,
- 				  dwLength);
- 	} else
+ 		case USB_REQ_SET_FEATURE:
+-			switch (bRecip) {
++			switch (recip) {
+ 			case USB_RECIP_DEVICE:
+ 				handled = 1;
+ 				switch (ctrlrequest->wValue) {
 -- 
 1.5.2.3
