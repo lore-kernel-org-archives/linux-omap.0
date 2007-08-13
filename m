@@ -1,7 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 31/52] musb_hdrc: Search and replace bAddress with address
-Date: Mon, 13 Aug 2007 06:49:06 -0700
-Message-ID: <11870130521115-git-send-email-tony@atomide.com>
+Subject: [PATCH 34/52] musb_hdrc: Search and replace pGadgetDriver with
+	gadget_driver
+Date: Mon, 13 Aug 2007 06:49:09 -0700
+Message-ID: <1187013062890-git-send-email-tony@atomide.com>
 References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<11870129702817-git-send-email-tony@atomide.com>
 	<11870129721700-git-send-email-tony@atomide.com>
@@ -33,8 +34,11 @@ References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<11870130371106-git-send-email-tony@atomide.com>
 	<11870130411622-git-send-email-tony@atomide.com>
 	<1187013048432-git-send-email-tony@atomide.com>
+	<11870130521115-git-send-email-tony@atomide.com>
+	<11870130543254-git-send-email-tony@atomide.com>
+	<11870130573814-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1187013048432-git-send-email-tony@atomide.com>
+In-Reply-To: <11870130573814-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -47,77 +51,177 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Search and replace bAddress with address
+Search and replace pGadgetDriver with gadget_driver
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
  drivers/usb/musb/g_ep0.c       |    4 ++--
- drivers/usb/musb/musb_gadget.c |    2 +-
- drivers/usb/musb/musb_host.c   |    4 ++--
+ drivers/usb/musb/musb_gadget.c |   32 ++++++++++++++++----------------
+ drivers/usb/musb/musb_procfs.c |    4 ++--
  drivers/usb/musb/musbdefs.h    |    2 +-
- 4 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/usb/musb/tusb6010.c    |    2 +-
+ 5 files changed, 22 insertions(+), 22 deletions(-)
 
 --- a/drivers/usb/musb/g_ep0.c
 +++ b/drivers/usb/musb/g_ep0.c
-@@ -240,7 +240,7 @@ __acquires(musb->lock)
- 		case USB_REQ_SET_ADDRESS:
- 			/* change it after the status stage */
- 			musb->bSetAddress = TRUE;
--			musb->bAddress = (u8) (pControlRequest->wValue & 0x7f);
-+			musb->address = (u8) (pControlRequest->wValue & 0x7f);
- 			handled = 1;
- 			break;
- 
-@@ -663,7 +663,7 @@ irqreturn_t musb_g_ep0_irq(struct musb *musb)
- 		 */
- 		if (musb->bSetAddress) {
- 			musb->bSetAddress = FALSE;
--			musb_writeb(mbase, MGC_O_HDRC_FADDR, musb->bAddress);
-+			musb_writeb(mbase, MGC_O_HDRC_FADDR, musb->address);
- 		}
- 
- 		/* enter test mode if needed (exit by reset) */
+@@ -583,10 +583,10 @@ __releases(musb->lock)
+ __acquires(musb->lock)
+ {
+ 	int retval;
+-	if (!musb->pGadgetDriver)
++	if (!musb->gadget_driver)
+ 		return -EOPNOTSUPP;
+ 	spin_unlock(&musb->lock);
+-	retval = musb->pGadgetDriver->setup(&musb->g, pControlRequest);
++	retval = musb->gadget_driver->setup(&musb->g, pControlRequest);
+ 	spin_lock(&musb->lock);
+ 	return retval;
+ }
 --- a/drivers/usb/musb/musb_gadget.c
 +++ b/drivers/usb/musb/musb_gadget.c
-@@ -2010,7 +2010,7 @@ __acquires(musb->lock)
- 	musb->is_active = 1;
- 	musb->is_suspended = 0;
- 	MUSB_DEV_MODE(musb);
--	musb->bAddress = 0;
-+	musb->address = 0;
- 	musb->ep0_state = MGC_END0_STAGE_SETUP;
+@@ -1476,7 +1476,7 @@ static void musb_pullup(struct musb *musb, int is_on)
+ 	/* FIXME if on, HdrcStart; if off, HdrcStop */
  
- 	musb->may_wakeup = 0;
---- a/drivers/usb/musb/musb_host.c
-+++ b/drivers/usb/musb/musb_host.c
-@@ -176,7 +176,7 @@ musb_start_urb(struct musb *musb, int is_in, struct musb_qh *qh)
- 	struct urb		*urb = next_urb(qh);
- 	struct musb_hw_ep	*hw_ep = qh->hw_ep;
- 	unsigned		nPipe = urb->pipe;
--	u8			bAddress = usb_pipedevice(nPipe);
-+	u8			address = usb_pipedevice(nPipe);
- 	int			epnum = hw_ep->epnum;
+ 	DBG(3, "gadget %s D+ pullup %s\n",
+-		musb->pGadgetDriver->function, is_on ? "on" : "off");
++		musb->gadget_driver->function, is_on ? "on" : "off");
+ 	musb_writeb(musb->mregs, MGC_O_HDRC_POWER, power);
+ }
  
- 	/* initialize software qh state */
-@@ -205,7 +205,7 @@ musb_start_urb(struct musb *musb, int is_in, struct musb_qh *qh)
+@@ -1703,13 +1703,13 @@ int usb_gadget_register_driver(struct usb_gadget_driver *driver)
+ 	DBG(3, "registering driver %s\n", driver->function);
+ 	spin_lock_irqsave(&musb->lock, flags);
+ 
+-	if (musb->pGadgetDriver) {
++	if (musb->gadget_driver) {
+ 		DBG(1, "%s is already bound to %s\n",
+ 				musb_driver_name,
+-				musb->pGadgetDriver->driver.name);
++				musb->gadget_driver->driver.name);
+ 		retval = -EBUSY;
+ 	} else {
+-		musb->pGadgetDriver = driver;
++		musb->gadget_driver = driver;
+ 		musb->g.dev.driver = &driver->driver;
+ 		driver->driver.bus = NULL;
+ 		musb->softconnect = 1;
+@@ -1723,7 +1723,7 @@ int usb_gadget_register_driver(struct usb_gadget_driver *driver)
+ 	if (retval != 0) {
+ 		DBG(3, "bind to driver %s failed --> %d\n",
+ 			driver->driver.name, retval);
+-		musb->pGadgetDriver = NULL;
++		musb->gadget_driver = NULL;
+ 		musb->g.dev.driver = NULL;
  	}
  
- 	DBG(4, "qh %p urb %p dev%d ep%d%s%s, hw_ep %d, %p/%d\n",
--			qh, urb, bAddress, qh->epnum,
-+			qh, urb, address, qh->epnum,
- 			is_in ? "in" : "out",
- 			({char *s; switch (qh->type) {
- 			case USB_ENDPOINT_XFER_CONTROL:	s = ""; break;
+@@ -1762,7 +1762,7 @@ int usb_gadget_register_driver(struct usb_gadget_driver *driver)
+ 				spin_lock_irqsave(&musb->lock, flags);
+ 				musb->xceiv.gadget = NULL;
+ 				musb->xceiv.state = OTG_STATE_UNDEFINED;
+-				musb->pGadgetDriver = NULL;
++				musb->gadget_driver = NULL;
+ 				musb->g.dev.driver = NULL;
+ 				spin_unlock_irqrestore(&musb->lock, flags);
+ 			}
+@@ -1841,7 +1841,7 @@ int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
+ 	musb_hnp_stop(musb);
+ #endif
+ 
+-	if (musb->pGadgetDriver == driver) {
++	if (musb->gadget_driver == driver) {
+ 		musb->xceiv.state = OTG_STATE_UNDEFINED;
+ 		stop_activity(musb, driver);
+ 
+@@ -1850,7 +1850,7 @@ int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
+ 		driver->unbind(&musb->g);
+ 		spin_lock_irqsave(&musb->lock, flags);
+ 
+-		musb->pGadgetDriver = NULL;
++		musb->gadget_driver = NULL;
+ 		musb->g.dev.driver = NULL;
+ 
+ 		musb->is_active = 0;
+@@ -1885,9 +1885,9 @@ void musb_g_resume(struct musb *musb)
+ 	case OTG_STATE_B_WAIT_ACON:
+ 	case OTG_STATE_B_PERIPHERAL:
+ 		musb->is_active = 1;
+-		if (musb->pGadgetDriver && musb->pGadgetDriver->resume) {
++		if (musb->gadget_driver && musb->gadget_driver->resume) {
+ 			spin_unlock(&musb->lock);
+-			musb->pGadgetDriver->resume(&musb->g);
++			musb->gadget_driver->resume(&musb->g);
+ 			spin_lock(&musb->lock);
+ 		}
+ 		break;
+@@ -1912,9 +1912,9 @@ void musb_g_suspend(struct musb *musb)
+ 		break;
+ 	case OTG_STATE_B_PERIPHERAL:
+ 		musb->is_suspended = 1;
+-		if (musb->pGadgetDriver && musb->pGadgetDriver->suspend) {
++		if (musb->gadget_driver && musb->gadget_driver->suspend) {
+ 			spin_unlock(&musb->lock);
+-			musb->pGadgetDriver->suspend(&musb->g);
++			musb->gadget_driver->suspend(&musb->g);
+ 			spin_lock(&musb->lock);
+ 		}
+ 		break;
+@@ -1948,9 +1948,9 @@ void musb_g_disconnect(struct musb *musb)
+ 	(void) musb_gadget_vbus_draw(&musb->g, 0);
+ 
+ 	musb->g.speed = USB_SPEED_UNKNOWN;
+-	if (musb->pGadgetDriver && musb->pGadgetDriver->disconnect) {
++	if (musb->gadget_driver && musb->gadget_driver->disconnect) {
+ 		spin_unlock(&musb->lock);
+-		musb->pGadgetDriver->disconnect(&musb->g);
++		musb->gadget_driver->disconnect(&musb->g);
+ 		spin_lock(&musb->lock);
+ 	}
+ 
+@@ -1987,8 +1987,8 @@ __acquires(musb->lock)
+ 			(devctl & MGC_M_DEVCTL_BDEVICE)
+ 				? "B-Device" : "A-Device",
+ 			musb_readb(mbase, MGC_O_HDRC_FADDR),
+-			musb->pGadgetDriver
+-				? musb->pGadgetDriver->driver.name
++			musb->gadget_driver
++				? musb->gadget_driver->driver.name
+ 				: NULL
+ 			);
+ 
+--- a/drivers/usb/musb/musb_procfs.c
++++ b/drivers/usb/musb/musb_procfs.c
+@@ -619,8 +619,8 @@ static int dump_header_stats(struct musb *musb, char *buffer)
+ #ifdef CONFIG_USB_GADGET_MUSB_HDRC
+ 	if (is_peripheral_enabled(musb)) {
+ 		code = sprintf(buffer, "Gadget driver: %s\n",
+-				musb->pGadgetDriver
+-					? musb->pGadgetDriver->driver.name
++				musb->gadget_driver
++					? musb->gadget_driver->driver.name
+ 					: "(none)");
+ 		if (code <= 0)
+ 			goto done;
 --- a/drivers/usb/musb/musbdefs.h
 +++ b/drivers/usb/musb/musbdefs.h
-@@ -442,7 +442,7 @@ struct musb {
- 	unsigned softconnect:1;
- 
- 	enum musb_g_ep0_state	ep0_state;
--	u8			bAddress;
-+	u8			address;
- 	u8			bTestModeValue;
+@@ -446,7 +446,7 @@ struct musb {
+ 	u8			test_mode_nr;
  	u16			ackpend;		/* ep0 */
  	struct usb_gadget	g;			/* the gadget */
+-	struct usb_gadget_driver *pGadgetDriver;	/* its driver */
++	struct usb_gadget_driver *gadget_driver;	/* its driver */
+ #endif
+ 
+ #ifdef CONFIG_USB_MUSB_OTG
+--- a/drivers/usb/musb/tusb6010.c
++++ b/drivers/usb/musb/tusb6010.c
+@@ -422,7 +422,7 @@ static void musb_do_idle(unsigned long _musb)
+ #endif
+ 
+ #ifdef CONFIG_USB_GADGET_MUSB_HDRC
+-		if (is_peripheral_enabled(musb) && !musb->pGadgetDriver)
++		if (is_peripheral_enabled(musb) && !musb->gadget_driver)
+ 			wakeups = 0;
+ 		else {
+ 			wakeups = TUSB_PRCM_WHOSTDISCON
 -- 
 1.5.2.3
