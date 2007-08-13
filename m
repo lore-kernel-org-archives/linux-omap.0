@@ -1,8 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 15/52] musb_hdrc: Search and replace bEndNumber with
-	current_epnum
-Date: Mon, 13 Aug 2007 06:48:50 -0700
-Message-ID: <11870130052666-git-send-email-tony@atomide.com>
+Subject: [PATCH 10/52] musb_hdrc: Search and replace wFifoCount with
+	fifo_count
+Date: Mon, 13 Aug 2007 06:48:45 -0700
+Message-ID: <11870129934099-git-send-email-tony@atomide.com>
 References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<11870129702817-git-send-email-tony@atomide.com>
 	<11870129721700-git-send-email-tony@atomide.com>
@@ -13,13 +13,8 @@ References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<11870129861917-git-send-email-tony@atomide.com>
 	<118701298833-git-send-email-tony@atomide.com>
 	<11870129901657-git-send-email-tony@atomide.com>
-	<11870129934099-git-send-email-tony@atomide.com>
-	<1187012995338-git-send-email-tony@atomide.com>
-	<1187012998290-git-send-email-tony@atomide.com>
-	<1187013000811-git-send-email-tony@atomide.com>
-	<11870130023665-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11870130023665-git-send-email-tony@atomide.com>
+In-Reply-To: <11870129901657-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -32,152 +27,192 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Search and replace bEndNumber with current_epnum
+Search and replace wFifoCount with fifo_count
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/musb_gadget.c |   20 ++++++++++----------
- drivers/usb/musb/musb_gadget.h |    2 +-
- drivers/usb/musb/musb_procfs.c |   10 +++++-----
- 3 files changed, 16 insertions(+), 16 deletions(-)
+ drivers/usb/musb/g_ep0.c       |   10 +++++-----
+ drivers/usb/musb/musb_gadget.c |   26 +++++++++++++-------------
+ drivers/usb/musb/musb_host.c   |   20 ++++++++++----------
+ 3 files changed, 28 insertions(+), 28 deletions(-)
 
+--- a/drivers/usb/musb/g_ep0.c
++++ b/drivers/usb/musb/g_ep0.c
+@@ -487,7 +487,7 @@ static void ep0_txstate(struct musb *musb)
+ 	struct usb_request	*pRequest = next_ep0_request(musb);
+ 	u16			wCsrVal = MGC_M_CSR0_TXPKTRDY;
+ 	u8			*pFifoSource;
+-	u8			wFifoCount;
++	u8			fifo_count;
+ 
+ 	if (!pRequest) {
+ 		// WARN_ON(1);
+@@ -497,13 +497,13 @@ static void ep0_txstate(struct musb *musb)
+ 
+ 	/* load the data */
+ 	pFifoSource = (u8 *) pRequest->buf + pRequest->actual;
+-	wFifoCount = min((unsigned) MGC_END0_FIFOSIZE,
++	fifo_count = min((unsigned) MGC_END0_FIFOSIZE,
+ 		pRequest->length - pRequest->actual);
+-	musb_write_fifo(&musb->aLocalEnd[0], wFifoCount, pFifoSource);
+-	pRequest->actual += wFifoCount;
++	musb_write_fifo(&musb->aLocalEnd[0], fifo_count, pFifoSource);
++	pRequest->actual += fifo_count;
+ 
+ 	/* update the flags */
+-	if (wFifoCount < MUSB_MAX_END0_PACKET
++	if (fifo_count < MUSB_MAX_END0_PACKET
+ 			|| pRequest->actual == pRequest->length) {
+ 		musb->ep0_state = MGC_END0_STAGE_STATUSOUT;
+ 		wCsrVal |= MGC_M_CSR0_P_DATAEND;
 --- a/drivers/usb/musb/musb_gadget.c
 +++ b/drivers/usb/musb/musb_gadget.c
-@@ -159,7 +159,7 @@ __acquires(ep->musb->Lock)
- static void nuke(struct musb_ep *ep, const int status)
- {
- 	struct musb_request	*req = NULL;
--	void __iomem *epio = ep->musb->endpoints[ep->bEndNumber].regs;
-+	void __iomem *epio = ep->musb->endpoints[ep->current_epnum].regs;
+@@ -256,7 +256,7 @@ static void txstate(struct musb *musb, struct musb_request *req)
+ 	struct musb_ep		*musb_ep;
+ 	void __iomem		*epio = musb->aLocalEnd[bEnd].regs;
+ 	struct usb_request	*pRequest;
+-	u16			wFifoCount = 0, wCsrVal;
++	u16			fifo_count = 0, wCsrVal;
+ 	int			use_dma = 0;
  
- 	ep->busy = 1;
+ 	musb_ep = req->ep;
+@@ -271,7 +271,7 @@ static void txstate(struct musb *musb, struct musb_request *req)
+ 	wCsrVal = musb_readw(epio, MGC_O_HDRC_TXCSR);
  
-@@ -869,7 +869,7 @@ static int musb_gadget_enable(struct usb_ep *ep,
- 	regs = hw_ep->regs;
- 	musb = musb_ep->musb;
- 	mbase = musb->mregs;
--	bEnd = musb_ep->bEndNumber;
-+	bEnd = musb_ep->current_epnum;
+ 	pRequest = &req->request;
+-	wFifoCount = min(max_ep_writesize(musb, musb_ep),
++	fifo_count = min(max_ep_writesize(musb, musb_ep),
+ 			(int)(pRequest->length - pRequest->actual));
  
- 	spin_lock_irqsave(&musb->Lock, flags);
- 
-@@ -1006,7 +1006,7 @@ static int musb_gadget_disable(struct usb_ep *ep)
- 
- 	musb_ep = to_musb_ep(ep);
- 	musb = musb_ep->musb;
--	bEnd = musb_ep->bEndNumber;
-+	bEnd = musb_ep->current_epnum;
- 	epio = musb->endpoints[bEnd].regs;
- 
- 	spin_lock_irqsave(&musb->Lock, flags);
-@@ -1052,7 +1052,7 @@ struct usb_request *musb_alloc_request(struct usb_ep *ep, gfp_t gfp_flags)
- 	if (pRequest) {
- 		INIT_LIST_HEAD(&pRequest->request.list);
- 		pRequest->request.dma = DMA_ADDR_INVALID;
--		pRequest->bEnd = musb_ep->bEndNumber;
-+		pRequest->bEnd = musb_ep->current_epnum;
- 		pRequest->ep = musb_ep;
+ 	if (wCsrVal & MGC_M_TXCSR_TXPKTRDY) {
+@@ -287,7 +287,7 @@ static void txstate(struct musb *musb, struct musb_request *req)
  	}
  
-@@ -1121,7 +1121,7 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
- 	/* request is mine now... */
- 	pRequest->request.actual = 0;
- 	pRequest->request.status = -EINPROGRESS;
--	pRequest->bEnd = musb_ep->bEndNumber;
-+	pRequest->bEnd = musb_ep->current_epnum;
- 	pRequest->bTx = musb_ep->is_in;
+ 	DBG(4, "hw_ep%d, maxpacket %d, fifo count %d, txcsr %03x\n",
+-			bEnd, musb_ep->wPacketSize, wFifoCount,
++			bEnd, musb_ep->wPacketSize, fifo_count,
+ 			wCsrVal);
  
- 	if (is_dma_capable() && musb_ep->dma) {
-@@ -1201,7 +1201,7 @@ static int musb_gadget_dequeue(struct usb_ep *ep, struct usb_request *pRequest)
- 	else if (is_dma_capable() && musb_ep->dma) {
- 		struct dma_controller	*c = musb->pDmaController;
+ #ifndef	CONFIG_USB_INVENTRA_FIFO
+@@ -381,9 +381,9 @@ static void txstate(struct musb *musb, struct musb_request *req)
+ #endif
  
--		MGC_SelectEnd(musb->mregs, musb_ep->bEndNumber);
-+		MGC_SelectEnd(musb->mregs, musb_ep->current_epnum);
- 		if (c->channel_abort)
- 			status = c->channel_abort(musb_ep->dma);
- 		else
-@@ -1229,7 +1229,7 @@ done:
- int musb_gadget_set_halt(struct usb_ep *ep, int value)
+ 	if (!use_dma) {
+-		musb_write_fifo(musb_ep->hw_ep, wFifoCount,
++		musb_write_fifo(musb_ep->hw_ep, fifo_count,
+ 				(u8 *) (pRequest->buf + pRequest->actual));
+-		pRequest->actual += wFifoCount;
++		pRequest->actual += fifo_count;
+ 		wCsrVal |= MGC_M_TXCSR_TXPKTRDY;
+ 		wCsrVal &= ~MGC_M_TXCSR_P_UNDERRUN;
+ 		musb_writew(epio, MGC_O_HDRC_TXCSR, wCsrVal);
+@@ -394,7 +394,7 @@ static void txstate(struct musb *musb, struct musb_request *req)
+ 			musb_ep->end_point.name, use_dma ? "dma" : "pio",
+ 			pRequest->actual, pRequest->length,
+ 			musb_readw(epio, MGC_O_HDRC_TXCSR),
+-			wFifoCount,
++			fifo_count,
+ 			musb_readw(epio, MGC_O_HDRC_TXMAXP));
+ }
+ 
+@@ -577,7 +577,7 @@ static void rxstate(struct musb *musb, struct musb_request *req)
+ 	struct usb_request	*pRequest = &req->request;
+ 	struct musb_ep		*musb_ep = &musb->aLocalEnd[bEnd].ep_out;
+ 	void __iomem		*epio = musb->aLocalEnd[bEnd].regs;
+-	u16			wFifoCount = 0;
++	u16			fifo_count = 0;
+ 	u16			wCount = musb_ep->wPacketSize;
+ 
+ 	wCsrVal = musb_readw(epio, MGC_O_HDRC_RXCSR);
+@@ -684,13 +684,13 @@ static void rxstate(struct musb *musb, struct musb_request *req)
+ 			}
+ #endif	/* Mentor's USB */
+ 
+-			wFifoCount = pRequest->length - pRequest->actual;
++			fifo_count = pRequest->length - pRequest->actual;
+ 			DBG(3, "%s OUT/RX pio fifo %d/%d, maxpacket %d\n",
+ 					musb_ep->end_point.name,
+-					wCount, wFifoCount,
++					wCount, fifo_count,
+ 					musb_ep->wPacketSize);
+ 
+-			wFifoCount = min(wCount, wFifoCount);
++			fifo_count = min(wCount, fifo_count);
+ 
+ #ifdef	CONFIG_USB_TUSB_OMAP_DMA
+ 			if (tusb_dma_omap() && musb_ep->dma) {
+@@ -703,15 +703,15 @@ static void rxstate(struct musb *musb, struct musb_request *req)
+ 						musb_ep->wPacketSize,
+ 						channel->bDesiredMode,
+ 						dma_addr,
+-						wFifoCount);
++						fifo_count);
+ 				if (ret == TRUE)
+ 					return;
+ 			}
+ #endif
+ 
+-			musb_read_fifo(musb_ep->hw_ep, wFifoCount, (u8 *)
++			musb_read_fifo(musb_ep->hw_ep, fifo_count, (u8 *)
+ 					(pRequest->buf + pRequest->actual));
+-			pRequest->actual += wFifoCount;
++			pRequest->actual += fifo_count;
+ 
+ 			/* REVISIT if we left anything in the fifo, flush
+ 			 * it and report -EOVERFLOW
+--- a/drivers/usb/musb/musb_host.c
++++ b/drivers/usb/musb/musb_host.c
+@@ -947,7 +947,7 @@ static int musb_h_ep0_continue(struct musb *musb,
  {
- 	struct musb_ep		*musb_ep = to_musb_ep(ep);
--	u8			bEnd = musb_ep->bEndNumber;
-+	u8			bEnd = musb_ep->current_epnum;
- 	struct musb		*musb = musb_ep->musb;
- 	void __iomem		*epio = musb->endpoints[bEnd].regs;
- 	void __iomem		*mbase;
-@@ -1311,7 +1311,7 @@ static int musb_gadget_fifo_status(struct usb_ep *ep)
+ 	int			 bMore = FALSE;
+ 	u8 *pFifoDest = NULL;
+-	u16 wFifoCount = 0;
++	u16 fifo_count = 0;
+ 	struct musb_hw_ep	*hw_ep = musb->control_ep;
+ 	struct musb_qh		*qh = hw_ep->in_qh;
+ 	struct usb_ctrlrequest	*pRequest;
+@@ -955,14 +955,14 @@ static int musb_h_ep0_continue(struct musb *musb,
+ 	switch (musb->bEnd0Stage) {
+ 	case MGC_END0_IN:
+ 		pFifoDest = pUrb->transfer_buffer + pUrb->actual_length;
+-		wFifoCount = min(wCount, ((u16) (pUrb->transfer_buffer_length
++		fifo_count = min(wCount, ((u16) (pUrb->transfer_buffer_length
+ 					- pUrb->actual_length)));
+-		if (wFifoCount < wCount)
++		if (fifo_count < wCount)
+ 			pUrb->status = -EOVERFLOW;
  
- 	if (musb_ep->desc && !musb_ep->is_in) {
- 		struct musb		*musb = musb_ep->musb;
--		int			bEnd = musb_ep->bEndNumber;
-+		int			bEnd = musb_ep->current_epnum;
- 		void __iomem		*mbase = musb->mregs;
- 		unsigned long		flags;
+-		musb_read_fifo(hw_ep, wFifoCount, pFifoDest);
++		musb_read_fifo(hw_ep, fifo_count, pFifoDest);
  
-@@ -1330,7 +1330,7 @@ static void musb_gadget_fifo_flush(struct usb_ep *ep)
- {
- 	struct musb_ep	*musb_ep = to_musb_ep(ep);
- 	struct musb	*musb = musb_ep->musb;
--	u8		nEnd = musb_ep->bEndNumber;
-+	u8		nEnd = musb_ep->current_epnum;
- 	void __iomem	*epio = musb->endpoints[nEnd].regs;
- 	void __iomem	*mbase;
- 	unsigned long	flags;
-@@ -1561,7 +1561,7 @@ init_peripheral_ep(struct musb *musb, struct musb_ep *ep, u8 bEnd, int is_in)
+-		pUrb->actual_length += wFifoCount;
++		pUrb->actual_length += fifo_count;
+ 		if (wCount < qh->maxpacket) {
+ 			/* always terminate on short read; it's
+ 			 * rarely reported as an error.
+@@ -989,18 +989,18 @@ static int musb_h_ep0_continue(struct musb *musb,
+ 		}
+ 		/* FALLTHROUGH */
+ 	case MGC_END0_OUT:
+-		wFifoCount = min(qh->maxpacket, ((u16)
++		fifo_count = min(qh->maxpacket, ((u16)
+ 				(pUrb->transfer_buffer_length
+ 				- pUrb->actual_length)));
  
- 	memset(ep, 0, sizeof *ep);
+-		if (wFifoCount) {
++		if (fifo_count) {
+ 			pFifoDest = (u8 *) (pUrb->transfer_buffer
+ 					+ pUrb->actual_length);
+ 			DBG(3, "Sending %d bytes to %p\n",
+-					wFifoCount, pFifoDest);
+-			musb_write_fifo(hw_ep, wFifoCount, pFifoDest);
++					fifo_count, pFifoDest);
++			musb_write_fifo(hw_ep, fifo_count, pFifoDest);
  
--	ep->bEndNumber = bEnd;
-+	ep->current_epnum = bEnd;
- 	ep->musb = musb;
- 	ep->hw_ep = hw_ep;
- 	ep->is_in = is_in;
---- a/drivers/usb/musb/musb_gadget.h
-+++ b/drivers/usb/musb/musb_gadget.h
-@@ -62,7 +62,7 @@ struct musb_ep {
- 	char				name[12];
- 	struct musb_hw_ep		*hw_ep;
- 	struct musb			*musb;
--	u8				bEndNumber;
-+	u8				current_epnum;
- 
- 	/* ... when enabled/disabled ... */
- 	u8				type;
---- a/drivers/usb/musb/musb_procfs.c
-+++ b/drivers/usb/musb/musb_procfs.c
-@@ -153,10 +153,10 @@ static int dump_ep(struct musb_ep *ep, char *buffer, unsigned max)
- 
- 		code = snprintf(buf, max,
- 				"\n%s (hw%d): %s%s, csr %04x maxp %04x\n",
--				ep->name, ep->bEndNumber,
-+				ep->name, ep->current_epnum,
- 				mode, ep->dma ? " dma" : "",
- 				musb_readw(regs,
--					(ep->is_in || !ep->bEndNumber)
-+					(ep->is_in || !ep->current_epnum)
- 						? MGC_O_HDRC_TXCSR
- 						: MGC_O_HDRC_RXCSR),
- 				musb_readw(regs, ep->is_in
-@@ -169,8 +169,8 @@ static int dump_ep(struct musb_ep *ep, char *buffer, unsigned max)
- 		buf += code;
- 		max -= code;
- 
--		if (is_cppi_enabled() && ep->bEndNumber) {
--			unsigned	cppi = ep->bEndNumber - 1;
-+		if (is_cppi_enabled() && ep->current_epnum) {
-+			unsigned	cppi = ep->current_epnum - 1;
- 			void __iomem	*base = ep->musb->ctrl_base;
- 			unsigned	off1 = cppi << 2;
- 			void __iomem	*ram = base;
-@@ -190,7 +190,7 @@ static int dump_ep(struct musb_ep *ep, char *buffer, unsigned max)
- 					"%08x %08x, %08x %08x; "
- 					"%08x %08x %08x .. %08x\n",
- 				ep->is_in ? 'T' : 'R',
--				ep->bEndNumber - 1, tmp,
-+				ep->current_epnum - 1, tmp,
- 				musb_readl(ram, 0 * 4),
- 				musb_readl(ram, 1 * 4),
- 				musb_readl(ram, 2 * 4),
+-			pUrb->actual_length += wFifoCount;
++			pUrb->actual_length += fifo_count;
+ 			bMore = TRUE;
+ 		}
+ 		break;
 -- 
 1.5.2.3
