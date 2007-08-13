@@ -1,8 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 29/52] musb_hdrc: Search and replace bBulkSplit with
-	bulk_split
-Date: Mon, 13 Aug 2007 06:49:04 -0700
-Message-ID: <11870130411622-git-send-email-tony@atomide.com>
+Subject: [PATCH 36/52] musb_hdrc: Search and replace pProcEntry with
+	proc_entry
+Date: Mon, 13 Aug 2007 06:49:11 -0700
+Message-ID: <1187013066263-git-send-email-tony@atomide.com>
 References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<11870129702817-git-send-email-tony@atomide.com>
 	<11870129721700-git-send-email-tony@atomide.com>
@@ -32,8 +32,15 @@ References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<11870130314189-git-send-email-tony@atomide.com>
 	<11870130343298-git-send-email-tony@atomide.com>
 	<11870130371106-git-send-email-tony@atomide.com>
+	<11870130411622-git-send-email-tony@atomide.com>
+	<1187013048432-git-send-email-tony@atomide.com>
+	<11870130521115-git-send-email-tony@atomide.com>
+	<11870130543254-git-send-email-tony@atomide.com>
+	<11870130573814-git-send-email-tony@atomide.com>
+	<1187013062890-git-send-email-tony@atomide.com>
+	<11870130643220-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <11870130371106-git-send-email-tony@atomide.com>
+In-Reply-To: <11870130643220-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -46,38 +53,44 @@ Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Search and replace bBulkSplit with bulk_split
+Search and replace pProcEntry with proc_entry
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/musbdefs.h |    4 ++--
- drivers/usb/musb/plat_uds.c |    2 +-
+ drivers/usb/musb/musb_procfs.c |    4 ++--
+ drivers/usb/musb/musbdefs.h    |    2 +-
  2 files changed, 3 insertions(+), 3 deletions(-)
 
+--- a/drivers/usb/musb/musb_procfs.c
++++ b/drivers/usb/musb/musb_procfs.c
+@@ -821,7 +821,7 @@ static int musb_proc_read(char *page, char **start,
+ 
+ void __devexit musb_debug_delete(char *name, struct musb *musb)
+ {
+-	if (musb->pProcEntry)
++	if (musb->proc_entry)
+ 		remove_proc_entry(name, NULL);
+ }
+ 
+@@ -835,7 +835,7 @@ musb_debug_create(char *name, struct musb *data)
+ 	if (!name)
+ 		return NULL;
+ 
+-	data->pProcEntry = pde = create_proc_entry(name,
++	data->proc_entry = pde = create_proc_entry(name,
+ 					S_IFREG | S_IRUGO | S_IWUSR, NULL);
+ 	if (pde) {
+ 		pde->data = data;
 --- a/drivers/usb/musb/musbdefs.h
 +++ b/drivers/usb/musb/musbdefs.h
-@@ -403,9 +403,9 @@ struct musb {
- 	unsigned long		idle_timeout;	/* Next timeout in jiffies */
+@@ -455,7 +455,7 @@ struct musb {
+ #endif
  
- #ifdef C_MP_TX
--	unsigned bBulkSplit:1;
-+	unsigned bulk_split:1;
- #define	can_bulk_split(musb,type) \
--		(((type) == USB_ENDPOINT_XFER_BULK) && (musb)->bBulkSplit)
-+		(((type) == USB_ENDPOINT_XFER_BULK) && (musb)->bulk_split)
- #else
- #define	can_bulk_split(musb,type)	0
+ #ifdef MUSB_CONFIG_PROC_FS
+-	struct proc_dir_entry *pProcEntry;
++	struct proc_dir_entry *proc_entry;
  #endif
---- a/drivers/usb/musb/plat_uds.c
-+++ b/drivers/usb/musb/plat_uds.c
-@@ -1275,7 +1275,7 @@ static int __init musb_core_init(u16 wType, struct musb *musb)
- 	if (reg & MGC_M_CONFIGDATA_MPTXE) {
- 		strcat(aInfo, ", bulk split");
- #ifdef C_MP_TX
--		musb->bBulkSplit = TRUE;
-+		musb->bulk_split = TRUE;
- #else
- 		strcat(aInfo, " (X)");		/* no driver support */
- #endif
+ };
+ 
 -- 
 1.5.2.3
