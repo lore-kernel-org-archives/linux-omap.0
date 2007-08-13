@@ -1,21 +1,13 @@
-From: "Budhee Jamaich" <budheej@gmail.com>
-Subject: Re: 2430 GPIO programming example ?
-Date: Sun, 12 Aug 2007 18:23:36 +0300
-Message-ID: <57314e840708120823y514658d8i6e47e54e14c5b24c@mail.gmail.com>
-References: <57314e840708120608i38c3f786rb8839c4dc42d75f8@mail.gmail.com>
-	<9C23CDD79DA20A479D4615857B2E2C470184AB9D@dlee13.ent.ti.com>
-	<57314e840708120717q4366efc8qafed742326966636@mail.gmail.com>
-	<3B6D69C3A9EBCA4BA5DA60D91302742901A1C73B@dlee13.ent.ti.com>
-	<57314e840708120736m56a034d8ke73c08ec2b4041ee@mail.gmail.com>
-	<20070812145614.2A08B109F43@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-	<57314e840708120806v55ce8fc5yb2464918034b53f6@mail.gmail.com>
-	<20070812150909.11F801F9E98@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+From: "Kyungmin Park" <kyungmin.park@samsung.com>
+Subject: [PATCH] Fix warning in arch/arm/mach-omap2/timer-gp.c
+Date: Mon, 13 Aug 2007 11:55:22 +0900
+Message-ID: <007201c7dd55$68d24d80$e1ac580a@swcenter.sec.samsung.co.kr>
+Reply-To: kmpark@infradead.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070812150909.11F801F9E98@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-Content-Disposition: inline
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -23,19 +15,28 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On 8/12/07, David Brownell <david-b@pacbell.net> wrote:
-> > > What kernel are you using??  The current GIT tree doesn't have most
-> > > of these, and certainly doesn't declare the last of them in that way.
-> >
-> > it's an antique i got in heritage. 2.6.10. and i don't think i have
-> > the gpio functions u mentioned. i sure don't have any of the (four)
-> > files you mentioned.
->
-> So what's keeping you from using something slightly current?
-non-technical issues...
+Fix warning in arch/arm/mach-omap2/timer-gp.c
+arch/arm/mach-omap2/timer-gp.c: In function `omap2_gp_timer_set_mode':
+arch/arm/mach-omap2/timer-gp.c:89: warning: enumeration value
+`CLOCK_EVT_MODE_RESUME' not handled in switch
+
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+
+diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
+index 8f380a1..2246435 100644
+--- a/arch/arm/mach-omap2/timer-gp.c
++++ b/arch/arm/mach-omap2/timer-gp.c
+@@ -84,6 +84,7 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode
+mode,
+ 		break;
+ 	case CLOCK_EVT_MODE_UNUSED:
+ 	case CLOCK_EVT_MODE_SHUTDOWN:
++	case CLOCK_EVT_MODE_RESUME:
+ 		break;
+ 	}
+ }
