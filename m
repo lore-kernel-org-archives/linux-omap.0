@@ -1,44 +1,11 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 34/52] musb_hdrc: Search and replace pGadgetDriver with
-	gadget_driver
-Date: Mon, 13 Aug 2007 06:49:09 -0700
-Message-ID: <1187013062890-git-send-email-tony@atomide.com>
+Subject: [PATCH 2/52] musb_hdrc: Search and replace pEndPt with hw_ep
+Date: Mon, 13 Aug 2007 06:48:37 -0700
+Message-ID: <11870129721700-git-send-email-tony@atomide.com>
 References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<11870129702817-git-send-email-tony@atomide.com>
-	<11870129721700-git-send-email-tony@atomide.com>
-	<1187012975431-git-send-email-tony@atomide.com>
-	<11870129782148-git-send-email-tony@atomide.com>
-	<1187012980445-git-send-email-tony@atomide.com>
-	<11870129834092-git-send-email-tony@atomide.com>
-	<11870129861917-git-send-email-tony@atomide.com>
-	<118701298833-git-send-email-tony@atomide.com>
-	<11870129901657-git-send-email-tony@atomide.com>
-	<11870129934099-git-send-email-tony@atomide.com>
-	<1187012995338-git-send-email-tony@atomide.com>
-	<1187012998290-git-send-email-tony@atomide.com>
-	<1187013000811-git-send-email-tony@atomide.com>
-	<11870130023665-git-send-email-tony@atomide.com>
-	<11870130052666-git-send-email-tony@atomide.com>
-	<1187013007355-git-send-email-tony@atomide.com>
-	<11870130103320-git-send-email-tony@atomide.com>
-	<11870130122117-git-send-email-tony@atomide.com>
-	<11870130153038-git-send-email-tony@atomide.com>
-	<11870130183634-git-send-email-tony@atomide.com>
-	<11870130203742-git-send-email-tony@atomide.com>
-	<1187013022688-git-send-email-tony@atomide.com>
-	<1187013024836-git-send-email-tony@atomide.com>
-	<11870130272865-git-send-email-tony@atomide.com>
-	<1187013029823-git-send-email-tony@atomide.com>
-	<11870130314189-git-send-email-tony@atomide.com>
-	<11870130343298-git-send-email-tony@atomide.com>
-	<11870130371106-git-send-email-tony@atomide.com>
-	<11870130411622-git-send-email-tony@atomide.com>
-	<1187013048432-git-send-email-tony@atomide.com>
-	<11870130521115-git-send-email-tony@atomide.com>
-	<11870130543254-git-send-email-tony@atomide.com>
-	<11870130573814-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11870130573814-git-send-email-tony@atomide.com>
+In-Reply-To: <11870129702817-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -51,177 +18,135 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Search and replace pGadgetDriver with gadget_driver
+Search and replace pEndPt with hw_ep
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/g_ep0.c       |    4 ++--
- drivers/usb/musb/musb_gadget.c |   32 ++++++++++++++++----------------
- drivers/usb/musb/musb_procfs.c |    4 ++--
- drivers/usb/musb/musbdefs.h    |    2 +-
- drivers/usb/musb/tusb6010.c    |    2 +-
- 5 files changed, 22 insertions(+), 22 deletions(-)
+ drivers/usb/musb/cppi_dma.c |   26 +++++++++++++-------------
+ drivers/usb/musb/cppi_dma.h |    2 +-
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
---- a/drivers/usb/musb/g_ep0.c
-+++ b/drivers/usb/musb/g_ep0.c
-@@ -583,10 +583,10 @@ __releases(musb->lock)
- __acquires(musb->lock)
- {
- 	int retval;
--	if (!musb->pGadgetDriver)
-+	if (!musb->gadget_driver)
- 		return -EOPNOTSUPP;
- 	spin_unlock(&musb->lock);
--	retval = musb->pGadgetDriver->setup(&musb->g, pControlRequest);
-+	retval = musb->gadget_driver->setup(&musb->g, pControlRequest);
- 	spin_lock(&musb->lock);
- 	return retval;
+--- a/drivers/usb/musb/cppi_dma.c
++++ b/drivers/usb/musb/cppi_dma.c
+@@ -318,10 +318,10 @@ cppi_channel_allocate(struct dma_controller *c,
+ 	/* REVISIT make this an error later once the same driver code works
+ 	 * with the Mentor DMA engine too
+ 	 */
+-	if (otgCh->pEndPt)
++	if (otgCh->hw_ep)
+ 		DBG(1, "re-allocating DMA%d %cX channel %p\n",
+ 				chNum, bTransmit ? 'T' : 'R', otgCh);
+-	otgCh->pEndPt = ep;
++	otgCh->hw_ep = ep;
+ 	otgCh->Channel.bStatus = MGC_DMA_STATUS_FREE;
+ 
+ 	DBG(4, "Allocate CPPI%d %cX\n", chNum, bTransmit ? 'T' : 'R');
+@@ -341,13 +341,13 @@ static void cppi_channel_release(struct dma_channel *channel)
+ 	c = container_of(channel, struct cppi_channel, Channel);
+ 	epnum = c->chNo + 1;
+ 	tibase = c->pController->pCoreBase - DAVINCI_BASE_OFFSET;
+-	if (!c->pEndPt)
++	if (!c->hw_ep)
+ 		DBG(1, "releasing idle DMA channel %p\n", c);
+ 	else if (!c->bTransmit)
+ 		core_rxirq_enable(tibase, epnum);
+ 
+ 	/* for now, leave its cppi IRQ enabled (we won't trigger it) */
+-	c->pEndPt = NULL;
++	c->hw_ep = NULL;
+ 	channel->bStatus = MGC_DMA_STATUS_UNKNOWN;
  }
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -1476,7 +1476,7 @@ static void musb_pullup(struct musb *musb, int is_on)
- 	/* FIXME if on, HdrcStart; if off, HdrcStop */
  
- 	DBG(3, "gadget %s D+ pullup %s\n",
--		musb->pGadgetDriver->function, is_on ? "on" : "off");
-+		musb->gadget_driver->function, is_on ? "on" : "off");
- 	musb_writeb(musb->mregs, MGC_O_HDRC_POWER, power);
- }
+@@ -366,7 +366,7 @@ cppi_dump_rx(int level, struct cppi_channel *c, const char *tag)
+ 		c->chNo, tag,
+ 		musb_readl(base - DAVINCI_BASE_OFFSET,
+ 			DAVINCI_RXCPPI_BUFCNT0_REG + 4 *c->chNo),
+-		musb_readw(c->pEndPt->regs, MGC_O_HDRC_RXCSR),
++		musb_readw(c->hw_ep->regs, MGC_O_HDRC_RXCSR),
  
-@@ -1703,13 +1703,13 @@ int usb_gadget_register_driver(struct usb_gadget_driver *driver)
- 	DBG(3, "registering driver %s\n", driver->function);
- 	spin_lock_irqsave(&musb->lock, flags);
+ 		musb_readl(c->stateRam, 0 * 4),	/* buf offset */
+ 		musb_readl(c->stateRam, 1 * 4),	/* head ptr */
+@@ -393,7 +393,7 @@ cppi_dump_tx(int level, struct cppi_channel *c, const char *tag)
+ 			"F%08x L%08x .. %08x"
+ 			"\n",
+ 		c->chNo, tag,
+-		musb_readw(c->pEndPt->regs, MGC_O_HDRC_TXCSR),
++		musb_readw(c->hw_ep->regs, MGC_O_HDRC_TXCSR),
  
--	if (musb->pGadgetDriver) {
-+	if (musb->gadget_driver) {
- 		DBG(1, "%s is already bound to %s\n",
- 				musb_driver_name,
--				musb->pGadgetDriver->driver.name);
-+				musb->gadget_driver->driver.name);
- 		retval = -EBUSY;
+ 		musb_readl(c->stateRam, 0 * 4),	/* head ptr */
+ 		musb_readl(c->stateRam, 1 * 4),	/* sop bd */
+@@ -498,7 +498,7 @@ static inline int cppi_autoreq_update(struct cppi_channel *rx,
+ 
+ 	/* REQPKT is turned off after each segment */
+ 	if (n_bds && rx->actualLen) {
+-		void		*__iomem regs = rx->pEndPt->regs;
++		void		*__iomem regs = rx->hw_ep->regs;
+ 
+ 		val = musb_readw(regs, MGC_O_HDRC_RXCSR);
+ 		if (!(val & MGC_M_RXCSR_H_REQPKT)) {
+@@ -1008,7 +1008,7 @@ static int cppi_rx_scan(struct cppi *cppi, unsigned ch)
+ 	int				completed = 0, acked = 0;
+ 	int				i;
+ 	dma_addr_t			safe2ack;
+-	void				*__iomem regs = rx->pEndPt->regs;
++	void				*__iomem regs = rx->hw_ep->regs;
+ 
+ 	cppi_dump_rx(6, rx, "/K");
+ 
+@@ -1116,14 +1116,14 @@ static int cppi_rx_scan(struct cppi *cppi, unsigned ch)
+ 		/* REVISIT seems like "autoreq all but EOP" doesn't...
+ 		 * setting it here "should" be racey, but seems to work
+ 		 */
+-		csr = musb_readw(rx->pEndPt->regs, MGC_O_HDRC_RXCSR);
++		csr = musb_readw(rx->hw_ep->regs, MGC_O_HDRC_RXCSR);
+ 		if (is_host_active(cppi->musb)
+ 				&& bd
+ 				&& !(csr & MGC_M_RXCSR_H_REQPKT)) {
+ 			csr |= MGC_M_RXCSR_H_REQPKT;
+ 			musb_writew(regs, MGC_O_HDRC_RXCSR,
+ 					MGC_M_RXCSR_H_WZC_BITS | csr);
+-			csr = musb_readw(rx->pEndPt->regs, MGC_O_HDRC_RXCSR);
++			csr = musb_readw(rx->hw_ep->regs, MGC_O_HDRC_RXCSR);
+ 		}
  	} else {
--		musb->pGadgetDriver = driver;
-+		musb->gadget_driver = driver;
- 		musb->g.dev.driver = &driver->driver;
- 		driver->driver.bus = NULL;
- 		musb->softconnect = 1;
-@@ -1723,7 +1723,7 @@ int usb_gadget_register_driver(struct usb_gadget_driver *driver)
- 	if (retval != 0) {
- 		DBG(3, "bind to driver %s failed --> %d\n",
- 			driver->driver.name, retval);
--		musb->pGadgetDriver = NULL;
-+		musb->gadget_driver = NULL;
- 		musb->g.dev.driver = NULL;
- 	}
+ 		rx->activeQueueHead = NULL;
+@@ -1227,7 +1227,7 @@ void cppi_completion(struct musb *musb, u32 rx, u32 tx)
+ 					txChannel->Channel.bStatus =
+ 							MGC_DMA_STATUS_FREE;
  
-@@ -1762,7 +1762,7 @@ int usb_gadget_register_driver(struct usb_gadget_driver *driver)
- 				spin_lock_irqsave(&musb->lock, flags);
- 				musb->xceiv.gadget = NULL;
- 				musb->xceiv.state = OTG_STATE_UNDEFINED;
--				musb->pGadgetDriver = NULL;
-+				musb->gadget_driver = NULL;
- 				musb->g.dev.driver = NULL;
- 				spin_unlock_irqrestore(&musb->lock, flags);
- 			}
-@@ -1841,7 +1841,7 @@ int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
- 	musb_hnp_stop(musb);
- #endif
+-					pEnd = txChannel->pEndPt;
++					pEnd = txChannel->hw_ep;
  
--	if (musb->pGadgetDriver == driver) {
-+	if (musb->gadget_driver == driver) {
- 		musb->xceiv.state = OTG_STATE_UNDEFINED;
- 		stop_activity(musb, driver);
+ 					txChannel->Channel.dwActualLength =
+ 						txChannel->actualLen;
+@@ -1290,7 +1290,7 @@ void cppi_completion(struct musb *musb, u32 rx, u32 tx)
+ 			/* all segments completed! */
+ 			rxChannel->Channel.bStatus = MGC_DMA_STATUS_FREE;
  
-@@ -1850,7 +1850,7 @@ int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
- 		driver->unbind(&musb->g);
- 		spin_lock_irqsave(&musb->lock, flags);
+-			pEnd = rxChannel->pEndPt;
++			pEnd = rxChannel->hw_ep;
  
--		musb->pGadgetDriver = NULL;
-+		musb->gadget_driver = NULL;
- 		musb->g.dev.driver = NULL;
- 
- 		musb->is_active = 0;
-@@ -1885,9 +1885,9 @@ void musb_g_resume(struct musb *musb)
- 	case OTG_STATE_B_WAIT_ACON:
- 	case OTG_STATE_B_PERIPHERAL:
- 		musb->is_active = 1;
--		if (musb->pGadgetDriver && musb->pGadgetDriver->resume) {
-+		if (musb->gadget_driver && musb->gadget_driver->resume) {
- 			spin_unlock(&musb->lock);
--			musb->pGadgetDriver->resume(&musb->g);
-+			musb->gadget_driver->resume(&musb->g);
- 			spin_lock(&musb->lock);
- 		}
+ 			rxChannel->Channel.dwActualLength =
+ 					rxChannel->actualLen;
+@@ -1381,7 +1381,7 @@ static int cppi_channel_abort(struct dma_channel *channel)
+ 		/* from RX or TX fault irq handler */
+ 	case MGC_DMA_STATUS_BUSY:
+ 		/* the hardware needs shutting down */
+-		regs = otgCh->pEndPt->regs;
++		regs = otgCh->hw_ep->regs;
  		break;
-@@ -1912,9 +1912,9 @@ void musb_g_suspend(struct musb *musb)
- 		break;
- 	case OTG_STATE_B_PERIPHERAL:
- 		musb->is_suspended = 1;
--		if (musb->pGadgetDriver && musb->pGadgetDriver->suspend) {
-+		if (musb->gadget_driver && musb->gadget_driver->suspend) {
- 			spin_unlock(&musb->lock);
--			musb->pGadgetDriver->suspend(&musb->g);
-+			musb->gadget_driver->suspend(&musb->g);
- 			spin_lock(&musb->lock);
- 		}
- 		break;
-@@ -1948,9 +1948,9 @@ void musb_g_disconnect(struct musb *musb)
- 	(void) musb_gadget_vbus_draw(&musb->g, 0);
+ 	case MGC_DMA_STATUS_UNKNOWN:
+ 	case MGC_DMA_STATUS_FREE:
+--- a/drivers/usb/musb/cppi_dma.h
++++ b/drivers/usb/musb/cppi_dma.h
+@@ -65,7 +65,7 @@ struct cppi_channel {
+ 	struct cppi		*pController;
  
- 	musb->g.speed = USB_SPEED_UNKNOWN;
--	if (musb->pGadgetDriver && musb->pGadgetDriver->disconnect) {
-+	if (musb->gadget_driver && musb->gadget_driver->disconnect) {
- 		spin_unlock(&musb->lock);
--		musb->pGadgetDriver->disconnect(&musb->g);
-+		musb->gadget_driver->disconnect(&musb->g);
- 		spin_lock(&musb->lock);
- 	}
+ 	/* which direction of which endpoint? */
+-	struct musb_hw_ep	*pEndPt;
++	struct musb_hw_ep	*hw_ep;
+ 	u8			bTransmit;
+ 	u8			chNo;
  
-@@ -1987,8 +1987,8 @@ __acquires(musb->lock)
- 			(devctl & MGC_M_DEVCTL_BDEVICE)
- 				? "B-Device" : "A-Device",
- 			musb_readb(mbase, MGC_O_HDRC_FADDR),
--			musb->pGadgetDriver
--				? musb->pGadgetDriver->driver.name
-+			musb->gadget_driver
-+				? musb->gadget_driver->driver.name
- 				: NULL
- 			);
- 
---- a/drivers/usb/musb/musb_procfs.c
-+++ b/drivers/usb/musb/musb_procfs.c
-@@ -619,8 +619,8 @@ static int dump_header_stats(struct musb *musb, char *buffer)
- #ifdef CONFIG_USB_GADGET_MUSB_HDRC
- 	if (is_peripheral_enabled(musb)) {
- 		code = sprintf(buffer, "Gadget driver: %s\n",
--				musb->pGadgetDriver
--					? musb->pGadgetDriver->driver.name
-+				musb->gadget_driver
-+					? musb->gadget_driver->driver.name
- 					: "(none)");
- 		if (code <= 0)
- 			goto done;
---- a/drivers/usb/musb/musbdefs.h
-+++ b/drivers/usb/musb/musbdefs.h
-@@ -446,7 +446,7 @@ struct musb {
- 	u8			test_mode_nr;
- 	u16			ackpend;		/* ep0 */
- 	struct usb_gadget	g;			/* the gadget */
--	struct usb_gadget_driver *pGadgetDriver;	/* its driver */
-+	struct usb_gadget_driver *gadget_driver;	/* its driver */
- #endif
- 
- #ifdef CONFIG_USB_MUSB_OTG
---- a/drivers/usb/musb/tusb6010.c
-+++ b/drivers/usb/musb/tusb6010.c
-@@ -422,7 +422,7 @@ static void musb_do_idle(unsigned long _musb)
- #endif
- 
- #ifdef CONFIG_USB_GADGET_MUSB_HDRC
--		if (is_peripheral_enabled(musb) && !musb->pGadgetDriver)
-+		if (is_peripheral_enabled(musb) && !musb->gadget_driver)
- 			wakeups = 0;
- 		else {
- 			wakeups = TUSB_PRCM_WHOSTDISCON
 -- 
 1.5.2.3
