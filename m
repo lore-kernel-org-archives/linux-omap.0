@@ -1,15 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 02/22 - Reverse] omap2 osc & sys clock calculation.
-Date: Mon, 13 Aug 2007 00:03:43 -0700
-Message-ID: <20070813070342.GB13948@atomide.com>
-References: <20070802181002.792550043@pwsan.com>
-	<20070802181141.557025493@pwsan.com>
-	<3B6D69C3A9EBCA4BA5DA60D913027429019C4FDA@dlee13.ent.ti.com>
+Subject: Re: Common code for TSC 2101 and 2102
+Date: Mon, 13 Aug 2007 00:05:12 -0700
+Message-ID: <20070813070512.GC13948@atomide.com>
+References: <fb249edb0706040644w55ac4c55k495ae2050f94aea0@mail.gmail.com>
+	<200707131304.24074.david-b@pacbell.net>
+	<20070810072912.GE8658@atomide.com>
+	<200708102004.59747.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D913027429019C4FDA@dlee13.ent.ti.com>
+In-Reply-To: <200708102004.59747.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,67 +20,34 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap-open-source@linux.omap.com
+To: David Brownell <david-b@pacbell.net>
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Woodruff, Richard <r-woodruff2@ti.com> [070810 14:09]:
-> Tony,
+* David Brownell <david-b@pacbell.net> [070810 20:05]:
+> On Friday 10 August 2007, Tony Lindgren wrote:
+> > I'll be pushing Andrzej's patch today.
 > 
-> Can you reverse this patch?  Or should a fixed one be submitted?
+> I saw it ... it was after I've finally started to dig
+> out from under my pile of patches going upstream, and
+> even fired up an OMAP build again!  :)
 
-Yeah, I'll revert it, thanks for debugging it.
+Cool :)
 
-> With this the system gets the wrong osc speed and ends up setting the system speed wrongly.  This results in OMAP running to slow, can't have that.
+> Glad to see this.  Now I'll have to actually take
+> more of a real look at it.  Presumably I'll have a
+> few updates, and then will feel it's time to start
+> pushing three patches upstream from this big one:
 > 
-> As explained in another mail the APLLS tuning speed is used to set the rate of these clocks with out having to do gauging again.  The boot loader should use the 32KHz clock and a gptimer to figure out the input speed and set the APLL properly.  You then use the APLL multipled with the divider to get the osc clocks speed.  The divider is only 1 or 2.
+>  - drivers/spi/tsc210x.c core, which I can handle;
+>  - drivers/hwmon/tsc210x_sensors.c, through hwmon;
+>  - drivers/input/touchscreen/tsc210x_ts.c, through input;
+>  - ... and later sound/soc/.../something.c, TBD.
 > 
-> 1 step back with 22 ones forward is still pretty good ;)
+> I figure an initial upstream merge should included
+> one or both of { touchscreen, hwmon } in addition
+> to the core.  Hitting 2.6.24-early should be possible.
 
-Yeah :)
+Great!
 
 Tony
-
-
-
-> Regards,
-> Richard W.
-> 
-> > Subject: [PATCH 02/22] omap2 clock: fix incorrect rate calculation
-> > forosc_ck, sys_ck
-> > 
-> > omap2_get_crystal_rate() calculates osc_ck and sys_ck rates
-> > incorrectly.  osc_ck runs at the same rate as the external clock
-> > source.  Also, sys_ck's rate derives from osc_ck's rate, divided (not
-> > multiplied) by PRCM_CLKSRC_CTRL:SYSCLKDIV.
-> > 
-> > Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> > 
-> > ---
-> >  arch/arm/mach-omap2/clock.c |    4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > Index: linux-omap/arch/arm/mach-omap2/clock.c
-> > ===================================================================
-> > --- linux-omap.orig/arch/arm/mach-omap2/clock.c
-> > +++ linux-omap/arch/arm/mach-omap2/clock.c
-> > @@ -1126,8 +1126,8 @@ static void __init omap2_get_crystal_rat
-> >  	div &= OMAP_SYSCLKDIV_MASK;
-> >  	div >>= sys->rate_offset;
-> > 
-> > -	osc->rate = sclk * div;
-> > -	sys->rate = sclk;
-> > +	osc->rate = sclk;
-> > +	sys->rate = osc->rate / div;
-> >  }
-> > 
-> >  /*
-> > 
-> > --
-> > 
-> > _______________________________________________
-> > Linux-omap-open-source mailing list
-> > Linux-omap-open-source@linux.omap.com
-> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
