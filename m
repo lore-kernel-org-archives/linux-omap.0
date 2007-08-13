@@ -1,8 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 26/52] musb_hdrc: Search and replace pDmaController with
-	dma_controller
-Date: Mon, 13 Aug 2007 06:49:01 -0700
-Message-ID: <11870130314189-git-send-email-tony@atomide.com>
+Subject: [PATCH 40/52] musb_hdrc: Search and replace bStatus with status
+Date: Mon, 13 Aug 2007 06:49:15 -0700
+Message-ID: <11870130771666-git-send-email-tony@atomide.com>
 References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<11870129702817-git-send-email-tony@atomide.com>
 	<11870129721700-git-send-email-tony@atomide.com>
@@ -29,8 +28,22 @@ References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<1187013024836-git-send-email-tony@atomide.com>
 	<11870130272865-git-send-email-tony@atomide.com>
 	<1187013029823-git-send-email-tony@atomide.com>
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1187013029823-git-send-email-tony@atomide.com>
+	<11870130314189-git-send-email-tony@atomide.com>
+	<11870130343298-git-send-email-tony@atomide.com>
+	<11870130371106-git-send-email-tony@atomide.com>
+	<11870130411622-git-send-email-tony@atomide.com>
+	<1187013048432-git-send-email-tony@atomide.com>
+	<11870130521115-git-send-email-tony@atomide.com>
+	<11870130543254-git-send-email-tony@atomide.com>
+	<11870130573814-git-send-email-tony@atomide.com>
+	<1187013062890-git-send-email-tony@atomide.com>
+	<11870130643220-git-send-email-tony@atomide.com>
+	<1187013066263-git-send-email-tony@atomide.com>
+	<11870130701028-git-send-email-tony@atomide.com>
+	<1187013072449-git-send-email-tony@atomide.com>
+	<11870130741506-git-send-email-tony@atomide.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <11870130741506-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -38,304 +51,342 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Search and replace pDmaController with dma_controller
+Search and replace bStatus with status
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/cppi_dma.c    |    2 +-
- drivers/usb/musb/musb_gadget.c |   20 ++++++++++----------
- drivers/usb/musb/musb_host.c   |   32 ++++++++++++++++----------------
- drivers/usb/musb/musb_procfs.c |    2 +-
- drivers/usb/musb/musbdefs.h    |    2 +-
- drivers/usb/musb/plat_uds.c    |   10 +++++-----
- 6 files changed, 34 insertions(+), 34 deletions(-)
+ drivers/usb/musb/cppi_dma.c      |   22 +++++++++++-----------
+ drivers/usb/musb/dma.h           |    6 +++---
+ drivers/usb/musb/musb_gadget.c   |    4 ++--
+ drivers/usb/musb/musb_host.c     |    6 +++---
+ drivers/usb/musb/musbhsdma.c     |   18 +++++++++---------
+ drivers/usb/musb/tusb6010_omap.c |   16 ++++++++--------
+ 6 files changed, 36 insertions(+), 36 deletions(-)
 
 --- a/drivers/usb/musb/cppi_dma.c
 +++ b/drivers/usb/musb/cppi_dma.c
-@@ -1143,7 +1143,7 @@ void cppi_completion(struct musb *musb, u32 rx, u32 tx)
- 	struct cppi_descriptor	*bdPtr;
- 	struct musb_hw_ep	*hw_ep = NULL;
+@@ -99,7 +99,7 @@ static void __init cppi_pool_init(struct cppi *cppi, struct cppi_channel *c)
+ 	c->activeQueueHead = NULL;
+ 	c->activeQueueTail = NULL;
+ 	c->lastHwBDProcessed = NULL;
+-	c->Channel.bStatus = MGC_DMA_STATUS_UNKNOWN;
++	c->Channel.status = MGC_DMA_STATUS_UNKNOWN;
+ 	c->pController = cppi;
+ 	c->bLastModeRndis = 0;
+ 	c->Channel.private_data = c;
+@@ -124,7 +124,7 @@ static void cppi_pool_free(struct cppi_channel *c)
+ 	struct cppi_descriptor	*bd;
  
--	cppi = container_of(musb->pDmaController, struct cppi, Controller);
-+	cppi = container_of(musb->dma_controller, struct cppi, Controller);
+ 	(void) cppi_channel_abort(&c->Channel);
+-	c->Channel.bStatus = MGC_DMA_STATUS_UNKNOWN;
++	c->Channel.status = MGC_DMA_STATUS_UNKNOWN;
+ 	c->pController = NULL;
  
- 	regBase = musb->ctrl_base;
+ 	/* free all its bds */
+@@ -322,7 +322,7 @@ cppi_channel_allocate(struct dma_controller *c,
+ 		DBG(1, "re-allocating DMA%d %cX channel %p\n",
+ 				chNum, bTransmit ? 'T' : 'R', otgCh);
+ 	otgCh->hw_ep = ep;
+-	otgCh->Channel.bStatus = MGC_DMA_STATUS_FREE;
++	otgCh->Channel.status = MGC_DMA_STATUS_FREE;
  
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -164,7 +164,7 @@ static void nuke(struct musb_ep *ep, const int status)
- 	ep->busy = 1;
+ 	DBG(4, "Allocate CPPI%d %cX\n", chNum, bTransmit ? 'T' : 'R');
+ 	otgCh->Channel.private_data = otgCh;
+@@ -348,7 +348,7 @@ static void cppi_channel_release(struct dma_channel *channel)
  
- 	if (is_dma_capable() && ep->dma) {
--		struct dma_controller	*c = ep->musb->pDmaController;
-+		struct dma_controller	*c = ep->musb->dma_controller;
- 		int value;
- 		if (ep->is_in) {
- 			musb_writew(epio, MGC_O_HDRC_TXCSR,
-@@ -292,7 +292,7 @@ static void txstate(struct musb *musb, struct musb_request *req)
+ 	/* for now, leave its cppi IRQ enabled (we won't trigger it) */
+ 	c->hw_ep = NULL;
+-	channel->bStatus = MGC_DMA_STATUS_UNKNOWN;
++	channel->status = MGC_DMA_STATUS_UNKNOWN;
+ }
  
- #ifndef	CONFIG_USB_INVENTRA_FIFO
- 	if (is_dma_capable() && musb_ep->dma) {
--		struct dma_controller	*c = musb->pDmaController;
-+		struct dma_controller	*c = musb->dma_controller;
+ /* Context: controller irqlocked */
+@@ -957,7 +957,7 @@ static int cppi_channel_program(struct dma_channel *pChannel,
+ 	struct cppi		*pController = otgChannel->pController;
+ 	struct musb		*musb = pController->musb;
  
- 		use_dma = (pRequest->dma != DMA_ADDR_INVALID);
+-	switch (pChannel->bStatus) {
++	switch (pChannel->status) {
+ 	case MGC_DMA_STATUS_BUS_ABORT:
+ 	case MGC_DMA_STATUS_CORE_ABORT:
+ 		/* fault irq handler should have handled cleanup */
+@@ -981,7 +981,7 @@ static int cppi_channel_program(struct dma_channel *pChannel,
+ 		break;
+ 	}
  
-@@ -428,7 +428,7 @@ void musb_g_tx(struct musb *musb, u8 epnum)
- 			musb_writew(epio, MGC_O_HDRC_TXCSR, wCsrVal);
- 			if (dma_channel_status(dma) == MGC_DMA_STATUS_BUSY) {
- 				dma->bStatus = MGC_DMA_STATUS_CORE_ABORT;
--				musb->pDmaController->channel_abort(dma);
-+				musb->dma_controller->channel_abort(dma);
+-	pChannel->bStatus = MGC_DMA_STATUS_BUSY;
++	pChannel->status = MGC_DMA_STATUS_BUSY;
+ 
+ 	/* set transfer parameters, then queue up its first segment */
+ 	otgChannel->startAddr = dma_addr;
+@@ -1224,7 +1224,7 @@ void cppi_completion(struct musb *musb, u32 rx, u32 tx)
+ 						>= txChannel->transferSize) {
+ 					txChannel->activeQueueHead = NULL;
+ 					txChannel->activeQueueTail = NULL;
+-					txChannel->Channel.bStatus =
++					txChannel->Channel.status =
+ 							MGC_DMA_STATUS_FREE;
+ 
+ 					hw_ep = txChannel->hw_ep;
+@@ -1288,7 +1288,7 @@ void cppi_completion(struct musb *musb, u32 rx, u32 tx)
  			}
  
- 			if (pRequest)
-@@ -583,7 +583,7 @@ static void rxstate(struct musb *musb, struct musb_request *req)
- 	wCsrVal = musb_readw(epio, MGC_O_HDRC_RXCSR);
+ 			/* all segments completed! */
+-			rxChannel->Channel.bStatus = MGC_DMA_STATUS_FREE;
++			rxChannel->Channel.status = MGC_DMA_STATUS_FREE;
  
- 	if (is_cppi_enabled() && musb_ep->dma) {
--		struct dma_controller	*c = musb->pDmaController;
-+		struct dma_controller	*c = musb->dma_controller;
- 		struct dma_channel	*channel = musb_ep->dma;
+ 			hw_ep = rxChannel->hw_ep;
  
- 		/* NOTE:  CPPI won't actually stop advancing the DMA
-@@ -618,7 +618,7 @@ static void rxstate(struct musb *musb, struct musb_request *req)
- 				struct dma_channel	*channel;
- 				int			use_dma = 0;
+@@ -1375,7 +1375,7 @@ static int cppi_channel_abort(struct dma_channel *channel)
+ 	pController = otgCh->pController;
+ 	chNum = otgCh->chNo;
  
--				c = musb->pDmaController;
-+				c = musb->dma_controller;
- 				channel = musb_ep->dma;
+-	switch (channel->bStatus) {
++	switch (channel->status) {
+ 	case MGC_DMA_STATUS_BUS_ABORT:
+ 	case MGC_DMA_STATUS_CORE_ABORT:
+ 		/* from RX or TX fault irq handler */
+@@ -1515,7 +1515,7 @@ static int cppi_channel_abort(struct dma_channel *channel)
+ 		 * refers to an entire "DMA packet" not just emptying the
+ 		 * current fifo; most segments need multiple usb packets.
+ 		 */
+-		if (channel->bStatus == MGC_DMA_STATUS_BUSY)
++		if (channel->status == MGC_DMA_STATUS_BUSY)
+ 			udelay(50);
  
- 	/* We use DMA Req mode 0 in RxCsr, and DMA controller operates in
-@@ -694,7 +694,7 @@ static void rxstate(struct musb *musb, struct musb_request *req)
+ 		/* scan the current list, reporting any data that was
+@@ -1552,7 +1552,7 @@ static int cppi_channel_abort(struct dma_channel *channel)
+ 		}
+ 	}
  
- #ifdef	CONFIG_USB_TUSB_OMAP_DMA
- 			if (tusb_dma_omap() && musb_ep->dma) {
--				struct dma_controller *c = musb->pDmaController;
-+				struct dma_controller *c = musb->dma_controller;
- 				struct dma_channel *channel = musb_ep->dma;
- 				u32 dma_addr = pRequest->dma + pRequest->actual;
- 				int ret;
-@@ -754,7 +754,7 @@ void musb_g_rx(struct musb *musb, u8 epnum)
+-	channel->bStatus = MGC_DMA_STATUS_FREE;
++	channel->status = MGC_DMA_STATUS_FREE;
+ 	otgCh->startAddr = 0;
+ 	otgCh->currOffset = 0;
+ 	otgCh->transferSize = 0;
+--- a/drivers/usb/musb/dma.h
++++ b/drivers/usb/musb/dma.h
+@@ -104,7 +104,7 @@ struct dma_controller;
+  * @wMaxLength: the maximum number of bytes the channel can move in one
+  *	transaction (typically representing many USB maximum-sized packets)
+  * @actual_len: how many bytes have been transferred
+- * @bStatus: current channel status (updated e.g. on interrupt)
++ * @status: current channel status (updated e.g. on interrupt)
+  * @bDesiredMode: TRUE if mode 1 is desired; FALSE if mode 0 is desired
+  *
+  * channels are associated with an endpoint for the duration of at least
+@@ -115,7 +115,7 @@ struct dma_channel {
+ 	// FIXME not void* private_data, but a dma_controller *
+ 	size_t			max_len;
+ 	size_t			actual_len;
+-	enum dma_channel_status	bStatus;
++	enum dma_channel_status	status;
+ 	u8			bDesiredMode;
+ };
+ 
+@@ -151,7 +151,7 @@ typedef int (*MGC_pfDmaProgramChannel) (
+ static inline enum dma_channel_status
+ dma_channel_status(struct dma_channel *c)
+ {
+-	return (is_dma_capable() && c) ? c->bStatus : MGC_DMA_STATUS_UNKNOWN;
++	return (is_dma_capable() && c) ? c->status : MGC_DMA_STATUS_UNKNOWN;
+ }
+ 
+ /**
+--- a/drivers/usb/musb/musb_gadget.c
++++ b/drivers/usb/musb/musb_gadget.c
+@@ -427,7 +427,7 @@ void musb_g_tx(struct musb *musb, u8 epnum)
+ 			wCsrVal &= ~MGC_M_TXCSR_P_SENTSTALL;
+ 			musb_writew(epio, MGC_O_HDRC_TXCSR, wCsrVal);
+ 			if (dma_channel_status(dma) == MGC_DMA_STATUS_BUSY) {
+-				dma->bStatus = MGC_DMA_STATUS_CORE_ABORT;
++				dma->status = MGC_DMA_STATUS_CORE_ABORT;
+ 				musb->dma_controller->channel_abort(dma);
+ 			}
+ 
+@@ -753,7 +753,7 @@ void musb_g_rx(struct musb *musb, u8 epnum)
+ 
  	if (wCsrVal & MGC_M_RXCSR_P_SENTSTALL) {
  		if (dma_channel_status(dma) == MGC_DMA_STATUS_BUSY) {
- 			dma->bStatus = MGC_DMA_STATUS_CORE_ABORT;
--			(void) musb->pDmaController->channel_abort(dma);
-+			(void) musb->dma_controller->channel_abort(dma);
- 			pRequest->actual += musb_ep->dma->dwActualLength;
+-			dma->bStatus = MGC_DMA_STATUS_CORE_ABORT;
++			dma->status = MGC_DMA_STATUS_CORE_ABORT;
+ 			(void) musb->dma_controller->channel_abort(dma);
+ 			pRequest->actual += musb_ep->dma->actual_len;
  		}
- 
-@@ -962,8 +962,8 @@ static int musb_gadget_enable(struct usb_ep *ep,
- 	/* NOTE:  all the I/O code _should_ work fine without DMA, in case
- 	 * for some reason you run out of channels here.
- 	 */
--	if (is_dma_capable() && musb->pDmaController) {
--		struct dma_controller	*c = musb->pDmaController;
-+	if (is_dma_capable() && musb->dma_controller) {
-+		struct dma_controller	*c = musb->dma_controller;
- 
- 		musb_ep->dma = c->channel_alloc(c, hw_ep,
- 				(desc->bEndpointAddress & USB_DIR_IN));
-@@ -1199,7 +1199,7 @@ static int musb_gadget_dequeue(struct usb_ep *ep, struct usb_request *pRequest)
- 
- 	/* ... else abort the dma transfer ... */
- 	else if (is_dma_capable() && musb_ep->dma) {
--		struct dma_controller	*c = musb->pDmaController;
-+		struct dma_controller	*c = musb->dma_controller;
- 
- 		musb_ep_select(musb->mregs, musb_ep->current_epnum);
- 		if (c->channel_abort)
 --- a/drivers/usb/musb/musb_host.c
 +++ b/drivers/usb/musb/musb_host.c
-@@ -627,7 +627,7 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
- 			struct urb *pUrb, unsigned int is_out,
- 			u8 * pBuffer, u32 dwLength)
- {
--	struct dma_controller	*pDmaController;
-+	struct dma_controller	*dma_controller;
- 	struct dma_channel	*pDmaChannel;
- 	u8			bDmaOk;
- 	void __iomem		*mbase = musb->mregs;
-@@ -654,12 +654,12 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
- 	musb_ep_select(mbase, epnum);
+@@ -1226,7 +1226,7 @@ void musb_host_tx(struct musb *musb, u8 epnum)
  
- 	/* candidate for DMA? */
--	pDmaController = musb->pDmaController;
--	if (is_dma_capable() && epnum && pDmaController) {
-+	dma_controller = musb->dma_controller;
-+	if (is_dma_capable() && epnum && dma_controller) {
- 		pDmaChannel = is_out ? hw_ep->tx_channel : hw_ep->rx_channel;
- 		if (!pDmaChannel) {
--			pDmaChannel = pDmaController->channel_alloc(
--					pDmaController, hw_ep, is_out);
-+			pDmaChannel = dma_controller->channel_alloc(
-+					dma_controller, hw_ep, is_out);
- 			if (is_out)
- 				hw_ep->tx_channel = pDmaChannel;
- 			else
-@@ -791,7 +791,7 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
- 
- 			musb_writew(epio, MGC_O_HDRC_TXCSR, wCsr);
- 
--			bDmaOk = pDmaController->channel_program(
-+			bDmaOk = dma_controller->channel_program(
- 					pDmaChannel, wPacketSize,
- 					pDmaChannel->bDesiredMode,
- 					pUrb->transfer_dma,
-@@ -799,7 +799,7 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
- 			if (bDmaOk) {
- 				wLoadCount = 0;
- 			} else {
--				pDmaController->channel_release(pDmaChannel);
-+				dma_controller->channel_release(pDmaChannel);
- 				if (is_out)
- 					hw_ep->tx_channel = NULL;
- 				else
-@@ -830,7 +830,7 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
- 			/* TX uses "rndis" mode automatically, but needs help
- 			 * to identify the zero-length-final-packet case.
- 			 */
--			bDmaOk = pDmaController->channel_program(
-+			bDmaOk = dma_controller->channel_program(
- 					pDmaChannel, wPacketSize,
- 					(pUrb->transfer_flags
- 							& URB_ZERO_PACKET)
-@@ -840,7 +840,7 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
- 			if (bDmaOk) {
- 				wLoadCount = 0;
- 			} else {
--				pDmaController->channel_release(pDmaChannel);
-+				dma_controller->channel_release(pDmaChannel);
- 				pDmaChannel = hw_ep->tx_channel = NULL;
- 
- 				/* REVISIT there's an error path here that
-@@ -915,14 +915,14 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
- 				/* unless caller treats short rx transfers as
- 				 * errors, we dare not queue multiple transfers.
- 				 */
--				bDmaOk = pDmaController->channel_program(
-+				bDmaOk = dma_controller->channel_program(
- 						pDmaChannel, wPacketSize,
- 						!(pUrb->transfer_flags
- 							& URB_SHORT_NOT_OK),
- 						pUrb->transfer_dma,
- 						qh->segsize);
- 				if (!bDmaOk) {
--					pDmaController->channel_release(
-+					dma_controller->channel_release(
- 							pDmaChannel);
- 					pDmaChannel = hw_ep->rx_channel = NULL;
- 				} else
-@@ -1227,7 +1227,7 @@ void musb_host_tx(struct musb *musb, u8 epnum)
  	if (status) {
  		if (dma_channel_status(dma) == MGC_DMA_STATUS_BUSY) {
- 			dma->bStatus = MGC_DMA_STATUS_CORE_ABORT;
--			(void) musb->pDmaController->channel_abort(dma);
-+			(void) musb->dma_controller->channel_abort(dma);
+-			dma->bStatus = MGC_DMA_STATUS_CORE_ABORT;
++			dma->status = MGC_DMA_STATUS_CORE_ABORT;
+ 			(void) musb->dma_controller->channel_abort(dma);
  		}
  
- 		/* do the proper sequence to abort the transfer in the
-@@ -1461,7 +1461,7 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+@@ -1460,7 +1460,7 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+ 	if (status) {
  		/* clean up dma and collect transfer count */
  		if (dma_channel_status(dma) == MGC_DMA_STATUS_BUSY) {
- 			dma->bStatus = MGC_DMA_STATUS_CORE_ABORT;
--			(void) musb->pDmaController->channel_abort(dma);
-+			(void) musb->dma_controller->channel_abort(dma);
- 			xfer_len = dma->dwActualLength;
+-			dma->bStatus = MGC_DMA_STATUS_CORE_ABORT;
++			dma->status = MGC_DMA_STATUS_CORE_ABORT;
+ 			(void) musb->dma_controller->channel_abort(dma);
+ 			xfer_len = dma->actual_len;
  		}
- 		musb_h_flush_rxfifo(hw_ep, 0);
-@@ -1492,7 +1492,7 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+@@ -1491,7 +1491,7 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+ 		 * shouldn't this be the "half full" double buffer case?
  		 */
  		if (dma_channel_status(dma) == MGC_DMA_STATUS_BUSY) {
- 			dma->bStatus = MGC_DMA_STATUS_CORE_ABORT;
--			(void) musb->pDmaController->channel_abort(dma);
-+			(void) musb->dma_controller->channel_abort(dma);
- 			xfer_len = dma->dwActualLength;
+-			dma->bStatus = MGC_DMA_STATUS_CORE_ABORT;
++			dma->status = MGC_DMA_STATUS_CORE_ABORT;
+ 			(void) musb->dma_controller->channel_abort(dma);
+ 			xfer_len = dma->actual_len;
  			bDone = TRUE;
- 		}
-@@ -1567,7 +1567,7 @@ void musb_host_rx(struct musb *musb, u8 epnum)
- 					qh->offset,
- 					pUrb->transfer_buffer_length);
+--- a/drivers/usb/musb/musbhsdma.c
++++ b/drivers/usb/musb/musbhsdma.c
+@@ -144,7 +144,7 @@ static struct dma_channel* dma_channel_allocate(struct dma_controller *c,
+ 			pImplChannel->bTransmit = bTransmit;
+ 			pChannel = &(pImplChannel->Channel);
+ 			pChannel->private_data = pImplChannel;
+-			pChannel->bStatus = MGC_DMA_STATUS_FREE;
++			pChannel->status = MGC_DMA_STATUS_FREE;
+ 			pChannel->max_len = 0x10000;
+ 			/* Tx => mode 1; Rx => mode 0 */
+ 			pChannel->bDesiredMode = bTransmit;
+@@ -167,7 +167,7 @@ static void dma_channel_release(struct dma_channel *pChannel)
+ 	pImplChannel->pController->bmUsedChannels &=
+ 		~(1 << pImplChannel->bIndex);
  
--			c = musb->pDmaController;
-+			c = musb->dma_controller;
+-	pChannel->bStatus = MGC_DMA_STATUS_UNKNOWN;
++	pChannel->status = MGC_DMA_STATUS_UNKNOWN;
+ }
  
- 			dma->bDesiredMode = 0;
- #ifdef USE_MODE1
-@@ -1915,7 +1915,7 @@ static int musb_cleanup_urb(struct urb *urb, struct musb_qh *qh, int is_in)
+ static void configure_channel(struct dma_channel *pChannel,
+@@ -232,14 +232,14 @@ static int dma_channel_program(struct dma_channel * pChannel,
+ 		pImplChannel->bTransmit ? "Tx" : "Rx",
+ 		wPacketSize, dma_addr, dwLength, bMode);
  
- 		dma = is_in ? ep->rx_channel : ep->tx_channel;
- 		if (dma) {
--			status = ep->musb->pDmaController->channel_abort(dma);
-+			status = ep->musb->dma_controller->channel_abort(dma);
- 			DBG(status ? 1 : 3,
- 				"abort %cX%d DMA for urb %p --> %d\n",
- 				is_in ? 'R' : 'T', ep->epnum,
---- a/drivers/usb/musb/musb_procfs.c
-+++ b/drivers/usb/musb/musb_procfs.c
-@@ -593,7 +593,7 @@ static int dump_header_stats(struct musb *musb, char *buffer)
- 	buffer += code;
- #endif	/* DAVINCI */
+-	BUG_ON(pChannel->bStatus == MGC_DMA_STATUS_UNKNOWN ||
+-		pChannel->bStatus == MGC_DMA_STATUS_BUSY);
++	BUG_ON(pChannel->status == MGC_DMA_STATUS_UNKNOWN ||
++		pChannel->status == MGC_DMA_STATUS_BUSY);
  
--	if (is_cppi_enabled() && musb->pDmaController) {
-+	if (is_cppi_enabled() && musb->dma_controller) {
- 		code = sprintf(buffer,
- 				"CPPI: txcr=%d txsrc=%01x txena=%01x; "
- 				"rxcr=%d rxsrc=%01x rxena=%01x "
---- a/drivers/usb/musb/musbdefs.h
-+++ b/drivers/usb/musb/musbdefs.h
-@@ -356,7 +356,7 @@ struct musb {
- 	 */
- 	void			(*board_set_vbus)(struct musb *, int is_on);
+ 	pChannel->actual_len = 0;
+ 	pImplChannel->dwStartAddress = dma_addr;
+ 	pImplChannel->len = dwLength;
+ 	pImplChannel->wMaxPacketSize = wPacketSize;
+-	pChannel->bStatus = MGC_DMA_STATUS_BUSY;
++	pChannel->status = MGC_DMA_STATUS_BUSY;
  
--	struct dma_controller	*pDmaController;
-+	struct dma_controller	*dma_controller;
+ 	if ((bMode == 1) && (dwLength >= wPacketSize)) {
+ 		configure_channel(pChannel, wPacketSize, 1, dma_addr,
+@@ -259,7 +259,7 @@ static int dma_channel_abort(struct dma_channel *pChannel)
+ 	u8 *mbase = pImplChannel->pController->pCoreBase;
+ 	u16 csr;
  
- 	struct device		*controller;
- 	void __iomem		*ctrl_base;
---- a/drivers/usb/musb/plat_uds.c
-+++ b/drivers/usb/musb/plat_uds.c
-@@ -1807,8 +1807,8 @@ static void musb_free(struct musb *musb)
- 		disable_irq_wake(musb->nIrq);
- 		free_irq(musb->nIrq, musb);
+-	if (pChannel->bStatus == MGC_DMA_STATUS_BUSY) {
++	if (pChannel->status == MGC_DMA_STATUS_BUSY) {
+ 		if (pImplChannel->bTransmit) {
+ 
+ 			csr = musb_readw(mbase,
+@@ -289,7 +289,7 @@ static int dma_channel_abort(struct dma_channel *pChannel)
+ 		musb_writel(mbase,
+ 		   MGC_HSDMA_CHANNEL_OFFSET(bChannel, MGC_O_HSDMA_COUNT), 0);
+ 
+-		pChannel->bStatus = MGC_DMA_STATUS_FREE;
++		pChannel->status = MGC_DMA_STATUS_FREE;
  	}
--	if (is_dma_capable() && musb->pDmaController) {
--		struct dma_controller	*c = musb->pDmaController;
-+	if (is_dma_capable() && musb->dma_controller) {
-+		struct dma_controller	*c = musb->dma_controller;
+ 	return 0;
+ }
+@@ -322,7 +322,7 @@ static irqreturn_t dma_controller_irq(int irq, void *private_data)
+ 							MGC_O_HSDMA_CONTROL));
  
- 		(void) c->stop(c->pPrivateData);
- 		dma_controller_destroy(c);
-@@ -1921,13 +1921,13 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
- 		struct dma_controller	*c;
+ 			if (wCsr & (1 << MGC_S_HSDMA_BUSERROR)) {
+-				pImplChannel->Channel.bStatus =
++				pImplChannel->Channel.status =
+ 				    MGC_DMA_STATUS_BUS_ABORT;
+ 			} else {
+ 				dwAddress = musb_readl(mbase,
+@@ -343,7 +343,7 @@ static irqreturn_t dma_controller_irq(int irq, void *private_data)
+ 				u8 devctl = musb_readb(mbase,
+ 						MGC_O_HDRC_DEVCTL);
  
- 		c = dma_controller_create(musb, musb->mregs);
--		musb->pDmaController = c;
-+		musb->dma_controller = c;
- 		if (c)
- 			(void) c->start(c->pPrivateData);
+-				pChannel->bStatus = MGC_DMA_STATUS_FREE;
++				pChannel->status = MGC_DMA_STATUS_FREE;
+ 
+ 				/* completed */
+ 				if ((devctl & MGC_M_DEVCTL_HM)
+--- a/drivers/usb/musb/tusb6010_omap.c
++++ b/drivers/usb/musb/tusb6010_omap.c
+@@ -202,7 +202,7 @@ static void tusb_omap_dma_cb(int lch, u16 ch_status, void *data)
+ 	if (!dmareq_works())
+ 		tusb_omap_free_shared_dmareq(chdat);
+ 
+-	channel->bStatus = MGC_DMA_STATUS_FREE;
++	channel->status = MGC_DMA_STATUS_FREE;
+ 
+ 	/* Handle only RX callbacks here. TX callbacks musb be handled based
+ 	 * on the TUSB DMA status interrupt.
+@@ -296,7 +296,7 @@ static int tusb_omap_dma_program(struct dma_channel *channel, u16 packet_sz,
+ 	chdat->len = len;
+ 	channel->actual_len = 0;
+ 	chdat->dma_addr = (void __iomem *)dma_addr;
+-	channel->bStatus = MGC_DMA_STATUS_BUSY;
++	channel->status = MGC_DMA_STATUS_BUSY;
+ 
+ 	/* Since we're recycling dma areas, we need to clean or invalidate */
+ 	if (chdat->tx) {
+@@ -430,7 +430,7 @@ static int tusb_omap_dma_abort(struct dma_channel *channel)
+ 		tusb_dma->sync_dev = -1;
  	}
- #endif
- 	/* ideally this would be abstracted in platform setup */
--	if (!is_dma_capable() || !musb->pDmaController)
-+	if (!is_dma_capable() || !musb->dma_controller)
- 		dev->dma_mask = NULL;
  
- 	/* be sure interrupts are disabled before connecting ISR */
-@@ -1961,7 +1961,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
- 			default:		s = "OTG"; break;
- 			}; s; }),
- 			ctrl,
--			(is_dma_capable() && musb->pDmaController)
-+			(is_dma_capable() && musb->dma_controller)
- 				? "DMA" : "PIO",
- 			musb->nIrq);
+-	channel->bStatus = MGC_DMA_STATUS_FREE;
++	channel->status = MGC_DMA_STATUS_FREE;
+ 
+ 	return 0;
+ }
+@@ -521,8 +521,8 @@ tusb_omap_dma_allocate(struct dma_controller *c,
+ 
+ 	for (i = 0; i < MAX_DMAREQ; i++) {
+ 		struct dma_channel *ch = dma_channel_pool[i];
+-		if (ch->bStatus == MGC_DMA_STATUS_UNKNOWN) {
+-			ch->bStatus = MGC_DMA_STATUS_FREE;
++		if (ch->status == MGC_DMA_STATUS_UNKNOWN) {
++			ch->status = MGC_DMA_STATUS_FREE;
+ 			channel = ch;
+ 			chdat = ch->private_data;
+ 			break;
+@@ -589,7 +589,7 @@ free_dmareq:
+ 	tusb_omap_dma_free_dmareq(chdat);
+ 
+ 	DBG(3, "ep%i: Could not get a DMA channel\n", chdat->epnum);
+-	channel->bStatus = MGC_DMA_STATUS_UNKNOWN;
++	channel->status = MGC_DMA_STATUS_UNKNOWN;
+ 
+ 	return NULL;
+ }
+@@ -617,7 +617,7 @@ static void tusb_omap_dma_release(struct dma_channel *channel)
+ 		reg |= (1 << (chdat->epnum + 15));
+ 	musb_writel(tusb_base, TUSB_DMA_INT_CLEAR, reg);
+ 
+-	channel->bStatus = MGC_DMA_STATUS_UNKNOWN;
++	channel->status = MGC_DMA_STATUS_UNKNOWN;
+ 
+ 	if (chdat->ch >= 0) {
+ 		omap_stop_dma(chdat->ch);
+@@ -702,7 +702,7 @@ dma_controller_create(struct musb *musb, void __iomem *base)
+ 		if (!chdat)
+ 			goto cleanup;
+ 
+-		ch->bStatus = MGC_DMA_STATUS_UNKNOWN;
++		ch->status = MGC_DMA_STATUS_UNKNOWN;
+ 		ch->private_data = chdat;
+ 	}
  
 -- 
 1.5.2.3
