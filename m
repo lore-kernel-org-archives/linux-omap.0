@@ -1,8 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 27/52] musb_hdrc: Search and replace bIsMultipoint with
-	is_multipoint
-Date: Mon, 13 Aug 2007 06:49:02 -0700
-Message-ID: <11870130343298-git-send-email-tony@atomide.com>
+Subject: [PATCH 45/52] musb_hdrc: Search and replace bResult with result
+Date: Mon, 13 Aug 2007 06:49:20 -0700
+Message-ID: <11870130891386-git-send-email-tony@atomide.com>
 References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<11870129702817-git-send-email-tony@atomide.com>
 	<11870129721700-git-send-email-tony@atomide.com>
@@ -30,8 +29,26 @@ References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<11870130272865-git-send-email-tony@atomide.com>
 	<1187013029823-git-send-email-tony@atomide.com>
 	<11870130314189-git-send-email-tony@atomide.com>
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11870130314189-git-send-email-tony@atomide.com>
+	<11870130343298-git-send-email-tony@atomide.com>
+	<11870130371106-git-send-email-tony@atomide.com>
+	<11870130411622-git-send-email-tony@atomide.com>
+	<1187013048432-git-send-email-tony@atomide.com>
+	<11870130521115-git-send-email-tony@atomide.com>
+	<11870130543254-git-send-email-tony@atomide.com>
+	<11870130573814-git-send-email-tony@atomide.com>
+	<1187013062890-git-send-email-tony@atomide.com>
+	<11870130643220-git-send-email-tony@atomide.com>
+	<1187013066263-git-send-email-tony@atomide.com>
+	<11870130701028-git-send-email-tony@atomide.com>
+	<1187013072449-git-send-email-tony@atomide.com>
+	<11870130741506-git-send-email-tony@atomide.com>
+	<11870130771666-git-send-email-tony@atomide.com>
+	<11870130793168-git-send-email-tony@atomide.com>
+	<11870130811602-git-send-email-tony@atomide.com>
+	<1187013084570-git-send-email-tony@atomide.com>
+	<11870130862981-git-send-email-tony@atomide.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <11870130862981-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -39,95 +56,84 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Search and replace bIsMultipoint with is_multipoint
+Search and replace bResult with result
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/musb_host.c   |    8 ++++----
- drivers/usb/musb/musb_procfs.c |    2 +-
- drivers/usb/musb/musbdefs.h    |    2 +-
- drivers/usb/musb/plat_uds.c    |    4 ++--
- 4 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/usb/musb/g_ep0.c |   22 +++++++++++-----------
+ 1 files changed, 11 insertions(+), 11 deletions(-)
 
---- a/drivers/usb/musb/musb_host.c
-+++ b/drivers/usb/musb/musb_host.c
-@@ -599,7 +599,7 @@ musb_rx_reinit(struct musb *musb, struct musb_qh *qh, struct musb_hw_ep *ep)
+--- a/drivers/usb/musb/g_ep0.c
++++ b/drivers/usb/musb/g_ep0.c
+@@ -76,29 +76,29 @@ static int service_tx_status_request(
+ {
+ 	void __iomem	*mbase = musb->mregs;
+ 	int handled = 1;
+-	u8 bResult[2], epnum = 0;
++	u8 result[2], epnum = 0;
+ 	const u8 bRecip = ctrlrequest->bRequestType & USB_RECIP_MASK;
+ 
+-	bResult[1] = 0;
++	result[1] = 0;
+ 
+ 	switch (bRecip) {
+ 	case USB_RECIP_DEVICE:
+-		bResult[0] = musb->is_self_powered << USB_DEVICE_SELF_POWERED;
+-		bResult[0] |= musb->may_wakeup << USB_DEVICE_REMOTE_WAKEUP;
++		result[0] = musb->is_self_powered << USB_DEVICE_SELF_POWERED;
++		result[0] |= musb->may_wakeup << USB_DEVICE_REMOTE_WAKEUP;
+ #ifdef CONFIG_USB_MUSB_OTG
+ 		if (musb->g.is_otg) {
+-			bResult[0] |= musb->g.b_hnp_enable
++			result[0] |= musb->g.b_hnp_enable
+ 				<< USB_DEVICE_B_HNP_ENABLE;
+-			bResult[0] |= musb->g.a_alt_hnp_support
++			result[0] |= musb->g.a_alt_hnp_support
+ 				<< USB_DEVICE_A_ALT_HNP_SUPPORT;
+-			bResult[0] |= musb->g.a_hnp_support
++			result[0] |= musb->g.a_hnp_support
+ 				<< USB_DEVICE_A_HNP_SUPPORT;
+ 		}
+ #endif
+ 		break;
+ 
+ 	case USB_RECIP_INTERFACE:
+-		bResult[0] = 0;
++		result[0] = 0;
+ 		break;
+ 
+ 	case USB_RECIP_ENDPOINT: {
+@@ -109,7 +109,7 @@ static int service_tx_status_request(
+ 
+ 		epnum = (u8) ctrlrequest->wIndex;
+ 		if (!epnum) {
+-			bResult[0] = 0;
++			result[0] = 0;
+ 			break;
+ 		}
+ 
+@@ -136,7 +136,7 @@ static int service_tx_status_request(
+ 						& MGC_M_RXCSR_P_SENDSTALL;
+ 		musb_ep_select(mbase, 0);
+ 
+-		bResult[0] = tmp ? 1 : 0;
++		result[0] = tmp ? 1 : 0;
+ 		} break;
+ 
+ 	default:
+@@ -151,7 +151,7 @@ static int service_tx_status_request(
+ 
+ 		if (len > 2)
+ 			len = 2;
+-		musb_write_fifo(&musb->endpoints[0], len, bResult);
++		musb_write_fifo(&musb->endpoints[0], len, result);
  	}
  
- 	/* target addr and (for multipoint) hub addr/port */
--	if (musb->bIsMultipoint) {
-+	if (musb->is_multipoint) {
- 		musb_writeb(ep->target_regs, MGC_O_HDRC_RXFUNCADDR,
- 			qh->addr_reg);
- 		musb_writeb(ep->target_regs, MGC_O_HDRC_RXHUBADDR,
-@@ -720,7 +720,7 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
- 		}
- 
- 		/* target addr and (for multipoint) hub addr/port */
--		if (musb->bIsMultipoint) {
-+		if (musb->is_multipoint) {
- 			musb_writeb(mbase,
- 				MGC_BUSCTL_OFFSET(epnum, MGC_O_HDRC_TXFUNCADDR),
- 				qh->addr_reg);
-@@ -748,7 +748,7 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
- 			musb_writeb(epio, MGC_O_HDRC_TXINTERVAL, qh->intv_reg);
- 		} else {
- 			musb_writeb(epio, MGC_O_HDRC_NAKLIMIT0, qh->intv_reg);
--			if (musb->bIsMultipoint)
-+			if (musb->is_multipoint)
- 				musb_writeb(epio, MGC_O_HDRC_TYPE0,
- 						qh->type_reg);
- 		}
-@@ -1850,7 +1850,7 @@ static int musb_urb_enqueue(
- 	qh->intv_reg = interval;
- 
- 	/* precompute addressing for external hub/tt ports */
--	if (musb->bIsMultipoint) {
-+	if (musb->is_multipoint) {
- 		struct usb_device	*parent = urb->dev->parent;
- 
- 		if (parent != hcd->self.root_hub) {
---- a/drivers/usb/musb/musb_procfs.c
-+++ b/drivers/usb/musb/musb_procfs.c
-@@ -490,7 +490,7 @@ static int dump_header_stats(struct musb *musb, char *buffer)
- 	*buffer = 0;
- 	count = sprintf(buffer, "Status: %sHDRC, Mode=%s "
- 				"(Power=%02x, DevCtl=%02x)\n",
--			(musb->bIsMultipoint ? "M" : ""), MUSB_MODE(musb),
-+			(musb->is_multipoint ? "M" : ""), MUSB_MODE(musb),
- 			musb_readb(mbase, MGC_O_HDRC_POWER),
- 			musb_readb(mbase, MGC_O_HDRC_DEVCTL));
- 	if (count <= 0)
---- a/drivers/usb/musb/musbdefs.h
-+++ b/drivers/usb/musb/musbdefs.h
-@@ -395,7 +395,7 @@ struct musb {
- 	/* active means connected and not suspended */
- 	unsigned		is_active:1;
- 
--	unsigned bIsMultipoint:1;
-+	unsigned is_multipoint:1;
- 	unsigned is_host:1;
- 	unsigned bIgnoreDisconnect:1;	/* during bus resets */
- 
---- a/drivers/usb/musb/plat_uds.c
-+++ b/drivers/usb/musb/plat_uds.c
-@@ -1310,10 +1310,10 @@ static int __init musb_core_init(u16 wType, struct musb *musb)
- 	aDate[0] = 0;
- #endif
- 	if (MUSB_CONTROLLER_MHDRC == wType) {
--		musb->bIsMultipoint = 1;
-+		musb->is_multipoint = 1;
- 		type = "M";
- 	} else {
--		musb->bIsMultipoint = 0;
-+		musb->is_multipoint = 0;
- 		type = "";
- #ifdef CONFIG_USB_MUSB_HDRC_HCD
- #ifndef	CONFIG_USB_OTG_BLACKLIST_HUB
+ 	return handled;
 -- 
 1.5.2.3
