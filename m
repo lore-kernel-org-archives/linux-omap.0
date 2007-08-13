@@ -1,8 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 30/52] musb_hdrc: Search and replace bBulkCombine with
-	bulk_combine
-Date: Mon, 13 Aug 2007 06:49:05 -0700
-Message-ID: <1187013048432-git-send-email-tony@atomide.com>
+Subject: [PATCH 32/52] musb_hdrc: Search and replace bTestModeValue with
+	test_mode_nr
+Date: Mon, 13 Aug 2007 06:49:07 -0700
+Message-ID: <11870130543254-git-send-email-tony@atomide.com>
 References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<11870129702817-git-send-email-tony@atomide.com>
 	<11870129721700-git-send-email-tony@atomide.com>
@@ -33,8 +33,10 @@ References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<11870130343298-git-send-email-tony@atomide.com>
 	<11870130371106-git-send-email-tony@atomide.com>
 	<11870130411622-git-send-email-tony@atomide.com>
+	<1187013048432-git-send-email-tony@atomide.com>
+	<11870130521115-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11870130411622-git-send-email-tony@atomide.com>
+In-Reply-To: <11870130521115-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -47,40 +49,70 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Search and replace bBulkCombine with bulk_combine
+Search and replace bTestModeValue with test_mode_nr
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/musbdefs.h |    4 ++--
- drivers/usb/musb/plat_uds.c |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/usb/musb/g_ep0.c    |   12 ++++++------
+ drivers/usb/musb/musbdefs.h |    2 +-
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
+--- a/drivers/usb/musb/g_ep0.c
++++ b/drivers/usb/musb/g_ep0.c
+@@ -306,25 +306,25 @@ __acquires(musb->lock)
+ 					case 1:
+ 						pr_debug("TEST_J\n");
+ 						/* TEST_J */
+-						musb->bTestModeValue =
++						musb->test_mode_nr =
+ 							MGC_M_TEST_J;
+ 						break;
+ 					case 2:
+ 						/* TEST_K */
+ 						pr_debug("TEST_K\n");
+-						musb->bTestModeValue =
++						musb->test_mode_nr =
+ 							MGC_M_TEST_K;
+ 						break;
+ 					case 3:
+ 						/* TEST_SE0_NAK */
+ 						pr_debug("TEST_SE0_NAK\n");
+-						musb->bTestModeValue =
++						musb->test_mode_nr =
+ 							MGC_M_TEST_SE0_NAK;
+ 						break;
+ 					case 4:
+ 						/* TEST_PACKET */
+ 						pr_debug("TEST_PACKET\n");
+-						musb->bTestModeValue =
++						musb->test_mode_nr =
+ 							MGC_M_TEST_PACKET;
+ 						break;
+ 					default:
+@@ -670,11 +670,11 @@ irqreturn_t musb_g_ep0_irq(struct musb *musb)
+ 		else if (musb->bTestMode) {
+ 			DBG(1, "entering TESTMODE\n");
+ 
+-			if (MGC_M_TEST_PACKET == musb->bTestModeValue)
++			if (MGC_M_TEST_PACKET == musb->test_mode_nr)
+ 				musb_load_testpacket(musb);
+ 
+ 			musb_writeb(mbase, MGC_O_HDRC_TESTMODE,
+-					musb->bTestModeValue);
++					musb->test_mode_nr);
+ 		}
+ 		/* FALLTHROUGH */
+ 
 --- a/drivers/usb/musb/musbdefs.h
 +++ b/drivers/usb/musb/musbdefs.h
-@@ -411,11 +411,11 @@ struct musb {
- #endif
+@@ -443,7 +443,7 @@ struct musb {
  
- #ifdef C_MP_RX
--	unsigned bBulkCombine:1;
-+	unsigned bulk_combine:1;
- 	/* REVISIT allegedly doesn't work reliably */
- #if 0
- #define	can_bulk_combine(musb,type) \
--		(((type) == USB_ENDPOINT_XFER_BULK) && (musb)->bBulkCombine)
-+		(((type) == USB_ENDPOINT_XFER_BULK) && (musb)->bulk_combine)
- #else
- #define	can_bulk_combine(musb,type)	0
- #endif
---- a/drivers/usb/musb/plat_uds.c
-+++ b/drivers/usb/musb/plat_uds.c
-@@ -1267,7 +1267,7 @@ static int __init musb_core_init(u16 wType, struct musb *musb)
- 	if (reg & MGC_M_CONFIGDATA_MPRXE) {
- 		strcat(aInfo, ", bulk combine");
- #ifdef C_MP_RX
--		musb->bBulkCombine = TRUE;
-+		musb->bulk_combine = TRUE;
- #else
- 		strcat(aInfo, " (X)");		/* no driver support */
- #endif
+ 	enum musb_g_ep0_state	ep0_state;
+ 	u8			address;
+-	u8			bTestModeValue;
++	u8			test_mode_nr;
+ 	u16			ackpend;		/* ep0 */
+ 	struct usb_gadget	g;			/* the gadget */
+ 	struct usb_gadget_driver *pGadgetDriver;	/* its driver */
 -- 
 1.5.2.3
