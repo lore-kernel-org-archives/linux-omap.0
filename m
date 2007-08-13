@@ -1,7 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 52/52] musb_hdrc: Search and replace channelNum with chnum
-Date: Mon, 13 Aug 2007 06:49:27 -0700
-Message-ID: <11870131073851-git-send-email-tony@atomide.com>
+Subject: [PATCH 35/52] musb_hdrc: Search and replace bDelayPortPowerOff with
+	delay_port_power_off
+Date: Mon, 13 Aug 2007 06:49:10 -0700
+Message-ID: <11870130643220-git-send-email-tony@atomide.com>
 References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<11870129702817-git-send-email-tony@atomide.com>
 	<11870129721700-git-send-email-tony@atomide.com>
@@ -37,25 +38,8 @@ References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<11870130543254-git-send-email-tony@atomide.com>
 	<11870130573814-git-send-email-tony@atomide.com>
 	<1187013062890-git-send-email-tony@atomide.com>
-	<11870130643220-git-send-email-tony@atomide.com>
-	<1187013066263-git-send-email-tony@atomide.com>
-	<11870130701028-git-send-email-tony@atomide.com>
-	<1187013072449-git-send-email-tony@atomide.com>
-	<11870130741506-git-send-email-tony@atomide.com>
-	<11870130771666-git-send-email-tony@atomide.com>
-	<11870130793168-git-send-email-tony@atomide.com>
-	<11870130811602-git-send-email-tony@atomide.com>
-	<1187013084570-git-send-email-tony@atomide.com>
-	<11870130862981-git-send-email-tony@atomide.com>
-	<11870130891386-git-send-email-tony@atomide.com>
-	<11870130913983-git-send-email-tony@atomide.com>
-	<11870130932989-git-send-email-tony@atomide.com>
-	<11870130953685-git-send-email-tony@atomide.com>
-	<118701309984-git-send-email-tony@atomide.com>
-	<11870131023809-git-send-email-tony@atomide.com>
-	<11870131044061-git-send-email-tony@atomide.com>
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <11870131044061-git-send-email-tony@atomide.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <1187013062890-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -63,34 +47,52 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Search and replace channelNum with chnum
+Search and replace bDelayPortPowerOff with delay_port_power_off
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/davinci.h |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/usb/musb/musbdefs.h |    2 +-
+ drivers/usb/musb/plat_uds.c |    2 +-
+ drivers/usb/musb/virthub.c  |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/drivers/usb/musb/davinci.h
-+++ b/drivers/usb/musb/davinci.h
-@@ -64,10 +64,10 @@
- /* CPPI state RAM entries */
- #define DAVINCI_CPPI_STATERAM_BASE_OFFSET   0x100
+--- a/drivers/usb/musb/musbdefs.h
++++ b/drivers/usb/musb/musbdefs.h
+@@ -451,7 +451,7 @@ struct musb {
  
--#define DAVINCI_TXCPPI_STATERAM_OFFSET(channelNum) \
--	(DAVINCI_CPPI_STATERAM_BASE_OFFSET +       ((channelNum)* 0x40))
--#define DAVINCI_RXCPPI_STATERAM_OFFSET(channelNum) \
--	(DAVINCI_CPPI_STATERAM_BASE_OFFSET + 0x20 +((channelNum)* 0x40))
-+#define DAVINCI_TXCPPI_STATERAM_OFFSET(chnum) \
-+	(DAVINCI_CPPI_STATERAM_BASE_OFFSET +       ((chnum)* 0x40))
-+#define DAVINCI_RXCPPI_STATERAM_OFFSET(chnum) \
-+	(DAVINCI_CPPI_STATERAM_BASE_OFFSET + 0x20 +((chnum)* 0x40))
+ #ifdef CONFIG_USB_MUSB_OTG
+ 	/* FIXME this can't be OTG-specific ... ? */
+-	u8 bDelayPortPowerOff;
++	u8 delay_port_power_off;
+ #endif
  
- /* CPPI masks */
- #define DAVINCI_DMA_CTRL_ENABLE		1
+ #ifdef MUSB_CONFIG_PROC_FS
+--- a/drivers/usb/musb/plat_uds.c
++++ b/drivers/usb/musb/plat_uds.c
+@@ -557,7 +557,7 @@ static irqreturn_t musb_stage0_irq(struct musb * musb, u8 bIntrUSB,
+ 		if (is_peripheral_active(musb)) {
+ 			// REVISIT HNP; just force disconnect
+ 		}
+-		musb->bDelayPortPowerOff = FALSE;
++		musb->delay_port_power_off = FALSE;
+ 		musb_writew(mbase, MGC_O_HDRC_INTRTXE, musb->wEndMask);
+ 		musb_writew(mbase, MGC_O_HDRC_INTRRXE, musb->wEndMask & 0xfffe);
+ 		musb_writeb(mbase, MGC_O_HDRC_INTRUSBE, 0xf7);
+--- a/drivers/usb/musb/virthub.c
++++ b/drivers/usb/musb/virthub.c
+@@ -116,7 +116,7 @@ static void musb_port_reset(struct musb *musb, u8 bReset)
+ 	/* REVISIT this looks wrong for HNP */
+ 	u8 devctl = musb_readb(mbase, MGC_O_HDRC_DEVCTL);
+ 
+-	if (musb->bDelayPortPowerOff || !(devctl & MGC_M_DEVCTL_HM)) {
++	if (musb->delay_port_power_off || !(devctl & MGC_M_DEVCTL_HM)) {
+ 		return;
+ 	}
+ #endif
 -- 
 1.5.2.3
