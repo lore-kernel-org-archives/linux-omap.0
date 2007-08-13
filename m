@@ -1,68 +1,56 @@
-From: "Satyam Sharma" <satyam.sharma@gmail.com>
-Subject: Re: [PATCH] [472/2many] MAINTAINERS - TI OMAP MMC INTERFACE DRIVER
-Date: Mon, 13 Aug 2007 21:21:58 +0530
-Message-ID: <a781481a0708130851v4499dddfp2b62ba206856a5b3@mail.gmail.com>
-References: <46bffc14.hGERPpPFcYe9DKoT%joe@perches.com>
-	 <20070813121807.26014455@the-village.bc.nu>
-	 <a781481a0708130840w688e7a2eua7d7b5ec89bc5ad4@mail.gmail.com>
+From: Kevin Hilman <khilman@mvista.com>
+Subject: Re: Pending patches, was: Git tree updated to 2.6.23-rc2
+Date: Mon, 13 Aug 2007 09:59:01 -0700
+Message-ID: <46C08DD5.5090001@mvista.com>
+References: <20070806125225.GA2312@atomide.com> <46BCB2BD.1090905@mvista.com>
+	<3B6D69C3A9EBCA4BA5DA60D913027429019C4F78@dlee13.ent.ti.com>
+	<20070813090623.GK13948@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S947362AbXHMQn2@vger.kernel.org>
-In-Reply-To: <a781481a0708130840w688e7a2eua7d7b5ec89bc5ad4@mail.gmail.com>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: joe@perches.com, torvalds@linux-foundation.org, linux-omap-open-source@linux.omap.com, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20070813090623.GK13948@atomide.com>
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On 8/13/07, Satyam Sharma <satyam.sharma@gmail.com> wrote:
-> On 8/13/07, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
-> > On Sun, 12 Aug 2007 23:37:08 -0700
-> > joe@perches.com wrote:
-> >
-> > > Add file pattern to MAINTAINER entry
-> > >
-> > > Signed-off-by: Joe Perches <joe@perches.com>
-> > >
-> > > diff --git a/MAINTAINERS b/MAINTAINERS
-> > > index af16a17..7a7f837 100644
-> > > --- a/MAINTAINERS
-> > > +++ b/MAINTAINERS
-> > > @@ -4478,7 +4478,7 @@ F:      drivers/misc/tifm*
-> > >  F:   drivers/mmc/host/tifm_sd.c
-> > >
-> > >  TI OMAP MMC INTERFACE DRIVER
-> > > -P:   Carlos Aguiar, Anderson Briglia and Syed Khasim
-> > > +P:   Carlos Aguiar - Anderson Briglia - Syed Khasim
-> >
-> > NAK, Please stop sneaking other irrelevant changes into the patchset
->
-> Joe, it's okay to have multiple "P:" entries for the same driver/subsystem
-> in MAINTAINERS (grep BLACKFIN ARCHITECTURE for an extreme example :-)
-> So you could probably do something like that here as well (but continue
-> to have a single "M:" entry),
+Tony Lindgren wrote:
+> * Woodruff, Richard <r-woodruff2@ti.com> [070810 13:16]:
+>>> Can you undo this 1/3 nand patch?  2430 doesn't build without the other
+>>> 2 patches due to some missing header (asm/arch/nand.h) that come with
+>>> the later patches.
+>> Kevin for compiles sake I added the missing patches instead of removing.
+> 
+> I reverted the 1/3 nand patch, and applied Richard's two fixes.
+> I'll take a closer look at the nand patch this week, let's try to
+> get things working for 2430 soon.
+> 
+>> There were a couple more fixes which I also added to get it booting.
+>> 	- update defconfig to have vfp
+>> 	- add missing TWL patch
+> 
+> I did not see a TWL patch in your attached patch?
 
-Well, three maintainers listed for this driver, but the only email address
-they want to give out there is:
+Not sure if this is the same one Richard had, but this is what's needed
+for a proper build of the 2430 LCD (which stil doesn't work :)
 
-linux-omap-open-source@linux.omap.com
-
-which leads to:
-
-"You are not allowed to post to this mailing list, and your message has
-been automatically rejected.  If you think that your messages are
-being rejected in error, contact the mailing list owner at
-linux-omap-open-source-owner@linux.omap.com."
-
-I think the real "bad patch" that should've been "NAK"ed here was the
-original patch to MAINTAINERS itself that introduced this entry.
-
-
-> though as Alan mentions it isn't really good
-> to make different kind of changes in the same patch.
->
-> BTW bad, sad, things happened to my mailbox while I was away :-(
->
-> Satyam
->
+index 6e5b603..a252d82 100644
+--- a/drivers/video/omap/lcd_2430sdp.c
++++ b/drivers/video/omap/lcd_2430sdp.c
+@@ -32,7 +32,7 @@
+ #define LCD_PANEL_BACKLIGHT_GPIO	91
+ #define LCD_PANEL_ENABLE_GPIO		154
+ #define LCD_PIXCLOCK_MAX		5400 /* freq 5.4 MHz */
+-#define PM_RECEIVER             TWL4030_MODULE_PM_RECIEVER
++#define PM_RECEIVER             TWL4030_MODULE_PM_RECEIVER
+ #define ENABLE_VAUX2_DEDICATED  0x09
+ #define ENABLE_VAUX2_DEV_GRP    0x20
