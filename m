@@ -1,8 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 14/52] musb_hdrc: Search and replace bEndCount with
-	nr_endpoints
-Date: Mon, 13 Aug 2007 06:48:49 -0700
-Message-ID: <11870130023665-git-send-email-tony@atomide.com>
+Subject: [PATCH 25/52] musb_hdrc: Search and replace wMaxPacketSizeRx with
+	max_packet_sz_rx
+Date: Mon, 13 Aug 2007 06:49:00 -0700
+Message-ID: <1187013029823-git-send-email-tony@atomide.com>
 References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<11870129702817-git-send-email-tony@atomide.com>
 	<11870129721700-git-send-email-tony@atomide.com>
@@ -17,8 +17,19 @@ References: musb <11870129672745-git-send-email-tony@atomide.com>
 	<1187012995338-git-send-email-tony@atomide.com>
 	<1187012998290-git-send-email-tony@atomide.com>
 	<1187013000811-git-send-email-tony@atomide.com>
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1187013000811-git-send-email-tony@atomide.com>
+	<11870130023665-git-send-email-tony@atomide.com>
+	<11870130052666-git-send-email-tony@atomide.com>
+	<1187013007355-git-send-email-tony@atomide.com>
+	<11870130103320-git-send-email-tony@atomide.com>
+	<11870130122117-git-send-email-tony@atomide.com>
+	<11870130153038-git-send-email-tony@atomide.com>
+	<11870130183634-git-send-email-tony@atomide.com>
+	<11870130203742-git-send-email-tony@atomide.com>
+	<1187013022688-git-send-email-tony@atomide.com>
+	<1187013024836-git-send-email-tony@atomide.com>
+	<11870130272865-git-send-email-tony@atomide.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <11870130272865-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -26,130 +37,150 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Search and replace bEndCount with nr_endpoints
+Search and replace wMaxPacketSizeRx with max_packet_sz_rx
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/musb_gadget.c |    4 ++--
+ drivers/usb/musb/musb_gadget.c |    8 ++++----
  drivers/usb/musb/musb_host.c   |    2 +-
- drivers/usb/musb/musb_procfs.c |    4 ++--
  drivers/usb/musb/musbdefs.h    |    2 +-
- drivers/usb/musb/plat_uds.c    |   10 +++++-----
- 5 files changed, 11 insertions(+), 11 deletions(-)
+ drivers/usb/musb/plat_uds.c    |   18 +++++++++---------
+ 4 files changed, 15 insertions(+), 15 deletions(-)
 
 --- a/drivers/usb/musb/musb_gadget.c
 +++ b/drivers/usb/musb/musb_gadget.c
-@@ -1601,7 +1601,7 @@ static inline void __init musb_g_init_endpoints(struct musb *musb)
- 	INIT_LIST_HEAD(&(musb->g.ep_list));
+@@ -930,7 +930,7 @@ static int musb_gadget_enable(struct usb_ep *ep,
+ 			musb_ep->is_in = 0;
+ 		if (musb_ep->is_in)
+ 			goto fail;
+-		if (tmp > hw_ep->wMaxPacketSizeRx)
++		if (tmp > hw_ep->max_packet_sz_rx)
+ 			goto fail;
  
- 	for (bEnd = 0, hw_ep = musb->endpoints;
--			bEnd < musb->bEndCount;
-+			bEnd < musb->nr_endpoints;
- 			bEnd++, hw_ep++) {
- 		if (hw_ep->bIsSharedFifo /* || !bEnd */) {
- 			init_peripheral_ep(musb, &hw_ep->ep_in, bEnd, 0);
-@@ -1797,7 +1797,7 @@ stop_activity(struct musb *musb, struct usb_gadget_driver *driver)
- 	 */
- 	if (driver) {
- 		for (i = 0, hw_ep = musb->endpoints;
--				i < musb->bEndCount;
-+				i < musb->nr_endpoints;
- 				i++, hw_ep++) {
- 			MGC_SelectEnd(musb->mregs, i);
- 			if (hw_ep->bIsSharedFifo /* || !bEnd */) {
+ 		wIntrRxE |= (1 << epnum);
+@@ -1581,7 +1581,7 @@ init_peripheral_ep(struct musb *musb, struct musb_ep *ep, u8 epnum, int is_in)
+ 		if (is_in)
+ 			ep->end_point.maxpacket = hw_ep->max_packet_sz_tx;
+ 		else
+-			ep->end_point.maxpacket = hw_ep->wMaxPacketSizeRx;
++			ep->end_point.maxpacket = hw_ep->max_packet_sz_rx;
+ 		ep->end_point.ops = &musb_ep_ops;
+ 		list_add_tail(&ep->end_point.ep_list, &musb->g.ep_list);
+ 	}
+@@ -1612,7 +1612,7 @@ static inline void __init musb_g_init_endpoints(struct musb *musb)
+ 							epnum, 1);
+ 				count++;
+ 			}
+-			if (hw_ep->wMaxPacketSizeRx) {
++			if (hw_ep->max_packet_sz_rx) {
+ 				init_peripheral_ep(musb, &hw_ep->ep_out,
+ 							epnum, 0);
+ 				count++;
+@@ -1805,7 +1805,7 @@ stop_activity(struct musb *musb, struct usb_gadget_driver *driver)
+ 			} else {
+ 				if (hw_ep->max_packet_sz_tx)
+ 					nuke(&hw_ep->ep_in, -ESHUTDOWN);
+-				if (hw_ep->wMaxPacketSizeRx)
++				if (hw_ep->max_packet_sz_rx)
+ 					nuke(&hw_ep->ep_out, -ESHUTDOWN);
+ 			}
+ 		}
 --- a/drivers/usb/musb/musb_host.c
 +++ b/drivers/usb/musb/musb_host.c
-@@ -1706,7 +1706,7 @@ static int musb_schedule(
- 	wBestDiff = 4096;
- 	nBestEnd = -1;
+@@ -1716,7 +1716,7 @@ static int musb_schedule(
+ 			continue;
  
--	for (nEnd = 1; nEnd < musb->bEndCount; nEnd++) {
-+	for (nEnd = 1; nEnd < musb->nr_endpoints; nEnd++) {
- 		int	diff;
+ 		if (is_in)
+-			diff = hw_ep->wMaxPacketSizeRx - qh->maxpacket;
++			diff = hw_ep->max_packet_sz_rx - qh->maxpacket;
+ 		else
+ 			diff = hw_ep->max_packet_sz_tx - qh->maxpacket;
  
- 		if (musb->periodic[nEnd])
---- a/drivers/usb/musb/musb_procfs.c
-+++ b/drivers/usb/musb/musb_procfs.c
-@@ -528,7 +528,7 @@ static int dump_header_stats(struct musb *musb, char *buffer)
- #endif
- 			", debug=%d [eps=%d]\n",
- 		debug,
--		musb->bEndCount);
-+		musb->nr_endpoints);
- 	if (code <= 0)
- 		goto done;
- 	count += code;
-@@ -802,7 +802,7 @@ static int musb_proc_read(char *page, char **start,
- 
- 	/* generate the report for the end points */
- 	// REVISIT ... not unless something's connected!
--	for (bEnd = 0; count >= 0 && bEnd < musb->bEndCount;
-+	for (bEnd = 0; count >= 0 && bEnd < musb->nr_endpoints;
- 			bEnd++) {
- 		code = dump_end_info(musb, bEnd, buffer, count);
- 		if (code > 0) {
 --- a/drivers/usb/musb/musbdefs.h
 +++ b/drivers/usb/musb/musbdefs.h
-@@ -403,7 +403,7 @@ struct musb {
- #define VBUSERR_RETRY_COUNT	3
- 	u16			vbuserr_retry;
- 	u16 wEndMask;
--	u8 bEndCount;
-+	u8 nr_endpoints;
+@@ -270,7 +270,7 @@ struct musb_hw_ep {
+ 	u8			tx_double_buffered;
+ 	u8			rx_double_buffered;
+ 	u16			max_packet_sz_tx;
+-	u16			wMaxPacketSizeRx;
++	u16			max_packet_sz_rx;
  
- 	u8 board_mode;		/* enum musb_mode */
- 	int			(*board_set_power)(int state);
+ 	struct dma_channel	*tx_channel;
+ 	struct dma_channel	*rx_channel;
 --- a/drivers/usb/musb/plat_uds.c
 +++ b/drivers/usb/musb/plat_uds.c
-@@ -671,7 +671,7 @@ static irqreturn_t musb_stage2_irq(struct musb * musb, u8 bIntrUSB,
- 		/* start any periodic Tx transfers waiting for current frame */
- 		wFrame = musb_readw(mbase, MGC_O_HDRC_FRAME);
- 		ep = musb->endpoints;
--		for (bEnd = 1; (bEnd < musb->bEndCount)
-+		for (bEnd = 1; (bEnd < musb->nr_endpoints)
- 					&& (musb->wEndMask >= (1 << bEnd));
- 				bEnd++, ep++) {
- 			// FIXME handle framecounter wraps (12 bits)
-@@ -1153,7 +1153,7 @@ static int __init ep_config_from_table(struct musb *musb)
- 			return -EINVAL;
- 		}
- 		epn++;
--		musb->bEndCount = max(epn, musb->bEndCount);
-+		musb->nr_endpoints = max(epn, musb->nr_endpoints);
- 	}
+@@ -1065,13 +1065,13 @@ fifo_setup(struct musb *musb, struct musb_hw_ep  *hw_ep,
+ 		musb_writeb(mbase, MGC_O_HDRC_RXFIFOSZ, c_size);
+ 		musb_writew(mbase, MGC_O_HDRC_RXFIFOADD, c_off);
+ 		hw_ep->rx_double_buffered = !!(c_size & MGC_M_FIFOSZ_DPB);
+-		hw_ep->wMaxPacketSizeRx = maxpacket;
++		hw_ep->max_packet_sz_rx = maxpacket;
+ 		break;
+ 	case FIFO_RXTX:
+ 		musb_writeb(mbase, MGC_O_HDRC_TXFIFOSZ, c_size);
+ 		musb_writew(mbase, MGC_O_HDRC_TXFIFOADD, c_off);
+ 		hw_ep->rx_double_buffered = !!(c_size & MGC_M_FIFOSZ_DPB);
+-		hw_ep->wMaxPacketSizeRx = maxpacket;
++		hw_ep->max_packet_sz_rx = maxpacket;
  
- 	printk(KERN_DEBUG "%s: %d/%d max ep, %d/%d memory\n",
-@@ -1196,7 +1196,7 @@ static int __init ep_config_from_hw(struct musb *musb)
- 			/* 0's returned when no more endpoints */
- 			break;
- 		}
--		musb->bEndCount++;
-+		musb->nr_endpoints++;
- 		musb->wEndMask |= (1 << bEnd);
+ 		musb_writeb(mbase, MGC_O_HDRC_RXFIFOSZ, c_size);
+ 		musb_writew(mbase, MGC_O_HDRC_RXFIFOADD, c_off);
+@@ -1203,11 +1203,11 @@ static int __init ep_config_from_hw(struct musb *musb)
  
- 		hw_ep->wMaxPacketSizeTx = 1 << (reg & 0x0f);
-@@ -1338,7 +1338,7 @@ static int __init musb_core_init(u16 wType, struct musb *musb)
- 	musb->endpoints[0].wMaxPacketSizeRx = MGC_END0_FIFOSIZE;
+ 		/* shared TX/RX FIFO? */
+ 		if ((reg & 0xf0) == 0xf0) {
+-			hw_ep->wMaxPacketSizeRx = hw_ep->max_packet_sz_tx;
++			hw_ep->max_packet_sz_rx = hw_ep->max_packet_sz_tx;
+ 			hw_ep->is_shared_fifo = TRUE;
+ 			continue;
+ 		} else {
+-			hw_ep->wMaxPacketSizeRx = 1 << ((reg & 0xf0) >> 4);
++			hw_ep->max_packet_sz_rx = 1 << ((reg & 0xf0) >> 4);
+ 			hw_ep->is_shared_fifo = FALSE;
+ 		}
+ 
+@@ -1216,7 +1216,7 @@ static int __init ep_config_from_hw(struct musb *musb)
+ #ifdef CONFIG_USB_MUSB_HDRC_HCD
+ 		/* pick an RX/TX endpoint for bulk */
+ 		if (hw_ep->max_packet_sz_tx < 512
+-				|| hw_ep->wMaxPacketSizeRx < 512)
++				|| hw_ep->max_packet_sz_rx < 512)
+ 			continue;
+ 
+ 		/* REVISIT:  this algorithm is lazy, we should at least
+@@ -1335,7 +1335,7 @@ static int __init musb_core_init(u16 wType, struct musb *musb)
+ 
+ 	/* configure ep0 */
+ 	musb->endpoints[0].max_packet_sz_tx = MGC_END0_FIFOSIZE;
+-	musb->endpoints[0].wMaxPacketSizeRx = MGC_END0_FIFOSIZE;
++	musb->endpoints[0].max_packet_sz_rx = MGC_END0_FIFOSIZE;
  
  	/* discover endpoint configuration */
--	musb->bEndCount = 1;
-+	musb->nr_endpoints = 1;
- 	musb->wEndMask = 1;
+ 	musb->nr_endpoints = 1;
+@@ -1393,16 +1393,16 @@ static int __init musb_core_init(u16 wType, struct musb *musb)
+ 					? "doublebuffer, " : "",
+ 				hw_ep->max_packet_sz_tx);
+ 		}
+-		if (hw_ep->wMaxPacketSizeRx && !hw_ep->is_shared_fifo) {
++		if (hw_ep->max_packet_sz_rx && !hw_ep->is_shared_fifo) {
+ 			printk(KERN_DEBUG
+ 				"%s: hw_ep %d%s, %smax %d\n",
+ 				musb_driver_name, i,
+ 				"rx",
+ 				hw_ep->rx_double_buffered
+ 					? "doublebuffer, " : "",
+-				hw_ep->wMaxPacketSizeRx);
++				hw_ep->max_packet_sz_rx);
+ 		}
+-		if (!(hw_ep->max_packet_sz_tx || hw_ep->wMaxPacketSizeRx))
++		if (!(hw_ep->max_packet_sz_tx || hw_ep->max_packet_sz_rx))
+ 			DBG(1, "hw_ep %d not configured\n", i);
+ 	}
  
- 	if (reg & MGC_M_CONFIGDATA_DYNFIFO) {
-@@ -1361,7 +1361,7 @@ static int __init musb_core_init(u16 wType, struct musb *musb)
- 		return status;
- 
- 	/* finish init, and print endpoint config */
--	for (i = 0; i < musb->bEndCount; i++) {
-+	for (i = 0; i < musb->nr_endpoints; i++) {
- 		struct musb_hw_ep	*hw_ep = musb->endpoints + i;
- 
- 		hw_ep->fifo = MUSB_FIFO_OFFSET(i) + mbase;
 -- 
 1.5.2.3
