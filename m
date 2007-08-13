@@ -1,14 +1,11 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Pending patches, was: Git tree updated to 2.6.23-rc2
-Date: Mon, 13 Aug 2007 02:06:23 -0700
-Message-ID: <20070813090623.GK13948@atomide.com>
-References: <20070806125225.GA2312@atomide.com> <46BCB2BD.1090905@mvista.com>
-	<3B6D69C3A9EBCA4BA5DA60D913027429019C4F78@dlee13.ent.ti.com>
+From: Yogesh Tillu <yogesh.tillu@celunite.com>
+Subject: Rotation Support for omap850
+Date: Mon, 13 Aug 2007 15:03:13 +0530
+Message-ID: <1186997593.5637.2.camel@yogesh>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D913027429019C4F78@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,33 +15,24 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Woodruff, Richard <r-woodruff2@ti.com> [070810 13:16]:
-> > Can you undo this 1/3 nand patch?  2430 doesn't build without the other
-> > 2 patches due to some missing header (asm/arch/nand.h) that come with
-> > the later patches.
-> 
-> Kevin for compiles sake I added the missing patches instead of removing.
+Hi all , 
+           I m trying to rotate image by 90,180,270
+ on omap850 board.
+ For 180 it works fine , but for 90 & 270 it doesnt
+ work .The image seems to be splitted for 90 & 270.
+           Does anyone tried rotation for 90,270 for
+ the omap850 ?
+ Omap850 uses dma to transfer the video content.
+             please update me on this.
+             Thanks in advance 
+ 
+-- 
+----
+Cheers Yogesh 
 
-I reverted the 1/3 nand patch, and applied Richard's two fixes.
-I'll take a closer look at the nand patch this week, let's try to
-get things working for 2430 soon.
-
-> There were a couple more fixes which I also added to get it booting.
-> 	- update defconfig to have vfp
-> 	- add missing TWL patch
-
-I did not see a TWL patch in your attached patch?
-
-> 	- add in micron path
-> 	- fix clock build error
-> 	- turn back on by default omap_clocks (we use this at run time)
-> 
-> Strongly, the MPU is starting at 165MHz instead of 330...  Some new bug I suppose.
-
-Regards,
-
-Tony
+Yogesh Tillu 
+Linux kernel Team  
+Celunite Soft System (www.celunite.com).
