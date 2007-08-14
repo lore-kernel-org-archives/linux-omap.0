@@ -1,15 +1,17 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: Pending patches, was: Git tree updated to 2.6.23-rc2
-Date: Mon, 13 Aug 2007 09:59:01 -0700
-Message-ID: <46C08DD5.5090001@mvista.com>
-References: <20070806125225.GA2312@atomide.com> <46BCB2BD.1090905@mvista.com>
-	<3B6D69C3A9EBCA4BA5DA60D913027429019C4F78@dlee13.ent.ti.com>
-	<20070813090623.GK13948@atomide.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch 2.6.23-rc2-omap1] H4 support for tsc210x
+Date: Mon, 13 Aug 2007 22:40:03 -0700
+Message-ID: <200708132240.03264.david-b@pacbell.net>
+References: <fb249edb0706040644w55ac4c55k495ae2050f94aea0@mail.gmail.com>
+	<200708102004.59747.david-b@pacbell.net>
+	<20070813070512.GC13948@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070813090623.GK13948@atomide.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20070813070512.GC13948@atomide.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,40 +19,87 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap-open-source@linux.omap.com
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren wrote:
-> * Woodruff, Richard <r-woodruff2@ti.com> [070810 13:16]:
->>> Can you undo this 1/3 nand patch?  2430 doesn't build without the other
->>> 2 patches due to some missing header (asm/arch/nand.h) that come with
->>> the later patches.
->> Kevin for compiles sake I added the missing patches instead of removing.
-> 
-> I reverted the 1/3 nand patch, and applied Richard's two fixes.
-> I'll take a closer look at the nand patch this week, let's try to
-> get things working for 2430 soon.
-> 
->> There were a couple more fixes which I also added to get it booting.
->> 	- update defconfig to have vfp
->> 	- add missing TWL patch
-> 
-> I did not see a TWL patch in your attached patch?
+H4 board support now lists its tsc210x touchscreen/sensor/codec chip.
 
-Not sure if this is the same one Richard had, but this is what's needed
-for a proper build of the 2430 LCD (which stil doesn't work :)
-
-index 6e5b603..a252d82 100644
---- a/drivers/video/omap/lcd_2430sdp.c
-+++ b/drivers/video/omap/lcd_2430sdp.c
-@@ -32,7 +32,7 @@
- #define LCD_PANEL_BACKLIGHT_GPIO	91
- #define LCD_PANEL_ENABLE_GPIO		154
- #define LCD_PIXCLOCK_MAX		5400 /* freq 5.4 MHz */
--#define PM_RECEIVER             TWL4030_MODULE_PM_RECIEVER
-+#define PM_RECEIVER             TWL4030_MODULE_PM_RECEIVER
- #define ENABLE_VAUX2_DEDICATED  0x09
- #define ENABLE_VAUX2_DEV_GRP    0x20
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+ 
+--- h4.orig/arch/arm/mach-omap2/board-h4.c	2007-08-13 12:32:12.000000000 -0700
++++ h4/arch/arm/mach-omap2/board-h4.c	2007-08-13 15:07:22.000000000 -0700
+@@ -22,6 +22,8 @@
+ #include <linux/err.h>
+ #include <linux/clk.h>
+ #include <linux/i2c.h>
++#include <linux/spi/spi.h>
++#include <linux/spi/tsc210x.h>
+ 
+ #include <asm/hardware.h>
+ #include <asm/mach-types.h>
+@@ -418,6 +420,33 @@ static struct omap_usb_config h4_usb_con
+ #endif
+ };
+ 
++/* ----------------------------------------------------------------------- */
++
++static struct tsc210x_config tsc_platform_data = {
++	.use_internal		= 1,
++	.monitor		= TSC_VBAT | TSC_TEMP,
++	/* REVISIT temp calibration data -- board-specific; from EEPROM? */
++	.mclk			= "sys_clkout",
++};
++
++static struct spi_board_info h4_spi_board_info[] __initdata = {
++	{
++		.modalias	= "tsc2101",
++		.bus_num	= 1,
++		.chip_select	= 0,
++		.mode		= SPI_MODE_1,
++		.irq		= OMAP_GPIO_IRQ(93),
++		.max_speed_hz	= 16000000,
++		.platform_data	= &tsc_platform_data,
++	},
++
++	/* nCS1 -- to lcd board, but unused
++	 * nCS2 -- to WLAN/miniPCI
++	 */
++};
++
++/* ----------------------------------------------------------------------- */
++
+ static struct omap_board_config_kernel h4_config[] __initdata = {
+ 	{ OMAP_TAG_UART,	&h4_uart_config },
+ 	{ OMAP_TAG_MMC,		&h4_mmc_config },
+@@ -550,6 +579,28 @@ static void __init omap_h4_init(void)
+ 	tusb_evm_setup();
+ #endif
+ 
++	/* defaults seem ok for:
++	 * omap_cfg_reg(U18_24XX_SPI1_SCK);
++	 * omap_cfg_reg(V20_24XX_SPI1_MOSI);
++	 * omap_cfg_reg(T18_24XX_SPI1_MISO);
++	 * omap_cfg_reg(U19_24XX_SPI1_NCS0);
++	 */
++
++	/* TSC2101 */
++	omap_cfg_reg(P20_24XX_GPIO93);
++	gpio_request(93, "tsc_irq");
++	gpio_direction_input(93);
++
++	omap_cfg_reg(W14_24XX_SYS_CLKOUT);	/* mclk */
++	/* defaults seem ok for:
++	 * omap_cfg_reg(Y15_EAC_AC_SCLK);	// bclk
++	 * omap_cfg_reg(R14_EAC_AC_FS);
++	 * omap_cfg_reg(V15_EAC_AC_DOUT);
++	 * omap_cfg_reg(W15_EAC_AC_DIN);
++	 */
++
++	spi_register_board_info(h4_spi_board_info,
++				ARRAY_SIZE(h4_spi_board_info));
+ }
+ 
+ static int gpio_exp_init(void)
