@@ -1,7 +1,7 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.23-rc2-omap1] menelaus minor cleanups
-Date: Mon, 13 Aug 2007 22:51:05 -0700
-Message-ID: <200708132251.05709.david-b@pacbell.net>
+Subject: [patch 2.6.23-rc2-omap1] remove useless/wrong P20_24XX_TSC_IRQ mux
+Date: Mon, 13 Aug 2007 22:47:13 -0700
+Message-ID: <200708132247.13166.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
@@ -20,48 +20,33 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Remove duplicate Menelaus Kconfig entry (omap tree only).
-
-Fix Menelaus build error, and remove needless "#define DEBUG" (goes upstream).
+Remove bogus TSC_IRQ pinmux; it's not used, there's no pin
+dedicated for touchscreen (or other TSC chip) purposes, and
+this doesn't even look right for P20 (0x10b not 0x108, plus
+an IRQ would need to be a GPIO i.e. mux 3 not mux 0).
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
- drivers/i2c/chips/Kconfig    |   10 ----------
- drivers/i2c/chips/menelaus.c |    3 +--
- 2 files changed, 1 insertion(+), 12 deletions(-)
 
---- h4.orig/drivers/i2c/chips/Kconfig	2007-08-10 11:26:41.000000000 -0700
-+++ h4/drivers/i2c/chips/Kconfig	2007-08-13 15:33:51.000000000 -0700
-@@ -130,16 +130,6 @@ config GPIOEXPANDER_OMAP
- 	  If you say yes here you get support for I/O expander calls
- 	  to configure IrDA, Camera and audio devices.
+--- h4.orig/arch/arm/mach-omap2/mux.c	2007-08-13 12:31:32.000000000 -0700
++++ h4/arch/arm/mach-omap2/mux.c	2007-08-13 12:32:12.000000000 -0700
+@@ -106,9 +106,6 @@ MUX_CFG_24XX("G4_242X_DMAREQ3",		0x073,	
+ MUX_CFG_24XX("D3_242X_DMAREQ4",		0x072,	2,	0,	0,	1)
+ MUX_CFG_24XX("E3_242X_DMAREQ5",		0x071,	2,	0,	0,	1)
  
--config MENELAUS
--	bool "TWL92330/Menelaus PM chip"
--	depends on I2C=y && ARCH_OMAP24XX
--	help
--	  If you say yes here you get support for the Texas Instruments
--	  TWL92330/Menelaus Power Management chip. This include voltage
--	  regulators, Dual slot memory card tranceivers, real-time clock
--	  and other features that are often used in portable devices like
--	  cell phones and PDAs.
+-/* TSC IRQ */
+-MUX_CFG_24XX("P20_24XX_TSC_IRQ",	0x108,	0,	0,	0,	1)
 -
- config TWL4030_CORE
- 	bool "TI's TWL4030 companion chip Core Driver Support"
- 	depends on I2C=y && ARCH_OMAP24XX
---- h4.orig/drivers/i2c/chips/menelaus.c	2007-08-10 11:26:41.000000000 -0700
-+++ h4/drivers/i2c/chips/menelaus.c	2007-08-13 15:37:15.000000000 -0700
-@@ -1,4 +1,3 @@
--#define DEBUG
- /*
-  * Copyright (C) 2004 Texas Instruments, Inc.
-  *
-@@ -933,7 +932,7 @@ static int menelaus_set_time(struct devi
- 		return status;
- 	status = menelaus_write_reg(MENELAUS_RTC_WKDAY, BIN2BCD(t->tm_wday));
- 	if (status < 0) {
--		dev_err(&the_menelaus->client->dev, "rtc write reg %02x",
-+		dev_err(&the_menelaus->client->dev, "rtc write reg %02x"
- 				"err %d\n", MENELAUS_RTC_WKDAY, status);
- 		return status;
- 	}
+ /* UART3 */
+ MUX_CFG_24XX("K15_24XX_UART3_TX",	0x118,	0,	0,	0,	1)
+ MUX_CFG_24XX("K14_24XX_UART3_RX",	0x119,	0,	0,	0,	1)
+--- h4.orig/include/asm-arm/arch-omap/mux.h	2007-08-13 12:31:32.000000000 -0700
++++ h4/include/asm-arm/arch-omap/mux.h	2007-08-13 12:32:12.000000000 -0700
+@@ -498,8 +498,6 @@ enum omap24xx_index {
+ 	D3_242X_DMAREQ4,
+ 	E3_242X_DMAREQ5,
+ 
+-	P20_24XX_TSC_IRQ,
+-
+ 	/* UART3 */
+ 	K15_24XX_UART3_TX,
+ 	K14_24XX_UART3_RX,
