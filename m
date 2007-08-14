@@ -1,12 +1,16 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.23-rc2-omap1] mcspi can be modular...
-Date: Mon, 13 Aug 2007 22:49:11 -0700
-Message-ID: <200708132249.12045.david-b@pacbell.net>
+Subject: Re: [patch 2.6.23-rc2-omap1] H4 support for tsc210x
+Date: Mon, 13 Aug 2007 23:45:27 -0700
+Message-ID: <200708132345.27388.david-b@pacbell.net>
+References: <fb249edb0706040644w55ac4c55k495ae2050f94aea0@mail.gmail.com>
+	<20070813070512.GC13948@atomide.com>
+	<200708132240.03264.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <200708132240.03264.david-b@pacbell.net>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,23 +19,14 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>, andrzej zaborowski <balrogg@gmail.com>
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Don't assume only non-modular builds.  Just in case someone's crazy.
+Note that the new tsc210x code needs work yet before it's ready
+to handle an H2, even just for the LCD support ... maybe it's
+too ambitious to think of getting it upstream in 2.6.23-early.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-
---- h4.orig/arch/arm/mach-omap2/devices.c	2007-08-13 12:31:32.000000000 -0700
-+++ h4/arch/arm/mach-omap2/devices.c	2007-08-13 12:32:12.000000000 -0700
-@@ -146,7 +146,7 @@ static inline void omap_init_sti(void)
- static inline void omap_init_sti(void) {}
- #endif
- 
--#if defined(CONFIG_SPI_OMAP24XX)
-+#if defined(CONFIG_SPI_OMAP24XX) || defined(CONFIG_SPI_OMAP24XX_MODULE)
- 
- #include <asm/arch/mcspi.h>
- 
+- Dave
