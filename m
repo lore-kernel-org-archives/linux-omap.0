@@ -1,16 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 7/8] musb_hdrc: Remove old unsed MGC_TYPE_SPEED_XXX
-Date: Wed, 15 Aug 2007 07:21:44 -0700
-Message-ID: <11871877263342-git-send-email-tony@atomide.com>
-References: <11871877051923-git-send-email-tony@atomide.com>
-	<11871877071348-git-send-email-tony@atomide.com>
-	<1187187711983-git-send-email-tony@atomide.com>
-	<1187187715940-git-send-email-tony@atomide.com>
-	<11871877193281-git-send-email-tony@atomide.com>
-	<11871877214142-git-send-email-tony@atomide.com>
-	<11871877241489-git-send-email-tony@atomide.com>
+From: "Ralph Walden" <ralphw@everest-co.com>
+Subject: RE: CF card driver for OMAP 5910
+Date: Wed, 15 Aug 2007 07:27:14 -0700
+Message-ID: <E0B2D7DFDC4D1349850E2C7C20DC4B996CF69F@dhost002-71.dex002.intermedia.net>
+References: <20070815140832.792948062E@linux.omap.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11871877241489-git-send-email-tony@atomide.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <20070815140832.792948062E@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -23,26 +22,50 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Remove old unsed MGC_TYPE_SPEED_XXX
+> Message: 6
+> Date: Wed, 15 Aug 2007 04:18:35 -0700 (PDT)
+> From: Zgembo Adislic <adislic_zgembo@yahoo.com>
+> Subject: CF card driver for OMAP 5910
+> To: linux-omap-open-source@linux.omap.com
+> Message-ID: <890228.38431.qm@web30604.mail.mud.yahoo.com>
+> Content-Type: text/plain; charset=3Diso-8859-1
+>=20
+> Hi all,
+>=20
+> I'm using OMAP5910, kernel linux-2.6.8.1 modified for my=20
+> platform (patches for battery, touch screen, ... etc).
+> Does anybody know where is the driver for the CF card in this kernel?
+> I'm supposed to check the mechanism of writing to CF card.
+>=20
+> Thanks,
+> zgembooo
+>       =20
+> ---------------------------------
+> Yahoo! oneSearch: Finally,  mobile search that gives answers,=20
+> not web links.=20
+>=20
+> ------------------------------
+>=20
+> Message: 7
+> Date: Wed, 15 Aug 2007 06:32:34 -0500
+> From: "Kipisz, Steven" <s-kipisz2@ti.com>
+> Subject: RE: CF card driver for OMAP 5910
+> To: "Zgembo Adislic" <adislic_zgembo@yahoo.com>,
+> 	<linux-omap-open-source@linux.omap.com>
+> Message-ID:
+> 	<B62D67BD8EC3324C8A3DACEEA1A0D6C60237C614@dlee12.ent.ti.com>
+> Content-Type: text/plain;	charset=3D"us-ascii"
+>=20
+> I don't have 2.6.8, but in 2.6.14 it is in drivers/pcmcia/omap_cf.c
+>=20
+> Steve K.
+>=20
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/usb/musb/musbhdrc.h |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+I'm strangely familiar with your project :), and you can find the code
+related to the physical hardware access here:
 
-diff --git a/drivers/usb/musb/musbhdrc.h b/drivers/usb/musb/musbhdrc.h
-index 9646bb6..4a84c2a 100644
---- a/drivers/usb/musb/musbhdrc.h
-+++ b/drivers/usb/musb/musbhdrc.h
-@@ -218,9 +218,6 @@
- /* TxType/RxType */
- #define MUSB_TYPE_SPEED	0xc0
- #define MUSB_TYPE_SPEED_SHIFT	6
--#define MGC_TYPE_SPEED_HIGH	1
--#define MGC_TYPE_SPEED_FULL	2
--#define MGC_TYPE_SPEED_LOW	3
- #define MUSB_TYPE_PROTO	0x30	/* implicitly zero for ep0 */
- #define MUSB_TYPE_PROTO_SHIFT	4
- #define MUSB_TYPE_REMOTE_END	0xf	/* implicitly zero for ep0 */
--- 
-1.5.2.3
+drivers/ide/arm/ide_omap.c
+
+This is used by the drivers/ide/* code.
+
+Ralph
