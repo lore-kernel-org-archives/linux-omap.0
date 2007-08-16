@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 22/36] musb_hdrc: Search and replace wBestDiff with best_diff
-Date: Thu, 16 Aug 2007 02:40:45 -0700
-Message-ID: <1187257311394-git-send-email-tony@atomide.com>
+Subject: [PATCH 25/36] musb_hdrc: Search and replace wFrame with frame
+Date: Thu, 16 Aug 2007 02:40:48 -0700
+Message-ID: <1187257318333-git-send-email-tony@atomide.com>
 References: <11872572591844-git-send-email-tony@atomide.com>
 	<11872572612810-git-send-email-tony@atomide.com>
 	<11872572643880-git-send-email-tony@atomide.com>
@@ -24,8 +24,11 @@ References: <11872572591844-git-send-email-tony@atomide.com>
 	<1187257303715-git-send-email-tony@atomide.com>
 	<11872573062287-git-send-email-tony@atomide.com>
 	<11872573092269-git-send-email-tony@atomide.com>
+	<1187257311394-git-send-email-tony@atomide.com>
+	<11872573133142-git-send-email-tony@atomide.com>
+	<11872573161558-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11872573092269-git-send-email-tony@atomide.com>
+In-Reply-To: <11872573161558-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -38,45 +41,69 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Search and replace wBestDiff with best_diff
+Search and replace wFrame with frame
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/musb_host.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/usb/musb/musb_host.c |    6 +++---
+ drivers/usb/musb/plat_uds.c  |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-index 837fbbf..397b2f0 100644
+index 1f3ef7b..68c7ca1 100644
 --- a/drivers/usb/musb/musb_host.c
 +++ b/drivers/usb/musb/musb_host.c
-@@ -1660,7 +1660,7 @@ static int musb_schedule(
- 	int			is_in)
+@@ -169,7 +169,7 @@ static inline void cppi_host_txdma_start(struct musb_hw_ep *ep)
+ static void
+ musb_start_urb(struct musb *musb, int is_in, struct musb_qh *qh)
  {
- 	int			idle;
--	int			wBestDiff;
-+	int			best_diff;
- 	int			nBestEnd, nEnd;
- 	struct musb_hw_ep	*hw_ep = NULL;
- 	struct list_head	*head = NULL;
-@@ -1703,7 +1703,7 @@ static int musb_schedule(
- 	 * that simplistic approach makes TT scheduling a lot simpler;
- 	 * there is none, and thus none of its complexity...
- 	 */
--	wBestDiff = 4096;
-+	best_diff = 4096;
- 	nBestEnd = -1;
+-	u16			wFrame;
++	u16			frame;
+ 	u32			len;
+ 	void			*buf;
+ 	void __iomem		*mbase =  musb->mregs;
+@@ -232,12 +232,12 @@ musb_start_urb(struct musb *musb, int is_in, struct musb_qh *qh)
+ 	case USB_ENDPOINT_XFER_INT:
+ 		DBG(3, "check whether there's still time for periodic Tx\n");
+ 		qh->iso_idx = 0;
+-		wFrame = musb_readw(mbase, MUSB_FRAME);
++		frame = musb_readw(mbase, MUSB_FRAME);
+ 		/* FIXME this doesn't implement that scheduling policy ...
+ 		 * or handle framecounter wrapping
+ 		 */
+ 		if ((urb->transfer_flags & URB_ISO_ASAP)
+-				|| (wFrame >= urb->start_frame)) {
++				|| (frame >= urb->start_frame)) {
+ 			/* REVISIT the SOF irq handler shouldn't duplicate
+ 			 * this code; and we don't init urb->start_frame...
+ 			 */
+diff --git a/drivers/usb/musb/plat_uds.c b/drivers/usb/musb/plat_uds.c
+index 1ea7803..e17ee52 100644
+--- a/drivers/usb/musb/plat_uds.c
++++ b/drivers/usb/musb/plat_uds.c
+@@ -663,20 +663,20 @@ static irqreturn_t musb_stage2_irq(struct musb * musb, u8 int_usb,
+ 		void __iomem *mbase = musb->mregs;
+ 		struct musb_hw_ep	*ep;
+ 		u8 epnum;
+-		u16 wFrame;
++		u16 frame;
  
- 	for (nEnd = 1; nEnd < musb->nr_endpoints; nEnd++) {
-@@ -1720,8 +1720,8 @@ static int musb_schedule(
- 		else
- 			diff = hw_ep->max_packet_sz_tx - qh->maxpacket;
+ 		DBG(6, "START_OF_FRAME\n");
+ 		handled = IRQ_HANDLED;
  
--		if (diff > 0 && wBestDiff > diff) {
--			wBestDiff = diff;
-+		if (diff > 0 && best_diff > diff) {
-+			best_diff = diff;
- 			nBestEnd = nEnd;
- 		}
- 	}
+ 		/* start any periodic Tx transfers waiting for current frame */
+-		wFrame = musb_readw(mbase, MUSB_FRAME);
++		frame = musb_readw(mbase, MUSB_FRAME);
+ 		ep = musb->endpoints;
+ 		for (epnum = 1; (epnum < musb->nr_endpoints)
+ 					&& (musb->epmask >= (1 << epnum));
+ 				epnum++, ep++) {
+ 			// FIXME handle framecounter wraps (12 bits)
+ 			// eliminate duplicated StartUrb logic
+-			if (ep->dwWaitFrame >= wFrame) {
++			if (ep->dwWaitFrame >= frame) {
+ 				ep->dwWaitFrame = 0;
+ 				printk("SOF --> periodic TX%s on %d\n",
+ 					ep->tx_channel ? " DMA" : "",
 -- 
 1.5.2.3
