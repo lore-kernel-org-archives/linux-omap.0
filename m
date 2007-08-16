@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 25/36] musb_hdrc: Search and replace wFrame with frame
-Date: Thu, 16 Aug 2007 02:40:48 -0700
-Message-ID: <1187257318333-git-send-email-tony@atomide.com>
+Subject: [PATCH 26/36] musb_hdrc: Search and replace wRelease with hwvers
+Date: Thu, 16 Aug 2007 02:40:49 -0700
+Message-ID: <11872573202855-git-send-email-tony@atomide.com>
 References: <11872572591844-git-send-email-tony@atomide.com>
 	<11872572612810-git-send-email-tony@atomide.com>
 	<11872572643880-git-send-email-tony@atomide.com>
@@ -27,8 +27,9 @@ References: <11872572591844-git-send-email-tony@atomide.com>
 	<1187257311394-git-send-email-tony@atomide.com>
 	<11872573133142-git-send-email-tony@atomide.com>
 	<11872573161558-git-send-email-tony@atomide.com>
+	<1187257318333-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11872573161558-git-send-email-tony@atomide.com>
+In-Reply-To: <1187257318333-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -41,69 +42,41 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Search and replace wFrame with frame
+Search and replace wRelease with hwvers
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/musb_host.c |    6 +++---
- drivers/usb/musb/plat_uds.c  |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/usb/musb/plat_uds.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-index 1f3ef7b..68c7ca1 100644
---- a/drivers/usb/musb/musb_host.c
-+++ b/drivers/usb/musb/musb_host.c
-@@ -169,7 +169,7 @@ static inline void cppi_host_txdma_start(struct musb_hw_ep *ep)
- static void
- musb_start_urb(struct musb *musb, int is_in, struct musb_qh *qh)
- {
--	u16			wFrame;
-+	u16			frame;
- 	u32			len;
- 	void			*buf;
- 	void __iomem		*mbase =  musb->mregs;
-@@ -232,12 +232,12 @@ musb_start_urb(struct musb *musb, int is_in, struct musb_qh *qh)
- 	case USB_ENDPOINT_XFER_INT:
- 		DBG(3, "check whether there's still time for periodic Tx\n");
- 		qh->iso_idx = 0;
--		wFrame = musb_readw(mbase, MUSB_FRAME);
-+		frame = musb_readw(mbase, MUSB_FRAME);
- 		/* FIXME this doesn't implement that scheduling policy ...
- 		 * or handle framecounter wrapping
- 		 */
- 		if ((urb->transfer_flags & URB_ISO_ASAP)
--				|| (wFrame >= urb->start_frame)) {
-+				|| (frame >= urb->start_frame)) {
- 			/* REVISIT the SOF irq handler shouldn't duplicate
- 			 * this code; and we don't init urb->start_frame...
- 			 */
 diff --git a/drivers/usb/musb/plat_uds.c b/drivers/usb/musb/plat_uds.c
-index 1ea7803..e17ee52 100644
+index e17ee52..be53a57 100644
 --- a/drivers/usb/musb/plat_uds.c
 +++ b/drivers/usb/musb/plat_uds.c
-@@ -663,20 +663,20 @@ static irqreturn_t musb_stage2_irq(struct musb * musb, u8 int_usb,
- 		void __iomem *mbase = musb->mregs;
- 		struct musb_hw_ep	*ep;
- 		u8 epnum;
--		u16 wFrame;
-+		u16 frame;
+@@ -1251,7 +1251,7 @@ static int __init musb_core_init(u16 wType, struct musb *musb)
+ #endif
+ 	u8 reg;
+ 	char *type;
+-	u16 wRelease, wRelMajor, wRelMinor;
++	u16 hwvers, wRelMajor, wRelMinor;
+ 	char aInfo[78], aRevision[32], aDate[12];
+ 	void __iomem	*mbase = musb->mregs;
+ 	int		status = 0;
+@@ -1326,11 +1326,11 @@ static int __init musb_core_init(u16 wType, struct musb *musb)
+ 	}
  
- 		DBG(6, "START_OF_FRAME\n");
- 		handled = IRQ_HANDLED;
+ 	/* log release info */
+-	wRelease = musb_readw(mbase, MUSB_HWVERS);
+-	wRelMajor = (wRelease >> 10) & 0x1f;
+-	wRelMinor = wRelease & 0x3ff;
++	hwvers = musb_readw(mbase, MUSB_HWVERS);
++	wRelMajor = (hwvers >> 10) & 0x1f;
++	wRelMinor = hwvers & 0x3ff;
+ 	snprintf(aRevision, 32, "%d.%d%s", wRelMajor,
+-		wRelMinor, (wRelease & 0x8000) ? "RC" : "");
++		wRelMinor, (hwvers & 0x8000) ? "RC" : "");
+ 	printk(KERN_DEBUG "%s: %sHDRC RTL version %s %s\n",
+ 			musb_driver_name, type, aRevision, aDate);
  
- 		/* start any periodic Tx transfers waiting for current frame */
--		wFrame = musb_readw(mbase, MUSB_FRAME);
-+		frame = musb_readw(mbase, MUSB_FRAME);
- 		ep = musb->endpoints;
- 		for (epnum = 1; (epnum < musb->nr_endpoints)
- 					&& (musb->epmask >= (1 << epnum));
- 				epnum++, ep++) {
- 			// FIXME handle framecounter wraps (12 bits)
- 			// eliminate duplicated StartUrb logic
--			if (ep->dwWaitFrame >= wFrame) {
-+			if (ep->dwWaitFrame >= frame) {
- 				ep->dwWaitFrame = 0;
- 				printk("SOF --> periodic TX%s on %d\n",
- 					ep->tx_channel ? " DMA" : "",
 -- 
 1.5.2.3
