@@ -1,8 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 21/36] musb_hdrc: Search and replace wVal with val,
-	except for wValue
-Date: Thu, 16 Aug 2007 02:40:44 -0700
-Message-ID: <11872573092269-git-send-email-tony@atomide.com>
+Subject: [PATCH 16/36] musb_hdrc: Search and replace wLoadCount with
+	load_count
+Date: Thu, 16 Aug 2007 02:40:39 -0700
+Message-ID: <11872572962771-git-send-email-tony@atomide.com>
 References: <11872572591844-git-send-email-tony@atomide.com>
 	<11872572612810-git-send-email-tony@atomide.com>
 	<11872572643880-git-send-email-tony@atomide.com>
@@ -19,13 +19,8 @@ References: <11872572591844-git-send-email-tony@atomide.com>
 	<11872572893163-git-send-email-tony@atomide.com>
 	<1187257291525-git-send-email-tony@atomide.com>
 	<1187257294890-git-send-email-tony@atomide.com>
-	<11872572962771-git-send-email-tony@atomide.com>
-	<11872572981150-git-send-email-tony@atomide.com>
-	<1187257301587-git-send-email-tony@atomide.com>
-	<1187257303715-git-send-email-tony@atomide.com>
-	<11872573062287-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11872573062287-git-send-email-tony@atomide.com>
+In-Reply-To: <1187257294890-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -38,103 +33,72 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Search and replace wVal with val, except for wValue
+Search and replace wLoadCount with load_count
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/musb_host.c |   30 +++++++++++++++---------------
- 1 files changed, 15 insertions(+), 15 deletions(-)
+ drivers/usb/musb/musb_host.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-index 58499ee..837fbbf 100644
+index 093edc1..240c9fc 100644
 --- a/drivers/usb/musb/musb_host.c
 +++ b/drivers/usb/musb/musb_host.c
-@@ -1386,7 +1386,7 @@ void musb_host_rx(struct musb *musb, u8 epnum)
- 	size_t			xfer_len;
- 	void __iomem		*mbase = musb->mregs;
- 	int			pipe;
--	u16			rx_csr, wVal;
-+	u16			rx_csr, val;
- 	u8			iso_err = FALSE;
- 	u8			done = FALSE;
- 	u32			status;
-@@ -1399,14 +1399,14 @@ void musb_host_rx(struct musb *musb, u8 epnum)
- 	status = 0;
- 	xfer_len = 0;
+@@ -674,7 +674,7 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
+ 	if (is_out) {
+ 		u16	csr;
+ 		u16	int_txe;
+-		u16	wLoadCount;
++		u16	load_count;
  
--	wVal = rx_csr = musb_readw(epio, MUSB_RXCSR);
-+	val = rx_csr = musb_readw(epio, MUSB_RXCSR);
+ 		csr = musb_readw(epio, MUSB_TXCSR);
  
- 	if (unlikely(!urb)) {
- 		/* REVISIT -- THIS SHOULD NEVER HAPPEN ... but, at least
- 		 * usbtest #11 (unlinks) triggers it regularly, sometimes
- 		 * with fifo full.  (Only with DMA??)
- 		 */
--		DBG(3, "BOGUS RX%d ready, csr %04x, count %d\n", epnum, wVal,
-+		DBG(3, "BOGUS RX%d ready, csr %04x, count %d\n", epnum, val,
- 			musb_readw(epio, MUSB_RXCOUNT));
- 		musb_h_flush_rxfifo(hw_ep, MUSB_RXCSR_CLRDATATOG);
- 		return;
-@@ -1509,11 +1509,11 @@ void musb_host_rx(struct musb *musb, u8 epnum)
- 	if (dma && (rx_csr & MUSB_RXCSR_DMAENAB)) {
- 		xfer_len = dma->actual_len;
+@@ -754,10 +754,10 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
+ 		}
  
--		wVal &= ~(MUSB_RXCSR_DMAENAB
-+		val &= ~(MUSB_RXCSR_DMAENAB
- 			| MUSB_RXCSR_H_AUTOREQ
- 			| MUSB_RXCSR_AUTOCLEAR
- 			| MUSB_RXCSR_RXPKTRDY);
--		musb_writew(hw_ep->regs, MUSB_RXCSR, wVal);
-+		musb_writew(hw_ep->regs, MUSB_RXCSR, val);
+ 		if (can_bulk_split(musb, qh->type))
+-			wLoadCount = min((u32) hw_ep->max_packet_sz_tx,
++			load_count = min((u32) hw_ep->max_packet_sz_tx,
+ 						len);
+ 		else
+-			wLoadCount = min((u32) packet_sz, len);
++			load_count = min((u32) packet_sz, len);
  
  #ifdef CONFIG_USB_INVENTRA_DMA
- 		/* done if urb buffer is full or short packet is recd */
-@@ -1523,9 +1523,9 @@ void musb_host_rx(struct musb *musb, u8 epnum)
- 
- 		/* send IN token for next packet, without AUTOREQ */
- 		if (!done) {
--			wVal |= MUSB_RXCSR_H_REQPKT;
-+			val |= MUSB_RXCSR_H_REQPKT;
- 			musb_writew(epio, MUSB_RXCSR,
--				MUSB_RXCSR_H_WZC_BITS | wVal);
-+				MUSB_RXCSR_H_WZC_BITS | val);
+ 		if (dma_channel) {
+@@ -797,7 +797,7 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
+ 					urb->transfer_dma,
+ 					qh->segsize);
+ 			if (bDmaOk) {
+-				wLoadCount = 0;
++				load_count = 0;
+ 			} else {
+ 				dma_controller->channel_release(dma_channel);
+ 				if (is_out)
+@@ -838,7 +838,7 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
+ 					urb->transfer_dma,
+ 					qh->segsize);
+ 			if (bDmaOk) {
+-				wLoadCount = 0;
++				load_count = 0;
+ 			} else {
+ 				dma_controller->channel_release(dma_channel);
+ 				dma_channel = hw_ep->tx_channel = NULL;
+@@ -850,12 +850,12 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
+ 			}
  		}
  
- 		DBG(4, "ep %d dma %s, rxcsr %04x, rxcount %d\n", epnum,
-@@ -1546,8 +1546,8 @@ void musb_host_rx(struct musb *musb, u8 epnum)
- // SCRUB (RX)
- 			/* do the proper sequence to abort the transfer */
- 			musb_ep_select(mbase, epnum);
--			wVal &= ~MUSB_RXCSR_H_REQPKT;
--			musb_writew(epio, MUSB_RXCSR, wVal);
-+			val &= ~MUSB_RXCSR_H_REQPKT;
-+			musb_writew(epio, MUSB_RXCSR, val);
- 			goto finish;
- 		}
+-		if (wLoadCount) {
++		if (load_count) {
+ 			/* ASSERT:  TXCSR_DMAENAB was already cleared */
  
-@@ -1599,17 +1599,17 @@ void musb_host_rx(struct musb *musb, u8 epnum)
-  *	wait for an interrupt when the pkt is recd. Well, you won't get any!
-  */
- 
--			wVal = musb_readw(epio, MUSB_RXCSR);
--			wVal &= ~MUSB_RXCSR_H_REQPKT;
-+			val = musb_readw(epio, MUSB_RXCSR);
-+			val &= ~MUSB_RXCSR_H_REQPKT;
- 
- 			if (dma->desired_mode == 0)
--				wVal &= ~MUSB_RXCSR_H_AUTOREQ;
-+				val &= ~MUSB_RXCSR_H_AUTOREQ;
- 			else
--				wVal |= MUSB_RXCSR_H_AUTOREQ;
--			wVal |= MUSB_RXCSR_AUTOCLEAR | MUSB_RXCSR_DMAENAB;
-+				val |= MUSB_RXCSR_H_AUTOREQ;
-+			val |= MUSB_RXCSR_AUTOCLEAR | MUSB_RXCSR_DMAENAB;
- 
- 			musb_writew(epio, MUSB_RXCSR,
--				MUSB_RXCSR_H_WZC_BITS | wVal);
-+				MUSB_RXCSR_H_WZC_BITS | val);
- 
- 			/* REVISIT if when actual_length != 0,
- 			 * transfer_buffer_length needs to be
+ 			/* PIO to load FIFO */
+-			qh->segsize = wLoadCount;
+-			musb_write_fifo(hw_ep, wLoadCount, buf);
++			qh->segsize = load_count;
++			musb_write_fifo(hw_ep, load_count, buf);
+ 			csr = musb_readw(epio, MUSB_TXCSR);
+ 			csr &= ~(MUSB_TXCSR_DMAENAB
+ 				| MUSB_TXCSR_DMAMODE
 -- 
 1.5.2.3
