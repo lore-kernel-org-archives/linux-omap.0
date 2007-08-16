@@ -1,17 +1,15 @@
-From: Hingkwan Huen <hkh@cypress.com>
-Subject: OMAP5912 OSK Boot
-Date: Wed, 15 Aug 2007 12:47:31 -0700
-Message-ID: <1187207251.8228.11.camel@debian.mis.cypress.com>
-References: <1187186887430-git-send-email-felipe.lima@indt.org.br>
-	<200708150913.58968.david-b@pacbell.net>
-	<31e679430708150929v794b4a64h71e096f9f7c044e4@mail.gmail.com>
-	<200708150944.28365.david-b@pacbell.net>
-Reply-To: hkh@cypress.com
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [RFC 5/5] MMC/SD Controller driver for OMAP2430
+Date: Wed, 15 Aug 2007 19:24:28 -0700
+Message-ID: <200708151924.28442.david-b@pacbell.net>
+References: <9C23CDD79DA20A479D4615857B2E2C47016A3485@dlee13.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <200708150944.28365.david-b@pacbell.net>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47016A3485@dlee13.ent.ti.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,32 +17,21 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi All,
+On Wednesday 25 July 2007, Syed Mohammed, Khasim wrote:
+> +void omap_set_mmc_info(int host, const struct omap_mmc_platform_data *info)
 
-I am having problem starting u-boot correctly for the OSK5912 whenever
-it is connected to an external module on connector A (EMIFS) using the
-nCS3. I've tried pulling MPU_BOOT to vcc and GPIO1 to gnd manually but
-don't seem to help. Without plugging anything on connector A u-boot
-starts correctly and it detects the flash correctly. Any ideas will be
-very appreciated.
+This should already have been merged into the tree, right?
 
-U-Boot 1.2.0 (Aug  7 2007 - 12:52:58)
+The N800 board support needs it.  And it's impossible to
+configure e.g. an H4/2420 with complete MMC support without
+extensions like those in "struct omap_mmc_platform_data" ...
+although even then, that struct doesn't seem to directly
+accomodate things like card detect IRQs through menelaus.
 
-CPU:   OMAP162123 at 96.0 MHz (DPLL1=96.0 MHz)
-Board: OSK5912
-DRAM:  32 MB
-## Unknown FLASH on Bank 1 - Size = 0x00000000 = 0 MB
-## Unknown FLASH on Bank 2 - Size = 0x00000000 = 0 MB
-Flash:  0 kB
-In:    serial
-Out:   serial
-Err:   serial
-OMAP5912 OSK # 
-
-Thanks,
-kwan
+- Dave
