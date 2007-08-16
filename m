@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 29/36] musb_hdrc: Search and replace dwData with data
-Date: Thu, 16 Aug 2007 02:40:52 -0700
-Message-ID: <11872573273963-git-send-email-tony@atomide.com>
+Subject: [PATCH 34/36] musb_hdrc: Search and replace bComplete with complete
+Date: Thu, 16 Aug 2007 02:40:57 -0700
+Message-ID: <11872573381837-git-send-email-tony@atomide.com>
 References: <11872572591844-git-send-email-tony@atomide.com>
 	<11872572612810-git-send-email-tony@atomide.com>
 	<11872572643880-git-send-email-tony@atomide.com>
@@ -31,8 +31,13 @@ References: <11872572591844-git-send-email-tony@atomide.com>
 	<11872573202855-git-send-email-tony@atomide.com>
 	<11872573222937-git-send-email-tony@atomide.com>
 	<1187257324463-git-send-email-tony@atomide.com>
+	<11872573273963-git-send-email-tony@atomide.com>
+	<1187257329166-git-send-email-tony@atomide.com>
+	<118725733255-git-send-email-tony@atomide.com>
+	<1187257334140-git-send-email-tony@atomide.com>
+	<11872573361440-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1187257324463-git-send-email-tony@atomide.com>
+In-Reply-To: <11872573361440-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -45,47 +50,61 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Search and replace dwData with data
+Search and replace bComplete with complete
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/plat_uds.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/usb/musb/musb_host.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/usb/musb/plat_uds.c b/drivers/usb/musb/plat_uds.c
-index dfa0e94..358d0a5 100644
---- a/drivers/usb/musb/plat_uds.c
-+++ b/drivers/usb/musb/plat_uds.c
-@@ -1247,7 +1247,7 @@ enum { MUSB_CONTROLLER_MHDRC, MUSB_CONTROLLER_HDRC, };
- static int __init musb_core_init(u16 wType, struct musb *musb)
- {
- #ifdef MUSB_AHB_ID
--	u32 dwData;
-+	u32 data;
- #endif
- 	u8 reg;
- 	char *type;
-@@ -1297,14 +1297,14 @@ static int __init musb_core_init(u16 wType, struct musb *musb)
- 			musb_driver_name, reg, aInfo);
+diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+index 29fc80d..933e292 100644
+--- a/drivers/usb/musb/musb_host.c
++++ b/drivers/usb/musb/musb_host.c
+@@ -1027,7 +1027,7 @@ irqreturn_t musb_h_ep0_irq(struct musb *musb)
+ 	struct musb_hw_ep	*hw_ep = musb->control_ep;
+ 	void __iomem		*epio = hw_ep->regs;
+ 	struct musb_qh		*qh = hw_ep->in_qh;
+-	u8			bComplete = FALSE;
++	u8			complete = FALSE;
+ 	irqreturn_t		retval = IRQ_NONE;
  
- #ifdef MUSB_AHB_ID
--	dwData = musb_readl(mbase, 0x404);
--	sprintf(aDate, "%04d-%02x-%02x", (dwData & 0xffff),
--		(dwData >> 16) & 0xff, (dwData >> 24) & 0xff);
-+	data = musb_readl(mbase, 0x404);
-+	sprintf(aDate, "%04d-%02x-%02x", (data & 0xffff),
-+		(data >> 16) & 0xff, (data >> 24) & 0xff);
- 	/* FIXME ID2 and ID3 are unused */
--	dwData = musb_readl(mbase, 0x408);
--	printk("ID2=%lx\n", (long unsigned)dwData);
--	dwData = musb_readl(mbase, 0x40c);
--	printk("ID3=%lx\n", (long unsigned)dwData);
-+	data = musb_readl(mbase, 0x408);
-+	printk("ID2=%lx\n", (long unsigned)data);
-+	data = musb_readl(mbase, 0x40c);
-+	printk("ID3=%lx\n", (long unsigned)data);
- 	reg = musb_readb(mbase, 0x400);
- 	wType = ('M' == reg) ? MUSB_CONTROLLER_MHDRC : MUSB_CONTROLLER_HDRC;
- #else
+ 	/* ep0 only has one queue, "in" */
+@@ -1045,7 +1045,7 @@ irqreturn_t musb_h_ep0_irq(struct musb *musb)
+ 	/* if we just did status stage, we are done */
+ 	if (MGC_END0_STATUS == musb->ep0_stage) {
+ 		retval = IRQ_HANDLED;
+-		bComplete = TRUE;
++		complete = TRUE;
+ 	}
+ 
+ 	/* prepare status */
+@@ -1076,7 +1076,7 @@ irqreturn_t musb_h_ep0_irq(struct musb *musb)
+ 		retval = IRQ_HANDLED;
+ 		if (urb)
+ 			urb->status = status;
+-		bComplete = TRUE;
++		complete = TRUE;
+ 
+ 		/* use the proper sequence to abort the transfer */
+ 		if (csr & MUSB_CSR0_H_REQPKT) {
+@@ -1110,7 +1110,7 @@ irqreturn_t musb_h_ep0_irq(struct musb *musb)
+ 		goto done;
+ 	}
+ 
+-	if (!bComplete) {
++	if (!complete) {
+ 		/* call common logic and prepare response */
+ 		if (musb_h_ep0_continue(musb, len, urb)) {
+ 			/* more packets required */
+@@ -1138,7 +1138,7 @@ irqreturn_t musb_h_ep0_irq(struct musb *musb)
+ 		musb->ep0_stage = MGC_END0_IDLE;
+ 
+ 	/* call completion handler if done */
+-	if (bComplete)
++	if (complete)
+ 		musb_advance_schedule(musb, urb, hw_ep, 1);
+ done:
+ 	return retval;
 -- 
 1.5.2.3
