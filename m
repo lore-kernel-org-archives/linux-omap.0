@@ -1,26 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 17/36] musb_hdrc: Search and replace bDmaOk with dma_ok
-Date: Thu, 16 Aug 2007 02:40:40 -0700
-Message-ID: <11872572981150-git-send-email-tony@atomide.com>
+Subject: [PATCH 4/36]xe
+Date: Thu, 16 Aug 2007 02:40:27 -0700
+Message-ID: <11872572693807-git-send-email-tony@atomide.com>
 References: <11872572591844-git-send-email-tony@atomide.com>
 	<11872572612810-git-send-email-tony@atomide.com>
 	<11872572643880-git-send-email-tony@atomide.com>
 	<11872572672740-git-send-email-tony@atomide.com>
-	<11872572693807-git-send-email-tony@atomide.com>
-	<11872572713057-git-send-email-tony@atomide.com>
-	<11872572743878-git-send-email-tony@atomide.com>
-	<11872572762670-git-send-email-tony@atomide.com>
-	<1187257278289-git-send-email-tony@atomide.com>
-	<11872572803477-git-send-email-tony@atomide.com>
-	<1187257282941-git-send-email-tony@atomide.com>
-	<11872572842479-git-send-email-tony@atomide.com>
-	<11872572872790-git-send-email-tony@atomide.com>
-	<11872572893163-git-send-email-tony@atomide.com>
-	<1187257291525-git-send-email-tony@atomide.com>
-	<1187257294890-git-send-email-tony@atomide.com>
-	<11872572962771-git-send-email-tony@atomide.com>
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <11872572962771-git-send-email-tony@atomide.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <11872572672740-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -28,78 +15,143 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Search and replace bDmaOk with dma_ok
+Search and replace wIntr[RT]xE with int_[rt]xe
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/musb_host.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/usb/musb/musb_gadget.c |   32 ++++++++++++++++----------------
+ drivers/usb/musb/musb_host.c   |    8 ++++----
+ 2 files changed, 20 insertions(+), 20 deletions(-)
 
+diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+index b27096a..5d15234 100644
+--- a/drivers/usb/musb/musb_gadget.c
++++ b/drivers/usb/musb/musb_gadget.c
+@@ -895,7 +895,7 @@ static int musb_gadget_enable(struct usb_ep *ep,
+ 	 */
+ 	musb_ep_select(mbase, epnum);
+ 	if (desc->bEndpointAddress & USB_DIR_IN) {
+-		u16 wIntrTxE = musb_readw(mbase, MUSB_INTRTXE);
++		u16 int_txe = musb_readw(mbase, MUSB_INTRTXE);
+ 
+ 		if (hw_ep->is_shared_fifo)
+ 			musb_ep->is_in = 1;
+@@ -904,8 +904,8 @@ static int musb_gadget_enable(struct usb_ep *ep,
+ 		if (tmp > hw_ep->max_packet_sz_tx)
+ 			goto fail;
+ 
+-		wIntrTxE |= (1 << epnum);
+-		musb_writew(mbase, MUSB_INTRTXE, wIntrTxE);
++		int_txe |= (1 << epnum);
++		musb_writew(mbase, MUSB_INTRTXE, int_txe);
+ 
+ 		/* REVISIT if can_bulk_split(), use by updating "tmp";
+ 		 * likewise high bandwidth periodic tx
+@@ -925,7 +925,7 @@ static int musb_gadget_enable(struct usb_ep *ep,
+ 		musb_writew(regs, MUSB_TXCSR, csr);
+ 
+ 	} else {
+-		u16 wIntrRxE = musb_readw(mbase, MUSB_INTRRXE);
++		u16 int_rxe = musb_readw(mbase, MUSB_INTRRXE);
+ 
+ 		if (hw_ep->is_shared_fifo)
+ 			musb_ep->is_in = 0;
+@@ -934,8 +934,8 @@ static int musb_gadget_enable(struct usb_ep *ep,
+ 		if (tmp > hw_ep->max_packet_sz_rx)
+ 			goto fail;
+ 
+-		wIntrRxE |= (1 << epnum);
+-		musb_writew(mbase, MUSB_INTRRXE, wIntrRxE);
++		int_rxe |= (1 << epnum);
++		musb_writew(mbase, MUSB_INTRRXE, int_rxe);
+ 
+ 		/* REVISIT if can_bulk_combine() use by updating "tmp"
+ 		 * likewise high bandwidth periodic rx
+@@ -1015,14 +1015,14 @@ static int musb_gadget_disable(struct usb_ep *ep)
+ 
+ 	/* zero the endpoint sizes */
+ 	if (musb_ep->is_in) {
+-		u16 wIntrTxE = musb_readw(musb->mregs, MUSB_INTRTXE);
+-		wIntrTxE &= ~(1 << epnum);
+-		musb_writew(musb->mregs, MUSB_INTRTXE, wIntrTxE);
++		u16 int_txe = musb_readw(musb->mregs, MUSB_INTRTXE);
++		int_txe &= ~(1 << epnum);
++		musb_writew(musb->mregs, MUSB_INTRTXE, int_txe);
+ 		musb_writew(epio, MUSB_TXMAXP, 0);
+ 	} else {
+-		u16 wIntrRxE = musb_readw(musb->mregs, MUSB_INTRRXE);
+-		wIntrRxE &= ~(1 << epnum);
+-		musb_writew(musb->mregs, MUSB_INTRRXE, wIntrRxE);
++		u16 int_rxe = musb_readw(musb->mregs, MUSB_INTRRXE);
++		int_rxe &= ~(1 << epnum);
++		musb_writew(musb->mregs, MUSB_INTRRXE, int_rxe);
+ 		musb_writew(epio, MUSB_RXMAXP, 0);
+ 	}
+ 
+@@ -1335,7 +1335,7 @@ static void musb_gadget_fifo_flush(struct usb_ep *ep)
+ 	void __iomem	*epio = musb->endpoints[nEnd].regs;
+ 	void __iomem	*mbase;
+ 	unsigned long	flags;
+-	u16		csr, wIntrTxE;
++	u16		csr, int_txe;
+ 
+ 	mbase = musb->mregs;
+ 
+@@ -1343,8 +1343,8 @@ static void musb_gadget_fifo_flush(struct usb_ep *ep)
+ 	musb_ep_select(mbase, (u8) nEnd);
+ 
+ 	/* disable interrupts */
+-	wIntrTxE = musb_readw(mbase, MUSB_INTRTXE);
+-	musb_writew(mbase, MUSB_INTRTXE, wIntrTxE & ~(1 << nEnd));
++	int_txe = musb_readw(mbase, MUSB_INTRTXE);
++	musb_writew(mbase, MUSB_INTRTXE, int_txe & ~(1 << nEnd));
+ 
+ 	if (musb_ep->is_in) {
+ 		csr = musb_readw(epio, MUSB_TXCSR);
+@@ -1362,7 +1362,7 @@ static void musb_gadget_fifo_flush(struct usb_ep *ep)
+ 	}
+ 
+ 	/* re-enable interrupt */
+-	musb_writew(mbase, MUSB_INTRTXE, wIntrTxE);
++	musb_writew(mbase, MUSB_INTRTXE, int_txe);
+ 	spin_unlock_irqrestore(&musb->lock, flags);
+ }
+ 
 diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-index 240c9fc..5268d9b 100644
+index f5b5445..32376f4 100644
 --- a/drivers/usb/musb/musb_host.c
 +++ b/drivers/usb/musb/musb_host.c
-@@ -629,7 +629,7 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
- {
- 	struct dma_controller	*dma_controller;
- 	struct dma_channel	*dma_channel;
--	u8			bDmaOk;
-+	u8			dma_ok;
- 	void __iomem		*mbase = musb->mregs;
- 	struct musb_hw_ep	*hw_ep = musb->endpoints + epnum;
- 	void __iomem		*epio = hw_ep->regs;
-@@ -791,12 +791,12 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
+@@ -673,14 +673,14 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
+ 	/* OUT/transmit/EP0 or IN/receive? */
+ 	if (is_out) {
+ 		u16	csr;
+-		u16	wIntrTxE;
++		u16	int_txe;
+ 		u16	wLoadCount;
  
- 			musb_writew(epio, MUSB_TXCSR, csr);
+ 		csr = musb_readw(epio, MUSB_TXCSR);
  
--			bDmaOk = dma_controller->channel_program(
-+			dma_ok = dma_controller->channel_program(
- 					dma_channel, packet_sz,
- 					dma_channel->desired_mode,
- 					urb->transfer_dma,
- 					qh->segsize);
--			if (bDmaOk) {
-+			if (dma_ok) {
- 				load_count = 0;
- 			} else {
- 				dma_controller->channel_release(dma_channel);
-@@ -830,14 +830,14 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
- 			/* TX uses "rndis" mode automatically, but needs help
- 			 * to identify the zero-length-final-packet case.
- 			 */
--			bDmaOk = dma_controller->channel_program(
-+			dma_ok = dma_controller->channel_program(
- 					dma_channel, packet_sz,
- 					(urb->transfer_flags
- 							& URB_ZERO_PACKET)
- 						== URB_ZERO_PACKET,
- 					urb->transfer_dma,
- 					qh->segsize);
--			if (bDmaOk) {
-+			if (dma_ok) {
- 				load_count = 0;
- 			} else {
- 				dma_controller->channel_release(dma_channel);
-@@ -915,13 +915,13 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
- 				/* unless caller treats short rx transfers as
- 				 * errors, we dare not queue multiple transfers.
- 				 */
--				bDmaOk = dma_controller->channel_program(
-+				dma_ok = dma_controller->channel_program(
- 						dma_channel, packet_sz,
- 						!(urb->transfer_flags
- 							& URB_SHORT_NOT_OK),
- 						urb->transfer_dma,
- 						qh->segsize);
--				if (!bDmaOk) {
-+				if (!dma_ok) {
- 					dma_controller->channel_release(
- 							dma_channel);
- 					dma_channel = hw_ep->rx_channel = NULL;
+ 		/* disable interrupt in case we flush */
+-		wIntrTxE = musb_readw(mbase, MUSB_INTRTXE);
+-		musb_writew(mbase, MUSB_INTRTXE, wIntrTxE & ~(1 << epnum));
++		int_txe = musb_readw(mbase, MUSB_INTRTXE);
++		musb_writew(mbase, MUSB_INTRTXE, int_txe & ~(1 << epnum));
+ 
+ 		/* general endpoint setup */
+ 		if (epnum) {
+@@ -868,7 +868,7 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
+ 		}
+ 
+ 		/* re-enable interrupt */
+-		musb_writew(mbase, MUSB_INTRTXE, wIntrTxE);
++		musb_writew(mbase, MUSB_INTRTXE, int_txe);
+ 
+ 	/* IN/receive */
+ 	} else {
 -- 
 1.5.2.3
