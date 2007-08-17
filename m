@@ -1,14 +1,13 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] ARM: OMAP: OMAP2 McSPI code cleanup
-Date: Fri, 17 Aug 2007 08:51:40 -0700
-Message-ID: <200708170851.41052.david-b@pacbell.net>
-References: <003901c7e0a3$08dc39d0$e1ac580a@swcenter.sec.samsung.co.kr>
+From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
+Subject: Re: [PATCH] ARM: OMAP: Fix warning in plat_uds.c
+Date: Fri, 17 Aug 2007 12:12:55 -0400
+Message-ID: <31e679430708170912p1bd8050dg38db45d14d237961@mail.gmail.com>
+References: <46C5C233.5090405@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <003901c7e0a3$08dc39d0$e1ac580a@swcenter.sec.samsung.co.kr>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <46C5C233.5090405@googlemail.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -17,21 +16,65 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: kmpark@infradead.org
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Dirk Behme <dirk.behme@googlemail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 17 August 2007, you wrote:
-> ARM: OMAP: OMAP2 McSPI code cleanup
+Hi,
 
-SPI patches don't merge via the ARM or OMAP patch streams...
+On 8/17/07, Dirk Behme <dirk.behme@googlemail.com> wrote:
+>
+> Fix warning
+>
+> drivers/usb/musb/plat_uds.c:1731: warning: 'dev_attr_srp' defined but
+> not used
+>
+> if CONFIG_USB_MUSB_OTG isn't set (DaVinci use case)
+>
+> Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
+>
+> Index: linux-davinci/drivers/usb/musb/plat_uds.c
+> ===================================================================
+> --- linux-davinci.orig/drivers/usb/musb/plat_uds.c
+> +++ linux-davinci/drivers/usb/musb/plat_uds.c
+> @@ -1707,6 +1707,7 @@ musb_vbus_show(struct device *dev, struc
+>  }
+>  static DEVICE_ATTR(vbus, 0644, musb_vbus_show, musb_vbus_store);
+>
+> +#ifdef CONFIG_USB_MUSB_OTG
+>  static ssize_t
+>  musb_srp_store(struct device *dev, struct device_attribute *attr,
+>                 const char *buf, size_t n)
+> @@ -1728,8 +1729,11 @@ musb_srp_store(struct device *dev, struc
+>
+>         return n;
+>  }
+> +
+> +
+>  static DEVICE_ATTR(srp, 0644, NULL, musb_srp_store);
+>  #endif
+> +#endif
 
-If you just send them for the OMAP tree they won't necessarily
-go upstream unless the SPI maintainer happens to notice them.
+this doesn't look right since any device can issue SRP. It's better
+for you to use it somewhere on DaVinci.
+
+>
+>  /* Only used to provide cable state change events */
+>  static void musb_irq_work(struct work_struct *data)
+>
+>
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
+>
 
 
-> Remove unused variable & write space
-> 
-> ...
+-- 
+Best Regards,
+
+Felipe Balbi
+felipebalbi@users.sourceforge.net
