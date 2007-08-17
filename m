@@ -1,16 +1,15 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] ARM: OMAP: Fix warning in plat_uds.c
-Date: Fri, 17 Aug 2007 14:02:47 -0700
-Message-ID: <200708171402.47254.david-b@pacbell.net>
-References: <46C5C233.5090405@googlemail.com>
-	<200708171130.21974.david-b@pacbell.net>
-	<31e679430708171336g318ad89er59e9246c5c839f04@mail.gmail.com>
+Subject: Re: [01/17 PATCH] MMC: OMAP: Introduces new structures for MMC
+	multislot support.
+Date: Fri, 17 Aug 2007 14:45:28 -0700
+Message-ID: <200708171445.28921.david-b@pacbell.net>
+References: <46C5F08D.7070207@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <31e679430708171336g318ad89er59e9246c5c839f04@mail.gmail.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <46C5F08D.7070207@indt.org.br>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -19,16 +18,13 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Felipe Balbi <felipebalbi@users.sourceforge.net>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 17 August 2007, Felipe Balbi wrote:
-> Maybe my previous mail didn't get to list yet but I sent an email
-> telling Dirk to get rid of the ifdef CONFIG_USB_MUSB_OTG.
-> 
-> Does that seem better for you?
+On Friday 17 August 2007, Carlos Aguiar wrote:
+> Introduces new structures for MMC multislot support.
 
-Host-only systems shouldn't have that SRP support.
+Seems like #1 and #2 should be a single patch, since
+after #1 it won't compile ...
