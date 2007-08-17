@@ -1,16 +1,20 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 6/7] musb_hdrc: Keep state as b_idle if disconnected as
-	b_idle
-Date: Fri, 17 Aug 2007 04:44:43 -0700
-Message-ID: <11873510973002-git-send-email-tony@atomide.com>
+Subject: Re: [PATCH 7/7] musb_hdrc: Fix doing HNP multiple times
+Date: Fri, 17 Aug 2007 05:59:24 -0700
+Message-ID: <20070817125923.GB16240@atomide.com>
 References: <118735108469-git-send-email-tony@atomide.com>
 	<11873510862981-git-send-email-tony@atomide.com>
 	<11873510882998-git-send-email-tony@atomide.com>
 	<11873510911954-git-send-email-tony@atomide.com>
 	<11873510931624-git-send-email-tony@atomide.com>
 	<11873510951742-git-send-email-tony@atomide.com>
+	<11873510973002-git-send-email-tony@atomide.com>
+	<11873511001036-git-send-email-tony@atomide.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="U+BazGySraz5kW0T"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11873510951742-git-send-email-tony@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <11873511001036-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -23,33 +27,83 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Otherwise OPT FS B TD.5.6 can fail.
+
+--U+BazGySraz5kW0T
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi,
+
+* Tony Lindgren <tony@atomide.com> [070817 04:45]:
+> Without this patch OPT HS B TD.6.15 fails if run multiple
+> times in a row.
+
+Here's a follow-up patch to this one to remove compile warning.
+
+Tony
+
+
+--U+BazGySraz5kW0T
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline;
+	filename="musb-remove-unused-delay-port-power-off.patch"
+
+musb_hdrc: Remove old unused delay_port_power_off
+
+Remove old unused delay_port_power_off
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/usb/musb/musb_gadget.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index 86a256a..88757ce 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -1962,6 +1962,8 @@ void musb_g_disconnect(struct musb *musb)
- 	switch (musb->xceiv.state) {
- 	default:
- #ifdef	CONFIG_USB_MUSB_OTG
-+		DBG(2, "Unhandled disconnect %s, setting a_idle\n",
-+			otg_state_string(musb));
- 		musb->xceiv.state = OTG_STATE_A_IDLE;
- 		break;
- 	case OTG_STATE_A_PERIPHERAL:
-@@ -1971,6 +1973,7 @@ void musb_g_disconnect(struct musb *musb)
- 	case OTG_STATE_B_HOST:
+--- a/drivers/usb/musb/musbdefs.h
++++ b/drivers/usb/musb/musbdefs.h
+@@ -450,11 +450,6 @@ struct musb {
+ 	struct usb_gadget_driver *gadget_driver;	/* its driver */
  #endif
- 	case OTG_STATE_B_PERIPHERAL:
-+	case OTG_STATE_B_IDLE:
- 		musb->xceiv.state = OTG_STATE_B_IDLE;
- 		break;
- 	case OTG_STATE_B_SRP_INIT:
--- 
-1.5.2.3
+ 
+-#ifdef CONFIG_USB_MUSB_OTG
+-	/* FIXME this can't be OTG-specific ... ? */
+-	u8 delay_port_power_off;
+-#endif
+-
+ #ifdef MUSB_CONFIG_PROC_FS
+ 	struct proc_dir_entry *proc_entry;
+ #endif
+diff --git a/drivers/usb/musb/plat_uds.c b/drivers/usb/musb/plat_uds.c
+index 4d02460..3e63565 100644
+--- a/drivers/usb/musb/plat_uds.c
++++ b/drivers/usb/musb/plat_uds.c
+@@ -557,7 +557,6 @@ static irqreturn_t musb_stage0_irq(struct musb * musb, u8 int_usb,
+ 		if (is_peripheral_active(musb)) {
+ 			// REVISIT HNP; just force disconnect
+ 		}
+-		musb->delay_port_power_off = FALSE;
+ 		musb_writew(mbase, MUSB_INTRTXE, musb->epmask);
+ 		musb_writew(mbase, MUSB_INTRRXE, musb->epmask & 0xfffe);
+ 		musb_writeb(mbase, MUSB_INTRUSBE, 0xf7);
+diff --git a/drivers/usb/musb/virthub.c b/drivers/usb/musb/virthub.c
+index 757da5e..d9f3c28 100644
+--- a/drivers/usb/musb/virthub.c
++++ b/drivers/usb/musb/virthub.c
+@@ -121,13 +121,6 @@ static void musb_port_reset(struct musb *musb, u8 bReset)
+ 		musb->port1_status &= ~USB_PORT_STAT_RESET;
+ 		return;
+ 	}
+-
+-	/* REVISIT this looks wrong for HNP */
+-	u8 devctl = musb_readb(mbase, MUSB_DEVCTL);
+-
+-	if (musb->delay_port_power_off || !(devctl & MUSB_DEVCTL_HM)) {
+-		return;
+-	}
+ #endif
+ 
+ 	if (!is_host_active(musb))
+
+--U+BazGySraz5kW0T
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--U+BazGySraz5kW0T--
