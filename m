@@ -1,14 +1,8 @@
-From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
-Subject: Re: [PATCH] ARM: OMAP: Fix warning in plat_uds.c
-Date: Fri, 17 Aug 2007 12:12:55 -0400
-Message-ID: <31e679430708170912p1bd8050dg38db45d14d237961@mail.gmail.com>
-References: <46C5C233.5090405@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Kevin Hilman <khilman@mvista.com>
+Subject: [PATCH] ARM: OMAP: MUSB: peripheral compile fix
+Date: Fri, 17 Aug 2007 09:12:52 -0700
+Message-ID: <20070817161252.274402322@mvista.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <46C5C233.5090405@googlemail.com>
-Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,63 +12,35 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Move error detection for "Stopping host session because of babble" 
+inside host-ifdef since it doesn't apply (or compile) for gadget.
 
-On 8/17/07, Dirk Behme <dirk.behme@googlemail.com> wrote:
->
-> Fix warning
->
-> drivers/usb/musb/plat_uds.c:1731: warning: 'dev_attr_srp' defined but
-> not used
->
-> if CONFIG_USB_MUSB_OTG isn't set (DaVinci use case)
->
-> Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
->
-> Index: linux-davinci/drivers/usb/musb/plat_uds.c
-> ===================================================================
-> --- linux-davinci.orig/drivers/usb/musb/plat_uds.c
-> +++ linux-davinci/drivers/usb/musb/plat_uds.c
-> @@ -1707,6 +1707,7 @@ musb_vbus_show(struct device *dev, struc
->  }
->  static DEVICE_ATTR(vbus, 0644, musb_vbus_show, musb_vbus_store);
->
-> +#ifdef CONFIG_USB_MUSB_OTG
->  static ssize_t
->  musb_srp_store(struct device *dev, struct device_attribute *attr,
->                 const char *buf, size_t n)
-> @@ -1728,8 +1729,11 @@ musb_srp_store(struct device *dev, struc
->
->         return n;
->  }
-> +
-> +
->  static DEVICE_ATTR(srp, 0644, NULL, musb_srp_store);
->  #endif
-> +#endif
+Signed-off-by: Kevin Hilman <khilman@mvista.com>
+---
+ drivers/usb/musb/plat_uds.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-this doesn't look right since any device can issue SRP. It's better
-for you to use it somewhere on DaVinci.
-
->
->  /* Only used to provide cable state change events */
->  static void musb_irq_work(struct work_struct *data)
->
->
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
->
-
-
--- 
-Best Regards,
-
-Felipe Balbi
-felipebalbi@users.sourceforge.net
+Index: dev/drivers/usb/musb/plat_uds.c
+===================================================================
+--- dev.orig/drivers/usb/musb/plat_uds.c
++++ dev/drivers/usb/musb/plat_uds.c
+@@ -598,7 +598,6 @@ static irqreturn_t musb_stage0_irq(struc
+ 		DBG(1, "CONNECT (%s) devctl %02x\n",
+ 				otg_state_string(musb), devctl);
+ 	}
+-#endif	/* CONFIG_USB_MUSB_HDRC_HCD */
+ 
+ 	/* mentor saves a bit: bus reset and babble share the same irq.
+ 	 * only host sees babble; only peripheral sees bus reset.
+@@ -627,6 +626,7 @@ static irqreturn_t musb_stage0_irq(struc
+ 
+ 		handled = IRQ_HANDLED;
+ 	}
++#endif	/* CONFIG_USB_MUSB_HDRC_HCD */
+ 
+ 	return handled;
+ }
+--
