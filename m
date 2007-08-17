@@ -1,10 +1,10 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [16/17 PATCH] MMC: OMAP: Make board-h2.c uses new board-h2-mmc.c
- code.
-Date: Fri, 17 Aug 2007 15:02:32 -0400
-Message-ID: <46C5F0C8.6030306@indt.org.br>
+Subject: [15/17 PATCH] MMC: OMAP: Supporting MMC multislot structures for
+ TI OMAP H2 board.
+Date: Fri, 17 Aug 2007 15:02:29 -0400
+Message-ID: <46C5F0C5.80806@indt.org.br>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040803070901070005070203"
+Content-Type: multipart/mixed; boundary="------------020406000902070301020706"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -20,15 +20,14 @@ Cc: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040803070901070005070203
+--------------020406000902070301020706
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
 From: Felipe Balbi <felipe.lima@indt.org.br>
 
-Make board-h2.c file uses new board-h2-mmc.c code. This patch also
-introduces a new gpio_switch to get events when inserting and removing
-MMC/SD/SDIO cards to/from the slot.
+Proposes the new board-h2-mmc.c file to handle all the mmc specific code
+for multislot support.
 
 Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
 Signed-off-by: Anderson Briglia <anderson.briglia@indt.org.br>
@@ -36,108 +35,159 @@ Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 Signed-off-by: David Cohen <david.cohen@indt.org.br>
 Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
---------------040803070901070005070203
+--------------020406000902070301020706
 Content-Type: text/plain;
-	name*0="0016-MMC-OMAP-Make-board-h2.c-uses-new-board-h2-mmc.c-code.diff"
+	name*0="0015-MMC-OMAP-Supporting-MMC-multislot-structures-for-TI-OMAP-H2";
+	name*1="-board.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
-	filename*0="0016-MMC-OMAP-Make-board-h2.c-uses-new-board-h2-mmc.c-code.d";
-	filename*1="iff"
+	filename*0="0015-MMC-OMAP-Supporting-MMC-multislot-structures-for-TI-OMA";
+	filename*1="P-H2-board.diff"
 
-Make board-h2.c file uses new board-h2-mmc.c code. This patch also introduces
-a new gpio_switch to get events when inserting and removing MMC/SD/SDIO
-cards to/from the slot.
+Proposes the new board-h2-mmc.c file to handle all the mmc
+specific code for multislot support.
 
 Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
-igned-off-by: Anderson Briglia <anderson.briglia@indt.org.br>
+Signed-off-by: Anderson Briglia <anderson.briglia@indt.org.br>
 Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 Signed-off-by: David Cohen <david.cohen@indt.org.br>
 Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-Index: linux-omap/arch/arm/mach-omap1/Makefile
+Index: linux-omap/arch/arm/mach-omap1/board-h2-mmc.c
 ===================================================================
---- linux-omap.orig/arch/arm/mach-omap1/Makefile	2007-08-17 09:44:55.000000000 -0400
-+++ linux-omap/arch/arm/mach-omap1/Makefile	2007-08-17 09:52:39.000000000 -0400
-@@ -19,7 +19,7 @@ mmu_mach-objs			:= mmu.o
- led-y := leds.o
- 
- # Specific board support
--obj-$(CONFIG_MACH_OMAP_H2)		+= board-h2.o
-+obj-$(CONFIG_MACH_OMAP_H2)		+= board-h2.o board-h2-mmc.o
- obj-$(CONFIG_MACH_OMAP_INNOVATOR)	+= board-innovator.o
- obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
- obj-$(CONFIG_MACH_OMAP_PERSEUS2)	+= board-perseus2.o
-Index: linux-omap/arch/arm/mach-omap1/board-h2.c
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap1/board-h2.c	2007-08-17 09:26:48.000000000 -0400
-+++ linux-omap/arch/arm/mach-omap1/board-h2.c	2007-08-17 11:18:34.000000000 -0400
-@@ -39,6 +39,7 @@
- #include <asm/mach/map.h>
- 
- #include <asm/arch/gpio.h>
-+#include <asm/arch/gpio-switch.h>
- #include <asm/arch/mux.h>
- #include <asm/arch/tc.h>
- #include <asm/arch/irda.h>
-@@ -457,16 +458,6 @@ static struct omap_usb_config h2_usb_con
- 	.pins[1]	= 3,
- };
- 
--static struct omap_mmc_config h2_mmc_config __initdata = {
--	.mmc [0] = {
--		.enabled 	= 1,
--		.wire4		= 1,
--		.wp_pin		= OMAP_MPUIO(3),
--		.power_pin	= -1,	/* tps65010 gpio3 */
--		.switch_pin	= OMAP_MPUIO(1),
--	},
--};
--
- static struct omap_uart_config h2_uart_config __initdata = {
- 	.enabled_uarts = ((1 << 0) | (1 << 1) | (1 << 2)),
- };
-@@ -476,12 +467,23 @@ static struct omap_lcd_config h2_lcd_con
- };
- 
- static struct omap_board_config_kernel h2_config[] __initdata = {
--	{ OMAP_TAG_USB,           &h2_usb_config },
--	{ OMAP_TAG_MMC,           &h2_mmc_config },
-+	{ OMAP_TAG_USB,		&h2_usb_config },
- 	{ OMAP_TAG_UART,	&h2_uart_config },
- 	{ OMAP_TAG_LCD,		&h2_lcd_config },
- };
- 
-+static struct omap_gpio_switch h2_gpio_switches[] __initdata = {
-+	{
-+		.name                   = "mmc_slot",
-+		.gpio                   = OMAP_MPUIO(1),
-+		.type                   = OMAP_GPIO_SWITCH_TYPE_COVER,
-+		.debounce_rising        = 100,
-+		.debounce_falling       = 0,
-+		.notify                 = h2_mmc_slot_cover_handler,
-+		.notify_data            = NULL,
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-omap/arch/arm/mach-omap1/board-h2-mmc.c	2007-08-14 15:57:46.000000000 -0400
+@@ -0,0 +1,111 @@
++/*
++ * linux/arch/arm/mach-omap1/board-h2-mmc.c
++ *
++ * Copyright (C) 2007 Instituto Nokia de Tecnologia - INdT
++ * Author: Felipe Balbi <felipe.lima@indt.org.br>
++ *
++ * This code is based on linux/arch/arm/mach-omap2/board-n800-mmc.c, which is:
++ * Copyright (C) 2006 Nokia Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <asm/arch/mmc.h>
++#include <asm/arch/gpio.h>
++
++#ifdef CONFIG_MMC_OMAP
++static int slot_cover_open;
++static struct device *mmc_device;
++
++static int h2_mmc_set_power(struct device *dev, int slot, int power_on,
++				int vdd)
++{
++#ifdef CONFIG_MMC_DEBUG
++	dev_dbg(dev, "Set slot %d power: %s (vdd %d)\n", slot +1,
++		power_on ? "on" : "off", vdd);
++#endif
++	if (slot != 0) {
++		dev_err(dev, "No such slot %d\n", slot + 1);
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static int h2_mmc_set_bus_mode(struct device *dev, int slot, int bus_mode)
++{
++#ifdef CONFIG_MMC_DEBUG
++	dev_dbg(dev, "Set slot %d bus_mode %s\n", slot + 1,
++		bus_mode == MMC_BUSMODE_OPENDRAIN ? "open-drain" : "push-pull");
++#endif
++	if (slot != 0) {
++		dev_err(dev, "No such slot %d\n", slot + 1);
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static int h2_mmc_get_cover_state(struct device *dev, int slot)
++{
++	BUG_ON(slot != 0);
++
++	return slot_cover_open;
++}
++
++void h2_mmc_slot_cover_handler(void *arg, int state)
++{
++	if (mmc_device == NULL)
++		return;
++
++	slot_cover_open = state;
++	omap_mmc_notify_cover_event(mmc_device, 0, state);
++}
++
++static int h2_mmc_late_init(struct device *dev)
++{
++	int ret = 0;
++
++	mmc_device = dev;
++
++	return ret;
++}
++
++static void h2_mmc_cleanup(struct device *dev)
++{
++}
++
++static struct omap_mmc_platform_data h2_mmc_data = {
++	.enabled			= 1,
++	.nr_slots                       = 1,
++	.wire4                          = 1,
++	.switch_slot                    = NULL,
++	.init                           = h2_mmc_late_init,
++	.cleanup                        = h2_mmc_cleanup,
++	.slots[0]       = {
++		.set_power              = h2_mmc_set_power,
++		.set_bus_mode           = h2_mmc_set_bus_mode,
++		.get_ro                 = NULL,
++		.get_cover_state        = h2_mmc_get_cover_state,
++		.ocr_mask               = MMC_VDD_28_29 | MMC_VDD_30_31 | MMC_VDD_32_33 | MMC_VDD_33_34,
++		.name                   = "mmcblk",
 +	},
 +};
 +
- #define H2_NAND_RB_GPIO_PIN	62
++void __init h2_mmc_init(void)
++{
++	omap_set_mmc_info(1, &h2_mmc_data);
++}
++
++#else
++
++void __init h2_mmc_init(void)
++{
++}
++
++void h2_mmc_slot_cover_handler(void *arg, int state)
++{
++}
++#endif
+Index: linux-omap/include/asm-arm/arch-omap/board-h2.h
+===================================================================
+--- linux-omap.orig/include/asm-arm/arch-omap/board-h2.h	2007-08-14 15:40:06.000000000 -0400
++++ linux-omap/include/asm-arm/arch-omap/board-h2.h	2007-08-14 15:54:04.000000000 -0400
+@@ -34,5 +34,8 @@
+ /* At OMAP1610 Innovator the Ethernet is directly connected to CS1 */
+ #define OMAP1610_ETHR_START		0x04000300
  
- static int h2_nand_dev_ready(struct nand_platform_data *data)
-@@ -530,6 +532,9 @@ static void __init h2_init(void)
- 	omap_board_config = h2_config;
- 	omap_board_config_size = ARRAY_SIZE(h2_config);
- 	omap_serial_init();
-+	h2_mmc_init();
-+	omap_register_gpio_switches(h2_gpio_switches,
-+				    ARRAY_SIZE(h2_gpio_switches));
- }
++extern void h2_mmc_init(void);
++extern void h2_mmc_slot_cover_handler(void *arg, int state);
++
+ #endif /*  __ASM_ARCH_OMAP_H2_H */
  
- static void __init h2_map_io(void)
 
---------------040803070901070005070203
+--------------020406000902070301020706
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------040803070901070005070203--
+--------------020406000902070301020706--
