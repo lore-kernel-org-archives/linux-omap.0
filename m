@@ -1,20 +1,10 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 7/7] musb_hdrc: Fix doing HNP multiple times
-Date: Fri, 17 Aug 2007 05:59:24 -0700
-Message-ID: <20070817125923.GB16240@atomide.com>
-References: <118735108469-git-send-email-tony@atomide.com>
-	<11873510862981-git-send-email-tony@atomide.com>
-	<11873510882998-git-send-email-tony@atomide.com>
-	<11873510911954-git-send-email-tony@atomide.com>
-	<11873510931624-git-send-email-tony@atomide.com>
-	<11873510951742-git-send-email-tony@atomide.com>
-	<11873510973002-git-send-email-tony@atomide.com>
-	<11873511001036-git-send-email-tony@atomide.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: [PATCH] ARM: OMAP: Fix warning in plat_uds.c
+Date: Fri, 17 Aug 2007 17:43:47 +0200
+Message-ID: <46C5C233.5090405@googlemail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="U+BazGySraz5kW0T"
+Content-Type: multipart/mixed; boundary="------------090405000103020007020309"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <11873511001036-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -27,83 +17,59 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-
---U+BazGySraz5kW0T
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi,
-
-* Tony Lindgren <tony@atomide.com> [070817 04:45]:
-> Without this patch OPT HS B TD.6.15 fails if run multiple
-> times in a row.
-
-Here's a follow-up patch to this one to remove compile warning.
-
-Tony
+This is a multi-part message in MIME format.
+--------------090405000103020007020309
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
 
---U+BazGySraz5kW0T
-Content-Type: text/x-diff; charset=us-ascii
+Fix warning
+
+drivers/usb/musb/plat_uds.c:1731: warning: 'dev_attr_srp' defined but 
+not used
+
+if CONFIG_USB_MUSB_OTG isn't set (DaVinci use case)
+
+Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
+
+--------------090405000103020007020309
+Content-Type: text/plain;
+ name="plat_uds_warning_fix.txt"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
-	filename="musb-remove-unused-delay-port-power-off.patch"
+ filename="plat_uds_warning_fix.txt"
 
-musb_hdrc: Remove old unused delay_port_power_off
-
-Remove old unused delay_port_power_off
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/drivers/usb/musb/musbdefs.h
-+++ b/drivers/usb/musb/musbdefs.h
-@@ -450,11 +450,6 @@ struct musb {
- 	struct usb_gadget_driver *gadget_driver;	/* its driver */
- #endif
+Index: linux-davinci/drivers/usb/musb/plat_uds.c
+===================================================================
+--- linux-davinci.orig/drivers/usb/musb/plat_uds.c
++++ linux-davinci/drivers/usb/musb/plat_uds.c
+@@ -1707,6 +1707,7 @@ musb_vbus_show(struct device *dev, struc
+ }
+ static DEVICE_ATTR(vbus, 0644, musb_vbus_show, musb_vbus_store);
  
--#ifdef CONFIG_USB_MUSB_OTG
--	/* FIXME this can't be OTG-specific ... ? */
--	u8 delay_port_power_off;
--#endif
--
- #ifdef MUSB_CONFIG_PROC_FS
- 	struct proc_dir_entry *proc_entry;
- #endif
-diff --git a/drivers/usb/musb/plat_uds.c b/drivers/usb/musb/plat_uds.c
-index 4d02460..3e63565 100644
---- a/drivers/usb/musb/plat_uds.c
-+++ b/drivers/usb/musb/plat_uds.c
-@@ -557,7 +557,6 @@ static irqreturn_t musb_stage0_irq(struct musb * musb, u8 int_usb,
- 		if (is_peripheral_active(musb)) {
- 			// REVISIT HNP; just force disconnect
- 		}
--		musb->delay_port_power_off = FALSE;
- 		musb_writew(mbase, MUSB_INTRTXE, musb->epmask);
- 		musb_writew(mbase, MUSB_INTRRXE, musb->epmask & 0xfffe);
- 		musb_writeb(mbase, MUSB_INTRUSBE, 0xf7);
-diff --git a/drivers/usb/musb/virthub.c b/drivers/usb/musb/virthub.c
-index 757da5e..d9f3c28 100644
---- a/drivers/usb/musb/virthub.c
-+++ b/drivers/usb/musb/virthub.c
-@@ -121,13 +121,6 @@ static void musb_port_reset(struct musb *musb, u8 bReset)
- 		musb->port1_status &= ~USB_PORT_STAT_RESET;
- 		return;
- 	}
--
--	/* REVISIT this looks wrong for HNP */
--	u8 devctl = musb_readb(mbase, MUSB_DEVCTL);
--
--	if (musb->delay_port_power_off || !(devctl & MUSB_DEVCTL_HM)) {
--		return;
--	}
- #endif
++#ifdef CONFIG_USB_MUSB_OTG
+ static ssize_t
+ musb_srp_store(struct device *dev, struct device_attribute *attr,
+ 		const char *buf, size_t n)
+@@ -1728,8 +1729,11 @@ musb_srp_store(struct device *dev, struc
  
- 	if (!is_host_active(musb))
+ 	return n;
+ }
++
++
+ static DEVICE_ATTR(srp, 0644, NULL, musb_srp_store);
+ #endif
++#endif
+ 
+ /* Only used to provide cable state change events */
+ static void musb_irq_work(struct work_struct *data)
 
---U+BazGySraz5kW0T
+
+--------------090405000103020007020309
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---U+BazGySraz5kW0T--
+--------------090405000103020007020309--
