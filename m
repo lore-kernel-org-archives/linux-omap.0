@@ -1,11 +1,10 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [06/17 PATCH] MMC: OMAP: General code cleanup, modifications at some
- dev_* functions and other hacks at mmc_omap_irq() for MMC multislot
- support.
-Date: Fri, 17 Aug 2007 15:01:53 -0400
-Message-ID: <46C5F0A1.3010204@indt.org.br>
+Subject: [03/17 PATCH] MMC: OMAP: New functions to support MMC multislot:
+ mmc_omap_release_dma() and mmc_omap_abort_xfer().
+Date: Fri, 17 Aug 2007 15:01:41 -0400
+Message-ID: <46C5F095.30305@indt.org.br>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000307000303050706040901"
+Content-Type: multipart/mixed; boundary="------------060204030200070103090109"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -21,169 +20,151 @@ Cc: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------000307000303050706040901
+--------------060204030200070103090109
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
 From: Juha Yrjola <juha.yrjola@solidboot.com>
 
-General code cleanup, modifications at some dev_* functions and other
-hacks at mmc_omap_irq() for MMC multislot support.
+New functions to support MMC multislot: mmc_omap_release_dma() and
+mmc_omap_abort_xfer().
 
 Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
-Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 
---------------000307000303050706040901
-Content-Type: text/x-patch;
-	name*0="0006-MMC-OMAP-General-cleanup-for-mmc-multislot-support.patch"
+--------------060204030200070103090109
+Content-Type: text/plain;
+	name*0="0003-MMC-OMAP-New-release-dma-and-abort-xfer-functions.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
-	filename*0="0006-MMC-OMAP-General-cleanup-for-mmc-multislot-support.patc";
-	filename*1="h"
+	filename*0="0003-MMC-OMAP-New-release-dma-and-abort-xfer-functions.diff"
 
-General code cleanup, modifications at some dev_* functions and other hacks at 
-mmc_omap_irq() for MMC multislot support.
+New functions to support MMC multislot:
+mmc_omap_release_dma() and mmc_omap_abort_xfer().
 
 Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
-Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br> 
 
 Index: linux-omap/drivers/mmc/host/omap.c
 ===================================================================
---- linux-omap.orig/drivers/mmc/host/omap.c	2007-08-16 12:33:07.000000000 -0400
-+++ linux-omap/drivers/mmc/host/omap.c	2007-08-16 12:33:10.000000000 -0400
-@@ -559,11 +559,12 @@ static irqreturn_t mmc_omap_irq(int irq,
- 	u16 status;
- 	int end_command;
- 	int end_transfer;
--	int transfer_error;
-+	int transfer_error, cmd_error;
- 
- 	if (host->cmd == NULL && host->data == NULL) {
- 		status = OMAP_MMC_READ(host, STAT);
--		dev_info(mmc_dev(host->mmc),"spurious irq 0x%04x\n", status);
-+		dev_info(mmc_dev(host->slots[0]->mmc),
-+			 "Spurious IRQ 0x%04x\n", status);
- 		if (status != 0) {
- 			OMAP_MMC_WRITE(host, STAT, status);
- 			OMAP_MMC_WRITE(host, IE, 0);
-@@ -574,12 +575,19 @@ static irqreturn_t mmc_omap_irq(int irq,
- 	end_command = 0;
- 	end_transfer = 0;
- 	transfer_error = 0;
-+	cmd_error = 0;
- 
- 	while ((status = OMAP_MMC_READ(host, STAT)) != 0) {
-+		int cmd;
-+
- 		OMAP_MMC_WRITE(host, STAT, status);
-+		if (host->cmd != NULL)
-+			cmd = host->cmd->opcode;
-+		else
-+			cmd = -1;
- #ifdef CONFIG_MMC_DEBUG
- 		dev_dbg(mmc_dev(host->mmc), "MMC IRQ %04x (CMD %d): ",
--			status, host->cmd != NULL ? host->cmd->opcode : -1);
-+			status, cmd);
- 		mmc_omap_report_irq(status);
- 		printk("\n");
- #endif
-@@ -591,12 +599,12 @@ static irqreturn_t mmc_omap_irq(int irq,
- 				mmc_omap_xfer_data(host, 1);
- 		}
- 
--		if (status & OMAP_MMC_STAT_END_OF_DATA) {
-+		if (status & OMAP_MMC_STAT_END_OF_DATA)
- 			end_transfer = 1;
--		}
- 
- 		if (status & OMAP_MMC_STAT_DATA_TOUT) {
--			dev_dbg(mmc_dev(host->mmc), "data timeout\n");
-+			dev_dbg(mmc_dev(host->mmc), "data timeout (CMD%d)\n",
-+				cmd);
- 			if (host->data) {
- 				host->data->error |= MMC_ERR_TIMEOUT;
- 				transfer_error = 1;
-@@ -618,17 +626,19 @@ static irqreturn_t mmc_omap_irq(int irq,
- 		if (status & OMAP_MMC_STAT_CMD_TOUT) {
- 			/* Timeouts are routine with some commands */
- 			if (host->cmd) {
-+				struct mmc_omap_slot *slot =
-+					host->current_slot;
- 				if (host->cmd->opcode != MMC_ALL_SEND_CID &&
--						host->cmd->opcode !=
--						MMC_SEND_OP_COND &&
--						host->cmd->opcode !=
--						MMC_APP_CMD &&
--						!mmc_omap_cover_is_open(host))
-+				    host->cmd->opcode != MMC_SEND_OP_COND &&
-+				    host->cmd->opcode != MMC_APP_CMD &&
-+				    (slot == NULL ||
-+				     !mmc_omap_cover_is_open(slot)))
- 					dev_err(mmc_dev(host->mmc),
--						"command timeout, CMD %d\n",
--						host->cmd->opcode);
-+						"command timeout (CMD%d)\n",
-+						cmd);
- 				host->cmd->error = MMC_ERR_TIMEOUT;
- 				end_command = 1;
-+				cmd_error = 1;
- 			}
- 		}
- 
-@@ -636,9 +646,10 @@ static irqreturn_t mmc_omap_irq(int irq,
- 			if (host->cmd) {
- 				dev_err(mmc_dev(host->mmc),
- 					"command CRC error (CMD%d, arg 0x%08x)\n",
--					host->cmd->opcode, host->cmd->arg);
-+					cmd, host->cmd->arg);
- 				host->cmd->error = MMC_ERR_BADCRC;
- 				end_command = 1;
-+				cmd_error = 1;
- 			} else
- 				dev_err(mmc_dev(host->mmc),
- 					"command CRC error without cmd?\n");
-@@ -647,13 +658,13 @@ static irqreturn_t mmc_omap_irq(int irq,
- 		if (status & OMAP_MMC_STAT_CARD_ERR) {
- 			dev_dbg(mmc_dev(host->mmc),
- 				"ignoring card status error (CMD%d)\n",
--				host->cmd->opcode);
-+				cmd);
- 			end_command = 1;
- 		}
- 
- 		/*
- 		 * NOTE: On 1610 the END_OF_CMD may come too early when
--		 * starting a write 
-+		 * starting a write
- 		 */
- 		if ((status & OMAP_MMC_STAT_END_OF_CMD) &&
- 		    (!(status & OMAP_MMC_STAT_A_EMPTY))) {
-@@ -661,13 +672,14 @@ static irqreturn_t mmc_omap_irq(int irq,
- 		}
- 	}
- 
--	if (end_command) {
-+	if (end_command)
- 		mmc_omap_cmd_done(host, host->cmd);
-+	if (host->data != NULL) {
-+		if (transfer_error)
-+			mmc_omap_xfer_done(host, host->data);
-+		else if (end_transfer)
-+			mmc_omap_end_of_data(host, host->data);
- 	}
--	if (transfer_error)
--		mmc_omap_xfer_done(host, host->data);
--	else if (end_transfer)
--		mmc_omap_end_of_data(host, host->data);
- 
- 	return IRQ_HANDLED;
+--- linux-omap.orig/drivers/mmc/host/omap.c	2007-08-16 12:32:51.000000000 -0400
++++ linux-omap/drivers/mmc/host/omap.c	2007-08-16 12:33:02.000000000 -0400
+@@ -339,26 +339,32 @@ mmc_omap_start_command(struct mmc_omap_h
  }
+ 
+ static void
++mmc_omap_release_dma(struct mmc_omap_host *host, struct mmc_data *data,
++		     int abort)
++{
++	enum dma_data_direction dma_data_dir;
++
++	BUG_ON(host->dma_ch < 0);
++	if (abort)
++		omap_stop_dma(host->dma_ch);
++	/* Release DMA channel lazily */
++	mod_timer(&host->dma_timer, jiffies + HZ);
++	if (data->flags & MMC_DATA_WRITE)
++		dma_data_dir = DMA_TO_DEVICE;
++	else
++		dma_data_dir = DMA_FROM_DEVICE;
++	dma_unmap_sg(mmc_dev(host->mmc), data->sg, host->sg_len,
++		     dma_data_dir);
++}
++
++static void
+ mmc_omap_xfer_done(struct mmc_omap_host *host, struct mmc_data *data)
+ {
+-	if (host->dma_in_use) {
+-		enum dma_data_direction dma_data_dir;
++	if (host->dma_in_use)
++		mmc_omap_release_dma(host, data, data->error != MMC_ERR_NONE);
+ 
+-		BUG_ON(host->dma_ch < 0);
+-		if (data->error != MMC_ERR_NONE)
+-			omap_stop_dma(host->dma_ch);
+-		/* Release DMA channel lazily */
+-		mod_timer(&host->dma_timer, jiffies + HZ);
+-		if (data->flags & MMC_DATA_WRITE)
+-			dma_data_dir = DMA_TO_DEVICE;
+-		else
+-			dma_data_dir = DMA_FROM_DEVICE;
+-		dma_unmap_sg(mmc_dev(host->mmc), data->sg, host->sg_len,
+-			     dma_data_dir);
+-	}
+ 	host->data = NULL;
+ 	host->sg_len = 0;
+-	clk_disable(host->fclk);
+ 
+ 	/* NOTE:  MMC layer will sometimes poll-wait CMD13 next, issuing
+ 	 * dozens of requests until the card finishes writing data.
+@@ -366,8 +372,12 @@ mmc_omap_xfer_done(struct mmc_omap_host 
+ 	 */
+ 
+ 	if (!data->stop) {
++		struct mmc_host *mmc;
++
+ 		host->mrq = NULL;
+-		mmc_request_done(host->mmc, data->mrq);
++		mmc = host->mmc;
++		mmc_omap_release_slot(host->current_slot);
++		mmc_request_done(mmc, data->mrq);
+ 		return;
+ 	}
+ 
+@@ -375,6 +385,32 @@ mmc_omap_xfer_done(struct mmc_omap_host 
+ }
+ 
+ static void
++mmc_omap_abort_xfer(struct mmc_omap_host *host, struct mmc_data *data)
++{
++	int loops;
++	u16 ie;
++
++	if (host->dma_in_use)
++		mmc_omap_release_dma(host, data, 1);
++
++	host->data = NULL;
++	host->sg_len = 0;
++
++	ie = OMAP_MMC_READ(host, IE);
++	OMAP_MMC_WRITE(host, IE, 0);
++	OMAP_MMC_WRITE(host, CMD, 1 << 7);
++	loops = 0;
++	while (!(OMAP_MMC_READ(host, STAT) & OMAP_MMC_STAT_END_OF_CMD)) {
++		udelay(1);
++		loops++;
++		if (loops == 100000)
++			break;
++	}
++	OMAP_MMC_WRITE(host, STAT, OMAP_MMC_STAT_END_OF_CMD);
++	OMAP_MMC_WRITE(host, IE, ie);
++}
++
++static void
+ mmc_omap_end_of_data(struct mmc_omap_host *host, struct mmc_data *data)
+ {
+ 	unsigned long flags;
+@@ -451,9 +487,14 @@ mmc_omap_cmd_done(struct mmc_omap_host *
+ 	}
+ 
+ 	if (host->data == NULL || cmd->error != MMC_ERR_NONE) {
++		struct mmc_host *mmc;
++
++		if (host->data != NULL)
++			mmc_omap_abort_xfer(host, host->data);
+ 		host->mrq = NULL;
+-		clk_disable(host->fclk);
+-		mmc_request_done(host->mmc, cmd->mrq);
++		mmc = host->mmc;
++		mmc_omap_release_slot(host->current_slot);
++		mmc_request_done(mmc, cmd->mrq);
+ 	}
+ }
+ 
 
---------------000307000303050706040901
+--------------060204030200070103090109
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------000307000303050706040901--
+--------------060204030200070103090109--
