@@ -1,10 +1,10 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [01/17 PATCH] MMC: OMAP: Introduces new structures for MMC multislot
- support.
-Date: Fri, 17 Aug 2007 15:01:33 -0400
-Message-ID: <46C5F08D.7070207@indt.org.br>
+Subject: [04/17 PATCH] MMC: OMAP: Fix the data timeout calculation for MMC
+ multislot support.
+Date: Fri, 17 Aug 2007 15:01:45 -0400
+Message-ID: <46C5F099.4000901@indt.org.br>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040109020708050207010108"
+Content-Type: multipart/mixed; boundary="------------070700020809060502000800"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,101 +15,80 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
-Cc: omap-linux <linux-omap-open-source@linux.omap.com>
+To: Tony Lindgren <tony@atomide.com>, omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040109020708050207010108
+--------------070700020809060502000800
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
 From: Juha Yrjola <juha.yrjola@solidboot.com>
 
-Introduces new structures for MMC multislot support.
+Fix the data timeout calculation for MMC multislot support.
 
 Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
-Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 
---------------040109020708050207010108
+--------------070700020809060502000800
 Content-Type: text/plain;
-	name*0="0001-MMC-OMAP-Introduce-new-structs-for-mmc-multislot-support.di";
-	name*1="ff"
+ name="0004-MMC-OMAP-Fix-timeout-calculation.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
-	filename*0="0001-MMC-OMAP-Introduce-new-structs-for-mmc-multislot-suppor";
-	filename*1="t.diff"
+	filename="0004-MMC-OMAP-Fix-timeout-calculation.diff"
 
-Introduces new structures for MMC multislot support.
+Fix the data timeout calculation for MMC multislot support
 
 Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
-Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 
 Index: linux-omap/drivers/mmc/host/omap.c
 ===================================================================
---- linux-omap.orig/drivers/mmc/host/omap.c	2007-08-16 12:26:58.000000000 -0400
-+++ linux-omap/drivers/mmc/host/omap.c	2007-08-16 12:27:46.000000000 -0400
-@@ -32,6 +32,7 @@
- #include <asm/mach-types.h>
+--- linux-omap.orig/drivers/mmc/host/omap.c	2007-08-16 12:33:02.000000000 -0400
++++ linux-omap/drivers/mmc/host/omap.c	2007-08-16 12:33:05.000000000 -0400
+@@ -875,13 +875,12 @@ static inline void set_cmd_timeout(struc
  
- #include <asm/arch/board.h>
-+#include <asm/arch/mmc.h>
- #include <asm/arch/gpio.h>
- #include <asm/arch/dma.h>
- #include <asm/arch/mux.h>
-@@ -99,6 +100,26 @@
+ static inline void set_data_timeout(struct mmc_omap_host *host, struct mmc_request *req)
+ {
+-	int timeout;
++	unsigned int timeout, cycle_ns;
+ 	u16 reg;
  
- static int mmc_omap_enable_poll = 1;
+-	/* Convert ns to clock cycles by assuming 20MHz frequency
+-	 * 1 cycle at 20MHz = 500 ns
+-	 */
+-	timeout = req->data->timeout_clks + req->data->timeout_ns / 500;
++	cycle_ns = 1000000000 / host->current_slot->fclk_freq;
++	timeout = req->data->timeout_ns / cycle_ns;
++	timeout += req->data->timeout_clks;
  
-+struct mmc_omap_host;
+ 	/* Check if we need to use timeout multiplier register */
+ 	reg = OMAP_MMC_READ(host, SDIO);
+@@ -1051,7 +1050,8 @@ static void mmc_omap_power(struct mmc_om
+ 
+ static int mmc_omap_calc_divisor(struct mmc_host *mmc, struct mmc_ios *ios)
+ {
+-	struct mmc_omap_host *host = mmc_priv(mmc);
++	struct mmc_omap_slot *slot = mmc_priv(mmc);
++	struct mmc_omap_host *host = slot->host;
+ 	int func_clk_rate = clk_get_rate(host->fclk);
+ 	int dsor;
+ 
+@@ -1068,6 +1068,8 @@ static int mmc_omap_calc_divisor(struct 
+ 	if (dsor > 250)
+ 		dsor = 250;
+ 
++	slot->fclk_freq = func_clk_rate / dsor;
 +
-+struct mmc_omap_slot {
-+	int			id;
-+	unsigned int		vdd;
-+	u16			saved_con;
-+	u16			bus_mode;
-+	unsigned int		fclk_freq;
-+	unsigned		powered:1;
-+
-+	struct work_struct	switch_work;
-+	struct timer_list	switch_timer;
-+	unsigned		cover_open;
-+
-+	struct mmc_request *	mrq;
-+	struct mmc_omap_host *  host;
-+	struct mmc_host *	mmc;
-+	struct omap_mmc_slot_data *pdata;
-+};
-+
- struct mmc_omap_host {
- 	int			initialized;
- 	int			suspended;
-@@ -132,13 +153,13 @@ struct mmc_omap_host {
- 	struct timer_list	dma_timer;
- 	unsigned		dma_len;
+ 	if (ios->bus_width == MMC_BUS_WIDTH_4)
+ 		dsor |= 1 << 15;
  
--	short			power_pin;
--	short			wp_pin;
-+	struct mmc_omap_slot *	slots[OMAP_MMC_MAX_SLOTS];
-+	struct mmc_omap_slot *	current_slot;
-+	spinlock_t		slot_lock;
-+	wait_queue_head_t	slot_wq;
-+	int			nr_slots;
- 
--	int			switch_pin;
--	struct work_struct	switch_work;
--	struct timer_list	switch_timer;
--	int			switch_last_state;
-+	struct omap_mmc_platform_data *pdata;
- };
- 
- static inline int
 
---------------040109020708050207010108
+--------------070700020809060502000800
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------040109020708050207010108--
+--------------070700020809060502000800--
