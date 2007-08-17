@@ -1,11 +1,11 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [03/17 PATCH] MMC: OMAP: New functions to support MMC multislot:
- mmc_omap_release_dma() and mmc_omap_abort_xfer().
-Date: Fri, 17 Aug 2007 15:01:41 -0400
-Message-ID: <46C5F095.30305@indt.org.br>
+Subject: [10/17 PATCH] MMC: OMAP: Modifications at N800 MMC board specific
+ file to works MMC multislot support.
+Date: Fri, 17 Aug 2007 15:02:09 -0400
+Message-ID: <46C5F0B1.7090000@indt.org.br>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060204030200070103090109"
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: multipart/mixed; boundary="------------000509040809030700060304"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,158 +13,163 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: Tony Lindgren <tony@atomide.com>
 Cc: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------060204030200070103090109
+--------------000509040809030700060304
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
-From: Juha Yrjola <juha.yrjola@solidboot.com>
+From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 
-New functions to support MMC multislot: mmc_omap_release_dma() and
-mmc_omap_abort_xfer().
+Modifications at board-n800-mmc.c file to works with MMC multislot support.
 
+Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
+Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 
---------------060204030200070103090109
+--------------000509040809030700060304
 Content-Type: text/plain;
-	name*0="0003-MMC-OMAP-New-release-dma-and-abort-xfer-functions.diff"
+	name*0="0010-MMC-OMAP-Modifications-at-N800-MMC-board-specific-file-to-w";
+	name*1="orks-MMC-multislot-support.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
-	filename*0="0003-MMC-OMAP-New-release-dma-and-abort-xfer-functions.diff"
+	filename*0="0010-MMC-OMAP-Modifications-at-N800-MMC-board-specific-file-";
+	filename*1="to-works-MMC-multislot-support.diff"
 
-New functions to support MMC multislot:
-mmc_omap_release_dma() and mmc_omap_abort_xfer().
+Modifications at board-n800-mmc.c file to works with MMC multislot support.
 
+Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
+Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 
-Index: linux-omap/drivers/mmc/host/omap.c
+Index: linux-omap/arch/arm/mach-omap2/board-n800-mmc.c
 ===================================================================
---- linux-omap.orig/drivers/mmc/host/omap.c	2007-08-16 12:32:51.000000000 -0400
-+++ linux-omap/drivers/mmc/host/omap.c	2007-08-16 12:33:02.000000000 -0400
-@@ -339,26 +339,32 @@ mmc_omap_start_command(struct mmc_omap_h
+--- linux-omap.orig/arch/arm/mach-omap2/board-n800-mmc.c	2007-08-13 13:19:59.000000000 -0400
++++ linux-omap/arch/arm/mach-omap2/board-n800-mmc.c	2007-08-13 13:25:47.000000000 -0400
+@@ -13,13 +13,14 @@
+ #include <asm/arch/menelaus.h>
+ #include <asm/arch/gpio.h>
+ 
++#include <asm/mach-types.h>
++#include <linux/delay.h>
++
+ #ifdef CONFIG_MMC_OMAP
+ 
+ static const int slot_switch_gpio = 96;
+-static const int slot1_wp_gpio = 23;
+-static const int slot2_wp_gpio = 8;
+-static int slot1_cover_closed;
+-static int slot2_cover_closed;
++static int slot1_cover_open;
++static int slot2_cover_open;
+ static struct device *mmc_device;
+ 
+ /*
+@@ -158,18 +159,31 @@ static int n800_mmc_get_cover_state(stru
+ 	slot++;
+ 	BUG_ON(slot != 1 && slot != 2);
+ 	if (slot == 1)
+-		return slot1_cover_closed;
++		return slot1_cover_open;
+ 	else
+-		return slot2_cover_closed;
++		return slot2_cover_open;
  }
  
- static void
-+mmc_omap_release_dma(struct mmc_omap_host *host, struct mmc_data *data,
-+		     int abort)
-+{
-+	enum dma_data_direction dma_data_dir;
-+
-+	BUG_ON(host->dma_ch < 0);
-+	if (abort)
-+		omap_stop_dma(host->dma_ch);
-+	/* Release DMA channel lazily */
-+	mod_timer(&host->dma_timer, jiffies + HZ);
-+	if (data->flags & MMC_DATA_WRITE)
-+		dma_data_dir = DMA_TO_DEVICE;
-+	else
-+		dma_data_dir = DMA_FROM_DEVICE;
-+	dma_unmap_sg(mmc_dev(host->mmc), data->sg, host->sg_len,
-+		     dma_data_dir);
-+}
-+
-+static void
- mmc_omap_xfer_done(struct mmc_omap_host *host, struct mmc_data *data)
+ static void n800_mmc_callback(void *data, u8 card_mask)
  {
--	if (host->dma_in_use) {
--		enum dma_data_direction dma_data_dir;
-+	if (host->dma_in_use)
-+		mmc_omap_release_dma(host, data, data->error != MMC_ERR_NONE);
- 
--		BUG_ON(host->dma_ch < 0);
--		if (data->error != MMC_ERR_NONE)
--			omap_stop_dma(host->dma_ch);
--		/* Release DMA channel lazily */
--		mod_timer(&host->dma_timer, jiffies + HZ);
--		if (data->flags & MMC_DATA_WRITE)
--			dma_data_dir = DMA_TO_DEVICE;
--		else
--			dma_data_dir = DMA_FROM_DEVICE;
--		dma_unmap_sg(mmc_dev(host->mmc), data->sg, host->sg_len,
--			     dma_data_dir);
--	}
- 	host->data = NULL;
- 	host->sg_len = 0;
--	clk_disable(host->fclk);
- 
- 	/* NOTE:  MMC layer will sometimes poll-wait CMD13 next, issuing
- 	 * dozens of requests until the card finishes writing data.
-@@ -366,8 +372,12 @@ mmc_omap_xfer_done(struct mmc_omap_host 
- 	 */
- 
- 	if (!data->stop) {
-+		struct mmc_host *mmc;
+-	if (card_mask & (1 << 1))
+-		slot2_cover_closed = 0;
++	int bit, *openp, index;
 +
- 		host->mrq = NULL;
--		mmc_request_done(host->mmc, data->mrq);
-+		mmc = host->mmc;
-+		mmc_omap_release_slot(host->current_slot);
-+		mmc_request_done(mmc, data->mrq);
- 		return;
- 	}
- 
-@@ -375,6 +385,32 @@ mmc_omap_xfer_done(struct mmc_omap_host 
- }
- 
- static void
-+mmc_omap_abort_xfer(struct mmc_omap_host *host, struct mmc_data *data)
-+{
-+	int loops;
-+	u16 ie;
-+
-+	if (host->dma_in_use)
-+		mmc_omap_release_dma(host, data, 1);
-+
-+	host->data = NULL;
-+	host->sg_len = 0;
-+
-+	ie = OMAP_MMC_READ(host, IE);
-+	OMAP_MMC_WRITE(host, IE, 0);
-+	OMAP_MMC_WRITE(host, CMD, 1 << 7);
-+	loops = 0;
-+	while (!(OMAP_MMC_READ(host, STAT) & OMAP_MMC_STAT_END_OF_CMD)) {
-+		udelay(1);
-+		loops++;
-+		if (loops == 100000)
-+			break;
++	if (machine_is_nokia_n800()) {
++		bit = 1 << 1;
++		openp = &slot2_cover_open;
++		index = 1;
++	} else {
++		bit = 1;
++		openp = &slot1_cover_open;
++		index = 0;
 +	}
-+	OMAP_MMC_WRITE(host, STAT, OMAP_MMC_STAT_END_OF_CMD);
-+	OMAP_MMC_WRITE(host, IE, ie);
-+}
 +
-+static void
- mmc_omap_end_of_data(struct mmc_omap_host *host, struct mmc_data *data)
- {
- 	unsigned long flags;
-@@ -451,9 +487,14 @@ mmc_omap_cmd_done(struct mmc_omap_host *
- 	}
- 
- 	if (host->data == NULL || cmd->error != MMC_ERR_NONE) {
-+		struct mmc_host *mmc;
++	if (card_mask & bit)
++		*openp = 1;
+ 	else
+-		slot2_cover_closed = 1;
+-        omap_mmc_notify_cover_event(mmc_device, 1, slot2_cover_closed);
++		*openp = 0;
 +
-+		if (host->data != NULL)
-+			mmc_omap_abort_xfer(host, host->data);
- 		host->mrq = NULL;
--		clk_disable(host->fclk);
--		mmc_request_done(host->mmc, cmd->mrq);
-+		mmc = host->mmc;
-+		mmc_omap_release_slot(host->current_slot);
-+		mmc_request_done(mmc, cmd->mrq);
- 	}
++        omap_mmc_notify_cover_event(mmc_device, index, *openp);
  }
  
+ void n800_mmc_slot1_cover_handler(void *arg, int state)
+@@ -177,13 +191,13 @@ void n800_mmc_slot1_cover_handler(void *
+ 	if (mmc_device == NULL)
+ 		return;
+ 
+-	slot1_cover_closed = state;
++	slot1_cover_open = !state;
+ 	omap_mmc_notify_cover_event(mmc_device, 0, state);
+ }
+ 
+ static int n800_mmc_late_init(struct device *dev)
+ {
+-	int r;
++	int r, bit, *openp;
+ 
+ 	mmc_device = dev;
+ 
+@@ -202,10 +216,23 @@ static int n800_mmc_late_init(struct dev
+ 	if (r < 0)
+ 		return r;
+ 
+-	if (r & (1 << 1))
+-		slot2_cover_closed = 1;
++	if (machine_is_nokia_n800()) {
++		bit = 1 << 1;
++		openp = &slot2_cover_open;
++	} else {
++		bit = 1;
++		openp = &slot1_cover_open;
++		slot2_cover_open = 0;
++	}
++
++	/* All slot pin bits seem to be inversed until first swith change */
++	if (r == 0xf || r == (0xf & ~bit))
++		r = ~r;
++
++	if (r & bit)
++		*openp = 1;
+ 	else
+-		slot2_cover_closed = 0;
++		*openp = 0;
+ 
+ 	r = menelaus_register_mmc_callback(n800_mmc_callback, NULL);
+ 
+@@ -253,12 +280,6 @@ void __init n800_mmc_init(void)
+ 		BUG();
+ 	omap_set_gpio_dataout(slot_switch_gpio, 0);
+ 	omap_set_gpio_direction(slot_switch_gpio, 0);
+-	if (omap_request_gpio(slot1_wp_gpio) < 0)
+-		BUG();
+-	if (omap_request_gpio(slot2_wp_gpio) < 0)
+-		BUG();
+-	omap_set_gpio_direction(slot1_wp_gpio, 1);
+-	omap_set_gpio_direction(slot2_wp_gpio, 1);
+ }
+ 
+ #else
 
---------------060204030200070103090109
+--------------000509040809030700060304
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------060204030200070103090109--
+--------------000509040809030700060304--
