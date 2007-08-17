@@ -1,11 +1,11 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [08/17 PATCH] PLAT: OMAP: Modifications at
- arch/arm/plat-omap/devices.c to use multislot structures.
-Date: Fri, 17 Aug 2007 15:02:01 -0400
-Message-ID: <46C5F0A9.5010303@indt.org.br>
+Subject: [12/17 PATCH] MMC: OMAP: Supporting MMC multislot structures for
+ TI OMAP H3 board.
+Date: Fri, 17 Aug 2007 15:02:16 -0400
+Message-ID: <46C5F0B8.60400@indt.org.br>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070805000101090907010106"
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: multipart/mixed; boundary="------------090604070700040906000301"
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,173 +13,184 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: Tony Lindgren <tony@atomide.com>
 Cc: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------070805000101090907010106
+--------------090604070700040906000301
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
-From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+From: Felipe Balbi <felipe.lima@indt.org.br>
 
-Modifications at arch/arm/plat-omap/devices.c to use multislot structures.
+Proposes the new board-h3-mmc.c file to handle all the mmc specific code
+for multislot support.
 
-Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
-Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Signed-off-by: Anderson Briglia <anderson.briglia@indt.org.br>
+Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+Signed-off-by: David Cohen <david.cohen@indt.org.br>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
---------------070805000101090907010106
-Content-Type: text/x-patch;
-	name*0="0008-PLAT-OMAP-Modifications-at-devices.c-to-use-multislot-struc";
-	name*1="tures.patch"
+--------------090604070700040906000301
+Content-Type: text/plain;
+	name*0="0012-MMC-OMAP-Supporting-MMC-multislot-structures-for-TI-OMAP-H3";
+	name*1="-board.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
-	filename*0="0008-PLAT-OMAP-Modifications-at-devices.c-to-use-multislot-s";
-	filename*1="tructures.patch"
+	filename*0="0012-MMC-OMAP-Supporting-MMC-multislot-structures-for-TI-OMA";
+	filename*1="P-H3-board.diff"
 
-Modifications at arch/arm/plat-omap/devices.c to use multislot structures
+Proposes the new board-h3-mmc.c file to handle all the mmc
+specific code for multislot support.
 
-Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
-Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Signed-off-by: Anderson Briglia <anderson.briglia@indt.org.br>
+Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+Signed-off-by: David Cohen <david.cohen@indt.org.br>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-Index: linux-omap/arch/arm/plat-omap/devices.c
+Index: linux-omap/arch/arm/mach-omap1/board-h3-mmc.c
 ===================================================================
---- linux-omap.orig/arch/arm/plat-omap/devices.c	2007-08-07 10:20:13.000000000 -0400
-+++ linux-omap/arch/arm/plat-omap/devices.c	2007-08-13 12:20:12.000000000 -0400
-@@ -21,6 +21,7 @@
- 
- #include <asm/arch/tc.h>
- #include <asm/arch/board.h>
-+#include <asm/arch/mmc.h>
- #include <asm/arch/mux.h>
- #include <asm/arch/gpio.h>
- #include <asm/arch/menelaus.h>
-@@ -231,7 +232,7 @@ static inline void omap_init_kp(void) {}
- #endif
- #define	OMAP_MMC2_BASE		0xfffb7c00	/* omap16xx only */
- 
--static struct omap_mmc_conf mmc1_conf;
-+static struct omap_mmc_platform_data mmc1_data;
- 
- static u64 mmc1_dmamask = 0xffffffff;
- 
-@@ -252,7 +253,7 @@ static struct platform_device mmc_omap_d
- 	.id		= 1,
- 	.dev = {
- 		.dma_mask	= &mmc1_dmamask,
--		.platform_data	= &mmc1_conf,
-+		.platform_data	= &mmc1_data,
- 	},
- 	.num_resources	= ARRAY_SIZE(mmc1_resources),
- 	.resource	= mmc1_resources,
-@@ -260,7 +261,7 @@ static struct platform_device mmc_omap_d
- 
- #ifdef	CONFIG_ARCH_OMAP16XX
- 
--static struct omap_mmc_conf mmc2_conf;
-+static struct omap_mmc_platform_data mmc2_data;
- 
- static u64 mmc2_dmamask = 0xffffffff;
- 
-@@ -282,7 +283,7 @@ static struct platform_device mmc_omap_d
- 	.id		= 2,
- 	.dev = {
- 		.dma_mask	= &mmc2_dmamask,
--		.platform_data	= &mmc2_conf,
-+		.platform_data	= &mmc2_data,
- 	},
- 	.num_resources	= ARRAY_SIZE(mmc2_resources),
- 	.resource	= mmc2_resources,
-@@ -291,20 +292,14 @@ static struct platform_device mmc_omap_d
- 
- static void __init omap_init_mmc(void)
- {
--	const struct omap_mmc_config	*mmc_conf;
--	const struct omap_mmc_conf	*mmc;
-+	const struct omap_mmc_platform_data     *mmc;
- 
- 	/* REVISIT: 2430 has HS MMC */
- 	if (cpu_is_omap2430() || cpu_is_omap34xx())
- 		return;
- 
--	/* NOTE:  assumes MMC was never (wrongly) enabled */
--	mmc_conf = omap_get_config(OMAP_TAG_MMC, struct omap_mmc_config);
--	if (!mmc_conf)
--		return;
--
- 	/* block 1 is always available and has just one pinout option */
--	mmc = &mmc_conf->mmc[0];
-+	mmc = &mmc1_data;
- 	if (mmc->enabled) {
- 		if (cpu_is_omap24xx()) {
- 			omap_cfg_reg(H18_24XX_MMC_CMD);
-@@ -339,24 +334,12 @@ static void __init omap_init_mmc(void)
- 				omap_cfg_reg(MMC_DAT3);
- 			}
- 		}
--		if (mmc->internal_clock) {
--			/*
--			 * Use internal loop-back in MMC/SDIO
--			 * Module Input Clock selection
--			 */
--			if (cpu_is_omap24xx()) {
--				u32 v = omap_readl(OMAP24XX_CONTROL_DEVCONF);
--				v |= (1 << 24);
--				omap_writel(v, OMAP24XX_CONTROL_DEVCONF);
--			}
--		}
--		mmc1_conf = *mmc;
- 		(void) platform_device_register(&mmc_omap_device1);
- 	}
- 
- #ifdef	CONFIG_ARCH_OMAP16XX
- 	/* block 2 is on newer chips, and has many pinout options */
--	mmc = &mmc_conf->mmc[1];
-+	mmc = &mmc2_data;
- 	if (mmc->enabled) {
- 		if (!mmc->nomux) {
- 			omap_cfg_reg(Y8_1610_MMC2_CMD);
-@@ -379,12 +362,28 @@ static void __init omap_init_mmc(void)
- 		if (cpu_is_omap1710())
- 			omap_writel(omap_readl(MOD_CONF_CTRL_1) | (1 << 24),
- 				     MOD_CONF_CTRL_1);
--		mmc2_conf = *mmc;
- 		(void) platform_device_register(&mmc_omap_device2);
- 	}
- #endif
- 	return;
- }
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-omap/arch/arm/mach-omap1/board-h3-mmc.c	2007-08-14 15:50:05.000000000 -0400
+@@ -0,0 +1,115 @@
++/*
++ * linux/arch/arm/mach-omap1/board-h3-mmc.c
++ *
++ * Copyright (C) 2007 Instituto Nokia de Tecnologia - INdT
++ * Author: Felipe Balbi <felipe.lima@indt.org.br>
++ *
++ * This code is based on linux/arch/arm/mach-omap2/board-n800-mmc.c, which is:
++ * Copyright (C) 2006 Nokia Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+void omap_set_mmc_info(int host, const struct omap_mmc_platform_data *info)
++#include <asm/arch/mmc.h>
++#include <asm/arch/gpio.h>
++
++#ifdef CONFIG_MMC_OMAP
++static int slot_cover_open;
++static struct device *mmc_device;
++
++static int h3_mmc_set_power(struct device *dev, int slot, int power_on,
++				int vdd)
 +{
-+	switch (host) {
-+	case 1:
-+		mmc1_data = *info;
-+		break;
-+#ifdef CONFIG_ARCH_OMAP16XX
-+	case 2:
-+		mmc2_data = *info;
-+		break;
++#ifdef CONFIG_MMC_DEBUG
++	dev_dbg(dev, "Set slot %d power: %s (vdd %d)\n", slot +1,
++		power_on ? "on" : "off", vdd);
 +#endif
-+	default:
-+		BUG();
++	if (slot != 0) {
++		dev_err(dev, "No such slot %d\n", slot + 1);
++		return -ENODEV;
 +	}
++
++	return 0;
 +}
 +
- #else
- static inline void omap_init_mmc(void) {}
- #endif
++static int h3_mmc_set_bus_mode(struct device *dev, int slot, int bus_mode)
++{
++	int ret = 0;
++
++#ifdef CONFIG_MMC_DEBUG
++	dev_dbg(dev, "Set slot %d bus_mode %s\n", slot + 1,
++		bus_mode == MMC_BUSMODE_OPENDRAIN ? "open-drain" : "push-pull");
++#endif
++	if (slot != 0) {
++		dev_err(dev, "No such slot %d\n", slot + 1);
++		return -ENODEV;
++	}
++
++	/* Treated on upper level */
++
++	return bus_mode;
++}
++
++static int h3_mmc_get_cover_state(struct device *dev, int slot)
++{
++	BUG_ON(slot != 0);
++
++	return slot_cover_open;
++}
++
++void h3_mmc_slot_cover_handler(void *arg, int state)
++{
++	if (mmc_device == NULL)
++		return;
++
++	slot_cover_open = state;
++	omap_mmc_notify_cover_event(mmc_device, 0, state);
++}
++
++static int h3_mmc_late_init(struct device *dev)
++{
++	int ret = 0;
++
++	mmc_device = dev;
++
++	return ret;
++}
++
++static void h3_mmc_cleanup(struct device *dev)
++{
++}
++
++static struct omap_mmc_platform_data h3_mmc_data = {
++	.enabled			= 1,
++	.nr_slots                       = 1,
++	.wire4                          = 1,
++	.switch_slot                    = NULL,
++	.init                           = h3_mmc_late_init,
++	.cleanup                        = h3_mmc_cleanup,
++	.slots[0]       = {
++		.set_power              = h3_mmc_set_power,
++		.set_bus_mode           = h3_mmc_set_bus_mode,
++		.get_ro                 = NULL,
++		.get_cover_state        = h3_mmc_get_cover_state,
++		.ocr_mask               = MMC_VDD_28_29 | MMC_VDD_30_31 | MMC_VDD_32_33 | MMC_VDD_33_34,
++		.name                   = "mmcblk",
++	},
++};
++
++void __init h3_mmc_init(void)
++{
++	omap_set_mmc_info(1, &h3_mmc_data);
++}
++
++#else
++
++void __init h3_mmc_init(void)
++{
++}
++
++void h3_mmc_slot_cover_handler(void *arg, int state)
++{
++}
++#endif
+Index: linux-omap/include/asm-arm/arch-omap/board-h3.h
+===================================================================
+--- linux-omap.orig/include/asm-arm/arch-omap/board-h3.h	2007-08-14 12:09:02.000000000 -0400
++++ linux-omap/include/asm-arm/arch-omap/board-h3.h	2007-08-14 12:10:08.000000000 -0400
+@@ -36,5 +36,7 @@
+ 
+ #define NR_IRQS				(MAXIRQNUM + 1)
+ 
++extern void h3_mmc_init(void);
++extern void h3_mmc_slot_cover_handler(void *arg, int state);
+ 
+ #endif /*  __ASM_ARCH_OMAP_H3_H */
 
---------------070805000101090907010106
+--------------090604070700040906000301
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------070805000101090907010106--
+--------------090604070700040906000301--
