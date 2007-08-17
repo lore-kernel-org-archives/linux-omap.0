@@ -1,16 +1,18 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Pending patches, was: Git tree updated to 2.6.23-rc2
-Date: Fri, 17 Aug 2007 00:25:20 -0700
-Message-ID: <20070817072519.GD4676@atomide.com>
-References: <20070806125225.GA2312@atomide.com> <46BCB2BD.1090905@mvista.com>
-	<3B6D69C3A9EBCA4BA5DA60D913027429019C4F78@dlee13.ent.ti.com>
-	<20070813090623.GK13948@atomide.com>
-	<46C08DD5.5090001@mvista.com> <46C46C0A.1070008@googlemail.com>
+From: "Kyungmin Park" <kyungmin.park@samsung.com>
+Subject: RE: The clock problem in OMAP2 McSPI
+Date: Fri, 17 Aug 2007 16:44:34 +0900
+Message-ID: <003701c7e0a2$7709e750$e1ac580a@swcenter.sec.samsung.co.kr>
+References: <002801c7e061$2da499c0$e1ac580a@swcenter.sec.samsung.co.kr>
+	<200708161921.10232.david-b@pacbell.net>
+	<003501c7e07b$8801d850$e1ac580a@swcenter.sec.samsung.co.kr>
+	<200708162053.46288.david-b@pacbell.net>
+Reply-To: kmpark@infradead.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <46C46C0A.1070008@googlemail.com>
+In-reply-to: <200708162053.46288.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,49 +22,69 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
+To: 'David Brownell' <david-b@pacbell.net>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Dirk Behme <dirk.behme@googlemail.com> [070816 08:24]:
-> Kevin Hilman wrote:
->> Tony Lindgren wrote:
->>> * Woodruff, Richard <r-woodruff2@ti.com> [070810 13:16]:
->>>
->>>>> Can you undo this 1/3 nand patch?  2430 doesn't build without the other
->>>>> 2 patches due to some missing header (asm/arch/nand.h) that come with
->>>>> the later patches.
->>>>
->>>> Kevin for compiles sake I added the missing patches instead of removing.
->>>
->>> I reverted the 1/3 nand patch, and applied Richard's two fixes.
->>> I'll take a closer look at the nand patch this week, let's try to
->>> get things working for 2430 soon.
->>>
->>>
->>>> There were a couple more fixes which I also added to get it booting.
->>>> 	- update defconfig to have vfp
->>>> 	- add missing TWL patch
->>>
->>> I did not see a TWL patch in your attached patch?
->> Not sure if this is the same one Richard had, but this is what's needed
->> for a proper build of the 2430 LCD (which stil doesn't work :)
->> index 6e5b603..a252d82 100644
->> --- a/drivers/video/omap/lcd_2430sdp.c
->> +++ b/drivers/video/omap/lcd_2430sdp.c
->> @@ -32,7 +32,7 @@
->>  #define LCD_PANEL_BACKLIGHT_GPIO	91
->>  #define LCD_PANEL_ENABLE_GPIO		154
->>  #define LCD_PIXCLOCK_MAX		5400 /* freq 5.4 MHz */
->> -#define PM_RECEIVER             TWL4030_MODULE_PM_RECIEVER
->> +#define PM_RECEIVER             TWL4030_MODULE_PM_RECEIVER
->>  #define ENABLE_VAUX2_DEDICATED  0x09
->>  #define ENABLE_VAUX2_DEV_GRP    0x20
->
-> Is there a special reason that this isn't applied yet or is it just missed 
-> because of missing [PATCH] in subject? ;)
+Sorry to bother you
 
-Yeah, and that's how I forgot all about it :) Anyways, I'll apply
-it today.
+It's my mistake, I modified other part. It has side effect. Now It's working
+well.
 
-Tony
+Thank you,
+Kyungmin Park
+
+> > > On Thursday 16 August 2007, Kyungmin Park wrote:
+> > > > After booting, it oops with following messages[2].
+> > > >
+> > > > So I reverted only clock parts as before. Then it's work well.
+> > > > I think it has some clock problem.
+> > > >
+> > > > Do you have any idea?
+> > >
+> > > Nope, sorry.  I looked at that driver code, and what I
+> > > see is neatly paired clk_enable()/clk_disable() calls ...
+> > > stuff that should be "obviously correct".  And which
+> > > works fine here...
+> >
+> > I agree. The code of clock is completely matched and only enables it
+> needed
+> > for McSPI
+> 
+> So it looks like the issue will be elsewhere...
+> 
+> 
+> > > I don't see how that should be able to cause a disable()
+> > > of something that's already got usecount 0.
+> > >
+> > > I wouldn't *think* that the updates in the clock framework
+> > > have caused problems.  But regardless, to debug this I'd
+> > > start by tracing the refcounts of that functional clock.
+> > >
+> > > The only slightly odd unusual thing in that driver should
+> > > be that the two clocks would normally be disabled until
+> > > there's some I/O to be done (either to the McSPI registers
+> > > or to a SPI device).  Most drivers leave clocks enabled all
+> > > the time, needlessly wasting power.
+> >
+> > If it required the some delay time to work correctly?
+> 
+> Not at the level of clock refcounts.  Maybe to restart some
+> oscillator or PLL, but that's not an issue here.
+> 
+> 
+> > Since the clock pointer is always correct and it has ick and fck.
+> > Or other kernel features such as tickless, high-res affects the clock
+> > framework?
+> 
+> I'd more suspect something else mucking with that clock.
+> 
+> You said this happens early.  That suggests that brute
+> force dump_stack() debugging on enable/disable of that
+> clock would be informative...
+> 
+> - Dave
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
