@@ -1,10 +1,14 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP: Fix warning in plat_uds.c
-Date: Fri, 17 Aug 2007 17:43:47 +0200
-Message-ID: <46C5C233.5090405@googlemail.com>
+From: "sandeep lahane" <sandeep.lahane@gmail.com>
+Subject: Re: traffic controller priority adjustment
+Date: Fri, 17 Aug 2007 21:20:29 +0530
+Message-ID: <2d51cbf80708170850v5fd3872fo4c0e619a2c55d62b@mail.gmail.com>
+References: <760329.90465.qm@web30615.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090405000103020007020309"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <760329.90465.qm@web30615.mail.mud.yahoo.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,62 +18,40 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Zgembo Adislic <adislic_zgembo@yahoo.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090405000103020007020309
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On 8/17/07, Zgembo Adislic <adislic_zgembo@yahoo.com> wrote:
+> Hello,
+>
+> I'd like to adjust the priority register for EMIFF arbitration, so that DMA will get priority over other masters (MPU, DSP).  I wonder if there is  an API in kernel for this?
+>
+> I am using OMAP5910 and linux kernel 2.6.8.1.
+>
+> Any opinions about this?
+>
+> Zgembo
+>
+>
+>
+> ---------------------------------
+> Ready for the edge of your seat? Check out tonight's top picks on Yahoo! TV.
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
 
+I am not sure I understood you fully, but you might want to have a
+look at  plat-omap/dma.c.
 
-Fix warning
+omap_set_dma_priority(int dst_port, int priority) - 2.6.17
+omap_set_dma_priority(int lch, int dst_port, int priority) - 2.6.19
 
-drivers/usb/musb/plat_uds.c:1731: warning: 'dev_attr_srp' defined but 
-not used
+No idea about 2.6.8.
 
-if CONFIG_USB_MUSB_OTG isn't set (DaVinci use case)
+-- 
 
-Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
-
---------------090405000103020007020309
-Content-Type: text/plain;
- name="plat_uds_warning_fix.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="plat_uds_warning_fix.txt"
-
-Index: linux-davinci/drivers/usb/musb/plat_uds.c
-===================================================================
---- linux-davinci.orig/drivers/usb/musb/plat_uds.c
-+++ linux-davinci/drivers/usb/musb/plat_uds.c
-@@ -1707,6 +1707,7 @@ musb_vbus_show(struct device *dev, struc
- }
- static DEVICE_ATTR(vbus, 0644, musb_vbus_show, musb_vbus_store);
- 
-+#ifdef CONFIG_USB_MUSB_OTG
- static ssize_t
- musb_srp_store(struct device *dev, struct device_attribute *attr,
- 		const char *buf, size_t n)
-@@ -1728,8 +1729,11 @@ musb_srp_store(struct device *dev, struc
- 
- 	return n;
- }
-+
-+
- static DEVICE_ATTR(srp, 0644, NULL, musb_srp_store);
- #endif
-+#endif
- 
- /* Only used to provide cable state change events */
- static void musb_irq_work(struct work_struct *data)
-
-
---------------090405000103020007020309
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---------------090405000103020007020309--
+Regards,
+Sandeep.
