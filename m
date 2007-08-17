@@ -1,13 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/7] musb_hdrc: Search and replace MGC_O_HSDMA with
-	MUSB_HSDMA
-Date: Fri, 17 Aug 2007 04:44:40 -0700
-Message-ID: <11873510911954-git-send-email-tony@atomide.com>
+Subject: [PATCH 5/7] musb_hdrc: Fix SRP locking
+Date: Fri, 17 Aug 2007 04:44:42 -0700
+Message-ID: <11873510951742-git-send-email-tony@atomide.com>
 References: <118735108469-git-send-email-tony@atomide.com>
 	<11873510862981-git-send-email-tony@atomide.com>
 	<11873510882998-git-send-email-tony@atomide.com>
+	<11873510911954-git-send-email-tony@atomide.com>
+	<11873510931624-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <11873510882998-git-send-email-tony@atomide.com>
+In-Reply-To: <11873510931624-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,98 +21,60 @@ Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Search and replace MGC_O_HSDMA with MUSB_HSDMA
+Remove unnecessary locking left over from earlier code
+as it's done in musb_gadget_wakeup(). Also show debug
+information for unhandled wake events to allow debugging
+SRP.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/musbhsdma.c |   30 +++++++++++++++---------------
- 1 files changed, 15 insertions(+), 15 deletions(-)
+ drivers/usb/musb/musb_gadget.c |    3 ++-
+ drivers/usb/musb/plat_uds.c    |    3 ---
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/usb/musb/musbhsdma.c b/drivers/usb/musb/musbhsdma.c
-index 48e5531..eb3d27d 100644
---- a/drivers/usb/musb/musbhsdma.c
-+++ b/drivers/usb/musb/musbhsdma.c
-@@ -44,14 +44,14 @@
- #include "omap2430.h"
- #endif
+diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+index fa15c59..86a256a 100644
+--- a/drivers/usb/musb/musb_gadget.c
++++ b/drivers/usb/musb/musb_gadget.c
+@@ -1434,6 +1434,7 @@ static int musb_gadget_wakeup(struct usb_gadget *gadget)
+ 		status = 0;
+ 		goto done;
+ 	default:
++		DBG(2, "Unhandled wake: %s\n", otg_state_string(musb));
+ 		goto done;
+ 	}
  
--#define MGC_O_HSDMA_BASE		0x200
--#define MGC_O_HSDMA_INTR		(MGC_O_HSDMA_BASE + 0)
--#define MGC_O_HSDMA_CONTROL		0x4
--#define MGC_O_HSDMA_ADDRESS		0x8
--#define MGC_O_HSDMA_COUNT		0xc
-+#define MUSB_HSDMA_BASE		0x200
-+#define MUSB_HSDMA_INTR		(MUSB_HSDMA_BASE + 0)
-+#define MUSB_HSDMA_CONTROL		0x4
-+#define MUSB_HSDMA_ADDRESS		0x8
-+#define MUSB_HSDMA_COUNT		0xc
- 
- #define MGC_HSDMA_CHANNEL_OFFSET(_bChannel, _offset)		\
--		(MGC_O_HSDMA_BASE + (_bChannel << 4) + _offset)
-+		(MUSB_HSDMA_BASE + (_bChannel << 4) + _offset)
- 
- /* control register (16-bit): */
- #define MUSB_HSDMA_ENABLE_SHIFT		0
-@@ -208,15 +208,15 @@ static void configure_channel(struct dma_channel *pChannel,
- 
- 	/* address/count */
- 	musb_writel(mbase,
--		    MGC_HSDMA_CHANNEL_OFFSET(bChannel, MGC_O_HSDMA_ADDRESS),
-+		    MGC_HSDMA_CHANNEL_OFFSET(bChannel, MUSB_HSDMA_ADDRESS),
- 		    dma_addr);
- 	musb_writel(mbase,
--		    MGC_HSDMA_CHANNEL_OFFSET(bChannel, MGC_O_HSDMA_COUNT),
-+		    MGC_HSDMA_CHANNEL_OFFSET(bChannel, MUSB_HSDMA_COUNT),
- 		    len);
- 
- 	/* control (this should start things) */
- 	musb_writew(mbase,
--		    MGC_HSDMA_CHANNEL_OFFSET(bChannel, MGC_O_HSDMA_CONTROL),
-+		    MGC_HSDMA_CHANNEL_OFFSET(bChannel, MUSB_HSDMA_CONTROL),
- 		    csr);
+@@ -1931,7 +1932,7 @@ void musb_g_suspend(struct musb *musb)
+ 	}
  }
  
-@@ -283,11 +283,11 @@ static int dma_channel_abort(struct dma_channel *pChannel)
- 		}
+-/* Called during SRP. Caller must hold lock */
++/* Called during SRP */
+ void musb_g_wakeup(struct musb *musb)
+ {
+ 	musb_gadget_wakeup(&musb->g);
+diff --git a/drivers/usb/musb/plat_uds.c b/drivers/usb/musb/plat_uds.c
+index 8a2bb3e..c6ca9ea 100644
+--- a/drivers/usb/musb/plat_uds.c
++++ b/drivers/usb/musb/plat_uds.c
+@@ -1710,7 +1710,6 @@ musb_srp_store(struct device *dev, struct device_attribute *attr,
+ 		const char *buf, size_t n)
+ {
+ 	struct musb	*musb=dev_to_musb(dev);
+-	unsigned long	flags;
+ 	unsigned short	srp;
  
- 		musb_writew(mbase,
--		   MGC_HSDMA_CHANNEL_OFFSET(bChannel, MGC_O_HSDMA_CONTROL), 0);
-+		   MGC_HSDMA_CHANNEL_OFFSET(bChannel, MUSB_HSDMA_CONTROL), 0);
- 		musb_writel(mbase,
--		   MGC_HSDMA_CHANNEL_OFFSET(bChannel, MGC_O_HSDMA_ADDRESS), 0);
-+		   MGC_HSDMA_CHANNEL_OFFSET(bChannel, MUSB_HSDMA_ADDRESS), 0);
- 		musb_writel(mbase,
--		   MGC_HSDMA_CHANNEL_OFFSET(bChannel, MGC_O_HSDMA_COUNT), 0);
-+		   MGC_HSDMA_CHANNEL_OFFSET(bChannel, MUSB_HSDMA_COUNT), 0);
- 
- 		pChannel->status = MUSB_DMA_STATUS_FREE;
+ 	if (sscanf(buf, "%hu", &srp) != 1
+@@ -1719,10 +1718,8 @@ musb_srp_store(struct device *dev, struct device_attribute *attr,
+ 		return -EINVAL;
  	}
-@@ -307,7 +307,7 @@ static irqreturn_t dma_controller_irq(int irq, void *private_data)
- 	u8 int_hsdma;
- 	irqreturn_t retval = IRQ_NONE;
  
--	int_hsdma = musb_readb(mbase, MGC_O_HSDMA_INTR);
-+	int_hsdma = musb_readb(mbase, MUSB_HSDMA_INTR);
- 	if (!int_hsdma)
- 		goto done;
+-	spin_lock_irqsave(&musb->lock, flags);
+ 	if (srp == 1)
+ 		musb_g_wakeup(musb);
+-	spin_unlock_irqrestore(&musb->lock, flags);
  
-@@ -319,7 +319,7 @@ static irqreturn_t dma_controller_irq(int irq, void *private_data)
- 
- 			csr = musb_readw(mbase,
- 				       MGC_HSDMA_CHANNEL_OFFSET(bChannel,
--							MGC_O_HSDMA_CONTROL));
-+							MUSB_HSDMA_CONTROL));
- 
- 			if (csr & (1 << MUSB_HSDMA_BUSERROR_SHIFT)) {
- 				pImplChannel->Channel.status =
-@@ -328,7 +328,7 @@ static irqreturn_t dma_controller_irq(int irq, void *private_data)
- 				dwAddress = musb_readl(mbase,
- 						MGC_HSDMA_CHANNEL_OFFSET(
- 							bChannel,
--							MGC_O_HSDMA_ADDRESS));
-+							MUSB_HSDMA_ADDRESS));
- 				pChannel->actual_len =
- 				    dwAddress - pImplChannel->dwStartAddress;
- 
+ 	return n;
+ }
 -- 
 1.5.2.3
