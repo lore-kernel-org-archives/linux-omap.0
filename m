@@ -1,11 +1,11 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [05/17 PATCH] MMC: OMAP: Modifications at power functions to MMC
- multislot support.
-Date: Fri, 17 Aug 2007 15:01:49 -0400
-Message-ID: <46C5F09D.1020105@indt.org.br>
+Subject: [08/17 PATCH] PLAT: OMAP: Modifications at
+ arch/arm/plat-omap/devices.c to use multislot structures.
+Date: Fri, 17 Aug 2007 15:02:01 -0400
+Message-ID: <46C5F0A9.5010303@indt.org.br>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------050607090604010905020006"
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: multipart/mixed; boundary="------------070805000101090907010106"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,179 +13,173 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: Tony Lindgren <tony@atomide.com>
 Cc: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------050607090604010905020006
+--------------070805000101090907010106
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
-From: Juha Yrjola <juha.yrjola@solidboot.com>
+From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 
-Modifications at power functions to MMC multislot support.
+Modifications at arch/arm/plat-omap/devices.c to use multislot structures.
 
-Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
 Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
+Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 
---------------050607090604010905020006
-Content-Type: text/plain;
- name="0005-MMC-OMAP-Power-functions-modified.diff"
+--------------070805000101090907010106
+Content-Type: text/x-patch;
+	name*0="0008-PLAT-OMAP-Modifications-at-devices.c-to-use-multislot-struc";
+	name*1="tures.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
-	filename="0005-MMC-OMAP-Power-functions-modified.diff"
+	filename*0="0008-PLAT-OMAP-Modifications-at-devices.c-to-use-multislot-s";
+	filename*1="tructures.patch"
 
-Modifications at power functions to MMC multislot support.
+Modifications at arch/arm/plat-omap/devices.c to use multislot structures
 
-Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
 Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
+Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 
-Index: linux-omap/drivers/mmc/host/omap.c
+Index: linux-omap/arch/arm/plat-omap/devices.c
 ===================================================================
---- linux-omap.orig/drivers/mmc/host/omap.c	2007-08-16 12:33:05.000000000 -0400
-+++ linux-omap/drivers/mmc/host/omap.c	2007-08-16 16:02:47.000000000 -0400
-@@ -997,54 +997,25 @@ static void mmc_omap_request(struct mmc_
- 	mmc_omap_start_request(host, req);
- }
+--- linux-omap.orig/arch/arm/plat-omap/devices.c	2007-08-07 10:20:13.000000000 -0400
++++ linux-omap/arch/arm/plat-omap/devices.c	2007-08-13 12:20:12.000000000 -0400
+@@ -21,6 +21,7 @@
  
--static void innovator_fpga_socket_power(int on)
-+static void mmc_omap_set_power(struct mmc_omap_slot *slot, int power_on, int vdd)
+ #include <asm/arch/tc.h>
+ #include <asm/arch/board.h>
++#include <asm/arch/mmc.h>
+ #include <asm/arch/mux.h>
+ #include <asm/arch/gpio.h>
+ #include <asm/arch/menelaus.h>
+@@ -231,7 +232,7 @@ static inline void omap_init_kp(void) {}
+ #endif
+ #define	OMAP_MMC2_BASE		0xfffb7c00	/* omap16xx only */
+ 
+-static struct omap_mmc_conf mmc1_conf;
++static struct omap_mmc_platform_data mmc1_data;
+ 
+ static u64 mmc1_dmamask = 0xffffffff;
+ 
+@@ -252,7 +253,7 @@ static struct platform_device mmc_omap_d
+ 	.id		= 1,
+ 	.dev = {
+ 		.dma_mask	= &mmc1_dmamask,
+-		.platform_data	= &mmc1_conf,
++		.platform_data	= &mmc1_data,
+ 	},
+ 	.num_resources	= ARRAY_SIZE(mmc1_resources),
+ 	.resource	= mmc1_resources,
+@@ -260,7 +261,7 @@ static struct platform_device mmc_omap_d
+ 
+ #ifdef	CONFIG_ARCH_OMAP16XX
+ 
+-static struct omap_mmc_conf mmc2_conf;
++static struct omap_mmc_platform_data mmc2_data;
+ 
+ static u64 mmc2_dmamask = 0xffffffff;
+ 
+@@ -282,7 +283,7 @@ static struct platform_device mmc_omap_d
+ 	.id		= 2,
+ 	.dev = {
+ 		.dma_mask	= &mmc2_dmamask,
+-		.platform_data	= &mmc2_conf,
++		.platform_data	= &mmc2_data,
+ 	},
+ 	.num_resources	= ARRAY_SIZE(mmc2_resources),
+ 	.resource	= mmc2_resources,
+@@ -291,20 +292,14 @@ static struct platform_device mmc_omap_d
+ 
+ static void __init omap_init_mmc(void)
  {
--#if defined(CONFIG_MACH_OMAP_INNOVATOR) && defined(CONFIG_ARCH_OMAP15XX)
--	if (on) {
--		fpga_write(fpga_read(OMAP1510_FPGA_POWER) | (1 << 3),
--		     OMAP1510_FPGA_POWER);
--	} else {
--		fpga_write(fpga_read(OMAP1510_FPGA_POWER) & ~(1 << 3),
--		     OMAP1510_FPGA_POWER);
--	}
--#endif
--}
-+	struct mmc_omap_host *host;
-+
-+	host = slot->host;
+-	const struct omap_mmc_config	*mmc_conf;
+-	const struct omap_mmc_conf	*mmc;
++	const struct omap_mmc_platform_data     *mmc;
  
--/*
-- * Turn the socket power on/off. Innovator uses FPGA, most boards
-- * probably use GPIO.
-- */
--static void mmc_omap_power(struct mmc_omap_host *host, int on)
--{
--	if (machine_is_sx1())
--		sx1_setmmcpower(on);
--	else if (on) {
--		if (machine_is_omap_innovator())
--			innovator_fpga_socket_power(1);
--		else if (machine_is_omap_h2())
--			tps65010_set_gpio_out_value(GPIO3, HIGH);
--		else if (machine_is_omap_h3())
--			/* GPIO 4 of TPS65010 sends SD_EN signal */
--			tps65010_set_gpio_out_value(GPIO4, HIGH);
--		else if (cpu_is_omap24xx()) {
--			u16 reg = OMAP_MMC_READ(host, CON);
--			OMAP_MMC_WRITE(host, CON, reg | (1 << 11));
--		} else
--			if (host->power_pin >= 0)
--				omap_set_gpio_dataout(host->power_pin, 1);
--	} else {
--		if (machine_is_omap_innovator())
--			innovator_fpga_socket_power(0);
--		else if (machine_is_omap_h2())
--			tps65010_set_gpio_out_value(GPIO3, LOW);
--		else if (machine_is_omap_h3())
--			tps65010_set_gpio_out_value(GPIO4, LOW);
--		else if (cpu_is_omap24xx()) {
--			u16 reg = OMAP_MMC_READ(host, CON);
--			OMAP_MMC_WRITE(host, CON, reg & ~(1 << 11));
--		} else
--			if (host->power_pin >= 0)
--				omap_set_gpio_dataout(host->power_pin, 0);
-+	if (slot->pdata->set_power != NULL)
-+		slot->pdata->set_power(mmc_dev(slot->mmc), slot->id, power_on, vdd);
-+
-+	if (cpu_is_omap24xx()) {
-+		u16 w;
-+
-+		if (power_on) {
-+			w = OMAP_MMC_READ(host, CON);
-+			OMAP_MMC_WRITE(host, CON, w | (1 << 11));
-+		} else {
-+			w = OMAP_MMC_READ(host, CON);
-+			OMAP_MMC_WRITE(host, CON, w & ~(1 << 11));
-+		}
- 	}
- }
+ 	/* REVISIT: 2430 has HS MMC */
+ 	if (cpu_is_omap2430() || cpu_is_omap34xx())
+ 		return;
  
-@@ -1078,28 +1049,33 @@ static int mmc_omap_calc_divisor(struct 
- 
- static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
- {
--	struct mmc_omap_host *host = mmc_priv(mmc);
--	int dsor;
--	int i;
-+	struct mmc_omap_slot *slot = mmc_priv(mmc);
-+	struct mmc_omap_host *host = slot->host;
-+	int i, dsor;
- 
- 	dsor = mmc_omap_calc_divisor(mmc, ios);
--	host->bus_mode = ios->bus_mode;
--	host->hw_bus_mode = host->bus_mode;
-+
-+	mmc_omap_select_slot(slot, 0);
-+
-+	if (ios->vdd != slot->vdd)
-+		slot->vdd = ios->vdd;
- 
- 	switch (ios->power_mode) {
- 	case MMC_POWER_OFF:
--		mmc_omap_power(host, 0);
-+		mmc_omap_set_power(slot, 0, ios->vdd);
- 		break;
- 	case MMC_POWER_UP:
--		/* Cannot touch dsor yet, just power up MMC */
--		mmc_omap_power(host, 1);
+-	/* NOTE:  assumes MMC was never (wrongly) enabled */
+-	mmc_conf = omap_get_config(OMAP_TAG_MMC, struct omap_mmc_config);
+-	if (!mmc_conf)
 -		return;
- 	case MMC_POWER_ON:
-+		mmc_omap_set_power(slot, 1, ios->vdd);
- 		dsor |= 1 << 11;
- 		break;
+-
+ 	/* block 1 is always available and has just one pinout option */
+-	mmc = &mmc_conf->mmc[0];
++	mmc = &mmc1_data;
+ 	if (mmc->enabled) {
+ 		if (cpu_is_omap24xx()) {
+ 			omap_cfg_reg(H18_24XX_MMC_CMD);
+@@ -339,24 +334,12 @@ static void __init omap_init_mmc(void)
+ 				omap_cfg_reg(MMC_DAT3);
+ 			}
+ 		}
+-		if (mmc->internal_clock) {
+-			/*
+-			 * Use internal loop-back in MMC/SDIO
+-			 * Module Input Clock selection
+-			 */
+-			if (cpu_is_omap24xx()) {
+-				u32 v = omap_readl(OMAP24XX_CONTROL_DEVCONF);
+-				v |= (1 << 24);
+-				omap_writel(v, OMAP24XX_CONTROL_DEVCONF);
+-			}
+-		}
+-		mmc1_conf = *mmc;
+ 		(void) platform_device_register(&mmc_omap_device1);
  	}
  
--	clk_enable(host->fclk);
-+	if (slot->bus_mode != ios->bus_mode) {
-+		if (slot->pdata->set_bus_mode != NULL)
-+			slot->pdata->set_bus_mode(mmc_dev(mmc), slot->id, ios->bus_mode);
-+		slot->bus_mode = ios->bus_mode;
-+	}
- 
- 	/* On insanely high arm_per frequencies something sometimes
- 	 * goes somehow out of sync, and the POW bit is not being set,
-@@ -1107,6 +1083,7 @@ static void mmc_omap_set_ios(struct mmc_
- 	 * Writing to the CON register twice seems to do the trick. */
- 	for (i = 0; i < 2; i++)
- 		OMAP_MMC_WRITE(host, CON, dsor);
-+	slot->saved_con = dsor;
- 	if (ios->power_mode == MMC_POWER_ON) {
- 		/* Send clock cycles, poll completion */
- 		OMAP_MMC_WRITE(host, IE, 0);
-@@ -1115,7 +1092,7 @@ static void mmc_omap_set_ios(struct mmc_
- 		while ((OMAP_MMC_READ(host, STAT) & 1) == 0);
- 		OMAP_MMC_WRITE(host, STAT, 1);
+ #ifdef	CONFIG_ARCH_OMAP16XX
+ 	/* block 2 is on newer chips, and has many pinout options */
+-	mmc = &mmc_conf->mmc[1];
++	mmc = &mmc2_data;
+ 	if (mmc->enabled) {
+ 		if (!mmc->nomux) {
+ 			omap_cfg_reg(Y8_1610_MMC2_CMD);
+@@ -379,12 +362,28 @@ static void __init omap_init_mmc(void)
+ 		if (cpu_is_omap1710())
+ 			omap_writel(omap_readl(MOD_CONF_CTRL_1) | (1 << 24),
+ 				     MOD_CONF_CTRL_1);
+-		mmc2_conf = *mmc;
+ 		(void) platform_device_register(&mmc_omap_device2);
  	}
--	clk_disable(host->fclk);
-+	mmc_omap_release_slot(slot);
+ #endif
+ 	return;
  }
- 
- static int mmc_omap_get_ro(struct mmc_host *mmc)
++
++void omap_set_mmc_info(int host, const struct omap_mmc_platform_data *info)
++{
++	switch (host) {
++	case 1:
++		mmc1_data = *info;
++		break;
++#ifdef CONFIG_ARCH_OMAP16XX
++	case 2:
++		mmc2_data = *info;
++		break;
++#endif
++	default:
++		BUG();
++	}
++}
++
+ #else
+ static inline void omap_init_mmc(void) {}
+ #endif
 
---------------050607090604010905020006
+--------------070805000101090907010106
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---------------050607090604010905020006--
+--------------070805000101090907010106--
