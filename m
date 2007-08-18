@@ -1,13 +1,14 @@
 From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: [07/17 PATCH] MMC: OMAP: Abort stuck commands.
-Date: Sat, 18 Aug 2007 14:17:12 +0530
-Message-ID: <5d5443650708180147j59e5fe90v845ee10987198a13@mail.gmail.com>
-References: <46C5F0A5.5050107@indt.org.br>
+Subject: Re: [05/17 PATCH] MMC: OMAP: Modifications at power functions to
+	MMC multislot support.
+Date: Sat, 18 Aug 2007 14:33:39 +0530
+Message-ID: <5d5443650708180203t86888d7s3d27fc5f1f64f825@mail.gmail.com>
+References: <46C5F09D.1020105@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <46C5F0A5.5050107@indt.org.br>
+In-Reply-To: <46C5F09D.1020105@indt.org.br>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -25,183 +26,164 @@ List-Id: linux-omap@vger.kernel.org
 Hi Carlos,
 
 On 8/18/07, Carlos Aguiar <carlos.aguiar@indt.org.br> wrote:
-> From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+> From: Juha Yrjola <juha.yrjola@solidboot.com>
 >
-> When a card is removed while it is being accessed, a command can get
-> stuck so that no timeout or end of command interrupt ever occurs. The
-> command getting stuck is almost always CDM12, but also the other
-> commands can get stuck. Catch a stuck command with a timer and try
-> sending the initiliazation stream until the controller starts running
-> again and responds with the end of command status.
+> Modifications at power functions to MMC multislot support.
 >
-> Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+> Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
+> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 >
-> When a card is removed while it is being accessed, a command can get stuck so
-> that no timeout or end of command interrupt ever occurs. The command getting
-> stuck is almost always CDM12, but also the other commands can get stuck. Catch
-> a stuck command with a timer and try sending the initiliazation stream until
-> the controller starts running again and responds with the end of command
-> status.
+> Modifications at power functions to MMC multislot support.
 >
-> Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+> Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
+> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 >
 > Index: linux-omap/drivers/mmc/host/omap.c
 > ===================================================================
-> --- linux-omap.orig/drivers/mmc/host/omap.c     2007-08-16 16:02:55.000000000 -0400
-> +++ linux-omap/drivers/mmc/host/omap.c  2007-08-16 16:03:01.000000000 -0400
-> @@ -136,6 +136,9 @@ struct mmc_omap_host {
->         unsigned char           bus_mode;
->         unsigned char           hw_bus_mode;
->
-> +       struct work_struct      cmd_abort;
-> +       struct timer_list       cmd_timer;
-> +
->         unsigned int            sg_len;
->         int                     sg_idx;
->         u16 *                   buffer;
-> @@ -326,6 +329,8 @@ mmc_omap_start_command(struct mmc_omap_h
->         if (host->data && !(host->data->flags & MMC_DATA_WRITE))
->                 cmdreg |= 1 << 15;
->
-> +       mod_timer(&host->cmd_timer, jiffies + HZ/2);
-> +
->         OMAP_MMC_WRITE(host, CTO, 200);
->         OMAP_MMC_WRITE(host, ARGL, cmd->arg & 0xffff);
->         OMAP_MMC_WRITE(host, ARGH, cmd->arg >> 16);
-> @@ -385,9 +390,37 @@ mmc_omap_xfer_done(struct mmc_omap_host
+> --- linux-omap.orig/drivers/mmc/host/omap.c     2007-08-16 12:33:05.000000000 -0400
+> +++ linux-omap/drivers/mmc/host/omap.c  2007-08-16 16:02:47.000000000 -0400
+> @@ -997,54 +997,25 @@ static void mmc_omap_request(struct mmc_
+>         mmc_omap_start_request(host, req);
 >  }
 >
->  static void
-> +mmc_omap_send_abort(struct mmc_omap_host *host)
-> +{
-> +       struct mmc_omap_slot *slot = host->current_slot;
-> +       unsigned int restarts, passes, timeout;
-> +       u16 stat = 0;
-> +
-> +       /* Sending abort takes 80 clocks. Have some extra and round up */
-> +       timeout = (120*1000000 + slot->fclk_freq - 1)/slot->fclk_freq;
-> +       restarts = 0;
-> +       while(restarts < 10000) {
-
-space before "(" please. I think this patch series is not checked
-against "checkpatch" script. Please do it and then re-post the
-patches.
-
-> +               OMAP_MMC_WRITE(host, STAT, 0xFFFF);
-> +               OMAP_MMC_WRITE(host, CMD, (3 << 12) | (1 << 7));
-> +
-> +               passes = 0;
-> +               while (passes < timeout) {
-> +                       stat = OMAP_MMC_READ(host, STAT);
-> +                       if (stat & OMAP_MMC_STAT_END_OF_CMD)
-> +                               goto out;
-> +                       udelay(1);
-> +                       passes ++;
-> +               }
-> +
-> +               restarts++;
-> +       }
-> +out:
-> +       OMAP_MMC_WRITE(host, STAT, stat);
-> +}
-> +
-> +static void
->  mmc_omap_abort_xfer(struct mmc_omap_host *host, struct mmc_data *data)
+> -static void innovator_fpga_socket_power(int on)
+> +static void mmc_omap_set_power(struct mmc_omap_slot *slot, int power_on, int vdd)
 >  {
-> -       int loops;
->         u16 ie;
->
->         if (host->dma_in_use)
-> @@ -398,16 +431,8 @@ mmc_omap_abort_xfer(struct mmc_omap_host
->
->         ie = OMAP_MMC_READ(host, IE);
->         OMAP_MMC_WRITE(host, IE, 0);
-> -       OMAP_MMC_WRITE(host, CMD, 1 << 7);
-> -       loops = 0;
-> -       while (!(OMAP_MMC_READ(host, STAT) & OMAP_MMC_STAT_END_OF_CMD)) {
-> -               udelay(1);
-> -               loops++;
-> -               if (loops == 100000)
-> -                       break;
+> -#if defined(CONFIG_MACH_OMAP_INNOVATOR) && defined(CONFIG_ARCH_OMAP15XX)
+> -       if (on) {
+> -               fpga_write(fpga_read(OMAP1510_FPGA_POWER) | (1 << 3),
+> -                    OMAP1510_FPGA_POWER);
+> -       } else {
+> -               fpga_write(fpga_read(OMAP1510_FPGA_POWER) & ~(1 << 3),
+> -                    OMAP1510_FPGA_POWER);
 > -       }
-> -       OMAP_MMC_WRITE(host, STAT, OMAP_MMC_STAT_END_OF_CMD);
->         OMAP_MMC_WRITE(host, IE, ie);
-> +       mmc_omap_send_abort(host);
->  }
+> -#endif
+> -}
+> +       struct mmc_omap_host *host;
+> +
+> +       host = slot->host;
 >
->  static void
-> @@ -463,6 +488,8 @@ mmc_omap_cmd_done(struct mmc_omap_host *
+> -/*
+> - * Turn the socket power on/off. Innovator uses FPGA, most boards
+> - * probably use GPIO.
+> - */
+> -static void mmc_omap_power(struct mmc_omap_host *host, int on)
+> -{
+> -       if (machine_is_sx1())
+> -               sx1_setmmcpower(on);
+> -       else if (on) {
+> -               if (machine_is_omap_innovator())
+> -                       innovator_fpga_socket_power(1);
+> -               else if (machine_is_omap_h2())
+> -                       tps65010_set_gpio_out_value(GPIO3, HIGH);
+> -               else if (machine_is_omap_h3())
+> -                       /* GPIO 4 of TPS65010 sends SD_EN signal */
+> -                       tps65010_set_gpio_out_value(GPIO4, HIGH);
+> -               else if (cpu_is_omap24xx()) {
+> -                       u16 reg = OMAP_MMC_READ(host, CON);
+> -                       OMAP_MMC_WRITE(host, CON, reg | (1 << 11));
+> -               } else
+> -                       if (host->power_pin >= 0)
+> -                               omap_set_gpio_dataout(host->power_pin, 1);
+> -       } else {
+> -               if (machine_is_omap_innovator())
+> -                       innovator_fpga_socket_power(0);
+> -               else if (machine_is_omap_h2())
+> -                       tps65010_set_gpio_out_value(GPIO3, LOW);
+> -               else if (machine_is_omap_h3())
+> -                       tps65010_set_gpio_out_value(GPIO4, LOW);
+> -               else if (cpu_is_omap24xx()) {
+> -                       u16 reg = OMAP_MMC_READ(host, CON);
+> -                       OMAP_MMC_WRITE(host, CON, reg & ~(1 << 11));
+> -               } else
+> -                       if (host->power_pin >= 0)
+> -                               omap_set_gpio_dataout(host->power_pin, 0);
+> +       if (slot->pdata->set_power != NULL)
+> +               slot->pdata->set_power(mmc_dev(slot->mmc), slot->id, power_on, vdd);
+> +
+> +       if (cpu_is_omap24xx()) {
+> +               u16 w;
+> +
+> +               if (power_on) {
+> +                       w = OMAP_MMC_READ(host, CON);
+> +                       OMAP_MMC_WRITE(host, CON, w | (1 << 11));
+> +               } else {
+> +                       w = OMAP_MMC_READ(host, CON);
+> +                       OMAP_MMC_WRITE(host, CON, w & ~(1 << 11));
+> +               }
+>         }
+>  }
+
+I am little bit surprised by above patch, as the similar patch was
+rejected by Juha in March'06 [1]. Only downside for that patch was it
+was modifying the board.h structure as some proprietary  bootloaders
+(means Nolo?) doesn't support passing those pointers at that time and
+suggested to implement voltage framework (which Amit Kucheria
+submitted to linux-arm-kernel sometime back...but not yet accepted
+upstream) so that we can use ref. voltage by name instead of function.
+
+>
+> @@ -1078,28 +1049,33 @@ static int mmc_omap_calc_divisor(struct
+>
+>  static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 >  {
->         host->cmd = NULL;
+> -       struct mmc_omap_host *host = mmc_priv(mmc);
+> -       int dsor;
+> -       int i;
+> +       struct mmc_omap_slot *slot = mmc_priv(mmc);
+> +       struct mmc_omap_host *host = slot->host;
+> +       int i, dsor;
 >
-> +       del_timer(&host->cmd_timer);
+>         dsor = mmc_omap_calc_divisor(mmc, ios);
+> -       host->bus_mode = ios->bus_mode;
+> -       host->hw_bus_mode = host->bus_mode;
 > +
->         if (cmd->flags & MMC_RSP_PRESENT) {
->                 if (cmd->flags & MMC_RSP_136) {
->                         /* response type 2 */
-> @@ -498,6 +525,47 @@ mmc_omap_cmd_done(struct mmc_omap_host *
+> +       mmc_omap_select_slot(slot, 0);
+> +
+> +       if (ios->vdd != slot->vdd)
+> +               slot->vdd = ios->vdd;
+>
+>         switch (ios->power_mode) {
+>         case MMC_POWER_OFF:
+> -               mmc_omap_power(host, 0);
+> +               mmc_omap_set_power(slot, 0, ios->vdd);
+>                 break;
+>         case MMC_POWER_UP:
+> -               /* Cannot touch dsor yet, just power up MMC */
+> -               mmc_omap_power(host, 1);
+> -               return;
+>         case MMC_POWER_ON:
+> +               mmc_omap_set_power(slot, 1, ios->vdd);
+>                 dsor |= 1 << 11;
+>                 break;
 >         }
+>
+> -       clk_enable(host->fclk);
+> +       if (slot->bus_mode != ios->bus_mode) {
+> +               if (slot->pdata->set_bus_mode != NULL)
+> +                       slot->pdata->set_bus_mode(mmc_dev(mmc), slot->id, ios->bus_mode);
+> +               slot->bus_mode = ios->bus_mode;
+> +       }
+>
+>         /* On insanely high arm_per frequencies something sometimes
+>          * goes somehow out of sync, and the POW bit is not being set,
+> @@ -1107,6 +1083,7 @@ static void mmc_omap_set_ios(struct mmc_
+>          * Writing to the CON register twice seems to do the trick. */
+>         for (i = 0; i < 2; i++)
+>                 OMAP_MMC_WRITE(host, CON, dsor);
+> +       slot->saved_con = dsor;
+>         if (ios->power_mode == MMC_POWER_ON) {
+>                 /* Send clock cycles, poll completion */
+>                 OMAP_MMC_WRITE(host, IE, 0);
+> @@ -1115,7 +1092,7 @@ static void mmc_omap_set_ios(struct mmc_
+>                 while ((OMAP_MMC_READ(host, STAT) & 1) == 0);
+>                 OMAP_MMC_WRITE(host, STAT, 1);
+>         }
+> -       clk_disable(host->fclk);
+> +       mmc_omap_release_slot(slot);
 >  }
 >
-> +/*
-> + * Abort stuck command. Can occur when card is removed while it is being
-> + * read.
-> + */
-> +static void mmc_omap_abort_command(struct work_struct *work)
-> +{
-> +       struct mmc_omap_host *host = container_of(work, struct mmc_omap_host,
-> +                                                 cmd_abort);
-> +       u16 ie;
-> +
-> +       ie = OMAP_MMC_READ(host, IE);
-> +       OMAP_MMC_WRITE(host, IE, 0);
-> +
-> +       if (!host->cmd) {
-> +               OMAP_MMC_WRITE(host, IE, ie);
-> +               return;
-> +       }
-> +
-> +       dev_dbg(mmc_dev(host->mmc), "Aborting stuck command CMD%d\n",
-> +               host->cmd->opcode);
-> +
-> +       if (host->data && host->dma_in_use)
-> +               mmc_omap_release_dma(host, host->data, 1);
-> +
-> +       host->data = NULL;
-> +       host->sg_len = 0;
-> +
-> +       mmc_omap_send_abort(host);
-> +       host->cmd->error = MMC_ERR_TIMEOUT;
-> +       mmc_omap_cmd_done(host, host->cmd);
-> +       OMAP_MMC_WRITE(host, IE, ie);
-> +}
-> +
-> +static void
-> +mmc_omap_cmd_timer(unsigned long data)
-> +{
-> +       struct mmc_omap_host *host = (struct mmc_omap_host *) data;
-> +
-> +       schedule_work(&host->cmd_abort);
-> +}
-> +
->  /* PIO only */
->  static void
->  mmc_omap_sg_to_buf(struct mmc_omap_host *host)
-> @@ -1263,6 +1331,11 @@ static int __init mmc_omap_probe(struct
->                 goto err_free_mem_region;
->         }
->
-> +       INIT_WORK(&host->cmd_abort, mmc_omap_abort_command);
-> +       init_timer(&host->cmd_timer);
-> +       host->cmd_timer.function = mmc_omap_cmd_timer;
-> +       host->cmd_timer.data = (unsigned long) host;
-
-Use setup_timer above.
-
-> +
->         spin_lock_init(&host->dma_lock);
->         init_timer(&host->dma_timer);
->         spin_lock_init(&host->slot_lock);
+>  static int mmc_omap_get_ro(struct mmc_host *mmc)
 >
 > _______________________________________________
 > Linux-omap-open-source mailing list
@@ -212,3 +194,6 @@ Use setup_timer above.
 
 -- 
 --Trilok Soni
+
+[1]
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-March/006559.html
