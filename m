@@ -1,13 +1,8 @@
-From: Sakari Ailus <sakari.ailus@nokia.com>
-Subject: Re: [PATCH 1/2] ov9640: Add OmniVision ov9640 driver - new interface
-Date: Mon, 20 Aug 2007 12:07:42 +0300
-Message-ID: <46C959DE.2010306@nokia.com>
-References: <5d5443650708180136o56e3cfc8t458a7071d88c0288@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <5d5443650708180136o56e3cfc8t458a7071d88c0288@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/9] musb_hdrc: Unify naming and rename common files
+Date: Mon, 20 Aug 2007 02:10:18 -0700
+Message-ID: <11876010273160-git-send-email-tony@atomide.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,34 +10,35 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: ext Trilok Soni <soni.trilok@gmail.com>
-Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-ext Trilok Soni wrote:
-> Hi All,
+Hi all,
 
-Hi, Trilok!
+Attached patch series replaces Inventra naming with
+musb, and renames the core musb files to start with
+musb_.
 
-> I have attached two patches which converts the ov9640 driver to use
-> the new v4l2 sensor interface. Sensor detection is working with H4 but
-> the output is not anywhere near to correct, so someone with H4 please
-> check and give inputs.
-> 
-> Patches are implemented and tested against mainline kernel and OMAP2
-> camera driver posted by Sakari to v4l mailing list [1].
+Renaming the files unifies the file names, and groups
+them by type. This all should make it easier for people
+to locate the right piece of code within the driver.
 
- > +#define NUM_IOCTLS 16
-...
- > +     /* Just an experiment --- don't use *_cb functions yet. */
- > +     ov9640_ioctl_desc[i++] = vidioc_int_dev_init_cb(&ioctl_dev_init);
- > +     BUG_ON(i >= NUM_IOCTLS);
+After applying the patch series, the musb directory
+has following files:
 
-These are leftovers from the check-slave-interface-types experiment 
-which probably should be removed. This applies to TCM825x as well.
+$ ls
+cppi_dma.c   musb_core.c        musb_host.c          omap2430.h
+cppi_dma.h   musb_core.h        musb_host.h          tusb6010.c
+davinci.c    musb_debug.h       musb_host_virthub.c  tusb6010.h
+davinci.h    musb_dma.h         musbhsdma.c          tusb6010_omap.c
+Kconfig      musb_gadget.c      musb_procfs.c
+Makefile     musb_gadget_ep0.c  musb_regs.h
+musb_arch.h  musb_gadget.h      omap2430.c
 
--- 
-Sakari Ailus
-sakari.ailus@nokia.com
+Tested on tusb.
+
+Regards,
+
+Tony
