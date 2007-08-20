@@ -1,8 +1,11 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 00/28] omap2 clock: framework generalization, cleanup
-Date: Mon, 20 Aug 2007 03:53:47 -0600
-Message-ID: <20070820095347.933473149@pwsan.com>
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Subject: [PATCH 09/28] omap2 clock: convert omap2_clksel_round_rate to use
+	new clksel struct
+Date: Mon, 20 Aug 2007 03:53:56 -0600
+Message-ID: <20070820095530.847682728@pwsan.com>
+References: <20070820095347.933473149@pwsan.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline; filename=convert_clksel_round_rate.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -10,83 +13,145 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+Convert omap2_clksel_round_rate() to use the new clksel struct data.
 
-This set of patches contains some significant changes to the OMAP2 clock
-framework.  The main goal of these patches is to generalize the framework
-enough to be usable for the OMAP3430 clock tree, although in the process
-I think the OMAP2 clock code is improved quite a bit - I hope you'll agree.
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
-The major change in this patch set is the rewrite of clksel
-clock handling, which: 
+---
+ arch/arm/mach-omap2/clock.c |   98 ++++++++++++++++++++++----------------------
+ 1 file changed, 50 insertions(+), 48 deletions(-)
 
-* enables clksel parent clocks to be updated at clock framework init, from
-  whatever the bootloader configured,
-
-* properly encodes platform restrictions for particular rates, 
-
-* generalizes the clksel code to be useful for OMAP3430 clocks,
-
-* facilitates future improved clock state reporting,
-
-* and improves readability and maintainability.
-
-The clksel patches are patches 6 through 20.  A few other notable changes 
-in this patchset:
-
-* Cleanups/bug fixes: patches 1, 3, 4, 5
-
-* Generalize root clock propagation at clock framework init: patch 2
-
-* Use OMAP clock framework enable/disable fns for osc_ck, APLLs: patches 21,
-  22, 23
-
-* Recalculate osc_ck and sys_ck via recalculate fns, rather than 
-  omap2_get_crystal_rate(): patch 24
-
-* Generalize DPLL multiplier, divider handling: patches 25
-
-* Generalize clocks enabled at init via ENABLE_ON_INIT clock flag: patch 26
-
-* Generalize clock autoidle configuration: patches 27, 28
-
-The patches were boot-tested on N800.  Comments and testing are appreciated.
-In particular, any testing on 2430SDP are particularly welcome, since I
-don't have one here.
-
-Patches apply cleanly against current git head, and seem to run fine,
-but I've been doing most of my testing against 2.6.22-omap1, since my
-N800 touchscreen does not work consistently with git head.
-
-These changes increase uncompressed kernel memory footprint by 
-about 6kB:
-   text    data     bss     dec     hex filename
-2877920  147788   85992 3111700  2f7b14 vmlinux.orig
-2881092  150908   85992 3117992  2f93a8 vmlinux
-
-diffstat:
- arch/arm/mach-omap2/clock.c                       |  978 +++++++++----------
- arch/arm/mach-omap2/clock.h                       | 1092 +++++++++++++++++-----
- arch/arm/plat-omap/clock.c                        |   20
- include/asm-arm/arch-omap/clock.h                 |   57 -
- linux-omap/arch/arm/mach-omap2/board-n800-audio.c |   13
- linux-omap/arch/arm/mach-omap2/clock.c            |    6
- linux-omap/arch/arm/mach-omap2/clock.h            |    2
- linux-omap/arch/arm/mach-omap2/cm_regbits_24xx.h  |   50 +
- linux-omap/arch/arm/mach-omap2/pm.c               |   63 -
- linux-omap/arch/arm/plat-omap/clock.c             |   17
- linux-omap/include/asm-arm/arch-omap/clock.h      |    1
- 11 files changed, 1492 insertions(+), 807 deletions(-)
-
-My apologies in advance for the double 'Index:' lines in some of the
-patches - must be some quilt bug - it seems harmless and I have not
-yet had the chance to track it down.
-
-- Paul
+Index: linux-omap/arch/arm/mach-omap2/clock.c
+Index: linux-omap/arch/arm/mach-omap2/clock.c
+===================================================================
+--- linux-omap.orig/arch/arm/mach-omap2/clock.c
++++ linux-omap/arch/arm/mach-omap2/clock.c
+@@ -87,8 +87,6 @@ static struct clk *vclk;
+ static struct clk *sclk;
+ static u8 cpu_mask;
+ 
+-static u32 sysclkout_div[] = {1, 2, 4, 8, 16};
+-
+ /*-------------------------------------------------------------------------
+  * Omap2 specific clock functions
+  *-------------------------------------------------------------------------*/
+@@ -529,62 +527,66 @@ const static struct clksel *omap2_get_cl
+ 	return clks;
+ }
+ 
+-/*
+- * Find divisor for the given clock and target rate.
++/**
++ * omap2_clksel_round_rate - find divisor for the given clock and target rate.
++ * @clk: OMAP struct clk to use
++ * @target_rate: desired clock rate
++ * @new_div: ptr to where we should store the divisor
+  *
++ * Finds 'best' divider value in an array based on the source and target
++ * rates.  The divider array must be sorted with smallest divider first.
+  * Note that this will not work for clocks which are part of CONFIG_PARTICIPANT,
+  * they are only settable as part of virtual_prcm set.
++ *
++ * Returns the rounded clock rate or returns 0xffffffff on error.
+  */
+-static u32 omap2_clksel_round_rate(struct clk *tclk, u32 target_rate,
+-	u32 *new_div)
++static u32 omap2_clksel_round_rate(struct clk *clk, unsigned long target_rate,
++				   u32 *new_div)
+ {
+-	u32 gfx_div[] = {2, 3, 4};
+-	u32 dss1_div[] = {1, 2, 3, 4, 5, 6, 8, 9, 12, 16};
+-	u32 vlynq_div[] = {1, 2, 3, 4, 6, 8, 9, 12, 16, 18};
+-	u32 best_div = ~0, asize = 0;
+-	u32 *div_array = NULL;
++	unsigned long test_rate;
++	const struct clksel *clks;
++	const struct clksel_rate *clkr;
++	u32 last_div = 0;
+ 
+-	switch (tclk->flags & SRC_RATE_SEL_MASK) {
+-	case CM_GFX_SEL1:
+-		asize = ARRAY_SIZE(gfx_div);
+-		div_array = gfx_div;
+-		break;
+-	case CM_PLL_SEL1:
+-		return omap2_dpll_round_rate(target_rate);
+-	case CM_SYSCLKOUT_SEL1:
+-		asize = ARRAY_SIZE(sysclkout_div);
+-		div_array = sysclkout_div;
+-		break;
+-	case CM_CORE_SEL1:
+-		if (tclk == &dss1_fck) {
+-			if (tclk->parent == &core_ck) {
+-				asize = ARRAY_SIZE(dss1_div);
+-				div_array = dss1_div;
+-			} else {
+-				*new_div = 0; /* fixed clk */
+-				return(tclk->parent->rate);
+-			}
+-		} else if ((tclk == &vlynq_fck) && cpu_is_omap2420()) {
+-			if (tclk->parent == &core_ck) {
+-				asize = ARRAY_SIZE(vlynq_div);
+-				div_array = vlynq_div;
+-			} else {
+-				*new_div = 0; /* fixed clk */
+-				return (tclk->parent->rate);
+-			}
+-		}
+-		break;
++	printk(KERN_INFO "clock: clksel_round_rate for %s target_rate %ld\n",
++	       clk->name, target_rate);
++
++	*new_div = 1;
++
++	clks = omap2_get_clksel_by_parent(clk, clk->parent);
++	if (clks == NULL)
++		return ~0;
++
++	for (clkr = clks->rates; clkr->div; clkr++) {
++		if (!(clkr->flags & cpu_mask))
++		    continue;
++
++		/* Sanity check */
++		if (clkr->div <= last_div)
++			printk(KERN_ERR "clock: clksel_rate table not sorted "
++			       "for clock %s", clk->name);
++
++		last_div = clkr->div;
++
++		test_rate = clk->parent->rate / clkr->div;
++
++		if (test_rate <= target_rate)
++			break; /* found it */
+ 	}
+ 
+-	best_div = omap2_divider_from_table(asize, div_array,
+-					    tclk->parent->rate, target_rate);
+-	if (best_div == ~0) {
+-		*new_div = 1;
+-		return best_div; /* signal error */
++	if (!clkr->div) {
++		printk(KERN_ERR "clock: Could not find divisor for target "
++		       "rate %ld for clock %s parent %s\n", target_rate,
++		       clk->name, clk->parent->name);
++		return ~0;
+ 	}
+ 
+-	*new_div = best_div;
+-	return (tclk->parent->rate / best_div);
++	*new_div = clkr->div;
++
++	printk(KERN_INFO "clock: new_div = %d, new_rate = %ld\n", *new_div,
++	       (clk->parent->rate / clkr->div));
++
++	return (clk->parent->rate / clkr->div);
+ }
+ 
+ /* Given a clock and a rate apply a clock specific rounding function */
 
 -- 
