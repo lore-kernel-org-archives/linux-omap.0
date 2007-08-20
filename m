@@ -1,15 +1,12 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: [PATCH 1/2] ov9640: Add OmniVision ov9640 driver - new interface
-Date: Mon, 20 Aug 2007 15:51:27 +0530
-Message-ID: <5d5443650708200321h6fa11423j24f48a565dacbbdb@mail.gmail.com>
-References: <5d5443650708180136o56e3cfc8t458a7071d88c0288@mail.gmail.com>
-	<46C959DE.2010306@nokia.com>
+From: Sakari Ailus <sakari.ailus@nokia.com>
+Subject: [PATCH 0/2] Updated OMAP 2 camera driver and N800 platform camera
+ patches
+Date: Mon, 20 Aug 2007 15:02:21 +0300
+Message-ID: <46C982CD.80802@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <46C959DE.2010306@nokia.com>
-Content-Disposition: inline
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,39 +14,30 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Sakari Ailus <sakari.ailus@nokia.com>
-Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Sakari,
+Hi,
 
-On 8/20/07, Sakari Ailus <sakari.ailus@nokia.com> wrote:
-> ext Trilok Soni wrote:
-> > Hi All,
->
-> Hi, Trilok!
->
-> > I have attached two patches which converts the ov9640 driver to use
-> > the new v4l2 sensor interface. Sensor detection is working with H4 but
-> > the output is not anywhere near to correct, so someone with H4 please
-> > check and give inputs.
-> >
-> > Patches are implemented and tested against mainline kernel and OMAP2
-> > camera driver posted by Sakari to v4l mailing list [1].
->
->  > +#define NUM_IOCTLS 16
-> ...
->  > +     /* Just an experiment --- don't use *_cb functions yet. */
->  > +     ov9640_ioctl_desc[i++] = vidioc_int_dev_init_cb(&ioctl_dev_init);
->  > +     BUG_ON(i >= NUM_IOCTLS);
->
-> These are leftovers from the check-slave-interface-types experiment
-> which probably should be removed. This applies to TCM825x as well.
->
+Here are the new OMAP 2 camera driver and N800 platform camera patches. 
+I have posted the updates to V4L int if and TCM825x driver to the V4L 
+list already as they have been integrated into V4L tree at 
+<URL:http://linuxtv.org/hg/v4l-dvb> (excluding the new patches, sorry).
 
-I will remove that and update the patch once camera output is correct.
+The changes since the last update include the following:
+
+- Update to use vidioc_int_g_ifparm.
+
+- VIDIOC_DQBUF fix.
+
+     The driver assumed that every slave would return zero from
+     vidioc_int_g_needs_reset. This doesn't hold true for the slaves that
+     do not implement that ioctl at all.
+
+- Small cleanups, remove useless & characters.
 
 -- 
---Trilok Soni
+Sakari Ailus
+sakari.ailus@nokia.com
