@@ -1,11 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/9] musb_hdrc: Search and replace USB_INVENTRA_FIFO with
-	USB_MUSB_DISABLE_DMA
-Date: Mon, 20 Aug 2007 02:10:19 -0700
-Message-ID: <11876010292224-git-send-email-tony@atomide.com>
+Subject: [PATCH 4/9] musb_hdrc: Rename musbhdrc.h to musb_regs.h
+Date: Mon, 20 Aug 2007 02:10:22 -0700
+Message-ID: <1187601037732-git-send-email-tony@atomide.com>
 References: <11876010273160-git-send-email-tony@atomide.com>
+	<11876010292224-git-send-email-tony@atomide.com>
+	<11876010322255-git-send-email-tony@atomide.com>
+	<11876010342086-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11876010273160-git-send-email-tony@atomide.com>
+In-Reply-To: <11876010342086-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,165 +20,641 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Search and replace USB_INVENTRA_FIFO with USB_MUSB_DISABLE_DMA
+Rename musbhdrc.h to musb_regs.h
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/Kconfig       |    8 ++++----
- drivers/usb/musb/Makefile      |    2 +-
- drivers/usb/musb/dma.h         |    2 +-
- drivers/usb/musb/musb_gadget.c |    2 +-
- drivers/usb/musb/musb_procfs.c |    2 +-
- drivers/usb/musb/plat_uds.c    |   12 ++++++------
- 6 files changed, 14 insertions(+), 14 deletions(-)
+ drivers/usb/musb/musb_regs.h |  300 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/usb/musb/musbdefs.h  |    2 +-
+ drivers/usb/musb/musbhdrc.h  |  300 ------------------------------------------
+ 3 files changed, 301 insertions(+), 301 deletions(-)
+ create mode 100644 drivers/usb/musb/musb_regs.h
+ delete mode 100644 drivers/usb/musb/musbhdrc.h
 
-diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-index a9bcd7e..8e5430a 100644
---- a/drivers/usb/musb/Kconfig
-+++ b/drivers/usb/musb/Kconfig
-@@ -129,7 +129,7 @@ config USB_MUSB_HDRC_HCD
- 	default y
- 
- 
--config USB_INVENTRA_FIFO
-+config USB_MUSB_DISABLE_DMA
- 	bool 'Disable DMA (always use PIO)'
- 	depends on USB_MUSB_HDRC
- 	default y if USB_TUSB6010
-@@ -144,21 +144,21 @@ config USB_INVENTRA_FIFO
- 
- config USB_INVENTRA_DMA
- 	bool
--	depends on USB_MUSB_HDRC && !USB_INVENTRA_FIFO
-+	depends on USB_MUSB_HDRC && !USB_MUSB_DISABLE_DMA
- 	default ARCH_OMAP2430 || ARCH_OMAP343X
- 	help
- 	  Enable DMA transfers using Mentor's engine.
- 
- config USB_TI_CPPI_DMA
- 	bool
--	depends on USB_MUSB_HDRC && !USB_INVENTRA_FIFO
-+	depends on USB_MUSB_HDRC && !USB_MUSB_DISABLE_DMA
- 	default ARCH_DAVINCI
- 	help
- 	  Enable DMA transfers when TI CPPI DMA is available.
- 
- config USB_TUSB_OMAP_DMA
- 	bool
--	depends on USB_MUSB_HDRC && !USB_INVENTRA_FIFO
-+	depends on USB_MUSB_HDRC && !USB_MUSB_DISABLE_DMA
- 	depends on USB_TUSB6010
- 	depends on ARCH_OMAP
- 	default y
-diff --git a/drivers/usb/musb/Makefile b/drivers/usb/musb/Makefile
-index 535ba40..fbff415 100644
---- a/drivers/usb/musb/Makefile
-+++ b/drivers/usb/musb/Makefile
-@@ -31,7 +31,7 @@ endif
- # PIO (INVENTRA_FIFO), or DMA (several potential schemes).
- # though PIO is always there to back up DMA, and for ep0
- 
--ifneq ($(CONFIG_USB_INVENTRA_FIFO),y)
-+ifneq ($(CONFIG_USB_MUSB_DISABLE_DMA),y)
- 
-   ifeq ($(CONFIG_USB_INVENTRA_DMA),y)
-     musb_hdrc-objs		+= musbhsdma.o
-diff --git a/drivers/usb/musb/dma.h b/drivers/usb/musb/dma.h
-index 701d312..deef0c2 100644
---- a/drivers/usb/musb/dma.h
-+++ b/drivers/usb/musb/dma.h
-@@ -62,7 +62,7 @@ struct musb_hw_ep;
- 
- #define	DMA_ADDR_INVALID	(~(dma_addr_t)0)
- 
--#ifndef CONFIG_USB_INVENTRA_FIFO
-+#ifndef CONFIG_USB_MUSB_DISABLE_DMA
- #define	is_dma_capable()	(1)
- #else
- #define	is_dma_capable()	(0)
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index 88757ce..5a4227e 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -291,7 +291,7 @@ static void txstate(struct musb *musb, struct musb_request *req)
- 			epnum, musb_ep->packet_sz, fifo_count,
- 			csr);
- 
--#ifndef	CONFIG_USB_INVENTRA_FIFO
-+#ifndef	CONFIG_USB_MUSB_DISABLE_DMA
- 	if (is_dma_capable() && musb_ep->dma) {
- 		struct dma_controller	*c = musb->dma_controller;
- 
-diff --git a/drivers/usb/musb/musb_procfs.c b/drivers/usb/musb/musb_procfs.c
-index 1bc5c79..3144f34 100644
---- a/drivers/usb/musb/musb_procfs.c
-+++ b/drivers/usb/musb/musb_procfs.c
-@@ -508,7 +508,7 @@ static int dump_header_stats(struct musb *musb, char *buffer)
- 
- 	code = sprintf(buffer,
- 			"Options: "
--#ifdef CONFIG_USB_INVENTRA_FIFO
-+#ifdef CONFIG_USB_MUSB_DISABLE_DMA
- 			"pio"
- #elif defined(CONFIG_USB_TI_CPPI_DMA)
- 			"cppi-dma"
-diff --git a/drivers/usb/musb/plat_uds.c b/drivers/usb/musb/plat_uds.c
-index dacf930..e544339 100644
---- a/drivers/usb/musb/plat_uds.c
-+++ b/drivers/usb/musb/plat_uds.c
-@@ -1536,7 +1536,7 @@ irqreturn_t musb_interrupt(struct musb *musb)
- }
- 
- 
--#ifndef CONFIG_USB_INVENTRA_FIFO
-+#ifndef CONFIG_USB_MUSB_DISABLE_DMA
- static int __initdata use_dma = 1;
- 
- /* "modprobe ... use_dma=0" etc */
-@@ -1918,7 +1918,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
- 		goto fail2;
- 	}
- 
--#ifndef CONFIG_USB_INVENTRA_FIFO
-+#ifndef CONFIG_USB_MUSB_DISABLE_DMA
- 	if (use_dma && dev->dma_mask) {
- 		struct dma_controller	*c;
- 
-@@ -2047,7 +2047,7 @@ fail2:
-  * bridge to a platform device; this driver then suffices.
-  */
- 
--#ifndef CONFIG_USB_INVENTRA_FIFO
-+#ifndef CONFIG_USB_MUSB_DISABLE_DMA
- static u64	*orig_dma_mask;
+diff --git a/drivers/usb/musb/musb_regs.h b/drivers/usb/musb/musb_regs.h
+new file mode 100644
+index 0000000..d1500a4
+--- /dev/null
++++ b/drivers/usb/musb/musb_regs.h
+@@ -0,0 +1,300 @@
++/*
++ * MUSB OTG driver register defines
++ *
++ * Copyright 2005 Mentor Graphics Corporation
++ * Copyright (C) 2005-2006 by Texas Instruments
++ * Copyright (C) 2006-2007 Nokia Corporation
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN
++ * NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
++ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++
++#ifndef __MUSB_REGS_H__
++#define __MUSB_REGS_H__
++
++#define MUSB_EP0_FIFOSIZE	64	/* This is non-configurable */
++
++/*
++ * Common USB registers
++ */
++
++#define MUSB_FADDR		0x00	/* 8-bit */
++#define MUSB_POWER		0x01	/* 8-bit */
++
++#define MUSB_INTRTX		0x02	/* 16-bit */
++#define MUSB_INTRRX		0x04
++#define MUSB_INTRTXE		0x06
++#define MUSB_INTRRXE		0x08
++#define MUSB_INTRUSB		0x0A	/* 8 bit */
++#define MUSB_INTRUSBE		0x0B	/* 8 bit */
++#define MUSB_FRAME		0x0C
++#define MUSB_INDEX		0x0E	/* 8 bit */
++#define MUSB_TESTMODE		0x0F	/* 8 bit */
++
++/* Get offset for a given FIFO from musb->mregs */
++#ifdef	CONFIG_USB_TUSB6010
++#define MUSB_FIFO_OFFSET(epnum)	(0x200 + ((epnum) * 0x20))
++#else
++#define MUSB_FIFO_OFFSET(epnum)	(0x20 + ((epnum) * 4))
++#endif
++
++/*
++ * Additional Control Registers
++ */
++
++#define MUSB_DEVCTL		0x60	/* 8 bit */
++
++/* These are always controlled through the INDEX register */
++#define MUSB_TXFIFOSZ		0x62	/* 8-bit (see masks) */
++#define MUSB_RXFIFOSZ		0x63	/* 8-bit (see masks) */
++#define MUSB_TXFIFOADD		0x64	/* 16-bit offset shifted right 3 */
++#define MUSB_RXFIFOADD		0x66	/* 16-bit offset shifted right 3 */
++
++/* REVISIT: vctrl/vstatus: optional vendor utmi+phy register at 0x68 */
++#define MUSB_HWVERS		0x6C	/* 8 bit */
++
++#define MUSB_EPINFO		0x78	/* 8 bit */
++#define MUSB_RAMINFO		0x79	/* 8 bit */
++#define MUSB_LINKINFO		0x7a	/* 8 bit */
++#define MUSB_VPLEN		0x7b	/* 8 bit */
++#define MUSB_HS_EOF1		0x7c	/* 8 bit */
++#define MUSB_FS_EOF1		0x7d	/* 8 bit */
++#define MUSB_LS_EOF1		0x7e	/* 8 bit */
++
++/* Offsets to endpoint registers */
++#define MUSB_TXMAXP		0x00
++#define MUSB_TXCSR		0x02
++#define MUSB_CSR0		MUSB_TXCSR	/* Re-used for EP0 */
++#define MUSB_RXMAXP		0x04
++#define MUSB_RXCSR		0x06
++#define MUSB_RXCOUNT		0x08
++#define MUSB_COUNT0		MUSB_RXCOUNT	/* Re-used for EP0 */
++#define MUSB_TXTYPE		0x0A
++#define MUSB_TYPE0		MUSB_TXTYPE	/* Re-used for EP0 */
++#define MUSB_TXINTERVAL		0x0B
++#define MUSB_NAKLIMIT0		MUSB_TXINTERVAL	/* Re-used for EP0 */
++#define MUSB_RXTYPE		0x0C
++#define MUSB_RXINTERVAL		0x0D
++#define MUSB_FIFOSIZE		0x0F
++#define MUSB_CONFIGDATA		MUSB_FIFOSIZE	/* Re-used for EP0 */
++
++/* Offsets to endpoint registers in indexed model (using INDEX register) */
++#define MUSB_INDEXED_OFFSET(_epnum, _offset)	\
++	(0x10 + (_offset))
++
++/* Offsets to endpoint registers in flat models */
++#define MUSB_FLAT_OFFSET(_epnum, _offset)	\
++	(0x100 + (0x10*(_epnum)) + (_offset))
++
++#ifdef CONFIG_USB_TUSB6010
++/* TUSB6010 EP0 configuration register is special */
++#define MUSB_TUSB_OFFSET(_epnum, _offset)	\
++	(0x10 + _offset)
++#include "tusb6010.h"		/* Needed "only" for TUSB_EP0_CONF */
++#endif
++
++/* "bus control"/target registers, for host side multipoint (external hubs) */
++#define MUSB_TXFUNCADDR		0x00
++#define MUSB_TXHUBADDR		0x02
++#define MUSB_TXHUBPORT		0x03
++
++#define MUSB_RXFUNCADDR		0x04
++#define MUSB_RXHUBADDR		0x06
++#define MUSB_RXHUBPORT		0x07
++
++#define MUSB_BUSCTL_OFFSET(_epnum, _offset) \
++	(0x80 + (8*(_epnum)) + (_offset))
++
++/*
++ * MUSB Register bits
++ */
++
++/* POWER */
++#define MUSB_POWER_ISOUPDATE	0x80
++#define MUSB_POWER_SOFTCONN	0x40
++#define MUSB_POWER_HSENAB	0x20
++#define MUSB_POWER_HSMODE	0x10
++#define MUSB_POWER_RESET	0x08
++#define MUSB_POWER_RESUME	0x04
++#define MUSB_POWER_SUSPENDM	0x02
++#define MUSB_POWER_ENSUSPEND	0x01
++
++/* INTRUSB */
++#define MUSB_INTR_SUSPEND	0x01
++#define MUSB_INTR_RESUME	0x02
++#define MUSB_INTR_RESET		0x04
++#define MUSB_INTR_BABBLE	0x04
++#define MUSB_INTR_SOF		0x08
++#define MUSB_INTR_CONNECT	0x10
++#define MUSB_INTR_DISCONNECT	0x20
++#define MUSB_INTR_SESSREQ	0x40
++#define MUSB_INTR_VBUSERROR	0x80	/* For SESSION end */
++
++/* DEVCTL */
++#define MUSB_DEVCTL_BDEVICE	0x80
++#define MUSB_DEVCTL_FSDEV	0x40
++#define MUSB_DEVCTL_LSDEV	0x20
++#define MUSB_DEVCTL_VBUS	0x18
++#define MUSB_DEVCTL_VBUS_SHIFT	3
++#define MUSB_DEVCTL_HM		0x04
++#define MUSB_DEVCTL_HR		0x02
++#define MUSB_DEVCTL_SESSION	0x01
++
++/* TESTMODE */
++#define MUSB_TEST_FORCE_HOST	0x80
++#define MUSB_TEST_FIFO_ACCESS	0x40
++#define MUSB_TEST_FORCE_FS	0x20
++#define MUSB_TEST_FORCE_HS	0x10
++#define MUSB_TEST_PACKET	0x08
++#define MUSB_TEST_K		0x04
++#define MUSB_TEST_J		0x02
++#define MUSB_TEST_SE0_NAK	0x01
++
++/* Allocate for double-packet buffering (effectively doubles assigned _SIZE) */
++#define MUSB_FIFOSZ_DPB	0x10
++/* Allocation size (8, 16, 32, ... 4096) */
++#define MUSB_FIFOSZ_SIZE	0x0f
++
++/* CSR0 */
++#define MUSB_CSR0_FLUSHFIFO	0x0100
++#define MUSB_CSR0_TXPKTRDY	0x0002
++#define MUSB_CSR0_RXPKTRDY	0x0001
++
++/* CSR0 in Peripheral mode */
++#define MUSB_CSR0_P_SVDSETUPEND	0x0080
++#define MUSB_CSR0_P_SVDRXPKTRDY	0x0040
++#define MUSB_CSR0_P_SENDSTALL	0x0020
++#define MUSB_CSR0_P_SETUPEND	0x0010
++#define MUSB_CSR0_P_DATAEND	0x0008
++#define MUSB_CSR0_P_SENTSTALL	0x0004
++
++/* CSR0 in Host mode */
++#define MUSB_CSR0_H_DIS_PING		0x0800
++#define MUSB_CSR0_H_WR_DATATOGGLE	0x0400	/* Set to allow setting: */
++#define MUSB_CSR0_H_DATATOGGLE		0x0200	/* Data toggle control */
++#define MUSB_CSR0_H_NAKTIMEOUT		0x0080
++#define MUSB_CSR0_H_STATUSPKT		0x0040
++#define MUSB_CSR0_H_REQPKT		0x0020
++#define MUSB_CSR0_H_ERROR		0x0010
++#define MUSB_CSR0_H_SETUPPKT		0x0008
++#define MUSB_CSR0_H_RXSTALL		0x0004
++
++/* CSR0 bits to avoid zeroing (write zero clears, write 1 ignored) */
++#define MUSB_CSR0_P_WZC_BITS	\
++	( MUSB_CSR0_P_SENTSTALL )
++#define MUSB_CSR0_H_WZC_BITS	\
++	( MUSB_CSR0_H_NAKTIMEOUT | MUSB_CSR0_H_RXSTALL \
++	| MUSB_CSR0_RXPKTRDY )
++
++/* TxType/RxType */
++#define MUSB_TYPE_SPEED		0xc0
++#define MUSB_TYPE_SPEED_SHIFT	6
++#define MUSB_TYPE_PROTO		0x30	/* Implicitly zero for ep0 */
++#define MUSB_TYPE_PROTO_SHIFT	4
++#define MUSB_TYPE_REMOTE_END	0xf	/* Implicitly zero for ep0 */
++
++/* CONFIGDATA */
++#define MUSB_CONFIGDATA_MPRXE		0x80	/* Auto bulk pkt combining */
++#define MUSB_CONFIGDATA_MPTXE		0x40	/* Auto bulk pkt splitting */
++#define MUSB_CONFIGDATA_BIGENDIAN	0x20
++#define MUSB_CONFIGDATA_HBRXE		0x10	/* HB-ISO for RX */
++#define MUSB_CONFIGDATA_HBTXE		0x08	/* HB-ISO for TX */
++#define MUSB_CONFIGDATA_DYNFIFO		0x04	/* Dynamic FIFO sizing */
++#define MUSB_CONFIGDATA_SOFTCONE	0x02	/* SoftConnect */
++#define MUSB_CONFIGDATA_UTMIDW		0x01	/* Data width 0/1 => 8/16bits */
++
++/* TXCSR in Peripheral and Host mode */
++#define MUSB_TXCSR_AUTOSET		0x8000
++#define MUSB_TXCSR_MODE			0x2000
++#define MUSB_TXCSR_DMAENAB		0x1000
++#define MUSB_TXCSR_FRCDATATOG		0x0800
++#define MUSB_TXCSR_DMAMODE		0x0400
++#define MUSB_TXCSR_CLRDATATOG		0x0040
++#define MUSB_TXCSR_FLUSHFIFO		0x0008
++#define MUSB_TXCSR_FIFONOTEMPTY		0x0002
++#define MUSB_TXCSR_TXPKTRDY		0x0001
++
++/* TXCSR in Peripheral mode */
++#define MUSB_TXCSR_P_ISO		0x4000
++#define MUSB_TXCSR_P_INCOMPTX		0x0080
++#define MUSB_TXCSR_P_SENTSTALL		0x0020
++#define MUSB_TXCSR_P_SENDSTALL		0x0010
++#define MUSB_TXCSR_P_UNDERRUN		0x0004
++
++/* TXCSR in Host mode */
++#define MUSB_TXCSR_H_WR_DATATOGGLE	0x0200
++#define MUSB_TXCSR_H_DATATOGGLE		0x0100
++#define MUSB_TXCSR_H_NAKTIMEOUT		0x0080
++#define MUSB_TXCSR_H_RXSTALL		0x0020
++#define MUSB_TXCSR_H_ERROR		0x0004
++
++/* TXCSR bits to avoid zeroing (write zero clears, write 1 ignored) */
++#define MUSB_TXCSR_P_WZC_BITS	\
++	( MUSB_TXCSR_P_INCOMPTX | MUSB_TXCSR_P_SENTSTALL \
++	| MUSB_TXCSR_P_UNDERRUN | MUSB_TXCSR_FIFONOTEMPTY )
++#define MUSB_TXCSR_H_WZC_BITS	\
++	( MUSB_TXCSR_H_NAKTIMEOUT | MUSB_TXCSR_H_RXSTALL \
++	| MUSB_TXCSR_H_ERROR | MUSB_TXCSR_FIFONOTEMPTY )
++
++/* RXCSR in Peripheral and Host mode */
++#define MUSB_RXCSR_AUTOCLEAR		0x8000
++#define MUSB_RXCSR_DMAENAB		0x2000
++#define MUSB_RXCSR_DISNYET		0x1000
++#define MUSB_RXCSR_PID_ERR		0x1000
++#define MUSB_RXCSR_DMAMODE		0x0800
++#define MUSB_RXCSR_INCOMPRX		0x0100
++#define MUSB_RXCSR_CLRDATATOG		0x0080
++#define MUSB_RXCSR_FLUSHFIFO		0x0010
++#define MUSB_RXCSR_DATAERROR		0x0008
++#define MUSB_RXCSR_FIFOFULL		0x0002
++#define MUSB_RXCSR_RXPKTRDY		0x0001
++
++/* RXCSR in Peripheral mode */
++#define MUSB_RXCSR_P_ISO		0x4000
++#define MUSB_RXCSR_P_SENTSTALL		0x0040
++#define MUSB_RXCSR_P_SENDSTALL		0x0020
++#define MUSB_RXCSR_P_OVERRUN		0x0004
++
++/* RXCSR in Host mode */
++#define MUSB_RXCSR_H_AUTOREQ		0x4000
++#define MUSB_RXCSR_H_WR_DATATOGGLE	0x0400
++#define MUSB_RXCSR_H_DATATOGGLE		0x0200
++#define MUSB_RXCSR_H_RXSTALL		0x0040
++#define MUSB_RXCSR_H_REQPKT		0x0020
++#define MUSB_RXCSR_H_ERROR		0x0004
++
++/* RXCSR bits to avoid zeroing (write zero clears, write 1 ignored) */
++#define MUSB_RXCSR_P_WZC_BITS	\
++	( MUSB_RXCSR_P_SENTSTALL | MUSB_RXCSR_P_OVERRUN \
++	| MUSB_RXCSR_RXPKTRDY )
++#define MUSB_RXCSR_H_WZC_BITS	\
++	( MUSB_RXCSR_H_RXSTALL | MUSB_RXCSR_H_ERROR \
++	| MUSB_RXCSR_DATAERROR | MUSB_RXCSR_RXPKTRDY )
++
++/* HUBADDR */
++#define MUSB_HUBADDR_MULTI_TT		0x80
++
++#endif	/* __MUSB_REGS_H__ */
+diff --git a/drivers/usb/musb/musbdefs.h b/drivers/usb/musb/musbdefs.h
+index a9af51e..7dbc74a 100644
+--- a/drivers/usb/musb/musbdefs.h
++++ b/drivers/usb/musb/musbdefs.h
+@@ -69,7 +69,7 @@ struct musb_ep;
  #endif
  
-@@ -2068,7 +2068,7 @@ static int __init musb_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 	}
+ #include "musb_arch.h"
+-#include "musbhdrc.h"
++#include "musb_regs.h"
  
--#ifndef CONFIG_USB_INVENTRA_FIFO
-+#ifndef CONFIG_USB_MUSB_DISABLE_DMA
- 	/* clobbered by use_dma=n */
- 	orig_dma_mask = dev->dma_mask;
- #endif
-@@ -2094,7 +2094,7 @@ static int __devexit musb_remove(struct platform_device *pdev)
- 	musb_free(musb);
- 	iounmap(ctrl_base);
- 	device_init_wakeup(&pdev->dev, 0);
--#ifndef CONFIG_USB_INVENTRA_FIFO
-+#ifndef CONFIG_USB_MUSB_DISABLE_DMA
- 	pdev->dev.dma_mask = orig_dma_mask;
- #endif
- 	return 0;
-@@ -2180,7 +2180,7 @@ static int __init musb_init(void)
- #endif
- 
- 	pr_info("%s: version " MUSB_VERSION ", "
--#ifdef CONFIG_USB_INVENTRA_FIFO
-+#ifdef CONFIG_USB_MUSB_DISABLE_DMA
- 		"pio"
- #elif defined(CONFIG_USB_TI_CPPI_DMA)
- 		"cppi-dma"
+ #include "musb_gadget.h"
+ #include "../core/hcd.h"
+diff --git a/drivers/usb/musb/musbhdrc.h b/drivers/usb/musb/musbhdrc.h
+deleted file mode 100644
+index 961e321..0000000
+--- a/drivers/usb/musb/musbhdrc.h
++++ /dev/null
+@@ -1,300 +0,0 @@
+-/*
+- * MUSB OTG driver register defines
+- *
+- * Copyright 2005 Mentor Graphics Corporation
+- * Copyright (C) 2005-2006 by Texas Instruments
+- * Copyright (C) 2006-2007 Nokia Corporation
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+- * 02110-1301 USA
+- *
+- * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
+- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN
+- * NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- */
+-
+-#ifndef __MUSB_HDRC_DEFS_H__
+-#define __MUSB_HDRC_DEFS_H__
+-
+-#define MUSB_EP0_FIFOSIZE	64	/* This is non-configurable */
+-
+-/*
+- * Common USB registers
+- */
+-
+-#define MUSB_FADDR		0x00	/* 8-bit */
+-#define MUSB_POWER		0x01	/* 8-bit */
+-
+-#define MUSB_INTRTX		0x02	/* 16-bit */
+-#define MUSB_INTRRX		0x04
+-#define MUSB_INTRTXE		0x06
+-#define MUSB_INTRRXE		0x08
+-#define MUSB_INTRUSB		0x0A	/* 8 bit */
+-#define MUSB_INTRUSBE		0x0B	/* 8 bit */
+-#define MUSB_FRAME		0x0C
+-#define MUSB_INDEX		0x0E	/* 8 bit */
+-#define MUSB_TESTMODE		0x0F	/* 8 bit */
+-
+-/* Get offset for a given FIFO from musb->mregs */
+-#ifdef	CONFIG_USB_TUSB6010
+-#define MUSB_FIFO_OFFSET(epnum)	(0x200 + ((epnum) * 0x20))
+-#else
+-#define MUSB_FIFO_OFFSET(epnum)	(0x20 + ((epnum) * 4))
+-#endif
+-
+-/*
+- * Additional Control Registers
+- */
+-
+-#define MUSB_DEVCTL		0x60	/* 8 bit */
+-
+-/* These are always controlled through the INDEX register */
+-#define MUSB_TXFIFOSZ		0x62	/* 8-bit (see masks) */
+-#define MUSB_RXFIFOSZ		0x63	/* 8-bit (see masks) */
+-#define MUSB_TXFIFOADD		0x64	/* 16-bit offset shifted right 3 */
+-#define MUSB_RXFIFOADD		0x66	/* 16-bit offset shifted right 3 */
+-
+-/* REVISIT: vctrl/vstatus: optional vendor utmi+phy register at 0x68 */
+-#define MUSB_HWVERS		0x6C	/* 8 bit */
+-
+-#define MUSB_EPINFO		0x78	/* 8 bit */
+-#define MUSB_RAMINFO		0x79	/* 8 bit */
+-#define MUSB_LINKINFO		0x7a	/* 8 bit */
+-#define MUSB_VPLEN		0x7b	/* 8 bit */
+-#define MUSB_HS_EOF1		0x7c	/* 8 bit */
+-#define MUSB_FS_EOF1		0x7d	/* 8 bit */
+-#define MUSB_LS_EOF1		0x7e	/* 8 bit */
+-
+-/* Offsets to endpoint registers */
+-#define MUSB_TXMAXP		0x00
+-#define MUSB_TXCSR		0x02
+-#define MUSB_CSR0		MUSB_TXCSR	/* Re-used for EP0 */
+-#define MUSB_RXMAXP		0x04
+-#define MUSB_RXCSR		0x06
+-#define MUSB_RXCOUNT		0x08
+-#define MUSB_COUNT0		MUSB_RXCOUNT	/* Re-used for EP0 */
+-#define MUSB_TXTYPE		0x0A
+-#define MUSB_TYPE0		MUSB_TXTYPE	/* Re-used for EP0 */
+-#define MUSB_TXINTERVAL		0x0B
+-#define MUSB_NAKLIMIT0		MUSB_TXINTERVAL	/* Re-used for EP0 */
+-#define MUSB_RXTYPE		0x0C
+-#define MUSB_RXINTERVAL		0x0D
+-#define MUSB_FIFOSIZE		0x0F
+-#define MUSB_CONFIGDATA		MUSB_FIFOSIZE	/* Re-used for EP0 */
+-
+-/* Offsets to endpoint registers in indexed model (using INDEX register) */
+-#define MUSB_INDEXED_OFFSET(_epnum, _offset)	\
+-	(0x10 + (_offset))
+-
+-/* Offsets to endpoint registers in flat models */
+-#define MUSB_FLAT_OFFSET(_epnum, _offset)	\
+-	(0x100 + (0x10*(_epnum)) + (_offset))
+-
+-#ifdef CONFIG_USB_TUSB6010
+-/* TUSB6010 EP0 configuration register is special */
+-#define MUSB_TUSB_OFFSET(_epnum, _offset)	\
+-	(0x10 + _offset)
+-#include "tusb6010.h"		/* Needed "only" for TUSB_EP0_CONF */
+-#endif
+-
+-/* "bus control"/target registers, for host side multipoint (external hubs) */
+-#define MUSB_TXFUNCADDR		0x00
+-#define MUSB_TXHUBADDR		0x02
+-#define MUSB_TXHUBPORT		0x03
+-
+-#define MUSB_RXFUNCADDR		0x04
+-#define MUSB_RXHUBADDR		0x06
+-#define MUSB_RXHUBPORT		0x07
+-
+-#define MUSB_BUSCTL_OFFSET(_epnum, _offset) \
+-	(0x80 + (8*(_epnum)) + (_offset))
+-
+-/*
+- * MUSB Register bits
+- */
+-
+-/* POWER */
+-#define MUSB_POWER_ISOUPDATE	0x80
+-#define MUSB_POWER_SOFTCONN	0x40
+-#define MUSB_POWER_HSENAB	0x20
+-#define MUSB_POWER_HSMODE	0x10
+-#define MUSB_POWER_RESET	0x08
+-#define MUSB_POWER_RESUME	0x04
+-#define MUSB_POWER_SUSPENDM	0x02
+-#define MUSB_POWER_ENSUSPEND	0x01
+-
+-/* INTRUSB */
+-#define MUSB_INTR_SUSPEND	0x01
+-#define MUSB_INTR_RESUME	0x02
+-#define MUSB_INTR_RESET		0x04
+-#define MUSB_INTR_BABBLE	0x04
+-#define MUSB_INTR_SOF		0x08
+-#define MUSB_INTR_CONNECT	0x10
+-#define MUSB_INTR_DISCONNECT	0x20
+-#define MUSB_INTR_SESSREQ	0x40
+-#define MUSB_INTR_VBUSERROR	0x80	/* For SESSION end */
+-
+-/* DEVCTL */
+-#define MUSB_DEVCTL_BDEVICE	0x80
+-#define MUSB_DEVCTL_FSDEV	0x40
+-#define MUSB_DEVCTL_LSDEV	0x20
+-#define MUSB_DEVCTL_VBUS	0x18
+-#define MUSB_DEVCTL_VBUS_SHIFT	3
+-#define MUSB_DEVCTL_HM		0x04
+-#define MUSB_DEVCTL_HR		0x02
+-#define MUSB_DEVCTL_SESSION	0x01
+-
+-/* TESTMODE */
+-#define MUSB_TEST_FORCE_HOST	0x80
+-#define MUSB_TEST_FIFO_ACCESS	0x40
+-#define MUSB_TEST_FORCE_FS	0x20
+-#define MUSB_TEST_FORCE_HS	0x10
+-#define MUSB_TEST_PACKET	0x08
+-#define MUSB_TEST_K		0x04
+-#define MUSB_TEST_J		0x02
+-#define MUSB_TEST_SE0_NAK	0x01
+-
+-/* Allocate for double-packet buffering (effectively doubles assigned _SIZE) */
+-#define MUSB_FIFOSZ_DPB	0x10
+-/* Allocation size (8, 16, 32, ... 4096) */
+-#define MUSB_FIFOSZ_SIZE	0x0f
+-
+-/* CSR0 */
+-#define MUSB_CSR0_FLUSHFIFO	0x0100
+-#define MUSB_CSR0_TXPKTRDY	0x0002
+-#define MUSB_CSR0_RXPKTRDY	0x0001
+-
+-/* CSR0 in Peripheral mode */
+-#define MUSB_CSR0_P_SVDSETUPEND	0x0080
+-#define MUSB_CSR0_P_SVDRXPKTRDY	0x0040
+-#define MUSB_CSR0_P_SENDSTALL	0x0020
+-#define MUSB_CSR0_P_SETUPEND	0x0010
+-#define MUSB_CSR0_P_DATAEND	0x0008
+-#define MUSB_CSR0_P_SENTSTALL	0x0004
+-
+-/* CSR0 in Host mode */
+-#define MUSB_CSR0_H_DIS_PING		0x0800
+-#define MUSB_CSR0_H_WR_DATATOGGLE	0x0400	/* Set to allow setting: */
+-#define MUSB_CSR0_H_DATATOGGLE		0x0200	/* Data toggle control */
+-#define MUSB_CSR0_H_NAKTIMEOUT		0x0080
+-#define MUSB_CSR0_H_STATUSPKT		0x0040
+-#define MUSB_CSR0_H_REQPKT		0x0020
+-#define MUSB_CSR0_H_ERROR		0x0010
+-#define MUSB_CSR0_H_SETUPPKT		0x0008
+-#define MUSB_CSR0_H_RXSTALL		0x0004
+-
+-/* CSR0 bits to avoid zeroing (write zero clears, write 1 ignored) */
+-#define MUSB_CSR0_P_WZC_BITS	\
+-	( MUSB_CSR0_P_SENTSTALL )
+-#define MUSB_CSR0_H_WZC_BITS	\
+-	( MUSB_CSR0_H_NAKTIMEOUT | MUSB_CSR0_H_RXSTALL \
+-	| MUSB_CSR0_RXPKTRDY )
+-
+-/* TxType/RxType */
+-#define MUSB_TYPE_SPEED		0xc0
+-#define MUSB_TYPE_SPEED_SHIFT	6
+-#define MUSB_TYPE_PROTO		0x30	/* Implicitly zero for ep0 */
+-#define MUSB_TYPE_PROTO_SHIFT	4
+-#define MUSB_TYPE_REMOTE_END	0xf	/* Implicitly zero for ep0 */
+-
+-/* CONFIGDATA */
+-#define MUSB_CONFIGDATA_MPRXE		0x80	/* Auto bulk pkt combining */
+-#define MUSB_CONFIGDATA_MPTXE		0x40	/* Auto bulk pkt splitting */
+-#define MUSB_CONFIGDATA_BIGENDIAN	0x20
+-#define MUSB_CONFIGDATA_HBRXE		0x10	/* HB-ISO for RX */
+-#define MUSB_CONFIGDATA_HBTXE		0x08	/* HB-ISO for TX */
+-#define MUSB_CONFIGDATA_DYNFIFO		0x04	/* Dynamic FIFO sizing */
+-#define MUSB_CONFIGDATA_SOFTCONE	0x02	/* SoftConnect */
+-#define MUSB_CONFIGDATA_UTMIDW		0x01	/* Data width 0/1 => 8/16bits */
+-
+-/* TXCSR in Peripheral and Host mode */
+-#define MUSB_TXCSR_AUTOSET		0x8000
+-#define MUSB_TXCSR_MODE			0x2000
+-#define MUSB_TXCSR_DMAENAB		0x1000
+-#define MUSB_TXCSR_FRCDATATOG		0x0800
+-#define MUSB_TXCSR_DMAMODE		0x0400
+-#define MUSB_TXCSR_CLRDATATOG		0x0040
+-#define MUSB_TXCSR_FLUSHFIFO		0x0008
+-#define MUSB_TXCSR_FIFONOTEMPTY		0x0002
+-#define MUSB_TXCSR_TXPKTRDY		0x0001
+-
+-/* TXCSR in Peripheral mode */
+-#define MUSB_TXCSR_P_ISO		0x4000
+-#define MUSB_TXCSR_P_INCOMPTX		0x0080
+-#define MUSB_TXCSR_P_SENTSTALL		0x0020
+-#define MUSB_TXCSR_P_SENDSTALL		0x0010
+-#define MUSB_TXCSR_P_UNDERRUN		0x0004
+-
+-/* TXCSR in Host mode */
+-#define MUSB_TXCSR_H_WR_DATATOGGLE	0x0200
+-#define MUSB_TXCSR_H_DATATOGGLE		0x0100
+-#define MUSB_TXCSR_H_NAKTIMEOUT		0x0080
+-#define MUSB_TXCSR_H_RXSTALL		0x0020
+-#define MUSB_TXCSR_H_ERROR		0x0004
+-
+-/* TXCSR bits to avoid zeroing (write zero clears, write 1 ignored) */
+-#define MUSB_TXCSR_P_WZC_BITS	\
+-	( MUSB_TXCSR_P_INCOMPTX | MUSB_TXCSR_P_SENTSTALL \
+-	| MUSB_TXCSR_P_UNDERRUN | MUSB_TXCSR_FIFONOTEMPTY )
+-#define MUSB_TXCSR_H_WZC_BITS	\
+-	( MUSB_TXCSR_H_NAKTIMEOUT | MUSB_TXCSR_H_RXSTALL \
+-	| MUSB_TXCSR_H_ERROR | MUSB_TXCSR_FIFONOTEMPTY )
+-
+-/* RXCSR in Peripheral and Host mode */
+-#define MUSB_RXCSR_AUTOCLEAR		0x8000
+-#define MUSB_RXCSR_DMAENAB		0x2000
+-#define MUSB_RXCSR_DISNYET		0x1000
+-#define MUSB_RXCSR_PID_ERR		0x1000
+-#define MUSB_RXCSR_DMAMODE		0x0800
+-#define MUSB_RXCSR_INCOMPRX		0x0100
+-#define MUSB_RXCSR_CLRDATATOG		0x0080
+-#define MUSB_RXCSR_FLUSHFIFO		0x0010
+-#define MUSB_RXCSR_DATAERROR		0x0008
+-#define MUSB_RXCSR_FIFOFULL		0x0002
+-#define MUSB_RXCSR_RXPKTRDY		0x0001
+-
+-/* RXCSR in Peripheral mode */
+-#define MUSB_RXCSR_P_ISO		0x4000
+-#define MUSB_RXCSR_P_SENTSTALL		0x0040
+-#define MUSB_RXCSR_P_SENDSTALL		0x0020
+-#define MUSB_RXCSR_P_OVERRUN		0x0004
+-
+-/* RXCSR in Host mode */
+-#define MUSB_RXCSR_H_AUTOREQ		0x4000
+-#define MUSB_RXCSR_H_WR_DATATOGGLE	0x0400
+-#define MUSB_RXCSR_H_DATATOGGLE		0x0200
+-#define MUSB_RXCSR_H_RXSTALL		0x0040
+-#define MUSB_RXCSR_H_REQPKT		0x0020
+-#define MUSB_RXCSR_H_ERROR		0x0004
+-
+-/* RXCSR bits to avoid zeroing (write zero clears, write 1 ignored) */
+-#define MUSB_RXCSR_P_WZC_BITS	\
+-	( MUSB_RXCSR_P_SENTSTALL | MUSB_RXCSR_P_OVERRUN \
+-	| MUSB_RXCSR_RXPKTRDY )
+-#define MUSB_RXCSR_H_WZC_BITS	\
+-	( MUSB_RXCSR_H_RXSTALL | MUSB_RXCSR_H_ERROR \
+-	| MUSB_RXCSR_DATAERROR | MUSB_RXCSR_RXPKTRDY )
+-
+-/* HUBADDR */
+-#define MUSB_HUBADDR_MULTI_TT		0x80
+-
+-#endif	/* __MUSB_HDRC_DEFS_H__ */
 -- 
 1.5.2.3
