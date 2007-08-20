@@ -1,10 +1,10 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 01/28] omap2 clock: dsp_ick parent is dsp_fck, not core_ck
-Date: Mon, 20 Aug 2007 03:53:48 -0600
-Message-ID: <20070820095530.056146220@pwsan.com>
+Subject: [PATCH 03/28] omap2 clock: mark onchip_clks as __initdata
+Date: Mon, 20 Aug 2007 03:53:50 -0600
+Message-ID: <20070820095530.246459867@pwsan.com>
 References: <20070820095347.933473149@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline; filename=dsp_ick_uses_core_ck_as_parent.patch
+Content-Disposition: inline; filename=mark_onchip_clks_initdata.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,8 +17,7 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-dsp_ick's parent clock is dsp_fck, not core_ck.  2420 TRM ES2.1.1 2.2 Rev Q 
-pp. 4-9, 5-28.
+The onchip_clks array is only used during init, so, mark it __initdata.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
@@ -31,14 +30,14 @@ Index: linux-omap/arch/arm/mach-omap2/clock.h
 ===================================================================
 --- linux-omap.orig/arch/arm/mach-omap2/clock.h
 +++ linux-omap/arch/arm/mach-omap2/clock.h
-@@ -820,7 +820,7 @@ static struct clk dsp_fck = {
+@@ -1988,7 +1988,7 @@ static struct clk virt_prcm_set = {
+ 	.round_rate	= &omap2_round_to_table_rate,
+ };
  
- static struct clk dsp_ick = {
- 	.name		= "dsp_ick",	 /* apparently ipi and isp */
--	.parent		= &dsp_fck,
-+	.parent		= &core_ck,
- 	.flags		= CLOCK_IN_OMAP242X | RATE_CKCTL | CM_DSP_SEL1 |
- 				DELAYED_APP | CONFIG_PARTICIPANT,
- 	.rate_offset	= OMAP24XX_CLKSEL_DSP_IF_SHIFT,
+-static struct clk *onchip_clks[] = {
++static struct clk *onchip_clks[] __initdata = {
+ 	/* external root sources */
+ 	&func_32k_ck,
+ 	&osc_ck,
 
 -- 
