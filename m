@@ -1,14 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: How do we update mach-types on OMAPGIT?
-Date: Tue, 21 Aug 2007 23:21:34 -0700
-Message-ID: <20070822062133.GD24985@atomide.com>
-References: <20070821135629.GN31816@atomide.com>
-	<9C23CDD79DA20A479D4615857B2E2C470197C79B@dlee13.ent.ti.com>
+Subject: Re: [PATCH] ARM: OMAP: Enable TSC2101 on apollon
+Date: Wed, 22 Aug 2007 00:07:41 -0700
+Message-ID: <20070822070740.GF24985@atomide.com>
+References: <003801c7e0a2$cd420c10$e1ac580a@swcenter.sec.samsung.co.kr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C470197C79B@dlee13.ent.ti.com>
+In-Reply-To: <003801c7e0a2$cd420c10$e1ac580a@swcenter.sec.samsung.co.kr>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,29 +17,20 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+To: kmpark@infradead.org
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Syed Mohammed, Khasim <x0khasim@ti.com> [070821 07:05]:
+* Kyungmin Park <kyungmin.park@samsung.com> [070817 00:47]:
+> ARM: OMAP: Enable TSC2101 on Apollon
 > 
-> Tony,
-> 
-> >> To be in sync with 2430 naming convention we requested RMK to rename the
-> >Machine ID for 3430
-> >>
-> >> Old one:
-> >> omap_sdp3430		MACH_OMAP_SDP3430 OMAP_SDP3430		1138
-> >>
-> >> New one:
-> >> omap_3430sdp		MACH_OMAP_3430SDP	OMAP_3430SDP		1138
-> >>
-> >> Do I need to send a Patch for arch/arm/tools/mach-types?
-> >
-> >I believe you just need to send email to RMK on that.
-> >
-> RMK has already re-named this today. I would like to know how do we update this on OMAP GIT?
+> Now it enables the touchscreen.
 
-Patch?
+Pushing today.
+
+Your patch was wrapped again and again... Could you please
+try to fix this issue as manual editing can cause extra errors?
+
+Maybe use some different smtp server for sending out patches?
 
 Tony
