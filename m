@@ -1,10 +1,10 @@
-From: Vivek Kutal <vivek.kutal@celunite.com>
-Subject: Git tree broken for fsample
-Date: Thu, 23 Aug 2007 21:11:57 +0530
-Message-ID: <46CDAAC5.2050101@celunite.com>
+From: Albert Santoni <ASantoni@evertz.com>
+Subject: musb problems in git
+Date: Thu, 23 Aug 2007 15:42:57 -0400
+Message-ID: <0474A5584072DA1197F50007E90E6B1106C7E283@PORTIA>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,65 +15,33 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: "linux-omap-open-source (E-mail)" <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-      I get the following errors when I try to compile the kernel for 
-fsample.
+Hi guys,
 
+I pulled the latest musb changes from the OMAP tree into my local DaVinci
+tree, and I'm experiencing a strange problem with the musb_hdrc driver now.
 
-arch/arm/mach-omap1/board-fsample.c:43: error: `KEY_CENTER' undeclared 
-here (not in a function)
-arch/arm/mach-omap1/board-fsample.c:43: error: initializer element is 
-not constant
-arch/arm/mach-omap1/board-fsample.c:43: error: (near initialization for 
-`fsample_keymap[4]')
-arch/arm/mach-omap1/board-fsample.c:44: error: `KEY_0_5' undeclared here 
-(not in a function)
-arch/arm/mach-omap1/board-fsample.c:44: error: initializer element is 
-not constant
-arch/arm/mach-omap1/board-fsample.c:44: error: (near initialization for 
-`fsample_keymap[5]')
-arch/arm/mach-omap1/board-fsample.c:45: error: `KEY_SOFT2' undeclared 
-here (not in a function)
-arch/arm/mach-omap1/board-fsample.c:45: error: initializer element is 
-not constant
-arch/arm/mach-omap1/board-fsample.c:45: error: (near initialization for 
-`fsample_keymap[6]')
-arch/arm/mach-omap1/board-fsample.c:51: error: `KEY_SOFT1' undeclared 
-here (not in a function)
-arch/arm/mach-omap1/board-fsample.c:51: error: initializer element is 
-not constant
-arch/arm/mach-omap1/board-fsample.c:51: error: (near initialization for 
-`fsample_keymap[12]')
-arch/arm/mach-omap1/board-fsample.c:55: error: `KEY_SHARP' undeclared 
-here (not in a function)
-arch/arm/mach-omap1/board-fsample.c:55: error: initializer element is 
-not constant
-arch/arm/mach-omap1/board-fsample.c:55: error: (near initialization for 
-`fsample_keymap[16]')
-arch/arm/mach-omap1/board-fsample.c:56: error: `KEY_2_5' undeclared here 
-(not in a function)
-arch/arm/mach-omap1/board-fsample.c:56: error: initializer element is 
-not constant
-arch/arm/mach-omap1/board-fsample.c:56: error: (near initialization for 
-`fsample_keymap[17]')
-arch/arm/mach-omap1/board-fsample.c:62: error: `KEY_HEADSETHOOK' 
-undeclared here (not in a function)
-arch/arm/mach-omap1/board-fsample.c:62: error: initializer element is 
-not constant
-arch/arm/mach-omap1/board-fsample.c:62: error: (near initialization for 
-`fsample_keymap[23]')
-arch/arm/mach-omap1/board-fsample.c:67: error: `KEY_STAR' undeclared 
-here (not in a function)
-arch/arm/mach-omap1/board-fsample.c:67: error: initializer element is 
-not constant
-arch/arm/mach-omap1/board-fsample.c:67: error: (near initialization for 
-`fsample_keymap[28]')
+If I do a certain USB control transfer (that used to work before), dmesg
+will spit out a bunch of these messages:
+    
+    ep0_txstate 495: odd; csr0 0000
 
+... and the transfer will timeout. Any further communication from the host
+to the gadget will also timeout. Upon trying to reload the musb_hdrc module,
+insmod will freeze.
 
-How do I fix this ?
+Lastly, the kernel also occasionally spits out these message:
 
--- 
-Vivek
+    musb_g_ep0_irq 701: SETUP packet len 10 != 8 ?
+
+I don't recall these messages occuring before I started using the updated
+musb driver. (The last time I saw messages like this was when I had a flakey
+USB cable, but I haven't changed my hardware configuration.)
+
+Has anyone else experienced any problems running the latest musb code that's
+in the OMAP tree on a DaVinci kernel?
+
+Thanks,
+Albert
