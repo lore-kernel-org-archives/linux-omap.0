@@ -1,15 +1,14 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: CSST's load to ram feature
-Date: Thu, 23 Aug 2007 20:31:02 -0500
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D91302742901B8C883@dlee13.ent.ti.com>
-References: <a46a26fd0708231825v3f95126fi2a53267ef6f46cb5@mail.gmail.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: Git tree broken for fsample
+Date: Fri, 24 Aug 2007 10:37:56 +0530
+Message-ID: <5d5443650708232207k63bb094fm2b9aae1c4129180e@mail.gmail.com>
+References: <46CDAAC5.2050101@celunite.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <a46a26fd0708231825v3f95126fi2a53267ef6f46cb5@mail.gmail.com>
+In-Reply-To: <46CDAAC5.2050101@celunite.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,30 +18,55 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Juha Kuikka <juha.kuikka@gmail.com>, linux-omap-open-source@linux.omap.com
+To: Vivek Kutal <vivek.kutal@celunite.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
- > TI's CSST too can, in addition to burning to flash memory,=20
-> load binary directly to RAM and execute it from there.
->=20
-> This feature works fine with the included example binaries=20
-> but I am unable to use it to run x-loader or u-boot.
->=20
-> I'm suspecting x-loader/u-boot do not work because they=20
-> expect the system to be in a certain state but it is not.
->=20
-> Has anybody else had this problem and more importantly found=20
-> a solution to it?
+Hi Vivek,
 
+On 8/23/07, Vivek Kutal <vivek.kutal@celunite.com> wrote:
+> Hi,
+>       I get the following errors when I try to compile the kernel for
+> fsample.
+>
+>
+> arch/arm/mach-omap1/board-fsample.c:43: error: `KEY_CENTER' undeclared
+> here (not in a function)
+> arch/arm/mach-omap1/board-fsample.c:43: error: initializer element is
+> not constant
+> arch/arm/mach-omap1/board-fsample.c:43: error: (near initialization for
+> `fsample_keymap[4]')
+> arch/arm/mach-omap1/board-fsample.c:44: error: `KEY_0_5' undeclared here
+> (not in a function)
+> arch/arm/mach-omap1/board-fsample.c:44: error: initializer element is
+> not constant
+> arch/arm/mach-omap1/board-fsample.c:44: error: (near initialization for
+> `fsample_keymap[5]')
+> arch/arm/mach-omap1/board-fsample.c:45: error: `KEY_SOFT2' undeclared
+> here (not in a function)
+> arch/arm/mach-omap1/board-fsample.c:45: error: initializer element is
+> not constant
+> arch/arm/mach-omap1/board-fsample.c:45: error: (near initialization for
+> `fsample_keymap[6]')
+> arch/arm/mach-omap1/board-fsample.c:51: error: `KEY_SOFT1' undeclared
+> here (not in a function)
+> arch/arm/mach-omap1/board-fsample.c:51: error: initializer element is
+> not constant
+> arch/arm/mach-omap1/board-fsample.c:51: error: (near initialization for
+> `fsample_keymap[12]')
+> arch/arm/mach-omap1/board-fsample.c:55: error: `KEY_SHARP' undeclared
+> here (not in a function)
+> arch/arm/mach-omap1/board-fsample.c:55: error: initializer element is
+> not constant
+> arch/arm/mach-omap1/board-fsample.c:55: error: (near initialization for
+> `fsample_keymap[16]')
+> arch/arm/mach-omap1/board-fsample.c:56: error: `KEY_2_5' undeclared here
+> (not in a function)
+> arch/arm/mach-omap1/board-fsample.c:56: error: initializer element is
+> not constant
 
-I've downloaded x-loader into RAM via lauterbach (or u-boot) and have
-gotten it to work.
+Yes, fsample(omap850) is not properly maintained, but above
+compilation error looks like easy to fix. Care to send a patch?
 
-I did this on the 2420-H4 and 3430-SDP.  I seem to recall fixing some
-relocation bugs which were introduced into 2430 which may have stopped
-it from working.  If you look at the 3430 xloader I think you can make
-it work.  The issue was in the initial assembly in cpu/arm1136.  Now if
-it works with CSST is something else.
-
-Regards,
-Richard W.
+-- 
+--Trilok Soni
