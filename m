@@ -1,15 +1,15 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 28/28] omap2 clock: handle (almost) all clock
- autoidlingviathe clock framework
-Date: Mon, 27 Aug 2007 01:56:10 -0600 (MDT)
-Message-ID: <Pine.LNX.4.64.0708270139510.17118@utopia.booyaka.com>
-References: <20070820095347.933473149@pwsan.com><20070820095532.728389316@pwsan.com>
-	<3B6D69C3A9EBCA4BA5DA60D91302742901AD7C60@dlee13.ent.ti.com>
-	<3E32F84CD6CB95498A35B353CA3B930C0672EE@fioues08.ebgroup.elektrobit.com>
+From: "Budhee Jamaich" <budheej@gmail.com>
+Subject: Re: wake up from a serial port
+Date: Mon, 27 Aug 2007 11:38:32 +0300
+Message-ID: <57314e840708270138y2c270362i54fd928538a80a87@mail.gmail.com>
+References: <57314e840708251538l188c6ab1m6c568716c95d4ed1@mail.gmail.com>
+	<20070827070626.GA30978@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <3E32F84CD6CB95498A35B353CA3B930C0672EE@fioues08.ebgroup.elektrobit.com>
+In-Reply-To: <20070827070626.GA30978@atomide.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,28 +19,32 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tuukka.Tikkanen@elektrobit.com
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 23 Aug 2007, Tuukka.Tikkanen@elektrobit.com wrote:
+On 8/27/07, Tony Lindgren <tony@atomide.com> wrote:
+> * Budhee Jamaich <budheej@gmail.com> [070827 00:00]:
+> > i am working on 2430 and I need to enable
+> > wakeup from a serial port.
+> >
+> > a patch which does this very thing has just been posted on lkml:
+> > http://article.gmane.org/gmane.linux.kernel/574545
+> >
+> > is it relevant to me ?
+> >
+> > or is there already a way to do that ?
+>
+> You also need to use the omap serial wake-up events, or mux rx pin
+> temporarily to a wake-up capable GPIO pin.
 
-> One minor detail to note is that on OMAP2 the sleep code sometimes has
-> to disable the autoidle feature on certain clocks. Not doing so would
-> prevent desired functionality. This - at least the action of setting the
-> autoidle state - of course could be handled via the clock framework.
-> However, it was deemed to be unnecessary extra layer, as the sleep code
-> already has to be very aware of the hardware its running on and any
-> abstraction is useless. I think at least timers and DMA have some
-> special restrictions in pm.c. Thus the original design of PM code
-> handling the autoidle bits.
+Are there any examples how to do either of these ?
 
-Hi Tuukka,
+If I mux the rx pin to a wake-up capable GPIO pin - should I still apply the
+patch I mentioned above ?
 
-I took a quick look at pm.c, it configures ICLK autoidling for SDMA and 
-GPT*, and sleep.S doesn't look like it touches the autoidle regs. Could 
-you point me at the code you're talking about?
+(And how can I do this muxing ? Is there an API for that ?)
 
-thanks,
+Thank you very much Tony.
 
-- Paul
+Budhee
