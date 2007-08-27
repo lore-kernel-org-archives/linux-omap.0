@@ -1,11 +1,16 @@
-From: Felipe Balbi <felipe.lima@indt.org.br>
-Subject: [PATCH 2/2] MUSB: Kill compile warnings at
-	drivers/usb/musb/tusb6010.c
-Date: Mon, 27 Aug 2007 15:11:45 -0400
-Message-ID: <11882419064188-git-send-email-felipe.lima@indt.org.br>
-References: <11882419051271-git-send-email-felipe.lima@indt.org.br>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: OSK5912 Boot from CF?
+Date: Mon, 27 Aug 2007 21:22:54 +0200
+Message-ID: <46D3248E.5000604@googlemail.com>
+References: <262354.79141.qm@web8503.mail.in.yahoo.com>	
+	<1188239988.5137.3.camel@localhost.localdomain>	
+	<46D32043.5070603@googlemail.com>
+	<1188241974.5137.7.camel@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11882419051271-git-send-email-felipe.lima@indt.org.br>
+In-Reply-To: <1188241974.5137.7.camel@localhost.localdomain>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,30 +20,42 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: hkh@cypress.com
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Get rid of the following warning:
-drivers/usb/musb/tusb6010.c: In function 'tusb_otg_ints':
-drivers/usb/musb/tusb6010.c:716: warning: unused variable 'devctl'
+Hingkwan Huen wrote:
+> Thanks for the comment Dirk! 
+> How about having the root file system on the CF, and kernel on the NOR
+> flash?
 
-Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
----
- drivers/usb/musb/tusb6010.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+This should work. If you have a bootloader (e.g. uboot) with CF & 
+filesystem support in NOR, you should even be able to put the kernel 
+on CF as well.
 
-diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
-index 23840dc..562eb9d 100644
---- a/drivers/usb/musb/tusb6010.c
-+++ b/drivers/usb/musb/tusb6010.c
-@@ -713,8 +713,6 @@ tusb_otg_ints(struct musb *musb, u32 int_src, void __iomem *base)
- 			schedule_work(&musb->irq_work);
- 
- 		} else /* A-dev state machine */ {
--			u8	devctl;
--
- 			DBG(2, "vbus change, %s, otg %03x\n",
- 				otg_state_string(musb), otg_stat);
- 
--- 
-1.5.3.rc6.17.g1911
+> Regards,
+> kwan
+> 
+> On Mon, 2007-08-27 at 21:04 +0200, Dirk Behme wrote:
+> 
+>>Hingkwan Huen wrote:
+>>
+>>>Dear All,
+>>>Can OSK5912 boot from CF?
+>>
+>>No, I don't think so. Some time ago booting was described in "OMAP5912 
+>>Multimedia Processor Initialization Reference Guide (spru752)", but 
+>>looks like this changed. Check [1] if you can find anything there 
+>>about booting.
+>>
+>>Regards
+>>
+>>Dirk
+>>
+>>[1] 
+>>http://focus.ti.com/docs/prod/folders/print/omap5912.html#technicaldocuments
+>>
+>>
+> 
+> 
+> 
