@@ -1,13 +1,13 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
+From: David Brownell <david-b@pacbell.net>
 Subject: Re: OSK5912 Boot from CF?
-Date: Mon, 27 Aug 2007 21:22:54 +0200
-Message-ID: <46D3248E.5000604@googlemail.com>
-References: <262354.79141.qm@web8503.mail.in.yahoo.com>	
-	<1188239988.5137.3.camel@localhost.localdomain>	
+Date: Mon, 27 Aug 2007 12:37:18 -0700
+Message-ID: <20070827193718.73D18235133@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+References: <262354.79141.qm@web8503.mail.in.yahoo.com>
+	<1188239988.5137.3.camel@localhost.localdomain>
 	<46D32043.5070603@googlemail.com>
 	<1188241974.5137.7.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 In-Reply-To: <1188241974.5137.7.camel@localhost.localdomain>
@@ -20,42 +20,19 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: hkh@cypress.com
-Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
+To: hkh@cypress.com, dirk.behme@googlemail.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hingkwan Huen wrote:
-> Thanks for the comment Dirk! 
 > How about having the root file system on the CF, and kernel on the NOR
 > flash?
 
-This should work. If you have a bootloader (e.g. uboot) with CF & 
-filesystem support in NOR, you should even be able to put the kernel 
-on CF as well.
+That should be easy.
 
-> Regards,
-> kwan
-> 
-> On Mon, 2007-08-27 at 21:04 +0200, Dirk Behme wrote:
-> 
->>Hingkwan Huen wrote:
->>
->>>Dear All,
->>>Can OSK5912 boot from CF?
->>
->>No, I don't think so. Some time ago booting was described in "OMAP5912 
->>Multimedia Processor Initialization Reference Guide (spru752)", but 
->>looks like this changed. Check [1] if you can find anything there 
->>about booting.
->>
->>Regards
->>
->>Dirk
->>
->>[1] 
->>http://focus.ti.com/docs/prod/folders/print/omap5912.html#technicaldocuments
->>
->>
-> 
-> 
-> 
+You could even modify U-Boot to understand about that CF controller...
+The OMAP would still boot the usual way (from NOR), but current versions
+of U-Boot can be told to get the kernel from more places than just NOR
+and NET.  That assumes you're willing to hack U-Boot and install/debug
+new versions; that's probably not a good new-developer project.
+
+- Dave
