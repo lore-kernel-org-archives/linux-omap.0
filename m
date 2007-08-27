@@ -1,9 +1,16 @@
-From: Felipe Balbi <felipe.lima@indt.org.br>
-Subject: [PATCH 1/2] OMAP2: PM: Kill compile warnings at
-	arch/arm/mach-omap2/pm.c
-Date: Mon, 27 Aug 2007 15:11:44 -0400
-Message-ID: <11882419051271-git-send-email-felipe.lima@indt.org.br>
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+From: Hingkwan Huen <hkh@cypress.com>
+Subject: Re: OSK5912 Boot from CF?
+Date: Mon, 27 Aug 2007 12:12:54 -0700
+Message-ID: <1188241974.5137.7.camel@localhost.localdomain>
+References: <262354.79141.qm@web8503.mail.in.yahoo.com>
+	<1188239988.5137.3.camel@localhost.localdomain>
+	<46D32043.5070603@googlemail.com>
+Reply-To: hkh@cypress.com
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <46D32043.5070603@googlemail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -11,32 +18,33 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Get rid of the following warnings:
-arch/arm/mach-omap2/pm.c: In function 'omap2_enter_full_retention':
-arch/arm/mach-omap2/pm.c:509: warning: implicit declaration of function 'omap2_gpio_prepare_for_retention'
-arch/arm/mach-omap2/pm.c:536: warning: implicit declaration of function 'omap2_gpio_resume_after_retention'
+Thanks for the comment Dirk! 
+How about having the root file system on the CF, and kernel on the NOR
+flash?
+Regards,
+kwan
 
-Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
----
- arch/arm/mach-omap2/pm.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 8e4b1f6..daf0b2d 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -39,6 +39,7 @@
- #include <asm/arch/irqs.h>
- #include <asm/arch/clock.h>
- #include <asm/arch/sram.h>
-+#include <asm/arch/gpio.h>
- #include <asm/arch/pm.h>
- #include <asm/arch/mux.h>
- #include <asm/arch/dma.h>
--- 
-1.5.3.rc6.17.g1911
+On Mon, 2007-08-27 at 21:04 +0200, Dirk Behme wrote:
+> Hingkwan Huen wrote:
+> > Dear All,
+> > Can OSK5912 boot from CF?
+> 
+> No, I don't think so. Some time ago booting was described in "OMAP5912 
+> Multimedia Processor Initialization Reference Guide (spru752)", but 
+> looks like this changed. Check [1] if you can find anything there 
+> about booting.
+> 
+> Regards
+> 
+> Dirk
+> 
+> [1] 
+> http://focus.ti.com/docs/prod/folders/print/omap5912.html#technicaldocuments
+> 
+> 
