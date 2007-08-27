@@ -1,16 +1,10 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: wake up from a serial port
-Date: Mon, 27 Aug 2007 07:21:11 -0500
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D91302742901B8CFED@dlee13.ent.ti.com>
-References: <57314e840708251538l188c6ab1m6c568716c95d4ed1@mail.gmail.com><20070827070626.GA30978@atomide.com><57314e840708270138y2c270362i54fd928538a80a87@mail.gmail.com>
-	<20070827111405.GD13538@atomide.com>
+From: Vivek Kutal <vivek.kutal@celunite.com>
+Subject: [PATCH] Keymap fix for f-sample and p2-sample.
+Date: Mon, 27 Aug 2007 19:02:20 +0530
+Message-ID: <46D2D264.3030508@celunite.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <20070827111405.GD13538@atomide.com>
+Content-Type: multipart/mixed; boundary="------------090207070909070300070801"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,71 +12,230 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>, Budhee Jamaich <budheej@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-> > > You also need to use the omap serial wake-up events, or mux rx pin
-> > > temporarily to a wake-up capable GPIO pin.
-> >
-> > Are there any examples how to do either of these ?
+This is a multi-part message in MIME format.
+--------------090207070909070300070801
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-This is necessary to get a wake up on the RX ball if you are in
-retention. IE non-functional mode.  In effect it is a GPIO wake up not a
-serial one.
+Hi,
+     The git tree is broken for p2-sample and f-sample , this patch 
+fixes it.
 
-If you want to wake up from UART from a functional mode, then having
-that patch is fine, but you still need to do some work on the OMAP side
-to link the module wake up into the PRCM wake up mechanism.
 
-Then needs parallel what is necessary for the GPIO wake up.  The same
-kind of thing can be said for USB.  If you want to go to a low power
-state but have USB still able to respond to events, you need to make USB
-bus suspend work so its capable of asserting its mstandby signal
-properly and you must also do the linkage into the PRCM.
+Signed-off-by: Vivek Kutal <vivek.kutal@celunite.com>
+---
+  arch/arm/mach-omap1/board-fsample.c  |   14 ++++++--------
+  arch/arm/mach-omap1/board-perseus2.c |   14 ++++++--------
+  2 files changed, 12 insertions(+), 16 deletions(-)
 
-> Well it used to work at least for 5912OSK. Maybe grep for
-> CONFIG_OMAP_SERIAL_WAKE.
->=20
-> > If I mux the rx pin to a wake-up capable GPIO pin - should I still
-apply
-> the
-> > patch I mentioned above ?
+diff --git a/arch/arm/mach-omap1/board-fsample.c
+b/arch/arm/mach-omap1/board-fsample.c
+index f65baa9..d5f6ea1 100644
+--- a/arch/arm/mach-omap1/board-fsample.c
++++ b/arch/arm/mach-omap1/board-fsample.c
+@@ -40,31 +40,29 @@ static int fsample_keymap[] = {
+      KEY(0,1,KEY_RIGHT),
+      KEY(0,2,KEY_LEFT),
+      KEY(0,3,KEY_DOWN),
+-    KEY(0,4,KEY_CENTER),
+-    KEY(0,5,KEY_0_5),
+-    KEY(1,0,KEY_SOFT2),
++    KEY(0,4,KEY_ENTER),
++    KEY(1,0,KEY_F10),
+      KEY(1,1,KEY_SEND),
+      KEY(1,2,KEY_END),
+      KEY(1,3,KEY_VOLUMEDOWN),
+      KEY(1,4,KEY_VOLUMEUP),
+      KEY(1,5,KEY_RECORD),
+-    KEY(2,0,KEY_SOFT1),
++    KEY(2,0,KEY_F9),
+      KEY(2,1,KEY_3),
+      KEY(2,2,KEY_6),
+      KEY(2,3,KEY_9),
+-    KEY(2,4,KEY_SHARP),
+-    KEY(2,5,KEY_2_5),
++    KEY(2,4,KEY_KPDOT),
+      KEY(3,0,KEY_BACK),
+      KEY(3,1,KEY_2),
+      KEY(3,2,KEY_5),
+      KEY(3,3,KEY_8),
+      KEY(3,4,KEY_0),
+-    KEY(3,5,KEY_HEADSETHOOK),
++    KEY(3,5,KEY_KPSLASH),
+      KEY(4,0,KEY_HOME),
+      KEY(4,1,KEY_1),
+      KEY(4,2,KEY_4),
+      KEY(4,3,KEY_7),
+-    KEY(4,4,KEY_STAR),
++    KEY(4,4,KEY_KPASTERISK),
+      KEY(4,5,KEY_POWER),
+      0
+  };
+diff --git a/arch/arm/mach-omap1/board-perseus2.c
+b/arch/arm/mach-omap1/board-perseus2.c
+index 2dec048..e9e352e 100644
+--- a/arch/arm/mach-omap1/board-perseus2.c
++++ b/arch/arm/mach-omap1/board-perseus2.c
+@@ -39,31 +39,29 @@ static int p2_keymap[] = {
+      KEY(0,1,KEY_RIGHT),
+      KEY(0,2,KEY_LEFT),
+      KEY(0,3,KEY_DOWN),
+-    KEY(0,4,KEY_CENTER),
+-    KEY(0,5,KEY_0_5),
+-    KEY(1,0,KEY_SOFT2),
++    KEY(0,4,KEY_ENTER),
++    KEY(1,0,KEY_F10),
+      KEY(1,1,KEY_SEND),
+      KEY(1,2,KEY_END),
+      KEY(1,3,KEY_VOLUMEDOWN),
+      KEY(1,4,KEY_VOLUMEUP),
+      KEY(1,5,KEY_RECORD),
+-    KEY(2,0,KEY_SOFT1),
++    KEY(2,0,KEY_F9),
+      KEY(2,1,KEY_3),
+      KEY(2,2,KEY_6),
+      KEY(2,3,KEY_9),
+-    KEY(2,4,KEY_SHARP),
+-    KEY(2,5,KEY_2_5),
++    KEY(2,4,KEY_KPDOT),
+      KEY(3,0,KEY_BACK),
+      KEY(3,1,KEY_2),
+      KEY(3,2,KEY_5),
+      KEY(3,3,KEY_8),
+      KEY(3,4,KEY_0),
+-    KEY(3,5,KEY_HEADSETHOOK),
++    KEY(3,5,KEY_KPSLASH),
+      KEY(4,0,KEY_HOME),
+      KEY(4,1,KEY_1),
+      KEY(4,2,KEY_4),
+      KEY(4,3,KEY_7),
+-    KEY(4,4,KEY_STAR),
++    KEY(4,4,KEY_KPASTERISK),
+      KEY(4,5,KEY_POWER),
+      0
+  };
+-- 
+1.4.4.2
 
-I doubt it would be necessary.  It really depends on what level you how
-to sleep to and what functionally you need at wake up.
 
-If its ok to loose the first character perhaps two and consider them
-wake up events then going GPIO is likely fine.  You must think about how
-its all connected.  You may need your DMA handsake lines set with
-something similar.
 
-> That means you still have to have the functional clock for the UART
-> on, which will block omap retention. So using the async GPIO wake-up
-> events will be better.
->=20
-> > (And how can I do this muxing ? Is there an API for that ?>=20
-> See CONFIG_OMAP_SERIAL_WAKE.
->=20
-> > Thank you very much Tony.
->=20
-> No problem, if you get it working on 2430, please send patches :)
->=20
-> BTW, I never got the 2420 serial wake events to work, maybe they
-> need separate interrupt handlers registered. But the GPIO trick
-> should still work even if the serial wake-up events won't work.
+--------------090207070909070300070801
+Content-Type: text/plain; name="0001-Keymap-fix-for-f-sample-and-p2-sample.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename="0001-Keymap-fix-for-f-sample-and-p2-sample.txt"
 
-These in 2420 can't wake core from RETETION.  They can wake the core
-from  clockstop.
+>From 6197fcf5401bb9bec192dce9eb31115d5ff0e53f Mon Sep 17 00:00:00 2001
+From: Vivek Kutal <vivek.kutal@celunite.com>
+Date: Fri, 24 Aug 2007 19:13:41 +0530
+Subject: [PATCH] Keymap fix for f-sample and p2-sample.
 
-I'll throw rough numbers out for (chip) each domain has its own
-combination.  Each lower state requires the previous state to be hit all
-at 1.05v. clcokstop=3D~1.2mA, ~retention=3D150uA, off=3D~50uA.  Clock =
-stop can
-be higher depending on the 'partial' activity necessary, and perhaps
-also lower.
+Signed-off-by: Vivek Kutal <vivek.kutal@celunite.com>
+---
+ arch/arm/mach-omap1/board-fsample.c  |   14 ++++++--------
+ arch/arm/mach-omap1/board-perseus2.c |   14 ++++++--------
+ 2 files changed, 12 insertions(+), 16 deletions(-)
 
-Regards,
-Richard W.
+diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
+index f65baa9..d5f6ea1 100644
+--- a/arch/arm/mach-omap1/board-fsample.c
++++ b/arch/arm/mach-omap1/board-fsample.c
+@@ -40,31 +40,29 @@ static int fsample_keymap[] = {
+ 	KEY(0,1,KEY_RIGHT),
+ 	KEY(0,2,KEY_LEFT),
+ 	KEY(0,3,KEY_DOWN),
+-	KEY(0,4,KEY_CENTER),
+-	KEY(0,5,KEY_0_5),
+-	KEY(1,0,KEY_SOFT2),
++	KEY(0,4,KEY_ENTER),
++	KEY(1,0,KEY_F10),
+ 	KEY(1,1,KEY_SEND),
+ 	KEY(1,2,KEY_END),
+ 	KEY(1,3,KEY_VOLUMEDOWN),
+ 	KEY(1,4,KEY_VOLUMEUP),
+ 	KEY(1,5,KEY_RECORD),
+-	KEY(2,0,KEY_SOFT1),
++	KEY(2,0,KEY_F9),
+ 	KEY(2,1,KEY_3),
+ 	KEY(2,2,KEY_6),
+ 	KEY(2,3,KEY_9),
+-	KEY(2,4,KEY_SHARP),
+-	KEY(2,5,KEY_2_5),
++	KEY(2,4,KEY_KPDOT),
+ 	KEY(3,0,KEY_BACK),
+ 	KEY(3,1,KEY_2),
+ 	KEY(3,2,KEY_5),
+ 	KEY(3,3,KEY_8),
+ 	KEY(3,4,KEY_0),
+-	KEY(3,5,KEY_HEADSETHOOK),
++	KEY(3,5,KEY_KPSLASH),
+ 	KEY(4,0,KEY_HOME),
+ 	KEY(4,1,KEY_1),
+ 	KEY(4,2,KEY_4),
+ 	KEY(4,3,KEY_7),
+-	KEY(4,4,KEY_STAR),
++	KEY(4,4,KEY_KPASTERISK),
+ 	KEY(4,5,KEY_POWER),
+ 	0
+ };
+diff --git a/arch/arm/mach-omap1/board-perseus2.c b/arch/arm/mach-omap1/board-perseus2.c
+index 2dec048..e9e352e 100644
+--- a/arch/arm/mach-omap1/board-perseus2.c
++++ b/arch/arm/mach-omap1/board-perseus2.c
+@@ -39,31 +39,29 @@ static int p2_keymap[] = {
+ 	KEY(0,1,KEY_RIGHT),
+ 	KEY(0,2,KEY_LEFT),
+ 	KEY(0,3,KEY_DOWN),
+-	KEY(0,4,KEY_CENTER),
+-	KEY(0,5,KEY_0_5),
+-	KEY(1,0,KEY_SOFT2),
++	KEY(0,4,KEY_ENTER),
++	KEY(1,0,KEY_F10),
+ 	KEY(1,1,KEY_SEND),
+ 	KEY(1,2,KEY_END),
+ 	KEY(1,3,KEY_VOLUMEDOWN),
+ 	KEY(1,4,KEY_VOLUMEUP),
+ 	KEY(1,5,KEY_RECORD),
+-	KEY(2,0,KEY_SOFT1),
++	KEY(2,0,KEY_F9),
+ 	KEY(2,1,KEY_3),
+ 	KEY(2,2,KEY_6),
+ 	KEY(2,3,KEY_9),
+-	KEY(2,4,KEY_SHARP),
+-	KEY(2,5,KEY_2_5),
++	KEY(2,4,KEY_KPDOT),
+ 	KEY(3,0,KEY_BACK),
+ 	KEY(3,1,KEY_2),
+ 	KEY(3,2,KEY_5),
+ 	KEY(3,3,KEY_8),
+ 	KEY(3,4,KEY_0),
+-	KEY(3,5,KEY_HEADSETHOOK),
++	KEY(3,5,KEY_KPSLASH),
+ 	KEY(4,0,KEY_HOME),
+ 	KEY(4,1,KEY_1),
+ 	KEY(4,2,KEY_4),
+ 	KEY(4,3,KEY_7),
+-	KEY(4,4,KEY_STAR),
++	KEY(4,4,KEY_KPASTERISK),
+ 	KEY(4,5,KEY_POWER),
+ 	0
+ };
+-- 
+1.4.4.2
+
+
+
+
+--------------090207070909070300070801
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--------------090207070909070300070801--
