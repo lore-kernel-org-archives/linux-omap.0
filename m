@@ -1,10 +1,11 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 22/27] omap2 clock: use custom osc_ck enable/disable routines
-Date: Mon, 27 Aug 2007 02:39:18 -0600
-Message-ID: <20070827084124.264123469@pwsan.com>
+Subject: [PATCH 23/27] omap2 clock: use standard clk->enable/disable for
+	APLLs
+Date: Mon, 27 Aug 2007 02:39:19 -0600
+Message-ID: <20070827084124.364861157@pwsan.com>
 References: <20070827083856.549249288@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline; filename=use_custom_osc_ck_enable.patch
+Content-Disposition: inline; filename=clean-up-apll-enable-disable.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,107 +18,104 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Now that we're paying attention to the .enable/.disable fields in struct 
-clk, convert the osc_ck enable and disable code to use this standard
-mechanism.  (osc_ck enable/disable does not technically enable or disable
-the osc_ck; it actually enables/disables autoidling.)
+Now that we're calling the clock-specific enable & disable code, we can
+get rid of the special-case code in _omap2_clk_{enable,disable}() for the
+APLLs.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
 ---
- arch/arm/mach-omap2/clock.c |   32 +++++++++++++++-----------------
- arch/arm/mach-omap2/clock.h |    5 ++++-
- 2 files changed, 19 insertions(+), 18 deletions(-)
+ arch/arm/mach-omap2/clock.c |   20 ++++++++------------
+ arch/arm/mach-omap2/clock.h |    6 ++++++
+ 2 files changed, 14 insertions(+), 12 deletions(-)
 
 Index: linux-omap/arch/arm/mach-omap2/clock.c
 ===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/clock.c	2007-08-27 02:19:42.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/clock.c	2007-08-27 02:19:44.000000000 -0600
-@@ -163,18 +163,26 @@
- 		propagate_rate(clk);
- }
+--- linux-omap.orig/arch/arm/mach-omap2/clock.c	2007-08-27 02:19:44.000000000 -0600
++++ linux-omap/arch/arm/mach-omap2/clock.c	2007-08-27 02:20:19.000000000 -0600
+@@ -213,7 +213,7 @@
  
--static void omap2_set_osc_ck(int enable)
-+static int omap2_enable_osc_ck(struct clk *clk)
+ 
+ /* Enable an APLL if off */
+-static void omap2_clk_fixed_enable(struct clk *clk)
++static int omap2_clk_fixed_enable(struct clk *clk)
  {
- 	u32 pcc;
+ 	u32 cval, apll_mask;
  
- 	pcc = prm_read_reg(OMAP24XX_PRCM_CLKSRC_CTRL);
+@@ -222,7 +222,7 @@
+ 	cval = cm_read_mod_reg(PLL_MOD, CM_CLKEN);
  
--	if (enable)
--		prm_write_reg(pcc & ~OMAP_AUTOEXTCLKMODE_MASK,
--			      OMAP24XX_PRCM_CLKSRC_CTRL);
--	else
--		prm_write_reg(pcc | OMAP_AUTOEXTCLKMODE_MASK,
--			      OMAP24XX_PRCM_CLKSRC_CTRL);
-+	prm_write_reg(pcc & ~OMAP_AUTOEXTCLKMODE_MASK,
-+		      OMAP24XX_PRCM_CLKSRC_CTRL);
+ 	if ((cval & apll_mask) == apll_mask)
+-		return;   /* apll already enabled */
++		return 0;   /* apll already enabled */
+ 
+ 	cval &= ~apll_mask;
+ 	cval |= apll_mask;
+@@ -235,6 +235,12 @@
+ 
+ 	omap2_wait_clock_ready(OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST), cval,
+ 			    clk->name);
 +
++	/*
++	 * REVISIT: Should we return an error code if omap2_wait_clock_ready()
++	 * fails?
++	 */
 +	return 0;
-+}
-+
-+static void omap2_disable_osc_ck(struct clk *clk)
-+{
-+	u32 pcc;
-+
-+	pcc = prm_read_reg(OMAP24XX_PRCM_CLKSRC_CTRL);
-+
-+	prm_write_reg(pcc | OMAP_AUTOEXTCLKMODE_MASK,
-+		      OMAP24XX_PRCM_CLKSRC_CTRL);
  }
  
- /*
-@@ -272,11 +280,6 @@
- 	if (clk->flags & (ALWAYS_ENABLED | PARENT_CONTROLS_CLOCK))
- 		return 0;
+ static void omap2_clk_wait_ready(struct clk *clk)
+@@ -289,11 +295,6 @@
+ 		return -EINVAL;
+ 	}
  
--	if (unlikely(clk == &osc_ck)) {
--		omap2_set_osc_ck(1);
+-	if (clk->enable_reg == OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN)) {
+-		omap2_clk_fixed_enable(clk);
 -		return 0;
 -	}
 -
- 	if (clk->enable)
- 		return clk->enable(clk);
- 
-@@ -324,11 +327,6 @@
+ 	regval32 = cm_read_reg(clk->enable_reg);
+ 	regval32 |= (1 << clk->enable_bit);
+ 	cm_write_reg(regval32, clk->enable_reg);
+@@ -337,11 +338,6 @@
  		return;
  	}
  
--	if (unlikely(clk == &osc_ck)) {
--		omap2_set_osc_ck(0);
+-	if (clk->enable_reg == OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN)) {
+-		omap2_clk_fixed_disable(clk);
 -		return;
 -	}
 -
- 	if (clk->enable_reg == 0) {
- 		/*
- 		 * 'Independent' here refers to a clock which is not
+ 	regval32 = cm_read_reg(clk->enable_reg);
+ 	regval32 &= ~(1 << clk->enable_bit);
+ 	cm_write_reg(regval32, clk->enable_reg);
 Index: linux-omap/arch/arm/mach-omap2/clock.h
 ===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/clock.h	2007-08-27 02:19:42.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/clock.h	2007-08-27 02:20:15.000000000 -0600
-@@ -26,7 +26,6 @@
- #include "prm_regbits_24xx.h"
- #include "cm_regbits_24xx.h"
- 
--static void omap2_sys_clk_recalc(struct clk * clk);
- static void omap2_clksel_recalc(struct clk * clk);
- static void omap2_table_mpu_recalc(struct clk *clk);
- static int omap2_select_table_rate(struct clk * clk, unsigned long rate);
-@@ -42,6 +41,8 @@
+--- linux-omap.orig/arch/arm/mach-omap2/clock.h	2007-08-27 02:20:15.000000000 -0600
++++ linux-omap/arch/arm/mach-omap2/clock.h	2007-08-27 02:20:19.000000000 -0600
+@@ -38,6 +38,8 @@
+ static u32 omap2_divisor_to_clksel(struct clk *clk, u32 div);
+ static void omap2_dpll_recalc(struct clk *clk);
+ static void omap2_fixed_divisor_recalc(struct clk *clk);
++static int omap2_clk_fixed_enable(struct clk *clk);
++static void omap2_clk_fixed_disable(struct clk *clk);
  static long omap2_clksel_round_rate(struct clk *clk, unsigned long target_rate);
  static int omap2_clksel_set_rate(struct clk *clk, unsigned long rate);
  static int omap2_reprogram_dpll(struct clk *clk, unsigned long rate);
-+static int omap2_enable_osc_ck(struct clk *clk);
-+static void omap2_disable_osc_ck(struct clk *clk);
- 
- /* Key dividers which make up a PRCM set. Ratio's for a PRCM are mandated.
-  * xtal_speed, dpll_speed, mpu_speed, CM_CLKSEL_MPU,CM_CLKSEL_DSP
-@@ -598,6 +599,8 @@
- 	.rate		= 26000000,		/* fixed up in clock init */
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
+@@ -647,6 +649,8 @@
  				RATE_FIXED | RATE_PROPAGATES,
-+	.enable		= &omap2_enable_osc_ck,
-+	.disable	= &omap2_disable_osc_ck,
+ 	.enable_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_bit	= OMAP24XX_EN_96M_PLL_SHIFT,
++	.enable		= &omap2_clk_fixed_enable,
++	.disable	= &omap2_clk_fixed_disable,
+ 	.recalc		= &propagate_rate,
+ };
+ 
+@@ -658,6 +662,8 @@
+ 				RATE_FIXED | RATE_PROPAGATES,
+ 	.enable_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_bit	= OMAP24XX_EN_54M_PLL_SHIFT,
++	.enable		= &omap2_clk_fixed_enable,
++	.disable	= &omap2_clk_fixed_disable,
  	.recalc		= &propagate_rate,
  };
  
