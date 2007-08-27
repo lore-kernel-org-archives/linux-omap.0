@@ -1,17 +1,12 @@
-From: <Tuukka.Tikkanen@elektrobit.com>
-Subject: RE: [PATCH 28/28] omap2 clock: handle (almost) all clock
-	autoidlingviathe clock framework
-Date: Mon, 27 Aug 2007 17:13:55 +0300
-Message-ID: <3E32F84CD6CB95498A35B353CA3B930C0672FD@fioues08.ebgroup.elektrobit.com>
-References: <20070820095347.933473149@pwsan.com><20070820095532.728389316@pwsan.com>
-	<3B6D69C3A9EBCA4BA5DA60D91302742901AD7C60@dlee13.ent.ti.com>
-	<3E32F84CD6CB95498A35B353CA3B930C0672EE@fioues08.ebgroup.elektrobit.com>
-	<Pine.LNX.4.64.0708270139510.17118@utopia.booyaka.com>
+From: "Kanagesh R" <kanagesh@india.com>
+Subject: Re: USB Function Driver code for OMAP 2430 SDP
+Date: Mon, 27 Aug 2007 22:28:01 +0800
+Message-ID: <20070827142801.F1C9BCA0A4@ws5-11.us4.outblaze.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_1188224125-5307-22"
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <Pine.LNX.4.64.0708270139510.17118@utopia.booyaka.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,74 +16,68 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: paul@pwsan.com
-Cc: linux-omap-open-source@linux.omap.com
+To: Amit Gupta <amit_jobs05@inbox.com>, Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format...
 
-------------=_1188224125-5307-22
-Content-class: urn:content-classes:message
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+> ----- Original Message -----
+> From: "Amit Gupta" <amit_jobs05@inbox.com>
+> To: "Linux OMAP" <linux-omap-open-source@linux.omap.com>
+> Subject: USB Function Driver code for OMAP 2430 SDP
+> Date: Sat, 25 Aug 2007 02:28:38 +0530
+>=20
+>=20
+> This is in continuation of the previous mail as below
+>=20
+> Are there any patches for the FSUSB function controller on OMAP2430
+> SDPv4.0 since the code available in the public folder does not seem to
+> work.
+>=20
 
+Hello Everyone,
+
+I have finally been able to get USB gadget working on my OMAP2430 SDP board=
+ last week.  I guess it has been working well all the time with the kernel =
+that I am using - I was not setting the DIP switch settings on the SDP boar=
+d to the right configurations to allow it to work on my board.
+
+I had mentioned the DIP switch settings to be a concern on one of my mails =
+and I received a reply saying that two DIP switches - switches 6 (HSUSB_nFS=
+) and 7 (HSVBUS_nFS) in S6 - had to be set to the 'ON' position.  I later l=
+earnt that switch 2 (USB_nDB9) in S6 needed to be set to the 'ON' position =
+aswell.  With all these switches set to the 'ON' position, plugging in the =
+USB cable to connector J51 (through ISP1301 transceiver) made things work l=
+ike a charm!=20=20
+
+I am now able to establish a TCP/IP link between the OMAP2430 SDP board and=
+ a Windows XP system through ethernet over USB.  I have done some basic tes=
+ting on the link by making transfers to and from both sides using FTP.=20=
 =20
 
-From: paul@utopia.booyaka.com [mailto:paul@utopia.booyaka.com] On Behalf
-Of Paul Walmsley
->=20
-> On Thu, 23 Aug 2007, Tuukka.Tikkanen@elektrobit.com wrote:
->=20
-> > One minor detail to note is that on OMAP2 the sleep code sometimes
-has
-> > to disable the autoidle feature on certain clocks. Not doing so
-would
-> > prevent desired functionality. This - at least the action of setting
-the
-> > autoidle state - of course could be handled via the clock framework.
-> > However, it was deemed to be unnecessary extra layer, as the sleep
-code
-> > already has to be very aware of the hardware its running on and any
-> > abstraction is useless. I think at least timers and DMA have some
-> > special restrictions in pm.c. Thus the original design of PM code
-> > handling the autoidle bits.
->=20
-> Hi Tuukka,
->=20
-> I took a quick look at pm.c, it configures ICLK autoidling for SDMA
-and=20
-> GPT*, and sleep.S doesn't look like it touches the autoidle regs.
-Could=20
-> you point me at the code you're talking about?
+In short, this is what I have:
 
-Sorry for the false alarm, guys. The code I was thinking about lives in
-OMAP1 tree. The clock framework updates variable called
-arm_idlect1_mask. That value is programmed after some masking into
-hardware in omap_pm_idle when entering sleep state. Essentially what we
-have there is a mask of clocks that may not be autoidled during that
-particular idle call.
+Board  : OMAP2430 SDP version V4.01
+Kernel : linux.omap.com/pub/kernel/2430sdp/source/linux-2.6.14-omap2-v3.tgz
+DIP Switch setting: Switches 2 (USB_nDB9), 6(HSUSB_nFS) and 7()HSVBUS_nFS) =
+in switch S6 set to position 'ON'
+Toolchain: ARM toolchain with EABI support from www.codesourcery.com
 
-The OMAP2 tree seems to handle its special cases in another way by
-skipping the sleep completely.
+Hope this helps!  Thank you very much to everyone who had their valuable in=
+puts when I needed it.
 
-Tuukka
+Regards,
+Kanagesh
 
 
-----------------------------------------------------------------
-Please note: This e-mail may contain confidential information
-intended solely for the addressee. If you have received this
-e-mail in error, please do not disclose it to anyone, notify
-the sender promptly, and delete the message from your system.
-Thank you.
+
+=3D
+$3,500 - $7,000 Per Week
+Must Be Ready To Start Immediately Great pay! Start Today.
+http://a8-asy.a8ww.net/a8-ads/adftrclick?redirectid=3D9a9ddf1ba5d75a756383e=
+82bf64670d8
 
 
-------------=_1188224125-5307-22
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
-------------=_1188224125-5307-22--
+--=20
+_______________________________________________
+Search for products and services at:=20
+http://search.mail.com
