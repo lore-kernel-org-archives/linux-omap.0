@@ -1,11 +1,11 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 16/27] omap2 clock: remove all {src,
-	rate}_offset fields from struct clk
-Date: Mon, 27 Aug 2007 02:39:12 -0600
-Message-ID: <20070827084123.671790608@pwsan.com>
+Subject: [PATCH 18/27] omap2 clock: separate clksel set_rate code into its
+	own function
+Date: Mon, 27 Aug 2007 02:39:14 -0600
+Message-ID: <20070827084123.871547313@pwsan.com>
 References: <20070827083856.549249288@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline; filename=nuke_src_and_rate_offset.patch
+Content-Disposition: inline; filename=split_set_rate.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,356 +18,340 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-src_offset and rate_offset are no longer used in OMAP2 clock framework
-after the struct clksel/struct clksel_rate additions.  Remove these
-fields from clock.h and #ifdef out those fields for OMAP24XX compiles.
+Simplify omap2_clk_set_rate() by separating out the clksel set_rate code into
+its own function, omap2_clksel_set_rate().  Clksel clocks use this function
+by placing its function pointer in their .set_rate fields.  Convert 
+existing clksel clocks accordingly.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
 ---
- arch/arm/mach-omap2/clock.c       |    4 ++--
- arch/arm/mach-omap2/clock.h       |   38 +-------------------------------------
- include/asm-arm/arch-omap/clock.h |    5 +++--
- 3 files changed, 6 insertions(+), 41 deletions(-)
+ arch/arm/mach-omap2/clock.c |   75 ++++++++++++++++++++++++--------------------
+ arch/arm/mach-omap2/clock.h |   65 ++++++++++++++++++++++++++------------
+ 2 files changed, 87 insertions(+), 53 deletions(-)
 
 Index: linux-omap/arch/arm/mach-omap2/clock.c
 ===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/clock.c	2007-08-27 02:19:38.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/clock.c	2007-08-27 02:19:39.000000000 -0600
-@@ -122,7 +122,7 @@
- 		div = prm_read_reg(OMAP24XX_PRCM_CLKSRC_CTRL);
- 		/* Test if ext clk divided by 1 or 2 */
- 		div &= OMAP_SYSCLKDIV_MASK;
--		div >>= clk->rate_offset;
-+		div >>= OMAP_SYSCLKDIV_SHIFT;
- 		clk->rate = (clk->parent->rate / div);
- 	}
- 	propagate_rate(clk);
-@@ -1033,7 +1033,7 @@
+--- linux-omap.orig/arch/arm/mach-omap2/clock.c	2007-08-27 02:19:40.000000000 -0600
++++ linux-omap/arch/arm/mach-omap2/clock.c	2007-08-27 02:19:40.000000000 -0600
+@@ -787,46 +787,55 @@
+ 	return omap2_clksel_to_divisor(clk, field_val);
+ }
  
- 	div = prm_read_reg(OMAP24XX_PRCM_CLKSRC_CTRL);
- 	div &= OMAP_SYSCLKDIV_MASK;
--	div >>= sys->rate_offset;
-+	div >>= OMAP_SYSCLKDIV_SHIFT;
++static int omap2_clksel_set_rate(struct clk *clk, unsigned long rate)
++{
++	u32 field_mask, field_val, reg_val, validrate, new_div = 0;
++	void __iomem *div_addr;
++
++	validrate = omap2_clksel_round_rate_div(clk, rate, &new_div);
++	if (validrate != rate)
++		return -EINVAL;
++
++	div_addr = omap2_get_clksel(clk, &field_mask);
++	if (div_addr == 0)
++		return -EINVAL;
++
++	field_val = omap2_divisor_to_clksel(clk, new_div);
++	if (field_val == ~0)
++		return -EINVAL;
++
++	reg_val = cm_read_reg(div_addr);
++	reg_val &= ~field_mask;
++	reg_val |= (field_val << mask_to_shift(field_mask));
++	cm_write_reg(reg_val, div_addr);
++	wmb();
++
++	clk->rate = clk->parent->rate / new_div;
++
++	if (clk->flags & DELAYED_APP) {
++		prm_write_reg(OMAP24XX_VALID_CONFIG, OMAP24XX_PRCM_CLKCFG_CTRL);
++		wmb();
++	}
++
++	return 0;
++}
++
++
+ /* Set the clock rate for a clock source */
+ static int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
+ {
+ 	int ret = -EINVAL;
+-	u32 field_mask, field_val, reg_val, new_div = 0;
+-	unsigned long validrate;
+-	void __iomem *div_addr;
  
- 	osc->rate = sclk * div;
- 	sys->rate = sclk;
+-	if (!(clk->flags & CONFIG_PARTICIPANT) && (clk->flags & RATE_CKCTL)) {
+-		if (clk == &dpll_ck)
+-			return omap2_reprogram_dpll(clk, rate);
+-
+-		validrate = omap2_clksel_round_rate_div(clk, rate, &new_div);
+-		if (validrate != rate)
+-			return ret;
+-
+-		div_addr = omap2_get_clksel(clk, &field_mask);
+-		if (div_addr == 0)
+-			return ret;
+-
+-		field_val = omap2_divisor_to_clksel(clk, new_div);
+-		if (field_val == ~0)
+-			return ret;
+-
+-		reg_val = cm_read_reg(div_addr);
+-		reg_val &= ~field_mask;
+-		reg_val |= (field_val << mask_to_shift(field_mask));
+-		cm_write_reg(reg_val, div_addr);
+-		wmb();
+-		clk->rate = clk->parent->rate / new_div;
++	pr_debug("clock: set_rate for clock %s to rate %ld\n", clk->name, rate);
+ 
+-		if (clk->flags & DELAYED_APP) {
+-			prm_write_reg(OMAP24XX_VALID_CONFIG,
+-				      OMAP24XX_PRCM_CLKCFG_CTRL);
+-			wmb();
+-		}
+-		ret = 0;
+-	} else if (clk->set_rate != 0) {
++	/* CONFIG_PARTICIPANT clocks are changed only in sets via the
++	   rate table mechanism, driven by mpu_speed  */
++	if (clk->flags & CONFIG_PARTICIPANT)
++		return -EINVAL;
++
++	/* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
++	if (clk->set_rate != 0)
+ 		ret = clk->set_rate(clk, rate);
+-	}
+ 
+ 	if (unlikely(ret == 0 && (clk->flags & RATE_PROPAGATES)))
+ 		propagate_rate(clk);
 Index: linux-omap/arch/arm/mach-omap2/clock.h
 ===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/clock.h	2007-08-27 02:19:38.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/clock.h	2007-08-27 02:19:39.000000000 -0600
-@@ -11,7 +11,7 @@
-  *
-  *  Copyright (C) 2007 Texas Instruments, Inc.
-  *  Copyright (C) 2007 Nokia Corporation
-- *  Revised by Paul Walmsley
-+ *  Paul Walmsley
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -615,7 +615,6 @@
- 	.rate		= 13000000,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				RATE_FIXED | ALWAYS_ENABLED | RATE_PROPAGATES,
--	.rate_offset	= OMAP_SYSCLKDIV_SHIFT, /* sysclkdiv 1 or 2, already handled or no boot */
- 	.recalc		= &omap2_sys_clk_recalc,
+--- linux-omap.orig/arch/arm/mach-omap2/clock.h	2007-08-27 02:19:40.000000000 -0600
++++ linux-omap/arch/arm/mach-omap2/clock.h	2007-08-27 02:19:40.000000000 -0600
+@@ -40,7 +40,8 @@
+ static void omap2_dpll_recalc(struct clk *clk);
+ static void omap2_fixed_divisor_recalc(struct clk *clk);
+ static long omap2_clksel_round_rate(struct clk *clk, unsigned long target_rate);
+-
++static int omap2_clksel_set_rate(struct clk *clk, unsigned long rate);
++static int omap2_reprogram_dpll(struct clk *clk, unsigned long rate);
+ 
+ /* Key dividers which make up a PRCM set. Ratio's for a PRCM are mandated.
+  * xtal_speed, dpll_speed, mpu_speed, CM_CLKSEL_MPU,CM_CLKSEL_DSP
+@@ -643,6 +644,7 @@
+ 				RATE_PROPAGATES | RATE_CKCTL | CM_PLL_SEL1 |
+ 				ALWAYS_ENABLED,
+ 	.recalc		= &omap2_dpll_recalc,
++	.set_rate	= &omap2_reprogram_dpll,
  };
  
-@@ -694,7 +693,6 @@
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				CM_PLL_SEL1 | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
--	.src_offset	= OMAP24XX_54M_SOURCE_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
- 	.clksel_mask	= OMAP24XX_54M_SOURCE,
-@@ -764,7 +762,6 @@
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				CM_PLL_SEL1 | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
--	.src_offset	= OMAP24XX_48M_SOURCE_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
+ static struct clk apll96_ck = {
+@@ -738,7 +740,8 @@
+ 	.clksel_mask	= OMAP2430_96M_SOURCE,
+ 	.clksel		= func_96m_clksel,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
+ };
+ 
+ /* func_48m_ck */
+@@ -770,7 +773,8 @@
  	.clksel_mask	= OMAP24XX_48M_SOURCE,
-@@ -831,7 +828,6 @@
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				CM_SYSCLKOUT_SEL1 | RATE_CKCTL |
- 				RATE_PROPAGATES,
--	.src_offset	= OMAP24XX_CLKOUT_SOURCE_SHIFT,
- 	.enable_reg	= OMAP24XX_PRCM_CLKOUT_CTRL,
- 	.enable_bit	= OMAP24XX_CLKOUT_EN_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
-@@ -864,7 +860,6 @@
- 	.clksel_reg	= OMAP24XX_PRCM_CLKOUT_CTRL,
+ 	.clksel		= func_48m_clksel,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
+ };
+ 
+ static struct clk func_12m_ck = {
+@@ -839,6 +843,8 @@
+ 	.clksel_mask	= OMAP24XX_CLKOUT_SOURCE_MASK,
+ 	.clksel		= common_clkout_src_clksel,
+ 	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
+ };
+ 
+ static const struct clksel_rate common_clkout_rates[] = {
+@@ -865,7 +871,8 @@
  	.clksel_mask	= OMAP24XX_CLKOUT_DIV_MASK,
  	.clksel		= sys_clkout_clksel,
--	.rate_offset	= OMAP24XX_CLKOUT_DIV_SHIFT,
  	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
  };
  
-@@ -872,7 +867,6 @@
- static struct clk sys_clkout2_src = {
- 	.name		= "sys_clkout2_src",
- 	.parent		= &func_54m_ck,
--	.src_offset	= OMAP2420_CLKOUT2_SOURCE_SHIFT,
- 	.flags		= CLOCK_IN_OMAP242X | CM_SYSCLKOUT_SEL1 | RATE_CKCTL |
- 				RATE_PROPAGATES,
- 	.enable_reg	= OMAP24XX_PRCM_CLKOUT_CTRL,
-@@ -898,7 +892,6 @@
- 	.clksel_reg	= OMAP24XX_PRCM_CLKOUT_CTRL,
+ /* In 2430, new in 2420 ES2 */
+@@ -881,6 +888,8 @@
+ 	.clksel_mask	= OMAP2420_CLKOUT2_SOURCE_MASK,
+ 	.clksel		= common_clkout_src_clksel,
+ 	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
+ };
+ 
+ static const struct clksel sys_clkout2_clksel[] = {
+@@ -898,6 +907,8 @@
  	.clksel_mask	= OMAP2420_CLKOUT2_DIV_MASK,
  	.clksel		= sys_clkout2_clksel,
--	.rate_offset	= OMAP2420_CLKOUT2_DIV_SHIFT,
  	.recalc		= &omap2_clksel_recalc,
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
  };
  
-@@ -942,7 +935,6 @@
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X | RATE_CKCTL |
- 				ALWAYS_ENABLED | CM_MPU_SEL1 | DELAYED_APP |
- 				CONFIG_PARTICIPANT | RATE_PROPAGATES,
--	.rate_offset	= OMAP24XX_CLKSEL_MPU_SHIFT,	/* bits 0-4 */
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(MPU_MOD, CM_CLKSEL),
+ static struct clk emul_ck = {
+@@ -945,7 +956,8 @@
  	.clksel_mask	= OMAP24XX_CLKSEL_MPU_MASK,
-@@ -983,7 +975,6 @@
- 	.flags		= CLOCK_IN_OMAP243X | RATE_CKCTL | CM_DSP_SEL1 |
- 				DELAYED_APP | RATE_PROPAGATES |
- 				CONFIG_PARTICIPANT,
--	.rate_offset	= OMAP24XX_CLKSEL_DSP_SHIFT,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, OMAP24XX_CM_FCLKEN),
- 	.enable_bit	= OMAP24XX_CM_FCLKEN_DSP_EN_DSP_SHIFT,
- 	.clksel_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, CM_CLKSEL),
-@@ -1010,7 +1001,6 @@
- 	.parent		= &iva2_1_fck,
- 	.flags		= CLOCK_IN_OMAP243X | RATE_CKCTL | CM_DSP_SEL1 |
- 				DELAYED_APP | CONFIG_PARTICIPANT,
--	.rate_offset	= OMAP24XX_CLKSEL_DSP_IF_SHIFT,
- 	.clksel_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, CM_CLKSEL),
+ 	.clksel		= mpu_clksel,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.round_rate     = &omap2_clksel_round_rate
++	.round_rate     = &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
+ };
+ 
+ /*
+@@ -987,7 +999,8 @@
+ 	.clksel_mask	= OMAP24XX_CLKSEL_DSP_MASK,
+ 	.clksel		= iva2_1_fck_clksel,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
+ };
+ 
+ /* iva2_1_ick */
+@@ -1012,8 +1025,8 @@
  	.clksel_mask	= OMAP24XX_CLKSEL_DSP_IF_MASK,
  	.clksel		= iva2_1_ick_clksel,
-@@ -1044,7 +1034,6 @@
- 	.parent		= &core_ck,
- 	.flags		= CLOCK_IN_OMAP242X | RATE_CKCTL | CM_DSP_SEL1 |
- 			DELAYED_APP | CONFIG_PARTICIPANT | RATE_PROPAGATES,
--	.rate_offset	= OMAP24XX_CLKSEL_DSP_SHIFT,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, OMAP24XX_CM_FCLKEN),
- 	.enable_bit	= OMAP24XX_CM_FCLKEN_DSP_EN_DSP_SHIFT,
- 	.clksel_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, CM_CLKSEL),
-@@ -1070,7 +1059,6 @@
- 	.parent		= &core_ck,
- 	.flags		= CLOCK_IN_OMAP242X | RATE_CKCTL | CM_DSP_SEL1 |
- 				DELAYED_APP | CONFIG_PARTICIPANT,
--	.rate_offset	= OMAP24XX_CLKSEL_DSP_IF_SHIFT,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP2420_EN_DSP_IPI_SHIFT,		/* for ipi */
- 	.clksel_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, CM_CLKSEL),
-@@ -1100,7 +1088,6 @@
- 	.parent		= &core_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CM_DSP_SEL1 | RATE_CKCTL |
- 			CONFIG_PARTICIPANT | RATE_PROPAGATES | DELAYED_APP,
--	.rate_offset	= OMAP2420_CLKSEL_IVA_SHIFT,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, OMAP24XX_CM_FCLKEN),
- 	.enable_bit	= OMAP2420_EN_IVA_COP_SHIFT,
- 	.clksel_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, CM_CLKSEL),
-@@ -1162,7 +1149,6 @@
- 				RATE_CKCTL | ALWAYS_ENABLED | CM_CORE_SEL1 |
- 				DELAYED_APP | CONFIG_PARTICIPANT |
- 				RATE_PROPAGATES,
--	.rate_offset	= OMAP24XX_CLKSEL_L3_SHIFT,
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL1),
+ 	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate
+-
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
+ };
+ 
+ /*
+@@ -1049,7 +1062,8 @@
+ 	.clksel_mask	= OMAP24XX_CLKSEL_DSP_MASK,
+ 	.clksel		= dsp_fck_clksel,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
+ };
+ 
+ static const struct clksel_rate dsp_ick_core_rates[] = {
+@@ -1104,7 +1118,8 @@
+ 	.clksel_mask	= OMAP2420_CLKSEL_IVA_MASK,
+ 	.clksel		= iva1_ifck_clksel,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
+ };
+ 
+ /* IVA1 mpu/int/i/f clocks are /2 of parent */
+@@ -1164,7 +1179,8 @@
  	.clksel_mask	= OMAP24XX_CLKSEL_L3_MASK,
  	.clksel		= core_l3_clksel,
-@@ -1190,7 +1176,6 @@
- 				CONFIG_PARTICIPANT,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
- 	.enable_bit	= OMAP24XX_EN_USB_SHIFT,
--	.rate_offset	= OMAP24XX_CLKSEL_USB_SHIFT,
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL1),
+ 	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
+ };
+ 
+ /* usb_l4_ick */
+@@ -1192,7 +1208,8 @@
  	.clksel_mask	= OMAP24XX_CLKSEL_USB_MASK,
  	.clksel		= usb_l4_ick_clksel,
-@@ -1231,7 +1216,6 @@
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL1),
+ 	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
+ };
+ 
+ /*
+@@ -1230,7 +1247,8 @@
  	.clksel_mask	= OMAP24XX_CLKSEL_SSI_MASK,
  	.clksel		= ssi_ssr_sst_fck_clksel,
--	.rate_offset	= OMAP24XX_CLKSEL_SSI_SHIFT,
  	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
  };
  
-@@ -1272,7 +1256,6 @@
- 				RATE_CKCTL | CM_GFX_SEL1,
- 	.enable_reg	= OMAP_CM_REGADDR(GFX_MOD, OMAP24XX_CM_FCLKEN),
- 	.enable_bit	= OMAP24XX_EN_3D_SHIFT,
--	.rate_offset	= OMAP_CLKSEL_GFX_SHIFT,
- 	.clksel_reg	= OMAP_CM_REGADDR(GFX_MOD, CM_CLKSEL),
+ /*
+@@ -1274,7 +1292,8 @@
  	.clksel_mask	= OMAP_CLKSEL_GFX_MASK,
  	.clksel		= gfx_fck_clksel,
-@@ -1286,7 +1269,6 @@
- 				RATE_CKCTL | CM_GFX_SEL1,
- 	.enable_reg	= OMAP_CM_REGADDR(GFX_MOD, OMAP24XX_CM_FCLKEN),
- 	.enable_bit	= OMAP24XX_EN_2D_SHIFT,
--	.rate_offset	= OMAP_CLKSEL_GFX_SHIFT,
- 	.clksel_reg	= OMAP_CM_REGADDR(GFX_MOD, CM_CLKSEL),
+ 	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
+ };
+ 
+ static struct clk gfx_2d_fck = {
+@@ -1288,7 +1307,8 @@
  	.clksel_mask	= OMAP_CLKSEL_GFX_MASK,
  	.clksel		= gfx_fck_clksel,
-@@ -1327,7 +1309,6 @@
- 	.parent		= &core_ck,
- 	.flags		= CLOCK_IN_OMAP243X | RATE_CKCTL | CM_MODEM_SEL1 |
- 				DELAYED_APP | CONFIG_PARTICIPANT,
--	.rate_offset	= OMAP2430_CLKSEL_MDM_SHIFT,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP2430_MDM_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP2430_CM_ICLKEN_MDM_EN_MDM_SHIFT,
- 	.clksel_reg	= OMAP_CM_REGADDR(OMAP2430_MDM_MOD, CM_CLKSEL),
-@@ -1369,7 +1350,6 @@
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				RATE_CKCTL | ALWAYS_ENABLED | CM_CORE_SEL1 |
- 				DELAYED_APP | RATE_PROPAGATES,
--	.rate_offset	= OMAP24XX_CLKSEL_L4_SHIFT,
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL1),
+ 	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
+ };
+ 
+ static struct clk gfx_ick = {
+@@ -1331,7 +1351,8 @@
+ 	.clksel_mask	= OMAP2430_CLKSEL_MDM_MASK,
+ 	.clksel		= mdm_ick_clksel,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
+ };
+ 
+ static struct clk mdm_osc_ck = {
+@@ -1371,7 +1392,8 @@
  	.clksel_mask	= OMAP24XX_CLKSEL_L4_MASK,
  	.clksel		= l4_clksel,
-@@ -1436,8 +1416,6 @@
- 				RATE_CKCTL | CM_CORE_SEL1 | DELAYED_APP,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP24XX_EN_DSS1_SHIFT,
--	.rate_offset	= OMAP24XX_CLKSEL_DSS1_SHIFT,
--	.src_offset	= OMAP24XX_CLKSEL_DSS1_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL1),
- 	.clksel_mask	= OMAP24XX_CLKSEL_DSS1_MASK,
-@@ -1468,7 +1446,6 @@
- 				RATE_CKCTL | CM_CORE_SEL1 | DELAYED_APP,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP24XX_EN_DSS2_SHIFT,
--	.src_offset	= OMAP24XX_CLKSEL_DSS2_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL1),
- 	.clksel_mask	= OMAP24XX_CLKSEL_DSS2_MASK,
-@@ -1529,7 +1506,6 @@
- 				CM_WKUP_SEL1,
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, OMAP24XX_CM_FCLKEN),	/* Bit0 */
- 	.enable_bit	= OMAP24XX_EN_GPT1_SHIFT,
--	.src_offset	= OMAP24XX_CLKSEL_GPT1_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL2),
- 	.clksel_mask	= OMAP24XX_CLKSEL_GPT1_MASK,
-@@ -1553,7 +1529,6 @@
- 				CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP24XX_EN_GPT2_SHIFT,
--	.src_offset	= OMAP24XX_CLKSEL_GPT2_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL2),
- 	.clksel_mask	= OMAP24XX_CLKSEL_GPT2_MASK,
-@@ -1577,7 +1552,6 @@
- 				CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP24XX_EN_GPT3_SHIFT,
--	.src_offset	= OMAP24XX_CLKSEL_GPT3_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL2),
- 	.clksel_mask	= OMAP24XX_CLKSEL_GPT3_MASK,
-@@ -1601,7 +1575,6 @@
- 				CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP24XX_EN_GPT4_SHIFT,
--	.src_offset	= OMAP24XX_CLKSEL_GPT4_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL2),
- 	.clksel_mask	= OMAP24XX_CLKSEL_GPT4_MASK,
-@@ -1625,7 +1598,6 @@
- 				CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP24XX_EN_GPT5_SHIFT,
--	.src_offset	= OMAP24XX_CLKSEL_GPT5_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL2),
- 	.clksel_mask	= OMAP24XX_CLKSEL_GPT5_MASK,
-@@ -1649,7 +1621,6 @@
- 				CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP24XX_EN_GPT6_SHIFT,
--	.src_offset	= OMAP24XX_CLKSEL_GPT6_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL2),
- 	.clksel_mask	= OMAP24XX_CLKSEL_GPT6_MASK,
-@@ -1673,7 +1644,6 @@
- 				CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP24XX_EN_GPT7_SHIFT,
--	.src_offset	= OMAP24XX_CLKSEL_GPT7_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL2),
- 	.clksel_mask	= OMAP24XX_CLKSEL_GPT7_MASK,
-@@ -1697,7 +1667,6 @@
- 				CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP24XX_EN_GPT8_SHIFT,
--	.src_offset	= OMAP24XX_CLKSEL_GPT8_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL2),
- 	.clksel_mask	= OMAP24XX_CLKSEL_GPT8_MASK,
-@@ -1721,7 +1690,6 @@
- 					CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP24XX_EN_GPT9_SHIFT,
--	.src_offset	= OMAP24XX_CLKSEL_GPT9_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL2),
- 	.clksel_mask	= OMAP24XX_CLKSEL_GPT9_MASK,
-@@ -1745,7 +1713,6 @@
- 					CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP24XX_EN_GPT10_SHIFT,
--	.src_offset	= OMAP24XX_CLKSEL_GPT10_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL2),
- 	.clksel_mask	= OMAP24XX_CLKSEL_GPT10_MASK,
-@@ -1769,7 +1736,6 @@
- 					CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP24XX_EN_GPT11_SHIFT,
--	.src_offset	= OMAP24XX_CLKSEL_GPT11_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL2),
- 	.clksel_mask	= OMAP24XX_CLKSEL_GPT11_MASK,
-@@ -1793,7 +1759,6 @@
- 					CM_CORE_SEL2,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP24XX_EN_GPT12_SHIFT,
--	.src_offset	= OMAP24XX_CLKSEL_GPT12_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL2),
- 	.clksel_mask	= OMAP24XX_CLKSEL_GPT12_MASK,
-@@ -2327,7 +2292,6 @@
- 	.flags		= CLOCK_IN_OMAP242X  | RATE_CKCTL | CM_CORE_SEL1 | DELAYED_APP,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP2420_EN_VLYNQ_SHIFT,
--	.src_offset	= OMAP2420_CLKSEL_VLYNQ_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL1),
- 	.clksel_mask	= OMAP2420_CLKSEL_VLYNQ_MASK,
-Index: linux-omap/include/asm-arm/arch-omap/clock.h
-===================================================================
---- linux-omap.orig/include/asm-arm/arch-omap/clock.h	2007-08-27 02:19:29.000000000 -0600
-+++ linux-omap/include/asm-arm/arch-omap/clock.h	2007-08-27 02:19:39.000000000 -0600
-@@ -41,8 +41,6 @@
- 	__u32			flags;
- 	void __iomem		*enable_reg;
- 	__u8			enable_bit;
--	__u8			rate_offset;
--	__u8			src_offset;
- 	__s8			usecount;
- 	void			(*recalc)(struct clk *);
- 	int			(*set_rate)(struct clk *, unsigned long);
-@@ -55,6 +53,9 @@
- 	void __iomem		*clksel_reg;
- 	u32			clksel_mask;
- 	const struct clksel	*clksel;
-+#else
-+	__u8			rate_offset;
-+	__u8			src_offset;
- #endif
+ 	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
  };
  
+ static struct clk ssi_l4_ick = {
+@@ -1439,7 +1461,8 @@
+ 	.clksel_mask	= OMAP24XX_CLKSEL_DSS1_MASK,
+ 	.clksel		= dss1_fck_clksel,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
+ };
+ 
+ static const struct clksel_rate dss2_fck_sys_rates[] = {
+@@ -1530,7 +1553,8 @@
+ 	.clksel_mask	= OMAP24XX_CLKSEL_GPT1_MASK,
+ 	.clksel		= gpt_clksel,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
+ };
+ 
+ static struct clk gpt2_ick = {
+@@ -2317,7 +2341,8 @@
+ 	.clksel_mask	= OMAP2420_CLKSEL_VLYNQ_MASK,
+ 	.clksel		= vlynq_fck_clksel,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate
+ };
+ 
+ static struct clk sdrc_ick = {
 
 -- 
