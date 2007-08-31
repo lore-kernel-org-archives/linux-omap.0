@@ -1,14 +1,14 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: [PATCH 0/2] MUSB: tracking down locking bugs
-Date: Thu, 30 Aug 2007 23:04:13 -0700
-Message-ID: <46D7AF5D.2020204@mvista.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 2/2] ARM: OMAP: MUSB: BUG on potential deadlocks
+Date: Thu, 30 Aug 2007 23:05:26 -0700
+Message-ID: <20070831060525.6B49D23744C@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 References: <20070831025359.663866890@mvista.com>
-	<20070831054830.13B7B21D977@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+	<20070831025811.887406517@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070831054830.13B7B21D977@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+In-Reply-To: <20070831025811.887406517@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,28 +18,39 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com, khilman@mvista.com
 List-Id: linux-omap@vger.kernel.org
 
-David Brownell wrote:
->> With the help of the lock debugging features of the -rt patch, I'm
->> trying to track down locking issues in the MUSB driver.
-> 
-> It was last done about 18 months ago, so it's clearly Time to
-> check those locks again.  :)
+> There are several places where locks are assumed to be held and are
+> unlocked.  BUG-out when the lock is not actually held.
 
-Agreed.
+This isn't a good patch.  *ADDING* a BUG() is wrong, and that's
+especially true for things like spin_is_locked() ... which has
+historically lied, and in any case doesn't reflect the requirement
+that the lock holder be the current execution context instead of
+some other context.  And if it
 
-In the short term, I'll have a couple more "band-aid" style patches for
-you to sanity check.  They fix a couple deadlocks uncovered by my
-'BUG_ON' patch, but since I don't know this driver all that well, there
-may be better ways to do things.
+And unfortunately all of these use spin_is_locked()...
 
-For the long term, more lock granularity should probably be used.  For
-example, currently the entire interrupt handler wrapped with a
-spin_lock_irqsave().  When moving to the threaded interrupts of
-PREEMPT_RT, this effictively negates the benefit of having threaded
-handlers in the first place.
+Also:
 
-Kevin
+
+> --- dev.orig/drivers/usb/musb/musb_gadget.c
+> +++ dev/drivers/usb/musb/musb_gadget.c
+> @@ -118,6 +118,7 @@ __acquires(ep->musb->lock)
+                     ^^^^^^^^^^^
+Functions with "sparse" annotations get static checking from that
+tool.  I'm not sure how much I trust it, but it *has* reported a
+few locking bugs.  Currently, "-Wcontext" is the default, and this
+whole driver passes "sparse" fine (other than a few warnings bout
+not understanding CPP).
+
+Several a few of these are in functions with the "sparse" annotations,
+since they need to do things like temporarily dropping the spinlock so
+a callback could reenter the driver.
+
+
+It'd be much better to actually submit fixes for any locking bugs
+than to add BUG_ON() statements.
+
+- Dave
