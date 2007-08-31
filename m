@@ -1,13 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] [MTD] [OneNAND] Use mtd_oob_ops at oob functions
-Date: Fri, 31 Aug 2007 13:59:03 -0700
-Message-ID: <20070831205902.GV12350@atomide.com>
-References: <003301c7e079$f7c3fdf0$e1ac580a@swcenter.sec.samsung.co.kr>
+Subject: Re: [PATCH] OMAP: Update OMAP1 camera core with video_ioctl2
+	interface.
+Date: Fri, 31 Aug 2007 13:55:26 -0700
+Message-ID: <20070831205525.GT12350@atomide.com>
+References: <689645.52282.qm@web8514.mail.in.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <003301c7e079$f7c3fdf0$e1ac580a@swcenter.sec.samsung.co.kr>
+In-Reply-To: <689645.52282.qm@web8514.mail.in.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,18 +18,17 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: kmpark@infradead.org
+To: Trilok Soni <trilok_soni@yahoo.co.in>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kyungmin Park <kyungmin.park@samsung.com> [070816 19:55]:
-> >From 43dacd92d650618f22c297a2905216857dc5c18f Mon Sep 17 00:00:00 2001
-> From: Kyungmin Park <kyungmin.park@samsung.com>
-> Date: Fri, 17 Aug 2007 11:52:05 +0900
-> Subject: [PATCH] [MTD] [OneNAND] Use mtd_oob_ops at oob functions
+* Trilok Soni <trilok_soni@yahoo.co.in> [070823 04:53]:
+> Hi,
 > 
-> To enable the main read/write at oob ops
+> Attached patch uses video_ioctl2 interface. It is
+> compile tested only. Please test it if one has OMAP1
+> based board.
 
-Pushing today.
+I've pushed this one too.
 
 Tony
