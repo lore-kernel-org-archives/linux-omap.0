@@ -1,16 +1,14 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 2/2] ARM: OMAP: MUSB: BUG on potential deadlocks
-Date: Fri, 31 Aug 2007 10:49:32 -0700
-Message-ID: <20070831174932.3FEA123719C@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-References: <20070831025359.663866890@mvista.com>
-	<20070831025811.887406517@mvista.com>
-	<20070831060525.6B49D23744C@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-	<46D83F42.5090004@mvista.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/27] omap2 clock: resend: framework generalization,
+	cleanup
+Date: Fri, 31 Aug 2007 11:24:36 -0700
+Message-ID: <20070831182435.GL12350@atomide.com>
+References: <20070827083856.549249288@pwsan.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <46D83F42.5090004@mvista.com>
+Content-Disposition: inline
+In-Reply-To: <20070827083856.549249288@pwsan.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,52 +18,20 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: khilman@mvista.com
+To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-> > This isn't a good patch.  *ADDING* a BUG() is wrong, and that's
-> > especially true for things like spin_is_locked() 
->
-> I probably should've made this an RFC instead of a patch.  I meant for
-> this to be a debug aid, not to actually go into the tree.  I'm using
-> this to try to track down some deadlocks and thought it may be useful to
-> others.  It has already turned up a couple problems (see below.)
+* Paul Walmsley <paul@pwsan.com> [070827 01:50]:
+> Hello, 
+> 
+> this patch set is the same set that I sent before, but some style
+> issues have been cleaned up, and the last autoidle patch dropped for
+> now.  I've updated the diffstat and size output, and refreshed the 
+> patches against current git HEAD, 3c5639c.  Should be ready to apply.
 
-OK, that's better.  As I presume you've deduced, a lot of the recent
-cleanup effort in this driver is so we can try pushing it upstream
-for 2.6.24 ... abuse of BUG() wouldn't help that!
+Nice job! Pushing today.
 
+Regards,
 
-> > It'd be much better to actually submit fixes for any locking bugs
-> > than to add BUG_ON() statements.
->
-> I agree, and I'm working on the fixes.  Just not sure I have the right
-> fix yet.
->
-> For exaple, I've found a couple paths where the BUG_ON() has definitely
-> turned up a problem:
->
-> dma_controller_irq
->  musb_dma_completion
->   musb_g_rx  (or musb_host_rx in host mode)
->    musb_g_giveback (musb_advance_schedule --> musb_giveback)
->
-> In both host and gadget cases, the giveback function is entered without
-> the lock being held and tries to unlock the lock.  The comment in
-> musb_dma_completion says that the lock is held, but it's not when called
-> from the DMA IRQ ( but is when called from davinci_irq via
-> cppi_completion.)
-
-I presume you mean the OMAP2430 support?  Looked to me like TUSB6010
-got that OK too.  That code for Mentor's DMA engine still has obvious
-bugs; and I don't know that it's ever had more than basic cleanups.
-
-
-> I've tried putting a lock around this in a few ways, and can get gadget
-> to work without a deadlock, but doing so causes host mode to stop
-> detecting devices.  I'm still trying to figure out why.
-
-And more power to you!  I've not looked at that particular issue.
-
-- Dave
+Tony
