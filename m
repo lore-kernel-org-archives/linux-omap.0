@@ -1,15 +1,15 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP: MUSB: BUG on potential deadlocks
-Date: Fri, 31 Aug 2007 09:18:10 -0700
-Message-ID: <46D83F42.5090004@mvista.com>
-References: <20070831025359.663866890@mvista.com>
-	<20070831025811.887406517@mvista.com>
-	<20070831060525.6B49D23744C@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] MUSB: Kill compile warnings at
+	drivers/usb/musb/tusb6010.c
+Date: Fri, 31 Aug 2007 09:47:29 -0700
+Message-ID: <20070831164728.GB12350@atomide.com>
+References: <11882419051271-git-send-email-felipe.lima@indt.org.br>
+	<11882419064188-git-send-email-felipe.lima@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20070831060525.6B49D23744C@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+Content-Disposition: inline
+In-Reply-To: <11882419064188-git-send-email-felipe.lima@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,63 +19,34 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
+To: Felipe Balbi <felipe.lima@indt.org.br>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-David Brownell wrote:
->> There are several places where locks are assumed to be held and are
->> unlocked.  BUG-out when the lock is not actually held.
+* Felipe Balbi <felipe.lima@indt.org.br> [070827 12:12]:
+> Get rid of the following warning:
+> drivers/usb/musb/tusb6010.c: In function 'tusb_otg_ints':
+> drivers/usb/musb/tusb6010.c:716: warning: unused variable 'devctl'
 > 
-> This isn't a good patch.  *ADDING* a BUG() is wrong, and that's
-> especially true for things like spin_is_locked() 
+> Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
+> ---
+>  drivers/usb/musb/tusb6010.c |    2 --
+>  1 files changed, 0 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
+> index 23840dc..562eb9d 100644
+> --- a/drivers/usb/musb/tusb6010.c
+> +++ b/drivers/usb/musb/tusb6010.c
+> @@ -713,8 +713,6 @@ tusb_otg_ints(struct musb *musb, u32 int_src, void __iomem *base)
+>  			schedule_work(&musb->irq_work);
+>  
+>  		} else /* A-dev state machine */ {
+> -			u8	devctl;
+> -
+>  			DBG(2, "vbus change, %s, otg %03x\n",
+>  				otg_state_string(musb), otg_stat);
+>  
 
-I probably should've made this an RFC instead of a patch.  I meant for
-this to be a debug aid, not to actually go into the tree.  I'm using
-this to try to track down some deadlocks and thought it may be useful to
-others.  It has already turned up a couple problems (see below.)
+Thanks, pushing today.
 
->> --- dev.orig/drivers/usb/musb/musb_gadget.c
->> +++ dev/drivers/usb/musb/musb_gadget.c
->> @@ -118,6 +118,7 @@ __acquires(ep->musb->lock)
->                      ^^^^^^^^^^^
-> Functions with "sparse" annotations get static checking from that
-> tool.  I'm not sure how much I trust it, but it *has* reported a
-> few locking bugs.  Currently, "-Wcontext" is the default, and this
-> whole driver passes "sparse" fine (other than a few warnings bout
-> not understanding CPP).
->
-> Several a few of these are in functions with the "sparse" annotations,
-> since they need to do things like temporarily dropping the spinlock so
-> a callback could reenter the driver.
-
-OK, I was wondering what those annotations were used for.  I hadn't used
-sparse for this before.  Several of the functions which drop and re-take
-the lock are not annotated.  I'll add annotations and see if sparse
-turns up any more problems.
-
-> It'd be much better to actually submit fixes for any locking bugs
-> than to add BUG_ON() statements.
-
-I agree, and I'm working on the fixes.  Just not sure I have the right
-fix yet.
-
-For exaple, I've found a couple paths where the BUG_ON() has definitely
-turned up a problem:
-
-dma_controller_irq
- musb_dma_completion
-  musb_g_rx  (or musb_host_rx in host mode)
-   musb_g_giveback (musb_advance_schedule --> musb_giveback)
-
-In both host and gadget cases, the giveback function is entered without
-the lock being held and tries to unlock the lock.  The comment in
-musb_dma_completion says that the lock is held, but it's not when called
-from the DMA IRQ ( but is when called from davinci_irq via
-cppi_completion.)
-
-I've tried putting a lock around this in a few ways, and can get gadget
-to work without a deadlock, but doing so causes host mode to stop
-detecting devices.  I'm still trying to figure out why.
-
-Kevin
+Tony
