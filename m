@@ -1,11 +1,13 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: MUSB: unreliable OTG detection in host mode
-Date: Fri, 31 Aug 2007 17:05:37 -0700
-Message-ID: <46D8ACD1.8030101@mvista.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: MUSB: unreliable OTG detection in host mode
+Date: Fri, 31 Aug 2007 17:20:25 -0700
+Message-ID: <20070901002025.B8E79235120@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+References: <46D8ACD1.8030101@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <46D8ACD1.8030101@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,23 +17,31 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux OMAP <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com, khilman@mvista.com
 List-Id: linux-omap@vger.kernel.org
 
-Is anyone else using the MUSB driver in OTG mode?
+> On 2430, I've noticed that using the driver built in OTG mode, the
+> detection of devices in host-mode is unreliable.
 
-On 2430, I've noticed that using the driver built in OTG mode, the
-detection of devices in host-mode is unreliable.  Building the driver in
-only host mode doesn't have any problems with the same devices connected.
+Unreliable in what way(s)?
 
-I load the musb_hdrc module, then the g_zero module to initiate OTG
-detection.
 
-If my board is connected as a gadget, this works just fine, but if my
-board is the host and I have devices connected, the detection doesn't
-work reliably.  In the past it seemed it would work most of the time,
-but with the latest kernel, it doesn't seem to work at all.
+>	Building the driver in
+> only host mode doesn't have any problems with the same devices connected.
+>
+> I load the musb_hdrc module, then the g_zero module to initiate OTG
+> detection.
+>
+> If my board is connected as a gadget, this works just fine, but if my
+> board is the host and I have devices connected, the detection doesn't
+> work reliably.  In the past it seemed it would work most of the time,
+> but with the latest kernel, it doesn't seem to work at all.
 
-Any ideas?
+This somewhat resembles a problem I've not tracked down, whereby
+the 2420 + TUSB6010-EVM, in OTG mode, seems to recieve garbage
+when reading descriptors from the high speed hub I usually like
+to connect as a root device.
 
-Kevin
+DaVinci didn't seem to have any such issues...
+
+- Dave
