@@ -1,13 +1,15 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 1/1] [OMAP MMU FW] Translate printk to dev_*
-Date: Mon, 03 Sep 2007 08:20:07 +0300 (EEST)
-Message-ID: <20070903.082007.75494158.Hiroshi.DOYU@nokia.com>
-References: <11879812502262-git-send-email-edubezval@gmail.com>
+From: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Subject: Re: [01/17 PATCH] MMC: OMAP: Introduces new structures for
+ MMC	multislot support.
+Date: Mon, 03 Sep 2007 09:55:46 -0400
+Message-ID: <46DC1262.1000002@indt.org.br>
+References: <46C5F08D.7070207@indt.org.br>	<200708171445.28921.david-b@pacbell.net>
+	<200708171455.15439.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11879812502262-git-send-email-edubezval@gmail.com>
+In-Reply-To: <200708171455.15439.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,19 +19,54 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: edubezval@gmail.com
-Cc: eduardo.valentin@indt.org.br, linux-omap-open-source@linux.omap.com
+To: ext David Brownell <david-b@pacbell.net>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This looks ok to me. Ack.
+ext David Brownell wrote:
+> On Friday 17 August 2007, David Brownell wrote:
+>   
+>> On Friday 17 August 2007, Carlos Aguiar wrote:
+>>     
+>>> Introduces new structures for MMC multislot support.
+>>>       
+>> Seems like #1 and #2 should be a single patch, since
+>> after #1 it won't compile ...
+>>     
+>
+>   
+Hi Dave,
+> ... and maybe #3, and ... ?
+>   
+You're right! But this 'level of granularity' of the patches was
+requested by Tony.
+> Also, this doesn't look to me primarily like "multislot"
+> support.  It's also "stop relying on GPIOs" for various
+> things that newer boards handle with external chips
+> (like CD and WP switches), and "move board-specific code
+> out of the MMC driver"...
+>   
+The concept of multislot applied here is to provide a code (and needed
+modifications) that runs OMAP platforms with a single and/or two MMC slots.
 
-From: "ext Eduardo Valentin" <edubezval@gmail.com>
-Subject: [PATCH 1/1] [OMAP MMU FW] Translate printk to dev_*
-Date: Fri, 24 Aug 2007 14:47:30 -0400
+BR,
 
-> From: Eduardo Valentin <eduardo.valentin@indt.org.br>
-> 
-> - Translates printk to dev_*
-> - Breaks lines with more than 80 columns
-> 
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+Carlos.
+> - Dave
+>
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
+>   
+
+
+-- 
+Carlos Eduardo Aguiar
+Nokia Institute of Technology - INdT
+Open Source Mobile Research Center - OSMRC - Manaus
+Core Team
+Phone: +55 92 2126-1079
+Mobile: +55 92 8127-1797
+E-mail: carlos.aguiar@indt.org.br
