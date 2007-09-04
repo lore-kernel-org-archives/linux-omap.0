@@ -1,14 +1,15 @@
-From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: Re: [01/17 PATCH] MMC: OMAP: Introduces new structures for
- MMC	multislot support.
-Date: Tue, 04 Sep 2007 10:48:57 -0400
-Message-ID: <46DD7059.9000107@indt.org.br>
-References: <002f01c7eece$27b31570$9f8818ac@ent.ti.com>
+From: "Madhusudhan Chikkature Rajashekar" <madhu.cr@ti.com>
+Subject: RE: [01/17 PATCH] MMC: OMAP: Introduces new structures for
+	MMC	multislot support.
+Date: Tue, 4 Sep 2007 20:29:59 +0530
+Message-ID: <005901c7ef04$445a1350$9f8818ac@ent.ti.com>
+References: <46DD7059.9000107@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <002f01c7eece$27b31570$9f8818ac@ent.ti.com>
+In-Reply-To: <46DD7059.9000107@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,9 +19,30 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: ext Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
+To: 'Carlos Aguiar' <carlos.aguiar@indt.org.br>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
+
+Hi,
+
+>If I got it right you're asking if this code controls the
+>concurrency between both slots sharing the same bus. Is that right? If
+>so, yes. This code does it.
+ Yes. That is what I meant. 
+
+Thanks for the clarification.
+
+Regards,
+Madhu
+
+ 
+-----Original Message-----
+From: Carlos Aguiar [mailto:carlos.aguiar@indt.org.br] 
+Sent: Tuesday, September 04, 2007 8:19 PM
+To: ext Madhusudhan Chikkature Rajashekar
+Cc: linux-omap-open-source@linux.omap.com
+Subject: Re: [01/17 PATCH] MMC: OMAP: Introduces new structures for MMC
+multislot support.
 
 ext Madhusudhan Chikkature Rajashekar wrote:
 > Hi Carlos,
@@ -28,9 +50,11 @@ ext Madhusudhan Chikkature Rajashekar wrote:
 Hi Madhu,
 >   
 >> The concept of multislot applied here is to provide a code (and needed
->> modifications) that runs OMAP platforms with a single and/or two MMC slots.
+>> modifications) that runs OMAP platforms with a single and/or two MMC
+slots.
 >>     
-> Does this mean that supporting one or more MMC memory cards sharing the same
+> Does this mean that supporting one or more MMC memory cards sharing the
+same
 > bus?
 >   
 Could you please re-work your question? I couldn't get it nicely... But
@@ -87,7 +111,8 @@ Carlos.
 >>   
 >>     
 > The concept of multislot applied here is to provide a code (and needed
-> modifications) that runs OMAP platforms with a single and/or two MMC slots.
+> modifications) that runs OMAP platforms with a single and/or two MMC
+slots.
 >
 > BR,
 >
