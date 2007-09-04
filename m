@@ -1,15 +1,12 @@
-From: "Madhusudhan Chikkature Rajashekar" <madhu.cr@ti.com>
-Subject: RE: [01/17 PATCH] MMC: OMAP: Introduces new structures for
-	MMC	multislot support.
-Date: Tue, 4 Sep 2007 20:29:59 +0530
-Message-ID: <005901c7ef04$445a1350$9f8818ac@ent.ti.com>
-References: <46DD7059.9000107@indt.org.br>
+From: "Gabriel Teixeira" <gabrieldiegoteixeira@gmail.com>
+Subject: =?iso-8859-1?q?USB_keyboard_doesn=B4t_work?=
+Date: Tue, 4 Sep 2007 17:55:07 -0300
+Message-ID: <664bb0260709041355t4994591ex173e76fba78c8e1e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <46DD7059.9000107@indt.org.br>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,124 +16,47 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: 'Carlos Aguiar' <carlos.aguiar@indt.org.br>
-Cc: linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com, Carlos Haas <carloshaascosta@gmail.com>, Ronaldo Husemann <rhusemann@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi
 
->If I got it right you're asking if this code controls the
->concurrency between both slots sharing the same bus. Is that right? If
->so, yes. This code does it.
- Yes. That is what I meant. 
+I=B4m currently using a DaVinci EVM board with MontaVista Linux and the USB
+keyboard doesn=B4t works. I installed the musb_hdrc and the usbhid. The usb=
+hid
+module is installed as shows the lsmod command below:
 
-Thanks for the clarification.
+Module                  Size  Used by
+usbhid                 26272  0
+dvt_dsa                 2544  0
+dsplinkk               68632  0
+cmemk                  12476  0
+ipv6                  275344  14
 
-Regards,
-Madhu
+And the musb_hdrc is also installed as show a part of the dmesg below:
 
- 
------Original Message-----
-From: Carlos Aguiar [mailto:carlos.aguiar@indt.org.br] 
-Sent: Tuesday, September 04, 2007 8:19 PM
-To: ext Madhusudhan Chikkature Rajashekar
-Cc: linux-omap-open-source@linux.omap.com
-Subject: Re: [01/17 PATCH] MMC: OMAP: Introduces new structures for MMC
-multislot support.
+musb_hdrc: version 2.2a/db-0.4.8 [pio] [host] [debug=3D0]
+musb_hdrc: ConfigData=3D0x06 (UTMI-8, dyn FIFOs, SoftConn)
+musb_hdrc: MHDRC RTL version 1.300
+musb_hdrc: setup fifo_mode 1
+musb_hdrc: hw_ep 0shared, max 64
+musb_hdrc: hw_ep 1tx, doublebuffer, max 512
+musb_hdrc: hw_ep 2rx, doublebuffer, max 512
+musb_hdrc: hw_ep 3shared, max 256
+musb_hdrc: hw_ep 4shared, max 256
+musb_hdrc: USB Host mode controller at c8060000 using PIO, IRQ 12
+musb_hdrc musb_hdrc: new USB bus registered, assigned bus number 1
+hub 1-0:1.0: USB hub found
+hub 1-0:1.0: 1 port detected
 
-ext Madhusudhan Chikkature Rajashekar wrote:
-> Hi Carlos,
->   
-Hi Madhu,
->   
->> The concept of multislot applied here is to provide a code (and needed
->> modifications) that runs OMAP platforms with a single and/or two MMC
-slots.
->>     
-> Does this mean that supporting one or more MMC memory cards sharing the
-same
-> bus?
->   
-Could you please re-work your question? I couldn't get it nicely... But
-even though, if I got it right you're asking if this code controls the
-concurrency between both slots sharing the same bus. Is that right? If
-so, yes. This code does it.
+But when a USB keyboard is connected, nothing happens, even the
+/dev/input/event0 doesn=B4t show up. I=B4ve put a multimeter in the USB por=
+t to
+verify if the power was correctly being send and it indicated 5V between th=
+e
+first and the last track in the USB conector. I heard that this could be a
+musb_hdrc issue in another list and this hypothesis is being considered by
+me. So what could be?
 
-BR,
-
-Carlos.
-> Regards,
-> Madhu
->  
-> -----Original Message-----
-> From: linux-omap-open-source-bounces@linux.omap.com
-> [mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Carlos
-> Aguiar
-> Sent: Monday, September 03, 2007 7:26 PM
-> To: ext David Brownell
-> Cc: linux-omap-open-source@linux.omap.com
-> Subject: Re: [01/17 PATCH] MMC: OMAP: Introduces new structures for MMC
-> multislot support.
->
-> ext David Brownell wrote:
->   
->> On Friday 17 August 2007, David Brownell wrote:
->>   
->>     
->>> On Friday 17 August 2007, Carlos Aguiar wrote:
->>>     
->>>       
->>>> Introduces new structures for MMC multislot support.
->>>>       
->>>>         
->>> Seems like #1 and #2 should be a single patch, since
->>> after #1 it won't compile ...
->>>     
->>>       
->>   
->>     
-> Hi Dave,
->   
->> ... and maybe #3, and ... ?
->>   
->>     
-> You're right! But this 'level of granularity' of the patches was
-> requested by Tony.
->   
->> Also, this doesn't look to me primarily like "multislot"
->> support.  It's also "stop relying on GPIOs" for various
->> things that newer boards handle with external chips
->> (like CD and WP switches), and "move board-specific code
->> out of the MMC driver"...
->>   
->>     
-> The concept of multislot applied here is to provide a code (and needed
-> modifications) that runs OMAP platforms with a single and/or two MMC
-slots.
->
-> BR,
->
-> Carlos.
->   
->> - Dave
->>
->> _______________________________________________
->> Linux-omap-open-source mailing list
->> Linux-omap-open-source@linux.omap.com
->> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->>
->>   
->>     
->
->
->   
-
-
--- 
-Carlos Eduardo Aguiar
-Nokia Institute of Technology - INdT
-Open Source Mobile Research Center - OSMRC - Manaus
-Core Team
-Phone: +55 92 2126-1079
-Mobile: +55 92 8127-1797
-E-mail: carlos.aguiar@indt.org.br
+thanks in advance
+Gabriel Teixeira
