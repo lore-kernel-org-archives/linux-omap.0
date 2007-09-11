@@ -1,59 +1,157 @@
-From: Sakari Ailus <sakari.ailus@nokia.com>
-Subject: [PATCH 1/1] Export v4l2_int_device_{, un}register
-Date: Tue, 11 Sep 2007 15:46:34 +0300
-Message-ID: <11895147942548-git-send-email-sakari.ailus@nokia.com>
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
-Cc: Adrian Bunk <bunk@stusta.de>
+From: Emil Medve <Emilian.Medve@Freescale.com>
+Subject: [PATCH] Move the definition of pr_err() into kernel.h
+Date: Tue, 11 Sep 2007 09:56:05 -0500
+Message-ID: <11895225651521-git-send-email-Emilian.Medve@Freescale.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, i2c@lm-sensors.org, linux-omap-open-source@linux.omap.com
+Cc: Emil Medve <Emilian.Medve@Freescale.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Adrian Bunk <bunk@stusta.de>
+Other pr_*() macros are already defined in kernel.h, but pr_err() was defined
+multiple times in several other places
 
-This patch fixes the following build error:
-
-<--  snip  -->
-
-...
-  MODPOST 2135 modules
-make[2]: *** [__modpost] Error 1
-
-<--  snip  -->
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
-Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
+Signed-off-by: Emil Medve <Emilian.Medve@Freescale.com>
 ---
- drivers/media/video/v4l2-int-device.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/i2c/chips/menelaus.c     |   10 ++++------
+ drivers/net/spider_net.h         |    3 ---
+ drivers/video/omap/lcd_h3.c      |    6 ++----
+ drivers/video/omap/lcd_inn1610.c |    6 ++----
+ include/linux/kernel.h           |    2 ++
+ 5 files changed, 10 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-int-device.c b/drivers/media/video/v4l2-int-device.c
-index 4ff17e3..f497c94 100644
---- a/drivers/media/video/v4l2-int-device.c
-+++ b/drivers/media/video/v4l2-int-device.c
-@@ -101,6 +101,7 @@ int v4l2_int_device_register(struct v4l2_int_device *d)
+diff --git a/drivers/i2c/chips/menelaus.c b/drivers/i2c/chips/menelaus.c
+index d9c92c5..fc5eed4 100644
+--- a/drivers/i2c/chips/menelaus.c
++++ b/drivers/i2c/chips/menelaus.c
+@@ -49,8 +49,6 @@
  
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(v4l2_int_device_register);
+ #define DRIVER_NAME			"menelaus"
  
- void v4l2_int_device_unregister(struct v4l2_int_device *d)
- {
-@@ -114,6 +115,7 @@ void v4l2_int_device_unregister(struct v4l2_int_device *d)
+-#define pr_err(fmt, arg...)	printk(KERN_ERR DRIVER_NAME ": ", ## arg);
+-
+ #define MENELAUS_I2C_ADDRESS		0x72
+ 
+ #define MENELAUS_REV			0x01
+@@ -155,7 +153,7 @@ static int menelaus_write_reg(int reg, u8 value)
+ 	int val = i2c_smbus_write_byte_data(the_menelaus->client, reg, value);
+ 
+ 	if (val < 0) {
+-		pr_err("write error");
++		pr_err(DRIVER_NAME ":write error");
+ 		return val;
  	}
- 	mutex_unlock(&mutex);
- }
-+EXPORT_SYMBOL_GPL(v4l2_int_device_unregister);
  
- /* Adapted from search_extable in extable.c. */
- static v4l2_int_ioctl_func *find_ioctl(struct v4l2_int_slave *slave, int cmd,
+@@ -167,7 +165,7 @@ static int menelaus_read_reg(int reg)
+ 	int val = i2c_smbus_read_byte_data(the_menelaus->client, reg);
+ 
+ 	if (val < 0)
+-		pr_err("read error");
++		pr_err(DRIVER_NAME ":read error");
+ 
+ 	return val;
+ }
+@@ -1177,7 +1175,7 @@ static int menelaus_probe(struct i2c_client *client)
+ 	/* If a true probe check the device */
+ 	rev = menelaus_read_reg(MENELAUS_REV);
+ 	if (rev < 0) {
+-		pr_err("device not found");
++		pr_err(DRIVER_NAME ":device not found");
+ 		err = -ENODEV;
+ 		goto fail1;
+ 	}
+@@ -1258,7 +1256,7 @@ static int __init menelaus_init(void)
+ 
+ 	res = i2c_add_driver(&menelaus_i2c_driver);
+ 	if (res < 0) {
+-		pr_err("driver registration failed\n");
++		pr_err(DRIVER_NAME ":driver registration failed\n");
+ 		return res;
+ 	}
+ 
+diff --git a/drivers/net/spider_net.h b/drivers/net/spider_net.h
+index dbbdb8c..c67b11d 100644
+--- a/drivers/net/spider_net.h
++++ b/drivers/net/spider_net.h
+@@ -493,7 +493,4 @@ struct spider_net_card {
+ 	struct spider_net_descr darray[0];
+ };
+ 
+-#define pr_err(fmt,arg...) \
+-	printk(KERN_ERR fmt ,##arg)
+-
+ #endif
+diff --git a/drivers/video/omap/lcd_h3.c b/drivers/video/omap/lcd_h3.c
+index 51807b4..c81271d 100644
+--- a/drivers/video/omap/lcd_h3.c
++++ b/drivers/video/omap/lcd_h3.c
+@@ -28,8 +28,6 @@
+ 
+ #define MODULE_NAME	"omapfb-lcd_h3"
+ 
+-#define pr_err(fmt, args...) printk(KERN_ERR MODULE_NAME ": " fmt, ## args)
+-
+ static int h3_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
+ {
+ 	return 0;
+@@ -48,7 +46,7 @@ static int h3_panel_enable(struct lcd_panel *panel)
+ 	if (!r)
+ 		r = tps65010_set_gpio_out_value(GPIO2, HIGH);
+ 	if (r)
+-		pr_err("Unable to turn on LCD panel\n");
++		pr_err(MODULE_NAME ":Unable to turn on LCD panel\n");
+ 
+ 	return r;
+ }
+@@ -62,7 +60,7 @@ static void h3_panel_disable(struct lcd_panel *panel)
+ 	if (!r)
+ 		tps65010_set_gpio_out_value(GPIO2, LOW);
+ 	if (r)
+-		pr_err("Unable to turn off LCD panel\n");
++		pr_err(MODULE_NAME ":Unable to turn off LCD panel\n");
+ }
+ 
+ static unsigned long h3_panel_get_caps(struct lcd_panel *panel)
+diff --git a/drivers/video/omap/lcd_inn1610.c b/drivers/video/omap/lcd_inn1610.c
+index 95604ca..ea85cb9 100644
+--- a/drivers/video/omap/lcd_inn1610.c
++++ b/drivers/video/omap/lcd_inn1610.c
+@@ -27,20 +27,18 @@
+ 
+ #define MODULE_NAME	"omapfb-lcd_h3"
+ 
+-#define pr_err(fmt, args...) printk(KERN_ERR MODULE_NAME ": " fmt, ## args)
+-
+ static int innovator1610_panel_init(struct lcd_panel *panel,
+ 				    struct omapfb_device *fbdev)
+ {
+ 	int r = 0;
+ 
+ 	if (omap_request_gpio(14)) {
+-		pr_err("can't request GPIO 14\n");
++		pr_err(MODULE_NAME ":can't request GPIO 14\n");
+ 		r = -1;
+ 		goto exit;
+ 	}
+ 	if (omap_request_gpio(15)) {
+-		pr_err("can't request GPIO 15\n");
++		pr_err(MODULE_NAME ":can't request GPIO 15\n");
+ 		omap_free_gpio(14);
+ 		r = -1;
+ 		goto exit;
+diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+index f592df7..c51936a 100644
+--- a/include/linux/kernel.h
++++ b/include/linux/kernel.h
+@@ -242,6 +242,8 @@ static inline int __attribute__ ((format (printf, 1, 2))) pr_debug(const char *
+ 
+ #define pr_info(fmt,arg...) \
+ 	printk(KERN_INFO fmt,##arg)
++#define pr_err(fmt, arg...) \
++	printk(KERN_ERR fmt, ##arg)
+ 
+ /*
+  *      Display an IP address in readable format.
 -- 
-1.5.0.6
+1.5.3.GIT
+
