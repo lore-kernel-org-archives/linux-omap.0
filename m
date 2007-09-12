@@ -1,88 +1,203 @@
-From: "chrajasekhar" <chrajasekhar@tataelxsi.co.in>
-Subject: please clarify OMAP1710 H3 Board Rev-B queries-Reg.
-Date: Wed, 12 Sep 2007 19:45:55 +0530
-Message-ID: <001e01c7f547$6fbfea80$de29320a@telxsi.com>
-Reply-To: chrajasekhar@tataelxsi.co.in
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+From: Emil Medve <Emilian.Medve@Freescale.com>
+Subject: [PATCH v3] Make the pr_*() family of macros in kernel.h complete
+Date: Wed, 12 Sep 2007 11:39:40 -0500
+Message-ID: <11896151802410-git-send-email-Emilian.Medve@Freescale.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, i2c@lm-sensors.org, linux-omap-open-source@linux.omap.com
+Cc: Emil Medve <Emilian.Medve@Freescale.com>
 List-Id: linux-omap@vger.kernel.org
 
+Other/Some pr_*() macros are already defined in kernel.h, but pr_err() was defined
+multiple times in several other places
 
+Signed-off-by: Emil Medve <Emilian.Medve@Freescale.com>
+---
 
+I'm writing a driver and I've been using the pr_*() macros from kernel.h and I
+was surprised not to find there pr_err() but defined multiple times (in four
+different files). I didn't want to define it yet one more time so I did this
+cleanup
 
-Hi,
+As per community request/suggestion, I added the rest of the missing pr_*()
+macros to complete the family. The names of the macros are based on the KERN_*
+loglevel names and are macthing the naming convention of the dev_*() print
+macros from device.h. The macros are defined in the ascending order of the
+loglevel
 
-OMAP1710 H3 Rev-B board queries
-------------------------------------------
+This patch is against Linus' tree (577107e8e4cf9f6f4f5ef8350ac9a8faa6c3796d)
 
-1.is this board having any hardware related issues like MMC interface ,DMA
-etc.,?
+linux-2.6> scripts/checkpatch.pl 0001-Make-the-pr_-family-of-macros-in-kernel.h-complet.patch 
+Your patch has no obvious style problems and is ready for submission.
 
-2. we are using a BSP for this board is linux-2.6.9(sample),  which, we got
-it from the following link
+ drivers/i2c/chips/menelaus.c     |   10 ++++------
+ drivers/net/spider_net.h         |    3 ---
+ drivers/video/omap/lcd_h3.c      |    6 ++----
+ drivers/video/omap/lcd_inn1610.c |    6 ++----
+ include/linux/kernel.h           |   22 +++++++++++++++++-----
+ 5 files changed, 25 insertions(+), 22 deletions(-)
 
-TI Linux Community - Downloads
+diff --git a/drivers/i2c/chips/menelaus.c b/drivers/i2c/chips/menelaus.c
+index d9c92c5..66436ba 100644
+--- a/drivers/i2c/chips/menelaus.c
++++ b/drivers/i2c/chips/menelaus.c
+@@ -49,8 +49,6 @@
+ 
+ #define DRIVER_NAME			"menelaus"
+ 
+-#define pr_err(fmt, arg...)	printk(KERN_ERR DRIVER_NAME ": ", ## arg);
+-
+ #define MENELAUS_I2C_ADDRESS		0x72
+ 
+ #define MENELAUS_REV			0x01
+@@ -155,7 +153,7 @@ static int menelaus_write_reg(int reg, u8 value)
+ 	int val = i2c_smbus_write_byte_data(the_menelaus->client, reg, value);
+ 
+ 	if (val < 0) {
+-		pr_err("write error");
++		pr_err(DRIVER_NAME ": write error");
+ 		return val;
+ 	}
+ 
+@@ -167,7 +165,7 @@ static int menelaus_read_reg(int reg)
+ 	int val = i2c_smbus_read_byte_data(the_menelaus->client, reg);
+ 
+ 	if (val < 0)
+-		pr_err("read error");
++		pr_err(DRIVER_NAME ": read error");
+ 
+ 	return val;
+ }
+@@ -1177,7 +1175,7 @@ static int menelaus_probe(struct i2c_client *client)
+ 	/* If a true probe check the device */
+ 	rev = menelaus_read_reg(MENELAUS_REV);
+ 	if (rev < 0) {
+-		pr_err("device not found");
++		pr_err(DRIVER_NAME ": device not found");
+ 		err = -ENODEV;
+ 		goto fail1;
+ 	}
+@@ -1258,7 +1256,7 @@ static int __init menelaus_init(void)
+ 
+ 	res = i2c_add_driver(&menelaus_i2c_driver);
+ 	if (res < 0) {
+-		pr_err("driver registration failed\n");
++		pr_err(DRIVER_NAME ": driver registration failed\n");
+ 		return res;
+ 	}
+ 
+diff --git a/drivers/net/spider_net.h b/drivers/net/spider_net.h
+index dbbdb8c..c67b11d 100644
+--- a/drivers/net/spider_net.h
++++ b/drivers/net/spider_net.h
+@@ -493,7 +493,4 @@ struct spider_net_card {
+ 	struct spider_net_descr darray[0];
+ };
+ 
+-#define pr_err(fmt,arg...) \
+-	printk(KERN_ERR fmt ,##arg)
+-
+ #endif
+diff --git a/drivers/video/omap/lcd_h3.c b/drivers/video/omap/lcd_h3.c
+index 51807b4..c604d93 100644
+--- a/drivers/video/omap/lcd_h3.c
++++ b/drivers/video/omap/lcd_h3.c
+@@ -28,8 +28,6 @@
+ 
+ #define MODULE_NAME	"omapfb-lcd_h3"
+ 
+-#define pr_err(fmt, args...) printk(KERN_ERR MODULE_NAME ": " fmt, ## args)
+-
+ static int h3_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
+ {
+ 	return 0;
+@@ -48,7 +46,7 @@ static int h3_panel_enable(struct lcd_panel *panel)
+ 	if (!r)
+ 		r = tps65010_set_gpio_out_value(GPIO2, HIGH);
+ 	if (r)
+-		pr_err("Unable to turn on LCD panel\n");
++		pr_err(MODULE_NAME ": Unable to turn on LCD panel\n");
+ 
+ 	return r;
+ }
+@@ -62,7 +60,7 @@ static void h3_panel_disable(struct lcd_panel *panel)
+ 	if (!r)
+ 		tps65010_set_gpio_out_value(GPIO2, LOW);
+ 	if (r)
+-		pr_err("Unable to turn off LCD panel\n");
++		pr_err(MODULE_NAME ": Unable to turn off LCD panel\n");
+ }
+ 
+ static unsigned long h3_panel_get_caps(struct lcd_panel *panel)
+diff --git a/drivers/video/omap/lcd_inn1610.c b/drivers/video/omap/lcd_inn1610.c
+index 95604ca..5ef119c 100644
+--- a/drivers/video/omap/lcd_inn1610.c
++++ b/drivers/video/omap/lcd_inn1610.c
+@@ -27,20 +27,18 @@
+ 
+ #define MODULE_NAME	"omapfb-lcd_h3"
+ 
+-#define pr_err(fmt, args...) printk(KERN_ERR MODULE_NAME ": " fmt, ## args)
+-
+ static int innovator1610_panel_init(struct lcd_panel *panel,
+ 				    struct omapfb_device *fbdev)
+ {
+ 	int r = 0;
+ 
+ 	if (omap_request_gpio(14)) {
+-		pr_err("can't request GPIO 14\n");
++		pr_err(MODULE_NAME ": can't request GPIO 14\n");
+ 		r = -1;
+ 		goto exit;
+ 	}
+ 	if (omap_request_gpio(15)) {
+-		pr_err("can't request GPIO 15\n");
++		pr_err(MODULE_NAME ": can't request GPIO 15\n");
+ 		omap_free_gpio(14);
+ 		r = -1;
+ 		goto exit;
+diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+index 47160fe..166a822 100644
+--- a/include/linux/kernel.h
++++ b/include/linux/kernel.h
+@@ -230,10 +230,25 @@ extern void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
+ 			const void *buf, size_t len);
+ #define hex_asc(x)	"0123456789abcdef"[x]
+ 
++#define pr_emerg(fmt, arg...) \
++	printk(KERN_EMERG fmt, ##arg)
++#define pr_alert(fmt, arg...) \
++	printk(KERN_ALERT fmt, ##arg)
++#define pr_crit(fmt, arg...) \
++	printk(KERN_CRIT fmt, ##arg)
++#define pr_err(fmt, arg...) \
++	printk(KERN_ERR fmt, ##arg)
++#define pr_warning(fmt, arg...) \
++	printk(KERN_WARNING fmt, ##arg)
++#define pr_notice(fmt, arg...) \
++	printk(KERN_NOTICE fmt, ##arg)
++#define pr_info(fmt, arg...) \
++	printk(KERN_INFO fmt, ##arg)
++
+ #ifdef DEBUG
+ /* If you are writing a driver, please use dev_dbg instead */
+-#define pr_debug(fmt,arg...) \
+-	printk(KERN_DEBUG fmt,##arg)
++#define pr_debug(fmt, arg...) \
++	printk(KERN_DEBUG fmt, ##arg)
+ #else
+ static inline int __attribute__ ((format (printf, 1, 2))) pr_debug(const char * fmt, ...)
+ {
+@@ -241,9 +256,6 @@ static inline int __attribute__ ((format (printf, 1, 2))) pr_debug(const char *
+ }
+ #endif
+ 
+-#define pr_info(fmt,arg...) \
+-	printk(KERN_INFO fmt,##arg)
+-
+ /*
+  *      Display an IP address in readable format.
+  */
+-- 
+1.5.3.GIT
 
-Is this kernel having any bugs?
-
-3. Is this kernel  having  any  bugs related to DMA module or MMC interface?
-
-
-Please clarify the above queries.
-
-
-
-Thanks & Regards
-Rajasekhar ch
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-The information contained in this electronic message and any attachments to this message are intended for the exclusive use of the addressee(s) and may contain proprietary, confidential or privileged information. If you are not the intended recipient, you should not disseminate, distribute or copy this e-mail. Please notify the sender immediately and destroy all copies of this message and any attachments contained in it.
-
-Contact your Administrator for further information.
