@@ -1,41 +1,43 @@
-From: Joe Perches <joe@perches.com>
-Subject: RE: [PATCH v3] Make the pr_*() family of macros in kernel.h
-	complete
-Date: Wed, 12 Sep 2007 22:11:14 -0700
-Message-ID: <1189660274.19708.125.camel@localhost>
-References: <11896151802410-git-send-email-Emilian.Medve@Freescale.com>
-	 <Pine.LNX.4.64.0709122003410.22467@fbirervta.pbzchgretzou.qr>
-	 <598D5675D34BE349929AF5EDE9B03E27014F9FDA@az33exm24.fsl.freescale.net>
+From: "chrajasekhar" <chrajasekhar@tataelxsi.co.in>
+Subject: MMC writing problem
+Date: Thu, 13 Sep 2007 16:43:16 +0530
+Message-ID: <000001c7f5f7$163cd080$de29320a@telxsi.com>
+Reply-To: chrajasekhar@tataelxsi.co.in
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <598D5675D34BE349929AF5EDE9B03E27014F9FDA@az33exm24.fsl.freescale.net>
-Sender: netdev-owner@vger.kernel.org
-To: Medve Emilian-EMMEDVE1 <Emilian.Medve@freescale.com>
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, i2c@lm-sensors.org, linux-omap-open-source@linux.omap.com
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 2007-09-12 at 11:44 -0700, Medve Emilian-EMMEDVE1 wrote:
-> First, this patch doesn't have the trailing "\n" problem that one had.
 
-I expect all the kernel logging functions to be
-overhauled eventually.
 
-I'd prefer a mechanism that somehow supports
-identifying complete messages.  I think the new
-pr_<level> functions are not particularly useful
-without a mechanism to avoid or identify multiple
-processors or threads interleaving partial in-progress
-multiple statement messages.
+Hi,
 
-I've got a very large patch series that converts _all_
-the current single line messages that use KERN_<level>
-to pr_<level> and identifies, prefixes and postfixes
-the rest of the multiple source line messages.
 
-At some point, sooner or later, the logging functions
-will be improved.  Apparently, more likely later.
+I am working on OMAP1710 H3 board Rev-B. I am using Linux2.6.9 kernel(Sample
+kernel from TI Linux community)
 
-cheers, Joe
+When reading/writing data from/to MMC Card , it is transferring data
+successfully . but some times the system is going to Unknown state (Hanging)
+while the data is transferring.
 
+Please help me to resolve it.
+
+Rajasekhar
+
+
+
+The information contained in this electronic message and any attachments to this message are intended for the exclusive use of the addressee(s) and may contain proprietary, confidential or privileged information. If you are not the intended recipient, you should not disseminate, distribute or copy this e-mail. Please notify the sender immediately and destroy all copies of this message and any attachments contained in it.
+
+Contact your Administrator for further information.
