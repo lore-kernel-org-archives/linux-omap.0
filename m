@@ -1,55 +1,41 @@
-From: "Medve Emilian-EMMEDVE1" <Emilian.Medve@freescale.com>
-Subject: RE: [PATCH v3] Make the pr_*() family of macros in kernel.h complete
-Date: Wed, 12 Sep 2007 11:44:56 -0700
-Message-ID: <598D5675D34BE349929AF5EDE9B03E27014F9FDA@az33exm24.fsl.freescale.net>
-References: <11896151802410-git-send-email-Emilian.Medve@Freescale.com> <Pine.LNX.4.64.0709122003410.22467@fbirervta.pbzchgretzou.qr>
+From: Joe Perches <joe@perches.com>
+Subject: RE: [PATCH v3] Make the pr_*() family of macros in kernel.h
+	complete
+Date: Wed, 12 Sep 2007 22:11:14 -0700
+Message-ID: <1189660274.19708.125.camel@localhost>
+References: <11896151802410-git-send-email-Emilian.Medve@Freescale.com>
+	 <Pine.LNX.4.64.0709122003410.22467@fbirervta.pbzchgretzou.qr>
+	 <598D5675D34BE349929AF5EDE9B03E27014F9FDA@az33exm24.fsl.freescale.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <Pine.LNX.4.64.0709122003410.22467@fbirervta.pbzchgretzou.qr>
+In-Reply-To: <598D5675D34BE349929AF5EDE9B03E27014F9FDA@az33exm24.fsl.freescale.net>
 Sender: netdev-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, i2c@lm-sensors.org, linux-omap-open-source@linux.omap.com
+To: Medve Emilian-EMMEDVE1 <Emilian.Medve@freescale.com>
+Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, i2c@lm-sensors.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Jan Engelhardt [mailto:jengelh@computergmbh.de] 
-> Sent: Wednesday, September 12, 2007 1:04 PM
-> To: Medve Emilian-EMMEDVE1
-> Cc: linux-kernel@vger.kernel.org; netdev@vger.kernel.org; 
-> i2c@lm-sensors.org; linux-omap-open-source@linux.omap.com
-> Subject: Re: [PATCH v3] Make the pr_*() family of macros in 
-> kernel.h complete
-> 
-> 
-> On Sep 12 2007 11:39, Emil Medve wrote:
-> >
-> >Other/Some pr_*() macros are already defined in kernel.h, 
-> but pr_err() was defined
-> >multiple times in several other places
-> 
-> Note http://lkml.org/lkml/2007/8/4/30 .
+On Wed, 2007-09-12 at 11:44 -0700, Medve Emilian-EMMEDVE1 wrote:
+> First, this patch doesn't have the trailing "\n" problem that one had.
 
+I expect all the kernel logging functions to be
+overhauled eventually.
 
-Hi Jan,
+I'd prefer a mechanism that somehow supports
+identifying complete messages.  I think the new
+pr_<level> functions are not particularly useful
+without a mechanism to avoid or identify multiple
+processors or threads interleaving partial in-progress
+multiple statement messages.
 
+I've got a very large patch series that converts _all_
+the current single line messages that use KERN_<level>
+to pr_<level> and identifies, prefixes and postfixes
+the rest of the multiple source line messages.
 
-I didn't see that thread before I submitted the patch... I don't want to
-start the conversation from the top 'cause this is not a patch that
-fixes some existing showstopper... however, I have two comments to make.
-First, this patch doesn't have the trailing "\n" problem that one had.
-Second, it seems that multiple people at different moments in time have
-the same idea to complete and, more important, to use the pr_*() family
-of macros because I guess it makes it easier to use them. In addition,
-it would make it less likely for people to forget using the loglevel in
-their kernel messages.
+At some point, sooner or later, the logging functions
+will be improved.  Apparently, more likely later.
 
-Is trying to add them a dead path? Thing is that the existing ones
-suggest to, more or less, new people to the kernel that they should use
-them and then discover the incompleteness/inconsistency...
+cheers, Joe
 
-
-Cheers,
-Emil.
