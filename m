@@ -1,41 +1,54 @@
-From: "Satyam Sharma" <satyam.sharma@gmail.com>
-Subject: Re: [PATCH v3] Make the pr_*() family of macros in kernel.h complete
-Date: Fri, 14 Sep 2007 22:11:59 +0530
-Message-ID: <a781481a0709140941w4ec76582j40ee53a189b99b05@mail.gmail.com>
-References: <11896151802410-git-send-email-Emilian.Medve@Freescale.com>
-	 <598D5675D34BE349929AF5EDE9B03E270155578C@az33exm24.fsl.freescale.net>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: [PATCH 1/2] [OMAP MMU FWK] Translate printk to dev_* and break
+ lines with more than 80 char
+Date: Fri, 14 Sep 2007 18:38:31 +0200
+Message-ID: <46EAB907.5000407@googlemail.com>
+References: <11897112792637-git-send-email-edubezval@gmail.com>
+	<11897112792849-git-send-email-edubezval@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758740AbXINQmW@vger.kernel.org>
-In-Reply-To: <598D5675D34BE349929AF5EDE9B03E270155578C@az33exm24.fsl.freescale.net>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Medve Emilian-EMMEDVE1 <Emilian.Medve@freescale.com>
-Cc: akpm@linux-foundation.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, i2c@lm-sensors.org, linux-omap-open-source@linux.omap.com
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <11897112792849-git-send-email-edubezval@gmail.com>
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: Eduardo Valentin <eduardo.valentin@indt.org.br>, Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-> > -----Original Message-----
-> > From: Medve Emilian-EMMEDVE1
-> > Sent: Wednesday, September 12, 2007 11:40 AM
-> > To: linux-kernel@vger.kernel.org; netdev@vger.kernel.org;
-> > i2c@lm-sensors.org; linux-omap-open-source@linux.omap.com
-> > Cc: Medve Emilian-EMMEDVE1
+Eduardo Valentin wrote:
+> From: Eduardo Valentin <eduardo.valentin@indt.org.br>
+> 
+> This patch:
+> 
+> - Translates printk to dev_*
+> - Breaks lines with more than 80 columns
+> 
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+> ---
+>  arch/arm/mach-omap1/mmu.c       |   10 ++--
+>  arch/arm/mach-omap2/mmu.c       |   29 ++++++----
+>  arch/arm/plat-omap/mmu.c        |  107 +++++++++++++++++++--------------------
+>  include/asm-arm/arch-omap/mmu.h |   15 ++++--
+>  4 files changed, 85 insertions(+), 76 deletions(-)
 
-... no maintainer explicitly copied on the original mail who'd push this in.
-Little thing, but LKML is too noisy, so you need to Cc: folks explicitly ...
+Is this an update of
 
-> > Subject: [PATCH v3] Make the pr_*() family of macros in
-> > kernel.h complete
-> >
-> > Other/Some pr_*() macros are already defined in kernel.h, but
-> > pr_err() was defined
-> > multiple times in several other places
-> >
-> > Signed-off-by: Emil Medve <Emilian.Medve@Freescale.com>
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-August/011180.html
 
-I think it's a useful cleanup, patch looks good to me ...
+?
 
-Reviewed-by: Satyam Sharma <satyam@infradead.org>
+So above patch is outdated?
 
-[ Original diff is at: http://lkml.org/lkml/diff/2007/9/12/182/1 ]
+Just for my patch tracking ;)
+
+Regards
+
+Dirk
