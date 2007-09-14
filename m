@@ -1,54 +1,72 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [PATCH v3] Make the pr_*() family of macros in kernel.h
- complete
-Date: Fri, 14 Sep 2007 10:13:29 -0700
-Message-ID: <20070914101329.60d42ca7.randy.dunlap@oracle.com>
-References: <11896151802410-git-send-email-Emilian.Medve@Freescale.com>
-	<598D5675D34BE349929AF5EDE9B03E270155578C@az33exm24.fsl.freescale.net>
-	<a781481a0709140941w4ec76582j40ee53a189b99b05@mail.gmail.com>
+From: "Eduardo Valentin" <edubezval@gmail.com>
+Subject: Re: [PATCH 1/2] [OMAP MMU FWK] Translate printk to dev_* and break
+	lines with more than 80 char
+Date: Fri, 14 Sep 2007 13:18:58 -0400
+Message-ID: <a0580c510709141018r7e673cd5r3eb22b7627f4618e@mail.gmail.com>
+References: <11897112792637-git-send-email-edubezval@gmail.com>
+	<11897112792849-git-send-email-edubezval@gmail.com>
+	<46EAB907.5000407@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <a781481a0709140941w4ec76582j40ee53a189b99b05@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Satyam Sharma <satyam.sharma@gmail.com>
-Cc: Medve Emilian-EMMEDVE1 <Emilian.Medve@freescale.com>, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, i2c@lm-sensors.org, linux-omap-open-source@linux.omap.com
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <46EAB907.5000407@googlemail.com>
+Content-Disposition: inline
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 14 Sep 2007 22:11:59 +0530 Satyam Sharma wrote:
+Hi Dirk,
 
-> > > -----Original Message-----
-> > > From: Medve Emilian-EMMEDVE1
-> > > Sent: Wednesday, September 12, 2007 11:40 AM
-> > > To: linux-kernel@vger.kernel.org; netdev@vger.kernel.org;
-> > > i2c@lm-sensors.org; linux-omap-open-source@linux.omap.com
-> > > Cc: Medve Emilian-EMMEDVE1
-> 
-> ... no maintainer explicitly copied on the original mail who'd push this in.
-> Little thing, but LKML is too noisy, so you need to Cc: folks explicitly ...
-> 
-> > > Subject: [PATCH v3] Make the pr_*() family of macros in
-> > > kernel.h complete
-> > >
-> > > Other/Some pr_*() macros are already defined in kernel.h, but
-> > > pr_err() was defined
-> > > multiple times in several other places
-> > >
-> > > Signed-off-by: Emil Medve <Emilian.Medve@Freescale.com>
-> 
-> I think it's a useful cleanup, patch looks good to me ...
-> 
-> Reviewed-by: Satyam Sharma <satyam@infradead.org>
 
-I like it too.
+    Yes, the patch I sent last month is outdated. But this new one has
+just little differences. I resent it as the last one was not merged
+and the second on the series is on top of this.
 
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 
-(since I still haven't seen reviewed-by in SubmittingPatches)
+Cheers,
 
-> [ Original diff is at: http://lkml.org/lkml/diff/2007/9/12/182/1 ]
+On 9/14/07, Dirk Behme <dirk.behme@googlemail.com> wrote:
+> Eduardo Valentin wrote:
+> > From: Eduardo Valentin <eduardo.valentin@indt.org.br>
+> >
+> > This patch:
+> >
+> > - Translates printk to dev_*
+> > - Breaks lines with more than 80 columns
+> >
+> > Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+> > ---
+> >  arch/arm/mach-omap1/mmu.c       |   10 ++--
+> >  arch/arm/mach-omap2/mmu.c       |   29 ++++++----
+> >  arch/arm/plat-omap/mmu.c        |  107 +++++++++++++++++++--------------------
+> >  include/asm-arm/arch-omap/mmu.h |   15 ++++--
+> >  4 files changed, 85 insertions(+), 76 deletions(-)
+>
+> Is this an update of
+>
+> http://linux.omap.com/pipermail/linux-omap-open-source/2007-August/011180.html
+>
+> ?
+>
+> So above patch is outdated?
+>
+> Just for my patch tracking ;)
+>
+> Regards
+>
+> Dirk
+>
 
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+-- 
+Eduardo Bezerra Valentin
