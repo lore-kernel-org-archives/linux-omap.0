@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: Update ov9640 ifparm for H4 board.
-Date: Mon, 17 Sep 2007 11:32:33 -0700
-Message-ID: <20070917183233.GH21226@atomide.com>
-References: <5d5443650709060536q6a407aa6ia56e471c01c28579@mail.gmail.com>
+Subject: Re: [PATCH 1/1] Export v4l2_int_device_{, un}register
+Date: Mon, 17 Sep 2007 11:35:12 -0700
+Message-ID: <20070917183512.GJ21226@atomide.com>
+References: <11895147942548-git-send-email-sakari.ailus@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <5d5443650709060536q6a407aa6ia56e471c01c28579@mail.gmail.com>
+In-Reply-To: <11895147942548-git-send-email-sakari.ailus@nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,50 +17,50 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Trilok Soni <soni.trilok@gmail.com>
-Cc: Sakari Ailus <sakari.ailus@nokia.com>, Linux OMAP <linux-omap-open-source@linux.omap.com>
+To: Sakari Ailus <sakari.ailus@nokia.com>
+Cc: linux-omap-open-source@linux.omap.com, Adrian Bunk <bunk@stusta.de>
 List-Id: linux-omap@vger.kernel.org
 
-* Trilok Soni <soni.trilok@gmail.com> [070906 05:40]:
-> -- 
-> --Trilok Soni
-
-> From c2f1169a933107c9f6ccfb47c7cc35f1e904821c Mon Sep 17 00:00:00 2001
-> From: Trilok Soni <soni.trilok@gmail.com>
-> Date: Thu, 6 Sep 2007 23:33:23 +0530
-> Subject: [PATCH] OMAP: Update ov9640 ifparm for H4 board.
+* Sakari Ailus <sakari.ailus@nokia.com> [070911 05:48]:
+> From: Adrian Bunk <bunk@stusta.de>
 > 
-> - Update ov9640 ifparm due to change in naming
->   for parallel interface and added clock_min/max
->   for ov9640.
+> This patch fixes the following build error:
 > 
-> Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
+> <--  snip  -->
+> 
+> ...
+>   MODPOST 2135 modules
+> make[2]: *** [__modpost] Error 1
+> 
+> <--  snip  -->
+> 
+> Signed-off-by: Adrian Bunk <bunk@stusta.de>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
 > ---
->  arch/arm/mach-omap2/board-h4.c |    8 +++++---
->  1 files changed, 5 insertions(+), 3 deletions(-)
+>  drivers/media/video/v4l2-int-device.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-> index 2561174..fc30021 100644
-> --- a/arch/arm/mach-omap2/board-h4.c
-> +++ b/arch/arm/mach-omap2/board-h4.c
-> @@ -625,12 +625,14 @@ static int ov9640_sensor_power_set(int power)
->  }
+> diff --git a/drivers/media/video/v4l2-int-device.c b/drivers/media/video/v4l2-int-device.c
+> index 4ff17e3..f497c94 100644
+> --- a/drivers/media/video/v4l2-int-device.c
+> +++ b/drivers/media/video/v4l2-int-device.c
+> @@ -101,6 +101,7 @@ int v4l2_int_device_register(struct v4l2_int_device *d)
 >  
->  static struct v4l2_ifparm ifparm = {
-> -	.if_type = V4L2_IF_TYPE_PARALLEL,
-> +	.if_type = V4L2_IF_TYPE_BT656,
->  	.u = {
-> -		.parallel = {
-> +		.bt656 = {
->  			 .frame_start_on_rising_vs = 1,
->  			 .nobt_vs_inv = 1,
-> -			 .mode = V4L2_IF_TYPE_PARALLEL_MODE_NOBT_8BIT,
-> +			 .mode = V4L2_IF_TYPE_BT656_MODE_NOBT_8BIT,
-> +			 .clock_min = OV9640_XCLK_MIN,
-> +			 .clock_max = OV9640_XCLK_MAX,
->  		 },
->  	},
->  };
+>  	return 0;
+>  }
+> +EXPORT_SYMBOL_GPL(v4l2_int_device_register);
+>  
+>  void v4l2_int_device_unregister(struct v4l2_int_device *d)
+>  {
+> @@ -114,6 +115,7 @@ void v4l2_int_device_unregister(struct v4l2_int_device *d)
+>  	}
+>  	mutex_unlock(&mutex);
+>  }
+> +EXPORT_SYMBOL_GPL(v4l2_int_device_unregister);
+>  
+>  /* Adapted from search_extable in extable.c. */
+>  static v4l2_int_ioctl_func *find_ioctl(struct v4l2_int_slave *slave, int cmd,
 
 Pushing today.
 
