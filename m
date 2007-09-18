@@ -1,10 +1,14 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP: Set default OMAP2_CTRL_BASE for OMAP1
-Date: Tue, 18 Sep 2007 19:32:36 +0200
-Message-ID: <46F00BB4.40403@googlemail.com>
+Subject: Re: problems compiling latest git update
+Date: Tue, 18 Sep 2007 19:37:32 +0200
+Message-ID: <46F00CDC.90209@googlemail.com>
+References: <ae36f8040709180700u671ae5fpc8fa4a0a7c8474c0@mail.gmail.com>	<a0580c510709180718p220404d0jc5eac7b15eeab93a@mail.gmail.com>	<ae36f8040709180914q54881d2ex90c9ab9ceb0ab967@mail.gmail.com>	<ae36f8040709180932l2b2afcb2q5be295434272e3c9@mail.gmail.com>	<46F002C0.60503@googlemail.com>	<ae36f8040709180959t1d7d2d56v72ac2d116e7cf18e@mail.gmail.com>	<ae36f8040709181019o661cf3d7g63aea567acf607b2@mail.gmail.com>
+	<ae36f8040709181032i286ccc7atc37a8104de47ced4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090804010802070400070500"
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <ae36f8040709181032i286ccc7atc37a8104de47ced4@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,50 +18,22 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: OMAP <Linux-omap-open-source@linux.omap.com>
+To: lvcargnini@gmail.com
+Cc: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090804010802070400070500
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Lu=EDs Cargnini wrote:
+> ok Vitorio's producing a patch for devices.c, give me half hour to post=
+ it
+> here.
 
+Do you like to test
 
-In case no OMAP2_CTRL_BASE is set, set default one to fix compilation
-errors e.g. for OMAP1.
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-September/011=
+393.html
 
-Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
+for this?
 
---------------090804010802070400070500
-Content-Type: text/plain;
- name="omap2_ctrl_base_fix_for_omap1.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="omap2_ctrl_base_fix_for_omap1.txt"
+Cheers
 
-Index: linux-osk/include/asm-arm/arch-omap/omap24xx.h
-===================================================================
---- linux-osk.orig/include/asm-arm/arch-omap/omap24xx.h
-+++ linux-osk/include/asm-arm/arch-omap/omap24xx.h
-@@ -103,6 +103,11 @@
- 
- #endif
- 
-+#if !defined(OMAP2_CTRL_BASE)
-+/* If no one of the above configs is selected, use default */
-+#define OMAP2_CTRL_BASE		L4_24XX_BASE
-+#endif
-+
- /* Control module */
- #define OMAP2_CONTROL_DEVCONF0	(OMAP2_CTRL_BASE + 0x274)
- #define OMAP2_CONTROL_DEVCONF1	(OMAP2_CTRL_BASE + 0x2e8)
-
-
---------------090804010802070400070500
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---------------090804010802070400070500--
+Dirk
