@@ -1,13 +1,17 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: [RFC] [PATCH 0/14] Update OMAP defconfigs
-Date: Tue, 18 Sep 2007 18:26:53 +0200
-Message-ID: <46EFFC4D.7010402@googlemail.com>
-References: <11900606011267-git-send-email-felipe.lima@indt.org.br>
+From: "=?ISO-8859-1?Q?Lu=EDs_Cargnini?=" <lvcargnini@gmail.com>
+Subject: Re: problems compiling latest git update
+Date: Tue, 18 Sep 2007 13:32:58 -0300
+Message-ID: <ae36f8040709180932l2b2afcb2q5be295434272e3c9@mail.gmail.com>
+References: <ae36f8040709180700u671ae5fpc8fa4a0a7c8474c0@mail.gmail.com>
+	<a0580c510709180718p220404d0jc5eac7b15eeab93a@mail.gmail.com>
+	<ae36f8040709180914q54881d2ex90c9ab9ceb0ab967@mail.gmail.com>
+Reply-To: lvcargnini@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11900606011267-git-send-email-felipe.lima@indt.org.br>
+In-Reply-To: <ae36f8040709180914q54881d2ex90c9ab9ceb0ab967@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,39 +21,67 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Felipe Balbi <felipe.lima@indt.org.br>, OMAP-Linux <linux-omap-open-source@linux.omap.com>
+Cc: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Felipe Balbi wrote:
-> The following patch series updates the defconfigs for OMAP boards.
+OK , after make a super clean (mrproper) the configs back to normal, but th=
+e
+errors back, I added MMC/SD support in the kenel before compilate it any
+IDEA ?
 
-Do these updates include functional changes? Or are they only 
-non-function-change updates to 2.6.23-rc6-omap1?
+is this normal ?
 
-E.g. in omap_2430sdp_defconfig there is
+ CALL    scripts/checksyscalls.sh
+<stdin>:1097:2: warning: #warning syscall fadvise64 not implemented
+<stdin>:1265:2: warning: #warning syscall migrate_pages not implemented
+<stdin>:1321:2: warning: #warning syscall pselect6 not implemented
+<stdin>:1325:2: warning: #warning syscall ppoll not implemented
+<stdin>:1365:2: warning: #warning syscall epoll_pwait not implemented
+<stdin>:1385:2: warning: #warning syscall fallocate not implemented
+  CC      scripts/mod/empty.o
 
--# CONFIG_SYSCTL_SYSCALL is not set
-+CONFIG_SYSCTL_SYSCALL=y
 
-+CONFIG_OMAP_DEBUG_DEVICES=y
+well the error comes back:
+LD      arch/arm/nwfpe/built-in.o
+  CC      arch/arm/plat-omap/common.o
+  CC      arch/arm/plat-omap/sram.o
+  AS      arch/arm/plat-omap/sram-fn.o
+  CC      arch/arm/plat-omap/clock.o
+  CC      arch/arm/plat-omap/devices.o
+arch/arm/plat-omap/devices.c: In function 'omap_init_mmc':
+arch/arm/plat-omap/devices.c:348: error: 'OMAP2_CTRL_BASE' undeclared (firs=
+t
+use in this function)
+arch/arm/plat-omap/devices.c:348: error: (Each undeclared identifier is
+reported only once
+arch/arm/plat-omap/devices.c:348: error: for each function it appears in.)
+make[1]: *** [arch/arm/plat-omap/devices.o] Error 1
+make: *** [arch/arm/plat-omap] Error 2
 
--# CONFIG_MACH_OMAP_H4 is not set
-+CONFIG_MACH_OMAP_H4=y
 
--CONFIG_MACH_OMAP_2430SDP=y
-+# CONFIG_MACH_OMAP_2430SDP is not set
+any idea ?
 
--CONFIG_PREEMPT=y
-+# CONFIG_PREEMPT is not set
+On 9/18/07, Lu=EDs Cargnini <lvcargnini@gmail.com> wrote:
+>
+> I'm doing and mrproper doing from the beginning all the process I cloned
+> the git  to make my modifications and test over the  latest tree, and
+> redoing everything again to see what happen
+>
+>
+> ----------------------------------------------------------
+>
 
--CONFIG_PM=y
-+# CONFIG_PM is not set
 
--# CONFIG_IRDA is not set
-+CONFIG_IRDA=y
 
-...
-
-Regards
-
-Dirk
+--=20
+---------------------------------------------------------------------------=
+---
+Thanks && Regards
+Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
+IEEE Member
+Electrical Engineer Faculty @ PUCRS
+Ipiranga Avenue, 6681 =96 Building 30
+P.O. Box: 90619-900 =96 Porto Alegre/RS
+Phone: +55 51 3320 3500  extension: 7696
+---------------------------------------------------------------------------=
+------
