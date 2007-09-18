@@ -1,19 +1,13 @@
-From: "=?ISO-8859-1?Q?Lu=EDs_Cargnini?=" <lvcargnini@gmail.com>
-Subject: Re: problems compiling latest git update
-Date: Tue, 18 Sep 2007 13:59:26 -0300
-Message-ID: <ae36f8040709180959t1d7d2d56v72ac2d116e7cf18e@mail.gmail.com>
-References: <ae36f8040709180700u671ae5fpc8fa4a0a7c8474c0@mail.gmail.com>
-	<a0580c510709180718p220404d0jc5eac7b15eeab93a@mail.gmail.com>
-	<ae36f8040709180914q54881d2ex90c9ab9ceb0ab967@mail.gmail.com>
-	<ae36f8040709180932l2b2afcb2q5be295434272e3c9@mail.gmail.com>
-	<46F002C0.60503@googlemail.com>
-Reply-To: lvcargnini@gmail.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Problem in omap_pm_idle()
+Date: Tue, 18 Sep 2007 09:58:32 -0700
+Message-ID: <20070918165832.GA2521@atomide.com>
+References: <46EFDF0D.8000808@celunite.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <46F002C0.60503@googlemail.com>
 Content-Disposition: inline
+In-Reply-To: <46EFDF0D.8000808@celunite.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -23,42 +17,21 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-Cc: OMAP <Linux-omap-open-source@linux.omap.com>
+To: Vivek Kutal <vivek.kutal@celunite.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-without MMC/SD it works, but with MMC/SD it not compile
-and my source have the applied patch that you suggested, but it is for
-OMAP2420
+* Vivek Kutal <vivek.kutal@celunite.com> [070918 07:22]:
+> Hi ,
+>       I was looking at omap_pm_idle() in omap1/pm.c , at the end there is a 
+> call to omap_sram_suspend , shouldn't it be omap_sram_idle() ?
+>       and if CONFIG_OMAP_MPU_TIMER is set it sets  use_idlect1 = 
+> use_idlect1 & ~(1 << 9) ,  but it does not go into wait for interrupt.
+>       Can anyone please explain this ?
 
-On 9/18/07, Dirk Behme <dirk.behme@googlemail.com> wrote:
->
->
->
-> Clean omap_osk_5912_defconfig compiles and boots fine with recent git
-> (41283eed64c3279f62f...).
->
-> Maybe anything with
->
->
-> http://linux.omap.com/pipermail/linux-omap-open-source/2007-August/011159=
-.html
->
-> ?
->
-> Dirk
->
+Omaps can do sleep-while-idle, so it is correct. Doing omap_sram_idle()
+would just keep it in wait for interrupt state.
 
+Regards,
 
-
---=20
----------------------------------------------------------------------------=
----
-Thanks && Regards
-Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
-IEEE Member
-Electrical Engineer Faculty @ PUCRS
-Ipiranga Avenue, 6681 =96 Building 30
-P.O. Box: 90619-900 =96 Porto Alegre/RS
-Phone: +55 51 3320 3500  extension: 7696
----------------------------------------------------------------------------=
-------
+Tony
