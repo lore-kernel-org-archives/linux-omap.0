@@ -1,15 +1,15 @@
 From: "=?ISO-8859-1?Q?Lu=EDs_Cargnini?=" <lvcargnini@gmail.com>
 Subject: Re: problems compiling latest git update
-Date: Tue, 18 Sep 2007 13:10:42 -0300
-Message-ID: <ae36f8040709180910y2d8f2107ub4840ded8e18b5f9@mail.gmail.com>
+Date: Tue, 18 Sep 2007 13:12:44 -0300
+Message-ID: <ae36f8040709180912w4a624578xb6cf22a46cc0135e@mail.gmail.com>
 References: <ae36f8040709180700u671ae5fpc8fa4a0a7c8474c0@mail.gmail.com>
-	<a0580c510709180713x2fe59438m5c996d21c470db1c@mail.gmail.com>
+	<31e679430709180729m7ac96736g10b45d71802b86fd@mail.gmail.com>
 Reply-To: lvcargnini@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=WINDOWS-1252
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <a0580c510709180713x2fe59438m5c996d21c470db1c@mail.gmail.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <31e679430709180729m7ac96736g10b45d71802b86fd@mail.gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,20 +18,17 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 Cc: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-excuse me I'm using make omap_osk_5912_defconfig
-On 9/18/07, Eduardo Valentin <edubezval@gmail.com> wrote:
+I'm using the same HEAD, yes I'm  with 100% sure that I'm using the latest
+tree
+
+On 9/18/07, Felipe Balbi <felipebalbi@users.sourceforge.net> wrote:
 >
-> Hi Lu=EDs,
->
->    What is your board? What defconfig you are using?
->
->
-> Cheers,
+> Hi,
 >
 > On 9/18/07, Lu=EDs Cargnini <lvcargnini@gmail.com> wrote:
 > > Hi I uopgraded the source tree to latest creating a new kernel version
@@ -45,6 +42,14 @@ On 9/18/07, Eduardo Valentin <edubezval@gmail.com> wrote:
 > > reported only once
 > > arch/arm/plat-omap/devices.c:348: error: for each function it appears
 > in.)
+>
+> Are you really using most recent linux-omap tree??
+>
+> I'm building with omap_h4_2420_defconfig and it's fine.
+>
+> My current HEAD is:
+> 41283eed64c3279f62fede457ed56aced5ac2f89
+>
 > >
 > > other is, where are the DSP config options ?
 > >
@@ -71,7 +76,10 @@ On 9/18/07, Eduardo Valentin <edubezval@gmail.com> wrote:
 >
 >
 > --
-> Eduardo Bezerra Valentin
+> Best Regards,
+>
+> Felipe Balbi
+> felipebalbi@users.sourceforge.net
 >
 
 
