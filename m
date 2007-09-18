@@ -1,15 +1,11 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: [RFC] [PATCH 0/14] Update OMAP defconfigs
-Date: Tue, 18 Sep 2007 19:12:59 +0200
-Message-ID: <46F0071B.7010809@googlemail.com>
-References: <11900606011267-git-send-email-felipe.lima@indt.org.br>	
-	<46EFFC4D.7010402@googlemail.com>
-	<31e679430709181000j2637cd18y83f0efc24bdbcabe@mail.gmail.com>
+From: Anderson Briglia <anderson.briglia@indt.org.br>
+Subject: [RFC] [PATCH] MMC OMAP: add OMAP_GPIO_SWITCH dependency for N800
+Date: Tue, 18 Sep 2007 13:16:09 -0400
+Message-ID: <46F007D9.6060603@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <31e679430709181000j2637cd18y83f0efc24bdbcabe@mail.gmail.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,17 +13,30 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Felipe Balbi <felipebalbi@users.sourceforge.net>
-Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Felipe Balbi wrote:
-> I just noticed that make oldconfig is not behaving right.
-> If you look a bit closer, you'll that it changed all the ARCH_OMAP* to OMAP2
+OMAP_GPIO_SWITCH is needed by MMC host on N800. If this option is
+not selected, compilation fails.
 
-So I assume your intention was/is to update the defconfigs without any 
-functional change, right?
+Signed-off-by: Anderson Briglia <anderson.briglia@indt.org.br>
+---
+ drivers/mmc/host/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Dirk
+diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
+index e23082f..671b9a4 100644
+--- a/drivers/mmc/host/Kconfig
++++ b/drivers/mmc/host/Kconfig
+@@ -39,6 +39,7 @@ config MMC_OMAP
+ 	tristate "TI OMAP Multimedia Card Interface support"
+ 	depends on ARCH_OMAP
+ 	select TPS65010 if MACH_OMAP_H2
++	select OMAP_GPIO_SWITCH if MACH_NOKIA_N800
+ 	help
+ 	  This selects the TI OMAP Multimedia card Interface.
+ 	  If you have an OMAP board with a Multimedia Card slot,
+-- 
+1.5.2
