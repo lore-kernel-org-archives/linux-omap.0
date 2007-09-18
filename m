@@ -1,13 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Problem in omap_pm_idle()
-Date: Tue, 18 Sep 2007 09:58:32 -0700
-Message-ID: <20070918165832.GA2521@atomide.com>
-References: <46EFDF0D.8000808@celunite.com>
+From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
+Subject: Re: [RFC] [PATCH 0/14] Update OMAP defconfigs
+Date: Tue, 18 Sep 2007 13:00:11 -0400
+Message-ID: <31e679430709181000j2637cd18y83f0efc24bdbcabe@mail.gmail.com>
+References: <11900606011267-git-send-email-felipe.lima@indt.org.br>
+	<46EFFC4D.7010402@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <46EFFC4D.7010402@googlemail.com>
 Content-Disposition: inline
-In-Reply-To: <46EFDF0D.8000808@celunite.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,21 +19,66 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Vivek Kutal <vivek.kutal@celunite.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Vivek Kutal <vivek.kutal@celunite.com> [070918 07:22]:
-> Hi ,
->       I was looking at omap_pm_idle() in omap1/pm.c , at the end there is a 
-> call to omap_sram_suspend , shouldn't it be omap_sram_idle() ?
->       and if CONFIG_OMAP_MPU_TIMER is set it sets  use_idlect1 = 
-> use_idlect1 & ~(1 << 9) ,  but it does not go into wait for interrupt.
->       Can anyone please explain this ?
+Hi Dirk,
 
-Omaps can do sleep-while-idle, so it is correct. Doing omap_sram_idle()
-would just keep it in wait for interrupt state.
+On 9/18/07, Dirk Behme <dirk.behme@googlemail.com> wrote:
+> Felipe Balbi wrote:
+> > The following patch series updates the defconfigs for OMAP boards.
+>
+> Do these updates include functional changes? Or are they only
+> non-function-change updates to 2.6.23-rc6-omap1?
+>
+> E.g. in omap_2430sdp_defconfig there is
+>
+> -# CONFIG_SYSCTL_SYSCALL is not set
+> +CONFIG_SYSCTL_SYSCALL=y
+>
+> +CONFIG_OMAP_DEBUG_DEVICES=y
+>
+> -# CONFIG_MACH_OMAP_H4 is not set
+> +CONFIG_MACH_OMAP_H4=y
+>
+> -CONFIG_MACH_OMAP_2430SDP=y
+> +# CONFIG_MACH_OMAP_2430SDP is not set
+>
+> -CONFIG_PREEMPT=y
+> +# CONFIG_PREEMPT is not set
+>
+> -CONFIG_PM=y
+> +# CONFIG_PM is not set
+>
+> -# CONFIG_IRDA is not set
+> +CONFIG_IRDA=y
 
-Regards,
+I just noticed that make oldconfig is not behaving right.
+If you look a bit closer, you'll that it changed all the ARCH_OMAP* to OMAP2
 
-Tony
+I'm rebuilding this same series with make menuconfig.
+
+After that I'll repost it... :-)
+
+Thanks Dirk
+
+>
+> ...
+>
+> Regards
+>
+> Dirk
+>
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
+
+
+-- 
+Best Regards,
+
+Felipe Balbi
+felipebalbi@users.sourceforge.net
