@@ -1,15 +1,13 @@
-From: "Kamat, Nishant" <nskamat@ti.com>
-Subject: RE: HS USB support for 2.6.14 V4 kernel
-Date: Wed, 19 Sep 2007 10:43:30 -0500
-Message-ID: <6E3DC4E6E09EF440B55B7AD683608D6D01E342CE@dlee13.ent.ti.com>
-References: <c04186510709190826x7d5d5c0fwf934f52b30c0136@mail.gmail.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: [PATCH RFC] arch/arm/plat-omap/devices.c
+Date: Wed, 19 Sep 2007 17:49:34 +0200
+Message-ID: <46F1450E.8020307@googlemail.com>
+References: <ae36f8040709181333q2b8e3e6ena5d864b14178c582@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <c04186510709190826x7d5d5c0fwf934f52b30c0136@mail.gmail.com>
+In-Reply-To: <ae36f8040709181333q2b8e3e6ena5d864b14178c582@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,56 +17,38 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: sandeep prabhu <sandeep.mitian@gmail.com>, Linux-omap-open-source@linux.omap.com
+To: lvcargnini@gmail.com
+Cc: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Sandeep,
+Lu=EDs Cargnini wrote:
+> --- linux-omap-2.6/arch/arm/plat-omap/devices.c 2007-08-28 01:01:
+> 50.502065325 -0300
+> +++ linux-omap-2.6.23-instramed/arch/arm/plat-omap/devices.c    2007-09=
+-18
+> 15:05:44.748685528 -0300
+...
 
-> -----Original Message-----
-> From: sandeep prabhu
-> Sent: Wednesday, September 19, 2007 10:27 AM
->=20
-> Hello all,
->=20
-> I am using 2.6.14 V4 kernel on 2430SDP board, trying to bring=20
-> up the High Speed USB (Inventra core) on ISP1504 OTG.
-> I could able to configure and detect the SDP board as=20
-> ethernet Gadget device, but I could not use ISP1504 as USB-Host.
->=20
-> I am using the following DIP switch settings:
->=20
-> S6 - 2 ------> ON
-> S6 - 6 ------> OFF
-> S6 - 7 ------> OFF
->=20
-> I am getting "musb_hdrc.0" interrupts when I plug an USB Hub,=20
-> but  no interrupts are generated when I insert a device like=20
-> mouse or memory stick.
->=20
+Should this be a fix for your issues [1]?
 
-If you are using the 2.6.14 kernel from linux.omap.com, you will need to =
-issue the following command on the prompt in order to enumerate the =
-device:
-	echo S > /proc/drivers/musb_hdrc=20
+If yes, why do you think [2] isn't sufficent? Did you try [2]?
 
-This will start the host session. Otherwise the session (and VBUS) is =
-kept off.
+[3] introduced usage of OMAP2_CTRL_BASE undefined on OMAP1. So=20
+anything like [2] to fix compilation issues like [1] should be=20
+sufficent to fix [1]. [2] works at least for me selecting MMC on OSK.
 
-> Could anyone able to use ISP1504 as USB host ? is there any=20
-> other kernel version where the High Speed USB on ISP1504 OTG=20
-> is working ?
+Best regards
 
-Yes, I think the latest kernel from git works.
+Dirk
 
-Regards,
-Nishant
+[1]=20
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-September/011=
+373.html
 
->=20
-> --
-> Thanks in Advance,
-> Sandeep
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->=20
+[2]=20
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-September/011=
+393.html
+
+[3]=20
+http://source.mvista.com/git/?p=3Dlinux-omap-2.6.git;a=3Dcommitdiff;h=3Da=
+d1794683d378d08467ea9b340628994ff3e7edd
