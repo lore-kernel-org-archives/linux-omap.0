@@ -1,13 +1,13 @@
-From: "=?ISO-8859-1?Q?Lu=EDs_Cargnini?=" <lvcargnini@gmail.com>
-Subject: McBSP
-Date: Wed, 19 Sep 2007 09:56:17 -0300
-Message-ID: <ae36f8040709190556n24a04e87vc1ec1a0f094b8b51@mail.gmail.com>
-Reply-To: lvcargnini@gmail.com
+From: <Tuukka.Tikkanen@elektrobit.com>
+Subject: RE: Problem in omap_pm_idle()
+Date: Wed, 19 Sep 2007 15:58:11 +0300
+Message-ID: <3E32F84CD6CB95498A35B353CA3B930C067318@fioues08.ebgroup.elektrobit.com>
+References: <46EFDF0D.8000808@celunite.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="----------=_1190206842-3398-2"
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
+In-Reply-To: <46EFDF0D.8000808@celunite.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,42 +17,53 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: OMAP <Linux-omap-open-source@linux.omap.com>
-Cc: dspgateway-devel@lists.sourceforge.net
+To: vivek.kutal@celunite.com, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Dear fellows,
-Please i want to change mcbsp.c, in omap_mcbsp_request() change the
-functions of irq from:
+This is a multi-part message in MIME format...
 
-err =3D request_irq(mcbsp[id].tx_irq, omap_mcbsp_tx_irq_handler, 0,
-                  "McBSP",
-                  (void *) (&mcbsp[id]));
+------------=_1190206842-3398-2
+Content-class: urn:content-classes:message
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-to:
-err =3D request_irq(mcbsp[id].tx_irq,
-omap_mcbsp_tx_irq_handler,IRQF_NODELAY|IRQF_SHARED,
-                  "McBSP",
-                  (void *) (&mcbsp[id]));
+From: Vivek Kutal
+Subject: Problem in omap_pm_idle()
+>=20
+> Hi ,
+>        I was looking at omap_pm_idle() in omap1/pm.c , at the end
+there=20
+> is a call to omap_sram_suspend , shouldn't it be omap_sram_idle() ?
+>        and if CONFIG_OMAP_MPU_TIMER is set it sets  use_idlect1 =3D=20
+> use_idlect1 & ~(1 << 9) ,  but it does not go into wait for interrupt.
+>        Can anyone please explain this ?
 
-and the same for rx_irq, then my device driver for example, could attach an
-irq_handler for my mcbsp2, where I plugin and ADC.
-I need to plug an ADC, in McBSP 2 and read and write it, using McBSP TI
-protocol to communicate with a McBSP.
-Can I made this modification inside arch/arm/plat-omap/mcbsp.c ?
-I'm running a kernel with this modification and are testing the device
-driver, could this modification been permanent in main tree ?
-Or there is any problem ?
+The only real difference between suspend and idle sleep on omap1 is that
+for suspend peripheral devices are forcibly shut down. Also the idle
+sleep avoids turning off certain clock in some special cases. If there
+is no user or application activity, when everything is working as
+intended the hardware ends up into suspend-like state in idle sleep to
+conserve battery (with very quick recovery however), so the call is
+correct.
 
---=20
----------------------------------------------------------------------------=
----
-Thanks && Regards
-Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
-IEEE Member
-Electrical Engineer Faculty @ PUCRS
-Ipiranga Avenue, 6681 =96 Building 30
-P.O. Box: 90619-900 =96 Porto Alegre/RS
-Phone: +55 51 3320 3500  extension: 7696
----------------------------------------------------------------------------=
-------
+Tuukka
+
+
+----------------------------------------------------------------
+Please note: This e-mail may contain confidential information
+intended solely for the addressee. If you have received this
+e-mail in error, please do not disclose it to anyone, notify
+the sender promptly, and delete the message from your system.
+Thank you.
+
+
+------------=_1190206842-3398-2
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+------------=_1190206842-3398-2--
