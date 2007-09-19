@@ -1,7 +1,7 @@
 From: <sshahrom@micron.com>
-Subject: [PATCH 1/4] OMAP: Resubmitting support for 2K page nand
-Date: Wed, 19 Sep 2007 14:21:02 -0700
-Message-ID: <809D758398CC1F49AA8E493528AD4A27014DF6D0@ntxsjombx02.micron.com>
+Subject: [PATCH 3/4] [MTD] NAND : Resubmitting support for 2K page nand
+Date: Wed, 19 Sep 2007 14:27:45 -0700
+Message-ID: <809D758398CC1F49AA8E493528AD4A27014DF6D2@ntxsjombx02.micron.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -18,156 +18,112 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
-Cc: sshahrom@micron.com
 List-Id: linux-omap@vger.kernel.org
 
 
-Hello,
-Following patches would add support for 2k Page nand with Enabled HW ECC =
-on omap2430 v4.0. and v5. It has been Tested with Micron Nand.=20
-The Patch is against 2.6.23 linux-omap.git tree. As Always all the =
-comments are welcomed.
-Regards,
--Shahrom
+Hi,
+Continuing with rest of patch series on linux.omap.com
 
 Signed-off-by: Shahrom Sharif-Kashani <sshahrom <at> micron.com>
 
-:100644 100644 1e8492a... 0000000... M	=
-arch/arm/mach-omap2/board-2430sdp-flash.c
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp-flash.c =
-b/arch/arm/mach-omap2/board-2430sdp-flash.c
-index 1e8492a..b534a07 100644
---- a/arch/arm/mach-omap2/board-2430sdp-flash.c
-+++ b/arch/arm/mach-omap2/board-2430sdp-flash.c
-@@ -20,10 +20,64 @@
- #include <asm/arch/onenand.h>
- #include <asm/arch/board.h>
- #include <asm/arch/gpmc.h>
-+#include <asm/arch/nand.h>
-=20
- #define ONENAND_MAP 0x20000000
- #define GPMC_OFF_CONFIG1_0 0x60
-=20
-+enum fstype {
-+	NAND =3D 0,
-+	NOR,
-+	ONENAND,
-+	UNKNOWN =3D -1
-+};
-+
-+static enum fstype flash_type =3D NAND;
-+
-+static struct mtd_partition nand_partitions[] =3D {
-+	{
-+		.name		=3D "X-Loader",
-+		.offset		=3D 0,
-+		.size		=3D 4*(64*2048),  /* 0-3 blks reserved.
-+						   Mandated by ROM code */
-+		.mask_flags	=3D MTD_WRITEABLE	/* force read-only */
-+	},
-+	{
-+		.name		=3D "U-Boot",
-+		.offset		=3D MTDPART_OFS_APPEND,
-+		.size		=3D  4*(64*2048),
-+		.mask_flags	=3D MTD_WRITEABLE	/* force read-only */
-+	},
-+	{
-+		.name		=3D "U-Boot Environment",
-+		.offset		=3D MTDPART_OFS_APPEND,
-+		.size		=3D 2*(64*2048),
-+	},
-+	{
-+		.name		=3D "Kernel",
-+		.offset		=3D MTDPART_OFS_APPEND,
-+		.size		=3D 32*(64*2048),		/* 4*1M */
-+	},
-+	{
-+		.name		=3D "File System",
-+		.offset		=3D MTDPART_OFS_APPEND,
-+		.size		=3D MTDPART_SIZ_FULL,
-+	},
-+};
-+static struct omap_nand_platform_data sdp_nand_data =3D {
-+	.parts		=3D nand_partitions,
-+	.nr_parts	=3D ARRAY_SIZE(nand_partitions),
-+	.dma_channel	=3D -1,	/* disable DMA in OMAP OneNAND driver */
-+};
-+
-+static struct platform_device sdp_nand_device =3D {
-+	.name		=3D "omap2-nand",
-+	.id		=3D -1,
-+	.dev =3D {
-+		.platform_data =3D &sdp_nand_data,
-+	},
-+};
-+
- static struct mtd_partition onenand_partitions[] =3D {
- 	{
- 		.name		=3D "(OneNAND)X-Loader",
-@@ -72,7 +126,7 @@ static struct platform_device sdp_onenan
- void __init sdp2430_flash_init(void)
- {
- 	unsigned long gpmc_base_add, gpmc_cs_base_add;
--	unsigned char cs=3D0;
-+	unsigned char cs =3D 0;
-=20
- 	gpmc_base_add =3D OMAP243X_GPMC_VIRT;
- 	while (cs < GPMC_CS_NUM) {
-@@ -82,29 +136,50 @@ void __init sdp2430_flash_init(void)
- 		gpmc_cs_base_add =3D
- 			(gpmc_base_add + GPMC_OFF_CONFIG1_0 + (cs*0x30));
-=20
--		/* xloader/Uboot would have programmed the oneNAND
-+		/* xloader/Uboot would have programmed the NAND/oneNAND
- 		 * base address for us This is a ugly hack. The proper
- 		 * way of doing this is to pass the setup of u-boot up
- 		 * to kernel using kernel params - something on the
--		 * lines of machineID. Check if oneNAND is
-+		 * lines of machineID. Check if Nand/oneNAND is
- 		 * configured */
-+		ret =3D __raw_readl(gpmc_cs_base_add + GPMC_CS_CONFIG1);
-+		if ((ret & 0xC00) =3D=3D (0x800)) {
-+			/* Found it!! */
-+			printk(KERN_INFO "NAND: Found NAND on CS %d \n", cs);
-+			flash_type =3D NAND;
-+			break;
-+		}
- 		ret =3D __raw_readl(gpmc_cs_base_add + GPMC_CS_CONFIG7);
- 		if ((ret & 0x3F) =3D=3D (ONENAND_MAP >> 24)) {
- 			/* Found it!! */
-+			flash_type =3D ONENAND;
- 			break;
- 		}
- 		cs++;
- 	}
- 	if (cs >=3D GPMC_CS_NUM) {
--		printk("OneNAND: Unable to find oneNAND configuration in GPMC "
--		       " - not registering.\n");
-+		printk(KERN_INFO "MTD: Unable to find MTD configuration in "
-+				 "GPMC   - not registering.\n");
-+		return;
-+	}
-+
-+	if (flash_type =3D=3D NAND) {
-+		sdp_nand_data.cs               =3D cs;
-+		sdp_nand_data.gpmc_cs_baseaddr =3D (void *) gpmc_cs_base_add;
-+		sdp_nand_data.gpmc_baseaddr    =3D (void *) gpmc_base_add;
-+
-+		if (platform_device_register(&sdp_nand_device) < 0) {
-+			printk(KERN_ERR "Unable to register NAND device\n");
- 		return;
- 	}
-+	}
-=20
-+	if (flash_type =3D=3D ONENAND) {
- 	sdp_onenand_data.cs =3D cs;
-=20
- 	if (platform_device_register(&sdp_onenand_device) < 0) {
- 		printk(KERN_ERR "Unable to register OneNAND device\n");
- 		return;
- 	}
-+	}
- }
+:000000 100644 0000000... 2a8edcf... A	include/asm-arm/arch-omap/nand.h
 
-Signed-off-by: Shahrom Sharif-Kashani <sshahrom@micron.com>
+diff --git a/include/asm-arm/arch-omap/nand.h =
+b/include/asm-arm/arch-omap/nand.h
+new file mode 100644
+index 0000000..2a8edcf
+--- /dev/null
++++ b/include/asm-arm/arch-omap/nand.h
+@@ -0,0 +1,89 @@
++/*
++ * include/asm-arm/arch-omap/nand.h
++ *
++ * Copyright (C) 2006 Micron Technology Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/mtd/partitions.h>
++
++struct omap_nand_platform_data {
++	int			cs;
++	int			gpio_irq;
++	struct mtd_partition	*parts;
++	int			nr_parts;
++	int                     (*nand_setup)(void __iomem *);
++	int			dma_channel;
++	void __iomem            *gpmc_cs_baseaddr;
++	void __iomem            *gpmc_baseaddr;
++};
++
++#define NAND_Ecc_P1e		(1 << 0)
++#define NAND_Ecc_P2e		(1 << 1)
++#define NAND_Ecc_P4e		(1 << 2)
++#define NAND_Ecc_P8e		(1 << 3)
++#define NAND_Ecc_P16e		(1 << 4)
++#define NAND_Ecc_P32e		(1 << 5)
++#define NAND_Ecc_P64e		(1 << 6)
++#define NAND_Ecc_P128e		(1 << 7)
++#define NAND_Ecc_P256e		(1 << 8)
++#define NAND_Ecc_P512e		(1 << 9)
++#define NAND_Ecc_P1024e		(1 << 10)
++#define NAND_Ecc_P2048e		(1 << 11)
++
++#define NAND_Ecc_P1o		(1 << 16)
++#define NAND_Ecc_P2o		(1 << 17)
++#define NAND_Ecc_P4o		(1 << 18)
++#define NAND_Ecc_P8o		(1 << 19)
++#define NAND_Ecc_P16o		(1 << 20)
++#define NAND_Ecc_P32o		(1 << 21)
++#define NAND_Ecc_P64o		(1 << 22)
++#define NAND_Ecc_P128o		(1 << 23)
++#define NAND_Ecc_P256o		(1 << 24)
++#define NAND_Ecc_P512o		(1 << 25)
++#define NAND_Ecc_P1024o		(1 << 26)
++#define NAND_Ecc_P2048o		(1 << 27)
++
++#define TF(value)	(value ? 1 : 0)
++
++#define P2048e(a)	(TF(a & NAND_Ecc_P2048e)	<< 0)
++#define P2048o(a)	(TF(a & NAND_Ecc_P2048o)	<< 1)
++#define P1e(a)		(TF(a & NAND_Ecc_P1e)		<< 2)
++#define P1o(a)		(TF(a & NAND_Ecc_P1o)		<< 3)
++#define P2e(a)		(TF(a & NAND_Ecc_P2e)		<< 4)
++#define P2o(a)		(TF(a & NAND_Ecc_P2o)		<< 5)
++#define P4e(a)		(TF(a & NAND_Ecc_P4e)		<< 6)
++#define P4o(a)		(TF(a & NAND_Ecc_P4o)		<< 7)
++
++#define P8e(a)		(TF(a & NAND_Ecc_P8e)		<< 0)
++#define P8o(a)		(TF(a & NAND_Ecc_P8o)		<< 1)
++#define P16e(a)		(TF(a & NAND_Ecc_P16e)		<< 2)
++#define P16o(a)		(TF(a & NAND_Ecc_P16o)		<< 3)
++#define P32e(a)		(TF(a & NAND_Ecc_P32e)		<< 4)
++#define P32o(a)		(TF(a & NAND_Ecc_P32o)		<< 5)
++#define P64e(a)		(TF(a & NAND_Ecc_P64e)		<< 6)
++#define P64o(a)		(TF(a & NAND_Ecc_P64o)		<< 7)
++
++#define P128e(a)	(TF(a & NAND_Ecc_P128e)		<< 0)
++#define P128o(a)	(TF(a & NAND_Ecc_P128o)		<< 1)
++#define P256e(a)	(TF(a & NAND_Ecc_P256e)		<< 2)
++#define P256o(a)	(TF(a & NAND_Ecc_P256o)		<< 3)
++#define P512e(a)	(TF(a & NAND_Ecc_P512e)		<< 4)
++#define P512o(a)	(TF(a & NAND_Ecc_P512o)		<< 5)
++#define P1024e(a)	(TF(a & NAND_Ecc_P1024e)	<< 6)
++#define P1024o(a)	(TF(a & NAND_Ecc_P1024o)	<< 7)
++
++#define P8e_s(a)	(TF(a & NAND_Ecc_P8e)		<< 0)
++#define P8o_s(a)	(TF(a & NAND_Ecc_P8o)		<< 1)
++#define P16e_s(a)	(TF(a & NAND_Ecc_P16e)		<< 2)
++#define P16o_s(a)	(TF(a & NAND_Ecc_P16o)		<< 3)
++#define P1e_s(a)	(TF(a & NAND_Ecc_P1e)		<< 4)
++#define P1o_s(a)	(TF(a & NAND_Ecc_P1o)		<< 5)
++#define P2e_s(a)	(TF(a & NAND_Ecc_P2e)		<< 6)
++#define P2o_s(a)	(TF(a & NAND_Ecc_P2o)		<< 7)
++
++#define P4e_s(a)	(TF(a & NAND_Ecc_P4e)		<< 0)
++#define P4o_s(a)	(TF(a & NAND_Ecc_P4o)		<< 1)
+
+Signed-off-by: Shahrom Sharif-Kashani < sshahrom@micron.com>
