@@ -1,13 +1,13 @@
-From: "Nazim Khan" <nazim.asad@gmail.com>
-Subject: Issue with the USB Host Controller DMA Mode on Davinci Board
-	(broken !rx_reinit)
-Date: Wed, 19 Sep 2007 11:31:08 +0530
-Message-ID: <ef9503490709182301lf521c1byeb144224685a8a3a@mail.gmail.com>
+From: <aravind.boinpally@wipro.com>
+Subject: Regarding the Boot Up Problem with OMAP2430
+Date: Wed, 19 Sep 2007 16:48:17 +0530
+Message-ID: <19B9278CA74D6D4B889A1687EE63920207921A@BLR-SGM-MSG01.wipro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,73 +17,56 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
-
-I am trying to get my Wireless Card working with MUSB DMA Mode enabled
-at full speed.
-The moment I insert Zydas modules the musb starts giving me following
-rx_reinit errors.
-(Without DMA Mode Enable, the driver works fine).
-
-I observe the same problem while connecting the device in high speed mode also.
-Though enabling the DMA mode is working fine with my High Speed USB Disk.
-
-Any clues what could be going wrong here?
-
-Kernel 2.6.18
-USB Wireless Adapter - Zydas 1211b
-
------------------- Console Snapshot ---------------------
-usbcore: registered new driver usbfs
-usbcore: registered new driver hub
-Starting Host Controller
-musb_hdrc: version 2.2a/db-0.5.1/dbg, cppi-dma, host, debug=3
-musb_hdrc: USB Host mode controller at c5002000 using DMA, IRQ 12
-musb_hdrc musb_hdrc: MUSB HDRC host driver
-musb_hdrc musb_hdrc: new USB bus registered, assigned bus number 1
-usb usb1: Product: MUSB HDRC host driver
-usb usb1: Manufacturer: Linux 2.6.18 musb-hcd
-usb usb1: SerialNumber: musb_hdrc
-usb usb1: configuration #1 chosen from 1 choice
-hub 1-0:1.0: USB hub found
-hub 1-0:1.0: 1 port detected
-usb 1-1: new full speed USB device using musb_hdrc and address 2
-usb 1-1: configuration #1 chosen from 1 choice
-hub 1-1:1.0: USB hub found
-hub 1-1:1.0: 4 ports detected
-musb_ep_program 899: broken !rx_reinit, ep3 csr 3200
-musb_ep_program 899: broken !rx_reinit, ep3 csr 3000
-usb 1-1.2: new full speed USB device using musb_hdrc and address 3
-usb 1-1.2: not running at top speed; connect to a high speed hub
-usb 1-1.2: Product: USB2.0 WLAN
-usb 1-1.2: Manufacturer: ZyDAS
-usb 1-1.2: configuration #1 chosen from 1 choice
-Starting Zydas
-ZD1211B - version 2.18.0.0
-vendor_id = 0ace
-product_id = 1215
-USB 1.1 Host
-Release Ver = 4810
-EEPORM Ver = 4810
-Finsih download Firmware. Ready to reboot
-musb_ep_program 899: broken !rx_reinit, ep4 csr 3200
-musb_ep_program 899: broken !rx_reinit, ep4 csr 3000
-musb_ep_program 899: broken !rx_reinit, ep4 csr 3200
-musb_ep_program 899: broken !rx_reinit, ep4 csr 3000
-PA type: 0
-PHYNEWLayout = 1
-Airoha AL2230S_RF
-musb_ep_program 899: broken !rx_reinit, ep4 csr 3200
-musb_ep_program 899: broken !rx_reinit, ep4 csr 3000
-musb_ep_program 899: broken !rx_reinit, ep4 csr 3200
-musb_ep_program 899: broken !rx_reinit, ep4 csr 3000
-musb_ep_program 899: broken !rx_reinit, ep4 csr 3200
-AllowedChannel = 000107ff
-Region:16
-musb_ep_program 899: broken !rx_reinit, ep4 csr 3000
-musb_ep_program 899: broken !rx_reinit, ep4 csr 3200
-
------------------------------------------------------------------------------------------
+Hi ALl,
+=20
+This is Aravind .I am working on OMAP2430(SDP2430-VG5.0.1) to bring up
+the board with Boot loader and Linux.I am facing some problem while
+downloading the Boot loader image.Please assist me for this problem.
+=20
+I have followed the below procedure for downloading u-boot image into
+NOR Flash at 0x04000000.=20
+=20
+ I Installed CSST_SDP2430_v1.7 in My Host PC.
+=20
+1) First i downloaded the u-boot.bin image from "Linux.omap.com" and
+placed it on Windows Desktop.
+=20
+2) Then i Changed the DIP Switch settings as per
+CSST_QuickStartGuide_SDP2430 Datasheet for USB Link.
+=20
+3) Then I connected USB from host to OMAP Board(Triton2 HS/FS USB Mini
+AB connector) with MiniAB USB plug.Here when i Tried to Connect to
+ISP1504HS USB,but  it is not able to Programming with this port .It is
+giving error as Target is not Connected like.
+=20
+4)After Successfully Programming u-boot into NoR Flash at address
+0x04000000, i removed the USB connection and then Changed the DIP
+Settings.=20
+=20
+5) Now I connected the RS232 Cable to UART3 Port and opened
+HyperTerminal with 115200,8,1,Flow Control None Configurations.
+=20
+6) Then I Restted the Board and Observed for U-boot Prompt.But I am not
+able to observe any output on the HyperTerminal.
+=20
+7) Is there Anything went wrong in My Procedure.Or USB Programming
+Port(Triton2) is wrong ?
+=20
+8) I am not able to debug it.Is there any Document or tool for finding
+out the Problem.
+=20
+9)And also I am Programming with only Triton2 HF/Fs MINI AB  USB
+Connector not with ISP1504 HS USB Mini USB Connector. It is giving error
+if i program with ISP1504.
+=20
+10) Please give me some inputs so that I can Proceed Further .
+=20
+Awaiting For Your Reply......
+=20
+=20
+With Regards
+Aravind Kumar.B
+9886391518
