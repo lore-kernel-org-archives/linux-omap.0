@@ -1,13 +1,13 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: [PATCH] ARM: OMAP: DMA fix bug in omap_get_dma_dst_pos
-Date: Wed, 19 Sep 2007 11:22:35 +0530
-Message-ID: <010C7BAE6783F34D9AC336EE5A01A08804708B6C@dbde01.ent.ti.com>
+From: "Nazim Khan" <nazim.asad@gmail.com>
+Subject: Issue with the USB Host Controller DMA Mode on Davinci Board
+	(broken !rx_reinit)
+Date: Wed, 19 Sep 2007 11:31:08 +0530
+Message-ID: <ef9503490709182301lf521c1byeb144224685a8a3a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,34 +17,73 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Anand Gadiyar <gadiyar@ti.com>
+Hi all,
 
-omap_get_dma_dst_pos() should return the current destination address.
-The CDSA register contains the destination start address.
-CDAC register should be used instead.
+I am trying to get my Wireless Card working with MUSB DMA Mode enabled
+at full speed.
+The moment I insert Zydas modules the musb starts giving me following
+rx_reinit errors.
+(Without DMA Mode Enable, the driver works fine).
 
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
----
+I observe the same problem while connecting the device in high speed mode also.
+Though enabling the DMA mode is working fine with my High Speed USB Disk.
 
- linux-omap/arch/arm/plat-omap/dma.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-omap.orig/arch/arm/plat-omap/dma.c	2007-09-18
-16:17:21.000000000 +0530
-+++ linux-omap/arch/arm/plat-omap/dma.c	2007-09-18 16:21:59.000000000
-+0530
-@@ -776,7 +776,7 @@
- 				       (OMAP1_DMA_CDSA_U_REG(lch) <<
-16));
-=20
- 	if (cpu_is_omap24xx())
--		offset =3D OMAP2_DMA_CDSA_REG(lch);
-+		offset =3D OMAP2_DMA_CDAC_REG(lch);
-=20
- 	return offset;
- }
+Any clues what could be going wrong here?
+
+Kernel 2.6.18
+USB Wireless Adapter - Zydas 1211b
+
+------------------ Console Snapshot ---------------------
+usbcore: registered new driver usbfs
+usbcore: registered new driver hub
+Starting Host Controller
+musb_hdrc: version 2.2a/db-0.5.1/dbg, cppi-dma, host, debug=3
+musb_hdrc: USB Host mode controller at c5002000 using DMA, IRQ 12
+musb_hdrc musb_hdrc: MUSB HDRC host driver
+musb_hdrc musb_hdrc: new USB bus registered, assigned bus number 1
+usb usb1: Product: MUSB HDRC host driver
+usb usb1: Manufacturer: Linux 2.6.18 musb-hcd
+usb usb1: SerialNumber: musb_hdrc
+usb usb1: configuration #1 chosen from 1 choice
+hub 1-0:1.0: USB hub found
+hub 1-0:1.0: 1 port detected
+usb 1-1: new full speed USB device using musb_hdrc and address 2
+usb 1-1: configuration #1 chosen from 1 choice
+hub 1-1:1.0: USB hub found
+hub 1-1:1.0: 4 ports detected
+musb_ep_program 899: broken !rx_reinit, ep3 csr 3200
+musb_ep_program 899: broken !rx_reinit, ep3 csr 3000
+usb 1-1.2: new full speed USB device using musb_hdrc and address 3
+usb 1-1.2: not running at top speed; connect to a high speed hub
+usb 1-1.2: Product: USB2.0 WLAN
+usb 1-1.2: Manufacturer: ZyDAS
+usb 1-1.2: configuration #1 chosen from 1 choice
+Starting Zydas
+ZD1211B - version 2.18.0.0
+vendor_id = 0ace
+product_id = 1215
+USB 1.1 Host
+Release Ver = 4810
+EEPORM Ver = 4810
+Finsih download Firmware. Ready to reboot
+musb_ep_program 899: broken !rx_reinit, ep4 csr 3200
+musb_ep_program 899: broken !rx_reinit, ep4 csr 3000
+musb_ep_program 899: broken !rx_reinit, ep4 csr 3200
+musb_ep_program 899: broken !rx_reinit, ep4 csr 3000
+PA type: 0
+PHYNEWLayout = 1
+Airoha AL2230S_RF
+musb_ep_program 899: broken !rx_reinit, ep4 csr 3200
+musb_ep_program 899: broken !rx_reinit, ep4 csr 3000
+musb_ep_program 899: broken !rx_reinit, ep4 csr 3200
+musb_ep_program 899: broken !rx_reinit, ep4 csr 3000
+musb_ep_program 899: broken !rx_reinit, ep4 csr 3200
+AllowedChannel = 000107ff
+Region:16
+musb_ep_program 899: broken !rx_reinit, ep4 csr 3000
+musb_ep_program 899: broken !rx_reinit, ep4 csr 3200
+
+-----------------------------------------------------------------------------------------
