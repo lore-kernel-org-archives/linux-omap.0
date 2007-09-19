@@ -1,8 +1,10 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 0/7] OMAP3 clock patches: first set
-Date: Wed, 19 Sep 2007 15:09:59 -0600
-Message-ID: <20070919210959.062447046@pwsan.com>
+Subject: [PATCH 1/7] omap2 arch: fix CONTROL_DEVCONF addresses for OMAP3430
+Date: Wed, 19 Sep 2007 15:10:00 -0600
+Message-ID: <20070919211138.760254597@pwsan.com>
+References: <20070919210959.062447046@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline; filename=fix_3430_control_devconf.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,60 +17,42 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+OMAP3430 has two CONTROL_DEVCONF addresses, CONTROL_DEVCONF0 and 
+CONTROL_DEVCONF1; define them both.  Also, the existing address for
+CONTROL_DEVCONF0 was incorrect; fix it.
 
-These patches implement the OMAP3430 clock tree, along with the basic
-clock code necessary to support it.  The clock definitions were drawn
-from 3430 ES1 and ES2 TRMs, and the patches try to adhere to the TRM
-as closely as is practicable.
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
-The clock tree is mostly 3430ES1-based.  A few 3430ES2 features are
-implemented, such as 16.8MHz SYS_CLK and PWRDN bits.  Some ES2 clocks
-are yet to be defined, and will be added in subsequent patches.  Also
-not included in this patch set are DPLL control patches, L3 divider
-code, and OPP code; these will be sent as separate patch sets.
+---
+ include/asm-arm/arch-omap/omap34xx.h |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-Most of the new code is in patch 4.  Patches 1 & 2 are cleanup/bugfix
-patches; patch 3 adds support for PWRDN bit usage in the clock
-framework; patches 5-7 fix the GPMC, dmtimer, and GPIO drivers for
-boot.
+Index: linux-omap/include/asm-arm/arch-omap/omap34xx.h
+===================================================================
+--- linux-omap.orig/include/asm-arm/arch-omap/omap34xx.h	2007-09-15 16:49:17.000000000 -0600
++++ linux-omap/include/asm-arm/arch-omap/omap34xx.h	2007-09-15 17:06:38.000000000 -0600
+@@ -55,6 +55,12 @@
+ 
+ #if defined(CONFIG_ARCH_OMAP3430)
+ 
++/*
++ * REVISIT: OMAP3430 has two CONTROL_DEVCONF registers, CONTROL_DEVCONF0
++ * and CONTROL_DEVCONF1.  We should probably split those defines, along
++ * with any other System Control Module registers and read/write fns,
++ * out to a separate scm.h file, and do this for 24xx also.
++ */
+ #define OMAP2_32KSYNCT_BASE		OMAP3430_32KSYNCT_BASE
+ #define OMAP2_CM_BASE			OMAP3430_CM_BASE
+ #define OMAP2_PRM_BASE			OMAP3430_PRM_BASE
+@@ -63,7 +69,8 @@
+ #define OMAP2_L4_BASE			L4_34XX_BASE
+ #define OMAP2_VA_IC_BASE		IO_ADDRESS(OMAP34XX_IC_BASE)
+ #define OMAP2_CTRL_BASE			OMAP3430_CTRL_BASE
+-#define OMAP34XX_CONTROL_DEVCONF	(L4_34XX_BASE + 0x274)
++#define OMAP34XX_CONTROL_DEVCONF0	(L4_34XX_BASE + 0x2274)
++#define OMAP34XX_CONTROL_DEVCONF1	(L4_34XX_BASE + 0x22D8)
+ 
+ #endif
+ 
 
-The code has been boot-tested on 3430SDP using a 3430ES1 chip.  One
-known issue that I'm tracking - apparently there is a problem enabling
-the UART1 & 2 interface and functional clocks.
-
-Thanks to Tony Lindgren and Richard Woodruff for their assistance in
-providing support and information.  These patches also include some silicon
-errata drawn from the TI CDP kernel clock code, written by Karthik Dasu.
-
-Review and comments are appreciated,
-
-- Paul
-
-diffstat:
- arch/arm/mach-omap2/clock.c                       |   38
- arch/arm/mach-omap2/cm.h                          |    2
- include/asm-arm/arch-omap/clock.h                 |   12
- linux-omap/arch/arm/mach-omap2/Makefile           |    1
- linux-omap/arch/arm/mach-omap2/clock.c            |   10
- linux-omap/arch/arm/mach-omap2/clock.h            |   22
- linux-omap/arch/arm/mach-omap2/clock24xx.h        |   73
- linux-omap/arch/arm/mach-omap2/clock34xx.c        |  218 ++
- linux-omap/arch/arm/mach-omap2/clock34xx.h        | 2205 ++++++++++++++++++++++
- linux-omap/arch/arm/mach-omap2/cm.h               |    2
- linux-omap/arch/arm/mach-omap2/cm_regbits_34xx.h  |  138 +
- linux-omap/arch/arm/mach-omap2/gpmc.c             |    6
- linux-omap/arch/arm/mach-omap2/prcm_common.h      |   41
- linux-omap/arch/arm/mach-omap2/prm.h              |    2
- linux-omap/arch/arm/mach-omap2/prm_regbits_34xx.h |    9
- linux-omap/arch/arm/plat-omap/dmtimer.c           |    5
- linux-omap/arch/arm/plat-omap/gpio.c              |   40
- linux-omap/include/asm-arm/arch-omap/clock.h      |    2
- linux-omap/include/asm-arm/arch-omap/gpio.h       |    2
- linux-omap/include/asm-arm/arch-omap/omap34xx.h   |    9
- 20 files changed, 2750 insertions(+), 87 deletions(-)
-
-size:
-   text    data     bss     dec     hex filename
-2764484  116728   96224 2977436  2d6e9c vmlinux.orig
-2769280  131384   96256 2996920  2dbab8 vmlinux
+-- 
