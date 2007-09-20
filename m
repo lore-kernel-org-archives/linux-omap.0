@@ -1,8 +1,14 @@
-From: Timo Savola <tsavola@movial.fi>
-Subject: [PATCH] OMAP: lcd_mipid: Fix OOM error reporting
-Date: Thu, 20 Sep 2007 14:31:43 +0300
-Message-ID: <1190287903652-git-send-email-tsavola@movial.fi>
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+From: Vivek Kutal <vivek.kutal@celunite.com>
+Subject: Re: Problem in omap_pm_idle()
+Date: Thu, 20 Sep 2007 18:02:57 +0530
+Message-ID: <46F26879.9020504@celunite.com>
+References: <46EFDF0D.8000808@celunite.com>
+	<3E32F84CD6CB95498A35B353CA3B930C067318@fioues08.ebgroup.elektrobit.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <3E32F84CD6CB95498A35B353CA3B930C067318@fioues08.ebgroup.elektrobit.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -10,30 +16,43 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Tuukka.Tikkanen@elektrobit.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Do not try access a memory region when its allocation failed.
+Tuukka.Tikkanen@elektrobit.com wrote:
+> From: Vivek Kutal
+> Subject: Problem in omap_pm_idle()
+>   
+>> Hi ,
+>>        I was looking at omap_pm_idle() in omap1/pm.c , at the end
+>>     
+> there 
+>   
+>> is a call to omap_sram_suspend , shouldn't it be omap_sram_idle() ?
+>>        and if CONFIG_OMAP_MPU_TIMER is set it sets  use_idlect1 = 
+>> use_idlect1 & ~(1 << 9) ,  but it does not go into wait for interrupt.
+>>        Can anyone please explain this ?
+>>     
+>
+> The only real difference between suspend and idle sleep on omap1 is that
+> for suspend peripheral devices are forcibly shut down. Also the idle
+> sleep avoids turning off certain clock in some special cases. If there
+> is no user or application activity, when everything is working as
+> intended the hardware ends up into suspend-like state in idle sleep to
+> conserve battery (with very quick recovery however), so the call is
+> correct.
+>
+>   
+So we should probably remove the omap_sram_push calls for omap_sram_idle 
+from omap_pm_init , and its code from sleep.S...right ?
 
-Signed-off-by: Timo Savola <tsavola@movial.fi>
----
- drivers/video/omap/lcd_mipid.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+and what about the CONFIG_OMAP_MPU_TIMER problem ?
+it should at least go in Wait for interrupt when mpu timer is 
+used...right now it just exits from omap_pm_idle().
 
-diff --git a/drivers/video/omap/lcd_mipid.c b/drivers/video/omap/lcd_mipid.c
-index 922e322..ef071a6 100644
---- a/drivers/video/omap/lcd_mipid.c
-+++ b/drivers/video/omap/lcd_mipid.c
-@@ -561,7 +561,7 @@ static int mipid_spi_probe(struct spi_device *spi)
- 
- 	md = kzalloc(sizeof(*md), GFP_KERNEL);
- 	if (md == NULL) {
--		dev_err(&md->spi->dev, "out of memory\n");
-+		dev_err(&spi->dev, "out of memory\n");
- 		return -ENOMEM;
- 	}
- 
--- 
-1.5.2
+--
+Thanks
+Vivek Kutal
