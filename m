@@ -1,7 +1,8 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [PATCH 0/14] MMC: OMAP: Add MMC multislot support
-Date: Thu, 20 Sep 2007 11:02:56 -0400
-Message-ID: <46F28BA0.3080002@indt.org.br>
+Subject: [PATCH 03/14] MMC: OMAP: Fix timeout calculation for MMC multislot
+ support
+Date: Thu, 20 Sep 2007 11:03:14 -0400
+Message-ID: <46F28BB2.8010401@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -15,34 +16,39 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: omap-linux <linux-omap-open-source@linux.omap.com>
+To: "linux >> omap-linux" <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony and folks,
+From: Juha Yrjola <juha.yrjola@solidboot.com>
 
-This is the latest 'MMC: OMAP: Add MMC multislot support' patch series
-with changes, corrections and improvements based on comments and
-suggestions from community (mainly Tony, Brownell and Trilok) and coworkers.
+Fix the data timeout calculation for MMC multislot support.
 
-Just to remind you, this patch series adds the MMC multislot support for
-N800 and TI OMAP H2 and H3 boards. It's based on Juha's and Jarkko's
-earlier implementation and it can be applied against most updated
-linux-omap tree (2.6.23-rc6-omap1).
+Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
+Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+---
+ drivers/mmc/host/omap.c |    9 ++++-----
+ 1 files changed, 4 insertions(+), 5 deletions(-)
 
-I've tested with MMC, SD and SDHC cards and looks fine for the boards
-mentioned above.
-
-Testing, comments and suggestions are welcome.
-
-BR,
-
-Carlos.
-
--- 
-Carlos Eduardo Aguiar
-Nokia Institute of Technology - INdT
-Open Source Mobile Research Center - OSMRC - Manaus
-Core Team
-Phone: +55 92 2126-1079
-Mobile: +55 92 8127-1797
-E-mail: carlos.aguiar@indt.org.br
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index 18f7c1b..5b09e9b 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -882,13 +882,12 @@ static inline void set_cmd_timeout(struct mmc_omap_host *host, struct mmc_reques
+ 
+ static inline void set_data_timeout(struct mmc_omap_host *host, struct mmc_request *req)
+ {
+-	int timeout;
++	unsigned int timeout, cycle_ns;
+ 	u16 reg;
+ 
+-	/* Convert ns to clock cycles by assuming 20MHz frequency
+-	 * 1 cycle at 20MHz = 500 ns
+-	 */
+-	timeout = req->data->timeout_clks + req->data->timeout_ns / 500;
++	cycle_ns = 1000000000 / host->current_slot->fclk_freq;
++	timeout = req->data->timeout_ns / cycle_ns;
++	timeout += req->data->timeout_clks;
+ 
+ 	/* Check if we need to use timeout multiplier register */
+ 	reg = OMAP_MMC_READ(host, SDIO);
+-- 1.5.3.GIT
