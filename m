@@ -1,7 +1,8 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [PATCH 06/14] MMC: OMAP: Abort stuck commands
-Date: Thu, 20 Sep 2007 11:03:27 -0400
-Message-ID: <46F28BBF.8080503@indt.org.br>
+Subject: [PATCH 08/14] PLAT: OMAP: Modifications at devices.c to use
+ multislot structures
+Date: Thu, 20 Sep 2007 11:03:35 -0400
+Message-ID: <46F28BC7.80309@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -18,167 +19,142 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 
-When a card is removed while it is being accessed, a command can get stuck so
-that no timeout or end of command interrupt ever occurs. The command getting
-stuck is almost always CDM12, but also the other commands can get stuck. Catch
-a stuck command with a timer and try sending the initiliazation stream until
-the controller starts running again and responds with the end of command
-status.
+Modifications at arch/arm/plat-omap/devices.c to use multislot structures.
 
+Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
 Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 ---
- drivers/mmc/host/omap.c |   93 ++++++++++++++++++++++++++++++++++++++++++-----
- 1 files changed, 83 insertions(+), 10 deletions(-)
+ arch/arm/plat-omap/devices.c |   52 ++++++++++++++++++++---------------------
+ 1 files changed, 25 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index 992b27f..e9b56b5 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -136,6 +136,9 @@ struct mmc_omap_host {
- 	unsigned char		bus_mode;
- 	unsigned char		hw_bus_mode;
+diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+index c2828fe..3f6a6af 100644
+--- a/arch/arm/plat-omap/devices.c
++++ b/arch/arm/plat-omap/devices.c
+@@ -21,6 +21,7 @@
  
-+	struct work_struct	cmd_abort;
-+	struct timer_list	cmd_timer;
-+
- 	unsigned int		sg_len;
- 	int			sg_idx;
- 	u16 *			buffer;
-@@ -330,6 +333,8 @@ mmc_omap_start_command(struct mmc_omap_host *host, struct mmc_command *cmd)
- 	if (host->data && !(host->data->flags & MMC_DATA_WRITE))
- 		cmdreg |= 1 << 15;
+ #include <asm/arch/tc.h>
+ #include <asm/arch/board.h>
++#include <asm/arch/mmc.h>
+ #include <asm/arch/mux.h>
+ #include <asm/arch/gpio.h>
+ #include <asm/arch/menelaus.h>
+@@ -231,7 +232,7 @@ static inline void omap_init_kp(void) {}
+ #endif
+ #define	OMAP_MMC2_BASE		0xfffb7c00	/* omap16xx only */
  
-+	mod_timer(&host->cmd_timer, jiffies + HZ/2);
-+
- 	OMAP_MMC_WRITE(host, CTO, 200);
- 	OMAP_MMC_WRITE(host, ARGL, cmd->arg & 0xffff);
- 	OMAP_MMC_WRITE(host, ARGH, cmd->arg >> 16);
-@@ -389,9 +394,37 @@ mmc_omap_xfer_done(struct mmc_omap_host *host, struct mmc_data *data)
- }
+-static struct omap_mmc_conf mmc1_conf;
++static struct omap_mmc_platform_data mmc1_data;
  
- static void
-+mmc_omap_send_abort(struct mmc_omap_host *host)
-+{
-+	struct mmc_omap_slot *slot = host->current_slot;
-+	unsigned int restarts, passes, timeout;
-+	u16 stat = 0;
-+
-+	/* Sending abort takes 80 clocks. Have some extra and round up */
-+	timeout = (120*1000000 + slot->fclk_freq - 1)/slot->fclk_freq;
-+	restarts = 0;
-+	while (restarts < 10000) {
-+		OMAP_MMC_WRITE(host, STAT, 0xFFFF);
-+		OMAP_MMC_WRITE(host, CMD, (3 << 12) | (1 << 7));
-+
-+		passes = 0;
-+		while (passes < timeout) {
-+			stat = OMAP_MMC_READ(host, STAT);
-+			if (stat & OMAP_MMC_STAT_END_OF_CMD)
-+				goto out;
-+			udelay(1);
-+			passes++;
-+		}
-+
-+		restarts++;
-+	}
-+out:
-+	OMAP_MMC_WRITE(host, STAT, stat);
-+}
-+
-+static void
- mmc_omap_abort_xfer(struct mmc_omap_host *host, struct mmc_data *data)
+ static u64 mmc1_dmamask = 0xffffffff;
+ 
+@@ -252,7 +253,7 @@ static struct platform_device mmc_omap_device1 = {
+ 	.id		= 1,
+ 	.dev = {
+ 		.dma_mask	= &mmc1_dmamask,
+-		.platform_data	= &mmc1_conf,
++		.platform_data	= &mmc1_data,
+ 	},
+ 	.num_resources	= ARRAY_SIZE(mmc1_resources),
+ 	.resource	= mmc1_resources,
+@@ -260,7 +261,7 @@ static struct platform_device mmc_omap_device1 = {
+ 
+ #ifdef	CONFIG_ARCH_OMAP16XX
+ 
+-static struct omap_mmc_conf mmc2_conf;
++static struct omap_mmc_platform_data mmc2_data;
+ 
+ static u64 mmc2_dmamask = 0xffffffff;
+ 
+@@ -282,7 +283,7 @@ static struct platform_device mmc_omap_device2 = {
+ 	.id		= 2,
+ 	.dev = {
+ 		.dma_mask	= &mmc2_dmamask,
+-		.platform_data	= &mmc2_conf,
++		.platform_data	= &mmc2_data,
+ 	},
+ 	.num_resources	= ARRAY_SIZE(mmc2_resources),
+ 	.resource	= mmc2_resources,
+@@ -291,20 +292,13 @@ static struct platform_device mmc_omap_device2 = {
+ 
+ static void __init omap_init_mmc(void)
  {
--	int loops;
- 	u16 ie;
+-	const struct omap_mmc_config	*mmc_conf;
+-	const struct omap_mmc_conf	*mmc;
++	const struct omap_mmc_platform_data     *mmc;
  
- 	if (host->dma_in_use)
-@@ -402,16 +435,8 @@ mmc_omap_abort_xfer(struct mmc_omap_host *host, struct mmc_data *data)
+ 	/* REVISIT: 2430 has HS MMC */
+ 	if (cpu_is_omap2430() || cpu_is_omap34xx())
+ 		return;
  
- 	ie = OMAP_MMC_READ(host, IE);
- 	OMAP_MMC_WRITE(host, IE, 0);
--	OMAP_MMC_WRITE(host, CMD, 1 << 7);
--	loops = 0;
--	while (!(OMAP_MMC_READ(host, STAT) & OMAP_MMC_STAT_END_OF_CMD)) {
--		udelay(1);
--		loops++;
--		if (loops == 100000)
--			break;
--	}
--	OMAP_MMC_WRITE(host, STAT, OMAP_MMC_STAT_END_OF_CMD);
- 	OMAP_MMC_WRITE(host, IE, ie);
-+	mmc_omap_send_abort(host);
- }
- 
- static void
-@@ -467,6 +492,8 @@ mmc_omap_cmd_done(struct mmc_omap_host *host, struct mmc_command *cmd)
- {
- 	host->cmd = NULL;
- 
-+	del_timer(&host->cmd_timer);
-+
- 	if (cmd->flags & MMC_RSP_PRESENT) {
- 		if (cmd->flags & MMC_RSP_136) {
- 			/* response type 2 */
-@@ -502,6 +529,47 @@ mmc_omap_cmd_done(struct mmc_omap_host *host, struct mmc_command *cmd)
- 	}
- }
- 
-+/*
-+ * Abort stuck command. Can occur when card is removed while it is being
-+ * read.
-+ */
-+static void mmc_omap_abort_command(struct work_struct *work)
-+{
-+	struct mmc_omap_host *host = container_of(work, struct mmc_omap_host,
-+						  cmd_abort);
-+	u16 ie;
-+
-+	ie = OMAP_MMC_READ(host, IE);
-+	OMAP_MMC_WRITE(host, IE, 0);
-+
-+	if (!host->cmd) {
-+		OMAP_MMC_WRITE(host, IE, ie);
-+		return;
-+	}
-+
-+	dev_dbg(mmc_dev(host->mmc), "Aborting stuck command CMD%d\n",
-+		host->cmd->opcode);
-+
-+	if (host->data && host->dma_in_use)
-+		mmc_omap_release_dma(host, host->data, 1);
-+
-+	host->data = NULL;
-+	host->sg_len = 0;
-+
-+	mmc_omap_send_abort(host);
-+	host->cmd->error = MMC_ERR_TIMEOUT;
-+	mmc_omap_cmd_done(host, host->cmd);
-+	OMAP_MMC_WRITE(host, IE, ie);
-+}
-+
-+static void
-+mmc_omap_cmd_timer(unsigned long data)
-+{
-+	struct mmc_omap_host *host = (struct mmc_omap_host *) data;
-+
-+	schedule_work(&host->cmd_abort);
-+}
-+
- /* PIO only */
- static void
- mmc_omap_sg_to_buf(struct mmc_omap_host *host)
-@@ -1270,6 +1338,11 @@ static int __init mmc_omap_probe(struct platform_device *pdev)
- 		goto err_free_mem_region;
+-	/* NOTE:  assumes MMC was never (wrongly) enabled */
+-	mmc_conf = omap_get_config(OMAP_TAG_MMC, struct omap_mmc_config);
+-	if (!mmc_conf)
+-		return;
+-
+-	/* block 1 is always available and has just one pinout option */
+-	mmc = &mmc_conf->mmc[0];
++	mmc = &mmc1_data;
+ 	if (mmc->enabled) {
+ 		if (cpu_is_omap24xx()) {
+ 			omap_cfg_reg(H18_24XX_MMC_CMD);
+@@ -339,24 +333,12 @@ static void __init omap_init_mmc(void)
+ 				omap_cfg_reg(MMC_DAT3);
+ 			}
+ 		}
+-		if (mmc->internal_clock) {
+-			/*
+-			 * Use internal loop-back in MMC/SDIO
+-			 * Module Input Clock selection
+-			 */
+-			if (cpu_is_omap24xx()) {
+-				u32 v = omap_readl(OMAP2_CONTROL_DEVCONF);
+-				v |= (1 << 24);
+-				omap_writel(v, OMAP2_CONTROL_DEVCONF);
+-			}
+-		}
+-		mmc1_conf = *mmc;
+ 		(void) platform_device_register(&mmc_omap_device1);
  	}
  
-+	INIT_WORK(&host->cmd_abort, mmc_omap_abort_command);
-+	init_timer(&host->cmd_timer);
-+	host->cmd_timer.function = mmc_omap_cmd_timer;
-+	host->cmd_timer.data = (unsigned long) host;
+ #ifdef	CONFIG_ARCH_OMAP16XX
+ 	/* block 2 is on newer chips, and has many pinout options */
+-	mmc = &mmc_conf->mmc[1];
++	mmc = &mmc2_data;
+ 	if (mmc->enabled) {
+ 		if (!mmc->nomux) {
+ 			omap_cfg_reg(Y8_1610_MMC2_CMD);
+@@ -379,12 +361,28 @@ static void __init omap_init_mmc(void)
+ 		if (cpu_is_omap1710())
+ 			omap_writel(omap_readl(MOD_CONF_CTRL_1) | (1 << 24),
+ 				     MOD_CONF_CTRL_1);
+-		mmc2_conf = *mmc;
+ 		(void) platform_device_register(&mmc_omap_device2);
+ 	}
+ #endif
+ 	return;
+ }
 +
- 	spin_lock_init(&host->dma_lock);
- 	init_timer(&host->dma_timer);
- 	spin_lock_init(&host->slot_lock);
++void omap_set_mmc_info(int host, const struct omap_mmc_platform_data *info)
++{
++	switch (host) {
++	case 1:
++		mmc1_data = *info;
++		break;
++#ifdef CONFIG_ARCH_OMAP16XX
++	case 2:
++		mmc2_data = *info;
++		break;
++#endif
++	default:
++		BUG();
++	}
++}
++
+ #else
+ static inline void omap_init_mmc(void) {}
+ #endif
 -- 1.5.3.GIT
