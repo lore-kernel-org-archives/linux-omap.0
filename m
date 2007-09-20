@@ -1,12 +1,11 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [PATCH 13/14] MMC: OMAP: Supporting MMC multislot structures for
- TI OMAP H2 board
-Date: Thu, 20 Sep 2007 11:04:01 -0400
-Message-ID: <46F28BE1.6000603@indt.org.br>
+Subject: [PATCH 05/14] MMC: OMAP: General cleanup for MMC multislot support
+Date: Thu, 20 Sep 2007 11:03:23 -0400
+Message-ID: <46F28BBB.2020807@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,156 +13,148 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Felipe Balbi <felipe.lima@indt.org.br>
+From: Juha Yrjola <juha.yrjola@solidboot.com>
 
-Proposes the new board-h2-mmc.c file to handle all the mmc
-specific code for multislot support.
+General code cleanup, modifications at some dev_* functions and
+other hacks at mmc_omap_irq() for MMC multislot support.
 
-Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
-Signed-off-by: Anderson Briglia <anderson.briglia@indt.org.br>
+Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
 Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-Signed-off-by: David Cohen <david.cohen@indt.org.br>
-Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
 ---
- arch/arm/mach-omap1/board-h2-mmc.c   |  112 ++++++++++++++++++++++++++++++++++
- include/asm-arm/arch-omap/board-h2.h |    3 +
- 2 files changed, 115 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap1/board-h2-mmc.c
+ drivers/mmc/host/omap.c |   52 ++++++++++++++++++++++++++++-------------------
+ 1 files changed, 31 insertions(+), 21 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/board-h2-mmc.c b/arch/arm/mach-omap1/board-h2-mmc.c
-new file mode 100644
-index 0000000..bf9e20b
---- /dev/null
-+++ b/arch/arm/mach-omap1/board-h2-mmc.c
-@@ -0,0 +1,112 @@
-+/*
-+ * linux/arch/arm/mach-omap1/board-h2-mmc.c
-+ *
-+ * Copyright (C) 2007 Instituto Nokia de Tecnologia - INdT
-+ * Author: Felipe Balbi <felipe.lima@indt.org.br>
-+ *
-+ * This code is based on linux/arch/arm/mach-omap2/board-n800-mmc.c, which is:
-+ * Copyright (C) 2006 Nokia Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <asm/arch/mmc.h>
-+#include <asm/arch/gpio.h>
-+
-+#ifdef CONFIG_MMC_OMAP
-+static int slot_cover_open;
-+static struct device *mmc_device;
-+
-+static int h2_mmc_set_power(struct device *dev, int slot, int power_on,
-+				int vdd)
-+{
-+#ifdef CONFIG_MMC_DEBUG
-+	dev_dbg(dev, "Set slot %d power: %s (vdd %d)\n", slot + 1,
-+		power_on ? "on" : "off", vdd);
-+#endif
-+	if (slot != 0) {
-+		dev_err(dev, "No such slot %d\n", slot + 1);
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
-+static int h2_mmc_set_bus_mode(struct device *dev, int slot, int bus_mode)
-+{
-+#ifdef CONFIG_MMC_DEBUG
-+	dev_dbg(dev, "Set slot %d bus_mode %s\n", slot + 1,
-+		bus_mode == MMC_BUSMODE_OPENDRAIN ? "open-drain" : "push-pull");
-+#endif
-+	if (slot != 0) {
-+		dev_err(dev, "No such slot %d\n", slot + 1);
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
-+static int h2_mmc_get_cover_state(struct device *dev, int slot)
-+{
-+	BUG_ON(slot != 0);
-+
-+	return slot_cover_open;
-+}
-+
-+void h2_mmc_slot_cover_handler(void *arg, int state)
-+{
-+	if (mmc_device == NULL)
-+		return;
-+
-+	slot_cover_open = state;
-+	omap_mmc_notify_cover_event(mmc_device, 0, state);
-+}
-+
-+static int h2_mmc_late_init(struct device *dev)
-+{
-+	int ret = 0;
-+
-+	mmc_device = dev;
-+
-+	return ret;
-+}
-+
-+static void h2_mmc_cleanup(struct device *dev)
-+{
-+}
-+
-+static struct omap_mmc_platform_data h2_mmc_data = {
-+	.enabled			= 1,
-+	.nr_slots                       = 1,
-+	.wire4                          = 1,
-+	.switch_slot                    = NULL,
-+	.init                           = h2_mmc_late_init,
-+	.cleanup                        = h2_mmc_cleanup,
-+	.slots[0]       = {
-+		.set_power              = h2_mmc_set_power,
-+		.set_bus_mode           = h2_mmc_set_bus_mode,
-+		.get_ro                 = NULL,
-+		.get_cover_state        = h2_mmc_get_cover_state,
-+		.ocr_mask               = MMC_VDD_28_29 | MMC_VDD_30_31 |
-+					  MMC_VDD_32_33 | MMC_VDD_33_34,
-+		.name                   = "mmcblk",
-+	},
-+};
-+
-+void __init h2_mmc_init(void)
-+{
-+	omap_set_mmc_info(1, &h2_mmc_data);
-+}
-+
-+#else
-+
-+void __init h2_mmc_init(void)
-+{
-+}
-+
-+void h2_mmc_slot_cover_handler(void *arg, int state)
-+{
-+}
-+#endif
-diff --git a/include/asm-arm/arch-omap/board-h2.h b/include/asm-arm/arch-omap/board-h2.h
-index b2888ef..c322796 100644
---- a/include/asm-arm/arch-omap/board-h2.h
-+++ b/include/asm-arm/arch-omap/board-h2.h
-@@ -34,5 +34,8 @@
- /* At OMAP1610 Innovator the Ethernet is directly connected to CS1 */
- #define OMAP1610_ETHR_START		0x04000300
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index 4e32149..992b27f 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -563,11 +563,12 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 	u16 status;
+ 	int end_command;
+ 	int end_transfer;
+-	int transfer_error;
++	int transfer_error, cmd_error;
  
-+extern void h2_mmc_init(void);
-+extern void h2_mmc_slot_cover_handler(void *arg, int state);
-+
- #endif /*  __ASM_ARCH_OMAP_H2_H */
+ 	if (host->cmd == NULL && host->data == NULL) {
+ 		status = OMAP_MMC_READ(host, STAT);
+-		dev_info(mmc_dev(host->mmc),"spurious irq 0x%04x\n", status);
++		dev_info(mmc_dev(host->slots[0]->mmc),
++			 "Spurious IRQ 0x%04x\n", status);
+ 		if (status != 0) {
+ 			OMAP_MMC_WRITE(host, STAT, status);
+ 			OMAP_MMC_WRITE(host, IE, 0);
+@@ -578,12 +579,19 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 	end_command = 0;
+ 	end_transfer = 0;
+ 	transfer_error = 0;
++	cmd_error = 0;
  
+ 	while ((status = OMAP_MMC_READ(host, STAT)) != 0) {
++		int cmd;
++
+ 		OMAP_MMC_WRITE(host, STAT, status);
++		if (host->cmd != NULL)
++			cmd = host->cmd->opcode;
++		else
++			cmd = -1;
+ #ifdef CONFIG_MMC_DEBUG
+ 		dev_dbg(mmc_dev(host->mmc), "MMC IRQ %04x (CMD %d): ",
+-			status, host->cmd != NULL ? host->cmd->opcode : -1);
++			status, cmd);
+ 		mmc_omap_report_irq(status);
+ 		printk("\n");
+ #endif
+@@ -595,12 +603,12 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 				mmc_omap_xfer_data(host, 1);
+ 		}
+ 
+-		if (status & OMAP_MMC_STAT_END_OF_DATA) {
++		if (status & OMAP_MMC_STAT_END_OF_DATA)
+ 			end_transfer = 1;
+-		}
+ 
+ 		if (status & OMAP_MMC_STAT_DATA_TOUT) {
+-			dev_dbg(mmc_dev(host->mmc), "data timeout\n");
++			dev_dbg(mmc_dev(host->mmc), "data timeout (CMD%d)\n",
++				cmd);
+ 			if (host->data) {
+ 				host->data->error |= MMC_ERR_TIMEOUT;
+ 				transfer_error = 1;
+@@ -625,16 +633,16 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 				struct mmc_omap_slot *slot =
+ 					host->current_slot;
+ 				if (host->cmd->opcode != MMC_ALL_SEND_CID &&
+-						host->cmd->opcode !=
+-						MMC_SEND_OP_COND &&
+-						host->cmd->opcode !=
+-						MMC_APP_CMD &&
+-						!mmc_omap_cover_is_open(slot))
++				    host->cmd->opcode != MMC_SEND_OP_COND &&
++				    host->cmd->opcode != MMC_APP_CMD &&
++				    (slot == NULL ||
++				     !mmc_omap_cover_is_open(slot)))
+ 					dev_err(mmc_dev(host->mmc),
+-						"command timeout, CMD %d\n",
+-						host->cmd->opcode);
++						"command timeout (CMD%d)\n",
++						cmd);
+ 				host->cmd->error = MMC_ERR_TIMEOUT;
+ 				end_command = 1;
++				cmd_error = 1;
+ 			}
+ 		}
+ 
+@@ -642,9 +650,10 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 			if (host->cmd) {
+ 				dev_err(mmc_dev(host->mmc),
+ 					"command CRC error (CMD%d, arg 0x%08x)\n",
+-					host->cmd->opcode, host->cmd->arg);
++					cmd, host->cmd->arg);
+ 				host->cmd->error = MMC_ERR_BADCRC;
+ 				end_command = 1;
++				cmd_error = 1;
+ 			} else
+ 				dev_err(mmc_dev(host->mmc),
+ 					"command CRC error without cmd?\n");
+@@ -653,13 +662,13 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 		if (status & OMAP_MMC_STAT_CARD_ERR) {
+ 			dev_dbg(mmc_dev(host->mmc),
+ 				"ignoring card status error (CMD%d)\n",
+-				host->cmd->opcode);
++				cmd);
+ 			end_command = 1;
+ 		}
+ 
+ 		/*
+ 		 * NOTE: On 1610 the END_OF_CMD may come too early when
+-		 * starting a write 
++		 * starting a write
+ 		 */
+ 		if ((status & OMAP_MMC_STAT_END_OF_CMD) &&
+ 		    (!(status & OMAP_MMC_STAT_A_EMPTY))) {
+@@ -667,13 +676,14 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 		}
+ 	}
+ 
+-	if (end_command) {
++	if (end_command)
+ 		mmc_omap_cmd_done(host, host->cmd);
++	if (host->data != NULL) {
++		if (transfer_error)
++			mmc_omap_xfer_done(host, host->data);
++		else if (end_transfer)
++			mmc_omap_end_of_data(host, host->data);
+ 	}
+-	if (transfer_error)
+-		mmc_omap_xfer_done(host, host->data);
+-	else if (end_transfer)
+-		mmc_omap_end_of_data(host, host->data);
+ 
+ 	return IRQ_HANDLED;
+ }
 -- 1.5.3.GIT
