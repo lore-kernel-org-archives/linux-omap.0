@@ -1,16 +1,13 @@
-From: "Juha Kuikka" <juha.kuikka@gmail.com>
-Subject: Re: Data abort issue
-Date: Fri, 21 Sep 2007 09:50:40 -0700
-Message-ID: <a46a26fd0709210950i3f5cac36h758811d995354cc4@mail.gmail.com>
-References: <809D758398CC1F49AA8E493528AD4A27014DF6D3@ntxsjombx02.micron.com>
-	<a46a26fd0709201310ye0c3c96ib246dfdf114a02a9@mail.gmail.com>
-	<809D758398CC1F49AA8E493528AD4A27014DF6D4@ntxsjombx02.micron.com>
+From: radha k <radha_kodirekka@yahoo.com>
+Subject: RE: regarding USB
+Date: Fri, 21 Sep 2007 22:06:59 -0700 (PDT)
+Message-ID: <327144.2130.qm@web60922.mail.yahoo.com>
+References: <5DF83221BE20114E9C331F665ACBC080039ABD36@dbde01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <809D758398CC1F49AA8E493528AD4A27014DF6D4@ntxsjombx02.micron.com>
-Content-Disposition: inline
+In-Reply-To: <5DF83221BE20114E9C331F665ACBC080039ABD36@dbde01.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,61 +17,93 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "sshahrom@micron.com" <sshahrom@micron.com>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Shahrom,
 
-Thanks for the reply.
+HI sir
+ I am  doing: /dev # mknod /dev/sdb1 b 8 1, because
+sdb1 node is not getting created for me as soon as i
+connect USB.Therefore i am creating it manually.
 
-Maybe linux kernel handles unaligned data access gracefully inside the
-kernel. In userspace I've noticed that it terminates the process.
+  Kindly let me know how to proceed.
+     Thanking you in advance,
+With regards,
+Radha.K
 
-I've put your code into u-boot and it crashes on this line with "data
-abort'.
 
-I implemented similar fix.
+--- "Pandita, Vikram" <vikram.pandita@ti.com> wrote:
 
- - Juha
-
-On 9/21/07, sshahrom@micron.com <sshahrom@micron.com> wrote:
+> I am not doing: /dev # mknod /dev/sdb1 b 8 1
+> I directly mount the /dev/sdb1 node.
+> 
+> >-----Original Message-----
+> >From: radha k [mailto:radha_kodirekka@yahoo.com]
+> >Sent: Friday, September 21, 2007 3:34 PM
+> >To: Pandita, Vikram
+> >Cc: linux-omap-open-source@linux.omap.com
+> >Subject: RE: regarding USB
+> >
+> >Hi
+> >
+> >after connecting USBto OSK5912 i am geeting messge
+> >like this
+> >
+> >Instead of SDA1 i am geeting SDB1
+> >so i created a node for sdb1
+> >and i mounted usb using sdb1 node
+> >still i am getting error
+> >
+> >
+> >
+> >usb 1-1: new full speed USB device using ohci and
+> >address 4
+> >usb 1-1: Product: Mass Storage Device
+> >usb 1-1: Manufacturer: JetFlash
+> >usb 1-1: SerialNumber: 0M9K8ZBK
+> >usb 1-1: configuration #1 chosen from 1 choice
+> >scsi3 : SCSI emulation for USB Mass Storage devices
+> >scsi 3:0:0:0: Direct-Access     JetFlash TS1GJFV30
+> >   8.07 PQ: 0 ANSI: 2
+> >sd 3:0:0:0: [sdb] 2007038 512-byte hardware sectors
+> >(1028 MB)
+> >sd 3:0:0:0: [sdb] Write Protect is off
+> >sd 3:0:0:0: [sdb] Assuming drive cache: write
+> through
+> >sd 3:0:0:0: [sdb] 2007038 512-byte hardware sectors
+> >(1028 MB)
+> >sd 3:0:0:0: [sdb] Write Protect is off
+> >sd 3:0:0:0: [sdb] Assuming drive cache: write
+> through
+> > sdb:<7>usb-storage: queuecommand called
+> > sdb1
+> >sd 3:0:0:0: [sdb] Attached SCSI removable disk
+> >sd 3:0:0:0: Attached scsi generic sg1 type 0
+> >
+> >/dev # mknod /dev/sdb1 b 8 1
+> >/dev # mount -t vfat /dev/sdb1 /mnt/usb
+> >mount: Mounting /dev/sdb1 on /mnt/usb failed: No
+> such
+> >device or address
+> >
+> >
+> >
+> >
+> >
+> >
+> >
+> >     
 >
-> Hello Juha,
-> I have not seen that in linux kernel in version 2.6.21 or 2.6.23, I also
-> use following gcc,
-> gcc version 3.4.0 20040409 (CodeSourcery ARM Q1A 2004)
-> gcc version 4.1.1 (CodeSourcery Sourcery G++ 2006q3-27)
+____________________________________________________________________________________
+> >Luggage? GPS? Comic books?
+> >Check out fitting gifts for grads at Yahoo! Search
 >
-> Bootloader would cause data abort, and work around for that is:
->         isEccFF  = ((*(u8 *)ecc_data1   & 0x00) == 0x00);
->         isEccFF |= ((*(u8 *)ecc_data1++ & 0xFF) == 0xFF);
->         isEccFF |= ((*(u8 *)ecc_data1++ & 0xFF) == 0xFF);
->         isEccFF |= ((*(u8 *)ecc_data1++ & 0xFF) == 0xFF);
-> I hope that helped,
-> -Shahrom
->
-> -----Original Message-----
-> From: linux-omap-open-source-bounces@linux.omap.com [mailto:
-> linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Juha Kuikka
-> Sent: Thursday, September 20, 2007 1:10 PM
-> To: linux-omap-open-source@linux.omap.com
-> Subject: Re: [PATCH 4/4] [MTD] NAND : Resubmitting support for 2K page
-> nand
->
-> Hi Shahrom,
->
-> I ran into one problem with this code.
->
-> This line:
-> isEccFF = ((*(u32 *)ecc_data1 & 0xFFFFFF) == 0xFFFFFF); in
-> omap_compare_ecc will cause data abort on ARM as the pointer is not properly
-> aligned for double word access.
->
-> - Juha
->
+>http://search.yahoo.com/search?fr=oni_on_mail&p=graduation+gifts&cs=bz
+> 
 
 
 
--- 
-Madness takes it's toll. Please have exact change.
+      ____________________________________________________________________________________
+Check out the hottest 2008 models today at Yahoo! Autos.
+http://autos.yahoo.com/new_cars.html
