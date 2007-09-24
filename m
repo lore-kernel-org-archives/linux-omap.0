@@ -1,16 +1,13 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: RMKs comments on latest OMAP upstream patches
-Date: Mon, 24 Sep 2007 21:12:02 +0200
-Message-ID: <46F80C02.60509@googlemail.com>
-References: <46F29DB0.9060203@googlemail.com>
-	<20070921015935.GA26096@atomide.com>
-	<3B6D69C3A9EBCA4BA5DA60D91302742901F3ED6C@dlee13.ent.ti.com>
-	<20070923212149.GB10076@atomide.com>
+Subject: Re: Mainline patch submission deadlines
+Date: Mon, 24 Sep 2007 21:41:25 +0200
+Message-ID: <46F812E5.5030008@googlemail.com>
+References: <46EACB48.7030808@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <20070923212149.GB10076@atomide.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <46EACB48.7030808@googlemail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,29 +15,37 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren wrote:
-> * Woodruff, Richard <r-woodruff2@ti.com> [070921 01:31]:
+Dirk Behme wrote:
 > 
->>>>OMAP1:
->>>>http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=4570/1
->>>>
->>>>OMAP2:
->>>>http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=4571/1
+> fyi, I just found
 > 
+> http://www.linux-mips.org/archives/linux-mips/2007-09/msg00159.html
 > 
-> Looks like Russell has applied these two patch series above!
+> I can't find any similiar info anywhere else, but Ralf attended Kernel
+> Summit 2007 [1] so he should know ;)
 
-Great!
+If people are more interested in this, have a look to discussion on 
+ARM Linux mailing list. Thread is
 
-I'm slightly wondering if this "devel tree" he mentions is any 
-constraint or if it is his "send to Linus" tree. Let us see.
+"What's queued for 2.6.24"
+http://lists.arm.linux.org.uk/pipermail/linux-arm-kernel/2007-September/042236.html
+
+See links in
+http://lists.arm.linux.org.uk/pipermail/linux-arm-kernel/2007-September/042252.html
+as well.
+
+Conclusion seems to be that subprojects (we) have to send stuff to 
+(ARM) mainline integration maintainer at -rc5 time to hit main Linus 
+merge window.
 
 Regards
 
 Dirk
+
+Btw: Thread above on ARM list confirms that our OMAP stuff is on the 
+road :)
