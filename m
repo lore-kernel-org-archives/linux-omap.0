@@ -1,7 +1,7 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [PATCH 00/01] ARM: OMAP: Makes DSP compiles again for 1510 boards
-Date: Mon, 24 Sep 2007 11:50:17 -0400
-Message-ID: <46F7DCB9.6020402@indt.org.br>
+Subject: [PATCH 01/01] ARM: OMAP: Makes DSP compiles again for 1510 boards
+Date: Mon, 24 Sep 2007 11:50:23 -0400
+Message-ID: <46F7DCBF.8040706@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -19,31 +19,26 @@ To: omap-linux <linux-omap-open-source@linux.omap.com>
 Cc: ext Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi folks,
-
-I'd found the following problems when compiling a kernel image to
-Innovator 1510 and Siemens SX1 with OMAP DSP driver (DSP Gateway)
-support option enabled:
-
-  CC      arch/arm/plat-omap/dsp/dsp_mem.o
-In file included from arch/arm/plat-omap/dsp/dsp_mem.c:55:
-arch/arm/plat-omap/dsp/mmu.h:10: error: 'OMAP1510_DSP_MMU_BASE'
-undeclared here (not in a function)
-make[2]: *** [arch/arm/plat-omap/dsp/dsp_mem.o] Error 1
-make[1]: *** [arch/arm/plat-omap/dsp] Error 2
-make: *** [arch/arm/plat-omap] Error 2
+From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 
 This simple patch makes DSP compiles again for 1510 boards.
 
-BR,
+Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+---
+ include/asm-arm/arch-omap/omap1510.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Carlos.
-
--- 
-Carlos Eduardo Aguiar
-Nokia Institute of Technology - INdT
-Open Source Mobile Research Center - OSMRC - Manaus
-Core Team
-Phone: +55 92 2126-1079
-Mobile: +55 92 8127-1797
-E-mail: carlos.aguiar@indt.org.br
+diff --git a/include/asm-arm/arch-omap/omap1510.h b/include/asm-arm/arch-omap/omap1510.h
+index c575d35..7b5114b 100644
+--- a/include/asm-arm/arch-omap/omap1510.h
++++ b/include/asm-arm/arch-omap/omap1510.h
+@@ -44,5 +44,7 @@
+ #define OMAP1510_DSPREG_SIZE	SZ_128K
+ #define OMAP1510_DSPREG_START	0xE1000000
+ 
++#define OMAP1510_DSP_MMU_BASE	(0xfffed200)
++
+ #endif /*  __ASM_ARCH_OMAP15XX_H */
+ 
+-- 1.5.3.GIT
