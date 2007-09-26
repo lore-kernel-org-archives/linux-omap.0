@@ -1,12 +1,12 @@
 From: "=?ISO-8859-1?Q?Lu=EDs_Cargnini?=" <lvcargnini@gmail.com>
-Subject: [PATCH 00/01] include/asm-arm/arch-omap/mcbsp.h
-Date: Wed, 26 Sep 2007 00:18:59 -0300
-Message-ID: <ae36f8040709252018h58fd7078p5d44246da2ec1b@mail.gmail.com>
+Subject: [PATCH 01/01] arch/arm/plat-omap/mcbsp.c
+Date: Wed, 26 Sep 2007 00:25:13 -0300
+Message-ID: <ae36f8040709252025o3325b001k75d133411812f923@mail.gmail.com>
 Reply-To: lvcargnini@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=WINDOWS-1252
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,32 +15,47 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-this patch add the function prototype of set I/O to the header file os it
-could be used outside since it is exported, but not defined in the header
-previously
+this patch modify the McBSP interrupt handling behavior turning the irq of
+McBSP ports shared and it is working, I'm deveolping a device driver and
+percepted that this is a change necessary for new device drivers could been
+implemented to tak advantage of McBSP and could use it, example is ADC
+communications throw McBSP interface for example, this modification do not
+harm the kernel and add more felxibility and functionality to the kernel.
 
---- linux-omap-2.6/include/asm-arm/arch-omap/mcbsp.h    2007-06-22 02:43:
-08.127752533 -0300
-+++ linux-omap-2.6-instramed/include/asm-arm/arch-omap/mcbsp.h  2007-09-19
-10:54:11.584496814 -0300
-@@ -83,7 +83,7 @@
- #define AUDIO_DMA_TX           OMAP_DMA_MCBSP1_TX
- #define AUDIO_DMA_RX           OMAP_DMA_MCBSP1_RX
+-- linux-omap-2.6/arch/arm/plat-omap/mcbsp.c   2007-03-12
+16:44:03.501890844-0300
++++ linux-omap-2.6-instramed/arch/arm/plat-omap/mcbsp.c 2007-09-25 23:58:
+39.324154145 -0300
 
-  #define OMAP_MCBSP_REG_DRR2    0x00
- #define OMAP_MCBSP_REG_DRR1    0x04
-@@ -318,5 +318,6 @@ void omap_mcbsp_set_spi_mode(unsigned in
- /* Polled read/write functions */
- int omap_mcbsp_pollread(unsigned int id, u16 * buf);
- int omap_mcbsp_pollwrite(unsigned int id, u16 buf);
+ static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_id)
+@@ -304,7 +320,7 @@ int omap_mcbsp_request(unsigned int id)
+
+        if (mcbsp[id].io_type =3D=3D OMAP_MCBSP_IRQ_IO) {
+                /* We need to get IRQs here */
+-               err =3D request_irq(mcbsp[id].tx_irq,
+omap_mcbsp_tx_irq_handler, 0,
++               err =3D request_irq(mcbsp[id].tx_irq,
+omap_mcbsp_tx_irq_handler, IRQF_SHARED,
+                                  "McBSP",
+                                  (void *) (&mcbsp[id]));
+                if (err !=3D 0) {
+@@ -315,8 +331,7 @@ int omap_mcbsp_request(unsigned int id)
+
+                init_completion(&(mcbsp[id].tx_irq_completion));
+
 -
-+int omap_mcbsp_set_io_type(unsigned int id, omap_mcbsp_io_type_t io_type);
- #endif
+-               err =3D request_irq(mcbsp[id].rx_irq,
+omap_mcbsp_rx_irq_handler, 0,
++               err =3D request_irq(mcbsp[id].rx_irq,
+omap_mcbsp_rx_irq_handler, IRQF_SHARED,
+                                  "McBSP",
+                                  (void *) (&mcbsp[id]));
+                if (err !=3D 0) {
 
 
 --=20
