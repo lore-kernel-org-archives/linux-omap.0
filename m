@@ -1,15 +1,14 @@
-From: "=?ISO-8859-1?Q?Lu=EDs_Cargnini?=" <lvcargnini@gmail.com>
-Subject: Re: Real-Time
-Date: Thu, 27 Sep 2007 09:33:30 -0300
-Message-ID: <ae36f8040709270533k6968f733ndd870e67b7c2bf21@mail.gmail.com>
-References: <ae36f8040709261503s682feab2sdafd9643b9e0ecd0@mail.gmail.com>
-	<a0580c510709270419p41302b5bx5c074bf404bc3eb1@mail.gmail.com>
-Reply-To: lvcargnini@gmail.com
+From: "nishanth menon" <menon.nishanth@gmail.com>
+Subject: Re: CSST 3430 V2.0 released
+Date: Thu, 27 Sep 2007 08:25:02 -0500
+Message-ID: <782515bb0709270625s6ace4be5ve24186cbddc09a07@mail.gmail.com>
+References: <46FB9CFD.5090107@gmail.com>
+	<9C23CDD79DA20A479D4615857B2E2C47019756EF@dlee13.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <a0580c510709270419p41302b5bx5c074bf404bc3eb1@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47019756EF@dlee13.ent.ti.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,76 +17,26 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Cc: OMAP <Linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Cc: Linux OMAP List <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Course I can, but first thing is submit the ingos patch, then add my mods a=
-s
-another patch set.
+Hi Khasim,
+On 9/27/07, Syed Mohammed, Khasim <x0khasim@ti.com> wrote:
+> Thanks for the update, if possible can you please give us the instructions
+> to download u-boot / x-loader on 3430 SDP using this CSST.
+On u-boot:
+The instructions in the document in still the same and valid for 3430
+also. quick start guide in CSST has details on how this is done.
+On X-loader:
+CSST now comes with a custom x-loader for nand type devices which will
+load 0x40000 sized image from nand offset 0x20000 to sdram and give
+control to it. you could "in theory" put CSST's xloader in 0x0,
+uboot.bin in 0x20000 and expect it to boot (Note: I have not tried
+this yet). image formating information is available in quick start
+guide with screenshots :)..
 
-On 9/27/07, Eduardo Valentin <edubezval@gmail.com> wrote:
->
-> Hi Luis,
->
->
->   What kind of work did you do? AFAIK, Ingo's patches are reported to
-> work on omap platforms.
-> I've tried on omap1 and omap2 boards. But I'm also interested in
-> preemptive kernel and real time scheduling. Can you share your work
-> with us?
->
->
-> Cheers,
->
-> On 9/26/07, Lu=EDs Cargnini <lvcargnini@gmail.com> wrote:
-> > Dear fellows,
-> > I',m developing some features in kernel has 12 months, and one of them
-> are
-> > real-time scheduling with preemptive kernel, it is the Ingo Molnar
-> patchs,
-> > after been applied the patch this feature could be enabled or disabled
-> > during configuration. Could I submitt my modifications of Real-time
-> kernel
-> > to the list for officially been included in the main source tree.
-> >
-> > --
-> >
-> -------------------------------------------------------------------------=
------
-> > Thanks && Regards
-> > Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
-> > IEEE Member
-> > Electrical Engineer Faculty @ PUCRS
-> > Ipiranga Avenue, 6681 =96 Building 30
-> > P.O. Box: 90619-900 =96 Porto Alegre/RS
-> > Phone: +55 51 3320 3500  extension: 7696
-> >
-> -------------------------------------------------------------------------=
---------
-> > _______________________________________________
-> > Linux-omap-open-source mailing list
-> > Linux-omap-open-source@linux.omap.com
-> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> >
->
->
-> --
-> Eduardo Bezerra Valentin
->
-
-
-
---=20
----------------------------------------------------------------------------=
----
-Thanks && Regards
-Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
-IEEE Member
-Electrical Engineer Faculty @ PUCRS
-Ipiranga Avenue, 6681 =96 Building 30
-P.O. Box: 90619-900 =96 Porto Alegre/RS
-Phone: +55 51 3320 3500  extension: 7696
----------------------------------------------------------------------------=
-------
+Regards,
+Nishanth Menon
