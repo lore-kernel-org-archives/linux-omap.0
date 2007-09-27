@@ -1,14 +1,14 @@
 From: "=?ISO-8859-1?Q?Lu=EDs_Cargnini?=" <lvcargnini@gmail.com>
 Subject: Re: Real-Time
-Date: Thu, 27 Sep 2007 14:24:20 -0300
-Message-ID: <ae36f8040709271024s2ff75be4lb8b996aa89eb3b00@mail.gmail.com>
+Date: Thu, 27 Sep 2007 14:25:05 -0300
+Message-ID: <ae36f8040709271025x166f6c4ay64f79b4c2dd4f1fc@mail.gmail.com>
 References: <ae36f8040709261503s682feab2sdafd9643b9e0ecd0@mail.gmail.com>
 	<46FBBC8E.10209@googlemail.com>
 Reply-To: lvcargnini@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=WINDOWS-1252
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 In-Reply-To: <46FBBC8E.10209@googlemail.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
@@ -18,11 +18,14 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: Dirk Behme <dirk.behme@googlemail.com>
 Cc: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
+
+excuse-me all for the white message,
+Thanks Dirk this is the exact information I'm looking for.
 
 On 9/27/07, Dirk Behme <dirk.behme@googlemail.com> wrote:
 >
