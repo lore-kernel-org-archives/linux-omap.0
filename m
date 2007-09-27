@@ -1,10 +1,10 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 5/7] gpmc: fix GPMC code to boot on 3430
-Date: Thu, 27 Sep 2007 00:11:24 -0600
-Message-ID: <20070927061257.010537810@pwsan.com>
+Subject: [PATCH 3/7] omap2 clock: add support for inverted enable bits
+Date: Thu, 27 Sep 2007 00:11:22 -0600
+Message-ID: <20070927061256.777438088@pwsan.com>
 References: <20070927061119.551228401@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline; filename=fix_gpmc_for_3430_clock.patch
+Content-Disposition: inline; filename=add_invert_enable.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,30 +17,91 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-The GPMC clock name in OMAP3430 is gpmc_fck.
+On 3430ES2 (and presumably beyond), some clock tree branches from
+DPLL3 & 4 can be powered down by setting 'PWRDN' bits in CM_CLKEN_PLL.
+It appears that an easy way to power these branches down in our
+existing clock framework is to use the PWRDN bits as clock enable bits
+for the specific DPLL branches they affect.  The problem with this is
+that the meaning of a set PWRDN bit is 'disable,' not 'enable.'  So,
+introduce a new clock flag, INVERT_ENABLE, that clears the bit on
+'clock enable,' and sets the bit on 'clock disable.'  This flag is used
+on all PWRDN clock branches in the 3430 clock framework.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
 ---
- arch/arm/mach-omap2/gpmc.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/clock.c       |   21 +++++++++++++++++----
+ include/asm-arm/arch-omap/clock.h |    3 ++-
+ 2 files changed, 19 insertions(+), 5 deletions(-)
 
-Index: linux-omap/arch/arm/mach-omap2/gpmc.c
+Index: linux-omap/arch/arm/mach-omap2/clock.c
 ===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/gpmc.c	2007-09-18 23:44:07.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/gpmc.c	2007-09-18 23:51:18.000000000 -0600
-@@ -395,7 +395,11 @@
+--- linux-omap.orig/arch/arm/mach-omap2/clock.c	2007-09-25 23:01:40.000000000 -0600
++++ linux-omap/arch/arm/mach-omap2/clock.c	2007-09-25 23:02:22.000000000 -0600
+@@ -170,6 +170,11 @@
+ };
+ 
+ 
++/*
++ * Note: We don't need special code here for INVERT_ENABLE
++ * for the time being since INVERT_ENABLE only applies to clocks enabled by
++ * CM_CLKEN_PLL
++ */
+ static void omap2_clk_wait_ready(struct clk *clk)
  {
- 	u32 l;
+ 	void __iomem *reg, *other_reg, *st_reg;
+@@ -224,7 +229,10 @@
+ 	}
  
--	gpmc_l3_clk = clk_get(NULL, "core_l3_ck");
-+	if (cpu_is_omap24xx())
-+		gpmc_l3_clk = clk_get(NULL, "core_l3_ck");
-+	else if (cpu_is_omap34xx())
-+		gpmc_l3_clk = clk_get(NULL, "gpmc_fck");
+ 	regval32 = cm_read_reg(clk->enable_reg);
+-	regval32 |= (1 << clk->enable_bit);
++	if (clk->flags & INVERT_ENABLE)
++		regval32 &= ~(1 << clk->enable_bit);
++	else
++		regval32 |= (1 << clk->enable_bit);
+ 	cm_write_reg(regval32, clk->enable_reg);
+ 	wmb();
+ 
+@@ -257,7 +265,10 @@
+ 	}
+ 
+ 	regval32 = cm_read_reg(clk->enable_reg);
+-	regval32 &= ~(1 << clk->enable_bit);
++	if (clk->flags & INVERT_ENABLE)
++		regval32 |= (1 << clk->enable_bit);
++	else
++		regval32 &= ~(1 << clk->enable_bit);
+ 	cm_write_reg(regval32, clk->enable_reg);
+ 	wmb();
+ }
+@@ -709,10 +720,12 @@
+ #ifdef CONFIG_OMAP_RESET_CLOCKS
+ void __init omap2_clk_disable_unused(struct clk *clk)
+ {
+-	u32 regval32;
++	u32 regval32, v;
 +
- 	BUG_ON(IS_ERR(gpmc_l3_clk));
++	v = (clk->flags & INVERT_ENABLE) ? (1 << clk->enable_bit) : 0;
  
- 	l = gpmc_read_reg(GPMC_REVISION);
+ 	regval32 = cm_read_reg(clk->enable_reg);
+-	if ((regval32 & (1 << clk->enable_bit)) == 0)
++	if ((regval32 & (1 << clk->enable_bit)) == v)
+ 		return;
+ 
+ 	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
+Index: linux-omap/include/asm-arm/arch-omap/clock.h
+===================================================================
+--- linux-omap.orig/include/asm-arm/arch-omap/clock.h	2007-09-25 22:56:38.000000000 -0600
++++ linux-omap/include/asm-arm/arch-omap/clock.h	2007-09-25 23:02:22.000000000 -0600
+@@ -104,7 +104,8 @@
+ #define DELAYED_APP		(1 << 9)	/* Delay application of clock */
+ #define CONFIG_PARTICIPANT	(1 << 10)	/* Fundamental clock */
+ #define ENABLE_ON_INIT		(1 << 11)	/* Enable upon framework init */
+-/* bits 12-20 are currently free */
++#define INVERT_ENABLE           (1 << 12)       /* 0 enables, 1 disables */
++/* bits 13-20 are currently free */
+ #define CLOCK_IN_OMAP310	(1 << 21)
+ #define CLOCK_IN_OMAP730	(1 << 22)
+ #define CLOCK_IN_OMAP1510	(1 << 23)
 
 -- 
