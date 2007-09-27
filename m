@@ -1,10 +1,8 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 7/7] gpio: fix GPIO clock code for 3430
-Date: Thu, 27 Sep 2007 00:11:26 -0600
-Message-ID: <20070927061257.207258559@pwsan.com>
-References: <20070927061119.551228401@pwsan.com>
+Subject: [PATCH 0/7] OMAP3 clock patches: first set (take two)
+Date: Thu, 27 Sep 2007 00:11:19 -0600
+Message-ID: <20070927061119.551228401@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline; filename=fix_gpio_for_3430_clock.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,120 +15,70 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Fix GPIO code to use the correct clock names for OMAP3430.
+Hello,
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+this is take two of the initial OMAP3430 clock tree patches, with
+several bug fixes.  UART clock enable warnings are now fixed,
+and some clocks that didn't recalculate rates correctly are now
+fixed.  A few more details are in the per-patch notes.
 
----
- arch/arm/plat-omap/gpio.c        |   40 +++++++++++++++++++++++++++++++++++----
- include/asm-arm/arch-omap/gpio.h |    2 +
- 2 files changed, 38 insertions(+), 4 deletions(-)
+Boot tested on N800 and 3430SDP.  Diffstat and size have been updated at
+the end of the message.  Testing welcome, as always.
 
-Index: linux-omap/arch/arm/plat-omap/gpio.c
-===================================================================
---- linux-omap.orig/arch/arm/plat-omap/gpio.c	2007-09-19 13:07:55.000000000 -0600
-+++ linux-omap/arch/arm/plat-omap/gpio.c	2007-09-19 13:08:57.000000000 -0600
-@@ -1277,21 +1277,30 @@
- /*---------------------------------------------------------------------*/
- 
- static int initialized;
-+#if !defined(CONFIG_ARCH_OMAP34XX)
- static struct clk * gpio_ick;
- static struct clk * gpio_fck;
-+#endif
- 
--#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
-+#if defined(CONFIG_ARCH_OMAP2430)
- static struct clk * gpio5_ick;
- static struct clk * gpio5_fck;
- #endif
- 
-+#if defined(CONFIG_ARCH_OMAP3)
-+static struct clk *gpio_fclks[OMAP34XX_NR_GPIOS];
-+static struct clk *gpio_iclks[OMAP34XX_NR_GPIOS];
-+#endif
-+
- static int __init _omap_gpio_init(void)
- {
- 	int i;
- 	struct gpio_bank *bank;
-+	char clk_name[11];
- 
- 	initialized = 1;
- 
-+#if defined(CONFIG_ARCH_OMAP1)
- 	if (cpu_is_omap15xx()) {
- 		gpio_ick = clk_get(NULL, "arm_gpio_ck");
- 		if (IS_ERR(gpio_ick))
-@@ -1299,6 +1308,8 @@
- 		else
- 			clk_enable(gpio_ick);
- 	}
-+#endif
-+#if defined(CONFIG_ARCH_OMAP2)
- 	if (cpu_class_is_omap2()) {
- 		gpio_ick = clk_get(NULL, "gpios_ick");
- 		if (IS_ERR(gpio_ick))
-@@ -1314,8 +1325,8 @@
- 		/*
- 		 * On 2430 & 3430 GPIO 5 uses CORE L4 ICLK
- 		 */
--#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3430)
--		if (cpu_is_omap2430() || cpu_is_omap3430()) {
-+#if defined(CONFIG_ARCH_OMAP2430)
-+		if (cpu_is_omap2430()) {
- 			gpio5_ick = clk_get(NULL, "gpio5_ick");
- 			if (IS_ERR(gpio5_ick))
- 				printk("Could not get gpio5_ick\n");
-@@ -1329,6 +1340,27 @@
- 		}
- #endif
- 	}
-+#endif
-+
-+#if defined(CONFIG_ARCH_OMAP3)
-+	if (cpu_is_omap34xx()) {
-+		for (i = 0; i < OMAP34XX_NR_GPIOS; i++) {
-+			sprintf(clk_name, "gpio%d_ick", i + 1);
-+			gpio_iclks[i] = clk_get(NULL, clk_name);
-+			if (IS_ERR(gpio_iclks[i]))
-+				printk(KERN_ERR "Could not get %s\n", clk_name);
-+			else
-+				clk_enable(gpio_iclks[i]);
-+			sprintf(clk_name, "gpio%d_fck", i + 1);
-+			gpio_fclks[i] = clk_get(NULL, clk_name);
-+			if (IS_ERR(gpio_fclks[i]))
-+				printk(KERN_ERR "Could not get %s\n", clk_name);
-+			else
-+				clk_enable(gpio_fclks[i]);
-+		}
-+	}
-+#endif
-+
- 
- #ifdef CONFIG_ARCH_OMAP15XX
- 	if (cpu_is_omap15xx()) {
-@@ -1380,7 +1412,7 @@
- 	if (cpu_is_omap34xx()) {
- 		int rev;
- 
--		gpio_bank_count = 6;
-+		gpio_bank_count = OMAP34XX_NR_GPIOS;
- 		gpio_bank = gpio_bank_34xx;
- 		rev = omap_readl(gpio_bank[0].base + OMAP24XX_GPIO_REVISION);
- 		printk(KERN_INFO "OMAP34xx GPIO hardware version %d.%d\n",
-Index: linux-omap/include/asm-arm/arch-omap/gpio.h
-===================================================================
---- linux-omap.orig/include/asm-arm/arch-omap/gpio.h	2007-09-19 13:07:02.000000000 -0600
-+++ linux-omap/include/asm-arm/arch-omap/gpio.h	2007-09-19 13:07:57.000000000 -0600
-@@ -62,6 +62,8 @@
- #define OMAP_MPUIO_LATCH		0x34
- #endif
- 
-+#define OMAP34XX_NR_GPIOS		6
-+
- #define OMAP_MPUIO(nr)		(OMAP_MAX_GPIO_LINES + (nr))
- #define OMAP_GPIO_IS_MPUIO(nr)	((nr) >= OMAP_MAX_GPIO_LINES)
- 
+- Paul
 
--- 
+-----------------------------------------------------------------------
+
+These patches implement the OMAP3430 clock tree, along with the basic
+clock code necessary to support it.  The clock definitions were drawn
+from 3430 ES1 and ES2 TRMs, and the patches try to adhere to the TRM
+as closely as is practicable.
+
+The clock tree is mostly 3430ES1-based.  A few 3430ES2 features are
+implemented, such as 16.8MHz SYS_CLK and PWRDN bits.  Some ES2 clocks
+are yet to be defined, and will be added in subsequent patches.  Also
+not included in this patch set are DPLL control patches, L3 divider
+code, and OPP code; these will be sent as separate patch sets.
+
+Most of the new code is in patch 4.  Patches 1 & 2 are cleanup/bugfix
+patches; patch 3 adds support for PWRDN bit usage in the clock
+framework; patches 5-7 fix the GPMC, dmtimer, and GPIO drivers for
+boot.
+
+The code has been boot-tested on 3430SDP using a 3430ES1 chip.
+
+Thanks to Tony Lindgren and Richard Woodruff for their assistance in
+providing support and information.  These patches also include some silicon
+errata drawn from the TI CDP kernel clock code, written by Karthik Dasu.
+
+Review and comments are appreciated,
+
+- Paul
+
+ arch/arm/mach-omap2/clock.c                       |   66
+ arch/arm/mach-omap2/cm.h                          |    2
+ include/asm-arm/arch-omap/clock.h                 |   12
+ linux-omap/arch/arm/mach-omap2/Makefile           |    1
+ linux-omap/arch/arm/mach-omap2/clock.c            |   36
+ linux-omap/arch/arm/mach-omap2/clock.h            |   22
+ linux-omap/arch/arm/mach-omap2/clock24xx.c        |    7
+ linux-omap/arch/arm/mach-omap2/clock24xx.h        |   75
+ linux-omap/arch/arm/mach-omap2/clock34xx.c        |  222 ++
+ linux-omap/arch/arm/mach-omap2/clock34xx.h        | 2214 ++++++++++++++++++++++
+ linux-omap/arch/arm/mach-omap2/cm.h               |    2
+ linux-omap/arch/arm/mach-omap2/cm_regbits_34xx.h  |  138 +
+ linux-omap/arch/arm/mach-omap2/gpmc.c             |    6
+ linux-omap/arch/arm/mach-omap2/prcm_common.h      |   41
+ linux-omap/arch/arm/mach-omap2/prm.h              |    2
+ linux-omap/arch/arm/mach-omap2/prm_regbits_34xx.h |    9
+ linux-omap/arch/arm/plat-omap/dmtimer.c           |    5
+ linux-omap/arch/arm/plat-omap/gpio.c              |   40
+ linux-omap/include/asm-arm/arch-omap/clock.h      |    2
+ linux-omap/include/asm-arm/arch-omap/gpio.h       |    2
+ linux-omap/include/asm-arm/arch-omap/omap34xx.h   |    9
+ 21 files changed, 2801 insertions(+), 112 deletions(-)
+
+size:
+   text    data     bss     dec     hex filename
+2763816  115776   96224 2975816  2d6848 vmlinux.orig
+2768744  130432   96256 2995432  2db4e8 vmlinux
