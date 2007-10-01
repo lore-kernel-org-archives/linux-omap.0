@@ -1,14 +1,12 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 01/01] ARM: OMAP: Makes DSP compiles again for 1510
-	boards
-Date: Mon, 1 Oct 2007 11:53:51 -0700
-Message-ID: <20071001185350.GO24656@atomide.com>
-References: <46F7DCBF.8040706@indt.org.br>
+From: "Filipe Braz" <ferlipaz@gmail.com>
+Subject: ALSA and TWL4030 in full duplex mode
+Date: Mon, 1 Oct 2007 15:06:46 -0700
+Message-ID: <1678610a0710011506o7d7a8effp61cad3c09e2d89d5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <46F7DCBF.8040706@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,34 +16,35 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Cc: ext Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, omap-linux <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Carlos Aguiar <carlos.aguiar@indt.org.br> [070924 08:51]:
-> From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-> 
-> This simple patch makes DSP compiles again for 1510 boards.
-> 
-> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
-> ---
->  include/asm-arm/arch-omap/omap1510.h |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
-> 
-> diff --git a/include/asm-arm/arch-omap/omap1510.h b/include/asm-arm/arch-omap/omap1510.h
-> index c575d35..7b5114b 100644
-> --- a/include/asm-arm/arch-omap/omap1510.h
-> +++ b/include/asm-arm/arch-omap/omap1510.h
-> @@ -44,5 +44,7 @@
->  #define OMAP1510_DSPREG_SIZE	SZ_128K
->  #define OMAP1510_DSPREG_START	0xE1000000
->  
-> +#define OMAP1510_DSP_MMU_BASE	(0xfffed200)
-> +
->  #endif /*  __ASM_ARCH_OMAP15XX_H */
->  
+Hi,
 
-Pushing today.
+I have been having trouble running the ALSA driver for the TWL4030 audio
+codec in Full duplex mode, using the OMAP 2430SDP. The driver used is the
+ALSA OMAP2430SDP driver (or the TWL4030 driver in 2.6.14 v3).
 
-Tony
+It works fine in half-duplex mode but not in full duplex mode. I tried this
+with the following ti kernels:
+
+ - linux-2.6.14-omap2-v3.tgz
+ - linux-2.6.14-omap2-v4.tgz
+
+When opening the device for capture (after successfully opening for
+playback), the driver prints the following kernel error message:
+
+"Request for MCBSP Failed[-22]"
+
+This error occurs in omap2-audio-twl4030.c and is caused by attempting to
+request the McBSP interface when it is already reserved.
+
+I also notice that the there is an additional driver: the OMAP2430DASF. This
+driver seems to use a message queue but its unclear on how it is supposed to
+work and if it supports full duplex mode. When attempting to play sound
+using it, it blocks the application and eventually fails with write error.
+
+Any information on these would be appreciated
+
+Thanks,
+Filipe
