@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: lcd_mipid: Fix OOM error reporting
-Date: Mon, 1 Oct 2007 10:44:56 -0700
-Message-ID: <20071001174456.GL24656@atomide.com>
-References: <1190287903652-git-send-email-tsavola@movial.fi>
+Subject: Re: [PATCH] ARM: OMAP: Set default OMAP2_CTRL_BASE for OMAP1
+Date: Mon, 1 Oct 2007 11:05:05 -0700
+Message-ID: <20071001180504.GM24656@atomide.com>
+References: <46F00BB4.40403@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <1190287903652-git-send-email-tsavola@movial.fi>
+In-Reply-To: <46F00BB4.40403@googlemail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,32 +17,34 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Timo Savola <tsavola@movial.fi>
-Cc: linux-omap-open-source@linux.omap.com
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Timo Savola <tsavola@movial.fi> [070920 04:32]:
-> Do not try access a memory region when its allocation failed.
-> 
-> Signed-off-by: Timo Savola <tsavola@movial.fi>
-> ---
->  drivers/video/omap/lcd_mipid.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/video/omap/lcd_mipid.c b/drivers/video/omap/lcd_mipid.c
-> index 922e322..ef071a6 100644
-> --- a/drivers/video/omap/lcd_mipid.c
-> +++ b/drivers/video/omap/lcd_mipid.c
-> @@ -561,7 +561,7 @@ static int mipid_spi_probe(struct spi_device *spi)
->  
->  	md = kzalloc(sizeof(*md), GFP_KERNEL);
->  	if (md == NULL) {
-> -		dev_err(&md->spi->dev, "out of memory\n");
-> +		dev_err(&spi->dev, "out of memory\n");
->  		return -ENOMEM;
->  	}
->  
+* Dirk Behme <dirk.behme@googlemail.com> [070918 10:33]:
+>
+> In case no OMAP2_CTRL_BASE is set, set default one to fix compilation
+> errors e.g. for OMAP1.
+>
+> Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
 
-Thanks, pushing today.
+> Index: linux-osk/include/asm-arm/arch-omap/omap24xx.h
+> ===================================================================
+> --- linux-osk.orig/include/asm-arm/arch-omap/omap24xx.h
+> +++ linux-osk/include/asm-arm/arch-omap/omap24xx.h
+> @@ -103,6 +103,11 @@
+>  
+>  #endif
+>  
+> +#if !defined(OMAP2_CTRL_BASE)
+> +/* If no one of the above configs is selected, use default */
+> +#define OMAP2_CTRL_BASE		L4_24XX_BASE
+> +#endif
+> +
+>  /* Control module */
+>  #define OMAP2_CONTROL_DEVCONF0	(OMAP2_CTRL_BASE + 0x274)
+>  #define OMAP2_CONTROL_DEVCONF1	(OMAP2_CTRL_BASE + 0x2e8)
+
+Just for reference, this should not be needed any longer AFAIK.
 
 Tony
