@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: DMA fix bug in omap_get_dma_dst_pos
-Date: Mon, 1 Oct 2007 10:43:09 -0700
-Message-ID: <20071001174309.GK24656@atomide.com>
-References: <010C7BAE6783F34D9AC336EE5A01A08804708B6C@dbde01.ent.ti.com>
+Subject: Re: [PATCH] OMAP: lcd_mipid: Fix OOM error reporting
+Date: Mon, 1 Oct 2007 10:44:56 -0700
+Message-ID: <20071001174456.GL24656@atomide.com>
+References: <1190287903652-git-send-email-tsavola@movial.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <010C7BAE6783F34D9AC336EE5A01A08804708B6C@dbde01.ent.ti.com>
+In-Reply-To: <1190287903652-git-send-email-tsavola@movial.fi>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,41 +17,32 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Gadiyar, Anand" <gadiyar@ti.com>
+To: Timo Savola <tsavola@movial.fi>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Gadiyar, Anand <gadiyar@ti.com> [070918 22:53]:
-> From: Anand Gadiyar <gadiyar@ti.com>
+* Timo Savola <tsavola@movial.fi> [070920 04:32]:
+> Do not try access a memory region when its allocation failed.
 > 
-> omap_get_dma_dst_pos() should return the current destination address.
-> The CDSA register contains the destination start address.
-> CDAC register should be used instead.
-> 
-> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> Signed-off-by: Timo Savola <tsavola@movial.fi>
 > ---
+>  drivers/video/omap/lcd_mipid.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
->  linux-omap/arch/arm/plat-omap/dma.c |    2 +-
->  1 files changed, 1 insertion(+), 1 deletion(-)
-> ===================================================================
-> --- linux-omap.orig/arch/arm/plat-omap/dma.c	2007-09-18
-> 16:17:21.000000000 +0530
-> +++ linux-omap/arch/arm/plat-omap/dma.c	2007-09-18 16:21:59.000000000
-> +0530
-> @@ -776,7 +776,7 @@
->  				       (OMAP1_DMA_CDSA_U_REG(lch) <<
-> 16));
+> diff --git a/drivers/video/omap/lcd_mipid.c b/drivers/video/omap/lcd_mipid.c
+> index 922e322..ef071a6 100644
+> --- a/drivers/video/omap/lcd_mipid.c
+> +++ b/drivers/video/omap/lcd_mipid.c
+> @@ -561,7 +561,7 @@ static int mipid_spi_probe(struct spi_device *spi)
 >  
->  	if (cpu_is_omap24xx())
-> -		offset = OMAP2_DMA_CDSA_REG(lch);
-> +		offset = OMAP2_DMA_CDAC_REG(lch);
+>  	md = kzalloc(sizeof(*md), GFP_KERNEL);
+>  	if (md == NULL) {
+> -		dev_err(&md->spi->dev, "out of memory\n");
+> +		dev_err(&spi->dev, "out of memory\n");
+>  		return -ENOMEM;
+>  	}
 >  
->  	return offset;
->  }
 
-Thanks, pushing today. Can you please check your mail program settings
-to avoid wrapped patches next time?
-
-Regards,
+Thanks, pushing today.
 
 Tony
