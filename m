@@ -1,7 +1,7 @@
 From: "=?ISO-8859-1?Q?Lu=EDs_Cargnini?=" <lvcargnini@gmail.com>
 Subject: problems with backlight
-Date: Tue, 2 Oct 2007 14:45:54 -0300
-Message-ID: <ae36f8040710021045n4a966f26laec721e2b9d1cf1f@mail.gmail.com>
+Date: Tue, 2 Oct 2007 14:57:07 -0300
+Message-ID: <ae36f8040710021057o34d666eaj914cd57ccffc3773@mail.gmail.com>
 Reply-To: lvcargnini@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=WINDOWS-1252
