@@ -1,13 +1,13 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: problems with backlight
-Date: Tue, 02 Oct 2007 11:16:25 -0700
-Message-ID: <20071002181625.5A7E3236AAE@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-References: <ae36f8040710021057o34d666eaj914cd57ccffc3773@mail.gmail.com>
+From: <aravind.boinpally@wipro.com>
+Subject: how to download x-load.bin into internal SRAM
+Date: Wed, 3 Oct 2007 11:57:43 +0530
+Message-ID: <FBD03D6DFE9D7C4893187AAE6DD77F0C066DEC@BLR-SGM-MSG01.wipro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <ae36f8040710021057o34d666eaj914cd57ccffc3773@mail.gmail.com>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,31 +15,20 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: lvcargnini@gmail.com, Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
->   CC [M]  drivers/video/backlight/omap_bl.o
-> drivers/video/backlight/omap_bl.c: In function 'omapbl_suspend':
-> drivers/video/backlight/omap_bl.c:79: error: 'struct backlight_device' has
-> no member named 'class_dev'
->
->	...
->
-> someone have figured this problem before ?
-
-Yes.
-
-
-> can I make the fix ?
-
-Why wouldn't you be able to?
-
-
-> There is no fix, no problem I'm just creating one ?
-
-It's obvious what happened.  The interface changed so it
-no longer uses "struct class_device".  But since omap_bl
-isn't in the main kernel.org tree, it wasn't updated with
-the other backlight drivers.
+Hi..alll
+=20
+i am facing problem with x-loader .i flashed x-loader into NAND
+flash,but it is not booting up.
+=20
+i wanted to download x-load.bin file into internal SRAM (0x4020 0000 ),
+to test my x-load.bin file is proper or not .?
+=20
+how can i download x-load.bin file into SRAM directly to
+execute..??(using CSSt or any other tool)??
+=20
+Thanking you.
