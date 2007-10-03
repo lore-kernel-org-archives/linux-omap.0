@@ -1,15 +1,17 @@
-From: "Syed Mohammed, Khasim" <x0khasim@ti.com>
-Subject: RE: ALSA and TWL4030 in full duplex mode
-Date: Wed, 3 Oct 2007 06:43:51 -0500
-Message-ID: <9C23CDD79DA20A479D4615857B2E2C4701E3976D@dlee13.ent.ti.com>
-References: <1678610a0710011506o7d7a8effp61cad3c09e2d89d5@mail.gmail.com>
+From: "=?ISO-8859-1?Q?Lu=EDs_Cargnini?=" <lvcargnini@gmail.com>
+Subject: Re: problems with backlight
+Date: Wed, 3 Oct 2007 13:44:08 -0300
+Message-ID: <ae36f8040710030944m5b67fb7dle9d23d5486f30941@mail.gmail.com>
+References: <ae36f8040710021045n4a966f26laec721e2b9d1cf1f@mail.gmail.com>
+	<31e679430710021103r6737b937l30afeed8788aad43@mail.gmail.com>
+	<31e679430710021108n1428d7c4gfb799d7aa18f7449@mail.gmail.com>
+Reply-To: lvcargnini@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=WINDOWS-1252
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <1678610a0710011506o7d7a8effp61cad3c09e2d89d5@mail.gmail.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <31e679430710021108n1428d7c4gfb799d7aa18f7449@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,33 +19,160 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Filipe Braz <ferlipaz@gmail.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Felipe Balbi <felipebalbi@users.sourceforge.net>
+Cc: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+I applied the patches only now and are compiling the kernel right now
 
->It works fine in half-duplex mode but not in full duplex mode. I tried =
-this
->with the following ti kernels:
-
-Yes, the full duplex in ALSA on TWL4030 is tested / Validated.
-
-Generally we do,
-# arecord -f cd -d 10 filename_rec.wav | aplay filename.wav
-
+On 10/2/07, Felipe Balbi <felipebalbi@users.sourceforge.net> wrote:
 >
->I also notice that the there is an additional driver: the OMAP2430DASF.
->This
->driver seems to use a message queue but its unclear on how it is =
-supposed
->to
->work and if it supports full duplex mode. When attempting to play sound
->using it, it blocks the application and eventually fails with write =
-error.
-This was some kind of hacked approach that we used to play around with =
-DSP side rendering of Audio of audio data. We don't have to use this.
+> Sorry,
+>
+> forgot to change to correct function...
+>
+> try this one
+>
+>
+>
+>
+>
+> On 10/2/07, Felipe Balbi <felipebalbi@users.sourceforge.net> wrote:
+> > Hi Luis,
+> >
+> > On 10/2/07, Lu=EDs Cargnini <lvcargnini@gmail.com> wrote:
+> > > Dear fellows,
+> > > I had the following problems compiling for omap with omap backlight
+> enabled,
+> > > the following error:
+> > > make
+> > >   CHK     include/linux/version.h
+> > > make[1]: `include/asm-arm/mach-types.h' is up to date.
+> > >   CHK     include/linux/utsrelease.h
+> > >   CALL    scripts/checksyscalls.sh
+> > > <stdin>:1097:2: warning: #warning syscall fadvise64 not implemented
+> > > <stdin>:1265:2: warning: #warning syscall migrate_pages not
+> implemented
+> > > <stdin>:1321:2: warning: #warning syscall pselect6 not implemented
+> > > <stdin>:1325:2: warning: #warning syscall ppoll not implemented
+> > > <stdin>:1365:2: warning: #warning syscall epoll_pwait not implemented
+> > > <stdin>:1385:2: warning: #warning syscall fallocate not implemented
+> > >   CHK     include/linux/compile.h
+> > >   CC [M]  drivers/video/backlight/omap_bl.o
+> > > drivers/video/backlight/omap_bl.c: In function 'omapbl_suspend':
+> > > drivers/video/backlight/omap_bl.c:79: error: 'struct backlight_device=
+'
+> has
+> > > no member named 'class_dev'
+> > > drivers/video/backlight/omap_bl.c: In function 'omapbl_resume':
+> > > drivers/video/backlight/omap_bl.c:88: error: 'struct backlight_device=
+'
+> has
+> > > no member named 'class_dev'
+> > > drivers/video/backlight/omap_bl.c: In function 'omapbl_set_power':
+> > > drivers/video/backlight/omap_bl.c:100: error: 'struct
+> backlight_device' has
+> > > no member named 'class_dev'
+> > > drivers/video/backlight/omap_bl.c: In function 'omapbl_update_status'=
+:
+> > > drivers/video/backlight/omap_bl.c:110: error: 'struct
+> backlight_device' has
+> > > no member named 'class_dev'
+> > > drivers/video/backlight/omap_bl.c: In function 'omapbl_get_intensity'=
+:
+> > > drivers/video/backlight/omap_bl.c:130: error: 'struct
+> backlight_device' has
+> > > no member named 'class_dev'
+> > > drivers/video/backlight/omap_bl.c: In function 'omapbl_remove':
+> > > drivers/video/backlight/omap_bl.c:185: error: 'struct
+> backlight_device' has
+> > > no member named 'class_dev'
+> > > make[3]: *** [drivers/video/backlight/omap_bl.o] Error 1
+> > > make[2]: *** [drivers/video/backlight] Error 2
+> > > make[1]: *** [drivers/video] Error 2
+> > > make: *** [drivers] Error 2
+> > >
+> > > looking he source code:
+> > > struct omap_backlight {
+> > >     int powermode;
+> > >     int current_intensity;
+> > >
+> > >     struct device *dev;
+> > >     struct omap_backlight_config *pdata;
+> > > };
+> > >
+> > >
+> > > but :
+> > > #ifdef CONFIG_PM
+> > > static int omapbl_suspend(struct platform_device *pdev, pm_message_t
+> state)
+> > > {
+> > >     struct backlight_device *dev =3D platform_get_drvdata(pdev);
+> > >     struct omap_backlight *bl =3D class_get_devdata(&dev->class_dev);
+> > >
+> > >     omapbl_blank(bl, FB_BLANK_POWERDOWN);
+> > >     return 0;
+> > > }
+> > >
+> > > someone have figured this problem before ?
+> > > can I make the fix ?
+> > > There is no fix, no problem I'm just creating one ?
+> >
+> > Check if the attached fixes the issue...
+> >
+> > If it works, I'll send a proper formated patch
+> >
+> > >
+> > > --
+> > >
+> -------------------------------------------------------------------------=
+-----
+> > > Thanks && Regards
+> > > Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
+> > > IEEE Member
+> > > Electrical Engineer Faculty @ PUCRS
+> > > Ipiranga Avenue, 6681 =96 Building 30
+> > > P.O. Box: 90619-900 =96 Porto Alegre/RS
+> > > Phone: +55 51 3320 3500  extension: 7696
+> > >
+> -------------------------------------------------------------------------=
+--------
+> > > _______________________________________________
+> > > Linux-omap-open-source mailing list
+> > > Linux-omap-open-source@linux.omap.com
+> > > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> > >
+> >
+> >
+> > --
+> > Best Regards,
+> >
+> > Felipe Balbi
+> > felipebalbi@users.sourceforge.net
+> >
+> >
+>
+>
+> --
+> Best Regards,
+>
+> Felipe Balbi
+> felipebalbi@users.sourceforge.net
+>
+>
 
-Regards,
-Khasim
+
+--=20
+---------------------------------------------------------------------------=
+---
+Thanks && Regards
+Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
+IEEE Member
+Electrical Engineer Faculty @ PUCRS
+Ipiranga Avenue, 6681 =96 Building 30
+P.O. Box: 90619-900 =96 Porto Alegre/RS
+Phone: +55 51 3320 3500  extension: 7696
+---------------------------------------------------------------------------=
+------
