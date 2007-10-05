@@ -1,13 +1,12 @@
-From: radha k <radha_kodirekka@yahoo.com>
-Subject: USB camera-OSK5912
-Date: Fri, 5 Oct 2007 02:15:19 -0700 (PDT)
-Message-ID: <507680.62585.qm@web60925.mail.yahoo.com>
-References: <470556AB.6030201@indt.org.br>
+From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Subject: [PATCH] OMAP: Asynchronous clock disable
+Date: Fri, 5 Oct 2007 15:50:28 +0300
+Message-ID: <20071005125028.GA32101@angel.research.nokia.com>
+Reply-To: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <470556AB.6030201@indt.org.br>
+Content-Type: multipart/mixed; boundary="oyUTqETQ0mS9luUI"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,67 +14,241 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 
+--oyUTqETQ0mS9luUI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
 Hi
 
-I hav connected USB Logitech quick cam camera to
-OSK5912.I AM USING LINU 2.6.22 KERNEL
-I used gspca driver for my camera after amking some
-changes to that one.
-When it is booting it got detected.and it showing it
-is GSPCA Camera(SPCA561A).
-I am unable to capture video using that camera.
-I hav used one procedure as given in a web site that
-is making OSK5912 platfrom as s server using SERVFOX
-and USing SPCAVIEW at PC flatfrom.
+In N800 mmc driver we enable and disable mmc clock in a continous
+cycle with small delays.
 
-AT OSK PLATFORM
-WHEN I AM DOING THIS  IT IS GIVING ERROR  LIKE THIS 
-sh-3.00# ./servfox
- servfox version: 1.1.3 date: 11:12:2005 (C)
-mxhaard@magic.fr
-wrong spca5xx device
-drivers/media/video/gspca/gspca_core.c:
-VIDIOCMCAPTURE: invalid format (21)
-cmcapture: Invalid
-argumentdrivers/media/video/gspca/gspca_core.c:
-VIDIOCMCAPTURE: invalid format (21)
+I wonder if asynchronou clock disable has been suggested before?
 
-cmcapture: Invalid argument
-Waiting .... for connection. CTrl_c to stop !!!!
-drivers/media/video/gspca/gspca_core.c:
-VIDIOCMCAPTURE: invalid format (21)
-cmcapture: Invalid argument
-Got connection from 10.1.25.211
+I would like to be able to disable clocks asynchronously with a
+small delay so that when doing repetitive clk enable/disable
+cycle, the clock would just stay up and only shut down when
+the continuos stream of requests is over.
 
-AT PC SIDE 
-./spcaview -w 10.1.25.201:23
- Spcaview version: 1.1.7 date: 06:11:2006 (C)
-mxhaard@magic.fr
-ERROR Set default port to 7070
-using Server 10.1.25.201 Port 7070
+What I would like to do is:
+
+     clk_enable(clk):
+     ... process the request
+     clk_disable_async(clk, 2);
+
+This would leave clock running for 2 ticks after returning from
+clk_disable_async() and only then disable it. In mmc driver the
+delay could be close to 50 ms.
+
+If clk_disable_async() would be reapplies, the latter call would
+stay in effect since it is done using mod_timer().  For example here 
+the clock would be disabled 1 tick after the second call to 
+clk_disable_async():
+
+     clk_enable(clk);
+     clk_disable_async(clk, HZ);
+     clk_enable(clk);
+     clk_disable_async(clk, 1);
 
 
-AND STRUCKING
+If clk_disable() and clk_disable_async() would be mixed, clk_disable()
+would not cancel pending clk disable since the usecount would still
+be bigger than 0 after calling clk_disable():
 
-I DONT KONW HOW TO RECTIFY THIS
+     clk_enable(clk);
+     clk_disable_async(clk, HZ);
+     clk_enable(clk);
+     clk_disable(clk);
 
-ANY ALTER OTHER METHOD IT NOT AVAILABLE FOR CAPTURING
-VIDEO AT OSK 
+For clearing up pending clock disables I use clk_flush_disable(clk)
+clears out any pending disable immediately.
 
-PLEASE HELP IN THIS REGARD
+     clk_enable(clk);
+     clk_disable_async(clk, HZ);
+     ... later
+     clk_flush_disable(clk)
 
-THANKS IN ADVANCE
+
+Jarkko Lavinen
+
+--oyUTqETQ0mS9luUI
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment;
+	filename="0001-OMAP-Add-asynchronous-clock-disable.patch"
+
+>From 557e94d0a43efbc7e312ab7c1d8a568d65a9310a Mon Sep 17 00:00:00 2001
+From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Date: Fri, 5 Oct 2007 15:39:46 +0300
+Subject: [PATCH] OMAP: Add asynchronous clock disable
+
+Asynchronouse clock disable is useful for repetitive request processing,
+where clock is enabled and disabled continuosly.
+
+Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+---
+ arch/arm/plat-omap/clock.c        |   56 +++++++++++++++++++++++++++++++++++--
+ include/asm-arm/arch-omap/clock.h |    4 ++
+ include/linux/clk.h               |   16 ++++++++++
+ 3 files changed, 73 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index 70f2311..a94b122 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -127,7 +127,7 @@ int clk_enable(struct clk *clk)
+ }
+ EXPORT_SYMBOL(clk_enable);
+ 
+-void clk_disable(struct clk *clk)
++void clk_disable_async(struct clk *clk, int ticks)
+ {
+ 	unsigned long flags;
+ 
+@@ -142,14 +142,61 @@ void clk_disable(struct clk *clk)
+ 		goto out;
+ 	}
+ 
+-	if (arch_clock->clk_disable)
+-		arch_clock->clk_disable(clk);
++	if (ticks > 0) {
++		if ((clk->flags & CLOCK_ASYNC_DISABLE) == 0) {
++			printk(KERN_ERR "Trying to disable clock %s "
++			       "asynchronousely without proper "
++			       "initialization\n", clk->name);
++			WARN_ON(1);
++		} else {
++			if (timer_pending(&clk->disable_timer))
++				clk->usecount--;
++
++			mod_timer(&clk->disable_timer, jiffies + ticks);
++		}
++	} else
++		if (arch_clock->clk_disable)
++			arch_clock->clk_disable(clk);
++out:
++	spin_unlock_irqrestore(&clockfw_lock, flags);
++}
++EXPORT_SYMBOL(clk_disable_async);
++
++void clk_flush_disable(struct clk *clk)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&clockfw_lock, flags);
++	if ((clk->flags & CLOCK_ASYNC_DISABLE) == 0) {
++		printk(KERN_ERR "Trying to disable clock %s asynchronousely "
++		       "without timer initialization\n", clk->name);
++		WARN_ON(1);
++		goto out;
++	}
+ 
++	if (timer_pending(&clk->disable_timer)) {
++		del_timer(&clk->disable_timer);
++		if (arch_clock->clk_disable)
++			arch_clock->clk_disable(clk);
++	}
+ out:
+ 	spin_unlock_irqrestore(&clockfw_lock, flags);
+ }
++EXPORT_SYMBOL(clk_flush_disable);
++
++void clk_disable(struct clk *clk)
++{
++	clk_disable_async(clk, 0);
++}
+ EXPORT_SYMBOL(clk_disable);
+ 
++static void clk_disable_timer(unsigned long data)
++{
++	struct clk *clk = (struct clk *) data;
++
++	clk_disable_async(clk, 0);
++}
++
+ int clk_get_usecount(struct clk *clk)
+ {
+ 	unsigned long flags;
+@@ -336,6 +383,9 @@ int clk_register(struct clk *clk)
+ 
+ 	mutex_lock(&clocks_mutex);
+ 	list_add(&clk->node, &clocks);
++	if (clk->flags & CLOCK_ASYNC_DISABLE)
++		setup_timer(&clk->disable_timer, clk_disable_timer,
++			    (unsigned long) clk);
+ 	if (clk->init)
+ 		clk->init(clk);
+ 	mutex_unlock(&clocks_mutex);
+diff --git a/include/asm-arm/arch-omap/clock.h b/include/asm-arm/arch-omap/clock.h
+index cb7a301..aa95aac 100644
+--- a/include/asm-arm/arch-omap/clock.h
++++ b/include/asm-arm/arch-omap/clock.h
+@@ -13,6 +13,8 @@
+ #ifndef __ARCH_ARM_OMAP_CLOCK_H
+ #define __ARCH_ARM_OMAP_CLOCK_H
+ 
++#include <linux/timer.h>
++
+ struct module;
+ struct clk;
+ 
+@@ -57,6 +59,7 @@ struct clk {
+ 	void __iomem		*enable_reg;
+ 	__u8			enable_bit;
+ 	__s8			usecount;
++	struct timer_list	disable_timer;
+ 	void			(*recalc)(struct clk *);
+ 	int			(*set_rate)(struct clk *, unsigned long);
+ 	long			(*round_rate)(struct clk *, unsigned long);
+@@ -123,6 +126,7 @@ extern void clk_enable_init_clocks(void);
+ #define CLOCK_IN_OMAP243X	(1 << 26)
+ #define CLOCK_IN_OMAP343X	(1 << 27)
+ #define PARENT_CONTROLS_CLOCK	(1 << 28)
++#define CLOCK_ASYNC_DISABLE	(1 << 29)
+ 
+ /* Clksel_rate flags */
+ #define DEFAULT_RATE            (1 << 0)
+diff --git a/include/linux/clk.h b/include/linux/clk.h
+index 5ca8c6f..c922f79 100644
+--- a/include/linux/clk.h
++++ b/include/linux/clk.h
+@@ -63,6 +63,22 @@ int clk_enable(struct clk *clk);
+ void clk_disable(struct clk *clk);
+ 
+ /**
++ * clk_disable_async - disable the clock after a delay
++ * @clk:   clock source
++ * @ticks: delay
++ *
++ * Asyncronous clock disable is implemented with a timer which runs
++ * clk_disable when the timer expires.
++ */
++void clk_disable_async(struct clk *clk, int ticks);
++
++/**
++ * clk_sync_disable - Finish pending clock disable immediately
++ * @clk: clock source
++ */
++void clk_flush_disable(struct clk *clk);
++
++/**
+  * clk_get_rate - obtain the current clock rate (in Hz) for a clock source.
+  *		  This is only valid once the clock source has been enabled.
+  * @clk: clock source
+-- 
+1.5.3.1
 
 
+--oyUTqETQ0mS9luUI
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 
-       
-____________________________________________________________________________________
-Be a better Heartthrob. Get better relationship answers from someone who knows. Yahoo! Answers - Check it out. 
-http://answers.yahoo.com/dir/?link=list&sid=396545433
+--oyUTqETQ0mS9luUI--
