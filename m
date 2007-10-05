@@ -1,12 +1,14 @@
-From: Igor Stoppa <igor.stoppa@nokia.com>
-Subject: Re: [PATCH] OMAP: Asynchronous clock disable
-Date: Fri, 05 Oct 2007 16:25:59 +0300
-Message-ID: <1191590759.7611.13.camel@localhost.localdomain>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH] OMAP: Asynchronous clock disable
+Date: Fri, 5 Oct 2007 08:27:45 -0500
+Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429021E0463@dlee13.ent.ti.com>
 References: <20071005125028.GA32101@angel.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
 In-Reply-To: <20071005125028.GA32101@angel.research.nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -17,61 +19,40 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Jarkko Lavinen <jarkko.lavinen@nokia.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
 
-On Fri, 2007-10-05 at 15:50 +0300, ext Jarkko Lavinen wrote:
-> Hi
-> 
-> In N800 mmc driver we enable and disable mmc clock in a continous
-> cycle with small delays.
-> 
-> I wonder if asynchronou clock disable has been suggested before?
-> 
-> I would like to be able to disable clocks asynchronously with a
-> small delay so that when doing repetitive clk enable/disable
-> cycle, the clock would just stay up and only shut down when
-> the continuos stream of requests is over.
+> Subject: [PATCH] OMAP: Asynchronous clock disable
 
-This could be applied also to other cases:
--PLL locking/relocking (however this is quite fast)
--external oscillator enabling/disabling; this can introduce significant
-latency, so the oscillator would beleft running and OMAP could still go
-to clock stop, rather than the current implementation which prevents
-retention
+Generally I think something like this is good.  Internally I've been
+calling this clock_disable_lazy().
 
-> What I would like to do is:
+For OMAP3 we have been trying to make drivers more aggressive in their
+FCLCOK handling.  As much of this control happens in bottom layers of
+large stacks, we don't always know the call frequency on all entry
+points into a driver.  This call can have local clock implications like
+you are seeing and also power domain and chip wide ones.
 
-<snip>
+As for what is the right number for each driver we were floating ideas
+like if you have an active inner region of the driver, it should use a
+small number and for outer regions use a larger number.
 
-> For clearing up pending clock disables I use clk_flush_disable(clk)
-> clears out any pending disable immediately.
-> 
->      clk_enable(clk);
->      clk_disable_async(clk, HZ);
->      ... later
->      clk_flush_disable(clk)
+* If you don't have the time or knowledge to instrument these drivers
+call in points as their may be many (or to be more future proof with
+less maintenance) it might be ok to set the time out to coincide with
+some global system wide or domain wide activity timers.
 
-This is ok but anyway i don't see it as being badly needed since in a
-practical use case it would be probably used after a long sequence:
+This might apply more to say power domains, but one point is, if the
+display is on and the user is interacting the touch screen, it is
+impossible to hit _chip_ OFF modes anyway.  This will only happen after
+the screen has blanked.  Thus for some timers having them approximately
+set to user input speeds might be ok.  Once these major events have
+happened (screen blank and no input activity), it now becomes about
+optimizing duty cycle of chip low power modes.  In this case shorter
+timer outs are better as they are more impacting in that system mode.
 
-do {
-	clk_enable(clk);
-	do_something_requiring_clk();
-	clk_disable_async(clk, HZ);
-} while (work_left());
-clk_flush_disable(clk);
+I'll try to look at actual code a bit more later on.
 
-
-so i expect the improvement to be minimal to the case where the timer is
-left to expire (i assume the timer won't be too long, otherwise the
-clock would have been released for good every time)
-
--- 
-Cheers, Igor
-
-Igor Stoppa <igor.stoppa@nokia.com>
-(Nokia Multimedia - CP - OSSO / Helsinki, Finland)
+Regards,
+Richard W.
