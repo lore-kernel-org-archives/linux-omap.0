@@ -1,14 +1,11 @@
 From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [PATCH 4/6] OMAP1: CAMERA: Convert camera_core.c to use
-	v4l2-int-device API
-Date: Tue,  9 Oct 2007 08:52:31 -0400
-Message-ID: <1191934353-24072-5-git-send-email-edubezval@gmail.com>
+Subject: [PATCH 1/6] OMAP1: CAMERA: Changed omap16xxcam.c to the coding
+	style standard
+Date: Tue,  9 Oct 2007 08:52:28 -0400
+Message-ID: <1191934353-24072-2-git-send-email-edubezval@gmail.com>
 References: <1191934353-24072-1-git-send-email-edubezval@gmail.com>
-	<1191934353-24072-2-git-send-email-edubezval@gmail.com>
-	<1191934353-24072-3-git-send-email-edubezval@gmail.com>
-	<1191934353-24072-4-git-send-email-edubezval@gmail.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1191934353-24072-4-git-send-email-edubezval@gmail.com>
+In-Reply-To: <1191934353-24072-1-git-send-email-edubezval@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -24,701 +21,761 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-This patch converts camera_core.c to use v4l2-int-device API.
-Only read method was tested with success. MMAP method still needs
-re-work and tests.
+- Executed Lindent on omap16xxcam.c
+- Removed extra blank spaces
+- Lines with more than 80 columns were broken
+- Added KERN_* flags on printk calls
 
 Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
 ---
- drivers/media/video/omap/camera_core.c |  394 +++++++++++++++++++++-----------
- drivers/media/video/omap/camera_core.h |   26 +-
- 2 files changed, 279 insertions(+), 141 deletions(-)
+ drivers/media/video/omap/omap16xxcam.c |  441 ++++++++++++++++----------------
+ 1 files changed, 215 insertions(+), 226 deletions(-)
 
-diff --git a/drivers/media/video/omap/camera_core.c b/drivers/media/video/omap/camera_core.c
-index bbd51d1..217a79f 100644
---- a/drivers/media/video/omap/camera_core.c
-+++ b/drivers/media/video/omap/camera_core.c
-@@ -54,6 +54,101 @@ static int capture_mem = 1280*960*2*2;
- static int overlay_mem = 640*480*2;
+diff --git a/drivers/media/video/omap/omap16xxcam.c b/drivers/media/video/omap/omap16xxcam.c
+index 34cf1a6..82c006b 100644
+--- a/drivers/media/video/omap/omap16xxcam.c
++++ b/drivers/media/video/omap/omap16xxcam.c
+@@ -1,23 +1,23 @@
+ /*
+  * drivers/media/video/omap/omap16xxcam.c
+  *
+- * Copyright (C) 2004 Texas Instruments, Inc. 
+- * 
++ * Copyright (C) 2004 Texas Instruments, Inc.
++ *
+  * Video-for-Linux (Version 2) camera capture driver for
+  * the OMAP H2 and H3 camera controller.
+  *
+- * leverage some code from CEE distribution 
++ * leverage some code from CEE distribution
+  * Copyright (C) 2003-2004 MontaVista Software, Inc.
+- * 
+- * This package is free software; you can redistribute it and/or modify 
++ *
++ * This package is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation. 
+- * 
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR 
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED 
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE. 
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+  */
+- 
++
+ #include <linux/vmalloc.h>
+ #include <linux/slab.h>
+ #include <linux/proc_fs.h>
+@@ -38,7 +38,6 @@
+ #include "omap16xxcam.h"
+ #include "camera_hw_if.h"
+ #include "camera_core.h"
+- 
  
+ #define CONF_CAMERAIF_RESET_R 5
+ #define EN_PER	  0
+@@ -49,13 +48,13 @@
+ #define NUM_CAMDMA_CHANNELS 2
  
-+/*
-+ * Enable the external sensor interface. Try to negotiate interface
-+ * parameters with the sensor and start using the new ones. The calls
-+ * to sensor_if_enable and sensor_if_disable need not to be balanced.
+ typedef struct {
+-        unsigned int ctrlclock;     /* 00 */
+-        unsigned int it_status;     /* 04 */
+-        unsigned int mode;          /* 08 */
+-        unsigned int status;        /* 0C */
+-        unsigned int camdata;       /* 10 */
+-        unsigned int gpio;   	    /* 14 */
+-        unsigned int peak_counter;  /* 18 */
++	unsigned int ctrlclock;		/* 00 */
++	unsigned int it_status;		/* 04 */
++	unsigned int mode;		/* 08 */
++	unsigned int status;		/* 0C */
++	unsigned int camdata;		/* 10 */
++	unsigned int gpio;		/* 14 */
++	unsigned int peak_counter;	/* 18 */
+ } camera_regs_t;
+ 
+ struct camdma_state {
+@@ -68,12 +67,12 @@ struct omap16xxcam {
+ 	camera_regs_t *camera_regs;
+ 	unsigned long iobase_phys;
+ 
+-	/* frequncy (in Hz) of camera interface functional clock (ocp_clk) */
++	/* Frequency (in Hz) of camera interface functional clock (ocp_clk) */
+ 	unsigned long ocp_clk;
+ 
+ 	struct clk *func_clk;
+ 
+-	/* dma related stuff */
++	/* DMA related stuff */
+ 	spinlock_t dma_lock;
+ 	int free_dmach;
+ 	int next_dmach;
+@@ -86,22 +85,21 @@ struct omap16xxcam {
+ 	int new;
+ };
+ static struct omap16xxcam hardware_data;
+-   
++
+ static int omap16xxcam_set_xclk(int, void *);
+ static void omap16xx_cam_dma_link_callback(int, unsigned short, void *);
+ 
+ /* Clears the camera data FIFO by setting RAZ_FIFO bit in MODE configuration
+-   register. */
+-static void
+-omap16xx_cam_clear_fifo(struct omap16xxcam *data)
++ * register.
 + */
-+static int camera_sensor_if_enable(struct camera_device *cam)
-+{
-+	int rval;
-+	struct v4l2_ifparm p;
++static void omap16xx_cam_clear_fifo(struct omap16xxcam *data)
+ {
+ 	data->camera_regs->mode |= RAZ_FIFO;
+ 	udelay(10);
+ 	data->camera_regs->mode &= ~RAZ_FIFO;
+ }
+-  
+-static void
+-omap16xx_cam_reset(struct omap16xxcam *data, int yes)
 +
-+	rval = vidioc_int_g_ifparm(cam->sdev, &p);
-+	if (rval) {
-+		dev_err(cam->dev, "vidioc_int_g_ifparm failed with %d\n", rval);
-+		return rval;
-+	}
++static void omap16xx_cam_reset(struct omap16xxcam *data, int yes)
+ {
+ 	if (machine_is_omap_h3())
+ 		data->camera_regs->gpio = yes ? 0 : 1;
+@@ -109,93 +107,96 @@ omap16xx_cam_reset(struct omap16xxcam *data, int yes)
+ 		data->camera_regs->gpio = yes ? 1 : 0;
+ }
+ 
+-static void 
+-omap16xx_cam_init(void)
++static void omap16xx_cam_init(void)
+ {
+ 	/*
+ 	 * FIXME - Use mux API's instead of directly writing in to MUX registers
+ 	 */
+-	omap_writel(omap_readl(FUNC_MUX_CTRL_4) & ~(0x1ff << 21), FUNC_MUX_CTRL_4);
++	omap_writel(omap_readl(FUNC_MUX_CTRL_4) & ~(0x1ff << 21),
++		    FUNC_MUX_CTRL_4);
+ 	omap_writel(0, FUNC_MUX_CTRL_5);
+-	omap_writel(omap_readl(PULL_DWN_CTRL_0) & ~(0x1FFF << 17), PULL_DWN_CTRL_0);
++	omap_writel(omap_readl(PULL_DWN_CTRL_0) & ~(0x1FFF << 17),
++		    PULL_DWN_CTRL_0);
+ 	omap_writel(omap_readl(PU_PD_SEL_0) & ~(0x1FFF << 17), PU_PD_SEL_0);
+ 
+ 	omap_writel(0xeaef, COMP_MODE_CTRL_0);
+-	omap_writel(omap_readl(OMAP1610_RESET_CONTROL) & ~(1 << CONF_CAMERAIF_RESET_R),
+-			OMAP1610_RESET_CONTROL);
+-	omap_writel(omap_readl(OMAP1610_RESET_CONTROL) | (1 << CONF_CAMERAIF_RESET_R),
+-			OMAP1610_RESET_CONTROL);
+-    
++	omap_writel(omap_readl(OMAP1610_RESET_CONTROL) &
++		    ~(1 << CONF_CAMERAIF_RESET_R), OMAP1610_RESET_CONTROL);
++	omap_writel(omap_readl(OMAP1610_RESET_CONTROL) |
++		    (1 << CONF_CAMERAIF_RESET_R), OMAP1610_RESET_CONTROL);
 +
-+	cam->if_type = p.if_type;
+ 	/* Enable peripheral reset */
+ 	omap_writew(omap_readw(ARM_RSTCT2) | (1 << EN_PER), ARM_RSTCT2);
+ 
+-	/* enable peripheral clock */
++	/* Enable peripheral clock */
+ 	clk_enable(hardware_data.func_clk);
+ }
+ 
+-static void
+-omap16xx_cam_waitfor_syncedge(struct omap16xxcam *data, u32 edge_mask)
++static void omap16xx_cam_waitfor_syncedge(struct omap16xxcam *data,
++					  u32 edge_mask)
+ {
+-	data->camera_regs->mode = (FIFO_TRIGGER_LVL << THRESHOLD_BIT) | edge_mask;
++	data->camera_regs->mode =
++	    (FIFO_TRIGGER_LVL << THRESHOLD_BIT) | edge_mask;
+ 	do {
+ 		interruptible_sleep_on(&data->vsync_wait);
+ 	} while (signal_pending(current));
+ }
+ 
+-static void
+-omap16xx_cam_configure_dma(struct omap16xxcam *data)
++static void omap16xx_cam_configure_dma(struct omap16xxcam *data)
+ {
+ 
+ 	data->camera_regs->mode = (FIFO_TRIGGER_LVL << THRESHOLD_BIT)
+-			 | EN_DMA | EN_FIFO_FULL;
+-	data->camera_regs->ctrlclock |= LCLK_EN; 
++	    | EN_DMA | EN_FIFO_FULL;
++	data->camera_regs->ctrlclock |= LCLK_EN;
+ }
+ 
+-/* acquire h/w resources DMA */
+-static int
+-omap16xx_cam_link_open(struct omap16xxcam *data)
++/* Acquire h/w resources DMA */
++static int omap16xx_cam_link_open(struct omap16xxcam *data)
+ {
+ 	int ret;
+ 
+-	/* Acquire first dma channel */
+-	if ((ret = omap_request_dma(OMAP_DMA_CAMERA_IF_RX, 
+-				"camera dma 1", omap16xx_cam_dma_link_callback,
+-				(void *)data, &data->dma_channel_number1))) {
+-                return ret;
++	/* Acquire first DMA channel */
++	ret = omap_request_dma(OMAP_DMA_CAMERA_IF_RX,
++			       "camera dma 1",
++			       omap16xx_cam_dma_link_callback,
++			       (void *)data, &data->dma_channel_number1);
++	if (ret)
++		return ret;
 +
-+	switch (p.if_type) {
-+	case V4L2_IF_TYPE_BT656:
-+		cam->if_u.bt656.xclk =
-+			cam->cam_hardware->set_xclk(cam->if_u.bt656.xclk,
-+						    cam->hardware_data);
-+		break;
-+	default:
-+		/* FIXME: how about other interfaces? */
-+		dev_err(cam->dev, "interface type %d not supported\n",
-+			p.if_type);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static void camera_sensor_if_disable(const struct camera_device *cam)
-+{
-+	switch (cam->if_type) {
-+	case V4L2_IF_TYPE_BT656:
-+		break;
-+	}
-+}
-+
-+/*
-+ * Initialise the sensor hardware.
-+ */
-+static int camera_sensor_init(struct camera_device *cam)
-+{
-+	int err = 0;
-+	struct v4l2_int_device *sdev = cam->sdev;
-+
-+	/* Enable the xclk output.  The sensor may (and does, in the case of
-+	 * the OV9640) require an xclk input in order for its initialization
-+	 * routine to work.
-+	 */
-+
-+	cam->if_u.bt656.xclk = 21000000;/* choose an arbitrary xclk frequency */
-+
-+	cam->if_u.bt656.xclk = cam->cam_hardware->set_xclk(cam->if_u.bt656.xclk,
-+							   cam->hardware_data);
-+
-+	err = camera_sensor_if_enable(cam);
-+	if (err) {
-+		dev_err(cam->dev, "sensor interface could not be enabled at "
-+			"initialisation, %d\n", err);
-+		cam->sdev = NULL;
-+		goto out;
-+	}
-+
-+	/* power up sensor during sensor initialization */
-+	vidioc_int_s_power(sdev, 1);
-+
-+	err = vidioc_int_dev_init(sdev);
-+	if (err) {
-+		dev_err(cam->dev, "cannot initialize sensor, error %d\n", err);
-+		/* Sensor init failed --- it's nonexistent to us! */
-+		cam->sdev = NULL;
-+		goto out;
-+	}
-+
-+	dev_info(cam->dev, "sensor is %s\n", sdev->name);
-+
-+out:
-+	camera_sensor_if_disable(cam);
-+
-+	vidioc_int_s_power(sdev, 0);
-+
-+	return err;
-+}
-+
-+static void camera_sensor_exit(struct camera_device *cam)
-+{
-+	if (cam->sdev)
-+		vidioc_int_dev_exit(cam->sdev);
-+}
-+
- /* DMA completion routine for the scatter-gather DMA fragments. */
- /* This function is called when a scatter DMA fragment is completed */
- static void
-@@ -68,7 +163,7 @@ camera_core_callback_sgdma(void *arg1, void *arg2)
- 	sgdma = cam->sgdma + sgslot;
- 	if (!sgdma->queued_sglist) {
- 		spin_unlock(&cam->sg_lock);
--		dev_err(&cam->dev, "SGDMA completed when none queued\n");
-+		dev_err(cam->dev, "SGDMA completed when none queued\n");
++	/* Acquire second DMA channel */
++	ret = omap_request_dma(OMAP_DMA_CAMERA_IF_RX,
++			       "camera dma 2",
++			       omap16xx_cam_dma_link_callback,
++			       (void *)data, &data->dma_channel_number2);
++	if (ret) {
++		printk(KERN_ERR "No DMA available for camera\n");
++		return ret;
+ 	}
+-	/* Acquire second dma channel */
+-	if ((ret = omap_request_dma(OMAP_DMA_CAMERA_IF_RX, 
+-				"camera dma 2", omap16xx_cam_dma_link_callback,
+-				(void *)data, &data->dma_channel_number2))) {
+-                printk ("No DMA available for camera\n");
+-                return ret;
+-        }
+- 	data->next_dmach = data->dma_channel_number1;
++	data->next_dmach = data->dma_channel_number1;
+ 	OMAP_DMA_CLNK_CTRL_REG(data->dma_channel_number1) =
+-		data->dma_channel_number2;
++	    data->dma_channel_number2;
+ 	OMAP_DMA_CLNK_CTRL_REG(data->dma_channel_number2) =
+-		data->dma_channel_number1;
++	    data->dma_channel_number1;
+ 
+ 	return 0;
+ }
+ 
+-/* free h/w resources, stop i/f */
+-static int
+-omap16xx_cam_link_close(struct omap16xxcam *data)
++/* Free h/w resources, stop i/f */
++static int omap16xx_cam_link_close(struct omap16xxcam *data)
+ {
+-	/* free dma channels */
++	/* Free DMA channels */
+ 	omap_stop_dma(data->dma_channel_number1);
+ 	omap_stop_dma(data->dma_channel_number2);
+ 
+-	omap_free_dma (data->dma_channel_number1);
+-	omap_free_dma (data->dma_channel_number2);
++	omap_free_dma(data->dma_channel_number1);
++	omap_free_dma(data->dma_channel_number2);
+ 
+ 	return 0;
+ }
+ 
+-/* dma callback routine. */
+-static void
+-omap16xx_cam_dma_link_callback(int lch, unsigned short ch_status, void *data)
++/* DMA callback routine. */
++static void omap16xx_cam_dma_link_callback(int lch, unsigned short ch_status,
++					   void *data)
+ {
+ 	int count;
+ 	void *arg1, *arg2;
+@@ -204,52 +205,51 @@ omap16xx_cam_dma_link_callback(int lch, unsigned short ch_status, void *data)
+ 	dma_callback_t callback;
+ 
+ 	spin_lock(&cam->dma_lock);
+-	if (cam->free_dmach == 2)
+-	{
+-		printk("callback all CHANNELS WERE IDLE \n");
++	if (cam->free_dmach == 2) {
++		printk(KERN_ERR "callback all CHANNELS WERE IDLE \n");
+ 		spin_unlock(&cam->dma_lock);
  		return;
  	}
- 	if (!--sgdma->queued_sglist) {
-@@ -318,7 +413,8 @@ camera_core_vbq_release(struct videobuf_queue *q, struct videobuf_buffer *vb)
- static int
- camera_core_vbq_setup(struct videobuf_queue *q, unsigned int *cnt, unsigned int *size)
- {
--	struct camera_device *cam = q->priv_data;
-+	struct camera_fh *fh = q->priv_data;
-+	struct camera_device *cam = fh->cam;
- 
- 	if (*cnt <= 0)
- 		*cnt = VIDEO_MAX_FRAME; /* supply a default number of buffers */
-@@ -340,7 +436,8 @@ static int
- camera_core_vbq_prepare(struct videobuf_queue *q, struct videobuf_buffer *vb,
-         enum v4l2_field field)
- {
--	struct camera_device *cam = q->priv_data;
-+	struct camera_fh *fh = q->priv_data;
-+	struct camera_device *cam = fh->cam;
- 	int err = 0;
- 
- 	spin_lock(&cam->img_lock);
-@@ -368,7 +465,8 @@ camera_core_vbq_prepare(struct videobuf_queue *q, struct videobuf_buffer *vb,
- static void
- camera_core_vbq_queue(struct videobuf_queue *q, struct videobuf_buffer *vb)
- {
--	struct camera_device *cam = q->priv_data;
-+	struct camera_fh *fh = q->priv_data;
-+	struct camera_device *cam = fh->cam;
- 	enum videobuf_state state = vb->state;
- 	int err;
- 
-@@ -382,7 +480,7 @@ camera_core_vbq_queue(struct videobuf_queue *q, struct videobuf_buffer *vb)
- 		* scatter-gather DMA slots as video buffers so that can't
- 		* happen.
- 		*/
--		dev_dbg(&cam->dev, "Failed to queue a video buffer for SGDMA\n");
-+		dev_dbg(cam->dev, "Failed to queue a video buffer for SGDMA\n");
- 		vb->state = state;
+ 	if (cam->free_dmach == 0) {
+ 		lch = cam->next_dmach;
+ 	} else {
+-		lch = cam->next_dmach == cam->dma_channel_number1 ? 
+-			cam->dma_channel_number2 : cam->dma_channel_number1;
++		lch = cam->next_dmach == cam->dma_channel_number1 ?
++		    cam->dma_channel_number2 : cam->dma_channel_number1;
  	}
- }
-@@ -417,7 +515,7 @@ static int vidioc_enum_fmt_cap(struct file *file, void *fh,
- 	struct camera_fh *ofh  = fh;
- 	struct camera_device *cam = ofh->cam;
  
--	return cam->cam_sensor->enum_pixformat(f, cam->sensor_data);
-+	return vidioc_int_enum_fmt_cap(cam->sdev, f);
- }
+-	while (cam->free_dmach < 2)
+-	{
++	while (cam->free_dmach < 2) {
+ 		if (OMAP_DMA_CCR_REG(lch) & (1 << 7))
+-			break;	
++			break;
  
- static int vidioc_g_fmt_cap(struct file *file, void *fh,
-@@ -438,18 +536,16 @@ static int vidioc_s_fmt_cap(struct file *file, void *fh,
- {
- 	struct camera_fh *ofh = fh;
- 	struct camera_device *cam = ofh->cam;
--	unsigned int temp_sizeimage = 0;
-+	int rval = 0;
+ 		count = (lch == cam->dma_channel_number2) ? 1 : 0;
+ 
+ 		callback = cam->camdma[count].callback;
+- 		arg1 = cam->camdma[count].arg1;
++		arg1 = cam->camdma[count].arg1;
+ 		arg2 = cam->camdma[count].arg2;
+ 		cam->free_dmach++;
+ 
+-		spin_unlock(&cam->dma_lock);		
+- 		callback(arg1, arg2);
++		spin_unlock(&cam->dma_lock);
++		callback(arg1, arg2);
+ 		spin_lock(&cam->dma_lock);
+ 
+-		lch = (lch == cam->dma_channel_number2) ? cam->dma_channel_number1 :
+-							cam->dma_channel_number2;
++		lch =
++		    (lch ==
++		     cam->dma_channel_number2) ? cam->
++		    dma_channel_number1 : cam->dma_channel_number2;
+ 	}
+ 	spin_unlock(&cam->dma_lock);
+-	
 +
-+	vidioc_int_try_fmt_cap(cam->sdev, f);
+ }
  
--	temp_sizeimage = cam->pix.sizeimage;
--	cam->cam_sensor->try_format(&f->fmt.pix, cam->sensor_data);
- 	cam->pix = f->fmt.pix;
+-static irqreturn_t
+-omap16xx_cam_isr(int irq, void *client_data)
++static irqreturn_t omap16xx_cam_isr(int irq, void *client_data)
+ {
+ 	struct omap16xxcam *data = (struct omap16xxcam *)client_data;
+ 	unsigned int itstat = data->camera_regs->it_status;
  
--	cam->xclk = cam->cam_sensor->calc_xclk(&cam->pix,
--			       &cam->nominal_timeperframe, cam->sensor_data);
--	cam->cparm.timeperframe = cam->nominal_timeperframe;
--	cam->xclk = cam->cam_hardware->set_xclk(cam->xclk, cam->hardware_data);
--	return cam->cam_sensor->configure(&cam->pix, cam->xclk,
--				  &cam->cparm.timeperframe, cam->sensor_data);
-+	rval = vidioc_int_s_fmt_cap(cam->sdev, f);
-+	camera_sensor_if_enable(cam);
+ 	/* VSYNC UP interrupt, start filling FIFO and enabling DMA */
+-	if (itstat & V_UP) {		
++	if (itstat & V_UP) {
+ 		data->camera_regs->mode &= ~EN_V_UP;
+-	 	omap16xx_cam_clear_fifo(data);	
++		omap16xx_cam_clear_fifo(data);
+ 		omap16xx_cam_configure_dma(data);
+ 		omap_start_dma(data->next_dmach);
+ 		wake_up_interruptible(&data->vsync_wait);
+@@ -261,29 +261,29 @@ omap16xx_cam_isr(int irq, void *client_data)
+ 	}
+ 
+ 	if (itstat & H_UP)
+-		printk("H_UP\n");
+-	
++		printk(KERN_INFO "H_UP\n");
 +
-+	return rval;
- }
- 
- static int vidioc_try_fmt_cap(struct file *file, void *fh,
-@@ -458,7 +554,7 @@ static int vidioc_try_fmt_cap(struct file *file, void *fh,
- 	struct camera_fh *ofh = fh;
- 	struct camera_device *cam = ofh->cam;
- 
--	return cam->cam_sensor->try_format(&f->fmt.pix, cam->sensor_data);
-+	return vidioc_int_try_fmt_cap(cam->sdev, f);
- }
- 
- static int vidioc_reqbufs(struct file *file, void *fh,
-@@ -563,7 +659,7 @@ static int vidioc_queryctrl(struct file *file, void *fh,
- 	struct camera_fh *ofh = fh;
- 	struct camera_device *cam = ofh->cam;
- 
--	return cam->cam_sensor->query_control(a, cam->sensor_data);
-+	return vidioc_int_queryctrl(cam->sdev, a);
- }
- 
- static int vidioc_g_ctrl(struct file *file, void *fh,
-@@ -572,7 +668,7 @@ static int vidioc_g_ctrl(struct file *file, void *fh,
- 	struct camera_fh *ofh = fh;
- 	struct camera_device *cam = ofh->cam;
- 
--	return cam->cam_sensor->get_control(a, cam->sensor_data);
-+	return vidioc_int_g_ctrl(cam->sdev, a);
- }
- 
- static int vidioc_s_ctrl(struct file *file, void *fh,
-@@ -581,7 +677,7 @@ static int vidioc_s_ctrl(struct file *file, void *fh,
- 	struct camera_fh *ofh = fh;
- 	struct camera_device *cam = ofh->cam;
- 
--	return cam->cam_sensor->set_control(a, cam->sensor_data);
-+	return vidioc_int_s_ctrl(cam->sdev, a);
- }
- 
- static int vidioc_g_fbuf(struct file *file, void *fh,
-@@ -723,7 +819,7 @@ camera_core_read(struct file *file, char *data, size_t count, loff_t *ppos)
- 				GFP_KERNEL | GFP_DMA);
- 	}
- 	if (!cam->capture_base) {
--		dev_err(&cam->dev, "cannot allocate capture buffer\n");
-+		dev_err(cam->dev, "cannot allocate capture buffer\n");
- 		return 0;
- 	}
- 
-@@ -744,7 +840,7 @@ camera_core_read(struct file *file, char *data, size_t count, loff_t *ppos)
- 		timeout = interruptible_sleep_on_timeout
- 				(&cam->new_video_frame, timeout);
- 		if (timeout == 0) {
--			dev_err(&cam->dev, "timeout waiting video frame\n");
-+			dev_err(cam->dev, "timeout waiting video frame\n");
- 			return -EIO; /* time out */
- 		}
- 	}
-@@ -796,6 +892,8 @@ camera_core_release(struct inode *inode, struct file *file)
- 		kfree(fh->vbq.read_buf);
- 	}
- 
-+	module_put(cam->sdev->module);
+ 	if (itstat & H_DOWN)
+-		printk("H_DOWN\n");
+-	
++		printk(KERN_INFO "H_DOWN\n");
 +
- 	cam->cam_hardware->close(cam->hardware_data);
- 	cam->active = 0;
+ 	if (itstat & FIFO_FULL) {
+-		omap16xx_cam_clear_fifo(data);	
+-		printk("FIFO_FULL\n");
++		omap16xx_cam_clear_fifo(data);
++		printk(KERN_INFO "FIFO_FULL\n");
+ 	}
+-	
++
+ 	if (itstat & DATA_XFER)
+-		printk("DATA_TRANS\n");
+-	
++		printk(KERN_INFO "DATA_TRANS\n");
++
+ 	return IRQ_HANDLED;
+ }
+- 
+-/* ------------- below are interface functions ----------------- */
+-/* ------------- these functions are named omap16xxcam_<name> -- */
+-static int
+-omap16xxcam_init_dma(void *priv)
++
++/* ------------- Below are interface functions -----------------
++ * ------------- These functions are named omap16xxcam_<name> --
++ */
++static int omap16xxcam_init_dma(void *priv)
+ {
+ 	int ch;
+-	struct omap16xxcam *data = (struct omap16xxcam *) priv;
++	struct omap16xxcam *data = (struct omap16xxcam *)priv;
+ 
+ 	data->free_dmach = 2;
+ 	for (ch = 0; ch < 2; ++ch) {
+@@ -295,12 +295,12 @@ omap16xxcam_init_dma(void *priv)
  	return 0;
-@@ -807,6 +905,8 @@ camera_core_open(struct inode *inode, struct file *file)
- 	int minor = iminor(inode);
- 	struct camera_device *cam = camera_dev;
- 	struct camera_fh *fh;
-+	struct v4l2_format format;
-+	int rval;
+ }
  
- 	if (!cam || !cam->vfd || (cam->vfd->minor != minor))
- 		return -ENODEV;
-@@ -821,11 +921,20 @@ camera_core_open(struct inode *inode, struct file *file)
- 
- 	spin_lock(&cam->img_lock);
- 	if (cam->active == 1) {
--		dev_err(&cam->dev, "Camera device Active\n");
-+		dev_err(cam->dev, "Camera device Active\n");
- 		spin_unlock(&cam->img_lock);
--		return -EPERM;
-+		rval = -EPERM;
-+		goto err;
- 	}
- 	cam->active = 1;
-+
-+	if (cam->sdev == NULL || !try_module_get(cam->sdev->module)) {
-+		spin_unlock(&cam->img_lock);
-+		rval = -ENODEV;
-+		goto err;
+-/* start the dma of chains */
+-static int 
+-omap16xxcam_start_dma(struct sgdma_state *sgdma,
+-		dma_callback_t callback, void *arg1, void *arg2, void *priv)
++/* Start the DMA of chains */
++static int omap16xxcam_start_dma(struct sgdma_state *sgdma,
++				 dma_callback_t callback, void *arg1,
++				 void *arg2, void *priv)
+ {
+-	struct omap16xxcam *data = (struct omap16xxcam *) priv;
++	struct omap16xxcam *data = (struct omap16xxcam *)priv;
+ 	struct scatterlist *sglist;
+ 	unsigned long irqflags;
+ 	int dmach;
+@@ -313,37 +313,37 @@ omap16xxcam_start_dma(struct sgdma_state *sgdma,
+ 	if (!data->free_dmach) {
+ 		spin_unlock_irqrestore(&data->dma_lock, irqflags);
+ 		return -EBUSY;
+-	} 
 +	}
+ 	dmach = data->next_dmach;
+-	count = (dmach == data->dma_channel_number2) ? 1:0;
++	count = (dmach == data->dma_channel_number2) ? 1 : 0;
+ 	data->camdma[count].callback = callback;
+ 	data->camdma[count].arg1 = arg1;
+ 	data->camdma[count].arg2 = arg2;
+ 
+ 	if (cpu_is_omap1710())
+ 		omap_set_dma_src_params(dmach, OMAP_DMA_PORT_OCP_T1,
+-			    OMAP_DMA_AMODE_CONSTANT, CAM_CAMDATA_REG,
+-			    0, 0);
++					OMAP_DMA_AMODE_CONSTANT,
++					CAM_CAMDATA_REG, 0, 0);
+ 	else
+ 		omap_set_dma_src_params(dmach, OMAP_DMA_PORT_TIPB,
+-			    OMAP_DMA_AMODE_CONSTANT, CAM_CAMDATA_REG,
+-			    0, 0);
++					OMAP_DMA_AMODE_CONSTANT,
++					CAM_CAMDATA_REG, 0, 0);
+ 
+ 	omap_set_dma_dest_params(dmach, OMAP_DMA_PORT_EMIFF,
+-	                     OMAP_DMA_AMODE_POST_INC, sg_dma_address(sglist),
+-			     0, 0);
++				 OMAP_DMA_AMODE_POST_INC,
++				 sg_dma_address(sglist), 0, 0);
+ 
+ 	omap_set_dma_transfer_params(dmach, OMAP_DMA_DATA_TYPE_S32,
+-			FIFO_TRIGGER_LVL, 
+-			sg_dma_len(sglist)/(4 * FIFO_TRIGGER_LVL), 
+- 			OMAP_DMA_SYNC_FRAME,
+-			0, 0);
++				     FIFO_TRIGGER_LVL,
++				     sg_dma_len(sglist) / (4 *
++							   FIFO_TRIGGER_LVL),
++				     OMAP_DMA_SYNC_FRAME, 0, 0);
 +
-+	vidioc_int_g_fmt_cap(cam->sdev, &format);
- 	spin_unlock(&cam->img_lock);
++	OMAP_DMA_CLNK_CTRL_REG(dmach) &= ~(1 << 15);
  
- 	videobuf_queue_init(&fh->vbq, &cam->vbq_ops, NULL, &cam->vbq_lock,
-@@ -835,60 +944,64 @@ camera_core_open(struct inode *inode, struct file *file)
- 	cam->capture_started = 0;
+-	OMAP_DMA_CLNK_CTRL_REG(dmach) &= ~( 1<< 15);
++	prev_dmach = (dmach == data->dma_channel_number2) ?
++	    data->dma_channel_number1 : data->dma_channel_number2;
  
- 	if (cam->cam_hardware->open(cam->hardware_data)) {
--		dev_err(&cam->dev, "Camera IF configuration failed\n");
-+		dev_err(cam->dev, "Camera IF configuration failed\n");
- 		cam->active = 0;
--		return -ENODEV;
-+		rval = -ENODEV;
-+		goto err;
+-	prev_dmach = (dmach == data->dma_channel_number2) ? 
+-		data->dma_channel_number1 : data->dma_channel_number2;
+-	
+ 	if (data->new) {
+ 		data->new = 0;
+ 		omap16xx_cam_waitfor_syncedge(data, EN_V_UP);
+@@ -351,20 +351,20 @@ omap16xxcam_start_dma(struct sgdma_state *sgdma,
+ 		if (OMAP_DMA_CCR_REG(prev_dmach) & (1 << 7))
+ 			OMAP_DMA_CLNK_CTRL_REG(prev_dmach) |= (1 << 15);
+ 		else {
+-			/* no transfer is in progress */
+-  			omap_start_dma(dmach);
+-		}	
++			/* No transfer is in progress */
++			omap_start_dma(dmach);
++		}
  	}
+- 	
+-	data->next_dmach = prev_dmach; 
++
++	data->next_dmach = prev_dmach;
+ 	data->free_dmach--;
+ 	spin_unlock_irqrestore(&data->dma_lock, irqflags);
+ 	return 0;
+ }
+-int static
+-omap16xxcam_finish_dma(void *priv)
++
++int static omap16xxcam_finish_dma(void *priv)
+ {
+-	struct omap16xxcam *data = (struct omap16xxcam *) priv;
++	struct omap16xxcam *data = (struct omap16xxcam *)priv;
+ 
+ 	while (data->free_dmach < 2)
+ 		mdelay(1);
+@@ -372,112 +372,107 @@ omap16xxcam_finish_dma(void *priv)
+ 	return 0;
+ }
+ 
 -
--	cam->xclk = cam->cam_hardware->set_xclk(cam->xclk, cam->hardware_data);
--	/* program the sensor for the capture format and rate */
--	if (cam->cam_sensor->configure(&cam->pix, cam->xclk,
--				&cam->cparm.timeperframe, cam->sensor_data)) {
--		dev_err(&cam->dev, "Camera sensor configuration failed\n");
-+	rval = vidioc_s_fmt_cap(file, fh, &format);
-+	if (rval) {
-+		dev_err(cam->dev, "Camera sensor configuration failed (%d)\n", rval);
- 		cam->cam_hardware->close(cam->hardware_data);
- 		cam->active = 0;
--		return -ENODEV;
-+		rval = -ENODEV;
-+		goto err;
- 	}
+-/* Enables the camera. Takes camera out of reset. Enables the clocks. */ 
+-static int
+-omap16xxcam_enable(void *priv)
++/* Enables the camera. Takes camera out of reset. Enables the clocks. */
++static int omap16xxcam_enable(void *priv)
+ {
+-	struct omap16xxcam *data = (struct omap16xxcam *) priv;
++	struct omap16xxcam *data = (struct omap16xxcam *)priv;
+ 
+ 	omap16xx_cam_reset(data, 1);
+-	
+-	/* give clock to camera_module */
++
++	/* Give clock to camera_module */
+ 	data->camera_regs->mode = (FIFO_TRIGGER_LVL << THRESHOLD_BIT);
+ 	data->camera_regs->ctrlclock = MCLK_EN | CAMEXCLK_EN;
+ 
+ 	omap16xx_cam_clear_fifo(data);
+ 
+-	/* wait for camera to settle down */
++	/* Wait for camera to settle down */
+ 	mdelay(5);
  
  	return 0;
+ }
+- 
 +
-+err:
-+	module_put(cam->sdev->module);
-+	kfree(fh);
-+	return rval;
+ /* Disables all the camera clocks. Put the camera interface in reset. */
+-static int
+-omap16xxcam_disable(void *priv)
+-{ 	
+-	struct omap16xxcam *data = (struct omap16xxcam *) priv;
++static int omap16xxcam_disable(void *priv)
++{
++	struct omap16xxcam *data = (struct omap16xxcam *)priv;
+ 
+ 	omap16xx_cam_clear_fifo(data);
+ 
+-	data->camera_regs->ctrlclock = 0x00000000;     
++	data->camera_regs->ctrlclock = 0x00000000;
+ 	data->camera_regs->mode = 0x00000000;
+-	
++
+ 	omap16xx_cam_reset(data, 0);
+ 
+ 	return 0;
  }
  
- #ifdef CONFIG_PM
- static int camera_core_suspend(struct platform_device *pdev, pm_message_t state)
+ /* Abort the data transfer */
+-static int
+-omap16xxcam_abort(void *priv)
++static int omap16xxcam_abort(void *priv)
  {
- 	struct camera_device *cam = platform_get_drvdata(pdev);
--	int ret = 0;
- 
- 	spin_lock(&cam->img_lock);
- 	if (cam->active)
- 		cam->cam_hardware->close(cam->hardware_data);
- 
--	cam->cam_sensor->power_off(cam->sensor_data);
-+	vidioc_int_s_power(cam->sdev, 0);
- 	spin_unlock(&cam->img_lock);
- 
--	return ret;
-+	return 0;
+ 	return omap16xxcam_disable(priv);
  }
  
- static int camera_core_resume(struct platform_device *pdev)
- {
- 	struct camera_device *cam = platform_get_drvdata(pdev);
--	int ret = 0;
+-static int
+-omap16xxcam_set_xclk(int xclk, void *priv)
+-{ 	
+-	struct omap16xxcam *data = (struct omap16xxcam *) priv;
+- 	int xclk_val;
++static int omap16xxcam_set_xclk(int xclk, void *priv)
++{
++	struct omap16xxcam *data = (struct omap16xxcam *)priv;
++	int xclk_val;
+ 	int divisor = 1;
+-	divisor = data->ocp_clk/xclk;
+-	if ( divisor * xclk < data->ocp_clk)
+-		++divisor; 
++	divisor = data->ocp_clk / xclk;
++	if (divisor * xclk < data->ocp_clk)
++		++divisor;
  
- 	spin_lock(&cam->img_lock);
--	cam->cam_sensor->power_on(cam->sensor_data);
-+	vidioc_int_s_power(cam->sdev, 1);
- 	if (cam->active) {
-+		struct v4l2_format format;
-+
- 		cam->capture_completed = 1;
- 		cam->cam_hardware->open(cam->hardware_data);
--		cam->cam_hardware->set_xclk(cam->xclk, cam->hardware_data);
- 
--		cam->cam_sensor->configure(&cam->pix, cam->xclk,
--					   &cam->cparm.timeperframe,
--					   cam->sensor_data);
-+		vidioc_int_g_fmt_cap(cam->sdev, &format);
-+		vidioc_int_s_fmt_cap(cam->sdev, &format);
-+		camera_sensor_if_enable(cam);
-+
- 		camera_core_sgdma_process(cam);
+ 	switch (divisor) {
+-		case 1:
+-		case 2:
+-			xclk_val = FOSCMOD_TC2_CK2;
+-			break;
+-		case 3:
+-			xclk_val = FOSCMOD_TC2_CK3;
+-			break;
+-		case 4:
+-		case 5:
+-		case 6:
+-		case 7:
+-			xclk_val = FOSCMOD_TC2_CK4;
+-			break;
+-		case 8:
+-		case 9:
+-			xclk_val = FOSCMOD_TC2_CK8;
+-			break;
+-		case 10:
+-		case 11:
+-			xclk_val = FOSCMOD_TC2_CK10;
+-			break;
+-		case 12:
+-		case 13:
+-		case 14:
+-		case 15:
+-			xclk_val = FOSCMOD_TC2_CK12;
+-			break;
+-		case 16:
+-			xclk_val = FOSCMOD_TC2_CK16;
+-			break;
+-		default:
+-			xclk_val = FOSCMOD_TC2_CK16;
++	case 1:
++	case 2:
++		xclk_val = FOSCMOD_TC2_CK2;
++		break;
++	case 3:
++		xclk_val = FOSCMOD_TC2_CK3;
++		break;
++	case 4:
++	case 5:
++	case 6:
++	case 7:
++		xclk_val = FOSCMOD_TC2_CK4;
++		break;
++	case 8:
++	case 9:
++		xclk_val = FOSCMOD_TC2_CK8;
++		break;
++	case 10:
++	case 11:
++		xclk_val = FOSCMOD_TC2_CK10;
++		break;
++	case 12:
++	case 13:
++	case 14:
++	case 15:
++		xclk_val = FOSCMOD_TC2_CK12;
++		break;
++	case 16:
++		xclk_val = FOSCMOD_TC2_CK16;
++		break;
++	default:
++		xclk_val = FOSCMOD_TC2_CK16;
  	}
- 	spin_unlock(&cam->img_lock);
+-	
+-	/* follow the protocol to change the XCLK clock */
++
++	/* Follow the protocol to change the XCLK clock */
+ 	data->camera_regs->ctrlclock &= ~CAMEXCLK_EN;
+ 	data->camera_regs->ctrlclock |= xclk_val;
+ 	data->camera_regs->ctrlclock |= CAMEXCLK_EN;
  
--	return ret;
-+	return 0;
+-	return (data->ocp_clk/divisor);
++	return (data->ocp_clk / divisor);
  }
- #endif	/* CONFIG_PM */
  
-@@ -902,29 +1015,50 @@ static struct file_operations camera_core_fops = {
- 	.open			= camera_core_open,
- 	.release		= camera_core_release,
+-static int
+-omap16xxcam_open(void *priv)
++static int omap16xxcam_open(void *priv)
+ {
+-	struct omap16xxcam *data = (struct omap16xxcam *) priv;
++	struct omap16xxcam *data = (struct omap16xxcam *)priv;
+ 	int ret;
+ 
+-	if ((ret = request_irq(INT_CAMERA, omap16xx_cam_isr, IRQF_DISABLED,
+-					"camera", data))) {
+-		printk("FAILED to aquire irq\n");
++	ret = request_irq(INT_CAMERA, omap16xx_cam_isr, IRQF_DISABLED,
++			  "camera", data);
++	if (ret) {
++		printk(KERN_ERR "FAILED to acquire IRQ\n");
+ 		return ret;
+ 	}
+ 
+@@ -488,22 +483,20 @@ omap16xxcam_open(void *priv)
+ 	return omap16xx_cam_link_open(data);
+ }
+ 
+-static int
+-omap16xxcam_close(void *priv)
++static int omap16xxcam_close(void *priv)
+ {
+-	struct omap16xxcam *data = (struct omap16xxcam *) priv;
++	struct omap16xxcam *data = (struct omap16xxcam *)priv;
+ 
+ 	omap16xxcam_disable(priv);
+-	 
++
+ 	free_irq(INT_CAMERA, data);
+-	
++
+ 	return omap16xx_cam_link_close(data);
+ }
+ 
+-static int
+-omap16xxcam_cleanup(void *priv)
++static int omap16xxcam_cleanup(void *priv)
+ {
+-	struct omap16xxcam *data = (struct omap16xxcam *) priv;
++	struct omap16xxcam *data = (struct omap16xxcam *)priv;
+ 
+ 	if (!data->camera_regs)
+ 		return -EINVAL;
+@@ -511,7 +504,7 @@ omap16xxcam_cleanup(void *priv)
+ 	omap16xxcam_disable(data);
+ 	if (cpu_is_omap1710())
+ 		iounmap((void *)data->camera_regs);
+-	data->camera_regs= NULL;
++	data->camera_regs = NULL;
+ 
+ 	if (data->iobase_phys) {
+ 		release_mem_region(data->iobase_phys, CAMERA_IOSIZE);
+@@ -527,9 +520,8 @@ omap16xxcam_cleanup(void *priv)
+ 	return 0;
+ }
+ 
+-/* Initialise the OMAP camera interface */
+-static void *
+-omap16xxcam_init(void)
++/* Initialize the OMAP camera interface */
++static void *omap16xxcam_init(void)
+ {
+ 	unsigned long cam_iobase;
+ 
+@@ -540,36 +532,34 @@ omap16xxcam_init(void)
+ 	}
+ 
+ 	if (cpu_is_omap1710()) {
+-		cam_iobase = (unsigned long) ioremap (CAMERA_BASE,
+-				CAMERA_IOSIZE);
++		cam_iobase = (unsigned long)ioremap(CAMERA_BASE, CAMERA_IOSIZE);
+ 		if (!cam_iobase) {
+-			printk("CANNOT MAP CAMERA REGISTER\n");
++			printk(KERN_ERR "CANNOT MAP CAMERA REGISTER\n");
+ 			return NULL;
+ 		}
+-	}
+-	else
++	} else
+ 		cam_iobase = io_p2v(CAMERA_BASE);
+ 
+ 	/* Set the base address of the camera registers */
+-	hardware_data.camera_regs = (camera_regs_t *)cam_iobase;
+-	hardware_data.iobase_phys = (unsigned long) CAMERA_BASE;
++	hardware_data.camera_regs = (camera_regs_t *) cam_iobase;
++	hardware_data.iobase_phys = (unsigned long)CAMERA_BASE;
+ 
+-	/* get the input clock value to camera interface and store it */
++	/* Get the input clock value to camera interface and store it */
+ 	if (cpu_is_omap1710())
+ 		hardware_data.func_clk = clk_get(0, "tc2_ck");
+ 	else
+ 		hardware_data.func_clk = clk_get(0, "armper_ck");
+ 	hardware_data.ocp_clk = clk_get_rate(hardware_data.func_clk);
+ 
+-	/* Init the camera IF */
++	/* Initialize the camera IF */
+ 	omap16xx_cam_init();
+-	/* enable it. This is needed for sensor detection */
+-	omap16xxcam_enable((void*)&hardware_data);
+-	/* Init dma data */
++	/* Enable it. This is needed for sensor detection */
++	omap16xxcam_enable((void *)&hardware_data);
++	/* Initialize DMA data */
+ 	spin_lock_init(&hardware_data.dma_lock);
+ 
+ 	init_waitqueue_head(&hardware_data.vsync_wait);
+-	return (void*)&hardware_data;
++	return (void *)&hardware_data;
+ }
+ 
+ struct camera_hardware camera_hardware_if = {
+@@ -587,4 +577,3 @@ struct camera_hardware camera_hardware_if = {
+ 	.start_dma	= omap16xxcam_start_dma,
+ 	.finish_dma	= omap16xxcam_finish_dma,
  };
-+static ssize_t
-+camera_streaming_show(struct device *dev, struct device_attribute *attr,
-+		char *buf)
-+{
-+	struct camera_device *cam = dev_get_drvdata(dev);
- 
--static int __init camera_core_probe(struct platform_device *pdev)
-+	return sprintf(buf, "%s\n", cam->streaming ?  "active" : "inactive");
-+}
-+
-+static DEVICE_ATTR(streaming, S_IRUGO, camera_streaming_show, NULL);
-+
-+static void camera_device_unregister(struct v4l2_int_device *ctl)
- {
--	struct camera_device *cam;
-+	struct camera_device *cam = ctl->priv;
-+
-+	camera_sensor_exit(cam);
-+}
-+
-+static int camera_device_register(struct v4l2_int_device *ctl,
-+				       struct v4l2_int_device *s)
-+{
-+	struct camera_device *cam = ctl->priv;
- 	struct video_device *vfd;
--	int	status;
-+	int rval;
-+	/*Initialise the pointer to the sensor interface and camera interface */
- 
--	cam = kzalloc(sizeof(struct camera_device), GFP_KERNEL);
--	if (!cam) {
--		dev_err(&cam->dev, "could not allocate memory\n");
--		status = -ENOMEM;
--		goto err0;
--	}
-+	/* We already have a slave. */
-+	if (cam->sdev)
-+		return -EBUSY;
- 
--	/* Save the pointer to camera device in a global variable */
--	camera_dev = cam;
-+	cam->sdev = s;
-+
-+	if (device_create_file(cam->dev, &dev_attr_streaming) != 0) {
-+		dev_err(cam->dev, "could not register sysfs entry\n");
-+		rval = -EBUSY;
-+		goto err;
-+	}
- 
- 	/* initialize the video_device struct */
- 	vfd = cam->vfd = video_device_alloc();
- 	if (!vfd) {
--		dev_err(&cam->dev, " could not allocate video device struct\n");
--		status = -ENOMEM;
--		goto err1;
-+		dev_err(cam->dev, " could not allocate video device struct\n");
-+		rval = -ENOMEM;
-+		goto err;
- 	}
- 
- 	vfd->release = video_device_release;
-@@ -959,6 +1093,74 @@ static int __init camera_core_probe(struct platform_device *pdev)
- 	vfd->vidioc_s_fbuf = vidioc_s_fbuf;
- 	vfd->vidioc_overlay = vidioc_overlay;
- 
-+
-+	dev_info(cam->dev, "%s interface with %s sensor\n",
-+		cam->cam_hardware->name, cam->sdev->name);
-+
-+	if (video_register_device(vfd, VFL_TYPE_GRABBER, video_nr) < 0) {
-+		dev_err(cam->dev, "could not register Video for Linux device\n");
-+		rval = -ENODEV;
-+		goto err;
-+	}
-+
-+
-+	rval = camera_sensor_init(cam);
-+	if (rval)
-+		goto err;
-+
-+	/* Disable the Camera after detection */
-+	cam->cam_hardware->disable(cam->hardware_data);
-+
-+	return 0;
-+
-+err:
-+	camera_device_unregister(ctl);
-+
-+	return rval;
-+}
-+
-+static struct v4l2_int_master camera_master = {
-+	.attach = camera_device_register,
-+	.detach = camera_device_unregister,
-+};
-+
-+static struct v4l2_int_device camera = {
-+	.module	= THIS_MODULE,
-+	.name	= CAM_NAME,
-+	.type	= v4l2_int_type_master,
-+	.u	= {
-+		.master = &camera_master
-+	},
-+};
-+
-+static int __init camera_core_probe(struct platform_device *pdev)
-+{
-+	struct camera_device *cam;
-+	int	status = 0;
-+
-+	cam = kzalloc(sizeof(struct camera_device), GFP_KERNEL);
-+	if (!cam) {
-+		dev_err(&pdev->dev, "could not allocate memory\n");
-+		status = -ENOMEM;
-+		goto err;
-+	}
-+
-+	platform_set_drvdata(pdev, cam);
-+
-+	cam->dev = &pdev->dev;
-+
-+	/* initialize the camera interface */
-+	cam->cam_hardware = &camera_hardware_if;
-+	cam->hardware_data = cam->cam_hardware->init();
-+	if (!cam->hardware_data) {
-+		dev_err(cam->dev, "cannot initialize interface hardware\n");
-+		status = -ENODEV;
-+		goto err;
-+	}
-+
-+	/* Save the pointer to camera device in a global variable */
-+	camera_dev = cam;
-+
- 	/* initialize the videobuf queue ops */
- 	cam->vbq_ops.buf_setup = camera_core_vbq_setup;
- 	cam->vbq_ops.buf_prepare = camera_core_vbq_prepare;
-@@ -973,102 +1175,38 @@ static int __init camera_core_probe(struct platform_device *pdev)
- 					(dma_addr_t *) &cam->overlay_base_phys,
- 					GFP_KERNEL | GFP_DMA);
- 		if (!cam->overlay_base) {
--			dev_err(&cam->dev, "cannot allocate overlay framebuffer\n");
-+			dev_err(cam->dev, "cannot allocate overlay framebuffer\n");
- 			status = -ENOMEM;
--			goto err2;
-+			goto err;
- 		}
- 	}
- 	memset((void*)cam->overlay_base, 0, cam->overlay_size);
- 	spin_lock_init(&cam->overlay_lock);
- 	spin_lock_init(&cam->capture_lock);
- 
--	/*Initialise the pointer to the sensor interface and camera interface */
--	cam->cam_sensor = &camera_sensor_if;
--	cam->cam_hardware = &camera_hardware_if;
 -
--	/* initialize the camera interface */
--	cam->hardware_data = cam->cam_hardware->init();
--	if (!cam->hardware_data) {
--		dev_err(&cam->dev, "cannot initialize interface hardware\n");
--		status = -ENODEV;
--		goto err3;
--	}
--
- 	/* initialize the spinlock used to serialize access to the image
- 	 * parameters
- 	 */
- 	spin_lock_init(&cam->img_lock);
- 
--	/* initialize the streaming capture parameters */
--	cam->cparm.capability = V4L2_CAP_TIMEPERFRAME;
--	cam->cparm.readbuffers = 1;
--
--	/* Enable the xclk output.  The sensor may (and does, in the case of
--	 * the OV9640) require an xclk input in order for its initialization
--	 * routine to work.
--	 */
--	cam->xclk = 21000000;	/* choose an arbitrary xclk frequency */
--	cam->xclk = cam->cam_hardware->set_xclk(cam->xclk, cam->hardware_data);
--
--	/* initialize the sensor and define a default capture format cam->pix */
--	cam->sensor_data = cam->cam_sensor->init(&cam->pix);
--	if (!cam->sensor_data) {
--		cam->cam_hardware->disable(cam->hardware_data);
--		dev_err(&cam->dev, "cannot initialize sensor\n");
--		status = -ENODEV;
--		goto err4;
--	}
--
--	dev_info(&cam->dev, "%s interface with %s sensor\n",
--		cam->cam_hardware->name, cam->cam_sensor->name);
--
--	/* select an arbitrary default capture frame rate of 15fps */
--	cam->nominal_timeperframe.numerator = 1;
--	cam->nominal_timeperframe.denominator = 15;
--
--	/* calculate xclk based on the default capture format and default
--	 * frame rate
--	 */
--	cam->xclk = cam->cam_sensor->calc_xclk(&cam->pix,
--		&cam->nominal_timeperframe, cam->sensor_data);
--	cam->cparm.timeperframe = cam->nominal_timeperframe;
--
- 	/* initialise the wait queue */
- 	init_waitqueue_head(&cam->new_video_frame);
- 
- 	/* Initialise the DMA structures */
- 	camera_core_sgdma_init(cam);
- 
--	/* Disable the Camera after detection */
--	cam->cam_hardware->disable(cam->hardware_data);
--
- 	platform_set_drvdata(pdev, cam);
- 
--	if (video_register_device(vfd, VFL_TYPE_GRABBER, video_nr) < 0) {
--		dev_err(&cam->dev, "could not register Video for Linux device\n");
--		status = -ENODEV;
--		goto err5;
--	}
-+	camera.priv = cam;
- 
--	dev_info(&cam->dev, "registered device video%d [v4l2]\n", vfd->minor);
-+	if (v4l2_int_device_register(&camera))
-+		goto err;
- 
- 	return 0;
- 
-- err5:
--	cam->cam_sensor->cleanup(cam->sensor_data);
-- err4:
--	cam->cam_hardware->cleanup(cam->hardware_data);
-- err3:
--	dma_free_coherent(NULL, cam->overlay_size,
--				(void *)cam->overlay_base,
--				cam->overlay_base_phys);
-+ err:
-+	vidioc_int_dev_exit(cam->sdev);
- 	cam->overlay_base = 0;
-- err2:
--	video_device_release(vfd);
-- err1:
--	kfree(cam);
--	camera_dev = NULL;
-- err0:
- 	return status;
- }
- 
-@@ -1100,7 +1238,7 @@ static int camera_core_remove(struct platform_device *pdev)
- 	}
- 	cam->overlay_base_phys = 0;
- 
--	cam->cam_sensor->cleanup(cam->sensor_data);
-+	vidioc_int_dev_exit(cam->sdev);
- 	cam->cam_hardware->cleanup(cam->hardware_data);
- 	kfree(cam);
- 	camera_dev = NULL;
-diff --git a/drivers/media/video/omap/camera_core.h b/drivers/media/video/omap/camera_core.h
-index a300d67..e156cc3 100644
---- a/drivers/media/video/omap/camera_core.h
-+++ b/drivers/media/video/omap/camera_core.h
-@@ -19,6 +19,7 @@ struct camera_fh;
- 
- #include <media/video-buf.h>
- #include <asm/scatterlist.h>
-+#include <media/v4l2-int-device.h>
- 
- struct camera_device;
- typedef void (*dma_callback_t)(void *arg1, void *arg2);
-@@ -39,7 +40,7 @@ struct sgdma_state {
- 
- /* per-device data structure */
- struct camera_device {
--	struct device dev;
-+	struct device *dev;
- 	struct video_device *vfd;
- 
- 	spinlock_t overlay_lock;        /* spinlock for overlay DMA counter */
-@@ -80,18 +81,18 @@ struct camera_device {
- 	 */
- 	struct camera_fh *previewing;
- 
--	/* capture parameters (frame rate, number of buffers) */
--	struct v4l2_captureparm cparm;
--
--	/* This is the frame period actually requested by the user. */
--	struct v4l2_fract nominal_timeperframe;
--
--	/* frequency (in Hz) of camera interface xclk output */
--	unsigned long xclk;
--
-+	/*
-+	 * Sensor interface parameters: interface type, CC_CTRL
-+	 * register value and interface specific data.
-+	 */
-+	int if_type;
-+	union {
-+		struct parallel {
-+			u32 xclk;
-+		} bt656;
-+	} if_u;
- 	/* Pointer to the sensor interface ops */
--	struct omap_camera_sensor *cam_sensor;
--	void *sensor_data;
-+	struct v4l2_int_device *sdev;
- 
- 	/* Pointer to the camera interface hardware ops */
- 	struct camera_hardware *cam_hardware;
-@@ -104,7 +105,6 @@ struct camera_device {
- 	 * VIDIOC_S_FMT/VIDIOC_G_FMT ioctls with a CAPTURE buffer type.
- 	 */
- 	struct v4l2_pix_format pix;
--	struct v4l2_pix_format pix2;
- 
- 	/* crop defines the size and offset of the video overlay source window
- 	 * within the framebuffer.  These parameters are set/queried by the
 -- 
 1.5.3.4.206.g58ba4
