@@ -1,14 +1,13 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: Re: [PATCH 04/14] MMC: OMAP: Power functions modified to
- MMC	multislot support
-Date: Tue, 09 Oct 2007 13:47:52 -0400
-Message-ID: <470BBEC8.2010906@indt.org.br>
-References: <46F28BB7.7050203@indt.org.br> <20071009152914.GC7784@atomide.com>
+Subject: Re: [PATCH 0/14] MMC: OMAP: Add MMC multislot support
+Date: Tue, 09 Oct 2007 14:12:08 -0400
+Message-ID: <470BC478.3050505@indt.org.br>
+References: <46F28BA0.3080002@indt.org.br> <20071009153436.GD7784@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20071009152914.GC7784@atomide.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20071009153436.GD7784@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,73 +15,48 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: ext Tony Lindgren <tony@atomide.com>
 Cc: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
 ext Tony Lindgren wrote:
-> Hi,
->
-> * Carlos Aguiar <carlos.aguiar@indt.org.br> [070920 08:05]:
+> * Carlos Aguiar <carlos.aguiar@indt.org.br> [070920 08:04]:
 >   
->> From: Juha Yrjola <juha.yrjola@solidboot.com>
+>> Hi Tony and folks,
 >>
->> Modifications at power functions to MMC multislot support. This patch
->> also move board-specific code out of MMC OMAP driver.
+>> This is the latest 'MMC: OMAP: Add MMC multislot support' patch series
+>> with changes, corrections and improvements based on comments and
+>> suggestions from community (mainly Tony, Brownell and Trilok) and coworkers.
 >>
->> Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
->> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
->> ---
->>  drivers/mmc/host/omap.c |   88 ++++++++++++++++++-----------------------------
->>  1 files changed, 34 insertions(+), 54 deletions(-)
+>> Just to remind you, this patch series adds the MMC multislot support for
+>> N800 and TI OMAP H2 and H3 boards. It's based on Juha's and Jarkko's
+>> earlier implementation and it can be applied against most updated
+>> linux-omap tree (2.6.23-rc6-omap1).
 >>
->> @@ -1090,23 +1063,29 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
->>  	int i, dsor;
->>  
->>  	dsor = mmc_omap_calc_divisor(mmc, ios);
->> -	host->bus_mode = ios->bus_mode;
->> -	host->hw_bus_mode = host->bus_mode;
->> +
->> +	mmc_omap_select_slot(slot, 0);
->> +
->> +	if (ios->vdd != slot->vdd)
->> +		slot->vdd = ios->vdd;
->>  
->>  	switch (ios->power_mode) {
->>  	case MMC_POWER_OFF:
->> -		mmc_omap_power(host, 0);
->> +		mmc_omap_set_power(slot, 0, ios->vdd);
->>  		break;
->>  	case MMC_POWER_UP:
->> -		/* Cannot touch dsor yet, just power up MMC */
->> -		mmc_omap_power(host, 1);
->> -		return;
->>  	case MMC_POWER_ON:
->> +		mmc_omap_set_power(slot, 1, ios->vdd);
->>  		dsor |= 1 << 11;
->>  		break;
->>  	}
->>  
+>> I've tested with MMC, SD and SDHC cards and looks fine for the boards
+>> mentioned above.
+>>
+>> Testing, comments and suggestions are welcome.
 >>     
 >
 >   
 Hi Tony,
+> Any news on using these patches on 1510? There are several 15xx based
+> boards where the only root is MMC, so we should make sure it works on
+> 15xx before applying these.
+>   
+I'm working now with an Innovator 1510 in order to provide such support
+to this board.
 
-First of all, thanks for the comment...
-> This part breaks the MMC_POWER_UP vs MMC_POWER_ON again.
->
-> This is third time I comment on the same issue I believe. Please
-> do not revert changes made in linux-omap with your patches.
->   
-Well, I thought the solution proposed here was the best one. As I
-mentioned, it worked fine.
-> You must power up MMC with MMC_POWER_UP, and then just set the
-> divisor in MMC_POWER_ON.
->   
-Ok, anyway I will follow your comment. After test it, I will resend this
-patch.
+I've already implemented a version for Siemens SX1 (1510 based). Today
+I'll send to Vladimir Ananiev and Pavel Machek (as I remember, they
+provided the MMC support on linux-omap tree) to test it. I have no such
+boards here.
+
+As soon as the support is working on 1510 I'll send the patches to you
+and Linux-OMAP mailing list.
 
 BR,
 
@@ -90,7 +64,6 @@ Carlos.
 > Regards,
 >
 > Tony
->
 >
 >   
 
