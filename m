@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/12] musb_hdrc: Remove old sysfs entry cable,
-	use mode instead
-Date: Thu, 11 Oct 2007 10:05:16 -0700
-Message-ID: <11921223283749-git-send-email-tony@atomide.com>
+Subject: [PATCH 4/12] musb_hdrc: Remove non-debug otg_state_string
+Date: Thu, 11 Oct 2007 10:05:17 -0700
+Message-ID: <11921223301447-git-send-email-tony@atomide.com>
 References: <1192122325531-git-send-email-tony@atomide.com>
 	<11921223262203-git-send-email-tony@atomide.com>
 	<11921223272557-git-send-email-tony@atomide.com>
+	<11921223283749-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11921223272557-git-send-email-tony@atomide.com>
+In-Reply-To: <11921223283749-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,92 +20,89 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Cable was used earlier before OTG support for peripherals, however
-it does not really work for OTG. Sysfs entry mode shows the right
-OTG mode and should be used instead.
+The right state information via sys is good to know, don't try to optimize
+it away.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
 diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index f7dc22c..82bf57a 100644
+index 82bf57a..b438036 100644
 --- a/drivers/usb/musb/musb_core.c
 +++ b/drivers/usb/musb/musb_core.c
-@@ -1660,52 +1660,6 @@ musb_mode_store(struct device *dev, struct device_attribute *attr,
- static DEVICE_ATTR(mode, 0644, musb_mode_show, musb_mode_store);
+@@ -121,15 +121,6 @@ module_param(debug, uint, 0);
+ MODULE_PARM_DESC(debug, "initial debug message level");
  
- static ssize_t
--musb_cable_show(struct device *dev, struct device_attribute *attr, char *buf)
--{
--	struct musb *musb = dev_to_musb(dev);
--	char *v1= "", *v2 = "?";
--	unsigned long flags;
--	int vbus;
--
--	spin_lock_irqsave(&musb->lock, flags);
--#if defined(CONFIG_USB_TUSB6010) && !defined(CONFIG_USB_MUSB_OTG)
--	/* REVISIT: connect-A != connect-B ... */
--	vbus = musb_platform_get_vbus_status(musb);
--	if (vbus)
--		v2 = "connected";
--	else
--		v2 = "disconnected";
+ #define MUSB_VERSION_SUFFIX	"/dbg"
 -#else
--	/* NOTE: board-specific issues, like too-big capacitors keeping
--	 * VBUS high for a long time after power has been removed, can
--	 * cause temporary false indications of a connection.
--	 */
--	vbus = musb_readb(musb->mregs, MUSB_DEVCTL);
--	if (vbus & 0x10) {
--		/* REVISIT retest on real OTG hardware */
--		switch (musb->board_mode) {
--		case MUSB_HOST:
--			v2 = "A";
--			break;
--		case MUSB_PERIPHERAL:
--			v2 = "B";
--			break;
--		case MUSB_OTG:
--			v1 = "Mini-";
--			v2 = (vbus & MUSB_DEVCTL_BDEVICE) ? "B" : "A";
--			break;
--		}
--	} else	/* VBUS level below A-Valid */
--		v2 = "disconnected";
--#endif
--	musb_platform_try_idle(musb, 0);
--	spin_unlock_irqrestore(&musb->lock, flags);
 -
--	return sprintf(buf, "%s%s\n", v1, v2);
+-const char *otg_state_string(struct musb *musb)
+-{
+-	static char buf[8];
+-
+-	snprintf(buf, sizeof buf, "otg-%d", musb->xceiv.state);
+-	return buf;
 -}
--static DEVICE_ATTR(cable, S_IRUGO, musb_cable_show, NULL);
+ #endif
+ 
+ #define DRIVER_AUTHOR "Mentor Graphics, Texas Instruments, Nokia"
+@@ -281,6 +272,26 @@ void musb_load_testpacket(struct musb *musb)
+ 
+ /*-------------------------------------------------------------------------*/
+ 
++const char *otg_state_string(struct musb *musb)
++{
++	switch (musb->xceiv.state) {
++	case OTG_STATE_A_IDLE:		return "a_idle";
++	case OTG_STATE_A_WAIT_VRISE:	return "a_wait_vrise";
++	case OTG_STATE_A_WAIT_BCON:	return "a_wait_bcon";
++	case OTG_STATE_A_HOST:		return "a_host";
++	case OTG_STATE_A_SUSPEND:	return "a_suspend";
++	case OTG_STATE_A_PERIPHERAL:	return "a_peripheral";
++	case OTG_STATE_A_WAIT_VFALL:	return "a_wait_vfall";
++	case OTG_STATE_A_VBUS_ERR:	return "a_vbus_err";
++	case OTG_STATE_B_IDLE:		return "b_idle";
++	case OTG_STATE_B_SRP_INIT:	return "b_srp_init";
++	case OTG_STATE_B_PERIPHERAL:	return "b_peripheral";
++	case OTG_STATE_B_WAIT_ACON:	return "b_wait_acon";
++	case OTG_STATE_B_HOST:		return "b_host";
++	default:			return "UNDEFINED";
++	}
++}
++
+ #ifdef	CONFIG_USB_MUSB_OTG
+ 
+ /*
+diff --git a/drivers/usb/musb/musb_procfs.c b/drivers/usb/musb/musb_procfs.c
+index ca53d13..bd282da 100644
+--- a/drivers/usb/musb/musb_procfs.c
++++ b/drivers/usb/musb/musb_procfs.c
+@@ -42,27 +42,6 @@
+ 
+ #include "davinci.h"
+ 
 -
--static ssize_t
- musb_vbus_store(struct device *dev, struct device_attribute *attr,
- 		const char *buf, size_t n)
- {
-@@ -1780,7 +1734,6 @@ static void musb_irq_work(struct work_struct *data)
+-const char *otg_state_string(struct musb *musb)
+-{
+-	switch (musb->xceiv.state) {
+-	case OTG_STATE_A_IDLE:		return "a_idle";
+-	case OTG_STATE_A_WAIT_VRISE:	return "a_wait_vrise";
+-	case OTG_STATE_A_WAIT_BCON:	return "a_wait_bcon";
+-	case OTG_STATE_A_HOST:		return "a_host";
+-	case OTG_STATE_A_SUSPEND:	return "a_suspend";
+-	case OTG_STATE_A_PERIPHERAL:	return "a_peripheral";
+-	case OTG_STATE_A_WAIT_VFALL:	return "a_wait_vfall";
+-	case OTG_STATE_A_VBUS_ERR:	return "a_vbus_err";
+-	case OTG_STATE_B_IDLE:		return "b_idle";
+-	case OTG_STATE_B_SRP_INIT:	return "b_srp_init";
+-	case OTG_STATE_B_PERIPHERAL:	return "b_peripheral";
+-	case OTG_STATE_B_WAIT_ACON:	return "b_wait_acon";
+-	case OTG_STATE_B_HOST:		return "b_host";
+-	default:			return "UNDEFINED";
+-	}
+-}
+-
+ #ifdef CONFIG_USB_MUSB_HDRC_HCD
  
- 	if (musb->xceiv.state != old_state) {
- 		old_state = musb->xceiv.state;
--		sysfs_notify(&musb->controller->kobj, NULL, "cable");
- 		sysfs_notify(&musb->controller->kobj, NULL, "mode");
- 	}
- }
-@@ -1846,7 +1799,6 @@ static void musb_free(struct musb *musb)
- 
- #ifdef CONFIG_SYSFS
- 	device_remove_file(musb->controller, &dev_attr_mode);
--	device_remove_file(musb->controller, &dev_attr_cable);
- 	device_remove_file(musb->controller, &dev_attr_vbus);
- #ifdef CONFIG_USB_MUSB_OTG
- 	device_remove_file(musb->controller, &dev_attr_srp);
-@@ -2082,7 +2034,6 @@ fail:
- 
- #ifdef CONFIG_SYSFS
- 	status = device_create_file(dev, &dev_attr_mode);
--	status = device_create_file(dev, &dev_attr_cable);
- 	status = device_create_file(dev, &dev_attr_vbus);
- #ifdef CONFIG_USB_GADGET_MUSB_HDRC
- 	status = device_create_file(dev, &dev_attr_srp);
+ static int dump_qh(struct musb_qh *qh, char *buf, unsigned max)
 -- 
 1.5.2.5
