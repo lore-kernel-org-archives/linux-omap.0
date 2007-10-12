@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Need to call kgdb8250_add_platform_port in omap_serial_init()?
-Date: Fri, 12 Oct 2007 13:31:08 -0700
-Message-ID: <20071012203107.GJ7979@atomide.com>
-References: <470E63B4.40103@mvista.com>
+Subject: Re: [PATCH 0/12] musb_hdrc: Host and OTG updates
+Date: Fri, 12 Oct 2007 13:32:15 -0700
+Message-ID: <20071012203214.GK7979@atomide.com>
+References: <1192122325531-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <470E63B4.40103@mvista.com>
+In-Reply-To: <1192122325531-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,45 +17,17 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Drew Moseley <dmoseley@mvista.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Drew Moseley <dmoseley@mvista.com> [071011 10:57]:
+* Tony Lindgren <tony@atomide.com> [071011 10:05]:
+> Hi all,
 > 
-> The patch below calls kgdb8250_add_platform_port() from omap_serial_init().
-> This is copied from mach-omap/serial.c.  Without this patch kgdbwait
-> will fail.
+> Attached patch series updates musb code for host PM (mostly
+> on tusb6010), and otg HNP stuff. Please comment and test.
 > 
-> Comments?
+> Tested on tusb, compile tested on 2430sdp.
 
-Makes sense, but I can't find any references in linux-omap for
-kgdb8250_add_platform_port... I guess that's in some other tree?
-
-Regards,
+Pushing this series today.
 
 Tony
-
-> Index: linux/arch/arm/mach-omap2/serial.c
-> ===================================================================
-> --- linux.orig/arch/arm/mach-omap2/serial.c
-> +++ linux/arch/arm/mach-omap2/serial.c
-> @@ -162,6 +162,9 @@ void __init omap_serial_init()
->  		}
-> 
->  		omap_serial_reset(p);
-> +#ifdef CONFIG_KGDB_8250
-> +		kgdb8250_add_platform_port(i, &serial_platform_data[i]);
-> +#endif
->  	}
->  }
-> 
-> 
-> -- 
-> mailto:dmoseley@mvista.com
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
