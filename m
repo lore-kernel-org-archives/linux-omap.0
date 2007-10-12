@@ -1,12 +1,12 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.23-omap] misc musb tweaks
-Date: Fri, 12 Oct 2007 14:26:00 -0700
-Message-ID: <200710121426.00525.david-b@pacbell.net>
+Subject: [patch 2.6.23-omap] rest of dma_controller.private_data updates
+Date: Fri, 12 Oct 2007 14:24:51 -0700
+Message-ID: <200710121424.51639.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,125 +15,108 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
-Cc: Alan Stern <stern@rowland.harvard.edu>
 List-Id: linux-omap@vger.kernel.org
 
-From: Alan Stern <stern@rowland.harvard.edu>
-
-The patch below fixes a few minor infelicities.
+Finish getting rid of dma_controller.private data, fixing a bug
+related to the previous DaVinci private_data fix.  Also get rid
+of a compiler warning in the 2430 dma code.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 ---
- drivers/usb/musb/musb_host.c    |    6 +++---
- drivers/usb/musb/musb_host.h    |    9 ++++-----
- drivers/usb/musb/musb_virthub.c |   14 +++++++++-----
- 3 files changed, 16 insertions(+), 13 deletions(-)
+ drivers/usb/musb/musb_core.c     |    2 +-
+ drivers/usb/musb/musb_dma.h      |    2 --
+ drivers/usb/musb/musbhsdma.c     |   11 +++++------
+ drivers/usb/musb/tusb6010_omap.c |    1 -
+ 4 files changed, 6 insertions(+), 10 deletions(-)
 
---- o26.orig/drivers/usb/musb/musb_host.c	2007-08-27 17:24:01.000000000 -0700
-+++ o26/drivers/usb/musb/musb_host.c	2007-08-28 14:54:08.000000000 -0700
-@@ -1513,9 +1513,9 @@ void musb_host_rx(struct musb *musb, u8 
+--- o26.orig/drivers/usb/musb/musb_dma.h	2007-10-12 14:06:08.000000000 -0700
++++ o26/drivers/usb/musb/musb_dma.h	2007-10-12 14:07:02.000000000 -0700
+@@ -136,7 +136,6 @@ dma_channel_status(struct dma_channel *c
  
- #ifdef CONFIG_USB_INVENTRA_DMA
- 		/* done if urb buffer is full or short packet is recd */
--		done = ((urb->actual_length + xfer_len) >=
--				urb->transfer_buffer_length)
--			|| (dma->actual_len & (qh->maxpacket - 1));
-+		done = (urb->actual_length + xfer_len >=
-+				urb->transfer_buffer_length
-+			|| dma->actual_len < qh->maxpacket);
+ /**
+  * struct dma_controller - A DMA Controller.
+- * @private_data: controller-private data;
+  * @start: call this to start a DMA controller;
+  *	return 0 on success, else negative errno
+  * @stop: call this to stop a DMA controller
+@@ -149,7 +148,6 @@ dma_channel_status(struct dma_channel *c
+  * Controllers manage dma channels.
+  */
+ struct dma_controller {
+-	void			*private_data;
+ 	int			(*start)(struct dma_controller *);
+ 	int			(*stop)(struct dma_controller *);
+ 	struct dma_channel	*(*channel_alloc)(struct dma_controller *,
+--- o26.orig/drivers/usb/musb/musb_core.c	2007-10-12 14:06:08.000000000 -0700
++++ o26/drivers/usb/musb/musb_core.c	2007-10-12 14:07:02.000000000 -0700
+@@ -1863,7 +1863,7 @@ static void musb_free(struct musb *musb)
+ 	if (is_dma_capable() && musb->dma_controller) {
+ 		struct dma_controller	*c = musb->dma_controller;
  
- 		/* send IN token for next packet, without AUTOREQ */
- 		if (!done) {
---- o26.orig/drivers/usb/musb/musb_virthub.c	2007-08-27 17:24:01.000000000 -0700
-+++ o26/drivers/usb/musb/musb_virthub.c	2007-08-28 14:54:08.000000000 -0700
-@@ -202,6 +202,7 @@ void musb_root_disconnect(struct musb *m
+-		(void) c->stop(c->private_data);
++		(void) c->stop(c);
+ 		dma_controller_destroy(c);
+ 	}
  
- /*---------------------------------------------------------------------*/
- 
-+/* Caller may or may not hold musb->lock */
- int musb_hub_status_data(struct usb_hcd *hcd, char *buf)
- {
- 	struct musb	*musb = hcd_to_musb(hcd);
-@@ -228,14 +229,17 @@ int musb_hub_control(
- 	int		retval = 0;
- 	unsigned long	flags;
- 
--	if (unlikely(!test_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags)))
-+	spin_lock_irqsave(&musb->lock, flags);
+--- o26.orig/drivers/usb/musb/musbhsdma.c	2007-10-12 14:06:08.000000000 -0700
++++ o26/drivers/usb/musb/musbhsdma.c	2007-10-12 14:07:02.000000000 -0700
+@@ -326,6 +326,8 @@ static irqreturn_t dma_controller_irq(in
+ 				pImplChannel->Channel.status =
+ 					MUSB_DMA_STATUS_BUS_ABORT;
+ 			else {
++				u8 devctl;
 +
-+	if (unlikely(!test_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags))) {
-+		spin_unlock_irqrestore(&musb->lock, flags);
- 		return -ESHUTDOWN;
-+	}
+ 				dwAddress = musb_readl(mbase,
+ 						MUSB_HSDMA_CHANNEL_OFFSET(
+ 							bChannel,
+@@ -341,8 +343,7 @@ static irqreturn_t dma_controller_irq(in
+ 						< pImplChannel->len) ?
+ 					"=> reconfig 0": "=> complete");
  
- 	/* hub features:  always zero, setting is a NOP
- 	 * port features: reported, sometimes updated when host is active
- 	 * no indicators
- 	 */
--	spin_lock_irqsave(&musb->lock, flags);
- 	switch (typeReq) {
- 	case ClearHubFeature:
- 	case SetHubFeature:
-@@ -248,7 +252,7 @@ int musb_hub_control(
- 		}
- 		break;
- 	case ClearPortFeature:
--		if (wIndex != 1)
-+		if ((wIndex & 0xff) != 1)
- 			goto error;
+-				u8 devctl = musb_readb(mbase,
+-						MUSB_DEVCTL);
++				devctl = musb_readb(mbase, MUSB_DEVCTL);
  
- 		switch (wValue) {
-@@ -302,12 +306,12 @@ int musb_hub_control(
+ 				pChannel->status = MUSB_DMA_STATUS_FREE;
  
- 		/* finish RESET signaling? */
- 		if ((musb->port1_status & USB_PORT_STAT_RESET)
--				&& time_after(jiffies, musb->rh_timer))
-+				&& time_after_eq(jiffies, musb->rh_timer))
- 			musb_port_reset(musb, false);
+@@ -376,9 +377,9 @@ done:
  
- 		/* finish RESUME signaling? */
- 		if ((musb->port1_status & MUSB_PORT_STAT_RESUME)
--				&& time_after(jiffies, musb->rh_timer)) {
-+				&& time_after_eq(jiffies, musb->rh_timer)) {
- 			u8		power;
- 
- 			power = musb_readb(musb->mregs, MUSB_POWER);
---- o26.orig/drivers/usb/musb/musb_host.h	2007-08-27 17:24:01.000000000 -0700
-+++ o26/drivers/usb/musb/musb_host.h	2007-08-28 14:54:08.000000000 -0700
-@@ -37,13 +37,12 @@
- 
- static inline struct usb_hcd *musb_to_hcd(struct musb *musb)
+ void dma_controller_destroy(struct dma_controller *c)
  {
--	return (struct usb_hcd *) (((void *)musb)
--			- offsetof(struct usb_hcd, hcd_priv));
-+	return container_of((void *) musb, struct usb_hcd, hcd_priv);
+-	struct musb_dma_controller *controller =
+-		(struct musb_dma_controller *) c->private_data;
++	struct musb_dma_controller *controller;
+ 
++	controller = container_of(c, struct musb_dma_controller, Controller);
+ 	if (!controller)
+ 		return;
+ 
+@@ -386,7 +387,6 @@ void dma_controller_destroy(struct dma_c
+ 		free_irq(controller->irq, c);
+ 
+ 	kfree(controller);
+-	c->private_data = NULL;
  }
  
- static inline struct musb *hcd_to_musb(struct usb_hcd *hcd)
- {
--	return (void *) hcd->hcd_priv;
-+	return (struct musb *) (hcd->hcd_priv);
- }
+ struct dma_controller *__init
+@@ -410,7 +410,6 @@ dma_controller_create(struct musb *musb,
+ 	controller->pDmaPrivate = musb;
+ 	controller->pCoreBase = pCoreBase;
  
- /* stored in "usb_host_endpoint.hcpriv" for scheduled endpoints */
-@@ -77,7 +76,7 @@ static inline struct musb_qh *first_qh(s
- {
- 	if (list_empty(q))
- 		return NULL;
--	return container_of(q->next, struct musb_qh, ring);
-+	return list_entry(q->next, struct musb_qh, ring);
- }
+-	controller->Controller.private_data = controller;
+ 	controller->Controller.start = dma_controller_start;
+ 	controller->Controller.stop = dma_controller_stop;
+ 	controller->Controller.channel_alloc = dma_channel_allocate;
+--- o26.orig/drivers/usb/musb/tusb6010_omap.c	2007-10-12 14:13:12.000000000 -0700
++++ o26/drivers/usb/musb/tusb6010_omap.c	2007-10-12 14:13:40.000000000 -0700
+@@ -708,7 +708,6 @@ dma_controller_create(struct musb *musb,
+ 	tusb_dma->controller.channel_release = tusb_omap_dma_release;
+ 	tusb_dma->controller.channel_program = tusb_omap_dma_program;
+ 	tusb_dma->controller.channel_abort = tusb_omap_dma_abort;
+-	tusb_dma->controller.private_data = tusb_dma;
  
- 
-@@ -102,7 +101,7 @@ static inline struct urb *next_urb(struc
- 	queue = &qh->hep->urb_list;
- 	if (list_empty(queue))
- 		return NULL;
--	return container_of(queue->next, struct urb, urb_list);
-+	return list_entry(queue->next, struct urb, urb_list);
- #else
- 	return NULL;
- #endif
+ 	for (i = 0; i < MAX_DMAREQ; i++) {
+ 		struct dma_channel	*ch;
