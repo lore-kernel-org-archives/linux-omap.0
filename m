@@ -1,14 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Make dyntick work again
-Date: Fri, 12 Oct 2007 13:22:18 -0700
-Message-ID: <20071012202218.GH7979@atomide.com>
-References: <20071012200612.GE7979@atomide.com>
-	<3B6D69C3A9EBCA4BA5DA60D9130274290231FFA1@dlee13.ent.ti.com>
+Subject: Re: [PATCH] FIX BUG in GPT1 Clock Selection
+Date: Fri, 12 Oct 2007 13:25:25 -0700
+Message-ID: <20071012202525.GI7979@atomide.com>
+References: <9C23CDD79DA20A479D4615857B2E2C4701F4A222@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D9130274290231FFA1@dlee13.ent.ti.com>
+In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C4701F4A222@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,42 +15,34 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Cc: Linux OMAP <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Woodruff, Richard <r-woodruff2@ti.com> [071012 13:16]:
-> Hi,
+* Syed Mohammed, Khasim <x0khasim@ti.com> [071010 16:21]:
+> The GPT1 CLK SEL register was getting wrong src register, due to which GPT1 was not able to select SYS_CLK as input.
 > 
-> > Time to try powertop on omap!
+> Signed-off-by: Syed Mohammed Khasim <x0khasim@ti.com>
 > 
-> Here is powertop running on 3430 using dynamic tick :)  It would be nice to format the C state information such that it reports residency.  Sometime in the future.  It is directly useable for seeing timers.  Not so many timers running on a full up NFS mounted system.  It used to run fine on OMAP2 from GIT once clocksource came.
+> File:
+>  arch/arm/mach-omap2/clock24xx.h
+> =======================================================================
 > 
-> --------------------
-> < Detailed C-state information is only available on Mobile CPUs (laptops) >
-> 
-> Wakeups-from-idle per second : 13.1     interval: 10.0s
-> 
-> 
-> Top causes for wakeups:
->   38.9% (  4.2)       <interrupt> : 32KHz timer
->   29.6% (  3.2)       <interrupt> : eth0
->    9.3% (  1.0)     <kernel core> : __netdev_watchdog_up (dev_watchdog)
->    4.6% (  0.5)     <kernel core> : queue_delayed_work_on (delayed_work_timer_fn
->    2.8% (  0.3)     <kernel core> : irlmp_start_discovery_timer (irlmp_discovery
-> _timer_expired)
-> 
-> root@128.247.75.244:/tst# uname -a
-> Linux 128.247.75.244 2.6.22.1-omap1 #3 Fri Oct 12 14:53:45 CDT 2007 armv7l GNU/L
-> inux
-> root@128.247.75.244:/tst# cat /proc/cpuinfo | grep OMAP
-> Hardware        : OMAP3430 sdp3430 board
-> root@128.247.75.244:/tst#
-> --------------------
+> diff -purN linux-omap/arch/arm/mach-omap2/clock24xx.h my_linux-omap/arch/arm/mach-omap2/clock24xx.h
+> --- linux-omap/arch/arm/mach-omap2/clock24xx.h	2007-10-09 18:14:08.000000000 -0500
+> +++ my_linux-omap/arch/arm/mach-omap2/clock24xx.h	2007-10-10 17:27:07.000000000 -0500
+> @@ -1489,7 +1489,7 @@ static struct clk gpt1_fck = {
+>  	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
+>  	.enable_bit	= OMAP24XX_EN_GPT1_SHIFT,
+>  	.init		= &omap2_init_clksel_parent,
+> -	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL2),
+> +	.clksel_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_CLKSEL1),
+>  	.clksel_mask	= OMAP24XX_CLKSEL_GPT1_MASK,
+>  	.clksel		= omap24xx_gpt_clksel,
+>  	.recalc		= &omap2_clksel_recalc,
 
-Great! Time to push that patch then. I also run a quick timer tests with
-select and sleep, and they're working just fine.
+Pushing today.
 
 Tony
