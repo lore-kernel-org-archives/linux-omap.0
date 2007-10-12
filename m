@@ -1,14 +1,10 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: [PATCH] Make dyntick work again
-Date: Fri, 12 Oct 2007 16:47:47 +0200
-Message-ID: <470F8913.8070308@googlemail.com>
-References: <20071011203240.GL503@atomide.com>
-	<002c01c80c74$9f0f5160$e1ac580a@swcenter.sec.samsung.co.kr>
+Subject: OMAP1 realtime patch patch-2.6.23-rt1-omap1
+Date: Fri, 12 Oct 2007 17:03:24 +0200
+Message-ID: <470F8CBC.7030104@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <002c01c80c74$9f0f5160$e1ac580a@swcenter.sec.samsung.co.kr>
+Content-Type: multipart/mixed; boundary="------------080105060401020900000208"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,76 +12,113 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: kmpark@infradead.org
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Kyungmin Park wrote:
-> Umm, there's a problem, I can't boot with timer32k.
-> It halts at here.
+This is a multi-part message in MIME format.
+--------------080105060401020900000208
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On OMAP 5912 OSK I get:
 
-> <7>Calibrating delay loop... 1.05 BogoMIPS (lpj=4096)
-> Mount-cache hash table entries: 512
-> <6>CPU: Testing write buffer coherency:
+Update of OMAP1 realtime patch to most recent -rt patch patch-2.6.23-rt1.
 
-...
-Mount-cache hash table entries: 512
-CPU: Testing write buffer coherency: ok
-NET: Registered protocol family 16
-MUX: initialized M19_1610_CAM_RSTZ
-...
-MUX: initialized PWL
-OMAP DMA hardware version 1
-DMA capabilities: 000c0000:00000000:01ff:003f:007f
-Initializing OMAP McBSP system
-omap_dsp_init() done
-USB: hmc 16, usb2 alt 0 wires
-i2c_omap i2c_omap.1: bus 1 rev2.2 at 100 kHz
-tps65010: version 2 May 2005
-Time: 32k_counter clocksource has been installed.
-Switched to high resolution mode on CPU 0
-NET: Registered protocol family 2
-...
+As ususal, use recent OMAP git (2.6.23-omap1) as starting point, then
+apply patch-2.6.23-rt1 [1] ignoring conflicts, and on top of this
+patch in attachment.
 
-> P.S., here's the current kernel configuration (timer 32k)
-> CONFIG_GENERIC_TIME=y
-> CONFIG_GENERIC_CLOCKEVENTS=y
-> CONFIG_OMAP_32K_TIMER=y
-> CONFIG_OMAP_32K_TIMER_HZ=128
-> CONFIG_OMAP_DM_TIMER=y
-> # Kernel Features
-> #
-> CONFIG_TICK_ONESHOT=y
-> CONFIG_NO_HZ=y
-> CONFIG_HIGH_RES_TIMERS=y
-> CONFIG_PREEMPT=y
-> CONFIG_HZ=128
-
-my config:
-
-CONFIG_GENERIC_TIME=y
-CONFIG_GENERIC_CLOCKEVENTS=y
-# CONFIG_OMAP_MPU_TIMER is not set
-CONFIG_OMAP_32K_TIMER=y
-CONFIG_OMAP_32K_TIMER_HZ=128
-# CONFIG_OMAP_DM_TIMER is not set
-
-#
-# Kernel Features
-#
-CONFIG_TICK_ONESHOT=y
-CONFIG_NO_HZ=y
-CONFIG_HIGH_RES_TIMERS=y
-CONFIG_PREEMPT=y
-CONFIG_HZ=128
-
-As the "ok" in "CPU: Testing write buffer coherency: ok" is already 
-missing in your output, maybe it is anything else?
-
-Regards
+Cheers,
 
 Dirk
+
+[1] http://www.kernel.org/pub/linux/kernel/projects/rt/
+
+
+--------------080105060401020900000208
+Content-Type: text/plain;
+ name="patch-2.6.23-rt1-omap1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="patch-2.6.23-rt1-omap1"
+
+Index: linux-osk/kernel/irq/manage.c
+===================================================================
+--- linux-osk.orig/kernel/irq/manage.c
++++ linux-osk/kernel/irq/manage.c
+@@ -637,6 +637,7 @@ static void thread_simple_irq(irq_desc_t
+ 	unsigned int irq = desc - irq_desc;
+ 	irqreturn_t action_ret;
+ 
++	restart:
+ 	if (action && !desc->depth) {
+ 		spin_unlock(&desc->lock);
+ 		action_ret = handle_IRQ_event(irq, action);
+@@ -645,6 +646,19 @@ static void thread_simple_irq(irq_desc_t
+ 		if (!noirqdebug)
+ 			note_interrupt(irq, desc, action_ret);
+ 	}
++
++	/*
++	 * Some boards will disable an interrupt when it
++	 * sets IRQ_PENDING . So we have to remove the flag
++	 * and re-enable to handle it.
++	 */
++	if (desc->status & IRQ_PENDING) {
++		desc->status &= ~IRQ_PENDING;
++		if (desc->chip)
++			desc->chip->enable(irq);
++		goto restart;
++	}
++
+ 	desc->status &= ~IRQ_INPROGRESS;
+ }
+ 
+Index: linux-osk/sound/arm/omap/omap-alsa.c
+===================================================================
+--- linux-osk.orig/sound/arm/omap/omap-alsa.c
++++ linux-osk/sound/arm/omap/omap-alsa.c
+@@ -165,10 +165,8 @@ static u_int audio_get_dma_pos(struct au
+  */
+ static void audio_stop_dma(struct audio_stream *s)
+ {
+-	unsigned long flags;
+ 	ADEBUG();
+ 
+-	spin_lock_irqsave(&s->dma_lock, flags);
+ 	s->active = 0;
+ 	s->period = 0;
+ 	s->periods = 0;
+@@ -177,8 +175,6 @@ static void audio_stop_dma(struct audio_
+ 	omap_stop_alsa_sound_dma(s);
+ 
+ 	omap_clear_alsa_sound_dma(s);
+-
+-	spin_unlock_irqrestore(&s->dma_lock, flags);
+ }
+ 
+ /*
+Index: linux-osk/arch/arm/plat-omap/gpio.c
+===================================================================
+--- linux-osk.orig/arch/arm/plat-omap/gpio.c
++++ linux-osk/arch/arm/plat-omap/gpio.c
+@@ -150,7 +150,7 @@ struct gpio_bank {
+ 	u32 saved_fallingdetect;
+ 	u32 saved_risingdetect;
+ #endif
+-	spinlock_t lock;
++	raw_spinlock_t lock;
+ };
+ 
+ #define METHOD_MPUIO		0
+
+
+--------------080105060401020900000208
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--------------080105060401020900000208--
