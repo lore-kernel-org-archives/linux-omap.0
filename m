@@ -1,9 +1,10 @@
 From: Sakari Ailus <sakari.ailus@nokia.com>
-Subject: [PATCH] V4L: Int if: Set slave's master before attach,
-	remove master argument
-Date: Tue, 16 Oct 2007 18:08:27 +0300
-Message-ID: <11925473082391-git-send-email-sakari.ailus@nokia.com>
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Subject: [PATCH] ARM: OMAP2: Camera: Fix v4l2 int device detach
+Date: Tue, 16 Oct 2007 18:08:28 +0300
+Message-ID: <1192547308415-git-send-email-sakari.ailus@nokia.com>
+References: <11925473082391-git-send-email-sakari.ailus@nokia.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <11925473082391-git-send-email-sakari.ailus@nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -11,56 +12,64 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Set slave's master before master's attach call.
+omap24xxcam_device_unregister expected the argument to be its own
+device structure but it's actually that of its slave.
 
-The master also now gets its own pointer from slave's structure.
+Also get master from slave's structure in omap24xxcam_device_register.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
 ---
- drivers/media/video/v4l2-int-device.c |    6 +++---
- include/media/v4l2-int-device.h       |    5 ++---
- 2 files changed, 5 insertions(+), 6 deletions(-)
+ drivers/media/video/omap24xxcam.c |   13 ++++++-------
+ 1 files changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-int-device.c b/drivers/media/video/v4l2-int-device.c
-index f497c94..286b7f0 100644
---- a/drivers/media/video/v4l2-int-device.c
-+++ b/drivers/media/video/v4l2-int-device.c
-@@ -65,12 +65,12 @@ static void v4l2_int_device_try_attach_all(void)
- 			if (!try_module_get(m->module))
- 				continue;
+diff --git a/drivers/media/video/omap24xxcam.c b/drivers/media/video/omap24xxcam.c
+index 7da1668..8fda9e1 100644
+--- a/drivers/media/video/omap24xxcam.c
++++ b/drivers/media/video/omap24xxcam.c
+@@ -46,7 +46,7 @@
  
--			if (m->u.master->attach(m, s)) {
-+			s->u.slave->master = m;
-+			if (m->u.master->attach(s)) {
-+				s->u.slave->master = NULL;
- 				module_put(m->module);
- 				continue;
- 			}
--
--			s->u.slave->master = m;
- 		}
- 	}
+ static void omap24xxcam_reset(struct omap24xxcam_device *cam);
+ static int omap24xxcam_sensor_if_enable(struct omap24xxcam_device *cam);
+-static void omap24xxcam_device_unregister(struct v4l2_int_device *ctl);
++static void omap24xxcam_device_unregister(struct v4l2_int_device *s);
+ static int omap24xxcam_remove(struct platform_device *pdev);
+ 
+ /* module parameters */
+@@ -1603,10 +1603,9 @@ static int omap24xxcam_resume(struct platform_device *pdev)
+  *
+  */
+ 
+-static int omap24xxcam_device_register(struct v4l2_int_device *ctl,
+-				       struct v4l2_int_device *s)
++static int omap24xxcam_device_register(struct v4l2_int_device *s)
+ {
+-	struct omap24xxcam_device *cam = ctl->priv;
++	struct omap24xxcam_device *cam = s->u.slave->master->priv;
+ 	struct video_device *vfd;
+ 	int rval;
+ 
+@@ -1681,14 +1680,14 @@ static int omap24xxcam_device_register(struct v4l2_int_device *ctl,
+ 	return 0;
+ 
+ err:
+-	omap24xxcam_device_unregister(ctl);
++	omap24xxcam_device_unregister(s);
+ 
+ 	return rval;
  }
-diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
-index 066ebfc..c8b80e0 100644
---- a/include/media/v4l2-int-device.h
-+++ b/include/media/v4l2-int-device.h
-@@ -44,9 +44,8 @@ enum v4l2_int_type {
- struct v4l2_int_device;
  
- struct v4l2_int_master {
--	int (*attach)(struct v4l2_int_device *master,
--		      struct v4l2_int_device *slave);
--	void (*detach)(struct v4l2_int_device *master);
-+	int (*attach)(struct v4l2_int_device *slave);
-+	void (*detach)(struct v4l2_int_device *slave);
- };
+-static void omap24xxcam_device_unregister(struct v4l2_int_device *ctl)
++static void omap24xxcam_device_unregister(struct v4l2_int_device *s)
+ {
+-	struct omap24xxcam_device *cam = ctl->priv;
++	struct omap24xxcam_device *cam = s->u.slave->master->priv;
  
- typedef int (v4l2_int_ioctl_func)(struct v4l2_int_device *);
+ 	omap24xxcam_sensor_exit(cam);
+ 
 -- 
 1.5.0.6
