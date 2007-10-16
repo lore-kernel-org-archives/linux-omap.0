@@ -1,14 +1,11 @@
-From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
-Subject: Re: OMAP5912 and USB PID/VID
-Date: Wed, 17 Oct 2007 00:19:04 +0300
-Message-ID: <31e679430710161419t77a98be3x94f2fb5a82c7bba5@mail.gmail.com>
-References: <6ED95C184239FC419DFE88BA479737655FF7455F@mailnt.doble.com>
+From: Anderson Briglia <anderson.briglia@indt.org.br>
+Subject: [PATCH] OMAP: Add OMAP_GPIO_SWITCH dependency for TUSB6010 on N800
+Date: Tue, 16 Oct 2007 17:58:49 -0400
+Message-ID: <47153419.2030609@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <6ED95C184239FC419DFE88BA479737655FF7455F@mailnt.doble.com>
-Content-Disposition: inline
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,59 +13,30 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "Grubner, Martin" <mgrubner@doble.com>
-Cc: "Abercrombie, Gary" <gabercrombie@doble.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+GPIO switch is needed for TUSB6010 code. It must be
+selected when TUSB6010 is marked on N800 device.
 
-On 10/16/07, Grubner, Martin <mgrubner@doble.com> wrote:
-> Hello,
->
-> I have designed a new board with the OMAP5912 device and wanted to know
-> if there is a way to get the proper VID/PID into the device via say the
-> UART1 serial port without the need for the Emulator/JTAG. If  the
-> emulator is the only way what steps are needed to get the device
-> programmed?
+Signed-off-by: Anderson Briglia <anderson.briglia@indt.org.br>
+---
+ arch/arm/mach-omap2/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-If you're running linux in it, you just need to change the values in
-gadget drivers, let's say you're using gadget zero
-(drivers/usb/gadget/zero.c) you would change the following lines:
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 51fc13a..9323bd0 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -37,6 +37,7 @@ config MACH_NOKIA_N800
+ 	select CBUS if VIDEO_TCM825X
+ 	select CBUS_RETU if VIDEO_TCM825X
+ 	select MENELAUS if VIDEO_TCM825X
++	select OMAP_GPIO_SWITCH
 
-/* Thanks to NetChip Technologies for donating this product ID.
- *
- * DO NOT REUSE THESE IDs with a protocol-incompatible driver!!  Ever!!
- * Instead:  allocate your own, using normal USB-IF procedures.
- */
-#ifndef	CONFIG_USB_ZERO_HNPTEST
-#define DRIVER_VENDOR_NUM	0x0525		/* NetChip */
-#define DRIVER_PRODUCT_NUM	0xa4a0		/* Linux-USB "Gadget Zero" */
-#else
-#define DRIVER_VENDOR_NUM	0x1a0a		/* OTG test device IDs */
-#define DRIVER_PRODUCT_NUM	0xbadd
-#endif
-
-In case of gadget zero, it can also become the otg test device, so
-changing only the first 2 defines is enough ;-)
-
->
-> Thank you very much,
->
-> -Martin
->
->
->
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
-
-
+ config MACH_OMAP2_TUSB6010
+ 	bool
 -- 
-Best Regards,
-
-Felipe Balbi
-felipebalbi@users.sourceforge.net
+1.5.2
