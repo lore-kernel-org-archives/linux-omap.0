@@ -1,14 +1,14 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: [PATCH/RFC] ARM: OMAP: unlock flash device during boot
-Date: Thu, 18 Oct 2007 07:30:52 -0700
-Message-ID: <47176E1C.3060009@mvista.com>
-References: <20071017222526.493688502@mvista.com>
-	<3B6D69C3A9EBCA4BA5DA60D9130274290242BDAC@dlee13.ent.ti.com>
+From: "=?UTF-8?Q?Lu=C3=ADs_Cargnini?=" <lvcargnini@gmail.com>
+Subject: Re: McBSP 2 yet
+Date: Thu, 18 Oct 2007 16:24:27 -0200
+Message-ID: <ae36f8040710181124l277f4af8sb07ef69aca521c79@mail.gmail.com>
+References: <ae36f8040710161533x2d4fad0amc4136a75ba6d287c@mail.gmail.com>
+	<4715430F.3020303@gmail.com>
+Reply-To: lvcargnini@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1728234935=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D9130274290242BDAC@dlee13.ent.ti.com>
+In-Reply-To: <4715430F.3020303@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,52 +18,57 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Nishanth Menon <menon.nishanth@gmail.com>
+Cc: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Woodruff, Richard wrote:
-> Long ago when the part size changed one version of the omap-nor driver did need to unlock partitions.  This was done on some internal tree version.
-> 
-> By partitions I mean physical ones, inside the NOR part.  Not mtd_partitions().  This only needed to be done on a per-partition basis not a per-sector one.
-> 
-> These physical partitions, allow for simultaneous XIP and programming on the same NOR chip.  One partition can be in status mode while another has code executing out of it.  
-> 
-> It kind of looks like this patch was aiming to do this.
+--===============1728234935==
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-FWIW, this patch was taken from the TI kernels on linux.omap.com which
-have the same call to unlock in the probe hook.
+RGVhciBGZWxsb3dzLCBoZXJlIGlzIG15IG11eCBkdW1wIGNvbmZpZ3VyYXRpb24KCk1VWDogaW5p
+dGlhbGl6ZWQgVzExXzE2MTBfQ0ZfQ0QxCk1VWDogU2V0dGluZyByZWdpc3RlciBXMTFfMTYxMF9D
+Rl9DRDEKICAgICAgRlVOQ19NVVhfQ1RSTF8xMCAoMHhmZmZlMTA5OCkgPSAweDAwMDAwMDAwIC0+
+IDB4MDAwMTgwMDAKICAgICAgUFVfUERfU0VMXzMgKDB4ZmZmZTEwYzApID0gMHgwMDAwMDAwMCAt
+PiAweDAwMDAwMTAwCiAgICAgIFBVTExfRFdOX0NUUkxfMyAoMHhmZmZlMTA0YykgPSAweDAwMDAw
+MDAwIC0+IDB4MDAwMDAwMDAKTVVYOiBpbml0aWFsaXplZCBQMTFfMTYxMF9DRl9DRDIKTVVYOiBT
+ZXR0aW5nIHJlZ2lzdGVyIFAxMV8xNjEwX0NGX0NEMgogICAgICBGVU5DX01VWF9DVFJMX0EgKDB4
+ZmZmZTEwMmMpID0gMHgwMDAwMDAwMCAtPiAweDE4MDAwMDAwCiAgICAgIFBVX1BEX1NFTF8yICgw
+eGZmZmUxMGJjKSA9IDB4MDAwMWYwMDAgLT4gMHgwMDAxZjAwMAogICAgICBQVUxMX0RXTl9DVFJM
+XzIgKDB4ZmZmZTEwNDgpID0gMHgwMDAwMDAwMCAtPiAweDAwMDAwMDAwCk1VWDogaW5pdGlhbGl6
+ZWQgUjExXzE2MTBfQ0ZfSU9JUzE2Ck1VWDogU2V0dGluZyByZWdpc3RlciBSMTFfMTYxMF9DRl9J
+T0lTMTYKICAgICAgRlVOQ19NVVhfQ1RSTF9CICgweGZmZmUxMDMwKSA9IDB4MDAwMDAwMDAgLT4g
+MHgwMDAwMDAwMwogICAgICBQVV9QRF9TRUxfMiAoMHhmZmZlMTBiYykgPSAweDAwMDFmMDAwIC0+
+IDB4MDAwMWYwMDAKICAgICAgUFVMTF9EV05fQ1RSTF8yICgweGZmZmUxMDQ4KSA9IDB4MDAwMDAw
+MDAgLT4gMHgwMDAwMDAwMApNVVg6IGluaXRpYWxpemVkIFYxMF8xNjEwX0NGX0lSRVEKTVVYOiBT
+ZXR0aW5nIHJlZ2lzdGVyIFYxMF8xNjEwX0NGX0lSRVEKICAgICAgRlVOQ19NVVhfQ1RSTF9BICgw
+eGZmZmUxMDJjKSA9IDB4MTgwMDAwMDAgLT4gMHgxYjAwMDAwMAogICAgICBQVUxMX0RXTl9DVFJM
+XzIgKDB4ZmZmZTEwNDgpID0gMHgwMDAwMDAwMCAtPiAweDAwMDA0MDAwCk1VWDogaW5pdGlhbGl6
+ZWQgVzEwXzE2MTBfQ0ZfUkVTRVQKTVVYOiBTZXR0aW5nIHJlZ2lzdGVyIFcxMF8xNjEwX0NGX1JF
+U0VUCiAgICAgIEZVTkNfTVVYX0NUUkxfQSAoMHhmZmZlMTAyYykgPSAweDFiMDAwMDAwIC0+IDB4
+MWIwYzAwMDAKICAgICAgUFVfUERfU0VMXzIgKDB4ZmZmZTEwYmMpID0gMHgwMDAxZjAwMCAtPiAw
+eDAwMDFmMDAwCiAgICAgIFBVTExfRFdOX0NUUkxfMiAoMHhmZmZlMTA0OCkgPSAweDAwMDA0MDAw
+IC0+IDB4MDAwMDQwMDAKCgpPbiAxMC8xNi8wNywgTmlzaGFudGggTWVub24gPG1lbm9uLm5pc2hh
+bnRoQGdtYWlsLmNvbT4gd3JvdGU6Cj4KPiBMdWlzLAo+Cj4gTHXDrXMgQ2FyZ25pbmkgc3RhdGVk
+IG9uIDEwLzE2LzIwMDcgNTozMyBQTToKPiA+IEJ1dCB0aGUgcHJvYmxlbSBpcyBteSBNY0JTUCBy
+ZWdpc3RlcnMgc2VlbSB0byBiZSBjb3JyZWN0LCBidXQgdGhlcmUgaXMKPiBubwo+ID4gc2lnbmFs
+IGluIHRoZSBwaW5zIHdoYXQgY291bGQgaXQgYmUgPwo+IGRpZCB5b3UgY2hlY2sgeW91ciBwaW4g
+bXV4aW5nPyBJIHdvdWxkIHN1Z2dlc3QgdG8gZGlyZWN0bHkgZHVtcCB0aGUgcGFkCj4gY29uZiBy
+ZWdpc3RlcnMgYW5kIGNvbXBhcmUgaXQgd2l0aCB0cm0gdmFsdWVzLgo+Cj4gUmVnYXJkcywKPiBO
+aXNoYW50aCBNZW5vbgo+CgoKCi0tIAotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KVGhhbmtzICYmIFJl
+Z2FyZHMKTXNjLiBCc2MuIEx1w61zIFZpdMOzcmlvIENhcmduaW5pCklFRUUgTWVtYmVyCkVsZWN0
+cmljYWwgRW5naW5lZXIgRmFjdWx0eSBAIFBVQ1JTCklwaXJhbmdhIEF2ZW51ZSwgNjY4MSDigJMg
+QnVpbGRpbmcgMzAKUC5PLiBCb3g6IDkwNjE5LTkwMCDigJMgUG9ydG8gQWxlZ3JlL1JTClBob25l
+OiArNTUgNTEgMzMyMCAzNTAwICBleHRlbnNpb246IDc2OTYKLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tCg==
+--===============1728234935==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Kevin
 
->> The bootloader may lock the flash device upon booting.  This requires
->> the use of 'flash_unlock' on each partition before using them.
->>
->> However, when booting from flash the MTD driver is unable to "mark
->> space as dirty" since the device is locked.  This results lots of boot
->> warnings from the MTD layer.
->>
->> The MTD driver for OMAP needs to unlock the device during init so
->> booting from flash can work without errors.
->>
->> Signed-off-by: Kevin Hilman <khilman@mvista.com>
->> ---
->>  drivers/mtd/maps/omap_nor.c |    4 ++++
->>  1 file changed, 4 insertions(+)
->>
->> Index: linux-2.6.21/drivers/mtd/maps/omap_nor.c
->> ===================================================================
->> --- linux-2.6.21.orig/drivers/mtd/maps/omap_nor.c
->> +++ linux-2.6.21/drivers/mtd/maps/omap_nor.c
->> @@ -108,6 +108,10 @@ static int __devinit omapflash_probe(str
->>  	}
->>  	info->mtd->owner = THIS_MODULE;
->>
->> +	/* Unlock the flash device. */
->> +	if (info->mtd->unlock)
->> +		info->mtd->unlock(info->mtd, 0, info->mtd->size);
->> +
->>  #ifdef CONFIG_MTD_PARTITIONS
->>  	err = parse_mtd_partitions(info->mtd, part_probes, &info->parts, 0);
->>  	if (err > 0)
->> --
+--===============1728234935==--
