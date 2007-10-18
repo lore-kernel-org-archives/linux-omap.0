@@ -1,11 +1,14 @@
-From: "=?UTF-8?Q?Lu=C3=ADs_Cargnini?=" <lvcargnini@gmail.com>
-Subject: McBSP2 clocks and muxing
-Date: Thu, 18 Oct 2007 18:51:19 -0200
-Message-ID: <ae36f8040710181351q2d24a3cre051e2e26c301201@mail.gmail.com>
-Reply-To: lvcargnini@gmail.com
+From: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Subject: Re: [PATCH 12/14] MMC: OMAP: Make board-h3.c uses new board-h3-mmc.c
+ code
+Date: Thu, 18 Oct 2007 16:54:11 -0400
+Message-ID: <4717C7F3.6050105@indt.org.br>
+References: <46F28BDC.8040508@indt.org.br>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0351682312=="
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <46F28BDC.8040508@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,54 +16,33 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: OMAP <Linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============0351682312==
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+Hi Tony and folks,
 
-RGVhciBmZWxsb3dzOgphY2NvcmRpbmcgc3BydTc1MmMucGRmLCBUYWJsZSA0OC4gTW9kdWxlIENv
-bmZpZ3VyYXRpb24gQ29udHJvbCAxIFJlZ2lzdGVyCihNT0RfQ09ORl9DVFJMXzEpCkJpdCAgTmFt
-ZSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgVmFsdWUKRnVuY3Rpb24gICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBSL1cKUmVzZXQK
-MjEgIENPTkZfTUNCU1AyX0NMS19ESVNfUiAgVGhpcyBiaXQgZW5hYmxlcyB0aGUgTWNCU1AyIGlu
-dGVyZmFjZSBjbG9jay4KUi9XICAgICAgICAgIDB4MAoKCjAgTWNCU1AyIGNsb2NrIGlzIGVuYWJs
-ZWQuCjEgTWNCU1AyIGNsb2NrIGlzIGRpc2FibGVkLgoKCmFuZCBpbnNpZGUgaW5jbHVkZS9hc20t
-YXJtL2FyY2gvaGFyZHdhcmUuaApsaW5lIDE4OToKI2RlZmluZSBNT0RfQ09ORl9DVFJMXzEgICAg
-ICAgIDB4ZmZmZTExMTAKaW4gYmluYXJ5IDoKMTExMTExMTExMTExMTExMDAwMDEwMDAxMDAwMTAw
-MDAKYml0IDIyID09IDEgc28gTWNCU1AyIGNsb2NrIGlzIGRpc2FibGUKCnNvIHNvbWVvbmUgaG93
-IGNvdWxkIEkgc2V0IG9uIG15IHBpbnggbXV4aW5nIHRvIGVuYWJsZSBteSBNY0JTUDIgY2xvY2sg
-Pz8KSSBtYWRlIGFuIG1vZGlmaWNhdGlvbiBpbiBteSBtY2JzcC5jIChub3QgdGVzdGVkIHlldCkK
-bGluZSAxMDEyIG1jYnNwLmM6CiNpZiBkZWZpbmVkKENPTkZJR19BUkNIX09NQVAxNlhYKQogICAg
-aWYgKGNwdV9pc19vbWFwMTZ4eCgpKSB7CiAgICAgICAgbWNic3BfaW5mbyA9IG1jYnNwXzE2MTA7
-CiAgICAgICAgbWNic3BfY291bnQgPSBBUlJBWV9TSVpFKG1jYnNwXzE2MTApOwogICAgICAgIG9t
-YXBfbWNic3AyX211eF9zZXR1cCgpOy8qIFZpdG9yaW8gYWRkaW5nIE1VWCBzZXR1cCBmb3IgTWNC
-U1AyICovCiAgICB9CgoKbGluZSAyNDA6CnN0YXRpYyB2b2lkIG9tYXBfbWNic3AyX211eF9zZXR1
-cCh2b2lkKQp7CiAgICBwcmludGsoS0VSTl9JTkZPICJjYWxsZWQgb21hcF9tY2JzcDJfbXV4X3Nl
-dHVwIik7CiAgICBpZiAoY3B1X2lzX29tYXAxNnh4KCkpCiAgICB7CiAgICAgICAgcHJpbnRrKEtF
-Uk5fSU5GTyAib21hcF9tY2JzcDJfbXV4X3NldHVwIGNhbGxlZCIpOwogICAgICAgIG9tYXBfY2Zn
-X3JlZygiTUNCU1AyX0NMS1IiKTsKICAgICAgICBvbWFwX2NmZ19yZWcoIk1DQlNQMl9DTEtYIik7
-CiAgICAgICAgb21hcF9jZmdfcmVnKCJNQ0JTUDJfRFIiKTsKICAgICAgICBvbWFwX2NmZ19yZWco
-Ik1DQlNQMl9EWCIpOwogICAgICAgIG9tYXBfY2ZnX3JlZygiTUNCU1AyX0ZTUiIpOwogICAgICAg
-IG9tYXBfY2ZnX3JlZygiTUNCU1AyX0ZTWCIpOwogICAgfQoKfQoKYnV0IGhvdyBjb3VsZCBJIGVu
-YWJsZSB0aCBNY0JTUDIgY2xvY2sgPwpjbGtfZW5hYmxlKCkgPz8gV2hpY2ggY2xvY2sgZHJpdmVz
-IHRoZSBNY0JTUDIgY2xvY2sgZnJvbSBjbG9jay57YywuaH0gPwotLSAKLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tClRoYW5rcyAmJiBSZWdhcmRzCk1zYy4gQnNjLiBMdcOtcyBWaXTDs3JpbyBDYXJnbmlu
-aQpJRUVFIE1lbWJlcgpFbGVjdHJpY2FsIEVuZ2luZWVyIEZhY3VsdHkgQCBQVUNSUwpJcGlyYW5n
-YSBBdmVudWUsIDY2ODEg4oCTIEJ1aWxkaW5nIDMwClAuTy4gQm94OiA5MDYxOS05MDAg4oCTIFBv
-cnRvIEFsZWdyZS9SUwpQaG9uZTogKzU1IDUxIDMzMjAgMzUwMCAgZXh0ZW5zaW9uOiA3Njk2Ci0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo=
---===============0351682312==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I'm resending the updated patches [12/14] and [14/14] of MMC multislot
+support series due recent updated into some omap defconfig files
+(omap_h2_1610_defconfig [1] and omap_h3_1710_defconfig [2]) proposed by
+Felipe Balbi.
 
+BR,
 
---===============0351682312==--
+Carlos.
+
+[1]
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-September/011409.html
+[2]
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-September/011410.html
+
+-- 
+Carlos Eduardo Aguiar
+Nokia Institute of Technology - INdT
+Open Source Mobile Research Center - OSMRC - Manaus
+Core Team
+Phone: +55 92 2126-1079
+Mobile: +55 92 8127-1797
+E-mail: carlos.aguiar@indt.org.br
