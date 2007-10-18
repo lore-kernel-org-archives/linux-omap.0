@@ -1,12 +1,15 @@
-From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [PATCH 0/3] MMC: OMAP: Adds MMC support for Siemens SX1 mobile
-	phones
-Date: Thu, 18 Oct 2007 14:29:21 -0400
-Message-ID: <4717A601.1010702@indt.org.br>
+From: "=?UTF-8?Q?Lu=C3=ADs_Cargnini?=" <lvcargnini@gmail.com>
+Subject: Re: McBSP 2 yet
+Date: Thu, 18 Oct 2007 16:46:24 -0200
+Message-ID: <ae36f8040710181146s17bee8a9p89bde1d79b8ad5a2@mail.gmail.com>
+References: <ae36f8040710161533x2d4fad0amc4136a75ba6d287c@mail.gmail.com>
+	<4715430F.3020303@gmail.com>
+	<ae36f8040710181124l277f4af8sb07ef69aca521c79@mail.gmail.com>
+Reply-To: lvcargnini@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0298296837=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <ae36f8040710181124l277f4af8sb07ef69aca521c79@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,29 +19,78 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>, Vladimir Ananiev <vovan888@gmail.com>
-Cc: omap-linux <linux-omap-open-source@linux.omap.com>
+To: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony and folks,
+--===============0298296837==
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-This patch series adds MMC support for Siemens SX1 mobile phone using the new MMC multislot support code proposed in [1].
+RGVhciBmZWxsb3dzLAoKTWF5YmUgaW4gdGhlIGNvZGUgb2YgbWNic3AuYyA6CnN0YXRpYyB2b2lk
+IG9tYXBfbWNic3BfZHNwX2ZyZWUodm9pZCkKewogICAgaWYgKGNwdV9pc19vbWFwMTV4eCgpIHx8
+IGNwdV9pc19vbWFwMTZ4eCgpKSB7CiAgICAgICAgb21hcF9kc3BfcmVsZWFzZV9tZW0oKTsKICAg
+ICAgICBjbGtfZGlzYWJsZShtY2JzcF9kc3B4b3JfY2spOwogICAgICAgIGNsa19kaXNhYmxlKG1j
+YnNwX2RzcF9jayk7CiAgICAgICAgY2xrX2Rpc2FibGUobWNic3BfYXBpX2NrKTsKICAgIH0KfQoj
+ZW5kaWYKCiNpZmRlZiBDT05GSUdfQVJDSF9PTUFQMgpzdGF0aWMgdm9pZCBvbWFwMl9tY2JzcDJf
+bXV4X3NldHVwKHZvaWQpCnsKICAgIGlmIChjcHVfaXNfb21hcDI0MjAoKSkgewogICAgICAgIG9t
+YXBfY2ZnX3JlZyhZMTVfMjRYWF9NQ0JTUDJfQ0xLWCk7CiAgICAgICAgb21hcF9jZmdfcmVnKFIx
+NF8yNFhYX01DQlNQMl9GU1gpOwogICAgICAgIG9tYXBfY2ZnX3JlZyhXMTVfMjRYWF9NQ0JTUDJf
+RFIpOwogICAgICAgIG9tYXBfY2ZnX3JlZyhWMTVfMjRYWF9NQ0JTUDJfRFgpOwogICAgICAgIG9t
+YXBfY2ZnX3JlZyhWMTRfMjRYWF9HUElPMTE3KTsKICAgIH0KICAgIC8qCiAgICAgKiBOZWVkIHRv
+IGFkZCBNVVggc2V0dGluZ3MgZm9yIE9NQVAgMjQzMCBTRFAKICAgICAqLwoKc2hvdWxkIEkgYWRk
+IG9tYXBfY2ZnX3JlZyBmb3IgTUNCU1AyIGluIHRoZSBjb2RlIHJlZ2lvbiBhYm92ZSA/PwoKT24g
+MTAvMTgvMDcsIEx1w61zIENhcmduaW5pIDxsdmNhcmduaW5pQGdtYWlsLmNvbT4gd3JvdGU6Cj4K
+PiBEZWFyIEZlbGxvd3MsIGhlcmUgaXMgbXkgbXV4IGR1bXAgY29uZmlndXJhdGlvbgo+Cj4gTVVY
+OiBpbml0aWFsaXplZCBXMTFfMTYxMF9DRl9DRDEKPiBNVVg6IFNldHRpbmcgcmVnaXN0ZXIgVzEx
+XzE2MTBfQ0ZfQ0QxCj4gICAgICAgRlVOQ19NVVhfQ1RSTF8xMCAoMHhmZmZlMTA5OCkgPSAweDAw
+MDAwMDAwIC0+IDB4MDAwMTgwMDAKPiAgICAgICBQVV9QRF9TRUxfMyAoMHhmZmZlMTBjMCkgPSAw
+eDAwMDAwMDAwIC0+IDB4MDAwMDAxMDAKPiAgICAgICBQVUxMX0RXTl9DVFJMXzMgKDB4ZmZmZTEw
+NGMpID0gMHgwMDAwMDAwMCAtPiAweDAwMDAwMDAwCj4gTVVYOiBpbml0aWFsaXplZCBQMTFfMTYx
+MF9DRl9DRDIKPiBNVVg6IFNldHRpbmcgcmVnaXN0ZXIgUDExXzE2MTBfQ0ZfQ0QyCj4gICAgICAg
+RlVOQ19NVVhfQ1RSTF9BICgweGZmZmUxMDJjKSA9IDB4MDAwMDAwMDAgLT4gMHgxODAwMDAwMAo+
+ICAgICAgIFBVX1BEX1NFTF8yICgweGZmZmUxMGJjKSA9IDB4MDAwMWYwMDAgLT4gMHgwMDAxZjAw
+MAo+ICAgICAgIFBVTExfRFdOX0NUUkxfMiAoMHhmZmZlMTA0OCkgPSAweDAwMDAwMDAwIC0+IDB4
+MDAwMDAwMDAKPiBNVVg6IGluaXRpYWxpemVkIFIxMV8xNjEwX0NGX0lPSVMxNgo+IE1VWDogU2V0
+dGluZyByZWdpc3RlciBSMTFfMTYxMF9DRl9JT0lTMTYKPiAgICAgICBGVU5DX01VWF9DVFJMX0Ig
+KDB4ZmZmZTEwMzApID0gMHgwMDAwMDAwMCAtPiAweDAwMDAwMDAzCj4gICAgICAgUFVfUERfU0VM
+XzIgKDB4ZmZmZTEwYmMpID0gMHgwMDAxZjAwMCAtPiAweDAwMDFmMDAwCj4gICAgICAgUFVMTF9E
+V05fQ1RSTF8yICgweGZmZmUxMDQ4KSA9IDB4MDAwMDAwMDAgLT4gMHgwMDAwMDAwMAo+IE1VWDog
+aW5pdGlhbGl6ZWQgVjEwXzE2MTBfQ0ZfSVJFUQo+IE1VWDogU2V0dGluZyByZWdpc3RlciBWMTBf
+MTYxMF9DRl9JUkVRCj4gICAgICAgRlVOQ19NVVhfQ1RSTF9BICgweGZmZmUxMDJjKSA9IDB4MTgw
+MDAwMDAgLT4gMHgxYjAwMDAwMAo+ICAgICAgIFBVTExfRFdOX0NUUkxfMiAoMHhmZmZlMTA0OCkg
+PSAweDAwMDAwMDAwIC0+IDB4MDAwMDQwMDAKPiBNVVg6IGluaXRpYWxpemVkIFcxMF8xNjEwX0NG
+X1JFU0VUCj4gTVVYOiBTZXR0aW5nIHJlZ2lzdGVyIFcxMF8xNjEwX0NGX1JFU0VUCj4gICAgICAg
+RlVOQ19NVVhfQ1RSTF9BICgweGZmZmUxMDJjKSA9IDB4MWIwMDAwMDAgLT4gMHgxYjBjMDAwMAo+
+ICAgICAgIFBVX1BEX1NFTF8yICgweGZmZmUxMGJjKSA9IDB4MDAwMWYwMDAgLT4gMHgwMDAxZjAw
+MAo+ICAgICAgIFBVTExfRFdOX0NUUkxfMiAoMHhmZmZlMTA0OCkgPSAweDAwMDA0MDAwIC0+IDB4
+MDAwMDQwMDAKPgo+Cj4gT24gMTAvMTYvMDcsIE5pc2hhbnRoIE1lbm9uIDxtZW5vbi5uaXNoYW50
+aEBnbWFpbC5jb20+IHdyb3RlOgo+ID4KPiA+IEx1aXMsCj4gPgo+ID4gTHXDrXMgQ2FyZ25pbmkg
+c3RhdGVkIG9uIDEwLzE2LzIwMDcgNTozMyBQTToKPiA+ID4gQnV0IHRoZSBwcm9ibGVtIGlzIG15
+IE1jQlNQIHJlZ2lzdGVycyBzZWVtIHRvIGJlIGNvcnJlY3QsIGJ1dCB0aGVyZSBpcwo+ID4gbm8K
+PiA+ID4gc2lnbmFsIGluIHRoZSBwaW5zIHdoYXQgY291bGQgaXQgYmUgPwo+ID4gZGlkIHlvdSBj
+aGVjayB5b3VyIHBpbiBtdXhpbmc/IEkgd291bGQgc3VnZ2VzdCB0byBkaXJlY3RseSBkdW1wIHRo
+ZSBwYWQKPiA+IGNvbmYgcmVnaXN0ZXJzIGFuZCBjb21wYXJlIGl0IHdpdGggdHJtIHZhbHVlcy4K
+PiA+Cj4gPiBSZWdhcmRzLAo+ID4gTmlzaGFudGggTWVub24KPiA+Cj4KPgo+Cj4gLS0KPgo+IC0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLQo+IFRoYW5rcyAmJiBSZWdhcmRzCj4gTXNjLiBCc2MuIEx1w61z
+IFZpdMOzcmlvIENhcmduaW5pCj4gSUVFRSBNZW1iZXIKPiBFbGVjdHJpY2FsIEVuZ2luZWVyIEZh
+Y3VsdHkgQCBQVUNSUwo+IElwaXJhbmdhIEF2ZW51ZSwgNjY4MSDigJMgQnVpbGRpbmcgMzAKPiBQ
+Lk8uIEJveDogOTA2MTktOTAwIOKAkyBQb3J0byBBbGVncmUvUlMKPiBQaG9uZTogKzU1IDUxIDMz
+MjAgMzUwMCAgZXh0ZW5zaW9uOiA3Njk2Cj4gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4KPgoK
+CgotLSAKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClRoYW5rcyAmJiBSZWdhcmRzCk1zYy4gQnNjLiBM
+dcOtcyBWaXTDs3JpbyBDYXJnbmluaQpJRUVFIE1lbWJlcgpFbGVjdHJpY2FsIEVuZ2luZWVyIEZh
+Y3VsdHkgQCBQVUNSUwpJcGlyYW5nYSBBdmVudWUsIDY2ODEg4oCTIEJ1aWxkaW5nIDMwClAuTy4g
+Qm94OiA5MDYxOS05MDAg4oCTIFBvcnRvIEFsZWdyZS9SUwpQaG9uZTogKzU1IDUxIDMzMjAgMzUw
+MCAgZXh0ZW5zaW9uOiA3Njk2Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo=
+--===============0298296837==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I would like to thanks a lot to Vladimir Ananiev for testing the series.
 
-Testing and comments are welcome.
-
-BR,
-
-Carlos.
-
-[1] http://linux.omap.com/pipermail/linux-omap-open-source/2007-September/011442.html
-
--- 
-Carlos Eduardo Aguiar
-Nokia Institute of Technology - INdT
-Open Source Mobile Research Center - OSMRC - Manaus
-Core Team
-Phone: +55 92 2126-1079
-Mobile: +55 92 8127-1797
-E-mail: carlos.aguiar@indt.org.br
+--===============0298296837==--
