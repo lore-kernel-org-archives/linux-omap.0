@@ -1,73 +1,99 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: [PATCH] ARM: OMAP: fix OMAP1 clockevent support for hrtimers
-Date: Thu, 18 Oct 2007 16:04:43 -0700
-Message-ID: <20071018230443.276921918@mvista.com>
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+From: Tilman Schmidt <tilman-ZTO5kqT2PaM@public.gmane.org>
+Subject: Re: [PATCH] Make the dev_*() family of macros in device.h complete
+Date: Fri, 19 Oct 2007 00:56:38 +0200
+Message-ID: <4717E4A6.9000608@imap.cc>
+References: <1192740689-28722-1-git-send-email-Emilian.Medve@Freescale.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============0787284623=="
+Return-path: <isdn4linux-bounces+gli-isdn4linux=gmane.org-JX7+OpRa80SjiSfgN6Y1Ib39b6g2fGNp@public.gmane.org>
+In-Reply-To: <1192740689-28722-1-git-send-email-Emilian.Medve-eDlz3WWmN0ll57MIdRCFDg@public.gmane.org>
+List-Unsubscribe: <https://www.isdn4linux.de/mailman/listinfo/isdn4linux>,
+	<mailto:isdn4linux-request-JX7+OpRa80SjiSfgN6Y1Ib39b6g2fGNp@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://www.isdn4linux.de/pipermail/isdn4linux>
+List-Post: <mailto:isdn4linux-JX7+OpRa80SjiSfgN6Y1Ib39b6g2fGNp@public.gmane.org>
+List-Help: <mailto:isdn4linux-request-JX7+OpRa80SjiSfgN6Y1Ib39b6g2fGNp@public.gmane.org?subject=help>
+List-Subscribe: <https://www.isdn4linux.de/mailman/listinfo/isdn4linux>,
+	<mailto:isdn4linux-request-JX7+OpRa80SjiSfgN6Y1Ib39b6g2fGNp@public.gmane.org?subject=subscribe>
+Sender: isdn4linux-bounces+gli-isdn4linux=gmane.org-JX7+OpRa80SjiSfgN6Y1Ib39b6g2fGNp@public.gmane.org
+Errors-To: isdn4linux-bounces+gli-isdn4linux=gmane.org-JX7+OpRa80SjiSfgN6Y1Ib39b6g2fGNp@public.gmane.org
+To: Emil Medve <Emilian.Medve-eDlz3WWmN0ll57MIdRCFDg@public.gmane.org>
+Cc: gigaset307x-common-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, kkeil-l3A5Bk7waGM@public.gmane.org, mac-l2TVJu5ShECELgA04lAiVw@public.gmane.org, isdn4linux-JX7+OpRa80SjiSfgN6Y1Ib39b6g2fGNp@public.gmane.org, hjlipp-S0/GAf8tV78@public.gmane.org, linux-omap-open-source-P3Mejjx7fphMeHKdZgrLhA@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-One-shot mode was broken in MPU-timer support for OMAP1 due to a typo.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--===============0787284623==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig73420EAEB13284BB850C3626"
 
-Also, ensure timer is stopped before changing the auto-reload flag.
-The TRM says changing the AR flag when timer is running is undefined.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig73420EAEB13284BB850C3626
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Tim Bird <tim.bird@am.sony.com>
-Signed-off-by: Kevin Hilman <khilman@mvista.com.
+Am 18.10.2007 22:51 schrieb Emil Medve:
+> Removed duplicates defined elsewhere
+>=20
+> Signed-off-by: Emil Medve <Emilian.Medve-eDlz3WWmN0ll57MIdRCFDg@public.gmane.org>
+Acked-by: Tilman Schmidt <tilman-ZTO5kqT2PaM@public.gmane.org>
 
----
- arch/arm/mach-omap1/time.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+for
 
-Index: dev/arch/arm/mach-omap1/time.c
-===================================================================
---- dev.orig/arch/arm/mach-omap1/time.c
-+++ dev/arch/arm/mach-omap1/time.c
-@@ -132,13 +132,20 @@ static inline void omap_mpu_timer_start(
- 	timer->cntl = timerflags;
- }
- 
-+static inline void omap_mpu_timer_stop(int nr)
-+{
-+	volatile omap_mpu_timer_regs_t* timer = omap_mpu_timer_base(nr);
-+
-+	timer->cntl &= ~MPU_TIMER_ST;
-+}
-+
- /*
-  * ---------------------------------------------------------------------------
-  * MPU timer 1 ... count down to zero, interrupt, reload
-  * ---------------------------------------------------------------------------
-  */
- static int omap_mpu_set_next_event(unsigned long cycles,
--				    struct clock_event_device *evt)
-+				   struct clock_event_device *evt)
- {
- 	omap_mpu_timer_start(0, cycles, 0);
- 	return 0;
-@@ -152,6 +159,7 @@ static void omap_mpu_set_mode(enum clock
- 		omap_mpu_set_autoreset(0);
- 		break;
- 	case CLOCK_EVT_MODE_ONESHOT:
-+		omap_mpu_timer_stop(0);
- 		omap_mpu_remove_autoreset(0);
- 		break;
- 	case CLOCK_EVT_MODE_UNUSED:
-@@ -163,7 +171,7 @@ static void omap_mpu_set_mode(enum clock
- 
- static struct clock_event_device clockevent_mpu_timer1 = {
- 	.name		= "mpu_timer1",
--	.features       = CLOCK_EVT_FEAT_PERIODIC, CLOCK_EVT_FEAT_ONESHOT,
-+	.features       = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
- 	.shift		= 32,
- 	.set_next_event	= omap_mpu_set_next_event,
- 	.set_mode	= omap_mpu_set_mode,
---
+> diff --git a/drivers/isdn/gigaset/gigaset.h b/drivers/isdn/gigaset/giga=
+set.h
+> index a0317ab..02bdaf2 100644
+> --- a/drivers/isdn/gigaset/gigaset.h
+> +++ b/drivers/isdn/gigaset/gigaset.h
+> @@ -106,12 +106,6 @@ enum debuglevel {
+>  					 activated */
+>  };
+> =20
+> -/* missing from linux/device.h ... */
+> -#ifndef dev_notice
+> -#define dev_notice(dev, format, arg...)		\
+> -	dev_printk(KERN_NOTICE , dev , format , ## arg)
+> -#endif
+> -
+>  /* Kernel message macros for situations where dev_printk and friends c=
+annot be
+>   * used for lack of reliable access to a device structure.
+>   * linux/usb.h already contains these but in an obsolete form which cl=
+utters
+
+Thanks,
+Tilman
+
+--=20
+Tilman Schmidt                          E-Mail: tilman-ZTO5kqT2PaM@public.gmane.org
+Bonn, Germany
+Diese Nachricht besteht zu 100% aus wiederverwerteten Bits.
+Unge=F6ffnet mindestens haltbar bis: (siehe R=FCckseite)
+
+
+--------------enig73420EAEB13284BB850C3626
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3rc1 (MingW32)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFHF+SvMdB4Whm86/kRAtdIAJ40QDZTMhFV579fAAxnXZv8jBydkACePdv9
+UltTRfc0M6f00B6NxXtYMyU=
+=UcYV
+-----END PGP SIGNATURE-----
+
+--------------enig73420EAEB13284BB850C3626--
+
+--===============0787284623==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+isdn4linux mailing list
+isdn4linux-JX7+OpRa80SjiSfgN6Y1Ib39b6g2fGNp@public.gmane.org
+https://www.isdn4linux.de/mailman/listinfo/isdn4linux
+--===============0787284623==--
