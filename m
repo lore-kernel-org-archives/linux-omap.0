@@ -1,12 +1,12 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [PATCH 1/3] MMC: OMAP: Supporting MMC multislot structures for
- Siemens SX1 board
-Date: Thu, 18 Oct 2007 14:29:27 -0400
-Message-ID: <4717A607.1090307@indt.org.br>
+Subject: [PATCH 2/3] MMC: OMAP: Make board-sx1.c uses new board-sx1-mmc.c
+ code
+Date: Thu, 18 Oct 2007 14:29:30 -0400
+Message-ID: <4717A60A.8060003@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,154 +14,118 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: Tony Lindgren <tony@atomide.com>, Vladimir Ananiev <vovan888@gmail.com>
 Cc: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
 From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 
-Proposes the new board-sx1-mmc.c file to handle all the MMC
-specific code for multislot support.
+Make board-sx1.c file uses new board-sx1-mmc.c code.
+
+This patch also:
+- Introduces a new gpio_switch to get events when inserting and removing
+  MMC/SD/SDIO cards to/from the slot.
+- Enables the GPIO switch support option on sx1_defconfig to use
+  multislot support:
 
 Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 ---
- arch/arm/mach-omap1/board-sx1-mmc.c   |  112 +++++++++++++++++++++++++++++++++
- include/asm-arm/arch-omap/board-sx1.h |    5 ++
- 2 files changed, 117 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap1/board-sx1-mmc.c
+ arch/arm/configs/sx1_defconfig  |    2 +-
+ arch/arm/mach-omap1/Makefile    |    2 +-
+ arch/arm/mach-omap1/board-sx1.c |   30 +++++++++++++++++-------------
+ 3 files changed, 19 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/board-sx1-mmc.c b/arch/arm/mach-omap1/board-sx1-mmc.c
-new file mode 100644
-index 0000000..fa70e5c
---- /dev/null
-+++ b/arch/arm/mach-omap1/board-sx1-mmc.c
-@@ -0,0 +1,112 @@
-+/*
-+ * linux/arch/arm/mach-omap1/board-sx1-mmc.c
-+ *
-+ * Copyright (C) 2007 Instituto Nokia de Tecnologia - INdT
-+ * Author: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-+ *
-+ * This code is based on linux/arch/arm/mach-omap1/board-h2-mmc.c, which is:
-+ * Copyright (C) 2007 Instituto Nokia de Tecnologia - INdT
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
+diff --git a/arch/arm/configs/sx1_defconfig b/arch/arm/configs/sx1_defconfig
+index 808dd99..853dcdd 100644
+--- a/arch/arm/configs/sx1_defconfig
++++ b/arch/arm/configs/sx1_defconfig
+@@ -159,7 +159,7 @@ CONFIG_ARCH_OMAP1=y
+ CONFIG_OMAP_BOOT_TAG=y
+ # CONFIG_OMAP_BOOT_REASON is not set
+ # CONFIG_OMAP_COMPONENT_VERSION is not set
+-# CONFIG_OMAP_GPIO_SWITCH is not set
++CONFIG_OMAP_GPIO_SWITCH=y
+ CONFIG_OMAP_MUX=y
+ # CONFIG_OMAP_MUX_DEBUG is not set
+ CONFIG_OMAP_MUX_WARNINGS=y
+diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
+index c0416fc..c6d80ac 100644
+--- a/arch/arm/mach-omap1/Makefile
++++ b/arch/arm/mach-omap1/Makefile
+@@ -32,7 +32,7 @@ obj-$(CONFIG_MACH_OMAP_PALMZ71)		+= board-palmz71.o
+ obj-$(CONFIG_MACH_OMAP_PALMTT)		+= board-palmtt.o
+ obj-$(CONFIG_MACH_NOKIA770)		+= board-nokia770.o
+ obj-$(CONFIG_MACH_AMS_DELTA)		+= board-ams-delta.o
+-obj-$(CONFIG_MACH_SX1)			+= board-sx1.o
++obj-$(CONFIG_MACH_SX1)			+= board-sx1.o board-sx1-mmc.o
+ 
+ ifeq ($(CONFIG_ARCH_OMAP15XX),y)
+ # Innovator-1510 FPGA
+diff --git a/arch/arm/mach-omap1/board-sx1.c b/arch/arm/mach-omap1/board-sx1.c
+index f25ec6f..9a93d03 100644
+--- a/arch/arm/mach-omap1/board-sx1.c
++++ b/arch/arm/mach-omap1/board-sx1.c
+@@ -33,6 +33,7 @@
+ #include <asm/mach/map.h>
+ 
+ #include <asm/arch/gpio.h>
++#include <asm/arch/gpio-switch.h>
+ #include <asm/arch/mux.h>
+ #include <asm/arch/irda.h>
+ #include <asm/arch/usb.h>
+@@ -388,18 +389,6 @@ static struct omap_usb_config sx1_usb_config __initdata = {
+ 	.pins[2]	= 0,
+ };
+ 
+-/*----------- MMC -------------------------*/
+-
+-static struct omap_mmc_config sx1_mmc_config __initdata = {
+-	.mmc [0] = {
+-		.enabled 	= 1,
+-		.wire4		= 0,
+-		.wp_pin		= -1,
+-		.power_pin	= -1, /* power is in Sofia */
+-		.switch_pin	= OMAP_MPUIO(3),
+-	},
+-};
+-
+ /*----------- LCD -------------------------*/
+ 
+ static struct platform_device sx1_lcd_device = {
+@@ -427,10 +416,22 @@ static struct omap_uart_config sx1_uart_config __initdata = {
+ 
+ static struct omap_board_config_kernel sx1_config[] __initdata = {
+ 	{ OMAP_TAG_USB,	&sx1_usb_config },
+-	{ OMAP_TAG_MMC,	&sx1_mmc_config },
+ 	{ OMAP_TAG_LCD,	&sx1_lcd_config },
+ 	{ OMAP_TAG_UART,	&sx1_uart_config },
+ };
 +
-+#include <asm/arch/mmc.h>
-+#include <asm/arch/gpio.h>
-+
-+#ifdef CONFIG_MMC_OMAP
-+static int slot_cover_open;
-+static struct device *mmc_device;
-+
-+static int sx1_mmc_set_power(struct device *dev, int slot, int power_on,
-+				int vdd)
-+{
-+#ifdef CONFIG_MMC_DEBUG
-+	dev_dbg(dev, "Set slot %d power: %s (vdd %d)\n", slot + 1,
-+		power_on ? "on" : "off", vdd);
-+#endif
-+	if (slot != 0) {
-+		dev_err(dev, "No such slot %d\n", slot + 1);
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
-+static int sx1_mmc_set_bus_mode(struct device *dev, int slot, int bus_mode)
-+{
-+#ifdef CONFIG_MMC_DEBUG
-+	dev_dbg(dev, "Set slot %d bus_mode %s\n", slot + 1,
-+		bus_mode == MMC_BUSMODE_OPENDRAIN ? "open-drain" : "push-pull");
-+#endif
-+	if (slot != 0) {
-+		dev_err(dev, "No such slot %d\n", slot + 1);
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
-+static int sx1_mmc_get_cover_state(struct device *dev, int slot)
-+{
-+	BUG_ON(slot != 0);
-+
-+	return slot_cover_open;
-+}
-+
-+void sx1_mmc_slot_cover_handler(void *arg, int state)
-+{
-+	if (mmc_device == NULL)
-+		return;
-+
-+	slot_cover_open = state;
-+	omap_mmc_notify_cover_event(mmc_device, 0, state);
-+}
-+
-+static int sx1_mmc_late_init(struct device *dev)
-+{
-+	int ret = 0;
-+
-+	mmc_device = dev;
-+
-+	return ret;
-+}
-+
-+static void sx1_mmc_cleanup(struct device *dev)
-+{
-+}
-+
-+static struct omap_mmc_platform_data sx1_mmc_data = {
-+	.enabled			= 1,
-+	.nr_slots                       = 1,
-+	.wire4                          = 1,
-+	.switch_slot                    = NULL,
-+	.init                           = sx1_mmc_late_init,
-+	.cleanup                        = sx1_mmc_cleanup,
-+	.slots[0]       = {
-+		.set_power              = sx1_mmc_set_power,
-+		.set_bus_mode           = sx1_mmc_set_bus_mode,
-+		.get_ro                 = NULL,
-+		.get_cover_state        = sx1_mmc_get_cover_state,
-+		.ocr_mask               = MMC_VDD_28_29 | MMC_VDD_30_31 |
-+					  MMC_VDD_32_33 | MMC_VDD_33_34,
-+		.name                   = "mmcblk",
++static struct omap_gpio_switch sx1_gpio_switches[] __initdata = {
++	{
++		.name                   = "mmc_slot",
++		.gpio                   = OMAP_MPUIO(3),
++		.type                   = OMAP_GPIO_SWITCH_TYPE_COVER,
++		.debounce_rising        = 100,
++		.debounce_falling       = 0,
++		.notify                 = sx1_mmc_slot_cover_handler,
++		.notify_data            = NULL,
 +	},
 +};
 +
-+void __init sx1_mmc_init(void)
-+{
-+	omap_set_mmc_info(1, &sx1_mmc_data);
-+}
-+
-+#else
-+
-+void __init sx1_mmc_init(void)
-+{
-+}
-+
-+void sx1_mmc_slot_cover_handler(void *arg, int state)
-+{
-+}
-+#endif
-diff --git a/include/asm-arm/arch-omap/board-sx1.h b/include/asm-arm/arch-omap/board-sx1.h
-index 2bb8dd6..e656a69 100644
---- a/include/asm-arm/arch-omap/board-sx1.h
-+++ b/include/asm-arm/arch-omap/board-sx1.h
-@@ -43,4 +43,9 @@ int sx1_setmmipower(u8 onoff);
- int sx1_setusbpower(u8 onoff);
- int sx1_setmmcpower(u8 onoff);
+ /*-----------------------------------------*/
+ static void __init omap_sx1_init(void)
+ {
+@@ -439,6 +440,9 @@ static void __init omap_sx1_init(void)
+ 	omap_board_config = sx1_config;
+ 	omap_board_config_size = ARRAY_SIZE(sx1_config);
+ 	omap_serial_init();
++	sx1_mmc_init();
++	omap_register_gpio_switches(sx1_gpio_switches,
++				    ARRAY_SIZE(sx1_gpio_switches));
  
-+/* MMC prototypes */
-+
-+extern void sx1_mmc_init(void);
-+extern void sx1_mmc_slot_cover_handler(void *arg, int state);
-+
- #endif /* __ASM_ARCH_SX1_I2C_CHIPS_H */
+ 	/* turn on USB power */
+ 	/* sx1_setusbpower(1); cant do it here because i2c is not ready */
 -- 1.5.3.GIT
