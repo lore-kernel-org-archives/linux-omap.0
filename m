@@ -1,14 +1,14 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [PATCH 12/14] MMC: OMAP: Make board-h3.c uses new board-h3-mmc.c
+Subject: [PATCH 14/14] MMC: OMAP: Make board-h2.c uses new board-h2-mmc.c
  code
-Date: Thu, 18 Oct 2007 16:54:15 -0400
-Message-ID: <4717C7F7.2080800@indt.org.br>
-References: <46F28BDC.8040508@indt.org.br>
+Date: Thu, 18 Oct 2007 16:54:19 -0400
+Message-ID: <4717C7FB.2080002@indt.org.br>
+References: <46F28BEA.5070804@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <46F28BDC.8040508@indt.org.br>
+In-Reply-To: <46F28BEA.5070804@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -24,17 +24,16 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Felipe Balbi <felipe.lima@indt.org.br>
 
-Make board-h3.c file uses new board-h3-mmc.c code.
+Make board-h2.c file uses new board-h2-mmc.c code.
 
 This patch also:
 - Introduces a new gpio_switch to get events when inserting and removing
   MMC/SD/SDIO cards to/from the slot.
-- Enables the following options on omap_h3_1710_defconfig to use
+- Enables the following options on omap_h2_1610_defconfig to use
   multislot support:
   - GPIO switch support
-  - MSDOS fs support
+  - MMC/SD card support
   - VFAT fs support
-  - Codepage 437
   - NLS ISO 8859-1
 
 Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
@@ -43,158 +42,333 @@ Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 Signed-off-by: David Cohen <david.cohen@indt.org.br>
 Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
 ---
- arch/arm/configs/omap_h3_1710_defconfig |   50 ++++++++++++++++++++++++++++--
+ arch/arm/configs/omap_h2_1610_defconfig |   99 ++++++++++++++++++++++++++++--
  arch/arm/mach-omap1/Makefile            |    2 +-
- arch/arm/mach-omap1/board-h3.c          |   25 ++++++++++-----
- 3 files changed, 63 insertions(+), 14 deletions(-)
+ arch/arm/mach-omap1/board-h2.c          |   29 +++++----
+ 3 files changed, 110 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm/configs/omap_h3_1710_defconfig b/arch/arm/configs/omap_h3_1710_defconfig
-index 938d4fc..5cebec7 100644
---- a/arch/arm/configs/omap_h3_1710_defconfig
-+++ b/arch/arm/configs/omap_h3_1710_defconfig
-@@ -149,7 +149,7 @@ CONFIG_ARCH_OMAP1=y
+diff --git a/arch/arm/configs/omap_h2_1610_defconfig b/arch/arm/configs/omap_h2_1610_defconfig
+index 1b37b82..90cd538 100644
+--- a/arch/arm/configs/omap_h2_1610_defconfig
++++ b/arch/arm/configs/omap_h2_1610_defconfig
+@@ -26,20 +26,25 @@ CONFIG_VECTORS_BASE=0xffff0000
+ CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
+ 
  #
- # CONFIG_OMAP_RESET_CLOCKS is not set
- # CONFIG_OMAP_BOOT_TAG is not set
+-# General setup
++# Code maturity level options
+ #
+ CONFIG_EXPERIMENTAL=y
+ CONFIG_BROKEN_ON_SMP=y
+ CONFIG_INIT_ENV_ARG_LIMIT=32
++
++#
++# General setup
++#
+ CONFIG_LOCALVERSION=""
+ CONFIG_LOCALVERSION_AUTO=y
+ CONFIG_SWAP=y
+ CONFIG_SYSVIPC=y
++# CONFIG_IPC_NS is not set
+ CONFIG_SYSVIPC_SYSCTL=y
+ # CONFIG_POSIX_MQUEUE is not set
+ # CONFIG_BSD_PROCESS_ACCT is not set
+ # CONFIG_TASKSTATS is not set
+-# CONFIG_USER_NS is not set
++# CONFIG_UTS_NS is not set
+ # CONFIG_AUDIT is not set
+ # CONFIG_IKCONFIG is not set
+ CONFIG_LOG_BUF_SHIFT=14
+@@ -74,12 +79,20 @@ CONFIG_SLAB=y
+ CONFIG_RT_MUTEXES=y
+ # CONFIG_TINY_SHMEM is not set
+ CONFIG_BASE_SMALL=0
++
++#
++# Loadable module support
++#
+ CONFIG_MODULES=y
+ CONFIG_MODULE_UNLOAD=y
+ # CONFIG_MODULE_FORCE_UNLOAD is not set
+ # CONFIG_MODVERSIONS is not set
+ # CONFIG_MODULE_SRCVERSION_ALL is not set
+ # CONFIG_KMOD is not set
++
++#
++# Block layer
++#
+ CONFIG_BLOCK=y
+ # CONFIG_LBD is not set
+ # CONFIG_BLK_DEV_IO_TRACE is not set
+@@ -151,7 +164,7 @@ CONFIG_ARCH_OMAP1=y
+ CONFIG_OMAP_BOOT_TAG=y
+ # CONFIG_OMAP_BOOT_REASON is not set
+ # CONFIG_OMAP_COMPONENT_VERSION is not set
 -# CONFIG_OMAP_GPIO_SWITCH is not set
 +CONFIG_OMAP_GPIO_SWITCH=y
  CONFIG_OMAP_MUX=y
- # CONFIG_OMAP_MUX_DEBUG is not set
+ CONFIG_OMAP_MUX_DEBUG=y
  CONFIG_OMAP_MUX_WARNINGS=y
-@@ -1088,8 +1088,11 @@ CONFIG_DNOTIFY=y
+@@ -358,8 +371,20 @@ CONFIG_DEFAULT_TCP_CONG="cubic"
+ # CONFIG_INET6_TUNNEL is not set
+ # CONFIG_NETWORK_SECMARK is not set
+ # CONFIG_NETFILTER is not set
++
++#
++# DCCP Configuration (EXPERIMENTAL)
++#
+ # CONFIG_IP_DCCP is not set
++
++#
++# SCTP Configuration (EXPERIMENTAL)
++#
+ # CONFIG_IP_SCTP is not set
++
++#
++# TIPC Configuration (EXPERIMENTAL)
++#
+ # CONFIG_TIPC is not set
+ # CONFIG_ATM is not set
+ # CONFIG_BRIDGE is not set
+@@ -410,6 +435,10 @@ CONFIG_PREVENT_FIRMWARE_BUILD=y
+ CONFIG_DEBUG_DRIVER=y
+ # CONFIG_DEBUG_DEVRES is not set
+ # CONFIG_SYS_HYPERVISOR is not set
++
++#
++# Connector - unified userspace <-> kernelspace linker
++#
+ # CONFIG_CONNECTOR is not set
+ CONFIG_MTD=y
+ CONFIG_MTD_DEBUG=y
+@@ -489,8 +518,21 @@ CONFIG_MTD_CFI_UTIL=y
+ # UBI - Unsorted block images
  #
- # DOS/FAT/NT Filesystems
+ # CONFIG_MTD_UBI is not set
++
++#
++# Parallel port support
++#
+ # CONFIG_PARPORT is not set
+ CONFIG_BLK_DEV=y
++
++#
++# Plug and Play support
++#
++# CONFIG_PNPACPI is not set
++
++#
++# Block devices
++#
+ # CONFIG_BLK_DEV_COW_COMMON is not set
+ CONFIG_BLK_DEV_LOOP=y
+ # CONFIG_BLK_DEV_CRYPTOLOOP is not set
+@@ -511,7 +553,15 @@ CONFIG_BLK_DEV_RAM_BLOCKSIZE=1024
+ # CONFIG_SCSI_DMA is not set
+ # CONFIG_SCSI_NETLINK is not set
+ # CONFIG_ATA is not set
++
++#
++# Multi-device support (RAID and LVM)
++#
+ # CONFIG_MD is not set
++
++#
++# Network device support
++#
+ CONFIG_NETDEVICES=y
+ # CONFIG_NETDEVICES_MULTIQUEUE is not set
+ # CONFIG_DUMMY is not set
+@@ -520,6 +570,10 @@ CONFIG_NETDEVICES=y
+ # CONFIG_EQUALIZER is not set
+ # CONFIG_TUN is not set
+ # CONFIG_PHYLIB is not set
++
++#
++# Ethernet (10 or 100Mbit)
++#
+ CONFIG_NET_ETHERNET=y
+ CONFIG_MII=y
+ # CONFIG_AX88796 is not set
+@@ -529,6 +583,10 @@ CONFIG_NETDEV_1000=y
+ CONFIG_NETDEV_10000=y
+ 
  #
--# CONFIG_MSDOS_FS is not set
++# Token Ring devices
++#
++
++#
+ # Wireless LAN
+ #
+ # CONFIG_WLAN_PRE80211 is not set
+@@ -563,6 +621,10 @@ CONFIG_SLHC=y
+ # CONFIG_NETCONSOLE is not set
+ # CONFIG_NETPOLL is not set
+ # CONFIG_NET_POLL_CONTROLLER is not set
++
++#
++# ISDN subsystem
++#
+ # CONFIG_ISDN is not set
+ 
+ #
+@@ -599,6 +661,7 @@ CONFIG_INPUT_MISC=y
+ # CONFIG_INPUT_POWERMATE is not set
+ # CONFIG_INPUT_YEALINK is not set
+ CONFIG_INPUT_UINPUT=y
++# CONFIG_INPUT_POLLDEV is not set
+ 
+ #
+ # Hardware I/O ports
+@@ -633,6 +696,10 @@ CONFIG_SERIAL_CORE=y
+ CONFIG_SERIAL_CORE_CONSOLE=y
+ CONFIG_UNIX98_PTYS=y
+ # CONFIG_LEGACY_PTYS is not set
++
++#
++# IPMI
++#
+ # CONFIG_IPMI_HANDLER is not set
+ CONFIG_WATCHDOG=y
+ CONFIG_WATCHDOG_NOWAYOUT=y
+@@ -652,6 +719,10 @@ CONFIG_HW_RANDOM_OMAP=m
+ # CONFIG_NVRAM is not set
+ # CONFIG_R3964 is not set
+ # CONFIG_RAW_DRIVER is not set
++
++#
++# TPM devices
++#
+ # CONFIG_TCG_TPM is not set
+ CONFIG_I2C=y
+ CONFIG_I2C_BOARDINFO=y
+@@ -978,7 +1049,20 @@ CONFIG_USB_ETH_RNDIS=y
+ # CONFIG_USB_FILE_STORAGE is not set
+ # CONFIG_USB_G_SERIAL is not set
+ # CONFIG_USB_MIDI_GADGET is not set
+-# CONFIG_MMC is not set
++CONFIG_MMC=y
++# CONFIG_MMC_DEBUG is not set
++# CONFIG_MMC_UNSAFE_RESUME is not set
++
++#
++# MMC/SD Card Drivers
++#
++CONFIG_MMC_BLOCK=y
++CONFIG_MMC_BLOCK_BOUNCE=y
++
++#
++# MMC/SD Host Controller Drivers
++#
++CONFIG_MMC_OMAP=y
+ CONFIG_RTC_LIB=y
+ CONFIG_RTC_CLASS=y
+ CONFIG_RTC_HCTOSYS=y
+@@ -1082,8 +1166,9 @@ CONFIG_DNOTIFY=y
+ #
+ CONFIG_FAT_FS=y
+ CONFIG_MSDOS_FS=y
 -# CONFIG_VFAT_FS is not set
-+CONFIG_FAT_FS=y
-+CONFIG_MSDOS_FS=y
 +CONFIG_VFAT_FS=y
-+CONFIG_FAT_DEFAULT_CODEPAGE=437
+ CONFIG_FAT_DEFAULT_CODEPAGE=437
 +CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
  # CONFIG_NTFS_FS is not set
  
  #
-@@ -1152,7 +1155,46 @@ CONFIG_MSDOS_PARTITION=y
+@@ -1155,7 +1240,7 @@ CONFIG_MSDOS_PARTITION=y
  #
- # Native Language Support
- #
--# CONFIG_NLS is not set
-+CONFIG_NLS=y
-+CONFIG_NLS_DEFAULT="iso8859-1"
+ CONFIG_NLS=y
+ CONFIG_NLS_DEFAULT="iso8859-1"
+-# CONFIG_NLS_CODEPAGE_437 is not set
 +CONFIG_NLS_CODEPAGE_437=y
-+# CONFIG_NLS_CODEPAGE_737 is not set
-+# CONFIG_NLS_CODEPAGE_775 is not set
-+# CONFIG_NLS_CODEPAGE_850 is not set
-+# CONFIG_NLS_CODEPAGE_852 is not set
-+# CONFIG_NLS_CODEPAGE_855 is not set
-+# CONFIG_NLS_CODEPAGE_857 is not set
-+# CONFIG_NLS_CODEPAGE_860 is not set
-+# CONFIG_NLS_CODEPAGE_861 is not set
-+# CONFIG_NLS_CODEPAGE_862 is not set
-+# CONFIG_NLS_CODEPAGE_863 is not set
-+# CONFIG_NLS_CODEPAGE_864 is not set
-+# CONFIG_NLS_CODEPAGE_865 is not set
-+# CONFIG_NLS_CODEPAGE_866 is not set
-+# CONFIG_NLS_CODEPAGE_869 is not set
-+# CONFIG_NLS_CODEPAGE_936 is not set
-+# CONFIG_NLS_CODEPAGE_950 is not set
-+# CONFIG_NLS_CODEPAGE_932 is not set
-+# CONFIG_NLS_CODEPAGE_949 is not set
-+# CONFIG_NLS_CODEPAGE_874 is not set
-+# CONFIG_NLS_ISO8859_8 is not set
-+# CONFIG_NLS_CODEPAGE_1250 is not set
-+# CONFIG_NLS_CODEPAGE_1251 is not set
-+# CONFIG_NLS_ASCII is not set
+ # CONFIG_NLS_CODEPAGE_737 is not set
+ # CONFIG_NLS_CODEPAGE_775 is not set
+ # CONFIG_NLS_CODEPAGE_850 is not set
+@@ -1179,7 +1264,7 @@ CONFIG_NLS_DEFAULT="iso8859-1"
+ # CONFIG_NLS_CODEPAGE_1250 is not set
+ # CONFIG_NLS_CODEPAGE_1251 is not set
+ # CONFIG_NLS_ASCII is not set
+-# CONFIG_NLS_ISO8859_1 is not set
 +CONFIG_NLS_ISO8859_1=y
-+# CONFIG_NLS_ISO8859_2 is not set
-+# CONFIG_NLS_ISO8859_3 is not set
-+# CONFIG_NLS_ISO8859_4 is not set
-+# CONFIG_NLS_ISO8859_5 is not set
-+# CONFIG_NLS_ISO8859_6 is not set
-+# CONFIG_NLS_ISO8859_7 is not set
-+# CONFIG_NLS_ISO8859_9 is not set
-+# CONFIG_NLS_ISO8859_13 is not set
-+# CONFIG_NLS_ISO8859_14 is not set
-+# CONFIG_NLS_ISO8859_15 is not set
-+# CONFIG_NLS_KOI8_R is not set
-+# CONFIG_NLS_KOI8_U is not set
-+# CONFIG_NLS_UTF8 is not set
- 
- #
- # Distributed Lock Manager
+ # CONFIG_NLS_ISO8859_2 is not set
+ # CONFIG_NLS_ISO8859_3 is not set
+ # CONFIG_NLS_ISO8859_4 is not set
 diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-index 8377665..43f90f3 100644
+index 43f90f3..c0416fc 100644
 --- a/arch/arm/mach-omap1/Makefile
 +++ b/arch/arm/mach-omap1/Makefile
-@@ -25,7 +25,7 @@ obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
+@@ -19,7 +19,7 @@ mmu_mach-objs			:= mmu.o
+ led-y := leds.o
+ 
+ # Specific board support
+-obj-$(CONFIG_MACH_OMAP_H2)		+= board-h2.o
++obj-$(CONFIG_MACH_OMAP_H2)		+= board-h2.o board-h2-mmc.o
+ obj-$(CONFIG_MACH_OMAP_INNOVATOR)	+= board-innovator.o
+ obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
  obj-$(CONFIG_MACH_OMAP_PERSEUS2)	+= board-perseus2.o
- obj-$(CONFIG_MACH_OMAP_FSAMPLE)		+= board-fsample.o
- obj-$(CONFIG_MACH_OMAP_OSK)		+= board-osk.o
--obj-$(CONFIG_MACH_OMAP_H3)		+= board-h3.o
-+obj-$(CONFIG_MACH_OMAP_H3)		+= board-h3.o board-h3-mmc.o
- obj-$(CONFIG_MACH_VOICEBLUE)		+= board-voiceblue.o
- obj-$(CONFIG_MACH_OMAP_PALMTE)		+= board-palmte.o
- obj-$(CONFIG_MACH_OMAP_PALMZ71)		+= board-palmz71.o
-diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
-index df77cf5..a2ae7ab 100644
---- a/arch/arm/mach-omap1/board-h3.c
-+++ b/arch/arm/mach-omap1/board-h3.c
-@@ -38,6 +38,7 @@
+diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
+index d2214ad..876bdcf 100644
+--- a/arch/arm/mach-omap1/board-h2.c
++++ b/arch/arm/mach-omap1/board-h2.c
+@@ -39,6 +39,7 @@
  #include <asm/mach/map.h>
  
  #include <asm/arch/gpio.h>
 +#include <asm/arch/gpio-switch.h>
- #include <asm/arch/gpioexpander.h>
- #include <asm/arch/irqs.h>
  #include <asm/arch/mux.h>
-@@ -517,14 +518,6 @@ static struct omap_usb_config h3_usb_config __initdata = {
+ #include <asm/arch/tc.h>
+ #include <asm/arch/irda.h>
+@@ -457,16 +458,6 @@ static struct omap_usb_config h2_usb_config __initdata = {
  	.pins[1]	= 3,
  };
  
--static struct omap_mmc_config h3_mmc_config __initdata = {
--	.mmc[0] = {
+-static struct omap_mmc_config h2_mmc_config __initdata = {
+-	.mmc [0] = {
 -		.enabled 	= 1,
--		.power_pin	= -1,   /* tps65010 GPIO4 */
+-		.wire4		= 1,
+-		.wp_pin		= OMAP_MPUIO(3),
+-		.power_pin	= -1,	/* tps65010 gpio3 */
 -		.switch_pin	= OMAP_MPUIO(1),
 -	},
 -};
 -
- static struct omap_uart_config h3_uart_config __initdata = {
+ static struct omap_uart_config h2_uart_config __initdata = {
  	.enabled_uarts = ((1 << 0) | (1 << 1) | (1 << 2)),
  };
-@@ -535,11 +528,22 @@ static struct omap_lcd_config h3_lcd_config __initdata = {
- 
- static struct omap_board_config_kernel h3_config[] __initdata = {
- 	{ OMAP_TAG_USB,		&h3_usb_config },
--	{ OMAP_TAG_MMC,		&h3_mmc_config },
- 	{ OMAP_TAG_UART,	&h3_uart_config },
- 	{ OMAP_TAG_LCD,		&h3_lcd_config },
+@@ -476,12 +467,23 @@ static struct omap_lcd_config h2_lcd_config __initdata = {
  };
  
-+static struct omap_gpio_switch h3_gpio_switches[] __initdata = {
+ static struct omap_board_config_kernel h2_config[] __initdata = {
+-	{ OMAP_TAG_USB,           &h2_usb_config },
+-	{ OMAP_TAG_MMC,           &h2_mmc_config },
++	{ OMAP_TAG_USB,		&h2_usb_config },
+ 	{ OMAP_TAG_UART,	&h2_uart_config },
+ 	{ OMAP_TAG_LCD,		&h2_lcd_config },
+ };
+ 
++static struct omap_gpio_switch h2_gpio_switches[] __initdata = {
 +	{
-+		.name			= "mmc_slot",
++		.name                   = "mmc_slot",
 +		.gpio                   = OMAP_MPUIO(1),
 +		.type                   = OMAP_GPIO_SWITCH_TYPE_COVER,
 +		.debounce_rising        = 100,
 +		.debounce_falling       = 0,
-+		.notify                 = h3_mmc_slot_cover_handler,
++		.notify                 = h2_mmc_slot_cover_handler,
 +		.notify_data            = NULL,
 +	},
 +};
 +
- #define H3_NAND_RB_GPIO_PIN	10
+ #define H2_NAND_RB_GPIO_PIN	62
  
- static int nand_dev_ready(struct nand_platform_data *data)
-@@ -575,6 +579,9 @@ static void __init h3_init(void)
- 	omap_board_config = h3_config;
- 	omap_board_config_size = ARRAY_SIZE(h3_config);
+ static int h2_nand_dev_ready(struct nand_platform_data *data)
+@@ -530,6 +532,9 @@ static void __init h2_init(void)
+ 	omap_board_config = h2_config;
+ 	omap_board_config_size = ARRAY_SIZE(h2_config);
  	omap_serial_init();
-+	h3_mmc_init();
-+	omap_register_gpio_switches(h3_gpio_switches,
-+				    ARRAY_SIZE(h3_gpio_switches));
++	h2_mmc_init();
++	omap_register_gpio_switches(h2_gpio_switches,
++				    ARRAY_SIZE(h2_gpio_switches));
  }
  
- static void __init h3_init_smc91x(void)
+ static void __init h2_map_io(void)
 -- 1.5.3.GIT
