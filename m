@@ -1,14 +1,12 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 5/6] musb_hdrc: Add musb_platform_wakeup()
-Date: Sun, 21 Oct 2007 16:20:55 -0700
-Message-ID: <11930088633238-git-send-email-tony@atomide.com>
+Subject: [PATCH 3/6] musb_hdrc: Improve tusb clock handling
+Date: Sun, 21 Oct 2007 16:20:53 -0700
+Message-ID: <11930088601320-git-send-email-tony@atomide.com>
 References: musb-2007-10-21 <119300885686-git-send-email-tony@atomide.com>
 	<11930088583835-git-send-email-tony@atomide.com>
 	<11930088592326-git-send-email-tony@atomide.com>
-	<11930088601320-git-send-email-tony@atomide.com>
-	<11930088611788-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11930088611788-git-send-email-tony@atomide.com>
+In-Reply-To: <11930088592326-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,73 +19,73 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-If we access tusb registers when tusb is in idle mode, tusb
-registers may not be immediately available. In most cases
-an interrupt will wake the system, but at least sending
-SRP can fail tusb registers are accessed via sysfs.
+Do not disable clock until in tusb_allow_idle()
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/musb_core.h   |    2 ++
- drivers/usb/musb/musb_gadget.c |    2 +-
- drivers/usb/musb/tusb6010.c    |   15 +++++++++++++++
- 3 files changed, 18 insertions(+), 1 deletions(-)
+ drivers/usb/musb/tusb6010.c |   20 +++++++++++++-------
+ 1 files changed, 13 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index 332d39d..1ea0849 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -477,10 +477,12 @@ extern void musb_platform_disable(struct musb *musb);
- extern void musb_hnp_stop(struct musb *musb);
- 
- #ifdef CONFIG_USB_TUSB6010
-+extern void musb_platform_wakeup(struct musb *musb);
- extern void musb_platform_try_idle(struct musb *musb, unsigned long timeout);
- extern int musb_platform_get_vbus_status(struct musb *musb);
- extern void musb_platform_set_mode(struct musb *musb, u8 musb_mode);
- #else
-+#define musb_platform_wakeup(x)			do {} while (0)
- #define musb_platform_try_idle(x, y)		do {} while (0)
- #define musb_platform_get_vbus_status(x)	0
- #define musb_platform_set_mode(x, y)		do {} while (0)
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index 0fb9635..4b25b0a 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -1394,7 +1394,7 @@ static int musb_gadget_wakeup(struct usb_gadget *gadget)
- 	int		retries;
- 
- 	spin_lock_irqsave(&musb->lock, flags);
--
-+	musb_platform_wakeup(musb);
- 	switch (musb->xceiv.state) {
- 	case OTG_STATE_B_PERIPHERAL:
- 		/* NOTE:  OTG state machine doesn't include B_SUSPENDED;
 diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
-index c3285ac..7cbd50c 100644
+index 85afdd2..c3285ac 100644
 --- a/drivers/usb/musb/tusb6010.c
 +++ b/drivers/usb/musb/tusb6010.c
-@@ -359,6 +359,21 @@ static void tusb_set_clock_source(struct musb *musb, unsigned mode)
- }
+@@ -277,13 +277,10 @@ static int tusb_draw_power(struct otg_transceiver *x, unsigned mA)
+ 	/*
+ 	 * Keep clock active when enabled. Note that this is not tied to
+ 	 * drawing VBUS, as with OTG mA can be less than musb->min_power.
++	 * Note that peripheral osc_ck gets disabled in tusb_allow_idle().
+ 	 */
+-	if (musb->set_clock) {
+-		if (mA)
++	if (musb->set_clock && mA)
+ 			musb->set_clock(musb->clock, 1);
+-		else
+-			musb->set_clock(musb->clock, 0);
+-	}
  
- /*
-+ * Wake-up tusb from idle. Caller must take care of locking.
-+ */
-+void musb_platform_wakeup(struct musb *musb)
-+{
-+	void __iomem	*tbase = musb->ctrl_base;
-+	u32		int_src;
+ 	/* tps65030 seems to consume max 100mA, with maybe 60mA available
+ 	 * (measured on one board) for things other than tps and tusb.
+@@ -342,6 +339,9 @@ static void tusb_set_clock_source(struct musb *musb, unsigned mode)
+ 	void __iomem	*tbase = musb->ctrl_base;
+ 	u32		reg;
+ 
++	if (musb->set_clock && (mode == 1))
++		musb->set_clock(musb->clock, 1);
 +
-+	tusb_lock_pll(musb);
-+	tusb_set_clock_source(musb, 1);
-+	int_src = musb_readl(tbase, TUSB_INT_SRC) & ~TUSB_INT_SRC_RESERVED_BITS;
-+	if (int_src & TUSB_INT_SRC_DEV_WAKEUP)
-+		musb_writel(tbase, TUSB_INT_SRC_CLEAR, TUSB_INT_SRC_DEV_WAKEUP);
-+}
+ 	reg = musb_readl(tbase, TUSB_PRCM_CONF);
+ 	reg &= ~TUSB_PRCM_CONF_SYS_CLKSEL(0x3);
+ 
+@@ -374,6 +374,9 @@ void tusb_allow_idle(struct musb *musb, u32 wakeup_enables)
+ 		tusb_wbus_quirk(musb, 1);
+ 
+ 	tusb_set_clock_source(musb, 0);
++	if ((musb_platform_get_vbus_status(musb) == 0)
++		&& (musb->xceiv.state == OTG_STATE_B_IDLE))
++			musb->set_clock(musb->clock, 0);
+ 
+ 	wakeup_enables |= TUSB_PRCM_WNORCS;
+ 	musb_writel(tbase, TUSB_PRCM_WAKEUP_MASK, ~wakeup_enables);
+@@ -587,8 +590,8 @@ static void tusb_source_power(struct musb *musb, int is_on)
+ 
+ 		devctl &= ~MUSB_DEVCTL_SESSION;
+ 		conf &= ~TUSB_DEV_CONF_USB_HOST_MODE;
+-		if (musb->set_clock)
+-			musb->set_clock(musb->clock, 0);
 +
-+/*
-  * Idle TUSB6010 until next wake-up event; NOR access always wakes.
-  * Other code ensures that we idle unless we're connected _and_ the
-  * USB link is not suspended ... and tells us the relevant wakeup
++		/* Host osc_ck gets released in tusb_allow_idle() */
+ 	}
+ 	prcm &= ~(TUSB_PRCM_MNGMT_15_SW_EN | TUSB_PRCM_MNGMT_33_SW_EN);
+ 
+@@ -984,6 +987,9 @@ void musb_platform_disable(struct musb *musb)
+ 
+ 	del_timer(&musb_idle_timer);
+ 
++	if (musb->set_clock)
++		musb->set_clock(musb->clock, 0);
++
+ 	if (is_dma_capable() && !dma_off) {
+ 		printk(KERN_WARNING "%s %s: dma still active\n",
+ 				__FILE__, __FUNCTION__);
 -- 
 1.5.2.5
