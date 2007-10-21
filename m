@@ -1,11 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/6] musb_hdrc: Improve tusb clocking,
-	add musb_platform_wakeup()
-Date: Sun, 21 Oct 2007 16:20:50 -0700
-Message-ID: <119300885686-git-send-email-tony@atomide.com>
+Subject: [PATCH 6/6] musb_hdrc: Handle b_host in musb_otg_timer_func()
+Date: Sun, 21 Oct 2007 16:20:56 -0700
+Message-ID: <119300886467-git-send-email-tony@atomide.com>
+References: musb-2007-10-21 <119300885686-git-send-email-tony@atomide.com>
+	<11930088583835-git-send-email-tony@atomide.com>
+	<11930088592326-git-send-email-tony@atomide.com>
+	<11930088601320-git-send-email-tony@atomide.com>
+	<11930088611788-git-send-email-tony@atomide.com>
+	<11930088633238-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: musb-2007-10-21
-References: musb-2007-10-21
+In-Reply-To: <11930088633238-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,17 +22,25 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+Otherwise we get warnings about unhandled mode.
 
-Attached series improves cleans up musb_gadget_ep0 a bit, improves
-tusb clock handling, and introduces musb_platform_wakeup().
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/usb/musb/musb_core.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Tested on tusb.
-
-BTW, regarding sending these patches upstream, I probably won't have time
-to prepare the series and do the necessary clean-up for next few weeks
-because of some work stuff I need to deal with.
-
-Regards,
-
-Tony
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 29732a8..4a2c85a 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -310,6 +310,8 @@ void musb_otg_timer_func(unsigned long data)
+ 
+ 	spin_lock_irqsave(&musb->lock, flags);
+ 	switch (musb->xceiv.state) {
++	case OTG_STATE_B_HOST:
++		break;
+ 	case OTG_STATE_B_WAIT_ACON:
+ 		DBG(1, "HNP: b_wait_acon timeout; back to b_peripheral\n");
+ 		musb_g_disconnect(musb);
+-- 
+1.5.2.5
