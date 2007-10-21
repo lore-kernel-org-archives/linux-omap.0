@@ -1,15 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 6/6] musb_hdrc: Handle b_host in musb_otg_timer_func()
-Date: Sun, 21 Oct 2007 16:20:56 -0700
-Message-ID: <119300886467-git-send-email-tony@atomide.com>
-References: musb-2007-10-21 <119300885686-git-send-email-tony@atomide.com>
-	<11930088583835-git-send-email-tony@atomide.com>
-	<11930088592326-git-send-email-tony@atomide.com>
-	<11930088601320-git-send-email-tony@atomide.com>
-	<11930088611788-git-send-email-tony@atomide.com>
-	<11930088633238-git-send-email-tony@atomide.com>
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11930088633238-git-send-email-tony@atomide.com>
+Subject: Re: [PATCH 04/14] MMC: OMAP: Power functions modified to MMC
+	multislot support
+Date: Sun, 21 Oct 2007 16:49:17 -0700
+Message-ID: <20071021234917.GB6984@atomide.com>
+References: <46F28BB7.7050203@indt.org.br> <20071009152914.GC7784@atomide.com>
+	<470BBEC8.2010906@indt.org.br> <4714E35F.3090106@indt.org.br>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <4714E35F.3090106@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,30 +17,62 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Cc: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Otherwise we get warnings about unhandled mode.
+Hi,
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/usb/musb/musb_core.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+* Carlos Aguiar <carlos.aguiar@indt.org.br> [071016 09:17]:
+> From: Juha Yrjola <juha.yrjola@solidboot.com>
+> 
+> Modifications at power functions to MMC multislot support. This patch
+> also move board-specific code out of MMC OMAP driver.
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 29732a8..4a2c85a 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -310,6 +310,8 @@ void musb_otg_timer_func(unsigned long data)
- 
- 	spin_lock_irqsave(&musb->lock, flags);
- 	switch (musb->xceiv.state) {
-+	case OTG_STATE_B_HOST:
-+		break;
- 	case OTG_STATE_B_WAIT_ACON:
- 		DBG(1, "HNP: b_wait_acon timeout; back to b_peripheral\n");
- 		musb_g_disconnect(musb);
--- 
-1.5.2.5
+<snip>
+
+> @@ -1090,23 +1063,30 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+>  	int i, dsor;
+>  
+>  	dsor = mmc_omap_calc_divisor(mmc, ios);
+> -	host->bus_mode = ios->bus_mode;
+> -	host->hw_bus_mode = host->bus_mode;
+> +
+> +	mmc_omap_select_slot(slot, 0);
+> +
+> +	if (ios->vdd != slot->vdd)
+> +		slot->vdd = ios->vdd;
+>  
+>  	switch (ios->power_mode) {
+>  	case MMC_POWER_OFF:
+> -		mmc_omap_power(host, 0);
+> +		mmc_omap_set_power(slot, 0, ios->vdd);
+>  		break;
+>  	case MMC_POWER_UP:
+>  		/* Cannot touch dsor yet, just power up MMC */
+> -		mmc_omap_power(host, 1);
+> -		return;
+> +		mmc_omap_set_power(slot, 1, ios->vdd);
+>  	case MMC_POWER_ON:
+>  		dsor |= 1 << 11;
+>  		break;
+>  	}
+>  
+> -	clk_enable(host->fclk);
+> +	if (slot->bus_mode != ios->bus_mode) {
+> +		if (slot->pdata->set_bus_mode != NULL)
+> +			slot->pdata->set_bus_mode(mmc_dev(mmc), slot->id,
+> +						  ios->bus_mode);
+> +		slot->bus_mode = ios->bus_mode;
+> +	}
+>  
+>  	/* On insanely high arm_per frequencies something sometimes
+>  	 * goes somehow out of sync, and the POW bit is not being set,
+
+The above still changes behaviour, you've left out return after
+MMC_POWER_UP. That is not supposed to do anything except power
+up the slot and return as mentioned in the comment.
+
+Tony
