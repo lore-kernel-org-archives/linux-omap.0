@@ -1,14 +1,13 @@
-From: Igor Stoppa <igor.stoppa@nokia.com>
-Subject: Re: [PATCH] ARM: OMAP: fix default sys_ck.rate for boot-time DPLL
-	detection
-Date: Mon, 22 Oct 2007 10:24:24 +0300
-Message-ID: <1193037864.29349.261.camel@localhost.localdomain>
-References: <20071019211415.183990583@mvista.com>
+From: "Iqbal" <iqbal@ti.com>
+Subject: GIT tags
+Date: Mon, 22 Oct 2007 06:24:32 -0500
+Message-ID: <5D8B5EC1EB6ED845B1EB216F00C71B650206ED60@dlee12.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20071019211415.183990583@mvista.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,29 +17,26 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: ext Kevin Hilman <khilman@mvista.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kevin,
-On Fri, 2007-10-19 at 14:14 -0700, ext Kevin Hilman wrote:
-> In the clock init code, the DPLL value set by the bootloader is
-> queried, but always turns zero due it's parent clock (sys_ck) having
-> no default rate.  This results in the improper setting of the default
-> PRCM rate-table entry and any queries of virt_prcm_set rate to return 0.
-> 
-> Following the example of the TI kernel, set the default sys_ck rate to
-> 13MHz.  Could then be overridden in board setup code.
 
-There should be an even cleaner way to handle that (but i have no code
-to prove that it works =) since the boot rom already does auto-detection
-of the oscillator to support serial flashing.
+Hi,=20
 
-If it is possible to read the detected value then the code can be moved
-to arch or even plat.
+I see that the kernel is advanced from 2.6.23-rc8 to 2.6.23.=20
+When I do a git-tag -l, at the end I can only see 2.6.23-rc4 and not =
+2.6.23 or any tags between these two.
 
--- 
-Cheers, Igor
+So, what I understand is "this list doesn't mess up with the tags", the =
+tags are coming from Linus/kernel.org.=20
+And, there is no hard fast rule that tags are always updated.
 
-Igor Stoppa <igor.stoppa@nokia.com>
-(Nokia Multimedia - CP - OSSO / Helsinki, Finland)
+Pl. correct me If I my understanding is wrong.
+
+Also,
+
+How can I get the date when I did the last git-pull/git-fetch?
+If there are any good pointers on versioning please pass it on.
+
+Thanks,=20
+Iqbal
