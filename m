@@ -1,14 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 01/01] arch/arm/plat-omap/mcbsp.c
-Date: Sun, 21 Oct 2007 17:00:50 -0700
-Message-ID: <20071022000047.GC6984@atomide.com>
-References: <ae36f8040709252025o3325b001k75d133411812f923@mail.gmail.com>
+Subject: Re: [PATCH] OMAP: Add OMAP_GPIO_SWITCH dependency for TUSB6010 on
+	N800
+Date: Sun, 21 Oct 2007 17:06:22 -0700
+Message-ID: <20071022000622.GD6984@atomide.com>
+References: <47153419.2030609@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <ae36f8040709252025o3325b001k75d133411812f923@mail.gmail.com>
+In-Reply-To: <47153419.2030609@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,55 +18,35 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: =?iso-8859-1?Q?Lu=EDs?= Cargnini <lvcargnini@gmail.com>
-Cc: OMAP <Linux-omap-open-source@linux.omap.com>
+To: Anderson Briglia <anderson.briglia@indt.org.br>
+Cc: "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Lu=EDs Cargnini <lvcargnini@gmail.com> [070925 20:26]:
-> this patch modify the McBSP interrupt handling behavior turning the irq=
- of
-> McBSP ports shared and it is working, I'm deveolping a device driver an=
-d
-> percepted that this is a change necessary for new device drivers could =
-been
-> implemented to tak advantage of McBSP and could use it, example is ADC
-> communications throw McBSP interface for example, this modification do =
-not
-> harm the kernel and add more felxibility and functionality to the kerne=
-l.
->=20
-> -- linux-omap-2.6/arch/arm/plat-omap/mcbsp.c   2007-03-12
-> 16:44:03.501890844-0300
-> +++ linux-omap-2.6-instramed/arch/arm/plat-omap/mcbsp.c 2007-09-25 23:5=
-8:
-> 39.324154145 -0300
->=20
->  static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_id)
-> @@ -304,7 +320,7 @@ int omap_mcbsp_request(unsigned int id)
->=20
->         if (mcbsp[id].io_type =3D=3D OMAP_MCBSP_IRQ_IO) {
->                 /* We need to get IRQs here */
-> -               err =3D request_irq(mcbsp[id].tx_irq,
-> omap_mcbsp_tx_irq_handler, 0,
-> +               err =3D request_irq(mcbsp[id].tx_irq,
-> omap_mcbsp_tx_irq_handler, IRQF_SHARED,
->                                   "McBSP",
->                                   (void *) (&mcbsp[id]));
->                 if (err !=3D 0) {
-> @@ -315,8 +331,7 @@ int omap_mcbsp_request(unsigned int id)
->=20
->                 init_completion(&(mcbsp[id].tx_irq_completion));
->=20
-> -
-> -               err =3D request_irq(mcbsp[id].rx_irq,
-> omap_mcbsp_rx_irq_handler, 0,
-> +               err =3D request_irq(mcbsp[id].rx_irq,
-> omap_mcbsp_rx_irq_handler, IRQF_SHARED,
->                                   "McBSP",
->                                   (void *) (&mcbsp[id]));
->                 if (err !=3D 0) {
+Hi,
 
-Let's consider this once there's something else actually something using
-the interrupt.
+* Anderson Briglia <anderson.briglia@indt.org.br> [071016 15:00]:
+> GPIO switch is needed for TUSB6010 code. It must be
+> selected when TUSB6010 is marked on N800 device.
+> 
+> Signed-off-by: Anderson Briglia <anderson.briglia@indt.org.br>
+> ---
+>  arch/arm/mach-omap2/Kconfig |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index 51fc13a..9323bd0 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -37,6 +37,7 @@ config MACH_NOKIA_N800
+>  	select CBUS if VIDEO_TCM825X
+>  	select CBUS_RETU if VIDEO_TCM825X
+>  	select MENELAUS if VIDEO_TCM825X
+> +	select OMAP_GPIO_SWITCH
+> 
+>  config MACH_OMAP2_TUSB6010
+>  	bool
+
+At least the comment is wrong, can you please check? There's not
+gpio_switch dependency in tusb6010 code AFAIK.
 
 Tony
