@@ -1,10 +1,13 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: About to tag 2.6.23-omap1
-Date: Mon, 22 Oct 2007 18:19:21 -0700
-Message-ID: <20071023011920.GL17318@atomide.com>
+From: "Kyungmin Park" <kmpark@infradead.org>
+Subject: Re: About to tag 2.6.23-omap1
+Date: Tue, 23 Oct 2007 10:45:12 +0900
+Message-ID: <9c9fda240710221845y341a5cb0i50b7e07e6d959853@mail.gmail.com>
+References: <20071023011920.GL17318@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20071023011920.GL17318@atomide.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,25 +18,46 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+Hi,
 
-I'm planning to tag 2.6.23-omap1 tomorrow morning PST with current
-linux-omap git tree unless somebody comes up with fixes that still
-should go in.
+There is a pending patch related with OMAP2 USB device DMA support.
+I think now there's one user to use this feature, Apollon.
 
-So only fixes right now please, then let's update the tree to
-mainline kernel, and try to get most of the pending patches such as
-mmc, v4l, osk-2420, omap2-nand etc applied (and fixed if needed).
+As David's comment, it has board specific code.
+but the DMA patch don't update the board specific code. it only adds
+the DMA codes.
 
-After that, let's plan on doing the move of arch/arm/plat-omap/dsp
-to drivers/dsp/omap. And then we prepare patches do the fixes needed
-for Russell for plat-omap and mach-omap1 before 2.6.24-rc5 to try to
-get them mostly in sync with mainline. Then we can hopefully sync up
-mach-omap2 for 2.6.25-rc5.
+So if you don't mind I hope to merge this one too.
 
-Cheers,
+Thank you,
+Kyungmin Park
 
-Tony
+On 10/23/07, Tony Lindgren <tony@atomide.com> wrote:
+> Hi all,
+>
+> I'm planning to tag 2.6.23-omap1 tomorrow morning PST with current
+> linux-omap git tree unless somebody comes up with fixes that still
+> should go in.
+>
+> So only fixes right now please, then let's update the tree to
+> mainline kernel, and try to get most of the pending patches such as
+> mmc, v4l, osk-2420, omap2-nand etc applied (and fixed if needed).
+>
+> After that, let's plan on doing the move of arch/arm/plat-omap/dsp
+> to drivers/dsp/omap. And then we prepare patches do the fixes needed
+> for Russell for plat-omap and mach-omap1 before 2.6.24-rc5 to try to
+> get them mostly in sync with mainline. Then we can hopefully sync up
+> mach-omap2 for 2.6.25-rc5.
+>
+> Cheers,
+>
+> Tony
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
