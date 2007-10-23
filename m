@@ -1,16 +1,8 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP: fix default sys_ck.rate for boot-time
- DPLLdetection
-Date: Mon, 22 Oct 2007 15:46:52 -0600 (MDT)
-Message-ID: <Pine.LNX.4.64.0710221546050.30088@utopia.booyaka.com>
-References: <20071019211415.183990583@mvista.com>
-	<1193037864.29349.261.camel@localhost.localdomain>
-	<3B6D69C3A9EBCA4BA5DA60D9130274290249C536@dlee13.ent.ti.com>
-	<471CD547.6090206@mvista.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+From: Kevin Hilman <khilman@mvista.com>
+Subject: [PATCH] ARM: OMAP: Use dynamic detection for setting default sys_ck
+Date: Mon, 22 Oct 2007 17:17:01 -0700
+Message-ID: <20071023001701.324618342@mvista.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <471CD547.6090206@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,18 +12,41 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kevin Hilman <khilman@mvista.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 22 Oct 2007, Kevin Hilman wrote:
+A cleaner way than my previous static fix...  Rather than setting a
+static sys_ck.rate, detect the correct value at boot time.
 
-> The easier fix is to simply add omap2_sys_clk_recalc() as in the
-> following patch (which also reverts my previous patch.)  If that seems
-> reasonable, I'll submit it.
+Signed-off-by: Kevin Hilman <khilman@mvista.com>
 
-I would prefer this second patch; it allows sys_ck to be calculated 
-dynamically based on osc_ck.
+---
+ arch/arm/mach-omap2/clock24xx.c |    1 +
+ arch/arm/mach-omap2/clock24xx.h |    1 -
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-
-- Paul
+Index: dev/arch/arm/mach-omap2/clock24xx.c
+===================================================================
+--- dev.orig/arch/arm/mach-omap2/clock24xx.c
++++ dev/arch/arm/mach-omap2/clock24xx.c
+@@ -475,6 +475,7 @@ int __init omap2_clk_init(void)
+ 	clk_init(&omap2_clk_functions);
+ 
+ 	omap2_osc_clk_recalc(&osc_ck);
++	omap2_sys_clk_recalc(&sys_ck);
+ 
+ 	for (clkp = onchip_24xx_clks;
+ 	     clkp < onchip_24xx_clks + ARRAY_SIZE(onchip_24xx_clks);
+Index: dev/arch/arm/mach-omap2/clock24xx.h
+===================================================================
+--- dev.orig/arch/arm/mach-omap2/clock24xx.h
++++ dev/arch/arm/mach-omap2/clock24xx.h
+@@ -581,7 +581,6 @@ static struct clk osc_ck = {		/* (*12, *
+ /* With out modem likely 12MHz, with modem likely 13MHz */
+ static struct clk sys_ck = {		/* (*12, *13, 19.2, 26, 38.4)MHz */
+ 	.name		= "sys_ck",		/* ~ ref_clk also */
+-	.rate           = 13000000,
+ 	.parent		= &osc_ck,
+ 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
+ 				ALWAYS_ENABLED | RATE_PROPAGATES,
+--
