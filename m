@@ -1,15 +1,13 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: [PATCH] ARM: OMAP: Use dynamic detection for setting default
- sys_ck
-Date: Mon, 22 Oct 2007 17:38:06 -0700
-Message-ID: <471D426E.2050907@mvista.com>
-References: <20071023001701.324618342@mvista.com>
-	<20071023003523.GG17318@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP: Add OMAP_GPIO_SWITCH dependency for N800
+Date: Mon, 22 Oct 2007 17:39:34 -0700
+Message-ID: <20071023003934.GH17318@atomide.com>
+References: <471CCB92.3040801@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <20071023003523.GG17318@atomide.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <471CCB92.3040801@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,20 +15,34 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Anderson Briglia <anderson.briglia@indt.org.br>
+Cc: "Linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren wrote:
-
+* Anderson Briglia <anderson.briglia@indt.org.br> [071022 09:13]:
+> GPIO switch is needed for N800 initialization. It must be
+> selected when compiling for this device.
 > 
-> I'll undo your earlier patch and apply first part of this if you don't
-> mind. Also merged comments from your first patch, hope that's OK with
-> you, see attached.
+> Signed-off-by: Anderson Briglia <anderson.briglia@indt.org.br>
+> ---
+>  arch/arm/mach-omap2/Kconfig |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
 > 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index 51fc13a..9323bd0 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -37,6 +37,7 @@ config MACH_NOKIA_N800
+>  	select CBUS if VIDEO_TCM825X
+>  	select CBUS_RETU if VIDEO_TCM825X
+>  	select MENELAUS if VIDEO_TCM825X
+> +	select OMAP_GPIO_SWITCH
+> 
+>  config MACH_OMAP2_TUSB6010
+>  	bool
 
-Looks good to me,  Thanks.
+Pushing today.
 
-Kevin
+Tony
