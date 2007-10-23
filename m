@@ -1,21 +1,16 @@
-From: "=?UTF-8?Q?Lu=C3=ADs_Cargnini?=" <lvcargnini@gmail.com>
-Subject: Re: [PATCH 01/01] arch/arm/plat-omap/mcbsp.c
-Date: Tue, 23 Oct 2007 01:17:13 -0200
-Message-ID: <ae36f8040710222017p722250fbg76a7ebcb0de95e68@mail.gmail.com>
-References: <ae36f8040709252025o3325b001k75d133411812f923@mail.gmail.com>
-	<20071022000047.GC6984@atomide.com>
-	<ae36f8040710212048v42f3fb96pc8b0e2db9496f93a@mail.gmail.com>
-	<20071022035841.GH6984@atomide.com>
-	<ae36f8040710220957m721ab992g898da6f2d12eac8@mail.gmail.com>
-	<20071022172101.GD15946@atomide.com>
-	<ae36f8040710221108h20b9ba91ked981b475a6f1199@mail.gmail.com>
-	<ae36f8040710221319o4ae1e14cn8a5040be4555235c@mail.gmail.com>
-	<20071022205648.GA17300@atomide.com>
-Reply-To: lvcargnini@gmail.com
+From: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Subject: Re: [PATCH 04/14] MMC: OMAP: Power functions modified to
+ MMC	multislot support
+Date: Tue, 23 Oct 2007 11:24:09 -0400
+Message-ID: <471E1219.2060007@indt.org.br>
+References: <46F28BB7.7050203@indt.org.br> <20071009152914.GC7784@atomide.com>
+	<470BBEC8.2010906@indt.org.br> <4714E35F.3090106@indt.org.br>
+	<20071021234917.GB6984@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1343499551=="
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20071022205648.GA17300@atomide.com>
+In-Reply-To: <20071021234917.GB6984@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -25,49 +20,91 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
-Cc: OMAP <Linux-omap-open-source@linux.omap.com>
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============1343499551==
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+ext Tony Lindgren wrote:
+> Hi,
+>
+> * Carlos Aguiar <carlos.aguiar@indt.org.br> [071016 09:17]:
+>   
+>> From: Juha Yrjola <juha.yrjola@solidboot.com>
+>>
+>> Modifications at power functions to MMC multislot support. This patch
+>> also move board-specific code out of MMC OMAP driver.
+>>     
+>
+> <snip>
+>
+>   
+>> @@ -1090,23 +1063,30 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+>>  	int i, dsor;
+>>  
+>>  	dsor = mmc_omap_calc_divisor(mmc, ios);
+>> -	host->bus_mode = ios->bus_mode;
+>> -	host->hw_bus_mode = host->bus_mode;
+>> +
+>> +	mmc_omap_select_slot(slot, 0);
+>> +
+>> +	if (ios->vdd != slot->vdd)
+>> +		slot->vdd = ios->vdd;
+>>  
+>>  	switch (ios->power_mode) {
+>>  	case MMC_POWER_OFF:
+>> -		mmc_omap_power(host, 0);
+>> +		mmc_omap_set_power(slot, 0, ios->vdd);
+>>  		break;
+>>  	case MMC_POWER_UP:
+>>  		/* Cannot touch dsor yet, just power up MMC */
+>> -		mmc_omap_power(host, 1);
+>> -		return;
+>> +		mmc_omap_set_power(slot, 1, ios->vdd);
+>>  	case MMC_POWER_ON:
+>>  		dsor |= 1 << 11;
+>>  		break;
+>>  	}
+>>  
+>> -	clk_enable(host->fclk);
+>> +	if (slot->bus_mode != ios->bus_mode) {
+>> +		if (slot->pdata->set_bus_mode != NULL)
+>> +			slot->pdata->set_bus_mode(mmc_dev(mmc), slot->id,
+>> +						  ios->bus_mode);
+>> +		slot->bus_mode = ios->bus_mode;
+>> +	}
+>>  
+>>  	/* On insanely high arm_per frequencies something sometimes
+>>  	 * goes somehow out of sync, and the POW bit is not being set,
+>>     
+>
+>   
+Hi Tony,
 
-RGVhciB0b255IGp1c3Qgb25lIHF1ZXN0aW9uLGlmIEkgd2FudCB0byBpbXBsZW1lbnQgbXkgb3du
-IERNQSBoYW5kbGVycyAodGhleQpuZWVkIGludGVycnVwdCBoYW5kbGVycyksIGluIHRoaXMgY2Fz
-ZSB3ZSBuZWVkIHRvIHNoYXJlIHRoZSBpcnFzID8KVGhlIG1ldGhvZHMgb3MgTWNCU1AgZm9yIERN
-QSBhcmUgYXMgZGVzY3JpYmVkIGluIHRoZSBzb3VyY2U6Ci8qCiAqIFNpbXBsZSBETUEgYmFzZWQg
-YnVmZmVyIHJ4L3R4IHJvdXRpbmVzLgogKiBOb3RoaW5nIGZhbmN5LCBqdXN0IGEgc2luZ2xlIGJ1
-ZmZlciB0eC9yeCB0aHJvdWdoIERNQS4KICogVGhlIERNQSByZXNvdXJjZXMgYXJlIHJlbGVhc2Vk
-IG9uY2UgdGhlIHRyYW5zZmVyIGlzIGRvbmUuCiAqIEZvciBhbnl0aGluZyBmYW5jaWVyLCB5b3Ug
-c2hvdWxkIHVzZSB5b3VyIG93biBjdXN0b21pemVkIERNQQogKiByb3V0aW5lcyBhbmQgY2FsbGJh
-Y2tzLgogKi8KbGluZXMgNjkwIHRvIDY5NiBvZiBtY2JzcC5jCgpvciBtYXliZSBleHBvcnQgdGhl
-IG9tYXBfbWNic3BfdHhfZG1hX2NhbGxiYWNrIGFuZApvbWFwX21jYnNwX3J4X2RtYV9jYWxsYmFj
-aywgdG8gbGluayB0aGUgZG1hIGZyb20gbWNic3AgdG8gbXkgZnVuY3Rpb25zIHRvCnRocmVhdCBk
-bWEgZXZlbnRzLCBhbmQgbW9yZSB0aGUgZG1hIGltcGxlbWVudGVkIGluIG1jYnNwIG9mIHBsYXRm
-b3JtIG9ubHkKc2VuZCBhbmQgcmVjZWl2ZSBhIHNpbmdsZSB1OCBlYWNoIHRpbWUsIGFuZCBlYWNo
-IHRpbWUgaXQgYWxsb2MgYW5kIGRlYWxsb2MKdGhlIGRtYSBjaGFubmVsIChob3cgYmlnIGlzIHRo
-aXMgdGltZSBwZW5hbHR5KS4KSSdtIGRpc2N1c3NpbmcgdGhpcyB3aXRoIHlvdSBhbmQgdGhlIGVu
-dGlyZSBsaXN0IGJlY2F1c2UgSSBzdXBwb3NlIHRoaXMgaXMKcmVsZXZhbnQgYW5kIHNvbWVvbmUg
-Y291bGQga25vdyBzb21ldGhpbmcgZWxzZS4KCgoKT24gMTAvMjIvMDcsIFRvbnkgTGluZGdyZW4g
-PHRvbnlAYXRvbWlkZS5jb20+IHdyb3RlOgo+Cj4gKiBMdcOtcyBDYXJnbmluaSA8bHZjYXJnbmlu
-aUBnbWFpbC5jb20+IFswNzEwMjIgMTM6MjBdOgo+ID4gcGxlYXNlIGNhbiB5b3UgZ2l2ZSBtZSBh
-biBleGFtcGxlIG9mIGhvdyB0byB1c2UgdGhlIG1jYnNwIHhtaXQgYW5kIHJlY2V2Cj4gZG1hCj4g
-PiBmdW5jdGlvbnMgb2Ygb21hcCA/Cj4KPiBKdXN0IGdyZXAgZm9yIHRoZW0gaW4gdGhlIGxpbnV4
-LW9tYXAgdHJlZSwgdGhlcmUgc2hvdWxkIGJlIGZldyBleGFtcGxlcy4KPgo+IFRvbnkKPgoKCgot
-LSAKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClRoYW5rcyAmJiBSZWdhcmRzCk1zYy4gQnNjLiBMdcOt
-cyBWaXTDs3JpbyBDYXJnbmluaQpJRUVFIE1lbWJlcgpFbGVjdHJpY2FsIEVuZ2luZWVyIEZhY3Vs
-dHkgQCBQVUNSUwpJcGlyYW5nYSBBdmVudWUsIDY2ODEg4oCTIEJ1aWxkaW5nIDMwClAuTy4gQm94
-OiA5MDYxOS05MDAg4oCTIFBvcnRvIEFsZWdyZS9SUwpQaG9uZTogKzU1IDUxIDMzMjAgMzUwMCAg
-ZXh0ZW5zaW9uOiA3Njk2Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo=
---===============1343499551==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Sorry for my late response. In fact, I'm in sick leave.
 
 
---===============1343499551==--
+> The above still changes behaviour, you've left out return after
+> MMC_POWER_UP. That is not supposed to do anything except power
+> up the slot and return as mentioned in the comment.
+>   
+Well, the first option I tried was of course return after MMC_POWER_UP. But, unexpectedly, such return is broken on N800. 
+
+I'm working and investigating this today.
+
+BR,
+
+Carlos.
+
+> Tony
+>
+>   
+
+
+-- 
+Carlos Eduardo Aguiar
+Nokia Institute of Technology - INdT
+Open Source Mobile Research Center - OSMRC - Manaus
+Core Team
+Phone: +55 92 2126-1079
+Mobile: +55 92 8127-1797
+E-mail: carlos.aguiar@indt.org.br
