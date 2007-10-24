@@ -1,8 +1,7 @@
 From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: [PATCH 3/4] DMA: Added utility APIs for setting DMA global
-	parameters
-Date: Wed, 24 Oct 2007 12:38:51 +0530
-Message-ID: <010C7BAE6783F34D9AC336EE5A01A08804AF9866@dbde01.ent.ti.com>
+Subject: [PATCH 2/4] OMAP: DMA: Added support for OMAP3
+Date: Wed, 24 Oct 2007 12:37:11 +0530
+Message-ID: <010C7BAE6783F34D9AC336EE5A01A08804AF9863@dbde01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -23,168 +22,286 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Anand Gadiyar <gadiyar@ti.com>
 
-Added DMA utility APIs for setting FIFO depth, arbitration rate and =
-channel priority.
-This patch depends on patch [2/4] "OMAP: DMA: Added support for OMAP3".
+Added DMA support for OMAP3.
 
 Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 ---
- arch/arm/plat-omap/dma.c        |   68 =
-++++++++++++++++++++++++++++++++++++++++
- include/asm-arm/arch-omap/dma.h |   22 ++++++++++++
- 2 files changed, 90 insertions(+)
+ arch/arm/plat-omap/dma.c |   60 =
++++++++++++++++++++++++------------------------
+ 1 files changed, 30 insertions(+), 30 deletions(-)
 
 Index: omap-git/arch/arm/plat-omap/dma.c
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- omap-git.orig/arch/arm/plat-omap/dma.c	2007-10-22 03:17:24.094818864 =
+--- omap-git.orig/arch/arm/plat-omap/dma.c	2007-10-12 11:33:00.000000000 =
 -0400
-+++ omap-git/arch/arm/plat-omap/dma.c	2007-10-23 03:28:51.072585880 =
++++ omap-git/arch/arm/plat-omap/dma.c	2007-10-12 11:55:12.154720744 =
 -0400
-@@ -289,6 +289,9 @@
- 	omap_set_dma_dest_params(lch, params->dst_port,
- 				 params->dst_amode, params->dst_start,
- 				 params->dst_ei, params->dst_fi);
-+	if (params->read_prio || params->write_prio)
-+		omap_dma_set_prio_lch(lch, params->read_prio,
-+				      params->write_prio);
- }
+@@ -6,7 +6,7 @@
+  * DMA channel linking for 1610 by Samuel Ortiz =
+<samuel.ortiz@nokia.com>
+  * Graphics DMA and LCD DMA graphics tranformations
+  * by Imre Deak <imre.deak@nokia.com>
+- * OMAP2 support Copyright (C) 2004-2005 Texas Instruments, Inc.
++ * OMAP2/3 support Copyright (C) 2004-2007 Texas Instruments, Inc.
+  * Merged to support both OMAP1 and OMAP2 by Tony Lindgren =
+<tony@atomide.com>
+  * Some functions based on earlier dma-omap.c Copyright (C) 2001 =
+RidgeRun, Inc.
+  *
+@@ -148,7 +148,7 @@
+ 		omap_writel(l, reg);
+ 	}
+=20
+-	if (cpu_is_omap24xx()) {
++	if (cpu_class_is_omap2()) {
+ 		if (priority)
+ 			OMAP_DMA_CCR_REG(lch) |=3D (1 << 6);
+ 		else
+@@ -173,7 +173,7 @@
+ 			OMAP1_DMA_CCR2_REG(lch) |=3D 1 << 2;
+ 	}
+=20
+-	if (cpu_is_omap24xx() && dma_trigger) {
++	if (cpu_class_is_omap2() && dma_trigger) {
+ 		u32 val =3D OMAP_DMA_CCR_REG(lch);
+=20
+ 		val &=3D ~(3 << 19);
+@@ -213,7 +213,7 @@
+=20
+ 	BUG_ON(omap_dma_in_1510_mode());
+=20
+-	if (cpu_is_omap24xx()) {
++	if (cpu_class_is_omap2()) {
+ 		REVISIT_24XX();
+ 		return;
+ 	}
+@@ -245,7 +245,7 @@
+=20
+ void omap_set_dma_write_mode(int lch, enum omap_dma_write_mode mode)
+ {
+-	if (cpu_is_omap24xx()) {
++	if (cpu_class_is_omap2()) {
+ 		OMAP_DMA_CSDP_REG(lch) &=3D ~(0x3 << 16);
+ 		OMAP_DMA_CSDP_REG(lch) |=3D (mode << 16);
+ 	}
+@@ -269,7 +269,7 @@
+ 		OMAP1_DMA_CSSA_L_REG(lch) =3D src_start;
+ 	}
+=20
+-	if (cpu_is_omap24xx())
++	if (cpu_class_is_omap2())
+ 		OMAP2_DMA_CSSA_REG(lch) =3D src_start;
+=20
+ 	OMAP_DMA_CSEI_REG(lch) =3D src_ei;
+@@ -293,7 +293,7 @@
 =20
  void omap_set_dma_src_index(int lch, int eidx, int fidx)
-@@ -608,6 +611,67 @@
+ {
+-	if (cpu_is_omap24xx()) {
++	if (cpu_class_is_omap2()) {
+ 		REVISIT_24XX();
+ 		return;
  	}
+@@ -317,13 +317,13 @@
+ 	case OMAP_DMA_DATA_BURST_DIS:
+ 		break;
+ 	case OMAP_DMA_DATA_BURST_4:
+-		if (cpu_is_omap24xx())
++		if (cpu_class_is_omap2())
+ 			burst =3D 0x1;
+ 		else
+ 			burst =3D 0x2;
+ 		break;
+ 	case OMAP_DMA_DATA_BURST_8:
+-		if (cpu_is_omap24xx()) {
++		if (cpu_class_is_omap2()) {
+ 			burst =3D 0x2;
+ 			break;
+ 		}
+@@ -332,7 +332,7 @@
+ 		 * fall through
+ 		 */
+ 	case OMAP_DMA_DATA_BURST_16:
+-		if (cpu_is_omap24xx()) {
++		if (cpu_class_is_omap2()) {
+ 			burst =3D 0x3;
+ 			break;
+ 		}
+@@ -363,7 +363,7 @@
+ 		OMAP1_DMA_CDSA_L_REG(lch) =3D dest_start;
+ 	}
+=20
+-	if (cpu_is_omap24xx())
++	if (cpu_class_is_omap2())
+ 		OMAP2_DMA_CDSA_REG(lch) =3D dest_start;
+=20
+ 	OMAP_DMA_CDEI_REG(lch) =3D dst_ei;
+@@ -372,7 +372,7 @@
+=20
+ void omap_set_dma_dest_index(int lch, int eidx, int fidx)
+ {
+-	if (cpu_is_omap24xx()) {
++	if (cpu_class_is_omap2()) {
+ 		REVISIT_24XX();
+ 		return;
+ 	}
+@@ -396,19 +396,19 @@
+ 	case OMAP_DMA_DATA_BURST_DIS:
+ 		break;
+ 	case OMAP_DMA_DATA_BURST_4:
+-		if (cpu_is_omap24xx())
++		if (cpu_class_is_omap2())
+ 			burst =3D 0x1;
+ 		else
+ 			burst =3D 0x2;
+ 		break;
+ 	case OMAP_DMA_DATA_BURST_8:
+-		if (cpu_is_omap24xx())
++		if (cpu_class_is_omap2())
+ 			burst =3D 0x2;
+ 		else
+ 			burst =3D 0x3;
+ 		break;
+ 	case OMAP_DMA_DATA_BURST_16:
+-		if (cpu_is_omap24xx()) {
++		if (cpu_class_is_omap2()) {
+ 			burst =3D 0x3;
+ 			break;
+ 		}
+@@ -430,7 +430,7 @@
+ 	/* Clear CSR */
+ 	if (cpu_class_is_omap1())
+ 		status =3D OMAP_DMA_CSR_REG(lch);
+-	else if (cpu_is_omap24xx())
++	else if (cpu_class_is_omap2())
+ 		OMAP_DMA_CSR_REG(lch) =3D OMAP2_DMA_CSR_CLEAR_MASK;
+=20
+ 	/* Enable some nice interrupts. */
+@@ -441,7 +441,7 @@
+=20
+ static void omap_disable_channel_irq(int lch)
+ {
+-	if (cpu_is_omap24xx())
++	if (cpu_class_is_omap2())
+ 		OMAP_DMA_CICR_REG(lch) =3D 0;
  }
 =20
-+/**
-+ * @brief omap_dma_set_global_params : Set global priority settings for =
-dma
-+ *
-+ * @param arb_rate
-+ * @param max_fifo_depth
-+ * @param tparams - Number of thereads to reserve : =
-DMA_THREAD_RESERVE_NORM
-+ * 						    DMA_THREAD_RESERVE_ONET
-+ * 						    DMA_THREAD_RESERVE_TWOT
-+ * 						    DMA_THREAD_RESERVE_THREET
-+ */
-+void
-+omap_dma_set_global_params(int arb_rate, int max_fifo_depth, int =
-tparams)
-+{
-+	u32 reg;
-+
-+	if (!cpu_class_is_omap2()) {
-+		printk(KERN_ERR "FIXME: no %s on 15xx/16xx\n", __FUNCTION__);
-+		return;
-+	}
-+
-+	if (arb_rate =3D=3D 0)
-+		arb_rate =3D 1;
-+
-+	reg =3D (arb_rate & 0xff) << 16;
-+	reg |=3D (0xff & max_fifo_depth);
-+
-+	omap_writel(reg, OMAP_DMA4_GCR_REG);
-+}
-+EXPORT_SYMBOL(omap_dma_set_global_params);
-+
-+/**
-+ * @brief omap_dma_set_prio_lch : Set channel wise priority settings
-+ *
-+ * @param lch
-+ * @param read_prio - Read priority
-+ * @param write_prio - Write priority
-+ * Both of the above can be set with one of the following values :
-+ * 	DMA_CH_PRIO_HIGH/DMA_CH_PRIO_LOW
-+ */
-+int
-+omap_dma_set_prio_lch(int lch, unsigned char read_prio,
-+		      unsigned char write_prio)
-+{
-+	u32 w;
-+
-+	if (unlikely((lch < 0 || lch >=3D OMAP_LOGICAL_DMA_CH_COUNT))) {
-+		printk(KERN_ERR "Invalid channel id\n");
-+		return -EINVAL;
-+	}
-+	w =3D OMAP_DMA_CCR_REG(lch);
-+	w &=3D ~((1 << 6) | (1 << 26));
-+	if (cpu_is_omap2430() || cpu_is_omap34xx())
-+		w |=3D ((read_prio & 0x1) << 6) | ((write_prio & 0x1) << 26);
-+	else
-+		w |=3D ((read_prio & 0x1) << 6);
-+
-+	OMAP_DMA_CCR_REG(lch) =3D w;
-+	return 0;
-+}
-+EXPORT_SYMBOL(omap_dma_set_prio_lch);
-+
- /*
-  * Clears any DMA state so the DMA engine is ready to restart with new =
-buffers
-  * through omap_start_dma(). Any buffers in flight are discarded.
-@@ -1428,6 +1492,10 @@
+@@ -475,7 +475,7 @@
+ 		OMAP_DMA_CLNK_CTRL_REG(lch) |=3D 1 << 14;
+ 	}
+=20
+-	if (cpu_is_omap24xx()) {
++	if (cpu_class_is_omap2()) {
+ 		omap_disable_channel_irq(lch);
+ 		/* Clear the ENABLE_LNK bit */
+ 		OMAP_DMA_CLNK_CTRL_REG(lch) &=3D ~(1 << 15);
+@@ -488,7 +488,7 @@
+ {
+ 	u32 val;
+=20
+-	if (!cpu_is_omap24xx())
++	if (!cpu_class_is_omap2())
+ 		return;
+=20
+ 	val =3D omap_readl(OMAP_DMA4_IRQENABLE_L0);
+@@ -522,7 +522,7 @@
+ 	if (cpu_class_is_omap1())
+ 		clear_lch_regs(free_ch);
+=20
+-	if (cpu_is_omap24xx())
++	if (cpu_class_is_omap2())
+ 		omap_clear_dma(free_ch);
+=20
+ 	spin_unlock_irqrestore(&dma_chan_lock, flags);
+@@ -534,7 +534,7 @@
+=20
+ 	if (cpu_class_is_omap1())
+ 		chan->enabled_irqs |=3D OMAP1_DMA_TOUT_IRQ;
+-	else if (cpu_is_omap24xx())
++	else if (cpu_class_is_omap2())
+ 		chan->enabled_irqs |=3D OMAP2_DMA_MISALIGNED_ERR_IRQ |
+ 			OMAP2_DMA_TRANS_ERR_IRQ;
+=20
+@@ -551,7 +551,7 @@
+ 		OMAP_DMA_CCR_REG(free_ch) =3D dev_id;
+ 	}
+=20
+-	if (cpu_is_omap24xx()) {
++	if (cpu_class_is_omap2()) {
+ 		omap2_enable_irq_lch(free_ch);
+=20
+ 		omap_enable_channel_irq(free_ch);
+@@ -588,7 +588,7 @@
+ 		OMAP_DMA_CCR_REG(lch) =3D 0;
+ 	}
+=20
+-	if (cpu_is_omap24xx()) {
++	if (cpu_class_is_omap2()) {
+ 		u32 val;
+ 		/* Disable interrupts */
+ 		val =3D omap_readl(OMAP_DMA4_IRQENABLE_L0);
+@@ -626,7 +626,7 @@
+ 		status =3D OMAP_DMA_CSR_REG(lch);
+ 	}
+=20
+-	if (cpu_is_omap24xx()) {
++	if (cpu_class_is_omap2()) {
+ 		int i;
+ 		u32 lch_base =3D OMAP_DMA4_BASE + lch * 0x60 + 0x80;
+ 		for (i =3D 0; i < 0x44; i +=3D 4)
+@@ -662,7 +662,7 @@
+=20
+ 			cur_lch =3D next_lch;
+ 		} while (next_lch !=3D -1);
+-	} else if (cpu_is_omap24xx()) {
++	} else if (cpu_class_is_omap2()) {
+ 		/* Errata: Need to write lch even if not using chaining */
+ 		OMAP_DMA_CLNK_CTRL_REG(lch) =3D lch;
+ 	}
+@@ -753,7 +753,7 @@
+ 		offset =3D (dma_addr_t) (OMAP1_DMA_CSSA_L_REG(lch) |
+ 				       (OMAP1_DMA_CSSA_U_REG(lch) << 16));
+=20
+-	if (cpu_is_omap24xx())
++	if (cpu_class_is_omap2())
+ 		offset =3D OMAP_DMA_CSAC_REG(lch);
+=20
+ 	return offset;
+@@ -775,7 +775,7 @@
+ 		offset =3D (dma_addr_t) (OMAP1_DMA_CDSA_L_REG(lch) |
+ 				       (OMAP1_DMA_CDSA_U_REG(lch) << 16));
+=20
+-	if (cpu_is_omap24xx())
++	if (cpu_class_is_omap2())
+ 		offset =3D OMAP_DMA_CDAC_REG(lch);
+=20
+ 	return offset;
+@@ -919,7 +919,7 @@
+ #define omap1_dma_irq_handler	NULL
+ #endif
+=20
+-#ifdef CONFIG_ARCH_OMAP2
++#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+=20
+ static int omap2_dma_handle_ch(int ch)
+ {
+@@ -1385,7 +1385,7 @@
+ 			w &=3D ~(1 << 8);
+ 			omap_writew(w, OMAP1610_DMA_LCD_CTRL);
+ 		}
+-	} else if (cpu_is_omap24xx()) {
++	} else if (cpu_class_is_omap2()) {
+ 		u8 revision =3D omap_readb(OMAP_DMA4_REVISION);
+ 		printk(KERN_INFO "OMAP DMA hardware revision %d.%d\n",
+ 		       revision >> 4, revision & 0xf);
+@@ -1428,7 +1428,7 @@
  		}
  	}
 =20
-+	if (cpu_is_omap2430() || cpu_is_omap34xx())
-+		omap_dma_set_global_params(DMA_DEFAULT_ARB_RATE,
-+				DMA_DEFAULT_FIFO_DEPTH, 0);
-+
- 	if (cpu_class_is_omap2())
+-	if (cpu_is_omap24xx())
++	if (cpu_class_is_omap2())
  		setup_irq(INT_24XX_SDMA_IRQ0, &omap24xx_dma_irq);
 =20
-Index: omap-git/include/asm-arm/arch-omap/dma.h
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- omap-git.orig/include/asm-arm/arch-omap/dma.h	2007-10-22 =
-03:17:22.830011144 -0400
-+++ omap-git/include/asm-arm/arch-omap/dma.h	2007-10-22 =
-03:18:23.902726680 -0400
-@@ -407,6 +407,21 @@
- #define OMAP_DMA_AMODE_SINGLE_IDX	0x02
- #define OMAP_DMA_AMODE_DOUBLE_IDX	0x03
-=20
-+#define DMA_DEFAULT_FIFO_DEPTH		0x10
-+#define DMA_DEFAULT_ARB_RATE		0x01
-+/* Pass THREAD_RESERVE ORed with THREAD_FIFO for tparams */
-+#define DMA_THREAD_RESERVE_NORM		(0x00 << 12) /* Def */
-+#define DMA_THREAD_RESERVE_ONET		(0x01 << 12)
-+#define DMA_THREAD_RESERVE_TWOT		(0x02 << 12)
-+#define DMA_THREAD_RESERVE_THREET	(0x03 << 12)
-+#define DMA_THREAD_FIFO_NONE		(0x00 << 14) /* Def */
-+#define DMA_THREAD_FIFO_75		(0x01 << 14)
-+#define DMA_THREAD_FIFO_25		(0x02 << 14)
-+#define DMA_THREAD_FIFO_50		(0x03 << 14)
-+
-+#define DMA_CH_PRIO_HIGH		0x1
-+#define DMA_CH_PRIO_LOW			0x0 /* Def */
-+
- /* LCD DMA block numbers */
- enum {
- 	OMAP_LCD_DMA_B1_TOP,
-@@ -456,6 +471,9 @@
- 	int src_or_dst_synch;	/* source synch(1) or destination synch(0) */
-=20
- 	int ie;			/* interrupt enabled */
-+
-+	unsigned char read_prio;/* read priority */
-+	unsigned char write_prio;/* write priority */
- };
-=20
-=20
-@@ -506,6 +524,10 @@
- extern int omap_get_dma_src_addr_counter(int lch);
- extern void omap_clear_dma(int lch);
- extern int omap_dma_running(void);
-+extern void omap_dma_set_global_params(int arb_rate, int =
-max_fifo_depth,
-+				       int tparams);
-+extern int omap_dma_set_prio_lch(int lch, unsigned char read_prio,
-+				 unsigned char write_prio);
-=20
- /* LCD DMA functions */
- extern int omap_request_lcd_dma(void (* callback)(u16 status, void =
-*data),
+ 	/* FIXME: Update LCD DMA to work on 24xx */
