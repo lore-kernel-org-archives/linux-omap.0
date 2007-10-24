@@ -1,11 +1,14 @@
-From: "=?UTF-8?Q?Lu=C3=ADs_Cargnini?=" <lvcargnini@gmail.com>
-Subject: trying to read something
-Date: Wed, 24 Oct 2007 19:05:13 -0200
-Message-ID: <ae36f8040710241405j393d22c7m823d4bf3e9a4633a@mail.gmail.com>
-Reply-To: lvcargnini@gmail.com
+From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
+Subject: Re: trying to read something
+Date: Thu, 25 Oct 2007 00:41:18 +0300
+Message-ID: <31e679430710241441j1e476419t5b0d8dd257e63f73@mail.gmail.com>
+References: <ae36f8040710241405j393d22c7m823d4bf3e9a4633a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1900824130=="
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <ae36f8040710241405j393d22c7m823d4bf3e9a4633a@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,60 +18,112 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: OMAP <Linux-omap-open-source@linux.omap.com>
+To: lvcargnini@gmail.com
+Cc: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============1900824130==
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+Hi,
 
-RGVhciBmZWxsb3dzLApJJ20gd3JpdGluZyBhbiBkcml2ZXIsIGluIHRoZSBwcmVzZW50IG1vbWVu
-dApJIGhhdmUgdGhlIGZvbGxvd2luZyBwcm9ibGVtOgpCVUc6IHNjaGVkdWxpbmcgd2hpbGUgYXRv
-bWljOiBhZHN0ZXN0LzB4MDAwMDAwMDIvODU0LCBDUFUjMApbPGMwMDJjOWYwPl0gKGR1bXBfc3Rh
-Y2srMHgwLzB4MTQpIGZyb20gWzxjMDA0Y2MzYz5dIChfX3NjaGVkdWxlX2J1ZysweDNjLzB4NDQp
-Cls8YzAwNGNjMDA+XSAoX19zY2hlZHVsZV9idWcrMHgwLzB4NDQpIGZyb20gWzxjMDI1OTJhMD5d
-IChfX3NjaGVkdWxlKzB4YWMvMHg0ODQpCls8YzAyNTkxZjQ+XSAoX19zY2hlZHVsZSsweDAvMHg0
-ODQpIGZyb20gWzxjMDI1OWZkND5dIChzY2hlZHVsZSsweGNjLzB4MTE0KQogcjc6MDAwMDAwMDEg
-cjY6YzAzMGI4YmMgcjU6YzFjNDIwMDAgcjQ6YzFjNDIwMDAKWzxjMDI1OWYwOD5dIChzY2hlZHVs
-ZSsweDAvMHgxMTQpIGZyb20gWzxjMDI1YTRjMD5dCih3YWl0X2Zvcl9jb21wbGV0aW9uKzB4YzAv
-MHgxNTQpCiByNDpjMWM0M2VmNApbPGMwMjVhNDAwPl0gKHdhaXRfZm9yX2NvbXBsZXRpb24rMHgw
-LzB4MTU0KSBmcm9tIFs8YzAwM2RlNzg+XQoob21hcF9tY2JzcF9yZWN2X3dvcmQrMHg0MC8weDY0
-KQogcjY6MDAwMDAwMDIgcjU6YzAzMGI4MzggcjQ6ZmVmYjEwMDAKWzxjMDAzZGUzOD5dIChvbWFw
-X21jYnNwX3JlY3Zfd29yZCsweDAvMHg2NCkgZnJvbSBbPGJmMDAwMzdjPl0KKGFkczh4eHhfcmVh
-ZCsweDUwLzB4ZjAgW2Fkczh4eHhdKQogcjY6MDAwMDQwMDUgcjU6MDAwMDAwMDIgcjQ6YzE5OGUw
-MDIKWzxiZjAwMDMyYz5dIChhZHM4eHh4X3JlYWQrMHgwLzB4ZjAgW2Fkczh4eHhdKSBmcm9tIFs8
-YzAwYTNlNjg+XQoodmZzX3JlYWQrMHhiNC8weDE0MCkKWzxjMDBhM2RiND5dICh2ZnNfcmVhZCsw
-eDAvMHgxNDApIGZyb20gWzxjMDBhNDk5MD5dIChzeXNfcmVhZCsweDRjLzB4ODApCiByNzowMDAw
-MDAwMyByNjowMDAwMDAwMCByNTowMDAwMDAwMiByNDpjMWQyZDE2MApbPGMwMGE0OTQ0Pl0gKHN5
-c19yZWFkKzB4MC8weDgwKSBmcm9tIFs8YzAwMjhlZTA+XSAocmV0X2Zhc3Rfc3lzY2FsbCsweDAv
-MHgyYykKIHI2OjAwMDAwMDAyIHI1OjAwMDA4NzNjIHI0OmJlYjk4ZWI0CgoKCnRoZSBzeXN0ZW0g
-aXMgbG9ja2luZyBpbiB0aGUgcmVhZCBwcm9jZXNzIG9mIG15IGRyaXZlciwgdGhlIHJlYWQgY29k
-ZQppbiBkcml2ZXIgaXMgOgoKc3NpemVfdCBhZHM4eHh4X3JlYWQoc3RydWN0IGZpbGUgKmZpbHAs
-IGNoYXIgX191c2VyICpidWYsIHNpemVfdApjb3VudCwgbG9mZl90ICpmX3BvcykKewoJc3NpemVf
-dCByZXN1bHQgPSAwOwoJaW50IGk7CglzdHJ1Y3QgaGFuZGxlcl9kZXYgKmRldiA9IGZpbHAtPnBy
-aXZhdGVfZGF0YTsKCQkKCXNwaW5fbG9ja19pcnEoJmRldi0+c2xvY2spOwoJLy9pZiAoZG93bl9p
-bnRlcnJ1cHRpYmxlKCZkZXYtPnNlbWEpKQoJLy8JcmV0dXJuIC1FUkVTVEFSVFNZUzsKCS8vaWYg
-KCpmX3BvcyA+PSBkZXYtPnJzaXplKQoJLy8JZ290byBvdXQ7CgkvL2lmICgqZl9wb3MgKyBjb3Vu
-dCA+IGRldi0+cnNpemUpCgkvL2NvdW50ID0gZGV2LT5yc2l6ZSAtICpmX3BvczsKCWZvcihpID0g
-MDsgaTwgY291bnQ7IGkrKykKCQlkZXYtPnJidWZmZXJbaV0gPSAodWludDE2X3QpIG9tYXBfbWNi
-c3BfcmVjdl93b3JkKGRldi0+YWRjX2Rldik7CgkJCglpZiAoY29weV90b191c2VyKGJ1ZiwgJmRl
-di0+cmJ1ZmZlciwgY291bnQpKQoJewoJCXJlc3VsdCA9IC1FRkFVTFQ7CgkJZ290byBvdXQ7Cgl9
-CgkqZl9wb3MgKz0gY291bnQ7CglyZXN1bHQgPSBjb3VudDsKCgoJb3V0OgoJCQoJCXNwaW5fdW5s
-b2NrX2lycSgmZGV2LT5zbG9jayk7CgkJcmV0dXJuIHJlc3VsdDsKCi0tIAotLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0KVGhhbmtzICYmIFJlZ2FyZHMKTXNjLiBCc2MuIEx1w61zIFZpdMOzcmlvIENhcmdu
-aW5pCklFRUUgTWVtYmVyCkVsZWN0cmljYWwgRW5naW5lZXIgRmFjdWx0eSBAIFBVQ1JTCklwaXJh
-bmdhIEF2ZW51ZSwgNjY4MSDigJMgQnVpbGRpbmcgMzAKUC5PLiBCb3g6IDkwNjE5LTkwMCDigJMg
-UG9ydG8gQWxlZ3JlL1JTClBob25lOiArNTUgNTEgMzMyMCAzNTAwICBleHRlbnNpb246IDc2OTYK
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCg==
+On 10/25/07, Lu=EDs Cargnini <lvcargnini@gmail.com> wrote:
+> Dear fellows,
+> I'm writing an driver, in the present moment
+> I have the following problem:
+> BUG: scheduling while atomic: adstest/0x00000002/854, CPU#0
+> [<c002c9f0>] (dump_stack+0x0/0x14) from [<c004cc3c>] (__schedule_bug+0x3c=
+/0x44)
+> [<c004cc00>] (__schedule_bug+0x0/0x44) from [<c02592a0>] (__schedule+0xac=
+/0x484)
+> [<c02591f4>] (__schedule+0x0/0x484) from [<c0259fd4>] (schedule+0xcc/0x11=
+4)
+>  r7:00000001 r6:c030b8bc r5:c1c42000 r4:c1c42000
+> [<c0259f08>] (schedule+0x0/0x114) from [<c025a4c0>]
+> (wait_for_completion+0xc0/0x154)
+>  r4:c1c43ef4
+> [<c025a400>] (wait_for_completion+0x0/0x154) from [<c003de78>]
+> (omap_mcbsp_recv_word+0x40/0x64)
+>  r6:00000002 r5:c030b838 r4:fefb1000
+> [<c003de38>] (omap_mcbsp_recv_word+0x0/0x64) from [<bf00037c>]
+> (ads8xxx_read+0x50/0xf0 [ads8xxx])
+>  r6:00004005 r5:00000002 r4:c198e002
+> [<bf00032c>] (ads8xxx_read+0x0/0xf0 [ads8xxx]) from [<c00a3e68>]
+> (vfs_read+0xb4/0x140)
+> [<c00a3db4>] (vfs_read+0x0/0x140) from [<c00a4990>] (sys_read+0x4c/0x80)
+>  r7:00000003 r6:00000000 r5:00000002 r4:c1d2d160
+> [<c00a4944>] (sys_read+0x0/0x80) from [<c0028ee0>] (ret_fast_syscall+0x0/=
+0x2c)
+>  r6:00000002 r5:0000873c r4:beb98eb4
+>
+>
+>
+> the system is locking in the read process of my driver, the read code
+> in driver is :
+>
+> ssize_t ads8xxx_read(struct file *filp, char __user *buf, size_t
+> count, loff_t *f_pos)
+> {
+>         ssize_t result =3D 0;
+>         int i;
+>         struct handler_dev *dev =3D filp->private_data;
+>
+>         spin_lock_irq(&dev->slock);
+>         //if (down_interruptible(&dev->sema))
+>         //      return -ERESTARTSYS;
+>         //if (*f_pos >=3D dev->rsize)
+>         //      goto out;
+>         //if (*f_pos + count > dev->rsize)
+>         //count =3D dev->rsize - *f_pos;
+>         for(i =3D 0; i< count; i++)
+>                 dev->rbuffer[i] =3D (uint16_t) omap_mcbsp_recv_word(dev->=
+adc_dev);
 
---===============1900824130==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I can be wrong... but I think you can't "wait_for_completion()" inside
+a spinlock...
+
+remove your locks... it'll probably work...
+omap_mcbsp_recv_word()  will call wait_for_completion() which calls
+wait_for_common, and this one locks when needed...
+
+try that ;-)
 
 
---===============1900824130==--
+>
+>         if (copy_to_user(buf, &dev->rbuffer, count))
+>         {
+>                 result =3D -EFAULT;
+>                 goto out;
+>         }
+>         *f_pos +=3D count;
+>         result =3D count;
+>
+>
+>         out:
+>
+>                 spin_unlock_irq(&dev->slock);
+>                 return result;
+>
+> --
+> -------------------------------------------------------------------------=
+-----
+> Thanks && Regards
+> Msc. Bsc. Lu=EDs Vit=F3rio Cargnini
+> IEEE Member
+> Electrical Engineer Faculty @ PUCRS
+> Ipiranga Avenue, 6681 =96 Building 30
+> P.O. Box: 90619-900 =96 Porto Alegre/RS
+> Phone: +55 51 3320 3500  extension: 7696
+> -------------------------------------------------------------------------=
+--------
+>
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
+>
+
+
+--=20
+Best Regards,
+
+Felipe Balbi
+felipebalbi@users.sourceforge.net
