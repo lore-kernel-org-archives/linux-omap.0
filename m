@@ -1,12 +1,13 @@
 From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: [PATCH 1/4] OMAP: DMA: Cleanup of DMA Request Lines
-Date: Wed, 24 Oct 2007 12:34:44 +0530
-Message-ID: <010C7BAE6783F34D9AC336EE5A01A08804AF985E@dbde01.ent.ti.com>
+Subject: [PATCH 3/4] DMA: Added utility APIs for setting DMA global
+	parameters
+Date: Wed, 24 Oct 2007 12:38:51 +0530
+Message-ID: <010C7BAE6783F34D9AC336EE5A01A08804AF9866@dbde01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,223 +16,175 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 From: Anand Gadiyar <gadiyar@ti.com>
 
-Added support for TI OMAP3430 and cleanup of DMA request lines.
+Added DMA utility APIs for setting FIFO depth, arbitration rate and =
+channel priority.
+This patch depends on patch [2/4] "OMAP: DMA: Added support for OMAP3".
 
 Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 ---
- include/asm-arm/arch-omap/dma.h |  156 =
-+++++++++++++++++++++++++++++++---------
- 1 files changed, 124 insertions(+), 32 deletions(-)
+ arch/arm/plat-omap/dma.c        |   68 =
+++++++++++++++++++++++++++++++++++++++++
+ include/asm-arm/arch-omap/dma.h |   22 ++++++++++++
+ 2 files changed, 90 insertions(+)
 
+Index: omap-git/arch/arm/plat-omap/dma.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- omap-git.orig/arch/arm/plat-omap/dma.c	2007-10-22 03:17:24.094818864 =
+-0400
++++ omap-git/arch/arm/plat-omap/dma.c	2007-10-23 03:28:51.072585880 =
+-0400
+@@ -289,6 +289,9 @@
+ 	omap_set_dma_dest_params(lch, params->dst_port,
+ 				 params->dst_amode, params->dst_start,
+ 				 params->dst_ei, params->dst_fi);
++	if (params->read_prio || params->write_prio)
++		omap_dma_set_prio_lch(lch, params->read_prio,
++				      params->write_prio);
+ }
+=20
+ void omap_set_dma_src_index(int lch, int eidx, int fidx)
+@@ -608,6 +611,67 @@
+ 	}
+ }
+=20
++/**
++ * @brief omap_dma_set_global_params : Set global priority settings for =
+dma
++ *
++ * @param arb_rate
++ * @param max_fifo_depth
++ * @param tparams - Number of thereads to reserve : =
+DMA_THREAD_RESERVE_NORM
++ * 						    DMA_THREAD_RESERVE_ONET
++ * 						    DMA_THREAD_RESERVE_TWOT
++ * 						    DMA_THREAD_RESERVE_THREET
++ */
++void
++omap_dma_set_global_params(int arb_rate, int max_fifo_depth, int =
+tparams)
++{
++	u32 reg;
++
++	if (!cpu_class_is_omap2()) {
++		printk(KERN_ERR "FIXME: no %s on 15xx/16xx\n", __FUNCTION__);
++		return;
++	}
++
++	if (arb_rate =3D=3D 0)
++		arb_rate =3D 1;
++
++	reg =3D (arb_rate & 0xff) << 16;
++	reg |=3D (0xff & max_fifo_depth);
++
++	omap_writel(reg, OMAP_DMA4_GCR_REG);
++}
++EXPORT_SYMBOL(omap_dma_set_global_params);
++
++/**
++ * @brief omap_dma_set_prio_lch : Set channel wise priority settings
++ *
++ * @param lch
++ * @param read_prio - Read priority
++ * @param write_prio - Write priority
++ * Both of the above can be set with one of the following values :
++ * 	DMA_CH_PRIO_HIGH/DMA_CH_PRIO_LOW
++ */
++int
++omap_dma_set_prio_lch(int lch, unsigned char read_prio,
++		      unsigned char write_prio)
++{
++	u32 w;
++
++	if (unlikely((lch < 0 || lch >=3D OMAP_LOGICAL_DMA_CH_COUNT))) {
++		printk(KERN_ERR "Invalid channel id\n");
++		return -EINVAL;
++	}
++	w =3D OMAP_DMA_CCR_REG(lch);
++	w &=3D ~((1 << 6) | (1 << 26));
++	if (cpu_is_omap2430() || cpu_is_omap34xx())
++		w |=3D ((read_prio & 0x1) << 6) | ((write_prio & 0x1) << 26);
++	else
++		w |=3D ((read_prio & 0x1) << 6);
++
++	OMAP_DMA_CCR_REG(lch) =3D w;
++	return 0;
++}
++EXPORT_SYMBOL(omap_dma_set_prio_lch);
++
+ /*
+  * Clears any DMA state so the DMA engine is ready to restart with new =
+buffers
+  * through omap_start_dma(). Any buffers in flight are discarded.
+@@ -1428,6 +1492,10 @@
+ 		}
+ 	}
+=20
++	if (cpu_is_omap2430() || cpu_is_omap34xx())
++		omap_dma_set_global_params(DMA_DEFAULT_ARB_RATE,
++				DMA_DEFAULT_FIFO_DEPTH, 0);
++
+ 	if (cpu_class_is_omap2())
+ 		setup_irq(INT_24XX_SDMA_IRQ0, &omap24xx_dma_irq);
+=20
 Index: omap-git/include/asm-arm/arch-omap/dma.h
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- omap-git.orig/include/asm-arm/arch-omap/dma.h	2007-10-12 =
-11:33:00.000000000 -0400
-+++ omap-git/include/asm-arm/arch-omap/dma.h	2007-10-12 =
-11:53:31.082086120 -0400
-@@ -62,6 +62,7 @@
- #define OMAP_DMA4_IRQENABLE_L2		(OMAP_DMA4_BASE + 0x20)
- #define OMAP_DMA4_IRQENABLE_L3		(OMAP_DMA4_BASE + 0x24)
- #define OMAP_DMA4_SYSSTATUS		(OMAP_DMA4_BASE + 0x28)
-+#define OMAP_DMA4_OCP_SYSCONFIG		(OMAP_DMA4_BASE + 0x2c)
- #define OMAP_DMA4_CAPS_0		(OMAP_DMA4_BASE + 0x64)
- #define OMAP_DMA4_CAPS_2		(OMAP_DMA4_BASE + 0x6c)
- #define OMAP_DMA4_CAPS_3		(OMAP_DMA4_BASE + 0x70)
-@@ -189,19 +190,43 @@
+--- omap-git.orig/include/asm-arm/arch-omap/dma.h	2007-10-22 =
+03:17:22.830011144 -0400
++++ omap-git/include/asm-arm/arch-omap/dma.h	2007-10-22 =
+03:18:23.902726680 -0400
+@@ -407,6 +407,21 @@
+ #define OMAP_DMA_AMODE_SINGLE_IDX	0x02
+ #define OMAP_DMA_AMODE_DOUBLE_IDX	0x03
 =20
- /* DMA channels for 24xx */
- #define OMAP24XX_DMA_NO_DEVICE		0
++#define DMA_DEFAULT_FIFO_DEPTH		0x10
++#define DMA_DEFAULT_ARB_RATE		0x01
++/* Pass THREAD_RESERVE ORed with THREAD_FIFO for tparams */
++#define DMA_THREAD_RESERVE_NORM		(0x00 << 12) /* Def */
++#define DMA_THREAD_RESERVE_ONET		(0x01 << 12)
++#define DMA_THREAD_RESERVE_TWOT		(0x02 << 12)
++#define DMA_THREAD_RESERVE_THREET	(0x03 << 12)
++#define DMA_THREAD_FIFO_NONE		(0x00 << 14) /* Def */
++#define DMA_THREAD_FIFO_75		(0x01 << 14)
++#define DMA_THREAD_FIFO_25		(0x02 << 14)
++#define DMA_THREAD_FIFO_50		(0x03 << 14)
 +
-+#ifndef CONFIG_ARCH_OMAP3
- #define OMAP24XX_DMA_XTI_DMA		1	/* S_DMA_0 */
-+#endif
++#define DMA_CH_PRIO_HIGH		0x1
++#define DMA_CH_PRIO_LOW			0x0 /* Def */
 +
- #define OMAP24XX_DMA_EXT_DMAREQ0	2	/* S_DMA_1 */
- #define OMAP24XX_DMA_EXT_DMAREQ1	3	/* S_DMA_2 */
- #define OMAP24XX_DMA_GPMC		4	/* S_DMA_3 */
-+
-+#ifndef CONFIG_ARCH_OMAP3
- #define OMAP24XX_DMA_GFX		5	/* S_DMA_4 */
-+#endif
-+
- #define OMAP24XX_DMA_DSS		6	/* S_DMA_5 */
-+
-+#ifdef CONFIG_ARCH_OMAP2420
- #define OMAP24XX_DMA_VLYNQ_TX		7	/* S_DMA_6 */
-+#else
-+#define OMAP24XX_DMA_EXT_DMAREQ2	7	/* S_DMA_6 */
-+#endif
-+
-+#ifndef CONFIG_ARCH_OMAP3
- #define OMAP24XX_DMA_CWT		8	/* S_DMA_7 */
-+#endif
-+
- #define OMAP24XX_DMA_AES_TX		9	/* S_DMA_8 */
- #define OMAP24XX_DMA_AES_RX		10	/* S_DMA_9 */
- #define OMAP24XX_DMA_DES_TX		11	/* S_DMA_10 */
- #define OMAP24XX_DMA_DES_RX		12	/* S_DMA_11 */
-+
-+#ifdef CONFIG_ARCH_OMAP3
-+#define OMAP34XX_DMA_SHA2MD5_RX		13	/* S_DMA_12 */
-+#else
- #define OMAP24XX_DMA_SHA1MD5_RX		13	/* S_DMA_12 */
-+#endif
-+
-+#ifdef CONFIG_ARCH_OMAP2420
- #define OMAP24XX_DMA_EXT_DMAREQ2	14	/* S_DMA_13 */
- #define OMAP24XX_DMA_EXT_DMAREQ3	15	/* S_DMA_14 */
- #define OMAP24XX_DMA_EXT_DMAREQ4	16	/* S_DMA_15 */
-@@ -215,43 +240,110 @@
- #define OMAP24XX_DMA_EAC_BT_UL_WR	24	/* S_DMA_23 */
- #define OMAP24XX_DMA_EAC_BT_DL_RD	25	/* S_DMA_24 */
- #define OMAP24XX_DMA_EAC_BT_DL_WR	26	/* S_DMA_25 */
-+#endif
-+
-+#ifdef CONFIG_ARCH_OMAP2430
-+#define OMAP24XX_DMA_EXT_DMAREQ3	14	/* S_DMA_13 */
-+#endif
-+
-+#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
-+#define OMAP24XX_DMA_SPI3_TX0		15	/* S_DMA_14 */
-+#define OMAP24XX_DMA_SPI3_RX0		16	/* S_DMA_15 */
-+#define OMAP24XX_DMA_MCBSP3_TX		17	/* S_DMA_16 */
-+#define OMAP24XX_DMA_MCBSP3_RX		18	/* S_DMA_17 */
-+#define OMAP24XX_DMA_MCBSP4_TX		19	/* S_DMA_18 */
-+#define OMAP24XX_DMA_MCBSP4_RX		20	/* S_DMA_19 */
-+#define OMAP24XX_DMA_MCBSP5_TX		21	/* S_DMA_20 */
-+#define OMAP24XX_DMA_MCBSP5_RX		22	/* S_DMA_21 */
-+#define OMAP24XX_DMA_SPI3_TX1		23	/* S_DMA_22 */
-+#define OMAP24XX_DMA_SPI3_RX1		24	/* S_DMA_23 */
-+#endif
-+
-+#ifdef CONFIG_ARCH_OMAP2430
-+#define OMAP24XX_DMA_EXT_DMAREQ4	25	/* S_DMA_24 */
-+#define OMAP24XX_DMA_EXT_DMAREQ5	26	/* S_DMA_25 */
-+#endif
-+
-+#ifdef CONFIG_ARCH_OMAP3
-+#define OMAP34XX_DMA_I2C3_TX		25	/* S_DMA_24 */
-+#define OMAP34XX_DMA_I2C3_RX		26	/* S_DMA_25 */
-+#endif
-+
- #define OMAP24XX_DMA_I2C1_TX		27	/* S_DMA_26 */
- #define OMAP24XX_DMA_I2C1_RX		28	/* S_DMA_27 */
- #define OMAP24XX_DMA_I2C2_TX		29	/* S_DMA_28 */
- #define OMAP24XX_DMA_I2C2_RX		30	/* S_DMA_29 */
--#define OMAP24XX_DMA_MCBSP1_TX		31	/* SDMA_30 */
--#define OMAP24XX_DMA_MCBSP1_RX		32	/* SDMA_31 */
--#define OMAP24XX_DMA_MCBSP2_TX		33	/* SDMA_32 */
--#define OMAP24XX_DMA_MCBSP2_RX		34	/* SDMA_33 */
--#define OMAP24XX_DMA_SPI1_TX0		35	/* SDMA_34 */
--#define OMAP24XX_DMA_SPI1_RX0		36	/* SDMA_35 */
--#define OMAP24XX_DMA_SPI1_TX1		37	/* SDMA_36 */
--#define OMAP24XX_DMA_SPI1_RX1		38	/* SDMA_37 */
--#define OMAP24XX_DMA_SPI1_TX2		39	/* SDMA_38 */
--#define OMAP24XX_DMA_SPI1_RX2		40	/* SDMA_39 */
--#define OMAP24XX_DMA_SPI1_TX3		41	/* SDMA_40 */
--#define OMAP24XX_DMA_SPI1_RX3		42	/* SDMA_41 */
--#define OMAP24XX_DMA_SPI2_TX0		43	/* SDMA_42 */
--#define OMAP24XX_DMA_SPI2_RX0		44	/* SDMA_43 */
--#define OMAP24XX_DMA_SPI2_TX1		45	/* SDMA_44 */
--#define OMAP24XX_DMA_SPI2_RX1		46	/* SDMA_45 */
--
--#define OMAP24XX_DMA_UART1_TX		49	/* SDMA_48 */
--#define OMAP24XX_DMA_UART1_RX		50	/* SDMA_49 */
--#define OMAP24XX_DMA_UART2_TX		51	/* SDMA_50 */
--#define OMAP24XX_DMA_UART2_RX		52	/* SDMA_51 */
--#define OMAP24XX_DMA_UART3_TX		53	/* SDMA_52 */
--#define OMAP24XX_DMA_UART3_RX		54	/* SDMA_53 */
--#define OMAP24XX_DMA_USB_W2FC_TX0	55	/* SDMA_54 */
--#define OMAP24XX_DMA_USB_W2FC_RX0	56	/* SDMA_55 */
--#define OMAP24XX_DMA_USB_W2FC_TX1	57	/* SDMA_56 */
--#define OMAP24XX_DMA_USB_W2FC_RX1	58	/* SDMA_57 */
--#define OMAP24XX_DMA_USB_W2FC_TX2	59	/* SDMA_58 */
--#define OMAP24XX_DMA_USB_W2FC_RX2	60	/* SDMA_59 */
--#define OMAP24XX_DMA_MMC1_TX		61	/* SDMA_60 */
--#define OMAP24XX_DMA_MMC1_RX		62	/* SDMA_61 */
--#define OMAP24XX_DMA_MS			63	/* SDMA_62 */
-+#define OMAP24XX_DMA_MCBSP1_TX		31	/* S_DMA_30 */
-+#define OMAP24XX_DMA_MCBSP1_RX		32	/* S_DMA_31 */
-+#define OMAP24XX_DMA_MCBSP2_TX		33	/* S_DMA_32 */
-+#define OMAP24XX_DMA_MCBSP2_RX		34	/* S_DMA_33 */
-+#define OMAP24XX_DMA_SPI1_TX0		35	/* S_DMA_34 */
-+#define OMAP24XX_DMA_SPI1_RX0		36	/* S_DMA_35 */
-+#define OMAP24XX_DMA_SPI1_TX1		37	/* S_DMA_36 */
-+#define OMAP24XX_DMA_SPI1_RX1		38	/* S_DMA_37 */
-+#define OMAP24XX_DMA_SPI1_TX2		39	/* S_DMA_38 */
-+#define OMAP24XX_DMA_SPI1_RX2		40	/* S_DMA_39 */
-+#define OMAP24XX_DMA_SPI1_TX3		41	/* S_DMA_40 */
-+#define OMAP24XX_DMA_SPI1_RX3		42	/* S_DMA_41 */
-+#define OMAP24XX_DMA_SPI2_TX0		43	/* S_DMA_42 */
-+#define OMAP24XX_DMA_SPI2_RX0		44	/* S_DMA_43 */
-+#define OMAP24XX_DMA_SPI2_TX1		45	/* S_DMA_44 */
-+#define OMAP24XX_DMA_SPI2_RX1		46	/* S_DMA_45 */
-+
-+#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
-+#define OMAP24XX_DMA_MMC2_TX		47	/* S_DMA_46 */
-+#define OMAP24XX_DMA_MMC2_RX		48	/* S_DMA_47 */
-+#endif
-+
-+#define OMAP24XX_DMA_UART1_TX		49	/* S_DMA_48 */
-+#define OMAP24XX_DMA_UART1_RX		50	/* S_DMA_49 */
-+#define OMAP24XX_DMA_UART2_TX		51	/* S_DMA_50 */
-+#define OMAP24XX_DMA_UART2_RX		52	/* S_DMA_51 */
-+#define OMAP24XX_DMA_UART3_TX		53	/* S_DMA_52 */
-+#define OMAP24XX_DMA_UART3_RX		54	/* S_DMA_53 */
-+
-+#ifndef CONFIG_ARCH_OMAP3
-+#define OMAP24XX_DMA_USB_W2FC_TX0	55	/* S_DMA_54 */
-+#define OMAP24XX_DMA_USB_W2FC_RX0	56	/* S_DMA_55 */
-+#define OMAP24XX_DMA_USB_W2FC_TX1	57	/* S_DMA_56 */
-+#define OMAP24XX_DMA_USB_W2FC_RX1	58	/* S_DMA_57 */
-+#define OMAP24XX_DMA_USB_W2FC_TX2	59	/* S_DMA_58 */
-+#define OMAP24XX_DMA_USB_W2FC_RX2	60	/* S_DMA_59 */
-+#endif
-+
-+#define OMAP24XX_DMA_MMC1_TX		61	/* S_DMA_60 */
-+#define OMAP24XX_DMA_MMC1_RX		62	/* S_DMA_61 */
-+#define OMAP24XX_DMA_MS			63	/* S_DMA_62 */
-+
-+#ifdef CONFIG_ARCH_OMAP2420
- #define OMAP24XX_DMA_EXT_DMAREQ5	64	/* S_DMA_63 */
-+#endif
-+
-+#ifdef CONFIG_ARCH_OMAP2430
-+#define OMAP24XX_DMA_EXT_DMAREQ6	64	/* S_DMA_63 */
-+#endif
-+
-+#ifdef CONFIG_ARCH_OMAP3
-+#define OMAP24XX_DMA_EXT_DMAREQ3	64	/* S_DMA_63 */
-+#endif
-+
-+#ifdef CONFIG_ARCH_OMAP3
-+#define OMAP34XX_DMA_AES2_TX		65	/* S_DMA_64 */
-+#define OMAP34XX_DMA_AES2_RX		66	/* S_DMA_65 */
-+#define OMAP34XX_DMA_DES2_TX		67	/* S_DMA_66 */
-+#define OMAP34XX_DMA_DES2_RX		68	/* S_DMA_67 */
-+#define OMAP24XX_DMA_SHA1MD5_RX		69	/* S_DMA_68 */
-+#define OMAP34XX_DMA_SPI4_TX0		70	/* S_DMA_69 */
-+#define OMAP34XX_DMA_SPI4_RX0		71	/* S_DMA_70 */
-+#define OMAP34XX_DSS_DMA0		72	/* S_DMA_71 */
-+#define OMAP34XX_DSS_DMA1		73	/* S_DMA_72 */
-+#define OMAP34XX_DSS_DMA2		74	/* S_DMA_73 */
-+#define OMAP34XX_DSS_DMA3		75	/* S_DMA_74 */
-+#define OMAP34XX_DMA_MMC3_TX		77	/* S_DMA_76 */
-+#define OMAP34XX_DMA_MMC3_RX		78	/* S_DMA_77 */
-+#define OMAP34XX_DMA_USIM_TX		79	/* S_DMA_78 */
-+#define OMAP34XX_DMA_USIM_RX		80	/* S_DMA_79 */
-+#endif
+ /* LCD DMA block numbers */
+ enum {
+ 	OMAP_LCD_DMA_B1_TOP,
+@@ -456,6 +471,9 @@
+ 	int src_or_dst_synch;	/* source synch(1) or destination synch(0) */
 =20
- =
-/*-----------------------------------------------------------------------=
------*/
+ 	int ie;			/* interrupt enabled */
++
++	unsigned char read_prio;/* read priority */
++	unsigned char write_prio;/* write priority */
+ };
 =20
+=20
+@@ -506,6 +524,10 @@
+ extern int omap_get_dma_src_addr_counter(int lch);
+ extern void omap_clear_dma(int lch);
+ extern int omap_dma_running(void);
++extern void omap_dma_set_global_params(int arb_rate, int =
+max_fifo_depth,
++				       int tparams);
++extern int omap_dma_set_prio_lch(int lch, unsigned char read_prio,
++				 unsigned char write_prio);
+=20
+ /* LCD DMA functions */
+ extern int omap_request_lcd_dma(void (* callback)(u16 status, void =
+*data),
