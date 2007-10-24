@@ -1,10 +1,10 @@
 From: "=?UTF-8?Q?Lu=C3=ADs_Cargnini?=" <lvcargnini@gmail.com>
-Subject: DMA omap
-Date: Wed, 24 Oct 2007 17:28:25 -0200
-Message-ID: <ae36f8040710241228i25b7a2dy73585f7bd2491191@mail.gmail.com>
+Subject: trying to read something
+Date: Wed, 24 Oct 2007 19:05:13 -0200
+Message-ID: <ae36f8040710241405j393d22c7m823d4bf3e9a4633a@mail.gmail.com>
 Reply-To: lvcargnini@gmail.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2119672825=="
+Content-Type: multipart/mixed; boundary="===============1900824130=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,28 +18,57 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============2119672825==
+--===============1900824130==
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: base64
 Content-Disposition: inline
 
-RGVhciBmZWxsb3dzLApJIHdhbnQgdG8gdXNlIERNQSBvbiBteSBkcml2ZXIsIHBsZWFzZSBzb21l
-b25lIGNhbiBoZWxwIG1lLApob3cgY291bGQgSSB1c2UgdGhlIGZ1bmN0aW9ucyBvbWFwX21jYnNw
-X3htaXRfYnVmZmVyLCBvbWFwX21jYnNwX3JlY3ZfYnVmZmVyCmFuZCBob3cgdG8gb2J0YWluIHRo
-ZSBETUEgYWRkcmVzIHRoYXQgIGNvdWxkIGJlIHVzZWQgYXMgdGhlIHBhcmFtZXRlcgpkbWFfYWRk
-cl90IGJ1ZmZlciBpbiBib3RoIGZ1bmN0aW9ucwoKLS0gCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpU
-aGFua3MgJiYgUmVnYXJkcwpNc2MuIEJzYy4gTHXDrXMgVml0w7NyaW8gQ2FyZ25pbmkKSUVFRSBN
-ZW1iZXIKRWxlY3RyaWNhbCBFbmdpbmVlciBGYWN1bHR5IEAgUFVDUlMKSXBpcmFuZ2EgQXZlbnVl
-LCA2NjgxIOKAkyBCdWlsZGluZyAzMApQLk8uIEJveDogOTA2MTktOTAwIOKAkyBQb3J0byBBbGVn
-cmUvUlMKUGhvbmU6ICs1NSA1MSAzMzIwIDM1MDAgIGV4dGVuc2lvbjogNzY5NgotLS0tLS0tLS0t
+RGVhciBmZWxsb3dzLApJJ20gd3JpdGluZyBhbiBkcml2ZXIsIGluIHRoZSBwcmVzZW50IG1vbWVu
+dApJIGhhdmUgdGhlIGZvbGxvd2luZyBwcm9ibGVtOgpCVUc6IHNjaGVkdWxpbmcgd2hpbGUgYXRv
+bWljOiBhZHN0ZXN0LzB4MDAwMDAwMDIvODU0LCBDUFUjMApbPGMwMDJjOWYwPl0gKGR1bXBfc3Rh
+Y2srMHgwLzB4MTQpIGZyb20gWzxjMDA0Y2MzYz5dIChfX3NjaGVkdWxlX2J1ZysweDNjLzB4NDQp
+Cls8YzAwNGNjMDA+XSAoX19zY2hlZHVsZV9idWcrMHgwLzB4NDQpIGZyb20gWzxjMDI1OTJhMD5d
+IChfX3NjaGVkdWxlKzB4YWMvMHg0ODQpCls8YzAyNTkxZjQ+XSAoX19zY2hlZHVsZSsweDAvMHg0
+ODQpIGZyb20gWzxjMDI1OWZkND5dIChzY2hlZHVsZSsweGNjLzB4MTE0KQogcjc6MDAwMDAwMDEg
+cjY6YzAzMGI4YmMgcjU6YzFjNDIwMDAgcjQ6YzFjNDIwMDAKWzxjMDI1OWYwOD5dIChzY2hlZHVs
+ZSsweDAvMHgxMTQpIGZyb20gWzxjMDI1YTRjMD5dCih3YWl0X2Zvcl9jb21wbGV0aW9uKzB4YzAv
+MHgxNTQpCiByNDpjMWM0M2VmNApbPGMwMjVhNDAwPl0gKHdhaXRfZm9yX2NvbXBsZXRpb24rMHgw
+LzB4MTU0KSBmcm9tIFs8YzAwM2RlNzg+XQoob21hcF9tY2JzcF9yZWN2X3dvcmQrMHg0MC8weDY0
+KQogcjY6MDAwMDAwMDIgcjU6YzAzMGI4MzggcjQ6ZmVmYjEwMDAKWzxjMDAzZGUzOD5dIChvbWFw
+X21jYnNwX3JlY3Zfd29yZCsweDAvMHg2NCkgZnJvbSBbPGJmMDAwMzdjPl0KKGFkczh4eHhfcmVh
+ZCsweDUwLzB4ZjAgW2Fkczh4eHhdKQogcjY6MDAwMDQwMDUgcjU6MDAwMDAwMDIgcjQ6YzE5OGUw
+MDIKWzxiZjAwMDMyYz5dIChhZHM4eHh4X3JlYWQrMHgwLzB4ZjAgW2Fkczh4eHhdKSBmcm9tIFs8
+YzAwYTNlNjg+XQoodmZzX3JlYWQrMHhiNC8weDE0MCkKWzxjMDBhM2RiND5dICh2ZnNfcmVhZCsw
+eDAvMHgxNDApIGZyb20gWzxjMDBhNDk5MD5dIChzeXNfcmVhZCsweDRjLzB4ODApCiByNzowMDAw
+MDAwMyByNjowMDAwMDAwMCByNTowMDAwMDAwMiByNDpjMWQyZDE2MApbPGMwMGE0OTQ0Pl0gKHN5
+c19yZWFkKzB4MC8weDgwKSBmcm9tIFs8YzAwMjhlZTA+XSAocmV0X2Zhc3Rfc3lzY2FsbCsweDAv
+MHgyYykKIHI2OjAwMDAwMDAyIHI1OjAwMDA4NzNjIHI0OmJlYjk4ZWI0CgoKCnRoZSBzeXN0ZW0g
+aXMgbG9ja2luZyBpbiB0aGUgcmVhZCBwcm9jZXNzIG9mIG15IGRyaXZlciwgdGhlIHJlYWQgY29k
+ZQppbiBkcml2ZXIgaXMgOgoKc3NpemVfdCBhZHM4eHh4X3JlYWQoc3RydWN0IGZpbGUgKmZpbHAs
+IGNoYXIgX191c2VyICpidWYsIHNpemVfdApjb3VudCwgbG9mZl90ICpmX3BvcykKewoJc3NpemVf
+dCByZXN1bHQgPSAwOwoJaW50IGk7CglzdHJ1Y3QgaGFuZGxlcl9kZXYgKmRldiA9IGZpbHAtPnBy
+aXZhdGVfZGF0YTsKCQkKCXNwaW5fbG9ja19pcnEoJmRldi0+c2xvY2spOwoJLy9pZiAoZG93bl9p
+bnRlcnJ1cHRpYmxlKCZkZXYtPnNlbWEpKQoJLy8JcmV0dXJuIC1FUkVTVEFSVFNZUzsKCS8vaWYg
+KCpmX3BvcyA+PSBkZXYtPnJzaXplKQoJLy8JZ290byBvdXQ7CgkvL2lmICgqZl9wb3MgKyBjb3Vu
+dCA+IGRldi0+cnNpemUpCgkvL2NvdW50ID0gZGV2LT5yc2l6ZSAtICpmX3BvczsKCWZvcihpID0g
+MDsgaTwgY291bnQ7IGkrKykKCQlkZXYtPnJidWZmZXJbaV0gPSAodWludDE2X3QpIG9tYXBfbWNi
+c3BfcmVjdl93b3JkKGRldi0+YWRjX2Rldik7CgkJCglpZiAoY29weV90b191c2VyKGJ1ZiwgJmRl
+di0+cmJ1ZmZlciwgY291bnQpKQoJewoJCXJlc3VsdCA9IC1FRkFVTFQ7CgkJZ290byBvdXQ7Cgl9
+CgkqZl9wb3MgKz0gY291bnQ7CglyZXN1bHQgPSBjb3VudDsKCgoJb3V0OgoJCQoJCXNwaW5fdW5s
+b2NrX2lycSgmZGV2LT5zbG9jayk7CgkJcmV0dXJuIHJlc3VsdDsKCi0tIAotLS0tLS0tLS0tLS0t
 LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0K
---===============2119672825==
+LS0tLS0tLS0KVGhhbmtzICYmIFJlZ2FyZHMKTXNjLiBCc2MuIEx1w61zIFZpdMOzcmlvIENhcmdu
+aW5pCklFRUUgTWVtYmVyCkVsZWN0cmljYWwgRW5naW5lZXIgRmFjdWx0eSBAIFBVQ1JTCklwaXJh
+bmdhIEF2ZW51ZSwgNjY4MSDigJMgQnVpbGRpbmcgMzAKUC5PLiBCb3g6IDkwNjE5LTkwMCDigJMg
+UG9ydG8gQWxlZ3JlL1JTClBob25lOiArNTUgNTEgMzMyMCAzNTAwICBleHRlbnNpb246IDc2OTYK
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCg==
+
+--===============1900824130==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---===============2119672825==--
+--===============1900824130==--
