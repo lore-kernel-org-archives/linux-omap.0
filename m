@@ -1,12 +1,14 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: fix undeclared OMAP2_CTRL_BASE for OMAP MMC driver in OMAP1 compiles
-Date: Wed, 24 Oct 2007 23:31:44 -0600
-Message-ID: <20071025053610.715631084@pwsan.com>
+From: "=?UTF-8?Q?Lu=C3=ADs_Cargnini?=" <lvcargnini@gmail.com>
+Subject: Re: [PATCH] include/asm-arm/arch-omap/omap24xx.h
+Date: Thu, 25 Oct 2007 03:54:28 -0200
+Message-ID: <ae36f8040710242254g64581ca7gcc84a510e6865431@mail.gmail.com>
 References: <ae36f8040710240958l579ad5el16f17cb073e25387@mail.gmail.com>
-	<471F868A.3060106@googlemail.com>
-	<20071025053143.222542615@pwsan.com>
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline; filename=fix_omap2_ctrl_base_mmc_compile_bug.patch
+	<471F868A.3060106@googlemail.com> <20071025053143.222542615@pwsan.com>
+Reply-To: lvcargnini@gmail.com
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============0026018867=="
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20071025053143.222542615@pwsan.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,40 +16,69 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: lvcargnini@gmail.com, dirk.behme@googlemail.com, tony@atomide.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Remove reference to OMAP2_CTRL_BASE in arch/arm/plat-omap/devices.c
-if we aren't building for an OMAP2 platform.
+--===============0026018867==
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+RGlkIHlvdSB0ZXN0ZWQgaXQgPwoKT24gMTAvMjUvMDcsIFBhdWwgV2FsbXNsZXkgPHBhdWxAcHdz
+YW4uY29tPiB3cm90ZToKPiBIZWxsbyBEaXJrLCBMdWlzLAo+Cj4gaG93IGFib3V0IHRoZSBwYXRj
+aCAoZm9sbG93aW5nIGluIHRoZSBuZXh0IG1lc3NhZ2UpIGluc3RlYWQ/ICBUaGF0IHdheQo+IHdl
+IGRvbid0IGRlZmluZSBPTUFQMl9DVFJMX0JBU0UgZm9yIG5vbi1PTUFQMiBidWlsZHMuICAgQnVp
+bGQtdGVzdGVkCj4gd2l0aCBPU0s1OTEyIGRlZmF1bHQgY29uZmlnIHdpdGggTU1DIGRyaXZlciBl
+bmFibGVkLgo+Cj4KPiAtIFBhdWwKPiA+RnJvbSBwYXVsQHB3c2FuLmNvbSBXZWQgT2N0IDI0IDIz
+OjM2OjEwIDIwMDcKPiBNZXNzYWdlLUlkOiA8MjAwNzEwMjUwNTM2MTAuNzE1NjMxMDg0QHB3c2Fu
+LmNvbT4KPiBVc2VyLUFnZW50OiBxdWlsdC8wLjQ2LTEKPiBEYXRlOiBXZWQsIDI0IE9jdCAyMDA3
+IDIzOjMxOjQ0IC0wNjAwCj4gRnJvbTogUGF1bCBXYWxtc2xleSA8cGF1bEBwd3Nhbi5jb20+Cj4g
+VG86IGx2Y2FyZ25pbmlAZ21haWwuY29tLAo+ICBkaXJrLmJlaG1lQGdvb2dsZW1haWwuY29tLAo+
+ICB0b255QGF0b21pZGUuY29tCj4gQ2M6IGxpbnV4LW9tYXAtb3Blbi1zb3VyY2VAbGludXgub21h
+cC5jb20KPiBCY2M6ICA8NDcxRjg2OEEuMzA2MDEwNkBnb29nbGVtYWlsLmNvbT4KPiBTdWJqZWN0
+OiBmaXggdW5kZWNsYXJlZCBPTUFQMl9DVFJMX0JBU0UgZm9yIE9NQVAgTU1DIGRyaXZlciBpbiBP
+TUFQMSBjb21waWxlcwo+IFJlZmVyZW5jZXM6IDxhZTM2ZjgwNDA3MTAyNDA5NThsNTc5YWQ1ZWwx
+NmYxN2NiMDczZTI1Mzg3QG1haWwuZ21haWwuY29tPgo+ICAgICA8NDcxRjg2OEEuMzA2MDEwNkBn
+b29nbGVtYWlsLmNvbT4KPiAgPDIwMDcxMDI1MDUzMTQzLjIyMjU0MjYxNUBwd3Nhbi5jb20+Cj4g
+Q29udGVudC1EaXNwb3NpdGlvbjogaW5saW5lOyBmaWxlbmFtZT1maXhfb21hcDJfY3RybF9iYXNl
+X21tY19jb21waWxlX2J1Zy5wYXRjaAo+IFJlcGxhY2UtU3ViamVjdDogZml4IHVuZGVjbGFyZWQg
+T01BUDJfQ1RSTF9CQVNFIGZvciBPTUFQIE1NQyBkcml2ZXIgaW4gT01BUDEgY29tcGlsZXMKPgo+
+IFJlbW92ZSByZWZlcmVuY2UgdG8gT01BUDJfQ1RSTF9CQVNFIGluIGFyY2gvYXJtL3BsYXQtb21h
+cC9kZXZpY2VzLmMKPiBpZiB3ZSBhcmVuJ3QgYnVpbGRpbmcgZm9yIGFuIE9NQVAyIHBsYXRmb3Jt
+Lgo+Cj4gU2lnbmVkLW9mZi1ieTogUGF1bCBXYWxtc2xleSA8cGF1bEBwd3Nhbi5jb20+Cj4KPiAt
+LS0KPiAgYXJjaC9hcm0vcGxhdC1vbWFwL2RldmljZXMuYyB8ICAgIDIgKysKPiAgMSBmaWxlIGNo
+YW5nZWQsIDIgaW5zZXJ0aW9ucygrKQo+Cj4gSW5kZXg6IGxpbnV4LW9tYXAvYXJjaC9hcm0vcGxh
+dC1vbWFwL2RldmljZXMuYwo+ID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KPiAtLS0gbGludXgtb21hcC5vcmlnL2FyY2gv
+YXJtL3BsYXQtb21hcC9kZXZpY2VzLmMgICAgICAgIDIwMDctMDgtMjkgMTM6NTM6NDcuMDAwMDAw
+MDAwIC0wNjAwCj4gKysrIGxpbnV4LW9tYXAvYXJjaC9hcm0vcGxhdC1vbWFwL2RldmljZXMuYyAg
+ICAgMjAwNy0xMC0yNCAyMzoyOTo1MS4wMDAwMDAwMDAgLTA2MDAKPiBAQCAtMzM5LDYgKzMzOSw3
+IEBACj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBvbWFwX2NmZ19yZWcoTU1DX0RB
+VDMpOwo+ICAgICAgICAgICAgICAgICAgICAgICAgIH0KPiAgICAgICAgICAgICAgICAgfQo+ICsj
+aWYgZGVmaW5lZChDT05GSUdfQVJDSF9PTUFQMjRYWCkKPiAgICAgICAgICAgICAgICAgaWYgKG1t
+Yy0+aW50ZXJuYWxfY2xvY2spIHsKPiAgICAgICAgICAgICAgICAgICAgICAgICAvKgo+ICAgICAg
+ICAgICAgICAgICAgICAgICAgICAqIFVzZSBpbnRlcm5hbCBsb29wLWJhY2sgaW4gTU1DL1NESU8K
+PiBAQCAtMzUwLDYgKzM1MSw3IEBACj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBv
+bWFwX3dyaXRlbCh2LCBPTUFQMl9DT05UUk9MX0RFVkNPTkYpOwo+ICAgICAgICAgICAgICAgICAg
+ICAgICAgIH0KPiAgICAgICAgICAgICAgICAgfQo+ICsjZW5kaWYKPiAgICAgICAgICAgICAgICAg
+bW1jMV9jb25mID0gKm1tYzsKPiAgICAgICAgICAgICAgICAgKHZvaWQpIHBsYXRmb3JtX2Rldmlj
+ZV9yZWdpc3RlcigmbW1jX29tYXBfZGV2aWNlMSk7Cj4gICAgICAgICB9Cj4KPiAtLQo+Cj4KCgot
+LSAKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClRoYW5rcyAmJiBSZWdhcmRzCk1zYy4gQnNjLiBMdcOt
+cyBWaXTDs3JpbyBDYXJnbmluaQpJRUVFIE1lbWJlcgpFbGVjdHJpY2FsIEVuZ2luZWVyIEZhY3Vs
+dHkgQCBQVUNSUwpJcGlyYW5nYSBBdmVudWUsIDY2ODEg4oCTIEJ1aWxkaW5nIDMwClAuTy4gQm94
+OiA5MDYxOS05MDAg4oCTIFBvcnRvIEFsZWdyZS9SUwpQaG9uZTogKzU1IDUxIDMzMjAgMzUwMCAg
+ZXh0ZW5zaW9uOiA3Njk2Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo=
 
----
- arch/arm/plat-omap/devices.c |    2 ++
- 1 file changed, 2 insertions(+)
+--===============0026018867==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Index: linux-omap/arch/arm/plat-omap/devices.c
-===================================================================
---- linux-omap.orig/arch/arm/plat-omap/devices.c	2007-08-29 13:53:47.000000000 -0600
-+++ linux-omap/arch/arm/plat-omap/devices.c	2007-10-24 23:29:51.000000000 -0600
-@@ -339,6 +339,7 @@
- 				omap_cfg_reg(MMC_DAT3);
- 			}
- 		}
-+#if defined(CONFIG_ARCH_OMAP24XX)
- 		if (mmc->internal_clock) {
- 			/*
- 			 * Use internal loop-back in MMC/SDIO
-@@ -350,6 +351,7 @@
- 				omap_writel(v, OMAP2_CONTROL_DEVCONF);
- 			}
- 		}
-+#endif
- 		mmc1_conf = *mmc;
- 		(void) platform_device_register(&mmc_omap_device1);
- 	}
 
--- 
+--===============0026018867==--
