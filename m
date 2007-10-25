@@ -1,8 +1,15 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: [PATCH] ARM: OMAP: Use known good PRCM rate-table entries for 2430
-Date: Wed, 24 Oct 2007 17:52:59 -0700
-Message-ID: <20071025005259.658741340@mvista.com>
+From: "=?UTF-8?Q?Lu=C3=ADs_Cargnini?=" <lvcargnini@gmail.com>
+Subject: Re: trying to read something
+Date: Thu, 25 Oct 2007 00:45:38 -0200
+Message-ID: <ae36f8040710241945v7185ea36j31e81da6cc0af6d6@mail.gmail.com>
+References: <ae36f8040710241405j393d22c7m823d4bf3e9a4633a@mail.gmail.com>
+	<31e679430710241441j1e476419t5b0d8dd257e63f73@mail.gmail.com>
+	<47c31da80710241609h27828d3cj2b080751c414b688@mail.gmail.com>
+Reply-To: lvcargnini@gmail.com
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============0055358509=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <47c31da80710241609h27828d3cj2b080751c414b688@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,197 +19,107 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Jonathan Kotta <jpkotta@gmail.com>
+Cc: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Follow the lead of the TI kernels by removing PRCM #2 and adding PRCM
-#3 and #4 to the rate-table entries.  According to TI, having #2 and
-#3 together is known to be a bad combination.
+--===============0055358509==
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-Also, change the default divider values for the PRCM #5a setting to
-match those of the TI kernel, which use 264MHz intstead of 266.
+aHVtbW0sIHNvIHdoaWNoIGZ1bmN0aW9uIEkgc2hvdWxkIHVzZSB0byByZXBsYWNlIGNvcHlfdG9f
+dXNlciwgSSdtIG5vdApzdXJlIHdoaWNoIGZ1bmN0aW9uIHVzZSB0byByZXBsYWNlIGNvcHkgZnJv
+bSBhbmQgdG8gYW5kIEl3YW50IHRvCmVuYWJsZSBETUEgeWV0LCBidXQgb21hcCBoYXMgYW4gb21h
+cCAgaW1wbGVtZW50YXRpb24gYW4gbG9va2luZwppbnNpZGUgb21hcF9tY2JzcF94bWl0X2J1ZmZl
+ciBhbmQgb21hcF9tY2JzcF9yZWN2X2J1ZmZlciwgaW1wbGVtZW50IGFuCmJ1ZmZlciBvZiBvbmUg
+c2luZ2xlIHU4IG9yIHUxNiB3b3JkLCBidXQgdGhpcyBpcyBhbm90aGVyIHF1ZXN0aW9uLgoKCk9u
+IDEwLzI0LzA3LCBKb25hdGhhbiBLb3R0YSA8anBrb3R0YUBnbWFpbC5jb20+IHdyb3RlOgo+IE9u
+IDEwLzI0LzA3LCBGZWxpcGUgQmFsYmkgPGZlbGlwZWJhbGJpQHVzZXJzLnNvdXJjZWZvcmdlLm5l
+dD4gd3JvdGU6Cj4gPiBIaSwKPiA+Cj4gPiBPbiAxMC8yNS8wNywgTHXDrXMgQ2FyZ25pbmkgPGx2
+Y2FyZ25pbmlAZ21haWwuY29tPiB3cm90ZToKPiA+ID4gRGVhciBmZWxsb3dzLAo+ID4gPiBJJ20g
+d3JpdGluZyBhbiBkcml2ZXIsIGluIHRoZSBwcmVzZW50IG1vbWVudAo+ID4gPiBJIGhhdmUgdGhl
+IGZvbGxvd2luZyBwcm9ibGVtOgo+ID4gPiBCVUc6IHNjaGVkdWxpbmcgd2hpbGUgYXRvbWljOiBh
+ZHN0ZXN0LzB4MDAwMDAwMDIvODU0LCBDUFUjMAo+ID4gPiBbPGMwMDJjOWYwPl0gKGR1bXBfc3Rh
+Y2srMHgwLzB4MTQpIGZyb20gWzxjMDA0Y2MzYz5dIChfX3NjaGVkdWxlX2J1ZysweDNjLzB4NDQp
+Cj4gPiA+IFs8YzAwNGNjMDA+XSAoX19zY2hlZHVsZV9idWcrMHgwLzB4NDQpIGZyb20gWzxjMDI1
+OTJhMD5dIChfX3NjaGVkdWxlKzB4YWMvMHg0ODQpCj4gPiA+IFs8YzAyNTkxZjQ+XSAoX19zY2hl
+ZHVsZSsweDAvMHg0ODQpIGZyb20gWzxjMDI1OWZkND5dIChzY2hlZHVsZSsweGNjLzB4MTE0KQo+
+ID4gPiAgcjc6MDAwMDAwMDEgcjY6YzAzMGI4YmMgcjU6YzFjNDIwMDAgcjQ6YzFjNDIwMDAKPiA+
+ID4gWzxjMDI1OWYwOD5dIChzY2hlZHVsZSsweDAvMHgxMTQpIGZyb20gWzxjMDI1YTRjMD5dCj4g
+PiA+ICh3YWl0X2Zvcl9jb21wbGV0aW9uKzB4YzAvMHgxNTQpCj4gPiA+ICByNDpjMWM0M2VmNAo+
+ID4gPiBbPGMwMjVhNDAwPl0gKHdhaXRfZm9yX2NvbXBsZXRpb24rMHgwLzB4MTU0KSBmcm9tIFs8
+YzAwM2RlNzg+XQo+ID4gPiAob21hcF9tY2JzcF9yZWN2X3dvcmQrMHg0MC8weDY0KQo+ID4gPiAg
+cjY6MDAwMDAwMDIgcjU6YzAzMGI4MzggcjQ6ZmVmYjEwMDAKPiA+ID4gWzxjMDAzZGUzOD5dIChv
+bWFwX21jYnNwX3JlY3Zfd29yZCsweDAvMHg2NCkgZnJvbSBbPGJmMDAwMzdjPl0KPiA+ID4gKGFk
+czh4eHhfcmVhZCsweDUwLzB4ZjAgW2Fkczh4eHhdKQo+ID4gPiAgcjY6MDAwMDQwMDUgcjU6MDAw
+MDAwMDIgcjQ6YzE5OGUwMDIKPiA+ID4gWzxiZjAwMDMyYz5dIChhZHM4eHh4X3JlYWQrMHgwLzB4
+ZjAgW2Fkczh4eHhdKSBmcm9tIFs8YzAwYTNlNjg+XQo+ID4gPiAodmZzX3JlYWQrMHhiNC8weDE0
+MCkKPiA+ID4gWzxjMDBhM2RiND5dICh2ZnNfcmVhZCsweDAvMHgxNDApIGZyb20gWzxjMDBhNDk5
+MD5dIChzeXNfcmVhZCsweDRjLzB4ODApCj4gPiA+ICByNzowMDAwMDAwMyByNjowMDAwMDAwMCBy
+NTowMDAwMDAwMiByNDpjMWQyZDE2MAo+ID4gPiBbPGMwMGE0OTQ0Pl0gKHN5c19yZWFkKzB4MC8w
+eDgwKSBmcm9tIFs8YzAwMjhlZTA+XSAocmV0X2Zhc3Rfc3lzY2FsbCsweDAvMHgyYykKPiA+ID4g
+IHI2OjAwMDAwMDAyIHI1OjAwMDA4NzNjIHI0OmJlYjk4ZWI0Cj4gPiA+Cj4gPiA+Cj4gPiA+Cj4g
+PiA+IHRoZSBzeXN0ZW0gaXMgbG9ja2luZyBpbiB0aGUgcmVhZCBwcm9jZXNzIG9mIG15IGRyaXZl
+ciwgdGhlIHJlYWQgY29kZQo+ID4gPiBpbiBkcml2ZXIgaXMgOgo+ID4gPgo+ID4gPiBzc2l6ZV90
+IGFkczh4eHhfcmVhZChzdHJ1Y3QgZmlsZSAqZmlscCwgY2hhciBfX3VzZXIgKmJ1Ziwgc2l6ZV90
+Cj4gPiA+IGNvdW50LCBsb2ZmX3QgKmZfcG9zKQo+ID4gPiB7Cj4gPiA+ICAgICAgICAgc3NpemVf
+dCByZXN1bHQgPSAwOwo+ID4gPiAgICAgICAgIGludCBpOwo+ID4gPiAgICAgICAgIHN0cnVjdCBo
+YW5kbGVyX2RldiAqZGV2ID0gZmlscC0+cHJpdmF0ZV9kYXRhOwo+ID4gPgo+ID4gPiAgICAgICAg
+IHNwaW5fbG9ja19pcnEoJmRldi0+c2xvY2spOwo+ID4gPiAgICAgICAgIC8vaWYgKGRvd25faW50
+ZXJydXB0aWJsZSgmZGV2LT5zZW1hKSkKPiA+ID4gICAgICAgICAvLyAgICAgIHJldHVybiAtRVJF
+U1RBUlRTWVM7Cj4gPiA+ICAgICAgICAgLy9pZiAoKmZfcG9zID49IGRldi0+cnNpemUpCj4gPiA+
+ICAgICAgICAgLy8gICAgICBnb3RvIG91dDsKPiA+ID4gICAgICAgICAvL2lmICgqZl9wb3MgKyBj
+b3VudCA+IGRldi0+cnNpemUpCj4gPiA+ICAgICAgICAgLy9jb3VudCA9IGRldi0+cnNpemUgLSAq
+Zl9wb3M7Cj4gPiA+ICAgICAgICAgZm9yKGkgPSAwOyBpPCBjb3VudDsgaSsrKQo+ID4gPiAgICAg
+ICAgICAgICAgICAgZGV2LT5yYnVmZmVyW2ldID0gKHVpbnQxNl90KSBvbWFwX21jYnNwX3JlY3Zf
+d29yZChkZXYtPmFkY19kZXYpOwo+ID4KPiA+IEkgY2FuIGJlIHdyb25nLi4uIGJ1dCBJIHRoaW5r
+IHlvdSBjYW4ndCAid2FpdF9mb3JfY29tcGxldGlvbigpIiBpbnNpZGUKPiA+IGEgc3BpbmxvY2su
+Li4KPiA+Cj4gPiByZW1vdmUgeW91ciBsb2Nrcy4uLiBpdCdsbCBwcm9iYWJseSB3b3JrLi4uCj4g
+PiBvbWFwX21jYnNwX3JlY3Zfd29yZCgpICB3aWxsIGNhbGwgd2FpdF9mb3JfY29tcGxldGlvbigp
+IHdoaWNoIGNhbGxzCj4gPiB3YWl0X2Zvcl9jb21tb24sIGFuZCB0aGlzIG9uZSBsb2NrcyB3aGVu
+IG5lZWRlZC4uLgo+ID4KPiA+IHRyeSB0aGF0IDstKQo+ID4KPiA+Cj4KPiBBbHNvLCBJIGRvbid0
+IHRoaW5rIGNvcHlfdG9fdXNlcigpIHNob3VsZCBiZSBjYWxsZWQgd2hpbGUgaG9sZGluZyBhCj4g
+c3BpbmxvY2ssIGJlY2F1c2UgaXQgY2FuIHNsZWVwLgo+Cj4gPiA+Cj4gPiA+ICAgICAgICAgaWYg
+KGNvcHlfdG9fdXNlcihidWYsICZkZXYtPnJidWZmZXIsIGNvdW50KSkKPiA+ID4gICAgICAgICB7
+Cj4gPiA+ICAgICAgICAgICAgICAgICByZXN1bHQgPSAtRUZBVUxUOwo+ID4gPiAgICAgICAgICAg
+ICAgICAgZ290byBvdXQ7Cj4gPiA+ICAgICAgICAgfQo+ID4gPiAgICAgICAgICpmX3BvcyArPSBj
+b3VudDsKPiA+ID4gICAgICAgICByZXN1bHQgPSBjb3VudDsKPiA+ID4KPiA+ID4KPiA+ID4gICAg
+ICAgICBvdXQ6Cj4gPiA+Cj4gPiA+ICAgICAgICAgICAgICAgICBzcGluX3VubG9ja19pcnEoJmRl
+di0+c2xvY2spOwo+ID4gPiAgICAgICAgICAgICAgICAgcmV0dXJuIHJlc3VsdDsKPiA+ID4KPiA+
+ID4gLS0KPiA+ID4gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gPiA+IFRoYW5rcyAmJiBSZWdhcmRz
+Cj4gPiA+IE1zYy4gQnNjLiBMdcOtcyBWaXTDs3JpbyBDYXJnbmluaQo+ID4gPiBJRUVFIE1lbWJl
+cgo+ID4gPiBFbGVjdHJpY2FsIEVuZ2luZWVyIEZhY3VsdHkgQCBQVUNSUwo+ID4gPiBJcGlyYW5n
+YSBBdmVudWUsIDY2ODEg4oCTIEJ1aWxkaW5nIDMwCj4gPiA+IFAuTy4gQm94OiA5MDYxOS05MDAg
+4oCTIFBvcnRvIEFsZWdyZS9SUwo+ID4gPiBQaG9uZTogKzU1IDUxIDMzMjAgMzUwMCAgZXh0ZW5z
+aW9uOiA3Njk2Cj4gPiA+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+ID4gPgo+ID4gPiBfX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+ID4gPiBMaW51eC1v
+bWFwLW9wZW4tc291cmNlIG1haWxpbmcgbGlzdAo+ID4gPiBMaW51eC1vbWFwLW9wZW4tc291cmNl
+QGxpbnV4Lm9tYXAuY29tCj4gPiA+IGh0dHA6Ly9saW51eC5vbWFwLmNvbS9tYWlsbWFuL2xpc3Rp
+bmZvL2xpbnV4LW9tYXAtb3Blbi1zb3VyY2UKPiA+ID4KPiA+ID4KPiA+Cj4gPgo+ID4gLS0KPiA+
+IEJlc3QgUmVnYXJkcywKPiA+Cj4gPiBGZWxpcGUgQmFsYmkKPiA+IGZlbGlwZWJhbGJpQHVzZXJz
+LnNvdXJjZWZvcmdlLm5ldAo+ID4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KPiA+IExpbnV4LW9tYXAtb3Blbi1zb3VyY2UgbWFpbGluZyBsaXN0Cj4gPiBM
+aW51eC1vbWFwLW9wZW4tc291cmNlQGxpbnV4Lm9tYXAuY29tCj4gPiBodHRwOi8vbGludXgub21h
+cC5jb20vbWFpbG1hbi9saXN0aW5mby9saW51eC1vbWFwLW9wZW4tc291cmNlCj4gPgo+Cj4KPiAt
+LQo+IFRoYW5rcywKPgo+IEpvbmF0aGFuIEtvdHRhCj4KPiBIb2ZzdGFkdGVyJ3MgTGF3Ogo+ICAg
+ICBJdCBhbHdheXMgdGFrZXMgbG9uZ2VyIHRoYW4geW91IGV4cGVjdCwgZXZlbgo+ICAgICB3aGVu
+IHlvdSB0YWtlIGludG8gYWNjb3VudCBIb2ZzdGFkdGVyJ3MgTGF3Lgo+CgoKLS0gCi0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLQpUaGFua3MgJiYgUmVnYXJkcwpNc2MuIEJzYy4gTHXDrXMgVml0w7NyaW8g
+Q2FyZ25pbmkKSUVFRSBNZW1iZXIKRWxlY3RyaWNhbCBFbmdpbmVlciBGYWN1bHR5IEAgUFVDUlMK
+SXBpcmFuZ2EgQXZlbnVlLCA2NjgxIOKAkyBCdWlsZGluZyAzMApQLk8uIEJveDogOTA2MTktOTAw
+IOKAkyBQb3J0byBBbGVncmUvUlMKUGhvbmU6ICs1NSA1MSAzMzIwIDM1MDAgIGV4dGVuc2lvbjog
+NzY5NgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0K
 
-Signed-off-by: Kevin Hilman <khilman@mvista.com>
+--===============0055358509==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
----
- arch/arm/mach-omap2/clock24xx.h |  102 ++++++++++++++++++++++++++++++++--------
- 1 file changed, 84 insertions(+), 18 deletions(-)
 
-Index: dev/arch/arm/mach-omap2/clock24xx.h
-===================================================================
---- dev.orig/arch/arm/mach-omap2/clock24xx.h
-+++ dev/arch/arm/mach-omap2/clock24xx.h
-@@ -244,7 +244,6 @@ struct prcm_config {
- 
- /*
-  * 2430 - standalone, 2*ref*M/(n+1), M/N is for exactness not relock speed
-- * #2	(ratio1) baseport-target
-  * #5a	(ratio1) baseport-target, target DPLL = 266*2 = 532MHz
-  */
- #define M5A_DPLL_MULT_12		(133 << 12)
-@@ -252,13 +251,13 @@ struct prcm_config {
- #define M5A_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
- 					M5A_DPLL_DIV_12 | M5A_DPLL_MULT_12 | \
- 					MX_APLLS_CLIKIN_12
--#define M5A_DPLL_MULT_13		(266 << 12)
--#define M5A_DPLL_DIV_13			(12 << 8)
-+#define M5A_DPLL_MULT_13		(61 << 12)
-+#define M5A_DPLL_DIV_13			(2 << 8)
- #define M5A_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | \
- 					M5A_DPLL_DIV_13 | M5A_DPLL_MULT_13 | \
- 					MX_APLLS_CLIKIN_13
--#define M5A_DPLL_MULT_19		(180 << 12)
--#define M5A_DPLL_DIV_19			(12 << 8)
-+#define M5A_DPLL_MULT_19		(55 << 12)
-+#define M5A_DPLL_DIV_19			(3 << 8)
- #define M5A_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | \
- 					M5A_DPLL_DIV_19 | M5A_DPLL_MULT_19 | \
- 					MX_APLLS_CLIKIN_19_2
-@@ -280,7 +279,27 @@ struct prcm_config {
- 					M5B_DPLL_DIV_19 | M5B_DPLL_MULT_19 | \
- 					MX_APLLS_CLIKIN_19_2
- /*
-- * #4	(ratio2)
-+ * #4	(ratio2), DPLL = 399*2 = 798MHz, L3=133MHz
-+ */
-+#define M4_DPLL_MULT_12			(133 << 12)
-+#define M4_DPLL_DIV_12			(3 << 8)
-+#define M4_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					M4_DPLL_DIV_12 | M4_DPLL_MULT_12 | \
-+					MX_APLLS_CLIKIN_12
-+
-+#define M4_DPLL_MULT_13			(399 << 12)
-+#define M4_DPLL_DIV_13			(12 << 8)
-+#define M4_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					M4_DPLL_DIV_13 | M4_DPLL_MULT_13 | \
-+					MX_APLLS_CLIKIN_13
-+
-+#define M4_DPLL_MULT_19			(145 << 12)
-+#define M4_DPLL_DIV_19			(6 << 8)
-+#define M4_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					M4_DPLL_DIV_19 | M4_DPLL_MULT_19 | \
-+					MX_APLLS_CLIKIN_19_2
-+
-+/*
-  * #3	(ratio2) baseport-target, target DPLL = 330*2 = 660MHz
-  */
- #define M3_DPLL_MULT_12			(55 << 12)
-@@ -288,16 +307,41 @@ struct prcm_config {
- #define M3_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
- 					M3_DPLL_DIV_12 | M3_DPLL_MULT_12 | \
- 					MX_APLLS_CLIKIN_12
--#define M3_DPLL_MULT_13			(330 << 12)
--#define M3_DPLL_DIV_13			(12 << 8)
-+#define M3_DPLL_MULT_13			(76 << 12)
-+#define M3_DPLL_DIV_13			(2 << 8)
- #define M3_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | \
- 					M3_DPLL_DIV_13 | M3_DPLL_MULT_13 | \
- 					MX_APLLS_CLIKIN_13
--#define M3_DPLL_MULT_19			(275 << 12)
--#define M3_DPLL_DIV_19			(15 << 8)
-+#define M3_DPLL_MULT_19			(17 << 12)
-+#define M3_DPLL_DIV_19			(0 << 8)
- #define M3_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | \
- 					M3_DPLL_DIV_19 | M3_DPLL_MULT_19 | \
- 					MX_APLLS_CLIKIN_19_2
-+
-+/*
-+ * #2   (ratio1) DPLL = 330*2 = 660MHz, L3=165MHz
-+ */
-+#define M2_DPLL_MULT_12		        (55 << 12)
-+#define M2_DPLL_DIV_12		        (1 << 8)
-+#define M2_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					M2_DPLL_DIV_12 | M2_DPLL_MULT_12 | \
-+					MX_APLLS_CLIKIN_12
-+
-+/* Speed changes - Used 658.7MHz instead of 660MHz for LP-Refresh M=76 N=2,
-+ * relock time issue */
-+/* Core frequency changed from 330/165 to 329/164 MHz*/
-+#define M2_DPLL_MULT_13		        (76 << 12)
-+#define M2_DPLL_DIV_13		        (2 << 8)
-+#define M2_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					M2_DPLL_DIV_13 | M2_DPLL_MULT_13 | \
-+					MX_APLLS_CLIKIN_13
-+
-+#define M2_DPLL_MULT_19		        (17 << 12)
-+#define M2_DPLL_DIV_19		        (0 << 8)
-+#define M2_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					M2_DPLL_DIV_19 | M2_DPLL_MULT_19 | \
-+					MX_APLLS_CLIKIN_19_2
-+
- /* boot (boot) */
- #define MB_DPLL_MULT			(1 << 12)
- #define MB_DPLL_DIV			(0 << 8)
-@@ -370,15 +414,21 @@ struct prcm_config {
- #define S100M	100000000
- #define S133M	133000000
- #define S150M	150000000
-+#define S164M	164000000
- #define S165M	165000000
-+#define S199M	199000000
- #define S200M	200000000
- #define S266M	266000000
- #define S300M	300000000
-+#define S329M	329000000
- #define S330M	330000000
-+#define S399M	399000000
- #define S400M	400000000
- #define S532M	532000000
- #define S600M	600000000
-+#define S658M	658000000
- #define S660M	660000000
-+#define S798M	798000000
- 
- /*-------------------------------------------------------------------------
-  * Key dividers which make up a PRCM set. Ratio's for a PRCM are mandated.
-@@ -472,12 +522,20 @@ static struct prcm_config rate_table[] =
- 		MX_CLKSEL2_PLL_2x_VAL, 0, SDRC_RFR_CTRL_BYPASS,
- 		RATE_IN_242X},
- 
--	/* PRCM #3 - ratio2 (ES2) - FAST */
--	{S13M, S660M, S330M, R2_CM_CLKSEL_MPU_VAL,		/* 330MHz ARM */
-+	/* PRCM #4 - ratio2 (ES2.1) - FAST */
-+	{S13M, S798M, S399M, R2_CM_CLKSEL_MPU_VAL,		/* 399MHz ARM */
- 		R2_CM_CLKSEL_DSP_VAL, R2_CM_CLKSEL_GFX_VAL,
--		R2_CM_CLKSEL1_CORE_VAL, M3_CM_CLKSEL1_PLL_13_VAL,
-+		R2_CM_CLKSEL1_CORE_VAL, M4_CM_CLKSEL1_PLL_13_VAL,
- 		MX_CLKSEL2_PLL_2x_VAL, R2_CM_CLKSEL_MDM_VAL,
--		SDRC_RFR_CTRL_110MHz,
-+		V24XX_SDRC_RFR_CTRL_133MHz,
-+		RATE_IN_243X},
-+
-+	/* PRCM #2 - ratio1 (ES2) - FAST */
-+	{S13M, S658M, S329M, R1_CM_CLKSEL_MPU_VAL,		/* 330MHz ARM */
-+		R1_CM_CLKSEL_DSP_VAL, R1_CM_CLKSEL_GFX_VAL,
-+		R1_CM_CLKSEL1_CORE_VAL, M2_CM_CLKSEL1_PLL_13_VAL,
-+		MX_CLKSEL2_PLL_2x_VAL, R1_CM_CLKSEL_MDM_VAL,
-+		V24XX_SDRC_RFR_CTRL_165MHz,
- 		RATE_IN_243X},
- 
- 	/* PRCM #5a - ratio1 - FAST */
-@@ -496,12 +554,20 @@ static struct prcm_config rate_table[] =
- 		SDRC_RFR_CTRL_100MHz,
- 		RATE_IN_243X},
- 
--	/* PRCM #3 - ratio2 (ES2) - SLOW */
--	{S13M, S330M, S165M, R2_CM_CLKSEL_MPU_VAL,		/* 165MHz ARM */
-+	/* PRCM #4 - ratio1 (ES2.1) - SLOW */
-+	{S13M, S399M, S199M, R2_CM_CLKSEL_MPU_VAL,		/* 200MHz ARM */
- 		R2_CM_CLKSEL_DSP_VAL, R2_CM_CLKSEL_GFX_VAL,
--		R2_CM_CLKSEL1_CORE_VAL, M3_CM_CLKSEL1_PLL_13_VAL,
-+		R2_CM_CLKSEL1_CORE_VAL, M4_CM_CLKSEL1_PLL_13_VAL,
- 		MX_CLKSEL2_PLL_1x_VAL, R2_CM_CLKSEL_MDM_VAL,
--		SDRC_RFR_CTRL_110MHz,
-+		V24XX_SDRC_RFR_CTRL_133MHz,
-+		RATE_IN_243X},
-+
-+	/* PRCM #2 - ratio1 (ES2) - SLOW */
-+	{S13M, S329M, S164M, R1_CM_CLKSEL_MPU_VAL,		/* 165MHz ARM */
-+		R1_CM_CLKSEL_DSP_VAL, R1_CM_CLKSEL_GFX_VAL,
-+		R1_CM_CLKSEL1_CORE_VAL, M2_CM_CLKSEL1_PLL_13_VAL,
-+		MX_CLKSEL2_PLL_1x_VAL, R1_CM_CLKSEL_MDM_VAL,
-+		V24XX_SDRC_RFR_CTRL_165MHz,
- 		RATE_IN_243X},
- 
- 	/* PRCM #5a - ratio1 - SLOW */
---
+--===============0055358509==--
