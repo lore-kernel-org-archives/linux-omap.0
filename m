@@ -1,11 +1,12 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] include/asm-arm/arch-omap/omap24xx.h
-Date: Wed, 24 Oct 2007 23:31:43 -0600
-Message-ID: <20071025053143.222542615@pwsan.com>
+Subject: fix undeclared OMAP2_CTRL_BASE for OMAP MMC driver in OMAP1 compiles
+Date: Wed, 24 Oct 2007 23:31:44 -0600
+Message-ID: <20071025053610.715631084@pwsan.com>
 References: <ae36f8040710240958l579ad5el16f17cb073e25387@mail.gmail.com>
 	<471F868A.3060106@googlemail.com>
+	<20071025053143.222542615@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <471F868A.3060106@googlemail.com>
+Content-Disposition: inline; filename=fix_omap2_ctrl_base_mmc_compile_bug.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,31 +19,6 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: lvcargnini@gmail.com, dirk.behme@googlemail.com, tony@atomide.com
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
-
-Hello Dirk, Luis, 
-
-how about the patch (following in the next message) instead?  That way
-we don't define OMAP2_CTRL_BASE for non-OMAP2 builds.   Build-tested
-with OSK5912 default config with MMC driver enabled.
-
-
-- Paul
->From paul@pwsan.com Wed Oct 24 23:36:10 2007
-Message-Id: <20071025053610.715631084@pwsan.com>
-User-Agent: quilt/0.46-1
-Date: Wed, 24 Oct 2007 23:31:44 -0600
-From: Paul Walmsley <paul@pwsan.com>
-To: lvcargnini@gmail.com,
- dirk.behme@googlemail.com,
- tony@atomide.com
-Cc: linux-omap-open-source@linux.omap.com
-Bcc:  <471F868A.3060106@googlemail.com>
-Subject: fix undeclared OMAP2_CTRL_BASE for OMAP MMC driver in OMAP1 compiles
-References: <ae36f8040710240958l579ad5el16f17cb073e25387@mail.gmail.com>
-    <471F868A.3060106@googlemail.com>
- <20071025053143.222542615@pwsan.com>
-Content-Disposition: inline; filename=fix_omap2_ctrl_base_mmc_compile_bug.patch
-Replace-Subject: fix undeclared OMAP2_CTRL_BASE for OMAP MMC driver in OMAP1 compiles
 
 Remove reference to OMAP2_CTRL_BASE in arch/arm/plat-omap/devices.c
 if we aren't building for an OMAP2 platform.
