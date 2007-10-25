@@ -1,9 +1,10 @@
-From: Vivek Kutal <vivek.kutal@celunite.com>
-Subject: Problem reading TCR of 32k timer.
-Date: Thu, 25 Oct 2007 17:46:39 +0530
-Message-ID: <47208927.1070001@celunite.com>
+From: "Sameer" <x0081444@ti.com>
+Subject: Onenand sync burst mode - query
+Date: Thu, 25 Oct 2007 17:52:49 +0530
+Message-ID: <00b901c81701$c25844f0$ec8818ac@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
@@ -18,13 +19,16 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi ,
-       I am facing a problem in reading the TCR register of the 32k 
-timer. Most of the time the value is correct but some times the value 
-read is greater than TVR. I  have  enabled the XOR clock  to read TCR  , 
-as mentioned in the TRM. I am using omap f-sample board. any idea why 
-this is happening ?
+Hi,
+I am working on onenand driver based on omap board.
+Onenand is samsung onenand. I need to add the functionality for
+Synchronous burst mode operation which is currently not present.
+I am refering n800 board driver (arch/arm/mach-omap/board-n880-flash.c)
+The function "omap2_onenand_set_sync_mode" contains the variable "fclk_offset_ns"
 
---
-Thanks
-Vivek
+I am not able to relate this variable with the timing diagram of the onenand flash
+Could any body specify the significance of this variable and how is it related to 
+the timing variables?
+
+Thanks,
+-Sameer	
