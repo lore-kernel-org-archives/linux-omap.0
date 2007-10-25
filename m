@@ -1,15 +1,11 @@
-From: "=?UTF-8?Q?Lu=C3=ADs_Cargnini?=" <lvcargnini@gmail.com>
-Subject: Re: trying to read something
-Date: Thu, 25 Oct 2007 00:45:38 -0200
-Message-ID: <ae36f8040710241945v7185ea36j31e81da6cc0af6d6@mail.gmail.com>
-References: <ae36f8040710241405j393d22c7m823d4bf3e9a4633a@mail.gmail.com>
-	<31e679430710241441j1e476419t5b0d8dd257e63f73@mail.gmail.com>
-	<47c31da80710241609h27828d3cj2b080751c414b688@mail.gmail.com>
-Reply-To: lvcargnini@gmail.com
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0055358509=="
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] include/asm-arm/arch-omap/omap24xx.h
+Date: Wed, 24 Oct 2007 23:31:43 -0600
+Message-ID: <20071025053143.222542615@pwsan.com>
+References: <ae36f8040710240958l579ad5el16f17cb073e25387@mail.gmail.com>
+	<471F868A.3060106@googlemail.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <47c31da80710241609h27828d3cj2b080751c414b688@mail.gmail.com>
+In-Reply-To: <471F868A.3060106@googlemail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,107 +15,63 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Jonathan Kotta <jpkotta@gmail.com>
-Cc: OMAP <Linux-omap-open-source@linux.omap.com>
+To: lvcargnini@gmail.com, dirk.behme@googlemail.com, tony@atomide.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============0055358509==
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+Hello Dirk, Luis, 
 
-aHVtbW0sIHNvIHdoaWNoIGZ1bmN0aW9uIEkgc2hvdWxkIHVzZSB0byByZXBsYWNlIGNvcHlfdG9f
-dXNlciwgSSdtIG5vdApzdXJlIHdoaWNoIGZ1bmN0aW9uIHVzZSB0byByZXBsYWNlIGNvcHkgZnJv
-bSBhbmQgdG8gYW5kIEl3YW50IHRvCmVuYWJsZSBETUEgeWV0LCBidXQgb21hcCBoYXMgYW4gb21h
-cCAgaW1wbGVtZW50YXRpb24gYW4gbG9va2luZwppbnNpZGUgb21hcF9tY2JzcF94bWl0X2J1ZmZl
-ciBhbmQgb21hcF9tY2JzcF9yZWN2X2J1ZmZlciwgaW1wbGVtZW50IGFuCmJ1ZmZlciBvZiBvbmUg
-c2luZ2xlIHU4IG9yIHUxNiB3b3JkLCBidXQgdGhpcyBpcyBhbm90aGVyIHF1ZXN0aW9uLgoKCk9u
-IDEwLzI0LzA3LCBKb25hdGhhbiBLb3R0YSA8anBrb3R0YUBnbWFpbC5jb20+IHdyb3RlOgo+IE9u
-IDEwLzI0LzA3LCBGZWxpcGUgQmFsYmkgPGZlbGlwZWJhbGJpQHVzZXJzLnNvdXJjZWZvcmdlLm5l
-dD4gd3JvdGU6Cj4gPiBIaSwKPiA+Cj4gPiBPbiAxMC8yNS8wNywgTHXDrXMgQ2FyZ25pbmkgPGx2
-Y2FyZ25pbmlAZ21haWwuY29tPiB3cm90ZToKPiA+ID4gRGVhciBmZWxsb3dzLAo+ID4gPiBJJ20g
-d3JpdGluZyBhbiBkcml2ZXIsIGluIHRoZSBwcmVzZW50IG1vbWVudAo+ID4gPiBJIGhhdmUgdGhl
-IGZvbGxvd2luZyBwcm9ibGVtOgo+ID4gPiBCVUc6IHNjaGVkdWxpbmcgd2hpbGUgYXRvbWljOiBh
-ZHN0ZXN0LzB4MDAwMDAwMDIvODU0LCBDUFUjMAo+ID4gPiBbPGMwMDJjOWYwPl0gKGR1bXBfc3Rh
-Y2srMHgwLzB4MTQpIGZyb20gWzxjMDA0Y2MzYz5dIChfX3NjaGVkdWxlX2J1ZysweDNjLzB4NDQp
-Cj4gPiA+IFs8YzAwNGNjMDA+XSAoX19zY2hlZHVsZV9idWcrMHgwLzB4NDQpIGZyb20gWzxjMDI1
-OTJhMD5dIChfX3NjaGVkdWxlKzB4YWMvMHg0ODQpCj4gPiA+IFs8YzAyNTkxZjQ+XSAoX19zY2hl
-ZHVsZSsweDAvMHg0ODQpIGZyb20gWzxjMDI1OWZkND5dIChzY2hlZHVsZSsweGNjLzB4MTE0KQo+
-ID4gPiAgcjc6MDAwMDAwMDEgcjY6YzAzMGI4YmMgcjU6YzFjNDIwMDAgcjQ6YzFjNDIwMDAKPiA+
-ID4gWzxjMDI1OWYwOD5dIChzY2hlZHVsZSsweDAvMHgxMTQpIGZyb20gWzxjMDI1YTRjMD5dCj4g
-PiA+ICh3YWl0X2Zvcl9jb21wbGV0aW9uKzB4YzAvMHgxNTQpCj4gPiA+ICByNDpjMWM0M2VmNAo+
-ID4gPiBbPGMwMjVhNDAwPl0gKHdhaXRfZm9yX2NvbXBsZXRpb24rMHgwLzB4MTU0KSBmcm9tIFs8
-YzAwM2RlNzg+XQo+ID4gPiAob21hcF9tY2JzcF9yZWN2X3dvcmQrMHg0MC8weDY0KQo+ID4gPiAg
-cjY6MDAwMDAwMDIgcjU6YzAzMGI4MzggcjQ6ZmVmYjEwMDAKPiA+ID4gWzxjMDAzZGUzOD5dIChv
-bWFwX21jYnNwX3JlY3Zfd29yZCsweDAvMHg2NCkgZnJvbSBbPGJmMDAwMzdjPl0KPiA+ID4gKGFk
-czh4eHhfcmVhZCsweDUwLzB4ZjAgW2Fkczh4eHhdKQo+ID4gPiAgcjY6MDAwMDQwMDUgcjU6MDAw
-MDAwMDIgcjQ6YzE5OGUwMDIKPiA+ID4gWzxiZjAwMDMyYz5dIChhZHM4eHh4X3JlYWQrMHgwLzB4
-ZjAgW2Fkczh4eHhdKSBmcm9tIFs8YzAwYTNlNjg+XQo+ID4gPiAodmZzX3JlYWQrMHhiNC8weDE0
-MCkKPiA+ID4gWzxjMDBhM2RiND5dICh2ZnNfcmVhZCsweDAvMHgxNDApIGZyb20gWzxjMDBhNDk5
-MD5dIChzeXNfcmVhZCsweDRjLzB4ODApCj4gPiA+ICByNzowMDAwMDAwMyByNjowMDAwMDAwMCBy
-NTowMDAwMDAwMiByNDpjMWQyZDE2MAo+ID4gPiBbPGMwMGE0OTQ0Pl0gKHN5c19yZWFkKzB4MC8w
-eDgwKSBmcm9tIFs8YzAwMjhlZTA+XSAocmV0X2Zhc3Rfc3lzY2FsbCsweDAvMHgyYykKPiA+ID4g
-IHI2OjAwMDAwMDAyIHI1OjAwMDA4NzNjIHI0OmJlYjk4ZWI0Cj4gPiA+Cj4gPiA+Cj4gPiA+Cj4g
-PiA+IHRoZSBzeXN0ZW0gaXMgbG9ja2luZyBpbiB0aGUgcmVhZCBwcm9jZXNzIG9mIG15IGRyaXZl
-ciwgdGhlIHJlYWQgY29kZQo+ID4gPiBpbiBkcml2ZXIgaXMgOgo+ID4gPgo+ID4gPiBzc2l6ZV90
-IGFkczh4eHhfcmVhZChzdHJ1Y3QgZmlsZSAqZmlscCwgY2hhciBfX3VzZXIgKmJ1Ziwgc2l6ZV90
-Cj4gPiA+IGNvdW50LCBsb2ZmX3QgKmZfcG9zKQo+ID4gPiB7Cj4gPiA+ICAgICAgICAgc3NpemVf
-dCByZXN1bHQgPSAwOwo+ID4gPiAgICAgICAgIGludCBpOwo+ID4gPiAgICAgICAgIHN0cnVjdCBo
-YW5kbGVyX2RldiAqZGV2ID0gZmlscC0+cHJpdmF0ZV9kYXRhOwo+ID4gPgo+ID4gPiAgICAgICAg
-IHNwaW5fbG9ja19pcnEoJmRldi0+c2xvY2spOwo+ID4gPiAgICAgICAgIC8vaWYgKGRvd25faW50
-ZXJydXB0aWJsZSgmZGV2LT5zZW1hKSkKPiA+ID4gICAgICAgICAvLyAgICAgIHJldHVybiAtRVJF
-U1RBUlRTWVM7Cj4gPiA+ICAgICAgICAgLy9pZiAoKmZfcG9zID49IGRldi0+cnNpemUpCj4gPiA+
-ICAgICAgICAgLy8gICAgICBnb3RvIG91dDsKPiA+ID4gICAgICAgICAvL2lmICgqZl9wb3MgKyBj
-b3VudCA+IGRldi0+cnNpemUpCj4gPiA+ICAgICAgICAgLy9jb3VudCA9IGRldi0+cnNpemUgLSAq
-Zl9wb3M7Cj4gPiA+ICAgICAgICAgZm9yKGkgPSAwOyBpPCBjb3VudDsgaSsrKQo+ID4gPiAgICAg
-ICAgICAgICAgICAgZGV2LT5yYnVmZmVyW2ldID0gKHVpbnQxNl90KSBvbWFwX21jYnNwX3JlY3Zf
-d29yZChkZXYtPmFkY19kZXYpOwo+ID4KPiA+IEkgY2FuIGJlIHdyb25nLi4uIGJ1dCBJIHRoaW5r
-IHlvdSBjYW4ndCAid2FpdF9mb3JfY29tcGxldGlvbigpIiBpbnNpZGUKPiA+IGEgc3BpbmxvY2su
-Li4KPiA+Cj4gPiByZW1vdmUgeW91ciBsb2Nrcy4uLiBpdCdsbCBwcm9iYWJseSB3b3JrLi4uCj4g
-PiBvbWFwX21jYnNwX3JlY3Zfd29yZCgpICB3aWxsIGNhbGwgd2FpdF9mb3JfY29tcGxldGlvbigp
-IHdoaWNoIGNhbGxzCj4gPiB3YWl0X2Zvcl9jb21tb24sIGFuZCB0aGlzIG9uZSBsb2NrcyB3aGVu
-IG5lZWRlZC4uLgo+ID4KPiA+IHRyeSB0aGF0IDstKQo+ID4KPiA+Cj4KPiBBbHNvLCBJIGRvbid0
-IHRoaW5rIGNvcHlfdG9fdXNlcigpIHNob3VsZCBiZSBjYWxsZWQgd2hpbGUgaG9sZGluZyBhCj4g
-c3BpbmxvY2ssIGJlY2F1c2UgaXQgY2FuIHNsZWVwLgo+Cj4gPiA+Cj4gPiA+ICAgICAgICAgaWYg
-KGNvcHlfdG9fdXNlcihidWYsICZkZXYtPnJidWZmZXIsIGNvdW50KSkKPiA+ID4gICAgICAgICB7
-Cj4gPiA+ICAgICAgICAgICAgICAgICByZXN1bHQgPSAtRUZBVUxUOwo+ID4gPiAgICAgICAgICAg
-ICAgICAgZ290byBvdXQ7Cj4gPiA+ICAgICAgICAgfQo+ID4gPiAgICAgICAgICpmX3BvcyArPSBj
-b3VudDsKPiA+ID4gICAgICAgICByZXN1bHQgPSBjb3VudDsKPiA+ID4KPiA+ID4KPiA+ID4gICAg
-ICAgICBvdXQ6Cj4gPiA+Cj4gPiA+ICAgICAgICAgICAgICAgICBzcGluX3VubG9ja19pcnEoJmRl
-di0+c2xvY2spOwo+ID4gPiAgICAgICAgICAgICAgICAgcmV0dXJuIHJlc3VsdDsKPiA+ID4KPiA+
-ID4gLS0KPiA+ID4gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gPiA+IFRoYW5rcyAmJiBSZWdhcmRz
-Cj4gPiA+IE1zYy4gQnNjLiBMdcOtcyBWaXTDs3JpbyBDYXJnbmluaQo+ID4gPiBJRUVFIE1lbWJl
-cgo+ID4gPiBFbGVjdHJpY2FsIEVuZ2luZWVyIEZhY3VsdHkgQCBQVUNSUwo+ID4gPiBJcGlyYW5n
-YSBBdmVudWUsIDY2ODEg4oCTIEJ1aWxkaW5nIDMwCj4gPiA+IFAuTy4gQm94OiA5MDYxOS05MDAg
-4oCTIFBvcnRvIEFsZWdyZS9SUwo+ID4gPiBQaG9uZTogKzU1IDUxIDMzMjAgMzUwMCAgZXh0ZW5z
-aW9uOiA3Njk2Cj4gPiA+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+ID4gPgo+ID4gPiBfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+ID4gPiBMaW51eC1v
-bWFwLW9wZW4tc291cmNlIG1haWxpbmcgbGlzdAo+ID4gPiBMaW51eC1vbWFwLW9wZW4tc291cmNl
-QGxpbnV4Lm9tYXAuY29tCj4gPiA+IGh0dHA6Ly9saW51eC5vbWFwLmNvbS9tYWlsbWFuL2xpc3Rp
-bmZvL2xpbnV4LW9tYXAtb3Blbi1zb3VyY2UKPiA+ID4KPiA+ID4KPiA+Cj4gPgo+ID4gLS0KPiA+
-IEJlc3QgUmVnYXJkcywKPiA+Cj4gPiBGZWxpcGUgQmFsYmkKPiA+IGZlbGlwZWJhbGJpQHVzZXJz
-LnNvdXJjZWZvcmdlLm5ldAo+ID4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KPiA+IExpbnV4LW9tYXAtb3Blbi1zb3VyY2UgbWFpbGluZyBsaXN0Cj4gPiBM
-aW51eC1vbWFwLW9wZW4tc291cmNlQGxpbnV4Lm9tYXAuY29tCj4gPiBodHRwOi8vbGludXgub21h
-cC5jb20vbWFpbG1hbi9saXN0aW5mby9saW51eC1vbWFwLW9wZW4tc291cmNlCj4gPgo+Cj4KPiAt
-LQo+IFRoYW5rcywKPgo+IEpvbmF0aGFuIEtvdHRhCj4KPiBIb2ZzdGFkdGVyJ3MgTGF3Ogo+ICAg
-ICBJdCBhbHdheXMgdGFrZXMgbG9uZ2VyIHRoYW4geW91IGV4cGVjdCwgZXZlbgo+ICAgICB3aGVu
-IHlvdSB0YWtlIGludG8gYWNjb3VudCBIb2ZzdGFkdGVyJ3MgTGF3Lgo+CgoKLS0gCi0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLQpUaGFua3MgJiYgUmVnYXJkcwpNc2MuIEJzYy4gTHXDrXMgVml0w7NyaW8g
-Q2FyZ25pbmkKSUVFRSBNZW1iZXIKRWxlY3RyaWNhbCBFbmdpbmVlciBGYWN1bHR5IEAgUFVDUlMK
-SXBpcmFuZ2EgQXZlbnVlLCA2NjgxIOKAkyBCdWlsZGluZyAzMApQLk8uIEJveDogOTA2MTktOTAw
-IOKAkyBQb3J0byBBbGVncmUvUlMKUGhvbmU6ICs1NSA1MSAzMzIwIDM1MDAgIGV4dGVuc2lvbjog
-NzY5NgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0K
-
---===============0055358509==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+how about the patch (following in the next message) instead?  That way
+we don't define OMAP2_CTRL_BASE for non-OMAP2 builds.   Build-tested
+with OSK5912 default config with MMC driver enabled.
 
 
---===============0055358509==--
+- Paul
+>From paul@pwsan.com Wed Oct 24 23:36:10 2007
+Message-Id: <20071025053610.715631084@pwsan.com>
+User-Agent: quilt/0.46-1
+Date: Wed, 24 Oct 2007 23:31:44 -0600
+From: Paul Walmsley <paul@pwsan.com>
+To: lvcargnini@gmail.com,
+ dirk.behme@googlemail.com,
+ tony@atomide.com
+Cc: linux-omap-open-source@linux.omap.com
+Bcc:  <471F868A.3060106@googlemail.com>
+Subject: fix undeclared OMAP2_CTRL_BASE for OMAP MMC driver in OMAP1 compiles
+References: <ae36f8040710240958l579ad5el16f17cb073e25387@mail.gmail.com>
+    <471F868A.3060106@googlemail.com>
+ <20071025053143.222542615@pwsan.com>
+Content-Disposition: inline; filename=fix_omap2_ctrl_base_mmc_compile_bug.patch
+Replace-Subject: fix undeclared OMAP2_CTRL_BASE for OMAP MMC driver in OMAP1 compiles
+
+Remove reference to OMAP2_CTRL_BASE in arch/arm/plat-omap/devices.c
+if we aren't building for an OMAP2 platform.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+
+---
+ arch/arm/plat-omap/devices.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+Index: linux-omap/arch/arm/plat-omap/devices.c
+===================================================================
+--- linux-omap.orig/arch/arm/plat-omap/devices.c	2007-08-29 13:53:47.000000000 -0600
++++ linux-omap/arch/arm/plat-omap/devices.c	2007-10-24 23:29:51.000000000 -0600
+@@ -339,6 +339,7 @@
+ 				omap_cfg_reg(MMC_DAT3);
+ 			}
+ 		}
++#if defined(CONFIG_ARCH_OMAP24XX)
+ 		if (mmc->internal_clock) {
+ 			/*
+ 			 * Use internal loop-back in MMC/SDIO
+@@ -350,6 +351,7 @@
+ 				omap_writel(v, OMAP2_CONTROL_DEVCONF);
+ 			}
+ 		}
++#endif
+ 		mmc1_conf = *mmc;
+ 		(void) platform_device_register(&mmc_omap_device1);
+ 	}
+
+-- 
