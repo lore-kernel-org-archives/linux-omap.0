@@ -1,21 +1,15 @@
-From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
-Subject: Re: OMAP3 & PRCM register ??
-Date: Thu, 25 Oct 2007 23:02:39 +0300
-Message-ID: <31e679430710251302i6904c8d8q8ab39bea59fefbb5@mail.gmail.com>
-References: <31e679430710251056p467b7161tccf52693745ba0eb@mail.gmail.com>
-	<3B6D69C3A9EBCA4BA5DA60D9130274290253046F@dlee13.ent.ti.com>
-	<31e679430710251124w70f370c5of30b209eacbf8753@mail.gmail.com>
-	<3B6D69C3A9EBCA4BA5DA60D913027429025304BF@dlee13.ent.ti.com>
-	<31e679430710251154p4f87f124h181ffc6a2a8c8dc1@mail.gmail.com>
-	<3B6D69C3A9EBCA4BA5DA60D9130274290253052A@dlee13.ent.ti.com>
-	<31e679430710251242g4e0eb2f5g7d02978d2d79ed70@mail.gmail.com>
-	<3B6D69C3A9EBCA4BA5DA60D9130274290253055D@dlee13.ent.ti.com>
+From: "Kyungmin Park" <kyungmin.park@samsung.com>
+Subject: RE: Onenand sync burst mode - query
+Date: Fri, 26 Oct 2007 09:03:23 +0900
+Message-ID: <004401c81763$a511d6b0$e1ac580a@swcenter.sec.samsung.co.kr>
+References: <00b901c81701$c25844f0$ec8818ac@ent.ti.com>
+Reply-To: kyungmin.park@samsung.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D9130274290253055D@dlee13.ent.ti.com>
-Content-Disposition: inline
+In-reply-to: <00b901c81701$c25844f0$ec8818ac@ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -25,47 +19,44 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Linux-OMAP <linux-omap-open-source@linux.omap.com>
+To: 'Sameer' <x0081444@ti.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On 10/25/07, Woodruff, Richard <r-woodruff2@ti.com> wrote:
-> > > TI 2430 and 3430 images have necessary code to make all this work for
-> > OTG.  There likely is some work in merging it back into the latest omap-
-> > git.
-> > >
-> >
-> > I suppose you mean internal TI linux kernel trees here... Is there any
-> > plans for releasing this code ?
->
-> Yes and yes.  You can get the 2430-MUSB+T2 code from the website today against an old kernel.
+Hi,
 
-today... that's nice... maybe I'll try to port it to recent linux-omap
-if you don't mind :-D
+Umm it's not easy to set the right values for OneNAND and GPMC.
+It's dependent on Memory clock in GPMC and OneNAND chips
+For instance, the Apollon & n800 has the same device, but the memory timing values are different.
+So I recommend that you first use the n800 values and fix it for your targets
+Maybe you need the logic analyzer to see the timing.
 
->
-> We have fully working images against 2.6.22 and also a more recent one against 2.6.23 (OTG/Host/Client).
->
-> As with the bridge code I think any time from today to a month+ current code should always be available.
->
-> > I'm really interested in seeing this happening, after working on tusb
-> > i'd like to keep going with omap 2430 and omap3 support...
->
-> There is always plenty to do with USB ;) 3430-ES2 is no exception.  In addition to the M-USB (internal tusb) there is now a new multi-port EHCI controller block.
+Thank you,
+Kyungmin Park
 
-yeah... saw that in TRM... this'll make things easier in some way...
-ehci-omap.c seems quite easy to implement. The other protocol stuff
-are already done in linux usb stack.
-
->
-> Regards,
-> Richard W.
->
->
-
-
--- 
-Best Regards,
-
-Felipe Balbi
-felipebalbi@users.sourceforge.net
+ 
+> -----Original Message-----
+> From: linux-omap-open-source-bounces@linux.omap.com [mailto:linux-omap-open-source-
+> bounces@linux.omap.com] On Behalf Of Sameer
+> Sent: Thursday, October 25, 2007 9:23 PM
+> To: linux-omap-open-source@linux.omap.com
+> Subject: Onenand sync burst mode - query
+> 
+> Hi,
+> I am working on onenand driver based on omap board.
+> Onenand is samsung onenand. I need to add the functionality for
+> Synchronous burst mode operation which is currently not present.
+> I am refering n800 board driver (arch/arm/mach-omap/board-n880-flash.c)
+> The function "omap2_onenand_set_sync_mode" contains the variable "fclk_offset_ns"
+> 
+> I am not able to relate this variable with the timing diagram of the onenand flash
+> Could any body specify the significance of this variable and how is it related to
+> the timing variables?
+> 
+> Thanks,
+> -Sameer
+> 
+> 
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
