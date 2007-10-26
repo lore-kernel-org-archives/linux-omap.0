@@ -1,13 +1,13 @@
 From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: omap GPIO programming
-Date: Thu, 25 Oct 2007 19:24:49 -0500
-Message-ID: <472133D1.30504@gmail.com>
-References: <c656a4d20710240205h37ed0e13m2484fba021ecd889@mail.gmail.com>
+Subject: Re: DMA omap
+Date: Thu, 25 Oct 2007 19:32:05 -0500
+Message-ID: <47213585.5020702@gmail.com>
+References: <ae36f8040710241228i25b7a2dy73585f7bd2491191@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <c656a4d20710240205h37ed0e13m2484fba021ecd889@mail.gmail.com>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <ae36f8040710241228i25b7a2dy73585f7bd2491191@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,19 +15,38 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: arun c <arun.edarath@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: lvcargnini@gmail.com
+Cc: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-arun c stated on 10/24/2007 4:05 AM:
-> Whether i have to set pin muxing or use any other kernel api to use
-> the GPIOS 142 and 87?? please help me.
-in general yes. I usually refer to the corresponding OMAP Data Manual to
-get which ballout  I am interested in, and then see the TRM for the
-corresponding register to set. omap2430 pin muxing is very straight
-forward and should be easy to do.
+Lu=EDs Cargnini stated on 10/24/2007 2:28 PM:
+> Dear fellows,
+> I want to use DMA on my driver, please someone can help me,
+> how could I use the functions omap_mcbsp_xmit_buffer, omap_mcbsp_recv_b=
+uffer
+> and how to obtain the DMA addres that  could be used as the parameter
+> dma_addr_t buffer in both functions
+I am a bit rusty around this now a days, so please correct me if I am wro=
+ng:
 
+There used to be dma_alloc_coherent when I used to work on audio driver.
+you could check up again.. there are two ways you can use this buffer:
+a) cached memory: this is the general form when u do a kalloc and use
+memory.. Some recommend this esp if you are doing a mmap and there is
+large amoung of user space processing required-cached memory speeds up
+things for u. the trouble is that when u give it to DMA, it tends to
+read what is directly in SDRAM as it does not know what is in MPU Cache.
+so the trick is that before you give it to dma, u need to flush the
+cache.. this is a tricky business, if you have small memory buffers and
+u flush often.. u will kill system performance.
+b) uncached memory: u might on the other hand not want any flushing to
+be done, instead allocate memory in which all accesses are done straight
+to the SDRAM. This is called write-through mode. in this any access to
+allocated memory will go straight to the SDRAM instead of being cached..
+some folks consider this as not optimal, but again it is use case
+dependent. this kind of memory can be got using dma_alloc_coherent or
+it's equivalent.
 Regards,
 Nishanth Menon
