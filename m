@@ -1,16 +1,15 @@
-From: "Kyungmin Park" <kyungmin.park@samsung.com>
-Subject: RE: oprofile on OMAP2: ARM11 PMU interrupts?
-Date: Mon, 29 Oct 2007 09:48:35 +0900
-Message-ID: <003701c819c5$765e6a90$e1ac580a@swcenter.sec.samsung.co.kr>
-References: <472225F6.9070502@mvista.com>
-	<3B6D69C3A9EBCA4BA5DA60D91302742902530AF3@dlee13.ent.ti.com>
-Reply-To: kyungmin.park@samsung.com
+From: "arun c" <arun.edarath@gmail.com>
+Subject: Re: touch screen on 2430sdp not giving X and Y values
+Date: Mon, 29 Oct 2007 12:00:27 +0530
+Message-ID: <c656a4d20710282330x74dc71e0x68ca6c5309c3b643@mail.gmail.com>
+References: <c656a4d20710260532wb60aa47r369f80c3c58c946a@mail.gmail.com>
+	<000901c817e9$83f48c80$6a8918ac@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-reply-to: <3B6D69C3A9EBCA4BA5DA60D91302742902530AF3@dlee13.ent.ti.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <000901c817e9$83f48c80$6a8918ac@ent.ti.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,62 +17,46 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "'Woodruff, Richard'" <r-woodruff2@ti.com>, 'Kevin Hilman' <khilman@mvista.com>, 'Linux OMAP' <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-FYI: Refer to the following article
-
-http://blog.gustavobarbieri.com.br/2007/05/22/oprofile-and-maemo-n800/
-
-I saw this article a month ago, but I also don't test it.
-It needs the Oprofile modification.
-
-Thank you,
-Kyungmin Park
-
-> -----Original Message-----
-> From: linux-omap-open-source-bounces@linux.omap.com [mailto:linux-omap-open-source-
-> bounces@linux.omap.com] On Behalf Of Woodruff, Richard
-> Sent: Saturday, October 27, 2007 5:53 AM
-> To: Kevin Hilman; Linux OMAP
-> Subject: RE: oprofile on OMAP2: ARM11 PMU interrupts?
-> 
-> Hi Kevin,
-> 
-> Yes, several people are using it locally on SDP2430 for measurements.  It is pretty neat.
-> 
-> Yes IRQ3 is correct I believe.
-> 
-> There is a patch around which makes it work on ML4.1 which someone did a while back.  Last comment
-> I saw was Russell's base patch had a few mistakes when needed fixing.
-> 
-> I'll take a look for the path and send you a copy.  Perhaps you can push out fixes as your
-> currently interested.
-> 
-> Regards,
-> Richard W.
-> 
-> > Is anyone using oprofile on OMAP2?
+On 10/26/07, Girish <girishsg@ti.com> wrote:
+>
+>
+> >-----Original Message-----
+> >From: linux-omap-open-source-bounces@linux.omap.com
+> >[mailto:linux-omap-open-source-bounces@linux.omap.com] On
+>
+> >Subject: touch screen on 2430sdp not giving X and Y values
 > >
-> > A quick test of the current code in current git doesn't seem to work.  I
-> > see the PMU being configured, IRQ3 being registered but no interrupts
-> > ever fire on that IRQ, and thus no data is collected.
+> >Hi all,
 > >
-> > I tested on a 2420/H4 and 2430SDP with same results.  In both cases, the
-> > IRQ is configured to IRQ3, which in the TRM says 'BENCH MPU emulation'.
-> >  I have no idea what that means, but it doesn't sound like the ARM11 PMU
-> > interrupt to me though.
+> >I am working on 2430sdp. I am using the kernel linux-2.6.14-omap2-v4.
 > >
-> > Any ideas?
+> >I wanted to use the touch screen on sdp. I built the kernel
+> >using the default configuration came with the kernel source.
 > >
-> > Kevin
-> > _______________________________________________
-> > Linux-omap-open-source mailing list
-> > Linux-omap-open-source@linux.omap.com
-> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> Check in menu config whether OMAP SPI is enabled and see
+> Touch Screen interface power is enabled.
+
+I checked it and it is enabled as given below
+
+#
+# Synchronous Serial Interfaces (SSI)
+#
+CONFIG_OMAP_MCBSP=y
+CONFIG_OMAP_MCSPI=y
+CONFIG_OMAP_HDQ=y
+
+But how can i check the Touch Screen interface power???  you mean
+hardware wise checking??
+>
+> >I downloaded the evtest.c from net to test the touch screen.
+> Try enabling debug statements in the driver(if exists or you can
+> put some debug statements for printing x y & z).
+I will put debug messages and let you know.
+
+regards
+arun
