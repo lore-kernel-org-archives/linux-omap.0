@@ -1,15 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: About to tag 2.6.23-omap1
-Date: Mon, 29 Oct 2007 01:49:28 -0700
-Message-ID: <20071029084928.GG10884@atomide.com>
-References: <20071023011920.GL17318@atomide.com>
-	<9c9fda240710221845y341a5cb0i50b7e07e6d959853@mail.gmail.com>
-	<471E1377.401@googlemail.com> <20071023174000.GH5193@atomide.com>
+From: "arun c" <arun.edarath@gmail.com>
+Subject: Re: touch screen on 2430sdp not giving X and Y values
+Date: Mon, 29 Oct 2007 16:05:47 +0530
+Message-ID: <c656a4d20710290335h5f754ee2nf4eea969366530d1@mail.gmail.com>
+References: <c656a4d20710282330x74dc71e0x68ca6c5309c3b643@mail.gmail.com>
+	<001701c819fc$7d6dcce0$6a8918ac@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <001701c819fc$7d6dcce0$6a8918ac@ent.ti.com>
 Content-Disposition: inline
-In-Reply-To: <20071023174000.GH5193@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,53 +19,64 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: Kyungmin Park <kmpark@infradead.org>, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [071023 10:41]:
-> * Dirk Behme <dirk.behme@googlemail.com> [071023 08:30]:
-> > Kyungmin Park wrote:
-> >> There is a pending patch related with OMAP2 USB device DMA support.
-> >> I think now there's one user to use this feature, Apollon.
-> >> As David's comment, it has board specific code.
-> >> but the DMA patch don't update the board specific code. it only adds
-> >> the DMA codes.
-> >> So if you don't mind I hope to merge this one too.
-> >
-> > Looking into my pending patches list, I think you mean
-> >
-> > http://linux.omap.com/pipermail/linux-omap-open-source/2007-October/011579.html
-> >
-> > ?
-> 
-> Let's plan on pushing that over after updating to current mainline
-> kernel. That way if it breaks stuff for non-DMA configurations :)
-> 
-> >> On 10/23/07, Tony Lindgren <tony@atomide.com> wrote:
-> >>> Hi all,
-> >>>
-> >>> I'm planning to tag 2.6.23-omap1 tomorrow morning PST with current
-> >>> linux-omap git tree unless somebody comes up with fixes that still
-> >>> should go in.
-> >>>
-> >>> So only fixes right now please, then let's update the tree to
-> >>> mainline kernel, and try to get most of the pending patches such as
-> >>> mmc, v4l, osk-2420, omap2-nand etc applied (and fixed if needed).
-> >>>
-> >>> After that, let's plan on doing the move of arch/arm/plat-omap/dsp
-> >>> to drivers/dsp/omap. And then we prepare patches do the fixes needed
-> >>> for Russell for plat-omap and mach-omap1 before 2.6.24-rc5 to try to
-> >>> get them mostly in sync with mainline. Then we can hopefully sync up
-> >>> mach-omap2 for 2.6.25-rc5.
-> 
-> I've tagged v2.6.23-omap1 and posted the patch to usual location.
+On 10/29/07, Girish <girishsg@ti.com> wrote:
+>
+>
+> >But how can i check the Touch Screen interface power???  you
+> >mean hardware wise checking??
+>
+> I guess vaux2 has to be enabled for TS to work on 2430sdp, you can
+> Cross check in TRM.
 
-Just FYI everybody, I'm updating linux-omap to mainline tree today.
+Power supply is OK, i think so because everything is
+working fine on CSST diagnostics tests.
 
-I had to travel to go deal with some product specific bugs, but now that's
-out of the way so I'll have more time for linux-omap tree again.
+Below i am pasting the kernel debug messages.
 
-Cheers,
+omap_tsc2046_handler Entry
+omap_tsc2046_handler[410]:Exit(0)
+omap_tsc2046_tasklet Entry
+pen_down Entry
+pen_down[249]:Exit(0)
+omap_tsc2046_read_buf Entry
+omap_tsc2046_read_buf [299]
+ values[0]=-2147483648
+omap_tsc2046_read_buf [299]
+ values[1]=-754974720
+omap_tsc2046_read_buf [299]
+ values[2]=-1828716544
+omap_tsc2046_read_buf [299]
+ values[3]=-1291845632
+omap_tsc2046_read_buf [299]
+ values[4]=-1023410176
+getdata Entry
+getdata [257] data1 : -1828716544        data2:-1291845632
 
-Tony
+getdata Entry
+getdata [257] data1 : -754974720         data2:-1828716544
+
+getdata Entry
+getdata [257] data1 : -1291845632        data2:-1023410176
+
+getdata Entry
+getdata [257] data1 : -1023410176        data2:0
+
+omap_tsc2046_read_buf [317] X : 0        Y:0     P : 0
+
+omap_tsc2046_read_buf[332]:Exit(0)
+omap_tsc2046_tasklet[366]:Exit(0)
+omap_tsc2046_timer Entry
+pen_down Entry
+pen_down[249]:Exit(1)
+omap_tsc2046_timer[395]:Exit(0)
+
+The problem is that for all the presses i am getting
+
+X=0               Y=0              and  P=0
+what could be the problem????? please somebody help me
+
+Regards,
+Arun
