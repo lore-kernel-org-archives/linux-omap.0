@@ -1,14 +1,15 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: OMAP tsc210x touchscreens?
-Date: Mon, 29 Oct 2007 17:20:44 +0100
-Message-ID: <4726085C.2010009@googlemail.com>
-References: <4725FC94.6080808@googlemail.com>
-	<fb249edb0710290906g3819c7cdkcd2f0decc57f8fd2@mail.gmail.com>
+From: Kevin Hilman <khilman@mvista.com>
+Subject: Re: oprofile on OMAP2: ARM11 PMU interrupts?
+Date: Mon, 29 Oct 2007 09:45:20 -0700
+Message-ID: <47260E20.3040107@mvista.com>
+References: <472225F6.9070502@mvista.com>
+	<3B6D69C3A9EBCA4BA5DA60D91302742902530AF3@dlee13.ent.ti.com>
+	<003701c819c5$765e6a90$e1ac580a@swcenter.sec.samsung.co.kr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <fb249edb0710290906g3819c7cdkcd2f0decc57f8fd2@mail.gmail.com>
+In-Reply-To: <003701c819c5$765e6a90$e1ac580a@swcenter.sec.samsung.co.kr>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,32 +19,21 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: andrzej zaborowski <balrogg@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: kyungmin.park@samsung.com
+Cc: 'Linux OMAP' <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-andrzej zaborowski wrote:
-> Hi,
+Kyungmin Park wrote:
+> FYI: Refer to the following article
 > 
-> On 29/10/2007, Dirk Behme <dirk.behme@googlemail.com> wrote:
+> http://blog.gustavobarbieri.com.br/2007/05/22/oprofile-and-maemo-n800/
 > 
->>Because of [1] I looked into drivers/input/touchscreen/omap/ts_hx.c
->>what need to be done there. And, mmh, looks like
->>
->>drivers/input/touchscreen/omap
->>
->>can/should be completely removed? I couldn't find any Kconfig using
->>TOUCHSCREEN_OMAP, so touchscreen/omap will never compile?
->>
->>Instead, touchscreen/tsc210x_ts.c should be used? tsc2102_ts.c is
->>outdated and replaced by tsc210x_ts.c now as well?
+> I saw this article a month ago, but I also don't test it.
+> It needs the Oprofile modification.
 > 
-> 
-> Yes, kindof, the tsc210x* files were supposed to replace tsc2101* and
-> tsc2102* but tsc210x completely doesn't support audio yet,
 
-Anything in touchscreen/* should be completely independent from audio? 
-In touchscreen/* tsc210x* should be sufficent then and tsc2102* & 
-omap/* in *input/touchscreen* are redundant?
+Yeah, I've seen various patches to the oprofile tools floating around
+for ARMv6 support, but from what I can see so far, these are incoporated
+into oprofile 0.9.3, which I still haven't got working on my 2430.
 
-Dirk
+Kevin
