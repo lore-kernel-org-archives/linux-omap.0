@@ -1,19 +1,11 @@
-From: "arun c" <arun.edarath@gmail.com>
-Subject: Re: touch screen on 2430sdp not giving X and Y values
-Date: Tue, 30 Oct 2007 20:04:06 +0530
-Message-ID: <c656a4d20710300734l2d16582fh97887714d1d63f0a@mail.gmail.com>
-References: <c656a4d20710282330x74dc71e0x68ca6c5309c3b643@mail.gmail.com>
-	<001701c819fc$7d6dcce0$6a8918ac@ent.ti.com>
-	<c656a4d20710290335h5f754ee2nf4eea969366530d1@mail.gmail.com>
-	<20071029122306.C2A7C23B30D@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-	<c656a4d20710290546i2cb75638u98a3b172ec56ee0e@mail.gmail.com>
-	<20071029130307.55CC523BCDE@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+From: DAMWID <damwid@gmail.com>
+Subject: About the status of USB support on OMAP2430 SDP
+Date: Tue, 30 Oct 2007 23:19:39 +0800
+Message-ID: <47274B8B.1080802@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=GB18030; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <20071029130307.55CC523BCDE@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-Content-Disposition: inline
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,22 +13,28 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-hi all,
+Hi all,
 
-Thank you very much for your help.
-My touch screen is working properly. It was a hardware connection
-problem with my SDP2430 board.
+I'm working on the USB dirver on my OMAP2430 SDP v3.0 board with 
+linux-omap git tree, currently I can make the Inventra controller (musb) 
+work in host/device/OTG mode, but only for one port on the processor 
+board. How can I enable USB host on the other ports? Should I use the 
+ohci-omap module? I'm not clear with the relationship between musb and 
+ohci-omap, are they separate controllers?
 
-Now i wanted to test latest git kernel on my board.
-Could anybody please tell me whether the latest git kernel is
-having a working touchscreen driver for tsc2046(for 2430 sdp)??
+I can't get the ohci-omap work on my board, and I was confused by the 
+kernel configs in "USB support" section. Is it enough to get ohci-omap 
+work by just enable USB_OHCI_HCD? I notice there is a ISP1301 
+transceiver on the main borad, so is the isp1301_omap driver needed? I 
+found it depends on OMAP_OTG, which is not selected by ARCH_OMAP2430, 
+does this mean isp1301_omap dirver is not necessary for ohci-omap?
 
-And how to download it from the git??
+Does anyone get the ohci-omap work? Can you give some help?
 
-Regards,
-Arun
+Thanks,
+Damwid
