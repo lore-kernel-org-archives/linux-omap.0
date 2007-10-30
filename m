@@ -1,18 +1,8 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] ARM: OMAP: Fix usb gadget related compile errors and
-	typo
-Date: Tue, 30 Oct 2007 10:00:59 -0700
-Message-ID: <200710301000.59813.david-b@pacbell.net>
-References: <47263ACA.8010001@googlemail.com>
-	<20071029201114.0CD6B4A69D@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-	<47275DDC.7060002@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Daniel Stone <daniel.stone@nokia.com>
+Subject: [PATCH] LED: OMAP PWM: Use work queue for brightness
+Date: Tue, 30 Oct 2007 11:37:32 +0200
+Message-ID: <11937370523112-git-send-email-daniel.stone@nokia.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <47275DDC.7060002@googlemail.com>
-Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,25 +12,81 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 30 October 2007, Dirk Behme wrote:
-> gadget_is_otg() is defined as
-> 
-> static inline int gadget_is_otg(struct usb_gadget *g) { ...
-> 
-> and the call is
-> 
-> gadget_is_otg(udc->gadget)
-> 
-> Which fix do you propose for this?
+It isn't safe to schedule from a LED brightness_set handler, so use a work queue.
 
-http://marc.info/?l=linux-usb-devel&m=119343277601632&w=2
+Signed-off-by: Daniel Stone <daniel.stone@nokia.com>
+---
+ drivers/leds/leds-omap-pwm.c |   22 ++++++++++++++++++++--
+ 1 files changed, 20 insertions(+), 2 deletions(-)
 
-which is in the USB patch queue ... I thought I saw it
-get sent to Linus recently, but maybe not.  It's not
-in the kernel.org tree yet, unfortunately.
-
-- Dave
+diff --git a/drivers/leds/leds-omap-pwm.c b/drivers/leds/leds-omap-pwm.c
+index 6b195d6..c5d7ff0 100644
+--- a/drivers/leds/leds-omap-pwm.c
++++ b/drivers/leds/leds-omap-pwm.c
+@@ -16,17 +16,20 @@
+ #include <linux/platform_device.h>
+ #include <linux/leds.h>
+ #include <linux/ctype.h>
++#include <linux/sched.h>
+ #include <asm/delay.h>
+ #include <asm/arch/board.h>
+ #include <asm/arch/dmtimer.h>
+ 
+ struct omap_pwm_led {
+ 	struct led_classdev cdev;
++	struct work_struct work;
+ 	struct omap_pwm_led_platform_data *pdata;
+ 	struct omap_dm_timer *intensity_timer;
+ 	struct omap_dm_timer *blink_timer;
+ 	int powered;
+ 	unsigned int on_period, off_period;
++	enum led_brightness brightness;
+ };
+ 
+ static inline struct omap_pwm_led *pdev_to_omap_pwm_led(struct platform_device *pdev)
+@@ -39,6 +42,11 @@ static inline struct omap_pwm_led *cdev_to_omap_pwm_led(struct led_classdev *led
+ 	return container_of(led_cdev, struct omap_pwm_led, cdev);
+ }
+ 
++static inline struct omap_pwm_led *work_to_omap_pwm_led(struct work_struct *work)
++{
++	return container_of(work, struct omap_pwm_led, work);
++}
++
+ static void omap_pwm_led_set_blink(struct omap_pwm_led *led)
+ {
+ 	if (!led->powered)
+@@ -134,9 +142,17 @@ static void omap_pwm_led_set(struct led_classdev *led_cdev,
+ {
+ 	struct omap_pwm_led *led = cdev_to_omap_pwm_led(led_cdev);
+ 
+-	if (value != LED_OFF) {
++	led->brightness = value;
++	schedule_work(&led->work);
++}
++
++static void omap_pwm_led_work(struct work_struct *work)
++{
++	struct omap_pwm_led *led = work_to_omap_pwm_led(work);
++
++	if (led->brightness != LED_OFF) {
+ 		omap_pwm_led_power_on(led);
+-		omap_pwm_led_set_pwm_cycle(led, value);
++		omap_pwm_led_set_pwm_cycle(led, led->brightness);
+ 	} else {
+ 		omap_pwm_led_power_off(led);
+ 	}
+@@ -228,6 +244,8 @@ static int omap_pwm_led_probe(struct platform_device *pdev)
+ 	led->cdev.default_trigger = NULL;
+ 	led->cdev.name = pdata->name;
+ 	led->pdata = pdata;
++	led->brightness = 0;
++	INIT_WORK(&led->work, omap_pwm_led_work);
+ 
+ 	dev_info(&pdev->dev, "OMAP PWM LED (%s) at GP timer %d/%d\n",
+ 		 pdata->name, pdata->intensity_timer, pdata->blink_timer);
+-- 
+1.4.4.2
