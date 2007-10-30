@@ -1,14 +1,8 @@
-From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
-Subject: Re: [PATCH] LED: OMAP PWM: Use work queue for brightness
-Date: Tue, 30 Oct 2007 12:00:51 +0200
-Message-ID: <31e679430710300300g51d65e89g6a9fdf2aeccb65ca@mail.gmail.com>
-References: <11937370523112-git-send-email-daniel.stone@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <11937370523112-git-send-email-daniel.stone@nokia.com>
-Content-Disposition: inline
+From: Kevin Hilman <khilman@mvista.com>
+Subject: [PATCH] ARM: OMAP: Update PRCM rate-table entries for 2430
+Date: Tue, 30 Oct 2007 04:34:49 -0700
+Message-ID: <20071030113449.099074338@mvista.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,106 +10,202 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Daniel Stone <daniel.stone@nokia.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+[resend with minor build fix and updated description]
 
-On 10/30/07, Daniel Stone <daniel.stone@nokia.com> wrote:
-> It isn't safe to schedule from a LED brightness_set handler, so use a work queue.
->
-> Signed-off-by: Daniel Stone <daniel.stone@nokia.com>
-> ---
->  drivers/leds/leds-omap-pwm.c |   22 ++++++++++++++++++++--
->  1 files changed, 20 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/leds/leds-omap-pwm.c b/drivers/leds/leds-omap-pwm.c
-> index 6b195d6..c5d7ff0 100644
-> --- a/drivers/leds/leds-omap-pwm.c
-> +++ b/drivers/leds/leds-omap-pwm.c
-> @@ -16,17 +16,20 @@
->  #include <linux/platform_device.h>
->  #include <linux/leds.h>
->  #include <linux/ctype.h>
-> +#include <linux/sched.h>
->  #include <asm/delay.h>
->  #include <asm/arch/board.h>
->  #include <asm/arch/dmtimer.h>
->
->  struct omap_pwm_led {
->         struct led_classdev cdev;
-> +       struct work_struct work;
->         struct omap_pwm_led_platform_data *pdata;
->         struct omap_dm_timer *intensity_timer;
->         struct omap_dm_timer *blink_timer;
->         int powered;
->         unsigned int on_period, off_period;
-> +       enum led_brightness brightness;
->  };
->
->  static inline struct omap_pwm_led *pdev_to_omap_pwm_led(struct platform_device *pdev)
-> @@ -39,6 +42,11 @@ static inline struct omap_pwm_led *cdev_to_omap_pwm_led(struct led_classdev *led
->         return container_of(led_cdev, struct omap_pwm_led, cdev);
->  }
->
-> +static inline struct omap_pwm_led *work_to_omap_pwm_led(struct work_struct *work)
-> +{
-> +       return container_of(work, struct omap_pwm_led, work);
-> +}
-> +
->  static void omap_pwm_led_set_blink(struct omap_pwm_led *led)
->  {
->         if (!led->powered)
-> @@ -134,9 +142,17 @@ static void omap_pwm_led_set(struct led_classdev *led_cdev,
->  {
->         struct omap_pwm_led *led = cdev_to_omap_pwm_led(led_cdev);
->
-> -       if (value != LED_OFF) {
-> +       led->brightness = value;
-> +       schedule_work(&led->work);
-> +}
-> +
-> +static void omap_pwm_led_work(struct work_struct *work)
-> +{
-> +       struct omap_pwm_led *led = work_to_omap_pwm_led(work);
-> +
-> +       if (led->brightness != LED_OFF) {
->                 omap_pwm_led_power_on(led);
-> -               omap_pwm_led_set_pwm_cycle(led, value);
-> +               omap_pwm_led_set_pwm_cycle(led, led->brightness);
->         } else {
->                 omap_pwm_led_power_off(led);
->         }
-> @@ -228,6 +244,8 @@ static int omap_pwm_led_probe(struct platform_device *pdev)
->         led->cdev.default_trigger = NULL;
->         led->cdev.name = pdata->name;
->         led->pdata = pdata;
-> +       led->brightness = 0;
+Follow the lead of the TI kernels by removing PRCM #2 and adding PRCM
+#3 and #4 to the rate-table entries.  According to TI, having #2 and
+#3 together is known to be a bad combination.
 
-led->brightness = LED_OFF;
-would look better.
+Also, change the default divider values for the PRCM #5a setting to
+match those of the TI kernel.  Using the smallest divider possible can
+give significant power savings when using the data-driven idle modes.
 
-besides the patch looks ok to me.
+Signed-off-by: Kevin Hilman <khilman@mvista.com>
 
-> +       INIT_WORK(&led->work, omap_pwm_led_work);
->
->         dev_info(&pdev->dev, "OMAP PWM LED (%s) at GP timer %d/%d\n",
->                  pdata->name, pdata->intensity_timer, pdata->blink_timer);
-> --
-> 1.4.4.2
->
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
+---
+ arch/arm/mach-omap2/clock24xx.h |  102 ++++++++++++++++++++++++++++++++--------
+ 1 file changed, 84 insertions(+), 18 deletions(-)
 
-
--- 
-Best Regards,
-
-Felipe Balbi
-felipebalbi@users.sourceforge.net
+Index: dev/arch/arm/mach-omap2/clock24xx.h
+===================================================================
+--- dev.orig/arch/arm/mach-omap2/clock24xx.h
++++ dev/arch/arm/mach-omap2/clock24xx.h
+@@ -244,7 +244,6 @@ struct prcm_config {
+ 
+ /*
+  * 2430 - standalone, 2*ref*M/(n+1), M/N is for exactness not relock speed
+- * #2	(ratio1) baseport-target
+  * #5a	(ratio1) baseport-target, target DPLL = 266*2 = 532MHz
+  */
+ #define M5A_DPLL_MULT_12		(133 << 12)
+@@ -252,13 +251,13 @@ struct prcm_config {
+ #define M5A_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
+ 					M5A_DPLL_DIV_12 | M5A_DPLL_MULT_12 | \
+ 					MX_APLLS_CLIKIN_12
+-#define M5A_DPLL_MULT_13		(266 << 12)
+-#define M5A_DPLL_DIV_13			(12 << 8)
++#define M5A_DPLL_MULT_13		(61 << 12)
++#define M5A_DPLL_DIV_13			(2 << 8)
+ #define M5A_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | \
+ 					M5A_DPLL_DIV_13 | M5A_DPLL_MULT_13 | \
+ 					MX_APLLS_CLIKIN_13
+-#define M5A_DPLL_MULT_19		(180 << 12)
+-#define M5A_DPLL_DIV_19			(12 << 8)
++#define M5A_DPLL_MULT_19		(55 << 12)
++#define M5A_DPLL_DIV_19			(3 << 8)
+ #define M5A_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | \
+ 					M5A_DPLL_DIV_19 | M5A_DPLL_MULT_19 | \
+ 					MX_APLLS_CLIKIN_19_2
+@@ -280,7 +279,27 @@ struct prcm_config {
+ 					M5B_DPLL_DIV_19 | M5B_DPLL_MULT_19 | \
+ 					MX_APLLS_CLIKIN_19_2
+ /*
+- * #4	(ratio2)
++ * #4	(ratio2), DPLL = 399*2 = 798MHz, L3=133MHz
++ */
++#define M4_DPLL_MULT_12			(133 << 12)
++#define M4_DPLL_DIV_12			(3 << 8)
++#define M4_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
++					M4_DPLL_DIV_12 | M4_DPLL_MULT_12 | \
++					MX_APLLS_CLIKIN_12
++
++#define M4_DPLL_MULT_13			(399 << 12)
++#define M4_DPLL_DIV_13			(12 << 8)
++#define M4_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | \
++					M4_DPLL_DIV_13 | M4_DPLL_MULT_13 | \
++					MX_APLLS_CLIKIN_13
++
++#define M4_DPLL_MULT_19			(145 << 12)
++#define M4_DPLL_DIV_19			(6 << 8)
++#define M4_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | \
++					M4_DPLL_DIV_19 | M4_DPLL_MULT_19 | \
++					MX_APLLS_CLIKIN_19_2
++
++/*
+  * #3	(ratio2) baseport-target, target DPLL = 330*2 = 660MHz
+  */
+ #define M3_DPLL_MULT_12			(55 << 12)
+@@ -288,16 +307,41 @@ struct prcm_config {
+ #define M3_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
+ 					M3_DPLL_DIV_12 | M3_DPLL_MULT_12 | \
+ 					MX_APLLS_CLIKIN_12
+-#define M3_DPLL_MULT_13			(330 << 12)
+-#define M3_DPLL_DIV_13			(12 << 8)
++#define M3_DPLL_MULT_13			(76 << 12)
++#define M3_DPLL_DIV_13			(2 << 8)
+ #define M3_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | \
+ 					M3_DPLL_DIV_13 | M3_DPLL_MULT_13 | \
+ 					MX_APLLS_CLIKIN_13
+-#define M3_DPLL_MULT_19			(275 << 12)
+-#define M3_DPLL_DIV_19			(15 << 8)
++#define M3_DPLL_MULT_19			(17 << 12)
++#define M3_DPLL_DIV_19			(0 << 8)
+ #define M3_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | \
+ 					M3_DPLL_DIV_19 | M3_DPLL_MULT_19 | \
+ 					MX_APLLS_CLIKIN_19_2
++
++/*
++ * #2   (ratio1) DPLL = 330*2 = 660MHz, L3=165MHz
++ */
++#define M2_DPLL_MULT_12		        (55 << 12)
++#define M2_DPLL_DIV_12		        (1 << 8)
++#define M2_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
++					M2_DPLL_DIV_12 | M2_DPLL_MULT_12 | \
++					MX_APLLS_CLIKIN_12
++
++/* Speed changes - Used 658.7MHz instead of 660MHz for LP-Refresh M=76 N=2,
++ * relock time issue */
++/* Core frequency changed from 330/165 to 329/164 MHz*/
++#define M2_DPLL_MULT_13		        (76 << 12)
++#define M2_DPLL_DIV_13		        (2 << 8)
++#define M2_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | \
++					M2_DPLL_DIV_13 | M2_DPLL_MULT_13 | \
++					MX_APLLS_CLIKIN_13
++
++#define M2_DPLL_MULT_19		        (17 << 12)
++#define M2_DPLL_DIV_19		        (0 << 8)
++#define M2_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | \
++					M2_DPLL_DIV_19 | M2_DPLL_MULT_19 | \
++					MX_APLLS_CLIKIN_19_2
++
+ /* boot (boot) */
+ #define MB_DPLL_MULT			(1 << 12)
+ #define MB_DPLL_DIV			(0 << 8)
+@@ -370,15 +414,21 @@ struct prcm_config {
+ #define S100M	100000000
+ #define S133M	133000000
+ #define S150M	150000000
++#define S164M	164000000
+ #define S165M	165000000
++#define S199M	199000000
+ #define S200M	200000000
+ #define S266M	266000000
+ #define S300M	300000000
++#define S329M	329000000
+ #define S330M	330000000
++#define S399M	399000000
+ #define S400M	400000000
+ #define S532M	532000000
+ #define S600M	600000000
++#define S658M	658000000
+ #define S660M	660000000
++#define S798M	798000000
+ 
+ /*-------------------------------------------------------------------------
+  * Key dividers which make up a PRCM set. Ratio's for a PRCM are mandated.
+@@ -472,12 +522,20 @@ static struct prcm_config rate_table[] =
+ 		MX_CLKSEL2_PLL_2x_VAL, 0, SDRC_RFR_CTRL_BYPASS,
+ 		RATE_IN_242X},
+ 
+-	/* PRCM #3 - ratio2 (ES2) - FAST */
+-	{S13M, S660M, S330M, R2_CM_CLKSEL_MPU_VAL,		/* 330MHz ARM */
++	/* PRCM #4 - ratio2 (ES2.1) - FAST */
++	{S13M, S798M, S399M, R2_CM_CLKSEL_MPU_VAL,		/* 399MHz ARM */
+ 		R2_CM_CLKSEL_DSP_VAL, R2_CM_CLKSEL_GFX_VAL,
+-		R2_CM_CLKSEL1_CORE_VAL, M3_CM_CLKSEL1_PLL_13_VAL,
++		R2_CM_CLKSEL1_CORE_VAL, M4_CM_CLKSEL1_PLL_13_VAL,
+ 		MX_CLKSEL2_PLL_2x_VAL, R2_CM_CLKSEL_MDM_VAL,
+-		SDRC_RFR_CTRL_110MHz,
++		SDRC_RFR_CTRL_133MHz,
++		RATE_IN_243X},
++
++	/* PRCM #2 - ratio1 (ES2) - FAST */
++	{S13M, S658M, S329M, R1_CM_CLKSEL_MPU_VAL,		/* 330MHz ARM */
++		R1_CM_CLKSEL_DSP_VAL, R1_CM_CLKSEL_GFX_VAL,
++		R1_CM_CLKSEL1_CORE_VAL, M2_CM_CLKSEL1_PLL_13_VAL,
++		MX_CLKSEL2_PLL_2x_VAL, R1_CM_CLKSEL_MDM_VAL,
++		SDRC_RFR_CTRL_165MHz,
+ 		RATE_IN_243X},
+ 
+ 	/* PRCM #5a - ratio1 - FAST */
+@@ -496,12 +554,20 @@ static struct prcm_config rate_table[] =
+ 		SDRC_RFR_CTRL_100MHz,
+ 		RATE_IN_243X},
+ 
+-	/* PRCM #3 - ratio2 (ES2) - SLOW */
+-	{S13M, S330M, S165M, R2_CM_CLKSEL_MPU_VAL,		/* 165MHz ARM */
++	/* PRCM #4 - ratio1 (ES2.1) - SLOW */
++	{S13M, S399M, S199M, R2_CM_CLKSEL_MPU_VAL,		/* 200MHz ARM */
+ 		R2_CM_CLKSEL_DSP_VAL, R2_CM_CLKSEL_GFX_VAL,
+-		R2_CM_CLKSEL1_CORE_VAL, M3_CM_CLKSEL1_PLL_13_VAL,
++		R2_CM_CLKSEL1_CORE_VAL, M4_CM_CLKSEL1_PLL_13_VAL,
+ 		MX_CLKSEL2_PLL_1x_VAL, R2_CM_CLKSEL_MDM_VAL,
+-		SDRC_RFR_CTRL_110MHz,
++		SDRC_RFR_CTRL_133MHz,
++		RATE_IN_243X},
++
++	/* PRCM #2 - ratio1 (ES2) - SLOW */
++	{S13M, S329M, S164M, R1_CM_CLKSEL_MPU_VAL,		/* 165MHz ARM */
++		R1_CM_CLKSEL_DSP_VAL, R1_CM_CLKSEL_GFX_VAL,
++		R1_CM_CLKSEL1_CORE_VAL, M2_CM_CLKSEL1_PLL_13_VAL,
++		MX_CLKSEL2_PLL_1x_VAL, R1_CM_CLKSEL_MDM_VAL,
++		SDRC_RFR_CTRL_165MHz,
+ 		RATE_IN_243X},
+ 
+ 	/* PRCM #5a - ratio1 - SLOW */
+--
