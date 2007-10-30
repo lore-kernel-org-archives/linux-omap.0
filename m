@@ -1,40 +1,47 @@
-From: DAMWID <damwid@gmail.com>
-Subject: About the status of USB support on OMAP2430 SDP
-Date: Tue, 30 Oct 2007 23:19:39 +0800
-Message-ID: <47274B8B.1080802@gmail.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: [PATCH resend] Make the dev_*() family of macros in
+ device.hcomplete
+Date: Tue, 30 Oct 2007 08:29:31 -0700
+Message-ID: <20071030082931.113274cc.randy.dunlap@oracle.com>
+References: <1193697795-7823-1-git-send-email-Emilian.Medve@Freescale.com>
+	<20071030000054.GA19022@suse.de>
+	<598D5675D34BE349929AF5EDE9B03E27016E5FCB@az33exm24.fsl.freescale.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=GB18030; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756218AbXJ3PcH@vger.kernel.org>
+In-Reply-To: <598D5675D34BE349929AF5EDE9B03E27016E5FCB@az33exm24.fsl.freescale.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Medve Emilian-EMMEDVE1 <Emilian.Medve@freescale.com>
+Cc: Greg KH <gregkh@suse.de>, mochel@osdl.org, linux-kernel@vger.kernel.org, hjlipp@web.de, tilman@imap.cc, gigaset307x-common@lists.sourceforge.net, kkeil@suse.de, isdn4linux@listserv.isdn4linux.de, mac@melware.de, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+On Tue, 30 Oct 2007 05:11:24 -0700 Medve Emilian-EMMEDVE1 wrote:
 
-I'm working on the USB dirver on my OMAP2430 SDP v3.0 board with 
-linux-omap git tree, currently I can make the Inventra controller (musb) 
-work in host/device/OTG mode, but only for one port on the processor 
-board. How can I enable USB host on the other ports? Should I use the 
-ohci-omap module? I'm not clear with the relationship between musb and 
-ohci-omap, are they separate controllers?
+> Hi Greg K-H,
+> 
+> 
+> > > +#define dev_info(dev, format, arg...)		\
+> > > +	dev_printk(KERN_INFO, dev, format, ## arg)
+> > > +
+> > >  #ifdef DEBUG
+> > >  #define dev_dbg(dev, format, arg...)		\
+> > > -	dev_printk(KERN_DEBUG , dev , format , ## arg)
+> > > +	dev_printk(KERN_DEBUG, dev, format, ## arg)
+> > 
+> > Those extra spaces are there for a good reason, older versions of gcc
+> > are broken without it.  So please, put them all back...
+> 
+> You mean I should add spaces before commas only where they were
+> initially or to all new code and/or macros? I've observed other kernel
+> code and more often there are no spaces before commas. I'm asking
+> because the CodingStyle document is not very explicit about this rule.
 
-I can't get the ohci-omap work on my board, and I was confused by the 
-kernel configs in "USB support" section. Is it enough to get ohci-omap 
-work by just enable USB_OHCI_HCD? I notice there is a ISP1301 
-transceiver on the main borad, so is the isp1301_omap driver needed? I 
-found it depends on OMAP_OTG, which is not selected by ARCH_OMAP2430, 
-does this mean isp1301_omap dirver is not necessary for ohci-omap?
+My (hazy?) recollection of the gcc issue is that it is only the
+comma before the ## that needs spaces around it.
 
-Does anyone get the ohci-omap work? Can you give some help?
+I'm not even sure that we are still supporting that gcc version,
+but you should just put the spaces back to be safe IMO.
 
-Thanks,
-Damwid
+---
+~Randy
