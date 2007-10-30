@@ -1,10 +1,15 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP: Fix usb gadget related compile errors, take #2
-Date: Tue, 30 Oct 2007 19:48:07 +0100
-Message-ID: <47277C67.7020501@googlemail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH] ARM: OMAP: Update PRCM rate-table entries for 2430
+Date: Tue, 30 Oct 2007 14:50:18 -0500
+Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429025C0596@dlee13.ent.ti.com>
+References: <20071030113449.099074338@mvista.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070104050609070404000309"
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-class: urn:content-classes:message
+In-reply-to: <20071030113449.099074338@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,80 +17,30 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Kevin Hilman <khilman@mvista.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070104050609070404000309
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+> On Behalf Of Kevin Hilman
+> Sent: Tuesday, October 30, 2007 6:35 AM
+> To: linux-omap-open-source@linux.omap.com
+> Subject: [PATCH] ARM: OMAP: Update PRCM rate-table entries for 2430
+>=20
+> [resend with minor build fix and updated description]
+>=20
+> Follow the lead of the TI kernels by removing PRCM #2 and adding PRCM
+> #3 and #4 to the rate-table entries.  According to TI, having #2 and
+> #3 together is known to be a bad combination.
+>=20
+> Also, change the default divider values for the PRCM #5a setting to
+> match those of the TI kernel.  Using the smallest divider possible can
+> give significant power savings when using the data-driven idle modes.
+>=20
+> Signed-off-by: Kevin Hilman <khilman@mvista.com>
 
+Using the lowest N value gives the best power savings.  It might be we =
+need to think a bit on how better to sort table rates.  The MPU index is =
+not unique enough.  Could be per-board or something more cleaver.
 
-ARM: OMAP: Fix usb gadget related compile errors. Incorporated
-comments from David Brownell <david-b@pacbell.net>.
-
-Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
-
-
---------------070104050609070404000309
-Content-Type: text/plain;
- name="usbgadget_include.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="usbgadget_include.txt"
-
-Index: linux-osk/drivers/i2c/chips/isp1301_omap.c
-===================================================================
---- linux-osk.orig/drivers/i2c/chips/isp1301_omap.c
-+++ linux-osk/drivers/i2c/chips/isp1301_omap.c
-@@ -28,7 +28,7 @@
- #include <linux/interrupt.h>
- #include <linux/platform_device.h>
- #include <linux/usb/ch9.h>
--#include <linux/usb_gadget.h>
-+#include <linux/usb/gadget.h>
- #include <linux/usb.h>
- #include <linux/usb/otg.h>
- #include <linux/i2c.h>
-Index: linux-osk/drivers/usb/gadget/omap_udc.c
-===================================================================
---- osk.orig/drivers/usb/gadget/omap_udc.c	2007-10-25 13:05:11.000000000 -0700
-+++ osk/drivers/usb/gadget/omap_udc.c	2007-10-25 13:45:00.000000000 -0700
-@@ -1241,14 +1241,14 @@ static void pullup_enable(struct omap_ud
- 	udc->gadget.dev.parent->power.power_state = PMSG_ON;
- 	udc->gadget.dev.power.power_state = PMSG_ON;
- 	UDC_SYSCON1_REG |= UDC_PULLUP_EN;
--	if (!gadget_is_otg(udc->gadget) && !cpu_is_omap15xx())
-+	if (!gadget_is_otg(&udc->gadget) && !cpu_is_omap15xx())
- 		OTG_CTRL_REG |= OTG_BSESSVLD;
- 	UDC_IRQ_EN_REG = UDC_DS_CHG_IE;
- }
- 
- static void pullup_disable(struct omap_udc *udc)
- {
--	if (!gadget_is_otg(udc->gadget) && !cpu_is_omap15xx())
-+	if (!gadget_is_otg(&udc->gadget) && !cpu_is_omap15xx())
- 		OTG_CTRL_REG &= ~OTG_BSESSVLD;
- 	UDC_IRQ_EN_REG = UDC_DS_CHG_IE;
- 	UDC_SYSCON1_REG &= ~UDC_PULLUP_EN;
-@@ -1386,7 +1386,7 @@ static void update_otg(struct omap_udc *
- {
- 	u16	devstat;
- 
--	if (!gadget_is_otg(udc->gadget))
-+	if (!gadget_is_otg(&udc->gadget))
- 		return;
- 
- 	if (OTG_CTRL_REG & OTG_ID)
-
-
---------------070104050609070404000309
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---------------070104050609070404000309--
+Acked-by: Richard Woodruff <r-woodruff2@ti.com>
