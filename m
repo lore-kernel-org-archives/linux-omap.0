@@ -1,14 +1,15 @@
-From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
-Subject: Re: [PATCH] initial musb urb fixes to make it work again
-Date: Wed, 31 Oct 2007 12:40:40 +0200
-Message-ID: <31e679430710310340s543c9541p96bd564699cccbc2@mail.gmail.com>
-References: <20071030155304.GA30658@atomide.com>
-	<20071031102616.GA31081@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/6] OMAP: Update ov9640 ifparm for H3 board.
+Date: Wed, 31 Oct 2007 03:41:10 -0700
+Message-ID: <20071031104110.GB31081@atomide.com>
+References: <1191934353-24072-1-git-send-email-edubezval@gmail.com>
+	<1191934353-24072-2-git-send-email-edubezval@gmail.com>
+	<1191934353-24072-3-git-send-email-edubezval@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_6878_31323084.1193827240971"
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <20071031102616.GA31081@atomide.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <1191934353-24072-3-git-send-email-edubezval@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,168 +17,81 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: Eduardo Valentin <eduardo.valentin@indt.org.br>, linux-omap-mailing-list <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
-
-------=_Part_6878_31323084.1193827240971
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 Hi,
 
-On 10/31/07, Tony Lindgren <tony@atomide.com> wrote:
-> * Tony Lindgren <tony@atomide.com> [071030 08:53]:
-> > Hi all,
-> >
-> > Attached is an initial patch to make musb driver work again.
-> > I've only done minimal testing, and still need to check at least
-> > the urb dequeue stuff tomorrow. Anyways, in case somebody else
-> > is also looking into this, maybe this helps a bit.
->
-> I've pushed the trivial peripheral compile fixes, here's an
-> updated version of the host side fixes.
+* Eduardo Valentin <edubezval@gmail.com> [071009 05:53]:
+> From: Eduardo Valentin <eduardo.valentin@indt.org.br>
+> 
+> This code is based on board-h4.c and drivers/media/video/omap/h3_sensor_power.c codes.
+> 
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+> ---
+>  arch/arm/mach-omap1/board-h3.c |  140 ++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 140 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
+> index df77cf5..8ecc5f2 100644
+> --- a/arch/arm/mach-omap1/board-h3.c
+> +++ b/arch/arm/mach-omap1/board-h3.c
 
-updated your patch to remove an unused variable warning. I'll take a
-closer look in this driver now.
+<snip>
 
-see the attached
+> @@ -547,6 +552,138 @@ static int nand_dev_ready(struct nand_platform_data *data)
+>  	return omap_get_gpio_datain(H3_NAND_RB_GPIO_PIN);
+>  }
+>  
+> +/*
+> + * Common OV9640 register initialization for all image sizes, pixel formats,
+> + * and frame rates
+> + */
+> +const static struct ov9640_reg ov9640_common[] = {
+> +
+> +	{ 0x12, 0x80 }, { 0x11, 0x80 }, { 0x13, 0x88 },	/* COM7, CLKRC, COM8 */
+> +	{ 0x01, 0x58 }, { 0x02, 0x24 }, { 0x04, 0x00 },	/* BLUE, RED, COM1 */
+> +	{ 0x0E, 0x81 }, { 0x0F, 0x4F }, { 0x14, 0xcA },	/* COM5, COM6, COM9 */
+> +	{ 0x16, 0x02 }, { 0x1B, 0x01 }, { 0x24, 0x70 },	/* ?, PSHFT, AEW */
+> +	{ 0x25, 0x68 }, { 0x26, 0xD3 }, { 0x27, 0x90 },	/* AEB, VPT, BBIAS */
+> +	{ 0x2A, 0x00 }, { 0x2B, 0x00 }, { 0x32, 0x24 },	/* EXHCH, EXHCL, HREF */
+> +	{ 0x33, 0x02 }, { 0x37, 0x02 }, { 0x38, 0x13 },	/* CHLF, ADC, ACOM */
+> +	{ 0x39, 0xF0 }, { 0x3A, 0x00 }, { 0x3B, 0x01 },	/* OFON, TSLB, COM11 */
+> +	{ 0x3D, 0x90 }, { 0x3E, 0x02 }, { 0x3F, 0xF2 },	/* COM13, COM14, EDGE */
+> +	{ 0x41, 0x02 }, { 0x42, 0xC8 },		/* COM16, COM17 */
+> +	{ 0x43, 0xF0 }, { 0x44, 0x10 }, { 0x45, 0x6C },	/* ?, ?, ? */
+> +	{ 0x46, 0x6C }, { 0x47, 0x44 }, { 0x48, 0x44 },	/* ?, ?, ? */
+> +	{ 0x49, 0x03 }, { 0x59, 0x49 }, { 0x5A, 0x94 },	/* ?, ?, ? */
+> +	{ 0x5B, 0x46 }, { 0x5C, 0x84 }, { 0x5D, 0x5C },	/* ?, ?, ? */
+> +	{ 0x5E, 0x08 }, { 0x5F, 0x00 }, { 0x60, 0x14 },	/* ?, ?, ? */
+> +	{ 0x61, 0xCE },					/* ? */
+> +	{ 0x62, 0x70 }, { 0x63, 0x00 }, { 0x64, 0x04 },	/* LCC1, LCC2, LCC3 */
+> +	{ 0x65, 0x00 }, { 0x66, 0x00 },			/* LCC4, LCC5 */
+> +	{ 0x69, 0x00 }, { 0x6A, 0x3E }, { 0x6B, 0x3F },	/* HV, MBD, DBLV */
+> +	{ 0x6C, 0x40 }, { 0x6D, 0x30 }, { 0x6E, 0x4B },	/* GSP1, GSP2, GSP3 */
+> +	{ 0x6F, 0x60 }, { 0x70, 0x70 }, { 0x71, 0x70 },	/* GSP4, GSP5, GSP6 */
+> +	{ 0x72, 0x70 }, { 0x73, 0x70 }, { 0x74, 0x60 },	/* GSP7, GSP8, GSP9 */
+> +	{ 0x75, 0x60 }, { 0x76, 0x50 }, { 0x77, 0x48 },	/* GSP10,GSP11,GSP12 */
+> +	{ 0x78, 0x3A }, { 0x79, 0x2E }, { 0x7A, 0x28 },	/* GSP13,GSP14,GSP15 */
+> +	{ 0x7B, 0x22 }, { 0x7C, 0x04 }, { 0x7D, 0x07 },	/* GSP16,GST1, GST2 */
+> +	{ 0x7E, 0x10 }, { 0x7F, 0x28 }, { 0x80, 0x36 },	/* GST3, GST4, GST5 */
+> +	{ 0x81, 0x44 }, { 0x82, 0x52 }, { 0x83, 0x60 },	/* GST6, GST7, GST8 */
+> +	{ 0x84, 0x6C }, { 0x85, 0x78 }, { 0x86, 0x8C },	/* GST9, GST10,GST11 */
+> +	{ 0x87, 0x9E }, { 0x88, 0xBB }, { 0x89, 0xD2 },	/* GST12,GST13,GST14 */
+> +	{ 0x8A, 0xE6 }, { 0x13, 0xaF }, { 0x15, 0x02 },	/* GST15, COM8 */
+> +	{ 0x22, 0x8a }, /* GROS */
+> +	{ OV9640_REG_TERM, OV9640_VAL_TERM }
+> +};
+> +
+> +#if defined(CONFIG_VIDEO_OV9640) || defined(CONFIG_VIDEO_OV9640_MODULE)
 
->
-> Tony
->
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
->
->
+<snip>
 
+How about moving the struct ov9640_reg to be within CONFIG_VIDEO_OV9640?
 
--- 
-Best Regards,
+Regards,
 
-Felipe Balbi
-felipebalbi@users.sourceforge.net
-
-------=_Part_6878_31323084.1193827240971
-Content-Type: text/x-patch; name=musb-urb-fixes-2.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f8fpw32k
-Content-Disposition: attachment; filename=musb-urb-fixes-2.patch
-
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvdXNiL211c2IvbXVzYl9ob3N0LmMgYi9kcml2ZXJzL3VzYi9t
-dXNiL211c2JfaG9zdC5jCmluZGV4IGQ4ZWE4NGQuLjJlM2NiZDUgMTAwNjQ0Ci0tLSBhL2RyaXZl
-cnMvdXNiL211c2IvbXVzYl9ob3N0LmMKKysrIGIvZHJpdmVycy91c2IvbXVzYi9tdXNiX2hvc3Qu
-YwpAQCAtMjY4LDE4ICsyNjgsNiBAQCBfX211c2JfZ2l2ZWJhY2soc3RydWN0IG11c2IgKm11c2Is
-IHN0cnVjdCB1cmIgKnVyYiwgaW50IHN0YXR1cykKIF9fcmVsZWFzZXMobXVzYi0+bG9jaykKIF9f
-YWNxdWlyZXMobXVzYi0+bG9jaykKIHsKLQlpZiAoKHVyYi0+dHJhbnNmZXJfZmxhZ3MgJiBVUkJf
-U0hPUlRfTk9UX09LKQotCQkJJiYgKHVyYi0+YWN0dWFsX2xlbmd0aCA8IHVyYi0+dHJhbnNmZXJf
-YnVmZmVyX2xlbmd0aCkKLQkJCSYmIHN0YXR1cyA9PSAwCi0JCQkmJiB1c2JfcGlwZWluKHVyYi0+
-cGlwZSkpCi0JCXN0YXR1cyA9IC1FUkVNT1RFSU87Ci0KLQlzcGluX2xvY2soJnVyYi0+bG9jayk7
-Ci0JdXJiLT5oY3ByaXYgPSBOVUxMOwotCWlmICh1cmItPnN0YXR1cyA9PSAtRUlOUFJPR1JFU1Mp
-Ci0JCXVyYi0+c3RhdHVzID0gc3RhdHVzOwotCXNwaW5fdW5sb2NrKCZ1cmItPmxvY2spOwotCiAJ
-REJHKCh7IGludCBsZXZlbDsgc3dpdGNoICh1cmItPnN0YXR1cykgewogCQkJCWNhc2UgMDoKIAkJ
-CQkJbGV2ZWwgPSA0OwpAQCAtMzA0LDcgKzI5Miw3IEBAIF9fYWNxdWlyZXMobXVzYi0+bG9jaykK
-IAkJCSk7CiAKIAlzcGluX3VubG9jaygmbXVzYi0+bG9jayk7Ci0JdXNiX2hjZF9naXZlYmFja191
-cmIobXVzYl90b19oY2QobXVzYiksIHVyYik7CisJdXNiX2hjZF9naXZlYmFja191cmIobXVzYl90
-b19oY2QobXVzYiksIHVyYiwgc3RhdHVzKTsKIAlzcGluX2xvY2soJm11c2ItPmxvY2spOwogfQog
-CkBAIC0zNjUsNiArMzUzLDggQEAgbXVzYl9naXZlYmFjayhzdHJ1Y3QgbXVzYl9xaCAqcWgsIHN0
-cnVjdCB1cmIgKnVyYiwgaW50IHN0YXR1cykKIAkJYnJlYWs7CiAJfQogCisJdXNiX2hjZF91bmxp
-bmtfdXJiX2Zyb21fZXAobXVzYl90b19oY2QobXVzYiksIHVyYik7CisKIAlxaC0+aXNfcmVhZHkg
-PSAwOwogCV9fbXVzYl9naXZlYmFjayhtdXNiLCB1cmIsIHN0YXR1cyk7CiAJcWgtPmlzX3JlYWR5
-ID0gcmVhZHk7CkBAIC0xNzM4LDE1ICsxNzI4LDE1IEBAIHN1Y2Nlc3M6CiAKIHN0YXRpYyBpbnQg
-bXVzYl91cmJfZW5xdWV1ZSgKIAlzdHJ1Y3QgdXNiX2hjZAkJCSpoY2QsCi0Jc3RydWN0IHVzYl9o
-b3N0X2VuZHBvaW50CSpoZXAsCiAJc3RydWN0IHVyYgkJCSp1cmIsCiAJZ2ZwX3QJCQkJbWVtX2Zs
-YWdzKQogewogCXVuc2lnbmVkIGxvbmcJCQlmbGFnczsKIAlzdHJ1Y3QgbXVzYgkJCSptdXNiID0g
-aGNkX3RvX211c2IoaGNkKTsKKwlzdHJ1Y3QgdXNiX2hvc3RfZW5kcG9pbnQJKmhlcCA9IHVyYi0+
-ZXA7CiAJc3RydWN0IG11c2JfcWgJCQkqcWggPSBoZXAtPmhjcHJpdjsKIAlzdHJ1Y3QgdXNiX2Vu
-ZHBvaW50X2Rlc2NyaXB0b3IJKmVwZCA9ICZoZXAtPmRlc2M7Ci0JaW50CQkJCXN0YXR1czsKKwlp
-bnQJCQkJcmV0OwogCXVuc2lnbmVkCQkJdHlwZV9yZWc7CiAJdW5zaWduZWQJCQlpbnRlcnZhbDsK
-IApAQCAtMTc1NCw2ICsxNzQ0LDEwIEBAIHN0YXRpYyBpbnQgbXVzYl91cmJfZW5xdWV1ZSgKIAlp
-ZiAoIWlzX2hvc3RfYWN0aXZlKG11c2IpIHx8ICFtdXNiLT5pc19hY3RpdmUpCiAJCXJldHVybiAt
-RU5PREVWOwogCisJcmV0ID0gdXNiX2hjZF9saW5rX3VyYl90b19lcChoY2QsIHVyYik7CisJaWYg
-KHJldCkKKwkJcmV0dXJuIHJldDsKKwogCS8qIERNQSBtYXBwaW5nIHdhcyBhbHJlYWR5IGRvbmUs
-IGlmIG5lZWRlZCwgYW5kIHRoaXMgdXJiIGlzIG9uCiAJICogaGVwLT51cmJfbGlzdCAuLi4gc28g
-dGhlcmUncyBsaXR0bGUgdG8gZG8gdW5sZXNzIGhlcCB3YXNuJ3QKIAkgKiB5ZXQgc2NoZWR1bGVk
-IG9udG8gYSBsaXZlIHFoLgpAQCAtMTc3NCw4ICsxNzY4LDEwIEBAIHN0YXRpYyBpbnQgbXVzYl91
-cmJfZW5xdWV1ZSgKIAkgKiBmb3IgYnVncyBpbiBvdGhlciBrZXJuZWwgY29kZSB0byBicmVhayB0
-aGlzIGRyaXZlci4uLgogCSAqLwogCXFoID0ga3phbGxvYyhzaXplb2YgKnFoLCBtZW1fZmxhZ3Mp
-OwotCWlmICghcWgpCisJaWYgKCFxaCkgeworCQl1c2JfaGNkX3VubGlua191cmJfZnJvbV9lcCho
-Y2QsIHVyYik7CiAJCXJldHVybiAtRU5PTUVNOworCX0KIAogCXFoLT5oZXAgPSBoZXA7CiAJcWgt
-PmRldiA9IHVyYi0+ZGV2OwpAQCAtMTc4Niw3ICsxNzgyLDcgQEAgc3RhdGljIGludCBtdXNiX3Vy
-Yl9lbnF1ZXVlKAogCiAJLyogbm8gaGlnaCBiYW5kd2lkdGggc3VwcG9ydCB5ZXQgKi8KIAlpZiAo
-cWgtPm1heHBhY2tldCAmIH4weDdmZikgewotCQlzdGF0dXMgPSAtRU1TR1NJWkU7CisJCXJldCA9
-IC1FTVNHU0laRTsKIAkJZ290byBkb25lOwogCX0KIApAQCAtMTg3MCwxMiArMTg2NiwxMiBAQCBz
-dGF0aWMgaW50IG11c2JfdXJiX2VucXVldWUoCiAJCSAqIG9kZCwgcmFyZSwgZXJyb3IgcHJvbmUs
-IGJ1dCBsZWdhbC4KIAkJICovCiAJCWtmcmVlKHFoKTsKLQkJc3RhdHVzID0gMDsKKwkJcmV0ID0g
-MDsKIAl9IGVsc2UKLQkJc3RhdHVzID0gbXVzYl9zY2hlZHVsZShtdXNiLCBxaCwKKwkJcmV0ID0g
-bXVzYl9zY2hlZHVsZShtdXNiLCBxaCwKIAkJCQllcGQtPmJFbmRwb2ludEFkZHJlc3MgJiBVU0Jf
-RU5EUE9JTlRfRElSX01BU0spOwogCi0JaWYgKHN0YXR1cyA9PSAwKSB7CisJaWYgKHJldCA9PSAw
-KSB7CiAJCXVyYi0+aGNwcml2ID0gcWg7CiAJCS8qIEZJWE1FIHNldCB1cmItPnN0YXJ0X2ZyYW1l
-IGZvciBpc28vaW50ciwgaXQncyB0ZXN0ZWQgaW4KIAkJICogbXVzYl9zdGFydF91cmIoKSwgYnV0
-IG90aGVyd2lzZSBvbmx5IGtvbmljYXdjIGNhcmVzIC4uLgpAQCAtMTg4NCw5ICsxODgwLDExIEBA
-IHN0YXRpYyBpbnQgbXVzYl91cmJfZW5xdWV1ZSgKIAlzcGluX3VubG9ja19pcnFyZXN0b3JlKCZt
-dXNiLT5sb2NrLCBmbGFncyk7CiAKIGRvbmU6Ci0JaWYgKHN0YXR1cyAhPSAwKQorCWlmIChyZXQg
-IT0gMCkgeworCQl1c2JfaGNkX3VubGlua191cmJfZnJvbV9lcChoY2QsIHVyYik7CiAJCWtmcmVl
-KHFoKTsKLQlyZXR1cm4gc3RhdHVzOworCX0KKwlyZXR1cm4gcmV0OwogfQogCiAKQEAgLTE5NTAs
-MTQgKzE5NDgsMTMgQEAgc3RhdGljIGludCBtdXNiX2NsZWFudXBfdXJiKHN0cnVjdCB1cmIgKnVy
-Yiwgc3RydWN0IG11c2JfcWggKnFoLCBpbnQgaXNfaW4pCiAJcmV0dXJuIHN0YXR1czsKIH0KIAot
-c3RhdGljIGludCBtdXNiX3VyYl9kZXF1ZXVlKHN0cnVjdCB1c2JfaGNkICpoY2QsIHN0cnVjdCB1
-cmIgKnVyYikKK3N0YXRpYyBpbnQgbXVzYl91cmJfZGVxdWV1ZShzdHJ1Y3QgdXNiX2hjZCAqaGNk
-LCBzdHJ1Y3QgdXJiICp1cmIsIGludCBzdGF0dXMpCiB7CiAJc3RydWN0IG11c2IJCSptdXNiID0g
-aGNkX3RvX211c2IoaGNkKTsKIAlzdHJ1Y3QgbXVzYl9xaAkJKnFoOwogCXN0cnVjdCBsaXN0X2hl
-YWQJKnNjaGVkOwotCXN0cnVjdCB1cmIJCSp0bXA7CiAJdW5zaWduZWQgbG9uZwkJZmxhZ3M7Ci0J
-aW50CQkJc3RhdHVzID0gLUVOT0VOVDsKKwlpbnQJCQlyZXQ7CiAKIAlEQkcoNCwgInVyYj0lcCwg
-ZGV2JWQgZXAlZCVzXG4iLCB1cmIsCiAJCQl1c2JfcGlwZWRldmljZSh1cmItPnBpcGUpLApAQCAt
-MTk2NSwzMSArMTk2MiwxMiBAQCBzdGF0aWMgaW50IG11c2JfdXJiX2RlcXVldWUoc3RydWN0IHVz
-Yl9oY2QgKmhjZCwgc3RydWN0IHVyYiAqdXJiKQogCQkJdXNiX3BpcGVpbih1cmItPnBpcGUpID8g
-ImluIiA6ICJvdXQiKTsKIAogCXNwaW5fbG9ja19pcnFzYXZlKCZtdXNiLT5sb2NrLCBmbGFncyk7
-Ci0KLQkvKiBtYWtlIHN1cmUgdGhlIHVyYiBpcyBzdGlsbCBxdWV1ZWQgYW5kIG5vdCBjb21wbGV0
-ZWQgKi8KLQlzcGluX2xvY2soJnVyYi0+bG9jayk7Ci0JcWggPSB1cmItPmhjcHJpdjsKLQlpZiAo
-cWgpIHsKLQkJc3RydWN0IHVzYl9ob3N0X2VuZHBvaW50CSpoZXA7Ci0KLQkJaGVwID0gcWgtPmhl
-cDsKLQkJbGlzdF9mb3JfZWFjaF9lbnRyeSh0bXAsICZoZXAtPnVyYl9saXN0LCB1cmJfbGlzdCkg
-ewotCQkJaWYgKHVyYiA9PSB0bXApIHsKLQkJCQlzdGF0dXMgPSAwOwotCQkJCWJyZWFrOwotCQkJ
-fQotCQl9Ci0JfQotCXNwaW5fdW5sb2NrKCZ1cmItPmxvY2spOwotCi0JLyogYWxyZWFkeSBjb21w
-bGV0ZWQgKi8KLQlpZiAoIXFoKSB7Ci0JCXN0YXR1cyA9IDA7CisJcmV0ID0gdXNiX2hjZF9jaGVj
-a191bmxpbmtfdXJiKGhjZCwgdXJiLCBzdGF0dXMpOworCWlmIChyZXQpCiAJCWdvdG8gZG9uZTsK
-LQl9CiAKLQkvKiBzdGlsbCBxdWV1ZWQgYnV0IG5vdCBmb3VuZCBvbiB0aGUgbGlzdCAqLwotCWlm
-IChzdGF0dXMpCisJcWggPSB1cmItPmhjcHJpdjsKKwlpZiAoIXFoKQogCQlnb3RvIGRvbmU7CiAK
-IAkvKiBBbnkgVVJCIG5vdCBhY3RpdmVseSBwcm9ncmFtbWVkIGludG8gZW5kcG9pbnQgaGFyZHdh
-cmUgY2FuIGJlCkBAIC0yMDAyLDcgKzE5ODAsNyBAQCBzdGF0aWMgaW50IG11c2JfdXJiX2RlcXVl
-dWUoc3RydWN0IHVzYl9oY2QgKmhjZCwgc3RydWN0IHVyYiAqdXJiKQogCSAqIE9LIHRvIGhvbGQg
-b2ZmIHVudGlsIGFmdGVyIHNvbWUgSVJRLCB0aG91Z2guCiAJICovCiAJaWYgKCFxaC0+aXNfcmVh
-ZHkgfHwgdXJiLT51cmJfbGlzdC5wcmV2ICE9ICZxaC0+aGVwLT51cmJfbGlzdCkKLQkJc3RhdHVz
-ID0gLUVJTlBST0dSRVNTOworCQlyZXQgPSAtRUlOUFJPR1JFU1M7CiAJZWxzZSB7CiAJCXN3aXRj
-aCAocWgtPnR5cGUpIHsKIAkJY2FzZSBVU0JfRU5EUE9JTlRfWEZFUl9DT05UUk9MOgpAQCAtMjAy
-NSwxOCArMjAwMywxOCBAQCBzdGF0aWMgaW50IG11c2JfdXJiX2RlcXVldWUoc3RydWN0IHVzYl9o
-Y2QgKmhjZCwgc3RydWN0IHVyYiAqdXJiKQogCX0KIAogCS8qIE5PVEU6ICBxaCBpcyBpbnZhbGlk
-IHVubGVzcyAhbGlzdF9lbXB0eSgmaGVwLT51cmJfbGlzdCkgKi8KLQlpZiAoc3RhdHVzIDwgMCB8
-fCAoc2NoZWQgJiYgcWggIT0gZmlyc3RfcWgoc2NoZWQpKSkgeworCWlmIChyZXQgPCAwIHx8IChz
-Y2hlZCAmJiBxaCAhPSBmaXJzdF9xaChzY2hlZCkpKSB7CiAJCWludAlyZWFkeSA9IHFoLT5pc19y
-ZWFkeTsKIAotCQlzdGF0dXMgPSAwOworCQlyZXQgPSAwOwogCQlxaC0+aXNfcmVhZHkgPSAwOwog
-CQlfX211c2JfZ2l2ZWJhY2sobXVzYiwgdXJiLCAwKTsKIAkJcWgtPmlzX3JlYWR5ID0gcmVhZHk7
-CiAJfSBlbHNlCi0JCXN0YXR1cyA9IG11c2JfY2xlYW51cF91cmIodXJiLCBxaCwgdXJiLT5waXBl
-ICYgVVNCX0RJUl9JTik7CisJCXJldCA9IG11c2JfY2xlYW51cF91cmIodXJiLCBxaCwgdXJiLT5w
-aXBlICYgVVNCX0RJUl9JTik7CiBkb25lOgogCXNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJm11c2It
-PmxvY2ssIGZsYWdzKTsKLQlyZXR1cm4gc3RhdHVzOworCXJldHVybiByZXQ7CiB9CiAKIC8qIGRp
-c2FibGUgYW4gZW5kcG9pbnQgKi8KQEAgLTIwODIsMTAgKzIwNjAsOCBAQCBtdXNiX2hfZGlzYWJs
-ZShzdHJ1Y3QgdXNiX2hjZCAqaGNkLCBzdHJ1Y3QgdXNiX2hvc3RfZW5kcG9pbnQgKmhlcCkKIAkJ
-dXJiID0gbmV4dF91cmIocWgpOwogCiAJCS8qIG1ha2Ugc29mdHdhcmUgKHRoZW4gaGFyZHdhcmUp
-IHN0b3AgQVNBUCAqLwotCQlzcGluX2xvY2soJnVyYi0+bG9jayk7Ci0JCWlmICh1cmItPnN0YXR1
-cyA9PSAtRUlOUFJPR1JFU1MpCisJCWlmICghdXJiLT51bmxpbmtlZCkKIAkJCXVyYi0+c3RhdHVz
-ID0gLUVTSFVURE9XTjsKLQkJc3Bpbl91bmxvY2soJnVyYi0+bG9jayk7CiAKIAkJLyogY2xlYW51
-cCAqLwogCQltdXNiX2NsZWFudXBfdXJiKHVyYiwgcWgsIHVyYi0+cGlwZSAmIFVTQl9ESVJfSU4p
-Owo=
-------=_Part_6878_31323084.1193827240971
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
-------=_Part_6878_31323084.1193827240971--
+Tony
