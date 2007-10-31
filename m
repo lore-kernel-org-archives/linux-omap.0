@@ -1,14 +1,8 @@
-From: Khem Raj <kraj@mvista.com>
-Subject: Re: [PATCH 01/14] MMC: OMAP: Introduce new structs for mmc multislot
- support
-Date: Wed, 31 Oct 2007 00:17:53 -0700
-Message-ID: <47282C21.20604@mvista.com>
-References: <46F28BA8.9060409@indt.org.br>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: jarkko.nikula@nokia.com
+Subject: [PATCH 0/3] CBUS: retu-headset updates
+Date: Wed, 31 Oct 2007 14:04:39 +0200
+Message-ID: <1193832282-10044-1-git-send-email-jarkko.nikula@nokia.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <46F28BA8.9060409@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,30 +12,16 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Cc: omap-linux <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Some updates to retu-headset driver picked from internal tree. That's the only
+reason why feature implemented in patch 2 is before fix in patch 3 :-)
 
-Carlos Aguiar wrote:
+Note about bias voltage: external mic doesn't need it while device is in
+suspend (hard with sales HW due the watchdogs...) and this can save mA or so
+the suspend current. However, button detection is kept active since it can
+wake-up the system.
 
-> +
-> +	mmc->caps = MMC_CAP_BYTEBLOCK | MMC_CAP_MULTIWRITE |
-> +		    MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED;
-
-
-MMC_CAP_BYTEBLOCK is new define which is used here but not defined.
-Probably it should be defined in ./include/linux/mmc/host.h  ? or is it
-in one of remaining patches.
-
-- -Khem
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFHKCwhUjbQJxVzeZQRAgnbAJ47j0l/SltOksJ4N5Vnx0carF227wCff/WC
-Z5LkVb5Pgw92K7csJw9yIC8=
-=PnlW
------END PGP SIGNATURE-----
+-- 
+Jarkko
