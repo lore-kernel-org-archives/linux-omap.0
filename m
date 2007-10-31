@@ -1,13 +1,14 @@
-From: Tony Lindgren <tony@atomide.com>
+From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
 Subject: Re: [PATCH] initial musb urb fixes to make it work again
-Date: Wed, 31 Oct 2007 03:26:17 -0700
-Message-ID: <20071031102616.GA31081@atomide.com>
+Date: Wed, 31 Oct 2007 12:40:40 +0200
+Message-ID: <31e679430710310340s543c9541p96bd564699cccbc2@mail.gmail.com>
 References: <20071030155304.GA30658@atomide.com>
+	<20071031102616.GA31081@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="IS0zKkzwUGydFO0o"
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20071030155304.GA30658@atomide.com>
+Content-Type: multipart/mixed;
+	boundary="----=_Part_6878_31323084.1193827240971"
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20071031102616.GA31081@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,256 +16,168 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-
---IS0zKkzwUGydFO0o
-Content-Type: text/plain; charset=us-ascii
+------=_Part_6878_31323084.1193827240971
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-* Tony Lindgren <tony@atomide.com> [071030 08:53]:
-> Hi all,
-> 
-> Attached is an initial patch to make musb driver work again.
-> I've only done minimal testing, and still need to check at least
-> the urb dequeue stuff tomorrow. Anyways, in case somebody else
-> is also looking into this, maybe this helps a bit.
+Hi,
 
-I've pushed the trivial peripheral compile fixes, here's an
-updated version of the host side fixes.
+On 10/31/07, Tony Lindgren <tony@atomide.com> wrote:
+> * Tony Lindgren <tony@atomide.com> [071030 08:53]:
+> > Hi all,
+> >
+> > Attached is an initial patch to make musb driver work again.
+> > I've only done minimal testing, and still need to check at least
+> > the urb dequeue stuff tomorrow. Anyways, in case somebody else
+> > is also looking into this, maybe this helps a bit.
+>
+> I've pushed the trivial peripheral compile fixes, here's an
+> updated version of the host side fixes.
 
-Tony
+updated your patch to remove an unused variable warning. I'll take a
+closer look in this driver now.
 
---IS0zKkzwUGydFO0o
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="musb-urb-fixes-2.patch"
+see the attached
 
---- a/drivers/usb/musb/musb_host.c
-+++ b/drivers/usb/musb/musb_host.c
-@@ -268,18 +268,6 @@ __musb_giveback(struct musb *musb, struct urb *urb, int status)
- __releases(musb->lock)
- __acquires(musb->lock)
- {
--	if ((urb->transfer_flags & URB_SHORT_NOT_OK)
--			&& (urb->actual_length < urb->transfer_buffer_length)
--			&& status == 0
--			&& usb_pipein(urb->pipe))
--		status = -EREMOTEIO;
--
--	spin_lock(&urb->lock);
--	urb->hcpriv = NULL;
--	if (urb->status == -EINPROGRESS)
--		urb->status = status;
--	spin_unlock(&urb->lock);
--
- 	DBG(({ int level; switch (urb->status) {
- 				case 0:
- 					level = 4;
-@@ -304,7 +292,7 @@ __acquires(musb->lock)
- 			);
- 
- 	spin_unlock(&musb->lock);
--	usb_hcd_giveback_urb(musb_to_hcd(musb), urb);
-+	usb_hcd_giveback_urb(musb_to_hcd(musb), urb, status);
- 	spin_lock(&musb->lock);
- }
- 
-@@ -365,6 +353,8 @@ musb_giveback(struct musb_qh *qh, struct urb *urb, int status)
- 		break;
- 	}
- 
-+	usb_hcd_unlink_urb_from_ep(musb_to_hcd(musb), urb);
-+
- 	qh->is_ready = 0;
- 	__musb_giveback(musb, urb, status);
- 	qh->is_ready = ready;
-@@ -1738,15 +1728,15 @@ success:
- 
- static int musb_urb_enqueue(
- 	struct usb_hcd			*hcd,
--	struct usb_host_endpoint	*hep,
- 	struct urb			*urb,
- 	gfp_t				mem_flags)
- {
- 	unsigned long			flags;
- 	struct musb			*musb = hcd_to_musb(hcd);
-+	struct usb_host_endpoint	*hep = urb->ep;
- 	struct musb_qh			*qh = hep->hcpriv;
- 	struct usb_endpoint_descriptor	*epd = &hep->desc;
--	int				status;
-+	int				ret;
- 	unsigned			type_reg;
- 	unsigned			interval;
- 
-@@ -1754,6 +1744,10 @@ static int musb_urb_enqueue(
- 	if (!is_host_active(musb) || !musb->is_active)
- 		return -ENODEV;
- 
-+	ret = usb_hcd_link_urb_to_ep(hcd, urb);
-+	if (ret)
-+		return ret;
-+
- 	/* DMA mapping was already done, if needed, and this urb is on
- 	 * hep->urb_list ... so there's little to do unless hep wasn't
- 	 * yet scheduled onto a live qh.
-@@ -1774,8 +1768,10 @@ static int musb_urb_enqueue(
- 	 * for bugs in other kernel code to break this driver...
- 	 */
- 	qh = kzalloc(sizeof *qh, mem_flags);
--	if (!qh)
-+	if (!qh) {
-+		usb_hcd_unlink_urb_from_ep(hcd, urb);
- 		return -ENOMEM;
-+	}
- 
- 	qh->hep = hep;
- 	qh->dev = urb->dev;
-@@ -1786,7 +1782,7 @@ static int musb_urb_enqueue(
- 
- 	/* no high bandwidth support yet */
- 	if (qh->maxpacket & ~0x7ff) {
--		status = -EMSGSIZE;
-+		ret = -EMSGSIZE;
- 		goto done;
- 	}
- 
-@@ -1870,12 +1866,12 @@ static int musb_urb_enqueue(
- 		 * odd, rare, error prone, but legal.
- 		 */
- 		kfree(qh);
--		status = 0;
-+		ret = 0;
- 	} else
--		status = musb_schedule(musb, qh,
-+		ret = musb_schedule(musb, qh,
- 				epd->bEndpointAddress & USB_ENDPOINT_DIR_MASK);
- 
--	if (status == 0) {
-+	if (ret == 0) {
- 		urb->hcpriv = qh;
- 		/* FIXME set urb->start_frame for iso/intr, it's tested in
- 		 * musb_start_urb(), but otherwise only konicawc cares ...
-@@ -1884,9 +1880,11 @@ static int musb_urb_enqueue(
- 	spin_unlock_irqrestore(&musb->lock, flags);
- 
- done:
--	if (status != 0)
-+	if (ret != 0) {
-+		usb_hcd_unlink_urb_from_ep(hcd, urb);
- 		kfree(qh);
--	return status;
-+	}
-+	return ret;
- }
- 
- 
-@@ -1950,14 +1948,14 @@ static int musb_cleanup_urb(struct urb *urb, struct musb_qh *qh, int is_in)
- 	return status;
- }
- 
--static int musb_urb_dequeue(struct usb_hcd *hcd, struct urb *urb)
-+static int musb_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
- {
- 	struct musb		*musb = hcd_to_musb(hcd);
- 	struct musb_qh		*qh;
- 	struct list_head	*sched;
- 	struct urb		*tmp;
- 	unsigned long		flags;
--	int			status = -ENOENT;
-+	int			ret;
- 
- 	DBG(4, "urb=%p, dev%d ep%d%s\n", urb,
- 			usb_pipedevice(urb->pipe),
-@@ -1965,31 +1963,12 @@ static int musb_urb_dequeue(struct usb_hcd *hcd, struct urb *urb)
- 			usb_pipein(urb->pipe) ? "in" : "out");
- 
- 	spin_lock_irqsave(&musb->lock, flags);
--
--	/* make sure the urb is still queued and not completed */
--	spin_lock(&urb->lock);
--	qh = urb->hcpriv;
--	if (qh) {
--		struct usb_host_endpoint	*hep;
--
--		hep = qh->hep;
--		list_for_each_entry(tmp, &hep->urb_list, urb_list) {
--			if (urb == tmp) {
--				status = 0;
--				break;
--			}
--		}
--	}
--	spin_unlock(&urb->lock);
--
--	/* already completed */
--	if (!qh) {
--		status = 0;
-+	ret = usb_hcd_check_unlink_urb(hcd, urb, status);
-+	if (ret)
- 		goto done;
--	}
- 
--	/* still queued but not found on the list */
--	if (status)
-+	qh = urb->hcpriv;
-+	if (!qh)
- 		goto done;
- 
- 	/* Any URB not actively programmed into endpoint hardware can be
-@@ -2002,7 +1981,7 @@ static int musb_urb_dequeue(struct usb_hcd *hcd, struct urb *urb)
- 	 * OK to hold off until after some IRQ, though.
- 	 */
- 	if (!qh->is_ready || urb->urb_list.prev != &qh->hep->urb_list)
--		status = -EINPROGRESS;
-+		ret = -EINPROGRESS;
- 	else {
- 		switch (qh->type) {
- 		case USB_ENDPOINT_XFER_CONTROL:
-@@ -2025,18 +2004,18 @@ static int musb_urb_dequeue(struct usb_hcd *hcd, struct urb *urb)
- 	}
- 
- 	/* NOTE:  qh is invalid unless !list_empty(&hep->urb_list) */
--	if (status < 0 || (sched && qh != first_qh(sched))) {
-+	if (ret < 0 || (sched && qh != first_qh(sched))) {
- 		int	ready = qh->is_ready;
- 
--		status = 0;
-+		ret = 0;
- 		qh->is_ready = 0;
- 		__musb_giveback(musb, urb, 0);
- 		qh->is_ready = ready;
- 	} else
--		status = musb_cleanup_urb(urb, qh, urb->pipe & USB_DIR_IN);
-+		ret = musb_cleanup_urb(urb, qh, urb->pipe & USB_DIR_IN);
- done:
- 	spin_unlock_irqrestore(&musb->lock, flags);
--	return status;
-+	return ret;
- }
- 
- /* disable an endpoint */
-@@ -2082,10 +2061,8 @@ musb_h_disable(struct usb_hcd *hcd, struct usb_host_endpoint *hep)
- 		urb = next_urb(qh);
- 
- 		/* make software (then hardware) stop ASAP */
--		spin_lock(&urb->lock);
--		if (urb->status == -EINPROGRESS)
-+		if (!urb->unlinked)
- 			urb->status = -ESHUTDOWN;
--		spin_unlock(&urb->lock);
- 
- 		/* cleanup */
- 		musb_cleanup_urb(urb, qh, urb->pipe & USB_DIR_IN);
+>
+> Tony
+>
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+>
+>
+>
 
 
---IS0zKkzwUGydFO0o
+-- 
+Best Regards,
+
+Felipe Balbi
+felipebalbi@users.sourceforge.net
+
+------=_Part_6878_31323084.1193827240971
+Content-Type: text/x-patch; name=musb-urb-fixes-2.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f8fpw32k
+Content-Disposition: attachment; filename=musb-urb-fixes-2.patch
+
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvdXNiL211c2IvbXVzYl9ob3N0LmMgYi9kcml2ZXJzL3VzYi9t
+dXNiL211c2JfaG9zdC5jCmluZGV4IGQ4ZWE4NGQuLjJlM2NiZDUgMTAwNjQ0Ci0tLSBhL2RyaXZl
+cnMvdXNiL211c2IvbXVzYl9ob3N0LmMKKysrIGIvZHJpdmVycy91c2IvbXVzYi9tdXNiX2hvc3Qu
+YwpAQCAtMjY4LDE4ICsyNjgsNiBAQCBfX211c2JfZ2l2ZWJhY2soc3RydWN0IG11c2IgKm11c2Is
+IHN0cnVjdCB1cmIgKnVyYiwgaW50IHN0YXR1cykKIF9fcmVsZWFzZXMobXVzYi0+bG9jaykKIF9f
+YWNxdWlyZXMobXVzYi0+bG9jaykKIHsKLQlpZiAoKHVyYi0+dHJhbnNmZXJfZmxhZ3MgJiBVUkJf
+U0hPUlRfTk9UX09LKQotCQkJJiYgKHVyYi0+YWN0dWFsX2xlbmd0aCA8IHVyYi0+dHJhbnNmZXJf
+YnVmZmVyX2xlbmd0aCkKLQkJCSYmIHN0YXR1cyA9PSAwCi0JCQkmJiB1c2JfcGlwZWluKHVyYi0+
+cGlwZSkpCi0JCXN0YXR1cyA9IC1FUkVNT1RFSU87Ci0KLQlzcGluX2xvY2soJnVyYi0+bG9jayk7
+Ci0JdXJiLT5oY3ByaXYgPSBOVUxMOwotCWlmICh1cmItPnN0YXR1cyA9PSAtRUlOUFJPR1JFU1Mp
+Ci0JCXVyYi0+c3RhdHVzID0gc3RhdHVzOwotCXNwaW5fdW5sb2NrKCZ1cmItPmxvY2spOwotCiAJ
+REJHKCh7IGludCBsZXZlbDsgc3dpdGNoICh1cmItPnN0YXR1cykgewogCQkJCWNhc2UgMDoKIAkJ
+CQkJbGV2ZWwgPSA0OwpAQCAtMzA0LDcgKzI5Miw3IEBAIF9fYWNxdWlyZXMobXVzYi0+bG9jaykK
+IAkJCSk7CiAKIAlzcGluX3VubG9jaygmbXVzYi0+bG9jayk7Ci0JdXNiX2hjZF9naXZlYmFja191
+cmIobXVzYl90b19oY2QobXVzYiksIHVyYik7CisJdXNiX2hjZF9naXZlYmFja191cmIobXVzYl90
+b19oY2QobXVzYiksIHVyYiwgc3RhdHVzKTsKIAlzcGluX2xvY2soJm11c2ItPmxvY2spOwogfQog
+CkBAIC0zNjUsNiArMzUzLDggQEAgbXVzYl9naXZlYmFjayhzdHJ1Y3QgbXVzYl9xaCAqcWgsIHN0
+cnVjdCB1cmIgKnVyYiwgaW50IHN0YXR1cykKIAkJYnJlYWs7CiAJfQogCisJdXNiX2hjZF91bmxp
+bmtfdXJiX2Zyb21fZXAobXVzYl90b19oY2QobXVzYiksIHVyYik7CisKIAlxaC0+aXNfcmVhZHkg
+PSAwOwogCV9fbXVzYl9naXZlYmFjayhtdXNiLCB1cmIsIHN0YXR1cyk7CiAJcWgtPmlzX3JlYWR5
+ID0gcmVhZHk7CkBAIC0xNzM4LDE1ICsxNzI4LDE1IEBAIHN1Y2Nlc3M6CiAKIHN0YXRpYyBpbnQg
+bXVzYl91cmJfZW5xdWV1ZSgKIAlzdHJ1Y3QgdXNiX2hjZAkJCSpoY2QsCi0Jc3RydWN0IHVzYl9o
+b3N0X2VuZHBvaW50CSpoZXAsCiAJc3RydWN0IHVyYgkJCSp1cmIsCiAJZ2ZwX3QJCQkJbWVtX2Zs
+YWdzKQogewogCXVuc2lnbmVkIGxvbmcJCQlmbGFnczsKIAlzdHJ1Y3QgbXVzYgkJCSptdXNiID0g
+aGNkX3RvX211c2IoaGNkKTsKKwlzdHJ1Y3QgdXNiX2hvc3RfZW5kcG9pbnQJKmhlcCA9IHVyYi0+
+ZXA7CiAJc3RydWN0IG11c2JfcWgJCQkqcWggPSBoZXAtPmhjcHJpdjsKIAlzdHJ1Y3QgdXNiX2Vu
+ZHBvaW50X2Rlc2NyaXB0b3IJKmVwZCA9ICZoZXAtPmRlc2M7Ci0JaW50CQkJCXN0YXR1czsKKwlp
+bnQJCQkJcmV0OwogCXVuc2lnbmVkCQkJdHlwZV9yZWc7CiAJdW5zaWduZWQJCQlpbnRlcnZhbDsK
+IApAQCAtMTc1NCw2ICsxNzQ0LDEwIEBAIHN0YXRpYyBpbnQgbXVzYl91cmJfZW5xdWV1ZSgKIAlp
+ZiAoIWlzX2hvc3RfYWN0aXZlKG11c2IpIHx8ICFtdXNiLT5pc19hY3RpdmUpCiAJCXJldHVybiAt
+RU5PREVWOwogCisJcmV0ID0gdXNiX2hjZF9saW5rX3VyYl90b19lcChoY2QsIHVyYik7CisJaWYg
+KHJldCkKKwkJcmV0dXJuIHJldDsKKwogCS8qIERNQSBtYXBwaW5nIHdhcyBhbHJlYWR5IGRvbmUs
+IGlmIG5lZWRlZCwgYW5kIHRoaXMgdXJiIGlzIG9uCiAJICogaGVwLT51cmJfbGlzdCAuLi4gc28g
+dGhlcmUncyBsaXR0bGUgdG8gZG8gdW5sZXNzIGhlcCB3YXNuJ3QKIAkgKiB5ZXQgc2NoZWR1bGVk
+IG9udG8gYSBsaXZlIHFoLgpAQCAtMTc3NCw4ICsxNzY4LDEwIEBAIHN0YXRpYyBpbnQgbXVzYl91
+cmJfZW5xdWV1ZSgKIAkgKiBmb3IgYnVncyBpbiBvdGhlciBrZXJuZWwgY29kZSB0byBicmVhayB0
+aGlzIGRyaXZlci4uLgogCSAqLwogCXFoID0ga3phbGxvYyhzaXplb2YgKnFoLCBtZW1fZmxhZ3Mp
+OwotCWlmICghcWgpCisJaWYgKCFxaCkgeworCQl1c2JfaGNkX3VubGlua191cmJfZnJvbV9lcCho
+Y2QsIHVyYik7CiAJCXJldHVybiAtRU5PTUVNOworCX0KIAogCXFoLT5oZXAgPSBoZXA7CiAJcWgt
+PmRldiA9IHVyYi0+ZGV2OwpAQCAtMTc4Niw3ICsxNzgyLDcgQEAgc3RhdGljIGludCBtdXNiX3Vy
+Yl9lbnF1ZXVlKAogCiAJLyogbm8gaGlnaCBiYW5kd2lkdGggc3VwcG9ydCB5ZXQgKi8KIAlpZiAo
+cWgtPm1heHBhY2tldCAmIH4weDdmZikgewotCQlzdGF0dXMgPSAtRU1TR1NJWkU7CisJCXJldCA9
+IC1FTVNHU0laRTsKIAkJZ290byBkb25lOwogCX0KIApAQCAtMTg3MCwxMiArMTg2NiwxMiBAQCBz
+dGF0aWMgaW50IG11c2JfdXJiX2VucXVldWUoCiAJCSAqIG9kZCwgcmFyZSwgZXJyb3IgcHJvbmUs
+IGJ1dCBsZWdhbC4KIAkJICovCiAJCWtmcmVlKHFoKTsKLQkJc3RhdHVzID0gMDsKKwkJcmV0ID0g
+MDsKIAl9IGVsc2UKLQkJc3RhdHVzID0gbXVzYl9zY2hlZHVsZShtdXNiLCBxaCwKKwkJcmV0ID0g
+bXVzYl9zY2hlZHVsZShtdXNiLCBxaCwKIAkJCQllcGQtPmJFbmRwb2ludEFkZHJlc3MgJiBVU0Jf
+RU5EUE9JTlRfRElSX01BU0spOwogCi0JaWYgKHN0YXR1cyA9PSAwKSB7CisJaWYgKHJldCA9PSAw
+KSB7CiAJCXVyYi0+aGNwcml2ID0gcWg7CiAJCS8qIEZJWE1FIHNldCB1cmItPnN0YXJ0X2ZyYW1l
+IGZvciBpc28vaW50ciwgaXQncyB0ZXN0ZWQgaW4KIAkJICogbXVzYl9zdGFydF91cmIoKSwgYnV0
+IG90aGVyd2lzZSBvbmx5IGtvbmljYXdjIGNhcmVzIC4uLgpAQCAtMTg4NCw5ICsxODgwLDExIEBA
+IHN0YXRpYyBpbnQgbXVzYl91cmJfZW5xdWV1ZSgKIAlzcGluX3VubG9ja19pcnFyZXN0b3JlKCZt
+dXNiLT5sb2NrLCBmbGFncyk7CiAKIGRvbmU6Ci0JaWYgKHN0YXR1cyAhPSAwKQorCWlmIChyZXQg
+IT0gMCkgeworCQl1c2JfaGNkX3VubGlua191cmJfZnJvbV9lcChoY2QsIHVyYik7CiAJCWtmcmVl
+KHFoKTsKLQlyZXR1cm4gc3RhdHVzOworCX0KKwlyZXR1cm4gcmV0OwogfQogCiAKQEAgLTE5NTAs
+MTQgKzE5NDgsMTMgQEAgc3RhdGljIGludCBtdXNiX2NsZWFudXBfdXJiKHN0cnVjdCB1cmIgKnVy
+Yiwgc3RydWN0IG11c2JfcWggKnFoLCBpbnQgaXNfaW4pCiAJcmV0dXJuIHN0YXR1czsKIH0KIAot
+c3RhdGljIGludCBtdXNiX3VyYl9kZXF1ZXVlKHN0cnVjdCB1c2JfaGNkICpoY2QsIHN0cnVjdCB1
+cmIgKnVyYikKK3N0YXRpYyBpbnQgbXVzYl91cmJfZGVxdWV1ZShzdHJ1Y3QgdXNiX2hjZCAqaGNk
+LCBzdHJ1Y3QgdXJiICp1cmIsIGludCBzdGF0dXMpCiB7CiAJc3RydWN0IG11c2IJCSptdXNiID0g
+aGNkX3RvX211c2IoaGNkKTsKIAlzdHJ1Y3QgbXVzYl9xaAkJKnFoOwogCXN0cnVjdCBsaXN0X2hl
+YWQJKnNjaGVkOwotCXN0cnVjdCB1cmIJCSp0bXA7CiAJdW5zaWduZWQgbG9uZwkJZmxhZ3M7Ci0J
+aW50CQkJc3RhdHVzID0gLUVOT0VOVDsKKwlpbnQJCQlyZXQ7CiAKIAlEQkcoNCwgInVyYj0lcCwg
+ZGV2JWQgZXAlZCVzXG4iLCB1cmIsCiAJCQl1c2JfcGlwZWRldmljZSh1cmItPnBpcGUpLApAQCAt
+MTk2NSwzMSArMTk2MiwxMiBAQCBzdGF0aWMgaW50IG11c2JfdXJiX2RlcXVldWUoc3RydWN0IHVz
+Yl9oY2QgKmhjZCwgc3RydWN0IHVyYiAqdXJiKQogCQkJdXNiX3BpcGVpbih1cmItPnBpcGUpID8g
+ImluIiA6ICJvdXQiKTsKIAogCXNwaW5fbG9ja19pcnFzYXZlKCZtdXNiLT5sb2NrLCBmbGFncyk7
+Ci0KLQkvKiBtYWtlIHN1cmUgdGhlIHVyYiBpcyBzdGlsbCBxdWV1ZWQgYW5kIG5vdCBjb21wbGV0
+ZWQgKi8KLQlzcGluX2xvY2soJnVyYi0+bG9jayk7Ci0JcWggPSB1cmItPmhjcHJpdjsKLQlpZiAo
+cWgpIHsKLQkJc3RydWN0IHVzYl9ob3N0X2VuZHBvaW50CSpoZXA7Ci0KLQkJaGVwID0gcWgtPmhl
+cDsKLQkJbGlzdF9mb3JfZWFjaF9lbnRyeSh0bXAsICZoZXAtPnVyYl9saXN0LCB1cmJfbGlzdCkg
+ewotCQkJaWYgKHVyYiA9PSB0bXApIHsKLQkJCQlzdGF0dXMgPSAwOwotCQkJCWJyZWFrOwotCQkJ
+fQotCQl9Ci0JfQotCXNwaW5fdW5sb2NrKCZ1cmItPmxvY2spOwotCi0JLyogYWxyZWFkeSBjb21w
+bGV0ZWQgKi8KLQlpZiAoIXFoKSB7Ci0JCXN0YXR1cyA9IDA7CisJcmV0ID0gdXNiX2hjZF9jaGVj
+a191bmxpbmtfdXJiKGhjZCwgdXJiLCBzdGF0dXMpOworCWlmIChyZXQpCiAJCWdvdG8gZG9uZTsK
+LQl9CiAKLQkvKiBzdGlsbCBxdWV1ZWQgYnV0IG5vdCBmb3VuZCBvbiB0aGUgbGlzdCAqLwotCWlm
+IChzdGF0dXMpCisJcWggPSB1cmItPmhjcHJpdjsKKwlpZiAoIXFoKQogCQlnb3RvIGRvbmU7CiAK
+IAkvKiBBbnkgVVJCIG5vdCBhY3RpdmVseSBwcm9ncmFtbWVkIGludG8gZW5kcG9pbnQgaGFyZHdh
+cmUgY2FuIGJlCkBAIC0yMDAyLDcgKzE5ODAsNyBAQCBzdGF0aWMgaW50IG11c2JfdXJiX2RlcXVl
+dWUoc3RydWN0IHVzYl9oY2QgKmhjZCwgc3RydWN0IHVyYiAqdXJiKQogCSAqIE9LIHRvIGhvbGQg
+b2ZmIHVudGlsIGFmdGVyIHNvbWUgSVJRLCB0aG91Z2guCiAJICovCiAJaWYgKCFxaC0+aXNfcmVh
+ZHkgfHwgdXJiLT51cmJfbGlzdC5wcmV2ICE9ICZxaC0+aGVwLT51cmJfbGlzdCkKLQkJc3RhdHVz
+ID0gLUVJTlBST0dSRVNTOworCQlyZXQgPSAtRUlOUFJPR1JFU1M7CiAJZWxzZSB7CiAJCXN3aXRj
+aCAocWgtPnR5cGUpIHsKIAkJY2FzZSBVU0JfRU5EUE9JTlRfWEZFUl9DT05UUk9MOgpAQCAtMjAy
+NSwxOCArMjAwMywxOCBAQCBzdGF0aWMgaW50IG11c2JfdXJiX2RlcXVldWUoc3RydWN0IHVzYl9o
+Y2QgKmhjZCwgc3RydWN0IHVyYiAqdXJiKQogCX0KIAogCS8qIE5PVEU6ICBxaCBpcyBpbnZhbGlk
+IHVubGVzcyAhbGlzdF9lbXB0eSgmaGVwLT51cmJfbGlzdCkgKi8KLQlpZiAoc3RhdHVzIDwgMCB8
+fCAoc2NoZWQgJiYgcWggIT0gZmlyc3RfcWgoc2NoZWQpKSkgeworCWlmIChyZXQgPCAwIHx8IChz
+Y2hlZCAmJiBxaCAhPSBmaXJzdF9xaChzY2hlZCkpKSB7CiAJCWludAlyZWFkeSA9IHFoLT5pc19y
+ZWFkeTsKIAotCQlzdGF0dXMgPSAwOworCQlyZXQgPSAwOwogCQlxaC0+aXNfcmVhZHkgPSAwOwog
+CQlfX211c2JfZ2l2ZWJhY2sobXVzYiwgdXJiLCAwKTsKIAkJcWgtPmlzX3JlYWR5ID0gcmVhZHk7
+CiAJfSBlbHNlCi0JCXN0YXR1cyA9IG11c2JfY2xlYW51cF91cmIodXJiLCBxaCwgdXJiLT5waXBl
+ICYgVVNCX0RJUl9JTik7CisJCXJldCA9IG11c2JfY2xlYW51cF91cmIodXJiLCBxaCwgdXJiLT5w
+aXBlICYgVVNCX0RJUl9JTik7CiBkb25lOgogCXNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJm11c2It
+PmxvY2ssIGZsYWdzKTsKLQlyZXR1cm4gc3RhdHVzOworCXJldHVybiByZXQ7CiB9CiAKIC8qIGRp
+c2FibGUgYW4gZW5kcG9pbnQgKi8KQEAgLTIwODIsMTAgKzIwNjAsOCBAQCBtdXNiX2hfZGlzYWJs
+ZShzdHJ1Y3QgdXNiX2hjZCAqaGNkLCBzdHJ1Y3QgdXNiX2hvc3RfZW5kcG9pbnQgKmhlcCkKIAkJ
+dXJiID0gbmV4dF91cmIocWgpOwogCiAJCS8qIG1ha2Ugc29mdHdhcmUgKHRoZW4gaGFyZHdhcmUp
+IHN0b3AgQVNBUCAqLwotCQlzcGluX2xvY2soJnVyYi0+bG9jayk7Ci0JCWlmICh1cmItPnN0YXR1
+cyA9PSAtRUlOUFJPR1JFU1MpCisJCWlmICghdXJiLT51bmxpbmtlZCkKIAkJCXVyYi0+c3RhdHVz
+ID0gLUVTSFVURE9XTjsKLQkJc3Bpbl91bmxvY2soJnVyYi0+bG9jayk7CiAKIAkJLyogY2xlYW51
+cCAqLwogCQltdXNiX2NsZWFudXBfdXJiKHVyYiwgcWgsIHVyYi0+cGlwZSAmIFVTQl9ESVJfSU4p
+Owo=
+------=_Part_6878_31323084.1193827240971
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---IS0zKkzwUGydFO0o--
+------=_Part_6878_31323084.1193827240971--
