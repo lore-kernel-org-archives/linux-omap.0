@@ -1,14 +1,12 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: [PATCH 4/4] OMAP: DMA: Added support for DMA chaining
-Date: Wed, 31 Oct 2007 10:46:15 -0700
-Message-ID: <4728BF67.2020208@mvista.com>
-References: <010C7BAE6783F34D9AC336EE5A01A08804AF986A@dbde01.ent.ti.com>
-	<20071031131833.GJ32547@atomide.com>
+From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
+Subject: commit 8691f1711eace1ee237a474a31574bdd59efb4c3 breaks build
+Date: Thu, 1 Nov 2007 00:13:41 +0200
+Message-ID: <31e679430710311513n4030b7a2v272db1bbfd2f03f5@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20071031131833.GJ32547@atomide.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,39 +14,22 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Linux-OMAP <linux-omap-open-source@linux.omap.com>, gadiyar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren wrote:
-> * Gadiyar, Anand <gadiyar@ti.com> [071024 00:10]:
->> From: Anand Gadiyar <gadiyar@ti.com>
->>
->> Added support for DMA chaining.
->> This patch depends on patches [1-3]
->> "OMAP: DMA: Cleanup of DMA Request Lines",
->> "OMAP: DMA: Added support for OMAP3" and 
->> "OMAP: DMA: Added utility APIs for setting DMA global parameters".
-> 
+Hi,
 
-FYI... without PATCH 1/1 the new DMA stuff doesn't compile on OMAP2.
-While waiting for that fix, at least this is required to build in
-current git
+commit 8691f1711eace1ee237a474a31574bdd59efb4c3 uses and undefined
+macro in arch/arm/plat-omap/dma.c which breaks compilation:
 
-Kevin
+OMAP_DMA4_OCP_SYSCONFIG
 
+Maybe Anand forgot to add one file to his patch ??
 
-Index: dev/include/asm-arm/arch-omap/dma.h
-===================================================================
---- dev.orig/include/asm-arm/arch-omap/dma.h
-+++ dev/include/asm-arm/arch-omap/dma.h
-@@ -62,6 +62,7 @@
- #define OMAP_DMA4_IRQENABLE_L2		(OMAP_DMA4_BASE + 0x20)
- #define OMAP_DMA4_IRQENABLE_L3		(OMAP_DMA4_BASE + 0x24)
- #define OMAP_DMA4_SYSSTATUS		(OMAP_DMA4_BASE + 0x28)
-+#define OMAP_DMA4_OCP_SYSCONFIG		(OMAP_DMA4_BASE + 0x2c)
- #define OMAP_DMA4_CAPS_0		(OMAP_DMA4_BASE + 0x64)
- #define OMAP_DMA4_CAPS_2		(OMAP_DMA4_BASE + 0x6c)
- #define OMAP_DMA4_CAPS_3		(OMAP_DMA4_BASE + 0x70)
+-- 
+Best Regards,
+
+Felipe Balbi
+felipebalbi@users.sourceforge.net
