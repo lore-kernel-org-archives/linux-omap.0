@@ -1,17 +1,14 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] include/asm-arm/arch-omap/omap24xx.h
-Date: Wed, 31 Oct 2007 08:22:30 -0700
-Message-ID: <20071031152230.GP32547@atomide.com>
-References: <ae36f8040710240958l579ad5el16f17cb073e25387@mail.gmail.com>
-	<471F868A.3060106@googlemail.com>
-	<20071025053143.222542615@pwsan.com>
-	<4720B62A.1010406@googlemail.com>
-	<Pine.LNX.4.64.0710250955270.25986@utopia.booyaka.com>
+From: Kevin Hilman <khilman@mvista.com>
+Subject: Re: [PATCH 4/4] OMAP: DMA: Added support for DMA chaining
+Date: Wed, 31 Oct 2007 10:46:15 -0700
+Message-ID: <4728BF67.2020208@mvista.com>
+References: <010C7BAE6783F34D9AC336EE5A01A08804AF986A@dbde01.ent.ti.com>
+	<20071031131833.GJ32547@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0710250955270.25986@utopia.booyaka.com>
+In-Reply-To: <20071031131833.GJ32547@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,34 +18,37 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Paul Walmsley <paul@pwsan.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [071025 09:01]:
-
-> Hello Dirk,
->
-> On Thu, 25 Oct 2007, Dirk Behme wrote:
->
->> Mmh, I like to fix it in include/asm-arm/arch-omap/omap24xx.h, so I prefer 
->> [1].
+Tony Lindgren wrote:
+> * Gadiyar, Anand <gadiyar@ti.com> [071024 00:10]:
+>> From: Anand Gadiyar <gadiyar@ti.com>
 >>
->> With [1] we
->>
->> - fix it where it was introduced
->> - have an additional #ifdef only in a header file instead of 
->> plat-omap/devices.c, which is IMHO better
->> - fix it for everybody now and in the future who directly or indirectly 
->> includes omap24xx.h.
->
-> Hopefully this is just a workaround until we can get rid of these 
-> conditional defines for multiboot kernels.  Generally speaking, would you 
-> propose doing the same thing for the other conditional defines in 
-> include/asm-arm/arch-omap/omap24xx.h, such as OMAP2_32KSYNCT_BASE, 
-> OMAP2_SDRC_BASE, etc.?
+>> Added support for DMA chaining.
+>> This patch depends on patches [1-3]
+>> "OMAP: DMA: Cleanup of DMA Request Lines",
+>> "OMAP: DMA: Added support for OMAP3" and 
+>> "OMAP: DMA: Added utility APIs for setting DMA global parameters".
+> 
 
-Sounds like the real fix is to set these addresses in the init code
-somewhere based on the omap type.
+FYI... without PATCH 1/1 the new DMA stuff doesn't compile on OMAP2.
+While waiting for that fix, at least this is required to build in
+current git
 
-Tony
+Kevin
+
+
+Index: dev/include/asm-arm/arch-omap/dma.h
+===================================================================
+--- dev.orig/include/asm-arm/arch-omap/dma.h
++++ dev/include/asm-arm/arch-omap/dma.h
+@@ -62,6 +62,7 @@
+ #define OMAP_DMA4_IRQENABLE_L2		(OMAP_DMA4_BASE + 0x20)
+ #define OMAP_DMA4_IRQENABLE_L3		(OMAP_DMA4_BASE + 0x24)
+ #define OMAP_DMA4_SYSSTATUS		(OMAP_DMA4_BASE + 0x28)
++#define OMAP_DMA4_OCP_SYSCONFIG		(OMAP_DMA4_BASE + 0x2c)
+ #define OMAP_DMA4_CAPS_0		(OMAP_DMA4_BASE + 0x64)
+ #define OMAP_DMA4_CAPS_2		(OMAP_DMA4_BASE + 0x6c)
+ #define OMAP_DMA4_CAPS_3		(OMAP_DMA4_BASE + 0x70)
