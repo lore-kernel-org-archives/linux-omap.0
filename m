@@ -1,14 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] V4L: Int if: Set slave's master before attach, remove
-	master argument
-Date: Wed, 31 Oct 2007 05:50:01 -0700
-Message-ID: <20071031124959.GC32547@atomide.com>
-References: <11925473082391-git-send-email-sakari.ailus@nokia.com>
+Subject: Re: [PATCH/RFC] ARM: OMAP: unlock flash device during boot
+Date: Wed, 31 Oct 2007 05:53:45 -0700
+Message-ID: <20071031125345.GE32547@atomide.com>
+References: <20071017222526.493688502@mvista.com>
+	<52d486620710190707n29a00019u15b9db7196f22f7b@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <11925473082391-git-send-email-sakari.ailus@nokia.com>
+In-Reply-To: <52d486620710190707n29a00019u15b9db7196f22f7b@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,63 +16,49 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Sakari Ailus <sakari.ailus@nokia.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Amit Kucheria <kucheria.amit@gmail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Sakari Ailus <sakari.ailus@nokia.com> [071016 08:17]:
-> Set slave's master before master's attach call.
+* Amit Kucheria <kucheria.amit@gmail.com> [071019 07:09]:
+> On 10/18/07, Kevin Hilman <khilman@mvista.com> wrote:
+> > The bootloader may lock the flash device upon booting.  This requires
+> > the use of 'flash_unlock' on each partition before using them.
+> >
+> > However, when booting from flash the MTD driver is unable to "mark
+> > space as dirty" since the device is locked.  This results lots of boot
+> > warnings from the MTD layer.
+> >
+> > The MTD driver for OMAP needs to unlock the device during init so
+> > booting from flash can work without errors.
 > 
-> The master also now gets its own pointer from slave's structure.
+> This patch does fix the copious amounts of the following messages that
+> I get when I put a jffs2 filesystem on the NOR flash.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
-> ---
->  drivers/media/video/v4l2-int-device.c |    6 +++---
->  include/media/v4l2-int-device.h       |    5 ++---
->  2 files changed, 5 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-int-device.c b/drivers/media/video/v4l2-int-device.c
-> index f497c94..286b7f0 100644
-> --- a/drivers/media/video/v4l2-int-device.c
-> +++ b/drivers/media/video/v4l2-int-device.c
-> @@ -65,12 +65,12 @@ static void v4l2_int_device_try_attach_all(void)
->  			if (!try_module_get(m->module))
->  				continue;
->  
-> -			if (m->u.master->attach(m, s)) {
-> +			s->u.slave->master = m;
-> +			if (m->u.master->attach(s)) {
-> +				s->u.slave->master = NULL;
->  				module_put(m->module);
->  				continue;
->  			}
-> -
-> -			s->u.slave->master = m;
->  		}
->  	}
->  }
-> diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
-> index 066ebfc..c8b80e0 100644
-> --- a/include/media/v4l2-int-device.h
-> +++ b/include/media/v4l2-int-device.h
-> @@ -44,9 +44,8 @@ enum v4l2_int_type {
->  struct v4l2_int_device;
->  
->  struct v4l2_int_master {
-> -	int (*attach)(struct v4l2_int_device *master,
-> -		      struct v4l2_int_device *slave);
-> -	void (*detach)(struct v4l2_int_device *master);
-> +	int (*attach)(struct v4l2_int_device *slave);
-> +	void (*detach)(struct v4l2_int_device *slave);
->  };
->  
->  typedef int (v4l2_int_ioctl_func)(struct v4l2_int_device *);
-> -- 
-> 1.5.0.6
-> 
+> "Erase at 0x012e0000 failed immediately: -EROFS. Is the sector locked?
+> Dec 31 18:00:13 12 user.info ker<5>Write of 68 bytes at 0x0026111c
+> failed. returned -30, retlen 0
+> Write of 68 bytes at 0x0026111c failed. returned -30, retlen 0
+> nel: serial8250.0: ttyS0 at MMIO<5>Not marking the space at 0x0026111c
+> as dirty because the flash driver returned retlen zero
+> Not marking the space at 0x0026111c as dirty because the flash driver
+> returned retlen zero
+>  0x4806a000 (irq = 72) is a ST16<5>Write of 68 bytes at 0x0026111c
+> failed. returned -30, retlen 0
+> Write of 68 bytes at 0x0026111c failed. returned -30, retlen 0
+> 654
+> <5>Not marking the space at 0x0026111c as dirty because the flash
+> driver returned retlen zero
+> Not marking the space at 0x0026111c as dirty because the flash driver
+> returned retlen zero
+> <4>Erase at 0x012c0000 failed immediately: -EROFS. Is the sector locked?
+> Erase at 0x012c0000 failed immediately: -EROFS. Is the sector locked?
+> <4>Erase at 0x012a0000 failed immediately: -EROFS. Is the sector locked?
+> Erase at 0x012a0000 failed immediately: -EROFS. Is the sector locked?"
 
-Pushing today.
+I'll push this today. If somebody comes up with a better solution, then
+let's consider that.
 
 Tony
