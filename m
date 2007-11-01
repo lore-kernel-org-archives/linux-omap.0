@@ -1,14 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH/RFC] ARM: OMAP: implement CPUfreq frequency table based
-	on PRCM table
-Date: Thu, 1 Nov 2007 05:33:09 -0700
-Message-ID: <20071101123308.GF20403@atomide.com>
-References: <20071019172031.226299706@mvista.com>
+Subject: Re: [PATCH 08/14] PLAT: OMAP: Modifications at devices.c to use
+	multislot structures
+Date: Thu, 1 Nov 2007 05:55:59 -0700
+Message-ID: <20071101125558.GG20403@atomide.com>
+References: <46F28BC7.80309@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20071019172031.226299706@mvista.com>
+In-Reply-To: <46F28BC7.80309@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,93 +16,97 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kevin Hilman <khilman@mvista.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Cc: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Kevin Hilman <khilman@mvista.com> [071019 10:22]:
-> This patch adds a CPUfreq frequency-table implementation for OMAP2 by
-> walking the PRCM rate-table for available entries and adding them to a
-> CPUfreq table.
+* Carlos Aguiar <carlos.aguiar@indt.org.br> [070920 08:05]:
+> From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 > 
-> CPUfreq can then be used to manage switching between all the available
-> entries in the PRCM rate table.  Either use the CPUfreq sysfs
-> interface directly, (see Section 3 of Documentation/cpu-freq/user-guide.txt)
-> or use the cpufrequtils package:
-> http://www.kernel.org/pub/linux/utils/kernel/cpufreq/cpufrequtils.html
+> Modifications at arch/arm/plat-omap/devices.c to use multislot structures.
 > 
-> Signed-off-by: Kevin Hilman <khilman@mvista.com>
-> 
+> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+> Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
+> Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 > ---
->  arch/arm/mach-omap2/clock24xx.c |   39 ++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/cpu-omap.c   |   52 ++++++++++++++++++++++++++++++++++++++--
->  2 files changed, 89 insertions(+), 2 deletions(-)
+>  arch/arm/plat-omap/devices.c |   52 ++++++++++++++++++++---------------------
+>  1 files changed, 25 insertions(+), 27 deletions(-)
 > 
-> Index: dev/arch/arm/mach-omap2/clock24xx.c
-> ===================================================================
-> --- dev.orig/arch/arm/mach-omap2/clock24xx.c
-> +++ dev/arch/arm/mach-omap2/clock24xx.c
-> @@ -26,6 +26,7 @@
->  #include <linux/clk.h>
+> diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+> index c2828fe..3f6a6af 100644
+> --- a/arch/arm/plat-omap/devices.c
+> +++ b/arch/arm/plat-omap/devices.c
+> @@ -21,6 +21,7 @@
 >  
->  #include <linux/io.h>
-> +#include <linux/cpufreq.h>
+>  #include <asm/arch/tc.h>
+>  #include <asm/arch/board.h>
+> +#include <asm/arch/mmc.h>
+>  #include <asm/arch/mux.h>
+>  #include <asm/arch/gpio.h>
+>  #include <asm/arch/menelaus.h>
+> @@ -231,7 +232,7 @@ static inline void omap_init_kp(void) {}
+>  #endif
+>  #define	OMAP_MMC2_BASE		0xfffb7c00	/* omap16xx only */
 >  
->  #include <asm/arch/clock.h>
->  #include <asm/arch/sram.h>
-> @@ -461,6 +462,42 @@ static int __init omap2_clk_arch_init(vo
->  }
->  arch_initcall(omap2_clk_arch_init);
+> -static struct omap_mmc_conf mmc1_conf;
+> +static struct omap_mmc_platform_data mmc1_data;
 >  
-> +#ifdef CONFIG_CPU_FREQ
-> +/*
-> + * Walk PRCM rate table and fillout cpufreq freq_table
-> + */
-> +static struct cpufreq_frequency_table freq_table[16];
-> +struct cpufreq_frequency_table *omap2_cpufreq_table;
-> +
-> +static void omap2_cpufreq_init_table(void)
-> +{
-> +	struct prcm_config *prcm;
-> +	int i = 0;
-> +
-> +	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
-> +		if (!(prcm->flags & cpu_mask))
-> +			continue;
-> +		if (prcm->xtal_speed != sys_ck.rate)
-> +			continue;
-> +
-> +		/* don't put bypass rates in table */
-> +		if (prcm->dpll_speed == prcm->xtal_speed)
-> +			continue;
-> +
-> +		freq_table[i].index = i;
-> +		freq_table[i].frequency = prcm->mpu_speed / 1000;
-> +		i++;
-> +	}
-> +
-> +	freq_table[i].index = i;
-> +	freq_table[i].frequency = CPUFREQ_TABLE_END;
-> +
-> +	omap2_cpufreq_table = &freq_table[0];
-> +}
-> +#else
-> +static void omap2_cpufreq_init_table(void) {}
-> +#endif
-> +
->  int __init omap2_clk_init(void)
+>  static u64 mmc1_dmamask = 0xffffffff;
+>  
+> @@ -252,7 +253,7 @@ static struct platform_device mmc_omap_device1 = {
+>  	.id		= 1,
+>  	.dev = {
+>  		.dma_mask	= &mmc1_dmamask,
+> -		.platform_data	= &mmc1_conf,
+> +		.platform_data	= &mmc1_data,
+>  	},
+>  	.num_resources	= ARRAY_SIZE(mmc1_resources),
+>  	.resource	= mmc1_resources,
+> @@ -260,7 +261,7 @@ static struct platform_device mmc_omap_device1 = {
+>  
+>  #ifdef	CONFIG_ARCH_OMAP16XX
+>  
+> -static struct omap_mmc_conf mmc2_conf;
+> +static struct omap_mmc_platform_data mmc2_data;
+>  
+>  static u64 mmc2_dmamask = 0xffffffff;
+>  
+> @@ -282,7 +283,7 @@ static struct platform_device mmc_omap_device2 = {
+>  	.id		= 2,
+>  	.dev = {
+>  		.dma_mask	= &mmc2_dmamask,
+> -		.platform_data	= &mmc2_conf,
+> +		.platform_data	= &mmc2_data,
+>  	},
+>  	.num_resources	= ARRAY_SIZE(mmc2_resources),
+>  	.resource	= mmc2_resources,
+> @@ -291,20 +292,13 @@ static struct platform_device mmc_omap_device2 = {
+>  
+>  static void __init omap_init_mmc(void)
 >  {
->  	struct prcm_config *prcm;
+> -	const struct omap_mmc_config	*mmc_conf;
+> -	const struct omap_mmc_conf	*mmc;
+> +	const struct omap_mmc_platform_data     *mmc;
+>  
+>  	/* REVISIT: 2430 has HS MMC */
+>  	if (cpu_is_omap2430() || cpu_is_omap34xx())
+>  		return;
+>  
+> -	/* NOTE:  assumes MMC was never (wrongly) enabled */
+> -	mmc_conf = omap_get_config(OMAP_TAG_MMC, struct omap_mmc_config);
+> -	if (!mmc_conf)
+> -		return;
+> -
+> -	/* block 1 is always available and has just one pinout option */
+> -	mmc = &mmc_conf->mmc[0];
+> +	mmc = &mmc1_data;
+>  	if (mmc->enabled) {
+>  		if (cpu_is_omap24xx()) {
+>  			omap_cfg_reg(H18_24XX_MMC_CMD);
 
-How about rather call omap2_cpufreq_init_table(freq_table) from cpu-omap.c
-init and pass it the freq table from cpu-omap.c?
-
-Also, eventually we should allow board-*.c files specify the rate table too.
-
-Regards,
+To me it seems you're nuking board specific configuration here? Also,
+why remove a valid comment about the block 1 pinouts?
 
 Tony
