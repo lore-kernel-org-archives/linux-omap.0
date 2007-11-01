@@ -1,75 +1,56 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: [PATCH/RFC] ARM: OMAP2: PRCM: more init, and clear wakeup events.
-Date: Thu, 01 Nov 2007 16:11:56 -0700
-Message-ID: <20071101231156.378789006@mvista.com>
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
-List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
-List-Post: <mailto:linux-omap-open-source@linux.omap.com>
-List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
-List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
-	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH resend] Make the dev_*() family of macros in
+ device.hcomplete
+Date: Thu, 1 Nov 2007 16:57:00 -0700
+Message-ID: <20071101165700.aa5167fb.akpm@linux-foundation.org>
+References: <1193697795-7823-1-git-send-email-Emilian.Medve@Freescale.com>
+	<20071030000054.GA19022@suse.de>
+	<598D5675D34BE349929AF5EDE9B03E27016E5FCB@az33exm24.fsl.freescale.net>
+	<20071030154008.GA22809@suse.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759860AbXKAX6H@vger.kernel.org>
+In-Reply-To: <20071030154008.GA22809@suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <gregkh@suse.de>
+Cc: Emilian.Medve@freescale.com, linux-kernel@vger.kernel.org, hjlipp@web.de, tilman@imap.cc, gigaset307x-common@lists.sourceforge.net, kkeil@suse.de, isdn4linux@listserv.isdn4linux.de, mac@melware.de, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-More initialization of wake dependencies.
-Clear PRCM wake-up events after coming out of full-retention.
+On Tue, 30 Oct 2007 08:40:08 -0700
+Greg KH <gregkh@suse.de> wrote:
 
-Signed-off-by: Kevin Hilman <khilman@mvista.com>
+> On Tue, Oct 30, 2007 at 05:11:24AM -0700, Medve Emilian-EMMEDVE1 wrote:
+> > Hi Greg K-H,
+> > 
+> > 
+> > > > +#define dev_info(dev, format, arg...)		\
+> > > > +	dev_printk(KERN_INFO, dev, format, ## arg)
+> > > > +
+> > > >  #ifdef DEBUG
+> > > >  #define dev_dbg(dev, format, arg...)		\
+> > > > -	dev_printk(KERN_DEBUG , dev , format , ## arg)
+> > > > +	dev_printk(KERN_DEBUG, dev, format, ## arg)
+> > > 
+> > > Those extra spaces are there for a good reason, older versions of gcc
+> > > are broken without it.  So please, put them all back...
+> > 
+> > You mean I should add spaces before commas only where they were
+> > initially or to all new code and/or macros?
+> 
+> Put it back where it was, and do the same for all other macros.
+> 
+> > I've observed other kernel code and more often there are no spaces
+> > before commas. I'm asking because the CodingStyle document is not very
+> > explicit about this rule.
+> 
+> This is a gcc rule, for variable length macros, not a CodingStyle
+> guideline.  It just will not work without it :)
+> 
 
----
- arch/arm/mach-omap2/pm.c |   23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
+The space-before-a-comma requirement was for gcc-2.95, iirc.
 
-Index: dev/arch/arm/mach-omap2/pm.c
-===================================================================
---- dev.orig/arch/arm/mach-omap2/pm.c
-+++ dev/arch/arm/mach-omap2/pm.c
-@@ -397,7 +397,7 @@ void omap2_allow_sleep(void)
- 
- static void omap2_enter_full_retention(void)
- {
--	u32 sleep_time = 0;
-+	u32 l, sleep_time = 0;
- 
- 	/* There is 1 reference hold for all children of the oscillator
- 	 * clock, the following will remove it. If no one else uses the
-@@ -450,6 +450,24 @@ no_sleep:
- 
- 	clk_enable(osc_ck);
- 
-+	/* clear CORE wake-up events */
-+	prm_write_mod_reg(0xffffffff, CORE_MOD, PM_WKST1);
-+	prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
-+
-+	/* wakeup domain events */
-+	l = prm_read_mod_reg(WKUP_MOD, PM_WKST);
-+	l &= 0x5;  /* bit 1: GPT1, bit5 GPIO */
-+	prm_write_mod_reg(l, WKUP_MOD, PM_WKST);
-+
-+	/* MPU domain wake events */
-+	l = prm_read_reg(OMAP24XX_PRCM_IRQSTATUS_MPU);
-+	if (l & 0x01)
-+		prm_write_reg(0x01, OMAP24XX_PRCM_IRQSTATUS_MPU);
-+	if (l & 0x20)
-+		prm_write_reg(0x20, OMAP24XX_PRCM_IRQSTATUS_MPU);
-+
-+	/* Mask future PRCM-to-MPU interrupts */
-+	prm_write_reg(0x0, OMAP24XX_PRCM_IRQSTATUS_MPU);
- }
- 
- static int omap2_i2c_active(void)
-@@ -654,6 +672,9 @@ static void __init prcm_setup_regs(void)
- 	prm_write_mod_reg(OMAP_EN_WKUP, MPU_MOD, PM_WKDEP);
- 	prm_write_mod_reg(0, OMAP24XX_DSP_MOD, PM_WKDEP);
- 	prm_write_mod_reg(0, GFX_MOD, PM_WKDEP);
-+	prm_write_mod_reg(0, CORE_MOD, PM_WKDEP);
-+	if (cpu_is_omap2430())
-+		prm_write_mod_reg(0, OMAP2430_MDM_MOD, PM_WKDEP);
- 
- 	l = prm_read_mod_reg(CORE_MOD, PM_PWSTCTRL);
- 	/* Enable retention for all memory blocks */
---
+It got to the stage where I was the only person testing with gcc-2.95 so I
+spent inordinate amounts of time adding spaces before people's newly-added
+commas.  Fortunately we abamdoned that gcc version so the space-before-a-comma
+requirement no longer exists.
