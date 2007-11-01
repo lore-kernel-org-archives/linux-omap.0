@@ -1,14 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 08/14] PLAT: OMAP: Modifications at devices.c to use
-	multislot structures
-Date: Thu, 1 Nov 2007 05:55:59 -0700
-Message-ID: <20071101125558.GG20403@atomide.com>
-References: <46F28BC7.80309@indt.org.br>
+From: "Heilpern, Mark" <mark.heilpern@authentec.com>
+Subject: SPI slave / receive w/ DMA failing
+Date: Thu, 1 Nov 2007 09:30:13 -0400
+Message-ID: <5ACCFDF5BCF2C34DB62D54EFA1FDF700519556@corp-mail01.auth.org>
+References: <46F28BC7.80309@indt.org.br> <20071101125558.GG20403@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <46F28BC7.80309@indt.org.br>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Class: urn:content-classes:message
+In-Reply-To: <20071101125558.GG20403@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,97 +17,93 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Cc: omap-linux <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Carlos Aguiar <carlos.aguiar@indt.org.br> [070920 08:05]:
-> From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-> 
-> Modifications at arch/arm/plat-omap/devices.c to use multislot structures.
-> 
-> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-> Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
-> Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-> ---
->  arch/arm/plat-omap/devices.c |   52 ++++++++++++++++++++---------------------
->  1 files changed, 25 insertions(+), 27 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-> index c2828fe..3f6a6af 100644
-> --- a/arch/arm/plat-omap/devices.c
-> +++ b/arch/arm/plat-omap/devices.c
-> @@ -21,6 +21,7 @@
->  
->  #include <asm/arch/tc.h>
->  #include <asm/arch/board.h>
-> +#include <asm/arch/mmc.h>
->  #include <asm/arch/mux.h>
->  #include <asm/arch/gpio.h>
->  #include <asm/arch/menelaus.h>
-> @@ -231,7 +232,7 @@ static inline void omap_init_kp(void) {}
->  #endif
->  #define	OMAP_MMC2_BASE		0xfffb7c00	/* omap16xx only */
->  
-> -static struct omap_mmc_conf mmc1_conf;
-> +static struct omap_mmc_platform_data mmc1_data;
->  
->  static u64 mmc1_dmamask = 0xffffffff;
->  
-> @@ -252,7 +253,7 @@ static struct platform_device mmc_omap_device1 = {
->  	.id		= 1,
->  	.dev = {
->  		.dma_mask	= &mmc1_dmamask,
-> -		.platform_data	= &mmc1_conf,
-> +		.platform_data	= &mmc1_data,
->  	},
->  	.num_resources	= ARRAY_SIZE(mmc1_resources),
->  	.resource	= mmc1_resources,
-> @@ -260,7 +261,7 @@ static struct platform_device mmc_omap_device1 = {
->  
->  #ifdef	CONFIG_ARCH_OMAP16XX
->  
-> -static struct omap_mmc_conf mmc2_conf;
-> +static struct omap_mmc_platform_data mmc2_data;
->  
->  static u64 mmc2_dmamask = 0xffffffff;
->  
-> @@ -282,7 +283,7 @@ static struct platform_device mmc_omap_device2 = {
->  	.id		= 2,
->  	.dev = {
->  		.dma_mask	= &mmc2_dmamask,
-> -		.platform_data	= &mmc2_conf,
-> +		.platform_data	= &mmc2_data,
->  	},
->  	.num_resources	= ARRAY_SIZE(mmc2_resources),
->  	.resource	= mmc2_resources,
-> @@ -291,20 +292,13 @@ static struct platform_device mmc_omap_device2 = {
->  
->  static void __init omap_init_mmc(void)
->  {
-> -	const struct omap_mmc_config	*mmc_conf;
-> -	const struct omap_mmc_conf	*mmc;
-> +	const struct omap_mmc_platform_data     *mmc;
->  
->  	/* REVISIT: 2430 has HS MMC */
->  	if (cpu_is_omap2430() || cpu_is_omap34xx())
->  		return;
->  
-> -	/* NOTE:  assumes MMC was never (wrongly) enabled */
-> -	mmc_conf = omap_get_config(OMAP_TAG_MMC, struct omap_mmc_config);
-> -	if (!mmc_conf)
-> -		return;
-> -
-> -	/* block 1 is always available and has just one pinout option */
-> -	mmc = &mmc_conf->mmc[0];
-> +	mmc = &mmc1_data;
->  	if (mmc->enabled) {
->  		if (cpu_is_omap24xx()) {
->  			omap_cfg_reg(H18_24XX_MMC_CMD);
+Hello,
 
-To me it seems you're nuking board specific configuration here? Also,
-why remove a valid comment about the block 1 pinouts?
+Using kernel 2.6.19, I'm almost successful in using SPI the way I need,
+but not quite. It seems that whatever is wrong is probably something
+simple I'm overlooking, so I'm hoping someone on the list will have an
+idea...
 
-Tony
+My configuration is using SPI2, where my OMAP (2430) is a receive-only
+slave. In advance of data arriving on the channel, I prepare a DMA-based
+receive, and my callback is being run, indicating that the DMA is
+satisfied it's been completed. My test is a request for only 16 bytes
+but the command I'm sending my external hardware (through a non-McSPI
+channel) results in 126 bytes coming in; I can verify with a logic
+analyzer that the proper data is sent by my external hardware.
+
+Here's the problem... prior to the operation I allocate (using
+dma_alloc_coherent()) more than enough RAM to receive my data (I'm
+allocating 1k), and I memset that block to 0xFF. The DMA callback
+function is printk'ing 32 bytes from that buffer (remember, I set the
+DMA for only 16 bytes, using omap2_mcspi_receive_buf(..., dma_phys_addr,
+16)), and what I find is the first 16 bytes are 0x00 and the next 16 are
+0xFF. So, it seems likely that DMA is putting data into my buffer, but
+based on the logic analyzer data (which shows the exact data I expect
+from my device), DMA isn't seeing proper data; probably SPI2 isn't
+seeing proper data.
+
+My device's data out signal is attached to spi2_simo, and prior to using
+the SPI channel I've configured the input to be on simo using
+omap2_mcspi_set_is(..., OMAP2_McSPI_CHCFG_IS_DL1RECEIVE).
+
+I noticed that the reset configuration for spi2_simo is to configure the
+pin as mode3 (GPIO 89), so I've reconfigured it for mode0 (spi2_simo),
+but this didn't change my results.
+
+The spi documentation mentions several times that a byte must be placed
+into th TX register (even though the channel is configured for
+receive-only) in order to work, so this has been done... but no
+improvement.
+
+At the end of things, my SPI2 register set is:
+   MCSPI_REV : [0xD809A000] =3D 0x00000018
+   MCSPI_SYSCONFIG : [0xD809A010] =3D 0x00000000
+   MCSPI_SYSSTATUS : [0xD809A014] =3D 0x00000001
+   MCSPI_IRQSTATUS : [0xD809A018] =3D 0x00010009
+   MCSPI_IRQENABLE : [0xD809A01C] =3D 0x00000000
+   MCSPI_WAKEUPENABLE : [0xD809A020] =3D 0x00000000
+   MCSPI_SYST : [0xD809A024] =3D 0x00000000
+   MCSPI_MODULCTRL : [0xD809A028] =3D 0x00000004
+   MCSPI_CH0CONF [0xD809A02C] =3D 0x000793D6
+   MCSPI_CH0STAT [0xD809A030] =3D 0x00000005
+   MCSPI_CH0CTRL [0xD809A034] =3D 0x00000001
+
+Register 49002114 (the top byte of which configures spi2_simo) =3D=3D
+0x000F1B0F
+
+It seems to me that the pin must not be configured correctly, but I'm
+not clear on what else to change to see a difference.
+
+Any thoughts?
+
+Thanks,
+Mark
+
+
+NOTE: The information in this message is intended for the personal and =
+confidential use
+of the designated recipient(s) named above. To the extent the =
+recipient(s) is/are bound
+by a non-disclosure agreement, or other agreement that contains an =
+obligation of
+confidentiality, with AuthenTec, then this message and/or any =
+attachments shall be
+considered confidential information and subject to the confidentiality =
+terms of that
+agreement.  If the reader of this message is not the intended recipient =
+named above, you
+are notified that you have received this document in error, and any =
+review, dissemination,
+distribution or copying of this message is strictly prohibited. If you =
+have received this
+document in error, please delete the original message and notify the =
+sender immediately.
+Thank you.
+
+AuthenTec, Inc.  http://www.authentec.com
