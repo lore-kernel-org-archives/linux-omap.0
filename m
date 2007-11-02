@@ -1,7 +1,7 @@
 From: "Girish" <girishsg@ti.com>
-Subject: [PATCH 1/5] mach:omap: some correction in Clock 34XX
-Date: Fri, 2 Nov 2007 20:54:41 +0530
-Message-ID: <00f501c81d64$7d547040$6a8918ac@ent.ti.com>
+Subject: [PATCH 3/5] TWL4030-Core support on 3430
+Date: Fri, 2 Nov 2007 20:54:50 +0530
+Message-ID: <00f701c81d64$82aa8ed0$6a8918ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -19,127 +19,63 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This patch modifies the I2C clock nodes as per LDM, corrects usage of DPLL mask
-and updates the flags of 96M clock nodes
-Signed-off-by: Chandra Shekhar <x0044955@ti.com>
-
+This patch adds TWL core on 3430
+Signed-off-by: Girish S G <girishsg@ti.com>
 ---
- arch/arm/mach-omap2/clock34xx.c |    4 +---
- arch/arm/mach-omap2/clock34xx.h |   27 ++++++++++++++++++---------
- 2 files changed, 19 insertions(+), 12 deletions(-)
+ arch/arm/configs/omap_3430sdp_defconfig   |    6 ++++++
+ drivers/i2c/chips/Kconfig                 |    2 +-
+ include/asm-arm/arch-omap/board-3430sdp.h |    4 ++--
+ 3 files changed, 9 insertions(+), 3 deletions(-)
 
-Index: linux-omap-git/arch/arm/mach-omap2/clock34xx.c
+Index: linux-omap-git/arch/arm/configs/omap_3430sdp_defconfig
 ===================================================================
---- linux-omap-git.orig/arch/arm/mach-omap2/clock34xx.c	2007-10-25 18:59:42.000000000 +0530
-+++ linux-omap-git/arch/arm/mach-omap2/clock34xx.c	2007-10-25 19:03:03.000000000 +0530
-@@ -37,8 +37,6 @@
- #include "cm.h"
- #include "cm_regbits_34xx.h"
- 
--/* CM_CLKEN_PLL*.EN* bit values */
--#define DPLL_LOCKED		0x7
- 
- /**
-  * omap3_dpll_recalc - recalculate DPLL rate
-@@ -79,7 +77,7 @@
- 	WARN_ON(!dd->control_reg || !dd->enable_mask);
- 
- 	v = cm_read_reg(dd->control_reg) & dd->enable_mask;
--	if (v != DPLL_LOCKED)
-+	if (v != dd->enable_mask)
- 		clk->rate = clk->parent->rate;
- 	else
- 		clk->rate = clk->parent->rate * 2;
-Index: linux-omap-git/arch/arm/mach-omap2/clock34xx.h
+--- linux-omap-git.orig/arch/arm/configs/omap_3430sdp_defconfig	2007-10-25 20:49:43.000000000 +0530
++++ linux-omap-git/arch/arm/configs/omap_3430sdp_defconfig	2007-10-25 20:51:13.000000000 +0530
+@@ -607,6 +607,12 @@
+ CONFIG_I2C_CHARDEV=y
+ CONFIG_I2C_OMAP=y
+ #
++# Miscellaneous I2C Chip support
++#
++CONFIG_TWL4030_CORE=y
++CONFIG_TWL4030_GPIO=y
++
++#
+ # SPI support
+ #
+ # CONFIG_SPI is not set
+Index: linux-omap-git/drivers/i2c/chips/Kconfig
 ===================================================================
---- linux-omap-git.orig/arch/arm/mach-omap2/clock34xx.h	2007-10-25 18:59:49.000000000 +0530
-+++ linux-omap-git/arch/arm/mach-omap2/clock34xx.h	2007-10-25 19:03:03.000000000 +0530
-@@ -437,14 +437,16 @@
- static struct clk omap_96m_alwon_fck = {
- 	.name		= "omap_96m_alwon_fck",
- 	.parent		= &dpll4_m2x2_ck,
--	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES,
-+	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
-+				 PARENT_CONTROLS_CLOCK,
- 	.recalc		= &followparent_recalc,
- };
+--- linux-omap-git.orig/drivers/i2c/chips/Kconfig	2007-10-25 20:49:43.000000000 +0530
++++ linux-omap-git/drivers/i2c/chips/Kconfig	2007-10-25 20:51:13.000000000 +0530
+@@ -132,7 +132,7 @@
  
- static struct clk omap_96m_fck = {
- 	.name		= "omap_96m_fck",
- 	.parent		= &omap_96m_alwon_fck,
--	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES,
-+	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
-+				PARENT_CONTROLS_CLOCK,
- 	.recalc		= &followparent_recalc,
- };
+ config TWL4030_CORE
+ 	bool "TI's TWL4030 companion chip Core Driver Support"
+-	depends on I2C=y && ARCH_OMAP24XX
++	depends on I2C=y && (ARCH_OMAP24XX || ARCH_OMAP34XX)
+ 	help
+ 	  Say yes here if you have TWL4030 chip on your board
  
-@@ -830,7 +832,8 @@
- static struct clk core_96m_fck = {
- 	.name		= "core_96m_fck",
- 	.parent		= &omap_96m_fck,
--	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES,
-+	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
-+				PARENT_CONTROLS_CLOCK,
- 	.recalc		= &followparent_recalc,
- };
+Index: linux-omap-git/include/asm-arm/arch-omap/board-3430sdp.h
+===================================================================
+--- linux-omap-git.orig/include/asm-arm/arch-omap/board-3430sdp.h	2007-10-25 20:49:43.000000000 +0530
++++ linux-omap-git/include/asm-arm/arch-omap/board-3430sdp.h	2007-10-25 20:51:13.000000000 +0530
+@@ -51,7 +51,7 @@
+ #define NAND_BASE	0x0C000000  /* NAND flash */
+ #define ONENAND_MAP	0x20000000  /* OneNand flash */
  
-@@ -862,7 +865,8 @@
- };
+-#ifdef CONFIG_I2C_TWL4030_CORE
++#ifdef CONFIG_TWL4030_CORE
  
- static struct clk i2c3_fck = {
--	.name		= "i2c3_fck",
-+	.name		= "i2c_fck",
-+	.id		= 3,
- 	.parent		= &core_96m_fck,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP3430_EN_I2C3_SHIFT,
-@@ -871,7 +875,8 @@
- };
+ #define TWL4030_IRQNUM INT_34XX_SYS_NIRQ
  
- static struct clk i2c2_fck = {
--	.name		= "i2c2_fck",
-+	.name		= "i2c_fck",
-+	.id 		= 2,
- 	.parent		= &core_96m_fck,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP3430_EN_I2C2_SHIFT,
-@@ -880,7 +885,8 @@
- };
+@@ -59,7 +59,7 @@
+ #define	IH_TWL4030_BASE		IH_BOARD_BASE
+ #define	IH_TWL4030_END		(IH_TWL4030_BASE+8)
  
- static struct clk i2c1_fck = {
--	.name		= "i2c1_fck",
-+	.name		= "i2c_fck",
-+	.id		= 1,
- 	.parent		= &core_96m_fck,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP3430_EN_I2C1_SHIFT,
-@@ -1222,7 +1228,8 @@
- };
+-#ifdef CONFIG_I2C_TWL4030_GPIO
++#ifdef CONFIG_TWL4030_GPIO
  
- static struct clk i2c3_ick = {
--	.name		= "i2c3_ick",
-+	.name		= "i2c_ick",
-+	.id		= 3,
- 	.parent		= &core_l4_ick,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
- 	.enable_bit	= OMAP3430_EN_I2C3_SHIFT,
-@@ -1231,7 +1238,8 @@
- };
- 
- static struct clk i2c2_ick = {
--	.name		= "i2c2_ick",
-+	.name		= "i2c_ick",
-+	.id		= 2,
- 	.parent		= &core_l4_ick,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
- 	.enable_bit	= OMAP3430_EN_I2C2_SHIFT,
-@@ -1240,7 +1248,8 @@
- };
- 
- static struct clk i2c1_ick = {
--	.name		= "i2c1_ick",
-+	.name		= "i2c_ick",
-+	.id		= 1,
- 	.parent		= &core_l4_ick,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
- 	.enable_bit	= OMAP3430_EN_I2C1_SHIFT,
+ /* TWL4030 GPIO Interrupts */
+ #define IH_TWL4030_GPIO_BASE	(IH_TWL4030_END)
