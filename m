@@ -1,15 +1,14 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 2/3] ARM: OMAP: Use I2C bus registration helper
-Date: Fri, 2 Nov 2007 09:27:40 -0700
-Message-ID: <200711020927.40350.david-b@pacbell.net>
-References: <1194011191-29395-1-git-send-email-jarkko.nikula@nokia.com>
-	<1194011191-29395-3-git-send-email-jarkko.nikula@nokia.com>
+Subject: Re: [PATCH] fix NULL pointer with MUSB and DMA on ISO ep
+Date: Fri, 2 Nov 2007 09:36:33 -0700
+Message-ID: <200711020936.33644.david-b@pacbell.net>
+References: <200711011540.49801.hyau@mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1194011191-29395-3-git-send-email-jarkko.nikula@nokia.com>
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <200711011540.49801.hyau@mvista.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,28 +17,51 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 02 November 2007, jarkko.nikula@nokia.com wrote:
-> --- a/arch/arm/mach-omap1/board-osk.c
-> +++ b/arch/arm/mach-omap1/board-osk.c
-> @@ -477,6 +477,7 @@ static void __init osk_init(void)
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-ARRAY_SIZE(osk_i2c_board_info));
-> =A0
-> =A0=A0=A0=A0=A0=A0=A0=A0omap_serial_init();
-> +=A0=A0=A0=A0=A0=A0=A0omap_register_i2c_bus(1, 100);
+On Thursday 01 November 2007, Hunyue Yau wrote:
+> Hi,
+> 
+> The MUSB driver fails to pass a proper buffer pointer to
+> musb_write_fifo if DMA is enabled and it is an ISO endpoint. 
+> This removes the check that was preventing a proper buffer
+> pointer from being passed. 
+> 
+> Tested with a bluetooth headset and USB bluetooth dongle
+> using SCO audio on the 2430SDP.
+> 
+> -- Hunyue 
+> ---------------------------------------------------------------------------------
+> Description:
+>     For the case of an isochonous endpoint, musb_write_fifo may be 
+>     called with a NULL buffer from musb_host_tx if DMA is enabled.
+>     Remove DMA check and always supply a valid buffer as long as 
+>     the URB contains a valid buffer.
+> 
+> Signed-off-by: Hunyue Yau <hyau@mvista.com>
+> 
+> diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+> index e488ac7..a7fe072 100644
+> --- a/drivers/usb/musb/musb_host.c
+> +++ b/drivers/usb/musb/musb_host.c
+> @@ -1258,7 +1258,7 @@ void musb_host_tx(struct musb *musb, u8 epnum)
+>  			d->actual_length = qh->segsize;
+>  			if (++qh->iso_idx >= urb->number_of_packets) {
+>  				done = true;
+> -			} else if (!dma) {
+> +			} else {
 
-I always use 400 kHz on this board.  :)
+... looks right.  ACK.
 
-Is there a reason you're not using 400k anywhere?
-ISTR at one point checking specs and finding that
-many TI dev boards were spec'd so that 400k should
-work fine.
-
-> =A0=A0=A0=A0=A0=A0=A0=A0osk_mistral_init();
-> =A0}
->=20
+>  				d++;
+>  				buf = urb->transfer_buffer + d->offset;
+>  				wLength = d->length;
+> 
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> 
