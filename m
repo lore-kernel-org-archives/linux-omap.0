@@ -1,12 +1,12 @@
 From: "Girish" <girishsg@ti.com>
-Subject: [PATCH 1/3] CPU identification support for 3430
-Date: Fri, 2 Nov 2007 20:13:33 +0530
-Message-ID: <00f101c81d5e$be25aa90$6a8918ac@ent.ti.com>
+Subject: [PATCH 4/5] Touch Screen: support on OMAP 3430
+Date: Fri, 2 Nov 2007 20:54:55 +0530
+Message-ID: <00f801c81d64$859be260$6a8918ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,130 +14,230 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This patch add cpu identification support for 3430 and some code clean up.
-
+This patch supports Touchscreen on 3430
 Signed-off-by: Girish S G <girishsg@ti.com>
+---
+ arch/arm/configs/omap_3430sdp_defconfig   |    3 -
+ arch/arm/mach-omap2/board-3430sdp.c       |   90 ++++++++++++++++++++++++++++++
+ drivers/input/touchscreen/ads7846.c       |    9 +++
+ include/asm-arm/arch-omap/board-3430sdp.h |    9 +++
+ include/asm-arm/arch-omap/gpio.h          |    2 
+ include/linux/spi/ads7846.h               |    5 +
+ 6 files changed, 116 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 1435923..a4c15e6 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -22,11 +22,15 @@
- #elif defined(CONFIG_ARCH_OMAP2430)
- #define TAP_BASE	io_p2v(0x4900A000)
- #elif defined(CONFIG_ARCH_OMAP34XX)
--#define TAP_BASE	io_p2v(0x54004000)
-+#define TAP_BASE	io_p2v(0x4830A000)
- #endif
+Index: linux-omap-git/arch/arm/configs/omap_3430sdp_defconfig
+===================================================================
+--- linux-omap-git.orig/arch/arm/configs/omap_3430sdp_defconfig	2007-11-02 20:45:30.000000000 +0530
++++ linux-omap-git/arch/arm/configs/omap_3430sdp_defconfig	2007-11-02 20:47:48.000000000 +0530
+@@ -549,7 +549,8 @@
+ # CONFIG_INPUT_MOUSE is not set
+ # CONFIG_INPUT_JOYSTICK is not set
+ # CONFIG_INPUT_TABLET is not set
+-# CONFIG_INPUT_TOUCHSCREEN is not set
++CONFIG_INPUT_TOUCHSCREEN=y
++# CONFIG_TOUCHSCREEN_ADS7846 is not set
+ # CONFIG_INPUT_MISC is not set
  
- #define OMAP_TAP_IDCODE		0x0204
-+#if defined(CONFIG_ARCH_OMAP34XX)
-+#define OMAP_TAP_PROD_ID	0x0210
-+#else
- #define OMAP_TAP_PROD_ID	0x0208
-+#endif
+ #
+Index: linux-omap-git/arch/arm/mach-omap2/board-3430sdp.c
+===================================================================
+--- linux-omap-git.orig/arch/arm/mach-omap2/board-3430sdp.c	2007-11-02 20:45:30.000000000 +0530
++++ linux-omap-git/arch/arm/mach-omap2/board-3430sdp.c	2007-11-02 20:47:48.000000000 +0530
+@@ -21,6 +21,8 @@
+ #include <linux/workqueue.h>
+ #include <linux/err.h>
+ #include <linux/clk.h>
++#include <linux/spi/spi.h>
++#include <linux/spi/ads7846.h>
  
- #define OMAP_TAP_DIE_ID_0	0x0218
- #define OMAP_TAP_DIE_ID_1	0x021C
-@@ -54,15 +58,44 @@ static struct omap_id omap_ids[] __initdata = {
- 	{ .hawkeye = 0xb5d9, .dev = 0x4, .type = 0x24220000 },
- 	{ .hawkeye = 0xb5d9, .dev = 0x8, .type = 0x24230000 },
- 	{ .hawkeye = 0xb68a, .dev = 0x0, .type = 0x24300000 },
-+	{ .hawkeye = 0xb7ae, .dev = 0xf, .type = 0x34300000 },
-+	{ .hawkeye = 0xb7ae, .dev = 0x0, .type = 0x34301000 },
+ #include <asm/hardware.h>
+ #include <asm/mach-types.h>
+@@ -28,6 +30,8 @@
+ #include <asm/mach/map.h>
+ #include <asm/mach/flash.h>
+ 
++#include <asm/arch/twl4030.h>
++#include <asm/arch/mcspi.h>
+ #include <asm/arch/gpio.h>
+ #include <asm/arch/mux.h>
+ #include <asm/arch/board.h>
+@@ -41,6 +45,9 @@
+ #define	SDP3430_FLASH_CS	0
+ #define	SDP3430_SMC91X_CS	3
+ 
++#define ENABLE_VAUX3_DEDICATED	0x03
++#define ENABLE_VAUX3_DEV_GRP	0x20
++
+ static struct mtd_partition sdp3430_partitions[] = {
+ 	/* bootloader (U-Boot, etc) in first sector */
+ 	{
+@@ -115,6 +122,86 @@
+ 	.resource	= sdp3430_smc91x_resources,
  };
  
- static u32 __init read_tap_reg(int reg)
- {
--	return __raw_readl(TAP_BASE + reg);
-+	unsigned int regval = 0;
-+	u32 cpuid;
++/**
++ * @brief ads7846_dev_init : Requests & sets GPIO line for pen-irq
++ *
++ * @return - void. If request gpio fails then Flag KERN_ERR.
++ */
++static void ads7846_dev_init(void)
++{
++	if (omap_request_gpio(TS_GPIO) < 0) {
++		printk(KERN_ERR "can't get ads746 pen down GPIO\n");
++		return;
++	}
 +
-+	/* Reading the IDCODE register on 3430 ES1 results in a
-+	 * data abort as the register is not exposed on the OCP
-+	 * Hence reading the Cortex Rev
-+	 */
-+	cpuid = read_cpuid(CPUID_ID);
++	omap_set_gpio_direction(TS_GPIO, 1);
 +
-+	/* If the processor type is Cortex-A8 and the revision is 0x0
-+	 * it means its Cortex r0p0 which is 3430 ES1
-+	 */
-+	if ((((cpuid >> 4) & 0xFFF) == 0xC08) && ((cpuid & 0xF) == 0x0)) {
-+		switch (reg) {
-+		case OMAP_TAP_IDCODE  : regval = 0x0B7AE02F; break;
-+		/* Making DevType as 0xF in ES1 to differ from ES2 */
-+		case OMAP_TAP_PROD_ID : regval = 0x000F00F0; break;
-+		case OMAP_TAP_DIE_ID_0: regval = 0x01000000; break;
-+		case OMAP_TAP_DIE_ID_1: regval = 0x1012d687; break;
-+		case OMAP_TAP_DIE_ID_2:	regval = 0x00000000; break;
-+		case OMAP_TAP_DIE_ID_3:	regval = 0x2d2c0000; break;
-+		}
-+	} else
-+		regval = __raw_readl(TAP_BASE + reg);
++	omap_set_gpio_debounce(TS_GPIO, 1);
++	omap_set_gpio_debounce_time(TS_GPIO, 0xa);
++}
 +
-+	return regval;
++static int ads7846_get_pendown_state(void)
++{
++	return !omap_get_gpio_datain(TS_GPIO);
++}
 +
++/*
++ * This enable(1)/disable(0) the voltage for TS: uses twl4030 calls
++ */
++static int ads7846_vaux_control(int vaux_cntrl)
++{
++	int ret = 0;
++
++#ifdef CONFIG_TWL4030_CORE
++	/* check for return value of ldo_use: if success it returns 0 */
++	if (vaux_cntrl == VAUX_ENABLE) {
++		if (ret != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			ENABLE_VAUX3_DEDICATED, TWL4030_VAUX3_DEDICATED))
++			return -EIO;
++		if (ret != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			ENABLE_VAUX3_DEV_GRP, TWL4030_VAUX3_DEV_GRP))
++			return -EIO;
++	} else if (vaux_cntrl == VAUX_DISABLE) {
++		if (ret != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			0x00, TWL4030_VAUX3_DEDICATED))
++			return -EIO;
++		if (ret != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			0x00, TWL4030_VAUX3_DEV_GRP))
++			return -EIO;
++	}
++#else
++	ret = -EIO;
++#endif
++	return ret;
++}
++
++static struct ads7846_platform_data tsc2046_config __initdata = {
++	.get_pendown_state	= ads7846_get_pendown_state,
++	.keep_vref_on		= 1,
++	.vaux_control		= ads7846_vaux_control,
++};
++
++
++static struct omap2_mcspi_device_config tsc2046_mcspi_config = {
++	.turbo_mode	= 0,
++	.single_channel	= 1,  /* 0: slave, 1: master */
++};
++
++static struct spi_board_info sdp3430_spi_board_info[] __initdata = {
++	[0] = {
++		/*
++		 * TSC2046 operates at a max freqency of 2MHz, so
++		 * operate slightly below at 1.5MHz
++		 */
++		.modalias		= "ads7846",
++		.bus_num		= 1,
++		.chip_select		= 0,
++		.max_speed_hz		= 1500000,
++		.controller_data	= &tsc2046_mcspi_config,
++		.irq			= OMAP_GPIO_IRQ(TS_GPIO),
++		.platform_data		= &tsc2046_config,
++	},
++};
+ static struct platform_device *sdp3430_devices[] __initdata = {
+ 	&sdp3430_smc91x_device,
+ 	&sdp3430_flash_device,
+@@ -264,6 +351,9 @@
+ 	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
+ 	omap_board_config = sdp3430_config;
+ 	omap_board_config_size = ARRAY_SIZE(sdp3430_config);
++	spi_register_board_info(sdp3430_spi_board_info,
++				ARRAY_SIZE(sdp3430_spi_board_info));
++	ads7846_dev_init();
+ 	omap_serial_init();
  }
  
- void __init omap2_check_revision(void)
- {
-+	int ctrl_status = 0;
- 	int i, j;
- 	u32 idcode;
- 	u32 prod_id;
-@@ -114,23 +147,27 @@ void __init omap2_check_revision(void)
- 				omap_ids[i].type >> 16);
- 		j = i;
- 	}
--	system_rev = omap_ids[j].type;
--
--	system_rev |= rev << 8;
+Index: linux-omap-git/include/asm-arm/arch-omap/board-3430sdp.h
+===================================================================
+--- linux-omap-git.orig/include/asm-arm/arch-omap/board-3430sdp.h	2007-11-02 20:45:30.000000000 +0530
++++ linux-omap-git/include/asm-arm/arch-omap/board-3430sdp.h	2007-11-02 20:47:48.000000000 +0530
+@@ -36,6 +36,15 @@
+ #define OMAP34XX_ETHR_START		DEBUG_BASE
+ #define OMAP34XX_ETHR_GPIO_IRQ		29
  
--	/* REVISIT:
--	 * OMAP 3430 ES 1.0 does't populate IDCODE registers
--	 * Following lines have to be revisited for next version
-+	/*
-+	 * system_rev encoding is as follows
-+	 * system_rev & 0xff000000 -> Omap Class (24xx/34xx)
-+	 * system_rev & 0xfff00000 -> Omap Sub Class (242x/343x)
-+	 * system_rev & 0xffff0000 -> Omap type (2420/2422/2423/2430/3430)
-+	 * system_rev & 0x0000f000 -> Silicon revision (ES1, ES2 )
-+	 * system_rev & 0x00000700 -> Device Type ( EMU/HS/GP/BAD )
-+	 * system_rev & 0x0000003f -> sys_boot[0:5]
- 	 */
-+	/* Embedding the ES revision info in type field */
-+	system_rev = omap_ids[j].type;
++/*
++ * GPIO used for TSC2046, TI's Touchscreen controller
++ */
++#ifdef CONFIG_OMAP3430_ES2
++#define TS_GPIO                2
++#else
++#define TS_GPIO                3
++#endif
 +
-+	ctrl_status = omap_readl(OMAP2_CONTROL_STATUS);
-+	system_rev |= (ctrl_status & 0x3f);
-+	system_rev |= (ctrl_status & 0x700);
+ /* NAND */
+ /* IMPORTANT NOTE ON MAPPING
+  * 3430SDP - 343X
+Index: linux-omap-git/include/asm-arm/arch-omap/gpio.h
+===================================================================
+--- linux-omap-git.orig/include/asm-arm/arch-omap/gpio.h	2007-11-02 20:45:30.000000000 +0530
++++ linux-omap-git/include/asm-arm/arch-omap/gpio.h	2007-11-02 20:47:48.000000000 +0530
+@@ -80,7 +80,7 @@
+ extern void omap2_gpio_prepare_for_retention(void);
+ extern void omap2_gpio_resume_after_retention(void);
  
--#ifndef CONFIG_ARCH_OMAP3
--	system_rev |= 0x24;
--#else
--	system_rev |= 0x34;
--#endif
- 	pr_info("OMAP%04x", system_rev >> 16);
- 	if ((system_rev >> 8) & 0x0f)
--		printk("%x", (system_rev >> 8) & 0x0f);
-+		printk("ES%x", (system_rev >> 12) & 0xf);
- 	printk("\n");
-+
- }
- 
-diff --git a/include/asm-arm/arch-omap/omap34xx.h b/include/asm-arm/arch-omap/omap34xx.h
-index 6bc7f8a..792ee09 100644
---- a/include/asm-arm/arch-omap/omap34xx.h
-+++ b/include/asm-arm/arch-omap/omap34xx.h
-@@ -71,6 +71,7 @@
- #define OMAP2_CTRL_BASE			OMAP3430_CTRL_BASE
- #define OMAP34XX_CONTROL_DEVCONF0	(L4_34XX_BASE + 0x2274)
- #define OMAP34XX_CONTROL_DEVCONF1	(L4_34XX_BASE + 0x22D8)
-+#define OMAP2_CONTROL_STATUS		(OMAP2_CTRL_BASE + 0x2f0)
- 
+-#ifdef CONFIG_ARCH_OMAP24XX
++#if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
+ extern void omap_set_gpio_debounce(int gpio, int enable);
+ extern void omap_set_gpio_debounce_time(int gpio, int enable);
  #endif
+Index: linux-omap-git/include/linux/spi/ads7846.h
+===================================================================
+--- linux-omap-git.orig/include/linux/spi/ads7846.h	2007-11-02 20:45:30.000000000 +0530
++++ linux-omap-git/include/linux/spi/ads7846.h	2007-11-02 20:47:48.000000000 +0530
+@@ -47,5 +47,10 @@
+ 				 void **filter_data);
+ 	int	(*filter)	(void *filter_data, int data_idx, int *val);
+ 	void	(*filter_cleanup)(void *filter_data);
++
++	/* controls enabling/disabling*/
++	int	(*vaux_control)(int vaux_cntrl);
++#define VAUX_ENABLE	1
++#define VAUX_DISABLE	0
+ };
+ 
+Index: linux-omap-git/drivers/input/touchscreen/ads7846.c
+===================================================================
+--- linux-omap-git.orig/drivers/input/touchscreen/ads7846.c	2007-11-02 20:47:33.000000000 +0530
++++ linux-omap-git/drivers/input/touchscreen/ads7846.c	2007-11-02 20:49:18.000000000 +0530
+@@ -838,6 +838,15 @@
+ 		return -ENODEV;
+ 	}
+ 
++	/* enable voltage */
++	if (pdata->vaux_control != NULL) {
++		err = pdata->vaux_control(VAUX_ENABLE);
++		if (err != 0) {
++			dev_dbg(&spi->dev, "TS vaux enable failed\n");
++			return err;
++		}
++	}
++
+ 	/* don't exceed max specified sample rate */
+ 	if (spi->max_speed_hz > (125000 * SAMPLE_BITS)) {
+ 		dev_dbg(&spi->dev, "f(sample) %d KHz?\n",
