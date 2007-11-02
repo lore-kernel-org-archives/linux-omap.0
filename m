@@ -1,8 +1,10 @@
 From: jarkko.nikula@nokia.com
-Subject: [PATCH/RFC 0/3] I2C bus registration helper
-Date: Fri,  2 Nov 2007 15:46:28 +0200
-Message-ID: <1194011191-29395-1-git-send-email-jarkko.nikula@nokia.com>
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Subject: [PATCH 3/3] ARM: OMAP: N800: Use I2C bus registration helper
+Date: Fri,  2 Nov 2007 15:46:31 +0200
+Message-ID: <1194011191-29395-4-git-send-email-jarkko.nikula@nokia.com>
+References: <1194011191-29395-1-git-send-email-jarkko.nikula@nokia.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <1194011191-29395-1-git-send-email-jarkko.nikula@nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -10,29 +12,30 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-I was recently looking how we register I2C busses for different OMAPs &
-boards and it looked somewhat confusing to me :-)
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
 
-Currently registration is done in various places:
-plat-omap/devices.c, mach-omap2/devices.c and also in each board file
-which wants to use different I2C clock rate than 100 kHz (e.g 2430sdp).
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+---
+ arch/arm/mach-omap2/board-n800.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-So I came up the idea that this should be simplified and to be more flexible
-related to clock rates and number of busses configured.
-
-Idea is in patch 1, patch 2 takes it into use and modifies those board files
-which are already in mainline. Helper should cover all OMAP generations
-from 1 to 3.
-
-Note that this is tested shortly on N800 only. Yep, not even compile tested
-for other OMAP platforms or boards :-)
-
-Comments and test reports are welcome.
-
+diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/board-n800.c
+index 81c4a8d..75f2462 100644
+--- a/arch/arm/mach-omap2/board-n800.c
++++ b/arch/arm/mach-omap2/board-n800.c
+@@ -481,6 +481,8 @@ static void __init nokia_n800_init(void)
+ 	spi_register_board_info(n800_spi_board_info,
+ 				ARRAY_SIZE(n800_spi_board_info));
+ 	omap_serial_init();
++	omap_register_i2c_bus(1, 100);
++	omap_register_i2c_bus(2, 100);
+ 	mipid_dev_init();
+ 	blizzard_dev_init();
+ 	tsc2301_dev_init();
 -- 
-Jarkko
+1.5.3.4
