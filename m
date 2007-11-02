@@ -1,58 +1,44 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [PATCH resend] Make the dev_*() family of macros in
-	device.hcomplete
-Date: Fri, 2 Nov 2007 08:35:33 -0700
-Message-ID: <20071102153533.GB7485@suse.de>
-References: <1193697795-7823-1-git-send-email-Emilian.Medve@Freescale.com> <20071030000054.GA19022@suse.de> <598D5675D34BE349929AF5EDE9B03E27016E5FCB@az33exm24.fsl.freescale.net> <20071030154008.GA22809@suse.de> <20071101165700.aa5167fb.akpm@linux-foundation.org>
+From: Daniel Stone <daniel.stone@nokia.com>
+Subject: Re: [PATC 2/3]  silicon revision check for OMAP2/3
+Date: Fri, 2 Nov 2007 17:57:06 +0200
+Message-ID: <20071102155706.GA24982@intune.research.nokia.com>
+References: <00f201c81d5e$c4aaac30$6a8918ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758087AbXKBPgg@vger.kernel.org>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20071101165700.aa5167fb.akpm@linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Emilian.Medve@freescale.com, linux-kernel@vger.kernel.org, hjlipp@web.de, tilman@imap.cc, gigaset307x-common@lists.sourceforge.net, kkeil@suse.de, isdn4linux@listserv.isdn4linux.de, mac@melware.de, linux-omap-open-source@linux.omap.com
+In-Reply-To: <00f201c81d5e$c4aaac30$6a8918ac@ent.ti.com>
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: ext Girish <girishsg@ti.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 01, 2007 at 04:57:00PM -0700, Andrew Morton wrote:
-> On Tue, 30 Oct 2007 08:40:08 -0700
-> Greg KH <gregkh@suse.de> wrote:
-> 
-> > On Tue, Oct 30, 2007 at 05:11:24AM -0700, Medve Emilian-EMMEDVE1 wrote:
-> > > Hi Greg K-H,
-> > > 
-> > > 
-> > > > > +#define dev_info(dev, format, arg...)		\
-> > > > > +	dev_printk(KERN_INFO, dev, format, ## arg)
-> > > > > +
-> > > > >  #ifdef DEBUG
-> > > > >  #define dev_dbg(dev, format, arg...)		\
-> > > > > -	dev_printk(KERN_DEBUG , dev , format , ## arg)
-> > > > > +	dev_printk(KERN_DEBUG, dev, format, ## arg)
-> > > > 
-> > > > Those extra spaces are there for a good reason, older versions of gcc
-> > > > are broken without it.  So please, put them all back...
-> > > 
-> > > You mean I should add spaces before commas only where they were
-> > > initially or to all new code and/or macros?
-> > 
-> > Put it back where it was, and do the same for all other macros.
-> > 
-> > > I've observed other kernel code and more often there are no spaces
-> > > before commas. I'm asking because the CodingStyle document is not very
-> > > explicit about this rule.
-> > 
-> > This is a gcc rule, for variable length macros, not a CodingStyle
-> > guideline.  It just will not work without it :)
-> > 
-> 
-> The space-before-a-comma requirement was for gcc-2.95, iirc.
-> 
-> It got to the stage where I was the only person testing with gcc-2.95 so I
-> spent inordinate amounts of time adding spaces before people's newly-added
-> commas.  Fortunately we abamdoned that gcc version so the space-before-a-comma
-> requirement no longer exists.
+Hi,
 
-Ah, ok, that's good to remember in the future, thanks.
+On Fri, Nov 02, 2007 at 08:13:44PM +0530, ext Girish wrote:
+>  # undef cpu_is_omap3430
+> -# define cpu_is_omap3430()		is_omap3430()
+> +#define cpu_is_omap3430()		is_omap3430()
 
-greg k-h
+Why the inconsistency?
+
+> +#define is_device_type_test() \
+> +		(((system_rev & 0x700) >> 8) == DEVICE_TYPE_TEST)
+> + [...]
+> +#define get_device_type() \
+> +		((system_rev & 0x700) >> 8)
+
+Nice work on defining the get_device_type() macro, but why not use it
+above, so you have:
+#define is_device_type_test() (get_device_type == DEVICE_TYPE_TEST)
+
+Cheers,
+Daniel
