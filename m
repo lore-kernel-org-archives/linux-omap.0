@@ -1,15 +1,14 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] fix NULL pointer with MUSB and DMA on ISO ep
-Date: Fri, 2 Nov 2007 09:36:33 -0700
-Message-ID: <200711020936.33644.david-b@pacbell.net>
-References: <200711011540.49801.hyau@mvista.com>
+From: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Subject: Re: [PATCH 01/14] MMC: OMAP: Introduce new structs for mmc multislot
+ support
+Date: Sat, 03 Nov 2007 17:45:05 -0400
+Message-ID: <472CEBE1.8010008@indt.org.br>
+References: <46F28BA8.9060409@indt.org.br> <47282C21.20604@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <200711011540.49801.hyau@mvista.com>
-Content-Disposition: inline
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <47282C21.20604@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,51 +16,48 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: ext Khem Raj <kraj@mvista.com>
+Cc: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 01 November 2007, Hunyue Yau wrote:
-> Hi,
-> 
-> The MUSB driver fails to pass a proper buffer pointer to
-> musb_write_fifo if DMA is enabled and it is an ISO endpoint. 
-> This removes the check that was preventing a proper buffer
-> pointer from being passed. 
-> 
-> Tested with a bluetooth headset and USB bluetooth dongle
-> using SCO audio on the 2430SDP.
-> 
-> -- Hunyue 
-> ---------------------------------------------------------------------------------
-> Description:
->     For the case of an isochonous endpoint, musb_write_fifo may be 
->     called with a NULL buffer from musb_host_tx if DMA is enabled.
->     Remove DMA check and always supply a valid buffer as long as 
->     the URB contains a valid buffer.
-> 
-> Signed-off-by: Hunyue Yau <hyau@mvista.com>
-> 
-> diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-> index e488ac7..a7fe072 100644
-> --- a/drivers/usb/musb/musb_host.c
-> +++ b/drivers/usb/musb/musb_host.c
-> @@ -1258,7 +1258,7 @@ void musb_host_tx(struct musb *musb, u8 epnum)
->  			d->actual_length = qh->segsize;
->  			if (++qh->iso_idx >= urb->number_of_packets) {
->  				done = true;
-> -			} else if (!dma) {
-> +			} else {
+ext Khem Raj wrote:
+> Carlos Aguiar wrote:
+>
+> >> +
+> >> +    mmc->caps = MMC_CAP_BYTEBLOCK | MMC_CAP_MULTIWRITE |
+> >> +            MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED;
+>
+Hi Khem,
 
-... looks right.  ACK.
+Well, according with commit 255d01af9a990fd5166f04ed0cc0b30b7b67e81e [1]
+from Linux-OMAP tree, the BYTEBLOCK capability was removed by Pierre
+Ossman.
 
->  				d++;
->  				buf = urb->transfer_buffer + d->offset;
->  				wLength = d->length;
-> 
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> 
+I've to update this patch and I'll resend it asap with BYTEBLOCK
+capability removed.
+
+BR,
+
+Carlos.
+
+[1]
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=255d01af9a990fd5166f04ed0cc0b30b7b67e81e
+
+>
+> MMC_CAP_BYTEBLOCK is new define which is used here but not defined.
+> Probably it should be defined in ./include/linux/mmc/host.h  ? or is it
+> in one of remaining patches.
+>
+> -Khem
+>
+> -- 
+> Carlos Eduardo Aguiar
+> Nokia Institute of Technology - INdT
+> Open Source Mobile Research Center - OSMRC - Manaus
+> Core Team
+> Phone: +55 92 2126-1079
+> Mobile: +55 92 8127-1797
+> E-mail: carlos.aguiar@indt.org.br
+>
