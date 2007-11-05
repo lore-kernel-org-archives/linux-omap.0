@@ -1,16 +1,16 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] include/asm-arm/arch-omap/omap24xx.h
-Date: Mon, 5 Nov 2007 00:57:40 -0700 (MST)
-Message-ID: <Pine.LNX.4.64.0711050052050.7016@utopia.booyaka.com>
-References: <ae36f8040710240958l579ad5el16f17cb073e25387@mail.gmail.com>
-	<471F868A.3060106@googlemail.com> <20071025053143.222542615@pwsan.com>
-	<4720B62A.1010406@googlemail.com>
-	<Pine.LNX.4.64.0710250955270.25986@utopia.booyaka.com>
-	<20071031152230.GP32547@atomide.com> <20071101082943.GA780@atomide.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP: Add helper module for board specific I2C
+ bus registration
+Date: Mon, 5 Nov 2007 10:19:17 +0200
+Message-ID: <20071105101917.063febb2.jarkko.nikula@nokia.com>
+References: <1194011191-29395-1-git-send-email-jarkko.nikula@nokia.com>
+	<1194011191-29395-2-git-send-email-jarkko.nikula@nokia.com>
+	<200711020922.04241.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20071101082943.GA780@atomide.com>
+In-Reply-To: <200711020922.04241.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,94 +20,59 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
+To: ext David Brownell <david-b@pacbell.net>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 1 Nov 2007, Tony Lindgren wrote:
+Thanks for review David. Comments below.
 
-> * Tony Lindgren <tony@atomide.com> [071031 08:22]:
-> > * Paul Walmsley <paul@pwsan.com> [071025 09:01]:
-> > 
-> > > Hello Dirk,
-> > >
-> > > On Thu, 25 Oct 2007, Dirk Behme wrote:
-> > >
-> > >> Mmh, I like to fix it in include/asm-arm/arch-omap/omap24xx.h, so I prefer 
-> > >> [1].
-> > >>
-> > >> With [1] we
-> > >>
-> > >> - fix it where it was introduced
-> > >> - have an additional #ifdef only in a header file instead of 
-> > >> plat-omap/devices.c, which is IMHO better
-> > >> - fix it for everybody now and in the future who directly or indirectly 
-> > >> includes omap24xx.h.
-> > >
-> > > Hopefully this is just a workaround until we can get rid of these 
-> > > conditional defines for multiboot kernels.  Generally speaking, would you 
-> > > propose doing the same thing for the other conditional defines in 
-> > > include/asm-arm/arch-omap/omap24xx.h, such as OMAP2_32KSYNCT_BASE, 
-> > > OMAP2_SDRC_BASE, etc.?
-> > 
-> > Sounds like the real fix is to set these addresses in the init code
-> > somewhere based on the omap type.
+"ext David Brownell" <david-b@pacbell.net> wrote:
 
-Yeah, agreed.
+> > +
+> > +/*
+> > + * FIXME: This is mostly helper function for those boards that
+> > don't do
+> > + * I2C pin muxing by themself
+> > + */
+> > +static void omap_i2c_mux_pins(int bus_id)
+> 
+> So what's to FIX?  I'd think that it should be able to handle
+> all the pinmux options.  Are there cases where boards NEED to
+> mux the pins themselves?  (Like, a choice of ballout for either
+> of the I2C signals on a given bus.)
+> 
+> This ought to be fully board-independant code...
+> 
+Exactly. This function was bit problematic since I don't know what
+boards need muxing changes so I just collected here what
+plat-omap/device.c and mach-omap2/device.c are doing currently.
 
-> I'll push a temporary fix based on Luis' patch, see below.
+Obviously better option is to move muxing into those board files which
+require them. I don't think that every OMAP1 board require
 
-OMAP3430 builds now generate redefinition warnings for OMAP2_CTRL_BASE; 
-patch to work around is below.
+	omap_cfg_reg(I2C_SCL);
+	omap_cfg_reg(I2C_SDA);
 
-In file included from include/asm/arch/hardware.h:288,
-                 from include/asm/hardware.h:16,
-                 from include/asm/arch/irqs.h:341,
-                 from include/asm/irq.h:4,
-                 from include/asm/hardirq.h:6,
-                 from include/linux/hardirq.h:7,
-                 from include/asm-generic/local.h:5,
-                 from include/asm/local.h:1,
-                 from include/linux/module.h:19,
-                 from init/main.c:13:
-include/asm/arch/omap34xx.h:71:1: warning: "OMAP2_CTRL_BASE" redefined
-In file included from include/asm/arch/hardware.h:287,
-                 from include/asm/hardware.h:16,
-                 from include/asm/arch/irqs.h:341,
-                 from include/asm/irq.h:4,
-                 from include/asm/hardirq.h:6,
-                 from include/linux/hardirq.h:7,
-                 from include/asm-generic/local.h:5,
-                 from include/asm/local.h:1,
-                 from include/linux/module.h:19,
-                 from init/main.c:13:
-include/asm/arch/omap24xx.h:106:1: warning: this is the location of the 
-previous definition
+nor every OMAP24xx for second I2C (except H4 and 2430sdp)
+
+	omap_cfg_reg(J15_24XX_I2C2_SCL);
+	omap_cfg_reg(H19_24XX_I2C2_SDA);
+
+Do Tony or someone know which boards might require above muxing changes
+so that we can get rid of that omap_i2c_mux_pins from here?
+
+> > +void omap_register_i2c_bus(int bus_id, u32 clkrate)
+> 
+> Consider passing the i2c_board_info in here too, so that
+> boards can just say "configure this bus at N kHz, with
+> these devices".  Not that having two I2C init calls in
+> each board's init logic unreasonable, but if you're going
+> to clean up the I2C init logic then this would be another
+> thing to clean up.  And it'd help get rid of potential
+> errors, by grouping all the related items together.
+> 
+Good point. I'll think it is better to have all of these modifications
+at once. Will add it.
 
 
-- Paul
-
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Work around OMAP2_CTRL_BASE warnings in 3430 build
-
-Work around OMAP2_CTRL_BASE redefinition warnings for OMAP3430 builds. 
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-
----
- include/asm/arch/omap24xx.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-Index: linux-omap/include/asm/arch/omap24xx.h
-===================================================================
---- linux-omap.orig/include/asm/arch/omap24xx.h	2007-11-04 20:55:00.000000000 -0700
-+++ linux-omap/include/asm/arch/omap24xx.h	2007-11-04 21:32:31.000000000 -0700
-@@ -101,7 +101,7 @@
- #define OMAP2_VA_IC_BASE	IO_ADDRESS(OMAP24XX_IC_BASE)
- #define OMAP2_CTRL_BASE		OMAP243X_CTRL_BASE
- 
--#else
-+#elif !defined(CONFIG_ARCH_OMAP34XX)
- /* FIXME: These will go away soon */
- #define OMAP2_CTRL_BASE		L4_24XX_BASE
- #endif
+    Jarkko
