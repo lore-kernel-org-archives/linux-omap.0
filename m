@@ -1,8 +1,15 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 0/2] 3430 clock: Add SmartReflex, emulation, trace clocks
-Date: Mon, 05 Nov 2007 01:24:06 -0700
-Message-ID: <20071105082406.387923286@pwsan.com>
+From: "Choraria, Rohit" <rohitkc@ti.com>
+Subject: RE: [PATCH 1/5] mach:omap: some correction in Clock 34XX
+Date: Mon, 5 Nov 2007 14:32:50 +0530
+Message-ID: <AC2D475575504148943F5EB0938951C4010B0C42@dbde01.ent.ti.com>
+References: <Pine.LNX.4.64.0711050021380.32372@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <Pine.LNX.4.64.0711050021380.32372@utopia.booyaka.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,28 +19,45 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Paul Walmsley <paul@booyaka.com>, "Ghongadematt, Girish" <girishsg@ti.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This short series of two patches adds some remaining OMAP3430 clocks:
-the SmartReflex voltage regulator clocks, and the ARM Cortex-A8
-trace/emulation clocks.  
+Hi Paul,
+  =20
+> Your changes to clock34xx.h look good.  But the change to clock34xx.c=20
+> isn't quite right.  The dpll_params.enable_mask field is=20
+> intended to be a=20
+> mask for the register's enable bits - i.e., something one would=20
+> logical-AND with the shifted contents of CM_CLKEN_PLL* -=20
+> rather than the=20
+> value to logical-OR into those bits to indicate a locked=20
+> DPLL.  The two=20
+> values happen to coincide, so the change is functionally=20
+> harmless; but=20
+> semantically, not what was intended for the enable_mask=20
+> field.  Would you=20
+> care to resubmit the patch with the clock34xx.c change dropped?
+>=20
 
-Boot-tested on 3430SDP ES1.
+When we were debugging the clock code, we found that the change in =
+clock.c was required to reflect the correct rate of dpll4_x2_ck.
 
+ 	v =3D cm_read_reg(dd->control_reg) & dd->enable_mask;
+ -	if (v !=3D DPLL_LOCKED)
+ +	if (v !=3D dd->enable_mask)
+ 		clk->rate =3D clk->parent->rate;
+ 	else
+ 		clk->rate =3D clk->parent->rate * 2;
 
-- Paul
+Previously, DPLL_LOCKED was defined as 0x7 - this worked for DPLL3 but =
+for DPLL4, the value is supposed to be 0x7000.=20
 
----
+If there was an enable_bit in dpll_data structure, we could have shifted =
+DPLL_LOCKED by enable_bit and compared with the register value.
+Since the current implementation will return wrong rate for DPLL4, we =
+made this modification.=20
+Can you suggest some other way of implementing this.
 
-diffstat:
-
- arch/arm/mach-omap2/clock34xx.h |  196 +++++++++++++++++++++++++++++++++++++---
- 1 file changed, 183 insertions(+), 13 deletions(-)
-
-
-Size:
-
-   text    data     bss     dec     hex filename
-2847056  140800   95304 3083160  2f0b98 vmlinux.orig
-2847720  141472   95304 3084496  2f10d0 vmlinux
+Regards,
+Rohit
