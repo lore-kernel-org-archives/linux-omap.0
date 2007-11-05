@@ -1,16 +1,12 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH 2/2] 3430 clock: add emulation clocks
-Date: Mon, 5 Nov 2007 05:49:34 -0600
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429026298DF@dlee13.ent.ti.com>
-References: <20071105082406.387923286@pwsan.com>
-	<20071105082528.483327389@pwsan.com>
+From: Ram <vshrirama@gmail.com>
+Subject: DQBUF V4L2 Errors (camdma trasaction error?)
+Date: Mon, 5 Nov 2007 17:21:24 +0530
+Message-ID: <8bf247760711050351g5a0afc0ma8e98709d53c2dae@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-reply-to: <20071105082528.483327389@pwsan.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,28 +16,31 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Paul Walmsley <paul@pwsan.com>, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-> Add clocks for the EMU domain for OMAP3430.  These clocks are not
-> well-documented in the TRM, beyond register bit settings.  Some
-> information is available in the ARM Cortex-A8 TRM, section 10.1.  Also
-> rename existing emul_* clocks to emu_* to conform with recent TRMs.
+Hi,
+   I am writing a camera sensor driver for a custom built OMAP2430 board.
 
-There are TRM addendums for emulations which have much more information.
-You at times need more than the base TRM these days.  There are probably
-a couple thousand more pages removed :) You wouldn't want to have too
-big of TRM, 43Meg is just the right size.
+   I am receiving images from the camera without any issues. However
+   after continuously running the camera capture application for about a hour
+   or so. I constantly get "VIDIOC_DQBUF" error.
 
-There actually is a lot more to the emulation capabilities on OMAP3 as
-compared to previous OMAPs.  It has the ability to selectively wake on
-JTAG accesses and source clocks too potentially inactive modules for
-debug of things like OFF mode (icemelter module in wakeup, can wake
-emulation domain, which then does the heavy lifting).  It also adds a
-DAP so you can make many accesses with out involving the ARM. With out
-using some of these features you will find your emulator won't connect
-well if the ARM's target state is retention or off.  This is now common
-place with cpu-idle.
+  This is because a camera dma tranasction error has occurred. (Bit 8
+in CSR Camera DMA  Channel status register).  Actually this is a
+temporary condition.
+
+ However, in my case i am getting too many of these camera dma
+transaction error after running for an hour or so.
+
+I am able to see camera interrupts. (cat /proc/interrupts)
+
+However for every 20-30 interrupts i get a camera dma transaction error.
+
+ Has anyone faced this problem before?
+
+
+ Please advice.
 
 Regards,
-Richard W.
+sriram
