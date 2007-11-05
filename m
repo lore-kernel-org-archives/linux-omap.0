@@ -1,15 +1,17 @@
-From: "Choraria, Rohit" <rohitkc@ti.com>
-Subject: RE: [PATCH 1/5] mach:omap: some correction in Clock 34XX
-Date: Mon, 5 Nov 2007 14:32:50 +0530
-Message-ID: <AC2D475575504148943F5EB0938951C4010B0C42@dbde01.ent.ti.com>
-References: <Pine.LNX.4.64.0711050021380.32372@utopia.booyaka.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 2/3] ARM: OMAP: Use I2C bus registration helper
+Date: Mon, 5 Nov 2007 01:56:40 -0800
+Message-ID: <200711050156.40287.david-b@pacbell.net>
+References: <1194011191-29395-1-git-send-email-jarkko.nikula@nokia.com>
+	<200711020927.40350.david-b@pacbell.net>
+	<20071105102657.f195e5c0.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <Pine.LNX.4.64.0711050021380.32372@utopia.booyaka.com>
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <20071105102657.f195e5c0.jarkko.nikula@nokia.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,47 +19,29 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Paul Walmsley <paul@booyaka.com>, "Ghongadematt, Girish" <girishsg@ti.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Paul,
-  =20
-> Your changes to clock34xx.h look good.  But the change to clock34xx.c=20
-> isn't quite right.  The dpll_params.enable_mask field is=20
-> intended to be a=20
-> mask for the register's enable bits - i.e., something one would=20
-> logical-AND with the shifted contents of CM_CLKEN_PLL* -=20
-> rather than the=20
-> value to logical-OR into those bits to indicate a locked=20
-> DPLL.  The two=20
-> values happen to coincide, so the change is functionally=20
-> harmless; but=20
-> semantically, not what was intended for the enable_mask=20
-> field.  Would you=20
-> care to resubmit the patch with the clock34xx.c change dropped?
->=20
+On Monday 05 November 2007, Jarkko Nikula wrote:
+> 
+> > Is there a reason you're not using 400k anywhere?
+> > ISTR at one point checking specs and finding that
+> > many TI dev boards were spec'd so that 400k should
+> > work fine.
+> > 
+> Reason is to not break anything :-)
+> 
+> Honestly I don't believe that we have many boards with components not
+> rated for 400 kHz.
 
-When we were debugging the clock code, we found that the change in =
-clock.c was required to reflect the correct rate of dpll4_x2_ck.
+Most components are rated like that.  Unfortunately it
+seems the isp1301 transceiver -- for full speed USB-OTG
+support -- has a 100 KHz ceiling on the clock rate,
+so bus segments with those (found on H2, H3, H4, and
+surely a few others) can't use 400K.  Ditto the pcf8574
+I/O expanders.
 
- 	v =3D cm_read_reg(dd->control_reg) & dd->enable_mask;
- -	if (v !=3D DPLL_LOCKED)
- +	if (v !=3D dd->enable_mask)
- 		clk->rate =3D clk->parent->rate;
- 	else
- 		clk->rate =3D clk->parent->rate * 2;
-
-Previously, DPLL_LOCKED was defined as 0x7 - this worked for DPLL3 but =
-for DPLL4, the value is supposed to be 0x7000.=20
-
-If there was an enable_bit in dpll_data structure, we could have shifted =
-DPLL_LOCKED by enable_bit and compared with the register value.
-Since the current implementation will return wrong rate for DPLL4, we =
-made this modification.=20
-Can you suggest some other way of implementing this.
-
-Regards,
-Rohit
+- Dave
