@@ -1,15 +1,10 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: [PATCH 2/3] ARM: OMAP: Use I2C bus registration helper
-Date: Mon, 5 Nov 2007 10:26:57 +0200
-Message-ID: <20071105102657.f195e5c0.jarkko.nikula@nokia.com>
-References: <1194011191-29395-1-git-send-email-jarkko.nikula@nokia.com>
-	<1194011191-29395-3-git-send-email-jarkko.nikula@nokia.com>
-	<200711020927.40350.david-b@pacbell.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <200711020927.40350.david-b@pacbell.net>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 1/2] 3430 clock: revise SmartReflex clocks
+Date: Mon, 05 Nov 2007 01:24:07 -0700
+Message-ID: <20071105082528.400123896@pwsan.com>
+References: <20071105082406.387923286@pwsan.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline; filename=add_sr_clocks.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,29 +12,63 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: ext David Brownell <david-b@pacbell.net>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-"ext David Brownell" <david-b@pacbell.net> wrote:
+The two SmartReflex voltage controllers on OMAP3430 have one
+functional clock each.  These clocks appear to be independent of each 
+other.  Encode them appropriately, replacing the previous 'sr_alwon_fck'
+clock.
 
-> > +=A0=A0=A0=A0=A0=A0=A0omap_register_i2c_bus(1, 100);
->=20
-> I always use 400 kHz on this board.  :)
->=20
-> Is there a reason you're not using 400k anywhere?
-> ISTR at one point checking specs and finding that
-> many TI dev boards were spec'd so that 400k should
-> work fine.
->=20
-Reason is to not break anything :-)
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
-Honestly I don't believe that we have many boards with components not
-rated for 400 kHz.
+---
+ arch/arm/mach-omap2/clock34xx.h |   23 ++++++++++++++++++-----
+ 1 file changed, 18 insertions(+), 5 deletions(-)
 
-I'll modify osk so that it will use 400 kHz. Probably N800 as well :-)
+Index: linux-omap/arch/arm/mach-omap2/clock34xx.h
+===================================================================
+--- linux-omap.orig/arch/arm/mach-omap2/clock34xx.h	2007-10-24 23:47:20.000000000 -0600
++++ linux-omap/arch/arm/mach-omap2/clock34xx.h	2007-10-24 23:47:22.000000000 -0600
+@@ -2003,11 +2003,23 @@
+ 
+ /* SR clocks */
+ 
+-/* REVISIT: dependent on en_sr1 && en_sr2 - use custom enable/disable? */
+-static struct clk sr_alwon_fck = {
+-	.name		= "sr_alwon_fck",
++/* SmartReflex fclk (VDD1) */
++static struct clk sr1_fck = {
++	.name		= "sr1_fck",
+ 	.parent		= &sys_ck,
+-	.flags		= CLOCK_IN_OMAP343X,
++	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
++	.enable_bit	= OMAP3430_EN_SR1_SHIFT,
++	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES,
++	.recalc		= &followparent_recalc,
++};
++
++/* SmartReflex fclk (VDD2) */
++static struct clk sr2_fck = {
++	.name		= "sr2_fck",
++	.parent		= &sys_ck,
++	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
++	.enable_bit	= OMAP3430_EN_SR2_SHIFT,
++	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES,
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+@@ -2204,7 +2216,8 @@
+ 	&mcbsp2_fck,
+ 	&mcbsp3_fck,
+ 	&mcbsp4_fck,
+-	&sr_alwon_fck,
++	&sr1_fck,
++	&sr2_fck,
+ 	&sr_l4_ick,
+ 	&secure_32k_fck,
+ 	&gpt12_fck,
 
-
-	Jarkko
+-- 
