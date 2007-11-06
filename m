@@ -1,12 +1,14 @@
-From: Paul Walmsley <paul@booyaka.com>
-Subject: RE: [PATCH 1/5] mach:omap: some correction in Clock 34XX
-Date: Tue, 6 Nov 2007 02:48:42 -0700 (MST)
-Message-ID: <Pine.LNX.4.64.0711060243080.25907@utopia.booyaka.com>
-References: <AC2D475575504148943F5EB0938951C4010B0C42@dbde01.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH 2/2] 3430 clock: add emulation clocks
+Date: Tue, 6 Nov 2007 02:54:43 -0700 (MST)
+Message-ID: <Pine.LNX.4.64.0711060252540.25907@utopia.booyaka.com>
+References: <20071105082406.387923286@pwsan.com>
+	<20071105082528.483327389@pwsan.com>
+	<3B6D69C3A9EBCA4BA5DA60D913027429026298DF@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <AC2D475575504148943F5EB0938951C4010B0C42@dbde01.ent.ti.com>
+In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D913027429026298DF@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,39 +18,25 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Choraria, Rohit" <rohitkc@ti.com>
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello Rohit,
+On Mon, 5 Nov 2007, Woodruff, Richard wrote:
 
-On Mon, 5 Nov 2007, Choraria, Rohit wrote:
-
-> When we were debugging the clock code, we found that the change in clock.c was required to reflect the correct rate of dpll4_x2_ck.
+> > Add clocks for the EMU domain for OMAP3430.  These clocks are not
+> > well-documented in the TRM, beyond register bit settings.  Some
+> > information is available in the ARM Cortex-A8 TRM, section 10.1.  Also
+> > rename existing emul_* clocks to emu_* to conform with recent TRMs.
 > 
->  	v = cm_read_reg(dd->control_reg) & dd->enable_mask;
->  -	if (v != DPLL_LOCKED)
->  +	if (v != dd->enable_mask)
->  		clk->rate = clk->parent->rate;
->  	else
->  		clk->rate = clk->parent->rate * 2;
-> 
-> Previously, DPLL_LOCKED was defined as 0x7 - this worked for DPLL3 but for DPLL4, the value is supposed to be 0x7000. 
+> There are TRM addendums for emulations which have much more information.
+> You at times need more than the base TRM these days.  There are probably
+> a couple thousand more pages removed :) You wouldn't want to have too
+> big of TRM, 43Meg is just the right size.
 
-Good point.  That code was broken.
-
-> If there was an enable_bit in dpll_data structure, we could have shifted DPLL_LOCKED by enable_bit and compared with the register value.
-> Since the current implementation will return wrong rate for DPLL4, we made this modification. 
-> Can you suggest some other way of implementing this.
-
-I would suggest: 
-
-	v = cm_read_reg(dd->control_reg) & dd->enable_mask;
-+       v >>= mask_to_shift(dd->enable_mask);
-	if (v != DPLL_LOCKED)
-		clk->rate = clk->parent->rate;
-	else
-		clk->rate = clk->parent->rate * 2;
+Ok, thanks.  Are you referring to the Emulation TRM, or are there other 
+TRMs related to emulation that include this information?  Let me know and 
+I will repost the patches with an updated commit-msg pointing people there.
 
 
 - Paul
