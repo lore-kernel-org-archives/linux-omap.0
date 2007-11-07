@@ -1,36 +1,53 @@
-From: Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] Register the L4 io bus to boot OMAP2
-Date: Wed, 7 Nov 2007 08:14:42 +0900
-Message-ID: <20071106231442.GA8599@party>
+From: "=?UTF-8?Q?Lu=C3=ADs_Cargnini?=" <lvcargnini@gmail.com>
+Subject: [PATCH]include/asm-arm/arch-omap/omap24xx.h
+Date: Wed, 7 Nov 2007 02:27:23 -0200
+Message-ID: <ae36f8040711062027k1456f262kfa9d72543d38b0cc@mail.gmail.com>
+Reply-To: lvcargnini@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756787AbXKFXST@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap-open-source@linux.omap.com, linux-kernel@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============0269210586=="
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
+List-Post: <mailto:linux-omap-open-source@linux.omap.com>
+List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
+List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
+	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch enables the OMAP2 boot
+--===============0269210586==
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-It is already fixed in OMAP tree. It syncs the mainline tree too.
+dGhpcyBwYXRjaCBvbmx5IGV4cG9ydCB0d28gbW9yZSBmdW5jdGlvbnMgdG8gYmVlbiB1c2VkIGV4
+dGVybmFsbHksIGZvciByZWFkCmFuZCB3cml0ZSBpbiBwb2xsZWQgbW9kZS53aXRob3V0IHRoZSBu
+ZWVkIG9mIGlycXMuCgpTaWduZWQtb2ZmLWJ5OiBMdWlzIFZpdG9yaW8gQ2FyZ25pbmkgPGx2Y2Fy
+Z25pbmlAZ21haWwuY29tPgoKLS0tIGxpbnV4LW9tYXAtMi42L2FyY2gvYXJtL3BsYXQtb21hcC9t
+Y2JzcC5jICAgMjAwNy0wMy0xMiAxNjo0NDoKMDMuNTAxODkwODQ0IC0wMzAwCisrKyBsaW51eC1v
+bWFwLTIuNi4yMy9hcmNoL2FybS9wbGF0LW9tYXAvbWNic3AuYyAgICAgICAgMjAwNy0xMS0wNyAw
+MjoxMDoKNDQuMDkzNjI1MDM0IC0wMjAwCkBAIC0xMDIyLDYgKzEwMjIsOCBAQCBFWFBPUlRfU1lN
+Qk9MKG9tYXBfbWNic3Bfc2V0X2lvX3R5cGUpOwogRVhQT1JUX1NZTUJPTChvbWFwX21jYnNwX2Zy
+ZWUpOwogRVhQT1JUX1NZTUJPTChvbWFwX21jYnNwX3N0YXJ0KTsKIEVYUE9SVF9TWU1CT0wob21h
+cF9tY2JzcF9zdG9wKTsKK0VYUE9SVF9TWU1CT0wob21hcF9tY2JzcF9wb2xscmVhZCk7CitFWFBP
+UlRfU1lNQk9MKG9tYXBfbWNic3BfcG9sbHdyaXRlKTsKIEVYUE9SVF9TWU1CT0wob21hcF9tY2Jz
+cF94bWl0X3dvcmQpOwogRVhQT1JUX1NZTUJPTChvbWFwX21jYnNwX3JlY3Zfd29yZCk7CiBFWFBP
+UlRfU1lNQk9MKG9tYXBfbWNic3BfeG1pdF9idWZmZXIpOwoKCi0tIAotLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0KVGhhbmtzICYmIFJlZ2FyZHMKTXNjLiBCc2MuIEx1w61zIFZpdMOzcmlvIENhcmduaW5p
+CklFRUUgTWVtYmVyCkVsZWN0cmljYWwgRW5naW5lZXIgRmFjdWx0eSBAIFBVQ1JTCklwaXJhbmdh
+IEF2ZW51ZSwgNjY4MSDigJMgQnVpbGRpbmcgMzAKUC5PLiBCb3g6IDkwNjE5LTkwMCDigJMgUG9y
+dG8gQWxlZ3JlL1JTClBob25lOiArNTUgNTEgMzMyMCAzNTAwICBleHRlbnNpb246IDc2OTYKLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tCg==
+--===============0269210586==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 5a4091f..69c8174 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -42,6 +42,12 @@ static struct map_desc omap2_io_desc[] __initdata = {
- 		.length		= L3_24XX_SIZE,
- 		.type		= MT_DEVICE
- 	},
-+	{
-+		.virtual        = L4_24XX_VIRT,
-+		.pfn            = __phys_to_pfn(L4_24XX_PHYS),
-+		.length         = L4_24XX_SIZE,
-+		.type           = MT_DEVICE
-+	},
- #ifdef CONFIG_ARCH_OMAP2430
- 	{
- 		.virtual	= L4_WK_243X_VIRT,
+
+--===============0269210586==--
