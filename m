@@ -1,10 +1,11 @@
-From: "=?UTF-8?Q?Lu=C3=ADs_Cargnini?=" <lvcargnini@gmail.com>
-Subject: reading MCBSP, pollread returning error
-Date: Wed, 7 Nov 2007 02:37:36 -0200
-Message-ID: <ae36f8040711062037l3c40b18cib9b09dfa96e25349@mail.gmail.com>
-Reply-To: lvcargnini@gmail.com
+From: "Madhusudhan Chikkature Rajashekar" <madhu.cr@ti.com>
+Subject: HDQ/1-wire module
+Date: Wed, 7 Nov 2007 14:12:15 +0530
+Message-ID: <005a01c8211a$1a143f60$918818ac@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0319940876=="
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,43 +16,36 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: OMAP <Linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============0319940876==
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+Hi All,
 
-RGVhciBGZWxsb3dzLApJJ20gcmVhZGluZyBhbiBBRCBjb25uZWN0ZWQgdGhyb3cgTWNCU1AyLCBj
-b25maWd1cmVkIGFzIGZvbGxvdzoKICAgICAgICAuc3BjcjEgPSBSUkRZIHwgUklOVE0oMCkgfCBS
-UlNULAogICAgICAgIC5zcGNyMiA9IFhSRFkgfCBGUkVFIHwgU09GVCB8IEZSU1QgfCBHUlNUIHwg
-WElOVE0oMCkgfCBYRU1QVFksCiAgICAgICAgLnJjcjEgID0gUkZSTEVOMShPTUFQX01DQlNQX1dP
-UkRfMTYpIHwgUldETEVOMShPTUFQX01DQlNQX1dPUkRfMTYpLAogICAgICAgIC5yY3IyICA9IFJG
-UkxFTjIoT01BUF9NQ0JTUF9XT1JEXzE2KSB8IFJXRExFTjIoT01BUF9NQ0JTUF9XT1JEXzE2KSB8
-ClJEQVRETFkoMCksCiAgICAgICAgLnhjcjEgID0gWEZSTEVOMShPTUFQX01DQlNQX1dPUkRfOCkg
-fCBYV0RMRU4xKE9NQVBfTUNCU1BfV09SRF8xNiksCiAgICAgICAgLnhjcjIgID0gWEZSTEVOMihP
-TUFQX01DQlNQX1dPUkRfMTYpIHwgWFdETEVOMihPTUFQX01DQlNQX1dPUkRfMTYpIHwKWERBVERM
-WSgwKSwKICAgICAgICAuc3JncjEgPSBDTEtHRFYoMjAwKSB8IEZXSUQoREVGQVVMVF9CSVRfU0FN
-UExFUkFURS0xKSwvKiBtb2RpZmljYXIgZQpjb2xvY2FyIHVtIGRlZmF1bHQgKi8KICAgICAgICAu
-c3JncjIgPSBDTEtTTSB8IEZQRVIoMipERUZBVUxUX0JJVF9TQU1QTEVSQVRFLTEpLAogICAgICAg
-IC8qIFNsYXZlIENMS1hQIHwgQ0xLUlAsICovCiAgICAgICAgLnBjcjAgID0gRlNYTSB8IEZTUk0g
-fCBDTEtYTSB8IENMS1JNLCAvKiBNYXN0ZXIgKi8KCndoZW4gSSB0cnkgdG8gcmVhZCB0aGUgQUQg
-KEFEUzgzNDNCKQp0aGUgcG9sbF9yZWFkIHJldHVybiAtMQoKdGhlIHJlY3Zfd29yZCBmdW5jdGlv
-biBnZXQgbG9ja2VkIGluIHdhaXRfY29tcGxldGlvbiwKU29tZW9uZSBrbm93cyBzb21ldGhpbmcg
-YWJvdXQgdGhpcyBraW5kIG9mIGVycm9yID8KCi0tIAotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KVGhh
-bmtzICYmIFJlZ2FyZHMKTXNjLiBCc2MuIEx1w61zIFZpdMOzcmlvIENhcmduaW5pCklFRUUgTWVt
-YmVyCkVsZWN0cmljYWwgRW5naW5lZXIgRmFjdWx0eSBAIFBVQ1JTCklwaXJhbmdhIEF2ZW51ZSwg
-NjY4MSDigJMgQnVpbGRpbmcgMzAKUC5PLiBCb3g6IDkwNjE5LTkwMCDigJMgUG9ydG8gQWxlZ3Jl
-L1JTClBob25lOiArNTUgNTEgMzMyMCAzNTAwICBleHRlbnNpb246IDc2OTYKLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tCg==
---===============0319940876==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+This is regarding the HDQ/1-wire support for omap24xx/34xx. 
 
+The controller on the above OMAP platforms supports both HDQ and 1-wire protocol.The difference between HDQ and 1-wire protocol is
+very minimal as explained below.
 
---===============0319940876==--
+HDQ Mode:
+In HDQ mode, the firmware does not require the host to create an initialization pulse to the slave.
+However, the slave can be reset by using an initialization pulse (also referred to as a break pulse).
+The slave does not respond with a presence pulse.
+
+1-Wire Mode:
+In 1-Wire protocol, the host first sends an initialization pulse (by pulling the line to a logic-low state)
+and then waits for the slave to respond with a presence pulse before enabling any communication sequence.
+
+A typical application of the HDQ/1-Wire module is the communication with battery monitor (gas gauge)
+integrated circuits.
+
+Has anyone in the past worked on the above module or has written a driver for the same? I can not recollect of having read any mails
+on the above module
+in the list. Please correct me if I am wrong.
+
+There is no support for HDQ devices as of today in Linux. Whereas there is a W1 subsystem for 1-wire devices. Right now, I only have
+a device 
+that is complaint to HDQ protocol only.I guess we can still write a driver to support this which can be integrated to the 1-wire
+subsystem. If anyone has a different opinion, please do share the views.
+
+Regards,
+Madhu
