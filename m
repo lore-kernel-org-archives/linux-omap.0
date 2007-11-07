@@ -1,12 +1,13 @@
-From: "Madhusudhan Chikkature Rajashekar" <madhu.cr@ti.com>
-Subject: HDQ/1-wire module
-Date: Wed, 7 Nov 2007 14:12:15 +0530
-Message-ID: <005a01c8211a$1a143f60$918818ac@ent.ti.com>
+From: "Choraria, Rohit" <rohitkc@ti.com>
+Subject: [PATCH] ARM: OMAP: Warm reset functionality for 34xx
+Date: Wed, 7 Nov 2007 14:41:49 +0530
+Message-ID: <AC2D475575504148943F5EB0938951C4011252AA@dbde01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,33 +20,57 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi All,
-
-This is regarding the HDQ/1-wire support for omap24xx/34xx. 
-
-The controller on the above OMAP platforms supports both HDQ and 1-wire protocol.The difference between HDQ and 1-wire protocol is
-very minimal as explained below.
-
-HDQ Mode:
-In HDQ mode, the firmware does not require the host to create an initialization pulse to the slave.
-However, the slave can be reset by using an initialization pulse (also referred to as a break pulse).
-The slave does not respond with a presence pulse.
-
-1-Wire Mode:
-In 1-Wire protocol, the host first sends an initialization pulse (by pulling the line to a logic-low state)
-and then waits for the slave to respond with a presence pulse before enabling any communication sequence.
-
-A typical application of the HDQ/1-Wire module is the communication with battery monitor (gas gauge)
-integrated circuits.
-
-Has anyone in the past worked on the above module or has written a driver for the same? I can not recollect of having read any mails
-on the above module
-in the list. Please correct me if I am wrong.
-
-There is no support for HDQ devices as of today in Linux. Whereas there is a W1 subsystem for 1-wire devices. Right now, I only have
-a device 
-that is complaint to HDQ protocol only.I guess we can still write a driver to support this which can be integrated to the 1-wire
-subsystem. If anyone has a different opinion, please do share the views.
+Hi,
+This patch adds the implementation for warm reset functionality for =
+OMAP3.
 
 Regards,
-Madhu
+Rohit
+
+Signed-off-by: Rohit Choraria <rohitkc@ti.com>
+---
+ arch/arm/mach-omap2/prcm.c         |   11 +++++++++--
+ include/asm-arm/arch-omap/system.h |    2 +-
+ 2 files changed, 10 insertions(+), 3 deletions(-)
+
+Index: linux-omap-git-20071030/arch/arm/mach-omap2/prcm.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-omap-git-20071030.orig/arch/arm/mach-omap2/prcm.c	2007-10-30 =
+12:38:14.000000000 -0400
++++ linux-omap-git-20071030/arch/arm/mach-omap2/prcm.c	2007-11-06 =
+13:22:07.892612648 -0500
+@@ -33,6 +33,13 @@
+ {
+ 	u32 wkup;
+ 	omap2_clk_prepare_for_reboot();
+-	wkup =3D prm_read_mod_reg(WKUP_MOD, RM_RSTCTRL) | OMAP_RST_DPLL3;
+-	prm_write_mod_reg(wkup, WKUP_MOD, RM_RSTCTRL);
++
++	if (cpu_is_omap24xx()) {
++		wkup =3D prm_read_mod_reg(WKUP_MOD, RM_RSTCTRL) | OMAP_RST_DPLL3;
++		prm_write_mod_reg(wkup, WKUP_MOD, RM_RSTCTRL);
++	} else if (cpu_is_omap34xx()) {
++		wkup =3D prm_read_mod_reg(OMAP3430_GR_MOD, RM_RSTCTRL)
++							| OMAP_RST_DPLL3;
++		prm_write_mod_reg(wkup, OMAP3430_GR_MOD, RM_RSTCTRL);
++	}
+ }
+Index: linux-omap-git-20071030/include/asm-arm/arch-omap/system.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-omap-git-20071030.orig/include/asm-arm/arch-omap/system.h	=
+2007-10-30 12:42:49.000000000 -0400
++++ linux-omap-git-20071030/include/asm-arm/arch-omap/system.h	=
+2007-11-06 13:21:57.893132800 -0500
+@@ -40,7 +40,7 @@
+=20
+ static inline void arch_reset(char mode)
+ {
+-	if (!cpu_is_omap24xx())
++	if (!cpu_class_is_omap2())
+ 		omap1_arch_reset(mode);
+ 	else
+ 		omap_prcm_arch_reset(mode);
