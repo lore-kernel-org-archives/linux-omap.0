@@ -1,15 +1,14 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: [PATCH 2/3] ARM: OMAP: Use I2C bus registration helper
-Date: Fri, 9 Nov 2007 09:14:52 +0200
-Message-ID: <20071109091452.e4096e71.jarkko.nikula@nokia.com>
-References: <1194432873-5209-1-git-send-email-jarkko.nikula@nokia.com>
-	<1194432873-5209-3-git-send-email-jarkko.nikula@nokia.com>
-	<4733044B.9070307@gmail.com>
+From: "Yang, Xiaopeng" <xiaopeng.yang@windriver.com>
+Subject: Re: ads7846: data read from tsc2046 are all zeros
+Date: Fri, 09 Nov 2007 16:33:25 +0800
+Message-ID: <47341B55.7030305@windriver.com>
+References: <4732E60E.3000308@windriver.com>	<a46a26fd0711081357v72fa843dn3e7c2a43aa5492e2@mail.gmail.com>
+	<4733D81D.4020907@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <4733044B.9070307@gmail.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <4733D81D.4020907@windriver.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,46 +16,65 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: ext Nishanth Menon <menon.nishanth@gmail.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "Yang, Xiaopeng" <xiaopeng.yang@windriver.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 08 Nov 2007 06:42:51 -0600
-"ext Nishanth Menon" <menon.nishanth@gmail.com> wrote:
+Resolved, the tsc2046 wouldn't be power on if the LCD module is not enabled.
 
-> Jarkko,
-> Jarkko Nikula stated on 11/7/2007 4:54 AM:
-> > This patch starts using introduced I2C bus registration helper by
-> > cleaning up registration currently done in various places and by
-> > doing necessary board file modifications.
+Xiaopeng
+
+Yang, Xiaopeng wrote:
+> Hi all,
 > 
-> How do I handle Bus segments on (currently) a hypothetical situation
-> where i have HS and FS devices on the same i2c bus? There was a long
-> discussion
-> (http://lists.lm-sensors.org/pipermail/i2c/2007-April/001038.html )
+> I captured the signals of the host-side pins of tsc2046, the SPI pins 
+> and PENIRQ work correctly except DOUT remains LOW during CS is active. 
+> That's why all read values are zore.
 > 
-> I am not sure we want to loose that flexibility..
+> It seems like the tsc2046 doesn't work at all. I measured the voltage of 
+> the power supply of tsc2046, the Vcc is only 0.93V. This shouldn't 
+> happen in the normal operation. Maybe there is a switch to turn the 
+> power on for tsc2046?
 > 
-I didn't read the whole thread but I don't see that this framework can
-cover that issue any other way than by registering the rate of slowest
-known device since this is more device specific problem than bus
-registration problem.
-
-I think it is exception if there is a bus with variable speed devices
-and where slower devices don't get confused when using higher speed with
-other devices.
-
-Probably that short of info can be passed via i2c_board_info? Like
-separate device speed and max idle rate. Adapter driver uses then
-standard speed when probing and min(device speed, bus rate, min{devices
-max idle rate}) while communicating with one. So that maximum bus
-communication speed would be limited either by device speed, bus rate or
-slowest device idle rate depending which one is lowest.
-
-But anyway. This sounds some short of exception, not standard procedure
-we can do automatically?
-
-
-	Jarkko
+> Thanks,
+> Xiaopeng
+> 
+> Juha Kuikka wrote:
+>> On 11/8/07, *Yang, Xiaopeng* <xiaopeng.yang@windriver.com 
+>> <mailto:xiaopeng.yang@windriver.com>> wrote:
+>>
+>>     Hi all,
+>>
+>>     I'm working on the tsc2046 touchscreen controller (using ads7846
+>>     driver) on
+>>     sdp2430 v5.0.1 board. I can't get the touchscreen work with the
+>>     linux-omap
+>>     git tree. The driver builds, boots and register itself with no 
+>> problem,
+>>     interrupts can also be triggered when touching the panel, but no 
+>> input
+>>     events can be read. By enabling debug output, I finally found that
+>>     all the
+>>     values read from tsc2046 are all zeros.
+>>
+>>     Does anyone encounter the same problem? What could be the root cause
+>>     for
+>>     this problem? Any suggestions are welcome.
+>>
+>>
+>> I'd check the pin muxes on the input (SPI I'm guessing) device you are 
+>> using to connecto to tsc2046).
+>> If still nothing I'd hook up logic analyzer to the SPI lines and see 
+>> what's happening.
+>>
+>>  - Juha
+>>
+>> -- 
+>> Madness takes it's toll. Please have exact change.
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> 
