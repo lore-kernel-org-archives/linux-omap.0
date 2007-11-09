@@ -1,18 +1,14 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH 2/2] 3430 clock: add emulation clocks
-Date: Thu, 8 Nov 2007 18:21:26 -0600
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D9130274290272C997@dlee13.ent.ti.com>
-References: <20071105082406.387923286@pwsan.com>
-	<20071105082528.483327389@pwsan.com>
-	<3B6D69C3A9EBCA4BA5DA60D913027429026298DF@dlee13.ent.ti.com>
-	<Pine.LNX.4.64.0711060252540.25907@utopia.booyaka.com>
+From: "Yang, Xiaopeng" <xiaopeng.yang@windriver.com>
+Subject: Re: ads7846: data read from tsc2046 are all zeros
+Date: Fri, 09 Nov 2007 11:46:37 +0800
+Message-ID: <4733D81D.4020907@windriver.com>
+References: <4732E60E.3000308@windriver.com>
+	<a46a26fd0711081357v72fa843dn3e7c2a43aa5492e2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-reply-to: <Pine.LNX.4.64.0711060252540.25907@utopia.booyaka.com>
+In-Reply-To: <a46a26fd0711081357v72fa843dn3e7c2a43aa5492e2@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,36 +18,51 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Paul Walmsley <paul@pwsan.com>
+To: Juha Kuikka <juha.kuikka@gmail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
- > > > Add clocks for the EMU domain for OMAP3430.  These clocks are not
-> > > well-documented in the TRM, beyond register bit settings.  Some
-> > > information is available in the ARM Cortex-A8 TRM, section 10.1.  =
-Also
-> > > rename existing emul_* clocks to emu_* to conform with recent =
-TRMs.
-> >
-> > There are TRM addendums for emulations which have much more =
-information.
-> > You at times need more than the base TRM these days.  There are =
-probably
-> > a couple thousand more pages removed :) You wouldn't want to have =
-too
-> > big of TRM, 43Meg is just the right size.
->=20
-> Ok, thanks.  Are you referring to the Emulation TRM, or are there =
-other
-> TRMs related to emulation that include this information?  Let me know =
-and
-> I will repost the patches with an updated commit-msg pointing people
-> there.
+Hi all,
 
-Yes Emulation TRM is one.  There are also stacked and security ones.  =
-Looking about there are also some other emulation related ones (spru893, =
-spru928).  ARM Ltd also has a document set relating to their IP in use =
-(coresight, etm, arm debug v5 architecture).
+I captured the signals of the host-side pins of tsc2046, the SPI pins and 
+PENIRQ work correctly except DOUT remains LOW during CS is active. That's 
+why all read values are zore.
 
-Regards,
-Richard W.
+It seems like the tsc2046 doesn't work at all. I measured the voltage of 
+the power supply of tsc2046, the Vcc is only 0.93V. This shouldn't happen 
+in the normal operation. Maybe there is a switch to turn the power on for 
+tsc2046?
+
+Thanks,
+Xiaopeng
+
+Juha Kuikka wrote:
+> On 11/8/07, *Yang, Xiaopeng* <xiaopeng.yang@windriver.com 
+> <mailto:xiaopeng.yang@windriver.com>> wrote:
+> 
+>     Hi all,
+> 
+>     I'm working on the tsc2046 touchscreen controller (using ads7846
+>     driver) on
+>     sdp2430 v5.0.1 board. I can't get the touchscreen work with the
+>     linux-omap
+>     git tree. The driver builds, boots and register itself with no problem,
+>     interrupts can also be triggered when touching the panel, but no input
+>     events can be read. By enabling debug output, I finally found that
+>     all the
+>     values read from tsc2046 are all zeros.
+> 
+>     Does anyone encounter the same problem? What could be the root cause
+>     for
+>     this problem? Any suggestions are welcome.
+> 
+> 
+> I'd check the pin muxes on the input (SPI I'm guessing) device you are 
+> using to connecto to tsc2046).
+> If still nothing I'd hook up logic analyzer to the SPI lines and see 
+> what's happening.
+> 
+>  - Juha
+> 
+> -- 
+> Madness takes it's toll. Please have exact change.
