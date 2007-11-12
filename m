@@ -1,9 +1,12 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 0/2] 3430 clock: REVISED: Add SmartReflex, emulation,
-	trace clocks
-Date: Mon, 12 Nov 2007 03:57:26 -0700
-Message-ID: <20071112105726.514186925@pwsan.com>
+From: Paul Walmsley <paul@booyaka.com>
+Subject: Re: [PATCH/RFC] ARM: OMAP: re-organize duplicated 32k-timer code
+Date: Mon, 12 Nov 2007 04:40:31 -0700 (MST)
+Message-ID: <Pine.LNX.4.64.0711120439280.9164@utopia.booyaka.com>
+References: <20071101220915.594218311@mvista.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <20071101220915.594218311@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,25 +16,32 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Kevin Hilman <khilman@mvista.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This short series of two patches adds some remaining OMAP3430 clocks:
-the SmartReflex voltage regulator clocks, and the ARM Cortex-A8
-trace/emulation clocks.  Now with more pointers to further documentation
-on the emulation clocks from Richard Woodruff <r-woodruff2@ti.com>.
+On Thu, 1 Nov 2007, Kevin Hilman wrote:
 
-Boot-tested on 3430SDP ES1.
+> On OMAP2/3, the gp-timer code can be used for a 32kHz timer simply by
+> setting the source to be the 32k clock instead of sys_clk.
+> 
+> This patch uses the mach-omap2/timer-gp.c code for 32kHz timer on
+> OMAP2, moving the logic into mach-omap2/timer-gp.c, and not using
+> plat-omap/timer32k.c which, for OMAP2, is redundant with the timer-gp
+> code.
+> 
+> Also, if CONFIG_OMAP_32K_TIMER is enabled, the gptimer-based
+> clocksource is not used.  Instead the default 32k sync counter is used
+> as the clocksource (see the clocksource in plat-omap/common.c.)  This
+> is important for sleep/suspend so there is a valid counter during
+> sleep.  Note that the suspend/sleep code needs fixing to check for
+> overflows of this counter.
+> 
+> NOTE: timer32k.c was left in plat-omap for now so the diff would be
+> clearer, but if folks are OK with this, I'll move it into mach-omap1
+> and remove the omap2 stuff from it which can now be done much simpler,
+> and without redundancy in timer-gp.c.
 
----
+I like it.  That code reorg for timer32k.c sounds like a great idea too.
 
-diffstat: 
-
- arch/arm/mach-omap2/clock34xx.h |  196 +++++++++++++++++++++++++++++++++++++---
- 1 file changed, 183 insertions(+), 13 deletions(-)
-
-size:
-
-   text    data     bss     dec     hex filename
-2847056  140800   95304 3083160  2f0b98 vmlinux.orig
-2847720  141472   95304 3084496  2f10d0 vmlinux
+- Paul
