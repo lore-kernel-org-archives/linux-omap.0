@@ -1,12 +1,10 @@
-From: "Chandra shekhar" <x0044955@ti.com>
-Subject: [PATCH 1/5] mach:omap: some correction in Clock 34XX
-Date: Mon, 12 Nov 2007 19:16:23 +0530
-Message-ID: <200711121346.lACDkOeF020773@dbdp31.itg.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+From: Kevin Hilman <khilman@mvista.com>
+Subject: [PATCH 2/3] ARM: OMAP: Move 32k-based sched_clock() to common code
+Date: Mon, 12 Nov 2007 10:22:11 -0800
+Message-ID: <20071112182311.499470805@mvista.com>
+References: <20071112182209.262757465@mvista.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline; filename=sched-clock-32k.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,125 +12,91 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Since 32k timer code is moving to OMAP1 specific dir, move the
+32k-based sched_clock() into common code where it is based on the 32k
+sync counter and can be used even when using MPU timer.
 
-Resumbmitting the patch earlier sent by girish, after fixing review comments given by paul.
+While moving change the ticks-to-nsecs conversion to use the helper
+functions provided by clocksource.h.
 
-This patch modifies the I2C clock nodes as per LDM, corrects usage of DPLL mask and updates the flags of 96M clock nodes
+Also removed the unused ticks_to_usec, leaving only ticks_to_nsec.
 
-Signed-off-by: Chandra Shekhar <x0044955@ti.com>
+Signed-off-by: Kevin Hilman <khilman@mvista.com>
 
 ---
- arch/arm/mach-omap2/clock34xx.c |    1 +
- arch/arm/mach-omap2/clock34xx.h |   27 ++++++++++++++++++---------
- 2 files changed, 19 insertions(+), 9 deletions(-)
+ arch/arm/plat-omap/common.c   |   17 +++++++++++++++++
+ arch/arm/plat-omap/timer32k.c |   26 --------------------------
+ 2 files changed, 17 insertions(+), 26 deletions(-)
 
-Index: linux-omap-git/arch/arm/mach-omap2/clock34xx.h
+Index: dev/arch/arm/plat-omap/common.c
 ===================================================================
---- linux-omap-git.orig/arch/arm/mach-omap2/clock34xx.h	2007-11-12 17:07:54.000000000 +0530
-+++ linux-omap-git/arch/arm/mach-omap2/clock34xx.h	2007-11-12 17:08:23.000000000 +0530
-@@ -437,14 +437,16 @@
- static struct clk omap_96m_alwon_fck = {
- 	.name		= "omap_96m_alwon_fck",
- 	.parent		= &dpll4_m2x2_ck,
--	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES,
-+	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
-+				 PARENT_CONTROLS_CLOCK,
- 	.recalc		= &followparent_recalc,
+--- dev.orig/arch/arm/plat-omap/common.c
++++ dev/arch/arm/plat-omap/common.c
+@@ -213,6 +213,23 @@ static struct clocksource clocksource_32
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
  };
  
- static struct clk omap_96m_fck = {
- 	.name		= "omap_96m_fck",
- 	.parent		= &omap_96m_alwon_fck,
--	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES,
-+	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
-+				PARENT_CONTROLS_CLOCK,
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -830,7 +832,8 @@
- static struct clk core_96m_fck = {
- 	.name		= "core_96m_fck",
- 	.parent		= &omap_96m_fck,
--	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES,
-+	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
-+				PARENT_CONTROLS_CLOCK,
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -862,7 +865,8 @@
- };
- 
- static struct clk i2c3_fck = {
--	.name		= "i2c3_fck",
-+	.name		= "i2c_fck",
-+	.id		= 3,
- 	.parent		= &core_96m_fck,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP3430_EN_I2C3_SHIFT,
-@@ -871,7 +875,8 @@
- };
- 
- static struct clk i2c2_fck = {
--	.name		= "i2c2_fck",
-+	.name		= "i2c_fck",
-+	.id 		= 2,
- 	.parent		= &core_96m_fck,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP3430_EN_I2C2_SHIFT,
-@@ -880,7 +885,8 @@
- };
- 
- static struct clk i2c1_fck = {
--	.name		= "i2c1_fck",
-+	.name		= "i2c_fck",
-+	.id		= 1,
- 	.parent		= &core_96m_fck,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP3430_EN_I2C1_SHIFT,
-@@ -1222,7 +1228,8 @@
- };
- 
- static struct clk i2c3_ick = {
--	.name		= "i2c3_ick",
-+	.name		= "i2c_ick",
-+	.id		= 3,
- 	.parent		= &core_l4_ick,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
- 	.enable_bit	= OMAP3430_EN_I2C3_SHIFT,
-@@ -1231,7 +1238,8 @@
- };
- 
- static struct clk i2c2_ick = {
--	.name		= "i2c2_ick",
-+	.name		= "i2c_ick",
-+	.id		= 2,
- 	.parent		= &core_l4_ick,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
- 	.enable_bit	= OMAP3430_EN_I2C2_SHIFT,
-@@ -1240,7 +1248,8 @@
- };
- 
- static struct clk i2c1_ick = {
--	.name		= "i2c1_ick",
-+	.name		= "i2c_ick",
-+	.id		= 1,
- 	.parent		= &core_l4_ick,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
- 	.enable_bit	= OMAP3430_EN_I2C1_SHIFT,
-Index: linux-omap-git/arch/arm/mach-omap2/clock34xx.c
++/*
++ * Rounds down to nearest nsec.
++ */
++unsigned long long omap_32k_ticks_to_nsecs(unsigned long ticks_32k)
++{
++	return cyc2ns(&clocksource_32k, ticks_32k);
++}
++
++/*
++ * Returns current time from boot in nsecs. It's OK for this to wrap
++ * around for now, as it's just a relative time stamp.
++ */
++unsigned long long sched_clock(void)
++{
++	return omap_32k_ticks_to_nsecs(omap_32k_read());
++}
++
+ static int __init omap_init_clocksource_32k(void)
+ {
+ 	static char err[] __initdata = KERN_ERR
+Index: dev/arch/arm/plat-omap/timer32k.c
 ===================================================================
---- linux-omap-git.orig/arch/arm/mach-omap2/clock34xx.c	2007-11-12 17:07:57.000000000 +0530
-+++ linux-omap-git/arch/arm/mach-omap2/clock34xx.c	2007-11-12 17:09:17.000000000 +0530
-@@ -79,6 +79,7 @@
- 	WARN_ON(!dd->control_reg || !dd->enable_mask);
+--- dev.orig/arch/arm/plat-omap/timer32k.c
++++ dev/arch/arm/plat-omap/timer32k.c
+@@ -189,32 +189,6 @@ static inline unsigned long omap_32k_syn
+ 	return omap_readl(TIMER_32K_SYNCHRONIZED);
+ }
  
- 	v = cm_read_reg(dd->control_reg) & dd->enable_mask;
-+	v >>= mask_to_shift(dd->enable_mask);
- 	if (v != DPLL_LOCKED)
- 		clk->rate = clk->parent->rate;
- 	else
+-/*
+- * Rounds down to nearest usec. Note that this will overflow for larger values.
+- */
+-static inline unsigned long omap_32k_ticks_to_usecs(unsigned long ticks_32k)
+-{
+-	return (ticks_32k * 5*5*5*5*5*5) >> 9;
+-}
+-
+-/*
+- * Rounds down to nearest nsec.
+- */
+-static inline unsigned long long
+-omap_32k_ticks_to_nsecs(unsigned long ticks_32k)
+-{
+-	return (unsigned long long) ticks_32k * 1000 * 5*5*5*5*5*5 >> 9;
+-}
+-
+-/*
+- * Returns current time from boot in nsecs. It's OK for this to wrap
+- * around for now, as it's just a relative time stamp.
+- */
+-unsigned long long sched_clock(void)
+-{
+-	return omap_32k_ticks_to_nsecs(omap_32k_sync_timer_read());
+-}
+-
+ static irqreturn_t omap_32k_timer_interrupt(int irq, void *dev_id)
+ {
+ 	struct clock_event_device *evt = &clockevent_32k_timer;
+
+--
