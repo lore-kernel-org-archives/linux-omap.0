@@ -1,10 +1,8 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: [PATCH 1/4] ARM: OMAP: re-organize duplicated 32k-timer code
-Date: Mon, 12 Nov 2007 15:24:02 -0800
-Message-ID: <20071112232414.011764365@mvista.com>
-References: <20071112232401.723638265@mvista.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: [PATCH] V4L/DVB: Make Philips TEA5761 driver to compile
+Date: Tue, 13 Nov 2007 15:46:18 +0200
+Message-ID: <1194961578-11974-1-git-send-email-jarkko.nikula@nokia.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline; filename=use-dmtimer-for-32k-timer.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,180 +15,44 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On OMAP2/3, the gp-timer code can be used for a 32kHz timer simply by
-setting the source to be the 32k clock instead of sys_clk.
-
-This patch uses the mach-omap2/timer-gp.c code for 32kHz timer on
-OMAP2, moving the logic into mach-omap2/timer-gp.c, and not using
-plat-omap/timer32k.c which, for OMAP2, is redundant with the timer-gp
-code.
-
-Also, if CONFIG_OMAP_32K_TIMER is enabled, the gptimer-based
-clocksource is not used.  Instead the default 32k sync counter is used
-as the clocksource (see the clocksource in plat-omap/common.c.)  This
-is important for sleep/suspend so there is a valid counter during
-sleep.  Note that the suspend/sleep code needs fixing to check for
-overflows of this counter.
-
-In addition, the OMAP2/3 details are removed from timer32k.c leaving
-that with only OMAP1 specifics.  A follow-up patch will move it from
-plat-omap common code to mach-omap1.
-
-Signed-off-by: Kevin Hilman <khilman@mvista.com>
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
 ---
- arch/arm/mach-omap2/Makefile   |    4 ---
- arch/arm/mach-omap2/timer-gp.c |   14 ++++++++++++
- arch/arm/plat-omap/Makefile    |    2 +
- arch/arm/plat-omap/timer32k.c  |   47 -----------------------------------------
- 4 files changed, 18 insertions(+), 49 deletions(-)
+ drivers/media/radio/radio-tea5761.c |    8 +-------
+ 1 files changed, 1 insertions(+), 7 deletions(-)
 
-Index: dev/arch/arm/mach-omap2/Makefile
-===================================================================
---- dev.orig/arch/arm/mach-omap2/Makefile
-+++ dev/arch/arm/mach-omap2/Makefile
-@@ -4,9 +4,7 @@
+diff --git a/drivers/media/radio/radio-tea5761.c b/drivers/media/radio/radio-tea5761.c
+index 74fe99e..ac0f621 100644
+--- a/drivers/media/radio/radio-tea5761.c
++++ b/drivers/media/radio/radio-tea5761.c
+@@ -139,9 +139,7 @@ static void tea5761_write_regs(struct tea5761_device *tea)
+ 	struct tea5761_write_regs wr;
+ 	struct tea5761_regs *r = &tea->regs;
+ 	struct i2c_client *client = tea->i2c_dev;
+-#ifdef DEBUG
+ 	u8 *p = (u8 *) r;
+-#endif
  
- # Common support
- obj-y := irq.o id.o io.o sram-fn.o memory.o prcm.o clock.o mux.o devices.o \
--	 serial.o gpmc.o
+ 	wr.intreg = r->intreg & 0xff;
+ 	wr.frqset = __cpu_to_be16(r->frqset);
+@@ -421,7 +419,6 @@ static struct video_device tea5761_video_device = {
+ 	.owner         = THIS_MODULE,
+ 	.name          = "TEA5761 FM-Radio",
+ 	.type          = VID_TYPE_TUNER,
+-	.hardware      = 40 /* VID_HARDWARE_TEA5761UK */,
+ 	.fops          = &tea5761_fops,
+ 	.release       = video_device_release
+ };
+@@ -618,10 +615,7 @@ static int __init tea5761_init(void)
+ 
+ static void __exit tea5761_exit(void)
+ {
+-	int res;
 -
--obj-$(CONFIG_OMAP_MPU_TIMER)		+= timer-gp.o
-+	 serial.o gpmc.o timer-gp.o
- 
- # Power Management
- obj-$(CONFIG_PM) += pm.o sleep.o
-Index: dev/arch/arm/mach-omap2/timer-gp.c
-===================================================================
---- dev.orig/arch/arm/mach-omap2/timer-gp.c
-+++ dev/arch/arm/mach-omap2/timer-gp.c
-@@ -104,7 +104,11 @@ static void __init omap2_gp_clockevent_i
- 	gptimer = omap_dm_timer_request_specific(1);
- 	BUG_ON(gptimer == NULL);
- 
-+#if defined(CONFIG_OMAP_32K_TIMER)
-+	omap_dm_timer_set_source(gptimer, OMAP_TIMER_SRC_32_KHZ);
-+#else
- 	omap_dm_timer_set_source(gptimer, OMAP_TIMER_SRC_SYS_CLK);
-+#endif
- 	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer));
- 
- 	omap2_gp_timer_irq.dev_id = (void *)gptimer;
-@@ -122,6 +126,15 @@ static void __init omap2_gp_clockevent_i
- 	clockevents_register_device(&clockevent_gpt);
+-	if ((res = i2c_del_driver(&tea5761_driver)))
+-		printk(KERN_ERR DRIVER_NAME ": i2c driver removal failed\n");
++	i2c_del_driver(&tea5761_driver);
+ 	tea5761_dev_exit();
  }
  
-+#ifdef CONFIG_OMAP_32K_TIMER
-+/* 
-+ * When 32k-timer is enabled, don't use GPTimer for clocksource
-+ * instead, just leave default clocksource which uses the 32k
-+ * sync counter.  See clocksource setup in see plat-omap/common.c. 
-+ */
-+
-+static inline void __init omap2_gp_clocksource_init(void) {}
-+#else
- /*
-  * clocksource
-  */
-@@ -167,6 +180,7 @@ static void __init omap2_gp_clocksource_
- 	if (clocksource_register(&clocksource_gpt))
- 		printk(err2, clocksource_gpt.name);
- }
-+#endif
- 
- static void __init omap2_gp_timer_init(void)
- {
-Index: dev/arch/arm/plat-omap/Makefile
-===================================================================
---- dev.orig/arch/arm/plat-omap/Makefile
-+++ dev/arch/arm/plat-omap/Makefile
-@@ -9,7 +9,9 @@ obj-m :=
- obj-n :=
- obj-  :=
- 
-+ifeq ($(CONFIG_ARCH_OMAP1),y)
- obj-$(CONFIG_OMAP_32K_TIMER)	+= timer32k.o
-+endif
- 
- # OCPI interconnect support for 1710, 1610 and 5912
- obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
-Index: dev/arch/arm/plat-omap/timer32k.c
-===================================================================
---- dev.orig/arch/arm/plat-omap/timer32k.c
-+++ dev/arch/arm/plat-omap/timer32k.c
-@@ -70,10 +70,6 @@ struct sys_timer omap_timer;
- 
- #if defined(CONFIG_ARCH_OMAP16XX)
- #define TIMER_32K_SYNCHRONIZED		0xfffbc410
--#elif defined(CONFIG_ARCH_OMAP24XX)
--#define TIMER_32K_SYNCHRONIZED		(OMAP2_32KSYNCT_BASE + 0x10)
--#elif defined(CONFIG_ARCH_OMAP34XX)
--#define TIMER_32K_SYNCHRONIZED		0x48320010
- #else
- #error OMAP 32KHz timer does not currently work on 15XX!
- #endif
-@@ -95,8 +91,6 @@ struct sys_timer omap_timer;
- #define JIFFIES_TO_HW_TICKS(nr_jiffies, clock_rate)			\
- 				(((nr_jiffies) * (clock_rate)) / HZ)
- 
--#if defined(CONFIG_ARCH_OMAP1)
--
- static inline void omap_32k_timer_write(int val, int reg)
- {
- 	omap_writew(val, OMAP1_32K_TIMER_BASE + reg);
-@@ -122,30 +116,6 @@ static inline void omap_32k_timer_stop(v
- 
- #define omap_32k_timer_ack_irq()
- 
--#elif defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
--
--static struct omap_dm_timer *gptimer;
--
--static inline void omap_32k_timer_start(unsigned long load_val)
--{
--	omap_dm_timer_set_load(gptimer, 1, 0xffffffff - load_val);
--	omap_dm_timer_set_int_enable(gptimer, OMAP_TIMER_INT_OVERFLOW);
--	omap_dm_timer_start(gptimer);
--}
--
--static inline void omap_32k_timer_stop(void)
--{
--	omap_dm_timer_stop(gptimer);
--}
--
--static inline void omap_32k_timer_ack_irq(void)
--{
--	u32 status = omap_dm_timer_read_status(gptimer);
--	omap_dm_timer_write_status(gptimer, status);
--}
--
--#endif
--
- static int omap_32k_timer_set_next_event(unsigned long delta,
- 					 struct clock_event_device *dev)
- {
-@@ -233,22 +203,7 @@ static struct irqaction omap_32k_timer_i
- 
- static __init void omap_init_32k_timer(void)
- {
--	if (cpu_class_is_omap1())
--		setup_irq(INT_OS_TIMER, &omap_32k_timer_irq);
--
--#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
--	/* REVISIT: Check 24xx TIOCP_CFG settings after idle works */
--	if (cpu_class_is_omap2()) {
--		gptimer = omap_dm_timer_request_specific(1);
--		BUG_ON(gptimer == NULL);
--
--		omap_dm_timer_set_source(gptimer, OMAP_TIMER_SRC_32_KHZ);
--		setup_irq(omap_dm_timer_get_irq(gptimer), &omap_32k_timer_irq);
--		omap_dm_timer_set_int_enable(gptimer,
--			OMAP_TIMER_INT_CAPTURE | OMAP_TIMER_INT_OVERFLOW |
--			OMAP_TIMER_INT_MATCH);
--	}
--#endif
-+	setup_irq(INT_OS_TIMER, &omap_32k_timer_irq);
- 
- 	clockevent_32k_timer.mult = div_sc(OMAP_32K_TICKS_PER_SEC,
- 					   NSEC_PER_SEC,
-
---
+-- 
+1.5.3.4
