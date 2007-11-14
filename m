@@ -1,11 +1,11 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/5] SRAM patcher: convert omap24xx_sram_suspend to use
-	runtime SRAM patcher
-Date: Wed, 14 Nov 2007 01:30:12 -0700
-Message-ID: <20071114083104.552426269@pwsan.com>
+Subject: [PATCH 3/5] SRAM patcher: convert sram_ddr_init to use runtime SRAM
+	patcher
+Date: Wed, 14 Nov 2007 01:30:13 -0700
+Message-ID: <20071114083104.666729818@pwsan.com>
 References: <20071114083010.938764990@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline; filename=sp-patch-omap24xx-sram-suspend.patch
+Content-Disposition: inline; filename=sp-patch-sram-ddr-init.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,111 +19,144 @@ To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 Use the runtime SRAM patcher to set register addresses in
-omap24xx_sram_suspend.  The long symbol names are intended to help
+sram_ddr_init.  The long symbol names are intended to help
 disambiguate the symbols, now that they are global.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
 ---
- arch/arm/mach-omap2/pm.c    |   13 +++++++++++++
- arch/arm/mach-omap2/sleep.S |   21 +++++++++++----------
- 2 files changed, 24 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/sram-fn.S |   30 ++++++++++++++++++------------
+ arch/arm/plat-omap/sram.c     |   26 ++++++++++++++++++++++++++
+ 2 files changed, 44 insertions(+), 12 deletions(-)
 
-Index: linux-omap/arch/arm/mach-omap2/pm.c
+Index: linux-omap/arch/arm/mach-omap2/sram-fn.S
 ===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/pm.c	2007-11-14 01:28:52.000000000 -0700
-+++ linux-omap/arch/arm/mach-omap2/pm.c	2007-11-14 01:29:02.000000000 -0700
-@@ -52,6 +52,10 @@
- #include "cm_regbits_24xx.h"
- #include "sdrc.h"
- 
-+/* These addrs are in assembly language code to be patched at runtime */
-+extern void *omap2_ocs_sdrc_power;
-+extern void *omap2_ocs_sdrc_dlla_ctrl;
-+
- static void (*omap2_sram_idle)(void);
- static void (*omap2_sram_suspend)(void __iomem *dllctrl);
- static void (*saved_idle)(void);
-@@ -803,9 +807,18 @@
- 	 */
- 	omap2_sram_idle = omap_sram_push(omap24xx_idle_loop_suspend,
- 					 omap24xx_idle_loop_suspend_sz);
-+
- 	omap2_sram_suspend = omap_sram_push(omap24xx_cpu_suspend,
- 					    omap24xx_cpu_suspend_sz);
- 
-+	/* Patch in the correct register addresses for multiboot */
-+	omap_sram_patch_va(omap24xx_cpu_suspend, &omap2_ocs_sdrc_power,
-+			   omap2_sram_suspend,
-+			   OMAP_SDRC_REGADDR(SDRC_POWER));
-+	omap_sram_patch_va(omap24xx_cpu_suspend, &omap2_ocs_sdrc_dlla_ctrl,
-+			   omap2_sram_suspend,
-+			   OMAP_SDRC_REGADDR(SDRC_DLLA_CTRL));
-+
- 	suspend_set_ops(&omap_pm_ops);
- 	pm_idle = omap2_pm_idle;
- 
-Index: linux-omap/arch/arm/mach-omap2/sleep.S
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/sleep.S	2007-11-14 01:28:52.000000000 -0700
-+++ linux-omap/arch/arm/mach-omap2/sleep.S	2007-11-14 01:29:33.000000000 -0700
-@@ -26,17 +26,15 @@
-  */
- 
- #include <linux/linkage.h>
-+#include <linux/poison.h>	/* for SRAM_VA_MAGIC */
+--- linux-omap.orig/arch/arm/mach-omap2/sram-fn.S	2007-11-14 00:34:56.000000000 -0700
++++ linux-omap/arch/arm/mach-omap2/sram-fn.S	2007-11-14 00:37:08.000000000 -0700
+@@ -26,6 +26,7 @@
  #include <asm/assembler.h>
  #include <asm/arch/io.h>
- #include <asm/arch/pm.h>
+ #include <asm/hardware.h>
++#include <linux/poison.h>
  
- #include <asm/arch/omap24xx.h>
+ #define TIMER_32KSYNCT_CR_V	IO_ADDRESS(OMAP2_32KSYNCT_BASE + 0x010)
  
--#define A_SDRC_DLLA_CTRL_V	IO_ADDRESS(OMAP2_SDRC_BASE + 0x60)
--#define	A_SDRC_POWER_V		IO_ADDRESS(OMAP2_SDRC_BASE + 0x70)
--#define A_SDRC_RFR_CTRL_V	IO_ADDRESS(OMAP2_SDRC_BASE + 0xA4)
-+/* First address of reserved address space?  apparently valid for OMAP2 & 3 */
- #define A_SDRC0_V		(0xC0000000)
--#define A_SDRC_MANUAL_V		IO_ADDRESS(OMAP2_SDRC_BASE + 0xA8)
+@@ -48,7 +49,7 @@
+ 	mov	r8, r3			@ capture force parameter
  
- 	.text
+ 	/* frequency shift down */
+-	ldr	r2, cm_clksel2_pll	@ get address of dpllout reg
++	ldr	r2, omap2_sdi_cm_clksel2_pll	@ get address of dpllout reg
+ 	mov	r3, #0x1		@ value for 1x operation
+ 	str	r3, [r2]		@ go to L1-freq operation
  
-@@ -88,7 +86,7 @@
- 	mcr	p15, 0, r3, c7, c10, 4	@ memory barrier, hope SDR/DDR finished
- 	nop
- 	nop
--	ldr	r3, A_SDRC_POWER	@ addr of sdrc power
-+	ldr	r3, omap2_ocs_sdrc_power	@ addr of sdrc power
- 	ldr	r4, [r3]		@ value of sdrc power
- 	orr	r4, r4, #0x40		@ enable self refresh on idle req
- 	mov	r5, #0x2000		@ set delay (DPLL relock + DLL relock)
-@@ -108,7 +106,7 @@
- 	ldr	r4, [r4]
- 	nop				@ start auto refresh only after clk ok
- 	movs	r0, r0			@ see if DDR or SDR
--	ldrne	r1, A_SDRC_DLLA_CTRL_S	@ get addr of DLL ctrl
-+	ldrne	r1, omap2_ocs_sdrc_dlla_ctrl	@ get addr of DLL ctrl
- 	strne	r0, [r1]		@ rewrite DLLA to force DLL reload
- 	addne	r1, r1, #0x8		@ move to DLLB
- 	strne	r0, [r1]		@ rewrite DLLB to force DLL reload
-@@ -120,12 +118,15 @@
- 	/* resume*/
- 	ldmfd	sp!, {r0 - r12, pc}	@ restore regs and return
+@@ -57,7 +58,7 @@
+ 	bl voltage_shift		@ go drop voltage
  
--A_SDRC_POWER:
--	.word A_SDRC_POWER_V
-+	.globl	omap2_ocs_sdrc_power
-+	.globl	omap2_ocs_sdrc_dlla_ctrl
+ 	/* dll lock mode */
+-	ldr	r11, sdrc_dlla_ctrl	@ addr of dlla ctrl
++	ldr	r11, omap2_sdi_sdrc_dlla_ctrl	@ addr of dlla ctrl
+ 	ldr	r10, [r11]		@ get current val
+ 	cmp	r12, #0x1		@ cs1 base (2422 es2.05/1)
+ 	addeq	r11, r11, #0x8		@ if cs1 base, move to DLLB
+@@ -108,7 +109,7 @@
+ 	 * wait for it to finish, use 32k sync counter, 1tick=31uS.
+ 	 */
+ voltage_shift:
+-	ldr	r4, prcm_voltctrl	@ get addr of volt ctrl.
++	ldr	r4, omap2_sdi_prcm_voltctrl	@ get addr of volt ctrl.
+ 	ldr	r5, [r4]		@ get value.
+ 	ldr	r6, prcm_mask_val	@ get value of mask
+ 	and	r5, r5, r6		@ apply mask to clear bits
+@@ -118,7 +119,7 @@
+ 	orr	r5, r5, r3		@ build value for force
+ 	str	r5, [r4]		@ Force transition to L1
+ 
+-	ldr	r3, timer_32ksynct_cr	@ get addr of counter
++	ldr	r3, omap2_sdi_timer_32ksynct_cr	@ get addr of counter
+ 	ldr	r5, [r3]		@ get value
+ 	add	r5, r5, #0x3		@ give it at most 93uS
+ volt_delay:
+@@ -128,16 +129,21 @@
+ 	mov	pc, lr			@ back to caller.
+ 
+ /* relative load constants */
+-cm_clksel2_pll:
+-	.word CM_CLKSEL2_PLL_V
+-sdrc_dlla_ctrl:
+-	.word SDRC_DLLA_CTRL_V
+-prcm_voltctrl:
+-	.word PRCM_VOLTCTRL_V
++	.globl omap2_sdi_cm_clksel2_pll
++	.globl omap2_sdi_sdrc_dlla_ctrl
++	.globl omap2_sdi_prcm_voltctrl
++	.globl omap2_sdi_timer_32ksynct_cr
 +
-+omap2_ocs_sdrc_power:
++omap2_sdi_cm_clksel2_pll:
 +	.word SRAM_VA_MAGIC
- A_SDRC0:
- 	.word A_SDRC0_V
--A_SDRC_DLLA_CTRL_S:
--	.word A_SDRC_DLLA_CTRL_V
-+omap2_ocs_sdrc_dlla_ctrl:
++omap2_sdi_sdrc_dlla_ctrl:
 +	.word SRAM_VA_MAGIC
++omap2_sdi_prcm_voltctrl:
++	.word SRAM_VA_MAGIC
+ prcm_mask_val:
+ 	.word 0xFFFF3FFC
+-timer_32ksynct_cr:
+-	.word TIMER_32KSYNCT_CR_V
++omap2_sdi_timer_32ksynct_cr:
++	.word SRAM_VA_MAGIC
+ ENTRY(sram_ddr_init_sz)
+ 	.word	. - sram_ddr_init
  
- ENTRY(omap24xx_cpu_suspend_sz)
- 	.word	. - omap24xx_cpu_suspend
+Index: linux-omap/arch/arm/plat-omap/sram.c
+===================================================================
+--- linux-omap.orig/arch/arm/plat-omap/sram.c	2007-11-14 00:34:56.000000000 -0700
++++ linux-omap/arch/arm/plat-omap/sram.c	2007-11-14 00:37:26.000000000 -0700
+@@ -25,6 +25,12 @@
+ #include <asm/arch/sram.h>
+ #include <asm/arch/board.h>
+ 
++#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
++# include "../mach-omap2/prm.h"
++# include "../mach-omap2/cm.h"
++# include "../mach-omap2/sdrc.h"
++#endif
++
+ #define OMAP1_SRAM_PA		0x20000000
+ #define OMAP1_SRAM_VA		0xd0000000
+ #define OMAP2_SRAM_PA		0x40200000
+@@ -58,6 +64,13 @@
+ 					 unsigned long pstart_avail,
+ 					 unsigned long size_avail);
+ 
++/* Global symbols in sram-fn.S to be patched with omap_sram_patch_va() */
++extern void *omap2_sdi_cm_clksel2_pll;
++extern void *omap2_sdi_sdrc_dlla_ctrl;
++extern void *omap2_sdi_prcm_voltctrl;
++extern void *omap2_sdi_timer_32ksynct_cr;
++
++
+ /*
+  * Depending on the target RAMFS firewall setup, the public usable amount of
+  * SRAM varies.  The default accessible size for all device types is 2k. A GP
+@@ -325,6 +338,19 @@
+ {
+ 	_omap2_sram_ddr_init = omap_sram_push(sram_ddr_init, sram_ddr_init_sz);
+ 
++	/* Patch in the correct register addresses for multiboot */
++	omap_sram_patch_va(sram_ddr_init, &omap2_sdi_cm_clksel2_pll,
++			   _omap2_sram_ddr_init,
++			   OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL2));
++	omap_sram_patch_va(sram_ddr_init, &omap2_sdi_sdrc_dlla_ctrl,
++			   _omap2_sram_ddr_init,
++			   OMAP_SDRC_REGADDR(SDRC_DLLA_CTRL));
++	omap_sram_patch_va(sram_ddr_init, &omap2_sdi_prcm_voltctrl,
++			   _omap2_sram_ddr_init, OMAP24XX_PRCM_VOLTCTRL);
++	omap_sram_patch_va(sram_ddr_init, &omap2_sdi_timer_32ksynct_cr,
++			   _omap2_sram_ddr_init,
++			   (void __iomem *)IO_ADDRESS(OMAP2_32KSYNCT_BASE + 0x010));
++
+ 	_omap2_sram_reprogram_sdrc = omap_sram_push(sram_reprogram_sdrc,
+ 						    sram_reprogram_sdrc_sz);
+ 	_omap2_set_prcm = omap_sram_push(sram_set_prcm, sram_set_prcm_sz);
 
 -- 
