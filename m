@@ -1,13 +1,12 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Obsolete omap watchdog files
-Date: Tue, 13 Nov 2007 17:42:43 -0800
-Message-ID: <20071114014242.GD23830@atomide.com>
-References: <5D8B5EC1EB6ED845B1EB216F00C71B65022ACD0B@dlee12.ent.ti.com>
+From: "Sameer" <x0081444@ti.com>
+Subject: Onenand - sync burst read
+Date: Wed, 14 Nov 2007 10:29:14 +0530
+Message-ID: <004701c8267b$1adbe270$ec8818ac@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <5D8B5EC1EB6ED845B1EB216F00C71B65022ACD0B@dlee12.ent.ti.com>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,24 +14,18 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Iqbal <iqbal@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Iqbal <iqbal@ti.com> [071112 01:17]:
-> 
-> Tony,
-> 
-> I still see the omap_wdt.c,omap_wdt.h under the obsolete drivers/char/watchdog dir.
-> I hope you have this cleanup task part of your list of todo's.
+Hi,
+I am working on onenand driver based on omap board.I need to add the functionality for Synchronous burst read mode operation which
+is currently not present.I am refering n800 board driver (arch/arm/mach-omap/board-n880-flash.c) The function
+"omap2_onenand_set_sync_mode" contains the variable "fclk_offset_ns"
 
-Thanks for noticing it, will remove it.
+I am not able to relate this variable with the timing parameters of the onenand flash.Could any body specify the significance of
+this variable and how is it related to the timing variables?
 
-> I think otherwise it will get fixed itself from the next mainline pull. 
-
-I think it would have stayed after a pull as I had to manually merge it
-after last pull.
-
-Tony
+Thanks,
+-Sameer	
