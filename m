@@ -1,11 +1,16 @@
-From: "Amit Kucheria" <kucheria.amit@gmail.com>
-Subject: [PATCH] 3430: Make naming consistent in io.h
-Date: Wed, 14 Nov 2007 21:02:02 +0200
-Message-ID: <52d486620711141102l3b7a3258uc5d832d116288413@mail.gmail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH 0/5] SRAM patcher: patch register addresses in SRAM code
+	atruntime
+Date: Wed, 14 Nov 2007 13:12:00 -0600
+Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429027B3E1E@dlee13.ent.ti.com>
+References: <20071114083010.938764990@pwsan.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_4789_6490393.1195066922763"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
+In-reply-to: <20071114083010.938764990@pwsan.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,67 +20,43 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Paul Walmsley <paul@pwsan.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-------=_Part_4789_6490393.1195066922763
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi Paul,
 
-Hi,
+> This patches implement a different approach.  They patch in the
+> correct register addresses at runtime into the SRAM, just after the
+> code is copied there.  While the current code simply writes in the
+> preprocessor-defined address bases, a forthcoming patch series uses
+> this code to write runtime-computed address bases.
 
-Please find a patch attached to make the naming of IO address space
-more consistent.
+- Well that does look fine.  It kind of feels like a gratuitous cache =
+range flush should be added.  But as its all data side patches it =
+probably can live with out it.  The initial code copy should probably =
+have this.  Caches are VIPT, which means you almost don't have to flush, =
+but you still do, but it can be in a more optimal way at run time.
+
+-*- This code as written today likely won't be used on OMAP3 anyway as =
+the DVFS procedure will be different.  The SRAM code usage can be much =
+smaller and should also be different.
+
+- The OMAP2420 DVFS requirements are much more restrictive than the =
+OMAP3 ones.  In OMAP3 the SDRC_ICLK method should be used for the final =
+VDD2 OPP change bits.  Using an OMAP2420 method on OMAP3 will result in =
+you not being about to scale during audio play back.  The latency is too =
+high and you will under run your mcbsp FIFO during the pause.  I think =
+N800 today is not affected here today based on some of the DSP side =
+effects which require it to be running faster than needed.  Other code =
+bases don't have these restrictions and the 3430 one shouldn't either.  =
+If you are playing audio you only need to be at the low OPP.  Something =
+else can happen and require a speed up while the audio is playing.  We =
+shouldn't depend on being at the high OPP while audio is active.  To =
+achieve this the low latency 3430 specific method should be used.  Later =
+2430's versions can today use a similar procedure as 3430.
+
+The aim of making it single kernel for OMAP2 to OMAP3 in this case is =
+just using the SRAM function for pushing the correct SRAM routine.
 
 Regards,
-Amit
-
---
-Amit Kucheria, Linux developer
-
-------=_Part_4789_6490393.1195066922763
-Content-Type: application/octet-stream;
-	name=0001-3430-Make-IO-mapping-names-consistent.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f907u1pb
-Content-Disposition: attachment;
-	filename=0001-3430-Make-IO-mapping-names-consistent.patch
-
-RnJvbSA1NjA3ODAwNGFhNWRhNDgxYmI4M2E4OWNlNmU3YzM5ZjIzMzg1ZjVmIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBBbWl0IEt1Y2hlcmlhIDxhbWl0Lmt1Y2hlcmlhQHZlcmR1cmVu
-dC5jb20+CkRhdGU6IFdlZCwgMyBPY3QgMjAwNyAxNjo1NDozMyArMDMwMApTdWJqZWN0OiBbUEFU
-Q0hdIDM0MzA6IE1ha2UgSU8gbWFwcGluZyBuYW1lcyBjb25zaXN0ZW50CgpTaWduZWQtb2ZmLWJ5
-OiBBbWl0IEt1Y2hlcmlhIDxhbWl0Lmt1Y2hlcmlhQHZlcmR1cmVudC5jb20+Ci0tLQogaW5jbHVk
-ZS9hc20tYXJtL2FyY2gtb21hcC9pby5oICAgICAgIHwgICAgMiArLQogaW5jbHVkZS9hc20tYXJt
-L2FyY2gtb21hcC9vbWFwMzR4eC5oIHwgICAgNiArKystLS0KIDIgZmlsZXMgY2hhbmdlZCwgNCBp
-bnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2luY2x1ZGUvYXNtLWFy
-bS9hcmNoLW9tYXAvaW8uaCBiL2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvaW8uaAppbmRleCA4
-M2I5ZTY2Li4xNjA1NzhlIDEwMDY0NAotLS0gYS9pbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFwL2lv
-LmgKKysrIGIvaW5jbHVkZS9hc20tYXJtL2FyY2gtb21hcC9pby5oCkBAIC0xMjksNyArMTI5LDcg
-QEAKICNkZWZpbmUgTDRfUEVSXzM0WFhfVklSVAkweGQ5MDAwMDAwCiAjZGVmaW5lIEw0X1BFUl8z
-NFhYX1NJWkUJU1pfMU0KIAotI2RlZmluZSBMNF9FTVVfMzRYWF9QSFlTCUw0XzM0WFhfRU1VX0JB
-U0UgLyogMHg1NDAwMDAwMCAqLworI2RlZmluZSBMNF9FTVVfMzRYWF9QSFlTCUw0X0VNVV8zNFhY
-X0JBU0UgLyogMHg1NDAwMDAwMCAqLwogI2RlZmluZSBMNF9FTVVfMzRYWF9WSVJUCTB4ZTQwMDAw
-MDAKICNkZWZpbmUgTDRfRU1VXzM0WFhfU0laRQlTWl82NE0KIApkaWZmIC0tZ2l0IGEvaW5jbHVk
-ZS9hc20tYXJtL2FyY2gtb21hcC9vbWFwMzR4eC5oIGIvaW5jbHVkZS9hc20tYXJtL2FyY2gtb21h
-cC9vbWFwMzR4eC5oCmluZGV4IDZiYzdmOGEuLmUyMzA1OGEgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUv
-YXNtLWFybS9hcmNoLW9tYXAvb21hcDM0eHguaAorKysgYi9pbmNsdWRlL2FzbS1hcm0vYXJjaC1v
-bWFwL29tYXAzNHh4LmgKQEAgLTMxLDExICszMSwxMSBAQAogCiAjZGVmaW5lIEw0XzM0WFhfQkFT
-RQkJMHg0ODAwMDAwMAogI2RlZmluZSBMNF9XS18zNFhYX0JBU0UJCTB4NDgzMDAwMDAKLSNkZWZp
-bmUgTDRfV0tfT01BUF9CQVNFCQlMNF9XS19PTUFQX0JBU0UKKyNkZWZpbmUgTDRfV0tfT01BUF9C
-QVNFCQlMNF9XS18zNFhYX0JBU0UKICNkZWZpbmUgTDRfUEVSXzM0WFhfQkFTRQkweDQ5MDAwMDAw
-CiAjZGVmaW5lIEw0X1BFUl9PTUFQX0JBU0UJTDRfUEVSXzM0WFhfQkFTRQotI2RlZmluZSBMNF8z
-NFhYX0VNVV9CQVNFCTB4NTQwMDAwMDAKLSNkZWZpbmUgTDRfRU1VX0JBU0UJCUw0XzM0WFhfRU1V
-X0JBU0UKKyNkZWZpbmUgTDRfRU1VXzM0WFhfQkFTRQkweDU0MDAwMDAwCisjZGVmaW5lIEw0X0VN
-VV9CQVNFCQlMNF9FTVVfMzRYWF9CQVNFCiAjZGVmaW5lIEwzXzM0WFhfQkFTRQkJMHg2ODAwMDAw
-MAogI2RlZmluZSBMM19PTUFQX0JBU0UJCUwzXzM0WFhfQkFTRQogCi0tIAoxLjUuMi5HSVQKCg==
-
-------=_Part_4789_6490393.1195066922763
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
-------=_Part_4789_6490393.1195066922763--
+Richard W.
