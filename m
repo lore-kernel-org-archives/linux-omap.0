@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 0/2 2.6.24-rc1-git] OMAP and gpiolib
-Date: Thu, 15 Nov 2007 12:35:30 -0800
-Message-ID: <20071115203529.GC20686@atomide.com>
-References: <200710300854.58334.david-b@pacbell.net>
+Subject: Re: [PATCH] ARM: OMAP: clk_disable_unused: init section mismatch
+Date: Thu, 15 Nov 2007 12:41:23 -0800
+Message-ID: <20071115204122.GE20686@atomide.com>
+References: <20071101171814.725820430@mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <200710300854.58334.david-b@pacbell.net>
+In-Reply-To: <20071101171814.725820430@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,33 +15,40 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Kevin Hilman <khilman@mvista.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [071030 09:01]:
-> Yesterday I posted some new GPIO infrastructure, "gpiolib", which
-> lets platforms support multiple plug-in GPIO providers, to LKML.
-> And includes a pcf857x driver, which several OMAP boards could
-> be using..
+* Kevin Hilman <khilman@mvista.com> [071101 10:19]:
+> Fix the following warning when OMAP_RESET_CLOCKS is enabled:
 > 
-> One of my test platforms for this was OMAP.  Following this are
-> two patches:
+> WARNING: vmlinux.o(.data+0x33a0): Section mismatch: reference to .init.text:omap2_clk_disable_unused (between 'omap2_clk_functions' and 'osc_ck')
 > 
->  - one updating the plat-omap/gpio.c infrastructure to
->    use this code (a quick'n'dirty update), and
+> omap2_clk_disable_unused cannot be declared __init as it part of a
+> struct where the rest of the functions are not __init.
 > 
->  - another updating the board support for the OSK5912.
+> Signed-off-by: Kevin Hilman <khilman@mvista.com>
 > 
-> I've got some H4 stuff somewhere too, exposing the debug board's
-> FPGA support for the LEDs ... although not the other GPIO signals
-> which it evidently provides.  I'll try to refresh that.
+> ---
+>  arch/arm/mach-omap2/clock.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> Index: dev/arch/arm/mach-omap2/clock.c
+> ===================================================================
+> --- dev.orig/arch/arm/mach-omap2/clock.c
+> +++ dev/arch/arm/mach-omap2/clock.c
+> @@ -739,7 +739,7 @@ int omap2_clk_set_parent(struct clk *clk
+>   *-------------------------------------------------------------------------*/
+>  
+>  #ifdef CONFIG_OMAP_RESET_CLOCKS
+> -void __init omap2_clk_disable_unused(struct clk *clk)
+> +void omap2_clk_disable_unused(struct clk *clk)
+>  {
+>  	u32 regval32, v;
+>  
 
-I guess we'll apply these once the raw_spinlock/performance issues
-with gpio_chip are solved. For anybody interested, see LKML. [1]
+Pushing today.
 
 Tony
-
-http://lkml.org/lkml/2007/11/9/141
