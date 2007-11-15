@@ -1,15 +1,14 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH 1/4] OMAP: DMA: Cleanup of DMA Request Lines
-Date: Thu, 15 Nov 2007 09:34:28 +0530
-Message-ID: <010C7BAE6783F34D9AC336EE5A01A08804D4067E@dbde01.ent.ti.com>
-References: <20071115015708.GD6005@atomide.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: Move linux-omap list over to vger?
+Date: Thu, 15 Nov 2007 12:02:17 +0530
+Message-ID: <5d5443650711142232r68d8f2bdyfb515746dea40ee5@mail.gmail.com>
+References: <20071115021555.GI6005@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <20071115015708.GD6005@atomide.com>
+In-Reply-To: <20071115021555.GI6005@atomide.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,39 +18,39 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@mvista.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 Hi Tony,
 
-I'm sorry for the late reply. I have been on other things for a while =
-and haven't re-looked at this patch yet. Will fix the ifdefs and re-send =
-this patch.
+On Nov 15, 2007 7:45 AM, Tony Lindgren <tony@atomide.com> wrote:
+> Hi all,
+>
+> There's been some discussion going on at LKML on how some people don't
+> like subscriber only lists as they get bounces for their comments and
+> some bug reports can get lost. As a result, Dave Miller has been creating
+> some new lists on vger.kernel.org. [1][2]
+>
+> I could see us benefiting from swithing over to use
+> linux-omap@vger.kernel.org as we're starting to get more and more
+> patches and comments via LKML. Current subscriber only policy will
+> make people not CC our list, which makes it harder to keep track
+> of the patches.
+>
+> Spam should not be a problem on vger like LKML already shows, and
+> the infrastructure is already there so it would be an easy switchover.
+>
+> Are people OK with this move in general?
 
-@Kevin,
-Thanks for the quickfix patch :)
+I am OK for this move. More code, patch review comments and visibility of omap
+list will be good for OMAP series in general.
 
-Regards,
-Anand
+>
+> PS The current setup has served us well, so big thanks to TI for
+> hosting it!
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]=20
-> Sent: Thursday, November 15, 2007 7:27 AM
-> To: Gadiyar, Anand
-> Cc: linux-omap-open-source@linux.omap.com
-> Subject: Re: [PATCH 1/4] OMAP: DMA: Cleanup of DMA Request Lines
->=20
-> * Tony Lindgren <tony@atomide.com> [071114 17:56]:
-> > * Gadiyar, Anand <gadiyar@ti.com> [071024 00:06]:
-> > > From: Anand Gadiyar <gadiyar@ti.com>
-> > >=20
-> > > Added support for TI OMAP3430 and cleanup of DMA request lines.
-> >=20
-> > Thanks, I've updated it for OMAP_DMA4_OCP_SYSCONFIG and will
-> > apply today.
->=20
-> Oops, sorry it still has the ifdefs. Not applying it yet...
->=20
-> Tony
->=20
+Thanks to Steve Johnson and others at TI.
+
+-- 
+--Trilok Soni
