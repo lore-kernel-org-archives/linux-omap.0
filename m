@@ -1,13 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] CPU identification support for 3430
-Date: Wed, 14 Nov 2007 18:14:16 -0800
-Message-ID: <20071115021416.GH6005@atomide.com>
-References: <00f101c81d5e$be25aa90$6a8918ac@ent.ti.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH 1/4] OMAP: DMA: Cleanup of DMA Request Lines
+Date: Thu, 15 Nov 2007 09:34:28 +0530
+Message-ID: <010C7BAE6783F34D9AC336EE5A01A08804D4067E@dbde01.ent.ti.com>
+References: <20071115015708.GD6005@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <00f101c81d5e$be25aa90$6a8918ac@ent.ti.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <20071115015708.GD6005@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,13 +19,39 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Girish <girishsg@ti.com>
+To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@mvista.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Girish <girishsg@ti.com> [071102 07:44]:
-> This patch add cpu identification support for 3430 and some code clean up.
+Hi Tony,
 
-Pushing today.
+I'm sorry for the late reply. I have been on other things for a while =
+and haven't re-looked at this patch yet. Will fix the ifdefs and re-send =
+this patch.
 
-Tony
+@Kevin,
+Thanks for the quickfix patch :)
+
+Regards,
+Anand
+
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]=20
+> Sent: Thursday, November 15, 2007 7:27 AM
+> To: Gadiyar, Anand
+> Cc: linux-omap-open-source@linux.omap.com
+> Subject: Re: [PATCH 1/4] OMAP: DMA: Cleanup of DMA Request Lines
+>=20
+> * Tony Lindgren <tony@atomide.com> [071114 17:56]:
+> > * Gadiyar, Anand <gadiyar@ti.com> [071024 00:06]:
+> > > From: Anand Gadiyar <gadiyar@ti.com>
+> > >=20
+> > > Added support for TI OMAP3430 and cleanup of DMA request lines.
+> >=20
+> > Thanks, I've updated it for OMAP_DMA4_OCP_SYSCONFIG and will
+> > apply today.
+>=20
+> Oops, sorry it still has the ifdefs. Not applying it yet...
+>=20
+> Tony
+>=20
