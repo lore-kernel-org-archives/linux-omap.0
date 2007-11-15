@@ -1,13 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: Fix the BYTEBLOCK capability removal
-Date: Thu, 15 Nov 2007 13:20:20 -0800
-Message-ID: <20071115212019.GL20686@atomide.com>
-References: <1194274461-6712-1-git-send-email-francisco.alecrim@indt.org.br>
+Subject: Re: [PATCH]include/asm-arm/arch-omap/omap24xx.h
+Date: Thu, 15 Nov 2007 13:24:50 -0800
+Message-ID: <20071115212449.GM20686@atomide.com>
+References: <ae36f8040711062027k1456f262kfa9d72543d38b0cc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <1194274461-6712-1-git-send-email-francisco.alecrim@indt.org.br>
+In-Reply-To: <ae36f8040711062027k1456f262kfa9d72543d38b0cc@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,45 +16,35 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: francisco.alecrim@indt.org.br
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: =?iso-8859-1?Q?Lu=EDs?= Cargnini <lvcargnini@gmail.com>
+Cc: OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* francisco.alecrim@indt.org.br <francisco.alecrim@indt.org.br> [071105 06:51]:
-> From: Francisco Alecrim <francisco.alecrim@indt.org.br>
-> 
-> According with commit 255d01af9a990fd5166f04ed0cc0b30b7b67e81e
-> from Linux-OMAP tree, the BYTEBLOCK capability was removed by Pierre Ossman.
-> MMC_CAP_BYTEBLOCK is not defined causing the compile error:
-> 
-> drivers/mmc/host/omap.c: In function `mmc_omap_probe':
-> drivers/mmc/host/omap.c:1077: error: `MMC_CAP_BYTEBLOCK' undeclared (first use in this function)
-> drivers/mmc/host/omap.c:1077: error: (Each undeclared identifier is reported only once
-> drivers/mmc/host/omap.c:1077: error: for each function it appears in.)
-> 
-> Signed-off-by: Francisco Alecrim <francisco.alecrim@indt.org.br>
-> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-> ---
->  drivers/mmc/host/omap.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-> index 87dc63a..ea8dbde 100644
-> --- a/drivers/mmc/host/omap.c
-> +++ b/drivers/mmc/host/omap.c
-> @@ -1074,7 +1074,7 @@ static int __init mmc_omap_probe(struct platform_device *pdev)
->  	mmc->f_min = 400000;
->  	mmc->f_max = 24000000;
->  	mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34;
-> -	mmc->caps = MMC_CAP_MULTIWRITE | MMC_CAP_BYTEBLOCK;
-> +	mmc->caps = MMC_CAP_MULTIWRITE;
->  
->  	if (minfo->wire4)
->  		 mmc->caps |= MMC_CAP_4_BIT_DATA;
-> -- 
+* Lu=EDs Cargnini <lvcargnini@gmail.com> [071106 20:27]:
+> this patch only export two more functions to been used externally, for =
+read
+> and write in polled mode.without the need of irqs.
+>=20
+> Signed-off-by: Luis Vitorio Cargnini <lvcargnini@gmail.com>
+>=20
+> --- linux-omap-2.6/arch/arm/plat-omap/mcbsp.c   2007-03-12 16:44:
+> 03.501890844 -0300
+> +++ linux-omap-2.6.23/arch/arm/plat-omap/mcbsp.c        2007-11-07 02:1=
+0:
+> 44.093625034 -0200
+> @@ -1022,6 +1022,8 @@ EXPORT_SYMBOL(omap_mcbsp_set_io_type);
+>  EXPORT_SYMBOL(omap_mcbsp_free);
+>  EXPORT_SYMBOL(omap_mcbsp_start);
+>  EXPORT_SYMBOL(omap_mcbsp_stop);
+> +EXPORT_SYMBOL(omap_mcbsp_pollread);
+> +EXPORT_SYMBOL(omap_mcbsp_pollwrite);
+>  EXPORT_SYMBOL(omap_mcbsp_xmit_word);
+>  EXPORT_SYMBOL(omap_mcbsp_recv_word);
+>  EXPORT_SYMBOL(omap_mcbsp_xmit_buffer);
 
-Pushing today.
+Pushing today. Can you please check your mailer settings? The patch is
+wrapped and base64 encoded...
 
 Tony
