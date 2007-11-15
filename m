@@ -1,13 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/5] I2C support on 3430
-Date: Thu, 15 Nov 2007 14:09:02 -0800
-Message-ID: <20071115220902.GS20686@atomide.com>
-References: <00f601c81d64$80541bb0$6a8918ac@ent.ti.com>
+Subject: Re: [PATCH 0/2] 3430 clock: REVISED: Add SmartReflex, emulation,
+	trace clocks
+Date: Thu, 15 Nov 2007 14:11:38 -0800
+Message-ID: <20071115221138.GT20686@atomide.com>
+References: <20071112105726.514186925@pwsan.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <00f601c81d64$80541bb0$6a8918ac@ent.ti.com>
+In-Reply-To: <20071112105726.514186925@pwsan.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,20 +16,33 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Girish <girishsg@ti.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Paul Walmsley <paul@pwsan.com> [071112 03:06]:
+> This short series of two patches adds some remaining OMAP3430 clocks:
+> the SmartReflex voltage regulator clocks, and the ARM Cortex-A8
+> trace/emulation clocks.  Now with more pointers to further documentation
+> on the emulation clocks from Richard Woodruff <r-woodruff2@ti.com>.
+> 
+> Boot-tested on 3430SDP ES1.
+> 
+> ---
+> 
+> diffstat: 
+> 
+>  arch/arm/mach-omap2/clock34xx.h |  196 +++++++++++++++++++++++++++++++++++++---
+>  1 file changed, 183 insertions(+), 13 deletions(-)
+> 
+> size:
+> 
+>    text    data     bss     dec     hex filename
+> 2847056  140800   95304 3083160  2f0b98 vmlinux.orig
+> 2847720  141472   95304 3084496  2f10d0 vmlinux
 
-* Girish <girishsg@ti.com> [071102 08:26]:
-> This patch supports I2C on OMAP3430
-
-Looks good in general, but needs now updating as I've just pushed
-Jarkko's I2C registration helper patches. Can you please update?
-
-Regards,
+Pushing today.
 
 Tony
