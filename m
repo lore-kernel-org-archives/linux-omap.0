@@ -1,14 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH]include/asm-arm/arch-omap/omap24xx.h
-Date: Thu, 15 Nov 2007 13:24:50 -0800
-Message-ID: <20071115212449.GM20686@atomide.com>
-References: <ae36f8040711062027k1456f262kfa9d72543d38b0cc@mail.gmail.com>
+Subject: Re: [PATCH] ARM: OMAP: Warm reset functionality for 34xx
+Date: Thu, 15 Nov 2007 13:27:18 -0800
+Message-ID: <20071115212717.GN20686@atomide.com>
+References: <AC2D475575504148943F5EB0938951C4011252AA@dbde01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <ae36f8040711062027k1456f262kfa9d72543d38b0cc@mail.gmail.com>
+In-Reply-To: <AC2D475575504148943F5EB0938951C4011252AA@dbde01.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,35 +15,59 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: =?iso-8859-1?Q?Lu=EDs?= Cargnini <lvcargnini@gmail.com>
-Cc: OMAP <Linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Choraria, Rohit" <rohitkc@ti.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Lu=EDs Cargnini <lvcargnini@gmail.com> [071106 20:27]:
-> this patch only export two more functions to been used externally, for =
-read
-> and write in polled mode.without the need of irqs.
->=20
-> Signed-off-by: Luis Vitorio Cargnini <lvcargnini@gmail.com>
->=20
-> --- linux-omap-2.6/arch/arm/plat-omap/mcbsp.c   2007-03-12 16:44:
-> 03.501890844 -0300
-> +++ linux-omap-2.6.23/arch/arm/plat-omap/mcbsp.c        2007-11-07 02:1=
-0:
-> 44.093625034 -0200
-> @@ -1022,6 +1022,8 @@ EXPORT_SYMBOL(omap_mcbsp_set_io_type);
->  EXPORT_SYMBOL(omap_mcbsp_free);
->  EXPORT_SYMBOL(omap_mcbsp_start);
->  EXPORT_SYMBOL(omap_mcbsp_stop);
-> +EXPORT_SYMBOL(omap_mcbsp_pollread);
-> +EXPORT_SYMBOL(omap_mcbsp_pollwrite);
->  EXPORT_SYMBOL(omap_mcbsp_xmit_word);
->  EXPORT_SYMBOL(omap_mcbsp_recv_word);
->  EXPORT_SYMBOL(omap_mcbsp_xmit_buffer);
+* Choraria, Rohit <rohitkc@ti.com> [071107 01:13]:
+> Hi,
+> This patch adds the implementation for warm reset functionality for OMAP3.
+> 
+> Regards,
+> Rohit
+> 
+> Signed-off-by: Rohit Choraria <rohitkc@ti.com>
+> ---
+>  arch/arm/mach-omap2/prcm.c         |   11 +++++++++--
+>  include/asm-arm/arch-omap/system.h |    2 +-
+>  2 files changed, 10 insertions(+), 3 deletions(-)
+> 
+> Index: linux-omap-git-20071030/arch/arm/mach-omap2/prcm.c
+> ===================================================================
+> --- linux-omap-git-20071030.orig/arch/arm/mach-omap2/prcm.c	2007-10-30 12:38:14.000000000 -0400
+> +++ linux-omap-git-20071030/arch/arm/mach-omap2/prcm.c	2007-11-06 13:22:07.892612648 -0500
+> @@ -33,6 +33,13 @@
+>  {
+>  	u32 wkup;
+>  	omap2_clk_prepare_for_reboot();
+> -	wkup = prm_read_mod_reg(WKUP_MOD, RM_RSTCTRL) | OMAP_RST_DPLL3;
+> -	prm_write_mod_reg(wkup, WKUP_MOD, RM_RSTCTRL);
+> +
+> +	if (cpu_is_omap24xx()) {
+> +		wkup = prm_read_mod_reg(WKUP_MOD, RM_RSTCTRL) | OMAP_RST_DPLL3;
+> +		prm_write_mod_reg(wkup, WKUP_MOD, RM_RSTCTRL);
+> +	} else if (cpu_is_omap34xx()) {
+> +		wkup = prm_read_mod_reg(OMAP3430_GR_MOD, RM_RSTCTRL)
+> +							| OMAP_RST_DPLL3;
+> +		prm_write_mod_reg(wkup, OMAP3430_GR_MOD, RM_RSTCTRL);
+> +	}
+>  }
+> Index: linux-omap-git-20071030/include/asm-arm/arch-omap/system.h
+> ===================================================================
+> --- linux-omap-git-20071030.orig/include/asm-arm/arch-omap/system.h	2007-10-30 12:42:49.000000000 -0400
+> +++ linux-omap-git-20071030/include/asm-arm/arch-omap/system.h	2007-11-06 13:21:57.893132800 -0500
+> @@ -40,7 +40,7 @@
+>  
+>  static inline void arch_reset(char mode)
+>  {
+> -	if (!cpu_is_omap24xx())
+> +	if (!cpu_class_is_omap2())
+>  		omap1_arch_reset(mode);
+>  	else
+>  		omap_prcm_arch_reset(mode);
 
-Pushing today. Can you please check your mailer settings? The patch is
-wrapped and base64 encoded...
+Pushing today.
 
 Tony
