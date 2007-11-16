@@ -1,12 +1,14 @@
-From: "Chandra shekhar" <x0044955@ti.com>
-Subject: [PATCH 2/2] I2C and TWL4030 suport on 34xx
-Date: Fri, 16 Nov 2007 19:18:26 +0530
-Message-ID: <200711161348.lAGDmQcN013413@dbdp31.itg.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Move linux-omap list over to vger?
+Date: Fri, 16 Nov 2007 09:40:08 -0800
+Message-ID: <20071116174008.GB32675@atomide.com>
+References: <20071115021555.GI6005@atomide.com>
+	<7EAD1AEEA7621C45899FE99123E124A001393F5D@dbde01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <7EAD1AEEA7621C45899FE99123E124A001393F5D@dbde01.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,66 +18,68 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: "Syed Mohammed, Khasim" <khasim@ti.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-TWL4030 core support for 3430
+Hi,
 
-Signed-off-by: chandra shekhar <x0044955@ti.com>
----
- arch/arm/configs/omap_3430sdp_defconfig   |    5 +++++
- drivers/i2c/chips/Kconfig                 |    2 +-
- include/asm-arm/arch-omap/board-3430sdp.h |    4 ++--
- 3 files changed, 8 insertions(+), 3 deletions(-)
+* Syed Mohammed, Khasim <khasim@ti.com> [071116 04:35]:
+> Hi Tony,
+> 
+> We at TI support this move, personally I feel this will bring in lot of
+> technical value add / contributions to OMAP software.
 
-Index: linux-omap-2.6/arch/arm/configs/omap_3430sdp_defconfig
-===================================================================
---- linux-omap-2.6.orig/arch/arm/configs/omap_3430sdp_defconfig	2007-11-16 09:59:35.780049672 -0500
-+++ linux-omap-2.6/arch/arm/configs/omap_3430sdp_defconfig	2007-11-16 10:02:32.575172728 -0500
-@@ -605,6 +605,11 @@
- CONFIG_I2C_BOARDINFO=y
- CONFIG_I2C_CHARDEV=y
- CONFIG_I2C_OMAP=y
-+#
-+# Miscellaneous I2C Chip support
-+#
-+CONFIG_TWL4030_CORE=y
-+CONFIG_TWL4030_GPIO=y
- 
- #
- # SPI support
-Index: linux-omap-2.6/drivers/i2c/chips/Kconfig
-===================================================================
---- linux-omap-2.6.orig/drivers/i2c/chips/Kconfig	2007-11-16 09:59:35.780049672 -0500
-+++ linux-omap-2.6/drivers/i2c/chips/Kconfig	2007-11-16 10:02:32.575172728 -0500
-@@ -132,7 +132,7 @@
- 
- config TWL4030_CORE
- 	bool "TI's TWL4030 companion chip Core Driver Support"
--	depends on I2C=y && ARCH_OMAP24XX
-+	depends on I2C=y && (ARCH_OMAP24XX || ARCH_OMAP34XX)
- 	help
- 	  Say yes here if you have TWL4030 chip on your board
- 
-Index: linux-omap-2.6/include/asm-arm/arch-omap/board-3430sdp.h
-===================================================================
---- linux-omap-2.6.orig/include/asm-arm/arch-omap/board-3430sdp.h	2007-11-16 09:59:35.780049672 -0500
-+++ linux-omap-2.6/include/asm-arm/arch-omap/board-3430sdp.h	2007-11-16 10:03:45.306115944 -0500
-@@ -51,7 +51,7 @@
- #define NAND_BASE	0x0C000000  /* NAND flash */
- #define ONENAND_MAP	0x20000000  /* OneNand flash */
- 
--#ifdef CONFIG_I2C_TWL4030_CORE
-+#ifdef CONFIG_TWL4030_CORE
- 
- #define TWL4030_IRQNUM INT_34XX_SYS_NIRQ
- 
-@@ -59,7 +59,7 @@
- #define	IH_TWL4030_BASE		IH_BOARD_BASE
- #define	IH_TWL4030_END		(IH_TWL4030_BASE+8)
- 
--#ifdef CONFIG_I2C_TWL4030_GPIO
-+#ifdef CONFIG_TWL4030_GPIO
- 
- /* TWL4030 GPIO Interrupts */
- #define IH_TWL4030_GPIO_BASE	(IH_TWL4030_END)
+OK sounds like everybody thinks we'll benefit from this move.
+
+> However, before moving there were few concerns that we would like to
+> discuss upon:
+> 
+> 1. How to handle the mail archives that we maintain today? 
+>  - Should we copy them to major domo? 
+>  - Maintain them on current servers?
+>  - How will a new subscriber refer to an old discussion captured on
+> archive?
+
+I can ask if Dave Miller would be willing to import "old" archives,
+but that may not work as they are not vger archives. In any case
+we should keep the "old" archives at linux.omap.com, and I can
+also mirror the .gz file on kernel.org just in case.
+
+Then on linux.omap.com we can have links to "old" archives and "new"
+archives.
+
+So in general, I'd assume we'll be referring to linux.omap.com archives
+for the "old" discussions.
+
+> 2. How to handle the "who" query (to get the subscribers list) from
+> majordomo? 
+>  - Disable "who" query for all (including subscribed members).
+>  - Enable "who" query for all - Not recommended. 
+>  - Send a mail request to the maintainer "to send the subscriber's list"
+> later maintainer can check the genuineness of the request and provide
+> the list.
+
+I'd assume "who" is disabled by default on vger because of spammers, and
+the subscriber lists are only available to the maintainers.
+
+I'm thinking we'll just ask people to resubscribe to the new list rather
+than import the old list.
+
+> 3. By when do we want to make this move? 
+>  - Can we wait for couple of weeks? 
+>  - We can think of any other issues that we might have to encounter for
+> OMAP?
+
+How about let's plan on starting to use linux-omap@vger.kernel.org list
+full time on Dec 1st?
+
+We can set it up immediately and then will have few weeks to move over.
+
+> Thank you all for the support in building this strong community for
+> OMAP.
+
+Yeah it's nice to see that we have a pretty decent omap development
+community now :)
+
+Tony
