@@ -1,11 +1,15 @@
-From: "Azhar Mr." <shaik.azharuddin@yahoo.co.in>
-Subject: OSK5912 GPIO
-Date: Fri, 16 Nov 2007 11:59:42 +0000 (GMT)
-Message-ID: <680885.35310.qm@web7613.mail.in.yahoo.com>
+From: "Syed Mohammed, Khasim" <khasim@ti.com>
+Subject: RE: Move linux-omap list over to vger?
+Date: Fri, 16 Nov 2007 18:04:42 +0530
+Message-ID: <7EAD1AEEA7621C45899FE99123E124A001393F5D@dbde01.ent.ti.com>
+References: <20071115021555.GI6005@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <20071115021555.GI6005@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,131 +19,83 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-  =20
-  I AM WORKING ON OMAP5912 OSK.
+Hi Tony,
 
-I am writing a keyboard based gpio program to write a value '1' to the fr=
-ee gpio pin when a key was pressed.
+We at TI support this move, personally I feel this will bring in lot of
+technical value add / contributions to OMAP software.
 
-For that I modified the gpio-switch.c program. I am using the up arrow
-key which is mapped to gpio7. By pressing this key I am able to write=20
-a value '1' to the gpio pin 23.
+However, before moving there were few concerns that we would like to
+discuss upon:
 
-At the shell prompt I am able to see a logic '1' value at gpio pin 23 wit=
-h the following message
+1. How to handle the mail archives that we maintain today?=20
+ - Should we copy them to major domo?=20
+ - Maintain them on current servers?
+ - How will a new subscriber refer to an old discussion captured on
+archive?
 
-value of pin # 23 =3D 1
-up (GPIO 7) is now disconnected
+2. How to handle the "who" query (to get the subscribers list) from
+majordomo?=20
+ - Disable "who" query for all (including subscribed members).
+ - Enable "who" query for all - Not recommended.=20
+ - Send a mail request to the maintainer "to send the subscriber's list"
+later maintainer can check the genuineness of the request and provide
+the list.
 
+3. By when do we want to make this move?=20
+ - Can we wait for couple of weeks?=20
+ - We can think of any other issues that we might have to encounter for
+OMAP?
 
-But through  the Cathode Ray Oscilloscope  I am unable to observe the GPI=
-O pin 23 value as =911=92. There is no change in the Oscilloscope.
+Thank you all for the support in building this strong community for
+OMAP.
 
-Here is my gpio-switch code
+Regards,
+Khasim
 
+-----Original Message-----
+From: linux-omap-open-source-bounces+khasim=3Dti.com@linux.omap.com
+[mailto:linux-omap-open-source-bounces+khasim=3Dti.com@linux.omap.com] =
+On
+Behalf Of Tony Lindgren
+Sent: Thursday, November 15, 2007 7:46 AM
+To: linux-omap-open-source@linux.omap.com
+Subject: Move linux-omap list over to vger?
 
-#define OMAP_GPIO_SW_POLL_DELAY    10
+Hi all,
 
-#define LED_GPIO 23
+There's been some discussion going on at LKML on how some people don't
+like subscriber only lists as they get bounces for their comments and
+some bug reports can get lost. As a result, Dave Miller has been
+creating
+some new lists on vger.kernel.org. [1][2]
 
-const struct omap_gpio_switch_config omap_left_switch =3D {
-    .name =3D "left",
-    .type =3D OMAP_GPIO_SWITCH_TYPE_CONNECTION,
-    .gpio =3D 6,
-    .flags =3D OMAP_GPIO_SWITCH_FLAG_INVERTED,
-    .key_code =3D KEY_LEFT
-};
+I could see us benefiting from swithing over to use
+linux-omap@vger.kernel.org as we're starting to get more and more
+patches and comments via LKML. Current subscriber only policy will
+make people not CC our list, which makes it harder to keep track
+of the patches.
 
-const struct omap_gpio_switch_config omap_enter_switch =3D {
-    .name =3D "enter",
-    .type =3D OMAP_GPIO_SWITCH_TYPE_CONNECTION,
-    .gpio =3D 12,
-    .flags =3D OMAP_GPIO_SWITCH_FLAG_INVERTED,
-    .key_code =3D KEY_ENTER
-};
+Spam should not be a problem on vger like LKML already shows, and
+the infrastructure is already there so it would be an easy switchover.
 
-const struct omap_gpio_switch_config omap_up_switch =3D {
-    .name =3D "up",
-    .type =3D OMAP_GPIO_SWITCH_TYPE_CONNECTION,
-    .gpio =3D 7,
-    .flags =3D OMAP_GPIO_SWITCH_FLAG_INVERTED,
-    .key_code =3D KEY_UP
-};
+Are people OK with this move in general?
 
-const struct omap_gpio_switch_config omap_down_switch =3D {
-    .name =3D "down",
-    .type =3D OMAP_GPIO_SWITCH_TYPE_CONNECTION,
-    .gpio =3D 15,
-    .flags =3D OMAP_GPIO_SWITCH_FLAG_INVERTED,
-    .key_code =3D KEY_DOWN
-};
+If everybody is OK with this move, I'll email Dave Miller and ask him
+to set up the linux-omap@vger.kernel.org for us.
 
-const struct omap_gpio_switch_config *omap_switches[] =3D {
-    &omap_left_switch,
-    &omap_enter_switch,
-    &omap_up_switch,
-    &omap_down_switch,
-    NULL              /* Guard */   =20
-};
+Regards,
 
-static void gpio_sw_handler(void *data)
-{
-    struct gpio_switch *sw =3D data;
-    int state =3D gpio_sw_get_state(sw);
+Tony
 
-    if (sw->state =3D=3D state)
-          return;
+PS The current setup has served us well, so big thanks to TI for
+hosting it!
 
-    if (sw->type =3D=3D OMAP_GPIO_SWITCH_TYPE_CONNECTION)
-          kobject_uevent(&sw->pdev.dev.kobj, KOBJ_CHANGE,
-                    &dev_attr_connection_switch.attr);
-    else
-          kobject_uevent(&sw->pdev.dev.kobj, KOBJ_CHANGE,
-                    &dev_attr_cover_switch.attr);
-    sw->state =3D state;
-    input_report_key(&omap_sw_kp_dev, sw->key_code, state);
-   =20
-    /*** [START]: code for writing some value to GPIO 17 ***/
-
-    if(sw->key_code=3D=3DKEY_UP)
-    {
-          if(led_glow(sw))
-              printk(KERN_ERR "led_glow:failed ");
-    }   =20
-   =20
-    /*** [END]: code for writing some value to GPIO 17 ***/         =20
-
-static int led_glow(struct gpio_switch *ctrlsw)
-{
-    /* requesting for LED_GPIO */
-    if(omap_request_gpio(LED_GPIO)<0)
-          return -1;
-   =20
-    /* setting LED_GPIO as output pin */
-    omap_set_gpio_direction(LED_GPIO,0);
-
-    /* writing to LED_GPIO the state of KEY_UP */
-    omap_set_gpio_dataout(LED_GPIO,ctrlsw->state);
-
-    /* printing the value of led_gpio pin */
-    printk("value of pin # %d =3D %d\n",LED_GPIO,omap_get_gpio_datain(LED=
-_GPIO));
-
-    return 0;
-   =20
-
-}
-
-
-please suggest where I had gone wrong.
-
-With Regards
-  Azharuddin, India
-
-      =20
----------------------------------
- 5, 50, 500, 5000 - Store N number of mails in your inbox. Click here.
+[1] http://lkml.org/lkml/2007/11/13/531
+[2] http://lkml.org/lkml/2007/11/14/89
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
