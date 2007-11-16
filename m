@@ -1,10 +1,10 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 3/4] Runtime constants: use runtime-computed SMS base
-Date: Fri, 16 Nov 2007 16:22:02 -0700
-Message-ID: <20071116232538.178535648@pwsan.com>
+Subject: [PATCH 1/4] Runtime constants: introduce omap2_set_globals_*()
+Date: Fri, 16 Nov 2007 16:22:00 -0700
+Message-ID: <20071116232537.971183323@pwsan.com>
 References: <20071116232159.713389488@pwsan.com>
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline; filename=mb-convert-omap2-sms-base.patch
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline; filename=mb-introduce-set-bases.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,204 +12,199 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Create a global variable, omap2_sms_base, that is initialized with the
-appropriate SMS base address at runtime during architecture
-initialization.  Convert users of the preprocessor define
-OMAP2_SMS_BASE to use the runtime-computed address, and get rid of
-OMAP2_SMS_BASE.  Create sms_{read,write}_reg() to handle register
-access to these functions, located in arch/arm/mach-omap2/sdrc.h.
-Define the only SMS register that we currently use, SMS_SYSCONFIG, in
-include/asm-arm/arch-omap/sdrc.h, so it can be included in assembly
-language files.
+Add the omap2_set_globals_{242x,243x,343x}() functions.  These
+functions are called early upon boot in the map_io() functions in the
+board-specific init files.  The functions are currently no-ops.  Later
+patches augment these functions to set global variables to the base
+virtual addresses of OMAP modules.  This makes it possible to write
+code that can run without modification on multiple OMAP chip
+revisions.
+
+The *_set_globals_* functions are added into
+arch/arm/plat-omap/common.c.  This patch currently only introduces
+OMAP2 and OMAP3 functions, but a later patch introduces an
+OMAP16XX-specific version, omap1_set_globals_16xx().
+
+Also, while we are here, we get rid of the unused OMAP_L4_BASE define.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
 ---
- arch/arm/mach-omap2/memory.c         |    8 +++-----
- arch/arm/mach-omap2/sdrc.h           |   19 +++++++++++++++++++
- arch/arm/plat-omap/common.c          |    3 +++
+ arch/arm/mach-omap2/board-2430osk.c  |    1 +
+ arch/arm/mach-omap2/board-2430sdp.c  |    1 +
+ arch/arm/mach-omap2/board-3430sdp.c  |    1 +
+ arch/arm/mach-omap2/board-apollon.c  |    1 +
+ arch/arm/mach-omap2/board-generic.c  |    1 +
+ arch/arm/mach-omap2/board-h4.c       |    1 +
+ arch/arm/mach-omap2/board-n800.c     |    1 +
+ arch/arm/plat-omap/common.c          |   21 +++++++++++++++++++++
+ include/asm-arm/arch-omap/common.h   |    4 ++++
  include/asm-arm/arch-omap/omap24xx.h |    2 --
- include/asm-arm/arch-omap/omap34xx.h |    5 ++---
- include/asm-arm/arch-omap/sdrc.h     |   16 +++++++++++++++-
- 6 files changed, 42 insertions(+), 11 deletions(-)
+ include/asm-arm/arch-omap/omap34xx.h |    1 -
+ 11 files changed, 32 insertions(+), 3 deletions(-)
 
-Index: linux-omap/arch/arm/mach-omap2/memory.c
+Index: linux-omap/arch/arm/mach-omap2/board-n800.c
 ===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/memory.c	2007-11-16 16:18:26.000000000 -0700
-+++ linux-omap/arch/arm/mach-omap2/memory.c	2007-11-16 16:18:28.000000000 -0700
-@@ -32,9 +32,8 @@
- #include "memory.h"
- #include "sdrc.h"
+--- linux-omap.orig/arch/arm/mach-omap2/board-n800.c	2007-11-16 16:17:05.000000000 -0700
++++ linux-omap/arch/arm/mach-omap2/board-n800.c	2007-11-16 16:18:24.000000000 -0700
+@@ -479,6 +479,7 @@
+ 	omap_board_config = n800_config;
+ 	omap_board_config_size = ARRAY_SIZE(n800_config);
  
--#define SMS_SYSCONFIG			(OMAP2_SMS_BASE + 0x010)
--
- unsigned long omap2_sdrc_base;
-+unsigned long omap2_sms_base;
- 
- static struct memory_timings mem_timings;
- static u32 curr_perf_level = CORE_CLK_SRC_DPLL_X2;
-@@ -160,14 +159,13 @@
- {
- 	u32 l;
- 
--	l = omap_readl(SMS_SYSCONFIG);
-+	l = sms_read_reg(SMS_SYSCONFIG);
- 	l &= ~(0x3 << 3);
- 	l |= (0x2 << 3);
--	omap_writel(l, SMS_SYSCONFIG);
-+	sms_write_reg(l, SMS_SYSCONFIG);
- 
- 	l = sdrc_read_reg(SDRC_SYSCONFIG);
- 	l &= ~(0x3 << 3);
- 	l |= (0x2 << 3);
- 	sdrc_write_reg(l, SDRC_SYSCONFIG);
--
- }
-Index: linux-omap/arch/arm/mach-omap2/sdrc.h
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/sdrc.h	2007-11-16 16:18:26.000000000 -0700
-+++ linux-omap/arch/arm/mach-omap2/sdrc.h	2007-11-16 16:18:28.000000000 -0700
-@@ -19,8 +19,11 @@
- #include <asm/arch/sdrc.h>
- 
- extern unsigned long omap2_sdrc_base;
-+extern unsigned long omap2_sms_base;
- 
- #define OMAP_SDRC_REGADDR(reg)	(void __iomem *)IO_ADDRESS(omap2_sdrc_base + reg)
-+#define OMAP_SMS_REGADDR(reg)	(void __iomem *)IO_ADDRESS(omap2_sms_base + reg)
-+
- 
- /* SDRC global register get/set */
- 
-@@ -37,5 +40,21 @@
- 	return __raw_readl(OMAP_SDRC_REGADDR(reg));
++	omap2_set_globals_242x();
+ 	omap2_map_common_io();
  }
  
-+/* SMS global register get/set */
-+
-+static void __attribute__((unused)) sms_write_reg(u32 val, u16 reg)
-+{
-+	pr_debug("sms_write_reg: writing 0x%0x to 0x%0x\n", val,
-+		 (u32)OMAP_SMS_REGADDR(reg));
-+
-+	__raw_writel(val, OMAP_SMS_REGADDR(reg));
-+}
-+
-+static u32 __attribute__((unused)) sms_read_reg(u16 reg)
-+{
-+	return __raw_readl(OMAP_SMS_REGADDR(reg));
-+}
-+
-+
- 
- #endif
-Index: linux-omap/include/asm-arm/arch-omap/sdrc.h
-===================================================================
---- linux-omap.orig/include/asm-arm/arch-omap/sdrc.h	2007-11-16 16:18:26.000000000 -0700
-+++ linux-omap/include/asm-arm/arch-omap/sdrc.h	2007-11-16 16:18:28.000000000 -0700
-@@ -2,7 +2,7 @@
- #define ____ASM_ARCH_SDRC_H
- 
- /*
-- * OMAP2 SDRC register definitions
-+ * OMAP2/3 SDRC/SMS register definitions
-  *
-  * Copyright (C) 2007 Texas Instruments, Inc.
-  * Copyright (C) 2007 Nokia Corporation
-@@ -62,4 +62,18 @@
- #define SDRC_RFR_CTRL_BYPASS	(0x00005000 | 1) /* Need to calc */
- 
- 
-+/*
-+ * SMS register access
-+ */
-+
-+
-+#define OMAP242X_SMS_REGADDR(reg)	(void __iomem *)IO_ADDRESS(OMAP2420_SMS_BASE + reg)
-+#define OMAP243X_SMS_REGADDR(reg)	(void __iomem *)IO_ADDRESS(OMAP243X_SMS_BASE + reg)
-+#define OMAP343X_SMS_REGADDR(reg)	(void __iomem *)IO_ADDRESS(OMAP343X_SMS_BASE + reg)
-+
-+/* SMS register offsets - read/write with sms_{read,write}_reg() */
-+
-+#define SMS_SYSCONFIG		0x010
-+/* REVISIT: fill in other SMS registers here */
-+
- #endif
 Index: linux-omap/include/asm-arm/arch-omap/omap24xx.h
 ===================================================================
---- linux-omap.orig/include/asm-arm/arch-omap/omap24xx.h	2007-11-16 16:18:26.000000000 -0700
-+++ linux-omap/include/asm-arm/arch-omap/omap24xx.h	2007-11-16 16:18:28.000000000 -0700
-@@ -83,7 +83,6 @@
- #define OMAP2_PRCM_BASE		OMAP2420_PRCM_BASE
- #define OMAP2_CM_BASE		OMAP2420_CM_BASE
+--- linux-omap.orig/include/asm-arm/arch-omap/omap24xx.h	2007-11-16 16:17:05.000000000 -0700
++++ linux-omap/include/asm-arm/arch-omap/omap24xx.h	2007-11-16 16:18:24.000000000 -0700
+@@ -85,7 +85,6 @@
  #define OMAP2_PRM_BASE		OMAP2420_PRM_BASE
--#define OMAP2_SMS_BASE		OMAP2420_SMS_BASE
+ #define OMAP2_SDRC_BASE		OMAP2420_SDRC_BASE
+ #define OMAP2_SMS_BASE		OMAP2420_SMS_BASE
+-#define OMAP2_L4_BASE		L4_24XX_BASE
  #define OMAP2_VA_IC_BASE	IO_ADDRESS(OMAP24XX_IC_BASE)
  #define OMAP2_CTRL_BASE		OMAP2420_CTRL_BASE
  
-@@ -93,7 +92,6 @@
- #define OMAP2_PRCM_BASE		OMAP2430_PRCM_BASE
- #define OMAP2_CM_BASE		OMAP2430_CM_BASE
+@@ -97,7 +96,6 @@
  #define OMAP2_PRM_BASE		OMAP2430_PRM_BASE
--#define OMAP2_SMS_BASE		OMAP243X_SMS_BASE
+ #define OMAP2_SDRC_BASE		OMAP243X_SDRC_BASE
+ #define OMAP2_SMS_BASE		OMAP243X_SMS_BASE
+-#define OMAP2_L4_BASE		L4_24XX_BASE
  #define OMAP2_VA_IC_BASE	IO_ADDRESS(OMAP24XX_IC_BASE)
  #define OMAP2_CTRL_BASE		OMAP243X_CTRL_BASE
  
 Index: linux-omap/include/asm-arm/arch-omap/omap34xx.h
 ===================================================================
---- linux-omap.orig/include/asm-arm/arch-omap/omap34xx.h	2007-11-16 16:18:26.000000000 -0700
-+++ linux-omap/include/asm-arm/arch-omap/omap34xx.h	2007-11-16 16:18:28.000000000 -0700
-@@ -45,8 +45,8 @@
- #define OMAP343X_SMS_BASE	0x6C000000
- #define OMAP343X_SDRC_BASE	0x6D000000
- #define OMAP34XX_GPMC_BASE	0x6E000000
--#define OMAP3430_SCM_BASE	0x48002000
--#define OMAP3430_CTRL_BASE	OMAP3430_SCM_BASE
-+#define OMAP343X_SCM_BASE	0x48002000
-+#define OMAP3430_CTRL_BASE	OMAP343X_SCM_BASE
- 
- #define OMAP34XX_IC_BASE	0x48200000
- #define OMAP34XX_IVA_INTC_BASE	0x40000000
-@@ -64,7 +64,6 @@
- #define OMAP2_32KSYNCT_BASE		OMAP3430_32KSYNCT_BASE
- #define OMAP2_CM_BASE			OMAP3430_CM_BASE
+--- linux-omap.orig/include/asm-arm/arch-omap/omap34xx.h	2007-11-16 16:17:05.000000000 -0700
++++ linux-omap/include/asm-arm/arch-omap/omap34xx.h	2007-11-16 16:18:24.000000000 -0700
+@@ -66,7 +66,6 @@
  #define OMAP2_PRM_BASE			OMAP3430_PRM_BASE
--#define OMAP2_SMS_BASE			OMAP343X_SMS_BASE
+ #define OMAP2_SDRC_BASE			OMAP343X_SDRC_BASE
+ #define OMAP2_SMS_BASE			OMAP343X_SMS_BASE
+-#define OMAP2_L4_BASE			L4_34XX_BASE
  #define OMAP2_VA_IC_BASE		IO_ADDRESS(OMAP34XX_IC_BASE)
  #define OMAP2_CTRL_BASE			OMAP3430_CTRL_BASE
  #define OMAP34XX_CONTROL_DEVCONF0	(L4_34XX_BASE + 0x2274)
+Index: linux-omap/arch/arm/mach-omap2/board-2430sdp.c
+===================================================================
+--- linux-omap.orig/arch/arm/mach-omap2/board-2430sdp.c	2007-11-16 16:17:05.000000000 -0700
++++ linux-omap/arch/arm/mach-omap2/board-2430sdp.c	2007-11-16 16:18:24.000000000 -0700
+@@ -392,6 +392,7 @@
+ 
+ static void __init omap_2430sdp_map_io(void)
+ {
++	omap2_set_globals_243x();
+ 	omap2_map_common_io();
+ }
+ 
+Index: linux-omap/arch/arm/mach-omap2/board-3430sdp.c
+===================================================================
+--- linux-omap.orig/arch/arm/mach-omap2/board-3430sdp.c	2007-11-16 16:17:05.000000000 -0700
++++ linux-omap/arch/arm/mach-omap2/board-3430sdp.c	2007-11-16 16:18:24.000000000 -0700
+@@ -328,6 +328,7 @@
+ 
+ static void __init omap_3430sdp_map_io(void)
+ {
++	omap2_set_globals_343x();
+ 	omap2_map_common_io();
+ }
+ arch_initcall(omap3430_i2c_init);
+Index: linux-omap/arch/arm/mach-omap2/board-apollon.c
+===================================================================
+--- linux-omap.orig/arch/arm/mach-omap2/board-apollon.c	2007-11-16 16:17:05.000000000 -0700
++++ linux-omap/arch/arm/mach-omap2/board-apollon.c	2007-11-16 16:18:24.000000000 -0700
+@@ -390,6 +390,7 @@
+ 
+ static void __init omap_apollon_map_io(void)
+ {
++	omap2_set_globals_242x();
+ 	omap2_map_common_io();
+ }
+ 
+Index: linux-omap/arch/arm/mach-omap2/board-generic.c
+===================================================================
+--- linux-omap.orig/arch/arm/mach-omap2/board-generic.c	2007-11-16 16:17:05.000000000 -0700
++++ linux-omap/arch/arm/mach-omap2/board-generic.c	2007-11-16 16:18:24.000000000 -0700
+@@ -67,6 +67,7 @@
+ 
+ static void __init omap_generic_map_io(void)
+ {
++	omap2_set_globals_242x(); /* should be 242x, 243x, or 343x */
+ 	omap2_map_common_io();
+ }
+ 
+Index: linux-omap/arch/arm/mach-omap2/board-h4.c
+===================================================================
+--- linux-omap.orig/arch/arm/mach-omap2/board-h4.c	2007-11-16 16:17:05.000000000 -0700
++++ linux-omap/arch/arm/mach-omap2/board-h4.c	2007-11-16 16:18:24.000000000 -0700
+@@ -741,6 +741,7 @@
+ 
+ static void __init omap_h4_map_io(void)
+ {
++	omap2_set_globals_242x();
+ 	omap2_map_common_io();
+ }
+ 
+Index: linux-omap/arch/arm/mach-omap2/board-2430osk.c
+===================================================================
+--- linux-omap.orig/arch/arm/mach-omap2/board-2430osk.c	2007-11-16 16:17:05.000000000 -0700
++++ linux-omap/arch/arm/mach-omap2/board-2430osk.c	2007-11-16 16:18:24.000000000 -0700
+@@ -125,6 +125,7 @@
+ 
+ static void __init omap_2430osk_map_io(void)
+ {
++	omap2_set_globals_243x();
+ 	omap2_map_common_io();
+ }
+ 
 Index: linux-omap/arch/arm/plat-omap/common.c
 ===================================================================
---- linux-omap.orig/arch/arm/plat-omap/common.c	2007-11-16 16:18:26.000000000 -0700
-+++ linux-omap/arch/arm/plat-omap/common.c	2007-11-16 16:18:28.000000000 -0700
-@@ -241,6 +241,7 @@
- void __init omap2_set_globals_242x(void)
- {
- 	omap2_sdrc_base = OMAP2420_SDRC_BASE;
-+	omap2_sms_base = OMAP2420_SMS_BASE;
- }
- #endif
+--- linux-omap.orig/arch/arm/plat-omap/common.c	2007-11-16 16:17:05.000000000 -0700
++++ linux-omap/arch/arm/plat-omap/common.c	2007-11-16 16:18:24.000000000 -0700
+@@ -230,3 +230,24 @@
+ arch_initcall(omap_init_clocksource_32k);
  
-@@ -248,6 +249,7 @@
- void __init omap2_set_globals_243x(void)
- {
- 	omap2_sdrc_base = OMAP243X_SDRC_BASE;
-+	omap2_sms_base = OMAP243X_SMS_BASE;
- }
- #endif
+ #endif	/* TIMER_32K_SYNCHRONIZED */
++
++/* Global address base setup code */
++
++#if defined(CONFIG_ARCH_OMAP2420)
++void __init omap2_set_globals_242x(void)
++{
++}
++#endif
++
++#if defined(CONFIG_ARCH_OMAP2430)
++void __init omap2_set_globals_243x(void)
++{
++}
++#endif
++
++#if defined(CONFIG_ARCH_OMAP3430)
++void __init omap2_set_globals_343x(void)
++{
++}
++#endif
++
+Index: linux-omap/include/asm-arm/arch-omap/common.h
+===================================================================
+--- linux-omap.orig/include/asm-arm/arch-omap/common.h	2007-11-16 16:17:05.000000000 -0700
++++ linux-omap/include/asm-arm/arch-omap/common.h	2007-11-16 16:18:24.000000000 -0700
+@@ -40,4 +40,8 @@
+ 				 struct i2c_board_info const *info,
+ 				 unsigned len);
  
-@@ -255,6 +257,7 @@
- void __init omap2_set_globals_343x(void)
- {
- 	omap2_sdrc_base = OMAP343X_SDRC_BASE;
-+	omap2_sms_base = OMAP343X_SMS_BASE;
- }
- #endif
- 
++void omap2_set_globals_242x(void);
++void omap2_set_globals_243x(void);
++void omap2_set_globals_343x(void);
++
+ #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
 
 -- 
