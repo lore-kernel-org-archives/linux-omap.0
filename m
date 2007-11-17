@@ -1,13 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH]Watchdog: Fix for the watchdog reset issue on OMAP3
-Date: Fri, 16 Nov 2007 16:00:05 -0800
-Message-ID: <20071117000004.GN32675@atomide.com>
-References: <465714FA584D6D49BD2ADB26BB64FD0D01902198@dlee13.ent.ti.com>
+Subject: Re: [PATCH/RFC] ARM: OMAP2: PRCM: more init, and clear wakeup
+	events.
+Date: Fri, 16 Nov 2007 16:01:07 -0800
+Message-ID: <20071117000107.GO32675@atomide.com>
+References: <20071101231156.378789006@mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <465714FA584D6D49BD2ADB26BB64FD0D01902198@dlee13.ent.ti.com>
+In-Reply-To: <20071101231156.378789006@mvista.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,63 +18,69 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Reddy, Teerth" <teerth@ti.com>
+To: Kevin Hilman <khilman@mvista.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Reddy, Teerth <teerth@ti.com> [071116 04:53]:
-> Hi,
+* Kevin Hilman <khilman@mvista.com> [071101 16:13]:
+> More initialization of wake dependencies.
+> Clear PRCM wake-up events after coming out of full-retention.
 > 
-> This patch fixes the watchdog reset issue for OMAP3. OMAP_WATCHDOG_BASE is being added twice so this patch resolves the issue and the watchdog works fine.
+> Signed-off-by: Kevin Hilman <khilman@mvista.com>
 > 
-> Regards,
-> Teerth
-> 
-> 
-> Fix for the watchdog reset defect.The watchdog header file has been modified in the mainline merge due to which the watchdog was not functioning.
-> OMAP_WATCHDOG_BASE is being added twice so this patch is required for the watchdog to function.
-> 
-> Signed-off-by: Teerth Reddy <teerth@ti.com>
 > ---
+>  arch/arm/mach-omap2/pm.c |   23 ++++++++++++++++++++++-
+>  1 file changed, 22 insertions(+), 1 deletion(-)
 > 
-> Index: linux/drivers/watchdog/omap_wdt.h ===================================================================
-> --- linux-omap-git-20071030/drivers/watchdog/omap_wdt.h	2007-11-14 05:51:05.830299544 -0500
-> +++ linux-omap-2.6-25thOct/drivers/char/watchdog/omap_wdt.h	2007-11-13 09:30:33.772264576 -0500
-> @@ -30,25 +30,15 @@
->  #ifndef _OMAP_WATCHDOG_H
->  #define _OMAP_WATCHDOG_H
+> Index: dev/arch/arm/mach-omap2/pm.c
+> ===================================================================
+> --- dev.orig/arch/arm/mach-omap2/pm.c
+> +++ dev/arch/arm/mach-omap2/pm.c
+> @@ -397,7 +397,7 @@ void omap2_allow_sleep(void)
 >  
-> -#define OMAP1610_WATCHDOG_BASE		0xfffeb000
-> -#define OMAP2420_WATCHDOG_BASE		0x48022000	/*WDT Timer 2 */
-> -
-> -#ifdef CONFIG_ARCH_OMAP24XX
-> -#define OMAP_WATCHDOG_BASE 		OMAP2420_WATCHDOG_BASE
-> -#else
-> -#define OMAP_WATCHDOG_BASE 		OMAP1610_WATCHDOG_BASE
-> -#define RM_RSTST_WKUP			0
-> -#endif
-> -
-> -#define OMAP_WATCHDOG_REV		(OMAP_WATCHDOG_BASE + 0x00)
-> -#define OMAP_WATCHDOG_SYS_CONFIG	(OMAP_WATCHDOG_BASE + 0x10)
-> -#define OMAP_WATCHDOG_STATUS		(OMAP_WATCHDOG_BASE + 0x14)
-> -#define OMAP_WATCHDOG_CNTRL		(OMAP_WATCHDOG_BASE + 0x24)
-> -#define OMAP_WATCHDOG_CRR		(OMAP_WATCHDOG_BASE + 0x28)
-> -#define OMAP_WATCHDOG_LDR		(OMAP_WATCHDOG_BASE + 0x2c)
-> -#define OMAP_WATCHDOG_TGR		(OMAP_WATCHDOG_BASE + 0x30)
-> -#define OMAP_WATCHDOG_WPS		(OMAP_WATCHDOG_BASE + 0x34)
-> -#define OMAP_WATCHDOG_SPR		(OMAP_WATCHDOG_BASE + 0x48)
-> +#define OMAP_WATCHDOG_REV		(0x00)
-> +#define OMAP_WATCHDOG_SYS_CONFIG	(0x10)
-> +#define OMAP_WATCHDOG_STATUS		(0x14)
-> +#define OMAP_WATCHDOG_CNTRL		(0x24)
-> +#define OMAP_WATCHDOG_CRR		(0x28)
-> +#define OMAP_WATCHDOG_LDR		(0x2c)
-> +#define OMAP_WATCHDOG_TGR		(0x30)
-> +#define OMAP_WATCHDOG_WPS		(0x34)
-> +#define OMAP_WATCHDOG_SPR		(0x48)
+>  static void omap2_enter_full_retention(void)
+>  {
+> -	u32 sleep_time = 0;
+> +	u32 l, sleep_time = 0;
 >  
->  /* Using the prescaler, the OMAP watchdog could go for many
->   * months before firing.  These limits work without scaling,
+>  	/* There is 1 reference hold for all children of the oscillator
+>  	 * clock, the following will remove it. If no one else uses the
+> @@ -450,6 +450,24 @@ no_sleep:
+>  
+>  	clk_enable(osc_ck);
+>  
+> +	/* clear CORE wake-up events */
+> +	prm_write_mod_reg(0xffffffff, CORE_MOD, PM_WKST1);
+> +	prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
+> +
+> +	/* wakeup domain events */
+> +	l = prm_read_mod_reg(WKUP_MOD, PM_WKST);
+> +	l &= 0x5;  /* bit 1: GPT1, bit5 GPIO */
+> +	prm_write_mod_reg(l, WKUP_MOD, PM_WKST);
+> +
+> +	/* MPU domain wake events */
+> +	l = prm_read_reg(OMAP24XX_PRCM_IRQSTATUS_MPU);
+> +	if (l & 0x01)
+> +		prm_write_reg(0x01, OMAP24XX_PRCM_IRQSTATUS_MPU);
+> +	if (l & 0x20)
+> +		prm_write_reg(0x20, OMAP24XX_PRCM_IRQSTATUS_MPU);
+> +
+> +	/* Mask future PRCM-to-MPU interrupts */
+> +	prm_write_reg(0x0, OMAP24XX_PRCM_IRQSTATUS_MPU);
+>  }
+>  
+>  static int omap2_i2c_active(void)
+> @@ -654,6 +672,9 @@ static void __init prcm_setup_regs(void)
+>  	prm_write_mod_reg(OMAP_EN_WKUP, MPU_MOD, PM_WKDEP);
+>  	prm_write_mod_reg(0, OMAP24XX_DSP_MOD, PM_WKDEP);
+>  	prm_write_mod_reg(0, GFX_MOD, PM_WKDEP);
+> +	prm_write_mod_reg(0, CORE_MOD, PM_WKDEP);
+> +	if (cpu_is_omap2430())
+> +		prm_write_mod_reg(0, OMAP2430_MDM_MOD, PM_WKDEP);
+>  
+>  	l = prm_read_mod_reg(CORE_MOD, PM_PWSTCTRL);
+>  	/* Enable retention for all memory blocks */
+> --
 
 Pushing today.
 
