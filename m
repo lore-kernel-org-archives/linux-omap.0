@@ -1,14 +1,11 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: [PATCH 0/4] Runtime constants: define (some) OMAP address
-	bases at runtime rather than compile time for multiboot
-Date: Fri, 16 Nov 2007 16:12:25 -0800
-Message-ID: <1195258345.24857.17.camel@vence.hilman.org>
-References: <20071116232159.713389488@pwsan.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] Remove unused and broken core_l3_ck clk_get from
+	board-3430sdp.c
+Date: Fri, 16 Nov 2007 17:14:49 -0700 (MST)
+Message-ID: <Pine.LNX.4.64.0711161713550.13378@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20071116232159.713389488@pwsan.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,17 +13,44 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 2007-11-16 at 16:21 -0700, Paul Walmsley wrote:
 
-> Boot-tested on N800 and 3430SDP.  If someone out there could test on 2430SDP,
-> that would be much appreciated.  Some day I'll get my hands on a  2430SDP :-) 
+board-3430sdp.c tries to clk_get core_l3_ck.  This clock doesn't exist
+any longer in the current clock34xx.h, so it fails.  The code then tries
+to fetch the clock's rate, which is also not currently used.  This is 
+dead code, so remove it.  
 
-Boot tested OK on 2430SDP.
+Tested on 3430SDP ES1.
 
-Kevin
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+
+---
+ arch/arm/mach-omap2/board-3430sdp.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
+
+Index: linux-omap/arch/arm/mach-omap2/board-3430sdp.c
+===================================================================
+--- linux-omap.orig/arch/arm/mach-omap2/board-3430sdp.c	2007-11-16 16:36:01.000000000 -0700
++++ linux-omap/arch/arm/mach-omap2/board-3430sdp.c	2007-11-16 16:37:42.000000000 -0700
+@@ -264,16 +264,8 @@
+ {
+ 	int eth_cs;
+ 	unsigned long cs_mem_base;
+-	unsigned int rate;
+-	struct clk *l3ck;
+ 
+-	eth_cs	= SDP3430_SMC91X_CS;
+-
+-	l3ck = clk_get(NULL, "core_l3_ck");
+-	if (IS_ERR(l3ck))
+-		rate = 100000000;
+-	else
+-		rate = clk_get_rate(l3ck);
++	eth_cs  = SDP3430_SMC91X_CS;
+ 
+ 	if (gpmc_cs_request(eth_cs, SZ_16M, &cs_mem_base) < 0) {
+ 		printk(KERN_ERR "Failed to request GPMC mem for smc91x\n");
