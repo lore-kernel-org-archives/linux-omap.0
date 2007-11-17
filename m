@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: VMALLOC Size
-Date: Fri, 16 Nov 2007 15:51:40 -0800
-Message-ID: <20071116235139.GM32675@atomide.com>
-References: <AC2D475575504148943F5EB0938951C4011254B5@dbde01.ent.ti.com>
+Subject: Re: [PATCH]Watchdog: Fix for the watchdog reset issue on OMAP3
+Date: Fri, 16 Nov 2007 16:00:05 -0800
+Message-ID: <20071117000004.GN32675@atomide.com>
+References: <465714FA584D6D49BD2ADB26BB64FD0D01902198@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <AC2D475575504148943F5EB0938951C4011254B5@dbde01.ent.ti.com>
+In-Reply-To: <465714FA584D6D49BD2ADB26BB64FD0D01902198@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,58 +15,65 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "Choraria, Rohit" <rohitkc@ti.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Reddy, Teerth" <teerth@ti.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Choraria, Rohit <rohitkc@ti.com> [071107 06:13]:
-> Hi, 
+* Reddy, Teerth <teerth@ti.com> [071116 04:53]:
+> Hi,
 > 
-> This patch increases the size of VMALLOC to accommodate the bigger DDR and 
-> NOR flashes being used now. Since SRAM is allocated at the end of VMALLOC 
-> area, moving the SRAM virtual address also.
+> This patch fixes the watchdog reset issue for OMAP3. OMAP_WATCHDOG_BASE is being added twice so this patch resolves the issue and the watchdog works fine.
 > 
 > Regards,
-> Rohit
+> Teerth
 > 
-> Signed-off-by: Rohit Choraria <rohitkc@ti.com>
+> 
+> Fix for the watchdog reset defect.The watchdog header file has been modified in the mainline merge due to which the watchdog was not functioning.
+> OMAP_WATCHDOG_BASE is being added twice so this patch is required for the watchdog to function.
+> 
+> Signed-off-by: Teerth Reddy <teerth@ti.com>
 > ---
->  arch/arm/plat-omap/sram.c           |    6 +++---
->  include/asm-arm/arch-omap/vmalloc.h |    2 +-
->  2 files changed, 4 insertions(+), 4 deletions(-)
 > 
-> Index: linux-omap/include/asm-arm/arch-omap/vmalloc.h
-> ===================================================================
-> --- linux-omap.orig/include/asm-arm/arch-omap/vmalloc.h	2007-11-07 06:34:19.062643728 -0500
-> +++ linux-omap/include/asm-arm/arch-omap/vmalloc.h	2007-11-07 06:34:58.255685480 -0500
-> @@ -17,5 +17,5 @@
->   * along with this program; if not, write to the Free Software
->   * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
->   */
-> -#define VMALLOC_END	  (PAGE_OFFSET + 0x10000000)
-> +#define VMALLOC_END	  (PAGE_OFFSET + 0x17000000)
+> Index: linux/drivers/watchdog/omap_wdt.h ===================================================================
+> --- linux-omap-git-20071030/drivers/watchdog/omap_wdt.h	2007-11-14 05:51:05.830299544 -0500
+> +++ linux-omap-2.6-25thOct/drivers/char/watchdog/omap_wdt.h	2007-11-13 09:30:33.772264576 -0500
+> @@ -30,25 +30,15 @@
+>  #ifndef _OMAP_WATCHDOG_H
+>  #define _OMAP_WATCHDOG_H
 >  
-> Index: linux-omap/arch/arm/plat-omap/sram.c
-> ===================================================================
-> --- linux-omap.orig/arch/arm/plat-omap/sram.c	2007-11-07 06:34:19.062643728 -0500
-> +++ linux-omap/arch/arm/plat-omap/sram.c	2007-11-07 09:58:34.914471048 -0500
-> @@ -25,11 +25,11 @@
->  #include <asm/arch/board.h>
+> -#define OMAP1610_WATCHDOG_BASE		0xfffeb000
+> -#define OMAP2420_WATCHDOG_BASE		0x48022000	/*WDT Timer 2 */
+> -
+> -#ifdef CONFIG_ARCH_OMAP24XX
+> -#define OMAP_WATCHDOG_BASE 		OMAP2420_WATCHDOG_BASE
+> -#else
+> -#define OMAP_WATCHDOG_BASE 		OMAP1610_WATCHDOG_BASE
+> -#define RM_RSTST_WKUP			0
+> -#endif
+> -
+> -#define OMAP_WATCHDOG_REV		(OMAP_WATCHDOG_BASE + 0x00)
+> -#define OMAP_WATCHDOG_SYS_CONFIG	(OMAP_WATCHDOG_BASE + 0x10)
+> -#define OMAP_WATCHDOG_STATUS		(OMAP_WATCHDOG_BASE + 0x14)
+> -#define OMAP_WATCHDOG_CNTRL		(OMAP_WATCHDOG_BASE + 0x24)
+> -#define OMAP_WATCHDOG_CRR		(OMAP_WATCHDOG_BASE + 0x28)
+> -#define OMAP_WATCHDOG_LDR		(OMAP_WATCHDOG_BASE + 0x2c)
+> -#define OMAP_WATCHDOG_TGR		(OMAP_WATCHDOG_BASE + 0x30)
+> -#define OMAP_WATCHDOG_WPS		(OMAP_WATCHDOG_BASE + 0x34)
+> -#define OMAP_WATCHDOG_SPR		(OMAP_WATCHDOG_BASE + 0x48)
+> +#define OMAP_WATCHDOG_REV		(0x00)
+> +#define OMAP_WATCHDOG_SYS_CONFIG	(0x10)
+> +#define OMAP_WATCHDOG_STATUS		(0x14)
+> +#define OMAP_WATCHDOG_CNTRL		(0x24)
+> +#define OMAP_WATCHDOG_CRR		(0x28)
+> +#define OMAP_WATCHDOG_LDR		(0x2c)
+> +#define OMAP_WATCHDOG_TGR		(0x30)
+> +#define OMAP_WATCHDOG_WPS		(0x34)
+> +#define OMAP_WATCHDOG_SPR		(0x48)
 >  
->  #define OMAP1_SRAM_PA		0x20000000
-> -#define OMAP1_SRAM_VA		0xd0000000
-> +#define OMAP1_SRAM_VA		VMALLOC_END
->  #define OMAP2_SRAM_PA		0x40200000
->  #define OMAP2_SRAM_PUB_PA	0x4020f800
-> -#define OMAP2_SRAM_VA		0xd0000000
-> -#define OMAP2_SRAM_PUB_VA	0xd0000800
-> +#define OMAP2_SRAM_VA		VMALLOC_END
-> +#define OMAP2_SRAM_PUB_VA	(VMALLOC_END + 0x800)
->  
->  #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
->  #define SRAM_BOOTLOADER_SZ	0x00
+>  /* Using the prescaler, the OMAP watchdog could go for many
+>   * months before firing.  These limits work without scaling,
 
 Pushing today.
 
