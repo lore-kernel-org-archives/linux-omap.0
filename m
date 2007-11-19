@@ -1,11 +1,11 @@
 From: Felipe Balbi <felipe.lima@indt.org.br>
 Subject: [RFC patch] ARM: OMAP: Fix typo in drivers/usb/musb/Kconfig
-Date: Mon, 19 Nov 2007 03:45:29 +0200
-Message-ID: <1195436730-10631-3-git-send-email-felipe.lima@indt.org.br>
-References: <1195436730-10631-1-git-send-email-felipe.lima@indt.org.br>
-	<1195436730-10631-2-git-send-email-felipe.lima@indt.org.br>
+Date: Mon, 19 Nov 2007 03:42:00 +0200
+Message-ID: <1195436521-10519-3-git-send-email-felipe.lima@indt.org.br>
+References: <1195436521-10519-1-git-send-email-felipe.lima@indt.org.br>
+	<1195436521-10519-2-git-send-email-felipe.lima@indt.org.br>
 Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <1195436730-10631-2-git-send-email-felipe.lima@indt.org.br>
+In-Reply-To: <1195436521-10519-2-git-send-email-felipe.lima@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
