@@ -1,13 +1,15 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [RFC patch] ARM: OMAP: Fix typo in drivers/usb/musb/Kconfig
-Date: Mon, 19 Nov 2007 19:18:13 +0530
-Message-ID: <010C7BAE6783F34D9AC336EE5A01A08804DC0874@dbde01.ent.ti.com>
-References: <b1e3167e56f8c32a258ab8054d4fb8e4@felipebalbi.com>
+From: "Iqbal" <iqbal@ti.com>
+Subject: RE: [PATCH] Re-enable watchdog menuconfig
+Date: Mon, 19 Nov 2007 07:21:58 -0600
+Message-ID: <5D8B5EC1EB6ED845B1EB216F00C71B650238F322@dlee12.ent.ti.com>
+References: <20071109093221.GA376@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0644923309=="
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
-In-Reply-To: <b1e3167e56f8c32a258ab8054d4fb8e4@felipebalbi.com>
+In-Reply-To: <20071109093221.GA376@flint.arm.linux.org.uk>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,28 +19,26 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, "Kamat, Nishant" <nskamat@ti.com>
+Cc: Linux-omap-open-source@linux.omap.com, linux-arm-kernel@lists.arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
---===============0644923309==
-Content-class: urn:content-classes:message
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: base64
+=20
+> Russell King - ARM Linux
+> Sent: Friday, November 09, 2007 3:02 PM
+> On Thu, Nov 08, 2007 at 02:43:48PM -0600, Kamat, Nishant wrote:
+> > After the movement of drivers/char/watchdog directory to=20
+> > drivers/watchdog, the following patch is necessary to view the=20
+> > WATCHDOG option in 'make menuconfig'
+> > for ARM platforms.
+>=20
+> Already merged a fix for this on the 7th.  For future=20
+> reference, please ensure that your mail client sensibly wraps=20
+> lines.  This is especially important for patch descriptions,=20
+> lest you want Linus to moan at you.
 
-SGksIA0KDQo+IHlvdSdyZSBhbHNvIHdvcmtpbmcgb24gT01BUDMncyBVU0I/Pw0KPiBjYW4gd2Ug
-c2hhcmUgY29kZT8/IEkgaGF2ZSBhbiBhbG1vc3Qgd29ya2luZyBib2FyZC0zNDMwc2RwLXVzYi5j
-DQoNClllcy4gSSdtIHdvcmtpbmcgb24gT01BUDMncyBVU0IuIEkgd2lsbCBiZSBwdXNoaW5nIG91
-dCBhIGZldyBwYXRjaGVzIG92ZXINCnRoZSBuZXh0IGNvdXBsZSBvZiB3ZWVrcy4gV291bGQgZ3Jl
-YXRseSBhcHByZWNpYXRlIGFueSBmZWVkYmFjayB5b3UgY2FuIGdpdmUuDQoNCldhcm0gUmVnYXJk
-cywNCkFuYW5kDQo=
+I am sorry, with the latest OMAP GIT I still don't see this patch.=20
+Was it merged on ARM linux? Or Am I looking at the wrong stuff?
 
---===============0644923309==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============0644923309==--
+Thanks
+Iqbal
