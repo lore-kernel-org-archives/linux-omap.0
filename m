@@ -1,14 +1,13 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: [PATCH 0/3] MMC: OMAP: Adds MMC support for Siemens SX1 mobile
- phones
-Date: Mon, 19 Nov 2007 21:13:55 +0100
-Message-ID: <4741EE83.80904@googlemail.com>
-References: <4717A601.1010702@indt.org.br>
+Subject: Re: [PATCH 0/5] T2 related patches: i2c/twl/TS/KP
+Date: Mon, 19 Nov 2007 21:20:07 +0100
+Message-ID: <4741EFF7.7020700@googlemail.com>
+References: <00f401c81d64$7aaf40e0$6a8918ac@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <4717A601.1010702@indt.org.br>
+In-Reply-To: <00f401c81d64$7aaf40e0$6a8918ac@ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,28 +17,23 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Cc: linux-omap@vger.kernel.org, omap-linux <linux-omap-open-source@linux.omap.com>, Vladimir Ananiev <vovan888@gmail.com>
+To: Girish <girishsg@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Carlos Aguiar wrote:
-> Hi Tony and folks,
+Girish wrote:
+> Hi,
+> This patch series brings in following support on 3430.
 > 
-> This patch series adds MMC support for Siemens SX1 mobile phone using the new MMC multislot support code proposed in [1].
+> . Some correction in Clock34XX
+> . I2C support.
+> . TWL4030 core support
+> . Touch Screen(ads7846) support
+> . TWL4030 Keypad support
 > 
-> I would like to thanks a lot to Vladimir Ananiev for testing the series.
-> 
-> Testing and comments are welcome.
-> 
-> BR,
-> 
-> Carlos.
-> 
-> [1] http://linux.omap.com/pipermail/linux-omap-open-source/2007-September/011442.html
+> The patches have dependency as per the given order above. And the patch series follows the same.
 
-Can you please check if this series is up to date? Trying to apply it 
-results in rejects in arch/arm/mach-omap1/board-sx1.c of Patch 2/3. 
-Maybe you like to resend it?
+Can you check if these patches need an update?
 
 Many thanks
 
