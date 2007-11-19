@@ -1,15 +1,16 @@
-From: "Nazim Khan" <nazim.asad@gmail.com>
+From: David Brownell <david-b@pacbell.net>
 Subject: Re: [Question] Always got STALL in MUSB Host driver
-Date: Mon, 19 Nov 2007 11:38:45 +0530
-Message-ID: <ef9503490711182208yee319c6rf80245426d9ce1d9@mail.gmail.com>
+Date: Sun, 18 Nov 2007 22:34:15 -0800
+Message-ID: <200711182234.16066.david-b@pacbell.net>
 References: <1195123737.3698.24.camel@roc-desktop>
-	<20071115180134.GB20686@atomide.com>
 	<200711151043.46220.david-b@pacbell.net>
+	<ef9503490711182208yee319c6rf80245426d9ce1d9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <200711151043.46220.david-b@pacbell.net>
+In-Reply-To: <ef9503490711182208yee319c6rf80245426d9ce1d9@mail.gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -20,38 +21,43 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
+To: Nazim Khan <nazim.asad@gmail.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Dave,
+On Sunday 18 November 2007, Nazim Khan wrote:
+> Hi Dave,
+> 
+> Was that in DMA mode or PIO Mode?
 
-Was that in DMA mode or PIO Mode?
+Probably PIO, since that's usually the first stage of
+debugging given a choice of modes.
 
-regards,
-Nazim
+I vaguely recall it was one of those two modes, but
+don't recall which one.  If it was DMA, I sure don't
+recall which of the several DMA engine wass involved.  ;)
 
-On Nov 16, 2007 12:13 AM, David Brownell <david-b@pacbell.net> wrote:
-> On Thursday 15 November 2007, Tony Lindgren wrote:
-> > Hmm, I never got double buffering to reliably work on tusb as far as I
-> > remember. I guess Dave got it working on DaVinci, so maybe he has some
-> > pointers.
->
-> It's been some time since I tried that.  What I vaguely recall
-> is that it worked on the peripheral side, but on the host side
-> there was a issue if for example both sides (tx, rx) of a given
-> FIFO tried to do things at the same time.
->
-> The driver code has improved a lot since I saw those failures,
-> so I wouldn't trust those memories to indicate anything specific
-> about current behavior.
->
-> - Dave
->
->
->
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
+- Dave
+
+
+> regards,
+> Nazim
+> 
+> On Nov 16, 2007 12:13 AM, David Brownell <david-b@pacbell.net> wrote:
+> > On Thursday 15 November 2007, Tony Lindgren wrote:
+> > > Hmm, I never got double buffering to reliably work on tusb as far as I
+> > > remember. I guess Dave got it working on DaVinci, so maybe he has some
+> > > pointers.
+> >
+> > It's been some time since I tried that.  What I vaguely recall
+> > is that it worked on the peripheral side, but on the host side
+> > there was a issue if for example both sides (tx, rx) of a given
+> > FIFO tried to do things at the same time.
+> >
+> > The driver code has improved a lot since I saw those failures,
+> > so I wouldn't trust those memories to indicate anything specific
+> > about current behavior.
+> >
+> > - Dave
+> >
+> 
