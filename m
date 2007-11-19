@@ -1,12 +1,12 @@
-From: Felipe Balbi <felipe.lima@indt.org.br>
-Subject: [RFC patch] ARM: OMAP: Define OMAP34XX_HS_BASE
-Date: Mon, 19 Nov 2007 03:45:30 +0200
-Message-ID: <1195436730-10631-4-git-send-email-felipe.lima@indt.org.br>
-References: <1195436730-10631-1-git-send-email-felipe.lima@indt.org.br>
-	<1195436730-10631-2-git-send-email-felipe.lima@indt.org.br>
-	<1195436730-10631-3-git-send-email-felipe.lima@indt.org.br>
+From: "Sameer" <x0081444@ti.com>
+Subject: [PATCH] - onenand - OMAP3 support - Kconfig update
+Date: Mon, 19 Nov 2007 18:00:32 +0530
+Message-ID: <00c601c82aa7$faf8e620$ec8818ac@ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1195436730-10631-3-git-send-email-felipe.lima@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,28 +17,32 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
-Cc: david-b@pacbel.net
 List-Id: linux-omap@vger.kernel.org
 
-Following other omap archs, define OMAP34XX_HS_BASE macro
-to be used later, for example in musb driver.
+Hi,
+This patch enables the onenand Kconfig for OMAP3.
 
-Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
+Regards,
+-Sameer
+
+Signed-off-by: Sameer <sameersu@ti.com>
 ---
- include/asm-arm/arch-omap/omap34xx.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/mtd/onenand/Kconfig |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/include/asm-arm/arch-omap/omap34xx.h b/include/asm-arm/arch-omap/omap34xx.h
-index 0265e3b..1650937 100644
---- a/include/asm-arm/arch-omap/omap34xx.h
-+++ b/include/asm-arm/arch-omap/omap34xx.h
-@@ -71,6 +71,7 @@
- #define OMAP2_CTRL_BASE			OMAP3430_CTRL_BASE
- #define OMAP34XX_CONTROL_DEVCONF0	(L4_34XX_BASE + 0x2274)
- #define OMAP34XX_CONTROL_DEVCONF1	(L4_34XX_BASE + 0x22D8)
-+#define OMAP34XX_HS_BASE		(L4_34XX_BASE + 0x65000)
- #define OMAP2_CONTROL_STATUS		(OMAP2_CTRL_BASE + 0x2f0)
- 
- #endif
--- 
-1.5.3.5.666.gfb5f
+Index: linux-omap-git/drivers/mtd/onenand/Kconfig
+===================================================================
+--- linux-omap-git.orig/drivers/mtd/onenand/Kconfig
++++ linux-omap-git/drivers/mtd/onenand/Kconfig
+@@ -28,10 +28,10 @@ config MTD_ONENAND_GENERIC
+          Support for OneNAND flash via platform device driver.
+
+ config MTD_ONENAND_OMAP2
+-       tristate "OneNAND on OMAP2 support"
+-       depends on MTD_ONENAND && ARCH_OMAP2
++       tristate "OneNAND on OMAP2/OMAP3 support"
++       depends on MTD_ONENAND && (ARCH_OMAP2 || ARCH_OMAP3)
+        help
+-         Support for a OneNAND flash device connected to an OMAP2 CPU
++         Support for a OneNAND flash device connected to an OMAP2/OMAP3 CPU
+          via the GPMC memory controller.
