@@ -1,7 +1,7 @@
 From: Felipe Balbi <felipe.lima@indt.org.br>
 Subject: [RFC] Misc cleanups
-Date: Mon, 19 Nov 2007 03:41:58 +0200
-Message-ID: <1195436521-10519-1-git-send-email-felipe.lima@indt.org.br>
+Date: Mon, 19 Nov 2007 03:45:27 +0200
+Message-ID: <1195436730-10631-1-git-send-email-felipe.lima@indt.org.br>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -18,7 +18,10 @@ List-Id: linux-omap@vger.kernel.org
 
 Hi all,
 
-The following series implements some one-liner changes to TWL4030,
-musb Kconfig and omap34xx.h.
+The following series implements some cleanups to musb, twl4030_core and
+omap34xx.h.
 
 Comments are welcome.
+
+Best Regards,
+Felipe Balbi
