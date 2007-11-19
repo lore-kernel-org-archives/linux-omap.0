@@ -1,15 +1,13 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: [PATCH] OMAP: MUSB: MUSB gadget fix
-Date: Mon, 19 Nov 2007 18:33:23 +0530
-Message-ID: <5DF83221BE20114E9C331F665ACBC08003E7F771@dbde01.ent.ti.com>
-References: <1195436521-10519-3-git-send-email-felipe.lima@indt.org.br>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [RFC patch] ARM: OMAP: Fix typo in drivers/usb/musb/Kconfig
+Date: Mon, 19 Nov 2007 19:18:13 +0530
+Message-ID: <010C7BAE6783F34D9AC336EE5A01A08804DC0874@dbde01.ent.ti.com>
+References: <b1e3167e56f8c32a258ab8054d4fb8e4@felipebalbi.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Type: multipart/mixed; boundary="===============0644923309=="
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
-In-Reply-To: <1195436521-10519-3-git-send-email-felipe.lima@indt.org.br>
+In-Reply-To: <b1e3167e56f8c32a258ab8054d4fb8e4@felipebalbi.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,33 +15,30 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Vikram Pandita <vikram.pandita@ti.com>
+--===============0644923309==
+Content-class: urn:content-classes:message
+Content-Type: text/plain;
+	charset="UTF-8"
+Content-Transfer-Encoding: base64
 
-This fix gets MUSB Gadget Isochronous IN transfers working for File =
-Storage Gadget
+SGksIA0KDQo+IHlvdSdyZSBhbHNvIHdvcmtpbmcgb24gT01BUDMncyBVU0I/Pw0KPiBjYW4gd2Ug
+c2hhcmUgY29kZT8/IEkgaGF2ZSBhbiBhbG1vc3Qgd29ya2luZyBib2FyZC0zNDMwc2RwLXVzYi5j
+DQoNClllcy4gSSdtIHdvcmtpbmcgb24gT01BUDMncyBVU0IuIEkgd2lsbCBiZSBwdXNoaW5nIG91
+dCBhIGZldyBwYXRjaGVzIG92ZXINCnRoZSBuZXh0IGNvdXBsZSBvZiB3ZWVrcy4gV291bGQgZ3Jl
+YXRseSBhcHByZWNpYXRlIGFueSBmZWVkYmFjayB5b3UgY2FuIGdpdmUuDQoNCldhcm0gUmVnYXJk
+cywNCkFuYW5kDQo=
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
----
+--===============0644923309==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Index: linux-omap/drivers/usb/musb/musb_gadget.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-omap.orig/drivers/usb/musb/musb_gadget.c	2007-11-19 =
-17:49:41.000000000 +0530
-+++ linux-omap/drivers/usb/musb/musb_gadget.c	2007-11-19 =
-17:50:31.000000000 +0530
-@@ -499,7 +499,7 @@
-=20
- 					DBG(4, "sending zero pkt\n");
- 					musb_writew(epio, MUSB_TXCSR,
--							MUSB_TXCSR_MODE
-+							csr | MUSB_TXCSR_MODE
- 							| MUSB_TXCSR_TXPKTRDY);
- 					request->zero =3D 0;
- 				}
+
+--===============0644923309==--
