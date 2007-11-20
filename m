@@ -1,15 +1,14 @@
-From: "Hunter, Jon" <jon-hunter@ti.com>
-Subject: RE: OMAP 5912: new kernel, how to create a new file system?
-Date: Tue, 20 Nov 2007 12:24:27 -0600
-Message-ID: <5573C19A4BBDB441BED2A44157E9705302A4C012@dlee12.ent.ti.com>
-References: <6a7f58da0711200959u1481a90y5b50e9a5c5827c82@mail.gmail.com>
+From: Kevin Hilman <khilman@mvista.com>
+Subject: Re: Unhandled fault: external abort
+Date: Tue, 20 Nov 2007 11:31:06 -0800
+Message-ID: <1195587066.17706.8.camel@vence.hilman.org>
+References: <D0D7E940253EF8428A27241F8E3CABA3A88DFA@zeus.Combra.se>
+	<1195575797.6227.4.camel@vence.hilman.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <6a7f58da0711200959u1481a90y5b50e9a5c5827c82@mail.gmail.com>
+In-Reply-To: <1195575797.6227.4.camel@vence.hilman.org>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,52 +18,25 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Mik Prog <mikprog@gmail.com>, linux-omap-open-source@linux.omap.com
+To: Carl Benson <Carl.Benson@combra.se>
+Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-> Dear all,
->=20
-> I am an absolute beginner with OMAP and Linux (I am working=20
-> on a OSK 5912).
-> Apologies if some of my questions have already been answered. I do
-> look on google first, but sometime even if the topic has been treated
-> I don't clearly understand...
->=20
-> Here my case:
-> 1. I wanted recompile the kernel image using arm-linux-gcc 3.4.1 (I
-> got the kernel sources 2.6.20 and applied the patch
-> patch-2.6.20-omap1)
-> 2. then I enabled on omap_osk-5912_defconf the USB configuration
-> 3. I built the kernel and formatted for u-boot.
-> 4. I transferred that to OMAP using tftpboot
-> 5. $ using uname -a I see that the kernel image is still the old one!
->=20
-> Do I need to update the root file system as well?
-> How could I create my own root file system based on the kernel version
-> I've compiled?
 
-Sounds like either the new image was not correctly copied to /tftpboot
-or after you did the tftp download you booted the old image (maybe in
-flash) and not the new one (in RAM). When you download the image to RAM,
-afterwards execute:
+On Tue, 2007-11-20 at 08:23 -0800, Kevin Hilman wrote:
+> On Tue, 2007-11-20 at 16:37 +0100, Carl Benson wrote:
+> > Hi. Trying to boot latest OMAP kernel from GIT tree (as of 2007-11-20) on an 3430 SDP ES1.0 board and get an "Unhandled fault: external abort on non-linefetch" and "Internal error 1028". 
+> > 
+> > PC is at serial_in+0x6c/0xac which in my kernel suggest the error occuring from executing line 366 from drivers/serial/8250.c:
+> 
+> I have this same problem.
+> 
+> The problem is because the bootloader is not enabling all the clocks
+> required for UART3 to work on OMAP3.
+> 
+> To get yourself booting, you can just disable the 3rd UART until we fix
+> this problem.  Try the patch below:
 
-# bootm <load-addr>
+I just found the root cause of this.  Patch coming shortly.
 
-For example if the image is loaded to RAM address 0x80000000. Then
-execute:
-
-# bootm 0x80000000
-
-Please note the above does not give me much to go on. So if this is not
-the problem provide more details of the exact commands you are
-executing.=20
-
-With regard to a new root filesystem see the following document, should
-get you going:
-http://www.capgo.com/Resources/SoftwareDev/osk-newbie-guide.pdf
-
-For more resources check out Tony's OMAP page:
-http://www.muru.com/linux/omap/=20
-
-Cheers
-Jon
+Kevin
