@@ -1,17 +1,15 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: 3430 and UART3 parent clocks
-Date: Tue, 20 Nov 2007 13:26:44 -0700 (MST)
-Message-ID: <Pine.LNX.4.64.0711201324420.10327@utopia.booyaka.com>
-References: <1194982452.7433.55.camel@vence.hilman.org>
-	<Pine.LNX.4.64.0711140221470.3713@utopia.booyaka.com>
-	<1195052848.15127.30.camel@vence.hilman.org>
-	<Pine.LNX.4.64.0711151356390.32494@utopia.booyaka.com>
-	<1195264997.24857.27.camel@vence.hilman.org>
-	<1195587796.17706.12.camel@vence.hilman.org>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: Question About __REG32 marco
+Date: Tue, 20 Nov 2007 13:26:05 -0800
+Message-ID: <200711201326.06148.david-b@pacbell.net>
+References: <005c01c82b61$ac9f1cf0$16110a0a@LongCheer.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1195587796.17706.12.camel@vence.hilman.org>
+In-Reply-To: <005c01c82b61$ac9f1cf0$16110a0a@LongCheer.net>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,24 +19,51 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kevin Hilman <khilman@mvista.com>
-Cc: amit@verdurent.com, OMAP-Linux <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com
+Cc: colorant <colorant@163.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 20 Nov 2007, Kevin Hilman wrote:
-
-> Paul,
+On Tuesday 20 November 2007, colorant wrote:
 > 
-> I found the root cause of this (patch just posted.)
+>     1:
+>     Why this macro need to be defined in this way ?  Why borther to use an array ?
+>     Can't we just use something like :
 > 
-> The PER_MOD based ICLKs were actually delcared in WKUP_MOD instead of
-> PER_MOD.  The result being that the clk_enable() calls for uart3_ick
-> were not actually enabling the right bit.
+>     *(volatile u32 *)(vaddr&~0x3) to get the value from vaddr with word align ?
 
-Hi Kevin,
+It generalizes __REG2() from arch-pxa/hardware.h ... where,
+as the comment notes, GCC would otherwise be incapable of
+generating decent code.  It's possible GCC code generation
+has gotten smarter since then.
 
-that's great -- thanks for tracking that down.  
+Note that such macros are supposed to be used only with
+constant addresses, so code can treat registers as if they
+were global variables.  Some people dislike that style;
+others find it more understandable than __raw_writel()
+style accessors.
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
+When it works right, driver code will have a register with
+the base address of a controller, and all accesses to that
+controller will use single word load/store instructions which
+embed the offsets of the various registers being accessed
+against that base register.
 
-- Paul
+The main alternative addressing styles were notably larger
+(I recall observing 1-2 KBytes per driver) and slower.
+
+
+>     2:
+>     Why this offset array need to be 4096 in size ? shouldn't it be 1024 ?
+>     since it already point to a u32 value. and the >>2 make the macro never
+>     got chance to reach a index great than 1024 !  
+
+Look at the ARM instructions that are used.  The address
+range may be 4KBytes, but the values are 4 bytes each.
+So the range of their indices is just 1K.  (As implied
+by the comments adjacent to those macro definitions, which
+point out the use of LDR/STR for 8 and 32 bit values...)
+
+That's the case for 32 bit values.  For other value sizes,
+the logic is necessarily a bit different.
+
+- Dave
