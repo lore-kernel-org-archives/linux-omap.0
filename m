@@ -1,15 +1,10 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: [PATCH] OMAP: MUSB: MUSB fix to work as Module for 24xx/Davinci
-Date: Tue, 20 Nov 2007 15:04:26 +0530
-Message-ID: <5DF83221BE20114E9C331F665ACBC08003E7FAE3@dbde01.ent.ti.com>
-References: <5DF83221BE20114E9C331F665ACBC08003E7F771@dbde01.ent.ti.com>
+From: "colorant" <colorant@163.com>
+Subject: Question About __REG32 marco
+Date: Tue, 20 Nov 2007 18:39:48 +0800
+Message-ID: <005c01c82b61$ac9f1cf0$16110a0a@LongCheer.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <5DF83221BE20114E9C331F665ACBC08003E7F771@dbde01.ent.ti.com>
+Content-Type: multipart/mixed; boundary="===============0376089274=="
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,32 +12,40 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Vikram Pandita <vikram.pandita@ti.com>
+This is a multi-part message in MIME format.
 
-Fix to get MUSB working as Module for 2430 and Davinci platform
+--===============0376089274==
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
----
+SGkNCg0KICAgIEluIGluY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvaW8uaA0KDQogICAgVGhlIF9f
+UkVHMzIgbWFjcm8gaXMgZGVmaW5lZCBhcyBmb2xsb3dpbmc6DQoNCnR5cGVkZWYgc3RydWN0IHsg
+dm9sYXRpbGUgdTMyIG9mZnNldFs0MDk2XTsgfSBfX3JlZ2Jhc2UzMjsNCiNkZWZpbmUgX19SRUdW
+MzIodmFkZHIpICAgICAgICAgKChfX3JlZ2Jhc2UzMiAqKSgodmFkZHIpJn40MDk1KSkgXA0KICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC0+b2Zmc2V0WygodmFkZHIpJjQw
+OTUpPj4yXQ0KI2RlZmluZSBfX1JFRzMyKHBhZGRyKSAgICAgICAgICBfX1JFR1YzMihpb19wMnYo
+cGFkZHIpKQ0KDQogICAgTXkgcXVlc3Rpb24gaXMgOg0KDQogICAgMToNCiAgICBXaHkgdGhpcyBt
+YWNybyBuZWVkIHRvIGJlIGRlZmluZWQgaW4gdGhpcyB3YXkgPyAgV2h5IGJvcnRoZXIgdG8gdXNl
+IGFuIGFycmF5ID8NCg0KICAgIENhbid0IHdlIGp1c3QgdXNlIHNvbWV0aGluZyBsaWtlIDoNCg0K
+ICAgICoodm9sYXRpbGUgdTMyICopKHZhZGRyJn4weDMpIHRvIGdldCB0aGUgdmFsdWUgZnJvbSB2
+YWRkciB3aXRoIHdvcmQgYWxpZ24gPw0KDQogICAgMjoNCiAgICBXaHkgdGhpcyBvZmZzZXQgYXJy
+YXkgbmVlZCB0byBiZSA0MDk2IGluIHNpemUgPyBzaG91bGRuJ3QgaXQgYmUgMTAyNCA/IHNpbmNl
+IGl0IGFscmVhZHkgcG9pbnQgdG8gYSB1MzIgdmFsdWUuIGFuZCB0aGUgPj4yIG1ha2UgdGhlIG1h
+Y3JvIG5ldmVyIGdvdCBjaGFuY2UgdG8gcmVhY2ggYSBpbmRleCBncmVhdCB0aGFuIDEwMjQgIQ0K
+DQogICAgSSBjYW4gb25seSBmaW5kIHRoaXMgbWFjcm8gaW4gb21hcCBhcmNoLCBzbyBJIHB1dCB1
+cCB0aGUgcXVlc3Rpb24gaGVyZSA4ICkNCg0KICAgIFRoYW5rcw0KDQpSYXltb25kDQoNCg0K
 
-Index: linux-omap/drivers/usb/musb/musb_core.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-omap.orig/drivers/usb/musb/musb_core.c	2007-11-20 =
-14:24:03.000000000 +0530
-+++ linux-omap/drivers/usb/musb/musb_core.c	2007-11-20 =
-14:26:22.000000000 +0530
-@@ -1336,7 +1336,7 @@
-=20
- 	/* log core options (read using indexed model) */
- 	musb_ep_select(mbase, 0);
--	reg =3D musb_readb(mbase, 0x10 + MUSB_CONFIGDATA);
-+	reg =3D musb_readb(mbase, MUSB_EP_OFFSET(0, MUSB_CONFIGDATA));
-=20
- 	strcpy(aInfo, (reg & MUSB_CONFIGDATA_UTMIDW) ? "UTMI-16" : "UTMI-8");
- 	if (reg & MUSB_CONFIGDATA_DYNFIFO) {
+--===============0376089274==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============0376089274==--
