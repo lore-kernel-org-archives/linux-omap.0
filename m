@@ -1,11 +1,15 @@
-From: "Azhar Mr." <shaik.azharuddin@yahoo.co.in>
-Subject: Audio Specifications
-Date: Tue, 20 Nov 2007 09:32:58 +0000 (GMT)
-Message-ID: <867485.80159.qm@web7611.mail.in.yahoo.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: [PATCH] OMAP: MUSB: MUSB fix to work as Module for 24xx/Davinci
+Date: Tue, 20 Nov 2007 15:04:26 +0530
+Message-ID: <5DF83221BE20114E9C331F665ACBC08003E7FAE3@dbde01.ent.ti.com>
+References: <5DF83221BE20114E9C331F665ACBC08003E7F771@dbde01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <5DF83221BE20114E9C331F665ACBC08003E7F771@dbde01.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,18 +22,27 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-   
-  I am trying to play the audio files from OMAP5912 OSK by connecting an amplifier and speakers to the kit at HEADPHONE OUT end. But the output sound is very less whereas I am able to get high sounds when playing from a CD player or tape recorder.
-   
-                       I think there is an impedance mismatch between OMAP5912 and the amplifier which I am using. Any body Please help me in providing the audio specifications of the processor like output impedance, etc.
-   
-  Thanking you
-   
-  With regards
-  Azharuddin
-   
+From: Vikram Pandita <vikram.pandita@ti.com>
 
-       
----------------------------------
- Forgot the famous last words? Access your message archive online. Click here.
+Fix to get MUSB working as Module for 2430 and Davinci platform
+
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+---
+
+Index: linux-omap/drivers/usb/musb/musb_core.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-omap.orig/drivers/usb/musb/musb_core.c	2007-11-20 =
+14:24:03.000000000 +0530
++++ linux-omap/drivers/usb/musb/musb_core.c	2007-11-20 =
+14:26:22.000000000 +0530
+@@ -1336,7 +1336,7 @@
+=20
+ 	/* log core options (read using indexed model) */
+ 	musb_ep_select(mbase, 0);
+-	reg =3D musb_readb(mbase, 0x10 + MUSB_CONFIGDATA);
++	reg =3D musb_readb(mbase, MUSB_EP_OFFSET(0, MUSB_CONFIGDATA));
+=20
+ 	strcpy(aInfo, (reg & MUSB_CONFIGDATA_UTMIDW) ? "UTMI-16" : "UTMI-8");
+ 	if (reg & MUSB_CONFIGDATA_DYNFIFO) {
