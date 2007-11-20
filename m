@@ -1,15 +1,13 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: Question About __REG32 marco
-Date: Tue, 20 Nov 2007 13:26:05 -0800
-Message-ID: <200711201326.06148.david-b@pacbell.net>
-References: <005c01c82b61$ac9f1cf0$16110a0a@LongCheer.net>
+From: Philip Balister <philip@balister.org>
+Subject: Re: OMAP 5912: new kernel, how to create a new file system?
+Date: Tue, 20 Nov 2007 16:41:46 -0500
+Message-ID: <4743549A.4070101@balister.org>
+References: <6a7f58da0711200959u1481a90y5b50e9a5c5827c82@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <005c01c82b61$ac9f1cf0$16110a0a@LongCheer.net>
-Content-Disposition: inline
+In-Reply-To: <6a7f58da0711200959u1481a90y5b50e9a5c5827c82@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,51 +17,41 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
-Cc: colorant <colorant@163.com>
+To: Mik Prog <mikprog@gmail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 20 November 2007, colorant wrote:
+I have a replacement kernel (based on 2.6.22) and root file system here:
+
+http://elinux.org/OSK#Files
+
+Philip
+
+Mik Prog wrote:
+> Dear all,
 > 
->     1:
->     Why this macro need to be defined in this way ?  Why borther to use an array ?
->     Can't we just use something like :
+> I am an absolute beginner with OMAP and Linux (I am working on a OSK 5912).
+> Apologies if some of my questions have already been answered. I do
+> look on google first, but sometime even if the topic has been treated
+> I don't clearly understand...
 > 
->     *(volatile u32 *)(vaddr&~0x3) to get the value from vaddr with word align ?
-
-It generalizes __REG2() from arch-pxa/hardware.h ... where,
-as the comment notes, GCC would otherwise be incapable of
-generating decent code.  It's possible GCC code generation
-has gotten smarter since then.
-
-Note that such macros are supposed to be used only with
-constant addresses, so code can treat registers as if they
-were global variables.  Some people dislike that style;
-others find it more understandable than __raw_writel()
-style accessors.
-
-When it works right, driver code will have a register with
-the base address of a controller, and all accesses to that
-controller will use single word load/store instructions which
-embed the offsets of the various registers being accessed
-against that base register.
-
-The main alternative addressing styles were notably larger
-(I recall observing 1-2 KBytes per driver) and slower.
-
-
->     2:
->     Why this offset array need to be 4096 in size ? shouldn't it be 1024 ?
->     since it already point to a u32 value. and the >>2 make the macro never
->     got chance to reach a index great than 1024 !  
-
-Look at the ARM instructions that are used.  The address
-range may be 4KBytes, but the values are 4 bytes each.
-So the range of their indices is just 1K.  (As implied
-by the comments adjacent to those macro definitions, which
-point out the use of LDR/STR for 8 and 32 bit values...)
-
-That's the case for 32 bit values.  For other value sizes,
-the logic is necessarily a bit different.
-
-- Dave
+> Here my case:
+> 1. I wanted recompile the kernel image using arm-linux-gcc 3.4.1 (I
+> got the kernel sources 2.6.20 and applied the patch
+> patch-2.6.20-omap1)
+> 2. then I enabled on omap_osk-5912_defconf the USB configuration
+> 3. I built the kernel and formatted for u-boot.
+> 4. I transferred that to OMAP using tftpboot
+> 5. $ using uname -a I see that the kernel image is still the old one!
+> 
+> Do I need to update the root file system as well?
+> How could I create my own root file system based on the kernel version
+> I've compiled?
+> 
+> thanks for any help.
+> Mik
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> 
