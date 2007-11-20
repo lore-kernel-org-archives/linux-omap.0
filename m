@@ -1,11 +1,10 @@
-From: "jacky_wang" <jacky_wang@ovt.com.cn>
-Subject: 2430 download problem
-Date: Tue, 20 Nov 2007 15:51:22 -0800
-Message-ID: <000f01c82bd0$41615970$0f01a8c0@jackywang>
+From: "Azhar Mr." <shaik.azharuddin@yahoo.co.in>
+Subject: Audio Specifications
+Date: Tue, 20 Nov 2007 09:32:58 +0000 (GMT)
+Message-ID: <867485.80159.qm@web7611.mail.in.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -19,16 +18,18 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi:
-    I am working on sdp2430-V4.0.1 development board. I'm using =
-CSST_SDP2430_v1.4 download my uboot.bin. but whatever via UART or USB, =
-It always occures "Failed to connect to target".I connect my serial =
-cable from windows host to the uart port3(the one close to the LCD") and =
-config the dip switches like this:
-S4 : OFF  ,  OFF ,  OFF,  OFF,   ON ,   ON,   OFF,  OFF
-S6 : ON   ,  OFF ,  OFF,  OFF,   OFF,   OFF,   OFF,  ON
-S8 : ON   ,  ON   ,  ON   ,  ON   ,   ON ,   OFF,   ON,  OFF
-S9 : ON   ,  OFF ,  ON   ,  OFF,   ON ,   ON,   ON,  OFF
-S10 : ON,  ON   ,  ON   ,  ON   ,   --,      --,    --,     --
+Hi,
+   
+  I am trying to play the audio files from OMAP5912 OSK by connecting an amplifier and speakers to the kit at HEADPHONE OUT end. But the output sound is very less whereas I am able to get high sounds when playing from a CD player or tape recorder.
+   
+                       I think there is an impedance mismatch between OMAP5912 and the amplifier which I am using. Any body Please help me in providing the audio specifications of the processor like output impedance, etc.
+   
+  Thanking you
+   
+  With regards
+  Azharuddin
+   
 
-Does anyone encounter the same problem?  Any suggestions are welcome. 
+       
+---------------------------------
+ Forgot the famous last words? Access your message archive online. Click here.
