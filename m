@@ -1,14 +1,16 @@
-From: "Sameer" <x0081444@ti.com>
-Subject: [PATCH: Resending] - onenand - OMAP3 support - Kconfig update
-Date: Tue, 20 Nov 2007 13:02:01 +0530
-Message-ID: <010001c82b47$71eae130$ec8818ac@ent.ti.com>
+From: "Kyungmin Park" <kmpark@infradead.org>
+Subject: RE: [PATCH: Resending] - onenand - OMAP3 support - Kconfig update
+Date: Tue, 20 Nov 2007 16:47:42 +0900
+Message-ID: <000201c82b49$a4f81d70$1fa9580a@swcenter.sec.samsung.co.kr>
 References: <00c601c82aa7$faf8e620$ec8818ac@ent.ti.com>
+	<010001c82b47$71eae130$ec8818ac@ent.ti.com>
+Reply-To: kmpark@infradead.org
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <00c601c82aa7$faf8e620$ec8818ac@ent.ti.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <010001c82b47$71eae130$ec8818ac@ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,16 +18,35 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: 'Sameer' <x0081444@ti.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
+
+Hi,
+
+That's the reason not yet merged the mtd tree.
+The vanilla kernel doesn't have the omap2_sleep_block().
+I'm not sure it's only dependent on CONFIG_PM.
+
+Thank you,
+Kyungmin Park
+
+-----Original Message-----
+From:
+linux-omap-open-source-bounces+kyungmin.park=samsung.com@linux.omap.com
+[mailto:linux-omap-open-source-bounces+kyungmin.park=samsung.com@linux.omap.
+com] On Behalf Of Sameer
+Sent: Tuesday, November 20, 2007 4:32 PM
+To: linux-omap-open-source@linux.omap.com
+Subject: [PATCH: Resending] - onenand - OMAP3 support - Kconfig update
 
  
 Hi,
 Please ignore the previous patch.
 The following patch provides the onenand support for OMAP3.
-The patch enables the onenand in def_config file, enable onenand Kconfig for OMAP3 and enables omap2_sleep_block() only if CONFIG_PM
+The patch enables the onenand in def_config file, enable onenand Kconfig for
+OMAP3 and enables omap2_sleep_block() only if CONFIG_PM
 is defined.
 
 
@@ -97,3 +118,8 @@ Index: linux-omap-git-20071030/drivers/mtd/onenand/omap2.c
 +
  #define ONENAND_IO_SIZE                SZ_128K
  #define ONENAND_BUFRAM_SIZE    (1024 * 5)
+
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
