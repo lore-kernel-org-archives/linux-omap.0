@@ -1,19 +1,13 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH] flush I-cache after omap_sram_push()
-Date: Tue, 20 Nov 2007 10:14:45 -0600
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D9130274290282BF37@dlee13.ent.ti.com>
-References: <20071114083010.938764990@pwsan.com>
-	<3B6D69C3A9EBCA4BA5DA60D913027429027B3E1E@dlee13.ent.ti.com>
-	<Pine.LNX.4.64.0711161223280.13378@utopia.booyaka.com>
-	<3B6D69C3A9EBCA4BA5DA60D9130274290282B603@dlee13.ent.ti.com>
-	<Pine.LNX.4.64.0711191208030.25712@utopia.booyaka.com>
+From: Kevin Hilman <khilman@mvista.com>
+Subject: Re: Unhandled fault: external abort
+Date: Tue, 20 Nov 2007 08:23:17 -0800
+Message-ID: <1195575797.6227.4.camel@vence.hilman.org>
+References: <D0D7E940253EF8428A27241F8E3CABA3A88DFA@zeus.Combra.se>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <Pine.LNX.4.64.0711191208030.25712@utopia.booyaka.com>
+In-Reply-To: <D0D7E940253EF8428A27241F8E3CABA3A88DFA@zeus.Combra.se>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -23,45 +17,37 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: Carl Benson <Carl.Benson@combra.se>
+Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-> This patch implements a suggestion by Richard Woodruff
-> <r-woodruff2@ti.com>.  omap_sram_push() copies executable code into
-> SRAM memory.  Currently this happens before Linux executes anything
-> from the SRAM, so we don't have to worry about evicting any SRAM lines
-> from the I-cache.  But at some point in the future, the SRAM might be
-> used more dynamically, adding and removing code while the system is
-> running.  So we should ensure that the I-cache is clean or at
-> least up-to-date after the copy.
->=20
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
-Signedoff-by: Richard Woodruff <r-woodruff2@ti.com>
-=20
-> ---
->  arch/arm/plat-omap/sram.c |    1 +
->  1 file changed, 1 insertion(+)
->=20
-> Index: linux-omap/arch/arm/plat-omap/sram.c
-> =
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-omap.orig/arch/arm/plat-omap/sram.c	2007-11-16
-> 17:41:42.000000000 -0700
-> +++ linux-omap/arch/arm/plat-omap/sram.c	2007-11-16 17:43:18.000000000 =
--
-> 0700
-> @@ -216,6 +216,7 @@
->  	omap_sram_ceil -=3D size;
->  	omap_sram_ceil =3D ROUND_DOWN(omap_sram_ceil, sizeof(void *));
->  	memcpy((void *)omap_sram_ceil, start, size);
-> +	flush_icache_range((unsigned long)start, (unsigned long)(start +
-> size));
->=20
->  	return (void *)omap_sram_ceil;
->  }
+On Tue, 2007-11-20 at 16:37 +0100, Carl Benson wrote:
+> Hi. Trying to boot latest OMAP kernel from GIT tree (as of 2007-11-20) on an 3430 SDP ES1.0 board and get an "Unhandled fault: external abort on non-linefetch" and "Internal error 1028". 
+> 
+> PC is at serial_in+0x6c/0xac which in my kernel suggest the error occuring from executing line 366 from drivers/serial/8250.c:
 
-Looks good.
+I have this same problem.
+
+The problem is because the bootloader is not enabling all the clocks
+required for UART3 to work on OMAP3.
+
+To get yourself booting, you can just disable the 3rd UART until we fix
+this problem.  Try the patch below:
+
+Kevin
+
+
+Index: 3430-dev/arch/arm/mach-omap2/board-3430sdp.c
+===================================================================
+--- 3430-dev.orig/arch/arm/mach-omap2/board-3430sdp.c
++++ 3430-dev/arch/arm/mach-omap2/board-3430sdp.c
+@@ -301,7 +301,7 @@ static void __init omap_3430sdp_init_irq
+ }
+ 
+ static struct omap_uart_config sdp3430_uart_config __initdata = {
+-	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
++	.enabled_uarts	= ((1 << 0) | (1 << 1) /* | (1 << 2) */),
+ };
+ 
+ static struct omap_board_config_kernel sdp3430_config[] = {
