@@ -1,13 +1,13 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: Unhandled fault: external abort
-Date: Tue, 20 Nov 2007 08:23:17 -0800
-Message-ID: <1195575797.6227.4.camel@vence.hilman.org>
-References: <D0D7E940253EF8428A27241F8E3CABA3A88DFA@zeus.Combra.se>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: Audio Specifications
+Date: Tue, 20 Nov 2007 18:05:43 +0100
+Message-ID: <474313E7.1040808@googlemail.com>
+References: <867485.80159.qm@web7611.mail.in.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <D0D7E940253EF8428A27241F8E3CABA3A88DFA@zeus.Combra.se>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <867485.80159.qm@web7611.mail.in.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,39 +15,28 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Carl Benson <Carl.Benson@combra.se>
-Cc: OMAP-Linux <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "Azhar Mr." <shaik.azharuddin@yahoo.co.in>
+Cc: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Azhar Mr. wrote:
+> Hi,
+>    
+>   I am trying to play the audio files from OMAP5912 OSK by connecting an amplifier and speakers to the kit at HEADPHONE OUT end. But the output sound is very less whereas I am able to get high sounds when playing from a CD player or tape recorder.
+>    
+>                        I think there is an impedance mismatch between OMAP5912 and the amplifier which I am using. Any body Please help me in providing the audio specifications of the processor like output impedance, etc.
 
-On Tue, 2007-11-20 at 16:37 +0100, Carl Benson wrote:
-> Hi. Trying to boot latest OMAP kernel from GIT tree (as of 2007-11-20) on an 3430 SDP ES1.0 board and get an "Unhandled fault: external abort on non-linefetch" and "Internal error 1028". 
-> 
-> PC is at serial_in+0x6c/0xac which in my kernel suggest the error occuring from executing line 366 from drivers/serial/8250.c:
+You should have OSK5912 schematic if you have a board. If not, have a 
+look to section 5.6 (page 48) of
 
-I have this same problem.
+http://omap.spectrumdigital.com/osk5912/files/osk5912_hwspec.pdf
 
-The problem is because the bootloader is not enabling all the clocks
-required for UART3 to work on OMAP3.
+TLV320AIC23 datasheet you can get at
 
-To get yourself booting, you can just disable the 3rd UART until we fix
-this problem.  Try the patch below:
+http://www-s.ti.com/sc/ds/tlv320aic23b.pdf
 
-Kevin
+Regards
 
-
-Index: 3430-dev/arch/arm/mach-omap2/board-3430sdp.c
-===================================================================
---- 3430-dev.orig/arch/arm/mach-omap2/board-3430sdp.c
-+++ 3430-dev/arch/arm/mach-omap2/board-3430sdp.c
-@@ -301,7 +301,7 @@ static void __init omap_3430sdp_init_irq
- }
- 
- static struct omap_uart_config sdp3430_uart_config __initdata = {
--	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
-+	.enabled_uarts	= ((1 << 0) | (1 << 1) /* | (1 << 2) */),
- };
- 
- static struct omap_board_config_kernel sdp3430_config[] = {
+Dirk
