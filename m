@@ -1,13 +1,12 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: Audio Specifications
-Date: Tue, 20 Nov 2007 18:05:43 +0100
-Message-ID: <474313E7.1040808@googlemail.com>
-References: <867485.80159.qm@web7611.mail.in.yahoo.com>
+From: "Mik Prog" <mikprog@gmail.com>
+Subject: OMAP 5912: new kernel, how to create a new file system?
+Date: Tue, 20 Nov 2007 17:59:35 +0000
+Message-ID: <6a7f58da0711200959u1481a90y5b50e9a5c5827c82@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <867485.80159.qm@web7611.mail.in.yahoo.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,28 +14,30 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "Azhar Mr." <shaik.azharuddin@yahoo.co.in>
-Cc: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Azhar Mr. wrote:
-> Hi,
->    
->   I am trying to play the audio files from OMAP5912 OSK by connecting an amplifier and speakers to the kit at HEADPHONE OUT end. But the output sound is very less whereas I am able to get high sounds when playing from a CD player or tape recorder.
->    
->                        I think there is an impedance mismatch between OMAP5912 and the amplifier which I am using. Any body Please help me in providing the audio specifications of the processor like output impedance, etc.
+Dear all,
 
-You should have OSK5912 schematic if you have a board. If not, have a 
-look to section 5.6 (page 48) of
+I am an absolute beginner with OMAP and Linux (I am working on a OSK 5912).
+Apologies if some of my questions have already been answered. I do
+look on google first, but sometime even if the topic has been treated
+I don't clearly understand...
 
-http://omap.spectrumdigital.com/osk5912/files/osk5912_hwspec.pdf
+Here my case:
+1. I wanted recompile the kernel image using arm-linux-gcc 3.4.1 (I
+got the kernel sources 2.6.20 and applied the patch
+patch-2.6.20-omap1)
+2. then I enabled on omap_osk-5912_defconf the USB configuration
+3. I built the kernel and formatted for u-boot.
+4. I transferred that to OMAP using tftpboot
+5. $ using uname -a I see that the kernel image is still the old one!
 
-TLV320AIC23 datasheet you can get at
+Do I need to update the root file system as well?
+How could I create my own root file system based on the kernel version
+I've compiled?
 
-http://www-s.ti.com/sc/ds/tlv320aic23b.pdf
-
-Regards
-
-Dirk
+thanks for any help.
+Mik
