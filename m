@@ -1,11 +1,11 @@
-From: "Hunter, Jon" <jon-hunter@ti.com>
-Subject: OMAP2430: MUSB: Ethernet Gadget Issue
-Date: Wed, 21 Nov 2007 11:08:51 -0600
-Message-ID: <5573C19A4BBDB441BED2A44157E9705302A4C387@dlee12.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C82C61.30AD0B33"
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [PATCH 2/3] ARM: OMAP1: Camera: Fix v4l2 int device detach
+Date: Wed, 21 Nov 2007 18:23:04 -0400
+Message-ID: <1195683785-32132-3-git-send-email-edubezval@gmail.com>
+References: <1195683785-32132-1-git-send-email-edubezval@gmail.com>
+	<1195683785-32132-2-git-send-email-edubezval@gmail.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <1195683785-32132-2-git-send-email-edubezval@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,239 +13,58 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
+Cc: Eduardo Valentin <eduardo.valentin@indt.org.br>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
+From: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-------_=_NextPart_001_01C82C61.30AD0B33
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+camera_device_unregister expected the argument to be its own
+device structure but it's actually that of its slave.
 
-All,
+Also get master from slave's structure in camera_device_register.
 
-I am having an issue on the OMAP2430 with the Ethernet Gadget driver. I
-have tried several different versions of the kernel and the problem
-appears to still exist in 2.6.23 (using the Linux-2.6.23-omap1 patch).=20
+Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+---
+ drivers/media/video/omap/camera_core.c |   11 +++++------
+ 1 files changed, 5 insertions(+), 6 deletions(-)
 
-Basically I have two applications running on the OMAP2430 SDP:
-- the 1st application sends 1KB UDP packets using the g_ether driver
-from my OMAP2430 SDP to a Linux Host PC (debian).=20
-- the 2nd application on the OMAP2430 SDP receives 1KB UDP packets using
-the g_ether driver from Linux Host PC (debian).=20
-
-Please note that the application on the PC side is the exact same
-application used on the OMAP. Hence, on the PC side there are also 2
-applications running; one to send packets and one to receive.=20
-
-When I run the applications one at a time, they will run all night and
-all is well. However, when I run them at the same time the transfer will
-stop after anywhere from a few secs to a few minutes. When the transfers
-stop I observe the the MUSB driver is no longer generating interrupts
-(viewing the /proc/interrupts). It appears to be some short of race
-condition but I have not been able to track down exactly when things
-stop.
-
-I have observed that there has been a lot of activity with regard to the
-MUSB driver but as of 2.6.23 this problem still exists. =20
-
-I am attaching my test case if anyone would like to take a look.
-Instructions for compiling and running are in the README.
-
-I am curious if anyone has run into any similar issues. I am not
-familiar with the USB driver and so let me know if you have any inputs.=20
-
-Thanks
-Jon=20
-
-------_=_NextPart_001_01C82C61.30AD0B33
-Content-Type: application/octet-stream;
-	name="Makefile"
-Content-Transfer-Encoding: base64
-Content-Description: Makefile
-Content-Disposition: attachment;
-	filename="Makefile"
-
-I1RBUkdFVF9DQwkJCT0gYXJtX3Y2X3ZmcF9sZS1nY2MKVEFSR0VUX0NDCQkJPSBhcm0tbm9uZS1s
-aW51eC1nbnVlYWJpLWdjYwpIT1NUX0NDCQkJCT0gZ2NjCgojVEFSR0VUX0tFUk5FTF9QQVRICT0k
-KEhPTUUpL3dvcmtkaXIvb21hcC9PTUFQU1dfTGludXhfOC4xOS9zcmMvbGludXgva2VybmVsX212
-LzIuNl9rZXJuZWwtYXJtMTEKVEFSR0VUX0tFUk5FTF9QQVRICT0kKEhPTUUpL3dvcmtkaXIvb21h
-cC9DU1NEX0xpbnV4XzEyLjllczIuMF90dG1fMi4wZS9zcmMvbGludXgva2VybmVsX29yZy8yLjZf
-a2VybmVsCgpJTkNfRklMRVMgCQkJPSAKU1JDX0ZJTEVTIAkJCT0gdWRwLXR4LXRlc3QuYyB1ZHAt
-cngtdGVzdC5jCk9CSl9GSUxFUyAJCQk9CgpUQVJHRVRfREJHX0NDX0ZMQUdTID0gLWcgLURERUJV
-RyAtSSQoVEFSR0VUX0tFUk5FTF9QQVRIKS9pbmNsdWRlIApIT1NUX0RCR19DQ19GTEFHUyAJPSAt
-ZyAtRERFQlVHIApEQkdfRElSIAkJCT0gZGVidWcKREJHX09CSl9GSUxFUyAJCT0gJChhZGRwcmVm
-aXggJChEQkdfRElSKS8sJChPQkpfRklMRVMpKSAKClRBUkdFVF9SRUxfQ0NfRkxBR1MJPSAtTzMg
-LUkkKFRBUkdFVF9LRVJORUxfUEFUSCkvaW5jbHVkZQpIT1NUX1JFTF9DQ19GTEFHUwk9IC1PMwpS
-RUxfRElSCQkJCT0gcmVsZWFzZQpSRUxfT0JKX0ZJTEVTIAkJPSAkKGFkZHByZWZpeCAkKFJFTF9E
-SVIpLywkKE9CSl9GSUxFUykpIAoKLlBIT05ZOiBkZWJ1ZyByZWxlYXNlIGFsbAphbGw6IGRlYnVn
-IHJlbGVhc2UKCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIyAtLS0tIGRlYnVnIGNv
-bmZpZ3VyYXRpb24gLS0tLQojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCmRlYnVnOiAk
-KERCR19ESVIpL3VkcC10eC10ZXN0LnhBUk0gJChEQkdfRElSKS91ZHAtdHgtdGVzdC54ODYgJChE
-QkdfRElSKS91ZHAtcngtdGVzdC54QVJNICQoREJHX0RJUikvdWRwLXJ4LXRlc3QueDg2CgokKERC
-R19ESVIpLyUueEFSTTogJChEQkdfRElSKS8lLm9BUk0KCSQoVEFSR0VUX0NDKSAkKFRBUkdFVF9E
-QkdfQ0NfRkxBR1MpIC1vICRAICQ8CgokKERCR19ESVIpLyUueDg2OiAkKERCR19ESVIpLyUubzg2
-CgkkKEhPU1RfQ0MpICQoSE9TVF9EQkdfQ0NfRkxBR1MpIC1vICRAICQ8CgkKJChEQkdfRElSKS8l
-Lm9BUk06ICUuYwoJQG1rZGlyIC1wICQoREJHX0RJUikKCSQoVEFSR0VUX0NDKSAkKFRBUkdFVF9E
-QkdfQ0NfRkxBR1MpIC1vICRAIC1jICQ8CgokKERCR19ESVIpLyUubzg2OiAlLmMKCUBta2RpciAt
-cCAkKERCR19ESVIpCgkkKEhPU1RfQ0MpICQoSE9TVF9EQkdfQ0NfRkxBR1MpIC1vICRAIC1jICQ8
-CgkKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMgLS0tLSByZWxlYXNlIGNvbmZp
-Z3VyYXRpb24gLS0tLQojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KcmVsZWFzZTog
-JChSRUxfRElSKS91ZHAtdHgtdGVzdC54QVJNICQoUkVMX0RJUikvdWRwLXR4LXRlc3QueDg2ICQo
-UkVMX0RJUikvdWRwLXJ4LXRlc3QueEFSTSAkKFJFTF9ESVIpL3VkcC1yeC10ZXN0Lng4NgoKJChS
-RUxfRElSKS8lLnhBUk06ICQoUkVMX0RJUikvJS5vQVJNCgkkKFRBUkdFVF9DQykgJChUQVJHRVRf
-UkVMX0NDX0ZMQUdTKSAtbyAkQCAkPAoKJChSRUxfRElSKS8lLng4NjogJChSRUxfRElSKS8lLm84
-NgoJJChIT1NUX0NDKSAkKEhPU1RfUkVMX0NDX0ZMQUdTKSAtbyAkQCAkPAoKJChSRUxfRElSKS8l
-Lm9BUk06ICUuYyAKCUBta2RpciAtcCAkKFJFTF9ESVIpCgkkKFRBUkdFVF9DQykgJChUQVJHRVRf
-UkVMX0NDX0ZMQUdTKSAtbyAkQCAtYyAkPAoKJChSRUxfRElSKS8lLm84NjogJS5jIAoJQG1rZGly
-IC1wICQoUkVMX0RJUikKCSQoSE9TVF9DQykgJChIT1NUX1JFTF9DQ19GTEFHUykgLW8gJEAgLWMg
-JDwKCiMgLS0tLS0tLS0tLS0tLS0tCiMgLS0tLSBjbGVhbiAtLS0tCiMgLS0tLS0tLS0tLS0tLS0t
-Ci5QSE9OWTogY2xlYW5kZWJ1ZwpjbGVhbmRlYnVnOgoJcm0gLXJmICQoREJHX0RJUikKCi5QSE9O
-WTogY2xlYW5yZWxlYXNlCmNsZWFucmVsZWFzZToKCXJtIC1yZiAkKFJFTF9ESVIpCgkKLlBIT05Z
-OiBjbGVhbiBjbGVhbmFsbApjbGVhbjogY2xlYW5hbGwKY2xlYW5hbGw6IGNsZWFuZGVidWcgY2xl
-YW5yZWxlYXNlCg==
-
-------_=_NextPart_001_01C82C61.30AD0B33
-Content-Type: application/octet-stream;
-	name="README"
-Content-Transfer-Encoding: base64
-Content-Description: README
-Content-Disposition: attachment;
-	filename="README"
-
-U2ltcGxlIFVEUCBUZXN0IENhc2UKClRvIGNvbXBpbGUgdGhlIHRlc3QgY2FzZToKMSkgRWRpdCB0
-aGUgZm9sbG93aW5nIGRlZmluaXRpb25zIGluIHRoZSBNYWtlZmlsZSBwZXIgeW91ciBzZXR1cAoK
-VEFSR0VUX0NDCQkJPC0tIGRlZmluZXMgQVJNIGNyb3NzIGNvbXBpbGVyIHlvdSBhcmUgdXNpbmcK
-VEFSR0VUX0tFUk5FTF9QQVRICTwtLSBkZWZpbmVzIHBhdGggdG8gT01BUCBMaW51eCBrZXJuZWwK
-CjIpLiBFeGVjdXRlICJtYWtlIiAKCk1ha2Ugd2lsbCBnZW5lcmF0ZSB0aGUgZm9sbG93aW5nIGZp
-bGVzOgoKZGVidWcvdWRwLXR4LXRlc3QueEFSTQpkZWJ1Zy91ZHAtdHgtdGVzdC54ODYKZGVidWcv
-dWRwLXJ4LXRlc3QueEFSTQpkZWJ1Zy91ZHAtcngtdGVzdC54ODYKcmVsZWFzZS91ZHAtdHgtdGVz
-dC54QVJNCnJlbGVhc2UvdWRwLXR4LXRlc3QueDg2CnJlbGVhc2UvdWRwLXJ4LXRlc3QueEFSTQpy
-ZWxlYXNlL3VkcC1yeC10ZXN0Lng4NgoKV2hlcmUgdGhlICoueDg2IGFyZSBleGVjdXRhYmxlcyBm
-b3IgdGhlIEhvc3QgYW5kIHRoZSAqLnhBUk0gYXJlIHRoZSBleGVjdXRhYmxlcyBmb3IgdGhlIHRh
-cmdldAoKClRvIHJ1biB0aGUgdGVzdCBjYXNlOgoKMSkgQ29ubmVjdCBhIFVTQiBjYWJsZSBiZXR3
-ZWVuIHRoZSBPTUFQMjQzMCBTRFAgKGNvbm5lY3RvciBKMTEgLSBvbiBWRzUuMC4xIGJvYXJkKSBh
-bmQgSG9zdCBQQwoKMikuIE9uIHRoZSBUYXJnZXQsIGluc2VydCBVU0IgRXRoZXJuZXQgR2FkZ2V0
-IGRyaXZlciBhbmQgY29uZmlndXJlCgojIGluc21vZCBnX2V0aGVyCiMgaWZjb25maWcgdXNiMCAx
-OTIuMTY4LjEuMSBuZXRtYXNrIDI1NS4yNTUuMjU1LjAKCjMpLiBPbiB0aGUgSG9zdCBQQywgY29u
-ZmlndXJlIFVTQiBFdGhlcm5ldCBwb3J0CgojIGlmY29uZmlnIHVzYjAgMTkyLjE2OC4xLjUKCjQp
-LiBPbiB0aGUgVGFyZ2V0LCBzdGFydCBVRFAgcmVjZWl2ZXIgdGVzdAoKIyAuL3JlbGVhc2UvdWRw
-LXJ4LXRlc3QueEFSTSA8cG9ydCAjPgoKRWcuIC4vcmVsZWFzZS91ZHAtcngtdGVzdC54QVJNIDI2
-NjIKCjUpLiBPbiB0aGUgSG9zdCBQQywgc3RhcnQgdGhlIFVEUCB0cmFuc21pdHRlciB0ZXN0IChu
-b3RlIHRoZSBpcCBhZGRyZXNzIGFuZCBwb3J0IG51bWJlciBzaG91bGQgbWF0Y2ggdGhlIHRhcmdl
-dCkKCiMgLi9yZWxlYXNlL3VkcC10eC10ZXN0Lng4NiA8aXAgYWRkcj4gPHBvcnQgIz4KCkVnLiAu
-L3JlbGVhc2UvdWRwLXR4LXRlc3QueDg2IDE5Mi4xNjguMS4xIDI2NjIKCjYpLiBPbiB0aGUgSG9z
-dCBQQywgc3RhcnQgdGhlIFVEUCByZWNlaXZlciB0ZXN0CgojIC4vcmVsZWFzZS91ZHAtcngtdGVz
-dC54ODYgPHBvcnQgIz4KCkVnLiAuL3JlbGVhc2UvdWRwLXJ4LXRlc3QueDg2IDI2NjIKCjcpLiBP
-biB0aGUgdGFyZ2V0LCBzdGFydCB0aGUgVURQIHRyYW5zbWl0dGVyIHRlc3QgKG5vdGUgdGhlIGlw
-IGFkZHJlc3MgYW5kIHBvcnQgbnVtYmVyIHNob3VsZCBtYXRjaCB0aGUgdGFyZ2V0KQoKIyAuL3Jl
-bGVhc2UvdWRwLXR4LXRlc3QueEFSTSA8aXAgYWRkcj4gPHBvcnQgIz4KCkVnLiAuL3JlbGVhc2Uv
-dWRwLXR4LXRlc3QueEFSTSAxOTIuMTY4LjEuNSAyNjYyCgpOb3RlIHRoYXQgYSBtZXNzYWdlIHdp
-bGwgYmUgZGlzcGxheWVkIGZvciBldmVyeSAxMDAwMDAgMUtCIHBhY2tldHMgc2VudC9yZWNlaXZl
-ZC4gIAo=
-
-------_=_NextPart_001_01C82C61.30AD0B33
-Content-Type: application/octet-stream;
-	name="udp-rx-test.c"
-Content-Transfer-Encoding: base64
-Content-Description: udp-rx-test.c
-Content-Disposition: attachment;
-	filename="udp-rx-test.c"
-
-I2luY2x1ZGUgPHN0ZGlvLmg+DQojaW5jbHVkZSA8c3RkbGliLmg+ICANCiNpbmNsdWRlIDx1bmlz
-dGQuaD4NCiNpbmNsdWRlIDxzdHJpbmcuaD4NCiNpbmNsdWRlIDxzeXMvdHlwZXMuaD4NCiNpbmNs
-dWRlIDxzeXMvc29ja2V0Lmg+DQojaW5jbHVkZSA8bmV0aW5ldC9pbi5oPg0KI2luY2x1ZGUgPGFy
-cGEvaW5ldC5oPg0KI2luY2x1ZGUgPHNpZ25hbC5oPg0KDQojZGVmaW5lIE1BWEJVRkxFTgkxMDI0
-DQoNCmludCBjb21wbGV0ZSA9IDA7DQoNCnZvaWQgc2lnbmFsX2hhbmRsZXIoaW50IHNpZykNCnsN
-Cgljb21wbGV0ZSA9IDE7CQ0KfQ0KDQppbnQgbWFpbihpbnQgYXJnYywgY2hhciAqYXJndltdKQ0K
-ew0KCWludCBzb2NrZmQ7DQoJdW5zaWduZWQgaW50IGJ1ZmNudDsNCgl1bnNpZ25lZCBpbnQgZHJv
-cGNudDsNCgl1bnNpZ25lZCBpbnQgbnVtYnl0ZXM7DQoJdW5zaWduZWQgaW50IHRvdGFsYnl0ZXM7
-DQoJdW5zaWduZWQgY2hhciBidWZpZHg7DQoJdW5zaWduZWQgY2hhciBuZXh0YnVmaWR4Ow0KCWNo
-YXIgYnVmW01BWEJVRkxFTl07CQ0KCXN0cnVjdCBzb2NrYWRkcl9pbiBteV9hZGRyOw0KCXN0cnVj
-dCBzb2NrYWRkcl9pbiB0aGVpcl9hZGRyOw0KCXNvY2tsZW5fdCBhZGRyX2xlbjsNCgl1bnNpZ25l
-ZCBzaG9ydCBwb3J0OwkNCgkNCglpZihhcmdjICE9IDIpDQoJew0KCQlwcmludGYoIlVzYWdlOiB1
-ZHAtcngtdGVzdCA8cG9ydD5cbiIpOw0KCQlwcmludGYoIkVnOiAgICB1ZHAtcngtdGVzdCAyNjYy
-XG4iKTsNCgkJZXhpdCgxKTsNCgl9DQoJDQoJLy8gc2V0IGNhbGxiYWNrIGZ1bmN0aW9uIGZvciBD
-dHJsLUMNCglzaWduYWwoU0lHSU5ULCBzaWduYWxfaGFuZGxlcik7DQoNCglwb3J0ID0gKHVuc2ln
-bmVkIHNob3J0KWF0b2koYXJndlsxXSk7DQogIAkNCglpZigoc29ja2ZkID0gc29ja2V0KEFGX0lO
-RVQsIFNPQ0tfREdSQU0sIDApKSA9PSAtMSkNCgl7DQoJCXByaW50ZigiRXJyb3I6IENhbGwgdG8g
-c29ja2V0IGZhaWxlZCFcbiIpOw0KCQlleGl0KDEpOw0KCX0NCgkNCglteV9hZGRyLnNpbl9mYW1p
-bHkgCQk9IEFGX0lORVQ7DQoJbXlfYWRkci5zaW5fcG9ydAkJPSBodG9ucyhwb3J0KTsNCglteV9h
-ZGRyLnNpbl9hZGRyLnNfYWRkcgk9IElOQUREUl9BTlk7DQoJbWVtc2V0KG15X2FkZHIuc2luX3pl
-cm8sICdcMCcsIHNpemVvZihteV9hZGRyLnNpbl96ZXJvKSk7DQoNCglpZihiaW5kKHNvY2tmZCwg
-KHN0cnVjdCBzb2NrYWRkciAqKSZteV9hZGRyLCBzaXplb2YobXlfYWRkcikpID09IC0xKQ0KCXsN
-CgkJcHJpbnRmKCJFcnJvcjogQ2FsbCB0byBiaW5kIGZhaWxlZCFcbiIpOw0KCQlleGl0KDEpOw0K
-CX0NCg0KCXByaW50ZigiU29ja2V0IG9wZW5lZC4gTGlzdGVuaW5nIGZvciBwYWNrZXRzIG9uIHBv
-cnQgJWQuLi5cbiIsIHBvcnQpOw0KCQ0KCWFkZHJfbGVuID0gc2l6ZW9mKHRoZWlyX2FkZHIpOw0K
-DQoJYnVmY250IAkJPSAwOw0KCWRyb3BjbnQJCT0gMDsNCgl0b3RhbGJ5dGVzIAk9IDA7DQoJbmV4
-dGJ1ZmlkeCAJPSAwOw0KDQoJd2hpbGUoY29tcGxldGUgPT0gMCkNCgl7CQ0KICAgIAludW1ieXRl
-cyA9IHJlY3Zmcm9tKHNvY2tmZCwgYnVmLCBNQVhCVUZMRU4sIDAsIChzdHJ1Y3Qgc29ja2FkZHIg
-KikmdGhlaXJfYWRkciwgJmFkZHJfbGVuKTsNCgkJDQoJCWlmKG51bWJ5dGVzID09IC0xKQ0KCQl7
-DQoJCQlwcmludGYoIkVycm9yOiBDYWxsIHRvIHJlY3Zmcm9tIGZhaWxlZCFcbiIpOw0KCQkJY2xv
-c2Uoc29ja2ZkKTsNCgkJCWV4aXQoMSk7DQoJCX0NCgkJZWxzZQ0KCQl7DQoJCQlidWZjbnQrKzsN
-CgkJCXRvdGFsYnl0ZXMgKz0gbnVtYnl0ZXM7DQoJCQkNCgkJCS8vIGNoZWNrIGluZGV4IHZhbHVl
-IGF0IHN0YXJ0IG9mIGJ1ZmZlcg0KCQkJYnVmaWR4ID0gKmJ1ZjsNCgkJCQ0KCQkJaWYoYnVmaWR4
-ICE9IG5leHRidWZpZHgpDQoJCQl7DQoJCQkJaWYoYnVmaWR4IDwgbmV4dGJ1ZmlkeCkNCgkJCQkJ
-ZHJvcGNudCArPSAoMjU1LW5leHRidWZpZHgpICsgYnVmaWR4Ow0KCQkJCWVsc2UNCgkJCQkJZHJv
-cGNudCArPSBidWZpZHggLSBuZXh0YnVmaWR4Ow0KCQkJfQ0KCQkJDQoJCQlpZihidWZpZHggPT0g
-MjU1KQ0KCQkJCW5leHRidWZpZHggPSAwOw0KCQkJZWxzZQkNCgkJCQluZXh0YnVmaWR4ID0gYnVm
-aWR4ICsgMTsNCgkJfQkJDQogICAgICANCgkJaWYoYnVmY250ID4gOTk5OSkNCgkJew0KCQkJcHJp
-bnRmKCJSZWNlaXZlZCAlZCBwYWNrZXRzLCB0b3RhbCBieXRlcyA9ICVkLCBkcm9wcGVkIHBhY2tl
-dHMgPSAlZFxuIiwgYnVmY250LCB0b3RhbGJ5dGVzLCBkcm9wY250KTsNCgkJCWJ1ZmNudCAJCT0g
-MDsNCgkJCWRyb3BjbnQgCT0gMDsNCgkJCXRvdGFsYnl0ZXMgCT0gMDsNCgkJfQ0KCX0JDQoNCglj
-bG9zZShzb2NrZmQpOw0KCQ0KCXJldHVybiAwOw0KfQ0KDQo=
-
-------_=_NextPart_001_01C82C61.30AD0B33
-Content-Type: application/octet-stream;
-	name="udp-tx-test.c"
-Content-Transfer-Encoding: base64
-Content-Description: udp-tx-test.c
-Content-Disposition: attachment;
-	filename="udp-tx-test.c"
-
-I2luY2x1ZGUgPHN0ZGlvLmg+DQojaW5jbHVkZSA8c3RkbGliLmg+DQojaW5jbHVkZSA8dW5pc3Rk
-Lmg+DQojaW5jbHVkZSA8c3RyaW5nLmg+DQojaW5jbHVkZSA8c3lzL3NvY2tldC5oPg0KI2luY2x1
-ZGUgPG5ldGluZXQvaW4uaD4NCiNpbmNsdWRlIDxhcnBhL2luZXQuaD4NCiNpbmNsdWRlIDxuZXRk
-Yi5oPg0KI2luY2x1ZGUgPHNpZ25hbC5oPg0KDQojZGVmaW5lIE1BWEJVRkxFTgkxMDI0DQoNCmlu
-dCBjb21wbGV0ZSA9IDA7DQoNCnZvaWQgc2lnbmFsX2hhbmRsZXIoaW50IHNpZykNCnsNCgljb21w
-bGV0ZSA9IDE7CQ0KfQ0KDQppbnQgbWFpbihpbnQgYXJnYywgY2hhciAqYXJndltdKQ0Kew0KCWlu
-dCBzb2NrZmQ7DQoJdW5zaWduZWQgaW50IGJ1ZmNudDsNCgl1bnNpZ25lZCBpbnQgbnVtYnl0ZXM7
-DQoJdW5zaWduZWQgaW50IHRvdGFsYnl0ZXM7DQoJdW5zaWduZWQgY2hhciBidWZpZHg7DQoJY2hh
-ciBidWZbTUFYQlVGTEVOXTsJDQoJc3RydWN0IHNvY2thZGRyX2luIHRoZWlyX2FkZHI7DQoJY2hh
-ciAqdGhlaXJfaXA7DQoJdW5zaWduZWQgc2hvcnQgcG9ydDsNCgkNCglpZihhcmdjICE9IDMpDQoJ
-ew0KCQlwcmludGYoIlVzYWdlOgl1ZHAtdHgtdGVzdCA8ZGVzdCBpcCBhZGRyPiA8cG9ydD5cbiIp
-Ow0KCQlwcmludGYoIkVnOgkJdWRwLXR4LXRlc3QgMTkyLjE2OC4xLjEgMjY2MlxuIik7DQoJCWV4
-aXQoMSk7DQoJfQ0KCWVsc2UNCgl7DQoJCXRoZWlyX2lwCT0gYXJndlsxXTsNCgkJcG9ydAkJPSAo
-dW5zaWduZWQgc2hvcnQpYXRvaShhcmd2WzJdKTsNCgl9DQoNCgkvLyBzZXQgY2FsbGJhY2sgZnVu
-Y3Rpb24gZm9yIEN0cmwtQw0KCXNpZ25hbChTSUdJTlQsIHNpZ25hbF9oYW5kbGVyKTsNCgkNCglp
-Zigoc29ja2ZkID0gc29ja2V0KFBGX0lORVQsIFNPQ0tfREdSQU0sIDApKSA9PSAtMSkNCgl7DQoJ
-CXByaW50ZigiRXJyb3I6IFVuYWJsZSB0byBvcGVuIHNvY2tldCFcbiIpOw0KCQlleGl0KDEpOw0K
-CX0NCgkJDQogIAl0aGVpcl9hZGRyLnNpbl9mYW1pbHkgCQk9IEFGX0lORVQ7DQogIAl0aGVpcl9h
-ZGRyLnNpbl9wb3J0IAkJPSBodG9ucyhwb3J0KTsgCQkvLyBzaG9ydCwgbmV0d29yayBieXRlIG9y
-ZGVyDQoJDQoJaWYoaW5ldF9hdG9uKHRoZWlyX2lwLCAmKHRoZWlyX2FkZHIuc2luX2FkZHIpKSA9
-PSAwKQ0KCXsNCgkJcHJpbnRmKCJFcnJvcjogVW5hYmxlIHRvIGNvbnZlcnQgaXAgYWRkcmVzcyFc
-biIpOw0KCX0NCg0KCW1lbXNldCh0aGVpcl9hZGRyLnNpbl96ZXJvLCAnXDAnLCBzaXplb2YodGhl
-aXJfYWRkci5zaW5femVybykpOw0KDQoJYnVmY250IAkJPSAwOw0KCWJ1ZmlkeAkJPSAwOw0KCXRv
-dGFsYnl0ZXMgCT0gMDsNCgkNCgl3aGlsZShjb21wbGV0ZSA9PSAwKQ0KCXsNCgkJKmJ1ZiA9IGJ1
-ZmlkeDsNCgkJDQogICAgCW51bWJ5dGVzID0gc2VuZHRvKHNvY2tmZCwgYnVmLCBNQVhCVUZMRU4s
-IDAsIChzdHJ1Y3Qgc29ja2FkZHIgKikmdGhlaXJfYWRkciwgc2l6ZW9mKHN0cnVjdCBzb2NrYWRk
-cikpOw0KDQoJCWlmKG51bWJ5dGVzID09IC0xKQ0KCQl7DQoJCQlwcmludGYoIkVycm9yOiBTZW5k
-IG1lc3NhZ2UgZmFpbGVkIVxuIik7DQoJCQljbG9zZShzb2NrZmQpOw0KCQkJZXhpdCgxKTsNCgkJ
-fQ0KCQllbHNlDQoJCXsNCgkJCWlmKGJ1ZmlkeCA9PSAyNTUpDQoJCQkJYnVmaWR4ID0gMDsNCgkJ
-CWVsc2UNCgkJCQlidWZpZHgrKzsNCgkJDQoJCQlidWZjbnQrKzsNCgkJCXRvdGFsYnl0ZXMgKz0g
-bnVtYnl0ZXM7DQoJCX0JCQ0KICAgICAgDQoJCWlmKGJ1ZmNudCA+IDk5OTk5KQ0KCQl7DQoJCQlw
-cmludGYoIlNlbnQgJWQgcGFja2V0cywgdG90YWwgYnl0ZXMgPSAlZFxuIiwgYnVmY250LCB0b3Rh
-bGJ5dGVzKTsNCgkJCWJ1ZmNudCAJCT0gMDsNCgkJCXRvdGFsYnl0ZXMgCT0gMDsNCgkJfQ0KCX0N
-CgkNCiAgCWNsb3NlKHNvY2tmZCk7DQoNCglyZXR1cm4gMDsNCn0NCg0K
-
-------_=_NextPart_001_01C82C61.30AD0B33
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
-------_=_NextPart_001_01C82C61.30AD0B33--
+diff --git a/drivers/media/video/omap/camera_core.c b/drivers/media/video/omap/camera_core.c
+index 6e5d8bd..be033be 100644
+--- a/drivers/media/video/omap/camera_core.c
++++ b/drivers/media/video/omap/camera_core.c
+@@ -1007,17 +1007,16 @@ static ssize_t camera_streaming_show(struct device *dev,
+ 
+ static DEVICE_ATTR(streaming, S_IRUGO, camera_streaming_show, NULL);
+ 
+-static void camera_device_unregister(struct v4l2_int_device *ctl)
++static void camera_device_unregister(struct v4l2_int_device *s)
+ {
+-	struct camera_device *cam = ctl->priv;
++	struct camera_device *cam = s->u.slave->master->priv;
+ 
+ 	camera_sensor_exit(cam);
+ }
+ 
+-static int camera_device_register(struct v4l2_int_device *ctl,
+-				  struct v4l2_int_device *s)
++static int camera_device_register(struct v4l2_int_device *s)
+ {
+-	struct camera_device *cam = ctl->priv;
++	struct camera_device *cam = s->u.slave->master->priv;
+ 	struct video_device *vfd;
+ 	int rval;
+ 
+@@ -1092,7 +1091,7 @@ static int camera_device_register(struct v4l2_int_device *ctl,
+ 	return 0;
+ 
+ err:
+-	camera_device_unregister(ctl);
++	camera_device_unregister(s);
+ 
+ 	return rval;
+ }
+-- 
+1.5.3.4.206.g58ba4
