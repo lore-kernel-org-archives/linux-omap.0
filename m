@@ -1,15 +1,14 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH 1/4] OMAP: DMA: Cleanup of DMA Request Lines
-Date: Wed, 21 Nov 2007 10:42:18 +0530
-Message-ID: <010C7BAE6783F34D9AC336EE5A01A08804DC0E4B@dbde01.ent.ti.com>
-References: <20071031131059.GG32547@atomide.com>
+From: "colorant" <colorant@163.com>
+Subject: Re: Question About __REG32 marco
+Date: Wed, 21 Nov 2007 13:18:36 +0800
+Message-ID: <00c601c82bfd$f7cce620$16110a0a@LongCheer.net>
+References: <005c01c82b61$ac9f1cf0$16110a0a@LongCheer.net>
+	<200711201326.06148.david-b@pacbell.net>
+	<007d01c82bd7$0e1d8dc0$16110a0a@LongCheer.net>
+	<200711201646.42939.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============0401763297=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <20071031131059.GG32547@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,58 +18,37 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Tony Lindgren <tony@atomide.com>
+To: David Brownell <david-b@pacbell.net>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,=20
+--===============0401763297==
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: base64
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]=20
-> Sent: Wednesday, October 31, 2007 6:41 PM
+SGkgRGF2ZQ0KDQoNCj4gT24gVHVlc2RheSAyMCBOb3ZlbWJlciAyMDA3LCBjb2xvcmFudCB3cm90
+ZToNCj4+IHNpbmNlIHRoZSBpbmRleCBpcyBqdXN0IDFLLCB0aGUgZm9sbG93aW5nIGRlZmluaXRp
+b24gOg0KPj4gDQo+PiB0eXBlZGVmIHN0cnVjdCB7IHZvbGF0aWxlIHUzMiBvZmZzZXRbNDA5Nl07
+IH0gX19yZWdiYXNlMzI7DQo+PiANCj4+IHNob3VsZG4ndCBiZToNCj4+IA0KPj4gdHlwZWRlZiBz
+dHJ1Y3QgeyB2b2xhdGlsZSB1MzIgb2Zmc2V0WzEwMjRdOyB9IF9fcmVnYmFzZTMyOyA/DQo+IA0K
+PiBXb3VsZCBjaGFuZ2luZyB0aGF0IG1ha2UgYSBkaWZmZXJlbmNlIGluIHRoZSBnZW5lcmF0ZWQg
+Y29kZSwNCj4gb3IgdHVybiB1cCBhbnkgc291cmNlIGNvZGUgZXJyb3JzPw0KPiANCj4gSSdtIG5v
+dCBzdXJlIGNoYW5naW5nIHRoYXQgd291bGQgbWF0dGVyIGF0IGFsbC4gIEFuZCBpbiBhbnkNCj4g
+Y2FzZSwgdGhvc2UgbXVsdGlib290IHBhdGNoZXMgc2hvdyB0aGUgZG93bnNpZGUgb2YgdGhpcw0K
+PiBwYXJ0aWN1bGFyIGlkaW9tLi4uIHNvbWVvbmUgbWF5IG5lZWQgdG8gdGFrZSBhbm90aGVyIGxv
+b2sNCj4gYXQgdGhlIGNvZGUgZ2VuZXJhdGlvbiBpc3N1ZSwgYW5kIG1heWJlIGZpbGUgc29tZSBi
+dWdzL3JmZXMNCj4gYWdhaW5zdCBjdXJyZW50IEdDQyB2ZXJzaW9ucy4NCj4gDQo+IC0gRGF2ZQ0K
+PiANCg0KTm8sIHRoZSBnZW5lcmF0ZWQgY29kZSBpcyB0aGUgc2FtZSAsIGFuZCBJIGNhbiBydW4g
+dXAgdGhlIGtlcm5lbCB3aXRob3V0IHByb2JsZW0uDQoNClJheW1vbmQ=
 
-> > +#ifndef CONFIG_ARCH_OMAP3
-> >  #define OMAP24XX_DMA_CWT		8	/* S_DMA_7 */
-> > +#endif
-> > +
-> >  #define OMAP24XX_DMA_AES_TX		9	/* S_DMA_8 */
-> >  #define OMAP24XX_DMA_AES_RX		10	/* S_DMA_9 */
-> >  #define OMAP24XX_DMA_DES_TX		11	/* S_DMA_10 */
-> >  #define OMAP24XX_DMA_DES_RX		12	/* S_DMA_11 */
-> > +
-> > +#ifdef CONFIG_ARCH_OMAP3
-> > +#define OMAP34XX_DMA_SHA2MD5_RX		13	/* S_DMA_12 */
-> > +#else
-> >  #define OMAP24XX_DMA_SHA1MD5_RX		13	/* S_DMA_12 */
-> > +#endif
-> > +
-> > +#ifdef CONFIG_ARCH_OMAP2420
-> >  #define OMAP24XX_DMA_EXT_DMAREQ2	14	/* S_DMA_13 */
-> >  #define OMAP24XX_DMA_EXT_DMAREQ3	15	/* S_DMA_14 */
-> >  #define OMAP24XX_DMA_EXT_DMAREQ4	16	/* S_DMA_15 */
->=20
-> Let's remove the #ifdefs here, we want to be able to compile=20
-> support for
-> 24xx and 34xx into the same kernel eventually. It's OK to=20
-> have the same
-> DMA request channel defined in different way for 24xx and 34xx.
 
-I've just started re-working this patch. Let me check if I have =
-understood
-you correctly. Do you want me to remove only the #ifdefs around the
-OMAP34XX_DMA_SHA2MD5_RX/OMAP24XX_DMA_SHA1MD5_RX?
 
-If this is the case, then wouldn't we run into trouble when we try to =
-use a
-request line with the same name but a different number - as is the case =
-with
-OMAP24XX_DMA_SHA1MD5_RX (13 on 24XX and 69 on 34XX)
+--===============0401763297==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Also when you say "we want to be able to compile support for 24xx and =
-34xx into
-the same kernel...", do you mean there will be a CONFIG_ARCH_OMAP2 as =
-well as a
-CONFIG_ARCH_OMAP3 defined at the same time?
 
---
-Anand
+--===============0401763297==--
