@@ -1,15 +1,13 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: [PATCH-REWORKED] OMAP: MUSB: MUSB gadget fix
-Date: Wed, 21 Nov 2007 17:53:55 +0530
-Message-ID: <5DF83221BE20114E9C331F665ACBC08003E80033@dbde01.ent.ti.com>
-References: <5DF83221BE20114E9C331F665ACBC08003E7F771@dbde01.ent.ti.com>
+From: "Mano" <mano@mangotechno.com>
+Subject: H3 : Audio issue with mpg123
+Date: Wed, 21 Nov 2007 20:11:02 +0530
+Message-ID: <IHENIOMDPMGBEGEFMMDPOEHJCAAA.mano@mangotechno.com>
+Reply-To: mano@mangotechno.com
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <5DF83221BE20114E9C331F665ACBC08003E7F771@dbde01.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,94 +20,45 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Vikram Pandita <vikram.pandita@ti.com>
+Hi,
 
-REWORKED:=20
-This fix gets MUSB Gadget Isochronous IN/OUT transfers working
+I am stuck at this problem and would appreciate some advice
+regarding the audio issue.
 
-1) Isochronous IN transfers working for File Storage Gadget
-   TXCSR register write was wrongly erasing all bits
-=09
-2) Isochronous OUT transfers working for File Storage Gadget
-   Minor fix:
-   ./testusb -a -t15 -c1 -s512 -g8
-   Testing with -g8 option will always case OVERFLOW condition which =
-should not be a problem for ISO mode. So check for that condition and =
-not report it as error in gadgetfs test application
+I can see the device file created properly and am also
+able to hear raw PCM output at /dev/sound/dsp.
+
+However on running mpg123, I do not get proper sound output.
+It appears to be decoding the frames and running correctly
+but instead of music I just get noise on the output.
 
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+mpg123 output..
 
-Index: linux-omap/drivers/usb/musb/musb_gadget.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-omap.orig/drivers/usb/musb/musb_gadget.c	2007-11-19 =
-18:04:25.000000000 +0530
-+++ linux-omap/drivers/usb/musb/musb_gadget.c	2007-11-21 =
-16:15:50.000000000 +0530
-@@ -111,7 +111,8 @@
- 	req =3D to_musb_request(request);
-=20
- 	list_del(&request->list);
--	if (req->request.status =3D=3D -EINPROGRESS)
-+	if (req->request.status =3D=3D -EINPROGRESS ||
-+		(ep->type =3D=3D USB_ENDPOINT_XFER_ISOC && req->request.status =3D=3D =
--EOVERFLOW))
- 		req->request.status =3D status;
- 	musb =3D req->musb;
-=20
-@@ -499,9 +500,10 @@
-=20
- 					DBG(4, "sending zero pkt\n");
- 					musb_writew(epio, MUSB_TXCSR,
--							MUSB_TXCSR_MODE
-+							csr | MUSB_TXCSR_MODE
- 							| MUSB_TXCSR_TXPKTRDY);
- 					request->zero =3D 0;
-+					break;
- 				}
-=20
- 				/* ... or if not, then complete it */
+MPEG 2.5, Layer: III, Freq: 11025, mode: Stereo, modext: 0, BPF : 835
+Channels: 2, copyright: No, original: No, CRC: Yes, emphasis: 0.
+Bitrate: 128 kbits/s Extension value: 0
+Audio: 1:1 conversion, rate: 11025, encoding: signed 16 bit, channels: 2
+Frame#   272 [   25], Time: 00:14.21 [00:01.30], RVA:   off, Vol: 100(100)
 
----
 
->-----Original Message-----
->From: =
-linux-omap-open-source-bounces+vikram.pandita=3Dti.com@linux.omap.com =
-[mailto:linux-omap-open-
->source-bounces+vikram.pandita=3Dti.com@linux.omap.com] On Behalf Of =
-Pandita, Vikram
->Sent: Monday, November 19, 2007 6:33 PM
->To: linux-omap-open-source@linux.omap.com
->Subject: [PATCH] OMAP: MUSB: MUSB gadget fix
->
->From: Vikram Pandita <vikram.pandita@ti.com>
->
->This fix gets MUSB Gadget Isochronous IN transfers working for File =
-Storage Gadget
->
->Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
->---
->
->Index: linux-omap/drivers/usb/musb/musb_gadget.c
->=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->--- linux-omap.orig/drivers/usb/musb/musb_gadget.c	2007-11-19 =
-17:49:41.000000000 +0530
->+++ linux-omap/drivers/usb/musb/musb_gadget.c	2007-11-19 =
-17:50:31.000000000 +0530
->@@ -499,7 +499,7 @@
->
-> 					DBG(4, "sending zero pkt\n");
-> 					musb_writew(epio, MUSB_TXCSR,
->-							MUSB_TXCSR_MODE
->+							csr | MUSB_TXCSR_MODE
-> 							| MUSB_TXCSR_TXPKTRDY);
-> 					request->zero =3D 0;
-> 				}
->_______________________________________________
->Linux-omap-open-source mailing list
->Linux-omap-open-source@linux.omap.com
->http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+I initially suspected the sampling rate issue, however even
+a 11KHz sample rate test mp3 file does not produce good results.
+
+
+I am using
+OMAP 1710 - Innovator H3
+Kernel 2.6.9
+mpg123 0.68
+
+I tried  Linux kernel 2.6.18-4 and got the same results.
+
+Can someone please help me debug this and get the audio working?
+
+thanks,
+Mano
+
+No virus found in this outgoing message.
+Checked by AVG Free Edition.
+Version: 7.5.503 / Virus Database: 269.16.1/1140 - Release Date: 11/19/2007
+7:05 PM
