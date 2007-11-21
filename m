@@ -1,10 +1,8 @@
-From: k c <omap_mails@hotmail.com>
-Subject: OMAP2420 2.6.9 kernel + gettimeofday issue
-Date: Wed, 21 Nov 2007 15:07:52 +0000
-Message-ID: <BAY119-W25A72BD3B539AE822CD3A1F9780@phx.gbl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [PATH 0/2] ARM: OMAP2: Camera: Fixes compile errors and adds little
+	improvements
+Date: Wed, 21 Nov 2007 12:43:49 -0400
+Message-ID: <1195663431-20390-1-git-send-email-edubezval@gmail.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -16,19 +14,33 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com
+Cc: Eduardo Valentin <eduardo.valentin@indt.org.br>, Sakari Ailus <sakari.ailus@nokia.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-=20
-  We are facing a strange issue. I am calling gettimeofday from my linux co=
-de to do profiling. I am noticing that the seconds returned is double of wh=
-at it should be. Can anyone let me know what could be the issue. This is on=
- OMAP2420 open source 2.6.9 kernel. I looked into do_gettimeofday implement=
-ation in /arch/arm/kernel/time.c but haven't figured out the issue yet. Any=
- help will be much appreciated.
-=20
-Thanks,
-KCR
-_________________________________________________________________
-Post free property ads on Yello Classifieds now! www.yello.in
-http://ss1.richmedia.in/recurl.asp?pid=3D220=
+Hi All,
+
+       This patch set fixes compile erros and adds little improvements
+camera code for omap2. Here is the overall description:
+
+V4l2:
+- Updates this camera driver to use correctly the new videobuf API.
+Corrently, changed to use videobuf_gen and videobuf_dma_sg.
+- Removed VIDEO_BUF reference from Kconfig.
+
+S/G:
+- Update this code to sg_* helper functions.
+
+ov9640:
+- Removes unecessary structures and functions when config OV9640
+is not selected.
+- Reduces powerset code for ov9640.
+
+Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+
+Overall diffstat:
+
+ arch/arm/mach-omap2/board-h4.c    |   71 +++++++++++---------------------------
+ drivers/media/video/Kconfig       |    3 +
+ drivers/media/video/omap24xxcam.c |   68 +++++++++++++++++++-----------------
+ drivers/media/video/omap24xxcam.h |    3 -
+ 4 files changed, 61 insertions(+), 84 deletions(-)
