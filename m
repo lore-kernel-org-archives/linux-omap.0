@@ -1,11 +1,14 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [PATCH 2/2] ARM: OMAP2: Camera: Improve ov9640 code on board-h4.c
-Date: Wed, 21 Nov 2007 12:43:51 -0400
-Message-ID: <1195663431-20390-3-git-send-email-edubezval@gmail.com>
-References: <1195663431-20390-1-git-send-email-edubezval@gmail.com>
-	<1195663431-20390-2-git-send-email-edubezval@gmail.com>
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1195663431-20390-2-git-send-email-edubezval@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/4] OMAP: DMA: Cleanup of DMA Request Lines
+Date: Wed, 21 Nov 2007 09:06:03 -0800
+Message-ID: <20071121170603.GH8138@atomide.com>
+References: <20071031131059.GG32547@atomide.com>
+	<010C7BAE6783F34D9AC336EE5A01A08804DC0E4B@dbde01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <010C7BAE6783F34D9AC336EE5A01A08804DC0E4B@dbde01.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,147 +16,66 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
-Cc: Eduardo Valentin <eduardo.valentin@indt.org.br>, Sakari Ailus <sakari.ailus@nokia.com>, linux-omap@vger.kernel.org
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Eduardo Valentin <eduardo.valentin@indt.org.br>
+Hi,
 
-- Removes unnecessary structures and functions when config OV9640
-is not selected.
-- Reduces powerset code for ov9640.
+* Gadiyar, Anand <gadiyar@ti.com> [071120 21:12]:
+> Hi, 
+> 
+> > -----Original Message-----
+> > From: Tony Lindgren [mailto:tony@atomide.com] 
+> > Sent: Wednesday, October 31, 2007 6:41 PM
+> 
+> > > +#ifndef CONFIG_ARCH_OMAP3
+> > >  #define OMAP24XX_DMA_CWT		8	/* S_DMA_7 */
+> > > +#endif
+> > > +
+> > >  #define OMAP24XX_DMA_AES_TX		9	/* S_DMA_8 */
+> > >  #define OMAP24XX_DMA_AES_RX		10	/* S_DMA_9 */
+> > >  #define OMAP24XX_DMA_DES_TX		11	/* S_DMA_10 */
+> > >  #define OMAP24XX_DMA_DES_RX		12	/* S_DMA_11 */
+> > > +
+> > > +#ifdef CONFIG_ARCH_OMAP3
+> > > +#define OMAP34XX_DMA_SHA2MD5_RX		13	/* S_DMA_12 */
+> > > +#else
+> > >  #define OMAP24XX_DMA_SHA1MD5_RX		13	/* S_DMA_12 */
+> > > +#endif
+> > > +
+> > > +#ifdef CONFIG_ARCH_OMAP2420
+> > >  #define OMAP24XX_DMA_EXT_DMAREQ2	14	/* S_DMA_13 */
+> > >  #define OMAP24XX_DMA_EXT_DMAREQ3	15	/* S_DMA_14 */
+> > >  #define OMAP24XX_DMA_EXT_DMAREQ4	16	/* S_DMA_15 */
+> > 
+> > Let's remove the #ifdefs here, we want to be able to compile 
+> > support for
+> > 24xx and 34xx into the same kernel eventually. It's OK to 
+> > have the same
+> > DMA request channel defined in different way for 24xx and 34xx.
+> 
+> I've just started re-working this patch. Let me check if I have understood
+> you correctly. Do you want me to remove only the #ifdefs around the
+> OMAP34XX_DMA_SHA2MD5_RX/OMAP24XX_DMA_SHA1MD5_RX?
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
----
- arch/arm/mach-omap2/board-h4.c |   70 ++++++++++++---------------------------
- 1 files changed, 22 insertions(+), 48 deletions(-)
+Yeah.
 
-diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-index 85649bb..8fde838 100644
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -525,6 +525,7 @@ static void __init tusb_evm_setup(void)
- 
- #endif
- 
-+#if defined(CONFIG_VIDEO_OV9640) || defined(CONFIG_VIDEO_OV9640_MODULE)
- /*
-  * Common OV9640 register initialization for all image sizes, pixel formats,
-  * and frame rates
-@@ -563,63 +564,37 @@ const static struct ov9640_reg ov9640_common[] = {
- 	{ OV9640_REG_TERM, OV9640_VAL_TERM }
- };
- 
--#if defined(CONFIG_VIDEO_OV9640) || defined(CONFIG_VIDEO_OV9640_MODULE)
--static int ov9640_sensor_powerup(void)
-+static int ov9640_sensor_power_set(int power)
- {
- 	unsigned char expa;
- 	int err;
- 
- 	/* read current state of GPIO EXPA outputs */
- 	if ((err = read_gpio_expa(&expa, 0x20))) {
--		printk(KERN_ERR "Error reading GPIO EXPA\n");
--		return err;
--	}
--	/* Set GPIO EXPA P3 (CAMERA_MODULE_EN) to power-up sensor */
--	if ((err = write_gpio_expa(expa | 0x08, 0x20))) {
--		printk(KERN_ERR "Error writing to GPIO EXPA\n");
--		return err;
--	}
--
--	/* read current state of GPIO EXPA outputs */
--	if ((err = read_gpio_expa(&expa, 0x22))) {
--		printk(KERN_ERR "Error reading GPIO EXPA\n");
--		return err;
--	}
--	/* Clear GPIO EXPA P7 (CAM_RST) */
--	if ((err = write_gpio_expa(expa & ~0x80, 0x22))) {
--		printk(KERN_ERR "Error writing to GPIO EXPA\n");
-+		printk(KERN_ERR "Error reading GPIO EXPA 0x20\n");
- 		return err;
- 	}
- 
--	return 0;
--}
--static int ov9640_sensor_powerdown(void)
--{
--	unsigned char expa;
--	int err;
-+	expa = power ? expa | 0x80 : expa & ~0x08;
- 
--	/* read current state of GPIO EXPA outputs */
--	if ((err = read_gpio_expa(&expa, 0x20))) {
--		printk(KERN_ERR "Error reading GPIO EXPA\n");
--		return err;
--	}
--	/* Clear GPIO EXPA P3 (CAMERA_MODULE_EN) to power-down sensor */
--	if ((err = write_gpio_expa(expa & ~0x08, 0x20))) {
--		printk(KERN_ERR "Error writing to GPIO EXPA\n");
-+	/* Set GPIO EXPA P3 (CAMERA_MODULE_EN) to power-up sensor */
-+	if ((err = write_gpio_expa(expa, 0x20))) {
-+		printk(KERN_ERR "Error writing to GPIO EXPA 0x20\n");
- 		return err;
- 	}
- 
--	return 0;
--}
--
--static int ov9640_sensor_power_set(int power)
--{
--	int err = 0;
--
--	if (power)
--		err = ov9640_sensor_powerup();
--	else
--		err = ov9640_sensor_powerdown();
-+	if (power) {
-+		/* read current state of GPIO EXPA outputs */
-+		if ((err = read_gpio_expa(&expa, 0x22))) {
-+			printk(KERN_ERR "Error reading GPIO EXPA\n");
-+			return err;
-+		}
-+		/* Clear GPIO EXPA P7 (CAM_RST) */
-+		if ((err = write_gpio_expa(expa & ~0x80, 0x22))) {
-+			printk(KERN_ERR "Error writing to GPIO EXPA\n");
-+			return err;
-+		}
-+	}
- 
- 	return err;
- }
-@@ -643,16 +618,13 @@ static int ov9640_ifparm(struct v4l2_ifparm *p)
- 
- 	return 0;
- }
--#else
--static int ov9640_sensor_power_set(int power) { return 0; }
--static int ov9640_ifparm(struct v4l2_ifparm *p) { return 0; }
--#endif
- 
- static struct ov9640_platform_data h4_ov9640_platform_data = {
- 	.power_set	= ov9640_sensor_power_set,
- 	.default_regs	= ov9640_common,
- 	.ifparm		= ov9640_ifparm,
- };
-+#endif
- 
- static struct i2c_board_info __initdata h4_i2c_board_info[] = {
- 	{
-@@ -664,10 +636,12 @@ static struct i2c_board_info __initdata h4_i2c_board_info[] = {
- 		I2C_BOARD_INFO("menelaus", 0x72),
- 		.irq = INT_24XX_SYS_NIRQ,
- 	},
-+#if defined(CONFIG_VIDEO_OV9640) || defined(CONFIG_VIDEO_OV9640_MODULE)
- 	{
- 		I2C_BOARD_INFO("ov9640", 0x30),
- 		.platform_data = &h4_ov9640_platform_data,
- 	},
-+#endif
- };
- 
- static void __init omap_h4_init(void)
--- 
-1.5.3.4.206.g58ba4
+> If this is the case, then wouldn't we run into trouble when we try to use a
+> request line with the same name but a different number - as is the case with
+> OMAP24XX_DMA_SHA1MD5_RX (13 on 24XX and 69 on 34XX)
+
+Then we should just define them as OMAP242X_DMA_ and OMAP34XX_DMA.
+
+> Also when you say "we want to be able to compile support for 24xx and 34xx into
+> the same kernel...", do you mean there will be a CONFIG_ARCH_OMAP2 as well as a
+> CONFIG_ARCH_OMAP3 defined at the same time?
+
+Yeah, that's already working for omap1. With -Wa gcc option we can
+mix in assembly for ARMv7.
+
+Regards,
+
+Tony
