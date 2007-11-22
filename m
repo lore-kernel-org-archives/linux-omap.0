@@ -1,15 +1,17 @@
-From: "Sameer" <x0081444@ti.com>
-Subject: [PATCH: Resending] - onenand - OMAP3 support - Kconfig update
-Date: Thu, 22 Nov 2007 10:29:48 +0530
-Message-ID: <014f01c82cc4$82ad3260$ec8818ac@ent.ti.com>
-References: <00c601c82aa7$faf8e620$ec8818ac@ent.ti.com>
-	<010001c82b47$71eae130$ec8818ac@ent.ti.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2: Camera: Improve ov9640 code on
+	board-h4.c
+Date: Thu, 22 Nov 2007 14:40:33 +0530
+Message-ID: <5d5443650711220110o5281e042x4db6d3901264848e@mail.gmail.com>
+References: <1195663431-20390-1-git-send-email-edubezval@gmail.com>
+	<1195663431-20390-2-git-send-email-edubezval@gmail.com>
+	<1195663431-20390-3-git-send-email-edubezval@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <010001c82b47$71eae130$ec8818ac@ent.ti.com>
+In-Reply-To: <1195663431-20390-3-git-send-email-edubezval@gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,85 +21,26 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: Eduardo Valentin <eduardo.valentin@indt.org.br>, Sakari Ailus <sakari.ailus@nokia.com>, linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi Eduardo,
 
-Hi,
-Please ignore the previous patch.
-The following patch provides the onenand support for OMAP3.
-The patch enables the onenand in def_config file, enable onenand Kconfig for OMAP3 and enables omap2_sleep_block() only if CONFIG_PM
-is defined.
-Also adding the signed off by line which was missed in the previous mail.
+On Nov 21, 2007 10:13 PM, Eduardo Valentin <edubezval@gmail.com> wrote:
+> From: Eduardo Valentin <eduardo.valentin@indt.org.br>
+>
+> - Removes unnecessary structures and functions when config OV9640
+> is not selected.
+> - Reduces powerset code for ov9640.
+>
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+> ---
 
+Thanx for the changes. Looks good to me. We have to make changes related
+to gpio expander apis if gpiolib goes upstrem by David Brownell.
 
-Regards,
--Sameer
+Acked-by: Trilok Soni <soni.trilok@gmail.com>
 
-Signed-off-by: Nishant Kamat <nskamat@ti.com>
-Signed-off-by: Sameer <sameersu@ti.com>
----
-Index: linux-omap-git-20071030/arch/arm/configs/omap_3430sdp_defconfig
-===================================================================
---- linux-omap-git-20071030.orig/arch/arm/configs/omap_3430sdp_defconfig
-2007-11-08 11:28:56.000000000 -0600
-+++ linux-omap-git-20071030/arch/arm/configs/omap_3430sdp_defconfig
-2007-11-08 11:29:23.000000000 -0600
-@@ -461,7 +461,10 @@
- CONFIG_MTD_ONENAND=y
- CONFIG_MTD_ONENAND_VERIFY_WRITE=y
- # CONFIG_MTD_ONENAND_GENERIC is not set
-+CONFIG_MTD_ONENAND_OMAP2=y
- # CONFIG_MTD_ONENAND_OTP is not set
-+# CONFIG_MTD_ONENAND_2X_PROGRAM is not set
-+# CONFIG_MTD_ONENAND_SIM is not set
-
- #
- # UBI - Unsorted block images
-Index: linux-omap-git-20071030/drivers/mtd/onenand/Kconfig
-===================================================================
---- linux-omap-git-20071030.orig/drivers/mtd/onenand/Kconfig    2007-11-08
-11:25:21.000000000 -0600
-+++ linux-omap-git-20071030/drivers/mtd/onenand/Kconfig 2007-11-08
-11:25:44.000000000 -0600
-@@ -28,10 +28,10 @@
-          Support for OneNAND flash via platform device driver.
-
- config MTD_ONENAND_OMAP2
--       tristate "OneNAND on OMAP2 support"
--       depends on MTD_ONENAND && ARCH_OMAP2
-+       tristate "OneNAND on OMAP2/OMAP3 support"
-+       depends on MTD_ONENAND && (ARCH_OMAP2 || ARCH_OMAP3)
-        help
--         Support for a OneNAND flash device connected to an OMAP2 CPU
-+         Support for a OneNAND flash device connected to an OMAP2/OMAP3 CPU
-          via the GPMC memory controller.
-
- config MTD_ONENAND_OTP
-Index: linux-omap-git-20071030/drivers/mtd/onenand/omap2.c
-===================================================================
---- linux-omap-git-20071030.orig/drivers/mtd/onenand/omap2.c    2007-11-08
-12:01:45.000000000 -0600
-+++ linux-omap-git-20071030/drivers/mtd/onenand/omap2.c 2007-11-08
-12:02:08.000000000 -0600
-@@ -39,7 +39,6 @@
- #include <asm/arch/onenand.h>
- #include <asm/arch/gpio.h>
- #include <asm/arch/gpmc.h>
--#include <asm/arch/pm.h>
-
- #include <linux/dma-mapping.h>
- #include <asm/dma-mapping.h>
-@@ -47,6 +46,13 @@
-
- #include <asm/arch/board.h>
-
-+#ifdef CONFIG_PM
-+#include <asm/arch/pm.h>
-+#else
-+#define omap2_block_sleep()    /* NULL */
-+#define omap2_allow_sleep()    /* NULL */
-+#endif
-+
- #define ONENAND_IO_SIZE                SZ_128K
- #define ONENAND_BUFRAM_SIZE    (1024 * 5)
+-- 
+--Trilok Soni
