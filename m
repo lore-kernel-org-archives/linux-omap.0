@@ -1,18 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] flush I-cache after omap_sram_push()
-Date: Fri, 23 Nov 2007 13:15:28 -0800
-Message-ID: <20071123211527.GH559@atomide.com>
-References: <20071114083010.938764990@pwsan.com>
-	<3B6D69C3A9EBCA4BA5DA60D913027429027B3E1E@dlee13.ent.ti.com>
-	<Pine.LNX.4.64.0711161223280.13378@utopia.booyaka.com>
-	<3B6D69C3A9EBCA4BA5DA60D9130274290282B603@dlee13.ent.ti.com>
-	<Pine.LNX.4.64.0711191208030.25712@utopia.booyaka.com>
-	<3B6D69C3A9EBCA4BA5DA60D9130274290282BF37@dlee13.ent.ti.com>
+Subject: Re: [PATCH] OMAP: Moving TWL id for i2c in board files
+Date: Fri, 23 Nov 2007 13:20:18 -0800
+Message-ID: <20071123212018.GI559@atomide.com>
+References: <47153419.2030609@indt.org.br>
+	<200711211506.lALF6e2t025107@dbdp31.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D9130274290282BF37@dlee13.ent.ti.com>
+In-Reply-To: <200711211506.lALF6e2t025107@dbdp31.itg.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,48 +16,67 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Chandra shekhar <x0044955@ti.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Woodruff, Richard <r-woodruff2@ti.com> [071120 08:16]:
-> > This patch implements a suggestion by Richard Woodruff
-> > <r-woodruff2@ti.com>.  omap_sram_push() copies executable code into
-> > SRAM memory.  Currently this happens before Linux executes anything
-> > from the SRAM, so we don't have to worry about evicting any SRAM lines
-> > from the I-cache.  But at some point in the future, the SRAM might be
-> > used more dynamically, adding and removing code while the system is
-> > running.  So we should ensure that the I-cache is clean or at
-> > least up-to-date after the copy.
-> > 
-> > Signed-off-by: Paul Walmsley <paul@pwsan.com>
+* Chandra shekhar <x0044955@ti.com> [071121 07:07]:
+> This patch moves the the adapter number from twl core file to board files. 
 > 
-> Signedoff-by: Richard Woodruff <r-woodruff2@ti.com>
+> Signed-off-by: chandra shekhar <x0044955@ti.com>
+> ---
+>  drivers/i2c/chips/twl4030_core.c |    2 --
+>  include/asm/arch/board-2430sdp.h |    3 +++
+>  include/asm/arch/board-3430sdp.h |    2 ++
+>  3 files changed, 5 insertions(+), 2 deletions(-)
+> 
+> Index: linux-git-anand-19NOV/drivers/i2c/chips/twl4030_core.c
+> ===================================================================
+> --- linux-git-anand-19NOV.orig/drivers/i2c/chips/twl4030_core.c	2007-11-18 23:30:05.000000000 -0500
+> +++ linux-git-anand-19NOV/drivers/i2c/chips/twl4030_core.c	2007-11-21 11:49:56.219607432 -0500
+> @@ -131,8 +131,6 @@
+>  #define HFCLK_FREQ_38p4_MHZ		(3 << 0)
+>  #define HIGH_PERF_SQ			(1 << 3)
 >  
-> > ---
-> >  arch/arm/plat-omap/sram.c |    1 +
-> >  1 file changed, 1 insertion(+)
-> > 
-> > Index: linux-omap/arch/arm/plat-omap/sram.c
-> > ===================================================================
-> > --- linux-omap.orig/arch/arm/plat-omap/sram.c	2007-11-16
-> > 17:41:42.000000000 -0700
-> > +++ linux-omap/arch/arm/plat-omap/sram.c	2007-11-16 17:43:18.000000000 -
-> > 0700
-> > @@ -216,6 +216,7 @@
-> >  	omap_sram_ceil -= size;
-> >  	omap_sram_ceil = ROUND_DOWN(omap_sram_ceil, sizeof(void *));
-> >  	memcpy((void *)omap_sram_ceil, start, size);
-> > +	flush_icache_range((unsigned long)start, (unsigned long)(start +
-> > size));
-> > 
-> >  	return (void *)omap_sram_ceil;
-> >  }
-> 
-> Looks good.
+> -/* on I2C-1 for 2430SDP */
+> -#define CONFIG_I2C_TWL4030_ID		1
+>  
+>  /**** Helper functions */
+>  static int
+> Index: linux-git-anand-19NOV/include/asm/arch/board-2430sdp.h
+> ===================================================================
+> --- linux-git-anand-19NOV.orig/include/asm/arch/board-2430sdp.h	2007-11-18 23:31:52.000000000 -0500
+> +++ linux-git-anand-19NOV/include/asm/arch/board-2430sdp.h	2007-11-21 11:49:25.828227624 -0500
+> @@ -34,6 +34,9 @@
+>  #define OMAP24XX_ETHR_GPIO_IRQ		149
+>  #define SDP2430_CS0_BASE		0x04000000
+>  
+> +/* on I2C-2 for 2430SDP */
+> +#define CONFIG_I2C_TWL4030_ID		2
+> +
+>  #define TWL4030_IRQNUM			INT_24XX_SYS_NIRQ
+>  
+>  /* TWL4030 Primary Interrupt Handler (PIH) interrupts */
+> Index: linux-git-anand-19NOV/include/asm/arch/board-3430sdp.h
+> ===================================================================
+> --- linux-git-anand-19NOV.orig/include/asm/arch/board-3430sdp.h	2007-11-18 23:31:52.000000000 -0500
+> +++ linux-git-anand-19NOV/include/asm/arch/board-3430sdp.h	2007-11-21 11:49:41.887786200 -0500
+> @@ -61,6 +61,8 @@
+>  #define ONENAND_MAP	0x20000000  /* OneNand flash */
+>  
+>  #ifdef CONFIG_TWL4030_CORE
+> +/* on I2C-1 for 3430SDP */
+> +#define CONFIG_I2C_TWL4030_ID           1
+>  
+>  #define TWL4030_IRQNUM INT_34XX_SYS_NIRQ
 
-Pushing today.
+This will again break any chance of compiling in support for multiple
+omap2 and omap3 boards. Could you please update this to get the ID
+configuration from board-*.c files? See how tps65010 handles it
+for example.
+
+Regards,
 
 Tony
