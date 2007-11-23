@@ -1,11 +1,14 @@
-From: "shanghai" <jacky_wang@ovt.com.cn>
-Subject: OMAP2430 RESET STANDBY GPIO can not set
-Date: Fri, 23 Nov 2007 22:07:38 +0800
-Message-ID: <20071123140541.M90782@ovt.com.cn>
+From: Lauri Leukkunen <lauri.leukkunen@nokia.com>
+Subject: Re: Nokia N810 support
+Date: Fri, 23 Nov 2007 03:45:46 +0200
+Message-ID: <20071123014546.GA12883@pure.research.nokia.com>
+References: <1195778318-12008-1-git-send-email-lauri.leukkunen@nokia.com>
+	<1195808944.32096.11.camel@mort>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=gb2312
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <1195808944.32096.11.camel@mort>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,32 +18,28 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com, linux-omap@vger.kernel.org
+To: Igor Stoppa <igor.stoppa@nokia.com>
+Cc: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi:
-	I am working on omap2430sdp for developing camera driver.But I found I can 
-not operate the GPIO: STANDBY and RESET pin when I pull it high or set it low?I am 
-using kernel2.6.14 and dip S4-S10 setting like this:
-S10
-1 2 3 4
-ON ON ON ON
-S9
-1 2 3 4 5 6 7 8
-ON ON ON ON ON ON ON OFF
-S8
-1 2 3 4 5 6 7 8
-ON ON ON ON ON ON ON OFF
-S6
-1 2 3 4 5 6 7 8
-ON ON OFF OFF OFF OFF OFF ON
-S4
-1 2 3 4 5 6 7 8
-OFF OFF OFF OFF ON ON OFF OFF
+On 23/11/07 11:09 +0200, Igor Stoppa wrote:
+> Hi,
+> On Fri, 2007-11-23 at 02:38 +0200, ext Lauri Leukkunen wrote:
+> > This patch-set provides basic support for N810. Comments are welcome,
+> > especially concerning structuring of the board-nXX.c files in the
+> > future.
+> 
+> Would it make sense to have just one common set of files for platforms
+> that are almost identical and can run the same binaries?
+> 
+> The Nokia product naming scheme might not help us, but what about
+> board-nokia-2420.c ?
 
-should I change the DIP state to enable the camera interface or somewhere in kernel 
-need check?
-any suggestion are welcome!
+I decided against renaming the board-n800*.c files to keep the patch
+small. Also I think it is more obvious to use a real product name, instead of
+a reference to the particular chip they're using. Let's see how this works
+out. Right now the n800 files are effectively the common set, n810 will be
+the product specific one. As we work on publishing the different drivers
+maybe we'll evolve this towards board-nokia-2420.
 
---
-Open WebMail Project (http://openwebmail.org)
+/lauri
