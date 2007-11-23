@@ -1,15 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Enable OMAP3 SDRC clock on init.
-Date: Fri, 23 Nov 2007 12:34:12 -0800
-Message-ID: <20071123203412.GF559@atomide.com>
-References: <1195597014-14054-1-git-send-email-khilman@mvista.com>
-	<1195598689.17706.16.camel@vence.hilman.org>
-	<1195599539.17706.20.camel@vence.hilman.org>
+Subject: Re: [PATCH] ARM: OMAP: USB: Define OMAP34XX_HSUSB_OTG_BASE
+Date: Fri, 23 Nov 2007 13:13:39 -0800
+Message-ID: <20071123211338.GG559@atomide.com>
+References: <31e679430711191127q158bd600q3e399617b343eec0@mail.gmail.com>
+	<5DF83221BE20114E9C331F665ACBC08003ED7054@dbde01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <1195599539.17706.20.camel@vence.hilman.org>
+In-Reply-To: <5DF83221BE20114E9C331F665ACBC08003ED7054@dbde01.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,25 +18,22 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kevin Hilman <khilman@mvista.com>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@mvista.com> [071120 15:00]:
+* Pandita, Vikram <vikram.pandita@ti.com> [071123 04:45]:
+> Tony 
+>  This patch: 
+>  1) Correctly defines the base address for HSUSB_OTG block (MUSB)
+>     Patch by Filipe had incorrect base address for 34xx
 > 
-> On Tue, 2007-11-20 at 14:44 -0800, Kevin Hilman wrote:
-> > On Tue, 2007-11-20 at 14:16 -0800, Kevin Hilman wrote:
-> > > Enable sdrc_ick on init so it doesn't get disabled when
-> > > CONFIG_OMAP_RESET_CLOCKS=y
-> > 
-> > FYI... with this patch and the previous UART3 patch, the 'disable unused
-> > clocks' feature is working on 3430SDP
+>  2) Includes the base addresses of: USBTLL and USBHOST present in 3430ES2.0
+> 
+> Felipe
+>  I see that for 34XX the base address for HSUSB_OTG is not correctly defined
+>  by your patch so resending with modifications
 
-Nice.
-
-> I forgot to mention that for this to work in 32k-timer mode, the my
-> 32k-timer fixups for OMAP3430[1] are needed.
-
-I'm pushing those today except the one I think breaks 15xx.
+Pushing this patch and the two others by Felipe.
 
 Tony
