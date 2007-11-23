@@ -1,7 +1,7 @@
 From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: [PATCH] ARM: OMAP: Fix typo in arch/arm/mach-omap2/clock34xx.h
-Date: Fri, 23 Nov 2007 20:05:03 +0530
-Message-ID: <010C7BAE6783F34D9AC336EE5A01A08804E3D34D@dbde01.ent.ti.com>
+Subject: [PATCH] OMAP: USB: Fix compile warnings in board-2430sdp-usb.c
+Date: Fri, 23 Nov 2007 21:10:34 +0530
+Message-ID: <010C7BAE6783F34D9AC336EE5A01A08804E3D369@dbde01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -22,27 +22,30 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Anand Gadiyar <gadiyar@ti.com>
 
-Fix typo in clock34xx.h
+Fixes warnings during compilation with CONFIG_USB_GADGET_MUSB_HDRC=3Dy
 
 Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 ---
- arch/arm/mach-omap2/clock34xx.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-omap2/board-2430sdp-usb.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Index: linux-omap-2.6-NOV23/arch/arm/mach-omap2/clock34xx.h
+Index: linux-omap-2.6-NOV23/arch/arm/mach-omap2/board-2430sdp-usb.c
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-omap-2.6-NOV23.orig/arch/arm/mach-omap2/clock34xx.h	2007-11-23 =
-11:36:45.841170240 -0500
-+++ linux-omap-2.6-NOV23/arch/arm/mach-omap2/clock34xx.h	2007-11-23 =
-11:36:55.411715296 -0500
-@@ -1088,7 +1088,7 @@
- };
-=20
- static struct clk hsotgusb_ick =3D {
--	.name		=3D "hsotgusb_fck",
-+	.name		=3D "hsotgusb_ick",
- 	.parent		=3D &core_l3_ick,
- 	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
- 	.enable_bit	=3D OMAP3430_EN_HSOTGUSB_SHIFT,
+--- linux-omap-2.6-NOV23.orig/arch/arm/mach-omap2/board-2430sdp-usb.c	=
+2007-11-23 11:36:45
++++ linux-omap-2.6-NOV23/arch/arm/mach-omap2/board-2430sdp-usb.c	=
+2007-11-23 11:41:41
+@@ -37,9 +37,9 @@
+ static struct musb_hdrc_platform_data musb_plat =3D {
+ #ifdef CONFIG_USB_MUSB_OTG
+ 	.mode		=3D MUSB_OTG,
+-#elif CONFIG_USB_MUSB_HDRC_HCD
++#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
+ 	.mode		=3D MUSB_HOST,
+-#elif CONFIG_USB_GADGET_MUSB_HDRC
++#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
+ 	.mode		=3D MUSB_PERIPHERAL,
+ #endif
+ 	.multipoint	=3D 1,
