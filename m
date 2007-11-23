@@ -1,14 +1,13 @@
-From: Lauri Leukkunen <lauri.leukkunen@nokia.com>
-Subject: Re: Nokia N810 support
-Date: Fri, 23 Nov 2007 03:45:46 +0200
-Message-ID: <20071123014546.GA12883@pure.research.nokia.com>
-References: <1195778318-12008-1-git-send-email-lauri.leukkunen@nokia.com>
-	<1195808944.32096.11.camel@mort>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: [PATCH] ARM: OMAP: Fix typo in arch/arm/mach-omap2/clock34xx.h
+Date: Fri, 23 Nov 2007 20:05:03 +0530
+Message-ID: <010C7BAE6783F34D9AC336EE5A01A08804E3D34D@dbde01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <1195808944.32096.11.camel@mort>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,28 +17,32 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Igor Stoppa <igor.stoppa@nokia.com>
-Cc: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On 23/11/07 11:09 +0200, Igor Stoppa wrote:
-> Hi,
-> On Fri, 2007-11-23 at 02:38 +0200, ext Lauri Leukkunen wrote:
-> > This patch-set provides basic support for N810. Comments are welcome,
-> > especially concerning structuring of the board-nXX.c files in the
-> > future.
-> 
-> Would it make sense to have just one common set of files for platforms
-> that are almost identical and can run the same binaries?
-> 
-> The Nokia product naming scheme might not help us, but what about
-> board-nokia-2420.c ?
+From: Anand Gadiyar <gadiyar@ti.com>
 
-I decided against renaming the board-n800*.c files to keep the patch
-small. Also I think it is more obvious to use a real product name, instead of
-a reference to the particular chip they're using. Let's see how this works
-out. Right now the n800 files are effectively the common set, n810 will be
-the product specific one. As we work on publishing the different drivers
-maybe we'll evolve this towards board-nokia-2420.
+Fix typo in clock34xx.h
 
-/lauri
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+---
+ arch/arm/mach-omap2/clock34xx.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-omap-2.6-NOV23/arch/arm/mach-omap2/clock34xx.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-omap-2.6-NOV23.orig/arch/arm/mach-omap2/clock34xx.h	2007-11-23 =
+11:36:45.841170240 -0500
++++ linux-omap-2.6-NOV23/arch/arm/mach-omap2/clock34xx.h	2007-11-23 =
+11:36:55.411715296 -0500
+@@ -1088,7 +1088,7 @@
+ };
+=20
+ static struct clk hsotgusb_ick =3D {
+-	.name		=3D "hsotgusb_fck",
++	.name		=3D "hsotgusb_ick",
+ 	.parent		=3D &core_l3_ick,
+ 	.enable_reg	=3D OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+ 	.enable_bit	=3D OMAP3430_EN_HSOTGUSB_SHIFT,
