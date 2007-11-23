@@ -1,15 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH: Resending] - onenand - OMAP3 support - Kconfig update
-Date: Fri, 23 Nov 2007 13:28:31 -0800
-Message-ID: <20071123212831.GJ559@atomide.com>
-References: <00c601c82aa7$faf8e620$ec8818ac@ent.ti.com>
-	<010001c82b47$71eae130$ec8818ac@ent.ti.com>
-	<014f01c82cc4$82ad3260$ec8818ac@ent.ti.com>
+Subject: Re: [PATCH] OMAP: FLASH: Move Flash specific device info in a
+	separate board file
+Date: Fri, 23 Nov 2007 13:35:12 -0800
+Message-ID: <20071123213512.GK559@atomide.com>
+References: <AC2D475575504148943F5EB0938951C4012717DD@dbde01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <014f01c82cc4$82ad3260$ec8818ac@ent.ti.com>
+In-Reply-To: <AC2D475575504148943F5EB0938951C4012717DD@dbde01.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,94 +18,58 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Sameer <x0081444@ti.com>
+To: "Choraria, Rohit" <rohitkc@ti.com>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-* Sameer <x0081444@ti.com> [071121 21:00]:
-> 
+* Choraria, Rohit <rohitkc@ti.com> [071120 06:24]:
 > Hi,
-> Please ignore the previous patch.
-> The following patch provides the onenand support for OMAP3.
-> The patch enables the onenand in def_config file, enable onenand Kconfig for OMAP3 and enables omap2_sleep_block() only if CONFIG_PM
-> is defined.
-> Also adding the signed off by line which was missed in the previous mail.
-> 
-> 
-> Regards,
-> -Sameer
-> 
-> Signed-off-by: Nishant Kamat <nskamat@ti.com>
-> Signed-off-by: Sameer <sameersu@ti.com>
-> ---
-> Index: linux-omap-git-20071030/arch/arm/configs/omap_3430sdp_defconfig
-> ===================================================================
-> --- linux-omap-git-20071030.orig/arch/arm/configs/omap_3430sdp_defconfig
-> 2007-11-08 11:28:56.000000000 -0600
-> +++ linux-omap-git-20071030/arch/arm/configs/omap_3430sdp_defconfig
-> 2007-11-08 11:29:23.000000000 -0600
-> @@ -461,7 +461,10 @@
->  CONFIG_MTD_ONENAND=y
->  CONFIG_MTD_ONENAND_VERIFY_WRITE=y
->  # CONFIG_MTD_ONENAND_GENERIC is not set
-> +CONFIG_MTD_ONENAND_OMAP2=y
->  # CONFIG_MTD_ONENAND_OTP is not set
-> +# CONFIG_MTD_ONENAND_2X_PROGRAM is not set
-> +# CONFIG_MTD_ONENAND_SIM is not set
-> 
->  #
->  # UBI - Unsorted block images
-> Index: linux-omap-git-20071030/drivers/mtd/onenand/Kconfig
-> ===================================================================
-> --- linux-omap-git-20071030.orig/drivers/mtd/onenand/Kconfig    2007-11-08
-> 11:25:21.000000000 -0600
-> +++ linux-omap-git-20071030/drivers/mtd/onenand/Kconfig 2007-11-08
-> 11:25:44.000000000 -0600
-> @@ -28,10 +28,10 @@
->           Support for OneNAND flash via platform device driver.
-> 
->  config MTD_ONENAND_OMAP2
-> -       tristate "OneNAND on OMAP2 support"
-> -       depends on MTD_ONENAND && ARCH_OMAP2
-> +       tristate "OneNAND on OMAP2/OMAP3 support"
-> +       depends on MTD_ONENAND && (ARCH_OMAP2 || ARCH_OMAP3)
->         help
-> -         Support for a OneNAND flash device connected to an OMAP2 CPU
-> +         Support for a OneNAND flash device connected to an OMAP2/OMAP3 CPU
->           via the GPMC memory controller.
-> 
->  config MTD_ONENAND_OTP
-> Index: linux-omap-git-20071030/drivers/mtd/onenand/omap2.c
-> ===================================================================
-> --- linux-omap-git-20071030.orig/drivers/mtd/onenand/omap2.c    2007-11-08
-> 12:01:45.000000000 -0600
-> +++ linux-omap-git-20071030/drivers/mtd/onenand/omap2.c 2007-11-08
-> 12:02:08.000000000 -0600
-> @@ -39,7 +39,6 @@
->  #include <asm/arch/onenand.h>
->  #include <asm/arch/gpio.h>
->  #include <asm/arch/gpmc.h>
-> -#include <asm/arch/pm.h>
-> 
->  #include <linux/dma-mapping.h>
->  #include <asm/dma-mapping.h>
-> @@ -47,6 +46,13 @@
-> 
->  #include <asm/arch/board.h>
-> 
-> +#ifdef CONFIG_PM
-> +#include <asm/arch/pm.h>
-> +#else
-> +#define omap2_block_sleep()    /* NULL */
-> +#define omap2_allow_sleep()    /* NULL */
-> +#endif
-> +
->  #define ONENAND_IO_SIZE                SZ_128K
->  #define ONENAND_BUFRAM_SIZE    (1024 * 5)
-> 
+> This patch moves the SDP3430 NOR and OneNAND devices to a new file
+> board-3430sdp-flash.c. It also adds the support for ethernet on ES2 SDP.
 
-How about defining these in asm/arch/pm.h instead?
+<snip>
+
+> --- linux-omap.orig/include/asm-arm/arch-omap/gpmc.h	2007-11-19 13:36:16.000000000 -0500
+> +++ linux-omap/include/asm-arm/arch-omap/gpmc.h	2007-11-20 11:24:38.032203488 -0500
+> @@ -14,6 +14,36 @@
+>  /* Maximum Number of Chip Selects */
+>  #define GPMC_CS_NUM		8
+>  
+> +#define GPMC_REVISION		0x00
+> +#define GPMC_SYSCONFIG		0x10
+> +#define GPMC_SYSSTATUS		0x14
+> +#define GPMC_IRQSTATUS		0x18
+> +#define GPMC_IRQENABLE		0x1C
+> +#define GPMC_TIMEOUT_CTRL	0x40
+> +#define GPMC_ERR_ADDRESS	0x44
+> +#define GPMC_ERR_TYPE		0x48
+> +#define GPMC_CONFIG		0x50
+> +#define GPMC_STATUS		0x54
+> +#define GPMC_PREFETCH_CONFIG1	0x1e0
+> +#define GPMC_PREFETCH_CONFIG2	0x1e4
+> +#define GPMC_PREFETCH_CONTROL	0x1e8
+> +#define GPMC_PREFETCH_STATUS	0x1f0
+> +#define GPMC_ECC_CONFIG		0x1F4
+> +#define GPMC_ECC_CONTROL	0x1F8
+> +#define GPMC_ECC_SIZE_CONFIG	0x1FC
+> +#define GPMC_ECC1_RESULT	0x200
+> +#define GPMC_ECC2_RESULT	0x204
+> +#define GPMC_ECC3_RESULT	0x208
+> +#define GPMC_ECC4_RESULT	0x20C
+> +#define GPMC_ECC5_RESULT	0x210
+> +#define GPMC_ECC6_RESULT	0x214
+> +#define GPMC_ECC7_RESULT	0x218
+> +#define GPMC_ECC8_RESULT	0x21C
+> +#define GPMC_ECC9_RESULT	0x220
+> +
+> +#define GPMC_CS0_BASE		0x60
+> +#define GPMC_CS_SIZE		0x30
+> +
+...
+
+How about actually starting to use the generic gpmc code rather than
+moving the defines around?
 
 Tony
