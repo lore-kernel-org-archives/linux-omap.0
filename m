@@ -1,17 +1,11 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RESEND 0/4] Runtime constants: define (some) OMAP
-	address bases at runtime rather than compile time for multiboot
-Date: Fri, 23 Nov 2007 14:08:48 -0800
-Message-ID: <20071123220848.GP559@atomide.com>
-References: <20071121001620.571082090@pwsan.com>
-	<20071121090339.4f256297.jarkko.nikula@nokia.com>
-	<Pine.LNX.4.64.0711210009220.31116@utopia.booyaka.com>
-	<20071121095605.a929f07d.jarkko.nikula@nokia.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Pending October/November patches
+Date: Sat, 24 Nov 2007 07:52:35 +0100
+Message-ID: <4747CA33.7020704@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <20071121095605.a929f07d.jarkko.nikula@nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,46 +15,49 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: ext Paul Walmsley <paul@pwsan.com>, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
+Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Jarkko Nikula <jarkko.nikula@nokia.com> [071120 23:55]:
-> On Wed, 21 Nov 2007 00:13:17 -0700 (MST)
-> "ext Paul Walmsley" <paul@pwsan.com> wrote:
-> 
-> > > How about calling omap2_set_globals_242x() from
-> > > arch/arm/mach-omap2/io.c: omap2_map_common_io() in order to avoid
-> > > modifications to n board files?
-> > 
-> > We could do that, but we'd still need to modify the board files to
-> > pass in the OMAP type to omap2_map_common_io().  
-> > 
-> > In an ideal world, we could just use omap2_check_revision() to
-> > determine the CPU type at runtime, but the TAP base address is not
-> > the same across all OMAPs, and must therefore itself be modified for
-> > multiboot :-(
-> > 
-> Ah, yes, I see. Chicken and egg problem.
-> 
-> void __init omap2_map_common_io(void)
-> {
-> ...
-> 	/* revision? TAP base ?*/
-> 	omap2_check_revision();
-> ...
-> 
-> I think at this point it is better to modify n board files, as your set
-> is doing, instead of modifying omap2_map_common_io() API? At least both
-> add & possible clean-up patches will be just one liners only.
 
-I guess later on we could try autodetect the TAP base :)
+Just had a look to my pending patches list. After Tonys great work 
+there are only few left:
 
-Pushing today, like you said improvments to CPU detection will be
-trivial patches. And we may want to have both functions in place
-so we can printk warnings if CPU detection code does not match what's
-set in the board files.
+1. [PATCH 1-6/6] musb_hdrc: Improve tusb clocking, add 
+musb_platform_wakeup()
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-October/011673.html
+...
 
-Regards,
+2. [PATCH] omap: nokia770 compilation fix
+http://lists.arm.linux.org.uk/pipermail/linux-arm-kernel/2007-October/042794.html
 
-Tony
+(Note: This is on ARM list, not OMAP)
+
+3. Re: [PATCH] initial musb urb fixes to make it work again
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-October/011810.html
+
+4. [PATCH] OMAP: MUSB: MUSB fix to work as Module for 24xx/Davinci
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-November/012084.html
+
+5. [PATCH-REWORKED] OMAP: MUSB: MUSB gadget fix
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-November/012122.html
+
+6.[PATH 0/3] ARM: OMAP1: Camera: Updates API usage and removes unused 
+files
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-November/012132.html
+
+7.
+[PATCH] OMAP: Initial N810 support
+[PATCH] OMAP: Add temporary NOKIA_N810 machine type
+[PATCH] OMAP: Update n800_defconfig
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-November/012143.html
+...
+
+As ususal, please comment, correct or update if anything is missing. 
+They all still apply against most recent git. Sorry if I overlooked 
+any comment or already done reject. The number of patches increases: 
+good for OMAP Linux, harder to track ;)
+
+Regards
+
+Dirk
