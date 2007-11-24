@@ -1,8 +1,8 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [PATCH 0/1] OMAP: DMA: Attribution necessary only if the ch is not
+Subject: [PATCH 1/1] OMAP: DMA: Attribution necessary only if the ch is not
  chained.
-Date: Sat, 24 Nov 2007 18:29:34 -0400
-Message-ID: <4748A5CE.7080602@indt.org.br>
+Date: Sat, 24 Nov 2007 18:29:43 -0400
+Message-ID: <4748A5D7.2040509@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
@@ -19,29 +19,30 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Anand and folks,
+From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 
-Since the merging of linux-omap tree with linus tree, I'm facing a problem with MMC multislot support on N800 boards, that stops working. 
+Attribution necessary only if the ch is not chained on arch/arm/plat-omap/dma.c
 
-Well, after investigating recent modifications on DMA, I was verifying Anand Gadiyar' patch 'OMAP: DMA: Added support for DMA chaining' and I realize a line of this patch is the source of the problem.
+Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+Signed-off-by: Ragner Magalhaes <ragner.magalhaes@indt.org.br>
+---
+ arch/arm/plat-omap/dma.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Apparently, the attribution 
-
-+       status = OMAP_DMA_CSR_REG(ch);
-
-is necessary only if the ch is not chained.
-
-Tested on N800 with MMC multislot support and works fine again.
-
-BR,
-
-Carlos.
-
--- 
-Carlos Eduardo Aguiar
-Nokia Institute of Technology - INdT
-Open Source Mobile Research Center - OSMRC - Manaus
-Core Team
-Phone: +55 92 2126-1079
-Mobile: +55 92 8127-1797
-E-mail: carlos.aguiar@indt.org.br
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index dd0c874..a3c5d4f 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -1709,9 +1709,9 @@ static int omap2_dma_handle_ch(int ch)
+ 
+ 		if (!OMAP_DMA_CHAIN_QEMPTY(chain_id))
+ 			OMAP_DMA_CHAIN_INCQHEAD(chain_id);
+-	}
+ 
+-	status = OMAP_DMA_CSR_REG(ch);
++		status = OMAP_DMA_CSR_REG(ch);
++	}
+ 
+ 	if (likely(dma_chan[ch].callback != NULL)) {
+ 		if (dma_chan[ch].chain_id != -1)
+-- 1.5.3.GIT
