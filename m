@@ -1,18 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] ARM: OMAP: Remove MPU-timer based sched_clock()
-Date: Mon, 26 Nov 2007 12:12:07 -0800
-Message-ID: <20071126201207.GI21886@atomide.com>
-References: <20071112232401.723638265@mvista.com>
-	<20071112232414.658134414@mvista.com>
-	<20071123191815.GA559@atomide.com>
-	<1196092764.8693.10.camel@vence.hilman.org>
-	<20071126184004.GC21886@atomide.com>
-	<1196105429.8693.43.camel@vence.hilman.org>
+From: "Krishna Prasad Herur" <kherur@nextwave.com>
+Subject: RE: Peculiar Behaviour of the GPIO Program
+Date: Mon, 26 Nov 2007 15:55:21 -0800
+Message-ID: <E6CCDC65B8C522458685D8D1F145FEA801A34BA7@CA2-MSX-C01.nw.net>
+References: <74079.72407.qm@web7604.mail.in.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <1196105429.8693.43.camel@vence.hilman.org>
+Content-class: urn:content-classes:message
+In-Reply-To: <74079.72407.qm@web7604.mail.in.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -22,55 +19,111 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kevin Hilman <khilman@mvista.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: "Azhar Mr." <shaik.azharuddin@yahoo.co.in>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@mvista.com> [071126 11:30]:
-> 
-> On Mon, 2007-11-26 at 10:40 -0800, Tony Lindgren wrote:
-> > * Kevin Hilman <khilman@mvista.com> [071126 07:59]:
-> > > 
-> > > On Fri, 2007-11-23 at 11:18 -0800, Tony Lindgren wrote:
-> > > > * Kevin Hilman <khilman@mvista.com> [071112 15:25]:
-> > > > > Remove MPU-timer based sched_clock() in favor of the common one based
-> > > > > on 32k sync timer which works across all OMAP1/2/3 platforms.
-> > > > > 
-> > > > > Using 32k based one also gives a valid sched_clock() very early in the
-> > > > > boot process.
-> > > > 
-> > > > AFAIK there is no 32k sync timer for 15xx, or have I missed something?
-> > > > 
-> > > 
-> > > No there isn't.
-> > > 
-> > > But all this means is that 15xx has no higher resolution sched_clock().
-> > > The ARM default jiffies-based one will be used.
-> > 
-> > I guess I don't understand what you're after by not using mpu timer 2
-> > for proper sched_clock, some PM issues?
-> 
-> The main reason was for cleanup purposes.  There were various Kconfig
-> combinations that would configure different sched_clock() sources based
-> on MPU timers or 32k timers.  
-> 
-> I was after having a consistent sched_clock() no matter which MPU or 32k
-> timers were enabled, and which could work on all/most platforms.  The
-> result is that everything with a 32k sync timer gets a 32k
-> sched_clock(), everyone else gets a jiffies-based one.
+The GPIO driver does not automatically do the required pin muxing for
+you. It is possible that the pin you are looking at is muxed with other
+signals. Look at the OMAP TRM, and set the Pin Mux register correctly.
+-Prasad
 
-OK
+-----Original Message-----
+From: =
+linux-omap-open-source-bounces+kherur=3Dnextwave.com@linux.omap.com
+[mailto:linux-omap-open-source-bounces+kherur=3Dnextwave.com@linux.omap.c=
+o
+m] On Behalf Of Azhar Mr.
+Sent: Thursday, November 22, 2007 10:35 PM
+To: linux-omap-open-source@linux.omap.com
+Subject: Peculiar Behaviour of the GPIO Program
 
-> The secondary reason was to not have sched_clock() based on a timer that
-> might stop during PM activity like suspend.
-> 
-> > Maybe for PM reasons not having mpu timer 2 running could make sense if
-> > it blocks some sleep states. But then again there's no timesource during
-> > sleep states unless mpu timer 2 can use the 32K clock as a source clock..
-> 
+Dear all,
+  =20
+  I am working on OMAP5912 OSK.
+  =20
+  I am trying to write a simple GPIO Program to write a value '1' to a
+particular free GPIO Pin. For that I had written a program led_glow.c
+given below.
+  =20
+  /* define any of the valid GPIO pins as LED_GPIO */
+  #define LED_GPIO 18
+  =20
+  =20
+  /* Defines the value written to the pin defined as LED_GPIO */
+  =20
+  #define LED_STATUS 1
+  =20
+  MODULE_LICENSE("Dual BSD/GPL");
+  =20
+  =20
+  int init_module(void)
+  {
+        /* requesting for LED_GPIO */
+        if(omap_request_gpio(LED_GPIO)<0)
+        {
+   printk("[ERROR]: Failed in allocating the requested GPIO Pin \n");
+              return -1;
+        }
+       =20
+        /* setting LED_GPIO as output pin */
+  =20
+       omap_set_gpio_direction(LED_GPIO,0);
+  =20
+        /* writing to LED_GPIO the value of LED_STATUS */
+  =20
+        omap_set_gpio_dataout(LED_GPIO,LED_STATUS);
+  =20
+        /* printing the value of LED_GPIO pin */
+  =20
+  printk("value of pin # %d =3D
+%d\n",LED_GPIO,omap_get_gpio_datain(LED_GPIO));
+  =20
+        return 0;
+  }
+  =20
+  void cleanup_module(void)
+  {
+        omap_free_gpio(LED_GPIO);    =20
+  printk("[SUCCESS]: LED_GLOW Module unregistered successfull.\n");
+  }
+  =20
+  =20
+  I included our led_glow.c as a module in the Linux-2.6.22/drivers/leds
+directory .
+  =20
+  Then using arm-linux-gcc compiler, I compiled the led_glow.c code to
+obtain led_glow.ko
+  =20
+  Then using the insmod I inserted the module led_glow.ko in the
+  OSK5912 Environment.
+  =20
+  I tested the module with various free GPIO-Pins of Expansion connector
+'C'
+  =20
+  For some GPIO pins it is able to write the value '1' and for some pins
+it is unable to write '1'
+  =20
+  Sh-3.00# value of pin #15 =3D 1
+  Sh-3.00# value of pin #16 =3D 1
+  Sh-3.00# value of pin #17=3D 0
+  Sh-3.00# value of pin #20 =3D 0
+  =20
+  I tested all the free GPIO pins of EXPANSION CONEECTOR C, irrespective
+of the printed value at the GPIO Pins at all the GPIO Pins I can observe
+only '0' value in the C.R.O. I could not get any response in the C.R.O
+  =20
+  I don't understand this peculiar behavior of my GPIO-CODE.
+  =20
+  Please Help
+  =20
+  With Regards
+  =20
+  Azhar
 
-OK, I'll apply that patch, let's let the 15xx users add it back if needed ;)
-
-Regards,
-
-Tony
+      =20
+---------------------------------
+ Bring your gang together - do your thing.  Start your group.
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
