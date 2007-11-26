@@ -1,8 +1,8 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [PATCH 12/17] MMC: OMAP: Make board-h3.c uses new board-h3-mmc.c
+Subject: [PATCH 16/17] MMC: OMAP: Make board-sx1.c uses new board-sx1-mmc.c
  code
-Date: Mon, 26 Nov 2007 12:01:49 -0400
-Message-ID: <474AEDED.9030704@indt.org.br>
+Date: Mon, 26 Nov 2007 12:02:04 -0400
+Message-ID: <474AEDFC.7070109@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
@@ -19,177 +19,102 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Felipe Balbi <felipe.lima@indt.org.br>
+From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 
-Make board-h3.c file uses new board-h3-mmc.c code.
+Make board-sx1.c file uses new board-sx1-mmc.c code.
 
 This patch also:
 - Introduces a new gpio_switch to get events when inserting and removing
   MMC/SD/SDIO cards to/from the slot.
-- Enables the following options on omap_h3_1710_defconfig to use
+- Enables the GPIO switch support option on sx1_defconfig to use
   multislot support:
-  - GPIO switch support
-  - MSDOS fs support
-  - VFAT fs support
-  - Codepage 437
-  - NLS ISO 8859-1
 
-Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
-Signed-off-by: Anderson Briglia <anderson.briglia@indt.org.br>
 Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-Signed-off-by: David Cohen <david.cohen@indt.org.br>
-Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
 ---
- arch/arm/configs/omap_h3_1710_defconfig |   50 ++++++++++++++++++++++++++++--
- arch/arm/mach-omap1/Makefile            |    2 +-
- arch/arm/mach-omap1/board-h3.c          |   25 +++++++++++++--
- 3 files changed, 68 insertions(+), 9 deletions(-)
+ arch/arm/configs/sx1_defconfig  |    2 +-
+ arch/arm/mach-omap1/Makefile    |    2 +-
+ arch/arm/mach-omap1/board-sx1.c |   22 ++++++++++++++++++----
+ 3 files changed, 20 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/configs/omap_h3_1710_defconfig b/arch/arm/configs/omap_h3_1710_defconfig
-index 938d4fc..5cebec7 100644
---- a/arch/arm/configs/omap_h3_1710_defconfig
-+++ b/arch/arm/configs/omap_h3_1710_defconfig
-@@ -149,7 +149,7 @@ CONFIG_ARCH_OMAP1=y
- #
- # CONFIG_OMAP_RESET_CLOCKS is not set
- # CONFIG_OMAP_BOOT_TAG is not set
+diff --git a/arch/arm/configs/sx1_defconfig b/arch/arm/configs/sx1_defconfig
+index 808dd99..853dcdd 100644
+--- a/arch/arm/configs/sx1_defconfig
++++ b/arch/arm/configs/sx1_defconfig
+@@ -159,7 +159,7 @@ CONFIG_ARCH_OMAP1=y
+ CONFIG_OMAP_BOOT_TAG=y
+ # CONFIG_OMAP_BOOT_REASON is not set
+ # CONFIG_OMAP_COMPONENT_VERSION is not set
 -# CONFIG_OMAP_GPIO_SWITCH is not set
 +CONFIG_OMAP_GPIO_SWITCH=y
  CONFIG_OMAP_MUX=y
  # CONFIG_OMAP_MUX_DEBUG is not set
  CONFIG_OMAP_MUX_WARNINGS=y
-@@ -1088,8 +1088,11 @@ CONFIG_DNOTIFY=y
- #
- # DOS/FAT/NT Filesystems
- #
--# CONFIG_MSDOS_FS is not set
--# CONFIG_VFAT_FS is not set
-+CONFIG_FAT_FS=y
-+CONFIG_MSDOS_FS=y
-+CONFIG_VFAT_FS=y
-+CONFIG_FAT_DEFAULT_CODEPAGE=437
-+CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
- # CONFIG_NTFS_FS is not set
- 
- #
-@@ -1152,7 +1155,46 @@ CONFIG_MSDOS_PARTITION=y
- #
- # Native Language Support
- #
--# CONFIG_NLS is not set
-+CONFIG_NLS=y
-+CONFIG_NLS_DEFAULT="iso8859-1"
-+CONFIG_NLS_CODEPAGE_437=y
-+# CONFIG_NLS_CODEPAGE_737 is not set
-+# CONFIG_NLS_CODEPAGE_775 is not set
-+# CONFIG_NLS_CODEPAGE_850 is not set
-+# CONFIG_NLS_CODEPAGE_852 is not set
-+# CONFIG_NLS_CODEPAGE_855 is not set
-+# CONFIG_NLS_CODEPAGE_857 is not set
-+# CONFIG_NLS_CODEPAGE_860 is not set
-+# CONFIG_NLS_CODEPAGE_861 is not set
-+# CONFIG_NLS_CODEPAGE_862 is not set
-+# CONFIG_NLS_CODEPAGE_863 is not set
-+# CONFIG_NLS_CODEPAGE_864 is not set
-+# CONFIG_NLS_CODEPAGE_865 is not set
-+# CONFIG_NLS_CODEPAGE_866 is not set
-+# CONFIG_NLS_CODEPAGE_869 is not set
-+# CONFIG_NLS_CODEPAGE_936 is not set
-+# CONFIG_NLS_CODEPAGE_950 is not set
-+# CONFIG_NLS_CODEPAGE_932 is not set
-+# CONFIG_NLS_CODEPAGE_949 is not set
-+# CONFIG_NLS_CODEPAGE_874 is not set
-+# CONFIG_NLS_ISO8859_8 is not set
-+# CONFIG_NLS_CODEPAGE_1250 is not set
-+# CONFIG_NLS_CODEPAGE_1251 is not set
-+# CONFIG_NLS_ASCII is not set
-+CONFIG_NLS_ISO8859_1=y
-+# CONFIG_NLS_ISO8859_2 is not set
-+# CONFIG_NLS_ISO8859_3 is not set
-+# CONFIG_NLS_ISO8859_4 is not set
-+# CONFIG_NLS_ISO8859_5 is not set
-+# CONFIG_NLS_ISO8859_6 is not set
-+# CONFIG_NLS_ISO8859_7 is not set
-+# CONFIG_NLS_ISO8859_9 is not set
-+# CONFIG_NLS_ISO8859_13 is not set
-+# CONFIG_NLS_ISO8859_14 is not set
-+# CONFIG_NLS_ISO8859_15 is not set
-+# CONFIG_NLS_KOI8_R is not set
-+# CONFIG_NLS_KOI8_U is not set
-+# CONFIG_NLS_UTF8 is not set
- 
- #
- # Distributed Lock Manager
 diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-index c524843..dc0a870 100644
+index a8d95a1..6ebf23b 100644
 --- a/arch/arm/mach-omap1/Makefile
 +++ b/arch/arm/mach-omap1/Makefile
-@@ -26,7 +26,7 @@ obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
- obj-$(CONFIG_MACH_OMAP_PERSEUS2)	+= board-perseus2.o
- obj-$(CONFIG_MACH_OMAP_FSAMPLE)		+= board-fsample.o
- obj-$(CONFIG_MACH_OMAP_OSK)		+= board-osk.o
--obj-$(CONFIG_MACH_OMAP_H3)		+= board-h3.o
-+obj-$(CONFIG_MACH_OMAP_H3)		+= board-h3.o board-h3-mmc.o
- obj-$(CONFIG_MACH_VOICEBLUE)		+= board-voiceblue.o
- obj-$(CONFIG_MACH_OMAP_PALMTE)		+= board-palmte.o
- obj-$(CONFIG_MACH_OMAP_PALMZ71)		+= board-palmz71.o
-diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
-index 50daf70..092c814 100644
---- a/arch/arm/mach-omap1/board-h3.c
-+++ b/arch/arm/mach-omap1/board-h3.c
-@@ -41,6 +41,7 @@
- #include <media/v4l2-int-device.h>
+@@ -33,7 +33,7 @@ obj-$(CONFIG_MACH_OMAP_PALMZ71)		+= board-palmz71.o
+ obj-$(CONFIG_MACH_OMAP_PALMTT)		+= board-palmtt.o
+ obj-$(CONFIG_MACH_NOKIA770)		+= board-nokia770.o
+ obj-$(CONFIG_MACH_AMS_DELTA)		+= board-ams-delta.o
+-obj-$(CONFIG_MACH_SX1)			+= board-sx1.o
++obj-$(CONFIG_MACH_SX1)			+= board-sx1.o board-sx1-mmc.o
+ 
+ ifeq ($(CONFIG_ARCH_OMAP15XX),y)
+ # Innovator-1510 FPGA
+diff --git a/arch/arm/mach-omap1/board-sx1.c b/arch/arm/mach-omap1/board-sx1.c
+index de921be..163ad92 100644
+--- a/arch/arm/mach-omap1/board-sx1.c
++++ b/arch/arm/mach-omap1/board-sx1.c
+@@ -33,6 +33,7 @@
+ #include <asm/mach/map.h>
  
  #include <asm/arch/gpio.h>
 +#include <asm/arch/gpio-switch.h>
- #include <asm/arch/gpioexpander.h>
- #include <asm/arch/irqs.h>
  #include <asm/arch/mux.h>
-@@ -524,12 +525,13 @@ static struct omap_usb_config h3_usb_config __initdata = {
+ #include <asm/arch/irda.h>
+ #include <asm/arch/usb.h>
+@@ -392,11 +393,8 @@ static struct omap_usb_config sx1_usb_config __initdata = {
  
- static struct omap_mmc_config h3_mmc_config __initdata = {
- 	.mmc[0] = {
+ static struct omap_mmc_config sx1_mmc_config __initdata = {
+ 	.mmc [0] = {
 -		.enabled 	= 1,
--		.power_pin	= -1,   /* tps65010 GPIO4 */
--		.switch_pin	= OMAP_MPUIO(1),
--	},
 +		.enabled	= 1,
-+		.wire4		= 1,
-+       },
+ 		.wire4		= 0,
+-		.wp_pin		= -1,
+-		.power_pin	= -1, /* power is in Sofia */
+-		.switch_pin	= OMAP_MPUIO(3),
+ 	},
  };
  
-+extern struct omap_mmc_platform_data h3_mmc_data;
+@@ -431,6 +429,19 @@ static struct omap_board_config_kernel sx1_config[] __initdata = {
+ 	{ OMAP_TAG_LCD,	&sx1_lcd_config },
+ 	{ OMAP_TAG_UART,	&sx1_uart_config },
+ };
 +
- static struct omap_uart_config h3_uart_config __initdata = {
- 	.enabled_uarts = ((1 << 0) | (1 << 1) | (1 << 2)),
- };
-@@ -545,6 +547,18 @@ static struct omap_board_config_kernel h3_config[] __initdata = {
- 	{ OMAP_TAG_LCD,		&h3_lcd_config },
- };
- 
-+static struct omap_gpio_switch h3_gpio_switches[] __initdata = {
++static struct omap_gpio_switch sx1_gpio_switches[] __initdata = {
 +	{
-+		.name			= "mmc_slot",
-+		.gpio                   = OMAP_MPUIO(1),
++		.name                   = "mmc_slot",
++		.gpio                   = OMAP_MPUIO(3),
 +		.type                   = OMAP_GPIO_SWITCH_TYPE_COVER,
 +		.debounce_rising        = 100,
 +		.debounce_falling       = 0,
-+		.notify                 = h3_mmc_slot_cover_handler,
++		.notify                 = sx1_mmc_slot_cover_handler,
 +		.notify_data            = NULL,
 +	},
 +};
 +
- #define H3_NAND_RB_GPIO_PIN	10
+ /*-----------------------------------------*/
  
- static int nand_dev_ready(struct nand_platform_data *data)
-@@ -689,6 +703,9 @@ static void __init h3_init(void)
- 	omap_board_config_size = ARRAY_SIZE(h3_config);
+ extern void __init sx1_mmc_init(void);
+@@ -443,6 +454,9 @@ static void __init omap_sx1_init(void)
+ 	omap_board_config_size = ARRAY_SIZE(sx1_config);
  	omap_serial_init();
  	omap_register_i2c_bus(1, 100, NULL, 0);
-+	h3_mmc_init();
-+	omap_register_gpio_switches(h3_gpio_switches,
-+				    ARRAY_SIZE(h3_gpio_switches));
- }
++	sx1_mmc_init();
++	omap_register_gpio_switches(sx1_gpio_switches,
++				    ARRAY_SIZE(sx1_gpio_switches));
  
- static void __init h3_init_smc91x(void)
+ 	/* turn on USB power */
+ 	/* sx1_setusbpower(1); cant do it here because i2c is not ready */
 -- 1.5.3.GIT
