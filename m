@@ -1,15 +1,13 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: 3430SDP USB driver
-Date: Mon, 26 Nov 2007 14:24:33 +0530
-Message-ID: <5DF83221BE20114E9C331F665ACBC08003ED7342@dbde01.ent.ti.com>
-References: <D0D7E940253EF8428A27241F8E3CABA3A88DFD@zeus.Combra.se>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [patch 2.6.24-rc3-omap1] i2c init section fixes
+Date: Mon, 26 Nov 2007 10:54:00 +0200
+Message-ID: <20071126105400.0133e18f.jarkko.nikula@nokia.com>
+References: <200711232320.05916.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <D0D7E940253EF8428A27241F8E3CABA3A88DFD@zeus.Combra.se>
+In-Reply-To: <200711232320.05916.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,59 +17,31 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Carl Benson <Carl.Benson@combra.se>, linux-omap-open-source@linux.omap.com
+To: ext David Brownell <david-b@pacbell.net>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
->-----Original Message-----
->From: =
-linux-omap-open-source-bounces+vikram.pandita=3Dti.com@linux.omap.com =
-[mailto:linux-omap-open-
->source-bounces+vikram.pandita=3Dti.com@linux.omap.com] On Behalf Of =
-Carl Benson
->Sent: Monday, November 26, 2007 2:09 PM
->To: linux-omap-open-source@linux.omap.com
->Subject: 3430SDP USB driver
->
->Hi. Unable to compile support for USB on 3430SDP ES1.0. Seems like the =
-struct urb has changed
+On Fri, 23 Nov 2007 23:20:05 -0800
+"ext David Brownell" <david-b@pacbell.net> wrote:
 
-3430 Support for MUSB has not been added to GIT yet though 2430 works =
-fine.
-Patches will be sent soon to get MUSB working for 3430.
+> Fix init section warnings in the new i2c init code.  It's
+> wrong to call "__init" functions from non-__init ones.
+> 
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> 
+> --- a/arch/arm/plat-omap/i2c.c
+> +++ b/arch/arm/plat-omap/i2c.c
+>
+Since i2c_register_board_info is defined with __init, we have to define
+functions here with __init as well.
 
->somewhere between 2.6.22 and 2.6.23 and that the driver is lagging =
-behind?
->
->regards,
->/Carl
->
->  CC [M]  drivers/usb/musb/musb_host.o
->drivers/usb/musb/musb_host.c: In function '__musb_giveback':
->drivers/usb/musb/musb_host.c:277: error: 'struct urb' has no member =
-named 'lock'
->drivers/usb/musb/musb_host.c:281: error: 'struct urb' has no member =
-named 'lock'
->drivers/usb/musb/musb_host.c:307: error: too few arguments to function =
-'usb_hcd_giveback_urb'
->drivers/usb/musb/musb_host.c: In function 'musb_urb_dequeue':
->drivers/usb/musb/musb_host.c:1970: error: 'struct urb' has no member =
-named 'lock'
->drivers/usb/musb/musb_host.c:1983: error: 'struct urb' has no member =
-named 'lock'
->drivers/usb/musb/musb_host.c: In function 'musb_h_disable':
->drivers/usb/musb/musb_host.c:2085: error: 'struct urb' has no member =
-named 'lock'
->drivers/usb/musb/musb_host.c:2088: error: 'struct urb' has no member =
-named 'lock'
->drivers/usb/musb/musb_host.c: At top level:
->drivers/usb/musb/musb_host.c:2163: warning: initialization from =
-incompatible pointer type
->drivers/usb/musb/musb_host.c:2164: warning: initialization from =
-incompatible pointer type
->make[2]: *** [drivers/usb/musb/musb_host.o] Error 1
->make[1]: *** [drivers/usb/musb] Error 2
->make: *** [drivers] Error 2
->_______________________________________________
->Linux-omap-open-source mailing list
->Linux-omap-open-source@linux.omap.com
->http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+Acked-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+
+---
+
+How do I enable that warning since I don't see it now? I remember that I
+saw some timer related __init warnings some time ago. I'm using
+"gcc version 3.4.4 (release) (CodeSourcery ARM 2005q3-2)".
+
+
+	Jarkko
