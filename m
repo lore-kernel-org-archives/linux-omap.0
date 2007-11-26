@@ -1,15 +1,15 @@
-From: "Girish" <girishsg@ti.com>
-Subject: RE: [RFC][PATCH] ARM: OMAP: Always enable the R/W access to
-	allinitiators in sram
-Date: Mon, 26 Nov 2007 21:18:34 +0530
-Message-ID: <003401c83043$ce6385b0$988818ac@ent.ti.com>
-References: <20071126020738.GA32424@party>
+From: Kevin Hilman <khilman@mvista.com>
+Subject: Re: [PATCH 3/4] ARM: OMAP: Remove MPU-timer based sched_clock()
+Date: Mon, 26 Nov 2007 07:59:24 -0800
+Message-ID: <1196092764.8693.10.camel@vence.hilman.org>
+References: <20071112232401.723638265@mvista.com>
+	<20071112232414.658134414@mvista.com>
+	<20071123191815.GA559@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-reply-to: <20071126020738.GA32424@party>
+In-Reply-To: <20071123191815.GA559@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,86 +19,25 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: 'Kyungmin Park' <kyungmin.park@samsung.com>, linux-omap-open-source@linux.omap.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
- 
 
->-----Original Message-----
->From: linux-omap-open-source-bounces@linux.omap.com 
->[mailto:linux-omap-open-source-bounces@linux.omap.com] On 
->Behalf Of Kyungmin Park
->Sent: Monday, November 26, 2007 7:38 AM
->To: linux-omap-open-source@linux.omap.com
-00
->
->Also we get the 'type' from CONTROL_STATUS(0x2F0) instead 
->previous (0x2F8).
->
->Please let me know what is the right way.
->
-It seems like the CONTROL_STATUS which was defined earlier in omap[2/3]4xx.h has been moved somewhere else.
+On Fri, 2007-11-23 at 11:18 -0800, Tony Lindgren wrote:
+> * Kevin Hilman <khilman@mvista.com> [071112 15:25]:
+> > Remove MPU-timer based sched_clock() in favor of the common one based
+> > on 32k sync timer which works across all OMAP1/2/3 platforms.
+> > 
+> > Using 32k based one also gives a valid sched_clock() very early in the
+> > boot process.
+> 
+> AFAIK there is no 32k sync timer for 15xx, or have I missed something?
+> 
 
-Well, just a quick look it seems that CONTROL_STATUS definition has been moved to asm/arch/control.h, here CONTROL_STATUS has been
-defined only for 3430 and doesn't handle for 24xx, so 3430 CONTROL_STATUS value is getting included for 24xx. This is breaking code
-on 24xx guess. 
+No there isn't.
 
-Regards,
-girish
->Any comments are welcome.
->
->Thank you,
->Kyungmin Park
->---
->diff --git a/arch/arm/plat-omap/sram.c 
->b/arch/arm/plat-omap/sram.c index dd8dc04..f1e0af3 100644
->--- a/arch/arm/plat-omap/sram.c
->+++ b/arch/arm/plat-omap/sram.c
->@@ -97,15 +97,16 @@ static int is_sram_locked(void)
-> 		type = ctrl_read_reg(CONTROL_STATUS) & 
->TYPE_MASK;  #endif
-> 
->-	if (type == GP_DEVICE) {
->-		/* RAMFW: R/W access to all initiators for all 
->qualifier sets */
->-		if (cpu_is_omap242x()) {
->-			__raw_writel(0xFF, VA_REQINFOPERM0); /* 
->all q-vects */
->-			__raw_writel(0xCFDE, VA_READPERM0);  /* 
->all i-read */
->-			__raw_writel(0xCFDE, VA_WRITEPERM0); /* 
->all i-write */
->-		}
->+	/* RAMFW: R/W access to all initiators for all qualifier sets */
->+	if (cpu_is_omap242x()) {
->+		__raw_writel(0xFF, VA_REQINFOPERM0); /* all q-vects */
->+		__raw_writel(0xCFDE, VA_READPERM0);  /* all i-read */
->+		__raw_writel(0xCFDE, VA_WRITEPERM0); /* all i-write */
->+	}
->+
->+	if (type == GP_DEVICE)
-> 		return 0;
->-	} else
->+	else
-> 		return 1; /* assume locked with no PPA or 
->security driver */  }
-> 
->diff --git a/include/asm-arm/arch-omap/control.h 
->b/include/asm-arm/arch-omap/control.h
->index 5f42725..9f9075e 100644
->--- a/include/asm-arm/arch-omap/control.h
->+++ b/include/asm-arm/arch-omap/control.h
->@@ -38,6 +38,7 @@
-> #define CONTROL_DEVCONF0		(CONTROL_GENERAL + 0x04)
-> #define CONTROL_DEVCONF1		(CONTROL_GENERAL + 
->0x68) /* > 242x */
-> #define CONTROL_STATUS			(CONTROL_GENERAL + 0x80)
->+#define CONTROL_STAT			(CONTROL_GENERAL + 0x88)
-> 
-> 
-> /*
->_______________________________________________
->Linux-omap-open-source mailing list
->Linux-omap-open-source@linux.omap.com
->http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
+But all this means is that 15xx has no higher resolution sched_clock().
+The ARM default jiffies-based one will be used.
+
+Kevin
