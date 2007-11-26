@@ -1,8 +1,8 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [PATCH 09/17] MMC: OMAP: Modifications at N800 MMC board specific
- file to work MMC multislot support
-Date: Mon, 26 Nov 2007 12:01:38 -0400
-Message-ID: <474AEDE2.6080908@indt.org.br>
+Subject: [PATCH 04/17] MMC: OMAP: Power functions modified to MMC multislot
+ support
+Date: Mon, 26 Nov 2007 12:01:18 -0400
+Message-ID: <474AEDCE.50301@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
@@ -19,171 +19,150 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+From: Juha Yrjola <juha.yrjola@solidboot.com>
 
-Modifications at board-n800-mmc.c and board-n800.c files to work with MMC multislot support.
+Modifications at power functions to MMC multislot support. This patch
+also move board-specific code out of MMC OMAP driver.
 
-Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
 Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 ---
- arch/arm/mach-omap2/board-n800-mmc.c |   57 ++++++++++++++++++++-------------
- arch/arm/mach-omap2/board-n800.c     |   11 ++++++
- 2 files changed, 45 insertions(+), 23 deletions(-)
+ drivers/mmc/host/omap.c |   90 +++++++++++++++++++---------------------------
+ 1 files changed, 37 insertions(+), 53 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-n800-mmc.c b/arch/arm/mach-omap2/board-n800-mmc.c
-index b87c121..b1219d1 100644
---- a/arch/arm/mach-omap2/board-n800-mmc.c
-+++ b/arch/arm/mach-omap2/board-n800-mmc.c
-@@ -13,13 +13,14 @@
- #include <asm/arch/menelaus.h>
- #include <asm/arch/gpio.h>
- 
-+#include <asm/mach-types.h>
-+#include <linux/delay.h>
-+
- #ifdef CONFIG_MMC_OMAP
- 
- static const int slot_switch_gpio = 96;
--static const int slot1_wp_gpio = 23;
--static const int slot2_wp_gpio = 8;
--static int slot1_cover_closed;
--static int slot2_cover_closed;
-+static int slot1_cover_open;
-+static int slot2_cover_open;
- static struct device *mmc_device;
- 
- /*
-@@ -158,18 +159,27 @@ static int n800_mmc_get_cover_state(struct device *dev, int slot)
- 	slot++;
- 	BUG_ON(slot != 1 && slot != 2);
- 	if (slot == 1)
--		return slot1_cover_closed;
-+		return slot1_cover_open;
- 	else
--		return slot2_cover_closed;
-+		return slot2_cover_open;
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index be93ab4..ba409e4 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -1004,54 +1004,27 @@ static void mmc_omap_request(struct mmc_host *mmc, struct mmc_request *req)
+ 	mmc_omap_start_request(host, req);
  }
  
- static void n800_mmc_callback(void *data, u8 card_mask)
+-static void innovator_fpga_socket_power(int on)
++static void mmc_omap_set_power(struct mmc_omap_slot *slot, int power_on,
++				int vdd)
  {
--	if (card_mask & (1 << 1))
--		slot2_cover_closed = 0;
-+	int bit, *openp, index;
+-#if defined(CONFIG_MACH_OMAP_INNOVATOR) && defined(CONFIG_ARCH_OMAP15XX)
+-	if (on) {
+-		fpga_write(fpga_read(OMAP1510_FPGA_POWER) | (1 << 3),
+-		     OMAP1510_FPGA_POWER);
+-	} else {
+-		fpga_write(fpga_read(OMAP1510_FPGA_POWER) & ~(1 << 3),
+-		     OMAP1510_FPGA_POWER);
+-	}
+-#endif
+-}
++	struct mmc_omap_host *host;
+ 
+-/*
+- * Turn the socket power on/off. Innovator uses FPGA, most boards
+- * probably use GPIO.
+- */
+-static void mmc_omap_power(struct mmc_omap_host *host, int on)
+-{
+-	if (machine_is_sx1())
+-		sx1_setmmcpower(on);
+-	else if (on) {
+-		if (machine_is_omap_innovator())
+-			innovator_fpga_socket_power(1);
+-		else if (machine_is_omap_h2())
+-			tps65010_set_gpio_out_value(GPIO3, HIGH);
+-		else if (machine_is_omap_h3())
+-			/* GPIO 4 of TPS65010 sends SD_EN signal */
+-			tps65010_set_gpio_out_value(GPIO4, HIGH);
+-		else if (cpu_is_omap24xx()) {
+-			u16 reg = OMAP_MMC_READ(host, CON);
+-			OMAP_MMC_WRITE(host, CON, reg | (1 << 11));
+-		} else
+-			if (host->power_pin >= 0)
+-				omap_set_gpio_dataout(host->power_pin, 1);
+-	} else {
+-		if (machine_is_omap_innovator())
+-			innovator_fpga_socket_power(0);
+-		else if (machine_is_omap_h2())
+-			tps65010_set_gpio_out_value(GPIO3, LOW);
+-		else if (machine_is_omap_h3())
+-			tps65010_set_gpio_out_value(GPIO4, LOW);
+-		else if (cpu_is_omap24xx()) {
+-			u16 reg = OMAP_MMC_READ(host, CON);
+-			OMAP_MMC_WRITE(host, CON, reg & ~(1 << 11));
+-		} else
+-			if (host->power_pin >= 0)
+-				omap_set_gpio_dataout(host->power_pin, 0);
++	host = slot->host;
 +
-+	if (machine_is_nokia_n800()) {
-+		bit = 1 << 1;
-+		openp = &slot2_cover_open;
-+		index = 1;
++	if (slot->pdata->set_power != NULL)
++		slot->pdata->set_power(mmc_dev(slot->mmc), slot->id, power_on,
++					vdd);
++
++	if (cpu_is_omap24xx()) {
++		u16 w;
++
++		if (power_on) {
++			w = OMAP_MMC_READ(host, CON);
++			OMAP_MMC_WRITE(host, CON, w | (1 << 11));
++		} else {
++			w = OMAP_MMC_READ(host, CON);
++			OMAP_MMC_WRITE(host, CON, w & ~(1 << 11));
++		}
+ 	}
+ }
+ 
+@@ -1090,23 +1063,31 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+ 	int i, dsor;
+ 
+ 	dsor = mmc_omap_calc_divisor(mmc, ios);
+-	host->bus_mode = ios->bus_mode;
+-	host->hw_bus_mode = host->bus_mode;
++
++	mmc_omap_select_slot(slot, 0);
++
++	if (ios->vdd != slot->vdd)
++		slot->vdd = ios->vdd;
+ 
+ 	switch (ios->power_mode) {
+ 	case MMC_POWER_OFF:
+-		mmc_omap_power(host, 0);
++		mmc_omap_set_power(slot, 0, ios->vdd);
+ 		break;
+ 	case MMC_POWER_UP:
+ 		/* Cannot touch dsor yet, just power up MMC */
+-		mmc_omap_power(host, 1);
+-		return;
++		mmc_omap_set_power(slot, 1, ios->vdd);
++		goto exit;
+ 	case MMC_POWER_ON:
+ 		dsor |= 1 << 11;
+ 		break;
+ 	}
+ 
+-	clk_enable(host->fclk);
++	if (slot->bus_mode != ios->bus_mode) {
++		if (slot->pdata->set_bus_mode != NULL)
++			slot->pdata->set_bus_mode(mmc_dev(mmc), slot->id,
++						  ios->bus_mode);
++		slot->bus_mode = ios->bus_mode;
 +	}
+ 
+ 	/* On insanely high arm_per frequencies something sometimes
+ 	 * goes somehow out of sync, and the POW bit is not being set,
+@@ -1114,6 +1095,7 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+ 	 * Writing to the CON register twice seems to do the trick. */
+ 	for (i = 0; i < 2; i++)
+ 		OMAP_MMC_WRITE(host, CON, dsor);
++	slot->saved_con = dsor;
+ 	if (ios->power_mode == MMC_POWER_ON) {
+ 		/* Send clock cycles, poll completion */
+ 		OMAP_MMC_WRITE(host, IE, 0);
+@@ -1122,7 +1104,9 @@ static void mmc_omap_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+ 		while ((OMAP_MMC_READ(host, STAT) & 1) == 0);
+ 		OMAP_MMC_WRITE(host, STAT, 1);
+ 	}
+-	clk_disable(host->fclk);
 +
-+	if (card_mask & bit)
-+		*openp = 1;
- 	else
--		slot2_cover_closed = 1;
--        omap_mmc_notify_cover_event(mmc_device, 1, slot2_cover_closed);
-+		*openp = 0;
-+
-+	omap_mmc_notify_cover_event(mmc_device, index, *openp);
++exit:
++	mmc_omap_release_slot(slot);
  }
  
- void n800_mmc_slot1_cover_handler(void *arg, int state)
-@@ -177,13 +187,13 @@ void n800_mmc_slot1_cover_handler(void *arg, int state)
- 	if (mmc_device == NULL)
- 		return;
- 
--	slot1_cover_closed = state;
-+	slot1_cover_open = !state;
- 	omap_mmc_notify_cover_event(mmc_device, 0, state);
- }
- 
- static int n800_mmc_late_init(struct device *dev)
- {
--	int r;
-+	int r, bit, *openp;
- 
- 	mmc_device = dev;
- 
-@@ -202,10 +212,19 @@ static int n800_mmc_late_init(struct device *dev)
- 	if (r < 0)
- 		return r;
- 
--	if (r & (1 << 1))
--		slot2_cover_closed = 1;
-+	if (machine_is_nokia_n800()) {
-+		bit = 1 << 1;
-+		openp = &slot2_cover_open;
-+	}
-+
-+	/* All slot pin bits seem to be inversed until first swith change */
-+	if (r == 0xf || r == (0xf & ~bit))
-+		r = ~r;
-+
-+	if (r & bit)
-+		*openp = 1;
- 	else
--		slot2_cover_closed = 0;
-+		*openp = 0;
- 
- 	r = menelaus_register_mmc_callback(n800_mmc_callback, NULL);
- 
-@@ -218,9 +237,7 @@ static void n800_mmc_cleanup(struct device *dev)
- }
- 
- static struct omap_mmc_platform_data n800_mmc_data = {
--	.enabled		= 1,
- 	.nr_slots		= 2,
--	.wire4			= 1,
- 	.switch_slot		= n800_mmc_switch_slot,
- 	.init			= n800_mmc_late_init,
- 	.cleanup		= n800_mmc_cleanup,
-@@ -255,12 +272,6 @@ void __init n800_mmc_init(void)
- 		BUG();
- 	omap_set_gpio_dataout(slot_switch_gpio, 0);
- 	omap_set_gpio_direction(slot_switch_gpio, 0);
--	if (omap_request_gpio(slot1_wp_gpio) < 0)
--		BUG();
--	if (omap_request_gpio(slot2_wp_gpio) < 0)
--		BUG();
--	omap_set_gpio_direction(slot1_wp_gpio, 1);
--	omap_set_gpio_direction(slot2_wp_gpio, 1);
- }
- 
- #else
-diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/board-n800.c
-index 4473fd5..4271d93 100644
---- a/arch/arm/mach-omap2/board-n800.c
-+++ b/arch/arm/mach-omap2/board-n800.c
-@@ -191,6 +191,14 @@ static void __init blizzard_dev_init(void)
- 	omapfb_set_ctrl_platform_data(&n800_blizzard_data);
- }
- 
-+static struct omap_mmc_config n800_mmc_config __initdata = {
-+	.mmc [0] = {
-+		.enabled		= 1,
-+		.wire4			= 1,
-+	},
-+};
-+
-+extern struct omap_mmc_platform_data n800_mmc_data;
- 
- static struct omap_board_config_kernel n800_config[] __initdata = {
- 	{ OMAP_TAG_UART,	                &n800_uart_config },
-@@ -198,6 +206,7 @@ static struct omap_board_config_kernel n800_config[] __initdata = {
- 	{ OMAP_TAG_FBMEM,			&n800_fbmem1_config },
- 	{ OMAP_TAG_FBMEM,			&n800_fbmem2_config },
- 	{ OMAP_TAG_TMP105,			&n800_tmp105_config },
-+	{ OMAP_TAG_MMC,				&n800_mmc_config },
- };
- 
- 
-@@ -448,6 +457,8 @@ static struct i2c_board_info __initdata n800_i2c_board_info_2[] = {
- #endif
- };
- 
-+extern void __init n800_mmc_init(void);
-+
- static void __init nokia_n800_init(void)
- {
- 	platform_add_devices(n800_devices, ARRAY_SIZE(n800_devices));
+ static int mmc_omap_get_ro(struct mmc_host *mmc)
 -- 1.5.3.GIT
