@@ -1,8 +1,8 @@
 From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [PATCH 08/17] PLAT: OMAP: Modifications at devices.c and mmc.h to
- use multislot structures
-Date: Mon, 26 Nov 2007 12:01:34 -0400
-Message-ID: <474AEDDE.7000902@indt.org.br>
+Subject: [PATCH 12/17] MMC: OMAP: Make board-h3.c uses new board-h3-mmc.c
+ code
+Date: Mon, 26 Nov 2007 12:01:49 -0400
+Message-ID: <474AEDED.9030704@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
@@ -19,134 +19,177 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: omap-linux <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+From: Felipe Balbi <felipe.lima@indt.org.br>
 
-Modifications at arch/arm/plat-omap/devices.c and include/asm-arm/arch-omap/mmc.h
-to use multislot structures.
+Make board-h3.c file uses new board-h3-mmc.c code.
 
-Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+This patch also:
+- Introduces a new gpio_switch to get events when inserting and removing
+  MMC/SD/SDIO cards to/from the slot.
+- Enables the following options on omap_h3_1710_defconfig to use
+  multislot support:
+  - GPIO switch support
+  - MSDOS fs support
+  - VFAT fs support
+  - Codepage 437
+  - NLS ISO 8859-1
+
 Signed-off-by: Felipe Balbi <felipe.lima@indt.org.br>
-Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Signed-off-by: Anderson Briglia <anderson.briglia@indt.org.br>
+Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+Signed-off-by: David Cohen <david.cohen@indt.org.br>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
 ---
- arch/arm/plat-omap/devices.c    |   30 ++++++++++++++++++++++++------
- include/asm-arm/arch-omap/mmc.h |   13 +++++--------
- 2 files changed, 29 insertions(+), 14 deletions(-)
+ arch/arm/configs/omap_h3_1710_defconfig |   50 ++++++++++++++++++++++++++++--
+ arch/arm/mach-omap1/Makefile            |    2 +-
+ arch/arm/mach-omap1/board-h3.c          |   25 +++++++++++++--
+ 3 files changed, 68 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-index e04176d..c25070b 100644
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -21,6 +21,7 @@
+diff --git a/arch/arm/configs/omap_h3_1710_defconfig b/arch/arm/configs/omap_h3_1710_defconfig
+index 938d4fc..5cebec7 100644
+--- a/arch/arm/configs/omap_h3_1710_defconfig
++++ b/arch/arm/configs/omap_h3_1710_defconfig
+@@ -149,7 +149,7 @@ CONFIG_ARCH_OMAP1=y
+ #
+ # CONFIG_OMAP_RESET_CLOCKS is not set
+ # CONFIG_OMAP_BOOT_TAG is not set
+-# CONFIG_OMAP_GPIO_SWITCH is not set
++CONFIG_OMAP_GPIO_SWITCH=y
+ CONFIG_OMAP_MUX=y
+ # CONFIG_OMAP_MUX_DEBUG is not set
+ CONFIG_OMAP_MUX_WARNINGS=y
+@@ -1088,8 +1088,11 @@ CONFIG_DNOTIFY=y
+ #
+ # DOS/FAT/NT Filesystems
+ #
+-# CONFIG_MSDOS_FS is not set
+-# CONFIG_VFAT_FS is not set
++CONFIG_FAT_FS=y
++CONFIG_MSDOS_FS=y
++CONFIG_VFAT_FS=y
++CONFIG_FAT_DEFAULT_CODEPAGE=437
++CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
+ # CONFIG_NTFS_FS is not set
  
- #include <asm/arch/tc.h>
- #include <asm/arch/board.h>
-+#include <asm/arch/mmc.h>
- #include <asm/arch/mux.h>
+ #
+@@ -1152,7 +1155,46 @@ CONFIG_MSDOS_PARTITION=y
+ #
+ # Native Language Support
+ #
+-# CONFIG_NLS is not set
++CONFIG_NLS=y
++CONFIG_NLS_DEFAULT="iso8859-1"
++CONFIG_NLS_CODEPAGE_437=y
++# CONFIG_NLS_CODEPAGE_737 is not set
++# CONFIG_NLS_CODEPAGE_775 is not set
++# CONFIG_NLS_CODEPAGE_850 is not set
++# CONFIG_NLS_CODEPAGE_852 is not set
++# CONFIG_NLS_CODEPAGE_855 is not set
++# CONFIG_NLS_CODEPAGE_857 is not set
++# CONFIG_NLS_CODEPAGE_860 is not set
++# CONFIG_NLS_CODEPAGE_861 is not set
++# CONFIG_NLS_CODEPAGE_862 is not set
++# CONFIG_NLS_CODEPAGE_863 is not set
++# CONFIG_NLS_CODEPAGE_864 is not set
++# CONFIG_NLS_CODEPAGE_865 is not set
++# CONFIG_NLS_CODEPAGE_866 is not set
++# CONFIG_NLS_CODEPAGE_869 is not set
++# CONFIG_NLS_CODEPAGE_936 is not set
++# CONFIG_NLS_CODEPAGE_950 is not set
++# CONFIG_NLS_CODEPAGE_932 is not set
++# CONFIG_NLS_CODEPAGE_949 is not set
++# CONFIG_NLS_CODEPAGE_874 is not set
++# CONFIG_NLS_ISO8859_8 is not set
++# CONFIG_NLS_CODEPAGE_1250 is not set
++# CONFIG_NLS_CODEPAGE_1251 is not set
++# CONFIG_NLS_ASCII is not set
++CONFIG_NLS_ISO8859_1=y
++# CONFIG_NLS_ISO8859_2 is not set
++# CONFIG_NLS_ISO8859_3 is not set
++# CONFIG_NLS_ISO8859_4 is not set
++# CONFIG_NLS_ISO8859_5 is not set
++# CONFIG_NLS_ISO8859_6 is not set
++# CONFIG_NLS_ISO8859_7 is not set
++# CONFIG_NLS_ISO8859_9 is not set
++# CONFIG_NLS_ISO8859_13 is not set
++# CONFIG_NLS_ISO8859_14 is not set
++# CONFIG_NLS_ISO8859_15 is not set
++# CONFIG_NLS_KOI8_R is not set
++# CONFIG_NLS_KOI8_U is not set
++# CONFIG_NLS_UTF8 is not set
+ 
+ #
+ # Distributed Lock Manager
+diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
+index c524843..dc0a870 100644
+--- a/arch/arm/mach-omap1/Makefile
++++ b/arch/arm/mach-omap1/Makefile
+@@ -26,7 +26,7 @@ obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
+ obj-$(CONFIG_MACH_OMAP_PERSEUS2)	+= board-perseus2.o
+ obj-$(CONFIG_MACH_OMAP_FSAMPLE)		+= board-fsample.o
+ obj-$(CONFIG_MACH_OMAP_OSK)		+= board-osk.o
+-obj-$(CONFIG_MACH_OMAP_H3)		+= board-h3.o
++obj-$(CONFIG_MACH_OMAP_H3)		+= board-h3.o board-h3-mmc.o
+ obj-$(CONFIG_MACH_VOICEBLUE)		+= board-voiceblue.o
+ obj-$(CONFIG_MACH_OMAP_PALMTE)		+= board-palmte.o
+ obj-$(CONFIG_MACH_OMAP_PALMZ71)		+= board-palmz71.o
+diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
+index 50daf70..092c814 100644
+--- a/arch/arm/mach-omap1/board-h3.c
++++ b/arch/arm/mach-omap1/board-h3.c
+@@ -41,6 +41,7 @@
+ #include <media/v4l2-int-device.h>
+ 
  #include <asm/arch/gpio.h>
- #include <asm/arch/menelaus.h>
-@@ -165,7 +166,7 @@ static inline void omap_init_kp(void) {}
- #endif
- #define	OMAP_MMC2_BASE		0xfffb7c00	/* omap16xx only */
++#include <asm/arch/gpio-switch.h>
+ #include <asm/arch/gpioexpander.h>
+ #include <asm/arch/irqs.h>
+ #include <asm/arch/mux.h>
+@@ -524,12 +525,13 @@ static struct omap_usb_config h3_usb_config __initdata = {
  
--static struct omap_mmc_conf mmc1_conf;
-+static struct omap_mmc_platform_data mmc1_data;
+ static struct omap_mmc_config h3_mmc_config __initdata = {
+ 	.mmc[0] = {
+-		.enabled 	= 1,
+-		.power_pin	= -1,   /* tps65010 GPIO4 */
+-		.switch_pin	= OMAP_MPUIO(1),
+-	},
++		.enabled	= 1,
++		.wire4		= 1,
++       },
+ };
  
- static u64 mmc1_dmamask = 0xffffffff;
++extern struct omap_mmc_platform_data h3_mmc_data;
++
+ static struct omap_uart_config h3_uart_config __initdata = {
+ 	.enabled_uarts = ((1 << 0) | (1 << 1) | (1 << 2)),
+ };
+@@ -545,6 +547,18 @@ static struct omap_board_config_kernel h3_config[] __initdata = {
+ 	{ OMAP_TAG_LCD,		&h3_lcd_config },
+ };
  
-@@ -186,7 +187,7 @@ static struct platform_device mmc_omap_device1 = {
- 	.id		= 1,
- 	.dev = {
- 		.dma_mask	= &mmc1_dmamask,
--		.platform_data	= &mmc1_conf,
-+		.platform_data	= &mmc1_data,
- 	},
- 	.num_resources	= ARRAY_SIZE(mmc1_resources),
- 	.resource	= mmc1_resources,
-@@ -194,7 +195,7 @@ static struct platform_device mmc_omap_device1 = {
++static struct omap_gpio_switch h3_gpio_switches[] __initdata = {
++	{
++		.name			= "mmc_slot",
++		.gpio                   = OMAP_MPUIO(1),
++		.type                   = OMAP_GPIO_SWITCH_TYPE_COVER,
++		.debounce_rising        = 100,
++		.debounce_falling       = 0,
++		.notify                 = h3_mmc_slot_cover_handler,
++		.notify_data            = NULL,
++	},
++};
++
+ #define H3_NAND_RB_GPIO_PIN	10
  
- #ifdef	CONFIG_ARCH_OMAP16XX
- 
--static struct omap_mmc_conf mmc2_conf;
-+static struct omap_mmc_platform_data mmc2_data;
- 
- static u64 mmc2_dmamask = 0xffffffff;
- 
-@@ -216,7 +217,7 @@ static struct platform_device mmc_omap_device2 = {
- 	.id		= 2,
- 	.dev = {
- 		.dma_mask	= &mmc2_dmamask,
--		.platform_data	= &mmc2_conf,
-+		.platform_data	= &mmc2_data,
- 	},
- 	.num_resources	= ARRAY_SIZE(mmc2_resources),
- 	.resource	= mmc2_resources,
-@@ -286,7 +287,7 @@ static void __init omap_init_mmc(void)
- 			}
- 		}
- #endif
--		mmc1_conf = *mmc;
-+		mmc1_data.conf = *mmc;
- 		(void) platform_device_register(&mmc_omap_device1);
- 	}
- 
-@@ -315,12 +316,29 @@ static void __init omap_init_mmc(void)
- 		if (cpu_is_omap1710())
- 			omap_writel(omap_readl(MOD_CONF_CTRL_1) | (1 << 24),
- 				     MOD_CONF_CTRL_1);
--		mmc2_conf = *mmc;
-+		mmc2_data.conf = *mmc;
- 		(void) platform_device_register(&mmc_omap_device2);
- 	}
- #endif
- 	return;
+ static int nand_dev_ready(struct nand_platform_data *data)
+@@ -689,6 +703,9 @@ static void __init h3_init(void)
+ 	omap_board_config_size = ARRAY_SIZE(h3_config);
+ 	omap_serial_init();
+ 	omap_register_i2c_bus(1, 100, NULL, 0);
++	h3_mmc_init();
++	omap_register_gpio_switches(h3_gpio_switches,
++				    ARRAY_SIZE(h3_gpio_switches));
  }
-+
-+void omap_set_mmc_info(int host, const struct omap_mmc_platform_data *info)
-+{
-+	switch (host) {
-+	case 1:
-+		mmc1_data = *info;
-+		break;
-+#ifdef CONFIG_ARCH_OMAP16XX
-+	case 2:
-+		mmc2_data = *info;
-+		break;
-+#endif
-+	default:
-+		BUG();
-+	}
-+}
-+
- #else
- static inline void omap_init_mmc(void) {}
- #endif
-diff --git a/include/asm-arm/arch-omap/mmc.h b/include/asm-arm/arch-omap/mmc.h
-index b70e37b..b5d778e 100644
---- a/include/asm-arm/arch-omap/mmc.h
-+++ b/include/asm-arm/arch-omap/mmc.h
-@@ -15,19 +15,16 @@
- #include <linux/device.h>
- #include <linux/mmc/host.h>
  
-+#include <asm/arch/board.h>
-+
- #define OMAP_MMC_MAX_SLOTS	2
- 
- struct omap_mmc_platform_data {
--	unsigned enabled:1;
-+	struct omap_mmc_conf	conf;
-+
- 	/* number of slots on board */
- 	unsigned nr_slots:2;
--	/* nomux means "standard" muxing is wrong on this board, and that
--	 * board-specific code handled it before common init logic.
--	 */
--	unsigned nomux:1;
--	/* 4 wire signaling is optional, and is only used for SD/SDIO and
--	 * MMCv4 */
--	unsigned wire4:1;
-+
- 	/* set if your board has components or wiring that limits the
- 	 * maximum frequency on the MMC bus */
- 	unsigned int max_freq;
+ static void __init h3_init_smc91x(void)
 -- 1.5.3.GIT
