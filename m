@@ -1,13 +1,14 @@
-From: Paul Walmsley <paul@booyaka.com>
-Subject: Re: [RFC][PATCH] ARM: OMAP: Always enable the R/W access to all
- initiators in sram
-Date: Mon, 26 Nov 2007 04:07:05 -0700 (MST)
-Message-ID: <Pine.LNX.4.64.0711260348500.2694@utopia.booyaka.com>
-References: <20071126020738.GA32424@party>
+From: "Carl Benson" <Carl.Benson@combra.se>
+Subject: RE: 3430SDP USB driver
+Date: Mon, 26 Nov 2007 12:07:56 +0100
+Message-ID: <D0D7E940253EF8428A27241F8E3CABA3A88DFE@zeus.Combra.se>
+References: <5DF83221BE20114E9C331F665ACBC08003ED733D@dbde01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <20071126020738.GA32424@party>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,107 +16,138 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello Kyungmin,
+Hi. Thanks for your reply. My TI contact tells me not to enable driver =
+support for TUSB6010 but if I do that I get:
+  CC [M]  drivers/usb/musb/musb_host.o
+drivers/usb/musb/musb_host.c: In function 'musb_urb_dequeue':
+drivers/usb/musb/musb_host.c:1956: warning: unused variable 'tmp'
+  LD [M]  drivers/usb/musb/musb_hdrc.o
+  Building modules, stage 2.
+  MODPOST 67 modules
+ERROR: "musb_platform_init" [drivers/usb/musb/musb_hdrc.ko] undefined!
+ERROR: "musb_platform_disable" [drivers/usb/musb/musb_hdrc.ko] =
+undefined!
+ERROR: "musb_platform_exit" [drivers/usb/musb/musb_hdrc.ko] undefined!
+ERROR: "musb_platform_enable" [drivers/usb/musb/musb_hdrc.ko] undefined!
+ERROR: "dma_controller_destroy" [drivers/usb/musb/musb_hdrc.ko] =
+undefined!
+ERROR: "dma_controller_create" [drivers/usb/musb/musb_hdrc.ko] =
+undefined!
+make[1]: *** [__modpost] Error 1
+make: *** [modules] Error 2
 
-On Mon, 26 Nov 2007, Kyungmin Park wrote:
+With support the driver is compiled but not loadable:
+# modprobe musb_hdrc
+<6>usbcore: registered new interface driver usbfs
+usbcore: registered new interface driver usbfs
+<6>usbcore: registered new interface driver hub
+usbcore: registered new interface driver hub
+<6>usbcore: registered new device driver usb
+usbcore: registered new device driver usb
+<6>musb_hdrc: version 6.0, tusb-omap-dma, host, debug=3D0
+musb_hdrc: version 6.0, tusb-omap-dma, host, debug=3D0
+insmod: cannot insert =
+'/lib/modules/2.6.23-omap1/kernel/drivers/usb/musb/musb_hdrc.ko': No =
+such device (-1): No such device
+modprobe: failed to load module musb_hdrc
 
-> With recent runtime constatns patches, we can't boot the board if the sram is locked.
-> I'm not sure it's the proper patch enables R/W access to all omap242x.
-> But without this patch, it gives the following messages and abort on linefecth
+What do I need to enable? Inventra Dual Role controller of course, and =
+then what? USB Host/Gadget/OTG? With OTG I get
 
-I am puzzled.  
+# modprobe musb_hdrc
+<4>usbcore: Unknown symbol refrigerator
+usbcore: Unknown symbol refrigerator
+insmod: cannot insert =
+'/lib/modules/2.6.23-omap1/kernel/drivers/usb/core/usbcore.ko': Unknown =
+symbol in module (-1): No such file or directory
+<4>musb_hdrc: Unknown symbol usb_hcd_resume_root_hub
+musb_hdrc: Unknown symbol usb_hcd_resume_root_hub
+<4>musb_hdrc: Unknown symbol usb_hcd_unlink_urb_from_ep
+musb_hdrc: Unknown symbol usb_hcd_unlink_urb_from_ep
+<4>musb_hdrc: Unknown symbol usb_disabled
+musb_hdrc: Unknown symbol usb_disabled
+<4>musb_hdrc: Unknown symbol usb_hcd_check_unlink_urb
+musb_hdrc: Unknown symbol usb_hcd_check_unlink_urb
+<4>musb_hdrc: Unknown symbol usb_hcd_link_urb_to_ep
+musb_hdrc: Unknown symbol usb_hcd_link_urb_to_ep
+<4>musb_hdrc: Unknown symbol otg_set_transceiver
+musb_hdrc: Unknown symbol otg_set_transceiver
+<4>musb_hdrc: Unknown symbol usb_put_hcd
+musb_hdrc: Unknown symbol usb_put_hcd
+<4>musb_hdrc: Unknown symbol usb_hcd_giveback_urb
+musb_hdrc: Unknown symbol usb_hcd_giveback_urb
+<4>musb_hdrc: Unknown symbol usb_hcd_poll_rh_status
+musb_hdrc: Unknown symbol usb_hcd_poll_rh_status
+<4>musb_hdrc: Unknown symbol usb_create_hcd
+musb_hdrc: Unknown symbol usb_create_hcd
+<4>musb_hdrc: Unknown symbol usb_remove_hcd
+musb_hdrc: Unknown symbol usb_remove_hcd
+<4>musb_hdrc: Unknown symbol usb_add_hcd
+musb_hdrc: Unknown symbol usb_add_hcd
+insmod: cannot insert =
+'/lib/modules/2.6.23-omap1/kernel/drivers/usb/musb/musb_hdrc.ko': =
+Unknown symbol in module (-1): No such file or directory
+modprobe: failed to load module musb_hdrc
 
-You have definitely found a bug.  It seems that TI, for some unknown 
-reason, moved some SCM registers, including CONTROL_STATUS, for 34xx, 
-breaking forward compatibility.  And as you point out, the offset for 
-CONTROL_STATUS in the recent patch is not right for 242x.  (It's the 
-34xx offset.)
-
-I would think this would prevent 242x from booting.  Indeed, you report 
-that your setup doesn't boot.  But when I boot current git on N800 here, 
-which is 2420-based, it boots fine.  Puzzling evidence.
-
-Anyway, a test patch is below, for the CONTROL_STATUS register issue.  
-(Not for git consumption - just for testing.)  Could you try it to see if 
-it fixes the problems that you're seeing?  If not, perhaps something else 
-is wrong.
-
-Regards, 
-
-- Paul
+>-----Original Message-----
+>From: =
+linux-omap-open-source-bounces+vikram.pandita=3Dti.com@linux.omap.com =
+[mailto:linux-omap-open-
+>source-bounces+vikram.pandita=3Dti.com@linux.omap.com] On Behalf Of =
+Carl Benson
+>Sent: Monday, November 26, 2007 2:09 PM
+>To: linux-omap-open-source@linux.omap.com
+>Subject: 3430SDP USB driver
+>
+>Hi. Unable to compile support for USB on 3430SDP ES1.0. Seems like the =
+struct urb has changed
+>somewhere between 2.6.22 and 2.6.23 and that the driver is lagging =
+behind?
 
 
----
- arch/arm/mach-omap2/board-h4.c      |    2 +-
- arch/arm/mach-omap2/id.c            |   10 +++++++++-
- arch/arm/plat-omap/sram.c           |    2 +-
- include/asm-arm/arch-omap/control.h |    3 ++-
- 4 files changed, 13 insertions(+), 4 deletions(-)
+Please check the patch from Tony on 31/10/2007 Subject: Re: [PATCH] =
+initial musb urb fixes to make it work again
 
-Index: linux-omap/arch/arm/mach-omap2/board-h4.c
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/board-h4.c	2007-11-26 03:13:50.000000000 -0700
-+++ linux-omap/arch/arm/mach-omap2/board-h4.c	2007-11-26 03:28:30.000000000 -0700
-@@ -272,7 +272,7 @@
- /* 2420 Sysboot setup (2430 is different) */
- static u32 get_sysboot_value(void)
- {
--	return (ctrl_read_reg(CONTROL_STATUS) & 0xFFF);
-+	return (ctrl_read_reg(OMAP24XX_CONTROL_STATUS) & 0xFFF);
- }
- 
- /* FIXME: This function should be moved to some other file, gpmc.c? */
-Index: linux-omap/arch/arm/mach-omap2/id.c
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/id.c	2007-11-26 03:13:50.000000000 -0700
-+++ linux-omap/arch/arm/mach-omap2/id.c	2007-11-26 03:35:27.000000000 -0700
-@@ -162,7 +162,15 @@
- 	/* Embedding the ES revision info in type field */
- 	system_rev = omap_ids[j].type;
- 
--	ctrl_status = ctrl_read_reg(CONTROL_STATUS);
-+	if (cpu_is_omap24xx()) {
-+		i = OMAP24XX_CONTROL_STATUS;
-+	} else if (cpu_is_omap343x()) {
-+		i = OMAP343X_CONTROL_STATUS;
-+	} else {
-+		printk(KERN_ERR "id: unknown CPU type\n");
-+		BUG();
-+	}
-+	ctrl_status = ctrl_read_reg(i);
- 	system_rev |= (ctrl_status & 0x3f);
- 	system_rev |= (ctrl_status & 0x700);
- 
-Index: linux-omap/include/asm-arm/arch-omap/control.h
-===================================================================
---- linux-omap.orig/include/asm-arm/arch-omap/control.h	2007-11-26 03:13:50.000000000 -0700
-+++ linux-omap/include/asm-arm/arch-omap/control.h	2007-11-26 03:28:30.000000000 -0700
-@@ -37,7 +37,8 @@
- 
- #define CONTROL_DEVCONF0		(CONTROL_GENERAL + 0x04)
- #define CONTROL_DEVCONF1		(CONTROL_GENERAL + 0x68) /* > 242x */
--#define CONTROL_STATUS			(CONTROL_GENERAL + 0x80)
-+#define OMAP343X_CONTROL_STATUS		(CONTROL_GENERAL + 0x80)
-+#define OMAP24XX_CONTROL_STATUS		(CONTROL_GENERAL + 0x88)
- 
- 
- /*
-Index: linux-omap/arch/arm/plat-omap/sram.c
-===================================================================
---- linux-omap.orig/arch/arm/plat-omap/sram.c	2007-11-26 03:13:50.000000000 -0700
-+++ linux-omap/arch/arm/plat-omap/sram.c	2007-11-26 03:28:30.000000000 -0700
-@@ -94,7 +94,7 @@
- 
- #if defined(CONFIG_ARCH_OMAP242X)
- 	if (cpu_is_omap242x())
--		type = ctrl_read_reg(CONTROL_STATUS) & TYPE_MASK;
-+		type = ctrl_read_reg(OMAP24XX_CONTROL_STATUS) & TYPE_MASK;
- #endif
- 
- 	if (type == GP_DEVICE) {
+Attached to the mail as well for your reference.
+
+
+>
+>regards,
+>/Carl
+>
+>  CC [M]  drivers/usb/musb/musb_host.o
+>drivers/usb/musb/musb_host.c: In function '__musb_giveback':
+>drivers/usb/musb/musb_host.c:277: error: 'struct urb' has no member =
+named 'lock'
+>drivers/usb/musb/musb_host.c:281: error: 'struct urb' has no member =
+named 'lock'
+>drivers/usb/musb/musb_host.c:307: error: too few arguments to function =
+'usb_hcd_giveback_urb'
+>drivers/usb/musb/musb_host.c: In function 'musb_urb_dequeue':
+>drivers/usb/musb/musb_host.c:1970: error: 'struct urb' has no member =
+named 'lock'
+>drivers/usb/musb/musb_host.c:1983: error: 'struct urb' has no member =
+named 'lock'
+>drivers/usb/musb/musb_host.c: In function 'musb_h_disable':
+>drivers/usb/musb/musb_host.c:2085: error: 'struct urb' has no member =
+named 'lock'
+>drivers/usb/musb/musb_host.c:2088: error: 'struct urb' has no member =
+named 'lock'
+>drivers/usb/musb/musb_host.c: At top level:
+>drivers/usb/musb/musb_host.c:2163: warning: initialization from =
+incompatible pointer type
+>drivers/usb/musb/musb_host.c:2164: warning: initialization from =
+incompatible pointer type
+>make[2]: *** [drivers/usb/musb/musb_host.o] Error 1
+>make[1]: *** [drivers/usb/musb] Error 2
+>make: *** [drivers] Error 2
+>_______________________________________________
+>Linux-omap-open-source mailing list
+>Linux-omap-open-source@linux.omap.com
+>http://linux.omap.com/mailman/listinfo/linux-omap-open-source
