@@ -1,15 +1,12 @@
-From: Igor Stoppa <igor.stoppa@nokia.com>
-Subject: RE: Peculiar Behaviour of the GPIO Program
-Date: Tue, 27 Nov 2007 02:05:08 +0200
-Message-ID: <1196121909.6829.0.camel@mort>
-References: <74079.72407.qm@web7604.mail.in.yahoo.com>
-	<E6CCDC65B8C522458685D8D1F145FEA801A34BA7@CA2-MSX-C01.nw.net>
-Reply-To: igor.stoppa@nokia.com
+From: Bryan Wu <bryan.wu@analog.com>
+Subject: [Question] Can g_midi run on musb_gadget?
+Date: Tue, 27 Nov 2007 12:04:25 +0800
+Message-ID: <1196136265.7177.17.camel@roc-laptop>
+Reply-To: bryan.wu@analog.com
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <E6CCDC65B8C522458685D8D1F145FEA801A34BA7@CA2-MSX-C01.nw.net>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,127 +14,75 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: ext Krishna Prasad Herur <kherur@nextwave.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Ben Williamson <ben.williamson@greyinnovation.com>, David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi folks,
 
-On Mon, 2007-11-26 at 15:55 -0800, ext Krishna Prasad Herur wrote:
-> The GPIO driver does not automatically do the required pin muxing for
-> you. It is possible that the pin you are looking at is muxed with other
-> signals. Look at the OMAP TRM, and set the Pin Mux register correctly.
-> -Prasad
+I am still testing and trying to enable some gadget drivers over
+musb_gadget driver for Blackfin BF54x.
 
-Pullup/pulldown settings might require some adjustment too.
+Does someone test g_midi over MUSB gadget driver?
+Actually, current g_midi only supports full speed, then the MUSB gadget
+will make g_midi usb_gadget_register_driver (in musb_gadget.c) function
+call fail as below:
+---
+        if (!driver
+                        || driver->speed != USB_SPEED_HIGH
+                        || !driver->bind
+                        || !driver->setup)
+                return -EINVAL;
+---
 
+gmidi.c
+---
+static struct usb_gadget_driver gmidi_driver = {
+        .speed          = USB_SPEED_FULL,
+        .function       = (char *)longname,
+        .bind           = gmidi_bind,
+        .unbind         = gmidi_unbind,
 
-> -----Original Message-----
-> From: linux-omap-open-source-bounces+kherur=nextwave.com@linux.omap.com
-> [mailto:linux-omap-open-source-bounces+kherur=nextwave.com@linux.omap.co
-> m] On Behalf Of Azhar Mr.
-> Sent: Thursday, November 22, 2007 10:35 PM
-> To: linux-omap-open-source@linux.omap.com
-> Subject: Peculiar Behaviour of the GPIO Program
-> 
-> Dear all,
->    
->   I am working on OMAP5912 OSK.
->    
->   I am trying to write a simple GPIO Program to write a value '1' to a
-> particular free GPIO Pin. For that I had written a program led_glow.c
-> given below.
->    
->   /* define any of the valid GPIO pins as LED_GPIO */
->   #define LED_GPIO 18
->    
->    
->   /* Defines the value written to the pin defined as LED_GPIO */
->    
->   #define LED_STATUS 1
->    
->   MODULE_LICENSE("Dual BSD/GPL");
->    
->    
->   int init_module(void)
->   {
->         /* requesting for LED_GPIO */
->         if(omap_request_gpio(LED_GPIO)<0)
->         {
->    printk("[ERROR]: Failed in allocating the requested GPIO Pin \n");
->               return -1;
->         }
->         
->         /* setting LED_GPIO as output pin */
->    
->        omap_set_gpio_direction(LED_GPIO,0);
->    
->         /* writing to LED_GPIO the value of LED_STATUS */
->    
->         omap_set_gpio_dataout(LED_GPIO,LED_STATUS);
->    
->         /* printing the value of LED_GPIO pin */
->    
->   printk("value of pin # %d =
-> %d\n",LED_GPIO,omap_get_gpio_datain(LED_GPIO));
->    
->         return 0;
->   }
->    
->   void cleanup_module(void)
->   {
->         omap_free_gpio(LED_GPIO);     
->   printk("[SUCCESS]: LED_GLOW Module unregistered successfull.\n");
->   }
->    
->    
->   I included our led_glow.c as a module in the Linux-2.6.22/drivers/leds
-> directory .
->    
->   Then using arm-linux-gcc compiler, I compiled the led_glow.c code to
-> obtain led_glow.ko
->    
->   Then using the insmod I inserted the module led_glow.ko in the
->   OSK5912 Environment.
->    
->   I tested the module with various free GPIO-Pins of Expansion connector
-> 'C'
->    
->   For some GPIO pins it is able to write the value '1' and for some pins
-> it is unable to write '1'
->    
->   Sh-3.00# value of pin #15 = 1
->   Sh-3.00# value of pin #16 = 1
->   Sh-3.00# value of pin #17= 0
->   Sh-3.00# value of pin #20 = 0
->    
->   I tested all the free GPIO pins of EXPANSION CONEECTOR C, irrespective
-> of the printed value at the GPIO Pins at all the GPIO Pins I can observe
-> only '0' value in the C.R.O. I could not get any response in the C.R.O
->    
->   I don't understand this peculiar behavior of my GPIO-CODE.
->    
->   Please Help
->    
->   With Regards
->    
->   Azhar
-> 
->        
-> ---------------------------------
->  Bring your gang together - do your thing.  Start your group.
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> 
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
--- 
-Cheers, Igor
+        .setup          = gmidi_setup,
+        .disconnect     = gmidi_disconnect,
 
-Igor Stoppa <igor.stoppa@nokia.com>
-(Nokia Multimedia - CP - OSSO / Helsinki, Finland)
+        .suspend        = gmidi_suspend,
+        .resume         = gmidi_resume,
+
+        .driver         = {
+                .name           = (char *)shortname,
+                .owner          = THIS_MODULE,
+        },
+};
+---
+
+So I modified the musb_gadget.c to enable the g_midi.ko on my BF54x
+hardware.
+
+I got some question about the testing about the g_midi:
+
+1. My Linux and Windows PC USB host can found the g_midi BF54x device,
+for example:
+---
+roc@roc-laptop:~$ aplaymidi -l
+ Port    Client name                      Port name
+ 14:0    Midi Through                     Midi Through Port-0
+ 20:0    MIDI Gadget                      MIDI Gadget MIDI 1
+---
+
+There is an ALSA AD1980 AC97 audio hardware and driver on BF54x and I am
+sure it works well.
+If I use "aplaymidi -p 20:0 ~/Desktop/onestop.mid" to try to play the
+midi file over USB, can I heard sound from the AD1980 sound output port?
+But I don't hear anything.
+
+2. g_midi just provides an midi device, not a fully functional USB Audio
+Class device, right?
+Because some customer wanna enable the BF54x as USB Audio Class device
+over musb_gadget driver.
+
+3. Is there any URL or wiki about g_midi for developer as referrence?
+
+Thanks a lot
+-Bryan Wu
