@@ -1,15 +1,15 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [Question] Can g_midi run on musb_gadget?
-Date: Tue, 27 Nov 2007 01:16:34 -0800
-Message-ID: <200711270116.34801.david-b@pacbell.net>
-References: <1196136265.7177.17.camel@roc-laptop>
+From: Paul Walmsley <paul@booyaka.com>
+Subject: Re: [RFC][PATCH] ARM: OMAP: Always enable the R/W access to all
+ initiators in sram
+Date: Tue, 27 Nov 2007 02:38:29 -0700 (MST)
+Message-ID: <Pine.LNX.4.64.0711270232320.29188@utopia.booyaka.com>
+References: <20071126020738.GA32424@party>
+	<Pine.LNX.4.64.0711260348500.2694@utopia.booyaka.com>
+	<9c9fda240711262235y22d45576n8469fa24790fc028@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <1196136265.7177.17.camel@roc-laptop>
-Content-Disposition: inline
+In-Reply-To: <9c9fda240711262235y22d45576n8469fa24790fc028@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,27 +19,29 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: bryan.wu@analog.com
-Cc: Ben Williamson <ben.williamson@greyinnovation.com>, linux-omap-open-source@linux.omap.com
+To: Kyungmin Park <kmpark@infradead.org>
+Cc: linux-omap-open-source@linux.omap.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 26 November 2007, Bryan Wu wrote:
-> Hi folks,
-> 
-> I am still testing and trying to enable some gadget drivers over
-> musb_gadget driver for Blackfin BF54x.
-> 
-> Does someone test g_midi over MUSB gadget driver?
+Hello Kyungmin,
 
-Not I.
+On Tue, 27 Nov 2007, Kyungmin Park wrote:
+
+> There's no configuration ARCH_OMAP242X. :)
+
+Yikes!  Nice catch :-)  
+
+Time to start checking each patch for nonexistent config symbols before I 
+send them.
+
+> I'm not sure is it thre right to check cpu_is_omap242x()? or cpu_is_omap24xx()?
+
+Probably Richard would be the right person to ask.  What do you think, 
+Richard?
+
+> After your patch commits, I will send the patch.
+
+Okay, I will send in a patch for CONTROL_STATUS later today.
 
 
-> Actually, current g_midi only supports full speed, then the MUSB gadget
-> will make g_midi usb_gadget_register_driver (in musb_gadget.c) function
-> call fail as below:
-
-Which is appropriate, it only has full speed descriptors.
-
-Feel free to submit a patch teaching it how to do high speed...
-
-- Dave
+- Paul
