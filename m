@@ -1,13 +1,20 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.24-rc3-omap1] tsc210x build fixes
-Date: Wed, 28 Nov 2007 12:49:18 -0800
-Message-ID: <20071128204918.GY11825@atomide.com>
-References: <200711232320.36987.david-b@pacbell.net>
+Subject: Re: [PATCH: Resending] - onenand - OMAP3 support - Kconfig update
+Date: Wed, 28 Nov 2007 13:09:11 -0800
+Message-ID: <20071128210911.GZ11825@atomide.com>
+References: <00c601c82aa7$faf8e620$ec8818ac@ent.ti.com>
+	<010001c82b47$71eae130$ec8818ac@ent.ti.com>
+	<014f01c82cc4$82ad3260$ec8818ac@ent.ti.com>
+	<20071123212831.GJ559@atomide.com>
+	<008b01c830e7$a650a220$ec8818ac@ent.ti.com>
+	<20071127125543.GA6534@1BRL00624.americas.nokia.com>
+	<009a01c83182$9beeff20$ec8818ac@ent.ti.com>
+	<20071128124115.GC6667@1BRL00624.americas.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <200711232320.36987.david-b@pacbell.net>
+In-Reply-To: <20071128124115.GC6667@1BRL00624.americas.nokia.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,39 +22,18 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Felipe Balbi <ext-felipe.lima@nokia.com>
+Cc: linux-omap-open-source@linux.omap.com, ext Sameer <x0081444@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [071123 23:24]:
-> Build fixes for the tsc210x driver.
-> 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> 
-> --- a/drivers/hwmon/tsc210x_sensors.c
-> +++ b/drivers/hwmon/tsc210x_sensors.c
-> @@ -41,7 +41,7 @@ #include <linux/spi/tsc210x.h>
->  struct tsc210x_hwmon {
->  	int bat[2], aux[2], temp[2];
->  
-> -	struct class_device *dev;
-> +	struct device *dev;
->  	struct tsc210x_config *pdata;
->  #ifdef CONFIG_APM
->  	/* prevent APM from colliding with normal hwmon accessors */
-> --- a/drivers/input/touchscreen/tsc210x_ts.c
-> +++ b/drivers/input/touchscreen/tsc210x_ts.c
-> @@ -96,7 +96,7 @@ static int tsc210x_ts_probe(struct platf
->  	dev->name = "TSC210x Touchscreen";
->  	dev->cdev.dev = &pdev->dev;
->  	dev->evbit[0] = BIT(EV_KEY) | BIT(EV_ABS);
-> -	dev->keybit[LONG(BTN_TOUCH)] |= BIT(BTN_TOUCH);
-> +	dev->keybit[BIT_WORD(BTN_TOUCH)] |= BIT_MASK(BTN_TOUCH);
->  	dev->absbit[0] = BIT(ABS_X) | BIT(ABS_Y) | BIT(ABS_PRESSURE);
->  	dev->phys = "tsc210x/input0";
->  	dev->id.bustype = BUS_HOST;
+* Felipe Balbi <ext-felipe.lima@nokia.com> [071128 08:56]:
+> On Wed, Nov 28, 2007 at 11:20:38AM +0530, ext Sameer wrote:
+> > Hi,
+> > Please ignore the previous patch.
+> > The following patch provides the onenand support for OMAP3.
+> > The patch enables the onenand in def_config file, enable onenand Kconfig for OMAP3 and redeclaring the omap2_sleep_block(), omap2_allow_sleep() according to CONFIG_PM defination in pm.h according to Felipe Balbi's comments.
 
 Pushing today.
 
