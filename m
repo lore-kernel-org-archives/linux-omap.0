@@ -1,14 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] OMAP: DMA: Attribution necessary only if the ch is
-	not chained.
-Date: Tue, 27 Nov 2007 18:20:17 -0800
-Message-ID: <20071128022017.GF11825@atomide.com>
-References: <4748A5D7.2040509@indt.org.br>
+Subject: Re: [PATH 0/3] ARM: OMAP1: Camera: Updates API usage and removes
+	unused files
+Date: Tue, 27 Nov 2007 18:25:11 -0800
+Message-ID: <20071128022511.GH11825@atomide.com>
+References: <1195683785-32132-1-git-send-email-edubezval@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <4748A5D7.2040509@indt.org.br>
+In-Reply-To: <1195683785-32132-1-git-send-email-edubezval@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,38 +18,40 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Cc: omap-linux <linux-omap-open-source@linux.omap.com>
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: Eduardo Valentin <eduardo.valentin@indt.org.br>, linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Carlos Aguiar <carlos.aguiar@indt.org.br> [071124 14:31]:
-> From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+* Eduardo Valentin <edubezval@gmail.com> [071121 14:24]:
+>        This patch set updates v4l2 API usage and removes unused
+> files on camera code for omap1. Here is an overall description:
 > 
-> Attribution necessary only if the ch is not chained on arch/arm/plat-omap/dma.c
+>        There are two updates on v4l2 API usage: on the use of videobuf and
+> v4l2-int-device deattach.
 > 
-> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-> Signed-off-by: Ragner Magalhaes <ragner.magalhaes@indt.org.br>
-> ---
->  arch/arm/plat-omap/dma.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
+>        As the ov9640 is already moved to the v4l2-int-device API and
+> the camera code for omap1 too, this patch set also removes unused and
+> duplicated files. The info from this removed files already moved to board
+> specific files and to other files (see previous related patches).
 > 
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index dd0c874..a3c5d4f 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -1709,9 +1709,9 @@ static int omap2_dma_handle_ch(int ch)
->  
->  		if (!OMAP_DMA_CHAIN_QEMPTY(chain_id))
->  			OMAP_DMA_CHAIN_INCQHEAD(chain_id);
-> -	}
->  
-> -	status = OMAP_DMA_CSR_REG(ch);
-> +		status = OMAP_DMA_CSR_REG(ch);
-> +	}
->  
->  	if (likely(dma_chan[ch].callback != NULL)) {
->  		if (dma_chan[ch].chain_id != -1)
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+> 
+>        Here is its  overall diffstat:
+>  b/drivers/media/video/omap/Kconfig         |    3
+>  b/drivers/media/video/omap/camera_core.c   |   11
+>  b/drivers/media/video/omap/camera_core.h   |    3
+>  drivers/media/video/omap/camera_core.c     |   13
+>  drivers/media/video/omap/h3_sensor_power.c |   63 -
+>  drivers/media/video/omap/h3sensorpower.h   |   17
+>  drivers/media/video/omap/h4_sensor_power.c |   76 -
+>  drivers/media/video/omap/h4sensorpower.h   |   17
+>  drivers/media/video/omap/ov9640.h          |  179 ----
+>  drivers/media/video/omap/sensor_if.h       |   50 -
+>  drivers/media/video/omap/sensor_ov9640.c   | 1221 -----------------------------
+>  11 files changed, 14 insertions(+), 1639 deletions(-)
+> 
 
-Thanks, pushed.
+Pushing thise series today. Is there anything else that can be removed
+now regarding the camera stuff?
 
 Tony
