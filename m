@@ -1,10 +1,16 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] Fix cpu_is_omap343x()
-Date: Wed, 28 Nov 2007 18:20:21 -0700 (MST)
-Message-ID: <Pine.LNX.4.64.0711281817470.9880@utopia.booyaka.com>
+From: <sshahrom@micron.com>
+Subject: RE: [PATCH 1/4] OMAP: Resubmitting support for 2K page nand
+Date: Wed, 28 Nov 2007 18:34:54 -0800
+Message-ID: <809D758398CC1F49AA8E493528AD4A27014DF71D@ntxsjombx02.micron.com>
+References: <809D758398CC1F49AA8E493528AD4A27014DF6D0@ntxsjombx02.micron.com>
+	<20071128215910.GB11825@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <20071128215910.GB11825@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,42 +18,38 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com, linux-omap@vger.kernel.org
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: tony@atomide.com
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
+I will do that,
+Thanks,
+-Shahrom=20
 
-cpu_is_omap343x() is missing its setup code, and returns 0 on all platforms -
-including OMAP343x.  
+-----Original Message-----
+From: Tony Lindgren [mailto:tony@atomide.com]=20
+Sent: Wednesday, November 28, 2007 1:59 PM
+To: sshahrom
+Cc: linux-omap-open-source@linux.omap.com
+Subject: Re: [PATCH 1/4] OMAP: Resubmitting support for 2K page nand
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Hi,
 
----
- include/asm-arm/arch-omap/cpu.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+* sshahrom@micron.com <sshahrom@micron.com> [070919 14:21]:
+>=20
+> Hello,
+> Following patches would add support for 2k Page nand with Enabled HW =
+ECC on omap2430 v4.0. and v5. It has been Tested with Micron Nand.=20
+> The Patch is against 2.6.23 linux-omap.git tree. As Always all the =
+comments are welcomed.
 
-Index: linux-omap/include/asm-arm/arch-omap/cpu.h
-===================================================================
---- linux-omap.orig/include/asm-arm/arch-omap/cpu.h	2007-11-23 17:46:16.000000000 -0700
-+++ linux-omap/include/asm-arm/arch-omap/cpu.h	2007-11-28 17:59:03.000000000 -0700
-@@ -122,6 +122,7 @@
- #define cpu_is_omap24xx()		0
- #define cpu_is_omap242x()		0
- #define cpu_is_omap243x()		0
-+#define cpu_is_omap34xx()		0
- #define cpu_is_omap343x()		0
- 
- #if defined(MULTI_OMAP1)
-@@ -160,9 +161,9 @@
- # endif
- # if defined(CONFIG_ARCH_OMAP34XX)
- #  undef  cpu_is_omap34xx
-+#  undef  cpu_is_omap343x
- #  define cpu_is_omap34xx()		1
--# else
--#  define cpu_is_omap34xx()		0
-+#  define cpu_is_omap343x()		is_omap343x()
- # endif
- #endif
- 
+I've made some formatting changes and pushed this series in two patches. =
+I also moved some defines from the header to the driver file. Can you =
+please check?
+
+Regards,
+
+Tony
