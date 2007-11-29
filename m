@@ -1,15 +1,11 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 1/2] DSP: Move code to use only one dsp_common.h
-Date: Thu, 29 Nov 2007 19:03:49 +0200 (EET)
-Message-ID: <20071129.190349.38313102.Hiroshi.DOYU@nokia.com>
-References: <20071128.115437.259803666.Hiroshi.DOYU@nokia.com>
-	<20071128165745.GK11825@atomide.com>
-	<20071128233524.GC11825@atomide.com>
+From: comunerito <cdavila@att.net>
+Subject: ALSA support for H2 board
+Date: Thu, 29 Nov 2007 09:05:25 -0800 (PST)
+Message-ID: <405835.87027.qm@web34313.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20071128233524.GC11825@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,50 +15,44 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Hello,
 
-From: "ext Tony Lindgren" <tony@atomide.com>
-Subject: Re: [PATCH 1/2] DSP: Move code to use only one dsp_common.h
-Date: Wed, 28 Nov 2007 15:35:24 -0800
+I tried adding ALSA support for the H2 board using a
+recent kernel (2.6.24.3, from the montavista git tree)
+and got the following errors:
 
-> * Tony Lindgren <tony@atomide.com> [071128 08:59]:
-> > * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [071128 01:55]:
-> > > Hi Tony,
-> > > 
-> > > From: "ext Tony Lindgren" <tony@atomide.com>
-> > > Subject: [PATCH 1/2] DSP: Move code to use only one dsp_common.h
-> > > Date: Tue, 27 Nov 2007 21:18:12 -0800
-> > > 
-> > > > Hi all,
-> > > > 
-> > > > As discussed earlier, here are the patches to move dspgateway
-> > > > to under drivers.
-> > > > 
-> > > > Hiroshi san & Toshihiro san, can you take a quick look at these
-> > > > two patches and ack?
-> > > > 
-> > > > I've only compile tested on osk and n800. There should not be any
-> > > > functional changes. Some inline functions I had to export though.
-> > > 
-> > > Thank you for the patch, but it doesn't seem to work. I am
-> > > now investigating....
-> > 
-> > Oops, does the DSP get initialized?
-> > 
-> > > At least, I'd like to make sure that the code itself works fine at
-> > > this migration both on N8x0 and OSK.
-> > 
-> > Yes that would be great :)
-> 
-> No idea why it would not work, but here's one more clean-up patch in
-> order to send the MMU framework upstream.
+$ make omap_h2_1610_defconfig (ran ok)
+$ make menuconfig (ran ok)
+$ make modules
+ ...
+  CC [M]  sound/sound_core.o
+  LD [M]  sound/soundcore.o
+  CC [M]  sound/arm/omap/omap-alsa.o
+  CC [M]  sound/arm/omap/omap-alsa-dma.o
+  CC [M]  sound/arm/omap/omap-alsa-tsc2101.o
+sound/arm/omap/omap-alsa-tsc2101.c: In function
+`tsc2101_audio_write':
+sound/arm/omap/omap-alsa-tsc2101.c:146: error:
+implicit declaration of function `omap_tsc2101_write'
+sound/arm/omap/omap-alsa-tsc2101.c: In function
+tsc2101_audio_read':
+sound/arm/omap/omap-alsa-tsc2101.c:154: error:
+implicit declaration of function `omap_tsc2101_read'
+make[3]: *** [sound/arm/omap/omap-alsa-tsc2101.o]
+Error 1
+make[2]: *** [sound/arm/omap] Error 2
+make[1]: *** [sound/arm] Error 2
+make: *** [sound] Error 2
 
-With OSK5912, I verified that the demo program("demo_console") worked
-fine with your 3 patches. Probably something was broken just with
-OMAP2. I am checking it bit more.
+I found an earlier post describing a similar error
+here:
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-October/011765.html
+and was wondering if anyone has any suggestions on how
+to get this to work or if I should go back to an
+earlier version of the kernel that does work.
 
-	 Hiroshi DOYU
+Thanks and regards,
+Carlos
