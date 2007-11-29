@@ -1,13 +1,11 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: status of camera port?
-Date: Thu, 29 Nov 2007 12:57:36 +0530
-Message-ID: <5d5443650711282327v289e917ct36df8122c24d3916@mail.gmail.com>
-References: <3634de740711270741i230c315bo4a384f147b883570@mail.gmail.com>
+From: Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] ARM: OMAP: Make dummy wrapper if the OMAP_GPIO_SWITCH is
+	not set
+Date: Thu, 29 Nov 2007 17:01:37 +0900
+Message-ID: <20071129080137.GA1395@party>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <3634de740711270741i230c315bo4a384f147b883570@mail.gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -16,31 +14,29 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Maximus <john.maximus@gmail.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: tony@atomide.com
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi John,
+OMAP_GPIO_SIWTCH is optional, so omap_reister_gpio_switches will be null.
 
-On Nov 27, 2007 9:11 PM, Maximus <john.maximus@gmail.com> wrote:
-> Hi,
->  What is the current status of the camera port in the latest git
-> kernel for omap2430 sdp.
->
->  Could not find the micron camera sensor drivers for 2430 SDP in there.
->
->  Does anyone have a patch for the micron drivers with the latest v4l2 changes.
->
-
-I can convert that micron driver to latest v4l2-sensor interface, if
-you can help me in testing
-the sensor driver for 2430SDP, as I don't have access to 2430 boards.
-
-OR else you can start converting the same current micron sensor driver
-in TI tree
-by taking an example of ov9640 and toshiba sensor.
-
--- 
---Trilok Soni
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+diff --git a/include/asm-arm/arch-omap/gpio-switch.h b/include/asm-arm/arch-omap/gpio-switch.h
+index 10da0e0..a143253 100644
+--- a/include/asm-arm/arch-omap/gpio-switch.h
++++ b/include/asm-arm/arch-omap/gpio-switch.h
+@@ -48,7 +48,11 @@ struct omap_gpio_switch {
+ };
+ 
+ /* Call at init time only */
++#ifdef CONFIG_OMAP_GPIO_SWITCH
+ extern void omap_register_gpio_switches(const struct omap_gpio_switch *tbl,
+ 					int count);
++#else
++#define omap_register_gpio_switches(tbl, count)	do { } while (0)
++#endif
+ 
+ #endif
