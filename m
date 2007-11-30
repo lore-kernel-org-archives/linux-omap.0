@@ -1,15 +1,17 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: ALSA support for H2 board
-Date: Fri, 30 Nov 2007 10:43:39 -0800
-Message-ID: <200711301043.39503.david-b@pacbell.net>
-References: <462684.16917.qm@web34311.mail.mud.yahoo.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] DSP: Move code to use only one dsp_common.h
+Date: Fri, 30 Nov 2007 12:02:22 -0800
+Message-ID: <20071130200221.GH7498@atomide.com>
+References: <20071128.115437.259803666.Hiroshi.DOYU@nokia.com>
+	<20071128165745.GK11825@atomide.com>
+	<20071128233524.GC11825@atomide.com>
+	<20071129.190349.38313102.Hiroshi.DOYU@nokia.com>
+	<20071129175535.GI11825@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <462684.16917.qm@web34311.mail.mud.yahoo.com>
 Content-Disposition: inline
+In-Reply-To: <20071129175535.GI11825@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,45 +21,63 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 30 November 2007, Carlos Davila wrote:
-> David,
->    
->   I understood from your previous message: "Better IMO to get
->   the tsc210x core working on tsc2101 chips" that there are
->   bugs in the tsc2101 drivers used by ALSA...which leaves me
+Hi,
 
-No, it's just that the driver you referenced is using old
-driver infrastructure.  That's not "bugs", it's just "this
-code needs updating".
+* Tony Lindgren <tony@atomide.com> [071129 09:58]:
+> * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [071129 09:04]:
+> > Hi Tony,
+> > 
+> > From: "ext Tony Lindgren" <tony@atomide.com>
+> > Subject: Re: [PATCH 1/2] DSP: Move code to use only one dsp_common.h
+> > Date: Wed, 28 Nov 2007 15:35:24 -0800
+> > 
+> > > * Tony Lindgren <tony@atomide.com> [071128 08:59]:
+> > > > * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [071128 01:55]:
+> > > > > Hi Tony,
+> > > > > 
+> > > > > From: "ext Tony Lindgren" <tony@atomide.com>
+> > > > > Subject: [PATCH 1/2] DSP: Move code to use only one dsp_common.h
+> > > > > Date: Tue, 27 Nov 2007 21:18:12 -0800
+> > > > > 
+> > > > > > Hi all,
+> > > > > > 
+> > > > > > As discussed earlier, here are the patches to move dspgateway
+> > > > > > to under drivers.
+> > > > > > 
+> > > > > > Hiroshi san & Toshihiro san, can you take a quick look at these
+> > > > > > two patches and ack?
+> > > > > > 
+> > > > > > I've only compile tested on osk and n800. There should not be any
+> > > > > > functional changes. Some inline functions I had to export though.
+> > > > > 
+> > > > > Thank you for the patch, but it doesn't seem to work. I am
+> > > > > now investigating....
+> > > > 
+> > > > Oops, does the DSP get initialized?
+> > > > 
+> > > > > At least, I'd like to make sure that the code itself works fine at
+> > > > > this migration both on N8x0 and OSK.
+> > > > 
+> > > > Yes that would be great :)
+> > > 
+> > > No idea why it would not work, but here's one more clean-up patch in
+> > > order to send the MMU framework upstream.
+> > 
+> > With OSK5912, I verified that the demo program("demo_console") worked
+> > fine with your 3 patches. Probably something was broken just with
+> > OMAP2. I am checking it bit more.
+> 
+> OK, that's good to hear. Let's wait until you're happy before pushing
+> this.
 
-- Dave
+I've pushed these patches, Hiroshi is looking into why omap2 dsp is
+not currently working while omap1 is. It seems the problem is unrelated
+to these patches.
 
->   no choice but to use OSS, since I know nothing about
->   debugging/writing device drivers.    
->    
->   Am I completely off the mark? Would appreciate any suggestions you may have.
->    
->   Best,
->   Carlos
-> 
-> David Brownell <david-b@pacbell.net> wrote:
->   On Friday 30 November 2007, Carlos Davila wrote:
-> > OK understood, I'll use OSS then. 
-> 
-> You seem to have leaped from "use a more modern SPI framework"
-> to "use old sound framework" ... how does that happen??
-> 
-> 
-> > David Brownell wrote:
-> > On Thursday 29 November 2007, comunerito wrote:
-> > > CC [M] sound/arm/omap/omap-alsa-tsc2101.o
-> > 
-> > Better IMO to get the tsc210x core working on tsc2101 chips...
-> > 
-> > 
-> > 
-> 
-> 
+Regards,
+
+Tony
