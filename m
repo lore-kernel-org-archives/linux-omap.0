@@ -1,10 +1,11 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] Clean up cpu.h for 24xx, 34xx
-Date: Fri, 30 Nov 2007 19:47:32 -0700 (MST)
-Message-ID: <Pine.LNX.4.64.0711301945080.18772@utopia.booyaka.com>
+From: Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] ARM: OMAP: Adds MMC multislot for apollon
+Date: Mon, 3 Dec 2007 08:47:50 +0900
+Message-ID: <20071202234750.GA13107@party>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,184 +15,162 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Adds MMC support for apollon using the MMC multislot support code.
 
-[ This patch replaces the previous patch from me on this topic, 
-  "Fix cpu_is_omap343x()" ]
-
-include/asm-arm/arch-omap/cpu.h was always returning 0 for
-cpu_is_omap343x().  This caused 3430SDP to fail to boot after the
-recent system control module patch.
-
-Also, clean up the existing OMAP2/3 CPU type reporting macros to
-evaluate to constants on non-multiboot kernels, and fix some
-whitespace and numeric format problems with the recent DEVICE_TYPE
-macro changes.
-
-Boot-tested on N800, 2430SDP, and 3430SDP-ES1.
-
-size:
-
-2885444  147008   96280 3128732  2fbd9c vmlinux.3430sdp
-2885416  147008   96280 3128704  2fbd80 vmlinux.3430sdp.patched
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- include/asm-arm/arch-omap/cpu.h |   89 ++++++++++++++++++++++++++--------------
- 1 file changed, 60 insertions(+), 29 deletions(-)
-
-Index: linux-omap/include/asm-arm/arch-omap/cpu.h
-===================================================================
---- linux-omap.orig/include/asm-arm/arch-omap/cpu.h	2007-11-30 16:23:40.000000000 -0700
-+++ linux-omap/include/asm-arm/arch-omap/cpu.h	2007-11-30 17:09:04.000000000 -0700
-@@ -35,7 +35,6 @@
-  */
- #undef MULTI_OMAP1
- #undef MULTI_OMAP2
--#undef MULTI_OMAP3
- #undef OMAP_NAME
- 
- #ifdef CONFIG_ARCH_OMAP730
-@@ -62,20 +61,33 @@
- #  define OMAP_NAME omap16xx
- # endif
- #endif
--#ifdef CONFIG_ARCH_OMAP24XX
-+#if (defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX))
- # if (defined(OMAP_NAME) || defined(MULTI_OMAP1))
- #  error "OMAP1 and OMAP2 can't be selected at the same time"
-+# endif
-+#endif
-+#ifdef CONFIG_ARCH_OMAP2420
-+# ifdef OMAP_NAME
-+#  undef  MULTI_OMAP2
-+#  define MULTI_OMAP2
- # else
-+#  define OMAP_NAME omap2420
-+# endif
-+#endif
-+#ifdef CONFIG_ARCH_OMAP2430
-+# ifdef OMAP_NAME
- #  undef  MULTI_OMAP2
--#  define OMAP_NAME omap24xx
-+#  define MULTI_OMAP2
-+# else
-+#  define OMAP_NAME omap2430
- # endif
- #endif
--#ifdef CONFIG_ARCH_OMAP34XX
--# if (defined(OMAP_NAME) || defined(MULTI_OMAP1) || defined(MULTI_OMAP2))
--#  error "OMAP1 / OMAP2 / OMAP3 can't be selected at the same time"
-+#ifdef CONFIG_ARCH_OMAP3430
-+# ifdef OMAP_NAME
-+#  undef  MULTI_OMAP2
-+#  define MULTI_OMAP2
- # else
--#  undef MULTI_OMAP3
--#  define OMAP_NAME omap34xx
-+#  define OMAP_NAME omap3430
- # endif
- #endif
- 
-@@ -122,6 +134,7 @@
- #define cpu_is_omap24xx()		0
- #define cpu_is_omap242x()		0
- #define cpu_is_omap243x()		0
-+#define cpu_is_omap34xx()		0
- #define cpu_is_omap343x()		0
- 
- #if defined(MULTI_OMAP1)
-@@ -150,19 +163,43 @@
- #  undef  cpu_is_omap16xx
- #  define cpu_is_omap16xx()		1
- # endif
-+#endif
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 2195991..d4d6d98 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -28,6 +28,7 @@ obj-$(CONFIG_MACH_OMAP_2430SDP)		+= board-2430sdp.o \
+ obj-$(CONFIG_MACH_OMAP_2430OSK)		+= board-2430osk.o
+ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o
+ obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
++					   board-apollon-mmc.o	\
+ 					   board-apollon-keys.o
+ obj-$(CONFIG_MACH_NOKIA_N800)		+= board-n800.o board-n800-flash.o \
+ 					   board-n800-mmc.o board-n800-bt.o \
+diff --git a/arch/arm/mach-omap2/board-apollon-mmc.c b/arch/arm/mach-omap2/board-apollon-mmc.c
+new file mode 100644
+index 0000000..f77167e
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-apollon-mmc.c
+@@ -0,0 +1,88 @@
++/*
++ * linux/arch/arm/mach-omap2/board-apollon-mmc.c
++ *
++ * Copyright (C) 2005-2007 Samsung Electronics
++ * Author: Kyungmin Park <kyungmin.park@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+#if defined(MULTI_OMAP2)
- # if defined(CONFIG_ARCH_OMAP24XX)
- #  undef  cpu_is_omap24xx
- #  undef  cpu_is_omap242x
- #  undef  cpu_is_omap243x
--#  define cpu_is_omap24xx()		1
-+#  define cpu_is_omap24xx()		is_omap24xx()
- #  define cpu_is_omap242x()		is_omap242x()
- #  define cpu_is_omap243x()		is_omap243x()
- # endif
- # if defined(CONFIG_ARCH_OMAP34XX)
- #  undef  cpu_is_omap34xx
-+#  undef  cpu_is_omap343x
-+#  define cpu_is_omap34xx()		is_omap34xx()
-+#  define cpu_is_omap343x()		is_omap343x()
-+# endif
-+#else
-+# if defined(CONFIG_ARCH_OMAP24XX)
-+#  undef  cpu_is_omap24xx
-+#  define cpu_is_omap24xx()		1
-+# endif
-+# if defined(CONFIG_ARCH_OMAP2420)
-+#  undef  cpu_is_omap242x
-+#  define cpu_is_omap242x()		1
-+# endif
-+# if defined(CONFIG_ARCH_OMAP2430)
-+#  undef  cpu_is_omap243x
-+#  define cpu_is_omap243x()		1
-+# endif
-+# if defined(CONFIG_ARCH_OMAP34XX)
-+#  undef  cpu_is_omap34xx
- #  define cpu_is_omap34xx()		1
--# else
--#  define cpu_is_omap34xx()		0
-+# endif
-+# if defined(CONFIG_ARCH_OMAP3430)
-+#  undef  cpu_is_omap343x
-+#  define cpu_is_omap343x()		1
- # endif
- #endif
- 
-@@ -285,7 +322,7 @@
-  * get_sil_rev:			return the silicon rev value.
-  */
- #define get_sil_omap_type(rev)	((rev & 0xffff0000) >> 16)
--#define get_sil_revision(rev)	((rev & 0x00000f000) >> 12)
-+#define get_sil_revision(rev)	((rev & 0x0000f000) >> 12)
- 
- #define is_sil_rev_greater_than(rev) \
- 		((get_sil_omap_type(system_rev) == get_sil_omap_type(rev)) && \
-@@ -313,23 +350,17 @@
-  * Macro to detect device type i.e. EMU/HS/TST/GP/BAD
-  */
- #define DEVICE_TYPE_TEST	0
--#define DEVICE_TYPE_EMU 	1
--#define DEVICE_TYPE_SEC 	2
--#define DEVICE_TYPE_GP  	3
--#define DEVICE_TYPE_BAD 	4
--
--#define get_device_type()	\
--		((system_rev & 0x700) >> 8)
--#define is_device_type_test()	\
--		(get_device_type() == DEVICE_TYPE_TEST)
--#define is_device_type_emu()	\
--		(get_device_type() == DEVICE_TYPE_EMU)
--#define is_device_type_sec()	\
--		(get_device_type() == DEVICE_TYPE_SEC)
--#define is_device_type_gp()	\
--		(get_device_type() == DEVICE_TYPE_GP)
--#define is_device_type_bad()	\
--		(get_device_type() == DEVICE_TYPE_BAD)
-+#define DEVICE_TYPE_EMU		1
-+#define DEVICE_TYPE_SEC		2
-+#define DEVICE_TYPE_GP		3
-+#define DEVICE_TYPE_BAD		4
++#include <linux/kernel.h>
 +
-+#define get_device_type()	((system_rev & 0x700) >> 8)
-+#define is_device_type_test()	(get_device_type() == DEVICE_TYPE_TEST)
-+#define is_device_type_emu()	(get_device_type() == DEVICE_TYPE_EMU)
-+#define is_device_type_sec()	(get_device_type() == DEVICE_TYPE_SEC)
-+#define is_device_type_gp()	(get_device_type() == DEVICE_TYPE_GP)
-+#define is_device_type_bad()	(get_device_type() == DEVICE_TYPE_BAD)
++#include <asm/arch/gpio.h>
++#include <asm/arch/mmc.h>
++
++#ifdef CONFIG_MMC_OMAP
++
++static struct device *mmc_device;
++
++static int apollon_mmc_set_power(struct device *dev, int slot, int power_on,
++					int vdd)
++{
++#ifdef CONFIG_MMC_DEBUG
++	dev_dbg(dev, "Set slot %d power: %s (vdd %d)\n", slot + 1,
++		power_on ? "on" : "off", vdd);
++#endif
++	if (slot != 0) {
++		dev_err(dev, "No such slot %d\n", slot + 1);
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static int apollon_mmc_set_bus_mode(struct device *dev, int slot, int bus_mode)
++{
++#ifdef CONFIG_MMC_DEBUG
++	dev_dbg(dev, "Set slot %d bus_mode %s\n", slot + 1,
++		bus_mode == MMC_BUSMODE_OPENDRAIN ? "open-drain" : "push-pull");
++#endif
++	if (slot != 0) {
++		dev_err(dev, "No such slot %d\n", slot + 1);
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static int apollon_mmc_late_init(struct device *dev)
++{
++	mmc_device = dev;
++
++	return 0;
++}
++
++static void apollon_mmc_cleanup(struct device *dev)
++{
++}
++
++static struct omap_mmc_platform_data apollon_mmc_data = {
++	.nr_slots			= 1,
++	.switch_slot			= NULL,
++	.init				= apollon_mmc_late_init,
++	.cleanup			= apollon_mmc_cleanup,
++	.slots[0]	= {
++		.set_power		= apollon_mmc_set_power,
++		.set_bus_mode		= apollon_mmc_set_bus_mode,
++		.get_ro			= NULL,
++		.get_cover_state	= NULL,
++		.ocr_mask		= MMC_VDD_30_31 | MMC_VDD_31_32 |
++					  MMC_VDD_32_33 | MMC_VDD_33_34,
++		.name			= "mmcblk",
++	},
++};
++
++void __init apollon_mmc_init(void)
++{
++	omap_set_mmc_info(1, &apollon_mmc_data);
++}
++
++#else	/* !CONFIG_MMC_OMAP */
++
++void __init apollon_mmc_init(void)
++{
++}
++
++#endif	/* CONFIG_MMC_OMAP */
+diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
+index 9cff027..d815635 100644
+--- a/arch/arm/mach-omap2/board-apollon.c
++++ b/arch/arm/mach-omap2/board-apollon.c
+@@ -283,16 +283,15 @@ static struct omap_uart_config apollon_uart_config __initdata = {
+ 	.enabled_uarts = (1 << 0) | (0 << 1) | (0 << 2),
+ };
  
- #endif
++/*
++ * Note: If you want to detect card feature, please assign GPIO 37
++ */
+ static struct omap_mmc_config apollon_mmc_config __initdata = {
+ 	.mmc [0] = {
+ 		.enabled 	= 1,
+ 		.wire4		= 1,
+ 	/* Use internal loop-back in MMC/SDIO Module Input Clock selection */
+ 		.internal_clock	= 1,
+-		.wp_pin		= -1,
+-		.power_pin	= -1,
+-	/* Note: If you want to detect card feature, please assign 37 */
+-		.switch_pin	= -1,
+ 	},
+ };
+ 
+@@ -386,6 +385,8 @@ static void __init omap_apollon_init(void)
+ 
+ 	spi_register_board_info(apollon_spi_board_info,
+ 				ARRAY_SIZE(apollon_spi_board_info));
++
++	apollon_mmc_init();
+ }
+ 
+ static void __init omap_apollon_map_io(void)
+diff --git a/include/asm-arm/arch-omap/board-apollon.h b/include/asm-arm/arch-omap/board-apollon.h
+index dcb587b..547125a 100644
+--- a/include/asm-arm/arch-omap/board-apollon.h
++++ b/include/asm-arm/arch-omap/board-apollon.h
+@@ -29,6 +29,8 @@
+ #ifndef __ASM_ARCH_OMAP_APOLLON_H
+ #define __ASM_ARCH_OMAP_APOLLON_H
+ 
++extern void apollon_mmc_init(void);
++
+ /* Placeholder for APOLLON specific defines */
+ #define APOLLON_ETHR_GPIO_IRQ		74
  
