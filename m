@@ -1,11 +1,15 @@
-From: Steve Mueller <steve@segfault.net>
-Subject: omap850 datasheet for independent developer
-Date: Mon, 3 Dec 2007 10:51:24 +0000
-Message-ID: <20071203105124.GA25027@segfault.net>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 1/2] DSP: Move code to use only one dsp_common.h
+Date: Mon, 03 Dec 2007 13:03:38 +0200 (EET)
+Message-ID: <20071203.130338.264474997.Hiroshi.DOYU@nokia.com>
+References: <20071130200221.GH7498@atomide.com>
+	<20071203.105617.128163822.Hiroshi.DOYU@nokia.com>
+	<5d5443650712030233i3d04ae8ar645d17abc5b04de@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <5d5443650712030233i3d04ae8ar645d17abc5b04de@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -13,20 +17,47 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: soni.trilok@gmail.com
+Cc: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Trilok,
 
-I am doing development on an OMAP 850. I'm looking for the OMAP 850
-datasheet. It seems to be only available to companies. I'm not a company
-but just a indepentend developer who loves playing around with GSM and
-OMAP.
+From: "ext Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: [PATCH 1/2] DSP: Move code to use only one dsp_common.h
+Date: Mon, 3 Dec 2007 16:03:25 +0530
 
-Any idea how I can get the datasheet? Does anyone have it?
+> Hi,
+> 
+> On Dec 3, 2007 2:26 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
+> > From: "ext Tony Lindgren" <tony@atomide.com>
+> > Subject: Re: [PATCH 1/2] DSP: Move code to use only one dsp_common.h
+> > Date: Fri, 30 Nov 2007 12:02:22 -0800
+> >
+> > > > > With OSK5912, I verified that the demo program("demo_console") worked
+> > > > > fine with your 3 patches. Probably something was broken just with
+> > > > > OMAP2. I am checking it bit more.
+> > > >
+> > > > OK, that's good to hear. Let's wait until you're happy before pushing
+> > > > this.
+> > >
+> > > I've pushed these patches, Hiroshi is looking into why omap2 dsp is
+> > > not currently working while omap1 is. It seems the problem is unrelated
+> > > to these patches.
+> >
+> > Actually dspgw itself is basically working with omap2 also. Probably
+> > there seems to be some missing update patches from N8x0 for other
+> > drivers, which are supposed to come soon.
+> >
+> > Anyway, thank you for you patches.
+> >
+> >         Hiroshi DOYU
+> >
+> 
+> Is there any plan to move dspgw code to use "dspfs" instead?
 
-thanks & regards,
+No, we don't have any plan, unfortunately.
 
-steve
+    Hiroshi DOYU
