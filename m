@@ -1,15 +1,13 @@
-From: Igor Stoppa <igor.stoppa@nokia.com>
-Subject: Re: omap850 datasheet for independent developer
-Date: Mon, 03 Dec 2007 15:29:11 +0200
-Message-ID: <1196688551.23564.54.camel@mort>
-References: <20071203105124.GA25027@segfault.net>
-	<74d0deb30712030524i39fe331elec5753046e5abd26@mail.gmail.com>
-Reply-To: igor.stoppa@nokia.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: Adds MMC multislot for apollon
+Date: Mon, 3 Dec 2007 10:25:34 -0800
+Message-ID: <20071203182534.GD4105@atomide.com>
+References: <20071202234750.GA13107@party>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <74d0deb30712030524i39fe331elec5753046e5abd26@mail.gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <20071202234750.GA13107@party>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,40 +15,15 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: ext pHilipp Zabel <philipp.zabel@gmail.com>
-Cc: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-On Mon, 2007-12-03 at 14:24 +0100, ext pHilipp Zabel wrote:
-> On Dec 3, 2007 11:51 AM, Steve Mueller <steve@segfault.net> wrote:
-> > Hi,
-> >
-> > I am doing development on an OMAP 850. I'm looking for the OMAP 850
-> > datasheet. It seems to be only available to companies. I'm not a company
-> > but just a indepentend developer who loves playing around with GSM and
-> > OMAP.
-> >
-> > Any idea how I can get the datasheet? Does anyone have it?
-> 
-> I'm sorry, this is just a "me too" kind of mail.
-> I only know the information about OMAP 730/850 that is already
-> available in the linux kernel and in the Typhoon repository at
-> http://vivien.chappelier.free.fr/typhoon/, but I'd be interested a lot
-> in any available information, as I am trying to port linux to a HTC
-> Herald (P4350), which, like many other last-gen HTC devices is based
-> on OMAP 850.
+* Kyungmin Park <kyungmin.park@samsung.com> [071202 15:49]:
+> Adds MMC support for apollon using the MMC multislot support code.
 
-I'm not 100% sure but iirc, TI was talking about opening at least part
-of their TRMs.
+Pushing today.
 
-Did you check on their website?
-Maybe you can find it as part of the docs for their development boards.
-
--- 
-Cheers, Igor
-
-Igor Stoppa <igor.stoppa@nokia.com>
-(Nokia Multimedia - CP - OSSO / Helsinki, Finland)
+Tony
