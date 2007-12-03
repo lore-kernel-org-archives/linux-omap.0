@@ -1,8 +1,10 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 0/3] 24xx clock fixes: DSP, 54MHz APLL
-Date: Mon, 03 Dec 2007 16:24:26 -0700
-Message-ID: <20071203232426.775904267@pwsan.com>
+Subject: [PATCH 3/3] 24xx clock: Fix 54MHz APLL readiness test
+Date: Mon, 03 Dec 2007 16:24:29 -0700
+Message-ID: <20071203232727.752667192@pwsan.com>
+References: <20071203232426.775904267@pwsan.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline; filename=fix_apll_54m_readiness_test.patch
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,43 +17,28 @@ Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-omap-open-source@linux.omap.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+omap2_clk_fixed_enable() was checking the wrong bit to determine if
+the 54MHz APLL was ready, causing a "Clock apll54_ck didn't enable in
+100000 tries" warning message on 2430SDP:
 
-these patches clean up the structure of the DSP clocks on the OMAP24xx
-platforms.  They remove redundant clocks and rate structures, and fix
-the DSP driver code to use the correct clock name on 2430.  DSP
-i-clock source selection is moved into a separate clock,
-dsp_irate_ick, to facilitate some of this consolidation.  
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
-Also, in omap2_clk_fixed_enable(), it turns out that we were looking for
-the wrong IDLEST bit to test if the 54MHz APLL was locked - fix this.
+---
+ arch/arm/mach-omap2/clock24xx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-This series resolves the boot-time clock warnings that appear on
-2430SDP:
+Index: linux-omap/arch/arm/mach-omap2/clock24xx.c
+===================================================================
+--- linux-omap.orig/arch/arm/mach-omap2/clock24xx.c	2007-11-21 00:26:06.000000000 -0700
++++ linux-omap/arch/arm/mach-omap2/clock24xx.c	2007-12-03 16:07:46.000000000 -0700
+@@ -115,7 +115,7 @@
+ 	if (clk == &apll96_ck)
+ 		cval = OMAP24XX_ST_96M_APLL;
+ 	else if (clk == &apll54_ck)
+-		cval = OMAP24XX_ST_54M_CLK;
++		cval = OMAP24XX_ST_54M_APLL;
+ 
+ 	omap2_wait_clock_ready(OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST), cval,
+ 			    clk->name);
 
-    clock: Could not find parent clock iva2_1_fck in clksel array of
-    clock iva2_1_ick
-
-    omapdsp: could not acquire dsp_ick handle
-
-    Clock apll54_ck didn't enable in 100000 tries
-
-
-Boot-tested on N800 and 2430SDP.  Comments welcome.
-
-
-- Paul
-
-
-diffstat:
-
- arch/arm/mach-omap2/clock24xx.c     |    2
- arch/arm/mach-omap2/clock24xx.h     |  180 ++++++++++++------------------------
- drivers/dsp/dspgateway/dsp_common.c |    8 +
- 3 files changed, 72 insertions(+), 118 deletions(-)
-
-size:
-
-   text    data     bss     dec     hex filename
-2741640  141712   84116 2967468  2d47ac vmlinux.n800.orig
-2741244  141712   84116 2967072  2d4620 vmlinux.n800.patched
+-- 
