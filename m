@@ -1,14 +1,11 @@
-From: Felipe Balbi <ext-felipe.lima@nokia.com>
-Subject: Re: MEASURING CURRENT DRAWN BY OMAP5912
-Date: Tue, 4 Dec 2007 08:19:44 -0400
-Message-ID: <20071204121944.GA6636@1BRL00624.americas.nokia.com>
-References: <255390.68653.qm@web7601.mail.in.yahoo.com>
-Reply-To: ext-felipe.lima@nokia.com
+From: Jyoti Allur <jyoti.allur@samsung.com>
+Subject: Multimedia codecs implemented in IVA2.1 on OMAP2430
+Date: Tue, 04 Dec 2007 17:52:16 +0530
+Message-ID: <001001c83670$4f9808e0$80ce6c6b@sisodomain.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <255390.68653.qm@web7601.mail.in.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,31 +15,13 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "ext Azhar Mr." <shaik.azharuddin@yahoo.co.in>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 04, 2007 at 07:44:29AM +0000, ext Azhar Mr. wrote:
-> Hello Everyone,
->    
->           I want to measure the amount of current drawn by the OMAP 5912 board.
->   Please somebody help me in providing the procedure to measure the current.
->    
->          I also want to measure the current when external devices like COMPACT FLASH, USB, WEBCAM, KEYPAD, GPS are connected to the OMAP5912.
+Hello All,
 
-Powering it up with an external controllable power supply is the best
-choice.
+What multimedia codecs are implemented in OMAP2430  IVA2.1 subsystem? Can an OpenMAX IL developer make use of these Multimedia codecs implemented in hardware directly  ( to make use of the hardware acceleration for enhanced multimedia applications ) by writing OpenMAX IL components?
+Any inputs on this would be highly appreciated.
 
-I mean those where you can set the voltage to source. Use on of those
-and you can read the current being drawn.
-
-
--- 
-Best Regards,
-
-Felipe Balbi
-felipe.lima@indt.org.br
-+55 92 2126-1003
-
-INdT - OSMRC - Manaus
-Core Team
+Regards,
+Jyoti
