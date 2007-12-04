@@ -1,8 +1,14 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 0/4] 3430 clock: minor cleanup patches
-Date: Tue, 04 Dec 2007 02:26:05 -0700
-Message-ID: <20071204092605.831497615@pwsan.com>
+From: Felipe Balbi <ext-felipe.lima@nokia.com>
+Subject: Re: MEASURING CURRENT DRAWN BY OMAP5912
+Date: Tue, 4 Dec 2007 08:19:44 -0400
+Message-ID: <20071204121944.GA6636@1BRL00624.americas.nokia.com>
+References: <255390.68653.qm@web7601.mail.in.yahoo.com>
+Reply-To: ext-felipe.lima@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <255390.68653.qm@web7601.mail.in.yahoo.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -12,38 +18,31 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap@vger.kernel.org
+To: "ext Azhar Mr." <shaik.azharuddin@yahoo.co.in>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+On Tue, Dec 04, 2007 at 07:44:29AM +0000, ext Azhar Mr. wrote:
+> Hello Everyone,
+>    
+>           I want to measure the amount of current drawn by the OMAP 5912 board.
+>   Please somebody help me in providing the procedure to measure the current.
+>    
+>          I also want to measure the current when external devices like COMPACT FLASH, USB, WEBCAM, KEYPAD, GPS are connected to the OMAP5912.
 
-These patches clean up a few minor issues with the OMAP3430 clock
-framework.  They:
+Powering it up with an external controllable power supply is the best
+choice.
 
-- ensure that the System Control Module is enabled at clock framework init;
-
-- combine some redundant clksel_rate structures;
-
-- add the ICR clock, present on both 3430ES versions in chassis mode; and
-
-- resolve the "Enable for xxx without enable code" warnings that
-  appear in 3430 bootlog.
-
-
-Boot-tested on 3430ES1 SDP.  Comments welcome.
+I mean those where you can set the voltage to source. Use on of those
+and you can read the current being drawn.
 
 
-- Paul
+-- 
+Best Regards,
 
+Felipe Balbi
+felipe.lima@indt.org.br
++55 92 2126-1003
 
-diffstat:
-
- arch/arm/mach-omap2/clock34xx.h |  128 +++++++++++++++++++++++-----------------
- 1 file changed, 76 insertions(+), 52 deletions(-)
-
-size:
-
-   text    data     bss     dec     hex filename
-2885268  147008   96280 3128556  2fbcec vmlinux.3430sdp.orig
-2885164  147088   96280 3128532  2fbcd4 vmlinux.3430sdp.patched
+INdT - OSMRC - Manaus
+Core Team
