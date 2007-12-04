@@ -1,16 +1,8 @@
-From: "Hunter, Jon" <jon-hunter@ti.com>
-Subject: RE: omap flash programming
-Date: Tue, 4 Dec 2007 08:20:07 -0600
-Message-ID: <5573C19A4BBDB441BED2A44157E9705302BC66AE@dlee12.ent.ti.com>
-References: <851794.82307.qm@web7711.mail.in.yahoo.com>
-	<4754E57E.5090306@css-design.us>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+From: Sakari Ailus <sakari.ailus@nokia.com>
+Subject: [PATCH] ARM: OMAP 2: Camera: Fix device release
+Date: Tue,  4 Dec 2007 17:48:59 +0200
+Message-ID: <11967833392684-git-send-email-sakari.ailus@nokia.com>
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <4754E57E.5090306@css-design.us>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,25 +12,38 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Steve Poulsen <spoulsen@css-design.us>, kathirvel nachimuthu <use.kathir@yahoo.co.in>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
+Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-> If you don't have u-boot working yet, then I recommend the u-boot.out
-> file that comes on the CD.  If you load it and run it, it should flash
-> u-boot into the system. =20
+If streaming wasn't stopped before a file handle was closed,
+videobuf_streamoff got called after cam->streaming had been set NULL,
+causing an oops. Call videobuf_streamoff a bit earlier instead.
 
-Actually, if you have CCS and a JTAG emulator, then instead of using the
-u-boot.out file that comes with the CD, you can just use CCS to download
-the "u-boot" file that gets built when build u-boot. CCS has the ability
-to load COFF and ELF formated files. The u-boot builds 3 files, namely
-u-boot.srec, u-boot.bin and u-boot. The last file is an ELF file.=20
+Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
+---
+ drivers/media/video/omap24xxcam.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-So to summarise:
-
-1). Load the u-boot file with CCS and run it=20
-2). Use u-boot to download the u-boot.bin with tftp or kermit=20
-3). Use u-boot to program the u-boot.bin into flash.=20
-
-Cheers
-Jon
+diff --git a/drivers/media/video/omap24xxcam.c b/drivers/media/video/omap24xxcam.c
+index d394eab..96f4885 100644
+--- a/drivers/media/video/omap24xxcam.c
++++ b/drivers/media/video/omap24xxcam.c
+@@ -1510,12 +1510,13 @@ static int omap24xxcam_release(struct inode *inode, struct file *file)
+ 
+ 	flush_scheduled_work();
+ 
+-	mutex_lock(&cam->mutex);
+ 	/* stop streaming capture */
++	videobuf_streamoff(&fh->vbq);
++
++	mutex_lock(&cam->mutex);
+ 	if (cam->streaming == file) {
+ 		cam->streaming = NULL;
+ 		mutex_unlock(&cam->mutex);
+-		videobuf_streamoff(&fh->vbq);
+ 		sysfs_notify(&cam->dev->kobj, NULL, "streaming");
+ 	} else {
+ 		mutex_unlock(&cam->mutex);
+-- 
+1.5.0.6
