@@ -1,14 +1,13 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: Multimedia codecs implemented in IVA2.1 on OMAP2430
-Date: Tue, 4 Dec 2007 18:22:54 +0530
-Message-ID: <5d5443650712040452v372725f3p22613968953caa93@mail.gmail.com>
-References: <001001c83670$4f9808e0$80ce6c6b@sisodomain.com>
+From: "Grubner, Martin" <mgrubner@doble.com>
+Subject: RE: MEASURING CURRENT DRAWN BY OMAP5912
+Date: Tue, 4 Dec 2007 08:58:24 -0500
+Message-ID: <6ED95C184239FC419DFE88BA479737655DF863DF@mailnt.doble.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <001001c83670$4f9808e0$80ce6c6b@sisodomain.com>
-Content-Disposition: inline
+Content-Type: text/plain;
+	charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,27 +15,57 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Jyoti Allur <jyoti.allur@samsung.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: ext-felipe.lima@nokia.com, "ext Azhar Mr." <shaik.azharuddin@yahoo.co.in>
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Jyoti,
 
-On Dec 4, 2007 5:52 PM, Jyoti Allur <jyoti.allur@samsung.com> wrote:
-> Hello All,
->
-> What multimedia codecs are implemented in OMAP2430  IVA2.1 subsystem? Can an OpenMAX IL developer make use of these Multimedia codecs implemented in hardware directly  ( to make use of the hardware acceleration for enhanced multimedia applications ) by writing OpenMAX IL components?
-> Any inputs on this would be highly appreciated.
->
+Felipe,
+The spectrum digital eval board OSK5912 has 1 ohm resistors on each of =
+the OMAP power rails. This allows for taking current measurement data =
+for each rail. The user's manual on their website has some more info on =
+current and how to calculate it. Look at
+http://omap.spectrumdigital.com/osk5912/
 
-Please ask TI FAE for software codecs on IVA2.1. TI sometimes have
-internally developed codecs on DSPs and IVA, and they also deal with
-3rd party multimedia codecs company which comes under the ASP program
-and helps you to find codecs as per your requirement.
 
-I heard that Aricent has good portfolio on IVA based codecs.
+-----Original Message-----
+From:	linux-omap-open-source-bounces@linux.omap.com on behalf of Felipe =
+Balbi
+Sent:	Tue 12/4/2007 7:19 AM
+To:	ext Azhar Mr.
+Cc:	linux-omap-open-source@linux.omap.com
+Subject:	Re: MEASURING CURRENT DRAWN BY OMAP5912
 
--- 
---Trilok Soni
+On Tue, Dec 04, 2007 at 07:44:29AM +0000, ext Azhar Mr. wrote:
+> Hello Everyone,
+>   =20
+>           I want to measure the amount of current drawn by the OMAP =
+5912 board.
+>   Please somebody help me in providing the procedure to measure the =
+current.
+>   =20
+>          I also want to measure the current when external devices like =
+COMPACT FLASH, USB, WEBCAM, KEYPAD, GPS are connected to the OMAP5912.
+
+Powering it up with an external controllable power supply is the best
+choice.
+
+I mean those where you can set the voltage to source. Use on of those
+and you can read the current being drawn.
+
+
+--=20
+Best Regards,
+
+Felipe Balbi
+felipe.lima@indt.org.br
++55 92 2126-1003
+
+INdT - OSMRC - Manaus
+Core Team
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
