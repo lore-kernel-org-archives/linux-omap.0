@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] 3430 clock: minor cleanup patches
-Date: Wed, 5 Dec 2007 14:41:14 -0800
-Message-ID: <20071205224113.GZ4105@atomide.com>
-References: <20071204092605.831497615@pwsan.com>
+Subject: Re: [PATCH 0/3] 24xx clock fixes: DSP, 54MHz APLL
+Date: Wed, 5 Dec 2007 14:39:56 -0800
+Message-ID: <20071205223956.GY4105@atomide.com>
+References: <20071203232426.775904267@pwsan.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20071204092605.831497615@pwsan.com>
+In-Reply-To: <20071203232426.775904267@pwsan.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,23 +21,30 @@ To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [071204 01:31]:
+* Paul Walmsley <paul@pwsan.com> [071203 15:30]:
 > Hello,
 > 
-> These patches clean up a few minor issues with the OMAP3430 clock
-> framework.  They:
+> these patches clean up the structure of the DSP clocks on the OMAP24xx
+> platforms.  They remove redundant clocks and rate structures, and fix
+> the DSP driver code to use the correct clock name on 2430.  DSP
+> i-clock source selection is moved into a separate clock,
+> dsp_irate_ick, to facilitate some of this consolidation.  
 > 
-> - ensure that the System Control Module is enabled at clock framework init;
+> Also, in omap2_clk_fixed_enable(), it turns out that we were looking for
+> the wrong IDLEST bit to test if the 54MHz APLL was locked - fix this.
 > 
-> - combine some redundant clksel_rate structures;
+> This series resolves the boot-time clock warnings that appear on
+> 2430SDP:
 > 
-> - add the ICR clock, present on both 3430ES versions in chassis mode; and
+>     clock: Could not find parent clock iva2_1_fck in clksel array of
+>     clock iva2_1_ick
 > 
-> - resolve the "Enable for xxx without enable code" warnings that
->   appear in 3430 bootlog.
+>     omapdsp: could not acquire dsp_ick handle
+> 
+>     Clock apll54_ck didn't enable in 100000 tries
 > 
 > 
-> Boot-tested on 3430ES1 SDP.  Comments welcome.
+> Boot-tested on N800 and 2430SDP.  Comments welcome.
 
 Pushing today.
 
