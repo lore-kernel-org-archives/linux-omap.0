@@ -1,13 +1,17 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP: Add MUSB support for OMAP34xx
-Date: Wed, 05 Dec 2007 11:43:23 -0800
-Message-ID: <87ve7d3p2c.fsf@vence.hilman.org>
-References: <010C7BAE6783F34D9AC336EE5A01A08804F64BAA@dbde01.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 2/3] ARM: OMAP: Add support for TWL4030 USB Transceiver
+	on OMAP34xx
+Date: Wed, 5 Dec 2007 11:46:33 -0800
+Message-ID: <200712051146.34224.david-b@pacbell.net>
+References: <010C7BAE6783F34D9AC336EE5A01A08804F64BA7@dbde01.ent.ti.com>
+	<7820275afb3274d87dac374fcf7e7484@felipebalbi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <010C7BAE6783F34D9AC336EE5A01A08804F64BAA@dbde01.ent.ti.com>
-	(Anand Gadiyar's message of "Wed\, 5 Dec 2007 18\:42\:05 +0530")
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <7820275afb3274d87dac374fcf7e7484@felipebalbi.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,33 +19,73 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: "Gadiyar, Anand" <gadiyar@ti.com>
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: Felipe Balbi <me@felipebalbi.com>
 Cc: linux-omap@vger.kernel.org, linux-omap-open-source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-"Gadiyar, Anand" <gadiyar@ti.com> writes:
-
-> This patch adds MUSB support for OMAP34XX.
-
-[...]
-
-> +static void musb_do_idle(unsigned long _musb)
-> +{
-> +	struct musb	*musb = (void *)_musb;
-> +	unsigned long	flags;
-> +	u8	power;
-> +	u8	devctl;
-> +
-> +	devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
-> +
-> +	spin_lock_irqsave(&musb->lock, flags);
-
-This lock is never unlocked.
-
-Might I recommend you turn on CONFIG_PREEMPT, and spinlock debugging
-when testing.  The various lock debugging features in the 'Kernel
-Hacking' menu are extremely useful for this kind of thing.
-
-Kevin
+T24gV2VkbmVzZGF5IDA1IERlY2VtYmVyIDIwMDcsIEZlbGlwZSBCYWxiaSB3cm90ZToNCj4g
+SSB0aGluayB0aGlzIHR3bDQwMzBfdXNiLmMgZHJpdmVyIHNob3VsZCBtb3ZlIHRvIG5ldyBz
+dHlsZSBJMkMuIEknbSBhZGRpbmcNCj4gRGF2aWQgQnJvd25lbGwgb24gdGhlIGxvb3AgYXMg
+aGUgaGFzIG1vdmVkIGlzcDEzMDEgdG8gbmV3IHN0eWxlIGkyYyBkcml2ZXIuDQo+IA0KPiBE
+YXZlLCBkbyB5b3UgaGF2ZSBhbnkgY29tbWVudHMsIGhlcmUgPw0KDQpZZXMsIG1ha2UgaXQg
+YSBuZXctc3R5bGUgSTJDIGRyaXZlci4gIDopDQpBbmQgcGFzcyB0aGUgSVJRIGluIGZyb20g
+Ym9hcmQtc3BlY2lmaWMgZGF0YS4NCg0KSSBkb24ndCBrbm93IHRoZSB0d2w0MDMwIGJ1dCBJ
+IHN1c3BlY3QgaXQgc2hvdWxkIGJlIHBsdWdnaW5nDQppdHNlbGYgaW50byBhbiBvdGdfdHJh
+bnNjZWl2ZXIgc3RydWN0dXJlIGluc3RlYWQgb2YgZXhwb3J0aW5nDQpnbG9iYWwgZnVuY3Rp
+b25zIGxpa2UgdGhpcyAuLi4NCg0KDQoNCkFsc286DQoNCj4gKyNkZWZpbmWgoKCgoKBGVU5D
+X0NUUkygoKCgoKCgoKCgoKCgoKAoMHgwNCkNCg0KaXMgYmFkIHN0eWxlOyBkcm9wIHRoZSBw
+b2ludGxlc3MgcGFyZW50aGVzaXMuICBBbm90aGVyIGJpdCBvZiBiYWQNCnN0eWxlICh3ZWxs
+LCBtYXliZSBqdXN0IG5vdC1nb29kIHN0eWxlKSBpcyB0aGF0IHRoZSByZWdpc3RlciBmaWVs
+ZHMNCmFyZW4ndCBhc3NvY2lhdGVkIHdpdGggdGhlIHJlZ2lzdGVyIC4uLiBlLmcuIGl0IGxv
+b2tzIGxpa2UNCg0KPiArI2RlZmluZaCgoKCgoEZVTkNfQ1RSTKCgoKCgoKCgoKCgoKCgoCgw
+eDA0KQ0KPiArI2RlZmluZaCgoKCgoEZVTkNfQ1RSTF9TRVSgoKCgoKCgoKCgoCgweDA1KQ0K
+PiArI2RlZmluZaCgoKCgoEZVTkNfQ1RSTF9DTFKgoKCgoKCgoKCgoCgweDA2KQ0KPiArI2Rl
+ZmluZaCgoKCgoFNVU1BFTkRNoKCgoKCgoKCgoKCgoKCgoCgxIDw8IDYpDQo+ICsjZGVmaW5l
+oKCgoKCgUkVTRVSgoKCgoKCgoKCgoKCgoKCgoKCgKDEgPDwgNSkNCj4gKyNkZWZpbmWgoKCg
+oKBPUE1PREVfTUFTS6CgoKCgoKCgoKCgoKAoMyA8PCAzKSAvKiBiaXRzIDMgYW5kIDQgKi8N
+Cj4gKyNkZWZpbmWgoKCgoKBPUE1PREVfTk9STUFMoKCgoKCgoKCgoKAoMCA8PCAzKQ0KPiAr
+I2RlZmluZaCgoKCgoE9QTU9ERV9OT05EUklWSU5HoKCgoKCgoCgxIDw8IDMpDQo+ICsjZGVm
+aW5loKCgoKCgT1BNT0RFX0RJU0FCTEVfQklUX05SWkmgKDIgPDwgMykNCj4gKyNkZWZpbmWg
+oKCgoKBURVJNU0VMRUNUoKCgoKCgoKCgoKCgoKAoMSA8PCAyKQ0KPiArI2RlZmluZaCgoKCg
+oFhDVlJTRUxFQ1RfTUFTS6CgoKCgoKCgoCgzIDw8IDApIC8qIGJpdHMgMCBhbmQgMSAqLw0K
+PiArI2RlZmluZaCgoKCgoFhDVlJTRUxFQ1RfSFOgoKCgoKCgoKCgoCgwIDw8IDApDQo+ICsj
+ZGVmaW5loKCgoKCgWENWUlNFTEVDVF9GU6CgoKCgoKCgoKCgKDEgPDwgMCkNCj4gKyNkZWZp
+bmWgoKCgoKBYQ1ZSU0VMRUNUX0xToKCgoKCgoKCgoKAoMiA8PCAwKQ0KPiArI2RlZmluZaCg
+oKCgoFhDVlJTRUxFQ1RfRlM0TFOgoKCgoKCgoCgzIDw8IDApDQoNCm1vc3Qgb2YgdGhlc2Ug
+bWFza3MgYXJlIHZhbGlkIGZvciB0aGUgImNvbnRyb2wiIHJlZ2lzdGVyLCBidXQgSQ0KY2Fu
+J3QgdGVsbC4gIEFuZCBpZiBJIHdlcmUgdG8gbG9vayBhdCBhIGxpbmUgb2YgY29kZSBtYXNr
+aW5nIHRob3NlDQp0b2dldGhlciB3aXRoIEFVVE9SRVNVTUUsIHRoZSBidWcgKGJpdGZpZWxk
+IGZyb20gd3JvbmcgcmVnaXN0ZXIpDQp3b3VsZCBiZSBhbG1vc3QgaW1wb3NzaWJsZSB0byBk
+aXNjb3Zlci4gIEluIHRob3NlIGNhc2UgYSBiZXR0ZXINCmNvbnZlbnRpb24gaXMgdG8gdXNl
+IEZOX0NUUkxfU1VTUEVORE0gYW5kIElGX0NUUkxfQVVUT1JFU1VNRSwNCm9yIHNvbWV0aGlu
+ZyBzaW1taWxhci4NCg0KKEFuZCBhIG1pbm9yIG5pdDogICIjZGVmaW5lPFRBQj4uLi4iIG1h
+a2VzIHRyb3VibGUgcmVhZGluZyBkaWZmcywNCmFzIGxpbmVzIHN0cmV0Y2ggYW5kIHNvbWV0
+aW1lcyB3cmFwOyAiI2RlZmluZTxTUEFDRT4iIGRvZXNuJ3QuDQpFaXRoZXIgaXMgY29ycmVj
+dCwgYnV0IHRoZSBmb3JtZXIgY2FuIGJlIGEgYml0IGFubm95aW5nLikNCg0KPiArI2RlZmlu
+ZSB0d2w0MDMwX2kyY193cml0ZV91OF92ZXJpZnkobW9kdWxlLCBkYXRhLCBhZGRyZXNzKaCg
+oKCgoKCgoKCgIKBcDQo+ICtkbyB7oKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCg
+oKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKAgoFwNCj4gK6CgoKCgdTggY2hlY2s7
+oKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCg
+oCCgXA0KPiAroKCgoKBpZiAoISgodHdsNDAzMF9pMmNfd3JpdGVfdTgoKG1vZHVsZSksIChk
+YXRhKSwgKGFkZHJlc3MpKSA+PSAwKSAmJiBcDQo+ICugoKCgoCCgIKAgoCh0d2w0MDMwX2ky
+Y19yZWFkX3U4KChtb2R1bGUpLCAmY2hlY2ssIChhZGRyZXNzKSkgPj0gMCkgJiYgoFwNCj4g
+K6CgoKCgIKAgoCCgKGNoZWNrID09IGRhdGEpKaCgJiagoKCgoKCgoKCgoKCgoKCgoKCgoKCg
+oKCgoKCgoKCgoKCgoKCgoCCgXA0KPiAroKCgoKAgoCCgISgodHdsNDAzMF9pMmNfd3JpdGVf
+dTgoKG1vZHVsZSksIChkYXRhKSwgKGFkZHJlc3MpKSA+PSAwKSAmJiBcDQo+ICugoKCgoCCg
+IKAgoCh0d2w0MDMwX2kyY19yZWFkX3U4KChtb2R1bGUpLCAmY2hlY2ssIChhZGRyZXNzKSkg
+Pj0gMCkgJiYgoFwNCj4gK6CgoKCgIKAgoCCgKGNoZWNrID09IChkYXRhKSkpKaCgoKCgoKB7
+oKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoCCgXA0KPiAroKCgoKCgoKCgoKCgoHBy
+aW50ayhLRVJOX0VSUiAidHdsNDAzMF91c2I6IGkyYyB3cml0ZSBmYWlsZWQsoKCgoKCgoKCg
+IKBcDQo+ICugoKCgoKCgoKCgoKCgoKCgoKCgoKBsaW5lICVkXG4iLCBfX0xJTkVfXyk7oKCg
+oKCgoKCgoKCgoKCgoKCgoKCgoKCgoKAgoFwNCj4gK6CgoKCgoKCgoKCgoKBnb3RvIGkyY19m
+YWlsZWQ7oKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoCCgXA0KPiAr
+oKCgoKB9oKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCg
+oKCgoKCgoKCgoKCgoKCgIKBcDQo+ICt9IHdoaWxlICgwKQ0KDQpHb29kIGV4YW1wbGUgb2Yg
+c29tZXRoaW5nIHRvbyBiaWcgZm9yIGEgI2RlZmluZS4gIE1ha2UgaXQgYSBmdW5jdGlvbi4N
+Cg0KDQpObyBjb21tZW50cyBhYm91dCB0aGUgcmVzdC4NCg0KLSBEYXZlDQoNCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fDQpMaW51eC1vbWFwLW9w
+ZW4tc291cmNlIG1haWxpbmcgbGlzdA0KTGludXgtb21hcC1vcGVuLXNvdXJjZUBsaW51eC5v
+bWFwLmNvbQ0KaHR0cDovL2xpbnV4Lm9tYXAuY29tL21haWxtYW4vbGlzdGluZm8vbGludXgt
+b21hcC1vcGVuLXNvdXJjZQ0K
