@@ -1,7 +1,7 @@
 From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: [PATCH 1/3] ARM: OMAP: Add support for USB on OMAP34XX
-Date: Wed, 5 Dec 2007 18:37:49 +0530
-Message-ID: <010C7BAE6783F34D9AC336EE5A01A08804F64BA2@dbde01.ent.ti.com>
+Subject: [PATCH 3/3] ARM: OMAP: Add MUSB support for OMAP34xx
+Date: Wed, 5 Dec 2007 18:42:05 +0530
+Message-ID: <010C7BAE6783F34D9AC336EE5A01A08804F64BAA@dbde01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -21,146 +21,315 @@ To: linux-omap-open-source <linux-omap-open-source@linux.omap.com>
 Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch adds support for USB on OMAP34XX.
-This adds a working board-3430sdp-usb.c file.
+This patch adds MUSB support for OMAP34XX.
+
+This patch depends on the previous two patches:
+[PATCH 1/3] Add support for USB on OMAP34XX
+[PATCH 2/3] Add support for TWL4030 USB Transceiver on OMAP34xx
 
 Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
 Signed-off-by: Nishant Kamat <nskamat@ti.com>
 ---
- arch/arm/mach-omap2/Makefile            |    3 -
- arch/arm/mach-omap2/board-3430sdp-usb.c |   77 =
-++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-3430sdp.c     |    3 +
- 3 files changed, 82 insertions(+), 1 deletion(-)
+ drivers/usb/musb/Kconfig     |    1=20
+ drivers/usb/musb/Makefile    |    4 +
+ drivers/usb/musb/musb_core.c |    3 -
+ drivers/usb/musb/musb_core.h |    3 -
+ drivers/usb/musb/omap2430.c  |  127 =
+++++++++++++++++++++++++++++++++++++++++++-
+ drivers/usb/musb/omap2430.h  |   11 +++
+ 6 files changed, 144 insertions(+), 5 deletions(-)
 
-Index: linux-omap/arch/arm/mach-omap2/Makefile
+Index: linux-omap-2.6-NOV30/drivers/usb/musb/Makefile
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-omap.orig/arch/arm/mach-omap2/Makefile	2007-12-05 =
-10:02:53.000000000 +0530
-+++ linux-omap/arch/arm/mach-omap2/Makefile	2007-12-05 =
-17:04:09.664182922 +0530
-@@ -26,7 +26,8 @@
- 					   board-2430sdp-flash.o \
- 					   board-2430sdp-usb.o
- obj-$(CONFIG_MACH_OMAP_2430OSK)		+=3D board-2430osk.o
--obj-$(CONFIG_MACH_OMAP_3430SDP)		+=3D board-3430sdp.o
-+obj-$(CONFIG_MACH_OMAP_3430SDP)		+=3D board-3430sdp.o \
-+					   board-3430sdp-usb.o
- obj-$(CONFIG_MACH_OMAP_APOLLON)		+=3D board-apollon.o \
- 					   board-apollon-mmc.o	\
- 					   board-apollon-keys.o
-Index: linux-omap/arch/arm/mach-omap2/board-3430sdp-usb.c
+--- linux-omap-2.6-NOV30.orig/drivers/usb/musb/Makefile	2007-11-30 =
+07:16:39.316083032 -0500
++++ linux-omap-2.6-NOV30/drivers/usb/musb/Makefile	2007-11-30 =
+07:26:53.084776008 -0500
+@@ -18,6 +18,10 @@
+ 	musb_hdrc-objs	+=3D omap2430.o
+ endif
+=20
++ifeq ($(CONFIG_ARCH_OMAP3430),y)
++	musb_hdrc-objs	+=3D omap2430.o
++endif
++
+ ifeq ($(CONFIG_USB_GADGET_MUSB_HDRC),y)
+ 	musb_hdrc-objs		+=3D musb_gadget_ep0.o musb_gadget.o
+ endif
+Index: linux-omap-2.6-NOV30/drivers/usb/musb/omap2430.c
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-omap/arch/arm/mach-omap2/board-3430sdp-usb.c	2007-12-05 =
-17:04:09.664182922 +0530
-@@ -0,0 +1,77 @@
-+/*
-+ * linux/arch/arm/mach-omap2/board-3430sdp-usb.c
-+ *
-+ * This file will contain the board specific details for the
-+ * MENTOR USB OTG and Synopsys EHCI host controllers on OMAP3430
-+ *
-+ * Copyright (C) 2007 Texas Instruments
-+ * Author: Vikram Pandita
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
+--- linux-omap-2.6-NOV30.orig/drivers/usb/musb/omap2430.c	2007-11-30 =
+07:16:39.316083032 -0500
++++ linux-omap-2.6-NOV30/drivers/usb/musb/omap2430.c	2007-11-30 =
+07:32:40.334985952 -0500
+@@ -1,5 +1,10 @@
+ /*
+- * Copyright (C) 2005-2006 by Texas Instruments
++ * Copyright (C) 2005-2007 by Texas Instruments
++ * Some code has been taken from tusb6010.c
++ * Copyrights for that are attributable to:
++ * Copyright (C) 2006 Nokia Corporation
++ * Jarkko Nikula <jarkko.nikula@nokia.com>
++ * Tony Lindgren <tony@atomide.com>
+  *
+  * This file is part of the Inventra Controller Driver for Linux.
+  *
+@@ -40,6 +45,108 @@
+ #define	get_cpu_rev()	2
+ #endif
+=20
++#define MUSB_TIMEOUT_A_WAIT_BCON	1100
 +
-+#include <linux/types.h>
-+#include <linux/errno.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/usb/musb.h>
-+
-+#include <asm/arch/hardware.h>
-+#include <asm/arch/usb.h>
-+
-+#if defined(CONFIG_USB_MUSB_HDRC) || =
-defined(CONFIG_USB_MUSB_HDRC_MODULE)
-+static struct resource musb_resources[] =3D {
-+	[0] =3D {
-+		.start	=3D OMAP34XX_HSUSB_OTG_BASE,
-+		.end	=3D OMAP34XX_HSUSB_OTG_BASE + SZ_8K,
-+		.flags	=3D IORESOURCE_MEM,
-+	},
-+	[1] =3D {	/* general IRQ */
-+		.start	=3D INT_243X_HS_USB_MC,
-+		.flags	=3D IORESOURCE_IRQ,
-+	},
-+	[2] =3D {	/* DMA IRQ */
-+		.start	=3D INT_243X_HS_USB_DMA,
-+		.flags	=3D IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct musb_hdrc_platform_data musb_plat =3D {
-+#ifdef CONFIG_USB_MUSB_OTG
-+	.mode		=3D MUSB_OTG,
-+#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
-+	.mode		=3D MUSB_HOST,
-+#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
-+	.mode		=3D MUSB_PERIPHERAL,
-+#endif
-+	.multipoint	=3D 1,
-+	.clock 		=3D NULL,
-+	.set_clock	=3D NULL,
-+};
-+
-+static u64 musb_dmamask =3D ~(u32)0;
-+
-+static struct platform_device musb_device =3D {
-+	.name		=3D "musb_hdrc",
-+	.id		=3D 0,
-+	.dev =3D {
-+		.dma_mask		=3D &musb_dmamask,
-+		.coherent_dma_mask	=3D 0xffffffff,
-+		.platform_data		=3D &musb_plat,
-+	},
-+	.num_resources	=3D ARRAY_SIZE(musb_resources),
-+	.resource	=3D musb_resources,
-+};
-+#endif
-+
-+void __init sdp3430_usb_init(void)
++void musb_platform_set_mode(struct musb *musb, u8 musb_mode)
 +{
-+#if	defined(CONFIG_USB_MUSB_HDRC) || =
-defined(CONFIG_USB_MUSB_HDRC_MODULE)
-+	if (platform_device_register(&musb_device) < 0) {
-+		printk(KERN_ERR "Unable to register HS-USB (MUSB) device\n");
++}
++
++int musb_platform_get_vbus_status(struct musb *musb)
++{
++	return 0;
++}
++static struct timer_list musb_idle_timer;
++
++static void musb_do_idle(unsigned long _musb)
++{
++	struct musb	*musb =3D (void *)_musb;
++	unsigned long	flags;
++	u8	power;
++	u8	devctl;
++
++	devctl =3D musb_readb(musb->mregs, MUSB_DEVCTL);
++
++	spin_lock_irqsave(&musb->lock, flags);
++
++	switch (musb->xceiv.state) {
++	case OTG_STATE_A_WAIT_BCON:
++		devctl &=3D ~MUSB_DEVCTL_SESSION;
++		musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
++
++		devctl =3D musb_readb(musb->mregs, MUSB_DEVCTL);
++		if (devctl & MUSB_DEVCTL_BDEVICE) {
++			musb->xceiv.state =3D OTG_STATE_B_IDLE;
++			MUSB_DEV_MODE(musb);
++		} else {
++			musb->xceiv.state =3D OTG_STATE_A_IDLE;
++			MUSB_HST_MODE(musb);
++		}
++		break;
++#ifdef CONFIG_USB_MUSB_HDRC_HCD
++	case OTG_STATE_A_SUSPEND:
++		/* finish RESUME signaling? */
++		if (musb->port1_status & MUSB_PORT_STAT_RESUME) {
++			power =3D musb_readb(musb->mregs, MUSB_POWER);
++			power &=3D ~MUSB_POWER_RESUME;
++			DBG(1, "root port resume stopped, power %02x\n",
++									power);
++			musb_writeb(musb->mregs, MUSB_POWER, power);
++			musb->is_active =3D 1;
++			musb->port1_status &=3D ~(USB_PORT_STAT_SUSPEND
++						| MUSB_PORT_STAT_RESUME);
++			musb->port1_status |=3D USB_PORT_STAT_C_SUSPEND << 16;
++			usb_hcd_poll_rh_status(musb_to_hcd(musb));
++			/* NOTE: it might really be A_WAIT_BCON ... */
++			musb->xceiv.state =3D OTG_STATE_A_HOST;
++		}
++		break;
++#endif
++#ifdef CONFIG_USB_MUSB_HDRC_HCD
++	case OTG_STATE_A_HOST:
++		devctl =3D musb_readb(musb->mregs, MUSB_DEVCTL);
++		if (devctl &  MUSB_DEVCTL_BDEVICE)
++			musb->xceiv.state =3D OTG_STATE_B_IDLE;
++		else
++			musb->xceiv.state =3D OTG_STATE_A_WAIT_BCON;
++#endif
++	default:
++		break;
++	}
++}
++
++
++void musb_platform_try_idle(struct musb *musb, unsigned long timeout)
++{
++	unsigned long		default_timeout =3D jiffies + msecs_to_jiffies(3);
++	static unsigned long	last_timer;
++
++	if (timeout =3D=3D 0)
++		timeout =3D default_timeout;
++
++	/* Never idle if active, or when VBUS timeout is not set as host */
++	if (musb->is_active || ((musb->a_wait_bcon =3D=3D 0)
++			&& (musb->xceiv.state =3D=3D OTG_STATE_A_WAIT_BCON))) {
++		DBG(4, "%s active, deleting timer\n", otg_state_string(musb));
++		del_timer(&musb_idle_timer);
++		last_timer =3D jiffies;
 +		return;
 +	}
-+#endif
++
++	if (time_after(last_timer, timeout)) {
++		if (!timer_pending(&musb_idle_timer))
++			last_timer =3D timeout;
++		else {
++			DBG(4, "Longer idle timer already pending, ignoring\n");
++			return;
++		}
++	}
++	last_timer =3D timeout;
++
++	DBG(4, "%s inactive, for idle timer for %lu ms\n",
++		otg_state_string(musb),
++		(unsigned long)jiffies_to_msecs(timeout - jiffies));
++	mod_timer(&musb_idle_timer, timeout);
 +}
-Index: linux-omap/arch/arm/mach-omap2/board-3430sdp.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-omap.orig/arch/arm/mach-omap2/board-3430sdp.c	2007-12-05 =
-10:02:53.000000000 +0530
-+++ linux-omap/arch/arm/mach-omap2/board-3430sdp.c	2007-12-05 =
-17:04:09.664182922 +0530
-@@ -307,6 +307,8 @@
+=20
+ void musb_platform_enable(struct musb *musb)
+ {
+@@ -93,6 +200,15 @@
  	return 0;
  }
 =20
-+extern void __init sdp3430_usb_init(void);
++static int omap_set_suspend(struct otg_transceiver *x, int suspend)
++{
++	if (suspend)
++		twl4030_phy_suspend(1);
++	else
++		twl4030_phy_resume();
++	return 0;
++}
 +
- static void __init omap_3430sdp_init(void)
- {
- 	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
-@@ -316,6 +318,7 @@
- 				ARRAY_SIZE(sdp3430_spi_board_info));
- 	ads7846_dev_init();
- 	omap_serial_init();
-+	sdp3430_usb_init();
- }
+ int musb_platform_resume(struct musb *musb);
 =20
- static void __init omap_3430sdp_map_io(void)
+ int __init musb_platform_init(struct musb *musb)
+@@ -102,11 +218,13 @@
+ 	/* get the clock */
+ 	musb->clock =3D clk_get((struct device *)musb->controller, =
+"usbhs_ick");
+ #else
+-	musb->clock =3D clk_get((struct device *)musb->controller, =
+"hsusb_ick");
++	musb->clock =3D clk_get((struct device *)musb->controller,
++								"hsotgusb_ick");
+ #endif
+ 	if(IS_ERR(musb->clock))
+ 		return PTR_ERR(musb->clock);
+=20
++	musb->xceiv.set_suspend =3D omap_set_suspend;
+ 	musb_platform_resume(musb);
+=20
+ 	OTG_INTERFSEL_REG |=3D ULPI_12PIN;
+@@ -123,6 +241,9 @@
+ 		musb->board_set_vbus =3D omap_set_vbus;
+ 	if (is_peripheral_enabled(musb))
+ 		musb->xceiv.set_power =3D omap_set_power;
++	musb->a_wait_bcon =3D MUSB_TIMEOUT_A_WAIT_BCON;
++
++	setup_timer(&musb_idle_timer, musb_do_idle, (unsigned long) musb);
+=20
+ 	return 0;
+ }
+@@ -137,6 +258,7 @@
+ 	OTG_FORCESTDBY_REG |=3D ENABLEFORCE; /* enable MSTANDBY */
+ 	OTG_SYSCONFIG_REG |=3D AUTOIDLE;		/* enable auto idle */
+=20
++	musb->xceiv.set_suspend(&musb->xceiv, 1);
+ 	clk_disable(musb->clock);
+ 	return 0;
+ }
+@@ -144,6 +266,7 @@
+ int musb_platform_resume(struct musb *musb)
+ {
+ 	clk_enable(musb->clock);
++	musb->xceiv.set_suspend(&musb->xceiv, 0);
+=20
+ 	OTG_FORCESTDBY_REG &=3D ~ENABLEFORCE; /* disable MSTANDBY */
+ 	OTG_SYSCONFIG_REG |=3D SMARTSTDBY;	/* enable smart standby */
+Index: linux-omap-2.6-NOV30/drivers/usb/musb/musb_core.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-omap-2.6-NOV30.orig/drivers/usb/musb/musb_core.c	2007-11-30 =
+07:16:39.316083032 -0500
++++ linux-omap-2.6-NOV30/drivers/usb/musb/musb_core.c	2007-11-30 =
+07:26:53.085775856 -0500
+@@ -991,7 +991,8 @@
+ #define	can_dynfifo()	0
+ #endif
+=20
+-#ifdef CONFIG_USB_TUSB6010
++#if defined(CONFIG_USB_TUSB6010) || \
++	defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
+ static ushort __initdata fifo_mode =3D 4;
+ #else
+ static ushort __initdata fifo_mode =3D 2;
+Index: linux-omap-2.6-NOV30/drivers/usb/musb/musb_core.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-omap-2.6-NOV30.orig/drivers/usb/musb/musb_core.h	2007-11-30 =
+07:16:39.316083032 -0500
++++ linux-omap-2.6-NOV30/drivers/usb/musb/musb_core.h	2007-11-30 =
+07:26:53.085775856 -0500
+@@ -476,7 +476,8 @@
+=20
+ extern void musb_hnp_stop(struct musb *musb);
+=20
+-#ifdef CONFIG_USB_TUSB6010
++#if defined(CONFIG_USB_TUSB6010) || \
++	defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
+ extern void musb_platform_try_idle(struct musb *musb, unsigned long =
+timeout);
+ extern int musb_platform_get_vbus_status(struct musb *musb);
+ extern void musb_platform_set_mode(struct musb *musb, u8 musb_mode);
+Index: linux-omap-2.6-NOV30/drivers/usb/musb/omap2430.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-omap-2.6-NOV30.orig/drivers/usb/musb/omap2430.h	2007-11-30 =
+07:16:39.316083032 -0500
++++ linux-omap-2.6-NOV30/drivers/usb/musb/omap2430.h	2007-11-30 =
+07:26:53.085775856 -0500
+@@ -13,6 +13,15 @@
+ #if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3430)
+ #include <asm/arch/hardware.h>
+ #include <asm/arch/usb.h>
++
++#if defined(CONFIG_TWL4030_USB_HS_ULPI)
++extern void twl4030_phy_suspend(int controller_off);
++extern void twl4030_phy_resume(void);
++#else
++#define twl4030_phy_suspend(x)  /* not defined */
++#define twl4030_phy_resume()    /* not defined */
++#endif
++
+ /*
+  * OMAP2430-specific definitions
+  */
+@@ -21,7 +30,7 @@
+ #if	defined(CONFIG_ARCH_OMAP2430)
+ #define	OMAP_HSOTG_BASE		(OMAP243X_HS_BASE)
+ #elif	defined(CONFIG_ARCH_OMAP3430)
+-#define	OMAP_HSOTG_BASE		(HS_BASE)
++#define	OMAP_HSOTG_BASE		(OMAP34XX_HSUSB_OTG_BASE)
+ #endif
+ #define OMAP_HSOTG(offset)	__REG32(OMAP_HSOTG_BASE + 0x400 + (offset))
+ #define OTG_REVISION_REG	OMAP_HSOTG(0x0)
+Index: linux-omap-2.6-NOV30/drivers/usb/musb/Kconfig
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-omap-2.6-NOV30.orig/drivers/usb/musb/Kconfig	2007-11-30 =
+04:53:40.000000000 -0500
++++ linux-omap-2.6-NOV30/drivers/usb/musb/Kconfig	2007-11-30 =
+08:39:46.261952024 -0500
+@@ -9,6 +9,7 @@
+ # (M)HDRC =3D (Multipoint) Highspeed Dual-Role Controller
+ config USB_MUSB_HDRC
+ 	depends on USB || USB_GADGET
++	select TWL4030_USB if MACH_OMAP_3430SDP
+ 	tristate 'Inventra Highspeed Dual Role Controller (TI, ...)'
+ 	help
+ 	  Say Y here if your system has a dual role high speed USB
