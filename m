@@ -1,12 +1,12 @@
 From: "Reddy, Teerth" <teerth@ti.com>
 Subject: [PATCH]TS: Fix for the TS event issue on  OMAP3 ES2.0
-Date: Tue, 4 Dec 2007 23:11:26 -0600
-Message-ID: <465714FA584D6D49BD2ADB26BB64FD0D01B1A731@dlee13.ent.ti.com>
+Date: Tue, 4 Dec 2007 23:15:32 -0600
+Message-ID: <465714FA584D6D49BD2ADB26BB64FD0D01B1A733@dlee13.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
@@ -15,18 +15,19 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap@vger.kernel.org
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
 
 Hi,
 
 This patch has the fix for the Touch Screen issue on OMAP3 ES2.0.The IRQ =
-for the TS has been defined as 3 and 2 for ES1 and ES2=20
-and the IRQ assignment is done at run time.Changed the macro naming =
-conventions for TS and Ethernet.
+for the TS has been defined as 3 and 2 for ES1 and ES2 and the IRQ =
+assignment is done at run time.Changed the macro naming conventions for =
+TS and Ethernet.
 
 Regards,
 Teerth
@@ -34,9 +35,8 @@ Teerth
 
 
 Fix for the Touch Screen issue on OMAP3 ES2.0.The IRQ for the TS has =
-been defined as 3 and 2 for ES1 and ES2=20
-and the IRQ assignment is done at run time.Changed the macro naming =
-conventions for TS and Ethernet.
+been defined as 3 and 2 for ES1 and ES2 and the IRQ assignment is done =
+at run time.Changed the macro naming conventions for TS and Ethernet.
 
 Signed-off-by: Teerth Reddy <teerth@ti.com>
 ---
@@ -106,8 +106,7 @@ Index: linux-omap-2.6-lat/arch/arm/mach-omap2/board-3430sdp.c
 +	omap_set_gpio_debounce_time(ts_gpio, 0xa);
  }
 =20
- static int ads7846_get_pendown_state(void)
- {
+ static int ads7846_get_pendown_state(void)  {
 -	return !omap_get_gpio_datain(TS_GPIO);
 +	return !omap_get_gpio_datain(ts_gpio);
  }
