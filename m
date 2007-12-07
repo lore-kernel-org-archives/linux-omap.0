@@ -1,14 +1,12 @@
 From: "Madhusudhan Chikkature Rajashekar" <madhu.cr@ti.com>
-Subject: RE: [RFC 1/2] MMC/SD Controller driver for OMAP2430
-Date: Fri, 7 Dec 2007 18:57:05 +0530
-Message-ID: <003201c838d4$dde47be0$fe8818ac@ent.ti.com>
-References: <9C23CDD79DA20A479D4615857B2E2C47016A3480@dlee13.ent.ti.com>
+Subject: [RFC/PATCH  1/4] MMC/SD Controller driver for OMAP2430
+Date: Fri, 7 Dec 2007 19:10:44 +0530
+Message-ID: <003601c838d6$c451c870$fe8818ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-In-Reply-To: <9C23CDD79DA20A479D4615857B2E2C47016A3480@dlee13.ent.ti.com>
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,80 +14,30 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
 To: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap-open-source@linux.omap.com, 'Pierre Ossman' <drzeus@drzeus.cx>
 Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi All,
+This patch adds MMC controller driver for OMAP2430/3430.
 
-In response to the RFC posted by Khasim to support MMC/SD controller on OMAP2430, I am reposting the patches after fixing the
-comments provided
-by Russell King and Pierre Ossman. This patch also works for OMAP3430.
+Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
 
-The following type of cards were tested.
-- MMC/SD cards, SDHC card, MMCmobile card(at 1.8V).
-- Hot plug of the cards.
+---
+ drivers/mmc/host/Makefile     |    9 
+ drivers/mmc/host/omap_hsmmc.c |  985 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 993 insertions(+), 1 deletion(-)
 
-TBD
-- Multi-slot support.
-
-FYI,
-Below are the archive links to the comments provided by Russell King and Pierre Ossman.
-
-http://lists.arm.linux.org.uk/pipermail/linux-arm-kernel/2007-July/041172.html
-http://lists.arm.linux.org.uk/pipermail/linux-arm-kernel/2007-August/041312.html
-
-http://lists.arm.linux.org.uk/pipermail/linux-arm-kernel/2007-August/041313.html
-This one had only two comments to change the usage of mdelay to msleep in the mmc board file. I have done the same and not reposting
-that again
-on arm linux kernel mailing list. 
-
-Note: I am only posting the controller driver patch to arm linux kernel mailing list. Rest of the supporting omap patches will be
-posted on linux omap list.
-
-Kindly let me know if there are any further issues. I would be glad to work on it.
-
-Thanks,
-Madhu
-
-
-
------Original Message-----
-From: linux-omap-open-source-bounces@linux.omap.com [mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of Syed
-Mohammed, Khasim
-Sent: Thursday, July 26, 2007 5:47 AM
-To: linux-arm-kernel@lists.arm.linux.org.uk; Pierre Ossman; linux-omap-open-source@linux.omap.com
-Subject: [RFC 1/2] MMC/SD Controller driver for OMAP2430
-
-Hello:
-
-I am hereby presenting MMC/SD controller driver for OMAP 2430. It has been validated for SD/MMC (3v) cards on 2430 (ES 2.1) SDP
-V4.0.
-
-TBD:
- - Multi-slot support
- - Card detection is untested.
- - 1.8v cards are not tested.
-
-It would be very kind of you to review this code and pass your comments.
-
-FYI, I have posted complete series (other patches specific to OMAP tree) on linux-omap mailing list. 
-
-Thanks & Regards,
-Khasim
-
-=============================================================================
-
-diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host/omap_hsmmc.c
---- linux-omap/drivers/mmc/host/omap_hsmmc.c	1969-12-31 18:00:00.000000000 -0600
-+++ lin_for_mmc/drivers/mmc/host/omap_hsmmc.c	2007-07-25 18:36:32.000000000 -0500
-@@ -0,0 +1,1050 @@
+Index: linux-omap-2.6/drivers/mmc/host/omap_hsmmc.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-omap-2.6/drivers/mmc/host/omap_hsmmc.c	2007-12-07 15:00:04.724840120 +0530
+@@ -0,0 +1,985 @@
 +/*
 + * drivers/mmc/host/omap_hsmmc.c
 + *
-+ * Driver for OMAP2430 MMC controller.
++ * Driver for OMAP2430/3430 MMC controller.
 + *
 + * Copyright (C) 2007 Texas Instruments.
 + *
@@ -111,27 +59,15 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +#include <linux/platform_device.h>
 +#include <linux/workqueue.h>
 +#include <linux/timer.h>
-+#include <linux/i2c.h>
 +#include <linux/clk.h>
-+#include <linux/mmc/mmc.h>
 +#include <linux/mmc/host.h>
-+#include <linux/mmc/sd.h>
-+#include <linux/mmc/core.h>
-+#include <linux/mmc/card.h>
-+#include <asm/io.h>
-+#include <asm/irq.h>
++#include <linux/io.h>
++#include <asm/semaphore.h>
 +#include <asm/dma.h>
-+#include <asm/mach-types.h>
 +#include <asm/hardware.h>
 +#include <asm/arch/board.h>
 +#include <asm/arch/mmc.h>
 +#include <asm/arch/cpu.h>
-+#include <asm/semaphore.h>
-+
-+#ifdef CONFIG_PM
-+#include <linux/notifier.h>
-+#include <linux/pm.h>
-+#endif
 +
 +/* OMAP HSMMC Host Controller Registers */
 +#define OMAP_HSMMC_SYSCONFIG	0x0010
@@ -183,16 +119,20 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +#define CARD_ERR		(1 << 28)
 +#define STAT_CLEAR		0xFFFFFFFF
 +#define INIT_STREAM_CMD		0x00000000
++#define DUAL_VOLT_OCR_BIT	7
 +
 +#define OMAP_MMC1_DEVID		1
 +#define OMAP_MMC2_DEVID		2
 +#define OMAP_MMC_DATADIR_NONE	0
 +#define OMAP_MMC_DATADIR_READ	1
 +#define OMAP_MMC_DATADIR_WRITE	2
-+#define MMC1_ACTIVE_OVERWRITE	(1<<31)
 +#define MMC_TIMEOUT_MS		20
 +#define OMAP_MMC_MASTER_CLOCK	96000000
 +#define DRIVER_NAME		"mmci-omap"
++/*
++ * slot_id is device id - 1, device id is a static value
++ * of 1 to represent device 1 etc..
++ */
 +#define mmc_slot(host)		(host->pdata->slots[host->slot_id])
 +
 +/*
@@ -210,12 +150,13 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +	struct	mmc_request	*mrq;
 +	struct	mmc_command	*cmd;
 +	struct	mmc_data	*data;
-+	struct	resource	*mem_res;
-+	struct	clk		*fclk, *iclk, *dbclk;
-+	struct	semaphore	sem;
++	struct	clk		*fclk;
++	struct	clk		*iclk;
++	struct	clk		*dbclk;
++	struct  semaphore       sem;
 +	struct	work_struct	mmc_carddetect_work;
 +	void	__iomem		*base;
-+	void			*mapbase;
++	resource_size_t		mapbase;
 +	unsigned int		id;
 +	unsigned int		dma_len;
 +	unsigned int		dma_dir;
@@ -229,7 +170,7 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +	int			use_dma, dma_ch;
 +	int			initstr;
 +	int			slot_id;
-+
++	int			dbclk_enabled;
 +	struct	omap_mmc_platform_data	*pdata;
 +};
 +
@@ -251,7 +192,7 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +static void send_init_stream(struct mmc_omap_host *host)
 +{
 +	int reg = 0;
-+	typeof(jiffies) timeout;
++	unsigned long timeout;
 +
 +	disable_irq(host->irq);
 +	OMAP_HSMMC_WRITE(host->base, CON,
@@ -259,9 +200,8 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +	OMAP_HSMMC_WRITE(host->base, CMD, INIT_STREAM_CMD);
 +
 +	timeout = jiffies + msecs_to_jiffies(MMC_TIMEOUT_MS);
-+	while ((reg != CC) && time_before(jiffies, timeout)) {
++	while ((reg != CC) && time_before(jiffies, timeout))
 +		reg = OMAP_HSMMC_READ(host->base, STAT) & CC;
-+	}
 +
 +	OMAP_HSMMC_WRITE(host->base, CON,
 +		OMAP_HSMMC_READ(host->base, CON) & ~INIT_STREAM);
@@ -269,15 +209,16 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +}
 +
 +/*
-+ * Configure the Responce type
++ * Configure the response type and send the cmd.
 + */
 +static void
-+mmc_omap_start_command(struct mmc_omap_host *host, struct mmc_command *cmd)
++mmc_omap_start_command(struct mmc_omap_host *host, struct mmc_command *cmd,
++	struct mmc_data *data)
 +{
 +	int  cmdreg = 0, resptype = 0, cmdtype = 0;
 +
 +	dev_dbg(mmc_dev(host->mmc), "%s: CMD%d, argument 0x%08x\n",
-+			mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
++		mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
 +	host->cmd = cmd;
 +
 +	/*
@@ -287,87 +228,62 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
 +	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
 +
-+	switch (mmc_resp_type(cmd)) {
-+	case MMC_RSP_R1:
-+	case MMC_RSP_R3:
-+	case MMC_RSP_R1B:
-+		/* resp 1, 1b, 3 */
-+		resptype = 2;
-+		break;
-+	case MMC_RSP_R2:
-+		resptype = 1;
-+		break;
-+	default:
-+		break;
++	if (cmd->flags & MMC_RSP_PRESENT) {
++		if (cmd->flags & MMC_RSP_136)
++			resptype = 1;
++		else
++			resptype = 2;
 +	}
 +
++	/*
++	 * Unlike OMAP1 controller, the cmdtype does not seem to be based on
++	 * ac, bc, adtc, bcr. Only CMD12 needs a val of 0x3, rest 0x0.
++	 */
++	if (cmd->opcode == 12)
++		cmdtype = 0x3;
++
 +	cmdreg = (cmd->opcode << 24) | (resptype << 16) | (cmdtype << 22);
-+	OMAP_HSMMC_WRITE(host->base, HCTL,
-+			OMAP_HSMMC_READ(host->base,HCTL) & ~FOUR_BIT);
 +
-+	if (host->mmc->ios.bus_width == MMC_BUS_WIDTH_4)
-+		OMAP_HSMMC_WRITE(host->base, HCTL,
-+				OMAP_HSMMC_READ(host->base, HCTL)
-+						| FOUR_BIT);
-+	else if (host->mmc->ios.bus_width == MMC_BUS_WIDTH_1)
-+		OMAP_HSMMC_WRITE(host->base, HCTL,
-+				OMAP_HSMMC_READ(host->base, HCTL)
-+						& ~FOUR_BIT);
-+
-+	if (cmd->opcode == MMC_READ_SINGLE_BLOCK ||
-+			cmd->opcode == MMC_READ_MULTIPLE_BLOCK ||
-+			cmd->opcode == SD_APP_SEND_SCR	||
-+			((cmd->opcode == MMC_SEND_EXT_CSD) && cmd->arg == 0))
-+		cmdreg |= DP_SELECT | DDIR | MSBS | BCE;
-+
-+	else if (cmd->opcode == MMC_WRITE_BLOCK ||
-+			cmd->opcode == MMC_WRITE_MULTIPLE_BLOCK) {
++	if (data) {
 +		cmdreg |= DP_SELECT | MSBS | BCE;
-+		cmdreg &= ~(DDIR);
++		if (data->flags & MMC_DATA_READ)
++			cmdreg |= DDIR;
++		else
++			cmdreg &= ~(DDIR);
 +	}
 +
 +	if (host->use_dma)
 +		cmdreg |= DMA_EN;
-+
-+	if (cmd->opcode == MMC_GO_IDLE_STATE || cmd->opcode == MMC_SEND_OP_COND
-+		|| cmd->opcode == MMC_ALL_SEND_CID)
-+		OMAP_HSMMC_WRITE(host->base, CON,
-+				OMAP_HSMMC_READ(host->base, CON) | OD);
-+
-+	if (cmd->opcode == MMC_GO_IDLE_STATE)
-+		if (host->initstr == 0) {
-+			send_init_stream(host);
-+			host->initstr = 1;
-+		}
 +
 +	OMAP_HSMMC_WRITE(host->base, ARG, cmd->arg);
 +	OMAP_HSMMC_WRITE(host->base, CMD, cmdreg);
 +}
 +
 +/*
-+ * Notify the transder complete to MMC core
++ * Notify the transfer complete to MMC core
 + */
 +static void
 +mmc_omap_xfer_done(struct mmc_omap_host *host, struct mmc_data *data)
 +{
 +	host->data = NULL;
 +
-+	if (host->use_dma && host->dma_ch != -1) {
++	if (host->use_dma && host->dma_ch != -1)
 +		dma_unmap_sg(mmc_dev(host->mmc), data->sg, host->dma_len,
 +			host->dma_dir);
-+	}
 +
 +	host->datadir = OMAP_MMC_DATADIR_NONE;
 +
-+	if (data->error == MMC_ERR_NONE)
++	if (!data->error)
 +		data->bytes_xfered += data->blocks * (data->blksz);
++	else
++		data->bytes_xfered = 0;
 +
 +	if (!data->stop) {
 +		host->mrq = NULL;
 +		mmc_request_done(host->mmc, data->mrq);
 +		return;
 +	}
-+	mmc_omap_start_command(host, data->stop);
++	mmc_omap_start_command(host, data->stop, NULL);
 +}
 +
 +/*
@@ -390,9 +306,7 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +			cmd->resp[0] = OMAP_HSMMC_READ(host->base, RSP10);
 +		}
 +	}
-+	if (host->data == NULL || cmd->error != MMC_ERR_NONE) {
-+		dev_dbg(mmc_dev(host->mmc), "%s: End request, err %x\n",
-+				mmc_hostname(host->mmc), cmd->error);
++	if (host->data == NULL || cmd->error) {
 +		host->mrq = NULL;
 +		mmc_request_done(host->mmc, cmd->mrq);
 +	}
@@ -403,7 +317,7 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 + */
 +static void mmc_dma_cleanup(struct mmc_omap_host *host)
 +{
-+	host->data->error |= MMC_ERR_TIMEOUT;
++	host->data->error = -ETIMEDOUT;
 +
 +	if (host->use_dma && host->dma_ch != -1) {
 +		dma_unmap_sg(mmc_dev(host->mmc), host->data->sg, host->dma_len,
@@ -421,85 +335,68 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 + */
 +static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
 +{
-+	struct mmc_omap_host *host = (struct mmc_omap_host *)dev_id;
++	struct mmc_omap_host *host = dev_id;
 +	int end_cmd = 0, end_trans = 0, status;
-+	typeof(jiffies) timeout;
 +
 +	if (host->cmd == NULL && host->data == NULL) {
 +		OMAP_HSMMC_WRITE(host->base, STAT,
-+				OMAP_HSMMC_READ(host->base, STAT));
++			OMAP_HSMMC_READ(host->base, STAT));
 +		return IRQ_HANDLED;
-+	}
-+
-+	if (host->cmd) {
-+		if (host->cmd->opcode == MMC_SELECT_CARD
-+			|| host->cmd->opcode == MMC_SWITCH) {
-+			timeout = jiffies + msecs_to_jiffies(MMC_TIMEOUT_MS);
-+			while (time_before(jiffies, timeout)) {
-+				if ((OMAP_HSMMC_READ(host->base, STAT)
-+					& CC) == CC)
-+					break;
-+			}
-+		}
 +	}
 +
 +	status = OMAP_HSMMC_READ(host->base, STAT);
 +	dev_dbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
 +
-+	if (status & (ERR)) {
-+		if (status & (CMD_TIMEOUT) ||
-+			status & (CMD_CRC)) {
++	if (status & ERR) {
++		if ((status & CMD_TIMEOUT) ||
++			(status & CMD_CRC)) {
 +			if (host->cmd) {
-+				if (status & (CMD_TIMEOUT))
-+					host->cmd->error |= MMC_ERR_TIMEOUT;
++				if (status & CMD_TIMEOUT)
++					host->cmd->error = -ETIMEDOUT;
 +				else
-+					host->cmd->error |= MMC_ERR_BADCRC;
++					host->cmd->error = -EILSEQ;
 +				end_cmd = 1;
 +			}
 +			if (host->data)
 +				mmc_dma_cleanup(host);
 +		}
-+		if (status & (DATA_TIMEOUT) ||
-+			status & (DATA_CRC)) {
++		if ((status & DATA_TIMEOUT) ||
++			(status & DATA_CRC)) {
 +			if (host->data) {
-+				if (status & (DATA_TIMEOUT))
++				if (status & DATA_TIMEOUT)
 +					mmc_dma_cleanup(host);
 +				else
-+					host->data->error |= MMC_ERR_BADCRC;
++					host->data->error = -EILSEQ;
 +				end_trans = 1;
 +			}
 +		}
 +		if (status & CARD_ERR) {
-+			if (host->cmd) {
-+				host->cmd->error |= MMC_ERR_FAILED;
++			dev_dbg(mmc_dev(host->mmc),
++				"Ignoring card err CMD%d\n", host->cmd->opcode);
++			if (host->cmd)
 +				end_cmd = 1;
-+			}
-+			if (host->data) {
-+				host->data->error |= MMC_ERR_FAILED;
++			if (host->data)
 +				end_trans = 1;
-+			}
 +		}
 +	}
 +
 +	OMAP_HSMMC_WRITE(host->base, STAT, status);
++
 +	if (end_cmd || (status & CC))
 +		mmc_omap_cmd_done(host, host->cmd);
-+
 +	if (end_trans || (status & TC))
-+		if (host->mmc->mode == MMC_MODE_MMC
-+			|| host->mmc->mode == MMC_MODE_SD)
-+			mmc_omap_xfer_done(host, host->data);
++		mmc_omap_xfer_done(host, host->data);
 +
 +	return IRQ_HANDLED;
 +}
 +
 +/*
-+ * Swith MMC operating voltage
++ * Switch MMC operating voltage
 + */
 +static int omap_mmc_switch_opcond(struct mmc_omap_host *host, int vdd)
 +{
 +	u32 reg_val = 0;
-+	int ret = 0;
++	int ret;
 +
 +	/* Disable the clocks */
 +	clk_disable(host->fclk);
@@ -521,25 +418,27 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +	clk_enable(host->dbclk);
 +
 +	OMAP_HSMMC_WRITE(host->base, HCTL,
-+			OMAP_HSMMC_READ(host->base, HCTL) & SDVSCLR);
++		OMAP_HSMMC_READ(host->base, HCTL) & SDVSCLR);
 +	reg_val = OMAP_HSMMC_READ(host->base, HCTL);
-+
-+	if (((1 << vdd) == MMC_VDD_33_34) || ((1 << vdd) == MMC_VDD_33_34)) {
-+		host->initstr = 0;
++	/*
++	 * If a MMC dual voltage card is detected, the set_ios fn calls
++	 * this fn with VDD bit set for 1.8V. Upon card removal from the
++	 * slot, mmc_omap_detect fn sets the VDD back to 3V.
++	 */
++	if (((1 << vdd) == MMC_VDD_32_33) || ((1 << vdd) == MMC_VDD_33_34))
 +		reg_val |= SDVS30;
-+	}
 +	if ((1 << vdd) == MMC_VDD_165_195)
 +		reg_val |= SDVS18;
 +
 +	OMAP_HSMMC_WRITE(host->base, HCTL, reg_val);
 +
 +	OMAP_HSMMC_WRITE(host->base, HCTL,
-+			OMAP_HSMMC_READ(host->base, HCTL) | SDBP);
++		OMAP_HSMMC_READ(host->base, HCTL) | SDBP);
 +
 +	return 0;
 +err:
 +	dev_dbg(mmc_dev(host->mmc), "Unable to switch operating voltage \n");
-+	return -1;
++	return ret;
 +}
 +
 +/*
@@ -552,15 +451,18 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +						mmc_carddetect_work);
 +
 +	if (host->carddetect) {
-+		if (!(OMAP_HSMMC_READ(host->base, HCTL)	& SDVSDET)) {
++		if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
++			/*
++			 * Set the VDD back to 3V when the card is removed
++			 * before the set_ios fn turns off the power.
++			 */
 +			vdd = fls(host->mmc->ocr_avail) - 1;
 +			if (omap_mmc_switch_opcond(host, vdd) != 0)
 +				host->mmc->ios.vdd = vdd;
-+			mmc_detect_change(host->mmc, (HZ * 200) / 1000);
 +		}
-+	} else {
++		mmc_detect_change(host->mmc, (HZ * 200) / 1000);
++	} else
 +		mmc_detect_change(host->mmc, (HZ * 50) / 1000);
-+	}
 +}
 +
 +/*
@@ -569,7 +471,6 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +void omap_mmc_notify_card_detect(struct device *dev, int slot, int detected)
 +{
 +	struct mmc_omap_host *host = dev_get_drvdata(dev);
-+
 +	host->carddetect = detected;
 +	schedule_work(&host->mmc_carddetect_work);
 +}
@@ -579,9 +480,9 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 + */
 +static void mmc_omap_dma_cb(int lch, u16 ch_status, void *data)
 +{
-+	struct mmc_omap_host *host = (struct mmc_omap_host *)data;
++	struct mmc_omap_host *host = data;
 +
-+	if (ch_status & (1 << 11))
++	if (ch_status & OMAP2_DMA_MISALIGNED_ERR_IRQ)
 +		dev_dbg(mmc_dev(host->mmc), "MISALIGNED_ADRS_ERR\n");
 +
 +	if (host->dma_ch < 0)
@@ -589,6 +490,10 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +
 +	omap_free_dma(host->dma_ch);
 +	host->dma_ch = -1;
++	/*
++	 * DMA Callback: run in interrupt context.
++	 * mutex_unlock will through a kernel warning if used.
++	 */
 +	up(&host->sem);
 +}
 +
@@ -601,29 +506,28 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +	if (sync_dir == 0) {
 +		omap_set_dma_dest_params(host->dma_ch, 0,
 +			OMAP_DMA_AMODE_CONSTANT,
-+			(dma_addr_t) (host-> mapbase + OMAP_HSMMC_DATA), 0, 0);
++			(host->mapbase + OMAP_HSMMC_DATA), 0, 0);
 +		omap_set_dma_src_params(host->dma_ch, 0,
 +			OMAP_DMA_AMODE_POST_INC,
-+			    sg_dma_address(&data-> sg[0]), 0, 0);
++			sg_dma_address(&data->sg[0]), 0, 0);
 +	} else {
 +		omap_set_dma_src_params(host->dma_ch, 0,
 +			OMAP_DMA_AMODE_CONSTANT,
-+			(dma_addr_t) (host->mapbase +OMAP_HSMMC_DATA), 0, 0);
++			(host->mapbase + OMAP_HSMMC_DATA), 0, 0);
 +		omap_set_dma_dest_params(host->dma_ch, 0,
 +			OMAP_DMA_AMODE_POST_INC,
-+				sg_dma_address(&data->sg[0]), 0, 0);
++			sg_dma_address(&data->sg[0]), 0, 0);
 +	}
 +	return 0;
 +}
-+
 +/*
-+ * Rotine to configure and start DMA for the MMC card
++ * Routine to configure and start DMA for the MMC card
 + */
 +static int
 +mmc_omap_start_dma_transfer(struct mmc_omap_host *host, struct mmc_request *req)
 +{
 +	int sync_dev, sync_dir = 0;
-+	int dma_ch = 0, ret = 0;
++	int dma_ch = 0, ret = 0, err = 1;
 +	struct mmc_data *data = req->data;
 +
 +	/*
@@ -631,35 +535,29 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +	 * we wait for timeout period and free the dma
 +	 */
 +	if (host->dma_ch != -1) {
-+		set_current_state(TASK_INTERRUPTIBLE);
++		set_current_state(TASK_UNINTERRUPTIBLE);
 +		schedule_timeout(100);
 +		if (down_trylock(&host->sem)) {
 +			omap_free_dma(host->dma_ch);
 +			host->dma_ch = -1;
 +			up(&host->sem);
-+			return 1;
++			return err;
 +		}
 +	} else {
-+		if (down_trylock(&host->sem)) {
-+			BUG();
-+		}
++		if (down_trylock(&host->sem))
++			return err;
 +	}
++
 +	if (!(data->flags & MMC_DATA_WRITE)) {
 +		host->dma_dir = DMA_FROM_DEVICE;
-+		if (host->id == OMAP_MMC1_DEVID)
-+			sync_dev = OMAP24XX_DMA_MMC1_RX;
-+		else
-+			sync_dev = OMAP24XX_DMA_MMC2_RX;
++		sync_dev = OMAP24XX_DMA_MMC1_RX;
 +	} else {
 +		host->dma_dir = DMA_TO_DEVICE;
-+		if (host->id == OMAP_MMC1_DEVID)
-+			sync_dev = OMAP24XX_DMA_MMC1_TX;
-+		else
-+			sync_dev = OMAP24XX_DMA_MMC2_TX;
++		sync_dev = OMAP24XX_DMA_MMC1_TX;
 +	}
 +
 +	ret = omap_request_dma(sync_dev, "MMC/SD", mmc_omap_dma_cb,
-+							host, &dma_ch);
++			host, &dma_ch);
 +	if (ret != 0) {
 +		dev_dbg(mmc_dev(host->mmc),
 +			"%s: omap_request_dma() failed with %d\n",
@@ -668,7 +566,7 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +	}
 +
 +	host->dma_len = dma_map_sg(mmc_dev(host->mmc), data->sg,
-+					data->sg_len, host->dma_dir);
++			data->sg_len, host->dma_dir);
 +	host->dma_ch = dma_ch;
 +
 +	if (!(data->flags & MMC_DATA_WRITE))
@@ -676,20 +574,27 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +	else
 +		mmc_omap_config_dma_param(0, host, data);
 +
-+	omap_set_dma_transfer_params(dma_ch, OMAP_DMA_DATA_TYPE_S32,
-+		(data->blksz / 4), data->blocks, OMAP_DMA_SYNC_FRAME,
-+							sync_dev, sync_dir);
++	if ((data->blksz % 4) == 0)
++		omap_set_dma_transfer_params(dma_ch, OMAP_DMA_DATA_TYPE_S32,
++			(data->blksz / 4), data->blocks, OMAP_DMA_SYNC_FRAME,
++			sync_dev, sync_dir);
++	else
++		/* REVISIT: The MMC buffer increments only when MSB is written.
++		 * Return error for blksz which is non multiple of four.
++		 */
++		return -EINVAL;
++
 +	omap_start_dma(dma_ch);
 +	return 0;
 +}
 +
 +/*
-+ * Configure block leangth for MMC/SD cards and intiate the transfer.
++ * Configure block length for MMC/SD cards and initiate the transfer.
 + */
 +static int
 +mmc_omap_prepare_data(struct mmc_omap_host *host, struct mmc_request *req)
 +{
-+	int ret = 0;
++	int ret;
 +	host->data = req->data;
 +
 +	if (req->data == NULL) {
@@ -699,9 +604,9 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +	}
 +
 +	OMAP_HSMMC_WRITE(host->base, BLK, (req->data->blksz)
-+					| (req->data->blocks << 16) );
++					| (req->data->blocks << 16));
 +
-+	host->datadir = (req->data-> flags & MMC_DATA_WRITE) ?
++	host->datadir = (req->data->flags & MMC_DATA_WRITE) ?
 +			OMAP_MMC_DATADIR_WRITE : OMAP_MMC_DATADIR_READ;
 +
 +	if (host->use_dma) {
@@ -709,17 +614,8 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +		if (ret != 0) {
 +			dev_dbg(mmc_dev(host->mmc), "MMC start dma failure\n");
 +			return ret;
-+		} else {
-+			host->buffer = NULL;
-+			host->bytesleft = 0;
 +		}
-+	} else {
-+		host->buffer =	(u32 *) (page_address(req->data->sg->page) +
-+							req->data->sg->offset);
-+		host->bytesleft = req->data->blocks * (req->data->blksz);
-+		host->dma_ch = -1;
 +	}
-+
 +	return 0;
 +}
 +
@@ -732,54 +628,52 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +
 +	WARN_ON(host->mrq != NULL);
 +	host->mrq = req;
-+
-+	/* Reset MMC Controller's Data FSM */
-+	if (req->cmd->opcode == MMC_GO_IDLE_STATE) {
-+		OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+				OMAP_HSMMC_READ(host->base, SYSCTL) | 1 << 26);
-+		while (OMAP_HSMMC_READ(host->base, SYSCTL) & (1 << 26)) ;
-+	}
-+
-+	if (req->cmd->opcode == SD_APP_SEND_SCR
-+		|| req->cmd->opcode == MMC_SEND_EXT_CSD)
-+		mmc->ios.bus_width = MMC_BUS_WIDTH_1;
-+
-+	if (mmc_omap_prepare_data(host, req))
-+		dev_dbg(mmc_dev(host->mmc),
-+			"MMC host %s failed to initiate data transfer\n",
-+			mmc_hostname(host->mmc));
-+	mmc_omap_start_command(host, req->cmd);
++	mmc_omap_prepare_data(host, req);
++	mmc_omap_start_command(host, req->cmd, req->data);
 +}
 +
 +
-+/*
-+ * Configuring clock values.
-+ */
 +/* Routine to configure clock values. Exposed API to core */
 +static void omap_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 +{
 +	struct mmc_omap_host *host = mmc_priv(mmc);
 +	u16 dsor = 0;
 +	unsigned long regval;
-+	typeof(jiffies) timeout;
++	unsigned long timeout;
 +
 +	switch (ios->power_mode) {
 +	case MMC_POWER_OFF:
-+		mmc_slot(host).set_power(host->dev,host->slot_id, 0, 0);
++		mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
 +		break;
 +	case MMC_POWER_UP:
-+		mmc_slot(host).set_power(host->dev,host->slot_id, 1, ios->vdd);
++		mmc_slot(host).set_power(host->dev, host->slot_id, 1, ios->vdd);
++		break;
++	}
++
++	switch (mmc->ios.bus_width) {
++	case MMC_BUS_WIDTH_4:
++		OMAP_HSMMC_WRITE(host->base, HCTL,
++			OMAP_HSMMC_READ(host->base, HCTL) | FOUR_BIT);
++		break;
++	case MMC_BUS_WIDTH_1:
++		OMAP_HSMMC_WRITE(host->base, HCTL,
++			OMAP_HSMMC_READ(host->base, HCTL) & ~FOUR_BIT);
 +		break;
 +	}
 +
 +	if (host->id == OMAP_MMC1_DEVID) {
++		/* Only MMC1 can operate at 3V/1.8V */
 +		if ((OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET) &&
-+				((ios->vdd == 7) || (ios->vdd == 8))) {
-+				/* vdd is 1.8v */
++			(ios->vdd == DUAL_VOLT_OCR_BIT)) {
++				/*
++				 * The mmc_select_voltage fn of the core does
++				 * not seem to set the power_mode to
++				 * MMC_POWER_UP upon recalculating the voltage.
++				 * vdd 1.8v.
++				 */
 +				if (omap_mmc_switch_opcond(host, ios->vdd) != 0)
 +					dev_dbg(mmc_dev(host->mmc),
 +						"Switch operation failed\n");
-+				host->initstr = 0;
 +		}
 +	}
 +
@@ -794,24 +688,31 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +		if (dsor > 250)
 +			dsor = 250;
 +	}
-+
 +	omap_mmc_stop_clock(host);
 +	regval = OMAP_HSMMC_READ(host->base, SYSCTL);
 +	regval = regval & ~(CLKD_MASK);
 +	regval = regval | (dsor << 6) | (DTO << 16);
 +	OMAP_HSMMC_WRITE(host->base, SYSCTL, regval);
 +	OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+			OMAP_HSMMC_READ(host->base, SYSCTL) | ICE);
++		OMAP_HSMMC_READ(host->base, SYSCTL) | ICE);
 +
 +	/* Wait till the ICS bit is set */
 +	timeout = jiffies + msecs_to_jiffies(MMC_TIMEOUT_MS);
 +	while ((OMAP_HSMMC_READ(host->base, SYSCTL) & ICS) != 0x2
-+		&& time_before(jiffies, timeout)) ;
++		&& time_before(jiffies, timeout))
++		msleep(1);
 +
 +	OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+			OMAP_HSMMC_READ(host->base, SYSCTL) | CEN);
-+}
++		OMAP_HSMMC_READ(host->base, SYSCTL) | CEN);
 +
++	if (ios->power_mode == MMC_POWER_ON)
++		send_init_stream(host);
++
++	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN)
++		OMAP_HSMMC_WRITE(host->base, CON,
++				OMAP_HSMMC_READ(host->base, CON) | OD);
++}
++/* NOTE: Read only switch not supported yet */
 +static struct mmc_host_ops mmc_omap_ops = {
 +	.request = omap_mmc_request,
 +	.set_ios = omap_mmc_set_ios,
@@ -856,13 +757,11 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +	host->pdata	= pdata;
 +	host->use_dma	= 1;
 +	host->dma_ch	= -1;
-+	host->initstr	= 0;
-+	host->mem_res	= res;
 +	host->irq	= irq;
 +	host->id	= pdev->id;
 +	host->slot_id	= pdev->id - 1;
-+	host->mapbase	= (void *)host->mem_res->start;
-+	host->base	= (void __iomem *)IO_ADDRESS(host->mapbase);
++	host->mapbase	= res->start;
++	host->base	= ioremap(host->mapbase, SZ_4K);
 +	mmc->ops	= &mmc_omap_ops;
 +	mmc->f_min	= 400000;
 +	mmc->f_max	= 52000000;
@@ -882,36 +781,40 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +		clk_put(host->iclk);
 +		goto err;
 +	}
-+	host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
 +
-+	/*
-+	 * MMC can still work without debounce clock.
-+	 */
-+	if (IS_ERR(host->dbclk))
-+		dev_dbg(mmc_dev(host->mmc), "Failed to get debounce clock \n");
-+
-+	if (clk_enable(host->fclk) != 0) {
++	if (clk_enable(host->fclk) != 0)
 +		goto err;
-+	}
++
 +	if (clk_enable(host->iclk) != 0) {
 +		clk_disable(host->fclk);
 +		clk_put(host->fclk);
 +		goto err;
 +	}
-+	if (clk_enable(host->dbclk) != 0)
-+		dev_dbg(mmc_dev(host->mmc), "Enabling debounce clk failed\n");
 +
-+	omap_writel(omap_readl(CONTROL_DEVCONF1) | MMC1_ACTIVE_OVERWRITE,
-+						CONTROL_DEVCONF1);
++	host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
++	/*
++	 * MMC can still work without debounce clock.
++	 */
++	if (IS_ERR(host->dbclk))
++		dev_dbg(mmc_dev(host->mmc), "Failed to get debounce clock \n");
++	else
++		if (clk_enable(host->dbclk) != 0)
++			dev_dbg(mmc_dev(host->mmc), "Enabling debounce"
++							"clk failed\n");
++		else
++			host->dbclk_enabled = 1;
++
 +	mmc->ocr_avail = mmc_slot(host).ocr_mask;
-+	mmc->caps |= MMC_CAP_MULTIWRITE | MMC_CAP_BYTEBLOCK;
-+	if (pdata->wire4)
-+		mmc->caps = MMC_CAP_4_BIT_DATA;
++	mmc->caps |= MMC_CAP_MULTIWRITE | MMC_CAP_MMC_HIGHSPEED |
++				MMC_CAP_SD_HIGHSPEED;
++
++	if (pdata->conf.wire4)
++		mmc->caps |= MMC_CAP_4_BIT_DATA;
 +
 +	OMAP_HSMMC_WRITE(host->base, HCTL,
 +			OMAP_HSMMC_READ(host->base, HCTL) | SDVS30);
 +
-+	OMAP_HSMMC_WRITE(host->base, CAPA,OMAP_HSMMC_READ(host->base,
++	OMAP_HSMMC_WRITE(host->base, CAPA, OMAP_HSMMC_READ(host->base,
 +							CAPA) | VS30 | VS18);
 +
 +	/* Set the controller to AUTO IDLE mode */
@@ -923,14 +826,15 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +			OMAP_HSMMC_READ(host->base, HCTL) | SDBP);
 +
 +	/* Request IRQ for MMC operations */
-+	ret = request_irq(host->irq, mmc_omap_irq, 0, pdev->name, host);
++	ret = request_irq(host->irq, mmc_omap_irq, IRQF_DISABLED, pdev->name,
++			 host);
 +	if (ret) {
 +		dev_dbg(mmc_dev(host->mmc), "Unable to grab HSMMC IRQ");
 +		goto irq_err;
 +	}
 +
 +	INIT_WORK(&host->mmc_carddetect_work, mmc_omap_detect);
-+	if(pdata->init != NULL) {
++	if (pdata->init != NULL) {
 +		if (pdata->init(&pdev->dev) != 0) {
 +			free_irq(host->irq, host);
 +			goto irq_err;
@@ -946,7 +850,7 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +	return 0;
 +
 +err:
-+	dev_dbg(mmc_dev(host->mmc), "Probe Fail\n");
++	dev_dbg(mmc_dev(host->mmc), "Probe Failed\n");
 +	if (host)
 +		mmc_free_host(mmc);
 +	return ret;
@@ -955,11 +859,12 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +	dev_dbg(mmc_dev(host->mmc), "Unable to configure MMC IRQs");
 +	clk_disable(host->fclk);
 +	clk_disable(host->iclk);
-+	clk_disable(host->dbclk);
-+
 +	clk_put(host->fclk);
 +	clk_put(host->iclk);
-+	clk_put(host->dbclk);
++	if (host->dbclk_enabled) {
++		clk_disable(host->dbclk);
++		clk_put(host->dbclk);
++	}
 +
 +	if (host)
 +		mmc_free_host(mmc);
@@ -978,10 +883,12 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +
 +		clk_disable(host->fclk);
 +		clk_disable(host->iclk);
-+		clk_disable(host->dbclk);
 +		clk_put(host->fclk);
 +		clk_put(host->iclk);
-+		clk_put(host->dbclk);
++		if (host->dbclk_enabled) {
++			clk_disable(host->dbclk);
++			clk_put(host->dbclk);
++		}
 +
 +		mmc_free_host(host->mmc);
 +	}
@@ -1003,41 +910,32 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +		if (ret == 0) {
 +			host->suspended = 1;
 +
-+		OMAP_HSMMC_WRITE(host->base, ISE, 0);
-+		OMAP_HSMMC_WRITE(host->base, IE, 0);
++			OMAP_HSMMC_WRITE(host->base, ISE, 0);
++			OMAP_HSMMC_WRITE(host->base, IE, 0);
 +
-+		ret = host->pdata->suspend(&pdev->dev, host->slot_id);
-+		if (ret)
-+			dev_dbg(mmc_dev(host->mmc),
-+				"Unable to handle MMC board level suspend\n");
++			ret = host->pdata->suspend(&pdev->dev, host->slot_id);
++			if (ret)
++				dev_dbg(mmc_dev(host->mmc),
++					"Unable to handle MMC board"
++					"level suspend\n");
 +
-+		if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
-+			OMAP_HSMMC_WRITE(host->base,HCTL,
++			if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
++				OMAP_HSMMC_WRITE(host->base, HCTL,
 +					OMAP_HSMMC_READ(host->base, HCTL)
 +					& SDVSCLR);
-+			OMAP_HSMMC_WRITE(host->base,HCTL,
++				OMAP_HSMMC_WRITE(host->base, HCTL,
 +					OMAP_HSMMC_READ(host->base, HCTL)
-+					|SDVS30);
-+			OMAP_HSMMC_WRITE(host->base,HCTL,
++					| SDVS30);
++				OMAP_HSMMC_WRITE(host->base, HCTL,
 +					OMAP_HSMMC_READ(host->base, HCTL)
 +					| SDBP);
-+		}
-+		clk_disable(host->fclk);
-+		clk_disable(host->iclk);
-+		clk_disable(host->dbclk);
++			}
 +
-+		if (host->id == OMAP_MMC1_DEVID) {
-+			omap_writel(omap_readl(CONTROL_DEVCONF1)
-+					& ~MMC1_ACTIVE_OVERWRITE,
-+					CONTROL_DEVCONF1);
++			clk_disable(host->fclk);
++			clk_disable(host->iclk);
++			clk_disable(host->dbclk);
 +		}
 +
-+		/* Power off slot power */
-+		ret = mmc_slot(host).set_power(host->dev,host->slot_id, 0, 0);
-+		if (ret != 0)
-+			dev_dbg(mmc_dev(host->mmc), "Unable to disable power to MMC\n");
-+			host->initstr = 0;
-+		}
 +	}
 +	return ret;
 +}
@@ -1052,23 +950,13 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +		return 0;
 +
 +	if (host) {
-+		if (host->id == OMAP_MMC1_DEVID) {
-+			omap_writel(omap_readl(CONTROL_DEVCONF1)
-+						| MMC1_ACTIVE_OVERWRITE,
-+						CONTROL_DEVCONF1);
-+		}
 +
-+		mmc_slot(host).set_power(host->dev, host->slot_id, 1,
-+							host->mmc->ios.vdd);
-+		if (ret != 0) {
-+			dev_dbg(mmc_dev(host->mmc), "Enabling power failed\n");
-+			return ret;
-+		}
-+
-+		if (clk_enable(host->fclk) != 0)
++		ret = clk_enable(host->fclk);
++		if (ret)
 +			goto clk_en_err;
 +
-+		if (clk_enable(host->iclk) != 0) {
++		ret = clk_enable(host->iclk);
++		if (ret) {
 +			clk_disable(host->fclk);
 +			clk_put(host->fclk);
 +			goto clk_en_err;
@@ -1087,7 +975,6 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +		ret = mmc_resume_host(host->mmc);
 +		if (ret == 0)
 +			host->suspended = 0;
-+		msleep_interruptible(1);
 +	}
 +
 +	return ret;
@@ -1095,7 +982,7 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +clk_en_err:
 +	dev_dbg(mmc_dev(host->mmc),
 +		"Failed to enable MMC clocks during resume\n");
-+	return -1;
++	return ret;
 +}
 +
 +#else
@@ -1104,23 +991,19 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +#endif
 +
 +static struct platform_driver omap_mmc_driver = {
-+	.probe	= omap_mmc_probe,
-+	.remove	= omap_mmc_remove,
-+	.suspend= omap_mmc_suspend,
-+	.resume	= omap_mmc_resume,
-+	.driver	= {
-+		   .name = DRIVER_NAME,
++	.probe		= omap_mmc_probe,
++	.remove		= omap_mmc_remove,
++	.suspend	= omap_mmc_suspend,
++	.resume		= omap_mmc_resume,
++	.driver		= {
++		.name = DRIVER_NAME,
 +	},
 +};
 +
 +static int __init omap_mmc_init(void)
 +{
 +	/* Register the MMC driver */
-+	if (platform_driver_register(&omap_mmc_driver)) {
-+		printk(KERN_ERR ": Failed to register MMC driver\n");
-+		return -ENODEV;
-+	}
-+	return 0;
++	return platform_driver_register(&omap_mmc_driver);
 +}
 +
 +static void __exit omap_mmc_cleanup(void)
@@ -1136,7 +1019,23 @@ diff -purN linux-omap/drivers/mmc/host/omap_hsmmc.c lin_for_mmc/drivers/mmc/host
 +MODULE_LICENSE("GPL");
 +MODULE_ALIAS(DRIVER_NAME);
 +MODULE_AUTHOR("Texas Instruments Inc");
-_______________________________________________
-Linux-omap-open-source mailing list
-Linux-omap-open-source@linux.omap.com
-http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+Index: linux-omap-2.6/drivers/mmc/host/Makefile
+===================================================================
+--- linux-omap-2.6.orig/drivers/mmc/host/Makefile	2007-12-07 13:31:28.428705929 +0530
++++ linux-omap-2.6/drivers/mmc/host/Makefile	2007-12-07 13:34:26.606027304 +0530
+@@ -13,7 +13,14 @@
+ obj-$(CONFIG_MMC_RICOH_MMC)	+= ricoh_mmc.o
+ obj-$(CONFIG_MMC_WBSD)		+= wbsd.o
+ obj-$(CONFIG_MMC_AU1X)		+= au1xmmc.o
+-obj-$(CONFIG_MMC_OMAP)		+= omap.o
++
++ifeq ($(CONFIG_MMC_OMAP),y)
++obj-$(CONFIG_ARCH_OMAP3430)    += omap_hsmmc.o
++obj-$(CONFIG_ARCH_OMAP2430)    += omap_hsmmc.o
++obj-$(CONFIG_ARCH_OMAP2420)    += omap.o
++obj-$(CONFIG_ARCH_OMAP1)       += omap.o
++endif
++
+ obj-$(CONFIG_MMC_AT91)		+= at91_mci.o
+ obj-$(CONFIG_MMC_TIFM_SD)	+= tifm_sd.o
+ obj-$(CONFIG_MMC_SPI)		+= mmc_spi.o
