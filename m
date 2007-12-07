@@ -1,16 +1,16 @@
 From: "Hunter, Jon" <jon-hunter@ti.com>
 Subject: RE: OMAP2430: MUSB: Ethernet Gadget Issue
-Date: Fri, 7 Dec 2007 14:55:04 -0600
-Message-ID: <5573C19A4BBDB441BED2A44157E9705302C29F21@dlee12.ent.ti.com>
-References: <F3AC19E99E5D024AB9E6FB2A01683D8A02D46D68@dlee10.ent.ti.com>
-	<200712060817.35806.david-b@pacbell.net>
+Date: Fri, 7 Dec 2007 14:55:06 -0600
+Message-ID: <5573C19A4BBDB441BED2A44157E9705302C29F22@dlee12.ent.ti.com>
+References: <200711231226.44592.david-b@pacbell.net>
+	<F3AC19E99E5D024AB9E6FB2A01683D8A02C381EE@dlee10.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
-In-Reply-To: <200712060817.35806.david-b@pacbell.net>
+In-Reply-To: <F3AC19E99E5D024AB9E6FB2A01683D8A02C381EE@dlee10.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,20 +20,19 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>, "Foale, Jeff" <j-foale@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: "Foale, Jeff" <j-foale@ti.com>, David Brownell <david-b@pacbell.net>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-> So it's a silicon or RTL bug then?  My generic MUSB docs say:
+> We discovered the root cause is that on the OMAP TX side, a=20
+> DMA transfer
+> is initiated but never completes due to the completion interrupt never
+> happening.
+>=20
+> We still do not know why the interrupt doesn't happen.
 
 
-At this point I do not believe that we have enough evidence to say that
-it is either a software or a hardware bug. However, if let me know if
-you have any inputs on this. =20
+Just to be clear, Jeff was able to track down the state the driver when
+the failure occurs, but I would not say that we truly understand the
+"root cause" of why the interrupt does not occur.
 
-As Jeff mentioned before we know that transfers stop because a interrupt
-on the tx side from the DMA controller does not occur, but we still do
-not know why and we are still trying to track down the root cause.=20
-
-Cheers
-Jon
+Jon=20
