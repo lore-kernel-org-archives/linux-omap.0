@@ -1,13 +1,13 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/PATCH 1/5] HDQ/1-wire support for OMAP2430/3430
-Date: Mon, 10 Dec 2007 10:28:27 -0800
-Message-ID: <20071210182827.GF19104@atomide.com>
-References: <005901c83b15$b23d4150$fe8818ac@ent.ti.com>
+From: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Subject: Re: [PATCH] OMAP System Control fix for OMAP2420
+Date: Mon, 10 Dec 2007 15:44:46 -0400
+Message-ID: <475D972E.4070402@indt.org.br>
+References: <1196897904-23457-1-git-send-email-david.cohen@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <005901c83b15$b23d4150$fe8818ac@ent.ti.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+In-Reply-To: <1196897904-23457-1-git-send-email-david.cohen@indt.org.br>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,103 +15,93 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
-To: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
-Cc: 'Evgeniy Polyakov' <johnpol@2ka.mipt.ru>, linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces@linux.omap.com
+Errors-To: linux-omap-open-source-bounces@linux.omap.com
+To: ext David Cohen <david.cohen@indt.org.br>
+Cc: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com> [071210 02:17]:
-> This patch adds HDQ base address defines and registers hdq as platform device.
-> 
-> Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
-> 
+ext David Cohen wrote:
+> OMAP2420 has a different offset for CONTROL_STATUS register.
+>
+> Signed-off-by: David Cohen <david.cohen@indt.org.br>
 > ---
->  arch/arm/mach-omap2/devices.c        |   30 ++++++++++++++++++++++++++++++
->  include/asm-arm/arch-omap/omap24xx.h |    2 +-
->  include/asm-arm/arch-omap/omap34xx.h |    2 +-
->  3 files changed, 32 insertions(+), 2 deletions(-)
-> 
-> Index: linux-omap-2.6/arch/arm/mach-omap2/devices.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/devices.c	2007-11-29 03:53:52.867460848 -0500
-> +++ linux-omap-2.6/arch/arm/mach-omap2/devices.c	2007-11-29 03:54:18.801518272 -0500
-> @@ -221,6 +221,35 @@
->  void omap_init_eac(struct eac_platform_data *pdata) {}
+>  arch/arm/mach-omap2/board-h4.c      |    2 +-
+>  arch/arm/mach-omap2/id.c            |    5 ++++-
+>  arch/arm/plat-omap/sram.c           |    2 +-
+>  include/asm-arm/arch-omap/control.h |    3 +++
+>  4 files changed, 9 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
+> index 70c948c..4d5db60 100644
+> --- a/arch/arm/mach-omap2/board-h4.c
+> +++ b/arch/arm/mach-omap2/board-h4.c
+> @@ -272,7 +272,7 @@ static struct platform_device *h4_devices[] __initdata = {
+>  /* 2420 Sysboot setup (2430 is different) */
+>  static u32 get_sysboot_value(void)
+>  {
+> -	return (ctrl_read_reg(CONTROL_STATUS) & 0xFFF);
+> +	return (ctrl_read_reg(OMAP242X_CONTROL_STATUS) & 0xFFF);
+>  }
+>  
+>  /* FIXME: This function should be moved to some other file, gpmc.c? */
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index 393b593..d84bf0e 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -162,7 +162,10 @@ void __init omap2_check_revision(void)
+>  	/* Embedding the ES revision info in type field */
+>  	system_rev = omap_ids[j].type;
+>  
+> -	ctrl_status = ctrl_read_reg(CONTROL_STATUS);
+> +	if (cpu_is_omap242x())
+> +		ctrl_status = ctrl_read_reg(OMAP242X_CONTROL_STATUS);
+> +	else;
+> +		ctrl_status = ctrl_read_reg(CONTROL_STATUS);
+>  	system_rev |= (ctrl_status & 0x3f);
+>  	system_rev |= (ctrl_status & 0x700);
+>  
+> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> index dd8dc04..851d4ee 100644
+> --- a/arch/arm/plat-omap/sram.c
+> +++ b/arch/arm/plat-omap/sram.c
+> @@ -94,7 +94,7 @@ static int is_sram_locked(void)
+>  
+>  #if defined(CONFIG_ARCH_OMAP242X)
+>  	if (cpu_is_omap242x())
+> -		type = ctrl_read_reg(CONTROL_STATUS) & TYPE_MASK;
+> +		type = ctrl_read_reg(OMAP242X_CONTROL_STATUS) & TYPE_MASK;
 >  #endif
 >  
-> +#if defined(CONFIG_HDQ_MASTER_OMAP) || defined(CONFIG_HDQ_MASTER_OMAP_MODULE)
-> +static struct resource omap_hdq_resources[] = {
-> +	{
-> +		.start		= OMAP_HDQ_BASE,
-> +		.end		= OMAP_HDQ_BASE + 0x1C,
-> +		.flags		= IORESOURCE_MEM,
-> +	},
-> +	{
-> +		.start		= INT_24XX_HDQ_IRQ,
-> +		.flags		= IORESOURCE_IRQ,
-> +	},
-> +};
-> +static struct platform_device omap_hdq_dev = {
-> +	.name = "omap_hdq",
-> +	.id = 0,
-> +	.dev = {
-> +		.platform_data = NULL,
-> +	},
-> +	.num_resources  = ARRAY_SIZE(omap_hdq_resources),
-> +	.resource       = omap_hdq_resources,
-> +};
-> +static inline void omap_hdq_init(void)
-> +{
-> +	(void) platform_device_register(&omap_hdq_dev);
-> +}
-> +#else
-> +static inline void omap_hdq_init(void) {}
-> +#endif
-> +
->  /*-------------------------------------------------------------------------*/
+>  	if (type == GP_DEVICE) {
+> diff --git a/include/asm-arm/arch-omap/control.h b/include/asm-arm/arch-omap/control.h
+> index 5f42725..6609bb3 100644
+> --- a/include/asm-arm/arch-omap/control.h
+> +++ b/include/asm-arm/arch-omap/control.h
+> @@ -38,6 +38,9 @@
+>  #define CONTROL_DEVCONF0		(CONTROL_GENERAL + 0x04)
+>  #define CONTROL_DEVCONF1		(CONTROL_GENERAL + 0x68) /* > 242x */
+>  #define CONTROL_STATUS			(CONTROL_GENERAL + 0x80)
+> +#define OMAP242X_CONTROL_STATUS		(CONTROL_STATUS + 0x08)
+> +#define OMAP243X_CONTROL_STATUS		(CONTROL_STATUS)
+> +#define OMAP34XX_CONTROL_STATUS		(CONTROL_STATUS)
 >  
->  static int __init omap2_init_devices(void)
-> @@ -231,6 +260,7 @@
->  	omap_init_camera();
->  	omap_init_mbox();
->  	omap_init_mcspi();
-> +	omap_hdq_init();
->  	omap_init_sti();
 >  
->  	return 0;
-> Index: linux-omap-2.6/include/asm-arm/arch-omap/omap24xx.h
-> ===================================================================
-> --- linux-omap-2.6.orig/include/asm-arm/arch-omap/omap24xx.h	2007-11-29 03:53:52.867460848 -0500
-> +++ linux-omap-2.6/include/asm-arm/arch-omap/omap24xx.h	2007-11-29 03:54:18.801518272 -0500
-> @@ -92,7 +92,7 @@
->  #define OMAP2_CM_BASE		OMAP2430_CM_BASE
->  #define OMAP2_PRM_BASE		OMAP2430_PRM_BASE
->  #define OMAP2_VA_IC_BASE	IO_ADDRESS(OMAP24XX_IC_BASE)
-> -
-> +#define OMAP_HDQ_BASE		(L4_24XX_BASE + 0xb2000)
->  #endif
->  
->  #endif /* __ASM_ARCH_OMAP24XX_H */
-> Index: linux-omap-2.6/include/asm-arm/arch-omap/omap34xx.h
-> ===================================================================
-> --- linux-omap-2.6.orig/include/asm-arm/arch-omap/omap34xx.h	2007-11-29 03:53:52.867460848 -0500
-> +++ linux-omap-2.6/include/asm-arm/arch-omap/omap34xx.h	2007-11-29 03:54:18.801518272 -0500
-> @@ -62,7 +62,7 @@
->  #define OMAP2_CM_BASE			OMAP3430_CM_BASE
->  #define OMAP2_PRM_BASE			OMAP3430_PRM_BASE
->  #define OMAP2_VA_IC_BASE		IO_ADDRESS(OMAP34XX_IC_BASE)
-> -
-> +#define OMAP_HDQ_BASE			(L4_34XX_BASE + 0xB2000)
->  #endif
->  
->  #define OMAP34XX_DSP_BASE	0x58000000
+>  /*
+>   
+Hi David,
 
-Please remove the duplicate define, you can just define it in devices.c
-depending if it's 2430 or 3430. Otherwise you're adding yet another
-artificial block to compile in support for both 2430 and 3430 into the
-same kernel.
+Patch tested and working fine on H4 boards, it boots with no problems.
 
-Regards,
+BR,
 
-Tony
+Carlos.
+
+-- 
+Carlos Eduardo Aguiar
+Nokia Institute of Technology - INdT
+Open Source Mobile Research Center - OSMRC - Manaus
+Core Team
+Phone: +55 92 2126-1079
+Mobile: +55 92 8127-1797
+E-mail: carlos.aguiar@indt.org.br
