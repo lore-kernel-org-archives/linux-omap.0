@@ -1,15 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/PATCH  1/4] MMC/SD Controller driver for OMAP2430
-Date: Mon, 10 Dec 2007 10:00:06 -0800
-Message-ID: <20071210180006.GD19104@atomide.com>
-References: <003601c838d6$c451c870$fe8818ac@ent.ti.com>
-	<47595E6E.3000503@indt.org.br>
-	<7EAD1AEEA7621C45899FE99123E124A00145327D@dbde01.ent.ti.com>
+Subject: Re: [PATCH RFC] OMAP: DMA: Cleanup of DMA Request Lines
+Date: Mon, 10 Dec 2007 10:25:08 -0800
+Message-ID: <20071210182507.GE19104@atomide.com>
+References: <010C7BAE6783F34D9AC336EE5A01A08804FE689E@dbde01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <7EAD1AEEA7621C45899FE99123E124A00145327D@dbde01.ent.ti.com>
+In-Reply-To: <010C7BAE6783F34D9AC336EE5A01A08804FE689E@dbde01.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,62 +17,48 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Syed Mohammed, Khasim" <khasim@ti.com>
-Cc: linux-omap-open-source@linux.omap.com, Pierre Ossman <drzeus@drzeus.cx>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-omap-open-source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Syed Mohammed, Khasim <khasim@ti.com> [071208 07:50]:
+* Gadiyar, Anand <gadiyar@ti.com> [071209 20:16]:
+> Hi all,
 > 
+> I'm resending this patch with the #else removed. I'm also sending a few
+> other ways in which we could do this.
 > 
-> > -----Original Message-----
-> > From: linux-omap-open-source-bounces@linux.omap.com [mailto:linux-omap-
-> > open-source-bounces@linux.omap.com] On Behalf Of Carlos Aguiar
-> > Sent: Friday, December 07, 2007 8:24 PM
-> > To: Chikkature Rajashekar, Madhusudhan
-> > Cc: linux-omap@vger.kernel.org; linux-omap-open-source@linux.omap.com;
-> > linux-arm-kernel@lists.arm.linux.org.uk; 'Pierre Ossman'
-> > Subject: Re: [RFC/PATCH 1/4] MMC/SD Controller driver for OMAP2430
-> > 
-> > ext Madhusudhan Chikkature Rajashekar wrote:
-> > > This patch adds MMC controller driver for OMAP2430/3430.
-> > >
-> > > Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
-> > >
-> > > ---
-> > >  drivers/mmc/host/Makefile     |    9
-> > >  drivers/mmc/host/omap_hsmmc.c |  985
-> > ++++++++++++++++++++++++++++++++++++++++++
-> > >  2 files changed, 993 insertions(+), 1 deletion(-)
-> > >
-> > > Index: linux-omap-2.6/drivers/mmc/host/omap_hsmmc.c
-> > > ===================================================================
+> Option 1:
+> Same patch as the last time without the #else
 > 
-> <snip>
-> 
-> > >
-> > Hi Madhu,
-> > 
-> > I'd rather see this code using multislot structures and omap.c instead
-> > of defining a whole new codebase for omap2430 and/or omap3.
-> > 
-> > BR,
-> > 
-> > Carlos.
-> > 
-> > 
-> Hi Carlos,
-> 
-> Thanks for comments.
-> 
-> I remember we had discussed this before as well, as communicated before the MMC/SD controller on OMAP2430 and 3430 processors is completely different( in Register width, bits, offsets, configuration etc) from OMAP2420 and OMAP1 platforms. It's not recommended to add new MMC controller functionality to existing omap.c. 
+> This contains lots of #ifdef statements but there are no #elses
 
-Well, this time it actually looks like the MMC controller is
-completely different.
+Yeah, not good..
 
-> Yes we will definitely use multi-slot structures. We can add multi-slot support after we get formal approval of this code base.
+> Option 2:
+> No #ifdefs.
+>
+> Using OMAP242X_* for 2420 specific names
+> OMAP243X_* for 2430 specific names/names present from 243X onwards
+> OMAP24XX_* for names common to all 24XX, 34XX
+> OMAP34XX_* for 34XX specific names
+> 
+> (or something similar could be worked out)
 
-Do you still need to mux between slots if you have three controllers
-available? If so, it's worth doing it to start with.
+This is better on short term. It needs an associated patch to change
+drivers to use new names.
+
+> Option 3:
+> 
+> Name all possible names OMAP_* (or OMAP2_*) and use a runtime check to return
+> the correct request line number.
+> 
+> I'm sending sample patches for all three options. Let me know what you think.
+
+Hey, this looks like a good solution in the long run. Except, let's just
+load the table for each processor that is compiled in to save memory.
+
+You could load the associated processor dma request configuration from
+devices_2420.c, devices_2430.c and devices_3430.c.
 
 Regards,
 
