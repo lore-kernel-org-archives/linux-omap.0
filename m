@@ -1,7 +1,7 @@
 From: "Madhusudhan Chikkature Rajashekar" <madhu.cr@ti.com>
-Subject: [RFC/PATCH 4/5] HDQ/1-wire support for OMAP2430/3430
-Date: Mon, 10 Dec 2007 15:49:40 +0530
-Message-ID: <005c01c83b16$2cd1b7c0$fe8818ac@ent.ti.com>
+Subject: [RFC/PATCH 5/5] HDQ/1-wire support for OMAP2430/3430
+Date: Mon, 10 Dec 2007 15:50:08 +0530
+Message-ID: <005d01c83b16$3dbb6630$fe8818ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -20,25 +20,24 @@ To: 'Evgeniy Polyakov' <johnpol@2ka.mipt.ru>, linux-omap-open-source@linux.omap.
 Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch enables W1 and OMAP HDQ support for OMAP2430.
+This patch enables W1 and OMAP HDQ support for OMAP3430.
 
 Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
 
-Index: linux-omap-2.6/arch/arm/configs/omap_2430sdp_defconfig
+Index: linux-omap-2.6/arch/arm/configs/omap_3430sdp_defconfig
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/configs/omap_2430sdp_defconfig	2007-11-27 09:34:42.000000000 -0500
-+++ linux-omap-2.6/arch/arm/configs/omap_2430sdp_defconfig	2007-11-29 02:34:27.747869136 -0500
-@@ -750,7 +750,25 @@
- # CONFIG_SPI_TSC2301 is not set
- # CONFIG_SPI_SPIDEV is not set
- # CONFIG_SPI_TLE62X0 is not set
+--- linux-omap-2.6.orig/arch/arm/configs/omap_3430sdp_defconfig	2007-11-29 02:39:54.000000000 -0500
++++ linux-omap-2.6/arch/arm/configs/omap_3430sdp_defconfig	2007-11-29 02:44:43.602245040 -0500
+@@ -618,7 +618,24 @@
+ #
+ # CONFIG_SPI is not set
+ # CONFIG_SPI_MASTER is not set
 -# CONFIG_W1 is not set
 +CONFIG_W1=y
 +
 +#
 +# 1-wire Bus Masters
 +#
-+# CONFIG_W1_MASTER_DS2490 is not set
 +# CONFIG_W1_MASTER_DS2482 is not set
 +# CONFIG_W1_MASTER_DS1WM is not set
 +CONFIG_HDQ_MASTER_OMAP=y
