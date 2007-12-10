@@ -1,17 +1,13 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: OMAP2430: MUSB: Ethernet Gadget Issue
-Date: Sun, 9 Dec 2007 21:34:23 -0800
-Message-ID: <200712092134.23712.david-b@pacbell.net>
-References: <5573C19A4BBDB441BED2A44157E9705302A4C387@dlee12.ent.ti.com>
-	<200711231226.44592.david-b@pacbell.net>
-	<5573C19A4BBDB441BED2A44157E9705302C29F01@dlee12.ent.ti.com>
+From: "Madhusudhan Chikkature Rajashekar" <madhu.cr@ti.com>
+Subject: RE: HDQ/1-wire module
+Date: Mon, 10 Dec 2007 15:41:14 +0530
+Message-ID: <005701c83b15$0075eee0$fe8818ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <5573C19A4BBDB441BED2A44157E9705302C29F01@dlee12.ent.ti.com>
-Content-Disposition: inline
+In-Reply-To: 
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,53 +17,55 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: linux-omap-open-source@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
+Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 07 December 2007, Hunter, Jon wrote:
-> ep1in (hw1): 1buf dma, csr b404 maxp 0200
+Hi All,
 
-That's the same for both UDP and TCP cases:
+In response to the below mail on supporting the HDQ/1-wire module, I had further discussions with the W1 maintainer Evgeniy Polyakov
+on this.
+I intend to submit an RFC/PATCH to linux omap list for supporting the HDQ/1-wire controller on OMAP243x/34xx platforms. The
+RFC/PATCH will include a master driver for the HDQ/1-wire controller and a slave driver interface to support the BQ27000 hdq
+complaint gas guage device. The actual BQ battery driver can then be developed based on this.
+ 
+Thanks,
+Madhu
+ 
 
-  8000 - AutoSet TxPktRdy after loading a complete packet
-  2000 - Mode TX (probably irrelevant here)
-  1000 - DMAReqEnab
-  0400 - DMAReqMode 1 (vs 0)
-  0004 - Underrun ... got IN packet with empty fifo
+-----Original Message-----
+From: Madhusudhan Chikkature Rajashekar [mailto:madhu.cr@ti.com] 
+Sent: Wednesday, November 07, 2007 2:12 PM
+To: 'linux-omap-open-source@linux.omap.com'
+Subject: HDQ/1-wire module
 
-And the queues are sitting there with packets marked as
-having transmitted no bits.
+Hi All,
 
-That underrun bit looks suspicious.  ISTR having issues
-with it before; it's stupid, there's basically no point
-in the hardware even reporting such a routine case (no
-sane driver could afford to care about it); it's only
-there to cause trouble.
+This is regarding the HDQ/1-wire support for omap24xx/34xx. 
 
-Understanding that the x430 uses Mentor's DMA engine
-and that code has AFAIK not been stressed ... maybe it
-has to learn more about how to ignore bogus faults.
+The controller on the above OMAP platforms supports both HDQ and 1-wire protocol.The difference between HDQ and 1-wire protocol is
+very minimal as explained below.
 
-I don't see signs of the 0080 Incomptx bit being set.
+HDQ Mode:
+In HDQ mode, the firmware does not require the host to create an initialization pulse to the slave.
+However, the slave can be reset by using an initialization pulse (also referred to as a break pulse).
+The slave does not respond with a presence pulse.
 
+1-Wire Mode:
+In 1-Wire protocol, the host first sends an initialization pulse (by pulling the line to a logic-low state)
+and then waits for the slave to respond with a presence pulse before enabling any communication sequence.
 
-> ep1out (hw1): 1buf dma, csr 2003 maxp 0200
->=A0=A0=A0=A0=A0=A0=A0=A0req c1e9a8e0, 512/1536
+A typical application of the HDQ/1-Wire module is the communication with battery monitor (gas gauge)
+integrated circuits.
 
-Again, same for UDP and TCP.
+Has anyone in the past worked on the above module or has written a driver for the same? I can not recollect of having read any mails
+on the above module
+in the list. Please correct me if I am wrong.
 
- 0200 - DmaReqEnab (note gratuitous difference from TX side)
- 0002 - FifoFull
- 0001 - RxPktRdy
+There is no support for HDQ devices as of today in Linux. Whereas there is a W1 subsystem for 1-wire devices. Right now, I only have
+a device 
+that is complaint to HDQ protocol only.I guess we can still write a driver to support this which can be integrated to the 1-wire
+subsystem. If anyone has a different opinion, please do share the views.
 
-There what's odd is that nothing seems to have emptied the
-FIFO.  I've not looked at the Mentor DMA engine, but I'd kind
-of hope that it's more sane than CPPI ... so that one could
-let it offload entire IEEE 802 packets without needing to
-wake up the CPU after each packet.
-
-You did say the issue was on the TX side, not the RX side?
-The "obvious problem" here is on the RX side, not TX...
-
-- Dave
+Regards,
+Madhu
