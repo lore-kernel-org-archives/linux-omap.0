@@ -1,13 +1,12 @@
 From: "Madhusudhan Chikkature Rajashekar" <madhu.cr@ti.com>
-Subject: RE: HDQ/1-wire module
-Date: Mon, 10 Dec 2007 15:41:14 +0530
-Message-ID: <005701c83b15$0075eee0$fe8818ac@ent.ti.com>
+Subject: [RFC/PATCH 1/5] HDQ/1-wire support for OMAP2430/3430
+Date: Mon, 10 Dec 2007 15:46:14 +0530
+Message-ID: <005901c83b15$b23d4150$fe8818ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: 
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,55 +16,91 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: 'Evgeniy Polyakov' <johnpol@2ka.mipt.ru>, linux-omap-open-source@linux.omap.com
 Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi All,
+This patch adds HDQ base address defines and registers hdq as platform device.
 
-In response to the below mail on supporting the HDQ/1-wire module, I had further discussions with the W1 maintainer Evgeniy Polyakov
-on this.
-I intend to submit an RFC/PATCH to linux omap list for supporting the HDQ/1-wire controller on OMAP243x/34xx platforms. The
-RFC/PATCH will include a master driver for the HDQ/1-wire controller and a slave driver interface to support the BQ27000 hdq
-complaint gas guage device. The actual BQ battery driver can then be developed based on this.
+Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
+
+---
+ arch/arm/mach-omap2/devices.c        |   30 ++++++++++++++++++++++++++++++
+ include/asm-arm/arch-omap/omap24xx.h |    2 +-
+ include/asm-arm/arch-omap/omap34xx.h |    2 +-
+ 3 files changed, 32 insertions(+), 2 deletions(-)
+
+Index: linux-omap-2.6/arch/arm/mach-omap2/devices.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/devices.c	2007-11-29 03:53:52.867460848 -0500
++++ linux-omap-2.6/arch/arm/mach-omap2/devices.c	2007-11-29 03:54:18.801518272 -0500
+@@ -221,6 +221,35 @@
+ void omap_init_eac(struct eac_platform_data *pdata) {}
+ #endif
  
-Thanks,
-Madhu
++#if defined(CONFIG_HDQ_MASTER_OMAP) || defined(CONFIG_HDQ_MASTER_OMAP_MODULE)
++static struct resource omap_hdq_resources[] = {
++	{
++		.start		= OMAP_HDQ_BASE,
++		.end		= OMAP_HDQ_BASE + 0x1C,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= INT_24XX_HDQ_IRQ,
++		.flags		= IORESOURCE_IRQ,
++	},
++};
++static struct platform_device omap_hdq_dev = {
++	.name = "omap_hdq",
++	.id = 0,
++	.dev = {
++		.platform_data = NULL,
++	},
++	.num_resources  = ARRAY_SIZE(omap_hdq_resources),
++	.resource       = omap_hdq_resources,
++};
++static inline void omap_hdq_init(void)
++{
++	(void) platform_device_register(&omap_hdq_dev);
++}
++#else
++static inline void omap_hdq_init(void) {}
++#endif
++
+ /*-------------------------------------------------------------------------*/
  
-
------Original Message-----
-From: Madhusudhan Chikkature Rajashekar [mailto:madhu.cr@ti.com] 
-Sent: Wednesday, November 07, 2007 2:12 PM
-To: 'linux-omap-open-source@linux.omap.com'
-Subject: HDQ/1-wire module
-
-Hi All,
-
-This is regarding the HDQ/1-wire support for omap24xx/34xx. 
-
-The controller on the above OMAP platforms supports both HDQ and 1-wire protocol.The difference between HDQ and 1-wire protocol is
-very minimal as explained below.
-
-HDQ Mode:
-In HDQ mode, the firmware does not require the host to create an initialization pulse to the slave.
-However, the slave can be reset by using an initialization pulse (also referred to as a break pulse).
-The slave does not respond with a presence pulse.
-
-1-Wire Mode:
-In 1-Wire protocol, the host first sends an initialization pulse (by pulling the line to a logic-low state)
-and then waits for the slave to respond with a presence pulse before enabling any communication sequence.
-
-A typical application of the HDQ/1-Wire module is the communication with battery monitor (gas gauge)
-integrated circuits.
-
-Has anyone in the past worked on the above module or has written a driver for the same? I can not recollect of having read any mails
-on the above module
-in the list. Please correct me if I am wrong.
-
-There is no support for HDQ devices as of today in Linux. Whereas there is a W1 subsystem for 1-wire devices. Right now, I only have
-a device 
-that is complaint to HDQ protocol only.I guess we can still write a driver to support this which can be integrated to the 1-wire
-subsystem. If anyone has a different opinion, please do share the views.
-
-Regards,
-Madhu
+ static int __init omap2_init_devices(void)
+@@ -231,6 +260,7 @@
+ 	omap_init_camera();
+ 	omap_init_mbox();
+ 	omap_init_mcspi();
++	omap_hdq_init();
+ 	omap_init_sti();
+ 
+ 	return 0;
+Index: linux-omap-2.6/include/asm-arm/arch-omap/omap24xx.h
+===================================================================
+--- linux-omap-2.6.orig/include/asm-arm/arch-omap/omap24xx.h	2007-11-29 03:53:52.867460848 -0500
++++ linux-omap-2.6/include/asm-arm/arch-omap/omap24xx.h	2007-11-29 03:54:18.801518272 -0500
+@@ -92,7 +92,7 @@
+ #define OMAP2_CM_BASE		OMAP2430_CM_BASE
+ #define OMAP2_PRM_BASE		OMAP2430_PRM_BASE
+ #define OMAP2_VA_IC_BASE	IO_ADDRESS(OMAP24XX_IC_BASE)
+-
++#define OMAP_HDQ_BASE		(L4_24XX_BASE + 0xb2000)
+ #endif
+ 
+ #endif /* __ASM_ARCH_OMAP24XX_H */
+Index: linux-omap-2.6/include/asm-arm/arch-omap/omap34xx.h
+===================================================================
+--- linux-omap-2.6.orig/include/asm-arm/arch-omap/omap34xx.h	2007-11-29 03:53:52.867460848 -0500
++++ linux-omap-2.6/include/asm-arm/arch-omap/omap34xx.h	2007-11-29 03:54:18.801518272 -0500
+@@ -62,7 +62,7 @@
+ #define OMAP2_CM_BASE			OMAP3430_CM_BASE
+ #define OMAP2_PRM_BASE			OMAP3430_PRM_BASE
+ #define OMAP2_VA_IC_BASE		IO_ADDRESS(OMAP34XX_IC_BASE)
+-
++#define OMAP_HDQ_BASE			(L4_34XX_BASE + 0xB2000)
+ #endif
+ 
+ #define OMAP34XX_DSP_BASE	0x58000000
