@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RFC] OMAP: DMA: Cleanup of DMA Request Lines
-Date: Mon, 10 Dec 2007 10:25:08 -0800
-Message-ID: <20071210182507.GE19104@atomide.com>
-References: <010C7BAE6783F34D9AC336EE5A01A08804FE689E@dbde01.ent.ti.com>
+Subject: Re: [RFC/PATCH 1/5] HDQ/1-wire support for OMAP2430/3430
+Date: Mon, 10 Dec 2007 10:28:27 -0800
+Message-ID: <20071210182827.GF19104@atomide.com>
+References: <005901c83b15$b23d4150$fe8818ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <010C7BAE6783F34D9AC336EE5A01A08804FE689E@dbde01.ent.ti.com>
+In-Reply-To: <005901c83b15$b23d4150$fe8818ac@ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,50 +15,102 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-omap-open-source <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
+Cc: 'Evgeniy Polyakov' <johnpol@2ka.mipt.ru>, linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Gadiyar, Anand <gadiyar@ti.com> [071209 20:16]:
-> Hi all,
+* Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com> [071210 02:17]:
+> This patch adds HDQ base address defines and registers hdq as platform device.
 > 
-> I'm resending this patch with the #else removed. I'm also sending a few
-> other ways in which we could do this.
+> Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
 > 
-> Option 1:
-> Same patch as the last time without the #else
+> ---
+>  arch/arm/mach-omap2/devices.c        |   30 ++++++++++++++++++++++++++++++
+>  include/asm-arm/arch-omap/omap24xx.h |    2 +-
+>  include/asm-arm/arch-omap/omap34xx.h |    2 +-
+>  3 files changed, 32 insertions(+), 2 deletions(-)
 > 
-> This contains lots of #ifdef statements but there are no #elses
+> Index: linux-omap-2.6/arch/arm/mach-omap2/devices.c
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/devices.c	2007-11-29 03:53:52.867460848 -0500
+> +++ linux-omap-2.6/arch/arm/mach-omap2/devices.c	2007-11-29 03:54:18.801518272 -0500
+> @@ -221,6 +221,35 @@
+>  void omap_init_eac(struct eac_platform_data *pdata) {}
+>  #endif
+>  
+> +#if defined(CONFIG_HDQ_MASTER_OMAP) || defined(CONFIG_HDQ_MASTER_OMAP_MODULE)
+> +static struct resource omap_hdq_resources[] = {
+> +	{
+> +		.start		= OMAP_HDQ_BASE,
+> +		.end		= OMAP_HDQ_BASE + 0x1C,
+> +		.flags		= IORESOURCE_MEM,
+> +	},
+> +	{
+> +		.start		= INT_24XX_HDQ_IRQ,
+> +		.flags		= IORESOURCE_IRQ,
+> +	},
+> +};
+> +static struct platform_device omap_hdq_dev = {
+> +	.name = "omap_hdq",
+> +	.id = 0,
+> +	.dev = {
+> +		.platform_data = NULL,
+> +	},
+> +	.num_resources  = ARRAY_SIZE(omap_hdq_resources),
+> +	.resource       = omap_hdq_resources,
+> +};
+> +static inline void omap_hdq_init(void)
+> +{
+> +	(void) platform_device_register(&omap_hdq_dev);
+> +}
+> +#else
+> +static inline void omap_hdq_init(void) {}
+> +#endif
+> +
+>  /*-------------------------------------------------------------------------*/
+>  
+>  static int __init omap2_init_devices(void)
+> @@ -231,6 +260,7 @@
+>  	omap_init_camera();
+>  	omap_init_mbox();
+>  	omap_init_mcspi();
+> +	omap_hdq_init();
+>  	omap_init_sti();
+>  
+>  	return 0;
+> Index: linux-omap-2.6/include/asm-arm/arch-omap/omap24xx.h
+> ===================================================================
+> --- linux-omap-2.6.orig/include/asm-arm/arch-omap/omap24xx.h	2007-11-29 03:53:52.867460848 -0500
+> +++ linux-omap-2.6/include/asm-arm/arch-omap/omap24xx.h	2007-11-29 03:54:18.801518272 -0500
+> @@ -92,7 +92,7 @@
+>  #define OMAP2_CM_BASE		OMAP2430_CM_BASE
+>  #define OMAP2_PRM_BASE		OMAP2430_PRM_BASE
+>  #define OMAP2_VA_IC_BASE	IO_ADDRESS(OMAP24XX_IC_BASE)
+> -
+> +#define OMAP_HDQ_BASE		(L4_24XX_BASE + 0xb2000)
+>  #endif
+>  
+>  #endif /* __ASM_ARCH_OMAP24XX_H */
+> Index: linux-omap-2.6/include/asm-arm/arch-omap/omap34xx.h
+> ===================================================================
+> --- linux-omap-2.6.orig/include/asm-arm/arch-omap/omap34xx.h	2007-11-29 03:53:52.867460848 -0500
+> +++ linux-omap-2.6/include/asm-arm/arch-omap/omap34xx.h	2007-11-29 03:54:18.801518272 -0500
+> @@ -62,7 +62,7 @@
+>  #define OMAP2_CM_BASE			OMAP3430_CM_BASE
+>  #define OMAP2_PRM_BASE			OMAP3430_PRM_BASE
+>  #define OMAP2_VA_IC_BASE		IO_ADDRESS(OMAP34XX_IC_BASE)
+> -
+> +#define OMAP_HDQ_BASE			(L4_34XX_BASE + 0xB2000)
+>  #endif
+>  
+>  #define OMAP34XX_DSP_BASE	0x58000000
 
-Yeah, not good..
-
-> Option 2:
-> No #ifdefs.
->
-> Using OMAP242X_* for 2420 specific names
-> OMAP243X_* for 2430 specific names/names present from 243X onwards
-> OMAP24XX_* for names common to all 24XX, 34XX
-> OMAP34XX_* for 34XX specific names
-> 
-> (or something similar could be worked out)
-
-This is better on short term. It needs an associated patch to change
-drivers to use new names.
-
-> Option 3:
-> 
-> Name all possible names OMAP_* (or OMAP2_*) and use a runtime check to return
-> the correct request line number.
-> 
-> I'm sending sample patches for all three options. Let me know what you think.
-
-Hey, this looks like a good solution in the long run. Except, let's just
-load the table for each processor that is compiled in to save memory.
-
-You could load the associated processor dma request configuration from
-devices_2420.c, devices_2430.c and devices_3430.c.
+Please remove the duplicate define, you can just define it in devices.c
+depending if it's 2430 or 3430. Otherwise you're adding yet another
+artificial block to compile in support for both 2430 and 3430 into the
+same kernel.
 
 Regards,
 
