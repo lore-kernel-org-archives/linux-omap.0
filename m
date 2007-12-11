@@ -1,16 +1,14 @@
-From: "David Cohen" <dacohen@gmail.com>
-Subject: Re: [PATCH] OMAP System Control fix for OMAP2420
-Date: Mon, 10 Dec 2007 19:22:39 -0400
-Message-ID: <4b70acb90712101522j18fee6d2rcde086316d91719c@mail.gmail.com>
-References: <1196897904-23457-1-git-send-email-david.cohen@indt.org.br>
-	<475D972E.4070402@indt.org.br>
-	<9c9fda240712101511y6d8a54e4vd607e350fdbe682b@mail.gmail.com>
+From: "Madhusudhan Chikkature Rajashekar" <madhu.cr@ti.com>
+Subject: RE: [RFC/PATCH  1/4] MMC/SD Controller driver for OMAP2430
+Date: Tue, 11 Dec 2007 11:22:31 +0530
+Message-ID: <001d01c83bba$07e20d30$fe8818ac@ent.ti.com>
+References: <20071210180006.GD19104@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <9c9fda240712101511y6d8a54e4vd607e350fdbe682b@mail.gmail.com>
-Content-Disposition: inline
+In-Reply-To: <20071210180006.GD19104@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -20,130 +18,86 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kyungmin Park <kmpark@infradead.org>
-Cc: ext David Cohen <david.cohen@indt.org.br>, linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
+To: 'Tony Lindgren' <tony@atomide.com>, "'Syed Mohammed, Khasim'" <khasim@ti.com>
+Cc: 'Pierre Ossman' <drzeus@drzeus.cx>, linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com, linux-arm-kernel@lists.arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-Yes, I already noticed Tony about it.
+>Do you still need to mux between slots if you have three controllers
+>available? If so, it's worth doing it to start with.
+I do not think that mux between slots is required in 2430 or 3430.So, I guess the usage of the multislot structure 
+might not be required.
 
-BR,
+These platforms have two controllers connected to two separate slots on the SDP.The TRM of 2430 and 3430 states that 
+one MMC/SD/SDIO controller can support one MMC memory card,one SD memory card, or one SDIO card.
 
-David Cohen
+Regards,
+Madhu
 
-On Dec 10, 2007 7:11 PM, Kyungmin Park <kmpark@infradead.org> wrote:
+-----Original Message-----
+From: Tony Lindgren [mailto:tony@atomide.com] 
+Sent: Monday, December 10, 2007 11:30 PM
+To: Syed Mohammed, Khasim
+Cc: Carlos Aguiar; Chikkature Rajashekar, Madhusudhan; linux-omap@vger.kernel.org; linux-omap-open-source@linux.omap.com;
+linux-arm-kernel@lists.arm.linux.org.uk; Pierre Ossman
+Subject: Re: [RFC/PATCH 1/4] MMC/SD Controller driver for OMAP2430
 
-> Hi,
->
-> Another/similar patch is already merged.
-> See following URL.
->
-> http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commitdiff;h=789574be07201d0cb33f2793b44eccbc4459dc5d
->
-> Thank you,
-> Kyungmin Park
->
-> On Dec 11, 2007 4:44 AM, Carlos Aguiar <carlos.aguiar@indt.org.br> wrote:
-> > ext David Cohen wrote:
-> > > OMAP2420 has a different offset for CONTROL_STATUS register.
+* Syed Mohammed, Khasim <khasim@ti.com> [071208 07:50]:
+> 
+> 
+> > -----Original Message-----
+> > From: linux-omap-open-source-bounces@linux.omap.com [mailto:linux-omap-
+> > open-source-bounces@linux.omap.com] On Behalf Of Carlos Aguiar
+> > Sent: Friday, December 07, 2007 8:24 PM
+> > To: Chikkature Rajashekar, Madhusudhan
+> > Cc: linux-omap@vger.kernel.org; linux-omap-open-source@linux.omap.com;
+> > linux-arm-kernel@lists.arm.linux.org.uk; 'Pierre Ossman'
+> > Subject: Re: [RFC/PATCH 1/4] MMC/SD Controller driver for OMAP2430
+> > 
+> > ext Madhusudhan Chikkature Rajashekar wrote:
+> > > This patch adds MMC controller driver for OMAP2430/3430.
 > > >
-> > > Signed-off-by: David Cohen <david.cohen@indt.org.br>
+> > > Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
+> > >
 > > > ---
-> > >  arch/arm/mach-omap2/board-h4.c      |    2 +-
-> > >  arch/arm/mach-omap2/id.c            |    5 ++++-
-> > >  arch/arm/plat-omap/sram.c           |    2 +-
-> > >  include/asm-arm/arch-omap/control.h |    3 +++
-> > >  4 files changed, 9 insertions(+), 3 deletions(-)
+> > >  drivers/mmc/host/Makefile     |    9
+> > >  drivers/mmc/host/omap_hsmmc.c |  985
+> > ++++++++++++++++++++++++++++++++++++++++++
+> > >  2 files changed, 993 insertions(+), 1 deletion(-)
 > > >
-> > > diff --git a/arch/arm/mach-omap2/board-h4.cb/arch/arm/mach-omap2/board-
-> h4.c
-> > > index 70c948c..4d5db60 100644
-> > > --- a/arch/arm/mach-omap2/board-h4.c
-> > > +++ b/arch/arm/mach-omap2/board-h4.c
-> > > @@ -272,7 +272,7 @@ static struct platform_device *h4_devices[]
-> __initdata = {
-> > >  /* 2420 Sysboot setup (2430 is different) */
-> > >  static u32 get_sysboot_value(void)
-> > >  {
-> > > -     return (ctrl_read_reg(CONTROL_STATUS) & 0xFFF);
-> > > +     return (ctrl_read_reg(OMAP242X_CONTROL_STATUS) & 0xFFF);
-> > >  }
+> > > Index: linux-omap-2.6/drivers/mmc/host/omap_hsmmc.c
+> > > ===================================================================
+> 
+> <snip>
+> 
 > > >
-> > >  /* FIXME: This function should be moved to some other file, gpmc.c?
-> */
-> > > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> > > index 393b593..d84bf0e 100644
-> > > --- a/arch/arm/mach-omap2/id.c
-> > > +++ b/arch/arm/mach-omap2/id.c
-> > > @@ -162,7 +162,10 @@ void __init omap2_check_revision(void)
-> > >       /* Embedding the ES revision info in type field */
-> > >       system_rev = omap_ids[j].type;
-> > >
-> > > -     ctrl_status = ctrl_read_reg(CONTROL_STATUS);
-> > > +     if (cpu_is_omap242x())
-> > > +             ctrl_status = ctrl_read_reg(OMAP242X_CONTROL_STATUS);
-> > > +     else;
-> > > +             ctrl_status = ctrl_read_reg(CONTROL_STATUS);
-> > >       system_rev |= (ctrl_status & 0x3f);
-> > >       system_rev |= (ctrl_status & 0x700);
-> > >
-> > > diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-> > > index dd8dc04..851d4ee 100644
-> > > --- a/arch/arm/plat-omap/sram.c
-> > > +++ b/arch/arm/plat-omap/sram.c
-> > > @@ -94,7 +94,7 @@ static int is_sram_locked(void)
-> > >
-> > >  #if defined(CONFIG_ARCH_OMAP242X)
-> > >       if (cpu_is_omap242x())
-> > > -             type = ctrl_read_reg(CONTROL_STATUS) & TYPE_MASK;
-> > > +             type = ctrl_read_reg(OMAP242X_CONTROL_STATUS) &
-> TYPE_MASK;
-> > >  #endif
-> > >
-> > >       if (type == GP_DEVICE) {
-> > > diff --git a/include/asm-arm/arch-omap/control.h
-> b/include/asm-arm/arch-omap/control.h
-> > > index 5f42725..6609bb3 100644
-> > > --- a/include/asm-arm/arch-omap/control.h
-> > > +++ b/include/asm-arm/arch-omap/control.h
-> > > @@ -38,6 +38,9 @@
-> > >  #define CONTROL_DEVCONF0             (CONTROL_GENERAL + 0x04)
-> > >  #define CONTROL_DEVCONF1             (CONTROL_GENERAL + 0x68) /* >
-> 242x */
-> > >  #define CONTROL_STATUS                       (CONTROL_GENERAL + 0x80)
-> > > +#define OMAP242X_CONTROL_STATUS              (CONTROL_STATUS + 0x08)
-> > > +#define OMAP243X_CONTROL_STATUS              (CONTROL_STATUS)
-> > > +#define OMAP34XX_CONTROL_STATUS              (CONTROL_STATUS)
-> > >
-> > >
-> > >  /*
-> > >
-> > Hi David,
-> >
-> > Patch tested and working fine on H4 boards, it boots with no problems.
-> >
+> > Hi Madhu,
+> > 
+> > I'd rather see this code using multislot structures and omap.c instead
+> > of defining a whole new codebase for omap2430 and/or omap3.
+> > 
 > > BR,
-> >
+> > 
 > > Carlos.
-> >
-> > --
-> > Carlos Eduardo Aguiar
-> > Nokia Institute of Technology - INdT
-> > Open Source Mobile Research Center - OSMRC - Manaus
-> > Core Team
-> > Phone: +55 92 2126-1079
-> > Mobile: +55 92 8127-1797
-> > E-mail: carlos.aguiar@indt.org.br
-> >
-> >
-> > _______________________________________________
-> > Linux-omap-open-source mailing list
-> > Linux-omap-open-source@linux.omap.com
-> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> >
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> > 
+> > 
+> Hi Carlos,
+> 
+> Thanks for comments.
+> 
+> I remember we had discussed this before as well, as communicated before the MMC/SD controller on OMAP2430 and 3430 processors is
+completely different( in Register width, bits, offsets, configuration etc) from OMAP2420 and OMAP1 platforms. It's not recommended
+to add new MMC controller functionality to existing omap.c. 
+
+Well, this time it actually looks like the MMC controller is
+completely different.
+
+> Yes we will definitely use multi-slot structures. We can add multi-slot support after we get formal approval of this code base.
+
+Do you still need to mux between slots if you have three controllers
+available? If so, it's worth doing it to start with.
+
+Regards,
+
+Tony
