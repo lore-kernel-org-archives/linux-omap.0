@@ -1,13 +1,14 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH 3/3] ARM: OMAP: Add MUSB support for OMAP34xx
-Date: Tue, 11 Dec 2007 15:13:03 +0530
-Message-ID: <010C7BAE6783F34D9AC336EE5A01A08804FE6F89@dbde01.ent.ti.com>
-References: <af454dfc0cc2c4362e679333aa3e7644@felipebalbi.com>
+From: "Madhusudhan Chikkature Rajashekar" <madhu.cr@ti.com>
+Subject: [RFC/PATCH 1/5] HDQ/1-wire support for OMAP2430/3430
+Date: Tue, 11 Dec 2007 15:13:55 +0530
+Message-ID: <002901c83bda$5a8f4ff0$fe8818ac@ent.ti.com>
+References: <20071210182827.GF19104@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0019631628=="
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <af454dfc0cc2c4362e679333aa3e7644@felipebalbi.com>
+In-Reply-To: <20071210182827.GF19104@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,96 +18,75 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: linux-omap@vger.kernel.org, linux-omap-open-source <linux-omap-open-source@linux.omap.com>
+To: 'Tony Lindgren' <tony@atomide.com>
+Cc: 'Evgeniy Polyakov' <johnpol@2ka.mipt.ru>, linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
---===============0019631628==
-Content-class: urn:content-classes:message
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: base64
+Hi Tony,
 
-RmVsaXBlIGFuZCBvdGhlcnMsIA0KDQo+ID4gSW5kZXg6IGxpbnV4LW9tYXAtMi42LU5PVjMwL2Ry
-aXZlcnMvdXNiL211c2Ivb21hcDI0MzAuYw0KPiA+ID09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCj4gPiAtLS0gbGludXgt
-b21hcC0yLjYtTk9WMzAub3JpZy9kcml2ZXJzL3VzYi9tdXNiL29tYXAyNDMwLmMJDQoNCjxzbmlw
-Pg0KDQo+ID4gQEAgLTQwLDYgKzQ1LDEwOCBAQA0KPiA+ICAjZGVmaW5lCWdldF9jcHVfcmV2KCkJ
-Mg0KPiA+ICAjZW5kaWYNCj4gPiANCj4gPiArI2RlZmluZSBNVVNCX1RJTUVPVVRfQV9XQUlUX0JD
-T04JMTEwMA0KPiA+ICsNCj4gPiArdm9pZCBtdXNiX3BsYXRmb3JtX3NldF9tb2RlKHN0cnVjdCBt
-dXNiICptdXNiLCB1OCBtdXNiX21vZGUpDQo+ID4gK3sNCj4gPiArfQ0KPiA+ICsNCj4gPiAraW50
-IG11c2JfcGxhdGZvcm1fZ2V0X3ZidXNfc3RhdHVzKHN0cnVjdCBtdXNiICptdXNiKQ0KPiA+ICt7
-DQo+ID4gKwlyZXR1cm4gMDsNCj4gPiArfQ0KPiANCj4gSSdkIHJhdGhlciB0YWtlIHRoZSB0d28g
-YWJvdmUgb2ZmIGFuZCBtb2RpZnkgbXVzYl9jb3JlLmggKGNoZWNrIGJlbG93KQ0KDQpEb25lLiBJ
-IGhhdmVuJ3QgZXhhY3RseSBkb25lIGl0IHRoZSB3YXkgeW91IHN1Z2dlc3RlZC4gU2VlIGJlbG93
-Lg0KDQo+ID4gIHZvaWQgbXVzYl9wbGF0Zm9ybV9lbmFibGUoc3RydWN0IG11c2IgKm11c2IpDQo+
-ID4gIHsNCj4gPiBAQCAtOTMsNiArMjAwLDE1IEBADQo+ID4gIAlyZXR1cm4gMDsNCj4gPiAgfQ0K
-PiA+IA0KPiA+ICtzdGF0aWMgaW50IG9tYXBfc2V0X3N1c3BlbmQoc3RydWN0IG90Z190cmFuc2Nl
-aXZlciAqeCwgaW50IHN1c3BlbmQpDQo+ID4gK3sNCj4gPiArCWlmIChzdXNwZW5kKQ0KPiA+ICsJ
-CXR3bDQwMzBfcGh5X3N1c3BlbmQoMSk7DQo+ID4gKwllbHNlDQo+ID4gKwkJdHdsNDAzMF9waHlf
-cmVzdW1lKCk7DQo+ID4gKwlyZXR1cm4gMDsNCj4gPiArfQ0KPiANCj4gdHdsNDAzMF9waHlfc3Vz
-cGVuZChzdXNwZW5kKTsNCj4gd291bGQgbG9vayBiZXR0ZXIuIFlvdSBqdXN0IG5lZWQgdG8gbW9k
-aWZ5IHR3bDQwMzBfcGh5X3N1c3BlbmQgdG8gd29yaw0KPiBhcyBib3RoIHN1c3BlbmQgYW5kIHJl
-c3VtZSBvcGVyYXRpb25zLg0KDQpXb24ndCBiZSBhYmxlIHRvIGRvIHRoaXMuDQoNCnR3bDQwMzBf
-cGh5X3N1c3BlbmQoKSB0YWtlcyB0aGUgYXJndW1lbnQgImludCBjb250cm9sbGVyX29mZiINCmFu
-ZCBkb2VzIHRoaW5ncyBkaWZmZXJlbnRseSBkZXBlbmRpbmcgb24gdGhlIGFyZ3VtZW50Lg0KDQpB
-bnl3YXksIEkgdGhpbmsgdGhlICJ3b3VsZCBsb29rIGJldHRlciIgaXMgYSBtYXR0ZXIgb2YgdGFz
-dGUgOikNCg0KDQo+ID4gKw0KPiA+ICBpbnQgbXVzYl9wbGF0Zm9ybV9yZXN1bWUoc3RydWN0IG11
-c2IgKm11c2IpOw0KPiA+IA0KPiA+ICBpbnQgX19pbml0IG11c2JfcGxhdGZvcm1faW5pdChzdHJ1
-Y3QgbXVzYiAqbXVzYikNCj4gPiBAQCAtMTAyLDExICsyMTgsMTMgQEANCj4gPiAgCS8qIGdldCB0
-aGUgY2xvY2sgKi8NCj4gPiAgCW11c2ItPmNsb2NrID0gY2xrX2dldCgoc3RydWN0IGRldmljZSAq
-KW11c2ItPmNvbnRyb2xsZXIsICJ1c2Joc19pY2siKTsNCj4gPiAgI2Vsc2UNCj4gPiAtCW11c2It
-PmNsb2NrID0gY2xrX2dldCgoc3RydWN0IGRldmljZSAqKW11c2ItPmNvbnRyb2xsZXIsICJoc3Vz
-Yl9pY2siKTsNCj4gPiArCW11c2ItPmNsb2NrID0gY2xrX2dldCgoc3RydWN0IGRldmljZSAqKW11
-c2ItPmNvbnRyb2xsZXIsDQo+ID4gKwkJCQkJCQkJCQkiaHNvdGd1c2JfaWNrIik7DQo+IA0KPiBX
-aHkgZGlkIHlvdSBicmVhayB0aGF0IGxpbmUgaGVyZT8NCg0KVGhlIGxpbmUgbGVuZ3RoIHdhcyA4
-MSBjaGFyYWN0ZXJzLiBJcyB0aGF0IGFjY2VwdGFibGU/DQpJZiBpdCBpcywgdGhlbiBJJ2xsIGNo
-YW5nZSBpdCBiYWNrLiBJIGRpZG4ndCB3YW50IHRvIHN1Ym1pdCBhIHBhdGNoIHdoaWNoDQpmYWls
-ZWQgY2hlY2twYXRjaC5wbCAoYWx0aG91Z2ggdGhhdCBib2FyZCBmaWxlIHBhdGNoIGRpZCBoYXZl
-IHRoZSBleHRlcm4gd2FybmluZykuDQoNCg0KPiA+IEluZGV4OiBsaW51eC1vbWFwLTIuNi1OT1Yz
-MC9kcml2ZXJzL3VzYi9tdXNiL211c2JfY29yZS5oDQo+ID4gPT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KPiA+IC0tLSBs
-aW51eC1vbWFwLTIuNi1OT1YzMC5vcmlnL2RyaXZlcnMvdXNiL211c2IvbXVzYl9jb3JlLmgJDQo+
-IDIwMDctMTEtMzANCj4gPiAwNzoxNjozOS4zMTYwODMwMzIgLTA1MDANCj4gPiArKysgbGludXgt
-b21hcC0yLjYtTk9WMzAvZHJpdmVycy91c2IvbXVzYi9tdXNiX2NvcmUuaAkNCj4gMjAwNy0xMS0z
-MA0KPiA+IDA3OjI2OjUzLjA4NTc3NTg1NiAtMDUwMA0KPiA+IEBAIC00NzYsNyArNDc2LDggQEAN
-Cj4gPiANCj4gPiAgZXh0ZXJuIHZvaWQgbXVzYl9obnBfc3RvcChzdHJ1Y3QgbXVzYiAqbXVzYik7
-DQo+ID4gDQo+ID4gLSNpZmRlZiBDT05GSUdfVVNCX1RVU0I2MDEwDQo+ID4gKyNpZiBkZWZpbmVk
-KENPTkZJR19VU0JfVFVTQjYwMTApIHx8IFwNCj4gPiArCWRlZmluZWQoQ09ORklHX0FSQ0hfT01B
-UDI0MzApIHx8IGRlZmluZWQoQ09ORklHX0FSQ0hfT01BUDM0WFgpDQo+IA0KPiBJbnN0ZWFkIG9m
-IGRvaW5nIHRoaXMgSSdkIHJhdGhlcjoNCj4gDQo+IEBAIC00NzYsMTIgKzQ3NiwxMiBAQCBleHRl
-cm4gdm9pZCANCj4gbXVzYl9wbGF0Zm9ybV9kaXNhYmxlKHN0cnVjdCBtdXNiICptdXNiKTsNCj4g
-IA0KPiAgZXh0ZXJuIHZvaWQgbXVzYl9obnBfc3RvcChzdHJ1Y3QgbXVzYiAqbXVzYik7DQo+ICAN
-Cj4gLSNpZmRlZiBDT05GSUdfVVNCX1RVU0I2MDEwDQo+ICBleHRlcm4gdm9pZCBtdXNiX3BsYXRm
-b3JtX3RyeV9pZGxlKHN0cnVjdCBtdXNiICptdXNiLCB1bnNpZ25lZCBsb25nDQo+IHRpbWVvdXQp
-Ow0KPiArDQo+ICsjaWZkZWYgQ09ORklHX1VTQl9UVVNCNjAxMA0KPiAgZXh0ZXJuIGludCBtdXNi
-X3BsYXRmb3JtX2dldF92YnVzX3N0YXR1cyhzdHJ1Y3QgbXVzYiAqbXVzYik7DQo+ICBleHRlcm4g
-dm9pZCBtdXNiX3BsYXRmb3JtX3NldF9tb2RlKHN0cnVjdCBtdXNiICptdXNiLCB1OCBtdXNiX21v
-ZGUpOw0KPiAgI2Vsc2UNCj4gLSNkZWZpbmUgbXVzYl9wbGF0Zm9ybV90cnlfaWRsZSh4LCB5KSAg
-ICAgICAgICAgZG8ge30gd2hpbGUgKDApDQo+ICAjZGVmaW5lIG11c2JfcGxhdGZvcm1fZ2V0X3Zi
-dXNfc3RhdHVzKHgpICAgICAgIDANCj4gICNkZWZpbmUgbXVzYl9wbGF0Zm9ybV9zZXRfbW9kZSh4
-LCB5KSAgICAgICAgICAgZG8ge30gd2hpbGUgKDApDQo+ICAjZW5kaWYNCj4gDQoNCkkgd291bGRu
-4oCZdCBkbyBpdCBleGFjdGx5IHRoaXMgd2F5LCBiZWNhdXNlIG11c2JfcGxhdGZvcm1fdHJ5X2lk
-bGUgaXMgbm90IGRlZmluZWQNCmZvciBEYXZpbmNpIGFuZCBvdGhlciBhcmNoaXRlY3R1cmVzLiBJ
-bnN0ZWFkLCBJJ3ZlIGRvbmUgdGhpcy4gV2hhdCBzYXk/DQoNCiBleHRlcm4gdm9pZCBtdXNiX2hu
-cF9zdG9wKHN0cnVjdCBtdXNiICptdXNiKTsNCiANCi0jaWZkZWYgQ09ORklHX1VTQl9UVVNCNjAx
-MA0KKyNpZiBkZWZpbmVkKENPTkZJR19VU0JfVFVTQjYwMTApIHx8IFwNCisJZGVmaW5lZChDT05G
-SUdfQVJDSF9PTUFQMjQzMCkgfHwgZGVmaW5lZChDT05GSUdfQVJDSF9PTUFQMzRYWCkNCiBleHRl
-cm4gdm9pZCBtdXNiX3BsYXRmb3JtX3RyeV9pZGxlKHN0cnVjdCBtdXNiICptdXNiLCB1bnNpZ25l
-ZCBsb25nIHRpbWVvdXQpOw0KKyNlbHNlDQorI2RlZmluZSBtdXNiX3BsYXRmb3JtX3RyeV9pZGxl
-KHgsIHkpCQlkbyB7fSB3aGlsZSAoMCkNCisjZW5kaWYNCisNCisjaWZkZWYgQ09ORklHX1VTQl9U
-VVNCNjAxMA0KIGV4dGVybiBpbnQgbXVzYl9wbGF0Zm9ybV9nZXRfdmJ1c19zdGF0dXMoc3RydWN0
-IG11c2IgKm11c2IpOw0KIGV4dGVybiB2b2lkIG11c2JfcGxhdGZvcm1fc2V0X21vZGUoc3RydWN0
-IG11c2IgKm11c2IsIHU4IG11c2JfbW9kZSk7DQogI2Vsc2UNCi0jZGVmaW5lIG11c2JfcGxhdGZv
-cm1fdHJ5X2lkbGUoeCwgeSkJCWRvIHt9IHdoaWxlICgwKQ0KICNkZWZpbmUgbXVzYl9wbGF0Zm9y
-bV9nZXRfdmJ1c19zdGF0dXMoeCkJMA0KICNkZWZpbmUgbXVzYl9wbGF0Zm9ybV9zZXRfbW9kZSh4
-LCB5KQkJZG8ge30gd2hpbGUgKDApDQogI2VuZGlmDQoNCkJlc3QgUmVnYXJkcywNCkFuYW5kDQo=
+I am reposting the patch after removing the defines from omap24xx.h/omap34xx.h and moved the define to devices.c as per your
+suggestion.
 
---===============0019631628==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks,
+Madhu
+-------------------------------------------------------------------------------------
 
+This patch adds HDQ base address defines and registers hdq as platform device.
 
---===============0019631628==--
+Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
+
+---
+ arch/arm/mach-omap2/devices.c |   33 +++++++++++++++++++++++++++++++++
+ 1 files changed, 33 insertions(+)
+
+Index: linux-omap-2.6/arch/arm/mach-omap2/devices.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/devices.c	2007-12-10 11:08:36.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/devices.c	2007-12-11 13:57:43.700015270 +0530
+@@ -221,6 +221,38 @@
+ void omap_init_eac(struct eac_platform_data *pdata) {}
+ #endif
+ 
++#if defined(CONFIG_HDQ_MASTER_OMAP) || defined(CONFIG_HDQ_MASTER_OMAP_MODULE)
++#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3430)
++#define OMAP_HDQ_BASE	0x480B2000 
++static struct resource omap_hdq_resources[] = {
++	{
++		.start		= OMAP_HDQ_BASE,
++		.end		= OMAP_HDQ_BASE + 0x1C,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= INT_24XX_HDQ_IRQ,
++		.flags		= IORESOURCE_IRQ,
++	},
++};
++static struct platform_device omap_hdq_dev = {
++	.name = "omap_hdq",
++	.id = 0,
++	.dev = {
++		.platform_data = NULL,
++	},
++	.num_resources  = ARRAY_SIZE(omap_hdq_resources),
++	.resource       = omap_hdq_resources,
++};
++static inline void omap_hdq_init(void)
++{
++	(void) platform_device_register(&omap_hdq_dev);
++}
++#endif
++#else
++static inline void omap_hdq_init(void) {}
++#endif
++
+ /*-------------------------------------------------------------------------*/
+ 
+ static int __init omap2_init_devices(void)
+@@ -231,6 +263,7 @@
+ 	omap_init_camera();
+ 	omap_init_mbox();
+ 	omap_init_mcspi();
++	omap_hdq_init();
+ 	omap_init_sti();
+ 
+ 	return 0;
