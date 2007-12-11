@@ -1,15 +1,12 @@
-From: "Syed Mohammed, Khasim" <khasim@ti.com>
-Subject: RE: 2420 2.6 open source kernel + color space coversion
-Date: Tue, 11 Dec 2007 23:20:13 +0530
-Message-ID: <7EAD1AEEA7621C45899FE99123E124A001487F2F@dbde01.ent.ti.com>
-References: <BAY119-W828D01D8E6A90E786AAD7F9640@phx.gbl>
+From: "Meng Hu" <meng.hu@gmail.com>
+Subject: McSPI interfaces in newer kernel
+Date: Tue, 11 Dec 2007 13:15:21 -0600
+Message-ID: <94d6903b0712111115h297769e2q1709777dd0e65bb7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
-In-Reply-To: <BAY119-W828D01D8E6A90E786AAD7F9640@phx.gbl>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -19,49 +16,25 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: k c <omap_mails@hotmail.com>, linux-omap-open-source@linux.omap.com
+To: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi
 
+I am trying to jump from a 2.6.10 montavista kernel to a 2.6.21 one
+for OMAP2430.
+There are some patches from MonvaVista(originally provided by TI) for
+the 2.6.10 kernel which provides some McSPI  implementations, e.g.
+drivers/ssi/omap-mcspi.c
 
-> -----Original Message-----
-> From: linux-omap-open-source-bounces@linux.omap.com =
-[mailto:linux-omap-
-> open-source-bounces@linux.omap.com] On Behalf Of k c
-> Sent: Tuesday, December 11, 2007 9:43 PM
-> To: linux-omap-open-source@linux.omap.com
-> Subject: 2420 2.6 open source kernel + color space coversion
->=20
-> Hi,
->=20
->   In the 2.6.9 open source kernel for OMAP2420 there is no support to =
-set
-> the display controller color conversion on the video pipeline. There =
-are
-> not IOCTL's implemented for this. The 2430 open source kernel has an =
-IOCTL
-> VIDIOC_S_OMAP2_COLORCONV implemented in
-> ./drivers/media/video/omap/omap24xxvout.c.
->=20
-> Can anyone let me know if I can find that support for OMAP2420 or do I
-> have to implement that myself.
->=20
+I found that these files are not in my 2.6.21 kernel and neither in
+the upstream omap linux tree.
+Is this because the upstream kernel only contains a small set of omap
+drivers OR these old mscpi drivers are replaced by sth. else?
+Should I port these files by myself? or change my other drivers to use
+the new interfaces. (I am porting a touchscreen driver which heavily
+relies on the old mscpi drivers)
 
-If you are looking for 2430 kind of dss functionality, then =
-unfortunately yes, you have to port the 2430 DSS drivers back.=20
+Any information would be appreciated!
 
-But, it's quite straight. Copy the following files
-
-drivers/media/video/omap24xxvout.c
-drivers/media/video/omap24xxvout.h
-drivers/media/video/omap24xxvoutdef.h
-drivers/video/omap/omap24xxfb.c
-drivers/video/omap/omap2_disp_out.c
-arch/arm/plat-omap/display.c to drivers/video/omap/display.c
-include/asm-arm/arch-omap/display.h
-include/asm-arm/arch-omap/venc.h
-
-Corresponding makefiles and Kconfigs have to be updated.
-
-Regards,
-Khasim
+- Meng
