@@ -1,8 +1,14 @@
-From: Vivek Kutal <vivek.kutal@celunite.com>
-Subject: [PATCH] PM fixes for OMAP1
-Date: Wed, 12 Dec 2007 14:16:31 +0530
-Message-ID: <11974491911449-git-send-email-vivek.kutal@celunite.com>
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+From: k c <omap_mails@hotmail.com>
+Subject: RE: 2420 2.6 open source kernel + color space coversion
+Date: Wed, 12 Dec 2007 08:51:39 +0000
+Message-ID: <BAY119-W42FAF389579D5EABC5DAF5F9650@phx.gbl>
+References: <BAY119-W828D01D8E6A90E786AAD7F9640@phx.gbl>
+	<7EAD1AEEA7621C45899FE99123E124A001487F2F@dbde01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <7EAD1AEEA7621C45899FE99123E124A001487F2F@dbde01.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -10,100 +16,40 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: "Syed Mohammed, Khasim" <khasim@ti.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This patch does the following
-	- Fixes the omap_pm_idle() code so that we enter WFI mode in idle.
-	- /sys/power/sleep_while_idle is created only when 32k timer is used.
+I can assume all the DSS register offsets are same between 2420 and 2430 ri=
+ght ?
+=20
+Regards,
+k c
 
-Signed-off-by: Vivek Kutal <vivek.kutal@celunite.com>
----
- arch/arm/mach-omap1/pm.c |   21 +++++++++++----------
- 1 files changed, 11 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
-index afc4874..647c58e 100644
---- a/arch/arm/mach-omap1/pm.c
-+++ b/arch/arm/mach-omap1/pm.c
-@@ -66,6 +66,8 @@ static unsigned int mpui730_sleep_save[MPUI730_SLEEP_SAVE_SIZE];
- static unsigned int mpui1510_sleep_save[MPUI1510_SLEEP_SAVE_SIZE];
- static unsigned int mpui1610_sleep_save[MPUI1610_SLEEP_SAVE_SIZE];
- 
-+#ifdef CONFIG_OMAP_32K_TIMER
-+
- static unsigned short enable_dyn_sleep = 1;
- 
- static ssize_t omap_pm_sleep_while_idle_show(struct kset *kset, char *buf)
-@@ -96,6 +98,8 @@ static struct subsys_attribute sleep_while_idle_attr = {
- 	.store  = omap_pm_sleep_while_idle_store,
- };
- 
-+#endif
-+
- static void (*omap_sram_idle)(void) = NULL;
- static void (*omap_sram_suspend)(unsigned long r0, unsigned long r1) = NULL;
- 
-@@ -109,9 +113,7 @@ void omap_pm_idle(void)
- {
- 	extern __u32 arm_idlect1_mask;
- 	__u32 use_idlect1 = arm_idlect1_mask;
--#ifndef CONFIG_OMAP_MPU_TIMER
--	int do_sleep;
--#endif
-+	int do_sleep = 0;
- 
- 	local_irq_disable();
- 	local_fiq_disable();
-@@ -133,7 +135,6 @@ void omap_pm_idle(void)
- 	use_idlect1 = use_idlect1 & ~(1 << 9);
- #else
- 
--	do_sleep = 0;
- 	while (enable_dyn_sleep) {
- 
- #ifdef CONFIG_CBUS_TAHVO_USB
-@@ -146,6 +147,8 @@ void omap_pm_idle(void)
- 		break;
- 	}
- 
-+#endif
-+
- #ifdef CONFIG_OMAP_DM_TIMER
- 	use_idlect1 = omap_dm_timer_modify_idlect_mask(use_idlect1);
- #endif
-@@ -173,7 +176,6 @@ void omap_pm_idle(void)
- 	}
- 	omap_sram_suspend(omap_readl(ARM_IDLECT1),
- 			  omap_readl(ARM_IDLECT2));
--#endif
- 
- 	local_fiq_enable();
- 	local_irq_enable();
-@@ -666,8 +668,6 @@ static struct platform_suspend_ops omap_pm_ops ={
- 
- static int __init omap_pm_init(void)
- {
--	int error;
--
- 	printk("Power Management for TI OMAP.\n");
- 
- 	/*
-@@ -724,9 +724,10 @@ static int __init omap_pm_init(void)
- 	omap_pm_init_proc();
- #endif
- 
--	error = subsys_create_file(&power_subsys, &sleep_while_idle_attr);
--	if (error)
--		printk(KERN_ERR "subsys_create_file failed: %d\n", error);
-+#ifdef CONFIG_OMAP_32K_TIMER
-+	if (subsys_create_file(&power_subsys, &sleep_while_idle_attr))
-+		printk(KERN_ERR "%s :subsys_create_file failed", __FUNCTION__);
-+#endif
- 
- 	if (cpu_is_omap16xx()) {
- 		/* configure LOW_PWR pin */
--- 
-1.5.2.5
+
+> Subject: RE: 2420 2.6 open source kernel + color space coversion> Date: T=
+ue, 11 Dec 2007 23:20:13 +0530> From: khasim@ti.com> To: omap_mails@hotmail=
+.com; linux-omap-open-source@linux.omap.com> > > > > -----Original Message-=
+----> > From: linux-omap-open-source-bounces@linux.omap.com [mailto:linux-o=
+map-> > open-source-bounces@linux.omap.com] On Behalf Of k c> > Sent: Tuesd=
+ay, December 11, 2007 9:43 PM> > To: linux-omap-open-source@linux.omap.com>=
+ > Subject: 2420 2.6 open source kernel + color space coversion> > > > Hi,>=
+ > > > In the 2.6.9 open source kernel for OMAP2420 there is no support to =
+set> > the display controller color conversion on the video pipeline. There=
+ are> > not IOCTL's implemented for this. The 2430 open source kernel has a=
+n IOCTL> > VIDIOC_S_OMAP2_COLORCONV implemented in> > ./drivers/media/video=
+/omap/omap24xxvout.c.> > > > Can anyone let me know if I can find that supp=
+ort for OMAP2420 or do I> > have to implement that myself.> > > > If you ar=
+e looking for 2430 kind of dss functionality, then unfortunately yes, you h=
+ave to port the 2430 DSS drivers back. > > But, it's quite straight. Copy t=
+he following files> > drivers/media/video/omap24xxvout.c> drivers/media/vid=
+eo/omap24xxvout.h> drivers/media/video/omap24xxvoutdef.h> drivers/video/oma=
+p/omap24xxfb.c> drivers/video/omap/omap2_disp_out.c> arch/arm/plat-omap/dis=
+play.c to drivers/video/omap/display.c> include/asm-arm/arch-omap/display.h=
+> include/asm-arm/arch-omap/venc.h> > Corresponding makefiles and Kconfigs =
+have to be updated.> > Regards,> Khasim
+_________________________________________________________________
+Tried the new MSN Messenger? It=92s cool! Download now.
+http://messenger.msn.com/Download/Default.aspx?mkt=3Den-in=
