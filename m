@@ -1,14 +1,14 @@
 From: "Girish" <girishsg@ti.com>
-Subject: RE: McSPI interfaces in newer kernel
-Date: Thu, 13 Dec 2007 11:28:07 +0530
-Message-ID: <006201c83d4d$22a53e50$988818ac@ent.ti.com>
-References: <94d6903b0712121554o5097604cxecaeac2b36832e33@mail.gmail.com>
+Subject: RE: [PATCH] twl4030-rtc support on 3430
+Date: Thu, 13 Dec 2007 16:22:20 +0530
+Message-ID: <008c01c83d76$3cae4bb0$988818ac@ent.ti.com>
+References: <475D680E.7040802@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <94d6903b0712121554o5097604cxecaeac2b36832e33@mail.gmail.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <475D680E.7040802@gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,48 +16,35 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: 'Meng Hu' <meng.hu@gmail.com>
-Cc: Linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: 'Dmitry Krivoschekov' <dmitry.krivoschekov@gmail.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
  
 
 >-----Original Message-----
->From: Meng Hu [mailto:meng.hu@gmail.com] 
->Sent: Thursday, December 13, 2007 5:24 AM
->To: Girish
->Cc: Linux-omap-open-source@linux.omap.com
+>From: Dmitry Krivoschekov [mailto:dmitry.krivoschekov@gmail.com] 
+>Sent: Monday, December 10, 2007 9:54 PM
 
->Hi, Girish
->I am working on an OMAP2430 board, not the SDP though.
->The wierd thing is, the new upstream SPI driver fails on my board.
->Here are the kernel messages:
->---omap2_mcspi_init---
->omap2_mcspi_probe 1
->omap2_mcspi: probe of omap2_mcspi.1 failed with error -2 
->omap2_mcspi_probe 2
->omap2_mcspi: probe of omap2_mcspi.2 failed with error -2
->
->Any idea about this?
-
-Omap2_mcspi should be working fine on 2430, check with your clock enabling, if it's causing the break.
-
->
->On the other hand, I ported the old TI SPI drivers to the new 
->kernel and they seem to work.
->And my 2046 touchscreen driver works fine with the old TI SPI drivers.
->There might be potential problems. I don't know.
-
-You might want to use ads7846 touchscreen driver which is in upstream, 2046 is a newer ads7846 silicon.
-
--Girish
->> _______________________________________________
->> >Linux-omap-open-source mailing list
->> >Linux-omap-open-source@linux.omap.com
->> >http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->> >
+>> This patch supports TWL4030 RTC on 3430 and adds periodic 
+>interrupts functionality through framework. Also, some code cleanup.
 >>
->>
+
+>> + * 		bit 2: every hour
+>> + * 		bit 3: every day
+>> + */
+>
+>Note, this breaks an assumption that freq is measured in Hz. 
+>For example, RTC Driver Test/Example Program won't pass the 
+>"test_PIE" part.
+
+Indeed the freq is measured in Hz, may be I'll remove the comments to avoid confusion.
+>
+>
+>Regards,
+>Dmitry
+>
+>
 >
