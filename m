@@ -1,13 +1,13 @@
 From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH Resend 3/3] ARM: OMAP: Add MUSB support for OMAP34xx
-Date: Fri, 14 Dec 2007 22:36:30 +0530
-Message-ID: <010C7BAE6783F34D9AC336EE5A01A08805066710@dbde01.ent.ti.com>
-References: <09c6d77de3b7e65586d25c002b6d02a6@felipebalbi.com>
+Subject: RE: [PATCH Resend 1/3] ARM: OMAP: Add support for USB on OMAP34XX
+Date: Fri, 14 Dec 2007 23:04:26 +0530
+Message-ID: <010C7BAE6783F34D9AC336EE5A01A08805066716@dbde01.ent.ti.com>
+References: <72d3a5d54193bf8fb63d60abf3656582@felipebalbi.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2083092835=="
+Content-Type: multipart/mixed; boundary="===============0681282120=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-class: urn:content-classes:message
-In-Reply-To: <09c6d77de3b7e65586d25c002b6d02a6@felipebalbi.com>
+In-Reply-To: <72d3a5d54193bf8fb63d60abf3656582@felipebalbi.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,60 +21,32 @@ To: Felipe Balbi <me@felipebalbi.com>
 Cc: linux-omap@vger.kernel.org, linux-omap-open-source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============2083092835==
+--===============0681282120==
 Content-class: urn:content-classes:message
 Content-Type: text/plain;
 	charset="UTF-8"
 Content-Transfer-Encoding: base64
 
-PiA+IEluZGV4OiBsaW51eC1vbWFwLWRlYzEwL2RyaXZlcnMvdXNiL211c2Ivb21hcDI0MzAuYw0K
-DQo8c25pcD4NCg0KPiA+ICsNCj4gPiArc3RhdGljIHZvaWQgbXVzYl9kb19pZGxlKHVuc2lnbmVk
-IGxvbmcgX211c2IpDQo+ID4gK3sNCj4gPiArCXN0cnVjdCBtdXNiCSptdXNiID0gKHZvaWQgKilf
-bXVzYjsNCj4gPiArCXVuc2lnbmVkIGxvbmcJZmxhZ3M7DQo+ID4gKwl1OAlwb3dlcjsNCj4gPiAr
-CXU4CWRldmN0bDsNCj4gPiArDQo+ID4gKwlkZXZjdGwgPSBtdXNiX3JlYWRiKG11c2ItPm1yZWdz
-LCBNVVNCX0RFVkNUTCk7DQo+ID4gKw0KPiA+ICsJc3Bpbl9sb2NrX2lycXNhdmUoJm11c2ItPmxv
-Y2ssIGZsYWdzKTsNCj4gPiArDQo+ID4gKwlzd2l0Y2ggKG11c2ItPnhjZWl2LnN0YXRlKSB7DQo+
-ID4gKwljYXNlIE9UR19TVEFURV9BX1dBSVRfQkNPTjoNCj4gPiArCQlkZXZjdGwgJj0gfk1VU0Jf
-REVWQ1RMX1NFU1NJT047DQo+ID4gKwkJbXVzYl93cml0ZWIobXVzYi0+bXJlZ3MsIE1VU0JfREVW
-Q1RMLCBkZXZjdGwpOw0KPiA+ICsNCj4gPiArCQlkZXZjdGwgPSBtdXNiX3JlYWRiKG11c2ItPm1y
-ZWdzLCBNVVNCX0RFVkNUTCk7DQo+ID4gKwkJaWYgKGRldmN0bCAmIE1VU0JfREVWQ1RMX0JERVZJ
-Q0UpIHsNCj4gPiArCQkJbXVzYi0+eGNlaXYuc3RhdGUgPSBPVEdfU1RBVEVfQl9JRExFOw0KPiA+
-ICsJCQlNVVNCX0RFVl9NT0RFKG11c2IpOw0KPiA+ICsJCX0gZWxzZSB7DQo+ID4gKwkJCW11c2It
-PnhjZWl2LnN0YXRlID0gT1RHX1NUQVRFX0FfSURMRTsNCj4gPiArCQkJTVVTQl9IU1RfTU9ERSht
-dXNiKTsNCj4gPiArCQl9DQo+ID4gKwkJYnJlYWs7DQo+ID4gKyNpZmRlZiBDT05GSUdfVVNCX01V
-U0JfSERSQ19IQ0QNCj4gPiArCWNhc2UgT1RHX1NUQVRFX0FfU1VTUEVORDoNCj4gPiArCQkvKiBm
-aW5pc2ggUkVTVU1FIHNpZ25hbGluZz8gKi8NCj4gPiArCQlpZiAobXVzYi0+cG9ydDFfc3RhdHVz
-ICYgTVVTQl9QT1JUX1NUQVRfUkVTVU1FKSB7DQo+ID4gKwkJCXBvd2VyID0gbXVzYl9yZWFkYiht
-dXNiLT5tcmVncywgTVVTQl9QT1dFUik7DQo+ID4gKwkJCXBvd2VyICY9IH5NVVNCX1BPV0VSX1JF
-U1VNRTsNCj4gPiArCQkJREJHKDEsICJyb290IHBvcnQgcmVzdW1lIHN0b3BwZWQsIHBvd2VyICUw
-MnhcbiIsDQo+ID4gKwkJCQkJCSAJcG93ZXIpOw0KPiANCj4gaXQncyBhY2NlcHRhYmxlIHRvIGhh
-dmUgODEgY2hhcmFjdGVycyBpbiB0aGlzIGxpbmUNCg0KT2suIEknbGwgZml4IGl0Lg0KDQoNCj4g
-PiBJbmRleDogbGludXgtb21hcC1kZWMxMC9kcml2ZXJzL3VzYi9tdXNiL29tYXAyNDMwLmgNCj4g
-PiA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09DQo+ID4gLS0tIGxpbnV4LW9tYXAtZGVjMTAub3JpZy9kcml2ZXJzL3VzYi9t
-dXNiL29tYXAyNDMwLmgJDQo+IDIwMDctMTItMTQNCj4gPiAxOTowNjo0MC4xNTI5NzE5ODYgKzA1
-MzANCj4gPiArKysgbGludXgtb21hcC1kZWMxMC9kcml2ZXJzL3VzYi9tdXNiL29tYXAyNDMwLmgJ
-MjAwNy0xMi0xNA0KPiA+IDE5OjIyOjE2LjUxMDIwMDY5MSArMDUzMA0KPiA+IEBAIC0xMyw2ICsx
-MywxNSBAQA0KPiA+ICAjaWYgZGVmaW5lZChDT05GSUdfQVJDSF9PTUFQMjQzMCkgfHwgZGVmaW5l
-ZChDT05GSUdfQVJDSF9PTUFQMzQzMCkNCj4gPiAgI2luY2x1ZGUgPGFzbS9hcmNoL2hhcmR3YXJl
-Lmg+DQo+ID4gICNpbmNsdWRlIDxhc20vYXJjaC91c2IuaD4NCj4gPiArDQo+ID4gKyNpZiBkZWZp
-bmVkKENPTkZJR19UV0w0MDMwX1VTQl9IU19VTFBJKQ0KPiA+ICtleHRlcm4gdm9pZCB0d2w0MDMw
-X3BoeV9zdXNwZW5kKGludCBjb250cm9sbGVyX29mZik7DQo+ID4gK2V4dGVybiB2b2lkIHR3bDQw
-MzBfcGh5X3Jlc3VtZSh2b2lkKTsNCj4gPiArI2Vsc2UNCj4gPiArI2RlZmluZSB0d2w0MDMwX3Bo
-eV9zdXNwZW5kKHgpICAvKiBub3QgZGVmaW5lZCAqLw0KPiA+ICsjZGVmaW5lIHR3bDQwMzBfcGh5
-X3Jlc3VtZSgpICAgIC8qIG5vdCBkZWZpbmVkICovDQo+IA0KPiBpbiBib3RoIGRlZmluZXMgYWRk
-ICJkbyB7fSB3aGlsZSAoMCkgbGlrZSBpbiBtdXNiX3BsYXRmb3JtX3RyeV9pZGxlDQoNCldpbGwg
-ZG8uIEFsc28gbm90aWNlZCB0aGUgZGVmaW5lZChDT05GSUdfVFdMNDAzMC4uLiBoZXJlLg0KV2ls
-bCBmaXggdGhhdCB0byAjaWZkZWYNCg0KDQo+IEJlc2lkZXMsIGl0IGxvb2tzIG9rIG5vdyA6LSkN
-Cg0KVGhhbmtzISA6KQ0KV2lsbCByZXdvcmsgYW5kIHNlbmQgdGhlc2UgcGF0Y2hlcyBvbiBNb25k
-YXkuDQoNCklmIGFueW9uZSBoYXMgbW9yZSBjb21tZW50cywgbGV0IG1lIGtub3cuDQoNClJlZ2Fy
-ZHMsDQpBbmFuZA0K
+PiA+IENhbiB5b3UgY2xhcmlmeSB0aGlzIGEgbGl0dGxlPyBEbyB5b3UgbWVhbiBkZWNsYXJlIGl0
+IGluIHRoZSAuaCBhczoNCj4gZXh0ZXJuIHZvaWQgc2RwMzQzMF91c2JfaW5pdCh2b2lkKTsNCj4g
+DQo+IFllcy4gUmVtb3ZpbmcgX19pbml0IGFuZCBmcmllbmRzIGZyb20gaGVhZGVyIGZpbGVzIGlz
+IGFjdHVhbGx5IG9uZSBvZg0KPiBLZXJuZWwgSmFuaXRvcnMgVE9ETy4gV2UgZG9uJ3QgbmVlZCB0
+byByZWRlZmluZSBfX2luaXQgYW5kIGZyaWVuZHMgb24NCj4gZnVuY3Rpb24gcHJvdG90eXBlcy4g
+R0NDIHdpbGwgYWx3YXlzIHVzZSB0aGUgbGFzdCBvbmUuIA0KPiBSZWRlZmluaW5nIGluIGhlYWRl
+cg0KPiBmaWxlcyBjYW4gbGVhZCB0byBlcnJvcnMgbGlrZSBkZWNsYXJpbmcgdGhlIGZ1bmN0aW9u
+IGFzIA0KPiBfX2luaXQgaW4gdGhlIGMNCj4gZmlsZSBhbmQgX19pbml0ZGF0YSBpbiB0aGUgaGVh
+ZGVyIGZpbGUgYW5kIHdlIGNhbid0IGJlIHN1cmUgDQo+IGFib3V0IHdoaWNoIG9uZQ0KPiBHQ0Mg
+d2lsbCB1c2UgKG5vdCB0aGF0IHRydWUpLg0KPiANCj4gVGhlIGJlc3QgaGVyZSBhbmQgZm9yIGFu
+eSBvdGhlciBmdW5jdGlvbiwgaXMgbGVhdmluZyBzZWN0aW9uIA0KPiBkZWZpbmVzIHRvIEMNCj4g
+ZmlsZXMgYW5kIGF2b2lkIGluZGlyZWN0IGluY2x1ZGluZyBvZiBsaW51eC9pbml0LmgNCg0KDQpP
+ay4gSSBkaWRuJ3Qga25vdyB0aGlzLiBUaGFua3MgZm9yIHRoZSBpbmZvLiBPbmUgbW9yZSBwaWVj
+ZSBvZiBsZWFybmluZyBmb3IgdGhlIGRheSENCg0KUmVnYXJkcywNCkFuYW5kDQo=
 
---===============2083092835==
+--===============0681282120==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---===============2083092835==--
+--===============0681282120==--
