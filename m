@@ -1,13 +1,15 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: [PATCH] ARM: OMAP: Fix chain_a_transfer return value
-Date: Fri, 14 Dec 2007 18:20:28 +0530
-Message-ID: <010C7BAE6783F34D9AC336EE5A01A0880506667C@dbde01.ent.ti.com>
+From: "Syed Mohammed, Khasim" <khasim@ti.com>
+Subject: RE: ALSA driver for audio codec on TWL4030
+Date: Fri, 14 Dec 2007 18:34:35 +0530
+Message-ID: <7EAD1AEEA7621C45899FE99123E124A001453D3B@dbde01.ent.ti.com>
+References: <376191c90712131052p359b9927ic31671ed8b4de0f8@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-class: urn:content-classes:message
+In-Reply-To: <376191c90712131052p359b9927ic31671ed8b4de0f8@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,44 +17,38 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap@vger.kernel.org
-Cc: linux-omap-open-source <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Shobhit Kumar <shos.arora@gmail.com>, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Anand Gadiyar <gadiyar@ti.com>
 
-This patch changes the return value of omap_dma_chain_a_transfer
-to 0 on success instead of the flag 'start_dma', which wasn't really =
-useful
-for anything.
 
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-Index: linux-omap-dec10/arch/arm/plat-omap/dma.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-omap-dec10.orig/arch/arm/plat-omap/dma.c	2007-12-10 =
-11:01:38.000000000 +0530
-+++ linux-omap-dec10/arch/arm/plat-omap/dma.c	2007-12-13 =
-16:54:25.378626162 +0530
-@@ -1254,7 +1254,7 @@
-  * @param frame_count
-  * @param callbk_data - channel callback parameter data.
-  *
-- * @return  - Success : start_dma status
-+ * @return  - Success : 0
-  * 	      Failure: -EINVAL/-EBUSY
-  */
- int omap_dma_chain_a_transfer(int chain_id, int src_start, int =
-dest_start,
-@@ -1375,7 +1375,7 @@
- 			dma_chan[lch].flags |=3D OMAP_DMA_ACTIVE;
- 		}
- 	}
--	return start_dma;
-+	return 0;
- }
- EXPORT_SYMBOL(omap_dma_chain_a_transfer);
-=20
+> -----Original Message-----
+> From: linux-omap-open-source-bounces+khasim=3Dti.com@linux.omap.com
+> [mailto:linux-omap-open-source-bounces+khasim=3Dti.com@linux.omap.com] =
+On
+> Behalf Of Shobhit Kumar
+> Sent: Friday, December 14, 2007 12:22 AM
+> To: linux-omap-open-source@linux.omap.com
+> Subject: ALSA driver for audio codec on TWL4030
+>=20
+> Hi,I was planning to use the 2.6.21 kernel from the omap git tree, but
+> found
+> that the ALSA driver for audio codec on TWL4030 is not included. I =
+checked
+> the 2.6.14 release from TI which has the driver for the same. But this
+> same
+> driver cannot probably used as is on 2.6.21 kernel due to various ALSA
+> framework changes.
+>=20
+> Is there a port available on 2.6.21 kernel or would I have to port =
+it..
+>=20
+
+We have uploaded new source for 3430 on linux.omap.com, it is 2.6.22 =
+based. This should also be working for 2430. I think you can use the =
+ALSA framework here for 2430 or switch your complete work to 2.6.22.
+
+Regards,
+Khasim
