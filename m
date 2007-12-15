@@ -1,14 +1,11 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: [PATCH Resend 0/3] ARM: OMAP: Patches adding TWL4030 USB
-	support and MUSB support on 34xx
-Date: Fri, 14 Dec 2007 12:17:28 -0800
-Message-ID: <87r6hpm3on.fsf@vence.hilman.org>
-References: <010C7BAE6783F34D9AC336EE5A01A088050666AF@dbde01.ent.ti.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Switching over to vger mailing list
+Date: Sat, 15 Dec 2007 07:28:56 +0100
+Message-ID: <47637428.4070105@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <010C7BAE6783F34D9AC336EE5A01A088050666AF@dbde01.ent.ti.com>
-	(Anand Gadiyar's message of "Fri\, 14 Dec 2007 19\:26\:57 +0530")
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,33 +15,46 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-omap-open-source <linux-omap-open-source@linux.omap.com>
+To: linux-omap-open-source@linux.omap.com, linux-omap-open-source-owner@linux.omap.com
+Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-"Gadiyar, Anand" <gadiyar@ti.com> writes:
 
-> Patch 3:
-> Updated with fixes to comments by Felipe Balbi
-> and Kevin Hilman.
+I think it's time to completely switch over to vger mailing list [1]. 
+List description is there, archive is at [2] (the complete one!), Tony 
+changed the ml links at muru.com [3], so no reason any more why not to 
+switch.
 
-FYI...  Host mode still not quite working on my 3430SDP ES1, but
-haven't looked into the details.
+We shouldn't use linux-omap-open-source@linux.omap.com any more, 
+linux-omap@vger.kernel.org is where the show is now. Everybody please 
+subscribe at [1] and stop posting to 
+linux-omap-open-source@linux.omap.com.
 
-Kevin
+Regarding old list [4] I propose to disable subscription system, 
+change the text to anything like
 
-root@omap3430sdp:~# mkdir -p /media/usb                                           
-root@omap3430sdp:~# mount -t msdos /dev/sda1 /media/usb                           
-coot@omap3430sdp:~# dd if=/dev/urandom of=/media/usb/rand.bin bs=1M count=8; sync
-8+0 records in                                                                    
-8+0 records out                                                                   
-8388608 bytes (8.4 MB) copied, 10.977 seconds, 764 kB/s                           
-                                                                                  
-musb_h_tx_flush_fifo 124: Could not flush host TX fifo: csr: 2103                 
-musb_h_tx_flush_fifo 124: Could not flush host TX fifo: csr: 2103                 
-musb_h_tx_flush_fifo 124: Could not flush host TX fifo: csr: 2103                 
-musb_h_tx_flush_fifo 124: Could not flush host TX fifo: csr: 2103                 
-musb_h_tx_flush_fifo 124: Could not flush host TX fifo: csr: 2103                 
-musb_h_tx_flush_fifo 124: Could not flush host TX fifo: csr: 2103                 
-musb_h_tx_flush_fifo 124: Could not flush host TX fifo: csr: 2103                 
-[...]
+-- cut --
+This is the old OMAP ML. Please don't use it any more. Instead, use
+
+http://vger.kernel.org/vger-lists.html#linux-omap
+
+Subscription system is disabled.
+-- cut --
+
+but keep the system and list running for a while.
+
+linux-omap-open-source-owner: Can you do this?
+
+If you find anywhere else (wikis?) links to old list, please correct them.
+
+Many thanks and best regards
+
+Dirk
+
+[1] http://vger.kernel.org/vger-lists.html#linux-omap
+
+[2] http://marc.info/?l=linux-omap
+
+[3] http://www.muru.com/linux/omap/
+
+[4] http://linux.omap.com/mailman/listinfo/linux-omap-open-source
