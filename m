@@ -1,11 +1,14 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Switching over to vger mailing list
-Date: Sat, 15 Dec 2007 07:28:56 +0100
-Message-ID: <47637428.4070105@googlemail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC/PATCH 0/5] HDQ/1-wire support for OMAP2430/3430
+Date: Sat, 15 Dec 2007 16:21:48 -0800
+Message-ID: <20071216002148.GC7388@atomide.com>
+References: <20071210113407.GD28406@2ka.mipt.ru>
+	<006901c83b24$5591a950$fe8818ac@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-Disposition: inline
+In-Reply-To: <006901c83b24$5591a950$fe8818ac@ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,46 +18,52 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com, linux-omap-open-source-owner@linux.omap.com
-Cc: linux-omap@vger.kernel.org
+To: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
+Cc: 'Evgeniy Polyakov' <johnpol@2ka.mipt.ru>, linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+* Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com> [071210 04:02]:
+> Hi,
+> 
+> >You resolved all issues with patchet we were talking about, so I only
+> >would like to see documentation update about how hdq operates in w1
+> >stack and kernel parameters you are using in the driver.
+>  Sure. I will write the necessary documentation.
+> 
+> Thanks,
+> Madhu
+> 
+> -----Original Message-----
+> From: Evgeniy Polyakov [mailto:johnpol@2ka.mipt.ru] 
+> Sent: Monday, December 10, 2007 5:04 PM
+> To: Madhusudhan Chikkature Rajashekar
+> Cc: linux-omap-open-source@linux.omap.com; linux-omap@vger.kernel.org
+> Subject: Re: [RFC/PATCH 0/5] HDQ/1-wire support for OMAP2430/3430
+> 
+> Hi.
+> 
+> On Mon, Dec 10, 2007 at 03:45:25PM +0530, Madhusudhan Chikkature Rajashekar (madhu.cr@ti.com) wrote:
+> > I am posting a five patches series to support HDQ/1-wire module of OMAP2430 and 3430 platforms. The HDQ support is internally
+> tested
+> > using a bq27000 battery driver.
+> > 
+> > Please let me know if there are any comments on my patch set.
+> > 
+> > Evgeniy Polyakov,
+> > I would like to thank you for clearing my doubts about the W1 subsystem.
+> > Please let me know if you have any further comments on my patches.
+> 
+> Ack, thanks a lot for your work.
+> 
+> You resolved all issues with patchet we were talking about, so I only
+> would like to see documentation update about how hdq operates in w1
+> stack and kernel parameters you are using in the driver.
 
-I think it's time to completely switch over to vger mailing list [1]. 
-List description is there, archive is at [2] (the complete one!), Tony 
-changed the ml links at muru.com [3], so no reason any more why not to 
-switch.
+Madhu, can you please repost your complete series one more time? Please
+make sure the message subject describes what the patch does instead of
+the same subject for all of them. The subject line appears in the git-commit
+message, and it's a pain to re-edit each patch before applying.
 
-We shouldn't use linux-omap-open-source@linux.omap.com any more, 
-linux-omap@vger.kernel.org is where the show is now. Everybody please 
-subscribe at [1] and stop posting to 
-linux-omap-open-source@linux.omap.com.
+Thanks,
 
-Regarding old list [4] I propose to disable subscription system, 
-change the text to anything like
-
--- cut --
-This is the old OMAP ML. Please don't use it any more. Instead, use
-
-http://vger.kernel.org/vger-lists.html#linux-omap
-
-Subscription system is disabled.
--- cut --
-
-but keep the system and list running for a while.
-
-linux-omap-open-source-owner: Can you do this?
-
-If you find anywhere else (wikis?) links to old list, please correct them.
-
-Many thanks and best regards
-
-Dirk
-
-[1] http://vger.kernel.org/vger-lists.html#linux-omap
-
-[2] http://marc.info/?l=linux-omap
-
-[3] http://www.muru.com/linux/omap/
-
-[4] http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+Tony
