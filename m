@@ -1,14 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/PATCH 0/5] HDQ/1-wire support for OMAP2430/3430
-Date: Sat, 15 Dec 2007 16:21:48 -0800
-Message-ID: <20071216002148.GC7388@atomide.com>
-References: <20071210113407.GD28406@2ka.mipt.ru>
-	<006901c83b24$5591a950$fe8818ac@ent.ti.com>
+Subject: Re: [PATCH] ARM: OMAP: Fix chain_a_transfer return value
+Date: Sat, 15 Dec 2007 16:28:11 -0800
+Message-ID: <20071216002811.GE7388@atomide.com>
+References: <010C7BAE6783F34D9AC336EE5A01A0880506667C@dbde01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <006901c83b24$5591a950$fe8818ac@ent.ti.com>
+In-Reply-To: <010C7BAE6783F34D9AC336EE5A01A0880506667C@dbde01.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,52 +17,40 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
-Cc: 'Evgeniy Polyakov' <johnpol@2ka.mipt.ru>, linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-omap-open-source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com> [071210 04:02]:
-> Hi,
+* Gadiyar, Anand <gadiyar@ti.com> [071214 04:51]:
+> From: Anand Gadiyar <gadiyar@ti.com>
 > 
-> >You resolved all issues with patchet we were talking about, so I only
-> >would like to see documentation update about how hdq operates in w1
-> >stack and kernel parameters you are using in the driver.
->  Sure. I will write the necessary documentation.
+> This patch changes the return value of omap_dma_chain_a_transfer
+> to 0 on success instead of the flag 'start_dma', which wasn't really useful
+> for anything.
 > 
-> Thanks,
-> Madhu
-> 
-> -----Original Message-----
-> From: Evgeniy Polyakov [mailto:johnpol@2ka.mipt.ru] 
-> Sent: Monday, December 10, 2007 5:04 PM
-> To: Madhusudhan Chikkature Rajashekar
-> Cc: linux-omap-open-source@linux.omap.com; linux-omap@vger.kernel.org
-> Subject: Re: [RFC/PATCH 0/5] HDQ/1-wire support for OMAP2430/3430
-> 
-> Hi.
-> 
-> On Mon, Dec 10, 2007 at 03:45:25PM +0530, Madhusudhan Chikkature Rajashekar (madhu.cr@ti.com) wrote:
-> > I am posting a five patches series to support HDQ/1-wire module of OMAP2430 and 3430 platforms. The HDQ support is internally
-> tested
-> > using a bq27000 battery driver.
-> > 
-> > Please let me know if there are any comments on my patch set.
-> > 
-> > Evgeniy Polyakov,
-> > I would like to thank you for clearing my doubts about the W1 subsystem.
-> > Please let me know if you have any further comments on my patches.
-> 
-> Ack, thanks a lot for your work.
-> 
-> You resolved all issues with patchet we were talking about, so I only
-> would like to see documentation update about how hdq operates in w1
-> stack and kernel parameters you are using in the driver.
+> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> Index: linux-omap-dec10/arch/arm/plat-omap/dma.c
+> ===================================================================
+> --- linux-omap-dec10.orig/arch/arm/plat-omap/dma.c	2007-12-10 11:01:38.000000000 +0530
+> +++ linux-omap-dec10/arch/arm/plat-omap/dma.c	2007-12-13 16:54:25.378626162 +0530
+> @@ -1254,7 +1254,7 @@
+>   * @param frame_count
+>   * @param callbk_data - channel callback parameter data.
+>   *
+> - * @return  - Success : start_dma status
+> + * @return  - Success : 0
+>   * 	      Failure: -EINVAL/-EBUSY
+>   */
+>  int omap_dma_chain_a_transfer(int chain_id, int src_start, int dest_start,
+> @@ -1375,7 +1375,7 @@
+>  			dma_chan[lch].flags |= OMAP_DMA_ACTIVE;
+>  		}
+>  	}
+> -	return start_dma;
+> +	return 0;
+>  }
+>  EXPORT_SYMBOL(omap_dma_chain_a_transfer);
 
-Madhu, can you please repost your complete series one more time? Please
-make sure the message subject describes what the patch does instead of
-the same subject for all of them. The subject line appears in the git-commit
-message, and it's a pain to re-edit each patch before applying.
-
-Thanks,
+Pushing today.
 
 Tony
