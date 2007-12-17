@@ -1,14 +1,12 @@
-From: "Madhusudhan Chikkature Rajashekar" <madhu.cr@ti.com>
-Subject: RE: [RFC/PATCH 0/5] HDQ/1-wire support for OMAP2430/3430
-Date: Mon, 17 Dec 2007 10:53:23 +0530
-Message-ID: <005f01c8406c$f3409240$fe8818ac@ent.ti.com>
-References: <20071216002148.GC7388@atomide.com>
+From: "Girish" <girishsg@ti.com>
+Subject: [Resending PATCH 2/2]  arch:omap2:rtc board specific code
+Date: Mon, 17 Dec 2007 11:23:02 +0530
+Message-ID: <020401c84071$15dff4e0$988818ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20071216002148.GC7388@atomide.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,75 +14,129 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: 'Tony Lindgren' <tony@atomide.com>
-Cc: 'Evgeniy Polyakov' <johnpol@2ka.mipt.ru>, linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap@vger.kernel.org
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+This patch adds rtc-twl4030 board specific code for 3430.
+
+Signed-off-by: Girish S G <girishsg@ti.com>
+---
+ arch/arm/configs/omap_3430sdp_defconfig |    4 +-
+ arch/arm/mach-omap2/board-3430sdp.c     |   62 ++++++++++++++++++++++++++++++++
+ 2 files changed, 65 insertions(+), 1 deletion(-)
+
+Index: linux-omap-dec10/arch/arm/configs/omap_3430sdp_defconfig
+===================================================================
+--- linux-omap-dec10.orig/arch/arm/configs/omap_3430sdp_defconfig	2007-12-13 12:12:20.704010830 +0530
++++ linux-omap-dec10/arch/arm/configs/omap_3430sdp_defconfig	2007-12-13 12:13:09.478435605 +0530
+@@ -698,7 +698,9 @@
+ #
+ CONFIG_MMC_OMAP=y
+ CONFIG_RTC_LIB=y
+-# CONFIG_RTC_CLASS is not set
++CONFIG_RTC_CLASS=y
++CONFIG_RTC_DRV_TWL4030=y
++CONFIG_RTC_INTF_DEV=y
  
-
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com] 
-> Sent: Sunday, December 16, 2007 5:52 AM
-> To: Madhusudhan Chikkature Rajashekar
-> Cc: 'Evgeniy Polyakov'; linux-omap@vger.kernel.org; 
-> linux-omap-open-source@linux.omap.com
-> Subject: Re: [RFC/PATCH 0/5] HDQ/1-wire support for OMAP2430/3430
-> 
-> * Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com> [071210 04:02]:
-> > Hi,
-> > 
-> > >You resolved all issues with patchet we were talking 
-> about, so I only
-> > >would like to see documentation update about how hdq operates in w1
-> > >stack and kernel parameters you are using in the driver.
-> >  Sure. I will write the necessary documentation.
-> > 
-> > Thanks,
-> > Madhu
-> > 
-> > -----Original Message-----
-> > From: Evgeniy Polyakov [mailto:johnpol@2ka.mipt.ru] 
-> > Sent: Monday, December 10, 2007 5:04 PM
-> > To: Madhusudhan Chikkature Rajashekar
-> > Cc: linux-omap-open-source@linux.omap.com; 
-> linux-omap@vger.kernel.org
-> > Subject: Re: [RFC/PATCH 0/5] HDQ/1-wire support for OMAP2430/3430
-> > 
-> > Hi.
-> > 
-> > On Mon, Dec 10, 2007 at 03:45:25PM +0530, Madhusudhan 
-> Chikkature Rajashekar (madhu.cr@ti.com) wrote:
-> > > I am posting a five patches series to support HDQ/1-wire 
-> module of OMAP2430 and 3430 platforms. The HDQ support is internally
-> > tested
-> > > using a bq27000 battery driver.
-> > > 
-> > > Please let me know if there are any comments on my patch set.
-> > > 
-> > > Evgeniy Polyakov,
-> > > I would like to thank you for clearing my doubts about 
-> the W1 subsystem.
-> > > Please let me know if you have any further comments on my patches.
-> > 
-> > Ack, thanks a lot for your work.
-> > 
-> > You resolved all issues with patchet we were talking about, 
-> so I only
-> > would like to see documentation update about how hdq operates in w1
-> > stack and kernel parameters you are using in the driver.
-> 
-> Madhu, can you please repost your complete series one more 
-> time? Please
-> make sure the message subject describes what the patch does instead of
-> the same subject for all of them. The subject line appears in 
-> the git-commit
-> message, and it's a pain to re-edit each patch before applying.
-Okay. I will repost the series with appropriate subject line.
-
-> 
-> Thanks,
-> 
-> Tony
-> 
+ #
+ # DMA Engine support
+Index: linux-omap-dec10/arch/arm/mach-omap2/board-3430sdp.c
+===================================================================
+--- linux-omap-dec10.orig/arch/arm/mach-omap2/board-3430sdp.c	2007-12-13 12:12:20.704010830 +0530
++++ linux-omap-dec10/arch/arm/mach-omap2/board-3430sdp.c	2007-12-13 12:13:09.478435605 +0530
+@@ -40,9 +40,11 @@
+ #include <asm/arch/keypad.h>
+ #include <asm/arch/dma.h>
+ #include <asm/arch/gpmc.h>
++#include <asm/arch/twl4030-rtc.h>
+ 
+ #include <asm/io.h>
+ #include <asm/delay.h>
++#include "control.h"
+ 
+ #define	SDP3430_FLASH_CS	0
+ #define	SDP3430_SMC91X_CS	3
+@@ -104,6 +106,8 @@
+ 	.resource	= &sdp3430_flash_resource,
+ };
+ 
++#define TWL4030_MSECURE_GPIO    22
++
+ static struct resource sdp3430_smc91x_resources[] = {
+ 	[0] = {
+ 		.start	= OMAP34XX_ETHR_START,
+@@ -174,6 +178,60 @@
+ 	},
+ };
+ 
++#ifdef CONFIG_RTC_DRV_TWL4030
++static int twl4030_rtc_init(void)
++{
++	int ret = 0;
++
++	/* 3430ES2.0 doesn't have msecure/gpio-22 line connected to T2 */
++	if (is_device_type_gp() && is_sil_rev_less_than(OMAP3430_REV_ES2_0)) {
++		u32 msecure_pad_config_reg = omap2_ctrl_base + 0xA3C;
++		int mux_mask = 0x04;
++		u16 tmp;
++
++		ret = omap_request_gpio(TWL4030_MSECURE_GPIO);
++		if (ret < 0) {
++			printk(KERN_ERR "twl4030_rtc_init: can't"
++				"reserve GPIO:%d !\n", TWL4030_MSECURE_GPIO);
++			goto out;
++		}
++		/*
++		 * TWL4030 will be in secure mode if msecure line from OMAP
++		 * is low. Make msecure line high in order to change the
++		 * TWL4030 RTC time and calender registers.
++		 */
++		omap_set_gpio_direction(TWL4030_MSECURE_GPIO, 0);
++
++		tmp = omap_readw(msecure_pad_config_reg);
++		tmp &= 0xF8;    /* To enable mux mode 03/04 = GPIO_RTC */
++		tmp |= mux_mask;/* To enable mux mode 03/04 = GPIO_RTC */
++		omap_writew(tmp, msecure_pad_config_reg);
++
++		omap_set_gpio_dataout(TWL4030_MSECURE_GPIO, 1);
++	}
++out:
++	return ret;
++}
++
++static void twl4030_rtc_exit(void)
++{
++	omap_free_gpio(TWL4030_MSECURE_GPIO);
++}
++
++static struct twl4030rtc_platform_data sdp3430_twl4030rtc_data = {
++	.init = &twl4030_rtc_init,
++	.exit = &twl4030_rtc_exit,
++};
++
++static struct platform_device sdp3430_twl4030rtc_device = {
++	.name           = "twl4030_rtc",
++	.id             = -1,
++	.dev            = {
++		.platform_data  = &sdp3430_twl4030rtc_data,
++	},
++};
++#endif
++
+ /**
+  * @brief ads7846_dev_init : Requests & sets GPIO line for pen-irq
+  *
+@@ -258,6 +316,10 @@
+ 	&sdp3430_smc91x_device,
+ 	&sdp3430_flash_device,
+ 	&sdp3430_kp_device,
++#ifdef CONFIG_RTC_DRV_TWL4030
++	&sdp3430_twl4030rtc_device,
++#endif
++
+ };
+ 
+ static inline void __init sdp3430_init_smc91x(void)
