@@ -1,13 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Remove redundant gpio request at apollon
-Date: Sun, 16 Dec 2007 16:55:55 -0800
-Message-ID: <20071217005555.GV7388@atomide.com>
-References: <20071206014626.GA15974@party>
+Subject: Re: [PATCH] ARM: OMAP: Use the correct CONFIG_ARCH_OMAP24XX
+Date: Sun, 16 Dec 2007 16:59:30 -0800
+Message-ID: <20071217005929.GW7388@atomide.com>
+References: <20071206014651.GA15983@party> <87ve7birpi.fsf@vence.hilman.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 Content-Disposition: inline
-In-Reply-To: <20071206014626.GA15974@party>
+In-Reply-To: <87ve7birpi.fsf@vence.hilman.org>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,52 +15,39 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Kyungmin Park <kyungmin.park@samsung.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: Kevin Hilman <khilman@mvista.com>
 Cc: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kyungmin Park <kyungmin.park@samsung.com> [071205 17:46]:
-> The gpio request is done by gpio-keys
+* Kevin Hilman <khilman@mvista.com> [071206 10:50]:
+> Kyungmin Park <kyungmin.park@samsung.com> writes:
 > 
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
-> diff --git a/arch/arm/mach-omap2/board-apollon-keys.c b/arch/arm/mach-omap2/board-apollon-keys.c
-> index 6b2e551..b6fa4ea 100644
-> --- a/arch/arm/mach-omap2/board-apollon-keys.c
-> +++ b/arch/arm/mach-omap2/board-apollon-keys.c
-> @@ -77,29 +77,17 @@ static void __init apollon_sw_init(void)
->  {
->  	/* Enter SW - Y11 */
->  	omap_cfg_reg(Y11_242X_GPIO16);
-> -	omap_request_gpio(SW_ENTER_GPIO16);
-> -	omap_set_gpio_direction(SW_ENTER_GPIO16, 1);
->  	/* Up SW - AA12 */
->  	omap_cfg_reg(AA12_242X_GPIO17);
-> -	omap_request_gpio(SW_UP_GPIO17);
-> -	omap_set_gpio_direction(SW_UP_GPIO17, 1);
->  	/* Down SW - AA8 */
->  	omap_cfg_reg(AA8_242X_GPIO58);
-> -	omap_request_gpio(SW_DOWN_GPIO58);
-> -	omap_set_gpio_direction(SW_DOWN_GPIO58, 1);
->  #ifdef CONFIG_MACH_OMAP_APOLLON_PLUS
->  	/* Left SW - P18 */
->  	omap_cfg_reg(P18_24XX_GPIO95);
-> -	omap_request_gpio(SW_LEFT_GPIO95);
-> -	omap_set_gpio_direction(SW_LEFT_GPIO95, 1);
->  	/* Right SW - M18 */
->  	omap_cfg_reg(M18_24XX_GPIO96);
-> -	omap_request_gpio(SW_RIGHT_GPIO96);
-> -	omap_set_gpio_direction(SW_RIGHT_GPIO96, 1);
->  	/* Esc SW - L14 */
->  	omap_cfg_reg(L14_24XX_GPIO97);
-> -	omap_request_gpio(SW_ESC_GPIO97);
-> -	omap_set_gpio_direction(SW_ESC_GPIO97, 1);
->  #endif
->  }
->  
+> > Use the correct CONFIG_ARCH_OMAP24XX.
+> > It boots on locked SRAM board.
+> >
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > ---
+> > diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> > index afe8181..6305dc9 100644
+> > --- a/arch/arm/plat-omap/sram.c
+> > +++ b/arch/arm/plat-omap/sram.c
+> > @@ -91,7 +91,7 @@ static int is_sram_locked(void)
+> >  {
+> >  	int type = 0;
+> >  
+> > -#if defined(CONFIG_ARCH_OMAP242X)
+> > +#if defined(CONFIG_ARCH_OMAP24XX)
+> >  	if (cpu_is_omap242x())
+> >  		type = (ctrl_read_reg(OMAP24XX_CONTROL_STATUS) &
+> >  			OMAP2_DEVICETYPE_MASK);
+> 
+> Shouldn't the cpu_is_omap242x be changed to cpu_is_omap24xx also so
+> this works on 2430?
 
-Pushing today.
+Additionally the #if defined(CONFIG_ARCH_OMAP242X) should not be
+needed here. If not selected, the cpu_is_omapxxxx() functions
+are if (0) {} functions and get optimized out.
 
 Tony
