@@ -1,13 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/PATCH  1/4] MMC/SD Controller driver for OMAP2430
-Date: Mon, 17 Dec 2007 11:07:23 -0800
-Message-ID: <20071217190723.GM7388@atomide.com>
-References: <003601c838d6$c451c870$fe8818ac@ent.ti.com>
+From: "Hunter, Jon" <jon-hunter@ti.com>
+Subject: RE: Watchdog driver issue on OMAP3
+Date: Mon, 17 Dec 2007 17:43:07 -0600
+Message-ID: <5573C19A4BBDB441BED2A44157E9705302D6E609@dlee12.ent.ti.com>
+References: <465714FA584D6D49BD2ADB26BB64FD0D01B9A8AB@dlee13.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-Disposition: inline
-In-Reply-To: <003601c838d6$c451c870$fe8818ac@ent.ti.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <465714FA584D6D49BD2ADB26BB64FD0D01B9A8AB@dlee13.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,16 +19,27 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com, linux-arm-kernel@lists.arm.linux.org.uk, 'Pierre Ossman' <drzeus@drzeus.cx>
+To: "Reddy, Teerth" <teerth@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-* Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com> [071207 05:41]:
-> This patch adds MMC controller driver for OMAP2430/3430.
+> I am seeing this issue with the watchdog driver on=20
+> OMAP3430,whenever the watchdog driver is closed the board=20
+> should reboot but the board freezes after the watchdog=20
+> timeout and I have to reboot the board manually to get the=20
+> u-boot back.
+>=20
+> 	Is this an issue with the watchdog driver or is=20
+> something else causing this?=20
 
-Please check this series for double spaces and convert to single
-spaces or tabs as needed.
 
-Thanks,
+I do recall that there has been some issues in the past where it has
+been necessary to bypass some of the dplls for before a warm reset is
+attempted. You may wish to try bypassing the dplls and then see if the
+watchdog reset works.=20
 
-Tony
+For example, see the function omap2_prcm_arch_reset() in
+arch/arm/mach-omap2/prcm.c.=20
+
+Cheers
+Jon
