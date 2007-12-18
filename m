@@ -1,7 +1,7 @@
 From: "Girish" <girishsg@ti.com>
-Subject: [Resending PATCH 1/1] RTC: twl4030-rtc specific code
-Date: Tue, 18 Dec 2007 12:59:06 +0530
-Message-ID: <02b901c84147$acbe3850$988818ac@ent.ti.com>
+Subject: [Resending PATCH 2/2] ARM: OMAP2: rtc board specific code
+Date: Tue, 18 Dec 2007 12:59:19 +0530
+Message-ID: <02ba01c84147$b42360c0$988818ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -20,97 +20,123 @@ To: linux-omap@vger.kernel.org
 Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This patch adds rtc-twl4030 driver specific code.
+This patch adds rtc-twl4030 board specific code for 3430.
 
 Signed-off-by: Girish S G <girishsg@ti.com>
 ---
- drivers/rtc/rtc-twl4030.c |   45 ++++++++++++++++++++++++++++++++++++++-------
- 1 files changed, 38 insertions(+), 7 deletions(-)
+ arch/arm/configs/omap_3430sdp_defconfig |    4 +-
+ arch/arm/mach-omap2/board-3430sdp.c     |   62 ++++++++++++++++++++++++++++++++
+ 2 files changed, 65 insertions(+), 1 deletion(-)
 
-Index: linux-omap-dec10/drivers/rtc/rtc-twl4030.c
+Index: linux-omap-dec10/arch/arm/configs/omap_3430sdp_defconfig
 ===================================================================
---- linux-omap-dec10.orig/drivers/rtc/rtc-twl4030.c	2007-12-13 12:08:18.000000000 +0530
-+++ linux-omap-dec10/drivers/rtc/rtc-twl4030.c	2007-12-18 12:06:48.288652600 +0530
-@@ -353,6 +353,26 @@
- 	return ret;
- }
+--- linux-omap-dec10.orig/arch/arm/configs/omap_3430sdp_defconfig	2007-12-13 16:23:27.000000000 +0530
++++ linux-omap-dec10/arch/arm/configs/omap_3430sdp_defconfig	2007-12-13 16:51:52.000000000 +0530
+@@ -698,7 +698,9 @@
+ #
+ CONFIG_MMC_OMAP=y
+ CONFIG_RTC_LIB=y
+-# CONFIG_RTC_CLASS is not set
++CONFIG_RTC_CLASS=y
++CONFIG_RTC_DRV_TWL4030=y
++CONFIG_RTC_INTF_DEV=y
  
-+/*
-+ * We will just handle setting the frequency and make use the framework for
-+ * reading the periodic interupts.
-+ * @freq: Current periodic IRQ freq
-+ */
-+static int twl4030_rtc_irq_set_freq(struct device *dev, int freq)
-+{
-+	struct rtc_device *rtc = dev_get_drvdata(dev);
-+
-+	if (freq < 0 || freq > 3)
-+		return -EINVAL;
-+
-+	rtc->irq_freq = freq;
-+
-+	/* set rtc irq freq to user defined value */
-+	set_rtc_irq_bit(freq);
-+
-+	return 0;
-+}
-+
- #ifdef	CONFIG_RTC_INTF_DEV
+ #
+ # DMA Engine support
+Index: linux-omap-dec10/arch/arm/mach-omap2/board-3430sdp.c
+===================================================================
+--- linux-omap-dec10.orig/arch/arm/mach-omap2/board-3430sdp.c	2007-12-13 16:23:27.000000000 +0530
++++ linux-omap-dec10/arch/arm/mach-omap2/board-3430sdp.c	2007-12-18 12:04:35.651866121 +0530
+@@ -40,9 +40,11 @@
+ #include <asm/arch/keypad.h>
+ #include <asm/arch/dma.h>
+ #include <asm/arch/gpmc.h>
++#include <asm/arch/twl4030-rtc.h>
  
- static int twl4030_rtc_ioctl(struct device *dev, unsigned int cmd,
-@@ -364,12 +384,18 @@
- 		return twl4030_rtc_alarm_irq_set_state(dev, 0);
- 	case RTC_AIE_ON:
- 		return twl4030_rtc_alarm_irq_set_state(dev, 1);
-+
- 	case RTC_UIE_OFF:
--		/* Mask ints from RTC updates.  */
-+		/* Fall Through */
-+	case RTC_PIE_OFF:
-+		/* Mask ints from RTC updates.	*/
- 		return twl4030_rtc_irq_set_state(dev, 0);
- 	case RTC_UIE_ON:
--		/* Allow ints for RTC updates.  */
-+		/* Fall Through */
-+	case RTC_PIE_ON:
-+		/* Allow ints for RTC updates.	*/
- 		return twl4030_rtc_irq_set_state(dev, 1);
-+
- 	case RTC_EPOCH_READ:
- 		return put_user(epoch, (unsigned long *)arg);
- 	case RTC_EPOCH_SET:	
-@@ -456,11 +482,12 @@
- }
+ #include <asm/io.h>
+ #include <asm/delay.h>
++#include "control.h"
  
- static struct rtc_class_ops twl4030_rtc_ops = {
--	.ioctl = twl4030_rtc_ioctl,
--	.read_time = twl4030_rtc_read_time,
--	.set_time = twl4030_rtc_set_time,
--	.read_alarm = twl4030_rtc_read_alarm,
--	.set_alarm = twl4030_rtc_set_alarm,
-+	.ioctl		= twl4030_rtc_ioctl,
-+	.read_time	= twl4030_rtc_read_time,
-+	.set_time	= twl4030_rtc_set_time,
-+	.read_alarm	= twl4030_rtc_read_alarm,
-+	.set_alarm	= twl4030_rtc_set_alarm,
-+	.irq_set_freq	= twl4030_rtc_irq_set_freq,
+ #define	SDP3430_FLASH_CS	0
+ #define	SDP3430_SMC91X_CS	3
+@@ -104,6 +106,8 @@
+ 	.resource	= &sdp3430_flash_resource,
  };
  
- static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
-@@ -486,6 +513,9 @@
- 
- 	}
- 
-+	/* Set the irq freq to every second */
-+	rtc->irq_freq = 0;
++#define TWL4030_MSECURE_GPIO	22
 +
- 	platform_set_drvdata(pdev, rtc);
+ static struct resource sdp3430_smc91x_resources[] = {
+ 	[0] = {
+ 		.start	= OMAP34XX_ETHR_START,
+@@ -174,6 +178,60 @@
+ 	},
+ };
  
- 	ret = twl4030_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
-@@ -577,6 +607,7 @@
- 		pdata->exit();
++#ifdef CONFIG_RTC_DRV_TWL4030
++static int twl4030_rtc_init(void)
++{
++	int ret = 0;
++
++	/* 3430ES2.0 doesn't have msecure/gpio-22 line connected to T2 */
++	if (is_device_type_gp() && is_sil_rev_less_than(OMAP3430_REV_ES2_0)) {
++		u32 msecure_pad_config_reg = omap2_ctrl_base + 0xA3C;
++		int mux_mask = 0x04;
++		u16 tmp;
++
++		ret = omap_request_gpio(TWL4030_MSECURE_GPIO);
++		if (ret < 0) {
++			printk(KERN_ERR "twl4030_rtc_init: can't"
++				"reserve GPIO:%d !\n", TWL4030_MSECURE_GPIO);
++			goto out;
++		}
++		/*
++		 * TWL4030 will be in secure mode if msecure line from OMAP
++		 * is low. Make msecure line high in order to change the
++		 * TWL4030 RTC time and calender registers.
++		 */
++		omap_set_gpio_direction(TWL4030_MSECURE_GPIO, 0);
++
++		tmp = omap_readw(msecure_pad_config_reg);
++		tmp &= 0xF8;	/* To enable mux mode 03/04 = GPIO_RTC */
++		tmp |= mux_mask;/* To enable mux mode 03/04 = GPIO_RTC */
++		omap_writew(tmp, msecure_pad_config_reg);
++
++		omap_set_gpio_dataout(TWL4030_MSECURE_GPIO, 1);
++	}
++out:
++	return ret;
++}
++
++static void twl4030_rtc_exit(void)
++{
++	omap_free_gpio(TWL4030_MSECURE_GPIO);
++}
++
++static struct twl4030rtc_platform_data sdp3430_twl4030rtc_data = {
++	.init = &twl4030_rtc_init,
++	.exit = &twl4030_rtc_exit,
++};
++
++static struct platform_device sdp3430_twl4030rtc_device = {
++	.name		= "twl4030_rtc",
++	.id		= -1,
++	.dev		= {
++		.platform_data	= &sdp3430_twl4030rtc_data,
++	},
++};
++#endif
++
+ /**
+  * @brief ads7846_dev_init : Requests & sets GPIO line for pen-irq
+  *
+@@ -258,6 +316,10 @@
+ 	&sdp3430_smc91x_device,
+ 	&sdp3430_flash_device,
+ 	&sdp3430_kp_device,
++#ifdef CONFIG_RTC_DRV_TWL4030
++	&sdp3430_twl4030rtc_device,
++#endif
++
+ };
  
- 	rtc_device_unregister(rtc);
-+	platform_set_drvdata(pdev, NULL);
- 	return 0;
- }
+ static inline void __init sdp3430_init_smc91x(void)
