@@ -1,12 +1,14 @@
-From: "Jagadeeswaran R." <jagadeeswaran.r@ittiam.com>
-Subject: OMAP2430 SDP5.0 TV Out problem
-Date: Tue, 18 Dec 2007 10:40:59 +0530
-Message-ID: <904DEC693BE1AB429622C6F5ABA7E0B8038CCBAB@is01ex02.ittiam.com>
+From: "Girish" <girishsg@ti.com>
+Subject: RE: [Resending PATCH 1/2] driver:twl4030-rtc specific code
+Date: Tue, 18 Dec 2007 11:15:20 +0530
+Message-ID: <02b301c84139$2e7c0480$988818ac@ent.ti.com>
+References: <20071217185944.GJ7388@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+In-Reply-To: <20071217185944.GJ7388@atomide.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,43 +18,30 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
+To: 'Tony Lindgren' <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi All,
+ 
+Hi Tony,
 
-=20
+>-----Original Message-----
+>From: Tony Lindgren [mailto:tony@atomide.com] 
 
-I am using the kernel (linux-2.6.14-omap2-v4.tgz) that was download from
-http://linux.omap.com/pub/.
+>
+>* Girish <girishsg@ti.com> [071216 21:53]:
+>> This patch adds rtc-twl4030 driver specific code.
+>
+>Almost ready.. Just few more things:
+>
+>- Please changes spaces to tabs to follow the CodingStyle
 
-There is some kind noise/flickering noticed with TV out, ie Text
-displayed gets faded towards the right.
+These spaces din't figure out when I ran checkpatch script, does checkpatch needs an upgrade for such kind of space checks? If yes I
+can try  sending a patch to the maintainer. 
 
-It looks like flickering due to high gain in TV out.
+>- Please change the subject to say "RTC: twl4030-rtc specific code"
 
-TV display happens through Video pipeline 2 using the V4L2 driver.
+I'll resend the patch with above comments fixed.
 
-=20
-
-Did any one face this problem?
-
-Please provide me the patch if this was solved.
-
-=20
-
-Thanks for your time.
-
-=20
-
-Regards,
-
-Jagadees
-
-
-**********************************************************************
-This email and any files transmitted with it are confidential and
-intended solely for the use of the individual or entity to whom they
-are addressed. If you have received this email in error please notify
-helpdesk@ittiam.com.
-**********************************************************************
+Thanks,
+Girish
