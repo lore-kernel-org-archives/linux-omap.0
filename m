@@ -1,11 +1,15 @@
-From: "Azhar Mr." <shaik.azharuddin@yahoo.co.in>
-Subject: Regarding the NETLINK-socket Program for OSK5912
-Date: Tue, 18 Dec 2007 06:41:39 +0000 (GMT)
-Message-ID: <975643.93570.qm@web7613.mail.in.yahoo.com>
+From: "Jagadeeswaran R." <jagadeeswaran.r@ittiam.com>
+Subject: RE: OMAP2430 SDP5.0 TV Out problem
+Date: Tue, 18 Dec 2007 12:36:03 +0530
+Message-ID: <904DEC693BE1AB429622C6F5ABA7E0B8038CCC72@is01ex02.ittiam.com>
+References: <904DEC693BE1AB429622C6F5ABA7E0B8038CCBAB@is01ex02.ittiam.com>
+	<7EAD1AEEA7621C45899FE99123E124A0014BD2E6@dbde01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <7EAD1AEEA7621C45899FE99123E124A0014BD2E6@dbde01.ent.ti.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -15,183 +19,94 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: "Syed Mohammed, Khasim" <khasim@ti.com>
+Cc: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-I want to have communication between kernel module and
-user space application. For communication I am using
-netlink sockets. I have successfully compiled user
-space application. But unable to compile kernel
-module. :-(. It is giving error as 'Dereferencing
-pointer to incomplete type'
+Khasim, Thanks for your info.
 
-The psuedocode is as follows for kernel module 
+> But with this you will loose down scaling capability. You will not see
+this
+> flickering for a video as such it's only on static text images.
+video looks noisy while displaying plain Green color which typically
+comes in the beginning of any movie trailer.
+Even with normal video, some experienced people could make out this
+noise.
+Moreover, I thinks this also depends on the TV. Some good (high end) TVs
+may hide/solve this.
 
-#include <sys/socket.h>
-#include <linux/netlink.h>
+Regards,
+Jagadees
 
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/mm.h>
-#include <linux/slab.h>
-#include <linux/fs.h>
-#include <linux/sched.h>
-#include <asm/uaccess.h>
-#include <linux/poll.h>
-#include <linux/interrupt.h>
-#include <linux/wait.h>
-#include <linux/delay.h>
-#include <linux/time.h>
-#include <linux/vmalloc.h>
-#include <asm/io.h>
+> -----Original Message-----
+> From: Syed Mohammed, Khasim [mailto:khasim@ti.com]
+> Sent: Tuesday, December 18, 2007 11:27 AM
+> To: Jagadeeswaran R.; linux-omap@vger.kernel.org; linux-omap-open-
+> source@linux.omap.com
+> Subject: RE: OMAP2430 SDP5.0 TV Out problem
+>=20
+>=20
+>=20
+> > -----Original Message-----
+> > From: linux-omap-open-source-bounces@linux.omap.com
+[mailto:linux-omap-
+> > open-source-bounces@linux.omap.com] On Behalf Of Jagadeeswaran R.
+> > Sent: Tuesday, December 18, 2007 10:41 AM
+> > To: linux-omap@vger.kernel.org;
+linux-omap-open-source@linux.omap.com
+> > Subject: OMAP2430 SDP5.0 TV Out problem
+> >
+> > Hi All,
+> >
+> >
+> >
+> > I am using the kernel (linux-2.6.14-omap2-v4.tgz) that was download
+from
+> > http://linux.omap.com/pub/.
+> >
+> > There is some kind noise/flickering noticed with TV out, ie Text
+> > displayed gets faded towards the right.
+> >
+> > It looks like flickering due to high gain in TV out.
+> >
+> > TV display happens through Video pipeline 2 using the V4L2 driver.
+> >
+> >
+> >
+> > Did any one face this problem?
+> >
+> This is a known issue, the text display flickers on TV-out. But the
+issue
+> could be fixed using the scaling logic in DSS.
+>=20
+> > Please provide me the patch if this was solved.
+> >
+> I don't have a patch, but the procedure of getting this fixed is to
+>  - Enable Scaling block
+>  - Get BA0 and BA1 point to same location and modify the size register
+to
+> avoid doing a interlaced scan.
+>  - Modify ACCU0 ACCU1 registers to tune in the performance. I don't
+have the
+> register values handy, will try to get them and send it across.
+>=20
+>=20
+> But with this you will loose down scaling capability. You will not see
+this
+> flickering for a video as such it's only on static text images.
+video looks noisy while displaying plain Green color which typically
+come in the beginning of any movie trailers.
 
-#include <linux/init.h>
-#include <linux/list.h>
-#include <linux/platform_device.h>
-#include <linux/timer.h>
-#include <linux/err.h>
-#include <linux/input.h>
-#include <asm/arch/hardware.h>
-#include <asm/arch/gpio.h>
-#include <asm/arch/irqs.h>
-#include <asm/arch/mux.h>
-#include <asm/arch/board.h>
-
-#define MAX_PAYLOAD 1024
-/* Define any of the valid GPIO pins as LED_GPIO */
-#define LED_GPIO 7
-
-/* Defines the value written to the pin defined as
-LED_GPIO */
-#define LED_STATUS 1
-
-MODULE_LICENSE("Dual BSD/GPL");
-
-// Note: Debug is not implemented
-static int debug = 0;
-
-module_param(debug, int, 0);
-MODULE_PARM_DESC(debug, "Debug information (default
-0)");
-
-static struct sock *nl_sk = NULL;
-
-static void nl_data_ready (struct sock *sk, int len)
-{
-wake_up_interruptible(sk->sk_sleep);
-}
-
-static void netlink_test()
-{
-struct sk_buff *skb = NULL;
-struct nlmsghdr *nlh = NULL;
-int err;
-u32 pid;
-
-nl_sk = netlink_kernel_create(NETLINK_TEST,
-nl_data_ready);
-skb = skb_recv_datagram(nl_sk, 0, 0, &err);
-
-nlh = (struct nlmsghdr *)skb->data;
-printk(KERN_INFO "%s: received netlink message
-payload: %s\n", __FUNCTION__, NLMSG_DATA(nlh));
-
-pid = nlh->nlmsg_pid;
-NETLINK_CB(skb).groups = 0;
-NETLINK_CB(skb).pid = 0;
-NETLINK_CB(skb).dst_pid = pid;
-NETLINK_CB(skb).dst_groups = 0;
-netlink_unicast(nl_sk, skb, pid, MSG_DONTWAIT);
-sock_release(nl_sk->sk_socket);
-}
-
-static int __init init_module(void)
-{
-	/* requesting for LED_GPIO */
-	if(omap_request_gpio(LED_GPIO)<0)
-	{
-	printk("[ERROR]: Failed in allocating the requested
-GPIO Pin \n");
-		return -1;
-	}
-	
-	/* setting LED_GPIO as output pin */
-	omap_set_gpio_direction(LED_GPIO,0);
-
-	/* writing to LED_GPIO the value of LED_STATUS */
-	omap_set_gpio_dataout(LED_GPIO,1);
-
-	/* printing the value of LED_GPIO pin */
-	printk("value of pin # %d =
-%d\n",LED_GPIO,omap_get_gpio_datain(LED_GPIO));
-
-	printk("\n [START] : netlink_test");
-	netlink_test();
-	printk("\n [END] : netlink_test");
-	
-	return 0;
-}
-
-static void __exit cleanup_module(void)
-{
-	omap_free_gpio(LED_GPIO);	
-	printk("[SUCCESS]: LED_GLOW Module unregistered
-successfull.\n");
-}
-
-After compiling the kernel module I am getting the
-following errors
+>=20
+> Regards,
+> Khasim
+>=20
+>=20
 
 
-
-drivers/leds/leds-glow.c:1:24: sys/socket.h: No such
-file or directory
-drivers/leds/leds-glow.c: In function `nl_data_ready':
-drivers/leds/leds-glow.c:53: error: dereferencing
-pointer to incomplete type
-drivers/leds/leds-glow.c: At top level:
-drivers/leds/leds-glow.c:57: warning: function
-declaration isn't a prototype
-drivers/leds/leds-glow.c: In function `netlink_test':
-drivers/leds/leds-glow.c:63: error: `NETLINK_TEST'
-undeclared (first use in this function)
-drivers/leds/leds-glow.c:63: error: (Each undeclared
-identifier is reported only once
-drivers/leds/leds-glow.c:63: error: for each function
-it appears in.)
-drivers/leds/leds-glow.c:63: warning: passing arg 2 of
-`netlink_kernel_create' makes integer from pointer
-without a cast
-drivers/leds/leds-glow.c:63: error: too few arguments
-to function `netlink_kernel_create'
-drivers/leds/leds-glow.c:67: warning: char format,
-void arg (arg 3)
-drivers/leds/leds-glow.c:70: error: structure has no
-member named `groups'
-drivers/leds/leds-glow.c:72: error: structure has no
-member named `dst_pid'
-drivers/leds/leds-glow.c:73: error: structure has no
-member named `dst_groups'
-drivers/leds/leds-glow.c:75: error: dereferencing
-pointer to incomplete type
-drivers/leds/leds-glow.c: At top level:
-drivers/leds/leds-glow.c:79: warning: static
-declaration for `init_module' follows non-static
-drivers/leds/leds-glow.c:104: warning: static
-declaration for `cleanup_module' follows
-non-staticdrivers/leds/leds-glow.c:79: warning:
-`init_module' defined but not used
-drivers/leds/leds-glow.c:104: warning:
-`cleanup_module' defined but not used
-make[2]: *** [drivers/leds/leds-glow.o] Error 1
-make[1]: *** [drivers/leds] Error 2
-make: *** [drivers] Error 2
-
-Please Help.
-
-Regards
-Azharuddin
-
-
-      Bring your gang together - do your thing. Go to http://in.promos.yahoo.com/groups
+**********************************************************************
+This email and any files transmitted with it are confidential and
+intended solely for the use of the individual or entity to whom they
+are addressed. If you have received this email in error please notify
+helpdesk@ittiam.com.
+**********************************************************************
