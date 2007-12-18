@@ -1,14 +1,13 @@
-From: "Girish" <girishsg@ti.com>
-Subject: RE: [RFC] [PATCH 0/2] High Speed uart support on 3430
-Date: Tue, 18 Dec 2007 23:23:53 +0530
-Message-ID: <02fc01c8419e$f5dfc420$988818ac@ent.ti.com>
-References: <20071217173658.GF7388@atomide.com>
+From: "Mitchell, Danny" <dmitchell@ti.com>
+Subject: Linux driver for handling bad blocks in 2Kb block size NAND
+Date: Tue, 18 Dec 2007 14:37:14 -0600
+Message-ID: <BF1161CB0828C54FB897AAC235D2A486029B0C51@dlee11.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <20071217173658.GF7388@atomide.com>
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -16,27 +15,18 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: 'Tony Lindgren' <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
- 
+Has anyone come across a Linux driver that supports bad blocks for a
+Micron NAND flash with a 2kB block size. =20
 
->-----Original Message-----
->From: Tony Lindgren [mailto:tony@atomide.com] 
->Sent: Monday, December 17, 2007 11:07 PM
+=20
 
->> -	Data transfer Configuration(DMA mode)
->> -	ISR registration
->> -	UART Speed change
->
->Well all that sounds good, but please move the driver to 
->drivers/serial to start with.
+Best Regards,
 
-This UART driver is more like an independent library which doesn't interface with serial framework so this might not fit in
-driver/serial. Any comments?
+Danny
 
-Regards,
-Girish
+=20
