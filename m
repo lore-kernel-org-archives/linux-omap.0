@@ -1,19 +1,16 @@
-From: "=?UTF-8?Q?Lu=C3=ADs_Vit=C3=B3rio_Cargnini?=" <lvcargnini@gmail.com>
-Subject: Re: problems creating new cross-compiler
-Date: Fri, 21 Dec 2007 00:18:03 -0200
-Message-ID: <ae36f8040712201818x5e4436e1ide9ff48441dc3de6@mail.gmail.com>
-References: <ae36f8040712201222n58fe5eccu181256fc7f9587de@mail.gmail.com>
-	<31e679430712201239l75f21f32r591e463cf074df01@mail.gmail.com>
-	<4b70acb90712201357m15c56baaqd51383cc28224c1@mail.gmail.com>
-	<4b70acb90712201402s5e0abfb4n909ffc1d7c1666e3@mail.gmail.com>
-	<ae36f8040712201653h225e93e1y7dc5bc5363883a86@mail.gmail.com>
-	<ae36f8040712201749u1f53dec5r7f6776fbfe4e241e@mail.gmail.com>
-	<4b70acb90712201806p3458186et35221bc3273cbb51@mail.gmail.com>
-Reply-To: lvcargnini@gmail.com
+From: Bryan Wu <bryan.wu@analog.com>
+Subject: Re: [PATCH] [MUSB] musb_hdrc: disable sending PING packet in host
+	mode.
+Date: Fri, 21 Dec 2007 11:01:51 +0800
+Message-ID: <1198206111.6693.16.camel@roc-laptop>
+References: <1198159845.6319.1.camel@roc-laptop>
+	<200712201457.34851.david-b@pacbell.net>
+Reply-To: bryan.wu@analog.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1092936705=="
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <4b70acb90712201806p3458186et35221bc3273cbb51@mail.gmail.com>
+In-Reply-To: <200712201457.34851.david-b@pacbell.net>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -23,113 +20,80 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Cohen <dacohen@gmail.com>
-Cc: linux-omap@vger.kernel.org, OMAP <Linux-omap-open-source@linux.omap.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-omap-open-source <linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============1092936705==
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
 
-d2VsbCBJIG5lZWQgdG8gY3JlYXRlIGl0LCBJIG5lZWQgdGhhdCBteSBkZXZlbG9wZW1lbnQgdGVh
-bSBhbmQKcmVzZWFyY2ggc3R1ZGVudHMgYmVlbiBjYXBhYmxlIHRvIGNyZWF0ZSBpdCxuZCB0byB0
-ZWFjaCB0aGVtIEkgbXVzdAprbm93IGhvdyB0byBkbyBpdCBmb3Igb21hcAoKT24gRGVjIDIxLCAy
-MDA3IDEyOjA2IEFNLCBEYXZpZCBDb2hlbiA8ZGFjb2hlbkBnbWFpbC5jb20+IHdyb3RlOgo+IEJ1
-dCBkbyB5b3UgbmVlZCB0byBjcmVhdGUgaXQgZm9yIHNvbWUgcmVhc29uLCBvciBkbyB5b3UgbmVl
-ZCBqdXN0IHRvIHVzZSBpdD8KPgo+IEJyLAo+Cj4gRGF2aWQgQ29oZW4KPgo+Cj4gT24gRGVjIDIw
-LCAyMDA3IDk6NDkgUE0sIEx1w61zIFZpdMOzcmlvIENhcmduaW5pIDxsdmNhcmduaW5pQGdtYWls
-LmNvbT4gd3JvdGU6Cj4gPiBQbGVhc2UgdGhlcmUgaXMgYSBuZXcgaG93dG8gdG8gY3JlYXRlIGEg
-bmV3IGdjYyBmb3Igb21hcCAgMSwyLAo+ID4gZGlmZmVyZW50IGZyb20gdGhlIGV4aXN0ZW50IGlu
-IHRoZSB3ZWIgPwo+ID4gQmVjYXN1ZSBGZWxpcGUgc2VudCBtZSBhIHNldCBvZiBjb25maWd1cmF0
-aW9ucyBkaWZmZXJlbnQgdGhhdCB3ZQo+ID4gdXN1YWxseSBmb3VuZCBpbiB0aGUgbmV0Cj4gPgo+
-ID4KPiA+IE9uIERlYyAyMCwgMjAwNyAxMDo1MyBQTSwgTHXDrXMgVml0w7NyaW8gQ2FyZ25pbmkg
-PGx2Y2FyZ25pbmlAZ21haWwuY29tPiB3cm90ZToKPiA+ID4gYW55IHdheSBJIHdpbGwgdHJ5IGJv
-dGgKPiA+ID4gVGhhbmtzIGFsbCBmb3IgdGhlIGhlbHAKPiA+ID4KPiA+ID4KPiA+ID4gT24gRGVj
-IDIwLCAyMDA3IDg6MDIgUE0sIERhdmlkIENvaGVuIDxkYWNvaGVuQGdtYWlsLmNvbT4gd3JvdGU6
-Cj4gPiA+ID4gU29ycnksIEkgbWlzdW5kZXJzdG9vZC4gWW91J3JlIGNyZWF0aW5nIG9uZS4gSnVz
-dCBkbyB3aGF0IEZlbGlwZSBzYWlkLgo+ID4gPiA+IEJ1dCB5b3UgbWlnaHQgZ2V0IHRoZSBvbmUg
-SSBwb2ludGVkLiBJdCBpcyBlYXN5IGFuZCBpdCdzIHJlYWR5IGZvcgo+ID4gPiA+IHVzZS4KPiA+
-ID4gPgo+ID4gPiA+IEJSLAo+ID4gPiA+Cj4gPiA+ID4gRGF2aWQgQ29oZW4KPiA+ID4gPgo+ID4g
-PiA+Cj4gPiA+ID4KPiA+ID4gPgo+ID4gPiA+IE9uIERlYyAyMCwgMjAwNyA1OjU3IFBNLCBEYXZp
-ZCBDb2hlbiA8ZGFjb2hlbkBnbWFpbC5jb20+IHdyb3RlOgo+ID4gPiA+ID4gSGksCj4gPiA+ID4g
-Pgo+ID4gPiA+ID4gSWYgeW91IGRvbid0IGhhdmUgdGhlIGFybS1ub25lLWVhYmktZ2NjLCBkb3du
-bG9hZCBpdCBmcm9tOgo+ID4gPiA+ID4gaHR0cDovL3d3dy5jb2Rlc291cmNlcnkuY29tL2dudV90
-b29sY2hhaW5zL2FybS9kb3dubG9hZC5odG1sCj4gPiA+ID4gPgo+ID4gPiA+ID4gVGhlbiwgYWRk
-IGl0cyAiYmluIiBkaXIgb24gUEFUSC4KPiA+ID4gPiA+Cj4gPiA+ID4gPiBbXSdzCj4gPiA+ID4g
-Pgo+ID4gPiA+ID4gRGF2aWQgQ29oZW4KPiA+ID4gPiA+Cj4gPiA+ID4gPgo+ID4gPiA+ID4gT24g
-RGVjIDIwLCAyMDA3IDQ6MzkgUE0sIEZlbGlwZSBCYWxiaSA8ZmVsaXBlYmFsYmlAdXNlcnMuc291
-cmNlZm9yZ2UubmV0PiB3cm90ZToKPiA+ID4gPiA+ID4gSGksCj4gPiA+ID4gPiA+Cj4gPiA+ID4g
-PiA+IEZpcnN0IG9mIGFsbCwgc2VuZCBlbWFpbCB0byBvdXIgbmV3IGxpc3Q6Cj4gPiA+ID4gPiA+
-IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnCj4gPiA+ID4gPiA+Cj4gPiA+ID4gPiA+IE9uIERl
-YyAyMCwgMjAwNyA0OjIyIFBNLCBMdcOtcyBWaXTDs3JpbyBDYXJnbmluaSA8bHZjYXJnbmluaUBn
-bWFpbC5jb20+IHdyb3RlOgo+ID4gPiA+ID4gPiA+IERlYXIgY29sbGVhZ3VlcywKPiA+ID4gPiA+
-ID4gPgo+ID4gPiA+ID4gPiA+IEkgaGF2aW5nIHRoZSBmb2xsb3dpbmcgcHJvYmxlbToKPiA+ID4g
-PiA+ID4gPiAoZW50ZXJwcmlzZTp0b29sY2hhaW4vYnVpbGQvZ2NjKSBsdmNhcmduaW5pJSAuLi8u
-Li9zb3VyY2VzL2djYy00LjIuMi9jb25maWd1cmUKPiA+ID4gPiA+ID4gPiAtLXByZWZpeD0vb3B0
-L2FybS1saW51eCAtLXRhcmdldD1hcm0tbGludXggLS1lbmFibGUtY3Jvc3MgLS1kaXNhYmxlLXRo
-cmVhZHMKPiA+ID4gPiA+ID4gPiAtLWVuYWJsZS1sYW5ndWFnZXM9YyAtLWRpc2FibGUtc2hhcmVk
-IC0tZGlzYWJsZS1tdWx0aWxpYgo+ID4gPiA+ID4gPiA+IC0tZW5hYmxlLV9fY3hhX2F0ZXhpdCAt
-LXdpdGgtZmxvYXQ9c29mdGZwCj4gPiA+ID4gPiA+ID4gLS13aXRoLWd4eC1pbmNsdWRlLWRpcj0v
-b3B0L2FybS1saW51eC9hcm0tbGludXgvaW5jbHVkZS9nKystdjMKPiA+ID4gPiA+ID4gPiAtLXdp
-dGgtaGVhZGVycz0vb3B0L2FybS1saW51eC9hcm0tbGludXgvaW5jbHVkZQo+ID4gPiA+ID4gPiA+
-IGxvYWRpbmcgY2FjaGUgLi9jb25maWcuY2FjaGUKPiA+ID4gPiA+ID4gPiBjaGVja2luZyBob3N0
-IHN5c3RlbSB0eXBlLi4uIGk2ODYtcGMtbGludXgtZ251Cj4gPiA+ID4gPiA+ID4gY2hlY2tpbmcg
-dGFyZ2V0IHN5c3RlbSB0eXBlLi4uIGFybS11bmtub3duLWxpbnV4LWdudQo+ID4gPiA+ID4gPiA+
-IGNoZWNraW5nIGJ1aWxkIHN5c3RlbSB0eXBlLi4uIGk2ODYtcGMtbGludXgtZ251Cj4gPiA+ID4g
-PiA+ID4gY2hlY2tpbmcgZm9yIGEgQlNEIGNvbXBhdGlibGUgaW5zdGFsbC4uLiAvdXNyL2Jpbi9p
-bnN0YWxsIC1jCj4gPiA+ID4gPiA+ID4gY2hlY2tpbmcgd2hldGhlciBsbiB3b3Jrcy4uLiB5ZXMK
-PiA+ID4gPiA+ID4gPiBjaGVja2luZyB3aGV0aGVyIGxuIC1zIHdvcmtzLi4uIHllcwo+ID4gPiA+
-ID4gPiA+IGNoZWNraW5nIGZvciBnY2MuLi4gYXJtLWxpbnV4LWdjYwo+ID4gPiA+ID4gPiA+IGNo
-ZWNraW5nIHdoZXRoZXIgdGhlIEMgY29tcGlsZXIgKGFybS1saW51eC1nY2MgICkgd29ya3MuLi4g
-bm8KPiA+ID4gPiA+ID4gPiBjb25maWd1cmU6IGVycm9yOiBpbnN0YWxsYXRpb24gb3IgY29uZmln
-dXJhdGlvbiBwcm9ibGVtOiBDIGNvbXBpbGVyIGNhbm5vdAo+ID4gPiA+ID4gPiA+IGNyZWF0ZSBl
-eGVjdXRhYmxlcy4KPiA+ID4gPiA+ID4KPiA+ID4gPiA+ID4gVHJ5IHRoZSBmb2xsb3dpbmc6Cj4g
-PiA+ID4gPiA+IC4vY29uZmlndXJlIC0tdGFyZ2V0PWFybS1ub25lLWxpbnV4LWdudWVhYmkKPiA+
-ID4gPiA+ID4gLS1wcm9ncmFtLXByZWZpeD1hcm0tbGludXgtIC0tcHJlZml4PS91c3IvbG9jYWwg
-LS1lbmFibGUtc2hhcmVkCj4gPiA+ID4gPiA+IC0tZW5hYmxlLXRocmVhZHMgLS1kaXNhYmxlLWxp
-Ym11ZGZsYXAgLS1kaXNhYmxlLWxpYnNzcAo+ID4gPiA+ID4gPiAtLWRpc2FibGUtbGliZ29tcCAt
-LWRpc2FibGUtbGlic3RkY3h4LXBjaCAtLXdpdGgtZ251LWFzIC0td2l0aC1nbnUtbGQKPiA+ID4g
-PiA+ID4gLS1lbmFibGUtbGFuZ3VhZ2VzPWMgLS13aXRoLW5ld2xpYiAtLWRpc2FibGUtbmxzIC0t
-d2l0aC1oZWFkZXJzPXllcwo+ID4gPiA+ID4gPiAtLWVuYWJsZS1wb2lzb24tc3lzdGVtLWRpcmVj
-dG9yaWVzICAmJiBtYWtlCj4gPiA+ID4gPiA+Cj4gPiA+ID4gPiA+Cj4gPiA+ID4gPiA+IFRoaXMg
-bWlnaHQgd29yayA7LSkKPiA+ID4gPiA+ID4gLS0KPiA+ID4gPiA+ID4gQmVzdCBSZWdhcmRzLAo+
-ID4gPiA+ID4gPgo+ID4gPiA+ID4gPiBGZWxpcGUgQmFsYmkKPiA+ID4gPiA+ID4gZmVsaXBlYmFs
-YmlAdXNlcnMuc291cmNlZm9yZ2UubmV0Cj4gPiA+ID4gPiA+IC0KPiA+ID4gPiA+ID4gVG8gdW5z
-dWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4
-LW9tYXAiIGluCj4gPiA+ID4gPiA+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9A
-dmdlci5rZXJuZWwub3JnCj4gPiA+ID4gPiA+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6
-Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo+ID4gPiA+ID4gPgo+ID4gPiA+
-ID4KPiA+ID4gPgo+ID4gPgo+ID4gPgo+ID4gPgo+ID4gPiAtLQo+ID4gPiAtLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0KPiA+ID4KPiA+ID4gVGhhbmtzICYmIFJlZ2FyZHMKPiA+ID4gTS5TYy4gQi5TYy4g
-THXDrXMgVml0w7NyaW8gQ2FyZ25pbmkKPiA+ID4gSUVFRSBNZW1iZXIKPiA+ID4gRWxlY3RyaWNh
-bCBFbmdpbmVlciBGYWN1bHR5IEAgUFVDUlMKPiA+ID4gSXBpcmFuZ2EgQXZlbnVlLCA2NjgxIOKA
-kyBCdWlsZGluZyAzMAo+ID4gPiBQLk8uIEJveDogOTA2MTktOTAwIOKAkyBQb3J0byBBbGVncmUv
-UlMKPiA+ID4gUGhvbmU6ICs1NSA1MSAzMzIwIDM1MDAgIGV4dGVuc2lvbjogNzY5Ngo+ID4gPiAt
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KPiA+ID4KPiA+Cj4gPgo+ID4KPiA+IC0tCj4gPiAtLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0KPiA+IFRoYW5rcyAmJiBSZWdhcmRzCj4gPiBNLlNjLiBCLlNjLiBM
-dcOtcyBWaXTDs3JpbyBDYXJnbmluaQo+ID4gSUVFRSBNZW1iZXIKPiA+IEVsZWN0cmljYWwgRW5n
-aW5lZXIgRmFjdWx0eSBAIFBVQ1JTCj4gPiBJcGlyYW5nYSBBdmVudWUsIDY2ODEg4oCTIEJ1aWxk
-aW5nIDMwCj4gPiBQLk8uIEJveDogOTA2MTktOTAwIOKAkyBQb3J0byBBbGVncmUvUlMKPiA+IFBo
-b25lOiArNTUgNTEgMzMyMCAzNTAwICBleHRlbnNpb246IDc2OTYKPiA+IC0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLQo+ID4KPgoKCgotLSAKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClRoYW5rcyAmJiBS
-ZWdhcmRzCk0uU2MuIEIuU2MuIEx1w61zIFZpdMOzcmlvIENhcmduaW5pCklFRUUgTWVtYmVyCkVs
-ZWN0cmljYWwgRW5naW5lZXIgRmFjdWx0eSBAIFBVQ1JTCklwaXJhbmdhIEF2ZW51ZSwgNjY4MSDi
-gJMgQnVpbGRpbmcgMzAKUC5PLiBCb3g6IDkwNjE5LTkwMCDigJMgUG9ydG8gQWxlZ3JlL1JTClBo
-b25lOiArNTUgNTEgMzMyMCAzNTAwICBleHRlbnNpb246IDc2OTYKLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tCg==
+On Thu, 2007-12-20 at 14:57 -0800, David Brownell wrote:
+> On Thursday 20 December 2007, Bryan Wu wrote:
+> > From: Bryan Wu <bryan.wu@analog.com>
+> > Date: Thu, 20 Dec 2007 15:25:34 +0800
+> > Subject: [PATCH] [MUSB] musb_hdrc: disable sending PING packet in host
+> > mode.
+> > 
+> > Some High Speed USB stick does not answer PING pakcet correctly, so
+> > the USB enumeration will fail in MUSB host mode.
+> > 
+> > Disable using PING packet in host mode, almost all the USB stick
+> > enumeration is OK on Blackfin BF54x/BF52x platform. I hope this is
+> > a common problem in other MUSB platform.
+> > 
+> > This bug is tracked here:
+> > https://blackfin.uclinux.org/gf/project/uclinux-dist/tracker/?action=TrackerItemEdit&tracker_id=141&tracker_item_id=3778
+> 
+> The referenced PNG images aren't listed in that bug report.  :)
+> 
 
---===============1092936705==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+The bug was reported by a customer and I also found a USB stick
+reproducing the bug. So the PNG pictures were attached in our forum at
+following URL:
+https://blackfin.uclinux.org/gf/project/uclinux-dist/forum/?action=ForumBrowse&forum_id=39&_forum_action=ForumMessageBrowse&thread_id=24780
 
 
---===============1092936705==--
+> 
+> > Signed-off-by: Bryan Wu <bryan.wu@analog.com>
+> > ---
+> >  drivers/usb/musb/musb_host.c |    2 ++
+> >  1 files changed, 2 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+> > index 2ad2ed9..34a2991 100644
+> > --- a/drivers/usb/musb/musb_host.c
+> > +++ b/drivers/usb/musb/musb_host.c
+> > @@ -1112,6 +1112,8 @@ irqreturn_t musb_h_ep0_irq(struct musb *musb)
+> >                                 csr = MUSB_CSR0_H_STATUSPKT
+> >                                         | MUSB_CSR0_TXPKTRDY;
+> >  
+> > +                       csr |= MUSB_CSR0_H_DIS_PING;
+> > +
+> 
+> Is PING actually allowed for control endpoints?  I'm not
+> entirely sure this wouldn't be a case of "make the driver
+> follow the specs"... don't have time just now to check
+> what the USB 2.0 spec says.
+> 
+
+Yes, according to USB 2.0 spec, the control and bulk endpoints of
+High-Speed devices should answer NAK/ACK to PING packet. I think the
+MUSB driver follows the spec without my patch. But some USB sticks are
+not follows this, the control endpoint never answer ACK to PING, always
+NAK. This endless NAK will be stopped by MUSB upper USB stack by
+resetting. So this kind USB sticks can not enumerate with MUSB driver.
+
+I test the same problem USB sticks on Linux PC host. There is no PING
+for control endpoint.
+Because in EHCI spec, there is a status bit named PING status bit in the
+qTD.  You can found it in Section 4.11 "Ping Control" of the EHCI spec.
+EHCI HCD can choose ping or not.
+
+Do you know how to decide to ping or not in MUSB?
+I have an idea: the USB_NAKLIMIT0 should be set to some value, when we
+got NAK timeout interrupt, we can disable PING. When enumerating normal
+USB stick, there is no NAK timeout, because PING is efficient for
+handshaking. While problem USB stick will generate NAK timeout
+interrupt, we disable PING for this kind of USB device enumeration.
+
+Thanks
+Regards,
+-Bryan
