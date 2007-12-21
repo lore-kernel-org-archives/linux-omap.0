@@ -1,16 +1,11 @@
-From: Bryan Wu <bryan.wu@analog.com>
-Subject: Re: [PATCH] [MUSB] musb_hdrc: disable sending PING packet in host
-	mode.
-Date: Fri, 21 Dec 2007 11:01:51 +0800
-Message-ID: <1198206111.6693.16.camel@roc-laptop>
-References: <1198159845.6319.1.camel@roc-laptop>
-	<200712201457.34851.david-b@pacbell.net>
-Reply-To: bryan.wu@analog.com
+From: "Azhar Mr." <shaik.azharuddin@yahoo.co.in>
+Subject: netlink-socket program
+Date: Fri, 21 Dec 2007 04:18:27 +0000 (GMT)
+Message-ID: <250419.26500.qm@web7605.mail.in.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <200712201457.34851.david-b@pacbell.net>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,82 +13,185 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap-open-source <linux-omap-open-source@linux.omap.com>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
-On Thu, 2007-12-20 at 14:57 -0800, David Brownell wrote:
-> On Thursday 20 December 2007, Bryan Wu wrote:
-> > From: Bryan Wu <bryan.wu@analog.com>
-> > Date: Thu, 20 Dec 2007 15:25:34 +0800
-> > Subject: [PATCH] [MUSB] musb_hdrc: disable sending PING packet in host
-> > mode.
-> > 
-> > Some High Speed USB stick does not answer PING pakcet correctly, so
-> > the USB enumeration will fail in MUSB host mode.
-> > 
-> > Disable using PING packet in host mode, almost all the USB stick
-> > enumeration is OK on Blackfin BF54x/BF52x platform. I hope this is
-> > a common problem in other MUSB platform.
-> > 
-> > This bug is tracked here:
-> > https://blackfin.uclinux.org/gf/project/uclinux-dist/tracker/?action=TrackerItemEdit&tracker_id=141&tracker_item_id=3778
-> 
-> The referenced PNG images aren't listed in that bug report.  :)
-> 
+  I am working on OMAP5912 OSK.
+   
+  I want to have communication between kernel module and user space application. For communication I am using netlink sockets. I have successfully compiled user space application. But unable to compile kernel
+module. :-(. It is giving error as 'Dereferencing pointer to incomplete type'
 
-The bug was reported by a customer and I also found a USB stick
-reproducing the bug. So the PNG pictures were attached in our forum at
-following URL:
-https://blackfin.uclinux.org/gf/project/uclinux-dist/forum/?action=ForumBrowse&forum_id=39&_forum_action=ForumMessageBrowse&thread_id=24780
+The psuedocode is as follows for kernel module 
+
+#include <sys/socket.h>
+#include <linux/netlink.h>
+
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <linux/mm.h>
+#include <linux/slab.h>
+#include <linux/fs.h>
+#include <linux/sched.h>
+#include <asm/uaccess.h>
+#include <linux/poll.h>
+#include <linux/interrupt.h>
+#include <linux/wait.h>
+#include <linux/delay.h>
+#include <linux/time.h>
+#include <linux/vmalloc.h>
+#include <asm/io.h>
+
+#include <linux/init.h>
+#include <linux/list.h>
+#include <linux/platform_device.h>
+#include <linux/timer.h>
+#include <linux/err.h>
+#include <linux/input.h>
+#include <asm/arch/hardware.h>
+#include <asm/arch/gpio.h>
+#include <asm/arch/irqs.h>
+#include <asm/arch/mux.h>
+#include <asm/arch/board.h>
+
+#define MAX_PAYLOAD 1024
+/* Define any of the valid GPIO pins as LED_GPIO */
+#define LED_GPIO 7
+
+/* Defines the value written to the pin defined as
+LED_GPIO */
+#define LED_STATUS 1
+
+MODULE_LICENSE("Dual BSD/GPL");
+
+// Note: Debug is not implemented
+static int debug = 0;
+
+module_param(debug, int, 0);
+MODULE_PARM_DESC(debug, "Debug information (default
+0)");
+
+static struct sock *nl_sk = NULL;
+
+static void nl_data_ready (struct sock *sk, int len)
+{
+wake_up_interruptible(sk->sk_sleep);
+}
+
+static void netlink_test()
+{
+struct sk_buff *skb = NULL;
+struct nlmsghdr *nlh = NULL;
+int err;
+u32 pid;
+
+nl_sk = netlink_kernel_create(NETLINK_TEST,
+nl_data_ready);
+skb = skb_recv_datagram(nl_sk, 0, 0, &err);
+
+nlh = (struct nlmsghdr *)skb->data;
+printk(KERN_INFO "%s: received netlink message
+payload: %s\n", __FUNCTION__, NLMSG_DATA(nlh));
+
+pid = nlh->nlmsg_pid;
+NETLINK_CB(skb).groups = 0;
+NETLINK_CB(skb).pid = 0;
+NETLINK_CB(skb).dst_pid = pid;
+NETLINK_CB(skb).dst_groups = 0;
+netlink_unicast(nl_sk, skb, pid, MSG_DONTWAIT);
+sock_release(nl_sk->sk_socket);
+}
+
+static int __init init_module(void)
+{
+ /* requesting for LED_GPIO */
+ if(omap_request_gpio(LED_GPIO)<0)
+ {
+ printk("[ERROR]: Failed in allocating the requested
+GPIO Pin \n");
+  return -1;
+ }
+ 
+ /* setting LED_GPIO as output pin */
+ omap_set_gpio_direction(LED_GPIO,0);
+
+ /* writing to LED_GPIO the value of LED_STATUS */
+ omap_set_gpio_dataout(LED_GPIO,1);
+
+ /* printing the value of LED_GPIO pin */
+ printk("value of pin # %d =
+%d\n",LED_GPIO,omap_get_gpio_datain(LED_GPIO));
+
+ printk("\n [START] : netlink_test");
+ netlink_test();
+ printk("\n [END] : netlink_test");
+ 
+ return 0;
+}
+
+static void __exit cleanup_module(void)
+{
+ omap_free_gpio(LED_GPIO); 
+ printk("[SUCCESS]: LED_GLOW Module unregistered
+successfull.\n");
+}
+
+After compiling the kernel module I am getting the
+following errors
 
 
-> 
-> > Signed-off-by: Bryan Wu <bryan.wu@analog.com>
-> > ---
-> >  drivers/usb/musb/musb_host.c |    2 ++
-> >  1 files changed, 2 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-> > index 2ad2ed9..34a2991 100644
-> > --- a/drivers/usb/musb/musb_host.c
-> > +++ b/drivers/usb/musb/musb_host.c
-> > @@ -1112,6 +1112,8 @@ irqreturn_t musb_h_ep0_irq(struct musb *musb)
-> >                                 csr = MUSB_CSR0_H_STATUSPKT
-> >                                         | MUSB_CSR0_TXPKTRDY;
-> >  
-> > +                       csr |= MUSB_CSR0_H_DIS_PING;
-> > +
-> 
-> Is PING actually allowed for control endpoints?  I'm not
-> entirely sure this wouldn't be a case of "make the driver
-> follow the specs"... don't have time just now to check
-> what the USB 2.0 spec says.
-> 
 
-Yes, according to USB 2.0 spec, the control and bulk endpoints of
-High-Speed devices should answer NAK/ACK to PING packet. I think the
-MUSB driver follows the spec without my patch. But some USB sticks are
-not follows this, the control endpoint never answer ACK to PING, always
-NAK. This endless NAK will be stopped by MUSB upper USB stack by
-resetting. So this kind USB sticks can not enumerate with MUSB driver.
+drivers/leds/leds-glow.c:1:24: sys/socket.h: No such
+file or directory
+drivers/leds/leds-glow.c: In function `nl_data_ready':
+drivers/leds/leds-glow.c:53: error: dereferencing
+pointer to incomplete type
+drivers/leds/leds-glow.c: At top level:
+drivers/leds/leds-glow.c:57: warning: function
+declaration isn't a prototype
+drivers/leds/leds-glow.c: In function `netlink_test':
+drivers/leds/leds-glow.c:63: error: `NETLINK_TEST'
+undeclared (first use in this function)
+drivers/leds/leds-glow.c:63: error: (Each undeclared
+identifier is reported only once
+drivers/leds/leds-glow.c:63: error: for each function
+it appears in.)
+drivers/leds/leds-glow.c:63: warning: passing arg 2 of
+`netlink_kernel_create' makes integer from pointer
+without a cast
+drivers/leds/leds-glow.c:63: error: too few arguments
+to function `netlink_kernel_create'
+drivers/leds/leds-glow.c:67: warning: char format,
+void arg (arg 3)
+drivers/leds/leds-glow.c:70: error: structure has no
+member named `groups'
+drivers/leds/leds-glow.c:72: error: structure has no
+member named `dst_pid'
+drivers/leds/leds-glow.c:73: error: structure has no
+member named `dst_groups'
+drivers/leds/leds-glow.c:75: error: dereferencing
+pointer to incomplete type
+drivers/leds/leds-glow.c: At top level:
+drivers/leds/leds-glow.c:79: warning: static
+declaration for `init_module' follows non-static
+drivers/leds/leds-glow.c:104: warning: static
+declaration for `cleanup_module' follows
+non-staticdrivers/leds/leds-glow.c:79: warning:
+`init_module' defined but not used
+drivers/leds/leds-glow.c:104: warning:
+`cleanup_module' defined but not used
+make[2]: *** [drivers/leds/leds-glow.o] Error 1
+make[1]: *** [drivers/leds] Error 2
+make: *** [drivers] Error 2
 
-I test the same problem USB sticks on Linux PC host. There is no PING
-for control endpoint.
-Because in EHCI spec, there is a status bit named PING status bit in the
-qTD.  You can found it in Section 4.11 "Ping Control" of the EHCI spec.
-EHCI HCD can choose ping or not.
+Please Help.
+  With Regards
+Azharuddin
 
-Do you know how to decide to ping or not in MUSB?
-I have an idea: the USB_NAKLIMIT0 should be set to some value, when we
-got NAK timeout interrupt, we can disable PING. When enumerating normal
-USB stick, there is no NAK timeout, because PING is efficient for
-handshaking. While problem USB stick will generate NAK timeout
-interrupt, we disable PING for this kind of USB device enumeration.
 
-Thanks
-Regards,
--Bryan
+       
+---------------------------------
+ Unlimited freedom, unlimited storage. Get it now
