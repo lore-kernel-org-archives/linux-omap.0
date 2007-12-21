@@ -1,17 +1,19 @@
-From: "=?UTF-8?Q?Lu=C3=ADs_Vit=C3=B3rio_Cargnini?=" <lvcargnini@gmail.com>
+From: "David Cohen" <dacohen@gmail.com>
 Subject: Re: problems creating new cross-compiler
-Date: Thu, 20 Dec 2007 23:49:35 -0200
-Message-ID: <ae36f8040712201749u1f53dec5r7f6776fbfe4e241e@mail.gmail.com>
+Date: Thu, 20 Dec 2007 22:06:10 -0400
+Message-ID: <4b70acb90712201806p3458186et35221bc3273cbb51@mail.gmail.com>
 References: <ae36f8040712201222n58fe5eccu181256fc7f9587de@mail.gmail.com>
 	<31e679430712201239l75f21f32r591e463cf074df01@mail.gmail.com>
 	<4b70acb90712201357m15c56baaqd51383cc28224c1@mail.gmail.com>
 	<4b70acb90712201402s5e0abfb4n909ffc1d7c1666e3@mail.gmail.com>
 	<ae36f8040712201653h225e93e1y7dc5bc5363883a86@mail.gmail.com>
-Reply-To: lvcargnini@gmail.com
+	<ae36f8040712201749u1f53dec5r7f6776fbfe4e241e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0079904938=="
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <ae36f8040712201653h225e93e1y7dc5bc5363883a86@mail.gmail.com>
+In-Reply-To: <ae36f8040712201749u1f53dec5r7f6776fbfe4e241e@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -21,91 +23,148 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: David Cohen <dacohen@gmail.com>
+To: lvcargnini@gmail.com
 Cc: linux-omap@vger.kernel.org, OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============0079904938==
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+But do you need to create it for some reason, or do you need just to use it=
+?
 
-UGxlYXNlIHRoZXJlIGlzIGEgbmV3IGhvd3RvIHRvIGNyZWF0ZSBhIG5ldyBnY2MgZm9yIG9tYXAg
-IDEsMiwKZGlmZmVyZW50IGZyb20gdGhlIGV4aXN0ZW50IGluIHRoZSB3ZWIgPwpCZWNhc3VlIEZl
-bGlwZSBzZW50IG1lIGEgc2V0IG9mIGNvbmZpZ3VyYXRpb25zIGRpZmZlcmVudCB0aGF0IHdlCnVz
-dWFsbHkgZm91bmQgaW4gdGhlIG5ldAoKT24gRGVjIDIwLCAyMDA3IDEwOjUzIFBNLCBMdcOtcyBW
-aXTDs3JpbyBDYXJnbmluaSA8bHZjYXJnbmluaUBnbWFpbC5jb20+IHdyb3RlOgo+IGFueSB3YXkg
-SSB3aWxsIHRyeSBib3RoCj4gVGhhbmtzIGFsbCBmb3IgdGhlIGhlbHAKPgo+Cj4gT24gRGVjIDIw
-LCAyMDA3IDg6MDIgUE0sIERhdmlkIENvaGVuIDxkYWNvaGVuQGdtYWlsLmNvbT4gd3JvdGU6Cj4g
-PiBTb3JyeSwgSSBtaXN1bmRlcnN0b29kLiBZb3UncmUgY3JlYXRpbmcgb25lLiBKdXN0IGRvIHdo
-YXQgRmVsaXBlIHNhaWQuCj4gPiBCdXQgeW91IG1pZ2h0IGdldCB0aGUgb25lIEkgcG9pbnRlZC4g
-SXQgaXMgZWFzeSBhbmQgaXQncyByZWFkeSBmb3IKPiA+IHVzZS4KPiA+Cj4gPiBCUiwKPiA+Cj4g
-PiBEYXZpZCBDb2hlbgo+ID4KPiA+Cj4gPgo+ID4KPiA+IE9uIERlYyAyMCwgMjAwNyA1OjU3IFBN
-LCBEYXZpZCBDb2hlbiA8ZGFjb2hlbkBnbWFpbC5jb20+IHdyb3RlOgo+ID4gPiBIaSwKPiA+ID4K
-PiA+ID4gSWYgeW91IGRvbid0IGhhdmUgdGhlIGFybS1ub25lLWVhYmktZ2NjLCBkb3dubG9hZCBp
-dCBmcm9tOgo+ID4gPiBodHRwOi8vd3d3LmNvZGVzb3VyY2VyeS5jb20vZ251X3Rvb2xjaGFpbnMv
-YXJtL2Rvd25sb2FkLmh0bWwKPiA+ID4KPiA+ID4gVGhlbiwgYWRkIGl0cyAiYmluIiBkaXIgb24g
-UEFUSC4KPiA+ID4KPiA+ID4gW10ncwo+ID4gPgo+ID4gPiBEYXZpZCBDb2hlbgo+ID4gPgo+ID4g
-Pgo+ID4gPiBPbiBEZWMgMjAsIDIwMDcgNDozOSBQTSwgRmVsaXBlIEJhbGJpIDxmZWxpcGViYWxi
-aUB1c2Vycy5zb3VyY2Vmb3JnZS5uZXQ+IHdyb3RlOgo+ID4gPiA+IEhpLAo+ID4gPiA+Cj4gPiA+
-ID4gRmlyc3Qgb2YgYWxsLCBzZW5kIGVtYWlsIHRvIG91ciBuZXcgbGlzdDoKPiA+ID4gPiBsaW51
-eC1vbWFwQHZnZXIua2VybmVsLm9yZwo+ID4gPiA+Cj4gPiA+ID4gT24gRGVjIDIwLCAyMDA3IDQ6
-MjIgUE0sIEx1w61zIFZpdMOzcmlvIENhcmduaW5pIDxsdmNhcmduaW5pQGdtYWlsLmNvbT4gd3Jv
-dGU6Cj4gPiA+ID4gPiBEZWFyIGNvbGxlYWd1ZXMsCj4gPiA+ID4gPgo+ID4gPiA+ID4gSSBoYXZp
-bmcgdGhlIGZvbGxvd2luZyBwcm9ibGVtOgo+ID4gPiA+ID4gKGVudGVycHJpc2U6dG9vbGNoYWlu
-L2J1aWxkL2djYykgbHZjYXJnbmluaSUgLi4vLi4vc291cmNlcy9nY2MtNC4yLjIvY29uZmlndXJl
-Cj4gPiA+ID4gPiAtLXByZWZpeD0vb3B0L2FybS1saW51eCAtLXRhcmdldD1hcm0tbGludXggLS1l
-bmFibGUtY3Jvc3MgLS1kaXNhYmxlLXRocmVhZHMKPiA+ID4gPiA+IC0tZW5hYmxlLWxhbmd1YWdl
-cz1jIC0tZGlzYWJsZS1zaGFyZWQgLS1kaXNhYmxlLW11bHRpbGliCj4gPiA+ID4gPiAtLWVuYWJs
-ZS1fX2N4YV9hdGV4aXQgLS13aXRoLWZsb2F0PXNvZnRmcAo+ID4gPiA+ID4gLS13aXRoLWd4eC1p
-bmNsdWRlLWRpcj0vb3B0L2FybS1saW51eC9hcm0tbGludXgvaW5jbHVkZS9nKystdjMKPiA+ID4g
-PiA+IC0td2l0aC1oZWFkZXJzPS9vcHQvYXJtLWxpbnV4L2FybS1saW51eC9pbmNsdWRlCj4gPiA+
-ID4gPiBsb2FkaW5nIGNhY2hlIC4vY29uZmlnLmNhY2hlCj4gPiA+ID4gPiBjaGVja2luZyBob3N0
-IHN5c3RlbSB0eXBlLi4uIGk2ODYtcGMtbGludXgtZ251Cj4gPiA+ID4gPiBjaGVja2luZyB0YXJn
-ZXQgc3lzdGVtIHR5cGUuLi4gYXJtLXVua25vd24tbGludXgtZ251Cj4gPiA+ID4gPiBjaGVja2lu
-ZyBidWlsZCBzeXN0ZW0gdHlwZS4uLiBpNjg2LXBjLWxpbnV4LWdudQo+ID4gPiA+ID4gY2hlY2tp
-bmcgZm9yIGEgQlNEIGNvbXBhdGlibGUgaW5zdGFsbC4uLiAvdXNyL2Jpbi9pbnN0YWxsIC1jCj4g
-PiA+ID4gPiBjaGVja2luZyB3aGV0aGVyIGxuIHdvcmtzLi4uIHllcwo+ID4gPiA+ID4gY2hlY2tp
-bmcgd2hldGhlciBsbiAtcyB3b3Jrcy4uLiB5ZXMKPiA+ID4gPiA+IGNoZWNraW5nIGZvciBnY2Mu
-Li4gYXJtLWxpbnV4LWdjYwo+ID4gPiA+ID4gY2hlY2tpbmcgd2hldGhlciB0aGUgQyBjb21waWxl
-ciAoYXJtLWxpbnV4LWdjYyAgKSB3b3Jrcy4uLiBubwo+ID4gPiA+ID4gY29uZmlndXJlOiBlcnJv
-cjogaW5zdGFsbGF0aW9uIG9yIGNvbmZpZ3VyYXRpb24gcHJvYmxlbTogQyBjb21waWxlciBjYW5u
-b3QKPiA+ID4gPiA+IGNyZWF0ZSBleGVjdXRhYmxlcy4KPiA+ID4gPgo+ID4gPiA+IFRyeSB0aGUg
-Zm9sbG93aW5nOgo+ID4gPiA+IC4vY29uZmlndXJlIC0tdGFyZ2V0PWFybS1ub25lLWxpbnV4LWdu
-dWVhYmkKPiA+ID4gPiAtLXByb2dyYW0tcHJlZml4PWFybS1saW51eC0gLS1wcmVmaXg9L3Vzci9s
-b2NhbCAtLWVuYWJsZS1zaGFyZWQKPiA+ID4gPiAtLWVuYWJsZS10aHJlYWRzIC0tZGlzYWJsZS1s
-aWJtdWRmbGFwIC0tZGlzYWJsZS1saWJzc3AKPiA+ID4gPiAtLWRpc2FibGUtbGliZ29tcCAtLWRp
-c2FibGUtbGlic3RkY3h4LXBjaCAtLXdpdGgtZ251LWFzIC0td2l0aC1nbnUtbGQKPiA+ID4gPiAt
-LWVuYWJsZS1sYW5ndWFnZXM9YyAtLXdpdGgtbmV3bGliIC0tZGlzYWJsZS1ubHMgLS13aXRoLWhl
-YWRlcnM9eWVzCj4gPiA+ID4gLS1lbmFibGUtcG9pc29uLXN5c3RlbS1kaXJlY3RvcmllcyAgJiYg
-bWFrZQo+ID4gPiA+Cj4gPiA+ID4KPiA+ID4gPiBUaGlzIG1pZ2h0IHdvcmsgOy0pCj4gPiA+ID4g
-LS0KPiA+ID4gPiBCZXN0IFJlZ2FyZHMsCj4gPiA+ID4KPiA+ID4gPiBGZWxpcGUgQmFsYmkKPiA+
-ID4gPiBmZWxpcGViYWxiaUB1c2Vycy5zb3VyY2Vmb3JnZS5uZXQKPiA+ID4gPiAtCj4gPiA+ID4g
-VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJl
-IGxpbnV4LW9tYXAiIGluCj4gPiA+ID4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9t
-b0B2Z2VyLmtlcm5lbC5vcmcKPiA+ID4gPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8v
-dmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwKPiA+ID4gPgo+ID4gPgo+ID4KPgo+
-Cj4KPiAtLQo+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+Cj4gVGhhbmtzICYmIFJlZ2FyZHMKPiBN
-LlNjLiBCLlNjLiBMdcOtcyBWaXTDs3JpbyBDYXJnbmluaQo+IElFRUUgTWVtYmVyCj4gRWxlY3Ry
-aWNhbCBFbmdpbmVlciBGYWN1bHR5IEAgUFVDUlMKPiBJcGlyYW5nYSBBdmVudWUsIDY2ODEg4oCT
-IEJ1aWxkaW5nIDMwCj4gUC5PLiBCb3g6IDkwNjE5LTkwMCDigJMgUG9ydG8gQWxlZ3JlL1JTCj4g
-UGhvbmU6ICs1NSA1MSAzMzIwIDM1MDAgIGV4dGVuc2lvbjogNzY5Ngo+IC0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLQo+CgoKCi0tIAotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KVGhhbmtzICYmIFJlZ2Fy
-ZHMKTS5TYy4gQi5TYy4gTHXDrXMgVml0w7NyaW8gQ2FyZ25pbmkKSUVFRSBNZW1iZXIKRWxlY3Ry
-aWNhbCBFbmdpbmVlciBGYWN1bHR5IEAgUFVDUlMKSXBpcmFuZ2EgQXZlbnVlLCA2NjgxIOKAkyBC
-dWlsZGluZyAzMApQLk8uIEJveDogOTA2MTktOTAwIOKAkyBQb3J0byBBbGVncmUvUlMKUGhvbmU6
-ICs1NSA1MSAzMzIwIDM1MDAgIGV4dGVuc2lvbjogNzY5NgotLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0K
+Br,
 
---===============0079904938==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+David Cohen
 
-
---===============0079904938==--
+On Dec 20, 2007 9:49 PM, Lu=EDs Vit=F3rio Cargnini <lvcargnini@gmail.com> w=
+rote:
+> Please there is a new howto to create a new gcc for omap  1,2,
+> different from the existent in the web ?
+> Becasue Felipe sent me a set of configurations different that we
+> usually found in the net
+>
+>
+> On Dec 20, 2007 10:53 PM, Lu=EDs Vit=F3rio Cargnini <lvcargnini@gmail.com=
+> wrote:
+> > any way I will try both
+> > Thanks all for the help
+> >
+> >
+> > On Dec 20, 2007 8:02 PM, David Cohen <dacohen@gmail.com> wrote:
+> > > Sorry, I misunderstood. You're creating one. Just do what Felipe said=
+.
+> > > But you might get the one I pointed. It is easy and it's ready for
+> > > use.
+> > >
+> > > BR,
+> > >
+> > > David Cohen
+> > >
+> > >
+> > >
+> > >
+> > > On Dec 20, 2007 5:57 PM, David Cohen <dacohen@gmail.com> wrote:
+> > > > Hi,
+> > > >
+> > > > If you don't have the arm-none-eabi-gcc, download it from:
+> > > > http://www.codesourcery.com/gnu_toolchains/arm/download.html
+> > > >
+> > > > Then, add its "bin" dir on PATH.
+> > > >
+> > > > []'s
+> > > >
+> > > > David Cohen
+> > > >
+> > > >
+> > > > On Dec 20, 2007 4:39 PM, Felipe Balbi <felipebalbi@users.sourceforg=
+e.net> wrote:
+> > > > > Hi,
+> > > > >
+> > > > > First of all, send email to our new list:
+> > > > > linux-omap@vger.kernel.org
+> > > > >
+> > > > > On Dec 20, 2007 4:22 PM, Lu=EDs Vit=F3rio Cargnini <lvcargnini@gm=
+ail.com> wrote:
+> > > > > > Dear colleagues,
+> > > > > >
+> > > > > > I having the following problem:
+> > > > > > (enterprise:toolchain/build/gcc) lvcargnini% ../../sources/gcc-=
+4.2.2/configure
+> > > > > > --prefix=3D/opt/arm-linux --target=3Darm-linux --enable-cross -=
+-disable-threads
+> > > > > > --enable-languages=3Dc --disable-shared --disable-multilib
+> > > > > > --enable-__cxa_atexit --with-float=3Dsoftfp
+> > > > > > --with-gxx-include-dir=3D/opt/arm-linux/arm-linux/include/g++-v=
+3
+> > > > > > --with-headers=3D/opt/arm-linux/arm-linux/include
+> > > > > > loading cache ./config.cache
+> > > > > > checking host system type... i686-pc-linux-gnu
+> > > > > > checking target system type... arm-unknown-linux-gnu
+> > > > > > checking build system type... i686-pc-linux-gnu
+> > > > > > checking for a BSD compatible install... /usr/bin/install -c
+> > > > > > checking whether ln works... yes
+> > > > > > checking whether ln -s works... yes
+> > > > > > checking for gcc... arm-linux-gcc
+> > > > > > checking whether the C compiler (arm-linux-gcc  ) works... no
+> > > > > > configure: error: installation or configuration problem: C comp=
+iler cannot
+> > > > > > create executables.
+> > > > >
+> > > > > Try the following:
+> > > > > ./configure --target=3Darm-none-linux-gnueabi
+> > > > > --program-prefix=3Darm-linux- --prefix=3D/usr/local --enable-shar=
+ed
+> > > > > --enable-threads --disable-libmudflap --disable-libssp
+> > > > > --disable-libgomp --disable-libstdcxx-pch --with-gnu-as --with-gn=
+u-ld
+> > > > > --enable-languages=3Dc --with-newlib --disable-nls --with-headers=
+=3Dyes
+> > > > > --enable-poison-system-directories  && make
+> > > > >
+> > > > >
+> > > > > This might work ;-)
+> > > > > --
+> > > > > Best Regards,
+> > > > >
+> > > > > Felipe Balbi
+> > > > > felipebalbi@users.sourceforge.net
+> > > > > -
+> > > > > To unsubscribe from this list: send the line "unsubscribe linux-o=
+map" in
+> > > > > the body of a message to majordomo@vger.kernel.org
+> > > > > More majordomo info at  http://vger.kernel.org/majordomo-info.htm=
+l
+> > > > >
+> > > >
+> > >
+> >
+> >
+> >
+> > --
+> > -----------------------------------------------------------------------=
+-------
+> >
+> > Thanks && Regards
+> > M.Sc. B.Sc. Lu=EDs Vit=F3rio Cargnini
+> > IEEE Member
+> > Electrical Engineer Faculty @ PUCRS
+> > Ipiranga Avenue, 6681 =96 Building 30
+> > P.O. Box: 90619-900 =96 Porto Alegre/RS
+> > Phone: +55 51 3320 3500  extension: 7696
+> > -----------------------------------------------------------------------=
+----------
+> >
+>
+>
+>
+> --
+> -------------------------------------------------------------------------=
+-----
+> Thanks && Regards
+> M.Sc. B.Sc. Lu=EDs Vit=F3rio Cargnini
+> IEEE Member
+> Electrical Engineer Faculty @ PUCRS
+> Ipiranga Avenue, 6681 =96 Building 30
+> P.O. Box: 90619-900 =96 Porto Alegre/RS
+> Phone: +55 51 3320 3500  extension: 7696
+> -------------------------------------------------------------------------=
+--------
+>
