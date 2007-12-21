@@ -1,19 +1,19 @@
-From: "David Cohen" <dacohen@gmail.com>
+From: "=?UTF-8?Q?Lu=C3=ADs_Vit=C3=B3rio_Cargnini?=" <lvcargnini@gmail.com>
 Subject: Re: problems creating new cross-compiler
-Date: Thu, 20 Dec 2007 22:06:10 -0400
-Message-ID: <4b70acb90712201806p3458186et35221bc3273cbb51@mail.gmail.com>
+Date: Fri, 21 Dec 2007 00:18:03 -0200
+Message-ID: <ae36f8040712201818x5e4436e1ide9ff48441dc3de6@mail.gmail.com>
 References: <ae36f8040712201222n58fe5eccu181256fc7f9587de@mail.gmail.com>
 	<31e679430712201239l75f21f32r591e463cf074df01@mail.gmail.com>
 	<4b70acb90712201357m15c56baaqd51383cc28224c1@mail.gmail.com>
 	<4b70acb90712201402s5e0abfb4n909ffc1d7c1666e3@mail.gmail.com>
 	<ae36f8040712201653h225e93e1y7dc5bc5363883a86@mail.gmail.com>
 	<ae36f8040712201749u1f53dec5r7f6776fbfe4e241e@mail.gmail.com>
+	<4b70acb90712201806p3458186et35221bc3273cbb51@mail.gmail.com>
+Reply-To: lvcargnini@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============1092936705=="
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <ae36f8040712201749u1f53dec5r7f6776fbfe4e241e@mail.gmail.com>
-Content-Disposition: inline
+In-Reply-To: <4b70acb90712201806p3458186et35221bc3273cbb51@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -23,148 +23,113 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: lvcargnini@gmail.com
+To: David Cohen <dacohen@gmail.com>
 Cc: linux-omap@vger.kernel.org, OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-But do you need to create it for some reason, or do you need just to use it=
-?
+--===============1092936705==
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-Br,
+d2VsbCBJIG5lZWQgdG8gY3JlYXRlIGl0LCBJIG5lZWQgdGhhdCBteSBkZXZlbG9wZW1lbnQgdGVh
+bSBhbmQKcmVzZWFyY2ggc3R1ZGVudHMgYmVlbiBjYXBhYmxlIHRvIGNyZWF0ZSBpdCxuZCB0byB0
+ZWFjaCB0aGVtIEkgbXVzdAprbm93IGhvdyB0byBkbyBpdCBmb3Igb21hcAoKT24gRGVjIDIxLCAy
+MDA3IDEyOjA2IEFNLCBEYXZpZCBDb2hlbiA8ZGFjb2hlbkBnbWFpbC5jb20+IHdyb3RlOgo+IEJ1
+dCBkbyB5b3UgbmVlZCB0byBjcmVhdGUgaXQgZm9yIHNvbWUgcmVhc29uLCBvciBkbyB5b3UgbmVl
+ZCBqdXN0IHRvIHVzZSBpdD8KPgo+IEJyLAo+Cj4gRGF2aWQgQ29oZW4KPgo+Cj4gT24gRGVjIDIw
+LCAyMDA3IDk6NDkgUE0sIEx1w61zIFZpdMOzcmlvIENhcmduaW5pIDxsdmNhcmduaW5pQGdtYWls
+LmNvbT4gd3JvdGU6Cj4gPiBQbGVhc2UgdGhlcmUgaXMgYSBuZXcgaG93dG8gdG8gY3JlYXRlIGEg
+bmV3IGdjYyBmb3Igb21hcCAgMSwyLAo+ID4gZGlmZmVyZW50IGZyb20gdGhlIGV4aXN0ZW50IGlu
+IHRoZSB3ZWIgPwo+ID4gQmVjYXN1ZSBGZWxpcGUgc2VudCBtZSBhIHNldCBvZiBjb25maWd1cmF0
+aW9ucyBkaWZmZXJlbnQgdGhhdCB3ZQo+ID4gdXN1YWxseSBmb3VuZCBpbiB0aGUgbmV0Cj4gPgo+
+ID4KPiA+IE9uIERlYyAyMCwgMjAwNyAxMDo1MyBQTSwgTHXDrXMgVml0w7NyaW8gQ2FyZ25pbmkg
+PGx2Y2FyZ25pbmlAZ21haWwuY29tPiB3cm90ZToKPiA+ID4gYW55IHdheSBJIHdpbGwgdHJ5IGJv
+dGgKPiA+ID4gVGhhbmtzIGFsbCBmb3IgdGhlIGhlbHAKPiA+ID4KPiA+ID4KPiA+ID4gT24gRGVj
+IDIwLCAyMDA3IDg6MDIgUE0sIERhdmlkIENvaGVuIDxkYWNvaGVuQGdtYWlsLmNvbT4gd3JvdGU6
+Cj4gPiA+ID4gU29ycnksIEkgbWlzdW5kZXJzdG9vZC4gWW91J3JlIGNyZWF0aW5nIG9uZS4gSnVz
+dCBkbyB3aGF0IEZlbGlwZSBzYWlkLgo+ID4gPiA+IEJ1dCB5b3UgbWlnaHQgZ2V0IHRoZSBvbmUg
+SSBwb2ludGVkLiBJdCBpcyBlYXN5IGFuZCBpdCdzIHJlYWR5IGZvcgo+ID4gPiA+IHVzZS4KPiA+
+ID4gPgo+ID4gPiA+IEJSLAo+ID4gPiA+Cj4gPiA+ID4gRGF2aWQgQ29oZW4KPiA+ID4gPgo+ID4g
+PiA+Cj4gPiA+ID4KPiA+ID4gPgo+ID4gPiA+IE9uIERlYyAyMCwgMjAwNyA1OjU3IFBNLCBEYXZp
+ZCBDb2hlbiA8ZGFjb2hlbkBnbWFpbC5jb20+IHdyb3RlOgo+ID4gPiA+ID4gSGksCj4gPiA+ID4g
+Pgo+ID4gPiA+ID4gSWYgeW91IGRvbid0IGhhdmUgdGhlIGFybS1ub25lLWVhYmktZ2NjLCBkb3du
+bG9hZCBpdCBmcm9tOgo+ID4gPiA+ID4gaHR0cDovL3d3dy5jb2Rlc291cmNlcnkuY29tL2dudV90
+b29sY2hhaW5zL2FybS9kb3dubG9hZC5odG1sCj4gPiA+ID4gPgo+ID4gPiA+ID4gVGhlbiwgYWRk
+IGl0cyAiYmluIiBkaXIgb24gUEFUSC4KPiA+ID4gPiA+Cj4gPiA+ID4gPiBbXSdzCj4gPiA+ID4g
+Pgo+ID4gPiA+ID4gRGF2aWQgQ29oZW4KPiA+ID4gPiA+Cj4gPiA+ID4gPgo+ID4gPiA+ID4gT24g
+RGVjIDIwLCAyMDA3IDQ6MzkgUE0sIEZlbGlwZSBCYWxiaSA8ZmVsaXBlYmFsYmlAdXNlcnMuc291
+cmNlZm9yZ2UubmV0PiB3cm90ZToKPiA+ID4gPiA+ID4gSGksCj4gPiA+ID4gPiA+Cj4gPiA+ID4g
+PiA+IEZpcnN0IG9mIGFsbCwgc2VuZCBlbWFpbCB0byBvdXIgbmV3IGxpc3Q6Cj4gPiA+ID4gPiA+
+IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnCj4gPiA+ID4gPiA+Cj4gPiA+ID4gPiA+IE9uIERl
+YyAyMCwgMjAwNyA0OjIyIFBNLCBMdcOtcyBWaXTDs3JpbyBDYXJnbmluaSA8bHZjYXJnbmluaUBn
+bWFpbC5jb20+IHdyb3RlOgo+ID4gPiA+ID4gPiA+IERlYXIgY29sbGVhZ3VlcywKPiA+ID4gPiA+
+ID4gPgo+ID4gPiA+ID4gPiA+IEkgaGF2aW5nIHRoZSBmb2xsb3dpbmcgcHJvYmxlbToKPiA+ID4g
+PiA+ID4gPiAoZW50ZXJwcmlzZTp0b29sY2hhaW4vYnVpbGQvZ2NjKSBsdmNhcmduaW5pJSAuLi8u
+Li9zb3VyY2VzL2djYy00LjIuMi9jb25maWd1cmUKPiA+ID4gPiA+ID4gPiAtLXByZWZpeD0vb3B0
+L2FybS1saW51eCAtLXRhcmdldD1hcm0tbGludXggLS1lbmFibGUtY3Jvc3MgLS1kaXNhYmxlLXRo
+cmVhZHMKPiA+ID4gPiA+ID4gPiAtLWVuYWJsZS1sYW5ndWFnZXM9YyAtLWRpc2FibGUtc2hhcmVk
+IC0tZGlzYWJsZS1tdWx0aWxpYgo+ID4gPiA+ID4gPiA+IC0tZW5hYmxlLV9fY3hhX2F0ZXhpdCAt
+LXdpdGgtZmxvYXQ9c29mdGZwCj4gPiA+ID4gPiA+ID4gLS13aXRoLWd4eC1pbmNsdWRlLWRpcj0v
+b3B0L2FybS1saW51eC9hcm0tbGludXgvaW5jbHVkZS9nKystdjMKPiA+ID4gPiA+ID4gPiAtLXdp
+dGgtaGVhZGVycz0vb3B0L2FybS1saW51eC9hcm0tbGludXgvaW5jbHVkZQo+ID4gPiA+ID4gPiA+
+IGxvYWRpbmcgY2FjaGUgLi9jb25maWcuY2FjaGUKPiA+ID4gPiA+ID4gPiBjaGVja2luZyBob3N0
+IHN5c3RlbSB0eXBlLi4uIGk2ODYtcGMtbGludXgtZ251Cj4gPiA+ID4gPiA+ID4gY2hlY2tpbmcg
+dGFyZ2V0IHN5c3RlbSB0eXBlLi4uIGFybS11bmtub3duLWxpbnV4LWdudQo+ID4gPiA+ID4gPiA+
+IGNoZWNraW5nIGJ1aWxkIHN5c3RlbSB0eXBlLi4uIGk2ODYtcGMtbGludXgtZ251Cj4gPiA+ID4g
+PiA+ID4gY2hlY2tpbmcgZm9yIGEgQlNEIGNvbXBhdGlibGUgaW5zdGFsbC4uLiAvdXNyL2Jpbi9p
+bnN0YWxsIC1jCj4gPiA+ID4gPiA+ID4gY2hlY2tpbmcgd2hldGhlciBsbiB3b3Jrcy4uLiB5ZXMK
+PiA+ID4gPiA+ID4gPiBjaGVja2luZyB3aGV0aGVyIGxuIC1zIHdvcmtzLi4uIHllcwo+ID4gPiA+
+ID4gPiA+IGNoZWNraW5nIGZvciBnY2MuLi4gYXJtLWxpbnV4LWdjYwo+ID4gPiA+ID4gPiA+IGNo
+ZWNraW5nIHdoZXRoZXIgdGhlIEMgY29tcGlsZXIgKGFybS1saW51eC1nY2MgICkgd29ya3MuLi4g
+bm8KPiA+ID4gPiA+ID4gPiBjb25maWd1cmU6IGVycm9yOiBpbnN0YWxsYXRpb24gb3IgY29uZmln
+dXJhdGlvbiBwcm9ibGVtOiBDIGNvbXBpbGVyIGNhbm5vdAo+ID4gPiA+ID4gPiA+IGNyZWF0ZSBl
+eGVjdXRhYmxlcy4KPiA+ID4gPiA+ID4KPiA+ID4gPiA+ID4gVHJ5IHRoZSBmb2xsb3dpbmc6Cj4g
+PiA+ID4gPiA+IC4vY29uZmlndXJlIC0tdGFyZ2V0PWFybS1ub25lLWxpbnV4LWdudWVhYmkKPiA+
+ID4gPiA+ID4gLS1wcm9ncmFtLXByZWZpeD1hcm0tbGludXgtIC0tcHJlZml4PS91c3IvbG9jYWwg
+LS1lbmFibGUtc2hhcmVkCj4gPiA+ID4gPiA+IC0tZW5hYmxlLXRocmVhZHMgLS1kaXNhYmxlLWxp
+Ym11ZGZsYXAgLS1kaXNhYmxlLWxpYnNzcAo+ID4gPiA+ID4gPiAtLWRpc2FibGUtbGliZ29tcCAt
+LWRpc2FibGUtbGlic3RkY3h4LXBjaCAtLXdpdGgtZ251LWFzIC0td2l0aC1nbnUtbGQKPiA+ID4g
+PiA+ID4gLS1lbmFibGUtbGFuZ3VhZ2VzPWMgLS13aXRoLW5ld2xpYiAtLWRpc2FibGUtbmxzIC0t
+d2l0aC1oZWFkZXJzPXllcwo+ID4gPiA+ID4gPiAtLWVuYWJsZS1wb2lzb24tc3lzdGVtLWRpcmVj
+dG9yaWVzICAmJiBtYWtlCj4gPiA+ID4gPiA+Cj4gPiA+ID4gPiA+Cj4gPiA+ID4gPiA+IFRoaXMg
+bWlnaHQgd29yayA7LSkKPiA+ID4gPiA+ID4gLS0KPiA+ID4gPiA+ID4gQmVzdCBSZWdhcmRzLAo+
+ID4gPiA+ID4gPgo+ID4gPiA+ID4gPiBGZWxpcGUgQmFsYmkKPiA+ID4gPiA+ID4gZmVsaXBlYmFs
+YmlAdXNlcnMuc291cmNlZm9yZ2UubmV0Cj4gPiA+ID4gPiA+IC0KPiA+ID4gPiA+ID4gVG8gdW5z
+dWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4
+LW9tYXAiIGluCj4gPiA+ID4gPiA+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9A
+dmdlci5rZXJuZWwub3JnCj4gPiA+ID4gPiA+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6
+Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo+ID4gPiA+ID4gPgo+ID4gPiA+
+ID4KPiA+ID4gPgo+ID4gPgo+ID4gPgo+ID4gPgo+ID4gPiAtLQo+ID4gPiAtLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0KPiA+ID4KPiA+ID4gVGhhbmtzICYmIFJlZ2FyZHMKPiA+ID4gTS5TYy4gQi5TYy4g
+THXDrXMgVml0w7NyaW8gQ2FyZ25pbmkKPiA+ID4gSUVFRSBNZW1iZXIKPiA+ID4gRWxlY3RyaWNh
+bCBFbmdpbmVlciBGYWN1bHR5IEAgUFVDUlMKPiA+ID4gSXBpcmFuZ2EgQXZlbnVlLCA2NjgxIOKA
+kyBCdWlsZGluZyAzMAo+ID4gPiBQLk8uIEJveDogOTA2MTktOTAwIOKAkyBQb3J0byBBbGVncmUv
+UlMKPiA+ID4gUGhvbmU6ICs1NSA1MSAzMzIwIDM1MDAgIGV4dGVuc2lvbjogNzY5Ngo+ID4gPiAt
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KPiA+ID4KPiA+Cj4gPgo+ID4KPiA+IC0tCj4gPiAtLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0KPiA+IFRoYW5rcyAmJiBSZWdhcmRzCj4gPiBNLlNjLiBCLlNjLiBM
+dcOtcyBWaXTDs3JpbyBDYXJnbmluaQo+ID4gSUVFRSBNZW1iZXIKPiA+IEVsZWN0cmljYWwgRW5n
+aW5lZXIgRmFjdWx0eSBAIFBVQ1JTCj4gPiBJcGlyYW5nYSBBdmVudWUsIDY2ODEg4oCTIEJ1aWxk
+aW5nIDMwCj4gPiBQLk8uIEJveDogOTA2MTktOTAwIOKAkyBQb3J0byBBbGVncmUvUlMKPiA+IFBo
+b25lOiArNTUgNTEgMzMyMCAzNTAwICBleHRlbnNpb246IDc2OTYKPiA+IC0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLQo+ID4KPgoKCgotLSAKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClRoYW5rcyAmJiBS
+ZWdhcmRzCk0uU2MuIEIuU2MuIEx1w61zIFZpdMOzcmlvIENhcmduaW5pCklFRUUgTWVtYmVyCkVs
+ZWN0cmljYWwgRW5naW5lZXIgRmFjdWx0eSBAIFBVQ1JTCklwaXJhbmdhIEF2ZW51ZSwgNjY4MSDi
+gJMgQnVpbGRpbmcgMzAKUC5PLiBCb3g6IDkwNjE5LTkwMCDigJMgUG9ydG8gQWxlZ3JlL1JTClBo
+b25lOiArNTUgNTEgMzMyMCAzNTAwICBleHRlbnNpb246IDc2OTYKLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tCg==
 
-David Cohen
+--===============1092936705==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Dec 20, 2007 9:49 PM, Lu=EDs Vit=F3rio Cargnini <lvcargnini@gmail.com> w=
-rote:
-> Please there is a new howto to create a new gcc for omap  1,2,
-> different from the existent in the web ?
-> Becasue Felipe sent me a set of configurations different that we
-> usually found in the net
->
->
-> On Dec 20, 2007 10:53 PM, Lu=EDs Vit=F3rio Cargnini <lvcargnini@gmail.com=
-> wrote:
-> > any way I will try both
-> > Thanks all for the help
-> >
-> >
-> > On Dec 20, 2007 8:02 PM, David Cohen <dacohen@gmail.com> wrote:
-> > > Sorry, I misunderstood. You're creating one. Just do what Felipe said=
-.
-> > > But you might get the one I pointed. It is easy and it's ready for
-> > > use.
-> > >
-> > > BR,
-> > >
-> > > David Cohen
-> > >
-> > >
-> > >
-> > >
-> > > On Dec 20, 2007 5:57 PM, David Cohen <dacohen@gmail.com> wrote:
-> > > > Hi,
-> > > >
-> > > > If you don't have the arm-none-eabi-gcc, download it from:
-> > > > http://www.codesourcery.com/gnu_toolchains/arm/download.html
-> > > >
-> > > > Then, add its "bin" dir on PATH.
-> > > >
-> > > > []'s
-> > > >
-> > > > David Cohen
-> > > >
-> > > >
-> > > > On Dec 20, 2007 4:39 PM, Felipe Balbi <felipebalbi@users.sourceforg=
-e.net> wrote:
-> > > > > Hi,
-> > > > >
-> > > > > First of all, send email to our new list:
-> > > > > linux-omap@vger.kernel.org
-> > > > >
-> > > > > On Dec 20, 2007 4:22 PM, Lu=EDs Vit=F3rio Cargnini <lvcargnini@gm=
-ail.com> wrote:
-> > > > > > Dear colleagues,
-> > > > > >
-> > > > > > I having the following problem:
-> > > > > > (enterprise:toolchain/build/gcc) lvcargnini% ../../sources/gcc-=
-4.2.2/configure
-> > > > > > --prefix=3D/opt/arm-linux --target=3Darm-linux --enable-cross -=
--disable-threads
-> > > > > > --enable-languages=3Dc --disable-shared --disable-multilib
-> > > > > > --enable-__cxa_atexit --with-float=3Dsoftfp
-> > > > > > --with-gxx-include-dir=3D/opt/arm-linux/arm-linux/include/g++-v=
-3
-> > > > > > --with-headers=3D/opt/arm-linux/arm-linux/include
-> > > > > > loading cache ./config.cache
-> > > > > > checking host system type... i686-pc-linux-gnu
-> > > > > > checking target system type... arm-unknown-linux-gnu
-> > > > > > checking build system type... i686-pc-linux-gnu
-> > > > > > checking for a BSD compatible install... /usr/bin/install -c
-> > > > > > checking whether ln works... yes
-> > > > > > checking whether ln -s works... yes
-> > > > > > checking for gcc... arm-linux-gcc
-> > > > > > checking whether the C compiler (arm-linux-gcc  ) works... no
-> > > > > > configure: error: installation or configuration problem: C comp=
-iler cannot
-> > > > > > create executables.
-> > > > >
-> > > > > Try the following:
-> > > > > ./configure --target=3Darm-none-linux-gnueabi
-> > > > > --program-prefix=3Darm-linux- --prefix=3D/usr/local --enable-shar=
-ed
-> > > > > --enable-threads --disable-libmudflap --disable-libssp
-> > > > > --disable-libgomp --disable-libstdcxx-pch --with-gnu-as --with-gn=
-u-ld
-> > > > > --enable-languages=3Dc --with-newlib --disable-nls --with-headers=
-=3Dyes
-> > > > > --enable-poison-system-directories  && make
-> > > > >
-> > > > >
-> > > > > This might work ;-)
-> > > > > --
-> > > > > Best Regards,
-> > > > >
-> > > > > Felipe Balbi
-> > > > > felipebalbi@users.sourceforge.net
-> > > > > -
-> > > > > To unsubscribe from this list: send the line "unsubscribe linux-o=
-map" in
-> > > > > the body of a message to majordomo@vger.kernel.org
-> > > > > More majordomo info at  http://vger.kernel.org/majordomo-info.htm=
-l
-> > > > >
-> > > >
-> > >
-> >
-> >
-> >
-> > --
-> > -----------------------------------------------------------------------=
--------
-> >
-> > Thanks && Regards
-> > M.Sc. B.Sc. Lu=EDs Vit=F3rio Cargnini
-> > IEEE Member
-> > Electrical Engineer Faculty @ PUCRS
-> > Ipiranga Avenue, 6681 =96 Building 30
-> > P.O. Box: 90619-900 =96 Porto Alegre/RS
-> > Phone: +55 51 3320 3500  extension: 7696
-> > -----------------------------------------------------------------------=
-----------
-> >
->
->
->
-> --
-> -------------------------------------------------------------------------=
------
-> Thanks && Regards
-> M.Sc. B.Sc. Lu=EDs Vit=F3rio Cargnini
-> IEEE Member
-> Electrical Engineer Faculty @ PUCRS
-> Ipiranga Avenue, 6681 =96 Building 30
-> P.O. Box: 90619-900 =96 Porto Alegre/RS
-> Phone: +55 51 3320 3500  extension: 7696
-> -------------------------------------------------------------------------=
---------
->
+
+--===============1092936705==--
