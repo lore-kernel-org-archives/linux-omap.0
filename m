@@ -1,16 +1,16 @@
-From: "David Cohen" <dacohen@gmail.com>
+From: "=?UTF-8?Q?Lu=C3=ADs_Vit=C3=B3rio_Cargnini?=" <lvcargnini@gmail.com>
 Subject: Re: problems creating new cross-compiler
-Date: Thu, 20 Dec 2007 18:02:00 -0400
-Message-ID: <4b70acb90712201402s5e0abfb4n909ffc1d7c1666e3@mail.gmail.com>
+Date: Thu, 20 Dec 2007 22:53:28 -0200
+Message-ID: <ae36f8040712201653h225e93e1y7dc5bc5363883a86@mail.gmail.com>
 References: <ae36f8040712201222n58fe5eccu181256fc7f9587de@mail.gmail.com>
 	<31e679430712201239l75f21f32r591e463cf074df01@mail.gmail.com>
 	<4b70acb90712201357m15c56baaqd51383cc28224c1@mail.gmail.com>
+	<4b70acb90712201402s5e0abfb4n909ffc1d7c1666e3@mail.gmail.com>
+Reply-To: lvcargnini@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <4b70acb90712201357m15c56baaqd51383cc28224c1@mail.gmail.com>
-Content-Disposition: inline
+Content-Type: multipart/mixed; boundary="===============0219920139=="
+Return-path: <linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com>
+In-Reply-To: <4b70acb90712201402s5e0abfb4n909ffc1d7c1666e3@mail.gmail.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,85 +18,78 @@ List-Post: <mailto:linux-omap-open-source@linux.omap.com>
 List-Help: <mailto:linux-omap-open-source-request@linux.omap.com?subject=help>
 List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
-Sender: linux-omap-open-source-bounces@linux.omap.com
-Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Felipe Balbi <felipebalbi@users.sourceforge.net>
+Sender: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+Errors-To: linux-omap-open-source-bounces+gplao-linux-omap-open-source=gmane.org@linux.omap.com
+To: David Cohen <dacohen@gmail.com>
 Cc: linux-omap@vger.kernel.org, OMAP <Linux-omap-open-source@linux.omap.com>
 List-Id: linux-omap@vger.kernel.org
 
-Sorry, I misunderstood. You're creating one. Just do what Felipe said.
-But you might get the one I pointed. It is easy and it's ready for
-use.
+--===============0219920139==
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-BR,
+YW55IHdheSBJIHdpbGwgdHJ5IGJvdGgKVGhhbmtzIGFsbCBmb3IgdGhlIGhlbHAKCk9uIERlYyAy
+MCwgMjAwNyA4OjAyIFBNLCBEYXZpZCBDb2hlbiA8ZGFjb2hlbkBnbWFpbC5jb20+IHdyb3RlOgo+
+IFNvcnJ5LCBJIG1pc3VuZGVyc3Rvb2QuIFlvdSdyZSBjcmVhdGluZyBvbmUuIEp1c3QgZG8gd2hh
+dCBGZWxpcGUgc2FpZC4KPiBCdXQgeW91IG1pZ2h0IGdldCB0aGUgb25lIEkgcG9pbnRlZC4gSXQg
+aXMgZWFzeSBhbmQgaXQncyByZWFkeSBmb3IKPiB1c2UuCj4KPiBCUiwKPgo+IERhdmlkIENvaGVu
+Cj4KPgo+Cj4KPiBPbiBEZWMgMjAsIDIwMDcgNTo1NyBQTSwgRGF2aWQgQ29oZW4gPGRhY29oZW5A
+Z21haWwuY29tPiB3cm90ZToKPiA+IEhpLAo+ID4KPiA+IElmIHlvdSBkb24ndCBoYXZlIHRoZSBh
+cm0tbm9uZS1lYWJpLWdjYywgZG93bmxvYWQgaXQgZnJvbToKPiA+IGh0dHA6Ly93d3cuY29kZXNv
+dXJjZXJ5LmNvbS9nbnVfdG9vbGNoYWlucy9hcm0vZG93bmxvYWQuaHRtbAo+ID4KPiA+IFRoZW4s
+IGFkZCBpdHMgImJpbiIgZGlyIG9uIFBBVEguCj4gPgo+ID4gW10ncwo+ID4KPiA+IERhdmlkIENv
+aGVuCj4gPgo+ID4KPiA+IE9uIERlYyAyMCwgMjAwNyA0OjM5IFBNLCBGZWxpcGUgQmFsYmkgPGZl
+bGlwZWJhbGJpQHVzZXJzLnNvdXJjZWZvcmdlLm5ldD4gd3JvdGU6Cj4gPiA+IEhpLAo+ID4gPgo+
+ID4gPiBGaXJzdCBvZiBhbGwsIHNlbmQgZW1haWwgdG8gb3VyIG5ldyBsaXN0Ogo+ID4gPiBsaW51
+eC1vbWFwQHZnZXIua2VybmVsLm9yZwo+ID4gPgo+ID4gPiBPbiBEZWMgMjAsIDIwMDcgNDoyMiBQ
+TSwgTHXDrXMgVml0w7NyaW8gQ2FyZ25pbmkgPGx2Y2FyZ25pbmlAZ21haWwuY29tPiB3cm90ZToK
+PiA+ID4gPiBEZWFyIGNvbGxlYWd1ZXMsCj4gPiA+ID4KPiA+ID4gPiBJIGhhdmluZyB0aGUgZm9s
+bG93aW5nIHByb2JsZW06Cj4gPiA+ID4gKGVudGVycHJpc2U6dG9vbGNoYWluL2J1aWxkL2djYykg
+bHZjYXJnbmluaSUgLi4vLi4vc291cmNlcy9nY2MtNC4yLjIvY29uZmlndXJlCj4gPiA+ID4gLS1w
+cmVmaXg9L29wdC9hcm0tbGludXggLS10YXJnZXQ9YXJtLWxpbnV4IC0tZW5hYmxlLWNyb3NzIC0t
+ZGlzYWJsZS10aHJlYWRzCj4gPiA+ID4gLS1lbmFibGUtbGFuZ3VhZ2VzPWMgLS1kaXNhYmxlLXNo
+YXJlZCAtLWRpc2FibGUtbXVsdGlsaWIKPiA+ID4gPiAtLWVuYWJsZS1fX2N4YV9hdGV4aXQgLS13
+aXRoLWZsb2F0PXNvZnRmcAo+ID4gPiA+IC0td2l0aC1neHgtaW5jbHVkZS1kaXI9L29wdC9hcm0t
+bGludXgvYXJtLWxpbnV4L2luY2x1ZGUvZysrLXYzCj4gPiA+ID4gLS13aXRoLWhlYWRlcnM9L29w
+dC9hcm0tbGludXgvYXJtLWxpbnV4L2luY2x1ZGUKPiA+ID4gPiBsb2FkaW5nIGNhY2hlIC4vY29u
+ZmlnLmNhY2hlCj4gPiA+ID4gY2hlY2tpbmcgaG9zdCBzeXN0ZW0gdHlwZS4uLiBpNjg2LXBjLWxp
+bnV4LWdudQo+ID4gPiA+IGNoZWNraW5nIHRhcmdldCBzeXN0ZW0gdHlwZS4uLiBhcm0tdW5rbm93
+bi1saW51eC1nbnUKPiA+ID4gPiBjaGVja2luZyBidWlsZCBzeXN0ZW0gdHlwZS4uLiBpNjg2LXBj
+LWxpbnV4LWdudQo+ID4gPiA+IGNoZWNraW5nIGZvciBhIEJTRCBjb21wYXRpYmxlIGluc3RhbGwu
+Li4gL3Vzci9iaW4vaW5zdGFsbCAtYwo+ID4gPiA+IGNoZWNraW5nIHdoZXRoZXIgbG4gd29ya3Mu
+Li4geWVzCj4gPiA+ID4gY2hlY2tpbmcgd2hldGhlciBsbiAtcyB3b3Jrcy4uLiB5ZXMKPiA+ID4g
+PiBjaGVja2luZyBmb3IgZ2NjLi4uIGFybS1saW51eC1nY2MKPiA+ID4gPiBjaGVja2luZyB3aGV0
+aGVyIHRoZSBDIGNvbXBpbGVyIChhcm0tbGludXgtZ2NjICApIHdvcmtzLi4uIG5vCj4gPiA+ID4g
+Y29uZmlndXJlOiBlcnJvcjogaW5zdGFsbGF0aW9uIG9yIGNvbmZpZ3VyYXRpb24gcHJvYmxlbTog
+QyBjb21waWxlciBjYW5ub3QKPiA+ID4gPiBjcmVhdGUgZXhlY3V0YWJsZXMuCj4gPiA+Cj4gPiA+
+IFRyeSB0aGUgZm9sbG93aW5nOgo+ID4gPiAuL2NvbmZpZ3VyZSAtLXRhcmdldD1hcm0tbm9uZS1s
+aW51eC1nbnVlYWJpCj4gPiA+IC0tcHJvZ3JhbS1wcmVmaXg9YXJtLWxpbnV4LSAtLXByZWZpeD0v
+dXNyL2xvY2FsIC0tZW5hYmxlLXNoYXJlZAo+ID4gPiAtLWVuYWJsZS10aHJlYWRzIC0tZGlzYWJs
+ZS1saWJtdWRmbGFwIC0tZGlzYWJsZS1saWJzc3AKPiA+ID4gLS1kaXNhYmxlLWxpYmdvbXAgLS1k
+aXNhYmxlLWxpYnN0ZGN4eC1wY2ggLS13aXRoLWdudS1hcyAtLXdpdGgtZ251LWxkCj4gPiA+IC0t
+ZW5hYmxlLWxhbmd1YWdlcz1jIC0td2l0aC1uZXdsaWIgLS1kaXNhYmxlLW5scyAtLXdpdGgtaGVh
+ZGVycz15ZXMKPiA+ID4gLS1lbmFibGUtcG9pc29uLXN5c3RlbS1kaXJlY3RvcmllcyAgJiYgbWFr
+ZQo+ID4gPgo+ID4gPgo+ID4gPiBUaGlzIG1pZ2h0IHdvcmsgOy0pCj4gPiA+IC0tCj4gPiA+IEJl
+c3QgUmVnYXJkcywKPiA+ID4KPiA+ID4gRmVsaXBlIEJhbGJpCj4gPiA+IGZlbGlwZWJhbGJpQHVz
+ZXJzLnNvdXJjZWZvcmdlLm5ldAo+ID4gPiAtCj4gPiA+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhp
+cyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1vbWFwIiBpbgo+ID4gPiB0
+aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwo+ID4gPiBN
+b3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1p
+bmZvLmh0bWwKPiA+ID4KPiA+Cj4KCgoKLS0gCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpUaGFua3Mg
+JiYgUmVnYXJkcwpNLlNjLiBCLlNjLiBMdcOtcyBWaXTDs3JpbyBDYXJnbmluaQpJRUVFIE1lbWJl
+cgpFbGVjdHJpY2FsIEVuZ2luZWVyIEZhY3VsdHkgQCBQVUNSUwpJcGlyYW5nYSBBdmVudWUsIDY2
+ODEg4oCTIEJ1aWxkaW5nIDMwClAuTy4gQm94OiA5MDYxOS05MDAg4oCTIFBvcnRvIEFsZWdyZS9S
+UwpQaG9uZTogKzU1IDUxIDMzMjAgMzUwMCAgZXh0ZW5zaW9uOiA3Njk2Ci0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLQo=
 
-David Cohen
+--===============0219920139==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Dec 20, 2007 5:57 PM, David Cohen <dacohen@gmail.com> wrote:
-> Hi,
->
-> If you don't have the arm-none-eabi-gcc, download it from:
-> http://www.codesourcery.com/gnu_toolchains/arm/download.html
->
-> Then, add its "bin" dir on PATH.
->
-> []'s
->
-> David Cohen
->
->
-> On Dec 20, 2007 4:39 PM, Felipe Balbi <felipebalbi@users.sourceforge.net>=
- wrote:
-> > Hi,
-> >
-> > First of all, send email to our new list:
-> > linux-omap@vger.kernel.org
-> >
-> > On Dec 20, 2007 4:22 PM, Lu=EDs Vit=F3rio Cargnini <lvcargnini@gmail.co=
-m> wrote:
-> > > Dear colleagues,
-> > >
-> > > I having the following problem:
-> > > (enterprise:toolchain/build/gcc) lvcargnini% ../../sources/gcc-4.2.2/=
-configure
-> > > --prefix=3D/opt/arm-linux --target=3Darm-linux --enable-cross --disab=
-le-threads
-> > > --enable-languages=3Dc --disable-shared --disable-multilib
-> > > --enable-__cxa_atexit --with-float=3Dsoftfp
-> > > --with-gxx-include-dir=3D/opt/arm-linux/arm-linux/include/g++-v3
-> > > --with-headers=3D/opt/arm-linux/arm-linux/include
-> > > loading cache ./config.cache
-> > > checking host system type... i686-pc-linux-gnu
-> > > checking target system type... arm-unknown-linux-gnu
-> > > checking build system type... i686-pc-linux-gnu
-> > > checking for a BSD compatible install... /usr/bin/install -c
-> > > checking whether ln works... yes
-> > > checking whether ln -s works... yes
-> > > checking for gcc... arm-linux-gcc
-> > > checking whether the C compiler (arm-linux-gcc  ) works... no
-> > > configure: error: installation or configuration problem: C compiler c=
-annot
-> > > create executables.
-> >
-> > Try the following:
-> > ./configure --target=3Darm-none-linux-gnueabi
-> > --program-prefix=3Darm-linux- --prefix=3D/usr/local --enable-shared
-> > --enable-threads --disable-libmudflap --disable-libssp
-> > --disable-libgomp --disable-libstdcxx-pch --with-gnu-as --with-gnu-ld
-> > --enable-languages=3Dc --with-newlib --disable-nls --with-headers=3Dyes
-> > --enable-poison-system-directories  && make
-> >
-> >
-> > This might work ;-)
-> > --
-> > Best Regards,
-> >
-> > Felipe Balbi
-> > felipebalbi@users.sourceforge.net
-> > -
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
->
+
+--===============0219920139==--
