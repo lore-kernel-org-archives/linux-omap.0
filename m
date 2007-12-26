@@ -1,7 +1,7 @@
-From: "shaunak saha" <reach2shaunak@gmail.com>
-Subject: socket programme gives "operation not permitted"
-Date: Wed, 26 Dec 2007 16:25:05 +0530
-Message-ID: <e994cb210712260255i7456c6bbw791baf2d4fb3ce6f@mail.gmail.com>
+From: "Arun KS" <getarunks@gmail.com>
+Subject: Issue With MMC driver for 2430
+Date: Wed, 26 Dec 2007 18:09:22 +0530
+Message-ID: <dfeb90390712260439y7d8f7393w530c732fa48a56c6@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -16,23 +16,38 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: Linux-omap-open-source@linux.omap.com
+To: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
+Cc: Linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+Dear Madhu,
 
- I m trying to execute a socket program.My code is only executing a
-"socket(AF_UNIX, SOCK_STREAM, 0)" and "bind" system call.I m using struct
-sockaddr_un where sun_family i m setting to PF_UNIX and sun_path to /opt
-before calling bind.
-When i do it in path /opt bind fails but in /tmp it is able to bind.I m
-executing the code as root so have full permission in /opt.I m able to do al
-file operation in /opt.
-The "perror" system call in /opt shows "bind: Operation not permitted"
+I am using OMAP-2430 based custom board. I am facing some issue with MMC
+card detection. When I use NFS as file system my card is getting detected. I
+have a requirement of using ramdisk as the filesystem, which is of size
+20MB.
+When I use 20MB ramdisk as the filesystem, the MMC card is not getting
+detected.
 
-I m not able to understand why this is happenning.Can any one please help
+I want to give you one more input. When I use 4MB ramdisk, the mmc driver
+detects the card. I think its a timing  issue. I changed in the architecture
+specific file (arch/arm/mach-omap/board-2530xxx-mmc.c) the following and got
+my card detected by the driver.
 
-Thanks in advance.
 
-Regards,
-Shaunak
+ ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+                                                VSEL_S2_CLR,
+VMMC1_DEDICATED);
+                if (ret != 0)
+                        goto err;
+//msleep(100);
+mdelay(5000);
+ omap_writel(omap_readl(OMAP2_CONTROL_PBIAS) | 0x7,
+                        OMAP2_CONTROL_PBIAS);
+
+And I think this is not the right way to make it work. Please provide your
+suggestions/comments on this.
+
+
+Thanks
+Arun KS
