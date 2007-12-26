@@ -1,14 +1,15 @@
-From: "andrzej zaborowski" <balrogg@gmail.com>
-Subject: Re: socket programme gives "operation not permitted"
-Date: Wed, 26 Dec 2007 20:28:11 +0100
-Message-ID: <fb249edb0712261128w2b152fcfn1752b5820d868bc9@mail.gmail.com>
-References: <e994cb210712260255i7456c6bbw791baf2d4fb3ce6f@mail.gmail.com>
+From: "Kamat, Nishant" <nskamat@ti.com>
+Subject: RE: who has the latest OMAP3430_ES2.0_TRM.pdf ?
+Date: Wed, 26 Dec 2007 14:39:05 -0600
+Message-ID: <6E3DC4E6E09EF440B55B7AD683608D6D02ACF917@dlee13.ent.ti.com>
+References: <1198479600.5817.1.camel@stanley-desktop.corp.ad.wrs.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-In-Reply-To: <e994cb210712260255i7456c6bbw791baf2d4fb3ce6f@mail.gmail.com>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
+In-Reply-To: <1198479600.5817.1.camel@stanley-desktop.corp.ad.wrs.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -18,24 +19,31 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: shaunak saha <reach2shaunak@gmail.com>
-Cc: linux-omap@vger.kernel.org, Linux-omap-open-source@linux.omap.com
+To: stanley.miao@windriver.com, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Stanley,
 
-On 26/12/2007, shaunak saha <reach2shaunak@gmail.com> wrote:
->  I m trying to execute a socket program.My code is only executing a
-> "socket(AF_UNIX, SOCK_STREAM, 0)" and "bind" system call.I m using struct
-> sockaddr_un where sun_family i m setting to PF_UNIX and sun_path to /opt
-> before calling bind.
-> When i do it in path /opt bind fails but in /tmp it is able to bind.I m
-> executing the code as root so have full permission in /opt.I m able to do al
-> file operation in /opt.
-> The "perror" system call in /opt shows "bind: Operation not permitted"
+TI is working on opening up the TRM for everyone. I'll update you once =
+it is posted.
 
-That should happen if the filesystem /opt is on does not support
-sockets (for example FAT), even for root. So the filesystem type is
-one thing to check, I don't know what else.
+Regards,
+Nishant
 
-Regards
+-----Original Message-----
+From: linux-omap-open-source-bounces@linux.omap.com =
+[mailto:linux-omap-open-source-bounces@linux.omap.com] On Behalf Of =
+stanley.miao
+Sent: Monday, December 24, 2007 1:00 AM
+To: linux-omap-open-source@linux.omap.com
+Subject: who has the latest OMAP3430_ES2.0_TRM.pdf ?
+
+who has the latest OMAP3430_ES2.0_TRM.pdf ?  Can you send it to me ?
+Thanks.
+
+Stanley.
+
+_______________________________________________
+Linux-omap-open-source mailing list
+Linux-omap-open-source@linux.omap.com
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
