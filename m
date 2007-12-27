@@ -1,13 +1,13 @@
-From: <adapa.ajith@wipro.com>
-Subject: Regarding Best Combination for OMAP 2430
-Date: Thu, 27 Dec 2007 12:55:58 +0530
-Message-ID: <998B37C19BFDB549AA703C78A86EAA19DC53CF@blr-m1-msg.wipro.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: Regarding Best Combination for OMAP 2430
+Date: Thu, 27 Dec 2007 08:37:15 +0100
+Message-ID: <4773562B.1050402@googlemail.com>
+References: <998B37C19BFDB549AA703C78A86EAA19DC53CF@blr-m1-msg.wipro.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
-Content-class: urn:content-classes:message
+In-Reply-To: <998B37C19BFDB549AA703C78A86EAA19DC53CF@blr-m1-msg.wipro.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -17,31 +17,33 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: adapa.ajith@wipro.com
+Cc: linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+adapa.ajith@wipro.com wrote:
+> I like to have the best working combination of gcc, binutils, glibc to
+> make a cross toolchain for OMAP2430 &
+> Kernel version working perfectly with the newly created cross toolchain.
+> 
+> Any links to get the information??
 
-=20
+Try CodeSourcery toolchain:
 
-I like to have the best working combination of gcc, binutils, glibc to
-make a cross toolchain for OMAP2430 &
+http://www.codesourcery.com/gnu_toolchains/arm
 
-Kernel version working perfectly with the newly created cross toolchain.
+Cheers
 
-=20
+Dirk
 
-Any links to get the information??
+Btw: Please switch to new OMAP list [1]
 
-=20
+http://vger.kernel.org/vger-lists.html#linux-omap
 
-Thanks and Regards,
-A. AJITH
+and don't use
 
-http://codingfreak.blogspot.com/
+linux-omap-open-source@linux.omap.com
 
-=20
+any more.
 
-"Do your best,God will do the rest"
-
-=20
+[1] http://marc.info/?l=linux-omap&m=119776551227008&w=3
