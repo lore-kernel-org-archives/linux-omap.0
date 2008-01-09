@@ -1,10 +1,15 @@
-From: Debadatta.Mishra@aricent.com
-Subject: simple test program for UART on OMAP3430
-Date: Wed, 9 Jan 2008 20:33:48 +0530
-Message-ID: <OFB725D007.E7BE2EBD-ON652573CB.005208B9-652573CB.005313D9@aricent.com>
+From: "Syed Mohammed, Khasim" <khasim@ti.com>
+Subject: RE: simple test program for UART on OMAP3430
+Date: Wed, 9 Jan 2008 20:48:33 +0530
+Message-ID: <7EAD1AEEA7621C45899FE99123E124A001531E10@dbde01.ent.ti.com>
+References: <OFB725D007.E7BE2EBD-ON652573CB.005208B9-652573CB.005313D9@aricent.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0507057967=="
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-open-source-bounces@linux.omap.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <OFB725D007.E7BE2EBD-ON652573CB.005208B9-652573CB.005313D9@aricent.com>
 List-Unsubscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=unsubscribe>
 List-Archive: <http://linux.omap.com/pipermail/linux-omap-open-source>
@@ -14,38 +19,31 @@ List-Subscribe: <http://linux.omap.com/mailman/listinfo/linux-omap-open-source>,
 	<mailto:linux-omap-open-source-request@linux.omap.com?subject=subscribe>
 Sender: linux-omap-open-source-bounces@linux.omap.com
 Errors-To: linux-omap-open-source-bounces@linux.omap.com
-To: linux-omap-open-source@linux.omap.com
+To: Debadatta.Mishra@aricent.com, linux-omap-open-source@linux.omap.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a multipart message in MIME format.
---===============0507057967==
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: base64
-
-SGkgQWxsLA0KDQpJIG5lZWQgYSBzaW1wbGUgdGVzdCBwcm9ncmFtIHRvIHRlc3QgVUFSVCBmb3Ig
-T01BUDM0MzAuVGhhdCB0ZXN0IHByb2dyYW0gDQpzaG91bGQgcnVuIHdpdGhvdXQgT1MuQ2FuIGFu
-eSBvbmUgaGVscCBtZT8/Pw0KDQpSZWdhcmRzLA0KRGViYQ0KIA0KDQoNCg0KKioqKioqKioqKioq
-KioqKioqKioqKiogIEFyaWNlbnQtVW5jbGFzc2lmaWVkICAgKioqKioqKioqKioqKioqKioqKioq
-KioNCg0KKioqKioqKioqKioqKioqKioqKioqKiogIEFyaWNlbnQtVW5jbGFzc2lmaWVkICAgKioq
-KioqKioqKioqKioqKioqKioqKioNCiJESVNDTEFJTUVSOiBUaGlzIG1lc3NhZ2UgaXMgcHJvcHJp
-ZXRhcnkgdG8gQXJpY2VudCBhbmQgaXMgaW50ZW5kZWQgc29sZWx5IGZvciB0aGUgdXNlIG9mIAp0
-aGUgaW5kaXZpZHVhbCB0byB3aG9tIGl0IGlzIGFkZHJlc3NlZC4gSXQgbWF5IGNvbnRhaW4gcHJp
-dmlsZWdlZCBvciBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gYW5kIHNob3VsZCBub3QgYmUgCmNp
-cmN1bGF0ZWQgb3IgdXNlZCBmb3IgYW55IHB1cnBvc2Ugb3RoZXIgdGhhbiBmb3Igd2hhdCBpdCBp
-cyBpbnRlbmRlZC4gSWYgeW91IGhhdmUgcmVjZWl2ZWQgdGhpcyBtZXNzYWdlIGluIGVycm9yLCAK
-cGxlYXNlIG5vdGlmeSB0aGUgb3JpZ2luYXRvciBpbW1lZGlhdGVseS4gSWYgeW91IGFyZSBub3Qg
-dGhlIGludGVuZGVkIHJlY2lwaWVudCwgeW91IGFyZSBub3RpZmllZCB0aGF0IHlvdSBhcmUgc3Ry
-aWN0bHkKcHJvaGliaXRlZCBmcm9tIHVzaW5nLCBjb3B5aW5nLCBhbHRlcmluZywgb3IgZGlzY2xv
-c2luZyB0aGUgY29udGVudHMgb2YgdGhpcyBtZXNzYWdlLiBBcmljZW50IGFjY2VwdHMgbm8gcmVz
-cG9uc2liaWxpdHkgZm9yIApsb3NzIG9yIGRhbWFnZSBhcmlzaW5nIGZyb20gdGhlIHVzZSBvZiB0
-aGUgaW5mb3JtYXRpb24gdHJhbnNtaXR0ZWQgYnkgdGhpcyBlbWFpbCBpbmNsdWRpbmcgZGFtYWdl
-IGZyb20gdmlydXMuIgo=
---===============0507057967==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 
---===============0507057967==--
+> -----Original Message-----
+> From: linux-omap-open-source-bounces@linux.omap.com =
+[mailto:linux-omap-
+> open-source-bounces@linux.omap.com] On Behalf Of
+> Debadatta.Mishra@aricent.com
+> Sent: Wednesday, January 09, 2008 8:34 PM
+> To: linux-omap-open-source@linux.omap.com
+> Subject: simple test program for UART on OMAP3430
+>=20
+> Hi All,
+>=20
+> I need a simple test program to test UART for OMAP3430.That test =
+program
+> should run without OS.Can any one help me???
+>=20
+Do you plan to use u-boot? Minimum you need is a bootloader to =
+initialize clocks and do other necessary configurations for board, only =
+then you can have any test program working.
+
+I didn't get why you need this? Can you elaborate more?
+
+Regards,
+Khasim
