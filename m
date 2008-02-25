@@ -1,55 +1,40 @@
-From: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Subject: Re: OMAP34xx EHCI bulk OUT CRC16 complementing
-Date: Fri, 22 Feb 2008 14:07:53 -0800
-Message-ID: <200802221407.54200.david-b@pacbell.net>
-References: <5DF83221BE20114E9C331F665ACBC080044F7C2C@dbde01.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch 2.6.25-rc3] omap-keypad buildfix
+Date: Sun, 24 Feb 2008 19:14:32 -0800
+Message-ID: <20080225031432.D53A228DE41@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5DF83221BE20114E9C331F665ACBC080044F7C2C-tvxpnMfVbg6IQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: linux-input@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 19 February 2008, Pandita, Vikram wrote:
-> USB EHCI/OHCI experts
-> 
-> On omap-git v2.6.25-rc2, TI OMAP34xx EHCI controller, we are seeing a
-> strange behavior on a bulk OUT 512 byte transfer. 
-> 
-> We can see through the CATC that the 512 byte goes out successfully
-> but there are many Turnaround/Timeout Errors and retries before the
-> packet goes out successfully.   
-> The retries could range from 0 to 10 or more.
-> 
-> The error packets have 'CRC16 complemented' as per Section 8.6.4
-> page 234-235 that says for probably a data under-run condition: 
-> "An error for high-speed must be forced by taking the currently
-> calculated CRC and complementing it before transmitting it." 
-> 
-> We have confirmed that our Memory (SDRAM) access have a much higher
-> bandwidth available "not" to cause data under-run condition. 
-> 
-> Where in EHCI stack should I debug for this issue? 
+Build fixes:
 
-Doesn't sound like an EHCI driver issue.  I'd want to track
-what's going on deeper inside the silicon than ARM instruction
-set handling ... ;)
+drivers/input/keyboard/omap-keypad.c: In function 'omap_kp_probe':
+drivers/input/keyboard/omap-keypad.c:418: warning: 'row_idx' is used uninitialized in this function
+drivers/input/keyboard/omap-keypad.c:421: warning: 'col_idx' is used uninitialized in this function
 
+These variables are useful when cpu_is_omap24xx(), and otherwise just
+for probe() cleanup.
 
-> Is there a way to slow-down the OUT transfers on EHCI if that
-> helps in debugging?  
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+The OMAP tree has the same bug.
 
-You could issue URBs with single packets.  If you're not using
-the "usbtest" framework, you should start ... that command line
-tool lets you send a variety of packet sequences.  You'll want
-some high speed source/sink device, like another board running
-the "Gadget Zero" firmware.
+ drivers/input/keyboard/omap-keypad.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-- Dave
-
-[1] http://www.linux-usb.org/usbtest/
+--- a/drivers/input/keyboard/omap-keypad.c	2008-02-24 18:50:32.000000000 -0800
++++ b/drivers/input/keyboard/omap-keypad.c	2008-02-24 19:10:17.000000000 -0800
+@@ -352,6 +352,9 @@ static int __init omap_kp_probe(struct p
+ 			}
+ 			omap_set_gpio_direction(row_gpios[row_idx], 1);
+ 		}
++	} else {
++		col_idx = 0;
++		row_idx = 0;
+ 	}
+ 
+ 	setup_timer(&omap_kp->timer, omap_kp_timer, (unsigned long)omap_kp);
