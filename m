@@ -1,75 +1,45 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: DMA: fix CLINK mask, clear spurious interrupt
-Date: Sun, 9 Mar 2008 12:54:58 +0530
-Message-ID: <010C7BAE6783F34D9AC336EE5A01A088057E388F@dbde01.ent.ti.com>
-References: <1204926553-6228-1-git-send-email-khilman@mvista.com>
+From: Antti P Miettinen <ananaza@iki.fi>
+Subject: gmane.org mirror (was: Re: Don't use this list any more)
+Date: Sun, 09 Mar 2008 17:30:43 +0200
+Message-ID: <87hcff9aos.fsf_-_@brigitte.dna.fi>
+References: <47C5873D.9010002@googlemail.com> <87pruhp98w.fsf@brigitte.dna.fi>
+	<20080229133509.GG15339@atomide.com>
+	<20080229.185711.74749686.apm@brigitte.dna.fi>
+	<20080229171259.GP15339@atomide.com>
+Reply-To: ananaza@iki.fi
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56770 "EHLO arroyo.ext.ti.com"
+Received: from main.gmane.org ([80.91.229.2]:58647 "EHLO ciao.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751338AbYCIHad convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Mar 2008 03:30:33 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <1204926553-6228-1-git-send-email-khilman@mvista.com>
+	id S1751708AbYCIPa4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 9 Mar 2008 11:30:56 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1JYNUE-00029v-7q
+	for linux-omap@vger.kernel.org; Sun, 09 Mar 2008 15:30:54 +0000
+Received: from brigitte.dna.fi ([83.143.58.51])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Sun, 09 Mar 2008 15:30:54 +0000
+Received: from ananaza by brigitte.dna.fi with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Sun, 09 Mar 2008 15:30:54 +0000
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@mvista.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Ack. Meant to send in this fix this weekend. 
+Tony Lindgren <tony@atomide.com> writes:
+> * Antti P Miettinen <apm@brigitte.dna.fi> [080229 08:57]:
+>> If mirroring is OK from your point of view I'll continue polling Lars
+>> about practical arrangement.
+>
+> Sounds good to me!
+>
+> Tony
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: Saturday, March 08, 2008 3:19 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Kevin Hilman
-> Subject: [PATCH] ARM: OMAP: DMA: fix CLINK mask, clear 
-> spurious interrupt
-> 
-> Some bugfixes from the TI CDP kernel.
-> 
-> Signed-off-by: Kevin Hilman <khilman@mvista.com>
-> ---
->  arch/arm/plat-omap/dma.c |    5 +++--
->  1 files changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index 3e94683..008b5dd 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -1020,12 +1020,12 @@ static void create_dma_lch_chain(int 
-> lch_head, int lch_queue)
->  	}
->  
->  	w = OMAP_DMA_CLNK_CTRL_REG(lch_head);
-> -	w &= ~(0x0f);
-> +	w &= ~(0x1f);
->  	w |= lch_queue;
->  	OMAP_DMA_CLNK_CTRL_REG(lch_head) = w;
->  
->  	w = OMAP_DMA_CLNK_CTRL_REG(lch_queue);
-> -	w &= ~(0x0f);
-> +	w &= ~(0x1f);
->  	w |= (dma_chan[lch_queue].next_linked_ch);
->  	OMAP_DMA_CLNK_CTRL_REG(lch_queue) = w;
->  }
-> @@ -1663,6 +1663,7 @@ static int omap2_dma_handle_ch(int ch)
->  	if (!status) {
->  		if (printk_ratelimit())
->  			printk(KERN_WARNING "Spurious DMA IRQ 
-> for lch %d\n", ch);
-> +		omap_writel(1 << ch, OMAP_DMA4_IRQSTATUS_L0);
->  		return 0;
->  	}
->  	if (unlikely(dma_chan[ch].dev_id == -1)) {
-> -- 
-> 1.5.4.1.99.gf1785
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+The gmane.org newsgroup gmane.linux.ports.arm.omap is mirroring now
+the vger list (thanks to Wolfgang Schnerring).
+
+-- 
+http://www.iki.fi/~ananaza/
+
