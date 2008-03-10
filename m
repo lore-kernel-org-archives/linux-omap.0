@@ -1,51 +1,30 @@
-From: "=?UTF-8?Q?Lu=C3=ADs_Vit=C3=B3rio_Cargnini?=" <lvcargnini@gmail.com>
-Subject: Re: Problems booting Filesystem
-Date: Mon, 10 Mar 2008 17:59:22 -0300
-Message-ID: <ae36f8040803101359ge183967ie59ab7fa39ef0dee@mail.gmail.com>
-References: <ae36f8040803101227i6be46d20y6bbc49b06deb4f7d@mail.gmail.com>
-	 <20080310201849.GF4459@kedavra.cpe.vivax.com.br>
-	 <ae36f8040803101319r74d2ec97g2c0444358ce6254@mail.gmail.com>
-	 <20080310205258.GG4459@kedavra.cpe.vivax.com.br>
-Reply-To: lvcargnini@gmail.com
+From: "Hunter, Jon" <jon-hunter@ti.com>
+Subject: RE: Problems booting Filesystem
+Date: Mon, 10 Mar 2008 16:12:07 -0500
+Message-ID: <5573C19A4BBDB441BED2A44157E970530361B68B@dlee12.ent.ti.com>
+References: <ae36f8040803101227i6be46d20y6bbc49b06deb4f7d@mail.gmail.com> <20080310201849.GF4459@kedavra.cpe.vivax.com.br> <ae36f8040803101319r74d2ec97g2c0444358ce6254@mail.gmail.com> <20080310205258.GG4459@kedavra.cpe.vivax.com.br> <ae36f8040803101359ge183967ie59ab7fa39ef0dee@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rn-out-0910.google.com ([64.233.170.187]:31839 "EHLO
-	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752189AbYCJU7Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Mar 2008 16:59:24 -0400
-Received: by rn-out-0910.google.com with SMTP id v46so1499979rnb.15
-        for <linux-omap@vger.kernel.org>; Mon, 10 Mar 2008 13:59:23 -0700 (PDT)
-In-Reply-To: <20080310205258.GG4459@kedavra.cpe.vivax.com.br>
-Content-Disposition: inline
+Received: from calf.ext.ti.com ([198.47.26.144]:41883 "EHLO calf.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752035AbYCJVMR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Mar 2008 17:12:17 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <ae36f8040803101359ge183967ie59ab7fa39ef0dee@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
+To: lvcargnini@gmail.com, me@felipebalbi.com
 Cc: linux-omap@vger.kernel.org
 
-T24gTW9uLCBNYXIgMTAsIDIwMDggYXQgNTo1MyBQTSwgRmVsaXBlIEJhbGJpIDxtZUBmZWxpcGVi
-YWxiaS5jb20+IHdyb3RlOgo+IE9uIE1vbiwgTWFyIDEwLCAyMDA4IGF0IDA1OjE5OjE3UE0gLTAz
-MDAsIEx1P3MgVml0P3JpbyBDYXJnbmluaSB3cm90ZToKPiAgPiBJIGF0dGFjaGVkIHRoZSBjb25m
-aWcsIG5vIEkgb25seSBhZGQgYSBuZXcgZHJpdmVyLCB0aGF0IGlzIHVuZGVyCj4gID4gYmV0YS10
-ZXN0IChhZ2FpbiksIGJlY2F1c2UgSSdtIGFkZGluZyBuZXcgYW5hbG9naWMgY2hhbm5lbHMgY29u
-dHJvbAo+ICA+IGNhcGFiaWxpdHkgdG8gdGhlIGRyaXZlciAoSSBjb250cm9sIG9ubHkgb24gYW5h
-bG9naWMgY2hhbm5lbCBiZWZvcmUpLAo+ICA+IHRoYXQgaXMgaXQuCj4KPiAgUGxlYXNlIGRvbid0
-IHRvcCBwb3N0IDotUwo+ICBhbHNvLCB5b3UgZm9yZ290IHRvIENjIHRoZSBsaXN0LCB0aGlzIGFu
-c3dlciBpcyBhbHNvIGdvaW5nIHRvIHRoZSBsaXN0Cj4gIDstKQo+Cj4gIEFjY29yZGluZyB0byB5
-b3VyIGRlZmNvbmZpZyB5b3Ugc2hvdWxkIGJlIG1vdW50aW5nIGZzIGluIGEgcmFtZGlzaywgaXMK
-PiAgdGhpcyByaWdodCBvciBhcmUgeW91IGZsYXNoaW5nIGluIG9uZW5hbmQ/Cj4KSSdtIGZsYXNo
-aW5nIGluIHRoZSBmbGFzaCBvZiB0aGUgT1NLIGtpdCAoIGEgTkFORCBmbGFzaCBJIHN1cHBvc2Up
-Lgo+ICBCZXNpZGVzIHlvdSBkb24ndCBoYXZlIG5hbmQgc3VwcG9ydCBidWlsdC4KPgpidXQgSSBk
-aWQgIG1ha2Ugb21hcF9vc2tfNTkxMl9kZWZjb25maWcKdG8gZ3JhbnQgdGhhdCB0aGUga2VybmVs
-IHdpbGwgYmUgY3JlYXRlZCAiY2xlYW5seSIgd2l0aG91dCBleGNlc3Mgb2YKZHJpdmVycyBvZiBl
-dmVuIHNpemUsIGhvdyB0aGlzIGRvIG5vdCBhZGQgTkFORCBmbGFzaCBzdXBwb3J0ID8KPgoKCkV4
-Y3VzZSBtZSBmb3IgdG9wIHBvc3RpbmcsIEkgYWx3YXlzIGRpZCB0aGlzLCBpcyBteSBiYWQgaGFi
-aXR1ZGUsIEkKcHJvbWlzc2UgZml4IHRoaXMgcGVyc29uYWwgYnVnCgoKLS0gCi0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLQpUaGFua3MgJiYgUmVnYXJkcwpNLlNjLiBCLlNjLiBMdcOtcyBWaXTDs3JpbyBD
-YXJnbmluaQpJRUVFIE1lbWJlcgpFbGVjdHJpY2FsIEVuZ2luZWVyIEZhY3VsdHkgQCBQVUNSUwpJ
-cGlyYW5nYSBBdmVudWUsIDY2ODEg4oCTIEJ1aWxkaW5nIDMwClAuTy4gQm94OiA5MDYxOS05MDAg
-4oCTIFBvcnRvIEFsZWdyZS9SUwpQaG9uZTogKzU1IDUxIDMzMjAgMzUwMCAgZXh0ZW5zaW9uOiA3
-Njk2Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo=
+> I'm flashing in the flash of the OSK kit ( a NAND flash I suppose).
+
+I don't think they ever put NAND on the 5912OSKs. According to the
+manufacturer website you could have either Intel or Micron flash, but I
+believe both are NOR flashes.
+
+See: http://omap.spectrumdigital.com/osk5912/
+
+Jon
