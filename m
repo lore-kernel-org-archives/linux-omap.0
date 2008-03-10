@@ -1,45 +1,71 @@
-From: Antti P Miettinen <ananaza@iki.fi>
-Subject: gmane.org mirror (was: Re: Don't use this list any more)
-Date: Sun, 09 Mar 2008 17:30:43 +0200
-Message-ID: <87hcff9aos.fsf_-_@brigitte.dna.fi>
-References: <47C5873D.9010002@googlemail.com> <87pruhp98w.fsf@brigitte.dna.fi>
-	<20080229133509.GG15339@atomide.com>
-	<20080229.185711.74749686.apm@brigitte.dna.fi>
-	<20080229171259.GP15339@atomide.com>
-Reply-To: ananaza@iki.fi
+From: "Syed Mohammed, Khasim" <khasim@ti.com>
+Subject: RE: Problem with configuring the LCD in VGA mode
+Date: Mon, 10 Mar 2008 13:42:56 +0530
+Message-ID: <7EAD1AEEA7621C45899FE99123E124A0017572F9@dbde01.ent.ti.com>
+References: <1204973168.4869.23.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:58647 "EHLO ciao.gmane.org"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34123 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751708AbYCIPa4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 9 Mar 2008 11:30:56 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1JYNUE-00029v-7q
-	for linux-omap@vger.kernel.org; Sun, 09 Mar 2008 15:30:54 +0000
-Received: from brigitte.dna.fi ([83.143.58.51])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Sun, 09 Mar 2008 15:30:54 +0000
-Received: from ananaza by brigitte.dna.fi with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Sun, 09 Mar 2008 15:30:54 +0000
+	id S1750852AbYCJINZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Mar 2008 04:13:25 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <1204973168.4869.23.camel@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: arunedarath@mistralsolutions.com, linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> writes:
-> * Antti P Miettinen <apm@brigitte.dna.fi> [080229 08:57]:
->> If mirroring is OK from your point of view I'll continue polling Lars
->> about practical arrangement.
+Hi Arun,
+ 
+> I changed the following parameters for VGA mode keeping DSS1fclk at
+> 55MHz
+> 
+>         .x_res          = 480,
+>         .y_res          = 640,
+>         .hsw            = 2,
+>         .hfp            = 0,
+>         .hbp            = 28,
+>         .vsw            = 1,
+>         .vfp            = 2,
+>         .vbp            = 0,
+>         .pixel_clock    = 20000,
+> 
+
+For VGA LCD on 3430SDP we have configured DSS for 
+         left_margin     = 79,           /* pixclocks */
+         right_margin    = 89,           /* pixclocks */
+         upper_margin    = 1,            /* line clocks */
+         lower_margin    = 0,            /* line clocks */
+         hsync_len       = 3,            /* pixclocks */
+         vsync_len       = 2,            /* line clocks */
+         sync            = 1,            /* hsync & vsync polarity */
+         acb             = 0x28,         /* AC-bias pin frequency */
+         ipc             = 1,            /* Invert pixel clock */
+         onoff           = 1;            /* HSYNC/VSYNC Pixel clk Control*/
+
+> As with these settings my pixel clock is set to 18.3Mhz and LCD comes up
+> with the linux logo.
+> 
+What is the pixel clock required by LCD? Make your FCLK 4 times the pixel clock.
+
+> But if I try to display continuously to frame buffer lcd flickers and
+> gfxfifo underflow irq occurs frequently.
 >
-> Sounds good to me!
->
-> Tony
+The FIFO settings needs to be adjusted as well, the difference between upper and lower threshold can be made equal to burst size. And keep the high threshold to 0xff.
 
-The gmane.org newsgroup gmane.linux.ports.arm.omap is mirroring now
-the vger list (thanks to Wolfgang Schnerring).
+ 
+> I tried increasing DSS1fclk to 82.5 (660Mhz/8) still gfxfifo
+> underflows.
+> 
+> If i keep DSS1fclk=55Mhz and pixel_clock=5000 it works without any
+> problem but the vfreq( vertical refresh rate) is very too low for
+> decent viewing in VGA mode.
+> 
+5000? 
 
--- 
-http://www.iki.fi/~ananaza/
+> Any body faced this issue?? Please help me to solve this problem.
 
+Regards,
+Khasim
