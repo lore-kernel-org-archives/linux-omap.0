@@ -1,50 +1,50 @@
-From: "Syed Mohammed, Khasim" <khasim@ti.com>
-Subject: RE: Problem with configuring the LCD in VGA mode
-Date: Mon, 10 Mar 2008 20:46:27 +0530
-Message-ID: <7EAD1AEEA7621C45899FE99123E124A0017B162D@dbde01.ent.ti.com>
-References: <1204973168.4869.23.camel@localhost.localdomain> <7EAD1AEEA7621C45899FE99123E124A0017572F9@dbde01.ent.ti.com> <1205145765.3632.23.camel@localhost.localdomain> <7EAD1AEEA7621C45899FE99123E124A0017B15EC@dbde01.ent.ti.com> <1205155210.3632.29.camel@localhost.localdomain>
+From: "=?UTF-8?Q?Lu=C3=ADs_Vit=C3=B3rio_Cargnini?=" <lvcargnini@gmail.com>
+Subject: Problems booting Filesystem
+Date: Mon, 10 Mar 2008 16:27:40 -0300
+Message-ID: <ae36f8040803101227i6be46d20y6bbc49b06deb4f7d@mail.gmail.com>
+Reply-To: lvcargnini@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56181 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751118AbYCJPRi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Mar 2008 11:17:38 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <1205155210.3632.29.camel@localhost.localdomain>
+Received: from el-out-1112.google.com ([209.85.162.178]:44702 "EHLO
+	el-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750923AbYCJT1m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Mar 2008 15:27:42 -0400
+Received: by el-out-1112.google.com with SMTP id v27so1201967ele.17
+        for <linux-omap@vger.kernel.org>; Mon, 10 Mar 2008 12:27:42 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arunedarath@mistralsolutions.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-
-
-> > Which processor are you using? For 2430 case it can be 0xFF and 0xC0,
-> for 3430 the FIFO size extends to 0x3FF and 0x3C0 (default values).
-> >
-> > What is the make of LCD? Have we used this before on any OMAP boards?
-> >
-> > What is the DDR frequency?
-> >
-> > Regards,
-> > Khasim
-> >
-> 
-> I am using 2430 custom board.
-> 
-> Yes my lcd works fine in QVGA resolution
-> 
-> DDR is at 110Mhz(L3 clock)
-> 
-> The interesting thing is that  IRQ error messages increases with the
-> pixel clock ie, only lower pixel clocks( 5Mhz ,6 Mhz etc) are seems to
-> be stable on my board.
-> 
-> 
-> 
-I have seen issues in using 640x480 resolution for TVOUT on 2430 processor, Generally it is adviced to use VRFB in rotation 0 mode to get good DDR bandwidth. This helps in overcoming the flicker due to bandwidth issues.
-
-You can refer to TI's code for DDR usage. But the issue is it uses consistent memory of size (2048 * bpp * height).
-
-Regards,
-Khasim
+RGVhciBGZWxsb3dzOgpJJ20gdHJ5aW5nIHRvIGJvb3QgbXkgbmV3IGZpbGVzeXN0ZW0gYnV0IEkn
+bSBoYXZpbmcgdGhlIGZvbGxvd2luZyBwcm9ibGVtczoKRklYTUU6IENsb2NrICJ0YzJfY2siIHNl
+ZW1zIHVudXNlZApEaXNhYmxpbmcgdW51c2VkIGNsb2NrICJ0YzFfY2siLi4uICBkb25lClNraXBw
+aW5nIHJlc2V0IGNoZWNrIGZvciBEU1AgZG9tYWluIGNsb2NrICJkc3B0aW1fY2siClNraXBwaW5n
+IHJlc2V0IGNoZWNrIGZvciBEU1AgZG9tYWluIGNsb2NrICJkc3B4b3JfY2siClNraXBwaW5nIHJl
+c2V0IGNoZWNrIGZvciBEU1AgZG9tYWluIGNsb2NrICJkc3BwZXJfY2siCkxpc3Qgb2YgYWxsIHBh
+cnRpdGlvbnM6CjAxMDAgICAgICAgODE5MiByYW0wIChkcml2ZXI/KQowMTAxICAgICAgIDgxOTIg
+cmFtMSAoZHJpdmVyPykKMDEwMiAgICAgICA4MTkyIHJhbTIgKGRyaXZlcj8pCjAxMDMgICAgICAg
+ODE5MiByYW0zIChkcml2ZXI/KQowMTA0ICAgICAgIDgxOTIgcmFtNCAoZHJpdmVyPykKMDEwNSAg
+ICAgICA4MTkyIHJhbTUgKGRyaXZlcj8pCjAxMDYgICAgICAgODE5MiByYW02IChkcml2ZXI/KQow
+MTA3ICAgICAgIDgxOTIgcmFtNyAoZHJpdmVyPykKMDEwOCAgICAgICA4MTkyIHJhbTggKGRyaXZl
+cj8pCjAxMDkgICAgICAgODE5MiByYW05IChkcml2ZXI/KQowMTBhICAgICAgIDgxOTIgcmFtMTAg
+KGRyaXZlcj8pCjAxMGIgICAgICAgODE5MiByYW0xMSAoZHJpdmVyPykKMDEwYyAgICAgICA4MTky
+IHJhbTEyIChkcml2ZXI/KQowMTBkICAgICAgIDgxOTIgcmFtMTMgKGRyaXZlcj8pCjAxMGUgICAg
+ICAgODE5MiByYW0xNCAoZHJpdmVyPykKMDEwZiAgICAgICA4MTkyIHJhbTE1IChkcml2ZXI/KQox
+ZjAwICAgICAgICAxMjggbXRkYmxvY2swIChkcml2ZXI/KQoxZjAxICAgICAgICAxMjggbXRkYmxv
+Y2sxIChkcml2ZXI/KQoxZjAyICAgICAgIDIwNDggbXRkYmxvY2syIChkcml2ZXI/KQoxZjAzICAg
+ICAgMzA0NjQgbXRkYmxvY2szIChkcml2ZXI/KQpObyBmaWxlc3lzdGVtIGNvdWxkIG1vdW50IHJv
+b3QsIHRyaWVkOiAgZXh0MgpLZXJuZWwgcGFuaWMgLSBub3Qgc3luY2luZzogVkZTOiBVbmFibGUg
+dG8gbW91bnQgcm9vdCBmcyBvbiB1bmtub3duLWJsb2NrKDMxLDMpCgpzb21lb25lIGNvdWxkIGhl
+bHAgd2l0aCB0aGlzIGlzc3VlPwoKbXkgZmlsZXN5c3RlbSBoYXZlIDE2TSwgdGhlIGltYWdlIGZp
+bGUuCkknbSB1c2luZyB0aGUgbGF0ZXN0IHZlcnNpb24gb2YgbWtmcy5qZmZzMiwgZnJvbSBnaXQg
+b2YgbXRkLXV0aWxzCgotLSAKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClRoYW5rcyAmJiBSZWdhcmRz
+Ck0uU2MuIEIuU2MuIEx1w61zIFZpdMOzcmlvIENhcmduaW5pCklFRUUgTWVtYmVyCkVsZWN0cmlj
+YWwgRW5naW5lZXIgRmFjdWx0eSBAIFBVQ1JTCklwaXJhbmdhIEF2ZW51ZSwgNjY4MSDigJMgQnVp
+bGRpbmcgMzAKUC5PLiBCb3g6IDkwNjE5LTkwMCDigJMgUG9ydG8gQWxlZ3JlL1JTClBob25lOiAr
+NTUgNTEgMzMyMCAzNTAwICBleHRlbnNpb246IDc2OTYKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+Cg==
