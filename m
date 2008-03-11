@@ -1,66 +1,39 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: Problems booting Filesystem
-Date: Tue, 11 Mar 2008 03:14:24 -0500
-Message-ID: <e241a85aa2137c14d9ba7e9a310a1153@felipebalbi.com>
-References: <ae36f8040803101904u2a0ab067rbeda8993d40fedae@mail.gmail.com>
+From: "Suresh Rajashekara" <suresh@mistralsolutions.com>
+Subject: Audio Click Issue on OMAP
+Date: Tue, 11 Mar 2008 16:01:22 +0530
+Message-ID: <cd1b82be0803110331m18c8ab9cq7e457fd26f34106e@mail.gmail.com>
+Reply-To: suresh@mistralsolutions.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:60772 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751938AbYCKIOZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Mar 2008 04:14:25 -0400
-In-Reply-To: <ae36f8040803101904u2a0ab067rbeda8993d40fedae@mail.gmail.com>
+Received: from fk-out-0910.google.com ([209.85.128.188]:60546 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752843AbYCKKb2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Mar 2008 06:31:28 -0400
+Received: by fk-out-0910.google.com with SMTP id z23so2184279fkz.5
+        for <linux-omap@vger.kernel.org>; Tue, 11 Mar 2008 03:31:23 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: lvcargnini@gmail.com
-Cc: "Hunter, Jon" <jon-hunter@ti.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Khasim <khasim@ti.com>, Jarkko Nikula <jarkko.nikula@nokia.com>
 
+Hi,
 
+I am using the ALSA SoC driver on the OMAP2430 SDP. The codec
+initialization is being done in the soc->startup and uninitialized in
+the soc->shutdown routine. Since these routines gets executed every
+time some audio sample is played, there is a click noise heard just
+before the sample starts playing. Any idea how this can be resolved?
 
-On Mon, 10 Mar 2008 23:04:07 -0300, "Lu=C3=ADs Vit=C3=B3rio Cargnini"
-<lvcargnini@gmail.com> wrote:
-> ebuilding the kernel, my intern will test it tomorrow morning, then
-> I'll send the results but as you all I do not understood why it
-> generate so many partitions nad not booted the filesystem, it was
-> everything ok until 2.6.24, since the last upgrade things stop
-> working.
+One idea that I have thought of is to move this initialization of the
+codec stuff to bootup time so that click is heard only during the
+bootup and never again. The codec is kept initialized until the board
+is switched off. I am not sure, but I think this might affect the
+battery life of the device. Please let me know if I am incorrect?
 
-Might be a regression.
-If you know the exact point where it was working (2.6.23-omap1 was work=
-ing
-?) then you
-can git bisect to track down where it broke.
+Thanks in advance
 
-Try this:
-
-$ git bisect start
-$ git bisect good v2.6.23-omap1
-$ git bisect bad
-
-then it'll start a binary search between v2.6.23-omap1 and HEAD and cho=
-ose
-one commit in the middle.
-After it chooses you, build the kernel and flash to see whether it work=
-s or
-not. If it works then you
-$ git bisect good
-otherwise you
-$ git bisect bad
-
-You keep doing that until you get the exact commit that broke omap_nor.=
-c
-
---=20
 Best Regards,
-
-=46elipe Balbi
-http://felipebalbi.com
-me@felipebalbi.com
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Suresh
