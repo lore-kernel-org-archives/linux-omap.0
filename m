@@ -1,35 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: gmane.org mirror (was: Re: Don't use this list any more)
-Date: Tue, 11 Mar 2008 08:29:57 +0200
-Message-ID: <20080311062957.GE7524@atomide.com>
-References: <47C5873D.9010002@googlemail.com> <87pruhp98w.fsf@brigitte.dna.fi> <20080229133509.GG15339@atomide.com> <20080229.185711.74749686.apm@brigitte.dna.fi> <20080229171259.GP15339@atomide.com> <87hcff9aos.fsf_-_@brigitte.dna.fi>
+Subject: Re: How to build Native GCC for ARM
+Date: Tue, 11 Mar 2008 08:32:47 +0200
+Message-ID: <20080311063247.GF7524@atomide.com>
+References: <5ae31d3b0803102224s7c99170bv7e5d056ba37689d7@mail.gmail.com> <5d5443650803102318k3fc9cacdkb49c2fe23fafc5ba@mail.gmail.com> <5ae31d3b0803102333y1d5e8c3ev9fc3dec844d05fd3@mail.gmail.com> <5d5443650803102345s15a9adaai19893faec8cc3a92@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:60170 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751278AbYCKH3q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Mar 2008 03:29:46 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55023 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751974AbYCKHcg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Mar 2008 03:32:36 -0400
 Content-Disposition: inline
-In-Reply-To: <87hcff9aos.fsf_-_@brigitte.dna.fi>
+In-Reply-To: <5d5443650803102345s15a9adaai19893faec8cc3a92@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Antti P Miettinen <ananaza@iki.fi>
-Cc: linux-omap@vger.kernel.org
+To: Trilok Soni <soni.trilok@gmail.com>
+Cc: kuldeep nigam <kuldeepnigam@gmail.com>, linux-omap@vger.kernel.org
 
-* Antti P Miettinen <ananaza@iki.fi> [080309 17:31]:
-> Tony Lindgren <tony@atomide.com> writes:
-> > * Antti P Miettinen <apm@brigitte.dna.fi> [080229 08:57]:
-> >> If mirroring is OK from your point of view I'll continue polling Lars
-> >> about practical arrangement.
-> >
-> > Sounds good to me!
-> >
-> > Tony
+* Trilok Soni <soni.trilok@gmail.com> [080311 08:46]:
+> Hi Kuldeep,
 > 
-> The gmane.org newsgroup gmane.linux.ports.arm.omap is mirroring now
-> the vger list (thanks to Wolfgang Schnerring).
+> On Tue, Mar 11, 2008 at 12:03 PM, kuldeep nigam <kuldeepnigam@gmail.com> wrote:
+> >
+> >
+> >
+> > On Tue, Mar 11, 2008 at 11:48 AM, Trilok Soni <soni.trilok@gmail.com> wrote:
+> > > Hi Kuldeep,
+> > >
+> > > On Tue, Mar 11, 2008 at 10:54 AM, kuldeep nigam <kuldeepnigam@gmail.com>
+> > wrote:
+> > > > Hi all,
+> > > >
+> > >
+> > > Why you have such requirement and why you can't use the existing
+> > > cross-compilers? Please explain.
+> > >
+> > > --
+> > > ---Trilok Soni
+> > > http://triloksoni.wordpress.com
+> > >
+> >
+> >
+> > i m working on OMAP2430 board and want to compile some application on the
+> > board itself.
+> >
+> 
+> Please use cross-compiler instead. I don't suggest use this approach.
+> Did you tried scratchbox?
 
-Great, I'll send a note to add that link to vger page too.
+You can also use crosstool.org to compile it, but it may be a big to
+get that bootstrapped natively on arm :) How about just install debian
+armel to an nfsroot and compile with that?
 
 Tony
