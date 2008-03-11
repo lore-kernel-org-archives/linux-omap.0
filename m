@@ -1,30 +1,35 @@
-From: "arun c" <arun.edarath@gmail.com>
-Subject: VGA and QVGA support for 2.6.14 v4l2 drivers
-Date: Tue, 11 Mar 2008 12:23:30 +0530
-Message-ID: <c656a4d20803102353q443d3cc6k938ac2e57e801b3b@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: gmane.org mirror (was: Re: Don't use this list any more)
+Date: Tue, 11 Mar 2008 08:29:57 +0200
+Message-ID: <20080311062957.GE7524@atomide.com>
+References: <47C5873D.9010002@googlemail.com> <87pruhp98w.fsf@brigitte.dna.fi> <20080229133509.GG15339@atomide.com> <20080229.185711.74749686.apm@brigitte.dna.fi> <20080229171259.GP15339@atomide.com> <87hcff9aos.fsf_-_@brigitte.dna.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ag-out-0708.google.com ([72.14.246.241]:56198 "EHLO
-	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751079AbYCKGxd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Mar 2008 02:53:33 -0400
-Received: by ag-out-0708.google.com with SMTP id 35so4065802aga.10
-        for <linux-omap@vger.kernel.org>; Mon, 10 Mar 2008 23:53:32 -0700 (PDT)
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:60170 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751278AbYCKH3q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Mar 2008 03:29:46 -0400
 Content-Disposition: inline
+In-Reply-To: <87hcff9aos.fsf_-_@brigitte.dna.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: arunedarath@mistralsolutions.com
+To: Antti P Miettinen <ananaza@iki.fi>
+Cc: linux-omap@vger.kernel.org
 
-Hi all,
+* Antti P Miettinen <ananaza@iki.fi> [080309 17:31]:
+> Tony Lindgren <tony@atomide.com> writes:
+> > * Antti P Miettinen <apm@brigitte.dna.fi> [080229 08:57]:
+> >> If mirroring is OK from your point of view I'll continue polling Lars
+> >> about practical arrangement.
+> >
+> > Sounds good to me!
+> >
+> > Tony
+> 
+> The gmane.org newsgroup gmane.linux.ports.arm.omap is mirroring now
+> the vger list (thanks to Wolfgang Schnerring).
 
-Did ti kernel's (linux-2.6.14-omap2-v5) v4l2 drivers for 2430sdp support all the
-features of DSS in VGA and QVGA mode?
+Great, I'll send a note to add that link to vger page too.
 
-In the driver it is setting default size of video = QQVGA, only changing this
-parameter is enough for supporting VGA and QVGA sizes?
-
-Rrgards,
-Arun C
+Tony
