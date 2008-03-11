@@ -1,59 +1,37 @@
-From: "=?UTF-8?Q?Lu=C3=ADs_Vit=C3=B3rio_Cargnini?=" <lvcargnini@gmail.com>
-Subject: Re: How to build Native GCC for ARM
-Date: Tue, 11 Mar 2008 08:56:04 -0300
-Message-ID: <ae36f8040803110456l20ec2f96wd03d308737460e70@mail.gmail.com>
-References: <5ae31d3b0803102224s7c99170bv7e5d056ba37689d7@mail.gmail.com>
-	 <5d5443650803102318k3fc9cacdkb49c2fe23fafc5ba@mail.gmail.com>
-	 <5ae31d3b0803102333y1d5e8c3ev9fc3dec844d05fd3@mail.gmail.com>
-	 <5d5443650803102345s15a9adaai19893faec8cc3a92@mail.gmail.com>
-	 <20080311063247.GF7524@atomide.com>
-Reply-To: lvcargnini@gmail.com
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: Audio Click Issue on OMAP
+Date: Tue, 11 Mar 2008 14:00:00 +0200
+Message-ID: <20080311140000.2056a8b0.jarkko.nikula@nokia.com>
+References: <cd1b82be0803110331m18c8ab9cq7e457fd26f34106e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from el-out-1112.google.com ([209.85.162.182]:21510 "EHLO
-	el-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751086AbYCKL4H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Mar 2008 07:56:07 -0400
-Received: by el-out-1112.google.com with SMTP id v27so1368885ele.17
-        for <linux-omap@vger.kernel.org>; Tue, 11 Mar 2008 04:56:05 -0700 (PDT)
-In-Reply-To: <20080311063247.GF7524@atomide.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:52004 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751999AbYCKMAG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Mar 2008 08:00:06 -0400
+In-Reply-To: <cd1b82be0803110331m18c8ab9cq7e457fd26f34106e@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Trilok Soni <soni.trilok@gmail.com>, kuldeep nigam <kuldeepnigam@gmail.com>, linux-omap@vger.kernel.org
+To: suresh@mistralsolutions.com
+Cc: linux-omap@vger.kernel.org, Khasim <khasim@ti.com>
 
-T24gVHVlLCBNYXIgMTEsIDIwMDggYXQgMzozMiBBTSwgVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9t
-aWRlLmNvbT4gd3JvdGU6Cj4gKiBUcmlsb2sgU29uaSA8c29uaS50cmlsb2tAZ21haWwuY29tPiBb
-MDgwMzExIDA4OjQ2XToKPgo+ID4gSGkgS3VsZGVlcCwKPiAgPgo+ICA+IE9uIFR1ZSwgTWFyIDEx
-LCAyMDA4IGF0IDEyOjAzIFBNLCBrdWxkZWVwIG5pZ2FtIDxrdWxkZWVwbmlnYW1AZ21haWwuY29t
-PiB3cm90ZToKPiAgPiA+Cj4gID4gPgo+ICA+ID4KPiAgPiA+IE9uIFR1ZSwgTWFyIDExLCAyMDA4
-IGF0IDExOjQ4IEFNLCBUcmlsb2sgU29uaSA8c29uaS50cmlsb2tAZ21haWwuY29tPiB3cm90ZToK
-PiAgPiA+ID4gSGkgS3VsZGVlcCwKPiAgPiA+ID4KPiAgPiA+ID4gT24gVHVlLCBNYXIgMTEsIDIw
-MDggYXQgMTA6NTQgQU0sIGt1bGRlZXAgbmlnYW0gPGt1bGRlZXBuaWdhbUBnbWFpbC5jb20+Cj4g
-ID4gPiB3cm90ZToKPiAgPiA+ID4gPiBIaSBhbGwsCj4gID4gPiA+ID4KPiAgPiA+ID4KPiAgPiA+
-ID4gV2h5IHlvdSBoYXZlIHN1Y2ggcmVxdWlyZW1lbnQgYW5kIHdoeSB5b3UgY2FuJ3QgdXNlIHRo
-ZSBleGlzdGluZwo+ICA+ID4gPiBjcm9zcy1jb21waWxlcnM/IFBsZWFzZSBleHBsYWluLgo+ICA+
-ID4gPgo+ICA+ID4gPiAtLQo+ICA+ID4gPiAtLS1Ucmlsb2sgU29uaQo+ICA+ID4gPiBodHRwOi8v
-dHJpbG9rc29uaS53b3JkcHJlc3MuY29tCj4gID4gPiA+Cj4gID4gPgo+ICA+ID4KPiAgPiA+IGkg
-bSB3b3JraW5nIG9uIE9NQVAyNDMwIGJvYXJkIGFuZCB3YW50IHRvIGNvbXBpbGUgc29tZSBhcHBs
-aWNhdGlvbiBvbiB0aGUKPiAgPiA+IGJvYXJkIGl0c2VsZi4KPiAgPiA+Cj4gID4KPiAgPiBQbGVh
-c2UgdXNlIGNyb3NzLWNvbXBpbGVyIGluc3RlYWQuIEkgZG9uJ3Qgc3VnZ2VzdCB1c2UgdGhpcyBh
-cHByb2FjaC4KPiAgPiBEaWQgeW91IHRyaWVkIHNjcmF0Y2hib3g/Cj4KPiAgWW91IGNhbiBhbHNv
-IHVzZSBjcm9zc3Rvb2wub3JnIHRvIGNvbXBpbGUgaXQsIGJ1dCBpdCBtYXkgYmUgYSBiaWcgdG8K
-PiAgZ2V0IHRoYXQgYm9vdHN0cmFwcGVkIG5hdGl2ZWx5IG9uIGFybSA6KSBIb3cgYWJvdXQganVz
-dCBpbnN0YWxsIGRlYmlhbgo+ICBhcm1lbCB0byBhbiBuZnNyb290IGFuZCBjb21waWxlIHdpdGgg
-dGhhdD8KPgo+ICBUb255Cj4KPgo+IC0tCj4gIFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0
-OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1vbWFwIiBpbgo+ICB0aGUgYm9keSBv
-ZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwo+ICBNb3JlIG1ham9yZG9t
-byBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwKPgoK
-dGFrZSBhIGxvb2sgaW4gaHR0cDovL2Nyb3NzLWxmcy5vcmcvdmlldy9jbGZzLXN5c3Jvb3QvYXJt
-LwoKLS0gCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpUaGFua3MgJiYgUmVnYXJkcwpNLlNjLiBCLlNj
-LiBMdcOtcyBWaXTDs3JpbyBDYXJnbmluaQpJRUVFIE1lbWJlcgpFbGVjdHJpY2FsIEVuZ2luZWVy
-IEZhY3VsdHkgQCBQVUNSUwpJcGlyYW5nYSBBdmVudWUsIDY2ODEg4oCTIEJ1aWxkaW5nIDMwClAu
-Ty4gQm94OiA5MDYxOS05MDAg4oCTIFBvcnRvIEFsZWdyZS9SUwpQaG9uZTogKzU1IDUxIDMzMjAg
-MzUwMCBleHRlbnNpb246IDc2OTYKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCg==
+On Tue, 11 Mar 2008 16:01:22 +0530
+"ext Suresh Rajashekara" <suresh@mistralsolutions.com> wrote:
+
+> Hi,
+> 
+> I am using the ALSA SoC driver on the OMAP2430 SDP. The codec
+> initialization is being done in the soc->startup and uninitialized in
+> the soc->shutdown routine. Since these routines gets executed every
+> time some audio sample is played, there is a click noise heard just
+> before the sample starts playing. Any idea how this can be resolved?
+> 
+It sounds that your codec driver doesn't integrate with DAPM concept of
+ASoC? DAPM should take care of proper muting/unmuting and powering
+order. Have a look in existing codec drivers for DAPM widgets and
+dapm_event callbacks how they construct audio paths & widgets.
+
+
+	Jarkko
