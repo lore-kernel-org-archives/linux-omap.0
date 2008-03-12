@@ -1,918 +1,736 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 5/10] ARM: OMAP2: Rename cm_regbits_24xx.h to cm-regbits-24xx.h
-Date: Wed, 12 Mar 2008 12:45:45 +0200
-Message-ID: <1205318750-9596-6-git-send-email-tony@atomide.com>
+Subject: [PATCH 2/10] ARM: OMAP2: Move sram-fn.S to sram24xx.S
+Date: Wed, 12 Mar 2008 12:45:42 +0200
+Message-ID: <1205318750-9596-3-git-send-email-tony@atomide.com>
 References: 34xx-2008-03-12
  <1205318750-9596-1-git-send-email-tony@atomide.com>
  <1205318750-9596-2-git-send-email-tony@atomide.com>
- <1205318750-9596-3-git-send-email-tony@atomide.com>
- <1205318750-9596-4-git-send-email-tony@atomide.com>
- <1205318750-9596-5-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:50782 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751461AbYCLKqL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Mar 2008 06:46:11 -0400
-In-Reply-To: <1205318750-9596-5-git-send-email-tony@atomide.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:65522 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751485AbYCLKqE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Mar 2008 06:46:04 -0400
+In-Reply-To: <1205318750-9596-2-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>
 
-This is to follow current naming before sending files upstream.
+This is to make room for sram34xx.S
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/clock.c           |    2 +-
- arch/arm/mach-omap2/clock24xx.c       |    2 +-
- arch/arm/mach-omap2/clock24xx.h       |    2 +-
- arch/arm/mach-omap2/cm-regbits-24xx.h |  401 +++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/cm_regbits_24xx.h |  401 ---------------------------------
- arch/arm/mach-omap2/pm.c              |    2 +-
- drivers/dsp/dspgateway/dsp.h          |    2 +-
- 7 files changed, 406 insertions(+), 406 deletions(-)
- create mode 100644 arch/arm/mach-omap2/cm-regbits-24xx.h
- delete mode 100644 arch/arm/mach-omap2/cm_regbits_24xx.h
+ arch/arm/mach-omap2/Makefile   |    5 +-
+ arch/arm/mach-omap2/sram-fn.S  |  337 ----------------------------------------
+ arch/arm/mach-omap2/sram24xx.S |  337 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 341 insertions(+), 338 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/sram-fn.S
+ create mode 100644 arch/arm/mach-omap2/sram24xx.S
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 314ac57..3f41144 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -42,7 +42,7 @@
- #include "prm.h"
- #include "prm_regbits_24xx.h"
- #include "cm.h"
--#include "cm_regbits_24xx.h"
-+#include "cm-regbits-24xx.h"
- #include "cm_regbits_34xx.h"
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 842f9fb..5157ff2 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -3,9 +3,12 @@
+ #
  
- #define MAX_CLOCK_ENABLE_WAIT		100000
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index 1053fc9..e8d0fe3 100644
---- a/arch/arm/mach-omap2/clock24xx.c
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -38,7 +38,7 @@
- #include "prm.h"
- #include "prm_regbits_24xx.h"
- #include "cm.h"
--#include "cm_regbits_24xx.h"
-+#include "cm-regbits-24xx.h"
+ # Common support
+-obj-y := irq.o id.o io.o sram-fn.o memory.o control.o prcm.o clock.o mux.o \
++obj-y := irq.o id.o io.o memory.o control.o prcm.o clock.o mux.o \
+ 		devices.o serial.o gpmc.o timer-gp.o
  
- /* CM_CLKEN_PLL.EN_{54,96}M_PLL options (24XX) */
- #define EN_APLL_STOPPED			0
-diff --git a/arch/arm/mach-omap2/clock24xx.h b/arch/arm/mach-omap2/clock24xx.h
-index 6ea0c1b..2b4a6a6 100644
---- a/arch/arm/mach-omap2/clock24xx.h
-+++ b/arch/arm/mach-omap2/clock24xx.h
-@@ -26,7 +26,7 @@
- #include "prm.h"
- #include "cm.h"
- #include "prm_regbits_24xx.h"
--#include "cm_regbits_24xx.h"
-+#include "cm-regbits-24xx.h"
- #include "sdrc.h"
++# Functions loaded to SRAM
++obj-$(CONFIG_ARCH_OMAP2)		+= sram24xx.o
++
+ # Power Management
+ obj-$(CONFIG_PM) += pm.o sleep.o
  
- static void omap2_table_mpu_recalc(struct clk *clk);
-diff --git a/arch/arm/mach-omap2/cm-regbits-24xx.h b/arch/arm/mach-omap2/cm-regbits-24xx.h
-new file mode 100644
-index 0000000..20ac381
---- /dev/null
-+++ b/arch/arm/mach-omap2/cm-regbits-24xx.h
-@@ -0,0 +1,401 @@
-+#ifndef __ARCH_ARM_MACH_OMAP2_CM_REGBITS_24XX_H
-+#define __ARCH_ARM_MACH_OMAP2_CM_REGBITS_24XX_H
-+
-+/*
-+ * OMAP24XX Clock Management register bits
-+ *
-+ * Copyright (C) 2007 Texas Instruments, Inc.
-+ * Copyright (C) 2007 Nokia Corporation
-+ *
-+ * Written by Paul Walmsley
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include "cm.h"
-+
-+/* Bits shared between registers */
-+
-+/* CM_FCLKEN1_CORE and CM_ICLKEN1_CORE shared bits */
-+#define OMAP24XX_EN_CAM_SHIFT				31
-+#define OMAP24XX_EN_CAM					(1 << 31)
-+#define OMAP24XX_EN_WDT4_SHIFT				29
-+#define OMAP24XX_EN_WDT4				(1 << 29)
-+#define OMAP2420_EN_WDT3_SHIFT				28
-+#define OMAP2420_EN_WDT3				(1 << 28)
-+#define OMAP24XX_EN_MSPRO_SHIFT				27
-+#define OMAP24XX_EN_MSPRO				(1 << 27)
-+#define OMAP24XX_EN_FAC_SHIFT				25
-+#define OMAP24XX_EN_FAC					(1 << 25)
-+#define OMAP2420_EN_EAC_SHIFT				24
-+#define OMAP2420_EN_EAC					(1 << 24)
-+#define OMAP24XX_EN_HDQ_SHIFT				23
-+#define OMAP24XX_EN_HDQ					(1 << 23)
-+#define OMAP2420_EN_I2C2_SHIFT				20
-+#define OMAP2420_EN_I2C2				(1 << 20)
-+#define OMAP2420_EN_I2C1_SHIFT				19
-+#define OMAP2420_EN_I2C1				(1 << 19)
-+
-+/* CM_FCLKEN2_CORE and CM_ICLKEN2_CORE shared bits */
-+#define OMAP2430_EN_MCBSP5_SHIFT			5
-+#define OMAP2430_EN_MCBSP5				(1 << 5)
-+#define OMAP2430_EN_MCBSP4_SHIFT			4
-+#define OMAP2430_EN_MCBSP4				(1 << 4)
-+#define OMAP2430_EN_MCBSP3_SHIFT			3
-+#define OMAP2430_EN_MCBSP3				(1 << 3)
-+#define OMAP24XX_EN_SSI_SHIFT				1
-+#define OMAP24XX_EN_SSI					(1 << 1)
-+
-+/* CM_FCLKEN_WKUP and CM_ICLKEN_WKUP shared bits */
-+#define OMAP24XX_EN_MPU_WDT_SHIFT			3
-+#define OMAP24XX_EN_MPU_WDT				(1 << 3)
-+
-+/* Bits specific to each register */
-+
-+/* CM_IDLEST_MPU */
-+/* 2430 only */
-+#define OMAP2430_ST_MPU					(1 << 0)
-+
-+/* CM_CLKSEL_MPU */
-+#define OMAP24XX_CLKSEL_MPU_SHIFT			0
-+#define OMAP24XX_CLKSEL_MPU_MASK			(0x1f << 0)
-+
-+/* CM_CLKSTCTRL_MPU */
-+#define OMAP24XX_AUTOSTATE_MPU				(1 << 0)
-+
-+/* CM_FCLKEN1_CORE specific bits*/
-+#define OMAP24XX_EN_TV_SHIFT				2
-+#define OMAP24XX_EN_TV					(1 << 2)
-+#define OMAP24XX_EN_DSS2_SHIFT				1
-+#define OMAP24XX_EN_DSS2				(1 << 1)
-+#define OMAP24XX_EN_DSS1_SHIFT				0
-+#define OMAP24XX_EN_DSS1				(1 << 0)
-+
-+/* CM_FCLKEN2_CORE specific bits */
-+#define OMAP2430_EN_I2CHS2_SHIFT			20
-+#define OMAP2430_EN_I2CHS2				(1 << 20)
-+#define OMAP2430_EN_I2CHS1_SHIFT			19
-+#define OMAP2430_EN_I2CHS1				(1 << 19)
-+#define OMAP2430_EN_MMCHSDB2_SHIFT			17
-+#define OMAP2430_EN_MMCHSDB2				(1 << 17)
-+#define OMAP2430_EN_MMCHSDB1_SHIFT			16
-+#define OMAP2430_EN_MMCHSDB1				(1 << 16)
-+
-+/* CM_ICLKEN1_CORE specific bits */
-+#define OMAP24XX_EN_MAILBOXES_SHIFT			30
-+#define OMAP24XX_EN_MAILBOXES				(1 << 30)
-+#define OMAP24XX_EN_DSS_SHIFT				0
-+#define OMAP24XX_EN_DSS					(1 << 0)
-+
-+/* CM_ICLKEN2_CORE specific bits */
-+
-+/* CM_ICLKEN3_CORE */
-+/* 2430 only */
-+#define OMAP2430_EN_SDRC_SHIFT				2
-+#define OMAP2430_EN_SDRC				(1 << 2)
-+
-+/* CM_ICLKEN4_CORE */
-+#define OMAP24XX_EN_PKA_SHIFT				4
-+#define OMAP24XX_EN_PKA					(1 << 4)
-+#define OMAP24XX_EN_AES_SHIFT				3
-+#define OMAP24XX_EN_AES					(1 << 3)
-+#define OMAP24XX_EN_RNG_SHIFT				2
-+#define OMAP24XX_EN_RNG					(1 << 2)
-+#define OMAP24XX_EN_SHA_SHIFT				1
-+#define OMAP24XX_EN_SHA					(1 << 1)
-+#define OMAP24XX_EN_DES_SHIFT				0
-+#define OMAP24XX_EN_DES					(1 << 0)
-+
-+/* CM_IDLEST1_CORE specific bits */
-+#define OMAP24XX_ST_MAILBOXES				(1 << 30)
-+#define OMAP24XX_ST_WDT4				(1 << 29)
-+#define OMAP2420_ST_WDT3				(1 << 28)
-+#define OMAP24XX_ST_MSPRO				(1 << 27)
-+#define OMAP24XX_ST_FAC					(1 << 25)
-+#define OMAP2420_ST_EAC					(1 << 24)
-+#define OMAP24XX_ST_HDQ					(1 << 23)
-+#define OMAP24XX_ST_I2C2				(1 << 20)
-+#define OMAP24XX_ST_I2C1				(1 << 19)
-+#define OMAP24XX_ST_MCBSP2				(1 << 16)
-+#define OMAP24XX_ST_MCBSP1				(1 << 15)
-+#define OMAP24XX_ST_DSS					(1 << 0)
-+
-+/* CM_IDLEST2_CORE */
-+#define OMAP2430_ST_MCBSP5				(1 << 5)
-+#define OMAP2430_ST_MCBSP4				(1 << 4)
-+#define OMAP2430_ST_MCBSP3				(1 << 3)
-+#define OMAP24XX_ST_SSI					(1 << 1)
-+
-+/* CM_IDLEST3_CORE */
-+/* 2430 only */
-+#define OMAP2430_ST_SDRC				(1 << 2)
-+
-+/* CM_IDLEST4_CORE */
-+#define OMAP24XX_ST_PKA					(1 << 4)
-+#define OMAP24XX_ST_AES					(1 << 3)
-+#define OMAP24XX_ST_RNG					(1 << 2)
-+#define OMAP24XX_ST_SHA					(1 << 1)
-+#define OMAP24XX_ST_DES					(1 << 0)
-+
-+/* CM_AUTOIDLE1_CORE */
-+#define OMAP24XX_AUTO_CAM				(1 << 31)
-+#define OMAP24XX_AUTO_MAILBOXES				(1 << 30)
-+#define OMAP24XX_AUTO_WDT4				(1 << 29)
-+#define OMAP2420_AUTO_WDT3				(1 << 28)
-+#define OMAP24XX_AUTO_MSPRO				(1 << 27)
-+#define OMAP2420_AUTO_MMC				(1 << 26)
-+#define OMAP24XX_AUTO_FAC				(1 << 25)
-+#define OMAP2420_AUTO_EAC				(1 << 24)
-+#define OMAP24XX_AUTO_HDQ				(1 << 23)
-+#define OMAP24XX_AUTO_UART2				(1 << 22)
-+#define OMAP24XX_AUTO_UART1				(1 << 21)
-+#define OMAP24XX_AUTO_I2C2				(1 << 20)
-+#define OMAP24XX_AUTO_I2C1				(1 << 19)
-+#define OMAP24XX_AUTO_MCSPI2				(1 << 18)
-+#define OMAP24XX_AUTO_MCSPI1				(1 << 17)
-+#define OMAP24XX_AUTO_MCBSP2				(1 << 16)
-+#define OMAP24XX_AUTO_MCBSP1				(1 << 15)
-+#define OMAP24XX_AUTO_GPT12				(1 << 14)
-+#define OMAP24XX_AUTO_GPT11				(1 << 13)
-+#define OMAP24XX_AUTO_GPT10				(1 << 12)
-+#define OMAP24XX_AUTO_GPT9				(1 << 11)
-+#define OMAP24XX_AUTO_GPT8				(1 << 10)
-+#define OMAP24XX_AUTO_GPT7				(1 << 9)
-+#define OMAP24XX_AUTO_GPT6				(1 << 8)
-+#define OMAP24XX_AUTO_GPT5				(1 << 7)
-+#define OMAP24XX_AUTO_GPT4				(1 << 6)
-+#define OMAP24XX_AUTO_GPT3				(1 << 5)
-+#define OMAP24XX_AUTO_GPT2				(1 << 4)
-+#define OMAP2420_AUTO_VLYNQ				(1 << 3)
-+#define OMAP24XX_AUTO_DSS				(1 << 0)
-+
-+/* CM_AUTOIDLE2_CORE */
-+#define OMAP2430_AUTO_MDM_INTC				(1 << 11)
-+#define OMAP2430_AUTO_GPIO5				(1 << 10)
-+#define OMAP2430_AUTO_MCSPI3				(1 << 9)
-+#define OMAP2430_AUTO_MMCHS2				(1 << 8)
-+#define OMAP2430_AUTO_MMCHS1				(1 << 7)
-+#define OMAP2430_AUTO_USBHS				(1 << 6)
-+#define OMAP2430_AUTO_MCBSP5				(1 << 5)
-+#define OMAP2430_AUTO_MCBSP4				(1 << 4)
-+#define OMAP2430_AUTO_MCBSP3				(1 << 3)
-+#define OMAP24XX_AUTO_UART3				(1 << 2)
-+#define OMAP24XX_AUTO_SSI				(1 << 1)
-+#define OMAP24XX_AUTO_USB				(1 << 0)
-+
-+/* CM_AUTOIDLE3_CORE */
-+#define OMAP24XX_AUTO_SDRC				(1 << 2)
-+#define OMAP24XX_AUTO_GPMC				(1 << 1)
-+#define OMAP24XX_AUTO_SDMA				(1 << 0)
-+
-+/* CM_AUTOIDLE4_CORE */
-+#define OMAP24XX_AUTO_PKA				(1 << 4)
-+#define OMAP24XX_AUTO_AES				(1 << 3)
-+#define OMAP24XX_AUTO_RNG				(1 << 2)
-+#define OMAP24XX_AUTO_SHA				(1 << 1)
-+#define OMAP24XX_AUTO_DES				(1 << 0)
-+
-+/* CM_CLKSEL1_CORE */
-+#define OMAP24XX_CLKSEL_USB_SHIFT			25
-+#define OMAP24XX_CLKSEL_USB_MASK			(0x7 << 25)
-+#define OMAP24XX_CLKSEL_SSI_SHIFT			20
-+#define OMAP24XX_CLKSEL_SSI_MASK			(0x1f << 20)
-+#define OMAP2420_CLKSEL_VLYNQ_SHIFT			15
-+#define OMAP2420_CLKSEL_VLYNQ_MASK			(0x1f << 15)
-+#define OMAP24XX_CLKSEL_DSS2_SHIFT			13
-+#define OMAP24XX_CLKSEL_DSS2_MASK			(0x1 << 13)
-+#define OMAP24XX_CLKSEL_DSS1_SHIFT			8
-+#define OMAP24XX_CLKSEL_DSS1_MASK			(0x1f << 8)
-+#define OMAP24XX_CLKSEL_L4_SHIFT			5
-+#define OMAP24XX_CLKSEL_L4_MASK				(0x3 << 5)
-+#define OMAP24XX_CLKSEL_L3_SHIFT			0
-+#define OMAP24XX_CLKSEL_L3_MASK				(0x1f << 0)
-+
-+/* CM_CLKSEL2_CORE */
-+#define OMAP24XX_CLKSEL_GPT12_SHIFT			22
-+#define OMAP24XX_CLKSEL_GPT12_MASK			(0x3 << 22)
-+#define OMAP24XX_CLKSEL_GPT11_SHIFT			20
-+#define OMAP24XX_CLKSEL_GPT11_MASK			(0x3 << 20)
-+#define OMAP24XX_CLKSEL_GPT10_SHIFT			18
-+#define OMAP24XX_CLKSEL_GPT10_MASK			(0x3 << 18)
-+#define OMAP24XX_CLKSEL_GPT9_SHIFT			16
-+#define OMAP24XX_CLKSEL_GPT9_MASK			(0x3 << 16)
-+#define OMAP24XX_CLKSEL_GPT8_SHIFT			14
-+#define OMAP24XX_CLKSEL_GPT8_MASK			(0x3 << 14)
-+#define OMAP24XX_CLKSEL_GPT7_SHIFT			12
-+#define OMAP24XX_CLKSEL_GPT7_MASK			(0x3 << 12)
-+#define OMAP24XX_CLKSEL_GPT6_SHIFT			10
-+#define OMAP24XX_CLKSEL_GPT6_MASK			(0x3 << 10)
-+#define OMAP24XX_CLKSEL_GPT5_SHIFT			8
-+#define OMAP24XX_CLKSEL_GPT5_MASK			(0x3 << 8)
-+#define OMAP24XX_CLKSEL_GPT4_SHIFT			6
-+#define OMAP24XX_CLKSEL_GPT4_MASK			(0x3 << 6)
-+#define OMAP24XX_CLKSEL_GPT3_SHIFT			4
-+#define OMAP24XX_CLKSEL_GPT3_MASK			(0x3 << 4)
-+#define OMAP24XX_CLKSEL_GPT2_SHIFT			2
-+#define OMAP24XX_CLKSEL_GPT2_MASK			(0x3 << 2)
-+
-+/* CM_CLKSTCTRL_CORE */
-+#define OMAP24XX_AUTOSTATE_DSS				(1 << 2)
-+#define OMAP24XX_AUTOSTATE_L4				(1 << 1)
-+#define OMAP24XX_AUTOSTATE_L3				(1 << 0)
-+
-+/* CM_FCLKEN_GFX */
-+#define OMAP24XX_EN_3D_SHIFT				2
-+#define OMAP24XX_EN_3D					(1 << 2)
-+#define OMAP24XX_EN_2D_SHIFT				1
-+#define OMAP24XX_EN_2D					(1 << 1)
-+
-+/* CM_ICLKEN_GFX specific bits */
-+
-+/* CM_IDLEST_GFX specific bits */
-+
-+/* CM_CLKSEL_GFX specific bits */
-+
-+/* CM_CLKSTCTRL_GFX */
-+#define OMAP24XX_AUTOSTATE_GFX				(1 << 0)
-+
-+/* CM_FCLKEN_WKUP specific bits */
-+
-+/* CM_ICLKEN_WKUP specific bits */
-+#define OMAP2430_EN_ICR_SHIFT				6
-+#define OMAP2430_EN_ICR					(1 << 6)
-+#define OMAP24XX_EN_OMAPCTRL_SHIFT			5
-+#define OMAP24XX_EN_OMAPCTRL				(1 << 5)
-+#define OMAP24XX_EN_WDT1_SHIFT				4
-+#define OMAP24XX_EN_WDT1				(1 << 4)
-+#define OMAP24XX_EN_32KSYNC_SHIFT			1
-+#define OMAP24XX_EN_32KSYNC				(1 << 1)
-+
-+/* CM_IDLEST_WKUP specific bits */
-+#define OMAP2430_ST_ICR					(1 << 6)
-+#define OMAP24XX_ST_OMAPCTRL				(1 << 5)
-+#define OMAP24XX_ST_WDT1				(1 << 4)
-+#define OMAP24XX_ST_MPU_WDT				(1 << 3)
-+#define OMAP24XX_ST_32KSYNC				(1 << 1)
-+
-+/* CM_AUTOIDLE_WKUP */
-+#define OMAP24XX_AUTO_OMAPCTRL				(1 << 5)
-+#define OMAP24XX_AUTO_WDT1				(1 << 4)
-+#define OMAP24XX_AUTO_MPU_WDT				(1 << 3)
-+#define OMAP24XX_AUTO_GPIOS				(1 << 2)
-+#define OMAP24XX_AUTO_32KSYNC				(1 << 1)
-+#define OMAP24XX_AUTO_GPT1				(1 << 0)
-+
-+/* CM_CLKSEL_WKUP */
-+#define OMAP24XX_CLKSEL_GPT1_SHIFT			0
-+#define OMAP24XX_CLKSEL_GPT1_MASK			(0x3 << 0)
-+
-+/* CM_CLKEN_PLL */
-+#define OMAP24XX_EN_54M_PLL_SHIFT			6
-+#define OMAP24XX_EN_54M_PLL_MASK			(0x3 << 6)
-+#define OMAP24XX_EN_96M_PLL_SHIFT			2
-+#define OMAP24XX_EN_96M_PLL_MASK			(0x3 << 2)
-+#define OMAP24XX_EN_DPLL_SHIFT				0
-+#define OMAP24XX_EN_DPLL_MASK				(0x3 << 0)
-+
-+/* CM_IDLEST_CKGEN */
-+#define OMAP24XX_ST_54M_APLL				(1 << 9)
-+#define OMAP24XX_ST_96M_APLL				(1 << 8)
-+#define OMAP24XX_ST_54M_CLK				(1 << 6)
-+#define OMAP24XX_ST_12M_CLK				(1 << 5)
-+#define OMAP24XX_ST_48M_CLK				(1 << 4)
-+#define OMAP24XX_ST_96M_CLK				(1 << 2)
-+#define OMAP24XX_ST_CORE_CLK_SHIFT			0
-+#define OMAP24XX_ST_CORE_CLK_MASK			(0x3 << 0)
-+
-+/* CM_AUTOIDLE_PLL */
-+#define OMAP24XX_AUTO_54M_SHIFT				6
-+#define OMAP24XX_AUTO_54M_MASK				(0x3 << 6)
-+#define OMAP24XX_AUTO_96M_SHIFT				2
-+#define OMAP24XX_AUTO_96M_MASK				(0x3 << 2)
-+#define OMAP24XX_AUTO_DPLL_SHIFT			0
-+#define OMAP24XX_AUTO_DPLL_MASK				(0x3 << 0)
-+
-+/* CM_CLKSEL1_PLL */
-+#define OMAP2430_MAXDPLLFASTLOCK_SHIFT			28
-+#define OMAP2430_MAXDPLLFASTLOCK_MASK			(0x7 << 28)
-+#define OMAP24XX_APLLS_CLKIN_SHIFT			23
-+#define OMAP24XX_APLLS_CLKIN_MASK			(0x7 << 23)
-+#define OMAP24XX_DPLL_MULT_SHIFT			12
-+#define OMAP24XX_DPLL_MULT_MASK				(0x3ff << 12)
-+#define OMAP24XX_DPLL_DIV_SHIFT				8
-+#define OMAP24XX_DPLL_DIV_MASK				(0xf << 8)
-+#define OMAP24XX_54M_SOURCE_SHIFT			5
-+#define OMAP24XX_54M_SOURCE				(1 << 5)
-+#define OMAP2430_96M_SOURCE_SHIFT			4
-+#define OMAP2430_96M_SOURCE				(1 << 4)
-+#define OMAP24XX_48M_SOURCE_SHIFT			3
-+#define OMAP24XX_48M_SOURCE				(1 << 3)
-+#define OMAP2430_ALTCLK_SOURCE_SHIFT			0
-+#define OMAP2430_ALTCLK_SOURCE_MASK			(0x7 << 0)
-+
-+/* CM_CLKSEL2_PLL */
-+#define OMAP24XX_CORE_CLK_SRC_SHIFT			0
-+#define OMAP24XX_CORE_CLK_SRC_MASK			(0x3 << 0)
-+
-+/* CM_FCLKEN_DSP */
-+#define OMAP2420_EN_IVA_COP_SHIFT			10
-+#define OMAP2420_EN_IVA_COP				(1 << 10)
-+#define OMAP2420_EN_IVA_MPU_SHIFT			8
-+#define OMAP2420_EN_IVA_MPU				(1 << 8)
-+#define OMAP24XX_CM_FCLKEN_DSP_EN_DSP_SHIFT		0
-+#define OMAP24XX_CM_FCLKEN_DSP_EN_DSP			(1 << 0)
-+
-+/* CM_ICLKEN_DSP */
-+#define OMAP2420_EN_DSP_IPI_SHIFT			1
-+#define OMAP2420_EN_DSP_IPI				(1 << 1)
-+
-+/* CM_IDLEST_DSP */
-+#define OMAP2420_ST_IVA					(1 << 8)
-+#define OMAP2420_ST_IPI					(1 << 1)
-+#define OMAP24XX_ST_DSP					(1 << 0)
-+
-+/* CM_AUTOIDLE_DSP */
-+#define OMAP2420_AUTO_DSP_IPI				(1 << 1)
-+
-+/* CM_CLKSEL_DSP */
-+#define OMAP2420_SYNC_IVA				(1 << 13)
-+#define OMAP2420_CLKSEL_IVA_SHIFT			8
-+#define OMAP2420_CLKSEL_IVA_MASK			(0x1f << 8)
-+#define OMAP24XX_SYNC_DSP				(1 << 7)
-+#define OMAP24XX_CLKSEL_DSP_IF_SHIFT			5
-+#define OMAP24XX_CLKSEL_DSP_IF_MASK			(0x3 << 5)
-+#define OMAP24XX_CLKSEL_DSP_SHIFT			0
-+#define OMAP24XX_CLKSEL_DSP_MASK			(0x1f << 0)
-+
-+/* CM_CLKSTCTRL_DSP */
-+#define OMAP2420_AUTOSTATE_IVA				(1 << 8)
-+#define OMAP24XX_AUTOSTATE_DSP				(1 << 0)
-+
-+/* CM_FCLKEN_MDM */
-+/* 2430 only */
-+#define OMAP2430_EN_OSC_SHIFT				1
-+#define OMAP2430_EN_OSC					(1 << 1)
-+
-+/* CM_ICLKEN_MDM */
-+/* 2430 only */
-+#define OMAP2430_CM_ICLKEN_MDM_EN_MDM_SHIFT		0
-+#define OMAP2430_CM_ICLKEN_MDM_EN_MDM			(1 << 0)
-+
-+/* CM_IDLEST_MDM specific bits */
-+/* 2430 only */
-+
-+/* CM_AUTOIDLE_MDM */
-+/* 2430 only */
-+#define OMAP2430_AUTO_OSC				(1 << 1)
-+#define OMAP2430_AUTO_MDM				(1 << 0)
-+
-+/* CM_CLKSEL_MDM */
-+/* 2430 only */
-+#define OMAP2430_SYNC_MDM				(1 << 4)
-+#define OMAP2430_CLKSEL_MDM_SHIFT			0
-+#define OMAP2430_CLKSEL_MDM_MASK			(0xf << 0)
-+
-+/* CM_CLKSTCTRL_MDM */
-+/* 2430 only */
-+#define OMAP2430_AUTOSTATE_MDM				(1 << 0)
-+
-+#endif
-diff --git a/arch/arm/mach-omap2/cm_regbits_24xx.h b/arch/arm/mach-omap2/cm_regbits_24xx.h
+diff --git a/arch/arm/mach-omap2/sram-fn.S b/arch/arm/mach-omap2/sram-fn.S
 deleted file mode 100644
-index 20ac381..0000000
---- a/arch/arm/mach-omap2/cm_regbits_24xx.h
+index ba1e005..0000000
+--- a/arch/arm/mach-omap2/sram-fn.S
 +++ /dev/null
-@@ -1,401 +0,0 @@
--#ifndef __ARCH_ARM_MACH_OMAP2_CM_REGBITS_24XX_H
--#define __ARCH_ARM_MACH_OMAP2_CM_REGBITS_24XX_H
+@@ -1,337 +0,0 @@
+-/*
+- * linux/arch/arm/mach-omap2/sram-fn.S
+- *
+- * Omap2 specific functions that need to be run in internal SRAM
+- *
+- * (C) Copyright 2004
+- * Texas Instruments, <www.ti.com>
+- * Richard Woodruff <r-woodruff2@ti.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation; either version 2 of
+- * the License, or (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR /PURPOSE. See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+- * MA 02111-1307 USA
+- */
+-#include <linux/linkage.h>
+-#include <asm/assembler.h>
+-#include <asm/arch/io.h>
+-#include <asm/hardware.h>
+-#include <linux/poison.h>
+-
+-	.text
+-
+-ENTRY(sram_ddr_init)
+-	stmfd	sp!, {r0 - r12, lr}	@ save registers on stack
+-
+-	mov	r12, r2			@ capture CS1 vs CS0
+-	mov	r8, r3			@ capture force parameter
+-
+-	/* frequency shift down */
+-	ldr	r2, omap2_sdi_cm_clksel2_pll	@ get address of dpllout reg
+-	mov	r3, #0x1		@ value for 1x operation
+-	str	r3, [r2]		@ go to L1-freq operation
+-
+-	/* voltage shift down */
+-	mov r9, #0x1			@ set up for L1 voltage call
+-	bl voltage_shift		@ go drop voltage
+-
+-	/* dll lock mode */
+-	ldr	r11, omap2_sdi_sdrc_dlla_ctrl	@ addr of dlla ctrl
+-	ldr	r10, [r11]		@ get current val
+-	cmp	r12, #0x1		@ cs1 base (2422 es2.05/1)
+-	addeq	r11, r11, #0x8		@ if cs1 base, move to DLLB
+-	mvn	r9, #0x4		@ mask to get clear bit2
+-	and	r10, r10, r9		@ clear bit2 for lock mode.
+-	orr	r10, r10, #0x8		@ make sure DLL on (es2 bit pos)
+-	orr	r10, r10, #0x2		@ 90 degree phase for all below 133Mhz
+-	str	r10, [r11]		@ commit to DLLA_CTRL
+-	bl	i_dll_wait		@ wait for dll to lock
+-
+-	/* get dll value */
+-	add	r11, r11, #0x4		@ get addr of status reg
+-	ldr	r10, [r11]		@ get locked value
+-
+-	/* voltage shift up */
+-	mov r9, #0x0			@ shift back to L0-voltage
+-	bl voltage_shift		@ go raise voltage
+-
+-	/* frequency shift up */
+-	mov	r3, #0x2		@ value for 2x operation
+-	str	r3, [r2]		@ go to L0-freq operation
+-
+-	/* reset entry mode for dllctrl */
+-	sub	r11, r11, #0x4		@ move from status to ctrl
+-	cmp	r12, #0x1		@ normalize if cs1 based
+-	subeq	r11, r11, #0x8		@ possibly back to DLLA
+-	cmp	r8, #0x1		@ if forced unlock exit
+-	orreq	r1, r1, #0x4		@ make sure exit with unlocked value
+-	str	r1, [r11]		@ restore DLLA_CTRL high value
+-	add	r11, r11, #0x8		@ move to DLLB_CTRL addr
+-	str	r1, [r11]		@ set value DLLB_CTRL
+-	bl	i_dll_wait		@ wait for possible lock
+-
+-	/* set up for return, DDR should be good */
+-	str r10, [r0]			@ write dll_status and return counter
+-	ldmfd	sp!, {r0 - r12, pc}	@ restore regs and return
+-
+-	/* ensure the DLL has relocked */
+-i_dll_wait:
+-	mov	r4, #0x800		@ delay DLL relock, min 0x400 L3 clocks
+-i_dll_delay:
+-	subs	r4, r4, #0x1
+-	bne	i_dll_delay
+-	mov	pc, lr
+-
+-	/*
+-	 * shift up or down voltage, use R9 as input to tell level.
+-	 * wait for it to finish, use 32k sync counter, 1tick=31uS.
+-	 */
+-voltage_shift:
+-	ldr	r4, omap2_sdi_prcm_voltctrl	@ get addr of volt ctrl.
+-	ldr	r5, [r4]		@ get value.
+-	ldr	r6, prcm_mask_val	@ get value of mask
+-	and	r5, r5, r6		@ apply mask to clear bits
+-	orr	r5, r5, r9		@ bulld value for L0/L1-volt operation.
+-	str	r5, [r4]		@ set up for change.
+-	mov	r3, #0x4000		@ get val for force
+-	orr	r5, r5, r3		@ build value for force
+-	str	r5, [r4]		@ Force transition to L1
+-
+-	ldr	r3, omap2_sdi_timer_32ksynct_cr	@ get addr of counter
+-	ldr	r5, [r3]		@ get value
+-	add	r5, r5, #0x3		@ give it at most 93uS
+-volt_delay:
+-	ldr	r7, [r3]		@ get timer value
+-	cmp	r5, r7			@ time up?
+-	bhi	volt_delay		@ not yet->branch
+-	mov	pc, lr			@ back to caller.
+-
+-/* relative load constants */
+-	.globl omap2_sdi_cm_clksel2_pll
+-	.globl omap2_sdi_sdrc_dlla_ctrl
+-	.globl omap2_sdi_prcm_voltctrl
+-	.globl omap2_sdi_timer_32ksynct_cr
+-
+-omap2_sdi_cm_clksel2_pll:
+-	.word SRAM_VA_MAGIC
+-omap2_sdi_sdrc_dlla_ctrl:
+-	.word SRAM_VA_MAGIC
+-omap2_sdi_prcm_voltctrl:
+-	.word SRAM_VA_MAGIC
+-prcm_mask_val:
+-	.word 0xFFFF3FFC
+-omap2_sdi_timer_32ksynct_cr:
+-	.word SRAM_VA_MAGIC
+-ENTRY(sram_ddr_init_sz)
+-	.word	. - sram_ddr_init
 -
 -/*
-- * OMAP24XX Clock Management register bits
-- *
-- * Copyright (C) 2007 Texas Instruments, Inc.
-- * Copyright (C) 2007 Nokia Corporation
-- *
-- * Written by Paul Walmsley
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
+- * Reprograms memory timings.
+- * r0 = [PRCM_FULL | PRCM_HALF] r1 = SDRC_DLLA_CTRL value r2 = [DDR | SDR]
+- * PRCM_FULL = 2, PRCM_HALF = 1, DDR = 1, SDR = 0
 - */
+-ENTRY(sram_reprogram_sdrc)
+-	stmfd	sp!, {r0 - r10, lr}	@ save registers on stack
+-	mov	r3, #0x0		@ clear for mrc call
+-	mcr	p15, 0, r3, c7, c10, 4	@ memory barrier, finish ARM SDR/DDR
+-	nop
+-	nop
+-	ldr	r6, omap2_srs_sdrc_rfr_ctrl	@ get addr of refresh reg
+-	ldr	r5, [r6]		@ get value
+-	mov	r5, r5, lsr #8		@ isolate rfr field and drop burst
 -
--#include "cm.h"
+-	cmp	r0, #0x1		@ going to half speed?
+-	movne	r9, #0x0		@ if up set flag up for pre up, hi volt
 -
--/* Bits shared between registers */
+-	blne	voltage_shift_c		@ adjust voltage
 -
--/* CM_FCLKEN1_CORE and CM_ICLKEN1_CORE shared bits */
--#define OMAP24XX_EN_CAM_SHIFT				31
--#define OMAP24XX_EN_CAM					(1 << 31)
--#define OMAP24XX_EN_WDT4_SHIFT				29
--#define OMAP24XX_EN_WDT4				(1 << 29)
--#define OMAP2420_EN_WDT3_SHIFT				28
--#define OMAP2420_EN_WDT3				(1 << 28)
--#define OMAP24XX_EN_MSPRO_SHIFT				27
--#define OMAP24XX_EN_MSPRO				(1 << 27)
--#define OMAP24XX_EN_FAC_SHIFT				25
--#define OMAP24XX_EN_FAC					(1 << 25)
--#define OMAP2420_EN_EAC_SHIFT				24
--#define OMAP2420_EN_EAC					(1 << 24)
--#define OMAP24XX_EN_HDQ_SHIFT				23
--#define OMAP24XX_EN_HDQ					(1 << 23)
--#define OMAP2420_EN_I2C2_SHIFT				20
--#define OMAP2420_EN_I2C2				(1 << 20)
--#define OMAP2420_EN_I2C1_SHIFT				19
--#define OMAP2420_EN_I2C1				(1 << 19)
+-	cmp	r0, #0x1		@ going to half speed (post branch link)
+-	moveq	r5, r5, lsr #1		@ divide by 2 if to half
+-	movne	r5, r5, lsl #1		@ mult by 2 if to full
+-	mov	r5, r5, lsl #8		@ put rfr field back into place
+-	add	r5, r5, #0x1		@ turn on burst of 1
+-	ldr	r4, omap2_srs_cm_clksel2_pll	@ get address of out reg
+-	ldr	r3, [r4]		@ get curr value
+-	orr	r3, r3, #0x3
+-	bic	r3, r3, #0x3		@ clear lower bits
+-	orr	r3, r3, r0		@ new state value
+-	str	r3, [r4]		@ set new state (pll/x, x=1 or 2)
+-	nop
+-	nop
 -
--/* CM_FCLKEN2_CORE and CM_ICLKEN2_CORE shared bits */
--#define OMAP2430_EN_MCBSP5_SHIFT			5
--#define OMAP2430_EN_MCBSP5				(1 << 5)
--#define OMAP2430_EN_MCBSP4_SHIFT			4
--#define OMAP2430_EN_MCBSP4				(1 << 4)
--#define OMAP2430_EN_MCBSP3_SHIFT			3
--#define OMAP2430_EN_MCBSP3				(1 << 3)
--#define OMAP24XX_EN_SSI_SHIFT				1
--#define OMAP24XX_EN_SSI					(1 << 1)
+-	moveq	r9, #0x1		@ if speed down, post down, drop volt
+-	bleq	voltage_shift_c
 -
--/* CM_FCLKEN_WKUP and CM_ICLKEN_WKUP shared bits */
--#define OMAP24XX_EN_MPU_WDT_SHIFT			3
--#define OMAP24XX_EN_MPU_WDT				(1 << 3)
+-	mcr	p15, 0, r3, c7, c10, 4	@ memory barrier
+-	str	r5, [r6]		@ set new RFR_1 value
+-	add	r6, r6, #0x30		@ get RFR_2 addr
+-	str	r5, [r6]		@ set RFR_2
+-	nop
+-	cmp	r2, #0x1		@ (SDR or DDR) do we need to adjust DLL
+-	bne	freq_out		@ leave if SDR, no DLL function
 -
--/* Bits specific to each register */
+-	/* With DDR, we need to take care of the DLL for the frequency change */
+-	ldr	r2, omap2_srs_sdrc_dlla_ctrl	@ addr of dlla ctrl
+-	str	r1, [r2]		@ write out new SDRC_DLLA_CTRL
+-	add	r2, r2, #0x8		@ addr to SDRC_DLLB_CTRL
+-	str	r1, [r2]		@ commit to SDRC_DLLB_CTRL
+-	mov	r1, #0x2000		@ wait DLL relock, min 0x400 L3 clocks
+-dll_wait:
+-	subs	r1, r1, #0x1
+-	bne	dll_wait
+-freq_out:
+-	ldmfd	sp!, {r0 - r10, pc}	@ restore regs and return
 -
--/* CM_IDLEST_MPU */
--/* 2430 only */
--#define OMAP2430_ST_MPU					(1 << 0)
+-    /*
+-     * shift up or down voltage, use R9 as input to tell level.
+-     *	wait for it to finish, use 32k sync counter, 1tick=31uS.
+-     */
+-voltage_shift_c:
+-	ldr	r10, omap2_srs_prcm_voltctrl	@ get addr of volt ctrl
+-	ldr	r8, [r10]		@ get value
+-	ldr	r7, ddr_prcm_mask_val	@ get value of mask
+-	and	r8, r8, r7		@ apply mask to clear bits
+-	orr	r8, r8, r9		@ bulld value for L0/L1-volt operation.
+-	str	r8, [r10]		@ set up for change.
+-	mov	r7, #0x4000		@ get val for force
+-	orr	r8, r8, r7		@ build value for force
+-	str	r8, [r10]		@ Force transition to L1
 -
--/* CM_CLKSEL_MPU */
--#define OMAP24XX_CLKSEL_MPU_SHIFT			0
--#define OMAP24XX_CLKSEL_MPU_MASK			(0x1f << 0)
+-	ldr	r10, omap2_srs_timer_32ksynct	@ get addr of counter
+-	ldr	r8, [r10]		@ get value
+-	add	r8, r8, #0x2		@ give it at most 62uS (min 31+)
+-volt_delay_c:
+-	ldr	r7, [r10]		@ get timer value
+-	cmp	r8, r7			@ time up?
+-	bhi	volt_delay_c		@ not yet->branch
+-	mov	pc, lr			@ back to caller
 -
--/* CM_CLKSTCTRL_MPU */
--#define OMAP24XX_AUTOSTATE_MPU				(1 << 0)
+-	.globl omap2_srs_cm_clksel2_pll
+-	.globl omap2_srs_sdrc_dlla_ctrl
+-	.globl omap2_srs_sdrc_rfr_ctrl
+-	.globl omap2_srs_prcm_voltctrl
+-	.globl omap2_srs_timer_32ksynct
 -
--/* CM_FCLKEN1_CORE specific bits*/
--#define OMAP24XX_EN_TV_SHIFT				2
--#define OMAP24XX_EN_TV					(1 << 2)
--#define OMAP24XX_EN_DSS2_SHIFT				1
--#define OMAP24XX_EN_DSS2				(1 << 1)
--#define OMAP24XX_EN_DSS1_SHIFT				0
--#define OMAP24XX_EN_DSS1				(1 << 0)
+-omap2_srs_cm_clksel2_pll:
+-	.word SRAM_VA_MAGIC
+-omap2_srs_sdrc_dlla_ctrl:
+-	.word SRAM_VA_MAGIC
+-omap2_srs_sdrc_rfr_ctrl:
+-	.word SRAM_VA_MAGIC
+-omap2_srs_prcm_voltctrl:
+-	.word SRAM_VA_MAGIC
+-ddr_prcm_mask_val:
+-	.word 0xFFFF3FFC
+-omap2_srs_timer_32ksynct:
+-	.word SRAM_VA_MAGIC
 -
--/* CM_FCLKEN2_CORE specific bits */
--#define OMAP2430_EN_I2CHS2_SHIFT			20
--#define OMAP2430_EN_I2CHS2				(1 << 20)
--#define OMAP2430_EN_I2CHS1_SHIFT			19
--#define OMAP2430_EN_I2CHS1				(1 << 19)
--#define OMAP2430_EN_MMCHSDB2_SHIFT			17
--#define OMAP2430_EN_MMCHSDB2				(1 << 17)
--#define OMAP2430_EN_MMCHSDB1_SHIFT			16
--#define OMAP2430_EN_MMCHSDB1				(1 << 16)
+-ENTRY(sram_reprogram_sdrc_sz)
+-	.word	. - sram_reprogram_sdrc
 -
--/* CM_ICLKEN1_CORE specific bits */
--#define OMAP24XX_EN_MAILBOXES_SHIFT			30
--#define OMAP24XX_EN_MAILBOXES				(1 << 30)
--#define OMAP24XX_EN_DSS_SHIFT				0
--#define OMAP24XX_EN_DSS					(1 << 0)
+-/*
+- * Set dividers and pll. Also recalculate DLL value for DDR and unlock mode.
+- */
+-ENTRY(sram_set_prcm)
+-	stmfd	sp!, {r0-r12, lr}	@ regs to stack
+-	adr	r4, pbegin		@ addr of preload start
+-	adr	r8, pend		@ addr of preload end
+-	mcrr	p15, 1, r8, r4, c12	@ preload into icache
+-pbegin:
+-	/* move into fast relock bypass */
+-	ldr	r8, omap2_ssp_pll_ctl	@ get addr
+-	ldr	r5, [r8]		@ get val
+-	mvn	r6, #0x3		@ clear mask
+-	and	r5, r5, r6		@ clear field
+-	orr	r7, r5, #0x2		@ fast relock val
+-	str	r7, [r8]		@ go to fast relock
+-	ldr	r4, omap2_ssp_pll_stat	@ addr of stat
+-block:
+-	/* wait for bypass */
+-	ldr	r8, [r4]		@ stat value
+-	and	r8, r8, #0x3		@ mask for stat
+-	cmp	r8, #0x1		@ there yet
+-	bne	block			@ loop if not
 -
--/* CM_ICLKEN2_CORE specific bits */
+-	/* set new dpll dividers _after_ in bypass */
+-	ldr	r4, omap2_ssp_pll_div	@ get addr
+-	str	r0, [r4]		@ set dpll ctrl val
 -
--/* CM_ICLKEN3_CORE */
--/* 2430 only */
--#define OMAP2430_EN_SDRC_SHIFT				2
--#define OMAP2430_EN_SDRC				(1 << 2)
+-	ldr	r4, omap2_ssp_set_config	@ get addr
+-	mov	r8, #1			@ valid cfg msk
+-	str	r8, [r4]		@ make dividers take
 -
--/* CM_ICLKEN4_CORE */
--#define OMAP24XX_EN_PKA_SHIFT				4
--#define OMAP24XX_EN_PKA					(1 << 4)
--#define OMAP24XX_EN_AES_SHIFT				3
--#define OMAP24XX_EN_AES					(1 << 3)
--#define OMAP24XX_EN_RNG_SHIFT				2
--#define OMAP24XX_EN_RNG					(1 << 2)
--#define OMAP24XX_EN_SHA_SHIFT				1
--#define OMAP24XX_EN_SHA					(1 << 1)
--#define OMAP24XX_EN_DES_SHIFT				0
--#define OMAP24XX_EN_DES					(1 << 0)
+-	mov	r4, #100		@ dead spin a bit
+-wait_a_bit:
+-	subs	r4, r4, #1		@ dec loop
+-	bne	wait_a_bit		@ delay done?
 -
--/* CM_IDLEST1_CORE specific bits */
--#define OMAP24XX_ST_MAILBOXES				(1 << 30)
--#define OMAP24XX_ST_WDT4				(1 << 29)
--#define OMAP2420_ST_WDT3				(1 << 28)
--#define OMAP24XX_ST_MSPRO				(1 << 27)
--#define OMAP24XX_ST_FAC					(1 << 25)
--#define OMAP2420_ST_EAC					(1 << 24)
--#define OMAP24XX_ST_HDQ					(1 << 23)
--#define OMAP24XX_ST_I2C2				(1 << 20)
--#define OMAP24XX_ST_I2C1				(1 << 19)
--#define OMAP24XX_ST_MCBSP2				(1 << 16)
--#define OMAP24XX_ST_MCBSP1				(1 << 15)
--#define OMAP24XX_ST_DSS					(1 << 0)
+-	/* check if staying in bypass */
+-	cmp	r2, #0x1		@ stay in bypass?
+-	beq	pend			@ jump over dpll relock
 -
--/* CM_IDLEST2_CORE */
--#define OMAP2430_ST_MCBSP5				(1 << 5)
--#define OMAP2430_ST_MCBSP4				(1 << 4)
--#define OMAP2430_ST_MCBSP3				(1 << 3)
--#define OMAP24XX_ST_SSI					(1 << 1)
+-	/* relock DPLL with new vals */
+-	ldr	r5, omap2_ssp_pll_stat	@ get addr
+-	ldr	r4, omap2_ssp_pll_ctl	@ get addr
+-	orr	r8, r7, #0x3		@ val for lock dpll
+-	str	r8, [r4]		@ set val
+-	mov	r0, #1000		@ dead spin a bit
+-wait_more:
+-	subs	r0, r0, #1		@ dec loop
+-	bne	wait_more		@ delay done?
+-wait_lock:
+-	ldr	r8, [r5]		@ get lock val
+-	and	r8, r8, #3		@ isolate field
+-	cmp	r8, #2			@ locked?
+-	bne	wait_lock		@ wait if not
+-pend:
+-	/* update memory timings & briefly lock dll */
+-	ldr	r4, omap2_ssp_sdrc_rfr	@ get addr
+-	str	r1, [r4]		@ update refresh timing
+-	ldr	r11, omap2_ssp_dlla_ctrl	@ get addr of DLLA ctrl
+-	ldr	r10, [r11]		@ get current val
+-	mvn	r9, #0x4		@ mask to get clear bit2
+-	and	r10, r10, r9		@ clear bit2 for lock mode
+-	orr	r10, r10, #0x8		@ make sure DLL on (es2 bit pos)
+-	str	r10, [r11]		@ commit to DLLA_CTRL
+-	add	r11, r11, #0x8		@ move to dllb
+-	str	r10, [r11]		@ hit DLLB also
 -
--/* CM_IDLEST3_CORE */
--/* 2430 only */
--#define OMAP2430_ST_SDRC				(1 << 2)
+-	mov	r4, #0x800		@ relock time (min 0x400 L3 clocks)
+-wait_dll_lock:
+-	subs	r4, r4, #0x1
+-	bne	wait_dll_lock
+-	nop
+-	ldmfd	sp!, {r0-r12, pc}	@ restore regs and return
 -
--/* CM_IDLEST4_CORE */
--#define OMAP24XX_ST_PKA					(1 << 4)
--#define OMAP24XX_ST_AES					(1 << 3)
--#define OMAP24XX_ST_RNG					(1 << 2)
--#define OMAP24XX_ST_SHA					(1 << 1)
--#define OMAP24XX_ST_DES					(1 << 0)
+-	.globl omap2_ssp_set_config
+-	.globl omap2_ssp_pll_ctl
+-	.globl omap2_ssp_pll_stat
+-	.globl omap2_ssp_pll_div
+-	.globl omap2_ssp_sdrc_rfr
+-	.globl omap2_ssp_dlla_ctrl
 -
--/* CM_AUTOIDLE1_CORE */
--#define OMAP24XX_AUTO_CAM				(1 << 31)
--#define OMAP24XX_AUTO_MAILBOXES				(1 << 30)
--#define OMAP24XX_AUTO_WDT4				(1 << 29)
--#define OMAP2420_AUTO_WDT3				(1 << 28)
--#define OMAP24XX_AUTO_MSPRO				(1 << 27)
--#define OMAP2420_AUTO_MMC				(1 << 26)
--#define OMAP24XX_AUTO_FAC				(1 << 25)
--#define OMAP2420_AUTO_EAC				(1 << 24)
--#define OMAP24XX_AUTO_HDQ				(1 << 23)
--#define OMAP24XX_AUTO_UART2				(1 << 22)
--#define OMAP24XX_AUTO_UART1				(1 << 21)
--#define OMAP24XX_AUTO_I2C2				(1 << 20)
--#define OMAP24XX_AUTO_I2C1				(1 << 19)
--#define OMAP24XX_AUTO_MCSPI2				(1 << 18)
--#define OMAP24XX_AUTO_MCSPI1				(1 << 17)
--#define OMAP24XX_AUTO_MCBSP2				(1 << 16)
--#define OMAP24XX_AUTO_MCBSP1				(1 << 15)
--#define OMAP24XX_AUTO_GPT12				(1 << 14)
--#define OMAP24XX_AUTO_GPT11				(1 << 13)
--#define OMAP24XX_AUTO_GPT10				(1 << 12)
--#define OMAP24XX_AUTO_GPT9				(1 << 11)
--#define OMAP24XX_AUTO_GPT8				(1 << 10)
--#define OMAP24XX_AUTO_GPT7				(1 << 9)
--#define OMAP24XX_AUTO_GPT6				(1 << 8)
--#define OMAP24XX_AUTO_GPT5				(1 << 7)
--#define OMAP24XX_AUTO_GPT4				(1 << 6)
--#define OMAP24XX_AUTO_GPT3				(1 << 5)
--#define OMAP24XX_AUTO_GPT2				(1 << 4)
--#define OMAP2420_AUTO_VLYNQ				(1 << 3)
--#define OMAP24XX_AUTO_DSS				(1 << 0)
+-omap2_ssp_set_config:
+-	.word SRAM_VA_MAGIC
+-omap2_ssp_pll_ctl:
+-	.word SRAM_VA_MAGIC
+-omap2_ssp_pll_stat:
+-	.word SRAM_VA_MAGIC
+-omap2_ssp_pll_div:
+-	.word SRAM_VA_MAGIC
+-omap2_ssp_sdrc_rfr:
+-	.word SRAM_VA_MAGIC
+-omap2_ssp_dlla_ctrl:
+-	.word SRAM_VA_MAGIC
 -
--/* CM_AUTOIDLE2_CORE */
--#define OMAP2430_AUTO_MDM_INTC				(1 << 11)
--#define OMAP2430_AUTO_GPIO5				(1 << 10)
--#define OMAP2430_AUTO_MCSPI3				(1 << 9)
--#define OMAP2430_AUTO_MMCHS2				(1 << 8)
--#define OMAP2430_AUTO_MMCHS1				(1 << 7)
--#define OMAP2430_AUTO_USBHS				(1 << 6)
--#define OMAP2430_AUTO_MCBSP5				(1 << 5)
--#define OMAP2430_AUTO_MCBSP4				(1 << 4)
--#define OMAP2430_AUTO_MCBSP3				(1 << 3)
--#define OMAP24XX_AUTO_UART3				(1 << 2)
--#define OMAP24XX_AUTO_SSI				(1 << 1)
--#define OMAP24XX_AUTO_USB				(1 << 0)
--
--/* CM_AUTOIDLE3_CORE */
--#define OMAP24XX_AUTO_SDRC				(1 << 2)
--#define OMAP24XX_AUTO_GPMC				(1 << 1)
--#define OMAP24XX_AUTO_SDMA				(1 << 0)
--
--/* CM_AUTOIDLE4_CORE */
--#define OMAP24XX_AUTO_PKA				(1 << 4)
--#define OMAP24XX_AUTO_AES				(1 << 3)
--#define OMAP24XX_AUTO_RNG				(1 << 2)
--#define OMAP24XX_AUTO_SHA				(1 << 1)
--#define OMAP24XX_AUTO_DES				(1 << 0)
--
--/* CM_CLKSEL1_CORE */
--#define OMAP24XX_CLKSEL_USB_SHIFT			25
--#define OMAP24XX_CLKSEL_USB_MASK			(0x7 << 25)
--#define OMAP24XX_CLKSEL_SSI_SHIFT			20
--#define OMAP24XX_CLKSEL_SSI_MASK			(0x1f << 20)
--#define OMAP2420_CLKSEL_VLYNQ_SHIFT			15
--#define OMAP2420_CLKSEL_VLYNQ_MASK			(0x1f << 15)
--#define OMAP24XX_CLKSEL_DSS2_SHIFT			13
--#define OMAP24XX_CLKSEL_DSS2_MASK			(0x1 << 13)
--#define OMAP24XX_CLKSEL_DSS1_SHIFT			8
--#define OMAP24XX_CLKSEL_DSS1_MASK			(0x1f << 8)
--#define OMAP24XX_CLKSEL_L4_SHIFT			5
--#define OMAP24XX_CLKSEL_L4_MASK				(0x3 << 5)
--#define OMAP24XX_CLKSEL_L3_SHIFT			0
--#define OMAP24XX_CLKSEL_L3_MASK				(0x1f << 0)
--
--/* CM_CLKSEL2_CORE */
--#define OMAP24XX_CLKSEL_GPT12_SHIFT			22
--#define OMAP24XX_CLKSEL_GPT12_MASK			(0x3 << 22)
--#define OMAP24XX_CLKSEL_GPT11_SHIFT			20
--#define OMAP24XX_CLKSEL_GPT11_MASK			(0x3 << 20)
--#define OMAP24XX_CLKSEL_GPT10_SHIFT			18
--#define OMAP24XX_CLKSEL_GPT10_MASK			(0x3 << 18)
--#define OMAP24XX_CLKSEL_GPT9_SHIFT			16
--#define OMAP24XX_CLKSEL_GPT9_MASK			(0x3 << 16)
--#define OMAP24XX_CLKSEL_GPT8_SHIFT			14
--#define OMAP24XX_CLKSEL_GPT8_MASK			(0x3 << 14)
--#define OMAP24XX_CLKSEL_GPT7_SHIFT			12
--#define OMAP24XX_CLKSEL_GPT7_MASK			(0x3 << 12)
--#define OMAP24XX_CLKSEL_GPT6_SHIFT			10
--#define OMAP24XX_CLKSEL_GPT6_MASK			(0x3 << 10)
--#define OMAP24XX_CLKSEL_GPT5_SHIFT			8
--#define OMAP24XX_CLKSEL_GPT5_MASK			(0x3 << 8)
--#define OMAP24XX_CLKSEL_GPT4_SHIFT			6
--#define OMAP24XX_CLKSEL_GPT4_MASK			(0x3 << 6)
--#define OMAP24XX_CLKSEL_GPT3_SHIFT			4
--#define OMAP24XX_CLKSEL_GPT3_MASK			(0x3 << 4)
--#define OMAP24XX_CLKSEL_GPT2_SHIFT			2
--#define OMAP24XX_CLKSEL_GPT2_MASK			(0x3 << 2)
--
--/* CM_CLKSTCTRL_CORE */
--#define OMAP24XX_AUTOSTATE_DSS				(1 << 2)
--#define OMAP24XX_AUTOSTATE_L4				(1 << 1)
--#define OMAP24XX_AUTOSTATE_L3				(1 << 0)
--
--/* CM_FCLKEN_GFX */
--#define OMAP24XX_EN_3D_SHIFT				2
--#define OMAP24XX_EN_3D					(1 << 2)
--#define OMAP24XX_EN_2D_SHIFT				1
--#define OMAP24XX_EN_2D					(1 << 1)
--
--/* CM_ICLKEN_GFX specific bits */
--
--/* CM_IDLEST_GFX specific bits */
--
--/* CM_CLKSEL_GFX specific bits */
--
--/* CM_CLKSTCTRL_GFX */
--#define OMAP24XX_AUTOSTATE_GFX				(1 << 0)
--
--/* CM_FCLKEN_WKUP specific bits */
--
--/* CM_ICLKEN_WKUP specific bits */
--#define OMAP2430_EN_ICR_SHIFT				6
--#define OMAP2430_EN_ICR					(1 << 6)
--#define OMAP24XX_EN_OMAPCTRL_SHIFT			5
--#define OMAP24XX_EN_OMAPCTRL				(1 << 5)
--#define OMAP24XX_EN_WDT1_SHIFT				4
--#define OMAP24XX_EN_WDT1				(1 << 4)
--#define OMAP24XX_EN_32KSYNC_SHIFT			1
--#define OMAP24XX_EN_32KSYNC				(1 << 1)
--
--/* CM_IDLEST_WKUP specific bits */
--#define OMAP2430_ST_ICR					(1 << 6)
--#define OMAP24XX_ST_OMAPCTRL				(1 << 5)
--#define OMAP24XX_ST_WDT1				(1 << 4)
--#define OMAP24XX_ST_MPU_WDT				(1 << 3)
--#define OMAP24XX_ST_32KSYNC				(1 << 1)
--
--/* CM_AUTOIDLE_WKUP */
--#define OMAP24XX_AUTO_OMAPCTRL				(1 << 5)
--#define OMAP24XX_AUTO_WDT1				(1 << 4)
--#define OMAP24XX_AUTO_MPU_WDT				(1 << 3)
--#define OMAP24XX_AUTO_GPIOS				(1 << 2)
--#define OMAP24XX_AUTO_32KSYNC				(1 << 1)
--#define OMAP24XX_AUTO_GPT1				(1 << 0)
--
--/* CM_CLKSEL_WKUP */
--#define OMAP24XX_CLKSEL_GPT1_SHIFT			0
--#define OMAP24XX_CLKSEL_GPT1_MASK			(0x3 << 0)
--
--/* CM_CLKEN_PLL */
--#define OMAP24XX_EN_54M_PLL_SHIFT			6
--#define OMAP24XX_EN_54M_PLL_MASK			(0x3 << 6)
--#define OMAP24XX_EN_96M_PLL_SHIFT			2
--#define OMAP24XX_EN_96M_PLL_MASK			(0x3 << 2)
--#define OMAP24XX_EN_DPLL_SHIFT				0
--#define OMAP24XX_EN_DPLL_MASK				(0x3 << 0)
--
--/* CM_IDLEST_CKGEN */
--#define OMAP24XX_ST_54M_APLL				(1 << 9)
--#define OMAP24XX_ST_96M_APLL				(1 << 8)
--#define OMAP24XX_ST_54M_CLK				(1 << 6)
--#define OMAP24XX_ST_12M_CLK				(1 << 5)
--#define OMAP24XX_ST_48M_CLK				(1 << 4)
--#define OMAP24XX_ST_96M_CLK				(1 << 2)
--#define OMAP24XX_ST_CORE_CLK_SHIFT			0
--#define OMAP24XX_ST_CORE_CLK_MASK			(0x3 << 0)
--
--/* CM_AUTOIDLE_PLL */
--#define OMAP24XX_AUTO_54M_SHIFT				6
--#define OMAP24XX_AUTO_54M_MASK				(0x3 << 6)
--#define OMAP24XX_AUTO_96M_SHIFT				2
--#define OMAP24XX_AUTO_96M_MASK				(0x3 << 2)
--#define OMAP24XX_AUTO_DPLL_SHIFT			0
--#define OMAP24XX_AUTO_DPLL_MASK				(0x3 << 0)
--
--/* CM_CLKSEL1_PLL */
--#define OMAP2430_MAXDPLLFASTLOCK_SHIFT			28
--#define OMAP2430_MAXDPLLFASTLOCK_MASK			(0x7 << 28)
--#define OMAP24XX_APLLS_CLKIN_SHIFT			23
--#define OMAP24XX_APLLS_CLKIN_MASK			(0x7 << 23)
--#define OMAP24XX_DPLL_MULT_SHIFT			12
--#define OMAP24XX_DPLL_MULT_MASK				(0x3ff << 12)
--#define OMAP24XX_DPLL_DIV_SHIFT				8
--#define OMAP24XX_DPLL_DIV_MASK				(0xf << 8)
--#define OMAP24XX_54M_SOURCE_SHIFT			5
--#define OMAP24XX_54M_SOURCE				(1 << 5)
--#define OMAP2430_96M_SOURCE_SHIFT			4
--#define OMAP2430_96M_SOURCE				(1 << 4)
--#define OMAP24XX_48M_SOURCE_SHIFT			3
--#define OMAP24XX_48M_SOURCE				(1 << 3)
--#define OMAP2430_ALTCLK_SOURCE_SHIFT			0
--#define OMAP2430_ALTCLK_SOURCE_MASK			(0x7 << 0)
--
--/* CM_CLKSEL2_PLL */
--#define OMAP24XX_CORE_CLK_SRC_SHIFT			0
--#define OMAP24XX_CORE_CLK_SRC_MASK			(0x3 << 0)
--
--/* CM_FCLKEN_DSP */
--#define OMAP2420_EN_IVA_COP_SHIFT			10
--#define OMAP2420_EN_IVA_COP				(1 << 10)
--#define OMAP2420_EN_IVA_MPU_SHIFT			8
--#define OMAP2420_EN_IVA_MPU				(1 << 8)
--#define OMAP24XX_CM_FCLKEN_DSP_EN_DSP_SHIFT		0
--#define OMAP24XX_CM_FCLKEN_DSP_EN_DSP			(1 << 0)
--
--/* CM_ICLKEN_DSP */
--#define OMAP2420_EN_DSP_IPI_SHIFT			1
--#define OMAP2420_EN_DSP_IPI				(1 << 1)
--
--/* CM_IDLEST_DSP */
--#define OMAP2420_ST_IVA					(1 << 8)
--#define OMAP2420_ST_IPI					(1 << 1)
--#define OMAP24XX_ST_DSP					(1 << 0)
--
--/* CM_AUTOIDLE_DSP */
--#define OMAP2420_AUTO_DSP_IPI				(1 << 1)
--
--/* CM_CLKSEL_DSP */
--#define OMAP2420_SYNC_IVA				(1 << 13)
--#define OMAP2420_CLKSEL_IVA_SHIFT			8
--#define OMAP2420_CLKSEL_IVA_MASK			(0x1f << 8)
--#define OMAP24XX_SYNC_DSP				(1 << 7)
--#define OMAP24XX_CLKSEL_DSP_IF_SHIFT			5
--#define OMAP24XX_CLKSEL_DSP_IF_MASK			(0x3 << 5)
--#define OMAP24XX_CLKSEL_DSP_SHIFT			0
--#define OMAP24XX_CLKSEL_DSP_MASK			(0x1f << 0)
--
--/* CM_CLKSTCTRL_DSP */
--#define OMAP2420_AUTOSTATE_IVA				(1 << 8)
--#define OMAP24XX_AUTOSTATE_DSP				(1 << 0)
--
--/* CM_FCLKEN_MDM */
--/* 2430 only */
--#define OMAP2430_EN_OSC_SHIFT				1
--#define OMAP2430_EN_OSC					(1 << 1)
--
--/* CM_ICLKEN_MDM */
--/* 2430 only */
--#define OMAP2430_CM_ICLKEN_MDM_EN_MDM_SHIFT		0
--#define OMAP2430_CM_ICLKEN_MDM_EN_MDM			(1 << 0)
--
--/* CM_IDLEST_MDM specific bits */
--/* 2430 only */
--
--/* CM_AUTOIDLE_MDM */
--/* 2430 only */
--#define OMAP2430_AUTO_OSC				(1 << 1)
--#define OMAP2430_AUTO_MDM				(1 << 0)
--
--/* CM_CLKSEL_MDM */
--/* 2430 only */
--#define OMAP2430_SYNC_MDM				(1 << 4)
--#define OMAP2430_CLKSEL_MDM_SHIFT			0
--#define OMAP2430_CLKSEL_MDM_MASK			(0xf << 0)
--
--/* CM_CLKSTCTRL_MDM */
--/* 2430 only */
--#define OMAP2430_AUTOSTATE_MDM				(1 << 0)
--
--#endif
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index a1fe348..095b910 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -49,7 +49,7 @@
- #include "prm.h"
- #include "prm_regbits_24xx.h"
- #include "cm.h"
--#include "cm_regbits_24xx.h"
-+#include "cm-regbits-24xx.h"
- #include "sdrc.h"
- 
- /* These addrs are in assembly language code to be patched at runtime */
-diff --git a/drivers/dsp/dspgateway/dsp.h b/drivers/dsp/dspgateway/dsp.h
-index 23321be..7d238e5 100644
---- a/drivers/dsp/dspgateway/dsp.h
-+++ b/drivers/dsp/dspgateway/dsp.h
-@@ -33,7 +33,7 @@
- #include "../../../arch/arm/mach-omap2/prm.h"
- #include "../../../arch/arm/mach-omap2/prm_regbits_24xx.h"
- #include "../../../arch/arm/mach-omap2/cm.h"
--#include "../../../arch/arm/mach-omap2/cm_regbits_24xx.h"
-+#include "../../../arch/arm/mach-omap2/cm-regbits-24xx.h"
- #endif
- 
- /*
+-ENTRY(sram_set_prcm_sz)
+-	.word	. - sram_set_prcm
+diff --git a/arch/arm/mach-omap2/sram24xx.S b/arch/arm/mach-omap2/sram24xx.S
+new file mode 100644
+index 0000000..ba1e005
+--- /dev/null
++++ b/arch/arm/mach-omap2/sram24xx.S
+@@ -0,0 +1,337 @@
++/*
++ * linux/arch/arm/mach-omap2/sram-fn.S
++ *
++ * Omap2 specific functions that need to be run in internal SRAM
++ *
++ * (C) Copyright 2004
++ * Texas Instruments, <www.ti.com>
++ * Richard Woodruff <r-woodruff2@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of
++ * the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR /PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
++ * MA 02111-1307 USA
++ */
++#include <linux/linkage.h>
++#include <asm/assembler.h>
++#include <asm/arch/io.h>
++#include <asm/hardware.h>
++#include <linux/poison.h>
++
++	.text
++
++ENTRY(sram_ddr_init)
++	stmfd	sp!, {r0 - r12, lr}	@ save registers on stack
++
++	mov	r12, r2			@ capture CS1 vs CS0
++	mov	r8, r3			@ capture force parameter
++
++	/* frequency shift down */
++	ldr	r2, omap2_sdi_cm_clksel2_pll	@ get address of dpllout reg
++	mov	r3, #0x1		@ value for 1x operation
++	str	r3, [r2]		@ go to L1-freq operation
++
++	/* voltage shift down */
++	mov r9, #0x1			@ set up for L1 voltage call
++	bl voltage_shift		@ go drop voltage
++
++	/* dll lock mode */
++	ldr	r11, omap2_sdi_sdrc_dlla_ctrl	@ addr of dlla ctrl
++	ldr	r10, [r11]		@ get current val
++	cmp	r12, #0x1		@ cs1 base (2422 es2.05/1)
++	addeq	r11, r11, #0x8		@ if cs1 base, move to DLLB
++	mvn	r9, #0x4		@ mask to get clear bit2
++	and	r10, r10, r9		@ clear bit2 for lock mode.
++	orr	r10, r10, #0x8		@ make sure DLL on (es2 bit pos)
++	orr	r10, r10, #0x2		@ 90 degree phase for all below 133Mhz
++	str	r10, [r11]		@ commit to DLLA_CTRL
++	bl	i_dll_wait		@ wait for dll to lock
++
++	/* get dll value */
++	add	r11, r11, #0x4		@ get addr of status reg
++	ldr	r10, [r11]		@ get locked value
++
++	/* voltage shift up */
++	mov r9, #0x0			@ shift back to L0-voltage
++	bl voltage_shift		@ go raise voltage
++
++	/* frequency shift up */
++	mov	r3, #0x2		@ value for 2x operation
++	str	r3, [r2]		@ go to L0-freq operation
++
++	/* reset entry mode for dllctrl */
++	sub	r11, r11, #0x4		@ move from status to ctrl
++	cmp	r12, #0x1		@ normalize if cs1 based
++	subeq	r11, r11, #0x8		@ possibly back to DLLA
++	cmp	r8, #0x1		@ if forced unlock exit
++	orreq	r1, r1, #0x4		@ make sure exit with unlocked value
++	str	r1, [r11]		@ restore DLLA_CTRL high value
++	add	r11, r11, #0x8		@ move to DLLB_CTRL addr
++	str	r1, [r11]		@ set value DLLB_CTRL
++	bl	i_dll_wait		@ wait for possible lock
++
++	/* set up for return, DDR should be good */
++	str r10, [r0]			@ write dll_status and return counter
++	ldmfd	sp!, {r0 - r12, pc}	@ restore regs and return
++
++	/* ensure the DLL has relocked */
++i_dll_wait:
++	mov	r4, #0x800		@ delay DLL relock, min 0x400 L3 clocks
++i_dll_delay:
++	subs	r4, r4, #0x1
++	bne	i_dll_delay
++	mov	pc, lr
++
++	/*
++	 * shift up or down voltage, use R9 as input to tell level.
++	 * wait for it to finish, use 32k sync counter, 1tick=31uS.
++	 */
++voltage_shift:
++	ldr	r4, omap2_sdi_prcm_voltctrl	@ get addr of volt ctrl.
++	ldr	r5, [r4]		@ get value.
++	ldr	r6, prcm_mask_val	@ get value of mask
++	and	r5, r5, r6		@ apply mask to clear bits
++	orr	r5, r5, r9		@ bulld value for L0/L1-volt operation.
++	str	r5, [r4]		@ set up for change.
++	mov	r3, #0x4000		@ get val for force
++	orr	r5, r5, r3		@ build value for force
++	str	r5, [r4]		@ Force transition to L1
++
++	ldr	r3, omap2_sdi_timer_32ksynct_cr	@ get addr of counter
++	ldr	r5, [r3]		@ get value
++	add	r5, r5, #0x3		@ give it at most 93uS
++volt_delay:
++	ldr	r7, [r3]		@ get timer value
++	cmp	r5, r7			@ time up?
++	bhi	volt_delay		@ not yet->branch
++	mov	pc, lr			@ back to caller.
++
++/* relative load constants */
++	.globl omap2_sdi_cm_clksel2_pll
++	.globl omap2_sdi_sdrc_dlla_ctrl
++	.globl omap2_sdi_prcm_voltctrl
++	.globl omap2_sdi_timer_32ksynct_cr
++
++omap2_sdi_cm_clksel2_pll:
++	.word SRAM_VA_MAGIC
++omap2_sdi_sdrc_dlla_ctrl:
++	.word SRAM_VA_MAGIC
++omap2_sdi_prcm_voltctrl:
++	.word SRAM_VA_MAGIC
++prcm_mask_val:
++	.word 0xFFFF3FFC
++omap2_sdi_timer_32ksynct_cr:
++	.word SRAM_VA_MAGIC
++ENTRY(sram_ddr_init_sz)
++	.word	. - sram_ddr_init
++
++/*
++ * Reprograms memory timings.
++ * r0 = [PRCM_FULL | PRCM_HALF] r1 = SDRC_DLLA_CTRL value r2 = [DDR | SDR]
++ * PRCM_FULL = 2, PRCM_HALF = 1, DDR = 1, SDR = 0
++ */
++ENTRY(sram_reprogram_sdrc)
++	stmfd	sp!, {r0 - r10, lr}	@ save registers on stack
++	mov	r3, #0x0		@ clear for mrc call
++	mcr	p15, 0, r3, c7, c10, 4	@ memory barrier, finish ARM SDR/DDR
++	nop
++	nop
++	ldr	r6, omap2_srs_sdrc_rfr_ctrl	@ get addr of refresh reg
++	ldr	r5, [r6]		@ get value
++	mov	r5, r5, lsr #8		@ isolate rfr field and drop burst
++
++	cmp	r0, #0x1		@ going to half speed?
++	movne	r9, #0x0		@ if up set flag up for pre up, hi volt
++
++	blne	voltage_shift_c		@ adjust voltage
++
++	cmp	r0, #0x1		@ going to half speed (post branch link)
++	moveq	r5, r5, lsr #1		@ divide by 2 if to half
++	movne	r5, r5, lsl #1		@ mult by 2 if to full
++	mov	r5, r5, lsl #8		@ put rfr field back into place
++	add	r5, r5, #0x1		@ turn on burst of 1
++	ldr	r4, omap2_srs_cm_clksel2_pll	@ get address of out reg
++	ldr	r3, [r4]		@ get curr value
++	orr	r3, r3, #0x3
++	bic	r3, r3, #0x3		@ clear lower bits
++	orr	r3, r3, r0		@ new state value
++	str	r3, [r4]		@ set new state (pll/x, x=1 or 2)
++	nop
++	nop
++
++	moveq	r9, #0x1		@ if speed down, post down, drop volt
++	bleq	voltage_shift_c
++
++	mcr	p15, 0, r3, c7, c10, 4	@ memory barrier
++	str	r5, [r6]		@ set new RFR_1 value
++	add	r6, r6, #0x30		@ get RFR_2 addr
++	str	r5, [r6]		@ set RFR_2
++	nop
++	cmp	r2, #0x1		@ (SDR or DDR) do we need to adjust DLL
++	bne	freq_out		@ leave if SDR, no DLL function
++
++	/* With DDR, we need to take care of the DLL for the frequency change */
++	ldr	r2, omap2_srs_sdrc_dlla_ctrl	@ addr of dlla ctrl
++	str	r1, [r2]		@ write out new SDRC_DLLA_CTRL
++	add	r2, r2, #0x8		@ addr to SDRC_DLLB_CTRL
++	str	r1, [r2]		@ commit to SDRC_DLLB_CTRL
++	mov	r1, #0x2000		@ wait DLL relock, min 0x400 L3 clocks
++dll_wait:
++	subs	r1, r1, #0x1
++	bne	dll_wait
++freq_out:
++	ldmfd	sp!, {r0 - r10, pc}	@ restore regs and return
++
++    /*
++     * shift up or down voltage, use R9 as input to tell level.
++     *	wait for it to finish, use 32k sync counter, 1tick=31uS.
++     */
++voltage_shift_c:
++	ldr	r10, omap2_srs_prcm_voltctrl	@ get addr of volt ctrl
++	ldr	r8, [r10]		@ get value
++	ldr	r7, ddr_prcm_mask_val	@ get value of mask
++	and	r8, r8, r7		@ apply mask to clear bits
++	orr	r8, r8, r9		@ bulld value for L0/L1-volt operation.
++	str	r8, [r10]		@ set up for change.
++	mov	r7, #0x4000		@ get val for force
++	orr	r8, r8, r7		@ build value for force
++	str	r8, [r10]		@ Force transition to L1
++
++	ldr	r10, omap2_srs_timer_32ksynct	@ get addr of counter
++	ldr	r8, [r10]		@ get value
++	add	r8, r8, #0x2		@ give it at most 62uS (min 31+)
++volt_delay_c:
++	ldr	r7, [r10]		@ get timer value
++	cmp	r8, r7			@ time up?
++	bhi	volt_delay_c		@ not yet->branch
++	mov	pc, lr			@ back to caller
++
++	.globl omap2_srs_cm_clksel2_pll
++	.globl omap2_srs_sdrc_dlla_ctrl
++	.globl omap2_srs_sdrc_rfr_ctrl
++	.globl omap2_srs_prcm_voltctrl
++	.globl omap2_srs_timer_32ksynct
++
++omap2_srs_cm_clksel2_pll:
++	.word SRAM_VA_MAGIC
++omap2_srs_sdrc_dlla_ctrl:
++	.word SRAM_VA_MAGIC
++omap2_srs_sdrc_rfr_ctrl:
++	.word SRAM_VA_MAGIC
++omap2_srs_prcm_voltctrl:
++	.word SRAM_VA_MAGIC
++ddr_prcm_mask_val:
++	.word 0xFFFF3FFC
++omap2_srs_timer_32ksynct:
++	.word SRAM_VA_MAGIC
++
++ENTRY(sram_reprogram_sdrc_sz)
++	.word	. - sram_reprogram_sdrc
++
++/*
++ * Set dividers and pll. Also recalculate DLL value for DDR and unlock mode.
++ */
++ENTRY(sram_set_prcm)
++	stmfd	sp!, {r0-r12, lr}	@ regs to stack
++	adr	r4, pbegin		@ addr of preload start
++	adr	r8, pend		@ addr of preload end
++	mcrr	p15, 1, r8, r4, c12	@ preload into icache
++pbegin:
++	/* move into fast relock bypass */
++	ldr	r8, omap2_ssp_pll_ctl	@ get addr
++	ldr	r5, [r8]		@ get val
++	mvn	r6, #0x3		@ clear mask
++	and	r5, r5, r6		@ clear field
++	orr	r7, r5, #0x2		@ fast relock val
++	str	r7, [r8]		@ go to fast relock
++	ldr	r4, omap2_ssp_pll_stat	@ addr of stat
++block:
++	/* wait for bypass */
++	ldr	r8, [r4]		@ stat value
++	and	r8, r8, #0x3		@ mask for stat
++	cmp	r8, #0x1		@ there yet
++	bne	block			@ loop if not
++
++	/* set new dpll dividers _after_ in bypass */
++	ldr	r4, omap2_ssp_pll_div	@ get addr
++	str	r0, [r4]		@ set dpll ctrl val
++
++	ldr	r4, omap2_ssp_set_config	@ get addr
++	mov	r8, #1			@ valid cfg msk
++	str	r8, [r4]		@ make dividers take
++
++	mov	r4, #100		@ dead spin a bit
++wait_a_bit:
++	subs	r4, r4, #1		@ dec loop
++	bne	wait_a_bit		@ delay done?
++
++	/* check if staying in bypass */
++	cmp	r2, #0x1		@ stay in bypass?
++	beq	pend			@ jump over dpll relock
++
++	/* relock DPLL with new vals */
++	ldr	r5, omap2_ssp_pll_stat	@ get addr
++	ldr	r4, omap2_ssp_pll_ctl	@ get addr
++	orr	r8, r7, #0x3		@ val for lock dpll
++	str	r8, [r4]		@ set val
++	mov	r0, #1000		@ dead spin a bit
++wait_more:
++	subs	r0, r0, #1		@ dec loop
++	bne	wait_more		@ delay done?
++wait_lock:
++	ldr	r8, [r5]		@ get lock val
++	and	r8, r8, #3		@ isolate field
++	cmp	r8, #2			@ locked?
++	bne	wait_lock		@ wait if not
++pend:
++	/* update memory timings & briefly lock dll */
++	ldr	r4, omap2_ssp_sdrc_rfr	@ get addr
++	str	r1, [r4]		@ update refresh timing
++	ldr	r11, omap2_ssp_dlla_ctrl	@ get addr of DLLA ctrl
++	ldr	r10, [r11]		@ get current val
++	mvn	r9, #0x4		@ mask to get clear bit2
++	and	r10, r10, r9		@ clear bit2 for lock mode
++	orr	r10, r10, #0x8		@ make sure DLL on (es2 bit pos)
++	str	r10, [r11]		@ commit to DLLA_CTRL
++	add	r11, r11, #0x8		@ move to dllb
++	str	r10, [r11]		@ hit DLLB also
++
++	mov	r4, #0x800		@ relock time (min 0x400 L3 clocks)
++wait_dll_lock:
++	subs	r4, r4, #0x1
++	bne	wait_dll_lock
++	nop
++	ldmfd	sp!, {r0-r12, pc}	@ restore regs and return
++
++	.globl omap2_ssp_set_config
++	.globl omap2_ssp_pll_ctl
++	.globl omap2_ssp_pll_stat
++	.globl omap2_ssp_pll_div
++	.globl omap2_ssp_sdrc_rfr
++	.globl omap2_ssp_dlla_ctrl
++
++omap2_ssp_set_config:
++	.word SRAM_VA_MAGIC
++omap2_ssp_pll_ctl:
++	.word SRAM_VA_MAGIC
++omap2_ssp_pll_stat:
++	.word SRAM_VA_MAGIC
++omap2_ssp_pll_div:
++	.word SRAM_VA_MAGIC
++omap2_ssp_sdrc_rfr:
++	.word SRAM_VA_MAGIC
++omap2_ssp_dlla_ctrl:
++	.word SRAM_VA_MAGIC
++
++ENTRY(sram_set_prcm_sz)
++	.word	. - sram_set_prcm
 -- 
 1.5.3.6
 
