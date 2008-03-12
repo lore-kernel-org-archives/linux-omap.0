@@ -1,48 +1,47 @@
-From: "=?UTF-8?Q?Lu=C3=ADs_Vit=C3=B3rio_Cargnini?=" <lvcargnini@gmail.com>
-Subject: Re: Problems booting Filesystem
-Date: Wed, 12 Mar 2008 16:15:43 -0300
-Message-ID: <ae36f8040803121215n58279d11raa1606f8c36a9ac8@mail.gmail.com>
-References: <ae36f8040803111936j1191c784xb8d1c53dbfef8ef@mail.gmail.com>
-	 <9a7193a562f86236b8006c575eaff2dd@felipebalbi.com>
-Reply-To: lvcargnini@gmail.com
+From: Seth Forshee <seth.forshee@gmail.com>
+Subject: Re: [PATCH] I2C: Fix OMAP I2C status register handling in IRQ processing
+Date: Wed, 12 Mar 2008 14:51:47 -0500
+Message-ID: <20080312195146.GA18324@ubuntu-workstation>
+References: <20080312175609.GA9811@ubuntu-workstation> <726835a879584696afcb396dfcabdc64@felipebalbi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rn-out-0910.google.com ([64.233.170.186]:46703 "EHLO
-	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751683AbYCLTPp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Mar 2008 15:15:45 -0400
-Received: by rn-out-0910.google.com with SMTP id v46so2196193rnb.15
-        for <linux-omap@vger.kernel.org>; Wed, 12 Mar 2008 12:15:44 -0700 (PDT)
-In-Reply-To: <9a7193a562f86236b8006c575eaff2dd@felipebalbi.com>
+Received: from an-out-0708.google.com ([209.85.132.246]:45874 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751867AbYCLTwe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Mar 2008 15:52:34 -0400
+Received: by an-out-0708.google.com with SMTP id d31so733162and.103
+        for <linux-omap@vger.kernel.org>; Wed, 12 Mar 2008 12:52:33 -0700 (PDT)
 Content-Disposition: inline
+In-Reply-To: <726835a879584696afcb396dfcabdc64@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Balbi <me@felipebalbi.com>
-Cc: "Hunter, Jon" <jon-hunter@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 
-T24gV2VkLCBNYXIgMTIsIDIwMDggYXQgNjoyMyBBTSwgRmVsaXBlIEJhbGJpIDxtZUBmZWxpcGVi
-YWxiaS5jb20+IHdyb3RlOgo+Cj4KPiAgT24gVHVlLCAxMSBNYXIgMjAwOCAyMzozNjoxNiAtMDMw
-MCwgIkx1w61zIFZpdMOzcmlvIENhcmduaW5pIgo+ICA8bHZjYXJnbmluaUBnbWFpbC5jb20+IHdy
-b3RlOgo+ICA+IEkgZGlkIGl0IGJ1dCB0aGUgZXJyb3JzIHBlcnNpc3QgOC0oLCBJJ20gb3V0IG9m
-IGlkZWFzIEkgZG9uJ3Qga25vdyBtb3JlCj4gID4gd2hhdAo+ICA+IGNvdWxkIGJlIHdyb25nIEkg
-ZGVmaW5pdGVseSBkb24ndCBrbm93Cj4KPiAgQWdhaW4sIHBsZWFzZSBkb24ndCB0b3AgcG9zdCwg
-aXQncyBkaWZmaWN1bHQgdG8gdHJhY2sgdGhlIHRocmVhZC4gZ2l0Cj4gIGJpc2VjdCB3aWxsIGlz
-b2xhdGUKPiAgdGhlIHBhcnRpY3VsYXIgdGhhdCBicm9rZSBvbWFwX25vci5jIG9yIHdoYXRldmVy
-IGlzIGJyb2tlbi4KPgo+ICBHZXQgdGhlIGNvbW1pdCBoYXNoIGFuZCBwdXQgaGVyZSBzbyB3ZSBj
-YW4gaGVscCB5b3UgYmV0dGVyIDotKQo+Cj4gIC0tCj4KPgpPayB0aGUgYm9vdGluZyBvZiBmaWxl
-c3lzdGVtIGltYWdlIGlzIGZpeGVkLCBteSBwcm9ibGVtIHdpdGggSkZGUzIgd2FzCnRoZSByb290
-ZnN0eXBlIG5vdCBzZXQuClRoZSBTcXVhc2hmcyBpcyB3b3JraW5nIHNtb290aGx5IG5vdyBvbiBt
-eSBPTUFQIDU5MTIuClNvIHRoZSBmaWxlc3lzdGVtIGlzIG9rLCB3aXRoIGxhdGVzdCBrZXJuZWwu
-Ckkga25vdyB0aGUgcm9vdGZzdHlwZSwgd2FzIGFuIHN0dXBpZCBtaXN0YWtlIChzaWxseSkgbWlz
-dGFrZSBmb3IgbWUsCmJ1dC4uLi4uLiBJIGRpZCBpdC4KU28gdGhlIHByb2JsZW0gd2l0aCBEU1Ag
-cGVyc2lzdCBidXQgdGhpcyBpcyBhbm90aGVyIHRocmVhZCwgc28gdGhpcwppc3N1ZSBpcyBzb2x2
-ZWQgdGhhbmtzIGZvciBhbGwgdGhlIGhlbHAgd2l0aCB0aGlzIGZlbGxvd3MuCgotLSAKLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tClRoYW5rcyAmJiBSZWdhcmRzCk0uU2MuIEIuU2MuIEx1w61zIFZpdMOz
-cmlvIENhcmduaW5pCklFRUUgTWVtYmVyCkVsZWN0cmljYWwgRW5naW5lZXIgRmFjdWx0eSBAIFBV
-Q1JTCklwaXJhbmdhIEF2ZW51ZSwgNjY4MSDigJMgQnVpbGRpbmcgMzAKUC5PLiBCb3g6IDkwNjE5
-LTkwMCDigJMgUG9ydG8gQWxlZ3JlL1JTClBob25lOiArNTUgNTEgMzMyMCAzNTAwIGV4dGVuc2lv
-bjogNzY5NgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0K
+On Wed, Mar 12, 2008 at 01:14:32PM -0500, Felipe Balbi wrote:
+> > -	int count = 0;
+> > +	int err, count = 0;
+> 
+> int err = 0, count = 0; will be better and you avoid that err=0 before
+> using err right below.
+
+No, the err = 0 I added is in a while loop.  It needs to be
+reinitialized for each iteration.
+
+> > +		if (stat & (OMAP_I2C_STAT_ARDY | OMAP_I2C_STAT_NACK |
+> > +					OMAP_I2C_STAT_AL))
+> 
+> err should already hold them, how about
+> if (stat & err)
+
+err will not hold ARDY, so it would need to be
+
+	if (stat & (err | OMAP_I2C_STAT_ARDY))
+
+But I don't see the advantage.  Comparing the assembly, what I
+submitted generates one less instruction than the above, so the
+difference appears to be trivial.
+
+Cheers,
+Seth
