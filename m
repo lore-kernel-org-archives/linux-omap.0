@@ -1,48 +1,45 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: isp1301 build breakage
-Date: Wed, 12 Mar 2008 08:51:27 -0500
-Message-ID: <c26351182b4c193bc22c498485b5550f@felipebalbi.com>
-References: <20080312120023.GR7524@atomide.com>
+From: Oleg Kechin <okechin.omap@gmail.com>
+Subject: OMAP5910 I2C problem
+Date: Wed, 12 Mar 2008 17:12:17 +0200
+Message-ID: <47D7F2D1.9040007@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=KOI8-R; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:42555 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751410AbYCLNv2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Mar 2008 09:51:28 -0400
-In-Reply-To: <20080312120023.GR7524@atomide.com>
+Received: from mu-out-0910.google.com ([209.85.134.184]:55283 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751853AbYCLPML (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Mar 2008 11:12:11 -0400
+Received: by mu-out-0910.google.com with SMTP id i10so8339980mue.5
+        for <linux-omap@vger.kernel.org>; Wed, 12 Mar 2008 08:12:09 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+
+Hi!
+
+I've experienced problem with OMAP5910 I2C driver in my custom board.
+It freezes after some working time.
+When it freezes, register I2C_STAT show that XUDF (or ROVR) bit is set 
+and SCL pin
+is in low state.
+I2C_CNT register is not zero too, but buf_len counter is zero.
+Attempt to use init() function do not help in this situation.
+Only things I can do with it - set I2C to debug mode and make some SCL 
+clocks by hand.
+After this I2C state machine can work for some time.
+When I2C clock is set to 100kHz it happens almost in every transfer - I 
+try to read/write
+EEPROM. In 20kHz it still can happen too (on heavy load much frequently).
+It's look like internal I2C state machine is broken.
+So, for now I replace i2c algorithm with i2c_algo_bit and everything 
+works fine.
+
+I'm curious - only I have such a problem with I2C bus in OMAP 5910 or 
+someone else too?
+May be there is better solution?
 
 
-
-On Wed, 12 Mar 2008 14:00:24 +0200, Tony Lindgren <tony@atomide.com> wrote:
-> * David Brownell <david-b@pacbell.net> [080312 13:28]:
->>   CC      drivers/i2c/chips/isp1301_omap.o
->> drivers/i2c/chips/isp1301_omap.c: In function 'isp1301_set_peripheral':
->> drivers/i2c/chips/isp1301_omap.c:1360: error: implicit declaration of
-> function 'machine_is_omap_h2'
->> drivers/i2c/chips/isp1301_omap.c:1360: error: implicit declaration of
-> function 'machine_is_omap_h3'
->> make[3]: *** [drivers/i2c/chips/isp1301_omap.o] Error 1
->> make[2]: *** [drivers/i2c/chips] Error 2
->> make[1]: *** [drivers/i2c] Error 2
->>
->> This is on an H4 config, if that matters at all.
-> 
-> I've pushed a quick fix to include mach-types.h.. In the long run that
-> should use platform_data for passing any special options..
-
-I've being working on that, sorry the delay but I'm quite busy with omap3
-and twl. :-s
-
--- 
-Best Regards,
-
-Felipe Balbi
-http://felipebalbi.com
-me@felipebalbi.com
+With regards
+Oleg Kechin.
 
