@@ -1,45 +1,112 @@
-From: Oleg Kechin <okechin.omap@gmail.com>
-Subject: OMAP5910 I2C problem
-Date: Wed, 12 Mar 2008 17:12:17 +0200
-Message-ID: <47D7F2D1.9040007@gmail.com>
+From: Seth Forshee <seth.forshee@gmail.com>
+Subject: [PATCH] I2C: Fix OMAP I2C status register handling in IRQ processing
+Date: Wed, 12 Mar 2008 12:56:10 -0500
+Message-ID: <20080312175609.GA9811@ubuntu-workstation>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.184]:55283 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751853AbYCLPML (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Mar 2008 11:12:11 -0400
-Received: by mu-out-0910.google.com with SMTP id i10so8339980mue.5
-        for <linux-omap@vger.kernel.org>; Wed, 12 Mar 2008 08:12:09 -0700 (PDT)
+Received: from ti-out-0910.google.com ([209.85.142.184]:49535 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751486AbYCLR5C (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Mar 2008 13:57:02 -0400
+Received: by ti-out-0910.google.com with SMTP id 28so1189958tif.23
+        for <linux-omap@vger.kernel.org>; Wed, 12 Mar 2008 10:57:00 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Hi!
+The IRQ handler in omap-i2c.c can sometimes clear status bits without
+actually processing them.  In particular, error status bits will be
+ignored if any of the ARDY, RRDY, RDR, XRDY, or XDR bits are
+concurrently set.
 
-I've experienced problem with OMAP5910 I2C driver in my custom board.
-It freezes after some working time.
-When it freezes, register I2C_STAT show that XUDF (or ROVR) bit is set 
-and SCL pin
-is in low state.
-I2C_CNT register is not zero too, but buf_len counter is zero.
-Attempt to use init() function do not help in this situation.
-Only things I can do with it - set I2C to debug mode and make some SCL 
-clocks by hand.
-After this I2C state machine can work for some time.
-When I2C clock is set to 100kHz it happens almost in every transfer - I 
-try to read/write
-EEPROM. In 20kHz it still can happen too (on heavy load much frequently).
-It's look like internal I2C state machine is broken.
-So, for now I replace i2c algorithm with i2c_algo_bit and everything 
-works fine.
+Signed-off-by: Seth Forshee <seth.forshee@gmail.com>
+---
 
-I'm curious - only I have such a problem with I2C bus in OMAP 5910 or 
-someone else too?
-May be there is better solution?
+More information:
 
+I originally noticed this problem on a custom 2430 board I am working
+with.  Whenever an i2c chip driver calls i2c_probe() the device would
+be found on both i2c busses at each of the possible addresses for the
+device.  I discovered that NACK was being set in the status register
+but omap_i2c_xfer() still returned success because ARDY was also set.
 
-With regards
-Oleg Kechin.
+This patch fixes this issue on my board and hasn't caused any problems
+(in my admittedly light i2c usage).  I don't have immediate access to
+an SDP board however, so it has not been tested on that platform.
+
+ drivers/i2c/busses/i2c-omap.c |   28 +++++++++++++---------------
+ 1 files changed, 13 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 4777466..a16d513 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -590,7 +590,7 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 	struct omap_i2c_dev *dev = dev_id;
+ 	u16 bits;
+ 	u16 stat, w;
+-	int count = 0;
++	int err, count = 0;
+ 
+ 	if (dev->idle)
+ 		return IRQ_NONE;
+@@ -605,10 +605,19 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 
+ 		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, stat);
+ 
+-		if (stat & OMAP_I2C_STAT_ARDY) {
+-			omap_i2c_complete_cmd(dev, 0);
+-			continue;
++		err = 0;
++		if (stat & OMAP_I2C_STAT_NACK) {
++			err |= OMAP_I2C_STAT_NACK;
++			omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
++					   OMAP_I2C_CON_STP);
+ 		}
++		if (stat & OMAP_I2C_STAT_AL) {
++			dev_err(dev->dev, "Arbitration lost\n");
++			err |= OMAP_I2C_STAT_AL;
++		}
++		if (stat & (OMAP_I2C_STAT_ARDY | OMAP_I2C_STAT_NACK |
++					OMAP_I2C_STAT_AL))
++			omap_i2c_complete_cmd(dev, err);
+ 		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
+ 			u8 num_bytes = 1;
+ 			if (dev->fifo_size) {
+@@ -640,7 +649,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 				}
+ 			}
+ 			omap_i2c_ack_stat(dev, stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR));
+-			continue;
+ 		}
+ 		if (stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR)) {
+ 			u8 num_bytes = 1;
+@@ -674,7 +682,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+ 			}
+ 			omap_i2c_ack_stat(dev, stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
+-			continue;
+ 		}
+ 		if (stat & OMAP_I2C_STAT_ROVR) {
+ 			dev_err(dev->dev, "Receive overrun\n");
+@@ -684,15 +691,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 			dev_err(dev->dev, "Transmit overflow\n");
+ 			dev->cmd_err |= OMAP_I2C_STAT_XUDF;
+ 		}
+-		if (stat & OMAP_I2C_STAT_NACK) {
+-			omap_i2c_complete_cmd(dev, OMAP_I2C_STAT_NACK);
+-			omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
+-					   OMAP_I2C_CON_STP);
+-		}
+-		if (stat & OMAP_I2C_STAT_AL) {
+-			dev_err(dev->dev, "Arbitration lost\n");
+-			omap_i2c_complete_cmd(dev, OMAP_I2C_STAT_AL);
+-		}
+ 	}
+ 
+ 	return count ? IRQ_HANDLED : IRQ_NONE;
+-- 
+1.5.2.5
 
