@@ -1,56 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/PATCH] ARM: OMAP: Add IDCODE revision to system_rev
-Date: Thu, 13 Mar 2008 13:48:56 +0200
-Message-ID: <20080313114855.GH11653@atomide.com>
-References: <20080306003550.GA2709@party>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 6/6] ARM: OMAP1: Fix typo in OMAP1 MPU clock source initialization
+Date: Thu, 13 Mar 2008 17:45:19 +0200
+Message-ID: <1205423119-22292-7-git-send-email-tony@atomide.com>
+References: omap-fixes-2008-03-13
+ <1205423119-22292-1-git-send-email-tony@atomide.com>
+ <1205423119-22292-2-git-send-email-tony@atomide.com>
+ <1205423119-22292-3-git-send-email-tony@atomide.com>
+ <1205423119-22292-4-git-send-email-tony@atomide.com>
+ <1205423119-22292-5-git-send-email-tony@atomide.com>
+ <1205423119-22292-6-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51884 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752013AbYCMLtL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2008 07:49:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20080306003550.GA2709@party>
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:59333 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753612AbYCMPpw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2008 11:45:52 -0400
+In-Reply-To: <1205423119-22292-6-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, Will Newton <will.newton@gmail.com>
 
-* Kyungmin Park <kyungmin.park@samsung.com> [080306 02:36]:
-> In previous kernel there's IDCODE revision. But recently it was removed.
-> I hope it want to add this one to distinguish board revision.
-> 
-> Are there another way to combine Silicon revision with IDCODE one?
->
-> Any comments are welcome.
+From: Will Newton <will.newton@gmail.com>
 
-Well this is not done currently for 34xx, and two bits are not
-enough so we need something better here eventually..
+Fix typo in OMAP1 MPU clock source initialization.
 
-Anyways, pushing today.
+Signed-off-by: Will Newton <will.newton@gmail.com>
+---
+ arch/arm/mach-omap1/time.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Tony
+diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
+index 572a2db..a4f8b20 100644
+--- a/arch/arm/mach-omap1/time.c
++++ b/arch/arm/mach-omap1/time.c
+@@ -171,7 +171,7 @@ static void omap_mpu_set_mode(enum clock_event_mode mode,
+ 
+ static struct clock_event_device clockevent_mpu_timer1 = {
+ 	.name		= "mpu_timer1",
+-	.features       = CLOCK_EVT_FEAT_PERIODIC, CLOCK_EVT_FEAT_ONESHOT,
++	.features       = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
+ 	.shift		= 32,
+ 	.set_next_event	= omap_mpu_set_next_event,
+ 	.set_mode	= omap_mpu_set_mode,
+-- 
+1.5.3.6
 
-
-
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index a2109c1..dd53ae2 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -168,10 +168,13 @@ void __init omap2_check_revision(void)
->  	 * system_rev & 0xffff0000 -> Omap type (2420/2422/2423/2430/3430)
->  	 * system_rev & 0x0000f000 -> Silicon revision (ES1, ES2 )
->  	 * system_rev & 0x00000700 -> Device Type ( EMU/HS/GP/BAD )
-> +	 * system_rev & 0x000000c0 -> IDCODE revision[6:7]
->  	 * system_rev & 0x0000003f -> sys_boot[0:5]
->  	 */
->  	/* Embedding the ES revision info in type field */
->  	system_rev = omap_ids[j].type;
-> +	/* Also add IDCODE revision info only two lower bits */
-> +	system_rev |= ((rev & 0x3) << 6);
->  
->  	/* Add in the device type and sys_boot fields (see above) */
->  	if (cpu_is_omap24xx()) {
