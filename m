@@ -1,173 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: I2C: Fix unhandled fault in i2c-omap controller
-Date: Thu, 13 Mar 2008 17:51:24 +0200
-Message-ID: <20080313155123.GI11653@atomide.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: rdhi, rdlo and rm must all be different:  say what??
+Date: Thu, 13 Mar 2008 10:54:37 -0500
+Message-ID: <3B6D69C3A9EBCA4BA5DA60D91302742903BE6FE9@dlee13.ent.ti.com>
+References: <200803121758.41024.david-b@pacbell.net> <c3756a11e4164ac843d68e9be0d6112a@felipebalbi.com> <200803130320.46227.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="GZVR6ND4mMseVXL/"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53063 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754911AbYCMPvo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2008 11:51:44 -0400
-Content-Disposition: inline
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55858 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752500AbYCMPy7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2008 11:54:59 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <200803130320.46227.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: i2c@lm-sensors.org, linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>, Felipe Balbi <me@felipebalbi.com>
+Cc: linux-omap@vger.kernel.org
 
+Hi Dave,
 
---GZVR6ND4mMseVXL/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> Subject: Re: rdhi, rdlo and rm must all be different: say what??
+>=20
+> On Thursday 13 March 2008, Felipe Balbi wrote:
+> > > =A0 sched_clock:
+> > > =A0 16: =A0 =A0 umull =A0 r0, r1, r0, r3 =A0@ tmp136, jiffies.371=
+, tmp137
+> > >
+> > > =A0 sched_slice:
+> > > =A0 =A0 =A0 =A0 =A0 ...
+> > > =A0 1243: =A0 umull =A0 r0, r1, r0, r2 =A0@ slice.2262, slice,
+> > > <variable>.load.weight
 
-Hi Jean,
+Thanks for digging into that.  I noticed it recently also on some build=
+s. =20
 
-Here's an omap I2C fix that would be nice to get into 2.6.25 if still
-possible.
+Maybe this umull comes from do_div() which has some inline assembly for=
+ this.  I recall that in used in sched_clock.  The inline asm might nee=
+d a tweak.
 
 Regards,
+Richard W.
 
-Tony
-
---GZVR6ND4mMseVXL/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline; filename=i2c-clock-race
-
-commit 8e4f19286e68d38d589451ad2a10545f2c40032d
-Author: Tony Lindgren <tony@atomide.com>
-Date:   Mon Feb 18 20:16:00 2008 -0800
-
-    I2C: Fix unhandled fault in i2c-omap controller
-    
-    If an I2C interrupt happens between disabling interface clock
-    and functional clock, the interrupt handler will produce an
-    external abort on non-linefetch error when trying to access
-    driver registers while interface clock is disabled.
-    
-    This patch fixes the problem by saving and disabling i2c-omap
-    interrupt before turning off the clocks. Also disable functional
-    clock before the interface clock as suggested by Paul Walmsley.
-    
-    Patch also renames enable/disable_clocks functions to unidle/idle
-    functions. Note that the driver is currently not taking advantage
-    of the idle interrupts. To use the idle interrupts, driver would
-    have to enable interface clock based on the idle interrupt
-    and dev->idle flag.
-    
-    Cc: Paul Walmsley <paul@pwsan.com>
-    Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index da66397..862dd69 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -128,6 +128,8 @@ struct omap_i2c_dev {
- 	size_t			buf_len;
- 	struct i2c_adapter	adapter;
- 	unsigned		rev1:1;
-+	unsigned		idle:1;
-+	u16			iestate;	/* Saved interrupt register */
- };
- 
- static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
-@@ -174,18 +176,30 @@ static void omap_i2c_put_clocks(struct omap_i2c_dev *dev)
- 	}
- }
- 
--static void omap_i2c_enable_clocks(struct omap_i2c_dev *dev)
-+static void omap_i2c_unidle(struct omap_i2c_dev *dev)
- {
- 	if (dev->iclk != NULL)
- 		clk_enable(dev->iclk);
- 	clk_enable(dev->fclk);
-+	if (dev->iestate)
-+		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-+	dev->idle = 0;
- }
- 
--static void omap_i2c_disable_clocks(struct omap_i2c_dev *dev)
-+static void omap_i2c_idle(struct omap_i2c_dev *dev)
- {
-+	u16 iv;
-+
-+	dev->idle = 1;
-+	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
-+	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
-+	if (dev->rev1)
-+		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG);
-+	else
-+		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, dev->iestate);
-+	clk_disable(dev->fclk);
- 	if (dev->iclk != NULL)
- 		clk_disable(dev->iclk);
--	clk_disable(dev->fclk);
- }
- 
- static int omap_i2c_init(struct omap_i2c_dev *dev)
-@@ -360,7 +374,7 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
- 	int i;
- 	int r;
- 
--	omap_i2c_enable_clocks(dev);
-+	omap_i2c_unidle(dev);
- 
- 	if ((r = omap_i2c_wait_for_bb(dev)) < 0)
- 		goto out;
-@@ -374,7 +388,7 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
- 	if (r == 0)
- 		r = num;
- out:
--	omap_i2c_disable_clocks(dev);
-+	omap_i2c_idle(dev);
- 	return r;
- }
- 
-@@ -403,6 +417,9 @@ omap_i2c_rev1_isr(int this_irq, void *dev_id)
- 	struct omap_i2c_dev *dev = dev_id;
- 	u16 iv, w;
- 
-+	if (dev->idle)
-+		return IRQ_NONE;
-+
- 	iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG);
- 	switch (iv) {
- 	case 0x00:	/* None */
-@@ -457,6 +474,9 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 	u16 stat, w;
- 	int count = 0;
- 
-+	if (dev->idle)
-+		return IRQ_NONE;
-+
- 	bits = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
- 	while ((stat = (omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG))) & bits) {
- 		dev_dbg(dev->dev, "IRQ (ISR = 0x%04x)\n", stat);
-@@ -575,7 +595,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	if ((r = omap_i2c_get_clocks(dev)) != 0)
- 		goto err_free_mem;
- 
--	omap_i2c_enable_clocks(dev);
-+	omap_i2c_unidle(dev);
- 
- 	if (cpu_is_omap15xx())
- 		dev->rev1 = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) < 0x20;
-@@ -610,7 +630,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 		goto err_free_irq;
- 	}
- 
--	omap_i2c_disable_clocks(dev);
-+	omap_i2c_idle(dev);
- 
- 	return 0;
- 
-@@ -618,7 +638,7 @@ err_free_irq:
- 	free_irq(dev->irq, dev);
- err_unuse_clocks:
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
--	omap_i2c_disable_clocks(dev);
-+	omap_i2c_idle(dev);
- 	omap_i2c_put_clocks(dev);
- err_free_mem:
- 	platform_set_drvdata(pdev, NULL);
-
---GZVR6ND4mMseVXL/--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
