@@ -1,49 +1,173 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/6] ARM: OMAP: Fix GPIO IRQ unmask
-Date: Thu, 13 Mar 2008 17:45:15 +0200
-Message-ID: <1205423119-22292-3-git-send-email-tony@atomide.com>
-References: omap-fixes-2008-03-13
- <1205423119-22292-1-git-send-email-tony@atomide.com>
- <1205423119-22292-2-git-send-email-tony@atomide.com>
+Subject: I2C: Fix unhandled fault in i2c-omap controller
+Date: Thu, 13 Mar 2008 17:51:24 +0200
+Message-ID: <20080313155123.GI11653@atomide.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="GZVR6ND4mMseVXL/"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:59084 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753399AbYCMPpl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2008 11:45:41 -0400
-In-Reply-To: <1205423119-22292-2-git-send-email-tony@atomide.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53063 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754911AbYCMPvo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Mar 2008 11:51:44 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@mvista.com>, Tony Lindgren <tony@atomide.com>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: i2c@lm-sensors.org, linux-omap@vger.kernel.org
 
-From: Kevin Hilman <khilman@mvista.com>
 
-GPIO IRQ unmask doesn't actually do anything useful.  The problem is
-hidden by a separate explicit mass unmask at the end of the chained
-bank handler.
+--GZVR6ND4mMseVXL/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Kevin Hilman <khilman@mvista.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/plat-omap/gpio.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+Hi Jean,
 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 66a1455..8c78e4e 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -1134,10 +1134,9 @@ static void gpio_mask_irq(unsigned int irq)
- static void gpio_unmask_irq(unsigned int irq)
- {
- 	unsigned int gpio = irq - IH_GPIO_BASE;
--	unsigned int gpio_idx = get_gpio_index(gpio);
- 	struct gpio_bank *bank = get_irq_chip_data(irq);
+Here's an omap I2C fix that would be nice to get into 2.6.25 if still
+possible.
+
+Regards,
+
+Tony
+
+--GZVR6ND4mMseVXL/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline; filename=i2c-clock-race
+
+commit 8e4f19286e68d38d589451ad2a10545f2c40032d
+Author: Tony Lindgren <tony@atomide.com>
+Date:   Mon Feb 18 20:16:00 2008 -0800
+
+    I2C: Fix unhandled fault in i2c-omap controller
+    
+    If an I2C interrupt happens between disabling interface clock
+    and functional clock, the interrupt handler will produce an
+    external abort on non-linefetch error when trying to access
+    driver registers while interface clock is disabled.
+    
+    This patch fixes the problem by saving and disabling i2c-omap
+    interrupt before turning off the clocks. Also disable functional
+    clock before the interface clock as suggested by Paul Walmsley.
+    
+    Patch also renames enable/disable_clocks functions to unidle/idle
+    functions. Note that the driver is currently not taking advantage
+    of the idle interrupts. To use the idle interrupts, driver would
+    have to enable interface clock based on the idle interrupt
+    and dev->idle flag.
+    
+    Cc: Paul Walmsley <paul@pwsan.com>
+    Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index da66397..862dd69 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -128,6 +128,8 @@ struct omap_i2c_dev {
+ 	size_t			buf_len;
+ 	struct i2c_adapter	adapter;
+ 	unsigned		rev1:1;
++	unsigned		idle:1;
++	u16			iestate;	/* Saved interrupt register */
+ };
  
--	_set_gpio_irqenable(bank, gpio_idx, 1);
-+	_set_gpio_irqenable(bank, gpio, 1);
+ static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
+@@ -174,18 +176,30 @@ static void omap_i2c_put_clocks(struct omap_i2c_dev *dev)
+ 	}
  }
  
- static struct irq_chip gpio_irq_chip = {
--- 
-1.5.3.6
+-static void omap_i2c_enable_clocks(struct omap_i2c_dev *dev)
++static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+ {
+ 	if (dev->iclk != NULL)
+ 		clk_enable(dev->iclk);
+ 	clk_enable(dev->fclk);
++	if (dev->iestate)
++		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
++	dev->idle = 0;
+ }
+ 
+-static void omap_i2c_disable_clocks(struct omap_i2c_dev *dev)
++static void omap_i2c_idle(struct omap_i2c_dev *dev)
+ {
++	u16 iv;
++
++	dev->idle = 1;
++	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
++	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
++	if (dev->rev1)
++		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG);
++	else
++		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, dev->iestate);
++	clk_disable(dev->fclk);
+ 	if (dev->iclk != NULL)
+ 		clk_disable(dev->iclk);
+-	clk_disable(dev->fclk);
+ }
+ 
+ static int omap_i2c_init(struct omap_i2c_dev *dev)
+@@ -360,7 +374,7 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+ 	int i;
+ 	int r;
+ 
+-	omap_i2c_enable_clocks(dev);
++	omap_i2c_unidle(dev);
+ 
+ 	if ((r = omap_i2c_wait_for_bb(dev)) < 0)
+ 		goto out;
+@@ -374,7 +388,7 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+ 	if (r == 0)
+ 		r = num;
+ out:
+-	omap_i2c_disable_clocks(dev);
++	omap_i2c_idle(dev);
+ 	return r;
+ }
+ 
+@@ -403,6 +417,9 @@ omap_i2c_rev1_isr(int this_irq, void *dev_id)
+ 	struct omap_i2c_dev *dev = dev_id;
+ 	u16 iv, w;
+ 
++	if (dev->idle)
++		return IRQ_NONE;
++
+ 	iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG);
+ 	switch (iv) {
+ 	case 0x00:	/* None */
+@@ -457,6 +474,9 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 	u16 stat, w;
+ 	int count = 0;
+ 
++	if (dev->idle)
++		return IRQ_NONE;
++
+ 	bits = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+ 	while ((stat = (omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG))) & bits) {
+ 		dev_dbg(dev->dev, "IRQ (ISR = 0x%04x)\n", stat);
+@@ -575,7 +595,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	if ((r = omap_i2c_get_clocks(dev)) != 0)
+ 		goto err_free_mem;
+ 
+-	omap_i2c_enable_clocks(dev);
++	omap_i2c_unidle(dev);
+ 
+ 	if (cpu_is_omap15xx())
+ 		dev->rev1 = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) < 0x20;
+@@ -610,7 +630,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		goto err_free_irq;
+ 	}
+ 
+-	omap_i2c_disable_clocks(dev);
++	omap_i2c_idle(dev);
+ 
+ 	return 0;
+ 
+@@ -618,7 +638,7 @@ err_free_irq:
+ 	free_irq(dev->irq, dev);
+ err_unuse_clocks:
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+-	omap_i2c_disable_clocks(dev);
++	omap_i2c_idle(dev);
+ 	omap_i2c_put_clocks(dev);
+ err_free_mem:
+ 	platform_set_drvdata(pdev, NULL);
 
+--GZVR6ND4mMseVXL/--
