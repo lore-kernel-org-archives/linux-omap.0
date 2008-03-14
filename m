@@ -1,40 +1,44 @@
-From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Subject: Re: I2C: Fix unhandled fault in i2c-omap controller
-Date: Fri, 14 Mar 2008 16:53:17 +0100
-Message-ID: <20080314165317.6bc1a19e@hyperion.delvare>
-References: <20080313155123.GI11653@atomide.com>
+From: "=?UTF-8?Q?Lu=C3=ADs_Vit=C3=B3rio_Cargnini?=" <lvcargnini@gmail.com>
+Subject: changes in the dspgateway
+Date: Fri, 14 Mar 2008 13:22:12 -0300
+Message-ID: <ae36f8040803140922y4ce0be8as9db044e798120bb2@mail.gmail.com>
+Reply-To: lvcargnini@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <i2c-bounces-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
-In-Reply-To: <20080313155123.GI11653-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <http://lists.lm-sensors.org/mailman/listinfo/i2c>,
-	<mailto:i2c-request-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.lm-sensors.org/pipermail/i2c>
-List-Post: <mailto:i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
-List-Help: <mailto:i2c-request-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/i2c>,
-	<mailto:i2c-request-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org?subject=subscribe>
-Sender: i2c-bounces-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
-Errors-To: i2c-bounces-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ug-out-1314.google.com ([66.249.92.173]:52705 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753845AbYCNQWP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Mar 2008 12:22:15 -0400
+Received: by ug-out-1314.google.com with SMTP id z38so102138ugc.16
+        for <linux-omap@vger.kernel.org>; Fri, 14 Mar 2008 09:22:13 -0700 (PDT)
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, dspgateway-devel@lists.sourceforge.net
 
-Hi Tony,
-
-On Thu, 13 Mar 2008 17:51:24 +0200, Tony Lindgren wrote:
-> Here's an omap I2C fix that would be nice to get into 2.6.25 if still
-> possible.
-
-Yeah, that's possible, however the patch isn't totally trivial so I
-would appreciate if someone from the OMAP community could review it
-publicly and ack it. Then I'll push it to Linus quickly.
-
--- 
-Jean Delvare
-
-_______________________________________________
-i2c mailing list
-i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
-http://lists.lm-sensors.org/mailman/listinfo/i2c
+RGVhciBmZWxsb3dzIEkgd2FudCB0byBtYWtlIHNvbWUgY2hhbmdlcyBvciBpbiBkc3BjdGwgb3Ig
+aW4gZHNwZ2F0ZXdheToKd2h5PwppbiB0aGUgZHNwZ2F0ZXdheSB3ZSBoYXZlOgogICAgICB1bW9k
+ZV90ICAgICAgICAgbW9kZTsKfSBkZXZfbGlzdFtdID0gewogICAgICAgIHtDVExfTUlOT1IsICAi
+ZHNwY3RsIiwgIFNfSVJVU1IgfCBTX0lXVVNSfSwKICAgICAgICB7TUVNX01JTk9SLCAgImRzcG1l
+bSIsICBTX0lSVVNSIHwgU19JV1VTUiB8IFNfSVJHUlB9LAogICAgICAgIHtUV0NIX01JTk9SLCAi
+ZHNwdHdjaCIsIFNfSVJVU1IgfCBTX0lXVVNSIHwgU19JUkdSUH0sCiAgICAgICAge0VSUl9NSU5P
+UiwgICJkc3BlcnIiLCAgU19JUlVTUiB8IFNfSVJHUlB9LAp9OwoKYnV0IHRoZSBkc3BjdGwgbG9v
+a3MgZm9yIDoKL2Rldi9kc3BjdGwvY3RsCi9kZXYvZHNwY3RsL21lbQovZGV2L2RzcGN0bC90d2No
+Ci9kZXYvZHNwY3RsL2VycgoKU28gcGVvcGxlIHdobyB1c2UgdWRldiwgbGlrZSBhbHdheXMgaGF2
+ZSBwcm9ibGVtcyB3aXRoIGRzcGN0bCwgYmVjYXVzZQpoYXZlIHRvIGNyZWF0ZSB0aGUgL2Rldi9k
+c3BjdGwvKiBieSBoYW5kLCBiZWNhdXNlIHRoZSBjbGFzcyBkaXJlY3RpdmUKb2YgZHNwZ2F0ZXdh
+eSBjcmVhdGVzIGl0IGFzIGVudHJhbmNlcyBvbiAvZGV2IGRpcmVjdGx5LCBzbyBJIGNvdWxkCm1h
+a2UgdGhpcyAibGl0dGxlIiBjaGFuZ2UgaW4gdGhlIGRzcGdhdGV3YXkgYW5kIGZpeCB0aGlzLCBh
+bmQgbm9ib2R5CndpbGwgaGF2ZSBtb3JlIHByb2JsZW0gd2l0aCB0aGlzIGFnYWluIChJIGhhdmUg
+dG8gYW5zd2VyIG15IGxhc3QKZS1tYWlsIGZvIGhlbHAgSSBmb3VuZCB0aGUgc29sdXRpb24gZm9y
+IG15IHByb2JsZW0gYW5kIHdhcyB0aGlzKS4KCklmIHRoZXJlIGlzIG5vIG9iamVjdGlvbiBJIGNh
+biBtYWtlIHRoZSBjaGFuZ2VzIHRlc3QgYW5kIHNlbmQgdGhlIHBhdGNocy4KCi0tIAotLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0KVGhhbmtzICYmIFJlZ2FyZHMKTS5TYy4gQi5TYy4gTHXDrXMgVml0w7Ny
+aW8gQ2FyZ25pbmkKSUVFRSBNZW1iZXIKRWxlY3RyaWNhbCBFbmdpbmVlciBGYWN1bHR5IEAgUFVD
+UlMKSXBpcmFuZ2EgQXZlbnVlLCA2NjgxIOKAkyBCdWlsZGluZyAzMApQLk8uIEJveDogOTA2MTkt
+OTAwIOKAkyBQb3J0byBBbGVncmUvUlMKUGhvbmU6ICs1NSA1MSAzMzIwIDM1MDAgZXh0ZW5zaW9u
+OiA3Njk2Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo=
