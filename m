@@ -1,57 +1,182 @@
-From: "=?UTF-8?Q?Lu=C3=ADs_Vit=C3=B3rio_Cargnini?=" <lvcargnini@gmail.com>
-Subject: Re: problems with latest source
-Date: Fri, 14 Mar 2008 14:53:23 -0300
-Message-ID: <ae36f8040803141053w163f3767mbc9458a8405f780a@mail.gmail.com>
-References: <ae36f8040803131848x5a380afp64c48b68d3394ef3@mail.gmail.com>
-	 <9c1eb1b90803141042h77a4b934nf06a450793fc5ad8@mail.gmail.com>
-Reply-To: lvcargnini@gmail.com
+From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Subject: Re: I2C: Fix unhandled fault in i2c-omap controller
+Date: Fri, 14 Mar 2008 18:52:18 +0100
+Message-ID: <20080314185218.3fa69d19@hyperion.delvare>
+References: <20080313155123.GI11653@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.175]:15564 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751736AbYCNRxY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Mar 2008 13:53:24 -0400
-Received: by wf-out-1314.google.com with SMTP id 28so4135005wff.4
-        for <linux-omap@vger.kernel.org>; Fri, 14 Mar 2008 10:53:23 -0700 (PDT)
-In-Reply-To: <9c1eb1b90803141042h77a4b934nf06a450793fc5ad8@mail.gmail.com>
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <i2c-bounces-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
+In-Reply-To: <20080313155123.GI11653-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <http://lists.lm-sensors.org/mailman/listinfo/i2c>,
+	<mailto:i2c-request-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.lm-sensors.org/pipermail/i2c>
+List-Post: <mailto:i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
+List-Help: <mailto:i2c-request-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/i2c>,
+	<mailto:i2c-request-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org?subject=subscribe>
+Sender: i2c-bounces-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+Errors-To: i2c-bounces-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tim Chen <tim.chen.86@gmail.com>
-Cc: linux-omap@vger.kernel.org
 
-SXQgd2FzIGZpeGVkIFRpbSwgcHVsbCB5b3UgZ2l0IHRyZWUsIHRvIHVwZGF0ZSBpdCwgdGhlIGZp
-eHggd2FzCnVwbG9hZGVkIGluIHRoZSBtb3JuaW5nIGJ5IFRvbnkuCgpPbiBGcmksIE1hciAxNCwg
-MjAwOCBhdCAyOjQyIFBNLCBUaW0gQ2hlbiA8dGltLmNoZW4uODZAZ21haWwuY29tPiB3cm90ZToK
-PiBNeSBib2FyZCBpcyBPTUFQNzMwIGJhc2VkLgo+ICBJIGhhdmUgdGhlIHNhbWUgcHJvYmxlbSB0
-b28uCj4KPiAgT24gRnJpLCBNYXIgMTQsIDIwMDggYXQgOTo0OCBBTSwgTHXDrXMgVml0w7NyaW8g
-Q2FyZ25pbmkKPiAgPGx2Y2FyZ25pbmlAZ21haWwuY29tPiB3cm90ZToKPgo+Cj4gPiBJIHRyaWVk
-IHRvIGNvbXBpbGUgZm9yIE9NQVA1OTEyIE9TSyBhbmQgZ2V0IHRoZSBmb2xsb3dpbmcgZXJyb3I6
-Cj4gID4KPiAgPiAgYXJjaC9hcm0vcGxhdC1vbWFwL3NyYW0uYzogSW4gZnVuY3Rpb24gJ29tYXAx
-X3NyYW1faW5pdCc6Cj4gID4gIGFyY2gvYXJtL3BsYXQtb21hcC9zcmFtLmM6MzQxOiBlcnJldXI6
-ICdzcmFtX3JlcHJvZ3JhbV9jbG9jaycKPiAgPiAgdW5kZWNsYXJlZCAoZmlyc3QgdXNlIGluIHRo
-aXMgZnVuY3Rpb24pCj4gID4gIGFyY2gvYXJtL3BsYXQtb21hcC9zcmFtLmM6MzQxOiBlcnJldXI6
-IChFYWNoIHVuZGVjbGFyZWQgaWRlbnRpZmllciBpcwo+ICA+ICByZXBvcnRlZCBvbmx5IG9uY2UK
-PiAgPiAgYXJjaC9hcm0vcGxhdC1vbWFwL3NyYW0uYzozNDE6IGVycmV1cjogZm9yIGVhY2ggZnVu
-Y3Rpb24gaXQgYXBwZWFycyBpbi4pCj4gID4gIGFyY2gvYXJtL3BsYXQtb21hcC9zcmFtLmM6MzQy
-OiBlcnJldXI6ICdzcmFtX3JlcHJvZ3JhbV9jbG9ja19zeicKPiAgPiAgdW5kZWNsYXJlZCAoZmly
-c3QgdXNlIGluIHRoaXMgZnVuY3Rpb24pCj4gID4gIG1ha2VbMV06ICoqKiBbYXJjaC9hcm0vcGxh
-dC1vbWFwL3NyYW0ub10gRXJyb3IgMQo+ICA+ICBtYWtlOiAqKiogW2FyY2gvYXJtL3BsYXQtb21h
-cF0gRXJyb3IgMgo+ICA+Cj4gID4KPiAgPiAgLS0KPiAgPiAgLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-Cj4gID4gIFRoYW5rcyAmJiBSZWdhcmRzCj4gID4gIE0uU2MuIEIuU2MuIEx1w61zIFZpdMOzcmlv
-IENhcmduaW5pCj4gID4gIElFRUUgTWVtYmVyCj4gID4gIEVsZWN0cmljYWwgRW5naW5lZXIgRmFj
-dWx0eSBAIFBVQ1JTCj4gID4gIElwaXJhbmdhIEF2ZW51ZSwgNjY4MSDigJMgQnVpbGRpbmcgMzAK
-PiAgPiAgUC5PLiBCb3g6IDkwNjE5LTkwMCDigJMgUG9ydG8gQWxlZ3JlL1JTCj4gID4gIFBob25l
-OiArNTUgNTEgMzMyMCAzNTAwIGV4dGVuc2lvbjogNzY5Ngo+ICA+ICAtLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0KPiAgPgo+Cj4KPgo+ICAtLQo+ICAtLQo+ICBSZWdhcmRzLAo+ICBUaW0uCj4KCgoK
-LS0gCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpUaGFua3MgJiYgUmVnYXJkcwpNLlNjLiBCLlNjLiBM
-dcOtcyBWaXTDs3JpbyBDYXJnbmluaQpJRUVFIE1lbWJlcgpFbGVjdHJpY2FsIEVuZ2luZWVyIEZh
-Y3VsdHkgQCBQVUNSUwpJcGlyYW5nYSBBdmVudWUsIDY2ODEg4oCTIEJ1aWxkaW5nIDMwClAuTy4g
-Qm94OiA5MDYxOS05MDAg4oCTIFBvcnRvIEFsZWdyZS9SUwpQaG9uZTogKzU1IDUxIDMzMjAgMzUw
-MCBleHRlbnNpb246IDc2OTYKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCg==
+On Thu, 13 Mar 2008 17:51:24 +0200, Tony Lindgren wrote:
+> Hi Jean,
+> 
+> Here's an omap I2C fix that would be nice to get into 2.6.25 if still
+> possible.
+
+Review:
+
+> commit 8e4f19286e68d38d589451ad2a10545f2c40032d
+> Author: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Date:   Mon Feb 18 20:16:00 2008 -0800
+> 
+>     I2C: Fix unhandled fault in i2c-omap controller
+>     
+>     If an I2C interrupt happens between disabling interface clock
+>     and functional clock, the interrupt handler will produce an
+>     external abort on non-linefetch error when trying to access
+>     driver registers while interface clock is disabled.
+>     
+>     This patch fixes the problem by saving and disabling i2c-omap
+>     interrupt before turning off the clocks. Also disable functional
+>     clock before the interface clock as suggested by Paul Walmsley.
+>     
+>     Patch also renames enable/disable_clocks functions to unidle/idle
+>     functions. Note that the driver is currently not taking advantage
+>     of the idle interrupts. To use the idle interrupts, driver would
+>     have to enable interface clock based on the idle interrupt
+>     and dev->idle flag.
+>     
+>     Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+>     Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index da66397..862dd69 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -128,6 +128,8 @@ struct omap_i2c_dev {
+>  	size_t			buf_len;
+>  	struct i2c_adapter	adapter;
+>  	unsigned		rev1:1;
+> +	unsigned		idle:1;
+> +	u16			iestate;	/* Saved interrupt register */
+>  };
+>  
+>  static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
+> @@ -174,18 +176,30 @@ static void omap_i2c_put_clocks(struct omap_i2c_dev *dev)
+>  	}
+>  }
+>  
+> -static void omap_i2c_enable_clocks(struct omap_i2c_dev *dev)
+> +static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+>  {
+>  	if (dev->iclk != NULL)
+>  		clk_enable(dev->iclk);
+>  	clk_enable(dev->fclk);
+> +	if (dev->iestate)
+> +		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
+> +	dev->idle = 0;
+>  }
+>  
+> -static void omap_i2c_disable_clocks(struct omap_i2c_dev *dev)
+> +static void omap_i2c_idle(struct omap_i2c_dev *dev)
+>  {
+> +	u16 iv;
+> +
+> +	dev->idle = 1;
+> +	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+> +	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
+> +	if (dev->rev1)
+> +		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG);
+
+Reading OMAP_I2C_IV_REG but not doing anything with the value? This
+deserves at least a comment if this is done on purpose (but then I
+don't think you need the iv variable at all.)
+
+> +	else
+> +		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, dev->iestate);
+> +	clk_disable(dev->fclk);
+>  	if (dev->iclk != NULL)
+>  		clk_disable(dev->iclk);
+> -	clk_disable(dev->fclk);
+>  }
+>  
+>  static int omap_i2c_init(struct omap_i2c_dev *dev)
+> @@ -360,7 +374,7 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+>  	int i;
+>  	int r;
+>  
+> -	omap_i2c_enable_clocks(dev);
+> +	omap_i2c_unidle(dev);
+>  
+>  	if ((r = omap_i2c_wait_for_bb(dev)) < 0)
+>  		goto out;
+> @@ -374,7 +388,7 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+>  	if (r == 0)
+>  		r = num;
+>  out:
+> -	omap_i2c_disable_clocks(dev);
+> +	omap_i2c_idle(dev);
+>  	return r;
+>  }
+>  
+> @@ -403,6 +417,9 @@ omap_i2c_rev1_isr(int this_irq, void *dev_id)
+>  	struct omap_i2c_dev *dev = dev_id;
+>  	u16 iv, w;
+>  
+> +	if (dev->idle)
+> +		return IRQ_NONE;
+> +
+>  	iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG);
+>  	switch (iv) {
+>  	case 0x00:	/* None */
+> @@ -457,6 +474,9 @@ omap_i2c_isr(int this_irq, void *dev_id)
+>  	u16 stat, w;
+>  	int count = 0;
+>  
+> +	if (dev->idle)
+> +		return IRQ_NONE;
+> +
+>  	bits = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+>  	while ((stat = (omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG))) & bits) {
+>  		dev_dbg(dev->dev, "IRQ (ISR = 0x%04x)\n", stat);
+> @@ -575,7 +595,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>  	if ((r = omap_i2c_get_clocks(dev)) != 0)
+>  		goto err_free_mem;
+>  
+> -	omap_i2c_enable_clocks(dev);
+> +	omap_i2c_unidle(dev);
+>  
+>  	if (cpu_is_omap15xx())
+>  		dev->rev1 = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) < 0x20;
+> @@ -610,7 +630,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>  		goto err_free_irq;
+>  	}
+>  
+> -	omap_i2c_disable_clocks(dev);
+> +	omap_i2c_idle(dev);
+>  
+>  	return 0;
+>  
+> @@ -618,7 +638,7 @@ err_free_irq:
+>  	free_irq(dev->irq, dev);
+>  err_unuse_clocks:
+>  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+> -	omap_i2c_disable_clocks(dev);
+> +	omap_i2c_idle(dev);
+>  	omap_i2c_put_clocks(dev);
+>  err_free_mem:
+>  	platform_set_drvdata(pdev, NULL);
+
+The rest of the patch looks OK to me.
+
+-- 
+Jean Delvare
+
+_______________________________________________
+i2c mailing list
+i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+http://lists.lm-sensors.org/mailman/listinfo/i2c
