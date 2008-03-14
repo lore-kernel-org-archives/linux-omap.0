@@ -1,42 +1,30 @@
-From: "Syed Mohammed, Khasim" <khasim@ti.com>
-Subject: RE: omapfb driver support of DSS rotation and mirroring
-Date: Fri, 14 Mar 2008 12:07:28 +0530
-Message-ID: <7EAD1AEEA7621C45899FE99123E124A0017B1CFC@dbde01.ent.ti.com>
-References: <c656a4d20803132303o9eed571ma33963219e4f9ddb@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/6] Few more omap fixes for 2.6.25
+Date: Fri, 14 Mar 2008 10:42:40 +0200
+Message-ID: <20080314084239.GK11653@atomide.com>
+References: <1205423119-22292-1-git-send-email-tony@atomide.com> <20080313231951.GB21615@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39262 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750807AbYCNGi7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Mar 2008 02:38:59 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <c656a4d20803132303o9eed571ma33963219e4f9ddb@mail.gmail.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52857 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753963AbYCNInE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Mar 2008 04:43:04 -0400
+Content-Disposition: inline
+In-Reply-To: <20080313231951.GB21615@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arun c <arun.edarath@gmail.com>, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-
-Hi Arun,
-
-> I am working on 2430 SDP and using the latest git kernel.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [080314 01:20]:
+> On Thu, Mar 13, 2008 at 05:45:13PM +0200, Tony Lindgren wrote:
+> > Here are few more fixes for 2.6.25 if there's still time to get them
+> > applied.
 > 
-> I tried to rotate the framebuffer by setting the following in the bootargs
-> video=omapfb:rotate:90
-> video=omapfb:rotate:180
-> video=omapfb:rotate:270
-> 
+> There's always time to get bug fixes applied.  There's never a point
+> where we exclude real bug fixes being accepted.
 
-I think it is video=omapfb:rotate=270
+Thanks, I've posted them as patch 4866/1 to the patch system.
 
-> But it seemed to fail, the penguin is always appearing at the
-> top left corner.
-> 
-> Similar way i tried mirroring also, i got the same result.
-> 
-
-But I don't see VRFB support for rotation in GIT version of FB driver. With DMA based rotation you will end in FIFO underflow as it will not be able to meet the bandwidth requirement, you can try to port VRFB support to GIT, it might look bit complex, I can help you out in understanding (if required).
-
-Regards,
-Khasim
+Tony
