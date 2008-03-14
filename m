@@ -1,44 +1,40 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: omapfb driver support of DSS rotation and mirroring
-Date: Fri, 14 Mar 2008 19:50:16 +0530
-Message-ID: <5d5443650803140720n6402cc7eu1862d3389d9bb25b@mail.gmail.com>
-References: <c656a4d20803140251u6627c393qdb6280d317983c2d@mail.gmail.com>
-	 <7EAD1AEEA7621C45899FE99123E124A0017B1DC3@dbde01.ent.ti.com>
+From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Subject: Re: I2C: Fix unhandled fault in i2c-omap controller
+Date: Fri, 14 Mar 2008 16:53:17 +0100
+Message-ID: <20080314165317.6bc1a19e@hyperion.delvare>
+References: <20080313155123.GI11653@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.185]:54447 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753084AbYCNOUW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Mar 2008 10:20:22 -0400
-Received: by nf-out-0910.google.com with SMTP id g13so1590760nfb.21
-        for <linux-omap@vger.kernel.org>; Fri, 14 Mar 2008 07:20:20 -0700 (PDT)
-In-Reply-To: <7EAD1AEEA7621C45899FE99123E124A0017B1DC3@dbde01.ent.ti.com>
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <i2c-bounces-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
+In-Reply-To: <20080313155123.GI11653-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <http://lists.lm-sensors.org/mailman/listinfo/i2c>,
+	<mailto:i2c-request-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.lm-sensors.org/pipermail/i2c>
+List-Post: <mailto:i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
+List-Help: <mailto:i2c-request-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/i2c>,
+	<mailto:i2c-request-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org?subject=subscribe>
+Sender: i2c-bounces-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+Errors-To: i2c-bounces-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Syed Mohammed, Khasim" <khasim@ti.com>
-Cc: arun c <arun.edarath@gmail.com>, linux-omap@vger.kernel.org
 
-Hi Arun,
+Hi Tony,
 
-On Fri, Mar 14, 2008 at 5:53 PM, Syed Mohammed, Khasim <khasim@ti.com> wrote:
-> >
->  > I will try porting it to git ( Surely help is needed because i am
->  > new), does any body tried it alredy?
->  >
->  I will be glad to help you on this, just let me know where exactly you want to start with.
->
->  Probably I will put a ppt or pdf out to all.
->
+On Thu, 13 Mar 2008 17:51:24 +0200, Tony Lindgren wrote:
+> Here's an omap I2C fix that would be nice to get into 2.6.25 if still
+> possible.
 
-I think Canola2 and mamona guys have some OMAP GIT patch which does
-the rotation part successfully with xrandr. Please check with them on
-maemo-developers mailing list.
-
-http://labs.vivi.eng.br/blog/?p=40
+Yeah, that's possible, however the patch isn't totally trivial so I
+would appreciate if someone from the OMAP community could review it
+publicly and ack it. Then I'll push it to Linus quickly.
 
 -- 
----Trilok Soni
-http://triloksoni.wordpress.com
+Jean Delvare
+
+_______________________________________________
+i2c mailing list
+i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+http://lists.lm-sensors.org/mailman/listinfo/i2c
