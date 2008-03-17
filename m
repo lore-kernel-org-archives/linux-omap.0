@@ -1,62 +1,41 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [Dspgateway-devel] changes in the dspgateway
-Date: Mon, 17 Mar 2008 00:47:55 +0200 (EET)
-Message-ID: <20080317.004755.258873321.Hiroshi.DOYU@nokia.com>
-References: <ae36f8040803140922y4ce0be8as9db044e798120bb2@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: I2C: Fix unhandled fault in i2c-omap controller
+Date: Mon, 17 Mar 2008 08:39:29 +0200
+Message-ID: <20080317063927.GN11653@atomide.com>
+References: <20080313155123.GI11653@atomide.com> <20080314165317.6bc1a19e@hyperion.delvare>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:60675 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752754AbYCPWsR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Mar 2008 18:48:17 -0400
-In-Reply-To: <ae36f8040803140922y4ce0be8as9db044e798120bb2@mail.gmail.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60749 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752350AbYCQGkL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2008 02:40:11 -0400
+Content-Disposition: inline
+In-Reply-To: <20080314165317.6bc1a19e@hyperion.delvare>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: lvcargnini@gmail.com
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, dspgateway-devel@lists.sourceforge.net
+To: Jean Delvare <khali@linux-fr.org>
+Cc: i2c@lm-sensors.org, linux-omap@vger.kernel.org
 
-RnJvbTogZXh0X0x1w61zX1ZpdMOzcmlvX0NhcmduaW5pIDxsdmNhcmduaW5pQGdtYWlsLmNvbT4N
-ClN1YmplY3Q6IFtEc3BnYXRld2F5LWRldmVsXSBjaGFuZ2VzIGluIHRoZSBkc3BnYXRld2F5DQpE
-YXRlOiBGcmksIDE0IE1hciAyMDA4IDEzOjIyOjEyIC0wMzAwDQoNCj4gRGVhciBmZWxsb3dzIEkg
-d2FudCB0byBtYWtlIHNvbWUgY2hhbmdlcyBvciBpbiBkc3BjdGwgb3IgaW4gZHNwZ2F0ZXdheToN
-Cj4gd2h5Pw0KPiBpbiB0aGUgZHNwZ2F0ZXdheSB3ZSBoYXZlOg0KPiAgICAgICB1bW9kZV90ICAg
-ICAgICAgbW9kZTsNCj4gfSBkZXZfbGlzdFtdID0gew0KPiAgICAgICAgIHtDVExfTUlOT1IsICAi
-ZHNwY3RsIiwgIFNfSVJVU1IgfCBTX0lXVVNSfSwNCj4gICAgICAgICB7TUVNX01JTk9SLCAgImRz
-cG1lbSIsICBTX0lSVVNSIHwgU19JV1VTUiB8IFNfSVJHUlB9LA0KPiAgICAgICAgIHtUV0NIX01J
-Tk9SLCAiZHNwdHdjaCIsIFNfSVJVU1IgfCBTX0lXVVNSIHwgU19JUkdSUH0sDQo+ICAgICAgICAg
-e0VSUl9NSU5PUiwgICJkc3BlcnIiLCAgU19JUlVTUiB8IFNfSVJHUlB9LA0KPiB9Ow0KPiANCj4g
-YnV0IHRoZSBkc3BjdGwgbG9va3MgZm9yIDoNCj4gL2Rldi9kc3BjdGwvY3RsDQo+IC9kZXYvZHNw
-Y3RsL21lbQ0KPiAvZGV2L2RzcGN0bC90d2NoDQo+IC9kZXYvZHNwY3RsL2Vycg0KPiANCj4gU28g
-cGVvcGxlIHdobyB1c2UgdWRldiwgbGlrZSBhbHdheXMgaGF2ZSBwcm9ibGVtcyB3aXRoIGRzcGN0
-bCwgYmVjYXVzZQ0KPiBoYXZlIHRvIGNyZWF0ZSB0aGUgL2Rldi9kc3BjdGwvKiBieSBoYW5kLCBi
-ZWNhdXNlIHRoZSBjbGFzcyBkaXJlY3RpdmUNCg0KTm90IHN1cmUgdGhhdCB0aGUgZm9sbG93aW5n
-IGlzIGVub3VnaCwgdGhvdWdoLi4uDQpTZXR0aW5nIHRoZSBmb2xsb3dpbmcgaW4gInVkZXYucnVs
-ZXMiIHNlZW1zIHRvIGJlIHJlcXVpcmVkIHVuZGVyIHVkZXYuDQouLg0KS0VSTkVMPT0iZHNwY3Rs
-IiwgTkFNRT0iZHNwY3RsL2N0bCINCktFUk5FTD09ImRzcG1lbSIsIE5BTUU9ImRzcGN0bC9tZW0i
-LE1PREU9IjA2NDAiLEdST1VQPSJrbWVtIg0KS0VSTkVMPT0iZHNwdHdjaCIsIE5BTUU9ImRzcGN0
-bC90d2NoIixNT0RFPSIwNjQwIg0KS0VSTkVMPT0iZHNwdGVyciIsIE5BTUU9ImRzcGN0bC9lcnIi
-LE1PREU9IjA0NDAiDQpLRVJORUw9PSJkc3B0YXNrWzAtOV0qIiwgTU9ERT0iMDY2NiINCg0KPiBv
-ZiBkc3BnYXRld2F5IGNyZWF0ZXMgaXQgYXMgZW50cmFuY2VzIG9uIC9kZXYgZGlyZWN0bHksIHNv
-IEkgY291bGQNCj4gbWFrZSB0aGlzICJsaXR0bGUiIGNoYW5nZSBpbiB0aGUgZHNwZ2F0ZXdheSBh
-bmQgZml4IHRoaXMsIGFuZCBub2JvZHkNCj4gd2lsbCBoYXZlIG1vcmUgcHJvYmxlbSB3aXRoIHRo
-aXMgYWdhaW4gKEkgaGF2ZSB0byBhbnN3ZXIgbXkgbGFzdA0KPiBlLW1haWwgZm8gaGVscCBJIGZv
-dW5kIHRoZSBzb2x1dGlvbiBmb3IgbXkgcHJvYmxlbSBhbmQgd2FzIHRoaXMpLg0KPiANCj4gSWYg
-dGhlcmUgaXMgbm8gb2JqZWN0aW9uIEkgY2FuIG1ha2UgdGhlIGNoYW5nZXMgdGVzdCBhbmQgc2Vu
-ZCB0aGUgcGF0Y2hzLg0KPiANCj4gLS0gDQo+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiBUaGFu
-a3MgJiYgUmVnYXJkcw0KPiBNLlNjLiBCLlNjLiBMdcOtcyBWaXTDs3JpbyBDYXJnbmluaQ0KPiBJ
-RUVFIE1lbWJlcg0KPiBFbGVjdHJpY2FsIEVuZ2luZWVyIEZhY3VsdHkgQCBQVUNSUw0KPiBJcGly
-YW5nYSBBdmVudWUsIDY2ODEg4oCTIEJ1aWxkaW5nIDMwDQo+IFAuTy4gQm94OiA5MDYxOS05MDAg
-4oCTIFBvcnRvIEFsZWdyZS9SUw0KPiBQaG9uZTogKzU1IDUxIDMzMjAgMzUwMCBleHRlbnNpb246
-IDc2OTYNCj4gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+IC0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4g
-VGhpcyBTRi5uZXQgZW1haWwgaXMgc3BvbnNvcmVkIGJ5OiBNaWNyb3NvZnQNCj4gRGVmeSBhbGwg
-Y2hhbGxlbmdlcy4gTWljcm9zb2Z0KFIpIFZpc3VhbCBTdHVkaW8gMjAwOC4NCj4gaHR0cDovL2Ns
-ay5hdGRtdC5jb20vTVJUL2dvL3ZzZTAxMjAwMDAwNzBtcnQvZGlyZWN0LzAxLw0KPiBfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw0KPiBEc3BnYXRld2F5LWRl
-dmVsIG1haWxpbmcgbGlzdA0KPiBEc3BnYXRld2F5LWRldmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5l
-dA0KPiBodHRwczovL2xpc3RzLnNvdXJjZWZvcmdlLm5ldC9saXN0cy9saXN0aW5mby9kc3BnYXRl
-d2F5LWRldmVsDQo=
+* Jean Delvare <khali@linux-fr.org> [080314 17:53]:
+> Hi Tony,
+> 
+> On Thu, 13 Mar 2008 17:51:24 +0200, Tony Lindgren wrote:
+> > Here's an omap I2C fix that would be nice to get into 2.6.25 if still
+> > possible.
+> 
+> Yeah, that's possible, however the patch isn't totally trivial so I
+> would appreciate if someone from the OMAP community could review it
+> publicly and ack it. Then I'll push it to Linus quickly.
+
+Well we've had this fix tested in linux-omap for about a month now and
+it really fixes the problem. I'll add that to the comments.
+
+I don't know if anybody else has seen this problem repeatedly on omaps
+as it's quite rare condition, but if somebody else was seeing it,
+please Ack here! :)
+
+Regards,
+
+Tony
+
