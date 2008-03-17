@@ -1,241 +1,319 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/14] ARM: OMAP: I2C: tps65010 driver converts to gpiolib
-Date: Mon, 17 Mar 2008 11:42:27 +0200
-Message-ID: <1205746958-11242-4-git-send-email-tony@atomide.com>
+Subject: [PATCH 4/14] ARM: OMAP: Use gpiolib with tps65010 for OSK 5912
+Date: Mon, 17 Mar 2008 11:42:28 +0200
+Message-ID: <1205746958-11242-5-git-send-email-tony@atomide.com>
 References: omap-upstream-2008-03-17-114234
  <1205746958-11242-1-git-send-email-tony@atomide.com>
  <1205746958-11242-2-git-send-email-tony@atomide.com>
  <1205746958-11242-3-git-send-email-tony@atomide.com>
+ <1205746958-11242-4-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62236 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752784AbYCQJnY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2008 05:43:24 -0400
-In-Reply-To: <1205746958-11242-3-git-send-email-tony@atomide.com>
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:64289 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752784AbYCQJn1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2008 05:43:27 -0400
+In-Reply-To: <1205746958-11242-4-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, David Brownell <david-b@pacbell.net>, David Brownell <dbrownell@users.sourceforge.net>, i2c@lm-sensors.org, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, David Brownell <david-b@pacbell.net>, David Brownell <dbrownell@users.sourceforge.net>, Tony Lindgren <tony@atomide.com>
 
 From: David Brownell <david-b@pacbell.net>
 
-Make the tps65010 driver use gpiolib to expose its GPIOs.
-
-Note: This patch will get merged via omap tree instead of I2C
-as it will cause some board updates. This has been discussed
-at on the I2C list:
-
-http://lists.lm-sensors.org/pipermail/i2c/2008-March/003031.html
+Convert OSK board to use new tps65010 gpiolib support.  This
+includes moving its LED support from leds-osk to gpio-leds,
+giving more trigger options and a net platform code shrink.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: i2c@lm-sensors.org
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/i2c/chips/Kconfig    |    1 +
- drivers/i2c/chips/tps65010.c |  101 +++++++++++++++++++++++++++++++++++++++++-
- include/linux/i2c/tps65010.h |   30 ++++++++++++
- 3 files changed, 131 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap1/board-osk.c       |  108 +++++++++++++++++++++------------
+ arch/arm/mach-omap1/leds-osk.c        |   80 +------------------------
+ include/asm-arm/arch-omap/board-osk.h |   11 +++
+ 3 files changed, 82 insertions(+), 117 deletions(-)
 
-diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
-index b21593f..2da2edf 100644
---- a/drivers/i2c/chips/Kconfig
-+++ b/drivers/i2c/chips/Kconfig
-@@ -93,6 +93,7 @@ config ISP1301_OMAP
+diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
+index dd9ece8..4f9baba 100644
+--- a/arch/arm/mach-omap1/board-osk.c
++++ b/arch/arm/mach-omap1/board-osk.c
+@@ -32,6 +32,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/irq.h>
+ #include <linux/i2c.h>
++#include <linux/leds.h>
  
- config TPS65010
- 	tristate "TPS6501x Power Management chips"
-+	depends on HAVE_GPIO_LIB
- 	default y if MACH_OMAP_H2 || MACH_OMAP_H3 || MACH_OMAP_OSK
- 	help
- 	  If you say yes here you get support for the TPS6501x series of
-diff --git a/drivers/i2c/chips/tps65010.c b/drivers/i2c/chips/tps65010.c
-index 4154a91..b67f69c 100644
---- a/drivers/i2c/chips/tps65010.c
-+++ b/drivers/i2c/chips/tps65010.c
-@@ -30,9 +30,13 @@
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
- #include <linux/mutex.h>
-+#include <linux/platform_device.h>
- 
- #include <linux/i2c/tps65010.h>
- 
-+#include <asm/gpio.h>
-+
-+
- /*-------------------------------------------------------------------------*/
- 
- #define	DRIVER_VERSION	"2 May 2005"
-@@ -84,7 +88,9 @@ struct tps65010 {
- 	u8			chgstatus, regstatus, chgconf;
- 	u8			nmask1, nmask2;
- 
--	/* not currently tracking GPIO state */
-+	u8			outmask;
-+	struct gpio_chip	chip;
-+	struct platform_device	*leds;
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+@@ -183,11 +184,80 @@ static struct platform_device *osk5912_devices[] __initdata = {
+ 	&osk5912_mcbsp1_device,
  };
  
- #define	POWER_POLL_DELAY	msecs_to_jiffies(5000)
-@@ -449,12 +455,72 @@ static irqreturn_t tps65010_irq(int irq, void *_tps)
- 
- /*-------------------------------------------------------------------------*/
- 
-+/* offsets 0..3 == GPIO1..GPIO4
-+ * offsets 4..5 == LED1/nPG, LED2 (we set one of the non-BLINK modes)
-+ */
-+static void
-+tps65010_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
-+{
-+	if (offset < 4)
-+		tps65010_set_gpio_out_value(offset + 1, value);
-+	else
-+		tps65010_set_led(offset - 3, value ? ON : OFF);
-+}
-+
-+static int
-+tps65010_output(struct gpio_chip *chip, unsigned offset, int value)
-+{
-+	/* GPIOs may be input-only */
-+	if (offset < 4) {
-+		struct tps65010		*tps;
-+
-+		tps = container_of(chip, struct tps65010, chip);
-+		if (!(tps->outmask & (1 << offset)))
-+			return -EINVAL;
-+		tps65010_set_gpio_out_value(offset + 1, value);
-+	} else
-+		tps65010_set_led(offset - 3, value ? ON : OFF);
-+
-+	return 0;
-+}
-+
-+static int tps65010_gpio_get(struct gpio_chip *chip, unsigned offset)
-+{
-+	int			value;
-+	struct tps65010		*tps;
-+
-+	tps = container_of(chip, struct tps65010, chip);
-+
-+	if (offset < 4) {
-+		value = i2c_smbus_read_byte_data(tps->client, TPS_DEFGPIO);
-+		if (value < 0)
-+			return 0;
-+		if (value & (1 << (offset + 4)))	/* output */
-+			return !(value & (1 << offset));
-+		else					/* input */
-+			return (value & (1 << offset));
-+	}
-+
-+	/* REVISIT we *could* report LED1/nPG and LED2 state ... */
-+	return 0;
-+}
-+
-+
-+/*-------------------------------------------------------------------------*/
-+
- static struct tps65010 *the_tps;
- 
- static int __exit tps65010_remove(struct i2c_client *client)
- {
- 	struct tps65010		*tps = i2c_get_clientdata(client);
-+	struct tps65010_board	*board = client->dev.platform_data;
- 
-+	if (board && board->teardown) {
-+		int status = board->teardown(client, board->context);
-+		if (status < 0)
-+			dev_dbg(&client->dev, "board %s %s err %d\n",
-+				"teardown", client->name, status);
-+	}
- 	if (client->irq > 0)
- 		free_irq(client->irq, tps);
- 	cancel_delayed_work(&tps->work);
-@@ -469,6 +535,7 @@ static int tps65010_probe(struct i2c_client *client)
- {
- 	struct tps65010		*tps;
- 	int			status;
-+	struct tps65010_board	*board = client->dev.platform_data;
- 
- 	if (the_tps) {
- 		dev_dbg(&client->dev, "only one tps6501x chip allowed\n");
-@@ -577,6 +644,38 @@ static int tps65010_probe(struct i2c_client *client)
- 
- 	tps->file = debugfs_create_file(DRIVER_NAME, S_IRUGO, NULL,
- 				tps, DEBUG_FOPS);
-+
-+	/* optionally register GPIOs */
-+	if (board && board->base > 0) {
-+		tps->outmask = board->outmask;
-+
-+		tps->chip.label = client->name;
-+
-+		tps->chip.set = tps65010_gpio_set;
-+		tps->chip.direction_output = tps65010_output;
-+
-+		/* NOTE:  only partial support for inputs; nyet IRQs */
-+		tps->chip.get = tps65010_gpio_get;
-+
-+		tps->chip.base = board->base;
-+		tps->chip.ngpio = 6;
-+		tps->chip.can_sleep = 1;
-+
-+		status = gpiochip_add(&tps->chip);
-+		if (status < 0)
-+			dev_err(&client->dev, "can't add gpiochip, err %d\n",
-+					status);
-+		else if (board->setup) {
-+			status = board->setup(client, board->context);
-+			if (status < 0) {
-+				dev_dbg(&client->dev,
-+					"board %s %s err %d\n",
-+					"setup", client->name, status);
-+				status = 0;
-+			}
-+		}
-+	}
-+
- 	return 0;
- fail1:
- 	kfree(tps);
-diff --git a/include/linux/i2c/tps65010.h b/include/linux/i2c/tps65010.h
-index 7021635..918c535 100644
---- a/include/linux/i2c/tps65010.h
-+++ b/include/linux/i2c/tps65010.h
-@@ -152,5 +152,35 @@ extern int tps65010_config_vregs1(unsigned value);
-  */
- extern int tps65013_set_low_pwr(unsigned mode);
- 
-+
-+struct i2c_client;
-+
-+/**
-+ * struct tps65010_board - packages GPIO and LED lines
-+ * @base: the GPIO number to assign to GPIO-1
-+ * @outmask: bit (N-1) is set to allow GPIO-N to be used as an
-+ *	(open drain) output
-+ * @setup: optional callback issued once the GPIOs are valid
-+ * @teardown: optional callback issued before the GPIOs are invalidated
-+ * @context: optional parameter passed to setup() and teardown()
-+ *
-+ * Board data may be used to package the GPIO (and LED) lines for use
-+ * in by the generic GPIO and LED frameworks.  The first four GPIOs
-+ * starting at gpio_base are GPIO1..GPIO4.  The next two are LED1/nPG
-+ * and LED2 (with hardware blinking capability, not currently exposed).
-+ *
-+ * The @setup callback may be used with the kind of board-specific glue
-+ * which hands the (now-valid) GPIOs to other drivers, or which puts
-+ * devices in their initial states using these GPIOs.
-+ */
-+struct tps65010_board {
-+	int				base;
-+	unsigned			outmask;
-+
-+	int		(*setup)(struct i2c_client *client, void *context);
-+	int		(*teardown)(struct i2c_client *client, void *context);
-+	void		*context;
++static struct gpio_led tps_leds[] = {
++	/* NOTE:  D9 and D2 have hardware blink support.
++	 * Also, D9 requires non-battery power.
++	 */
++	{ .gpio = OSK_TPS_GPIO_LED_D9, .name = "d9", },
++	{ .gpio = OSK_TPS_GPIO_LED_D2, .name = "d2", },
++	{ .gpio = OSK_TPS_GPIO_LED_D3, .name = "d3", .active_low = 1,
++			.default_trigger = "heartbeat", },
 +};
 +
- #endif /*  __LINUX_I2C_TPS65010_H */
++static struct gpio_led_platform_data tps_leds_data = {
++	.num_leds	= 3,
++	.leds		= tps_leds,
++};
++
++static struct platform_device osk5912_tps_leds = {
++	.name			= "leds-gpio",
++	.id			= 0,
++	.dev.platform_data	= &tps_leds_data,
++};
++
++static int osk_tps_setup(struct i2c_client *client, void *context)
++{
++	/* Set GPIO 1 HIGH to disable VBUS power supply;
++	 * OHCI driver powers it up/down as needed.
++	 */
++	gpio_request(OSK_TPS_GPIO_USB_PWR_EN, "n_vbus_en");
++	gpio_direction_output(OSK_TPS_GPIO_USB_PWR_EN, 1);
++
++	/* Set GPIO 2 high so LED D3 is off by default */
++	tps65010_set_gpio_out_value(GPIO2, HIGH);
++
++	/* Set GPIO 3 low to take ethernet out of reset */
++	gpio_request(OSK_TPS_GPIO_LAN_RESET, "smc_reset");
++	gpio_direction_output(OSK_TPS_GPIO_LAN_RESET, 0);
++
++	/* GPIO4 is VDD_DSP */
++	gpio_request(OSK_TPS_GPIO_DSP_PWR_EN, "dsp_power");
++	gpio_direction_output(OSK_TPS_GPIO_DSP_PWR_EN, 1);
++	/* REVISIT if DSP support isn't configured, power it off ... */
++
++	/* Let LED1 (D9) blink; leds-gpio may override it */
++	tps65010_set_led(LED1, BLINK);
++
++	/* Set LED2 off by default */
++	tps65010_set_led(LED2, OFF);
++
++	/* Enable LOW_PWR handshake */
++	tps65010_set_low_pwr(ON);
++
++	/* Switch VLDO2 to 3.0V for AIC23 */
++	tps65010_config_vregs1(TPS_LDO2_ENABLE | TPS_VLDO2_3_0V
++			| TPS_LDO1_ENABLE);
++
++	/* register these three LEDs */
++	osk5912_tps_leds.dev.parent = &client->dev;
++	platform_device_register(&osk5912_tps_leds);
++
++	return 0;
++}
++
++static struct tps65010_board tps_board = {
++	.base		= OSK_TPS_GPIO_BASE,
++	.outmask	= 0x0f,
++	.setup		= osk_tps_setup,
++};
++
+ static struct i2c_board_info __initdata osk_i2c_board_info[] = {
+ 	{
+ 		I2C_BOARD_INFO("tps65010", 0x48),
+ 		.type		= "tps65010",
+ 		.irq		= OMAP_GPIO_IRQ(OMAP_MPUIO(1)),
++		.platform_data	= &tps_board,
++
+ 	},
+ 	/* TODO when driver support is ready:
+ 	 *  - aic23 audio chip at 0x1a
+@@ -488,44 +558,6 @@ static void __init osk_map_io(void)
+ 	omap1_map_common_io();
+ }
+ 
+-#ifdef CONFIG_TPS65010
+-static int __init osk_tps_init(void)
+-{
+-	if (!machine_is_omap_osk())
+-		return 0;
+-
+-	/* Let LED1 (D9) blink */
+-	tps65010_set_led(LED1, BLINK);
+-
+-	/* Disable LED 2 (D2) */
+-	tps65010_set_led(LED2, OFF);
+-
+-	/* Set GPIO 1 HIGH to disable VBUS power supply;
+-	 * OHCI driver powers it up/down as needed.
+-	 */
+-	tps65010_set_gpio_out_value(GPIO1, HIGH);
+-
+-	/* Set GPIO 2 low to turn on LED D3 */
+-	tps65010_set_gpio_out_value(GPIO2, HIGH);
+-
+-	/* Set GPIO 3 low to take ethernet out of reset */
+-	tps65010_set_gpio_out_value(GPIO3, LOW);
+-
+-	/* gpio4 for VDD_DSP */
+-	/* FIXME send power to DSP iff it's configured */
+-
+-	/* Enable LOW_PWR */
+-	tps65010_set_low_pwr(ON);
+-
+-	/* Switch VLDO2 to 3.0V for AIC23 */
+-	tps65010_config_vregs1(TPS_LDO2_ENABLE | TPS_VLDO2_3_0V
+-			| TPS_LDO1_ENABLE);
+-
+-	return 0;
+-}
+-fs_initcall(osk_tps_init);
+-#endif
+-
+ MACHINE_START(OMAP_OSK, "TI-OSK")
+ 	/* Maintainer: Dirk Behme <dirk.behme@de.bosch.com> */
+ 	.phys_io	= 0xfff00000,
+diff --git a/arch/arm/mach-omap1/leds-osk.c b/arch/arm/mach-omap1/leds-osk.c
+index 026685e..754383d 100644
+--- a/arch/arm/mach-omap1/leds-osk.c
++++ b/arch/arm/mach-omap1/leds-osk.c
+@@ -1,11 +1,9 @@
+ /*
+  * linux/arch/arm/mach-omap1/leds-osk.c
+  *
+- * LED driver for OSK, and optionally Mistral QVGA, boards
++ * LED driver for OSK with optional Mistral QVGA board
+  */
+ #include <linux/init.h>
+-#include <linux/workqueue.h>
+-#include <linux/i2c/tps65010.h>
+ 
+ #include <asm/hardware.h>
+ #include <asm/leds.h>
+@@ -20,49 +18,11 @@
+ #define LED_STATE_CLAIMED	(1 << 1)
+ static u8 led_state;
+ 
+-#define	GREEN_LED		(1 << 0)	/* TPS65010 LED1 */
+-#define	AMBER_LED		(1 << 1)	/* TPS65010 LED2 */
+-#define	RED_LED			(1 << 2)	/* TPS65010 GPIO2 */
+ #define	TIMER_LED		(1 << 3)	/* Mistral board */
+ #define	IDLE_LED		(1 << 4)	/* Mistral board */
+ static u8 hw_led_state;
+ 
+ 
+-/* TPS65010 leds are changed using i2c -- from a task context.
+- * Using one of these for the "idle" LED would be impractical...
+- */
+-#define	TPS_LEDS	(GREEN_LED | RED_LED | AMBER_LED)
+-
+-static u8 tps_leds_change;
+-
+-static void tps_work(struct work_struct *unused)
+-{
+-	for (;;) {
+-		u8	leds;
+-
+-		local_irq_disable();
+-		leds = tps_leds_change;
+-		tps_leds_change = 0;
+-		local_irq_enable();
+-
+-		if (!leds)
+-			break;
+-
+-		/* careful:  the set_led() value is on/off/blink */
+-		if (leds & GREEN_LED)
+-			tps65010_set_led(LED1, !!(hw_led_state & GREEN_LED));
+-		if (leds & AMBER_LED)
+-			tps65010_set_led(LED2, !!(hw_led_state & AMBER_LED));
+-
+-		/* the gpio led doesn't have that issue */
+-		if (leds & RED_LED)
+-			tps65010_set_gpio_out_value(GPIO2,
+-					!(hw_led_state & RED_LED));
+-	}
+-}
+-
+-static DECLARE_WORK(work, tps_work);
+-
+ #ifdef	CONFIG_OMAP_OSK_MISTRAL
+ 
+ /* For now, all system indicators require the Mistral board, since that
+@@ -112,7 +72,6 @@ void osk_leds_event(led_event_t evt)
+ 	case led_stop:
+ 		led_state &= ~LED_STATE_ENABLED;
+ 		hw_led_state = 0;
+-		/* NOTE:  work may still be pending!! */
+ 		break;
+ 
+ 	case led_claim:
+@@ -145,48 +104,11 @@ void osk_leds_event(led_event_t evt)
+ 
+ #endif	/* CONFIG_OMAP_OSK_MISTRAL */
+ 
+-	/* "green" == tps LED1 (leftmost, normally power-good)
+-	 * works only with DC adapter, not on battery power!
+-	 */
+-	case led_green_on:
+-		if (led_state & LED_STATE_CLAIMED)
+-			hw_led_state |= GREEN_LED;
+-		break;
+-	case led_green_off:
+-		if (led_state & LED_STATE_CLAIMED)
+-			hw_led_state &= ~GREEN_LED;
+-		break;
+-
+-	/* "amber" == tps LED2 (middle) */
+-	case led_amber_on:
+-		if (led_state & LED_STATE_CLAIMED)
+-			hw_led_state |= AMBER_LED;
+-		break;
+-	case led_amber_off:
+-		if (led_state & LED_STATE_CLAIMED)
+-			hw_led_state &= ~AMBER_LED;
+-		break;
+-
+-	/* "red" == LED on tps gpio3 (rightmost) */
+-	case led_red_on:
+-		if (led_state & LED_STATE_CLAIMED)
+-			hw_led_state |= RED_LED;
+-		break;
+-	case led_red_off:
+-		if (led_state & LED_STATE_CLAIMED)
+-			hw_led_state &= ~RED_LED;
+-		break;
+-
+ 	default:
+ 		break;
+ 	}
+ 
+ 	leds ^= hw_led_state;
+-	leds &= TPS_LEDS;
+-	if (leds && (led_state & LED_STATE_CLAIMED)) {
+-		tps_leds_change |= leds;
+-		schedule_work(&work);
+-	}
+ 
+ done:
+ 	local_irq_restore(flags);
+diff --git a/include/asm-arm/arch-omap/board-osk.h b/include/asm-arm/arch-omap/board-osk.h
+index 2b1a8a4..9492609 100644
+--- a/include/asm-arm/arch-omap/board-osk.h
++++ b/include/asm-arm/arch-omap/board-osk.h
+@@ -32,5 +32,16 @@
+ /* At OMAP5912 OSK the Ethernet is directly connected to CS1 */
+ #define OMAP_OSK_ETHR_START		0x04800300
+ 
++/* TPS65010 has four GPIOs.  nPG and LED2 can be treated like GPIOs with
++ * alternate pin configurations for hardware-controlled blinking.
++ */
++#define OSK_TPS_GPIO_BASE		(OMAP_MAX_GPIO_LINES + 16 /* MPUIO */)
++#	define OSK_TPS_GPIO_USB_PWR_EN	(OSK_TPS_GPIO_BASE + 0)
++#	define OSK_TPS_GPIO_LED_D3	(OSK_TPS_GPIO_BASE + 1)
++#	define OSK_TPS_GPIO_LAN_RESET	(OSK_TPS_GPIO_BASE + 2)
++#	define OSK_TPS_GPIO_DSP_PWR_EN	(OSK_TPS_GPIO_BASE + 3)
++#	define OSK_TPS_GPIO_LED_D9	(OSK_TPS_GPIO_BASE + 4)
++#	define OSK_TPS_GPIO_LED_D2	(OSK_TPS_GPIO_BASE + 5)
++
+ #endif /*  __ASM_ARCH_OMAP_OSK_H */
  
 -- 
 1.5.3.6
