@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 10/14] ARM: OMAP: Timer32K: Move 32k-based sched_clock() to common code
-Date: Mon, 17 Mar 2008 11:42:34 +0200
-Message-ID: <1205746958-11242-11-git-send-email-tony@atomide.com>
+Subject: [PATCH 6/14] ARM: OMAP: use edge/level handlers from generic IRQ framework
+Date: Mon, 17 Mar 2008 11:42:30 +0200
+Message-ID: <1205746958-11242-7-git-send-email-tony@atomide.com>
 References: omap-upstream-2008-03-17-114234
  <1205746958-11242-1-git-send-email-tony@atomide.com>
  <1205746958-11242-2-git-send-email-tony@atomide.com>
@@ -9,16 +9,12 @@ References: omap-upstream-2008-03-17-114234
  <1205746958-11242-4-git-send-email-tony@atomide.com>
  <1205746958-11242-5-git-send-email-tony@atomide.com>
  <1205746958-11242-6-git-send-email-tony@atomide.com>
- <1205746958-11242-7-git-send-email-tony@atomide.com>
- <1205746958-11242-8-git-send-email-tony@atomide.com>
- <1205746958-11242-9-git-send-email-tony@atomide.com>
- <1205746958-11242-10-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:64586 "EHLO
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:64382 "EHLO
 	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753325AbYCQJnn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2008 05:43:43 -0400
-In-Reply-To: <1205746958-11242-10-git-send-email-tony@atomide.com>
+	with ESMTP id S1753288AbYCQJnd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2008 05:43:33 -0400
+In-Reply-To: <1205746958-11242-6-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
@@ -26,87 +22,92 @@ Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@mvista.com>, Tony Lindgren
 
 From: Kevin Hilman <khilman@mvista.com>
 
-Since 32k timer code is moving to OMAP1 specific dir, move the
-32k-based sched_clock() into common code where it is based on the 32k
-sync counter and can be used even when using MPU timer.
+Currently, the GPIO interrupt handling is duplicating some of the work
+done by the generic IRQ handlers (handle_edge_irq, handle_level_irq)
+such as detecting nesting, handling re-triggers etc.  Remove this
+duplication and use generic hooks based on IRQ type.
 
-While moving, change the ticks-to-nsecs conversion to use the helper
-functions provided by clocksource.h.
-
-Also removed the unused ticks_to_usec, leaving only ticks_to_nsec.
+Using generic IRQ handlers ensures correct behavior when using
+threaded interrupts introduced by the -rt patch.
 
 Signed-off-by: Kevin Hilman <khilman@mvista.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/common.c   |   17 +++++++++++++++++
- arch/arm/plat-omap/timer32k.c |   26 --------------------------
- 2 files changed, 17 insertions(+), 26 deletions(-)
+ arch/arm/plat-omap/gpio.c |   42 +++++++-----------------------------------
+ 1 files changed, 7 insertions(+), 35 deletions(-)
 
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 4f0f9c4..7f1cae1 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -193,6 +193,23 @@ static struct clocksource clocksource_32k = {
- 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
- };
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 4f104e4..1903a34 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -542,10 +542,6 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
+ 	bank->level_mask =
+ 		__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT0) |
+ 		__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT1);
+-	/*
+-	 * FIXME: Possibly do 'set_irq_handler(j, handle_level_irq)' if only
+-	 * level triggering requested.
+-	 */
+ }
+ #endif
  
-+/*
-+ * Rounds down to nearest nsec.
-+ */
-+unsigned long long omap_32k_ticks_to_nsecs(unsigned long ticks_32k)
-+{
-+	return cyc2ns(&clocksource_32k, ticks_32k);
-+}
+@@ -656,6 +652,12 @@ static int gpio_irq_type(unsigned irq, unsigned type)
+ 		irq_desc[irq].status |= type;
+ 	}
+ 	spin_unlock_irqrestore(&bank->lock, flags);
 +
-+/*
-+ * Returns current time from boot in nsecs. It's OK for this to wrap
-+ * around for now, as it's just a relative time stamp.
-+ */
-+unsigned long long sched_clock(void)
-+{
-+	return omap_32k_ticks_to_nsecs(omap_32k_read());
-+}
++	if (type & (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH))
++		__set_irq_handler_unlocked(irq, handle_level_irq);
++	else if (type & (IRQ_TYPE_EDGE_FALLING | IRQ_TYPE_EDGE_RISING))
++		__set_irq_handler_unlocked(irq, handle_edge_irq);
 +
- static int __init omap_init_clocksource_32k(void)
- {
- 	static char err[] __initdata = KERN_ERR
-diff --git a/arch/arm/plat-omap/timer32k.c b/arch/arm/plat-omap/timer32k.c
-index ce034dc..1f7365f 100644
---- a/arch/arm/plat-omap/timer32k.c
-+++ b/arch/arm/plat-omap/timer32k.c
-@@ -153,32 +153,6 @@ static inline unsigned long omap_32k_sync_timer_read(void)
- 	return omap_readl(TIMER_32K_SYNCHRONIZED);
+ 	return retval;
  }
  
--/*
-- * Rounds down to nearest usec. Note that this will overflow for larger values.
-- */
--static inline unsigned long omap_32k_ticks_to_usecs(unsigned long ticks_32k)
--{
--	return (ticks_32k * 5*5*5*5*5*5) >> 9;
--}
+@@ -1050,42 +1052,12 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 		gpio_irq = bank->virtual_irq_start;
+ 		for (; isr != 0; isr >>= 1, gpio_irq++) {
+ 			struct irq_desc *d;
+-			int irq_mask;
++
+ 			if (!(isr & 1))
+ 				continue;
+ 			d = irq_desc + gpio_irq;
+-			/* Don't run the handler if it's already running
+-			 * or was disabled lazely.
+-			 */
+-			if (unlikely((d->depth ||
+-				      (d->status & IRQ_INPROGRESS)))) {
+-				irq_mask = 1 <<
+-					(gpio_irq - bank->virtual_irq_start);
+-				/* The unmasking will be done by
+-				 * enable_irq in case it is disabled or
+-				 * after returning from the handler if
+-				 * it's already running.
+-				 */
+-				_enable_gpio_irqbank(bank, irq_mask, 0);
+-				if (!d->depth) {
+-					/* Level triggered interrupts
+-					 * won't ever be reentered
+-					 */
+-					BUG_ON(level_mask & irq_mask);
+-					d->status |= IRQ_PENDING;
+-				}
+-				continue;
+-			}
+ 
+ 			desc_handle_irq(gpio_irq, d);
 -
--/*
-- * Rounds down to nearest nsec.
-- */
--static inline unsigned long long
--omap_32k_ticks_to_nsecs(unsigned long ticks_32k)
--{
--	return (unsigned long long) ticks_32k * 1000 * 5*5*5*5*5*5 >> 9;
--}
--
--/*
-- * Returns current time from boot in nsecs. It's OK for this to wrap
-- * around for now, as it's just a relative time stamp.
-- */
--unsigned long long sched_clock(void)
--{
--	return omap_32k_ticks_to_nsecs(omap_32k_sync_timer_read());
--}
--
- static irqreturn_t omap_32k_timer_interrupt(int irq, void *dev_id)
- {
- 	struct clock_event_device *evt = &clockevent_32k_timer;
+-			if (unlikely((d->status & IRQ_PENDING) && !d->depth)) {
+-				irq_mask = 1 <<
+-					(gpio_irq - bank->virtual_irq_start);
+-				d->status &= ~IRQ_PENDING;
+-				_enable_gpio_irqbank(bank, irq_mask, 1);
+-				retrigger |= irq_mask;
+-			}
+ 		}
+ 	}
+ 	/* if bank has any level sensitive GPIO pin interrupt
 -- 
 1.5.3.6
 
