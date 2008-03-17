@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 8/14] ARM: OMAP: Split omap_cfg_reg() into omap processor specific functions
-Date: Mon, 17 Mar 2008 11:42:32 +0200
-Message-ID: <1205746958-11242-9-git-send-email-tony@atomide.com>
+Subject: [PATCH 11/14] ARM: OMAP: Timer32K: Move timer32k to mach-omap1
+Date: Mon, 17 Mar 2008 11:42:35 +0200
+Message-ID: <1205746958-11242-12-git-send-email-tony@atomide.com>
 References: omap-upstream-2008-03-17-114234
  <1205746958-11242-1-git-send-email-tony@atomide.com>
  <1205746958-11242-2-git-send-email-tony@atomide.com>
@@ -11,355 +11,479 @@ References: omap-upstream-2008-03-17-114234
  <1205746958-11242-6-git-send-email-tony@atomide.com>
  <1205746958-11242-7-git-send-email-tony@atomide.com>
  <1205746958-11242-8-git-send-email-tony@atomide.com>
+ <1205746958-11242-9-git-send-email-tony@atomide.com>
+ <1205746958-11242-10-git-send-email-tony@atomide.com>
+ <1205746958-11242-11-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:64487 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753295AbYCQJni (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2008 05:43:38 -0400
-In-Reply-To: <1205746958-11242-8-git-send-email-tony@atomide.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62688 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753326AbYCQJnr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2008 05:43:47 -0400
+In-Reply-To: <1205746958-11242-11-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@mvista.com>, Tony Lindgren <tony@atomide.com>
 
-Use omap processor specific function depending on system type.
-Based on an earlier patch by Klaus Pedersen <klaus.k.pedersen@nokia.com>.
+From: Kevin Hilman <khilman@mvista.com>
 
+Move now OMAP1-specific timer32k code to mach-omap1 since OMAP2/3 32k
+timers are done in gptimer code.
+
+Signed-off-by: Kevin Hilman <khilman@mvista.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/mux.c |  103 ++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/mux.c |   31 ++++++++++
- arch/arm/plat-omap/mux.c  |  142 ++-------------------------------------------
- 3 files changed, 139 insertions(+), 137 deletions(-)
+ arch/arm/mach-omap1/Makefile   |    3 +-
+ arch/arm/mach-omap1/timer32k.c |  201 ++++++++++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/Makefile    |    4 -
+ arch/arm/plat-omap/timer32k.c  |  201 ----------------------------------------
+ 4 files changed, 203 insertions(+), 206 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/timer32k.c
+ delete mode 100644 arch/arm/plat-omap/timer32k.c
 
-diff --git a/arch/arm/mach-omap1/mux.c b/arch/arm/mach-omap1/mux.c
-index d74f679..cf3bdc0 100644
---- a/arch/arm/mach-omap1/mux.c
-+++ b/arch/arm/mach-omap1/mux.c
-@@ -314,7 +314,110 @@ MUX_CFG("Y14_1610_CCP_DATAM",	 9,   21,    6,   2,   3,   1,    2,     0,  0)
+diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
+index 015a66b..c06f525 100644
+--- a/arch/arm/mach-omap1/Makefile
++++ b/arch/arm/mach-omap1/Makefile
+@@ -5,7 +5,8 @@
+ # Common support
+ obj-y := io.o id.o clock.o irq.o mux.o serial.o devices.o
  
- int __init_or_module omap1_cfg_reg(const struct pin_config *cfg)
- {
-+	static DEFINE_SPINLOCK(mux_spin_lock);
-+	unsigned long flags;
-+	unsigned int reg_orig = 0, reg = 0, pu_pd_orig = 0, pu_pd = 0,
-+		pull_orig = 0, pull = 0;
-+	unsigned int mask, warn = 0;
+-obj-$(CONFIG_OMAP_MPU_TIMER)		+= time.o
++obj-$(CONFIG_OMAP_MPU_TIMER)	+= time.o
++obj-$(CONFIG_OMAP_32K_TIMER)	+= timer32k.o
+ 
+ # Power Management
+ obj-$(CONFIG_PM) += pm.o sleep.o
+diff --git a/arch/arm/mach-omap1/timer32k.c b/arch/arm/mach-omap1/timer32k.c
+new file mode 100644
+index 0000000..1f7365f
+--- /dev/null
++++ b/arch/arm/mach-omap1/timer32k.c
+@@ -0,0 +1,201 @@
++/*
++ * linux/arch/arm/plat-omap/timer32k.c
++ *
++ * OMAP 32K Timer
++ *
++ * Copyright (C) 2004 - 2005 Nokia Corporation
++ * Partial timer rewrite and additional dynamic tick timer support by
++ * Tony Lindgen <tony@atomide.com> and
++ * Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
++ * OMAP Dual-mode timer framework support by Timo Teras
++ *
++ * MPU timer code based on the older MPU timer code for OMAP
++ * Copyright (C) 2000 RidgeRun, Inc.
++ * Author: Greg Lonnon <glonnon@ridgerun.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
++ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
++ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * You should have received a copy of the  GNU General Public License along
++ * with this program; if not, write  to the Free Software Foundation, Inc.,
++ * 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
 +
-+	/* Check the mux register in question */
-+	if (cfg->mux_reg) {
-+		unsigned	tmp1, tmp2;
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/delay.h>
++#include <linux/interrupt.h>
++#include <linux/sched.h>
++#include <linux/spinlock.h>
 +
-+		spin_lock_irqsave(&mux_spin_lock, flags);
-+		reg_orig = omap_readl(cfg->mux_reg);
++#include <linux/err.h>
++#include <linux/clk.h>
++#include <linux/clocksource.h>
++#include <linux/clockchips.h>
 +
-+		/* The mux registers always seem to be 3 bits long */
-+		mask = (0x7 << cfg->mask_offset);
-+		tmp1 = reg_orig & mask;
-+		reg = reg_orig & ~mask;
++#include <asm/system.h>
++#include <asm/hardware.h>
++#include <asm/io.h>
++#include <asm/leds.h>
++#include <asm/irq.h>
++#include <asm/mach/irq.h>
++#include <asm/mach/time.h>
++#include <asm/arch/dmtimer.h>
 +
-+		tmp2 = (cfg->mask << cfg->mask_offset);
-+		reg |= tmp2;
++struct sys_timer omap_timer;
 +
-+		if (tmp1 != tmp2)
-+			warn = 1;
++/*
++ * ---------------------------------------------------------------------------
++ * 32KHz OS timer
++ *
++ * This currently works only on 16xx, as 1510 does not have the continuous
++ * 32KHz synchronous timer. The 32KHz synchronous timer is used to keep track
++ * of time in addition to the 32KHz OS timer. Using only the 32KHz OS timer
++ * on 1510 would be possible, but the timer would not be as accurate as
++ * with the 32KHz synchronized timer.
++ * ---------------------------------------------------------------------------
++ */
 +
-+		omap_writel(reg, cfg->mux_reg);
-+		spin_unlock_irqrestore(&mux_spin_lock, flags);
-+	}
-+
-+	/* Check for pull up or pull down selection on 1610 */
-+	if (!cpu_is_omap15xx()) {
-+		if (cfg->pu_pd_reg && cfg->pull_val) {
-+			spin_lock_irqsave(&mux_spin_lock, flags);
-+			pu_pd_orig = omap_readl(cfg->pu_pd_reg);
-+			mask = 1 << cfg->pull_bit;
-+
-+			if (cfg->pu_pd_val) {
-+				if (!(pu_pd_orig & mask))
-+					warn = 1;
-+				/* Use pull up */
-+				pu_pd = pu_pd_orig | mask;
-+			} else {
-+				if (pu_pd_orig & mask)
-+					warn = 1;
-+				/* Use pull down */
-+				pu_pd = pu_pd_orig & ~mask;
-+			}
-+			omap_writel(pu_pd, cfg->pu_pd_reg);
-+			spin_unlock_irqrestore(&mux_spin_lock, flags);
-+		}
-+	}
-+
-+	/* Check for an associated pull down register */
-+	if (cfg->pull_reg) {
-+		spin_lock_irqsave(&mux_spin_lock, flags);
-+		pull_orig = omap_readl(cfg->pull_reg);
-+		mask = 1 << cfg->pull_bit;
-+
-+		if (cfg->pull_val) {
-+			if (pull_orig & mask)
-+				warn = 1;
-+			/* Low bit = pull enabled */
-+			pull = pull_orig & ~mask;
-+		} else {
-+			if (!(pull_orig & mask))
-+				warn = 1;
-+			/* High bit = pull disabled */
-+			pull = pull_orig | mask;
-+		}
-+
-+		omap_writel(pull, cfg->pull_reg);
-+		spin_unlock_irqrestore(&mux_spin_lock, flags);
-+	}
-+
-+	if (warn) {
-+#ifdef CONFIG_OMAP_MUX_WARNINGS
-+		printk(KERN_WARNING "MUX: initialized %s\n", cfg->name);
-+#endif
-+	}
-+
-+#ifdef CONFIG_OMAP_MUX_DEBUG
-+	if (cfg->debug || warn) {
-+		printk("MUX: Setting register %s\n", cfg->name);
-+		printk("      %s (0x%08x) = 0x%08x -> 0x%08x\n",
-+		       cfg->mux_reg_name, cfg->mux_reg, reg_orig, reg);
-+
-+		if (!cpu_is_omap15xx()) {
-+			if (cfg->pu_pd_reg && cfg->pull_val) {
-+				printk("      %s (0x%08x) = 0x%08x -> 0x%08x\n",
-+				       cfg->pu_pd_name, cfg->pu_pd_reg,
-+				       pu_pd_orig, pu_pd);
-+			}
-+		}
-+
-+		if (cfg->pull_reg)
-+			printk("      %s (0x%08x) = 0x%08x -> 0x%08x\n",
-+			       cfg->pull_name, cfg->pull_reg, pull_orig, pull);
-+	}
-+#endif
-+
-+#ifdef CONFIG_OMAP_MUX_ERRORS
-+	return warn ? -ETXTBSY : 0;
++#if defined(CONFIG_ARCH_OMAP16XX)
++#define TIMER_32K_SYNCHRONIZED		0xfffbc410
++#elif defined(CONFIG_ARCH_OMAP24XX)
++#define TIMER_32K_SYNCHRONIZED		(OMAP24XX_32KSYNCT_BASE + 0x10)
 +#else
- 	return 0;
++#error OMAP 32KHz timer does not currently work on 15XX!
 +#endif
- }
- 
- int __init omap1_mux_init(void)
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 351baab..71cff46 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -172,8 +172,39 @@ MUX_CFG_24XX("B13_24XX_KBC6",		0x110,	3,	0,	0,	1)
- };
- 
- #ifdef CONFIG_ARCH_OMAP24XX
 +
-+#define OMAP24XX_L4_BASE	0x48000000
-+#define OMAP24XX_PULL_ENA	(1 << 3)
-+#define OMAP24XX_PULL_UP	(1 << 4)
++/* 16xx specific defines */
++#define OMAP1_32K_TIMER_BASE		0xfffb9000
++#define OMAP1_32K_TIMER_CR		0x08
++#define OMAP1_32K_TIMER_TVR		0x00
++#define OMAP1_32K_TIMER_TCR		0x04
 +
-+/* REVISIT: Convert this code to use ctrl_{read,write}_reg */
- int __init_or_module omap24xx_cfg_reg(const struct pin_config *cfg)
- {
-+	u8 reg = 0;
-+	unsigned int warn = 0;
++#define OMAP_32K_TICKS_PER_SEC		(32768)
 +
-+	reg |= cfg->mask & 0x7;
-+	if (cfg->pull_val)
-+		reg |= OMAP24XX_PULL_ENA;
-+	if(cfg->pu_pd_val)
-+		reg |= OMAP24XX_PULL_UP;
-+#if defined(CONFIG_OMAP_MUX_DEBUG) || defined(CONFIG_OMAP_MUX_WARNINGS)
-+	{
-+		u8 orig = omap_readb(OMAP24XX_L4_BASE + cfg->mux_reg);
-+		u8 debug = 0;
++/*
++ * TRM says 1 / HZ = ( TVR + 1) / 32768, so TRV = (32768 / HZ) - 1
++ * so with HZ = 128, TVR = 255.
++ */
++#define OMAP_32K_TIMER_TICK_PERIOD	((OMAP_32K_TICKS_PER_SEC / HZ) - 1)
 +
-+#ifdef	CONFIG_OMAP_MUX_DEBUG
-+		debug = cfg->debug;
-+#endif
-+		warn = (orig != reg);
-+		if (debug || warn)
-+			printk("MUX: setup %s (0x%08x): 0x%02x -> 0x%02x\n",
-+				cfg->name, OMAP24XX_L4_BASE + cfg->mux_reg,
-+				orig, reg);
++#define JIFFIES_TO_HW_TICKS(nr_jiffies, clock_rate)			\
++				(((nr_jiffies) * (clock_rate)) / HZ)
++
++static inline void omap_32k_timer_write(int val, int reg)
++{
++	omap_writew(val, OMAP1_32K_TIMER_BASE + reg);
++}
++
++static inline unsigned long omap_32k_timer_read(int reg)
++{
++	return omap_readl(OMAP1_32K_TIMER_BASE + reg) & 0xffffff;
++}
++
++static inline void omap_32k_timer_start(unsigned long load_val)
++{
++	if (!load_val)
++		load_val = 1;
++	omap_32k_timer_write(load_val, OMAP1_32K_TIMER_TVR);
++	omap_32k_timer_write(0x0f, OMAP1_32K_TIMER_CR);
++}
++
++static inline void omap_32k_timer_stop(void)
++{
++	omap_32k_timer_write(0x0, OMAP1_32K_TIMER_CR);
++}
++
++#define omap_32k_timer_ack_irq()
++
++static void omap_32k_timer_set_mode(enum clock_event_mode mode,
++				    struct clock_event_device *evt)
++{
++	omap_32k_timer_stop();
++
++	switch (mode) {
++	case CLOCK_EVT_MODE_PERIODIC:
++		omap_32k_timer_start(OMAP_32K_TIMER_TICK_PERIOD);
++		break;
++	case CLOCK_EVT_MODE_ONESHOT:
++	case CLOCK_EVT_MODE_UNUSED:
++	case CLOCK_EVT_MODE_SHUTDOWN:
++		break;
++	case CLOCK_EVT_MODE_RESUME:
++		break;
 +	}
-+#endif
-+	omap_writeb(reg, OMAP24XX_L4_BASE + cfg->mux_reg);
++}
 +
- 	return 0;
- }
- #endif
-diff --git a/arch/arm/plat-omap/mux.c b/arch/arm/plat-omap/mux.c
-index d881379..4de18b9 100644
---- a/arch/arm/plat-omap/mux.c
-+++ b/arch/arm/plat-omap/mux.c
-@@ -32,10 +32,6 @@
++static struct clock_event_device clockevent_32k_timer = {
++	.name		= "32k-timer",
++	.features       = CLOCK_EVT_FEAT_PERIODIC,
++	.shift		= 32,
++	.set_mode	= omap_32k_timer_set_mode,
++};
++
++/*
++ * The 32KHz synchronized timer is an additional timer on 16xx.
++ * It is always running.
++ */
++static inline unsigned long omap_32k_sync_timer_read(void)
++{
++	return omap_readl(TIMER_32K_SYNCHRONIZED);
++}
++
++static irqreturn_t omap_32k_timer_interrupt(int irq, void *dev_id)
++{
++	struct clock_event_device *evt = &clockevent_32k_timer;
++	omap_32k_timer_ack_irq();
++
++	evt->event_handler(evt);
++
++	return IRQ_HANDLED;
++}
++
++static struct irqaction omap_32k_timer_irq = {
++	.name		= "32KHz timer",
++	.flags		= IRQF_DISABLED | IRQF_TIMER | IRQF_IRQPOLL,
++	.handler	= omap_32k_timer_interrupt,
++};
++
++static __init void omap_init_32k_timer(void)
++{
++	clockevent_32k_timer.mult = div_sc(OMAP_32K_TICKS_PER_SEC,
++					   NSEC_PER_SEC,
++					   clockevent_32k_timer.shift);
++	clockevent_32k_timer.max_delta_ns =
++		clockevent_delta2ns(0xfffffffe, &clockevent_32k_timer);
++	clockevent_32k_timer.min_delta_ns =
++		clockevent_delta2ns(1, &clockevent_32k_timer);
++
++	clockevent_32k_timer.cpumask = cpumask_of_cpu(0);
++	clockevents_register_device(&clockevent_32k_timer);
++}
++
++/*
++ * ---------------------------------------------------------------------------
++ * Timer initialization
++ * ---------------------------------------------------------------------------
++ */
++static void __init omap_timer_init(void)
++{
++#ifdef CONFIG_OMAP_DM_TIMER
++	omap_dm_timer_init();
++#endif
++	omap_init_32k_timer();
++}
++
++struct sys_timer omap_timer = {
++	.init		= omap_timer_init,
++};
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index d91424e..bc639a3 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -9,10 +9,6 @@ obj-m :=
+ obj-n :=
+ obj-  :=
  
- #ifdef CONFIG_OMAP_MUX
+-ifeq ($(CONFIG_ARCH_OMAP1),y)
+-obj-$(CONFIG_OMAP_32K_TIMER)	+= timer32k.o
+-endif
+-
+ # OCPI interconnect support for 1710, 1610 and 5912
+ obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
  
--#define OMAP24XX_L4_BASE	0x48000000
--#define OMAP24XX_PULL_ENA	(1 << 3)
--#define OMAP24XX_PULL_UP	(1 << 4)
+diff --git a/arch/arm/plat-omap/timer32k.c b/arch/arm/plat-omap/timer32k.c
+deleted file mode 100644
+index 1f7365f..0000000
+--- a/arch/arm/plat-omap/timer32k.c
++++ /dev/null
+@@ -1,201 +0,0 @@
+-/*
+- * linux/arch/arm/plat-omap/timer32k.c
+- *
+- * OMAP 32K Timer
+- *
+- * Copyright (C) 2004 - 2005 Nokia Corporation
+- * Partial timer rewrite and additional dynamic tick timer support by
+- * Tony Lindgen <tony@atomide.com> and
+- * Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
+- * OMAP Dual-mode timer framework support by Timo Teras
+- *
+- * MPU timer code based on the older MPU timer code for OMAP
+- * Copyright (C) 2000 RidgeRun, Inc.
+- * Author: Greg Lonnon <glonnon@ridgerun.com>
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by the
+- * Free Software Foundation; either version 2 of the License, or (at your
+- * option) any later version.
+- *
+- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+- * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- * You should have received a copy of the  GNU General Public License along
+- * with this program; if not, write  to the Free Software Foundation, Inc.,
+- * 675 Mass Ave, Cambridge, MA 02139, USA.
+- */
 -
- static struct omap_mux_cfg *mux_cfg;
- 
- int __init omap_mux_register(struct omap_mux_cfg *arch_mux_cfg)
-@@ -56,13 +52,7 @@ int __init omap_mux_register(struct omap_mux_cfg *arch_mux_cfg)
-  */
- int __init_or_module omap_cfg_reg(const unsigned long index)
- {
--	static DEFINE_SPINLOCK(mux_spin_lock);
+-#include <linux/kernel.h>
+-#include <linux/init.h>
+-#include <linux/delay.h>
+-#include <linux/interrupt.h>
+-#include <linux/sched.h>
+-#include <linux/spinlock.h>
 -
--	unsigned long flags;
--	struct pin_config *cfg;
--	unsigned int reg_orig = 0, reg = 0, pu_pd_orig = 0, pu_pd = 0,
--		pull_orig = 0, pull = 0;
--	unsigned int mask, warn = 0;
-+	struct pin_config *reg;
- 
- 	if (mux_cfg == NULL) {
- 		printk(KERN_ERR "Pin mux table not initialized\n");
-@@ -76,134 +66,12 @@ int __init_or_module omap_cfg_reg(const unsigned long index)
- 		return -ENODEV;
- 	}
- 
--	cfg = (struct pin_config *)&mux_cfg->pins[index];
--	if (cpu_is_omap24xx()) {
--		u8 reg = 0;
+-#include <linux/err.h>
+-#include <linux/clk.h>
+-#include <linux/clocksource.h>
+-#include <linux/clockchips.h>
 -
--		reg |= cfg->mask & 0x7;
--		if (cfg->pull_val)
--			reg |= OMAP24XX_PULL_ENA;
--		if(cfg->pu_pd_val)
--			reg |= OMAP24XX_PULL_UP;
--#if defined(CONFIG_OMAP_MUX_DEBUG) || defined(CONFIG_OMAP_MUX_WARNINGS)
--		{
--			u8 orig = omap_readb(OMAP24XX_L4_BASE + cfg->mux_reg);
--			u8 debug = 0;
+-#include <asm/system.h>
+-#include <asm/hardware.h>
+-#include <asm/io.h>
+-#include <asm/leds.h>
+-#include <asm/irq.h>
+-#include <asm/mach/irq.h>
+-#include <asm/mach/time.h>
+-#include <asm/arch/dmtimer.h>
 -
--#ifdef	CONFIG_OMAP_MUX_DEBUG
--			debug = cfg->debug;
--#endif
--			warn = (orig != reg);
--			if (debug || warn)
--				printk("MUX: setup %s (0x%08x): 0x%02x -> 0x%02x\n",
--						cfg->name,
--						OMAP24XX_L4_BASE + cfg->mux_reg,
--						orig, reg);
--		}
--#endif
--		omap_writeb(reg, OMAP24XX_L4_BASE + cfg->mux_reg);
+-struct sys_timer omap_timer;
 -
--		return 0;
--	}
+-/*
+- * ---------------------------------------------------------------------------
+- * 32KHz OS timer
+- *
+- * This currently works only on 16xx, as 1510 does not have the continuous
+- * 32KHz synchronous timer. The 32KHz synchronous timer is used to keep track
+- * of time in addition to the 32KHz OS timer. Using only the 32KHz OS timer
+- * on 1510 would be possible, but the timer would not be as accurate as
+- * with the 32KHz synchronized timer.
+- * ---------------------------------------------------------------------------
+- */
 -
--	/* Check the mux register in question */
--	if (cfg->mux_reg) {
--		unsigned	tmp1, tmp2;
--
--		spin_lock_irqsave(&mux_spin_lock, flags);
--		reg_orig = omap_readl(cfg->mux_reg);
--
--		/* The mux registers always seem to be 3 bits long */
--		mask = (0x7 << cfg->mask_offset);
--		tmp1 = reg_orig & mask;
--		reg = reg_orig & ~mask;
--
--		tmp2 = (cfg->mask << cfg->mask_offset);
--		reg |= tmp2;
--
--		if (tmp1 != tmp2)
--			warn = 1;
--
--		omap_writel(reg, cfg->mux_reg);
--		spin_unlock_irqrestore(&mux_spin_lock, flags);
--	}
--
--	/* Check for pull up or pull down selection on 1610 */
--	if (!cpu_is_omap15xx()) {
--		if (cfg->pu_pd_reg && cfg->pull_val) {
--			spin_lock_irqsave(&mux_spin_lock, flags);
--			pu_pd_orig = omap_readl(cfg->pu_pd_reg);
--			mask = 1 << cfg->pull_bit;
-+	reg = (struct pin_config *)&mux_cfg->pins[index];
- 
--			if (cfg->pu_pd_val) {
--				if (!(pu_pd_orig & mask))
--					warn = 1;
--				/* Use pull up */
--				pu_pd = pu_pd_orig | mask;
--			} else {
--				if (pu_pd_orig & mask)
--					warn = 1;
--				/* Use pull down */
--				pu_pd = pu_pd_orig & ~mask;
--			}
--			omap_writel(pu_pd, cfg->pu_pd_reg);
--			spin_unlock_irqrestore(&mux_spin_lock, flags);
--		}
--	}
--
--	/* Check for an associated pull down register */
--	if (cfg->pull_reg) {
--		spin_lock_irqsave(&mux_spin_lock, flags);
--		pull_orig = omap_readl(cfg->pull_reg);
--		mask = 1 << cfg->pull_bit;
--
--		if (cfg->pull_val) {
--			if (pull_orig & mask)
--				warn = 1;
--			/* Low bit = pull enabled */
--			pull = pull_orig & ~mask;
--		} else {
--			if (!(pull_orig & mask))
--				warn = 1;
--			/* High bit = pull disabled */
--			pull = pull_orig | mask;
--		}
--
--		omap_writel(pull, cfg->pull_reg);
--		spin_unlock_irqrestore(&mux_spin_lock, flags);
--	}
--
--	if (warn) {
--#ifdef CONFIG_OMAP_MUX_WARNINGS
--		printk(KERN_WARNING "MUX: initialized %s\n", cfg->name);
--#endif
--	}
--
--#ifdef CONFIG_OMAP_MUX_DEBUG
--	if (cfg->debug || warn) {
--		printk("MUX: Setting register %s\n", cfg->name);
--		printk("      %s (0x%08x) = 0x%08x -> 0x%08x\n",
--		       cfg->mux_reg_name, cfg->mux_reg, reg_orig, reg);
--
--		if (!cpu_is_omap15xx()) {
--			if (cfg->pu_pd_reg && cfg->pull_val) {
--				printk("      %s (0x%08x) = 0x%08x -> 0x%08x\n",
--				       cfg->pu_pd_name, cfg->pu_pd_reg,
--				       pu_pd_orig, pu_pd);
--			}
--		}
--
--		if (cfg->pull_reg)
--			printk("      %s (0x%08x) = 0x%08x -> 0x%08x\n",
--			       cfg->pull_name, cfg->pull_reg, pull_orig, pull);
--	}
--#endif
-+	if (!mux_cfg->cfg_reg)
-+		return -ENODEV;
- 
--#ifdef CONFIG_OMAP_MUX_ERRORS
--	return warn ? -ETXTBSY : 0;
+-#if defined(CONFIG_ARCH_OMAP16XX)
+-#define TIMER_32K_SYNCHRONIZED		0xfffbc410
+-#elif defined(CONFIG_ARCH_OMAP24XX)
+-#define TIMER_32K_SYNCHRONIZED		(OMAP24XX_32KSYNCT_BASE + 0x10)
 -#else
--	return 0;
+-#error OMAP 32KHz timer does not currently work on 15XX!
 -#endif
-+	return mux_cfg->cfg_reg(reg);
- }
- EXPORT_SYMBOL(omap_cfg_reg);
- #else
+-
+-/* 16xx specific defines */
+-#define OMAP1_32K_TIMER_BASE		0xfffb9000
+-#define OMAP1_32K_TIMER_CR		0x08
+-#define OMAP1_32K_TIMER_TVR		0x00
+-#define OMAP1_32K_TIMER_TCR		0x04
+-
+-#define OMAP_32K_TICKS_PER_SEC		(32768)
+-
+-/*
+- * TRM says 1 / HZ = ( TVR + 1) / 32768, so TRV = (32768 / HZ) - 1
+- * so with HZ = 128, TVR = 255.
+- */
+-#define OMAP_32K_TIMER_TICK_PERIOD	((OMAP_32K_TICKS_PER_SEC / HZ) - 1)
+-
+-#define JIFFIES_TO_HW_TICKS(nr_jiffies, clock_rate)			\
+-				(((nr_jiffies) * (clock_rate)) / HZ)
+-
+-static inline void omap_32k_timer_write(int val, int reg)
+-{
+-	omap_writew(val, OMAP1_32K_TIMER_BASE + reg);
+-}
+-
+-static inline unsigned long omap_32k_timer_read(int reg)
+-{
+-	return omap_readl(OMAP1_32K_TIMER_BASE + reg) & 0xffffff;
+-}
+-
+-static inline void omap_32k_timer_start(unsigned long load_val)
+-{
+-	if (!load_val)
+-		load_val = 1;
+-	omap_32k_timer_write(load_val, OMAP1_32K_TIMER_TVR);
+-	omap_32k_timer_write(0x0f, OMAP1_32K_TIMER_CR);
+-}
+-
+-static inline void omap_32k_timer_stop(void)
+-{
+-	omap_32k_timer_write(0x0, OMAP1_32K_TIMER_CR);
+-}
+-
+-#define omap_32k_timer_ack_irq()
+-
+-static void omap_32k_timer_set_mode(enum clock_event_mode mode,
+-				    struct clock_event_device *evt)
+-{
+-	omap_32k_timer_stop();
+-
+-	switch (mode) {
+-	case CLOCK_EVT_MODE_PERIODIC:
+-		omap_32k_timer_start(OMAP_32K_TIMER_TICK_PERIOD);
+-		break;
+-	case CLOCK_EVT_MODE_ONESHOT:
+-	case CLOCK_EVT_MODE_UNUSED:
+-	case CLOCK_EVT_MODE_SHUTDOWN:
+-		break;
+-	case CLOCK_EVT_MODE_RESUME:
+-		break;
+-	}
+-}
+-
+-static struct clock_event_device clockevent_32k_timer = {
+-	.name		= "32k-timer",
+-	.features       = CLOCK_EVT_FEAT_PERIODIC,
+-	.shift		= 32,
+-	.set_mode	= omap_32k_timer_set_mode,
+-};
+-
+-/*
+- * The 32KHz synchronized timer is an additional timer on 16xx.
+- * It is always running.
+- */
+-static inline unsigned long omap_32k_sync_timer_read(void)
+-{
+-	return omap_readl(TIMER_32K_SYNCHRONIZED);
+-}
+-
+-static irqreturn_t omap_32k_timer_interrupt(int irq, void *dev_id)
+-{
+-	struct clock_event_device *evt = &clockevent_32k_timer;
+-	omap_32k_timer_ack_irq();
+-
+-	evt->event_handler(evt);
+-
+-	return IRQ_HANDLED;
+-}
+-
+-static struct irqaction omap_32k_timer_irq = {
+-	.name		= "32KHz timer",
+-	.flags		= IRQF_DISABLED | IRQF_TIMER | IRQF_IRQPOLL,
+-	.handler	= omap_32k_timer_interrupt,
+-};
+-
+-static __init void omap_init_32k_timer(void)
+-{
+-	clockevent_32k_timer.mult = div_sc(OMAP_32K_TICKS_PER_SEC,
+-					   NSEC_PER_SEC,
+-					   clockevent_32k_timer.shift);
+-	clockevent_32k_timer.max_delta_ns =
+-		clockevent_delta2ns(0xfffffffe, &clockevent_32k_timer);
+-	clockevent_32k_timer.min_delta_ns =
+-		clockevent_delta2ns(1, &clockevent_32k_timer);
+-
+-	clockevent_32k_timer.cpumask = cpumask_of_cpu(0);
+-	clockevents_register_device(&clockevent_32k_timer);
+-}
+-
+-/*
+- * ---------------------------------------------------------------------------
+- * Timer initialization
+- * ---------------------------------------------------------------------------
+- */
+-static void __init omap_timer_init(void)
+-{
+-#ifdef CONFIG_OMAP_DM_TIMER
+-	omap_dm_timer_init();
+-#endif
+-	omap_init_32k_timer();
+-}
+-
+-struct sys_timer omap_timer = {
+-	.init		= omap_timer_init,
+-};
 -- 
 1.5.3.6
 
