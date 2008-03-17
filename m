@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 7/14] ARM: OMAP: Allow registering pin mux function
-Date: Mon, 17 Mar 2008 11:42:31 +0200
-Message-ID: <1205746958-11242-8-git-send-email-tony@atomide.com>
+Subject: [PATCH 13/14] ARM: OMAP: TimerMPU: Remove unused cycles-to-nsec conversions
+Date: Mon, 17 Mar 2008 11:42:37 +0200
+Message-ID: <1205746958-11242-14-git-send-email-tony@atomide.com>
 References: omap-upstream-2008-03-17-114234
  <1205746958-11242-1-git-send-email-tony@atomide.com>
  <1205746958-11242-2-git-send-email-tony@atomide.com>
@@ -10,199 +10,85 @@ References: omap-upstream-2008-03-17-114234
  <1205746958-11242-5-git-send-email-tony@atomide.com>
  <1205746958-11242-6-git-send-email-tony@atomide.com>
  <1205746958-11242-7-git-send-email-tony@atomide.com>
+ <1205746958-11242-8-git-send-email-tony@atomide.com>
+ <1205746958-11242-9-git-send-email-tony@atomide.com>
+ <1205746958-11242-10-git-send-email-tony@atomide.com>
+ <1205746958-11242-11-git-send-email-tony@atomide.com>
+ <1205746958-11242-12-git-send-email-tony@atomide.com>
+ <1205746958-11242-13-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62428 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62797 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753295AbYCQJnf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2008 05:43:35 -0400
-In-Reply-To: <1205746958-11242-7-git-send-email-tony@atomide.com>
+	with ESMTP id S1753360AbYCQJnw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2008 05:43:52 -0400
+In-Reply-To: <1205746958-11242-13-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@mvista.com>, Tony Lindgren <tony@atomide.com>
 
-This patch changes pin multiplexing init to allow registering
-custom function. The omap_cfg_reg() func will be split into
-omap processor specific functions in later patch.
+From: Kevin Hilman <khilman@mvista.com>
 
-This is done to make adding omap3 pin multiplexing easier.
+These are no longer used and similar conversions are provided
+by the clocksource/clockevent code.
 
+Signed-off-by: Kevin Hilman <khilman@mvista.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/mux.c       |   21 ++++++++++++++++++---
- arch/arm/mach-omap2/mux.c       |   21 +++++++++++++++++++--
- arch/arm/plat-omap/mux.c        |   30 ++++++++++++++++--------------
- include/asm-arm/arch-omap/mux.h |    8 +++++++-
- 4 files changed, 60 insertions(+), 20 deletions(-)
+ arch/arm/mach-omap1/time.c |   33 ---------------------------------
+ 1 files changed, 0 insertions(+), 33 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/mux.c b/arch/arm/mach-omap1/mux.c
-index 52c70e5..d74f679 100644
---- a/arch/arm/mach-omap1/mux.c
-+++ b/arch/arm/mach-omap1/mux.c
-@@ -32,6 +32,8 @@
+diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
+index a4f8b20..f6cf2b7 100644
+--- a/arch/arm/mach-omap1/time.c
++++ b/arch/arm/mach-omap1/time.c
+@@ -56,37 +56,6 @@
+ #define OMAP_MPU_TIMER_BASE		OMAP_MPU_TIMER1_BASE
+ #define OMAP_MPU_TIMER_OFFSET		0x100
  
- #ifdef CONFIG_OMAP_MUX
- 
-+static struct omap_mux_cfg arch_mux_cfg;
-+
- #ifdef CONFIG_ARCH_OMAP730
- struct pin_config __initdata_or_module omap730_pins[] = {
- MUX_CFG_730("E2_730_KBR0",        12,   21,    0,   20,   1, 0)
-@@ -310,18 +312,31 @@ MUX_CFG("Y14_1610_CCP_DATAM",	 9,   21,    6,   2,   3,   1,    2,     0,  0)
- };
- #endif	/* CONFIG_ARCH_OMAP15XX || CONFIG_ARCH_OMAP16XX */
- 
-+int __init_or_module omap1_cfg_reg(const struct pin_config *cfg)
-+{
-+	return 0;
-+}
-+
- int __init omap1_mux_init(void)
- {
- 
- #ifdef CONFIG_ARCH_OMAP730
--	omap_mux_register(omap730_pins, ARRAY_SIZE(omap730_pins));
-+	if (cpu_is_omap730()) {
-+		arch_mux_cfg.pins	= omap730_pins;
-+		arch_mux_cfg.size	= ARRAY_SIZE(omap730_pins);
-+		arch_mux_cfg.cfg_reg	= omap1_cfg_reg;
-+	}
- #endif
- 
- #if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX)
--	omap_mux_register(omap1xxx_pins, ARRAY_SIZE(omap1xxx_pins));
-+	if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
-+		arch_mux_cfg.pins	= omap1xxx_pins;
-+		arch_mux_cfg.size	= ARRAY_SIZE(omap1xxx_pins);
-+		arch_mux_cfg.cfg_reg	= omap1_cfg_reg;
-+	}
- #endif
- 
--	return 0;
-+	return omap_mux_register(&arch_mux_cfg);
- }
- 
- #endif
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 0575097..351baab 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -32,6 +32,8 @@
- 
- #ifdef CONFIG_OMAP_MUX
- 
-+static struct omap_mux_cfg arch_mux_cfg;
-+
- /* NOTE: See mux.h for the enumeration */
- 
- struct pin_config __initdata_or_module omap24xx_pins[] = {
-@@ -169,10 +171,25 @@ MUX_CFG_24XX("B13_24XX_KBC6",		0x110,	3,	0,	0,	1)
- 
- };
- 
--int __init omap2_mux_init(void)
-+#ifdef CONFIG_ARCH_OMAP24XX
-+int __init_or_module omap24xx_cfg_reg(const struct pin_config *cfg)
- {
--	omap_mux_register(omap24xx_pins, ARRAY_SIZE(omap24xx_pins));
- 	return 0;
- }
-+#endif
-+
-+int __init omap2_mux_init(void)
-+{
-+
-+#ifdef CONFIG_ARCH_OMAP24XX
-+	if (cpu_is_omap24xx()) {
-+		arch_mux_cfg.pins	= omap24xx_pins;
-+		arch_mux_cfg.size	= ARRAY_SIZE(omap24xx_pins);
-+		arch_mux_cfg.cfg_reg	= omap24xx_cfg_reg;
-+	}
-+#endif
-+
-+	return omap_mux_register(&arch_mux_cfg);
-+}
- 
- #endif
-diff --git a/arch/arm/plat-omap/mux.c b/arch/arm/plat-omap/mux.c
-index 75211f2..d881379 100644
---- a/arch/arm/plat-omap/mux.c
-+++ b/arch/arm/plat-omap/mux.c
-@@ -36,17 +36,17 @@
- #define OMAP24XX_PULL_ENA	(1 << 3)
- #define OMAP24XX_PULL_UP	(1 << 4)
- 
--static struct pin_config * pin_table;
--static unsigned long pin_table_sz;
-+static struct omap_mux_cfg *mux_cfg;
- 
--extern struct pin_config * omap730_pins;
--extern struct pin_config * omap1xxx_pins;
--extern struct pin_config * omap24xx_pins;
+-/* cycles to nsec conversions taken from arch/i386/kernel/timers/timer_tsc.c,
+- * converted to use kHz by Kevin Hilman */
+-/* convert from cycles(64bits) => nanoseconds (64bits)
+- *  basic equation:
+- *		ns = cycles / (freq / ns_per_sec)
+- *		ns = cycles * (ns_per_sec / freq)
+- *		ns = cycles * (10^9 / (cpu_khz * 10^3))
+- *		ns = cycles * (10^6 / cpu_khz)
+- *
+- *	Then we use scaling math (suggested by george at mvista.com) to get:
+- *		ns = cycles * (10^6 * SC / cpu_khz / SC
+- *		ns = cycles * cyc2ns_scale / SC
+- *
+- *	And since SC is a constant power of two, we can convert the div
+- *  into a shift.
+- *			-johnstul at us.ibm.com "math is hard, lets go shopping!"
+- */
+-static unsigned long cyc2ns_scale;
+-#define CYC2NS_SCALE_FACTOR 10 /* 2^10, carefully chosen */
 -
--int __init omap_mux_register(struct pin_config * pins, unsigned long size)
-+int __init omap_mux_register(struct omap_mux_cfg *arch_mux_cfg)
+-static inline void set_cyc2ns_scale(unsigned long cpu_khz)
+-{
+-	cyc2ns_scale = (1000000 << CYC2NS_SCALE_FACTOR)/cpu_khz;
+-}
+-
+-static inline unsigned long long cycles_2_ns(unsigned long long cyc)
+-{
+-	return (cyc * cyc2ns_scale) >> CYC2NS_SCALE_FACTOR;
+-}
+-
+-
+ typedef struct {
+ 	u32 cntl;			/* CNTL_TIMER, R/W */
+ 	u32 load_tim;			/* LOAD_TIM,   W */
+@@ -194,8 +163,6 @@ static struct irqaction omap_mpu_timer1_irq = {
+ 
+ static __init void omap_init_mpu_timer(unsigned long rate)
  {
--	pin_table = pins;
--	pin_table_sz = size;
-+	if (!arch_mux_cfg || !arch_mux_cfg->pins || arch_mux_cfg->size == 0
-+			|| !arch_mux_cfg->cfg_reg) {
-+		printk(KERN_ERR "Invalid pin table\n");
-+		return -EINVAL;
-+	}
-+
-+	mux_cfg = arch_mux_cfg;
+-	set_cyc2ns_scale(rate / 1000);
+-
+ 	setup_irq(INT_TIMER1, &omap_mpu_timer1_irq);
+ 	omap_mpu_timer_start(0, (rate / HZ) - 1, 1);
  
- 	return 0;
- }
-@@ -64,17 +64,19 @@ int __init_or_module omap_cfg_reg(const unsigned long index)
- 		pull_orig = 0, pull = 0;
- 	unsigned int mask, warn = 0;
- 
--	if (!pin_table)
--		BUG();
-+	if (mux_cfg == NULL) {
-+		printk(KERN_ERR "Pin mux table not initialized\n");
-+		return -ENODEV;
-+	}
- 
--	if (index >= pin_table_sz) {
-+	if (index >= mux_cfg->size) {
- 		printk(KERN_ERR "Invalid pin mux index: %lu (%lu)\n",
--		       index, pin_table_sz);
-+		       index, mux_cfg->size);
- 		dump_stack();
- 		return -ENODEV;
- 	}
- 
--	cfg = (struct pin_config *)&pin_table[index];
-+	cfg = (struct pin_config *)&mux_cfg->pins[index];
- 	if (cpu_is_omap24xx()) {
- 		u8 reg = 0;
- 
-diff --git a/include/asm-arm/arch-omap/mux.h b/include/asm-arm/arch-omap/mux.h
-index b8fff50..0edc6ce 100644
---- a/include/asm-arm/arch-omap/mux.h
-+++ b/include/asm-arm/arch-omap/mux.h
-@@ -559,11 +559,17 @@ enum omap24xx_index {
- 	B13_24XX_KBC6,
- };
- 
-+struct omap_mux_cfg {
-+	struct pin_config	*pins;
-+	unsigned long		size;
-+	int			(*cfg_reg)(const struct pin_config *cfg);
-+};
-+
- #ifdef	CONFIG_OMAP_MUX
- /* setup pin muxing in Linux */
- extern int omap1_mux_init(void);
- extern int omap2_mux_init(void);
--extern int omap_mux_register(struct pin_config * pins, unsigned long size);
-+extern int omap_mux_register(struct omap_mux_cfg *);
- extern int omap_cfg_reg(unsigned long reg_cfg);
- #else
- /* boot loader does it all (no warnings from CONFIG_OMAP_MUX_WARNINGS) */
 -- 
 1.5.3.6
 
