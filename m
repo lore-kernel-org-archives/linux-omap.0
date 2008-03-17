@@ -1,178 +1,130 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] I2C: Fix unhandled fault in i2c-omap controller, take #2
-Date: Mon, 17 Mar 2008 09:19:49 +0200
-Message-ID: <20080317071949.GP11653@atomide.com>
-References: <20080313155123.GI11653@atomide.com> <20080314185218.3fa69d19@hyperion.delvare> <20080317064619.GO11653@atomide.com>
+From: "Tim Chen" <tim.chen.86@gmail.com>
+Subject: OMAP730/850 NAND flash problem, ECC error.
+Date: Mon, 17 Mar 2008 15:43:11 +0800
+Message-ID: <9c1eb1b90803170043l7a019ac2jd300f6d55c7f9c12@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="F8dlzb82+Fcn6AgP"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:64525 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752756AbYCQHU0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2008 03:20:26 -0400
+Received: from rv-out-0910.google.com ([209.85.198.184]:11509 "EHLO
+	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751987AbYCQHnM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2008 03:43:12 -0400
+Received: by rv-out-0910.google.com with SMTP id k20so3121770rvb.1
+        for <linux-omap@vger.kernel.org>; Mon, 17 Mar 2008 00:43:11 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20080317064619.GO11653@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: linux-omap@vger.kernel.org, i2c@lm-sensors.org
-
-
---F8dlzb82+Fcn6AgP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: linux-omap@vger.kernel.org
 
 Hi,
+My board is Zante which is an OMAP730(actually OMAP850, but the two
+processors are almost the same) based board,
+I'm trying to mount root file system from JFFS2.
+The NAND flash part is Samsung K5E1212-ACB MCP(64MB NAND flash / 64MB DDR),
 
-Here's an updated version
+The NAND device structures in board-zante.c are as follows.
 
+static struct mtd_partition zante_nand_partitions[] = {
+        {
+                .name           = "xloader",
+                .offset         = 0,
+                .size           = 64 * 1024,
+                .mask_flags     = MTD_WRITEABLE,        /* force read-only */
+        },
+        {
+                .name           = "bootloader",
+                .offset         = MTDPART_OFS_APPEND,
+                .size           = 256 * 1024,
+                .mask_flags     = MTD_WRITEABLE,        /* force read-only */
+        },
+        {
+                .name           = "params",
+                .offset         = MTDPART_OFS_APPEND,
+                .size           = 192 * 1024,
+        },
+        {
+                .name           = "kernel",
+                .offset         = MTDPART_OFS_APPEND,
+                .size           = 2 * SZ_1M,
+        },
+        {
+                .name           = "filesystem",
+                .size           = MTDPART_SIZ_FULL,
+                .offset         = MTDPART_OFS_APPEND,
+        },
+};
+
+/* dip switches control NAND chip access:  8 bit, 16 bit, or neither */
+static struct omap_nand_platform_data nand_data = {
+        .options        = NAND_SAMSUNG_LP_OPTIONS,
+        .parts          = zante_nand_partitions,
+        .nr_parts       = ARRAY_SIZE(zante_nand_partitions),
+        .device_width   = 8,
+};
+
+static struct resource nand_resource = {
+        .start          = OMAP_CS3_PHYS,
+        .end            = OMAP_CS3_PHYS + SZ_64M - 1,
+        .flags          = IORESOURCE_MEM,
+};
+
+static struct platform_device nand_device = {
+        .name           = "omapnand",
+        .id             = 0,
+        .dev            = {
+                .platform_data  = &nand_data,
+        },
+        .num_resources  = 1,
+        .resource       = &nand_resource,
+};
+
+
+And in the linux-2.6.24-omap1/drivers/mtd/nand/Kconfig, I added
+MACH_OMAP_ZANTE to the "config MTD_NAND_OMAP" part, so that make sure
+omap-nand-flash.c is used.
+
+The kernel boot message is as follows.
+Kernel command line: root=/dev/mtdblock4 rootfstype=jffs2
+init=/sbin/init console=ttyS1,115200
+NAND device: Manufacturer ID: 0xec, Chip ID: 0x36 (Samsung NAND 64MiB
+1,8V 8-bit)
+Scanning device for bad blocks
+Bad eraseblock 753 at 0x00bc4000
+Bad eraseblock 1007 at 0x00fbc000
+Bad eraseblock 1112 at 0x01160000
+Bad eraseblock 1281 at 0x01404000
+Bad eraseblock 1948 at 0x01e70000
+Bad eraseblock 2158 at 0x021b8000
+Bad eraseblock 2328 at 0x02460000
+Bad eraseblock 2941 at 0x02df4000
+Creating 5 MTD partitions on "omapnand.0":
+0x00000000-0x00010000 : "xloader"
+0x00010000-0x00050000 : "bootloader"
+0x00050000-0x00080000 : "params"
+0x00080000-0x00280000 : "kernel"
+0x00280000-0x04000000 : "filesystem"
+
+And then followed by many errors like:
+mtd->read(0x200 bytes from 0x3e00) returned ECC error
+mtd->read(0x400 bytes from 0x0) returned ECC error
+CLEANMARKER node found at 0x00000000 has totlen 0xc != normal 0x0
+mtd->read(0x3c04 bytes from 0x3fc) returned ECC error
+jffs2_scan_inode_node(): CRC failed on node at 0x000039d8: Read 0xe4eb139a, calc
+ulated 0x538ae90c
+mtd->read(0x8c bytes from 0x3f74) returned ECC error
+mtd->read(0x200 bytes from 0x7e00) returned ECC error
+mtd->read(0x400 bytes from 0x4000) returned ECC error
+
+Then, kernel stop at one "mtd->read(xxxx) returned ECC error" error.
+
+The code base is just checked out from OMAP Linux GIT tree.
+
+Any thing should I check for the NAND driver?
+
+Thanks in advance.
+
+-- 
+--
 Regards,
-
-Tony
-
-
---F8dlzb82+Fcn6AgP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline; filename=i2c-clock-race-v2
-
-commit 94a3ce6a20c3920e0e43991d38506134791e9d72
-Author: Tony Lindgren <tony@atomide.com>
-Date:   Mon Feb 18 20:16:00 2008 -0800
-
-    I2C: Fix unhandled fault in i2c-omap controller
-    
-    If an I2C interrupt happens between disabling interface clock
-    and functional clock, the interrupt handler will produce an
-    external abort on non-linefetch error when trying to access
-    driver registers while interface clock is disabled.
-    
-    This patch fixes the problem by saving and disabling i2c-omap
-    interrupt before turning off the clocks. Also disable functional
-    clock before the interface clock as suggested by Paul Walmsley.
-    
-    Patch also renames enable/disable_clocks functions to unidle/idle
-    functions. Note that the driver is currently not taking advantage
-    of the idle interrupts. To use the idle interrupts, driver would
-    have to enable interface clock based on the idle interrupt
-    and dev->idle flag.
-    
-    This patch has been tested in linux-omap tree with various omaps.
-    
-    Cc: linux-omap@vger.kernel.org
-    Cc: Paul Walmsley <paul@pwsan.com>
-    Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index da66397..7ba3177 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -128,6 +128,8 @@ struct omap_i2c_dev {
- 	size_t			buf_len;
- 	struct i2c_adapter	adapter;
- 	unsigned		rev1:1;
-+	unsigned		idle:1;
-+	u16			iestate;	/* Saved interrupt register */
- };
- 
- static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
-@@ -174,18 +176,30 @@ static void omap_i2c_put_clocks(struct omap_i2c_dev *dev)
- 	}
- }
- 
--static void omap_i2c_enable_clocks(struct omap_i2c_dev *dev)
-+static void omap_i2c_unidle(struct omap_i2c_dev *dev)
- {
- 	if (dev->iclk != NULL)
- 		clk_enable(dev->iclk);
- 	clk_enable(dev->fclk);
-+	if (dev->iestate)
-+		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-+	dev->idle = 0;
- }
- 
--static void omap_i2c_disable_clocks(struct omap_i2c_dev *dev)
-+static void omap_i2c_idle(struct omap_i2c_dev *dev)
- {
-+	u16 iv;
-+
-+	dev->idle = 1;
-+	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
-+	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
-+	if (dev->rev1)
-+		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG);	/* Read clears */
-+	else
-+		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, dev->iestate);
-+	clk_disable(dev->fclk);
- 	if (dev->iclk != NULL)
- 		clk_disable(dev->iclk);
--	clk_disable(dev->fclk);
- }
- 
- static int omap_i2c_init(struct omap_i2c_dev *dev)
-@@ -360,7 +374,7 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
- 	int i;
- 	int r;
- 
--	omap_i2c_enable_clocks(dev);
-+	omap_i2c_unidle(dev);
- 
- 	if ((r = omap_i2c_wait_for_bb(dev)) < 0)
- 		goto out;
-@@ -374,7 +388,7 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
- 	if (r == 0)
- 		r = num;
- out:
--	omap_i2c_disable_clocks(dev);
-+	omap_i2c_idle(dev);
- 	return r;
- }
- 
-@@ -403,6 +417,9 @@ omap_i2c_rev1_isr(int this_irq, void *dev_id)
- 	struct omap_i2c_dev *dev = dev_id;
- 	u16 iv, w;
- 
-+	if (dev->idle)
-+		return IRQ_NONE;
-+
- 	iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG);
- 	switch (iv) {
- 	case 0x00:	/* None */
-@@ -457,6 +474,9 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 	u16 stat, w;
- 	int count = 0;
- 
-+	if (dev->idle)
-+		return IRQ_NONE;
-+
- 	bits = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
- 	while ((stat = (omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG))) & bits) {
- 		dev_dbg(dev->dev, "IRQ (ISR = 0x%04x)\n", stat);
-@@ -575,7 +595,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	if ((r = omap_i2c_get_clocks(dev)) != 0)
- 		goto err_free_mem;
- 
--	omap_i2c_enable_clocks(dev);
-+	omap_i2c_unidle(dev);
- 
- 	if (cpu_is_omap15xx())
- 		dev->rev1 = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) < 0x20;
-@@ -610,7 +630,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 		goto err_free_irq;
- 	}
- 
--	omap_i2c_disable_clocks(dev);
-+	omap_i2c_idle(dev);
- 
- 	return 0;
- 
-@@ -618,7 +638,7 @@ err_free_irq:
- 	free_irq(dev->irq, dev);
- err_unuse_clocks:
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
--	omap_i2c_disable_clocks(dev);
-+	omap_i2c_idle(dev);
- 	omap_i2c_put_clocks(dev);
- err_free_mem:
- 	platform_set_drvdata(pdev, NULL);
-
---F8dlzb82+Fcn6AgP--
+Tim.
