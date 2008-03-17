@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 6/14] ARM: OMAP: use edge/level handlers from generic IRQ framework
-Date: Mon, 17 Mar 2008 11:42:30 +0200
-Message-ID: <1205746958-11242-7-git-send-email-tony@atomide.com>
+Subject: [PATCH 7/14] ARM: OMAP: Allow registering pin mux function
+Date: Mon, 17 Mar 2008 11:42:31 +0200
+Message-ID: <1205746958-11242-8-git-send-email-tony@atomide.com>
 References: omap-upstream-2008-03-17-114234
  <1205746958-11242-1-git-send-email-tony@atomide.com>
  <1205746958-11242-2-git-send-email-tony@atomide.com>
@@ -9,105 +9,200 @@ References: omap-upstream-2008-03-17-114234
  <1205746958-11242-4-git-send-email-tony@atomide.com>
  <1205746958-11242-5-git-send-email-tony@atomide.com>
  <1205746958-11242-6-git-send-email-tony@atomide.com>
+ <1205746958-11242-7-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:64382 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753288AbYCQJnd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2008 05:43:33 -0400
-In-Reply-To: <1205746958-11242-6-git-send-email-tony@atomide.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62428 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753295AbYCQJnf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2008 05:43:35 -0400
+In-Reply-To: <1205746958-11242-7-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@mvista.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-From: Kevin Hilman <khilman@mvista.com>
+This patch changes pin multiplexing init to allow registering
+custom function. The omap_cfg_reg() func will be split into
+omap processor specific functions in later patch.
 
-Currently, the GPIO interrupt handling is duplicating some of the work
-done by the generic IRQ handlers (handle_edge_irq, handle_level_irq)
-such as detecting nesting, handling re-triggers etc.  Remove this
-duplication and use generic hooks based on IRQ type.
+This is done to make adding omap3 pin multiplexing easier.
 
-Using generic IRQ handlers ensures correct behavior when using
-threaded interrupts introduced by the -rt patch.
-
-Signed-off-by: Kevin Hilman <khilman@mvista.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/gpio.c |   42 +++++++-----------------------------------
- 1 files changed, 7 insertions(+), 35 deletions(-)
+ arch/arm/mach-omap1/mux.c       |   21 ++++++++++++++++++---
+ arch/arm/mach-omap2/mux.c       |   21 +++++++++++++++++++--
+ arch/arm/plat-omap/mux.c        |   30 ++++++++++++++++--------------
+ include/asm-arm/arch-omap/mux.h |    8 +++++++-
+ 4 files changed, 60 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 4f104e4..1903a34 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -542,10 +542,6 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
- 	bank->level_mask =
- 		__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT0) |
- 		__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT1);
--	/*
--	 * FIXME: Possibly do 'set_irq_handler(j, handle_level_irq)' if only
--	 * level triggering requested.
--	 */
- }
+diff --git a/arch/arm/mach-omap1/mux.c b/arch/arm/mach-omap1/mux.c
+index 52c70e5..d74f679 100644
+--- a/arch/arm/mach-omap1/mux.c
++++ b/arch/arm/mach-omap1/mux.c
+@@ -32,6 +32,8 @@
+ 
+ #ifdef CONFIG_OMAP_MUX
+ 
++static struct omap_mux_cfg arch_mux_cfg;
++
+ #ifdef CONFIG_ARCH_OMAP730
+ struct pin_config __initdata_or_module omap730_pins[] = {
+ MUX_CFG_730("E2_730_KBR0",        12,   21,    0,   20,   1, 0)
+@@ -310,18 +312,31 @@ MUX_CFG("Y14_1610_CCP_DATAM",	 9,   21,    6,   2,   3,   1,    2,     0,  0)
+ };
+ #endif	/* CONFIG_ARCH_OMAP15XX || CONFIG_ARCH_OMAP16XX */
+ 
++int __init_or_module omap1_cfg_reg(const struct pin_config *cfg)
++{
++	return 0;
++}
++
+ int __init omap1_mux_init(void)
+ {
+ 
+ #ifdef CONFIG_ARCH_OMAP730
+-	omap_mux_register(omap730_pins, ARRAY_SIZE(omap730_pins));
++	if (cpu_is_omap730()) {
++		arch_mux_cfg.pins	= omap730_pins;
++		arch_mux_cfg.size	= ARRAY_SIZE(omap730_pins);
++		arch_mux_cfg.cfg_reg	= omap1_cfg_reg;
++	}
  #endif
  
-@@ -656,6 +652,12 @@ static int gpio_irq_type(unsigned irq, unsigned type)
- 		irq_desc[irq].status |= type;
- 	}
- 	spin_unlock_irqrestore(&bank->lock, flags);
-+
-+	if (type & (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH))
-+		__set_irq_handler_unlocked(irq, handle_level_irq);
-+	else if (type & (IRQ_TYPE_EDGE_FALLING | IRQ_TYPE_EDGE_RISING))
-+		__set_irq_handler_unlocked(irq, handle_edge_irq);
-+
- 	return retval;
+ #if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX)
+-	omap_mux_register(omap1xxx_pins, ARRAY_SIZE(omap1xxx_pins));
++	if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
++		arch_mux_cfg.pins	= omap1xxx_pins;
++		arch_mux_cfg.size	= ARRAY_SIZE(omap1xxx_pins);
++		arch_mux_cfg.cfg_reg	= omap1_cfg_reg;
++	}
+ #endif
+ 
+-	return 0;
++	return omap_mux_register(&arch_mux_cfg);
  }
  
-@@ -1050,42 +1052,12 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
- 		gpio_irq = bank->virtual_irq_start;
- 		for (; isr != 0; isr >>= 1, gpio_irq++) {
- 			struct irq_desc *d;
--			int irq_mask;
-+
- 			if (!(isr & 1))
- 				continue;
- 			d = irq_desc + gpio_irq;
--			/* Don't run the handler if it's already running
--			 * or was disabled lazely.
--			 */
--			if (unlikely((d->depth ||
--				      (d->status & IRQ_INPROGRESS)))) {
--				irq_mask = 1 <<
--					(gpio_irq - bank->virtual_irq_start);
--				/* The unmasking will be done by
--				 * enable_irq in case it is disabled or
--				 * after returning from the handler if
--				 * it's already running.
--				 */
--				_enable_gpio_irqbank(bank, irq_mask, 0);
--				if (!d->depth) {
--					/* Level triggered interrupts
--					 * won't ever be reentered
--					 */
--					BUG_ON(level_mask & irq_mask);
--					d->status |= IRQ_PENDING;
--				}
--				continue;
--			}
+ #endif
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 0575097..351baab 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -32,6 +32,8 @@
  
- 			desc_handle_irq(gpio_irq, d);
+ #ifdef CONFIG_OMAP_MUX
+ 
++static struct omap_mux_cfg arch_mux_cfg;
++
+ /* NOTE: See mux.h for the enumeration */
+ 
+ struct pin_config __initdata_or_module omap24xx_pins[] = {
+@@ -169,10 +171,25 @@ MUX_CFG_24XX("B13_24XX_KBC6",		0x110,	3,	0,	0,	1)
+ 
+ };
+ 
+-int __init omap2_mux_init(void)
++#ifdef CONFIG_ARCH_OMAP24XX
++int __init_or_module omap24xx_cfg_reg(const struct pin_config *cfg)
+ {
+-	omap_mux_register(omap24xx_pins, ARRAY_SIZE(omap24xx_pins));
+ 	return 0;
+ }
++#endif
++
++int __init omap2_mux_init(void)
++{
++
++#ifdef CONFIG_ARCH_OMAP24XX
++	if (cpu_is_omap24xx()) {
++		arch_mux_cfg.pins	= omap24xx_pins;
++		arch_mux_cfg.size	= ARRAY_SIZE(omap24xx_pins);
++		arch_mux_cfg.cfg_reg	= omap24xx_cfg_reg;
++	}
++#endif
++
++	return omap_mux_register(&arch_mux_cfg);
++}
+ 
+ #endif
+diff --git a/arch/arm/plat-omap/mux.c b/arch/arm/plat-omap/mux.c
+index 75211f2..d881379 100644
+--- a/arch/arm/plat-omap/mux.c
++++ b/arch/arm/plat-omap/mux.c
+@@ -36,17 +36,17 @@
+ #define OMAP24XX_PULL_ENA	(1 << 3)
+ #define OMAP24XX_PULL_UP	(1 << 4)
+ 
+-static struct pin_config * pin_table;
+-static unsigned long pin_table_sz;
++static struct omap_mux_cfg *mux_cfg;
+ 
+-extern struct pin_config * omap730_pins;
+-extern struct pin_config * omap1xxx_pins;
+-extern struct pin_config * omap24xx_pins;
 -
--			if (unlikely((d->status & IRQ_PENDING) && !d->depth)) {
--				irq_mask = 1 <<
--					(gpio_irq - bank->virtual_irq_start);
--				d->status &= ~IRQ_PENDING;
--				_enable_gpio_irqbank(bank, irq_mask, 1);
--				retrigger |= irq_mask;
--			}
- 		}
+-int __init omap_mux_register(struct pin_config * pins, unsigned long size)
++int __init omap_mux_register(struct omap_mux_cfg *arch_mux_cfg)
+ {
+-	pin_table = pins;
+-	pin_table_sz = size;
++	if (!arch_mux_cfg || !arch_mux_cfg->pins || arch_mux_cfg->size == 0
++			|| !arch_mux_cfg->cfg_reg) {
++		printk(KERN_ERR "Invalid pin table\n");
++		return -EINVAL;
++	}
++
++	mux_cfg = arch_mux_cfg;
+ 
+ 	return 0;
+ }
+@@ -64,17 +64,19 @@ int __init_or_module omap_cfg_reg(const unsigned long index)
+ 		pull_orig = 0, pull = 0;
+ 	unsigned int mask, warn = 0;
+ 
+-	if (!pin_table)
+-		BUG();
++	if (mux_cfg == NULL) {
++		printk(KERN_ERR "Pin mux table not initialized\n");
++		return -ENODEV;
++	}
+ 
+-	if (index >= pin_table_sz) {
++	if (index >= mux_cfg->size) {
+ 		printk(KERN_ERR "Invalid pin mux index: %lu (%lu)\n",
+-		       index, pin_table_sz);
++		       index, mux_cfg->size);
+ 		dump_stack();
+ 		return -ENODEV;
  	}
- 	/* if bank has any level sensitive GPIO pin interrupt
+ 
+-	cfg = (struct pin_config *)&pin_table[index];
++	cfg = (struct pin_config *)&mux_cfg->pins[index];
+ 	if (cpu_is_omap24xx()) {
+ 		u8 reg = 0;
+ 
+diff --git a/include/asm-arm/arch-omap/mux.h b/include/asm-arm/arch-omap/mux.h
+index b8fff50..0edc6ce 100644
+--- a/include/asm-arm/arch-omap/mux.h
++++ b/include/asm-arm/arch-omap/mux.h
+@@ -559,11 +559,17 @@ enum omap24xx_index {
+ 	B13_24XX_KBC6,
+ };
+ 
++struct omap_mux_cfg {
++	struct pin_config	*pins;
++	unsigned long		size;
++	int			(*cfg_reg)(const struct pin_config *cfg);
++};
++
+ #ifdef	CONFIG_OMAP_MUX
+ /* setup pin muxing in Linux */
+ extern int omap1_mux_init(void);
+ extern int omap2_mux_init(void);
+-extern int omap_mux_register(struct pin_config * pins, unsigned long size);
++extern int omap_mux_register(struct omap_mux_cfg *);
+ extern int omap_cfg_reg(unsigned long reg_cfg);
+ #else
+ /* boot loader does it all (no warnings from CONFIG_OMAP_MUX_WARNINGS) */
 -- 
 1.5.3.6
 
