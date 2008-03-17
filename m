@@ -1,320 +1,365 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 4/14] ARM: OMAP: Use gpiolib with tps65010 for OSK 5912
-Date: Mon, 17 Mar 2008 11:42:28 +0200
-Message-ID: <1205746958-11242-5-git-send-email-tony@atomide.com>
+Subject: [PATCH 8/14] ARM: OMAP: Split omap_cfg_reg() into omap processor specific functions
+Date: Mon, 17 Mar 2008 11:42:32 +0200
+Message-ID: <1205746958-11242-9-git-send-email-tony@atomide.com>
 References: omap-upstream-2008-03-17-114234
  <1205746958-11242-1-git-send-email-tony@atomide.com>
  <1205746958-11242-2-git-send-email-tony@atomide.com>
  <1205746958-11242-3-git-send-email-tony@atomide.com>
  <1205746958-11242-4-git-send-email-tony@atomide.com>
+ <1205746958-11242-5-git-send-email-tony@atomide.com>
+ <1205746958-11242-6-git-send-email-tony@atomide.com>
+ <1205746958-11242-7-git-send-email-tony@atomide.com>
+ <1205746958-11242-8-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:64289 "EHLO
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:64487 "EHLO
 	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752784AbYCQJn1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2008 05:43:27 -0400
-In-Reply-To: <1205746958-11242-4-git-send-email-tony@atomide.com>
+	with ESMTP id S1753295AbYCQJni (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2008 05:43:38 -0400
+In-Reply-To: <1205746958-11242-8-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, David Brownell <david-b@pacbell.net>, David Brownell <dbrownell@users.sourceforge.net>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-From: David Brownell <david-b@pacbell.net>
+Use omap processor specific function depending on system type.
+Based on an earlier patch by Klaus Pedersen <klaus.k.pedersen@nokia.com>.
 
-Convert OSK board to use new tps65010 gpiolib support.  This
-includes moving its LED support from leds-osk to gpio-leds,
-giving more trigger options and a net platform code shrink.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/board-osk.c       |  108 +++++++++++++++++++++------------
- arch/arm/mach-omap1/leds-osk.c        |   80 +------------------------
- include/asm-arm/arch-omap/board-osk.h |   11 +++
- 3 files changed, 82 insertions(+), 117 deletions(-)
+ arch/arm/mach-omap1/mux.c |  103 ++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/mux.c |   31 ++++++++++
+ arch/arm/plat-omap/mux.c  |  142 ++-------------------------------------------
+ 3 files changed, 139 insertions(+), 137 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
-index dd9ece8..4f9baba 100644
---- a/arch/arm/mach-omap1/board-osk.c
-+++ b/arch/arm/mach-omap1/board-osk.c
-@@ -32,6 +32,7 @@
- #include <linux/interrupt.h>
- #include <linux/irq.h>
- #include <linux/i2c.h>
-+#include <linux/leds.h>
+diff --git a/arch/arm/mach-omap1/mux.c b/arch/arm/mach-omap1/mux.c
+index d74f679..cf3bdc0 100644
+--- a/arch/arm/mach-omap1/mux.c
++++ b/arch/arm/mach-omap1/mux.c
+@@ -314,7 +314,110 @@ MUX_CFG("Y14_1610_CCP_DATAM",	 9,   21,    6,   2,   3,   1,    2,     0,  0)
  
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
-@@ -183,11 +184,80 @@ static struct platform_device *osk5912_devices[] __initdata = {
- 	&osk5912_mcbsp1_device,
- };
- 
-+static struct gpio_led tps_leds[] = {
-+	/* NOTE:  D9 and D2 have hardware blink support.
-+	 * Also, D9 requires non-battery power.
-+	 */
-+	{ .gpio = OSK_TPS_GPIO_LED_D9, .name = "d9", },
-+	{ .gpio = OSK_TPS_GPIO_LED_D2, .name = "d2", },
-+	{ .gpio = OSK_TPS_GPIO_LED_D3, .name = "d3", .active_low = 1,
-+			.default_trigger = "heartbeat", },
-+};
+ int __init_or_module omap1_cfg_reg(const struct pin_config *cfg)
+ {
++	static DEFINE_SPINLOCK(mux_spin_lock);
++	unsigned long flags;
++	unsigned int reg_orig = 0, reg = 0, pu_pd_orig = 0, pu_pd = 0,
++		pull_orig = 0, pull = 0;
++	unsigned int mask, warn = 0;
 +
-+static struct gpio_led_platform_data tps_leds_data = {
-+	.num_leds	= 3,
-+	.leds		= tps_leds,
-+};
++	/* Check the mux register in question */
++	if (cfg->mux_reg) {
++		unsigned	tmp1, tmp2;
 +
-+static struct platform_device osk5912_tps_leds = {
-+	.name			= "leds-gpio",
-+	.id			= 0,
-+	.dev.platform_data	= &tps_leds_data,
-+};
++		spin_lock_irqsave(&mux_spin_lock, flags);
++		reg_orig = omap_readl(cfg->mux_reg);
 +
-+static int osk_tps_setup(struct i2c_client *client, void *context)
-+{
-+	/* Set GPIO 1 HIGH to disable VBUS power supply;
-+	 * OHCI driver powers it up/down as needed.
-+	 */
-+	gpio_request(OSK_TPS_GPIO_USB_PWR_EN, "n_vbus_en");
-+	gpio_direction_output(OSK_TPS_GPIO_USB_PWR_EN, 1);
++		/* The mux registers always seem to be 3 bits long */
++		mask = (0x7 << cfg->mask_offset);
++		tmp1 = reg_orig & mask;
++		reg = reg_orig & ~mask;
 +
-+	/* Set GPIO 2 high so LED D3 is off by default */
-+	tps65010_set_gpio_out_value(GPIO2, HIGH);
++		tmp2 = (cfg->mask << cfg->mask_offset);
++		reg |= tmp2;
 +
-+	/* Set GPIO 3 low to take ethernet out of reset */
-+	gpio_request(OSK_TPS_GPIO_LAN_RESET, "smc_reset");
-+	gpio_direction_output(OSK_TPS_GPIO_LAN_RESET, 0);
++		if (tmp1 != tmp2)
++			warn = 1;
 +
-+	/* GPIO4 is VDD_DSP */
-+	gpio_request(OSK_TPS_GPIO_DSP_PWR_EN, "dsp_power");
-+	gpio_direction_output(OSK_TPS_GPIO_DSP_PWR_EN, 1);
-+	/* REVISIT if DSP support isn't configured, power it off ... */
++		omap_writel(reg, cfg->mux_reg);
++		spin_unlock_irqrestore(&mux_spin_lock, flags);
++	}
 +
-+	/* Let LED1 (D9) blink; leds-gpio may override it */
-+	tps65010_set_led(LED1, BLINK);
++	/* Check for pull up or pull down selection on 1610 */
++	if (!cpu_is_omap15xx()) {
++		if (cfg->pu_pd_reg && cfg->pull_val) {
++			spin_lock_irqsave(&mux_spin_lock, flags);
++			pu_pd_orig = omap_readl(cfg->pu_pd_reg);
++			mask = 1 << cfg->pull_bit;
 +
-+	/* Set LED2 off by default */
-+	tps65010_set_led(LED2, OFF);
++			if (cfg->pu_pd_val) {
++				if (!(pu_pd_orig & mask))
++					warn = 1;
++				/* Use pull up */
++				pu_pd = pu_pd_orig | mask;
++			} else {
++				if (pu_pd_orig & mask)
++					warn = 1;
++				/* Use pull down */
++				pu_pd = pu_pd_orig & ~mask;
++			}
++			omap_writel(pu_pd, cfg->pu_pd_reg);
++			spin_unlock_irqrestore(&mux_spin_lock, flags);
++		}
++	}
 +
-+	/* Enable LOW_PWR handshake */
-+	tps65010_set_low_pwr(ON);
++	/* Check for an associated pull down register */
++	if (cfg->pull_reg) {
++		spin_lock_irqsave(&mux_spin_lock, flags);
++		pull_orig = omap_readl(cfg->pull_reg);
++		mask = 1 << cfg->pull_bit;
 +
-+	/* Switch VLDO2 to 3.0V for AIC23 */
-+	tps65010_config_vregs1(TPS_LDO2_ENABLE | TPS_VLDO2_3_0V
-+			| TPS_LDO1_ENABLE);
++		if (cfg->pull_val) {
++			if (pull_orig & mask)
++				warn = 1;
++			/* Low bit = pull enabled */
++			pull = pull_orig & ~mask;
++		} else {
++			if (!(pull_orig & mask))
++				warn = 1;
++			/* High bit = pull disabled */
++			pull = pull_orig | mask;
++		}
 +
-+	/* register these three LEDs */
-+	osk5912_tps_leds.dev.parent = &client->dev;
-+	platform_device_register(&osk5912_tps_leds);
++		omap_writel(pull, cfg->pull_reg);
++		spin_unlock_irqrestore(&mux_spin_lock, flags);
++	}
 +
-+	return 0;
-+}
++	if (warn) {
++#ifdef CONFIG_OMAP_MUX_WARNINGS
++		printk(KERN_WARNING "MUX: initialized %s\n", cfg->name);
++#endif
++	}
 +
-+static struct tps65010_board tps_board = {
-+	.base		= OSK_TPS_GPIO_BASE,
-+	.outmask	= 0x0f,
-+	.setup		= osk_tps_setup,
-+};
++#ifdef CONFIG_OMAP_MUX_DEBUG
++	if (cfg->debug || warn) {
++		printk("MUX: Setting register %s\n", cfg->name);
++		printk("      %s (0x%08x) = 0x%08x -> 0x%08x\n",
++		       cfg->mux_reg_name, cfg->mux_reg, reg_orig, reg);
 +
- static struct i2c_board_info __initdata osk_i2c_board_info[] = {
- 	{
- 		I2C_BOARD_INFO("tps65010", 0x48),
- 		.type		= "tps65010",
- 		.irq		= OMAP_GPIO_IRQ(OMAP_MPUIO(1)),
-+		.platform_data	= &tps_board,
++		if (!cpu_is_omap15xx()) {
++			if (cfg->pu_pd_reg && cfg->pull_val) {
++				printk("      %s (0x%08x) = 0x%08x -> 0x%08x\n",
++				       cfg->pu_pd_name, cfg->pu_pd_reg,
++				       pu_pd_orig, pu_pd);
++			}
++		}
 +
- 	},
- 	/* TODO when driver support is ready:
- 	 *  - aic23 audio chip at 0x1a
-@@ -488,44 +558,6 @@ static void __init osk_map_io(void)
- 	omap1_map_common_io();
++		if (cfg->pull_reg)
++			printk("      %s (0x%08x) = 0x%08x -> 0x%08x\n",
++			       cfg->pull_name, cfg->pull_reg, pull_orig, pull);
++	}
++#endif
++
++#ifdef CONFIG_OMAP_MUX_ERRORS
++	return warn ? -ETXTBSY : 0;
++#else
+ 	return 0;
++#endif
  }
  
--#ifdef CONFIG_TPS65010
--static int __init osk_tps_init(void)
--{
--	if (!machine_is_omap_osk())
--		return 0;
+ int __init omap1_mux_init(void)
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 351baab..71cff46 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -172,8 +172,39 @@ MUX_CFG_24XX("B13_24XX_KBC6",		0x110,	3,	0,	0,	1)
+ };
+ 
+ #ifdef CONFIG_ARCH_OMAP24XX
++
++#define OMAP24XX_L4_BASE	0x48000000
++#define OMAP24XX_PULL_ENA	(1 << 3)
++#define OMAP24XX_PULL_UP	(1 << 4)
++
++/* REVISIT: Convert this code to use ctrl_{read,write}_reg */
+ int __init_or_module omap24xx_cfg_reg(const struct pin_config *cfg)
+ {
++	u8 reg = 0;
++	unsigned int warn = 0;
++
++	reg |= cfg->mask & 0x7;
++	if (cfg->pull_val)
++		reg |= OMAP24XX_PULL_ENA;
++	if(cfg->pu_pd_val)
++		reg |= OMAP24XX_PULL_UP;
++#if defined(CONFIG_OMAP_MUX_DEBUG) || defined(CONFIG_OMAP_MUX_WARNINGS)
++	{
++		u8 orig = omap_readb(OMAP24XX_L4_BASE + cfg->mux_reg);
++		u8 debug = 0;
++
++#ifdef	CONFIG_OMAP_MUX_DEBUG
++		debug = cfg->debug;
++#endif
++		warn = (orig != reg);
++		if (debug || warn)
++			printk("MUX: setup %s (0x%08x): 0x%02x -> 0x%02x\n",
++				cfg->name, OMAP24XX_L4_BASE + cfg->mux_reg,
++				orig, reg);
++	}
++#endif
++	omap_writeb(reg, OMAP24XX_L4_BASE + cfg->mux_reg);
++
+ 	return 0;
+ }
+ #endif
+diff --git a/arch/arm/plat-omap/mux.c b/arch/arm/plat-omap/mux.c
+index d881379..4de18b9 100644
+--- a/arch/arm/plat-omap/mux.c
++++ b/arch/arm/plat-omap/mux.c
+@@ -32,10 +32,6 @@
+ 
+ #ifdef CONFIG_OMAP_MUX
+ 
+-#define OMAP24XX_L4_BASE	0x48000000
+-#define OMAP24XX_PULL_ENA	(1 << 3)
+-#define OMAP24XX_PULL_UP	(1 << 4)
 -
--	/* Let LED1 (D9) blink */
--	tps65010_set_led(LED1, BLINK);
--
--	/* Disable LED 2 (D2) */
--	tps65010_set_led(LED2, OFF);
--
--	/* Set GPIO 1 HIGH to disable VBUS power supply;
--	 * OHCI driver powers it up/down as needed.
--	 */
--	tps65010_set_gpio_out_value(GPIO1, HIGH);
--
--	/* Set GPIO 2 low to turn on LED D3 */
--	tps65010_set_gpio_out_value(GPIO2, HIGH);
--
--	/* Set GPIO 3 low to take ethernet out of reset */
--	tps65010_set_gpio_out_value(GPIO3, LOW);
--
--	/* gpio4 for VDD_DSP */
--	/* FIXME send power to DSP iff it's configured */
--
--	/* Enable LOW_PWR */
--	tps65010_set_low_pwr(ON);
--
--	/* Switch VLDO2 to 3.0V for AIC23 */
--	tps65010_config_vregs1(TPS_LDO2_ENABLE | TPS_VLDO2_3_0V
--			| TPS_LDO1_ENABLE);
--
--	return 0;
--}
--fs_initcall(osk_tps_init);
--#endif
--
- MACHINE_START(OMAP_OSK, "TI-OSK")
- 	/* Maintainer: Dirk Behme <dirk.behme@de.bosch.com> */
- 	.phys_io	= 0xfff00000,
-diff --git a/arch/arm/mach-omap1/leds-osk.c b/arch/arm/mach-omap1/leds-osk.c
-index 026685e..754383d 100644
---- a/arch/arm/mach-omap1/leds-osk.c
-+++ b/arch/arm/mach-omap1/leds-osk.c
-@@ -1,11 +1,9 @@
- /*
-  * linux/arch/arm/mach-omap1/leds-osk.c
-  *
-- * LED driver for OSK, and optionally Mistral QVGA, boards
-+ * LED driver for OSK with optional Mistral QVGA board
+ static struct omap_mux_cfg *mux_cfg;
+ 
+ int __init omap_mux_register(struct omap_mux_cfg *arch_mux_cfg)
+@@ -56,13 +52,7 @@ int __init omap_mux_register(struct omap_mux_cfg *arch_mux_cfg)
   */
- #include <linux/init.h>
--#include <linux/workqueue.h>
--#include <linux/i2c/tps65010.h>
+ int __init_or_module omap_cfg_reg(const unsigned long index)
+ {
+-	static DEFINE_SPINLOCK(mux_spin_lock);
+-
+-	unsigned long flags;
+-	struct pin_config *cfg;
+-	unsigned int reg_orig = 0, reg = 0, pu_pd_orig = 0, pu_pd = 0,
+-		pull_orig = 0, pull = 0;
+-	unsigned int mask, warn = 0;
++	struct pin_config *reg;
  
- #include <asm/hardware.h>
- #include <asm/leds.h>
-@@ -20,49 +18,11 @@
- #define LED_STATE_CLAIMED	(1 << 1)
- static u8 led_state;
- 
--#define	GREEN_LED		(1 << 0)	/* TPS65010 LED1 */
--#define	AMBER_LED		(1 << 1)	/* TPS65010 LED2 */
--#define	RED_LED			(1 << 2)	/* TPS65010 GPIO2 */
- #define	TIMER_LED		(1 << 3)	/* Mistral board */
- #define	IDLE_LED		(1 << 4)	/* Mistral board */
- static u8 hw_led_state;
- 
- 
--/* TPS65010 leds are changed using i2c -- from a task context.
-- * Using one of these for the "idle" LED would be impractical...
-- */
--#define	TPS_LEDS	(GREEN_LED | RED_LED | AMBER_LED)
--
--static u8 tps_leds_change;
--
--static void tps_work(struct work_struct *unused)
--{
--	for (;;) {
--		u8	leds;
--
--		local_irq_disable();
--		leds = tps_leds_change;
--		tps_leds_change = 0;
--		local_irq_enable();
--
--		if (!leds)
--			break;
--
--		/* careful:  the set_led() value is on/off/blink */
--		if (leds & GREEN_LED)
--			tps65010_set_led(LED1, !!(hw_led_state & GREEN_LED));
--		if (leds & AMBER_LED)
--			tps65010_set_led(LED2, !!(hw_led_state & AMBER_LED));
--
--		/* the gpio led doesn't have that issue */
--		if (leds & RED_LED)
--			tps65010_set_gpio_out_value(GPIO2,
--					!(hw_led_state & RED_LED));
--	}
--}
--
--static DECLARE_WORK(work, tps_work);
--
- #ifdef	CONFIG_OMAP_OSK_MISTRAL
- 
- /* For now, all system indicators require the Mistral board, since that
-@@ -112,7 +72,6 @@ void osk_leds_event(led_event_t evt)
- 	case led_stop:
- 		led_state &= ~LED_STATE_ENABLED;
- 		hw_led_state = 0;
--		/* NOTE:  work may still be pending!! */
- 		break;
- 
- 	case led_claim:
-@@ -145,48 +104,11 @@ void osk_leds_event(led_event_t evt)
- 
- #endif	/* CONFIG_OMAP_OSK_MISTRAL */
- 
--	/* "green" == tps LED1 (leftmost, normally power-good)
--	 * works only with DC adapter, not on battery power!
--	 */
--	case led_green_on:
--		if (led_state & LED_STATE_CLAIMED)
--			hw_led_state |= GREEN_LED;
--		break;
--	case led_green_off:
--		if (led_state & LED_STATE_CLAIMED)
--			hw_led_state &= ~GREEN_LED;
--		break;
--
--	/* "amber" == tps LED2 (middle) */
--	case led_amber_on:
--		if (led_state & LED_STATE_CLAIMED)
--			hw_led_state |= AMBER_LED;
--		break;
--	case led_amber_off:
--		if (led_state & LED_STATE_CLAIMED)
--			hw_led_state &= ~AMBER_LED;
--		break;
--
--	/* "red" == LED on tps gpio3 (rightmost) */
--	case led_red_on:
--		if (led_state & LED_STATE_CLAIMED)
--			hw_led_state |= RED_LED;
--		break;
--	case led_red_off:
--		if (led_state & LED_STATE_CLAIMED)
--			hw_led_state &= ~RED_LED;
--		break;
--
- 	default:
- 		break;
+ 	if (mux_cfg == NULL) {
+ 		printk(KERN_ERR "Pin mux table not initialized\n");
+@@ -76,134 +66,12 @@ int __init_or_module omap_cfg_reg(const unsigned long index)
+ 		return -ENODEV;
  	}
  
- 	leds ^= hw_led_state;
--	leds &= TPS_LEDS;
--	if (leds && (led_state & LED_STATE_CLAIMED)) {
--		tps_leds_change |= leds;
--		schedule_work(&work);
+-	cfg = (struct pin_config *)&mux_cfg->pins[index];
+-	if (cpu_is_omap24xx()) {
+-		u8 reg = 0;
+-
+-		reg |= cfg->mask & 0x7;
+-		if (cfg->pull_val)
+-			reg |= OMAP24XX_PULL_ENA;
+-		if(cfg->pu_pd_val)
+-			reg |= OMAP24XX_PULL_UP;
+-#if defined(CONFIG_OMAP_MUX_DEBUG) || defined(CONFIG_OMAP_MUX_WARNINGS)
+-		{
+-			u8 orig = omap_readb(OMAP24XX_L4_BASE + cfg->mux_reg);
+-			u8 debug = 0;
+-
+-#ifdef	CONFIG_OMAP_MUX_DEBUG
+-			debug = cfg->debug;
+-#endif
+-			warn = (orig != reg);
+-			if (debug || warn)
+-				printk("MUX: setup %s (0x%08x): 0x%02x -> 0x%02x\n",
+-						cfg->name,
+-						OMAP24XX_L4_BASE + cfg->mux_reg,
+-						orig, reg);
+-		}
+-#endif
+-		omap_writeb(reg, OMAP24XX_L4_BASE + cfg->mux_reg);
+-
+-		return 0;
 -	}
+-
+-	/* Check the mux register in question */
+-	if (cfg->mux_reg) {
+-		unsigned	tmp1, tmp2;
+-
+-		spin_lock_irqsave(&mux_spin_lock, flags);
+-		reg_orig = omap_readl(cfg->mux_reg);
+-
+-		/* The mux registers always seem to be 3 bits long */
+-		mask = (0x7 << cfg->mask_offset);
+-		tmp1 = reg_orig & mask;
+-		reg = reg_orig & ~mask;
+-
+-		tmp2 = (cfg->mask << cfg->mask_offset);
+-		reg |= tmp2;
+-
+-		if (tmp1 != tmp2)
+-			warn = 1;
+-
+-		omap_writel(reg, cfg->mux_reg);
+-		spin_unlock_irqrestore(&mux_spin_lock, flags);
+-	}
+-
+-	/* Check for pull up or pull down selection on 1610 */
+-	if (!cpu_is_omap15xx()) {
+-		if (cfg->pu_pd_reg && cfg->pull_val) {
+-			spin_lock_irqsave(&mux_spin_lock, flags);
+-			pu_pd_orig = omap_readl(cfg->pu_pd_reg);
+-			mask = 1 << cfg->pull_bit;
++	reg = (struct pin_config *)&mux_cfg->pins[index];
  
- done:
- 	local_irq_restore(flags);
-diff --git a/include/asm-arm/arch-omap/board-osk.h b/include/asm-arm/arch-omap/board-osk.h
-index 2b1a8a4..9492609 100644
---- a/include/asm-arm/arch-omap/board-osk.h
-+++ b/include/asm-arm/arch-omap/board-osk.h
-@@ -32,5 +32,16 @@
- /* At OMAP5912 OSK the Ethernet is directly connected to CS1 */
- #define OMAP_OSK_ETHR_START		0x04800300
+-			if (cfg->pu_pd_val) {
+-				if (!(pu_pd_orig & mask))
+-					warn = 1;
+-				/* Use pull up */
+-				pu_pd = pu_pd_orig | mask;
+-			} else {
+-				if (pu_pd_orig & mask)
+-					warn = 1;
+-				/* Use pull down */
+-				pu_pd = pu_pd_orig & ~mask;
+-			}
+-			omap_writel(pu_pd, cfg->pu_pd_reg);
+-			spin_unlock_irqrestore(&mux_spin_lock, flags);
+-		}
+-	}
+-
+-	/* Check for an associated pull down register */
+-	if (cfg->pull_reg) {
+-		spin_lock_irqsave(&mux_spin_lock, flags);
+-		pull_orig = omap_readl(cfg->pull_reg);
+-		mask = 1 << cfg->pull_bit;
+-
+-		if (cfg->pull_val) {
+-			if (pull_orig & mask)
+-				warn = 1;
+-			/* Low bit = pull enabled */
+-			pull = pull_orig & ~mask;
+-		} else {
+-			if (!(pull_orig & mask))
+-				warn = 1;
+-			/* High bit = pull disabled */
+-			pull = pull_orig | mask;
+-		}
+-
+-		omap_writel(pull, cfg->pull_reg);
+-		spin_unlock_irqrestore(&mux_spin_lock, flags);
+-	}
+-
+-	if (warn) {
+-#ifdef CONFIG_OMAP_MUX_WARNINGS
+-		printk(KERN_WARNING "MUX: initialized %s\n", cfg->name);
+-#endif
+-	}
+-
+-#ifdef CONFIG_OMAP_MUX_DEBUG
+-	if (cfg->debug || warn) {
+-		printk("MUX: Setting register %s\n", cfg->name);
+-		printk("      %s (0x%08x) = 0x%08x -> 0x%08x\n",
+-		       cfg->mux_reg_name, cfg->mux_reg, reg_orig, reg);
+-
+-		if (!cpu_is_omap15xx()) {
+-			if (cfg->pu_pd_reg && cfg->pull_val) {
+-				printk("      %s (0x%08x) = 0x%08x -> 0x%08x\n",
+-				       cfg->pu_pd_name, cfg->pu_pd_reg,
+-				       pu_pd_orig, pu_pd);
+-			}
+-		}
+-
+-		if (cfg->pull_reg)
+-			printk("      %s (0x%08x) = 0x%08x -> 0x%08x\n",
+-			       cfg->pull_name, cfg->pull_reg, pull_orig, pull);
+-	}
+-#endif
++	if (!mux_cfg->cfg_reg)
++		return -ENODEV;
  
-+/* TPS65010 has four GPIOs.  nPG and LED2 can be treated like GPIOs with
-+ * alternate pin configurations for hardware-controlled blinking.
-+ */
-+#define OSK_TPS_GPIO_BASE		(OMAP_MAX_GPIO_LINES + 16 /* MPUIO */)
-+#	define OSK_TPS_GPIO_USB_PWR_EN	(OSK_TPS_GPIO_BASE + 0)
-+#	define OSK_TPS_GPIO_LED_D3	(OSK_TPS_GPIO_BASE + 1)
-+#	define OSK_TPS_GPIO_LAN_RESET	(OSK_TPS_GPIO_BASE + 2)
-+#	define OSK_TPS_GPIO_DSP_PWR_EN	(OSK_TPS_GPIO_BASE + 3)
-+#	define OSK_TPS_GPIO_LED_D9	(OSK_TPS_GPIO_BASE + 4)
-+#	define OSK_TPS_GPIO_LED_D2	(OSK_TPS_GPIO_BASE + 5)
-+
- #endif /*  __ASM_ARCH_OMAP_OSK_H */
- 
+-#ifdef CONFIG_OMAP_MUX_ERRORS
+-	return warn ? -ETXTBSY : 0;
+-#else
+-	return 0;
+-#endif
++	return mux_cfg->cfg_reg(reg);
+ }
+ EXPORT_SYMBOL(omap_cfg_reg);
+ #else
 -- 
 1.5.3.6
 
