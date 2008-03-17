@@ -1,41 +1,51 @@
-From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH] I2C: Fix unhandled fault in i2c-omap controller,
- take #2
-Date: Mon, 17 Mar 2008 12:05:10 +0100
-Message-ID: <20080317120510.02e93678@hyperion.delvare>
-References: <20080313155123.GI11653@atomide.com>
-	<20080314185218.3fa69d19@hyperion.delvare>
-	<20080317064619.GO11653@atomide.com>
-	<20080317071949.GP11653@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <i2c-bounces-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
-In-Reply-To: <20080317071949.GP11653-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <http://lists.lm-sensors.org/mailman/listinfo/i2c>,
-	<mailto:i2c-request-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.lm-sensors.org/pipermail/i2c>
-List-Post: <mailto:i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
-List-Help: <mailto:i2c-request-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/i2c>,
-	<mailto:i2c-request-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org?subject=subscribe>
-Sender: i2c-bounces-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
-Errors-To: i2c-bounces-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: [PATCH] ARM: OMAP: DMA: Fix incorrect channel linking
+Date: Mon, 17 Mar 2008 17:01:10 +0200
+Message-ID: <1205766070-16752-1-git-send-email-jarkko.nikula@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:46756 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752799AbYCQPA5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Mar 2008 11:00:57 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2HF1tfA008175
+	for <linux-omap@vger.kernel.org>; Mon, 17 Mar 2008 10:02:51 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
 
-On Mon, 17 Mar 2008 09:19:49 +0200, Tony Lindgren wrote:
-> Hi,
-> 
-> Here's an updated version
+Function enable_lnk does incorrect channel link on non-omap1 builds if chain
+is created manually with omap_request_dma and omap_dma_link_lch functions.
 
-Applied and queued for 2.6.25, thanks.
+Fix this by making sure that next_linked_ch field is initialized to -1 just
+in omap_request_dma.
 
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+---
+ arch/arm/plat-omap/dma.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 7937406..c00eda5 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -604,6 +604,7 @@ int omap_request_dma(int dev_id, const char *dev_name,
+ 	chan->data = data;
+ #ifndef CONFIG_ARCH_OMAP1
+ 	chan->chain_id = -1;
++	chan->next_linked_ch = -1;
+ #endif
+ 	chan->enabled_irqs = OMAP_DMA_DROP_IRQ | OMAP_DMA_BLOCK_IRQ;
+ 
+@@ -1087,7 +1088,6 @@ int omap_request_dma_chain(int dev_id, const char *dev_name,
+ 			printk(KERN_ERR "omap_dma: Request failed %d\n", err);
+ 			return err;
+ 		}
+-		dma_chan[channels[i]].next_linked_ch = -1;
+ 		dma_chan[channels[i]].prev_linked_ch = -1;
+ 		dma_chan[channels[i]].state = DMA_CH_NOTSTARTED;
+ 
 -- 
-Jean Delvare
+1.5.4.1
 
-_______________________________________________
-i2c mailing list
-i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
-http://lists.lm-sensors.org/mailman/listinfo/i2c
