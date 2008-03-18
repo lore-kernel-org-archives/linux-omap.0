@@ -1,61 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: another dsp build fix ...
-Date: Tue, 18 Mar 2008 11:19:29 +0200
-Message-ID: <20080318091929.GH20921@atomide.com>
-References: <200803172141.12298.david-b@pacbell.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Francisco Alecrim <francisco.alecrim@indt.org.br>
+Subject: [PATCH] Refresh palmtt_defconfig
+Date: Tue, 18 Mar 2008 10:20:04 +0200
+Message-ID: <1205828404919-git-send-email-francisco.alecrim@indt.org.br>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56881 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752051AbYCRJUL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Mar 2008 05:20:11 -0400
-Content-Disposition: inline
-In-Reply-To: <200803172141.12298.david-b@pacbell.net>
+Received: from smtp.nokia.com ([192.100.105.134]:43866 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752094AbYCRJVE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Mar 2008 05:21:04 -0400
+Received: from esebh108.NOE.Nokia.com (esebh108.ntc.nokia.com [172.21.143.145])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2I9Lk72014754
+	for <linux-omap@vger.kernel.org>; Tue, 18 Mar 2008 04:22:58 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Francisco Alecrim <francisco.alecrim@indt.org.br>
 
-* David Brownell <david-b@pacbell.net> [080318 06:41]:
-> Another compile fix for DSP code ... these symbols are defined
-> as NOPs in a header.
-> 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
->  drivers/dsp/dspgateway/dsp_common.c |    4 ++++
->  1 files changed, 4 insertions(+)
-> 
-> --- osk2.orig/drivers/dsp/dspgateway/dsp_common.c	2008-03-17 21:03:13.000000000 -0700
-> +++ osk2/drivers/dsp/dspgateway/dsp_common.c	2008-03-17 21:03:16.000000000 -0700
-> @@ -502,6 +502,7 @@ void omap_dsp_release_mpui(void)
->  	mutex_unlock(&cpustat.lock);
->  }
->  
-> +#if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_OMAP_MMU_FWK)
->  int omap_dsp_request_mem(void)
->  {
->  	int ret = 0;
-> @@ -564,6 +565,7 @@ int omap_dsp_release_mem(void)
->  
->  	return 0;
->  }
-> +#endif
->  
->  void dsp_register_mem_cb(int (*req_cb)(void), void (*rel_cb)(void))
->  {
-> @@ -597,8 +599,10 @@ arch_initcall(omap_dsp_init);
->  #ifdef CONFIG_ARCH_OMAP1
->  EXPORT_SYMBOL(omap_dsp_request_mpui);
->  EXPORT_SYMBOL(omap_dsp_release_mpui);
-> +#if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_OMAP_MMU_FWK)
->  EXPORT_SYMBOL(omap_dsp_request_mem);
->  EXPORT_SYMBOL(omap_dsp_release_mem);
-> +#endif
->  #endif /* CONFIG_ARCH_OMAP1 */
->  
->  #ifdef CONFIG_OMAP_DSP_MODULE
+Refresh palmtt_defconfig
 
-Pushing today.
+Signed-off-by: Francisco Alecrim <francisco.alecrim@indt.org.br>
+---
+ arch/arm/configs/palmtt_defconfig |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Tony
+diff --git a/arch/arm/configs/palmtt_defconfig b/arch/arm/configs/palmtt_defconfig
+index 4a5fcb4..e54ced4 100644
+--- a/arch/arm/configs/palmtt_defconfig
++++ b/arch/arm/configs/palmtt_defconfig
+@@ -252,8 +252,8 @@ CONFIG_FPE_NWFPE=y
+ # Userspace binary formats
+ #
+ CONFIG_BINFMT_ELF=y
+-CONFIG_BINFMT_AOUT=y
+-CONFIG_BINFMT_MISC=y
++# CONFIG_BINFMT_AOUT is not set
++# CONFIG_BINFMT_MISC is not set
+ # CONFIG_ARTHUR is not set
+ 
+ #
+-- 
+1.5.2.5
+
