@@ -1,18 +1,21 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 4/12] ARM: OMAP2: Change 24xx to use new register access
-Date: Tue, 18 Mar 2008 12:39:52 +0200
-Message-ID: <1205836800-31737-5-git-send-email-tony@atomide.com>
+Subject: [PATCH 7/12] ARM: OMAP2: Add common clock framework for 24xx and 34xx
+Date: Tue, 18 Mar 2008 12:39:55 +0200
+Message-ID: <1205836800-31737-8-git-send-email-tony@atomide.com>
 References: omap2-upstream-2008-03-18-123926
  <1205836800-31737-1-git-send-email-tony@atomide.com>
  <1205836800-31737-2-git-send-email-tony@atomide.com>
  <1205836800-31737-3-git-send-email-tony@atomide.com>
  <1205836800-31737-4-git-send-email-tony@atomide.com>
+ <1205836800-31737-5-git-send-email-tony@atomide.com>
+ <1205836800-31737-6-git-send-email-tony@atomide.com>
+ <1205836800-31737-7-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:62364 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751355AbYCRKky (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Mar 2008 06:40:54 -0400
-In-Reply-To: <1205836800-31737-4-git-send-email-tony@atomide.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51830 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751686AbYCRKlF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Mar 2008 06:41:05 -0400
+In-Reply-To: <1205836800-31737-7-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
@@ -20,1091 +23,868 @@ Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <t
 
 From: Paul Walmsley <paul@pwsan.com>
 
-This patch changes 24xx to use new register access, except for clock
-framework. Clock framework register access will get updates in the
-next patch.
-
-Note that board-*.c files change GPMC (General Purpose Memory Controller)
-access to use gpmc_cs_write_reg() instead of accessing the registers
-directly. The H4 board file also adds h4_init_flash() function, which
-specyfy the flash start and end addresses.
-
-Also note that sleep.S removes some unused registers addresses.
+This patch adds a common clock framework for 24xx and 34xx.
+Note that this patch does not add it to Makefile until in
+next patch. Some functions are modified from earlier 24xx
+clock framework code.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-2430sdp.c     |    1 -
- arch/arm/mach-omap2/board-apollon.c     |   49 ++++++++++++---
- arch/arm/mach-omap2/board-h4.c          |  102 ++++++++++++++++++++++++++++---
- arch/arm/mach-omap2/memory.c            |   26 +++++---
- arch/arm/mach-omap2/mux.c               |    9 +--
- arch/arm/mach-omap2/prcm-regs.h         |   14 ++++
- arch/arm/mach-omap2/prcm.c              |   12 +++-
- arch/arm/mach-omap2/sleep.S             |   23 +------
- arch/arm/mach-omap2/sram-fn.S           |   42 +++++--------
- arch/arm/plat-omap/common.c             |   47 +++++++++++++-
- arch/arm/plat-omap/usb.c                |   67 +++++++++++++++-----
- include/asm-arm/arch-omap/clock.h       |    5 ++
- include/asm-arm/arch-omap/entry-macro.S |    2 +-
- include/asm-arm/arch-omap/io.h          |   70 ++++++++++++++++++++-
- include/asm-arm/arch-omap/omap24xx.h    |   96 ++++++++++++++++++++++++-----
- 15 files changed, 443 insertions(+), 122 deletions(-)
+ arch/arm/mach-omap2/clock.c |  762 +++++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/clock.h |   74 +++++
+ 2 files changed, 836 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/clock.c
+ create mode 100644 arch/arm/mach-omap2/clock.h
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index 64235de..787e2ae 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -33,7 +33,6 @@
- #include <asm/arch/board.h>
- #include <asm/arch/common.h>
- #include <asm/arch/gpmc.h>
--#include "prcm-regs.h"
- 
- #include <asm/io.h>
- 
-diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
-index 7846551..8fc11c6 100644
---- a/arch/arm/mach-omap2/board-apollon.c
-+++ b/arch/arm/mach-omap2/board-apollon.c
-@@ -26,6 +26,8 @@
- #include <linux/interrupt.h>
- #include <linux/delay.h>
- #include <linux/leds.h>
-+#include <linux/err.h>
-+#include <linux/clk.h>
- 
- #include <asm/hardware.h>
- #include <asm/mach-types.h>
-@@ -39,7 +41,7 @@
- #include <asm/arch/board.h>
- #include <asm/arch/common.h>
- #include <asm/arch/gpmc.h>
--#include "prcm-regs.h"
-+#include <asm/arch/control.h>
- 
- /* LED & Switch macros */
- #define LED0_GPIO13		13
-@@ -187,13 +189,40 @@ static inline void __init apollon_init_smc91x(void)
- {
- 	unsigned long base;
- 
-+	unsigned int rate;
-+	struct clk *l3ck;
-+	int eth_cs;
-+
-+	l3ck = clk_get(NULL, "core_l3_ck");
-+	if (IS_ERR(l3ck))
-+		rate = 100000000;
-+	else
-+		rate = clk_get_rate(l3ck);
-+
-+	eth_cs = APOLLON_ETH_CS;
-+
- 	/* Make sure CS1 timings are correct */
--	GPMC_CONFIG1_1 = 0x00011203;
--	GPMC_CONFIG2_1 = 0x001f1f01;
--	GPMC_CONFIG3_1 = 0x00080803;
--	GPMC_CONFIG4_1 = 0x1c091c09;
--	GPMC_CONFIG5_1 = 0x041f1f1f;
--	GPMC_CONFIG6_1 = 0x000004c4;
-+	gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG1, 0x00011200);
-+
-+	if (rate >= 160000000) {
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG2, 0x001f1f01);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG3, 0x00080803);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG4, 0x1c0b1c0a);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG5, 0x041f1F1F);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG6, 0x000004C4);
-+	} else if (rate >= 130000000) {
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG2, 0x001f1f00);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG3, 0x00080802);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG4, 0x1C091C09);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG5, 0x041f1F1F);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG6, 0x000004C4);
-+	} else {/* rate = 100000000 */
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG2, 0x001f1f00);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG3, 0x00080802);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG4, 0x1C091C09);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG5, 0x031A1F1F);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG6, 0x000003C2);
-+	}
- 
- 	if (gpmc_cs_request(APOLLON_ETH_CS, SZ_16M, &base) < 0) {
- 		printk(KERN_ERR "Failed to request GPMC CS for smc91x\n");
-@@ -330,6 +359,8 @@ static void __init apollon_usb_init(void)
- 
- static void __init omap_apollon_init(void)
- {
-+	u32 v;
-+
- 	apollon_led_init();
- 	apollon_sw_init();
- 	apollon_flash_init();
-@@ -339,7 +370,9 @@ static void __init omap_apollon_init(void)
- 	omap_cfg_reg(W19_24XX_SYS_NIRQ);
- 
- 	/* Use Interal loop-back in MMC/SDIO Module Input Clock selection */
--	CONTROL_DEVCONF |= (1 << 24);
-+	v = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
-+	v |= (1 << 24);
-+	omap_ctrl_writel(v, OMAP2_CONTROL_DEVCONF0);
- 
- 	/*
-  	 * Make sure the serial ports are muxed on at this point.
-diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-index f125f43..ec2f207 100644
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -19,6 +19,8 @@
- #include <linux/delay.h>
- #include <linux/workqueue.h>
- #include <linux/input.h>
-+#include <linux/err.h>
-+#include <linux/clk.h>
- 
- #include <asm/hardware.h>
- #include <asm/mach-types.h>
-@@ -26,6 +28,7 @@
- #include <asm/mach/map.h>
- #include <asm/mach/flash.h>
- 
-+#include <asm/arch/control.h>
- #include <asm/arch/gpio.h>
- #include <asm/arch/gpioexpander.h>
- #include <asm/arch/mux.h>
-@@ -36,10 +39,13 @@
- #include <asm/arch/keypad.h>
- #include <asm/arch/menelaus.h>
- #include <asm/arch/dma.h>
--#include "prcm-regs.h"
-+#include <asm/arch/gpmc.h>
- 
- #include <asm/io.h>
- 
-+#define H4_FLASH_CS	0
-+#define H4_SMC91X_CS	1
-+
- static unsigned int row_gpios[6] = { 88, 89, 124, 11, 6, 96 };
- static unsigned int col_gpios[7] = { 90, 91, 100, 36, 12, 97, 98 };
- 
-@@ -116,8 +122,6 @@ static struct flash_platform_data h4_flash_data = {
- };
- 
- static struct resource h4_flash_resource = {
--	.start		= H4_CS0_BASE,
--	.end		= H4_CS0_BASE + SZ_64M - 1,
- 	.flags		= IORESOURCE_MEM,
- };
- 
-@@ -253,16 +257,81 @@ static struct platform_device *h4_devices[] __initdata = {
- 	&h4_lcd_device,
- };
- 
-+/* 2420 Sysboot setup (2430 is different) */
-+static u32 get_sysboot_value(void)
-+{
-+	return (omap_ctrl_readl(OMAP24XX_CONTROL_STATUS) &
-+		(OMAP2_SYSBOOT_5_MASK | OMAP2_SYSBOOT_4_MASK |
-+		 OMAP2_SYSBOOT_3_MASK | OMAP2_SYSBOOT_2_MASK |
-+		 OMAP2_SYSBOOT_1_MASK | OMAP2_SYSBOOT_0_MASK));
-+}
-+
-+/* H4-2420's always used muxed mode, H4-2422's always use non-muxed
-+ *
-+ * Note: OMAP-GIT doesn't correctly do is_cpu_omap2422 and is_cpu_omap2423
-+ *  correctly.  The macro needs to look at production_id not just hawkeye.
-+ */
-+static u32 is_gpmc_muxed(void)
-+{
-+	u32 mux;
-+	mux = get_sysboot_value();
-+	if ((mux & 0xF) == 0xd)
-+		return 1;	/* NAND config (could be either) */
-+	if (mux & 0x2)		/* if mux'ed */
-+		return 1;
-+	else
-+		return 0;
-+}
-+
- static inline void __init h4_init_debug(void)
- {
-+	int eth_cs;
-+	unsigned long cs_mem_base;
-+	unsigned int muxed, rate;
-+	struct clk *l3ck;
-+
-+	eth_cs	= H4_SMC91X_CS;
-+
-+	l3ck = clk_get(NULL, "core_l3_ck");
-+	if (IS_ERR(l3ck))
-+		rate = 100000000;
-+	else
-+		rate = clk_get_rate(l3ck);
-+
-+	if (is_gpmc_muxed())
-+		muxed = 0x200;
-+	else
-+		muxed = 0;
-+
- 	/* Make sure CS1 timings are correct */
--	GPMC_CONFIG1_1 = 0x00011200;
--	GPMC_CONFIG2_1 = 0x001f1f01;
--	GPMC_CONFIG3_1 = 0x00080803;
--	GPMC_CONFIG4_1 = 0x1c091c09;
--	GPMC_CONFIG5_1 = 0x041f1f1f;
--	GPMC_CONFIG6_1 = 0x000004c4;
--	GPMC_CONFIG7_1 = 0x00000f40 | (0x08000000 >> 24);
-+	gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG1,
-+			  0x00011000 | muxed);
-+
-+	if (rate >= 160000000) {
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG2, 0x001f1f01);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG3, 0x00080803);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG4, 0x1c0b1c0a);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG5, 0x041f1F1F);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG6, 0x000004C4);
-+	} else if (rate >= 130000000) {
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG2, 0x001f1f00);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG3, 0x00080802);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG4, 0x1C091C09);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG5, 0x041f1F1F);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG6, 0x000004C4);
-+	} else {/* rate = 100000000 */
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG2, 0x001f1f00);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG3, 0x00080802);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG4, 0x1C091C09);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG5, 0x031A1F1F);
-+		gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG6, 0x000003C2);
-+	}
-+
-+	if (gpmc_cs_request(eth_cs, SZ_16M, &cs_mem_base) < 0) {
-+		printk(KERN_ERR "Failed to request GPMC mem for smc91x\n");
-+		return;
-+	}
-+
- 	udelay(100);
- 
- 	omap_cfg_reg(M15_24XX_GPIO92);
-@@ -270,11 +339,24 @@ static inline void __init h4_init_debug(void)
- 		gpmc_cs_free(eth_cs);
- }
- 
-+static void __init h4_init_flash(void)
-+{
-+	unsigned long base;
-+
-+	if (gpmc_cs_request(H4_FLASH_CS, SZ_64M, &base) < 0) {
-+		printk("Can't request GPMC CS for flash\n");
-+		return;
-+	}
-+	h4_flash_resource.start	= base;
-+	h4_flash_resource.end	= base + SZ_64M - 1;
-+}
-+
- static void __init omap_h4_init_irq(void)
- {
- 	omap2_init_common_hw();
- 	omap_init_irq();
- 	omap_gpio_init();
-+	h4_init_flash();
- }
- 
- static struct omap_uart_config h4_uart_config __initdata = {
-diff --git a/arch/arm/mach-omap2/memory.c b/arch/arm/mach-omap2/memory.c
-index 3e5d8cd..b56c1a0 100644
---- a/arch/arm/mach-omap2/memory.c
-+++ b/arch/arm/mach-omap2/memory.c
-@@ -27,11 +27,16 @@
- #include <asm/arch/clock.h>
- #include <asm/arch/sram.h>
- 
--#include "prcm-regs.h"
-+#include "prm.h"
-+
- #include "memory.h"
-+#include "sdrc.h"
- 
-+unsigned long omap2_sdrc_base;
-+unsigned long omap2_sms_base;
- 
- static struct memory_timings mem_timings;
-+static u32 curr_perf_level = CORE_CLK_SRC_DPLL_X2;
- 
- u32 omap2_memory_get_slow_dll_ctrl(void)
- {
-@@ -53,7 +58,7 @@ void omap2_init_memory_params(u32 force_lock_to_unlock_mode)
- 	unsigned long dll_cnt;
- 	u32 fast_dll = 0;
- 
--	mem_timings.m_type = !((SDRC_MR_0 & 0x3) == 0x1); /* DDR = 1, SDR = 0 */
-+	mem_timings.m_type = !((sdrc_read_reg(SDRC_MR_0) & 0x3) == 0x1); /* DDR = 1, SDR = 0 */
- 
- 	/* 2422 es2.05 and beyond has a single SIP DDR instead of 2 like others.
- 	 * In the case of 2422, its ok to use CS1 instead of CS0.
-@@ -73,11 +78,11 @@ void omap2_init_memory_params(u32 force_lock_to_unlock_mode)
- 		mem_timings.dll_mode = M_LOCK;
- 
- 	if (mem_timings.base_cs == 0) {
--		fast_dll = SDRC_DLLA_CTRL;
--		dll_cnt = SDRC_DLLA_STATUS & 0xff00;
-+		fast_dll = sdrc_read_reg(SDRC_DLLA_CTRL);
-+		dll_cnt = sdrc_read_reg(SDRC_DLLA_STATUS) & 0xff00;
- 	} else {
--		fast_dll = SDRC_DLLB_CTRL;
--		dll_cnt = SDRC_DLLB_STATUS & 0xff00;
-+		fast_dll = sdrc_read_reg(SDRC_DLLB_CTRL);
-+		dll_cnt = sdrc_read_reg(SDRC_DLLB_STATUS) & 0xff00;
- 	}
- 	if (force_lock_to_unlock_mode) {
- 		fast_dll &= ~0xff00;
-@@ -106,14 +111,13 @@ void __init omap2_init_memory(void)
- {
- 	u32 l;
- 
--	l = SMS_SYSCONFIG;
-+	l = sms_read_reg(SMS_SYSCONFIG);
- 	l &= ~(0x3 << 3);
- 	l |= (0x2 << 3);
--	SMS_SYSCONFIG = l;
-+	sms_write_reg(l, SMS_SYSCONFIG);
- 
--	l = SDRC_SYSCONFIG;
-+	l = sdrc_read_reg(SDRC_SYSCONFIG);
- 	l &= ~(0x3 << 3);
- 	l |= (0x2 << 3);
--	SDRC_SYSCONFIG = l;
--
-+	sdrc_write_reg(l, SDRC_SYSCONFIG);
- }
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index b5ec958..9307700 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -29,6 +29,7 @@
- #include <asm/io.h>
- #include <linux/spinlock.h>
- 
-+#include <asm/arch/control.h>
- #include <asm/arch/mux.h>
- 
- #ifdef CONFIG_OMAP_MUX
-@@ -218,18 +219,16 @@ MUX_CFG_24XX("AD13_2430_MCBSP2_DR_OFF",	0x0131,	0,	0,	0,	1)
- #define OMAP24XX_PINS_SZ	0
- #endif	/* CONFIG_ARCH_OMAP24XX */
- 
--#define OMAP24XX_L4_BASE	0x48000000
- #define OMAP24XX_PULL_ENA	(1 << 3)
- #define OMAP24XX_PULL_UP	(1 << 4)
- 
--/* REVISIT: Convert this code to use ctrl_{read,write}_reg */
- #if defined(CONFIG_OMAP_MUX_DEBUG) || defined(CONFIG_OMAP_MUX_WARNINGS)
- void __init_or_module omap2_cfg_debug(const struct pin_config *cfg, u8 reg)
- {
- 	u16 orig;
- 	u8 warn = 0, debug = 0;
- 
--	orig = omap_readb(OMAP24XX_L4_BASE + cfg->mux_reg);
-+	orig = omap_ctrl_readb(cfg->mux_reg);
- 
- #ifdef	CONFIG_OMAP_MUX_DEBUG
- 	debug = cfg->debug;
-@@ -238,7 +237,7 @@ void __init_or_module omap2_cfg_debug(const struct pin_config *cfg, u8 reg)
- 	if (debug || warn)
- 		printk(KERN_WARNING
- 			"MUX: setup %s (0x%08x): 0x%02x -> 0x%02x\n",
--			cfg->name, omap_readb(OMAP24XX_L4_BASE + cfg->mux_reg,
-+			cfg->name, omap_ctrl_base_get() + cfg->mux_reg,
- 			orig, reg);
- }
- #else
-@@ -259,7 +258,7 @@ int __init_or_module omap24xx_cfg_reg(const struct pin_config *cfg)
- 	if (cfg->pu_pd_val)
- 		reg |= OMAP24XX_PULL_UP;
- 	omap2_cfg_debug(cfg, reg);
--	omap_writeb(reg, OMAP24XX_L4_BASE + cfg->mux_reg);
-+	omap_ctrl_writeb(reg, cfg->mux_reg);
- 	spin_unlock_irqrestore(&mux_spin_lock, flags);
- 
- 	return 0;
-diff --git a/arch/arm/mach-omap2/prcm-regs.h b/arch/arm/mach-omap2/prcm-regs.h
-index 5e1c4b5..c7f6cfa 100644
---- a/arch/arm/mach-omap2/prcm-regs.h
-+++ b/arch/arm/mach-omap2/prcm-regs.h
-@@ -23,6 +23,20 @@
- #ifndef __ARCH_ARM_MACH_OMAP2_PRCM_H
- #define __ARCH_ARM_MACH_OMAP2_PRCM_H
- 
-+#ifdef CONFIG_ARCH_OMAP2420
-+#define OMAP24XX_32KSYNCT_BASE	(L4_24XX_BASE + 0x4000)
-+#define OMAP24XX_PRCM_BASE	(L4_24XX_BASE + 0x8000)
-+#define OMAP24XX_SDRC_BASE	(L3_24XX_BASE + 0x9000)
-+#define OMAP242X_CONTROL_STATUS	(L4_24XX_BASE + 0x2f8)
-+#endif
-+
-+#ifdef CONFIG_ARCH_OMAP2430
-+#define OMAP24XX_32KSYNCT_BASE (L4_WK_243X_BASE + 0x20000)
-+#define OMAP24XX_PRCM_BASE     (L4_WK_243X_BASE + 0x6000)
-+#define OMAP24XX_SDRC_BASE     (0x6D000000)
-+#define OMAP242X_CONTROL_STATUS        (L4_24XX_BASE + 0x2f8)
-+#endif
-+
- /* SET_PERFORMANCE_LEVEL PARAMETERS */
- #define PRCM_HALF_SPEED 1
- #define PRCM_FULL_SPEED 2
-diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-index 01ab3bc..e90ce4c 100644
---- a/arch/arm/mach-omap2/prcm.c
-+++ b/arch/arm/mach-omap2/prcm.c
-@@ -18,19 +18,25 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include "prcm-regs.h"
-+#include "prm.h"
-+#include "prm-regbits-24xx.h"
- 
- extern void omap2_clk_prepare_for_reboot(void);
- 
- u32 omap_prcm_get_reset_sources(void)
- {
--	return RM_RSTST_WKUP & 0x7f;
-+	return prm_read_mod_reg(WKUP_MOD, RM_RSTST) & 0x7f;
- }
- EXPORT_SYMBOL(omap_prcm_get_reset_sources);
- 
- /* Resets clock rates and reboots the system. Only called from system.h */
- void omap_prcm_arch_reset(char mode)
- {
-+	u32 wkup;
- 	omap2_clk_prepare_for_reboot();
--	RM_RSTCTRL_WKUP |= 2;
-+
-+	if (cpu_is_omap24xx()) {
-+		wkup = prm_read_mod_reg(WKUP_MOD, RM_RSTCTRL) | OMAP_RST_DPLL3;
-+		prm_write_mod_reg(wkup, WKUP_MOD, RM_RSTCTRL);
-+	}
- }
-diff --git a/arch/arm/mach-omap2/sleep.S b/arch/arm/mach-omap2/sleep.S
-index 16247d5..46ccb9b 100644
---- a/arch/arm/mach-omap2/sleep.S
-+++ b/arch/arm/mach-omap2/sleep.S
-@@ -26,19 +26,10 @@
- #include <asm/arch/io.h>
- #include <asm/arch/pm.h>
- 
--#define A_32KSYNC_CR_V		IO_ADDRESS(OMAP_TIMER32K_BASE+0x10)
--#define A_PRCM_VOLTCTRL_V	IO_ADDRESS(OMAP24XX_PRCM_BASE+0x50)
--#define A_PRCM_CLKCFG_CTRL_V	IO_ADDRESS(OMAP24XX_PRCM_BASE+0x80)
--#define A_CM_CLKEN_PLL_V	IO_ADDRESS(OMAP24XX_PRCM_BASE+0x500)
--#define A_CM_IDLEST_CKGEN_V	IO_ADDRESS(OMAP24XX_PRCM_BASE+0x520)
--#define A_CM_CLKSEL1_PLL_V	IO_ADDRESS(OMAP24XX_PRCM_BASE+0x540)
--#define A_CM_CLKSEL2_PLL_V	IO_ADDRESS(OMAP24XX_PRCM_BASE+0x544)
-+#include "sdrc.h"
- 
--#define A_SDRC_DLLA_CTRL_V	IO_ADDRESS(OMAP24XX_SDRC_BASE+0x60)
--#define	A_SDRC_POWER_V		IO_ADDRESS(OMAP24XX_SDRC_BASE+0x70)
--#define A_SDRC_RFR_CTRL_V	IO_ADDRESS(OMAP24XX_SDRC_BASE+0xA4)
-+/* First address of reserved address space?  apparently valid for OMAP2 & 3 */
- #define A_SDRC0_V		(0xC0000000)
--#define A_SDRC_MANUAL_V		IO_ADDRESS(OMAP24XX_SDRC_BASE+0xA8)
- 
- 	.text
- 
-@@ -126,17 +117,11 @@ loop2:
- 	ldmfd	sp!, {r0 - r12, pc}	@ restore regs and return
- 
- A_SDRC_POWER:
--	.word A_SDRC_POWER_V
-+	.word OMAP242X_SDRC_REGADDR(SDRC_POWER)
- A_SDRC0:
- 	.word A_SDRC0_V
--A_CM_CLKSEL2_PLL_S:
--	.word A_CM_CLKSEL2_PLL_V
--A_CM_CLKEN_PLL:
--	.word A_CM_CLKEN_PLL_V
- A_SDRC_DLLA_CTRL_S:
--	.word A_SDRC_DLLA_CTRL_V
--A_SDRC_MANUAL_S:
--	.word A_SDRC_MANUAL_V
-+	.word OMAP242X_SDRC_REGADDR(SDRC_DLLA_CTRL)
- 
- ENTRY(omap24xx_cpu_suspend_sz)
- 	.word	. - omap24xx_cpu_suspend
-diff --git a/arch/arm/mach-omap2/sram-fn.S b/arch/arm/mach-omap2/sram-fn.S
-index b275766..4a9e491 100644
---- a/arch/arm/mach-omap2/sram-fn.S
-+++ b/arch/arm/mach-omap2/sram-fn.S
-@@ -27,19 +27,11 @@
- #include <asm/arch/io.h>
- #include <asm/hardware.h>
- 
--#include "prcm-regs.h"
-+#include "sdrc.h"
-+#include "prm.h"
-+#include "cm.h"
- 
--#define TIMER_32KSYNCT_CR_V	IO_ADDRESS(OMAP24XX_32KSYNCT_BASE + 0x010)
--
--#define CM_CLKSEL2_PLL_V	IO_ADDRESS(OMAP24XX_PRCM_BASE + 0x544)
--#define PRCM_VOLTCTRL_V		IO_ADDRESS(OMAP24XX_PRCM_BASE + 0x050)
--#define PRCM_CLKCFG_CTRL_V	IO_ADDRESS(OMAP24XX_PRCM_BASE + 0x080)
--#define CM_CLKEN_PLL_V		IO_ADDRESS(OMAP24XX_PRCM_BASE + 0x500)
--#define CM_IDLEST_CKGEN_V	IO_ADDRESS(OMAP24XX_PRCM_BASE + 0x520)
--#define CM_CLKSEL1_PLL_V	IO_ADDRESS(OMAP24XX_PRCM_BASE + 0x540)
--
--#define SDRC_DLLA_CTRL_V	IO_ADDRESS(OMAP24XX_SDRC_BASE + 0x060)
--#define SDRC_RFR_CTRL_V		IO_ADDRESS(OMAP24XX_SDRC_BASE + 0x0a4)
-+#define TIMER_32KSYNCT_CR_V	IO_ADDRESS(OMAP2420_32KSYNCT_BASE + 0x010)
- 
- 	.text
- 
-@@ -131,11 +123,11 @@ volt_delay:
- 
- /* relative load constants */
- cm_clksel2_pll:
--	.word CM_CLKSEL2_PLL_V
-+	.word OMAP2420_CM_REGADDR(PLL_MOD, CM_CLKSEL2)
- sdrc_dlla_ctrl:
--	.word SDRC_DLLA_CTRL_V
-+	.word OMAP242X_SDRC_REGADDR(SDRC_DLLA_CTRL)
- prcm_voltctrl:
--	.word PRCM_VOLTCTRL_V
-+	.word OMAP2420_PRM_REGADDR(OCP_MOD, 0x50)
- prcm_mask_val:
- 	.word 0xFFFF3FFC
- timer_32ksynct_cr:
-@@ -225,13 +217,13 @@ volt_delay_c:
- 	mov	pc, lr			@ back to caller
- 
- ddr_cm_clksel2_pll:
--	.word CM_CLKSEL2_PLL_V
-+	.word OMAP2420_CM_REGADDR(PLL_MOD, CM_CLKSEL2)
- ddr_sdrc_dlla_ctrl:
--	.word SDRC_DLLA_CTRL_V
-+	.word OMAP242X_SDRC_REGADDR(SDRC_DLLA_CTRL)
- ddr_sdrc_rfr_ctrl:
--	.word SDRC_RFR_CTRL_V
-+	.word OMAP242X_SDRC_REGADDR(SDRC_RFR_CTRL_0)
- ddr_prcm_voltctrl:
--	.word PRCM_VOLTCTRL_V
-+	.word OMAP2420_PRM_REGADDR(OCP_MOD, 0x50)
- ddr_prcm_mask_val:
- 	.word 0xFFFF3FFC
- ddr_timer_32ksynct:
-@@ -316,17 +308,17 @@ wait_dll_lock:
- 	ldmfd	sp!, {r0-r12, pc}	@ restore regs and return
- 
- set_config:
--	.word PRCM_CLKCFG_CTRL_V
-+	.word OMAP2420_PRM_REGADDR(OCP_MOD, 0x80)
- pll_ctl:
--	.word CM_CLKEN_PLL_V
-+	.word OMAP2420_CM_REGADDR(PLL_MOD, CM_FCLKEN1)
- pll_stat:
--	.word CM_IDLEST_CKGEN_V
-+	.word OMAP2420_CM_REGADDR(PLL_MOD, CM_IDLEST1)
- pll_div:
--	.word CM_CLKSEL1_PLL_V
-+	.word OMAP2420_CM_REGADDR(PLL_MOD, CM_CLKSEL)
- sdrc_rfr:
--	.word SDRC_RFR_CTRL_V
-+	.word OMAP242X_SDRC_REGADDR(SDRC_RFR_CTRL_0)
- dlla_ctrl:
--	.word SDRC_DLLA_CTRL_V
-+	.word OMAP242X_SDRC_REGADDR(SDRC_DLLA_CTRL)
- 
- ENTRY(sram_set_prcm_sz)
- 	.word	. - sram_set_prcm
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 7f1cae1..bd1cef2 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -27,11 +27,16 @@
- #include <asm/setup.h>
- 
- #include <asm/arch/board.h>
-+#include <asm/arch/control.h>
- #include <asm/arch/mux.h>
- #include <asm/arch/fpga.h>
- 
- #include <asm/arch/clock.h>
- 
-+#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
-+# include "../mach-omap2/sdrc.h"
-+#endif
-+
- #define NO_LENGTH_CHECK 0xffffffff
- 
- unsigned char omap_bootloader_tag[512];
-@@ -171,8 +176,8 @@ console_initcall(omap_add_serial_console);
- 
- #if defined(CONFIG_ARCH_OMAP16XX)
- #define TIMER_32K_SYNCHRONIZED		0xfffbc410
--#elif defined(CONFIG_ARCH_OMAP24XX)
--#define TIMER_32K_SYNCHRONIZED		(OMAP24XX_32KSYNCT_BASE + 0x10)
-+#elif defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
-+#define TIMER_32K_SYNCHRONIZED		(OMAP2_32KSYNCT_BASE + 0x10)
- #endif
- 
- #ifdef	TIMER_32K_SYNCHRONIZED
-@@ -215,7 +220,13 @@ static int __init omap_init_clocksource_32k(void)
- 	static char err[] __initdata = KERN_ERR
- 			"%s: can't register clocksource!\n";
- 
--	if (cpu_is_omap16xx() || cpu_is_omap24xx()) {
-+	if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
-+		struct clk *sync_32k_ick;
-+
-+		sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
-+		if (sync_32k_ick)
-+			clk_enable(sync_32k_ick);
-+
- 		clocksource_32k.mult = clocksource_hz2mult(32768,
- 					    clocksource_32k.shift);
- 
-@@ -227,3 +238,33 @@ static int __init omap_init_clocksource_32k(void)
- arch_initcall(omap_init_clocksource_32k);
- 
- #endif	/* TIMER_32K_SYNCHRONIZED */
-+
-+/* Global address base setup code */
-+
-+#if defined(CONFIG_ARCH_OMAP2420)
-+void __init omap2_set_globals_242x(void)
-+{
-+	omap2_sdrc_base = OMAP2420_SDRC_BASE;
-+	omap2_sms_base = OMAP2420_SMS_BASE;
-+	omap_ctrl_base_set(OMAP2420_CTRL_BASE);
-+}
-+#endif
-+
-+#if defined(CONFIG_ARCH_OMAP2430)
-+void __init omap2_set_globals_243x(void)
-+{
-+	omap2_sdrc_base = OMAP243X_SDRC_BASE;
-+	omap2_sms_base = OMAP243X_SMS_BASE;
-+	omap_ctrl_base_set(OMAP243X_CTRL_BASE);
-+}
-+#endif
-+
-+#if defined(CONFIG_ARCH_OMAP3430)
-+void __init omap2_set_globals_343x(void)
-+{
-+	omap2_sdrc_base = OMAP343X_SDRC_BASE;
-+	omap2_sms_base = OMAP343X_SMS_BASE;
-+	omap_ctrl_base_set(OMAP343X_CTRL_BASE);
-+}
-+#endif
-+
-diff --git a/arch/arm/plat-omap/usb.c b/arch/arm/plat-omap/usb.c
-index a5aedf9..a619475 100644
---- a/arch/arm/plat-omap/usb.c
-+++ b/arch/arm/plat-omap/usb.c
-@@ -33,6 +33,7 @@
- #include <asm/system.h>
- #include <asm/hardware.h>
- 
-+#include <asm/arch/control.h>
- #include <asm/arch/mux.h>
- #include <asm/arch/usb.h>
- #include <asm/arch/board.h>
-@@ -76,7 +77,7 @@
- 
- /*-------------------------------------------------------------------------*/
- 
--#ifdef	CONFIG_ARCH_OMAP_OTG
-+#if	defined(CONFIG_ARCH_OMAP_OTG) || defined(CONFIG_USB_MUSB_OTG)
- 
- static struct otg_transceiver *xceiv;
- 
-@@ -110,12 +111,48 @@ EXPORT_SYMBOL(otg_set_transceiver);
- 
- #if defined(CONFIG_ARCH_OMAP_OTG) || defined(CONFIG_ARCH_OMAP15XX)
- 
-+static void omap2_usb_devconf_clear(u8 port, u32 mask)
-+{
-+	u32 r;
-+
-+	r = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
-+	r &= ~USBTXWRMODEI(port, mask);
-+	omap_ctrl_writel(r, OMAP2_CONTROL_DEVCONF0);
-+}
-+
-+static void omap2_usb_devconf_set(u8 port, u32 mask)
-+{
-+	u32 r;
-+
-+	r = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
-+	r |= USBTXWRMODEI(port, mask);
-+	omap_ctrl_writel(r, OMAP2_CONTROL_DEVCONF0);
-+}
-+
-+static void omap2_usb2_disable_5pinbitll(void)
-+{
-+	u32 r;
-+
-+	r = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
-+	r &= ~(USBTXWRMODEI(2, USB_BIDIR_TLL) | USBT2TLL5PI);
-+	omap_ctrl_writel(r, OMAP2_CONTROL_DEVCONF0);
-+}
-+
-+static void omap2_usb2_enable_5pinunitll(void)
-+{
-+	u32 r;
-+
-+	r = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
-+	r |= USBTXWRMODEI(2, USB_UNIDIR_TLL) | USBT2TLL5PI;
-+	omap_ctrl_writel(r, OMAP2_CONTROL_DEVCONF0);
-+}
-+
- static u32 __init omap_usb0_init(unsigned nwires, unsigned is_device)
- {
- 	u32	syscon1 = 0;
- 
- 	if (cpu_is_omap24xx())
--		CONTROL_DEVCONF_REG &= ~USBT0WRMODEI(USB_BIDIR_TLL);
-+		omap2_usb_devconf_clear(0, USB_BIDIR_TLL);
- 
- 	if (nwires == 0) {
- 		if (cpu_class_is_omap1() && !cpu_is_omap15xx()) {
-@@ -187,19 +224,19 @@ static u32 __init omap_usb0_init(unsigned nwires, unsigned is_device)
- 	case 3:
- 		syscon1 = 2;
- 		if (cpu_is_omap24xx())
--			CONTROL_DEVCONF_REG |= USBT0WRMODEI(USB_BIDIR);
-+			omap2_usb_devconf_set(0, USB_BIDIR);
- 		break;
- 	case 4:
- 		syscon1 = 1;
- 		if (cpu_is_omap24xx())
--			CONTROL_DEVCONF_REG |= USBT0WRMODEI(USB_BIDIR);
-+			omap2_usb_devconf_set(0, USB_BIDIR);
- 		break;
- 	case 6:
- 		syscon1 = 3;
- 		if (cpu_is_omap24xx()) {
- 			omap_cfg_reg(J19_24XX_USB0_VP);
- 			omap_cfg_reg(K20_24XX_USB0_VM);
--			CONTROL_DEVCONF_REG |= USBT0WRMODEI(USB_UNIDIR);
-+			omap2_usb_devconf_set(0, USB_UNIDIR);
- 		} else {
- 			omap_cfg_reg(AA9_USB0_VP);
- 			omap_cfg_reg(R9_USB0_VM);
-@@ -220,7 +257,7 @@ static u32 __init omap_usb1_init(unsigned nwires)
- 	if (cpu_class_is_omap1() && !cpu_is_omap15xx() && nwires != 6)
- 		USB_TRANSCEIVER_CTRL_REG &= ~CONF_USB1_UNI_R;
- 	if (cpu_is_omap24xx())
--		CONTROL_DEVCONF_REG &= ~USBT1WRMODEI(USB_BIDIR_TLL);
-+		omap2_usb_devconf_clear(1, USB_BIDIR_TLL);
- 
- 	if (nwires == 0)
- 		return 0;
-@@ -261,17 +298,17 @@ static u32 __init omap_usb1_init(unsigned nwires)
- 		 * this TLL link is not using DP/DM
- 		 */
- 		syscon1 = 1;
--		CONTROL_DEVCONF_REG |= USBT1WRMODEI(USB_BIDIR_TLL);
-+		omap2_usb_devconf_set(1, USB_BIDIR_TLL);
- 		break;
- 	case 3:
- 		syscon1 = 2;
- 		if (cpu_is_omap24xx())
--			CONTROL_DEVCONF_REG |= USBT1WRMODEI(USB_BIDIR);
-+			omap2_usb_devconf_set(1, USB_BIDIR);
- 		break;
- 	case 4:
- 		syscon1 = 1;
- 		if (cpu_is_omap24xx())
--			CONTROL_DEVCONF_REG |= USBT1WRMODEI(USB_BIDIR);
-+			omap2_usb_devconf_set(1, USB_BIDIR);
- 		break;
- 	case 6:
- 		if (cpu_is_omap24xx())
-@@ -295,8 +332,7 @@ static u32 __init omap_usb2_init(unsigned nwires, unsigned alt_pingroup)
- 	u32	syscon1 = 0;
- 
- 	if (cpu_is_omap24xx()) {
--		CONTROL_DEVCONF_REG &= ~(USBT2WRMODEI(USB_BIDIR_TLL)
--					| USBT2TLL5PI);
-+		omap2_usb2_disable_5pinbitll();
- 		alt_pingroup = 0;
- 	}
- 
-@@ -343,17 +379,17 @@ static u32 __init omap_usb2_init(unsigned nwires, unsigned alt_pingroup)
- 		 * this TLL link is not using DP/DM
- 		 */
- 		syscon1 = 1;
--		CONTROL_DEVCONF_REG |= USBT2WRMODEI(USB_BIDIR_TLL);
-+		omap2_usb_devconf_set(2, USB_BIDIR_TLL);
- 		break;
- 	case 3:
- 		syscon1 = 2;
- 		if (cpu_is_omap24xx())
--			CONTROL_DEVCONF_REG |= USBT2WRMODEI(USB_BIDIR);
-+			omap2_usb_devconf_set(2, USB_BIDIR);
- 		break;
- 	case 4:
- 		syscon1 = 1;
- 		if (cpu_is_omap24xx())
--			CONTROL_DEVCONF_REG |= USBT2WRMODEI(USB_BIDIR);
-+			omap2_usb_devconf_set(2, USB_BIDIR);
- 		break;
- 	case 5:
- 		if (!cpu_is_omap24xx())
-@@ -364,8 +400,7 @@ static u32 __init omap_usb2_init(unsigned nwires, unsigned alt_pingroup)
- 		 * set up OTG_SYSCON2.HMC_TLL{ATTACH,SPEED}
- 		 */
- 		syscon1 = 3;
--		CONTROL_DEVCONF_REG |= USBT2WRMODEI(USB_UNIDIR_TLL)
--					| USBT2TLL5PI;
-+		omap2_usb2_enable_5pinunitll();
- 		break;
- 	case 6:
- 		if (cpu_is_omap24xx())
-diff --git a/include/asm-arm/arch-omap/clock.h b/include/asm-arm/arch-omap/clock.h
-index fa68810..fc7b806 100644
---- a/include/asm-arm/arch-omap/clock.h
-+++ b/include/asm-arm/arch-omap/clock.h
-@@ -88,4 +88,9 @@ extern int clk_get_usecount(struct clk *clk);
- #define CLOCK_IN_OMAP242X	(1 << 25)
- #define CLOCK_IN_OMAP243X	(1 << 26)
- 
-+/* CM_CLKSEL2_PLL.CORE_CLK_SRC options (24XX) */
-+#define CORE_CLK_SRC_32K		0
-+#define CORE_CLK_SRC_DPLL		1
-+#define CORE_CLK_SRC_DPLL_X2		2
-+
- #endif
-diff --git a/include/asm-arm/arch-omap/entry-macro.S b/include/asm-arm/arch-omap/entry-macro.S
-index f6967c8..74cd572 100644
---- a/include/asm-arm/arch-omap/entry-macro.S
-+++ b/include/asm-arm/arch-omap/entry-macro.S
-@@ -68,7 +68,7 @@
- 		.endm
- 
- 		.macro	get_irqnr_and_base, irqnr, irqstat, base, tmp
--		ldr	\base, =VA_IC_BASE
-+		ldr	\base, =OMAP2_VA_IC_BASE
- 		ldr	\irqnr, [\base, #0x98] /* IRQ pending reg 1 */
- 		cmp	\irqnr, #0x0
- 		bne	2222f
-diff --git a/include/asm-arm/arch-omap/io.h b/include/asm-arm/arch-omap/io.h
-index 289082d..160578e 100644
---- a/include/asm-arm/arch-omap/io.h
-+++ b/include/asm-arm/arch-omap/io.h
-@@ -80,6 +80,13 @@
- #define OMAP243X_GPMC_PHYS	OMAP243X_GPMC_BASE	/* 0x49000000 */
- #define OMAP243X_GPMC_VIRT	0xFE000000
- #define OMAP243X_GPMC_SIZE	SZ_1M
-+#define OMAP243X_SDRC_PHYS	OMAP243X_SDRC_BASE
-+#define OMAP243X_SDRC_VIRT	0xFD000000
-+#define OMAP243X_SDRC_SIZE	SZ_1M
-+#define OMAP243X_SMS_PHYS	OMAP243X_SMS_BASE
-+#define OMAP243X_SMS_VIRT	0xFC000000
-+#define OMAP243X_SMS_SIZE	SZ_1M
-+
- #endif
- 
- #define IO_OFFSET	0x90000000
-@@ -88,16 +95,73 @@
- #define io_v2p(va)	((va) - IO_OFFSET)	/* Works for L3 and L4 */
- 
- /* DSP */
--#define DSP_MEM_24XX_PHYS	OMAP24XX_DSP_MEM_BASE	/* 0x58000000 */
-+#define DSP_MEM_24XX_PHYS	OMAP2420_DSP_MEM_BASE	/* 0x58000000 */
- #define DSP_MEM_24XX_VIRT	0xe0000000
- #define DSP_MEM_24XX_SIZE	0x28000
--#define DSP_IPI_24XX_PHYS	OMAP24XX_DSP_IPI_BASE	/* 0x59000000 */
-+#define DSP_IPI_24XX_PHYS	OMAP2420_DSP_IPI_BASE	/* 0x59000000 */
- #define DSP_IPI_24XX_VIRT	0xe1000000
- #define DSP_IPI_24XX_SIZE	SZ_4K
--#define DSP_MMU_24XX_PHYS	OMAP24XX_DSP_MMU_BASE	/* 0x5a000000 */
-+#define DSP_MMU_24XX_PHYS	OMAP2420_DSP_MMU_BASE	/* 0x5a000000 */
- #define DSP_MMU_24XX_VIRT	0xe2000000
- #define DSP_MMU_24XX_SIZE	SZ_4K
- 
-+#elif defined(CONFIG_ARCH_OMAP3)
-+
-+/* We map both L3 and L4 on OMAP3 */
-+#define L3_34XX_PHYS		L3_34XX_BASE	/* 0x68000000 */
-+#define L3_34XX_VIRT		0xf8000000
-+#define L3_34XX_SIZE		SZ_1M   /* 44kB of 128MB used, want 1MB sect */
-+
-+#define L4_34XX_PHYS		L4_34XX_BASE	/* 0x48000000 */
-+#define L4_34XX_VIRT		0xd8000000
-+#define L4_34XX_SIZE		SZ_4M   /* 1MB of 128MB used, want 1MB sect */
-+
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+new file mode 100644
+index 0000000..5cf88b7
+--- /dev/null
++++ b/arch/arm/mach-omap2/clock.c
+@@ -0,0 +1,762 @@
 +/*
-+ * Need to look at the Size 4M for L4.
-+ * VPOM3430 was not working for Int controller
-+ */
-+
-+#define L4_WK_34XX_PHYS		L4_WK_34XX_BASE /* 0x48300000 */
-+#define L4_WK_34XX_VIRT		0xd8300000
-+#define L4_WK_34XX_SIZE		SZ_1M
-+
-+#define L4_PER_34XX_PHYS	L4_PER_34XX_BASE /* 0x49000000 */
-+#define L4_PER_34XX_VIRT	0xd9000000
-+#define L4_PER_34XX_SIZE	SZ_1M
-+
-+#define L4_EMU_34XX_PHYS	L4_EMU_34XX_BASE /* 0x54000000 */
-+#define L4_EMU_34XX_VIRT	0xe4000000
-+#define L4_EMU_34XX_SIZE	SZ_64M
-+
-+#define OMAP34XX_GPMC_PHYS	OMAP34XX_GPMC_BASE /* 0x6E000000 */
-+#define OMAP34XX_GPMC_VIRT	0xFE000000
-+#define OMAP34XX_GPMC_SIZE	SZ_1M
-+
-+#define OMAP343X_SMS_PHYS	OMAP343X_SMS_BASE /* 0x6C000000 */
-+#define OMAP343X_SMS_VIRT	0xFC000000
-+#define OMAP343X_SMS_SIZE	SZ_1M
-+
-+#define OMAP343X_SDRC_PHYS	OMAP343X_SDRC_BASE /* 0x6D000000 */
-+#define OMAP343X_SDRC_VIRT	0xFD000000
-+#define OMAP343X_SDRC_SIZE	SZ_1M
-+
-+
-+#define IO_OFFSET		0x90000000
-+#define IO_ADDRESS(pa)		((pa) + IO_OFFSET)/* Works for L3 and L4 */
-+#define io_p2v(pa)		((pa) + IO_OFFSET)/* Works for L3 and L4 */
-+#define io_v2p(va)		((va) - IO_OFFSET)/* Works for L3 and L4 */
-+
-+/* DSP */
-+#define DSP_MEM_34XX_PHYS	OMAP34XX_DSP_MEM_BASE	/* 0x58000000 */
-+#define DSP_MEM_34XX_VIRT	0xe0000000
-+#define DSP_MEM_34XX_SIZE	0x28000
-+#define DSP_IPI_34XX_PHYS	OMAP34XX_DSP_IPI_BASE	/* 0x59000000 */
-+#define DSP_IPI_34XX_VIRT	0xe1000000
-+#define DSP_IPI_34XX_SIZE	SZ_4K
-+#define DSP_MMU_34XX_PHYS	OMAP34XX_DSP_MMU_BASE	/* 0x5a000000 */
-+#define DSP_MMU_34XX_VIRT	0xe2000000
-+#define DSP_MMU_34XX_SIZE	SZ_4K
-+
- #endif
- 
- #ifndef __ASSEMBLER__
-diff --git a/include/asm-arm/arch-omap/omap24xx.h b/include/asm-arm/arch-omap/omap24xx.h
-index 14c0f94..b9fcaae 100644
---- a/include/asm-arm/arch-omap/omap24xx.h
-+++ b/include/asm-arm/arch-omap/omap24xx.h
-@@ -1,3 +1,28 @@
-+/*
-+ * include/asm-arm/arch-omap/omap24xx.h
++ *  linux/arch/arm/mach-omap2/clock.c
 + *
-+ * This file contains the processor specific definitions
-+ * of the TI OMAP24XX.
++ *  Copyright (C) 2005 Texas Instruments Inc.
++ *  Richard Woodruff <r-woodruff2@ti.com>
++ *  Created for OMAP2.
 + *
-+ * Copyright (C) 2007 Texas Instruments.
-+ * Copyright (C) 2007 Nokia Corporation.
++ *  Cleaned up and modified to use omap shared clock framework by
++ *  Tony Lindgren <tony@atomide.com>
++ *
++ *  Copyright (C) 2007 Texas Instruments, Inc.
++ *  Copyright (C) 2007 Nokia Corporation
++ *  Paul Walmsley
++ *
++ *  Based on omap1 clock.c, Copyright (C) 2004 - 2005 Nokia corporation
++ *  Written by Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#undef DEBUG
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/device.h>
++#include <linux/list.h>
++#include <linux/errno.h>
++#include <linux/delay.h>
++#include <linux/clk.h>
++
++#include <asm/io.h>
++
++#include <asm/arch/clock.h>
++#include <asm/arch/sram.h>
++#include <asm/arch/cpu.h>
++#include <asm/div64.h>
++
++#include "memory.h"
++#include "sdrc.h"
++#include "clock.h"
++#include "prm.h"
++#include "prm-regbits-24xx.h"
++#include "cm.h"
++#include "cm-regbits-24xx.h"
++#include "cm-regbits-34xx.h"
++
++#define MAX_CLOCK_ENABLE_WAIT		100000
++
++u8 cpu_mask;
++
++/*-------------------------------------------------------------------------
++ * Omap2 specific clock functions
++ *-------------------------------------------------------------------------*/
++
++u8 mask_to_shift(u32 mask)
++{
++	return ffs(mask) - 1;
++}
++
++/**
++ * omap2_init_clksel_parent - set a clksel clk's parent field from the hardware
++ * @clk: OMAP clock struct ptr to use
 + *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
++ * Given a pointer to a source-selectable struct clk, read the hardware
++ * register and determine what its parent is currently set to.  Update the
++ * clk->parent field with the appropriate clk ptr.
++ */
++void omap2_init_clksel_parent(struct clk *clk)
++{
++	const struct clksel *clks;
++	const struct clksel_rate *clkr;
++	u32 r, found = 0;
++
++	if (!clk->clksel)
++		return;
++
++	r = __raw_readl(clk->clksel_reg) & clk->clksel_mask;
++	r >>= mask_to_shift(clk->clksel_mask);
++
++	for (clks = clk->clksel; clks->parent && !found; clks++) {
++		for (clkr = clks->rates; clkr->div && !found; clkr++) {
++			if ((clkr->flags & cpu_mask) && (clkr->val == r)) {
++				if (clk->parent != clks->parent) {
++					pr_debug("clock: inited %s parent "
++						 "to %s (was %s)\n",
++						 clk->name, clks->parent->name,
++						 ((clk->parent) ?
++						  clk->parent->name : "NULL"));
++					clk->parent = clks->parent;
++				};
++				found = 1;
++			}
++		}
++	}
++
++	if (!found)
++		printk(KERN_ERR "clock: init parent: could not find "
++		       "regval %0x for clock %s\n", r,  clk->name);
++
++	return;
++}
++
++/* Returns the DPLL rate */
++u32 omap2_get_dpll_rate(struct clk *clk)
++{
++	long long dpll_clk;
++	u32 dpll_mult, dpll_div, dpll;
++	const struct dpll_data *dd;
++
++	dd = clk->dpll_data;
++	/* REVISIT: What do we return on error? */
++	if (!dd)
++		return 0;
++
++	dpll = cm_read_reg(dd->mult_div1_reg);
++	dpll_mult = dpll & dd->mult_mask;
++	dpll_mult >>= mask_to_shift(dd->mult_mask);
++	dpll_div = dpll & dd->div1_mask;
++	dpll_div >>= mask_to_shift(dd->div1_mask);
++
++	dpll_clk = (long long)clk->parent->rate * dpll_mult;
++	do_div(dpll_clk, dpll_div + 1);
++
++	/* 34XX only */
++	if (dd->div2_reg) {
++		dpll = cm_read_reg(dd->div2_reg);
++		dpll_div = dpll & dd->div2_mask;
++		dpll_div >>= mask_to_shift(dd->div2_mask);
++		do_div(dpll_clk, dpll_div + 1);
++	}
++
++	return dpll_clk;
++}
++
++/*
++ * Used for clocks that have the same value as the parent clock,
++ * divided by some factor
++ */
++void omap2_fixed_divisor_recalc(struct clk *clk)
++{
++	WARN_ON(!clk->fixed_div);
++
++	clk->rate = clk->parent->rate / clk->fixed_div;
++
++	if (clk->flags & RATE_PROPAGATES)
++		propagate_rate(clk);
++}
++
++/**
++ * omap2_wait_clock_ready - wait for clock to enable
++ * @reg: physical address of clock IDLEST register
++ * @mask: value to mask against to determine if the clock is active
++ * @name: name of the clock (for printk)
 + *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ * Returns 1 if the clock enabled in time, or 0 if it failed to enable
++ * in roughly MAX_CLOCK_ENABLE_WAIT microseconds.
++ */
++int omap2_wait_clock_ready(void __iomem *reg, u32 mask, const char *name)
++{
++	int i = 0;
++	int ena = 0;
++
++	/*
++	 * 24xx uses 0 to indicate not ready, and 1 to indicate ready.
++	 * 34xx reverses this, just to keep us on our toes
++	 */
++	if (cpu_mask & (RATE_IN_242X | RATE_IN_243X)) {
++		ena = mask;
++	} else if (cpu_mask & RATE_IN_343X) {
++		ena = 0;
++	}
++
++	/* Wait for lock */
++	while (((cm_read_reg(reg) & mask) != ena) &&
++	       (i++ < MAX_CLOCK_ENABLE_WAIT)) {
++		udelay(1);
++	}
++
++	if (i < MAX_CLOCK_ENABLE_WAIT)
++		pr_debug("Clock %s stable after %d loops\n", name, i);
++	else
++		printk(KERN_ERR "Clock %s didn't enable in %d tries\n",
++		       name, MAX_CLOCK_ENABLE_WAIT);
++
++
++	return (i < MAX_CLOCK_ENABLE_WAIT) ? 1 : 0;
++};
++
++
++/*
++ * Note: We don't need special code here for INVERT_ENABLE
++ * for the time being since INVERT_ENABLE only applies to clocks enabled by
++ * CM_CLKEN_PLL
++ */
++static void omap2_clk_wait_ready(struct clk *clk)
++{
++	void __iomem *reg, *other_reg, *st_reg;
++	u32 bit;
++
++	/*
++	 * REVISIT: This code is pretty ugly.  It would be nice to generalize
++	 * it and pull it into struct clk itself somehow.
++	 */
++	reg = clk->enable_reg;
++	if ((((u32)reg & 0xff) >= CM_FCLKEN1) &&
++	    (((u32)reg & 0xff) <= OMAP24XX_CM_FCLKEN2))
++		other_reg = (void __iomem *)(((u32)reg & ~0xf0) | 0x10); /* CM_ICLKEN* */
++	else if ((((u32)reg & 0xff) >= CM_ICLKEN1) &&
++		 (((u32)reg & 0xff) <= OMAP24XX_CM_ICLKEN4))
++		other_reg = (void __iomem *)(((u32)reg & ~0xf0) | 0x00); /* CM_FCLKEN* */
++	else
++		return;
++
++	/* REVISIT: What are the appropriate exclusions for 34XX? */
++	/* No check for DSS or cam clocks */
++	if (cpu_is_omap24xx() && ((u32)reg & 0x0f) == 0) { /* CM_{F,I}CLKEN1 */
++		if (clk->enable_bit == OMAP24XX_EN_DSS2_SHIFT ||
++		    clk->enable_bit == OMAP24XX_EN_DSS1_SHIFT ||
++		    clk->enable_bit == OMAP24XX_EN_CAM_SHIFT)
++			return;
++	}
++
++	/* REVISIT: What are the appropriate exclusions for 34XX? */
++	/* OMAP3: ignore DSS-mod clocks */
++	if (cpu_is_omap34xx() &&
++	    (((u32)reg & ~0xff) == (u32)OMAP_CM_REGADDR(OMAP3430_DSS_MOD, 0)))
++		return;
++
++	/* Check if both functional and interface clocks
++	 * are running. */
++	bit = 1 << clk->enable_bit;
++	if (!(cm_read_reg(other_reg) & bit))
++		return;
++	st_reg = (void __iomem *)(((u32)other_reg & ~0xf0) | 0x20); /* CM_IDLEST* */
++
++	omap2_wait_clock_ready(st_reg, bit, clk->name);
++}
++
++/* Enables clock without considering parent dependencies or use count
++ * REVISIT: Maybe change this to use clk->enable like on omap1?
++ */
++int _omap2_clk_enable(struct clk *clk)
++{
++	u32 regval32;
++
++	if (clk->flags & (ALWAYS_ENABLED | PARENT_CONTROLS_CLOCK))
++		return 0;
++
++	if (clk->enable)
++		return clk->enable(clk);
++
++	if (unlikely(clk->enable_reg == 0)) {
++		printk(KERN_ERR "clock.c: Enable for %s without enable code\n",
++		       clk->name);
++		return 0; /* REVISIT: -EINVAL */
++	}
++
++	regval32 = cm_read_reg(clk->enable_reg);
++	if (clk->flags & INVERT_ENABLE)
++		regval32 &= ~(1 << clk->enable_bit);
++	else
++		regval32 |= (1 << clk->enable_bit);
++	cm_write_reg(regval32, clk->enable_reg);
++	wmb();
++
++	omap2_clk_wait_ready(clk);
++
++	return 0;
++}
++
++/* Disables clock without considering parent dependencies or use count */
++void _omap2_clk_disable(struct clk *clk)
++{
++	u32 regval32;
++
++	if (clk->flags & (ALWAYS_ENABLED | PARENT_CONTROLS_CLOCK))
++		return;
++
++	if (clk->disable) {
++		clk->disable(clk);
++		return;
++	}
++
++	if (clk->enable_reg == 0) {
++		/*
++		 * 'Independent' here refers to a clock which is not
++		 * controlled by its parent.
++		 */
++		printk(KERN_ERR "clock: clk_disable called on independent "
++		       "clock %s which has no enable_reg\n", clk->name);
++		return;
++	}
++
++	regval32 = cm_read_reg(clk->enable_reg);
++	if (clk->flags & INVERT_ENABLE)
++		regval32 |= (1 << clk->enable_bit);
++	else
++		regval32 &= ~(1 << clk->enable_bit);
++	cm_write_reg(regval32, clk->enable_reg);
++	wmb();
++}
++
++void omap2_clk_disable(struct clk *clk)
++{
++	if (clk->usecount > 0 && !(--clk->usecount)) {
++		_omap2_clk_disable(clk);
++		if (likely((u32)clk->parent))
++			omap2_clk_disable(clk->parent);
++	}
++}
++
++int omap2_clk_enable(struct clk *clk)
++{
++	int ret = 0;
++
++	if (clk->usecount++ == 0) {
++		if (likely((u32)clk->parent))
++			ret = omap2_clk_enable(clk->parent);
++
++		if (unlikely(ret != 0)) {
++			clk->usecount--;
++			return ret;
++		}
++
++		ret = _omap2_clk_enable(clk);
++
++		if (unlikely(ret != 0) && clk->parent) {
++			omap2_clk_disable(clk->parent);
++			clk->usecount--;
++		}
++	}
++
++	return ret;
++}
++
++/*
++ * Used for clocks that are part of CLKSEL_xyz governed clocks.
++ * REVISIT: Maybe change to use clk->enable() functions like on omap1?
++ */
++void omap2_clksel_recalc(struct clk *clk)
++{
++	u32 div = 0;
++
++	pr_debug("clock: recalc'ing clksel clk %s\n", clk->name);
++
++	div = omap2_clksel_get_divisor(clk);
++	if (div == 0)
++		return;
++
++	if (unlikely(clk->rate == clk->parent->rate / div))
++		return;
++	clk->rate = clk->parent->rate / div;
++
++	pr_debug("clock: new clock rate is %ld (div %d)\n", clk->rate, div);
++
++	if (unlikely(clk->flags & RATE_PROPAGATES))
++		propagate_rate(clk);
++}
++
++/**
++ * omap2_get_clksel_by_parent - return clksel struct for a given clk & parent
++ * @clk: OMAP struct clk ptr to inspect
++ * @src_clk: OMAP struct clk ptr of the parent clk to search for
 + *
++ * Scan the struct clksel array associated with the clock to find
++ * the element associated with the supplied parent clock address.
++ * Returns a pointer to the struct clksel on success or NULL on error.
++ */
++const struct clksel *omap2_get_clksel_by_parent(struct clk *clk,
++						struct clk *src_clk)
++{
++	const struct clksel *clks;
++
++	if (!clk->clksel)
++		return NULL;
++
++	for (clks = clk->clksel; clks->parent; clks++) {
++		if (clks->parent == src_clk)
++			break; /* Found the requested parent */
++	}
++
++	if (!clks->parent) {
++		printk(KERN_ERR "clock: Could not find parent clock %s in "
++		       "clksel array of clock %s\n", src_clk->name,
++		       clk->name);
++		return NULL;
++	}
++
++	return clks;
++}
++
++/**
++ * omap2_clksel_round_rate_div - find divisor for the given clock and rate
++ * @clk: OMAP struct clk to use
++ * @target_rate: desired clock rate
++ * @new_div: ptr to where we should store the divisor
++ *
++ * Finds 'best' divider value in an array based on the source and target
++ * rates.  The divider array must be sorted with smallest divider first.
++ * Note that this will not work for clocks which are part of CONFIG_PARTICIPANT,
++ * they are only settable as part of virtual_prcm set.
++ *
++ * Returns the rounded clock rate or returns 0xffffffff on error.
++ */
++u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate,
++				u32 *new_div)
++{
++	unsigned long test_rate;
++	const struct clksel *clks;
++	const struct clksel_rate *clkr;
++	u32 last_div = 0;
++
++	printk(KERN_INFO "clock: clksel_round_rate_div: %s target_rate %ld\n",
++	       clk->name, target_rate);
++
++	*new_div = 1;
++
++	clks = omap2_get_clksel_by_parent(clk, clk->parent);
++	if (clks == NULL)
++		return ~0;
++
++	for (clkr = clks->rates; clkr->div; clkr++) {
++		if (!(clkr->flags & cpu_mask))
++		    continue;
++
++		/* Sanity check */
++		if (clkr->div <= last_div)
++			printk(KERN_ERR "clock: clksel_rate table not sorted "
++			       "for clock %s", clk->name);
++
++		last_div = clkr->div;
++
++		test_rate = clk->parent->rate / clkr->div;
++
++		if (test_rate <= target_rate)
++			break; /* found it */
++	}
++
++	if (!clkr->div) {
++		printk(KERN_ERR "clock: Could not find divisor for target "
++		       "rate %ld for clock %s parent %s\n", target_rate,
++		       clk->name, clk->parent->name);
++		return ~0;
++	}
++
++	*new_div = clkr->div;
++
++	printk(KERN_INFO "clock: new_div = %d, new_rate = %ld\n", *new_div,
++	       (clk->parent->rate / clkr->div));
++
++	return (clk->parent->rate / clkr->div);
++}
++
++/**
++ * omap2_clksel_round_rate - find rounded rate for the given clock and rate
++ * @clk: OMAP struct clk to use
++ * @target_rate: desired clock rate
++ *
++ * Compatibility wrapper for OMAP clock framework
++ * Finds best target rate based on the source clock and possible dividers.
++ * rates. The divider array must be sorted with smallest divider first.
++ * Note that this will not work for clocks which are part of CONFIG_PARTICIPANT,
++ * they are only settable as part of virtual_prcm set.
++ *
++ * Returns the rounded clock rate or returns 0xffffffff on error.
++ */
++long omap2_clksel_round_rate(struct clk *clk, unsigned long target_rate)
++{
++	u32 new_div;
++
++	return omap2_clksel_round_rate_div(clk, target_rate, &new_div);
++}
++
++
++/* Given a clock and a rate apply a clock specific rounding function */
++long omap2_clk_round_rate(struct clk *clk, unsigned long rate)
++{
++	if (clk->round_rate != 0)
++		return clk->round_rate(clk, rate);
++
++	if (clk->flags & RATE_FIXED)
++		printk(KERN_ERR "clock: generic omap2_clk_round_rate called "
++		       "on fixed-rate clock %s\n", clk->name);
++
++	return clk->rate;
++}
++
++/**
++ * omap2_clksel_to_divisor() - turn clksel field value into integer divider
++ * @clk: OMAP struct clk to use
++ * @field_val: register field value to find
++ *
++ * Given a struct clk of a rate-selectable clksel clock, and a register field
++ * value to search for, find the corresponding clock divisor.  The register
++ * field value should be pre-masked and shifted down so the LSB is at bit 0
++ * before calling.  Returns 0 on error
++ */
++u32 omap2_clksel_to_divisor(struct clk *clk, u32 field_val)
++{
++	const struct clksel *clks;
++	const struct clksel_rate *clkr;
++
++	clks = omap2_get_clksel_by_parent(clk, clk->parent);
++	if (clks == NULL)
++		return 0;
++
++	for (clkr = clks->rates; clkr->div; clkr++) {
++		if ((clkr->flags & cpu_mask) && (clkr->val == field_val))
++			break;
++	}
++
++	if (!clkr->div) {
++		printk(KERN_ERR "clock: Could not find fieldval %d for "
++		       "clock %s parent %s\n", field_val, clk->name,
++		       clk->parent->name);
++		return 0;
++	}
++
++	return clkr->div;
++}
++
++/**
++ * omap2_divisor_to_clksel() - turn clksel integer divisor into a field value
++ * @clk: OMAP struct clk to use
++ * @div: integer divisor to search for
++ *
++ * Given a struct clk of a rate-selectable clksel clock, and a clock divisor,
++ * find the corresponding register field value.  The return register value is
++ * the value before left-shifting.  Returns 0xffffffff on error
++ */
++u32 omap2_divisor_to_clksel(struct clk *clk, u32 div)
++{
++	const struct clksel *clks;
++	const struct clksel_rate *clkr;
++
++	/* should never happen */
++	WARN_ON(div == 0);
++
++	clks = omap2_get_clksel_by_parent(clk, clk->parent);
++	if (clks == NULL)
++		return 0;
++
++	for (clkr = clks->rates; clkr->div; clkr++) {
++		if ((clkr->flags & cpu_mask) && (clkr->div == div))
++			break;
++	}
++
++	if (!clkr->div) {
++		printk(KERN_ERR "clock: Could not find divisor %d for "
++		       "clock %s parent %s\n", div, clk->name,
++		       clk->parent->name);
++		return 0;
++	}
++
++	return clkr->val;
++}
++
++/**
++ * omap2_get_clksel - find clksel register addr & field mask for a clk
++ * @clk: struct clk to use
++ * @field_mask: ptr to u32 to store the register field mask
++ *
++ * Returns the address of the clksel register upon success or NULL on error.
++ */
++void __iomem *omap2_get_clksel(struct clk *clk, u32 *field_mask)
++{
++	if (unlikely((clk->clksel_reg == 0) || (clk->clksel_mask == 0)))
++		return NULL;
++
++	*field_mask = clk->clksel_mask;
++
++	return clk->clksel_reg;
++}
++
++/**
++ * omap2_clksel_get_divisor - get current divider applied to parent clock.
++ * @clk: OMAP struct clk to use.
++ *
++ * Returns the integer divisor upon success or 0 on error.
++ */
++u32 omap2_clksel_get_divisor(struct clk *clk)
++{
++	u32 field_mask, field_val;
++	void __iomem *div_addr;
++
++	div_addr = omap2_get_clksel(clk, &field_mask);
++	if (div_addr == 0)
++		return 0;
++
++	field_val = cm_read_reg(div_addr) & field_mask;
++	field_val >>= mask_to_shift(field_mask);
++
++	return omap2_clksel_to_divisor(clk, field_val);
++}
++
++int omap2_clksel_set_rate(struct clk *clk, unsigned long rate)
++{
++	u32 field_mask, field_val, reg_val, validrate, new_div = 0;
++	void __iomem *div_addr;
++
++	validrate = omap2_clksel_round_rate_div(clk, rate, &new_div);
++	if (validrate != rate)
++		return -EINVAL;
++
++	div_addr = omap2_get_clksel(clk, &field_mask);
++	if (div_addr == 0)
++		return -EINVAL;
++
++	field_val = omap2_divisor_to_clksel(clk, new_div);
++	if (field_val == ~0)
++		return -EINVAL;
++
++	reg_val = cm_read_reg(div_addr);
++	reg_val &= ~field_mask;
++	reg_val |= (field_val << mask_to_shift(field_mask));
++	cm_write_reg(reg_val, div_addr);
++	wmb();
++
++	clk->rate = clk->parent->rate / new_div;
++
++	if (clk->flags & DELAYED_APP && cpu_is_omap24xx()) {
++		prm_write_reg(OMAP24XX_VALID_CONFIG, OMAP24XX_PRCM_CLKCFG_CTRL);
++		wmb();
++	}
++
++	return 0;
++}
++
++
++/* Set the clock rate for a clock source */
++int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
++{
++	int ret = -EINVAL;
++
++	pr_debug("clock: set_rate for clock %s to rate %ld\n", clk->name, rate);
++
++	/* CONFIG_PARTICIPANT clocks are changed only in sets via the
++	   rate table mechanism, driven by mpu_speed  */
++	if (clk->flags & CONFIG_PARTICIPANT)
++		return -EINVAL;
++
++	/* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
++	if (clk->set_rate != 0)
++		ret = clk->set_rate(clk, rate);
++
++	if (unlikely(ret == 0 && (clk->flags & RATE_PROPAGATES)))
++		propagate_rate(clk);
++
++	return ret;
++}
++
++/*
++ * Converts encoded control register address into a full address
++ * On error, *src_addr will be returned as 0.
++ */
++static u32 omap2_clksel_get_src_field(void __iomem **src_addr,
++				      struct clk *src_clk, u32 *field_mask,
++				      struct clk *clk, u32 *parent_div)
++{
++	const struct clksel *clks;
++	const struct clksel_rate *clkr;
++
++	*parent_div = 0;
++	*src_addr = 0;
++
++	clks = omap2_get_clksel_by_parent(clk, src_clk);
++	if (clks == NULL)
++		return 0;
++
++	for (clkr = clks->rates; clkr->div; clkr++) {
++		if (clkr->flags & (cpu_mask | DEFAULT_RATE))
++			break; /* Found the default rate for this platform */
++	}
++
++	if (!clkr->div) {
++		printk(KERN_ERR "clock: Could not find default rate for "
++		       "clock %s parent %s\n", clk->name,
++		       src_clk->parent->name);
++		return 0;
++	}
++
++	/* Should never happen.  Add a clksel mask to the struct clk. */
++	WARN_ON(clk->clksel_mask == 0);
++
++	*field_mask = clk->clksel_mask;
++	*src_addr = clk->clksel_reg;
++	*parent_div = clkr->div;
++
++	return clkr->val;
++}
++
++int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
++{
++	void __iomem *src_addr;
++	u32 field_val, field_mask, reg_val, parent_div;
++
++	if (unlikely(clk->flags & CONFIG_PARTICIPANT))
++		return -EINVAL;
++
++	if (!clk->clksel)
++		return -EINVAL;
++
++	field_val = omap2_clksel_get_src_field(&src_addr, new_parent,
++					       &field_mask, clk, &parent_div);
++	if (src_addr == 0)
++		return -EINVAL;
++
++	if (clk->usecount > 0)
++		_omap2_clk_disable(clk);
++
++	/* Set new source value (previous dividers if any in effect) */
++	reg_val = __raw_readl(src_addr) & ~field_mask;
++	reg_val |= (field_val << mask_to_shift(field_mask));
++	__raw_writel(reg_val, src_addr);
++	wmb();
++
++	if (clk->flags & DELAYED_APP && cpu_is_omap24xx()) {
++		prm_write_reg(OMAP24XX_VALID_CONFIG,
++			      OMAP24XX_PRCM_CLKCFG_CTRL);
++		wmb();
++	}
++
++	if (clk->usecount > 0)
++		_omap2_clk_enable(clk);
++
++	clk->parent = new_parent;
++
++	/* CLKSEL clocks follow their parents' rates, divided by a divisor */
++	clk->rate = new_parent->rate;
++
++	if (parent_div > 0)
++		clk->rate /= parent_div;
++
++	pr_debug("clock: set parent of %s to %s (new rate %ld)\n",
++		 clk->name, clk->parent->name, clk->rate);
++
++	if (unlikely(clk->flags & RATE_PROPAGATES))
++		propagate_rate(clk);
++
++	return 0;
++}
++
++/*-------------------------------------------------------------------------
++ * Omap2 clock reset and init functions
++ *-------------------------------------------------------------------------*/
++
++#ifdef CONFIG_OMAP_RESET_CLOCKS
++void omap2_clk_disable_unused(struct clk *clk)
++{
++	u32 regval32, v;
++
++	v = (clk->flags & INVERT_ENABLE) ? (1 << clk->enable_bit) : 0;
++
++	regval32 = cm_read_reg(clk->enable_reg);
++	if ((regval32 & (1 << clk->enable_bit)) == v)
++		return;
++
++	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
++	_omap2_clk_disable(clk);
++}
++#endif
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+new file mode 100644
+index 0000000..4cba747
+--- /dev/null
++++ b/arch/arm/mach-omap2/clock.h
+@@ -0,0 +1,74 @@
++/*
++ *  linux/arch/arm/mach-omap2/clock.h
++ *
++ *  Copyright (C) 2005 Texas Instruments Inc.
++ *  Richard Woodruff <r-woodruff2@ti.com>
++ *  Created for OMAP2.
++ *
++ *  Copyright (C) 2004 Nokia corporation
++ *  Written by Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
++ *  Based on clocks.h by Tony Lindgren, Gordon McNutt and RidgeRun, Inc
++ *
++ *  Copyright (C) 2007 Texas Instruments, Inc.
++ *  Copyright (C) 2007 Nokia Corporation
++ *  Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
 +
- #ifndef __ASM_ARCH_OMAP24XX_H
- #define __ASM_ARCH_OMAP24XX_H
- 
-@@ -13,33 +38,70 @@
- 
- /* interrupt controller */
- #define OMAP24XX_IC_BASE	(L4_24XX_BASE + 0xfe000)
--#define VA_IC_BASE		IO_ADDRESS(OMAP24XX_IC_BASE)
- #define OMAP24XX_IVA_INTC_BASE	0x40000000
- #define IRQ_SIR_IRQ		0x0040
- 
--#ifdef CONFIG_ARCH_OMAP2420
--#define OMAP24XX_32KSYNCT_BASE	(L4_24XX_BASE + 0x4000)
--#define OMAP24XX_PRCM_BASE	(L4_24XX_BASE + 0x8000)
--#define OMAP24XX_SDRC_BASE	(L3_24XX_BASE + 0x9000)
--#define OMAP242X_CONTROL_STATUS	(L4_24XX_BASE + 0x2f8)
--#endif
-+#define OMAP2420_CTRL_BASE	L4_24XX_BASE
-+#define OMAP2420_32KSYNCT_BASE	(L4_24XX_BASE + 0x4000)
-+#define OMAP2420_PRCM_BASE	(L4_24XX_BASE + 0x8000)
-+#define OMAP2420_CM_BASE	(L4_24XX_BASE + 0x8000)
-+#define OMAP2420_PRM_BASE	OMAP2420_CM_BASE
-+#define OMAP2420_SDRC_BASE	(L3_24XX_BASE + 0x9000)
-+#define OMAP2420_SMS_BASE	0x68008000
- 
--#ifdef CONFIG_ARCH_OMAP2430
--#define OMAP24XX_32KSYNCT_BASE	(L4_WK_243X_BASE + 0x20000)
--#define OMAP24XX_PRCM_BASE	(L4_WK_243X_BASE + 0x6000)
--#define OMAP24XX_SDRC_BASE	(0x6D000000)
--#define OMAP242X_CONTROL_STATUS	(L4_24XX_BASE + 0x2f8)
-+#define OMAP2430_32KSYNCT_BASE	(L4_WK_243X_BASE + 0x20000)
-+#define OMAP2430_PRCM_BASE	(L4_WK_243X_BASE + 0x6000)
-+#define OMAP2430_CM_BASE	(L4_WK_243X_BASE + 0x6000)
-+#define OMAP2430_PRM_BASE	OMAP2430_CM_BASE
++#ifndef __ARCH_ARM_MACH_OMAP2_CLOCK_H
++#define __ARCH_ARM_MACH_OMAP2_CLOCK_H
 +
-+#define OMAP243X_SMS_BASE	0x6C000000
-+#define OMAP243X_SDRC_BASE	0x6D000000
- #define OMAP243X_GPMC_BASE	0x6E000000
--#endif
-+#define OMAP243X_SCM_BASE	(L4_WK_243X_BASE + 0x2000)
-+#define OMAP243X_CTRL_BASE	OMAP243X_SCM_BASE
-+#define OMAP243X_HS_BASE	(L4_24XX_BASE + 0x000ac000)
- 
- /* DSP SS */
--#define OMAP24XX_DSP_BASE	0x58000000
--#define OMAP24XX_DSP_MEM_BASE	(OMAP24XX_DSP_BASE + 0x0)
--#define OMAP24XX_DSP_IPI_BASE	(OMAP24XX_DSP_BASE + 0x1000000)
--#define OMAP24XX_DSP_MMU_BASE	(OMAP24XX_DSP_BASE + 0x2000000)
-+#define OMAP2420_DSP_BASE	0x58000000
-+#define OMAP2420_DSP_MEM_BASE	(OMAP2420_DSP_BASE + 0x0)
-+#define OMAP2420_DSP_IPI_BASE	(OMAP2420_DSP_BASE + 0x1000000)
-+#define OMAP2420_DSP_MMU_BASE	(OMAP2420_DSP_BASE + 0x2000000)
++#include <asm/arch/clock.h>
 +
-+#define OMAP243X_DSP_BASE	0x5C000000
-+#define OMAP243X_DSP_MEM_BASE	(OMAP243X_DSP_BASE + 0x0)
-+#define OMAP243X_DSP_MMU_BASE	(OMAP243X_DSP_BASE + 0x1000000)
- 
- /* Mailbox */
- #define OMAP24XX_MAILBOX_BASE	(L4_24XX_BASE + 0x94000)
- 
-+/* Camera */
-+#define OMAP24XX_CAMERA_BASE	(L4_24XX_BASE + 0x52000)
++int omap2_clk_enable(struct clk *clk);
++void omap2_clk_disable(struct clk *clk);
++long omap2_clk_round_rate(struct clk *clk, unsigned long rate);
++int omap2_clk_set_rate(struct clk *clk, unsigned long rate);
++int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent);
 +
-+/* Security */
-+#define OMAP24XX_SEC_BASE	(L4_24XX_BASE + 0xA0000)
-+#define OMAP24XX_SEC_RNG_BASE	(OMAP24XX_SEC_BASE + 0x0000)
-+#define OMAP24XX_SEC_DES_BASE	(OMAP24XX_SEC_BASE + 0x2000)
-+#define OMAP24XX_SEC_SHA1MD5_BASE (OMAP24XX_SEC_BASE + 0x4000)
-+#define OMAP24XX_SEC_AES_BASE	(OMAP24XX_SEC_BASE + 0x6000)
-+#define OMAP24XX_SEC_PKA_BASE	(OMAP24XX_SEC_BASE + 0x8000)
-+
-+#if defined(CONFIG_ARCH_OMAP2420)
-+
-+#define OMAP2_32KSYNCT_BASE	OMAP2420_32KSYNCT_BASE
-+#define OMAP2_PRCM_BASE		OMAP2420_PRCM_BASE
-+#define OMAP2_CM_BASE		OMAP2420_CM_BASE
-+#define OMAP2_PRM_BASE		OMAP2420_PRM_BASE
-+#define OMAP2_VA_IC_BASE	IO_ADDRESS(OMAP24XX_IC_BASE)
-+
-+#elif defined(CONFIG_ARCH_OMAP2430)
-+
-+#define OMAP2_32KSYNCT_BASE	OMAP2430_32KSYNCT_BASE
-+#define OMAP2_PRCM_BASE		OMAP2430_PRCM_BASE
-+#define OMAP2_CM_BASE		OMAP2430_CM_BASE
-+#define OMAP2_PRM_BASE		OMAP2430_PRM_BASE
-+#define OMAP2_VA_IC_BASE	IO_ADDRESS(OMAP24XX_IC_BASE)
-+
++#ifdef CONFIG_OMAP_RESET_CLOCKS
++void omap2_clk_disable_unused(struct clk *clk);
++#else
++#define omap2_clk_disable_unused	NULL
 +#endif
 +
- #endif /* __ASM_ARCH_OMAP24XX_H */
- 
++void omap2_clksel_recalc(struct clk *clk);
++void omap2_init_clksel_parent(struct clk *clk);
++u32 omap2_clksel_get_divisor(struct clk *clk);
++u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate,
++				u32 *new_div);
++u32 omap2_clksel_to_divisor(struct clk *clk, u32 field_val);
++u32 omap2_divisor_to_clksel(struct clk *clk, u32 div);
++void omap2_fixed_divisor_recalc(struct clk *clk);
++long omap2_clksel_round_rate(struct clk *clk, unsigned long target_rate);
++int omap2_clksel_set_rate(struct clk *clk, unsigned long rate);
++u32 omap2_get_dpll_rate(struct clk *clk);
++int omap2_wait_clock_ready(void __iomem *reg, u32 cval, const char *name);
++u8 mask_to_shift(u32 mask);
++
++extern u8 cpu_mask;
++
++/* clksel_rate data common to 24xx/343x */
++static const struct clksel_rate gpt_32k_rates[] = {
++	 { .div = 1, .val = 0, .flags = RATE_IN_24XX | RATE_IN_343X | DEFAULT_RATE },
++	 { .div = 0 }
++};
++
++static const struct clksel_rate gpt_sys_rates[] = {
++	 { .div = 1, .val = 1, .flags = RATE_IN_24XX | RATE_IN_343X | DEFAULT_RATE },
++	 { .div = 0 }
++};
++
++static const struct clksel_rate gfx_l3_rates[] = {
++	{ .div = 1, .val = 1, .flags = RATE_IN_24XX | RATE_IN_343X },
++	{ .div = 2, .val = 2, .flags = RATE_IN_24XX | RATE_IN_343X | DEFAULT_RATE },
++	{ .div = 3, .val = 3, .flags = RATE_IN_243X | RATE_IN_343X },
++	{ .div = 4, .val = 4, .flags = RATE_IN_243X | RATE_IN_343X },
++	{ .div = 0 }
++};
++
++
++#endif
 -- 
 1.5.3.6
 
