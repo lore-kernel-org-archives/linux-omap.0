@@ -1,25 +1,17 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 12/17] ARM: OMAP2: Remove old 24xx specific clock functions
-Date: Tue, 18 Mar 2008 16:02:10 +0200
-Message-ID: <1205848935-12078-13-git-send-email-tony@atomide.com>
+Subject: [PATCH 4/17] ARM: OMAP2: Add register access for 34xx
+Date: Tue, 18 Mar 2008 16:02:02 +0200
+Message-ID: <1205848935-12078-5-git-send-email-tony@atomide.com>
 References: omap2-upstream-2008-03-18-160209
 	<1205848935-12078-1-git-send-email-tony@atomide.com>
 	<1205848935-12078-2-git-send-email-tony@atomide.com>
 	<1205848935-12078-3-git-send-email-tony@atomide.com>
 	<1205848935-12078-4-git-send-email-tony@atomide.com>
-	<1205848935-12078-5-git-send-email-tony@atomide.com>
-	<1205848935-12078-6-git-send-email-tony@atomide.com>
-	<1205848935-12078-7-git-send-email-tony@atomide.com>
-	<1205848935-12078-8-git-send-email-tony@atomide.com>
-	<1205848935-12078-9-git-send-email-tony@atomide.com>
-	<1205848935-12078-10-git-send-email-tony@atomide.com>
-	<1205848935-12078-11-git-send-email-tony@atomide.com>
-	<1205848935-12078-12-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
-In-Reply-To: <1205848935-12078-12-git-send-email-tony@atomide.com>
+In-Reply-To: <1205848935-12078-4-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
 List-Archive: <http://lists.arm.linux.org.uk/lurker/list/linux-arm-kernel.html>
@@ -33,782 +25,1278 @@ To: linux-arm-kernel@lists.arm.linux.org.uk
 Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Paul Walmsley <paul@pwsan.com>
+This patch adds register access for 34xx power and clock management.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/clock24xx.c |  722 ---------------------------------------
- 1 files changed, 0 insertions(+), 722 deletions(-)
+ arch/arm/mach-omap2/cm-regbits-34xx.h  |  667 ++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prm-regbits-34xx.h |  582 ++++++++++++++++++++++++++++
+ 2 files changed, 1249 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/cm-regbits-34xx.h
+ create mode 100644 arch/arm/mach-omap2/prm-regbits-34xx.h
 
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index f2b12b6..0c8ae09 100644
---- a/arch/arm/mach-omap2/clock24xx.c
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -108,29 +108,6 @@ static u32 omap2_get_dpll_rate_24xx(struct clk *tclk)
- 	return dpll_clk;
- }
- 
--static void omap2_followparent_recalc(struct clk *clk)
--{
--	followparent_recalc(clk);
--}
--
--static void omap2_propagate_rate(struct clk * clk)
--{
--	if (!(clk->flags & RATE_FIXED))
--		clk->rate = clk->parent->rate;
--
--	propagate_rate(clk);
--}
--
--#ifdef OLD_CK
--static void omap2_set_osc_ck(int enable)
--{
--	if (enable)
--		PRCM_CLKSRC_CTRL &= ~(0x3 << 3);
--	else
--		PRCM_CLKSRC_CTRL |= 0x3 << 3;
--}
--#endif	/* OLD_CK */
--
- /* Enable an APLL if off */
- static int omap2_clk_fixed_enable(struct clk *clk)
- {
-@@ -162,84 +139,6 @@ static int omap2_clk_fixed_enable(struct clk *clk)
- 	return 0;
- }
- 
--#ifdef OLD_CK
--static void omap2_clk_wait_ready(struct clk *clk)
--{
--	unsigned long reg, other_reg, st_reg;
--	u32 bit;
--	int i;
--
--	reg = (unsigned long) clk->enable_reg;
--	if (reg == (unsigned long) &CM_FCLKEN1_CORE ||
--	    reg == (unsigned long) &CM_FCLKEN2_CORE)
--		other_reg = (reg & ~0xf0) | 0x10;
--	else if (reg == (unsigned long) &CM_ICLKEN1_CORE ||
--		 reg == (unsigned long) &CM_ICLKEN2_CORE)
--		other_reg = (reg & ~0xf0) | 0x00;
--	else
--		return;
--
--	/* No check for DSS or cam clocks */
--	if ((reg & 0x0f) == 0) {
--		if (clk->enable_bit <= 1 || clk->enable_bit == 31)
--			return;
--	}
--
--	/* Check if both functional and interface clocks
--	 * are running. */
--	bit = 1 << clk->enable_bit;
--	if (!(__raw_readl(other_reg) & bit))
--		return;
--	st_reg = (other_reg & ~0xf0) | 0x20;
--	i = 0;
--	while (!(__raw_readl(st_reg) & bit)) {
--		i++;
--		if (i == 100000) {
--			printk(KERN_ERR "Timeout enabling clock %s\n", clk->name);
--			break;
--		}
--	}
--	if (i)
--		pr_debug("Clock %s stable after %d loops\n", clk->name, i);
--}
--
--/* Enables clock without considering parent dependencies or use count
-- * REVISIT: Maybe change this to use clk->enable like on omap1?
-- */
--static int _omap2_clk_enable(struct clk * clk)
--{
--	u32 regval32;
--
--	if (clk->flags & ALWAYS_ENABLED)
--		return 0;
--
--	if (unlikely(clk == &osc_ck)) {
--		omap2_set_osc_ck(1);
--		return 0;
--	}
--
--	if (unlikely(clk->enable_reg == 0)) {
--		printk(KERN_ERR "clock.c: Enable for %s without enable code\n",
--		       clk->name);
--		return 0;
--	}
--
--	if (clk->enable_reg == (void __iomem *)&CM_CLKEN_PLL) {
--		omap2_clk_fixed_enable(clk);
--		return 0;
--	}
--
--	regval32 = __raw_readl(clk->enable_reg);
--	regval32 |= (1 << clk->enable_bit);
--	__raw_writel(regval32, clk->enable_reg);
--	wmb();
--
--	omap2_clk_wait_ready(clk);
--
--	return 0;
--}
--#endif	/* OLD_CK */
--
- /* Stop APLL */
- static void omap2_clk_fixed_disable(struct clk *clk)
- {
-@@ -250,65 +149,6 @@ static void omap2_clk_fixed_disable(struct clk *clk)
- 	cm_write_mod_reg(cval, PLL_MOD, CM_CLKEN);
- }
- 
--#ifdef OLD_CK
--/* Disables clock without considering parent dependencies or use count */
--static void _omap2_clk_disable(struct clk *clk)
--{
--	u32 regval32;
--
--	if (unlikely(clk == &osc_ck)) {
--		omap2_set_osc_ck(0);
--		return;
--	}
--
--	if (clk->enable_reg == 0)
--		return;
--
--	if (clk->enable_reg == (void __iomem *)&CM_CLKEN_PLL) {
--		omap2_clk_fixed_disable(clk);
--		return;
--	}
--
--	regval32 = __raw_readl(clk->enable_reg);
--	regval32 &= ~(1 << clk->enable_bit);
--	__raw_writel(regval32, clk->enable_reg);
--	wmb();
--}
--
--static int omap2_clk_enable(struct clk *clk)
--{
--	int ret = 0;
--
--	if (clk->usecount++ == 0) {
--		if (likely((u32)clk->parent))
--			ret = omap2_clk_enable(clk->parent);
--
--		if (unlikely(ret != 0)) {
--			clk->usecount--;
--			return ret;
--		}
--
--		ret = _omap2_clk_enable(clk);
--
--		if (unlikely(ret != 0) && clk->parent) {
--			omap2_clk_disable(clk->parent);
--			clk->usecount--;
--		}
--	}
--
--	return ret;
--}
--
--static void omap2_clk_disable(struct clk *clk)
--{
--	if (clk->usecount > 0 && !(--clk->usecount)) {
--		_omap2_clk_disable(clk);
--		if (likely((u32)clk->parent))
--			omap2_clk_disable(clk->parent);
--	}
--}
--#endif	/* OLD_CK */
--
- /*
-  * Uses the current prcm set to tell if a rate is valid.
-  * You can go slower, but not faster within a given rate set.
-@@ -342,195 +182,6 @@ static u32 omap2_dpll_round_rate(unsigned long target_rate)
- 
- }
- 
--#ifdef OLD_CK
--/*
-- * Used for clocks that are part of CLKSEL_xyz governed clocks.
-- * REVISIT: Maybe change to use clk->enable() functions like on omap1?
-- */
--static void omap2_clksel_recalc(struct clk * clk)
--{
--	u32 fixed = 0, div = 0;
--
--	if (clk == &dpll_ck) {
--		clk->rate = omap2_get_dpll_rate(clk);
--		fixed = 1;
--		div = 0;
--	}
--
--	if (clk == &iva1_mpu_int_ifck) {
--		div = 2;
--		fixed = 1;
--	}
--
--	if ((clk == &dss1_fck) && ((CM_CLKSEL1_CORE & (0x1f << 8)) == 0)) {
--		clk->rate = sys_ck.rate;
--		return;
--	}
--
--	if (!fixed) {
--		div = omap2_clksel_get_divisor(clk);
--		if (div == 0)
--			return;
--	}
--
--	if (div != 0) {
--		if (unlikely(clk->rate == clk->parent->rate / div))
--			return;
--		clk->rate = clk->parent->rate / div;
--	}
--
--	if (unlikely(clk->flags & RATE_PROPAGATES))
--		propagate_rate(clk);
--}
--
--/*
-- * Finds best divider value in an array based on the source and target
-- * rates. The divider array must be sorted with smallest divider first.
-- */
--static inline u32 omap2_divider_from_table(u32 size, u32 *div_array,
--					   u32 src_rate, u32 tgt_rate)
--{
--	int i, test_rate;
--
--	if (div_array == NULL)
--		return ~1;
--
--	for (i=0; i < size; i++) {
--		test_rate = src_rate / *div_array;
--		if (test_rate <= tgt_rate)
--			return *div_array;
--		++div_array;
--	}
--
--	return ~0;	/* No acceptable divider */
--}
--
--/*
-- * Find divisor for the given clock and target rate.
-- *
-- * Note that this will not work for clocks which are part of CONFIG_PARTICIPANT,
-- * they are only settable as part of virtual_prcm set.
-- */
--static u32 omap2_clksel_round_rate(struct clk *tclk, u32 target_rate,
--	u32 *new_div)
--{
--	u32 gfx_div[] = {2, 3, 4};
--	u32 sysclkout_div[] = {1, 2, 4, 8, 16};
--	u32 dss1_div[] = {1, 2, 3, 4, 5, 6, 8, 9, 12, 16};
--	u32 vylnq_div[] = {1, 2, 3, 4, 6, 8, 9, 12, 16, 18};
--	u32 best_div = ~0, asize = 0;
--	u32 *div_array = NULL;
--
--	switch (tclk->flags & SRC_RATE_SEL_MASK) {
--	case CM_GFX_SEL1:
--		asize = 3;
--		div_array = gfx_div;
--		break;
--	case CM_PLL_SEL1:
--		return omap2_dpll_round_rate(target_rate);
--	case CM_SYSCLKOUT_SEL1:
--		asize = 5;
--		div_array = sysclkout_div;
--		break;
--	case CM_CORE_SEL1:
--		if(tclk == &dss1_fck){
--			if(tclk->parent == &core_ck){
--				asize = 10;
--				div_array = dss1_div;
--			} else {
--				*new_div = 0; /* fixed clk */
--				return(tclk->parent->rate);
--			}
--		} else if((tclk == &vlynq_fck) && cpu_is_omap2420()){
--			if(tclk->parent == &core_ck){
--				asize = 10;
--				div_array = vylnq_div;
--			} else {
--				*new_div = 0; /* fixed clk */
--				return(tclk->parent->rate);
--			}
--		}
--		break;
--	}
--
--	best_div = omap2_divider_from_table(asize, div_array,
--	 tclk->parent->rate, target_rate);
--	if (best_div == ~0){
--		*new_div = 1;
--		return best_div; /* signal error */
--	}
--
--	*new_div = best_div;
--	return (tclk->parent->rate / best_div);
--}
--
--/* Given a clock and a rate apply a clock specific rounding function */
--static long omap2_clk_round_rate(struct clk *clk, unsigned long rate)
--{
--	u32 new_div = 0;
--	int valid_rate;
--
--	if (clk->flags & RATE_FIXED)
--		return clk->rate;
--
--	if (clk->flags & RATE_CKCTL) {
--		valid_rate = omap2_clksel_round_rate(clk, rate, &new_div);
--		return valid_rate;
--	}
--
--	if (clk->round_rate != 0)
--		return clk->round_rate(clk, rate);
--
--	return clk->rate;
--}
--
--/*
-- * Check the DLL lock state, and return tue if running in unlock mode.
-- * This is needed to compensate for the shifted DLL value in unlock mode.
-- */
--static u32 omap2_dll_force_needed(void)
--{
--	u32 dll_state = SDRC_DLLA_CTRL;		/* dlla and dllb are a set */
--
--	if ((dll_state & (1 << 2)) == (1 << 2))
--		return 1;
--	else
--		return 0;
--}
--
--static u32 omap2_reprogram_sdrc(u32 level, u32 force)
--{
--	u32 slow_dll_ctrl, fast_dll_ctrl, m_type;
--	u32 prev = curr_perf_level, flags;
--
--	if ((curr_perf_level == level) && !force)
--		return prev;
--
--	m_type = omap2_memory_get_type();
--	slow_dll_ctrl = omap2_memory_get_slow_dll_ctrl();
--	fast_dll_ctrl = omap2_memory_get_fast_dll_ctrl();
--
--	if (level == PRCM_HALF_SPEED) {
--		local_irq_save(flags);
--		PRCM_VOLTSETUP = 0xffff;
--		omap2_sram_reprogram_sdrc(PRCM_HALF_SPEED,
--					  slow_dll_ctrl, m_type);
--		curr_perf_level = PRCM_HALF_SPEED;
--		local_irq_restore(flags);
--	}
--	if (level == PRCM_FULL_SPEED) {
--		local_irq_save(flags);
--		PRCM_VOLTSETUP = 0xffff;
--		omap2_sram_reprogram_sdrc(PRCM_FULL_SPEED,
--					  fast_dll_ctrl, m_type);
--		curr_perf_level = PRCM_FULL_SPEED;
--		local_irq_restore(flags);
--	}
--
--	return prev;
--}
--#endif	/* OLD_CK */
--
- static void omap2_dpll_recalc(struct clk *clk)
- {
- 	clk->rate = omap2_get_dpll_rate_24xx(clk);
-@@ -655,359 +306,6 @@ static long omap2_round_to_table_rate(struct clk *clk, unsigned long rate)
- 	return highest_rate;
- }
- 
--#ifdef OLD_CK
--/*
-- * omap2_convert_field_to_div() - turn field value into integer divider
-- */
--static u32 omap2_clksel_to_divisor(u32 div_sel, u32 field_val)
--{
--	u32 i;
--	u32 clkout_array[] = {1, 2, 4, 8, 16};
--
--	if ((div_sel & SRC_RATE_SEL_MASK) == CM_SYSCLKOUT_SEL1) {
--		for (i = 0; i < 5; i++) {
--			if (field_val == i)
--				return clkout_array[i];
--		}
--		return ~0;
--	} else
--		return field_val;
--}
--
--/*
-- * Returns the CLKSEL divider register value
-- * REVISIT: This should be cleaned up to work nicely with void __iomem *
-- */
--static u32 omap2_get_clksel(u32 *div_sel, u32 *field_mask,
--			    struct clk *clk)
--{
--	int ret = ~0;
--	u32 reg_val, div_off;
--	u32 div_addr = 0;
--	u32 mask = ~0;
--
--	div_off = clk->rate_offset;
--
--	switch ((*div_sel & SRC_RATE_SEL_MASK)) {
--	case CM_MPU_SEL1:
--		div_addr = (u32)&CM_CLKSEL_MPU;
--		mask = 0x1f;
--		break;
--	case CM_DSP_SEL1:
--		div_addr = (u32)&CM_CLKSEL_DSP;
--		if (cpu_is_omap2420()) {
--			if ((div_off == 0) || (div_off == 8))
--				mask = 0x1f;
--			else if (div_off == 5)
--				mask = 0x3;
--		} else if (cpu_is_omap2430()) {
--			if (div_off == 0)
--				mask = 0x1f;
--			else if (div_off == 5)
--				mask = 0x3;
--		}
--		break;
--	case CM_GFX_SEL1:
--		div_addr = (u32)&CM_CLKSEL_GFX;
--		if (div_off == 0)
--			mask = 0x7;
--		break;
--	case CM_MODEM_SEL1:
--		div_addr = (u32)&CM_CLKSEL_MDM;
--		if (div_off == 0)
--			mask = 0xf;
--		break;
--	case CM_SYSCLKOUT_SEL1:
--		div_addr = (u32)&PRCM_CLKOUT_CTRL;
--		if ((div_off == 3) || (div_off == 11))
--			mask= 0x3;
--		break;
--	case CM_CORE_SEL1:
--		div_addr = (u32)&CM_CLKSEL1_CORE;
--		switch (div_off) {
--		case 0:					/* l3 */
--		case 8:					/* dss1 */
--		case 15:				/* vylnc-2420 */
--		case 20:				/* ssi */
--			mask = 0x1f; break;
--		case 5:					/* l4 */
--			mask = 0x3; break;
--		case 13:				/* dss2 */
--			mask = 0x1; break;
--		case 25:				/* usb */
--			mask = 0x7; break;
--		}
--	}
--
--	*field_mask = mask;
--
--	if (unlikely(mask == ~0))
--		div_addr = 0;
--
--	*div_sel = div_addr;
--
--	if (unlikely(div_addr == 0))
--		return ret;
--
--	/* Isolate field */
--	reg_val = __raw_readl((void __iomem *)div_addr) & (mask << div_off);
--
--	/* Normalize back to divider value */
--	reg_val >>= div_off;
--
--	return reg_val;
--}
--
--/*
-- * Return divider to be applied to parent clock.
-- * Return 0 on error.
-- */
--static u32 omap2_clksel_get_divisor(struct clk *clk)
--{
--	int ret = 0;
--	u32 div, div_sel, div_off, field_mask, field_val;
--
--	/* isolate control register */
--	div_sel = (SRC_RATE_SEL_MASK & clk->flags);
--
--	div_off = clk->rate_offset;
--	field_val = omap2_get_clksel(&div_sel, &field_mask, clk);
--	if (div_sel == 0)
--		return ret;
--
--	div_sel = (SRC_RATE_SEL_MASK & clk->flags);
--	div = omap2_clksel_to_divisor(div_sel, field_val);
--
--	return div;
--}
--
--/* Set the clock rate for a clock source */
--static int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
--
--{
--	int ret = -EINVAL;
--	void __iomem * reg;
--	u32 div_sel, div_off, field_mask, field_val, reg_val, validrate;
--	u32 new_div = 0;
--
--	if (!(clk->flags & CONFIG_PARTICIPANT) && (clk->flags & RATE_CKCTL)) {
--		if (clk == &dpll_ck)
--			return omap2_reprogram_dpll(clk, rate);
--
--		/* Isolate control register */
--		div_sel = (SRC_RATE_SEL_MASK & clk->flags);
--		div_off = clk->rate_offset;
--
--		validrate = omap2_clksel_round_rate(clk, rate, &new_div);
--		if (validrate != rate)
--			return(ret);
--
--		field_val = omap2_get_clksel(&div_sel, &field_mask, clk);
--		if (div_sel == 0)
--			return ret;
--
--		if (clk->flags & CM_SYSCLKOUT_SEL1) {
--			switch (new_div) {
--			case 16:
--				field_val = 4;
--				break;
--			case 8:
--				field_val = 3;
--				break;
--			case 4:
--				field_val = 2;
--				break;
--			case 2:
--				field_val = 1;
--				break;
--			case 1:
--				field_val = 0;
--				break;
--			}
--		} else
--			field_val = new_div;
--
--		reg = (void __iomem *)div_sel;
--
--		reg_val = __raw_readl(reg);
--		reg_val &= ~(field_mask << div_off);
--		reg_val |= (field_val << div_off);
--		__raw_writel(reg_val, reg);
--		wmb();
--		clk->rate = clk->parent->rate / field_val;
--
--		if (clk->flags & DELAYED_APP) {
--			__raw_writel(0x1, (void __iomem *)&PRCM_CLKCFG_CTRL);
--			wmb();
--		}
--		ret = 0;
--	} else if (clk->set_rate != 0)
--		ret = clk->set_rate(clk, rate);
--
--	if (unlikely(ret == 0 && (clk->flags & RATE_PROPAGATES)))
--		propagate_rate(clk);
--
--	return ret;
--}
--
--/* Converts encoded control register address into a full address */
--static u32 omap2_get_src_field(u32 *type_to_addr, u32 reg_offset,
--			       struct clk *src_clk, u32 *field_mask)
--{
--	u32 val = ~0, src_reg_addr = 0, mask = 0;
--
--	/* Find target control register.*/
--	switch ((*type_to_addr & SRC_RATE_SEL_MASK)) {
--	case CM_CORE_SEL1:
--		src_reg_addr = (u32)&CM_CLKSEL1_CORE;
--		if (reg_offset == 13) {			/* DSS2_fclk */
--			mask = 0x1;
--			if (src_clk == &sys_ck)
--				val = 0;
--			if (src_clk == &func_48m_ck)
--				val = 1;
--		} else if (reg_offset == 8) {		/* DSS1_fclk */
--			mask = 0x1f;
--			if (src_clk == &sys_ck)
--				val = 0;
--			else if (src_clk == &core_ck)	/* divided clock */
--				val = 0x10;		/* rate needs fixing */
--		} else if ((reg_offset == 15) && cpu_is_omap2420()){ /*vlnyq*/
--			mask = 0x1F;
--			if(src_clk == &func_96m_ck)
--				val = 0;
--			else if (src_clk == &core_ck)
--				val = 0x10;
--		}
--		break;
--	case CM_CORE_SEL2:
--		src_reg_addr = (u32)&CM_CLKSEL2_CORE;
--		mask = 0x3;
--		if (src_clk == &func_32k_ck)
--			val = 0x0;
--		if (src_clk == &sys_ck)
--			val = 0x1;
--		if (src_clk == &alt_ck)
--			val = 0x2;
--		break;
--	case CM_WKUP_SEL1:
--		src_reg_addr = (u32)&CM_CLKSEL_WKUP;
--		mask = 0x3;
--		if (src_clk == &func_32k_ck)
--			val = 0x0;
--		if (src_clk == &sys_ck)
--			val = 0x1;
--		if (src_clk == &alt_ck)
--			val = 0x2;
--		break;
--	case CM_PLL_SEL1:
--		src_reg_addr = (u32)&CM_CLKSEL1_PLL;
--		mask = 0x1;
--		if (reg_offset == 0x3) {
--			if (src_clk == &apll96_ck)
--				val = 0;
--			if (src_clk == &alt_ck)
--				val = 1;
--		}
--		else if (reg_offset == 0x5) {
--			if (src_clk == &apll54_ck)
--				val = 0;
--			if (src_clk == &alt_ck)
--				val = 1;
--		}
--		break;
--	case CM_PLL_SEL2:
--		src_reg_addr = (u32)&CM_CLKSEL2_PLL;
--		mask = 0x3;
--		if (src_clk == &func_32k_ck)
--			val = 0x0;
--		if (src_clk == &dpll_ck)
--			val = 0x2;
--		break;
--	case CM_SYSCLKOUT_SEL1:
--		src_reg_addr = (u32)&PRCM_CLKOUT_CTRL;
--		mask = 0x3;
--		if (src_clk == &dpll_ck)
--			val = 0;
--		if (src_clk == &sys_ck)
--			val = 1;
--		if (src_clk == &func_96m_ck)
--			val = 2;
--		if (src_clk == &func_54m_ck)
--			val = 3;
--		break;
--	}
--
--	if (val == ~0)			/* Catch errors in offset */
--		*type_to_addr = 0;
--	else
--		*type_to_addr = src_reg_addr;
--	*field_mask = mask;
--
--	return val;
--}
--
--static int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
--{
--	void __iomem * reg;
--	u32 src_sel, src_off, field_val, field_mask, reg_val, rate;
--	int ret = -EINVAL;
--
--	if (unlikely(clk->flags & CONFIG_PARTICIPANT))
--		return ret;
--
--	if (clk->flags & SRC_SEL_MASK) {	/* On-chip SEL collection */
--		src_sel = (SRC_RATE_SEL_MASK & clk->flags);
--		src_off = clk->src_offset;
--
--		if (src_sel == 0)
--			goto set_parent_error;
--
--		field_val = omap2_get_src_field(&src_sel, src_off, new_parent,
--						&field_mask);
--
--		reg = (void __iomem *)src_sel;
--
--		if (clk->usecount > 0)
--			_omap2_clk_disable(clk);
--
--		/* Set new source value (previous dividers if any in effect) */
--		reg_val = __raw_readl(reg) & ~(field_mask << src_off);
--		reg_val |= (field_val << src_off);
--		__raw_writel(reg_val, reg);
--		wmb();
--
--		if (clk->flags & DELAYED_APP) {
--			__raw_writel(0x1, (void __iomem *)&PRCM_CLKCFG_CTRL);
--			wmb();
--		}
--		if (clk->usecount > 0)
--			_omap2_clk_enable(clk);
--
--		clk->parent = new_parent;
--
--		/* SRC_RATE_SEL_MASK clocks follow their parents rates.*/
--		if ((new_parent == &core_ck) && (clk == &dss1_fck))
--			clk->rate = new_parent->rate / 0x10;
--		else
--			clk->rate = new_parent->rate;
--
--		if (unlikely(clk->flags & RATE_PROPAGATES))
--			propagate_rate(clk);
--
--		return 0;
--	} else {
--		clk->parent = new_parent;
--		rate = new_parent->rate;
--		omap2_clk_set_rate(clk, rate);
--		ret = 0;
--	}
--
-- set_parent_error:
--	return ret;
--}
--#endif	/* OLD_CK */
--
- /* Sets basic clocks based on the specified rate */
- static int omap2_select_table_rate(struct clk *clk, unsigned long rate)
- {
-@@ -1089,26 +387,6 @@ static int omap2_select_table_rate(struct clk *clk, unsigned long rate)
- 	return 0;
- }
- 
--/*-------------------------------------------------------------------------
-- * Omap2 clock reset and init functions
-- *-------------------------------------------------------------------------*/
--
--#ifdef CONFIG_OMAP_RESET_CLOCKS
--static void __init omap2_clk_disable_unused(struct clk *clk)
--{
--	u32 regval32;
--
--	regval32 = __raw_readl(clk->enable_reg);
--	if ((regval32 & (1 << clk->enable_bit)) == 0)
--		return;
--
--	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
--	_omap2_clk_disable(clk);
--}
--#else
--#define omap2_clk_disable_unused	NULL
--#endif
--
- static struct clk_functions omap2_clk_functions = {
- 	.clk_enable		= omap2_clk_enable,
- 	.clk_disable		= omap2_clk_disable,
+diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+new file mode 100644
+index 0000000..fcc108d
+--- /dev/null
++++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+@@ -0,0 +1,667 @@
++#ifndef __ARCH_ARM_MACH_OMAP2_CM_REGBITS_34XX_H
++#define __ARCH_ARM_MACH_OMAP2_CM_REGBITS_34XX_H
++
++/*
++ * OMAP3430 Clock Management register bits
++ *
++ * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * Copyright (C) 2007-2008 Nokia Corporation
++ *
++ * Written by Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "cm.h"
++
++/* Bits shared between registers */
++
++/* CM_FCLKEN1_CORE and CM_ICLKEN1_CORE shared bits */
++#define OMAP3430ES2_EN_MMC3_MASK			(1 << 30)
++#define OMAP3430ES2_EN_MMC3_SHIFT			30
++#define OMAP3430_EN_MSPRO				(1 << 23)
++#define OMAP3430_EN_MSPRO_SHIFT				23
++#define OMAP3430_EN_HDQ					(1 << 22)
++#define OMAP3430_EN_HDQ_SHIFT				22
++#define OMAP3430ES1_EN_FSHOSTUSB			(1 << 5)
++#define OMAP3430ES1_EN_FSHOSTUSB_SHIFT			5
++#define OMAP3430ES1_EN_D2D				(1 << 3)
++#define OMAP3430ES1_EN_D2D_SHIFT			3
++#define OMAP3430_EN_SSI					(1 << 0)
++#define OMAP3430_EN_SSI_SHIFT				0
++
++/* CM_FCLKEN3_CORE and CM_ICLKEN3_CORE shared bits */
++#define OMAP3430ES2_EN_USBTLL_SHIFT			2
++#define OMAP3430ES2_EN_USBTLL_MASK			(1 << 2)
++
++/* CM_FCLKEN_WKUP and CM_ICLKEN_WKUP shared bits */
++#define OMAP3430_EN_WDT2				(1 << 5)
++#define OMAP3430_EN_WDT2_SHIFT				5
++
++/* CM_ICLKEN_CAM, CM_FCLKEN_CAM shared bits */
++#define OMAP3430_EN_CAM					(1 << 0)
++#define OMAP3430_EN_CAM_SHIFT				0
++
++/* CM_FCLKEN_PER, CM_ICLKEN_PER shared bits */
++#define OMAP3430_EN_WDT3				(1 << 12)
++#define OMAP3430_EN_WDT3_SHIFT				12
++
++/* CM_CLKSEL2_EMU, CM_CLKSEL3_EMU shared bits */
++#define OMAP3430_OVERRIDE_ENABLE			(1 << 19)
++
++
++/* Bits specific to each register */
++
++/* CM_FCLKEN_IVA2 */
++#define OMAP3430_CM_FCLKEN_IVA2_EN_IVA2			(1 << 0)
++
++/* CM_CLKEN_PLL_IVA2 */
++#define OMAP3430_IVA2_DPLL_RAMPTIME_SHIFT		8
++#define OMAP3430_IVA2_DPLL_RAMPTIME_MASK		(0x3 << 8)
++#define OMAP3430_IVA2_DPLL_FREQSEL_SHIFT		4
++#define OMAP3430_IVA2_DPLL_FREQSEL_MASK			(0xf << 4)
++#define OMAP3430_EN_IVA2_DPLL_DRIFTGUARD_SHIFT		3
++#define OMAP3430_EN_IVA2_DPLL_DRIFTGUARD_MASK		(1 << 3)
++#define OMAP3430_EN_IVA2_DPLL_SHIFT			0
++#define OMAP3430_EN_IVA2_DPLL_MASK			(0x7 << 0)
++
++/* CM_IDLEST_IVA2 */
++#define OMAP3430_ST_IVA2				(1 << 0)
++
++/* CM_IDLEST_PLL_IVA2 */
++#define OMAP3430_ST_IVA2_CLK				(1 << 0)
++
++/* CM_AUTOIDLE_PLL_IVA2 */
++#define OMAP3430_AUTO_IVA2_DPLL_SHIFT			0
++#define OMAP3430_AUTO_IVA2_DPLL_MASK			(0x7 << 0)
++
++/* CM_CLKSEL1_PLL_IVA2 */
++#define OMAP3430_IVA2_CLK_SRC_SHIFT			19
++#define OMAP3430_IVA2_CLK_SRC_MASK			(0x3 << 19)
++#define OMAP3430_IVA2_DPLL_MULT_SHIFT			8
++#define OMAP3430_IVA2_DPLL_MULT_MASK			(0x7ff << 8)
++#define OMAP3430_IVA2_DPLL_DIV_SHIFT			0
++#define OMAP3430_IVA2_DPLL_DIV_MASK			(0x7f << 0)
++
++/* CM_CLKSEL2_PLL_IVA2 */
++#define OMAP3430_IVA2_DPLL_CLKOUT_DIV_SHIFT		0
++#define OMAP3430_IVA2_DPLL_CLKOUT_DIV_MASK		(0x1f << 0)
++
++/* CM_CLKSTCTRL_IVA2 */
++#define OMAP3430_CLKTRCTRL_IVA2_SHIFT			0
++#define OMAP3430_CLKTRCTRL_IVA2_MASK			(0x3 << 0)
++
++/* CM_CLKSTST_IVA2 */
++#define OMAP3430_CLKACTIVITY_IVA2			(1 << 0)
++
++/* CM_REVISION specific bits */
++
++/* CM_SYSCONFIG specific bits */
++
++/* CM_CLKEN_PLL_MPU */
++#define OMAP3430_MPU_DPLL_RAMPTIME_SHIFT		8
++#define OMAP3430_MPU_DPLL_RAMPTIME_MASK			(0x3 << 8)
++#define OMAP3430_MPU_DPLL_FREQSEL_SHIFT			4
++#define OMAP3430_MPU_DPLL_FREQSEL_MASK			(0xf << 4)
++#define OMAP3430_EN_MPU_DPLL_DRIFTGUARD_SHIFT		3
++#define OMAP3430_EN_MPU_DPLL_DRIFTGUARD_MASK		(1 << 3)
++#define OMAP3430_EN_MPU_DPLL_SHIFT			0
++#define OMAP3430_EN_MPU_DPLL_MASK			(0x7 << 0)
++
++/* CM_IDLEST_MPU */
++#define OMAP3430_ST_MPU					(1 << 0)
++
++/* CM_IDLEST_PLL_MPU */
++#define OMAP3430_ST_MPU_CLK				(1 << 0)
++
++/* CM_AUTOIDLE_PLL_MPU */
++#define OMAP3430_AUTO_MPU_DPLL_SHIFT			0
++#define OMAP3430_AUTO_MPU_DPLL_MASK			(0x7 << 0)
++
++/* CM_CLKSEL1_PLL_MPU */
++#define OMAP3430_MPU_CLK_SRC_SHIFT			19
++#define OMAP3430_MPU_CLK_SRC_MASK			(0x3 << 19)
++#define OMAP3430_MPU_DPLL_MULT_SHIFT			8
++#define OMAP3430_MPU_DPLL_MULT_MASK			(0x7ff << 8)
++#define OMAP3430_MPU_DPLL_DIV_SHIFT			0
++#define OMAP3430_MPU_DPLL_DIV_MASK			(0x7f << 0)
++
++/* CM_CLKSEL2_PLL_MPU */
++#define OMAP3430_MPU_DPLL_CLKOUT_DIV_SHIFT		0
++#define OMAP3430_MPU_DPLL_CLKOUT_DIV_MASK		(0x1f << 0)
++
++/* CM_CLKSTCTRL_MPU */
++#define OMAP3430_CLKTRCTRL_MPU_SHIFT			0
++#define OMAP3430_CLKTRCTRL_MPU_MASK			(0x3 << 0)
++
++/* CM_CLKSTST_MPU */
++#define OMAP3430_CLKACTIVITY_MPU			(1 << 0)
++
++/* CM_FCLKEN1_CORE specific bits */
++
++/* CM_ICLKEN1_CORE specific bits */
++#define OMAP3430_EN_ICR					(1 << 29)
++#define OMAP3430_EN_ICR_SHIFT				29
++#define OMAP3430_EN_AES2				(1 << 28)
++#define OMAP3430_EN_AES2_SHIFT				28
++#define OMAP3430_EN_SHA12				(1 << 27)
++#define OMAP3430_EN_SHA12_SHIFT				27
++#define OMAP3430_EN_DES2				(1 << 26)
++#define OMAP3430_EN_DES2_SHIFT				26
++#define OMAP3430ES1_EN_FAC				(1 << 8)
++#define OMAP3430ES1_EN_FAC_SHIFT			8
++#define OMAP3430_EN_MAILBOXES				(1 << 7)
++#define OMAP3430_EN_MAILBOXES_SHIFT			7
++#define OMAP3430_EN_OMAPCTRL				(1 << 6)
++#define OMAP3430_EN_OMAPCTRL_SHIFT			6
++#define OMAP3430_EN_SDRC				(1 << 1)
++#define OMAP3430_EN_SDRC_SHIFT				1
++
++/* CM_ICLKEN2_CORE */
++#define OMAP3430_EN_PKA					(1 << 4)
++#define OMAP3430_EN_PKA_SHIFT				4
++#define OMAP3430_EN_AES1				(1 << 3)
++#define OMAP3430_EN_AES1_SHIFT				3
++#define OMAP3430_EN_RNG					(1 << 2)
++#define OMAP3430_EN_RNG_SHIFT				2
++#define OMAP3430_EN_SHA11				(1 << 1)
++#define OMAP3430_EN_SHA11_SHIFT				1
++#define OMAP3430_EN_DES1				(1 << 0)
++#define OMAP3430_EN_DES1_SHIFT				0
++
++/* CM_FCLKEN3_CORE specific bits */
++#define OMAP3430ES2_EN_TS_SHIFT				1
++#define OMAP3430ES2_EN_TS_MASK				(1 << 1)
++#define OMAP3430ES2_EN_CPEFUSE_SHIFT			0
++#define OMAP3430ES2_EN_CPEFUSE_MASK			(1 << 0)
++
++/* CM_IDLEST1_CORE specific bits */
++#define OMAP3430_ST_ICR					(1 << 29)
++#define OMAP3430_ST_AES2				(1 << 28)
++#define OMAP3430_ST_SHA12				(1 << 27)
++#define OMAP3430_ST_DES2				(1 << 26)
++#define OMAP3430_ST_MSPRO				(1 << 23)
++#define OMAP3430_ST_HDQ					(1 << 22)
++#define OMAP3430ES1_ST_FAC				(1 << 8)
++#define OMAP3430ES1_ST_MAILBOXES			(1 << 7)
++#define OMAP3430_ST_OMAPCTRL				(1 << 6)
++#define OMAP3430_ST_SDMA				(1 << 2)
++#define OMAP3430_ST_SDRC				(1 << 1)
++#define OMAP3430_ST_SSI					(1 << 0)
++
++/* CM_IDLEST2_CORE */
++#define OMAP3430_ST_PKA					(1 << 4)
++#define OMAP3430_ST_AES1				(1 << 3)
++#define OMAP3430_ST_RNG					(1 << 2)
++#define OMAP3430_ST_SHA11				(1 << 1)
++#define OMAP3430_ST_DES1				(1 << 0)
++
++/* CM_IDLEST3_CORE */
++#define OMAP3430_ST_USBTLL				(1 << 2)
++#define OMAP3430_ST_USBTLL_SHIFT			2
++
++/* CM_AUTOIDLE1_CORE */
++#define OMAP3430_AUTO_AES2				(1 << 28)
++#define OMAP3430_AUTO_AES2_SHIFT			28
++#define OMAP3430_AUTO_SHA12				(1 << 27)
++#define OMAP3430_AUTO_SHA12_SHIFT			27
++#define OMAP3430_AUTO_DES2				(1 << 26)
++#define OMAP3430_AUTO_DES2_SHIFT			26
++#define OMAP3430_AUTO_MMC2				(1 << 25)
++#define OMAP3430_AUTO_MMC2_SHIFT			25
++#define OMAP3430_AUTO_MMC1				(1 << 24)
++#define OMAP3430_AUTO_MMC1_SHIFT			24
++#define OMAP3430_AUTO_MSPRO				(1 << 23)
++#define OMAP3430_AUTO_MSPRO_SHIFT			23
++#define OMAP3430_AUTO_HDQ				(1 << 22)
++#define OMAP3430_AUTO_HDQ_SHIFT				22
++#define OMAP3430_AUTO_MCSPI4				(1 << 21)
++#define OMAP3430_AUTO_MCSPI4_SHIFT			21
++#define OMAP3430_AUTO_MCSPI3				(1 << 20)
++#define OMAP3430_AUTO_MCSPI3_SHIFT			20
++#define OMAP3430_AUTO_MCSPI2				(1 << 19)
++#define OMAP3430_AUTO_MCSPI2_SHIFT			19
++#define OMAP3430_AUTO_MCSPI1				(1 << 18)
++#define OMAP3430_AUTO_MCSPI1_SHIFT			18
++#define OMAP3430_AUTO_I2C3				(1 << 17)
++#define OMAP3430_AUTO_I2C3_SHIFT			17
++#define OMAP3430_AUTO_I2C2				(1 << 16)
++#define OMAP3430_AUTO_I2C2_SHIFT			16
++#define OMAP3430_AUTO_I2C1				(1 << 15)
++#define OMAP3430_AUTO_I2C1_SHIFT			15
++#define OMAP3430_AUTO_UART2				(1 << 14)
++#define OMAP3430_AUTO_UART2_SHIFT			14
++#define OMAP3430_AUTO_UART1				(1 << 13)
++#define OMAP3430_AUTO_UART1_SHIFT			13
++#define OMAP3430_AUTO_GPT11				(1 << 12)
++#define OMAP3430_AUTO_GPT11_SHIFT			12
++#define OMAP3430_AUTO_GPT10				(1 << 11)
++#define OMAP3430_AUTO_GPT10_SHIFT			11
++#define OMAP3430_AUTO_MCBSP5				(1 << 10)
++#define OMAP3430_AUTO_MCBSP5_SHIFT			10
++#define OMAP3430_AUTO_MCBSP1				(1 << 9)
++#define OMAP3430_AUTO_MCBSP1_SHIFT			9
++#define OMAP3430ES1_AUTO_FAC				(1 << 8)
++#define OMAP3430ES1_AUTO_FAC_SHIFT			8
++#define OMAP3430_AUTO_MAILBOXES				(1 << 7)
++#define OMAP3430_AUTO_MAILBOXES_SHIFT			7
++#define OMAP3430_AUTO_OMAPCTRL				(1 << 6)
++#define OMAP3430_AUTO_OMAPCTRL_SHIFT			6
++#define OMAP3430ES1_AUTO_FSHOSTUSB			(1 << 5)
++#define OMAP3430ES1_AUTO_FSHOSTUSB_SHIFT		5
++#define OMAP3430_AUTO_HSOTGUSB				(1 << 4)
++#define OMAP3430_AUTO_HSOTGUSB_SHIFT			4
++#define OMAP3430ES1_AUTO_D2D				(1 << 3)
++#define OMAP3430ES1_AUTO_D2D_SHIFT			3
++#define OMAP3430_AUTO_SSI				(1 << 0)
++#define OMAP3430_AUTO_SSI_SHIFT				0
++
++/* CM_AUTOIDLE2_CORE */
++#define OMAP3430_AUTO_PKA				(1 << 4)
++#define OMAP3430_AUTO_PKA_SHIFT				4
++#define OMAP3430_AUTO_AES1				(1 << 3)
++#define OMAP3430_AUTO_AES1_SHIFT			3
++#define OMAP3430_AUTO_RNG				(1 << 2)
++#define OMAP3430_AUTO_RNG_SHIFT				2
++#define OMAP3430_AUTO_SHA11				(1 << 1)
++#define OMAP3430_AUTO_SHA11_SHIFT			1
++#define OMAP3430_AUTO_DES1				(1 << 0)
++#define OMAP3430_AUTO_DES1_SHIFT			0
++
++/* CM_AUTOIDLE3_CORE */
++#define OMAP3430_AUTO_USBTLL				(1 << 2)
++#define OMAP3430_AUTO_USBTLL_SHIFT			2
++
++/* CM_CLKSEL_CORE */
++#define OMAP3430_CLKSEL_SSI_SHIFT			8
++#define OMAP3430_CLKSEL_SSI_MASK			(0xf << 8)
++#define OMAP3430_CLKSEL_GPT11_MASK			(1 << 7)
++#define OMAP3430_CLKSEL_GPT11_SHIFT			7
++#define OMAP3430_CLKSEL_GPT10_MASK			(1 << 6)
++#define OMAP3430_CLKSEL_GPT10_SHIFT			6
++#define OMAP3430ES1_CLKSEL_FSHOSTUSB_SHIFT		4
++#define OMAP3430ES1_CLKSEL_FSHOSTUSB_MASK		(0x3 << 4)
++#define OMAP3430_CLKSEL_L4_SHIFT			2
++#define OMAP3430_CLKSEL_L4_MASK				(0x3 << 2)
++#define OMAP3430_CLKSEL_L3_SHIFT			0
++#define OMAP3430_CLKSEL_L3_MASK				(0x3 << 0)
++
++/* CM_CLKSTCTRL_CORE */
++#define OMAP3430ES1_CLKTRCTRL_D2D_SHIFT			4
++#define OMAP3430ES1_CLKTRCTRL_D2D_MASK			(0x3 << 4)
++#define OMAP3430_CLKTRCTRL_L4_SHIFT			2
++#define OMAP3430_CLKTRCTRL_L4_MASK			(0x3 << 2)
++#define OMAP3430_CLKTRCTRL_L3_SHIFT			0
++#define OMAP3430_CLKTRCTRL_L3_MASK			(0x3 << 0)
++
++/* CM_CLKSTST_CORE */
++#define OMAP3430ES1_CLKACTIVITY_D2D			(1 << 2)
++#define OMAP3430_CLKACTIVITY_L4				(1 << 1)
++#define OMAP3430_CLKACTIVITY_L3				(1 << 0)
++
++/* CM_FCLKEN_GFX */
++#define OMAP3430ES1_EN_3D				(1 << 2)
++#define OMAP3430ES1_EN_3D_SHIFT				2
++#define OMAP3430ES1_EN_2D				(1 << 1)
++#define OMAP3430ES1_EN_2D_SHIFT				1
++
++/* CM_ICLKEN_GFX specific bits */
++
++/* CM_IDLEST_GFX specific bits */
++
++/* CM_CLKSEL_GFX specific bits */
++
++/* CM_SLEEPDEP_GFX specific bits */
++
++/* CM_CLKSTCTRL_GFX */
++#define OMAP3430ES1_CLKTRCTRL_GFX_SHIFT			0
++#define OMAP3430ES1_CLKTRCTRL_GFX_MASK			(0x3 << 0)
++
++/* CM_CLKSTST_GFX */
++#define OMAP3430ES1_CLKACTIVITY_GFX			(1 << 0)
++
++/* CM_FCLKEN_SGX */
++#define OMAP3430ES2_EN_SGX_SHIFT			1
++#define OMAP3430ES2_EN_SGX_MASK				(1 << 1)
++
++/* CM_CLKSEL_SGX */
++#define OMAP3430ES2_CLKSEL_SGX_SHIFT			0
++#define OMAP3430ES2_CLKSEL_SGX_MASK			(0x7 << 0)
++
++/* CM_FCLKEN_WKUP specific bits */
++#define OMAP3430ES2_EN_USIMOCP_SHIFT			9
++
++/* CM_ICLKEN_WKUP specific bits */
++#define OMAP3430_EN_WDT1				(1 << 4)
++#define OMAP3430_EN_WDT1_SHIFT				4
++#define OMAP3430_EN_32KSYNC				(1 << 2)
++#define OMAP3430_EN_32KSYNC_SHIFT			2
++
++/* CM_IDLEST_WKUP specific bits */
++#define OMAP3430_ST_WDT2				(1 << 5)
++#define OMAP3430_ST_WDT1				(1 << 4)
++#define OMAP3430_ST_32KSYNC				(1 << 2)
++
++/* CM_AUTOIDLE_WKUP */
++#define OMAP3430_AUTO_WDT2				(1 << 5)
++#define OMAP3430_AUTO_WDT2_SHIFT			5
++#define OMAP3430_AUTO_WDT1				(1 << 4)
++#define OMAP3430_AUTO_WDT1_SHIFT			4
++#define OMAP3430_AUTO_GPIO1				(1 << 3)
++#define OMAP3430_AUTO_GPIO1_SHIFT			3
++#define OMAP3430_AUTO_32KSYNC				(1 << 2)
++#define OMAP3430_AUTO_32KSYNC_SHIFT			2
++#define OMAP3430_AUTO_GPT12				(1 << 1)
++#define OMAP3430_AUTO_GPT12_SHIFT			1
++#define OMAP3430_AUTO_GPT1				(1 << 0)
++#define OMAP3430_AUTO_GPT1_SHIFT			0
++
++/* CM_CLKSEL_WKUP */
++#define OMAP3430ES2_CLKSEL_USIMOCP_MASK			(0xf << 3)
++#define OMAP3430_CLKSEL_RM_SHIFT			1
++#define OMAP3430_CLKSEL_RM_MASK				(0x3 << 1)
++#define OMAP3430_CLKSEL_GPT1_SHIFT			0
++#define OMAP3430_CLKSEL_GPT1_MASK			(1 << 0)
++
++/* CM_CLKEN_PLL */
++#define OMAP3430_PWRDN_EMU_PERIPH_SHIFT			31
++#define OMAP3430_PWRDN_CAM_SHIFT			30
++#define OMAP3430_PWRDN_DSS1_SHIFT			29
++#define OMAP3430_PWRDN_TV_SHIFT				28
++#define OMAP3430_PWRDN_96M_SHIFT			27
++#define OMAP3430_PERIPH_DPLL_RAMPTIME_SHIFT		24
++#define OMAP3430_PERIPH_DPLL_RAMPTIME_MASK		(0x3 << 24)
++#define OMAP3430_PERIPH_DPLL_FREQSEL_SHIFT		20
++#define OMAP3430_PERIPH_DPLL_FREQSEL_MASK		(0xf << 20)
++#define OMAP3430_EN_PERIPH_DPLL_DRIFTGUARD_SHIFT	19
++#define OMAP3430_EN_PERIPH_DPLL_DRIFTGUARD_MASK		(1 << 19)
++#define OMAP3430_EN_PERIPH_DPLL_SHIFT			16
++#define OMAP3430_EN_PERIPH_DPLL_MASK			(0x7 << 16)
++#define OMAP3430_PWRDN_EMU_CORE_SHIFT			12
++#define OMAP3430_CORE_DPLL_RAMPTIME_SHIFT		8
++#define OMAP3430_CORE_DPLL_RAMPTIME_MASK		(0x3 << 8)
++#define OMAP3430_CORE_DPLL_FREQSEL_SHIFT		4
++#define OMAP3430_CORE_DPLL_FREQSEL_MASK			(0xf << 4)
++#define OMAP3430_EN_CORE_DPLL_DRIFTGUARD_SHIFT		3
++#define OMAP3430_EN_CORE_DPLL_DRIFTGUARD_MASK		(1 << 3)
++#define OMAP3430_EN_CORE_DPLL_SHIFT			0
++#define OMAP3430_EN_CORE_DPLL_MASK			(0x7 << 0)
++
++/* CM_CLKEN2_PLL */
++#define OMAP3430ES2_EN_PERIPH2_DPLL_LPMODE_SHIFT		10
++#define OMAP3430ES2_PERIPH2_DPLL_RAMPTIME_MASK		(0x3 << 8)
++#define OMAP3430ES2_PERIPH2_DPLL_FREQSEL_SHIFT		4
++#define OMAP3430ES2_PERIPH2_DPLL_FREQSEL_MASK		(0xf << 4)
++#define OMAP3430ES2_EN_PERIPH2_DPLL_DRIFTGUARD_SHIFT	3
++#define OMAP3430ES2_EN_PERIPH2_DPLL_SHIFT		0
++#define OMAP3430ES2_EN_PERIPH2_DPLL_MASK		(0x7 << 0)
++
++/* CM_IDLEST_CKGEN */
++#define OMAP3430_ST_54M_CLK				(1 << 5)
++#define OMAP3430_ST_12M_CLK				(1 << 4)
++#define OMAP3430_ST_48M_CLK				(1 << 3)
++#define OMAP3430_ST_96M_CLK				(1 << 2)
++#define OMAP3430_ST_PERIPH_CLK				(1 << 1)
++#define OMAP3430_ST_CORE_CLK				(1 << 0)
++
++/* CM_IDLEST2_CKGEN */
++#define OMAP3430_ST_120M_CLK				(1 << 1)
++#define OMAP3430_ST_PERIPH2_CLK				(1 << 0)
++
++/* CM_AUTOIDLE_PLL */
++#define OMAP3430_AUTO_PERIPH_DPLL_SHIFT			3
++#define OMAP3430_AUTO_PERIPH_DPLL_MASK			(0x7 << 3)
++#define OMAP3430_AUTO_CORE_DPLL_SHIFT			0
++#define OMAP3430_AUTO_CORE_DPLL_MASK			(0x7 << 0)
++
++/* CM_CLKSEL1_PLL */
++/* Note that OMAP3430_CORE_DPLL_CLKOUT_DIV_MASK was (0x3 << 27) on 3430ES1 */
++#define OMAP3430_CORE_DPLL_CLKOUT_DIV_SHIFT		27
++#define OMAP3430_CORE_DPLL_CLKOUT_DIV_MASK		(0x1f << 27)
++#define OMAP3430_CORE_DPLL_MULT_SHIFT			16
++#define OMAP3430_CORE_DPLL_MULT_MASK			(0x7ff << 16)
++#define OMAP3430_CORE_DPLL_DIV_SHIFT			8
++#define OMAP3430_CORE_DPLL_DIV_MASK			(0x7f << 8)
++#define OMAP3430_SOURCE_54M				(1 << 5)
++#define OMAP3430_SOURCE_48M				(1 << 3)
++
++/* CM_CLKSEL2_PLL */
++#define OMAP3430_PERIPH_DPLL_MULT_SHIFT			8
++#define OMAP3430_PERIPH_DPLL_MULT_MASK			(0x7ff << 8)
++#define OMAP3430_PERIPH_DPLL_DIV_SHIFT			0
++#define OMAP3430_PERIPH_DPLL_DIV_MASK			(0x7f << 0)
++
++/* CM_CLKSEL3_PLL */
++#define OMAP3430_DIV_96M_SHIFT				0
++#define OMAP3430_DIV_96M_MASK				(0x1f << 0)
++
++/* CM_CLKSEL4_PLL */
++#define OMAP3430ES2_PERIPH2_DPLL_MULT_SHIFT		8
++#define OMAP3430ES2_PERIPH2_DPLL_MULT_MASK		(0x7ff << 8)
++#define OMAP3430ES2_PERIPH2_DPLL_DIV_SHIFT		0
++#define OMAP3430ES2_PERIPH2_DPLL_DIV_MASK		(0x7f << 0)
++
++/* CM_CLKSEL5_PLL */
++#define OMAP3430ES2_DIV_120M_SHIFT			0
++#define OMAP3430ES2_DIV_120M_MASK			(0x1f << 0)
++
++/* CM_CLKOUT_CTRL */
++#define OMAP3430_CLKOUT2_EN_SHIFT			7
++#define OMAP3430_CLKOUT2_EN				(1 << 7)
++#define OMAP3430_CLKOUT2_DIV_SHIFT			3
++#define OMAP3430_CLKOUT2_DIV_MASK			(0x7 << 3)
++#define OMAP3430_CLKOUT2SOURCE_SHIFT			0
++#define OMAP3430_CLKOUT2SOURCE_MASK			(0x3 << 0)
++
++/* CM_FCLKEN_DSS */
++#define OMAP3430_EN_TV					(1 << 2)
++#define OMAP3430_EN_TV_SHIFT				2
++#define OMAP3430_EN_DSS2				(1 << 1)
++#define OMAP3430_EN_DSS2_SHIFT				1
++#define OMAP3430_EN_DSS1				(1 << 0)
++#define OMAP3430_EN_DSS1_SHIFT				0
++
++/* CM_ICLKEN_DSS */
++#define OMAP3430_CM_ICLKEN_DSS_EN_DSS			(1 << 0)
++#define OMAP3430_CM_ICLKEN_DSS_EN_DSS_SHIFT		0
++
++/* CM_IDLEST_DSS */
++#define OMAP3430_ST_DSS					(1 << 0)
++
++/* CM_AUTOIDLE_DSS */
++#define OMAP3430_AUTO_DSS				(1 << 0)
++#define OMAP3430_AUTO_DSS_SHIFT				0
++
++/* CM_CLKSEL_DSS */
++#define OMAP3430_CLKSEL_TV_SHIFT			8
++#define OMAP3430_CLKSEL_TV_MASK				(0x1f << 8)
++#define OMAP3430_CLKSEL_DSS1_SHIFT			0
++#define OMAP3430_CLKSEL_DSS1_MASK			(0x1f << 0)
++
++/* CM_SLEEPDEP_DSS specific bits */
++
++/* CM_CLKSTCTRL_DSS */
++#define OMAP3430_CLKTRCTRL_DSS_SHIFT			0
++#define OMAP3430_CLKTRCTRL_DSS_MASK			(0x3 << 0)
++
++/* CM_CLKSTST_DSS */
++#define OMAP3430_CLKACTIVITY_DSS			(1 << 0)
++
++/* CM_FCLKEN_CAM specific bits */
++
++/* CM_ICLKEN_CAM specific bits */
++
++/* CM_IDLEST_CAM */
++#define OMAP3430_ST_CAM					(1 << 0)
++
++/* CM_AUTOIDLE_CAM */
++#define OMAP3430_AUTO_CAM				(1 << 0)
++#define OMAP3430_AUTO_CAM_SHIFT				0
++
++/* CM_CLKSEL_CAM */
++#define OMAP3430_CLKSEL_CAM_SHIFT			0
++#define OMAP3430_CLKSEL_CAM_MASK			(0x1f << 0)
++
++/* CM_SLEEPDEP_CAM specific bits */
++
++/* CM_CLKSTCTRL_CAM */
++#define OMAP3430_CLKTRCTRL_CAM_SHIFT			0
++#define OMAP3430_CLKTRCTRL_CAM_MASK			(0x3 << 0)
++
++/* CM_CLKSTST_CAM */
++#define OMAP3430_CLKACTIVITY_CAM			(1 << 0)
++
++/* CM_FCLKEN_PER specific bits */
++
++/* CM_ICLKEN_PER specific bits */
++
++/* CM_IDLEST_PER */
++#define OMAP3430_ST_WDT3				(1 << 12)
++#define OMAP3430_ST_MCBSP4				(1 << 2)
++#define OMAP3430_ST_MCBSP3				(1 << 1)
++#define OMAP3430_ST_MCBSP2				(1 << 0)
++
++/* CM_AUTOIDLE_PER */
++#define OMAP3430_AUTO_GPIO6				(1 << 17)
++#define OMAP3430_AUTO_GPIO6_SHIFT			17
++#define OMAP3430_AUTO_GPIO5				(1 << 16)
++#define OMAP3430_AUTO_GPIO5_SHIFT			16
++#define OMAP3430_AUTO_GPIO4				(1 << 15)
++#define OMAP3430_AUTO_GPIO4_SHIFT			15
++#define OMAP3430_AUTO_GPIO3				(1 << 14)
++#define OMAP3430_AUTO_GPIO3_SHIFT			14
++#define OMAP3430_AUTO_GPIO2				(1 << 13)
++#define OMAP3430_AUTO_GPIO2_SHIFT			13
++#define OMAP3430_AUTO_WDT3				(1 << 12)
++#define OMAP3430_AUTO_WDT3_SHIFT			12
++#define OMAP3430_AUTO_UART3				(1 << 11)
++#define OMAP3430_AUTO_UART3_SHIFT			11
++#define OMAP3430_AUTO_GPT9				(1 << 10)
++#define OMAP3430_AUTO_GPT9_SHIFT			10
++#define OMAP3430_AUTO_GPT8				(1 << 9)
++#define OMAP3430_AUTO_GPT8_SHIFT			9
++#define OMAP3430_AUTO_GPT7				(1 << 8)
++#define OMAP3430_AUTO_GPT7_SHIFT			8
++#define OMAP3430_AUTO_GPT6				(1 << 7)
++#define OMAP3430_AUTO_GPT6_SHIFT			7
++#define OMAP3430_AUTO_GPT5				(1 << 6)
++#define OMAP3430_AUTO_GPT5_SHIFT			6
++#define OMAP3430_AUTO_GPT4				(1 << 5)
++#define OMAP3430_AUTO_GPT4_SHIFT			5
++#define OMAP3430_AUTO_GPT3				(1 << 4)
++#define OMAP3430_AUTO_GPT3_SHIFT			4
++#define OMAP3430_AUTO_GPT2				(1 << 3)
++#define OMAP3430_AUTO_GPT2_SHIFT			3
++#define OMAP3430_AUTO_MCBSP4				(1 << 2)
++#define OMAP3430_AUTO_MCBSP4_SHIFT			2
++#define OMAP3430_AUTO_MCBSP3				(1 << 1)
++#define OMAP3430_AUTO_MCBSP3_SHIFT			1
++#define OMAP3430_AUTO_MCBSP2				(1 << 0)
++#define OMAP3430_AUTO_MCBSP2_SHIFT			0
++
++/* CM_CLKSEL_PER */
++#define OMAP3430_CLKSEL_GPT9_MASK			(1 << 7)
++#define OMAP3430_CLKSEL_GPT9_SHIFT			7
++#define OMAP3430_CLKSEL_GPT8_MASK			(1 << 6)
++#define OMAP3430_CLKSEL_GPT8_SHIFT			6
++#define OMAP3430_CLKSEL_GPT7_MASK			(1 << 5)
++#define OMAP3430_CLKSEL_GPT7_SHIFT			5
++#define OMAP3430_CLKSEL_GPT6_MASK			(1 << 4)
++#define OMAP3430_CLKSEL_GPT6_SHIFT			4
++#define OMAP3430_CLKSEL_GPT5_MASK			(1 << 3)
++#define OMAP3430_CLKSEL_GPT5_SHIFT			3
++#define OMAP3430_CLKSEL_GPT4_MASK			(1 << 2)
++#define OMAP3430_CLKSEL_GPT4_SHIFT			2
++#define OMAP3430_CLKSEL_GPT3_MASK			(1 << 1)
++#define OMAP3430_CLKSEL_GPT3_SHIFT			1
++#define OMAP3430_CLKSEL_GPT2_MASK			(1 << 0)
++#define OMAP3430_CLKSEL_GPT2_SHIFT			0
++
++/* CM_SLEEPDEP_PER specific bits */
++#define OMAP3430_CM_SLEEPDEP_PER_EN_IVA2		(1 << 2)
++
++/* CM_CLKSTCTRL_PER */
++#define OMAP3430_CLKTRCTRL_PER_SHIFT			0
++#define OMAP3430_CLKTRCTRL_PER_MASK			(0x3 << 0)
++
++/* CM_CLKSTST_PER */
++#define OMAP3430_CLKACTIVITY_PER			(1 << 0)
++
++/* CM_CLKSEL1_EMU */
++#define OMAP3430_DIV_DPLL4_SHIFT			24
++#define OMAP3430_DIV_DPLL4_MASK				(0x1f << 24)
++#define OMAP3430_DIV_DPLL3_SHIFT			16
++#define OMAP3430_DIV_DPLL3_MASK				(0x1f << 16)
++#define OMAP3430_CLKSEL_TRACECLK_SHIFT			11
++#define OMAP3430_CLKSEL_TRACECLK_MASK			(0x7 << 11)
++#define OMAP3430_CLKSEL_PCLK_SHIFT			8
++#define OMAP3430_CLKSEL_PCLK_MASK			(0x7 << 8)
++#define OMAP3430_CLKSEL_PCLKX2_SHIFT			6
++#define OMAP3430_CLKSEL_PCLKX2_MASK			(0x3 << 6)
++#define OMAP3430_CLKSEL_ATCLK_SHIFT			4
++#define OMAP3430_CLKSEL_ATCLK_MASK			(0x3 << 4)
++#define OMAP3430_TRACE_MUX_CTRL_SHIFT			2
++#define OMAP3430_TRACE_MUX_CTRL_MASK			(0x3 << 2)
++#define OMAP3430_MUX_CTRL_SHIFT				0
++#define OMAP3430_MUX_CTRL_MASK				(0x3 << 0)
++
++/* CM_CLKSTCTRL_EMU */
++#define OMAP3430_CLKTRCTRL_EMU_SHIFT			0
++#define OMAP3430_CLKTRCTRL_EMU_MASK			(0x3 << 0)
++
++/* CM_CLKSTST_EMU */
++#define OMAP3430_CLKACTIVITY_EMU			(1 << 0)
++
++/* CM_CLKSEL2_EMU specific bits */
++#define OMAP3430_CORE_DPLL_EMU_MULT_SHIFT		8
++#define OMAP3430_CORE_DPLL_EMU_MULT_MASK		(0x7ff << 8)
++#define OMAP3430_CORE_DPLL_EMU_DIV_SHIFT		0
++#define OMAP3430_CORE_DPLL_EMU_DIV_MASK			(0x7f << 0)
++
++/* CM_CLKSEL3_EMU specific bits */
++#define OMAP3430_PERIPH_DPLL_EMU_MULT_SHIFT		8
++#define OMAP3430_PERIPH_DPLL_EMU_MULT_MASK		(0x7ff << 8)
++#define OMAP3430_PERIPH_DPLL_EMU_DIV_SHIFT		0
++#define OMAP3430_PERIPH_DPLL_EMU_DIV_MASK		(0x7f << 0)
++
++/* CM_POLCTRL */
++#define OMAP3430_CLKOUT2_POL				(1 << 0)
++
++/* CM_IDLEST_NEON */
++#define OMAP3430_ST_NEON				(1 << 0)
++
++/* CM_CLKSTCTRL_NEON */
++#define OMAP3430_CLKTRCTRL_NEON_SHIFT			0
++#define OMAP3430_CLKTRCTRL_NEON_MASK			(0x3 << 0)
++
++/* CM_FCLKEN_USBHOST */
++#define OMAP3430ES2_EN_USBHOST2_SHIFT			1
++#define OMAP3430ES2_EN_USBHOST2_MASK			(1 << 1)
++#define OMAP3430ES2_EN_USBHOST1_SHIFT			0
++#define OMAP3430ES2_EN_USBHOST1_MASK			(1 << 0)
++
++/* CM_ICLKEN_USBHOST */
++#define OMAP3430ES2_EN_USBHOST_SHIFT			0
++#define OMAP3430ES2_EN_USBHOST_MASK			(1 << 0)
++
++/* CM_IDLEST_USBHOST */
++
++/* CM_AUTOIDLE_USBHOST */
++#define OMAP3430ES2_AUTO_USBHOST_SHIFT			0
++#define OMAP3430ES2_AUTO_USBHOST_MASK			(1<<0)
++
++/* CM_SLEEPDEP_USBHOST */
++#define OMAP3430ES2_EN_MPU_SHIFT			1
++#define OMAP3430ES2_EN_MPU_MASK				(1<<1)
++#define OMAP3430ES2_EN_IVA2_SHIFT			2
++#define OMAP3430ES2_EN_IVA2_MASK			(1<<2)
++
++/* CM_CLKSTCTRL_USBHOST */
++#define OMAP3430ES2_CLKTRCTRL_USBHOST_SHIFT		0
++#define OMAP3430ES2_CLKTRCTRL_USBHOST_MASK		(3<<0)
++
++
++
++#endif
+diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
+new file mode 100644
+index 0000000..b4686bc
+--- /dev/null
++++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
+@@ -0,0 +1,582 @@
++#ifndef __ARCH_ARM_MACH_OMAP2_PRM_REGBITS_34XX_H
++#define __ARCH_ARM_MACH_OMAP2_PRM_REGBITS_34XX_H
++
++/*
++ * OMAP3430 Power/Reset Management register bits
++ *
++ * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * Copyright (C) 2007-2008 Nokia Corporation
++ *
++ * Written by Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "prm.h"
++
++/* Shared register bits */
++
++/* PRM_VC_CMD_VAL_0, PRM_VC_CMD_VAL_1 shared bits */
++#define OMAP3430_ON_SHIFT				24
++#define OMAP3430_ON_MASK				(0xff << 24)
++#define OMAP3430_ONLP_SHIFT				16
++#define OMAP3430_ONLP_MASK				(0xff << 16)
++#define OMAP3430_RET_SHIFT				8
++#define OMAP3430_RET_MASK				(0xff << 8)
++#define OMAP3430_OFF_SHIFT				0
++#define OMAP3430_OFF_MASK				(0xff << 0)
++
++/* PRM_VP1_CONFIG, PRM_VP2_CONFIG shared bits */
++#define OMAP3430_ERROROFFSET_SHIFT			24
++#define OMAP3430_ERROROFFSET_MASK			(0xff << 24)
++#define OMAP3430_ERRORGAIN_SHIFT			16
++#define OMAP3430_ERRORGAIN_MASK				(0xff << 16)
++#define OMAP3430_INITVOLTAGE_SHIFT			8
++#define OMAP3430_INITVOLTAGE_MASK			(0xff << 8)
++#define OMAP3430_TIMEOUTEN				(1 << 3)
++#define OMAP3430_INITVDD				(1 << 2)
++#define OMAP3430_FORCEUPDATE				(1 << 1)
++#define OMAP3430_VPENABLE				(1 << 0)
++
++/* PRM_VP1_VSTEPMIN, PRM_VP2_VSTEPMIN shared bits */
++#define OMAP3430_SMPSWAITTIMEMIN_SHIFT			8
++#define OMAP3430_SMPSWAITTIMEMIN_MASK			(0xffff << 8)
++#define OMAP3430_VSTEPMIN_SHIFT				0
++#define OMAP3430_VSTEPMIN_MASK				(0xff << 0)
++
++/* PRM_VP1_VSTEPMAX, PRM_VP2_VSTEPMAX shared bits */
++#define OMAP3430_SMPSWAITTIMEMAX_SHIFT			8
++#define OMAP3430_SMPSWAITTIMEMAX_MASK			(0xffff << 8)
++#define OMAP3430_VSTEPMAX_SHIFT				0
++#define OMAP3430_VSTEPMAX_MASK				(0xff << 0)
++
++/* PRM_VP1_VLIMITTO, PRM_VP2_VLIMITTO shared bits */
++#define OMAP3430_VDDMAX_SHIFT				24
++#define OMAP3430_VDDMAX_MASK				(0xff << 24)
++#define OMAP3430_VDDMIN_SHIFT				16
++#define OMAP3430_VDDMIN_MASK				(0xff << 16)
++#define OMAP3430_TIMEOUT_SHIFT				0
++#define OMAP3430_TIMEOUT_MASK				(0xffff << 0)
++
++/* PRM_VP1_VOLTAGE, PRM_VP2_VOLTAGE shared bits */
++#define OMAP3430_VPVOLTAGE_SHIFT			0
++#define OMAP3430_VPVOLTAGE_MASK				(0xff << 0)
++
++/* PRM_VP1_STATUS, PRM_VP2_STATUS shared bits */
++#define OMAP3430_VPINIDLE				(1 << 0)
++
++/* PM_WKDEP_IVA2, PM_WKDEP_MPU shared bits */
++#define OMAP3430_EN_PER					(1 << 7)
++
++/* PM_PWSTCTRL_IVA2, PM_PWSTCTRL_MPU, PM_PWSTCTRL_CORE shared bits */
++#define OMAP3430_MEMORYCHANGE				(1 << 3)
++
++/* PM_PWSTST_IVA2, PM_PWSTST_CORE shared bits */
++#define OMAP3430_LOGICSTATEST				(1 << 2)
++
++/* PM_PREPWSTST_IVA2, PM_PREPWSTST_CORE shared bits */
++#define OMAP3430_LASTLOGICSTATEENTERED				(1 << 2)
++
++/*
++ * PM_PREPWSTST_IVA2, PM_PREPWSTST_MPU, PM_PREPWSTST_CORE,
++ * PM_PREPWSTST_GFX, PM_PREPWSTST_DSS, PM_PREPWSTST_CAM,
++ * PM_PREPWSTST_PER, PM_PREPWSTST_NEON shared bits
++ */
++#define OMAP3430_LASTPOWERSTATEENTERED_SHIFT			0
++#define OMAP3430_LASTPOWERSTATEENTERED_MASK			(0x3 << 0)
++
++/* PRM_IRQSTATUS_IVA2, PRM_IRQSTATUS_MPU shared bits */
++#define OMAP3430_WKUP_ST				(1 << 0)
++
++/* PRM_IRQENABLE_IVA2, PRM_IRQENABLE_MPU shared bits */
++#define OMAP3430_WKUP_EN					(1 << 0)
++
++/* PM_MPUGRPSEL1_CORE, PM_IVA2GRPSEL1_CORE shared bits */
++#define OMAP3430_GRPSEL_MMC2				(1 << 25)
++#define OMAP3430_GRPSEL_MMC1				(1 << 24)
++#define OMAP3430_GRPSEL_MCSPI4				(1 << 21)
++#define OMAP3430_GRPSEL_MCSPI3				(1 << 20)
++#define OMAP3430_GRPSEL_MCSPI2				(1 << 19)
++#define OMAP3430_GRPSEL_MCSPI1				(1 << 18)
++#define OMAP3430_GRPSEL_I2C3				(1 << 17)
++#define OMAP3430_GRPSEL_I2C2				(1 << 16)
++#define OMAP3430_GRPSEL_I2C1				(1 << 15)
++#define OMAP3430_GRPSEL_UART2				(1 << 14)
++#define OMAP3430_GRPSEL_UART1				(1 << 13)
++#define OMAP3430_GRPSEL_GPT11				(1 << 12)
++#define OMAP3430_GRPSEL_GPT10				(1 << 11)
++#define OMAP3430_GRPSEL_MCBSP5				(1 << 10)
++#define OMAP3430_GRPSEL_MCBSP1				(1 << 9)
++#define OMAP3430_GRPSEL_HSOTGUSB			(1 << 4)
++#define OMAP3430_GRPSEL_D2D				(1 << 3)
++
++/*
++ * PM_PWSTCTRL_GFX, PM_PWSTCTRL_DSS, PM_PWSTCTRL_CAM,
++ * PM_PWSTCTRL_PER shared bits
++ */
++#define OMAP3430_MEMONSTATE_SHIFT			16
++#define OMAP3430_MEMONSTATE_MASK			(0x3 << 16)
++#define OMAP3430_MEMRETSTATE				(1 << 8)
++
++/* PM_MPUGRPSEL_PER, PM_IVA2GRPSEL_PER shared bits */
++#define OMAP3430_GRPSEL_GPIO6				(1 << 17)
++#define OMAP3430_GRPSEL_GPIO5				(1 << 16)
++#define OMAP3430_GRPSEL_GPIO4				(1 << 15)
++#define OMAP3430_GRPSEL_GPIO3				(1 << 14)
++#define OMAP3430_GRPSEL_GPIO2				(1 << 13)
++#define OMAP3430_GRPSEL_UART3				(1 << 11)
++#define OMAP3430_GRPSEL_GPT9				(1 << 10)
++#define OMAP3430_GRPSEL_GPT8				(1 << 9)
++#define OMAP3430_GRPSEL_GPT7				(1 << 8)
++#define OMAP3430_GRPSEL_GPT6				(1 << 7)
++#define OMAP3430_GRPSEL_GPT5				(1 << 6)
++#define OMAP3430_GRPSEL_GPT4				(1 << 5)
++#define OMAP3430_GRPSEL_GPT3				(1 << 4)
++#define OMAP3430_GRPSEL_GPT2				(1 << 3)
++#define OMAP3430_GRPSEL_MCBSP4				(1 << 2)
++#define OMAP3430_GRPSEL_MCBSP3				(1 << 1)
++#define OMAP3430_GRPSEL_MCBSP2				(1 << 0)
++
++/* PM_MPUGRPSEL_WKUP, PM_IVA2GRPSEL_WKUP shared bits */
++#define OMAP3430_GRPSEL_IO				(1 << 8)
++#define OMAP3430_GRPSEL_SR2				(1 << 7)
++#define OMAP3430_GRPSEL_SR1				(1 << 6)
++#define OMAP3430_GRPSEL_GPIO1				(1 << 3)
++#define OMAP3430_GRPSEL_GPT12				(1 << 1)
++#define OMAP3430_GRPSEL_GPT1				(1 << 0)
++
++/* Bits specific to each register */
++
++/* RM_RSTCTRL_IVA2 */
++#define OMAP3430_RST3_IVA2				(1 << 2)
++#define OMAP3430_RST2_IVA2				(1 << 1)
++#define OMAP3430_RST1_IVA2				(1 << 0)
++
++/* RM_RSTST_IVA2 specific bits */
++#define OMAP3430_EMULATION_VSEQ_RST			(1 << 13)
++#define OMAP3430_EMULATION_VHWA_RST			(1 << 12)
++#define OMAP3430_EMULATION_IVA2_RST			(1 << 11)
++#define OMAP3430_IVA2_SW_RST3				(1 << 10)
++#define OMAP3430_IVA2_SW_RST2				(1 << 9)
++#define OMAP3430_IVA2_SW_RST1				(1 << 8)
++
++/* PM_WKDEP_IVA2 specific bits */
++
++/* PM_PWSTCTRL_IVA2 specific bits */
++#define OMAP3430_L2FLATMEMONSTATE_SHIFT			22
++#define OMAP3430_L2FLATMEMONSTATE_MASK			(0x3 << 22)
++#define OMAP3430_SHAREDL2CACHEFLATONSTATE_SHIFT		20
++#define OMAP3430_SHAREDL2CACHEFLATONSTATE_MASK		(0x3 << 20)
++#define OMAP3430_L1FLATMEMONSTATE_SHIFT			18
++#define OMAP3430_L1FLATMEMONSTATE_MASK			(0x3 << 18)
++#define OMAP3430_SHAREDL1CACHEFLATONSTATE_SHIFT		16
++#define OMAP3430_SHAREDL1CACHEFLATONSTATE_MASK		(0x3 << 16)
++#define OMAP3430_L2FLATMEMRETSTATE			(1 << 11)
++#define OMAP3430_SHAREDL2CACHEFLATRETSTATE		(1 << 10)
++#define OMAP3430_L1FLATMEMRETSTATE			(1 << 9)
++#define OMAP3430_SHAREDL1CACHEFLATRETSTATE		(1 << 8)
++
++/* PM_PWSTST_IVA2 specific bits */
++#define OMAP3430_L2FLATMEMSTATEST_SHIFT			10
++#define OMAP3430_L2FLATMEMSTATEST_MASK			(0x3 << 10)
++#define OMAP3430_SHAREDL2CACHEFLATSTATEST_SHIFT		8
++#define OMAP3430_SHAREDL2CACHEFLATSTATEST_MASK		(0x3 << 8)
++#define OMAP3430_L1FLATMEMSTATEST_SHIFT			6
++#define OMAP3430_L1FLATMEMSTATEST_MASK			(0x3 << 6)
++#define OMAP3430_SHAREDL1CACHEFLATSTATEST_SHIFT		4
++#define OMAP3430_SHAREDL1CACHEFLATSTATEST_MASK		(0x3 << 4)
++
++/* PM_PREPWSTST_IVA2 specific bits */
++#define OMAP3430_LASTL2FLATMEMSTATEENTERED_SHIFT		10
++#define OMAP3430_LASTL2FLATMEMSTATEENTERED_MASK			(0x3 << 10)
++#define OMAP3430_LASTSHAREDL2CACHEFLATSTATEENTERED_SHIFT	8
++#define OMAP3430_LASTSHAREDL2CACHEFLATSTATEENTERED_MASK		(0x3 << 8)
++#define OMAP3430_LASTL1FLATMEMSTATEENTERED_SHIFT		6
++#define OMAP3430_LASTL1FLATMEMSTATEENTERED_MASK			(0x3 << 6)
++#define OMAP3430_LASTSHAREDL1CACHEFLATSTATEENTERED_SHIFT	4
++#define OMAP3430_LASTSHAREDL1CACHEFLATSTATEENTERED_MASK		(0x3 << 4)
++
++/* PRM_IRQSTATUS_IVA2 specific bits */
++#define OMAP3430_PRM_IRQSTATUS_IVA2_IVA2_DPLL_ST	(1 << 2)
++#define OMAP3430_FORCEWKUP_ST				(1 << 1)
++
++/* PRM_IRQENABLE_IVA2 specific bits */
++#define OMAP3430_PRM_IRQENABLE_IVA2_IVA2_DPLL_RECAL_EN		(1 << 2)
++#define OMAP3430_FORCEWKUP_EN					(1 << 1)
++
++/* PRM_REVISION specific bits */
++
++/* PRM_SYSCONFIG specific bits */
++
++/* PRM_IRQSTATUS_MPU specific bits */
++#define OMAP3430ES2_SND_PERIPH_DPLL_ST_SHIFT		25
++#define OMAP3430ES2_SND_PERIPH_DPLL_ST			(1 << 25)
++#define OMAP3430_VC_TIMEOUTERR_ST			(1 << 24)
++#define OMAP3430_VC_RAERR_ST				(1 << 23)
++#define OMAP3430_VC_SAERR_ST				(1 << 22)
++#define OMAP3430_VP2_TRANXDONE_ST			(1 << 21)
++#define OMAP3430_VP2_EQVALUE_ST				(1 << 20)
++#define OMAP3430_VP2_NOSMPSACK_ST			(1 << 19)
++#define OMAP3430_VP2_MAXVDD_ST				(1 << 18)
++#define OMAP3430_VP2_MINVDD_ST				(1 << 17)
++#define OMAP3430_VP2_OPPCHANGEDONE_ST			(1 << 16)
++#define OMAP3430_VP1_TRANXDONE_ST			(1 << 15)
++#define OMAP3430_VP1_EQVALUE_ST				(1 << 14)
++#define OMAP3430_VP1_NOSMPSACK_ST			(1 << 13)
++#define OMAP3430_VP1_MAXVDD_ST				(1 << 12)
++#define OMAP3430_VP1_MINVDD_ST				(1 << 11)
++#define OMAP3430_VP1_OPPCHANGEDONE_ST			(1 << 10)
++#define OMAP3430_IO_ST					(1 << 9)
++#define OMAP3430_PRM_IRQSTATUS_MPU_IVA2_DPLL_ST		(1 << 8)
++#define OMAP3430_PRM_IRQSTATUS_MPU_IVA2_DPLL_ST_SHIFT	8
++#define OMAP3430_MPU_DPLL_ST				(1 << 7)
++#define OMAP3430_MPU_DPLL_ST_SHIFT			7
++#define OMAP3430_PERIPH_DPLL_ST				(1 << 6)
++#define OMAP3430_PERIPH_DPLL_ST_SHIFT			6
++#define OMAP3430_CORE_DPLL_ST				(1 << 5)
++#define OMAP3430_CORE_DPLL_ST_SHIFT			5
++#define OMAP3430_TRANSITION_ST				(1 << 4)
++#define OMAP3430_EVGENOFF_ST				(1 << 3)
++#define OMAP3430_EVGENON_ST				(1 << 2)
++#define OMAP3430_FS_USB_WKUP_ST				(1 << 1)
++
++/* PRM_IRQENABLE_MPU specific bits */
++#define OMAP3430ES2_SND_PERIPH_DPLL_RECAL_EN_SHIFT		25
++#define OMAP3430ES2_SND_PERIPH_DPLL_RECAL_EN			(1 << 25)
++#define OMAP3430_VC_TIMEOUTERR_EN				(1 << 24)
++#define OMAP3430_VC_RAERR_EN					(1 << 23)
++#define OMAP3430_VC_SAERR_EN					(1 << 22)
++#define OMAP3430_VP2_TRANXDONE_EN				(1 << 21)
++#define OMAP3430_VP2_EQVALUE_EN					(1 << 20)
++#define OMAP3430_VP2_NOSMPSACK_EN				(1 << 19)
++#define OMAP3430_VP2_MAXVDD_EN					(1 << 18)
++#define OMAP3430_VP2_MINVDD_EN					(1 << 17)
++#define OMAP3430_VP2_OPPCHANGEDONE_EN				(1 << 16)
++#define OMAP3430_VP1_TRANXDONE_EN				(1 << 15)
++#define OMAP3430_VP1_EQVALUE_EN					(1 << 14)
++#define OMAP3430_VP1_NOSMPSACK_EN				(1 << 13)
++#define OMAP3430_VP1_MAXVDD_EN					(1 << 12)
++#define OMAP3430_VP1_MINVDD_EN					(1 << 11)
++#define OMAP3430_VP1_OPPCHANGEDONE_EN				(1 << 10)
++#define OMAP3430_IO_EN						(1 << 9)
++#define OMAP3430_PRM_IRQENABLE_MPU_IVA2_DPLL_RECAL_EN		(1 << 8)
++#define OMAP3430_PRM_IRQENABLE_MPU_IVA2_DPLL_RECAL_EN_SHIFT	8
++#define OMAP3430_MPU_DPLL_RECAL_EN				(1 << 7)
++#define OMAP3430_MPU_DPLL_RECAL_EN_SHIFT			7
++#define OMAP3430_PERIPH_DPLL_RECAL_EN				(1 << 6)
++#define OMAP3430_PERIPH_DPLL_RECAL_EN_SHIFT			6
++#define OMAP3430_CORE_DPLL_RECAL_EN				(1 << 5)
++#define OMAP3430_CORE_DPLL_RECAL_EN_SHIFT			5
++#define OMAP3430_TRANSITION_EN					(1 << 4)
++#define OMAP3430_EVGENOFF_EN					(1 << 3)
++#define OMAP3430_EVGENON_EN					(1 << 2)
++#define OMAP3430_FS_USB_WKUP_EN					(1 << 1)
++
++/* RM_RSTST_MPU specific bits */
++#define OMAP3430_EMULATION_MPU_RST			(1 << 11)
++
++/* PM_WKDEP_MPU specific bits */
++#define OMAP3430_PM_WKDEP_MPU_EN_DSS			(1 << 5)
++#define OMAP3430_PM_WKDEP_MPU_EN_IVA2			(1 << 2)
++
++/* PM_EVGENCTRL_MPU */
++#define OMAP3430_OFFLOADMODE_SHIFT			3
++#define OMAP3430_OFFLOADMODE_MASK			(0x3 << 3)
++#define OMAP3430_ONLOADMODE_SHIFT			1
++#define OMAP3430_ONLOADMODE_MASK			(0x3 << 1)
++#define OMAP3430_ENABLE					(1 << 0)
++
++/* PM_EVGENONTIM_MPU */
++#define OMAP3430_ONTIMEVAL_SHIFT			0
++#define OMAP3430_ONTIMEVAL_MASK				(0xffffffff << 0)
++
++/* PM_EVGENOFFTIM_MPU */
++#define OMAP3430_OFFTIMEVAL_SHIFT			0
++#define OMAP3430_OFFTIMEVAL_MASK			(0xffffffff << 0)
++
++/* PM_PWSTCTRL_MPU specific bits */
++#define OMAP3430_L2CACHEONSTATE_SHIFT			16
++#define OMAP3430_L2CACHEONSTATE_MASK			(0x3 << 16)
++#define OMAP3430_L2CACHERETSTATE			(1 << 8)
++#define OMAP3430_LOGICL1CACHERETSTATE			(1 << 2)
++
++/* PM_PWSTST_MPU specific bits */
++#define OMAP3430_L2CACHESTATEST_SHIFT			6
++#define OMAP3430_L2CACHESTATEST_MASK			(0x3 << 6)
++#define OMAP3430_LOGICL1CACHESTATEST			(1 << 2)
++
++/* PM_PREPWSTST_MPU specific bits */
++#define OMAP3430_LASTL2CACHESTATEENTERED_SHIFT		6
++#define OMAP3430_LASTL2CACHESTATEENTERED_MASK		(0x3 << 6)
++#define OMAP3430_LASTLOGICL1CACHESTATEENTERED		(1 << 2)
++
++/* RM_RSTCTRL_CORE */
++#define OMAP3430_RM_RSTCTRL_CORE_MODEM_SW_RSTPWRON		(1 << 1)
++#define OMAP3430_RM_RSTCTRL_CORE_MODEM_SW_RST			(1 << 0)
++
++/* RM_RSTST_CORE specific bits */
++#define OMAP3430_MODEM_SECURITY_VIOL_RST		(1 << 10)
++#define OMAP3430_RM_RSTST_CORE_MODEM_SW_RSTPWRON	(1 << 9)
++#define OMAP3430_RM_RSTST_CORE_MODEM_SW_RST		(1 << 8)
++
++/* PM_WKEN1_CORE specific bits */
++
++/* PM_MPUGRPSEL1_CORE specific bits */
++#define OMAP3430_GRPSEL_FSHOSTUSB			(1 << 5)
++
++/* PM_IVA2GRPSEL1_CORE specific bits */
++
++/* PM_WKST1_CORE specific bits */
++
++/* PM_PWSTCTRL_CORE specific bits */
++#define OMAP3430_MEM2ONSTATE_SHIFT			18
++#define OMAP3430_MEM2ONSTATE_MASK			(0x3 << 18)
++#define OMAP3430_MEM1ONSTATE_SHIFT			16
++#define OMAP3430_MEM1ONSTATE_MASK			(0x3 << 16)
++#define OMAP3430_MEM2RETSTATE				(1 << 9)
++#define OMAP3430_MEM1RETSTATE				(1 << 8)
++
++/* PM_PWSTST_CORE specific bits */
++#define OMAP3430_MEM2STATEST_SHIFT			6
++#define OMAP3430_MEM2STATEST_MASK			(0x3 << 6)
++#define OMAP3430_MEM1STATEST_SHIFT			4
++#define OMAP3430_MEM1STATEST_MASK			(0x3 << 4)
++
++/* PM_PREPWSTST_CORE specific bits */
++#define OMAP3430_LASTMEM2STATEENTERED_SHIFT		6
++#define OMAP3430_LASTMEM2STATEENTERED_MASK		(0x3 << 6)
++#define OMAP3430_LASTMEM1STATEENTERED_SHIFT		4
++#define OMAP3430_LASTMEM1STATEENTERED_MASK		(0x3 << 4)
++
++/* RM_RSTST_GFX specific bits */
++
++/* PM_WKDEP_GFX specific bits */
++#define OMAP3430_PM_WKDEP_GFX_EN_IVA2			(1 << 2)
++
++/* PM_PWSTCTRL_GFX specific bits */
++
++/* PM_PWSTST_GFX specific bits */
++
++/* PM_PREPWSTST_GFX specific bits */
++
++/* PM_WKEN_WKUP specific bits */
++#define OMAP3430_EN_IO					(1 << 8)
++
++/* PM_MPUGRPSEL_WKUP specific bits */
++
++/* PM_IVA2GRPSEL_WKUP specific bits */
++
++/* PM_WKST_WKUP specific bits */
++#define OMAP3430_ST_IO					(1 << 8)
++
++/* PRM_CLKSEL */
++#define OMAP3430_SYS_CLKIN_SEL_SHIFT			0
++#define OMAP3430_SYS_CLKIN_SEL_MASK			(0x7 << 0)
++
++/* PRM_CLKOUT_CTRL */
++#define OMAP3430_CLKOUT_EN				(1 << 7)
++#define OMAP3430_CLKOUT_EN_SHIFT			7
++
++/* RM_RSTST_DSS specific bits */
++
++/* PM_WKEN_DSS */
++#define OMAP3430_PM_WKEN_DSS_EN_DSS			(1 << 0)
++
++/* PM_WKDEP_DSS specific bits */
++#define OMAP3430_PM_WKDEP_DSS_EN_IVA2			(1 << 2)
++
++/* PM_PWSTCTRL_DSS specific bits */
++
++/* PM_PWSTST_DSS specific bits */
++
++/* PM_PREPWSTST_DSS specific bits */
++
++/* RM_RSTST_CAM specific bits */
++
++/* PM_WKDEP_CAM specific bits */
++#define OMAP3430_PM_WKDEP_CAM_EN_IVA2			(1 << 2)
++
++/* PM_PWSTCTRL_CAM specific bits */
++
++/* PM_PWSTST_CAM specific bits */
++
++/* PM_PREPWSTST_CAM specific bits */
++
++/* PM_PWSTCTRL_USBHOST specific bits */
++#define OMAP3430ES2_SAVEANDRESTORE_SHIFT		(1 << 4)
++
++/* RM_RSTST_PER specific bits */
++
++/* PM_WKEN_PER specific bits */
++
++/* PM_MPUGRPSEL_PER specific bits */
++
++/* PM_IVA2GRPSEL_PER specific bits */
++
++/* PM_WKST_PER specific bits */
++
++/* PM_WKDEP_PER specific bits */
++#define OMAP3430_PM_WKDEP_PER_EN_IVA2			(1 << 2)
++
++/* PM_PWSTCTRL_PER specific bits */
++
++/* PM_PWSTST_PER specific bits */
++
++/* PM_PREPWSTST_PER specific bits */
++
++/* RM_RSTST_EMU specific bits */
++
++/* PM_PWSTST_EMU specific bits */
++
++/* PRM_VC_SMPS_SA */
++#define OMAP3430_PRM_VC_SMPS_SA_SA1_SHIFT		16
++#define OMAP3430_PRM_VC_SMPS_SA_SA1_MASK		(0x7f << 16)
++#define OMAP3430_PRM_VC_SMPS_SA_SA0_SHIFT		0
++#define OMAP3430_PRM_VC_SMPS_SA_SA0_MASK		(0x7f << 0)
++
++/* PRM_VC_SMPS_VOL_RA */
++#define OMAP3430_VOLRA1_SHIFT				16
++#define OMAP3430_VOLRA1_MASK				(0xff << 16)
++#define OMAP3430_VOLRA0_SHIFT				0
++#define OMAP3430_VOLRA0_MASK				(0xff << 0)
++
++/* PRM_VC_SMPS_CMD_RA */
++#define OMAP3430_CMDRA1_SHIFT				16
++#define OMAP3430_CMDRA1_MASK				(0xff << 16)
++#define OMAP3430_CMDRA0_SHIFT				0
++#define OMAP3430_CMDRA0_MASK				(0xff << 0)
++
++/* PRM_VC_CMD_VAL_0 specific bits */
++
++/* PRM_VC_CMD_VAL_1 specific bits */
++
++/* PRM_VC_CH_CONF */
++#define OMAP3430_CMD1					(1 << 20)
++#define OMAP3430_RACEN1					(1 << 19)
++#define OMAP3430_RAC1					(1 << 18)
++#define OMAP3430_RAV1					(1 << 17)
++#define OMAP3430_PRM_VC_CH_CONF_SA1			(1 << 16)
++#define OMAP3430_CMD0					(1 << 4)
++#define OMAP3430_RACEN0					(1 << 3)
++#define OMAP3430_RAC0					(1 << 2)
++#define OMAP3430_RAV0					(1 << 1)
++#define OMAP3430_PRM_VC_CH_CONF_SA0			(1 << 0)
++
++/* PRM_VC_I2C_CFG */
++#define OMAP3430_HSMASTER				(1 << 5)
++#define OMAP3430_SREN					(1 << 4)
++#define OMAP3430_HSEN					(1 << 3)
++#define OMAP3430_MCODE_SHIFT				0
++#define OMAP3430_MCODE_MASK				(0x7 << 0)
++
++/* PRM_VC_BYPASS_VAL */
++#define OMAP3430_VALID					(1 << 24)
++#define OMAP3430_DATA_SHIFT				16
++#define OMAP3430_DATA_MASK				(0xff << 16)
++#define OMAP3430_REGADDR_SHIFT				8
++#define OMAP3430_REGADDR_MASK				(0xff << 8)
++#define OMAP3430_SLAVEADDR_SHIFT			0
++#define OMAP3430_SLAVEADDR_MASK				(0x7f << 0)
++
++/* PRM_RSTCTRL */
++#define OMAP3430_RST_DPLL3				(1 << 2)
++#define OMAP3430_RST_GS					(1 << 1)
++
++/* PRM_RSTTIME */
++#define OMAP3430_RSTTIME2_SHIFT				8
++#define OMAP3430_RSTTIME2_MASK				(0x1f << 8)
++#define OMAP3430_RSTTIME1_SHIFT				0
++#define OMAP3430_RSTTIME1_MASK				(0xff << 0)
++
++/* PRM_RSTST */
++#define OMAP3430_ICECRUSHER_RST				(1 << 10)
++#define OMAP3430_ICEPICK_RST				(1 << 9)
++#define OMAP3430_VDD2_VOLTAGE_MANAGER_RST		(1 << 8)
++#define OMAP3430_VDD1_VOLTAGE_MANAGER_RST		(1 << 7)
++#define OMAP3430_EXTERNAL_WARM_RST			(1 << 6)
++#define OMAP3430_SECURE_WD_RST				(1 << 5)
++#define OMAP3430_MPU_WD_RST				(1 << 4)
++#define OMAP3430_SECURITY_VIOL_RST			(1 << 3)
++#define OMAP3430_GLOBAL_SW_RST				(1 << 1)
++#define OMAP3430_GLOBAL_COLD_RST			(1 << 0)
++
++/* PRM_VOLTCTRL */
++#define OMAP3430_SEL_VMODE				(1 << 4)
++#define OMAP3430_SEL_OFF				(1 << 3)
++#define OMAP3430_AUTO_OFF				(1 << 2)
++#define OMAP3430_AUTO_RET				(1 << 1)
++#define OMAP3430_AUTO_SLEEP				(1 << 0)
++
++/* PRM_SRAM_PCHARGE */
++#define OMAP3430_PCHARGE_TIME_SHIFT			0
++#define OMAP3430_PCHARGE_TIME_MASK			(0xff << 0)
++
++/* PRM_CLKSRC_CTRL */
++#define OMAP3430_SYSCLKDIV_SHIFT			6
++#define OMAP3430_SYSCLKDIV_MASK				(0x3 << 6)
++#define OMAP3430_AUTOEXTCLKMODE_SHIFT			3
++#define OMAP3430_AUTOEXTCLKMODE_MASK			(0x3 << 3)
++#define OMAP3430_SYSCLKSEL_SHIFT			0
++#define OMAP3430_SYSCLKSEL_MASK				(0x3 << 0)
++
++/* PRM_VOLTSETUP1 */
++#define OMAP3430_SETUP_TIME2_SHIFT			16
++#define OMAP3430_SETUP_TIME2_MASK			(0xffff << 16)
++#define OMAP3430_SETUP_TIME1_SHIFT			0
++#define OMAP3430_SETUP_TIME1_MASK			(0xffff << 0)
++
++/* PRM_VOLTOFFSET */
++#define OMAP3430_OFFSET_TIME_SHIFT			0
++#define OMAP3430_OFFSET_TIME_MASK			(0xffff << 0)
++
++/* PRM_CLKSETUP */
++#define OMAP3430_SETUP_TIME_SHIFT			0
++#define OMAP3430_SETUP_TIME_MASK			(0xffff << 0)
++
++/* PRM_POLCTRL */
++#define OMAP3430_OFFMODE_POL				(1 << 3)
++#define OMAP3430_CLKOUT_POL				(1 << 2)
++#define OMAP3430_CLKREQ_POL				(1 << 1)
++#define OMAP3430_EXTVOL_POL				(1 << 0)
++
++/* PRM_VOLTSETUP2 */
++#define OMAP3430_OFFMODESETUPTIME_SHIFT			0
++#define OMAP3430_OFFMODESETUPTIME_MASK			(0xffff << 0)
++
++/* PRM_VP1_CONFIG specific bits */
++
++/* PRM_VP1_VSTEPMIN specific bits */
++
++/* PRM_VP1_VSTEPMAX specific bits */
++
++/* PRM_VP1_VLIMITTO specific bits */
++
++/* PRM_VP1_VOLTAGE specific bits */
++
++/* PRM_VP1_STATUS specific bits */
++
++/* PRM_VP2_CONFIG specific bits */
++
++/* PRM_VP2_VSTEPMIN specific bits */
++
++/* PRM_VP2_VSTEPMAX specific bits */
++
++/* PRM_VP2_VLIMITTO specific bits */
++
++/* PRM_VP2_VOLTAGE specific bits */
++
++/* PRM_VP2_STATUS specific bits */
++
++/* RM_RSTST_NEON specific bits */
++
++/* PM_WKDEP_NEON specific bits */
++
++/* PM_PWSTCTRL_NEON specific bits */
++
++/* PM_PWSTST_NEON specific bits */
++
++/* PM_PREPWSTST_NEON specific bits */
++
++#endif
 -- 
 1.5.3.6
 
