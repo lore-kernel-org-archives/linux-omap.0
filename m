@@ -1,19 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 6/12]
-Date: Tue, 18 Mar 2008 12:39:54 +0200
-Message-ID: <1205836800-31737-7-git-send-email-tony@atomide.com>
+Subject: [PATCH 3/12] ARM: OMAP2: Add common register access for 24xx and 34xx
+Date: Tue, 18 Mar 2008 12:39:51 +0200
+Message-ID: <1205836800-31737-4-git-send-email-tony@atomide.com>
 References: omap2-upstream-2008-03-18-123926
 	<1205836800-31737-1-git-send-email-tony@atomide.com>
 	<1205836800-31737-2-git-send-email-tony@atomide.com>
 	<1205836800-31737-3-git-send-email-tony@atomide.com>
-	<1205836800-31737-4-git-send-email-tony@atomide.com>
-	<1205836800-31737-5-git-send-email-tony@atomide.com>
-	<1205836800-31737-6-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
-In-Reply-To: <1205836800-31737-6-git-send-email-tony@atomide.com>
+In-Reply-To: <1205836800-31737-3-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
 List-Archive: <http://lists.arm.linux.org.uk/lurker/list/linux-arm-kernel.html>
@@ -29,4869 +26,3219 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Paul Walmsley <paul@pwsan.com>
 
-This patch moves clock.[ch] to clock24xx.[ch]  to make room for
-adding common clock code for 24xx and 34xx.
+This patch adds common register access for 24xx and 34xx power
+and clock management in order to share code between 24xx and 34xx.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/Makefile    |    5 +-
- arch/arm/mach-omap2/clock.c     | 1176 ----------------------
- arch/arm/mach-omap2/clock.h     | 2111 ---------------------------------------
- arch/arm/mach-omap2/clock24xx.c | 1176 ++++++++++++++++++++++
- arch/arm/mach-omap2/clock24xx.h | 2111 +++++++++++++++++++++++++++++++++++++++
- 5 files changed, 3291 insertions(+), 3288 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/clock.c
- delete mode 100644 arch/arm/mach-omap2/clock.h
- create mode 100644 arch/arm/mach-omap2/clock24xx.c
- create mode 100644 arch/arm/mach-omap2/clock24xx.h
+ arch/arm/mach-omap2/Makefile           |    4 +-
+ arch/arm/mach-omap2/cm-regbits-24xx.h  |  401 +++++++++++++++++++
+ arch/arm/mach-omap2/cm-regbits-34xx.h  |  667 ++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/cm.h               |  142 +++++++
+ arch/arm/mach-omap2/control.c          |   74 ++++
+ arch/arm/mach-omap2/prcm-common.h      |  317 +++++++++++++++
+ arch/arm/mach-omap2/prcm.c             |    1 +
+ arch/arm/mach-omap2/prm-regbits-24xx.h |  279 +++++++++++++
+ arch/arm/mach-omap2/prm-regbits-34xx.h |  582 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prm.h              |  334 ++++++++++++++++
+ arch/arm/mach-omap2/sdrc.h             |   64 +++
+ include/asm-arm/arch-omap/control.h    |  191 +++++++++
+ include/asm-arm/arch-omap/sdrc.h       |   75 ++++
+ 13 files changed, 3129 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/cm-regbits-24xx.h
+ create mode 100644 arch/arm/mach-omap2/cm-regbits-34xx.h
+ create mode 100644 arch/arm/mach-omap2/cm.h
+ create mode 100644 arch/arm/mach-omap2/control.c
+ create mode 100644 arch/arm/mach-omap2/prcm-common.h
+ create mode 100644 arch/arm/mach-omap2/prm-regbits-24xx.h
+ create mode 100644 arch/arm/mach-omap2/prm-regbits-34xx.h
+ create mode 100644 arch/arm/mach-omap2/prm.h
+ create mode 100644 arch/arm/mach-omap2/sdrc.h
+ create mode 100644 include/asm-arm/arch-omap/control.h
+ create mode 100644 include/asm-arm/arch-omap/sdrc.h
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index b9313c9..be2b671 100644
+index ac343ec..b9313c9 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -3,12 +3,15 @@
+@@ -3,8 +3,8 @@
  #
  
  # Common support
--obj-y := irq.o id.o io.o sram-fn.o memory.o control.o prcm.o clock.o mux.o \
-+obj-y := irq.o id.o io.o sram-fn.o memory.o control.o prcm.o mux.o \
- 		devices.o serial.o gpmc.o timer-gp.o
+-obj-y := irq.o id.o io.o sram-fn.o memory.o prcm.o clock.o mux.o devices.o \
+-	 serial.o gpmc.o timer-gp.o
++obj-y := irq.o id.o io.o sram-fn.o memory.o control.o prcm.o clock.o mux.o \
++		devices.o serial.o gpmc.o timer-gp.o
  
  # Power Management
  obj-$(CONFIG_PM) += pm.o pm-domain.o sleep.o
- 
-+# Clock framework
-+obj-$(CONFIG_ARCH_OMAP2)		+= clock24xx.o
-+
- # Specific board support
- obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
- obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-deleted file mode 100644
-index e6e85b7..0000000
---- a/arch/arm/mach-omap2/clock.c
-+++ /dev/null
-@@ -1,1176 +0,0 @@
--/*
-- *  linux/arch/arm/mach-omap2/clock.c
-- *
-- *  Copyright (C) 2005 Texas Instruments Inc.
-- *  Richard Woodruff <r-woodruff2@ti.com>
-- *  Created for OMAP2.
-- *
-- *  Cleaned up and modified to use omap shared clock framework by
-- *  Tony Lindgren <tony@atomide.com>
-- *
-- *  Based on omap1 clock.c, Copyright (C) 2004 - 2005 Nokia corporation
-- *  Written by Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--#include <linux/module.h>
--#include <linux/kernel.h>
--#include <linux/device.h>
--#include <linux/list.h>
--#include <linux/errno.h>
--#include <linux/delay.h>
--#include <linux/clk.h>
--
--#include <asm/io.h>
--
--#include <asm/arch/clock.h>
--#include <asm/arch/sram.h>
--#include <asm/div64.h>
--
--#include "prcm-regs.h"
--#include "memory.h"
--#include "clock.h"
--
--#undef DEBUG
--
--//#define DOWN_VARIABLE_DPLL 1			/* Experimental */
--
--static struct prcm_config *curr_prcm_set;
--static u32 curr_perf_level = PRCM_FULL_SPEED;
--static struct clk *vclk;
--static struct clk *sclk;
--
--/*-------------------------------------------------------------------------
-- * Omap2 specific clock functions
-- *-------------------------------------------------------------------------*/
--
--/* Recalculate SYST_CLK */
--static void omap2_sys_clk_recalc(struct clk * clk)
--{
--	u32 div = PRCM_CLKSRC_CTRL;
--	div &= (1 << 7) | (1 << 6);	/* Test if ext clk divided by 1 or 2 */
--	div >>= clk->rate_offset;
--	clk->rate = (clk->parent->rate / div);
--	propagate_rate(clk);
--}
--
--static u32 omap2_get_dpll_rate(struct clk * tclk)
--{
--	long long dpll_clk;
--	int dpll_mult, dpll_div, amult;
--
--	dpll_mult = (CM_CLKSEL1_PLL >> 12) & 0x03ff;	/* 10 bits */
--	dpll_div = (CM_CLKSEL1_PLL >> 8) & 0x0f;	/* 4 bits */
--	dpll_clk = (long long)tclk->parent->rate * dpll_mult;
--	do_div(dpll_clk, dpll_div + 1);
--	amult = CM_CLKSEL2_PLL & 0x3;
--	dpll_clk *= amult;
--
--	return dpll_clk;
--}
--
--static void omap2_followparent_recalc(struct clk *clk)
--{
--	followparent_recalc(clk);
--}
--
--static void omap2_propagate_rate(struct clk * clk)
--{
--	if (!(clk->flags & RATE_FIXED))
--		clk->rate = clk->parent->rate;
--
--	propagate_rate(clk);
--}
--
--static void omap2_set_osc_ck(int enable)
--{
--	if (enable)
--		PRCM_CLKSRC_CTRL &= ~(0x3 << 3);
--	else
--		PRCM_CLKSRC_CTRL |= 0x3 << 3;
--}
--
--/* Enable an APLL if off */
--static void omap2_clk_fixed_enable(struct clk *clk)
--{
--	u32 cval, i=0;
--
--	if (clk->enable_bit == 0xff)			/* Parent will do it */
--		return;
--
--	cval = CM_CLKEN_PLL;
--
--	if ((cval & (0x3 << clk->enable_bit)) == (0x3 << clk->enable_bit))
--		return;
--
--	cval &= ~(0x3 << clk->enable_bit);
--	cval |= (0x3 << clk->enable_bit);
--	CM_CLKEN_PLL = cval;
--
--	if (clk == &apll96_ck)
--		cval = (1 << 8);
--	else if (clk == &apll54_ck)
--		cval = (1 << 6);
--
--	while (!(CM_IDLEST_CKGEN & cval)) {		/* Wait for lock */
--		++i;
--		udelay(1);
--		if (i == 100000) {
--			printk(KERN_ERR "Clock %s didn't lock\n", clk->name);
--			break;
--		}
--	}
--}
--
--static void omap2_clk_wait_ready(struct clk *clk)
--{
--	unsigned long reg, other_reg, st_reg;
--	u32 bit;
--	int i;
--
--	reg = (unsigned long) clk->enable_reg;
--	if (reg == (unsigned long) &CM_FCLKEN1_CORE ||
--	    reg == (unsigned long) &CM_FCLKEN2_CORE)
--		other_reg = (reg & ~0xf0) | 0x10;
--	else if (reg == (unsigned long) &CM_ICLKEN1_CORE ||
--		 reg == (unsigned long) &CM_ICLKEN2_CORE)
--		other_reg = (reg & ~0xf0) | 0x00;
--	else
--		return;
--
--	/* No check for DSS or cam clocks */
--	if ((reg & 0x0f) == 0) {
--		if (clk->enable_bit <= 1 || clk->enable_bit == 31)
--			return;
--	}
--
--	/* Check if both functional and interface clocks
--	 * are running. */
--	bit = 1 << clk->enable_bit;
--	if (!(__raw_readl(other_reg) & bit))
--		return;
--	st_reg = (other_reg & ~0xf0) | 0x20;
--	i = 0;
--	while (!(__raw_readl(st_reg) & bit)) {
--		i++;
--		if (i == 100000) {
--			printk(KERN_ERR "Timeout enabling clock %s\n", clk->name);
--			break;
--		}
--	}
--	if (i)
--		pr_debug("Clock %s stable after %d loops\n", clk->name, i);
--}
--
--/* Enables clock without considering parent dependencies or use count
-- * REVISIT: Maybe change this to use clk->enable like on omap1?
-- */
--static int _omap2_clk_enable(struct clk * clk)
--{
--	u32 regval32;
--
--	if (clk->flags & ALWAYS_ENABLED)
--		return 0;
--
--	if (unlikely(clk == &osc_ck)) {
--		omap2_set_osc_ck(1);
--		return 0;
--	}
--
--	if (unlikely(clk->enable_reg == 0)) {
--		printk(KERN_ERR "clock.c: Enable for %s without enable code\n",
--		       clk->name);
--		return 0;
--	}
--
--	if (clk->enable_reg == (void __iomem *)&CM_CLKEN_PLL) {
--		omap2_clk_fixed_enable(clk);
--		return 0;
--	}
--
--	regval32 = __raw_readl(clk->enable_reg);
--	regval32 |= (1 << clk->enable_bit);
--	__raw_writel(regval32, clk->enable_reg);
--	wmb();
--
--	omap2_clk_wait_ready(clk);
--
--	return 0;
--}
--
--/* Stop APLL */
--static void omap2_clk_fixed_disable(struct clk *clk)
--{
--	u32 cval;
--
--	if(clk->enable_bit == 0xff)		/* let parent off do it */
--		return;
--
--	cval = CM_CLKEN_PLL;
--	cval &= ~(0x3 << clk->enable_bit);
--	CM_CLKEN_PLL = cval;
--}
--
--/* Disables clock without considering parent dependencies or use count */
--static void _omap2_clk_disable(struct clk *clk)
--{
--	u32 regval32;
--
--	if (unlikely(clk == &osc_ck)) {
--		omap2_set_osc_ck(0);
--		return;
--	}
--
--	if (clk->enable_reg == 0)
--		return;
--
--	if (clk->enable_reg == (void __iomem *)&CM_CLKEN_PLL) {
--		omap2_clk_fixed_disable(clk);
--		return;
--	}
--
--	regval32 = __raw_readl(clk->enable_reg);
--	regval32 &= ~(1 << clk->enable_bit);
--	__raw_writel(regval32, clk->enable_reg);
--	wmb();
--}
--
--static int omap2_clk_enable(struct clk *clk)
--{
--	int ret = 0;
--
--	if (clk->usecount++ == 0) {
--		if (likely((u32)clk->parent))
--			ret = omap2_clk_enable(clk->parent);
--
--		if (unlikely(ret != 0)) {
--			clk->usecount--;
--			return ret;
--		}
--
--		ret = _omap2_clk_enable(clk);
--
--		if (unlikely(ret != 0) && clk->parent) {
--			omap2_clk_disable(clk->parent);
--			clk->usecount--;
--		}
--	}
--
--	return ret;
--}
--
--static void omap2_clk_disable(struct clk *clk)
--{
--	if (clk->usecount > 0 && !(--clk->usecount)) {
--		_omap2_clk_disable(clk);
--		if (likely((u32)clk->parent))
--			omap2_clk_disable(clk->parent);
--	}
--}
--
--/*
-- * Uses the current prcm set to tell if a rate is valid.
-- * You can go slower, but not faster within a given rate set.
-- */
--static u32 omap2_dpll_round_rate(unsigned long target_rate)
--{
--	u32 high, low;
--
--	if ((CM_CLKSEL2_PLL & 0x3) == 1) {	/* DPLL clockout */
--		high = curr_prcm_set->dpll_speed * 2;
--		low = curr_prcm_set->dpll_speed;
--	} else {				/* DPLL clockout x 2 */
--		high = curr_prcm_set->dpll_speed;
--		low = curr_prcm_set->dpll_speed / 2;
--	}
--
--#ifdef DOWN_VARIABLE_DPLL
--	if (target_rate > high)
--		return high;
--	else
--		return target_rate;
--#else
--	if (target_rate > low)
--		return high;
--	else
--		return low;
--#endif
--
--}
--
--/*
-- * Used for clocks that are part of CLKSEL_xyz governed clocks.
-- * REVISIT: Maybe change to use clk->enable() functions like on omap1?
-- */
--static void omap2_clksel_recalc(struct clk * clk)
--{
--	u32 fixed = 0, div = 0;
--
--	if (clk == &dpll_ck) {
--		clk->rate = omap2_get_dpll_rate(clk);
--		fixed = 1;
--		div = 0;
--	}
--
--	if (clk == &iva1_mpu_int_ifck) {
--		div = 2;
--		fixed = 1;
--	}
--
--	if ((clk == &dss1_fck) && ((CM_CLKSEL1_CORE & (0x1f << 8)) == 0)) {
--		clk->rate = sys_ck.rate;
--		return;
--	}
--
--	if (!fixed) {
--		div = omap2_clksel_get_divisor(clk);
--		if (div == 0)
--			return;
--	}
--
--	if (div != 0) {
--		if (unlikely(clk->rate == clk->parent->rate / div))
--			return;
--		clk->rate = clk->parent->rate / div;
--	}
--
--	if (unlikely(clk->flags & RATE_PROPAGATES))
--		propagate_rate(clk);
--}
--
--/*
-- * Finds best divider value in an array based on the source and target
-- * rates. The divider array must be sorted with smallest divider first.
-- */
--static inline u32 omap2_divider_from_table(u32 size, u32 *div_array,
--					   u32 src_rate, u32 tgt_rate)
--{
--	int i, test_rate;
--
--	if (div_array == NULL)
--		return ~1;
--
--	for (i=0; i < size; i++) {
--		test_rate = src_rate / *div_array;
--		if (test_rate <= tgt_rate)
--			return *div_array;
--		++div_array;
--	}
--
--	return ~0;	/* No acceptable divider */
--}
--
--/*
-- * Find divisor for the given clock and target rate.
-- *
-- * Note that this will not work for clocks which are part of CONFIG_PARTICIPANT,
-- * they are only settable as part of virtual_prcm set.
-- */
--static u32 omap2_clksel_round_rate(struct clk *tclk, u32 target_rate,
--	u32 *new_div)
--{
--	u32 gfx_div[] = {2, 3, 4};
--	u32 sysclkout_div[] = {1, 2, 4, 8, 16};
--	u32 dss1_div[] = {1, 2, 3, 4, 5, 6, 8, 9, 12, 16};
--	u32 vylnq_div[] = {1, 2, 3, 4, 6, 8, 9, 12, 16, 18};
--	u32 best_div = ~0, asize = 0;
--	u32 *div_array = NULL;
--
--	switch (tclk->flags & SRC_RATE_SEL_MASK) {
--	case CM_GFX_SEL1:
--		asize = 3;
--		div_array = gfx_div;
--		break;
--	case CM_PLL_SEL1:
--		return omap2_dpll_round_rate(target_rate);
--	case CM_SYSCLKOUT_SEL1:
--		asize = 5;
--		div_array = sysclkout_div;
--		break;
--	case CM_CORE_SEL1:
--		if(tclk == &dss1_fck){
--			if(tclk->parent == &core_ck){
--				asize = 10;
--				div_array = dss1_div;
--			} else {
--				*new_div = 0; /* fixed clk */
--				return(tclk->parent->rate);
--			}
--		} else if((tclk == &vlynq_fck) && cpu_is_omap2420()){
--			if(tclk->parent == &core_ck){
--				asize = 10;
--				div_array = vylnq_div;
--			} else {
--				*new_div = 0; /* fixed clk */
--				return(tclk->parent->rate);
--			}
--		}
--		break;
--	}
--
--	best_div = omap2_divider_from_table(asize, div_array,
--	 tclk->parent->rate, target_rate);
--	if (best_div == ~0){
--		*new_div = 1;
--		return best_div; /* signal error */
--	}
--
--	*new_div = best_div;
--	return (tclk->parent->rate / best_div);
--}
--
--/* Given a clock and a rate apply a clock specific rounding function */
--static long omap2_clk_round_rate(struct clk *clk, unsigned long rate)
--{
--	u32 new_div = 0;
--	int valid_rate;
--
--	if (clk->flags & RATE_FIXED)
--		return clk->rate;
--
--	if (clk->flags & RATE_CKCTL) {
--		valid_rate = omap2_clksel_round_rate(clk, rate, &new_div);
--		return valid_rate;
--	}
--
--	if (clk->round_rate != 0)
--		return clk->round_rate(clk, rate);
--
--	return clk->rate;
--}
--
--/*
-- * Check the DLL lock state, and return tue if running in unlock mode.
-- * This is needed to compensate for the shifted DLL value in unlock mode.
-- */
--static u32 omap2_dll_force_needed(void)
--{
--	u32 dll_state = SDRC_DLLA_CTRL;		/* dlla and dllb are a set */
--
--	if ((dll_state & (1 << 2)) == (1 << 2))
--		return 1;
--	else
--		return 0;
--}
--
--static u32 omap2_reprogram_sdrc(u32 level, u32 force)
--{
--	u32 slow_dll_ctrl, fast_dll_ctrl, m_type;
--	u32 prev = curr_perf_level, flags;
--
--	if ((curr_perf_level == level) && !force)
--		return prev;
--
--	m_type = omap2_memory_get_type();
--	slow_dll_ctrl = omap2_memory_get_slow_dll_ctrl();
--	fast_dll_ctrl = omap2_memory_get_fast_dll_ctrl();
--
--	if (level == PRCM_HALF_SPEED) {
--		local_irq_save(flags);
--		PRCM_VOLTSETUP = 0xffff;
--		omap2_sram_reprogram_sdrc(PRCM_HALF_SPEED,
--					  slow_dll_ctrl, m_type);
--		curr_perf_level = PRCM_HALF_SPEED;
--		local_irq_restore(flags);
--	}
--	if (level == PRCM_FULL_SPEED) {
--		local_irq_save(flags);
--		PRCM_VOLTSETUP = 0xffff;
--		omap2_sram_reprogram_sdrc(PRCM_FULL_SPEED,
--					  fast_dll_ctrl, m_type);
--		curr_perf_level = PRCM_FULL_SPEED;
--		local_irq_restore(flags);
--	}
--
--	return prev;
--}
--
--static int omap2_reprogram_dpll(struct clk * clk, unsigned long rate)
--{
--	u32 flags, cur_rate, low, mult, div, valid_rate, done_rate;
--	u32 bypass = 0;
--	struct prcm_config tmpset;
--	int ret = -EINVAL;
--
--	local_irq_save(flags);
--	cur_rate = omap2_get_dpll_rate(&dpll_ck);
--	mult = CM_CLKSEL2_PLL & 0x3;
--
--	if ((rate == (cur_rate / 2)) && (mult == 2)) {
--		omap2_reprogram_sdrc(PRCM_HALF_SPEED, 1);
--	} else if ((rate == (cur_rate * 2)) && (mult == 1)) {
--		omap2_reprogram_sdrc(PRCM_FULL_SPEED, 1);
--	} else if (rate != cur_rate) {
--		valid_rate = omap2_dpll_round_rate(rate);
--		if (valid_rate != rate)
--			goto dpll_exit;
--
--		if ((CM_CLKSEL2_PLL & 0x3) == 1)
--			low = curr_prcm_set->dpll_speed;
--		else
--			low = curr_prcm_set->dpll_speed / 2;
--
--		tmpset.cm_clksel1_pll = CM_CLKSEL1_PLL;
--		tmpset.cm_clksel1_pll &= ~(0x3FFF << 8);
--		div = ((curr_prcm_set->xtal_speed / 1000000) - 1);
--		tmpset.cm_clksel2_pll = CM_CLKSEL2_PLL;
--		tmpset.cm_clksel2_pll &= ~0x3;
--		if (rate > low) {
--			tmpset.cm_clksel2_pll |= 0x2;
--			mult = ((rate / 2) / 1000000);
--			done_rate = PRCM_FULL_SPEED;
--		} else {
--			tmpset.cm_clksel2_pll |= 0x1;
--			mult = (rate / 1000000);
--			done_rate = PRCM_HALF_SPEED;
--		}
--		tmpset.cm_clksel1_pll |= ((div << 8) | (mult << 12));
--
--		/* Worst case */
--		tmpset.base_sdrc_rfr = V24XX_SDRC_RFR_CTRL_BYPASS;
--
--		if (rate == curr_prcm_set->xtal_speed)	/* If asking for 1-1 */
--			bypass = 1;
--
--		omap2_reprogram_sdrc(PRCM_FULL_SPEED, 1); /* For init_mem */
--
--		/* Force dll lock mode */
--		omap2_set_prcm(tmpset.cm_clksel1_pll, tmpset.base_sdrc_rfr,
--			       bypass);
--
--		/* Errata: ret dll entry state */
--		omap2_init_memory_params(omap2_dll_force_needed());
--		omap2_reprogram_sdrc(done_rate, 0);
--	}
--	omap2_clksel_recalc(&dpll_ck);
--	ret = 0;
--
--dpll_exit:
--	local_irq_restore(flags);
--	return(ret);
--}
--
--/* Just return the MPU speed */
--static void omap2_mpu_recalc(struct clk * clk)
--{
--	clk->rate = curr_prcm_set->mpu_speed;
--}
--
--/*
-- * Look for a rate equal or less than the target rate given a configuration set.
-- *
-- * What's not entirely clear is "which" field represents the key field.
-- * Some might argue L3-DDR, others ARM, others IVA. This code is simple and
-- * just uses the ARM rates.
-- */
--static long omap2_round_to_table_rate(struct clk * clk, unsigned long rate)
--{
--	struct prcm_config * ptr;
--	long highest_rate;
--
--	if (clk != &virt_prcm_set)
--		return -EINVAL;
--
--	highest_rate = -EINVAL;
--
--	for (ptr = rate_table; ptr->mpu_speed; ptr++) {
--		if (ptr->xtal_speed != sys_ck.rate)
--			continue;
--
--		highest_rate = ptr->mpu_speed;
--
--		/* Can check only after xtal frequency check */
--		if (ptr->mpu_speed <= rate)
--			break;
--	}
--	return highest_rate;
--}
--
--/*
-- * omap2_convert_field_to_div() - turn field value into integer divider
-- */
--static u32 omap2_clksel_to_divisor(u32 div_sel, u32 field_val)
--{
--	u32 i;
--	u32 clkout_array[] = {1, 2, 4, 8, 16};
--
--	if ((div_sel & SRC_RATE_SEL_MASK) == CM_SYSCLKOUT_SEL1) {
--		for (i = 0; i < 5; i++) {
--			if (field_val == i)
--				return clkout_array[i];
--		}
--		return ~0;
--	} else
--		return field_val;
--}
--
--/*
-- * Returns the CLKSEL divider register value
-- * REVISIT: This should be cleaned up to work nicely with void __iomem *
-- */
--static u32 omap2_get_clksel(u32 *div_sel, u32 *field_mask,
--			    struct clk *clk)
--{
--	int ret = ~0;
--	u32 reg_val, div_off;
--	u32 div_addr = 0;
--	u32 mask = ~0;
--
--	div_off = clk->rate_offset;
--
--	switch ((*div_sel & SRC_RATE_SEL_MASK)) {
--	case CM_MPU_SEL1:
--		div_addr = (u32)&CM_CLKSEL_MPU;
--		mask = 0x1f;
--		break;
--	case CM_DSP_SEL1:
--		div_addr = (u32)&CM_CLKSEL_DSP;
--		if (cpu_is_omap2420()) {
--			if ((div_off == 0) || (div_off == 8))
--				mask = 0x1f;
--			else if (div_off == 5)
--				mask = 0x3;
--		} else if (cpu_is_omap2430()) {
--			if (div_off == 0)
--				mask = 0x1f;
--			else if (div_off == 5)
--				mask = 0x3;
--		}
--		break;
--	case CM_GFX_SEL1:
--		div_addr = (u32)&CM_CLKSEL_GFX;
--		if (div_off == 0)
--			mask = 0x7;
--		break;
--	case CM_MODEM_SEL1:
--		div_addr = (u32)&CM_CLKSEL_MDM;
--		if (div_off == 0)
--			mask = 0xf;
--		break;
--	case CM_SYSCLKOUT_SEL1:
--		div_addr = (u32)&PRCM_CLKOUT_CTRL;
--		if ((div_off == 3) || (div_off == 11))
--			mask= 0x3;
--		break;
--	case CM_CORE_SEL1:
--		div_addr = (u32)&CM_CLKSEL1_CORE;
--		switch (div_off) {
--		case 0:					/* l3 */
--		case 8:					/* dss1 */
--		case 15:				/* vylnc-2420 */
--		case 20:				/* ssi */
--			mask = 0x1f; break;
--		case 5:					/* l4 */
--			mask = 0x3; break;
--		case 13:				/* dss2 */
--			mask = 0x1; break;
--		case 25:				/* usb */
--			mask = 0x7; break;
--		}
--	}
--
--	*field_mask = mask;
--
--	if (unlikely(mask == ~0))
--		div_addr = 0;
--
--	*div_sel = div_addr;
--
--	if (unlikely(div_addr == 0))
--		return ret;
--
--	/* Isolate field */
--	reg_val = __raw_readl((void __iomem *)div_addr) & (mask << div_off);
--
--	/* Normalize back to divider value */
--	reg_val >>= div_off;
--
--	return reg_val;
--}
--
--/*
-- * Return divider to be applied to parent clock.
-- * Return 0 on error.
-- */
--static u32 omap2_clksel_get_divisor(struct clk *clk)
--{
--	int ret = 0;
--	u32 div, div_sel, div_off, field_mask, field_val;
--
--	/* isolate control register */
--	div_sel = (SRC_RATE_SEL_MASK & clk->flags);
--
--	div_off = clk->rate_offset;
--	field_val = omap2_get_clksel(&div_sel, &field_mask, clk);
--	if (div_sel == 0)
--		return ret;
--
--	div_sel = (SRC_RATE_SEL_MASK & clk->flags);
--	div = omap2_clksel_to_divisor(div_sel, field_val);
--
--	return div;
--}
--
--/* Set the clock rate for a clock source */
--static int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
--
--{
--	int ret = -EINVAL;
--	void __iomem * reg;
--	u32 div_sel, div_off, field_mask, field_val, reg_val, validrate;
--	u32 new_div = 0;
--
--	if (!(clk->flags & CONFIG_PARTICIPANT) && (clk->flags & RATE_CKCTL)) {
--		if (clk == &dpll_ck)
--			return omap2_reprogram_dpll(clk, rate);
--
--		/* Isolate control register */
--		div_sel = (SRC_RATE_SEL_MASK & clk->flags);
--		div_off = clk->rate_offset;
--
--		validrate = omap2_clksel_round_rate(clk, rate, &new_div);
--		if (validrate != rate)
--			return(ret);
--
--		field_val = omap2_get_clksel(&div_sel, &field_mask, clk);
--		if (div_sel == 0)
--			return ret;
--
--		if (clk->flags & CM_SYSCLKOUT_SEL1) {
--			switch (new_div) {
--			case 16:
--				field_val = 4;
--				break;
--			case 8:
--				field_val = 3;
--				break;
--			case 4:
--				field_val = 2;
--				break;
--			case 2:
--				field_val = 1;
--				break;
--			case 1:
--				field_val = 0;
--				break;
--			}
--		} else
--			field_val = new_div;
--
--		reg = (void __iomem *)div_sel;
--
--		reg_val = __raw_readl(reg);
--		reg_val &= ~(field_mask << div_off);
--		reg_val |= (field_val << div_off);
--		__raw_writel(reg_val, reg);
--		wmb();
--		clk->rate = clk->parent->rate / field_val;
--
--		if (clk->flags & DELAYED_APP) {
--			__raw_writel(0x1, (void __iomem *)&PRCM_CLKCFG_CTRL);
--			wmb();
--		}
--		ret = 0;
--	} else if (clk->set_rate != 0)
--		ret = clk->set_rate(clk, rate);
--
--	if (unlikely(ret == 0 && (clk->flags & RATE_PROPAGATES)))
--		propagate_rate(clk);
--
--	return ret;
--}
--
--/* Converts encoded control register address into a full address */
--static u32 omap2_get_src_field(u32 *type_to_addr, u32 reg_offset,
--			       struct clk *src_clk, u32 *field_mask)
--{
--	u32 val = ~0, src_reg_addr = 0, mask = 0;
--
--	/* Find target control register.*/
--	switch ((*type_to_addr & SRC_RATE_SEL_MASK)) {
--	case CM_CORE_SEL1:
--		src_reg_addr = (u32)&CM_CLKSEL1_CORE;
--		if (reg_offset == 13) {			/* DSS2_fclk */
--			mask = 0x1;
--			if (src_clk == &sys_ck)
--				val = 0;
--			if (src_clk == &func_48m_ck)
--				val = 1;
--		} else if (reg_offset == 8) {		/* DSS1_fclk */
--			mask = 0x1f;
--			if (src_clk == &sys_ck)
--				val = 0;
--			else if (src_clk == &core_ck)	/* divided clock */
--				val = 0x10;		/* rate needs fixing */
--		} else if ((reg_offset == 15) && cpu_is_omap2420()){ /*vlnyq*/
--			mask = 0x1F;
--			if(src_clk == &func_96m_ck)
--				val = 0;
--			else if (src_clk == &core_ck)
--				val = 0x10;
--		}
--		break;
--	case CM_CORE_SEL2:
--		src_reg_addr = (u32)&CM_CLKSEL2_CORE;
--		mask = 0x3;
--		if (src_clk == &func_32k_ck)
--			val = 0x0;
--		if (src_clk == &sys_ck)
--			val = 0x1;
--		if (src_clk == &alt_ck)
--			val = 0x2;
--		break;
--	case CM_WKUP_SEL1:
--		src_reg_addr = (u32)&CM_CLKSEL_WKUP;
--		mask = 0x3;
--		if (src_clk == &func_32k_ck)
--			val = 0x0;
--		if (src_clk == &sys_ck)
--			val = 0x1;
--		if (src_clk == &alt_ck)
--			val = 0x2;
--		break;
--	case CM_PLL_SEL1:
--		src_reg_addr = (u32)&CM_CLKSEL1_PLL;
--		mask = 0x1;
--		if (reg_offset == 0x3) {
--			if (src_clk == &apll96_ck)
--				val = 0;
--			if (src_clk == &alt_ck)
--				val = 1;
--		}
--		else if (reg_offset == 0x5) {
--			if (src_clk == &apll54_ck)
--				val = 0;
--			if (src_clk == &alt_ck)
--				val = 1;
--		}
--		break;
--	case CM_PLL_SEL2:
--		src_reg_addr = (u32)&CM_CLKSEL2_PLL;
--		mask = 0x3;
--		if (src_clk == &func_32k_ck)
--			val = 0x0;
--		if (src_clk == &dpll_ck)
--			val = 0x2;
--		break;
--	case CM_SYSCLKOUT_SEL1:
--		src_reg_addr = (u32)&PRCM_CLKOUT_CTRL;
--		mask = 0x3;
--		if (src_clk == &dpll_ck)
--			val = 0;
--		if (src_clk == &sys_ck)
--			val = 1;
--		if (src_clk == &func_96m_ck)
--			val = 2;
--		if (src_clk == &func_54m_ck)
--			val = 3;
--		break;
--	}
--
--	if (val == ~0)			/* Catch errors in offset */
--		*type_to_addr = 0;
--	else
--		*type_to_addr = src_reg_addr;
--	*field_mask = mask;
--
--	return val;
--}
--
--static int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
--{
--	void __iomem * reg;
--	u32 src_sel, src_off, field_val, field_mask, reg_val, rate;
--	int ret = -EINVAL;
--
--	if (unlikely(clk->flags & CONFIG_PARTICIPANT))
--		return ret;
--
--	if (clk->flags & SRC_SEL_MASK) {	/* On-chip SEL collection */
--		src_sel = (SRC_RATE_SEL_MASK & clk->flags);
--		src_off = clk->src_offset;
--
--		if (src_sel == 0)
--			goto set_parent_error;
--
--		field_val = omap2_get_src_field(&src_sel, src_off, new_parent,
--						&field_mask);
--
--		reg = (void __iomem *)src_sel;
--
--		if (clk->usecount > 0)
--			_omap2_clk_disable(clk);
--
--		/* Set new source value (previous dividers if any in effect) */
--		reg_val = __raw_readl(reg) & ~(field_mask << src_off);
--		reg_val |= (field_val << src_off);
--		__raw_writel(reg_val, reg);
--		wmb();
--
--		if (clk->flags & DELAYED_APP) {
--			__raw_writel(0x1, (void __iomem *)&PRCM_CLKCFG_CTRL);
--			wmb();
--		}
--		if (clk->usecount > 0)
--			_omap2_clk_enable(clk);
--
--		clk->parent = new_parent;
--
--		/* SRC_RATE_SEL_MASK clocks follow their parents rates.*/
--		if ((new_parent == &core_ck) && (clk == &dss1_fck))
--			clk->rate = new_parent->rate / 0x10;
--		else
--			clk->rate = new_parent->rate;
--
--		if (unlikely(clk->flags & RATE_PROPAGATES))
--			propagate_rate(clk);
--
--		return 0;
--	} else {
--		clk->parent = new_parent;
--		rate = new_parent->rate;
--		omap2_clk_set_rate(clk, rate);
--		ret = 0;
--	}
--
-- set_parent_error:
--	return ret;
--}
--
--/* Sets basic clocks based on the specified rate */
--static int omap2_select_table_rate(struct clk * clk, unsigned long rate)
--{
--	u32 flags, cur_rate, done_rate, bypass = 0;
--	u8 cpu_mask = 0;
--	struct prcm_config *prcm;
--	unsigned long found_speed = 0;
--
--	if (clk != &virt_prcm_set)
--		return -EINVAL;
--
--	/* FIXME: Change cpu_is_omap2420() to cpu_is_omap242x() */
--	if (cpu_is_omap2420())
--		cpu_mask = RATE_IN_242X;
--	else if (cpu_is_omap2430())
--		cpu_mask = RATE_IN_243X;
--
--	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
--		if (!(prcm->flags & cpu_mask))
--			continue;
--
--		if (prcm->xtal_speed != sys_ck.rate)
--			continue;
--
--		if (prcm->mpu_speed <= rate) {
--			found_speed = prcm->mpu_speed;
--			break;
--		}
--	}
--
--	if (!found_speed) {
--		printk(KERN_INFO "Could not set MPU rate to %luMHz\n",
--	 rate / 1000000);
--		return -EINVAL;
--	}
--
--	curr_prcm_set = prcm;
--	cur_rate = omap2_get_dpll_rate(&dpll_ck);
--
--	if (prcm->dpll_speed == cur_rate / 2) {
--		omap2_reprogram_sdrc(PRCM_HALF_SPEED, 1);
--	} else if (prcm->dpll_speed == cur_rate * 2) {
--		omap2_reprogram_sdrc(PRCM_FULL_SPEED, 1);
--	} else if (prcm->dpll_speed != cur_rate) {
--		local_irq_save(flags);
--
--		if (prcm->dpll_speed == prcm->xtal_speed)
--			bypass = 1;
--
--		if ((prcm->cm_clksel2_pll & 0x3) == 2)
--			done_rate = PRCM_FULL_SPEED;
--		else
--			done_rate = PRCM_HALF_SPEED;
--
--		/* MPU divider */
--		CM_CLKSEL_MPU = prcm->cm_clksel_mpu;
--
--		/* dsp + iva1 div(2420), iva2.1(2430) */
--		CM_CLKSEL_DSP = prcm->cm_clksel_dsp;
--
--		CM_CLKSEL_GFX = prcm->cm_clksel_gfx;
--
--		/* Major subsystem dividers */
--		CM_CLKSEL1_CORE = prcm->cm_clksel1_core;
--		if (cpu_is_omap2430())
--			CM_CLKSEL_MDM = prcm->cm_clksel_mdm;
--
--		/* x2 to enter init_mem */
--		omap2_reprogram_sdrc(PRCM_FULL_SPEED, 1);
--
--		omap2_set_prcm(prcm->cm_clksel1_pll, prcm->base_sdrc_rfr,
--			       bypass);
--
--		omap2_init_memory_params(omap2_dll_force_needed());
--		omap2_reprogram_sdrc(done_rate, 0);
--
--		local_irq_restore(flags);
--	}
--	omap2_clksel_recalc(&dpll_ck);
--
--	return 0;
--}
--
--/*-------------------------------------------------------------------------
-- * Omap2 clock reset and init functions
-- *-------------------------------------------------------------------------*/
--
--#ifdef CONFIG_OMAP_RESET_CLOCKS
--static void __init omap2_clk_disable_unused(struct clk *clk)
--{
--	u32 regval32;
--
--	regval32 = __raw_readl(clk->enable_reg);
--	if ((regval32 & (1 << clk->enable_bit)) == 0)
--		return;
--
--	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
--	_omap2_clk_disable(clk);
--}
--#else
--#define omap2_clk_disable_unused	NULL
--#endif
--
--static struct clk_functions omap2_clk_functions = {
--	.clk_enable		= omap2_clk_enable,
--	.clk_disable		= omap2_clk_disable,
--	.clk_round_rate		= omap2_clk_round_rate,
--	.clk_set_rate		= omap2_clk_set_rate,
--	.clk_set_parent		= omap2_clk_set_parent,
--	.clk_disable_unused	= omap2_clk_disable_unused,
--};
--
--static void __init omap2_get_crystal_rate(struct clk *osc, struct clk *sys)
--{
--	u32 div, aplls, sclk = 13000000;
--
--	aplls = CM_CLKSEL1_PLL;
--	aplls &= ((1 << 23) | (1 << 24) | (1 << 25));
--	aplls >>= 23;			/* Isolate field, 0,2,3 */
--
--	if (aplls == 0)
--		sclk = 19200000;
--	else if (aplls == 2)
--		sclk = 13000000;
--	else if (aplls == 3)
--		sclk = 12000000;
--
--	div = PRCM_CLKSRC_CTRL;
--	div &= ((1 << 7) | (1 << 6));
--	div >>= sys->rate_offset;
--
--	osc->rate = sclk * div;
--	sys->rate = sclk;
--}
--
--/*
-- * Set clocks for bypass mode for reboot to work.
-- */
--void omap2_clk_prepare_for_reboot(void)
--{
--	u32 rate;
--
--	if (vclk == NULL || sclk == NULL)
--		return;
--
--	rate = clk_get_rate(sclk);
--	clk_set_rate(vclk, rate);
--}
--
--/*
-- * Switch the MPU rate if specified on cmdline.
-- * We cannot do this early until cmdline is parsed.
-- */
--static int __init omap2_clk_arch_init(void)
--{
--	if (!mpurate)
--		return -EINVAL;
--
--	if (omap2_select_table_rate(&virt_prcm_set, mpurate))
--		printk(KERN_ERR "Could not find matching MPU rate\n");
--
--	propagate_rate(&osc_ck);		/* update main root fast */
--	propagate_rate(&func_32k_ck);		/* update main root slow */
--
--	printk(KERN_INFO "Switched to new clocking rate (Crystal/DPLL/MPU): "
--	       "%ld.%01ld/%ld/%ld MHz\n",
--	       (sys_ck.rate / 1000000), (sys_ck.rate / 100000) % 10,
--	       (dpll_ck.rate / 1000000), (mpu_ck.rate / 1000000)) ;
--
--	return 0;
--}
--arch_initcall(omap2_clk_arch_init);
--
--int __init omap2_clk_init(void)
--{
--	struct prcm_config *prcm;
--	struct clk ** clkp;
--	u32 clkrate;
--
--	clk_init(&omap2_clk_functions);
--	omap2_get_crystal_rate(&osc_ck, &sys_ck);
--
--	for (clkp = onchip_clks; clkp < onchip_clks + ARRAY_SIZE(onchip_clks);
--	     clkp++) {
--
--		if ((*clkp)->flags & CLOCK_IN_OMAP242X && cpu_is_omap2420()) {
--			clk_register(*clkp);
--			continue;
--		}
--
--		if ((*clkp)->flags & CLOCK_IN_OMAP243X && cpu_is_omap2430()) {
--			clk_register(*clkp);
--			continue;
--		}
--	}
--
--	/* Check the MPU rate set by bootloader */
--	clkrate = omap2_get_dpll_rate(&dpll_ck);
--	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
--		if (prcm->xtal_speed != sys_ck.rate)
--			continue;
--		if (prcm->dpll_speed <= clkrate)
--			 break;
--	}
--	curr_prcm_set = prcm;
--
--	propagate_rate(&osc_ck);		/* update main root fast */
--	propagate_rate(&func_32k_ck);		/* update main root slow */
--
--	printk(KERN_INFO "Clocking rate (Crystal/DPLL/MPU): "
--	       "%ld.%01ld/%ld/%ld MHz\n",
--	       (sys_ck.rate / 1000000), (sys_ck.rate / 100000) % 10,
--	       (dpll_ck.rate / 1000000), (mpu_ck.rate / 1000000)) ;
--
--	/*
--	 * Only enable those clocks we will need, let the drivers
--	 * enable other clocks as necessary
--	 */
--	clk_enable(&sync_32k_ick);
--	clk_enable(&omapctrl_ick);
--
--	/* Force the APLLs always active. The clocks are idled
--	 * automatically by hardware. */
--	clk_enable(&apll96_ck);
--	clk_enable(&apll54_ck);
--
--	if (cpu_is_omap2430())
--		clk_enable(&sdrc_ick);
--
--	/* Avoid sleeping sleeping during omap2_clk_prepare_for_reboot() */
--	vclk = clk_get(NULL, "virt_prcm_set");
--	sclk = clk_get(NULL, "sys_ck");
--
--	return 0;
--}
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-deleted file mode 100644
-index 4f79186..0000000
---- a/arch/arm/mach-omap2/clock.h
-+++ /dev/null
-@@ -1,2111 +0,0 @@
--/*
-- *  linux/arch/arm/mach-omap24xx/clock.h
-- *
-- *  Copyright (C) 2005 Texas Instruments Inc.
-- *  Richard Woodruff <r-woodruff2@ti.com>
-- *  Created for OMAP2.
-- *
-- *  Copyright (C) 2004 Nokia corporation
-- *  Written by Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
-- *  Based on clocks.h by Tony Lindgren, Gordon McNutt and RidgeRun, Inc
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#ifndef __ARCH_ARM_MACH_OMAP2_CLOCK_H
--#define __ARCH_ARM_MACH_OMAP2_CLOCK_H
--
--static void omap2_sys_clk_recalc(struct clk * clk);
--static void omap2_clksel_recalc(struct clk * clk);
--static void omap2_followparent_recalc(struct clk * clk);
--static void omap2_propagate_rate(struct clk * clk);
--static void omap2_mpu_recalc(struct clk * clk);
--static int omap2_select_table_rate(struct clk * clk, unsigned long rate);
--static long omap2_round_to_table_rate(struct clk * clk, unsigned long rate);
--static void omap2_clk_disable(struct clk *clk);
--static void omap2_sys_clk_recalc(struct clk * clk);
--static u32 omap2_clksel_to_divisor(u32 div_sel, u32 field_val);
--static u32 omap2_clksel_get_divisor(struct clk *clk);
--
--
--#define RATE_IN_242X	(1 << 0)
--#define RATE_IN_243X	(1 << 1)
--
--/* Key dividers which make up a PRCM set. Ratio's for a PRCM are mandated.
-- * xtal_speed, dpll_speed, mpu_speed, CM_CLKSEL_MPU,CM_CLKSEL_DSP
-- * CM_CLKSEL_GFX, CM_CLKSEL1_CORE, CM_CLKSEL1_PLL CM_CLKSEL2_PLL, CM_CLKSEL_MDM
-- */
--struct prcm_config {
--	unsigned long xtal_speed;	/* crystal rate */
--	unsigned long dpll_speed;	/* dpll: out*xtal*M/(N-1)table_recalc */
--	unsigned long mpu_speed;	/* speed of MPU */
--	unsigned long cm_clksel_mpu;	/* mpu divider */
--	unsigned long cm_clksel_dsp;	/* dsp+iva1 div(2420), iva2.1(2430) */
--	unsigned long cm_clksel_gfx;	/* gfx dividers */
--	unsigned long cm_clksel1_core;	/* major subsystem dividers */
--	unsigned long cm_clksel1_pll;	/* m,n */
--	unsigned long cm_clksel2_pll;	/* dpllx1 or x2 out */
--	unsigned long cm_clksel_mdm;	/* modem dividers 2430 only */
--	unsigned long base_sdrc_rfr;	/* base refresh timing for a set */
--	unsigned char flags;
--};
--
--/* Mask for clksel which support parent settign in set_rate */
--#define SRC_SEL_MASK (CM_CORE_SEL1 | CM_CORE_SEL2 | CM_WKUP_SEL1 | \
--			CM_PLL_SEL1 | CM_PLL_SEL2 | CM_SYSCLKOUT_SEL1)
--
--/* Mask for clksel regs which support rate operations */
--#define SRC_RATE_SEL_MASK (CM_MPU_SEL1 | CM_DSP_SEL1 | CM_GFX_SEL1 | \
--			CM_MODEM_SEL1 | CM_CORE_SEL1 | CM_CORE_SEL2 | \
--			CM_WKUP_SEL1 | CM_PLL_SEL1 | CM_PLL_SEL2 | \
--			CM_SYSCLKOUT_SEL1)
--
--/*
-- * The OMAP2 processor can be run at several discrete 'PRCM configurations'.
-- * These configurations are characterized by voltage and speed for clocks.
-- * The device is only validated for certain combinations. One way to express
-- * these combinations is via the 'ratio's' which the clocks operate with
-- * respect to each other. These ratio sets are for a given voltage/DPLL
-- * setting. All configurations can be described by a DPLL setting and a ratio
-- * There are 3 ratio sets for the 2430 and X ratio sets for 2420.
-- *
-- * 2430 differs from 2420 in that there are no more phase synchronizers used.
-- * They both have a slightly different clock domain setup. 2420(iva1,dsp) vs
-- * 2430 (iva2.1, NOdsp, mdm)
-- */
--
--/* Core fields for cm_clksel, not ratio governed */
--#define RX_CLKSEL_DSS1			(0x10 << 8)
--#define RX_CLKSEL_DSS2			(0x0 << 13)
--#define RX_CLKSEL_SSI			(0x5 << 20)
--
--/*-------------------------------------------------------------------------
-- * Voltage/DPLL ratios
-- *-------------------------------------------------------------------------*/
--
--/* 2430 Ratio's, 2430-Ratio Config 1 */
--#define R1_CLKSEL_L3			(4 << 0)
--#define R1_CLKSEL_L4			(2 << 5)
--#define R1_CLKSEL_USB			(4 << 25)
--#define R1_CM_CLKSEL1_CORE_VAL		R1_CLKSEL_USB | RX_CLKSEL_SSI | \
--					RX_CLKSEL_DSS2 | RX_CLKSEL_DSS1 | \
--					R1_CLKSEL_L4 | R1_CLKSEL_L3
--#define R1_CLKSEL_MPU			(2 << 0)
--#define R1_CM_CLKSEL_MPU_VAL		R1_CLKSEL_MPU
--#define R1_CLKSEL_DSP			(2 << 0)
--#define R1_CLKSEL_DSP_IF		(2 << 5)
--#define R1_CM_CLKSEL_DSP_VAL		R1_CLKSEL_DSP | R1_CLKSEL_DSP_IF
--#define R1_CLKSEL_GFX			(2 << 0)
--#define R1_CM_CLKSEL_GFX_VAL		R1_CLKSEL_GFX
--#define R1_CLKSEL_MDM			(4 << 0)
--#define R1_CM_CLKSEL_MDM_VAL		R1_CLKSEL_MDM
--
--/* 2430-Ratio Config 2 */
--#define R2_CLKSEL_L3			(6 << 0)
--#define R2_CLKSEL_L4			(2 << 5)
--#define R2_CLKSEL_USB			(2 << 25)
--#define R2_CM_CLKSEL1_CORE_VAL		R2_CLKSEL_USB | RX_CLKSEL_SSI | \
--					RX_CLKSEL_DSS2 | RX_CLKSEL_DSS1 | \
--					R2_CLKSEL_L4 | R2_CLKSEL_L3
--#define R2_CLKSEL_MPU			(2 << 0)
--#define R2_CM_CLKSEL_MPU_VAL		R2_CLKSEL_MPU
--#define R2_CLKSEL_DSP			(2 << 0)
--#define R2_CLKSEL_DSP_IF		(3 << 5)
--#define R2_CM_CLKSEL_DSP_VAL		R2_CLKSEL_DSP | R2_CLKSEL_DSP_IF
--#define R2_CLKSEL_GFX			(2 << 0)
--#define R2_CM_CLKSEL_GFX_VAL		R2_CLKSEL_GFX
--#define R2_CLKSEL_MDM			(6 << 0)
--#define R2_CM_CLKSEL_MDM_VAL		R2_CLKSEL_MDM
--
--/* 2430-Ratio Bootm (BYPASS) */
--#define RB_CLKSEL_L3			(1 << 0)
--#define RB_CLKSEL_L4			(1 << 5)
--#define RB_CLKSEL_USB			(1 << 25)
--#define RB_CM_CLKSEL1_CORE_VAL		RB_CLKSEL_USB | RX_CLKSEL_SSI | \
--					RX_CLKSEL_DSS2 | RX_CLKSEL_DSS1 | \
--					RB_CLKSEL_L4 | RB_CLKSEL_L3
--#define RB_CLKSEL_MPU			(1 << 0)
--#define RB_CM_CLKSEL_MPU_VAL		RB_CLKSEL_MPU
--#define RB_CLKSEL_DSP			(1 << 0)
--#define RB_CLKSEL_DSP_IF		(1 << 5)
--#define RB_CM_CLKSEL_DSP_VAL		RB_CLKSEL_DSP | RB_CLKSEL_DSP_IF
--#define RB_CLKSEL_GFX			(1 << 0)
--#define RB_CM_CLKSEL_GFX_VAL		RB_CLKSEL_GFX
--#define RB_CLKSEL_MDM			(1 << 0)
--#define RB_CM_CLKSEL_MDM_VAL		RB_CLKSEL_MDM
--
--/* 2420 Ratio Equivalents */
--#define RXX_CLKSEL_VLYNQ		(0x12 << 15)
--#define RXX_CLKSEL_SSI			(0x8 << 20)
--
--/* 2420-PRCM III 532MHz core */
--#define RIII_CLKSEL_L3			(4 << 0)	/* 133MHz */
--#define RIII_CLKSEL_L4			(2 << 5)	/* 66.5MHz */
--#define RIII_CLKSEL_USB			(4 << 25)	/* 33.25MHz */
--#define RIII_CM_CLKSEL1_CORE_VAL	RIII_CLKSEL_USB | RXX_CLKSEL_SSI | \
--					RXX_CLKSEL_VLYNQ | RX_CLKSEL_DSS2 | \
--					RX_CLKSEL_DSS1 | RIII_CLKSEL_L4 | \
--					RIII_CLKSEL_L3
--#define RIII_CLKSEL_MPU			(2 << 0)	/* 266MHz */
--#define RIII_CM_CLKSEL_MPU_VAL		RIII_CLKSEL_MPU
--#define RIII_CLKSEL_DSP			(3 << 0)	/* c5x - 177.3MHz */
--#define RIII_CLKSEL_DSP_IF		(2 << 5)	/* c5x - 88.67MHz */
--#define RIII_SYNC_DSP			(1 << 7)	/* Enable sync */
--#define RIII_CLKSEL_IVA			(6 << 8)	/* iva1 - 88.67MHz */
--#define RIII_SYNC_IVA			(1 << 13)	/* Enable sync */
--#define RIII_CM_CLKSEL_DSP_VAL		RIII_SYNC_IVA | RIII_CLKSEL_IVA | \
--					RIII_SYNC_DSP | RIII_CLKSEL_DSP_IF | \
--					RIII_CLKSEL_DSP
--#define RIII_CLKSEL_GFX			(2 << 0)	/* 66.5MHz */
--#define RIII_CM_CLKSEL_GFX_VAL		RIII_CLKSEL_GFX
--
--/* 2420-PRCM II 600MHz core */
--#define RII_CLKSEL_L3			(6 << 0)	/* 100MHz */
--#define RII_CLKSEL_L4			(2 << 5)	/* 50MHz */
--#define RII_CLKSEL_USB			(2 << 25)	/* 50MHz */
--#define RII_CM_CLKSEL1_CORE_VAL		RII_CLKSEL_USB | \
--					RXX_CLKSEL_SSI | RXX_CLKSEL_VLYNQ | \
--					RX_CLKSEL_DSS2 | RX_CLKSEL_DSS1 | \
--					RII_CLKSEL_L4 | RII_CLKSEL_L3
--#define RII_CLKSEL_MPU			(2 << 0)	/* 300MHz */
--#define RII_CM_CLKSEL_MPU_VAL		RII_CLKSEL_MPU
--#define RII_CLKSEL_DSP			(3 << 0)	/* c5x - 200MHz */
--#define RII_CLKSEL_DSP_IF		(2 << 5)	/* c5x - 100MHz */
--#define RII_SYNC_DSP			(0 << 7)	/* Bypass sync */
--#define RII_CLKSEL_IVA			(6 << 8)	/* iva1 - 200MHz */
--#define RII_SYNC_IVA			(0 << 13)	/* Bypass sync */
--#define RII_CM_CLKSEL_DSP_VAL		RII_SYNC_IVA | RII_CLKSEL_IVA | \
--					RII_SYNC_DSP | RII_CLKSEL_DSP_IF | \
--					RII_CLKSEL_DSP
--#define RII_CLKSEL_GFX			(2 << 0)	/* 50MHz */
--#define RII_CM_CLKSEL_GFX_VAL		RII_CLKSEL_GFX
--
--/* 2420-PRCM VII (boot) */
--#define RVII_CLKSEL_L3			(1 << 0)
--#define RVII_CLKSEL_L4			(1 << 5)
--#define RVII_CLKSEL_DSS1		(1 << 8)
--#define RVII_CLKSEL_DSS2		(0 << 13)
--#define RVII_CLKSEL_VLYNQ		(1 << 15)
--#define RVII_CLKSEL_SSI			(1 << 20)
--#define RVII_CLKSEL_USB			(1 << 25)
--
--#define RVII_CM_CLKSEL1_CORE_VAL	RVII_CLKSEL_USB | RVII_CLKSEL_SSI | \
--					RVII_CLKSEL_VLYNQ | RVII_CLKSEL_DSS2 | \
--					RVII_CLKSEL_DSS1 | RVII_CLKSEL_L4 | RVII_CLKSEL_L3
--
--#define RVII_CLKSEL_MPU			(1 << 0) /* all divide by 1 */
--#define RVII_CM_CLKSEL_MPU_VAL		RVII_CLKSEL_MPU
--
--#define RVII_CLKSEL_DSP			(1 << 0)
--#define RVII_CLKSEL_DSP_IF		(1 << 5)
--#define RVII_SYNC_DSP			(0 << 7)
--#define RVII_CLKSEL_IVA			(1 << 8)
--#define RVII_SYNC_IVA			(0 << 13)
--#define RVII_CM_CLKSEL_DSP_VAL		RVII_SYNC_IVA | RVII_CLKSEL_IVA | RVII_SYNC_DSP | \
--					RVII_CLKSEL_DSP_IF | RVII_CLKSEL_DSP
--
--#define RVII_CLKSEL_GFX			(1 << 0)
--#define RVII_CM_CLKSEL_GFX_VAL		RVII_CLKSEL_GFX
--
--/*-------------------------------------------------------------------------
-- * 2430 Target modes: Along with each configuration the CPU has several
-- * modes which goes along with them. Modes mainly are the addition of
-- * describe DPLL combinations to go along with a ratio.
-- *-------------------------------------------------------------------------*/
--
--/* Hardware governed */
--#define MX_48M_SRC			(0 << 3)
--#define MX_54M_SRC			(0 << 5)
--#define MX_APLLS_CLIKIN_12		(3 << 23)
--#define MX_APLLS_CLIKIN_13		(2 << 23)
--#define MX_APLLS_CLIKIN_19_2		(0 << 23)
--
--/*
-- * 2430 - standalone, 2*ref*M/(n+1), M/N is for exactness not relock speed
-- * #2	(ratio1) baseport-target
-- * #5a	(ratio1) baseport-target, target DPLL = 266*2 = 532MHz
-- */
--#define M5A_DPLL_MULT_12		(133 << 12)
--#define M5A_DPLL_DIV_12			(5 << 8)
--#define M5A_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
--					M5A_DPLL_DIV_12 | M5A_DPLL_MULT_12 | \
--					MX_APLLS_CLIKIN_12
--#define M5A_DPLL_MULT_13		(266 << 12)
--#define M5A_DPLL_DIV_13			(12 << 8)
--#define M5A_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | \
--					M5A_DPLL_DIV_13 | M5A_DPLL_MULT_13 | \
--					MX_APLLS_CLIKIN_13
--#define M5A_DPLL_MULT_19		(180 << 12)
--#define M5A_DPLL_DIV_19			(12 << 8)
--#define M5A_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | \
--					M5A_DPLL_DIV_19 | M5A_DPLL_MULT_19 | \
--					MX_APLLS_CLIKIN_19_2
--/* #5b	(ratio1) target DPLL = 200*2 = 400MHz */
--#define M5B_DPLL_MULT_12		(50 << 12)
--#define M5B_DPLL_DIV_12			(2 << 8)
--#define M5B_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
--					M5B_DPLL_DIV_12 | M5B_DPLL_MULT_12 | \
--					MX_APLLS_CLIKIN_12
--#define M5B_DPLL_MULT_13		(200 << 12)
--#define M5B_DPLL_DIV_13			(12 << 8)
--
--#define M5B_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | \
--					M5B_DPLL_DIV_13 | M5B_DPLL_MULT_13 | \
--					MX_APLLS_CLIKIN_13
--#define M5B_DPLL_MULT_19		(125 << 12)
--#define M5B_DPLL_DIV_19			(31 << 8)
--#define M5B_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | \
--					M5B_DPLL_DIV_19 | M5B_DPLL_MULT_19 | \
--					MX_APLLS_CLIKIN_19_2
--/*
-- * #4	(ratio2)
-- * #3	(ratio2) baseport-target, target DPLL = 330*2 = 660MHz
-- */
--#define M3_DPLL_MULT_12			(55 << 12)
--#define M3_DPLL_DIV_12			(1 << 8)
--#define M3_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
--					M3_DPLL_DIV_12 | M3_DPLL_MULT_12 | \
--					MX_APLLS_CLIKIN_12
--#define M3_DPLL_MULT_13			(330 << 12)
--#define M3_DPLL_DIV_13			(12 << 8)
--#define M3_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | \
--					M3_DPLL_DIV_13 | M3_DPLL_MULT_13 | \
--					MX_APLLS_CLIKIN_13
--#define M3_DPLL_MULT_19			(275 << 12)
--#define M3_DPLL_DIV_19			(15 << 8)
--#define M3_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | \
--					M3_DPLL_DIV_19 | M3_DPLL_MULT_19 | \
--					MX_APLLS_CLIKIN_19_2
--/* boot (boot) */
--#define MB_DPLL_MULT			(1 << 12)
--#define MB_DPLL_DIV			(0 << 8)
--#define MB_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | MB_DPLL_DIV |\
--					MB_DPLL_MULT | MX_APLLS_CLIKIN_12
--
--#define MB_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | MB_DPLL_DIV |\
--					MB_DPLL_MULT | MX_APLLS_CLIKIN_13
--
--#define MB_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | MB_DPLL_DIV |\
--					MB_DPLL_MULT | MX_APLLS_CLIKIN_19
--
--/*
-- * 2430 - chassis (sedna)
-- * 165 (ratio1) same as above #2
-- * 150 (ratio1)
-- * 133 (ratio2) same as above #4
-- * 110 (ratio2) same as above #3
-- * 104 (ratio2)
-- * boot (boot)
-- */
--
--/*
-- * 2420 Equivalent - mode registers
-- * PRCM II , target DPLL = 2*300MHz = 600MHz
-- */
--#define MII_DPLL_MULT_12		(50 << 12)
--#define MII_DPLL_DIV_12			(1 << 8)
--#define MII_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
--					MII_DPLL_DIV_12 | MII_DPLL_MULT_12 | \
--					MX_APLLS_CLIKIN_12
--#define MII_DPLL_MULT_13		(300 << 12)
--#define MII_DPLL_DIV_13			(12 << 8)
--#define MII_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | \
--					MII_DPLL_DIV_13 | MII_DPLL_MULT_13 | \
--					MX_APLLS_CLIKIN_13
--
--/* PRCM III target DPLL = 2*266 = 532MHz*/
--#define MIII_DPLL_MULT_12		(133 << 12)
--#define MIII_DPLL_DIV_12		(5 << 8)
--#define MIII_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
--					MIII_DPLL_DIV_12 | MIII_DPLL_MULT_12 | \
--					MX_APLLS_CLIKIN_12
--#define MIII_DPLL_MULT_13		(266 << 12)
--#define MIII_DPLL_DIV_13		(12 << 8)
--#define MIII_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | \
--					MIII_DPLL_DIV_13 | MIII_DPLL_MULT_13 | \
--					MX_APLLS_CLIKIN_13
--
--/* PRCM VII (boot bypass) */
--#define MVII_CM_CLKSEL1_PLL_12_VAL	MB_CM_CLKSEL1_PLL_12_VAL
--#define MVII_CM_CLKSEL1_PLL_13_VAL	MB_CM_CLKSEL1_PLL_13_VAL
--
--/* High and low operation value */
--#define MX_CLKSEL2_PLL_2x_VAL		(2 << 0)
--#define MX_CLKSEL2_PLL_1x_VAL		(1 << 0)
--
--/*
-- * These represent optimal values for common parts, it won't work for all.
-- * As long as you scale down, most parameters are still work, they just
-- * become sub-optimal. The RFR value goes in the opposite direction. If you
-- * don't adjust it down as your clock period increases the refresh interval
-- * will not be met. Setting all parameters for complete worst case may work,
-- * but may cut memory performance by 2x. Due to errata the DLLs need to be
-- * unlocked and their value needs run time calibration.	A dynamic call is
-- * need for that as no single right value exists acorss production samples.
-- *
-- * Only the FULL speed values are given. Current code is such that rate
-- * changes must be made at DPLLoutx2. The actual value adjustment for low
-- * frequency operation will be handled by omap_set_performance()
-- *
-- * By having the boot loader boot up in the fastest L4 speed available likely
-- * will result in something which you can switch between.
-- */
--#define V24XX_SDRC_RFR_CTRL_133MHz	(0x0003de00 | 1)
--#define V24XX_SDRC_RFR_CTRL_100MHz	(0x0002da01 | 1)
--#define V24XX_SDRC_RFR_CTRL_110MHz	(0x0002da01 | 1) /* Need to calc */
--#define V24XX_SDRC_RFR_CTRL_BYPASS	(0x00005000 | 1) /* Need to calc */
--
--/* MPU speed defines */
--#define S12M	12000000
--#define S13M	13000000
--#define S19M	19200000
--#define S26M	26000000
--#define S100M	100000000
--#define S133M	133000000
--#define S150M	150000000
--#define S165M	165000000
--#define S200M	200000000
--#define S266M	266000000
--#define S300M	300000000
--#define S330M	330000000
--#define S400M	400000000
--#define S532M	532000000
--#define S600M	600000000
--#define S660M	660000000
--
--/*-------------------------------------------------------------------------
-- * Key dividers which make up a PRCM set. Ratio's for a PRCM are mandated.
-- * xtal_speed, dpll_speed, mpu_speed, CM_CLKSEL_MPU,
-- * CM_CLKSEL_DSP, CM_CLKSEL_GFX, CM_CLKSEL1_CORE, CM_CLKSEL1_PLL,
-- * CM_CLKSEL2_PLL, CM_CLKSEL_MDM
-- *
-- * Filling in table based on H4 boards and 2430-SDPs variants available.
-- * There are quite a few more rates combinations which could be defined.
-- *
-- * When multiple values are defined the start up will try and choose the
-- * fastest one. If a 'fast' value is defined, then automatically, the /2
-- * one should be included as it can be used.	Generally having more that
-- * one fast set does not make sense, as static timings need to be changed
-- * to change the set.	 The exception is the bypass setting which is
-- * availble for low power bypass.
-- *
-- * Note: This table needs to be sorted, fastest to slowest.
-- *-------------------------------------------------------------------------*/
--static struct prcm_config rate_table[] = {
--	/* PRCM II - FAST */
--	{S12M, S600M, S300M, RII_CM_CLKSEL_MPU_VAL,		/* 300MHz ARM */
--		RII_CM_CLKSEL_DSP_VAL, RII_CM_CLKSEL_GFX_VAL,
--		RII_CM_CLKSEL1_CORE_VAL, MII_CM_CLKSEL1_PLL_12_VAL,
--		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_100MHz,
--		RATE_IN_242X},
--
--	{S13M, S600M, S300M, RII_CM_CLKSEL_MPU_VAL,		/* 300MHz ARM */
--		RII_CM_CLKSEL_DSP_VAL, RII_CM_CLKSEL_GFX_VAL,
--		RII_CM_CLKSEL1_CORE_VAL, MII_CM_CLKSEL1_PLL_13_VAL,
--		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_100MHz,
--		RATE_IN_242X},
--
--	/* PRCM III - FAST */
--	{S12M, S532M, S266M, RIII_CM_CLKSEL_MPU_VAL,		/* 266MHz ARM */
--		RIII_CM_CLKSEL_DSP_VAL, RIII_CM_CLKSEL_GFX_VAL,
--		RIII_CM_CLKSEL1_CORE_VAL, MIII_CM_CLKSEL1_PLL_12_VAL,
--		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_133MHz,
--		RATE_IN_242X},
--
--	{S13M, S532M, S266M, RIII_CM_CLKSEL_MPU_VAL,		/* 266MHz ARM */
--		RIII_CM_CLKSEL_DSP_VAL, RIII_CM_CLKSEL_GFX_VAL,
--		RIII_CM_CLKSEL1_CORE_VAL, MIII_CM_CLKSEL1_PLL_13_VAL,
--		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_133MHz,
--		RATE_IN_242X},
--
--	/* PRCM II - SLOW */
--	{S12M, S300M, S150M, RII_CM_CLKSEL_MPU_VAL,		/* 150MHz ARM */
--		RII_CM_CLKSEL_DSP_VAL, RII_CM_CLKSEL_GFX_VAL,
--		RII_CM_CLKSEL1_CORE_VAL, MII_CM_CLKSEL1_PLL_12_VAL,
--		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_100MHz,
--		RATE_IN_242X},
--
--	{S13M, S300M, S150M, RII_CM_CLKSEL_MPU_VAL,		/* 150MHz ARM */
--		RII_CM_CLKSEL_DSP_VAL, RII_CM_CLKSEL_GFX_VAL,
--		RII_CM_CLKSEL1_CORE_VAL, MII_CM_CLKSEL1_PLL_13_VAL,
--		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_100MHz,
--		RATE_IN_242X},
--
--	/* PRCM III - SLOW */
--	{S12M, S266M, S133M, RIII_CM_CLKSEL_MPU_VAL,		/* 133MHz ARM */
--		RIII_CM_CLKSEL_DSP_VAL, RIII_CM_CLKSEL_GFX_VAL,
--		RIII_CM_CLKSEL1_CORE_VAL, MIII_CM_CLKSEL1_PLL_12_VAL,
--		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_133MHz,
--		RATE_IN_242X},
--
--	{S13M, S266M, S133M, RIII_CM_CLKSEL_MPU_VAL,		/* 133MHz ARM */
--		RIII_CM_CLKSEL_DSP_VAL, RIII_CM_CLKSEL_GFX_VAL,
--		RIII_CM_CLKSEL1_CORE_VAL, MIII_CM_CLKSEL1_PLL_13_VAL,
--		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_133MHz,
--		RATE_IN_242X},
--
--	/* PRCM-VII (boot-bypass) */
--	{S12M, S12M, S12M, RVII_CM_CLKSEL_MPU_VAL,		/* 12MHz ARM*/
--		RVII_CM_CLKSEL_DSP_VAL, RVII_CM_CLKSEL_GFX_VAL,
--		RVII_CM_CLKSEL1_CORE_VAL, MVII_CM_CLKSEL1_PLL_12_VAL,
--		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_BYPASS,
--		RATE_IN_242X},
--
--	/* PRCM-VII (boot-bypass) */
--	{S13M, S13M, S13M, RVII_CM_CLKSEL_MPU_VAL,		/* 13MHz ARM */
--		RVII_CM_CLKSEL_DSP_VAL, RVII_CM_CLKSEL_GFX_VAL,
--		RVII_CM_CLKSEL1_CORE_VAL, MVII_CM_CLKSEL1_PLL_13_VAL,
--		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_BYPASS,
--		RATE_IN_242X},
--
--	/* PRCM #3 - ratio2 (ES2) - FAST */
--	{S13M, S660M, S330M, R2_CM_CLKSEL_MPU_VAL,		/* 330MHz ARM */
--		R2_CM_CLKSEL_DSP_VAL, R2_CM_CLKSEL_GFX_VAL,
--		R2_CM_CLKSEL1_CORE_VAL, M3_CM_CLKSEL1_PLL_13_VAL,
--		MX_CLKSEL2_PLL_2x_VAL, R2_CM_CLKSEL_MDM_VAL,
--		V24XX_SDRC_RFR_CTRL_110MHz,
--		RATE_IN_243X},
--
--	/* PRCM #5a - ratio1 - FAST */
--	{S13M, S532M, S266M, R1_CM_CLKSEL_MPU_VAL,		/* 266MHz ARM */
--		R1_CM_CLKSEL_DSP_VAL, R1_CM_CLKSEL_GFX_VAL,
--		R1_CM_CLKSEL1_CORE_VAL, M5A_CM_CLKSEL1_PLL_13_VAL,
--		MX_CLKSEL2_PLL_2x_VAL, R1_CM_CLKSEL_MDM_VAL,
--		V24XX_SDRC_RFR_CTRL_133MHz,
--		RATE_IN_243X},
--
--	/* PRCM #5b - ratio1 - FAST */
--	{S13M, S400M, S200M, R1_CM_CLKSEL_MPU_VAL,		/* 200MHz ARM */
--		R1_CM_CLKSEL_DSP_VAL, R1_CM_CLKSEL_GFX_VAL,
--		R1_CM_CLKSEL1_CORE_VAL, M5B_CM_CLKSEL1_PLL_13_VAL,
--		MX_CLKSEL2_PLL_2x_VAL, R1_CM_CLKSEL_MDM_VAL,
--		V24XX_SDRC_RFR_CTRL_100MHz,
--		RATE_IN_243X},
--
--	/* PRCM #3 - ratio2 (ES2) - SLOW */
--	{S13M, S330M, S165M, R2_CM_CLKSEL_MPU_VAL,		/* 165MHz ARM */
--		R2_CM_CLKSEL_DSP_VAL, R2_CM_CLKSEL_GFX_VAL,
--		R2_CM_CLKSEL1_CORE_VAL, M3_CM_CLKSEL1_PLL_13_VAL,
--		MX_CLKSEL2_PLL_1x_VAL, R2_CM_CLKSEL_MDM_VAL,
--		V24XX_SDRC_RFR_CTRL_110MHz,
--		RATE_IN_243X},
--
--	/* PRCM #5a - ratio1 - SLOW */
--	{S13M, S266M, S133M, R1_CM_CLKSEL_MPU_VAL,		/* 133MHz ARM */
--		R1_CM_CLKSEL_DSP_VAL, R1_CM_CLKSEL_GFX_VAL,
--		R1_CM_CLKSEL1_CORE_VAL, M5A_CM_CLKSEL1_PLL_13_VAL,
--		MX_CLKSEL2_PLL_1x_VAL, R1_CM_CLKSEL_MDM_VAL,
--		V24XX_SDRC_RFR_CTRL_133MHz,
--		RATE_IN_243X},
--
--	/* PRCM #5b - ratio1 - SLOW*/
--	{S13M, S200M, S100M, R1_CM_CLKSEL_MPU_VAL,		/* 100MHz ARM */
--		R1_CM_CLKSEL_DSP_VAL, R1_CM_CLKSEL_GFX_VAL,
--		R1_CM_CLKSEL1_CORE_VAL, M5B_CM_CLKSEL1_PLL_13_VAL,
--		MX_CLKSEL2_PLL_1x_VAL, R1_CM_CLKSEL_MDM_VAL,
--		V24XX_SDRC_RFR_CTRL_100MHz,
--		RATE_IN_243X},
--
--	/* PRCM-boot/bypass */
--	{S13M, S13M, S13M, RB_CM_CLKSEL_MPU_VAL,		/* 13Mhz */
--		RB_CM_CLKSEL_DSP_VAL, RB_CM_CLKSEL_GFX_VAL,
--		RB_CM_CLKSEL1_CORE_VAL, MB_CM_CLKSEL1_PLL_13_VAL,
--		MX_CLKSEL2_PLL_2x_VAL, RB_CM_CLKSEL_MDM_VAL,
--		V24XX_SDRC_RFR_CTRL_BYPASS,
--		RATE_IN_243X},
--
--	/* PRCM-boot/bypass */
--	{S12M, S12M, S12M, RB_CM_CLKSEL_MPU_VAL,		/* 12Mhz */
--		RB_CM_CLKSEL_DSP_VAL, RB_CM_CLKSEL_GFX_VAL,
--		RB_CM_CLKSEL1_CORE_VAL, MB_CM_CLKSEL1_PLL_12_VAL,
--		MX_CLKSEL2_PLL_2x_VAL, RB_CM_CLKSEL_MDM_VAL,
--		V24XX_SDRC_RFR_CTRL_BYPASS,
--		RATE_IN_243X},
--
--	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
--};
--
--/*-------------------------------------------------------------------------
-- * 24xx clock tree.
-- *
-- * NOTE:In many cases here we are assigning a 'default' parent.	In many
-- *	cases the parent is selectable.	The get/set parent calls will also
-- *	switch sources.
-- *
-- *	Many some clocks say always_enabled, but they can be auto idled for
-- *	power savings. They will always be available upon clock request.
-- *
-- *	Several sources are given initial rates which may be wrong, this will
-- *	be fixed up in the init func.
-- *
-- *	Things are broadly separated below by clock domains. It is
-- *	noteworthy that most periferals have dependencies on multiple clock
-- *	domains. Many get their interface clocks from the L4 domain, but get
-- *	functional clocks from fixed sources or other core domain derived
-- *	clocks.
-- *-------------------------------------------------------------------------*/
--
--/* Base external input clocks */
--static struct clk func_32k_ck = {
--	.name		= "func_32k_ck",
--	.rate		= 32000,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_FIXED | ALWAYS_ENABLED,
--};
--
--/* Typical 12/13MHz in standalone mode, will be 26Mhz in chassis mode */
--static struct clk osc_ck = {		/* (*12, *13, 19.2, *26, 38.4)MHz */
--	.name		= "osc_ck",
--	.rate		= 26000000,		/* fixed up in clock init */
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_FIXED | RATE_PROPAGATES,
--};
--
--/* With out modem likely 12MHz, with modem likely 13MHz */
--static struct clk sys_ck = {		/* (*12, *13, 19.2, 26, 38.4)MHz */
--	.name		= "sys_ck",		/* ~ ref_clk also */
--	.parent		= &osc_ck,
--	.rate		= 13000000,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_FIXED | ALWAYS_ENABLED | RATE_PROPAGATES,
--	.rate_offset	= 6, /* sysclkdiv 1 or 2, already handled or no boot */
--	.recalc		= &omap2_sys_clk_recalc,
--};
--
--static struct clk alt_ck = {		/* Typical 54M or 48M, may not exist */
--	.name		= "alt_ck",
--	.rate		= 54000000,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_FIXED | ALWAYS_ENABLED | RATE_PROPAGATES,
--	.recalc		= &omap2_propagate_rate,
--};
--
--/*
-- * Analog domain root source clocks
-- */
--
--/* dpll_ck, is broken out in to special cases through clksel */
--static struct clk dpll_ck = {
--	.name		= "dpll_ck",
--	.parent		= &sys_ck,		/* Can be func_32k also */
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_PROPAGATES | RATE_CKCTL | CM_PLL_SEL1,
--	.recalc		= &omap2_clksel_recalc,
--};
--
--static struct clk apll96_ck = {
--	.name		= "apll96_ck",
--	.parent		= &sys_ck,
--	.rate		= 96000000,
--	.flags		= CLOCK_IN_OMAP242X |CLOCK_IN_OMAP243X |
--				RATE_FIXED | RATE_PROPAGATES,
--	.enable_reg	= (void __iomem *)&CM_CLKEN_PLL,
--	.enable_bit	= 0x2,
--	.recalc		= &omap2_propagate_rate,
--};
--
--static struct clk apll54_ck = {
--	.name		= "apll54_ck",
--	.parent		= &sys_ck,
--	.rate		= 54000000,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_FIXED | RATE_PROPAGATES,
--	.enable_reg	= (void __iomem *)&CM_CLKEN_PLL,
--	.enable_bit	= 0x6,
--	.recalc		= &omap2_propagate_rate,
--};
--
--/*
-- * PRCM digital base sources
-- */
--static struct clk func_54m_ck = {
--	.name		= "func_54m_ck",
--	.parent		= &apll54_ck,	/* can also be alt_clk */
--	.rate		= 54000000,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_FIXED | CM_PLL_SEL1 | RATE_PROPAGATES,
--	.src_offset	= 5,
--	.enable_reg	= (void __iomem *)&CM_CLKEN_PLL,
--	.enable_bit	= 0xff,
--	.recalc		= &omap2_propagate_rate,
--};
--
--static struct clk core_ck = {
--	.name		= "core_ck",
--	.parent		= &dpll_ck,		/* can also be 32k */
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				ALWAYS_ENABLED | RATE_PROPAGATES,
--	.recalc		= &omap2_propagate_rate,
--};
--
--static struct clk sleep_ck = {		/* sys_clk or 32k */
--	.name		= "sleep_ck",
--	.parent		= &func_32k_ck,
--	.rate		= 32000,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.recalc		= &omap2_propagate_rate,
--};
--
--static struct clk func_96m_ck = {
--	.name		= "func_96m_ck",
--	.parent		= &apll96_ck,
--	.rate		= 96000000,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_FIXED | RATE_PROPAGATES,
--	.enable_reg	= (void __iomem *)&CM_CLKEN_PLL,
--	.enable_bit	= 0xff,
--	.recalc		= &omap2_propagate_rate,
--};
--
--static struct clk func_48m_ck = {
--	.name		= "func_48m_ck",
--	.parent		= &apll96_ck,	 /* 96M or Alt */
--	.rate		= 48000000,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_FIXED | CM_PLL_SEL1 | RATE_PROPAGATES,
--	.src_offset	= 3,
--	.enable_reg	= (void __iomem *)&CM_CLKEN_PLL,
--	.enable_bit	= 0xff,
--	.recalc		= &omap2_propagate_rate,
--};
--
--static struct clk func_12m_ck = {
--	.name		= "func_12m_ck",
--	.parent		= &func_48m_ck,
--	.rate		= 12000000,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_FIXED | RATE_PROPAGATES,
--	.recalc		= &omap2_propagate_rate,
--	.enable_reg	= (void __iomem *)&CM_CLKEN_PLL,
--	.enable_bit	= 0xff,
--};
--
--/* Secure timer, only available in secure mode */
--static struct clk wdt1_osc_ck = {
--	.name		= "ck_wdt1_osc",
--	.parent		= &osc_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk sys_clkout = {
--	.name		= "sys_clkout",
--	.parent		= &func_54m_ck,
--	.rate		= 54000000,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				CM_SYSCLKOUT_SEL1 | RATE_CKCTL,
--	.src_offset	= 0,
--	.enable_reg	= (void __iomem *)&PRCM_CLKOUT_CTRL,
--	.enable_bit	= 7,
--	.rate_offset	= 3,
--	.recalc		= &omap2_clksel_recalc,
--};
--
--/* In 2430, new in 2420 ES2 */
--static struct clk sys_clkout2 = {
--	.name		= "sys_clkout2",
--	.parent		= &func_54m_ck,
--	.rate		= 54000000,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				CM_SYSCLKOUT_SEL1 | RATE_CKCTL,
--	.src_offset	= 8,
--	.enable_reg	= (void __iomem *)&PRCM_CLKOUT_CTRL,
--	.enable_bit	= 15,
--	.rate_offset	= 11,
--	.recalc		= &omap2_clksel_recalc,
--};
--
--static struct clk emul_ck = {
--	.name		= "emul_ck",
--	.parent		= &func_54m_ck,
--	.flags		= CLOCK_IN_OMAP242X,
--	.enable_reg	= (void __iomem *)&PRCM_CLKEMUL_CTRL,
--	.enable_bit	= 0,
--	.recalc		= &omap2_propagate_rate,
--
--};
--
--/*
-- * MPU clock domain
-- *	Clocks:
-- *		MPU_FCLK, MPU_ICLK
-- *		INT_M_FCLK, INT_M_I_CLK
-- *
-- * - Individual clocks are hardware managed.
-- * - Base divider comes from: CM_CLKSEL_MPU
-- *
-- */
--static struct clk mpu_ck = {	/* Control cpu */
--	.name		= "mpu_ck",
--	.parent		= &core_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X | RATE_CKCTL |
--				ALWAYS_ENABLED | CM_MPU_SEL1 | DELAYED_APP |
--				CONFIG_PARTICIPANT | RATE_PROPAGATES,
--	.rate_offset	= 0,	/* bits 0-4 */
--	.recalc		= &omap2_clksel_recalc,
--};
--
--/*
-- * DSP (2430-IVA2.1) (2420-UMA+IVA1) clock domain
-- * Clocks:
-- *	2430: IVA2.1_FCLK, IVA2.1_ICLK
-- *	2420: UMA_FCLK, UMA_ICLK, IVA_MPU, IVA_COP
-- */
--static struct clk iva2_1_fck = {
--	.name		= "iva2_1_fck",
--	.parent		= &core_ck,
--	.flags		= CLOCK_IN_OMAP243X | RATE_CKCTL | CM_DSP_SEL1 |
--				DELAYED_APP | RATE_PROPAGATES |
--				CONFIG_PARTICIPANT,
--	.rate_offset	= 0,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN_DSP,
--	.enable_bit	= 0,
--	.recalc		= &omap2_clksel_recalc,
--};
--
--static struct clk iva2_1_ick = {
--	.name		= "iva2_1_ick",
--	.parent		= &iva2_1_fck,
--	.flags		= CLOCK_IN_OMAP243X | RATE_CKCTL | CM_DSP_SEL1 |
--				DELAYED_APP | CONFIG_PARTICIPANT,
--	.rate_offset	= 5,
--	.recalc		= &omap2_clksel_recalc,
--};
--
--/*
-- * Won't be too specific here. The core clock comes into this block
-- * it is divided then tee'ed. One branch goes directly to xyz enable
-- * controls. The other branch gets further divided by 2 then possibly
-- * routed into a synchronizer and out of clocks abc.
-- */
--static struct clk dsp_fck = {
--	.name		= "dsp_fck",
--	.parent		= &core_ck,
--	.flags		= CLOCK_IN_OMAP242X | RATE_CKCTL | CM_DSP_SEL1 |
--			DELAYED_APP | CONFIG_PARTICIPANT | RATE_PROPAGATES,
--	.rate_offset	= 0,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN_DSP,
--	.enable_bit	= 0,
--	.recalc		= &omap2_clksel_recalc,
--};
--
--static struct clk dsp_ick = {
--	.name		= "dsp_ick",	 /* apparently ipi and isp */
--	.parent		= &dsp_fck,
--	.flags		= CLOCK_IN_OMAP242X | RATE_CKCTL | CM_DSP_SEL1 |
--				DELAYED_APP | CONFIG_PARTICIPANT,
--	.rate_offset = 5,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN_DSP,
--	.enable_bit	= 1,		/* for ipi */
--	.recalc		= &omap2_clksel_recalc,
--};
--
--static struct clk iva1_ifck = {
--	.name		= "iva1_ifck",
--	.parent		= &core_ck,
--	.flags		= CLOCK_IN_OMAP242X | CM_DSP_SEL1 | RATE_CKCTL |
--			CONFIG_PARTICIPANT | RATE_PROPAGATES | DELAYED_APP,
--	.rate_offset= 8,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN_DSP,
--	.enable_bit	= 10,
--	.recalc		= &omap2_clksel_recalc,
--};
--
--/* IVA1 mpu/int/i/f clocks are /2 of parent */
--static struct clk iva1_mpu_int_ifck = {
--	.name		= "iva1_mpu_int_ifck",
--	.parent		= &iva1_ifck,
--	.flags		= CLOCK_IN_OMAP242X | RATE_CKCTL | CM_DSP_SEL1,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN_DSP,
--	.enable_bit	= 8,
--	.recalc		= &omap2_clksel_recalc,
--};
--
--/*
-- * L3 clock domain
-- * L3 clocks are used for both interface and functional clocks to
-- * multiple entities. Some of these clocks are completely managed
-- * by hardware, and some others allow software control. Hardware
-- * managed ones general are based on directly CLK_REQ signals and
-- * various auto idle settings. The functional spec sets many of these
-- * as 'tie-high' for their enables.
-- *
-- * I-CLOCKS:
-- *	L3-Interconnect, SMS, GPMC, SDRC, OCM_RAM, OCM_ROM, SDMA
-- *	CAM, HS-USB.
-- * F-CLOCK
-- *	SSI.
-- *
-- * GPMC memories and SDRC have timing and clock sensitive registers which
-- * may very well need notification when the clock changes. Currently for low
-- * operating points, these are taken care of in sleep.S.
-- */
--static struct clk core_l3_ck = {	/* Used for ick and fck, interconnect */
--	.name		= "core_l3_ck",
--	.parent		= &core_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_CKCTL | ALWAYS_ENABLED | CM_CORE_SEL1 |
--				DELAYED_APP | CONFIG_PARTICIPANT |
--				RATE_PROPAGATES,
--	.rate_offset	= 0,
--	.recalc		= &omap2_clksel_recalc,
--};
--
--static struct clk usb_l4_ick = {	/* FS-USB interface clock */
--	.name		= "usb_l4_ick",
--	.parent		= &core_l3_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_CKCTL | CM_CORE_SEL1 | DELAYED_APP |
--				CONFIG_PARTICIPANT,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
--	.enable_bit	= 0,
--	.rate_offset = 25,
--	.recalc		= &omap2_clksel_recalc,
--};
--
--/*
-- * SSI is in L3 management domain, its direct parent is core not l3,
-- * many core power domain entities are grouped into the L3 clock
-- * domain.
-- * SSI_SSR_FCLK, SSI_SST_FCLK, SSI_L4_CLIK
-- *
-- * ssr = core/1/2/3/4/5, sst = 1/2 ssr.
-- */
--static struct clk ssi_ssr_sst_fck = {
--	.name		= "ssi_fck",
--	.parent		= &core_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_CKCTL | CM_CORE_SEL1 | DELAYED_APP,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,	/* bit 1 */
--	.enable_bit	= 1,
--	.rate_offset = 20,
--	.recalc		= &omap2_clksel_recalc,
--};
--
--/*
-- * GFX clock domain
-- *	Clocks:
-- * GFX_FCLK, GFX_ICLK
-- * GFX_CG1(2d), GFX_CG2(3d)
-- *
-- * GFX_FCLK runs from L3, and is divided by (1,2,3,4)
-- * The 2d and 3d clocks run at a hardware determined
-- * divided value of fclk.
-- *
-- */
--static struct clk gfx_3d_fck = {
--	.name		= "gfx_3d_fck",
--	.parent		= &core_l3_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_CKCTL | CM_GFX_SEL1,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN_GFX,
--	.enable_bit	= 2,
--	.rate_offset= 0,
--	.recalc		= &omap2_clksel_recalc,
--};
--
--static struct clk gfx_2d_fck = {
--	.name		= "gfx_2d_fck",
--	.parent		= &core_l3_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_CKCTL | CM_GFX_SEL1,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN_GFX,
--	.enable_bit	= 1,
--	.rate_offset= 0,
--	.recalc		= &omap2_clksel_recalc,
--};
--
--static struct clk gfx_ick = {
--	.name		= "gfx_ick",		/* From l3 */
--	.parent		= &core_l3_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_CKCTL,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN_GFX,	/* bit 0 */
--	.enable_bit	= 0,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--/*
-- * Modem clock domain (2430)
-- *	CLOCKS:
-- *		MDM_OSC_CLK
-- *		MDM_ICLK
-- */
--static struct clk mdm_ick = {		/* used both as a ick and fck */
--	.name		= "mdm_ick",
--	.parent		= &core_ck,
--	.flags		= CLOCK_IN_OMAP243X | RATE_CKCTL | CM_MODEM_SEL1 |
--				DELAYED_APP | CONFIG_PARTICIPANT,
--	.rate_offset	= 0,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN_MDM,
--	.enable_bit	= 0,
--	.recalc		= &omap2_clksel_recalc,
--};
--
--static struct clk mdm_osc_ck = {
--	.name		= "mdm_osc_ck",
--	.rate		= 26000000,
--	.parent		= &osc_ck,
--	.flags		= CLOCK_IN_OMAP243X | RATE_FIXED,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN_MDM,
--	.enable_bit	= 1,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--/*
-- * L4 clock management domain
-- *
-- * This domain contains lots of interface clocks from the L4 interface, some
-- * functional clocks.	Fixed APLL functional source clocks are managed in
-- * this domain.
-- */
--static struct clk l4_ck = {		/* used both as an ick and fck */
--	.name		= "l4_ck",
--	.parent		= &core_l3_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_CKCTL | ALWAYS_ENABLED | CM_CORE_SEL1 |
--				DELAYED_APP | RATE_PROPAGATES,
--	.rate_offset	= 5,
--	.recalc		= &omap2_clksel_recalc,
--};
--
--static struct clk ssi_l4_ick = {
--	.name		= "ssi_l4_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X | RATE_CKCTL,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,	/* bit 1 */
--	.enable_bit	= 1,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--/*
-- * DSS clock domain
-- * CLOCKs:
-- * DSS_L4_ICLK, DSS_L3_ICLK,
-- * DSS_CLK1, DSS_CLK2, DSS_54MHz_CLK
-- *
-- * DSS is both initiator and target.
-- */
--static struct clk dss_ick = {		/* Enables both L3,L4 ICLK's */
--	.name		= "dss_ick",
--	.parent		= &l4_ck,	/* really both l3 and l4 */
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X | RATE_CKCTL,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 0,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk dss1_fck = {
--	.name		= "dss1_fck",
--	.parent		= &core_ck,		/* Core or sys */
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_CKCTL | CM_CORE_SEL1 | DELAYED_APP,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 0,
--	.rate_offset	= 8,
--	.src_offset	= 8,
--	.recalc		= &omap2_clksel_recalc,
--};
--
--static struct clk dss2_fck = {		/* Alt clk used in power management */
--	.name		= "dss2_fck",
--	.parent		= &sys_ck,		/* fixed at sys_ck or 48MHz */
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_CKCTL | CM_CORE_SEL1 | RATE_FIXED |
--				DELAYED_APP,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 1,
--	.src_offset	= 13,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk dss_54m_fck = {	/* Alt clk used in power management */
--	.name		= "dss_54m_fck",	/* 54m tv clk */
--	.parent		= &func_54m_ck,
--	.rate		= 54000000,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				RATE_FIXED | RATE_PROPAGATES,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 2,
--	.recalc		= &omap2_propagate_rate,
--};
--
--/*
-- * CORE power domain ICLK & FCLK defines.
-- * Many of the these can have more than one possible parent. Entries
-- * here will likely have an L4 interface parent, and may have multiple
-- * functional clock parents.
-- */
--static struct clk gpt1_ick = {
--	.name		= "gpt1_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN_WKUP,	/* Bit0 */
--	.enable_bit	= 0,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt1_fck = {
--	.name		= "gpt1_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				CM_WKUP_SEL1,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN_WKUP,	/* Bit0 */
--	.enable_bit	= 0,
--	.src_offset	= 0,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt2_ick = {
--	.name		= "gpt2_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,	/* Bit4 */
--	.enable_bit	= 4,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt2_fck = {
--	.name		= "gpt2_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				CM_CORE_SEL2,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 4,
--	.src_offset	= 2,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt3_ick = {
--	.name		= "gpt3_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,	/* Bit5 */
--	.enable_bit	= 5,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt3_fck = {
--	.name		= "gpt3_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				CM_CORE_SEL2,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 5,
--	.src_offset	= 4,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt4_ick = {
--	.name		= "gpt4_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,	/* Bit6 */
--	.enable_bit	= 6,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt4_fck = {
--	.name		= "gpt4_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				CM_CORE_SEL2,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 6,
--	.src_offset	= 6,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt5_ick = {
--	.name		= "gpt5_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,	 /* Bit7 */
--	.enable_bit	= 7,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt5_fck = {
--	.name		= "gpt5_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				CM_CORE_SEL2,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 7,
--	.src_offset	= 8,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt6_ick = {
--	.name		= "gpt6_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_bit	= 8,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,	 /* bit8 */
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt6_fck = {
--	.name		= "gpt6_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				CM_CORE_SEL2,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 8,
--	.src_offset	= 10,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt7_ick = {
--	.name		= "gpt7_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,	 /* bit9 */
--	.enable_bit	= 9,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt7_fck = {
--	.name		= "gpt7_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				CM_CORE_SEL2,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 9,
--	.src_offset	= 12,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt8_ick = {
--	.name		= "gpt8_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,	 /* bit10 */
--	.enable_bit	= 10,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt8_fck = {
--	.name		= "gpt8_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				CM_CORE_SEL2,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 10,
--	.src_offset	= 14,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt9_ick = {
--	.name		= "gpt9_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 11,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt9_fck = {
--	.name		= "gpt9_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--					CM_CORE_SEL2,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 11,
--	.src_offset	= 16,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt10_ick = {
--	.name		= "gpt10_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 12,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt10_fck = {
--	.name		= "gpt10_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--					CM_CORE_SEL2,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 12,
--	.src_offset	= 18,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt11_ick = {
--	.name		= "gpt11_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 13,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt11_fck = {
--	.name		= "gpt11_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--					CM_CORE_SEL2,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 13,
--	.src_offset	= 20,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt12_ick = {
--	.name		= "gpt12_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,	 /* bit14 */
--	.enable_bit	= 14,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpt12_fck = {
--	.name		= "gpt12_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--					CM_CORE_SEL2,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 14,
--	.src_offset	= 22,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mcbsp1_ick = {
--	.name		= "mcbsp1_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_bit	= 15,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,	 /* bit16 */
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mcbsp1_fck = {
--	.name		= "mcbsp1_fck",
--	.parent		= &func_96m_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_bit	= 15,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mcbsp2_ick = {
--	.name		= "mcbsp2_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_bit	= 16,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mcbsp2_fck = {
--	.name		= "mcbsp2_fck",
--	.parent		= &func_96m_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_bit	= 16,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mcbsp3_ick = {
--	.name		= "mcbsp3_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
--	.enable_bit	= 3,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mcbsp3_fck = {
--	.name		= "mcbsp3_fck",
--	.parent		= &func_96m_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
--	.enable_bit	= 3,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mcbsp4_ick = {
--	.name		= "mcbsp4_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
--	.enable_bit	= 4,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mcbsp4_fck = {
--	.name		= "mcbsp4_fck",
--	.parent		= &func_96m_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
--	.enable_bit	= 4,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mcbsp5_ick = {
--	.name		= "mcbsp5_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
--	.enable_bit	= 5,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mcbsp5_fck = {
--	.name		= "mcbsp5_fck",
--	.parent		= &func_96m_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
--	.enable_bit	= 5,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mcspi1_ick = {
--	.name		= "mcspi_ick",
--	.id		= 1,
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 17,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mcspi1_fck = {
--	.name		= "mcspi_fck",
--	.id		= 1,
--	.parent		= &func_48m_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 17,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mcspi2_ick = {
--	.name		= "mcspi_ick",
--	.id		= 2,
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 18,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mcspi2_fck = {
--	.name		= "mcspi_fck",
--	.id		= 2,
--	.parent		= &func_48m_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 18,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mcspi3_ick = {
--	.name		= "mcspi_ick",
--	.id		= 3,
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
--	.enable_bit	= 9,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mcspi3_fck = {
--	.name		= "mcspi_fck",
--	.id		= 3,
--	.parent		= &func_48m_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
--	.enable_bit	= 9,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk uart1_ick = {
--	.name		= "uart1_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 21,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk uart1_fck = {
--	.name		= "uart1_fck",
--	.parent		= &func_48m_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 21,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk uart2_ick = {
--	.name		= "uart2_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 22,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk uart2_fck = {
--	.name		= "uart2_fck",
--	.parent		= &func_48m_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 22,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk uart3_ick = {
--	.name		= "uart3_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
--	.enable_bit	= 2,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk uart3_fck = {
--	.name		= "uart3_fck",
--	.parent		= &func_48m_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
--	.enable_bit	= 2,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpios_ick = {
--	.name		= "gpios_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN_WKUP,
--	.enable_bit	= 2,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpios_fck = {
--	.name		= "gpios_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN_WKUP,
--	.enable_bit	= 2,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mpu_wdt_ick = {
--	.name		= "mpu_wdt_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN_WKUP,
--	.enable_bit	= 3,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mpu_wdt_fck = {
--	.name		= "mpu_wdt_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN_WKUP,
--	.enable_bit	= 3,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk sync_32k_ick = {
--	.name		= "sync_32k_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN_WKUP,
--	.enable_bit	= 1,
--	.recalc		= &omap2_followparent_recalc,
--};
--static struct clk wdt1_ick = {
--	.name		= "wdt1_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN_WKUP,
--	.enable_bit	= 4,
--	.recalc		= &omap2_followparent_recalc,
--};
--static struct clk omapctrl_ick = {
--	.name		= "omapctrl_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN_WKUP,
--	.enable_bit	= 5,
--	.recalc		= &omap2_followparent_recalc,
--};
--static struct clk icr_ick = {
--	.name		= "icr_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN_WKUP,
--	.enable_bit	= 6,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk cam_ick = {
--	.name		= "cam_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 31,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk cam_fck = {
--	.name		= "cam_fck",
--	.parent		= &func_96m_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 31,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mailboxes_ick = {
--	.name		= "mailboxes_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 30,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk wdt4_ick = {
--	.name		= "wdt4_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 29,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk wdt4_fck = {
--	.name		= "wdt4_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 29,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk wdt3_ick = {
--	.name		= "wdt3_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 28,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk wdt3_fck = {
--	.name		= "wdt3_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP242X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 28,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mspro_ick = {
--	.name		= "mspro_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 27,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mspro_fck = {
--	.name		= "mspro_fck",
--	.parent		= &func_96m_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 27,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mmc_ick = {
--	.name		= "mmc_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 26,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mmc_fck = {
--	.name		= "mmc_fck",
--	.parent		= &func_96m_ck,
--	.flags		= CLOCK_IN_OMAP242X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 26,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk fac_ick = {
--	.name		= "fac_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 25,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk fac_fck = {
--	.name		= "fac_fck",
--	.parent		= &func_12m_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 25,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk eac_ick = {
--	.name		= "eac_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 24,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk eac_fck = {
--	.name		= "eac_fck",
--	.parent		= &func_96m_ck,
--	.flags		= CLOCK_IN_OMAP242X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 24,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk hdq_ick = {
--	.name		= "hdq_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 23,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk hdq_fck = {
--	.name		= "hdq_fck",
--	.parent		= &func_12m_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 23,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk i2c2_ick = {
--	.name		= "i2c_ick",
--	.id		= 2,
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 20,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk i2c2_fck = {
--	.name		= "i2c_fck",
--	.id		= 2,
--	.parent		= &func_12m_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 20,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk i2chs2_fck = {
--	.name		= "i2chs2_fck",
--	.parent		= &func_96m_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
--	.enable_bit	= 20,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk i2c1_ick = {
--	.name		= "i2c_ick",
--	.id		= 1,
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 19,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk i2c1_fck = {
--	.name		= "i2c_fck",
--	.id		= 1,
--	.parent		= &func_12m_ck,
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 19,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk i2chs1_fck = {
--	.name		= "i2chs1_fck",
--	.parent		= &func_96m_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
--	.enable_bit	= 19,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk vlynq_ick = {
--	.name		= "vlynq_ick",
--	.parent		= &core_l3_ck,
--	.flags		= CLOCK_IN_OMAP242X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
--	.enable_bit	= 3,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk vlynq_fck = {
--	.name		= "vlynq_fck",
--	.parent		= &func_96m_ck,
--	.flags		= CLOCK_IN_OMAP242X  | RATE_CKCTL | CM_CORE_SEL1 | DELAYED_APP,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
--	.enable_bit	= 3,
--	.src_offset	= 15,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk sdrc_ick = {
--	.name		= "sdrc_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN3_CORE,
--	.enable_bit	= 2,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk des_ick = {
--	.name		= "des_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP243X | CLOCK_IN_OMAP242X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN4_CORE,
--	.enable_bit	= 0,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk sha_ick = {
--	.name		= "sha_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP243X | CLOCK_IN_OMAP242X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN4_CORE,
--	.enable_bit	= 1,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk rng_ick = {
--	.name		= "rng_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP243X | CLOCK_IN_OMAP242X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN4_CORE,
--	.enable_bit	= 2,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk aes_ick = {
--	.name		= "aes_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP243X | CLOCK_IN_OMAP242X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN4_CORE,
--	.enable_bit	= 3,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk pka_ick = {
--	.name		= "pka_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP243X | CLOCK_IN_OMAP242X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN4_CORE,
--	.enable_bit	= 4,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk usb_fck = {
--	.name		= "usb_fck",
--	.parent		= &func_48m_ck,
--	.flags		= CLOCK_IN_OMAP243X | CLOCK_IN_OMAP242X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
--	.enable_bit	= 0,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk usbhs_ick = {
--	.name		= "usbhs_ick",
--	.parent		= &core_l3_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
--	.enable_bit	= 6,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mmchs1_ick = {
--	.name		= "mmchs1_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
--	.enable_bit	= 7,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mmchs1_fck = {
--	.name		= "mmchs1_fck",
--	.parent		= &func_96m_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
--	.enable_bit	= 7,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mmchs2_ick = {
--	.name		= "mmchs2_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
--	.enable_bit	= 8,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mmchs2_fck = {
--	.name		= "mmchs2_fck",
--	.parent		= &func_96m_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
--	.enable_bit	= 8,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpio5_ick = {
--	.name		= "gpio5_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
--	.enable_bit	= 10,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk gpio5_fck = {
--	.name		= "gpio5_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
--	.enable_bit	= 10,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mdm_intc_ick = {
--	.name		= "mdm_intc_ick",
--	.parent		= &l4_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
--	.enable_bit	= 11,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mmchsdb1_fck = {
--	.name		= "mmchsdb1_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
--	.enable_bit	= 16,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--static struct clk mmchsdb2_fck = {
--	.name		= "mmchsdb2_fck",
--	.parent		= &func_32k_ck,
--	.flags		= CLOCK_IN_OMAP243X,
--	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
--	.enable_bit	= 17,
--	.recalc		= &omap2_followparent_recalc,
--};
--
--/*
-- * This clock is a composite clock which does entire set changes then
-- * forces a rebalance. It keys on the MPU speed, but it really could
-- * be any key speed part of a set in the rate table.
-- *
-- * to really change a set, you need memory table sets which get changed
-- * in sram, pre-notifiers & post notifiers, changing the top set, without
-- * having low level display recalc's won't work... this is why dpm notifiers
-- * work, isr's off, walk a list of clocks already _off_ and not messing with
-- * the bus.
-- *
-- * This clock should have no parent. It embodies the entire upper level
-- * active set. A parent will mess up some of the init also.
-- */
--static struct clk virt_prcm_set = {
--	.name		= "virt_prcm_set",
--	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				VIRTUAL_CLOCK | ALWAYS_ENABLED | DELAYED_APP,
--	.parent		= &mpu_ck,	/* Indexed by mpu speed, no parent */
--	.recalc		= &omap2_mpu_recalc,	/* sets are keyed on mpu rate */
--	.set_rate	= &omap2_select_table_rate,
--	.round_rate	= &omap2_round_to_table_rate,
--};
--
--static struct clk *onchip_clks[] = {
--	/* external root sources */
--	&func_32k_ck,
--	&osc_ck,
--	&sys_ck,
--	&alt_ck,
--	/* internal analog sources */
--	&dpll_ck,
--	&apll96_ck,
--	&apll54_ck,
--	/* internal prcm root sources */
--	&func_54m_ck,
--	&core_ck,
--	&sleep_ck,
--	&func_96m_ck,
--	&func_48m_ck,
--	&func_12m_ck,
--	&wdt1_osc_ck,
--	&sys_clkout,
--	&sys_clkout2,
--	&emul_ck,
--	/* mpu domain clocks */
--	&mpu_ck,
--	/* dsp domain clocks */
--	&iva2_1_fck,		/* 2430 */
--	&iva2_1_ick,
--	&dsp_ick,		/* 2420 */
--	&dsp_fck,
--	&iva1_ifck,
--	&iva1_mpu_int_ifck,
--	/* GFX domain clocks */
--	&gfx_3d_fck,
--	&gfx_2d_fck,
--	&gfx_ick,
--	/* Modem domain clocks */
--	&mdm_ick,
--	&mdm_osc_ck,
--	/* DSS domain clocks */
--	&dss_ick,
--	&dss1_fck,
--	&dss2_fck,
--	&dss_54m_fck,
--	/* L3 domain clocks */
--	&core_l3_ck,
--	&ssi_ssr_sst_fck,
--	&usb_l4_ick,
--	/* L4 domain clocks */
--	&l4_ck,			/* used as both core_l4 and wu_l4 */
--	&ssi_l4_ick,
--	/* virtual meta-group clock */
--	&virt_prcm_set,
--	/* general l4 interface ck, multi-parent functional clk */
--	&gpt1_ick,
--	&gpt1_fck,
--	&gpt2_ick,
--	&gpt2_fck,
--	&gpt3_ick,
--	&gpt3_fck,
--	&gpt4_ick,
--	&gpt4_fck,
--	&gpt5_ick,
--	&gpt5_fck,
--	&gpt6_ick,
--	&gpt6_fck,
--	&gpt7_ick,
--	&gpt7_fck,
--	&gpt8_ick,
--	&gpt8_fck,
--	&gpt9_ick,
--	&gpt9_fck,
--	&gpt10_ick,
--	&gpt10_fck,
--	&gpt11_ick,
--	&gpt11_fck,
--	&gpt12_ick,
--	&gpt12_fck,
--	&mcbsp1_ick,
--	&mcbsp1_fck,
--	&mcbsp2_ick,
--	&mcbsp2_fck,
--	&mcbsp3_ick,
--	&mcbsp3_fck,
--	&mcbsp4_ick,
--	&mcbsp4_fck,
--	&mcbsp5_ick,
--	&mcbsp5_fck,
--	&mcspi1_ick,
--	&mcspi1_fck,
--	&mcspi2_ick,
--	&mcspi2_fck,
--	&mcspi3_ick,
--	&mcspi3_fck,
--	&uart1_ick,
--	&uart1_fck,
--	&uart2_ick,
--	&uart2_fck,
--	&uart3_ick,
--	&uart3_fck,
--	&gpios_ick,
--	&gpios_fck,
--	&mpu_wdt_ick,
--	&mpu_wdt_fck,
--	&sync_32k_ick,
--	&wdt1_ick,
--	&omapctrl_ick,
--	&icr_ick,
--	&cam_fck,
--	&cam_ick,
--	&mailboxes_ick,
--	&wdt4_ick,
--	&wdt4_fck,
--	&wdt3_ick,
--	&wdt3_fck,
--	&mspro_ick,
--	&mspro_fck,
--	&mmc_ick,
--	&mmc_fck,
--	&fac_ick,
--	&fac_fck,
--	&eac_ick,
--	&eac_fck,
--	&hdq_ick,
--	&hdq_fck,
--	&i2c1_ick,
--	&i2c1_fck,
--	&i2chs1_fck,
--	&i2c2_ick,
--	&i2c2_fck,
--	&i2chs2_fck,
--	&vlynq_ick,
--	&vlynq_fck,
--	&sdrc_ick,
--	&des_ick,
--	&sha_ick,
--	&rng_ick,
--	&aes_ick,
--	&pka_ick,
--	&usb_fck,
--	&usbhs_ick,
--	&mmchs1_ick,
--	&mmchs1_fck,
--	&mmchs2_ick,
--	&mmchs2_fck,
--	&gpio5_ick,
--	&gpio5_fck,
--	&mdm_intc_ick,
--	&mmchsdb1_fck,
--	&mmchsdb2_fck,
--};
--
--#endif
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
+diff --git a/arch/arm/mach-omap2/cm-regbits-24xx.h b/arch/arm/mach-omap2/cm-regbits-24xx.h
 new file mode 100644
-index 0000000..5c24781
+index 0000000..20ac381
 --- /dev/null
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -0,0 +1,1176 @@
++++ b/arch/arm/mach-omap2/cm-regbits-24xx.h
+@@ -0,0 +1,401 @@
++#ifndef __ARCH_ARM_MACH_OMAP2_CM_REGBITS_24XX_H
++#define __ARCH_ARM_MACH_OMAP2_CM_REGBITS_24XX_H
++
 +/*
-+ *  linux/arch/arm/mach-omap2/clock.c
++ * OMAP24XX Clock Management register bits
 + *
-+ *  Copyright (C) 2005 Texas Instruments Inc.
-+ *  Richard Woodruff <r-woodruff2@ti.com>
-+ *  Created for OMAP2.
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Copyright (C) 2007 Nokia Corporation
 + *
-+ *  Cleaned up and modified to use omap shared clock framework by
-+ *  Tony Lindgren <tony@atomide.com>
-+ *
-+ *  Based on omap1 clock.c, Copyright (C) 2004 - 2005 Nokia corporation
-+ *  Written by Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
++ * Written by Paul Walmsley
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
-+#include <linux/module.h>
++
++#include "cm.h"
++
++/* Bits shared between registers */
++
++/* CM_FCLKEN1_CORE and CM_ICLKEN1_CORE shared bits */
++#define OMAP24XX_EN_CAM_SHIFT				31
++#define OMAP24XX_EN_CAM					(1 << 31)
++#define OMAP24XX_EN_WDT4_SHIFT				29
++#define OMAP24XX_EN_WDT4				(1 << 29)
++#define OMAP2420_EN_WDT3_SHIFT				28
++#define OMAP2420_EN_WDT3				(1 << 28)
++#define OMAP24XX_EN_MSPRO_SHIFT				27
++#define OMAP24XX_EN_MSPRO				(1 << 27)
++#define OMAP24XX_EN_FAC_SHIFT				25
++#define OMAP24XX_EN_FAC					(1 << 25)
++#define OMAP2420_EN_EAC_SHIFT				24
++#define OMAP2420_EN_EAC					(1 << 24)
++#define OMAP24XX_EN_HDQ_SHIFT				23
++#define OMAP24XX_EN_HDQ					(1 << 23)
++#define OMAP2420_EN_I2C2_SHIFT				20
++#define OMAP2420_EN_I2C2				(1 << 20)
++#define OMAP2420_EN_I2C1_SHIFT				19
++#define OMAP2420_EN_I2C1				(1 << 19)
++
++/* CM_FCLKEN2_CORE and CM_ICLKEN2_CORE shared bits */
++#define OMAP2430_EN_MCBSP5_SHIFT			5
++#define OMAP2430_EN_MCBSP5				(1 << 5)
++#define OMAP2430_EN_MCBSP4_SHIFT			4
++#define OMAP2430_EN_MCBSP4				(1 << 4)
++#define OMAP2430_EN_MCBSP3_SHIFT			3
++#define OMAP2430_EN_MCBSP3				(1 << 3)
++#define OMAP24XX_EN_SSI_SHIFT				1
++#define OMAP24XX_EN_SSI					(1 << 1)
++
++/* CM_FCLKEN_WKUP and CM_ICLKEN_WKUP shared bits */
++#define OMAP24XX_EN_MPU_WDT_SHIFT			3
++#define OMAP24XX_EN_MPU_WDT				(1 << 3)
++
++/* Bits specific to each register */
++
++/* CM_IDLEST_MPU */
++/* 2430 only */
++#define OMAP2430_ST_MPU					(1 << 0)
++
++/* CM_CLKSEL_MPU */
++#define OMAP24XX_CLKSEL_MPU_SHIFT			0
++#define OMAP24XX_CLKSEL_MPU_MASK			(0x1f << 0)
++
++/* CM_CLKSTCTRL_MPU */
++#define OMAP24XX_AUTOSTATE_MPU				(1 << 0)
++
++/* CM_FCLKEN1_CORE specific bits*/
++#define OMAP24XX_EN_TV_SHIFT				2
++#define OMAP24XX_EN_TV					(1 << 2)
++#define OMAP24XX_EN_DSS2_SHIFT				1
++#define OMAP24XX_EN_DSS2				(1 << 1)
++#define OMAP24XX_EN_DSS1_SHIFT				0
++#define OMAP24XX_EN_DSS1				(1 << 0)
++
++/* CM_FCLKEN2_CORE specific bits */
++#define OMAP2430_EN_I2CHS2_SHIFT			20
++#define OMAP2430_EN_I2CHS2				(1 << 20)
++#define OMAP2430_EN_I2CHS1_SHIFT			19
++#define OMAP2430_EN_I2CHS1				(1 << 19)
++#define OMAP2430_EN_MMCHSDB2_SHIFT			17
++#define OMAP2430_EN_MMCHSDB2				(1 << 17)
++#define OMAP2430_EN_MMCHSDB1_SHIFT			16
++#define OMAP2430_EN_MMCHSDB1				(1 << 16)
++
++/* CM_ICLKEN1_CORE specific bits */
++#define OMAP24XX_EN_MAILBOXES_SHIFT			30
++#define OMAP24XX_EN_MAILBOXES				(1 << 30)
++#define OMAP24XX_EN_DSS_SHIFT				0
++#define OMAP24XX_EN_DSS					(1 << 0)
++
++/* CM_ICLKEN2_CORE specific bits */
++
++/* CM_ICLKEN3_CORE */
++/* 2430 only */
++#define OMAP2430_EN_SDRC_SHIFT				2
++#define OMAP2430_EN_SDRC				(1 << 2)
++
++/* CM_ICLKEN4_CORE */
++#define OMAP24XX_EN_PKA_SHIFT				4
++#define OMAP24XX_EN_PKA					(1 << 4)
++#define OMAP24XX_EN_AES_SHIFT				3
++#define OMAP24XX_EN_AES					(1 << 3)
++#define OMAP24XX_EN_RNG_SHIFT				2
++#define OMAP24XX_EN_RNG					(1 << 2)
++#define OMAP24XX_EN_SHA_SHIFT				1
++#define OMAP24XX_EN_SHA					(1 << 1)
++#define OMAP24XX_EN_DES_SHIFT				0
++#define OMAP24XX_EN_DES					(1 << 0)
++
++/* CM_IDLEST1_CORE specific bits */
++#define OMAP24XX_ST_MAILBOXES				(1 << 30)
++#define OMAP24XX_ST_WDT4				(1 << 29)
++#define OMAP2420_ST_WDT3				(1 << 28)
++#define OMAP24XX_ST_MSPRO				(1 << 27)
++#define OMAP24XX_ST_FAC					(1 << 25)
++#define OMAP2420_ST_EAC					(1 << 24)
++#define OMAP24XX_ST_HDQ					(1 << 23)
++#define OMAP24XX_ST_I2C2				(1 << 20)
++#define OMAP24XX_ST_I2C1				(1 << 19)
++#define OMAP24XX_ST_MCBSP2				(1 << 16)
++#define OMAP24XX_ST_MCBSP1				(1 << 15)
++#define OMAP24XX_ST_DSS					(1 << 0)
++
++/* CM_IDLEST2_CORE */
++#define OMAP2430_ST_MCBSP5				(1 << 5)
++#define OMAP2430_ST_MCBSP4				(1 << 4)
++#define OMAP2430_ST_MCBSP3				(1 << 3)
++#define OMAP24XX_ST_SSI					(1 << 1)
++
++/* CM_IDLEST3_CORE */
++/* 2430 only */
++#define OMAP2430_ST_SDRC				(1 << 2)
++
++/* CM_IDLEST4_CORE */
++#define OMAP24XX_ST_PKA					(1 << 4)
++#define OMAP24XX_ST_AES					(1 << 3)
++#define OMAP24XX_ST_RNG					(1 << 2)
++#define OMAP24XX_ST_SHA					(1 << 1)
++#define OMAP24XX_ST_DES					(1 << 0)
++
++/* CM_AUTOIDLE1_CORE */
++#define OMAP24XX_AUTO_CAM				(1 << 31)
++#define OMAP24XX_AUTO_MAILBOXES				(1 << 30)
++#define OMAP24XX_AUTO_WDT4				(1 << 29)
++#define OMAP2420_AUTO_WDT3				(1 << 28)
++#define OMAP24XX_AUTO_MSPRO				(1 << 27)
++#define OMAP2420_AUTO_MMC				(1 << 26)
++#define OMAP24XX_AUTO_FAC				(1 << 25)
++#define OMAP2420_AUTO_EAC				(1 << 24)
++#define OMAP24XX_AUTO_HDQ				(1 << 23)
++#define OMAP24XX_AUTO_UART2				(1 << 22)
++#define OMAP24XX_AUTO_UART1				(1 << 21)
++#define OMAP24XX_AUTO_I2C2				(1 << 20)
++#define OMAP24XX_AUTO_I2C1				(1 << 19)
++#define OMAP24XX_AUTO_MCSPI2				(1 << 18)
++#define OMAP24XX_AUTO_MCSPI1				(1 << 17)
++#define OMAP24XX_AUTO_MCBSP2				(1 << 16)
++#define OMAP24XX_AUTO_MCBSP1				(1 << 15)
++#define OMAP24XX_AUTO_GPT12				(1 << 14)
++#define OMAP24XX_AUTO_GPT11				(1 << 13)
++#define OMAP24XX_AUTO_GPT10				(1 << 12)
++#define OMAP24XX_AUTO_GPT9				(1 << 11)
++#define OMAP24XX_AUTO_GPT8				(1 << 10)
++#define OMAP24XX_AUTO_GPT7				(1 << 9)
++#define OMAP24XX_AUTO_GPT6				(1 << 8)
++#define OMAP24XX_AUTO_GPT5				(1 << 7)
++#define OMAP24XX_AUTO_GPT4				(1 << 6)
++#define OMAP24XX_AUTO_GPT3				(1 << 5)
++#define OMAP24XX_AUTO_GPT2				(1 << 4)
++#define OMAP2420_AUTO_VLYNQ				(1 << 3)
++#define OMAP24XX_AUTO_DSS				(1 << 0)
++
++/* CM_AUTOIDLE2_CORE */
++#define OMAP2430_AUTO_MDM_INTC				(1 << 11)
++#define OMAP2430_AUTO_GPIO5				(1 << 10)
++#define OMAP2430_AUTO_MCSPI3				(1 << 9)
++#define OMAP2430_AUTO_MMCHS2				(1 << 8)
++#define OMAP2430_AUTO_MMCHS1				(1 << 7)
++#define OMAP2430_AUTO_USBHS				(1 << 6)
++#define OMAP2430_AUTO_MCBSP5				(1 << 5)
++#define OMAP2430_AUTO_MCBSP4				(1 << 4)
++#define OMAP2430_AUTO_MCBSP3				(1 << 3)
++#define OMAP24XX_AUTO_UART3				(1 << 2)
++#define OMAP24XX_AUTO_SSI				(1 << 1)
++#define OMAP24XX_AUTO_USB				(1 << 0)
++
++/* CM_AUTOIDLE3_CORE */
++#define OMAP24XX_AUTO_SDRC				(1 << 2)
++#define OMAP24XX_AUTO_GPMC				(1 << 1)
++#define OMAP24XX_AUTO_SDMA				(1 << 0)
++
++/* CM_AUTOIDLE4_CORE */
++#define OMAP24XX_AUTO_PKA				(1 << 4)
++#define OMAP24XX_AUTO_AES				(1 << 3)
++#define OMAP24XX_AUTO_RNG				(1 << 2)
++#define OMAP24XX_AUTO_SHA				(1 << 1)
++#define OMAP24XX_AUTO_DES				(1 << 0)
++
++/* CM_CLKSEL1_CORE */
++#define OMAP24XX_CLKSEL_USB_SHIFT			25
++#define OMAP24XX_CLKSEL_USB_MASK			(0x7 << 25)
++#define OMAP24XX_CLKSEL_SSI_SHIFT			20
++#define OMAP24XX_CLKSEL_SSI_MASK			(0x1f << 20)
++#define OMAP2420_CLKSEL_VLYNQ_SHIFT			15
++#define OMAP2420_CLKSEL_VLYNQ_MASK			(0x1f << 15)
++#define OMAP24XX_CLKSEL_DSS2_SHIFT			13
++#define OMAP24XX_CLKSEL_DSS2_MASK			(0x1 << 13)
++#define OMAP24XX_CLKSEL_DSS1_SHIFT			8
++#define OMAP24XX_CLKSEL_DSS1_MASK			(0x1f << 8)
++#define OMAP24XX_CLKSEL_L4_SHIFT			5
++#define OMAP24XX_CLKSEL_L4_MASK				(0x3 << 5)
++#define OMAP24XX_CLKSEL_L3_SHIFT			0
++#define OMAP24XX_CLKSEL_L3_MASK				(0x1f << 0)
++
++/* CM_CLKSEL2_CORE */
++#define OMAP24XX_CLKSEL_GPT12_SHIFT			22
++#define OMAP24XX_CLKSEL_GPT12_MASK			(0x3 << 22)
++#define OMAP24XX_CLKSEL_GPT11_SHIFT			20
++#define OMAP24XX_CLKSEL_GPT11_MASK			(0x3 << 20)
++#define OMAP24XX_CLKSEL_GPT10_SHIFT			18
++#define OMAP24XX_CLKSEL_GPT10_MASK			(0x3 << 18)
++#define OMAP24XX_CLKSEL_GPT9_SHIFT			16
++#define OMAP24XX_CLKSEL_GPT9_MASK			(0x3 << 16)
++#define OMAP24XX_CLKSEL_GPT8_SHIFT			14
++#define OMAP24XX_CLKSEL_GPT8_MASK			(0x3 << 14)
++#define OMAP24XX_CLKSEL_GPT7_SHIFT			12
++#define OMAP24XX_CLKSEL_GPT7_MASK			(0x3 << 12)
++#define OMAP24XX_CLKSEL_GPT6_SHIFT			10
++#define OMAP24XX_CLKSEL_GPT6_MASK			(0x3 << 10)
++#define OMAP24XX_CLKSEL_GPT5_SHIFT			8
++#define OMAP24XX_CLKSEL_GPT5_MASK			(0x3 << 8)
++#define OMAP24XX_CLKSEL_GPT4_SHIFT			6
++#define OMAP24XX_CLKSEL_GPT4_MASK			(0x3 << 6)
++#define OMAP24XX_CLKSEL_GPT3_SHIFT			4
++#define OMAP24XX_CLKSEL_GPT3_MASK			(0x3 << 4)
++#define OMAP24XX_CLKSEL_GPT2_SHIFT			2
++#define OMAP24XX_CLKSEL_GPT2_MASK			(0x3 << 2)
++
++/* CM_CLKSTCTRL_CORE */
++#define OMAP24XX_AUTOSTATE_DSS				(1 << 2)
++#define OMAP24XX_AUTOSTATE_L4				(1 << 1)
++#define OMAP24XX_AUTOSTATE_L3				(1 << 0)
++
++/* CM_FCLKEN_GFX */
++#define OMAP24XX_EN_3D_SHIFT				2
++#define OMAP24XX_EN_3D					(1 << 2)
++#define OMAP24XX_EN_2D_SHIFT				1
++#define OMAP24XX_EN_2D					(1 << 1)
++
++/* CM_ICLKEN_GFX specific bits */
++
++/* CM_IDLEST_GFX specific bits */
++
++/* CM_CLKSEL_GFX specific bits */
++
++/* CM_CLKSTCTRL_GFX */
++#define OMAP24XX_AUTOSTATE_GFX				(1 << 0)
++
++/* CM_FCLKEN_WKUP specific bits */
++
++/* CM_ICLKEN_WKUP specific bits */
++#define OMAP2430_EN_ICR_SHIFT				6
++#define OMAP2430_EN_ICR					(1 << 6)
++#define OMAP24XX_EN_OMAPCTRL_SHIFT			5
++#define OMAP24XX_EN_OMAPCTRL				(1 << 5)
++#define OMAP24XX_EN_WDT1_SHIFT				4
++#define OMAP24XX_EN_WDT1				(1 << 4)
++#define OMAP24XX_EN_32KSYNC_SHIFT			1
++#define OMAP24XX_EN_32KSYNC				(1 << 1)
++
++/* CM_IDLEST_WKUP specific bits */
++#define OMAP2430_ST_ICR					(1 << 6)
++#define OMAP24XX_ST_OMAPCTRL				(1 << 5)
++#define OMAP24XX_ST_WDT1				(1 << 4)
++#define OMAP24XX_ST_MPU_WDT				(1 << 3)
++#define OMAP24XX_ST_32KSYNC				(1 << 1)
++
++/* CM_AUTOIDLE_WKUP */
++#define OMAP24XX_AUTO_OMAPCTRL				(1 << 5)
++#define OMAP24XX_AUTO_WDT1				(1 << 4)
++#define OMAP24XX_AUTO_MPU_WDT				(1 << 3)
++#define OMAP24XX_AUTO_GPIOS				(1 << 2)
++#define OMAP24XX_AUTO_32KSYNC				(1 << 1)
++#define OMAP24XX_AUTO_GPT1				(1 << 0)
++
++/* CM_CLKSEL_WKUP */
++#define OMAP24XX_CLKSEL_GPT1_SHIFT			0
++#define OMAP24XX_CLKSEL_GPT1_MASK			(0x3 << 0)
++
++/* CM_CLKEN_PLL */
++#define OMAP24XX_EN_54M_PLL_SHIFT			6
++#define OMAP24XX_EN_54M_PLL_MASK			(0x3 << 6)
++#define OMAP24XX_EN_96M_PLL_SHIFT			2
++#define OMAP24XX_EN_96M_PLL_MASK			(0x3 << 2)
++#define OMAP24XX_EN_DPLL_SHIFT				0
++#define OMAP24XX_EN_DPLL_MASK				(0x3 << 0)
++
++/* CM_IDLEST_CKGEN */
++#define OMAP24XX_ST_54M_APLL				(1 << 9)
++#define OMAP24XX_ST_96M_APLL				(1 << 8)
++#define OMAP24XX_ST_54M_CLK				(1 << 6)
++#define OMAP24XX_ST_12M_CLK				(1 << 5)
++#define OMAP24XX_ST_48M_CLK				(1 << 4)
++#define OMAP24XX_ST_96M_CLK				(1 << 2)
++#define OMAP24XX_ST_CORE_CLK_SHIFT			0
++#define OMAP24XX_ST_CORE_CLK_MASK			(0x3 << 0)
++
++/* CM_AUTOIDLE_PLL */
++#define OMAP24XX_AUTO_54M_SHIFT				6
++#define OMAP24XX_AUTO_54M_MASK				(0x3 << 6)
++#define OMAP24XX_AUTO_96M_SHIFT				2
++#define OMAP24XX_AUTO_96M_MASK				(0x3 << 2)
++#define OMAP24XX_AUTO_DPLL_SHIFT			0
++#define OMAP24XX_AUTO_DPLL_MASK				(0x3 << 0)
++
++/* CM_CLKSEL1_PLL */
++#define OMAP2430_MAXDPLLFASTLOCK_SHIFT			28
++#define OMAP2430_MAXDPLLFASTLOCK_MASK			(0x7 << 28)
++#define OMAP24XX_APLLS_CLKIN_SHIFT			23
++#define OMAP24XX_APLLS_CLKIN_MASK			(0x7 << 23)
++#define OMAP24XX_DPLL_MULT_SHIFT			12
++#define OMAP24XX_DPLL_MULT_MASK				(0x3ff << 12)
++#define OMAP24XX_DPLL_DIV_SHIFT				8
++#define OMAP24XX_DPLL_DIV_MASK				(0xf << 8)
++#define OMAP24XX_54M_SOURCE_SHIFT			5
++#define OMAP24XX_54M_SOURCE				(1 << 5)
++#define OMAP2430_96M_SOURCE_SHIFT			4
++#define OMAP2430_96M_SOURCE				(1 << 4)
++#define OMAP24XX_48M_SOURCE_SHIFT			3
++#define OMAP24XX_48M_SOURCE				(1 << 3)
++#define OMAP2430_ALTCLK_SOURCE_SHIFT			0
++#define OMAP2430_ALTCLK_SOURCE_MASK			(0x7 << 0)
++
++/* CM_CLKSEL2_PLL */
++#define OMAP24XX_CORE_CLK_SRC_SHIFT			0
++#define OMAP24XX_CORE_CLK_SRC_MASK			(0x3 << 0)
++
++/* CM_FCLKEN_DSP */
++#define OMAP2420_EN_IVA_COP_SHIFT			10
++#define OMAP2420_EN_IVA_COP				(1 << 10)
++#define OMAP2420_EN_IVA_MPU_SHIFT			8
++#define OMAP2420_EN_IVA_MPU				(1 << 8)
++#define OMAP24XX_CM_FCLKEN_DSP_EN_DSP_SHIFT		0
++#define OMAP24XX_CM_FCLKEN_DSP_EN_DSP			(1 << 0)
++
++/* CM_ICLKEN_DSP */
++#define OMAP2420_EN_DSP_IPI_SHIFT			1
++#define OMAP2420_EN_DSP_IPI				(1 << 1)
++
++/* CM_IDLEST_DSP */
++#define OMAP2420_ST_IVA					(1 << 8)
++#define OMAP2420_ST_IPI					(1 << 1)
++#define OMAP24XX_ST_DSP					(1 << 0)
++
++/* CM_AUTOIDLE_DSP */
++#define OMAP2420_AUTO_DSP_IPI				(1 << 1)
++
++/* CM_CLKSEL_DSP */
++#define OMAP2420_SYNC_IVA				(1 << 13)
++#define OMAP2420_CLKSEL_IVA_SHIFT			8
++#define OMAP2420_CLKSEL_IVA_MASK			(0x1f << 8)
++#define OMAP24XX_SYNC_DSP				(1 << 7)
++#define OMAP24XX_CLKSEL_DSP_IF_SHIFT			5
++#define OMAP24XX_CLKSEL_DSP_IF_MASK			(0x3 << 5)
++#define OMAP24XX_CLKSEL_DSP_SHIFT			0
++#define OMAP24XX_CLKSEL_DSP_MASK			(0x1f << 0)
++
++/* CM_CLKSTCTRL_DSP */
++#define OMAP2420_AUTOSTATE_IVA				(1 << 8)
++#define OMAP24XX_AUTOSTATE_DSP				(1 << 0)
++
++/* CM_FCLKEN_MDM */
++/* 2430 only */
++#define OMAP2430_EN_OSC_SHIFT				1
++#define OMAP2430_EN_OSC					(1 << 1)
++
++/* CM_ICLKEN_MDM */
++/* 2430 only */
++#define OMAP2430_CM_ICLKEN_MDM_EN_MDM_SHIFT		0
++#define OMAP2430_CM_ICLKEN_MDM_EN_MDM			(1 << 0)
++
++/* CM_IDLEST_MDM specific bits */
++/* 2430 only */
++
++/* CM_AUTOIDLE_MDM */
++/* 2430 only */
++#define OMAP2430_AUTO_OSC				(1 << 1)
++#define OMAP2430_AUTO_MDM				(1 << 0)
++
++/* CM_CLKSEL_MDM */
++/* 2430 only */
++#define OMAP2430_SYNC_MDM				(1 << 4)
++#define OMAP2430_CLKSEL_MDM_SHIFT			0
++#define OMAP2430_CLKSEL_MDM_MASK			(0xf << 0)
++
++/* CM_CLKSTCTRL_MDM */
++/* 2430 only */
++#define OMAP2430_AUTOSTATE_MDM				(1 << 0)
++
++#endif
+diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+new file mode 100644
+index 0000000..fcc108d
+--- /dev/null
++++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+@@ -0,0 +1,667 @@
++#ifndef __ARCH_ARM_MACH_OMAP2_CM_REGBITS_34XX_H
++#define __ARCH_ARM_MACH_OMAP2_CM_REGBITS_34XX_H
++
++/*
++ * OMAP3430 Clock Management register bits
++ *
++ * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * Copyright (C) 2007-2008 Nokia Corporation
++ *
++ * Written by Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "cm.h"
++
++/* Bits shared between registers */
++
++/* CM_FCLKEN1_CORE and CM_ICLKEN1_CORE shared bits */
++#define OMAP3430ES2_EN_MMC3_MASK			(1 << 30)
++#define OMAP3430ES2_EN_MMC3_SHIFT			30
++#define OMAP3430_EN_MSPRO				(1 << 23)
++#define OMAP3430_EN_MSPRO_SHIFT				23
++#define OMAP3430_EN_HDQ					(1 << 22)
++#define OMAP3430_EN_HDQ_SHIFT				22
++#define OMAP3430ES1_EN_FSHOSTUSB			(1 << 5)
++#define OMAP3430ES1_EN_FSHOSTUSB_SHIFT			5
++#define OMAP3430ES1_EN_D2D				(1 << 3)
++#define OMAP3430ES1_EN_D2D_SHIFT			3
++#define OMAP3430_EN_SSI					(1 << 0)
++#define OMAP3430_EN_SSI_SHIFT				0
++
++/* CM_FCLKEN3_CORE and CM_ICLKEN3_CORE shared bits */
++#define OMAP3430ES2_EN_USBTLL_SHIFT			2
++#define OMAP3430ES2_EN_USBTLL_MASK			(1 << 2)
++
++/* CM_FCLKEN_WKUP and CM_ICLKEN_WKUP shared bits */
++#define OMAP3430_EN_WDT2				(1 << 5)
++#define OMAP3430_EN_WDT2_SHIFT				5
++
++/* CM_ICLKEN_CAM, CM_FCLKEN_CAM shared bits */
++#define OMAP3430_EN_CAM					(1 << 0)
++#define OMAP3430_EN_CAM_SHIFT				0
++
++/* CM_FCLKEN_PER, CM_ICLKEN_PER shared bits */
++#define OMAP3430_EN_WDT3				(1 << 12)
++#define OMAP3430_EN_WDT3_SHIFT				12
++
++/* CM_CLKSEL2_EMU, CM_CLKSEL3_EMU shared bits */
++#define OMAP3430_OVERRIDE_ENABLE			(1 << 19)
++
++
++/* Bits specific to each register */
++
++/* CM_FCLKEN_IVA2 */
++#define OMAP3430_CM_FCLKEN_IVA2_EN_IVA2			(1 << 0)
++
++/* CM_CLKEN_PLL_IVA2 */
++#define OMAP3430_IVA2_DPLL_RAMPTIME_SHIFT		8
++#define OMAP3430_IVA2_DPLL_RAMPTIME_MASK		(0x3 << 8)
++#define OMAP3430_IVA2_DPLL_FREQSEL_SHIFT		4
++#define OMAP3430_IVA2_DPLL_FREQSEL_MASK			(0xf << 4)
++#define OMAP3430_EN_IVA2_DPLL_DRIFTGUARD_SHIFT		3
++#define OMAP3430_EN_IVA2_DPLL_DRIFTGUARD_MASK		(1 << 3)
++#define OMAP3430_EN_IVA2_DPLL_SHIFT			0
++#define OMAP3430_EN_IVA2_DPLL_MASK			(0x7 << 0)
++
++/* CM_IDLEST_IVA2 */
++#define OMAP3430_ST_IVA2				(1 << 0)
++
++/* CM_IDLEST_PLL_IVA2 */
++#define OMAP3430_ST_IVA2_CLK				(1 << 0)
++
++/* CM_AUTOIDLE_PLL_IVA2 */
++#define OMAP3430_AUTO_IVA2_DPLL_SHIFT			0
++#define OMAP3430_AUTO_IVA2_DPLL_MASK			(0x7 << 0)
++
++/* CM_CLKSEL1_PLL_IVA2 */
++#define OMAP3430_IVA2_CLK_SRC_SHIFT			19
++#define OMAP3430_IVA2_CLK_SRC_MASK			(0x3 << 19)
++#define OMAP3430_IVA2_DPLL_MULT_SHIFT			8
++#define OMAP3430_IVA2_DPLL_MULT_MASK			(0x7ff << 8)
++#define OMAP3430_IVA2_DPLL_DIV_SHIFT			0
++#define OMAP3430_IVA2_DPLL_DIV_MASK			(0x7f << 0)
++
++/* CM_CLKSEL2_PLL_IVA2 */
++#define OMAP3430_IVA2_DPLL_CLKOUT_DIV_SHIFT		0
++#define OMAP3430_IVA2_DPLL_CLKOUT_DIV_MASK		(0x1f << 0)
++
++/* CM_CLKSTCTRL_IVA2 */
++#define OMAP3430_CLKTRCTRL_IVA2_SHIFT			0
++#define OMAP3430_CLKTRCTRL_IVA2_MASK			(0x3 << 0)
++
++/* CM_CLKSTST_IVA2 */
++#define OMAP3430_CLKACTIVITY_IVA2			(1 << 0)
++
++/* CM_REVISION specific bits */
++
++/* CM_SYSCONFIG specific bits */
++
++/* CM_CLKEN_PLL_MPU */
++#define OMAP3430_MPU_DPLL_RAMPTIME_SHIFT		8
++#define OMAP3430_MPU_DPLL_RAMPTIME_MASK			(0x3 << 8)
++#define OMAP3430_MPU_DPLL_FREQSEL_SHIFT			4
++#define OMAP3430_MPU_DPLL_FREQSEL_MASK			(0xf << 4)
++#define OMAP3430_EN_MPU_DPLL_DRIFTGUARD_SHIFT		3
++#define OMAP3430_EN_MPU_DPLL_DRIFTGUARD_MASK		(1 << 3)
++#define OMAP3430_EN_MPU_DPLL_SHIFT			0
++#define OMAP3430_EN_MPU_DPLL_MASK			(0x7 << 0)
++
++/* CM_IDLEST_MPU */
++#define OMAP3430_ST_MPU					(1 << 0)
++
++/* CM_IDLEST_PLL_MPU */
++#define OMAP3430_ST_MPU_CLK				(1 << 0)
++
++/* CM_AUTOIDLE_PLL_MPU */
++#define OMAP3430_AUTO_MPU_DPLL_SHIFT			0
++#define OMAP3430_AUTO_MPU_DPLL_MASK			(0x7 << 0)
++
++/* CM_CLKSEL1_PLL_MPU */
++#define OMAP3430_MPU_CLK_SRC_SHIFT			19
++#define OMAP3430_MPU_CLK_SRC_MASK			(0x3 << 19)
++#define OMAP3430_MPU_DPLL_MULT_SHIFT			8
++#define OMAP3430_MPU_DPLL_MULT_MASK			(0x7ff << 8)
++#define OMAP3430_MPU_DPLL_DIV_SHIFT			0
++#define OMAP3430_MPU_DPLL_DIV_MASK			(0x7f << 0)
++
++/* CM_CLKSEL2_PLL_MPU */
++#define OMAP3430_MPU_DPLL_CLKOUT_DIV_SHIFT		0
++#define OMAP3430_MPU_DPLL_CLKOUT_DIV_MASK		(0x1f << 0)
++
++/* CM_CLKSTCTRL_MPU */
++#define OMAP3430_CLKTRCTRL_MPU_SHIFT			0
++#define OMAP3430_CLKTRCTRL_MPU_MASK			(0x3 << 0)
++
++/* CM_CLKSTST_MPU */
++#define OMAP3430_CLKACTIVITY_MPU			(1 << 0)
++
++/* CM_FCLKEN1_CORE specific bits */
++
++/* CM_ICLKEN1_CORE specific bits */
++#define OMAP3430_EN_ICR					(1 << 29)
++#define OMAP3430_EN_ICR_SHIFT				29
++#define OMAP3430_EN_AES2				(1 << 28)
++#define OMAP3430_EN_AES2_SHIFT				28
++#define OMAP3430_EN_SHA12				(1 << 27)
++#define OMAP3430_EN_SHA12_SHIFT				27
++#define OMAP3430_EN_DES2				(1 << 26)
++#define OMAP3430_EN_DES2_SHIFT				26
++#define OMAP3430ES1_EN_FAC				(1 << 8)
++#define OMAP3430ES1_EN_FAC_SHIFT			8
++#define OMAP3430_EN_MAILBOXES				(1 << 7)
++#define OMAP3430_EN_MAILBOXES_SHIFT			7
++#define OMAP3430_EN_OMAPCTRL				(1 << 6)
++#define OMAP3430_EN_OMAPCTRL_SHIFT			6
++#define OMAP3430_EN_SDRC				(1 << 1)
++#define OMAP3430_EN_SDRC_SHIFT				1
++
++/* CM_ICLKEN2_CORE */
++#define OMAP3430_EN_PKA					(1 << 4)
++#define OMAP3430_EN_PKA_SHIFT				4
++#define OMAP3430_EN_AES1				(1 << 3)
++#define OMAP3430_EN_AES1_SHIFT				3
++#define OMAP3430_EN_RNG					(1 << 2)
++#define OMAP3430_EN_RNG_SHIFT				2
++#define OMAP3430_EN_SHA11				(1 << 1)
++#define OMAP3430_EN_SHA11_SHIFT				1
++#define OMAP3430_EN_DES1				(1 << 0)
++#define OMAP3430_EN_DES1_SHIFT				0
++
++/* CM_FCLKEN3_CORE specific bits */
++#define OMAP3430ES2_EN_TS_SHIFT				1
++#define OMAP3430ES2_EN_TS_MASK				(1 << 1)
++#define OMAP3430ES2_EN_CPEFUSE_SHIFT			0
++#define OMAP3430ES2_EN_CPEFUSE_MASK			(1 << 0)
++
++/* CM_IDLEST1_CORE specific bits */
++#define OMAP3430_ST_ICR					(1 << 29)
++#define OMAP3430_ST_AES2				(1 << 28)
++#define OMAP3430_ST_SHA12				(1 << 27)
++#define OMAP3430_ST_DES2				(1 << 26)
++#define OMAP3430_ST_MSPRO				(1 << 23)
++#define OMAP3430_ST_HDQ					(1 << 22)
++#define OMAP3430ES1_ST_FAC				(1 << 8)
++#define OMAP3430ES1_ST_MAILBOXES			(1 << 7)
++#define OMAP3430_ST_OMAPCTRL				(1 << 6)
++#define OMAP3430_ST_SDMA				(1 << 2)
++#define OMAP3430_ST_SDRC				(1 << 1)
++#define OMAP3430_ST_SSI					(1 << 0)
++
++/* CM_IDLEST2_CORE */
++#define OMAP3430_ST_PKA					(1 << 4)
++#define OMAP3430_ST_AES1				(1 << 3)
++#define OMAP3430_ST_RNG					(1 << 2)
++#define OMAP3430_ST_SHA11				(1 << 1)
++#define OMAP3430_ST_DES1				(1 << 0)
++
++/* CM_IDLEST3_CORE */
++#define OMAP3430_ST_USBTLL				(1 << 2)
++#define OMAP3430_ST_USBTLL_SHIFT			2
++
++/* CM_AUTOIDLE1_CORE */
++#define OMAP3430_AUTO_AES2				(1 << 28)
++#define OMAP3430_AUTO_AES2_SHIFT			28
++#define OMAP3430_AUTO_SHA12				(1 << 27)
++#define OMAP3430_AUTO_SHA12_SHIFT			27
++#define OMAP3430_AUTO_DES2				(1 << 26)
++#define OMAP3430_AUTO_DES2_SHIFT			26
++#define OMAP3430_AUTO_MMC2				(1 << 25)
++#define OMAP3430_AUTO_MMC2_SHIFT			25
++#define OMAP3430_AUTO_MMC1				(1 << 24)
++#define OMAP3430_AUTO_MMC1_SHIFT			24
++#define OMAP3430_AUTO_MSPRO				(1 << 23)
++#define OMAP3430_AUTO_MSPRO_SHIFT			23
++#define OMAP3430_AUTO_HDQ				(1 << 22)
++#define OMAP3430_AUTO_HDQ_SHIFT				22
++#define OMAP3430_AUTO_MCSPI4				(1 << 21)
++#define OMAP3430_AUTO_MCSPI4_SHIFT			21
++#define OMAP3430_AUTO_MCSPI3				(1 << 20)
++#define OMAP3430_AUTO_MCSPI3_SHIFT			20
++#define OMAP3430_AUTO_MCSPI2				(1 << 19)
++#define OMAP3430_AUTO_MCSPI2_SHIFT			19
++#define OMAP3430_AUTO_MCSPI1				(1 << 18)
++#define OMAP3430_AUTO_MCSPI1_SHIFT			18
++#define OMAP3430_AUTO_I2C3				(1 << 17)
++#define OMAP3430_AUTO_I2C3_SHIFT			17
++#define OMAP3430_AUTO_I2C2				(1 << 16)
++#define OMAP3430_AUTO_I2C2_SHIFT			16
++#define OMAP3430_AUTO_I2C1				(1 << 15)
++#define OMAP3430_AUTO_I2C1_SHIFT			15
++#define OMAP3430_AUTO_UART2				(1 << 14)
++#define OMAP3430_AUTO_UART2_SHIFT			14
++#define OMAP3430_AUTO_UART1				(1 << 13)
++#define OMAP3430_AUTO_UART1_SHIFT			13
++#define OMAP3430_AUTO_GPT11				(1 << 12)
++#define OMAP3430_AUTO_GPT11_SHIFT			12
++#define OMAP3430_AUTO_GPT10				(1 << 11)
++#define OMAP3430_AUTO_GPT10_SHIFT			11
++#define OMAP3430_AUTO_MCBSP5				(1 << 10)
++#define OMAP3430_AUTO_MCBSP5_SHIFT			10
++#define OMAP3430_AUTO_MCBSP1				(1 << 9)
++#define OMAP3430_AUTO_MCBSP1_SHIFT			9
++#define OMAP3430ES1_AUTO_FAC				(1 << 8)
++#define OMAP3430ES1_AUTO_FAC_SHIFT			8
++#define OMAP3430_AUTO_MAILBOXES				(1 << 7)
++#define OMAP3430_AUTO_MAILBOXES_SHIFT			7
++#define OMAP3430_AUTO_OMAPCTRL				(1 << 6)
++#define OMAP3430_AUTO_OMAPCTRL_SHIFT			6
++#define OMAP3430ES1_AUTO_FSHOSTUSB			(1 << 5)
++#define OMAP3430ES1_AUTO_FSHOSTUSB_SHIFT		5
++#define OMAP3430_AUTO_HSOTGUSB				(1 << 4)
++#define OMAP3430_AUTO_HSOTGUSB_SHIFT			4
++#define OMAP3430ES1_AUTO_D2D				(1 << 3)
++#define OMAP3430ES1_AUTO_D2D_SHIFT			3
++#define OMAP3430_AUTO_SSI				(1 << 0)
++#define OMAP3430_AUTO_SSI_SHIFT				0
++
++/* CM_AUTOIDLE2_CORE */
++#define OMAP3430_AUTO_PKA				(1 << 4)
++#define OMAP3430_AUTO_PKA_SHIFT				4
++#define OMAP3430_AUTO_AES1				(1 << 3)
++#define OMAP3430_AUTO_AES1_SHIFT			3
++#define OMAP3430_AUTO_RNG				(1 << 2)
++#define OMAP3430_AUTO_RNG_SHIFT				2
++#define OMAP3430_AUTO_SHA11				(1 << 1)
++#define OMAP3430_AUTO_SHA11_SHIFT			1
++#define OMAP3430_AUTO_DES1				(1 << 0)
++#define OMAP3430_AUTO_DES1_SHIFT			0
++
++/* CM_AUTOIDLE3_CORE */
++#define OMAP3430_AUTO_USBTLL				(1 << 2)
++#define OMAP3430_AUTO_USBTLL_SHIFT			2
++
++/* CM_CLKSEL_CORE */
++#define OMAP3430_CLKSEL_SSI_SHIFT			8
++#define OMAP3430_CLKSEL_SSI_MASK			(0xf << 8)
++#define OMAP3430_CLKSEL_GPT11_MASK			(1 << 7)
++#define OMAP3430_CLKSEL_GPT11_SHIFT			7
++#define OMAP3430_CLKSEL_GPT10_MASK			(1 << 6)
++#define OMAP3430_CLKSEL_GPT10_SHIFT			6
++#define OMAP3430ES1_CLKSEL_FSHOSTUSB_SHIFT		4
++#define OMAP3430ES1_CLKSEL_FSHOSTUSB_MASK		(0x3 << 4)
++#define OMAP3430_CLKSEL_L4_SHIFT			2
++#define OMAP3430_CLKSEL_L4_MASK				(0x3 << 2)
++#define OMAP3430_CLKSEL_L3_SHIFT			0
++#define OMAP3430_CLKSEL_L3_MASK				(0x3 << 0)
++
++/* CM_CLKSTCTRL_CORE */
++#define OMAP3430ES1_CLKTRCTRL_D2D_SHIFT			4
++#define OMAP3430ES1_CLKTRCTRL_D2D_MASK			(0x3 << 4)
++#define OMAP3430_CLKTRCTRL_L4_SHIFT			2
++#define OMAP3430_CLKTRCTRL_L4_MASK			(0x3 << 2)
++#define OMAP3430_CLKTRCTRL_L3_SHIFT			0
++#define OMAP3430_CLKTRCTRL_L3_MASK			(0x3 << 0)
++
++/* CM_CLKSTST_CORE */
++#define OMAP3430ES1_CLKACTIVITY_D2D			(1 << 2)
++#define OMAP3430_CLKACTIVITY_L4				(1 << 1)
++#define OMAP3430_CLKACTIVITY_L3				(1 << 0)
++
++/* CM_FCLKEN_GFX */
++#define OMAP3430ES1_EN_3D				(1 << 2)
++#define OMAP3430ES1_EN_3D_SHIFT				2
++#define OMAP3430ES1_EN_2D				(1 << 1)
++#define OMAP3430ES1_EN_2D_SHIFT				1
++
++/* CM_ICLKEN_GFX specific bits */
++
++/* CM_IDLEST_GFX specific bits */
++
++/* CM_CLKSEL_GFX specific bits */
++
++/* CM_SLEEPDEP_GFX specific bits */
++
++/* CM_CLKSTCTRL_GFX */
++#define OMAP3430ES1_CLKTRCTRL_GFX_SHIFT			0
++#define OMAP3430ES1_CLKTRCTRL_GFX_MASK			(0x3 << 0)
++
++/* CM_CLKSTST_GFX */
++#define OMAP3430ES1_CLKACTIVITY_GFX			(1 << 0)
++
++/* CM_FCLKEN_SGX */
++#define OMAP3430ES2_EN_SGX_SHIFT			1
++#define OMAP3430ES2_EN_SGX_MASK				(1 << 1)
++
++/* CM_CLKSEL_SGX */
++#define OMAP3430ES2_CLKSEL_SGX_SHIFT			0
++#define OMAP3430ES2_CLKSEL_SGX_MASK			(0x7 << 0)
++
++/* CM_FCLKEN_WKUP specific bits */
++#define OMAP3430ES2_EN_USIMOCP_SHIFT			9
++
++/* CM_ICLKEN_WKUP specific bits */
++#define OMAP3430_EN_WDT1				(1 << 4)
++#define OMAP3430_EN_WDT1_SHIFT				4
++#define OMAP3430_EN_32KSYNC				(1 << 2)
++#define OMAP3430_EN_32KSYNC_SHIFT			2
++
++/* CM_IDLEST_WKUP specific bits */
++#define OMAP3430_ST_WDT2				(1 << 5)
++#define OMAP3430_ST_WDT1				(1 << 4)
++#define OMAP3430_ST_32KSYNC				(1 << 2)
++
++/* CM_AUTOIDLE_WKUP */
++#define OMAP3430_AUTO_WDT2				(1 << 5)
++#define OMAP3430_AUTO_WDT2_SHIFT			5
++#define OMAP3430_AUTO_WDT1				(1 << 4)
++#define OMAP3430_AUTO_WDT1_SHIFT			4
++#define OMAP3430_AUTO_GPIO1				(1 << 3)
++#define OMAP3430_AUTO_GPIO1_SHIFT			3
++#define OMAP3430_AUTO_32KSYNC				(1 << 2)
++#define OMAP3430_AUTO_32KSYNC_SHIFT			2
++#define OMAP3430_AUTO_GPT12				(1 << 1)
++#define OMAP3430_AUTO_GPT12_SHIFT			1
++#define OMAP3430_AUTO_GPT1				(1 << 0)
++#define OMAP3430_AUTO_GPT1_SHIFT			0
++
++/* CM_CLKSEL_WKUP */
++#define OMAP3430ES2_CLKSEL_USIMOCP_MASK			(0xf << 3)
++#define OMAP3430_CLKSEL_RM_SHIFT			1
++#define OMAP3430_CLKSEL_RM_MASK				(0x3 << 1)
++#define OMAP3430_CLKSEL_GPT1_SHIFT			0
++#define OMAP3430_CLKSEL_GPT1_MASK			(1 << 0)
++
++/* CM_CLKEN_PLL */
++#define OMAP3430_PWRDN_EMU_PERIPH_SHIFT			31
++#define OMAP3430_PWRDN_CAM_SHIFT			30
++#define OMAP3430_PWRDN_DSS1_SHIFT			29
++#define OMAP3430_PWRDN_TV_SHIFT				28
++#define OMAP3430_PWRDN_96M_SHIFT			27
++#define OMAP3430_PERIPH_DPLL_RAMPTIME_SHIFT		24
++#define OMAP3430_PERIPH_DPLL_RAMPTIME_MASK		(0x3 << 24)
++#define OMAP3430_PERIPH_DPLL_FREQSEL_SHIFT		20
++#define OMAP3430_PERIPH_DPLL_FREQSEL_MASK		(0xf << 20)
++#define OMAP3430_EN_PERIPH_DPLL_DRIFTGUARD_SHIFT	19
++#define OMAP3430_EN_PERIPH_DPLL_DRIFTGUARD_MASK		(1 << 19)
++#define OMAP3430_EN_PERIPH_DPLL_SHIFT			16
++#define OMAP3430_EN_PERIPH_DPLL_MASK			(0x7 << 16)
++#define OMAP3430_PWRDN_EMU_CORE_SHIFT			12
++#define OMAP3430_CORE_DPLL_RAMPTIME_SHIFT		8
++#define OMAP3430_CORE_DPLL_RAMPTIME_MASK		(0x3 << 8)
++#define OMAP3430_CORE_DPLL_FREQSEL_SHIFT		4
++#define OMAP3430_CORE_DPLL_FREQSEL_MASK			(0xf << 4)
++#define OMAP3430_EN_CORE_DPLL_DRIFTGUARD_SHIFT		3
++#define OMAP3430_EN_CORE_DPLL_DRIFTGUARD_MASK		(1 << 3)
++#define OMAP3430_EN_CORE_DPLL_SHIFT			0
++#define OMAP3430_EN_CORE_DPLL_MASK			(0x7 << 0)
++
++/* CM_CLKEN2_PLL */
++#define OMAP3430ES2_EN_PERIPH2_DPLL_LPMODE_SHIFT		10
++#define OMAP3430ES2_PERIPH2_DPLL_RAMPTIME_MASK		(0x3 << 8)
++#define OMAP3430ES2_PERIPH2_DPLL_FREQSEL_SHIFT		4
++#define OMAP3430ES2_PERIPH2_DPLL_FREQSEL_MASK		(0xf << 4)
++#define OMAP3430ES2_EN_PERIPH2_DPLL_DRIFTGUARD_SHIFT	3
++#define OMAP3430ES2_EN_PERIPH2_DPLL_SHIFT		0
++#define OMAP3430ES2_EN_PERIPH2_DPLL_MASK		(0x7 << 0)
++
++/* CM_IDLEST_CKGEN */
++#define OMAP3430_ST_54M_CLK				(1 << 5)
++#define OMAP3430_ST_12M_CLK				(1 << 4)
++#define OMAP3430_ST_48M_CLK				(1 << 3)
++#define OMAP3430_ST_96M_CLK				(1 << 2)
++#define OMAP3430_ST_PERIPH_CLK				(1 << 1)
++#define OMAP3430_ST_CORE_CLK				(1 << 0)
++
++/* CM_IDLEST2_CKGEN */
++#define OMAP3430_ST_120M_CLK				(1 << 1)
++#define OMAP3430_ST_PERIPH2_CLK				(1 << 0)
++
++/* CM_AUTOIDLE_PLL */
++#define OMAP3430_AUTO_PERIPH_DPLL_SHIFT			3
++#define OMAP3430_AUTO_PERIPH_DPLL_MASK			(0x7 << 3)
++#define OMAP3430_AUTO_CORE_DPLL_SHIFT			0
++#define OMAP3430_AUTO_CORE_DPLL_MASK			(0x7 << 0)
++
++/* CM_CLKSEL1_PLL */
++/* Note that OMAP3430_CORE_DPLL_CLKOUT_DIV_MASK was (0x3 << 27) on 3430ES1 */
++#define OMAP3430_CORE_DPLL_CLKOUT_DIV_SHIFT		27
++#define OMAP3430_CORE_DPLL_CLKOUT_DIV_MASK		(0x1f << 27)
++#define OMAP3430_CORE_DPLL_MULT_SHIFT			16
++#define OMAP3430_CORE_DPLL_MULT_MASK			(0x7ff << 16)
++#define OMAP3430_CORE_DPLL_DIV_SHIFT			8
++#define OMAP3430_CORE_DPLL_DIV_MASK			(0x7f << 8)
++#define OMAP3430_SOURCE_54M				(1 << 5)
++#define OMAP3430_SOURCE_48M				(1 << 3)
++
++/* CM_CLKSEL2_PLL */
++#define OMAP3430_PERIPH_DPLL_MULT_SHIFT			8
++#define OMAP3430_PERIPH_DPLL_MULT_MASK			(0x7ff << 8)
++#define OMAP3430_PERIPH_DPLL_DIV_SHIFT			0
++#define OMAP3430_PERIPH_DPLL_DIV_MASK			(0x7f << 0)
++
++/* CM_CLKSEL3_PLL */
++#define OMAP3430_DIV_96M_SHIFT				0
++#define OMAP3430_DIV_96M_MASK				(0x1f << 0)
++
++/* CM_CLKSEL4_PLL */
++#define OMAP3430ES2_PERIPH2_DPLL_MULT_SHIFT		8
++#define OMAP3430ES2_PERIPH2_DPLL_MULT_MASK		(0x7ff << 8)
++#define OMAP3430ES2_PERIPH2_DPLL_DIV_SHIFT		0
++#define OMAP3430ES2_PERIPH2_DPLL_DIV_MASK		(0x7f << 0)
++
++/* CM_CLKSEL5_PLL */
++#define OMAP3430ES2_DIV_120M_SHIFT			0
++#define OMAP3430ES2_DIV_120M_MASK			(0x1f << 0)
++
++/* CM_CLKOUT_CTRL */
++#define OMAP3430_CLKOUT2_EN_SHIFT			7
++#define OMAP3430_CLKOUT2_EN				(1 << 7)
++#define OMAP3430_CLKOUT2_DIV_SHIFT			3
++#define OMAP3430_CLKOUT2_DIV_MASK			(0x7 << 3)
++#define OMAP3430_CLKOUT2SOURCE_SHIFT			0
++#define OMAP3430_CLKOUT2SOURCE_MASK			(0x3 << 0)
++
++/* CM_FCLKEN_DSS */
++#define OMAP3430_EN_TV					(1 << 2)
++#define OMAP3430_EN_TV_SHIFT				2
++#define OMAP3430_EN_DSS2				(1 << 1)
++#define OMAP3430_EN_DSS2_SHIFT				1
++#define OMAP3430_EN_DSS1				(1 << 0)
++#define OMAP3430_EN_DSS1_SHIFT				0
++
++/* CM_ICLKEN_DSS */
++#define OMAP3430_CM_ICLKEN_DSS_EN_DSS			(1 << 0)
++#define OMAP3430_CM_ICLKEN_DSS_EN_DSS_SHIFT		0
++
++/* CM_IDLEST_DSS */
++#define OMAP3430_ST_DSS					(1 << 0)
++
++/* CM_AUTOIDLE_DSS */
++#define OMAP3430_AUTO_DSS				(1 << 0)
++#define OMAP3430_AUTO_DSS_SHIFT				0
++
++/* CM_CLKSEL_DSS */
++#define OMAP3430_CLKSEL_TV_SHIFT			8
++#define OMAP3430_CLKSEL_TV_MASK				(0x1f << 8)
++#define OMAP3430_CLKSEL_DSS1_SHIFT			0
++#define OMAP3430_CLKSEL_DSS1_MASK			(0x1f << 0)
++
++/* CM_SLEEPDEP_DSS specific bits */
++
++/* CM_CLKSTCTRL_DSS */
++#define OMAP3430_CLKTRCTRL_DSS_SHIFT			0
++#define OMAP3430_CLKTRCTRL_DSS_MASK			(0x3 << 0)
++
++/* CM_CLKSTST_DSS */
++#define OMAP3430_CLKACTIVITY_DSS			(1 << 0)
++
++/* CM_FCLKEN_CAM specific bits */
++
++/* CM_ICLKEN_CAM specific bits */
++
++/* CM_IDLEST_CAM */
++#define OMAP3430_ST_CAM					(1 << 0)
++
++/* CM_AUTOIDLE_CAM */
++#define OMAP3430_AUTO_CAM				(1 << 0)
++#define OMAP3430_AUTO_CAM_SHIFT				0
++
++/* CM_CLKSEL_CAM */
++#define OMAP3430_CLKSEL_CAM_SHIFT			0
++#define OMAP3430_CLKSEL_CAM_MASK			(0x1f << 0)
++
++/* CM_SLEEPDEP_CAM specific bits */
++
++/* CM_CLKSTCTRL_CAM */
++#define OMAP3430_CLKTRCTRL_CAM_SHIFT			0
++#define OMAP3430_CLKTRCTRL_CAM_MASK			(0x3 << 0)
++
++/* CM_CLKSTST_CAM */
++#define OMAP3430_CLKACTIVITY_CAM			(1 << 0)
++
++/* CM_FCLKEN_PER specific bits */
++
++/* CM_ICLKEN_PER specific bits */
++
++/* CM_IDLEST_PER */
++#define OMAP3430_ST_WDT3				(1 << 12)
++#define OMAP3430_ST_MCBSP4				(1 << 2)
++#define OMAP3430_ST_MCBSP3				(1 << 1)
++#define OMAP3430_ST_MCBSP2				(1 << 0)
++
++/* CM_AUTOIDLE_PER */
++#define OMAP3430_AUTO_GPIO6				(1 << 17)
++#define OMAP3430_AUTO_GPIO6_SHIFT			17
++#define OMAP3430_AUTO_GPIO5				(1 << 16)
++#define OMAP3430_AUTO_GPIO5_SHIFT			16
++#define OMAP3430_AUTO_GPIO4				(1 << 15)
++#define OMAP3430_AUTO_GPIO4_SHIFT			15
++#define OMAP3430_AUTO_GPIO3				(1 << 14)
++#define OMAP3430_AUTO_GPIO3_SHIFT			14
++#define OMAP3430_AUTO_GPIO2				(1 << 13)
++#define OMAP3430_AUTO_GPIO2_SHIFT			13
++#define OMAP3430_AUTO_WDT3				(1 << 12)
++#define OMAP3430_AUTO_WDT3_SHIFT			12
++#define OMAP3430_AUTO_UART3				(1 << 11)
++#define OMAP3430_AUTO_UART3_SHIFT			11
++#define OMAP3430_AUTO_GPT9				(1 << 10)
++#define OMAP3430_AUTO_GPT9_SHIFT			10
++#define OMAP3430_AUTO_GPT8				(1 << 9)
++#define OMAP3430_AUTO_GPT8_SHIFT			9
++#define OMAP3430_AUTO_GPT7				(1 << 8)
++#define OMAP3430_AUTO_GPT7_SHIFT			8
++#define OMAP3430_AUTO_GPT6				(1 << 7)
++#define OMAP3430_AUTO_GPT6_SHIFT			7
++#define OMAP3430_AUTO_GPT5				(1 << 6)
++#define OMAP3430_AUTO_GPT5_SHIFT			6
++#define OMAP3430_AUTO_GPT4				(1 << 5)
++#define OMAP3430_AUTO_GPT4_SHIFT			5
++#define OMAP3430_AUTO_GPT3				(1 << 4)
++#define OMAP3430_AUTO_GPT3_SHIFT			4
++#define OMAP3430_AUTO_GPT2				(1 << 3)
++#define OMAP3430_AUTO_GPT2_SHIFT			3
++#define OMAP3430_AUTO_MCBSP4				(1 << 2)
++#define OMAP3430_AUTO_MCBSP4_SHIFT			2
++#define OMAP3430_AUTO_MCBSP3				(1 << 1)
++#define OMAP3430_AUTO_MCBSP3_SHIFT			1
++#define OMAP3430_AUTO_MCBSP2				(1 << 0)
++#define OMAP3430_AUTO_MCBSP2_SHIFT			0
++
++/* CM_CLKSEL_PER */
++#define OMAP3430_CLKSEL_GPT9_MASK			(1 << 7)
++#define OMAP3430_CLKSEL_GPT9_SHIFT			7
++#define OMAP3430_CLKSEL_GPT8_MASK			(1 << 6)
++#define OMAP3430_CLKSEL_GPT8_SHIFT			6
++#define OMAP3430_CLKSEL_GPT7_MASK			(1 << 5)
++#define OMAP3430_CLKSEL_GPT7_SHIFT			5
++#define OMAP3430_CLKSEL_GPT6_MASK			(1 << 4)
++#define OMAP3430_CLKSEL_GPT6_SHIFT			4
++#define OMAP3430_CLKSEL_GPT5_MASK			(1 << 3)
++#define OMAP3430_CLKSEL_GPT5_SHIFT			3
++#define OMAP3430_CLKSEL_GPT4_MASK			(1 << 2)
++#define OMAP3430_CLKSEL_GPT4_SHIFT			2
++#define OMAP3430_CLKSEL_GPT3_MASK			(1 << 1)
++#define OMAP3430_CLKSEL_GPT3_SHIFT			1
++#define OMAP3430_CLKSEL_GPT2_MASK			(1 << 0)
++#define OMAP3430_CLKSEL_GPT2_SHIFT			0
++
++/* CM_SLEEPDEP_PER specific bits */
++#define OMAP3430_CM_SLEEPDEP_PER_EN_IVA2		(1 << 2)
++
++/* CM_CLKSTCTRL_PER */
++#define OMAP3430_CLKTRCTRL_PER_SHIFT			0
++#define OMAP3430_CLKTRCTRL_PER_MASK			(0x3 << 0)
++
++/* CM_CLKSTST_PER */
++#define OMAP3430_CLKACTIVITY_PER			(1 << 0)
++
++/* CM_CLKSEL1_EMU */
++#define OMAP3430_DIV_DPLL4_SHIFT			24
++#define OMAP3430_DIV_DPLL4_MASK				(0x1f << 24)
++#define OMAP3430_DIV_DPLL3_SHIFT			16
++#define OMAP3430_DIV_DPLL3_MASK				(0x1f << 16)
++#define OMAP3430_CLKSEL_TRACECLK_SHIFT			11
++#define OMAP3430_CLKSEL_TRACECLK_MASK			(0x7 << 11)
++#define OMAP3430_CLKSEL_PCLK_SHIFT			8
++#define OMAP3430_CLKSEL_PCLK_MASK			(0x7 << 8)
++#define OMAP3430_CLKSEL_PCLKX2_SHIFT			6
++#define OMAP3430_CLKSEL_PCLKX2_MASK			(0x3 << 6)
++#define OMAP3430_CLKSEL_ATCLK_SHIFT			4
++#define OMAP3430_CLKSEL_ATCLK_MASK			(0x3 << 4)
++#define OMAP3430_TRACE_MUX_CTRL_SHIFT			2
++#define OMAP3430_TRACE_MUX_CTRL_MASK			(0x3 << 2)
++#define OMAP3430_MUX_CTRL_SHIFT				0
++#define OMAP3430_MUX_CTRL_MASK				(0x3 << 0)
++
++/* CM_CLKSTCTRL_EMU */
++#define OMAP3430_CLKTRCTRL_EMU_SHIFT			0
++#define OMAP3430_CLKTRCTRL_EMU_MASK			(0x3 << 0)
++
++/* CM_CLKSTST_EMU */
++#define OMAP3430_CLKACTIVITY_EMU			(1 << 0)
++
++/* CM_CLKSEL2_EMU specific bits */
++#define OMAP3430_CORE_DPLL_EMU_MULT_SHIFT		8
++#define OMAP3430_CORE_DPLL_EMU_MULT_MASK		(0x7ff << 8)
++#define OMAP3430_CORE_DPLL_EMU_DIV_SHIFT		0
++#define OMAP3430_CORE_DPLL_EMU_DIV_MASK			(0x7f << 0)
++
++/* CM_CLKSEL3_EMU specific bits */
++#define OMAP3430_PERIPH_DPLL_EMU_MULT_SHIFT		8
++#define OMAP3430_PERIPH_DPLL_EMU_MULT_MASK		(0x7ff << 8)
++#define OMAP3430_PERIPH_DPLL_EMU_DIV_SHIFT		0
++#define OMAP3430_PERIPH_DPLL_EMU_DIV_MASK		(0x7f << 0)
++
++/* CM_POLCTRL */
++#define OMAP3430_CLKOUT2_POL				(1 << 0)
++
++/* CM_IDLEST_NEON */
++#define OMAP3430_ST_NEON				(1 << 0)
++
++/* CM_CLKSTCTRL_NEON */
++#define OMAP3430_CLKTRCTRL_NEON_SHIFT			0
++#define OMAP3430_CLKTRCTRL_NEON_MASK			(0x3 << 0)
++
++/* CM_FCLKEN_USBHOST */
++#define OMAP3430ES2_EN_USBHOST2_SHIFT			1
++#define OMAP3430ES2_EN_USBHOST2_MASK			(1 << 1)
++#define OMAP3430ES2_EN_USBHOST1_SHIFT			0
++#define OMAP3430ES2_EN_USBHOST1_MASK			(1 << 0)
++
++/* CM_ICLKEN_USBHOST */
++#define OMAP3430ES2_EN_USBHOST_SHIFT			0
++#define OMAP3430ES2_EN_USBHOST_MASK			(1 << 0)
++
++/* CM_IDLEST_USBHOST */
++
++/* CM_AUTOIDLE_USBHOST */
++#define OMAP3430ES2_AUTO_USBHOST_SHIFT			0
++#define OMAP3430ES2_AUTO_USBHOST_MASK			(1<<0)
++
++/* CM_SLEEPDEP_USBHOST */
++#define OMAP3430ES2_EN_MPU_SHIFT			1
++#define OMAP3430ES2_EN_MPU_MASK				(1<<1)
++#define OMAP3430ES2_EN_IVA2_SHIFT			2
++#define OMAP3430ES2_EN_IVA2_MASK			(1<<2)
++
++/* CM_CLKSTCTRL_USBHOST */
++#define OMAP3430ES2_CLKTRCTRL_USBHOST_SHIFT		0
++#define OMAP3430ES2_CLKTRCTRL_USBHOST_MASK		(3<<0)
++
++
++
++#endif
+diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
+new file mode 100644
+index 0000000..f575a87
+--- /dev/null
++++ b/arch/arm/mach-omap2/cm.h
+@@ -0,0 +1,142 @@
++#ifndef __ARCH_ASM_MACH_OMAP2_CM_H
++#define __ARCH_ASM_MACH_OMAP2_CM_H
++
++/*
++ * OMAP2/3 Clock Management (CM) register definitions
++ *
++ * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * Copyright (C) 2007-2008 Nokia Corporation
++ *
++ * Written by Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "prcm-common.h"
++
++#ifndef __ASSEMBLER__
++#define OMAP_CM_REGADDR(module, reg)					\
++	(void __iomem *)IO_ADDRESS(OMAP2_CM_BASE + (module) + (reg))
++#else
++#define OMAP2420_CM_REGADDR(module, reg)				\
++			IO_ADDRESS(OMAP2420_CM_BASE + (module) + (reg))
++#define OMAP2430_CM_REGADDR(module, reg)				\
++			IO_ADDRESS(OMAP2430_CM_BASE + (module) + (reg))
++#define OMAP34XX_CM_REGADDR(module, reg)				\
++			IO_ADDRESS(OMAP3430_CM_BASE + (module) + (reg))
++#endif
++
++/*
++ * Architecture-specific global CM registers
++ * Use cm_{read,write}_reg() with these registers.
++ */
++
++#define OMAP3430_CM_REVISION		OMAP_CM_REGADDR(OCP_MOD, 0x0000)
++#define OMAP3430_CM_SYSCONFIG		OMAP_CM_REGADDR(OCP_MOD, 0x0010)
++#define OMAP3430_CM_POLCTRL		OMAP_CM_REGADDR(OCP_MOD, 0x009c)
++
++#define OMAP3430_CM_CLKOUT_CTRL		OMAP_CM_REGADDR(OMAP3430_CCR_MOD, 0x0070)
++
++#ifndef __ASSEMBLER__
++/* Clock management global register get/set */
++
++static void __attribute__((unused)) cm_write_reg(u32 val, void __iomem *addr)
++{
++	pr_debug("cm_write_reg: writing 0x%0x to 0x%0x\n", val, (u32)addr);
++
++	__raw_writel(val, addr);
++}
++
++static u32 __attribute__((unused)) cm_read_reg(void __iomem *addr)
++{
++	return __raw_readl(addr);
++}
++#endif
++
++/*
++ * Module specific CM registers from CM_BASE + domain offset
++ * Use cm_{read,write}_mod_reg() with these registers.
++ */
++
++/* Common between 24xx and 34xx */
++
++#define CM_FCLKEN1					0x0000
++#define CM_FCLKEN					CM_FCLKEN1
++#define CM_CLKEN					CM_FCLKEN1
++#define CM_ICLKEN1					0x0010
++#define CM_ICLKEN					CM_ICLKEN1
++#define CM_ICLKEN2					0x0014
++#define CM_ICLKEN3					0x0018
++#define CM_IDLEST1					0x0020
++#define CM_IDLEST					CM_IDLEST1
++#define CM_IDLEST2					0x0024
++#define CM_AUTOIDLE					0x0030
++#define CM_AUTOIDLE1					0x0030
++#define CM_AUTOIDLE2					0x0034
++#define CM_CLKSEL					0x0040
++#define CM_CLKSEL1					CM_CLKSEL
++#define CM_CLKSEL2					0x0044
++#define CM_CLKSTCTRL					0x0048
++
++
++/* Architecture-specific registers */
++
++#define OMAP24XX_CM_FCLKEN2				0x0004
++#define OMAP24XX_CM_ICLKEN4				0x001c
++#define OMAP24XX_CM_AUTOIDLE3				0x0038
++#define OMAP24XX_CM_AUTOIDLE4				0x003c
++
++#define OMAP2430_CM_IDLEST3				0x0028
++
++
++/* Clock management domain register get/set */
++
++#ifndef __ASSEMBLER__
++static void __attribute__((unused)) cm_write_mod_reg(u32 val, s16 module,
++							s16 idx)
++{
++	cm_write_reg(val, OMAP_CM_REGADDR(module, idx));
++}
++
++static u32 __attribute__((unused)) cm_read_mod_reg(s16 module, s16 idx)
++{
++	return cm_read_reg(OMAP_CM_REGADDR(module, idx));
++}
++#endif
++
++/* CM register bits shared between 24XX and 3430 */
++
++/* CM_CLKSEL_GFX */
++#define OMAP_CLKSEL_GFX_SHIFT				0
++#define OMAP_CLKSEL_GFX_MASK				(0x7 << 0)
++
++/* CM_ICLKEN_GFX */
++#define OMAP_EN_GFX_SHIFT				0
++#define OMAP_EN_GFX					(1 << 0)
++
++/* CM_IDLEST_GFX */
++#define OMAP_ST_GFX					(1 << 0)
++
++#define OMAP3430_CM_CLKEN_PLL				0x0004
++#define OMAP3430ES2_CM_CLKEN2				0x0004
++#define OMAP3430ES2_CM_FCLKEN3				0x0008
++#define OMAP3430_CM_IDLEST_PLL				CM_IDLEST2
++#define OMAP3430_CM_AUTOIDLE_PLL			CM_AUTOIDLE2
++#define OMAP3430_CM_CLKSEL1				CM_CLKSEL
++#define OMAP3430_CM_CLKSEL1_PLL				CM_CLKSEL
++#define OMAP3430_CM_CLKSEL2_PLL				CM_CLKSEL2
++#define OMAP3430_CM_SLEEPDEP				CM_CLKSEL2
++#define OMAP3430_CM_CLKSEL3				CM_CLKSTCTRL
++#define OMAP3430_CM_CLKSTST				0x004c
++#define OMAP3430ES2_CM_CLKSEL4				0x004c
++#define OMAP3430ES2_CM_CLKSEL5				0x0050
++#define OMAP3430_CM_CLKSEL2_EMU				0x0050
++#define OMAP3430_CM_CLKSEL3_EMU				0x0054
++#define OMAP3430_CM_IDLEST3_CORE			0x0028
++#define OMAP3430_CM_AUTOIDLE3_CORE			0x0038
++
++
++
++#endif
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+new file mode 100644
+index 0000000..a5d86a4
+--- /dev/null
++++ b/arch/arm/mach-omap2/control.c
+@@ -0,0 +1,74 @@
++/*
++ * OMAP2/3 System Control Module register access
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Copyright (C) 2007 Nokia Corporation
++ *
++ * Written by Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#undef DEBUG
++
 +#include <linux/kernel.h>
-+#include <linux/device.h>
-+#include <linux/list.h>
-+#include <linux/errno.h>
-+#include <linux/delay.h>
-+#include <linux/clk.h>
 +
 +#include <asm/io.h>
 +
-+#include <asm/arch/clock.h>
-+#include <asm/arch/sram.h>
-+#include <asm/div64.h>
++#include <asm/arch/control.h>
 +
-+#include "prcm-regs.h"
-+#include "memory.h"
-+#include "clock24xx.h"
++static u32 omap2_ctrl_base;
 +
-+#undef DEBUG
++#define OMAP_CTRL_REGADDR(reg)	(void __iomem *)IO_ADDRESS(omap2_ctrl_base \
++								+ (reg))
 +
-+//#define DOWN_VARIABLE_DPLL 1			/* Experimental */
-+
-+static struct prcm_config *curr_prcm_set;
-+static u32 curr_perf_level = PRCM_FULL_SPEED;
-+static struct clk *vclk;
-+static struct clk *sclk;
-+
-+/*-------------------------------------------------------------------------
-+ * Omap2 specific clock functions
-+ *-------------------------------------------------------------------------*/
-+
-+/* Recalculate SYST_CLK */
-+static void omap2_sys_clk_recalc(struct clk * clk)
++void omap_ctrl_base_set(u32 base)
 +{
-+	u32 div = PRCM_CLKSRC_CTRL;
-+	div &= (1 << 7) | (1 << 6);	/* Test if ext clk divided by 1 or 2 */
-+	div >>= clk->rate_offset;
-+	clk->rate = (clk->parent->rate / div);
-+	propagate_rate(clk);
++	omap2_ctrl_base = base;
 +}
 +
-+static u32 omap2_get_dpll_rate(struct clk * tclk)
++u32 omap_ctrl_base_get(void)
 +{
-+	long long dpll_clk;
-+	int dpll_mult, dpll_div, amult;
-+
-+	dpll_mult = (CM_CLKSEL1_PLL >> 12) & 0x03ff;	/* 10 bits */
-+	dpll_div = (CM_CLKSEL1_PLL >> 8) & 0x0f;	/* 4 bits */
-+	dpll_clk = (long long)tclk->parent->rate * dpll_mult;
-+	do_div(dpll_clk, dpll_div + 1);
-+	amult = CM_CLKSEL2_PLL & 0x3;
-+	dpll_clk *= amult;
-+
-+	return dpll_clk;
++	return omap2_ctrl_base;
 +}
 +
-+static void omap2_followparent_recalc(struct clk *clk)
++u8 omap_ctrl_readb(u16 offset)
 +{
-+	followparent_recalc(clk);
++	return __raw_readb(OMAP_CTRL_REGADDR(offset));
 +}
 +
-+static void omap2_propagate_rate(struct clk * clk)
++u16 omap_ctrl_readw(u16 offset)
 +{
-+	if (!(clk->flags & RATE_FIXED))
-+		clk->rate = clk->parent->rate;
-+
-+	propagate_rate(clk);
++	return __raw_readw(OMAP_CTRL_REGADDR(offset));
 +}
 +
-+static void omap2_set_osc_ck(int enable)
++u32 omap_ctrl_readl(u16 offset)
 +{
-+	if (enable)
-+		PRCM_CLKSRC_CTRL &= ~(0x3 << 3);
-+	else
-+		PRCM_CLKSRC_CTRL |= 0x3 << 3;
++	return __raw_readl(OMAP_CTRL_REGADDR(offset));
 +}
 +
-+/* Enable an APLL if off */
-+static void omap2_clk_fixed_enable(struct clk *clk)
++void omap_ctrl_writeb(u8 val, u16 offset)
 +{
-+	u32 cval, i=0;
++	pr_debug("omap_ctrl_writeb: writing 0x%0x to 0x%0x\n", val,
++		 (u32)OMAP_CTRL_REGADDR(offset));
 +
-+	if (clk->enable_bit == 0xff)			/* Parent will do it */
-+		return;
-+
-+	cval = CM_CLKEN_PLL;
-+
-+	if ((cval & (0x3 << clk->enable_bit)) == (0x3 << clk->enable_bit))
-+		return;
-+
-+	cval &= ~(0x3 << clk->enable_bit);
-+	cval |= (0x3 << clk->enable_bit);
-+	CM_CLKEN_PLL = cval;
-+
-+	if (clk == &apll96_ck)
-+		cval = (1 << 8);
-+	else if (clk == &apll54_ck)
-+		cval = (1 << 6);
-+
-+	while (!(CM_IDLEST_CKGEN & cval)) {		/* Wait for lock */
-+		++i;
-+		udelay(1);
-+		if (i == 100000) {
-+			printk(KERN_ERR "Clock %s didn't lock\n", clk->name);
-+			break;
-+		}
-+	}
++	__raw_writeb(val, OMAP_CTRL_REGADDR(offset));
 +}
 +
-+static void omap2_clk_wait_ready(struct clk *clk)
++void omap_ctrl_writew(u16 val, u16 offset)
 +{
-+	unsigned long reg, other_reg, st_reg;
-+	u32 bit;
-+	int i;
++	pr_debug("omap_ctrl_writew: writing 0x%0x to 0x%0x\n", val,
++		 (u32)OMAP_CTRL_REGADDR(offset));
 +
-+	reg = (unsigned long) clk->enable_reg;
-+	if (reg == (unsigned long) &CM_FCLKEN1_CORE ||
-+	    reg == (unsigned long) &CM_FCLKEN2_CORE)
-+		other_reg = (reg & ~0xf0) | 0x10;
-+	else if (reg == (unsigned long) &CM_ICLKEN1_CORE ||
-+		 reg == (unsigned long) &CM_ICLKEN2_CORE)
-+		other_reg = (reg & ~0xf0) | 0x00;
-+	else
-+		return;
-+
-+	/* No check for DSS or cam clocks */
-+	if ((reg & 0x0f) == 0) {
-+		if (clk->enable_bit <= 1 || clk->enable_bit == 31)
-+			return;
-+	}
-+
-+	/* Check if both functional and interface clocks
-+	 * are running. */
-+	bit = 1 << clk->enable_bit;
-+	if (!(__raw_readl(other_reg) & bit))
-+		return;
-+	st_reg = (other_reg & ~0xf0) | 0x20;
-+	i = 0;
-+	while (!(__raw_readl(st_reg) & bit)) {
-+		i++;
-+		if (i == 100000) {
-+			printk(KERN_ERR "Timeout enabling clock %s\n", clk->name);
-+			break;
-+		}
-+	}
-+	if (i)
-+		pr_debug("Clock %s stable after %d loops\n", clk->name, i);
++	__raw_writew(val, OMAP_CTRL_REGADDR(offset));
 +}
 +
-+/* Enables clock without considering parent dependencies or use count
-+ * REVISIT: Maybe change this to use clk->enable like on omap1?
-+ */
-+static int _omap2_clk_enable(struct clk * clk)
++void omap_ctrl_writel(u32 val, u16 offset)
 +{
-+	u32 regval32;
++	pr_debug("omap_ctrl_writel: writing 0x%0x to 0x%0x\n", val,
++		 (u32)OMAP_CTRL_REGADDR(offset));
 +
-+	if (clk->flags & ALWAYS_ENABLED)
-+		return 0;
-+
-+	if (unlikely(clk == &osc_ck)) {
-+		omap2_set_osc_ck(1);
-+		return 0;
-+	}
-+
-+	if (unlikely(clk->enable_reg == 0)) {
-+		printk(KERN_ERR "clock.c: Enable for %s without enable code\n",
-+		       clk->name);
-+		return 0;
-+	}
-+
-+	if (clk->enable_reg == (void __iomem *)&CM_CLKEN_PLL) {
-+		omap2_clk_fixed_enable(clk);
-+		return 0;
-+	}
-+
-+	regval32 = __raw_readl(clk->enable_reg);
-+	regval32 |= (1 << clk->enable_bit);
-+	__raw_writel(regval32, clk->enable_reg);
-+	wmb();
-+
-+	omap2_clk_wait_ready(clk);
-+
-+	return 0;
++	__raw_writel(val, OMAP_CTRL_REGADDR(offset));
 +}
 +
-+/* Stop APLL */
-+static void omap2_clk_fixed_disable(struct clk *clk)
-+{
-+	u32 cval;
-+
-+	if(clk->enable_bit == 0xff)		/* let parent off do it */
-+		return;
-+
-+	cval = CM_CLKEN_PLL;
-+	cval &= ~(0x3 << clk->enable_bit);
-+	CM_CLKEN_PLL = cval;
-+}
-+
-+/* Disables clock without considering parent dependencies or use count */
-+static void _omap2_clk_disable(struct clk *clk)
-+{
-+	u32 regval32;
-+
-+	if (unlikely(clk == &osc_ck)) {
-+		omap2_set_osc_ck(0);
-+		return;
-+	}
-+
-+	if (clk->enable_reg == 0)
-+		return;
-+
-+	if (clk->enable_reg == (void __iomem *)&CM_CLKEN_PLL) {
-+		omap2_clk_fixed_disable(clk);
-+		return;
-+	}
-+
-+	regval32 = __raw_readl(clk->enable_reg);
-+	regval32 &= ~(1 << clk->enable_bit);
-+	__raw_writel(regval32, clk->enable_reg);
-+	wmb();
-+}
-+
-+static int omap2_clk_enable(struct clk *clk)
-+{
-+	int ret = 0;
-+
-+	if (clk->usecount++ == 0) {
-+		if (likely((u32)clk->parent))
-+			ret = omap2_clk_enable(clk->parent);
-+
-+		if (unlikely(ret != 0)) {
-+			clk->usecount--;
-+			return ret;
-+		}
-+
-+		ret = _omap2_clk_enable(clk);
-+
-+		if (unlikely(ret != 0) && clk->parent) {
-+			omap2_clk_disable(clk->parent);
-+			clk->usecount--;
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+static void omap2_clk_disable(struct clk *clk)
-+{
-+	if (clk->usecount > 0 && !(--clk->usecount)) {
-+		_omap2_clk_disable(clk);
-+		if (likely((u32)clk->parent))
-+			omap2_clk_disable(clk->parent);
-+	}
-+}
-+
-+/*
-+ * Uses the current prcm set to tell if a rate is valid.
-+ * You can go slower, but not faster within a given rate set.
-+ */
-+static u32 omap2_dpll_round_rate(unsigned long target_rate)
-+{
-+	u32 high, low;
-+
-+	if ((CM_CLKSEL2_PLL & 0x3) == 1) {	/* DPLL clockout */
-+		high = curr_prcm_set->dpll_speed * 2;
-+		low = curr_prcm_set->dpll_speed;
-+	} else {				/* DPLL clockout x 2 */
-+		high = curr_prcm_set->dpll_speed;
-+		low = curr_prcm_set->dpll_speed / 2;
-+	}
-+
-+#ifdef DOWN_VARIABLE_DPLL
-+	if (target_rate > high)
-+		return high;
-+	else
-+		return target_rate;
-+#else
-+	if (target_rate > low)
-+		return high;
-+	else
-+		return low;
-+#endif
-+
-+}
-+
-+/*
-+ * Used for clocks that are part of CLKSEL_xyz governed clocks.
-+ * REVISIT: Maybe change to use clk->enable() functions like on omap1?
-+ */
-+static void omap2_clksel_recalc(struct clk * clk)
-+{
-+	u32 fixed = 0, div = 0;
-+
-+	if (clk == &dpll_ck) {
-+		clk->rate = omap2_get_dpll_rate(clk);
-+		fixed = 1;
-+		div = 0;
-+	}
-+
-+	if (clk == &iva1_mpu_int_ifck) {
-+		div = 2;
-+		fixed = 1;
-+	}
-+
-+	if ((clk == &dss1_fck) && ((CM_CLKSEL1_CORE & (0x1f << 8)) == 0)) {
-+		clk->rate = sys_ck.rate;
-+		return;
-+	}
-+
-+	if (!fixed) {
-+		div = omap2_clksel_get_divisor(clk);
-+		if (div == 0)
-+			return;
-+	}
-+
-+	if (div != 0) {
-+		if (unlikely(clk->rate == clk->parent->rate / div))
-+			return;
-+		clk->rate = clk->parent->rate / div;
-+	}
-+
-+	if (unlikely(clk->flags & RATE_PROPAGATES))
-+		propagate_rate(clk);
-+}
-+
-+/*
-+ * Finds best divider value in an array based on the source and target
-+ * rates. The divider array must be sorted with smallest divider first.
-+ */
-+static inline u32 omap2_divider_from_table(u32 size, u32 *div_array,
-+					   u32 src_rate, u32 tgt_rate)
-+{
-+	int i, test_rate;
-+
-+	if (div_array == NULL)
-+		return ~1;
-+
-+	for (i=0; i < size; i++) {
-+		test_rate = src_rate / *div_array;
-+		if (test_rate <= tgt_rate)
-+			return *div_array;
-+		++div_array;
-+	}
-+
-+	return ~0;	/* No acceptable divider */
-+}
-+
-+/*
-+ * Find divisor for the given clock and target rate.
-+ *
-+ * Note that this will not work for clocks which are part of CONFIG_PARTICIPANT,
-+ * they are only settable as part of virtual_prcm set.
-+ */
-+static u32 omap2_clksel_round_rate(struct clk *tclk, u32 target_rate,
-+	u32 *new_div)
-+{
-+	u32 gfx_div[] = {2, 3, 4};
-+	u32 sysclkout_div[] = {1, 2, 4, 8, 16};
-+	u32 dss1_div[] = {1, 2, 3, 4, 5, 6, 8, 9, 12, 16};
-+	u32 vylnq_div[] = {1, 2, 3, 4, 6, 8, 9, 12, 16, 18};
-+	u32 best_div = ~0, asize = 0;
-+	u32 *div_array = NULL;
-+
-+	switch (tclk->flags & SRC_RATE_SEL_MASK) {
-+	case CM_GFX_SEL1:
-+		asize = 3;
-+		div_array = gfx_div;
-+		break;
-+	case CM_PLL_SEL1:
-+		return omap2_dpll_round_rate(target_rate);
-+	case CM_SYSCLKOUT_SEL1:
-+		asize = 5;
-+		div_array = sysclkout_div;
-+		break;
-+	case CM_CORE_SEL1:
-+		if(tclk == &dss1_fck){
-+			if(tclk->parent == &core_ck){
-+				asize = 10;
-+				div_array = dss1_div;
-+			} else {
-+				*new_div = 0; /* fixed clk */
-+				return(tclk->parent->rate);
-+			}
-+		} else if((tclk == &vlynq_fck) && cpu_is_omap2420()){
-+			if(tclk->parent == &core_ck){
-+				asize = 10;
-+				div_array = vylnq_div;
-+			} else {
-+				*new_div = 0; /* fixed clk */
-+				return(tclk->parent->rate);
-+			}
-+		}
-+		break;
-+	}
-+
-+	best_div = omap2_divider_from_table(asize, div_array,
-+	 tclk->parent->rate, target_rate);
-+	if (best_div == ~0){
-+		*new_div = 1;
-+		return best_div; /* signal error */
-+	}
-+
-+	*new_div = best_div;
-+	return (tclk->parent->rate / best_div);
-+}
-+
-+/* Given a clock and a rate apply a clock specific rounding function */
-+static long omap2_clk_round_rate(struct clk *clk, unsigned long rate)
-+{
-+	u32 new_div = 0;
-+	int valid_rate;
-+
-+	if (clk->flags & RATE_FIXED)
-+		return clk->rate;
-+
-+	if (clk->flags & RATE_CKCTL) {
-+		valid_rate = omap2_clksel_round_rate(clk, rate, &new_div);
-+		return valid_rate;
-+	}
-+
-+	if (clk->round_rate != 0)
-+		return clk->round_rate(clk, rate);
-+
-+	return clk->rate;
-+}
-+
-+/*
-+ * Check the DLL lock state, and return tue if running in unlock mode.
-+ * This is needed to compensate for the shifted DLL value in unlock mode.
-+ */
-+static u32 omap2_dll_force_needed(void)
-+{
-+	u32 dll_state = SDRC_DLLA_CTRL;		/* dlla and dllb are a set */
-+
-+	if ((dll_state & (1 << 2)) == (1 << 2))
-+		return 1;
-+	else
-+		return 0;
-+}
-+
-+static u32 omap2_reprogram_sdrc(u32 level, u32 force)
-+{
-+	u32 slow_dll_ctrl, fast_dll_ctrl, m_type;
-+	u32 prev = curr_perf_level, flags;
-+
-+	if ((curr_perf_level == level) && !force)
-+		return prev;
-+
-+	m_type = omap2_memory_get_type();
-+	slow_dll_ctrl = omap2_memory_get_slow_dll_ctrl();
-+	fast_dll_ctrl = omap2_memory_get_fast_dll_ctrl();
-+
-+	if (level == PRCM_HALF_SPEED) {
-+		local_irq_save(flags);
-+		PRCM_VOLTSETUP = 0xffff;
-+		omap2_sram_reprogram_sdrc(PRCM_HALF_SPEED,
-+					  slow_dll_ctrl, m_type);
-+		curr_perf_level = PRCM_HALF_SPEED;
-+		local_irq_restore(flags);
-+	}
-+	if (level == PRCM_FULL_SPEED) {
-+		local_irq_save(flags);
-+		PRCM_VOLTSETUP = 0xffff;
-+		omap2_sram_reprogram_sdrc(PRCM_FULL_SPEED,
-+					  fast_dll_ctrl, m_type);
-+		curr_perf_level = PRCM_FULL_SPEED;
-+		local_irq_restore(flags);
-+	}
-+
-+	return prev;
-+}
-+
-+static int omap2_reprogram_dpll(struct clk * clk, unsigned long rate)
-+{
-+	u32 flags, cur_rate, low, mult, div, valid_rate, done_rate;
-+	u32 bypass = 0;
-+	struct prcm_config tmpset;
-+	int ret = -EINVAL;
-+
-+	local_irq_save(flags);
-+	cur_rate = omap2_get_dpll_rate(&dpll_ck);
-+	mult = CM_CLKSEL2_PLL & 0x3;
-+
-+	if ((rate == (cur_rate / 2)) && (mult == 2)) {
-+		omap2_reprogram_sdrc(PRCM_HALF_SPEED, 1);
-+	} else if ((rate == (cur_rate * 2)) && (mult == 1)) {
-+		omap2_reprogram_sdrc(PRCM_FULL_SPEED, 1);
-+	} else if (rate != cur_rate) {
-+		valid_rate = omap2_dpll_round_rate(rate);
-+		if (valid_rate != rate)
-+			goto dpll_exit;
-+
-+		if ((CM_CLKSEL2_PLL & 0x3) == 1)
-+			low = curr_prcm_set->dpll_speed;
-+		else
-+			low = curr_prcm_set->dpll_speed / 2;
-+
-+		tmpset.cm_clksel1_pll = CM_CLKSEL1_PLL;
-+		tmpset.cm_clksel1_pll &= ~(0x3FFF << 8);
-+		div = ((curr_prcm_set->xtal_speed / 1000000) - 1);
-+		tmpset.cm_clksel2_pll = CM_CLKSEL2_PLL;
-+		tmpset.cm_clksel2_pll &= ~0x3;
-+		if (rate > low) {
-+			tmpset.cm_clksel2_pll |= 0x2;
-+			mult = ((rate / 2) / 1000000);
-+			done_rate = PRCM_FULL_SPEED;
-+		} else {
-+			tmpset.cm_clksel2_pll |= 0x1;
-+			mult = (rate / 1000000);
-+			done_rate = PRCM_HALF_SPEED;
-+		}
-+		tmpset.cm_clksel1_pll |= ((div << 8) | (mult << 12));
-+
-+		/* Worst case */
-+		tmpset.base_sdrc_rfr = V24XX_SDRC_RFR_CTRL_BYPASS;
-+
-+		if (rate == curr_prcm_set->xtal_speed)	/* If asking for 1-1 */
-+			bypass = 1;
-+
-+		omap2_reprogram_sdrc(PRCM_FULL_SPEED, 1); /* For init_mem */
-+
-+		/* Force dll lock mode */
-+		omap2_set_prcm(tmpset.cm_clksel1_pll, tmpset.base_sdrc_rfr,
-+			       bypass);
-+
-+		/* Errata: ret dll entry state */
-+		omap2_init_memory_params(omap2_dll_force_needed());
-+		omap2_reprogram_sdrc(done_rate, 0);
-+	}
-+	omap2_clksel_recalc(&dpll_ck);
-+	ret = 0;
-+
-+dpll_exit:
-+	local_irq_restore(flags);
-+	return(ret);
-+}
-+
-+/* Just return the MPU speed */
-+static void omap2_mpu_recalc(struct clk * clk)
-+{
-+	clk->rate = curr_prcm_set->mpu_speed;
-+}
-+
-+/*
-+ * Look for a rate equal or less than the target rate given a configuration set.
-+ *
-+ * What's not entirely clear is "which" field represents the key field.
-+ * Some might argue L3-DDR, others ARM, others IVA. This code is simple and
-+ * just uses the ARM rates.
-+ */
-+static long omap2_round_to_table_rate(struct clk * clk, unsigned long rate)
-+{
-+	struct prcm_config * ptr;
-+	long highest_rate;
-+
-+	if (clk != &virt_prcm_set)
-+		return -EINVAL;
-+
-+	highest_rate = -EINVAL;
-+
-+	for (ptr = rate_table; ptr->mpu_speed; ptr++) {
-+		if (ptr->xtal_speed != sys_ck.rate)
-+			continue;
-+
-+		highest_rate = ptr->mpu_speed;
-+
-+		/* Can check only after xtal frequency check */
-+		if (ptr->mpu_speed <= rate)
-+			break;
-+	}
-+	return highest_rate;
-+}
-+
-+/*
-+ * omap2_convert_field_to_div() - turn field value into integer divider
-+ */
-+static u32 omap2_clksel_to_divisor(u32 div_sel, u32 field_val)
-+{
-+	u32 i;
-+	u32 clkout_array[] = {1, 2, 4, 8, 16};
-+
-+	if ((div_sel & SRC_RATE_SEL_MASK) == CM_SYSCLKOUT_SEL1) {
-+		for (i = 0; i < 5; i++) {
-+			if (field_val == i)
-+				return clkout_array[i];
-+		}
-+		return ~0;
-+	} else
-+		return field_val;
-+}
-+
-+/*
-+ * Returns the CLKSEL divider register value
-+ * REVISIT: This should be cleaned up to work nicely with void __iomem *
-+ */
-+static u32 omap2_get_clksel(u32 *div_sel, u32 *field_mask,
-+			    struct clk *clk)
-+{
-+	int ret = ~0;
-+	u32 reg_val, div_off;
-+	u32 div_addr = 0;
-+	u32 mask = ~0;
-+
-+	div_off = clk->rate_offset;
-+
-+	switch ((*div_sel & SRC_RATE_SEL_MASK)) {
-+	case CM_MPU_SEL1:
-+		div_addr = (u32)&CM_CLKSEL_MPU;
-+		mask = 0x1f;
-+		break;
-+	case CM_DSP_SEL1:
-+		div_addr = (u32)&CM_CLKSEL_DSP;
-+		if (cpu_is_omap2420()) {
-+			if ((div_off == 0) || (div_off == 8))
-+				mask = 0x1f;
-+			else if (div_off == 5)
-+				mask = 0x3;
-+		} else if (cpu_is_omap2430()) {
-+			if (div_off == 0)
-+				mask = 0x1f;
-+			else if (div_off == 5)
-+				mask = 0x3;
-+		}
-+		break;
-+	case CM_GFX_SEL1:
-+		div_addr = (u32)&CM_CLKSEL_GFX;
-+		if (div_off == 0)
-+			mask = 0x7;
-+		break;
-+	case CM_MODEM_SEL1:
-+		div_addr = (u32)&CM_CLKSEL_MDM;
-+		if (div_off == 0)
-+			mask = 0xf;
-+		break;
-+	case CM_SYSCLKOUT_SEL1:
-+		div_addr = (u32)&PRCM_CLKOUT_CTRL;
-+		if ((div_off == 3) || (div_off == 11))
-+			mask= 0x3;
-+		break;
-+	case CM_CORE_SEL1:
-+		div_addr = (u32)&CM_CLKSEL1_CORE;
-+		switch (div_off) {
-+		case 0:					/* l3 */
-+		case 8:					/* dss1 */
-+		case 15:				/* vylnc-2420 */
-+		case 20:				/* ssi */
-+			mask = 0x1f; break;
-+		case 5:					/* l4 */
-+			mask = 0x3; break;
-+		case 13:				/* dss2 */
-+			mask = 0x1; break;
-+		case 25:				/* usb */
-+			mask = 0x7; break;
-+		}
-+	}
-+
-+	*field_mask = mask;
-+
-+	if (unlikely(mask == ~0))
-+		div_addr = 0;
-+
-+	*div_sel = div_addr;
-+
-+	if (unlikely(div_addr == 0))
-+		return ret;
-+
-+	/* Isolate field */
-+	reg_val = __raw_readl((void __iomem *)div_addr) & (mask << div_off);
-+
-+	/* Normalize back to divider value */
-+	reg_val >>= div_off;
-+
-+	return reg_val;
-+}
-+
-+/*
-+ * Return divider to be applied to parent clock.
-+ * Return 0 on error.
-+ */
-+static u32 omap2_clksel_get_divisor(struct clk *clk)
-+{
-+	int ret = 0;
-+	u32 div, div_sel, div_off, field_mask, field_val;
-+
-+	/* isolate control register */
-+	div_sel = (SRC_RATE_SEL_MASK & clk->flags);
-+
-+	div_off = clk->rate_offset;
-+	field_val = omap2_get_clksel(&div_sel, &field_mask, clk);
-+	if (div_sel == 0)
-+		return ret;
-+
-+	div_sel = (SRC_RATE_SEL_MASK & clk->flags);
-+	div = omap2_clksel_to_divisor(div_sel, field_val);
-+
-+	return div;
-+}
-+
-+/* Set the clock rate for a clock source */
-+static int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
-+
-+{
-+	int ret = -EINVAL;
-+	void __iomem * reg;
-+	u32 div_sel, div_off, field_mask, field_val, reg_val, validrate;
-+	u32 new_div = 0;
-+
-+	if (!(clk->flags & CONFIG_PARTICIPANT) && (clk->flags & RATE_CKCTL)) {
-+		if (clk == &dpll_ck)
-+			return omap2_reprogram_dpll(clk, rate);
-+
-+		/* Isolate control register */
-+		div_sel = (SRC_RATE_SEL_MASK & clk->flags);
-+		div_off = clk->rate_offset;
-+
-+		validrate = omap2_clksel_round_rate(clk, rate, &new_div);
-+		if (validrate != rate)
-+			return(ret);
-+
-+		field_val = omap2_get_clksel(&div_sel, &field_mask, clk);
-+		if (div_sel == 0)
-+			return ret;
-+
-+		if (clk->flags & CM_SYSCLKOUT_SEL1) {
-+			switch (new_div) {
-+			case 16:
-+				field_val = 4;
-+				break;
-+			case 8:
-+				field_val = 3;
-+				break;
-+			case 4:
-+				field_val = 2;
-+				break;
-+			case 2:
-+				field_val = 1;
-+				break;
-+			case 1:
-+				field_val = 0;
-+				break;
-+			}
-+		} else
-+			field_val = new_div;
-+
-+		reg = (void __iomem *)div_sel;
-+
-+		reg_val = __raw_readl(reg);
-+		reg_val &= ~(field_mask << div_off);
-+		reg_val |= (field_val << div_off);
-+		__raw_writel(reg_val, reg);
-+		wmb();
-+		clk->rate = clk->parent->rate / field_val;
-+
-+		if (clk->flags & DELAYED_APP) {
-+			__raw_writel(0x1, (void __iomem *)&PRCM_CLKCFG_CTRL);
-+			wmb();
-+		}
-+		ret = 0;
-+	} else if (clk->set_rate != 0)
-+		ret = clk->set_rate(clk, rate);
-+
-+	if (unlikely(ret == 0 && (clk->flags & RATE_PROPAGATES)))
-+		propagate_rate(clk);
-+
-+	return ret;
-+}
-+
-+/* Converts encoded control register address into a full address */
-+static u32 omap2_get_src_field(u32 *type_to_addr, u32 reg_offset,
-+			       struct clk *src_clk, u32 *field_mask)
-+{
-+	u32 val = ~0, src_reg_addr = 0, mask = 0;
-+
-+	/* Find target control register.*/
-+	switch ((*type_to_addr & SRC_RATE_SEL_MASK)) {
-+	case CM_CORE_SEL1:
-+		src_reg_addr = (u32)&CM_CLKSEL1_CORE;
-+		if (reg_offset == 13) {			/* DSS2_fclk */
-+			mask = 0x1;
-+			if (src_clk == &sys_ck)
-+				val = 0;
-+			if (src_clk == &func_48m_ck)
-+				val = 1;
-+		} else if (reg_offset == 8) {		/* DSS1_fclk */
-+			mask = 0x1f;
-+			if (src_clk == &sys_ck)
-+				val = 0;
-+			else if (src_clk == &core_ck)	/* divided clock */
-+				val = 0x10;		/* rate needs fixing */
-+		} else if ((reg_offset == 15) && cpu_is_omap2420()){ /*vlnyq*/
-+			mask = 0x1F;
-+			if(src_clk == &func_96m_ck)
-+				val = 0;
-+			else if (src_clk == &core_ck)
-+				val = 0x10;
-+		}
-+		break;
-+	case CM_CORE_SEL2:
-+		src_reg_addr = (u32)&CM_CLKSEL2_CORE;
-+		mask = 0x3;
-+		if (src_clk == &func_32k_ck)
-+			val = 0x0;
-+		if (src_clk == &sys_ck)
-+			val = 0x1;
-+		if (src_clk == &alt_ck)
-+			val = 0x2;
-+		break;
-+	case CM_WKUP_SEL1:
-+		src_reg_addr = (u32)&CM_CLKSEL_WKUP;
-+		mask = 0x3;
-+		if (src_clk == &func_32k_ck)
-+			val = 0x0;
-+		if (src_clk == &sys_ck)
-+			val = 0x1;
-+		if (src_clk == &alt_ck)
-+			val = 0x2;
-+		break;
-+	case CM_PLL_SEL1:
-+		src_reg_addr = (u32)&CM_CLKSEL1_PLL;
-+		mask = 0x1;
-+		if (reg_offset == 0x3) {
-+			if (src_clk == &apll96_ck)
-+				val = 0;
-+			if (src_clk == &alt_ck)
-+				val = 1;
-+		}
-+		else if (reg_offset == 0x5) {
-+			if (src_clk == &apll54_ck)
-+				val = 0;
-+			if (src_clk == &alt_ck)
-+				val = 1;
-+		}
-+		break;
-+	case CM_PLL_SEL2:
-+		src_reg_addr = (u32)&CM_CLKSEL2_PLL;
-+		mask = 0x3;
-+		if (src_clk == &func_32k_ck)
-+			val = 0x0;
-+		if (src_clk == &dpll_ck)
-+			val = 0x2;
-+		break;
-+	case CM_SYSCLKOUT_SEL1:
-+		src_reg_addr = (u32)&PRCM_CLKOUT_CTRL;
-+		mask = 0x3;
-+		if (src_clk == &dpll_ck)
-+			val = 0;
-+		if (src_clk == &sys_ck)
-+			val = 1;
-+		if (src_clk == &func_96m_ck)
-+			val = 2;
-+		if (src_clk == &func_54m_ck)
-+			val = 3;
-+		break;
-+	}
-+
-+	if (val == ~0)			/* Catch errors in offset */
-+		*type_to_addr = 0;
-+	else
-+		*type_to_addr = src_reg_addr;
-+	*field_mask = mask;
-+
-+	return val;
-+}
-+
-+static int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
-+{
-+	void __iomem * reg;
-+	u32 src_sel, src_off, field_val, field_mask, reg_val, rate;
-+	int ret = -EINVAL;
-+
-+	if (unlikely(clk->flags & CONFIG_PARTICIPANT))
-+		return ret;
-+
-+	if (clk->flags & SRC_SEL_MASK) {	/* On-chip SEL collection */
-+		src_sel = (SRC_RATE_SEL_MASK & clk->flags);
-+		src_off = clk->src_offset;
-+
-+		if (src_sel == 0)
-+			goto set_parent_error;
-+
-+		field_val = omap2_get_src_field(&src_sel, src_off, new_parent,
-+						&field_mask);
-+
-+		reg = (void __iomem *)src_sel;
-+
-+		if (clk->usecount > 0)
-+			_omap2_clk_disable(clk);
-+
-+		/* Set new source value (previous dividers if any in effect) */
-+		reg_val = __raw_readl(reg) & ~(field_mask << src_off);
-+		reg_val |= (field_val << src_off);
-+		__raw_writel(reg_val, reg);
-+		wmb();
-+
-+		if (clk->flags & DELAYED_APP) {
-+			__raw_writel(0x1, (void __iomem *)&PRCM_CLKCFG_CTRL);
-+			wmb();
-+		}
-+		if (clk->usecount > 0)
-+			_omap2_clk_enable(clk);
-+
-+		clk->parent = new_parent;
-+
-+		/* SRC_RATE_SEL_MASK clocks follow their parents rates.*/
-+		if ((new_parent == &core_ck) && (clk == &dss1_fck))
-+			clk->rate = new_parent->rate / 0x10;
-+		else
-+			clk->rate = new_parent->rate;
-+
-+		if (unlikely(clk->flags & RATE_PROPAGATES))
-+			propagate_rate(clk);
-+
-+		return 0;
-+	} else {
-+		clk->parent = new_parent;
-+		rate = new_parent->rate;
-+		omap2_clk_set_rate(clk, rate);
-+		ret = 0;
-+	}
-+
-+ set_parent_error:
-+	return ret;
-+}
-+
-+/* Sets basic clocks based on the specified rate */
-+static int omap2_select_table_rate(struct clk * clk, unsigned long rate)
-+{
-+	u32 flags, cur_rate, done_rate, bypass = 0;
-+	u8 cpu_mask = 0;
-+	struct prcm_config *prcm;
-+	unsigned long found_speed = 0;
-+
-+	if (clk != &virt_prcm_set)
-+		return -EINVAL;
-+
-+	/* FIXME: Change cpu_is_omap2420() to cpu_is_omap242x() */
-+	if (cpu_is_omap2420())
-+		cpu_mask = RATE_IN_242X;
-+	else if (cpu_is_omap2430())
-+		cpu_mask = RATE_IN_243X;
-+
-+	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
-+		if (!(prcm->flags & cpu_mask))
-+			continue;
-+
-+		if (prcm->xtal_speed != sys_ck.rate)
-+			continue;
-+
-+		if (prcm->mpu_speed <= rate) {
-+			found_speed = prcm->mpu_speed;
-+			break;
-+		}
-+	}
-+
-+	if (!found_speed) {
-+		printk(KERN_INFO "Could not set MPU rate to %luMHz\n",
-+	 rate / 1000000);
-+		return -EINVAL;
-+	}
-+
-+	curr_prcm_set = prcm;
-+	cur_rate = omap2_get_dpll_rate(&dpll_ck);
-+
-+	if (prcm->dpll_speed == cur_rate / 2) {
-+		omap2_reprogram_sdrc(PRCM_HALF_SPEED, 1);
-+	} else if (prcm->dpll_speed == cur_rate * 2) {
-+		omap2_reprogram_sdrc(PRCM_FULL_SPEED, 1);
-+	} else if (prcm->dpll_speed != cur_rate) {
-+		local_irq_save(flags);
-+
-+		if (prcm->dpll_speed == prcm->xtal_speed)
-+			bypass = 1;
-+
-+		if ((prcm->cm_clksel2_pll & 0x3) == 2)
-+			done_rate = PRCM_FULL_SPEED;
-+		else
-+			done_rate = PRCM_HALF_SPEED;
-+
-+		/* MPU divider */
-+		CM_CLKSEL_MPU = prcm->cm_clksel_mpu;
-+
-+		/* dsp + iva1 div(2420), iva2.1(2430) */
-+		CM_CLKSEL_DSP = prcm->cm_clksel_dsp;
-+
-+		CM_CLKSEL_GFX = prcm->cm_clksel_gfx;
-+
-+		/* Major subsystem dividers */
-+		CM_CLKSEL1_CORE = prcm->cm_clksel1_core;
-+		if (cpu_is_omap2430())
-+			CM_CLKSEL_MDM = prcm->cm_clksel_mdm;
-+
-+		/* x2 to enter init_mem */
-+		omap2_reprogram_sdrc(PRCM_FULL_SPEED, 1);
-+
-+		omap2_set_prcm(prcm->cm_clksel1_pll, prcm->base_sdrc_rfr,
-+			       bypass);
-+
-+		omap2_init_memory_params(omap2_dll_force_needed());
-+		omap2_reprogram_sdrc(done_rate, 0);
-+
-+		local_irq_restore(flags);
-+	}
-+	omap2_clksel_recalc(&dpll_ck);
-+
-+	return 0;
-+}
-+
-+/*-------------------------------------------------------------------------
-+ * Omap2 clock reset and init functions
-+ *-------------------------------------------------------------------------*/
-+
-+#ifdef CONFIG_OMAP_RESET_CLOCKS
-+static void __init omap2_clk_disable_unused(struct clk *clk)
-+{
-+	u32 regval32;
-+
-+	regval32 = __raw_readl(clk->enable_reg);
-+	if ((regval32 & (1 << clk->enable_bit)) == 0)
-+		return;
-+
-+	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
-+	_omap2_clk_disable(clk);
-+}
-+#else
-+#define omap2_clk_disable_unused	NULL
-+#endif
-+
-+static struct clk_functions omap2_clk_functions = {
-+	.clk_enable		= omap2_clk_enable,
-+	.clk_disable		= omap2_clk_disable,
-+	.clk_round_rate		= omap2_clk_round_rate,
-+	.clk_set_rate		= omap2_clk_set_rate,
-+	.clk_set_parent		= omap2_clk_set_parent,
-+	.clk_disable_unused	= omap2_clk_disable_unused,
-+};
-+
-+static void __init omap2_get_crystal_rate(struct clk *osc, struct clk *sys)
-+{
-+	u32 div, aplls, sclk = 13000000;
-+
-+	aplls = CM_CLKSEL1_PLL;
-+	aplls &= ((1 << 23) | (1 << 24) | (1 << 25));
-+	aplls >>= 23;			/* Isolate field, 0,2,3 */
-+
-+	if (aplls == 0)
-+		sclk = 19200000;
-+	else if (aplls == 2)
-+		sclk = 13000000;
-+	else if (aplls == 3)
-+		sclk = 12000000;
-+
-+	div = PRCM_CLKSRC_CTRL;
-+	div &= ((1 << 7) | (1 << 6));
-+	div >>= sys->rate_offset;
-+
-+	osc->rate = sclk * div;
-+	sys->rate = sclk;
-+}
-+
-+/*
-+ * Set clocks for bypass mode for reboot to work.
-+ */
-+void omap2_clk_prepare_for_reboot(void)
-+{
-+	u32 rate;
-+
-+	if (vclk == NULL || sclk == NULL)
-+		return;
-+
-+	rate = clk_get_rate(sclk);
-+	clk_set_rate(vclk, rate);
-+}
-+
-+/*
-+ * Switch the MPU rate if specified on cmdline.
-+ * We cannot do this early until cmdline is parsed.
-+ */
-+static int __init omap2_clk_arch_init(void)
-+{
-+	if (!mpurate)
-+		return -EINVAL;
-+
-+	if (omap2_select_table_rate(&virt_prcm_set, mpurate))
-+		printk(KERN_ERR "Could not find matching MPU rate\n");
-+
-+	propagate_rate(&osc_ck);		/* update main root fast */
-+	propagate_rate(&func_32k_ck);		/* update main root slow */
-+
-+	printk(KERN_INFO "Switched to new clocking rate (Crystal/DPLL/MPU): "
-+	       "%ld.%01ld/%ld/%ld MHz\n",
-+	       (sys_ck.rate / 1000000), (sys_ck.rate / 100000) % 10,
-+	       (dpll_ck.rate / 1000000), (mpu_ck.rate / 1000000)) ;
-+
-+	return 0;
-+}
-+arch_initcall(omap2_clk_arch_init);
-+
-+int __init omap2_clk_init(void)
-+{
-+	struct prcm_config *prcm;
-+	struct clk ** clkp;
-+	u32 clkrate;
-+
-+	clk_init(&omap2_clk_functions);
-+	omap2_get_crystal_rate(&osc_ck, &sys_ck);
-+
-+	for (clkp = onchip_clks; clkp < onchip_clks + ARRAY_SIZE(onchip_clks);
-+	     clkp++) {
-+
-+		if ((*clkp)->flags & CLOCK_IN_OMAP242X && cpu_is_omap2420()) {
-+			clk_register(*clkp);
-+			continue;
-+		}
-+
-+		if ((*clkp)->flags & CLOCK_IN_OMAP243X && cpu_is_omap2430()) {
-+			clk_register(*clkp);
-+			continue;
-+		}
-+	}
-+
-+	/* Check the MPU rate set by bootloader */
-+	clkrate = omap2_get_dpll_rate(&dpll_ck);
-+	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
-+		if (prcm->xtal_speed != sys_ck.rate)
-+			continue;
-+		if (prcm->dpll_speed <= clkrate)
-+			 break;
-+	}
-+	curr_prcm_set = prcm;
-+
-+	propagate_rate(&osc_ck);		/* update main root fast */
-+	propagate_rate(&func_32k_ck);		/* update main root slow */
-+
-+	printk(KERN_INFO "Clocking rate (Crystal/DPLL/MPU): "
-+	       "%ld.%01ld/%ld/%ld MHz\n",
-+	       (sys_ck.rate / 1000000), (sys_ck.rate / 100000) % 10,
-+	       (dpll_ck.rate / 1000000), (mpu_ck.rate / 1000000)) ;
-+
-+	/*
-+	 * Only enable those clocks we will need, let the drivers
-+	 * enable other clocks as necessary
-+	 */
-+	clk_enable(&sync_32k_ick);
-+	clk_enable(&omapctrl_ick);
-+
-+	/* Force the APLLs always active. The clocks are idled
-+	 * automatically by hardware. */
-+	clk_enable(&apll96_ck);
-+	clk_enable(&apll54_ck);
-+
-+	if (cpu_is_omap2430())
-+		clk_enable(&sdrc_ick);
-+
-+	/* Avoid sleeping sleeping during omap2_clk_prepare_for_reboot() */
-+	vclk = clk_get(NULL, "virt_prcm_set");
-+	sclk = clk_get(NULL, "sys_ck");
-+
-+	return 0;
-+}
-diff --git a/arch/arm/mach-omap2/clock24xx.h b/arch/arm/mach-omap2/clock24xx.h
+diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
 new file mode 100644
-index 0000000..4f79186
+index 0000000..cacb340
 --- /dev/null
-+++ b/arch/arm/mach-omap2/clock24xx.h
-@@ -0,0 +1,2111 @@
++++ b/arch/arm/mach-omap2/prcm-common.h
+@@ -0,0 +1,317 @@
++#ifndef __ARCH_ASM_MACH_OMAP2_PRCM_COMMON_H
++#define __ARCH_ASM_MACH_OMAP2_PRCM_COMMON_H
++
 +/*
-+ *  linux/arch/arm/mach-omap24xx/clock.h
++ * OMAP2/3 PRCM base and module definitions
 + *
-+ *  Copyright (C) 2005 Texas Instruments Inc.
-+ *  Richard Woodruff <r-woodruff2@ti.com>
-+ *  Created for OMAP2.
++ * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * Copyright (C) 2007-2008 Nokia Corporation
 + *
-+ *  Copyright (C) 2004 Nokia corporation
-+ *  Written by Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
-+ *  Based on clocks.h by Tony Lindgren, Gordon McNutt and RidgeRun, Inc
++ * Written by Paul Walmsley
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
 +
-+#ifndef __ARCH_ARM_MACH_OMAP2_CLOCK_H
-+#define __ARCH_ARM_MACH_OMAP2_CLOCK_H
 +
-+static void omap2_sys_clk_recalc(struct clk * clk);
-+static void omap2_clksel_recalc(struct clk * clk);
-+static void omap2_followparent_recalc(struct clk * clk);
-+static void omap2_propagate_rate(struct clk * clk);
-+static void omap2_mpu_recalc(struct clk * clk);
-+static int omap2_select_table_rate(struct clk * clk, unsigned long rate);
-+static long omap2_round_to_table_rate(struct clk * clk, unsigned long rate);
-+static void omap2_clk_disable(struct clk *clk);
-+static void omap2_sys_clk_recalc(struct clk * clk);
-+static u32 omap2_clksel_to_divisor(u32 div_sel, u32 field_val);
-+static u32 omap2_clksel_get_divisor(struct clk *clk);
-+
-+
-+#define RATE_IN_242X	(1 << 0)
-+#define RATE_IN_243X	(1 << 1)
-+
-+/* Key dividers which make up a PRCM set. Ratio's for a PRCM are mandated.
-+ * xtal_speed, dpll_speed, mpu_speed, CM_CLKSEL_MPU,CM_CLKSEL_DSP
-+ * CM_CLKSEL_GFX, CM_CLKSEL1_CORE, CM_CLKSEL1_PLL CM_CLKSEL2_PLL, CM_CLKSEL_MDM
-+ */
-+struct prcm_config {
-+	unsigned long xtal_speed;	/* crystal rate */
-+	unsigned long dpll_speed;	/* dpll: out*xtal*M/(N-1)table_recalc */
-+	unsigned long mpu_speed;	/* speed of MPU */
-+	unsigned long cm_clksel_mpu;	/* mpu divider */
-+	unsigned long cm_clksel_dsp;	/* dsp+iva1 div(2420), iva2.1(2430) */
-+	unsigned long cm_clksel_gfx;	/* gfx dividers */
-+	unsigned long cm_clksel1_core;	/* major subsystem dividers */
-+	unsigned long cm_clksel1_pll;	/* m,n */
-+	unsigned long cm_clksel2_pll;	/* dpllx1 or x2 out */
-+	unsigned long cm_clksel_mdm;	/* modem dividers 2430 only */
-+	unsigned long base_sdrc_rfr;	/* base refresh timing for a set */
-+	unsigned char flags;
-+};
-+
-+/* Mask for clksel which support parent settign in set_rate */
-+#define SRC_SEL_MASK (CM_CORE_SEL1 | CM_CORE_SEL2 | CM_WKUP_SEL1 | \
-+			CM_PLL_SEL1 | CM_PLL_SEL2 | CM_SYSCLKOUT_SEL1)
-+
-+/* Mask for clksel regs which support rate operations */
-+#define SRC_RATE_SEL_MASK (CM_MPU_SEL1 | CM_DSP_SEL1 | CM_GFX_SEL1 | \
-+			CM_MODEM_SEL1 | CM_CORE_SEL1 | CM_CORE_SEL2 | \
-+			CM_WKUP_SEL1 | CM_PLL_SEL1 | CM_PLL_SEL2 | \
-+			CM_SYSCLKOUT_SEL1)
++/* Module offsets from both CM_BASE & PRM_BASE */
 +
 +/*
-+ * The OMAP2 processor can be run at several discrete 'PRCM configurations'.
-+ * These configurations are characterized by voltage and speed for clocks.
-+ * The device is only validated for certain combinations. One way to express
-+ * these combinations is via the 'ratio's' which the clocks operate with
-+ * respect to each other. These ratio sets are for a given voltage/DPLL
-+ * setting. All configurations can be described by a DPLL setting and a ratio
-+ * There are 3 ratio sets for the 2430 and X ratio sets for 2420.
++ * Offsets that are the same on 24xx and 34xx
 + *
-+ * 2430 differs from 2420 in that there are no more phase synchronizers used.
-+ * They both have a slightly different clock domain setup. 2420(iva1,dsp) vs
-+ * 2430 (iva2.1, NOdsp, mdm)
++ * Technically, in terms of the TRM, OCP_MOD is 34xx only; PLL_MOD is
++ * CCR_MOD on 3430; and GFX_MOD only exists < 3430ES2.
 + */
++#define OCP_MOD						0x000
++#define MPU_MOD						0x100
++#define CORE_MOD					0x200
++#define GFX_MOD						0x300
++#define WKUP_MOD					0x400
++#define PLL_MOD						0x500
 +
-+/* Core fields for cm_clksel, not ratio governed */
-+#define RX_CLKSEL_DSS1			(0x10 << 8)
-+#define RX_CLKSEL_DSS2			(0x0 << 13)
-+#define RX_CLKSEL_SSI			(0x5 << 20)
 +
-+/*-------------------------------------------------------------------------
-+ * Voltage/DPLL ratios
-+ *-------------------------------------------------------------------------*/
++/* Chip-specific module offsets */
++#define OMAP24XX_DSP_MOD				0x800
 +
-+/* 2430 Ratio's, 2430-Ratio Config 1 */
-+#define R1_CLKSEL_L3			(4 << 0)
-+#define R1_CLKSEL_L4			(2 << 5)
-+#define R1_CLKSEL_USB			(4 << 25)
-+#define R1_CM_CLKSEL1_CORE_VAL		R1_CLKSEL_USB | RX_CLKSEL_SSI | \
-+					RX_CLKSEL_DSS2 | RX_CLKSEL_DSS1 | \
-+					R1_CLKSEL_L4 | R1_CLKSEL_L3
-+#define R1_CLKSEL_MPU			(2 << 0)
-+#define R1_CM_CLKSEL_MPU_VAL		R1_CLKSEL_MPU
-+#define R1_CLKSEL_DSP			(2 << 0)
-+#define R1_CLKSEL_DSP_IF		(2 << 5)
-+#define R1_CM_CLKSEL_DSP_VAL		R1_CLKSEL_DSP | R1_CLKSEL_DSP_IF
-+#define R1_CLKSEL_GFX			(2 << 0)
-+#define R1_CM_CLKSEL_GFX_VAL		R1_CLKSEL_GFX
-+#define R1_CLKSEL_MDM			(4 << 0)
-+#define R1_CM_CLKSEL_MDM_VAL		R1_CLKSEL_MDM
++#define OMAP2430_MDM_MOD				0xc00
 +
-+/* 2430-Ratio Config 2 */
-+#define R2_CLKSEL_L3			(6 << 0)
-+#define R2_CLKSEL_L4			(2 << 5)
-+#define R2_CLKSEL_USB			(2 << 25)
-+#define R2_CM_CLKSEL1_CORE_VAL		R2_CLKSEL_USB | RX_CLKSEL_SSI | \
-+					RX_CLKSEL_DSS2 | RX_CLKSEL_DSS1 | \
-+					R2_CLKSEL_L4 | R2_CLKSEL_L3
-+#define R2_CLKSEL_MPU			(2 << 0)
-+#define R2_CM_CLKSEL_MPU_VAL		R2_CLKSEL_MPU
-+#define R2_CLKSEL_DSP			(2 << 0)
-+#define R2_CLKSEL_DSP_IF		(3 << 5)
-+#define R2_CM_CLKSEL_DSP_VAL		R2_CLKSEL_DSP | R2_CLKSEL_DSP_IF
-+#define R2_CLKSEL_GFX			(2 << 0)
-+#define R2_CM_CLKSEL_GFX_VAL		R2_CLKSEL_GFX
-+#define R2_CLKSEL_MDM			(6 << 0)
-+#define R2_CM_CLKSEL_MDM_VAL		R2_CLKSEL_MDM
++/* IVA2 module is < base on 3430 */
++#define OMAP3430_IVA2_MOD				-0x800
++#define OMAP3430ES2_SGX_MOD				GFX_MOD
++#define OMAP3430_CCR_MOD				PLL_MOD
++#define OMAP3430_DSS_MOD				0x600
++#define OMAP3430_CAM_MOD				0x700
++#define OMAP3430_PER_MOD				0x800
++#define OMAP3430_EMU_MOD				0x900
++#define OMAP3430_GR_MOD					0xa00
++#define OMAP3430_NEON_MOD				0xb00
++#define OMAP3430ES2_USBHOST_MOD				0xc00
 +
-+/* 2430-Ratio Bootm (BYPASS) */
-+#define RB_CLKSEL_L3			(1 << 0)
-+#define RB_CLKSEL_L4			(1 << 5)
-+#define RB_CLKSEL_USB			(1 << 25)
-+#define RB_CM_CLKSEL1_CORE_VAL		RB_CLKSEL_USB | RX_CLKSEL_SSI | \
-+					RX_CLKSEL_DSS2 | RX_CLKSEL_DSS1 | \
-+					RB_CLKSEL_L4 | RB_CLKSEL_L3
-+#define RB_CLKSEL_MPU			(1 << 0)
-+#define RB_CM_CLKSEL_MPU_VAL		RB_CLKSEL_MPU
-+#define RB_CLKSEL_DSP			(1 << 0)
-+#define RB_CLKSEL_DSP_IF		(1 << 5)
-+#define RB_CM_CLKSEL_DSP_VAL		RB_CLKSEL_DSP | RB_CLKSEL_DSP_IF
-+#define RB_CLKSEL_GFX			(1 << 0)
-+#define RB_CM_CLKSEL_GFX_VAL		RB_CLKSEL_GFX
-+#define RB_CLKSEL_MDM			(1 << 0)
-+#define RB_CM_CLKSEL_MDM_VAL		RB_CLKSEL_MDM
 +
-+/* 2420 Ratio Equivalents */
-+#define RXX_CLKSEL_VLYNQ		(0x12 << 15)
-+#define RXX_CLKSEL_SSI			(0x8 << 20)
++/* 24XX register bits shared between CM & PRM registers */
 +
-+/* 2420-PRCM III 532MHz core */
-+#define RIII_CLKSEL_L3			(4 << 0)	/* 133MHz */
-+#define RIII_CLKSEL_L4			(2 << 5)	/* 66.5MHz */
-+#define RIII_CLKSEL_USB			(4 << 25)	/* 33.25MHz */
-+#define RIII_CM_CLKSEL1_CORE_VAL	RIII_CLKSEL_USB | RXX_CLKSEL_SSI | \
-+					RXX_CLKSEL_VLYNQ | RX_CLKSEL_DSS2 | \
-+					RX_CLKSEL_DSS1 | RIII_CLKSEL_L4 | \
-+					RIII_CLKSEL_L3
-+#define RIII_CLKSEL_MPU			(2 << 0)	/* 266MHz */
-+#define RIII_CM_CLKSEL_MPU_VAL		RIII_CLKSEL_MPU
-+#define RIII_CLKSEL_DSP			(3 << 0)	/* c5x - 177.3MHz */
-+#define RIII_CLKSEL_DSP_IF		(2 << 5)	/* c5x - 88.67MHz */
-+#define RIII_SYNC_DSP			(1 << 7)	/* Enable sync */
-+#define RIII_CLKSEL_IVA			(6 << 8)	/* iva1 - 88.67MHz */
-+#define RIII_SYNC_IVA			(1 << 13)	/* Enable sync */
-+#define RIII_CM_CLKSEL_DSP_VAL		RIII_SYNC_IVA | RIII_CLKSEL_IVA | \
-+					RIII_SYNC_DSP | RIII_CLKSEL_DSP_IF | \
-+					RIII_CLKSEL_DSP
-+#define RIII_CLKSEL_GFX			(2 << 0)	/* 66.5MHz */
-+#define RIII_CM_CLKSEL_GFX_VAL		RIII_CLKSEL_GFX
++/* CM_FCLKEN1_CORE, CM_ICLKEN1_CORE, PM_WKEN1_CORE shared bits */
++#define OMAP2420_EN_MMC_SHIFT				26
++#define OMAP2420_EN_MMC					(1 << 26)
++#define OMAP24XX_EN_UART2_SHIFT				22
++#define OMAP24XX_EN_UART2				(1 << 22)
++#define OMAP24XX_EN_UART1_SHIFT				21
++#define OMAP24XX_EN_UART1				(1 << 21)
++#define OMAP24XX_EN_MCSPI2_SHIFT			18
++#define OMAP24XX_EN_MCSPI2				(1 << 18)
++#define OMAP24XX_EN_MCSPI1_SHIFT			17
++#define OMAP24XX_EN_MCSPI1				(1 << 17)
++#define OMAP24XX_EN_MCBSP2_SHIFT			16
++#define OMAP24XX_EN_MCBSP2				(1 << 16)
++#define OMAP24XX_EN_MCBSP1_SHIFT			15
++#define OMAP24XX_EN_MCBSP1				(1 << 15)
++#define OMAP24XX_EN_GPT12_SHIFT				14
++#define OMAP24XX_EN_GPT12				(1 << 14)
++#define OMAP24XX_EN_GPT11_SHIFT				13
++#define OMAP24XX_EN_GPT11				(1 << 13)
++#define OMAP24XX_EN_GPT10_SHIFT				12
++#define OMAP24XX_EN_GPT10				(1 << 12)
++#define OMAP24XX_EN_GPT9_SHIFT				11
++#define OMAP24XX_EN_GPT9				(1 << 11)
++#define OMAP24XX_EN_GPT8_SHIFT				10
++#define OMAP24XX_EN_GPT8				(1 << 10)
++#define OMAP24XX_EN_GPT7_SHIFT				9
++#define OMAP24XX_EN_GPT7				(1 << 9)
++#define OMAP24XX_EN_GPT6_SHIFT				8
++#define OMAP24XX_EN_GPT6				(1 << 8)
++#define OMAP24XX_EN_GPT5_SHIFT				7
++#define OMAP24XX_EN_GPT5				(1 << 7)
++#define OMAP24XX_EN_GPT4_SHIFT				6
++#define OMAP24XX_EN_GPT4				(1 << 6)
++#define OMAP24XX_EN_GPT3_SHIFT				5
++#define OMAP24XX_EN_GPT3				(1 << 5)
++#define OMAP24XX_EN_GPT2_SHIFT				4
++#define OMAP24XX_EN_GPT2				(1 << 4)
++#define OMAP2420_EN_VLYNQ_SHIFT				3
++#define OMAP2420_EN_VLYNQ				(1 << 3)
 +
-+/* 2420-PRCM II 600MHz core */
-+#define RII_CLKSEL_L3			(6 << 0)	/* 100MHz */
-+#define RII_CLKSEL_L4			(2 << 5)	/* 50MHz */
-+#define RII_CLKSEL_USB			(2 << 25)	/* 50MHz */
-+#define RII_CM_CLKSEL1_CORE_VAL		RII_CLKSEL_USB | \
-+					RXX_CLKSEL_SSI | RXX_CLKSEL_VLYNQ | \
-+					RX_CLKSEL_DSS2 | RX_CLKSEL_DSS1 | \
-+					RII_CLKSEL_L4 | RII_CLKSEL_L3
-+#define RII_CLKSEL_MPU			(2 << 0)	/* 300MHz */
-+#define RII_CM_CLKSEL_MPU_VAL		RII_CLKSEL_MPU
-+#define RII_CLKSEL_DSP			(3 << 0)	/* c5x - 200MHz */
-+#define RII_CLKSEL_DSP_IF		(2 << 5)	/* c5x - 100MHz */
-+#define RII_SYNC_DSP			(0 << 7)	/* Bypass sync */
-+#define RII_CLKSEL_IVA			(6 << 8)	/* iva1 - 200MHz */
-+#define RII_SYNC_IVA			(0 << 13)	/* Bypass sync */
-+#define RII_CM_CLKSEL_DSP_VAL		RII_SYNC_IVA | RII_CLKSEL_IVA | \
-+					RII_SYNC_DSP | RII_CLKSEL_DSP_IF | \
-+					RII_CLKSEL_DSP
-+#define RII_CLKSEL_GFX			(2 << 0)	/* 50MHz */
-+#define RII_CM_CLKSEL_GFX_VAL		RII_CLKSEL_GFX
++/* CM_FCLKEN2_CORE, CM_ICLKEN2_CORE, PM_WKEN2_CORE shared bits */
++#define OMAP2430_EN_GPIO5_SHIFT				10
++#define OMAP2430_EN_GPIO5				(1 << 10)
++#define OMAP2430_EN_MCSPI3_SHIFT			9
++#define OMAP2430_EN_MCSPI3				(1 << 9)
++#define OMAP2430_EN_MMCHS2_SHIFT			8
++#define OMAP2430_EN_MMCHS2				(1 << 8)
++#define OMAP2430_EN_MMCHS1_SHIFT			7
++#define OMAP2430_EN_MMCHS1				(1 << 7)
++#define OMAP24XX_EN_UART3_SHIFT				2
++#define OMAP24XX_EN_UART3				(1 << 2)
++#define OMAP24XX_EN_USB_SHIFT				0
++#define OMAP24XX_EN_USB					(1 << 0)
 +
-+/* 2420-PRCM VII (boot) */
-+#define RVII_CLKSEL_L3			(1 << 0)
-+#define RVII_CLKSEL_L4			(1 << 5)
-+#define RVII_CLKSEL_DSS1		(1 << 8)
-+#define RVII_CLKSEL_DSS2		(0 << 13)
-+#define RVII_CLKSEL_VLYNQ		(1 << 15)
-+#define RVII_CLKSEL_SSI			(1 << 20)
-+#define RVII_CLKSEL_USB			(1 << 25)
++/* CM_ICLKEN2_CORE, PM_WKEN2_CORE shared bits */
++#define OMAP2430_EN_MDM_INTC_SHIFT			11
++#define OMAP2430_EN_MDM_INTC				(1 << 11)
++#define OMAP2430_EN_USBHS_SHIFT				6
++#define OMAP2430_EN_USBHS				(1 << 6)
 +
-+#define RVII_CM_CLKSEL1_CORE_VAL	RVII_CLKSEL_USB | RVII_CLKSEL_SSI | \
-+					RVII_CLKSEL_VLYNQ | RVII_CLKSEL_DSS2 | \
-+					RVII_CLKSEL_DSS1 | RVII_CLKSEL_L4 | RVII_CLKSEL_L3
++/* CM_IDLEST1_CORE, PM_WKST1_CORE shared bits */
++#define OMAP2420_ST_MMC					(1 << 26)
++#define OMAP24XX_ST_UART2				(1 << 22)
++#define OMAP24XX_ST_UART1				(1 << 21)
++#define OMAP24XX_ST_MCSPI2				(1 << 18)
++#define OMAP24XX_ST_MCSPI1				(1 << 17)
++#define OMAP24XX_ST_GPT12				(1 << 14)
++#define OMAP24XX_ST_GPT11				(1 << 13)
++#define OMAP24XX_ST_GPT10				(1 << 12)
++#define OMAP24XX_ST_GPT9				(1 << 11)
++#define OMAP24XX_ST_GPT8				(1 << 10)
++#define OMAP24XX_ST_GPT7				(1 << 9)
++#define OMAP24XX_ST_GPT6				(1 << 8)
++#define OMAP24XX_ST_GPT5				(1 << 7)
++#define OMAP24XX_ST_GPT4				(1 << 6)
++#define OMAP24XX_ST_GPT3				(1 << 5)
++#define OMAP24XX_ST_GPT2				(1 << 4)
++#define OMAP2420_ST_VLYNQ				(1 << 3)
 +
-+#define RVII_CLKSEL_MPU			(1 << 0) /* all divide by 1 */
-+#define RVII_CM_CLKSEL_MPU_VAL		RVII_CLKSEL_MPU
++/* CM_IDLEST2_CORE, PM_WKST2_CORE shared bits */
++#define OMAP2430_ST_MDM_INTC				(1 << 11)
++#define OMAP2430_ST_GPIO5				(1 << 10)
++#define OMAP2430_ST_MCSPI3				(1 << 9)
++#define OMAP2430_ST_MMCHS2				(1 << 8)
++#define OMAP2430_ST_MMCHS1				(1 << 7)
++#define OMAP2430_ST_USBHS				(1 << 6)
++#define OMAP24XX_ST_UART3				(1 << 2)
++#define OMAP24XX_ST_USB					(1 << 0)
 +
-+#define RVII_CLKSEL_DSP			(1 << 0)
-+#define RVII_CLKSEL_DSP_IF		(1 << 5)
-+#define RVII_SYNC_DSP			(0 << 7)
-+#define RVII_CLKSEL_IVA			(1 << 8)
-+#define RVII_SYNC_IVA			(0 << 13)
-+#define RVII_CM_CLKSEL_DSP_VAL		RVII_SYNC_IVA | RVII_CLKSEL_IVA | RVII_SYNC_DSP | \
-+					RVII_CLKSEL_DSP_IF | RVII_CLKSEL_DSP
++/* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
++#define OMAP24XX_EN_GPIOS_SHIFT				2
++#define OMAP24XX_EN_GPIOS				(1 << 2)
++#define OMAP24XX_EN_GPT1_SHIFT				0
++#define OMAP24XX_EN_GPT1				(1 << 0)
 +
-+#define RVII_CLKSEL_GFX			(1 << 0)
-+#define RVII_CM_CLKSEL_GFX_VAL		RVII_CLKSEL_GFX
++/* PM_WKST_WKUP, CM_IDLEST_WKUP shared bits */
++#define OMAP24XX_ST_GPIOS				(1 << 2)
++#define OMAP24XX_ST_GPT1				(1 << 0)
 +
-+/*-------------------------------------------------------------------------
-+ * 2430 Target modes: Along with each configuration the CPU has several
-+ * modes which goes along with them. Modes mainly are the addition of
-+ * describe DPLL combinations to go along with a ratio.
-+ *-------------------------------------------------------------------------*/
++/* CM_IDLEST_MDM and PM_WKST_MDM shared bits */
++#define OMAP2430_ST_MDM					(1 << 0)
 +
-+/* Hardware governed */
-+#define MX_48M_SRC			(0 << 3)
-+#define MX_54M_SRC			(0 << 5)
-+#define MX_APLLS_CLIKIN_12		(3 << 23)
-+#define MX_APLLS_CLIKIN_13		(2 << 23)
-+#define MX_APLLS_CLIKIN_19_2		(0 << 23)
++
++/* 3430 register bits shared between CM & PRM registers */
++
++/* CM_REVISION, PRM_REVISION shared bits */
++#define OMAP3430_REV_SHIFT				0
++#define OMAP3430_REV_MASK				(0xff << 0)
++
++/* CM_SYSCONFIG, PRM_SYSCONFIG shared bits */
++#define OMAP3430_AUTOIDLE				(1 << 0)
++
++/* CM_FCLKEN1_CORE, CM_ICLKEN1_CORE, PM_WKEN1_CORE shared bits */
++#define OMAP3430_EN_MMC2				(1 << 25)
++#define OMAP3430_EN_MMC2_SHIFT				25
++#define OMAP3430_EN_MMC1				(1 << 24)
++#define OMAP3430_EN_MMC1_SHIFT				24
++#define OMAP3430_EN_MCSPI4				(1 << 21)
++#define OMAP3430_EN_MCSPI4_SHIFT			21
++#define OMAP3430_EN_MCSPI3				(1 << 20)
++#define OMAP3430_EN_MCSPI3_SHIFT			20
++#define OMAP3430_EN_MCSPI2				(1 << 19)
++#define OMAP3430_EN_MCSPI2_SHIFT			19
++#define OMAP3430_EN_MCSPI1				(1 << 18)
++#define OMAP3430_EN_MCSPI1_SHIFT			18
++#define OMAP3430_EN_I2C3				(1 << 17)
++#define OMAP3430_EN_I2C3_SHIFT				17
++#define OMAP3430_EN_I2C2				(1 << 16)
++#define OMAP3430_EN_I2C2_SHIFT				16
++#define OMAP3430_EN_I2C1				(1 << 15)
++#define OMAP3430_EN_I2C1_SHIFT				15
++#define OMAP3430_EN_UART2				(1 << 14)
++#define OMAP3430_EN_UART2_SHIFT				14
++#define OMAP3430_EN_UART1				(1 << 13)
++#define OMAP3430_EN_UART1_SHIFT				13
++#define OMAP3430_EN_GPT11				(1 << 12)
++#define OMAP3430_EN_GPT11_SHIFT				12
++#define OMAP3430_EN_GPT10				(1 << 11)
++#define OMAP3430_EN_GPT10_SHIFT				11
++#define OMAP3430_EN_MCBSP5				(1 << 10)
++#define OMAP3430_EN_MCBSP5_SHIFT			10
++#define OMAP3430_EN_MCBSP1				(1 << 9)
++#define OMAP3430_EN_MCBSP1_SHIFT			9
++#define OMAP3430_EN_FSHOSTUSB				(1 << 5)
++#define OMAP3430_EN_FSHOSTUSB_SHIFT			5
++#define OMAP3430_EN_D2D					(1 << 3)
++#define OMAP3430_EN_D2D_SHIFT				3
++
++/* CM_ICLKEN1_CORE, PM_WKEN1_CORE shared bits */
++#define OMAP3430_EN_HSOTGUSB				(1 << 4)
++#define OMAP3430_EN_HSOTGUSB_SHIFT				4
++
++/* PM_WKST1_CORE, CM_IDLEST1_CORE shared bits */
++#define OMAP3430_ST_MMC2				(1 << 25)
++#define OMAP3430_ST_MMC1				(1 << 24)
++#define OMAP3430_ST_MCSPI4				(1 << 21)
++#define OMAP3430_ST_MCSPI3				(1 << 20)
++#define OMAP3430_ST_MCSPI2				(1 << 19)
++#define OMAP3430_ST_MCSPI1				(1 << 18)
++#define OMAP3430_ST_I2C3				(1 << 17)
++#define OMAP3430_ST_I2C2				(1 << 16)
++#define OMAP3430_ST_I2C1				(1 << 15)
++#define OMAP3430_ST_UART2				(1 << 14)
++#define OMAP3430_ST_UART1				(1 << 13)
++#define OMAP3430_ST_GPT11				(1 << 12)
++#define OMAP3430_ST_GPT10				(1 << 11)
++#define OMAP3430_ST_MCBSP5				(1 << 10)
++#define OMAP3430_ST_MCBSP1				(1 << 9)
++#define OMAP3430_ST_FSHOSTUSB				(1 << 5)
++#define OMAP3430_ST_HSOTGUSB				(1 << 4)
++#define OMAP3430_ST_D2D					(1 << 3)
++
++/* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
++#define OMAP3430_EN_GPIO1				(1 << 3)
++#define OMAP3430_EN_GPIO1_SHIFT				3
++#define OMAP3430_EN_GPT1				(1 << 0)
++#define OMAP3430_EN_GPT1_SHIFT				0
++
++/* CM_FCLKEN_WKUP, PM_WKEN_WKUP shared bits */
++#define OMAP3430_EN_SR2					(1 << 7)
++#define OMAP3430_EN_SR2_SHIFT				7
++#define OMAP3430_EN_SR1					(1 << 6)
++#define OMAP3430_EN_SR1_SHIFT				6
++
++/* CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
++#define OMAP3430_EN_GPT12				(1 << 1)
++#define OMAP3430_EN_GPT12_SHIFT				1
++
++/* CM_IDLEST_WKUP, PM_WKST_WKUP shared bits */
++#define OMAP3430_ST_SR2					(1 << 7)
++#define OMAP3430_ST_SR1					(1 << 6)
++#define OMAP3430_ST_GPIO1				(1 << 3)
++#define OMAP3430_ST_GPT12				(1 << 1)
++#define OMAP3430_ST_GPT1				(1 << 0)
 +
 +/*
-+ * 2430 - standalone, 2*ref*M/(n+1), M/N is for exactness not relock speed
-+ * #2	(ratio1) baseport-target
-+ * #5a	(ratio1) baseport-target, target DPLL = 266*2 = 532MHz
++ * CM_SLEEPDEP_GFX, CM_SLEEPDEP_DSS, CM_SLEEPDEP_CAM,
++ * CM_SLEEPDEP_PER, PM_WKDEP_IVA2, PM_WKDEP_GFX,
++ * PM_WKDEP_DSS, PM_WKDEP_CAM, PM_WKDEP_PER, PM_WKDEP_NEON shared bits
 + */
-+#define M5A_DPLL_MULT_12		(133 << 12)
-+#define M5A_DPLL_DIV_12			(5 << 8)
-+#define M5A_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					M5A_DPLL_DIV_12 | M5A_DPLL_MULT_12 | \
-+					MX_APLLS_CLIKIN_12
-+#define M5A_DPLL_MULT_13		(266 << 12)
-+#define M5A_DPLL_DIV_13			(12 << 8)
-+#define M5A_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					M5A_DPLL_DIV_13 | M5A_DPLL_MULT_13 | \
-+					MX_APLLS_CLIKIN_13
-+#define M5A_DPLL_MULT_19		(180 << 12)
-+#define M5A_DPLL_DIV_19			(12 << 8)
-+#define M5A_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					M5A_DPLL_DIV_19 | M5A_DPLL_MULT_19 | \
-+					MX_APLLS_CLIKIN_19_2
-+/* #5b	(ratio1) target DPLL = 200*2 = 400MHz */
-+#define M5B_DPLL_MULT_12		(50 << 12)
-+#define M5B_DPLL_DIV_12			(2 << 8)
-+#define M5B_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					M5B_DPLL_DIV_12 | M5B_DPLL_MULT_12 | \
-+					MX_APLLS_CLIKIN_12
-+#define M5B_DPLL_MULT_13		(200 << 12)
-+#define M5B_DPLL_DIV_13			(12 << 8)
++#define OMAP3430_EN_MPU					(1 << 1)
++#define OMAP3430_EN_MPU_SHIFT				1
 +
-+#define M5B_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					M5B_DPLL_DIV_13 | M5B_DPLL_MULT_13 | \
-+					MX_APLLS_CLIKIN_13
-+#define M5B_DPLL_MULT_19		(125 << 12)
-+#define M5B_DPLL_DIV_19			(31 << 8)
-+#define M5B_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					M5B_DPLL_DIV_19 | M5B_DPLL_MULT_19 | \
-+					MX_APLLS_CLIKIN_19_2
-+/*
-+ * #4	(ratio2)
-+ * #3	(ratio2) baseport-target, target DPLL = 330*2 = 660MHz
-+ */
-+#define M3_DPLL_MULT_12			(55 << 12)
-+#define M3_DPLL_DIV_12			(1 << 8)
-+#define M3_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					M3_DPLL_DIV_12 | M3_DPLL_MULT_12 | \
-+					MX_APLLS_CLIKIN_12
-+#define M3_DPLL_MULT_13			(330 << 12)
-+#define M3_DPLL_DIV_13			(12 << 8)
-+#define M3_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					M3_DPLL_DIV_13 | M3_DPLL_MULT_13 | \
-+					MX_APLLS_CLIKIN_13
-+#define M3_DPLL_MULT_19			(275 << 12)
-+#define M3_DPLL_DIV_19			(15 << 8)
-+#define M3_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					M3_DPLL_DIV_19 | M3_DPLL_MULT_19 | \
-+					MX_APLLS_CLIKIN_19_2
-+/* boot (boot) */
-+#define MB_DPLL_MULT			(1 << 12)
-+#define MB_DPLL_DIV			(0 << 8)
-+#define MB_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | MB_DPLL_DIV |\
-+					MB_DPLL_MULT | MX_APLLS_CLIKIN_12
++/* CM_FCLKEN_PER, CM_ICLKEN_PER, PM_WKEN_PER shared bits */
++#define OMAP3430_EN_GPIO6				(1 << 17)
++#define OMAP3430_EN_GPIO6_SHIFT				17
++#define OMAP3430_EN_GPIO5				(1 << 16)
++#define OMAP3430_EN_GPIO5_SHIFT				16
++#define OMAP3430_EN_GPIO4				(1 << 15)
++#define OMAP3430_EN_GPIO4_SHIFT				15
++#define OMAP3430_EN_GPIO3				(1 << 14)
++#define OMAP3430_EN_GPIO3_SHIFT				14
++#define OMAP3430_EN_GPIO2				(1 << 13)
++#define OMAP3430_EN_GPIO2_SHIFT				13
++#define OMAP3430_EN_UART3				(1 << 11)
++#define OMAP3430_EN_UART3_SHIFT				11
++#define OMAP3430_EN_GPT9				(1 << 10)
++#define OMAP3430_EN_GPT9_SHIFT				10
++#define OMAP3430_EN_GPT8				(1 << 9)
++#define OMAP3430_EN_GPT8_SHIFT				9
++#define OMAP3430_EN_GPT7				(1 << 8)
++#define OMAP3430_EN_GPT7_SHIFT				8
++#define OMAP3430_EN_GPT6				(1 << 7)
++#define OMAP3430_EN_GPT6_SHIFT				7
++#define OMAP3430_EN_GPT5				(1 << 6)
++#define OMAP3430_EN_GPT5_SHIFT				6
++#define OMAP3430_EN_GPT4				(1 << 5)
++#define OMAP3430_EN_GPT4_SHIFT				5
++#define OMAP3430_EN_GPT3				(1 << 4)
++#define OMAP3430_EN_GPT3_SHIFT				4
++#define OMAP3430_EN_GPT2				(1 << 3)
++#define OMAP3430_EN_GPT2_SHIFT				3
 +
-+#define MB_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | MB_DPLL_DIV |\
-+					MB_DPLL_MULT | MX_APLLS_CLIKIN_13
++/* CM_FCLKEN_PER, CM_ICLKEN_PER, PM_WKEN_PER, PM_WKST_PER shared bits */
++/* XXX Possible TI documentation bug: should the PM_WKST_PER EN_* bits
++ * be ST_* bits instead? */
++#define OMAP3430_EN_MCBSP4				(1 << 2)
++#define OMAP3430_EN_MCBSP4_SHIFT			2
++#define OMAP3430_EN_MCBSP3				(1 << 1)
++#define OMAP3430_EN_MCBSP3_SHIFT			1
++#define OMAP3430_EN_MCBSP2				(1 << 0)
++#define OMAP3430_EN_MCBSP2_SHIFT			0
 +
-+#define MB_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | MB_DPLL_DIV |\
-+					MB_DPLL_MULT | MX_APLLS_CLIKIN_19
++/* CM_IDLEST_PER, PM_WKST_PER shared bits */
++#define OMAP3430_ST_GPIO6				(1 << 17)
++#define OMAP3430_ST_GPIO5				(1 << 16)
++#define OMAP3430_ST_GPIO4				(1 << 15)
++#define OMAP3430_ST_GPIO3				(1 << 14)
++#define OMAP3430_ST_GPIO2				(1 << 13)
++#define OMAP3430_ST_UART3				(1 << 11)
++#define OMAP3430_ST_GPT9				(1 << 10)
++#define OMAP3430_ST_GPT8				(1 << 9)
++#define OMAP3430_ST_GPT7				(1 << 8)
++#define OMAP3430_ST_GPT6				(1 << 7)
++#define OMAP3430_ST_GPT5				(1 << 6)
++#define OMAP3430_ST_GPT4				(1 << 5)
++#define OMAP3430_ST_GPT3				(1 << 4)
++#define OMAP3430_ST_GPT2				(1 << 3)
 +
-+/*
-+ * 2430 - chassis (sedna)
-+ * 165 (ratio1) same as above #2
-+ * 150 (ratio1)
-+ * 133 (ratio2) same as above #4
-+ * 110 (ratio2) same as above #3
-+ * 104 (ratio2)
-+ * boot (boot)
-+ */
++/* CM_SLEEPDEP_PER, PM_WKDEP_IVA2, PM_WKDEP_MPU, PM_WKDEP_PER shared bits */
++#define OMAP3430_EN_CORE				(1 << 0)
 +
-+/*
-+ * 2420 Equivalent - mode registers
-+ * PRCM II , target DPLL = 2*300MHz = 600MHz
-+ */
-+#define MII_DPLL_MULT_12		(50 << 12)
-+#define MII_DPLL_DIV_12			(1 << 8)
-+#define MII_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					MII_DPLL_DIV_12 | MII_DPLL_MULT_12 | \
-+					MX_APLLS_CLIKIN_12
-+#define MII_DPLL_MULT_13		(300 << 12)
-+#define MII_DPLL_DIV_13			(12 << 8)
-+#define MII_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					MII_DPLL_DIV_13 | MII_DPLL_MULT_13 | \
-+					MX_APLLS_CLIKIN_13
++#endif
 +
-+/* PRCM III target DPLL = 2*266 = 532MHz*/
-+#define MIII_DPLL_MULT_12		(133 << 12)
-+#define MIII_DPLL_DIV_12		(5 << 8)
-+#define MIII_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					MIII_DPLL_DIV_12 | MIII_DPLL_MULT_12 | \
-+					MX_APLLS_CLIKIN_12
-+#define MIII_DPLL_MULT_13		(266 << 12)
-+#define MIII_DPLL_DIV_13		(12 << 8)
-+#define MIII_CM_CLKSEL1_PLL_13_VAL	MX_48M_SRC | MX_54M_SRC | \
-+					MIII_DPLL_DIV_13 | MIII_DPLL_MULT_13 | \
-+					MX_APLLS_CLIKIN_13
-+
-+/* PRCM VII (boot bypass) */
-+#define MVII_CM_CLKSEL1_PLL_12_VAL	MB_CM_CLKSEL1_PLL_12_VAL
-+#define MVII_CM_CLKSEL1_PLL_13_VAL	MB_CM_CLKSEL1_PLL_13_VAL
-+
-+/* High and low operation value */
-+#define MX_CLKSEL2_PLL_2x_VAL		(2 << 0)
-+#define MX_CLKSEL2_PLL_1x_VAL		(1 << 0)
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index 90f5305..01ab3bc 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -16,6 +16,7 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/clk.h>
++#include <linux/io.h>
+ 
+ #include "prcm-regs.h"
+ 
+diff --git a/arch/arm/mach-omap2/prm-regbits-24xx.h b/arch/arm/mach-omap2/prm-regbits-24xx.h
+new file mode 100644
+index 0000000..c6d17a3
+--- /dev/null
++++ b/arch/arm/mach-omap2/prm-regbits-24xx.h
+@@ -0,0 +1,279 @@
++#ifndef __ARCH_ARM_MACH_OMAP2_PRM_REGBITS_24XX_H
++#define __ARCH_ARM_MACH_OMAP2_PRM_REGBITS_24XX_H
 +
 +/*
++ * OMAP24XX Power/Reset Management register bits
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Copyright (C) 2007 Nokia Corporation
++ *
++ * Written by Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "prm.h"
++
++/* Bits shared between registers */
++
++/* PRCM_IRQSTATUS_MPU, PM_IRQSTATUS_DSP, PRCM_IRQSTATUS_IVA shared bits */
++#define OMAP24XX_VOLTTRANS_ST				(1 << 2)
++#define OMAP24XX_WKUP2_ST				(1 << 1)
++#define OMAP24XX_WKUP1_ST				(1 << 0)
++
++/* PRCM_IRQENABLE_MPU, PM_IRQENABLE_DSP, PRCM_IRQENABLE_IVA shared bits */
++#define OMAP24XX_VOLTTRANS_EN				(1 << 2)
++#define OMAP24XX_WKUP2_EN				(1 << 1)
++#define OMAP24XX_WKUP1_EN				(1 << 0)
++
++/* PM_WKDEP_GFX, PM_WKDEP_MPU, PM_WKDEP_DSP, PM_WKDEP_MDM shared bits */
++#define OMAP24XX_EN_MPU					(1 << 1)
++#define OMAP24XX_EN_CORE				(1 << 0)
++
++/*
++ * PM_PWSTCTRL_MPU, PM_PWSTCTRL_GFX, PM_PWSTCTRL_DSP, PM_PWSTCTRL_MDM
++ * shared bits
++ */
++#define OMAP24XX_MEMONSTATE_SHIFT			10
++#define OMAP24XX_MEMONSTATE_MASK			(0x3 << 10)
++#define OMAP24XX_MEMRETSTATE				(1 << 3)
++
++/* PM_PWSTCTRL_GFX, PM_PWSTCTRL_DSP, PM_PWSTCTRL_MDM shared bits */
++#define OMAP24XX_FORCESTATE				(1 << 18)
++
++/*
++ * PM_PWSTST_CORE, PM_PWSTST_GFX, PM_PWSTST_MPU, PM_PWSTST_DSP,
++ * PM_PWSTST_MDM shared bits
++ */
++#define OMAP24XX_CLKACTIVITY				(1 << 19)
++
++/* PM_PWSTST_MPU, PM_PWSTST_CORE, PM_PWSTST_DSP shared bits */
++#define OMAP24XX_LASTSTATEENTERED_SHIFT			4
++#define OMAP24XX_LASTSTATEENTERED_MASK			(0x3 << 4)
++
++/* PM_PWSTST_MPU and PM_PWSTST_DSP shared bits */
++#define OMAP2430_MEMSTATEST_SHIFT			10
++#define OMAP2430_MEMSTATEST_MASK			(0x3 << 10)
++
++/* PM_PWSTST_GFX, PM_PWSTST_DSP, PM_PWSTST_MDM shared bits */
++#define OMAP24XX_POWERSTATEST_SHIFT			0
++#define OMAP24XX_POWERSTATEST_MASK			(0x3 << 0)
++
++
++/* Bits specific to each register */
++
++/* PRCM_REVISION */
++#define OMAP24XX_REV_SHIFT				0
++#define OMAP24XX_REV_MASK				(0xff << 0)
++
++/* PRCM_SYSCONFIG */
++#define OMAP24XX_AUTOIDLE				(1 << 0)
++
++/* PRCM_IRQSTATUS_MPU specific bits */
++#define OMAP2430_DPLL_RECAL_ST				(1 << 6)
++#define OMAP24XX_TRANSITION_ST				(1 << 5)
++#define OMAP24XX_EVGENOFF_ST				(1 << 4)
++#define OMAP24XX_EVGENON_ST				(1 << 3)
++
++/* PRCM_IRQENABLE_MPU specific bits */
++#define OMAP2430_DPLL_RECAL_EN				(1 << 6)
++#define OMAP24XX_TRANSITION_EN				(1 << 5)
++#define OMAP24XX_EVGENOFF_EN				(1 << 4)
++#define OMAP24XX_EVGENON_EN				(1 << 3)
++
++/* PRCM_VOLTCTRL */
++#define OMAP24XX_AUTO_EXTVOLT				(1 << 15)
++#define OMAP24XX_FORCE_EXTVOLT				(1 << 14)
++#define OMAP24XX_SETOFF_LEVEL_SHIFT			12
++#define OMAP24XX_SETOFF_LEVEL_MASK			(0x3 << 12)
++#define OMAP24XX_MEMRETCTRL				(1 << 8)
++#define OMAP24XX_SETRET_LEVEL_SHIFT			6
++#define OMAP24XX_SETRET_LEVEL_MASK			(0x3 << 6)
++#define OMAP24XX_VOLT_LEVEL_SHIFT			0
++#define OMAP24XX_VOLT_LEVEL_MASK			(0x3 << 0)
++
++/* PRCM_VOLTST */
++#define OMAP24XX_ST_VOLTLEVEL_SHIFT			0
++#define OMAP24XX_ST_VOLTLEVEL_MASK			(0x3 << 0)
++
++/* PRCM_CLKSRC_CTRL specific bits */
++
++/* PRCM_CLKOUT_CTRL */
++#define OMAP2420_CLKOUT2_EN_SHIFT			15
++#define OMAP2420_CLKOUT2_EN				(1 << 15)
++#define OMAP2420_CLKOUT2_DIV_SHIFT			11
++#define OMAP2420_CLKOUT2_DIV_MASK			(0x7 << 11)
++#define OMAP2420_CLKOUT2_SOURCE_SHIFT			8
++#define OMAP2420_CLKOUT2_SOURCE_MASK			(0x3 << 8)
++#define OMAP24XX_CLKOUT_EN_SHIFT			7
++#define OMAP24XX_CLKOUT_EN				(1 << 7)
++#define OMAP24XX_CLKOUT_DIV_SHIFT			3
++#define OMAP24XX_CLKOUT_DIV_MASK			(0x7 << 3)
++#define OMAP24XX_CLKOUT_SOURCE_SHIFT			0
++#define OMAP24XX_CLKOUT_SOURCE_MASK			(0x3 << 0)
++
++/* PRCM_CLKEMUL_CTRL */
++#define OMAP24XX_EMULATION_EN_SHIFT			0
++#define OMAP24XX_EMULATION_EN				(1 << 0)
++
++/* PRCM_CLKCFG_CTRL */
++#define OMAP24XX_VALID_CONFIG				(1 << 0)
++
++/* PRCM_CLKCFG_STATUS */
++#define OMAP24XX_CONFIG_STATUS				(1 << 0)
++
++/* PRCM_VOLTSETUP specific bits */
++
++/* PRCM_CLKSSETUP specific bits */
++
++/* PRCM_POLCTRL */
++#define OMAP2420_CLKOUT2_POL				(1 << 10)
++#define OMAP24XX_CLKOUT_POL				(1 << 9)
++#define OMAP24XX_CLKREQ_POL				(1 << 8)
++#define OMAP2430_USE_POWEROK				(1 << 2)
++#define OMAP2430_POWEROK_POL				(1 << 1)
++#define OMAP24XX_EXTVOL_POL				(1 << 0)
++
++/* RM_RSTST_MPU specific bits */
++/* 2430 calls GLOBALWMPU_RST "GLOBALWARM_RST" instead */
++
++/* PM_WKDEP_MPU specific bits */
++#define OMAP2430_PM_WKDEP_MPU_EN_MDM			(1 << 5)
++#define OMAP24XX_PM_WKDEP_MPU_EN_DSP			(1 << 2)
++
++/* PM_EVGENCTRL_MPU specific bits */
++
++/* PM_EVEGENONTIM_MPU specific bits */
++
++/* PM_EVEGENOFFTIM_MPU specific bits */
++
++/* PM_PWSTCTRL_MPU specific bits */
++#define OMAP2430_FORCESTATE				(1 << 18)
++
++/* PM_PWSTST_MPU specific bits */
++/* INTRANSITION, CLKACTIVITY, POWERSTATE, MEMSTATEST are 2430 only */
++
++/* PM_WKEN1_CORE specific bits */
++
++/* PM_WKEN2_CORE specific bits */
++
++/* PM_WKST1_CORE specific bits*/
++
++/* PM_WKST2_CORE specific bits */
++
++/* PM_WKDEP_CORE specific bits*/
++#define OMAP2430_PM_WKDEP_CORE_EN_MDM			(1 << 5)
++#define OMAP24XX_PM_WKDEP_CORE_EN_GFX			(1 << 3)
++#define OMAP24XX_PM_WKDEP_CORE_EN_DSP			(1 << 2)
++
++/* PM_PWSTCTRL_CORE specific bits */
++#define OMAP24XX_MEMORYCHANGE				(1 << 20)
++#define OMAP24XX_MEM3ONSTATE_SHIFT			14
++#define OMAP24XX_MEM3ONSTATE_MASK			(0x3 << 14)
++#define OMAP24XX_MEM2ONSTATE_SHIFT			12
++#define OMAP24XX_MEM2ONSTATE_MASK			(0x3 << 12)
++#define OMAP24XX_MEM1ONSTATE_SHIFT			10
++#define OMAP24XX_MEM1ONSTATE_MASK			(0x3 << 10)
++#define OMAP24XX_MEM3RETSTATE				(1 << 5)
++#define OMAP24XX_MEM2RETSTATE				(1 << 4)
++#define OMAP24XX_MEM1RETSTATE				(1 << 3)
++
++/* PM_PWSTST_CORE specific bits */
++#define OMAP24XX_MEM3STATEST_SHIFT			14
++#define OMAP24XX_MEM3STATEST_MASK			(0x3 << 14)
++#define OMAP24XX_MEM2STATEST_SHIFT			12
++#define OMAP24XX_MEM2STATEST_MASK			(0x3 << 12)
++#define OMAP24XX_MEM1STATEST_SHIFT			10
++#define OMAP24XX_MEM1STATEST_MASK			(0x3 << 10)
++
++/* RM_RSTCTRL_GFX */
++#define OMAP24XX_GFX_RST				(1 << 0)
++
++/* RM_RSTST_GFX specific bits */
++#define OMAP24XX_GFX_SW_RST				(1 << 4)
++
++/* PM_PWSTCTRL_GFX specific bits */
++
++/* PM_WKDEP_GFX specific bits */
++/* 2430 often calls EN_WAKEUP "EN_WKUP" */
++
++/* RM_RSTCTRL_WKUP specific bits */
++
++/* RM_RSTTIME_WKUP specific bits */
++
++/* RM_RSTST_WKUP specific bits */
++/* 2430 calls EXTWMPU_RST "EXTWARM_RST" and GLOBALWMPU_RST "GLOBALWARM_RST" */
++#define OMAP24XX_EXTWMPU_RST				(1 << 6)
++#define OMAP24XX_SECU_WD_RST				(1 << 5)
++#define OMAP24XX_MPU_WD_RST				(1 << 4)
++#define OMAP24XX_SECU_VIOL_RST				(1 << 3)
++
++/* PM_WKEN_WKUP specific bits */
++
++/* PM_WKST_WKUP specific bits */
++
++/* RM_RSTCTRL_DSP */
++#define OMAP2420_RST_IVA				(1 << 8)
++#define OMAP24XX_RST2_DSP				(1 << 1)
++#define OMAP24XX_RST1_DSP				(1 << 0)
++
++/* RM_RSTST_DSP specific bits */
++/* 2430 calls GLOBALWMPU_RST "GLOBALWARM_RST" */
++#define OMAP2420_IVA_SW_RST				(1 << 8)
++#define OMAP24XX_DSP_SW_RST2				(1 << 5)
++#define OMAP24XX_DSP_SW_RST1				(1 << 4)
++
++/* PM_WKDEP_DSP specific bits */
++
++/* PM_PWSTCTRL_DSP specific bits */
++/* 2430 only: MEMONSTATE, MEMRETSTATE */
++#define OMAP2420_MEMIONSTATE_SHIFT			12
++#define OMAP2420_MEMIONSTATE_MASK			(0x3 << 12)
++#define OMAP2420_MEMIRETSTATE				(1 << 4)
++
++/* PM_PWSTST_DSP specific bits */
++/* MEMSTATEST is 2430 only */
++#define OMAP2420_MEMISTATEST_SHIFT			12
++#define OMAP2420_MEMISTATEST_MASK			(0x3 << 12)
++
++/* PRCM_IRQSTATUS_DSP specific bits */
++
++/* PRCM_IRQENABLE_DSP specific bits */
++
++/* RM_RSTCTRL_MDM */
++/* 2430 only */
++#define OMAP2430_PWRON1_MDM				(1 << 1)
++#define OMAP2430_RST1_MDM				(1 << 0)
++
++/* RM_RSTST_MDM specific bits */
++/* 2430 only */
++#define OMAP2430_MDM_SECU_VIOL				(1 << 6)
++#define OMAP2430_MDM_SW_PWRON1				(1 << 5)
++#define OMAP2430_MDM_SW_RST1				(1 << 4)
++
++/* PM_WKEN_MDM */
++/* 2430 only */
++#define OMAP2430_PM_WKEN_MDM_EN_MDM			(1 << 0)
++
++/* PM_WKST_MDM specific bits */
++/* 2430 only */
++
++/* PM_WKDEP_MDM specific bits */
++/* 2430 only */
++
++/* PM_PWSTCTRL_MDM specific bits */
++/* 2430 only */
++#define OMAP2430_KILLDOMAINWKUP				(1 << 19)
++
++/* PM_PWSTST_MDM specific bits */
++/* 2430 only */
++
++/* PRCM_IRQSTATUS_IVA */
++/* 2420 only */
++
++/* PRCM_IRQENABLE_IVA */
++/* 2420 only */
++
++#endif
+diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
+new file mode 100644
+index 0000000..b4686bc
+--- /dev/null
++++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
+@@ -0,0 +1,582 @@
++#ifndef __ARCH_ARM_MACH_OMAP2_PRM_REGBITS_34XX_H
++#define __ARCH_ARM_MACH_OMAP2_PRM_REGBITS_34XX_H
++
++/*
++ * OMAP3430 Power/Reset Management register bits
++ *
++ * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * Copyright (C) 2007-2008 Nokia Corporation
++ *
++ * Written by Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "prm.h"
++
++/* Shared register bits */
++
++/* PRM_VC_CMD_VAL_0, PRM_VC_CMD_VAL_1 shared bits */
++#define OMAP3430_ON_SHIFT				24
++#define OMAP3430_ON_MASK				(0xff << 24)
++#define OMAP3430_ONLP_SHIFT				16
++#define OMAP3430_ONLP_MASK				(0xff << 16)
++#define OMAP3430_RET_SHIFT				8
++#define OMAP3430_RET_MASK				(0xff << 8)
++#define OMAP3430_OFF_SHIFT				0
++#define OMAP3430_OFF_MASK				(0xff << 0)
++
++/* PRM_VP1_CONFIG, PRM_VP2_CONFIG shared bits */
++#define OMAP3430_ERROROFFSET_SHIFT			24
++#define OMAP3430_ERROROFFSET_MASK			(0xff << 24)
++#define OMAP3430_ERRORGAIN_SHIFT			16
++#define OMAP3430_ERRORGAIN_MASK				(0xff << 16)
++#define OMAP3430_INITVOLTAGE_SHIFT			8
++#define OMAP3430_INITVOLTAGE_MASK			(0xff << 8)
++#define OMAP3430_TIMEOUTEN				(1 << 3)
++#define OMAP3430_INITVDD				(1 << 2)
++#define OMAP3430_FORCEUPDATE				(1 << 1)
++#define OMAP3430_VPENABLE				(1 << 0)
++
++/* PRM_VP1_VSTEPMIN, PRM_VP2_VSTEPMIN shared bits */
++#define OMAP3430_SMPSWAITTIMEMIN_SHIFT			8
++#define OMAP3430_SMPSWAITTIMEMIN_MASK			(0xffff << 8)
++#define OMAP3430_VSTEPMIN_SHIFT				0
++#define OMAP3430_VSTEPMIN_MASK				(0xff << 0)
++
++/* PRM_VP1_VSTEPMAX, PRM_VP2_VSTEPMAX shared bits */
++#define OMAP3430_SMPSWAITTIMEMAX_SHIFT			8
++#define OMAP3430_SMPSWAITTIMEMAX_MASK			(0xffff << 8)
++#define OMAP3430_VSTEPMAX_SHIFT				0
++#define OMAP3430_VSTEPMAX_MASK				(0xff << 0)
++
++/* PRM_VP1_VLIMITTO, PRM_VP2_VLIMITTO shared bits */
++#define OMAP3430_VDDMAX_SHIFT				24
++#define OMAP3430_VDDMAX_MASK				(0xff << 24)
++#define OMAP3430_VDDMIN_SHIFT				16
++#define OMAP3430_VDDMIN_MASK				(0xff << 16)
++#define OMAP3430_TIMEOUT_SHIFT				0
++#define OMAP3430_TIMEOUT_MASK				(0xffff << 0)
++
++/* PRM_VP1_VOLTAGE, PRM_VP2_VOLTAGE shared bits */
++#define OMAP3430_VPVOLTAGE_SHIFT			0
++#define OMAP3430_VPVOLTAGE_MASK				(0xff << 0)
++
++/* PRM_VP1_STATUS, PRM_VP2_STATUS shared bits */
++#define OMAP3430_VPINIDLE				(1 << 0)
++
++/* PM_WKDEP_IVA2, PM_WKDEP_MPU shared bits */
++#define OMAP3430_EN_PER					(1 << 7)
++
++/* PM_PWSTCTRL_IVA2, PM_PWSTCTRL_MPU, PM_PWSTCTRL_CORE shared bits */
++#define OMAP3430_MEMORYCHANGE				(1 << 3)
++
++/* PM_PWSTST_IVA2, PM_PWSTST_CORE shared bits */
++#define OMAP3430_LOGICSTATEST				(1 << 2)
++
++/* PM_PREPWSTST_IVA2, PM_PREPWSTST_CORE shared bits */
++#define OMAP3430_LASTLOGICSTATEENTERED				(1 << 2)
++
++/*
++ * PM_PREPWSTST_IVA2, PM_PREPWSTST_MPU, PM_PREPWSTST_CORE,
++ * PM_PREPWSTST_GFX, PM_PREPWSTST_DSS, PM_PREPWSTST_CAM,
++ * PM_PREPWSTST_PER, PM_PREPWSTST_NEON shared bits
++ */
++#define OMAP3430_LASTPOWERSTATEENTERED_SHIFT			0
++#define OMAP3430_LASTPOWERSTATEENTERED_MASK			(0x3 << 0)
++
++/* PRM_IRQSTATUS_IVA2, PRM_IRQSTATUS_MPU shared bits */
++#define OMAP3430_WKUP_ST				(1 << 0)
++
++/* PRM_IRQENABLE_IVA2, PRM_IRQENABLE_MPU shared bits */
++#define OMAP3430_WKUP_EN					(1 << 0)
++
++/* PM_MPUGRPSEL1_CORE, PM_IVA2GRPSEL1_CORE shared bits */
++#define OMAP3430_GRPSEL_MMC2				(1 << 25)
++#define OMAP3430_GRPSEL_MMC1				(1 << 24)
++#define OMAP3430_GRPSEL_MCSPI4				(1 << 21)
++#define OMAP3430_GRPSEL_MCSPI3				(1 << 20)
++#define OMAP3430_GRPSEL_MCSPI2				(1 << 19)
++#define OMAP3430_GRPSEL_MCSPI1				(1 << 18)
++#define OMAP3430_GRPSEL_I2C3				(1 << 17)
++#define OMAP3430_GRPSEL_I2C2				(1 << 16)
++#define OMAP3430_GRPSEL_I2C1				(1 << 15)
++#define OMAP3430_GRPSEL_UART2				(1 << 14)
++#define OMAP3430_GRPSEL_UART1				(1 << 13)
++#define OMAP3430_GRPSEL_GPT11				(1 << 12)
++#define OMAP3430_GRPSEL_GPT10				(1 << 11)
++#define OMAP3430_GRPSEL_MCBSP5				(1 << 10)
++#define OMAP3430_GRPSEL_MCBSP1				(1 << 9)
++#define OMAP3430_GRPSEL_HSOTGUSB			(1 << 4)
++#define OMAP3430_GRPSEL_D2D				(1 << 3)
++
++/*
++ * PM_PWSTCTRL_GFX, PM_PWSTCTRL_DSS, PM_PWSTCTRL_CAM,
++ * PM_PWSTCTRL_PER shared bits
++ */
++#define OMAP3430_MEMONSTATE_SHIFT			16
++#define OMAP3430_MEMONSTATE_MASK			(0x3 << 16)
++#define OMAP3430_MEMRETSTATE				(1 << 8)
++
++/* PM_MPUGRPSEL_PER, PM_IVA2GRPSEL_PER shared bits */
++#define OMAP3430_GRPSEL_GPIO6				(1 << 17)
++#define OMAP3430_GRPSEL_GPIO5				(1 << 16)
++#define OMAP3430_GRPSEL_GPIO4				(1 << 15)
++#define OMAP3430_GRPSEL_GPIO3				(1 << 14)
++#define OMAP3430_GRPSEL_GPIO2				(1 << 13)
++#define OMAP3430_GRPSEL_UART3				(1 << 11)
++#define OMAP3430_GRPSEL_GPT9				(1 << 10)
++#define OMAP3430_GRPSEL_GPT8				(1 << 9)
++#define OMAP3430_GRPSEL_GPT7				(1 << 8)
++#define OMAP3430_GRPSEL_GPT6				(1 << 7)
++#define OMAP3430_GRPSEL_GPT5				(1 << 6)
++#define OMAP3430_GRPSEL_GPT4				(1 << 5)
++#define OMAP3430_GRPSEL_GPT3				(1 << 4)
++#define OMAP3430_GRPSEL_GPT2				(1 << 3)
++#define OMAP3430_GRPSEL_MCBSP4				(1 << 2)
++#define OMAP3430_GRPSEL_MCBSP3				(1 << 1)
++#define OMAP3430_GRPSEL_MCBSP2				(1 << 0)
++
++/* PM_MPUGRPSEL_WKUP, PM_IVA2GRPSEL_WKUP shared bits */
++#define OMAP3430_GRPSEL_IO				(1 << 8)
++#define OMAP3430_GRPSEL_SR2				(1 << 7)
++#define OMAP3430_GRPSEL_SR1				(1 << 6)
++#define OMAP3430_GRPSEL_GPIO1				(1 << 3)
++#define OMAP3430_GRPSEL_GPT12				(1 << 1)
++#define OMAP3430_GRPSEL_GPT1				(1 << 0)
++
++/* Bits specific to each register */
++
++/* RM_RSTCTRL_IVA2 */
++#define OMAP3430_RST3_IVA2				(1 << 2)
++#define OMAP3430_RST2_IVA2				(1 << 1)
++#define OMAP3430_RST1_IVA2				(1 << 0)
++
++/* RM_RSTST_IVA2 specific bits */
++#define OMAP3430_EMULATION_VSEQ_RST			(1 << 13)
++#define OMAP3430_EMULATION_VHWA_RST			(1 << 12)
++#define OMAP3430_EMULATION_IVA2_RST			(1 << 11)
++#define OMAP3430_IVA2_SW_RST3				(1 << 10)
++#define OMAP3430_IVA2_SW_RST2				(1 << 9)
++#define OMAP3430_IVA2_SW_RST1				(1 << 8)
++
++/* PM_WKDEP_IVA2 specific bits */
++
++/* PM_PWSTCTRL_IVA2 specific bits */
++#define OMAP3430_L2FLATMEMONSTATE_SHIFT			22
++#define OMAP3430_L2FLATMEMONSTATE_MASK			(0x3 << 22)
++#define OMAP3430_SHAREDL2CACHEFLATONSTATE_SHIFT		20
++#define OMAP3430_SHAREDL2CACHEFLATONSTATE_MASK		(0x3 << 20)
++#define OMAP3430_L1FLATMEMONSTATE_SHIFT			18
++#define OMAP3430_L1FLATMEMONSTATE_MASK			(0x3 << 18)
++#define OMAP3430_SHAREDL1CACHEFLATONSTATE_SHIFT		16
++#define OMAP3430_SHAREDL1CACHEFLATONSTATE_MASK		(0x3 << 16)
++#define OMAP3430_L2FLATMEMRETSTATE			(1 << 11)
++#define OMAP3430_SHAREDL2CACHEFLATRETSTATE		(1 << 10)
++#define OMAP3430_L1FLATMEMRETSTATE			(1 << 9)
++#define OMAP3430_SHAREDL1CACHEFLATRETSTATE		(1 << 8)
++
++/* PM_PWSTST_IVA2 specific bits */
++#define OMAP3430_L2FLATMEMSTATEST_SHIFT			10
++#define OMAP3430_L2FLATMEMSTATEST_MASK			(0x3 << 10)
++#define OMAP3430_SHAREDL2CACHEFLATSTATEST_SHIFT		8
++#define OMAP3430_SHAREDL2CACHEFLATSTATEST_MASK		(0x3 << 8)
++#define OMAP3430_L1FLATMEMSTATEST_SHIFT			6
++#define OMAP3430_L1FLATMEMSTATEST_MASK			(0x3 << 6)
++#define OMAP3430_SHAREDL1CACHEFLATSTATEST_SHIFT		4
++#define OMAP3430_SHAREDL1CACHEFLATSTATEST_MASK		(0x3 << 4)
++
++/* PM_PREPWSTST_IVA2 specific bits */
++#define OMAP3430_LASTL2FLATMEMSTATEENTERED_SHIFT		10
++#define OMAP3430_LASTL2FLATMEMSTATEENTERED_MASK			(0x3 << 10)
++#define OMAP3430_LASTSHAREDL2CACHEFLATSTATEENTERED_SHIFT	8
++#define OMAP3430_LASTSHAREDL2CACHEFLATSTATEENTERED_MASK		(0x3 << 8)
++#define OMAP3430_LASTL1FLATMEMSTATEENTERED_SHIFT		6
++#define OMAP3430_LASTL1FLATMEMSTATEENTERED_MASK			(0x3 << 6)
++#define OMAP3430_LASTSHAREDL1CACHEFLATSTATEENTERED_SHIFT	4
++#define OMAP3430_LASTSHAREDL1CACHEFLATSTATEENTERED_MASK		(0x3 << 4)
++
++/* PRM_IRQSTATUS_IVA2 specific bits */
++#define OMAP3430_PRM_IRQSTATUS_IVA2_IVA2_DPLL_ST	(1 << 2)
++#define OMAP3430_FORCEWKUP_ST				(1 << 1)
++
++/* PRM_IRQENABLE_IVA2 specific bits */
++#define OMAP3430_PRM_IRQENABLE_IVA2_IVA2_DPLL_RECAL_EN		(1 << 2)
++#define OMAP3430_FORCEWKUP_EN					(1 << 1)
++
++/* PRM_REVISION specific bits */
++
++/* PRM_SYSCONFIG specific bits */
++
++/* PRM_IRQSTATUS_MPU specific bits */
++#define OMAP3430ES2_SND_PERIPH_DPLL_ST_SHIFT		25
++#define OMAP3430ES2_SND_PERIPH_DPLL_ST			(1 << 25)
++#define OMAP3430_VC_TIMEOUTERR_ST			(1 << 24)
++#define OMAP3430_VC_RAERR_ST				(1 << 23)
++#define OMAP3430_VC_SAERR_ST				(1 << 22)
++#define OMAP3430_VP2_TRANXDONE_ST			(1 << 21)
++#define OMAP3430_VP2_EQVALUE_ST				(1 << 20)
++#define OMAP3430_VP2_NOSMPSACK_ST			(1 << 19)
++#define OMAP3430_VP2_MAXVDD_ST				(1 << 18)
++#define OMAP3430_VP2_MINVDD_ST				(1 << 17)
++#define OMAP3430_VP2_OPPCHANGEDONE_ST			(1 << 16)
++#define OMAP3430_VP1_TRANXDONE_ST			(1 << 15)
++#define OMAP3430_VP1_EQVALUE_ST				(1 << 14)
++#define OMAP3430_VP1_NOSMPSACK_ST			(1 << 13)
++#define OMAP3430_VP1_MAXVDD_ST				(1 << 12)
++#define OMAP3430_VP1_MINVDD_ST				(1 << 11)
++#define OMAP3430_VP1_OPPCHANGEDONE_ST			(1 << 10)
++#define OMAP3430_IO_ST					(1 << 9)
++#define OMAP3430_PRM_IRQSTATUS_MPU_IVA2_DPLL_ST		(1 << 8)
++#define OMAP3430_PRM_IRQSTATUS_MPU_IVA2_DPLL_ST_SHIFT	8
++#define OMAP3430_MPU_DPLL_ST				(1 << 7)
++#define OMAP3430_MPU_DPLL_ST_SHIFT			7
++#define OMAP3430_PERIPH_DPLL_ST				(1 << 6)
++#define OMAP3430_PERIPH_DPLL_ST_SHIFT			6
++#define OMAP3430_CORE_DPLL_ST				(1 << 5)
++#define OMAP3430_CORE_DPLL_ST_SHIFT			5
++#define OMAP3430_TRANSITION_ST				(1 << 4)
++#define OMAP3430_EVGENOFF_ST				(1 << 3)
++#define OMAP3430_EVGENON_ST				(1 << 2)
++#define OMAP3430_FS_USB_WKUP_ST				(1 << 1)
++
++/* PRM_IRQENABLE_MPU specific bits */
++#define OMAP3430ES2_SND_PERIPH_DPLL_RECAL_EN_SHIFT		25
++#define OMAP3430ES2_SND_PERIPH_DPLL_RECAL_EN			(1 << 25)
++#define OMAP3430_VC_TIMEOUTERR_EN				(1 << 24)
++#define OMAP3430_VC_RAERR_EN					(1 << 23)
++#define OMAP3430_VC_SAERR_EN					(1 << 22)
++#define OMAP3430_VP2_TRANXDONE_EN				(1 << 21)
++#define OMAP3430_VP2_EQVALUE_EN					(1 << 20)
++#define OMAP3430_VP2_NOSMPSACK_EN				(1 << 19)
++#define OMAP3430_VP2_MAXVDD_EN					(1 << 18)
++#define OMAP3430_VP2_MINVDD_EN					(1 << 17)
++#define OMAP3430_VP2_OPPCHANGEDONE_EN				(1 << 16)
++#define OMAP3430_VP1_TRANXDONE_EN				(1 << 15)
++#define OMAP3430_VP1_EQVALUE_EN					(1 << 14)
++#define OMAP3430_VP1_NOSMPSACK_EN				(1 << 13)
++#define OMAP3430_VP1_MAXVDD_EN					(1 << 12)
++#define OMAP3430_VP1_MINVDD_EN					(1 << 11)
++#define OMAP3430_VP1_OPPCHANGEDONE_EN				(1 << 10)
++#define OMAP3430_IO_EN						(1 << 9)
++#define OMAP3430_PRM_IRQENABLE_MPU_IVA2_DPLL_RECAL_EN		(1 << 8)
++#define OMAP3430_PRM_IRQENABLE_MPU_IVA2_DPLL_RECAL_EN_SHIFT	8
++#define OMAP3430_MPU_DPLL_RECAL_EN				(1 << 7)
++#define OMAP3430_MPU_DPLL_RECAL_EN_SHIFT			7
++#define OMAP3430_PERIPH_DPLL_RECAL_EN				(1 << 6)
++#define OMAP3430_PERIPH_DPLL_RECAL_EN_SHIFT			6
++#define OMAP3430_CORE_DPLL_RECAL_EN				(1 << 5)
++#define OMAP3430_CORE_DPLL_RECAL_EN_SHIFT			5
++#define OMAP3430_TRANSITION_EN					(1 << 4)
++#define OMAP3430_EVGENOFF_EN					(1 << 3)
++#define OMAP3430_EVGENON_EN					(1 << 2)
++#define OMAP3430_FS_USB_WKUP_EN					(1 << 1)
++
++/* RM_RSTST_MPU specific bits */
++#define OMAP3430_EMULATION_MPU_RST			(1 << 11)
++
++/* PM_WKDEP_MPU specific bits */
++#define OMAP3430_PM_WKDEP_MPU_EN_DSS			(1 << 5)
++#define OMAP3430_PM_WKDEP_MPU_EN_IVA2			(1 << 2)
++
++/* PM_EVGENCTRL_MPU */
++#define OMAP3430_OFFLOADMODE_SHIFT			3
++#define OMAP3430_OFFLOADMODE_MASK			(0x3 << 3)
++#define OMAP3430_ONLOADMODE_SHIFT			1
++#define OMAP3430_ONLOADMODE_MASK			(0x3 << 1)
++#define OMAP3430_ENABLE					(1 << 0)
++
++/* PM_EVGENONTIM_MPU */
++#define OMAP3430_ONTIMEVAL_SHIFT			0
++#define OMAP3430_ONTIMEVAL_MASK				(0xffffffff << 0)
++
++/* PM_EVGENOFFTIM_MPU */
++#define OMAP3430_OFFTIMEVAL_SHIFT			0
++#define OMAP3430_OFFTIMEVAL_MASK			(0xffffffff << 0)
++
++/* PM_PWSTCTRL_MPU specific bits */
++#define OMAP3430_L2CACHEONSTATE_SHIFT			16
++#define OMAP3430_L2CACHEONSTATE_MASK			(0x3 << 16)
++#define OMAP3430_L2CACHERETSTATE			(1 << 8)
++#define OMAP3430_LOGICL1CACHERETSTATE			(1 << 2)
++
++/* PM_PWSTST_MPU specific bits */
++#define OMAP3430_L2CACHESTATEST_SHIFT			6
++#define OMAP3430_L2CACHESTATEST_MASK			(0x3 << 6)
++#define OMAP3430_LOGICL1CACHESTATEST			(1 << 2)
++
++/* PM_PREPWSTST_MPU specific bits */
++#define OMAP3430_LASTL2CACHESTATEENTERED_SHIFT		6
++#define OMAP3430_LASTL2CACHESTATEENTERED_MASK		(0x3 << 6)
++#define OMAP3430_LASTLOGICL1CACHESTATEENTERED		(1 << 2)
++
++/* RM_RSTCTRL_CORE */
++#define OMAP3430_RM_RSTCTRL_CORE_MODEM_SW_RSTPWRON		(1 << 1)
++#define OMAP3430_RM_RSTCTRL_CORE_MODEM_SW_RST			(1 << 0)
++
++/* RM_RSTST_CORE specific bits */
++#define OMAP3430_MODEM_SECURITY_VIOL_RST		(1 << 10)
++#define OMAP3430_RM_RSTST_CORE_MODEM_SW_RSTPWRON	(1 << 9)
++#define OMAP3430_RM_RSTST_CORE_MODEM_SW_RST		(1 << 8)
++
++/* PM_WKEN1_CORE specific bits */
++
++/* PM_MPUGRPSEL1_CORE specific bits */
++#define OMAP3430_GRPSEL_FSHOSTUSB			(1 << 5)
++
++/* PM_IVA2GRPSEL1_CORE specific bits */
++
++/* PM_WKST1_CORE specific bits */
++
++/* PM_PWSTCTRL_CORE specific bits */
++#define OMAP3430_MEM2ONSTATE_SHIFT			18
++#define OMAP3430_MEM2ONSTATE_MASK			(0x3 << 18)
++#define OMAP3430_MEM1ONSTATE_SHIFT			16
++#define OMAP3430_MEM1ONSTATE_MASK			(0x3 << 16)
++#define OMAP3430_MEM2RETSTATE				(1 << 9)
++#define OMAP3430_MEM1RETSTATE				(1 << 8)
++
++/* PM_PWSTST_CORE specific bits */
++#define OMAP3430_MEM2STATEST_SHIFT			6
++#define OMAP3430_MEM2STATEST_MASK			(0x3 << 6)
++#define OMAP3430_MEM1STATEST_SHIFT			4
++#define OMAP3430_MEM1STATEST_MASK			(0x3 << 4)
++
++/* PM_PREPWSTST_CORE specific bits */
++#define OMAP3430_LASTMEM2STATEENTERED_SHIFT		6
++#define OMAP3430_LASTMEM2STATEENTERED_MASK		(0x3 << 6)
++#define OMAP3430_LASTMEM1STATEENTERED_SHIFT		4
++#define OMAP3430_LASTMEM1STATEENTERED_MASK		(0x3 << 4)
++
++/* RM_RSTST_GFX specific bits */
++
++/* PM_WKDEP_GFX specific bits */
++#define OMAP3430_PM_WKDEP_GFX_EN_IVA2			(1 << 2)
++
++/* PM_PWSTCTRL_GFX specific bits */
++
++/* PM_PWSTST_GFX specific bits */
++
++/* PM_PREPWSTST_GFX specific bits */
++
++/* PM_WKEN_WKUP specific bits */
++#define OMAP3430_EN_IO					(1 << 8)
++
++/* PM_MPUGRPSEL_WKUP specific bits */
++
++/* PM_IVA2GRPSEL_WKUP specific bits */
++
++/* PM_WKST_WKUP specific bits */
++#define OMAP3430_ST_IO					(1 << 8)
++
++/* PRM_CLKSEL */
++#define OMAP3430_SYS_CLKIN_SEL_SHIFT			0
++#define OMAP3430_SYS_CLKIN_SEL_MASK			(0x7 << 0)
++
++/* PRM_CLKOUT_CTRL */
++#define OMAP3430_CLKOUT_EN				(1 << 7)
++#define OMAP3430_CLKOUT_EN_SHIFT			7
++
++/* RM_RSTST_DSS specific bits */
++
++/* PM_WKEN_DSS */
++#define OMAP3430_PM_WKEN_DSS_EN_DSS			(1 << 0)
++
++/* PM_WKDEP_DSS specific bits */
++#define OMAP3430_PM_WKDEP_DSS_EN_IVA2			(1 << 2)
++
++/* PM_PWSTCTRL_DSS specific bits */
++
++/* PM_PWSTST_DSS specific bits */
++
++/* PM_PREPWSTST_DSS specific bits */
++
++/* RM_RSTST_CAM specific bits */
++
++/* PM_WKDEP_CAM specific bits */
++#define OMAP3430_PM_WKDEP_CAM_EN_IVA2			(1 << 2)
++
++/* PM_PWSTCTRL_CAM specific bits */
++
++/* PM_PWSTST_CAM specific bits */
++
++/* PM_PREPWSTST_CAM specific bits */
++
++/* PM_PWSTCTRL_USBHOST specific bits */
++#define OMAP3430ES2_SAVEANDRESTORE_SHIFT		(1 << 4)
++
++/* RM_RSTST_PER specific bits */
++
++/* PM_WKEN_PER specific bits */
++
++/* PM_MPUGRPSEL_PER specific bits */
++
++/* PM_IVA2GRPSEL_PER specific bits */
++
++/* PM_WKST_PER specific bits */
++
++/* PM_WKDEP_PER specific bits */
++#define OMAP3430_PM_WKDEP_PER_EN_IVA2			(1 << 2)
++
++/* PM_PWSTCTRL_PER specific bits */
++
++/* PM_PWSTST_PER specific bits */
++
++/* PM_PREPWSTST_PER specific bits */
++
++/* RM_RSTST_EMU specific bits */
++
++/* PM_PWSTST_EMU specific bits */
++
++/* PRM_VC_SMPS_SA */
++#define OMAP3430_PRM_VC_SMPS_SA_SA1_SHIFT		16
++#define OMAP3430_PRM_VC_SMPS_SA_SA1_MASK		(0x7f << 16)
++#define OMAP3430_PRM_VC_SMPS_SA_SA0_SHIFT		0
++#define OMAP3430_PRM_VC_SMPS_SA_SA0_MASK		(0x7f << 0)
++
++/* PRM_VC_SMPS_VOL_RA */
++#define OMAP3430_VOLRA1_SHIFT				16
++#define OMAP3430_VOLRA1_MASK				(0xff << 16)
++#define OMAP3430_VOLRA0_SHIFT				0
++#define OMAP3430_VOLRA0_MASK				(0xff << 0)
++
++/* PRM_VC_SMPS_CMD_RA */
++#define OMAP3430_CMDRA1_SHIFT				16
++#define OMAP3430_CMDRA1_MASK				(0xff << 16)
++#define OMAP3430_CMDRA0_SHIFT				0
++#define OMAP3430_CMDRA0_MASK				(0xff << 0)
++
++/* PRM_VC_CMD_VAL_0 specific bits */
++
++/* PRM_VC_CMD_VAL_1 specific bits */
++
++/* PRM_VC_CH_CONF */
++#define OMAP3430_CMD1					(1 << 20)
++#define OMAP3430_RACEN1					(1 << 19)
++#define OMAP3430_RAC1					(1 << 18)
++#define OMAP3430_RAV1					(1 << 17)
++#define OMAP3430_PRM_VC_CH_CONF_SA1			(1 << 16)
++#define OMAP3430_CMD0					(1 << 4)
++#define OMAP3430_RACEN0					(1 << 3)
++#define OMAP3430_RAC0					(1 << 2)
++#define OMAP3430_RAV0					(1 << 1)
++#define OMAP3430_PRM_VC_CH_CONF_SA0			(1 << 0)
++
++/* PRM_VC_I2C_CFG */
++#define OMAP3430_HSMASTER				(1 << 5)
++#define OMAP3430_SREN					(1 << 4)
++#define OMAP3430_HSEN					(1 << 3)
++#define OMAP3430_MCODE_SHIFT				0
++#define OMAP3430_MCODE_MASK				(0x7 << 0)
++
++/* PRM_VC_BYPASS_VAL */
++#define OMAP3430_VALID					(1 << 24)
++#define OMAP3430_DATA_SHIFT				16
++#define OMAP3430_DATA_MASK				(0xff << 16)
++#define OMAP3430_REGADDR_SHIFT				8
++#define OMAP3430_REGADDR_MASK				(0xff << 8)
++#define OMAP3430_SLAVEADDR_SHIFT			0
++#define OMAP3430_SLAVEADDR_MASK				(0x7f << 0)
++
++/* PRM_RSTCTRL */
++#define OMAP3430_RST_DPLL3				(1 << 2)
++#define OMAP3430_RST_GS					(1 << 1)
++
++/* PRM_RSTTIME */
++#define OMAP3430_RSTTIME2_SHIFT				8
++#define OMAP3430_RSTTIME2_MASK				(0x1f << 8)
++#define OMAP3430_RSTTIME1_SHIFT				0
++#define OMAP3430_RSTTIME1_MASK				(0xff << 0)
++
++/* PRM_RSTST */
++#define OMAP3430_ICECRUSHER_RST				(1 << 10)
++#define OMAP3430_ICEPICK_RST				(1 << 9)
++#define OMAP3430_VDD2_VOLTAGE_MANAGER_RST		(1 << 8)
++#define OMAP3430_VDD1_VOLTAGE_MANAGER_RST		(1 << 7)
++#define OMAP3430_EXTERNAL_WARM_RST			(1 << 6)
++#define OMAP3430_SECURE_WD_RST				(1 << 5)
++#define OMAP3430_MPU_WD_RST				(1 << 4)
++#define OMAP3430_SECURITY_VIOL_RST			(1 << 3)
++#define OMAP3430_GLOBAL_SW_RST				(1 << 1)
++#define OMAP3430_GLOBAL_COLD_RST			(1 << 0)
++
++/* PRM_VOLTCTRL */
++#define OMAP3430_SEL_VMODE				(1 << 4)
++#define OMAP3430_SEL_OFF				(1 << 3)
++#define OMAP3430_AUTO_OFF				(1 << 2)
++#define OMAP3430_AUTO_RET				(1 << 1)
++#define OMAP3430_AUTO_SLEEP				(1 << 0)
++
++/* PRM_SRAM_PCHARGE */
++#define OMAP3430_PCHARGE_TIME_SHIFT			0
++#define OMAP3430_PCHARGE_TIME_MASK			(0xff << 0)
++
++/* PRM_CLKSRC_CTRL */
++#define OMAP3430_SYSCLKDIV_SHIFT			6
++#define OMAP3430_SYSCLKDIV_MASK				(0x3 << 6)
++#define OMAP3430_AUTOEXTCLKMODE_SHIFT			3
++#define OMAP3430_AUTOEXTCLKMODE_MASK			(0x3 << 3)
++#define OMAP3430_SYSCLKSEL_SHIFT			0
++#define OMAP3430_SYSCLKSEL_MASK				(0x3 << 0)
++
++/* PRM_VOLTSETUP1 */
++#define OMAP3430_SETUP_TIME2_SHIFT			16
++#define OMAP3430_SETUP_TIME2_MASK			(0xffff << 16)
++#define OMAP3430_SETUP_TIME1_SHIFT			0
++#define OMAP3430_SETUP_TIME1_MASK			(0xffff << 0)
++
++/* PRM_VOLTOFFSET */
++#define OMAP3430_OFFSET_TIME_SHIFT			0
++#define OMAP3430_OFFSET_TIME_MASK			(0xffff << 0)
++
++/* PRM_CLKSETUP */
++#define OMAP3430_SETUP_TIME_SHIFT			0
++#define OMAP3430_SETUP_TIME_MASK			(0xffff << 0)
++
++/* PRM_POLCTRL */
++#define OMAP3430_OFFMODE_POL				(1 << 3)
++#define OMAP3430_CLKOUT_POL				(1 << 2)
++#define OMAP3430_CLKREQ_POL				(1 << 1)
++#define OMAP3430_EXTVOL_POL				(1 << 0)
++
++/* PRM_VOLTSETUP2 */
++#define OMAP3430_OFFMODESETUPTIME_SHIFT			0
++#define OMAP3430_OFFMODESETUPTIME_MASK			(0xffff << 0)
++
++/* PRM_VP1_CONFIG specific bits */
++
++/* PRM_VP1_VSTEPMIN specific bits */
++
++/* PRM_VP1_VSTEPMAX specific bits */
++
++/* PRM_VP1_VLIMITTO specific bits */
++
++/* PRM_VP1_VOLTAGE specific bits */
++
++/* PRM_VP1_STATUS specific bits */
++
++/* PRM_VP2_CONFIG specific bits */
++
++/* PRM_VP2_VSTEPMIN specific bits */
++
++/* PRM_VP2_VSTEPMAX specific bits */
++
++/* PRM_VP2_VLIMITTO specific bits */
++
++/* PRM_VP2_VOLTAGE specific bits */
++
++/* PRM_VP2_STATUS specific bits */
++
++/* RM_RSTST_NEON specific bits */
++
++/* PM_WKDEP_NEON specific bits */
++
++/* PM_PWSTCTRL_NEON specific bits */
++
++/* PM_PWSTST_NEON specific bits */
++
++/* PM_PREPWSTST_NEON specific bits */
++
++#endif
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+new file mode 100644
+index 0000000..455b060
+--- /dev/null
++++ b/arch/arm/mach-omap2/prm.h
+@@ -0,0 +1,334 @@
++#ifndef __ARCH_ARM_MACH_OMAP2_PRM_H
++#define __ARCH_ARM_MACH_OMAP2_PRM_H
++
++/*
++ * OMAP2/3 Power/Reset Management (PRM) register definitions
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Copyright (C) 2007 Nokia Corporation
++ *
++ * Written by Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "prcm-common.h"
++
++#ifndef __ASSEMBLER__
++#define OMAP_PRM_REGADDR(module, reg)					\
++	(void __iomem *)IO_ADDRESS(OMAP2_PRM_BASE + (module) + (reg))
++#else
++#define OMAP2420_PRM_REGADDR(module, reg)				\
++			IO_ADDRESS(OMAP2420_PRM_BASE + (module) + (reg))
++#define OMAP2430_PRM_REGADDR(module, reg)				\
++			IO_ADDRESS(OMAP2430_PRM_BASE + (module) + (reg))
++#define OMAP34XX_PRM_REGADDR(module, reg)				\
++			IO_ADDRESS(OMAP3430_PRM_BASE + (module) + (reg))
++#endif
++
++/*
++ * Architecture-specific global PRM registers
++ * Use prm_{read,write}_reg() with these registers.
++ *
++ * With a few exceptions, these are the register names beginning with
++ * PRCM_* on 24xx, and PRM_* on 34xx.  (The exceptions are the
++ * IRQSTATUS and IRQENABLE bits.)
++ *
++ */
++
++#define OMAP24XX_PRCM_REVISION		OMAP_PRM_REGADDR(OCP_MOD, 0x0000)
++#define OMAP24XX_PRCM_SYSCONFIG		OMAP_PRM_REGADDR(OCP_MOD, 0x0010)
++
++#define OMAP24XX_PRCM_IRQSTATUS_MPU	OMAP_PRM_REGADDR(OCP_MOD, 0x0018)
++#define OMAP24XX_PRCM_IRQENABLE_MPU	OMAP_PRM_REGADDR(OCP_MOD, 0x001c)
++
++#define OMAP24XX_PRCM_VOLTCTRL		OMAP_PRM_REGADDR(OCP_MOD, 0x0050)
++#define OMAP24XX_PRCM_VOLTST		OMAP_PRM_REGADDR(OCP_MOD, 0x0054)
++#define OMAP24XX_PRCM_CLKSRC_CTRL	OMAP_PRM_REGADDR(OCP_MOD, 0x0060)
++#define OMAP24XX_PRCM_CLKOUT_CTRL	OMAP_PRM_REGADDR(OCP_MOD, 0x0070)
++#define OMAP24XX_PRCM_CLKEMUL_CTRL	OMAP_PRM_REGADDR(OCP_MOD, 0x0078)
++#define OMAP24XX_PRCM_CLKCFG_CTRL	OMAP_PRM_REGADDR(OCP_MOD, 0x0080)
++#define OMAP24XX_PRCM_CLKCFG_STATUS	OMAP_PRM_REGADDR(OCP_MOD, 0x0084)
++#define OMAP24XX_PRCM_VOLTSETUP		OMAP_PRM_REGADDR(OCP_MOD, 0x0090)
++#define OMAP24XX_PRCM_CLKSSETUP		OMAP_PRM_REGADDR(OCP_MOD, 0x0094)
++#define OMAP24XX_PRCM_POLCTRL		OMAP_PRM_REGADDR(OCP_MOD, 0x0098)
++
++#define OMAP3430_PRM_REVISION		OMAP_PRM_REGADDR(OCP_MOD, 0x0004)
++#define OMAP3430_PRM_SYSCONFIG		OMAP_PRM_REGADDR(OCP_MOD, 0x0014)
++
++#define OMAP3430_PRM_IRQSTATUS_MPU	OMAP_PRM_REGADDR(OCP_MOD, 0x0018)
++#define OMAP3430_PRM_IRQENABLE_MPU	OMAP_PRM_REGADDR(OCP_MOD, 0x001c)
++
++
++#define OMAP3430_PRM_VC_SMPS_SA		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0020)
++#define OMAP3430_PRM_VC_SMPS_VOL_RA	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0024)
++#define OMAP3430_PRM_VC_SMPS_CMD_RA	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0028)
++#define OMAP3430_PRM_VC_CMD_VAL_0	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x002c)
++#define OMAP3430_PRM_VC_CMD_VAL_1	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0030)
++#define OMAP3430_PRM_VC_CH_CONF		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0034)
++#define OMAP3430_PRM_VC_I2C_CFG		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0038)
++#define OMAP3430_PRM_VC_BYPASS_VAL	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x003c)
++#define OMAP3430_PRM_RSTCTRL		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0050)
++#define OMAP3430_PRM_RSTTIME		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0054)
++#define OMAP3430_PRM_RSTST		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0058)
++#define OMAP3430_PRM_VOLTCTRL		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0060)
++#define OMAP3430_PRM_SRAM_PCHARGE	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0064)
++#define OMAP3430_PRM_CLKSRC_CTRL	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0070)
++#define OMAP3430_PRM_VOLTSETUP1		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0090)
++#define OMAP3430_PRM_VOLTOFFSET		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0094)
++#define OMAP3430_PRM_CLKSETUP		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x0098)
++#define OMAP3430_PRM_POLCTRL		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x009c)
++#define OMAP3430_PRM_VOLTSETUP2		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00a0)
++#define OMAP3430_PRM_VP1_CONFIG		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00b0)
++#define OMAP3430_PRM_VP1_VSTEPMIN	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00b4)
++#define OMAP3430_PRM_VP1_VSTEPMAX	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00b8)
++#define OMAP3430_PRM_VP1_VLIMITTO	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00bc)
++#define OMAP3430_PRM_VP1_VOLTAGE	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00c0)
++#define OMAP3430_PRM_VP1_STATUS		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00c4)
++#define OMAP3430_PRM_VP2_CONFIG		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00d0)
++#define OMAP3430_PRM_VP2_VSTEPMIN	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00d4)
++#define OMAP3430_PRM_VP2_VSTEPMAX	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00d8)
++#define OMAP3430_PRM_VP2_VLIMITTO	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00dc)
++#define OMAP3430_PRM_VP2_VOLTAGE	OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e0)
++#define OMAP3430_PRM_VP2_STATUS		OMAP_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e4)
++
++#define OMAP3430_PRM_CLKSEL		OMAP_PRM_REGADDR(OMAP3430_CCR_MOD, 0x0040)
++#define OMAP3430_PRM_CLKOUT_CTRL	OMAP_PRM_REGADDR(OMAP3430_CCR_MOD, 0x0070)
++
++#ifndef __ASSEMBLER__
++
++/* Power/reset management global register get/set */
++
++static void __attribute__((unused)) prm_write_reg(u32 val, void __iomem *addr)
++{
++	pr_debug("prm_write_reg: writing 0x%0x to 0x%0x\n", val, (u32)addr);
++
++	__raw_writel(val, addr);
++}
++
++static u32 __attribute__((unused)) prm_read_reg(void __iomem *addr)
++{
++	return __raw_readl(addr);
++}
++
++#endif
++
++/*
++ * Module specific PRM registers from PRM_BASE + domain offset
++ *
++ * Use prm_{read,write}_mod_reg() with these registers.
++ *
++ * With a few exceptions, these are the register names beginning with
++ * {PM,RM}_* on both architectures.  (The exceptions are the IRQSTATUS
++ * and IRQENABLE bits.)
++ *
++ */
++
++/* Registers appearing on both 24xx and 34xx */
++
++#define RM_RSTCTRL					0x0050
++#define RM_RSTTIME					0x0054
++#define RM_RSTST					0x0058
++
++#define PM_WKEN1					0x00a0
++#define PM_WKEN						PM_WKEN1
++#define PM_WKST						0x00b0
++#define PM_WKST1					PM_WKST
++#define PM_WKDEP					0x00c8
++#define PM_EVGENCTRL					0x00d4
++#define PM_EVGENONTIM					0x00d8
++#define PM_EVGENOFFTIM					0x00dc
++#define PM_PWSTCTRL					0x00e0
++#define PM_PWSTST					0x00e4
++
++#define OMAP3430_PM_MPUGRPSEL				0x00a4
++#define OMAP3430_PM_MPUGRPSEL1				OMAP3430_PM_MPUGRPSEL
++
++#define OMAP3430_PM_IVAGRPSEL				0x00a8
++#define OMAP3430_PM_IVAGRPSEL1				OMAP3430_PM_IVAGRPSEL
++
++#define OMAP3430_PM_PREPWSTST				0x00e8
++
++#define OMAP3430_PRM_IRQSTATUS_IVA2			0x00f8
++#define OMAP3430_PRM_IRQENABLE_IVA2			0x00fc
++
++
++/* Architecture-specific registers */
++
++#define OMAP24XX_PM_WKEN2				0x00a4
++#define OMAP24XX_PM_WKST2				0x00b4
++
++#define OMAP24XX_PRCM_IRQSTATUS_DSP			0x00f0	/* IVA mod */
++#define OMAP24XX_PRCM_IRQENABLE_DSP			0x00f4	/* IVA mod */
++#define OMAP24XX_PRCM_IRQSTATUS_IVA			0x00f8
++#define OMAP24XX_PRCM_IRQENABLE_IVA			0x00fc
++
++#ifndef __ASSEMBLER__
++
++/* Power/reset management domain register get/set */
++
++static void __attribute__((unused)) prm_write_mod_reg(u32 val, s16 module, s16 idx)
++{
++	prm_write_reg(val, OMAP_PRM_REGADDR(module, idx));
++}
++
++static u32 __attribute__((unused)) prm_read_mod_reg(s16 module, s16 idx)
++{
++	return prm_read_reg(OMAP_PRM_REGADDR(module, idx));
++}
++
++#endif
++
++/*
++ * Bits common to specific registers
++ *
++ * The 3430 register and bit names are generally used,
++ * since they tend to make more sense
++ */
++
++/* PM_EVGENONTIM_MPU */
++/* Named PM_EVEGENONTIM_MPU on the 24XX */
++#define OMAP_ONTIMEVAL_SHIFT				0
++#define OMAP_ONTIMEVAL_MASK				(0xffffffff << 0)
++
++/* PM_EVGENOFFTIM_MPU */
++/* Named PM_EVEGENOFFTIM_MPU on the 24XX */
++#define OMAP_OFFTIMEVAL_SHIFT				0
++#define OMAP_OFFTIMEVAL_MASK				(0xffffffff << 0)
++
++/* PRM_CLKSETUP and PRCM_VOLTSETUP */
++/* Named PRCM_CLKSSETUP on the 24XX */
++#define OMAP_SETUP_TIME_SHIFT				0
++#define OMAP_SETUP_TIME_MASK				(0xffff << 0)
++
++/* PRM_CLKSRC_CTRL */
++/* Named PRCM_CLKSRC_CTRL on the 24XX */
++#define OMAP_SYSCLKDIV_SHIFT				6
++#define OMAP_SYSCLKDIV_MASK				(0x3 << 6)
++#define OMAP_AUTOEXTCLKMODE_SHIFT			3
++#define OMAP_AUTOEXTCLKMODE_MASK			(0x3 << 3)
++#define OMAP_SYSCLKSEL_SHIFT				0
++#define OMAP_SYSCLKSEL_MASK				(0x3 << 0)
++
++/* PM_EVGENCTRL_MPU */
++#define OMAP_OFFLOADMODE_SHIFT				3
++#define OMAP_OFFLOADMODE_MASK				(0x3 << 3)
++#define OMAP_ONLOADMODE_SHIFT				1
++#define OMAP_ONLOADMODE_MASK				(0x3 << 1)
++#define OMAP_ENABLE					(1 << 0)
++
++/* PRM_RSTTIME */
++/* Named RM_RSTTIME_WKUP on the 24xx */
++#define OMAP_RSTTIME2_SHIFT				8
++#define OMAP_RSTTIME2_MASK				(0x1f << 8)
++#define OMAP_RSTTIME1_SHIFT				0
++#define OMAP_RSTTIME1_MASK				(0xff << 0)
++
++
++/* PRM_RSTCTRL */
++/* Named RM_RSTCTRL_WKUP on the 24xx */
++/* 2420 calls RST_DPLL3 'RST_DPLL' */
++#define OMAP_RST_DPLL3					(1 << 2)
++#define OMAP_RST_GS					(1 << 1)
++
++
++/*
++ * Bits common to module-shared registers
++ *
++ * Not all registers of a particular type support all of these bits -
++ * check TRM if you are unsure
++ */
++
++/*
++ * 24XX: PM_PWSTST_CORE, PM_PWSTST_GFX, PM_PWSTST_MPU, PM_PWSTST_DSP
++ *
++ * 2430: PM_PWSTST_MDM
++ *
++ * 3430: PM_PWSTST_IVA2, PM_PWSTST_MPU, PM_PWSTST_CORE, PM_PWSTST_GFX,
++ *	 PM_PWSTST_DSS, PM_PWSTST_CAM, PM_PWSTST_PER, PM_PWSTST_EMU,
++ *	 PM_PWSTST_NEON
++ */
++#define OMAP_INTRANSITION				(1 << 20)
++
++
++/*
++ * 24XX: PM_PWSTST_GFX, PM_PWSTST_DSP
++ *
++ * 2430: PM_PWSTST_MDM
++ *
++ * 3430: PM_PWSTST_IVA2, PM_PWSTST_MPU, PM_PWSTST_CORE, PM_PWSTST_GFX,
++ *	 PM_PWSTST_DSS, PM_PWSTST_CAM, PM_PWSTST_PER, PM_PWSTST_EMU,
++ *	 PM_PWSTST_NEON
++ */
++#define OMAP_POWERSTATEST_SHIFT				0
++#define OMAP_POWERSTATEST_MASK				(0x3 << 0)
++
++/*
++ * 24XX: RM_RSTST_MPU and RM_RSTST_DSP - on 24XX, 'COREDOMAINWKUP_RST' is
++ *	 called 'COREWKUP_RST'
++ *
++ * 3430: RM_RSTST_IVA2, RM_RSTST_MPU, RM_RSTST_GFX, RM_RSTST_DSS,
++ *	 RM_RSTST_CAM, RM_RSTST_PER, RM_RSTST_NEON
++ */
++#define OMAP_COREDOMAINWKUP_RST				(1 << 3)
++
++/*
++ * 24XX: RM_RSTST_MPU, RM_RSTST_GFX, RM_RSTST_DSP
++ *
++ * 2430: RM_RSTST_MDM
++ *
++ * 3430: RM_RSTST_CORE, RM_RSTST_EMU
++ */
++#define OMAP_DOMAINWKUP_RST				(1 << 2)
++
++/*
++ * 24XX: RM_RSTST_MPU, RM_RSTST_WKUP, RM_RSTST_DSP
++ *	 On 24XX, 'GLOBALWARM_RST' is called 'GLOBALWMPU_RST'.
++ *
++ * 2430: RM_RSTST_MDM
++ *
++ * 3430: RM_RSTST_CORE, RM_RSTST_EMU
++ */
++#define OMAP_GLOBALWARM_RST				(1 << 1)
++#define OMAP_GLOBALCOLD_RST				(1 << 0)
++
++/*
++ * 24XX: PM_WKDEP_GFX, PM_WKDEP_MPU, PM_WKDEP_CORE, PM_WKDEP_DSP
++ *	 2420 TRM sometimes uses "EN_WAKEUP" instead of "EN_WKUP"
++ *
++ * 2430: PM_WKDEP_MDM
++ *
++ * 3430: PM_WKDEP_IVA2, PM_WKDEP_GFX, PM_WKDEP_DSS, PM_WKDEP_CAM,
++ *	 PM_WKDEP_PER
++ */
++#define OMAP_EN_WKUP					(1 << 4)
++
++/*
++ * 24XX: PM_PWSTCTRL_MPU, PM_PWSTCTRL_CORE, PM_PWSTCTRL_GFX,
++ *	 PM_PWSTCTRL_DSP
++ *
++ * 2430: PM_PWSTCTRL_MDM
++ *
++ * 3430: PM_PWSTCTRL_IVA2, PM_PWSTCTRL_CORE, PM_PWSTCTRL_GFX,
++ *	 PM_PWSTCTRL_DSS, PM_PWSTCTRL_CAM, PM_PWSTCTRL_PER,
++ *	 PM_PWSTCTRL_NEON
++ */
++#define OMAP_LOGICRETSTATE				(1 << 2)
++
++/*
++ * 24XX: PM_PWSTCTRL_MPU, PM_PWSTCTRL_CORE, PM_PWSTCTRL_GFX,
++ *       PM_PWSTCTRL_DSP, PM_PWSTST_MPU
++ *
++ * 2430: PM_PWSTCTRL_MDM shared bits
++ *
++ * 3430: PM_PWSTCTRL_IVA2, PM_PWSTCTRL_MPU, PM_PWSTCTRL_CORE,
++ *	 PM_PWSTCTRL_GFX, PM_PWSTCTRL_DSS, PM_PWSTCTRL_CAM, PM_PWSTCTRL_PER,
++ *	 PM_PWSTCTRL_NEON shared bits
++ */
++#define OMAP_POWERSTATE_SHIFT				0
++#define OMAP_POWERSTATE_MASK				(0x3 << 0)
++
++
++#endif
+diff --git a/arch/arm/mach-omap2/sdrc.h b/arch/arm/mach-omap2/sdrc.h
+new file mode 100644
+index 0000000..928e1c4
+--- /dev/null
++++ b/arch/arm/mach-omap2/sdrc.h
+@@ -0,0 +1,64 @@
++#ifndef __ARCH_ARM_MACH_OMAP2_SDRC_H
++#define __ARCH_ARM_MACH_OMAP2_SDRC_H
++
++/*
++ * OMAP2 SDRC register definitions
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Copyright (C) 2007 Nokia Corporation
++ *
++ * Written by Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#undef DEBUG
++
++#include <asm/arch/sdrc.h>
++
++#ifndef __ASSEMBLER__
++extern unsigned long omap2_sdrc_base;
++extern unsigned long omap2_sms_base;
++
++#define OMAP_SDRC_REGADDR(reg)						\
++		(void __iomem *)IO_ADDRESS(omap2_sdrc_base + (reg))
++#define OMAP_SMS_REGADDR(reg)						\
++		(void __iomem *)IO_ADDRESS(omap2_sms_base + (reg))
++
++/* SDRC global register get/set */
++
++static void __attribute__((unused)) sdrc_write_reg(u32 val, u16 reg)
++{
++	pr_debug("sdrc_write_reg: writing 0x%0x to 0x%0x\n", val,
++		 (u32)OMAP_SDRC_REGADDR(reg));
++
++	__raw_writel(val, OMAP_SDRC_REGADDR(reg));
++}
++
++static u32 __attribute__((unused)) sdrc_read_reg(u16 reg)
++{
++	return __raw_readl(OMAP_SDRC_REGADDR(reg));
++}
++
++/* SMS global register get/set */
++
++static void __attribute__((unused)) sms_write_reg(u32 val, u16 reg)
++{
++	pr_debug("sms_write_reg: writing 0x%0x to 0x%0x\n", val,
++		 (u32)OMAP_SMS_REGADDR(reg));
++
++	__raw_writel(val, OMAP_SMS_REGADDR(reg));
++}
++
++static u32 __attribute__((unused)) sms_read_reg(u16 reg)
++{
++	return __raw_readl(OMAP_SMS_REGADDR(reg));
++}
++#else
++#define OMAP242X_SDRC_REGADDR(reg)	IO_ADDRESS(OMAP2420_SDRC_BASE + (reg))
++#define OMAP243X_SDRC_REGADDR(reg)	IO_ADDRESS(OMAP243X_SDRC_BASE + (reg))
++#define OMAP34XX_SDRC_REGADDR(reg)	IO_ADDRESS(OMAP343X_SDRC_BASE + (reg))
++#endif	/* __ASSEMBLER__ */
++
++#endif
+diff --git a/include/asm-arm/arch-omap/control.h b/include/asm-arm/arch-omap/control.h
+new file mode 100644
+index 0000000..9944bb5
+--- /dev/null
++++ b/include/asm-arm/arch-omap/control.h
+@@ -0,0 +1,191 @@
++#ifndef __ASM_ARCH_CONTROL_H
++#define __ASM_ARCH_CONTROL_H
++
++/*
++ * include/asm-arm/arch-omap/control.h
++ *
++ * OMAP2/3 System Control Module definitions
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Copyright (C) 2007 Nokia Corporation
++ *
++ * Written by Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++
++#include <asm/arch/io.h>
++
++#define OMAP242X_CTRL_REGADDR(reg)					\
++	(void __iomem *)IO_ADDRESS(OMAP242X_CTRL_BASE + (reg))
++#define OMAP243X_CTRL_REGADDR(reg)					\
++	(void __iomem *)IO_ADDRESS(OMAP243X_CTRL_BASE + (reg))
++#define OMAP343X_CTRL_REGADDR(reg)					\
++	(void __iomem *)IO_ADDRESS(OMAP343X_CTRL_BASE + (reg))
++
++/*
++ * As elsewhere, the "OMAP2_" prefix indicates that the macro is valid for
++ * OMAP24XX and OMAP34XX.
++ */
++
++/* Control submodule offsets */
++
++#define OMAP2_CONTROL_INTERFACE		0x000
++#define OMAP2_CONTROL_PADCONFS		0x030
++#define OMAP2_CONTROL_GENERAL		0x270
++#define OMAP343X_CONTROL_MEM_WKUP	0x600
++#define OMAP343X_CONTROL_PADCONFS_WKUP	0xa00
++#define OMAP343X_CONTROL_GENERAL_WKUP	0xa60
++
++/* Control register offsets - read/write with omap_ctrl_{read,write}{bwl}() */
++
++#define OMAP2_CONTROL_SYSCONFIG		(OMAP2_CONTROL_INTERFACE + 0x10)
++
++/* CONTROL_GENERAL register offsets common to OMAP2 & 3 */
++#define OMAP2_CONTROL_DEVCONF0		(OMAP2_CONTROL_GENERAL + 0x0004)
++#define OMAP2_CONTROL_MSUSPENDMUX_0	(OMAP2_CONTROL_GENERAL + 0x0020)
++#define OMAP2_CONTROL_MSUSPENDMUX_1	(OMAP2_CONTROL_GENERAL + 0x0024)
++#define OMAP2_CONTROL_MSUSPENDMUX_2	(OMAP2_CONTROL_GENERAL + 0x0028)
++#define OMAP2_CONTROL_MSUSPENDMUX_3	(OMAP2_CONTROL_GENERAL + 0x002c)
++#define OMAP2_CONTROL_MSUSPENDMUX_4	(OMAP2_CONTROL_GENERAL + 0x0030)
++#define OMAP2_CONTROL_MSUSPENDMUX_5	(OMAP2_CONTROL_GENERAL + 0x0034)
++#define OMAP2_CONTROL_SEC_CTRL		(OMAP2_CONTROL_GENERAL + 0x0040)
++#define OMAP2_CONTROL_RPUB_KEY_H_0	(OMAP2_CONTROL_GENERAL + 0x0090)
++#define OMAP2_CONTROL_RPUB_KEY_H_1	(OMAP2_CONTROL_GENERAL + 0x0094)
++#define OMAP2_CONTROL_RPUB_KEY_H_2	(OMAP2_CONTROL_GENERAL + 0x0098)
++#define OMAP2_CONTROL_RPUB_KEY_H_3	(OMAP2_CONTROL_GENERAL + 0x009c)
++
++/* 242x-only CONTROL_GENERAL register offsets */
++#define OMAP242X_CONTROL_DEVCONF	OMAP2_CONTROL_DEVCONF0 /* match TRM */
++#define OMAP242X_CONTROL_OCM_RAM_PERM	(OMAP2_CONTROL_GENERAL + 0x0068)
++
++/* 243x-only CONTROL_GENERAL register offsets */
++/* CONTROL_IVA2_BOOT{ADDR,MOD} are at the same place on 343x - noted below */
++#define OMAP243X_CONTROL_DEVCONF1	(OMAP2_CONTROL_GENERAL + 0x0078)
++#define OMAP243X_CONTROL_CSIRXFE	(OMAP2_CONTROL_GENERAL + 0x007c)
++#define OMAP243X_CONTROL_IVA2_BOOTADDR	(OMAP2_CONTROL_GENERAL + 0x0190)
++#define OMAP243X_CONTROL_IVA2_BOOTMOD	(OMAP2_CONTROL_GENERAL + 0x0194)
++#define OMAP243X_CONTROL_IVA2_GEMCFG	(OMAP2_CONTROL_GENERAL + 0x0198)
++
++/* 24xx-only CONTROL_GENERAL register offsets */
++#define OMAP24XX_CONTROL_DEBOBS		(OMAP2_CONTROL_GENERAL + 0x0000)
++#define OMAP24XX_CONTROL_EMU_SUPPORT	(OMAP2_CONTROL_GENERAL + 0x0008)
++#define OMAP24XX_CONTROL_SEC_TEST	(OMAP2_CONTROL_GENERAL + 0x0044)
++#define OMAP24XX_CONTROL_PSA_CTRL	(OMAP2_CONTROL_GENERAL + 0x0048)
++#define OMAP24XX_CONTROL_PSA_CMD	(OMAP2_CONTROL_GENERAL + 0x004c)
++#define OMAP24XX_CONTROL_PSA_VALUE	(OMAP2_CONTROL_GENERAL + 0x0050)
++#define OMAP24XX_CONTROL_SEC_EMU	(OMAP2_CONTROL_GENERAL + 0x0060)
++#define OMAP24XX_CONTROL_SEC_TAP	(OMAP2_CONTROL_GENERAL + 0x0064)
++#define OMAP24XX_CONTROL_OCM_PUB_RAM_ADD	(OMAP2_CONTROL_GENERAL + 0x006c)
++#define OMAP24XX_CONTROL_EXT_SEC_RAM_START_ADD	(OMAP2_CONTROL_GENERAL + 0x0070)
++#define OMAP24XX_CONTROL_EXT_SEC_RAM_STOP_ADD	(OMAP2_CONTROL_GENERAL + 0x0074
++#define OMAP24XX_CONTROL_SEC_STATUS		(OMAP2_CONTROL_GENERAL + 0x0080)
++#define OMAP24XX_CONTROL_SEC_ERR_STATUS		(OMAP2_CONTROL_GENERAL + 0x0084)
++#define OMAP24XX_CONTROL_STATUS			(OMAP2_CONTROL_GENERAL + 0x0088)
++#define OMAP24XX_CONTROL_GENERAL_PURPOSE_STATUS	(OMAP2_CONTROL_GENERAL + 0x008c)
++#define OMAP24XX_CONTROL_RAND_KEY_0	(OMAP2_CONTROL_GENERAL + 0x00a0)
++#define OMAP24XX_CONTROL_RAND_KEY_1	(OMAP2_CONTROL_GENERAL + 0x00a4)
++#define OMAP24XX_CONTROL_RAND_KEY_2	(OMAP2_CONTROL_GENERAL + 0x00a8)
++#define OMAP24XX_CONTROL_RAND_KEY_3	(OMAP2_CONTROL_GENERAL + 0x00ac)
++#define OMAP24XX_CONTROL_CUST_KEY_0	(OMAP2_CONTROL_GENERAL + 0x00b0)
++#define OMAP24XX_CONTROL_CUST_KEY_1	(OMAP2_CONTROL_GENERAL + 0x00b4)
++#define OMAP24XX_CONTROL_TEST_KEY_0	(OMAP2_CONTROL_GENERAL + 0x00c0)
++#define OMAP24XX_CONTROL_TEST_KEY_1	(OMAP2_CONTROL_GENERAL + 0x00c4)
++#define OMAP24XX_CONTROL_TEST_KEY_2	(OMAP2_CONTROL_GENERAL + 0x00c8)
++#define OMAP24XX_CONTROL_TEST_KEY_3	(OMAP2_CONTROL_GENERAL + 0x00cc)
++#define OMAP24XX_CONTROL_TEST_KEY_4	(OMAP2_CONTROL_GENERAL + 0x00d0)
++#define OMAP24XX_CONTROL_TEST_KEY_5	(OMAP2_CONTROL_GENERAL + 0x00d4)
++#define OMAP24XX_CONTROL_TEST_KEY_6	(OMAP2_CONTROL_GENERAL + 0x00d8)
++#define OMAP24XX_CONTROL_TEST_KEY_7	(OMAP2_CONTROL_GENERAL + 0x00dc)
++#define OMAP24XX_CONTROL_TEST_KEY_8	(OMAP2_CONTROL_GENERAL + 0x00e0)
++#define OMAP24XX_CONTROL_TEST_KEY_9	(OMAP2_CONTROL_GENERAL + 0x00e4)
++
++/* 34xx-only CONTROL_GENERAL register offsets */
++#define OMAP343X_CONTROL_PADCONF_OFF	(OMAP2_CONTROL_GENERAL + 0x0000)
++#define OMAP343X_CONTROL_MEM_DFTRW0	(OMAP2_CONTROL_GENERAL + 0x0008)
++#define OMAP343X_CONTROL_MEM_DFTRW1	(OMAP2_CONTROL_GENERAL + 0x000c)
++#define OMAP343X_CONTROL_DEVCONF1	(OMAP2_CONTROL_GENERAL + 0x0068)
++#define OMAP343X_CONTROL_CSIRXFE		(OMAP2_CONTROL_GENERAL + 0x006c)
++#define OMAP343X_CONTROL_SEC_STATUS		(OMAP2_CONTROL_GENERAL + 0x0070)
++#define OMAP343X_CONTROL_SEC_ERR_STATUS		(OMAP2_CONTROL_GENERAL + 0x0074)
++#define OMAP343X_CONTROL_SEC_ERR_STATUS_DEBUG	(OMAP2_CONTROL_GENERAL + 0x0078)
++#define OMAP343X_CONTROL_STATUS			(OMAP2_CONTROL_GENERAL + 0x0080)
++#define OMAP343X_CONTROL_GENERAL_PURPOSE_STATUS	(OMAP2_CONTROL_GENERAL + 0x0084)
++#define OMAP343X_CONTROL_RPUB_KEY_H_4	(OMAP2_CONTROL_GENERAL + 0x00a0)
++#define OMAP343X_CONTROL_RAND_KEY_0	(OMAP2_CONTROL_GENERAL + 0x00a8)
++#define OMAP343X_CONTROL_RAND_KEY_1	(OMAP2_CONTROL_GENERAL + 0x00ac)
++#define OMAP343X_CONTROL_RAND_KEY_2	(OMAP2_CONTROL_GENERAL + 0x00b0)
++#define OMAP343X_CONTROL_RAND_KEY_3	(OMAP2_CONTROL_GENERAL + 0x00b4)
++#define OMAP343X_CONTROL_TEST_KEY_0	(OMAP2_CONTROL_GENERAL + 0x00c8)
++#define OMAP343X_CONTROL_TEST_KEY_1	(OMAP2_CONTROL_GENERAL + 0x00cc)
++#define OMAP343X_CONTROL_TEST_KEY_2	(OMAP2_CONTROL_GENERAL + 0x00d0)
++#define OMAP343X_CONTROL_TEST_KEY_3	(OMAP2_CONTROL_GENERAL + 0x00d4)
++#define OMAP343X_CONTROL_TEST_KEY_4	(OMAP2_CONTROL_GENERAL + 0x00d8)
++#define OMAP343X_CONTROL_TEST_KEY_5	(OMAP2_CONTROL_GENERAL + 0x00dc)
++#define OMAP343X_CONTROL_TEST_KEY_6	(OMAP2_CONTROL_GENERAL + 0x00e0)
++#define OMAP343X_CONTROL_TEST_KEY_7	(OMAP2_CONTROL_GENERAL + 0x00e4)
++#define OMAP343X_CONTROL_TEST_KEY_8	(OMAP2_CONTROL_GENERAL + 0x00e8)
++#define OMAP343X_CONTROL_TEST_KEY_9	(OMAP2_CONTROL_GENERAL + 0x00ec)
++#define OMAP343X_CONTROL_TEST_KEY_10	(OMAP2_CONTROL_GENERAL + 0x00f0)
++#define OMAP343X_CONTROL_TEST_KEY_11	(OMAP2_CONTROL_GENERAL + 0x00f4)
++#define OMAP343X_CONTROL_TEST_KEY_12	(OMAP2_CONTROL_GENERAL + 0x00f8)
++#define OMAP343X_CONTROL_TEST_KEY_13	(OMAP2_CONTROL_GENERAL + 0x00fc)
++#define OMAP343X_CONTROL_IVA2_BOOTADDR	(OMAP2_CONTROL_GENERAL + 0x0190)
++#define OMAP343X_CONTROL_IVA2_BOOTMOD	(OMAP2_CONTROL_GENERAL + 0x0194)
++
++/*
++ * REVISIT: This list of registers is not comprehensive - there are more
++ * that should be added.
++ */
++
++/*
++ * Control module register bit defines - these should eventually go into
++ * their own regbits file.  Some of these will be complicated, depending
++ * on the device type (general-purpose, emulator, test, secure, bad, other)
++ * and the security mode (secure, non-secure, don't care)
++ */
++/* CONTROL_DEVCONF0 bits */
++#define OMAP24XX_USBSTANDBYCTRL		(1 << 15)
++#define OMAP2_MCBSP2_CLKS_MASK		(1 << 6)
++#define OMAP2_MCBSP1_CLKS_MASK		(1 << 2)
++
++/* CONTROL_DEVCONF1 bits */
++#define OMAP2_MCBSP5_CLKS_MASK		(1 << 4) /* > 242x */
++#define OMAP2_MCBSP4_CLKS_MASK		(1 << 2) /* > 242x */
++#define OMAP2_MCBSP3_CLKS_MASK		(1 << 0) /* > 242x */
++
++/* CONTROL_STATUS bits */
++#define OMAP2_DEVICETYPE_MASK		(0x7 << 8)
++#define OMAP2_SYSBOOT_5_MASK		(1 << 5)
++#define OMAP2_SYSBOOT_4_MASK		(1 << 4)
++#define OMAP2_SYSBOOT_3_MASK		(1 << 3)
++#define OMAP2_SYSBOOT_2_MASK		(1 << 2)
++#define OMAP2_SYSBOOT_1_MASK		(1 << 1)
++#define OMAP2_SYSBOOT_0_MASK		(1 << 0)
++
++#ifndef __ASSEMBLY__
++#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
++extern void omap_ctrl_base_set(u32 base);
++extern u32 omap_ctrl_base_get(void);
++extern u8 omap_ctrl_readb(u16 offset);
++extern u16 omap_ctrl_readw(u16 offset);
++extern u32 omap_ctrl_readl(u16 offset);
++extern void omap_ctrl_writeb(u8 val, u16 offset);
++extern void omap_ctrl_writew(u16 val, u16 offset);
++extern void omap_ctrl_writel(u32 val, u16 offset);
++#else
++#define omap_ctrl_base_set(x)		WARN_ON(1)
++#define omap_ctrl_base_get()		0
++#define omap_ctrl_readb(x)		0
++#define omap_ctrl_readw(x)		0
++#define omap_ctrl_readl(x)		0
++#define omap_ctrl_writeb(x, y)		WARN_ON(1)
++#define omap_ctrl_writew(x, y)		WARN_ON(1)
++#define omap_ctrl_writel(x, y)		WARN_ON(1)
++#endif
++#endif	/* __ASSEMBLY__ */
++
++#endif /* __ASM_ARCH_CONTROL_H */
++
+diff --git a/include/asm-arm/arch-omap/sdrc.h b/include/asm-arm/arch-omap/sdrc.h
+new file mode 100644
+index 0000000..673b396
+--- /dev/null
++++ b/include/asm-arm/arch-omap/sdrc.h
+@@ -0,0 +1,75 @@
++#ifndef ____ASM_ARCH_SDRC_H
++#define ____ASM_ARCH_SDRC_H
++
++/*
++ * OMAP2/3 SDRC/SMS register definitions
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Copyright (C) 2007 Nokia Corporation
++ *
++ * Written by Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <asm/arch/io.h>
++
++/* SDRC register offsets - read/write with sdrc_{read,write}_reg() */
++
++#define SDRC_SYSCONFIG		0x010
++#define SDRC_DLLA_CTRL		0x060
++#define SDRC_DLLA_STATUS	0x064
++#define SDRC_DLLB_CTRL		0x068
++#define SDRC_DLLB_STATUS	0x06C
++#define SDRC_POWER		0x070
++#define SDRC_MR_0		0x084
++#define SDRC_RFR_CTRL_0		0x0a4
++
++/*
++ * These values represent the number of memory clock cycles between
++ * autorefresh initiation.  They assume 1 refresh per 64 ms (JEDEC), 8192
++ * rows per device, and include a subtraction of a 50 cycle window in the
++ * event that the autorefresh command is delayed due to other SDRC activity.
++ * The '| 1' sets the ARE field to send one autorefresh when the autorefresh
++ * counter reaches 0.
++ *
 + * These represent optimal values for common parts, it won't work for all.
 + * As long as you scale down, most parameters are still work, they just
 + * become sub-optimal. The RFR value goes in the opposite direction. If you
@@ -4908,1761 +3255,26 @@ index 0000000..4f79186
 + * By having the boot loader boot up in the fastest L4 speed available likely
 + * will result in something which you can switch between.
 + */
-+#define V24XX_SDRC_RFR_CTRL_133MHz	(0x0003de00 | 1)
-+#define V24XX_SDRC_RFR_CTRL_100MHz	(0x0002da01 | 1)
-+#define V24XX_SDRC_RFR_CTRL_110MHz	(0x0002da01 | 1) /* Need to calc */
-+#define V24XX_SDRC_RFR_CTRL_BYPASS	(0x00005000 | 1) /* Need to calc */
++#define SDRC_RFR_CTRL_165MHz	(0x00044c00 | 1)
++#define SDRC_RFR_CTRL_133MHz	(0x0003de00 | 1)
++#define SDRC_RFR_CTRL_100MHz	(0x0002da01 | 1)
++#define SDRC_RFR_CTRL_110MHz	(0x0002da01 | 1) /* Need to calc */
++#define SDRC_RFR_CTRL_BYPASS	(0x00005000 | 1) /* Need to calc */
 +
-+/* MPU speed defines */
-+#define S12M	12000000
-+#define S13M	13000000
-+#define S19M	19200000
-+#define S26M	26000000
-+#define S100M	100000000
-+#define S133M	133000000
-+#define S150M	150000000
-+#define S165M	165000000
-+#define S200M	200000000
-+#define S266M	266000000
-+#define S300M	300000000
-+#define S330M	330000000
-+#define S400M	400000000
-+#define S532M	532000000
-+#define S600M	600000000
-+#define S660M	660000000
-+
-+/*-------------------------------------------------------------------------
-+ * Key dividers which make up a PRCM set. Ratio's for a PRCM are mandated.
-+ * xtal_speed, dpll_speed, mpu_speed, CM_CLKSEL_MPU,
-+ * CM_CLKSEL_DSP, CM_CLKSEL_GFX, CM_CLKSEL1_CORE, CM_CLKSEL1_PLL,
-+ * CM_CLKSEL2_PLL, CM_CLKSEL_MDM
-+ *
-+ * Filling in table based on H4 boards and 2430-SDPs variants available.
-+ * There are quite a few more rates combinations which could be defined.
-+ *
-+ * When multiple values are defined the start up will try and choose the
-+ * fastest one. If a 'fast' value is defined, then automatically, the /2
-+ * one should be included as it can be used.	Generally having more that
-+ * one fast set does not make sense, as static timings need to be changed
-+ * to change the set.	 The exception is the bypass setting which is
-+ * availble for low power bypass.
-+ *
-+ * Note: This table needs to be sorted, fastest to slowest.
-+ *-------------------------------------------------------------------------*/
-+static struct prcm_config rate_table[] = {
-+	/* PRCM II - FAST */
-+	{S12M, S600M, S300M, RII_CM_CLKSEL_MPU_VAL,		/* 300MHz ARM */
-+		RII_CM_CLKSEL_DSP_VAL, RII_CM_CLKSEL_GFX_VAL,
-+		RII_CM_CLKSEL1_CORE_VAL, MII_CM_CLKSEL1_PLL_12_VAL,
-+		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_100MHz,
-+		RATE_IN_242X},
-+
-+	{S13M, S600M, S300M, RII_CM_CLKSEL_MPU_VAL,		/* 300MHz ARM */
-+		RII_CM_CLKSEL_DSP_VAL, RII_CM_CLKSEL_GFX_VAL,
-+		RII_CM_CLKSEL1_CORE_VAL, MII_CM_CLKSEL1_PLL_13_VAL,
-+		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_100MHz,
-+		RATE_IN_242X},
-+
-+	/* PRCM III - FAST */
-+	{S12M, S532M, S266M, RIII_CM_CLKSEL_MPU_VAL,		/* 266MHz ARM */
-+		RIII_CM_CLKSEL_DSP_VAL, RIII_CM_CLKSEL_GFX_VAL,
-+		RIII_CM_CLKSEL1_CORE_VAL, MIII_CM_CLKSEL1_PLL_12_VAL,
-+		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_133MHz,
-+		RATE_IN_242X},
-+
-+	{S13M, S532M, S266M, RIII_CM_CLKSEL_MPU_VAL,		/* 266MHz ARM */
-+		RIII_CM_CLKSEL_DSP_VAL, RIII_CM_CLKSEL_GFX_VAL,
-+		RIII_CM_CLKSEL1_CORE_VAL, MIII_CM_CLKSEL1_PLL_13_VAL,
-+		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_133MHz,
-+		RATE_IN_242X},
-+
-+	/* PRCM II - SLOW */
-+	{S12M, S300M, S150M, RII_CM_CLKSEL_MPU_VAL,		/* 150MHz ARM */
-+		RII_CM_CLKSEL_DSP_VAL, RII_CM_CLKSEL_GFX_VAL,
-+		RII_CM_CLKSEL1_CORE_VAL, MII_CM_CLKSEL1_PLL_12_VAL,
-+		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_100MHz,
-+		RATE_IN_242X},
-+
-+	{S13M, S300M, S150M, RII_CM_CLKSEL_MPU_VAL,		/* 150MHz ARM */
-+		RII_CM_CLKSEL_DSP_VAL, RII_CM_CLKSEL_GFX_VAL,
-+		RII_CM_CLKSEL1_CORE_VAL, MII_CM_CLKSEL1_PLL_13_VAL,
-+		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_100MHz,
-+		RATE_IN_242X},
-+
-+	/* PRCM III - SLOW */
-+	{S12M, S266M, S133M, RIII_CM_CLKSEL_MPU_VAL,		/* 133MHz ARM */
-+		RIII_CM_CLKSEL_DSP_VAL, RIII_CM_CLKSEL_GFX_VAL,
-+		RIII_CM_CLKSEL1_CORE_VAL, MIII_CM_CLKSEL1_PLL_12_VAL,
-+		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_133MHz,
-+		RATE_IN_242X},
-+
-+	{S13M, S266M, S133M, RIII_CM_CLKSEL_MPU_VAL,		/* 133MHz ARM */
-+		RIII_CM_CLKSEL_DSP_VAL, RIII_CM_CLKSEL_GFX_VAL,
-+		RIII_CM_CLKSEL1_CORE_VAL, MIII_CM_CLKSEL1_PLL_13_VAL,
-+		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_133MHz,
-+		RATE_IN_242X},
-+
-+	/* PRCM-VII (boot-bypass) */
-+	{S12M, S12M, S12M, RVII_CM_CLKSEL_MPU_VAL,		/* 12MHz ARM*/
-+		RVII_CM_CLKSEL_DSP_VAL, RVII_CM_CLKSEL_GFX_VAL,
-+		RVII_CM_CLKSEL1_CORE_VAL, MVII_CM_CLKSEL1_PLL_12_VAL,
-+		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_BYPASS,
-+		RATE_IN_242X},
-+
-+	/* PRCM-VII (boot-bypass) */
-+	{S13M, S13M, S13M, RVII_CM_CLKSEL_MPU_VAL,		/* 13MHz ARM */
-+		RVII_CM_CLKSEL_DSP_VAL, RVII_CM_CLKSEL_GFX_VAL,
-+		RVII_CM_CLKSEL1_CORE_VAL, MVII_CM_CLKSEL1_PLL_13_VAL,
-+		MX_CLKSEL2_PLL_2x_VAL, 0, V24XX_SDRC_RFR_CTRL_BYPASS,
-+		RATE_IN_242X},
-+
-+	/* PRCM #3 - ratio2 (ES2) - FAST */
-+	{S13M, S660M, S330M, R2_CM_CLKSEL_MPU_VAL,		/* 330MHz ARM */
-+		R2_CM_CLKSEL_DSP_VAL, R2_CM_CLKSEL_GFX_VAL,
-+		R2_CM_CLKSEL1_CORE_VAL, M3_CM_CLKSEL1_PLL_13_VAL,
-+		MX_CLKSEL2_PLL_2x_VAL, R2_CM_CLKSEL_MDM_VAL,
-+		V24XX_SDRC_RFR_CTRL_110MHz,
-+		RATE_IN_243X},
-+
-+	/* PRCM #5a - ratio1 - FAST */
-+	{S13M, S532M, S266M, R1_CM_CLKSEL_MPU_VAL,		/* 266MHz ARM */
-+		R1_CM_CLKSEL_DSP_VAL, R1_CM_CLKSEL_GFX_VAL,
-+		R1_CM_CLKSEL1_CORE_VAL, M5A_CM_CLKSEL1_PLL_13_VAL,
-+		MX_CLKSEL2_PLL_2x_VAL, R1_CM_CLKSEL_MDM_VAL,
-+		V24XX_SDRC_RFR_CTRL_133MHz,
-+		RATE_IN_243X},
-+
-+	/* PRCM #5b - ratio1 - FAST */
-+	{S13M, S400M, S200M, R1_CM_CLKSEL_MPU_VAL,		/* 200MHz ARM */
-+		R1_CM_CLKSEL_DSP_VAL, R1_CM_CLKSEL_GFX_VAL,
-+		R1_CM_CLKSEL1_CORE_VAL, M5B_CM_CLKSEL1_PLL_13_VAL,
-+		MX_CLKSEL2_PLL_2x_VAL, R1_CM_CLKSEL_MDM_VAL,
-+		V24XX_SDRC_RFR_CTRL_100MHz,
-+		RATE_IN_243X},
-+
-+	/* PRCM #3 - ratio2 (ES2) - SLOW */
-+	{S13M, S330M, S165M, R2_CM_CLKSEL_MPU_VAL,		/* 165MHz ARM */
-+		R2_CM_CLKSEL_DSP_VAL, R2_CM_CLKSEL_GFX_VAL,
-+		R2_CM_CLKSEL1_CORE_VAL, M3_CM_CLKSEL1_PLL_13_VAL,
-+		MX_CLKSEL2_PLL_1x_VAL, R2_CM_CLKSEL_MDM_VAL,
-+		V24XX_SDRC_RFR_CTRL_110MHz,
-+		RATE_IN_243X},
-+
-+	/* PRCM #5a - ratio1 - SLOW */
-+	{S13M, S266M, S133M, R1_CM_CLKSEL_MPU_VAL,		/* 133MHz ARM */
-+		R1_CM_CLKSEL_DSP_VAL, R1_CM_CLKSEL_GFX_VAL,
-+		R1_CM_CLKSEL1_CORE_VAL, M5A_CM_CLKSEL1_PLL_13_VAL,
-+		MX_CLKSEL2_PLL_1x_VAL, R1_CM_CLKSEL_MDM_VAL,
-+		V24XX_SDRC_RFR_CTRL_133MHz,
-+		RATE_IN_243X},
-+
-+	/* PRCM #5b - ratio1 - SLOW*/
-+	{S13M, S200M, S100M, R1_CM_CLKSEL_MPU_VAL,		/* 100MHz ARM */
-+		R1_CM_CLKSEL_DSP_VAL, R1_CM_CLKSEL_GFX_VAL,
-+		R1_CM_CLKSEL1_CORE_VAL, M5B_CM_CLKSEL1_PLL_13_VAL,
-+		MX_CLKSEL2_PLL_1x_VAL, R1_CM_CLKSEL_MDM_VAL,
-+		V24XX_SDRC_RFR_CTRL_100MHz,
-+		RATE_IN_243X},
-+
-+	/* PRCM-boot/bypass */
-+	{S13M, S13M, S13M, RB_CM_CLKSEL_MPU_VAL,		/* 13Mhz */
-+		RB_CM_CLKSEL_DSP_VAL, RB_CM_CLKSEL_GFX_VAL,
-+		RB_CM_CLKSEL1_CORE_VAL, MB_CM_CLKSEL1_PLL_13_VAL,
-+		MX_CLKSEL2_PLL_2x_VAL, RB_CM_CLKSEL_MDM_VAL,
-+		V24XX_SDRC_RFR_CTRL_BYPASS,
-+		RATE_IN_243X},
-+
-+	/* PRCM-boot/bypass */
-+	{S12M, S12M, S12M, RB_CM_CLKSEL_MPU_VAL,		/* 12Mhz */
-+		RB_CM_CLKSEL_DSP_VAL, RB_CM_CLKSEL_GFX_VAL,
-+		RB_CM_CLKSEL1_CORE_VAL, MB_CM_CLKSEL1_PLL_12_VAL,
-+		MX_CLKSEL2_PLL_2x_VAL, RB_CM_CLKSEL_MDM_VAL,
-+		V24XX_SDRC_RFR_CTRL_BYPASS,
-+		RATE_IN_243X},
-+
-+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-+};
-+
-+/*-------------------------------------------------------------------------
-+ * 24xx clock tree.
-+ *
-+ * NOTE:In many cases here we are assigning a 'default' parent.	In many
-+ *	cases the parent is selectable.	The get/set parent calls will also
-+ *	switch sources.
-+ *
-+ *	Many some clocks say always_enabled, but they can be auto idled for
-+ *	power savings. They will always be available upon clock request.
-+ *
-+ *	Several sources are given initial rates which may be wrong, this will
-+ *	be fixed up in the init func.
-+ *
-+ *	Things are broadly separated below by clock domains. It is
-+ *	noteworthy that most periferals have dependencies on multiple clock
-+ *	domains. Many get their interface clocks from the L4 domain, but get
-+ *	functional clocks from fixed sources or other core domain derived
-+ *	clocks.
-+ *-------------------------------------------------------------------------*/
-+
-+/* Base external input clocks */
-+static struct clk func_32k_ck = {
-+	.name		= "func_32k_ck",
-+	.rate		= 32000,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_FIXED | ALWAYS_ENABLED,
-+};
-+
-+/* Typical 12/13MHz in standalone mode, will be 26Mhz in chassis mode */
-+static struct clk osc_ck = {		/* (*12, *13, 19.2, *26, 38.4)MHz */
-+	.name		= "osc_ck",
-+	.rate		= 26000000,		/* fixed up in clock init */
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_FIXED | RATE_PROPAGATES,
-+};
-+
-+/* With out modem likely 12MHz, with modem likely 13MHz */
-+static struct clk sys_ck = {		/* (*12, *13, 19.2, 26, 38.4)MHz */
-+	.name		= "sys_ck",		/* ~ ref_clk also */
-+	.parent		= &osc_ck,
-+	.rate		= 13000000,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_FIXED | ALWAYS_ENABLED | RATE_PROPAGATES,
-+	.rate_offset	= 6, /* sysclkdiv 1 or 2, already handled or no boot */
-+	.recalc		= &omap2_sys_clk_recalc,
-+};
-+
-+static struct clk alt_ck = {		/* Typical 54M or 48M, may not exist */
-+	.name		= "alt_ck",
-+	.rate		= 54000000,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_FIXED | ALWAYS_ENABLED | RATE_PROPAGATES,
-+	.recalc		= &omap2_propagate_rate,
-+};
 +
 +/*
-+ * Analog domain root source clocks
++ * SMS register access
 + */
 +
-+/* dpll_ck, is broken out in to special cases through clksel */
-+static struct clk dpll_ck = {
-+	.name		= "dpll_ck",
-+	.parent		= &sys_ck,		/* Can be func_32k also */
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_PROPAGATES | RATE_CKCTL | CM_PLL_SEL1,
-+	.recalc		= &omap2_clksel_recalc,
-+};
 +
-+static struct clk apll96_ck = {
-+	.name		= "apll96_ck",
-+	.parent		= &sys_ck,
-+	.rate		= 96000000,
-+	.flags		= CLOCK_IN_OMAP242X |CLOCK_IN_OMAP243X |
-+				RATE_FIXED | RATE_PROPAGATES,
-+	.enable_reg	= (void __iomem *)&CM_CLKEN_PLL,
-+	.enable_bit	= 0x2,
-+	.recalc		= &omap2_propagate_rate,
-+};
++#define OMAP242X_SMS_REGADDR(reg)	(void __iomem *)IO_ADDRESS(OMAP2420_SMS_BASE + reg)
++#define OMAP243X_SMS_REGADDR(reg)	(void __iomem *)IO_ADDRESS(OMAP243X_SMS_BASE + reg)
++#define OMAP343X_SMS_REGADDR(reg)	(void __iomem *)IO_ADDRESS(OMAP343X_SMS_BASE + reg)
 +
-+static struct clk apll54_ck = {
-+	.name		= "apll54_ck",
-+	.parent		= &sys_ck,
-+	.rate		= 54000000,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_FIXED | RATE_PROPAGATES,
-+	.enable_reg	= (void __iomem *)&CM_CLKEN_PLL,
-+	.enable_bit	= 0x6,
-+	.recalc		= &omap2_propagate_rate,
-+};
++/* SMS register offsets - read/write with sms_{read,write}_reg() */
 +
-+/*
-+ * PRCM digital base sources
-+ */
-+static struct clk func_54m_ck = {
-+	.name		= "func_54m_ck",
-+	.parent		= &apll54_ck,	/* can also be alt_clk */
-+	.rate		= 54000000,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_FIXED | CM_PLL_SEL1 | RATE_PROPAGATES,
-+	.src_offset	= 5,
-+	.enable_reg	= (void __iomem *)&CM_CLKEN_PLL,
-+	.enable_bit	= 0xff,
-+	.recalc		= &omap2_propagate_rate,
-+};
-+
-+static struct clk core_ck = {
-+	.name		= "core_ck",
-+	.parent		= &dpll_ck,		/* can also be 32k */
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				ALWAYS_ENABLED | RATE_PROPAGATES,
-+	.recalc		= &omap2_propagate_rate,
-+};
-+
-+static struct clk sleep_ck = {		/* sys_clk or 32k */
-+	.name		= "sleep_ck",
-+	.parent		= &func_32k_ck,
-+	.rate		= 32000,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.recalc		= &omap2_propagate_rate,
-+};
-+
-+static struct clk func_96m_ck = {
-+	.name		= "func_96m_ck",
-+	.parent		= &apll96_ck,
-+	.rate		= 96000000,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_FIXED | RATE_PROPAGATES,
-+	.enable_reg	= (void __iomem *)&CM_CLKEN_PLL,
-+	.enable_bit	= 0xff,
-+	.recalc		= &omap2_propagate_rate,
-+};
-+
-+static struct clk func_48m_ck = {
-+	.name		= "func_48m_ck",
-+	.parent		= &apll96_ck,	 /* 96M or Alt */
-+	.rate		= 48000000,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_FIXED | CM_PLL_SEL1 | RATE_PROPAGATES,
-+	.src_offset	= 3,
-+	.enable_reg	= (void __iomem *)&CM_CLKEN_PLL,
-+	.enable_bit	= 0xff,
-+	.recalc		= &omap2_propagate_rate,
-+};
-+
-+static struct clk func_12m_ck = {
-+	.name		= "func_12m_ck",
-+	.parent		= &func_48m_ck,
-+	.rate		= 12000000,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_FIXED | RATE_PROPAGATES,
-+	.recalc		= &omap2_propagate_rate,
-+	.enable_reg	= (void __iomem *)&CM_CLKEN_PLL,
-+	.enable_bit	= 0xff,
-+};
-+
-+/* Secure timer, only available in secure mode */
-+static struct clk wdt1_osc_ck = {
-+	.name		= "ck_wdt1_osc",
-+	.parent		= &osc_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk sys_clkout = {
-+	.name		= "sys_clkout",
-+	.parent		= &func_54m_ck,
-+	.rate		= 54000000,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				CM_SYSCLKOUT_SEL1 | RATE_CKCTL,
-+	.src_offset	= 0,
-+	.enable_reg	= (void __iomem *)&PRCM_CLKOUT_CTRL,
-+	.enable_bit	= 7,
-+	.rate_offset	= 3,
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+/* In 2430, new in 2420 ES2 */
-+static struct clk sys_clkout2 = {
-+	.name		= "sys_clkout2",
-+	.parent		= &func_54m_ck,
-+	.rate		= 54000000,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				CM_SYSCLKOUT_SEL1 | RATE_CKCTL,
-+	.src_offset	= 8,
-+	.enable_reg	= (void __iomem *)&PRCM_CLKOUT_CTRL,
-+	.enable_bit	= 15,
-+	.rate_offset	= 11,
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+static struct clk emul_ck = {
-+	.name		= "emul_ck",
-+	.parent		= &func_54m_ck,
-+	.flags		= CLOCK_IN_OMAP242X,
-+	.enable_reg	= (void __iomem *)&PRCM_CLKEMUL_CTRL,
-+	.enable_bit	= 0,
-+	.recalc		= &omap2_propagate_rate,
-+
-+};
-+
-+/*
-+ * MPU clock domain
-+ *	Clocks:
-+ *		MPU_FCLK, MPU_ICLK
-+ *		INT_M_FCLK, INT_M_I_CLK
-+ *
-+ * - Individual clocks are hardware managed.
-+ * - Base divider comes from: CM_CLKSEL_MPU
-+ *
-+ */
-+static struct clk mpu_ck = {	/* Control cpu */
-+	.name		= "mpu_ck",
-+	.parent		= &core_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X | RATE_CKCTL |
-+				ALWAYS_ENABLED | CM_MPU_SEL1 | DELAYED_APP |
-+				CONFIG_PARTICIPANT | RATE_PROPAGATES,
-+	.rate_offset	= 0,	/* bits 0-4 */
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+/*
-+ * DSP (2430-IVA2.1) (2420-UMA+IVA1) clock domain
-+ * Clocks:
-+ *	2430: IVA2.1_FCLK, IVA2.1_ICLK
-+ *	2420: UMA_FCLK, UMA_ICLK, IVA_MPU, IVA_COP
-+ */
-+static struct clk iva2_1_fck = {
-+	.name		= "iva2_1_fck",
-+	.parent		= &core_ck,
-+	.flags		= CLOCK_IN_OMAP243X | RATE_CKCTL | CM_DSP_SEL1 |
-+				DELAYED_APP | RATE_PROPAGATES |
-+				CONFIG_PARTICIPANT,
-+	.rate_offset	= 0,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN_DSP,
-+	.enable_bit	= 0,
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+static struct clk iva2_1_ick = {
-+	.name		= "iva2_1_ick",
-+	.parent		= &iva2_1_fck,
-+	.flags		= CLOCK_IN_OMAP243X | RATE_CKCTL | CM_DSP_SEL1 |
-+				DELAYED_APP | CONFIG_PARTICIPANT,
-+	.rate_offset	= 5,
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+/*
-+ * Won't be too specific here. The core clock comes into this block
-+ * it is divided then tee'ed. One branch goes directly to xyz enable
-+ * controls. The other branch gets further divided by 2 then possibly
-+ * routed into a synchronizer and out of clocks abc.
-+ */
-+static struct clk dsp_fck = {
-+	.name		= "dsp_fck",
-+	.parent		= &core_ck,
-+	.flags		= CLOCK_IN_OMAP242X | RATE_CKCTL | CM_DSP_SEL1 |
-+			DELAYED_APP | CONFIG_PARTICIPANT | RATE_PROPAGATES,
-+	.rate_offset	= 0,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN_DSP,
-+	.enable_bit	= 0,
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+static struct clk dsp_ick = {
-+	.name		= "dsp_ick",	 /* apparently ipi and isp */
-+	.parent		= &dsp_fck,
-+	.flags		= CLOCK_IN_OMAP242X | RATE_CKCTL | CM_DSP_SEL1 |
-+				DELAYED_APP | CONFIG_PARTICIPANT,
-+	.rate_offset = 5,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN_DSP,
-+	.enable_bit	= 1,		/* for ipi */
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+static struct clk iva1_ifck = {
-+	.name		= "iva1_ifck",
-+	.parent		= &core_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CM_DSP_SEL1 | RATE_CKCTL |
-+			CONFIG_PARTICIPANT | RATE_PROPAGATES | DELAYED_APP,
-+	.rate_offset= 8,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN_DSP,
-+	.enable_bit	= 10,
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+/* IVA1 mpu/int/i/f clocks are /2 of parent */
-+static struct clk iva1_mpu_int_ifck = {
-+	.name		= "iva1_mpu_int_ifck",
-+	.parent		= &iva1_ifck,
-+	.flags		= CLOCK_IN_OMAP242X | RATE_CKCTL | CM_DSP_SEL1,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN_DSP,
-+	.enable_bit	= 8,
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+/*
-+ * L3 clock domain
-+ * L3 clocks are used for both interface and functional clocks to
-+ * multiple entities. Some of these clocks are completely managed
-+ * by hardware, and some others allow software control. Hardware
-+ * managed ones general are based on directly CLK_REQ signals and
-+ * various auto idle settings. The functional spec sets many of these
-+ * as 'tie-high' for their enables.
-+ *
-+ * I-CLOCKS:
-+ *	L3-Interconnect, SMS, GPMC, SDRC, OCM_RAM, OCM_ROM, SDMA
-+ *	CAM, HS-USB.
-+ * F-CLOCK
-+ *	SSI.
-+ *
-+ * GPMC memories and SDRC have timing and clock sensitive registers which
-+ * may very well need notification when the clock changes. Currently for low
-+ * operating points, these are taken care of in sleep.S.
-+ */
-+static struct clk core_l3_ck = {	/* Used for ick and fck, interconnect */
-+	.name		= "core_l3_ck",
-+	.parent		= &core_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_CKCTL | ALWAYS_ENABLED | CM_CORE_SEL1 |
-+				DELAYED_APP | CONFIG_PARTICIPANT |
-+				RATE_PROPAGATES,
-+	.rate_offset	= 0,
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+static struct clk usb_l4_ick = {	/* FS-USB interface clock */
-+	.name		= "usb_l4_ick",
-+	.parent		= &core_l3_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_CKCTL | CM_CORE_SEL1 | DELAYED_APP |
-+				CONFIG_PARTICIPANT,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
-+	.enable_bit	= 0,
-+	.rate_offset = 25,
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+/*
-+ * SSI is in L3 management domain, its direct parent is core not l3,
-+ * many core power domain entities are grouped into the L3 clock
-+ * domain.
-+ * SSI_SSR_FCLK, SSI_SST_FCLK, SSI_L4_CLIK
-+ *
-+ * ssr = core/1/2/3/4/5, sst = 1/2 ssr.
-+ */
-+static struct clk ssi_ssr_sst_fck = {
-+	.name		= "ssi_fck",
-+	.parent		= &core_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_CKCTL | CM_CORE_SEL1 | DELAYED_APP,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,	/* bit 1 */
-+	.enable_bit	= 1,
-+	.rate_offset = 20,
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+/*
-+ * GFX clock domain
-+ *	Clocks:
-+ * GFX_FCLK, GFX_ICLK
-+ * GFX_CG1(2d), GFX_CG2(3d)
-+ *
-+ * GFX_FCLK runs from L3, and is divided by (1,2,3,4)
-+ * The 2d and 3d clocks run at a hardware determined
-+ * divided value of fclk.
-+ *
-+ */
-+static struct clk gfx_3d_fck = {
-+	.name		= "gfx_3d_fck",
-+	.parent		= &core_l3_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_CKCTL | CM_GFX_SEL1,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN_GFX,
-+	.enable_bit	= 2,
-+	.rate_offset= 0,
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+static struct clk gfx_2d_fck = {
-+	.name		= "gfx_2d_fck",
-+	.parent		= &core_l3_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_CKCTL | CM_GFX_SEL1,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN_GFX,
-+	.enable_bit	= 1,
-+	.rate_offset= 0,
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+static struct clk gfx_ick = {
-+	.name		= "gfx_ick",		/* From l3 */
-+	.parent		= &core_l3_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_CKCTL,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN_GFX,	/* bit 0 */
-+	.enable_bit	= 0,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+/*
-+ * Modem clock domain (2430)
-+ *	CLOCKS:
-+ *		MDM_OSC_CLK
-+ *		MDM_ICLK
-+ */
-+static struct clk mdm_ick = {		/* used both as a ick and fck */
-+	.name		= "mdm_ick",
-+	.parent		= &core_ck,
-+	.flags		= CLOCK_IN_OMAP243X | RATE_CKCTL | CM_MODEM_SEL1 |
-+				DELAYED_APP | CONFIG_PARTICIPANT,
-+	.rate_offset	= 0,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN_MDM,
-+	.enable_bit	= 0,
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+static struct clk mdm_osc_ck = {
-+	.name		= "mdm_osc_ck",
-+	.rate		= 26000000,
-+	.parent		= &osc_ck,
-+	.flags		= CLOCK_IN_OMAP243X | RATE_FIXED,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN_MDM,
-+	.enable_bit	= 1,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+/*
-+ * L4 clock management domain
-+ *
-+ * This domain contains lots of interface clocks from the L4 interface, some
-+ * functional clocks.	Fixed APLL functional source clocks are managed in
-+ * this domain.
-+ */
-+static struct clk l4_ck = {		/* used both as an ick and fck */
-+	.name		= "l4_ck",
-+	.parent		= &core_l3_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_CKCTL | ALWAYS_ENABLED | CM_CORE_SEL1 |
-+				DELAYED_APP | RATE_PROPAGATES,
-+	.rate_offset	= 5,
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+static struct clk ssi_l4_ick = {
-+	.name		= "ssi_l4_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X | RATE_CKCTL,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,	/* bit 1 */
-+	.enable_bit	= 1,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+/*
-+ * DSS clock domain
-+ * CLOCKs:
-+ * DSS_L4_ICLK, DSS_L3_ICLK,
-+ * DSS_CLK1, DSS_CLK2, DSS_54MHz_CLK
-+ *
-+ * DSS is both initiator and target.
-+ */
-+static struct clk dss_ick = {		/* Enables both L3,L4 ICLK's */
-+	.name		= "dss_ick",
-+	.parent		= &l4_ck,	/* really both l3 and l4 */
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X | RATE_CKCTL,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 0,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk dss1_fck = {
-+	.name		= "dss1_fck",
-+	.parent		= &core_ck,		/* Core or sys */
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_CKCTL | CM_CORE_SEL1 | DELAYED_APP,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 0,
-+	.rate_offset	= 8,
-+	.src_offset	= 8,
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+static struct clk dss2_fck = {		/* Alt clk used in power management */
-+	.name		= "dss2_fck",
-+	.parent		= &sys_ck,		/* fixed at sys_ck or 48MHz */
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_CKCTL | CM_CORE_SEL1 | RATE_FIXED |
-+				DELAYED_APP,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 1,
-+	.src_offset	= 13,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk dss_54m_fck = {	/* Alt clk used in power management */
-+	.name		= "dss_54m_fck",	/* 54m tv clk */
-+	.parent		= &func_54m_ck,
-+	.rate		= 54000000,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				RATE_FIXED | RATE_PROPAGATES,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 2,
-+	.recalc		= &omap2_propagate_rate,
-+};
-+
-+/*
-+ * CORE power domain ICLK & FCLK defines.
-+ * Many of the these can have more than one possible parent. Entries
-+ * here will likely have an L4 interface parent, and may have multiple
-+ * functional clock parents.
-+ */
-+static struct clk gpt1_ick = {
-+	.name		= "gpt1_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN_WKUP,	/* Bit0 */
-+	.enable_bit	= 0,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt1_fck = {
-+	.name		= "gpt1_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				CM_WKUP_SEL1,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN_WKUP,	/* Bit0 */
-+	.enable_bit	= 0,
-+	.src_offset	= 0,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt2_ick = {
-+	.name		= "gpt2_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,	/* Bit4 */
-+	.enable_bit	= 4,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt2_fck = {
-+	.name		= "gpt2_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				CM_CORE_SEL2,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 4,
-+	.src_offset	= 2,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt3_ick = {
-+	.name		= "gpt3_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,	/* Bit5 */
-+	.enable_bit	= 5,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt3_fck = {
-+	.name		= "gpt3_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				CM_CORE_SEL2,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 5,
-+	.src_offset	= 4,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt4_ick = {
-+	.name		= "gpt4_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,	/* Bit6 */
-+	.enable_bit	= 6,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt4_fck = {
-+	.name		= "gpt4_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				CM_CORE_SEL2,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 6,
-+	.src_offset	= 6,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt5_ick = {
-+	.name		= "gpt5_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,	 /* Bit7 */
-+	.enable_bit	= 7,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt5_fck = {
-+	.name		= "gpt5_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				CM_CORE_SEL2,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 7,
-+	.src_offset	= 8,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt6_ick = {
-+	.name		= "gpt6_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_bit	= 8,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,	 /* bit8 */
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt6_fck = {
-+	.name		= "gpt6_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				CM_CORE_SEL2,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 8,
-+	.src_offset	= 10,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt7_ick = {
-+	.name		= "gpt7_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,	 /* bit9 */
-+	.enable_bit	= 9,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt7_fck = {
-+	.name		= "gpt7_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				CM_CORE_SEL2,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 9,
-+	.src_offset	= 12,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt8_ick = {
-+	.name		= "gpt8_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,	 /* bit10 */
-+	.enable_bit	= 10,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt8_fck = {
-+	.name		= "gpt8_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				CM_CORE_SEL2,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 10,
-+	.src_offset	= 14,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt9_ick = {
-+	.name		= "gpt9_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 11,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt9_fck = {
-+	.name		= "gpt9_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+					CM_CORE_SEL2,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 11,
-+	.src_offset	= 16,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt10_ick = {
-+	.name		= "gpt10_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 12,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt10_fck = {
-+	.name		= "gpt10_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+					CM_CORE_SEL2,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 12,
-+	.src_offset	= 18,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt11_ick = {
-+	.name		= "gpt11_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 13,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt11_fck = {
-+	.name		= "gpt11_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+					CM_CORE_SEL2,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 13,
-+	.src_offset	= 20,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt12_ick = {
-+	.name		= "gpt12_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,	 /* bit14 */
-+	.enable_bit	= 14,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpt12_fck = {
-+	.name		= "gpt12_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+					CM_CORE_SEL2,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 14,
-+	.src_offset	= 22,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mcbsp1_ick = {
-+	.name		= "mcbsp1_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_bit	= 15,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,	 /* bit16 */
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mcbsp1_fck = {
-+	.name		= "mcbsp1_fck",
-+	.parent		= &func_96m_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_bit	= 15,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mcbsp2_ick = {
-+	.name		= "mcbsp2_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_bit	= 16,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mcbsp2_fck = {
-+	.name		= "mcbsp2_fck",
-+	.parent		= &func_96m_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_bit	= 16,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mcbsp3_ick = {
-+	.name		= "mcbsp3_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
-+	.enable_bit	= 3,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mcbsp3_fck = {
-+	.name		= "mcbsp3_fck",
-+	.parent		= &func_96m_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
-+	.enable_bit	= 3,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mcbsp4_ick = {
-+	.name		= "mcbsp4_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
-+	.enable_bit	= 4,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mcbsp4_fck = {
-+	.name		= "mcbsp4_fck",
-+	.parent		= &func_96m_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
-+	.enable_bit	= 4,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mcbsp5_ick = {
-+	.name		= "mcbsp5_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
-+	.enable_bit	= 5,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mcbsp5_fck = {
-+	.name		= "mcbsp5_fck",
-+	.parent		= &func_96m_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
-+	.enable_bit	= 5,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mcspi1_ick = {
-+	.name		= "mcspi_ick",
-+	.id		= 1,
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 17,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mcspi1_fck = {
-+	.name		= "mcspi_fck",
-+	.id		= 1,
-+	.parent		= &func_48m_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 17,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mcspi2_ick = {
-+	.name		= "mcspi_ick",
-+	.id		= 2,
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 18,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mcspi2_fck = {
-+	.name		= "mcspi_fck",
-+	.id		= 2,
-+	.parent		= &func_48m_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 18,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mcspi3_ick = {
-+	.name		= "mcspi_ick",
-+	.id		= 3,
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
-+	.enable_bit	= 9,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mcspi3_fck = {
-+	.name		= "mcspi_fck",
-+	.id		= 3,
-+	.parent		= &func_48m_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
-+	.enable_bit	= 9,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk uart1_ick = {
-+	.name		= "uart1_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 21,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk uart1_fck = {
-+	.name		= "uart1_fck",
-+	.parent		= &func_48m_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 21,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk uart2_ick = {
-+	.name		= "uart2_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 22,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk uart2_fck = {
-+	.name		= "uart2_fck",
-+	.parent		= &func_48m_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 22,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk uart3_ick = {
-+	.name		= "uart3_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
-+	.enable_bit	= 2,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk uart3_fck = {
-+	.name		= "uart3_fck",
-+	.parent		= &func_48m_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
-+	.enable_bit	= 2,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpios_ick = {
-+	.name		= "gpios_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN_WKUP,
-+	.enable_bit	= 2,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpios_fck = {
-+	.name		= "gpios_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN_WKUP,
-+	.enable_bit	= 2,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mpu_wdt_ick = {
-+	.name		= "mpu_wdt_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN_WKUP,
-+	.enable_bit	= 3,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mpu_wdt_fck = {
-+	.name		= "mpu_wdt_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN_WKUP,
-+	.enable_bit	= 3,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk sync_32k_ick = {
-+	.name		= "sync_32k_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN_WKUP,
-+	.enable_bit	= 1,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+static struct clk wdt1_ick = {
-+	.name		= "wdt1_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN_WKUP,
-+	.enable_bit	= 4,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+static struct clk omapctrl_ick = {
-+	.name		= "omapctrl_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN_WKUP,
-+	.enable_bit	= 5,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+static struct clk icr_ick = {
-+	.name		= "icr_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN_WKUP,
-+	.enable_bit	= 6,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk cam_ick = {
-+	.name		= "cam_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 31,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk cam_fck = {
-+	.name		= "cam_fck",
-+	.parent		= &func_96m_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 31,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mailboxes_ick = {
-+	.name		= "mailboxes_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 30,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk wdt4_ick = {
-+	.name		= "wdt4_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 29,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk wdt4_fck = {
-+	.name		= "wdt4_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 29,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk wdt3_ick = {
-+	.name		= "wdt3_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 28,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk wdt3_fck = {
-+	.name		= "wdt3_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP242X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 28,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mspro_ick = {
-+	.name		= "mspro_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 27,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mspro_fck = {
-+	.name		= "mspro_fck",
-+	.parent		= &func_96m_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 27,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mmc_ick = {
-+	.name		= "mmc_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 26,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mmc_fck = {
-+	.name		= "mmc_fck",
-+	.parent		= &func_96m_ck,
-+	.flags		= CLOCK_IN_OMAP242X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 26,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk fac_ick = {
-+	.name		= "fac_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 25,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk fac_fck = {
-+	.name		= "fac_fck",
-+	.parent		= &func_12m_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 25,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk eac_ick = {
-+	.name		= "eac_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 24,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk eac_fck = {
-+	.name		= "eac_fck",
-+	.parent		= &func_96m_ck,
-+	.flags		= CLOCK_IN_OMAP242X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 24,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk hdq_ick = {
-+	.name		= "hdq_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 23,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk hdq_fck = {
-+	.name		= "hdq_fck",
-+	.parent		= &func_12m_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 23,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk i2c2_ick = {
-+	.name		= "i2c_ick",
-+	.id		= 2,
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 20,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk i2c2_fck = {
-+	.name		= "i2c_fck",
-+	.id		= 2,
-+	.parent		= &func_12m_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 20,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk i2chs2_fck = {
-+	.name		= "i2chs2_fck",
-+	.parent		= &func_96m_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
-+	.enable_bit	= 20,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk i2c1_ick = {
-+	.name		= "i2c_ick",
-+	.id		= 1,
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 19,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk i2c1_fck = {
-+	.name		= "i2c_fck",
-+	.id		= 1,
-+	.parent		= &func_12m_ck,
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 19,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk i2chs1_fck = {
-+	.name		= "i2chs1_fck",
-+	.parent		= &func_96m_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
-+	.enable_bit	= 19,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk vlynq_ick = {
-+	.name		= "vlynq_ick",
-+	.parent		= &core_l3_ck,
-+	.flags		= CLOCK_IN_OMAP242X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN1_CORE,
-+	.enable_bit	= 3,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk vlynq_fck = {
-+	.name		= "vlynq_fck",
-+	.parent		= &func_96m_ck,
-+	.flags		= CLOCK_IN_OMAP242X  | RATE_CKCTL | CM_CORE_SEL1 | DELAYED_APP,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN1_CORE,
-+	.enable_bit	= 3,
-+	.src_offset	= 15,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk sdrc_ick = {
-+	.name		= "sdrc_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN3_CORE,
-+	.enable_bit	= 2,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk des_ick = {
-+	.name		= "des_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP243X | CLOCK_IN_OMAP242X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN4_CORE,
-+	.enable_bit	= 0,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk sha_ick = {
-+	.name		= "sha_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP243X | CLOCK_IN_OMAP242X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN4_CORE,
-+	.enable_bit	= 1,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk rng_ick = {
-+	.name		= "rng_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP243X | CLOCK_IN_OMAP242X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN4_CORE,
-+	.enable_bit	= 2,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk aes_ick = {
-+	.name		= "aes_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP243X | CLOCK_IN_OMAP242X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN4_CORE,
-+	.enable_bit	= 3,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk pka_ick = {
-+	.name		= "pka_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP243X | CLOCK_IN_OMAP242X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN4_CORE,
-+	.enable_bit	= 4,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk usb_fck = {
-+	.name		= "usb_fck",
-+	.parent		= &func_48m_ck,
-+	.flags		= CLOCK_IN_OMAP243X | CLOCK_IN_OMAP242X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
-+	.enable_bit	= 0,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk usbhs_ick = {
-+	.name		= "usbhs_ick",
-+	.parent		= &core_l3_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
-+	.enable_bit	= 6,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mmchs1_ick = {
-+	.name		= "mmchs1_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
-+	.enable_bit	= 7,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mmchs1_fck = {
-+	.name		= "mmchs1_fck",
-+	.parent		= &func_96m_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
-+	.enable_bit	= 7,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mmchs2_ick = {
-+	.name		= "mmchs2_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
-+	.enable_bit	= 8,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mmchs2_fck = {
-+	.name		= "mmchs2_fck",
-+	.parent		= &func_96m_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
-+	.enable_bit	= 8,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpio5_ick = {
-+	.name		= "gpio5_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
-+	.enable_bit	= 10,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk gpio5_fck = {
-+	.name		= "gpio5_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
-+	.enable_bit	= 10,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mdm_intc_ick = {
-+	.name		= "mdm_intc_ick",
-+	.parent		= &l4_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_ICLKEN2_CORE,
-+	.enable_bit	= 11,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mmchsdb1_fck = {
-+	.name		= "mmchsdb1_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
-+	.enable_bit	= 16,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+static struct clk mmchsdb2_fck = {
-+	.name		= "mmchsdb2_fck",
-+	.parent		= &func_32k_ck,
-+	.flags		= CLOCK_IN_OMAP243X,
-+	.enable_reg	= (void __iomem *)&CM_FCLKEN2_CORE,
-+	.enable_bit	= 17,
-+	.recalc		= &omap2_followparent_recalc,
-+};
-+
-+/*
-+ * This clock is a composite clock which does entire set changes then
-+ * forces a rebalance. It keys on the MPU speed, but it really could
-+ * be any key speed part of a set in the rate table.
-+ *
-+ * to really change a set, you need memory table sets which get changed
-+ * in sram, pre-notifiers & post notifiers, changing the top set, without
-+ * having low level display recalc's won't work... this is why dpm notifiers
-+ * work, isr's off, walk a list of clocks already _off_ and not messing with
-+ * the bus.
-+ *
-+ * This clock should have no parent. It embodies the entire upper level
-+ * active set. A parent will mess up some of the init also.
-+ */
-+static struct clk virt_prcm_set = {
-+	.name		= "virt_prcm_set",
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
-+				VIRTUAL_CLOCK | ALWAYS_ENABLED | DELAYED_APP,
-+	.parent		= &mpu_ck,	/* Indexed by mpu speed, no parent */
-+	.recalc		= &omap2_mpu_recalc,	/* sets are keyed on mpu rate */
-+	.set_rate	= &omap2_select_table_rate,
-+	.round_rate	= &omap2_round_to_table_rate,
-+};
-+
-+static struct clk *onchip_clks[] = {
-+	/* external root sources */
-+	&func_32k_ck,
-+	&osc_ck,
-+	&sys_ck,
-+	&alt_ck,
-+	/* internal analog sources */
-+	&dpll_ck,
-+	&apll96_ck,
-+	&apll54_ck,
-+	/* internal prcm root sources */
-+	&func_54m_ck,
-+	&core_ck,
-+	&sleep_ck,
-+	&func_96m_ck,
-+	&func_48m_ck,
-+	&func_12m_ck,
-+	&wdt1_osc_ck,
-+	&sys_clkout,
-+	&sys_clkout2,
-+	&emul_ck,
-+	/* mpu domain clocks */
-+	&mpu_ck,
-+	/* dsp domain clocks */
-+	&iva2_1_fck,		/* 2430 */
-+	&iva2_1_ick,
-+	&dsp_ick,		/* 2420 */
-+	&dsp_fck,
-+	&iva1_ifck,
-+	&iva1_mpu_int_ifck,
-+	/* GFX domain clocks */
-+	&gfx_3d_fck,
-+	&gfx_2d_fck,
-+	&gfx_ick,
-+	/* Modem domain clocks */
-+	&mdm_ick,
-+	&mdm_osc_ck,
-+	/* DSS domain clocks */
-+	&dss_ick,
-+	&dss1_fck,
-+	&dss2_fck,
-+	&dss_54m_fck,
-+	/* L3 domain clocks */
-+	&core_l3_ck,
-+	&ssi_ssr_sst_fck,
-+	&usb_l4_ick,
-+	/* L4 domain clocks */
-+	&l4_ck,			/* used as both core_l4 and wu_l4 */
-+	&ssi_l4_ick,
-+	/* virtual meta-group clock */
-+	&virt_prcm_set,
-+	/* general l4 interface ck, multi-parent functional clk */
-+	&gpt1_ick,
-+	&gpt1_fck,
-+	&gpt2_ick,
-+	&gpt2_fck,
-+	&gpt3_ick,
-+	&gpt3_fck,
-+	&gpt4_ick,
-+	&gpt4_fck,
-+	&gpt5_ick,
-+	&gpt5_fck,
-+	&gpt6_ick,
-+	&gpt6_fck,
-+	&gpt7_ick,
-+	&gpt7_fck,
-+	&gpt8_ick,
-+	&gpt8_fck,
-+	&gpt9_ick,
-+	&gpt9_fck,
-+	&gpt10_ick,
-+	&gpt10_fck,
-+	&gpt11_ick,
-+	&gpt11_fck,
-+	&gpt12_ick,
-+	&gpt12_fck,
-+	&mcbsp1_ick,
-+	&mcbsp1_fck,
-+	&mcbsp2_ick,
-+	&mcbsp2_fck,
-+	&mcbsp3_ick,
-+	&mcbsp3_fck,
-+	&mcbsp4_ick,
-+	&mcbsp4_fck,
-+	&mcbsp5_ick,
-+	&mcbsp5_fck,
-+	&mcspi1_ick,
-+	&mcspi1_fck,
-+	&mcspi2_ick,
-+	&mcspi2_fck,
-+	&mcspi3_ick,
-+	&mcspi3_fck,
-+	&uart1_ick,
-+	&uart1_fck,
-+	&uart2_ick,
-+	&uart2_fck,
-+	&uart3_ick,
-+	&uart3_fck,
-+	&gpios_ick,
-+	&gpios_fck,
-+	&mpu_wdt_ick,
-+	&mpu_wdt_fck,
-+	&sync_32k_ick,
-+	&wdt1_ick,
-+	&omapctrl_ick,
-+	&icr_ick,
-+	&cam_fck,
-+	&cam_ick,
-+	&mailboxes_ick,
-+	&wdt4_ick,
-+	&wdt4_fck,
-+	&wdt3_ick,
-+	&wdt3_fck,
-+	&mspro_ick,
-+	&mspro_fck,
-+	&mmc_ick,
-+	&mmc_fck,
-+	&fac_ick,
-+	&fac_fck,
-+	&eac_ick,
-+	&eac_fck,
-+	&hdq_ick,
-+	&hdq_fck,
-+	&i2c1_ick,
-+	&i2c1_fck,
-+	&i2chs1_fck,
-+	&i2c2_ick,
-+	&i2c2_fck,
-+	&i2chs2_fck,
-+	&vlynq_ick,
-+	&vlynq_fck,
-+	&sdrc_ick,
-+	&des_ick,
-+	&sha_ick,
-+	&rng_ick,
-+	&aes_ick,
-+	&pka_ick,
-+	&usb_fck,
-+	&usbhs_ick,
-+	&mmchs1_ick,
-+	&mmchs1_fck,
-+	&mmchs2_ick,
-+	&mmchs2_fck,
-+	&gpio5_ick,
-+	&gpio5_fck,
-+	&mdm_intc_ick,
-+	&mmchsdb1_fck,
-+	&mmchsdb2_fck,
-+};
++#define SMS_SYSCONFIG		0x010
++/* REVISIT: fill in other SMS registers here */
 +
 +#endif
 -- 
