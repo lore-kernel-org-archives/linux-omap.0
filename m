@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 11/12] ARM: OMAP2: Remove old PRCM register access code
-Date: Tue, 18 Mar 2008 12:39:59 +0200
-Message-ID: <1205836800-31737-12-git-send-email-tony@atomide.com>
+Subject: [PATCH 10/12] ARM: OMAP2: Clean up 24xx clock code
+Date: Tue, 18 Mar 2008 12:39:58 +0200
+Message-ID: <1205836800-31737-11-git-send-email-tony@atomide.com>
 References: omap2-upstream-2008-03-18-123926
  <1205836800-31737-1-git-send-email-tony@atomide.com>
  <1205836800-31737-2-git-send-email-tony@atomide.com>
@@ -13,853 +13,216 @@ References: omap2-upstream-2008-03-18-123926
  <1205836800-31737-8-git-send-email-tony@atomide.com>
  <1205836800-31737-9-git-send-email-tony@atomide.com>
  <1205836800-31737-10-git-send-email-tony@atomide.com>
- <1205836800-31737-11-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52060 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751686AbYCRKlS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Mar 2008 06:41:18 -0400
-In-Reply-To: <1205836800-31737-11-git-send-email-tony@atomide.com>
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:62651 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751804AbYCRKlO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Mar 2008 06:41:14 -0400
+In-Reply-To: <1205836800-31737-10-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-From: Paul Walmsley <paul@pwsan.com>
+Clean up 24xx clock code to sync it with linux-omap tree.
 
-Remove old PRCM register access code that is no longer needed.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/Makefile    |    2 +-
- arch/arm/mach-omap2/pm-domain.c |  299 -----------------------
- arch/arm/mach-omap2/prcm-regs.h |  497 ---------------------------------------
- 3 files changed, 1 insertions(+), 797 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/pm-domain.c
- delete mode 100644 arch/arm/mach-omap2/prcm-regs.h
+ arch/arm/mach-omap2/clock.c     |   15 +++---------
+ arch/arm/mach-omap2/clock.h     |   13 +++-------
+ arch/arm/mach-omap2/clock24xx.c |   46 +++++++++++++++++++-------------------
+ arch/arm/mach-omap2/clock24xx.h |   37 +++++++++++++++----------------
+ 4 files changed, 49 insertions(+), 62 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index a3b2507..2eabadc 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -7,7 +7,7 @@ obj-y := irq.o id.o io.o sram-fn.o memory.o control.o prcm.o clock.o mux.o \
- 		devices.o serial.o gpmc.o timer-gp.o
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 5cf88b7..15dd319 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -1,20 +1,13 @@
+ /*
+  *  linux/arch/arm/mach-omap2/clock.c
+  *
+- *  Copyright (C) 2005 Texas Instruments Inc.
+- *  Richard Woodruff <r-woodruff2@ti.com>
+- *  Created for OMAP2.
+- *
+- *  Cleaned up and modified to use omap shared clock framework by
+- *  Tony Lindgren <tony@atomide.com>
++ *  Copyright (C) 2005-2008 Texas Instruments, Inc.
++ *  Copyright (C) 2004-2008 Nokia Corporation
+  *
+- *  Copyright (C) 2007 Texas Instruments, Inc.
+- *  Copyright (C) 2007 Nokia Corporation
++ *  Contacts:
++ *  Richard Woodruff <r-woodruff2@ti.com>
+  *  Paul Walmsley
+  *
+- *  Based on omap1 clock.c, Copyright (C) 2004 - 2005 Nokia corporation
+- *  Written by Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
+- *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index 4cba747..b291f14 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -1,16 +1,11 @@
+ /*
+  *  linux/arch/arm/mach-omap2/clock.h
+  *
+- *  Copyright (C) 2005 Texas Instruments Inc.
+- *  Richard Woodruff <r-woodruff2@ti.com>
+- *  Created for OMAP2.
+- *
+- *  Copyright (C) 2004 Nokia corporation
+- *  Written by Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
+- *  Based on clocks.h by Tony Lindgren, Gordon McNutt and RidgeRun, Inc
++ *  Copyright (C) 2005-2008 Texas Instruments, Inc.
++ *  Copyright (C) 2004-2008 Nokia Corporation
+  *
+- *  Copyright (C) 2007 Texas Instruments, Inc.
+- *  Copyright (C) 2007 Nokia Corporation
++ *  Contacts:
++ *  Richard Woodruff <r-woodruff2@ti.com>
+  *  Paul Walmsley
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
+index 0c8ae09..b6c408c 100644
+--- a/arch/arm/mach-omap2/clock24xx.c
++++ b/arch/arm/mach-omap2/clock24xx.c
+@@ -1,15 +1,15 @@
+ /*
+  *  linux/arch/arm/mach-omap2/clock.c
+  *
+- *  Copyright (C) 2005 Texas Instruments Inc.
+- *  Richard Woodruff <r-woodruff2@ti.com>
+- *  Created for OMAP2.
++ *  Copyright (C) 2005-2008 Texas Instruments, Inc.
++ *  Copyright (C) 2004-2008 Nokia Corporation
+  *
+- *  Cleaned up and modified to use omap shared clock framework by
+- *  Tony Lindgren <tony@atomide.com>
++ *  Contacts:
++ *  Richard Woodruff <r-woodruff2@ti.com>
++ *  Paul Walmsley
+  *
+- *  Based on omap1 clock.c, Copyright (C) 2004 - 2005 Nokia corporation
+- *  Written by Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
++ *  Based on earlier work by Tuukka Tikkanen, Tony Lindgren,
++ *  Gordon McNutt and RidgeRun, Inc.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -59,6 +59,21 @@ static struct clk *sclk;
+  * Omap24xx specific clock functions
+  *-------------------------------------------------------------------------*/
  
- # Power Management
--obj-$(CONFIG_PM) += pm.o pm-domain.o sleep.o
-+obj-$(CONFIG_PM) += pm.o sleep.o
++/* This actually returns the rate of core_ck, not dpll_ck. */
++static u32 omap2_get_dpll_rate_24xx(struct clk *tclk)
++{
++	long long dpll_clk;
++	u8 amult;
++
++	dpll_clk = omap2_get_dpll_rate(tclk);
++
++	amult = cm_read_mod_reg(PLL_MOD, CM_CLKSEL2);
++	amult &= OMAP24XX_CORE_CLK_SRC_MASK;
++	dpll_clk *= amult;
++
++	return dpll_clk;
++}
++
+ static int omap2_enable_osc_ck(struct clk *clk)
+ {
+ 	u32 pcc;
+@@ -93,21 +108,6 @@ static void omap2_sys_clk_recalc(struct clk * clk)
+ }
+ #endif	/* OLD_CK */
  
- # Clock framework
- obj-$(CONFIG_ARCH_OMAP2)		+= clock24xx.o
-diff --git a/arch/arm/mach-omap2/pm-domain.c b/arch/arm/mach-omap2/pm-domain.c
-deleted file mode 100644
-index 2494091..0000000
---- a/arch/arm/mach-omap2/pm-domain.c
-+++ /dev/null
-@@ -1,299 +0,0 @@
--/*
-- * linux/arch/arm/mach-omap2/pm-domain.c
-- *
-- * Power domain functions for OMAP2
-- *
-- * Copyright (C) 2006 Nokia Corporation
-- * Tony Lindgren <tony@atomide.com>
-- *
-- * Some code based on earlier OMAP2 sample PM code
-- * Copyright (C) 2005 Texas Instruments, Inc.
-- * Richard Woodruff <r-woodruff2@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/module.h>
--#include <linux/init.h>
--#include <linux/clk.h>
--
--#include <asm/io.h>
--
--#include "prcm-regs.h"
--
--/* Power domain offsets */
--#define PM_MPU_OFFSET			0x100
--#define PM_CORE_OFFSET			0x200
--#define PM_GFX_OFFSET			0x300
--#define PM_WKUP_OFFSET			0x400		/* Autoidle only */
--#define PM_PLL_OFFSET			0x500		/* Autoidle only */
--#define PM_DSP_OFFSET			0x800
--#define PM_MDM_OFFSET			0xc00
--
--/* Power domain wake-up dependency control register */
--#define PM_WKDEP_OFFSET			0xc8
--#define		EN_MDM			(1 << 5)
--#define		EN_WKUP			(1 << 4)
--#define		EN_GFX			(1 << 3)
--#define		EN_DSP			(1 << 2)
--#define		EN_MPU			(1 << 1)
--#define		EN_CORE			(1 << 0)
--
--/* Core power domain state transition control register */
--#define PM_PWSTCTRL_OFFSET		0xe0
--#define		FORCESTATE		(1 << 18)	/* Only for DSP & GFX */
--#define		MEM4RETSTATE		(1 << 6)
--#define		MEM3RETSTATE		(1 << 5)
--#define		MEM2RETSTATE		(1 << 4)
--#define		MEM1RETSTATE		(1 << 3)
--#define		LOGICRETSTATE		(1 << 2)	/* Logic is retained */
--#define		POWERSTATE_OFF		0x3
--#define		POWERSTATE_RETENTION	0x1
--#define		POWERSTATE_ON		0x0
--
--/* Power domain state register */
--#define PM_PWSTST_OFFSET		0xe4
--
--/* Hardware supervised state transition control register */
--#define CM_CLKSTCTRL_OFFSET		0x48
--#define		AUTOSTAT_MPU		(1 << 0)	/* MPU */
--#define		AUTOSTAT_DSS		(1 << 2)	/* Core */
--#define		AUTOSTAT_L4		(1 << 1)	/* Core */
--#define		AUTOSTAT_L3		(1 << 0)	/* Core */
--#define		AUTOSTAT_GFX		(1 << 0)	/* GFX */
--#define		AUTOSTAT_IVA		(1 << 8)	/* 2420 IVA in DSP domain */
--#define		AUTOSTAT_DSP		(1 << 0)	/* DSP */
--#define		AUTOSTAT_MDM		(1 << 0)	/* MDM */
--
--/* Automatic control of interface clock idling */
--#define CM_AUTOIDLE1_OFFSET		0x30
--#define CM_AUTOIDLE2_OFFSET		0x34		/* Core only */
--#define CM_AUTOIDLE3_OFFSET		0x38		/* Core only */
--#define CM_AUTOIDLE4_OFFSET		0x3c		/* Core only */
--#define		AUTO_54M(x)		(((x) & 0x3) << 6)
--#define		AUTO_96M(x)		(((x) & 0x3) << 2)
--#define		AUTO_DPLL(x)		(((x) & 0x3) << 0)
--#define		AUTO_STOPPED		0x3
--#define		AUTO_BYPASS_FAST	0x2		/* DPLL only */
--#define		AUTO_BYPASS_LOW_POWER	0x1		/* DPLL only */
--#define		AUTO_DISABLED		0x0
--
--/* Voltage control PRCM_VOLTCTRL bits */
--#define		AUTO_EXTVOLT		(1 << 15)
--#define		FORCE_EXTVOLT		(1 << 14)
--#define		SETOFF_LEVEL(x)		(((x) & 0x3) << 12)
--#define		MEMRETCTRL		(1 << 8)
--#define		SETRET_LEVEL(x)		(((x) & 0x3) << 6)
--#define		VOLT_LEVEL(x)		(((x) & 0x3) << 0)
--
--#define OMAP24XX_PRCM_VBASE	IO_ADDRESS(OMAP24XX_PRCM_BASE)
--#define prcm_readl(r)		__raw_readl(OMAP24XX_PRCM_VBASE + (r))
--#define prcm_writel(v, r)	__raw_writel((v), OMAP24XX_PRCM_VBASE + (r))
--
--static u32 pmdomain_get_wakeup_dependencies(int domain_offset)
+-/* This actually returns the rate of core_ck, not dpll_ck. */
+-static u32 omap2_get_dpll_rate_24xx(struct clk *tclk)
 -{
--	return prcm_readl(domain_offset + PM_WKDEP_OFFSET);
+-	long long dpll_clk;
+-	u8 amult;
+-
+-	dpll_clk = omap2_get_dpll_rate(tclk);
+-
+-	amult = cm_read_mod_reg(PLL_MOD, CM_CLKSEL2);
+-	amult &= OMAP24XX_CORE_CLK_SRC_MASK;
+-	dpll_clk *= amult;
+-
+-	return dpll_clk;
 -}
 -
--static void pmdomain_set_wakeup_dependencies(u32 state, int domain_offset)
--{
--	prcm_writel(state, domain_offset + PM_WKDEP_OFFSET);
--}
--
--static u32 pmdomain_get_powerstate(int domain_offset)
--{
--	return prcm_readl(domain_offset + PM_PWSTCTRL_OFFSET);
--}
--
--static void pmdomain_set_powerstate(u32 state, int domain_offset)
--{
--	prcm_writel(state, domain_offset + PM_PWSTCTRL_OFFSET);
--}
--
--static u32 pmdomain_get_clock_autocontrol(int domain_offset)
--{
--	return prcm_readl(domain_offset + CM_CLKSTCTRL_OFFSET);
--}
--
--static void pmdomain_set_clock_autocontrol(u32 state, int domain_offset)
--{
--	prcm_writel(state, domain_offset + CM_CLKSTCTRL_OFFSET);
--}
--
--static u32 pmdomain_get_clock_autoidle1(int domain_offset)
--{
--	return prcm_readl(domain_offset + CM_AUTOIDLE1_OFFSET);
--}
--
--/* Core domain only */
--static u32 pmdomain_get_clock_autoidle2(int domain_offset)
--{
--	return prcm_readl(domain_offset + CM_AUTOIDLE2_OFFSET);
--}
--
--/* Core domain only */
--static u32 pmdomain_get_clock_autoidle3(int domain_offset)
--{
--	return prcm_readl(domain_offset + CM_AUTOIDLE3_OFFSET);
--}
--
--/* Core domain only */
--static u32 pmdomain_get_clock_autoidle4(int domain_offset)
--{
--	return prcm_readl(domain_offset + CM_AUTOIDLE4_OFFSET);
--}
--
--static void pmdomain_set_clock_autoidle1(u32 state, int domain_offset)
--{
--	prcm_writel(state, CM_AUTOIDLE1_OFFSET + domain_offset);
--}
--
--/* Core domain only */
--static void pmdomain_set_clock_autoidle2(u32 state, int domain_offset)
--{
--	prcm_writel(state, CM_AUTOIDLE2_OFFSET + domain_offset);
--}
--
--/* Core domain only */
--static void pmdomain_set_clock_autoidle3(u32 state, int domain_offset)
--{
--	prcm_writel(state, CM_AUTOIDLE3_OFFSET + domain_offset);
--}
--
--/* Core domain only */
--static void pmdomain_set_clock_autoidle4(u32 state, int domain_offset)
--{
--	prcm_writel(state, CM_AUTOIDLE4_OFFSET + domain_offset);
--}
--
--/*
-- * Configures power management domains to idle clocks automatically.
-- */
--void pmdomain_set_autoidle(void)
--{
--	u32 val;
--
--	/* Set PLL auto stop for 54M, 96M & DPLL */
--	pmdomain_set_clock_autoidle1(AUTO_54M(AUTO_STOPPED) |
--				     AUTO_96M(AUTO_STOPPED) |
--				     AUTO_DPLL(AUTO_STOPPED), PM_PLL_OFFSET);
--
--	/* External clock input control
--	 * REVISIT: Should this be in clock framework?
--	 */
--	PRCM_CLKSRC_CTRL |= (0x3 << 3);
--
--	/* Configure number of 32KHz clock cycles for sys_clk */
--	PRCM_CLKSSETUP = 0x00ff;
--
--	/* Configure automatic voltage transition */
--	PRCM_VOLTSETUP = 0;
--	val = PRCM_VOLTCTRL;
--	val &= ~(SETOFF_LEVEL(0x3) | VOLT_LEVEL(0x3));
--	val |= SETOFF_LEVEL(1) | VOLT_LEVEL(1) | AUTO_EXTVOLT;
--	PRCM_VOLTCTRL = val;
--
--	/* Disable emulation tools functional clock */
--	PRCM_CLKEMUL_CTRL = 0x0;
--
--	/* Set core memory retention state */
--	val = pmdomain_get_powerstate(PM_CORE_OFFSET);
--	if (cpu_is_omap2420()) {
--		val &= ~(0x7 << 3);
--		val |= (MEM3RETSTATE | MEM2RETSTATE | MEM1RETSTATE);
--	} else {
--		val &= ~(0xf << 3);
--		val |= (MEM4RETSTATE | MEM3RETSTATE | MEM2RETSTATE |
--			MEM1RETSTATE);
--	}
--	pmdomain_set_powerstate(val, PM_CORE_OFFSET);
--
--	/* OCP interface smart idle. REVISIT: Enable autoidle bit0 ? */
--	val = SMS_SYSCONFIG;
--	val &= ~(0x3 << 3);
--	val |= (0x2 << 3) | (1 << 0);
--	SMS_SYSCONFIG |= val;
--
--	val = SDRC_SYSCONFIG;
--	val &= ~(0x3 << 3);
--	val |= (0x2 << 3);
--	SDRC_SYSCONFIG = val;
--
--	/* Configure L3 interface for smart idle.
--	 * REVISIT: Enable autoidle bit0 ?
--	 */
--	val = GPMC_SYSCONFIG;
--	val &= ~(0x3 << 3);
--	val |= (0x2 << 3) | (1 << 0);
--	GPMC_SYSCONFIG = val;
--
--	pmdomain_set_powerstate(LOGICRETSTATE | POWERSTATE_RETENTION,
--				PM_MPU_OFFSET);
--	pmdomain_set_powerstate(POWERSTATE_RETENTION, PM_CORE_OFFSET);
--	if (!cpu_is_omap2420())
--		pmdomain_set_powerstate(POWERSTATE_RETENTION, PM_MDM_OFFSET);
--
--	/* Assume suspend function has saved the state for DSP and GFX */
--	pmdomain_set_powerstate(FORCESTATE | POWERSTATE_OFF, PM_DSP_OFFSET);
--	pmdomain_set_powerstate(FORCESTATE | POWERSTATE_OFF, PM_GFX_OFFSET);
--
--#if 0
--	/* REVISIT: Internal USB needs special handling */
--	force_standby_usb();
--	if (cpu_is_omap2430())
--		force_hsmmc();
--	sdram_self_refresh_on_idle_req(1);
--#endif
--
--	/* Enable clock auto control for all domains.
--	 * Note that CORE domain includes also DSS, L4 & L3.
--	 */
--	pmdomain_set_clock_autocontrol(AUTOSTAT_MPU, PM_MPU_OFFSET);
--	pmdomain_set_clock_autocontrol(AUTOSTAT_GFX, PM_GFX_OFFSET);
--	pmdomain_set_clock_autocontrol(AUTOSTAT_DSS | AUTOSTAT_L4 | AUTOSTAT_L3,
--				       PM_CORE_OFFSET);
--	if (cpu_is_omap2420())
--		pmdomain_set_clock_autocontrol(AUTOSTAT_IVA | AUTOSTAT_DSP,
--					       PM_DSP_OFFSET);
--	else {
--		pmdomain_set_clock_autocontrol(AUTOSTAT_DSP, PM_DSP_OFFSET);
--		pmdomain_set_clock_autocontrol(AUTOSTAT_MDM, PM_MDM_OFFSET);
--	}
--
--	/* Enable clock autoidle for all domains */
--	pmdomain_set_clock_autoidle1(0x2, PM_DSP_OFFSET);
--	if (cpu_is_omap2420()) {
--		pmdomain_set_clock_autoidle1(0xfffffff9, PM_CORE_OFFSET);
--		pmdomain_set_clock_autoidle2(0x7, PM_CORE_OFFSET);
--		pmdomain_set_clock_autoidle1(0x3f, PM_WKUP_OFFSET);
--	} else {
--		pmdomain_set_clock_autoidle1(0xeafffff1, PM_CORE_OFFSET);
--		pmdomain_set_clock_autoidle2(0xfff, PM_CORE_OFFSET);
--		pmdomain_set_clock_autoidle1(0x7f, PM_WKUP_OFFSET);
--		pmdomain_set_clock_autoidle1(0x3, PM_MDM_OFFSET);
--	}
--	pmdomain_set_clock_autoidle3(0x7, PM_CORE_OFFSET);
--	pmdomain_set_clock_autoidle4(0x1f, PM_CORE_OFFSET);
--}
--
--/*
-- * Initializes power domains by removing wake-up dependencies and powering
-- * down DSP and GFX. Gets called from PM init. Note that DSP and IVA code
-- * must re-enable DSP and GFX when used.
-- */
--void __init pmdomain_init(void)
--{
--	/* Remove all domain wakeup dependencies */
--	pmdomain_set_wakeup_dependencies(EN_WKUP | EN_CORE, PM_MPU_OFFSET);
--	pmdomain_set_wakeup_dependencies(0, PM_DSP_OFFSET);
--	pmdomain_set_wakeup_dependencies(0, PM_GFX_OFFSET);
--	pmdomain_set_wakeup_dependencies(EN_WKUP | EN_MPU, PM_CORE_OFFSET);
--	if (cpu_is_omap2430())
--		pmdomain_set_wakeup_dependencies(0, PM_MDM_OFFSET);
--
--	/* Power down DSP and GFX */
--	pmdomain_set_powerstate(POWERSTATE_OFF | FORCESTATE, PM_DSP_OFFSET);
--	pmdomain_set_powerstate(POWERSTATE_OFF | FORCESTATE, PM_GFX_OFFSET);
--}
-diff --git a/arch/arm/mach-omap2/prcm-regs.h b/arch/arm/mach-omap2/prcm-regs.h
-deleted file mode 100644
-index c7f6cfa..0000000
---- a/arch/arm/mach-omap2/prcm-regs.h
-+++ /dev/null
-@@ -1,497 +0,0 @@
--/*
-- * linux/arch/arm/mach-omap2/prcm-regs.h
-- *
-- * OMAP24XX Power Reset and Clock Management (PRCM) registers
-- *
-- * Copyright (C) 2005 Texas Instruments, Inc.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-- */
--
--#ifndef __ARCH_ARM_MACH_OMAP2_PRCM_H
--#define __ARCH_ARM_MACH_OMAP2_PRCM_H
--
--#ifdef CONFIG_ARCH_OMAP2420
--#define OMAP24XX_32KSYNCT_BASE	(L4_24XX_BASE + 0x4000)
--#define OMAP24XX_PRCM_BASE	(L4_24XX_BASE + 0x8000)
--#define OMAP24XX_SDRC_BASE	(L3_24XX_BASE + 0x9000)
--#define OMAP242X_CONTROL_STATUS	(L4_24XX_BASE + 0x2f8)
--#endif
--
--#ifdef CONFIG_ARCH_OMAP2430
--#define OMAP24XX_32KSYNCT_BASE (L4_WK_243X_BASE + 0x20000)
--#define OMAP24XX_PRCM_BASE     (L4_WK_243X_BASE + 0x6000)
--#define OMAP24XX_SDRC_BASE     (0x6D000000)
--#define OMAP242X_CONTROL_STATUS        (L4_24XX_BASE + 0x2f8)
--#endif
--
--/* SET_PERFORMANCE_LEVEL PARAMETERS */
--#define PRCM_HALF_SPEED 1
--#define PRCM_FULL_SPEED 2
--
--#ifndef __ASSEMBLER__
--
--#define PRCM_REG32(offset)	__REG32(OMAP24XX_PRCM_BASE + (offset))
--
--#define PRCM_REVISION		PRCM_REG32(0x000)
--#define PRCM_SYSCONFIG		PRCM_REG32(0x010)
--#define PRCM_IRQSTATUS_MPU	PRCM_REG32(0x018)
--#define PRCM_IRQENABLE_MPU	PRCM_REG32(0x01C)
--#define PRCM_VOLTCTRL		PRCM_REG32(0x050)
--#define PRCM_VOLTST		PRCM_REG32(0x054)
--#define PRCM_CLKSRC_CTRL	PRCM_REG32(0x060)
--#define PRCM_CLKOUT_CTRL	PRCM_REG32(0x070)
--#define PRCM_CLKEMUL_CTRL	PRCM_REG32(0x078)
--#define PRCM_CLKCFG_CTRL	PRCM_REG32(0x080)
--#define PRCM_CLKCFG_STATUS	PRCM_REG32(0x084)
--#define PRCM_VOLTSETUP		PRCM_REG32(0x090)
--#define PRCM_CLKSSETUP		PRCM_REG32(0x094)
--#define PRCM_POLCTRL		PRCM_REG32(0x098)
--
--/* GENERAL PURPOSE */
--#define GENERAL_PURPOSE1	PRCM_REG32(0x0B0)
--#define GENERAL_PURPOSE2	PRCM_REG32(0x0B4)
--#define GENERAL_PURPOSE3	PRCM_REG32(0x0B8)
--#define GENERAL_PURPOSE4	PRCM_REG32(0x0BC)
--#define GENERAL_PURPOSE5	PRCM_REG32(0x0C0)
--#define GENERAL_PURPOSE6	PRCM_REG32(0x0C4)
--#define GENERAL_PURPOSE7	PRCM_REG32(0x0C8)
--#define GENERAL_PURPOSE8	PRCM_REG32(0x0CC)
--#define GENERAL_PURPOSE9	PRCM_REG32(0x0D0)
--#define GENERAL_PURPOSE10	PRCM_REG32(0x0D4)
--#define GENERAL_PURPOSE11	PRCM_REG32(0x0D8)
--#define GENERAL_PURPOSE12	PRCM_REG32(0x0DC)
--#define GENERAL_PURPOSE13	PRCM_REG32(0x0E0)
--#define GENERAL_PURPOSE14	PRCM_REG32(0x0E4)
--#define GENERAL_PURPOSE15	PRCM_REG32(0x0E8)
--#define GENERAL_PURPOSE16	PRCM_REG32(0x0EC)
--#define GENERAL_PURPOSE17	PRCM_REG32(0x0F0)
--#define GENERAL_PURPOSE18	PRCM_REG32(0x0F4)
--#define GENERAL_PURPOSE19	PRCM_REG32(0x0F8)
--#define GENERAL_PURPOSE20	PRCM_REG32(0x0FC)
--
--/* MPU */
--#define CM_CLKSEL_MPU		PRCM_REG32(0x140)
--#define CM_CLKSTCTRL_MPU	PRCM_REG32(0x148)
--#define RM_RSTST_MPU		PRCM_REG32(0x158)
--#define PM_WKDEP_MPU		PRCM_REG32(0x1C8)
--#define PM_EVGENCTRL_MPU	PRCM_REG32(0x1D4)
--#define PM_EVEGENONTIM_MPU	PRCM_REG32(0x1D8)
--#define PM_EVEGENOFFTIM_MPU	PRCM_REG32(0x1DC)
--#define PM_PWSTCTRL_MPU		PRCM_REG32(0x1E0)
--#define PM_PWSTST_MPU		PRCM_REG32(0x1E4)
--
--/* CORE */
--#define CM_FCLKEN1_CORE		PRCM_REG32(0x200)
--#define CM_FCLKEN2_CORE		PRCM_REG32(0x204)
--#define CM_FCLKEN3_CORE		PRCM_REG32(0x208)
--#define CM_ICLKEN1_CORE		PRCM_REG32(0x210)
--#define CM_ICLKEN2_CORE		PRCM_REG32(0x214)
--#define CM_ICLKEN3_CORE		PRCM_REG32(0x218)
--#define CM_ICLKEN4_CORE		PRCM_REG32(0x21C)
--#define CM_IDLEST1_CORE		PRCM_REG32(0x220)
--#define CM_IDLEST2_CORE		PRCM_REG32(0x224)
--#define CM_IDLEST3_CORE		PRCM_REG32(0x228)
--#define CM_IDLEST4_CORE		PRCM_REG32(0x22C)
--#define CM_AUTOIDLE1_CORE	PRCM_REG32(0x230)
--#define CM_AUTOIDLE2_CORE	PRCM_REG32(0x234)
--#define CM_AUTOIDLE3_CORE	PRCM_REG32(0x238)
--#define CM_AUTOIDLE4_CORE	PRCM_REG32(0x23C)
--#define CM_CLKSEL1_CORE		PRCM_REG32(0x240)
--#define CM_CLKSEL2_CORE		PRCM_REG32(0x244)
--#define CM_CLKSTCTRL_CORE	PRCM_REG32(0x248)
--#define PM_WKEN1_CORE		PRCM_REG32(0x2A0)
--#define PM_WKEN2_CORE		PRCM_REG32(0x2A4)
--#define PM_WKST1_CORE		PRCM_REG32(0x2B0)
--#define PM_WKST2_CORE		PRCM_REG32(0x2B4)
--#define PM_WKDEP_CORE		PRCM_REG32(0x2C8)
--#define PM_PWSTCTRL_CORE	PRCM_REG32(0x2E0)
--#define PM_PWSTST_CORE		PRCM_REG32(0x2E4)
--
--/* GFX */
--#define CM_FCLKEN_GFX		PRCM_REG32(0x300)
--#define CM_ICLKEN_GFX		PRCM_REG32(0x310)
--#define CM_IDLEST_GFX		PRCM_REG32(0x320)
--#define CM_CLKSEL_GFX		PRCM_REG32(0x340)
--#define CM_CLKSTCTRL_GFX	PRCM_REG32(0x348)
--#define RM_RSTCTRL_GFX		PRCM_REG32(0x350)
--#define RM_RSTST_GFX		PRCM_REG32(0x358)
--#define PM_WKDEP_GFX		PRCM_REG32(0x3C8)
--#define PM_PWSTCTRL_GFX		PRCM_REG32(0x3E0)
--#define PM_PWSTST_GFX		PRCM_REG32(0x3E4)
--
--/* WAKE-UP */
--#define CM_FCLKEN_WKUP		PRCM_REG32(0x400)
--#define CM_ICLKEN_WKUP		PRCM_REG32(0x410)
--#define CM_IDLEST_WKUP		PRCM_REG32(0x420)
--#define CM_AUTOIDLE_WKUP	PRCM_REG32(0x430)
--#define CM_CLKSEL_WKUP		PRCM_REG32(0x440)
--#define RM_RSTCTRL_WKUP		PRCM_REG32(0x450)
--#define RM_RSTTIME_WKUP		PRCM_REG32(0x454)
--#define RM_RSTST_WKUP		PRCM_REG32(0x458)
--#define PM_WKEN_WKUP		PRCM_REG32(0x4A0)
--#define PM_WKST_WKUP		PRCM_REG32(0x4B0)
--
--/* CLOCKS */
--#define CM_CLKEN_PLL		PRCM_REG32(0x500)
--#define CM_IDLEST_CKGEN		PRCM_REG32(0x520)
--#define CM_AUTOIDLE_PLL		PRCM_REG32(0x530)
--#define CM_CLKSEL1_PLL		PRCM_REG32(0x540)
--#define CM_CLKSEL2_PLL		PRCM_REG32(0x544)
--
--/* DSP */
--#define CM_FCLKEN_DSP		PRCM_REG32(0x800)
--#define CM_ICLKEN_DSP		PRCM_REG32(0x810)
--#define CM_IDLEST_DSP		PRCM_REG32(0x820)
--#define CM_AUTOIDLE_DSP		PRCM_REG32(0x830)
--#define CM_CLKSEL_DSP		PRCM_REG32(0x840)
--#define CM_CLKSTCTRL_DSP	PRCM_REG32(0x848)
--#define RM_RSTCTRL_DSP		PRCM_REG32(0x850)
--#define RM_RSTST_DSP		PRCM_REG32(0x858)
--#define PM_WKEN_DSP		PRCM_REG32(0x8A0)
--#define PM_WKDEP_DSP		PRCM_REG32(0x8C8)
--#define PM_PWSTCTRL_DSP		PRCM_REG32(0x8E0)
--#define PM_PWSTST_DSP		PRCM_REG32(0x8E4)
--#define PRCM_IRQSTATUS_DSP	PRCM_REG32(0x8F0)
--#define PRCM_IRQENABLE_DSP	PRCM_REG32(0x8F4)
--
--/* IVA */
--#define PRCM_IRQSTATUS_IVA	PRCM_REG32(0x8F8)
--#define PRCM_IRQENABLE_IVA	PRCM_REG32(0x8FC)
--
--/* Modem on 2430 */
--#define CM_FCLKEN_MDM		PRCM_REG32(0xC00)
--#define CM_ICLKEN_MDM		PRCM_REG32(0xC10)
--#define CM_IDLEST_MDM		PRCM_REG32(0xC20)
--#define CM_AUTOIDLE_MDM		PRCM_REG32(0xC30)
--#define CM_CLKSEL_MDM		PRCM_REG32(0xC40)
--#define CM_CLKSTCTRL_MDM	PRCM_REG32(0xC48)
--#define RM_RSTCTRL_MDM		PRCM_REG32(0xC50)
--#define RM_RSTST_MDM		PRCM_REG32(0xC58)
--#define PM_WKEN_MDM		PRCM_REG32(0xCA0)
--#define PM_WKST_MDM		PRCM_REG32(0xCB0)
--#define PM_WKDEP_MDM		PRCM_REG32(0xCC8)
--#define PM_PWSTCTRL_MDM		PRCM_REG32(0xCE0)
--#define PM_PWSTST_MDM		PRCM_REG32(0xCE4)
--
--#define OMAP24XX_L4_IO_BASE	0x48000000
--
--#define DISP_BASE		(OMAP24XX_L4_IO_BASE + 0x50000)
--#define DISP_REG32(offset)	__REG32(DISP_BASE + (offset))
--
--#define OMAP24XX_GPMC_BASE	(L3_24XX_BASE + 0xa000)
--#define GPMC_REG32(offset)	__REG32(OMAP24XX_GPMC_BASE + (offset))
--
--/* FIXME: Move these to timer code */
--#define GPT1_BASE		(0x48028000)
--#define GPT1_REG32(offset)	__REG32(GPT1_BASE + (offset))
--
--/* Misc sysconfig */
--#define DISPC_SYSCONFIG		DISP_REG32(0x410)
--#define SPI_BASE		(OMAP24XX_L4_IO_BASE + 0x98000)
--#define MCSPI1_SYSCONFIG	__REG32(SPI_BASE + 0x10)
--#define MCSPI2_SYSCONFIG	__REG32(SPI_BASE + 0x2000 + 0x10)
--#define MCSPI3_SYSCONFIG	__REG32(OMAP24XX_L4_IO_BASE + 0xb8010)
--
--#define CAMERA_MMU_SYSCONFIG	__REG32(DISP_BASE + 0x2C10)
--#define CAMERA_DMA_SYSCONFIG	__REG32(DISP_BASE + 0x282C)
--#define SYSTEM_DMA_SYSCONFIG	__REG32(DISP_BASE + 0x602C)
--#define GPMC_SYSCONFIG		GPMC_REG32(0x010)
--#define MAILBOXES_SYSCONFIG	__REG32(OMAP24XX_L4_IO_BASE + 0x94010)
--#define UART1_SYSCONFIG		__REG32(OMAP24XX_L4_IO_BASE + 0x6A054)
--#define UART2_SYSCONFIG		__REG32(OMAP24XX_L4_IO_BASE + 0x6C054)
--#define UART3_SYSCONFIG		__REG32(OMAP24XX_L4_IO_BASE + 0x6E054)
--#define SDRC_SYSCONFIG		__REG32(OMAP24XX_SDRC_BASE + 0x10)
--#define OMAP24XX_SMS_BASE	(L3_24XX_BASE + 0x8000)
--#define SMS_SYSCONFIG		__REG32(OMAP24XX_SMS_BASE + 0x10)
--#define SSI_SYSCONFIG		__REG32(DISP_BASE + 0x8010)
--
--/* rkw - good cannidates for PM_ to start what nm was trying */
--#define OMAP24XX_GPT2		(OMAP24XX_L4_IO_BASE + 0x2A000)
--#define OMAP24XX_GPT3		(OMAP24XX_L4_IO_BASE + 0x78000)
--#define OMAP24XX_GPT4		(OMAP24XX_L4_IO_BASE + 0x7A000)
--#define OMAP24XX_GPT5		(OMAP24XX_L4_IO_BASE + 0x7C000)
--#define OMAP24XX_GPT6		(OMAP24XX_L4_IO_BASE + 0x7E000)
--#define OMAP24XX_GPT7		(OMAP24XX_L4_IO_BASE + 0x80000)
--#define OMAP24XX_GPT8		(OMAP24XX_L4_IO_BASE + 0x82000)
--#define OMAP24XX_GPT9		(OMAP24XX_L4_IO_BASE + 0x84000)
--#define OMAP24XX_GPT10		(OMAP24XX_L4_IO_BASE + 0x86000)
--#define OMAP24XX_GPT11		(OMAP24XX_L4_IO_BASE + 0x88000)
--#define OMAP24XX_GPT12		(OMAP24XX_L4_IO_BASE + 0x8A000)
--
--/* FIXME: Move these to timer code */
--#define GPTIMER1_SYSCONFIG	GPT1_REG32(0x010)
--#define GPTIMER2_SYSCONFIG	__REG32(OMAP24XX_GPT2 + 0x10)
--#define GPTIMER3_SYSCONFIG	__REG32(OMAP24XX_GPT3 + 0x10)
--#define GPTIMER4_SYSCONFIG	__REG32(OMAP24XX_GPT4 + 0x10)
--#define GPTIMER5_SYSCONFIG	__REG32(OMAP24XX_GPT5 + 0x10)
--#define GPTIMER6_SYSCONFIG	__REG32(OMAP24XX_GPT6 + 0x10)
--#define GPTIMER7_SYSCONFIG	__REG32(OMAP24XX_GPT7 + 0x10)
--#define GPTIMER8_SYSCONFIG	__REG32(OMAP24XX_GPT8 + 0x10)
--#define GPTIMER9_SYSCONFIG	__REG32(OMAP24XX_GPT9 + 0x10)
--#define GPTIMER10_SYSCONFIG	__REG32(OMAP24XX_GPT10 + 0x10)
--#define GPTIMER11_SYSCONFIG	__REG32(OMAP24XX_GPT11 + 0x10)
--#define GPTIMER12_SYSCONFIG	__REG32(OMAP24XX_GPT12 + 0x10)
--
--/* FIXME: Move these to gpio code */
--#define OMAP24XX_GPIO_BASE	0x48018000
--#define GPIOX_BASE(X)		(OMAP24XX_GPIO_BASE + (0x2000 * ((X) - 1)))
--
--#define GPIO1_SYSCONFIG		__REG32((GPIOX_BASE(1) + 0x10))
--#define GPIO2_SYSCONFIG		__REG32((GPIOX_BASE(2) + 0x10))
--#define GPIO3_SYSCONFIG		__REG32((GPIOX_BASE(3) + 0x10))
--#define GPIO4_SYSCONFIG		__REG32((GPIOX_BASE(4) + 0x10))
--
--#if defined(CONFIG_ARCH_OMAP243X)
--#define GPIO5_SYSCONFIG		__REG32((OMAP24XX_GPIO5_BASE + 0x10))
--#endif
--
--/* GP TIMER 1 */
--#define GPTIMER1_TISTAT		GPT1_REG32(0x014)
--#define GPTIMER1_TISR		GPT1_REG32(0x018)
--#define GPTIMER1_TIER		GPT1_REG32(0x01C)
--#define GPTIMER1_TWER		GPT1_REG32(0x020)
--#define GPTIMER1_TCLR		GPT1_REG32(0x024)
--#define GPTIMER1_TCRR		GPT1_REG32(0x028)
--#define GPTIMER1_TLDR		GPT1_REG32(0x02C)
--#define GPTIMER1_TTGR		GPT1_REG32(0x030)
--#define GPTIMER1_TWPS		GPT1_REG32(0x034)
--#define GPTIMER1_TMAR		GPT1_REG32(0x038)
--#define GPTIMER1_TCAR1		GPT1_REG32(0x03C)
--#define GPTIMER1_TSICR		GPT1_REG32(0x040)
--#define GPTIMER1_TCAR2		GPT1_REG32(0x044)
--
--/* rkw -- base fix up please... */
--#define GPTIMER3_TISR		__REG32(OMAP24XX_L4_IO_BASE + 0x78018)
--
--/* SDRC */
--#define SDRC_DLLA_CTRL		__REG32(OMAP24XX_SDRC_BASE + 0x060)
--#define SDRC_DLLA_STATUS	__REG32(OMAP24XX_SDRC_BASE + 0x064)
--#define SDRC_DLLB_CTRL		__REG32(OMAP24XX_SDRC_BASE + 0x068)
--#define SDRC_DLLB_STATUS	__REG32(OMAP24XX_SDRC_BASE + 0x06C)
--#define SDRC_POWER		__REG32(OMAP24XX_SDRC_BASE + 0x070)
--#define SDRC_MR_0		__REG32(OMAP24XX_SDRC_BASE + 0x084)
--
--/* GPIO 1 */
--#define GPIO1_BASE		GPIOX_BASE(1)
--#define GPIO1_REG32(offset)	__REG32(GPIO1_BASE + (offset))
--#define GPIO1_IRQENABLE1	GPIO1_REG32(0x01C)
--#define GPIO1_IRQSTATUS1	GPIO1_REG32(0x018)
--#define GPIO1_IRQENABLE2	GPIO1_REG32(0x02C)
--#define GPIO1_IRQSTATUS2	GPIO1_REG32(0x028)
--#define GPIO1_WAKEUPENABLE	GPIO1_REG32(0x020)
--#define GPIO1_RISINGDETECT	GPIO1_REG32(0x048)
--#define GPIO1_DATAIN		GPIO1_REG32(0x038)
--#define GPIO1_OE		GPIO1_REG32(0x034)
--#define GPIO1_DATAOUT		GPIO1_REG32(0x03C)
--
--/* GPIO2 */
--#define GPIO2_BASE		GPIOX_BASE(2)
--#define GPIO2_REG32(offset)	__REG32(GPIO2_BASE + (offset))
--#define GPIO2_IRQENABLE1	GPIO2_REG32(0x01C)
--#define GPIO2_IRQSTATUS1	GPIO2_REG32(0x018)
--#define GPIO2_IRQENABLE2	GPIO2_REG32(0x02C)
--#define GPIO2_IRQSTATUS2	GPIO2_REG32(0x028)
--#define GPIO2_WAKEUPENABLE	GPIO2_REG32(0x020)
--#define GPIO2_RISINGDETECT	GPIO2_REG32(0x048)
--#define GPIO2_DATAIN		GPIO2_REG32(0x038)
--#define GPIO2_OE		GPIO2_REG32(0x034)
--#define GPIO2_DATAOUT		GPIO2_REG32(0x03C)
--#define GPIO2_DEBOUNCENABLE	GPIO2_REG32(0x050)
--#define GPIO2_DEBOUNCINGTIME	GPIO2_REG32(0x054)
--
--/* GPIO 3 */
--#define GPIO3_BASE		GPIOX_BASE(3)
--#define GPIO3_REG32(offset)	__REG32(GPIO3_BASE + (offset))
--#define GPIO3_IRQENABLE1	GPIO3_REG32(0x01C)
--#define GPIO3_IRQSTATUS1	GPIO3_REG32(0x018)
--#define GPIO3_IRQENABLE2	GPIO3_REG32(0x02C)
--#define GPIO3_IRQSTATUS2	GPIO3_REG32(0x028)
--#define GPIO3_WAKEUPENABLE	GPIO3_REG32(0x020)
--#define GPIO3_RISINGDETECT	GPIO3_REG32(0x048)
--#define GPIO3_FALLINGDETECT	GPIO3_REG32(0x04C)
--#define GPIO3_DATAIN		GPIO3_REG32(0x038)
--#define GPIO3_OE		GPIO3_REG32(0x034)
--#define GPIO3_DATAOUT		GPIO3_REG32(0x03C)
--#define GPIO3_DEBOUNCENABLE	GPIO3_REG32(0x050)
--#define GPIO3_DEBOUNCINGTIME	GPIO3_REG32(0x054)
--#define GPIO3_DEBOUNCENABLE	GPIO3_REG32(0x050)
--#define GPIO3_DEBOUNCINGTIME	GPIO3_REG32(0x054)
--
--/* GPIO 4 */
--#define GPIO4_BASE		GPIOX_BASE(4)
--#define GPIO4_REG32(offset)	__REG32(GPIO4_BASE + (offset))
--#define GPIO4_IRQENABLE1	GPIO4_REG32(0x01C)
--#define GPIO4_IRQSTATUS1	GPIO4_REG32(0x018)
--#define GPIO4_IRQENABLE2	GPIO4_REG32(0x02C)
--#define GPIO4_IRQSTATUS2	GPIO4_REG32(0x028)
--#define GPIO4_WAKEUPENABLE	GPIO4_REG32(0x020)
--#define GPIO4_RISINGDETECT	GPIO4_REG32(0x048)
--#define GPIO4_FALLINGDETECT	GPIO4_REG32(0x04C)
--#define GPIO4_DATAIN		GPIO4_REG32(0x038)
--#define GPIO4_OE		GPIO4_REG32(0x034)
--#define GPIO4_DATAOUT		GPIO4_REG32(0x03C)
--#define GPIO4_DEBOUNCENABLE	GPIO4_REG32(0x050)
--#define GPIO4_DEBOUNCINGTIME	GPIO4_REG32(0x054)
--
--#if defined(CONFIG_ARCH_OMAP243X)
--/* GPIO 5 */
--#define GPIO5_REG32(offset)	__REG32((OMAP24XX_GPIO5_BASE + (offset)))
--#define GPIO5_IRQENABLE1	GPIO5_REG32(0x01C)
--#define GPIO5_IRQSTATUS1	GPIO5_REG32(0x018)
--#define GPIO5_IRQENABLE2	GPIO5_REG32(0x02C)
--#define GPIO5_IRQSTATUS2	GPIO5_REG32(0x028)
--#define GPIO5_WAKEUPENABLE	GPIO5_REG32(0x020)
--#define GPIO5_RISINGDETECT	GPIO5_REG32(0x048)
--#define GPIO5_FALLINGDETECT	GPIO5_REG32(0x04C)
--#define GPIO5_DATAIN		GPIO5_REG32(0x038)
--#define GPIO5_OE		GPIO5_REG32(0x034)
--#define GPIO5_DATAOUT		GPIO5_REG32(0x03C)
--#define GPIO5_DEBOUNCENABLE	GPIO5_REG32(0x050)
--#define GPIO5_DEBOUNCINGTIME	GPIO5_REG32(0x054)
--#endif
--
--/* IO CONFIG */
--#define OMAP24XX_CTRL_BASE		(L4_24XX_BASE)
--#define CONTROL_REG32(offset)		__REG32(OMAP24XX_CTRL_BASE + (offset))
--
--#define CONTROL_PADCONF_SPI1_NCS2	CONTROL_REG32(0x104)
--#define CONTROL_PADCONF_SYS_XTALOUT	CONTROL_REG32(0x134)
--#define CONTROL_PADCONF_UART1_RX	CONTROL_REG32(0x0C8)
--#define CONTROL_PADCONF_MCBSP1_DX	CONTROL_REG32(0x10C)
--#define CONTROL_PADCONF_GPMC_NCS4	CONTROL_REG32(0x090)
--#define CONTROL_PADCONF_DSS_D5		CONTROL_REG32(0x0B8)
--#define CONTROL_PADCONF_DSS_D9		CONTROL_REG32(0x0BC)	/* 2420 */
--#define CONTROL_PADCONF_DSS_D13		CONTROL_REG32(0x0C0)
--#define CONTROL_PADCONF_DSS_VSYNC	CONTROL_REG32(0x0CC)
--#define CONTROL_PADCONF_SYS_NIRQW0	CONTROL_REG32(0x0BC)	/* 2430 */
--#define CONTROL_PADCONF_SSI1_FLAG_TX	CONTROL_REG32(0x108)	/* 2430 */
--
--/* CONTROL */
--#define CONTROL_DEVCONF		CONTROL_REG32(0x274)
--#define CONTROL_DEVCONF1	CONTROL_REG32(0x2E8)
--
--/* INTERRUPT CONTROLLER */
--#define INTC_BASE		((L4_24XX_BASE) + 0xfe000)
--#define INTC_REG32(offset)	__REG32(INTC_BASE + (offset))
--
--#define INTC1_U_BASE		INTC_REG32(0x000)
--#define INTC_MIR0		INTC_REG32(0x084)
--#define INTC_MIR_SET0		INTC_REG32(0x08C)
--#define INTC_MIR_CLEAR0		INTC_REG32(0x088)
--#define INTC_ISR_CLEAR0		INTC_REG32(0x094)
--#define INTC_MIR1		INTC_REG32(0x0A4)
--#define INTC_MIR_SET1		INTC_REG32(0x0AC)
--#define INTC_MIR_CLEAR1		INTC_REG32(0x0A8)
--#define INTC_ISR_CLEAR1		INTC_REG32(0x0B4)
--#define INTC_MIR2		INTC_REG32(0x0C4)
--#define INTC_MIR_SET2		INTC_REG32(0x0CC)
--#define INTC_MIR_CLEAR2		INTC_REG32(0x0C8)
--#define INTC_ISR_CLEAR2		INTC_REG32(0x0D4)
--#define INTC_SIR_IRQ		INTC_REG32(0x040)
--#define INTC_CONTROL		INTC_REG32(0x048)
--#define INTC_ILR11		INTC_REG32(0x12C)	/* PRCM on MPU PIC */
--#define INTC_ILR30		INTC_REG32(0x178)
--#define INTC_ILR31		INTC_REG32(0x17C)
--#define INTC_ILR32		INTC_REG32(0x180)
--#define INTC_ILR37		INTC_REG32(0x194)	/* GPIO4 on MPU PIC */
--#define INTC_SYSCONFIG		INTC_REG32(0x010)	/* GPT1 on MPU PIC */
--
--/* RAM FIREWALL */
--#define RAMFW_BASE		(0x68005000)
--#define RAMFW_REG32(offset)	__REG32(RAMFW_BASE + (offset))
--
--#define RAMFW_REQINFOPERM0	RAMFW_REG32(0x048)
--#define RAMFW_READPERM0		RAMFW_REG32(0x050)
--#define RAMFW_WRITEPERM0	RAMFW_REG32(0x058)
--
--/* GPMC CS1 FPGA ON USER INTERFACE MODULE */
--//#define DEBUG_BOARD_LED_REGISTER 0x04000014
--
--/* GPMC CS0 */
--#define GPMC_CONFIG1_0		GPMC_REG32(0x060)
--#define GPMC_CONFIG2_0		GPMC_REG32(0x064)
--#define GPMC_CONFIG3_0		GPMC_REG32(0x068)
--#define GPMC_CONFIG4_0		GPMC_REG32(0x06C)
--#define GPMC_CONFIG5_0		GPMC_REG32(0x070)
--#define GPMC_CONFIG6_0		GPMC_REG32(0x074)
--#define GPMC_CONFIG7_0		GPMC_REG32(0x078)
--
--/* GPMC CS1 */
--#define GPMC_CONFIG1_1		GPMC_REG32(0x090)
--#define GPMC_CONFIG2_1		GPMC_REG32(0x094)
--#define GPMC_CONFIG3_1		GPMC_REG32(0x098)
--#define GPMC_CONFIG4_1		GPMC_REG32(0x09C)
--#define GPMC_CONFIG5_1		GPMC_REG32(0x0a0)
--#define GPMC_CONFIG6_1		GPMC_REG32(0x0a4)
--#define GPMC_CONFIG7_1		GPMC_REG32(0x0a8)
--
--/* GPMC CS3 */
--#define GPMC_CONFIG1_3		GPMC_REG32(0x0F0)
--#define GPMC_CONFIG2_3		GPMC_REG32(0x0F4)
--#define GPMC_CONFIG3_3		GPMC_REG32(0x0F8)
--#define GPMC_CONFIG4_3		GPMC_REG32(0x0FC)
--#define GPMC_CONFIG5_3		GPMC_REG32(0x100)
--#define GPMC_CONFIG6_3		GPMC_REG32(0x104)
--#define GPMC_CONFIG7_3		GPMC_REG32(0x108)
--
--/* DSS */
--#define DSS_CONTROL		DISP_REG32(0x040)
--#define DISPC_CONTROL		DISP_REG32(0x440)
--#define DISPC_SYSSTATUS		DISP_REG32(0x414)
--#define DISPC_IRQSTATUS		DISP_REG32(0x418)
--#define DISPC_IRQENABLE		DISP_REG32(0x41C)
--#define DISPC_CONFIG		DISP_REG32(0x444)
--#define DISPC_DEFAULT_COLOR0	DISP_REG32(0x44C)
--#define DISPC_DEFAULT_COLOR1	DISP_REG32(0x450)
--#define DISPC_TRANS_COLOR0	DISP_REG32(0x454)
--#define DISPC_TRANS_COLOR1	DISP_REG32(0x458)
--#define DISPC_LINE_NUMBER	DISP_REG32(0x460)
--#define DISPC_TIMING_H		DISP_REG32(0x464)
--#define DISPC_TIMING_V		DISP_REG32(0x468)
--#define DISPC_POL_FREQ		DISP_REG32(0x46C)
--#define DISPC_DIVISOR		DISP_REG32(0x470)
--#define DISPC_SIZE_DIG		DISP_REG32(0x478)
--#define DISPC_SIZE_LCD		DISP_REG32(0x47C)
--#define DISPC_GFX_BA0		DISP_REG32(0x480)
--#define DISPC_GFX_BA1		DISP_REG32(0x484)
--#define DISPC_GFX_POSITION	DISP_REG32(0x488)
--#define DISPC_GFX_SIZE		DISP_REG32(0x48C)
--#define DISPC_GFX_ATTRIBUTES	DISP_REG32(0x4A0)
--#define DISPC_GFX_FIFO_THRESHOLD	DISP_REG32(0x4A4)
--#define DISPC_GFX_ROW_INC	DISP_REG32(0x4AC)
--#define DISPC_GFX_PIXEL_INC	DISP_REG32(0x4B0)
--#define DISPC_GFX_WINDOW_SKIP	DISP_REG32(0x4B4)
--#define DISPC_GFX_TABLE_BA	DISP_REG32(0x4B8)
--#define DISPC_DATA_CYCLE1	DISP_REG32(0x5D4)
--#define DISPC_DATA_CYCLE2	DISP_REG32(0x5D8)
--#define DISPC_DATA_CYCLE3	DISP_REG32(0x5DC)
--
--/* HSUSB Suspend */
--#define HSUSB_CTRL		__REG8(0x480AC001)
--#define USBOTG_POWER		__REG32(0x480AC000)
--
--/* HS MMC */
--#define MMCHS1_SYSCONFIG	__REG32(0x4809C010)
--#define MMCHS2_SYSCONFIG	__REG32(0x480b4010)
--
--#endif	/* __ASSEMBLER__ */
--
--#endif
--
--
--
--
--
+ /* Enable an APLL if off */
+ static int omap2_clk_fixed_enable(struct clk *clk)
+ {
+@@ -332,7 +332,7 @@ static int omap2_select_table_rate(struct clk *clk, unsigned long rate)
+ 
+ 	if (!found_speed) {
+ 		printk(KERN_INFO "Could not set MPU rate to %luMHz\n",
+-	 rate / 1000000);
++		       rate / 1000000);
+ 		return -EINVAL;
+ 	}
+ 
+diff --git a/arch/arm/mach-omap2/clock24xx.h b/arch/arm/mach-omap2/clock24xx.h
+index 559eade..78bc755 100644
+--- a/arch/arm/mach-omap2/clock24xx.h
++++ b/arch/arm/mach-omap2/clock24xx.h
+@@ -1,13 +1,12 @@
+ /*
+- *  linux/arch/arm/mach-omap24xx/clock.h
++ *  linux/arch/arm/mach-omap2/clock24xx.h
+  *
+- *  Copyright (C) 2005 Texas Instruments Inc.
+- *  Richard Woodruff <r-woodruff2@ti.com>
+- *  Created for OMAP2.
++ *  Copyright (C) 2005-2008 Texas Instruments, Inc.
++ *  Copyright (C) 2004-2008 Nokia Corporation
+  *
+- *  Copyright (C) 2004 Nokia corporation
+- *  Written by Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
+- *  Based on clocks.h by Tony Lindgren, Gordon McNutt and RidgeRun, Inc
++ *  Contacts:
++ *  Richard Woodruff <r-woodruff2@ti.com>
++ *  Paul Walmsley
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -25,18 +24,18 @@
+ #include "cm-regbits-24xx.h"
+ #include "sdrc.h"
+ 
+-static void omap2_table_mpu_recalc(struct clk * clk);
+-static int omap2_select_table_rate(struct clk * clk, unsigned long rate);
+-static long omap2_round_to_table_rate(struct clk * clk, unsigned long rate);
+-static void omap2_sys_clk_recalc(struct clk * clk);
+-static void omap2_osc_clk_recalc(struct clk * clk);
+-static void omap2_sys_clk_recalc(struct clk * clk);
+-static void omap2_dpll_recalc(struct clk * clk);
+-static int omap2_clk_fixed_enable(struct clk * clk);
+-static void omap2_clk_fixed_disable(struct clk * clk);
+-static int omap2_enable_osc_ck(struct clk * clk);
+-static void omap2_disable_osc_ck(struct clk * clk);
+-static int omap2_reprogram_dpll(struct clk * clk, unsigned long rate);
++static void omap2_table_mpu_recalc(struct clk *clk);
++static int omap2_select_table_rate(struct clk *clk, unsigned long rate);
++static long omap2_round_to_table_rate(struct clk *clk, unsigned long rate);
++static void omap2_sys_clk_recalc(struct clk *clk);
++static void omap2_osc_clk_recalc(struct clk *clk);
++static void omap2_sys_clk_recalc(struct clk *clk);
++static void omap2_dpll_recalc(struct clk *clk);
++static int omap2_clk_fixed_enable(struct clk *clk);
++static void omap2_clk_fixed_disable(struct clk *clk);
++static int omap2_enable_osc_ck(struct clk *clk);
++static void omap2_disable_osc_ck(struct clk *clk);
++static int omap2_reprogram_dpll(struct clk *clk, unsigned long rate);
+ 
+ /* Key dividers which make up a PRCM set. Ratio's for a PRCM are mandated.
+  * xtal_speed, dpll_speed, mpu_speed, CM_CLKSEL_MPU,CM_CLKSEL_DSP
 -- 
 1.5.3.6
 
