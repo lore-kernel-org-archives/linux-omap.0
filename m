@@ -1,189 +1,71 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 7/7] USB: MUSB: Let board specific code handle clock initialization
-Date: Wed, 19 Mar 2008 15:42:35 +0200
-Message-ID: <1205934155-24070-8-git-send-email-felipe.balbi@nokia.com>
-References: <1205934155-24070-1-git-send-email-felipe.balbi@nokia.com>
- <1205934155-24070-2-git-send-email-felipe.balbi@nokia.com>
- <1205934155-24070-3-git-send-email-felipe.balbi@nokia.com>
- <1205934155-24070-4-git-send-email-felipe.balbi@nokia.com>
- <1205934155-24070-5-git-send-email-felipe.balbi@nokia.com>
- <1205934155-24070-6-git-send-email-felipe.balbi@nokia.com>
- <1205934155-24070-7-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 0/7] TWL4030 Changes
+Date: Wed, 19 Mar 2008 15:42:28 +0200
+Message-ID: <1205934155-24070-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-fb01.nokia.com ([192.100.122.235]:44814 "EHLO
+Received: from mgw-fb01.nokia.com ([192.100.122.235]:45157 "EHLO
 	mgw-fb01.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757138AbYCSTip (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2008 15:38:45 -0400
-Received: from mgw-mx03.nokia.com (mgw-mx03.nokia.com [192.100.122.230])
-	by mgw-fb01.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2JEGOW8029610
+	with ESMTP id S1757896AbYCSTmE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2008 15:42:04 -0400
+Received: from mgw-mx09.nokia.com ([192.100.105.134])
+	by mgw-fb01.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2JEFtII029026
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-omap@vger.kernel.org>; Wed, 19 Mar 2008 16:16:25 +0200
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2JDinlQ002018
-	for <linux-omap@vger.kernel.org>; Wed, 19 Mar 2008 15:44:53 +0200
-In-Reply-To: <1205934155-24070-7-git-send-email-felipe.balbi@nokia.com>
+	for <linux-omap@vger.kernel.org>; Wed, 19 Mar 2008 16:15:57 +0200
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2JDhFjn030621
+	for <linux-omap@vger.kernel.org>; Wed, 19 Mar 2008 08:46:19 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-Instead of clk_get() in omap2430.c driver, we can let
-musb_core.c do it by setting the clock id in
-musb_platform_data structure
+Hi all,
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- arch/arm/mach-omap2/board-2430sdp-usb.c |   27 +++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-3430sdp-usb.c |   29 +++++++++++++++++++++++++++--
- drivers/usb/musb/omap2430.c             |    8 --------
- 3 files changed, 54 insertions(+), 10 deletions(-)
+The following patches implements some clean ups in twl4030 driver
+also let twl4030-usb.c initialize struct otg_transceiver and
+deliver it to omap2430.c.
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp-usb.c b/arch/arm/mach-omap2/board-2430sdp-usb.c
-index 908a0c0..7f4e017 100644
---- a/arch/arm/mach-omap2/board-2430sdp-usb.c
-+++ b/arch/arm/mach-omap2/board-2430sdp-usb.c
-@@ -13,9 +13,11 @@
- #include <linux/errno.h>
- #include <linux/delay.h>
- #include <linux/platform_device.h>
-+#include <linux/clk.h>
- #include <linux/usb/musb.h>
- 
- #include <asm/arch/hardware.h>
-+#include <asm/arch/pm.h>
- #include <asm/arch/usb.h>
- 
- static struct resource musb_resources[] = {
-@@ -34,6 +36,29 @@ static struct resource musb_resources[] = {
- 	},
- };
- 
-+static int usbhs_ick_on;
-+
-+static int musb_set_clock(struct clk *clk, int state)
-+{
-+       if (state) {
-+               if (usbhs_ick_on > 0)
-+                       return -ENODEV;
-+
-+               omap2_block_sleep();
-+               clk_enable(clk);
-+               usbhs_ick_on = 1;
-+       } else {
-+               if (usbhs_ick_on == 0)
-+                       return -ENODEV;
-+
-+               clk_disable(clk);
-+               usbhs_ick_on = 0;
-+               omap2_allow_sleep();
-+       }
-+
-+       return 0;
-+}
-+
- static struct musb_hdrc_platform_data musb_plat = {
- #ifdef CONFIG_USB_MUSB_OTG
- 	.mode		= MUSB_OTG,
-@@ -43,6 +68,8 @@ static struct musb_hdrc_platform_data musb_plat = {
- 	.mode		= MUSB_PERIPHERAL,
- #endif
- 	.multipoint	= 1,
-+	.clock		= "usbhs_ick",
-+	.set_clock	= musb_set_clock,
- };
- 
- static u64 musb_dmamask = ~(u32)0;
-diff --git a/arch/arm/mach-omap2/board-3430sdp-usb.c b/arch/arm/mach-omap2/board-3430sdp-usb.c
-index 77088b4..81c9af7 100644
---- a/arch/arm/mach-omap2/board-3430sdp-usb.c
-+++ b/arch/arm/mach-omap2/board-3430sdp-usb.c
-@@ -16,11 +16,13 @@
- #include <linux/errno.h>
- #include <linux/delay.h>
- #include <linux/platform_device.h>
-+#include <linux/clk.h>
- #include <asm/io.h>
- #include <asm/arch/mux.h>
- #include <linux/usb/musb.h>
- 
- #include <asm/arch/hardware.h>
-+#include <asm/arch/pm.h>
- #include <asm/arch/usb.h>
- 
- #ifdef CONFIG_USB_MUSB_SOC
-@@ -40,6 +42,29 @@ static struct resource musb_resources[] = {
- 	},
- };
- 
-+static int hsotgusb_ick_on;
-+
-+static int musb_set_clock(struct clk *clk, int state)
-+{
-+	if (state) {
-+		if (hsotgusb_ick_on > 0)
-+			return -ENODEV;
-+
-+		omap2_block_sleep();
-+		clk_enable(clk);
-+		hsotgusb_ick_on = 1;
-+	} else {
-+		if (hsotgusb_ick_on == 0)
-+			return -ENODEV;
-+
-+		clk_disable(clk);
-+		hsotgusb_ick_on = 0;
-+		omap2_allow_sleep();
-+	}
-+
-+	return 0;
-+}
-+
- static struct musb_hdrc_platform_data musb_plat = {
- #ifdef CONFIG_USB_MUSB_OTG
- 	.mode		= MUSB_OTG,
-@@ -49,8 +74,8 @@ static struct musb_hdrc_platform_data musb_plat = {
- 	.mode		= MUSB_PERIPHERAL,
- #endif
- 	.multipoint	= 1,
--	.clock		= NULL,
--	.set_clock	= NULL,
-+	.clock		= "hsotgusb_ick",
-+	.set_clock	= musb_set_clock,
- };
- 
- static u64 musb_dmamask = ~(u32)0;
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 3c46738..699f8b8 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -214,13 +214,7 @@ int __init musb_platform_init(struct musb *musb)
- 
- #if defined(CONFIG_ARCH_OMAP2430)
- 	omap_cfg_reg(AE5_2430_USB0HS_STP);
--	/* get the clock */
--	musb->clock = clk_get((struct device *)musb->controller, "usbhs_ick");
--#else
--	musb->clock = clk_get((struct device *)musb->controller, "hsotgusb_ick");
- #endif
--	if(IS_ERR(musb->clock))
--		return PTR_ERR(musb->clock);
- 
- 	musb->xceiv = *xceiv;
- 	musb_platform_resume(musb);
-@@ -256,13 +250,11 @@ int musb_platform_suspend(struct musb *musb)
- 	OTG_SYSCONFIG_REG |= AUTOIDLE;		/* enable auto idle */
- 
- 	musb->xceiv.set_suspend(&musb->xceiv, 1);
--	clk_disable(musb->clock);
- 	return 0;
- }
- 
- int musb_platform_resume(struct musb *musb)
- {
--	clk_enable(musb->clock);
- 	musb->xceiv.set_suspend(&musb->xceiv, 0);
- 
- 	OTG_FORCESTDBY_REG &= ~ENABLEFORCE; /* disable MSTANDBY */
--- 
-1.5.5.rc0.16.g02b00
+musb clock is now comming from musb_platform_data as it should
+and we avoid clk_get():ing twice (on omap2430.c and musb_core.c)
+
+TODO:
+	. twl4030-gpio.c: moves to gpiolib
+	. twl4030-usb.c: irq is not waking up the phy and
+		transceiver doesn't notify musb_core.c id pin
+		state.
+
+For now that's all,
+
+Thanks everybody.
+
+As usual, comments are welcome
+
+diffstat:
+
+arch/arm/mach-omap2/board-2430sdp-usb.c     |   27 +
+arch/arm/mach-omap2/board-3430sdp-usb.c     |   29 +-
+arch/arm/mach-omap2/board-3430sdp.c         |    2 +-
+arch/arm/mach-omap2/board-sdp-hsmmc.c       |    2 +-
+drivers/i2c/chips/Makefile                  |    8 +-
+drivers/i2c/chips/twl4030-core.c            |  904 +++++++++++++++++++++++++++
+drivers/i2c/chips/twl4030-gpio.c            |  836 +++++++++++++++++++++++++
+drivers/i2c/chips/twl4030-poweroff.c        |   75 +++
+drivers/i2c/chips/twl4030-usb.c             |  784 +++++++++++++++++++++++
+drivers/i2c/chips/twl4030_core.c            |  900 --------------------------
+drivers/i2c/chips/twl4030_gpio.c            |  836 -------------------------
+drivers/i2c/chips/twl4030_poweroff.c        |   75 ---
+drivers/i2c/chips/twl4030_usb.c             |  693 --------------------
+drivers/input/keyboard/omap-twl4030keypad.c |    2 +-
+drivers/rtc/rtc-twl4030.c                   |    4 +-
+drivers/usb/musb/musb_core.h                |    4 +-
+drivers/usb/musb/omap2430.c                 |   34 +-
+drivers/usb/musb/omap2430.h                 |    8 -
+include/asm-arm/arch-omap/twl4030-rtc.h     |  230 -------
+include/asm-arm/arch-omap/twl4030.h         |  118 ----
+include/linux/i2c/twl4030-rtc.h             |  230 +++++++
+include/linux/i2c/twl4030.h                 |  118 ++++
+22 files changed, 3028 insertions(+), 2891 deletions(-)
+
+br,
+
+	- Balbi
 
