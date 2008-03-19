@@ -1,58 +1,189 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] dmtimer posting
-Date: Wed, 19 Mar 2008 17:58:35 +0200
-Message-ID: <20080319155835.GE14860@atomide.com>
-References: <87abkv9917.fsf@paris.hilman.org> <3B6D69C3A9EBCA4BA5DA60D91302742903CCA382@dlee13.ent.ti.com> <20080319141504.GB14860@atomide.com> <3B6D69C3A9EBCA4BA5DA60D91302742903CCA4F9@dlee13.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [PATCH 7/7] USB: MUSB: Let board specific code handle clock initialization
+Date: Wed, 19 Mar 2008 15:42:35 +0200
+Message-ID: <1205934155-24070-8-git-send-email-felipe.balbi@nokia.com>
+References: <1205934155-24070-1-git-send-email-felipe.balbi@nokia.com>
+ <1205934155-24070-2-git-send-email-felipe.balbi@nokia.com>
+ <1205934155-24070-3-git-send-email-felipe.balbi@nokia.com>
+ <1205934155-24070-4-git-send-email-felipe.balbi@nokia.com>
+ <1205934155-24070-5-git-send-email-felipe.balbi@nokia.com>
+ <1205934155-24070-6-git-send-email-felipe.balbi@nokia.com>
+ <1205934155-24070-7-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54362 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756767AbYCSTg4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2008 15:36:56 -0400
-Content-Disposition: inline
-In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D91302742903CCA4F9@dlee13.ent.ti.com>
+Received: from mgw-fb01.nokia.com ([192.100.122.235]:44814 "EHLO
+	mgw-fb01.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757138AbYCSTip (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2008 15:38:45 -0400
+Received: from mgw-mx03.nokia.com (mgw-mx03.nokia.com [192.100.122.230])
+	by mgw-fb01.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2JEGOW8029610
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-omap@vger.kernel.org>; Wed, 19 Mar 2008 16:16:25 +0200
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2JDinlQ002018
+	for <linux-omap@vger.kernel.org>; Wed, 19 Mar 2008 15:44:53 +0200
+In-Reply-To: <1205934155-24070-7-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Kevin Hilman <khilman@mvista.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-* Woodruff, Richard <r-woodruff2@ti.com> [080319 16:47]:
-> Hi,
-> 
-> > Cool. Here's a version that gets rid of the lookup table by encoding
-> the
-> > posted write pending bit into the reg offset. This should be OK, as
-> the
-> > functions are used within dmtimer.c only.
-> 
-> Ok, that looks nice and will generate a bit better code.  I thought
-> briefly on that it but wanted the change to be small and was a little
-> worried someone might use the offset somewhere else.  But, they way you
-> did it makes the 2nd aspect go away.
-> 
-> * You have defined WPSHIFT to 8.  However, that bit is currently taken
-> by WP_TOCR.  I chose 15 hoping if the register expanded it would be the
-> last one in a u_int16 and still can be encoded in an op code as a shift
-> value.  A 16 would be a good codegen value, but always assume u_int32
-> register.  As the registers are u_int32 in current implementations,
-> probably 16 is a better value.
+Instead of clk_get() in omap2430.c driver, we can let
+musb_core.c do it by setting the clock id in
+musb_platform_data structure
 
-OK, good catch.
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ arch/arm/mach-omap2/board-2430sdp-usb.c |   27 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-3430sdp-usb.c |   29 +++++++++++++++++++++++++++--
+ drivers/usb/musb/omap2430.c             |    8 --------
+ 3 files changed, 54 insertions(+), 10 deletions(-)
 
-> > The init of other timers into posted mode is not done yet, so I
-> changed
-> > the timer->posted handling too.
-> 
-> Not inited in software, BUT the power on reset of the timer module is to
-> posted mode in reset.  Its better to have someone shut it off in both
-> places as its on by default.
+diff --git a/arch/arm/mach-omap2/board-2430sdp-usb.c b/arch/arm/mach-omap2/board-2430sdp-usb.c
+index 908a0c0..7f4e017 100644
+--- a/arch/arm/mach-omap2/board-2430sdp-usb.c
++++ b/arch/arm/mach-omap2/board-2430sdp-usb.c
+@@ -13,9 +13,11 @@
+ #include <linux/errno.h>
+ #include <linux/delay.h>
+ #include <linux/platform_device.h>
++#include <linux/clk.h>
+ #include <linux/usb/musb.h>
+ 
+ #include <asm/arch/hardware.h>
++#include <asm/arch/pm.h>
+ #include <asm/arch/usb.h>
+ 
+ static struct resource musb_resources[] = {
+@@ -34,6 +36,29 @@ static struct resource musb_resources[] = {
+ 	},
+ };
+ 
++static int usbhs_ick_on;
++
++static int musb_set_clock(struct clk *clk, int state)
++{
++       if (state) {
++               if (usbhs_ick_on > 0)
++                       return -ENODEV;
++
++               omap2_block_sleep();
++               clk_enable(clk);
++               usbhs_ick_on = 1;
++       } else {
++               if (usbhs_ick_on == 0)
++                       return -ENODEV;
++
++               clk_disable(clk);
++               usbhs_ick_on = 0;
++               omap2_allow_sleep();
++       }
++
++       return 0;
++}
++
+ static struct musb_hdrc_platform_data musb_plat = {
+ #ifdef CONFIG_USB_MUSB_OTG
+ 	.mode		= MUSB_OTG,
+@@ -43,6 +68,8 @@ static struct musb_hdrc_platform_data musb_plat = {
+ 	.mode		= MUSB_PERIPHERAL,
+ #endif
+ 	.multipoint	= 1,
++	.clock		= "usbhs_ick",
++	.set_clock	= musb_set_clock,
+ };
+ 
+ static u64 musb_dmamask = ~(u32)0;
+diff --git a/arch/arm/mach-omap2/board-3430sdp-usb.c b/arch/arm/mach-omap2/board-3430sdp-usb.c
+index 77088b4..81c9af7 100644
+--- a/arch/arm/mach-omap2/board-3430sdp-usb.c
++++ b/arch/arm/mach-omap2/board-3430sdp-usb.c
+@@ -16,11 +16,13 @@
+ #include <linux/errno.h>
+ #include <linux/delay.h>
+ #include <linux/platform_device.h>
++#include <linux/clk.h>
+ #include <asm/io.h>
+ #include <asm/arch/mux.h>
+ #include <linux/usb/musb.h>
+ 
+ #include <asm/arch/hardware.h>
++#include <asm/arch/pm.h>
+ #include <asm/arch/usb.h>
+ 
+ #ifdef CONFIG_USB_MUSB_SOC
+@@ -40,6 +42,29 @@ static struct resource musb_resources[] = {
+ 	},
+ };
+ 
++static int hsotgusb_ick_on;
++
++static int musb_set_clock(struct clk *clk, int state)
++{
++	if (state) {
++		if (hsotgusb_ick_on > 0)
++			return -ENODEV;
++
++		omap2_block_sleep();
++		clk_enable(clk);
++		hsotgusb_ick_on = 1;
++	} else {
++		if (hsotgusb_ick_on == 0)
++			return -ENODEV;
++
++		clk_disable(clk);
++		hsotgusb_ick_on = 0;
++		omap2_allow_sleep();
++	}
++
++	return 0;
++}
++
+ static struct musb_hdrc_platform_data musb_plat = {
+ #ifdef CONFIG_USB_MUSB_OTG
+ 	.mode		= MUSB_OTG,
+@@ -49,8 +74,8 @@ static struct musb_hdrc_platform_data musb_plat = {
+ 	.mode		= MUSB_PERIPHERAL,
+ #endif
+ 	.multipoint	= 1,
+-	.clock		= NULL,
+-	.set_clock	= NULL,
++	.clock		= "hsotgusb_ick",
++	.set_clock	= musb_set_clock,
+ };
+ 
+ static u64 musb_dmamask = ~(u32)0;
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 3c46738..699f8b8 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -214,13 +214,7 @@ int __init musb_platform_init(struct musb *musb)
+ 
+ #if defined(CONFIG_ARCH_OMAP2430)
+ 	omap_cfg_reg(AE5_2430_USB0HS_STP);
+-	/* get the clock */
+-	musb->clock = clk_get((struct device *)musb->controller, "usbhs_ick");
+-#else
+-	musb->clock = clk_get((struct device *)musb->controller, "hsotgusb_ick");
+ #endif
+-	if(IS_ERR(musb->clock))
+-		return PTR_ERR(musb->clock);
+ 
+ 	musb->xceiv = *xceiv;
+ 	musb_platform_resume(musb);
+@@ -256,13 +250,11 @@ int musb_platform_suspend(struct musb *musb)
+ 	OTG_SYSCONFIG_REG |= AUTOIDLE;		/* enable auto idle */
+ 
+ 	musb->xceiv.set_suspend(&musb->xceiv, 1);
+-	clk_disable(musb->clock);
+ 	return 0;
+ }
+ 
+ int musb_platform_resume(struct musb *musb)
+ {
+-	clk_enable(musb->clock);
+ 	musb->xceiv.set_suspend(&musb->xceiv, 0);
+ 
+ 	OTG_FORCESTDBY_REG &= ~ENABLEFORCE; /* disable MSTANDBY */
+-- 
+1.5.5.rc0.16.g02b00
 
-OK
-
-> I'll tweak the points mentioned and fix a typo in the description and
-> send a version.
-
-OK
-
-Tony
