@@ -1,194 +1,57 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 6/7] I2C: TWL4030: Reorganize code in twl4030-usb.c
-Date: Wed, 19 Mar 2008 15:42:34 +0200
-Message-ID: <1205934155-24070-7-git-send-email-felipe.balbi@nokia.com>
-References: <1205934155-24070-1-git-send-email-felipe.balbi@nokia.com>
- <1205934155-24070-2-git-send-email-felipe.balbi@nokia.com>
- <1205934155-24070-3-git-send-email-felipe.balbi@nokia.com>
- <1205934155-24070-4-git-send-email-felipe.balbi@nokia.com>
- <1205934155-24070-5-git-send-email-felipe.balbi@nokia.com>
- <1205934155-24070-6-git-send-email-felipe.balbi@nokia.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH] dmtimer posting
+Date: Wed, 19 Mar 2008 09:47:11 -0500
+Message-ID: <3B6D69C3A9EBCA4BA5DA60D91302742903CCA4F9@dlee13.ent.ti.com>
+References: <87abkv9917.fsf@paris.hilman.org> <3B6D69C3A9EBCA4BA5DA60D91302742903CCA382@dlee13.ent.ti.com> <20080319141504.GB14860@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-fb01.nokia.com ([192.100.122.235]:45453 "EHLO
-	mgw-fb01.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758528AbYCSTpJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2008 15:45:09 -0400
-Received: from mgw-mx03.nokia.com (mgw-mx03.nokia.com [192.100.122.230])
-	by mgw-fb01.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2JEGMXM029428
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-omap@vger.kernel.org>; Wed, 19 Mar 2008 16:16:22 +0200
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2JDinlM002018
-	for <linux-omap@vger.kernel.org>; Wed, 19 Mar 2008 15:44:51 +0200
-In-Reply-To: <1205934155-24070-6-git-send-email-felipe.balbi@nokia.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:43532 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758778AbYCSTqu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2008 15:46:50 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <20080319141504.GB14860@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@mvista.com>, linux-omap@vger.kernel.org
 
-Code flow now makes sense
+Hi,
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/i2c/chips/twl4030-usb.c |  131 +++++++++++++++++++--------------------
- 1 files changed, 64 insertions(+), 67 deletions(-)
+> Cool. Here's a version that gets rid of the lookup table by encoding
+the
+> posted write pending bit into the reg offset. This should be OK, as
+the
+> functions are used within dmtimer.c only.
 
-diff --git a/drivers/i2c/chips/twl4030-usb.c b/drivers/i2c/chips/twl4030-usb.c
-index 136e1c6..2db1c63 100644
---- a/drivers/i2c/chips/twl4030-usb.c
-+++ b/drivers/i2c/chips/twl4030-usb.c
-@@ -496,45 +496,6 @@ static void usb_irq_disable(void)
- 	return;
- }
- 
--static void twl4030_phy_suspend(int controller_off);
--static void twl4030_phy_resume(void);
--
--static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
--{
--	int ret = IRQ_NONE;
--	u8 val;
--
--	if (twl4030_i2c_read_u8(TWL4030_MODULE_INT, &val, REG_PWR_ISR1) < 0) {
--		printk(KERN_ERR "twl4030_usb: i2c read failed,"
--				" line %d\n", __LINE__);
--		goto done;
--	}
--
--	/* this interrupt line may be shared */
--	if (!(val & USB_PRES))
--		goto done;
--
--	/* clear the interrupt */
--	twl4030_i2c_write_u8(TWL4030_MODULE_INT, USB_PRES, REG_PWR_ISR1);
--
--	/* action based on cable attach or detach */
--	if (twl4030_i2c_read_u8(TWL4030_MODULE_INT, &val, REG_PWR_EDR1) < 0) {
--		printk(KERN_ERR "twl4030_usb: i2c read failed,"
--				" line %d\n", __LINE__);
--		goto done;
--	}
--
--	if (val & USB_PRES_RISING)
--		twl4030_phy_resume();
--	else
--		twl4030_phy_suspend(0);
--
--	ret = IRQ_HANDLED;
--
--done:
--	return ret;
--}
--
- static void twl4030_phy_power(struct twl4030_usb *twl, int on)
- {
- 	u8 pwr;
-@@ -561,34 +522,6 @@ static void twl4030_phy_power(struct twl4030_usb *twl, int on)
- 	return;
- }
- 
--static void twl4030_usb_ldo_init(struct twl4030_usb *twl)
--{
--	/* Enable writing to power configuration registers */
--	twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0xC0, PROTECT_KEY);
--	twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0x0C, PROTECT_KEY);
--
--	/* put VUSB3V1 LDO in active state */
--	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB_DEDICATED2);
--
--	/* input to VUSB3V1 LDO is from VBAT, not VBUS */
--	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x14, VUSB_DEDICATED1);
--
--	/* turn on 3.1V regulator */
--	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x20, VUSB3V1_DEV_GRP);
--	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB3V1_TYPE);
--
--	/* turn on 1.5V regulator */
--	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x20, VUSB1V5_DEV_GRP);
--	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V5_TYPE);
--
--	/* turn on 1.8V regulator */
--	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x20, VUSB1V8_DEV_GRP);
--	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V8_TYPE);
--
--	/* disable access to power configuration registers */
--	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, PROTECT_KEY);
--}
--
- static void twl4030_phy_suspend(int controller_off)
- {
- 	struct twl4030_usb *twl = the_transceiver;
-@@ -627,6 +560,70 @@ static void twl4030_phy_resume(void)
- 	return;
- }
- 
-+static void twl4030_usb_ldo_init(struct twl4030_usb *twl)
-+{
-+	/* Enable writing to power configuration registers */
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0xC0, PROTECT_KEY);
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0x0C, PROTECT_KEY);
-+
-+	/* put VUSB3V1 LDO in active state */
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB_DEDICATED2);
-+
-+	/* input to VUSB3V1 LDO is from VBAT, not VBUS */
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x14, VUSB_DEDICATED1);
-+
-+	/* turn on 3.1V regulator */
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x20, VUSB3V1_DEV_GRP);
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB3V1_TYPE);
-+
-+	/* turn on 1.5V regulator */
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x20, VUSB1V5_DEV_GRP);
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V5_TYPE);
-+
-+	/* turn on 1.8V regulator */
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x20, VUSB1V8_DEV_GRP);
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V8_TYPE);
-+
-+	/* disable access to power configuration registers */
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, PROTECT_KEY);
-+}
-+
-+static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
-+{
-+	int ret = IRQ_NONE;
-+	u8 val;
-+
-+	if (twl4030_i2c_read_u8(TWL4030_MODULE_INT, &val, REG_PWR_ISR1) < 0) {
-+		printk(KERN_ERR "twl4030_usb: i2c read failed,"
-+				" line %d\n", __LINE__);
-+		goto done;
-+	}
-+
-+	/* this interrupt line may be shared */
-+	if (!(val & USB_PRES))
-+		goto done;
-+
-+	/* clear the interrupt */
-+	twl4030_i2c_write_u8(TWL4030_MODULE_INT, USB_PRES, REG_PWR_ISR1);
-+
-+	/* action based on cable attach or detach */
-+	if (twl4030_i2c_read_u8(TWL4030_MODULE_INT, &val, REG_PWR_EDR1) < 0) {
-+		printk(KERN_ERR "twl4030_usb: i2c read failed,"
-+				" line %d\n", __LINE__);
-+		goto done;
-+	}
-+
-+	if (val & USB_PRES_RISING)
-+		twl4030_phy_resume();
-+	else
-+		twl4030_phy_suspend(0);
-+
-+	ret = IRQ_HANDLED;
-+
-+done:
-+	return ret;
-+}
-+
- static int twl4030_set_suspend(struct otg_transceiver *x, int suspend)
- {
- 	if (suspend)
--- 
-1.5.5.rc0.16.g02b00
+Ok, that looks nice and will generate a bit better code.  I thought
+briefly on that it but wanted the change to be small and was a little
+worried someone might use the offset somewhere else.  But, they way you
+did it makes the 2nd aspect go away.
+
+* You have defined WPSHIFT to 8.  However, that bit is currently taken
+by WP_TOCR.  I chose 15 hoping if the register expanded it would be the
+last one in a u_int16 and still can be encoded in an op code as a shift
+value.  A 16 would be a good codegen value, but always assume u_int32
+register.  As the registers are u_int32 in current implementations,
+probably 16 is a better value.
+
+> The init of other timers into posted mode is not done yet, so I
+changed
+> the timer->posted handling too.
+
+Not inited in software, BUT the power on reset of the timer module is to
+posted mode in reset.  Its better to have someone shut it off in both
+places as its on by default.
+
+I'll tweak the points mentioned and fix a typo in the description and
+send a version.
+
+Regards,
+Richard W.
+
+
 
