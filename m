@@ -1,49 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP2: mach-omap2/pm.c build fix
-Date: Thu, 20 Mar 2008 14:54:46 +0200
-Message-ID: <20080320125446.GI14978@atomide.com>
-References: <47E11536.6000803@indt.org.br>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: RE: OMAP3430: MUSB host and hot-plugging
+Date: Thu, 20 Mar 2008 07:55:50 -0500
+Message-ID: <558bb41d9b118bdc524a148da2ab8864@felipebalbi.com>
+References: <5DF83221BE20114E9C331F665ACBC0800477C178@dbde01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60130 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754512AbYCTMyt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Mar 2008 08:54:49 -0400
-Content-Disposition: inline
-In-Reply-To: <47E11536.6000803@indt.org.br>
+Received: from ns1.siteground211.com ([209.62.36.12]:44561 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754538AbYCTMz5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Mar 2008 08:55:57 -0400
+In-Reply-To: <5DF83221BE20114E9C331F665ACBC0800477C178@dbde01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Cc: linux-omap@vger.kernel.org
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: Kevin Hilman <khilman@mvista.com>, Linux omap <linux-omap@vger.kernel.org>
 
-* Carlos Aguiar <carlos.aguiar@indt.org.br> [080319 15:34]:
-> From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-> 
-> This patch fix the following build problem:
-> 
->   CC      arch/arm/mach-omap2/pm.o
-> arch/arm/mach-omap2/pm.c: In function 'omap2_pm_init':
-> arch/arm/mach-omap2/pm.c:840: warning: passing argument 2 of 'sysfs_create_file' from incompatible pointer type
-> 
-> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-> ---
->  arch/arm/mach-omap2/pm.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index 3a455e8..fb77e33 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -837,7 +837,7 @@ int __init omap2_pm_init(void)
->  	suspend_set_ops(&omap_pm_ops);
->  	pm_idle = omap2_pm_idle;
->  
-> -	error = sysfs_create_file(power_kobj, &sleep_while_idle_attr);
-> +	error = sysfs_create_file(power_kobj, &sleep_while_idle_attr.attr);
->  	if (error)
->  		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
 
-Pushing today.
 
-Tony
+On Thu, 20 Mar 2008 18:17:55 +0530, "Pandita, Vikram"
+<vikram.pandita@ti.com> wrote:
+> Felipe
+> 
+>>Sent: Thursday, March 20, 2008 6:09 PM
+>>To: Pandita, Vikram
+>>Cc: Kevin Hilman; Linux omap
+>>Subject: RE: OMAP3430: MUSB host and hot-plugging
+>>
+>>
+>>> If you can provide us the procedure to enable hot-plugging for MUSB on
+>>> OMAP3430, we will look into this issue.
+>>
+>>As far as musb driver is concerned it should be just a mater of
+>>building it with otg support. But as of now, I cannot get id
+>>pin status to musb using twl4030.
+>>
+>>Maybe we still have some missing pieces on linux-omap, which I'm
+>>researching on that.
+> 
+>  I meant if you could pass on how you have written the hot plugging
+> function/agent for MUSB.
+> I have not tried hot-plugging on omap. 
+
+There should be no need for that.
+twl4030-usb is using ulpi interface on 3430sdp, which means all interrupts
+are
+directed to musb using that interface, also musb switches between
+host/peripheral
+roles automatically as long as we get an id pin change interrupt.
+
+Somehow this interrupt is not going to musb's driver when we're using ulpi
+on 3430.
+
+I have some other questions for you but it'll be privatly.
+
+> 
+>>
+>>--
+>>Best Regards,
+>>
+>>Felipe Balbi
+>>http://felipebalbi.com
+>>me@felipebalbi.com
+>>
+>>--
+>>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>the body of a message to majordomo@vger.kernel.org
+>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+-- 
+Best Regards,
+
+Felipe Balbi
+http://felipebalbi.com
+me@felipebalbi.com
+
