@@ -1,40 +1,49 @@
-From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [PATCH 1/1] MMC: OMAP: Fix HSMMC driver name at host driver.
-Date: Thu, 20 Mar 2008 16:24:30 -0400
-Message-ID: <47E2C7FE.9020908@indt.org.br>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: OMAP3430: MUSB host and hot-plugging
+Date: Thu, 20 Mar 2008 22:48:01 +0200
+Message-ID: <20080320204801.GA5457@kedavra.cpe.vivax.com.br>
+References: <87d4pqqmj2.fsf@paris.hilman.org> <200803201230.03729.david-b@pacbell.net> <20080320200000.GI4772@kedavra.cpe.vivax.com.br> <200803201325.28818.david-b@pacbell.net>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:24264 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760576AbYCTUbb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Mar 2008 16:31:31 -0400
+Received: from ns1.siteground211.com ([209.62.36.12]:41349 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754195AbYCTUp4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Mar 2008 16:45:56 -0400
+Content-Disposition: inline
+In-Reply-To: <200803201325.28818.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: me@felipebalbi.com, Kevin Hilman <khilman@mvista.com>, linux-omap@vger.kernel.org
 
-From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+On Thu, Mar 20, 2008 at 01:25:28PM -0700, David Brownell wrote:
+> On Thursday 20 March 2008, Felipe Balbi wrote:
+> > Could it be some
+> > problem in the ULPI support for omap3 that's preventing musb to wake up
+> > and switch to host role ?
+> 
+> Your theory is as good as mine; I don't have that hardware.
+> 
+> I was just pointing out that this specific area has always
+> been a significant PITA for the MUSB silicon ... I'm not the
+> only developer who's ended up losing weeks of time chasing
+> (undocumented) bogosity in the area of host-side startup.
+> 
+> The thing is that making it "switch to host role" is the
+> very black magic that regularly misbehaved.  ISTR there was
+> a chicken/egg thing going on:  it couldn't know it needed to
+> switch to "host role" unless the oddball Mentor "session"
+> was already active, but it couldn't be activated unless you
+> somehow knew it should be in host role...
 
-This patch fixes the HSMMC driver name at host driver.
+Hmm... thanks for the tips Dave, I'll re-check that programmers guide
+again tomorrow and try to debug a bit more.
 
-Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
----
- drivers/mmc/host/omap_hsmmc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+-- 
+Best Regards,
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 047c64d..0e7ee20 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -92,7 +92,7 @@
- #define OMAP_MMC_DATADIR_WRITE	2
- #define MMC_TIMEOUT_MS		20
- #define OMAP_MMC_MASTER_CLOCK	96000000
--#define DRIVER_NAME		"mmci-omap"
-+#define DRIVER_NAME		"hsmmc-omap"
- /*
-  * slot_id is device id - 1, device id is a static value
-  * of 1 to represent device 1 etc..
--- 1.5.3.GIT
-
+Felipe Balbi
+me@felipebalbi.com
+http://blog.felipebalbi.com
