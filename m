@@ -1,41 +1,40 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: OMAP3430: MUSB host and hot-plugging
-Date: Wed, 19 Mar 2008 17:14:41 -0700
-Message-ID: <87d4pqqmj2.fsf@paris.hilman.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] [RFC] dmtimer library is very inefficient today
+Date: Thu, 20 Mar 2008 10:58:59 +0200
+Message-ID: <20080320085858.GB14978@atomide.com>
+References: <ae36f8040803061301y6e0823a8pbdf0b6f0b47e5639@mail.gmail.com> <3B6D69C3A9EBCA4BA5DA60D91302742903AFC880@dlee13.ent.ti.com> <20080307071454.GC7635@atomide.com> <3B6D69C3A9EBCA4BA5DA60D91302742903C4A2ED@dlee13.ent.ti.com> <87abkv9917.fsf@paris.hilman.org> <20080319195230.GA20320@michl.2n.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:15930 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764634AbYCTAOn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Mar 2008 20:14:43 -0400
-Received: from paris.hilman.org (asshur.mvista.com [10.0.0.11])
-	by hermes.mvista.com (Postfix) with ESMTP id 92E8C184F8
-	for <linux-omap@vger.kernel.org>; Wed, 19 Mar 2008 17:14:41 -0700 (PDT)
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62623 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753554AbYCTI7F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Mar 2008 04:59:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20080319195230.GA20320@michl.2n.cz>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: Kevin Hilman <khilman@mvista.com>, linux-omap@vger.kernel.org
 
-Using the default config omap_3430sdp_defconig, I'm doing some basic
-hot-plug tests of MUSB in host mode.
+* Ladislav Michl <ladis@linux-mips.org> [080319 22:32]:
+> On Tue, Mar 18, 2008 at 11:33:40AM -0700, Kevin Hilman wrote:
+> > and upstream folks tend dislike the polling loops like this:
+> > 
+> >    while(condition);
+> > 
+> > and prefer the semicolon on its own line to be clear that the loop is
+> > indeed doing nothing.
+> > 
+> >    while(condition)
+> >            ;
+> > 
+> 
+> Once there, polling loops usually looks like this
+> 
+> 	while (condition)
+> 		cpu_relax();
 
-I noticed that after booting, the first time I connect my USB key, it
-is detected just fine, the usb/scsi storage modulesare loaded by
-hotplug and I can access the device just fine.
+Thanks, I'll add those to the while looops.
 
-I then remove the key, and the kernel seems to detect the removal just
-fine, and does what seems to be a clean shutdown.
-
-However, if I then plug the key back in, nothing happens.  
-
-Forcing a session start via "echo 'F' > /proc/driver/musb_hdrc" causes
-the device to be (re)detected and things look good again.  It is not
-until I force the session start that I see the interrupt and the
-CONNECT event.
-
-Any ideas why this isn't detected on insertion?
-
-Thanks,
-
-Kevin
-
+Tony
