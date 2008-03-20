@@ -1,75 +1,55 @@
-From: Felipe Balbi <me@felipebalbi.com>
+From: David Brownell <david-b@pacbell.net>
 Subject: Re: OMAP3430: MUSB host and hot-plugging
-Date: Thu, 20 Mar 2008 20:57:04 +0200
-Message-ID: <20080320185703.GB4772@kedavra.cpe.vivax.com.br>
-References: <5DF83221BE20114E9C331F665ACBC0800477C16D@dbde01.ent.ti.com> <8657b483f1b99c61a4d5d142a5af48ba@felipebalbi.com> <5DF83221BE20114E9C331F665ACBC0800477C178@dbde01.ent.ti.com> <8763vhpbh4.fsf@paris.hilman.org>
-Reply-To: me@felipebalbi.com
+Date: Thu, 20 Mar 2008 12:30:03 -0700
+Message-ID: <200803201230.03729.david-b@pacbell.net>
+References: <87d4pqqmj2.fsf@paris.hilman.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:40657 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752241AbYCTSzE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Mar 2008 14:55:04 -0400
+Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:40051 "HELO
+	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753772AbYCTTaJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Mar 2008 15:30:09 -0400
+In-Reply-To: <87d4pqqmj2.fsf@paris.hilman.org>
 Content-Disposition: inline
-In-Reply-To: <8763vhpbh4.fsf@paris.hilman.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@mvista.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, Felipe Balbi <me@felipebalbi.com>, Linux omap <linux-omap@vger.kernel.org>
+Cc: linux-omap@vger.kernel.org
 
-On Thu, Mar 20, 2008 at 10:11:03AM -0700, Kevin Hilman wrote:
-> "Pandita, Vikram" <vikram.pandita@ti.com> writes:
-> 
-> > Felipe
-> >
-> >>Sent: Thursday, March 20, 2008 6:09 PM
-> >>To: Pandita, Vikram
-> >>Cc: Kevin Hilman; Linux omap
-> >>Subject: RE: OMAP3430: MUSB host and hot-plugging
-> >>
-> >>
-> >>> If you can provide us the procedure to enable hot-plugging for MUSB on
-> >>> OMAP3430, we will look into this issue.
-> >>
-> >>As far as musb driver is concerned it should be just a mater of
-> >>building it with otg support. But as of now, I cannot get id
-> >>pin status to musb using twl4030.
-> >>
-> >>Maybe we still have some missing pieces on linux-omap, which I'm
-> >>researching on that.
-> >
-> >
-> >  I meant if you could pass on how you have written the hot plugging
-> > function/agent for MUSB.  I have not tried hot-plugging on omap.
-> 
-> There's no additional code.  You can reproduce this with current OMAP
-> git, and default omap_3430sdp_defconfig, which enables MUSB in OTG
-> mode.
-> 
-> Here's what I do:
-> 
-> - plug in cable (mini-A to A-female)
-> - boot
-> - after booting, plug in USB storage device.
->   on my userland, hotplug does its thing, and the usb/scsi storage modules
->   are loaded, and I can then access /dev/sda* 
-> - unplug USB key.
->   kernel msgs show the disconnect happens etc.
-> 
-> - replug USB key --- nothing happens
+On Wednesday 19 March 2008, Kevin Hilman wrote:
 
-Same here. Although if you unplug and replug right away, it'll work.
-That's because musb was still waiting in a_wait_bcon state and I didn't
-let it fall into b_idle.
+> However, if I then plug the key back in, nothing happens.  
+> 
+> Forcing a session start via "echo 'F' > /proc/driver/musb_hdrc" causes
+> the device to be (re)detected and things look good again.  It is not
+> until I force the session start that I see the interrupt and the
+> CONNECT event.
+> 
+> Any ideas why this isn't detected on insertion?
 
-That's why I'm suspecting on twl4030_phy_{suspend,resume}() routines.
-After reading twl4030's docs I couldn't find anything suspicious on the
-code but I'll dig more tomorrow and after the holidays.
+Just for the record ... that's always been a problem.  There's
+some strange side-effect driven magic in the Mentor IP, right
+in that area, which has always been fragile.
 
--- 
-Best Regards,
+For example, it seems to think something other than the state
+of the ID pin should control whether it's in the A-side state
+machine (default host) or the B-side one (default peripheral),
+and it gets fairly twitchey about VBUS levels too ... as in,
+it doesn't allow the specified 100 msec for it to stabilize,
+and enters a fault/shutdown mode if voltage drops because of,
+say, contact bounce or inrush current, while it stabilizes.
 
-Felipe Balbi
-me@felipebalbi.com
-http://blog.felipebalbi.com
+Needing that "force session start" is a warning flag.  The
+very notion of that kind of "session" is something introduced
+by Mentor, which is not part of the OTG spec (at least, not in
+anything like that form).  Multiple weeks have been wasted
+trying to sort out misbehavior in that area, and there seem
+to be revision-specific issues too.
+
+- Dave
+
+
