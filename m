@@ -1,26 +1,38 @@
-From: Thomas Gleixner <tglx@linutronix.de>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: [PATCH 12/14] ARM: OMAP1: Timer32K: Fix timer32K for clockevents
- and clean it up
-Date: Fri, 21 Mar 2008 12:38:24 +0100 (CET)
-Message-ID: <alpine.LFD.1.00.0803211237500.3781@apollo.tec.linutronix.de>
-References: <1205746958-11242-4-git-send-email-tony@atomide.com> <1205746958-11242-5-git-send-email-tony@atomide.com> <1205746958-11242-6-git-send-email-tony@atomide.com> <1205746958-11242-7-git-send-email-tony@atomide.com> <1205746958-11242-8-git-send-email-tony@atomide.com>
- <1205746958-11242-9-git-send-email-tony@atomide.com> <1205746958-11242-10-git-send-email-tony@atomide.com> <1205746958-11242-11-git-send-email-tony@atomide.com> <1205746958-11242-12-git-send-email-tony@atomide.com> <1205746958-11242-13-git-send-email-tony@atomide.com>
- <20080320165243.GD16166@flint.arm.linux.org.uk> <87y78dntfz.fsf@paris.hilman.org>
+	and clean it up
+Date: Fri, 21 Mar 2008 12:04:26 +0000
+Message-ID: <20080321120425.GA3732@flint.arm.linux.org.uk>
+References: <1205746958-11242-6-git-send-email-tony@atomide.com>
+	<1205746958-11242-7-git-send-email-tony@atomide.com>
+	<1205746958-11242-8-git-send-email-tony@atomide.com>
+	<1205746958-11242-9-git-send-email-tony@atomide.com>
+	<1205746958-11242-10-git-send-email-tony@atomide.com>
+	<1205746958-11242-11-git-send-email-tony@atomide.com>
+	<1205746958-11242-12-git-send-email-tony@atomide.com>
+	<1205746958-11242-13-git-send-email-tony@atomide.com>
+	<20080320165243.GD16166@flint.arm.linux.org.uk>
+	<87y78dntfz.fsf@paris.hilman.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.tglx.de ([62.245.132.106]:58690 "EHLO www.tglx.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754928AbYCULkF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Mar 2008 07:40:05 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
+Content-Disposition: inline
 In-Reply-To: <87y78dntfz.fsf@paris.hilman.org>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://lists.arm.linux.org.uk/lurker/list/linux-arm-kernel.html>
+List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
+List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
+List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
 To: Kevin Hilman <khilman@mvista.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+List-Id: linux-omap@vger.kernel.org
 
-On Thu, 20 Mar 2008, Kevin Hilman wrote:
-
+On Thu, Mar 20, 2008 at 11:25:52AM -0700, Kevin Hilman wrote:
 > Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
 > 
 > > On Mon, Mar 17, 2008 at 11:42:36AM +0200, Tony Lindgren wrote:
@@ -49,27 +61,9 @@ On Thu, 20 Mar 2008, Kevin Hilman wrote:
 > That is correct.  The 'start' should only be happening for the
 > periodic mode.  This following change should be done.
 
-Yup. Oneshot mode is programmed from the clockevents framework.
+Or just omit the bogus change from the original patch.
 
-Thanks,
-	tglx
- 
-> Kevin
-> 
-> 
-> diff --git a/arch/arm/mach-omap1/timer32k.c b/arch/arm/mach-omap1/timer32k.c
-> index 905e735..0d9b02e 100644
-> --- a/arch/arm/mach-omap1/timer32k.c
-> +++ b/arch/arm/mach-omap1/timer32k.c
-> @@ -131,9 +131,8 @@ static void omap_32k_timer_set_mode(enum clock_event_mode mode,
->  
->  	switch (mode) {
->  	case CLOCK_EVT_MODE_PERIODIC:
-> -	case CLOCK_EVT_MODE_ONESHOT:
->  		omap_32k_timer_start(OMAP_32K_TIMER_TICK_PERIOD);
-> -		break;
-> +	case CLOCK_EVT_MODE_ONESHOT:
->  	case CLOCK_EVT_MODE_UNUSED:
->  	case CLOCK_EVT_MODE_SHUTDOWN:
->  		break;
-> 
+-------------------------------------------------------------------
+List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
+FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
+Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
