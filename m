@@ -1,47 +1,75 @@
-From: Seth Forshee <seth.forshee@gmail.com>
-Subject: Re: [PATCH 1/1] PLAT: OMAP: Add device configuration to support second HSMMC slot on OMAP 2430 and 3430 boards.
-Date: Thu, 20 Mar 2008 19:44:02 -0500
-Message-ID: <20080321004401.GA8667@ubuntu-workstation>
-References: <47E273BD.9080705@indt.org.br>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH 12/14] ARM: OMAP1: Timer32K: Fix timer32K for clockevents
+ and clean it up
+Date: Fri, 21 Mar 2008 12:38:24 +0100 (CET)
+Message-ID: <alpine.LFD.1.00.0803211237500.3781@apollo.tec.linutronix.de>
+References: <1205746958-11242-4-git-send-email-tony@atomide.com> <1205746958-11242-5-git-send-email-tony@atomide.com> <1205746958-11242-6-git-send-email-tony@atomide.com> <1205746958-11242-7-git-send-email-tony@atomide.com> <1205746958-11242-8-git-send-email-tony@atomide.com>
+ <1205746958-11242-9-git-send-email-tony@atomide.com> <1205746958-11242-10-git-send-email-tony@atomide.com> <1205746958-11242-11-git-send-email-tony@atomide.com> <1205746958-11242-12-git-send-email-tony@atomide.com> <1205746958-11242-13-git-send-email-tony@atomide.com>
+ <20080320165243.GD16166@flint.arm.linux.org.uk> <87y78dntfz.fsf@paris.hilman.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.177]:2920 "EHLO
-	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752315AbYCUAph (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Mar 2008 20:45:37 -0400
-Received: by py-out-1112.google.com with SMTP id u52so1621809pyb.10
-        for <linux-omap@vger.kernel.org>; Thu, 20 Mar 2008 17:45:36 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <47E273BD.9080705@indt.org.br>
+Received: from www.tglx.de ([62.245.132.106]:58690 "EHLO www.tglx.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754928AbYCULkF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Mar 2008 07:40:05 -0400
+In-Reply-To: <87y78dntfz.fsf@paris.hilman.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@mvista.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-On Thu, Mar 20, 2008 at 10:25:01AM -0400, Carlos Aguiar wrote:
->  	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
-> -		if (mmc->enabled)
-> +		mmc = &mmc_conf->mmc[1];
-> +		if (mmc->enabled) {
->  			(void) platform_device_register(&mmc_omap_device1);
-> +			(void) platform_device_register(&mmc_omap_device2);
-> +		}
+On Thu, 20 Mar 2008, Kevin Hilman wrote:
 
-Shouldn't you only register each device if enabled in the corresponding
-configuration, i.e.:
+> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+> 
+> > On Mon, Mar 17, 2008 at 11:42:36AM +0200, Tony Lindgren wrote:
+> >> This patch fixes timer32k for clockevents and syncs it with
+> >> linux-omap tree.
+> >> 
+> >> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> >> ---
+> >>  arch/arm/mach-omap1/timer32k.c |   20 ++++++++++++++------
+> >>  1 files changed, 14 insertions(+), 6 deletions(-)
+> >> 
+> >>...
+> >> @@ -126,9 +131,9 @@ static void omap_32k_timer_set_mode(enum clock_event_mode mode,
+> >>  
+> >>  	switch (mode) {
+> >>  	case CLOCK_EVT_MODE_PERIODIC:
+> >> +	case CLOCK_EVT_MODE_ONESHOT:
+> >>  		omap_32k_timer_start(OMAP_32K_TIMER_TICK_PERIOD);
+> >>  		break;
+> >> -	case CLOCK_EVT_MODE_ONESHOT:
+> >
+> > I didn't think an event was supposed to be programmed to fire when one
+> > shot mode is selected - from the other implementations, it appears that
+> > the timer should be disabled until set_next_event() has been called.
+> 
+> That is correct.  The 'start' should only be happening for the
+> periodic mode.  This following change should be done.
 
-	if (mmc_conf->mmc[1].enabled)
-		(void) platform_device_register(&mmc_omap_device1);
-	if (mmc_conf->mmc[2].enabled)
-		(void) platform_device_register(&mmc_omap_device2);
+Yup. Oneshot mode is programmed from the clockevents framework.
 
-It looks to me like, with this patch applied, no MMC devices will be
-registered with the current board-2430sdp.c.
-
-Otherwise I'd say this looks like an improvement over what I worked up (I
-overlooked the section quoted above, which would have saved me the trouble of
-working out the muxings).
-
-Cheers,
-Seth
+Thanks,
+	tglx
+ 
+> Kevin
+> 
+> 
+> diff --git a/arch/arm/mach-omap1/timer32k.c b/arch/arm/mach-omap1/timer32k.c
+> index 905e735..0d9b02e 100644
+> --- a/arch/arm/mach-omap1/timer32k.c
+> +++ b/arch/arm/mach-omap1/timer32k.c
+> @@ -131,9 +131,8 @@ static void omap_32k_timer_set_mode(enum clock_event_mode mode,
+>  
+>  	switch (mode) {
+>  	case CLOCK_EVT_MODE_PERIODIC:
+> -	case CLOCK_EVT_MODE_ONESHOT:
+>  		omap_32k_timer_start(OMAP_32K_TIMER_TICK_PERIOD);
+> -		break;
+> +	case CLOCK_EVT_MODE_ONESHOT:
+>  	case CLOCK_EVT_MODE_UNUSED:
+>  	case CLOCK_EVT_MODE_SHUTDOWN:
+>  		break;
+> 
