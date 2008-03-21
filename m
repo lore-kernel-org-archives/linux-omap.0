@@ -1,94 +1,47 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH] dmtimer posting
-Date: Thu, 20 Mar 2008 19:13:54 -0500
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D91302742903D3B09A@dlee13.ent.ti.com>
-References: <87abkv9917.fsf@paris.hilman.org> <3B6D69C3A9EBCA4BA5DA60D91302742903CCA382@dlee13.ent.ti.com> <20080319141504.GB14860@atomide.com> <3B6D69C3A9EBCA4BA5DA60D91302742903CCA4F9@dlee13.ent.ti.com> <20080319155835.GE14860@atomide.com> <3B6D69C3A9EBCA4BA5DA60D91302742903CCA8F8@dlee13.ent.ti.com> <20080320115749.GF14978@atomide.com> <20080320121900.GG14978@atomide.com>
+From: Seth Forshee <seth.forshee@gmail.com>
+Subject: Re: [PATCH 1/1] PLAT: OMAP: Add device configuration to support second HSMMC slot on OMAP 2430 and 3430 boards.
+Date: Thu, 20 Mar 2008 19:44:02 -0500
+Message-ID: <20080321004401.GA8667@ubuntu-workstation>
+References: <47E273BD.9080705@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from soda.ext.ti.com ([198.47.26.145]:55380 "EHLO soda.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750728AbYCUAOy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Mar 2008 20:14:54 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <20080320121900.GG14978@atomide.com>
+Received: from py-out-1112.google.com ([64.233.166.177]:2920 "EHLO
+	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752315AbYCUAph (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Mar 2008 20:45:37 -0400
+Received: by py-out-1112.google.com with SMTP id u52so1621809pyb.10
+        for <linux-omap@vger.kernel.org>; Thu, 20 Mar 2008 17:45:36 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <47E273BD.9080705@indt.org.br>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@mvista.com>, linux-omap@vger.kernel.org
+To: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Hi,
- 
-> * Tony Lindgren <tony@atomide.com> [080320 13:58]:
-> > * Woodruff, Richard <r-woodruff2@ti.com> [080320 00:14]:
-> > >
-> > > One note is some more optimization could happen later on with
-> > > reordering.  The current usage in gptimer has dmtimer_set_load()
-> > > followed by a dm_timer_start().  This causes a
-read/write/read/write
-> of
-> > > the CTRL register.  Those writes could be collapsed into each
-other.
-> > > With a load_start().  Others maybe elsewhere.
-> >
-> > OK. We might also want to optimize the timer reload function. I'll
-post
-> > a separate patch on that to experiment with.
-> 
-> Here's an experimental patch that attempts to optimize the timer
-> reloading for gp_timer0. I don't know if this improves the latency
-> or performance, but might be worth testing.
-> 
-> I guess there's no way to update the timer without having to write
-> TCLR to (re)start it?
+On Thu, Mar 20, 2008 at 10:25:01AM -0400, Carlos Aguiar wrote:
+>  	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
+> -		if (mmc->enabled)
+> +		mmc = &mmc_conf->mmc[1];
+> +		if (mmc->enabled) {
+>  			(void) platform_device_register(&mmc_omap_device1);
+> +			(void) platform_device_register(&mmc_omap_device2);
+> +		}
 
-If its been stopped you need to write.
+Shouldn't you only register each device if enabled in the corresponding
+configuration, i.e.:
 
-> If the patch helps, then we can clean it up a bit more.
+	if (mmc_conf->mmc[1].enabled)
+		(void) platform_device_register(&mmc_omap_device1);
+	if (mmc_conf->mmc[2].enabled)
+		(void) platform_device_register(&mmc_omap_device2);
 
-This seems good. It does boot and suppress ticks and keep time on my
-3430-ES2.1 SDP.
+It looks to me like, with this patch applied, no MMC devices will be
+registered with the current board-2430sdp.c.
 
-With ETB trace I can't even see it show up in profiling.  As I said in
-the last thread I don't have ETM right now to get the real external
-time.  But as it is written you get full posting and little need to
-synchronize after the write.  If this works reliably it should remove
-the overhead completely.
+Otherwise I'd say this looks like an improvement over what I worked up (I
+overlooked the section quoted above, which would have saved me the trouble of
+working out the muxings).
 
-Question: don't you think you need to also update the TLDR in
-GP_TIMER0_RELOAD?  Your patch directly writes to the count register, and
-forces auto-reload mode in the TLCR.  If the wrong value is in the TLDR
-when it overflows you could be here for a while.  Skipping the trigger
-write to WTGR for the kick off is ok as is done.
-
-If its in autoreload mode, I'm not sure if it will always call back to
-this call.  Perhaps only when changing modes?  I've not so familiar with
-the flow above this.  When I look in the debugger, it does have expected
-values in all registers (including TLDR) but I'm not sure of the
-ordering of the set.
-
-+#define GP_TIMER0_RELOAD(cycles, base)
-\
-+{
-\
-+	while ((__raw_readl(IO_ADDRESS((base) + GP_TIMER_TWPS)) &
-TWPS_MASK))	\
-+		cpu_relax();
-\
-+	__raw_writel(0xffffffff - (cycles),
-\
-+			IO_ADDRESS((base) + GP_TIMER_TCRR));
-\
-+	__raw_writel(0x3, IO_ADDRESS((base) + GP_TIMER_TCLR));
-\
-+}
-+
-
-I'll try a quick back port to CDP kernel and see the effect.  The
-previous patch reduced load and saved a few mA at run time which was
-good.  This might get another couple mA and MHz back.
-
-Regards,
-Richard W.
+Cheers,
+Seth
