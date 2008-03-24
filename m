@@ -1,55 +1,31 @@
-From: "Hunter, Jon" <jon-hunter@ti.com>
-Subject: RE: OMAP5910 I2C problem
-Date: Fri, 21 Mar 2008 12:58:39 -0500
-Message-ID: <5573C19A4BBDB441BED2A44157E970530376B225@dlee12.ent.ti.com>
-References: <cb3afdb90803131117s3974e622n6a4f07d3ced132b7@mail.gmail.com>
+From: Seth Forshee <seth.forshee@gmail.com>
+Subject: Re: [PATCH 1/1] PLAT: OMAP: Add device configuration to support second HSMMC slot on OMAP 2430 and 3430 boards.
+Date: Sun, 23 Mar 2008 21:10:46 -0500
+Message-ID: <20080324021045.GA19892@ubuntu-workstation>
+References: <47E273BD.9080705@indt.org.br> <20080321004401.GA8667@ubuntu-workstation>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47530 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757245AbYCUR6s convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Mar 2008 13:58:48 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <cb3afdb90803131117s3974e622n6a4f07d3ced132b7@mail.gmail.com>
+Received: from py-out-1112.google.com ([64.233.166.176]:37468 "EHLO
+	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751562AbYCXCMh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Mar 2008 22:12:37 -0400
+Received: by py-out-1112.google.com with SMTP id u52so3762625pyb.10
+        for <linux-omap@vger.kernel.org>; Sun, 23 Mar 2008 19:12:36 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20080321004401.GA8667@ubuntu-workstation>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Oleg Kechin <okechin.omap@gmail.com>, linux-omap@vger.kernel.org
+To: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
->  I've experienced problem with OMAP5910 I2C driver in my custom board.
->  It freezes after some working time.
->  When it freezes, register I2C_STAT show that XUDF (or ROVR) bit is
-set
->  and SCL pin
->  is in low state.
->  I2C_CNT register is not zero too, but buf_len counter is zero.
->  Attempt to use init() function do not help in this situation.
->  Only things I can do with it - set I2C to debug mode and make some
-SCL
->  clocks by hand.
->  After this I2C state machine can work for some time.
->  When I2C clock is set to 100kHz it happens almost in every transfer -
-I
->  try to read/write
->  EEPROM. In 20kHz it still can happen too (on heavy load much
-frequently).
->  It's look like internal I2C state machine is broken.
->  So, for now I replace i2c algorithm with i2c_algo_bit and everything
->  works fine.
+On Thu, Mar 20, 2008 at 07:44:02PM -0500, Seth Forshee wrote:
+> Shouldn't you only register each device if enabled in the corresponding
+> configuration, i.e.:
 > 
->  I'm curious - only I have such a problem with I2C bus in OMAP 5910 or
->  someone else too?
->  May be there is better solution?
+> 	if (mmc_conf->mmc[1].enabled)
+> 		(void) platform_device_register(&mmc_omap_device1);
+> 	if (mmc_conf->mmc[2].enabled)
+> 		(void) platform_device_register(&mmc_omap_device2);
 
-
-I cannot say specifically, but I would recommend that you check out the
-OMAP5910 device errata document and see if any of the known silicon
-defects regarding the i2c peripheral could be impacting you. 
-
-You can find the device errata here: 
-http://focus.ti.com/docs/prod/folders/print/omap5910.html
-
-Cheers
-Jon 
+Of course that should be 0 and 1, not 1 and 2.
