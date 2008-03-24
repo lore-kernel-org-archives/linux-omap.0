@@ -1,71 +1,52 @@
-From: "Madhusudhan Chikkature Rajashekar" <madhu.cr@ti.com>
-Subject: RE: [PATCH 1/1] MMC: OMAP: Fix HSMMC driver name at host driver.
-Date: Mon, 24 Mar 2008 10:37:58 +0530
-Message-ID: <005901c88d6d$08f932c0$ca8818ac@ent.ti.com>
-References: <47E2C7FE.9020908@indt.org.br> <20080320225441.GA4373@kedavra.cpe.vivax.com.br>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: OMAP3430: MUSB host and hot-plugging
+Date: Mon, 24 Mar 2008 14:57:21 +0530
+Message-ID: <5DF83221BE20114E9C331F665ACBC0800477C63D@dbde01.ent.ti.com>
+References: <87d4pqqmj2.fsf@paris.hilman.org> <200803201230.03729.david-b@pacbell.net> <20080320200000.GI4772@kedavra.cpe.vivax.com.br> <200803201325.28818.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from soda.ext.ti.com ([198.47.26.145]:51863 "EHLO soda.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48956 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751878AbYCXFIS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Mar 2008 01:08:18 -0400
-In-Reply-To: <20080320225441.GA4373@kedavra.cpe.vivax.com.br>
+	id S1754609AbYCXJ2L convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Mar 2008 05:28:11 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <200803201325.28818.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com, 'Carlos Aguiar' <carlos.aguiar@indt.org.br>
-Cc: 'Tony Lindgren' <tony@atomide.com>, linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>, me@felipebalbi.com
+Cc: Kevin Hilman <khilman@mvista.com>, linux-omap@vger.kernel.org
 
- 
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Felipe Balbi
-> Sent: Friday, March 21, 2008 4:25 AM
-> To: Carlos Aguiar
-> Cc: Tony Lindgren; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 1/1] MMC: OMAP: Fix HSMMC driver name at 
-> host driver.
-> 
-> On Thu, Mar 20, 2008 at 04:24:30PM -0400, Carlos Aguiar wrote:
-> > From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-> > 
-> > This patch fixes the HSMMC driver name at host driver.
-> > 
-> > Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-> > ---
-> >  drivers/mmc/host/omap_hsmmc.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/mmc/host/omap_hsmmc.c 
-> b/drivers/mmc/host/omap_hsmmc.c
-> > index 047c64d..0e7ee20 100644
-> > --- a/drivers/mmc/host/omap_hsmmc.c
-> > +++ b/drivers/mmc/host/omap_hsmmc.c
-> > @@ -92,7 +92,7 @@
-> >  #define OMAP_MMC_DATADIR_WRITE	2
-> >  #define MMC_TIMEOUT_MS		20
-> >  #define OMAP_MMC_MASTER_CLOCK	96000000
-> > -#define DRIVER_NAME		"mmci-omap"
-> > +#define DRIVER_NAME		"hsmmc-omap"
-> 
-> stupid question :-p
-> what does the 'i' means?
-I think it is a simple mistake. The change you have done makes sense for the HSMMC driver.
 
-> 
-> -- 
-> Best Regards,
-> 
-> Felipe Balbi
-> me@felipebalbi.com
-> http://blog.felipebalbi.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>Sent: Friday, March 21, 2008 1:55 AM
+>On Thursday 20 March 2008, Felipe Balbi wrote:
+>> Could it be some
+>> problem in the ULPI support for omap3 that's preventing musb to wake up
+>> and switch to host role ?
+>
+>Your theory is as good as mine; I don't have that hardware.
+>
+>I was just pointing out that this specific area has always
+>been a significant PITA for the MUSB silicon ... I'm not the
+>only developer who's ended up losing weeks of time chasing
+>(undocumented) bogosity in the area of host-side startup.
+>
+>The thing is that making it "switch to host role" is the
+>very black magic that regularly misbehaved.  ISTR there was
+>a chicken/egg thing going on:  it couldn't know it needed to
+>switch to "host role" unless the oddball Mentor "session"
+>was already active, but it couldn't be activated unless you
+>somehow knew it should be in host role...
 
+The right way then to debug would be to do an LA probe of ULPI signals on re-attach.
+To get around this problem, I have heard of implementations having a separate GPIO implemented to wakeup the system on cable attaches. Don't remember which implementation though.
+I will see if I get time to work on this and will keep posted.
+
+>
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
