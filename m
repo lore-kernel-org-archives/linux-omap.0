@@ -1,40 +1,26 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH] 	Support for OMAP3 SDTI (Serial Debug Trace Interface).
-Date: Tue, 25 Mar 2008 09:17:16 -0500
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D91302742903D3BA03@dlee13.ent.ti.com>
-References: <1206452858-29570-1-git-send-email-roman.tereshonkov@nokia.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 12/14] ARM: OMAP1: Timer32K: Fix timer32K for clockevents and clean it up, take #2
+Date: Tue, 25 Mar 2008 22:16:11 +0000
+Message-ID: <20080325221611.GB3895@flint.arm.linux.org.uk>
+References: <1205746958-11242-8-git-send-email-tony@atomide.com> <1205746958-11242-9-git-send-email-tony@atomide.com> <1205746958-11242-10-git-send-email-tony@atomide.com> <1205746958-11242-11-git-send-email-tony@atomide.com> <1205746958-11242-12-git-send-email-tony@atomide.com> <1205746958-11242-13-git-send-email-tony@atomide.com> <20080320165243.GD16166@flint.arm.linux.org.uk> <87y78dntfz.fsf@paris.hilman.org> <20080321120425.GA3732@flint.arm.linux.org.uk> <20080325100940.GQ14978@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50098 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752375AbYCYORv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Mar 2008 10:17:51 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <1206452858-29570-1-git-send-email-roman.tereshonkov@nokia.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59342 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752885AbYCYWRH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Mar 2008 18:17:07 -0400
+Content-Disposition: inline
+In-Reply-To: <20080325100940.GQ14978@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roman Tereshonkov <roman.tereshonkov@nokia.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@mvista.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-Hi,
+On Tue, Mar 25, 2008 at 12:09:41PM +0200, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [080321 14:05]:
+> > Or just omit the bogus change from the original patch.
+> 
+> OK, here's the fixed patch.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Roman Tereshonkov
-> Sent: Tuesday, March 25, 2008 8:48 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Roman Tereshonkov
-> Subject: [PATCH] Support for OMAP3 SDTI (Serial Debug Trace
-Interface).
-
-By chance do you use any of this in conjunction with semi-hosting on
-Lauterbach?  If so is there a wiki or other with some basic information?
-Having a jtag console is kind of handy if you don't have a real serial
-port.
-
-Regards,
-Richard W.
- 
-
+Yup, is ok.
