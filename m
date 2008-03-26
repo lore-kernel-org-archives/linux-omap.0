@@ -1,133 +1,128 @@
-From: "Eduardo Valentin" <edubezval@gmail.com>
-Subject: Re: [PATCH] OMAP: MMC: Add several missing line breaks.
-Date: Wed, 26 Mar 2008 14:07:50 -0400
-Message-ID: <a0580c510803261107l280eb9a6i60824be3abf09e8d@mail.gmail.com>
-References: <1206020243-23355-1-git-send-email-felipe.balbi@nokia.com>
-	 <1206545625-12709-1-git-send-email-edubezval@gmail.com>
-	 <1206545625-12709-2-git-send-email-edubezval@gmail.com>
-	 <20080326173922.GB16223@kedavra.cpe.vivax.com.br>
+From: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Subject: Re: [PATCH 1/1] MMC: OMAP: Fix HSMMC driver name at host driver.
+Date: Wed, 26 Mar 2008 15:12:16 -0400
+Message-ID: <47EAA010.7060101@indt.org.br>
+References: <47E2C7FE.9020908@indt.org.br> <20080320225441.GA4373@kedavra.cpe.vivax.com.br> <005901c88d6d$08f932c0$ca8818ac@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.173]:46395 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757826AbYCZSHw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Mar 2008 14:07:52 -0400
-Received: by wf-out-1314.google.com with SMTP id 28so3434188wff.4
-        for <linux-omap@vger.kernel.org>; Wed, 26 Mar 2008 11:07:50 -0700 (PDT)
-In-Reply-To: <20080326173922.GB16223@kedavra.cpe.vivax.com.br>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:55685 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750886AbYCZTQE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Mar 2008 15:16:04 -0400
+In-Reply-To: <005901c88d6d$08f932c0$ca8818ac@ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, Eduardo Valentin <eduardo.valentin@indt.org.br>
+To: ext Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
+Cc: me@felipebalbi.com, 'Tony Lindgren' <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Hi Balbi,
+ext Madhusudhan Chikkature Rajashekar wrote:
+>  
+>
+>   
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org 
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Felipe Balbi
+>> Sent: Friday, March 21, 2008 4:25 AM
+>> To: Carlos Aguiar
+>> Cc: Tony Lindgren; linux-omap@vger.kernel.org
+>> Subject: Re: [PATCH 1/1] MMC: OMAP: Fix HSMMC driver name at 
+>> host driver.
+>>
+>> On Thu, Mar 20, 2008 at 04:24:30PM -0400, Carlos Aguiar wrote:
+>>     
+>>> From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+>>>
+>>> This patch fixes the HSMMC driver name at host driver.
+>>>
+>>> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+>>> ---
+>>>  drivers/mmc/host/omap_hsmmc.c |    2 +-
+>>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>>
+>>> diff --git a/drivers/mmc/host/omap_hsmmc.c 
+>>>       
+>> b/drivers/mmc/host/omap_hsmmc.c
+>>     
+>>> index 047c64d..0e7ee20 100644
+>>> --- a/drivers/mmc/host/omap_hsmmc.c
+>>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>>> @@ -92,7 +92,7 @@
+>>>  #define OMAP_MMC_DATADIR_WRITE	2
+>>>  #define MMC_TIMEOUT_MS		20
+>>>  #define OMAP_MMC_MASTER_CLOCK	96000000
+>>> -#define DRIVER_NAME		"mmci-omap"
+>>> +#define DRIVER_NAME		"hsmmc-omap"
+>>>       
+>> stupid question :-p
+>> what does the 'i' means?
+>>     
+> I think it is a simple mistake. The change you have done makes sense for the HSMMC driver.
+>
+>   
+>> -- 
+>> Best Regards,
+>>
+>> Felipe Balbi
+>> me@felipebalbi.com
+>> http://blog.felipebalbi.com
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe 
+>> linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>     
+>
+>
+>   
+Hi Tony,
 
-On Wed, Mar 26, 2008 at 1:39 PM, Felipe Balbi <me@felipebalbi.com> wrote:
-> On Wed, Mar 26, 2008 at 11:33:45AM -0400, Eduardo Valentin wrote:
->  > From: Felipe Balbi <felipe.balbi@nokia.com>
->  >
->  > Misc clean up in omap_hsmmc.c to beautify debugging output.
->  >
->  > Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
->
->  Here you should put what you changed just to ease the comparisson :-)
+Please, don't apply this patch into the tree due some conflicts with
+such driver host names for 2420 (mmci-omap) and 2430 and 3430
+(hsmmc-omap) boards. Explaining: on arch/arm/plat-omap/devices.c, I sent
+a patch [1] that proposes the following change:
 
-That's true. But the change was just to remove part of your patch that modified
-something that was already removed. And it still keeps adding missing
-line breaks :-).
+...
+#if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
+#define OMAP_MMC_NAME "hsmmc-omap"
 
->  But ok... thanks for checking it :-)
->
->
->
->  > Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
->  > ---
->  >  drivers/mmc/host/omap_hsmmc.c |   14 +++++++-------
->  >  1 files changed, 7 insertions(+), 7 deletions(-)
->  >
->  > diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
->  > index 3d4a7d1..70f6895 100644
->  > --- a/drivers/mmc/host/omap_hsmmc.c
->  > +++ b/drivers/mmc/host/omap_hsmmc.c
->  > @@ -146,7 +146,7 @@ static void omap_mmc_stop_clock(struct mmc_omap_host *host)
->  >       OMAP_HSMMC_WRITE(host->base, SYSCTL,
->  >               OMAP_HSMMC_READ(host->base, SYSCTL) & ~CEN);
->  >       if ((OMAP_HSMMC_READ(host->base, SYSCTL) & CEN) != 0x0)
->  > -             dev_dbg(mmc_dev(host->mmc), "MMC Clock is not stoped");
->  > +             dev_dbg(mmc_dev(host->mmc), "MMC Clock is not stoped\n");
->  >  }
->  >
->  >  /*
->  > @@ -401,7 +401,7 @@ static int omap_mmc_switch_opcond(struct mmc_omap_host *host, int vdd)
->  >
->  >       return 0;
->  >  err:
->  > -     dev_dbg(mmc_dev(host->mmc), "Unable to switch operating voltage \n");
->  > +     dev_dbg(mmc_dev(host->mmc), "Unable to switch operating voltage\n");
->  >       return ret;
->  >  }
->  >
->  > @@ -760,11 +760,11 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
->  >        * MMC can still work without debounce clock.
->  >        */
->  >       if (IS_ERR(host->dbclk))
->  > -             dev_dbg(mmc_dev(host->mmc), "Failed to get debounce clock \n");
->  > +             dev_dbg(mmc_dev(host->mmc), "Failed to get debounce clock\n");
->  >       else
->  >               if (clk_enable(host->dbclk) != 0)
->  >                       dev_dbg(mmc_dev(host->mmc), "Enabling debounce"
->  > -                                                     "clk failed\n");
->  > +                                                     " clk failed\n");
->  >               else
->  >                       host->dbclk_enabled = 1;
->  >
->  > @@ -793,7 +793,7 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
->  >       ret = request_irq(host->irq, mmc_omap_irq, IRQF_DISABLED, pdev->name,
->  >                        host);
->  >       if (ret) {
->  > -             dev_dbg(mmc_dev(host->mmc), "Unable to grab HSMMC IRQ");
->  > +             dev_dbg(mmc_dev(host->mmc), "Unable to grab HSMMC IRQ\n");
->  >               goto irq_err;
->  >       }
->  >
->  > @@ -820,7 +820,7 @@ err:
->  >       return ret;
->  >
->  >  irq_err:
->  > -     dev_dbg(mmc_dev(host->mmc), "Unable to configure MMC IRQs");
->  > +     dev_dbg(mmc_dev(host->mmc), "Unable to configure MMC IRQs\n");
->  >       clk_disable(host->fclk);
->  >       clk_disable(host->iclk);
->  >       clk_put(host->fclk);
->  > @@ -881,7 +881,7 @@ static int omap_mmc_suspend(struct platform_device *pdev, pm_message_t state)
->  >                       if (ret)
->  >                               dev_dbg(mmc_dev(host->mmc),
->  >                                       "Unable to handle MMC board"
->  > -                                     "level suspend\n");
->  > +                                     " level suspend\n");
->  >
->  >                       if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
->  >                               OMAP_HSMMC_WRITE(host->base, HCTL,
->  > --
->  > 1.5.4.2
->  >
->  > --
->  > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->  > the body of a message to majordomo@vger.kernel.org
->  > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->  --
->  Best Regards,
->
->  Felipe Balbi
->  me@felipebalbi.com
->  http://blog.felipebalbi.com
->
+#define OMAP_MMC1_BASE 0x4809c000
+#define OMAP_MMC1_END OMAP_MMC1_BASE + 0x1fc
+#define OMAP_MMC1_INT INT_24XX_MMC_IRQ
 
+#define OMAP_MMC2_BASE 0x480b4000
+#define OMAP_MMC2_END OMAP_MMC2_BASE + 0x1fc
+#define OMAP_MMC2_INT INT_24XX_MMC_IRQ
 
+#else
+
+#define OMAP_MMC_NAME "mmci-omap"
+...
+
+But, the host driver name is mmci-omap for 2420 boards (like N800), so
+that images compiled with this patch will not start the MMC slots :(
+
+Anyway, I think for now let's keep all driver hosts with name
+'mmci-omap' in order keep all working and I'm going to resend this patch
+removing the defines OMAP_MMC_NAME and make some corrections into such
+patch.
+
+I hope I was clear and thanks for the comprehension.
+
+BR,
+
+Carlos.
+
+[1] http://marc.info/?l=linux-omap&m=120602333813488&w=2
 
 -- 
-Eduardo Bezerra Valentin
+Carlos Eduardo Aguiar
+Nokia Institute of Technology - INdT
+Open Source Mobile Research Center - OSMRC - Manaus
+Core Team
+Phone: +55 92 2126-1079
+Mobile: +55 92 8127-1797
+E-mail: carlos.aguiar@indt.org.br
+
