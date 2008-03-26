@@ -1,50 +1,62 @@
-From: =?utf-8?q?Jouni=20H=C3=B6gander?= <jouni.hogander@nokia.com>
-Subject: [PATCH] OMAPFB: Check in suspend/resume if framebuffer device is initialized.
-Date: Wed, 26 Mar 2008 13:58:09 +0200
-Message-ID: <1206532689-11902-1-git-send-email-jouni.hogander@nokia.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [PATCH] OMAP: MMU_FWK: Changed Kconfig entry from tristate to bool.
+Date: Wed, 26 Mar 2008 10:48:07 -0400
+Message-ID: <1206542887-12321-1-git-send-email-edubezval@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:30614 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:16640 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753797AbYCZL67 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Mar 2008 07:58:59 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2QBwIsX027073
-	for <linux-omap@vger.kernel.org>; Wed, 26 Mar 2008 13:58:56 +0200
+	with ESMTP id S1752315AbYCZOs4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Mar 2008 10:48:56 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2QEmPRc026708
+	for <linux-omap@vger.kernel.org>; Wed, 26 Mar 2008 16:48:54 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-Check wether fbdev is NULL in suspend / resume functions. Fbdev is
-NULL, if there is no lcd or it is not enabled in configuration.
+From: Eduardo Valentin <eduardo.valentin@indt.org.br>
+
+As this code uses unexported symbols, it must be always
+built-in. For this reason, a better type of its Kconfig entry
+is bool.
+
+Fixed also defconfig which sets this entry as module.
+
+Compile test only.
+
+Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
 ---
- drivers/video/omap/omapfb_main.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ arch/arm/configs/ams_delta_defconfig |    2 +-
+ arch/arm/plat-omap/Kconfig           |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
-index f66b81a..139c84c 100644
---- a/drivers/video/omap/omapfb_main.c
-+++ b/drivers/video/omap/omapfb_main.c
-@@ -1839,8 +1839,8 @@ static int omapfb_suspend(struct platform_device *pdev, pm_message_t mesg)
- {
- 	struct omapfb_device *fbdev = platform_get_drvdata(pdev);
+diff --git a/arch/arm/configs/ams_delta_defconfig b/arch/arm/configs/ams_delta_defconfig
+index a6b77ab..2c4aa11 100644
+--- a/arch/arm/configs/ams_delta_defconfig
++++ b/arch/arm/configs/ams_delta_defconfig
+@@ -164,7 +164,7 @@ CONFIG_OMAP_MUX=y
+ # CONFIG_OMAP_MUX_DEBUG is not set
+ CONFIG_OMAP_MUX_WARNINGS=y
+ CONFIG_OMAP_MCBSP=y
+-CONFIG_OMAP_MMU_FWK=m
++CONFIG_OMAP_MMU_FWK=y
+ CONFIG_OMAP_MBOX_FWK=m
+ CONFIG_OMAP_MPU_TIMER=y
+ # CONFIG_OMAP_32K_TIMER is not set
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 50291ed..536f8aa 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -122,7 +122,7 @@ config OMAP_MCBSP
+ 	  Buffered Serial Port.
  
--	omapfb_blank(VESA_POWERDOWN, fbdev->fb_info[0]);
--
-+	if (fbdev != NULL)
-+		omapfb_blank(VESA_POWERDOWN, fbdev->fb_info[0]);
- 	return 0;
- }
- 
-@@ -1849,7 +1849,8 @@ static int omapfb_resume(struct platform_device *pdev)
- {
- 	struct omapfb_device *fbdev = platform_get_drvdata(pdev);
- 
--	omapfb_blank(VESA_NO_BLANKING, fbdev->fb_info[0]);
-+	if (fbdev != NULL)
-+		omapfb_blank(VESA_NO_BLANKING, fbdev->fb_info[0]);
- 	return 0;
- }
- 
+ config OMAP_MMU_FWK
+-	tristate "MMU framework support"
++	bool "MMU framework support"
+ 	depends on ARCH_OMAP
+ 	default n
+ 	help
 -- 
-1.5.3.5
+1.5.4.2
 
