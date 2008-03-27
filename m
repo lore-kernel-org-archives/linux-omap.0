@@ -1,104 +1,179 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 4/7] I2C: TWL4030: Cleanup twl4030-usb.c
-Date: Thu, 27 Mar 2008 19:16:04 +0200
-Message-ID: <1206638167-23951-5-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 1/7] I2C: TWL4030: Move twl4030's headers under include/linux/i2c/
+Date: Thu, 27 Mar 2008 19:16:01 +0200
+Message-ID: <1206638167-23951-2-git-send-email-felipe.balbi@nokia.com>
 References: <1206638167-23951-1-git-send-email-felipe.balbi@nokia.com>
- <1206638167-23951-2-git-send-email-felipe.balbi@nokia.com>
- <1206638167-23951-3-git-send-email-felipe.balbi@nokia.com>
- <1206638167-23951-4-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:43461 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758716AbYC0RR1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Mar 2008 13:17:27 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2RHHB2O026017
-	for <linux-omap@vger.kernel.org>; Thu, 27 Mar 2008 19:17:25 +0200
-In-Reply-To: <1206638167-23951-4-git-send-email-felipe.balbi@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:40404 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756335AbYC0RSd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Mar 2008 13:18:33 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2RHKRlA018512
+	for <linux-omap@vger.kernel.org>; Thu, 27 Mar 2008 12:20:36 -0500
+In-Reply-To: <1206638167-23951-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-General cleanup on twl4030-usb.c
+Now that we have this directory we can use it.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/i2c/chips/twl4030-usb.c |   27 +++++++++++++--------------
- drivers/usb/musb/omap2430.c     |    1 -
- 2 files changed, 13 insertions(+), 15 deletions(-)
+ arch/arm/mach-omap2/board-3430sdp.c                |    2 +-
+ arch/arm/mach-omap2/board-sdp-hsmmc.c              |    2 +-
+ drivers/i2c/chips/twl4030_core.c                   |    2 +-
+ drivers/i2c/chips/twl4030_gpio.c                   |    2 +-
+ drivers/i2c/chips/twl4030_poweroff.c               |    2 +-
+ drivers/i2c/chips/twl4030_usb.c                    |    2 +-
+ drivers/input/keyboard/omap-twl4030keypad.c        |    2 +-
+ drivers/rtc/rtc-twl4030.c                          |    4 ++--
+ .../{asm-arm/arch-omap => linux/i2c}/twl4030-rtc.h |    0 
+ include/{asm-arm/arch-omap => linux/i2c}/twl4030.h |    0 
+ 10 files changed, 9 insertions(+), 9 deletions(-)
+ rename include/{asm-arm/arch-omap => linux/i2c}/twl4030-rtc.h (100%)
+ rename include/{asm-arm/arch-omap => linux/i2c}/twl4030.h (100%)
 
-diff --git a/drivers/i2c/chips/twl4030-usb.c b/drivers/i2c/chips/twl4030-usb.c
-index cf86d3e..eca5aef 100644
---- a/drivers/i2c/chips/twl4030-usb.c
-+++ b/drivers/i2c/chips/twl4030-usb.c
-@@ -28,7 +28,6 @@
- #include <linux/time.h>
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index f3a316f..1eb84a6 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -20,6 +20,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/err.h>
+ #include <linux/clk.h>
++#include <linux/i2c/twl4030.h>
+ #include <linux/spi/spi.h>
+ #include <linux/spi/ads7846.h>
+ 
+@@ -28,7 +29,6 @@
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+ 
+-#include <asm/arch/twl4030.h>
+ #include <asm/arch/mcspi.h>
+ #include <asm/arch/gpio.h>
+ #include <asm/arch/mux.h>
+diff --git a/arch/arm/mach-omap2/board-sdp-hsmmc.c b/arch/arm/mach-omap2/board-sdp-hsmmc.c
+index 7661a79..3ae5b20 100644
+--- a/arch/arm/mach-omap2/board-sdp-hsmmc.c
++++ b/arch/arm/mach-omap2/board-sdp-hsmmc.c
+@@ -13,8 +13,8 @@
+ #include <linux/platform_device.h>
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
++#include <linux/i2c/twl4030.h>
+ #include <asm/hardware.h>
+-#include <asm/arch/twl4030.h>
+ #include <asm/arch/mmc.h>
+ #include <asm/arch/board.h>
+ #include <asm/io.h>
+diff --git a/drivers/i2c/chips/twl4030_core.c b/drivers/i2c/chips/twl4030_core.c
+index e733195..4f0f465 100644
+--- a/drivers/i2c/chips/twl4030_core.c
++++ b/drivers/i2c/chips/twl4030_core.c
+@@ -38,6 +38,7 @@
+ #include <linux/kthread.h>
+ 
+ #include <linux/i2c.h>
++#include <linux/i2c/twl4030.h>
+ #include <linux/slab.h>
+ #include <linux/clk.h>
+ #include <linux/device.h>
+@@ -45,7 +46,6 @@
+ #include <asm/irq.h>
+ #include <asm/mach/irq.h>
+ 
+-#include <asm/arch/twl4030.h>
+ #include <asm/arch/gpio.h>
+ #include <asm/arch/mux.h>
+ 
+diff --git a/drivers/i2c/chips/twl4030_gpio.c b/drivers/i2c/chips/twl4030_gpio.c
+index 9054cc9..a9f3b1d 100644
+--- a/drivers/i2c/chips/twl4030_gpio.c
++++ b/drivers/i2c/chips/twl4030_gpio.c
+@@ -36,9 +36,9 @@
+ #include <linux/kthread.h>
+ 
+ #include <linux/i2c.h>
++#include <linux/i2c/twl4030.h>
+ #include <linux/slab.h>
+ 
+-#include <asm/arch/twl4030.h>
+ #include <asm/arch/irqs.h>
+ #include <asm/irq.h>
+ #include <asm/mach/irq.h>
+diff --git a/drivers/i2c/chips/twl4030_poweroff.c b/drivers/i2c/chips/twl4030_poweroff.c
+index 7a176d9..dbe413a 100644
+--- a/drivers/i2c/chips/twl4030_poweroff.c
++++ b/drivers/i2c/chips/twl4030_poweroff.c
+@@ -23,7 +23,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/pm.h>
+-#include <asm/arch/twl4030.h>
++#include <linux/i2c/twl4030.h>
+ 
+ #define PWR_P1_SW_EVENTS	0x10
+ #define PWR_DEVOFF	(1<<0)
+diff --git a/drivers/i2c/chips/twl4030_usb.c b/drivers/i2c/chips/twl4030_usb.c
+index b3365f6..cf86d3e 100644
+--- a/drivers/i2c/chips/twl4030_usb.c
++++ b/drivers/i2c/chips/twl4030_usb.c
+@@ -29,7 +29,7 @@
  #include <linux/interrupt.h>
  #include <linux/usb.h>
--
- #include <linux/i2c/twl4030.h>
+ 
+-#include <asm/arch/twl4030.h>
++#include <linux/i2c/twl4030.h>
  
  /* Register defines */
-@@ -248,6 +247,18 @@
  
- /*-------------------------------------------------------------------------*/
+diff --git a/drivers/input/keyboard/omap-twl4030keypad.c b/drivers/input/keyboard/omap-twl4030keypad.c
+index 4750dba..3bc3045 100644
+--- a/drivers/input/keyboard/omap-twl4030keypad.c
++++ b/drivers/input/keyboard/omap-twl4030keypad.c
+@@ -33,9 +33,9 @@
+ #include <linux/delay.h>
+ #include <linux/platform_device.h>
+ #include <linux/i2c.h>
++#include <linux/i2c/twl4030.h>
+ #include <asm/irq.h>
+ #include <asm/arch/keypad.h>
+-#include <asm/arch/twl4030.h>
+ #include "twl4030-keypad.h"
  
-+struct twl4030_usb {
-+	int			irq;
-+	u8			usb_mode;	/* pin configuration */
-+#define T2_USB_MODE_ULPI		1
-+/* #define T2_USB_MODE_CEA2011_3PIN	2 */
-+	u8			asleep;
-+};
-+
-+static struct twl4030_usb *the_transceiver;
-+
-+/*-------------------------------------------------------------------------*/
-+
- static int twl4030_i2c_write_u8_verify(u8 module, u8 data, u8 address)
- {
- 	u8 check;
-@@ -307,18 +318,6 @@ static inline int twl4030_usb_read(u8 address)
+ #define OMAP_TWL4030KP_LOG_LEVEL	0
+diff --git a/drivers/rtc/rtc-twl4030.c b/drivers/rtc/rtc-twl4030.c
+index b50de5f..929a788 100644
+--- a/drivers/rtc/rtc-twl4030.c
++++ b/drivers/rtc/rtc-twl4030.c
+@@ -34,14 +34,14 @@
+ #include <linux/spinlock.h>
+ #include <linux/interrupt.h>
+ #include <linux/device.h>
++#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl4030-rtc.h>
  
- /*-------------------------------------------------------------------------*/
+ #include <asm/io.h>
+ #include <asm/mach/time.h>
+ #include <asm/system.h>
+ #include <asm/hardware.h>
+ #include <asm/irq.h>
+-#include <asm/arch/twl4030.h>
+-#include <asm/arch/twl4030-rtc.h>
  
--struct twl4030_usb {
--	int			irq;
--	u8			usb_mode;	/* pin configuration */
--#define T2_USB_MODE_ULPI		1
--/* #define T2_USB_MODE_CEA2011_3PIN	2 */
--	u8			asleep;
--};
--
--static struct twl4030_usb *the_transceiver;
--
--/*-------------------------------------------------------------------------*/
--
- static inline int
- twl4030_usb_set_bits(struct twl4030_usb *twl, u8 reg, u8 bits)
- {
-@@ -616,7 +615,7 @@ static int __init twl4030_usb_init(void)
- 	if (the_transceiver)
- 		return 0;
+ #define ALL_TIME_REGS		6
  
--	twl = kcalloc(1, sizeof *twl, GFP_KERNEL);
-+	twl = kzalloc(sizeof *twl, GFP_KERNEL);
- 	if (!twl)
- 		return 0;
- 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index e19a15e..eacd6c4 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -227,7 +227,6 @@ int __init musb_platform_init(struct musb *musb)
- 
- 	omap_vbus_power(musb, musb->board_mode == MUSB_HOST, 1);
- 
--
- 	if (is_host_enabled(musb))
- 		musb->board_set_vbus = omap_set_vbus;
- 	if (is_peripheral_enabled(musb))
+diff --git a/include/asm-arm/arch-omap/twl4030-rtc.h b/include/linux/i2c/twl4030-rtc.h
+similarity index 100%
+rename from include/asm-arm/arch-omap/twl4030-rtc.h
+rename to include/linux/i2c/twl4030-rtc.h
+diff --git a/include/asm-arm/arch-omap/twl4030.h b/include/linux/i2c/twl4030.h
+similarity index 100%
+rename from include/asm-arm/arch-omap/twl4030.h
+rename to include/linux/i2c/twl4030.h
 -- 
 1.5.5.rc1.12.g660b9
 
