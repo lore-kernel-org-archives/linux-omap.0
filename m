@@ -1,230 +1,185 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 3/7] I2C: TWL4030: General cleanup in twl4030-core.c
-Date: Thu, 27 Mar 2008 19:16:03 +0200
-Message-ID: <1206638167-23951-4-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 7/7] USB: MUSB: Let board specific code handle clock initialization
+Date: Thu, 27 Mar 2008 19:16:07 +0200
+Message-ID: <1206638167-23951-8-git-send-email-felipe.balbi@nokia.com>
 References: <1206638167-23951-1-git-send-email-felipe.balbi@nokia.com>
  <1206638167-23951-2-git-send-email-felipe.balbi@nokia.com>
  <1206638167-23951-3-git-send-email-felipe.balbi@nokia.com>
+ <1206638167-23951-4-git-send-email-felipe.balbi@nokia.com>
+ <1206638167-23951-5-git-send-email-felipe.balbi@nokia.com>
+ <1206638167-23951-6-git-send-email-felipe.balbi@nokia.com>
+ <1206638167-23951-7-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:29366 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:29370 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757903AbYC0RRZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Mar 2008 13:17:25 -0400
+	with ESMTP id S1759114AbYC0RR1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Mar 2008 13:17:27 -0400
 Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2RHHLxO016544
-	for <linux-omap@vger.kernel.org>; Thu, 27 Mar 2008 19:17:23 +0200
-In-Reply-To: <1206638167-23951-3-git-send-email-felipe.balbi@nokia.com>
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2RHHLxS016544
+	for <linux-omap@vger.kernel.org>; Thu, 27 Mar 2008 19:17:25 +0200
+In-Reply-To: <1206638167-23951-7-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-General cleanup in twl4030-core.c
+Instead of clk_get() in omap2430.c driver, we can let
+musb_core.c do it by setting the clock id in
+musb_platform_data structure.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/i2c/chips/twl4030-core.c |   78 ++++++++++++++++++++------------------
- 1 files changed, 41 insertions(+), 37 deletions(-)
+ arch/arm/mach-omap2/board-2430sdp-usb.c |   27 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-3430sdp-usb.c |   29 +++++++++++++++++++++++++++--
+ drivers/usb/musb/omap2430.c             |    8 --------
+ 3 files changed, 54 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
-index 4f0f465..c979241 100644
---- a/drivers/i2c/chips/twl4030-core.c
-+++ b/drivers/i2c/chips/twl4030-core.c
-@@ -32,6 +32,7 @@
- #include <linux/kernel_stat.h>
- #include <linux/init.h>
- #include <linux/time.h>
-+#include <linux/mutex.h>
- #include <linux/interrupt.h>
- #include <linux/random.h>
- #include <linux/syscalls.h>
-@@ -158,7 +159,7 @@ struct twl4030_client {
- 	struct i2c_msg xfer_msg[2];
+diff --git a/arch/arm/mach-omap2/board-2430sdp-usb.c b/arch/arm/mach-omap2/board-2430sdp-usb.c
+index 908a0c0..7f4e017 100644
+--- a/arch/arm/mach-omap2/board-2430sdp-usb.c
++++ b/arch/arm/mach-omap2/board-2430sdp-usb.c
+@@ -13,9 +13,11 @@
+ #include <linux/errno.h>
+ #include <linux/delay.h>
+ #include <linux/platform_device.h>
++#include <linux/clk.h>
+ #include <linux/usb/musb.h>
  
- 	/* To lock access to xfer_msg */
--	struct semaphore xfer_lock;
-+	struct mutex xfer_lock;
+ #include <asm/arch/hardware.h>
++#include <asm/arch/pm.h>
+ #include <asm/arch/usb.h>
+ 
+ static struct resource musb_resources[] = {
+@@ -34,6 +36,29 @@ static struct resource musb_resources[] = {
+ 	},
  };
  
- /* Module Mapping */
-@@ -218,7 +219,10 @@ static struct twl4030_client twl4030_modules[TWL4030_NUM_SLAVES] = {
- 
- /* One Client Driver , 4 Clients */
- static struct i2c_driver twl4030_driver = {
--	.driver.name	= "TWL4030 I2C",
-+	.driver	= {
-+		.name	= DRIVER_NAME,
-+		.owner	= THIS_MODULE,
-+	},
- 	.attach_adapter	= twl4030_attach_adapter,
- 	.detach_client	= twl4030_detach_client,
++static int usbhs_ick_on;
++
++static int musb_set_clock(struct clk *clk, int state)
++{
++       if (state) {
++               if (usbhs_ick_on > 0)
++                       return -ENODEV;
++
++               omap2_block_sleep();
++               clk_enable(clk);
++               usbhs_ick_on = 1;
++       } else {
++               if (usbhs_ick_on == 0)
++                       return -ENODEV;
++
++               clk_disable(clk);
++               usbhs_ick_on = 0;
++               omap2_allow_sleep();
++       }
++
++       return 0;
++}
++
+ static struct musb_hdrc_platform_data musb_plat = {
+ #ifdef CONFIG_USB_MUSB_OTG
+ 	.mode		= MUSB_OTG,
+@@ -43,6 +68,8 @@ static struct musb_hdrc_platform_data musb_plat = {
+ 	.mode		= MUSB_PERIPHERAL,
+ #endif
+ 	.multipoint	= 1,
++	.clock		= "usbhs_ick",
++	.set_clock	= musb_set_clock,
  };
-@@ -256,7 +260,7 @@ int twl4030_i2c_write(u8 mod_no, u8 * value, u8 reg, u8 num_bytes)
- {
- 	int ret;
- 	int sid;
--	struct twl4030_client *client;
-+	struct twl4030_client *twl;
- 	struct i2c_msg *msg;
  
- 	if (unlikely(mod_no > TWL4030_MODULE_LAST)) {
-@@ -264,27 +268,27 @@ int twl4030_i2c_write(u8 mod_no, u8 * value, u8 reg, u8 num_bytes)
- 		return -EPERM;
- 	}
- 	sid = twl4030_map[mod_no].sid;
--	client = &(twl4030_modules[sid]);
-+	twl = &twl4030_modules[sid];
+ static u64 musb_dmamask = ~(u32)0;
+diff --git a/arch/arm/mach-omap2/board-3430sdp-usb.c b/arch/arm/mach-omap2/board-3430sdp-usb.c
+index 77088b4..81c9af7 100644
+--- a/arch/arm/mach-omap2/board-3430sdp-usb.c
++++ b/arch/arm/mach-omap2/board-3430sdp-usb.c
+@@ -16,11 +16,13 @@
+ #include <linux/errno.h>
+ #include <linux/delay.h>
+ #include <linux/platform_device.h>
++#include <linux/clk.h>
+ #include <asm/io.h>
+ #include <asm/arch/mux.h>
+ #include <linux/usb/musb.h>
  
--	if (unlikely(client->inuse != TWL_CLIENT_USED)) {
-+	if (unlikely(twl->inuse != TWL_CLIENT_USED)) {
- 		pr_err("I2C Client[%d] is not initialized[%d]\n",
- 		       sid, __LINE__);
- 		return -EPERM;
- 	}
--	down(&(client->xfer_lock));
-+	mutex_lock(&twl->xfer_lock);
- 	/*
- 	 * [MSG1]: fill the register address data
- 	 * fill the data Tx buffer
- 	 */
--	msg = &(client->xfer_msg[0]);
--	msg->addr = client->address;
-+	msg = &twl->xfer_msg[0];
-+	msg->addr = twl->address;
- 	msg->len = num_bytes + 1;
- 	msg->flags = 0;
- 	msg->buf = value;
- 	/* over write the first byte of buffer with the register address */
- 	*value = twl4030_map[mod_no].base + reg;
--	ret = i2c_transfer(client->client.adapter, client->xfer_msg, 1);
--	up(&(client->xfer_lock));
-+	ret = i2c_transfer(twl->client.adapter, twl->xfer_msg, 1);
-+	mutex_unlock(&twl->xfer_lock);
+ #include <asm/arch/hardware.h>
++#include <asm/arch/pm.h>
+ #include <asm/arch/usb.h>
  
- 	/* i2cTransfer returns num messages.translate it pls.. */
- 	if (ret >= 0)
-@@ -307,7 +311,7 @@ int twl4030_i2c_read(u8 mod_no, u8 * value, u8 reg, u8 num_bytes)
- 	int ret;
- 	u8 val;
- 	int sid;
--	struct twl4030_client *client;
-+	struct twl4030_client *twl;
- 	struct i2c_msg *msg;
+ #ifdef CONFIG_USB_MUSB_SOC
+@@ -40,6 +42,29 @@ static struct resource musb_resources[] = {
+ 	},
+ };
  
- 	if (unlikely(mod_no > TWL4030_MODULE_LAST)) {
-@@ -315,29 +319,29 @@ int twl4030_i2c_read(u8 mod_no, u8 * value, u8 reg, u8 num_bytes)
- 		return -EPERM;
- 	}
- 	sid = twl4030_map[mod_no].sid;
--	client = &(twl4030_modules[sid]);
-+	twl = &twl4030_modules[sid];
++static int hsotgusb_ick_on;
++
++static int musb_set_clock(struct clk *clk, int state)
++{
++	if (state) {
++		if (hsotgusb_ick_on > 0)
++			return -ENODEV;
++
++		omap2_block_sleep();
++		clk_enable(clk);
++		hsotgusb_ick_on = 1;
++	} else {
++		if (hsotgusb_ick_on == 0)
++			return -ENODEV;
++
++		clk_disable(clk);
++		hsotgusb_ick_on = 0;
++		omap2_allow_sleep();
++	}
++
++	return 0;
++}
++
+ static struct musb_hdrc_platform_data musb_plat = {
+ #ifdef CONFIG_USB_MUSB_OTG
+ 	.mode		= MUSB_OTG,
+@@ -49,8 +74,8 @@ static struct musb_hdrc_platform_data musb_plat = {
+ 	.mode		= MUSB_PERIPHERAL,
+ #endif
+ 	.multipoint	= 1,
+-	.clock		= NULL,
+-	.set_clock	= NULL,
++	.clock		= "hsotgusb_ick",
++	.set_clock	= musb_set_clock,
+ };
  
--	if (unlikely(client->inuse != TWL_CLIENT_USED)) {
-+	if (unlikely(twl->inuse != TWL_CLIENT_USED)) {
- 		pr_err("I2C Client[%d] is not initialized[%d]\n", sid,
- 		       __LINE__);
- 		return -EPERM;
- 	}
--	down(&(client->xfer_lock));
-+	mutex_lock(&twl->xfer_lock);
- 	/* [MSG1] fill the register address data */
--	msg = &(client->xfer_msg[0]);
--	msg->addr = client->address;
-+	msg = &twl->xfer_msg[0];
-+	msg->addr = twl->address;
- 	msg->len = 1;
- 	msg->flags = 0;	/* Read the register value */
- 	val = twl4030_map[mod_no].base + reg;
- 	msg->buf = &val;
- 	/* [MSG2] fill the data rx buffer */
--	msg = &(client->xfer_msg[1]);
--	msg->addr = client->address;
-+	msg = &twl->xfer_msg[1];
-+	msg->addr = twl->address;
- 	msg->flags = I2C_M_RD;	/* Read the register value */
- 	msg->len = num_bytes;	/* only n bytes */
- 	msg->buf = value;
--	ret = i2c_transfer(client->client.adapter, client->xfer_msg, 2);
--	up(&(client->xfer_lock));
-+	ret = i2c_transfer(twl->client.adapter, twl->xfer_msg, 2);
-+	mutex_unlock(&twl->xfer_lock);
+ static u64 musb_dmamask = ~(u32)0;
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index caae81b..364d746 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -219,13 +219,7 @@ int __init musb_platform_init(struct musb *musb)
  
- 	/* i2cTransfer returns num messages.translate it pls.. */
- 	if (ret >= 0)
-@@ -530,7 +534,7 @@ static void do_twl4030_irq(unsigned int irq, irq_desc_t *desc)
- static int twl4030_detect_client(struct i2c_adapter *adapter, unsigned char sid)
- {
- 	int err = 0;
--	struct twl4030_client *client;
-+	struct twl4030_client *twl;
+ #if defined(CONFIG_ARCH_OMAP2430)
+ 	omap_cfg_reg(AE5_2430_USB0HS_STP);
+-	/* get the clock */
+-	musb->clock = clk_get((struct device *)musb->controller, "usbhs_ick");
+-#else
+-	musb->clock = clk_get((struct device *)musb->controller, "hsotgusb_ick");
+ #endif
+-	if(IS_ERR(musb->clock))
+-		return PTR_ERR(musb->clock);
  
- 	if (unlikely(sid >= TWL4030_NUM_SLAVES)) {
- 		pr_err("sid[%d] > MOD_LAST[%d]\n", sid, TWL4030_NUM_SLAVES);
-@@ -543,30 +547,30 @@ static int twl4030_detect_client(struct i2c_adapter *adapter, unsigned char sid)
- 		pr_err("SlaveID=%d functionality check failed\n", sid);
- 		return err;
- 	}
--	client = &(twl4030_modules[sid]);
--	if (unlikely(client->inuse)) {
--		pr_err("Client %s is already in use\n", client->client_name);
-+	twl = &twl4030_modules[sid];
-+	if (unlikely(twl->inuse)) {
-+		pr_err("Client %s is already in use\n", twl->client_name);
- 		return -EPERM;
- 	}
+ 	musb->xceiv = *xceiv;
+ 	musb_platform_resume(musb);
+@@ -261,13 +255,11 @@ int musb_platform_suspend(struct musb *musb)
+ 	OTG_SYSCONFIG_REG |= AUTOIDLE;		/* enable auto idle */
  
--	memset(&(client->client), 0, sizeof(struct i2c_client));
-+	memset(&twl->client, 0, sizeof(struct i2c_client));
- 
--	client->client.addr	= client->address;
--	client->client.adapter	= adapter;
--	client->client.driver	= &twl4030_driver;
-+	twl->client.addr	= twl->address;
-+	twl->client.adapter	= adapter;
-+	twl->client.driver	= &twl4030_driver;
- 
--	memcpy(&(client->client.name), client->client_name,
-+	memcpy(&twl->client.name, twl->client_name,
- 			sizeof(TWL_CLIENT_STRING) + 1);
- 
- 	pr_info("TWL4030: TRY attach Slave %s on Adapter %s [%x]\n",
--				client->client_name, adapter->name, err);
-+				twl->client_name, adapter->name, err);
- 
--	if ((err = i2c_attach_client(&(client->client)))) {
-+	if ((err = i2c_attach_client(&twl->client))) {
- 		pr_err("Couldn't attach Slave %s on Adapter"
--		       "%s [%x]\n", client->client_name, adapter->name, err);
-+		       "%s [%x]\n", twl->client_name, adapter->name, err);
- 	} else {
--		client->inuse = TWL_CLIENT_USED;
--		init_MUTEX(&client->xfer_lock);
-+		twl->inuse = TWL_CLIENT_USED;
-+		mutex_init(&twl->xfer_lock);
- 	}
- 
- 	return err;
-@@ -607,17 +611,17 @@ free_client:
- 	while (i >= 0) {
- 		/* now remove all those from the current adapter... */
- 		if (twl4030_modules[i].adapter_index == twl_i2c_adapter)
--			(void)twl4030_detach_client(&(twl4030_modules[i].client));
-+			(void)twl4030_detach_client(&twl4030_modules[i].client);
- 		i--;
- 	}
- 	return ret;
+ 	musb->xceiv.set_suspend(&musb->xceiv, 1);
+-	clk_disable(musb->clock);
+ 	return 0;
  }
  
- /* adapter's callback */
--static int twl4030_detach_client(struct i2c_client *iclient)
-+static int twl4030_detach_client(struct i2c_client *client)
+ int musb_platform_resume(struct musb *musb)
  {
- 	int err;
--	if ((err = i2c_detach_client(iclient))) {
-+	if ((err = i2c_detach_client(client))) {
- 		pr_err("Client detach failed\n");
- 		return err;
- 	}
+-	clk_enable(musb->clock);
+ 	musb->xceiv.set_suspend(&musb->xceiv, 0);
+ 
+ 	OTG_FORCESTDBY_REG &= ~ENABLEFORCE; /* disable MSTANDBY */
 -- 
 1.5.5.rc1.12.g660b9
 
