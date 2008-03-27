@@ -1,39 +1,54 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] 34XX: Fix to use correct shift values for gpio2-6
- fclks
-Date: Wed, 26 Mar 2008 14:25:33 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0803261425030.19060@utopia.booyaka.com>
-References: <1206532658-11875-1-git-send-email-jouni.hogander@nokia.com>
-Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-2089224148-1206563133=:19060"
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [PATCH] Keymap fix for palmte and palmz71.
+Date: Thu, 27 Mar 2008 11:09:42 -0400
+Message-ID: <1206630582-12074-1-git-send-email-edubezval@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42512 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752942AbYCZUZf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Mar 2008 16:25:35 -0400
-In-Reply-To: <1206532658-11875-1-git-send-email-jouni.hogander@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:27605 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752929AbYC0PJq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Mar 2008 11:09:46 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2RFBbxn027192
+	for <linux-omap@vger.kernel.org>; Thu, 27 Mar 2008 10:11:49 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-15?Q?Jouni_H=F6gander?= <jouni.hogander@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+From: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
---155748971-2089224148-1206563133=:19060
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+---
+ arch/arm/mach-omap1/board-palmte.c  |    2 +-
+ arch/arm/mach-omap1/board-palmz71.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-On Wed, 26 Mar 2008, Jouni H=F6gander wrote:
+diff --git a/arch/arm/mach-omap1/board-palmte.c b/arch/arm/mach-omap1/board-palmte.c
+index 63c3131..f4860b0 100644
+--- a/arch/arm/mach-omap1/board-palmte.c
++++ b/arch/arm/mach-omap1/board-palmte.c
+@@ -64,7 +64,7 @@ static const int palmte_keymap[] = {
+ 	KEY(1, 1, KEY_DOWN),
+ 	KEY(1, 2, KEY_UP),
+ 	KEY(1, 3, KEY_RIGHT),
+-	KEY(1, 4, KEY_CENTER),
++	KEY(1, 4, KEY_ENTER),
+ 	0,
+ };
+ 
+diff --git a/arch/arm/mach-omap1/board-palmz71.c b/arch/arm/mach-omap1/board-palmz71.c
+index 1565107..e020c27 100644
+--- a/arch/arm/mach-omap1/board-palmz71.c
++++ b/arch/arm/mach-omap1/board-palmz71.c
+@@ -65,7 +65,7 @@ static int palmz71_keymap[] = {
+ 	KEY(1, 1, KEY_DOWN),
+ 	KEY(1, 2, KEY_UP),
+ 	KEY(1, 3, KEY_RIGHT),
+-	KEY(1, 4, KEY_CENTER),
++	KEY(1, 4, KEY_ENTER),
+ 	KEY(2, 0, KEY_CAMERA),
+ 	0,
+ };
+-- 
+1.5.4.2
 
-> Wrong shift values were used for gpio2-6  fclks (gpt2-6 shift).
-> ---
->  arch/arm/mach-omap2/clock34xx.h |   10 +++++-----
->  1 files changed, 5 insertions(+), 5 deletions(-)
-
-Acked-by: Paul Walmsley <paul@pwsan.com>=20
-
-thanks Jouni,
-
-- Paul
---155748971-2089224148-1206563133=:19060--
