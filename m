@@ -1,265 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/2] ARM: OMAP3: Add 34xx SRAM functions
-Date: Fri, 28 Mar 2008 13:46:36 +0200
-Message-ID: <1206704800-6768-2-git-send-email-tony@atomide.com>
+Subject: [PATCH] I2C: Fix twl4030 timeouts on omap3430
+Date: Fri, 28 Mar 2008 13:46:39 +0200
+Message-ID: <1206704800-6768-5-git-send-email-tony@atomide.com>
 References: <1206704800-6768-1-git-send-email-tony@atomide.com>
+ <1206704800-6768-2-git-send-email-tony@atomide.com>
+ <1206704800-6768-3-git-send-email-tony@atomide.com>
+ <1206704800-6768-4-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:54447 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753689AbYC1Lqp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Mar 2008 07:46:45 -0400
-In-Reply-To: <1206704800-6768-1-git-send-email-tony@atomide.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64627 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753752AbYC1Lqz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Mar 2008 07:46:55 -0400
+In-Reply-To: <1206704800-6768-4-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>
 
-This adds sram34xx.S From TI CDP.
+For some reason doing a twl4030 write-read cycle can hang the I2C bus
+on omap3430. And doing the write and read separately in twl4030_i2c_read()
+seems to fix the problem...
 
-NOTE: This patch breaks compile for 34xx, the compile will be fixed in
-the next patch. This and next patch will eventually get merged into
-a single patch for linux-omap to keep git-bisect working.
----
- arch/arm/mach-omap2/Makefile   |    1 +
- arch/arm/mach-omap2/sram34xx.S |  217 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 218 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/sram34xx.S
+Not intended for applying, just a temporary workaround.
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 45f4b4e..0a6df8e 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -8,6 +8,7 @@ obj-y := irq.o id.o io.o memory.o control.o prcm.o clock.o mux.o \
+diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
+index ded86e7..62868b0 100644
+--- a/drivers/i2c/chips/twl4030-core.c
++++ b/drivers/i2c/chips/twl4030-core.c
+@@ -327,6 +327,7 @@ int twl4030_i2c_read(u8 mod_no, u8 * value, u8 reg, u8 num_bytes)
+ 		return -EPERM;
+ 	}
+ 	mutex_lock(&twl->xfer_lock);
++
+ 	/* [MSG1] fill the register address data */
+ 	msg = &twl->xfer_msg[0];
+ 	msg->addr = twl->address;
+@@ -334,18 +335,25 @@ int twl4030_i2c_read(u8 mod_no, u8 * value, u8 reg, u8 num_bytes)
+ 	msg->flags = 0;	/* Read the register value */
+ 	val = twl4030_map[mod_no].base + reg;
+ 	msg->buf = &val;
++	ret = i2c_transfer(twl->client.adapter, twl->xfer_msg, 1);
++	if (ret < 0)
++		goto out;
++ 
+ 	/* [MSG2] fill the data rx buffer */
+ 	msg = &twl->xfer_msg[1];
+ 	msg->addr = twl->address;
+ 	msg->flags = I2C_M_RD;	/* Read the register value */
+ 	msg->len = num_bytes;	/* only n bytes */
+ 	msg->buf = value;
+-	ret = i2c_transfer(twl->client.adapter, twl->xfer_msg, 2);
++	ret = i2c_transfer(twl->client.adapter, twl->xfer_msg, 1);
++
++out:
+ 	mutex_unlock(&twl->xfer_lock);
  
- # Functions loaded to SRAM
- obj-$(CONFIG_ARCH_OMAP2)		+= sram24xx.o
-+obj-$(CONFIG_ARCH_OMAP3)		+= sram34xx.o
+ 	/* i2cTransfer returns num messages.translate it pls.. */
+ 	if (ret >= 0)
+ 		ret = 0;
++
+ 	return ret;
+ }
  
- # Power Management
- obj-$(CONFIG_PM) += pm.o sleep.o
-diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-new file mode 100644
-index 0000000..803f60d
---- /dev/null
-+++ b/arch/arm/mach-omap2/sram34xx.S
-@@ -0,0 +1,217 @@
-+/*
-+ * linux/arch/arm/mach-omap3/sram.S
-+ *
-+ * Omap3 specific functions that need to be run in internal SRAM
-+ *
-+ * (C) Copyright 2007
-+ * Texas Instruments Inc.
-+ * Rajendra Nayak <rnayak@ti.com>
-+ *
-+ * (C) Copyright 2004
-+ * Texas Instruments, <www.ti.com>
-+ * Richard Woodruff <r-woodruff2@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation; either version 2 of
-+ * the License, or (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR /PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-+ * MA 02111-1307 USA
-+ */
-+#include <linux/linkage.h>
-+#include <asm/assembler.h>
-+#include <asm/arch/io.h>
-+#include <asm/hardware.h>
-+
-+#include "prcm-regs.h"
-+
-+#define CM_CLKSEL1_PLL_V	IO_ADDRESS(CM_BASE + 0xD40)
-+#define	CM_ICLKEN1_CORE_V	IO_ADDRESS(CM_BASE + 0xA10)
-+#define CM_IDLEST1_CORE_V	IO_ADDRESS(CM_BASE + 0xA20)
-+
-+#define	SDRC_POWER_V		IO_ADDRESS(SDRC_BASE + 0x070)
-+#define SDRC_RFR_CTRL		IO_ADDRESS(SDRC_BASE + 0x0A4)
-+#define SDRC_ACTIM_CTRL_A	IO_ADDRESS(SDRC_BASE + 0x09C)
-+#define	SDRC_ACTIM_CTRL_B	IO_ADDRESS(SDRC_BASE + 0x0A0)
-+#define	SDRC_DLLA_STATUS	IO_ADDRESS(SDRC_BASE + 0x064)
-+#define	SDRC_DLLA_CTRL		IO_ADDRESS(SDRC_BASE + 0x060)
-+
-+	.text
-+
-+ENTRY(omap34xx_sram_ddr_init)
-+	stmfd	sp!, {r0 - r12, lr}	@ save registers on stack
-+	ldmfd	sp!, {r0 - r12, pc}	@ restore regs and return
-+ENTRY(omap34xx_sram_ddr_init_sz)
-+	.word	. - omap34xx_sram_ddr_init
-+
-+ENTRY(omap34xx_sram_reprogram_sdrc)
-+	stmfd	sp!, {r0 - r10, lr}	@ save registers on stack
-+	ldmfd	sp!, {r0 - r10, pc}	@ restore regs and return
-+ENTRY(omap34xx_sram_reprogram_sdrc_sz)
-+	.word	. - omap34xx_sram_reprogram_sdrc
-+
-+/*
-+ * Set dividers and pll. Also recalculate DLL value for DDR and unlock mode.
-+ */
-+ENTRY(omap34xx_sram_set_prcm)
-+	stmfd	sp!, {r0-r12, lr}	@ regs to stack
-+ENTRY(omap34xx_sram_set_prcm_sz)
-+	.word	. - omap34xx_sram_set_prcm
-+
-+/*
-+ * Change frequency of core dpll
-+ * r0 = sdrc_rfr_ctrl r1 = sdrc_actim_ctrla  r2 = sdrc_actim_ctrlb r3 = M2
-+ */
-+ENTRY(omap34xx_sram_configure_core_dpll)
-+	stmfd	sp!, {r1-r12, lr}	@ store regs to stack
-+	cmp	r3, #0x2
-+	blne	configure_sdrc
-+	cmp	r3, #0x2
-+	blne	lock_dll
-+	cmp	r3, #0x1
-+	blne	unlock_dll
-+	bl	sdram_in_selfrefresh	@ put the SDRAM in self refresh
-+	bl 	configure_core_dpll
-+	bl	enable_sdrc
-+	cmp	r3, #0x1
-+	blne	wait_dll_unlock
-+	cmp	r3, #0x2
-+	blne	wait_dll_lock
-+	cmp	r3, #0x1
-+	blne	configure_sdrc
-+	mov 	r0, #0 			@ return value
-+	ldmfd	sp!, {r1-r12, pc}	@ restore regs and return
-+unlock_dll:
-+	ldr     r4, sdrc_dlla_ctrl
-+	ldr     r5, [r4]
-+	orr	r5, r5, #0x4
-+	str	r5, [r4]
-+	bx	lr
-+lock_dll:
-+	ldr     r4, sdrc_dlla_ctrl
-+	ldr     r5, [r4]
-+	bic	r5, r5, #0x4
-+	str     r5, [r4]
-+	bx      lr
-+sdram_in_selfrefresh:
-+	mov	r5, #0x0		@ Move 0 to R5
-+	mcr	p15, 0, r5, c7, c10, 5  @ memory barrier
-+	ldr 	r4, sdrc_power		@ read the SDRC_POWER register
-+	ldr 	r5, [r4]		@ read the contents of SDRC_POWER
-+	orr 	r5, r5, #0x40		@ enable self refresh on idle req
-+	str 	r5, [r4]		@ write back to SDRC_POWER register
-+	ldr	r4, cm_iclken1_core	@ read the CM_ICLKEN1_CORE reg
-+	ldr	r5, [r4]
-+	bic	r5, r5, #0x2		@ disable iclk bit for SRDC
-+	str 	r5, [r4]
-+wait_sdrc_idle:
-+	ldr 	r4, cm_idlest1_core
-+	ldr 	r5, [r4]
-+	and 	r5, r5, #0x2		@ check for SDRC idle
-+	cmp 	r5, #2
-+	bne 	wait_sdrc_idle
-+	bx 	lr
-+configure_core_dpll:
-+	ldr 	r4, cm_clksel1_pll
-+	ldr	r5, [r4]
-+	ldr	r6, core_m2_mask_val	@ modify m2 for core dpll
-+	and	r5, r5, r6
-+	orr	r5, r5, r3, lsl #0x1B	@ r3 contains the M2 val
-+	str	r5, [r4]
-+	mov 	r5, #0x800		@ wait for the clock to stabilise
-+	cmp	r3, #2
-+	bne	wait_clk_stable
-+	bx	lr
-+wait_clk_stable:
-+	subs 	r5, r5, #1
-+	bne	wait_clk_stable
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	bx	lr
-+enable_sdrc:
-+	ldr 	r4, cm_iclken1_core
-+	ldr	r5, [r4]
-+	orr 	r5, r5, #0x2		@ enable iclk bit for SDRC
-+	str 	r5, [r4]
-+wait_sdrc_idle1:
-+	ldr 	r4, cm_idlest1_core
-+	ldr	r5, [r4]
-+	and 	r5, r5, #0x2
-+	cmp	r5, #0
-+	bne	wait_sdrc_idle1
-+	ldr	r4, sdrc_power
-+	ldr	r5, [r4]
-+	bic 	r5, r5, #0x40
-+	str 	r5, [r4]
-+	bx	lr
-+wait_dll_lock:
-+	ldr	r4, sdrc_dlla_status
-+	ldr	r5, [r4]
-+	and 	r5, r5, #0x4
-+	cmp	r5, #0x4
-+	bne	wait_dll_lock
-+	bx	lr
-+wait_dll_unlock:
-+	ldr     r4, sdrc_dlla_status
-+	ldr     r5, [r4]
-+	and     r5, r5, #0x4
-+	cmp     r5, #0x0
-+	bne     wait_dll_unlock
-+	bx      lr
-+configure_sdrc:
-+	ldr     r4, sdrc_rfr_ctrl
-+	str     r0, [r4]
-+	ldr 	r4, sdrc_actim_ctrla
-+	str     r1, [r4]
-+	ldr     r4, sdrc_actim_ctrlb
-+	str     r2, [r4]
-+	bx      lr
-+sdrc_power:
-+	.word SDRC_POWER_V
-+cm_clksel1_pll:
-+	.word CM_CLKSEL1_PLL_V
-+cm_idlest1_core:
-+	.word CM_IDLEST1_CORE_V
-+cm_iclken1_core:
-+	.word CM_ICLKEN1_CORE_V
-+sdrc_rfr_ctrl:
-+        .word SDRC_RFR_CTRL
-+sdrc_actim_ctrla:
-+	.word SDRC_ACTIM_CTRL_A
-+sdrc_actim_ctrlb:
-+	.word SDRC_ACTIM_CTRL_B
-+sdrc_dlla_status:
-+	.word SDRC_DLLA_STATUS
-+sdrc_dlla_ctrl:
-+	.word SDRC_DLLA_CTRL
-+core_m2_mask_val:
-+	.word 0xE7FFFFFF
-+
-+ENTRY(omap34xx_sram_configure_core_dpll_sz)
-+	.word	. - omap34xx_sram_configure_core_dpll
-+
-+/*
-+ * Reprogram GPMC
-+ */
-+ENTRY(omap34xx_sram_reprogram_gpmc)
-+	stmfd	sp!, {r0-r12, lr}	@ regs to stack
-+	ldmfd	sp!, {r0-r12, pc}	@ restore regs and return
-+
-+ENTRY(omap34xx_sram_reprogram_gpmc_sz)
-+	.word	. - omap34xx_sram_reprogram_gpmc
--- 
-1.5.3.6
-
