@@ -1,165 +1,266 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP2/3 clock: convert mask_to_shift() to __ffs()
-Date: Fri, 28 Mar 2008 00:26:12 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0803280025150.13553@utopia.booyaka.com>
+Subject: [PATCH] OMAP2/3 CM: clean up 3430ES2-only defines
+Date: Fri, 28 Mar 2008 00:31:40 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0803280029560.13553@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:52991 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:45235 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751000AbYC1G0N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Mar 2008 02:26:13 -0400
+	with ESMTP id S1753606AbYC1Gbl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Mar 2008 02:31:41 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 
-In OMAP2/3 clock code, we've used mask_to_shift() to convert bitmasks
-into shift values, via "ffs(mask) - 1".  It turns out that there is
-already a Linux idiom for this in asm/bitops.h: __ffs().  (Not to be
-confused with ffs(), of course.  You wouldn't do that, would you?)
-When in Rome, do as the Romans.
+This patch marks several CM register bit fields that are only valid on
+3430ES2 and beyond to be 3430ES2 defines.  
+
+While we're here, clean up the register defines in cm.h, and improve
+documentation slightly.  Also, since CM_AUTOIDLE3 is now in use on
+both OMAP24xx and OMAP34xx, remove the platform-specific prefix from
+its name.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
 ---
- arch/arm/mach-omap2/clock.c     |   18 +++++++-----------
- arch/arm/mach-omap2/clock.h     |    1 -
- arch/arm/mach-omap2/clock24xx.c |    5 +++--
- arch/arm/mach-omap2/clock34xx.c |    4 ++--
- 4 files changed, 12 insertions(+), 16 deletions(-)
+ arch/arm/mach-omap2/clock34xx.h       |    2 -
+ arch/arm/mach-omap2/cm-regbits-34xx.h |   22 +++++++------
+ arch/arm/mach-omap2/cm.h              |   55 ++++++++++++++++------------------
+ arch/arm/mach-omap2/pm.c              |    2 -
+ arch/arm/mach-omap2/prm.h             |    4 +-
+ drivers/usb/host/ehci-omap.c          |   10 +++---
+ 6 files changed, 48 insertions(+), 47 deletions(-)
 
-Index: linux-omap/arch/arm/mach-omap2/clock.c
+Index: linux-omap/arch/arm/mach-omap2/clock34xx.h
 ===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/clock.c	2008-03-27 19:06:55.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/clock.c	2008-03-27 19:11:41.000000000 -0600
-@@ -21,6 +21,7 @@
- #include <linux/errno.h>
- #include <linux/delay.h>
- #include <linux/clk.h>
-+#include <asm/bitops.h>
- 
- #include <asm/io.h>
- 
-@@ -46,11 +47,6 @@
-  * Omap2 specific clock functions
-  *-------------------------------------------------------------------------*/
- 
--u8 mask_to_shift(u32 mask)
--{
--	return ffs(mask) - 1;
--}
--
- /**
-  * omap2_init_clksel_parent - set a clksel clk's parent field from the hardware
-  * @clk: OMAP clock struct ptr to use
-@@ -69,7 +65,7 @@
- 		return;
- 
- 	r = __raw_readl(clk->clksel_reg) & clk->clksel_mask;
--	r >>= mask_to_shift(clk->clksel_mask);
-+	r >>= __ffs(clk->clksel_mask);
- 
- 	for (clks = clk->clksel; clks->parent && !found; clks++) {
- 		for (clkr = clks->rates; clkr->div && !found; clkr++) {
-@@ -108,9 +104,9 @@
- 
- 	dpll = cm_read_reg(dd->mult_div1_reg);
- 	dpll_mult = dpll & dd->mult_mask;
--	dpll_mult >>= mask_to_shift(dd->mult_mask);
-+	dpll_mult >>= __ffs(dd->mult_mask);
- 	dpll_div = dpll & dd->div1_mask;
--	dpll_div >>= mask_to_shift(dd->div1_mask);
-+	dpll_div >>= __ffs(dd->div1_mask);
- 
- 	dpll_clk = (long long)clk->parent->rate * dpll_mult;
- 	do_div(dpll_clk, dpll_div + 1);
-@@ -574,7 +570,7 @@
- 		return 0;
- 
- 	field_val = cm_read_reg(div_addr) & field_mask;
--	field_val >>= mask_to_shift(field_mask);
-+	field_val >>= __ffs(field_mask);
- 
- 	return omap2_clksel_to_divisor(clk, field_val);
- }
-@@ -598,7 +594,7 @@
- 
- 	reg_val = cm_read_reg(div_addr);
- 	reg_val &= ~field_mask;
--	reg_val |= (field_val << mask_to_shift(field_mask));
-+	reg_val |= (field_val << __ffs(field_mask));
- 	cm_write_reg(reg_val, div_addr);
- 	wmb();
- 
-@@ -696,7 +692,7 @@
- 
- 	/* Set new source value (previous dividers if any in effect) */
- 	reg_val = __raw_readl(src_addr) & ~field_mask;
--	reg_val |= (field_val << mask_to_shift(field_mask));
-+	reg_val |= (field_val << __ffs(field_mask));
- 	__raw_writel(reg_val, src_addr);
- 	wmb();
- 
-Index: linux-omap/arch/arm/mach-omap2/clock.h
+--- linux-omap.orig/arch/arm/mach-omap2/clock34xx.h	2008-03-28 00:27:00.000000000 -0600
++++ linux-omap/arch/arm/mach-omap2/clock34xx.h	2008-03-28 00:27:02.000000000 -0600
+@@ -851,7 +851,7 @@
+ 	.parent		= &dpll5_m2_ck,
+ 	.init           = &omap2_init_clksel_parent,
+ 	.clksel_reg     = OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST2),
+-	.clksel_mask    = OMAP3430_ST_PERIPH2_CLK,
++	.clksel_mask    = OMAP3430ES2_ST_PERIPH2_CLK_MASK,
+ 	.clksel         = omap_120m_fck_clksel,
+ 	.flags		= CLOCK_IN_OMAP3430ES2 | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
+Index: linux-omap/arch/arm/mach-omap2/cm-regbits-34xx.h
 ===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/clock.h	2008-03-27 19:06:55.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/clock.h	2008-03-27 19:10:08.000000000 -0600
-@@ -42,7 +42,6 @@
- int omap2_clksel_set_rate(struct clk *clk, unsigned long rate);
- u32 omap2_get_dpll_rate(struct clk *clk);
- int omap2_wait_clock_ready(void __iomem *reg, u32 cval, const char *name);
--u8 mask_to_shift(u32 mask);
+--- linux-omap.orig/arch/arm/mach-omap2/cm-regbits-34xx.h	2008-03-28 00:26:50.000000000 -0600
++++ linux-omap/arch/arm/mach-omap2/cm-regbits-34xx.h	2008-03-28 00:27:02.000000000 -0600
+@@ -203,8 +203,8 @@
+ #define OMAP3430_ST_DES1				(1 << 0)
  
- extern u8 cpu_mask;
+ /* CM_IDLEST3_CORE */
+-#define OMAP3430_ST_USBTLL				(1 << 2)
+-#define OMAP3430_ST_USBTLL_SHIFT			2
++#define OMAP3430ES2_ST_USBTLL_SHIFT			2
++#define OMAP3430ES2_ST_USBTLL_MASK			(1 << 2)
  
-Index: linux-omap/arch/arm/mach-omap2/clock24xx.c
+ /* CM_AUTOIDLE1_CORE */
+ #define OMAP3430_AUTO_AES2				(1 << 28)
+@@ -275,8 +275,8 @@
+ #define OMAP3430_AUTO_DES1_SHIFT			0
+ 
+ /* CM_AUTOIDLE3_CORE */
+-#define OMAP3430_AUTO_USBTLL				(1 << 2)
+-#define OMAP3430_AUTO_USBTLL_SHIFT			2
++#define OMAP3430ES2_AUTO_USBTLL_SHIFT			2
++#define OMAP3430ES2_AUTO_USBTLL_MASK			(1 << 2)
+ 
+ /* CM_CLKSEL_CORE */
+ #define OMAP3430_CLKSEL_SSI_SHIFT			8
+@@ -411,8 +411,10 @@
+ #define OMAP3430_ST_CORE_CLK				(1 << 0)
+ 
+ /* CM_IDLEST2_CKGEN */
+-#define OMAP3430_ST_120M_CLK				(1 << 1)
+-#define OMAP3430_ST_PERIPH2_CLK				(1 << 0)
++#define OMAP3430ES2_ST_120M_CLK_SHIFT			1
++#define OMAP3430ES2_ST_120M_CLK_MASK			(1 << 1)
++#define OMAP3430ES2_ST_PERIPH2_CLK_SHIFT		0
++#define OMAP3430ES2_ST_PERIPH2_CLK_MASK			(1 << 0)
+ 
+ /* CM_AUTOIDLE_PLL */
+ #define OMAP3430_AUTO_PERIPH_DPLL_SHIFT			3
+@@ -654,17 +656,17 @@
+ 
+ /* CM_AUTOIDLE_USBHOST */
+ #define OMAP3430ES2_AUTO_USBHOST_SHIFT			0
+-#define OMAP3430ES2_AUTO_USBHOST_MASK			(1<<0)
++#define OMAP3430ES2_AUTO_USBHOST_MASK			(1 << 0)
+ 
+ /* CM_SLEEPDEP_USBHOST */
+ #define OMAP3430ES2_EN_MPU_SHIFT			1
+-#define OMAP3430ES2_EN_MPU_MASK				(1<<1)
++#define OMAP3430ES2_EN_MPU_MASK				(1 << 1)
+ #define OMAP3430ES2_EN_IVA2_SHIFT			2
+-#define OMAP3430ES2_EN_IVA2_MASK			(1<<2)
++#define OMAP3430ES2_EN_IVA2_MASK			(1 << 2)
+ 
+ /* CM_CLKSTCTRL_USBHOST */
+ #define OMAP3430ES2_CLKTRCTRL_USBHOST_SHIFT		0
+-#define OMAP3430ES2_CLKTRCTRL_USBHOST_MASK		(3<<0)
++#define OMAP3430ES2_CLKTRCTRL_USBHOST_MASK		(3 << 0)
+ 
+ 
+ 
+Index: linux-omap/arch/arm/mach-omap2/cm.h
 ===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/clock24xx.c	2008-03-27 19:01:32.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/clock24xx.c	2008-03-27 19:13:29.000000000 -0600
+--- linux-omap.orig/arch/arm/mach-omap2/cm.h	2008-03-28 00:26:50.000000000 -0600
++++ linux-omap/arch/arm/mach-omap2/cm.h	2008-03-28 00:27:02.000000000 -0600
 @@ -31,6 +31,7 @@
- #include <asm/arch/clock.h>
- #include <asm/arch/sram.h>
- #include <asm/div64.h>
-+#include <asm/bitops.h>
+ /*
+  * Architecture-specific global CM registers
+  * Use cm_{read,write}_reg() with these registers.
++ * These registers appear once per CM module.
+  */
  
- #include "memory.h"
- #include "clock.h"
-@@ -224,8 +225,8 @@
- 			mult = (rate / 1000000);
- 			done_rate = CORE_CLK_SRC_DPLL;
- 		}
--		tmpset.cm_clksel1_pll |= (div << mask_to_shift(dd->mult_mask));
--		tmpset.cm_clksel1_pll |= (mult << mask_to_shift(dd->div1_mask));
-+		tmpset.cm_clksel1_pll |= (div << __ffs(dd->mult_mask));
-+		tmpset.cm_clksel1_pll |= (mult << __ffs(dd->div1_mask));
+ #define OMAP3430_CM_REVISION		OMAP_CM_REGADDR(OCP_MOD, 0x0000)
+@@ -58,23 +59,25 @@
+ /*
+  * Module specific CM registers from CM_BASE + domain offset
+  * Use cm_{read,write}_mod_reg() with these registers.
++ * These register offsets generally appear in more than one PRCM submodule.
+  */
  
- 		/* Worst case */
- 		tmpset.base_sdrc_rfr = SDRC_RFR_CTRL_BYPASS;
-Index: linux-omap/arch/arm/mach-omap2/clock34xx.c
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/clock34xx.c	2008-03-27 18:01:36.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/clock34xx.c	2008-03-27 19:13:07.000000000 -0600
-@@ -22,12 +22,12 @@
- #include <linux/errno.h>
- #include <linux/delay.h>
- #include <linux/clk.h>
+ /* Common between 24xx and 34xx */
+ 
+-#define CM_FCLKEN1					0x0000
+-#define CM_FCLKEN					CM_FCLKEN1
+-#define CM_CLKEN					CM_FCLKEN1
+-#define CM_ICLKEN1					0x0010
+-#define CM_ICLKEN					CM_ICLKEN1
++#define CM_FCLKEN					0x0000
++#define CM_FCLKEN1					CM_FCLKEN
++#define CM_CLKEN					CM_FCLKEN
++#define CM_ICLKEN					0x0010
++#define CM_ICLKEN1					CM_ICLKEN
+ #define CM_ICLKEN2					0x0014
+ #define CM_ICLKEN3					0x0018
+-#define CM_IDLEST1					0x0020
+-#define CM_IDLEST					CM_IDLEST1
++#define CM_IDLEST					0x0020
++#define CM_IDLEST1					CM_IDLEST
+ #define CM_IDLEST2					0x0024
+ #define CM_AUTOIDLE					0x0030
+-#define CM_AUTOIDLE1					0x0030
++#define CM_AUTOIDLE1					CM_AUTOIDLE
+ #define CM_AUTOIDLE2					0x0034
++#define CM_AUTOIDLE3					0x0038
+ #define CM_CLKSEL					0x0040
+ #define CM_CLKSEL1					CM_CLKSEL
+ #define CM_CLKSEL2					0x0044
+@@ -85,11 +88,26 @@
+ 
+ #define OMAP24XX_CM_FCLKEN2				0x0004
+ #define OMAP24XX_CM_ICLKEN4				0x001c
+-#define OMAP24XX_CM_AUTOIDLE3				0x0038
+ #define OMAP24XX_CM_AUTOIDLE4				0x003c
+ 
+ #define OMAP2430_CM_IDLEST3				0x0028
+ 
++#define OMAP3430_CM_CLKEN_PLL				0x0004
++#define OMAP3430ES2_CM_CLKEN2				0x0004
++#define OMAP3430ES2_CM_FCLKEN3				0x0008
++#define OMAP3430_CM_IDLEST_PLL				CM_IDLEST2
++#define OMAP3430_CM_AUTOIDLE_PLL			CM_AUTOIDLE2
++#define OMAP3430_CM_CLKSEL1				CM_CLKSEL
++#define OMAP3430_CM_CLKSEL1_PLL				CM_CLKSEL
++#define OMAP3430_CM_CLKSEL2_PLL				CM_CLKSEL2
++#define OMAP3430_CM_SLEEPDEP				CM_CLKSEL2
++#define OMAP3430_CM_CLKSEL3				CM_CLKSTCTRL
++#define OMAP3430_CM_CLKSTST				0x004c
++#define OMAP3430ES2_CM_CLKSEL4				0x004c
++#define OMAP3430ES2_CM_CLKSEL5				0x0050
++#define OMAP3430_CM_CLKSEL2_EMU				0x0050
++#define OMAP3430_CM_CLKSEL3_EMU				0x0054
++
+ 
+ /* Clock management domain register get/set */
+ 
+@@ -119,24 +137,5 @@
+ /* CM_IDLEST_GFX */
+ #define OMAP_ST_GFX					(1 << 0)
+ 
+-#define OMAP3430_CM_CLKEN_PLL				0x0004
+-#define OMAP3430ES2_CM_CLKEN2				0x0004
+-#define OMAP3430ES2_CM_FCLKEN3				0x0008
+-#define OMAP3430_CM_IDLEST_PLL				CM_IDLEST2
+-#define OMAP3430_CM_AUTOIDLE_PLL			CM_AUTOIDLE2
+-#define OMAP3430_CM_CLKSEL1				CM_CLKSEL
+-#define OMAP3430_CM_CLKSEL1_PLL				CM_CLKSEL
+-#define OMAP3430_CM_CLKSEL2_PLL				CM_CLKSEL2
+-#define OMAP3430_CM_SLEEPDEP				CM_CLKSEL2
+-#define OMAP3430_CM_CLKSEL3				CM_CLKSTCTRL
+-#define OMAP3430_CM_CLKSTST				0x004c
+-#define OMAP3430ES2_CM_CLKSEL4				0x004c
+-#define OMAP3430ES2_CM_CLKSEL5				0x0050
+-#define OMAP3430_CM_CLKSEL2_EMU				0x0050
+-#define OMAP3430_CM_CLKSEL3_EMU				0x0054
+-#define OMAP3430_CM_IDLEST3_CORE			0x0028
+-#define OMAP3430_CM_AUTOIDLE3_CORE			0x0038
 -
- #include <linux/io.h>
+-
  
- #include <asm/arch/clock.h>
- #include <asm/arch/sram.h>
- #include <asm/div64.h>
-+#include <asm/bitops.h>
+ #endif
+Index: linux-omap/arch/arm/mach-omap2/pm.c
+===================================================================
+--- linux-omap.orig/arch/arm/mach-omap2/pm.c	2008-03-28 00:26:50.000000000 -0600
++++ linux-omap/arch/arm/mach-omap2/pm.c	2008-03-28 00:27:02.000000000 -0600
+@@ -735,7 +735,7 @@
+ 	cm_write_mod_reg(OMAP24XX_AUTO_SDRC |
+ 			 OMAP24XX_AUTO_GPMC |
+ 			 OMAP24XX_AUTO_SDMA,
+-			 CORE_MOD, OMAP24XX_CM_AUTOIDLE3);
++			 CORE_MOD, CM_AUTOIDLE3);
+ 	cm_write_mod_reg(OMAP24XX_AUTO_PKA |
+ 			 OMAP24XX_AUTO_AES |
+ 			 OMAP24XX_AUTO_RNG |
+Index: linux-omap/arch/arm/mach-omap2/prm.h
+===================================================================
+--- linux-omap.orig/arch/arm/mach-omap2/prm.h	2008-03-28 00:26:50.000000000 -0600
++++ linux-omap/arch/arm/mach-omap2/prm.h	2008-03-28 00:27:02.000000000 -0600
+@@ -132,8 +132,8 @@
+ #define RM_RSTTIME					0x0054
+ #define RM_RSTST					0x0058
  
- #include "memory.h"
- #include "clock.h"
-@@ -79,7 +79,7 @@
- 	WARN_ON(!dd->control_reg || !dd->enable_mask);
+-#define PM_WKEN1					0x00a0
+-#define PM_WKEN						PM_WKEN1
++#define PM_WKEN						0x00a0
++#define PM_WKEN1					PM_WKEN
+ #define PM_WKST						0x00b0
+ #define PM_WKST1					PM_WKST
+ #define PM_WKDEP					0x00c8
+Index: linux-omap/drivers/usb/host/ehci-omap.c
+===================================================================
+--- linux-omap.orig/drivers/usb/host/ehci-omap.c	2008-03-28 00:26:50.000000000 -0600
++++ linux-omap/drivers/usb/host/ehci-omap.c	2008-03-28 00:27:02.000000000 -0600
+@@ -179,7 +179,7 @@
+ 			PLL_MOD, OMAP3430ES2_CM_CLKEN2);
  
- 	v = cm_read_reg(dd->control_reg) & dd->enable_mask;
--	v >>= mask_to_shift(dd->enable_mask);
-+	v >>= __ffs(dd->enable_mask);
- 	if (v != DPLL_LOCKED)
- 		clk->rate = clk->parent->rate;
- 	else
+ 	while (!(cm_read_mod_reg(PLL_MOD, CM_IDLEST2) &
+-				OMAP3430_ST_PERIPH2_CLK))
++				OMAP3430ES2_ST_PERIPH2_CLK_MASK))
+ 		dev_dbg(hcd->self.controller,
+ 			"idlest2 = 0x%x\n",
+ 			cm_read_mod_reg(PLL_MOD, CM_IDLEST2));
+@@ -246,12 +246,12 @@
+ 	clk_enable(ehci_clocks->usbtll_ick_clk);
+ 
+ 	/* Disable Auto Idle of USBTLL */
+-	cm_write_mod_reg((0 << OMAP3430_AUTO_USBTLL_SHIFT),
+-				CORE_MOD, OMAP3430_CM_AUTOIDLE3_CORE);
++	cm_write_mod_reg((0 << OMAP3430ES2_AUTO_USBTLL_SHIFT),
++				CORE_MOD, CM_AUTOIDLE3);
+ 
+ 	/* Wait for TLL to be Active */
+-	while ((cm_read_mod_reg(CORE_MOD, OMAP3430_CM_IDLEST3_CORE) &
+-		(1 << OMAP3430_ST_USBTLL_SHIFT)));
++	while ((cm_read_mod_reg(CORE_MOD, OMAP2430_CM_IDLEST3) &
++		(1 << OMAP3430ES2_ST_USBTLL_SHIFT)));
+ 
+ 	/* perform TLL soft reset, and wait until reset is complete */
+ 	omap_writel(1 << OMAP_USBTLL_SYSCONFIG_SOFTRESET_SHIFT,
