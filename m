@@ -1,139 +1,280 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 0/7] twl4030 changes
-Date: Fri, 28 Mar 2008 05:15:46 -0500
-Message-ID: <3917c3ef86c0fa62087f0c46bafe533a@felipebalbi.com>
-References: <20080328074900.GD24896@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP2/3 CM: clean up 3430ES2-only defines
+Date: Fri, 28 Mar 2008 12:16:05 +0200
+Message-ID: <20080328101604.GN24896@atomide.com>
+References: <alpine.DEB.1.00.0803280029560.13553@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="=_5fcbc2262224c22e3e4ceb100a0b2135"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:43957 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754549AbYC1KPs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Mar 2008 06:15:48 -0400
-In-Reply-To: <20080328074900.GD24896@atomide.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61561 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755139AbYC1KQH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Mar 2008 06:16:07 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.1.00.0803280029560.13553@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
---=_5fcbc2262224c22e3e4ceb100a0b2135
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-
-
-
-On Fri, 28 Mar 2008 09:49:00 +0200, Tony Lindgren <tony@atomide.com> wrote:
-> * Felipe Balbi <felipe.balbi@nokia.com> [080327 19:20]:
->> Hi Tony,
->>
->> I'm resending this series cuz I changed a bit patch #5 to set
->> session bit on musb_platform_set_mode so musb core will really
->> go to a_host mode when we echo sysfs.
->>
->> Without this small change the sysfs interface will work only with
->> a few devices, most likely usb sticks.
->>
->> Below is a shortlog and diffstat of the changes.
+* Paul Walmsley <paul@pwsan.com> [080328 08:32]:
 > 
-> Pushing this series today.
+> This patch marks several CM register bit fields that are only valid on
+> 3430ES2 and beyond to be 3430ES2 defines.  
+> 
+> While we're here, clean up the register defines in cm.h, and improve
+> documentation slightly.  Also, since CM_AUTOIDLE3 is now in use on
+> both OMAP24xx and OMAP34xx, remove the platform-specific prefix from
+> its name.
 
-Hi tony,
+Pushing today & folding into omap2-upstream series.
 
-You missed the attached patch: Let board specific codee handle clock
-initialization
-
--- 
-Best Regards,
-
-Felipe Balbi
-http://felipebalbi.com
-me@felipebalbi.com
---=_5fcbc2262224c22e3e4ceb100a0b2135
-Content-Transfer-Encoding: base64
-Content-Type: text/x-diff; name="0001-USB-MUSB-Let-board-specific-code-handle-clock-initi.diff"; charset="UTF-8"
-Content-Disposition: attachment; filename="0001-USB-MUSB-Let-board-specific-code-handle-clock-initi.diff"
-
-RnJvbSBhZDdhMDFlOTdkYWRiZGUyZWY2YzQzYjQ2MTgyMjcyY2NjMjAxNjgzIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBGZWxpcGUgQmFsYmkgPGZlbGlwZS5iYWxiaUBub2tpYS5jb20+
-CkRhdGU6IFR1ZSwgMTggTWFyIDIwMDggMjA6MjY6MzAgKzAyMDAKU3ViamVjdDogW1BBVENIIDEv
-Ml0gVVNCOiBNVVNCOiBMZXQgYm9hcmQgc3BlY2lmaWMgY29kZSBoYW5kbGUgY2xvY2sgaW5pdGlh
-bGl6YXRpb24KCkluc3RlYWQgb2YgY2xrX2dldCgpIGluIG9tYXAyNDMwLmMgZHJpdmVyLCB3ZSBj
-YW4gbGV0Cm11c2JfY29yZS5jIGRvIGl0IGJ5IHNldHRpbmcgdGhlIGNsb2NrIGlkIGluCm11c2Jf
-cGxhdGZvcm1fZGF0YSBzdHJ1Y3R1cmUuCgpTaWduZWQtb2ZmLWJ5OiBGZWxpcGUgQmFsYmkgPGZl
-bGlwZS5iYWxiaUBub2tpYS5jb20+Ci0tLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0yNDMw
-c2RwLXVzYi5jIHwgICAyNyArKysrKysrKysrKysrKysrKysrKysrKysrKysKIGFyY2gvYXJtL21h
-Y2gtb21hcDIvYm9hcmQtMzQzMHNkcC11c2IuYyB8ICAgMjkgKysrKysrKysrKysrKysrKysrKysr
-KysrKysrLS0KIGRyaXZlcnMvdXNiL211c2Ivb21hcDI0MzAuYyAgICAgICAgICAgICB8ICAgIDgg
-LS0tLS0tLS0KIDMgZmlsZXMgY2hhbmdlZCwgNTQgaW5zZXJ0aW9ucygrKSwgMTAgZGVsZXRpb25z
-KC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0yNDMwc2RwLXVzYi5j
-IGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0yNDMwc2RwLXVzYi5jCmluZGV4IDkwOGEwYzAu
-LjdmNGUwMTcgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtMjQzMHNkcC11
-c2IuYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLTI0MzBzZHAtdXNiLmMKQEAgLTEz
-LDkgKzEzLDExIEBACiAjaW5jbHVkZSA8bGludXgvZXJybm8uaD4KICNpbmNsdWRlIDxsaW51eC9k
-ZWxheS5oPgogI2luY2x1ZGUgPGxpbnV4L3BsYXRmb3JtX2RldmljZS5oPgorI2luY2x1ZGUgPGxp
-bnV4L2Nsay5oPgogI2luY2x1ZGUgPGxpbnV4L3VzYi9tdXNiLmg+CiAKICNpbmNsdWRlIDxhc20v
-YXJjaC9oYXJkd2FyZS5oPgorI2luY2x1ZGUgPGFzbS9hcmNoL3BtLmg+CiAjaW5jbHVkZSA8YXNt
-L2FyY2gvdXNiLmg+CiAKIHN0YXRpYyBzdHJ1Y3QgcmVzb3VyY2UgbXVzYl9yZXNvdXJjZXNbXSA9
-IHsKQEAgLTM0LDYgKzM2LDI5IEBAIHN0YXRpYyBzdHJ1Y3QgcmVzb3VyY2UgbXVzYl9yZXNvdXJj
-ZXNbXSA9IHsKIAl9LAogfTsKIAorc3RhdGljIGludCB1c2Joc19pY2tfb247CisKK3N0YXRpYyBp
-bnQgbXVzYl9zZXRfY2xvY2soc3RydWN0IGNsayAqY2xrLCBpbnQgc3RhdGUpCit7CisgICAgICAg
-aWYgKHN0YXRlKSB7CisgICAgICAgICAgICAgICBpZiAodXNiaHNfaWNrX29uID4gMCkKKyAgICAg
-ICAgICAgICAgICAgICAgICAgcmV0dXJuIC1FTk9ERVY7CisKKyAgICAgICAgICAgICAgIG9tYXAy
-X2Jsb2NrX3NsZWVwKCk7CisgICAgICAgICAgICAgICBjbGtfZW5hYmxlKGNsayk7CisgICAgICAg
-ICAgICAgICB1c2Joc19pY2tfb24gPSAxOworICAgICAgIH0gZWxzZSB7CisgICAgICAgICAgICAg
-ICBpZiAodXNiaHNfaWNrX29uID09IDApCisgICAgICAgICAgICAgICAgICAgICAgIHJldHVybiAt
-RU5PREVWOworCisgICAgICAgICAgICAgICBjbGtfZGlzYWJsZShjbGspOworICAgICAgICAgICAg
-ICAgdXNiaHNfaWNrX29uID0gMDsKKyAgICAgICAgICAgICAgIG9tYXAyX2FsbG93X3NsZWVwKCk7
-CisgICAgICAgfQorCisgICAgICAgcmV0dXJuIDA7Cit9CisKIHN0YXRpYyBzdHJ1Y3QgbXVzYl9o
-ZHJjX3BsYXRmb3JtX2RhdGEgbXVzYl9wbGF0ID0gewogI2lmZGVmIENPTkZJR19VU0JfTVVTQl9P
-VEcKIAkubW9kZQkJPSBNVVNCX09URywKQEAgLTQzLDYgKzY4LDggQEAgc3RhdGljIHN0cnVjdCBt
-dXNiX2hkcmNfcGxhdGZvcm1fZGF0YSBtdXNiX3BsYXQgPSB7CiAJLm1vZGUJCT0gTVVTQl9QRVJJ
-UEhFUkFMLAogI2VuZGlmCiAJLm11bHRpcG9pbnQJPSAxLAorCS5jbG9jawkJPSAidXNiaHNfaWNr
-IiwKKwkuc2V0X2Nsb2NrCT0gbXVzYl9zZXRfY2xvY2ssCiB9OwogCiBzdGF0aWMgdTY0IG11c2Jf
-ZG1hbWFzayA9IH4odTMyKTA7CmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJk
-LTM0MzBzZHAtdXNiLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLTM0MzBzZHAtdXNiLmMK
-aW5kZXggNzcwODhiNC4uODFjOWFmNyAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9i
-b2FyZC0zNDMwc2RwLXVzYi5jCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtMzQzMHNk
-cC11c2IuYwpAQCAtMTYsMTEgKzE2LDEzIEBACiAjaW5jbHVkZSA8bGludXgvZXJybm8uaD4KICNp
-bmNsdWRlIDxsaW51eC9kZWxheS5oPgogI2luY2x1ZGUgPGxpbnV4L3BsYXRmb3JtX2RldmljZS5o
-PgorI2luY2x1ZGUgPGxpbnV4L2Nsay5oPgogI2luY2x1ZGUgPGFzbS9pby5oPgogI2luY2x1ZGUg
-PGFzbS9hcmNoL211eC5oPgogI2luY2x1ZGUgPGxpbnV4L3VzYi9tdXNiLmg+CiAKICNpbmNsdWRl
-IDxhc20vYXJjaC9oYXJkd2FyZS5oPgorI2luY2x1ZGUgPGFzbS9hcmNoL3BtLmg+CiAjaW5jbHVk
-ZSA8YXNtL2FyY2gvdXNiLmg+CiAKICNpZmRlZiBDT05GSUdfVVNCX01VU0JfU09DCkBAIC00MCw2
-ICs0MiwyOSBAQCBzdGF0aWMgc3RydWN0IHJlc291cmNlIG11c2JfcmVzb3VyY2VzW10gPSB7CiAJ
-fSwKIH07CiAKK3N0YXRpYyBpbnQgaHNvdGd1c2JfaWNrX29uOworCitzdGF0aWMgaW50IG11c2Jf
-c2V0X2Nsb2NrKHN0cnVjdCBjbGsgKmNsaywgaW50IHN0YXRlKQoreworCWlmIChzdGF0ZSkgewor
-CQlpZiAoaHNvdGd1c2JfaWNrX29uID4gMCkKKwkJCXJldHVybiAtRU5PREVWOworCisJCW9tYXAy
-X2Jsb2NrX3NsZWVwKCk7CisJCWNsa19lbmFibGUoY2xrKTsKKwkJaHNvdGd1c2JfaWNrX29uID0g
-MTsKKwl9IGVsc2UgeworCQlpZiAoaHNvdGd1c2JfaWNrX29uID09IDApCisJCQlyZXR1cm4gLUVO
-T0RFVjsKKworCQljbGtfZGlzYWJsZShjbGspOworCQloc290Z3VzYl9pY2tfb24gPSAwOworCQlv
-bWFwMl9hbGxvd19zbGVlcCgpOworCX0KKworCXJldHVybiAwOworfQorCiBzdGF0aWMgc3RydWN0
-IG11c2JfaGRyY19wbGF0Zm9ybV9kYXRhIG11c2JfcGxhdCA9IHsKICNpZmRlZiBDT05GSUdfVVNC
-X01VU0JfT1RHCiAJLm1vZGUJCT0gTVVTQl9PVEcsCkBAIC00OSw4ICs3NCw4IEBAIHN0YXRpYyBz
-dHJ1Y3QgbXVzYl9oZHJjX3BsYXRmb3JtX2RhdGEgbXVzYl9wbGF0ID0gewogCS5tb2RlCQk9IE1V
-U0JfUEVSSVBIRVJBTCwKICNlbmRpZgogCS5tdWx0aXBvaW50CT0gMSwKLQkuY2xvY2sJCT0gTlVM
-TCwKLQkuc2V0X2Nsb2NrCT0gTlVMTCwKKwkuY2xvY2sJCT0gImhzb3RndXNiX2ljayIsCisJLnNl
-dF9jbG9jawk9IG11c2Jfc2V0X2Nsb2NrLAogfTsKIAogc3RhdGljIHU2NCBtdXNiX2RtYW1hc2sg
-PSB+KHUzMikwOwpkaWZmIC0tZ2l0IGEvZHJpdmVycy91c2IvbXVzYi9vbWFwMjQzMC5jIGIvZHJp
-dmVycy91c2IvbXVzYi9vbWFwMjQzMC5jCmluZGV4IGNhYWU4MWIuLjM2NGQ3NDYgMTAwNjQ0Ci0t
-LSBhL2RyaXZlcnMvdXNiL211c2Ivb21hcDI0MzAuYworKysgYi9kcml2ZXJzL3VzYi9tdXNiL29t
-YXAyNDMwLmMKQEAgLTIxOSwxMyArMjE5LDcgQEAgaW50IF9faW5pdCBtdXNiX3BsYXRmb3JtX2lu
-aXQoc3RydWN0IG11c2IgKm11c2IpCiAKICNpZiBkZWZpbmVkKENPTkZJR19BUkNIX09NQVAyNDMw
-KQogCW9tYXBfY2ZnX3JlZyhBRTVfMjQzMF9VU0IwSFNfU1RQKTsKLQkvKiBnZXQgdGhlIGNsb2Nr
-ICovCi0JbXVzYi0+Y2xvY2sgPSBjbGtfZ2V0KChzdHJ1Y3QgZGV2aWNlICopbXVzYi0+Y29udHJv
-bGxlciwgInVzYmhzX2ljayIpOwotI2Vsc2UKLQltdXNiLT5jbG9jayA9IGNsa19nZXQoKHN0cnVj
-dCBkZXZpY2UgKiltdXNiLT5jb250cm9sbGVyLCAiaHNvdGd1c2JfaWNrIik7CiAjZW5kaWYKLQlp
-ZihJU19FUlIobXVzYi0+Y2xvY2spKQotCQlyZXR1cm4gUFRSX0VSUihtdXNiLT5jbG9jayk7CiAK
-IAltdXNiLT54Y2VpdiA9ICp4Y2VpdjsKIAltdXNiX3BsYXRmb3JtX3Jlc3VtZShtdXNiKTsKQEAg
-LTI2MSwxMyArMjU1LDExIEBAIGludCBtdXNiX3BsYXRmb3JtX3N1c3BlbmQoc3RydWN0IG11c2Ig
-Km11c2IpCiAJT1RHX1NZU0NPTkZJR19SRUcgfD0gQVVUT0lETEU7CQkvKiBlbmFibGUgYXV0byBp
-ZGxlICovCiAKIAltdXNiLT54Y2Vpdi5zZXRfc3VzcGVuZCgmbXVzYi0+eGNlaXYsIDEpOwotCWNs
-a19kaXNhYmxlKG11c2ItPmNsb2NrKTsKIAlyZXR1cm4gMDsKIH0KIAogaW50IG11c2JfcGxhdGZv
-cm1fcmVzdW1lKHN0cnVjdCBtdXNiICptdXNiKQogewotCWNsa19lbmFibGUobXVzYi0+Y2xvY2sp
-OwogCW11c2ItPnhjZWl2LnNldF9zdXNwZW5kKCZtdXNiLT54Y2VpdiwgMCk7CiAKIAlPVEdfRk9S
-Q0VTVERCWV9SRUcgJj0gfkVOQUJMRUZPUkNFOyAvKiBkaXNhYmxlIE1TVEFOREJZICovCi0tIAox
-LjUuNS5yYzEuMTIuZzY2MGI5Cgo=
---=_5fcbc2262224c22e3e4ceb100a0b2135--
+Tony
 
 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> 
+> ---
+>  arch/arm/mach-omap2/clock34xx.h       |    2 -
+>  arch/arm/mach-omap2/cm-regbits-34xx.h |   22 +++++++------
+>  arch/arm/mach-omap2/cm.h              |   55 ++++++++++++++++------------------
+>  arch/arm/mach-omap2/pm.c              |    2 -
+>  arch/arm/mach-omap2/prm.h             |    4 +-
+>  drivers/usb/host/ehci-omap.c          |   10 +++---
+>  6 files changed, 48 insertions(+), 47 deletions(-)
+> 
+> Index: linux-omap/arch/arm/mach-omap2/clock34xx.h
+> ===================================================================
+> --- linux-omap.orig/arch/arm/mach-omap2/clock34xx.h	2008-03-28 00:27:00.000000000 -0600
+> +++ linux-omap/arch/arm/mach-omap2/clock34xx.h	2008-03-28 00:27:02.000000000 -0600
+> @@ -851,7 +851,7 @@
+>  	.parent		= &dpll5_m2_ck,
+>  	.init           = &omap2_init_clksel_parent,
+>  	.clksel_reg     = OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST2),
+> -	.clksel_mask    = OMAP3430_ST_PERIPH2_CLK,
+> +	.clksel_mask    = OMAP3430ES2_ST_PERIPH2_CLK_MASK,
+>  	.clksel         = omap_120m_fck_clksel,
+>  	.flags		= CLOCK_IN_OMAP3430ES2 | RATE_PROPAGATES |
+>  				PARENT_CONTROLS_CLOCK,
+> Index: linux-omap/arch/arm/mach-omap2/cm-regbits-34xx.h
+> ===================================================================
+> --- linux-omap.orig/arch/arm/mach-omap2/cm-regbits-34xx.h	2008-03-28 00:26:50.000000000 -0600
+> +++ linux-omap/arch/arm/mach-omap2/cm-regbits-34xx.h	2008-03-28 00:27:02.000000000 -0600
+> @@ -203,8 +203,8 @@
+>  #define OMAP3430_ST_DES1				(1 << 0)
+>  
+>  /* CM_IDLEST3_CORE */
+> -#define OMAP3430_ST_USBTLL				(1 << 2)
+> -#define OMAP3430_ST_USBTLL_SHIFT			2
+> +#define OMAP3430ES2_ST_USBTLL_SHIFT			2
+> +#define OMAP3430ES2_ST_USBTLL_MASK			(1 << 2)
+>  
+>  /* CM_AUTOIDLE1_CORE */
+>  #define OMAP3430_AUTO_AES2				(1 << 28)
+> @@ -275,8 +275,8 @@
+>  #define OMAP3430_AUTO_DES1_SHIFT			0
+>  
+>  /* CM_AUTOIDLE3_CORE */
+> -#define OMAP3430_AUTO_USBTLL				(1 << 2)
+> -#define OMAP3430_AUTO_USBTLL_SHIFT			2
+> +#define OMAP3430ES2_AUTO_USBTLL_SHIFT			2
+> +#define OMAP3430ES2_AUTO_USBTLL_MASK			(1 << 2)
+>  
+>  /* CM_CLKSEL_CORE */
+>  #define OMAP3430_CLKSEL_SSI_SHIFT			8
+> @@ -411,8 +411,10 @@
+>  #define OMAP3430_ST_CORE_CLK				(1 << 0)
+>  
+>  /* CM_IDLEST2_CKGEN */
+> -#define OMAP3430_ST_120M_CLK				(1 << 1)
+> -#define OMAP3430_ST_PERIPH2_CLK				(1 << 0)
+> +#define OMAP3430ES2_ST_120M_CLK_SHIFT			1
+> +#define OMAP3430ES2_ST_120M_CLK_MASK			(1 << 1)
+> +#define OMAP3430ES2_ST_PERIPH2_CLK_SHIFT		0
+> +#define OMAP3430ES2_ST_PERIPH2_CLK_MASK			(1 << 0)
+>  
+>  /* CM_AUTOIDLE_PLL */
+>  #define OMAP3430_AUTO_PERIPH_DPLL_SHIFT			3
+> @@ -654,17 +656,17 @@
+>  
+>  /* CM_AUTOIDLE_USBHOST */
+>  #define OMAP3430ES2_AUTO_USBHOST_SHIFT			0
+> -#define OMAP3430ES2_AUTO_USBHOST_MASK			(1<<0)
+> +#define OMAP3430ES2_AUTO_USBHOST_MASK			(1 << 0)
+>  
+>  /* CM_SLEEPDEP_USBHOST */
+>  #define OMAP3430ES2_EN_MPU_SHIFT			1
+> -#define OMAP3430ES2_EN_MPU_MASK				(1<<1)
+> +#define OMAP3430ES2_EN_MPU_MASK				(1 << 1)
+>  #define OMAP3430ES2_EN_IVA2_SHIFT			2
+> -#define OMAP3430ES2_EN_IVA2_MASK			(1<<2)
+> +#define OMAP3430ES2_EN_IVA2_MASK			(1 << 2)
+>  
+>  /* CM_CLKSTCTRL_USBHOST */
+>  #define OMAP3430ES2_CLKTRCTRL_USBHOST_SHIFT		0
+> -#define OMAP3430ES2_CLKTRCTRL_USBHOST_MASK		(3<<0)
+> +#define OMAP3430ES2_CLKTRCTRL_USBHOST_MASK		(3 << 0)
+>  
+>  
+>  
+> Index: linux-omap/arch/arm/mach-omap2/cm.h
+> ===================================================================
+> --- linux-omap.orig/arch/arm/mach-omap2/cm.h	2008-03-28 00:26:50.000000000 -0600
+> +++ linux-omap/arch/arm/mach-omap2/cm.h	2008-03-28 00:27:02.000000000 -0600
+> @@ -31,6 +31,7 @@
+>  /*
+>   * Architecture-specific global CM registers
+>   * Use cm_{read,write}_reg() with these registers.
+> + * These registers appear once per CM module.
+>   */
+>  
+>  #define OMAP3430_CM_REVISION		OMAP_CM_REGADDR(OCP_MOD, 0x0000)
+> @@ -58,23 +59,25 @@
+>  /*
+>   * Module specific CM registers from CM_BASE + domain offset
+>   * Use cm_{read,write}_mod_reg() with these registers.
+> + * These register offsets generally appear in more than one PRCM submodule.
+>   */
+>  
+>  /* Common between 24xx and 34xx */
+>  
+> -#define CM_FCLKEN1					0x0000
+> -#define CM_FCLKEN					CM_FCLKEN1
+> -#define CM_CLKEN					CM_FCLKEN1
+> -#define CM_ICLKEN1					0x0010
+> -#define CM_ICLKEN					CM_ICLKEN1
+> +#define CM_FCLKEN					0x0000
+> +#define CM_FCLKEN1					CM_FCLKEN
+> +#define CM_CLKEN					CM_FCLKEN
+> +#define CM_ICLKEN					0x0010
+> +#define CM_ICLKEN1					CM_ICLKEN
+>  #define CM_ICLKEN2					0x0014
+>  #define CM_ICLKEN3					0x0018
+> -#define CM_IDLEST1					0x0020
+> -#define CM_IDLEST					CM_IDLEST1
+> +#define CM_IDLEST					0x0020
+> +#define CM_IDLEST1					CM_IDLEST
+>  #define CM_IDLEST2					0x0024
+>  #define CM_AUTOIDLE					0x0030
+> -#define CM_AUTOIDLE1					0x0030
+> +#define CM_AUTOIDLE1					CM_AUTOIDLE
+>  #define CM_AUTOIDLE2					0x0034
+> +#define CM_AUTOIDLE3					0x0038
+>  #define CM_CLKSEL					0x0040
+>  #define CM_CLKSEL1					CM_CLKSEL
+>  #define CM_CLKSEL2					0x0044
+> @@ -85,11 +88,26 @@
+>  
+>  #define OMAP24XX_CM_FCLKEN2				0x0004
+>  #define OMAP24XX_CM_ICLKEN4				0x001c
+> -#define OMAP24XX_CM_AUTOIDLE3				0x0038
+>  #define OMAP24XX_CM_AUTOIDLE4				0x003c
+>  
+>  #define OMAP2430_CM_IDLEST3				0x0028
+>  
+> +#define OMAP3430_CM_CLKEN_PLL				0x0004
+> +#define OMAP3430ES2_CM_CLKEN2				0x0004
+> +#define OMAP3430ES2_CM_FCLKEN3				0x0008
+> +#define OMAP3430_CM_IDLEST_PLL				CM_IDLEST2
+> +#define OMAP3430_CM_AUTOIDLE_PLL			CM_AUTOIDLE2
+> +#define OMAP3430_CM_CLKSEL1				CM_CLKSEL
+> +#define OMAP3430_CM_CLKSEL1_PLL				CM_CLKSEL
+> +#define OMAP3430_CM_CLKSEL2_PLL				CM_CLKSEL2
+> +#define OMAP3430_CM_SLEEPDEP				CM_CLKSEL2
+> +#define OMAP3430_CM_CLKSEL3				CM_CLKSTCTRL
+> +#define OMAP3430_CM_CLKSTST				0x004c
+> +#define OMAP3430ES2_CM_CLKSEL4				0x004c
+> +#define OMAP3430ES2_CM_CLKSEL5				0x0050
+> +#define OMAP3430_CM_CLKSEL2_EMU				0x0050
+> +#define OMAP3430_CM_CLKSEL3_EMU				0x0054
+> +
+>  
+>  /* Clock management domain register get/set */
+>  
+> @@ -119,24 +137,5 @@
+>  /* CM_IDLEST_GFX */
+>  #define OMAP_ST_GFX					(1 << 0)
+>  
+> -#define OMAP3430_CM_CLKEN_PLL				0x0004
+> -#define OMAP3430ES2_CM_CLKEN2				0x0004
+> -#define OMAP3430ES2_CM_FCLKEN3				0x0008
+> -#define OMAP3430_CM_IDLEST_PLL				CM_IDLEST2
+> -#define OMAP3430_CM_AUTOIDLE_PLL			CM_AUTOIDLE2
+> -#define OMAP3430_CM_CLKSEL1				CM_CLKSEL
+> -#define OMAP3430_CM_CLKSEL1_PLL				CM_CLKSEL
+> -#define OMAP3430_CM_CLKSEL2_PLL				CM_CLKSEL2
+> -#define OMAP3430_CM_SLEEPDEP				CM_CLKSEL2
+> -#define OMAP3430_CM_CLKSEL3				CM_CLKSTCTRL
+> -#define OMAP3430_CM_CLKSTST				0x004c
+> -#define OMAP3430ES2_CM_CLKSEL4				0x004c
+> -#define OMAP3430ES2_CM_CLKSEL5				0x0050
+> -#define OMAP3430_CM_CLKSEL2_EMU				0x0050
+> -#define OMAP3430_CM_CLKSEL3_EMU				0x0054
+> -#define OMAP3430_CM_IDLEST3_CORE			0x0028
+> -#define OMAP3430_CM_AUTOIDLE3_CORE			0x0038
+> -
+> -
+>  
+>  #endif
+> Index: linux-omap/arch/arm/mach-omap2/pm.c
+> ===================================================================
+> --- linux-omap.orig/arch/arm/mach-omap2/pm.c	2008-03-28 00:26:50.000000000 -0600
+> +++ linux-omap/arch/arm/mach-omap2/pm.c	2008-03-28 00:27:02.000000000 -0600
+> @@ -735,7 +735,7 @@
+>  	cm_write_mod_reg(OMAP24XX_AUTO_SDRC |
+>  			 OMAP24XX_AUTO_GPMC |
+>  			 OMAP24XX_AUTO_SDMA,
+> -			 CORE_MOD, OMAP24XX_CM_AUTOIDLE3);
+> +			 CORE_MOD, CM_AUTOIDLE3);
+>  	cm_write_mod_reg(OMAP24XX_AUTO_PKA |
+>  			 OMAP24XX_AUTO_AES |
+>  			 OMAP24XX_AUTO_RNG |
+> Index: linux-omap/arch/arm/mach-omap2/prm.h
+> ===================================================================
+> --- linux-omap.orig/arch/arm/mach-omap2/prm.h	2008-03-28 00:26:50.000000000 -0600
+> +++ linux-omap/arch/arm/mach-omap2/prm.h	2008-03-28 00:27:02.000000000 -0600
+> @@ -132,8 +132,8 @@
+>  #define RM_RSTTIME					0x0054
+>  #define RM_RSTST					0x0058
+>  
+> -#define PM_WKEN1					0x00a0
+> -#define PM_WKEN						PM_WKEN1
+> +#define PM_WKEN						0x00a0
+> +#define PM_WKEN1					PM_WKEN
+>  #define PM_WKST						0x00b0
+>  #define PM_WKST1					PM_WKST
+>  #define PM_WKDEP					0x00c8
+> Index: linux-omap/drivers/usb/host/ehci-omap.c
+> ===================================================================
+> --- linux-omap.orig/drivers/usb/host/ehci-omap.c	2008-03-28 00:26:50.000000000 -0600
+> +++ linux-omap/drivers/usb/host/ehci-omap.c	2008-03-28 00:27:02.000000000 -0600
+> @@ -179,7 +179,7 @@
+>  			PLL_MOD, OMAP3430ES2_CM_CLKEN2);
+>  
+>  	while (!(cm_read_mod_reg(PLL_MOD, CM_IDLEST2) &
+> -				OMAP3430_ST_PERIPH2_CLK))
+> +				OMAP3430ES2_ST_PERIPH2_CLK_MASK))
+>  		dev_dbg(hcd->self.controller,
+>  			"idlest2 = 0x%x\n",
+>  			cm_read_mod_reg(PLL_MOD, CM_IDLEST2));
+> @@ -246,12 +246,12 @@
+>  	clk_enable(ehci_clocks->usbtll_ick_clk);
+>  
+>  	/* Disable Auto Idle of USBTLL */
+> -	cm_write_mod_reg((0 << OMAP3430_AUTO_USBTLL_SHIFT),
+> -				CORE_MOD, OMAP3430_CM_AUTOIDLE3_CORE);
+> +	cm_write_mod_reg((0 << OMAP3430ES2_AUTO_USBTLL_SHIFT),
+> +				CORE_MOD, CM_AUTOIDLE3);
+>  
+>  	/* Wait for TLL to be Active */
+> -	while ((cm_read_mod_reg(CORE_MOD, OMAP3430_CM_IDLEST3_CORE) &
+> -		(1 << OMAP3430_ST_USBTLL_SHIFT)));
+> +	while ((cm_read_mod_reg(CORE_MOD, OMAP2430_CM_IDLEST3) &
+> +		(1 << OMAP3430ES2_ST_USBTLL_SHIFT)));
+>  
+>  	/* perform TLL soft reset, and wait until reset is complete */
+>  	omap_writel(1 << OMAP_USBTLL_SYSCONFIG_SOFTRESET_SHIFT,
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
