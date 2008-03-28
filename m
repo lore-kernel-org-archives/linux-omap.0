@@ -1,180 +1,139 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP2/3 clock: convert mask_to_shift() to __ffs()
-Date: Fri, 28 Mar 2008 12:15:40 +0200
-Message-ID: <20080328101538.GM24896@atomide.com>
-References: <alpine.DEB.1.00.0803280025150.13553@utopia.booyaka.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 0/7] twl4030 changes
+Date: Fri, 28 Mar 2008 05:15:46 -0500
+Message-ID: <3917c3ef86c0fa62087f0c46bafe533a@felipebalbi.com>
+References: <20080328074900.GD24896@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="=_5fcbc2262224c22e3e4ceb100a0b2135"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60915 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753316AbYC1KPn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Mar 2008 06:15:43 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.1.00.0803280025150.13553@utopia.booyaka.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:43957 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754549AbYC1KPs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Mar 2008 06:15:48 -0400
+In-Reply-To: <20080328074900.GD24896@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [080328 08:26]:
+--=_5fcbc2262224c22e3e4ceb100a0b2135
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+
+
+On Fri, 28 Mar 2008 09:49:00 +0200, Tony Lindgren <tony@atomide.com> wrote:
+> * Felipe Balbi <felipe.balbi@nokia.com> [080327 19:20]:
+>> Hi Tony,
+>>
+>> I'm resending this series cuz I changed a bit patch #5 to set
+>> session bit on musb_platform_set_mode so musb core will really
+>> go to a_host mode when we echo sysfs.
+>>
+>> Without this small change the sysfs interface will work only with
+>> a few devices, most likely usb sticks.
+>>
+>> Below is a shortlog and diffstat of the changes.
 > 
-> In OMAP2/3 clock code, we've used mask_to_shift() to convert bitmasks
-> into shift values, via "ffs(mask) - 1".  It turns out that there is
-> already a Linux idiom for this in asm/bitops.h: __ffs().  (Not to be
-> confused with ffs(), of course.  You wouldn't do that, would you?)
-> When in Rome, do as the Romans.
+> Pushing this series today.
 
-Pushing today & folding this into the omap2-upstream series.
+Hi tony,
 
-Tony
+You missed the attached patch: Let board specific codee handle clock
+initialization
+
+-- 
+Best Regards,
+
+Felipe Balbi
+http://felipebalbi.com
+me@felipebalbi.com
+--=_5fcbc2262224c22e3e4ceb100a0b2135
+Content-Transfer-Encoding: base64
+Content-Type: text/x-diff; name="0001-USB-MUSB-Let-board-specific-code-handle-clock-initi.diff"; charset="UTF-8"
+Content-Disposition: attachment; filename="0001-USB-MUSB-Let-board-specific-code-handle-clock-initi.diff"
+
+RnJvbSBhZDdhMDFlOTdkYWRiZGUyZWY2YzQzYjQ2MTgyMjcyY2NjMjAxNjgzIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBGZWxpcGUgQmFsYmkgPGZlbGlwZS5iYWxiaUBub2tpYS5jb20+
+CkRhdGU6IFR1ZSwgMTggTWFyIDIwMDggMjA6MjY6MzAgKzAyMDAKU3ViamVjdDogW1BBVENIIDEv
+Ml0gVVNCOiBNVVNCOiBMZXQgYm9hcmQgc3BlY2lmaWMgY29kZSBoYW5kbGUgY2xvY2sgaW5pdGlh
+bGl6YXRpb24KCkluc3RlYWQgb2YgY2xrX2dldCgpIGluIG9tYXAyNDMwLmMgZHJpdmVyLCB3ZSBj
+YW4gbGV0Cm11c2JfY29yZS5jIGRvIGl0IGJ5IHNldHRpbmcgdGhlIGNsb2NrIGlkIGluCm11c2Jf
+cGxhdGZvcm1fZGF0YSBzdHJ1Y3R1cmUuCgpTaWduZWQtb2ZmLWJ5OiBGZWxpcGUgQmFsYmkgPGZl
+bGlwZS5iYWxiaUBub2tpYS5jb20+Ci0tLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0yNDMw
+c2RwLXVzYi5jIHwgICAyNyArKysrKysrKysrKysrKysrKysrKysrKysrKysKIGFyY2gvYXJtL21h
+Y2gtb21hcDIvYm9hcmQtMzQzMHNkcC11c2IuYyB8ICAgMjkgKysrKysrKysrKysrKysrKysrKysr
+KysrKysrLS0KIGRyaXZlcnMvdXNiL211c2Ivb21hcDI0MzAuYyAgICAgICAgICAgICB8ICAgIDgg
+LS0tLS0tLS0KIDMgZmlsZXMgY2hhbmdlZCwgNTQgaW5zZXJ0aW9ucygrKSwgMTAgZGVsZXRpb25z
+KC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0yNDMwc2RwLXVzYi5j
+IGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0yNDMwc2RwLXVzYi5jCmluZGV4IDkwOGEwYzAu
+LjdmNGUwMTcgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtMjQzMHNkcC11
+c2IuYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLTI0MzBzZHAtdXNiLmMKQEAgLTEz
+LDkgKzEzLDExIEBACiAjaW5jbHVkZSA8bGludXgvZXJybm8uaD4KICNpbmNsdWRlIDxsaW51eC9k
+ZWxheS5oPgogI2luY2x1ZGUgPGxpbnV4L3BsYXRmb3JtX2RldmljZS5oPgorI2luY2x1ZGUgPGxp
+bnV4L2Nsay5oPgogI2luY2x1ZGUgPGxpbnV4L3VzYi9tdXNiLmg+CiAKICNpbmNsdWRlIDxhc20v
+YXJjaC9oYXJkd2FyZS5oPgorI2luY2x1ZGUgPGFzbS9hcmNoL3BtLmg+CiAjaW5jbHVkZSA8YXNt
+L2FyY2gvdXNiLmg+CiAKIHN0YXRpYyBzdHJ1Y3QgcmVzb3VyY2UgbXVzYl9yZXNvdXJjZXNbXSA9
+IHsKQEAgLTM0LDYgKzM2LDI5IEBAIHN0YXRpYyBzdHJ1Y3QgcmVzb3VyY2UgbXVzYl9yZXNvdXJj
+ZXNbXSA9IHsKIAl9LAogfTsKIAorc3RhdGljIGludCB1c2Joc19pY2tfb247CisKK3N0YXRpYyBp
+bnQgbXVzYl9zZXRfY2xvY2soc3RydWN0IGNsayAqY2xrLCBpbnQgc3RhdGUpCit7CisgICAgICAg
+aWYgKHN0YXRlKSB7CisgICAgICAgICAgICAgICBpZiAodXNiaHNfaWNrX29uID4gMCkKKyAgICAg
+ICAgICAgICAgICAgICAgICAgcmV0dXJuIC1FTk9ERVY7CisKKyAgICAgICAgICAgICAgIG9tYXAy
+X2Jsb2NrX3NsZWVwKCk7CisgICAgICAgICAgICAgICBjbGtfZW5hYmxlKGNsayk7CisgICAgICAg
+ICAgICAgICB1c2Joc19pY2tfb24gPSAxOworICAgICAgIH0gZWxzZSB7CisgICAgICAgICAgICAg
+ICBpZiAodXNiaHNfaWNrX29uID09IDApCisgICAgICAgICAgICAgICAgICAgICAgIHJldHVybiAt
+RU5PREVWOworCisgICAgICAgICAgICAgICBjbGtfZGlzYWJsZShjbGspOworICAgICAgICAgICAg
+ICAgdXNiaHNfaWNrX29uID0gMDsKKyAgICAgICAgICAgICAgIG9tYXAyX2FsbG93X3NsZWVwKCk7
+CisgICAgICAgfQorCisgICAgICAgcmV0dXJuIDA7Cit9CisKIHN0YXRpYyBzdHJ1Y3QgbXVzYl9o
+ZHJjX3BsYXRmb3JtX2RhdGEgbXVzYl9wbGF0ID0gewogI2lmZGVmIENPTkZJR19VU0JfTVVTQl9P
+VEcKIAkubW9kZQkJPSBNVVNCX09URywKQEAgLTQzLDYgKzY4LDggQEAgc3RhdGljIHN0cnVjdCBt
+dXNiX2hkcmNfcGxhdGZvcm1fZGF0YSBtdXNiX3BsYXQgPSB7CiAJLm1vZGUJCT0gTVVTQl9QRVJJ
+UEhFUkFMLAogI2VuZGlmCiAJLm11bHRpcG9pbnQJPSAxLAorCS5jbG9jawkJPSAidXNiaHNfaWNr
+IiwKKwkuc2V0X2Nsb2NrCT0gbXVzYl9zZXRfY2xvY2ssCiB9OwogCiBzdGF0aWMgdTY0IG11c2Jf
+ZG1hbWFzayA9IH4odTMyKTA7CmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJk
+LTM0MzBzZHAtdXNiLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLTM0MzBzZHAtdXNiLmMK
+aW5kZXggNzcwODhiNC4uODFjOWFmNyAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9i
+b2FyZC0zNDMwc2RwLXVzYi5jCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtMzQzMHNk
+cC11c2IuYwpAQCAtMTYsMTEgKzE2LDEzIEBACiAjaW5jbHVkZSA8bGludXgvZXJybm8uaD4KICNp
+bmNsdWRlIDxsaW51eC9kZWxheS5oPgogI2luY2x1ZGUgPGxpbnV4L3BsYXRmb3JtX2RldmljZS5o
+PgorI2luY2x1ZGUgPGxpbnV4L2Nsay5oPgogI2luY2x1ZGUgPGFzbS9pby5oPgogI2luY2x1ZGUg
+PGFzbS9hcmNoL211eC5oPgogI2luY2x1ZGUgPGxpbnV4L3VzYi9tdXNiLmg+CiAKICNpbmNsdWRl
+IDxhc20vYXJjaC9oYXJkd2FyZS5oPgorI2luY2x1ZGUgPGFzbS9hcmNoL3BtLmg+CiAjaW5jbHVk
+ZSA8YXNtL2FyY2gvdXNiLmg+CiAKICNpZmRlZiBDT05GSUdfVVNCX01VU0JfU09DCkBAIC00MCw2
+ICs0MiwyOSBAQCBzdGF0aWMgc3RydWN0IHJlc291cmNlIG11c2JfcmVzb3VyY2VzW10gPSB7CiAJ
+fSwKIH07CiAKK3N0YXRpYyBpbnQgaHNvdGd1c2JfaWNrX29uOworCitzdGF0aWMgaW50IG11c2Jf
+c2V0X2Nsb2NrKHN0cnVjdCBjbGsgKmNsaywgaW50IHN0YXRlKQoreworCWlmIChzdGF0ZSkgewor
+CQlpZiAoaHNvdGd1c2JfaWNrX29uID4gMCkKKwkJCXJldHVybiAtRU5PREVWOworCisJCW9tYXAy
+X2Jsb2NrX3NsZWVwKCk7CisJCWNsa19lbmFibGUoY2xrKTsKKwkJaHNvdGd1c2JfaWNrX29uID0g
+MTsKKwl9IGVsc2UgeworCQlpZiAoaHNvdGd1c2JfaWNrX29uID09IDApCisJCQlyZXR1cm4gLUVO
+T0RFVjsKKworCQljbGtfZGlzYWJsZShjbGspOworCQloc290Z3VzYl9pY2tfb24gPSAwOworCQlv
+bWFwMl9hbGxvd19zbGVlcCgpOworCX0KKworCXJldHVybiAwOworfQorCiBzdGF0aWMgc3RydWN0
+IG11c2JfaGRyY19wbGF0Zm9ybV9kYXRhIG11c2JfcGxhdCA9IHsKICNpZmRlZiBDT05GSUdfVVNC
+X01VU0JfT1RHCiAJLm1vZGUJCT0gTVVTQl9PVEcsCkBAIC00OSw4ICs3NCw4IEBAIHN0YXRpYyBz
+dHJ1Y3QgbXVzYl9oZHJjX3BsYXRmb3JtX2RhdGEgbXVzYl9wbGF0ID0gewogCS5tb2RlCQk9IE1V
+U0JfUEVSSVBIRVJBTCwKICNlbmRpZgogCS5tdWx0aXBvaW50CT0gMSwKLQkuY2xvY2sJCT0gTlVM
+TCwKLQkuc2V0X2Nsb2NrCT0gTlVMTCwKKwkuY2xvY2sJCT0gImhzb3RndXNiX2ljayIsCisJLnNl
+dF9jbG9jawk9IG11c2Jfc2V0X2Nsb2NrLAogfTsKIAogc3RhdGljIHU2NCBtdXNiX2RtYW1hc2sg
+PSB+KHUzMikwOwpkaWZmIC0tZ2l0IGEvZHJpdmVycy91c2IvbXVzYi9vbWFwMjQzMC5jIGIvZHJp
+dmVycy91c2IvbXVzYi9vbWFwMjQzMC5jCmluZGV4IGNhYWU4MWIuLjM2NGQ3NDYgMTAwNjQ0Ci0t
+LSBhL2RyaXZlcnMvdXNiL211c2Ivb21hcDI0MzAuYworKysgYi9kcml2ZXJzL3VzYi9tdXNiL29t
+YXAyNDMwLmMKQEAgLTIxOSwxMyArMjE5LDcgQEAgaW50IF9faW5pdCBtdXNiX3BsYXRmb3JtX2lu
+aXQoc3RydWN0IG11c2IgKm11c2IpCiAKICNpZiBkZWZpbmVkKENPTkZJR19BUkNIX09NQVAyNDMw
+KQogCW9tYXBfY2ZnX3JlZyhBRTVfMjQzMF9VU0IwSFNfU1RQKTsKLQkvKiBnZXQgdGhlIGNsb2Nr
+ICovCi0JbXVzYi0+Y2xvY2sgPSBjbGtfZ2V0KChzdHJ1Y3QgZGV2aWNlICopbXVzYi0+Y29udHJv
+bGxlciwgInVzYmhzX2ljayIpOwotI2Vsc2UKLQltdXNiLT5jbG9jayA9IGNsa19nZXQoKHN0cnVj
+dCBkZXZpY2UgKiltdXNiLT5jb250cm9sbGVyLCAiaHNvdGd1c2JfaWNrIik7CiAjZW5kaWYKLQlp
+ZihJU19FUlIobXVzYi0+Y2xvY2spKQotCQlyZXR1cm4gUFRSX0VSUihtdXNiLT5jbG9jayk7CiAK
+IAltdXNiLT54Y2VpdiA9ICp4Y2VpdjsKIAltdXNiX3BsYXRmb3JtX3Jlc3VtZShtdXNiKTsKQEAg
+LTI2MSwxMyArMjU1LDExIEBAIGludCBtdXNiX3BsYXRmb3JtX3N1c3BlbmQoc3RydWN0IG11c2Ig
+Km11c2IpCiAJT1RHX1NZU0NPTkZJR19SRUcgfD0gQVVUT0lETEU7CQkvKiBlbmFibGUgYXV0byBp
+ZGxlICovCiAKIAltdXNiLT54Y2Vpdi5zZXRfc3VzcGVuZCgmbXVzYi0+eGNlaXYsIDEpOwotCWNs
+a19kaXNhYmxlKG11c2ItPmNsb2NrKTsKIAlyZXR1cm4gMDsKIH0KIAogaW50IG11c2JfcGxhdGZv
+cm1fcmVzdW1lKHN0cnVjdCBtdXNiICptdXNiKQogewotCWNsa19lbmFibGUobXVzYi0+Y2xvY2sp
+OwogCW11c2ItPnhjZWl2LnNldF9zdXNwZW5kKCZtdXNiLT54Y2VpdiwgMCk7CiAKIAlPVEdfRk9S
+Q0VTVERCWV9SRUcgJj0gfkVOQUJMRUZPUkNFOyAvKiBkaXNhYmxlIE1TVEFOREJZICovCi0tIAox
+LjUuNS5yYzEuMTIuZzY2MGI5Cgo=
+--=_5fcbc2262224c22e3e4ceb100a0b2135--
 
 
-> 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> 
-> ---
->  arch/arm/mach-omap2/clock.c     |   18 +++++++-----------
->  arch/arm/mach-omap2/clock.h     |    1 -
->  arch/arm/mach-omap2/clock24xx.c |    5 +++--
->  arch/arm/mach-omap2/clock34xx.c |    4 ++--
->  4 files changed, 12 insertions(+), 16 deletions(-)
-> 
-> Index: linux-omap/arch/arm/mach-omap2/clock.c
-> ===================================================================
-> --- linux-omap.orig/arch/arm/mach-omap2/clock.c	2008-03-27 19:06:55.000000000 -0600
-> +++ linux-omap/arch/arm/mach-omap2/clock.c	2008-03-27 19:11:41.000000000 -0600
-> @@ -21,6 +21,7 @@
->  #include <linux/errno.h>
->  #include <linux/delay.h>
->  #include <linux/clk.h>
-> +#include <asm/bitops.h>
->  
->  #include <asm/io.h>
->  
-> @@ -46,11 +47,6 @@
->   * Omap2 specific clock functions
->   *-------------------------------------------------------------------------*/
->  
-> -u8 mask_to_shift(u32 mask)
-> -{
-> -	return ffs(mask) - 1;
-> -}
-> -
->  /**
->   * omap2_init_clksel_parent - set a clksel clk's parent field from the hardware
->   * @clk: OMAP clock struct ptr to use
-> @@ -69,7 +65,7 @@
->  		return;
->  
->  	r = __raw_readl(clk->clksel_reg) & clk->clksel_mask;
-> -	r >>= mask_to_shift(clk->clksel_mask);
-> +	r >>= __ffs(clk->clksel_mask);
->  
->  	for (clks = clk->clksel; clks->parent && !found; clks++) {
->  		for (clkr = clks->rates; clkr->div && !found; clkr++) {
-> @@ -108,9 +104,9 @@
->  
->  	dpll = cm_read_reg(dd->mult_div1_reg);
->  	dpll_mult = dpll & dd->mult_mask;
-> -	dpll_mult >>= mask_to_shift(dd->mult_mask);
-> +	dpll_mult >>= __ffs(dd->mult_mask);
->  	dpll_div = dpll & dd->div1_mask;
-> -	dpll_div >>= mask_to_shift(dd->div1_mask);
-> +	dpll_div >>= __ffs(dd->div1_mask);
->  
->  	dpll_clk = (long long)clk->parent->rate * dpll_mult;
->  	do_div(dpll_clk, dpll_div + 1);
-> @@ -574,7 +570,7 @@
->  		return 0;
->  
->  	field_val = cm_read_reg(div_addr) & field_mask;
-> -	field_val >>= mask_to_shift(field_mask);
-> +	field_val >>= __ffs(field_mask);
->  
->  	return omap2_clksel_to_divisor(clk, field_val);
->  }
-> @@ -598,7 +594,7 @@
->  
->  	reg_val = cm_read_reg(div_addr);
->  	reg_val &= ~field_mask;
-> -	reg_val |= (field_val << mask_to_shift(field_mask));
-> +	reg_val |= (field_val << __ffs(field_mask));
->  	cm_write_reg(reg_val, div_addr);
->  	wmb();
->  
-> @@ -696,7 +692,7 @@
->  
->  	/* Set new source value (previous dividers if any in effect) */
->  	reg_val = __raw_readl(src_addr) & ~field_mask;
-> -	reg_val |= (field_val << mask_to_shift(field_mask));
-> +	reg_val |= (field_val << __ffs(field_mask));
->  	__raw_writel(reg_val, src_addr);
->  	wmb();
->  
-> Index: linux-omap/arch/arm/mach-omap2/clock.h
-> ===================================================================
-> --- linux-omap.orig/arch/arm/mach-omap2/clock.h	2008-03-27 19:06:55.000000000 -0600
-> +++ linux-omap/arch/arm/mach-omap2/clock.h	2008-03-27 19:10:08.000000000 -0600
-> @@ -42,7 +42,6 @@
->  int omap2_clksel_set_rate(struct clk *clk, unsigned long rate);
->  u32 omap2_get_dpll_rate(struct clk *clk);
->  int omap2_wait_clock_ready(void __iomem *reg, u32 cval, const char *name);
-> -u8 mask_to_shift(u32 mask);
->  
->  extern u8 cpu_mask;
->  
-> Index: linux-omap/arch/arm/mach-omap2/clock24xx.c
-> ===================================================================
-> --- linux-omap.orig/arch/arm/mach-omap2/clock24xx.c	2008-03-27 19:01:32.000000000 -0600
-> +++ linux-omap/arch/arm/mach-omap2/clock24xx.c	2008-03-27 19:13:29.000000000 -0600
-> @@ -31,6 +31,7 @@
->  #include <asm/arch/clock.h>
->  #include <asm/arch/sram.h>
->  #include <asm/div64.h>
-> +#include <asm/bitops.h>
->  
->  #include "memory.h"
->  #include "clock.h"
-> @@ -224,8 +225,8 @@
->  			mult = (rate / 1000000);
->  			done_rate = CORE_CLK_SRC_DPLL;
->  		}
-> -		tmpset.cm_clksel1_pll |= (div << mask_to_shift(dd->mult_mask));
-> -		tmpset.cm_clksel1_pll |= (mult << mask_to_shift(dd->div1_mask));
-> +		tmpset.cm_clksel1_pll |= (div << __ffs(dd->mult_mask));
-> +		tmpset.cm_clksel1_pll |= (mult << __ffs(dd->div1_mask));
->  
->  		/* Worst case */
->  		tmpset.base_sdrc_rfr = SDRC_RFR_CTRL_BYPASS;
-> Index: linux-omap/arch/arm/mach-omap2/clock34xx.c
-> ===================================================================
-> --- linux-omap.orig/arch/arm/mach-omap2/clock34xx.c	2008-03-27 18:01:36.000000000 -0600
-> +++ linux-omap/arch/arm/mach-omap2/clock34xx.c	2008-03-27 19:13:07.000000000 -0600
-> @@ -22,12 +22,12 @@
->  #include <linux/errno.h>
->  #include <linux/delay.h>
->  #include <linux/clk.h>
-> -
->  #include <linux/io.h>
->  
->  #include <asm/arch/clock.h>
->  #include <asm/arch/sram.h>
->  #include <asm/div64.h>
-> +#include <asm/bitops.h>
->  
->  #include "memory.h"
->  #include "clock.h"
-> @@ -79,7 +79,7 @@
->  	WARN_ON(!dd->control_reg || !dd->enable_mask);
->  
->  	v = cm_read_reg(dd->control_reg) & dd->enable_mask;
-> -	v >>= mask_to_shift(dd->enable_mask);
-> +	v >>= __ffs(dd->enable_mask);
->  	if (v != DPLL_LOCKED)
->  		clk->rate = clk->parent->rate;
->  	else
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
