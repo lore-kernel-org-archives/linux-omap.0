@@ -1,178 +1,51 @@
 From: Andrzej Zaborowski <balrogg@gmail.com>
-Subject: [PATCH] Stop AIC23 driver from Oopsing.
-Date: Sat, 29 Mar 2008 18:00:51 +0100
-Message-ID: <12068100513180-git-send-email-balrogg@gmail.com>
+Subject: [PATCH] Fix TUSB6010 ID register offsets.
+Date: Sat, 29 Mar 2008 18:52:16 +0100
+Message-ID: <12068131361588-git-send-email-balrogg@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 3a.49.1343.static.theplanet.com ([67.19.73.58]:44094 "EHLO
+Received: from 3a.49.1343.static.theplanet.com ([67.19.73.58]:44886 "EHLO
 	pug.o-hand.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752228AbYC2QaF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 29 Mar 2008 12:30:05 -0400
+	id S1752827AbYC2QsX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 29 Mar 2008 12:48:23 -0400
 Received: from borg (cnb216.neoplus.adsl.tpnet.pl [83.31.155.216])
 	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by pug.o-hand.com (Postfix) with ESMTP id B586AE2B26F
-	for <linux-omap@vger.kernel.org>; Sat, 29 Mar 2008 11:56:56 -0400 (EDT)
+	by pug.o-hand.com (Postfix) with ESMTP id CDFE4E2B26F
+	for <linux-omap@vger.kernel.org>; Sat, 29 Mar 2008 12:48:21 -0400 (EDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Andrzej Zaborowski <balrog@zabor.org>
 
-Prevent AIC23 driver Oopsing when no AIC23 is present by moving some of the
-initialisation to after the chip is found.  There seems to be more that
-should be fixed in this driver but with this change it can at least be
-compiled into a kernel safely.
+[Sorry, the previous patch was a copy/paste mistake, this one should be
+better]
+
+I have no access to the docs for this chip but I'm pretty sure the current
+address of the two DIDR1 registers is wrong because it's outside the
+TUSB-specific register space.  The modified address in turn has a good
+chance to be correct.
 
 Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
 ---
- drivers/i2c/chips/tlv320aic23.c |   92 ++++++++++++++++++++------------------
- 1 files changed, 48 insertions(+), 44 deletions(-)
+ drivers/usb/musb/tusb6010.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/i2c/chips/tlv320aic23.c b/drivers/i2c/chips/tlv320aic23.c
-index c1e27f1..1c498f2 100644
---- a/drivers/i2c/chips/tlv320aic23.c
-+++ b/drivers/i2c/chips/tlv320aic23.c
-@@ -54,6 +54,7 @@ I2C_CLIENT_INSMOD;
- static struct i2c_driver aic23_driver;
- static struct i2c_client *new_client;
- static int selftest;
-+static struct platform_device audio_i2c_device;
+diff --git a/drivers/usb/musb/tusb6010.h b/drivers/usb/musb/tusb6010.h
+index bb25c3b..f2036ef 100644
+--- a/drivers/usb/musb/tusb6010.h
++++ b/drivers/usb/musb/tusb6010.h
+@@ -225,8 +225,8 @@ extern void tusb_allow_idle(struct musb *musb, u32 wakeup_enables);
+ #define TUSB_PROD_TEST_RESET_VAL		0xa596
+ #define TUSB_EP_FIFO(ep)			(TUSB_FIFO_BASE + (ep) * 0x20)
  
- static struct aic23_info {
- 	u16 volume_reg_left;
-@@ -95,6 +96,38 @@ int aic23_write_value(u8 reg, u16 value)
- 	return 0;
- }
- 
-+/*
-+ * Configures the McBSP3 which is used to send clock to the AIC23 codec.
-+ * The input clock rate from DSP is 12MHz.
-+ * The DSP clock must be on before this is called. 
-+ */
-+static int omap_mcbsp3_aic23_clock_init(void)
-+{
-+	u16 w;
-+
-+	/* enable 12MHz clock to mcbsp 1 & 3 */
-+	__raw_writew(__raw_readw(DSP_IDLECT2) | (1<<1), DSP_IDLECT2);
-+	__raw_writew(__raw_readw(DSP_RSTCT2) | 1 | 1<<1, DSP_RSTCT2);
-+
-+	/* disable sample rate generator */
-+	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR1, 0x0000);
-+	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR2, 0x0000);
-+
-+	/* pin control register */
-+	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, PCR0,(CLKXM | CLKXP | CLKRP));
-+
-+	/* configure srg to send 12MHz pulse from dsp peripheral clock */
-+	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SRGR1, 0x0000);
-+	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SRGR2, CLKSM);
-+
-+	/* enable sample rate generator */
-+	w = OMAP_MCBSP_READ(OMAP1610_MCBSP3_BASE, SPCR2);
-+	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR2, (w | FREE | GRST));
-+	printk("Clock enabled to MCBSP1 & 3 \n");
-+
-+	return 0;
-+}
-+
- static int aic23_detect_client(struct i2c_adapter *adapter, int address,
- 				     int kind)
- {
-@@ -128,6 +161,19 @@ static int aic23_detect_client(struct i2c_adapter *adapter, int address,
- 		kfree(new_client);
- 		return err;
- 	}
-+
-+	if (platform_device_register(&audio_i2c_device)) {
-+		printk(KERN_WARNING "Failed to register audio i2c device\n");
-+		selftest = -ENODEV;
-+		return selftest;
-+	}
-+	/* FIXME: Do in board-specific file */
-+	omap_mcbsp3_aic23_clock_init();
-+
-+	if (!aic23_info_l.power_down)
-+		aic23_power_up();
-+	aic23_info_l.initialized = 1;
-+
- 	return 0;
- }
- 
-@@ -135,6 +181,8 @@ static int aic23_detach_client(struct i2c_client *client)
- {
- 	int err;
- 
-+	platform_device_unregister(&audio_i2c_device);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		printk("aic23.o: Client deregistration failed, \
- 		       client not detached.\n");
-@@ -162,38 +210,6 @@ static struct i2c_driver aic23_driver = {
- 	.detach_client	= aic23_detach_client,
- };
- 
--/*
-- * Configures the McBSP3 which is used to send clock to the AIC23 codec.
-- * The input clock rate from DSP is 12MHz.
-- * The DSP clock must be on before this is called. 
-- */
--static int omap_mcbsp3_aic23_clock_init(void)
--{
--	u16 w;
--
--	/* enable 12MHz clock to mcbsp 1 & 3 */
--	__raw_writew(__raw_readw(DSP_IDLECT2) | (1<<1), DSP_IDLECT2);
--	__raw_writew(__raw_readw(DSP_RSTCT2) | 1 | 1<<1, DSP_RSTCT2);
--
--	/* disable sample rate generator */
--	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR1, 0x0000);
--	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR2, 0x0000);
--
--	/* pin control register */
--	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, PCR0,(CLKXM | CLKXP | CLKRP));
--
--	/* configure srg to send 12MHz pulse from dsp peripheral clock */
--	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SRGR1, 0x0000);
--	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SRGR2, CLKSM);
--
--	/* enable sample rate generator */
--	w = OMAP_MCBSP_READ(OMAP1610_MCBSP3_BASE, SPCR2);
--	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR2, (w | FREE | GRST));
--	printk("Clock enabled to MCBSP1 & 3 \n");
--
--	return 0;
--}
--
- static void update_volume_left(int volume)
- {
- 	u16 val = 0;
-@@ -633,17 +649,6 @@ static int __init aic23_init(void)
- 		return selftest;
- 	}
- 
--	if (platform_device_register(&audio_i2c_device)) {
--		printk(KERN_WARNING "Failed to register audio i2c device\n");
--		platform_driver_unregister(&audio_i2c_driver);
--		selftest = -ENODEV;
--		return selftest;
--	}
--	/* FIXME: Do in board-specific file */
--	omap_mcbsp3_aic23_clock_init();
--	if (!aic23_info_l.power_down)
--		aic23_power_up();
--	aic23_info_l.initialized = 1;
- 	printk("TLV320AIC23 I2C version %s (%s)\n", 
- 	       TLV320AIC23_VERSION, TLV320AIC23_DATE);
- 
-@@ -658,7 +663,6 @@ static void __exit aic23_exit(void)
- 	if ((res = i2c_del_driver(&aic23_driver))) 
- 		printk("aic23 i2c: Driver remove failed, module not removed.\n");
- 
--	platform_device_unregister(&audio_i2c_device);
- 	platform_driver_unregister(&audio_i2c_driver);
- }
- 
+-#define TUSB_DIDR1_LO				0x1f8
+-#define TUSB_DIDR1_HI				0x1fc
++#define TUSB_DIDR1_LO				(TUSB_SYS_REG_BASE + 0x1f8)
++#define TUSB_DIDR1_HI				(TUSB_SYS_REG_BASE + 0x1fc)
+ #define		TUSB_DIDR1_HI_CHIP_REV(v)		(((v) >> 17) & 0xf)
+ #define			TUSB_DIDR1_HI_REV_20		0
+ #define			TUSB_DIDR1_HI_REV_30		1
 -- 
 1.5.3.4
 
