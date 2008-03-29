@@ -1,51 +1,68 @@
-From: Andrzej Zaborowski <balrogg@gmail.com>
-Subject: [PATCH] Fix TUSB6010 ID register offsets.
-Date: Sat, 29 Mar 2008 18:52:16 +0100
-Message-ID: <12068131361588-git-send-email-balrogg@gmail.com>
+From: Francisco Alecrim <francisco.alecrim@indt.org.br>
+Subject: [PATCH] i2c: Update twl4030's includes
+Date: Sat, 29 Mar 2008 21:00:19 +0200
+Message-ID: <1206817219-22322-1-git-send-email-francisco.alecrim@indt.org.br>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 3a.49.1343.static.theplanet.com ([67.19.73.58]:44886 "EHLO
-	pug.o-hand.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752827AbYC2QsX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 29 Mar 2008 12:48:23 -0400
-Received: from borg (cnb216.neoplus.adsl.tpnet.pl [83.31.155.216])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by pug.o-hand.com (Postfix) with ESMTP id CDFE4E2B26F
-	for <linux-omap@vger.kernel.org>; Sat, 29 Mar 2008 12:48:21 -0400 (EDT)
+Received: from smtp.nokia.com ([192.100.105.134]:30112 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753962AbYC2TIF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 Mar 2008 15:08:05 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2TJ9kqp024154
+	for <linux-omap@vger.kernel.org>; Sat, 29 Mar 2008 14:10:09 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Francisco Alecrim <francisco.alecrim@indt.org.br>
 
-From: Andrzej Zaborowski <balrog@zabor.org>
+Update twl4030's includes. Headers now available under include/linux/i2c.
 
-[Sorry, the previous patch was a copy/paste mistake, this one should be
-better]
+arch/arm/mach-omap2/board-2430sdp.c:41:34: error: asm/arch/twl4030-rtc.h: No such file or directory
+drivers/video/omap/lcd_2430sdp.c:30:30: error: asm/arch/twl4030.h: No such file or directory
 
-I have no access to the docs for this chip but I'm pretty sure the current
-address of the two DIDR1 registers is wrong because it's outside the
-TUSB-specific register space.  The modified address in turn has a good
-chance to be correct.
-
-Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
+Signed-off-by: Francisco Alecrim <francisco.alecrim@indt.org.br>
 ---
- drivers/usb/musb/tusb6010.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/board-2430sdp.c |    2 +-
+ drivers/video/omap/lcd_2430sdp.c    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/usb/musb/tusb6010.h b/drivers/usb/musb/tusb6010.h
-index bb25c3b..f2036ef 100644
---- a/drivers/usb/musb/tusb6010.h
-+++ b/drivers/usb/musb/tusb6010.h
-@@ -225,8 +225,8 @@ extern void tusb_allow_idle(struct musb *musb, u32 wakeup_enables);
- #define TUSB_PROD_TEST_RESET_VAL		0xa596
- #define TUSB_EP_FIFO(ep)			(TUSB_FIFO_BASE + (ep) * 0x20)
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index c2d3c4d..5228d29 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -24,6 +24,7 @@
+ #include <linux/clk.h>
+ #include <linux/spi/spi.h>
+ #include <linux/spi/ads7846.h>
++#include <linux/i2c/twl4030-rtc.h>
  
--#define TUSB_DIDR1_LO				0x1f8
--#define TUSB_DIDR1_HI				0x1fc
-+#define TUSB_DIDR1_LO				(TUSB_SYS_REG_BASE + 0x1f8)
-+#define TUSB_DIDR1_HI				(TUSB_SYS_REG_BASE + 0x1fc)
- #define		TUSB_DIDR1_HI_CHIP_REV(v)		(((v) >> 17) & 0xf)
- #define			TUSB_DIDR1_HI_REV_20		0
- #define			TUSB_DIDR1_HI_REV_30		1
+ #include <asm/hardware.h>
+ #include <asm/mach-types.h>
+@@ -38,7 +39,6 @@
+ #include <asm/arch/keypad.h>
+ #include <asm/arch/gpmc.h>
+ #include <asm/arch/mcspi.h>
+-#include <asm/arch/twl4030-rtc.h>
+ 
+ #include <asm/io.h>
+ 
+diff --git a/drivers/video/omap/lcd_2430sdp.c b/drivers/video/omap/lcd_2430sdp.c
+index 2464e85..8ba15dc 100644
+--- a/drivers/video/omap/lcd_2430sdp.c
++++ b/drivers/video/omap/lcd_2430sdp.c
+@@ -23,11 +23,11 @@
+ 
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
++#include <linux/i2c/twl4030.h>
+ 
+ #include <asm/arch/gpio.h>
+ #include <asm/arch/mux.h>
+ #include <asm/arch/omapfb.h>
+-#include <asm/arch/twl4030.h>
+ #include <asm/mach-types.h>
+ 
+ #define SDP2430_LCD_PANEL_BACKLIGHT_GPIO	91
 -- 
-1.5.3.4
+1.5.4.23.gef5b9
 
