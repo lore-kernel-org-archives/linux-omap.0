@@ -1,125 +1,64 @@
-From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [PATCH 1/1] PLAT: OMAP: Add device configuration to support second
- HSMMC slot on OMAP 2430 and 3430 boards.
-Date: Mon, 31 Mar 2008 08:52:41 -0400
-Message-ID: <47F0DE99.2010404@indt.org.br>
+From: <roman.tereshonkov@nokia.com>
+Subject: RE: [PATCH] 	Support for OMAP3 SDTI (Serial Debug Trace Interface).
+Date: Mon, 31 Mar 2008 16:25:13 +0300
+Message-ID: <96D01537CAEBF940B0144E7F8E88229C03833138@esebe102.NOE.Nokia.com>
+References: <1206452858-29570-1-git-send-email-roman.tereshonkov@nokia.com> <3B6D69C3A9EBCA4BA5DA60D91302742903D3BA03@dlee13.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:63682 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:20032 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753226AbYCaMze (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Mar 2008 08:55:34 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m2VCtVaT027463
-	for <linux-omap@vger.kernel.org>; Mon, 31 Mar 2008 15:55:31 +0300
+	with ESMTP id S1750727AbYCaN3H convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Mar 2008 09:29:07 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D91302742903D3BA03@dlee13.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: r-woodruff2@ti.com, linux-omap@vger.kernel.org
 
-From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 
-This patch adds device configuration to provide second HSMMC slot support
-on OMAP 2430 and 3430 boards.
+Hi,
 
-Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+No, I do not use it in conjunction with semi-hosting on Lauterbach. 
+Only for kernel logging.
+I am not sure if OMAP3 SDTI can be used for serial port replacement.
+In comparison with OMAP1 and OMAP2 there is no RX port in OMAP3 SDTI
+anymore.
+The only port left is TX for sending data from OMAP3.
 
-Change CONFIG_ARCH_OMAP24XX by CONFIG_ARCH_OMAP243X macro when this config
-is needed only for 2430 boards.
+Roman Tereshonkov
 
-Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
----
- arch/arm/plat-omap/devices.c |   35 ++++++++++++++++++++++++++++-------
- 1 files changed, 28 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-index ec9a999..ddfc88b 100644
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -156,12 +156,24 @@ static inline void omap_init_kp(void) {}
+
+
+
+
+-----Original Message-----
+From: ext Woodruff, Richard [mailto:r-woodruff2@ti.com] 
+Sent: 25 March, 2008 16:17
+To: Tereshonkov Roman (Nokia-D/Helsinki); linux-omap@vger.kernel.org
+Subject: RE: [PATCH] Support for OMAP3 SDTI (Serial Debug Trace
+Interface).
+
+Hi,
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap- 
+> owner@vger.kernel.org] On Behalf Of Roman Tereshonkov
+> Sent: Tuesday, March 25, 2008 8:48 AM
+> To: linux-omap@vger.kernel.org
+> Cc: Roman Tereshonkov
+> Subject: [PATCH] Support for OMAP3 SDTI (Serial Debug Trace
+Interface).
+
+By chance do you use any of this in conjunction with semi-hosting on
+Lauterbach?  If so is there a wiki or other with some basic information?
+Having a jtag console is kind of handy if you don't have a real serial
+port.
+
+Regards,
+Richard W.
  
- #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
- #define	OMAP_MMC1_BASE		0x4809c000
--#define OMAP_MMC1_INT		INT_24XX_MMC_IRQ
-+#define	OMAP_MMC1_END		OMAP_MMC1_BASE + 0x1fc
-+#define	OMAP_MMC1_INT		INT_24XX_MMC_IRQ
-+
-+#define	OMAP_MMC2_BASE		0x480b4000
-+#define	OMAP_MMC2_END		OMAP_MMC2_BASE + 0x1fc
-+#define	OMAP_MMC2_INT		INT_24XX_MMC_IRQ
-+
- #else
-+
- #define	OMAP_MMC1_BASE		0xfffb7800
-+#define	OMAP_MMC1_END		OMAP_MMC1_BASE + 0x7f
- #define OMAP_MMC1_INT		INT_MMC
--#endif
-+
- #define	OMAP_MMC2_BASE		0xfffb7c00	/* omap16xx only */
-+#define	OMAP_MMC2_END		OMAP_MMC2_BASE + 0x7f
-+#define	OMAP_MMC2_INT		INT_1610_MMC2
-+
-+#endif
- 
- static struct omap_mmc_platform_data mmc1_data;
- 
-@@ -170,7 +182,7 @@ static u64 mmc1_dmamask = 0xffffffff;
- static struct resource mmc1_resources[] = {
- 	{
- 		.start		= OMAP_MMC1_BASE,
--		.end		= OMAP_MMC1_BASE + 0x7f,
-+		.end		= OMAP_MMC1_END,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
-@@ -190,7 +202,8 @@ static struct platform_device mmc_omap_device1 = {
- 	.resource	= mmc1_resources,
- };
- 
--#ifdef	CONFIG_ARCH_OMAP16XX
-+#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP243X) || \
-+	defined(CONFIG_ARCH_OMAP34XX)
- 
- static struct omap_mmc_platform_data mmc2_data;
- 
-@@ -200,11 +213,11 @@ static u64 mmc2_dmamask = 0xffffffff;
- static struct resource mmc2_resources[] = {
- 	{
- 		.start		= OMAP_MMC2_BASE,
--		.end		= OMAP_MMC2_BASE + 0x7f,
-+		.end		= OMAP_MMC2_END,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
--		.start		= INT_1610_MMC2,
-+		.start		= OMAP_MMC2_INT,
- 		.flags		= IORESOURCE_IRQ,
- 	},
- };
-@@ -237,6 +250,13 @@ static void __init omap_init_mmc(void)
- 	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
- 		if (mmc->enabled)
- 			(void) platform_device_register(&mmc_omap_device1);
-+
-+#if defined(CONFIG_ARCH_OMAP243X) || defined(CONFIG_ARCH_OMAP34XX)
-+		mmc = &mmc_conf->mmc[1];
-+		if (mmc->enabled)
-+			(void) platform_device_register(&mmc_omap_device2);
-+#endif
-+
- 		return;
- 	}
- 
-@@ -329,7 +349,8 @@ void omap_set_mmc_info(int host, const struct omap_mmc_platform_data *info)
- 	case 1:
- 		mmc1_data = *info;
- 		break;
--#ifdef CONFIG_ARCH_OMAP16XX
-+#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP243X) || \
-+	defined(CONFIG_ARCH_OMAP34XX)
- 	case 2:
- 		mmc2_data = *info;
- 		break;
--- 1.5.3.GIT
 
