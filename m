@@ -1,88 +1,98 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] I2C: Fix twl4030 timeouts on omap3430
-Date: Mon, 31 Mar 2008 13:43:33 +0300
-Message-ID: <20080331104332.GH26502@atomide.com>
-References: <20080328084139.GJ24896@atomide.com>
+Subject: Re: [PATCH] i2c: Update twl4030's includes
+Date: Mon, 31 Mar 2008 13:44:38 +0300
+Message-ID: <20080331104438.GI26502@atomide.com>
+References: <1206817219-22322-1-git-send-email-francisco.alecrim@indt.org.br> <20080331085436.GA4467@kedavra.cpe.vivax.com.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:65195 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49598 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751427AbYCaKnf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Mar 2008 06:43:35 -0400
-Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
-	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1JgHUE-000Ewd-Q8
-	for linux-omap@vger.kernel.org; Mon, 31 Mar 2008 10:43:35 +0000
+	with ESMTP id S1751553AbYCaKop (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Mar 2008 06:44:45 -0400
 Content-Disposition: inline
-In-Reply-To: <20080328084139.GJ24896@atomide.com>
+In-Reply-To: <20080331085436.GA4467@kedavra.cpe.vivax.com.br>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: Francisco Alecrim <francisco.alecrim@indt.org.br>, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [080328 10:41]:
-> Hi all,
+* Felipe Balbi <me@felipebalbi.com> [080331 11:53]:
+> On Sat, Mar 29, 2008 at 09:00:19PM +0200, Francisco Alecrim wrote:
+> > Update twl4030's includes. Headers now available under include/linux/i2c.
+> > 
+> > arch/arm/mach-omap2/board-2430sdp.c:41:34: error: asm/arch/twl4030-rtc.h: No such file or directory
+> > drivers/video/omap/lcd_2430sdp.c:30:30: error: asm/arch/twl4030.h: No such file or directory
+> > 
+> > Signed-off-by: Francisco Alecrim <francisco.alecrim@indt.org.br>
 > 
-> This helps with the annoying I2C timeouts. Does anybody have an idea
-> why the twl4030 chip does not like doing multiple transfers in a row?
-> 
-> To me the only difference seems to be that clocks are idled between
-> writing the twl4030 register and reading the register value.
+> Good catch, thanks.
+> Stupid grep not working :-p
 
-I'll push this today with a REVISIT comment added.
+Pushing today.
 
 Tony
 
-
-> From 25c4c8f449819cb6f40b59ed1a9b25ebcc7cd72e Mon Sep 17 00:00:00 2001
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Thu, 27 Mar 2008 19:05:30 +0200
-> Subject: [PATCH] I2C: Fix twl4030 timeouts on omap3430
 > 
-> For some reason doing a twl4030 write-read cycle can hang the I2C bus
-> on omap3430. And doing the write and read separately in twl4030_i2c_read()
-> seems to fix the problem...
+> Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
 > 
-> Not intended for applying, just a temporary workaround.
+> > ---
+> >  arch/arm/mach-omap2/board-2430sdp.c |    2 +-
+> >  drivers/video/omap/lcd_2430sdp.c    |    2 +-
+> >  2 files changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+> > index c2d3c4d..5228d29 100644
+> > --- a/arch/arm/mach-omap2/board-2430sdp.c
+> > +++ b/arch/arm/mach-omap2/board-2430sdp.c
+> > @@ -24,6 +24,7 @@
+> >  #include <linux/clk.h>
+> >  #include <linux/spi/spi.h>
+> >  #include <linux/spi/ads7846.h>
+> > +#include <linux/i2c/twl4030-rtc.h>
+> >  
+> >  #include <asm/hardware.h>
+> >  #include <asm/mach-types.h>
+> > @@ -38,7 +39,6 @@
+> >  #include <asm/arch/keypad.h>
+> >  #include <asm/arch/gpmc.h>
+> >  #include <asm/arch/mcspi.h>
+> > -#include <asm/arch/twl4030-rtc.h>
+> >  
+> >  #include <asm/io.h>
+> >  
+> > diff --git a/drivers/video/omap/lcd_2430sdp.c b/drivers/video/omap/lcd_2430sdp.c
+> > index 2464e85..8ba15dc 100644
+> > --- a/drivers/video/omap/lcd_2430sdp.c
+> > +++ b/drivers/video/omap/lcd_2430sdp.c
+> > @@ -23,11 +23,11 @@
+> >  
+> >  #include <linux/module.h>
+> >  #include <linux/platform_device.h>
+> > +#include <linux/i2c/twl4030.h>
+> >  
+> >  #include <asm/arch/gpio.h>
+> >  #include <asm/arch/mux.h>
+> >  #include <asm/arch/omapfb.h>
+> > -#include <asm/arch/twl4030.h>
+> >  #include <asm/mach-types.h>
+> >  
+> >  #define SDP2430_LCD_PANEL_BACKLIGHT_GPIO	91
+> > -- 
+> > 1.5.4.23.gef5b9
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
-> index ded86e7..62868b0 100644
-> --- a/drivers/i2c/chips/twl4030-core.c
-> +++ b/drivers/i2c/chips/twl4030-core.c
-> @@ -327,6 +327,7 @@ int twl4030_i2c_read(u8 mod_no, u8 * value, u8 reg, u8 num_bytes)
->  		return -EPERM;
->  	}
->  	mutex_lock(&twl->xfer_lock);
-> +
->  	/* [MSG1] fill the register address data */
->  	msg = &twl->xfer_msg[0];
->  	msg->addr = twl->address;
-> @@ -334,18 +335,25 @@ int twl4030_i2c_read(u8 mod_no, u8 * value, u8 reg, u8 num_bytes)
->  	msg->flags = 0;	/* Read the register value */
->  	val = twl4030_map[mod_no].base + reg;
->  	msg->buf = &val;
-> +	ret = i2c_transfer(twl->client.adapter, twl->xfer_msg, 1);
-> +	if (ret < 0)
-> +		goto out;
-> + 
->  	/* [MSG2] fill the data rx buffer */
->  	msg = &twl->xfer_msg[1];
->  	msg->addr = twl->address;
->  	msg->flags = I2C_M_RD;	/* Read the register value */
->  	msg->len = num_bytes;	/* only n bytes */
->  	msg->buf = value;
-> -	ret = i2c_transfer(twl->client.adapter, twl->xfer_msg, 2);
-> +	ret = i2c_transfer(twl->client.adapter, twl->xfer_msg, 1);
-> +
-> +out:
->  	mutex_unlock(&twl->xfer_lock);
->  
->  	/* i2cTransfer returns num messages.translate it pls.. */
->  	if (ret >= 0)
->  		ret = 0;
-> +
->  	return ret;
->  }
->  
-
+> -- 
+> Best Regards,
+> 
+> Felipe Balbi
+> me@felipebalbi.com
+> http://blog.felipebalbi.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
