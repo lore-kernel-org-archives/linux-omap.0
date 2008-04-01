@@ -1,36 +1,101 @@
 From: Seth Forshee <seth.forshee@gmail.com>
-Subject: Re: [RFC/PATH] OMAP: HSMMC: Fixes for 1.8V MMC2 interface
-Date: Mon, 31 Mar 2008 19:51:38 -0500
-Message-ID: <20080401005137.GA22520@ubuntu-workstation>
-References: <20080331014640.GA14188@ubuntu-workstation> <47F14D61.5030109@indt.org.br>
+Subject: [PATCH] OMAP: HSMMC: Fix 1.8V MMC2 host on OMAP2430/3430
+Date: Mon, 31 Mar 2008 20:34:18 -0500
+Message-ID: <20080401013418.GA24856@ubuntu-workstation>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.179]:56886 "EHLO
+Received: from py-out-1112.google.com ([64.233.166.178]:12654 "EHLO
 	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751309AbYDAAyP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Mar 2008 20:54:15 -0400
-Received: by py-out-1112.google.com with SMTP id u52so2700795pyb.10
-        for <linux-omap@vger.kernel.org>; Mon, 31 Mar 2008 17:54:14 -0700 (PDT)
+	with ESMTP id S1752083AbYDABgy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Mar 2008 21:36:54 -0400
+Received: by py-out-1112.google.com with SMTP id u52so2720097pyb.10
+        for <linux-omap@vger.kernel.org>; Mon, 31 Mar 2008 18:36:54 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <47F14D61.5030109@indt.org.br>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Francisco Alecrim <francisco.alecrim@indt.org.br>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org
 
-On Mon, Mar 31, 2008 at 11:45:21PM +0300, Francisco Alecrim wrote:
-> Hello Seth,
->    It's fine and work for 3430! Maybe you should resend changing the 
-> commit message. It's too big.
-> 
-> Remove "RFC" from subject.
-> 
-> What do you think?
-> 
-> if(changes)
->    Acked-by: Francisco Alecrim <francisco.alecrim@indt.org.br>
+OMAP2430/3430 contain an 1.8V-only MMC2 host that is not properly
+supported by the current driver.  This patch contains changes to
+correctly set up this host.
 
-Thank you for reviewing/testing.  I wanted to get verification for OMAP3430
-before I officially submitted the patch, and since you have done that I will
-submit it now.
+Signed-off-by: Seth Forshee <seth.forshee@gmail.com>
+Acked-by: Francisco Alecrim <francisco.alecrim@indt.org.br>
+---
+ drivers/mmc/host/omap_hsmmc.c |   32 ++++++++++++++++++++++++++------
+ 1 files changed, 26 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 248257f..d5d82a8 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -388,8 +388,12 @@ static int omap_mmc_switch_opcond(struct mmc_omap_host *host, int vdd)
+ 	 * If a MMC dual voltage card is detected, the set_ios fn calls
+ 	 * this fn with VDD bit set for 1.8V. Upon card removal from the
+ 	 * slot, mmc_omap_detect fn sets the VDD back to 3V.
++	 *
++	 * Only MMC1 supports 3.0V.  MMC2 will not function if SDVS30 is
++	 * set in HCTL.
+ 	 */
+-	if (((1 << vdd) == MMC_VDD_32_33) || ((1 << vdd) == MMC_VDD_33_34))
++	if (host->id == OMAP_MMC1_DEVID && (((1 << vdd) == MMC_VDD_32_33) ||
++				((1 << vdd) == MMC_VDD_33_34)))
+ 		reg_val |= SDVS30;
+ 	if ((1 << vdd) == MMC_VDD_165_195)
+ 		reg_val |= SDVS18;
+@@ -517,10 +521,16 @@ mmc_omap_start_dma_transfer(struct mmc_omap_host *host, struct mmc_request *req)
+ 
+ 	if (!(data->flags & MMC_DATA_WRITE)) {
+ 		host->dma_dir = DMA_FROM_DEVICE;
+-		sync_dev = OMAP24XX_DMA_MMC1_RX;
++		if (host->id == OMAP_MMC1_DEVID)
++			sync_dev = OMAP24XX_DMA_MMC1_RX;
++		else
++			sync_dev = OMAP24XX_DMA_MMC2_RX;
+ 	} else {
+ 		host->dma_dir = DMA_TO_DEVICE;
+-		sync_dev = OMAP24XX_DMA_MMC1_TX;
++		if (host->id == OMAP_MMC1_DEVID)
++			sync_dev = OMAP24XX_DMA_MMC1_TX;
++		else
++			sync_dev = OMAP24XX_DMA_MMC2_TX;
+ 	}
+ 
+ 	ret = omap_request_dma(sync_dev, "MMC/SD", mmc_omap_dma_cb,
+@@ -692,6 +702,7 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
+ 	struct mmc_omap_host *host = NULL;
+ 	struct resource *res;
+ 	int ret = 0, irq;
++	u32 hctl, capa;
+ 
+ 	if (pdata == NULL) {
+ 		dev_err(&pdev->dev, "Platform Data is missing\n");
+@@ -778,11 +789,20 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
+ 	if (pdata->conf.wire4)
+ 		mmc->caps |= MMC_CAP_4_BIT_DATA;
+ 
++	/* Only MMC1 supports 3.0V */
++	if (host->id == OMAP_MMC1_DEVID) {
++		hctl = SDVS30;
++		capa = VS30 | VS18;
++	} else {
++		hctl = SDVS18;
++		capa = VS18;
++	}
++
+ 	OMAP_HSMMC_WRITE(host->base, HCTL,
+-			OMAP_HSMMC_READ(host->base, HCTL) | SDVS30);
++			OMAP_HSMMC_READ(host->base, HCTL) | hctl);
+ 
+-	OMAP_HSMMC_WRITE(host->base, CAPA, OMAP_HSMMC_READ(host->base,
+-							CAPA) | VS30 | VS18);
++	OMAP_HSMMC_WRITE(host->base, CAPA,
++			OMAP_HSMMC_READ(host->base, CAPA) | capa);
+ 
+ 	/* Set the controller to AUTO IDLE mode */
+ 	OMAP_HSMMC_WRITE(host->base, SYSCONFIG,
+-- 
+1.5.2
+
