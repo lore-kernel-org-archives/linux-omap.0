@@ -1,144 +1,36 @@
-From: Francisco Alecrim <francisco.alecrim@indt.org.br>
-Subject: Re: [PATCH 1/1] PLAT: OMAP: Add device configuration to support second
- HSMMC slot on OMAP 2430 and 3430 boards.
-Date: Mon, 31 Mar 2008 23:52:04 +0300
-Message-ID: <47F14EF4.9040108@indt.org.br>
-References: <47F1444C.7070508@indt.org.br>
+From: Seth Forshee <seth.forshee@gmail.com>
+Subject: Re: [RFC/PATH] OMAP: HSMMC: Fixes for 1.8V MMC2 interface
+Date: Mon, 31 Mar 2008 19:51:38 -0500
+Message-ID: <20080401005137.GA22520@ubuntu-workstation>
+References: <20080331014640.GA14188@ubuntu-workstation> <47F14D61.5030109@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:63123 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754827AbYCaUxb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Mar 2008 16:53:31 -0400
-In-Reply-To: <47F1444C.7070508@indt.org.br>
+Received: from py-out-1112.google.com ([64.233.166.179]:56886 "EHLO
+	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751309AbYDAAyP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Mar 2008 20:54:15 -0400
+Received: by py-out-1112.google.com with SMTP id u52so2700795pyb.10
+        for <linux-omap@vger.kernel.org>; Mon, 31 Mar 2008 17:54:14 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <47F14D61.5030109@indt.org.br>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Carlos Aguiar <carlos.aguiar@indt.org.br>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Francisco Alecrim <francisco.alecrim@indt.org.br>
+Cc: linux-omap@vger.kernel.org
 
-Acked-by: Francisco Alecrim <francisco.alecrim@indt.org.br>
+On Mon, Mar 31, 2008 at 11:45:21PM +0300, Francisco Alecrim wrote:
+> Hello Seth,
+>    It's fine and work for 3430! Maybe you should resend changing the 
+> commit message. It's too big.
+> 
+> Remove "RFC" from subject.
+> 
+> What do you think?
+> 
+> if(changes)
+>    Acked-by: Francisco Alecrim <francisco.alecrim@indt.org.br>
 
-PS: Carlos wrote "And thanks to Keppler for advise me.". Keppler == 
-Francisco Alecrim. ;)
-
-ext Carlos Aguiar wrote:
-> From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
->
-> This patch adds device configuration to provide second HSMMC slot support
-> on OMAP 2430 and 3430 boards.
->
-> Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
->
-> Change CONFIG_ARCH_OMAP24XX by CONFIG_ARCH_OMAP243X macro when this config
-> is needed only for 2430 boards.
->
-> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-> ---
->  arch/arm/plat-omap/devices.c |   35 ++++++++++++++++++++++++++++-------
->  1 files changed, 28 insertions(+), 7 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-> index ec9a999..6f07451 100644
-> --- a/arch/arm/plat-omap/devices.c
-> +++ b/arch/arm/plat-omap/devices.c
-> @@ -156,12 +156,24 @@ static inline void omap_init_kp(void) {}
->  
->  #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
->  #define	OMAP_MMC1_BASE		0x4809c000
-> -#define OMAP_MMC1_INT		INT_24XX_MMC_IRQ
-> +#define	OMAP_MMC1_END		OMAP_MMC1_BASE + 0x1fc
-> +#define	OMAP_MMC1_INT		INT_24XX_MMC_IRQ
-> +
-> +#define	OMAP_MMC2_BASE		0x480b4000
-> +#define	OMAP_MMC2_END		OMAP_MMC2_BASE + 0x1fc
-> +#define	OMAP_MMC2_INT		INT_24XX_MMC2_IRQ
-> +
->  #else
-> +
->  #define	OMAP_MMC1_BASE		0xfffb7800
-> +#define	OMAP_MMC1_END		OMAP_MMC1_BASE + 0x7f
->  #define OMAP_MMC1_INT		INT_MMC
-> -#endif
-> +
->  #define	OMAP_MMC2_BASE		0xfffb7c00	/* omap16xx only */
-> +#define	OMAP_MMC2_END		OMAP_MMC2_BASE + 0x7f
-> +#define	OMAP_MMC2_INT		INT_1610_MMC2
-> +
-> +#endif
->  
->  static struct omap_mmc_platform_data mmc1_data;
->  
-> @@ -170,7 +182,7 @@ static u64 mmc1_dmamask = 0xffffffff;
->  static struct resource mmc1_resources[] = {
->  	{
->  		.start		= OMAP_MMC1_BASE,
-> -		.end		= OMAP_MMC1_BASE + 0x7f,
-> +		.end		= OMAP_MMC1_END,
->  		.flags		= IORESOURCE_MEM,
->  	},
->  	{
-> @@ -190,7 +202,8 @@ static struct platform_device mmc_omap_device1 = {
->  	.resource	= mmc1_resources,
->  };
->  
-> -#ifdef	CONFIG_ARCH_OMAP16XX
-> +#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP243X) || \
-> +	defined(CONFIG_ARCH_OMAP34XX)
->  
->  static struct omap_mmc_platform_data mmc2_data;
->  
-> @@ -200,11 +213,11 @@ static u64 mmc2_dmamask = 0xffffffff;
->  static struct resource mmc2_resources[] = {
->  	{
->  		.start		= OMAP_MMC2_BASE,
-> -		.end		= OMAP_MMC2_BASE + 0x7f,
-> +		.end		= OMAP_MMC2_END,
->  		.flags		= IORESOURCE_MEM,
->  	},
->  	{
-> -		.start		= INT_1610_MMC2,
-> +		.start		= OMAP_MMC2_INT,
->  		.flags		= IORESOURCE_IRQ,
->  	},
->  };
-> @@ -237,6 +250,13 @@ static void __init omap_init_mmc(void)
->  	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
->  		if (mmc->enabled)
->  			(void) platform_device_register(&mmc_omap_device1);
-> +
-> +#if defined(CONFIG_ARCH_OMAP243X) || defined(CONFIG_ARCH_OMAP34XX)
-> +		mmc = &mmc_conf->mmc[1];
-> +		if (mmc->enabled)
-> +			(void) platform_device_register(&mmc_omap_device2);
-> +#endif
-> +
->  		return;
->  	}
->  
-> @@ -329,7 +349,8 @@ void omap_set_mmc_info(int host, const struct omap_mmc_platform_data *info)
->  	case 1:
->  		mmc1_data = *info;
->  		break;
-> -#ifdef CONFIG_ARCH_OMAP16XX
-> +#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP243X) || \
-> +	defined(CONFIG_ARCH_OMAP34XX)
->  	case 2:
->  		mmc2_data = *info;
->  		break;
-> -- 1.5.3.GIT
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->   
-
-
--- 
-Francisco Keppler Silva Alecrim - INdT
-Phone: +55 92 2126-1017
-Mobile: +55 92 9152-7000
-
+Thank you for reviewing/testing.  I wanted to get verification for OMAP3430
+before I officially submitted the patch, and since you have done that I will
+submit it now.
