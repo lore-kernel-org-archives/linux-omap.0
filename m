@@ -1,139 +1,104 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] PLAT: OMAP: Add device configuration to support
-	second HSMMC slot on OMAP 2430 and 3430 boards.
-Date: Wed, 2 Apr 2008 10:19:37 +0300
-Message-ID: <20080402071936.GD31913@atomide.com>
-References: <47F1444C.7070508@indt.org.br> <47F14EF4.9040108@indt.org.br>
+Subject: Re: [PATCH] OMAP: HSMMC: Fix 1.8V MMC2 host on OMAP2430/3430
+Date: Wed, 2 Apr 2008 10:20:41 +0300
+Message-ID: <20080402072041.GE31913@atomide.com>
+References: <20080401013418.GA24856@ubuntu-workstation> <47F19E05.7010409@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63427 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754269AbYDBHTk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Apr 2008 03:19:40 -0400
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:55732 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751651AbYDBHUo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Apr 2008 03:20:44 -0400
 Content-Disposition: inline
-In-Reply-To: <47F14EF4.9040108@indt.org.br>
+In-Reply-To: <47F19E05.7010409@indt.org.br>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Francisco Alecrim <francisco.alecrim@indt.org.br>
-Cc: ext Carlos Aguiar <carlos.aguiar@indt.org.br>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 
-* Francisco Alecrim <francisco.alecrim@indt.org.br> [080331 23:53]:
-> Acked-by: Francisco Alecrim <francisco.alecrim@indt.org.br>
+* Francisco Alecrim <francisco.alecrim@indt.org.br> [080401 05:29]:
+> Acked-by : Francisco Alecrim <francisco.alecrim@indt.org.br>
 >
-> PS: Carlos wrote "And thanks to Keppler for advise me.". Keppler ==  
-> Francisco Alecrim. ;)
->
-> ext Carlos Aguiar wrote:
->> From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
->>
->> This patch adds device configuration to provide second HSMMC slot support
->> on OMAP 2430 and 3430 boards.
->>
->> Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
->>
->> Change CONFIG_ARCH_OMAP24XX by CONFIG_ARCH_OMAP243X macro when this config
->> is needed only for 2430 boards.
+> ext Seth Forshee wrote:
+>> OMAP2430/3430 contain an 1.8V-only MMC2 host that is not properly
+>> supported by the current driver.  This patch contains changes to
+>> correctly set up this host.
 
 Pushing today.
 
 Tony
 
 
->> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+>> Signed-off-by: Seth Forshee <seth.forshee@gmail.com>
+>> Acked-by: Francisco Alecrim <francisco.alecrim@indt.org.br>
 >> ---
->>  arch/arm/plat-omap/devices.c |   35 ++++++++++++++++++++++++++++-------
->>  1 files changed, 28 insertions(+), 7 deletions(-)
+>>  drivers/mmc/host/omap_hsmmc.c |   32 ++++++++++++++++++++++++++------
+>>  1 files changed, 26 insertions(+), 6 deletions(-)
 >>
->> diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
->> index ec9a999..6f07451 100644
->> --- a/arch/arm/plat-omap/devices.c
->> +++ b/arch/arm/plat-omap/devices.c
->> @@ -156,12 +156,24 @@ static inline void omap_init_kp(void) {}
->>   #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
->>  #define	OMAP_MMC1_BASE		0x4809c000
->> -#define OMAP_MMC1_INT		INT_24XX_MMC_IRQ
->> +#define	OMAP_MMC1_END		OMAP_MMC1_BASE + 0x1fc
->> +#define	OMAP_MMC1_INT		INT_24XX_MMC_IRQ
->> +
->> +#define	OMAP_MMC2_BASE		0x480b4000
->> +#define	OMAP_MMC2_END		OMAP_MMC2_BASE + 0x1fc
->> +#define	OMAP_MMC2_INT		INT_24XX_MMC2_IRQ
->> +
->>  #else
->> +
->>  #define	OMAP_MMC1_BASE		0xfffb7800
->> +#define	OMAP_MMC1_END		OMAP_MMC1_BASE + 0x7f
->>  #define OMAP_MMC1_INT		INT_MMC
->> -#endif
->> +
->>  #define	OMAP_MMC2_BASE		0xfffb7c00	/* omap16xx only */
->> +#define	OMAP_MMC2_END		OMAP_MMC2_BASE + 0x7f
->> +#define	OMAP_MMC2_INT		INT_1610_MMC2
->> +
->> +#endif
->>   static struct omap_mmc_platform_data mmc1_data;
->>  @@ -170,7 +182,7 @@ static u64 mmc1_dmamask = 0xffffffff;
->>  static struct resource mmc1_resources[] = {
->>  	{
->>  		.start		= OMAP_MMC1_BASE,
->> -		.end		= OMAP_MMC1_BASE + 0x7f,
->> +		.end		= OMAP_MMC1_END,
->>  		.flags		= IORESOURCE_MEM,
->>  	},
->>  	{
->> @@ -190,7 +202,8 @@ static struct platform_device mmc_omap_device1 = {
->>  	.resource	= mmc1_resources,
->>  };
->>  -#ifdef	CONFIG_ARCH_OMAP16XX
->> +#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP243X) || \
->> +	defined(CONFIG_ARCH_OMAP34XX)
->>   static struct omap_mmc_platform_data mmc2_data;
->>  @@ -200,11 +213,11 @@ static u64 mmc2_dmamask = 0xffffffff;
->>  static struct resource mmc2_resources[] = {
->>  	{
->>  		.start		= OMAP_MMC2_BASE,
->> -		.end		= OMAP_MMC2_BASE + 0x7f,
->> +		.end		= OMAP_MMC2_END,
->>  		.flags		= IORESOURCE_MEM,
->>  	},
->>  	{
->> -		.start		= INT_1610_MMC2,
->> +		.start		= OMAP_MMC2_INT,
->>  		.flags		= IORESOURCE_IRQ,
->>  	},
->>  };
->> @@ -237,6 +250,13 @@ static void __init omap_init_mmc(void)
->>  	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
->>  		if (mmc->enabled)
->>  			(void) platform_device_register(&mmc_omap_device1);
->> +
->> +#if defined(CONFIG_ARCH_OMAP243X) || defined(CONFIG_ARCH_OMAP34XX)
->> +		mmc = &mmc_conf->mmc[1];
->> +		if (mmc->enabled)
->> +			(void) platform_device_register(&mmc_omap_device2);
->> +#endif
->> +
->>  		return;
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+>> index 248257f..d5d82a8 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -388,8 +388,12 @@ static int omap_mmc_switch_opcond(struct mmc_omap_host *host, int vdd)
+>>  	 * If a MMC dual voltage card is detected, the set_ios fn calls
+>>  	 * this fn with VDD bit set for 1.8V. Upon card removal from the
+>>  	 * slot, mmc_omap_detect fn sets the VDD back to 3V.
+>> +	 *
+>> +	 * Only MMC1 supports 3.0V.  MMC2 will not function if SDVS30 is
+>> +	 * set in HCTL.
+>>  	 */
+>> -	if (((1 << vdd) == MMC_VDD_32_33) || ((1 << vdd) == MMC_VDD_33_34))
+>> +	if (host->id == OMAP_MMC1_DEVID && (((1 << vdd) == MMC_VDD_32_33) ||
+>> +				((1 << vdd) == MMC_VDD_33_34)))
+>>  		reg_val |= SDVS30;
+>>  	if ((1 << vdd) == MMC_VDD_165_195)
+>>  		reg_val |= SDVS18;
+>> @@ -517,10 +521,16 @@ mmc_omap_start_dma_transfer(struct mmc_omap_host *host, struct mmc_request *req)
+>>   	if (!(data->flags & MMC_DATA_WRITE)) {
+>>  		host->dma_dir = DMA_FROM_DEVICE;
+>> -		sync_dev = OMAP24XX_DMA_MMC1_RX;
+>> +		if (host->id == OMAP_MMC1_DEVID)
+>> +			sync_dev = OMAP24XX_DMA_MMC1_RX;
+>> +		else
+>> +			sync_dev = OMAP24XX_DMA_MMC2_RX;
+>>  	} else {
+>>  		host->dma_dir = DMA_TO_DEVICE;
+>> -		sync_dev = OMAP24XX_DMA_MMC1_TX;
+>> +		if (host->id == OMAP_MMC1_DEVID)
+>> +			sync_dev = OMAP24XX_DMA_MMC1_TX;
+>> +		else
+>> +			sync_dev = OMAP24XX_DMA_MMC2_TX;
 >>  	}
->>  @@ -329,7 +349,8 @@ void omap_set_mmc_info(int host, const struct 
->> omap_mmc_platform_data *info)
->>  	case 1:
->>  		mmc1_data = *info;
->>  		break;
->> -#ifdef CONFIG_ARCH_OMAP16XX
->> +#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP243X) || \
->> +	defined(CONFIG_ARCH_OMAP34XX)
->>  	case 2:
->>  		mmc2_data = *info;
->>  		break;
->> -- 1.5.3.GIT
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+>>   	ret = omap_request_dma(sync_dev, "MMC/SD", mmc_omap_dma_cb,
+>> @@ -692,6 +702,7 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
+>>  	struct mmc_omap_host *host = NULL;
+>>  	struct resource *res;
+>>  	int ret = 0, irq;
+>> +	u32 hctl, capa;
+>>   	if (pdata == NULL) {
+>>  		dev_err(&pdev->dev, "Platform Data is missing\n");
+>> @@ -778,11 +789,20 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
+>>  	if (pdata->conf.wire4)
+>>  		mmc->caps |= MMC_CAP_4_BIT_DATA;
+>>  +	/* Only MMC1 supports 3.0V */
+>> +	if (host->id == OMAP_MMC1_DEVID) {
+>> +		hctl = SDVS30;
+>> +		capa = VS30 | VS18;
+>> +	} else {
+>> +		hctl = SDVS18;
+>> +		capa = VS18;
+>> +	}
+>> +
+>>  	OMAP_HSMMC_WRITE(host->base, HCTL,
+>> -			OMAP_HSMMC_READ(host->base, HCTL) | SDVS30);
+>> +			OMAP_HSMMC_READ(host->base, HCTL) | hctl);
+>>  -	OMAP_HSMMC_WRITE(host->base, CAPA, OMAP_HSMMC_READ(host->base,
+>> -							CAPA) | VS30 | VS18);
+>> +	OMAP_HSMMC_WRITE(host->base, CAPA,
+>> +			OMAP_HSMMC_READ(host->base, CAPA) | capa);
+>>   	/* Set the controller to AUTO IDLE mode */
+>>  	OMAP_HSMMC_WRITE(host->base, SYSCONFIG,
 >>   
 >
 >
