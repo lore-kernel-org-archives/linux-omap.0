@@ -1,45 +1,70 @@
-From: Brian Swetland <swetland@google.com>
-Subject: Re: Android on OMAP, possibly useful git.android.com update
-Date: Wed, 2 Apr 2008 03:05:44 -0700
-Message-ID: <20080402100544.GA26856@bulgaria.corp.google.com>
-References: <005301c874f5$8a11c8d0$16110a0a@LongCheer.net> <47BE708F.4000802@googlemail.com> <3B6D69C3A9EBCA4BA5DA60D913027429039398E4@dlee13.ent.ti.com> <20080224095216.GA5131@bulgaria.corp.google.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH] Fix TUSB6010 ID register offsets.
+Date: Wed, 2 Apr 2008 05:15:09 -0500
+Message-ID: <54be4db45e859f4b06bb75a9034df573@felipebalbi.com>
+References: <12068131361588-git-send-email-balrogg@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.33.17]:38060 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751852AbYDBKGX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Apr 2008 06:06:23 -0400
-Content-Disposition: inline
-In-Reply-To: <20080224095216.GA5131@bulgaria.corp.google.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:42128 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751703AbYDBKPL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Apr 2008 06:15:11 -0400
+In-Reply-To: <12068131361588-git-send-email-balrogg@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>, Dirk Behme <dirk.behme@googlemail.com>, colorant <colorant@163.com>, linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
+To: Andrzej Zaborowski <balrogg@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-[Brian Swetland <swetland@google.com>]
+
+
+On Sat, 29 Mar 2008 18:52:16 +0100, Andrzej Zaborowski <balrogg@gmail.com>
+wrote:
+> From: Andrzej Zaborowski <balrog@zabor.org>
 > 
-> I'm hoping to get a public git repository put together with the 
-> various android-specific kernel patches (binder, logger, alarm drivers,
-> goldflish platform support, etc) soon.  This should at least make
-> it easier for folks to merge various drivers 'n things into their
-> working trees, rather than having to extract them from the kernel
-> source tarball provided with emulator/sdk releases.
+> [Sorry, the previous patch was a copy/paste mistake, this one should be
+> better]
+> 
+> I have no access to the docs for this chip but I'm pretty sure the
+current
+> address of the two DIDR1 registers is wrong because it's outside the
+> TUSB-specific register space.  The modified address in turn has a good
+> chance to be correct.
+> 
+> Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
+Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+> ---
+>  drivers/usb/musb/tusb6010.h |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/tusb6010.h b/drivers/usb/musb/tusb6010.h
+> index bb25c3b..f2036ef 100644
+> --- a/drivers/usb/musb/tusb6010.h
+> +++ b/drivers/usb/musb/tusb6010.h
+> @@ -225,8 +225,8 @@ extern void tusb_allow_idle(struct musb *musb, u32
+> wakeup_enables);
+>  #define TUSB_PROD_TEST_RESET_VAL		0xa596
+>  #define TUSB_EP_FIFO(ep)			(TUSB_FIFO_BASE + (ep) * 0x20)
+> 
+> -#define TUSB_DIDR1_LO				0x1f8
+> -#define TUSB_DIDR1_HI				0x1fc
+> +#define TUSB_DIDR1_LO				(TUSB_SYS_REG_BASE + 0x1f8)
+> +#define TUSB_DIDR1_HI				(TUSB_SYS_REG_BASE + 0x1fc)
+>  #define		TUSB_DIDR1_HI_CHIP_REV(v)		(((v) >> 17) & 0xf)
+>  #define			TUSB_DIDR1_HI_REV_20		0
+>  #define			TUSB_DIDR1_HI_REV_30		1
+> --
+> 1.5.3.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Best Regards,
 
-The core android kernel patches are now available from git.android.com.
-Please be aware that these are *newer* than the M5 SDK, and I think
-the binder driver in particular may not be compatible with M5.  When
-the next SDK release happens, we should be able to point at a sha1
-hash of the git change the kernel came from.
-
-http://git.android.com/?p=kernel.git;a=shortlog;h=android
-git://git.android.com/kernel.git
-
-Please note that for legacy reasons the default branch is the
-msm-2.6.24 branch -- you'll want to check out the "android"
-branch if you're looking for the generic patches useful for
-all platforms.
-
-Enjoy,
-
-Brian
+Felipe Balbi
+http://felipebalbi.com
+me@felipebalbi.com
 
