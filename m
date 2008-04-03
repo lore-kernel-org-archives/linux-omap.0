@@ -1,115 +1,60 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 1/1] USB: MUSB: Be sure that we enable musb->clock
-Date: Thu, 3 Apr 2008 06:56:01 -0500
-Message-ID: <0c65e3d506e8fd8a7579091f73c3b4fb@felipebalbi.com>
-References: <1207222710-10120-1-git-send-email-felipe.balbi@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [PATCH 2/5] I2C: TWL4030: Kconfig and Makefile changes
+Date: Thu,  3 Apr 2008 15:14:25 +0300
+Message-ID: <1207224865-21527-2-git-send-email-felipe.balbi@nokia.com>
+References: <1207224865-21527-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:35972 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755345AbYDCL4E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Apr 2008 07:56:04 -0400
-In-Reply-To: <1207222710-10120-1-git-send-email-felipe.balbi@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:48006 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750928AbYDCMPd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Apr 2008 08:15:33 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m33CHCwT001875
+	for <linux-omap@vger.kernel.org>; Thu, 3 Apr 2008 07:17:43 -0500
+In-Reply-To: <1207224865-21527-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com
+To: linux-omap@vger.kernel.org
+Cc: Mikko Ylinen <mikko.k.ylinen@nokia.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
+From: Mikko Ylinen <mikko.k.ylinen@nokia.com>
 
+Put madc driver into kbuild.
 
-On Thu,  3 Apr 2008 14:38:30 +0300, Felipe Balbi <felipe.balbi@nokia.com>
-wrote:
-
-The following is better as I'm also disabling the clock on suspend to
-conserve power.
-
->From 5a4151f6fae01b82007c1205ff89daa9328276cb Mon Sep 17 00:00:00 2001
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Date: Thu, 3 Apr 2008 14:35:33 +0300
-Subject: [PATCH 1/1] USB: MUSB: Be sure that we enable musb->clock
-
-If CONFIG_OMAP_RESET_CLOCKS is enabled, musb->clock would
-be disabled because nobody was enabling it.
-
-Be sure that omap2430.c enables musb->clock to avoid problems
-later.
-
+Signed-off-by: Mikko Ylinen <mikko.k.ylinen@nokia.com>
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/usb/musb/omap2430.c |   28 ++++++++++++++++++++++++++++
- 1 files changed, 28 insertions(+), 0 deletions(-)
+ drivers/i2c/chips/Kconfig  |    4 ++++
+ drivers/i2c/chips/Makefile |    1 +
+ 2 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 8041dde..2a4247c 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -246,6 +246,13 @@ int __init musb_platform_init(struct musb *musb)
+diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
+index bfab098..bc7717f 100644
+--- a/drivers/i2c/chips/Kconfig
++++ b/drivers/i2c/chips/Kconfig
+@@ -128,6 +128,10 @@ config TWL4030_GPIO
+ 	bool "TWL4030 GPIO Driver"
+ 	depends on TWL4030_CORE
  
- int musb_platform_suspend(struct musb *musb)
- {
-+	unsigned long	flags;
++config TWL4030_MADC
++	tristate "TWL4030 MADC Driver"
++	depends on TWL4030_CORE
 +
-+	if (!musb->clock)
-+		return 0;
-+
-+	spin_lock_irqsave(&musb->lock, flags);
-+
- 	/* in any role */
- 	OTG_FORCESTDBY_REG &= ~ENABLEFORCE; /* disable MSTANDBY */
- 	OTG_SYSCONFIG_REG &= FORCESTDBY;	/* enable force standby */
-@@ -257,20 +264,41 @@ int musb_platform_suspend(struct musb *musb)
- 	if (musb->xceiv.set_suspend)
- 		musb->xceiv.set_suspend(&musb->xceiv, 1);
+ config TWL4030_USB
+ 	bool "TWL4030 USB Transceiver Driver"
+ 	depends on TWL4030_CORE
+diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
+index 255fbb1..6431675 100644
+--- a/drivers/i2c/chips/Makefile
++++ b/drivers/i2c/chips/Makefile
+@@ -26,6 +26,7 @@ obj-$(CONFIG_TWL4030_CORE)	+= twl4030-core.o
+ obj-$(CONFIG_TWL4030_GPIO)	+= twl4030-gpio.o
+ obj-$(CONFIG_TWL4030_USB)	+= twl4030-usb.o
+ obj-$(CONFIG_TWL4030_POWEROFF)	+= twl4030-poweroff.o
++obj-$(CONFIG_TWL4030_MADC)	+= twl4030-madc.o
+ obj-$(CONFIG_RTC_X1205_I2C)	+= x1205.o
  
-+	if (musb->set_clock)
-+		musb->set_clock(musb->clock, 0);
-+	else
-+		clk_disable(musb->clock);
-+
-+	spin_unlock_irqrestore(&musb->lock, flags);
-+
- 	return 0;
- }
- 
- int musb_platform_resume(struct musb *musb)
- {
-+	unsigned long	flags;
-+
-+	if (!musb->clock)
-+		return 0;
-+
-+	spin_lock_irqsave(&musb->lock, flags);
-+
- 	if (musb->xceiv.set_suspend)
- 		musb->xceiv.set_suspend(&musb->xceiv, 0);
- 
-+	if (musb->set_clock)
-+		musb->set_clock(musb->clock, 1);
-+	else
-+		clk_enable(musb->clock);
-+
- 	OTG_FORCESTDBY_REG &= ~ENABLEFORCE; /* disable MSTANDBY */
- 	OTG_SYSCONFIG_REG |= SMARTSTDBY;	/* enable smart standby */
- 	OTG_SYSCONFIG_REG &= ~AUTOIDLE;		/* disable auto idle */
- 	OTG_SYSCONFIG_REG |= SMARTIDLE;		/* enable smart idle */
- 	OTG_SYSCONFIG_REG |= AUTOIDLE;		/* enable auto idle */
- 
-+	spin_unlock_irqrestore(&musb->lock, flags);
-+
- 	return 0;
- }
- 
+ ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
 -- 
 1.5.5.rc2.25.g5fbd
-
-
-
--- 
-Best Regards,
-
-Felipe Balbi
-http://felipebalbi.com
-me@felipebalbi.com
 
