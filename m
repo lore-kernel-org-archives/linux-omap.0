@@ -1,21 +1,37 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 1/3] I2C: TWL4030: Add power button and power IRQ support
-Date: Thu,  3 Apr 2008 16:44:22 +0300
-Message-ID: <1207230264-4629-1-git-send-email-felipe.balbi@nokia.com>
+Subject: Re: [PATCH 1/3] I2C: TWL4030: Add power button and power IRQ
+	support
+Date: Thu, 3 Apr 2008 16:47:05 +0300
+Message-ID: <20080403134705.GY7004@gandalf.research.nokia.com>
+References: <1207230264-4629-1-git-send-email-felipe.balbi@nokia.com>
+Reply-To: felipe.balbi@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:64486 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:64820 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755275AbYDCNpn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Apr 2008 09:45:43 -0400
+	with ESMTP id S1755538AbYDCNsD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Apr 2008 09:48:03 -0400
 Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m33DjLrj004358
-	for <linux-omap@vger.kernel.org>; Thu, 3 Apr 2008 16:45:40 +0300
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m33DlYW3006656
+	for <linux-omap@vger.kernel.org>; Thu, 3 Apr 2008 16:48:00 +0300
+Content-Disposition: inline
+In-Reply-To: <1207230264-4629-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>, Felipe Balbi <felipe.balbi@nokia.com>
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: linux-omap@vger.kernel.org, Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
+On Thu, Apr 03, 2008 at 04:44:22PM +0300, Felipe Balbi wrote:
+> From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+
+Missing d->handle_irq();
+
+
+>From 10b0fa72ded443a8d89ef3676f9ea08b3b87f8c0 Mon Sep 17 00:00:00 2001
 From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Date: Wed, 2 Apr 2008 20:57:58 +0300
+Subject: [PATCH 1/3] I2C: TWL4030: Add power button and power IRQ support
 
 The following patch implements power button and IRQ support
 for triton2 power block.
@@ -329,8 +345,9 @@ index 0000000..d6098ad
 +
 +		for (module_irq = IH_TWL4030_PWRBASE; pwr_isr != 0;
 +			module_irq++, pwr_isr >>= 1) {
-+			if (pwr_isr & 1)
++			if (pwr_isr & 1) {
 +				irq_desc_t *d = irq_desc + module_irq;
++				d->handle_irq(module_irq, d);
 +		}
 +
 +		local_irq_disable();
@@ -454,3 +471,7 @@ index 06379cf..87f47e5 100644
 -- 
 1.5.5.rc2.25.g5fbd
 
+
+
+-- 
+	- Balbi
