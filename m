@@ -1,80 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Fix TUSB6010 ID register offsets.
-Date: Wed, 2 Apr 2008 13:46:06 +0300
-Message-ID: <20080402104606.GM31913@atomide.com>
-References: <12068131361588-git-send-email-balrogg@gmail.com> <54be4db45e859f4b06bb75a9034df573@felipebalbi.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [PATCH 1/1] USB: MUSB: Be sure that we enable musb->clock
+Date: Thu,  3 Apr 2008 14:38:30 +0300
+Message-ID: <1207222710-10120-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53187 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752308AbYDBKqL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Apr 2008 06:46:11 -0400
-Content-Disposition: inline
-In-Reply-To: <54be4db45e859f4b06bb75a9034df573@felipebalbi.com>
+Received: from smtp.nokia.com ([192.100.105.134]:43152 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754245AbYDCLjo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Apr 2008 07:39:44 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: Andrzej Zaborowski <balrogg@gmail.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, Felipe Balbi <felipe.balbi@nokia.com>
 
-* Felipe Balbi <me@felipebalbi.com> [080402 13:15]:
-> 
-> 
-> On Sat, 29 Mar 2008 18:52:16 +0100, Andrzej Zaborowski <balrogg@gmail.com>
-> wrote:
-> > From: Andrzej Zaborowski <balrog@zabor.org>
-> > 
-> > [Sorry, the previous patch was a copy/paste mistake, this one should be
-> > better]
-> > 
-> > I have no access to the docs for this chip but I'm pretty sure the
-> current
-> > address of the two DIDR1 registers is wrong because it's outside the
-> > TUSB-specific register space.  The modified address in turn has a good
-> > chance to be correct.
-> > 
-> > Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
-> Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+If CONFIG_OMAP_RESET_CLOCKS is enabled, musb->clock would
+be disabled because nobody was enabling it.
 
-Pushed.
+Be sure that omap2430.c enables musb->clock to avoid problems
+later.
 
-Tony
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/usb/musb/omap2430.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
-> > ---
-> >  drivers/usb/musb/tusb6010.h |    4 ++--
-> >  1 files changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/usb/musb/tusb6010.h b/drivers/usb/musb/tusb6010.h
-> > index bb25c3b..f2036ef 100644
-> > --- a/drivers/usb/musb/tusb6010.h
-> > +++ b/drivers/usb/musb/tusb6010.h
-> > @@ -225,8 +225,8 @@ extern void tusb_allow_idle(struct musb *musb, u32
-> > wakeup_enables);
-> >  #define TUSB_PROD_TEST_RESET_VAL		0xa596
-> >  #define TUSB_EP_FIFO(ep)			(TUSB_FIFO_BASE + (ep) * 0x20)
-> > 
-> > -#define TUSB_DIDR1_LO				0x1f8
-> > -#define TUSB_DIDR1_HI				0x1fc
-> > +#define TUSB_DIDR1_LO				(TUSB_SYS_REG_BASE + 0x1f8)
-> > +#define TUSB_DIDR1_HI				(TUSB_SYS_REG_BASE + 0x1fc)
-> >  #define		TUSB_DIDR1_HI_CHIP_REV(v)		(((v) >> 17) & 0xf)
-> >  #define			TUSB_DIDR1_HI_REV_20		0
-> >  #define			TUSB_DIDR1_HI_REV_30		1
-> > --
-> > 1.5.3.4
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> -- 
-> Best Regards,
-> 
-> Felipe Balbi
-> http://felipebalbi.com
-> me@felipebalbi.com
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 8041dde..99c5782 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -262,15 +262,29 @@ int musb_platform_suspend(struct musb *musb)
+ 
+ int musb_platform_resume(struct musb *musb)
+ {
++	unsigned long	flags;
++
++	if (!musb->clock)
++		return 0;
++
++	spin_lock_irqsave(&musb->lock, flags);
++
+ 	if (musb->xceiv.set_suspend)
+ 		musb->xceiv.set_suspend(&musb->xceiv, 0);
+ 
++	if (musb->set_clock)
++		musb->set_clock(musb->clock, 1);
++	else
++		clk_enable(musb->clock);
++
+ 	OTG_FORCESTDBY_REG &= ~ENABLEFORCE; /* disable MSTANDBY */
+ 	OTG_SYSCONFIG_REG |= SMARTSTDBY;	/* enable smart standby */
+ 	OTG_SYSCONFIG_REG &= ~AUTOIDLE;		/* disable auto idle */
+ 	OTG_SYSCONFIG_REG |= SMARTIDLE;		/* enable smart idle */
+ 	OTG_SYSCONFIG_REG |= AUTOIDLE;		/* enable auto idle */
+ 
++	spin_unlock_irqrestore(&musb->lock, flags);
++
+ 	return 0;
+ }
+ 
+-- 
+1.5.5.rc2.25.g5fbd
+
