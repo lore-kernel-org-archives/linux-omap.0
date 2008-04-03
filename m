@@ -1,50 +1,51 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH 2/5] I2C: TWL4030: Kconfig and Makefile changes
-Date: Thu, 3 Apr 2008 15:07:26 -0500
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D91302742903F1415B@dlee13.ent.ti.com>
-References: <1207224865-21527-1-git-send-email-felipe.balbi@nokia.com> <1207224865-21527-2-git-send-email-felipe.balbi@nokia.com> <200804031113.11115.david-b@pacbell.net>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 2/5] I2C: TWL4030: Kconfig and Makefile changes
+Date: Thu, 03 Apr 2008 13:20:06 -0700
+Message-ID: <20080403202006.C174F35F704@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+References: <1207224865-21527-1-git-send-email-felipe.balbi@nokia.com>
+ <1207224865-21527-2-git-send-email-felipe.balbi@nokia.com>
+ <200804031113.11115.david-b@pacbell.net>
+ <3B6D69C3A9EBCA4BA5DA60D91302742903F1415B@dlee13.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49139 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750928AbYDCUHi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Apr 2008 16:07:38 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <200804031113.11115.david-b@pacbell.net>
+Received: from smtp118.sbc.mail.sp1.yahoo.com ([69.147.64.91]:48165 "HELO
+	smtp118.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752666AbYDCUTM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Apr 2008 16:19:12 -0400
+In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D91302742903F1415B@dlee13.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, Felipe Balbi <felipe.balbi@nokia.com>
-Cc: linux-omap@vger.kernel.org, Mikko Ylinen <mikko.k.ylinen@nokia.com>
+To: r-woodruff2@ti.com, felipe.balbi@nokia.com
+Cc: mikko.k.ylinen@nokia.com, linux-omap@vger.kernel.org
 
-> On Thursday 03 April 2008, Felipe Balbi wrote:
-> > +config TWL4030_MADC
-> > +=A0=A0=A0=A0=A0=A0=A0tristate "TWL4030 MADC Driver"
-> > +=A0=A0=A0=A0=A0=A0=A0depends on TWL4030_CORE
-> > +
->=20
-> Again, what's a MADC?
+> > Again, what's a MADC?
+>
+> It's an 'upset C' of course ;)
 
-It's an 'upset C' of course ;)
+Better than obfuscated C, I guess.  http://www.ioccc.org/ ... :)
 
-Really:
 
-It's a 10-bit analog-to-digital converter combined with a 16-input anal=
-og multiplexer.  Multiplexed-ADC I suppose.  It is used by processor gr=
-oups, battery charger and USB sub-chip.
+> Really:
+>
+> It's a 10-bit analog-to-digital converter combined with a 16-input
+> analog multiplexer.  Multiplexed-ADC I suppose.  It is used by
+> processor groups, battery charger and USB sub-chip.
+>
+> 8 of the 16 inputs are externally useable and the other 8 are used
+> by battery, speaker, usb.
 
-8 of the 16 inputs are externally useable and the other 8 are used by b=
-attery, speaker, usb.
+In short, a fairly typical 10-bit/16-channel ADC, with some channels
+serving dedicated functions.  Thanks.  That should be in the driver,
+and in the Kconfig helptext.
 
-On the lines of documentation a public 3430 TRM should be here any day =
-if not already.  I'm not sure on T2, though I'll ask the question.
 
-Regards,
-Richard W.
+> On the lines of documentation a public 3430 TRM should be here any
+> day if not already.  I'm not sure on T2, though I'll ask the question.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I grabbed an OMAP 35x TRM yesterday, the "one big PDF" version, but
+as of this morning there was no documentation on the TWL4030 page.
+
+- Dave
+
