@@ -1,43 +1,32 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] Fix function declaration.
-Date: Fri, 4 Apr 2008 14:34:56 +0300
-Message-ID: <20080404113455.GO3505@atomide.com>
-References: <1207306776-19509-1-git-send-email-ext-tapio.laxstroem@nokia.com> <1207306776-19509-2-git-send-email-ext-tapio.laxstroem@nokia.com> <20080404143315.2ed2e601.jarkko.nikula@nokia.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC/PATCH 0/1] ALSA SoC support for OMAP
+Date: Fri, 4 Apr 2008 13:42:33 +0100
+Message-ID: <20080404124233.GB23571@rakim.wolfsonmicro.main>
+References: <1207300948-11598-1-git-send-email-jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57134 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751206AbYDDLfA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Apr 2008 07:35:00 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <20080404143315.2ed2e601.jarkko.nikula@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <1207300948-11598-1-git-send-email-jarkko.nikula@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
 To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: ext tapio =?iso-8859-1?Q?laxstr=F6m?= <ext-tapio.laxstroem@nokia.com>, linux-omap@vger.kernel.org
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-* Jarkko Nikula <jarkko.nikula@nokia.com> [080404 14:33]:
-> On Fri,  4 Apr 2008 13:59:36 +0300
-> ext tapio laxstr=F6m <ext-tapio.laxstroem@nokia.com> wrote:
->=20
-> > Signed-off-by: tapio laxstr=F6m <ext-tapio.laxstroem@nokia.com>
-> > ---
-> >  arch/arm/mach-omap2/board-n800-audio.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> >=20
-> > -void __init n800_audio_init(void)
-> > +void __init n800_audio_init(struct tsc2301_platform_data *tc)
-> >  {
-> >  }
-> Acked. Had exactly same fix in my own tree but forgot to send it :-)
+On Fri, Apr 04, 2008 at 12:22:27PM +0300, Jarkko Nikula wrote:
 
-Pushed.
+> Here is the second version of ASoC support for OMAP. Now based to dev branch of
+> git://opensource.wolfsonmicro.com/linux-2.6-asoc but applies to linux-omap
+> by modifying Kconfig and Makefile in sound/soc/.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Looks good from an ASoC point of view, thanks - I've applied the patch
+to the dev branch but won't push it anywhere for the time being.
