@@ -1,46 +1,146 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: source.mvista links are broken
-Date: Fri, 04 Apr 2008 11:16:16 -0700
-Message-ID: <87myo9a3kf.fsf@paris.hilman.org>
-References: <5D8B5EC1EB6ED845B1EB216F00C71B65032A8F0F@dlee12.ent.ti.com>
-	<20080404110314.GN3505@atomide.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: [PATCH] timer optimization part 2.
+Date: Fri, 4 Apr 2008 15:03:51 -0500
+Message-ID: <3B6D69C3A9EBCA4BA5DA60D91302742903F14825@dlee13.ent.ti.com>
+References: <87abkv9917.fsf@paris.hilman.org> <3B6D69C3A9EBCA4BA5DA60D91302742903CCA382@dlee13.ent.ti.com> <20080319141504.GB14860@atomide.com> <3B6D69C3A9EBCA4BA5DA60D91302742903CCA4F9@dlee13.ent.ti.com> <20080319155835.GE14860@atomide.com> <3B6D69C3A9EBCA4BA5DA60D91302742903CCA8F8@dlee13.ent.ti.com> <20080320115749.GF14978@atomide.com> <3B6D69C3A9EBCA4BA5DA60D91302742903D3B096@dlee13.ent.ti.com> <20080331104904.GK26502@atomide.com> <3B6D69C3A9EBCA4BA5DA60D91302742903E22347@dlee13.ent.ti.com> <20080402072340.GH31913@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_001_01C8968F.00F96AF4"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:22108 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756669AbYDDSQS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Apr 2008 14:16:18 -0400
-In-Reply-To: <20080404110314.GN3505@atomide.com> (Tony Lindgren's message of "Fri\, 4 Apr 2008 14\:03\:15 +0300")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56830 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753236AbYDDULb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Apr 2008 16:11:31 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <20080402072340.GH31913@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Iqbal <iqbal@ti.com>, linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@mvista.com>, linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> writes:
+This is a multi-part message in MIME format.
 
-> * Iqbal <iqbal@ti.com> [080404 13:07]:
->> 
->> Looks like the OMAP tree links are broken and the summary,short log and other fields don't work.
->> 
->> http://source.mvista.com/git/?p=linux-omap-2.6.git;a=commit;h=8a88c221c88399bc694c367dbea01ffc4153ef20
->
-> Yeah, I've noticed that too. Probably git needs updating on
-> source.mvista.com, it seems to have issues with reading packed objects.
->
-> I've fixed it to some extent by scp'ing over some object files, and then
-> there was a brief file permissions problem too...
->
-> In any case, please use the kernel.org instead:
->
-> http://git.kernel.org/git/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary
-> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
->
-> I've notified Kevin about the issue, so we probably have to wait for
-> git to get updated.
+------_=_NextPart_001_01C8968F.00F96AF4
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-git on source.mvista.com is now updated to 1.5.4.5.  Let me know if
-there are any more problems.
+Hi,
 
-Kevin
+This patch adds a new function timer_load_start() which optimizes the
+system timer. In tree users have been updated to use this function.
 
+This was tested and working on a pull as of 4 April 08 on
+2.6.25-rc8-omap1-04408-g722c80b on 3430SDP.  A previous version has been
+working with out issue for a while now.
+
+* Before patch register writes are taking up .078% @ 500MHz.
+
+ Address                 |total  |min  |max      |avr     |count|ratio%
+ old\process\default_idle|7.369s |0.0us|999.902ms|14.477ms|509. |62.661%
+ ld\Global\cpu_v7_do_idle|4.265s |0.0us|375.786ms|24.374ms|175. |36.270%
+                (UNKNOWN)|17.503ms|0.us|531.080us|5.119us|3419. |0.148%
+ r\omap_dm_timer_set_load|8.135ms|0.0us|79.887us|15.065us|540.  |0.069%
+<--
+ \vmlinux-old\Global\_end|2.023ms|0.0us|4.000us|0.560us|3613.   |0.017%
+ -old\Global\__raw_readsw|1.962ms|0.0us|108.610us|9.167us|214.  |0.016%
+ old\smc91x\smc_interrupt|1.353ms|0.0us|10.212us|2.348us|576.   |0.011%
+ s/namei\__link_path_walk|1.161ms|0.0us|4.310us|0.762us|  1524. |0.009%
+ \omap_dm_timer_write_reg|1.085ms|0.0us|126.150us|2.153us|504.  |0.009%
+<--
+
+* After patch timer functions do not show up in top listings.
+
+Regards,
+Richard W.
+
+
+------_=_NextPart_001_01C8968F.00F96AF4
+Content-Type: application/octet-stream;
+	name="timer-optimize.diff"
+Content-Transfer-Encoding: base64
+Content-Description: timer-optimize.diff
+Content-Disposition: attachment;
+	filename="timer-optimize.diff"
+
+VGhpcyBwYXRjaCBvcHRpbWl6ZXMgdGhlIHRpbWVyIGxvYWQgYW5kIHN0YXJ0IHNlcXVlbmNlLiAg
+QnkgY29tYmluaW5nIHRoZQpsb2FkIGFuZCBzdGFydCBhIG5lZWRsZXNzIHBvc3RlZCB3YWl0IGNh
+biBiZSByZW1vdmVkIGZyb20gdGhlIHN5c3RlbSB0aW1lcgpleGVjdXRpb24gcGF0aC4KCiogQmVm
+b3JlIHBhdGNoIHJlZ2lzdGVyIHdyaXRlcyBhcmUgdGFraW5nIHVwIC4wNzglIEAgNTAwTUh6IGR1
+cmluZyBpZGxlLgoKIEFkZHJlc3MgICAgICAgICAgICAgICAgIHx0b3RhbCAgfG1pbiAgfG1heCAg
+ICAgIHxhdnIgICAgIHxjb3VudHxyYXRpbyUKIG9sZFxwcm9jZXNzXGRlZmF1bHRfaWRsZXw3LjM2
+OXMgfDAuMHVzfDk5OS45MDJtc3wxNC40Nzdtc3w1MDkuIHw2Mi42NjElCiBsZFxHbG9iYWxcY3B1
+X3Y3X2RvX2lkbGV8NC4yNjVzIHwwLjB1c3wzNzUuNzg2bXN8MjQuMzc0bXN8MTc1LiB8MzYuMjcw
+JQogICAgICAgICAgICAgICAgKFVOS05PV04pfDE3LjUwM21zfDAudXN8NTMxLjA4MHVzfDUuMTE5
+dXN8MzQxOS4gfDAuMTQ4JQogclxvbWFwX2RtX3RpbWVyX3NldF9sb2FkfDguMTM1bXN8MC4wdXN8
+NzkuODg3dXN8MTUuMDY1dXN8NTQwLiAgfDAuMDY5JSA8LS0KIFx2bWxpbnV4LW9sZFxHbG9iYWxc
+X2VuZHwyLjAyM21zfDAuMHVzfDQuMDAwdXN8MC41NjB1c3wzNjEzLiAgIHwwLjAxNyUKIC1vbGRc
+R2xvYmFsXF9fcmF3X3JlYWRzd3wxLjk2Mm1zfDAuMHVzfDEwOC42MTB1c3w5LjE2N3VzfDIxNC4g
+IHwwLjAxNiUKIG9sZFxzbWM5MXhcc21jX2ludGVycnVwdHwxLjM1M21zfDAuMHVzfDEwLjIxMnVz
+fDIuMzQ4dXN8NTc2LiAgIHwwLjAxMSUKIHMvbmFtZWlcX19saW5rX3BhdGhfd2Fsa3wxLjE2MW1z
+fDAuMHVzfDQuMzEwdXN8MC43NjJ1c3wgIDE1MjQuIHwwLjAwOSUKIFxvbWFwX2RtX3RpbWVyX3dy
+aXRlX3JlZ3wxLjA4NW1zfDAuMHVzfDEyNi4xNTB1c3wyLjE1M3VzfDUwNC4gIHwwLjAwOSUgPC0t
+CgoqIEFmdGVyIHBhdGNoIHRpbWVyIGZ1bmN0aW9ucyBkbyBub3Qgc2hvdyB1cCBpbiB0b3AgbGlz
+dGluZ3MgZm9yIGxvbmcgY2FwdHVyZXMuCgpTaWduZWQtb2ZmLWJ5OiBSaWNoYXJkIFdvb2RydWZm
+IDxyLXdvb2RydWZmMkB0aS5jb20+CgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi90
+aW1lci1ncC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi90aW1lci1ncC5jCmluZGV4IDc4ZDA1ZjIu
+LjU1NzYwM2YgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvdGltZXItZ3AuYworKysg
+Yi9hcmNoL2FybS9tYWNoLW9tYXAyL3RpbWVyLWdwLmMKQEAgLTU5LDggKzU5LDcgQEAgc3RhdGlj
+IHN0cnVjdCBpcnFhY3Rpb24gb21hcDJfZ3BfdGltZXJfaXJxID0gewogc3RhdGljIGludCBvbWFw
+Ml9ncF90aW1lcl9zZXRfbmV4dF9ldmVudCh1bnNpZ25lZCBsb25nIGN5Y2xlcywKIAkJCQkJIHN0
+cnVjdCBjbG9ja19ldmVudF9kZXZpY2UgKmV2dCkKIHsKLQlvbWFwX2RtX3RpbWVyX3NldF9sb2Fk
+KGdwdGltZXIsIDAsIDB4ZmZmZmZmZmYgLSBjeWNsZXMpOwotCW9tYXBfZG1fdGltZXJfc3RhcnQo
+Z3B0aW1lcik7CisJb21hcF9kbV90aW1lcl9zZXRfbG9hZF9zdGFydChncHRpbWVyLCAwLCAweGZm
+ZmZmZmZmIC0gY3ljbGVzKTsKIAogCXJldHVybiAwOwogfQpAQCAtNzcsOCArNzYsNyBAQCBzdGF0
+aWMgdm9pZCBvbWFwMl9ncF90aW1lcl9zZXRfbW9kZShlbnVtIGNsb2NrX2V2ZW50X21vZGUgbW9k
+ZSwKIAkJcGVyaW9kID0gY2xrX2dldF9yYXRlKG9tYXBfZG1fdGltZXJfZ2V0X2ZjbGsoZ3B0aW1l
+cikpIC8gSFo7CiAJCXBlcmlvZCAtPSAxOwogCi0JCW9tYXBfZG1fdGltZXJfc2V0X2xvYWQoZ3B0
+aW1lciwgMSwgMHhmZmZmZmZmZiAtIHBlcmlvZCk7Ci0JCW9tYXBfZG1fdGltZXJfc3RhcnQoZ3B0
+aW1lcik7CisJCW9tYXBfZG1fdGltZXJfc2V0X2xvYWRfc3RhcnQoZ3B0aW1lciwgMSwgMHhmZmZm
+ZmZmZiAtIHBlcmlvZCk7CiAJCWJyZWFrOwogCWNhc2UgQ0xPQ0tfRVZUX01PREVfT05FU0hPVDoK
+IAkJYnJlYWs7CkBAIC0xNzIsOCArMTcwLDcgQEAgc3RhdGljIHZvaWQgX19pbml0IG9tYXAyX2dw
+X2Nsb2Nrc291cmNlX2luaXQodm9pZCkKIAl0aWNrX3JhdGUgPSBjbGtfZ2V0X3JhdGUob21hcF9k
+bV90aW1lcl9nZXRfZmNsayhncHQpKTsKIAl0aWNrX3BlcmlvZCA9ICh0aWNrX3JhdGUgLyBIWikg
+LSAxOwogCi0Jb21hcF9kbV90aW1lcl9zZXRfbG9hZChncHQsIDEsIDApOwotCW9tYXBfZG1fdGlt
+ZXJfc3RhcnQoZ3B0KTsKKwlvbWFwX2RtX3RpbWVyX3NldF9sb2FkX3N0YXJ0KGdwdCwgMSwgMCk7
+CiAKIAljbG9ja3NvdXJjZV9ncHQubXVsdCA9CiAJCWNsb2Nrc291cmNlX2toejJtdWx0KHRpY2tf
+cmF0ZS8xMDAwLCBjbG9ja3NvdXJjZV9ncHQuc2hpZnQpOwpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0v
+cGxhdC1vbWFwL2RtdGltZXIuYyBiL2FyY2gvYXJtL3BsYXQtb21hcC9kbXRpbWVyLmMKaW5kZXgg
+ODIyYjZiYi4uZjIyNTA2YSAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vcGxhdC1vbWFwL2RtdGltZXIu
+YworKysgYi9hcmNoL2FybS9wbGF0LW9tYXAvZG10aW1lci5jCkBAIC01NDYsNiArNTQ2LDI0IEBA
+IHZvaWQgb21hcF9kbV90aW1lcl9zZXRfbG9hZChzdHJ1Y3Qgb21hcF9kbV90aW1lciAqdGltZXIs
+IGludCBhdXRvcmVsb2FkLAogCW9tYXBfZG1fdGltZXJfd3JpdGVfcmVnKHRpbWVyLCBPTUFQX1RJ
+TUVSX1RSSUdHRVJfUkVHLCAwKTsKIH0KIAorLyogT3B0aW1pemVkIHNldF9sb2FkIHdoaWNoIHJl
+bW92ZXMgY29zdGx5IHNwaW4gd2FpdCBpbiB0aW1lcl9zdGFydCAqLwordm9pZCBvbWFwX2RtX3Rp
+bWVyX3NldF9sb2FkX3N0YXJ0KHN0cnVjdCBvbWFwX2RtX3RpbWVyICp0aW1lciwgaW50IGF1dG9y
+ZWxvYWQsCisgICAgICAgICAgICAgICAgICAgICAgICAgICAgdW5zaWduZWQgaW50IGxvYWQpCit7
+CisJdTMyIGw7CisKKwlsID0gb21hcF9kbV90aW1lcl9yZWFkX3JlZyh0aW1lciwgT01BUF9USU1F
+Ul9DVFJMX1JFRyk7CisJaWYgKGF1dG9yZWxvYWQpCisJCWwgfD0gT01BUF9USU1FUl9DVFJMX0FS
+OworCWVsc2UKKwkJbCAmPSB+T01BUF9USU1FUl9DVFJMX0FSOworCWwgfD0gT01BUF9USU1FUl9D
+VFJMX1NUOworCisJb21hcF9kbV90aW1lcl93cml0ZV9yZWcodGltZXIsIE9NQVBfVElNRVJfQ09V
+TlRFUl9SRUcsIGxvYWQpOworCW9tYXBfZG1fdGltZXJfd3JpdGVfcmVnKHRpbWVyLCBPTUFQX1RJ
+TUVSX0xPQURfUkVHLCBsb2FkKTsKKwlvbWFwX2RtX3RpbWVyX3dyaXRlX3JlZyh0aW1lciwgT01B
+UF9USU1FUl9DVFJMX1JFRywgbCk7Cit9CisKIHZvaWQgb21hcF9kbV90aW1lcl9zZXRfbWF0Y2go
+c3RydWN0IG9tYXBfZG1fdGltZXIgKnRpbWVyLCBpbnQgZW5hYmxlLAogCQkJICAgICB1bnNpZ25l
+ZCBpbnQgbWF0Y2gpCiB7CkBAIC01NjAsNyArNTc4LDYgQEAgdm9pZCBvbWFwX2RtX3RpbWVyX3Nl
+dF9tYXRjaChzdHJ1Y3Qgb21hcF9kbV90aW1lciAqdGltZXIsIGludCBlbmFibGUsCiAJb21hcF9k
+bV90aW1lcl93cml0ZV9yZWcodGltZXIsIE9NQVBfVElNRVJfTUFUQ0hfUkVHLCBtYXRjaCk7CiB9
+CiAKLQogdm9pZCBvbWFwX2RtX3RpbWVyX3NldF9wd20oc3RydWN0IG9tYXBfZG1fdGltZXIgKnRp
+bWVyLCBpbnQgZGVmX29uLAogCQkJICAgaW50IHRvZ2dsZSwgaW50IHRyaWdnZXIpCiB7CmRpZmYg
+LS1naXQgYS9pbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFwL2RtdGltZXIuaCBiL2luY2x1ZGUvYXNt
+LWFybS9hcmNoLW9tYXAvZG10aW1lci5oCmluZGV4IGZlZmIyNzYuLjAyYjI5ZTggMTAwNjQ0Ci0t
+LSBhL2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvZG10aW1lci5oCisrKyBiL2luY2x1ZGUvYXNt
+LWFybS9hcmNoLW9tYXAvZG10aW1lci5oCkBAIC02Niw2ICs2Niw3IEBAIHZvaWQgb21hcF9kbV90
+aW1lcl9zdG9wKHN0cnVjdCBvbWFwX2RtX3RpbWVyICp0aW1lcik7CiAKIHZvaWQgb21hcF9kbV90
+aW1lcl9zZXRfc291cmNlKHN0cnVjdCBvbWFwX2RtX3RpbWVyICp0aW1lciwgaW50IHNvdXJjZSk7
+CiB2b2lkIG9tYXBfZG1fdGltZXJfc2V0X2xvYWQoc3RydWN0IG9tYXBfZG1fdGltZXIgKnRpbWVy
+LCBpbnQgYXV0b3JlbG9hZCwgdW5zaWduZWQgaW50IHZhbHVlKTsKK3ZvaWQgb21hcF9kbV90aW1l
+cl9zZXRfbG9hZF9zdGFydChzdHJ1Y3Qgb21hcF9kbV90aW1lciAqdGltZXIsIGludCBhdXRvcmVs
+b2FkLCB1bnNpZ25lZCBpbnQgdmFsdWUpOwogdm9pZCBvbWFwX2RtX3RpbWVyX3NldF9tYXRjaChz
+dHJ1Y3Qgb21hcF9kbV90aW1lciAqdGltZXIsIGludCBlbmFibGUsIHVuc2lnbmVkIGludCBtYXRj
+aCk7CiB2b2lkIG9tYXBfZG1fdGltZXJfc2V0X3B3bShzdHJ1Y3Qgb21hcF9kbV90aW1lciAqdGlt
+ZXIsIGludCBkZWZfb24sIGludCB0b2dnbGUsIGludCB0cmlnZ2VyKTsKIHZvaWQgb21hcF9kbV90
+aW1lcl9zZXRfcHJlc2NhbGVyKHN0cnVjdCBvbWFwX2RtX3RpbWVyICp0aW1lciwgaW50IHByZXNj
+YWxlcik7Cg==
+
+------_=_NextPart_001_01C8968F.00F96AF4--
