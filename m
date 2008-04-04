@@ -1,198 +1,103 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Stop AIC23 driver from Oopsing.
-Date: Fri, 4 Apr 2008 12:32:23 +0300
-Message-ID: <20080404093222.GF3505@atomide.com>
-References: <12072705941142-git-send-email-balrogg@gmail.com>
+Subject: Re: [PATCH 1/1] USB: MUSB: Be sure that we enable musb->clock
+Date: Fri, 4 Apr 2008 12:33:15 +0300
+Message-ID: <20080404093315.GG3505@atomide.com>
+References: <1207222710-10120-1-git-send-email-felipe.balbi@nokia.com> <0c65e3d506e8fd8a7579091f73c3b4fb@felipebalbi.com> <20080403135937.GB7004@gandalf.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:55726 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751169AbYDDJcZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Apr 2008 05:32:25 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52214 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751700AbYDDJdV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Apr 2008 05:33:21 -0400
 Content-Disposition: inline
-In-Reply-To: <12072705941142-git-send-email-balrogg@gmail.com>
+In-Reply-To: <20080403135937.GB7004@gandalf.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrzej Zaborowski <balrogg@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: ext Felipe Balbi <me@felipebalbi.com>, linux-omap@vger.kernel.org
 
-* Andrzej Zaborowski <balrogg@gmail.com> [080404 02:53]:
-> From: Andrzej Zaborowski <balrog@zabor.org>
+* Felipe Balbi <felipe.balbi@nokia.com> [080403 17:01]:
+> On Thu, Apr 03, 2008 at 06:56:01AM -0500, ext Felipe Balbi wrote:
+> > 
+> > 
+> > On Thu,  3 Apr 2008 14:38:30 +0300, Felipe Balbi <felipe.balbi@nokia.com>
+> > wrote:
+> > 
+> > The following is better as I'm also disabling the clock on suspend to
+> > conserve power.
 > 
-> Prevent AIC23 driver Oopsing when no AIC23 is present by moving some of the
-> initialisation to after the chip is found.  There seems to be more that
-> should be fixed in this driver but with this change it can at least be
-> compiled into a kernel safely.
+> The spinlock wasn't needed, stupid brain-fart.
+> Sorry for that.
+> 
+> Tony, updated patch below:
 
-Thanks, pushing today.
+Pushing today.
 
 Tony
 
-
-> Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
+> From cb08008da5e4a514d7b4784cbaf599ac119376ff Mon Sep 17 00:00:00 2001
+> From: Felipe Balbi <felipe.balbi@nokia.com>
+> Date: Thu, 3 Apr 2008 14:35:33 +0300
+> Subject: [PATCH] USB: MUSB: Be sure that we enable musb->clock
+> 
+> If CONFIG_OMAP_RESET_CLOCKS is enabled, musb->clock would
+> be disabled because nobody was enabling it.
+> 
+> Be sure that omap2430.c enables musb->clock to avoid problems
+> later.
+> 
+> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 > ---
->  drivers/i2c/chips/tlv320aic23.c |   94 ++++++++++++++++++++------------------
->  1 files changed, 49 insertions(+), 45 deletions(-)
+>  drivers/usb/musb/omap2430.c |   16 ++++++++++++++++
+>  1 files changed, 16 insertions(+), 0 deletions(-)
 > 
-> diff --git a/drivers/i2c/chips/tlv320aic23.c b/drivers/i2c/chips/tlv320aic23.c
-> index a2ec4bc..544cc28 100644
-> --- a/drivers/i2c/chips/tlv320aic23.c
-> +++ b/drivers/i2c/chips/tlv320aic23.c
-> @@ -54,6 +54,7 @@ I2C_CLIENT_INSMOD;
->  static struct i2c_driver aic23_driver;
->  static struct i2c_client *new_client;
->  static int selftest;
-> +static struct platform_device audio_i2c_device;
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index 8041dde..c21d93a 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -246,6 +246,9 @@ int __init musb_platform_init(struct musb *musb)
 >  
->  static struct aic23_info {
->  	u16 volume_reg_left;
-> @@ -95,6 +96,38 @@ int aic23_write_value(u8 reg, u16 value)
->  	return 0;
->  }
->  
-> +/*
-> + * Configures the McBSP3 which is used to send clock to the AIC23 codec.
-> + * The input clock rate from DSP is 12MHz.
-> + * The DSP clock must be on before this is called.
-> + */
-> +static int omap_mcbsp3_aic23_clock_init(void)
-> +{
-> +	u16 w;
-> +
-> +	/* enable 12MHz clock to mcbsp 1 & 3 */
-> +	__raw_writew(__raw_readw(DSP_IDLECT2) | (1<<1), DSP_IDLECT2);
-> +	__raw_writew(__raw_readw(DSP_RSTCT2) | 1 | 1<<1, DSP_RSTCT2);
-> +
-> +	/* disable sample rate generator */
-> +	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR1, 0x0000);
-> +	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR2, 0x0000);
-> +
-> +	/* pin control register */
-> +	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, PCR0,(CLKXM | CLKXP | CLKRP));
-> +
-> +	/* configure srg to send 12MHz pulse from dsp peripheral clock */
-> +	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SRGR1, 0x0000);
-> +	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SRGR2, CLKSM);
-> +
-> +	/* enable sample rate generator */
-> +	w = OMAP_MCBSP_READ(OMAP1610_MCBSP3_BASE, SPCR2);
-> +	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR2, (w | FREE | GRST));
-> +	printk("Clock enabled to MCBSP1 & 3 \n");
-> +
-> +	return 0;
-> +}
-> +
->  static int aic23_detect_client(struct i2c_adapter *adapter, int address,
->  				     int kind)
+>  int musb_platform_suspend(struct musb *musb)
 >  {
-> @@ -103,7 +136,7 @@ static int aic23_detect_client(struct i2c_adapter *adapter, int address,
+> +	if (!musb->clock)
+> +		return 0;
+> +
+>  	/* in any role */
+>  	OTG_FORCESTDBY_REG &= ~ENABLEFORCE; /* disable MSTANDBY */
+>  	OTG_SYSCONFIG_REG &= FORCESTDBY;	/* enable force standby */
+> @@ -257,14 +260,27 @@ int musb_platform_suspend(struct musb *musb)
+>  	if (musb->xceiv.set_suspend)
+>  		musb->xceiv.set_suspend(&musb->xceiv, 1);
 >  
->  	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA |
->  				     I2C_FUNC_SMBUS_WRITE_BYTE)) {
-> -		printk(KERN_WARNING "%s functinality check failed\n",
-> +		printk(KERN_WARNING "%s functionality check failed\n",
->  		       client_name);
->  		return err;
->  	}
-> @@ -128,6 +161,19 @@ static int aic23_detect_client(struct i2c_adapter *adapter, int address,
->  		kfree(new_client);
->  		return err;
->  	}
-> +
-> +	if (platform_device_register(&audio_i2c_device)) {
-> +		printk(KERN_WARNING "Failed to register audio i2c device\n");
-> +		selftest = -ENODEV;
-> +		return selftest;
-> +	}
-> +	/* FIXME: Do in board-specific file */
-> +	omap_mcbsp3_aic23_clock_init();
-> +
-> +	if (!aic23_info_l.power_down)
-> +		aic23_power_up();
-> +	aic23_info_l.initialized = 1;
+> +	if (musb->set_clock)
+> +		musb->set_clock(musb->clock, 0);
+> +	else
+> +		clk_disable(musb->clock);
 > +
 >  	return 0;
 >  }
 >  
-> @@ -135,6 +181,8 @@ static int aic23_detach_client(struct i2c_client *client)
+>  int musb_platform_resume(struct musb *musb)
 >  {
->  	int err;
->  
-> +	platform_device_unregister(&audio_i2c_device);
+> +	if (!musb->clock)
+> +		return 0;
 > +
->  	if ((err = i2c_detach_client(client))) {
->  		printk("aic23.o: Client deregistration failed, \
->  		       client not detached.\n");
-> @@ -162,38 +210,6 @@ static struct i2c_driver aic23_driver = {
->  	.detach_client	= aic23_detach_client,
->  };
+>  	if (musb->xceiv.set_suspend)
+>  		musb->xceiv.set_suspend(&musb->xceiv, 0);
 >  
-> -/*
-> - * Configures the McBSP3 which is used to send clock to the AIC23 codec.
-> - * The input clock rate from DSP is 12MHz.
-> - * The DSP clock must be on before this is called.
-> - */
-> -static int omap_mcbsp3_aic23_clock_init(void)
-> -{
-> -	u16 w;
-> -
-> -	/* enable 12MHz clock to mcbsp 1 & 3 */
-> -	__raw_writew(__raw_readw(DSP_IDLECT2) | (1<<1), DSP_IDLECT2);
-> -	__raw_writew(__raw_readw(DSP_RSTCT2) | 1 | 1<<1, DSP_RSTCT2);
-> -
-> -	/* disable sample rate generator */
-> -	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR1, 0x0000);
-> -	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR2, 0x0000);
-> -
-> -	/* pin control register */
-> -	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, PCR0,(CLKXM | CLKXP | CLKRP));
-> -
-> -	/* configure srg to send 12MHz pulse from dsp peripheral clock */
-> -	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SRGR1, 0x0000);
-> -	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SRGR2, CLKSM);
-> -
-> -	/* enable sample rate generator */
-> -	w = OMAP_MCBSP_READ(OMAP1610_MCBSP3_BASE, SPCR2);
-> -	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR2, (w | FREE | GRST));
-> -	printk("Clock enabled to MCBSP1 & 3 \n");
-> -
-> -	return 0;
-> -}
-> -
->  static void update_volume_left(int volume)
->  {
->  	u16 val = 0;
-> @@ -633,17 +649,6 @@ static int __init aic23_init(void)
->  		return selftest;
->  	}
->  
-> -	if (platform_device_register(&audio_i2c_device)) {
-> -		printk(KERN_WARNING "Failed to register audio i2c device\n");
-> -		platform_driver_unregister(&audio_i2c_driver);
-> -		selftest = -ENODEV;
-> -		return selftest;
-> -	}
-> -	/* FIXME: Do in board-specific file */
-> -	omap_mcbsp3_aic23_clock_init();
-> -	if (!aic23_info_l.power_down)
-> -		aic23_power_up();
-> -	aic23_info_l.initialized = 1;
->  	printk("TLV320AIC23 I2C version %s (%s)\n",
->  	       TLV320AIC23_VERSION, TLV320AIC23_DATE);
->  
-> @@ -655,7 +660,6 @@ static void __exit aic23_exit(void)
->  	aic23_power_down();
->  	i2c_del_driver(&aic23_driver);
->  
-> -	platform_device_unregister(&audio_i2c_device);
->  	platform_driver_unregister(&audio_i2c_driver);
->  }
->  
+> +	if (musb->set_clock)
+> +		musb->set_clock(musb->clock, 1);
+> +	else
+> +		clk_enable(musb->clock);
+> +
+>  	OTG_FORCESTDBY_REG &= ~ENABLEFORCE; /* disable MSTANDBY */
+>  	OTG_SYSCONFIG_REG |= SMARTSTDBY;	/* enable smart standby */
+>  	OTG_SYSCONFIG_REG &= ~AUTOIDLE;		/* disable auto idle */
 > -- 
-> 1.5.3.4
+> 1.5.5.rc2.25.g5fbd
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> -- 
+> 	- Balbi
