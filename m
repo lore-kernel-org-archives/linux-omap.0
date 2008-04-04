@@ -1,46 +1,46 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: [RFC/PATCH 0/1] ALSA SoC support for OMAP
-Date: Fri, 4 Apr 2008 16:31:00 +0300
-Message-ID: <20080404163100.6d3090dc.jarkko.nikula@nokia.com>
-References: <1207300948-11598-1-git-send-email-jarkko.nikula@nokia.com>
-	<20080404124233.GB23571@rakim.wolfsonmicro.main>
+From: Kevin Hilman <khilman@mvista.com>
+Subject: Re: source.mvista links are broken
+Date: Fri, 04 Apr 2008 11:16:16 -0700
+Message-ID: <87myo9a3kf.fsf@paris.hilman.org>
+References: <5D8B5EC1EB6ED845B1EB216F00C71B65032A8F0F@dlee12.ent.ti.com>
+	<20080404110314.GN3505@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20080404124233.GB23571@rakim.wolfsonmicro.main>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: ext Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from gateway-1237.mvista.com ([63.81.120.158]:22108 "EHLO
+	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756669AbYDDSQS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Apr 2008 14:16:18 -0400
+In-Reply-To: <20080404110314.GN3505@atomide.com> (Tony Lindgren's message of "Fri\, 4 Apr 2008 14\:03\:15 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Iqbal <iqbal@ti.com>, linux-omap@vger.kernel.org
 
-On Fri, 4 Apr 2008 13:42:33 +0100
-"ext Mark Brown" <broonie@opensource.wolfsonmicro.com> wrote:
+Tony Lindgren <tony@atomide.com> writes:
 
-> On Fri, Apr 04, 2008 at 12:22:27PM +0300, Jarkko Nikula wrote:
-> 
-> > Here is the second version of ASoC support for OMAP. Now based to
-> > dev branch of git://opensource.wolfsonmicro.com/linux-2.6-asoc but
-> > applies to linux-omap by modifying Kconfig and Makefile in
-> > sound/soc/.
-> 
-> Looks good from an ASoC point of view, thanks - I've applied the patch
-> to the dev branch but won't push it anywhere for the time being.
+> * Iqbal <iqbal@ti.com> [080404 13:07]:
+>> 
+>> Looks like the OMAP tree links are broken and the summary,short log and other fields don't work.
+>> 
+>> http://source.mvista.com/git/?p=linux-omap-2.6.git;a=commit;h=8a88c221c88399bc694c367dbea01ffc4153ef20
 >
-Ok, I'll keep you informed when the include/asm-arm/arch-omap/control.h
-is in and my omap-mcbsp.c compiles cleanly.
+> Yeah, I've noticed that too. Probably git needs updating on
+> source.mvista.com, it seems to have issues with reading packed objects.
+>
+> I've fixed it to some extent by scp'ing over some object files, and then
+> there was a brief file permissions problem too...
+>
+> In any case, please use the kernel.org instead:
+>
+> http://git.kernel.org/git/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+>
+> I've notified Kevin about the issue, so we probably have to wait for
+> git to get updated.
 
-Currently the missing file it's in Russell's patch queue:
+git on source.mvista.com is now updated to 1.5.4.5.  Let me know if
+there are any more problems.
 
-http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=4920/1
+Kevin
 
-
-Jarkko
