@@ -1,208 +1,187 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/2] PRM/CM: Convert existing code to use PRM/CM RMW functions
-Date: Thu, 03 Apr 2008 16:34:41 -0600
-Message-ID: <20080403223535.907471961@pwsan.com>
-References: <20080403223439.820599556@pwsan.com>
+From: Andrzej Zaborowski <balrogg@gmail.com>
+Subject: [PATCH] Stop AIC23 driver from Oopsing.
+Date: Fri,  4 Apr 2008 02:56:34 +0200
+Message-ID: <12072705941142-git-send-email-balrogg@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51594 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757808AbYDCWiI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Apr 2008 18:38:08 -0400
-Content-Disposition: inline; filename=convert_code_to_use_cm_prm_rmw_funcs.patch
+Received: from 3a.49.1343.static.theplanet.com ([67.19.73.58]:37558 "EHLO
+	pug.o-hand.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754779AbYDCXwI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Apr 2008 19:52:08 -0400
+Received: from borg (cjx126.neoplus.adsl.tpnet.pl [83.31.73.126])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by pug.o-hand.com (Postfix) with ESMTP id 6E702E2B47D
+	for <linux-omap@vger.kernel.org>; Thu,  3 Apr 2008 19:52:05 -0400 (EDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: toshihiro.kobayashi@nokia.com
 
-Convert existing code that reads, modifies, and writes back CM/PRM
-register values to use the rmw functions introduced in the previous
-patch.  This code should eventually disappear once clockdomain handling
-is integrated into the 24xx clock framework.
+From: Andrzej Zaborowski <balrog@zabor.org>
 
-Also restructure arch/arm/mach-omap2/prcm.c slightly while we
-are here. 
+Prevent AIC23 driver Oopsing when no AIC23 is present by moving some of the
+initialisation to after the chip is found.  There seems to be more that
+should be fixed in this driver but with this change it can at least be
+compiled into a kernel safely.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-
+Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
 ---
- arch/arm/mach-omap2/clock.c       |    8 +++-----
- arch/arm/mach-omap2/clock24xx.c   |   15 ++++-----------
- arch/arm/mach-omap2/pm.c          |   19 +++++--------------
- arch/arm/mach-omap2/prcm.c        |   14 ++++++++------
- drivers/dsp/dspgateway/dsp_core.c |   14 +++++---------
- 5 files changed, 25 insertions(+), 45 deletions(-)
+ drivers/i2c/chips/tlv320aic23.c |   94 ++++++++++++++++++++------------------
+ 1 files changed, 49 insertions(+), 45 deletions(-)
 
-Index: linux-omap/arch/arm/mach-omap2/clock.c
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/clock.c	2008-04-03 16:10:12.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/clock.c	2008-04-03 16:21:43.000000000 -0600
-@@ -577,7 +577,7 @@
+diff --git a/drivers/i2c/chips/tlv320aic23.c b/drivers/i2c/chips/tlv320aic23.c
+index a2ec4bc..544cc28 100644
+--- a/drivers/i2c/chips/tlv320aic23.c
++++ b/drivers/i2c/chips/tlv320aic23.c
+@@ -54,6 +54,7 @@ I2C_CLIENT_INSMOD;
+ static struct i2c_driver aic23_driver;
+ static struct i2c_client *new_client;
+ static int selftest;
++static struct platform_device audio_i2c_device;
  
- int omap2_clksel_set_rate(struct clk *clk, unsigned long rate)
- {
--	u32 field_mask, field_val, reg_val, validrate, new_div = 0;
-+	u32 field_mask, field_val, validrate, new_div = 0;
- 	void __iomem *div_addr;
- 
- 	validrate = omap2_clksel_round_rate_div(clk, rate, &new_div);
-@@ -592,10 +592,8 @@
- 	if (field_val == ~0)
- 		return -EINVAL;
- 
--	reg_val = cm_read_reg(div_addr);
--	reg_val &= ~field_mask;
--	reg_val |= (field_val << __ffs(field_mask));
--	cm_write_reg(reg_val, div_addr);
-+	cm_rmw_reg_bits(field_mask, field_val << __ffs(field_mask), div_addr);
-+
- 	wmb();
- 
- 	clk->rate = clk->parent->rate / new_div;
-Index: linux-omap/arch/arm/mach-omap2/clock24xx.c
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/clock24xx.c	2008-04-03 16:10:12.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/clock24xx.c	2008-04-03 16:21:43.000000000 -0600
-@@ -77,24 +77,17 @@
- 
- static int omap2_enable_osc_ck(struct clk *clk)
- {
--	u32 pcc;
- 
--	pcc = prm_read_reg(OMAP24XX_PRCM_CLKSRC_CTRL);
--
--	prm_write_reg(pcc & ~OMAP_AUTOEXTCLKMODE_MASK,
--		      OMAP24XX_PRCM_CLKSRC_CTRL);
-+	prm_rmw_reg_bits(OMAP_AUTOEXTCLKMODE_MASK, ~OMAP_AUTOEXTCLKMODE_MASK,
-+			 OMAP24XX_PRCM_CLKSRC_CTRL);
- 
+ static struct aic23_info {
+ 	u16 volume_reg_left;
+@@ -95,6 +96,38 @@ int aic23_write_value(u8 reg, u16 value)
  	return 0;
  }
  
- static void omap2_disable_osc_ck(struct clk *clk)
++/*
++ * Configures the McBSP3 which is used to send clock to the AIC23 codec.
++ * The input clock rate from DSP is 12MHz.
++ * The DSP clock must be on before this is called.
++ */
++static int omap_mcbsp3_aic23_clock_init(void)
++{
++	u16 w;
++
++	/* enable 12MHz clock to mcbsp 1 & 3 */
++	__raw_writew(__raw_readw(DSP_IDLECT2) | (1<<1), DSP_IDLECT2);
++	__raw_writew(__raw_readw(DSP_RSTCT2) | 1 | 1<<1, DSP_RSTCT2);
++
++	/* disable sample rate generator */
++	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR1, 0x0000);
++	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR2, 0x0000);
++
++	/* pin control register */
++	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, PCR0,(CLKXM | CLKXP | CLKRP));
++
++	/* configure srg to send 12MHz pulse from dsp peripheral clock */
++	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SRGR1, 0x0000);
++	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SRGR2, CLKSM);
++
++	/* enable sample rate generator */
++	w = OMAP_MCBSP_READ(OMAP1610_MCBSP3_BASE, SPCR2);
++	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR2, (w | FREE | GRST));
++	printk("Clock enabled to MCBSP1 & 3 \n");
++
++	return 0;
++}
++
+ static int aic23_detect_client(struct i2c_adapter *adapter, int address,
+ 				     int kind)
  {
--	u32 pcc;
--
--	pcc = prm_read_reg(OMAP24XX_PRCM_CLKSRC_CTRL);
--
--	prm_write_reg(pcc | OMAP_AUTOEXTCLKMODE_MASK,
--		      OMAP24XX_PRCM_CLKSRC_CTRL);
-+	prm_rmw_reg_bits(OMAP_AUTOEXTCLKMODE_MASK, OMAP_AUTOEXTCLKMODE_MASK,
-+			 OMAP24XX_PRCM_CLKSRC_CTRL);
- }
+@@ -103,7 +136,7 @@ static int aic23_detect_client(struct i2c_adapter *adapter, int address,
  
- /* Enable an APLL if off */
-Index: linux-omap/arch/arm/mach-omap2/pm.c
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/pm.c	2008-04-03 16:10:12.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/pm.c	2008-04-03 16:21:43.000000000 -0600
-@@ -162,7 +162,6 @@
- {
- 	const struct omap_serial_console_config *conf;
- 	char name[16];
--	u32 l;
- 
- 	conf = omap_get_config(OMAP_TAG_SERIAL_CONSOLE,
- 			       struct omap_serial_console_config);
-@@ -185,19 +184,13 @@
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA |
+ 				     I2C_FUNC_SMBUS_WRITE_BYTE)) {
+-		printk(KERN_WARNING "%s functinality check failed\n",
++		printk(KERN_WARNING "%s functionality check failed\n",
+ 		       client_name);
+ 		return err;
  	}
- 	switch (serial_console_uart) {
- 	case 1:
--		l = prm_read_mod_reg(CORE_MOD, PM_WKEN1);
--		l |= OMAP24XX_ST_UART1;
--		prm_write_mod_reg(l, CORE_MOD, PM_WKEN1);
-+		prm_set_mod_reg_bits(OMAP24XX_ST_UART1, CORE_MOD, PM_WKEN1)
- 		break;
- 	case 2:
--		l = prm_read_mod_reg(CORE_MOD, PM_WKEN1);
--		l |= OMAP24XX_ST_UART2;
--		prm_write_mod_reg(l, CORE_MOD, PM_WKEN1);
-+		prm_set_mod_reg_bits(OMAP24XX_ST_UART2, CORE_MOD, PM_WKEN1)
- 		break;
- 	case 3:
--		l = prm_read_mod_reg(CORE_MOD, OMAP24XX_PM_WKEN2);
--		l |= OMAP24XX_ST_UART3;
--		prm_write_mod_reg(l, CORE_MOD, OMAP24XX_PM_WKEN2);
-+		prm_set_mod_reg_bits(OMAP24XX_ST_UART3, CORE_MOD, PM_WKEN2)
- 		break;
- 	}
- }
-@@ -445,10 +438,8 @@
- 	prm_write_mod_reg(0xffffffff, CORE_MOD, PM_WKST1);
- 	prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
- 
--	/* wakeup domain events */
--	l = prm_read_mod_reg(WKUP_MOD, PM_WKST);
--	l &= 0x5;  /* bit 1: GPT1, bit5 GPIO */
--	prm_write_mod_reg(l, WKUP_MOD, PM_WKST);
-+	/* wakeup domain events - bit 1: GPT1, bit5 GPIO */
-+	prm_clear_mod_reg_bits(0x4 | 0x1, WKUP_MOD, PM_WKST);
- 
- 	/* MPU domain wake events */
- 	l = prm_read_reg(OMAP24XX_PRCM_IRQSTATUS_MPU);
-Index: linux-omap/arch/arm/mach-omap2/prcm.c
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/prcm.c	2008-04-03 16:10:12.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/prcm.c	2008-04-03 16:21:43.000000000 -0600
-@@ -25,6 +25,7 @@
- 
- u32 omap_prcm_get_reset_sources(void)
- {
-+	/* XXX This presumably needs modification for 34XX */
- 	return prm_read_mod_reg(WKUP_MOD, RM_RSTST) & 0x7f;
- }
- EXPORT_SYMBOL(omap_prcm_get_reset_sources);
-@@ -32,15 +33,16 @@
- /* Resets clock rates and reboots the system. Only called from system.h */
- void omap_prcm_arch_reset(char mode)
- {
--	u32 wkup;
-+	s16 prcm_offs;
- 	omap2_clk_prepare_for_reboot();
- 
- 	if (cpu_is_omap24xx()) {
--		wkup = prm_read_mod_reg(WKUP_MOD, RM_RSTCTRL) | OMAP_RST_DPLL3;
--		prm_write_mod_reg(wkup, WKUP_MOD, RM_RSTCTRL);
-+		prcm_offs = WKUP_MOD;
- 	} else if (cpu_is_omap34xx()) {
--		wkup = prm_read_mod_reg(OMAP3430_GR_MOD, RM_RSTCTRL)
--							| OMAP_RST_DPLL3;
--		prm_write_mod_reg(wkup, OMAP3430_GR_MOD, RM_RSTCTRL);
-+		prcm_offs = OMAP3430_GR_MOD;
-+	} else {
-+		WARN_ON(1);
+@@ -128,6 +161,19 @@ static int aic23_detect_client(struct i2c_adapter *adapter, int address,
+ 		kfree(new_client);
+ 		return err;
  	}
 +
-+	prm_set_mod_reg_bits(OMAP_RST_DPLL3, prcm_offs, RM_RSTCTRL);
- }
-Index: linux-omap/drivers/dsp/dspgateway/dsp_core.c
-===================================================================
---- linux-omap.orig/drivers/dsp/dspgateway/dsp_core.c	2008-04-03 16:10:12.000000000 -0600
-+++ linux-omap/drivers/dsp/dspgateway/dsp_core.c	2008-04-03 16:23:08.000000000 -0600
-@@ -460,19 +460,15 @@
- #elif defined(CONFIG_ARCH_OMAP2)
- static inline void dsp_clk_enable(void)
- {
--	u32 r;
--
- 	/*XXX should be handled in mach-omap[1,2] XXX*/
- 	prm_write_mod_reg(OMAP24XX_FORCESTATE | (1 << OMAP_POWERSTATE_SHIFT),
- 			  OMAP24XX_DSP_MOD, PM_PWSTCTRL);
- 
--	r = cm_read_mod_reg(OMAP24XX_DSP_MOD, CM_AUTOIDLE);
--	r |= OMAP2420_AUTO_DSP_IPI;
--	cm_write_mod_reg(r, OMAP24XX_DSP_MOD, CM_AUTOIDLE);
--
--	r = cm_read_mod_reg(OMAP24XX_DSP_MOD, CM_CLKSTCTRL);
--	r |= OMAP24XX_AUTOSTATE_DSP;
--	cm_write_mod_reg(r, OMAP24XX_DSP_MOD, CM_CLKSTCTRL);
-+	cm_set_mod_reg_bits(OMAP2420_AUTO_DSP_IPI, OMAP24XX_DSP_MOD,
-+			    CM_AUTOIDLE);
++	if (platform_device_register(&audio_i2c_device)) {
++		printk(KERN_WARNING "Failed to register audio i2c device\n");
++		selftest = -ENODEV;
++		return selftest;
++	}
++	/* FIXME: Do in board-specific file */
++	omap_mcbsp3_aic23_clock_init();
 +
-+	cm_set_mod_reg_bits(OMAP24XX_AUTOSTATE_DSP, OMAP24XX_DSP_MOD,
-+			    CM_CLKSTCTRL);
++	if (!aic23_info_l.power_down)
++		aic23_power_up();
++	aic23_info_l.initialized = 1;
++
+ 	return 0;
+ }
  
- 	clk_enable(dsp_fck_handle);
- 	clk_enable(dsp_ick_handle);
-
+@@ -135,6 +181,8 @@ static int aic23_detach_client(struct i2c_client *client)
+ {
+ 	int err;
+ 
++	platform_device_unregister(&audio_i2c_device);
++
+ 	if ((err = i2c_detach_client(client))) {
+ 		printk("aic23.o: Client deregistration failed, \
+ 		       client not detached.\n");
+@@ -162,38 +210,6 @@ static struct i2c_driver aic23_driver = {
+ 	.detach_client	= aic23_detach_client,
+ };
+ 
+-/*
+- * Configures the McBSP3 which is used to send clock to the AIC23 codec.
+- * The input clock rate from DSP is 12MHz.
+- * The DSP clock must be on before this is called.
+- */
+-static int omap_mcbsp3_aic23_clock_init(void)
+-{
+-	u16 w;
+-
+-	/* enable 12MHz clock to mcbsp 1 & 3 */
+-	__raw_writew(__raw_readw(DSP_IDLECT2) | (1<<1), DSP_IDLECT2);
+-	__raw_writew(__raw_readw(DSP_RSTCT2) | 1 | 1<<1, DSP_RSTCT2);
+-
+-	/* disable sample rate generator */
+-	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR1, 0x0000);
+-	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR2, 0x0000);
+-
+-	/* pin control register */
+-	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, PCR0,(CLKXM | CLKXP | CLKRP));
+-
+-	/* configure srg to send 12MHz pulse from dsp peripheral clock */
+-	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SRGR1, 0x0000);
+-	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SRGR2, CLKSM);
+-
+-	/* enable sample rate generator */
+-	w = OMAP_MCBSP_READ(OMAP1610_MCBSP3_BASE, SPCR2);
+-	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR2, (w | FREE | GRST));
+-	printk("Clock enabled to MCBSP1 & 3 \n");
+-
+-	return 0;
+-}
+-
+ static void update_volume_left(int volume)
+ {
+ 	u16 val = 0;
+@@ -633,17 +649,6 @@ static int __init aic23_init(void)
+ 		return selftest;
+ 	}
+ 
+-	if (platform_device_register(&audio_i2c_device)) {
+-		printk(KERN_WARNING "Failed to register audio i2c device\n");
+-		platform_driver_unregister(&audio_i2c_driver);
+-		selftest = -ENODEV;
+-		return selftest;
+-	}
+-	/* FIXME: Do in board-specific file */
+-	omap_mcbsp3_aic23_clock_init();
+-	if (!aic23_info_l.power_down)
+-		aic23_power_up();
+-	aic23_info_l.initialized = 1;
+ 	printk("TLV320AIC23 I2C version %s (%s)\n",
+ 	       TLV320AIC23_VERSION, TLV320AIC23_DATE);
+ 
+@@ -655,7 +660,6 @@ static void __exit aic23_exit(void)
+ 	aic23_power_down();
+ 	i2c_del_driver(&aic23_driver);
+ 
+-	platform_device_unregister(&audio_i2c_device);
+ 	platform_driver_unregister(&audio_i2c_driver);
+ }
+ 
 -- 
+1.5.3.4
 
