@@ -1,41 +1,40 @@
-From: "andrzej zaborowski" <balrogg@gmail.com>
-Subject: Re: [PATCH] Stop AIC23 driver from Oopsing.
-Date: Fri, 4 Apr 2008 01:54:42 +0200
-Message-ID: <fb249edb0804031654l619366abub53ca1692e1b2aa5@mail.gmail.com>
-References: <12068100513180-git-send-email-balrogg@gmail.com>
-	 <20080402070913.GB31913@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 0/3] OMAP3 clock: add DPLL enable, disable, autoidle control
+Date: Thu, 03 Apr 2008 19:09:41 -0600
+Message-ID: <20080404010941.510844152@pwsan.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:3892 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751797AbYDCXyq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Apr 2008 19:54:46 -0400
-Received: by ug-out-1314.google.com with SMTP id z38so855135ugc.16
-        for <linux-omap@vger.kernel.org>; Thu, 03 Apr 2008 16:54:43 -0700 (PDT)
-In-Reply-To: <20080402070913.GB31913@atomide.com>
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:49315 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755504AbYDDB2B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Apr 2008 21:28:01 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On 02/04/2008, Tony Lindgren <tony@atomide.com> wrote:
-> * Andrzej Zaborowski <balrogg@gmail.com> [080329 18:30]:
->
-> > From: Andrzej Zaborowski <balrog@zabor.org>
->  >
->  > Prevent AIC23 driver Oopsing when no AIC23 is present by moving some of the
->  > initialisation to after the chip is found.  There seems to be more that
->  > should be fixed in this driver but with this change it can at least be
->  > compiled into a kernel safely.
->
->
-> This does not seem to apply, can you please check?
+Hello,
 
-Oops, I had forgotten to update. Now rebased and resent, with an
-additional typo corrected in one of the error messages.
--- 
-Please do not print this email unless absolutely necessary. Spread
-environmental awareness.
+this patch series adds DPLL autoidle control for OMAP3.  It then adds
+OMAP3 DPLL enable and disable support via clock framework clk_enable()
+and clk_disable().  It also updates the clock34xx.h comments to credit
+frequent contributors.
+
+I personally have verified that DPLL disable has been verified to
+work on this code on OMAP3430ES2 SDP; and I believe that Jouni has 
+verified that DPLL enable works correctly.
+
+- Paul
+
+
+size:
+   text    data     bss     dec     hex filename
+3262069  149384  100464 3511917  35966d vmlinux.orig
+3263177  149384  100464 3513025  359ac1 vmlinux
+
+diffstat:
+ arch/arm/mach-omap2/clock34xx.c       |  301 +++++++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/clock34xx.h       |   72 ++++++--
+ arch/arm/mach-omap2/cm-regbits-34xx.h |   18 +-
+ arch/arm/mach-omap2/cm.h              |    1
+ include/asm-arm/arch-omap/clock.h     |    5
+ 5 files changed, 369 insertions(+), 28 deletions(-)
+
