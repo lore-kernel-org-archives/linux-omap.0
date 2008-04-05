@@ -1,39 +1,74 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: Idle picture for those interested.
-Date: Fri, 04 Apr 2008 15:07:02 -0700
-Message-ID: <20080404220702.5232DCC0DF@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-References: <87abkv9917.fsf@paris.hilman.org>
- <3B6D69C3A9EBCA4BA5DA60D91302742903F14825@dlee13.ent.ti.com>
- <3B6D69C3A9EBCA4BA5DA60D91302742903F14855@dlee13.ent.ti.com>
- <200804041356.40567.david-b@pacbell.net>
- <3B6D69C3A9EBCA4BA5DA60D91302742903F14923@dlee13.ent.ti.com>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: [android-internals] Re: Android on Nokia n810 (OMAP2420)
+Date: Sat, 05 Apr 2008 12:09:20 -0500
+Message-ID: <47F7B240.2070901@gmail.com>
+References: <2a9ba570-9005-4eed-8f1a-f45c909f9fe3@m36g2000hse.googlegroups.com>  <f6c5b8d90804020736m3d80fef9h2d377aea7fab52bf@mail.gmail.com>  <0b2d3f9c-e29a-406a-ac8d-d8589d457a0f@m36g2000hse.googlegroups.com>  <0b799c72-1a04-4224-8307-18b7ab10d17f@b5g2000pri.googlegroups.com>  <9a810d71-bc48-4bab-8ad6-93ebc310a110@z38g2000hsc.googlegroups.com>  <999ed349-dc22-4db4-a679-60511d9339f7@a23g2000hsc.googlegroups.com>  <9ff5cf01-f4aa-4560-b71e-bb948a69d9b9@t54g2000hsg.googlegroups.com>  <9583cd73-79d6-4f4e-b5a3-e27c4f165993@p39g2000prm.googlegroups.com>  <105bd206-af76-4fbb-affa-6fc8efdf6133@59g2000hsb.googlegroups.com> <f6e0615c-d180-4a3e-a112-c5320cde1cfd@c65g2000hsa.googlegroups.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp118.sbc.mail.sp1.yahoo.com ([69.147.64.91]:39457 "HELO
-	smtp118.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752144AbYDDWF4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Apr 2008 18:05:56 -0400
-In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D91302742903F14923@dlee13.ent.ti.com>
+Received: from rn-out-0910.google.com ([64.233.170.185]:41038 "EHLO
+	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752568AbYDERJX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Apr 2008 13:09:23 -0400
+Received: by rn-out-0910.google.com with SMTP id e24so614519rng.1
+        for <linux-omap@vger.kernel.org>; Sat, 05 Apr 2008 10:09:22 -0700 (PDT)
+In-Reply-To: <f6e0615c-d180-4a3e-a112-c5320cde1cfd@c65g2000hsa.googlegroups.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: r-woodruff2@ti.com
-Cc: linux-omap@vger.kernel.org
+To: Georges.Toth@gmail.com, linux-omap@vger.kernel.org
 
-> > I've not calibrated to verify but that seems to be what the picture is
-> > showing so there is some chance the time base is off.  All the
-> > instruction
-> > trace is there to walk it if necessary.  There have been some comments
-> > about NO_HZ adding some overhead from those who measure MHz around
-> > here for things like MP3 load models.  I hadn't looked very closely.
+Looping in OMAP ML to the good news..
+Congrats!
+sim0nx said the following on 04/05/2008 06:35 AM:
+> I can't believe it !!!
+> Android runs on the maemo n810 !!!
 >
-> One question might be is if the timekeeping could be deferred until
-> after you have serviced the IRQ.  Is there a reason to make the ISR wait
-> for housekeeping?
-
-If the system is in NO_HZ mode, the "jiffies" value could be invalid.
-Some IRQ handlers need it to be valid.
-
-- Dave
+> After reading this:
+> http://groups.google.lu/group/android-internals/browse_thread/thread/93570c41bce07f16?hl=en
+> for the 100th time, and following the instructions on the mentioned
+> link:
+> http://nemustech.blogspot.com/2007/12/android-porting-to-real-target-hw.html
+> it works.
+>
+> Here are the specifics I've implemented:
+> * patch /etc/init.rc
+> ---- begin : init.rc
+> ....
+> ## qemu-init {
+> ## exec /etc/qemu-init.sh
+> ## }
+> network-property {
+> exec /etc/set_network.sh
+> }
+>
+>
+> /bin/chmod -R a+rw /data /tmp
+> /bin/chmod a+rw .
+> /bin/chmod -R a+rw data
+>
+> # rm /dev/log (if you have)
+> # mkdir /dev/log;touch /dev/log/{main,events,radio}
+> * you can see usefull infos from strace log and /dev/log/main
+>
+> and instead of:
+> chroot . /a.sh
+> I execute the android init process:
+> chroot . /init
+>
+> Not sure yet what exactly of those steps solved the problem (maybe the
+> qemu one), but it does work.
+> After a quick try I see that the touchscreen doesn't work (the
+> keyboard does though), but that shouldn't be too hard to fix.
+>
+> BTW, this is using an m5 kernel, and binder.c
+> --~--~---------~--~----~------------~-------~--~----~
+> You received this message because you are subscribed to the Google Groups "Android Internals" group.
+> To post to this group, send email to android-internals@googlegroups.com
+> To unsubscribe from this group, send email to android-internals-unsubscribe@googlegroups.com
+> For more options, visit this group at http://groups.google.com/group/android-internals?hl=en
+> -~----------~----~----~----~------~----~------~--~---
+>
+>
+>   
 
