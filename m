@@ -1,98 +1,58 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: source.mvista links are broken
-Date: Sun, 06 Apr 2008 16:44:04 +0200
-Message-ID: <47F8E1B4.2040709@googlemail.com>
-References: <5D8B5EC1EB6ED845B1EB216F00C71B65032A8F0F@dlee12.ent.ti.com>	<20080404110314.GN3505@atomide.com> <87myo9a3kf.fsf@paris.hilman.org>
+From: Georges Toth <georges.toth@gmail.com>
+Subject: Re: [android-internals] Re: Android on Nokia n810 (OMAP2420)
+Date: Sun, 06 Apr 2008 17:04:14 +0200
+Message-ID: <47F8E66E.7080605@gmail.com>
+References: <f6c5b8d90804020736m3d80fef9h2d377aea7fab52bf@mail.gmail.com> <0b2d3f9c-e29a-406a-ac8d-d8589d457a0f@m36g2000hse.googlegroups.com> <0b799c72-1a04-4224-8307-18b7ab10d17f@b5g2000pri.googlegroups.com> <9a810d71-bc48-4bab-8ad6-93ebc310a110@z38g2000hsc.googlegroups.com> <999ed349-dc22-4db4-a679-60511d9339f7@a23g2000hsc.googlegroups.com> <9ff5cf01-f4aa-4560-b71e-bb948a69d9b9@t54g2000hsg.googlegroups.com> <9583cd73-79d6-4f4e-b5a3-e27c4f165993@p39g2000prm.googlegroups.com> <105bd206-af76-4fbb-affa-6fc8efdf6133@59g2000hsb.googlegroups.com> <f6e0615c-d180-4a3e-a112-c5320cde1cfd@c65g2000hsa.googlegroups.com> <47F7B240.2070901@gmail.com> <20080406132323.GA13033@bulgaria.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.186]:47002 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751838AbYDFOoX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Apr 2008 10:44:23 -0400
-Received: by fk-out-0910.google.com with SMTP id 19so1380236fkr.5
-        for <linux-omap@vger.kernel.org>; Sun, 06 Apr 2008 07:44:12 -0700 (PDT)
-In-Reply-To: <87myo9a3kf.fsf@paris.hilman.org>
+Received: from terman.e-hosting.lu ([80.92.79.12]:52760 "EHLO
+	terman.e-hosting.lu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751694AbYDFPEV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Apr 2008 11:04:21 -0400
+In-Reply-To: <20080406132323.GA13033@bulgaria.corp.google.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@mvista.com>
-Cc: Tony Lindgren <tony@atomide.com>, Iqbal <iqbal@ti.com>, linux-omap@vger.kernel.org
+To: Brian Swetland <swetland@google.com>
+Cc: linux-omap@vger.kernel.org
 
-Kevin Hilman wrote:
-> Tony Lindgren <tony@atomide.com> writes:
-> 
-> 
->>* Iqbal <iqbal@ti.com> [080404 13:07]:
->>
->>>Looks like the OMAP tree links are broken and the summary,short log and other fields don't work.
->>>
->>>http://source.mvista.com/git/?p=linux-omap-2.6.git;a=commit;h=8a88c221c88399bc694c367dbea01ffc4153ef20
->>
->>Yeah, I've noticed that too. Probably git needs updating on
->>source.mvista.com, it seems to have issues with reading packed objects.
->>
->>I've fixed it to some extent by scp'ing over some object files, and then
->>there was a brief file permissions problem too...
->>
->>In any case, please use the kernel.org instead:
->>
->>http://git.kernel.org/git/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary
->>git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
->>
->>I've notified Kevin about the issue, so we probably have to wait for
->>git to get updated.
->  
-> git on source.mvista.com is now updated to 1.5.4.5.  Let me know if
-> there are any more problems.
 
-omap-git> git version
-git version 1.5.4.5
-omap-git> cg-version
-cogito-0.18.2
-omap-git> cat .git/HEAD
-0d81cf7e804c529c58d3054c1b9bdb7b3f1dec5d
-omap-git> cat .git/branches/origin
-git://source.mvista.com/git/linux-omap-2.6
-omap-git> cg-update origin
-Recovering from a previously interrupted fetch...
-Fetching pack (head and objects)...
-error: refs/heads/origin does not point to a valid object!
-error: refs/heads/origin does not point to a valid object!
-remote: Total 0 (delta 0), reused 0 (delta 0)
-remote: aborting due to possible repository corruption on the remote side.
-error: waitpid (async) failed
-fatal: error in sideband demultiplexer
-cg-fetch: fetching pack failed
-omap-git>
+> Congrats.
+>   
+Thnx :-)
 
-Switching to git.kernel.org works:
+> Has anyone had any luck getting a 2.6.23 or 2.6.24 kernel working
+> with the 800 or 810?  When I was poking around with it a while back,
+> I had to backport our stuff to .21 due to binary-only wifi drivers
+> being incompatible with newer kernels.
+>   
+AFAIK, no.
 
-omap-git> cat .git/branches/origin
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-omap-git> cg-update origin
-Recovering from a previously interrupted fetch...
-Fetching pack (head and objects)...
-error: refs/heads/origin does not point to a valid object!
-error: refs/heads/origin does not point to a valid object!
-remote: Counting objects: 896, done.
-remote: Compressing objects: 100% (490/490), done.
-remote: Total 896 (delta 453), reused 848 (delta 405)
-Receiving objects: 100% (896/896), 1.53 MiB | 108 KiB/s, done.
-Resolving deltas: 100% (453/453), done.
-Fetching tags...
-Missing tag v2.6.25-rc8...
-remote: Counting objects: 1, done.
-remote: Total 1 (delta 0), reused 1 (delta 0)
-Unpacking objects: 100% (1/1), done.
-Up to date.
+I've just searched through some mailinglists and apparently it is 
+possible to use a more recent kernel with the n800/n810.
+You basically compile a module called cx3110x which is open source [1], 
+and force to load a binary-only module (umac); in order to get wifi to work.
 
-Applying changes...
-Fast-forwarding 0d81cf7e804c529c58d3054c1b9bdb7b3f1dec5d -> 
-722c80b23c0d53c16467e35ea43741c597bfbba3
-         on top of 0d81cf7e804c529c58d3054c1b9bdb7b3f1dec5d ...
-omap-git>
+I'll probably look into this over the next few days as time permits.
 
-Seems that there is still something broken with MV git?
 
-Dirk
+[1]: http://repository.maemo.org/pool/chinook/free/c/cx3110x-module-src/
+
+> Also, if anyone knows of work done to figure out how the battery
+> charge control, etc works on the 800/810 hardware, I'm highly curious.  
+> Have not had the spare time to reverse engineer that stuff and if
+> somebody's already done the hard work, so much the better.
+I've only started to work on this last week, but AFAIK the only work that has been done on the n800/n810 so far is to actually get the android patches to work and get it to run.
+
+Next would be to try to get the framebuffer driver hacked to work with the m5 image ... the framebuffer driver doesn't support double buffering thus we only get a black screen :-(
+
+Sebastian (android-internals ml) is currently looking into that.
+
+And of course the touchscreen and buttons issue.
+
+-- 
+regards,
+
+Georges Toth
+
