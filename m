@@ -1,64 +1,96 @@
-From: Georges Toth <georges.toth@gmail.com>
-Subject: Re: [android-internals] Re: Android on Nokia n810 (OMAP2420)
-Date: Sun, 06 Apr 2008 15:31:21 +0200
-Message-ID: <47F8D0A9.40805@gmail.com>
-References: <2a9ba570-9005-4eed-8f1a-f45c909f9fe3@m36g2000hse.googlegroups.com>  <f6c5b8d90804020736m3d80fef9h2d377aea7fab52bf@mail.gmail.com>  <0b2d3f9c-e29a-406a-ac8d-d8589d457a0f@m36g2000hse.googlegroups.com>  <0b799c72-1a04-4224-8307-18b7ab10d17f@b5g2000pri.googlegroups.com>  <9a810d71-bc48-4bab-8ad6-93ebc310a110@z38g2000hsc.googlegroups.com>  <999ed349-dc22-4db4-a679-60511d9339f7@a23g2000hsc.googlegroups.com>  <9ff5cf01-f4aa-4560-b71e-bb948a69d9b9@t54g2000hsg.googlegroups.com>  <9583cd73-79d6-4f4e-b5a3-e27c4f165993@p39g2000prm.googlegroups.com>  <105bd206-af76-4fbb-affa-6fc8efdf6133@59g2000hsb.googlegroups.com> <f6e0615c-d180-4a3e-a112-c5320cde1cfd@c65g2000hsa.googlegroups.com> <47F7B240.2070901@gmail.com> <47F87EA6.6050504@googlemail.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [RFC PATCH 1/1] OMAP2430: Adding missing #defines for TWL4030
+Date: Sun, 6 Apr 2008 17:10:13 +0300
+Message-ID: <20080406141012.GA12021@kedavra.cpe.vivax.com.br>
+References: <1207481707-3326-1-git-send-email-francisco.alecrim@indt.org.br>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from terman.e-hosting.lu ([80.92.79.12]:56729 "EHLO
-	terman.e-hosting.lu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751143AbYDFOBF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Apr 2008 10:01:05 -0400
-In-Reply-To: <47F87EA6.6050504@googlemail.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:58495 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751439AbYDFOIT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Apr 2008 10:08:19 -0400
+Content-Disposition: inline
+In-Reply-To: <1207481707-3326-1-git-send-email-francisco.alecrim@indt.org.br>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dirk Behme <dirk.behme@googlemail.com>
+To: Francisco Alecrim <francisco.alecrim@indt.org.br>
 Cc: linux-omap@vger.kernel.org
 
-Hi,
-> Great!
-> Do you have some screenshots we can add to
-> http://elinux.org/Android_on_OMAP#Screenshots
-> ?
-I've added 3 screenshots on that page :-)
+On Sun, Apr 06, 2008 at 02:35:07PM +0300, Francisco Alecrim wrote:
+> Adding missing #defines for TWL4030
+> 
+> Signed-off-by: Francisco Alecrim <francisco.alecrim@indt.org.br>
 
-> Anything else we should add/correct at
-> http://elinux.org/Android_on_OMAP
-> ?
-I wanted to add some instructions for the maemo once I got it fully 
-working :-).
-Basically the differences from the wiki I had to use are:
-- m3 or m5 kernel, but using binder.c in any case (not the original 
-binder code from m3)
-- backport the android patch, to the nokia kernel sources (2.6.21)
-- use the android init instead of the mentioned a.sh script
-- edit the init configuration and comment the qemu parts
-- only the m3 userspace files currently work
+Hmmm... even the osk has twl4030... nice.
+Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
 
-The touchscreen doesn't work yet, but I hope we can figure that out too.
--> The driver works, there is output when one does a cat on 
-/dev/input/event3, but android doesn't recognize it.
-
-Some buttons don't work ... wrong mapping.
-If anybody has an idea how to see what keycodes certain buttons are 
-bound to and how to edit the mapping in android that would be great :-).
-
-
-> Btw: Do you have any power management issues like
-> http://elinux.org/Android_on_OMAP#Power_management
-> ? We still don't know anything about them :(
-No. It's just that the display rather quickly dims and shuts down (2-4s 
-to dim, and another 2 secs to shutdown).
-It doesn't work to shut the display down via the android menu, and 
-android doesn't display the battery status.
-
-Besides that there are no problems.
-
+> ---
+>  include/asm-arm/arch-omap/board-2430osk.h |   13 ++++++++++---
+>  include/asm-arm/arch-omap/board-2430sdp.h |   12 ++++++++++--
+>  2 files changed, 20 insertions(+), 5 deletions(-)
+> 
+> diff --git a/include/asm-arm/arch-omap/board-2430osk.h b/include/asm-arm/arch-omap/board-2430osk.h
+> index e5b63ae..fcb1a2a 100644
+> --- a/include/asm-arm/arch-omap/board-2430osk.h
+> +++ b/include/asm-arm/arch-omap/board-2430osk.h
+> @@ -39,9 +39,16 @@
+>  #define IH_TWL4030_BASE			IH_BOARD_BASE
+>  #define IH_TWL4030_END			(IH_TWL4030_BASE+8)
+>  
+> +#define IH_TWL4030_PWRBASE		(IH_TWL4030_END)
+> +#define IH_TWL4030_PWRBASE_END		(IH_TWL4030_PWRBASE+8)
+> +
+> +#ifdef CONFIG_TWL4030_GPIO
+> +
+>  /* TWL4030 GPIO Interrupts */
+> -#define IH_TWL4030_GPIO_BASE		(IH_TWL4030_END)
+> -#define IH_TWL4030_GPIO_END		(IH_TWL4030_BASE+18)
+> +#define IH_TWL4030_GPIO_BASE		(IH_TWL4030_PWRBASE_END)
+> +#define IH_TWL4030_GPIO_END		(IH_TWL4030_GPIO_BASE+18)
+>  #define NR_IRQS				(IH_TWL4030_GPIO_END)
+> -
+> +#else
+> +#define NR_IRQS				(IH_TWL4030_PWRBASE_END)
+> +#endif /* CONFIG_I2C_TWL4030_GPIO */
+>  #endif /* __ASM_ARCH_OMAP_2430OSK_H */
+> diff --git a/include/asm-arm/arch-omap/board-2430sdp.h b/include/asm-arm/arch-omap/board-2430sdp.h
+> index 186e9cc..1a5414e 100644
+> --- a/include/asm-arm/arch-omap/board-2430sdp.h
+> +++ b/include/asm-arm/arch-omap/board-2430sdp.h
+> @@ -40,10 +40,18 @@
+>  #define IH_TWL4030_BASE			IH_BOARD_BASE
+>  #define IH_TWL4030_END			(IH_TWL4030_BASE+8)
+>  
+> +#define IH_TWL4030_PWRBASE		(IH_TWL4030_END)
+> +#define IH_TWL4030_PWRBASE_END		(IH_TWL4030_PWRBASE+8)
+> +
+> +#ifdef CONFIG_TWL4030_GPIO
+> +
+>  /* TWL4030 GPIO Interrupts */
+> -#define IH_TWL4030_GPIO_BASE		(IH_TWL4030_END)
+> -#define IH_TWL4030_GPIO_END		(IH_TWL4030_BASE+18)
+> +#define IH_TWL4030_GPIO_BASE		(IH_TWL4030_PWRBASE_END)
+> +#define IH_TWL4030_GPIO_END		(IH_TWL4030_GPIO_BASE+18)
+>  #define NR_IRQS				(IH_TWL4030_GPIO_END)
+> +#else
+> +#define NR_IRQS				(IH_TWL4030_PWRBASE_END)
+> +#endif /* CONFIG_I2C_TWL4030_GPIO */
+>  
+>  /* Function prototypes */
+>  extern void sdp2430_flash_init(void);
+> -- 
+> 1.5.4.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
-regards,
+Best Regards,
 
-Georges Toth
-
+Felipe Balbi
+me@felipebalbi.com
+http://blog.felipebalbi.com
