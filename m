@@ -1,17 +1,17 @@
 From: Felipe Balbi <me@felipebalbi.com>
 Subject: Re: [Help 2/2] MUSB: some USB card readers, USB-IDE cable, 30G old iPod
  will be reset several times in usb-storage transcation
-Date: Mon, 7 Apr 2008 05:47:59 -0500
-Message-ID: <703e8e30c3ab23c731409c7d7b3e2906@felipebalbi.com>
+Date: Mon, 7 Apr 2008 05:49:48 -0500
+Message-ID: <3a8523948b12e55c004a5422c4d60944@felipebalbi.com>
 References: <386072610804070344n7533b618n3abaf360ed1c7919@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:51160 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:51390 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750981AbYDGKsD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Apr 2008 06:48:03 -0400
+	with ESMTP id S1750878AbYDGKty (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Apr 2008 06:49:54 -0400
 In-Reply-To: <386072610804070344n7533b618n3abaf360ed1c7919@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -81,6 +81,10 @@ https://blackfin.uclinux.org/gf/project/uclinux-dist/tracker/?action=TrackerItem
 > 
 > So is that fixed in linux-omap git repo? Maybe I should update my
 > local copy with it.
+
+nope... that's what I'm telling you :-)
+it only builds, but still some issues to be addressed ;-)
+
 > 
 >>  If you wanna dig more on this... patches are welcome :-)
 >>
@@ -102,11 +106,6 @@ https://blackfin.uclinux.org/gf/project/uclinux-dist/tracker/?action=TrackerItem
 >  				bcs, US_BULK_CS_WRAP_LEN, NULL);
 > -	}
 > +*/	}
-
-maybe this command triggers a current spike on the zio reader which is
-causing the
-vbus drop ? could be...
-
 > 
 >  	/* if we still have a failure at this point, we're in trouble */
 >  	US_DEBUGP("Bulk status result = %d\n", result);
@@ -122,9 +121,10 @@ vbus drop ? could be...
 > 
 > I just don't understand why they are OK on Linux host PC and failed on
 > Linux Host embedded MUSB OTG.
-> 
-> Thanks a lot
-> -Bryan
+
+PCs have to source up to 500mA load on usb bus, embedded otg/hosts only up
+to 100mA.
+
 -- 
 Best Regards,
 
