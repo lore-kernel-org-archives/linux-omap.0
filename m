@@ -1,17 +1,17 @@
 From: "Bryan Wu" <cooloney@kernel.org>
-Subject: [Help 1/2] MUSB: ZiO! CF card reader will trigger a change from MUSB host mode to MUSB peripheral mode
-Date: Mon, 7 Apr 2008 03:15:38 -0700
-Message-ID: <386072610804070315m2ebda41au363e62ea2ab27169@mail.gmail.com>
+Subject: [Help 2/2] MUSB: some USB card readers, USB-IDE cable, 30G old iPod will be reset several times in usb-storage transcation
+Date: Mon, 7 Apr 2008 03:16:31 -0700
+Message-ID: <386072610804070316i15ee172cue9c0cc5803f9a934@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rn-out-0910.google.com ([64.233.170.189]:16034 "EHLO
-	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756129AbYDGKPj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Apr 2008 06:15:39 -0400
-Received: by rn-out-0910.google.com with SMTP id e24so1311465rng.1
-        for <linux-omap@vger.kernel.org>; Mon, 07 Apr 2008 03:15:38 -0700 (PDT)
+Received: from yw-out-2324.google.com ([74.125.46.28]:48449 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754906AbYDGKQc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Apr 2008 06:16:32 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so210341ywb.1
+        for <linux-omap@vger.kernel.org>; Mon, 07 Apr 2008 03:16:31 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,38 +19,29 @@ To: David Brownell <david-b@pacbell.net>, tony@atomide.com, linux-omap@vger.kern
 
 Hi folks,
 
-Here is our bug tracker,
-https://blackfin.uclinux.org/gf/project/uclinux-dist/tracker/?action=TrackerItemEdit&tracker_id=141&tracker_item_id=3788
+Here are our trackers, I think following bugs are the same issue:
+USB-IDE cable:
+https://blackfin.uclinux.org/gf/project/uclinux-dist/tracker/?action=TrackerItemEdit&tracker_id=141&tracker_item_id=3789
+MicroSD card reader:
+https://blackfin.uclinux.org/gf/project/uclinux-dist/tracker/?action=TrackerItemEdit&tracker_id=141&tracker_item_id=3790
+30G iPod:
+http://www.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.25-rc8/2.6.25-rc8-mm1/2.6.25-rc8-mm1.bz2
+SD card reader:
+https://blackfin.uclinux.org/gf/project/uclinux-dist/tracker/?action=TrackerItemEdit&tracker_id=141&tracker_item_id=3807
 
-ZiO! CF card reader is here:
-http://www.psism.com/zio.htm
+a) For the MODE_SENSE(6) SCSI command, these bug usb devices will
+reply stall when host wait for 1st CSW
+b) Linux host will clear halt of the endpoint.
+c) Linux host will wait for the 2nd CSW, but no RX IRQ at all. Then
+USB reset operation will be triggered by Linux host stack
+    when time out
+d) The same bug usb devices is OK on Linux host PC, because they will
+reply to 2nd CSW in the right way.
+e) So I hacked the usb-storage driver code, the Linux host on Blackfin
+will not wait for the 2nc CSW. Then this bug is gone.
 
-- Firstly, MUSB is working as in host mode which can be figured out by
-the debug message.
-- Enumeration of the ZiO! CF card reader is OK.
-- When the upper drivers/usb/storage/shuttle_usbat.c try to send out
-the first packet:
---
-        /* Enable peripheral control signals */
-        rc = usbat_write_user_io(us,
-                                 USBAT_UIO_OE1 | USBAT_UIO_OE0,
-                                 USBAT_UIO_EPAD | USBAT_UIO_1);
-        if (rc != USB_STOR_XFER_GOOD)
-                return USB_STOR_TRANSPORT_ERROR;
---
+This is just a workaround for that, it should not be the right way.
+Does anyone here meet this issue before, on Davinci or OMAP?
+We always need a real fix, thanks a lot
 
-- Finally, we got VBUS_ERROR interrupt in peripheral mode. I don't
-know how to recover it.
-If I am not wrong, the ZiO! CF card reader must have dropped the VBUS
-and this triggered the mode change of MUSB.
-
-Are you guys have any idea about this?
-
-B.T.W, I found the packet sequence of
-drivers/usb/storage/shuttle_usbat.c is not the same as Windows Host
-does.
-So I modified the code to send out the same packet as Windows Host.
-The result is the same.
-
-Thanks a lot
 -Bryan Wu
