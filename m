@@ -1,67 +1,51 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 5/17] ARM: OMAP2: Change 24xx to use new register access
-Date: Mon, 7 Apr 2008 17:48:56 +0100
-Message-ID: <20080407164856.GG5306@flint.arm.linux.org.uk>
-References: <1205848935-12078-1-git-send-email-tony@atomide.com> <1205848935-12078-2-git-send-email-tony@atomide.com> <1205848935-12078-3-git-send-email-tony@atomide.com> <1205848935-12078-4-git-send-email-tony@atomide.com> <1205848935-12078-5-git-send-email-tony@atomide.com> <1205848935-12078-6-git-send-email-tony@atomide.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [Help 1/2] MUSB: ZiO! CF card reader will trigger a change
+	from MUSB host mode to MUSB peripheral mode
+Date: Mon, 7 Apr 2008 20:48:30 +0300
+Message-ID: <20080407174830.GA4464@kedavra.cpe.vivax.com.br>
+References: <386072610804070408q16c5ffa1u6a0c2e35295aa327@mail.gmail.com> <af73f7a75d15439b4761e7b0baa612cf@felipebalbi.com> <200804070905.10048.david-b@pacbell.net>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60634 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750960AbYDGQtG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Apr 2008 12:49:06 -0400
+Received: from ns1.siteground211.com ([209.62.36.12]:52096 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751519AbYDGRqj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Apr 2008 13:46:39 -0400
 Content-Disposition: inline
-In-Reply-To: <1205848935-12078-6-git-send-email-tony@atomide.com>
+In-Reply-To: <200804070905.10048.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Felipe Balbi <me@felipebalbi.com>, Bryan Wu <cooloney@kernel.org>, tony@atomide.com, linux-omap@vger.kernel.org
 
-On Tue, Mar 18, 2008 at 04:02:03PM +0200, Tony Lindgren wrote:
-> From: Paul Walmsley <paul@pwsan.com>
+On Mon, Apr 07, 2008 at 09:05:09AM -0700, David Brownell wrote:
+> On Monday 07 April 2008, Felipe Balbi wrote:
+> > I recall having some issues on 100mA devices. During enumeration some
+> > current spikes a few mAs above 100mA were occuring and we couldn't
+> > enumerate the device due to vbus_err interrupt.
 > 
-> This patch changes 24xx to use new register access, except for clock
-> framework. Clock framework register access will get updates in the
-> next patch.
+> Yeah, I think the Mentor core is unduly sensitive to voltage
+> fluctuation during enumeration.  There's supposed to be about
+> 100 msec before VBUS must stabilize ... but the silicon doesn't
+> seem to accept routine instabilities in that period, and then
+> reports inappropriate VBUS errors.
+> 
+> 
+> > If you check drivers/usb/musb/tusb6010.c you'll see that we've 
+> > implemented a retry condition for those cases. The same retry can
+> > be found in musb_core.c
+> 
+> The DaVinci support needed the same kind of logic.  All in
+> all this is painful stuff to sort out, and it seems that
+> each platform rediscovers it.  It would be better if the
+> silicon itself weren't fighting back so hard...
 
-Hmm...
+Good point.
 
-> @@ -187,13 +189,40 @@ static inline void __init apollon_init_smc91x(void)
->  {
->  	unsigned long base;
->  
-> +	unsigned int rate;
-> +	struct clk *l3ck;
-> +	int eth_cs;
-> +
-> +	l3ck = clk_get(NULL, "core_l3_ck");
-> +	if (IS_ERR(l3ck))
-> +		rate = 100000000;
-> +	else
-> +		rate = clk_get_rate(l3ck);
+-- 
+Best Regards,
 
-Now read:
-
-/**
- * clk_get_rate - obtain the current clock rate (in Hz) for a clock source.
- *                This is only valid once the clock source has been enabled.
- * @clk: clock source
- */
-unsigned long clk_get_rate(struct clk *clk);
-
-And now tell me what's wrong with the above code.
-
-> +	int eth_cs;
-> +	unsigned long cs_mem_base;
-> +	unsigned int muxed, rate;
-> +	struct clk *l3ck;
-> +
-> +	eth_cs	= H4_SMC91X_CS;
-> +
-> +	l3ck = clk_get(NULL, "core_l3_ck");
-> +	if (IS_ERR(l3ck))
-> +		rate = 100000000;
-> +	else
-> +		rate = clk_get_rate(l3ck);
-
-Ditto.
+Felipe Balbi
+me@felipebalbi.com
+http://blog.felipebalbi.com
