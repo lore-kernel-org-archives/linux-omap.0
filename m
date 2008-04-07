@@ -1,63 +1,97 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [Help 2/2] MUSB: some USB card readers, USB-IDE cable, 30G old iPod
- will be reset several times in usb-storage transcation
-Date: Mon, 7 Apr 2008 07:39:40 -0500
-Message-ID: <d0a85e5be1f3a2c7831e16c36f83de92@felipebalbi.com>
-References: <386072610804070412m43f7e15cwc647172e55e7400c@mail.gmail.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 2/2] I2C: TWL4030: Kconfig and Makefile changes
+Date: Mon, 7 Apr 2008 17:17:46 +0300
+Message-ID: <20080407141746.GF7338@gandalf.research.nokia.com>
+References: <1207569316-7053-1-git-send-email-felipe.balbi@nokia.com> <1207569316-7053-2-git-send-email-felipe.balbi@nokia.com> <1207569316-7053-3-git-send-email-felipe.balbi@nokia.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:46758 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752129AbYDGMjp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Apr 2008 08:39:45 -0400
-In-Reply-To: <386072610804070412m43f7e15cwc647172e55e7400c@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.233]:30910 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752642AbYDGOTI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Apr 2008 10:19:08 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m37EJ3Za019564
+	for <linux-omap@vger.kernel.org>; Mon, 7 Apr 2008 17:19:05 +0300
+Content-Disposition: inline
+In-Reply-To: <1207569316-7053-3-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bryan Wu <cooloney@kernel.org>
-Cc: David Brownell <david-b@pacbell.net>, tony@atomide.com, linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: linux-omap@vger.kernel.org, Mikko Ylinen <mikko.k.ylinen@nokia.com>
+
+On Mon, Apr 07, 2008 at 02:55:16PM +0300, Felipe Balbi wrote:
+> From: Mikko Ylinen <mikko.k.ylinen@nokia.com>
+
+There was a missing space which was causing some troubles.
+Updated below:
+
+>From 163455c541b37fb38a0ea112796591c95c4ef3aa Mon Sep 17 00:00:00 2001
+From: Mikko Ylinen <mikko.k.ylinen@nokia.com>
+Date: Wed, 2 Apr 2008 20:55:31 +0300
+Subject: [PATCH 2/2] I2C: TWL4030: Kconfig and Makefile changes
+
+Put madc driver into kbuild.
+
+Signed-off-by: Mikko Ylinen <mikko.k.ylinen@nokia.com>
+
+Updated help text on Kconfig for TWL4030 MADC driver.
+
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/i2c/chips/Kconfig  |   21 +++++++++++++++++++++
+ drivers/i2c/chips/Makefile |    1 +
+ 2 files changed, 22 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
+index bfab098..86869e2 100644
+--- a/drivers/i2c/chips/Kconfig
++++ b/drivers/i2c/chips/Kconfig
+@@ -128,6 +128,27 @@ config TWL4030_GPIO
+ 	bool "TWL4030 GPIO Driver"
+ 	depends on TWL4030_CORE
+ 
++config TWL4030_MADC
++	tristate "TWL4030 MADC Driver"
++	depends on TWL4030_CORE
++	help
++	  The TWL4030 Monitoring ADC driver enables the host
++	  processor to monitor analog signals using analog-to-digital
++	  conversions on the input source. TWL4030 MADC provides the
++	  following features:
++	   - Single 10-bit ADC with successive approximation register (SAR) conversion;
++	   - Analog multiplexer for 16 inputs;
++	   - Seven (of the 16) inputs are freely available;
++	   - Battery voltage monitoring;
++	   - Concurrent conversion request management;
++	   - Interrupt signal to Primary Interrupt Handler;
++	   - Averaging feature;
++	   - Selective enable/disable of the averaging feature.
++
++	  Say 'y' here to statically link this module into the kernel or 'm'
++	  to build it as a dinamically loadable module. The module will be
++	  called twl4030-madc.ko
++
+ config TWL4030_USB
+ 	bool "TWL4030 USB Transceiver Driver"
+ 	depends on TWL4030_CORE
+diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
+index 255fbb1..6431675 100644
+--- a/drivers/i2c/chips/Makefile
++++ b/drivers/i2c/chips/Makefile
+@@ -26,6 +26,7 @@ obj-$(CONFIG_TWL4030_CORE)	+= twl4030-core.o
+ obj-$(CONFIG_TWL4030_GPIO)	+= twl4030-gpio.o
+ obj-$(CONFIG_TWL4030_USB)	+= twl4030-usb.o
+ obj-$(CONFIG_TWL4030_POWEROFF)	+= twl4030-poweroff.o
++obj-$(CONFIG_TWL4030_MADC)	+= twl4030-madc.o
+ obj-$(CONFIG_RTC_X1205_I2C)	+= x1205.o
+ 
+ ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
+-- 
+1.5.5.rc3
 
 
-
-On Mon, 7 Apr 2008 04:12:58 -0700, "Bryan Wu" <cooloney@kernel.org> wrote:
->>  > My patch is simply skip to start 2cn CSW operation as below:
->>  > --
->>  > Index: drivers/usb/storage/transport.c
->>  > ===================================================================
->>  > --- drivers/usb/storage/transport.c   (revision 4075)
->>  > +++ drivers/usb/storage/transport.c   (working copy)
->>  > @@ -1034,9 +1034,11 @@ int usb_stor_Bulk_transport(struct scsi_
->>  >
->>  >               /* get the status again */
->>  >               US_DEBUGP("Attempting to get CSW (2nd try)...\n");
->>  > -             result = usb_stor_bulk_transfer_buf(us,
-> us->recv_bulk_pipe,
->>  > +             bcs->Status = US_BULK_STAT_OK;
->>  > +             goto bcs_status;
->>  > +/*           result = usb_stor_bulk_transfer_buf(us,
-> us->recv_bulk_pipe,
->>  >                               bcs, US_BULK_CS_WRAP_LEN, NULL);
->>  > -     }
->>  > +*/   }
->>
->>  maybe this command triggers a current spike on the zio reader which is
->>  causing the
->>  vbus drop ? could be...
->>
-> 
-> Oh, no. this issue was found in some USB-IDE cable, USB SD card reader
-> and 30G iPod, not in ZiO reader.
-> 
-> The code of the packet which triggered the ZiO issue was included in
-> the ZiO email.
-
-Ugh, my bad :-p
 
 -- 
-Best Regards,
-
-Felipe Balbi
-http://felipebalbi.com
-me@felipebalbi.com
-
+	- Balbi
