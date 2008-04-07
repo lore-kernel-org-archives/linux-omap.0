@@ -1,81 +1,146 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 2/2] I2C: TWL4030: Kconfig and Makefile changes
-Date: Mon,  7 Apr 2008 14:55:16 +0300
-Message-ID: <1207569316-7053-3-git-send-email-felipe.balbi@nokia.com>
-References: <1207569316-7053-1-git-send-email-felipe.balbi@nokia.com>
- <1207569316-7053-2-git-send-email-felipe.balbi@nokia.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [Help 1/2] MUSB: ZiO! CF card reader will trigger a change from MUSB
+ host mode to MUSB peripheral mode
+Date: Mon, 7 Apr 2008 07:38:46 -0500
+Message-ID: <af73f7a75d15439b4761e7b0baa612cf@felipebalbi.com>
+References: <386072610804070408q16c5ffa1u6a0c2e35295aa327@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:42256 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758204AbYDGL4o (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Apr 2008 07:56:44 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m37BubQv016095
-	for <linux-omap@vger.kernel.org>; Mon, 7 Apr 2008 14:56:41 +0300
-In-Reply-To: <1207569316-7053-2-git-send-email-felipe.balbi@nokia.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:46618 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750975AbYDGMiw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Apr 2008 08:38:52 -0400
+In-Reply-To: <386072610804070408q16c5ffa1u6a0c2e35295aa327@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Mikko Ylinen <mikko.k.ylinen@nokia.com>, Felipe Balbi <felipe.balbi@nokia.com>
+To: Bryan Wu <cooloney@kernel.org>
+Cc: David Brownell <david-b@pacbell.net>, tony@atomide.com, linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
 
-From: Mikko Ylinen <mikko.k.ylinen@nokia.com>
 
-Put madc driver into kbuild.
 
-Signed-off-by: Mikko Ylinen <mikko.k.ylinen@nokia.com>
+On Mon, 7 Apr 2008 04:08:33 -0700, "Bryan Wu" <cooloney@kernel.org> wrote:
+> On Mon, Apr 7, 2008 at 3:46 AM, Felipe Balbi <me@felipebalbi.com> wrote:
+>>
+>>
+>>
+>>  On Mon, 7 Apr 2008 03:35:38 -0700, "Bryan Wu" <cooloney@kernel.org>
+> wrote:
+>>  > On Mon, Apr 7, 2008 at 3:19 AM, Felipe Balbi <me@felipebalbi.com>
+> wrote:
+>>  >>
+>>  >>
+>>  >>
+>>  >>  On Mon, 7 Apr 2008 03:15:38 -0700, "Bryan Wu" <cooloney@kernel.org>
+>>  > wrote:
+>>  >>  > Hi folks,
+>>  >>  >
+>>  >>  > Here is our bug tracker,
+>>  >>  >
+>>  >>
+>>  >
+>> 
+>
+https://blackfin.uclinux.org/gf/project/uclinux-dist/tracker/?action=TrackerItemEdit&tracker_id=141&tracker_item_id=3788
+>>  >>  >
+>>  >>  > ZiO! CF card reader is here:
+>>  >>  > http://www.psism.com/zio.htm
+>>  >>  >
+>>  >>  > - Firstly, MUSB is working as in host mode which can be figured
+> out
+>>  > by
+>>  >>  > the debug message.
+>>  >>  > - Enumeration of the ZiO! CF card reader is OK.
+>>  >>  > - When the upper drivers/usb/storage/shuttle_usbat.c try to send
+> out
+>>  >>  > the first packet:
+>>  >>  > --
+>>  >>  >         /* Enable peripheral control signals */
+>>  >>  >         rc = usbat_write_user_io(us,
+>>  >>  >                                  USBAT_UIO_OE1 | USBAT_UIO_OE0,
+>>  >>  >                                  USBAT_UIO_EPAD | USBAT_UIO_1);
+>>  >>  >         if (rc != USB_STOR_XFER_GOOD)
+>>  >>  >                 return USB_STOR_TRANSPORT_ERROR;
+>>  >>  > --
+>>  >>  >
+>>  >>  > - Finally, we got VBUS_ERROR interrupt in peripheral mode. I
+> don't
+>>  >>  > know how to recover it.
+>>  >>  > If I am not wrong, the ZiO! CF card reader must have dropped the
+> VBUS
+>>  >>  > and this triggered the mode change of MUSB.
+>>  >>  >
+>>  >>  > Are you guys have any idea about this?
+>>  >>  >
+>>  >>  > B.T.W, I found the packet sequence of
+>>  >>  > drivers/usb/storage/shuttle_usbat.c is not the same as Windows
+> Host
+>>  >>  > does.
+>>  >>  > So I modified the code to send out the same packet as Windows
+> Host.
+>>  >>  > The result is the same.
+>>  >>
+>>  >>  It's probably drawing more the 100mA, try using a self-powered usb
+> hub
+>>  >>  attached
+>>  >>  to musb and zio to hub.
+>>  >>
+>>  >
+>>  > So that means it's possible related with the hardware design?
+>>  > Unfortunately, there is no self-powered usb hub on my side.
+>>  > Only have normal full-speed usb hub which is powered by usb host. So
+>>  > maybe we should add this kind of usb devices to the black list of
+> MUSB
+>>  > driver.
+>>
+>>  MUSB can only source up to 100mA on the bus, which is perfectly ok on
+> the
+>>  otg point of view. If you attach a device that needs more than 100mA
+> you'll
+>>  get
+>>  a vbus error.
+>>
+> 
+> Right.
+> From the device descriptor, if the MaxPower is greater than 100mA, our
+> usb OTG stack should refuse it, right?
+> 
+>>  To have a clue about how much your reader does attach it to you host pc
+> and
+>>  issue
+>>  lsusb -v -d <vendorid>:<productid> and check the MaxPower field. Of
+> course
+>>  this is just
+>>  a string and if the manufacturer decided to mess it up it's not our
+> fault
+>>  :-p
+>>
+>>  The correct way to measure the current consumption would be with a
+>>  multimeter, but the
+>>  string usually give you a clue :-)
+>>
+> 
+> Thanks, that is pretty handy for us.
+> But I found the MaxPower of my ZiO! is 100mA, too bad.
 
-Updated help text on Kconfig for TWL4030 MADC driver.
+I recall having some issues on 100mA devices. During enumeration some
+current spikes
+a few mAs above 100mA were occuring and we couldn't enumerate the device
+due to vbus_err
+interrupt. If you check drivers/usb/musb/tusb6010.c you'll see that we've
+implemented
+a retry condition for those cases. The same retry can be found in
+musb_core.c
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/i2c/chips/Kconfig  |   21 +++++++++++++++++++++
- drivers/i2c/chips/Makefile |    1 +
- 2 files changed, 22 insertions(+), 0 deletions(-)
+Maybe you could use something similar on your blackfin. BTW, if I can ask
+which OTG transceiver are you using ?
 
-diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
-index bfab098..86869e2 100644
---- a/drivers/i2c/chips/Kconfig
-+++ b/drivers/i2c/chips/Kconfig
-@@ -128,6 +128,27 @@ config TWL4030_GPIO
- 	bool "TWL4030 GPIO Driver"
- 	depends on TWL4030_CORE
- 
-+config TWL4030_MADC
-+	tristate "TWL4030 MADC Driver"
-+	depends on TWL4030_CORE
-+	help
-+	  The TWL4030 Monitoring ADC driver enables the host
-+	  processor to monitor analog signals using analog-to-digital
-+	  conversions on the input source. TWL4030 MADC provides the
-+	  following features:
-+	   - Single 10-bit ADC with successive approximation register (SAR) conversion;
-+	   - Analog multiplexer for 16 inputs;
-+	   - Seven (of the 16) inputs are freely available;
-+	   - Battery voltage monitoring;
-+	   - Concurrent conversion request management;
-+	   - Interrupt signal to Primary Interrupt Handler;
-+	   - Averaging feature;
-+	   - Selective enable/disable of the averaging feature.
-+
-+	 Say 'y' here to statically link this module into the kernel or 'm'
-+	 to build it as a dinamically loadable module. The module will be
-+	 called twl4030-madc.ko
-+
- config TWL4030_USB
- 	bool "TWL4030 USB Transceiver Driver"
- 	depends on TWL4030_CORE
-diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
-index 255fbb1..6431675 100644
---- a/drivers/i2c/chips/Makefile
-+++ b/drivers/i2c/chips/Makefile
-@@ -26,6 +26,7 @@ obj-$(CONFIG_TWL4030_CORE)	+= twl4030-core.o
- obj-$(CONFIG_TWL4030_GPIO)	+= twl4030-gpio.o
- obj-$(CONFIG_TWL4030_USB)	+= twl4030-usb.o
- obj-$(CONFIG_TWL4030_POWEROFF)	+= twl4030-poweroff.o
-+obj-$(CONFIG_TWL4030_MADC)	+= twl4030-madc.o
- obj-$(CONFIG_RTC_X1205_I2C)	+= x1205.o
- 
- ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
+
 -- 
-1.5.5.rc3
+Best Regards,
+
+Felipe Balbi
+http://felipebalbi.com
+me@felipebalbi.com
 
