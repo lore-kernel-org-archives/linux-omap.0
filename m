@@ -1,96 +1,48 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: JFFS2 issues on OSK?
-Date: Sun, 6 Apr 2008 17:36:13 -0700
-Message-ID: <200804061736.13333.david-b@pacbell.net>
-References: <200803180026.25802.david-b@pacbell.net>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [android-internals] Re: Android on Nokia n810 (OMAP2420)
+Date: Mon, 7 Apr 2008 09:47:15 +0300
+Message-ID: <20080407094715.72685822.jarkko.nikula@nokia.com>
+References: <f6c5b8d90804020736m3d80fef9h2d377aea7fab52bf@mail.gmail.com>
+	<0b2d3f9c-e29a-406a-ac8d-d8589d457a0f@m36g2000hse.googlegroups.com>
+	<0b799c72-1a04-4224-8307-18b7ab10d17f@b5g2000pri.googlegroups.com>
+	<9a810d71-bc48-4bab-8ad6-93ebc310a110@z38g2000hsc.googlegroups.com>
+	<999ed349-dc22-4db4-a679-60511d9339f7@a23g2000hsc.googlegroups.com>
+	<9ff5cf01-f4aa-4560-b71e-bb948a69d9b9@t54g2000hsg.googlegroups.com>
+	<9583cd73-79d6-4f4e-b5a3-e27c4f165993@p39g2000prm.googlegroups.com>
+	<105bd206-af76-4fbb-affa-6fc8efdf6133@59g2000hsb.googlegroups.com>
+	<f6e0615c-d180-4a3e-a112-c5320cde1cfd@c65g2000hsa.googlegroups.com>
+	<47F7B240.2070901@gmail.com>
+	<20080406132323.GA13033@bulgaria.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp109.sbc.mail.mud.yahoo.com ([68.142.198.208]:27671 "HELO
-	smtp109.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755523AbYDGAgT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Apr 2008 20:36:19 -0400
-In-Reply-To: <200803180026.25802.david-b@pacbell.net>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.105.134]:18055 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752147AbYDGGrG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Apr 2008 02:47:06 -0400
+In-Reply-To: <20080406132323.GA13033@bulgaria.corp.google.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: ext Brian Swetland <swetland@google.com>
+Cc: Nishanth Menon <menon.nishanth@gmail.com>, Georges.Toth@gmail.com, linux-omap@vger.kernel.org
 
-On Tuesday 18 March 2008, David Brownell wrote:
-> This is strange.  When I try to mount /dev/mtdblock3 as the
-> root FS I get a variety of errors (minimally "point returned
-> len too short: 0") ... which do *not* appear later when I just
-> issue a "mount -t jffs2 /dev/mtdblock3 /mnt"!!
+On Sun, 6 Apr 2008 06:23:23 -0700
+"ext Brian Swetland" <swetland@google.com> wrote:
 
-Update:  the latest kernel.org GIT (nyet OMAP git) has a patch
-which seems to resolve this issue.  It's a NOR flash corruption
-issue specific to CFI command set 1 (Intel), dating since early
-October:  c4a9f88daf6c382fedde4cdddef0b30f1d0a20db caused this.
+> Has anyone had any luck getting a 2.6.23 or 2.6.24 kernel working
+> with the 800 or 810?  When I was poking around with it a while back,
+> I had to backport our stuff to .21 due to binary-only wifi drivers
+> being incompatible with newer kernels.
+> 
+I would say that N800 has the best support at the moment in linux-omap.
+I think almost all the drivers are there. IIRC only temperature sensor
+is missing.
 
-This afflicted OSK, since its Micron flash is compatible with
-Intel's Strataflash.  The failure mode variability was caused by
-different read and write patterns.
-
-If you have NOR flash issues, you may *NEED* this fix.
-
-- Dave
+N810 has unfortunately only very minimal support. But at least USB and
+OneNAND are working so it can run as a block box. However there
+shouldn't be any new binary stuff so in principle it should be able to
+get into same shape than N800 with help of our kernel sources.
 
 
-commit fb6d080c6f75dfd7e23d5a3575334785aa8738eb
-Author: Alexey Korolev <akorolev@infradead.org>
-Date:   Fri Apr 4 14:30:01 2008 -0700
-
-    mtd: fix broken state in CFI driver caused by FL_SHUTDOWN
-    
-    THe CFI driver in 2.6.24 kernel is broken.  Not so intensive read/write
-    operations cause incomplete writes which lead to kernel panics in JFFS2.
-    
-    We investigated the issue - it is caused by bug in FL_SHUTDOWN parsing code.
-    Sometimes chip returns -EIO as if it is in FL_SHUTDOWN state when it should
-    wait in FL_PONT (error in order of conditions).
-    
-    The following patch fixes the bug in state parsing code of CFI.  Also I've
-    added comments to notify developers if they want to add new case in future.
-    
-    Signed-off-by: Alexey Korolev <akorolev@infradead.org>
-    Reviewed-by: Joern Engel <joern@logfs.org>
-    Cc: David Woodhouse <dwmw2@infradead.org>
-    Cc: <stable@kernel.org>
-    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
-
-diff --git a/drivers/mtd/chips/cfi_cmdset_0001.c b/drivers/mtd/chips/cfi_cmdset_0001.c
-index 47794d2..0080452 100644
---- a/drivers/mtd/chips/cfi_cmdset_0001.c
-+++ b/drivers/mtd/chips/cfi_cmdset_0001.c
-@@ -718,7 +718,7 @@ static int chip_ready (struct map_info *map, struct flchip *chip, unsigned long
- 			/* Someone else might have been playing with it. */
- 			return -EAGAIN;
- 		}
--
-+		/* Fall through */
- 	case FL_READY:
- 	case FL_CFI_QUERY:
- 	case FL_JEDEC_QUERY:
-@@ -778,14 +778,14 @@ static int chip_ready (struct map_info *map, struct flchip *chip, unsigned long
- 		chip->state = FL_READY;
- 		return 0;
- 
-+	case FL_SHUTDOWN:
-+		/* The machine is rebooting now,so no one can get chip anymore */
-+		return -EIO;
- 	case FL_POINT:
- 		/* Only if there's no operation suspended... */
- 		if (mode == FL_READY && chip->oldstate == FL_READY)
- 			return 0;
--
--	case FL_SHUTDOWN:
--		/* The machine is rebooting now,so no one can get chip anymore */
--		return -EIO;
-+		/* Fall through */
- 	default:
- 	sleep:
- 		set_current_state(TASK_UNINTERRUPTIBLE);
-
+Jarkko
