@@ -1,79 +1,71 @@
-From: "Bryan Wu" <cooloney@kernel.org>
-Subject: Re: [Help 2/2] MUSB: some USB card readers, USB-IDE cable, 30G old iPod will be reset several times in usb-storage transcation
-Date: Tue, 8 Apr 2008 12:00:16 +0800
-Message-ID: <386072610804072100y71848d60r3e0ea63841f9ef0f@mail.gmail.com>
-References: <386072610804070316i15ee172cue9c0cc5803f9a934@mail.gmail.com>
-	 <5bd10b9010c8281ff117f7ebb02f7d39@felipebalbi.com>
-	 <200804070903.11354.david-b@pacbell.net>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: source.mvista links are broken
+Date: Tue, 8 Apr 2008 10:07:40 +0530
+Message-ID: <010C7BAE6783F34D9AC336EE5A01A08805C303DA@dbde01.ent.ti.com>
+References: <5D8B5EC1EB6ED845B1EB216F00C71B65032A8F0F@dlee12.ent.ti.com><20080404110314.GN3505@atomide.com> <87myo9a3kf.fsf@paris.hilman.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from el-out-1112.google.com ([209.85.162.177]:33617 "EHLO
-	el-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752006AbYDHEAR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Apr 2008 00:00:17 -0400
-Received: by el-out-1112.google.com with SMTP id v27so1342573ele.17
-        for <linux-omap@vger.kernel.org>; Mon, 07 Apr 2008 21:00:16 -0700 (PDT)
-In-Reply-To: <200804070903.11354.david-b@pacbell.net>
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:54896 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751121AbYDHEil convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Apr 2008 00:38:41 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <87myo9a3kf.fsf@paris.hilman.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Felipe Balbi <me@felipebalbi.com>, tony@atomide.com, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@mvista.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Apr 8, 2008 at 12:03 AM, David Brownell <david-b@pacbell.net> wrote:
-> On Monday 07 April 2008, Felipe Balbi wrote:
->  > > e) So I hacked the usb-storage driver code, the Linux host on Blackfin
->  > > will not wait for the 2nc CSW. Then this bug is gone.
->  > >
->  > > This is just a workaround for that, it should not be the right way.
->  > > Does anyone here meet this issue before, on Davinci or OMAP?
->  > > We always need a real fix, thanks a lot
->  >
->  > I've seen this already with n800/n810. It came up after a merge with
->  > mainline that changed usb subsystem a bit.
->
->  Which merge was that?
->
->  My guess would be that the host side fault reporting
->  changes (short packet?) didn't get fully reflected in
->  the MUSB code.
->
+Hi all, 
 
-Sorry, I did not fully understand here. I guess it the error return
-value issue in the 2.6.24 or later kernel.
-I got a patch for that, but not sure whether it is right
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
+> Sent: Friday, April 04, 2008 11:46 PM
+> To: Tony Lindgren
+> Cc: Iqbal; linux-omap@vger.kernel.org
+> Subject: Re: source.mvista links are broken
+> 
+> Tony Lindgren <tony@atomide.com> writes:
+> 
+> > * Iqbal <iqbal@ti.com> [080404 13:07]:
+> >> 
+> >> Looks like the OMAP tree links are broken and the summary,short log and other fields don't work.
+> >> 
+> >> 
+> http://source.mvista.com/git/?p=linux-omap-2.6.git;a=commit;h=8a88c221c88399bc694c367dbea01ffc4153ef20
+> >
+> > Yeah, I've noticed that too. Probably git needs updating on
+> > source.mvista.com, it seems to have issues with reading packed objects.
+> >
+> > I've fixed it to some extent by scp'ing over some object files, and then
+> > there was a brief file permissions problem too...
+> >
+> > In any case, please use the kernel.org instead:
+> >
+> > http://git.kernel.org/git/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary
+> > git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+> >
+> > I've notified Kevin about the issue, so we probably have to wait for
+> > git to get updated.
+> 
+> git on source.mvista.com is now updated to 1.5.4.5.  Let me know if
+> there are any more problems.
+> 
+> Kevin
 
---
-Index: drivers/usb/musb/musb_host.c
-===================================================================
---- drivers/usb/musb/musb_host.c        (revision 4555)
-+++ drivers/usb/musb/musb_host.c        (working copy)
-@@ -422,7 +422,11 @@ musb_advance_schedule(struct musb *musb,
-                qh = hw_ep->in_qh;
-        else
-                qh = hw_ep->out_qh;
--       qh = musb_giveback(qh, urb, 0);
-+
-+       if (urb->status == -EINPROGRESS)
-+               qh = musb_giveback(qh, urb, 0);
-+       else
-+               qh = musb_giveback(qh, urb, urb->status);
 
-        if (qh && qh->is_ready && !list_empty(&qh->hep->urb_list)) {
-                DBG(4, "... next ep%d %cX urb %p\n",
---
+I'm still unable to clone the git tree from the mvista site.
 
-But the original bug is still here, unless we do workaround in the
-usb-storage code as my patch does.
+I use "git clone http://source.mvista.com/gittrees/linux-omap-2.6.git"
 
->  How is "usbtest" behaving?  I'm not sure that would
->  show errors like this, but at least it'd be good to
->  know that's not an issue.
->
+I can't use the git://* URLs either. I'm behind a proxy and exporting
+http_proxy isn't helping.
 
-I did not use usbtest on MUSB host, but plan to do it in our testing machine.
+At least, I'm able to browse the tree from the mvista server and get
+file changelogs, etc from there.
 
-Thanks
--Bryan
+Regards,
+Anand
