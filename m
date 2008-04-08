@@ -1,40 +1,41 @@
-From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [PATCH 0/1] OMAP2430: Add missing defines for TWL4030
-Date: Tue, 08 Apr 2008 11:35:36 -0400
-Message-ID: <47FB90C8.7050403@indt.org.br>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: OMAP2430 build breakage
+Date: Tue, 8 Apr 2008 22:46:54 +0530
+Message-ID: <010C7BAE6783F34D9AC336EE5A01A08805C3078F@dbde01.ent.ti.com>
+References: <47FB8467.5070606@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="UTF-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:60020 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752478AbYDHPqO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Apr 2008 11:46:14 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:37170 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753523AbYDHRRW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Apr 2008 13:17:22 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <47FB8467.5070606@indt.org.br>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
+To: Carlos Aguiar <carlos.aguiar@indt.org.br>
 Cc: linux-omap@vger.kernel.org
 
-Hi Tony and folks,
-
-This is a new - and complete - version of Francisco's patch [1].
-
-This patch solve the build problem on 2430 SDP and 2430 OSK boards, as
-mentioned by Anan [2].
-
-BR,
-
-Carlos.
-
-[1] http://marc.info/?l=linux-omap&m=120748171703949&w=2
-[2] http://marc.info/?l=linux-omap&m=120766437626777&w=2
-
--- 
-Carlos Eduardo Aguiar
-Nokia Institute of Technology - INdT
-Open Source Mobile Research Center - OSMRC - Manaus
-Core Team
-Phone: +55 92 2126-1079
-Mobile: +55 92 8127-1797
-E-mail: carlos.aguiar@indt.org.br
-
+SGkgQ2FybG9zLA0KDQpXZSBhcmUgc2VlaW5nIGlzc3VlcyB3aXRoIGJvb3RpbmcgdGhlIGltYWdl
+cyBvbiAzNDMwIEVTMSBib2FyZHMuIEkgaGFkIGEgcHJvYmxlbSBnZXR0aW5nIHRoZSBnaXQgdHJl
+ZSBzeW5jZWQgdXAgLSB0aGlzIGdvdCByZXNvbHZlZCBvbmx5IHRvZGF5LiBJIGNhbiB0ZXN0IHRo
+ZSBpbWFnZXMgdG9tb3Jyb3cuDQoNClJlZ2FyZHMsDQpBbmFuZA0KDQo+IC0tLS0tT3JpZ2luYWwg
+TWVzc2FnZS0tLS0tDQo+IEZyb206IENhcmxvcyBBZ3VpYXIgW21haWx0bzpjYXJsb3MuYWd1aWFy
+QGluZHQub3JnLmJyXSANCj4gU2VudDogVHVlc2RheSwgQXByaWwgMDgsIDIwMDggODoxMyBQTQ0K
+PiBUbzogR2FkaXlhciwgQW5hbmQNCj4gQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnDQo+
+IFN1YmplY3Q6IE9NQVAyNDMwIGJ1aWxkIGJyZWFrYWdlDQo+IA0KPiBIaSBBbmFuZCwNCj4gDQo+
+IFJlZ2FyZGluZyB0aGUgYnVpbGRpbmcgb2Ygb21hcF8yNDMwc2RwX2RlZmNvbmZpZyBhbmQNCj4g
+b21hcF8yNDMwb3NrX2RlZmNvbmZpZywgSSdtIGdvaW5nIHRvIHNlbmQgdG9kYXkgYSBuZXcgLSBh
+bmQgY29tcGxldGUgLQ0KPiB2ZXJzaW9uIG9mIEZyYW5jaXNjbydzIHBhdGNoIFsxXSB0aGF0IHNv
+bHZlIHRoZSBidWlsZCBwcm9ibGVtLg0KPiANCj4gQnV0IEknbSBoYXZpbmcgcHJvYmxlbXMgb24g
+Ym9vdGluZyBpbWFnZXMgZ2VuZXJhdGVkIGZyb20gdGhlIG1vc3QNCj4gdXBkYXRlZCBsaW51eC1v
+bWFwIHRyZWUuDQo+IA0KPiBCUiwNCj4gDQo+IENhcmxvcy4NCj4gDQo+IFsxXSBodHRwOi8vbWFy
+Yy5pbmZvLz9sPWxpbnV4LW9tYXAmbT0xMjA3NDgxNzE3MDM5NDkmdz0yDQo+IA0KPiAtLSANCj4g
+Q2FybG9zIEVkdWFyZG8gQWd1aWFyDQo+IE5va2lhIEluc3RpdHV0ZSBvZiBUZWNobm9sb2d5IC0g
+SU5kVA0KPiBPcGVuIFNvdXJjZSBNb2JpbGUgUmVzZWFyY2ggQ2VudGVyIC0gT1NNUkMgLSBNYW5h
+dXMNCj4gQ29yZSBUZWFtDQo+IFBob25lOiArNTUgOTIgMjEyNi0xMDc5DQo+IE1vYmlsZTogKzU1
+IDkyIDgxMjctMTc5Nw0KPiBFLW1haWw6IGNhcmxvcy5hZ3VpYXJAaW5kdC5vcmcuYnINCj4gDQo+
+IA0K
