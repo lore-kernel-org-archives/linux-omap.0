@@ -1,65 +1,38 @@
-From: "Bryan Wu" <cooloney@kernel.org>
-Subject: Re: [Help 1/2] MUSB: ZiO! CF card reader will trigger a change from MUSB host mode to MUSB peripheral mode
-Date: Tue, 8 Apr 2008 15:06:03 +0800
-Message-ID: <386072610804080006g588c7ad9ya4dd8c9c9c6cf827@mail.gmail.com>
-References: <386072610804070408q16c5ffa1u6a0c2e35295aa327@mail.gmail.com>
-	 <af73f7a75d15439b4761e7b0baa612cf@felipebalbi.com>
-	 <200804070905.10048.david-b@pacbell.net>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: source.mvista links are broken
+Date: Tue, 8 Apr 2008 14:00:18 +0530
+Message-ID: <010C7BAE6783F34D9AC336EE5A01A08805C30581@dbde01.ent.ti.com>
+References: <5D8B5EC1EB6ED845B1EB216F00C71B65032A8F0F@dlee12.ent.ti.com><20080404110314.GN3505@atomide.com> <87myo9a3kf.fsf@paris.hilman.org> <010C7BAE6783F34D9AC336EE5A01A08805C303DA@dbde01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.227]:26793 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751696AbYDHHGF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Apr 2008 03:06:05 -0400
-Received: by wr-out-0506.google.com with SMTP id c48so1487718wra.1
-        for <linux-omap@vger.kernel.org>; Tue, 08 Apr 2008 00:06:04 -0700 (PDT)
-In-Reply-To: <200804070905.10048.david-b@pacbell.net>
-Content-Disposition: inline
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33086 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751995AbYDHIdz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Apr 2008 04:33:55 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <010C7BAE6783F34D9AC336EE5A01A08805C303DA@dbde01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Felipe Balbi <me@felipebalbi.com>, tony@atomide.com, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@mvista.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Apr 8, 2008 at 12:05 AM, David Brownell <david-b@pacbell.net> wrote:
-> On Monday 07 April 2008, Felipe Balbi wrote:
->  > I recall having some issues on 100mA devices. During enumeration some
->  > current spikes a few mAs above 100mA were occuring and we couldn't
->  > enumerate the device due to vbus_err interrupt.
->
->  Yeah, I think the Mentor core is unduly sensitive to voltage
->  fluctuation during enumeration.  There's supposed to be about
->  100 msec before VBUS must stabilize ... but the silicon doesn't
->  seem to accept routine instabilities in that period, and then
->  reports inappropriate VBUS errors.
->
+<snip> 
 
-For this VBUS error, Blackfin MUSB port follows other platforms idea to retry.
+> 
+> I'm still unable to clone the git tree from the mvista site.
+> 
+> I use "git clone http://source.mvista.com/gittrees/linux-omap-2.6.git"
+> 
+> I can't use the git://* URLs either. I'm behind a proxy and exporting
+> http_proxy isn't helping.
+> 
 
-But to this bug, the ZiO card reader will trigger the mode change
-maybe due to the VBUS drop.
-It should be different as the VBUS error in the enumeration, because
-the enumeration of the ZiO
-is OK.
+Was finally able to clone from kernel.org. Found the correct http URL from 
+http://www.muru.com/linux/omap/README_OMAP_GIT.
 
-And for our development board EZKIT548, it can provide 500mA current
-at 5V as it claimed in manual
-with a external regular. So from my point of view, this bug is not
-related with 100mA current limit issue.
 
->
->
->  > If you check drivers/usb/musb/tusb6010.c you'll see that we've
->  > implemented a retry condition for those cases. The same retry can
->  > be found in musb_core.c
->
->  The DaVinci support needed the same kind of logic.  All in
->  all this is painful stuff to sort out, and it seems that
->  each platform rediscovers it.  It would be better if the
->  silicon itself weren't fighting back so hard...
->
+> At least, I'm able to browse the tree from the mvista server and get
+> file changelogs, etc from there.
 
-Yes, I reported this to our silicon designers.
-
--Bryan
