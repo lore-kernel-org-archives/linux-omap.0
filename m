@@ -1,60 +1,187 @@
-From: Daniel Stone <daniel.stone@nokia.com>
-Subject: Re: [PATCH 1/5] I2C: LM8323: Introduce lm8323 keypad driver
-Date: Wed, 9 Apr 2008 23:35:26 +0300
-Message-ID: <20080409203526.GY3842@intune.research.nokia.com>
-References: <1207742644-6260-1-git-send-email-felipe.balbi@nokia.com> <1207742644-6260-2-git-send-email-felipe.balbi@nokia.com> <20080409121124.GS7338@gandalf.research.nokia.com> <fb249edb0804091026h796d373bn7ad2a58a2edb6e0d@mail.gmail.com> <20080409180557.GA15913@kedavra.cpe.vivax.com.br>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/17] ARM: OMAP2: Add common register access for 24xx
+	and 34xx
+Date: Wed, 9 Apr 2008 20:50:06 +0000
+Message-ID: <20080409205005.GL31071@atomide.com>
+References: <1205848935-12078-1-git-send-email-tony@atomide.com> <1205848935-12078-2-git-send-email-tony@atomide.com> <1205848935-12078-3-git-send-email-tony@atomide.com> <1205848935-12078-4-git-send-email-tony@atomide.com> <20080407162049.GF5306@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="idY8LE8SD6/8DnRI"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:51450 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754105AbYDIUeO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 16:34:14 -0400
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:52735 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752457AbYDIUuP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 16:50:15 -0400
 Content-Disposition: inline
-In-Reply-To: <20080409180557.GA15913@kedavra.cpe.vivax.com.br>
+In-Reply-To: <20080407162049.GF5306@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Felipe Balbi <me@felipebalbi.com>
-Cc: andrzej zaborowski <balrogg@gmail.com>, felipe.balbi@nokia.com, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Eduardo Valentin <edubezval@gmail.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+
+Hi,
+
+Thanks for looking through this big set, I'll repost the series
+with your comments fixed.
+
+Few comments below on what was changed.
+
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [080407 16:21]:
+> On Tue, Mar 18, 2008 at 04:02:01PM +0200, Tony Lindgren wrote:
+> > diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
+> > new file mode 100644
+> > index 0000000..f575a87
+> > --- /dev/null
+> > +++ b/arch/arm/mach-omap2/cm.h
+> > @@ -0,0 +1,142 @@
+> > +
+> > +#ifndef __ASSEMBLER__
+> > +/* Clock management global register get/set */
+> > +
+> > +static void __attribute__((unused)) cm_write_reg(u32 val, void __iomem *addr)
+> > +{
+> > +	pr_debug("cm_write_reg: writing 0x%0x to 0x%0x\n", val, (u32)addr);
+> > +
+> > +	__raw_writel(val, addr);
+> > +}
+> > +
+> > +static u32 __attribute__((unused)) cm_read_reg(void __iomem *addr)
+> > +{
+> > +	return __raw_readl(addr);
+> > +}
+> > +#endif
+> 
+> Erm, code in a header file?  Make them __inline__ or if you really want
+> to have them as separate functions, put them in a .c file.
+> 
+> Next point - what's the purpose of them.  They're doing nothing (apart
+> from that excess debug statement).
+
+I've made them __inline__ and removed extra debug stuff from these
+functions.
 
 
---idY8LE8SD6/8DnRI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> > +#ifndef __ASSEMBLER__
+> > +static void __attribute__((unused)) cm_write_mod_reg(u32 val, s16 module,
+> > +							s16 idx)
+> > +{
+> > +	cm_write_reg(val, OMAP_CM_REGADDR(module, idx));
+> > +}
+> > +
+> > +static u32 __attribute__((unused)) cm_read_mod_reg(s16 module, s16 idx)
+> > +{
+> > +	return cm_read_reg(OMAP_CM_REGADDR(module, idx));
+> > +}
+> > +#endif
+> 
+> Ditto.
+> 
+> > diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+> > index 90f5305..01ab3bc 100644
+> > --- a/arch/arm/mach-omap2/prcm.c
+> > +++ b/arch/arm/mach-omap2/prcm.c
+> > @@ -16,6 +16,7 @@
+> >  #include <linux/module.h>
+> >  #include <linux/init.h>
+> >  #include <linux/clk.h>
+> > +#include <linux/io.h>
+> 
+> Always suspicious of changes which just _add_ includes.  Is this actually
+> needed?  Did it build before?
 
-On Wed, Apr 09, 2008 at 09:05:58PM +0300, ext Felipe Balbi wrote:
-> On Wed, Apr 09, 2008 at 07:26:31PM +0200, andrzej zaborowski wrote:
-> > Question not really related to this patchset, but in the TSC2005
-> > driver some averaging and limit checks are done to the ADC values.
-> > Shouldn't that be done in userspace instead?  (The ADS784x and TSC2301
-> > drivers do the same evidently.)
->=20
-> Now that's not really up to me, but if we move it now it probably won't
-> provide the feature n810 needs. I mean, n810 is designed on top of the
-> features provided by driver, the application probably expects the driver
-> to do the averaging and limit checks so at least for tsc2005 I think
-> it's not a good idea to change due to application requirements.
+I've moved this to a later patch that needs it.
 
-It's specific to the device (and device _build_): the actual
-touchscreen, and how it's working in the device, so a combination of LCD
-driver and board files sounds best to me.
 
-Cheers,
-Daniel
+> > diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+> > new file mode 100644
+> > index 0000000..455b060
+> > --- /dev/null
+> > +++ b/arch/arm/mach-omap2/prm.h
+> > @@ -0,0 +1,334 @@
+> >..
+> > +#ifndef __ASSEMBLER__
+> > +
+> > +/* Power/reset management global register get/set */
+> > +
+> > +static void __attribute__((unused)) prm_write_reg(u32 val, void __iomem *addr)
+> > +{
+> > +	pr_debug("prm_write_reg: writing 0x%0x to 0x%0x\n", val, (u32)addr);
+> > +
+> > +	__raw_writel(val, addr);
+> > +}
+> > +
+> > +static u32 __attribute__((unused)) prm_read_reg(void __iomem *addr)
+> > +{
+> > +	return __raw_readl(addr);
+> > +}
+> > +
+> > +#endif
+> 
+> Yet more code in includes.  And this looks like a pointless abstraction.
+> 
+> > +#ifndef __ASSEMBLER__
+> > +
+> > +/* Power/reset management domain register get/set */
+> > +
+> > +static void __attribute__((unused)) prm_write_mod_reg(u32 val, s16 module, s16 idx)
+> > +{
+> > +	prm_write_reg(val, OMAP_PRM_REGADDR(module, idx));
+> > +}
+> > +
+> > +static u32 __attribute__((unused)) prm_read_mod_reg(s16 module, s16 idx)
+> > +{
+> > +	return prm_read_reg(OMAP_PRM_REGADDR(module, idx));
+> > +}
+> > +
+> > +#endif
+> 
+> And more.
+> 
+> > diff --git a/arch/arm/mach-omap2/sdrc.h b/arch/arm/mach-omap2/sdrc.h
+> > new file mode 100644
+> > index 0000000..928e1c4
+> > --- /dev/null
+> > +++ b/arch/arm/mach-omap2/sdrc.h
+> >...
+> > +#ifndef __ASSEMBLER__
+> > +extern unsigned long omap2_sdrc_base;
+> > +extern unsigned long omap2_sms_base;
+> > +
+> > +#define OMAP_SDRC_REGADDR(reg)						\
+> > +		(void __iomem *)IO_ADDRESS(omap2_sdrc_base + (reg))
+> > +#define OMAP_SMS_REGADDR(reg)						\
+> > +		(void __iomem *)IO_ADDRESS(omap2_sms_base + (reg))
+> > +
+> > +/* SDRC global register get/set */
+> > +
+> > +static void __attribute__((unused)) sdrc_write_reg(u32 val, u16 reg)
+> > +{
+> > +	pr_debug("sdrc_write_reg: writing 0x%0x to 0x%0x\n", val,
+> > +		 (u32)OMAP_SDRC_REGADDR(reg));
+> > +
+> > +	__raw_writel(val, OMAP_SDRC_REGADDR(reg));
+> > +}
+> > +
+> > +static u32 __attribute__((unused)) sdrc_read_reg(u16 reg)
+> > +{
+> > +	return __raw_readl(OMAP_SDRC_REGADDR(reg));
+> > +}
+> > +
+> > +/* SMS global register get/set */
+> > +
+> > +static void __attribute__((unused)) sms_write_reg(u32 val, u16 reg)
+> > +{
+> > +	pr_debug("sms_write_reg: writing 0x%0x to 0x%0x\n", val,
+> > +		 (u32)OMAP_SMS_REGADDR(reg));
+> > +
+> > +	__raw_writel(val, OMAP_SMS_REGADDR(reg));
+> > +}
+> > +
+> > +static u32 __attribute__((unused)) sms_read_reg(u16 reg)
+> > +{
+> > +	return __raw_readl(OMAP_SMS_REGADDR(reg));
+> > +}
+> 
+> And more.
+> 
+> So that's a NAK.
 
---idY8LE8SD6/8DnRI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFH/SiO68xJuWtYYdURAi4+AKCZ6A+KIEg1Z5AHmy/wvOEYhbf+ZwCgm4ib
-jSzP+hlyJiXzzAQqdwNZT3o=
-=/7lG
------END PGP SIGNATURE-----
-
---idY8LE8SD6/8DnRI--
