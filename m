@@ -1,108 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] OMAP2430: Add missing defines for TWL4030
-Date: Wed, 9 Apr 2008 21:18:43 +0000
-Message-ID: <20080409211842.GP31071@atomide.com>
-References: <47FB90CD.90104@indt.org.br>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 5/17] ARM: OMAP2: Change 24xx to use new register access
+Date: Wed, 9 Apr 2008 22:22:03 +0100
+Message-ID: <20080409212203.GA31636@flint.arm.linux.org.uk>
+References: <1205848935-12078-1-git-send-email-tony@atomide.com> <1205848935-12078-2-git-send-email-tony@atomide.com> <1205848935-12078-3-git-send-email-tony@atomide.com> <1205848935-12078-4-git-send-email-tony@atomide.com> <1205848935-12078-5-git-send-email-tony@atomide.com> <1205848935-12078-6-git-send-email-tony@atomide.com> <20080407164856.GG5306@flint.arm.linux.org.uk> <20080409205713.GM31071@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:59637 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754407AbYDIVSo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 17:18:44 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46048 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754789AbYDIVWN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 17:22:13 -0400
 Content-Disposition: inline
-In-Reply-To: <47FB90CD.90104@indt.org.br>
+In-Reply-To: <20080409205713.GM31071@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-* Carlos Aguiar <carlos.aguiar@indt.org.br> [080408 15:37]:
-> From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+On Wed, Apr 09, 2008 at 08:57:13PM +0000, Tony Lindgren wrote:
+> Here's how it now looks:
+
+Not quite.  The point I was trying to make is:
+
+> @@ -302,15 +288,17 @@
+>  	int eth_cs;
+>  	unsigned long cs_mem_base;
+>  	unsigned int muxed, rate;
+> -	struct clk *l3ck;
+> +	struct clk *gpmc_fck;
+>  
+>  	eth_cs	= H4_SMC91X_CS;
+>  
+> -	l3ck = clk_get(NULL, "core_l3_ck");
+> -	if (IS_ERR(l3ck))
+> -		rate = 100000000;
+> -	else
+> -		rate = clk_get_rate(l3ck);
+> +	gpmc_fck = clk_get(NULL, "gpmc_fck");	/* Always on ENABLE_ON_INIT */
+> +	if (IS_ERR(gpmc_fck)) {
+> +		WARN_ON(1);
+> +		return;
+> +	}
+> +
+
+that there should be a call to clk_enable() here - if even if it's
+apparantly "always on".  (If it's always enabled then the call won't
+do any harm anyway - it just serves to ensure that the API conditions
+are followed.)
+
+> +	rate = clk_get_rate(gpmc_fck);
+>  
+>  	if (is_gpmc_muxed())
+>  		muxed = 0x200;
 > 
-> This patch adds missing defines for TWL4030.
-
-I've pushed this. We should fix the defines, as it now looks like this
-will again break efforts of building multiple omaps into the same
-kernel. Basically the same things need to be defined in just one
-common place.
-
-Tony
-
-
-> Signed-off-by: Francisco Alecrim <francisco.alecrim@indt.org.br>
-> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-> ---
->  include/asm-arm/arch-omap/board-2430osk.h |   15 +++++++++++++--
->  include/asm-arm/arch-omap/board-2430sdp.h |   15 +++++++++++++--
->  2 files changed, 26 insertions(+), 4 deletions(-)
+> Will repost the whole series.
 > 
-> diff --git a/include/asm-arm/arch-omap/board-2430osk.h b/include/asm-arm/arch-omap/board-2430osk.h
-> index e5b63ae..14c996e 100644
-> --- a/include/asm-arm/arch-omap/board-2430osk.h
-> +++ b/include/asm-arm/arch-omap/board-2430osk.h
-> @@ -33,15 +33,26 @@
->  #define OMAP24XX_ETHR_START		0x08000300
->  #define OMAP24XX_ETHR_GPIO_IRQ		149
->  
-> +#ifdef CONFIG_TWL4030_CORE
-> +
->  #define TWL4030_IRQNUM			INT_24XX_SYS_NIRQ
->  
->  /* TWL4030 Primary Interrupt Handler (PIH) interrupts */
->  #define IH_TWL4030_BASE			IH_BOARD_BASE
->  #define IH_TWL4030_END			(IH_TWL4030_BASE+8)
->  
-> +#define IH_TWL4030_PWRBASE		(IH_TWL4030_END)
-> +#define IH_TWL4030_PWRBASE_END		(IH_TWL4030_PWRBASE+8)
-> +
-> +#ifdef CONFIG_TWL4030_GPIO
-> +
->  /* TWL4030 GPIO Interrupts */
-> -#define IH_TWL4030_GPIO_BASE		(IH_TWL4030_END)
-> -#define IH_TWL4030_GPIO_END		(IH_TWL4030_BASE+18)
-> +#define IH_TWL4030_GPIO_BASE		(IH_TWL4030_PWRBASE_END)
-> +#define IH_TWL4030_GPIO_END		(IH_TWL4030_GPIO_BASE+18)
->  #define NR_IRQS				(IH_TWL4030_GPIO_END)
-> +#else
-> +#define NR_IRQS				(IH_TWL4030_PWRBASE_END)
-> +#endif /* CONFIG_I2C_TWL4030_GPIO */
-> +#endif /* End of support for TWL4030 */
->  
->  #endif /* __ASM_ARCH_OMAP_2430OSK_H */
-> diff --git a/include/asm-arm/arch-omap/board-2430sdp.h b/include/asm-arm/arch-omap/board-2430sdp.h
-> index 186e9cc..217f197 100644
-> --- a/include/asm-arm/arch-omap/board-2430sdp.h
-> +++ b/include/asm-arm/arch-omap/board-2430sdp.h
-> @@ -34,16 +34,27 @@
->  #define OMAP24XX_ETHR_GPIO_IRQ		149
->  #define SDP2430_CS0_BASE		0x04000000
->  
-> +#ifdef CONFIG_TWL4030_CORE
-> +
->  #define TWL4030_IRQNUM			INT_24XX_SYS_NIRQ
->  
->  /* TWL4030 Primary Interrupt Handler (PIH) interrupts */
->  #define IH_TWL4030_BASE			IH_BOARD_BASE
->  #define IH_TWL4030_END			(IH_TWL4030_BASE+8)
->  
-> +#define IH_TWL4030_PWRBASE		(IH_TWL4030_END)
-> +#define IH_TWL4030_PWRBASE_END		(IH_TWL4030_PWRBASE+8)
-> +
-> +#ifdef CONFIG_TWL4030_GPIO
-> +
->  /* TWL4030 GPIO Interrupts */
-> -#define IH_TWL4030_GPIO_BASE		(IH_TWL4030_END)
-> -#define IH_TWL4030_GPIO_END		(IH_TWL4030_BASE+18)
-> +#define IH_TWL4030_GPIO_BASE		(IH_TWL4030_PWRBASE_END)
-> +#define IH_TWL4030_GPIO_END		(IH_TWL4030_GPIO_BASE+18)
->  #define NR_IRQS				(IH_TWL4030_GPIO_END)
-> +#else
-> +#define NR_IRQS				(IH_TWL4030_PWRBASE_END)
-> +#endif /* CONFIG_I2C_TWL4030_GPIO */
-> +#endif /* End of support for TWL4030 */
->  
->  /* Function prototypes */
->  extern void sdp2430_flash_init(void);
-> -- 1.5.3.GIT
-> 
+> Tony
