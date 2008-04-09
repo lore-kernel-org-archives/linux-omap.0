@@ -1,202 +1,102 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 1/5] I2C: LM8323: Introduce lm8323 keypad driver
-Date: Wed,  9 Apr 2008 13:09:21 +0300
-Message-ID: <1207735765-1356-2-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 4/5] I2C: LP5521: Introduce lp5521 LED driver
+Date: Wed,  9 Apr 2008 13:09:24 +0300
+Message-ID: <1207735765-1356-5-git-send-email-felipe.balbi@nokia.com>
 References: <1207735765-1356-1-git-send-email-felipe.balbi@nokia.com>
+ <1207735765-1356-2-git-send-email-felipe.balbi@nokia.com>
+ <1207735765-1356-3-git-send-email-felipe.balbi@nokia.com>
+ <1207735765-1356-4-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:37728 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:37732 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752754AbYDIKK2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 06:10:28 -0400
-In-Reply-To: <1207735765-1356-1-git-send-email-felipe.balbi@nokia.com>
+	with ESMTP id S1752880AbYDIKKa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 06:10:30 -0400
+In-Reply-To: <1207735765-1356-4-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Daniel Stone <daniel.stone@nokia.com>, Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, Mathias Nyman <mathias.nyman@nokia.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-From: Daniel Stone <daniel.stone@nokia.com>
+From: Mathias Nyman <mathias.nyman@nokia.com>
 
-Introduce lm8323 keypad driver.
+Introduce n810's lp5521 LED driver.
 
-Signed-off-by: Daniel Stone <daniel.stone@nokia.com
+Signed-off-by: Mathias Nyman <mathias.nyman@nokia.com
 
-Updated to build with recent linux-omap and new-style
-i2c driver.
+Updated to new style i2c driver and to build on current
+linux-omap head.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- arch/arm/mach-omap2/board-n800.c |   77 ++++
- arch/arm/mach-omap2/board-n810.c |    2 +
- drivers/input/keyboard/Kconfig   |    7 +
- drivers/input/keyboard/Makefile  |    1 +
- drivers/input/keyboard/lm8323.c  |  921 ++++++++++++++++++++++++++++++++++++++
- include/linux/i2c/lm8323.h       |   45 ++
- 6 files changed, 1053 insertions(+), 0 deletions(-)
- create mode 100644 drivers/input/keyboard/lm8323.c
- create mode 100644 include/linux/i2c/lm8323.h
+ arch/arm/mach-omap2/board-n800.c |    4 +
+ drivers/i2c/chips/Kconfig        |    7 +
+ drivers/i2c/chips/Makefile       |    1 +
+ drivers/i2c/chips/lp5521.c       |  573 ++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 585 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/i2c/chips/lp5521.c
 
 diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/board-n800.c
-index 758e2c1..367e518 100644
+index 7606870..b7205f0 100644
 --- a/arch/arm/mach-omap2/board-n800.c
 +++ b/arch/arm/mach-omap2/board-n800.c
-@@ -23,6 +23,7 @@
- #include <linux/interrupt.h>
- #include <linux/irq.h>
- #include <linux/i2c.h>
-+#include <linux/i2c/lm8323.h>
- #include <asm/hardware.h>
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -48,6 +49,76 @@
- #define N800_DAV_IRQ_GPIO		103
- #define N800_TSC2301_RESET_GPIO		118
- 
-+#ifdef CONFIG_MACH_NOKIA_N810
-+static s16 rx44_keymap[LM8323_KEYMAP_SIZE] = {
-+	[0x01] = KEY_Q,
-+	[0x02] = KEY_K,
-+	[0x03] = KEY_O,
-+	[0x04] = KEY_P,
-+	[0x05] = KEY_BACKSPACE,
-+	[0x06] = KEY_A,
-+	[0x07] = KEY_S,
-+	[0x08] = KEY_D,
-+	[0x09] = KEY_F,
-+	[0x0a] = KEY_G,
-+	[0x0b] = KEY_H,
-+	[0x0c] = KEY_J,
-+
-+	[0x11] = KEY_W,
-+	[0x12] = KEY_F4,
-+	[0x13] = KEY_L,
-+	[0x14] = KEY_APOSTROPHE,
-+	[0x16] = KEY_Z,
-+	[0x17] = KEY_X,
-+	[0x18] = KEY_C,
-+	[0x19] = KEY_V,
-+	[0x1a] = KEY_B,
-+	[0x1b] = KEY_N,
-+	[0x1c] = KEY_LEFTSHIFT, /* Actually, this is both shift keys */
-+	[0x1f] = KEY_F7,
-+
-+	[0x21] = KEY_E,
-+	[0x22] = KEY_SEMICOLON,
-+	[0x23] = KEY_MINUS,
-+	[0x24] = KEY_EQUAL,
-+	[0x2b] = KEY_FN,
-+	[0x2c] = KEY_M,
-+	[0x2f] = KEY_F8,
-+
-+	[0x31] = KEY_R,
-+	[0x32] = KEY_RIGHTCTRL,
-+	[0x34] = KEY_SPACE,
-+	[0x35] = KEY_COMMA,
-+	[0x37] = KEY_UP,
-+	[0x3c] = KEY_COMPOSE,
-+	[0x3f] = KEY_F6,
-+
-+	[0x41] = KEY_T,
-+	[0x44] = KEY_DOT,
-+	[0x46] = KEY_RIGHT,
-+	[0x4f] = KEY_F5,
-+	[0x51] = KEY_Y,
-+	[0x53] = KEY_DOWN,
-+	[0x55] = KEY_ENTER,
-+	[0x5f] = KEY_ESC,
-+
-+	[0x61] = KEY_U,
-+	[0x64] = KEY_LEFT,
-+
-+	[0x71] = KEY_I,
-+	[0x75] = KEY_KPENTER,
-+};
-+
-+static struct lm8323_platform_data lm8323_pdata = {
-+	.repeat = 0, /* Repeat is handled in userspace for now. */
-+	.keymap = rx44_keymap,
-+
-+	.name = "Internal keyboard",
-+	.pwm1_name = "keyboard",
-+	.pwm2_name = "cover",
-+};
-+#endif
-+
- void __init nokia_n800_init_irq(void)
- {
- 	omap2_init_common_hw();
-@@ -502,6 +573,12 @@ static struct i2c_board_info __initdata n800_i2c_board_info_2[] = {
- 		I2C_BOARD_INFO("tea5761", 0x10),
+@@ -664,6 +664,10 @@ static struct i2c_board_info __initdata n800_i2c_board_info_2[] = {
+ 		I2C_BOARD_INFO("tsl2563", 0x29),
+ 		.type		= "tsl2563",
  	},
- #endif
 +	{
-+		I2C_BOARD_INFO("lm8323", 0x45),
-+		.type		= "lm8323",
-+		.irq		= OMAP_GPIO_IRQ(109),
-+		.platform_data	= &lm8323_pdata,
++		I2C_BOARD_INFO("lp5521", 0x32),
++		.type		= "lp5521",
 +	},
  };
  
  void __init nokia_n800_common_init(void)
-diff --git a/arch/arm/mach-omap2/board-n810.c b/arch/arm/mach-omap2/board-n810.c
-index c4f4dd5..fb0e61f 100644
---- a/arch/arm/mach-omap2/board-n810.c
-+++ b/arch/arm/mach-omap2/board-n810.c
-@@ -10,6 +10,8 @@
-  */
+diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
+index dc4f140..c4000b5 100644
+--- a/drivers/i2c/chips/Kconfig
++++ b/drivers/i2c/chips/Kconfig
+@@ -212,6 +212,13 @@ config SENSORS_TSL2563
+          This driver can also be built as a module.  If so, the module
+          will be called tsl2563.
  
- #include <linux/init.h>
-+#include <linux/i2c.h>
-+#include <linux/i2c/lm8323.h>
- 
- #include <asm/hardware.h>
- #include <asm/mach-types.h>
-diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
-index 1c22930..137f7e4 100644
---- a/drivers/input/keyboard/Kconfig
-+++ b/drivers/input/keyboard/Kconfig
-@@ -285,6 +285,13 @@ config KEYBOARD_TSC2301
- 	help
- 	  Say Y here for if you are using the keypad features of TSC2301.
- 
-+config KEYBOARD_LM8323
-+	tristate "LM8323 keypad chip"
++config LP5521
++	tristate "LP5521 LED driver chip"
 +	depends on I2C
 +	help
 +	  If you say yes here you get support for the National Semiconductor
-+	  LM8323 keypad controller.
++	  LP5521 LED driver.
 +
- config KEYBOARD_PXA27x
- 	tristate "PXA27x/PXA3xx keypad support"
- 	depends on PXA27x || PXA3xx
-diff --git a/drivers/input/keyboard/Makefile b/drivers/input/keyboard/Makefile
-index bc0bbc1..ec447cd 100644
---- a/drivers/input/keyboard/Makefile
-+++ b/drivers/input/keyboard/Makefile
-@@ -21,6 +21,7 @@ obj-$(CONFIG_KEYBOARD_HIL_OLD)		+= hilkbd.o
- obj-$(CONFIG_KEYBOARD_OMAP)		+= omap-keypad.o
- obj-$(CONFIG_OMAP_PS2)			+= innovator_ps2.o
- obj-$(CONFIG_KEYBOARD_TSC2301)		+= tsc2301_kp.o
-+obj-$(CONFIG_KEYBOARD_LM8323)		+= lm8323.o
- obj-$(CONFIG_KEYBOARD_TWL4030)		+= omap-twl4030keypad.o
- obj-$(CONFIG_KEYBOARD_PXA27x)		+= pxa27x_keypad.o
- obj-$(CONFIG_KEYBOARD_AAED2000)		+= aaed2000_kbd.o
-diff --git a/drivers/input/keyboard/lm8323.c b/drivers/input/keyboard/lm8323.c
+ config MENELAUS
+ 	bool "TWL92330/Menelaus PM chip"
+ 	depends on I2C=y && ARCH_OMAP24XX
+diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
+index e20fc10..1f81ebd 100644
+--- a/drivers/i2c/chips/Makefile
++++ b/drivers/i2c/chips/Makefile
+@@ -30,6 +30,7 @@ obj-$(CONFIG_TWL4030_POWEROFF)	+= twl4030-poweroff.o
+ obj-$(CONFIG_TWL4030_PWRBUTTON)	+= twl4030-pwrbutton.o
+ obj-$(CONFIG_TWL4030_MADC)	+= twl4030-madc.o
+ obj-$(CONFIG_RTC_X1205_I2C)	+= x1205.o
++obj-$(CONFIG_LP5521)		+= lp5521.o
+ 
+ ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
+ EXTRA_CFLAGS += -DDEBUG
+diff --git a/drivers/i2c/chips/lp5521.c b/drivers/i2c/chips/lp5521.c
 new file mode 100644
-index 0000000..f43451d
+index 0000000..3e1e3eb
 --- /dev/null
-+++ b/drivers/input/keyboard/lm8323.c
-@@ -0,0 +1,921 @@
++++ b/drivers/i2c/chips/lp5521.c
+@@ -0,0 +1,573 @@
 +/*
-+ * drivers/i2c/chips/lm8323.c
++ * drivers/i2c/chips/lp5521.c
 + *
 + * Copyright (C) 2007 Nokia Corporation
 + *
-+ * Written by Daniel Stone <daniel.stone@nokia.com>
-+ *            Timo O. Karjalainen <timo.o.karjalainen@nokia.com>
++ * Written by Mathias Nyman <mathias.nyman@nokia.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation (version 2 of the License only).
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + *
 + * This program is distributed in the hope that it will be useful,
 + * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -209,955 +109,556 @@ index 0000000..f43451d
 + */
 +
 +#include <linux/module.h>
++#include <linux/init.h>
 +#include <linux/i2c.h>
-+#include <linux/interrupt.h>
-+#include <linux/sched.h>
 +#include <linux/mutex.h>
-+#include <linux/delay.h>
-+#include <linux/input.h>
-+#include <linux/leds.h>
-+#include <linux/i2c/lm8323.h>
++#include <asm/arch/gpio.h>
 +
-+#include <asm/mach-types.h>
-+#include <asm/mach/irq.h>
++#define LP5521_DRIVER_NAME		"lp5521"
 +
-+#ifdef VERBOSE
-+#define debug dev_dbg
++#ifdef LED_CONNECTED_WRONG
++#define LP5521_REG_R_PWM		0x04
++#define LP5521_REG_B_PWM		0x02
 +#else
-+#define debug(...)
++#define LP5521_REG_R_PWM		0x02
++#define LP5521_REG_B_PWM		0x04
 +#endif
++#define LP5521_REG_ENABLE		0x00
++#define LP5521_REG_OP_MODE		0x01
++#define LP5521_REG_G_PWM		0x03
++#define LP5521_REG_R_CNTRL		0x05
++#define LP5521_REG_G_CNTRL		0x06
++#define LP5521_REG_B_CNTRL		0x07
++#define LP5521_REG_MISC			0x08
++#define LP5521_REG_R_CHANNEL_PC		0x09
++#define LP5521_REG_G_CHANNEL_PC		0x0a
++#define LP5521_REG_B_CHANNEL_PC		0x0b
++#define LP5521_REG_STATUS		0x0c
++#define LP5521_REG_RESET		0x0d
++#define LP5521_REG_GPO			0x0e
++#define LP5521_REG_R_PROG_MEM		0x10
++#define LP5521_REG_G_PROG_MEM		0x30
++#define LP5521_REG_B_PROG_MEM		0x50
 +
-+/* Commands to send to the chip. */
-+#define LM8323_CMD_READ_ID		0x80 /* Read chip ID. */
-+#define LM8323_CMD_WRITE_CFG		0x81 /* Set configuration item. */
-+#define LM8323_CMD_READ_INT		0x82 /* Get interrupt status. */
-+#define LM8323_CMD_RESET		0x83 /* Reset, same as external one */
-+#define LM8323_CMD_WRITE_PORT_SEL	0x85 /* Set GPIO in/out. */
-+#define LM8323_CMD_WRITE_PORT_STATE	0x86 /* Set GPIO pullup. */
-+#define LM8323_CMD_READ_PORT_SEL	0x87 /* Get GPIO in/out. */
-+#define LM8323_CMD_READ_PORT_STATE	0x88 /* Get GPIO pullup. */
-+#define LM8323_CMD_READ_FIFO		0x89 /* Read byte from FIFO. */
-+#define LM8323_CMD_RPT_READ_FIFO	0x8a /* Read FIFO (no increment). */
-+#define LM8323_CMD_SET_ACTIVE		0x8b /* Set active time. */
-+#define LM8323_CMD_READ_ERR		0x8c /* Get error status. */
-+#define LM8323_CMD_READ_ROTATOR		0x8e /* Read rotator status. */
-+#define LM8323_CMD_SET_DEBOUNCE		0x8f /* Set debouncing time. */
-+#define LM8323_CMD_SET_KEY_SIZE		0x90 /* Set keypad size. */
-+#define LM8323_CMD_READ_KEY_SIZE	0x91 /* Get keypad size. */
-+#define LM8323_CMD_READ_CFG		0x92 /* Get configuration item. */
-+#define LM8323_CMD_WRITE_CLOCK		0x93 /* Set clock config. */
-+#define LM8323_CMD_READ_CLOCK		0x94 /* Get clock config. */
-+#define LM8323_CMD_PWM_WRITE		0x95 /* Write PWM script. */
-+#define LM8323_CMD_START_PWM		0x96 /* Start PWM engine. */
-+#define LM8323_CMD_STOP_PWM		0x97 /* Stop PWM engine. */
++#define LP5521_MODE_LOAD		"load"
++#define LP5521_MODE_RUN			"run"
++#define LP5521_MODE_DIRECT_CONTROL	"direct"
 +
-+/* Interrupt status. */
-+#define INT_KEYPAD			0x01 /* Key event. */
-+#define INT_ROTATOR			0x02 /* Rotator event. */
-+#define INT_ERROR			0x08 /* Error: use CMD_READ_ERR. */
-+#define INT_NOINIT			0x10 /* Lost configuration. */
-+#define INT_PWM1			0x20 /* PWM1 stopped. */
-+#define INT_PWM2			0x40 /* PWM2 stopped. */
-+#define INT_PWM3			0x80 /* PWM3 stopped. */
++#define LP5521_CURRENT_1m5		0x0f
++#define LP5521_CURRENT_3m1		0x1f
++#define LP5521_CURRENT_4m7		0x2f
++#define LP5521_CURRENT_6m3		0x3f
++#define LP5521_CURRENT_7m9		0x4f
++#define LP5521_CURRENT_9m5		0x5f
++#define LP5521_CURRENT_11m1		0x6f
++#define LP5521_CURRENT_12m7		0x7f
++#define LP5521_CURRENT_14m3		0x8f
++#define LP5521_CURRENT_15m9		0x9f
++#define LP5521_CURRENT_17m5		0xaf
++#define LP5521_CURRENT_19m1		0xbf
++#define LP5521_CURRENT_20m7		0xcf
++#define LP5521_CURRENT_22m3		0xdf
++#define LP5521_CURRENT_23m9		0xef
++#define LP5521_CURRENT_25m5		0xff
 +
-+/* Errors (signalled by INT_ERROR, read with CMD_READ_ERR). */
-+#define ERR_BADPAR			0x01 /* Bad parameter. */
-+#define ERR_CMDUNK			0x02 /* Unknown command. */
-+#define ERR_KEYOVR			0x04 /* Too many keys pressed. */
-+#define ERR_FIFOOVER			0x40 /* FIFO overflow. */
++#define LP5521_PROGRAM_LENGTH		32	/* in bytes */
 +
-+/* Configuration keys (CMD_{WRITE,READ}_CFG). */
-+#define CFG_MUX1SEL			0x01 /* Select MUX1_OUT input. */
-+#define CFG_MUX1EN			0x02 /* Enable MUX1_OUT. */
-+#define CFG_MUX2SEL			0x04 /* Select MUX2_OUT input. */
-+#define CFG_MUX2EN			0x08 /* Enable MUX2_OUT. */
-+#define CFG_PSIZE			0x20 /* Package size (must be 0). */
-+#define CFG_ROTEN			0x40 /* Enable rotator. */
-+
-+/* Clock settings (CMD_{WRITE,READ}_CLOCK). */
-+#define CLK_RCPWM_INTERNAL		0x00
-+#define CLK_RCPWM_EXTERNAL		0x03
-+#define CLK_SLOWCLKEN			0x08 /* Enable 32.768kHz clock. */
-+#define CLK_SLOWCLKOUT			0x40 /* Enable slow pulse output. */
-+
-+/* The possible addresses corresponding to CONFIG1 and CONFIG2 pin wirings. */
-+#define LM8323_I2C_ADDR00		(0x84 >> 1)	/* 1000 010x */
-+#define LM8323_I2C_ADDR01		(0x86 >> 1)	/* 1000 011x */
-+#define LM8323_I2C_ADDR10		(0x88 >> 1)	/* 1000 100x */
-+#define LM8323_I2C_ADDR11		(0x8A >> 1)	/* 1000 101x */
-+
-+/* Key event fifo length */
-+#define LM8323_FIFO_LEN			15
-+
-+/* Commands for PWM engine; feed in with PWM_WRITE. */
-+/* Load ramp counter from duty cycle field (range 0 - 0xff). */
-+#define PWM_SET(v)			(0x4000 | ((v) & 0xff))
-+/* Go to start of script. */
-+#define PWM_GOTOSTART			0x0000
-+/*
-+ * Stop engine (generates interrupt).  If reset is 1, clear the program
-+ * counter, else leave it.
-+ */
-+#define PWM_END(reset)			(0xc000 | (!!(reset) << 11))
-+/*
-+ * Ramp.  If s is 1, divide clock by 512, else divide clock by 16.
-+ * Take t clock scales (up to 63) per step, for n steps (up to 126).
-+ * If u is set, ramp up, else ramp down.
-+ */
-+#define PWM_RAMP(s, t, n, u)		((!!(s) << 14) | ((t) & 0x3f) << 8 | \
-+					 ((n) & 0x7f) | ((u) ? 0 : 0x80))
-+/*
-+ * Loop (i.e. jump back to pos) for a given number of iterations (up to 63).
-+ * If cnt is zero, execute until PWM_END is encountered.
-+ */
-+#define PWM_LOOP(cnt, pos)		(0xa000 | (((cnt) & 0x3f) << 7) | \
-+					 ((pos) & 0x3f))
-+/*
-+ * Wait for trigger.  Argument is a mask of channels, shifted by the channel
-+ * number, e.g. 0xa for channels 3 and 1.  Note that channels are numbered
-+ * from 1, not 0.
-+ */
-+#define PWM_WAIT_TRIG(chans)		(0xe000 | (((chans) & 0x7) << 6))
-+/* Send trigger.  Argument is same as PWM_WAIT_TRIG. */
-+#define PWM_SEND_TRIG(chans)		(0xe000 | ((chans) & 0x7))
-+
-+#define DRIVER_NAME  "lm8323"
-+
-+static unsigned short normal_i2c[] =
-+{
-+	LM8323_I2C_ADDR00, LM8323_I2C_ADDR01,
-+	LM8323_I2C_ADDR10, LM8323_I2C_ADDR11,
-+	I2C_CLIENT_END
-+};
-+
-+I2C_CLIENT_INSMOD;
-+
-+struct lm8323_pwm {
-+	int			id;
-+	int			enabled;
-+	int			fade_time;
-+	int			brightness;
-+	int			desired_brightness;
-+	struct work_struct	work;
-+	struct led_classdev	cdev;
-+};
-+
-+struct lm8323_chip {
++struct lp5521_chip {
 +	struct mutex		lock;
 +	struct i2c_client	*client;
-+	struct work_struct	work;
-+	struct input_dev	*idev;
-+	int			irq;
-+	unsigned		kp_enabled : 1;
-+	unsigned		pm_suspend : 1;
-+	unsigned		keys_down;
-+	char			phys[32];
-+	s16			keymap[LM8323_KEYMAP_SIZE];
-+	int			size_x;
-+	int			size_y;
-+	int			debounce_time;
-+	int			active_time;
-+	struct lm8323_pwm	pwm1;
-+	struct lm8323_pwm	pwm2;
-+	struct lm8323_pwm	pwm3;
++	char			*mode;
++	int			red;
++	int			green;
++	int			blue;
 +};
 +
-+#define client_to_lm8323(c)	container_of(c, struct lm8323_chip, client)
-+#define dev_to_lm8323(d)	container_of(d, struct lm8323_chip, client->dev)
-+#define work_to_lm8323(w)	container_of(w, struct lm8323_chip, work)
-+#define cdev_to_pwm(c)		container_of(c, struct lm8323_pwm, cdev)
-+#define work_to_pwm(w)		container_of(w, struct lm8323_pwm, work)
++static int lp5521_set_mode(struct lp5521_chip *chip, char *mode);
 +
-+static struct lm8323_chip *pwm_to_lm8323(struct lm8323_pwm *pwm)
++static int lp5521_write(struct i2c_client *client, u8 reg, u8 value)
 +{
-+	switch (pwm->id) {
-+	case 1:
-+		return container_of(pwm, struct lm8323_chip, pwm1);
-+	case 2:
-+		return container_of(pwm, struct lm8323_chip, pwm2);
-+	case 3:
-+		return container_of(pwm, struct lm8323_chip, pwm3);
-+	default:
-+		return NULL;
-+	}
++	return i2c_smbus_write_byte_data(client, reg, value);
 +}
 +
-+static struct lm8323_platform_data *lm8323_pdata = NULL;
-+
-+
-+#define LM8323_MAX_DATA 8
-+
-+/*
-+ * To write, we just access the chip's address in write mode, and dump the
-+ * command and data out on the bus.  The command byte and data are taken as
-+ * sequential u8s out of varargs, to a maximum of LM8323_MAX_DATA.
-+ */
-+static int lm8323_write(struct lm8323_chip *lm, int len, ...)
++static int lp5521_read(struct i2c_client *client, u8 reg, u8 *buf)
 +{
-+	int ret, i;
-+	va_list ap;
-+	u8 data[LM8323_MAX_DATA];
++	s32 ret = i2c_smbus_read_byte_data(client, reg);
 +
-+	va_start(ap, len);
++	if (ret < 0)
++		return -EIO;
 +
-+	if (unlikely(len > LM8323_MAX_DATA)) {
-+		dev_err(&lm->client->dev, "tried to send %d bytes\n", len);
-+		va_end(ap);
-+		return 0;
-+	}
++	*buf = ret;
++	return 0;
++}
 +
-+	for (i = 0; i < len; i++)
-+		data[i] = va_arg(ap, int);
++static int lp5521_configure(struct i2c_client *client)
++{
++	int ret = 0;
 +
-+	va_end(ap);
++	/* Enable chip and set light to logarithmic mode*/
++	ret |= lp5521_write(client, LP5521_REG_ENABLE, 0xc0);
 +
-+	/*
-+	 * If the host is asleep while we send the data, we can get a NACK
-+	 * back while it wakes up, so try again, once.
-+	 */
-+	ret = i2c_master_send(lm->client, data, len);
-+	if (unlikely(ret == -EREMOTEIO))
-+		ret = i2c_master_send(lm->client, data, len);
-+	if (unlikely(ret != len))
-+		dev_err(&lm->client->dev, "sent %d bytes of %d total\n",
-+			len, ret);
++	/* setting all color pwms to direct control mode */
++	ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x3f);
++
++	/* setting current to 4.7 mA for all channels */
++	ret |= lp5521_write(client, LP5521_REG_R_CNTRL, LP5521_CURRENT_4m7);
++	ret |= lp5521_write(client, LP5521_REG_G_CNTRL, LP5521_CURRENT_4m7);
++	ret |= lp5521_write(client, LP5521_REG_B_CNTRL, LP5521_CURRENT_4m7);
++
++	/* Enable auto-powersave, set charge pump to auto, red to battery */
++	ret |= lp5521_write(client, LP5521_REG_MISC, 0x3c);
++
++	/* initialize all channels pwm to zero */
++	ret |= lp5521_write(client, LP5521_REG_R_PWM, 0);
++	ret |= lp5521_write(client, LP5521_REG_G_PWM, 0);
++	ret |= lp5521_write(client, LP5521_REG_B_PWM, 0);
++
++	/* Not much can be done about errors at this point */
++	return ret;
++}
++
++static int lp5521_load_program(struct lp5521_chip *chip, u8 *pattern)
++{
++	struct i2c_client *client = chip->client;
++	int ret = 0;
++
++	/* Enter load program mode for all led channels */
++	ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x15); /* 0001 0101 */
++	if (ret)
++		return ret;
++
++	if (chip->red)
++		ret |= i2c_smbus_write_i2c_block_data(client,
++						      LP5521_REG_R_PROG_MEM,
++						      LP5521_PROGRAM_LENGTH,
++						      pattern);
++	if (chip->green)
++		ret |= i2c_smbus_write_i2c_block_data(client,
++						      LP5521_REG_G_PROG_MEM,
++						      LP5521_PROGRAM_LENGTH,
++						      pattern);
++	if (chip->blue)
++		ret |= i2c_smbus_write_i2c_block_data(client,
++						      LP5521_REG_B_PROG_MEM,
++						      LP5521_PROGRAM_LENGTH,
++						      pattern);
 +
 +	return ret;
 +}
 +
-+/*
-+ * To read, we first send the command byte to the chip and end the transaction,
-+ * then access the chip in read mode, at which point it will send the data.
-+ */
-+static int lm8323_read(struct lm8323_chip *lm, u8 cmd, u8 *buf, int len)
++static int lp5521_run_program(struct lp5521_chip *chip)
 +{
++	struct i2c_client *client = chip->client;
 +	int ret;
++	u8 mask = 0xc0;
++	u8 exec_state = 0;
++	u8 enable_reg;
 +
-+	/*
-+	 * If the host is asleep while we send the byte, we can get a NACK
-+	 * back while it wakes up, so try again, once.
-+	 */
-+	ret = i2c_master_send(lm->client, &cmd, 1);
-+	if (unlikely(ret == -EREMOTEIO))
-+		ret = i2c_master_send(lm->client, &cmd, 1);
-+	if (unlikely(ret != 1)) {
-+		dev_err(&lm->client->dev, "sending read cmd 0x%02x failed\n",
-+			cmd);
-+		return 0;
-+	}
++	ret = lp5521_read(client, LP5521_REG_ENABLE, &enable_reg);
++	if (ret)
++		goto fail;
 +
-+	ret = i2c_master_recv(lm->client, buf, len);
-+	if (unlikely(ret != len))
-+		dev_err(&lm->client->dev, "wanted %d bytes, got %d\n",
-+			len, ret);
++	enable_reg &= mask;
 +
++	/* set all active channels exec state to countinous run*/
++	exec_state |= (chip->red   << 5);
++	exec_state |= (chip->green << 3);
++	exec_state |= (chip->blue  << 1);
++
++	enable_reg |= exec_state;
++
++	ret |= lp5521_write(client, LP5521_REG_ENABLE, enable_reg);
++
++	/* set op-mode to run for active channels, disabled for others */
++	ret |= lp5521_write(client, LP5521_REG_OP_MODE, exec_state);
++
++fail:
 +	return ret;
 +}
 +
-+/*
-+ * Set the chip active time (idle time before it enters halt).
-+ */
-+static void lm8323_set_active_time(struct lm8323_chip *lm, int time)
++/*--------------------------------------------------------------*/
++/*			Sysfs interface				*/
++/*--------------------------------------------------------------*/
++
++static ssize_t show_active_channels(struct device *dev,
++			    struct device_attribute *attr,
++			    char *buf)
 +{
-+	lm8323_write(lm, 2, LM8323_CMD_SET_ACTIVE, time >> 2);
++	struct lp5521_chip *chip = dev_get_drvdata(dev);
++	char channels[4];
++	int pos = 0;
++
++#ifdef LED_CONNECTED_WRONG
++	if (chip->blue)
++		pos += sprintf(channels + pos, "r");
++	if (chip->green)
++		pos += sprintf(channels + pos, "g");
++	if (chip->red)
++		pos += sprintf(channels + pos, "b");
++
++#else
++	if (chip->red)
++		pos += sprintf(channels + pos, "r");
++	if (chip->green)
++		pos += sprintf(channels + pos, "g");
++	if (chip->blue)
++		pos += sprintf(channels + pos, "b");
++#endif
++
++	channels[pos] = '\0';
++
++	return sprintf(buf, "%s\n", channels);
 +}
 +
-+/*
-+ * The signals are AT-style: the low 7 bits are the keycode, and the top
-+ * bit indicates the state (1 for down, 0 for up).
-+ */
-+static inline u8 lm8323_whichkey(u8 event)
++static ssize_t store_active_channels(struct device *dev,
++			     struct device_attribute *attr,
++			     const char *buf, size_t len)
 +{
-+	return event & 0x7f;
++	struct lp5521_chip *chip = dev_get_drvdata(dev);
++
++	chip->red = 0;
++	chip->green = 0;
++	chip->blue = 0;
++
++#ifdef LED_CONNECTED_WRONG
++	if (strchr(buf, 'r') != NULL)
++		chip->blue = 1;
++	if (strchr(buf, 'b') != NULL)
++		chip->red = 1;
++#else
++	if (strchr(buf, 'r') != NULL)
++		chip->red = 1;
++	if (strchr(buf, 'b') != NULL)
++		chip->blue = 1;
++#endif
++	if (strchr(buf, 'g') != NULL)
++		chip->green = 1;
++
++	return len;
 +}
 +
-+static inline int lm8323_ispress(u8 event)
++static ssize_t show_color(struct device *dev,
++			    struct device_attribute *attr,
++			    char *buf)
 +{
-+	return (event & 0x80) ? 1 : 0;
++	struct i2c_client *client = to_i2c_client(dev);
++	int ret = 0;
++	u8 r, g, b;
++
++	ret |= lp5521_read(client, LP5521_REG_R_PWM, &r);
++	ret |= lp5521_read(client, LP5521_REG_G_PWM, &g);
++	ret |= lp5521_read(client, LP5521_REG_B_PWM, &b);
++
++	if (ret)
++		return ret;
++
++	return sprintf(buf, "%.2x:%.2x:%.2x\n", r, g, b);
 +}
 +
-+static void process_keys(struct lm8323_chip *lm)
++static ssize_t store_color(struct device *dev,
++			     struct device_attribute *attr,
++			     const char *buf, size_t len)
 +{
-+	u8 event;
-+	u8 key_fifo[LM8323_FIFO_LEN + 1];
-+	int old_keys_down = lm->keys_down;
++	struct i2c_client *client = to_i2c_client(dev);
++	struct lp5521_chip *chip = i2c_get_clientdata(client);
 +	int ret;
-+	int i = 0;
++	unsigned r,g,b;
 +
-+	/*
-+	 * Read all key events from the FIFO at once. Next READ_FIFO clears the
-+	 * FIFO even if we didn't read all events previously.
-+	 */
-+	ret = lm8323_read(lm, LM8323_CMD_READ_FIFO, key_fifo, LM8323_FIFO_LEN);
 +
-+	if (ret < 0) {
-+		dev_err(&lm->client->dev, "Failed reading fifo \n");
-+		return;
++	ret = sscanf(buf, "%2x:%2x:%2x", &r, &g, &b);
++	if (ret != 3) {
++		return  -EINVAL;
 +	}
-+	key_fifo[ret] = 0;
 +
-+	while ((event = key_fifo[i])) {
-+		u8 key = lm8323_whichkey(event);
-+		int isdown = lm8323_ispress(event);
-+		s16 keycode = lm->keymap[key];
++	mutex_lock(&chip->lock);
 +
-+		if (likely(keycode > 0)) {
-+			debug(&lm->client->dev, "key 0x%02x %s\n", key,
-+			      isdown ? "down" : "up");
-+			if (likely(lm->kp_enabled)) {
-+				input_report_key(lm->idev, keycode, isdown);
-+				input_sync(lm->idev);
-+			}
-+			if (isdown)
-+				lm->keys_down++;
-+			else
-+				lm->keys_down--;
-+		} else {
-+			dev_err(&lm->client->dev, "keycode 0x%02x not mapped "
-+				"to any key\n", key);
-+		}
++	ret = lp5521_write(client, LP5521_REG_R_PWM, (u8)r);
++	ret = lp5521_write(client, LP5521_REG_G_PWM, (u8)g);
++	ret = lp5521_write(client, LP5521_REG_B_PWM, (u8)b);
++
++	mutex_unlock(&chip->lock);
++
++	return len;
++}
++
++static ssize_t store_load(struct device *dev,
++			     struct device_attribute *attr,
++			     const char *buf, size_t len)
++{
++	struct lp5521_chip *chip = dev_get_drvdata(dev);
++	int  ret, nrchars, offset = 0, i = 0;
++	char c[3];
++	unsigned cmd;
++	u8 pattern[ LP5521_PROGRAM_LENGTH ] = {0};
++
++	while ((offset < len - 1) && (i < LP5521_PROGRAM_LENGTH)) {
++
++		/* separate sscanfs because length is working only for %s */
++		ret = sscanf(buf + offset, "%2s%n ", c, &nrchars);
++		ret = sscanf(c, "%2x", &cmd);
++		if (ret != 1)
++			goto fail;
++		pattern[i] = (u8)cmd;
++
++		offset += nrchars;
 +		i++;
 +	}
 +
-+	/*
-+	 * Errata: We need to ensure that the chip never enters halt mode
-+	 * during a keypress, so set active time to 0.  When it's released,
-+	 * we can enter halt again, so set the active time back to normal.
-+	 */
-+	if (!old_keys_down && lm->keys_down)
-+		lm8323_set_active_time(lm, 0);
-+	if (old_keys_down && !lm->keys_down)
-+		lm8323_set_active_time(lm, lm->active_time);
-+}
++	/* pattern commands are always two bytes long */
++	if (i % 2)
++		goto fail;
 +
-+static void lm8323_process_error(struct lm8323_chip *lm)
-+{
-+	u8 error;
++	mutex_lock(&chip->lock);
 +
-+	if (lm8323_read(lm, LM8323_CMD_READ_ERR, &error, 1) == 1) {
-+		if (error & ERR_FIFOOVER)
-+			debug(&lm->client->dev, "fifo overflow!\n");
-+		if (error & ERR_KEYOVR)
-+			debug(&lm->client->dev, "more than two keys pressed\n");
-+		if (error & ERR_CMDUNK)
-+			debug(&lm->client->dev, "unknown command submitted\n");
-+		if (error & ERR_BADPAR)
-+			debug(&lm->client->dev, "bad command parameter\n");
-+	}
-+}
++	ret = lp5521_load_program(chip, pattern);
++	mutex_unlock(&chip->lock);
 +
-+static void lm8323_reset(struct lm8323_chip *lm)
-+{
-+	/* The docs say we must pass 0xAA as the data byte. */
-+	lm8323_write(lm, 2, LM8323_CMD_RESET, 0xAA);
-+}
-+
-+static int lm8323_configure(struct lm8323_chip *lm)
-+{
-+	int keysize = (lm->size_x << 4) | lm->size_y;
-+	int clock = (CLK_SLOWCLKEN | CLK_RCPWM_EXTERNAL);
-+	int debounce = lm->debounce_time >> 2;
-+	int active = lm->active_time >> 2;
-+
-+	/*
-+	 * Active time must be greater than the debounce time: if it's
-+	 * a close-run thing, give ourselves a 12ms buffer.
-+	 */
-+	if (debounce >= active)
-+		active = debounce + 3;
-+
-+	lm8323_write(lm, 2, LM8323_CMD_WRITE_CFG, 0);
-+	lm8323_write(lm, 2, LM8323_CMD_WRITE_CLOCK, clock);
-+	lm8323_write(lm, 2, LM8323_CMD_SET_KEY_SIZE, keysize);
-+	lm8323_set_active_time(lm, lm->active_time);
-+	lm8323_write(lm, 2, LM8323_CMD_SET_DEBOUNCE, debounce);
-+	lm8323_write(lm, 3, LM8323_CMD_WRITE_PORT_STATE, 0xff, 0xff);
-+	lm8323_write(lm, 3, LM8323_CMD_WRITE_PORT_SEL, 0, 0);
-+
-+	/*
-+	 * Not much we can do about errors at this point, so just hope
-+	 * for the best.
-+	 */
-+
-+	return 0;
-+}
-+
-+/*
-+ * Bottom half: handle the interrupt by posting key events, or dealing with
-+ * errors appropriately.
-+ */
-+static void lm8323_work(struct work_struct *work)
-+{
-+	struct lm8323_chip *lm = work_to_lm8323(work);
-+	u8 ints;
-+
-+	mutex_lock(&lm->lock);
-+
-+	while ((lm8323_read(lm, LM8323_CMD_READ_INT, &ints, 1) == 1) && ints) {
-+		if (likely(ints & INT_KEYPAD)) {
-+			process_keys(lm);
-+		}
-+		if (ints & INT_ROTATOR) {
-+			/* We don't currently support the rotator. */
-+			debug(&lm->client->dev, "rotator fired\n");
-+		}
-+		if (ints & INT_ERROR) {
-+			debug(&lm->client->dev, "error!\n");
-+			lm8323_process_error(lm);
-+		}
-+		if (ints & INT_NOINIT) {
-+			dev_err(&lm->client->dev, "chip lost config; "
-+						  "reinitialising\n");
-+			lm8323_configure(lm);
-+		}
-+		if (ints & INT_PWM1) {
-+			debug(&lm->client->dev, "pwm1 engine completed\n");
-+		}
-+		if (ints & INT_PWM2) {
-+			debug(&lm->client->dev, "pwm2 engine completed\n");
-+		}
-+		if (ints & INT_PWM3) {
-+			debug(&lm->client->dev, "pwm3 engine completed\n");
-+		}
++	if (ret) {
++		dev_err(dev, "lp5521 failed loading pattern\n");
++		return ret;
 +	}
 +
-+	mutex_unlock(&lm->lock);
++	return len;
++fail:
++	dev_err(dev, "lp5521 wrong pattern format\n");
++	return -EINVAL;
 +}
 +
-+/*
-+ * We cannot use I2C in interrupt context, so we just schedule work.
-+ */
-+static irqreturn_t lm8323_irq(int irq, void *data)
++static ssize_t show_mode(struct device *dev,
++			 struct device_attribute *attr,
++			 char *buf)
 +{
-+	struct lm8323_chip *lm = data;
++	struct lp5521_chip *chip = dev_get_drvdata(dev);
 +
-+	schedule_work(&lm->work);
-+
-+	return IRQ_HANDLED;
++	return sprintf(buf, "%s\n", chip->mode);
 +}
 +
-+/*
-+ * Read the chip ID.
-+ */
-+static int lm8323_read_id(struct lm8323_chip *lm, u8 *buf)
++static ssize_t store_mode(struct device *dev,
++			  struct device_attribute *attr,
++			  const char *buf, size_t len)
 +{
-+	int bytes;
++	struct lp5521_chip *chip = dev_get_drvdata(dev);
 +
-+	bytes = lm8323_read(lm, LM8323_CMD_READ_ID, buf, 2);
-+	if (unlikely(bytes != 2))
-+		return -EIO;
++	mutex_lock(&chip->lock);
 +
-+	return 0;
++	if (!strncmp(buf, "run", 3))
++		lp5521_set_mode(chip, LP5521_MODE_RUN);
++	else if (!strncmp(buf, "load", 4))
++		lp5521_set_mode(chip, LP5521_MODE_LOAD);
++	else if (!strncmp(buf, "direct", 6))
++		lp5521_set_mode(chip, LP5521_MODE_DIRECT_CONTROL);
++
++	mutex_unlock(&chip->lock);
++
++	return len;
 +}
 +
-+static void lm8323_write_pwm_one(struct lm8323_pwm *pwm, int pos, u16 cmd)
++static ssize_t show_current(struct device *dev,
++			    struct device_attribute *attr,
++			    char *buf)
 +{
-+	struct lm8323_chip *lm = pwm_to_lm8323(pwm);
++	struct i2c_client *client = to_i2c_client(dev);
++	int ret = 0;
++	u8 r_curr, g_curr, b_curr;
 +
-+	lm8323_write(lm, 4, LM8323_CMD_PWM_WRITE, (pos << 2) | pwm->id,
-+		     (cmd & 0xff00) >> 8, cmd & 0x00ff);
-+}
++	ret |= lp5521_read(client, LP5521_REG_R_CNTRL, &r_curr);
++	ret |= lp5521_read(client, LP5521_REG_G_CNTRL, &g_curr);
++	ret |= lp5521_read(client, LP5521_REG_B_CNTRL, &b_curr);
 +
-+/*
-+ * Write a script into a given PWM engine, concluding with PWM_END.
-+ * If 'keepalive' is specified, the engine will be kept running
-+ * indefinitely.
-+ */
-+static void lm8323_write_pwm(struct lm8323_pwm *pwm, int keepalive,
-+			     int len, ...)
-+{
-+	struct lm8323_chip *lm = pwm_to_lm8323(pwm);
-+	int i, cmd;
-+	va_list ap;
++	if (ret)
++		return ret;
 +
-+	/*
-+	 * If there are any scripts running at the moment, terminate them
-+	 * and make sure the duty cycle is as if it finished.
-+	 */
-+	lm8323_write(lm, 2, LM8323_CMD_STOP_PWM, pwm->id);
++	r_curr = r_curr >> 4;
++	g_curr = g_curr >> 4;
++	b_curr = b_curr >> 4;
 +
-+	va_start(ap, len);
-+	for (i = 0; i < len; i++) {
-+		cmd = va_arg(ap, int);
-+		lm8323_write_pwm_one(pwm, i, cmd);
-+	}
-+	va_end(ap);
-+
-+	/* Wait for a trigger from any channel. This keeps the engine alive. */
-+	if (keepalive)
-+		lm8323_write_pwm_one(pwm, i++, PWM_WAIT_TRIG(0xe));
++	if (r_curr == g_curr && g_curr == b_curr)
++		return sprintf(buf, "%x\n", r_curr);
 +	else
-+		lm8323_write_pwm_one(pwm, i++, PWM_END(1));
-+
-+	lm8323_write(lm, 2, LM8323_CMD_START_PWM, pwm->id);
++		return sprintf(buf, "%x %x %x\n", r_curr, g_curr, b_curr);
 +}
 +
-+static void lm8323_pwm_work(struct work_struct *work)
++static ssize_t store_current(struct device *dev,
++			     struct device_attribute *attr,
++			     const char *buf, size_t len)
 +{
-+	struct lm8323_pwm *pwm = work_to_pwm(work);
-+	int div, perstep, steps, hz, direction, keepalive;
++	struct lp5521_chip *chip = dev_get_drvdata(dev);
++	struct i2c_client *client = chip->client;
++	int ret;
++	unsigned curr;
 +
-+	/* Do nothing if we're already at the requested level. */
-+	if (pwm->desired_brightness == pwm->brightness)
-+		return;
-+
-+	keepalive = (pwm->desired_brightness > 0);
-+	direction = (pwm->desired_brightness > pwm->brightness);
-+	steps = abs(pwm->desired_brightness - pwm->brightness);
-+
-+	/*
-+	 * Convert time (in ms) into a divisor (512 or 16 on a refclk of
-+	 * 32768Hz), and number of ticks per step.
-+	 */
-+	if ((pwm->fade_time / steps) > (32768 / 512))
-+		div = 512;
-+	else
-+		div = 16;
-+
-+	hz = 32768 / div;
-+	if (pwm->fade_time < ((steps * 1000) / hz))
-+		perstep = 1;
-+	else
-+		perstep = (hz * pwm->fade_time) / (steps * 1000);
-+
-+	if (perstep == 0)
-+		perstep = 1;
-+	else if (perstep > 63)
-+		perstep = 63;
-+
-+	if (steps > 252) {
-+		lm8323_write_pwm(pwm, keepalive, 3,
-+				 PWM_RAMP((div == 512), perstep, 126,
-+					  direction),
-+				 PWM_RAMP((div == 512), perstep, 126,
-+					  direction),
-+				 PWM_RAMP((div == 512), perstep, steps - 252,
-+					  direction));
-+	} else if (steps > 126) {
-+		lm8323_write_pwm(pwm, keepalive, 2,
-+				 PWM_RAMP((div == 512), perstep, 126,
-+					  direction),
-+				 PWM_RAMP((div == 512), perstep, steps - 126,
-+					  direction));
-+	} else {
-+		lm8323_write_pwm(pwm, keepalive, 1,
-+				 PWM_RAMP((div == 512), perstep, steps,
-+					  direction));
++	ret = sscanf(buf, "%1x", &curr);
++	if (ret != 1) {
++		return  -EINVAL;
 +	}
 +
-+	pwm->brightness = pwm->desired_brightness;
++	/* current level is determined by the 4 upper bits, rest is ones */
++	curr = (curr << 4) | 0x0f;
++
++	mutex_lock(&chip->lock);
++
++	ret |= lp5521_write(client, LP5521_REG_R_CNTRL, (u8)curr);
++	ret |= lp5521_write(client, LP5521_REG_G_CNTRL, (u8)curr);
++	ret |= lp5521_write(client, LP5521_REG_B_CNTRL, (u8)curr);
++
++	mutex_unlock(&chip->lock);
++
++	return len;
 +}
 +
-+static void lm8323_pwm_set_brightness(struct led_classdev *led_cdev,
-+				      enum led_brightness brightness)
++static DEVICE_ATTR(color, S_IRUGO | S_IWUGO, show_color, store_color);
++static DEVICE_ATTR(load, S_IWUGO, NULL, store_load);
++static DEVICE_ATTR(mode, S_IRUGO | S_IWUGO, show_mode, store_mode);
++static DEVICE_ATTR(active_channels, S_IRUGO | S_IWUGO,
++		   show_active_channels, store_active_channels);
++static DEVICE_ATTR(led_current, S_IRUGO | S_IWUGO, show_current, store_current);
++
++static int lp5521_register_sysfs(struct i2c_client *client)
 +{
-+	struct lm8323_pwm *pwm = cdev_to_pwm(led_cdev);
-+	struct lm8323_chip *lm = pwm_to_lm8323(pwm);
++	struct device *dev = &client->dev;
++	int ret;
 +
-+	pwm->desired_brightness = brightness;
-+
-+	if (in_interrupt()) {
-+		schedule_work(&pwm->work);
-+	} else {
-+		/*
-+		 * Schedule PWM work as usual unless we are going into suspend
-+		 */
-+		mutex_lock(&lm->lock);
-+		if (likely(!lm->pm_suspend))
-+			schedule_work(&pwm->work);
-+		else
-+			lm8323_pwm_work(&pwm->work);
-+		mutex_unlock(&lm->lock);
-+	}
-+}
-+
-+static ssize_t lm8323_pwm_show_time(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-+	struct lm8323_pwm *pwm = cdev_to_pwm(led_cdev);
-+
-+	return sprintf(buf, "%d\n", pwm->fade_time);
-+}
-+
-+static ssize_t lm8323_pwm_store_time(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t len)
-+{
-+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-+	struct lm8323_pwm *pwm = cdev_to_pwm(led_cdev);
-+	char *endptr = NULL;
-+	int time;
-+
-+	time = simple_strtoul(buf, &endptr, 10);
-+	/* Numbers only, please. */
-+	if (endptr && *endptr != '\n' && *(endptr + 1) != '\0')
-+		return -EINVAL;
-+
-+	pwm->fade_time = time;
-+
-+	return strlen(buf);
-+}
-+static DEVICE_ATTR(time, 0644, lm8323_pwm_show_time, lm8323_pwm_store_time);
-+
-+static int init_pwm(struct lm8323_chip *lm, int id, struct device *dev,
-+		    const char *name)
-+{
-+	struct lm8323_pwm *pwm = NULL;
-+
-+	BUG_ON(id > 3);
-+
-+	switch (id) {
-+	case 1:
-+		pwm = &lm->pwm1;
-+		break;
-+	case 2:
-+		pwm = &lm->pwm2;
-+		break;
-+	case 3:
-+		pwm = &lm->pwm3;
-+		break;
-+	}
-+
-+	pwm->id = id;
-+	pwm->fade_time = 0;
-+	pwm->brightness = 0;
-+	pwm->desired_brightness = 0;
-+	if (name) {
-+		pwm->cdev.name = name;
-+		pwm->cdev.brightness_set = lm8323_pwm_set_brightness;
-+		if (led_classdev_register(dev, &pwm->cdev) < 0) {
-+			dev_err(dev, "couldn't register PWM %d\n", id);
-+			return -1;
-+		}
-+		if (device_create_file(pwm->cdev.dev,
-+					     &dev_attr_time) < 0) {
-+			dev_err(dev, "couldn't register time attribute\n");
-+			led_classdev_unregister(&pwm->cdev);
-+			return -1;
-+		}
-+		INIT_WORK(&pwm->work, lm8323_pwm_work);
-+		pwm->enabled = 1;
-+	} else {
-+		pwm->enabled = 0;
-+	}
-+
++	if ((ret = device_create_file(dev, &dev_attr_color)))
++		goto fail1;
++	if ((ret = device_create_file(dev, &dev_attr_load)))
++		goto fail2;
++	if ((ret = device_create_file(dev, &dev_attr_active_channels)))
++		goto fail3;
++	if ((ret = device_create_file(dev, &dev_attr_mode)))
++		goto fail4;
++	if ((ret = device_create_file(dev, &dev_attr_led_current)))
++		goto fail5;
 +	return 0;
++
++fail5:
++	device_remove_file(dev, &dev_attr_mode);
++fail4:
++	device_remove_file(dev, &dev_attr_active_channels);
++fail3:
++	device_remove_file(dev, &dev_attr_load);
++fail2:
++	device_remove_file(dev, &dev_attr_color);
++fail1:
++	return ret;
 +}
 +
-+static struct i2c_driver lm8323_i2c_driver;
-+
-+static ssize_t lm8323_show_disable(struct device *dev,
-+				   struct device_attribute *attr, char *buf)
++static void lp5521_unregister_sysfs(struct i2c_client *client)
 +{
-+	struct lm8323_chip *lm = dev_get_drvdata(dev);
++	struct lp5521_chip *chip = i2c_get_clientdata(client);
++	struct device *dev = &client->dev;
 +
-+	return sprintf(buf, "%u\n", !lm->kp_enabled);
++	device_remove_file(dev, &dev_attr_led_current);
++	device_remove_file(dev, &dev_attr_mode);
++	device_remove_file(dev, &dev_attr_active_channels);
++	device_remove_file(dev, &dev_attr_color);
++
++	if (!strcmp(chip->mode, LP5521_MODE_LOAD))
++		device_remove_file(dev, &dev_attr_load);
 +}
 +
-+static ssize_t lm8323_set_disable(struct device *dev,
-+				  struct device_attribute *attr,
-+				  const char *buf, size_t count)
++/*--------------------------------------------------------------*/
++/*			Set chip operating mode			*/
++/*--------------------------------------------------------------*/
++
++static int lp5521_set_mode(struct lp5521_chip *chip, char *mode)
 +{
-+	struct lm8323_chip *lm = dev_get_drvdata(dev);
-+	char *endp;
-+	int i;
++	struct i2c_client *client = chip->client ;
++	int ret = 0;
 +
-+	i = simple_strtoul(buf, &endp, 10);
++	/* if in that mode already do nothing, except for run */
++	if (!strcmp(mode, chip->mode) && strcmp(mode, LP5521_MODE_RUN))
++		return 0;
 +
-+	mutex_lock(&lm->lock);
-+	lm->kp_enabled = !i;
-+	mutex_unlock(&lm->lock);
++	if (!strcmp (mode, LP5521_MODE_RUN))
++		ret = lp5521_run_program(chip);
 +
-+	return count;
++	if (!strcmp (mode, LP5521_MODE_LOAD)) {
++		ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x15);
++	}
++
++	if (!strcmp(mode, LP5521_MODE_DIRECT_CONTROL))
++		ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x3F);
++
++	chip->mode = mode;
++
++	return ret;
 +}
-+static DEVICE_ATTR(disable_kp, 0644, lm8323_show_disable, lm8323_set_disable);
 +
-+static int lm8323_probe(struct i2c_client *client)
++/*--------------------------------------------------------------*/
++/*			Probe, Attach, Remove			*/
++/*--------------------------------------------------------------*/
++static struct i2c_driver lp5521_driver;
++
++static int lp5521_probe(struct i2c_client *client)
 +{
-+	struct input_dev *idev;
-+	struct lm8323_chip *lm;
-+	int i, err = 0;
-+	unsigned long tmo;
-+	u8 data[2];
++	struct lp5521_chip *chip;
++	int ret = 0;
 +
-+	lm = kzalloc(sizeof *lm, GFP_KERNEL);
-+	if (!lm)
++	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
++	if (!chip)
 +		return -ENOMEM;
 +
-+	i2c_set_clientdata(client, lm);
-+	lm->client = client;
-+	lm8323_pdata = client->dev.platform_data;
-+	if (!lm8323_pdata)
-+		return -EINVAL; /* ? */
++	chip->client	= client;
++	strncpy(client->name, LP5521_DRIVER_NAME, I2C_NAME_SIZE);
++	i2c_set_clientdata(client, chip);
 +
-+	lm->size_x = lm8323_pdata->size_x;
-+	if (lm->size_x == 0) {
-+		lm->size_x = 8;
-+	} else if (lm->size_x > 8) {
-+		dev_err(&client->dev, "invalid x size %d specified\n", lm->size_x);
-+		lm->size_x = 8;
++	mutex_init(&chip->lock);
++
++	if ((ret = lp5521_configure(client)) < 0) {
++		dev_err(&client->dev, "lp5521 error configuring chip \n");
++		goto fail1;
 +	}
 +
-+	lm->size_y = lm8323_pdata->size_y;
-+	if (lm->size_y == 0) {
-+		lm->size_y = 12;
-+	} else if (lm->size_y > 12) {
-+		dev_err(&client->dev, "invalid y size %d specified\n", lm->size_y);
-+		lm->size_x = 12;
-+	}
++	/* Set default values */
++	chip->mode	= LP5521_MODE_DIRECT_CONTROL;
++	chip->red	= 1;
++	chip->green	= 1;
++	chip->blue	= 1;
 +
-+	debug(&c->dev, "Keypad size: %d x %d\n", lm->size_x, lm->size_y);
++	if ((ret = lp5521_register_sysfs(client)))
++		dev_err(&client->dev, "lp5521 registering sysfs failed \n");
 +
-+	lm->debounce_time = lm8323_pdata->debounce_time;
-+	if (lm->debounce_time == 0) /* Default. */
-+		lm->debounce_time = 12;
-+	else if (lm->debounce_time == -1) /* Disable debounce. */
-+		lm->debounce_time = 0;
++	return ret;
 +
-+	lm->active_time = lm8323_pdata->active_time;
-+	if (lm->active_time == 0) /* Default. */
-+		lm->active_time = 500;
-+	else if (lm->active_time == -1) /* Disable sleep. */
-+		lm->active_time = 0;
-+
-+	lm8323_reset(lm);
-+
-+	/* Nothing's set up to service the IRQ yet, so just spin for max.
-+	 * 100ms until we can configure. */
-+	tmo = jiffies + msecs_to_jiffies(100);
-+	while (lm8323_read(lm, LM8323_CMD_READ_INT, data, 1) == 1) {
-+		if (data[0] & INT_NOINIT)
-+			break;
-+
-+		if (time_after(jiffies, tmo)) {
-+			dev_err(&client->dev, "timeout waiting for initialisation\n");
-+			break;
-+		}
-+
-+		msleep(1);
-+	}
-+	lm8323_configure(lm);
-+
-+	/* If a true probe check the device */
-+	if (lm8323_read_id(lm, data) != 0) {
-+		dev_err(&client->dev, "device not found\n");
-+		err = -ENODEV;
-+		goto fail2;
-+	}
-+
-+	if (init_pwm(lm, 1, &client->dev, lm8323_pdata->pwm1_name) < 0)
-+		goto fail3;
-+	if (init_pwm(lm, 2, &client->dev, lm8323_pdata->pwm2_name) < 0)
-+		goto fail4;
-+	if (init_pwm(lm, 3, &client->dev, lm8323_pdata->pwm3_name) < 0)
-+		goto fail5;
-+
-+	lm->irq = lm8323_pdata->irq_gpio;
-+	debug(&c->dev, "IRQ: %d\n", lm->irq);
-+
-+	mutex_init(&lm->lock);
-+	INIT_WORK(&lm->work, lm8323_work);
-+
-+	err = request_irq(client->irq, lm8323_irq,
-+			  IRQF_TRIGGER_FALLING | IRQF_DISABLED |
-+			  IRQF_SAMPLE_RANDOM, DRIVER_NAME, lm);
-+	if (err) {
-+		dev_err(&client->dev, "could not get IRQ %d\n", lm->irq);
-+		goto fail6;
-+	}
-+
-+	set_irq_wake(lm->irq, 1);
-+
-+	lm->kp_enabled = 1;
-+	err = device_create_file(&client->dev, &dev_attr_disable_kp);
-+	if (err < 0)
-+		goto fail7;
-+
-+	idev = input_allocate_device();
-+	if (idev == NULL) {
-+		err = -ENOMEM;
-+		goto fail8;
-+	}
-+
-+	if (lm8323_pdata->name)
-+		idev->name = lm8323_pdata->name;
-+	else
-+		idev->name = "LM8323 keypad";
-+	snprintf(lm->phys, sizeof(lm->phys), "%s/input-kp", client->dev.bus_id);
-+	idev->phys = lm->phys;
-+
-+	lm->keys_down = 0;
-+	idev->evbit[0] = BIT(EV_KEY);
-+	for (i = 0; i < LM8323_KEYMAP_SIZE; i++) {
-+		if (lm8323_pdata->keymap[i] > 0)
-+			set_bit(lm8323_pdata->keymap[i], idev->keybit);
-+
-+		lm->keymap[i] = lm8323_pdata->keymap[i];
-+	}
-+
-+	if (lm8323_pdata->repeat)
-+		set_bit(EV_REP, idev->evbit);
-+
-+	lm->idev = idev;
-+	if (input_register_device(idev)) {
-+		dev_dbg(&client->dev, "error registering input device\n");
-+		goto fail8;
-+	}
-+
-+	return 0;
-+
-+fail8:
-+	device_remove_file(&client->dev, &dev_attr_disable_kp);
-+fail7:
-+	free_irq(lm->irq, lm);
-+fail6:
-+	if (lm->pwm3.enabled)
-+		led_classdev_unregister(&lm->pwm3.cdev);
-+fail5:
-+	if (lm->pwm2.enabled)
-+		led_classdev_unregister(&lm->pwm2.cdev);
-+fail4:
-+	if (lm->pwm1.enabled)
-+		led_classdev_unregister(&lm->pwm1.cdev);
-+fail3:
-+fail2:
-+	kfree(lm);
-+	return err;
++fail1:
++	kfree(chip);
++	return ret;
 +}
 +
-+static int lm8323_remove(struct i2c_client *client)
++static int lp5521_remove(struct i2c_client *client)
 +{
-+	struct lm8323_chip *lm = i2c_get_clientdata(client);
++	struct lp5521_chip *chip = i2c_get_clientdata(client);
 +
-+	free_irq(lm->irq, lm);
-+	device_remove_file(&lm->client->dev, &dev_attr_disable_kp);
-+
-+	return 0;
-+}
-+
-+/*
-+ * We don't need to explicitly suspend the chip, as it already switches off
-+ * when there's no activity.
-+ */
-+static int lm8323_suspend(struct i2c_client *client, pm_message_t mesg)
-+{
-+	struct lm8323_chip *lm = i2c_get_clientdata(client);
-+
-+	set_irq_wake(lm->irq, 0);
-+	disable_irq(lm->irq);
-+
-+	mutex_lock(&lm->lock);
-+	lm->pm_suspend = 1;
-+	mutex_unlock(&lm->lock);
-+
-+	if (lm->pwm1.enabled)
-+		led_classdev_suspend(&lm->pwm1.cdev);
-+	if (lm->pwm2.enabled)
-+		led_classdev_suspend(&lm->pwm2.cdev);
-+	if (lm->pwm3.enabled)
-+		led_classdev_suspend(&lm->pwm3.cdev);
++	lp5521_unregister_sysfs(client);
++	kfree(chip);
 +
 +	return 0;
 +}
 +
-+static int lm8323_resume(struct i2c_client *client)
-+{
-+	struct lm8323_chip *lm = i2c_get_clientdata(client);
-+
-+	mutex_lock(&lm->lock);
-+	lm->pm_suspend = 0;
-+	mutex_unlock(&lm->lock);
-+
-+	if (lm->pwm1.enabled)
-+		led_classdev_resume(&lm->pwm1.cdev);
-+	if (lm->pwm2.enabled)
-+		led_classdev_resume(&lm->pwm2.cdev);
-+	if (lm->pwm3.enabled)
-+		led_classdev_resume(&lm->pwm3.cdev);
-+
-+	enable_irq(lm->irq);
-+	set_irq_wake(lm->irq, 1);
-+
-+	return 0;
-+}
-+
-+static struct i2c_driver lm8323_i2c_driver = {
++static struct i2c_driver lp5521_driver = {
 +	.driver = {
-+		.name	 = DRIVER_NAME,
++		.name	= LP5521_DRIVER_NAME,
 +	},
-+	.probe		= lm8323_probe,
-+	.remove		= __exit_p(lm8323_remove),
-+	.suspend	= lm8323_suspend,
-+	.resume		= lm8323_resume,
++	.probe		= lp5521_probe,
++	.remove		= __exit_p(lp5521_remove),
 +};
 +
-+static int __init lm8323_init(void)
++static int __init lp5521_init(void)
 +{
-+	return i2c_add_driver(&lm8323_i2c_driver);
++	return i2c_add_driver(&lp5521_driver);
 +}
 +
-+static void __exit lm8323_exit(void)
++static void __exit lp5521_exit(void)
 +{
-+	i2c_del_driver(&lm8323_i2c_driver);
++	i2c_del_driver(&lp5521_driver);
 +}
 +
-+MODULE_AUTHOR("Daniel Stone");
-+MODULE_DESCRIPTION("LM8323 keypad driver");
++MODULE_AUTHOR("Mathias Nyman <mathias.nyman@nokia.com>");
++MODULE_DESCRIPTION("lp5521 LED driver");
 +MODULE_LICENSE("GPL");
 +
-+module_init(lm8323_init);
-+module_exit(lm8323_exit);
-diff --git a/include/linux/i2c/lm8323.h b/include/linux/i2c/lm8323.h
-new file mode 100644
-index 0000000..2f0c213
---- /dev/null
-+++ b/include/linux/i2c/lm8323.h
-@@ -0,0 +1,45 @@
-+/*
-+ * include/lm8323.h
-+ *
-+ * Configuration for LM8323 keypad driver.
-+ */
-+
-+#ifndef __LINUX_LM8323_H
-+#define __LINUX_LM8323_H
-+
-+#include <linux/types.h>
-+
-+/*
-+ * Largest keycode that the chip can send, plus one,
-+ * so keys can be mapped directly at the index of the
-+ * LM8323 keycode instead of subtracting one.
-+ */
-+#define LM8323_KEYMAP_SIZE (0x7f + 1)
-+
-+/*
-+ * Keymap is an array indexed with chip keycode, the array entry being
-+ * the evdev (not AT) keycode.
-+ */
-+typedef s16 lm8323_km_t[LM8323_KEYMAP_SIZE];
-+
-+struct lm8323_platform_data {
-+	u16 irq_gpio;
-+
-+	int debounce_time; /* Time to watch for key bouncing, in ms. */
-+	int active_time; /* Idle time until sleep, in ms. */
-+
-+	int size_x;
-+	int size_y;
-+	int repeat : 1;
-+	const s16 *keymap;
-+
-+	char *pwm1_name; /* Device name for PWM1. */
-+	char *pwm2_name; /* Device name for PWM2. */
-+	char *pwm3_name; /* Device name for PWM3. */
-+
-+	char *name; /* Device name. */
-+};
-+
-+void __init lm8323_set_platform_data(struct lm8323_platform_data *pdata);
-+
-+#endif /* __LINUX_LM8323_H */
++module_init(lp5521_init);
++module_exit(lp5521_exit);
 -- 
 1.5.5.rc3
 
