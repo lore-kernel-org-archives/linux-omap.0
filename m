@@ -1,31 +1,36 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH 5/17] ARM: OMAP2: Change 24xx to use new register access
-Date: Wed, 9 Apr 2008 22:01:28 +0000
-Message-ID: <20080409220127.GR31071@atomide.com>
-References: <1207775003-7429-1-git-send-email-tony@atomide.com> <1207775003-7429-2-git-send-email-tony@atomide.com> <1207775003-7429-3-git-send-email-tony@atomide.com> <1207775003-7429-4-git-send-email-tony@atomide.com> <1207775003-7429-5-git-send-email-tony@atomide.com> <1207775003-7429-6-git-send-email-tony@atomide.com>
+Date: Wed, 9 Apr 2008 23:21:21 +0000
+Message-ID: <20080409232121.GS31071@atomide.com>
+References: <1207775003-7429-1-git-send-email-tony@atomide.com> <1207775003-7429-2-git-send-email-tony@atomide.com> <1207775003-7429-3-git-send-email-tony@atomide.com> <1207775003-7429-4-git-send-email-tony@atomide.com> <1207775003-7429-5-git-send-email-tony@atomide.com> <1207775003-7429-6-git-send-email-tony@atomide.com> <20080409220127.GR31071@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54745 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53678 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750993AbYDIWBa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 18:01:30 -0400
+	with ESMTP id S1751432AbYDIXVY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 19:21:24 -0400
 Content-Disposition: inline
-In-Reply-To: <1207775003-7429-6-git-send-email-tony@atomide.com>
+In-Reply-To: <20080409220127.GR31071@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
 Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-Here's one more revision to do clk_enable(); clk_get_rate();
-clk_disable(); instead of just clk_get_rate() as noted by Russell.
+* Tony Lindgren <tony@atomide.com> [080409 22:01]:
+> Here's one more revision to do clk_enable(); clk_get_rate();
+> clk_disable(); instead of just clk_get_rate() as noted by Russell.
+
+One more time.. Now with clk_disable() and clk_put() at the end of
+the board init functions. The long term fix is to use the GPMC functions
+to do the timing calculations.
 
 Regards,
 
 Tony
 
 
->From 747633968c7cbc5b794c0c83d7986adbd7850542 Mon Sep 17 00:00:00 2001
+>From a3884b2e65705591c13da5b2c789a36579574cdc Mon Sep 17 00:00:00 2001
 From: Paul Walmsley <paul@pwsan.com>
 Date: Tue, 18 Mar 2008 10:04:51 +0200
 Subject: [PATCH] ARM: OMAP2: Change 24xx to use new register access
@@ -48,7 +53,7 @@ Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
 diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index 64235de..62f268f 100644
+index 64235de..1c12d7c 100644
 --- a/arch/arm/mach-omap2/board-2430sdp.c
 +++ b/arch/arm/mach-omap2/board-2430sdp.c
 @@ -33,7 +33,6 @@
@@ -59,7 +64,7 @@ index 64235de..62f268f 100644
  
  #include <asm/io.h>
  
-@@ -125,15 +124,19 @@ static inline void __init sdp2430_init_smc91x(void)
+@@ -125,15 +124,18 @@ static inline void __init sdp2430_init_smc91x(void)
  	int eth_cs;
  	unsigned long cs_mem_base;
  	unsigned int rate;
@@ -81,12 +86,35 @@ index 64235de..62f268f 100644
 +
 +	clk_enable(gpmc_fck);
 +	rate = clk_get_rate(gpmc_fck);
-+	clk_disable(gpmc_fck);
  
  	/* Make sure CS1 timings are correct, for 2430 always muxed */
  	gpmc_cs_write_reg(eth_cs, GPMC_CS_CONFIG1, 0x00011200);
+@@ -160,7 +162,7 @@ static inline void __init sdp2430_init_smc91x(void)
+ 
+ 	if (gpmc_cs_request(eth_cs, SZ_16M, &cs_mem_base) < 0) {
+ 		printk(KERN_ERR "Failed to request GPMC mem for smc91x\n");
+-		return;
++		goto out;
+ 	}
+ 
+ 	sdp2430_smc91x_resources[0].start = cs_mem_base + 0x300;
+@@ -171,10 +173,13 @@ static inline void __init sdp2430_init_smc91x(void)
+ 		printk(KERN_ERR "Failed to request GPIO%d for smc91x IRQ\n",
+ 			OMAP24XX_ETHR_GPIO_IRQ);
+ 		gpmc_cs_free(eth_cs);
+-		return;
++		goto out;
+ 	}
+ 	omap_set_gpio_direction(OMAP24XX_ETHR_GPIO_IRQ, 1);
+ 
++out:
++	clk_disable(gpmc_fck);
++	clk_put(gpmc_fck);
+ }
+ 
+ static void __init omap_2430sdp_init_irq(void)
 diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
-index 7846551..75e2d90 100644
+index 7846551..a1e1e67 100644
 --- a/arch/arm/mach-omap2/board-apollon.c
 +++ b/arch/arm/mach-omap2/board-apollon.c
 @@ -26,6 +26,8 @@
@@ -107,7 +135,7 @@ index 7846551..75e2d90 100644
  
  /* LED & Switch macros */
  #define LED0_GPIO13		13
-@@ -187,13 +189,44 @@ static inline void __init apollon_init_smc91x(void)
+@@ -187,17 +189,47 @@ static inline void __init apollon_init_smc91x(void)
  {
  	unsigned long base;
  
@@ -123,7 +151,6 @@ index 7846551..75e2d90 100644
 +
 +	clk_enable(gpmc_fck);
 +	rate = clk_get_rate(gpmc_fck);
-+	clk_disable(gpmc_fck);
 +
 +	eth_cs = APOLLON_ETH_CS;
 +
@@ -158,7 +185,27 @@ index 7846551..75e2d90 100644
  
  	if (gpmc_cs_request(APOLLON_ETH_CS, SZ_16M, &base) < 0) {
  		printk(KERN_ERR "Failed to request GPMC CS for smc91x\n");
-@@ -330,6 +363,8 @@ static void __init apollon_usb_init(void)
+-		return;
++		goto out;
+ 	}
+ 	apollon_smc91x_resources[0].start = base + 0x300;
+ 	apollon_smc91x_resources[0].end   = base + 0x30f;
+@@ -208,9 +240,13 @@ static inline void __init apollon_init_smc91x(void)
+ 		printk(KERN_ERR "Failed to request GPIO%d for smc91x IRQ\n",
+ 			APOLLON_ETHR_GPIO_IRQ);
+ 		gpmc_cs_free(APOLLON_ETH_CS);
+-		return;
++		goto out;
+ 	}
+ 	omap_set_gpio_direction(APOLLON_ETHR_GPIO_IRQ, 1);
++
++out:
++	clk_disable(gpmc_fck);
++	clk_put(gpmc_fck);
+ }
+ 
+ static void __init omap_apollon_init_irq(void)
+@@ -330,6 +366,8 @@ static void __init apollon_usb_init(void)
  
  static void __init omap_apollon_init(void)
  {
@@ -167,7 +214,7 @@ index 7846551..75e2d90 100644
  	apollon_led_init();
  	apollon_sw_init();
  	apollon_flash_init();
-@@ -339,7 +374,9 @@ static void __init omap_apollon_init(void)
+@@ -339,7 +377,9 @@ static void __init omap_apollon_init(void)
  	omap_cfg_reg(W19_24XX_SYS_NIRQ);
  
  	/* Use Interal loop-back in MMC/SDIO Module Input Clock selection */
@@ -179,7 +226,7 @@ index 7846551..75e2d90 100644
  	/*
   	 * Make sure the serial ports are muxed on at this point.
 diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-index f125f43..ce68298 100644
+index f125f43..d1915f9 100644
 --- a/arch/arm/mach-omap2/board-h4.c
 +++ b/arch/arm/mach-omap2/board-h4.c
 @@ -19,6 +19,8 @@
@@ -223,7 +270,7 @@ index f125f43..ce68298 100644
  	.flags		= IORESOURCE_MEM,
  };
  
-@@ -253,16 +257,85 @@ static struct platform_device *h4_devices[] __initdata = {
+@@ -253,21 +257,107 @@ static struct platform_device *h4_devices[] __initdata = {
  	&h4_lcd_device,
  };
  
@@ -271,6 +318,7 @@ index f125f43..ce68298 100644
 +	clk_enable(gpmc_fck);
 +	rate = clk_get_rate(gpmc_fck);
 +	clk_disable(gpmc_fck);
++	clk_put(gpmc_fck);
 +
 +	if (is_gpmc_muxed())
 +		muxed = 0x200;
@@ -310,16 +358,20 @@ index f125f43..ce68298 100644
 +
 +	if (gpmc_cs_request(eth_cs, SZ_16M, &cs_mem_base) < 0) {
 +		printk(KERN_ERR "Failed to request GPMC mem for smc91x\n");
-+		return;
++		goto out;
 +	}
 +
  	udelay(100);
  
  	omap_cfg_reg(M15_24XX_GPIO92);
-@@ -270,11 +343,24 @@ static inline void __init h4_init_debug(void)
+ 	if (debug_card_init(cs_mem_base, OMAP24XX_ETHR_GPIO_IRQ) < 0)
  		gpmc_cs_free(eth_cs);
- }
- 
++
++out:
++	clk_disable(gpmc_fck);
++	clk_put(gpmc_fck);
++}
++
 +static void __init h4_init_flash(void)
 +{
 +	unsigned long base;
@@ -330,10 +382,10 @@ index f125f43..ce68298 100644
 +	}
 +	h4_flash_resource.start	= base;
 +	h4_flash_resource.end	= base + SZ_64M - 1;
-+}
-+
+ }
+ 
  static void __init omap_h4_init_irq(void)
- {
+@@ -275,6 +365,7 @@ static void __init omap_h4_init_irq(void)
  	omap2_init_common_hw();
  	omap_init_irq();
  	omap_gpio_init();
@@ -342,7 +394,7 @@ index f125f43..ce68298 100644
  
  static struct omap_uart_config h4_uart_config __initdata = {
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 5a4cc20..8faf783 100644
+index 5a4cc20..02cede2 100644
 --- a/arch/arm/mach-omap2/gpmc.c
 +++ b/arch/arm/mach-omap2/gpmc.c
 @@ -69,7 +69,7 @@ static void __iomem *gpmc_base =
@@ -354,7 +406,11 @@ index 5a4cc20..8faf783 100644
  
  static void gpmc_write_reg(int idx, u32 val)
  {
-@@ -98,7 +98,7 @@ u32 gpmc_cs_read_reg(int cs, int idx)
+@@ -94,11 +94,10 @@ u32 gpmc_cs_read_reg(int cs, int idx)
+ 	return __raw_readl(gpmc_cs_base + (cs * GPMC_CS_SIZE) + idx);
+ }
+ 
+-/* TODO: Add support for gpmc_fck to clock framework and use it */
  unsigned long gpmc_get_fclk_period(void)
  {
  	/* In picoseconds */
@@ -363,7 +419,7 @@ index 5a4cc20..8faf783 100644
  }
  
  unsigned int gpmc_ns_to_ticks(unsigned int time_ns)
-@@ -398,8 +398,11 @@ void __init gpmc_init(void)
+@@ -398,8 +397,11 @@ void __init gpmc_init(void)
  {
  	u32 l;
  
