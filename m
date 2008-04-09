@@ -1,97 +1,115 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 0/5] resend n810 drivers
-Date: Wed,  9 Apr 2008 13:09:20 +0300
-Message-ID: <1207735765-1356-1-git-send-email-felipe.balbi@nokia.com>
+From: "Eduardo Valentin" <edubezval@gmail.com>
+Subject: Re: [PATCH 2/5] I2C: TSL2563: Add support for Taos tsl2563 ambient light sensor
+Date: Wed, 9 Apr 2008 13:47:25 +0300
+Message-ID: <a0580c510804090347m4c6a458fvf1923b203195e710@mail.gmail.com>
+References: <1207735765-1356-1-git-send-email-felipe.balbi@nokia.com>
+	 <1207735765-1356-2-git-send-email-felipe.balbi@nokia.com>
+	 <1207735765-1356-3-git-send-email-felipe.balbi@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:37816 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752870AbYDIKKu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 06:10:50 -0400
+Received: from wa-out-1112.google.com ([209.85.146.176]:45666 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753079AbYDIKr2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 06:47:28 -0400
+Received: by wa-out-1112.google.com with SMTP id v27so2135858wah.23
+        for <linux-omap@vger.kernel.org>; Wed, 09 Apr 2008 03:47:25 -0700 (PDT)
+In-Reply-To: <1207735765-1356-3-git-send-email-felipe.balbi@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Mathias Nyman <mathias.nyman@nokia.com>
 
-In the last series there was a small dirt in input Kconfig due to
-some rebase I had to do. Fixed now, the documentation follows again.
+Hi Balbi and Mathias,
 
-----
+This patch has some style problems. Here is the output of checkpatch:
+evalenti@evalenti-desktop:~$
+./trees/linux-omap-2.6/scripts/checkpatch.pl mathias.diff
+ERROR: do not use assignment in if condition
+#314: FILE: drivers/i2c/chips/tsl2563.c:188:
++       if ((ret = tsl2563_write(client, TSL2563_REG_TIMING,
 
-The following patches are updates from n810 tree to
-be able to build on top of current linux-omap.
+ERROR: do not use assignment in if condition
+#328: FILE: drivers/i2c/chips/tsl2563.c:202:
++       if ((ret = tsl2563_set_power(chip, 1)))
 
-I'm addind here the keypad driver, touchscreen driver,
-ambient light sensor driver and LED driver.
+ERROR: do not use assignment in if condition
+#727: FILE: drivers/i2c/chips/tsl2563.c:601:
++       if (!(chip = kzalloc(sizeof(*chip), GFP_KERNEL)))
 
-Please give it a good review and comments are welcome. I
-might have some design issues due to n800 and n810 be using
-the same board files, but as of my tests everything works fine.
+ERROR: do not use assignment in if condition
+#733: FILE: drivers/i2c/chips/tsl2563.c:607:
++       if ((err = tsl2563_detect(chip))) {
 
-In case of the LED and ambient light sensor we're gonna
-have to test through sysfs.
+ERROR: do not use assignment in if condition
+#738: FILE: drivers/i2c/chips/tsl2563.c:612:
++       if ((err = tsl2563_read_id(chip, &id)))
 
-Here's some notes about both:
+ERROR: do not use assignment in if condition
+#753: FILE: drivers/i2c/chips/tsl2563.c:627:
++       if ((err = tsl2563_configure(chip)))
 
-- ambient light sensor:
-	# cat /sys/class/i2c-adapter/i2c-2/2-0029/lux
-	this will show the light intensity, cover the sensor and it'll change.
+ERROR: do not use assignment in if condition
+#760: FILE: drivers/i2c/chips/tsl2563.c:634:
++       if ((err = tsl2563_register_sysfs(client))) {
 
-- LED driver:
-	# echo ff:00:00 > /sys/class/i2c-adapter/i2c-2/2-0032/color
-	this will make the led bright red.
+ERROR: do not use assignment in if condition
+#791: FILE: drivers/i2c/chips/tsl2563.c:665:
++       if ((ret = tsl2563_set_power(chip, 0)))
 
-	# echo load > /sys/class/i2c-adapter/i2c-2/2-0032/mode
-	# echo 40000a7f0aff0000 > /sys/class/i2c-adapter/i2c-2/2-0032/load
-	# echo run > /sys/class/i2c-adapter/i2c-2/2-0032/mode
-	this will make the LED bright following the pattern in the second echo.
+ERROR: do not use assignment in if condition
+#808: FILE: drivers/i2c/chips/tsl2563.c:682:
++       if ((ret = tsl2563_set_power(chip, 1)))
 
-	The pattern format is here:
-	40aabbccbbcc0000
-	.aa - set pwm [00..ff]
-	.bb - step time increase brightness [01..3f]short step or [41..7f] long step
-	.cc - brightness increment/decrement steps [00..7f] increment or [80..ff] decrement
-	.0000 - goto start
+ERROR: do not use assignment in if condition
+#811: FILE: drivers/i2c/chips/tsl2563.c:685:
++       if ((ret = tsl2563_configure(chip)))
 
-	note: you can put as much 'bbcc' patterns as you want, i mean:
-	the following pattern still valid:
+total: 10 errors, 0 warnings, 756 lines checked
 
-	# echo 40000a7f0aff137f13ff0c7f0cff0000 > load
+mathias.diff has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-That's all, the last patch just updates n800_defconfig to enable these new drivers.
 
-Daniel Stone (1):
-  I2C: LM8323: Introduce lm8323 keypad driver
 
-Felipe Balbi (1):
-  ARM: N800: Update n800 defconfig
+On Wed, Apr 9, 2008 at 1:09 PM, Felipe Balbi <felipe.balbi@nokia.com> wrote:
+>
+> From: Mathias Nyman <mathias.nyman@nokia.com>
+>
 
-Lauri Leukkunen (1):
-  INPUT: TOUCHSCREEN: Introduce tsc2005 driver
+<snip>
 
-Mathias Nyman (2):
-  I2C: TSL2563: Add support for Taos tsl2563 ambient light sensor
-  I2C: LP5521: Introduce lp5521 LED driver
+>  +
+>  +/*--------------------------------------------------------------*/
+>  +/*                      Sysfs interface                         */
+>  +/*--------------------------------------------------------------*/
 
- arch/arm/configs/n800_defconfig     |  189 +++++++-
- arch/arm/mach-omap2/board-n800.c    |  180 +++++++-
- arch/arm/mach-omap2/board-n810.c    |    2 +
- drivers/i2c/chips/Kconfig           |   17 +
- drivers/i2c/chips/Makefile          |    3 +-
- drivers/i2c/chips/lp5521.c          |  573 ++++++++++++++++++++++
- drivers/i2c/chips/tsl2563.c         |  720 +++++++++++++++++++++++++++
- drivers/input/keyboard/Kconfig      |    7 +
- drivers/input/keyboard/Makefile     |    1 +
- drivers/input/keyboard/lm8323.c     |  921 +++++++++++++++++++++++++++++++++++
- drivers/input/touchscreen/Kconfig   |    5 +
- drivers/input/touchscreen/Makefile  |    1 +
- drivers/input/touchscreen/tsc2005.c |  737 ++++++++++++++++++++++++++++
- include/linux/i2c/lm8323.h          |   45 ++
- include/linux/spi/tsc2005.h         |   29 ++
- 15 files changed, 3418 insertions(+), 12 deletions(-)
- create mode 100644 drivers/i2c/chips/lp5521.c
- create mode 100644 drivers/i2c/chips/tsl2563.c
- create mode 100644 drivers/input/keyboard/lm8323.c
- create mode 100644 drivers/input/touchscreen/tsc2005.c
- create mode 100644 include/linux/i2c/lm8323.h
- create mode 100644 include/linux/spi/tsc2005.h
+Use correct multiple lines comments style here.
 
+>  +
+>  +static ssize_t tsl2563_adc0_show(struct device *dev,
+>  +                               struct device_attribute *attr, char *buf)
+>  +{
+
+<snip>
+
+>  +
+>  +/*--------------------------------------------------------------*/
+>  +/*                      Probe, Attach, Remove                   */
+>  +/*--------------------------------------------------------------*/
+
+Previous comment applies here as well.
+
+>  +static struct i2c_driver tsl2563_i2c_driver;
+>  +
+
+<snip>
+
+
+Cheers,
+
+-- 
+Eduardo Bezerra Valentin
