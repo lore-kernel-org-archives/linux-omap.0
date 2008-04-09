@@ -1,60 +1,86 @@
-From: "Kyungmin Park" <kmpark@infradead.org>
-Subject: Re: source.mvista links are broken
-Date: Thu, 10 Apr 2008 08:23:08 +0900
-Message-ID: <9c9fda240804091623x30c10550r7a174c0f78c3b481@mail.gmail.com>
-References: <87myo9a3kf.fsf@paris.hilman.org>
-	 <010C7BAE6783F34D9AC336EE5A01A08805C303DA@dbde01.ent.ti.com>
-	 <010C7BAE6783F34D9AC336EE5A01A08805C30581@dbde01.ent.ti.com>
-	 <20080408200839.GA31071@atomide.com>
-	 <5d5443650804090008l553e4773i259126743df6b49e@mail.gmail.com>
-	 <3B6D69C3A9EBCA4BA5DA60D91302742903F9941B@dlee13.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 5/17] ARM: OMAP2: Change 24xx to use new register access
+Date: Wed, 9 Apr 2008 23:24:25 +0000
+Message-ID: <20080409232424.GT31071@atomide.com>
+References: <1205848935-12078-1-git-send-email-tony@atomide.com> <1205848935-12078-2-git-send-email-tony@atomide.com> <1205848935-12078-3-git-send-email-tony@atomide.com> <1205848935-12078-4-git-send-email-tony@atomide.com> <1205848935-12078-5-git-send-email-tony@atomide.com> <1205848935-12078-6-git-send-email-tony@atomide.com> <20080407164856.GG5306@flint.arm.linux.org.uk> <20080409205713.GM31071@atomide.com> <20080409212203.GA31636@flint.arm.linux.org.uk> <20080409215433.GQ31071@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.171]:18454 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753846AbYDIXXI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 19:23:08 -0400
-Received: by wf-out-1314.google.com with SMTP id 28so2760966wff.4
-        for <linux-omap@vger.kernel.org>; Wed, 09 Apr 2008 16:23:08 -0700 (PDT)
-In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D91302742903F9941B@dlee13.ent.ti.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56884 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754006AbYDIXYa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 19:24:30 -0400
 Content-Disposition: inline
+In-Reply-To: <20080409215433.GQ31071@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Trilok Soni <soni.trilok@gmail.com>, Tony Lindgren <tony@atomide.com>, "Gadiyar, Anand" <gadiyar@ti.com>, Kevin Hilman <khilman@mvista.com>, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-On Wed, Apr 9, 2008 at 8:53 PM, Woodruff, Richard <r-woodruff2@ti.com> wrote:
-> > I am not able to find x-loader git tree, maintained by Kyungmin Park
->  > of Samsung on source.mvista.com?
->
->  I see the tree there.  There does seem to be some other junk intermixed
->  in it.
->
->  http://source.mvista.com/gittrees/xloader.git/
->
->  There are a couple additional side points about this tree:
->         - Some of his work was folded back into u-boot proper for
->  OneNAND devices.  So there probably is a slow down of usage in this
->  repository.
+* Tony Lindgren <tony@atomide.com> [080409 21:54]:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [080409 21:22]:
+> > On Wed, Apr 09, 2008 at 08:57:13PM +0000, Tony Lindgren wrote:
+> > > Here's how it now looks:
+> > 
+> > Not quite.  The point I was trying to make is:
+> > 
+> > > @@ -302,15 +288,17 @@
+> > >  	int eth_cs;
+> > >  	unsigned long cs_mem_base;
+> > >  	unsigned int muxed, rate;
+> > > -	struct clk *l3ck;
+> > > +	struct clk *gpmc_fck;
+> > >  
+> > >  	eth_cs	= H4_SMC91X_CS;
+> > >  
+> > > -	l3ck = clk_get(NULL, "core_l3_ck");
+> > > -	if (IS_ERR(l3ck))
+> > > -		rate = 100000000;
+> > > -	else
+> > > -		rate = clk_get_rate(l3ck);
+> > > +	gpmc_fck = clk_get(NULL, "gpmc_fck");	/* Always on ENABLE_ON_INIT */
+> > > +	if (IS_ERR(gpmc_fck)) {
+> > > +		WARN_ON(1);
+> > > +		return;
+> > > +	}
+> > > +
+> > 
+> > that there should be a call to clk_enable() here - if even if it's
+> > apparantly "always on".  (If it's always enabled then the call won't
+> > do any harm anyway - it just serves to ensure that the API conditions
+> > are followed.)
+> 
+> OK, I'll clk_enable() before clk_get_rate() and then clk_disable() to
+> make usecounts happy as rate is only needed for setting GPMC timings:
+> 
+> @@ -302,15 +288,19 @@
+>  	int eth_cs;
+>  	unsigned long cs_mem_base;
+>  	unsigned int muxed, rate;
+> -	struct clk *l3ck;
+> +	struct clk *gpmc_fck;
+>  
+>  	eth_cs	= H4_SMC91X_CS;
+>  
+> -	l3ck = clk_get(NULL, "core_l3_ck");
+> -	if (IS_ERR(l3ck))
+> -		rate = 100000000;
+> -	else
+> -		rate = clk_get_rate(l3ck);
+> +	gpmc_fck = clk_get(NULL, "gpmc_fck");	/* Always on ENABLE_ON_INIT */
+> +	if (IS_ERR(gpmc_fck)) {
+> +		WARN_ON(1);
+> +		return;
+> +	}
+> +
+> +	clk_enable(gpmc_fck);
+> +	rate = clk_get_rate(gpmc_fck);
+> +	clk_disable(gpmc_fck);
+>  
+>  	if (is_gpmc_muxed())
+>  		muxed = 0x200;
 
-Yes, I added it to u-boot to make a OneNAND boot image by using one compile.
-Of course, you can use the 1KiB boot image separately with other bootloaders.
-It has separate directory and can build it.
+I made one more update to do clk_disable() and clk_put() at the end of
+the function..
 
-See reference board, apollon in u-boot tree.
-
->         - TI has versions with 3430 and other board support on our web
->  site.
-
-Do you have a plan to push it to u-boot tree?
-
->                 - Along with more boards, there have been some changes
->  we pulled back in from u-boot to support more compilers.  I don't think
->  these ever went back out into this git tree.  It's a matter of who is
->  using it and what its useful for.
->
-
-Thank you,
-Kyungmin Park
+Tony
