@@ -1,333 +1,817 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 5/5] ARM: N800: Update n800 defconfig
-Date: Wed,  9 Apr 2008 13:04:12 +0300
-Message-ID: <1207735452-989-6-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 2/5] I2C: TSL2563: Add support for Taos tsl2563 ambient light sensor
+Date: Wed,  9 Apr 2008 13:04:09 +0300
+Message-ID: <1207735452-989-3-git-send-email-felipe.balbi@nokia.com>
 References: <1207735452-989-1-git-send-email-felipe.balbi@nokia.com>
  <1207735452-989-2-git-send-email-felipe.balbi@nokia.com>
- <1207735452-989-3-git-send-email-felipe.balbi@nokia.com>
- <1207735452-989-4-git-send-email-felipe.balbi@nokia.com>
- <1207735452-989-5-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:36709 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:36699 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752494AbYDIKFT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 06:05:19 -0400
-In-Reply-To: <1207735452-989-5-git-send-email-felipe.balbi@nokia.com>
+	with ESMTP id S1752425AbYDIKFS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 06:05:18 -0400
+In-Reply-To: <1207735452-989-2-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, Mathias Nyman <mathias.nyman@nokia.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-Enables recent drivers and usb.
+From: Mathias Nyman <mathias.nyman@nokia.com>
+
+Add support for Taos tsl2563 ambient light sensor.
+
+Signed-off-by: Mathias Nyman <mathias.nyman@nokia.com>
+
+Updated to build with current linux-omap and new-style
+i2c driver.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- arch/arm/configs/n800_defconfig |  189 +++++++++++++++++++++++++++++++++++++--
- 1 files changed, 182 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/board-n800.c |    4 +
+ drivers/i2c/chips/Kconfig        |   10 +
+ drivers/i2c/chips/Makefile       |    2 +-
+ drivers/i2c/chips/tsl2563.c      |  720 ++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 735 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/i2c/chips/tsl2563.c
 
-diff --git a/arch/arm/configs/n800_defconfig b/arch/arm/configs/n800_defconfig
-index ea687ff..a8e133c 100644
---- a/arch/arm/configs/n800_defconfig
-+++ b/arch/arm/configs/n800_defconfig
-@@ -1,7 +1,7 @@
- #
- # Automatically generated make config: don't edit
--# Linux kernel version: 2.6.25-rc6-omap1
--# Fri Mar 28 10:53:25 2008
-+# Linux kernel version: 2.6.25-rc8-omap1
-+# Tue Apr  8 15:34:27 2008
- #
- CONFIG_ARM=y
- CONFIG_SYS_SUPPORTS_APM_EMULATION=y
-@@ -465,8 +465,13 @@ CONFIG_BT_HIDP=y
- #
- # Bluetooth device drivers
- #
-+# CONFIG_BT_HCIUSB is not set
-+# CONFIG_BT_HCIBTUSB is not set
- # CONFIG_BT_HCIBTSDIO is not set
- # CONFIG_BT_HCIUART is not set
-+# CONFIG_BT_HCIBCM203X is not set
-+# CONFIG_BT_HCIBPA10X is not set
-+# CONFIG_BT_HCIBFUSB is not set
- # CONFIG_BT_HCIBRF6150 is not set
- # CONFIG_BT_HCIH4P is not set
- # CONFIG_BT_HCIVHCI is not set
-@@ -578,6 +583,7 @@ CONFIG_BLK_DEV=y
- CONFIG_BLK_DEV_LOOP=y
- # CONFIG_BLK_DEV_CRYPTOLOOP is not set
- # CONFIG_BLK_DEV_NBD is not set
-+# CONFIG_BLK_DEV_UB is not set
- CONFIG_BLK_DEV_RAM=y
- CONFIG_BLK_DEV_RAM_COUNT=16
- CONFIG_BLK_DEV_RAM_SIZE=4096
-@@ -651,6 +657,15 @@ CONFIG_NETDEV_10000=y
- #
- # CONFIG_WLAN_PRE80211 is not set
- # CONFIG_WLAN_80211 is not set
-+
-+#
-+# USB Network Adapters
-+#
-+# CONFIG_USB_CATC is not set
-+# CONFIG_USB_KAWETH is not set
-+# CONFIG_USB_PEGASUS is not set
-+# CONFIG_USB_RTL8150 is not set
-+# CONFIG_USB_USBNET is not set
- # CONFIG_WAN is not set
- CONFIG_PPP=y
- # CONFIG_PPP_MULTILINK is not set
-@@ -698,7 +713,7 @@ CONFIG_INPUT_KEYBOARD=y
- # CONFIG_KEYBOARD_NEWTON is not set
- # CONFIG_KEYBOARD_STOWAWAY is not set
- # CONFIG_KEYBOARD_OMAP is not set
--CONFIG_KEYBOARD_TSC2301=y
-+CONFIG_KEYBOARD_LM8323=y
- # CONFIG_KEYBOARD_GPIO is not set
- # CONFIG_INPUT_MOUSE is not set
- # CONFIG_INPUT_JOYSTICK is not set
-@@ -714,9 +729,10 @@ CONFIG_INPUT_TOUCHSCREEN=y
- # CONFIG_TOUCHSCREEN_TOUCHRIGHT is not set
- # CONFIG_TOUCHSCREEN_TOUCHWIN is not set
- # CONFIG_TOUCHSCREEN_UCB1400 is not set
-+CONFIG_TOUCHSCREEN_TSC2005=y
- # CONFIG_TOUCHSCREEN_TSC2102 is not set
- # CONFIG_TOUCHSCREEN_TSC210X is not set
--CONFIG_TOUCHSCREEN_TSC2301=y
-+# CONFIG_TOUCHSCREEN_USB_COMPOSITE is not set
- # CONFIG_INPUT_MISC is not set
+diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/board-n800.c
+index 367e518..7a41245 100644
+--- a/arch/arm/mach-omap2/board-n800.c
++++ b/arch/arm/mach-omap2/board-n800.c
+@@ -579,6 +579,10 @@ static struct i2c_board_info __initdata n800_i2c_board_info_2[] = {
+ 		.irq		= OMAP_GPIO_IRQ(109),
+ 		.platform_data	= &lm8323_pdata,
+ 	},
++	{
++		I2C_BOARD_INFO("tsl2563", 0x29),
++		.type		= "tsl2563",
++	},
+ };
  
- #
-@@ -784,6 +800,7 @@ CONFIG_I2C_OMAP=y
- # CONFIG_I2C_SIMTEC is not set
- # CONFIG_I2C_TAOS_EVM is not set
- # CONFIG_I2C_STUB is not set
-+# CONFIG_I2C_TINY_USB is not set
+ void __init nokia_n800_common_init(void)
+diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
+index 0d566fa..dc4f140 100644
+--- a/drivers/i2c/chips/Kconfig
++++ b/drivers/i2c/chips/Kconfig
+@@ -202,6 +202,16 @@ config SENSORS_TSL2550
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called tsl2550.
  
- #
- # Miscellaneous I2C Chip support
-@@ -800,6 +817,8 @@ CONFIG_I2C_OMAP=y
- # CONFIG_TWL4030_CORE is not set
- # CONFIG_SENSORS_MAX6875 is not set
- # CONFIG_SENSORS_TSL2550 is not set
-+CONFIG_SENSORS_TSL2563=y
-+CONFIG_LP5521=y
- CONFIG_MENELAUS=y
- # CONFIG_I2C_DEBUG_CORE is not set
- # CONFIG_I2C_DEBUG_ALGO is not set
-@@ -826,8 +845,7 @@ CONFIG_SPI_OMAP24XX=y
- # CONFIG_SPI_TSC2101 is not set
- # CONFIG_SPI_TSC2102 is not set
- # CONFIG_SPI_TSC210X is not set
--CONFIG_SPI_TSC2301=y
--CONFIG_SPI_TSC2301_AUDIO=y
-+# CONFIG_SPI_TSC2301 is not set
- # CONFIG_SPI_SPIDEV is not set
- # CONFIG_SPI_TLE62X0 is not set
- CONFIG_HAVE_GPIO_LIB=y
-@@ -911,6 +929,11 @@ CONFIG_WATCHDOG_NOWAYOUT=y
- CONFIG_OMAP_WATCHDOG=y
- 
- #
-+# USB-based Watchdog Cards
-+#
-+# CONFIG_USBPCWATCHDOG is not set
++config SENSORS_TSL2563
++       tristate "Taos TSL2563 ambient light sensor"
++       depends on I2C && HWMON
++       help
++         If you say yes here you get support for the Taos TSL2563
++         ambient light sensor.
 +
-+#
- # Sonics Silicon Backplane
- #
- CONFIG_SSB_POSSIBLE=y
-@@ -939,8 +962,19 @@ CONFIG_VIDEO_TCM825X=y
- # CONFIG_VIDEO_SAA5249 is not set
- # CONFIG_VIDEO_OMAP_CAMERA is not set
- CONFIG_VIDEO_OMAP2=y
-+CONFIG_V4L_USB_DRIVERS=y
-+# CONFIG_VIDEO_PVRUSB2 is not set
-+# CONFIG_VIDEO_EM28XX is not set
-+# CONFIG_VIDEO_USBVISION is not set
-+# CONFIG_USB_ET61X251 is not set
-+# CONFIG_USB_SN9C102 is not set
-+# CONFIG_USB_ZC0301 is not set
-+# CONFIG_USB_ZR364XX is not set
-+# CONFIG_USB_STKWEBCAM is not set
- CONFIG_RADIO_ADAPTERS=y
- CONFIG_RADIO_TEA5761=y
-+# CONFIG_USB_DSBR is not set
-+# CONFIG_USB_SI470X is not set
- # CONFIG_DVB_CORE is not set
- CONFIG_VIDEOBUF_GEN=y
- CONFIG_VIDEOBUF_DMA_SG=y
-@@ -1038,6 +1072,12 @@ CONFIG_SND_OMAP24XX_EAC=y
- #
- 
- #
-+# USB devices
-+#
-+# CONFIG_SND_USB_AUDIO is not set
-+# CONFIG_SND_USB_CAIAQ is not set
++         This driver can also be built as a module.  If so, the module
++         will be called tsl2563.
 +
-+#
- # System on Chip audio support
- #
- # CONFIG_SND_SOC is not set
-@@ -1058,7 +1098,140 @@ CONFIG_HID_SUPPORT=y
- CONFIG_HID=y
- # CONFIG_HID_DEBUG is not set
- # CONFIG_HIDRAW is not set
--# CONFIG_USB_SUPPORT is not set
+ config MENELAUS
+ 	bool "TWL92330/Menelaus PM chip"
+ 	depends on I2C=y && ARCH_OMAP24XX
+diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
+index 7c47fc4..e20fc10 100644
+--- a/drivers/i2c/chips/Makefile
++++ b/drivers/i2c/chips/Makefile
+@@ -22,6 +22,7 @@ obj-$(CONFIG_SENSORS_TLV320AIC23) += tlv320aic23.o
+ obj-$(CONFIG_GPIOEXPANDER_OMAP)	+= gpio_expander_omap.o
+ obj-$(CONFIG_MENELAUS)		+= menelaus.o
+ obj-$(CONFIG_SENSORS_TSL2550)	+= tsl2550.o
++obj-$(CONFIG_SENSORS_TSL2563)	+= tsl2563.o
+ obj-$(CONFIG_TWL4030_CORE)	+= twl4030-core.o twl4030-pwrirq.o
+ obj-$(CONFIG_TWL4030_GPIO)	+= twl4030-gpio.o
+ obj-$(CONFIG_TWL4030_USB)	+= twl4030-usb.o
+@@ -33,4 +34,3 @@ obj-$(CONFIG_RTC_X1205_I2C)	+= x1205.o
+ ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
+ EXTRA_CFLAGS += -DDEBUG
+ endif
+-
+diff --git a/drivers/i2c/chips/tsl2563.c b/drivers/i2c/chips/tsl2563.c
+new file mode 100644
+index 0000000..b10440b
+--- /dev/null
++++ b/drivers/i2c/chips/tsl2563.c
+@@ -0,0 +1,720 @@
++/*
++ * drivers/i2c/chips/tsl2563.c
++ *
++ * Copyright (C) 2008 Nokia Corporation
++ *
++ * Written by Timo O. Karjalainen <timo.o.karjalainen@nokia.com>
++ * Contact: Mathias Nyman <mathias.nyman@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
 +
-+#
-+# USB Input Devices
-+#
-+CONFIG_USB_HID=y
-+# CONFIG_USB_HIDINPUT_POWERBOOK is not set
-+# CONFIG_HID_FF is not set
-+# CONFIG_USB_HIDDEV is not set
-+CONFIG_USB_SUPPORT=y
-+CONFIG_USB_ARCH_HAS_HCD=y
-+CONFIG_USB_ARCH_HAS_OHCI=y
-+# CONFIG_USB_ARCH_HAS_EHCI is not set
-+CONFIG_USB=y
-+CONFIG_USB_DEBUG=y
-+CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
++#include <linux/module.h>
++#include <linux/i2c.h>
++#include <linux/interrupt.h>
++#include <linux/sched.h>
++#include <linux/mutex.h>
++#include <linux/delay.h>
++#include <linux/platform_device.h>
++#include <linux/pm.h>
++#include <linux/hwmon.h>
++#include <linux/err.h>
++#include <asm/arch/board.h>
 +
-+#
-+# Miscellaneous USB options
-+#
-+CONFIG_USB_DEVICEFS=y
-+CONFIG_USB_DEVICE_CLASS=y
-+# CONFIG_USB_DYNAMIC_MINORS is not set
-+CONFIG_USB_SUSPEND=y
-+# CONFIG_USB_PERSIST is not set
-+CONFIG_USB_OTG=y
-+# CONFIG_USB_OTG_WHITELIST is not set
-+# CONFIG_USB_OTG_BLACKLIST_HUB is not set
++#define DRIVER_NAME  "tsl2563"
 +
-+#
-+# USB Host Controller Drivers
-+#
-+# CONFIG_USB_ISP116X_HCD is not set
-+# CONFIG_USB_OHCI_HCD is not set
-+# CONFIG_USB_SL811_HCD is not set
-+# CONFIG_USB_R8A66597_HCD is not set
-+CONFIG_USB_MUSB_HDRC=y
-+CONFIG_USB_TUSB6010=y
-+# CONFIG_USB_MUSB_HOST is not set
-+# CONFIG_USB_MUSB_PERIPHERAL is not set
-+CONFIG_USB_MUSB_OTG=y
-+CONFIG_USB_GADGET_MUSB_HDRC=y
-+CONFIG_USB_MUSB_HDRC_HCD=y
-+# CONFIG_MUSB_PIO_ONLY is not set
-+# CONFIG_USB_INVENTRA_DMA is not set
-+# CONFIG_USB_TI_CPPI_DMA is not set
-+CONFIG_USB_TUSB_OMAP_DMA=y
-+CONFIG_USB_MUSB_LOGLEVEL=1
++/* Use this many bits for fraction part. */
++#define ADC_FRAC_BITS		(14)
 +
-+#
-+# USB Device Class drivers
-+#
-+# CONFIG_USB_ACM is not set
-+# CONFIG_USB_PRINTER is not set
++/* Given number of 1/10000's in ADC_FRAC_BITS precision. */
++#define FRAC10K(f)		(((f) * (1L << (ADC_FRAC_BITS))) / (10000))
 +
-+#
-+# NOTE: USB_STORAGE enables SCSI, and 'SCSI disk support'
-+#
++/* Bits used for fraction in calibration coefficients.*/
++#define CALIB_FRAC_BITS		(10)
++/* 0.5 in CALIB_FRAC_BITS precision */
++#define CALIB_FRAC_HALF		(1 << (CALIB_FRAC_BITS - 1))
++/* Make a fraction from a number n that was multiplied with b. */
++#define CALIB_FRAC(n, b)	(((n) << CALIB_FRAC_BITS) / (b))
++/* Decimal 10^(digits in sysfs presentation) */
++#define CALIB_BASE_SYSFS	(1000)
 +
-+#
-+# may also be needed; see USB_STORAGE Help for more information
-+#
-+CONFIG_USB_STORAGE=y
-+# CONFIG_USB_STORAGE_DEBUG is not set
-+# CONFIG_USB_STORAGE_DATAFAB is not set
-+# CONFIG_USB_STORAGE_FREECOM is not set
-+# CONFIG_USB_STORAGE_ISD200 is not set
-+# CONFIG_USB_STORAGE_DPCM is not set
-+# CONFIG_USB_STORAGE_USBAT is not set
-+# CONFIG_USB_STORAGE_SDDR09 is not set
-+# CONFIG_USB_STORAGE_SDDR55 is not set
-+# CONFIG_USB_STORAGE_JUMPSHOT is not set
-+# CONFIG_USB_STORAGE_ALAUDA is not set
-+# CONFIG_USB_STORAGE_KARMA is not set
-+CONFIG_USB_LIBUSUAL=y
++#define TSL2563_CMD		(0x80)
++#define TSL2563_CLEARINT	(0x40)
 +
-+#
-+# USB Imaging devices
-+#
-+# CONFIG_USB_MDC800 is not set
-+# CONFIG_USB_MICROTEK is not set
-+CONFIG_USB_MON=y
++#define TSL2563_REG_CTRL	(0x00)
++#define TSL2563_REG_TIMING	(0x01)
++#define TSL2563_REG_LOWLOW	(0x02) /* data0 low threshold, 2 bytes */
++#define TSL2563_REG_LOWHIGH	(0x03)
++#define TSL2563_REG_HIGHLOW	(0x04) /* data0 high threshold, 2 bytes */
++#define TSL2563_REG_HIGHHIGH	(0x05)
++#define TSL2563_REG_INT		(0x06)
++#define TSL2563_REG_ID		(0x0a)
++#define TSL2563_REG_DATA0LOW	(0x0c) /* broadband sensor value, 2 bytes */
++#define TSL2563_REG_DATA0HIGH	(0x0d)
++#define TSL2563_REG_DATA1LOW	(0x0e) /* infrared sensor value, 2 bytes */
++#define TSL2563_REG_DATA1HIGH	(0x0f)
 +
-+#
-+# USB port drivers
-+#
-+# CONFIG_USB_SERIAL is not set
++#define TSL2563_CMD_POWER_ON	(0x03)
++#define TSL2563_CMD_POWER_OFF	(0x00)
++#define TSL2563_CTRL_POWER_MASK	(0x03)
 +
-+#
-+# USB Miscellaneous drivers
-+#
-+# CONFIG_USB_EMI62 is not set
-+# CONFIG_USB_EMI26 is not set
-+# CONFIG_USB_ADUTUX is not set
-+# CONFIG_USB_AUERSWALD is not set
-+# CONFIG_USB_RIO500 is not set
-+# CONFIG_USB_LEGOTOWER is not set
-+# CONFIG_USB_LCD is not set
-+# CONFIG_USB_BERRY_CHARGE is not set
-+# CONFIG_USB_LED is not set
-+# CONFIG_USB_CYPRESS_CY7C63 is not set
-+# CONFIG_USB_CYTHERM is not set
-+# CONFIG_USB_PHIDGET is not set
-+# CONFIG_USB_IDMOUSE is not set
-+# CONFIG_USB_FTDI_ELAN is not set
-+# CONFIG_USB_APPLEDISPLAY is not set
-+# CONFIG_USB_LD is not set
-+# CONFIG_USB_TRANCEVIBRATOR is not set
-+# CONFIG_USB_IOWARRIOR is not set
-+CONFIG_USB_TEST=y
-+CONFIG_USB_GADGET=y
-+CONFIG_USB_GADGET_DEBUG=y
-+CONFIG_USB_GADGET_DEBUG_FILES=y
-+CONFIG_USB_GADGET_SELECTED=y
-+# CONFIG_USB_GADGET_AMD5536UDC is not set
-+# CONFIG_USB_GADGET_ATMEL_USBA is not set
-+# CONFIG_USB_GADGET_FSL_USB2 is not set
-+# CONFIG_USB_GADGET_NET2280 is not set
-+# CONFIG_USB_GADGET_PXA2XX is not set
-+# CONFIG_USB_GADGET_M66592 is not set
-+# CONFIG_USB_GADGET_GOKU is not set
-+# CONFIG_USB_GADGET_LH7A40X is not set
-+# CONFIG_USB_GADGET_OMAP is not set
-+# CONFIG_USB_GADGET_S3C2410 is not set
-+# CONFIG_USB_GADGET_AT91 is not set
-+# CONFIG_USB_GADGET_DUMMY_HCD is not set
-+CONFIG_USB_GADGET_DUALSPEED=y
-+# CONFIG_USB_ZERO is not set
-+CONFIG_USB_ETH=y
-+CONFIG_USB_ETH_RNDIS=y
-+# CONFIG_USB_GADGETFS is not set
-+# CONFIG_USB_FILE_STORAGE is not set
-+# CONFIG_USB_G_SERIAL is not set
-+# CONFIG_USB_MIDI_GADGET is not set
-+# CONFIG_USB_G_PRINTER is not set
- CONFIG_MMC=y
- # CONFIG_MMC_DEBUG is not set
- # CONFIG_MMC_UNSAFE_RESUME is not set
-@@ -1101,6 +1274,7 @@ CONFIG_RTC_LIB=y
- CONFIG_CBUS=y
- CONFIG_CBUS_TAHVO=y
- CONFIG_CBUS_TAHVO_USER=y
-+# CONFIG_CBUS_TAHVO_USB is not set
- CONFIG_CBUS_RETU=y
- CONFIG_CBUS_RETU_USER=y
- CONFIG_CBUS_RETU_POWERBUTTON=y
-@@ -1306,6 +1480,7 @@ CONFIG_DEBUG_ERRORS=y
- CONFIG_SECURITY=y
- # CONFIG_SECURITY_NETWORK is not set
- # CONFIG_SECURITY_CAPABILITIES is not set
-+# CONFIG_SECURITY_ROOTPLUG is not set
- # CONFIG_SECURITY_LOWMEM is not set
- CONFIG_SECURITY_DEFAULT_MMAP_MIN_ADDR=0
- CONFIG_CRYPTO=y
++#define TSL2563_TIMING_13MS	(0x00)
++#define TSL2563_TIMING_100MS	(0x01)
++#define TSL2563_TIMING_400MS	(0x02)
++#define TSL2563_TIMING_MASK	(0x03)
++#define TSL2563_TIMING_GAIN16	(0x10)
++#define TSL2563_TIMING_GAIN1	(0x00)
++
++#define TSL2563_INT_DISBLED	(0x00)
++#define TSL2563_INT_LEVEL	(0x10)
++#define TSL2563_INT_PERSIST(n)	((n) & 0x0F)
++
++struct tsl2563_gainlevel_coeff {
++	u8 gaintime;
++	u16 min;
++	u16 max;
++};
++
++static struct tsl2563_gainlevel_coeff tsl2563_gainlevel_table[] = {
++	{
++		.gaintime	= TSL2563_TIMING_400MS | TSL2563_TIMING_GAIN16,
++		.min		= 0,
++		.max		= 65534,
++	}, {
++		.gaintime	= TSL2563_TIMING_400MS | TSL2563_TIMING_GAIN1,
++		.min		= 2048,
++		.max		= 65534,
++	}, {
++		.gaintime	= TSL2563_TIMING_100MS | TSL2563_TIMING_GAIN1,
++		.min		= 4095,
++		.max		= 37177,
++	}, {
++		.gaintime	= TSL2563_TIMING_13MS | TSL2563_TIMING_GAIN1,
++		.min		= 3000,
++		.max		= 65535,
++	},
++};
++
++struct tsl2563_chip {
++	struct mutex		lock;
++	struct i2c_client	*client;
++	struct device		*hwmon_dev;
++
++	/* Remember state for suspend and resume functions */
++	pm_message_t		state;
++
++	struct tsl2563_gainlevel_coeff *gainlevel;
++
++	/* Thresholds are in lux */
++	u16			low_thres;
++	u16			high_thres;
++	u8			intr;
++
++	/* Calibration coefficients */
++	u32			calib0;
++	u32			calib1;
++
++	/* Cache current values, to be returned while suspended */
++	u32			data0;
++	u32			data1;
++};
++
++static int tsl2563_write(struct i2c_client *client, u8 reg, u8 value)
++{
++	int ret;
++	u8 buf[2];
++
++	buf[0] = TSL2563_CMD | reg;
++	buf[1] = value;
++
++	ret = i2c_master_send(client, buf, sizeof(buf));
++	return (ret == sizeof(buf)) ? 0 : ret;
++}
++
++static int tsl2563_read(struct i2c_client *client, u8 reg, void *buf, int len)
++{
++	int ret;
++	u8 cmd = TSL2563_CMD | reg;
++
++	ret = i2c_master_send(client, &cmd, sizeof(cmd));
++	if (ret != sizeof(cmd))
++		return ret;
++
++	return i2c_master_recv(client, buf, len);
++}
++
++static int tsl2563_set_power(struct tsl2563_chip *chip, int on)
++{
++	struct i2c_client *client = chip->client;
++	u8 cmd;
++
++	cmd = on ? TSL2563_CMD_POWER_ON : TSL2563_CMD_POWER_OFF;
++	return tsl2563_write(client, TSL2563_REG_CTRL, cmd);
++}
++
++/*
++ * Return value is 0 for off, 1 for on, or a negative error
++ * code if reading failed.
++ */
++static int tsl2563_get_power(struct tsl2563_chip *chip)
++{
++	struct i2c_client *client = chip->client;
++	int ret;
++	u8 val;
++
++	ret = tsl2563_read(client, TSL2563_REG_CTRL, &val, sizeof(val));
++	if (ret != sizeof(val))
++		return ret;
++
++	return (val & TSL2563_CTRL_POWER_MASK) == TSL2563_CMD_POWER_ON;
++}
++
++static int tsl2563_configure(struct tsl2563_chip *chip)
++{
++	struct i2c_client *client = chip->client;
++	int ret;
++	if ((ret = tsl2563_write(client, TSL2563_REG_TIMING,
++			       chip->gainlevel->gaintime)))
++		goto out;
++
++	ret = tsl2563_write(client, TSL2563_REG_INT, chip->intr);
++
++out:
++	return ret;
++}
++
++static int tsl2563_detect(struct tsl2563_chip *chip)
++{
++	int ret;
++
++	if ((ret = tsl2563_set_power(chip, 1)))
++		return ret;
++
++	ret = tsl2563_get_power(chip);
++	if (ret < 0)
++		return ret;
++
++	return ret ? 0 : -ENODEV;
++}
++
++static int tsl2563_read_id(struct tsl2563_chip *chip, u8 *id)
++{
++	struct i2c_client *client = chip->client;
++	int ret;
++
++	ret = tsl2563_read(client, TSL2563_REG_ID, id, sizeof(*id));
++	if (ret != sizeof(*id))
++		return ret;
++
++	return 0;
++}
++
++/*
++ * "Normalized" ADC value is one obtained with 400ms of integration time and
++ * 16x gain. This function returns the number of bits of shift needed to
++ * convert between normalized values and HW values obtained using given
++ * timing and gain settings.
++ */
++static int adc_shiftbits(u8 timing)
++{
++	int shift = 0;
++
++	switch (timing & TSL2563_TIMING_MASK) {
++	case TSL2563_TIMING_13MS:
++		shift += 5;
++		break;
++	case TSL2563_TIMING_100MS:
++		shift += 2;
++		break;
++	case TSL2563_TIMING_400MS:
++		/* no-op */
++		break;
++	}
++
++	if (!(timing & TSL2563_TIMING_GAIN16))
++		shift += 4;
++
++	return shift;
++}
++
++/* Convert a HW ADC value to normalized scale. */
++static u32 normalize_adc(u16 adc, u8 timing)
++{
++	return adc << adc_shiftbits(timing);
++}
++
++static void tsl2563_wait_adc(struct tsl2563_chip *chip)
++{
++	unsigned int delay;
++
++	switch (chip->gainlevel->gaintime & TSL2563_TIMING_MASK) {
++	case TSL2563_TIMING_13MS:
++		delay = 14;
++		break;
++	case TSL2563_TIMING_100MS:
++		delay = 101;
++		break;
++	default:
++		delay = 402;
++	}
++	/*
++	 * TODO: Make sure that we wait at least required delay but why we
++	 * have to extend it one tick more?
++	 */
++	schedule_timeout_interruptible(msecs_to_jiffies(delay) + 2);
++}
++
++static int tsl2563_adjust_gainlevel(struct tsl2563_chip *chip, u16 adc)
++{
++	struct i2c_client *client = chip->client;
++
++	if (adc > chip->gainlevel->max || adc < chip->gainlevel->min) {
++
++		(adc > chip->gainlevel->max) ?
++			chip->gainlevel++ : chip->gainlevel--;
++
++		tsl2563_write(client, TSL2563_REG_TIMING,
++			      chip->gainlevel->gaintime);
++
++		tsl2563_wait_adc(chip);
++		tsl2563_wait_adc(chip);
++
++		return 1;
++	} else
++		return 0;
++}
++
++static int tsl2563_get_adc(struct tsl2563_chip *chip)
++{
++	struct i2c_client *client = chip->client;
++	u8 buf0[2], buf1[2];
++	u16 adc0, adc1;
++	int retry = 1;
++	int ret = 0;
++
++	if (chip->state.event != PM_EVENT_ON)
++		goto out;
++
++	while (retry) {
++		ret = tsl2563_read(client,
++				   TSL2563_REG_DATA0LOW | TSL2563_CLEARINT,
++				   buf0, sizeof(buf0));
++		if (ret != sizeof(buf0))
++			goto out;
++
++		ret = tsl2563_read(client, TSL2563_REG_DATA1LOW,
++				   buf1, sizeof(buf1));
++		if (ret != sizeof(buf1))
++			goto out;
++
++		adc0 = (buf0[1] << 8) + buf0[0];
++		adc1 = (buf1[1] << 8) + buf1[0];
++
++		retry = tsl2563_adjust_gainlevel(chip, adc0);
++	}
++
++	chip->data0 = normalize_adc(adc0, chip->gainlevel->gaintime);
++	chip->data1 = normalize_adc(adc1, chip->gainlevel->gaintime);
++
++	ret = 0;
++out:
++	return ret;
++}
++
++static inline int calib_to_sysfs(u32 calib)
++{
++	return (int) (((calib * CALIB_BASE_SYSFS) +
++		       CALIB_FRAC_HALF) >> CALIB_FRAC_BITS);
++}
++
++static inline u32 calib_from_sysfs(int value)
++{
++	return (((u32) value) << CALIB_FRAC_BITS) / CALIB_BASE_SYSFS;
++}
++
++/*
++ * Conversions between lux and ADC values.
++ *
++ * The basic formula is lux = c0 * adc0 - c1 * adc1, where c0 and c1 are
++ * appropriate constants. Different constants are needed for different
++ * kinds of light, determined by the ratio adc1/adc0 (basically the ratio
++ * of the intensities in infrared and visible wavelengths). lux_table below
++ * lists the upper threshold of the adc1/adc0 ratio and the corresponding
++ * constants.
++ */
++
++struct tsl2563_lux_coeff {
++	unsigned long ch_ratio;
++	unsigned long ch0_coeff;
++	unsigned long ch1_coeff;
++};
++
++static const struct tsl2563_lux_coeff lux_table[] = {
++	{
++		.ch_ratio	= FRAC10K(1300),
++		.ch0_coeff	= FRAC10K(315),
++		.ch1_coeff	= FRAC10K(262),
++	}, {
++		.ch_ratio	= FRAC10K(2600),
++		.ch0_coeff	= FRAC10K(337),
++		.ch1_coeff	= FRAC10K(430),
++	}, {
++		.ch_ratio	= FRAC10K(3900),
++		.ch0_coeff	= FRAC10K(363),
++		.ch1_coeff	= FRAC10K(529),
++	}, {
++		.ch_ratio	= FRAC10K(5200),
++		.ch0_coeff	= FRAC10K(392),
++		.ch1_coeff	= FRAC10K(605),
++	}, {
++		.ch_ratio	= FRAC10K(6500),
++		.ch0_coeff	= FRAC10K(229),
++		.ch1_coeff	= FRAC10K(291),
++	}, {
++		.ch_ratio	= FRAC10K(8000),
++		.ch0_coeff	= FRAC10K(157),
++		.ch1_coeff	= FRAC10K(180),
++	}, {
++		.ch_ratio	= FRAC10K(13000),
++		.ch0_coeff	= FRAC10K(34),
++		.ch1_coeff	= FRAC10K(26),
++	}, {
++		.ch_ratio	= ULONG_MAX,
++		.ch0_coeff	= 0,
++		.ch1_coeff	= 0,
++	},
++};
++
++/*
++ * Convert normalized, scaled ADC values to lux.
++ */
++static unsigned int adc_to_lux(u32 adc0, u32 adc1)
++{
++	const struct tsl2563_lux_coeff *lp = lux_table;
++	unsigned long ratio, lux, ch0 = adc0, ch1 = adc1;
++
++	ratio = ch0 ? ((ch1 << ADC_FRAC_BITS) / ch0) : ULONG_MAX;
++
++	while (lp->ch_ratio < ratio)
++		lp++;
++
++	lux = ch0 * lp->ch0_coeff - ch1 * lp->ch1_coeff;
++
++	return (unsigned int) (lux >> ADC_FRAC_BITS);
++}
++
++/*--------------------------------------------------------------*/
++/*                      Sysfs interface                         */
++/*--------------------------------------------------------------*/
++
++static ssize_t tsl2563_adc0_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct tsl2563_chip *chip = dev_get_drvdata(dev);
++	int ret;
++
++	mutex_lock(&chip->lock);
++
++	ret = tsl2563_get_adc(chip);
++	if (ret)
++		return ret;
++
++	ret = snprintf(buf, PAGE_SIZE, "%d\n", chip->data0);
++	mutex_unlock(&chip->lock);
++
++	return ret;
++}
++
++static ssize_t tsl2563_adc1_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct tsl2563_chip *chip = dev_get_drvdata(dev);
++	int ret;
++
++	mutex_lock(&chip->lock);
++
++	ret = tsl2563_get_adc(chip);
++	if (ret)
++		return ret;
++
++	ret = snprintf(buf, PAGE_SIZE, "%d\n", chip->data1);
++	mutex_unlock(&chip->lock);
++
++	return ret;
++}
++
++/* Apply calibration coefficient to ADC count. */
++static u32 calib_adc(u32 adc, u32 calib)
++{
++	unsigned long scaled = adc;
++
++	scaled *= calib;
++	scaled >>= CALIB_FRAC_BITS;
++
++	return (u32) scaled;
++}
++
++static ssize_t tsl2563_lux_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct tsl2563_chip *chip = dev_get_drvdata(dev);
++	u32 calib0, calib1;
++	int ret;
++
++	mutex_lock(&chip->lock);
++
++	ret = tsl2563_get_adc(chip);
++	if (ret)
++		goto out;
++
++	calib0 = calib_adc(chip->data0, chip->calib0);
++	calib1 = calib_adc(chip->data1, chip->calib1);
++
++	ret = snprintf(buf, PAGE_SIZE, "%d\n", adc_to_lux(calib0, calib1));
++
++out:
++	mutex_unlock(&chip->lock);
++	return ret;
++}
++
++static ssize_t format_calib(char *buf, int len, u32 calib)
++{
++	return snprintf(buf, PAGE_SIZE, "%d\n", calib_to_sysfs(calib));
++}
++
++static ssize_t tsl2563_calib0_show(struct device *dev,
++				   struct device_attribute *attr, char *buf)
++{
++	struct tsl2563_chip *chip = dev_get_drvdata(dev);
++	int ret;
++
++	mutex_lock(&chip->lock);
++	ret = format_calib(buf, PAGE_SIZE, chip->calib0);
++	mutex_unlock(&chip->lock);
++	return ret;
++}
++
++static ssize_t tsl2563_calib1_show(struct device *dev,
++				   struct device_attribute *attr, char *buf)
++{
++	struct tsl2563_chip *chip = dev_get_drvdata(dev);
++	int ret;
++
++	mutex_lock(&chip->lock);
++	ret = format_calib(buf, PAGE_SIZE, chip->calib1);
++	mutex_unlock(&chip->lock);
++	return ret;
++}
++
++static int do_calib_store(struct device *dev, const char *buf, size_t len,
++			  int ch)
++{
++	struct tsl2563_chip *chip = dev_get_drvdata(dev);
++	int value;
++	u32 calib;
++
++	if (1 != sscanf(buf, "%d", &value))
++		return -EINVAL;
++
++	calib = calib_from_sysfs(value);
++
++	if (ch)
++		chip->calib1 = calib;
++	else
++		chip->calib0 = calib;
++
++	return len;
++}
++
++static ssize_t tsl2563_calib0_store(struct device *dev,
++				    struct device_attribute *attr,
++				    const char *buf, size_t len)
++{
++	return do_calib_store(dev, buf, len, 0);
++}
++
++static ssize_t tsl2563_calib1_store(struct device *dev,
++				    struct device_attribute *attr,
++				    const char *buf, size_t len)
++{
++	return do_calib_store(dev, buf, len, 1);
++}
++
++static DEVICE_ATTR(adc0, S_IRUGO, tsl2563_adc0_show, NULL);
++static DEVICE_ATTR(adc1, S_IRUGO, tsl2563_adc1_show, NULL);
++static DEVICE_ATTR(lux, S_IRUGO, tsl2563_lux_show, NULL);
++static DEVICE_ATTR(calib0, S_IRUGO | S_IWUSR,
++		   tsl2563_calib0_show, tsl2563_calib0_store);
++static DEVICE_ATTR(calib1, S_IRUGO | S_IWUSR,
++		   tsl2563_calib1_show, tsl2563_calib1_store);
++
++static struct attribute *tsl2563_attributes[] = {
++	&dev_attr_adc0.attr,
++	&dev_attr_adc1.attr,
++	&dev_attr_lux.attr,
++	&dev_attr_calib0.attr,
++	&dev_attr_calib1.attr,
++	NULL
++};
++
++static const struct attribute_group tsl2563_group = {
++	.attrs = tsl2563_attributes,
++};
++
++static int tsl2563_register_sysfs(struct i2c_client *client)
++{
++	struct device *dev = &client->dev;
++
++	return sysfs_create_group(&dev->kobj, &tsl2563_group);
++}
++
++static void tsl2563_unregister_sysfs(struct i2c_client *client)
++{
++	struct device *dev = &client->dev;
++
++	sysfs_remove_group(&dev->kobj, &tsl2563_group);
++}
++
++/*--------------------------------------------------------------*/
++/*                      Probe, Attach, Remove                   */
++/*--------------------------------------------------------------*/
++static struct i2c_driver tsl2563_i2c_driver;
++
++static int tsl2563_probe(struct i2c_client *client)
++{
++	struct tsl2563_chip *chip;
++	int err = 0;
++	u8 id;
++
++	if (!(chip = kzalloc(sizeof(*chip), GFP_KERNEL)))
++		return -ENOMEM;
++
++	i2c_set_clientdata(client, chip);
++	chip->client = client;
++
++	if ((err = tsl2563_detect(chip))) {
++		dev_err(&client->dev, "device not found, error %d \n", -err);
++		goto fail1;
++	}
++
++	if ((err = tsl2563_read_id(chip, &id)))
++		goto fail1;
++
++	mutex_init(&chip->lock);
++
++	/* Default values used until userspace says otherwise */
++	chip->low_thres = 0x0;
++	chip->high_thres = 0xffff;
++	chip->gainlevel = tsl2563_gainlevel_table;
++	chip->intr = TSL2563_INT_PERSIST(4);
++	chip->calib0 = calib_from_sysfs(CALIB_BASE_SYSFS);
++	chip->calib1 = calib_from_sysfs(CALIB_BASE_SYSFS);
++
++	dev_info(&client->dev, "model %d, rev. %d\n", id >> 4, id & 0x0f);
++
++	if ((err = tsl2563_configure(chip)))
++		goto fail1;
++
++	chip->hwmon_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(chip->hwmon_dev))
++		goto fail1;
++
++	if ((err = tsl2563_register_sysfs(client))) {
++		dev_err(&client->dev, "sysfs registration failed, %d\n", err);
++		goto fail2;
++	}
++
++	return 0;
++fail2:
++	hwmon_device_unregister(chip->hwmon_dev);
++fail1:
++	kfree(chip);
++	return err;
++}
++
++static int tsl2563_remove(struct i2c_client *client)
++{
++	struct tsl2563_chip *chip = i2c_get_clientdata(client);
++
++	tsl2563_unregister_sysfs(client);
++	hwmon_device_unregister(chip->hwmon_dev);
++
++	kfree(chip);
++	return 0;
++}
++
++static int tsl2563_suspend(struct i2c_client *client, pm_message_t state)
++{
++	struct tsl2563_chip *chip = i2c_get_clientdata(client);
++	int ret;
++
++	mutex_lock(&chip->lock);
++
++	if ((ret = tsl2563_set_power(chip, 0)))
++		goto out;
++
++	chip->state = state;
++
++out:
++	mutex_unlock(&chip->lock);
++	return ret;
++}
++
++static int tsl2563_resume(struct i2c_client *client)
++{
++	struct tsl2563_chip *chip = i2c_get_clientdata(client);
++	int ret;
++
++	mutex_lock(&chip->lock);
++
++	if ((ret = tsl2563_set_power(chip, 1)))
++		goto out;
++
++	if ((ret = tsl2563_configure(chip)))
++		goto out;
++
++	chip->state.event = PM_EVENT_ON;
++
++out:
++	mutex_unlock(&chip->lock);
++	return ret;
++}
++
++static struct i2c_driver tsl2563_i2c_driver = {
++	.driver = {
++		.name	 = DRIVER_NAME,
++	},
++	.suspend	= tsl2563_suspend,
++	.resume		= tsl2563_resume,
++	.probe		= tsl2563_probe,
++	.remove		= __exit_p(tsl2563_remove),
++};
++
++static int __init tsl2563_init(void)
++{
++	return i2c_add_driver(&tsl2563_i2c_driver);
++}
++
++static void __exit tsl2563_exit(void)
++{
++	i2c_del_driver(&tsl2563_i2c_driver);
++}
++
++MODULE_AUTHOR("Nokia Corporation");
++MODULE_DESCRIPTION("tsl2563 light sensor driver");
++MODULE_LICENSE("GPL");
++
++module_init(tsl2563_init);
++module_exit(tsl2563_exit);
 -- 
 1.5.5.rc3
 
