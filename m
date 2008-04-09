@@ -1,15 +1,17 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 2/5] I2C: TSL2563: Add support for Taos tsl2563 ambient light sensor
-Date: Wed,  9 Apr 2008 13:04:09 +0300
-Message-ID: <1207735452-989-3-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 4/5] I2C: LP5521: Introduce lp5521 LED driver
+Date: Wed,  9 Apr 2008 13:04:11 +0300
+Message-ID: <1207735452-989-5-git-send-email-felipe.balbi@nokia.com>
 References: <1207735452-989-1-git-send-email-felipe.balbi@nokia.com>
  <1207735452-989-2-git-send-email-felipe.balbi@nokia.com>
+ <1207735452-989-3-git-send-email-felipe.balbi@nokia.com>
+ <1207735452-989-4-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:36699 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:36713 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752425AbYDIKFS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 06:05:18 -0400
-In-Reply-To: <1207735452-989-2-git-send-email-felipe.balbi@nokia.com>
+	with ESMTP id S1752577AbYDIKFU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 06:05:20 -0400
+In-Reply-To: <1207735452-989-4-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -17,801 +19,646 @@ Cc: Tony Lindgren <tony@atomide.com>, Mathias Nyman <mathias.nyman@nokia.com>, F
 
 From: Mathias Nyman <mathias.nyman@nokia.com>
 
-Add support for Taos tsl2563 ambient light sensor.
+Introduce n810's lp5521 LED driver.
 
-Signed-off-by: Mathias Nyman <mathias.nyman@nokia.com>
+Signed-off-by: Mathias Nyman <mathias.nyman@nokia.com
 
-Updated to build with current linux-omap and new-style
-i2c driver.
+Updated to new style i2c driver and to build on current
+linux-omap head.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
  arch/arm/mach-omap2/board-n800.c |    4 +
- drivers/i2c/chips/Kconfig        |   10 +
- drivers/i2c/chips/Makefile       |    2 +-
- drivers/i2c/chips/tsl2563.c      |  720 ++++++++++++++++++++++++++++++++++++++
- 4 files changed, 735 insertions(+), 1 deletions(-)
- create mode 100644 drivers/i2c/chips/tsl2563.c
+ drivers/i2c/chips/Kconfig        |    7 +
+ drivers/i2c/chips/Makefile       |    1 +
+ drivers/i2c/chips/lp5521.c       |  573 ++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 585 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/i2c/chips/lp5521.c
 
 diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/board-n800.c
-index 367e518..7a41245 100644
+index 7606870..b7205f0 100644
 --- a/arch/arm/mach-omap2/board-n800.c
 +++ b/arch/arm/mach-omap2/board-n800.c
-@@ -579,6 +579,10 @@ static struct i2c_board_info __initdata n800_i2c_board_info_2[] = {
- 		.irq		= OMAP_GPIO_IRQ(109),
- 		.platform_data	= &lm8323_pdata,
+@@ -664,6 +664,10 @@ static struct i2c_board_info __initdata n800_i2c_board_info_2[] = {
+ 		I2C_BOARD_INFO("tsl2563", 0x29),
+ 		.type		= "tsl2563",
  	},
 +	{
-+		I2C_BOARD_INFO("tsl2563", 0x29),
-+		.type		= "tsl2563",
++		I2C_BOARD_INFO("lp5521", 0x32),
++		.type		= "lp5521",
 +	},
  };
  
  void __init nokia_n800_common_init(void)
 diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
-index 0d566fa..dc4f140 100644
+index dc4f140..c4000b5 100644
 --- a/drivers/i2c/chips/Kconfig
 +++ b/drivers/i2c/chips/Kconfig
-@@ -202,6 +202,16 @@ config SENSORS_TSL2550
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called tsl2550.
+@@ -212,6 +212,13 @@ config SENSORS_TSL2563
+          This driver can also be built as a module.  If so, the module
+          will be called tsl2563.
  
-+config SENSORS_TSL2563
-+       tristate "Taos TSL2563 ambient light sensor"
-+       depends on I2C && HWMON
-+       help
-+         If you say yes here you get support for the Taos TSL2563
-+         ambient light sensor.
-+
-+         This driver can also be built as a module.  If so, the module
-+         will be called tsl2563.
++config LP5521
++	tristate "LP5521 LED driver chip"
++	depends on I2C
++	help
++	  If you say yes here you get support for the National Semiconductor
++	  LP5521 LED driver.
 +
  config MENELAUS
  	bool "TWL92330/Menelaus PM chip"
  	depends on I2C=y && ARCH_OMAP24XX
 diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
-index 7c47fc4..e20fc10 100644
+index e20fc10..1f81ebd 100644
 --- a/drivers/i2c/chips/Makefile
 +++ b/drivers/i2c/chips/Makefile
-@@ -22,6 +22,7 @@ obj-$(CONFIG_SENSORS_TLV320AIC23) += tlv320aic23.o
- obj-$(CONFIG_GPIOEXPANDER_OMAP)	+= gpio_expander_omap.o
- obj-$(CONFIG_MENELAUS)		+= menelaus.o
- obj-$(CONFIG_SENSORS_TSL2550)	+= tsl2550.o
-+obj-$(CONFIG_SENSORS_TSL2563)	+= tsl2563.o
- obj-$(CONFIG_TWL4030_CORE)	+= twl4030-core.o twl4030-pwrirq.o
- obj-$(CONFIG_TWL4030_GPIO)	+= twl4030-gpio.o
- obj-$(CONFIG_TWL4030_USB)	+= twl4030-usb.o
-@@ -33,4 +34,3 @@ obj-$(CONFIG_RTC_X1205_I2C)	+= x1205.o
+@@ -30,6 +30,7 @@ obj-$(CONFIG_TWL4030_POWEROFF)	+= twl4030-poweroff.o
+ obj-$(CONFIG_TWL4030_PWRBUTTON)	+= twl4030-pwrbutton.o
+ obj-$(CONFIG_TWL4030_MADC)	+= twl4030-madc.o
+ obj-$(CONFIG_RTC_X1205_I2C)	+= x1205.o
++obj-$(CONFIG_LP5521)		+= lp5521.o
+ 
  ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
  EXTRA_CFLAGS += -DDEBUG
- endif
--
-diff --git a/drivers/i2c/chips/tsl2563.c b/drivers/i2c/chips/tsl2563.c
+diff --git a/drivers/i2c/chips/lp5521.c b/drivers/i2c/chips/lp5521.c
 new file mode 100644
-index 0000000..b10440b
+index 0000000..3e1e3eb
 --- /dev/null
-+++ b/drivers/i2c/chips/tsl2563.c
-@@ -0,0 +1,720 @@
++++ b/drivers/i2c/chips/lp5521.c
+@@ -0,0 +1,573 @@
 +/*
-+ * drivers/i2c/chips/tsl2563.c
++ * drivers/i2c/chips/lp5521.c
 + *
-+ * Copyright (C) 2008 Nokia Corporation
++ * Copyright (C) 2007 Nokia Corporation
 + *
-+ * Written by Timo O. Karjalainen <timo.o.karjalainen@nokia.com>
-+ * Contact: Mathias Nyman <mathias.nyman@nokia.com>
++ * Written by Mathias Nyman <mathias.nyman@nokia.com>
 + *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
 + *
 + * You should have received a copy of the GNU General Public License
 + * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 + */
 +
 +#include <linux/module.h>
++#include <linux/init.h>
 +#include <linux/i2c.h>
-+#include <linux/interrupt.h>
-+#include <linux/sched.h>
 +#include <linux/mutex.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
-+#include <asm/arch/board.h>
++#include <asm/arch/gpio.h>
 +
-+#define DRIVER_NAME  "tsl2563"
++#define LP5521_DRIVER_NAME		"lp5521"
 +
-+/* Use this many bits for fraction part. */
-+#define ADC_FRAC_BITS		(14)
++#ifdef LED_CONNECTED_WRONG
++#define LP5521_REG_R_PWM		0x04
++#define LP5521_REG_B_PWM		0x02
++#else
++#define LP5521_REG_R_PWM		0x02
++#define LP5521_REG_B_PWM		0x04
++#endif
++#define LP5521_REG_ENABLE		0x00
++#define LP5521_REG_OP_MODE		0x01
++#define LP5521_REG_G_PWM		0x03
++#define LP5521_REG_R_CNTRL		0x05
++#define LP5521_REG_G_CNTRL		0x06
++#define LP5521_REG_B_CNTRL		0x07
++#define LP5521_REG_MISC			0x08
++#define LP5521_REG_R_CHANNEL_PC		0x09
++#define LP5521_REG_G_CHANNEL_PC		0x0a
++#define LP5521_REG_B_CHANNEL_PC		0x0b
++#define LP5521_REG_STATUS		0x0c
++#define LP5521_REG_RESET		0x0d
++#define LP5521_REG_GPO			0x0e
++#define LP5521_REG_R_PROG_MEM		0x10
++#define LP5521_REG_G_PROG_MEM		0x30
++#define LP5521_REG_B_PROG_MEM		0x50
 +
-+/* Given number of 1/10000's in ADC_FRAC_BITS precision. */
-+#define FRAC10K(f)		(((f) * (1L << (ADC_FRAC_BITS))) / (10000))
++#define LP5521_MODE_LOAD		"load"
++#define LP5521_MODE_RUN			"run"
++#define LP5521_MODE_DIRECT_CONTROL	"direct"
 +
-+/* Bits used for fraction in calibration coefficients.*/
-+#define CALIB_FRAC_BITS		(10)
-+/* 0.5 in CALIB_FRAC_BITS precision */
-+#define CALIB_FRAC_HALF		(1 << (CALIB_FRAC_BITS - 1))
-+/* Make a fraction from a number n that was multiplied with b. */
-+#define CALIB_FRAC(n, b)	(((n) << CALIB_FRAC_BITS) / (b))
-+/* Decimal 10^(digits in sysfs presentation) */
-+#define CALIB_BASE_SYSFS	(1000)
++#define LP5521_CURRENT_1m5		0x0f
++#define LP5521_CURRENT_3m1		0x1f
++#define LP5521_CURRENT_4m7		0x2f
++#define LP5521_CURRENT_6m3		0x3f
++#define LP5521_CURRENT_7m9		0x4f
++#define LP5521_CURRENT_9m5		0x5f
++#define LP5521_CURRENT_11m1		0x6f
++#define LP5521_CURRENT_12m7		0x7f
++#define LP5521_CURRENT_14m3		0x8f
++#define LP5521_CURRENT_15m9		0x9f
++#define LP5521_CURRENT_17m5		0xaf
++#define LP5521_CURRENT_19m1		0xbf
++#define LP5521_CURRENT_20m7		0xcf
++#define LP5521_CURRENT_22m3		0xdf
++#define LP5521_CURRENT_23m9		0xef
++#define LP5521_CURRENT_25m5		0xff
 +
-+#define TSL2563_CMD		(0x80)
-+#define TSL2563_CLEARINT	(0x40)
++#define LP5521_PROGRAM_LENGTH		32	/* in bytes */
 +
-+#define TSL2563_REG_CTRL	(0x00)
-+#define TSL2563_REG_TIMING	(0x01)
-+#define TSL2563_REG_LOWLOW	(0x02) /* data0 low threshold, 2 bytes */
-+#define TSL2563_REG_LOWHIGH	(0x03)
-+#define TSL2563_REG_HIGHLOW	(0x04) /* data0 high threshold, 2 bytes */
-+#define TSL2563_REG_HIGHHIGH	(0x05)
-+#define TSL2563_REG_INT		(0x06)
-+#define TSL2563_REG_ID		(0x0a)
-+#define TSL2563_REG_DATA0LOW	(0x0c) /* broadband sensor value, 2 bytes */
-+#define TSL2563_REG_DATA0HIGH	(0x0d)
-+#define TSL2563_REG_DATA1LOW	(0x0e) /* infrared sensor value, 2 bytes */
-+#define TSL2563_REG_DATA1HIGH	(0x0f)
-+
-+#define TSL2563_CMD_POWER_ON	(0x03)
-+#define TSL2563_CMD_POWER_OFF	(0x00)
-+#define TSL2563_CTRL_POWER_MASK	(0x03)
-+
-+#define TSL2563_TIMING_13MS	(0x00)
-+#define TSL2563_TIMING_100MS	(0x01)
-+#define TSL2563_TIMING_400MS	(0x02)
-+#define TSL2563_TIMING_MASK	(0x03)
-+#define TSL2563_TIMING_GAIN16	(0x10)
-+#define TSL2563_TIMING_GAIN1	(0x00)
-+
-+#define TSL2563_INT_DISBLED	(0x00)
-+#define TSL2563_INT_LEVEL	(0x10)
-+#define TSL2563_INT_PERSIST(n)	((n) & 0x0F)
-+
-+struct tsl2563_gainlevel_coeff {
-+	u8 gaintime;
-+	u16 min;
-+	u16 max;
-+};
-+
-+static struct tsl2563_gainlevel_coeff tsl2563_gainlevel_table[] = {
-+	{
-+		.gaintime	= TSL2563_TIMING_400MS | TSL2563_TIMING_GAIN16,
-+		.min		= 0,
-+		.max		= 65534,
-+	}, {
-+		.gaintime	= TSL2563_TIMING_400MS | TSL2563_TIMING_GAIN1,
-+		.min		= 2048,
-+		.max		= 65534,
-+	}, {
-+		.gaintime	= TSL2563_TIMING_100MS | TSL2563_TIMING_GAIN1,
-+		.min		= 4095,
-+		.max		= 37177,
-+	}, {
-+		.gaintime	= TSL2563_TIMING_13MS | TSL2563_TIMING_GAIN1,
-+		.min		= 3000,
-+		.max		= 65535,
-+	},
-+};
-+
-+struct tsl2563_chip {
++struct lp5521_chip {
 +	struct mutex		lock;
 +	struct i2c_client	*client;
-+	struct device		*hwmon_dev;
-+
-+	/* Remember state for suspend and resume functions */
-+	pm_message_t		state;
-+
-+	struct tsl2563_gainlevel_coeff *gainlevel;
-+
-+	/* Thresholds are in lux */
-+	u16			low_thres;
-+	u16			high_thres;
-+	u8			intr;
-+
-+	/* Calibration coefficients */
-+	u32			calib0;
-+	u32			calib1;
-+
-+	/* Cache current values, to be returned while suspended */
-+	u32			data0;
-+	u32			data1;
++	char			*mode;
++	int			red;
++	int			green;
++	int			blue;
 +};
 +
-+static int tsl2563_write(struct i2c_client *client, u8 reg, u8 value)
++static int lp5521_set_mode(struct lp5521_chip *chip, char *mode);
++
++static int lp5521_write(struct i2c_client *client, u8 reg, u8 value)
 +{
-+	int ret;
-+	u8 buf[2];
-+
-+	buf[0] = TSL2563_CMD | reg;
-+	buf[1] = value;
-+
-+	ret = i2c_master_send(client, buf, sizeof(buf));
-+	return (ret == sizeof(buf)) ? 0 : ret;
++	return i2c_smbus_write_byte_data(client, reg, value);
 +}
 +
-+static int tsl2563_read(struct i2c_client *client, u8 reg, void *buf, int len)
++static int lp5521_read(struct i2c_client *client, u8 reg, u8 *buf)
 +{
-+	int ret;
-+	u8 cmd = TSL2563_CMD | reg;
++	s32 ret = i2c_smbus_read_byte_data(client, reg);
 +
-+	ret = i2c_master_send(client, &cmd, sizeof(cmd));
-+	if (ret != sizeof(cmd))
-+		return ret;
-+
-+	return i2c_master_recv(client, buf, len);
-+}
-+
-+static int tsl2563_set_power(struct tsl2563_chip *chip, int on)
-+{
-+	struct i2c_client *client = chip->client;
-+	u8 cmd;
-+
-+	cmd = on ? TSL2563_CMD_POWER_ON : TSL2563_CMD_POWER_OFF;
-+	return tsl2563_write(client, TSL2563_REG_CTRL, cmd);
-+}
-+
-+/*
-+ * Return value is 0 for off, 1 for on, or a negative error
-+ * code if reading failed.
-+ */
-+static int tsl2563_get_power(struct tsl2563_chip *chip)
-+{
-+	struct i2c_client *client = chip->client;
-+	int ret;
-+	u8 val;
-+
-+	ret = tsl2563_read(client, TSL2563_REG_CTRL, &val, sizeof(val));
-+	if (ret != sizeof(val))
-+		return ret;
-+
-+	return (val & TSL2563_CTRL_POWER_MASK) == TSL2563_CMD_POWER_ON;
-+}
-+
-+static int tsl2563_configure(struct tsl2563_chip *chip)
-+{
-+	struct i2c_client *client = chip->client;
-+	int ret;
-+	if ((ret = tsl2563_write(client, TSL2563_REG_TIMING,
-+			       chip->gainlevel->gaintime)))
-+		goto out;
-+
-+	ret = tsl2563_write(client, TSL2563_REG_INT, chip->intr);
-+
-+out:
-+	return ret;
-+}
-+
-+static int tsl2563_detect(struct tsl2563_chip *chip)
-+{
-+	int ret;
-+
-+	if ((ret = tsl2563_set_power(chip, 1)))
-+		return ret;
-+
-+	ret = tsl2563_get_power(chip);
 +	if (ret < 0)
-+		return ret;
++		return -EIO;
 +
-+	return ret ? 0 : -ENODEV;
-+}
-+
-+static int tsl2563_read_id(struct tsl2563_chip *chip, u8 *id)
-+{
-+	struct i2c_client *client = chip->client;
-+	int ret;
-+
-+	ret = tsl2563_read(client, TSL2563_REG_ID, id, sizeof(*id));
-+	if (ret != sizeof(*id))
-+		return ret;
-+
++	*buf = ret;
 +	return 0;
 +}
 +
-+/*
-+ * "Normalized" ADC value is one obtained with 400ms of integration time and
-+ * 16x gain. This function returns the number of bits of shift needed to
-+ * convert between normalized values and HW values obtained using given
-+ * timing and gain settings.
-+ */
-+static int adc_shiftbits(u8 timing)
++static int lp5521_configure(struct i2c_client *client)
 +{
-+	int shift = 0;
-+
-+	switch (timing & TSL2563_TIMING_MASK) {
-+	case TSL2563_TIMING_13MS:
-+		shift += 5;
-+		break;
-+	case TSL2563_TIMING_100MS:
-+		shift += 2;
-+		break;
-+	case TSL2563_TIMING_400MS:
-+		/* no-op */
-+		break;
-+	}
-+
-+	if (!(timing & TSL2563_TIMING_GAIN16))
-+		shift += 4;
-+
-+	return shift;
-+}
-+
-+/* Convert a HW ADC value to normalized scale. */
-+static u32 normalize_adc(u16 adc, u8 timing)
-+{
-+	return adc << adc_shiftbits(timing);
-+}
-+
-+static void tsl2563_wait_adc(struct tsl2563_chip *chip)
-+{
-+	unsigned int delay;
-+
-+	switch (chip->gainlevel->gaintime & TSL2563_TIMING_MASK) {
-+	case TSL2563_TIMING_13MS:
-+		delay = 14;
-+		break;
-+	case TSL2563_TIMING_100MS:
-+		delay = 101;
-+		break;
-+	default:
-+		delay = 402;
-+	}
-+	/*
-+	 * TODO: Make sure that we wait at least required delay but why we
-+	 * have to extend it one tick more?
-+	 */
-+	schedule_timeout_interruptible(msecs_to_jiffies(delay) + 2);
-+}
-+
-+static int tsl2563_adjust_gainlevel(struct tsl2563_chip *chip, u16 adc)
-+{
-+	struct i2c_client *client = chip->client;
-+
-+	if (adc > chip->gainlevel->max || adc < chip->gainlevel->min) {
-+
-+		(adc > chip->gainlevel->max) ?
-+			chip->gainlevel++ : chip->gainlevel--;
-+
-+		tsl2563_write(client, TSL2563_REG_TIMING,
-+			      chip->gainlevel->gaintime);
-+
-+		tsl2563_wait_adc(chip);
-+		tsl2563_wait_adc(chip);
-+
-+		return 1;
-+	} else
-+		return 0;
-+}
-+
-+static int tsl2563_get_adc(struct tsl2563_chip *chip)
-+{
-+	struct i2c_client *client = chip->client;
-+	u8 buf0[2], buf1[2];
-+	u16 adc0, adc1;
-+	int retry = 1;
 +	int ret = 0;
 +
-+	if (chip->state.event != PM_EVENT_ON)
-+		goto out;
++	/* Enable chip and set light to logarithmic mode*/
++	ret |= lp5521_write(client, LP5521_REG_ENABLE, 0xc0);
 +
-+	while (retry) {
-+		ret = tsl2563_read(client,
-+				   TSL2563_REG_DATA0LOW | TSL2563_CLEARINT,
-+				   buf0, sizeof(buf0));
-+		if (ret != sizeof(buf0))
-+			goto out;
++	/* setting all color pwms to direct control mode */
++	ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x3f);
 +
-+		ret = tsl2563_read(client, TSL2563_REG_DATA1LOW,
-+				   buf1, sizeof(buf1));
-+		if (ret != sizeof(buf1))
-+			goto out;
++	/* setting current to 4.7 mA for all channels */
++	ret |= lp5521_write(client, LP5521_REG_R_CNTRL, LP5521_CURRENT_4m7);
++	ret |= lp5521_write(client, LP5521_REG_G_CNTRL, LP5521_CURRENT_4m7);
++	ret |= lp5521_write(client, LP5521_REG_B_CNTRL, LP5521_CURRENT_4m7);
 +
-+		adc0 = (buf0[1] << 8) + buf0[0];
-+		adc1 = (buf1[1] << 8) + buf1[0];
++	/* Enable auto-powersave, set charge pump to auto, red to battery */
++	ret |= lp5521_write(client, LP5521_REG_MISC, 0x3c);
 +
-+		retry = tsl2563_adjust_gainlevel(chip, adc0);
-+	}
++	/* initialize all channels pwm to zero */
++	ret |= lp5521_write(client, LP5521_REG_R_PWM, 0);
++	ret |= lp5521_write(client, LP5521_REG_G_PWM, 0);
++	ret |= lp5521_write(client, LP5521_REG_B_PWM, 0);
 +
-+	chip->data0 = normalize_adc(adc0, chip->gainlevel->gaintime);
-+	chip->data1 = normalize_adc(adc1, chip->gainlevel->gaintime);
-+
-+	ret = 0;
-+out:
++	/* Not much can be done about errors at this point */
 +	return ret;
 +}
 +
-+static inline int calib_to_sysfs(u32 calib)
++static int lp5521_load_program(struct lp5521_chip *chip, u8 *pattern)
 +{
-+	return (int) (((calib * CALIB_BASE_SYSFS) +
-+		       CALIB_FRAC_HALF) >> CALIB_FRAC_BITS);
-+}
++	struct i2c_client *client = chip->client;
++	int ret = 0;
 +
-+static inline u32 calib_from_sysfs(int value)
-+{
-+	return (((u32) value) << CALIB_FRAC_BITS) / CALIB_BASE_SYSFS;
-+}
-+
-+/*
-+ * Conversions between lux and ADC values.
-+ *
-+ * The basic formula is lux = c0 * adc0 - c1 * adc1, where c0 and c1 are
-+ * appropriate constants. Different constants are needed for different
-+ * kinds of light, determined by the ratio adc1/adc0 (basically the ratio
-+ * of the intensities in infrared and visible wavelengths). lux_table below
-+ * lists the upper threshold of the adc1/adc0 ratio and the corresponding
-+ * constants.
-+ */
-+
-+struct tsl2563_lux_coeff {
-+	unsigned long ch_ratio;
-+	unsigned long ch0_coeff;
-+	unsigned long ch1_coeff;
-+};
-+
-+static const struct tsl2563_lux_coeff lux_table[] = {
-+	{
-+		.ch_ratio	= FRAC10K(1300),
-+		.ch0_coeff	= FRAC10K(315),
-+		.ch1_coeff	= FRAC10K(262),
-+	}, {
-+		.ch_ratio	= FRAC10K(2600),
-+		.ch0_coeff	= FRAC10K(337),
-+		.ch1_coeff	= FRAC10K(430),
-+	}, {
-+		.ch_ratio	= FRAC10K(3900),
-+		.ch0_coeff	= FRAC10K(363),
-+		.ch1_coeff	= FRAC10K(529),
-+	}, {
-+		.ch_ratio	= FRAC10K(5200),
-+		.ch0_coeff	= FRAC10K(392),
-+		.ch1_coeff	= FRAC10K(605),
-+	}, {
-+		.ch_ratio	= FRAC10K(6500),
-+		.ch0_coeff	= FRAC10K(229),
-+		.ch1_coeff	= FRAC10K(291),
-+	}, {
-+		.ch_ratio	= FRAC10K(8000),
-+		.ch0_coeff	= FRAC10K(157),
-+		.ch1_coeff	= FRAC10K(180),
-+	}, {
-+		.ch_ratio	= FRAC10K(13000),
-+		.ch0_coeff	= FRAC10K(34),
-+		.ch1_coeff	= FRAC10K(26),
-+	}, {
-+		.ch_ratio	= ULONG_MAX,
-+		.ch0_coeff	= 0,
-+		.ch1_coeff	= 0,
-+	},
-+};
-+
-+/*
-+ * Convert normalized, scaled ADC values to lux.
-+ */
-+static unsigned int adc_to_lux(u32 adc0, u32 adc1)
-+{
-+	const struct tsl2563_lux_coeff *lp = lux_table;
-+	unsigned long ratio, lux, ch0 = adc0, ch1 = adc1;
-+
-+	ratio = ch0 ? ((ch1 << ADC_FRAC_BITS) / ch0) : ULONG_MAX;
-+
-+	while (lp->ch_ratio < ratio)
-+		lp++;
-+
-+	lux = ch0 * lp->ch0_coeff - ch1 * lp->ch1_coeff;
-+
-+	return (unsigned int) (lux >> ADC_FRAC_BITS);
-+}
-+
-+/*--------------------------------------------------------------*/
-+/*                      Sysfs interface                         */
-+/*--------------------------------------------------------------*/
-+
-+static ssize_t tsl2563_adc0_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct tsl2563_chip *chip = dev_get_drvdata(dev);
-+	int ret;
-+
-+	mutex_lock(&chip->lock);
-+
-+	ret = tsl2563_get_adc(chip);
++	/* Enter load program mode for all led channels */
++	ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x15); /* 0001 0101 */
 +	if (ret)
 +		return ret;
 +
-+	ret = snprintf(buf, PAGE_SIZE, "%d\n", chip->data0);
-+	mutex_unlock(&chip->lock);
++	if (chip->red)
++		ret |= i2c_smbus_write_i2c_block_data(client,
++						      LP5521_REG_R_PROG_MEM,
++						      LP5521_PROGRAM_LENGTH,
++						      pattern);
++	if (chip->green)
++		ret |= i2c_smbus_write_i2c_block_data(client,
++						      LP5521_REG_G_PROG_MEM,
++						      LP5521_PROGRAM_LENGTH,
++						      pattern);
++	if (chip->blue)
++		ret |= i2c_smbus_write_i2c_block_data(client,
++						      LP5521_REG_B_PROG_MEM,
++						      LP5521_PROGRAM_LENGTH,
++						      pattern);
 +
 +	return ret;
 +}
 +
-+static ssize_t tsl2563_adc1_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
++static int lp5521_run_program(struct lp5521_chip *chip)
 +{
-+	struct tsl2563_chip *chip = dev_get_drvdata(dev);
++	struct i2c_client *client = chip->client;
 +	int ret;
++	u8 mask = 0xc0;
++	u8 exec_state = 0;
++	u8 enable_reg;
 +
-+	mutex_lock(&chip->lock);
-+
-+	ret = tsl2563_get_adc(chip);
++	ret = lp5521_read(client, LP5521_REG_ENABLE, &enable_reg);
 +	if (ret)
-+		return ret;
++		goto fail;
 +
-+	ret = snprintf(buf, PAGE_SIZE, "%d\n", chip->data1);
-+	mutex_unlock(&chip->lock);
++	enable_reg &= mask;
 +
++	/* set all active channels exec state to countinous run*/
++	exec_state |= (chip->red   << 5);
++	exec_state |= (chip->green << 3);
++	exec_state |= (chip->blue  << 1);
++
++	enable_reg |= exec_state;
++
++	ret |= lp5521_write(client, LP5521_REG_ENABLE, enable_reg);
++
++	/* set op-mode to run for active channels, disabled for others */
++	ret |= lp5521_write(client, LP5521_REG_OP_MODE, exec_state);
++
++fail:
 +	return ret;
 +}
 +
-+/* Apply calibration coefficient to ADC count. */
-+static u32 calib_adc(u32 adc, u32 calib)
++/*--------------------------------------------------------------*/
++/*			Sysfs interface				*/
++/*--------------------------------------------------------------*/
++
++static ssize_t show_active_channels(struct device *dev,
++			    struct device_attribute *attr,
++			    char *buf)
 +{
-+	unsigned long scaled = adc;
++	struct lp5521_chip *chip = dev_get_drvdata(dev);
++	char channels[4];
++	int pos = 0;
 +
-+	scaled *= calib;
-+	scaled >>= CALIB_FRAC_BITS;
++#ifdef LED_CONNECTED_WRONG
++	if (chip->blue)
++		pos += sprintf(channels + pos, "r");
++	if (chip->green)
++		pos += sprintf(channels + pos, "g");
++	if (chip->red)
++		pos += sprintf(channels + pos, "b");
 +
-+	return (u32) scaled;
++#else
++	if (chip->red)
++		pos += sprintf(channels + pos, "r");
++	if (chip->green)
++		pos += sprintf(channels + pos, "g");
++	if (chip->blue)
++		pos += sprintf(channels + pos, "b");
++#endif
++
++	channels[pos] = '\0';
++
++	return sprintf(buf, "%s\n", channels);
 +}
 +
-+static ssize_t tsl2563_lux_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
++static ssize_t store_active_channels(struct device *dev,
++			     struct device_attribute *attr,
++			     const char *buf, size_t len)
 +{
-+	struct tsl2563_chip *chip = dev_get_drvdata(dev);
-+	u32 calib0, calib1;
-+	int ret;
++	struct lp5521_chip *chip = dev_get_drvdata(dev);
 +
-+	mutex_lock(&chip->lock);
++	chip->red = 0;
++	chip->green = 0;
++	chip->blue = 0;
 +
-+	ret = tsl2563_get_adc(chip);
-+	if (ret)
-+		goto out;
-+
-+	calib0 = calib_adc(chip->data0, chip->calib0);
-+	calib1 = calib_adc(chip->data1, chip->calib1);
-+
-+	ret = snprintf(buf, PAGE_SIZE, "%d\n", adc_to_lux(calib0, calib1));
-+
-+out:
-+	mutex_unlock(&chip->lock);
-+	return ret;
-+}
-+
-+static ssize_t format_calib(char *buf, int len, u32 calib)
-+{
-+	return snprintf(buf, PAGE_SIZE, "%d\n", calib_to_sysfs(calib));
-+}
-+
-+static ssize_t tsl2563_calib0_show(struct device *dev,
-+				   struct device_attribute *attr, char *buf)
-+{
-+	struct tsl2563_chip *chip = dev_get_drvdata(dev);
-+	int ret;
-+
-+	mutex_lock(&chip->lock);
-+	ret = format_calib(buf, PAGE_SIZE, chip->calib0);
-+	mutex_unlock(&chip->lock);
-+	return ret;
-+}
-+
-+static ssize_t tsl2563_calib1_show(struct device *dev,
-+				   struct device_attribute *attr, char *buf)
-+{
-+	struct tsl2563_chip *chip = dev_get_drvdata(dev);
-+	int ret;
-+
-+	mutex_lock(&chip->lock);
-+	ret = format_calib(buf, PAGE_SIZE, chip->calib1);
-+	mutex_unlock(&chip->lock);
-+	return ret;
-+}
-+
-+static int do_calib_store(struct device *dev, const char *buf, size_t len,
-+			  int ch)
-+{
-+	struct tsl2563_chip *chip = dev_get_drvdata(dev);
-+	int value;
-+	u32 calib;
-+
-+	if (1 != sscanf(buf, "%d", &value))
-+		return -EINVAL;
-+
-+	calib = calib_from_sysfs(value);
-+
-+	if (ch)
-+		chip->calib1 = calib;
-+	else
-+		chip->calib0 = calib;
++#ifdef LED_CONNECTED_WRONG
++	if (strchr(buf, 'r') != NULL)
++		chip->blue = 1;
++	if (strchr(buf, 'b') != NULL)
++		chip->red = 1;
++#else
++	if (strchr(buf, 'r') != NULL)
++		chip->red = 1;
++	if (strchr(buf, 'b') != NULL)
++		chip->blue = 1;
++#endif
++	if (strchr(buf, 'g') != NULL)
++		chip->green = 1;
 +
 +	return len;
 +}
 +
-+static ssize_t tsl2563_calib0_store(struct device *dev,
-+				    struct device_attribute *attr,
-+				    const char *buf, size_t len)
++static ssize_t show_color(struct device *dev,
++			    struct device_attribute *attr,
++			    char *buf)
 +{
-+	return do_calib_store(dev, buf, len, 0);
++	struct i2c_client *client = to_i2c_client(dev);
++	int ret = 0;
++	u8 r, g, b;
++
++	ret |= lp5521_read(client, LP5521_REG_R_PWM, &r);
++	ret |= lp5521_read(client, LP5521_REG_G_PWM, &g);
++	ret |= lp5521_read(client, LP5521_REG_B_PWM, &b);
++
++	if (ret)
++		return ret;
++
++	return sprintf(buf, "%.2x:%.2x:%.2x\n", r, g, b);
 +}
 +
-+static ssize_t tsl2563_calib1_store(struct device *dev,
-+				    struct device_attribute *attr,
-+				    const char *buf, size_t len)
++static ssize_t store_color(struct device *dev,
++			     struct device_attribute *attr,
++			     const char *buf, size_t len)
 +{
-+	return do_calib_store(dev, buf, len, 1);
-+}
++	struct i2c_client *client = to_i2c_client(dev);
++	struct lp5521_chip *chip = i2c_get_clientdata(client);
++	int ret;
++	unsigned r,g,b;
 +
-+static DEVICE_ATTR(adc0, S_IRUGO, tsl2563_adc0_show, NULL);
-+static DEVICE_ATTR(adc1, S_IRUGO, tsl2563_adc1_show, NULL);
-+static DEVICE_ATTR(lux, S_IRUGO, tsl2563_lux_show, NULL);
-+static DEVICE_ATTR(calib0, S_IRUGO | S_IWUSR,
-+		   tsl2563_calib0_show, tsl2563_calib0_store);
-+static DEVICE_ATTR(calib1, S_IRUGO | S_IWUSR,
-+		   tsl2563_calib1_show, tsl2563_calib1_store);
 +
-+static struct attribute *tsl2563_attributes[] = {
-+	&dev_attr_adc0.attr,
-+	&dev_attr_adc1.attr,
-+	&dev_attr_lux.attr,
-+	&dev_attr_calib0.attr,
-+	&dev_attr_calib1.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group tsl2563_group = {
-+	.attrs = tsl2563_attributes,
-+};
-+
-+static int tsl2563_register_sysfs(struct i2c_client *client)
-+{
-+	struct device *dev = &client->dev;
-+
-+	return sysfs_create_group(&dev->kobj, &tsl2563_group);
-+}
-+
-+static void tsl2563_unregister_sysfs(struct i2c_client *client)
-+{
-+	struct device *dev = &client->dev;
-+
-+	sysfs_remove_group(&dev->kobj, &tsl2563_group);
-+}
-+
-+/*--------------------------------------------------------------*/
-+/*                      Probe, Attach, Remove                   */
-+/*--------------------------------------------------------------*/
-+static struct i2c_driver tsl2563_i2c_driver;
-+
-+static int tsl2563_probe(struct i2c_client *client)
-+{
-+	struct tsl2563_chip *chip;
-+	int err = 0;
-+	u8 id;
-+
-+	if (!(chip = kzalloc(sizeof(*chip), GFP_KERNEL)))
-+		return -ENOMEM;
-+
-+	i2c_set_clientdata(client, chip);
-+	chip->client = client;
-+
-+	if ((err = tsl2563_detect(chip))) {
-+		dev_err(&client->dev, "device not found, error %d \n", -err);
-+		goto fail1;
++	ret = sscanf(buf, "%2x:%2x:%2x", &r, &g, &b);
++	if (ret != 3) {
++		return  -EINVAL;
 +	}
 +
-+	if ((err = tsl2563_read_id(chip, &id)))
++	mutex_lock(&chip->lock);
++
++	ret = lp5521_write(client, LP5521_REG_R_PWM, (u8)r);
++	ret = lp5521_write(client, LP5521_REG_G_PWM, (u8)g);
++	ret = lp5521_write(client, LP5521_REG_B_PWM, (u8)b);
++
++	mutex_unlock(&chip->lock);
++
++	return len;
++}
++
++static ssize_t store_load(struct device *dev,
++			     struct device_attribute *attr,
++			     const char *buf, size_t len)
++{
++	struct lp5521_chip *chip = dev_get_drvdata(dev);
++	int  ret, nrchars, offset = 0, i = 0;
++	char c[3];
++	unsigned cmd;
++	u8 pattern[ LP5521_PROGRAM_LENGTH ] = {0};
++
++	while ((offset < len - 1) && (i < LP5521_PROGRAM_LENGTH)) {
++
++		/* separate sscanfs because length is working only for %s */
++		ret = sscanf(buf + offset, "%2s%n ", c, &nrchars);
++		ret = sscanf(c, "%2x", &cmd);
++		if (ret != 1)
++			goto fail;
++		pattern[i] = (u8)cmd;
++
++		offset += nrchars;
++		i++;
++	}
++
++	/* pattern commands are always two bytes long */
++	if (i % 2)
++		goto fail;
++
++	mutex_lock(&chip->lock);
++
++	ret = lp5521_load_program(chip, pattern);
++	mutex_unlock(&chip->lock);
++
++	if (ret) {
++		dev_err(dev, "lp5521 failed loading pattern\n");
++		return ret;
++	}
++
++	return len;
++fail:
++	dev_err(dev, "lp5521 wrong pattern format\n");
++	return -EINVAL;
++}
++
++static ssize_t show_mode(struct device *dev,
++			 struct device_attribute *attr,
++			 char *buf)
++{
++	struct lp5521_chip *chip = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%s\n", chip->mode);
++}
++
++static ssize_t store_mode(struct device *dev,
++			  struct device_attribute *attr,
++			  const char *buf, size_t len)
++{
++	struct lp5521_chip *chip = dev_get_drvdata(dev);
++
++	mutex_lock(&chip->lock);
++
++	if (!strncmp(buf, "run", 3))
++		lp5521_set_mode(chip, LP5521_MODE_RUN);
++	else if (!strncmp(buf, "load", 4))
++		lp5521_set_mode(chip, LP5521_MODE_LOAD);
++	else if (!strncmp(buf, "direct", 6))
++		lp5521_set_mode(chip, LP5521_MODE_DIRECT_CONTROL);
++
++	mutex_unlock(&chip->lock);
++
++	return len;
++}
++
++static ssize_t show_current(struct device *dev,
++			    struct device_attribute *attr,
++			    char *buf)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	int ret = 0;
++	u8 r_curr, g_curr, b_curr;
++
++	ret |= lp5521_read(client, LP5521_REG_R_CNTRL, &r_curr);
++	ret |= lp5521_read(client, LP5521_REG_G_CNTRL, &g_curr);
++	ret |= lp5521_read(client, LP5521_REG_B_CNTRL, &b_curr);
++
++	if (ret)
++		return ret;
++
++	r_curr = r_curr >> 4;
++	g_curr = g_curr >> 4;
++	b_curr = b_curr >> 4;
++
++	if (r_curr == g_curr && g_curr == b_curr)
++		return sprintf(buf, "%x\n", r_curr);
++	else
++		return sprintf(buf, "%x %x %x\n", r_curr, g_curr, b_curr);
++}
++
++static ssize_t store_current(struct device *dev,
++			     struct device_attribute *attr,
++			     const char *buf, size_t len)
++{
++	struct lp5521_chip *chip = dev_get_drvdata(dev);
++	struct i2c_client *client = chip->client;
++	int ret;
++	unsigned curr;
++
++	ret = sscanf(buf, "%1x", &curr);
++	if (ret != 1) {
++		return  -EINVAL;
++	}
++
++	/* current level is determined by the 4 upper bits, rest is ones */
++	curr = (curr << 4) | 0x0f;
++
++	mutex_lock(&chip->lock);
++
++	ret |= lp5521_write(client, LP5521_REG_R_CNTRL, (u8)curr);
++	ret |= lp5521_write(client, LP5521_REG_G_CNTRL, (u8)curr);
++	ret |= lp5521_write(client, LP5521_REG_B_CNTRL, (u8)curr);
++
++	mutex_unlock(&chip->lock);
++
++	return len;
++}
++
++static DEVICE_ATTR(color, S_IRUGO | S_IWUGO, show_color, store_color);
++static DEVICE_ATTR(load, S_IWUGO, NULL, store_load);
++static DEVICE_ATTR(mode, S_IRUGO | S_IWUGO, show_mode, store_mode);
++static DEVICE_ATTR(active_channels, S_IRUGO | S_IWUGO,
++		   show_active_channels, store_active_channels);
++static DEVICE_ATTR(led_current, S_IRUGO | S_IWUGO, show_current, store_current);
++
++static int lp5521_register_sysfs(struct i2c_client *client)
++{
++	struct device *dev = &client->dev;
++	int ret;
++
++	if ((ret = device_create_file(dev, &dev_attr_color)))
 +		goto fail1;
++	if ((ret = device_create_file(dev, &dev_attr_load)))
++		goto fail2;
++	if ((ret = device_create_file(dev, &dev_attr_active_channels)))
++		goto fail3;
++	if ((ret = device_create_file(dev, &dev_attr_mode)))
++		goto fail4;
++	if ((ret = device_create_file(dev, &dev_attr_led_current)))
++		goto fail5;
++	return 0;
++
++fail5:
++	device_remove_file(dev, &dev_attr_mode);
++fail4:
++	device_remove_file(dev, &dev_attr_active_channels);
++fail3:
++	device_remove_file(dev, &dev_attr_load);
++fail2:
++	device_remove_file(dev, &dev_attr_color);
++fail1:
++	return ret;
++}
++
++static void lp5521_unregister_sysfs(struct i2c_client *client)
++{
++	struct lp5521_chip *chip = i2c_get_clientdata(client);
++	struct device *dev = &client->dev;
++
++	device_remove_file(dev, &dev_attr_led_current);
++	device_remove_file(dev, &dev_attr_mode);
++	device_remove_file(dev, &dev_attr_active_channels);
++	device_remove_file(dev, &dev_attr_color);
++
++	if (!strcmp(chip->mode, LP5521_MODE_LOAD))
++		device_remove_file(dev, &dev_attr_load);
++}
++
++/*--------------------------------------------------------------*/
++/*			Set chip operating mode			*/
++/*--------------------------------------------------------------*/
++
++static int lp5521_set_mode(struct lp5521_chip *chip, char *mode)
++{
++	struct i2c_client *client = chip->client ;
++	int ret = 0;
++
++	/* if in that mode already do nothing, except for run */
++	if (!strcmp(mode, chip->mode) && strcmp(mode, LP5521_MODE_RUN))
++		return 0;
++
++	if (!strcmp (mode, LP5521_MODE_RUN))
++		ret = lp5521_run_program(chip);
++
++	if (!strcmp (mode, LP5521_MODE_LOAD)) {
++		ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x15);
++	}
++
++	if (!strcmp(mode, LP5521_MODE_DIRECT_CONTROL))
++		ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x3F);
++
++	chip->mode = mode;
++
++	return ret;
++}
++
++/*--------------------------------------------------------------*/
++/*			Probe, Attach, Remove			*/
++/*--------------------------------------------------------------*/
++static struct i2c_driver lp5521_driver;
++
++static int lp5521_probe(struct i2c_client *client)
++{
++	struct lp5521_chip *chip;
++	int ret = 0;
++
++	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
++	if (!chip)
++		return -ENOMEM;
++
++	chip->client	= client;
++	strncpy(client->name, LP5521_DRIVER_NAME, I2C_NAME_SIZE);
++	i2c_set_clientdata(client, chip);
 +
 +	mutex_init(&chip->lock);
 +
-+	/* Default values used until userspace says otherwise */
-+	chip->low_thres = 0x0;
-+	chip->high_thres = 0xffff;
-+	chip->gainlevel = tsl2563_gainlevel_table;
-+	chip->intr = TSL2563_INT_PERSIST(4);
-+	chip->calib0 = calib_from_sysfs(CALIB_BASE_SYSFS);
-+	chip->calib1 = calib_from_sysfs(CALIB_BASE_SYSFS);
-+
-+	dev_info(&client->dev, "model %d, rev. %d\n", id >> 4, id & 0x0f);
-+
-+	if ((err = tsl2563_configure(chip)))
++	if ((ret = lp5521_configure(client)) < 0) {
++		dev_err(&client->dev, "lp5521 error configuring chip \n");
 +		goto fail1;
-+
-+	chip->hwmon_dev = hwmon_device_register(&client->dev);
-+	if (IS_ERR(chip->hwmon_dev))
-+		goto fail1;
-+
-+	if ((err = tsl2563_register_sysfs(client))) {
-+		dev_err(&client->dev, "sysfs registration failed, %d\n", err);
-+		goto fail2;
 +	}
 +
-+	return 0;
-+fail2:
-+	hwmon_device_unregister(chip->hwmon_dev);
++	/* Set default values */
++	chip->mode	= LP5521_MODE_DIRECT_CONTROL;
++	chip->red	= 1;
++	chip->green	= 1;
++	chip->blue	= 1;
++
++	if ((ret = lp5521_register_sysfs(client)))
++		dev_err(&client->dev, "lp5521 registering sysfs failed \n");
++
++	return ret;
++
 +fail1:
 +	kfree(chip);
-+	return err;
++	return ret;
 +}
 +
-+static int tsl2563_remove(struct i2c_client *client)
++static int lp5521_remove(struct i2c_client *client)
 +{
-+	struct tsl2563_chip *chip = i2c_get_clientdata(client);
++	struct lp5521_chip *chip = i2c_get_clientdata(client);
 +
-+	tsl2563_unregister_sysfs(client);
-+	hwmon_device_unregister(chip->hwmon_dev);
-+
++	lp5521_unregister_sysfs(client);
 +	kfree(chip);
++
 +	return 0;
 +}
 +
-+static int tsl2563_suspend(struct i2c_client *client, pm_message_t state)
-+{
-+	struct tsl2563_chip *chip = i2c_get_clientdata(client);
-+	int ret;
-+
-+	mutex_lock(&chip->lock);
-+
-+	if ((ret = tsl2563_set_power(chip, 0)))
-+		goto out;
-+
-+	chip->state = state;
-+
-+out:
-+	mutex_unlock(&chip->lock);
-+	return ret;
-+}
-+
-+static int tsl2563_resume(struct i2c_client *client)
-+{
-+	struct tsl2563_chip *chip = i2c_get_clientdata(client);
-+	int ret;
-+
-+	mutex_lock(&chip->lock);
-+
-+	if ((ret = tsl2563_set_power(chip, 1)))
-+		goto out;
-+
-+	if ((ret = tsl2563_configure(chip)))
-+		goto out;
-+
-+	chip->state.event = PM_EVENT_ON;
-+
-+out:
-+	mutex_unlock(&chip->lock);
-+	return ret;
-+}
-+
-+static struct i2c_driver tsl2563_i2c_driver = {
++static struct i2c_driver lp5521_driver = {
 +	.driver = {
-+		.name	 = DRIVER_NAME,
++		.name	= LP5521_DRIVER_NAME,
 +	},
-+	.suspend	= tsl2563_suspend,
-+	.resume		= tsl2563_resume,
-+	.probe		= tsl2563_probe,
-+	.remove		= __exit_p(tsl2563_remove),
++	.probe		= lp5521_probe,
++	.remove		= __exit_p(lp5521_remove),
 +};
 +
-+static int __init tsl2563_init(void)
++static int __init lp5521_init(void)
 +{
-+	return i2c_add_driver(&tsl2563_i2c_driver);
++	return i2c_add_driver(&lp5521_driver);
 +}
 +
-+static void __exit tsl2563_exit(void)
++static void __exit lp5521_exit(void)
 +{
-+	i2c_del_driver(&tsl2563_i2c_driver);
++	i2c_del_driver(&lp5521_driver);
 +}
 +
-+MODULE_AUTHOR("Nokia Corporation");
-+MODULE_DESCRIPTION("tsl2563 light sensor driver");
++MODULE_AUTHOR("Mathias Nyman <mathias.nyman@nokia.com>");
++MODULE_DESCRIPTION("lp5521 LED driver");
 +MODULE_LICENSE("GPL");
 +
-+module_init(tsl2563_init);
-+module_exit(tsl2563_exit);
++module_init(lp5521_init);
++module_exit(lp5521_exit);
 -- 
 1.5.5.rc3
 
