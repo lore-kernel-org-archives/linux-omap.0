@@ -1,46 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP2430 build breakage and git bisect issues
-Date: Tue, 8 Apr 2008 21:15:41 +0000
-Message-ID: <20080408211541.GD31071@atomide.com>
-References: <010C7BAE6783F34D9AC336EE5A01A08805C3073E@dbde01.ent.ti.com>
+From: "Juha Kuikka" <juha.kuikka@gmail.com>
+Subject: Problems with 2430 NAND prefetch engine
+Date: Tue, 8 Apr 2008 17:33:35 -0700
+Message-ID: <a46a26fd0804081733i469936d4m3315f3bb3270ff5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:61475 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752257AbYDHVPn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Apr 2008 17:15:43 -0400
+Received: from wf-out-1314.google.com ([209.85.200.169]:2721 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751776AbYDIAdf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Apr 2008 20:33:35 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so2260196wff.4
+        for <linux-omap@vger.kernel.org>; Tue, 08 Apr 2008 17:33:35 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <010C7BAE6783F34D9AC336EE5A01A08805C3073E@dbde01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* Gadiyar, Anand <gadiyar@ti.com> [080408 14:20]:
-> Hi all,
-> 
-> omap_2430sdp_defconfig and omap_2430osk_defconfig builds seem to be broken. (also reported at [1])
-> 
-> I tried to use git bisect to narrow down the exact patch that caused this and it looks like some patches that got merged don't compile individually. This causes the git bisect process to fail.
-> 
-> For instance, this happens when git bisect lands me in the middle of a mainline merge. Then I can't do a make omap_*_defconfig.
-> 
-> In other cases than a mainline merge, some patches are not individually compilable.
-> For instance commit [2b2d5f705f1f5fad4275401d695697c06ad1e886] ARM: OMAP: More fixes for cm and prm assembly access
-> 
-> How do I recover from this? Or move to a compilable patch near to the bisect point?
+Hi,
 
-You can mark mark the next commit with git-bisect bad and then continue.
+I am trying to use the NAND prefetch engine to speed up NAND access.
 
-But in general, we should have compiling and booting commits. While
-doing merge things can break if the commit is created automatically.
+In GPMC CS0 is the NAND chip. GPMC_CONFIG7_0 is set to 0x0000084c by
+u-boot. Hence the address for this CS should be 0x0C000000.
+Documentation indicates that the FIFO should be accessible in any
+associated chip-select region after the engine has been enabled.
 
-I'll try to remember to test build the merge before commit next time :)
+In linux I use ioremap() to map 0x0C000000 and use the returned
+pointer to access the prefetch engine FIFO.
 
-Tony
+Prefetch engine is configured and started.
+I get FIFOEVENT interrupt from it and try to read the fifo by using
+this ioremap's pointer but kernel crashes with:
 
+Unhandled fault: external abort on non-linefetch (0x008) at 0xc4854000
+0xc4854000 corresponds to the pointer ioremap() returned.
 
+Apparently I miss something either in HW or kernel but I cannot think
+of anything.
+Conventional access to the NAND chip through COMMAND/ADDRESS/DATA
+registers works ok.
+Any ideas would be appreciated.
 
-> [1] http://opensource.indt.org/omapbuilds/
+ - Juha
 
+-- 
+Madness takes it's toll. Please have exact change.
