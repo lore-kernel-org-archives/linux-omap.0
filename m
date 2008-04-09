@@ -1,817 +1,986 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 2/5] I2C: TSL2563: Add support for Taos tsl2563 ambient light sensor
-Date: Wed,  9 Apr 2008 13:09:22 +0300
-Message-ID: <1207735765-1356-3-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 3/5] INPUT: TOUCHSCREEN: Introduce tsc2005 driver
+Date: Wed,  9 Apr 2008 13:09:23 +0300
+Message-ID: <1207735765-1356-4-git-send-email-felipe.balbi@nokia.com>
 References: <1207735765-1356-1-git-send-email-felipe.balbi@nokia.com>
  <1207735765-1356-2-git-send-email-felipe.balbi@nokia.com>
+ <1207735765-1356-3-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:48823 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:48825 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752737AbYDIKK2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 06:10:28 -0400
-In-Reply-To: <1207735765-1356-2-git-send-email-felipe.balbi@nokia.com>
+	with ESMTP id S1752783AbYDIKK3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 06:10:29 -0400
+In-Reply-To: <1207735765-1356-3-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Mathias Nyman <mathias.nyman@nokia.com>, Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, Lauri Leukkunen <lauri.leukkunen@nokia.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-From: Mathias Nyman <mathias.nyman@nokia.com>
+From: Lauri Leukkunen <lauri.leukkunen@nokia.com>
 
-Add support for Taos tsl2563 ambient light sensor.
+Introduce n810's tsc2005 driver
 
-Signed-off-by: Mathias Nyman <mathias.nyman@nokia.com>
+Signed-off-by: Lauri Leukkunen <lauri.leukkunen@nokia.com>
 
-Updated to build with current linux-omap and new-style
-i2c driver.
+Updated to build with current linux-omap.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- arch/arm/mach-omap2/board-n800.c |    4 +
- drivers/i2c/chips/Kconfig        |   10 +
- drivers/i2c/chips/Makefile       |    2 +-
- drivers/i2c/chips/tsl2563.c      |  720 ++++++++++++++++++++++++++++++++++++++
- 4 files changed, 735 insertions(+), 1 deletions(-)
- create mode 100644 drivers/i2c/chips/tsl2563.c
+ arch/arm/mach-omap2/board-n800.c    |   95 +++++-
+ drivers/input/touchscreen/Kconfig   |    5 +
+ drivers/input/touchscreen/Makefile  |    1 +
+ drivers/input/touchscreen/tsc2005.c |  737 +++++++++++++++++++++++++++++++++++
+ include/linux/spi/tsc2005.h         |   29 ++
+ 5 files changed, 863 insertions(+), 4 deletions(-)
+ create mode 100644 drivers/input/touchscreen/tsc2005.c
+ create mode 100644 include/linux/spi/tsc2005.h
 
 diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/board-n800.c
-index 367e518..7a41245 100644
+index 7a41245..7606870 100644
 --- a/arch/arm/mach-omap2/board-n800.c
 +++ b/arch/arm/mach-omap2/board-n800.c
-@@ -579,6 +579,10 @@ static struct i2c_board_info __initdata n800_i2c_board_info_2[] = {
- 		.irq		= OMAP_GPIO_IRQ(109),
- 		.platform_data	= &lm8323_pdata,
- 	},
-+	{
-+		I2C_BOARD_INFO("tsl2563", 0x29),
-+		.type		= "tsl2563",
-+	},
+@@ -18,6 +18,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/spi/spi.h>
+ #include <linux/spi/tsc2301.h>
++#include <linux/spi/tsc2005.h>
+ #include <linux/input.h>
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
+@@ -371,21 +372,34 @@ static struct omap2_mcspi_device_config cx3110x_mcspi_config = {
+ 	.single_channel = 1,
  };
  
- void __init nokia_n800_common_init(void)
-diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
-index 0d566fa..dc4f140 100644
---- a/drivers/i2c/chips/Kconfig
-+++ b/drivers/i2c/chips/Kconfig
-@@ -202,6 +202,16 @@ config SENSORS_TSL2550
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called tsl2550.
++#ifdef CONFIG_TOUCHSCREEN_TSC2005
++static struct tsc2005_platform_data tsc2005_config = {
++	.reset_gpio = 94,
++	.dav_gpio = 106
++};
++
++static struct omap2_mcspi_device_config tsc2005_mcspi_config = {
++	.turbo_mode	= 0,
++	.single_channel = 1,
++};
++#endif
++
+ static struct spi_board_info n800_spi_board_info[] __initdata = {
+-	[0] = {
++	{
+ 		.modalias	= "lcd_mipid",
+ 		.bus_num	= 1,
+ 		.chip_select	= 1,
+ 		.max_speed_hz	= 4000000,
+ 		.controller_data= &mipid_mcspi_config,
+ 		.platform_data	= &n800_mipid_platform_data,
+-	}, [1] = {
++	}, {
+ 		.modalias	= "cx3110x",
+ 		.bus_num	= 2,
+ 		.chip_select	= 0,
+ 		.max_speed_hz   = 48000000,
+ 		.controller_data= &cx3110x_mcspi_config,
+-	}, [2] = {
++	},
++	{
+ 		.modalias	= "tsc2301",
+ 		.bus_num	= 1,
+ 		.chip_select	= 0,
+@@ -395,6 +409,73 @@ static struct spi_board_info n800_spi_board_info[] __initdata = {
+ 	},
+ };
  
-+config SENSORS_TSL2563
-+       tristate "Taos TSL2563 ambient light sensor"
-+       depends on I2C && HWMON
-+       help
-+         If you say yes here you get support for the Taos TSL2563
-+         ambient light sensor.
++static struct spi_board_info n810_spi_board_info[] __initdata = {
++	{
++		.modalias	= "lcd_mipid",
++		.bus_num	= 1,
++		.chip_select	= 1,
++		.max_speed_hz	= 4000000,
++		.controller_data= &mipid_mcspi_config,
++		.platform_data	= &n800_mipid_platform_data,
++	},
++	{
++		.modalias	= "cx3110x",
++		.bus_num	= 2,
++		.chip_select	= 0,
++		.max_speed_hz   = 48000000,
++		.controller_data= &cx3110x_mcspi_config,
++	},
++	{
++		.modalias	= "tsc2005",
++		.bus_num	= 1,
++		.chip_select	= 0,
++		.max_speed_hz   = 6000000,
++		.controller_data= &tsc2005_mcspi_config,
++		.platform_data  = &tsc2005_config,
++	},
++};
 +
-+         This driver can also be built as a module.  If so, the module
-+         will be called tsl2563.
++static void __init tsc2005_set_config(void)
++{
++	const struct omap_lcd_config *conf;
 +
- config MENELAUS
- 	bool "TWL92330/Menelaus PM chip"
- 	depends on I2C=y && ARCH_OMAP24XX
-diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
-index 7c47fc4..e20fc10 100644
---- a/drivers/i2c/chips/Makefile
-+++ b/drivers/i2c/chips/Makefile
-@@ -22,6 +22,7 @@ obj-$(CONFIG_SENSORS_TLV320AIC23) += tlv320aic23.o
- obj-$(CONFIG_GPIOEXPANDER_OMAP)	+= gpio_expander_omap.o
- obj-$(CONFIG_MENELAUS)		+= menelaus.o
- obj-$(CONFIG_SENSORS_TSL2550)	+= tsl2550.o
-+obj-$(CONFIG_SENSORS_TSL2563)	+= tsl2563.o
- obj-$(CONFIG_TWL4030_CORE)	+= twl4030-core.o twl4030-pwrirq.o
- obj-$(CONFIG_TWL4030_GPIO)	+= twl4030-gpio.o
- obj-$(CONFIG_TWL4030_USB)	+= twl4030-usb.o
-@@ -33,4 +34,3 @@ obj-$(CONFIG_RTC_X1205_I2C)	+= x1205.o
- ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
- EXTRA_CFLAGS += -DDEBUG
- endif
--
-diff --git a/drivers/i2c/chips/tsl2563.c b/drivers/i2c/chips/tsl2563.c
++	conf = omap_get_config(OMAP_TAG_LCD, struct omap_lcd_config);
++	if (conf != NULL) {
++#ifdef CONFIG_TOUCHSCREEN_TSC2005
++		if (strcmp(conf->panel_name, "lph8923") == 0) {
++			tsc2005_config.ts_x_plate_ohm	= 180;
++			tsc2005_config.ts_hw_avg	= 0;
++			tsc2005_config.ts_ignore_last	= 0;
++			tsc2005_config.ts_touch_pressure= 1500;
++			tsc2005_config.ts_stab_time	= 100;
++			tsc2005_config.ts_pressure_max	= 2048;
++			tsc2005_config.ts_pressure_fudge= 2;
++			tsc2005_config.ts_x_max		= 4096;
++			tsc2005_config.ts_x_fudge	= 4;
++			tsc2005_config.ts_y_max		= 4096;
++			tsc2005_config.ts_y_fudge	= 7;
++		} else if (strcmp(conf->panel_name, "ls041y3") == 0) {
++			tsc2005_config.ts_x_plate_ohm	= 280;
++			tsc2005_config.ts_hw_avg	= 0;
++			tsc2005_config.ts_ignore_last	= 0;
++			tsc2005_config.ts_touch_pressure= 1500;
++			tsc2005_config.ts_stab_time	= 1000;
++			tsc2005_config.ts_pressure_max	= 2048;
++			tsc2005_config.ts_pressure_fudge= 2;
++			tsc2005_config.ts_x_max		= 4096;
++			tsc2005_config.ts_x_fudge	= 4;
++			tsc2005_config.ts_y_max		= 4096;
++			tsc2005_config.ts_y_fudge	= 7;
++		} else {
++			printk(KERN_ERR "Unknown panel type, set default "
++			       "touchscreen configuration\n");
++			tsc2005_config.ts_x_plate_ohm	= 200;
++			tsc2005_config.ts_stab_time	= 100;
++		}
++#endif
++	}
++}
++
+ #if defined(CONFIG_CBUS_RETU) && defined(CONFIG_LEDS_OMAP_PWM)
+ 
+ void retu_keypad_led_set_power(struct omap_pwm_led_platform_data *self,
+@@ -595,8 +676,14 @@ void __init nokia_n800_common_init(void)
+ 	n800_dsp_init();
+ 	n800_usb_init();
+ 	n800_cam_init();
+-	spi_register_board_info(n800_spi_board_info,
++	if (machine_is_nokia_n800())
++		spi_register_board_info(n800_spi_board_info,
+ 				ARRAY_SIZE(n800_spi_board_info));
++	if (machine_is_nokia_n810()) {
++		tsc2005_set_config();
++		spi_register_board_info(n810_spi_board_info,
++				ARRAY_SIZE(n810_spi_board_info));
++	}
+ 	omap_serial_init();
+ 	omap_register_i2c_bus(1, 400, n800_i2c_board_info_1,
+ 			      ARRAY_SIZE(n800_i2c_board_info_1));
+diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
+index f3c45b6..1542e16 100644
+--- a/drivers/input/touchscreen/Kconfig
++++ b/drivers/input/touchscreen/Kconfig
+@@ -185,6 +185,11 @@ config TOUCHSCREEN_UCB1400
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ucb1400_ts.
+ 
++config TOUCHSCREEN_TSC2005
++	tristate "TSC2005 touchscreen support"
++	help
++	  Say Y here for if you are using the touchscreen features of TSC2301.
++
+ config TOUCHSCREEN_TSC2102
+ 	tristate "TSC 2102 based touchscreens"
+ 	depends on SPI_MASTER
+diff --git a/drivers/input/touchscreen/Makefile b/drivers/input/touchscreen/Makefile
+index bdd2571..51d3a23 100644
+--- a/drivers/input/touchscreen/Makefile
++++ b/drivers/input/touchscreen/Makefile
+@@ -19,6 +19,7 @@ obj-$(CONFIG_TOUCHSCREEN_PENMOUNT)	+= penmount.o
+ obj-$(CONFIG_TOUCHSCREEN_TOUCHRIGHT)	+= touchright.o
+ obj-$(CONFIG_TOUCHSCREEN_TOUCHWIN)	+= touchwin.o
+ obj-$(CONFIG_TOUCHSCREEN_UCB1400)	+= ucb1400_ts.o
++obj-$(CONFIG_TOUCHSCREEN_TSC2005)	+= tsc2005.o
+ obj-$(CONFIG_TOUCHSCREEN_TSC2102)	+= tsc2102_ts.o
+ obj-$(CONFIG_TOUCHSCREEN_OMAP)	+= omap/
+ obj-$(CONFIG_TOUCHSCREEN_TSC210X)	+= tsc210x_ts.o
+diff --git a/drivers/input/touchscreen/tsc2005.c b/drivers/input/touchscreen/tsc2005.c
 new file mode 100644
-index 0000000..b10440b
+index 0000000..2ef7309
 --- /dev/null
-+++ b/drivers/i2c/chips/tsl2563.c
-@@ -0,0 +1,720 @@
++++ b/drivers/input/touchscreen/tsc2005.c
+@@ -0,0 +1,737 @@
 +/*
-+ * drivers/i2c/chips/tsl2563.c
++ * TSC2005 touchscreen driver
 + *
-+ * Copyright (C) 2008 Nokia Corporation
++ * Copyright (C) 2006-2008 Nokia Corporation
 + *
-+ * Written by Timo O. Karjalainen <timo.o.karjalainen@nokia.com>
-+ * Contact: Mathias Nyman <mathias.nyman@nokia.com>
++ * Author: Lauri Leukkunen <lauri.leukkunen@nokia.com>
++ * based on TSC2301 driver by Klaus K. Pedersen <klaus.k.pedersen@nokia.com>
 + *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
 + *
 + * You should have received a copy of the GNU General Public License
 + * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ *
 + */
 +
++#include <linux/kernel.h>
 +#include <linux/module.h>
-+#include <linux/i2c.h>
++#include <linux/input.h>
 +#include <linux/interrupt.h>
-+#include <linux/sched.h>
-+#include <linux/mutex.h>
 +#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
-+#include <asm/arch/board.h>
++#include <linux/spi/spi.h>
 +
-+#define DRIVER_NAME  "tsl2563"
++#ifdef CONFIG_ARCH_OMAP
++#include <asm/arch/gpio.h>
++#endif
 +
-+/* Use this many bits for fraction part. */
-+#define ADC_FRAC_BITS		(14)
++#include <linux/spi/tsc2005.h>
 +
-+/* Given number of 1/10000's in ADC_FRAC_BITS precision. */
-+#define FRAC10K(f)		(((f) * (1L << (ADC_FRAC_BITS))) / (10000))
++/**
++ * The touchscreen interface operates as follows:
++ *
++ * Initialize:
++ *    Request access to GPIO103 (DAV)
++ *    tsc2005_dav_irq_handler will trigger when DAV line goes down
++ *
++ *  1) Pen is pressed against touchscreeen
++ *  2) TSC2005 performs AD conversion
++ *  3) After the conversion is done TSC2005 drives DAV line down
++ *  4) GPIO IRQ is received and tsc2005_dav_irq_handler is called
++ *  5) tsc2005_ts_irq_handler queues up an spi transfer to fetch
++ *     the x, y, z1, z2 values
++ *  6) tsc2005_ts_rx() reports coordinates to input layer and
++ *     sets up tsc2005_ts_timer() to be called after TSC2005_TS_SCAN_TIME
++ *  7)  When the penup_timer expires, there have not been DAV interrupts
++ *     during the last 20ms which means the pen has been lifted.
++ */
 +
-+/* Bits used for fraction in calibration coefficients.*/
-+#define CALIB_FRAC_BITS		(10)
-+/* 0.5 in CALIB_FRAC_BITS precision */
-+#define CALIB_FRAC_HALF		(1 << (CALIB_FRAC_BITS - 1))
-+/* Make a fraction from a number n that was multiplied with b. */
-+#define CALIB_FRAC(n, b)	(((n) << CALIB_FRAC_BITS) / (b))
-+/* Decimal 10^(digits in sysfs presentation) */
-+#define CALIB_BASE_SYSFS	(1000)
++#define TSC2005_HZ	(14000000)
 +
-+#define TSL2563_CMD		(0x80)
-+#define TSL2563_CLEARINT	(0x40)
++#define TSC2005_CMD	(0x80)
++#define TSC2005_REG	(0x00)
 +
-+#define TSL2563_REG_CTRL	(0x00)
-+#define TSL2563_REG_TIMING	(0x01)
-+#define TSL2563_REG_LOWLOW	(0x02) /* data0 low threshold, 2 bytes */
-+#define TSL2563_REG_LOWHIGH	(0x03)
-+#define TSL2563_REG_HIGHLOW	(0x04) /* data0 high threshold, 2 bytes */
-+#define TSL2563_REG_HIGHHIGH	(0x05)
-+#define TSL2563_REG_INT		(0x06)
-+#define TSL2563_REG_ID		(0x0a)
-+#define TSL2563_REG_DATA0LOW	(0x0c) /* broadband sensor value, 2 bytes */
-+#define TSL2563_REG_DATA0HIGH	(0x0d)
-+#define TSL2563_REG_DATA1LOW	(0x0e) /* infrared sensor value, 2 bytes */
-+#define TSL2563_REG_DATA1HIGH	(0x0f)
++#define TSC2005_CMD_STOP	(1)
++#define TSC2005_CMD_10BIT	(0 << 2)
++#define TSC2005_CMD_12BIT	(1 << 2)
 +
-+#define TSL2563_CMD_POWER_ON	(0x03)
-+#define TSL2563_CMD_POWER_OFF	(0x00)
-+#define TSL2563_CTRL_POWER_MASK	(0x03)
++#define TSC2005_CMD_SCAN_XYZZ	(0 << 3)
++#define TSC2005_CMD_SCAN_XY	(1 << 3)
++#define TSC2005_CMD_SCAN_X	(2 << 3)
++#define TSC2005_CMD_SCAN_Y	(3 << 3)
++#define TSC2005_CMD_SCAN_ZZ	(4 << 3)
++#define TSC2005_CMD_AUX_SINGLE	(5 << 3)
++#define TSC2005_CMD_TEMP1	(6 << 3)
++#define TSC2005_CMD_TEMP2	(7 << 3)
++#define TSC2005_CMD_AUX_CONT	(8 << 3)
++#define TSC2005_CMD_TEST_X_CONN	(9 << 3)
++#define TSC2005_CMD_TEST_Y_CONN	(10 << 3)
++/* command 11 reserved */
++#define TSC2005_CMD_TEST_SHORT	(12 << 3)
++#define TSC2005_CMD_DRIVE_XX	(13 << 3)
++#define TSC2005_CMD_DRIVE_YY	(14 << 3)
++#define TSC2005_CMD_DRIVE_YX	(15 << 3)
 +
-+#define TSL2563_TIMING_13MS	(0x00)
-+#define TSL2563_TIMING_100MS	(0x01)
-+#define TSL2563_TIMING_400MS	(0x02)
-+#define TSL2563_TIMING_MASK	(0x03)
-+#define TSL2563_TIMING_GAIN16	(0x10)
-+#define TSL2563_TIMING_GAIN1	(0x00)
++#define TSC2005_REG_X		(0 << 3)
++#define TSC2005_REG_Y		(1 << 3)
++#define TSC2005_REG_Z1		(2 << 3)
++#define TSC2005_REG_Z2		(3 << 3)
++#define TSC2005_REG_AUX		(4 << 3)
++#define TSC2005_REG_TEMP1	(5 << 3)
++#define TSC2005_REG_TEMP2	(6 << 3)
++#define TSC2005_REG_STATUS	(7 << 3)
++#define TSC2005_REG_AUX_HIGH	(8 << 3)
++#define TSC2005_REG_AUX_LOW	(9 << 3)
++#define TSC2005_REG_TEMP_HIGH	(10 << 3)
++#define TSC2005_REG_TEMP_LOW	(11 << 3)
++#define TSC2005_REG_CFR0	(12 << 3)
++#define TSC2005_REG_CFR1	(13 << 3)
++#define TSC2005_REG_CFR2	(14 << 3)
++#define TSC2005_REG_FUNCTION	(15 << 3)
 +
-+#define TSL2563_INT_DISBLED	(0x00)
-+#define TSL2563_INT_LEVEL	(0x10)
-+#define TSL2563_INT_PERSIST(n)	((n) & 0x0F)
++#define TSC2005_REG_PND0	(1 << 1)
++#define TSC2005_REG_READ	(0x01)
++#define TSC2005_REG_WRITE	(0x00)
 +
-+struct tsl2563_gainlevel_coeff {
-+	u8 gaintime;
-+	u16 min;
-+	u16 max;
++
++#define TSC2005_CFR0_LONGSAMPLING	(1)
++#define TSC2005_CFR0_DETECTINWAIT	(1 << 1)
++#define TSC2005_CFR0_SENSETIME_32US	(0)
++#define TSC2005_CFR0_SENSETIME_96US	(1 << 2)
++#define TSC2005_CFR0_SENSETIME_544US	(1 << 3)
++#define TSC2005_CFR0_SENSETIME_2080US	(1 << 4)
++#define TSC2005_CFR0_SENSETIME_2656US	(0x001C)
++#define TSC2005_CFR0_PRECHARGE_20US	(0x0000)
++#define TSC2005_CFR0_PRECHARGE_84US	(0x0020)
++#define TSC2005_CFR0_PRECHARGE_276US	(0x0040)
++#define TSC2005_CFR0_PRECHARGE_1044US	(0x0080)
++#define TSC2005_CFR0_PRECHARGE_1364US	(0x00E0)
++#define TSC2005_CFR0_STABTIME_0US	(0x0000)
++#define TSC2005_CFR0_STABTIME_100US	(0x0100)
++#define TSC2005_CFR0_STABTIME_500US	(0x0200)
++#define TSC2005_CFR0_STABTIME_1MS	(0x0300)
++#define TSC2005_CFR0_STABTIME_5MS	(0x0400)
++#define TSC2005_CFR0_STABTIME_100MS	(0x0700)
++#define TSC2005_CFR0_CLOCK_4MHZ		(0x0000)
++#define TSC2005_CFR0_CLOCK_2MHZ		(0x0800)
++#define TSC2005_CFR0_CLOCK_1MHZ		(0x1000)
++#define TSC2005_CFR0_RESOLUTION12	(0x2000)
++#define TSC2005_CFR0_STATUS		(0x4000)
++#define TSC2005_CFR0_PENMODE		(0x8000)
++
++#define TSC2005_CFR0_INITVALUE	(TSC2005_CFR0_STABTIME_1MS  |	\
++				 TSC2005_CFR0_CLOCK_1MHZ    |	\
++				 TSC2005_CFR0_RESOLUTION12  |	\
++				 TSC2005_CFR0_PRECHARGE_276US | \
++				 TSC2005_CFR0_PENMODE)
++
++#define TSC2005_CFR1_BATCHDELAY_0MS	(0x0000)
++#define TSC2005_CFR1_BATCHDELAY_1MS	(0x0001)
++#define TSC2005_CFR1_BATCHDELAY_2MS	(0x0002)
++#define TSC2005_CFR1_BATCHDELAY_4MS	(0x0003)
++#define TSC2005_CFR1_BATCHDELAY_10MS	(0x0004)
++#define TSC2005_CFR1_BATCHDELAY_20MS	(0x0005)
++#define TSC2005_CFR1_BATCHDELAY_40MS	(0x0006)
++#define TSC2005_CFR1_BATCHDELAY_100MS	(0x0007)
++
++#define TSC2005_CFR1_INITVALUE	(TSC2005_CFR1_BATCHDELAY_2MS)
++
++#define TSC2005_CFR2_MAVE_TEMP	(0x0001)
++#define TSC2005_CFR2_MAVE_AUX	(0x0002)
++#define TSC2005_CFR2_MAVE_Z	(0x0004)
++#define TSC2005_CFR2_MAVE_Y	(0x0008)
++#define TSC2005_CFR2_MAVE_X	(0x0010)
++#define TSC2005_CFR2_AVG_1	(0x0000)
++#define TSC2005_CFR2_AVG_3	(0x0400)
++#define TSC2005_CFR2_AVG_7	(0x0800)
++#define TSC2005_CFR2_MEDIUM_1	(0x0000)
++#define TSC2005_CFR2_MEDIUM_3	(0x1000)
++#define TSC2005_CFR2_MEDIUM_7	(0x2000)
++#define TSC2005_CFR2_MEDIUM_15	(0x3000)
++
++#define TSC2005_CFR2_IRQ_DAV	(0x4000)
++#define TSC2005_CFR2_IRQ_PEN	(0x8000)
++#define TSC2005_CFR2_IRQ_PENDAV	(0x0000)
++
++#define TSC2005_CFR2_INITVALUE	(TSC2005_CFR2_IRQ_DAV   |	\
++				 TSC2005_CFR2_MAVE_X    |	\
++				 TSC2005_CFR2_MAVE_Y    |	\
++				 TSC2005_CFR2_MAVE_Z    |	\
++				 TSC2005_CFR2_MEDIUM_15 |	\
++				 TSC2005_CFR2_AVG_7)
++
++#define MAX_12BIT					((1 << 12) - 1)
++#define TS_SAMPLES					4
++#define TS_RECT_SIZE					8
++#define TSC2005_TS_PENUP_TIME				20
++
++static const u32 tsc2005_read_reg[] = {
++	(TSC2005_REG | TSC2005_REG_X | TSC2005_REG_READ) << 16,
++	(TSC2005_REG | TSC2005_REG_Y | TSC2005_REG_READ) << 16,
++	(TSC2005_REG | TSC2005_REG_Z1 | TSC2005_REG_READ) << 16,
++	(TSC2005_REG | TSC2005_REG_Z2 | TSC2005_REG_READ) << 16,
++};
++#define NUM_READ_REGS	(sizeof(tsc2005_read_reg)/sizeof(tsc2005_read_reg[0]))
++
++struct tsc2005 {
++	struct spi_device	*spi;
++
++	struct input_dev	*idev;
++	char			phys[32];
++	struct timer_list	penup_timer;
++	spinlock_t		lock;
++	struct mutex		mutex;
++
++	struct spi_message	read_msg;
++	struct spi_transfer	read_xfer[NUM_READ_REGS];
++	u32                     data[NUM_READ_REGS];
++
++	/* previous x,y,z */
++	int			x;
++	int			y;
++	int			p;
++	/* average accumulators for each component */
++	int			sample_cnt;
++	int			avg_x;
++	int			avg_y;
++	int			avg_z1;
++	int			avg_z2;
++	/* configuration */
++	int			x_plate_ohm;
++	int			hw_avg_max;
++	int			stab_time;
++	int			p_max;
++	int			touch_pressure;
++	int			irq;
++	s16			dav_gpio;
++	/* status */
++	u8			sample_sent;
++	u8			pen_down;
++	u8			disabled;
++	u8			disable_depth;
++	u8			spi_active;
 +};
 +
-+static struct tsl2563_gainlevel_coeff tsl2563_gainlevel_table[] = {
-+	{
-+		.gaintime	= TSL2563_TIMING_400MS | TSL2563_TIMING_GAIN16,
-+		.min		= 0,
-+		.max		= 65534,
-+	}, {
-+		.gaintime	= TSL2563_TIMING_400MS | TSL2563_TIMING_GAIN1,
-+		.min		= 2048,
-+		.max		= 65534,
-+	}, {
-+		.gaintime	= TSL2563_TIMING_100MS | TSL2563_TIMING_GAIN1,
-+		.min		= 4095,
-+		.max		= 37177,
-+	}, {
-+		.gaintime	= TSL2563_TIMING_13MS | TSL2563_TIMING_GAIN1,
-+		.min		= 3000,
-+		.max		= 65535,
-+	},
-+};
-+
-+struct tsl2563_chip {
-+	struct mutex		lock;
-+	struct i2c_client	*client;
-+	struct device		*hwmon_dev;
-+
-+	/* Remember state for suspend and resume functions */
-+	pm_message_t		state;
-+
-+	struct tsl2563_gainlevel_coeff *gainlevel;
-+
-+	/* Thresholds are in lux */
-+	u16			low_thres;
-+	u16			high_thres;
-+	u8			intr;
-+
-+	/* Calibration coefficients */
-+	u32			calib0;
-+	u32			calib1;
-+
-+	/* Cache current values, to be returned while suspended */
-+	u32			data0;
-+	u32			data1;
-+};
-+
-+static int tsl2563_write(struct i2c_client *client, u8 reg, u8 value)
++static void tsc2005_cmd(struct tsc2005 *ts, u8 cmd)
 +{
-+	int ret;
-+	u8 buf[2];
++	u16 data = TSC2005_CMD | TSC2005_CMD_12BIT | cmd;
++	struct spi_message msg;
++	struct spi_transfer xfer = { 0 };
 +
-+	buf[0] = TSL2563_CMD | reg;
-+	buf[1] = value;
++	spi_message_init(&msg);
++	msg.spi = ts->spi;
++	xfer.tx_buf = &data;
++	xfer.rx_buf = NULL;
++	xfer.len = 2;
++	xfer.bits_per_word = 8;
 +
-+	ret = i2c_master_send(client, buf, sizeof(buf));
-+	return (ret == sizeof(buf)) ? 0 : ret;
++	spi_message_add_tail(&xfer, &msg);
++	spi_sync(ts->spi, &msg);
 +}
 +
-+static int tsl2563_read(struct i2c_client *client, u8 reg, void *buf, int len)
++static void tsc2005_write(struct tsc2005 *ts, u8 reg, u16 value)
 +{
-+	int ret;
-+	u8 cmd = TSL2563_CMD | reg;
++	u32 tx;
++	struct spi_message msg;
++	struct spi_transfer xfer = { 0 };
 +
-+	ret = i2c_master_send(client, &cmd, sizeof(cmd));
-+	if (ret != sizeof(cmd))
-+		return ret;
++	tx = (TSC2005_REG | reg | TSC2005_REG_PND0 |
++	       TSC2005_REG_WRITE) << (2 * 8);
++	tx |= value;
 +
-+	return i2c_master_recv(client, buf, len);
++	spi_message_init(&msg);
++	msg.spi = ts->spi;
++	xfer.tx_buf = &tx;
++	xfer.rx_buf = NULL;
++	xfer.len = 4;
++	xfer.bits_per_word = 3 * 8;
++
++	spi_message_add_tail(&xfer, &msg);
++	spi_sync(ts->spi, &msg);
 +}
 +
-+static int tsl2563_set_power(struct tsl2563_chip *chip, int on)
++static void tsc2005_ts_update_pen_state(struct tsc2005 *ts,
++					int x, int y, int pressure)
 +{
-+	struct i2c_client *client = chip->client;
-+	u8 cmd;
++	if (pressure) {
++		input_report_abs(ts->idev, ABS_X, x);
++		input_report_abs(ts->idev, ABS_Y, y);
++		input_report_abs(ts->idev, ABS_PRESSURE, pressure);
++		if (!ts->pen_down) {
++			input_report_key(ts->idev, BTN_TOUCH, 1);
++			ts->pen_down = 1;
++		}
++	} else {
++		input_report_abs(ts->idev, ABS_PRESSURE, 0);
++		if (ts->pen_down) {
++			input_report_key(ts->idev, BTN_TOUCH, 0);
++		}
++		ts->pen_down = 0;
++	}
 +
-+	cmd = on ? TSL2563_CMD_POWER_ON : TSL2563_CMD_POWER_OFF;
-+	return tsl2563_write(client, TSL2563_REG_CTRL, cmd);
++	input_sync(ts->idev);
 +}
 +
 +/*
-+ * Return value is 0 for off, 1 for on, or a negative error
-+ * code if reading failed.
++ * This function is called by the SPI framework after the coordinates
++ * have been read from TSC2005
 + */
-+static int tsl2563_get_power(struct tsl2563_chip *chip)
++static void tsc2005_ts_rx(void *arg)
 +{
-+	struct i2c_client *client = chip->client;
-+	int ret;
-+	u8 val;
++	struct tsc2005 *ts = arg;
++	unsigned long flags;
++	int inside_rect, pressure_limit;
++	int x, y, z1, z2, pressure;
 +
-+	ret = tsl2563_read(client, TSL2563_REG_CTRL, &val, sizeof(val));
-+	if (ret != sizeof(val))
-+		return ret;
++	spin_lock_irqsave(&ts->lock, flags);
 +
-+	return (val & TSL2563_CTRL_POWER_MASK) == TSL2563_CMD_POWER_ON;
-+}
++	x = ts->data[0];
++	y = ts->data[1];
++	z1 = ts->data[2];
++	z2 = ts->data[3];
 +
-+static int tsl2563_configure(struct tsl2563_chip *chip)
-+{
-+	struct i2c_client *client = chip->client;
-+	int ret;
-+	if ((ret = tsl2563_write(client, TSL2563_REG_TIMING,
-+			       chip->gainlevel->gaintime)))
++	/* validate pressure and position */
++	if (x > MAX_12BIT || y > MAX_12BIT)
 +		goto out;
 +
-+	ret = tsl2563_write(client, TSL2563_REG_INT, chip->intr);
++	/* skip coords if the pressure-components are out of range */
++	if (z1 < 100 || z2 > 4000)
++		goto out;
 +
++	/* don't run average on the "pen down" event */
++	if (ts->sample_sent) {
++		ts->avg_x += x;
++		ts->avg_y += y;
++		ts->avg_z1 += z1;
++		ts->avg_z2 += z2;
++
++		if (++ts->sample_cnt < TS_SAMPLES)
++			goto out;
++
++		x = ts->avg_x / TS_SAMPLES;
++		y = ts->avg_y / TS_SAMPLES;
++		z1 = ts->avg_z1 / TS_SAMPLES;
++		z2 = ts->avg_z2 / TS_SAMPLES;
++	}
++
++	ts->sample_cnt = 0;
++	ts->avg_x = 0;
++	ts->avg_y = 0;
++	ts->avg_z1 = 0;
++	ts->avg_z2 = 0;
++
++	if (z1) {
++		pressure = x * (z2 - z1) / z1;
++		pressure = pressure * ts->x_plate_ohm / 4096;
++	} else
++		goto out;
++
++	pressure_limit = ts->sample_sent? ts->p_max: ts->touch_pressure;
++	if (pressure > pressure_limit)
++		goto out;
++
++	/* discard the event if it still is within the previous rect - unless
++	 * if the pressure is harder, but then use previous x,y position */
++	inside_rect = (ts->sample_sent &&
++		x > (int)ts->x - TS_RECT_SIZE &&
++		x < (int)ts->x + TS_RECT_SIZE &&
++		y > (int)ts->y - TS_RECT_SIZE &&
++		y < (int)ts->y + TS_RECT_SIZE);
++	if (inside_rect)
++		x = ts->x, y = ts->y;
++
++	if (!inside_rect || pressure < ts->p) {
++		tsc2005_ts_update_pen_state(ts, x, y, pressure);
++		ts->sample_sent = 1;
++		ts->x = x;
++		ts->y = y;
++		ts->p = pressure;
++	}
 +out:
-+	return ret;
++	ts->spi_active = 0;
++	spin_unlock_irqrestore(&ts->lock, flags);
++
++	/* kick pen up timer - to make sure it expires again(!) */
++	if (ts->sample_sent)
++		mod_timer(&ts->penup_timer,
++			  jiffies + msecs_to_jiffies(TSC2005_TS_PENUP_TIME));
 +}
 +
-+static int tsl2563_detect(struct tsl2563_chip *chip)
++static void tsc2005_ts_penup_timer_handler(unsigned long data)
 +{
-+	int ret;
++	struct tsc2005 *ts = (struct tsc2005 *)data;
 +
-+	if ((ret = tsl2563_set_power(chip, 1)))
-+		return ret;
-+
-+	ret = tsl2563_get_power(chip);
-+	if (ret < 0)
-+		return ret;
-+
-+	return ret ? 0 : -ENODEV;
++	if (ts->sample_sent) {
++		tsc2005_ts_update_pen_state(ts, 0, 0, 0);
++		ts->sample_sent = 0;
++	}
 +}
 +
-+static int tsl2563_read_id(struct tsl2563_chip *chip, u8 *id)
++/*
++ * This interrupt is called when pen is down and coordinates are
++ * available. That is indicated by a falling edge on DEV line.
++ */
++static irqreturn_t tsc2005_ts_irq_handler(int irq, void *dev_id)
 +{
-+	struct i2c_client *client = chip->client;
-+	int ret;
++	struct tsc2005 *ts = dev_id;
++	int r;
 +
-+	ret = tsl2563_read(client, TSL2563_REG_ID, id, sizeof(*id));
-+	if (ret != sizeof(*id))
-+		return ret;
++	if (ts->spi_active) return IRQ_HANDLED;
++
++	ts->spi_active = 1;
++	r = spi_async(ts->spi, &ts->read_msg);
++	if (r)
++		dev_err(&ts->spi->dev, "ts: spi_async() failed");
++
++	/* kick pen up timer */
++	mod_timer(&ts->penup_timer,
++		  jiffies + msecs_to_jiffies(TSC2005_TS_PENUP_TIME));
++
++	return IRQ_HANDLED;
++}
++
++static void tsc2005_ts_setup_spi_xfer(struct tsc2005 *ts)
++{
++	struct spi_message *m = &ts->read_msg;
++	struct spi_transfer *x = &ts->read_xfer[0];
++	int i;
++
++	spi_message_init(m);
++	m->spi = ts->spi;
++
++	for (i = 0; i < NUM_READ_REGS; i++, x++ ) {
++		x->tx_buf = &tsc2005_read_reg[i];
++		x->rx_buf = &ts->data[i];
++		x->len = 4;
++		x->bits_per_word = 24;
++		x->cs_change = i < (NUM_READ_REGS - 1);
++		spi_message_add_tail(x, m);
++	}
++
++	m->complete = tsc2005_ts_rx;
++	m->context = ts;
++}
++
++static ssize_t tsc2005_ts_pen_down_show(struct device *dev,
++					struct device_attribute *attr,
++					char *buf)
++{
++	struct tsc2005 *tsc = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%u\n", tsc->pen_down);
++}
++
++static DEVICE_ATTR(pen_down, S_IRUGO, tsc2005_ts_pen_down_show, NULL);
++
++static int tsc2005_configure(struct tsc2005 *tsc, int flags)
++{
++	tsc2005_write(tsc, TSC2005_REG_CFR0, TSC2005_CFR0_INITVALUE);
++	tsc2005_write(tsc, TSC2005_REG_CFR1, TSC2005_CFR1_INITVALUE);
++	tsc2005_write(tsc, TSC2005_REG_CFR2, TSC2005_CFR2_INITVALUE);
++	tsc2005_cmd(tsc, flags);
 +
 +	return 0;
 +}
 +
-+/*
-+ * "Normalized" ADC value is one obtained with 400ms of integration time and
-+ * 16x gain. This function returns the number of bits of shift needed to
-+ * convert between normalized values and HW values obtained using given
-+ * timing and gain settings.
-+ */
-+static int adc_shiftbits(u8 timing)
++static void tsc2005_start_scan(struct tsc2005 *tsc)
 +{
-+	int shift = 0;
++	tsc2005_configure(tsc, TSC2005_CMD_SCAN_XYZZ);
++}
 +
-+	switch (timing & TSL2563_TIMING_MASK) {
-+	case TSL2563_TIMING_13MS:
-+		shift += 5;
-+		break;
-+	case TSL2563_TIMING_100MS:
-+		shift += 2;
-+		break;
-+	case TSL2563_TIMING_400MS:
-+		/* no-op */
-+		break;
++static void tsc2005_stop_scan(struct tsc2005 *tsc)
++{
++	tsc2005_cmd(tsc, TSC2005_CMD_STOP);
++}
++
++/* Must be called with mutex held */
++static void tsc2005_disable(struct tsc2005 *ts)
++{
++	if (ts->disable_depth++ != 0) {
++		return;
 +	}
++	disable_irq(ts->irq);
 +
-+	if (!(timing & TSL2563_TIMING_GAIN16))
-+		shift += 4;
++	/* wait until penup timer expire normally */
++	do {
++		msleep(4);
++	} while (ts->sample_sent);
 +
-+	return shift;
++	tsc2005_stop_scan(ts);
 +}
 +
-+/* Convert a HW ADC value to normalized scale. */
-+static u32 normalize_adc(u16 adc, u8 timing)
++static void tsc2005_enable(struct tsc2005 *ts)
 +{
-+	return adc << adc_shiftbits(timing);
-+}
-+
-+static void tsl2563_wait_adc(struct tsl2563_chip *chip)
-+{
-+	unsigned int delay;
-+
-+	switch (chip->gainlevel->gaintime & TSL2563_TIMING_MASK) {
-+	case TSL2563_TIMING_13MS:
-+		delay = 14;
-+		break;
-+	case TSL2563_TIMING_100MS:
-+		delay = 101;
-+		break;
-+	default:
-+		delay = 402;
++	if (--ts->disable_depth != 0) {
++		return;
 +	}
-+	/*
-+	 * TODO: Make sure that we wait at least required delay but why we
-+	 * have to extend it one tick more?
-+	 */
-+	schedule_timeout_interruptible(msecs_to_jiffies(delay) + 2);
++	enable_irq(ts->irq);
++
++	tsc2005_start_scan(ts);
 +}
 +
-+static int tsl2563_adjust_gainlevel(struct tsl2563_chip *chip, u16 adc)
++static ssize_t tsc2005_disable_show(struct device *dev,
++				    struct device_attribute *attr, char *buf)
 +{
-+	struct i2c_client *client = chip->client;
++	struct tsc2005 *ts = dev_get_drvdata(dev);
 +
-+	if (adc > chip->gainlevel->max || adc < chip->gainlevel->min) {
-+
-+		(adc > chip->gainlevel->max) ?
-+			chip->gainlevel++ : chip->gainlevel--;
-+
-+		tsl2563_write(client, TSL2563_REG_TIMING,
-+			      chip->gainlevel->gaintime);
-+
-+		tsl2563_wait_adc(chip);
-+		tsl2563_wait_adc(chip);
-+
-+		return 1;
-+	} else
-+		return 0;
++	return sprintf(buf, "%u\n", ts->disabled);
 +}
 +
-+static int tsl2563_get_adc(struct tsl2563_chip *chip)
++static ssize_t tsc2005_disable_store(struct device *dev,
++				     struct device_attribute *attr,
++				     const char *buf, size_t count)
 +{
-+	struct i2c_client *client = chip->client;
-+	u8 buf0[2], buf1[2];
-+	u16 adc0, adc1;
-+	int retry = 1;
-+	int ret = 0;
++	struct tsc2005		*tsc = dev_get_drvdata(dev);
++	char *endp;
++	int i;
 +
-+	if (chip->state.event != PM_EVENT_ON)
-+		goto out;
++	i = simple_strtoul(buf, &endp, 10);
++	i = i ? 1 : 0;
 +
-+	while (retry) {
-+		ret = tsl2563_read(client,
-+				   TSL2563_REG_DATA0LOW | TSL2563_CLEARINT,
-+				   buf0, sizeof(buf0));
-+		if (ret != sizeof(buf0))
-+			goto out;
++	mutex_lock(&tsc->mutex);
++	if (i == tsc->disabled) goto out;
++	tsc->disabled = i;
 +
-+		ret = tsl2563_read(client, TSL2563_REG_DATA1LOW,
-+				   buf1, sizeof(buf1));
-+		if (ret != sizeof(buf1))
-+			goto out;
-+
-+		adc0 = (buf0[1] << 8) + buf0[0];
-+		adc1 = (buf1[1] << 8) + buf1[0];
-+
-+		retry = tsl2563_adjust_gainlevel(chip, adc0);
-+	}
-+
-+	chip->data0 = normalize_adc(adc0, chip->gainlevel->gaintime);
-+	chip->data1 = normalize_adc(adc1, chip->gainlevel->gaintime);
-+
-+	ret = 0;
-+out:
-+	return ret;
-+}
-+
-+static inline int calib_to_sysfs(u32 calib)
-+{
-+	return (int) (((calib * CALIB_BASE_SYSFS) +
-+		       CALIB_FRAC_HALF) >> CALIB_FRAC_BITS);
-+}
-+
-+static inline u32 calib_from_sysfs(int value)
-+{
-+	return (((u32) value) << CALIB_FRAC_BITS) / CALIB_BASE_SYSFS;
-+}
-+
-+/*
-+ * Conversions between lux and ADC values.
-+ *
-+ * The basic formula is lux = c0 * adc0 - c1 * adc1, where c0 and c1 are
-+ * appropriate constants. Different constants are needed for different
-+ * kinds of light, determined by the ratio adc1/adc0 (basically the ratio
-+ * of the intensities in infrared and visible wavelengths). lux_table below
-+ * lists the upper threshold of the adc1/adc0 ratio and the corresponding
-+ * constants.
-+ */
-+
-+struct tsl2563_lux_coeff {
-+	unsigned long ch_ratio;
-+	unsigned long ch0_coeff;
-+	unsigned long ch1_coeff;
-+};
-+
-+static const struct tsl2563_lux_coeff lux_table[] = {
-+	{
-+		.ch_ratio	= FRAC10K(1300),
-+		.ch0_coeff	= FRAC10K(315),
-+		.ch1_coeff	= FRAC10K(262),
-+	}, {
-+		.ch_ratio	= FRAC10K(2600),
-+		.ch0_coeff	= FRAC10K(337),
-+		.ch1_coeff	= FRAC10K(430),
-+	}, {
-+		.ch_ratio	= FRAC10K(3900),
-+		.ch0_coeff	= FRAC10K(363),
-+		.ch1_coeff	= FRAC10K(529),
-+	}, {
-+		.ch_ratio	= FRAC10K(5200),
-+		.ch0_coeff	= FRAC10K(392),
-+		.ch1_coeff	= FRAC10K(605),
-+	}, {
-+		.ch_ratio	= FRAC10K(6500),
-+		.ch0_coeff	= FRAC10K(229),
-+		.ch1_coeff	= FRAC10K(291),
-+	}, {
-+		.ch_ratio	= FRAC10K(8000),
-+		.ch0_coeff	= FRAC10K(157),
-+		.ch1_coeff	= FRAC10K(180),
-+	}, {
-+		.ch_ratio	= FRAC10K(13000),
-+		.ch0_coeff	= FRAC10K(34),
-+		.ch1_coeff	= FRAC10K(26),
-+	}, {
-+		.ch_ratio	= ULONG_MAX,
-+		.ch0_coeff	= 0,
-+		.ch1_coeff	= 0,
-+	},
-+};
-+
-+/*
-+ * Convert normalized, scaled ADC values to lux.
-+ */
-+static unsigned int adc_to_lux(u32 adc0, u32 adc1)
-+{
-+	const struct tsl2563_lux_coeff *lp = lux_table;
-+	unsigned long ratio, lux, ch0 = adc0, ch1 = adc1;
-+
-+	ratio = ch0 ? ((ch1 << ADC_FRAC_BITS) / ch0) : ULONG_MAX;
-+
-+	while (lp->ch_ratio < ratio)
-+		lp++;
-+
-+	lux = ch0 * lp->ch0_coeff - ch1 * lp->ch1_coeff;
-+
-+	return (unsigned int) (lux >> ADC_FRAC_BITS);
-+}
-+
-+/*--------------------------------------------------------------*/
-+/*                      Sysfs interface                         */
-+/*--------------------------------------------------------------*/
-+
-+static ssize_t tsl2563_adc0_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct tsl2563_chip *chip = dev_get_drvdata(dev);
-+	int ret;
-+
-+	mutex_lock(&chip->lock);
-+
-+	ret = tsl2563_get_adc(chip);
-+	if (ret)
-+		return ret;
-+
-+	ret = snprintf(buf, PAGE_SIZE, "%d\n", chip->data0);
-+	mutex_unlock(&chip->lock);
-+
-+	return ret;
-+}
-+
-+static ssize_t tsl2563_adc1_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct tsl2563_chip *chip = dev_get_drvdata(dev);
-+	int ret;
-+
-+	mutex_lock(&chip->lock);
-+
-+	ret = tsl2563_get_adc(chip);
-+	if (ret)
-+		return ret;
-+
-+	ret = snprintf(buf, PAGE_SIZE, "%d\n", chip->data1);
-+	mutex_unlock(&chip->lock);
-+
-+	return ret;
-+}
-+
-+/* Apply calibration coefficient to ADC count. */
-+static u32 calib_adc(u32 adc, u32 calib)
-+{
-+	unsigned long scaled = adc;
-+
-+	scaled *= calib;
-+	scaled >>= CALIB_FRAC_BITS;
-+
-+	return (u32) scaled;
-+}
-+
-+static ssize_t tsl2563_lux_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct tsl2563_chip *chip = dev_get_drvdata(dev);
-+	u32 calib0, calib1;
-+	int ret;
-+
-+	mutex_lock(&chip->lock);
-+
-+	ret = tsl2563_get_adc(chip);
-+	if (ret)
-+		goto out;
-+
-+	calib0 = calib_adc(chip->data0, chip->calib0);
-+	calib1 = calib_adc(chip->data1, chip->calib1);
-+
-+	ret = snprintf(buf, PAGE_SIZE, "%d\n", adc_to_lux(calib0, calib1));
-+
-+out:
-+	mutex_unlock(&chip->lock);
-+	return ret;
-+}
-+
-+static ssize_t format_calib(char *buf, int len, u32 calib)
-+{
-+	return snprintf(buf, PAGE_SIZE, "%d\n", calib_to_sysfs(calib));
-+}
-+
-+static ssize_t tsl2563_calib0_show(struct device *dev,
-+				   struct device_attribute *attr, char *buf)
-+{
-+	struct tsl2563_chip *chip = dev_get_drvdata(dev);
-+	int ret;
-+
-+	mutex_lock(&chip->lock);
-+	ret = format_calib(buf, PAGE_SIZE, chip->calib0);
-+	mutex_unlock(&chip->lock);
-+	return ret;
-+}
-+
-+static ssize_t tsl2563_calib1_show(struct device *dev,
-+				   struct device_attribute *attr, char *buf)
-+{
-+	struct tsl2563_chip *chip = dev_get_drvdata(dev);
-+	int ret;
-+
-+	mutex_lock(&chip->lock);
-+	ret = format_calib(buf, PAGE_SIZE, chip->calib1);
-+	mutex_unlock(&chip->lock);
-+	return ret;
-+}
-+
-+static int do_calib_store(struct device *dev, const char *buf, size_t len,
-+			  int ch)
-+{
-+	struct tsl2563_chip *chip = dev_get_drvdata(dev);
-+	int value;
-+	u32 calib;
-+
-+	if (1 != sscanf(buf, "%d", &value))
-+		return -EINVAL;
-+
-+	calib = calib_from_sysfs(value);
-+
-+	if (ch)
-+		chip->calib1 = calib;
++	if (i)
++		tsc2005_disable(tsc);
 +	else
-+		chip->calib0 = calib;
-+
-+	return len;
++		tsc2005_enable(tsc);
++out:
++	mutex_unlock(&tsc->mutex);
++	return count;
 +}
 +
-+static ssize_t tsl2563_calib0_store(struct device *dev,
-+				    struct device_attribute *attr,
-+				    const char *buf, size_t len)
++static DEVICE_ATTR(disable_ts, 0664, tsc2005_disable_show,
++		   tsc2005_disable_store);
++
++
++static int __devinit tsc2005_ts_init(struct tsc2005 *ts,
++				     struct tsc2005_platform_data *pdata)
 +{
-+	return do_calib_store(dev, buf, len, 0);
++	struct input_dev *idev;
++	int dav_gpio, r;
++	int x_max, y_max;
++	int x_fudge, y_fudge, p_fudge;
++
++	if (pdata->dav_gpio < 0) {
++		dev_err(&ts->spi->dev, "need DAV GPIO");
++		return -EINVAL;
++	}
++	dav_gpio = pdata->dav_gpio;
++	ts->dav_gpio = dav_gpio;
++	dev_dbg(&ts->spi->dev, "TSC2005: DAV GPIO = %d\n", dav_gpio);
++
++#ifdef CONFIG_ARCH_OMAP
++	r = omap_request_gpio(dav_gpio);
++	if (r < 0) {
++		dev_err(&ts->spi->dev, "unable to get DAV GPIO");
++		goto err1;
++	}
++	omap_set_gpio_direction(dav_gpio, 1);
++	ts->irq = OMAP_GPIO_IRQ(dav_gpio);
++	dev_dbg(&ts->spi->dev, "TSC2005: DAV IRQ = %d\n", ts->irq);
++#endif
++	init_timer(&ts->penup_timer);
++	setup_timer(&ts->penup_timer, tsc2005_ts_penup_timer_handler,
++			(unsigned long)ts);
++
++	spin_lock_init(&ts->lock);
++	mutex_init(&ts->mutex);
++
++	ts->x_plate_ohm		= pdata->ts_x_plate_ohm ? : 280;
++	ts->hw_avg_max		= pdata->ts_hw_avg;
++	ts->stab_time		= pdata->ts_stab_time;
++	x_max			= pdata->ts_x_max ? : 4096;
++	x_fudge			= pdata->ts_x_fudge ? : 4;
++	y_max			= pdata->ts_y_max ? : 4096;
++	y_fudge			= pdata->ts_y_fudge ? : 8;
++	ts->p_max		= pdata->ts_pressure_max ? : MAX_12BIT;
++	ts->touch_pressure	= pdata->ts_touch_pressure ? : ts->p_max;
++	p_fudge			= pdata->ts_pressure_fudge ? : 2;
++
++	idev = input_allocate_device();
++	if (idev == NULL) {
++		r = -ENOMEM;
++		goto err2;
++	}
++
++	/*
++	 * TODO: should be "TSC2005 touchscreen", but X has hardcoded these
++	 * strings and doesn't accept TSC2005 yet...
++	 */
++	idev->name = "TSC2301 touchscreen";
++	snprintf(ts->phys, sizeof(ts->phys), "%s/input-ts",
++		 ts->spi->dev.bus_id);
++	idev->phys = ts->phys;
++
++	idev->evbit[0] = BIT(EV_ABS) | BIT(EV_KEY);
++	idev->absbit[0] = BIT(ABS_X) | BIT(ABS_Y) | BIT(ABS_PRESSURE);
++	ts->idev = idev;
++
++	tsc2005_ts_setup_spi_xfer(ts);
++
++	input_set_abs_params(idev, ABS_X, 0, x_max, x_fudge, 0);
++	input_set_abs_params(idev, ABS_Y, 0, y_max, y_fudge, 0);
++	input_set_abs_params(idev, ABS_PRESSURE, 0, ts->p_max, p_fudge, 0);
++
++	tsc2005_start_scan(ts);
++
++	r = request_irq(ts->irq, tsc2005_ts_irq_handler,
++			IRQF_TRIGGER_FALLING | IRQF_DISABLED |
++			IRQF_SAMPLE_RANDOM, "tsc2005", ts);
++	if (r < 0) {
++		dev_err(&ts->spi->dev, "unable to get DAV IRQ");
++		goto err3;
++	}
++
++	set_irq_wake(ts->irq, 1);
++
++	r = input_register_device(idev);
++	if (r < 0) {
++		dev_err(&ts->spi->dev, "can't register touchscreen device\n");
++		goto err4;
++	}
++
++	/* We can tolerate these failing */
++	if (device_create_file(&ts->spi->dev, &dev_attr_pen_down));
++	if (device_create_file(&ts->spi->dev, &dev_attr_disable_ts));
++
++	return 0;
++err4:
++	free_irq(ts->irq, ts);
++err3:
++	tsc2005_stop_scan(ts);
++	input_free_device(idev);
++err2:
++#ifdef CONFIG_ARCH_OMAP
++	omap_free_gpio(dav_gpio);
++#endif
++err1:
++	return r;
 +}
 +
-+static ssize_t tsl2563_calib1_store(struct device *dev,
-+				    struct device_attribute *attr,
-+				    const char *buf, size_t len)
++static int __devinit tsc2005_probe(struct spi_device *spi)
 +{
-+	return do_calib_store(dev, buf, len, 1);
-+}
++	struct tsc2005			*tsc;
++	struct tsc2005_platform_data	*pdata = spi->dev.platform_data;
++	int r;
 +
-+static DEVICE_ATTR(adc0, S_IRUGO, tsl2563_adc0_show, NULL);
-+static DEVICE_ATTR(adc1, S_IRUGO, tsl2563_adc1_show, NULL);
-+static DEVICE_ATTR(lux, S_IRUGO, tsl2563_lux_show, NULL);
-+static DEVICE_ATTR(calib0, S_IRUGO | S_IWUSR,
-+		   tsl2563_calib0_show, tsl2563_calib0_store);
-+static DEVICE_ATTR(calib1, S_IRUGO | S_IWUSR,
-+		   tsl2563_calib1_show, tsl2563_calib1_store);
++	if (!pdata) {
++		dev_dbg(&spi->dev, "no platform data?\n");
++		return -ENODEV;
++	}
 +
-+static struct attribute *tsl2563_attributes[] = {
-+	&dev_attr_adc0.attr,
-+	&dev_attr_adc1.attr,
-+	&dev_attr_lux.attr,
-+	&dev_attr_calib0.attr,
-+	&dev_attr_calib1.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group tsl2563_group = {
-+	.attrs = tsl2563_attributes,
-+};
-+
-+static int tsl2563_register_sysfs(struct i2c_client *client)
-+{
-+	struct device *dev = &client->dev;
-+
-+	return sysfs_create_group(&dev->kobj, &tsl2563_group);
-+}
-+
-+static void tsl2563_unregister_sysfs(struct i2c_client *client)
-+{
-+	struct device *dev = &client->dev;
-+
-+	sysfs_remove_group(&dev->kobj, &tsl2563_group);
-+}
-+
-+/*--------------------------------------------------------------*/
-+/*                      Probe, Attach, Remove                   */
-+/*--------------------------------------------------------------*/
-+static struct i2c_driver tsl2563_i2c_driver;
-+
-+static int tsl2563_probe(struct i2c_client *client)
-+{
-+	struct tsl2563_chip *chip;
-+	int err = 0;
-+	u8 id;
-+
-+	if (!(chip = kzalloc(sizeof(*chip), GFP_KERNEL)))
++	tsc = kzalloc(sizeof(*tsc), GFP_KERNEL);
++	if (tsc == NULL)
 +		return -ENOMEM;
 +
-+	i2c_set_clientdata(client, chip);
-+	chip->client = client;
++	dev_set_drvdata(&spi->dev, tsc);
++	tsc->spi = spi;
++	spi->dev.power.power_state = PMSG_ON;
 +
-+	if ((err = tsl2563_detect(chip))) {
-+		dev_err(&client->dev, "device not found, error %d \n", -err);
-+		goto fail1;
-+	}
++	spi->mode = SPI_MODE_0;
++	spi->bits_per_word = 8;
++	/* The max speed might've been defined by the board-specific
++	 * struct */
++	if (!spi->max_speed_hz)
++		spi->max_speed_hz = TSC2005_HZ;
 +
-+	if ((err = tsl2563_read_id(chip, &id)))
-+		goto fail1;
++	spi_setup(spi);
 +
-+	mutex_init(&chip->lock);
-+
-+	/* Default values used until userspace says otherwise */
-+	chip->low_thres = 0x0;
-+	chip->high_thres = 0xffff;
-+	chip->gainlevel = tsl2563_gainlevel_table;
-+	chip->intr = TSL2563_INT_PERSIST(4);
-+	chip->calib0 = calib_from_sysfs(CALIB_BASE_SYSFS);
-+	chip->calib1 = calib_from_sysfs(CALIB_BASE_SYSFS);
-+
-+	dev_info(&client->dev, "model %d, rev. %d\n", id >> 4, id & 0x0f);
-+
-+	if ((err = tsl2563_configure(chip)))
-+		goto fail1;
-+
-+	chip->hwmon_dev = hwmon_device_register(&client->dev);
-+	if (IS_ERR(chip->hwmon_dev))
-+		goto fail1;
-+
-+	if ((err = tsl2563_register_sysfs(client))) {
-+		dev_err(&client->dev, "sysfs registration failed, %d\n", err);
-+		goto fail2;
-+	}
++	r = tsc2005_ts_init(tsc, pdata);
++	if (r)
++		goto err1;
 +
 +	return 0;
-+fail2:
-+	hwmon_device_unregister(chip->hwmon_dev);
-+fail1:
-+	kfree(chip);
-+	return err;
++
++err1:
++	kfree(tsc);
++	return r;
 +}
 +
-+static int tsl2563_remove(struct i2c_client *client)
++static int __devexit tsc2005_remove(struct spi_device *spi)
 +{
-+	struct tsl2563_chip *chip = i2c_get_clientdata(client);
++	struct tsc2005 *ts = dev_get_drvdata(&spi->dev);
++	unsigned long flags;
 +
-+	tsl2563_unregister_sysfs(client);
-+	hwmon_device_unregister(chip->hwmon_dev);
++	spin_lock_irqsave(&ts->lock, flags);
++	tsc2005_disable(ts);
++	spin_unlock_irqrestore(&ts->lock, flags);
 +
-+	kfree(chip);
++	device_remove_file(&ts->spi->dev, &dev_attr_disable_ts);
++	device_remove_file(&ts->spi->dev, &dev_attr_pen_down);
++
++	free_irq(ts->irq, ts);
++	input_unregister_device(ts->idev);
++
++#ifdef CONFIG_ARCH_OMAP
++	omap_free_gpio(ts->dav_gpio);
++#endif
++	kfree(ts);
++
 +	return 0;
 +}
 +
-+static int tsl2563_suspend(struct i2c_client *client, pm_message_t state)
++#ifdef CONFIG_PM
++static int tsc2005_suspend(struct spi_device *spi, pm_message_t mesg)
 +{
-+	struct tsl2563_chip *chip = i2c_get_clientdata(client);
-+	int ret;
++	struct tsc2005 *ts = dev_get_drvdata(&spi->dev);
 +
-+	mutex_lock(&chip->lock);
++	mutex_lock(&ts->mutex);
++	tsc2005_disable(ts);
++	mutex_unlock(&ts->mutex);
 +
-+	if ((ret = tsl2563_set_power(chip, 0)))
-+		goto out;
-+
-+	chip->state = state;
-+
-+out:
-+	mutex_unlock(&chip->lock);
-+	return ret;
++	return 0;
 +}
 +
-+static int tsl2563_resume(struct i2c_client *client)
++static int tsc2005_resume(struct spi_device *spi)
 +{
-+	struct tsl2563_chip *chip = i2c_get_clientdata(client);
-+	int ret;
++	struct tsc2005 *ts = dev_get_drvdata(&spi->dev);
 +
-+	mutex_lock(&chip->lock);
++	mutex_lock(&ts->mutex);
++	tsc2005_enable(ts);
++	mutex_unlock(&ts->mutex);
 +
-+	if ((ret = tsl2563_set_power(chip, 1)))
-+		goto out;
-+
-+	if ((ret = tsl2563_configure(chip)))
-+		goto out;
-+
-+	chip->state.event = PM_EVENT_ON;
-+
-+out:
-+	mutex_unlock(&chip->lock);
-+	return ret;
++	return 0;
 +}
++#endif
 +
-+static struct i2c_driver tsl2563_i2c_driver = {
++static struct spi_driver tsc2005_driver = {
 +	.driver = {
-+		.name	 = DRIVER_NAME,
++		.name = "tsc2005",
++		.bus = &spi_bus_type,
++		.owner = THIS_MODULE,
 +	},
-+	.suspend	= tsl2563_suspend,
-+	.resume		= tsl2563_resume,
-+	.probe		= tsl2563_probe,
-+	.remove		= __exit_p(tsl2563_remove),
++#ifdef CONFIG_PM
++	.suspend = tsc2005_suspend,
++	.resume = tsc2005_resume,
++#endif
++	.probe = tsc2005_probe,
++	.remove = __devexit_p(tsc2005_remove),
 +};
 +
-+static int __init tsl2563_init(void)
++static int __init tsc2005_init(void)
 +{
-+	return i2c_add_driver(&tsl2563_i2c_driver);
-+}
++	printk("TSC2005 driver initializing\n");
 +
-+static void __exit tsl2563_exit(void)
++	return spi_register_driver(&tsc2005_driver);
++}
++module_init(tsc2005_init);
++
++static void __exit tsc2005_exit(void)
 +{
-+	i2c_del_driver(&tsl2563_i2c_driver);
++	spi_unregister_driver(&tsc2005_driver);
 +}
++module_exit(tsc2005_exit);
 +
-+MODULE_AUTHOR("Nokia Corporation");
-+MODULE_DESCRIPTION("tsl2563 light sensor driver");
++MODULE_AUTHOR("Lauri Leukkunen <lauri.leukkunen@nokia.com>");
 +MODULE_LICENSE("GPL");
 +
-+module_init(tsl2563_init);
-+module_exit(tsl2563_exit);
+diff --git a/include/linux/spi/tsc2005.h b/include/linux/spi/tsc2005.h
+new file mode 100644
+index 0000000..dbc01f7
+--- /dev/null
++++ b/include/linux/spi/tsc2005.h
+@@ -0,0 +1,29 @@
++#ifndef _LINUX_SPI_TSC2005_H
++#define _LINUX_SPI_TSC2005_H
++
++#include <linux/types.h>
++
++struct tsc2005_platform_data {
++	s16	reset_gpio;
++	s16	dav_gpio;
++	s16	pen_int_gpio;
++	u16	ts_x_plate_ohm;
++	u32	ts_stab_time;	/* voltage settling time */
++	u8	ts_hw_avg;	/* HW assiseted averaging. Can be
++				   0, 4, 8, 16 samples per reading */
++	u32	ts_touch_pressure;	/* Pressure limit until we report a
++					   touch event. After that we switch
++					   to ts_max_pressure. */
++	u32	ts_pressure_max;/* Samples with bigger pressure value will
++				   be ignored, since the corresponding X, Y
++				   values are unreliable */
++	u32	ts_pressure_fudge;
++	u32	ts_x_max;
++	u32	ts_x_fudge;
++	u32	ts_y_max;
++	u32	ts_y_fudge;
++
++	unsigned ts_ignore_last : 1;
++};
++
++#endif
 -- 
 1.5.5.rc3
 
