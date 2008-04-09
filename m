@@ -1,84 +1,43 @@
-From: "Eduardo Valentin" <edubezval@gmail.com>
-Subject: Re: [PATCH 1/5] I2C: LM8323: Introduce lm8323 keypad driver
-Date: Wed, 9 Apr 2008 14:33:56 +0300
-Message-ID: <a0580c510804090433u7ee5cd9fn8f3dcb40fdfb8cc4@mail.gmail.com>
-References: <1207735765-1356-1-git-send-email-felipe.balbi@nokia.com>
-	 <1207735765-1356-2-git-send-email-felipe.balbi@nokia.com>
-	 <a0580c510804090354m1c01cd60h86d1664390e0606d@mail.gmail.com>
-	 <20080409110256.GA23681@intune.research.nokia.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: source.mvista links are broken
+Date: Wed, 9 Apr 2008 06:53:23 -0500
+Message-ID: <3B6D69C3A9EBCA4BA5DA60D91302742903F9941B@dlee13.ent.ti.com>
+References: <87myo9a3kf.fsf@paris.hilman.org> <010C7BAE6783F34D9AC336EE5A01A08805C303DA@dbde01.ent.ti.com> <010C7BAE6783F34D9AC336EE5A01A08805C30581@dbde01.ent.ti.com> <20080408200839.GA31071@atomide.com> <5d5443650804090008l553e4773i259126743df6b49e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.177]:30868 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752465AbYDILd5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 07:33:57 -0400
-Received: by wa-out-1112.google.com with SMTP id v27so2149052wah.23
-        for <linux-omap@vger.kernel.org>; Wed, 09 Apr 2008 04:33:56 -0700 (PDT)
-In-Reply-To: <20080409110256.GA23681@intune.research.nokia.com>
-Content-Disposition: inline
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58172 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752248AbYDILxw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 07:53:52 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <5d5443650804090008l553e4773i259126743df6b49e@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Stone <daniel.stone@nokia.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Trilok Soni <soni.trilok@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, Kevin Hilman <khilman@mvista.com>, linux-omap@vger.kernel.org
 
-Hi Daniel,
+> I am not able to find x-loader git tree, maintained by Kyungmin Park
+> of Samsung on source.mvista.com?
 
-On Wed, Apr 9, 2008 at 2:02 PM, Daniel Stone <daniel.stone@nokia.com> wrote:
-> Hi,
->
->
->  On Wed, Apr 09, 2008 at 01:54:16PM +0300, ext Eduardo Valentin wrote:
->  > ERROR: do not initialise statics to 0 or NULL
->
-> > WARNING: braces {} are not necessary for single statement blocks
->
->  Yeah, these should be fixed.
->
->
->  > WARNING: consider using strict_strtoul in preference to simple_strtoul
->  > WARNING: consider using strict_strtoul in preference to simple_strtoul
->
->  I don't even know what strict_strtoul is, but okay.
->
->
->  > WARNING: line over 80 characters
->
-> > WARNING: do not add new typedefs
->
->  Sure.
->
->
->  > daniel.diff has style problems, please review.  If any of these errors
->  > are false positives report them to the maintainer, see
->  > CHECKPATCH in MAINTAINERS.
->  >
->  >
->  > I'd suggest using some #defines for lots for magic numbers in this code.
->
->  'lots'? The only ones I can see are the magic constant needed for reset
->  (used in one place and commented), and the default/max values for
->  debounce/active time, and max x/y, both of which are again only used in
->  a single place.
+I see the tree there.  There does seem to be some other junk intermixed
+in it.
 
-That's true. But, IMHO they still make the code difficult to read.
+http://source.mvista.com/gittrees/xloader.git/
 
->
->  Cheers,
->  Daniel
->
-> -----BEGIN PGP SIGNATURE-----
->  Version: GnuPG v1.4.6 (GNU/Linux)
->
->  iD8DBQFH/KJg68xJuWtYYdURAlUQAKCGvDHvm1DvmmIavnztgedxQj8pfACfVaEJ
->  GMOOUOVCzTEm7ULxwz5PE/Q=
->  =U9pC
->  -----END PGP SIGNATURE-----
->
->
+There are a couple additional side points about this tree:
+	- Some of his work was folded back into u-boot proper for
+OneNAND devices.  So there probably is a slow down of usage in this
+repository.
+	- TI has versions with 3430 and other board support on our web
+site.
+		- Along with more boards, there have been some changes
+we pulled back in from u-boot to support more compilers.  I don't think
+these ever went back out into this git tree.  It's a matter of who is
+using it and what its useful for.
 
+Regards,
+Richard W.
 
-
--- 
-Eduardo Bezerra Valentin
