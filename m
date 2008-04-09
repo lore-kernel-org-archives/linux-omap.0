@@ -1,419 +1,769 @@
 From: "Eduardo Valentin" <edubezval@gmail.com>
-Subject: Re: [PATCH 3/5] INPUT: TOUCHSCREEN: Introduce tsc2005 driver
-Date: Wed, 9 Apr 2008 14:17:48 +0300
-Message-ID: <a0580c510804090417t34bdbe66ge7a83c7e58b7c8f7@mail.gmail.com>
-References: <1207735452-989-1-git-send-email-felipe.balbi@nokia.com>
-	 <1207735452-989-2-git-send-email-felipe.balbi@nokia.com>
-	 <1207735452-989-3-git-send-email-felipe.balbi@nokia.com>
-	 <1207735452-989-4-git-send-email-felipe.balbi@nokia.com>
+Subject: Re: [PATCH 4/5] I2C: LP5521: Introduce lp5521 LED driver
+Date: Wed, 9 Apr 2008 14:32:10 +0300
+Message-ID: <a0580c510804090432q4bba8e8foc2f45ea90acdcb24@mail.gmail.com>
+References: <1207735765-1356-1-git-send-email-felipe.balbi@nokia.com>
+	 <1207735765-1356-2-git-send-email-felipe.balbi@nokia.com>
+	 <1207735765-1356-3-git-send-email-felipe.balbi@nokia.com>
+	 <1207735765-1356-4-git-send-email-felipe.balbi@nokia.com>
+	 <1207735765-1356-5-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.234]:18973 "EHLO
+Received: from wr-out-0506.google.com ([64.233.184.233]:32071 "EHLO
 	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753381AbYDILRv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 07:17:51 -0400
-Received: by wr-out-0506.google.com with SMTP id c48so2103070wra.1
-        for <linux-omap@vger.kernel.org>; Wed, 09 Apr 2008 04:17:49 -0700 (PDT)
-In-Reply-To: <1207735452-989-4-git-send-email-felipe.balbi@nokia.com>
+	with ESMTP id S1752559AbYDILcN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 07:32:13 -0400
+Received: by wr-out-0506.google.com with SMTP id c48so2109537wra.1
+        for <linux-omap@vger.kernel.org>; Wed, 09 Apr 2008 04:32:11 -0700 (PDT)
+In-Reply-To: <1207735765-1356-5-git-send-email-felipe.balbi@nokia.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Lauri Leukkunen <lauri.leukkunen@nokia.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Mathias Nyman <mathias.nyman@nokia.com>
 
-Hi Balbi and Lauri,
+Hi Mathias and Balbi,
 
-Again, a few style problems from checkpatch.
-ERROR: spaces required around that '=' (ctx:VxW)
-#131: FILE: arch/arm/mach-omap2/board-n800.c:418:
-+               .controller_data= &mipid_mcspi_config,
-                                ^
+A few comments from checkpatch for this code:
 
-ERROR: spaces required around that '=' (ctx:VxW)
-#139: FILE: arch/arm/mach-omap2/board-n800.c:426:
-+               .controller_data= &cx3110x_mcspi_config,
-                                ^
+ERROR: space required after that ',' (ctx:VxV)
+#397: FILE: drivers/i2c/chips/lp5521.c:277:
++       unsigned r,g,b;
+                  ^
 
-ERROR: spaces required around that '=' (ctx:VxW)
-#146: FILE: arch/arm/mach-omap2/board-n800.c:433:
-+               .controller_data= &tsc2005_mcspi_config,
-                                ^
-
-ERROR: spaces required around that '=' (ctx:VxW)
-#162: FILE: arch/arm/mach-omap2/board-n800.c:449:
-+                       tsc2005_config.ts_touch_pressure= 1500;
-                                                        ^
-
-ERROR: spaces required around that '=' (ctx:VxW)
-#165: FILE: arch/arm/mach-omap2/board-n800.c:452:
-+                       tsc2005_config.ts_pressure_fudge= 2;
-                                                        ^
-
-ERROR: spaces required around that '=' (ctx:VxW)
-#174: FILE: arch/arm/mach-omap2/board-n800.c:461:
-+                       tsc2005_config.ts_touch_pressure= 1500;
-                                                        ^
-
-ERROR: spaces required around that '=' (ctx:VxW)
-#177: FILE: arch/arm/mach-omap2/board-n800.c:464:
-+                       tsc2005_config.ts_pressure_fudge= 2;
-                                                        ^
+ERROR: space required after that ',' (ctx:VxV)
+#397: FILE: drivers/i2c/chips/lp5521.c:277:
++       unsigned r,g,b;
+                    ^
 
 WARNING: braces {} are not necessary for single statement blocks
-#531: FILE: drivers/input/touchscreen/tsc2005.c:274:
-+               if (ts->pen_down) {
-+                       input_report_key(ts->idev, BTN_TOUCH, 0);
-+               }
-
-ERROR: trailing statements should be on next line
-#644: FILE: drivers/input/touchscreen/tsc2005.c:387:
-+       if (ts->spi_active) return IRQ_HANDLED;
-
-ERROR: space prohibited before that close parenthesis ')'
-#667: FILE: drivers/input/touchscreen/tsc2005.c:410:
-+       for (i = 0; i < NUM_READ_REGS; i++, x++ ) {
-
-WARNING: braces {} are not necessary for single statement blocks
-#714: FILE: drivers/input/touchscreen/tsc2005.c:457:
-+       if (ts->disable_depth++ != 0) {
-+               return;
+#401: FILE: drivers/i2c/chips/lp5521.c:281:
++       if (ret != 3) {
++               return  -EINVAL;
 +       }
 
+ERROR: space prohibited after that open square bracket '['
+#424: FILE: drivers/i2c/chips/lp5521.c:304:
++       u8 pattern[ LP5521_PROGRAM_LENGTH ] = {0};
+
+ERROR: space prohibited before that close square bracket ']'
+#424: FILE: drivers/i2c/chips/lp5521.c:304:
++       u8 pattern[ LP5521_PROGRAM_LENGTH ] = {0};
+
 WARNING: braces {} are not necessary for single statement blocks
-#729: FILE: drivers/input/touchscreen/tsc2005.c:472:
-+       if (--ts->disable_depth != 0) {
-+               return;
+#523: FILE: drivers/i2c/chips/lp5521.c:403:
++       if (ret != 1) {
++               return  -EINVAL;
 +       }
 
-WARNING: consider using strict_strtoul in preference to simple_strtoul
-#753: FILE: drivers/input/touchscreen/tsc2005.c:496:
-+       i = simple_strtoul(buf, &endp, 10);
+ERROR: do not use assignment in if condition
+#553: FILE: drivers/i2c/chips/lp5521.c:433:
++       if ((ret = device_create_file(dev, &dev_attr_color)))
 
-ERROR: trailing statements should be on next line
-#757: FILE: drivers/input/touchscreen/tsc2005.c:500:
-+       if (i == tsc->disabled) goto out;
+ERROR: do not use assignment in if condition
+#555: FILE: drivers/i2c/chips/lp5521.c:435:
++       if ((ret = device_create_file(dev, &dev_attr_load)))
 
-WARNING: printk() should include KERN_ facility level
-#980: FILE: drivers/input/touchscreen/tsc2005.c:723:
-+       printk("TSC2005 driver initializing\n");
+ERROR: do not use assignment in if condition
+#557: FILE: drivers/i2c/chips/lp5521.c:437:
++       if ((ret = device_create_file(dev, &dev_attr_active_channels)))
 
-total: 10 errors, 5 warnings, 924 lines checked
+ERROR: do not use assignment in if condition
+#559: FILE: drivers/i2c/chips/lp5521.c:439:
++       if ((ret = device_create_file(dev, &dev_attr_mode)))
 
-lauri.diff has style problems, please review.  If any of these errors
+ERROR: do not use assignment in if condition
+#561: FILE: drivers/i2c/chips/lp5521.c:441:
++       if ((ret = device_create_file(dev, &dev_attr_led_current)))
+
+WARNING: space prohibited between function name and open parenthesis '('
+#604: FILE: drivers/i2c/chips/lp5521.c:484:
++       if (!strcmp (mode, LP5521_MODE_RUN))
+
+WARNING: space prohibited between function name and open parenthesis '('
+#607: FILE: drivers/i2c/chips/lp5521.c:487:
++       if (!strcmp (mode, LP5521_MODE_LOAD)) {
+
+WARNING: braces {} are not necessary for single statement blocks
+#607: FILE: drivers/i2c/chips/lp5521.c:487:
++       if (!strcmp (mode, LP5521_MODE_LOAD)) {
++               ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x15);
++       }
+
+ERROR: do not use assignment in if condition
+#639: FILE: drivers/i2c/chips/lp5521.c:519:
++       if ((ret = lp5521_configure(client)) < 0) {
+
+ERROR: do not use assignment in if condition
+#650: FILE: drivers/i2c/chips/lp5521.c:530:
++       if ((ret = lp5521_register_sysfs(client)))
+
+total: 11 errors, 5 warnings, 603 lines checked
+
+mathias2.diff has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
-
-On Wed, Apr 9, 2008 at 1:04 PM, Felipe Balbi <felipe.balbi@nokia.com> wrote:
-> From: Lauri Leukkunen <lauri.leukkunen@nokia.com>
-
-<snip>
->   static struct spi_board_info n800_spi_board_info[] __initdata = {
->  -       [0] = {
->  +       {
->                 .modalias       = "lcd_mipid",
->                 .bus_num        = 1,
->                 .chip_select    = 1,
->                 .max_speed_hz   = 4000000,
->                 .controller_data= &mipid_mcspi_config,
->                 .platform_data  = &n800_mipid_platform_data,
->  -       }, [1] = {
->  +       }, {
->                 .modalias       = "cx3110x",
->                 .bus_num        = 2,
->                 .chip_select    = 0,
->                 .max_speed_hz   = 48000000,
->                 .controller_data= &cx3110x_mcspi_config,
->  -       }, [2] = {
->  +       },
->  +       {
->                 .modalias       = "tsc2301",
->                 .bus_num        = 1,
->                 .chip_select    = 0,
->  @@ -395,6 +409,73 @@ static struct spi_board_info n800_spi_board_info[] __initdata = {
+On Wed, Apr 9, 2008 at 1:09 PM, Felipe Balbi <felipe.balbi@nokia.com> wrote:
+>
+> From: Mathias Nyman <mathias.nyman@nokia.com>
+>
+>  Introduce n810's lp5521 LED driver.
+>
+>  Signed-off-by: Mathias Nyman <mathias.nyman@nokia.com
+>
+>  Updated to new style i2c driver and to build on current
+>  linux-omap head.
+>
+>  Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+>  ---
+>   arch/arm/mach-omap2/board-n800.c |    4 +
+>   drivers/i2c/chips/Kconfig        |    7 +
+>   drivers/i2c/chips/Makefile       |    1 +
+>   drivers/i2c/chips/lp5521.c       |  573 ++++++++++++++++++++++++++++++++++++++
+>   4 files changed, 585 insertions(+), 0 deletions(-)
+>   create mode 100644 drivers/i2c/chips/lp5521.c
+>
+>  diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/board-n800.c
+>  index 7606870..b7205f0 100644
+>  --- a/arch/arm/mach-omap2/board-n800.c
+>  +++ b/arch/arm/mach-omap2/board-n800.c
+>  @@ -664,6 +664,10 @@ static struct i2c_board_info __initdata n800_i2c_board_info_2[] = {
+>                 I2C_BOARD_INFO("tsl2563", 0x29),
+>                 .type           = "tsl2563",
 >         },
+>  +       {
+>  +               I2C_BOARD_INFO("lp5521", 0x32),
+>  +               .type           = "lp5521",
+>  +       },
 >   };
 >
->  +static struct spi_board_info n810_spi_board_info[] __initdata = {
->  +       {
->  +               .modalias       = "lcd_mipid",
->  +               .bus_num        = 1,
->  +               .chip_select    = 1,
->  +               .max_speed_hz   = 4000000,
->  +               .controller_data= &mipid_mcspi_config,
->  +               .platform_data  = &n800_mipid_platform_data,
->  +       },
->  +       {
->  +               .modalias       = "cx3110x",
->  +               .bus_num        = 2,
->  +               .chip_select    = 0,
->  +               .max_speed_hz   = 48000000,
->  +               .controller_data= &cx3110x_mcspi_config,
->  +       },
->  +       {
->  +               .modalias       = "tsc2005",
->  +               .bus_num        = 1,
->  +               .chip_select    = 0,
->  +               .max_speed_hz   = 6000000,
->  +               .controller_data= &tsc2005_mcspi_config,
->  +               .platform_data  = &tsc2005_config,
->  +       },
+>   void __init nokia_n800_common_init(void)
+>  diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
+>  index dc4f140..c4000b5 100644
+>  --- a/drivers/i2c/chips/Kconfig
+>  +++ b/drivers/i2c/chips/Kconfig
+>  @@ -212,6 +212,13 @@ config SENSORS_TSL2563
+>           This driver can also be built as a module.  If so, the module
+>           will be called tsl2563.
+>
+>  +config LP5521
+>  +       tristate "LP5521 LED driver chip"
+>  +       depends on I2C
+>  +       help
+>  +         If you say yes here you get support for the National Semiconductor
+>  +         LP5521 LED driver.
+>  +
+>   config MENELAUS
+>         bool "TWL92330/Menelaus PM chip"
+>         depends on I2C=y && ARCH_OMAP24XX
+>  diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
+>  index e20fc10..1f81ebd 100644
+>  --- a/drivers/i2c/chips/Makefile
+>  +++ b/drivers/i2c/chips/Makefile
+>  @@ -30,6 +30,7 @@ obj-$(CONFIG_TWL4030_POWEROFF)        += twl4030-poweroff.o
+>   obj-$(CONFIG_TWL4030_PWRBUTTON)        += twl4030-pwrbutton.o
+>   obj-$(CONFIG_TWL4030_MADC)     += twl4030-madc.o
+>   obj-$(CONFIG_RTC_X1205_I2C)    += x1205.o
+>  +obj-$(CONFIG_LP5521)           += lp5521.o
+>
+>   ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
+>   EXTRA_CFLAGS += -DDEBUG
+>  diff --git a/drivers/i2c/chips/lp5521.c b/drivers/i2c/chips/lp5521.c
+>  new file mode 100644
+>  index 0000000..3e1e3eb
+>  --- /dev/null
+>  +++ b/drivers/i2c/chips/lp5521.c
+>  @@ -0,0 +1,573 @@
+>  +/*
+>  + * drivers/i2c/chips/lp5521.c
+>  + *
+>  + * Copyright (C) 2007 Nokia Corporation
+>  + *
+>  + * Written by Mathias Nyman <mathias.nyman@nokia.com>
+>  + *
+>  + * This program is free software; you can redistribute it and/or modify
+>  + * it under the terms of the GNU General Public License as published by
+>  + * the Free Software Foundation; either version 2 of the License, or
+>  + * (at your option) any later version.
+>  + *
+>  + * This program is distributed in the hope that it will be useful,
+>  + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>  + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+>  + * GNU General Public License for more details.
+>  + *
+>  + * You should have received a copy of the GNU General Public License
+>  + * along with this program; if not, write to the Free Software
+>  + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+>  + */
+>  +
+>  +#include <linux/module.h>
+>  +#include <linux/init.h>
+>  +#include <linux/i2c.h>
+>  +#include <linux/mutex.h>
+>  +#include <asm/arch/gpio.h>
+>  +
+>  +#define LP5521_DRIVER_NAME             "lp5521"
+>  +
+>  +#ifdef LED_CONNECTED_WRONG
+>  +#define LP5521_REG_R_PWM               0x04
+>  +#define LP5521_REG_B_PWM               0x02
+>  +#else
+>  +#define LP5521_REG_R_PWM               0x02
+>  +#define LP5521_REG_B_PWM               0x04
+>  +#endif
+>  +#define LP5521_REG_ENABLE              0x00
+>  +#define LP5521_REG_OP_MODE             0x01
+>  +#define LP5521_REG_G_PWM               0x03
+>  +#define LP5521_REG_R_CNTRL             0x05
+>  +#define LP5521_REG_G_CNTRL             0x06
+>  +#define LP5521_REG_B_CNTRL             0x07
+>  +#define LP5521_REG_MISC                        0x08
+>  +#define LP5521_REG_R_CHANNEL_PC                0x09
+>  +#define LP5521_REG_G_CHANNEL_PC                0x0a
+>  +#define LP5521_REG_B_CHANNEL_PC                0x0b
+>  +#define LP5521_REG_STATUS              0x0c
+>  +#define LP5521_REG_RESET               0x0d
+>  +#define LP5521_REG_GPO                 0x0e
+>  +#define LP5521_REG_R_PROG_MEM          0x10
+>  +#define LP5521_REG_G_PROG_MEM          0x30
+>  +#define LP5521_REG_B_PROG_MEM          0x50
+>  +
+>  +#define LP5521_MODE_LOAD               "load"
+>  +#define LP5521_MODE_RUN                        "run"
+>  +#define LP5521_MODE_DIRECT_CONTROL     "direct"
+>  +
+>  +#define LP5521_CURRENT_1m5             0x0f
+>  +#define LP5521_CURRENT_3m1             0x1f
+>  +#define LP5521_CURRENT_4m7             0x2f
+>  +#define LP5521_CURRENT_6m3             0x3f
+>  +#define LP5521_CURRENT_7m9             0x4f
+>  +#define LP5521_CURRENT_9m5             0x5f
+>  +#define LP5521_CURRENT_11m1            0x6f
+>  +#define LP5521_CURRENT_12m7            0x7f
+>  +#define LP5521_CURRENT_14m3            0x8f
+>  +#define LP5521_CURRENT_15m9            0x9f
+>  +#define LP5521_CURRENT_17m5            0xaf
+>  +#define LP5521_CURRENT_19m1            0xbf
+>  +#define LP5521_CURRENT_20m7            0xcf
+>  +#define LP5521_CURRENT_22m3            0xdf
+>  +#define LP5521_CURRENT_23m9            0xef
+>  +#define LP5521_CURRENT_25m5            0xff
+>  +
+>  +#define LP5521_PROGRAM_LENGTH          32      /* in bytes */
+>  +
+>  +struct lp5521_chip {
+>  +       struct mutex            lock;
+>  +       struct i2c_client       *client;
+>  +       char                    *mode;
+>  +       int                     red;
+>  +       int                     green;
+>  +       int                     blue;
 >  +};
 >  +
-
-What does the above changes have to do with tsc2005 driver?
-
->  +static void __init tsc2005_set_config(void)
-
-<snip>
-
+>  +static int lp5521_set_mode(struct lp5521_chip *chip, char *mode);
 >  +
->  +#ifdef CONFIG_ARCH_OMAP
->  +       r = omap_request_gpio(dav_gpio);
->  +       if (r < 0) {
->  +               dev_err(&ts->spi->dev, "unable to get DAV GPIO");
->  +               goto err1;
->  +       }
->  +       omap_set_gpio_direction(dav_gpio, 1);
->  +       ts->irq = OMAP_GPIO_IRQ(dav_gpio);
->  +       dev_dbg(&ts->spi->dev, "TSC2005: DAV IRQ = %d\n", ts->irq);
->  +#endif
-
-Shouldn't this go to board files?
-
->  +       init_timer(&ts->penup_timer);
->  +       setup_timer(&ts->penup_timer, tsc2005_ts_penup_timer_handler,
->  +                       (unsigned long)ts);
->  +
->  +       spin_lock_init(&ts->lock);
->  +       mutex_init(&ts->mutex);
->  +
->  +       ts->x_plate_ohm         = pdata->ts_x_plate_ohm ? : 280;
->  +       ts->hw_avg_max          = pdata->ts_hw_avg;
->  +       ts->stab_time           = pdata->ts_stab_time;
->  +       x_max                   = pdata->ts_x_max ? : 4096;
->  +       x_fudge                 = pdata->ts_x_fudge ? : 4;
->  +       y_max                   = pdata->ts_y_max ? : 4096;
->  +       y_fudge                 = pdata->ts_y_fudge ? : 8;
->  +       ts->p_max               = pdata->ts_pressure_max ? : MAX_12BIT;
->  +       ts->touch_pressure      = pdata->ts_touch_pressure ? : ts->p_max;
->  +       p_fudge                 = pdata->ts_pressure_fudge ? : 2;
->  +
->  +       idev = input_allocate_device();
->  +       if (idev == NULL) {
->  +               r = -ENOMEM;
->  +               goto err2;
->  +       }
->  +
->  +       /*
->  +        * TODO: should be "TSC2005 touchscreen", but X has hardcoded these
->  +        * strings and doesn't accept TSC2005 yet...
->  +        */
->  +       idev->name = "TSC2301 touchscreen";
->  +       snprintf(ts->phys, sizeof(ts->phys), "%s/input-ts",
->  +                ts->spi->dev.bus_id);
->  +       idev->phys = ts->phys;
->  +
->  +       idev->evbit[0] = BIT(EV_ABS) | BIT(EV_KEY);
->  +       idev->absbit[0] = BIT(ABS_X) | BIT(ABS_Y) | BIT(ABS_PRESSURE);
->  +       ts->idev = idev;
->  +
->  +       tsc2005_ts_setup_spi_xfer(ts);
->  +
->  +       input_set_abs_params(idev, ABS_X, 0, x_max, x_fudge, 0);
->  +       input_set_abs_params(idev, ABS_Y, 0, y_max, y_fudge, 0);
->  +       input_set_abs_params(idev, ABS_PRESSURE, 0, ts->p_max, p_fudge, 0);
->  +
->  +       tsc2005_start_scan(ts);
->  +
->  +       r = request_irq(ts->irq, tsc2005_ts_irq_handler,
->  +                       IRQF_TRIGGER_FALLING | IRQF_DISABLED |
->  +                       IRQF_SAMPLE_RANDOM, "tsc2005", ts);
->  +       if (r < 0) {
->  +               dev_err(&ts->spi->dev, "unable to get DAV IRQ");
->  +               goto err3;
->  +       }
->  +
->  +       set_irq_wake(ts->irq, 1);
->  +
->  +       r = input_register_device(idev);
->  +       if (r < 0) {
->  +               dev_err(&ts->spi->dev, "can't register touchscreen device\n");
->  +               goto err4;
->  +       }
->  +
->  +       /* We can tolerate these failing */
->  +       if (device_create_file(&ts->spi->dev, &dev_attr_pen_down));
->  +       if (device_create_file(&ts->spi->dev, &dev_attr_disable_ts));
->  +
->  +       return 0;
->  +err4:
->  +       free_irq(ts->irq, ts);
->  +err3:
->  +       tsc2005_stop_scan(ts);
->  +       input_free_device(idev);
->  +err2:
->  +#ifdef CONFIG_ARCH_OMAP
->  +       omap_free_gpio(dav_gpio);
->  +#endif
->  +err1:
->  +       return r;
+>  +static int lp5521_write(struct i2c_client *client, u8 reg, u8 value)
+>  +{
+>  +       return i2c_smbus_write_byte_data(client, reg, value);
 >  +}
 >  +
->  +static int __devinit tsc2005_probe(struct spi_device *spi)
+>  +static int lp5521_read(struct i2c_client *client, u8 reg, u8 *buf)
 >  +{
->  +       struct tsc2005                  *tsc;
->  +       struct tsc2005_platform_data    *pdata = spi->dev.platform_data;
->  +       int r;
+>  +       s32 ret = i2c_smbus_read_byte_data(client, reg);
 >  +
->  +       if (!pdata) {
->  +               dev_dbg(&spi->dev, "no platform data?\n");
->  +               return -ENODEV;
+>  +       if (ret < 0)
+>  +               return -EIO;
+>  +
+>  +       *buf = ret;
+>  +       return 0;
+>  +}
+>  +
+>  +static int lp5521_configure(struct i2c_client *client)
+>  +{
+>  +       int ret = 0;
+>  +
+>  +       /* Enable chip and set light to logarithmic mode*/
+>  +       ret |= lp5521_write(client, LP5521_REG_ENABLE, 0xc0);
+>  +
+>  +       /* setting all color pwms to direct control mode */
+>  +       ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x3f);
+>  +
+>  +       /* setting current to 4.7 mA for all channels */
+>  +       ret |= lp5521_write(client, LP5521_REG_R_CNTRL, LP5521_CURRENT_4m7);
+>  +       ret |= lp5521_write(client, LP5521_REG_G_CNTRL, LP5521_CURRENT_4m7);
+>  +       ret |= lp5521_write(client, LP5521_REG_B_CNTRL, LP5521_CURRENT_4m7);
+>  +
+>  +       /* Enable auto-powersave, set charge pump to auto, red to battery */
+>  +       ret |= lp5521_write(client, LP5521_REG_MISC, 0x3c);
+>  +
+>  +       /* initialize all channels pwm to zero */
+>  +       ret |= lp5521_write(client, LP5521_REG_R_PWM, 0);
+>  +       ret |= lp5521_write(client, LP5521_REG_G_PWM, 0);
+>  +       ret |= lp5521_write(client, LP5521_REG_B_PWM, 0);
+>  +
+>  +       /* Not much can be done about errors at this point */
+>  +       return ret;
+>  +}
+>  +
+>  +static int lp5521_load_program(struct lp5521_chip *chip, u8 *pattern)
+>  +{
+>  +       struct i2c_client *client = chip->client;
+>  +       int ret = 0;
+>  +
+>  +       /* Enter load program mode for all led channels */
+>  +       ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x15); /* 0001 0101 */
+>  +       if (ret)
+>  +               return ret;
+>  +
+>  +       if (chip->red)
+>  +               ret |= i2c_smbus_write_i2c_block_data(client,
+>  +                                                     LP5521_REG_R_PROG_MEM,
+>  +                                                     LP5521_PROGRAM_LENGTH,
+>  +                                                     pattern);
+>  +       if (chip->green)
+>  +               ret |= i2c_smbus_write_i2c_block_data(client,
+>  +                                                     LP5521_REG_G_PROG_MEM,
+>  +                                                     LP5521_PROGRAM_LENGTH,
+>  +                                                     pattern);
+>  +       if (chip->blue)
+>  +               ret |= i2c_smbus_write_i2c_block_data(client,
+>  +                                                     LP5521_REG_B_PROG_MEM,
+>  +                                                     LP5521_PROGRAM_LENGTH,
+>  +                                                     pattern);
+>  +
+>  +       return ret;
+>  +}
+>  +
+>  +static int lp5521_run_program(struct lp5521_chip *chip)
+>  +{
+>  +       struct i2c_client *client = chip->client;
+>  +       int ret;
+>  +       u8 mask = 0xc0;
+>  +       u8 exec_state = 0;
+>  +       u8 enable_reg;
+>  +
+>  +       ret = lp5521_read(client, LP5521_REG_ENABLE, &enable_reg);
+>  +       if (ret)
+>  +               goto fail;
+>  +
+>  +       enable_reg &= mask;
+>  +
+>  +       /* set all active channels exec state to countinous run*/
+>  +       exec_state |= (chip->red   << 5);
+>  +       exec_state |= (chip->green << 3);
+>  +       exec_state |= (chip->blue  << 1);
+>  +
+>  +       enable_reg |= exec_state;
+>  +
+>  +       ret |= lp5521_write(client, LP5521_REG_ENABLE, enable_reg);
+>  +
+>  +       /* set op-mode to run for active channels, disabled for others */
+>  +       ret |= lp5521_write(client, LP5521_REG_OP_MODE, exec_state);
+>  +
+>  +fail:
+>  +       return ret;
+>  +}
+
+Is these registers protected somehow? I think the above function may not
+work properly when in a preemptible mode.
+
+>  +
+>  +/*--------------------------------------------------------------*/
+>  +/*                     Sysfs interface                         */
+>  +/*--------------------------------------------------------------*/
+
+The above comment can be modified to follow the style for multiple
+lines comments.
+
+>  +
+>  +static ssize_t show_active_channels(struct device *dev,
+>  +                           struct device_attribute *attr,
+>  +                           char *buf)
+>  +{
+>  +       struct lp5521_chip *chip = dev_get_drvdata(dev);
+>  +       char channels[4];
+>  +       int pos = 0;
+>  +
+>  +#ifdef LED_CONNECTED_WRONG
+>  +       if (chip->blue)
+>  +               pos += sprintf(channels + pos, "r");
+>  +       if (chip->green)
+>  +               pos += sprintf(channels + pos, "g");
+>  +       if (chip->red)
+>  +               pos += sprintf(channels + pos, "b");
+>  +
+>  +#else
+>  +       if (chip->red)
+>  +               pos += sprintf(channels + pos, "r");
+>  +       if (chip->green)
+>  +               pos += sprintf(channels + pos, "g");
+>  +       if (chip->blue)
+>  +               pos += sprintf(channels + pos, "b");
+>  +#endif
+>  +
+>  +       channels[pos] = '\0';
+>  +
+>  +       return sprintf(buf, "%s\n", channels);
+>  +}
+>  +
+>  +static ssize_t store_active_channels(struct device *dev,
+>  +                            struct device_attribute *attr,
+>  +                            const char *buf, size_t len)
+>  +{
+>  +       struct lp5521_chip *chip = dev_get_drvdata(dev);
+>  +
+>  +       chip->red = 0;
+>  +       chip->green = 0;
+>  +       chip->blue = 0;
+>  +
+>  +#ifdef LED_CONNECTED_WRONG
+>  +       if (strchr(buf, 'r') != NULL)
+>  +               chip->blue = 1;
+>  +       if (strchr(buf, 'b') != NULL)
+>  +               chip->red = 1;
+>  +#else
+>  +       if (strchr(buf, 'r') != NULL)
+>  +               chip->red = 1;
+>  +       if (strchr(buf, 'b') != NULL)
+>  +               chip->blue = 1;
+>  +#endif
+>  +       if (strchr(buf, 'g') != NULL)
+>  +               chip->green = 1;
+>  +
+>  +       return len;
+>  +}
+>  +
+>  +static ssize_t show_color(struct device *dev,
+>  +                           struct device_attribute *attr,
+>  +                           char *buf)
+>  +{
+>  +       struct i2c_client *client = to_i2c_client(dev);
+>  +       int ret = 0;
+>  +       u8 r, g, b;
+>  +
+>  +       ret |= lp5521_read(client, LP5521_REG_R_PWM, &r);
+>  +       ret |= lp5521_read(client, LP5521_REG_G_PWM, &g);
+>  +       ret |= lp5521_read(client, LP5521_REG_B_PWM, &b);
+>  +
+>  +       if (ret)
+>  +               return ret;
+>  +
+>  +       return sprintf(buf, "%.2x:%.2x:%.2x\n", r, g, b);
+>  +}
+>  +
+>  +static ssize_t store_color(struct device *dev,
+>  +                            struct device_attribute *attr,
+>  +                            const char *buf, size_t len)
+>  +{
+>  +       struct i2c_client *client = to_i2c_client(dev);
+>  +       struct lp5521_chip *chip = i2c_get_clientdata(client);
+>  +       int ret;
+>  +       unsigned r,g,b;
+>  +
+>  +
+>  +       ret = sscanf(buf, "%2x:%2x:%2x", &r, &g, &b);
+>  +       if (ret != 3) {
+>  +               return  -EINVAL;
 >  +       }
 >  +
->  +       tsc = kzalloc(sizeof(*tsc), GFP_KERNEL);
->  +       if (tsc == NULL)
+>  +       mutex_lock(&chip->lock);
+>  +
+>  +       ret = lp5521_write(client, LP5521_REG_R_PWM, (u8)r);
+>  +       ret = lp5521_write(client, LP5521_REG_G_PWM, (u8)g);
+>  +       ret = lp5521_write(client, LP5521_REG_B_PWM, (u8)b);
+>  +
+>  +       mutex_unlock(&chip->lock);
+>  +
+>  +       return len;
+>  +}
+>  +
+>  +static ssize_t store_load(struct device *dev,
+>  +                            struct device_attribute *attr,
+>  +                            const char *buf, size_t len)
+>  +{
+>  +       struct lp5521_chip *chip = dev_get_drvdata(dev);
+>  +       int  ret, nrchars, offset = 0, i = 0;
+>  +       char c[3];
+>  +       unsigned cmd;
+>  +       u8 pattern[ LP5521_PROGRAM_LENGTH ] = {0};
+>  +
+>  +       while ((offset < len - 1) && (i < LP5521_PROGRAM_LENGTH)) {
+>  +
+>  +               /* separate sscanfs because length is working only for %s */
+>  +               ret = sscanf(buf + offset, "%2s%n ", c, &nrchars);
+>  +               ret = sscanf(c, "%2x", &cmd);
+>  +               if (ret != 1)
+>  +                       goto fail;
+>  +               pattern[i] = (u8)cmd;
+>  +
+>  +               offset += nrchars;
+>  +               i++;
+>  +       }
+>  +
+>  +       /* pattern commands are always two bytes long */
+>  +       if (i % 2)
+>  +               goto fail;
+>  +
+>  +       mutex_lock(&chip->lock);
+>  +
+>  +       ret = lp5521_load_program(chip, pattern);
+>  +       mutex_unlock(&chip->lock);
+>  +
+>  +       if (ret) {
+>  +               dev_err(dev, "lp5521 failed loading pattern\n");
+>  +               return ret;
+>  +       }
+>  +
+>  +       return len;
+>  +fail:
+>  +       dev_err(dev, "lp5521 wrong pattern format\n");
+>  +       return -EINVAL;
+>  +}
+>  +
+>  +static ssize_t show_mode(struct device *dev,
+>  +                        struct device_attribute *attr,
+>  +                        char *buf)
+>  +{
+>  +       struct lp5521_chip *chip = dev_get_drvdata(dev);
+>  +
+>  +       return sprintf(buf, "%s\n", chip->mode);
+>  +}
+>  +
+>  +static ssize_t store_mode(struct device *dev,
+>  +                         struct device_attribute *attr,
+>  +                         const char *buf, size_t len)
+>  +{
+>  +       struct lp5521_chip *chip = dev_get_drvdata(dev);
+>  +
+>  +       mutex_lock(&chip->lock);
+>  +
+>  +       if (!strncmp(buf, "run", 3))
+>  +               lp5521_set_mode(chip, LP5521_MODE_RUN);
+>  +       else if (!strncmp(buf, "load", 4))
+>  +               lp5521_set_mode(chip, LP5521_MODE_LOAD);
+>  +       else if (!strncmp(buf, "direct", 6))
+>  +               lp5521_set_mode(chip, LP5521_MODE_DIRECT_CONTROL);
+>  +
+>  +       mutex_unlock(&chip->lock);
+>  +
+>  +       return len;
+>  +}
+>  +
+>  +static ssize_t show_current(struct device *dev,
+>  +                           struct device_attribute *attr,
+>  +                           char *buf)
+>  +{
+>  +       struct i2c_client *client = to_i2c_client(dev);
+>  +       int ret = 0;
+>  +       u8 r_curr, g_curr, b_curr;
+>  +
+>  +       ret |= lp5521_read(client, LP5521_REG_R_CNTRL, &r_curr);
+>  +       ret |= lp5521_read(client, LP5521_REG_G_CNTRL, &g_curr);
+>  +       ret |= lp5521_read(client, LP5521_REG_B_CNTRL, &b_curr);
+>  +
+>  +       if (ret)
+>  +               return ret;
+>  +
+>  +       r_curr = r_curr >> 4;
+>  +       g_curr = g_curr >> 4;
+>  +       b_curr = b_curr >> 4;
+>  +
+>  +       if (r_curr == g_curr && g_curr == b_curr)
+>  +               return sprintf(buf, "%x\n", r_curr);
+>  +       else
+>  +               return sprintf(buf, "%x %x %x\n", r_curr, g_curr, b_curr);
+>  +}
+>  +
+>  +static ssize_t store_current(struct device *dev,
+>  +                            struct device_attribute *attr,
+>  +                            const char *buf, size_t len)
+>  +{
+>  +       struct lp5521_chip *chip = dev_get_drvdata(dev);
+>  +       struct i2c_client *client = chip->client;
+>  +       int ret;
+>  +       unsigned curr;
+>  +
+>  +       ret = sscanf(buf, "%1x", &curr);
+>  +       if (ret != 1) {
+>  +               return  -EINVAL;
+>  +       }
+>  +
+>  +       /* current level is determined by the 4 upper bits, rest is ones */
+>  +       curr = (curr << 4) | 0x0f;
+>  +
+>  +       mutex_lock(&chip->lock);
+>  +
+>  +       ret |= lp5521_write(client, LP5521_REG_R_CNTRL, (u8)curr);
+>  +       ret |= lp5521_write(client, LP5521_REG_G_CNTRL, (u8)curr);
+>  +       ret |= lp5521_write(client, LP5521_REG_B_CNTRL, (u8)curr);
+>  +
+>  +       mutex_unlock(&chip->lock);
+>  +
+>  +       return len;
+>  +}
+>  +
+>  +static DEVICE_ATTR(color, S_IRUGO | S_IWUGO, show_color, store_color);
+>  +static DEVICE_ATTR(load, S_IWUGO, NULL, store_load);
+>  +static DEVICE_ATTR(mode, S_IRUGO | S_IWUGO, show_mode, store_mode);
+>  +static DEVICE_ATTR(active_channels, S_IRUGO | S_IWUGO,
+>  +                  show_active_channels, store_active_channels);
+>  +static DEVICE_ATTR(led_current, S_IRUGO | S_IWUGO, show_current, store_current);
+>  +
+>  +static int lp5521_register_sysfs(struct i2c_client *client)
+>  +{
+>  +       struct device *dev = &client->dev;
+>  +       int ret;
+>  +
+>  +       if ((ret = device_create_file(dev, &dev_attr_color)))
+>  +               goto fail1;
+>  +       if ((ret = device_create_file(dev, &dev_attr_load)))
+>  +               goto fail2;
+>  +       if ((ret = device_create_file(dev, &dev_attr_active_channels)))
+>  +               goto fail3;
+>  +       if ((ret = device_create_file(dev, &dev_attr_mode)))
+>  +               goto fail4;
+>  +       if ((ret = device_create_file(dev, &dev_attr_led_current)))
+>  +               goto fail5;
+>  +       return 0;
+>  +
+>  +fail5:
+>  +       device_remove_file(dev, &dev_attr_mode);
+>  +fail4:
+>  +       device_remove_file(dev, &dev_attr_active_channels);
+>  +fail3:
+>  +       device_remove_file(dev, &dev_attr_load);
+>  +fail2:
+>  +       device_remove_file(dev, &dev_attr_color);
+>  +fail1:
+>  +       return ret;
+>  +}
+>  +
+>  +static void lp5521_unregister_sysfs(struct i2c_client *client)
+>  +{
+>  +       struct lp5521_chip *chip = i2c_get_clientdata(client);
+>  +       struct device *dev = &client->dev;
+>  +
+>  +       device_remove_file(dev, &dev_attr_led_current);
+>  +       device_remove_file(dev, &dev_attr_mode);
+>  +       device_remove_file(dev, &dev_attr_active_channels);
+>  +       device_remove_file(dev, &dev_attr_color);
+>  +
+>  +       if (!strcmp(chip->mode, LP5521_MODE_LOAD))
+>  +               device_remove_file(dev, &dev_attr_load);
+>  +}
+>  +
+>  +/*--------------------------------------------------------------*/
+>  +/*                     Set chip operating mode                 */
+>  +/*--------------------------------------------------------------*/
+>  +
+
+Previous comment applies here.
+
+>  +static int lp5521_set_mode(struct lp5521_chip *chip, char *mode)
+>  +{
+>  +       struct i2c_client *client = chip->client ;
+>  +       int ret = 0;
+>  +
+>  +       /* if in that mode already do nothing, except for run */
+>  +       if (!strcmp(mode, chip->mode) && strcmp(mode, LP5521_MODE_RUN))
+>  +               return 0;
+>  +
+>  +       if (!strcmp (mode, LP5521_MODE_RUN))
+>  +               ret = lp5521_run_program(chip);
+>  +
+>  +       if (!strcmp (mode, LP5521_MODE_LOAD)) {
+>  +               ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x15);
+>  +       }
+>  +
+>  +       if (!strcmp(mode, LP5521_MODE_DIRECT_CONTROL))
+>  +               ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x3F);
+>  +
+>  +       chip->mode = mode;
+>  +
+>  +       return ret;
+>  +}
+>  +
+>  +/*--------------------------------------------------------------*/
+>  +/*                     Probe, Attach, Remove                   */
+>  +/*--------------------------------------------------------------*/
+
+And here as well.
+
+>  +static struct i2c_driver lp5521_driver;
+>  +
+>  +static int lp5521_probe(struct i2c_client *client)
+>  +{
+>  +       struct lp5521_chip *chip;
+>  +       int ret = 0;
+>  +
+>  +       chip = kzalloc(sizeof(*chip), GFP_KERNEL);
+>  +       if (!chip)
 >  +               return -ENOMEM;
 >  +
->  +       dev_set_drvdata(&spi->dev, tsc);
->  +       tsc->spi = spi;
->  +       spi->dev.power.power_state = PMSG_ON;
+>  +       chip->client    = client;
+>  +       strncpy(client->name, LP5521_DRIVER_NAME, I2C_NAME_SIZE);
+>  +       i2c_set_clientdata(client, chip);
 >  +
->  +       spi->mode = SPI_MODE_0;
->  +       spi->bits_per_word = 8;
->  +       /* The max speed might've been defined by the board-specific
->  +        * struct */
->  +       if (!spi->max_speed_hz)
->  +               spi->max_speed_hz = TSC2005_HZ;
+>  +       mutex_init(&chip->lock);
 >  +
->  +       spi_setup(spi);
+>  +       if ((ret = lp5521_configure(client)) < 0) {
+>  +               dev_err(&client->dev, "lp5521 error configuring chip \n");
+>  +               goto fail1;
+>  +       }
 >  +
->  +       r = tsc2005_ts_init(tsc, pdata);
->  +       if (r)
->  +               goto err1;
+>  +       /* Set default values */
+>  +       chip->mode      = LP5521_MODE_DIRECT_CONTROL;
+>  +       chip->red       = 1;
+>  +       chip->green     = 1;
+>  +       chip->blue      = 1;
 >  +
->  +       return 0;
+>  +       if ((ret = lp5521_register_sysfs(client)))
+>  +               dev_err(&client->dev, "lp5521 registering sysfs failed \n");
 >  +
->  +err1:
->  +       kfree(tsc);
->  +       return r;
+>  +       return ret;
+>  +
+>  +fail1:
+>  +       kfree(chip);
+>  +       return ret;
 >  +}
 >  +
->  +static int __devexit tsc2005_remove(struct spi_device *spi)
+>  +static int lp5521_remove(struct i2c_client *client)
 >  +{
->  +       struct tsc2005 *ts = dev_get_drvdata(&spi->dev);
->  +       unsigned long flags;
+>  +       struct lp5521_chip *chip = i2c_get_clientdata(client);
 >  +
->  +       spin_lock_irqsave(&ts->lock, flags);
->  +       tsc2005_disable(ts);
->  +       spin_unlock_irqrestore(&ts->lock, flags);
->  +
->  +       device_remove_file(&ts->spi->dev, &dev_attr_disable_ts);
->  +       device_remove_file(&ts->spi->dev, &dev_attr_pen_down);
->  +
->  +       free_irq(ts->irq, ts);
->  +       input_unregister_device(ts->idev);
->  +
->  +#ifdef CONFIG_ARCH_OMAP
->  +       omap_free_gpio(ts->dav_gpio);
->  +#endif
->  +       kfree(ts);
+>  +       lp5521_unregister_sysfs(client);
+>  +       kfree(chip);
 >  +
 >  +       return 0;
 >  +}
 >  +
->  +#ifdef CONFIG_PM
->  +static int tsc2005_suspend(struct spi_device *spi, pm_message_t mesg)
->  +{
->  +       struct tsc2005 *ts = dev_get_drvdata(&spi->dev);
->  +
->  +       mutex_lock(&ts->mutex);
->  +       tsc2005_disable(ts);
->  +       mutex_unlock(&ts->mutex);
->  +
->  +       return 0;
->  +}
->  +
->  +static int tsc2005_resume(struct spi_device *spi)
->  +{
->  +       struct tsc2005 *ts = dev_get_drvdata(&spi->dev);
->  +
->  +       mutex_lock(&ts->mutex);
->  +       tsc2005_enable(ts);
->  +       mutex_unlock(&ts->mutex);
->  +
->  +       return 0;
->  +}
->  +#endif
->  +
->  +static struct spi_driver tsc2005_driver = {
+>  +static struct i2c_driver lp5521_driver = {
 >  +       .driver = {
->  +               .name = "tsc2005",
->  +               .bus = &spi_bus_type,
->  +               .owner = THIS_MODULE,
+>  +               .name   = LP5521_DRIVER_NAME,
 >  +       },
->  +#ifdef CONFIG_PM
->  +       .suspend = tsc2005_suspend,
->  +       .resume = tsc2005_resume,
->  +#endif
->  +       .probe = tsc2005_probe,
->  +       .remove = __devexit_p(tsc2005_remove),
+>  +       .probe          = lp5521_probe,
+>  +       .remove         = __exit_p(lp5521_remove),
 >  +};
 >  +
->  +static int __init tsc2005_init(void)
+>  +static int __init lp5521_init(void)
 >  +{
->  +       printk("TSC2005 driver initializing\n");
->  +
->  +       return spi_register_driver(&tsc2005_driver);
+>  +       return i2c_add_driver(&lp5521_driver);
 >  +}
->  +module_init(tsc2005_init);
 >  +
->  +static void __exit tsc2005_exit(void)
+>  +static void __exit lp5521_exit(void)
 >  +{
->  +       spi_unregister_driver(&tsc2005_driver);
+>  +       i2c_del_driver(&lp5521_driver);
 >  +}
->  +module_exit(tsc2005_exit);
 >  +
->  +MODULE_AUTHOR("Lauri Leukkunen <lauri.leukkunen@nokia.com>");
+>  +MODULE_AUTHOR("Mathias Nyman <mathias.nyman@nokia.com>");
+>  +MODULE_DESCRIPTION("lp5521 LED driver");
 >  +MODULE_LICENSE("GPL");
 >  +
->  diff --git a/include/linux/spi/tsc2005.h b/include/linux/spi/tsc2005.h
->  new file mode 100644
->  index 0000000..dbc01f7
->  --- /dev/null
->  +++ b/include/linux/spi/tsc2005.h
->  @@ -0,0 +1,29 @@
->  +#ifndef _LINUX_SPI_TSC2005_H
->  +#define _LINUX_SPI_TSC2005_H
->  +
->  +#include <linux/types.h>
->  +
->  +struct tsc2005_platform_data {
->  +       s16     reset_gpio;
->  +       s16     dav_gpio;
->  +       s16     pen_int_gpio;
->  +       u16     ts_x_plate_ohm;
->  +       u32     ts_stab_time;   /* voltage settling time */
->  +       u8      ts_hw_avg;      /* HW assiseted averaging. Can be
->  +                                  0, 4, 8, 16 samples per reading */
->  +       u32     ts_touch_pressure;      /* Pressure limit until we report a
->  +                                          touch event. After that we switch
->  +                                          to ts_max_pressure. */
->  +       u32     ts_pressure_max;/* Samples with bigger pressure value will
->  +                                  be ignored, since the corresponding X, Y
->  +                                  values are unreliable */
->  +       u32     ts_pressure_fudge;
->  +       u32     ts_x_max;
->  +       u32     ts_x_fudge;
->  +       u32     ts_y_max;
->  +       u32     ts_y_fudge;
->  +
->  +       unsigned ts_ignore_last : 1;
->  +};
->  +
->  +#endif
+>  +module_init(lp5521_init);
+>  +module_exit(lp5521_exit);
 >  --
 >  1.5.5.rc3
 >
