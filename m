@@ -1,240 +1,202 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 3/5] INPUT: TOUCHSCREEN: Introduce tsc2005 driver
-Date: Wed,  9 Apr 2008 13:04:10 +0300
-Message-ID: <1207735452-989-4-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 1/5] I2C: LM8323: Introduce lm8323 keypad driver
+Date: Wed,  9 Apr 2008 13:04:08 +0300
+Message-ID: <1207735452-989-2-git-send-email-felipe.balbi@nokia.com>
 References: <1207735452-989-1-git-send-email-felipe.balbi@nokia.com>
- <1207735452-989-2-git-send-email-felipe.balbi@nokia.com>
- <1207735452-989-3-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:36705 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:36692 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752483AbYDIKFS (ORCPT
+	with ESMTP id S1751634AbYDIKFS (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Apr 2008 06:05:18 -0400
-In-Reply-To: <1207735452-989-3-git-send-email-felipe.balbi@nokia.com>
+In-Reply-To: <1207735452-989-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Lauri Leukkunen <lauri.leukkunen@nokia.com>, Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, Daniel Stone <daniel.stone@nokia.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-From: Lauri Leukkunen <lauri.leukkunen@nokia.com>
+From: Daniel Stone <daniel.stone@nokia.com>
 
-Introduce n810's tsc2005 driver
+Introduce lm8323 keypad driver.
 
-Signed-off-by: Lauri Leukkunen <lauri.leukkunen@nokia.com>
+Signed-off-by: Daniel Stone <daniel.stone@nokia.com
 
-Updated to build with current linux-omap.
+Updated to build with recent linux-omap and new-style
+i2c driver.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- arch/arm/mach-omap2/board-n800.c    |   95 +++++-
- drivers/input/keyboard/Kconfig      |    2 +-
- drivers/input/touchscreen/Kconfig   |    5 +
- drivers/input/touchscreen/Makefile  |    1 +
- drivers/input/touchscreen/tsc2005.c |  737 +++++++++++++++++++++++++++++++++++
- include/linux/spi/tsc2005.h         |   29 ++
- 6 files changed, 864 insertions(+), 5 deletions(-)
- create mode 100644 drivers/input/touchscreen/tsc2005.c
- create mode 100644 include/linux/spi/tsc2005.h
+ arch/arm/mach-omap2/board-n800.c |   77 ++++
+ arch/arm/mach-omap2/board-n810.c |    2 +
+ drivers/input/keyboard/Kconfig   |    7 +
+ drivers/input/keyboard/Makefile  |    1 +
+ drivers/input/keyboard/lm8323.c  |  921 ++++++++++++++++++++++++++++++++++++++
+ include/linux/i2c/lm8323.h       |   45 ++
+ 6 files changed, 1053 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/input/keyboard/lm8323.c
+ create mode 100644 include/linux/i2c/lm8323.h
 
 diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/board-n800.c
-index 7a41245..7606870 100644
+index 758e2c1..367e518 100644
 --- a/arch/arm/mach-omap2/board-n800.c
 +++ b/arch/arm/mach-omap2/board-n800.c
-@@ -18,6 +18,7 @@
- #include <linux/platform_device.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/tsc2301.h>
-+#include <linux/spi/tsc2005.h>
- #include <linux/input.h>
- #include <linux/delay.h>
+@@ -23,6 +23,7 @@
  #include <linux/interrupt.h>
-@@ -371,21 +372,34 @@ static struct omap2_mcspi_device_config cx3110x_mcspi_config = {
- 	.single_channel = 1,
- };
+ #include <linux/irq.h>
+ #include <linux/i2c.h>
++#include <linux/i2c/lm8323.h>
+ #include <asm/hardware.h>
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -48,6 +49,76 @@
+ #define N800_DAV_IRQ_GPIO		103
+ #define N800_TSC2301_RESET_GPIO		118
  
-+#ifdef CONFIG_TOUCHSCREEN_TSC2005
-+static struct tsc2005_platform_data tsc2005_config = {
-+	.reset_gpio = 94,
-+	.dav_gpio = 106
++#ifdef CONFIG_MACH_NOKIA_N810
++static s16 rx44_keymap[LM8323_KEYMAP_SIZE] = {
++	[0x01] = KEY_Q,
++	[0x02] = KEY_K,
++	[0x03] = KEY_O,
++	[0x04] = KEY_P,
++	[0x05] = KEY_BACKSPACE,
++	[0x06] = KEY_A,
++	[0x07] = KEY_S,
++	[0x08] = KEY_D,
++	[0x09] = KEY_F,
++	[0x0a] = KEY_G,
++	[0x0b] = KEY_H,
++	[0x0c] = KEY_J,
++
++	[0x11] = KEY_W,
++	[0x12] = KEY_F4,
++	[0x13] = KEY_L,
++	[0x14] = KEY_APOSTROPHE,
++	[0x16] = KEY_Z,
++	[0x17] = KEY_X,
++	[0x18] = KEY_C,
++	[0x19] = KEY_V,
++	[0x1a] = KEY_B,
++	[0x1b] = KEY_N,
++	[0x1c] = KEY_LEFTSHIFT, /* Actually, this is both shift keys */
++	[0x1f] = KEY_F7,
++
++	[0x21] = KEY_E,
++	[0x22] = KEY_SEMICOLON,
++	[0x23] = KEY_MINUS,
++	[0x24] = KEY_EQUAL,
++	[0x2b] = KEY_FN,
++	[0x2c] = KEY_M,
++	[0x2f] = KEY_F8,
++
++	[0x31] = KEY_R,
++	[0x32] = KEY_RIGHTCTRL,
++	[0x34] = KEY_SPACE,
++	[0x35] = KEY_COMMA,
++	[0x37] = KEY_UP,
++	[0x3c] = KEY_COMPOSE,
++	[0x3f] = KEY_F6,
++
++	[0x41] = KEY_T,
++	[0x44] = KEY_DOT,
++	[0x46] = KEY_RIGHT,
++	[0x4f] = KEY_F5,
++	[0x51] = KEY_Y,
++	[0x53] = KEY_DOWN,
++	[0x55] = KEY_ENTER,
++	[0x5f] = KEY_ESC,
++
++	[0x61] = KEY_U,
++	[0x64] = KEY_LEFT,
++
++	[0x71] = KEY_I,
++	[0x75] = KEY_KPENTER,
 +};
 +
-+static struct omap2_mcspi_device_config tsc2005_mcspi_config = {
-+	.turbo_mode	= 0,
-+	.single_channel = 1,
++static struct lm8323_platform_data lm8323_pdata = {
++	.repeat = 0, /* Repeat is handled in userspace for now. */
++	.keymap = rx44_keymap,
++
++	.name = "Internal keyboard",
++	.pwm1_name = "keyboard",
++	.pwm2_name = "cover",
 +};
 +#endif
 +
- static struct spi_board_info n800_spi_board_info[] __initdata = {
--	[0] = {
-+	{
- 		.modalias	= "lcd_mipid",
- 		.bus_num	= 1,
- 		.chip_select	= 1,
- 		.max_speed_hz	= 4000000,
- 		.controller_data= &mipid_mcspi_config,
- 		.platform_data	= &n800_mipid_platform_data,
--	}, [1] = {
-+	}, {
- 		.modalias	= "cx3110x",
- 		.bus_num	= 2,
- 		.chip_select	= 0,
- 		.max_speed_hz   = 48000000,
- 		.controller_data= &cx3110x_mcspi_config,
--	}, [2] = {
-+	},
-+	{
- 		.modalias	= "tsc2301",
- 		.bus_num	= 1,
- 		.chip_select	= 0,
-@@ -395,6 +409,73 @@ static struct spi_board_info n800_spi_board_info[] __initdata = {
+ void __init nokia_n800_init_irq(void)
+ {
+ 	omap2_init_common_hw();
+@@ -502,6 +573,12 @@ static struct i2c_board_info __initdata n800_i2c_board_info_2[] = {
+ 		I2C_BOARD_INFO("tea5761", 0x10),
  	},
+ #endif
++	{
++		I2C_BOARD_INFO("lm8323", 0x45),
++		.type		= "lm8323",
++		.irq		= OMAP_GPIO_IRQ(109),
++		.platform_data	= &lm8323_pdata,
++	},
  };
  
-+static struct spi_board_info n810_spi_board_info[] __initdata = {
-+	{
-+		.modalias	= "lcd_mipid",
-+		.bus_num	= 1,
-+		.chip_select	= 1,
-+		.max_speed_hz	= 4000000,
-+		.controller_data= &mipid_mcspi_config,
-+		.platform_data	= &n800_mipid_platform_data,
-+	},
-+	{
-+		.modalias	= "cx3110x",
-+		.bus_num	= 2,
-+		.chip_select	= 0,
-+		.max_speed_hz   = 48000000,
-+		.controller_data= &cx3110x_mcspi_config,
-+	},
-+	{
-+		.modalias	= "tsc2005",
-+		.bus_num	= 1,
-+		.chip_select	= 0,
-+		.max_speed_hz   = 6000000,
-+		.controller_data= &tsc2005_mcspi_config,
-+		.platform_data  = &tsc2005_config,
-+	},
-+};
-+
-+static void __init tsc2005_set_config(void)
-+{
-+	const struct omap_lcd_config *conf;
-+
-+	conf = omap_get_config(OMAP_TAG_LCD, struct omap_lcd_config);
-+	if (conf != NULL) {
-+#ifdef CONFIG_TOUCHSCREEN_TSC2005
-+		if (strcmp(conf->panel_name, "lph8923") == 0) {
-+			tsc2005_config.ts_x_plate_ohm	= 180;
-+			tsc2005_config.ts_hw_avg	= 0;
-+			tsc2005_config.ts_ignore_last	= 0;
-+			tsc2005_config.ts_touch_pressure= 1500;
-+			tsc2005_config.ts_stab_time	= 100;
-+			tsc2005_config.ts_pressure_max	= 2048;
-+			tsc2005_config.ts_pressure_fudge= 2;
-+			tsc2005_config.ts_x_max		= 4096;
-+			tsc2005_config.ts_x_fudge	= 4;
-+			tsc2005_config.ts_y_max		= 4096;
-+			tsc2005_config.ts_y_fudge	= 7;
-+		} else if (strcmp(conf->panel_name, "ls041y3") == 0) {
-+			tsc2005_config.ts_x_plate_ohm	= 280;
-+			tsc2005_config.ts_hw_avg	= 0;
-+			tsc2005_config.ts_ignore_last	= 0;
-+			tsc2005_config.ts_touch_pressure= 1500;
-+			tsc2005_config.ts_stab_time	= 1000;
-+			tsc2005_config.ts_pressure_max	= 2048;
-+			tsc2005_config.ts_pressure_fudge= 2;
-+			tsc2005_config.ts_x_max		= 4096;
-+			tsc2005_config.ts_x_fudge	= 4;
-+			tsc2005_config.ts_y_max		= 4096;
-+			tsc2005_config.ts_y_fudge	= 7;
-+		} else {
-+			printk(KERN_ERR "Unknown panel type, set default "
-+			       "touchscreen configuration\n");
-+			tsc2005_config.ts_x_plate_ohm	= 200;
-+			tsc2005_config.ts_stab_time	= 100;
-+		}
-+#endif
-+	}
-+}
-+
- #if defined(CONFIG_CBUS_RETU) && defined(CONFIG_LEDS_OMAP_PWM)
+ void __init nokia_n800_common_init(void)
+diff --git a/arch/arm/mach-omap2/board-n810.c b/arch/arm/mach-omap2/board-n810.c
+index c4f4dd5..fb0e61f 100644
+--- a/arch/arm/mach-omap2/board-n810.c
++++ b/arch/arm/mach-omap2/board-n810.c
+@@ -10,6 +10,8 @@
+  */
  
- void retu_keypad_led_set_power(struct omap_pwm_led_platform_data *self,
-@@ -595,8 +676,14 @@ void __init nokia_n800_common_init(void)
- 	n800_dsp_init();
- 	n800_usb_init();
- 	n800_cam_init();
--	spi_register_board_info(n800_spi_board_info,
-+	if (machine_is_nokia_n800())
-+		spi_register_board_info(n800_spi_board_info,
- 				ARRAY_SIZE(n800_spi_board_info));
-+	if (machine_is_nokia_n810()) {
-+		tsc2005_set_config();
-+		spi_register_board_info(n810_spi_board_info,
-+				ARRAY_SIZE(n810_spi_board_info));
-+	}
- 	omap_serial_init();
- 	omap_register_i2c_bus(1, 400, n800_i2c_board_info_1,
- 			      ARRAY_SIZE(n800_i2c_board_info_1));
+ #include <linux/init.h>
++#include <linux/i2c.h>
++#include <linux/i2c/lm8323.h>
+ 
+ #include <asm/hardware.h>
+ #include <asm/mach-types.h>
 diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
-index a8be2dc..137f7e4 100644
+index 1c22930..a8be2dc 100644
 --- a/drivers/input/keyboard/Kconfig
 +++ b/drivers/input/keyboard/Kconfig
-@@ -286,7 +286,7 @@ config KEYBOARD_TSC2301
+@@ -285,6 +285,13 @@ config KEYBOARD_TSC2301
+ 	help
  	  Say Y here for if you are using the keypad features of TSC2301.
  
- config KEYBOARD_LM8323
--	bool "LM8323 keypad chip"
-+	tristate "LM8323 keypad chip"
- 	depends on I2C
- 	help
- 	  If you say yes here you get support for the National Semiconductor
-diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
-index f3c45b6..1542e16 100644
---- a/drivers/input/touchscreen/Kconfig
-+++ b/drivers/input/touchscreen/Kconfig
-@@ -185,6 +185,11 @@ config TOUCHSCREEN_UCB1400
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ucb1400_ts.
- 
-+config TOUCHSCREEN_TSC2005
-+	tristate "TSC2005 touchscreen support"
++config KEYBOARD_LM8323
++	bool "LM8323 keypad chip"
++	depends on I2C
 +	help
-+	  Say Y here for if you are using the touchscreen features of TSC2301.
++	  If you say yes here you get support for the National Semiconductor
++	  LM8323 keypad controller.
 +
- config TOUCHSCREEN_TSC2102
- 	tristate "TSC 2102 based touchscreens"
- 	depends on SPI_MASTER
-diff --git a/drivers/input/touchscreen/Makefile b/drivers/input/touchscreen/Makefile
-index bdd2571..51d3a23 100644
---- a/drivers/input/touchscreen/Makefile
-+++ b/drivers/input/touchscreen/Makefile
-@@ -19,6 +19,7 @@ obj-$(CONFIG_TOUCHSCREEN_PENMOUNT)	+= penmount.o
- obj-$(CONFIG_TOUCHSCREEN_TOUCHRIGHT)	+= touchright.o
- obj-$(CONFIG_TOUCHSCREEN_TOUCHWIN)	+= touchwin.o
- obj-$(CONFIG_TOUCHSCREEN_UCB1400)	+= ucb1400_ts.o
-+obj-$(CONFIG_TOUCHSCREEN_TSC2005)	+= tsc2005.o
- obj-$(CONFIG_TOUCHSCREEN_TSC2102)	+= tsc2102_ts.o
- obj-$(CONFIG_TOUCHSCREEN_OMAP)	+= omap/
- obj-$(CONFIG_TOUCHSCREEN_TSC210X)	+= tsc210x_ts.o
-diff --git a/drivers/input/touchscreen/tsc2005.c b/drivers/input/touchscreen/tsc2005.c
+ config KEYBOARD_PXA27x
+ 	tristate "PXA27x/PXA3xx keypad support"
+ 	depends on PXA27x || PXA3xx
+diff --git a/drivers/input/keyboard/Makefile b/drivers/input/keyboard/Makefile
+index bc0bbc1..ec447cd 100644
+--- a/drivers/input/keyboard/Makefile
++++ b/drivers/input/keyboard/Makefile
+@@ -21,6 +21,7 @@ obj-$(CONFIG_KEYBOARD_HIL_OLD)		+= hilkbd.o
+ obj-$(CONFIG_KEYBOARD_OMAP)		+= omap-keypad.o
+ obj-$(CONFIG_OMAP_PS2)			+= innovator_ps2.o
+ obj-$(CONFIG_KEYBOARD_TSC2301)		+= tsc2301_kp.o
++obj-$(CONFIG_KEYBOARD_LM8323)		+= lm8323.o
+ obj-$(CONFIG_KEYBOARD_TWL4030)		+= omap-twl4030keypad.o
+ obj-$(CONFIG_KEYBOARD_PXA27x)		+= pxa27x_keypad.o
+ obj-$(CONFIG_KEYBOARD_AAED2000)		+= aaed2000_kbd.o
+diff --git a/drivers/input/keyboard/lm8323.c b/drivers/input/keyboard/lm8323.c
 new file mode 100644
-index 0000000..2ef7309
+index 0000000..f43451d
 --- /dev/null
-+++ b/drivers/input/touchscreen/tsc2005.c
-@@ -0,0 +1,737 @@
++++ b/drivers/input/keyboard/lm8323.c
+@@ -0,0 +1,921 @@
 +/*
-+ * TSC2005 touchscreen driver
++ * drivers/i2c/chips/lm8323.c
 + *
-+ * Copyright (C) 2006-2008 Nokia Corporation
++ * Copyright (C) 2007 Nokia Corporation
 + *
-+ * Author: Lauri Leukkunen <lauri.leukkunen@nokia.com>
-+ * based on TSC2301 driver by Klaus K. Pedersen <klaus.k.pedersen@nokia.com>
++ * Written by Daniel Stone <daniel.stone@nokia.com>
++ *            Timo O. Karjalainen <timo.o.karjalainen@nokia.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ * the Free Software Foundation (version 2 of the License only).
 + *
 + * This program is distributed in the hope that it will be useful,
 + * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -244,757 +206,958 @@ index 0000000..2ef7309
 + * You should have received a copy of the GNU General Public License
 + * along with this program; if not, write to the Free Software
 + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ *
 + */
 +
-+#include <linux/kernel.h>
 +#include <linux/module.h>
-+#include <linux/input.h>
++#include <linux/i2c.h>
 +#include <linux/interrupt.h>
++#include <linux/sched.h>
++#include <linux/mutex.h>
 +#include <linux/delay.h>
-+#include <linux/spi/spi.h>
++#include <linux/input.h>
++#include <linux/leds.h>
++#include <linux/i2c/lm8323.h>
 +
-+#ifdef CONFIG_ARCH_OMAP
-+#include <asm/arch/gpio.h>
++#include <asm/mach-types.h>
++#include <asm/mach/irq.h>
++
++#ifdef VERBOSE
++#define debug dev_dbg
++#else
++#define debug(...)
 +#endif
 +
-+#include <linux/spi/tsc2005.h>
++/* Commands to send to the chip. */
++#define LM8323_CMD_READ_ID		0x80 /* Read chip ID. */
++#define LM8323_CMD_WRITE_CFG		0x81 /* Set configuration item. */
++#define LM8323_CMD_READ_INT		0x82 /* Get interrupt status. */
++#define LM8323_CMD_RESET		0x83 /* Reset, same as external one */
++#define LM8323_CMD_WRITE_PORT_SEL	0x85 /* Set GPIO in/out. */
++#define LM8323_CMD_WRITE_PORT_STATE	0x86 /* Set GPIO pullup. */
++#define LM8323_CMD_READ_PORT_SEL	0x87 /* Get GPIO in/out. */
++#define LM8323_CMD_READ_PORT_STATE	0x88 /* Get GPIO pullup. */
++#define LM8323_CMD_READ_FIFO		0x89 /* Read byte from FIFO. */
++#define LM8323_CMD_RPT_READ_FIFO	0x8a /* Read FIFO (no increment). */
++#define LM8323_CMD_SET_ACTIVE		0x8b /* Set active time. */
++#define LM8323_CMD_READ_ERR		0x8c /* Get error status. */
++#define LM8323_CMD_READ_ROTATOR		0x8e /* Read rotator status. */
++#define LM8323_CMD_SET_DEBOUNCE		0x8f /* Set debouncing time. */
++#define LM8323_CMD_SET_KEY_SIZE		0x90 /* Set keypad size. */
++#define LM8323_CMD_READ_KEY_SIZE	0x91 /* Get keypad size. */
++#define LM8323_CMD_READ_CFG		0x92 /* Get configuration item. */
++#define LM8323_CMD_WRITE_CLOCK		0x93 /* Set clock config. */
++#define LM8323_CMD_READ_CLOCK		0x94 /* Get clock config. */
++#define LM8323_CMD_PWM_WRITE		0x95 /* Write PWM script. */
++#define LM8323_CMD_START_PWM		0x96 /* Start PWM engine. */
++#define LM8323_CMD_STOP_PWM		0x97 /* Stop PWM engine. */
 +
-+/**
-+ * The touchscreen interface operates as follows:
-+ *
-+ * Initialize:
-+ *    Request access to GPIO103 (DAV)
-+ *    tsc2005_dav_irq_handler will trigger when DAV line goes down
-+ *
-+ *  1) Pen is pressed against touchscreeen
-+ *  2) TSC2005 performs AD conversion
-+ *  3) After the conversion is done TSC2005 drives DAV line down
-+ *  4) GPIO IRQ is received and tsc2005_dav_irq_handler is called
-+ *  5) tsc2005_ts_irq_handler queues up an spi transfer to fetch
-+ *     the x, y, z1, z2 values
-+ *  6) tsc2005_ts_rx() reports coordinates to input layer and
-+ *     sets up tsc2005_ts_timer() to be called after TSC2005_TS_SCAN_TIME
-+ *  7)  When the penup_timer expires, there have not been DAV interrupts
-+ *     during the last 20ms which means the pen has been lifted.
++/* Interrupt status. */
++#define INT_KEYPAD			0x01 /* Key event. */
++#define INT_ROTATOR			0x02 /* Rotator event. */
++#define INT_ERROR			0x08 /* Error: use CMD_READ_ERR. */
++#define INT_NOINIT			0x10 /* Lost configuration. */
++#define INT_PWM1			0x20 /* PWM1 stopped. */
++#define INT_PWM2			0x40 /* PWM2 stopped. */
++#define INT_PWM3			0x80 /* PWM3 stopped. */
++
++/* Errors (signalled by INT_ERROR, read with CMD_READ_ERR). */
++#define ERR_BADPAR			0x01 /* Bad parameter. */
++#define ERR_CMDUNK			0x02 /* Unknown command. */
++#define ERR_KEYOVR			0x04 /* Too many keys pressed. */
++#define ERR_FIFOOVER			0x40 /* FIFO overflow. */
++
++/* Configuration keys (CMD_{WRITE,READ}_CFG). */
++#define CFG_MUX1SEL			0x01 /* Select MUX1_OUT input. */
++#define CFG_MUX1EN			0x02 /* Enable MUX1_OUT. */
++#define CFG_MUX2SEL			0x04 /* Select MUX2_OUT input. */
++#define CFG_MUX2EN			0x08 /* Enable MUX2_OUT. */
++#define CFG_PSIZE			0x20 /* Package size (must be 0). */
++#define CFG_ROTEN			0x40 /* Enable rotator. */
++
++/* Clock settings (CMD_{WRITE,READ}_CLOCK). */
++#define CLK_RCPWM_INTERNAL		0x00
++#define CLK_RCPWM_EXTERNAL		0x03
++#define CLK_SLOWCLKEN			0x08 /* Enable 32.768kHz clock. */
++#define CLK_SLOWCLKOUT			0x40 /* Enable slow pulse output. */
++
++/* The possible addresses corresponding to CONFIG1 and CONFIG2 pin wirings. */
++#define LM8323_I2C_ADDR00		(0x84 >> 1)	/* 1000 010x */
++#define LM8323_I2C_ADDR01		(0x86 >> 1)	/* 1000 011x */
++#define LM8323_I2C_ADDR10		(0x88 >> 1)	/* 1000 100x */
++#define LM8323_I2C_ADDR11		(0x8A >> 1)	/* 1000 101x */
++
++/* Key event fifo length */
++#define LM8323_FIFO_LEN			15
++
++/* Commands for PWM engine; feed in with PWM_WRITE. */
++/* Load ramp counter from duty cycle field (range 0 - 0xff). */
++#define PWM_SET(v)			(0x4000 | ((v) & 0xff))
++/* Go to start of script. */
++#define PWM_GOTOSTART			0x0000
++/*
++ * Stop engine (generates interrupt).  If reset is 1, clear the program
++ * counter, else leave it.
 + */
++#define PWM_END(reset)			(0xc000 | (!!(reset) << 11))
++/*
++ * Ramp.  If s is 1, divide clock by 512, else divide clock by 16.
++ * Take t clock scales (up to 63) per step, for n steps (up to 126).
++ * If u is set, ramp up, else ramp down.
++ */
++#define PWM_RAMP(s, t, n, u)		((!!(s) << 14) | ((t) & 0x3f) << 8 | \
++					 ((n) & 0x7f) | ((u) ? 0 : 0x80))
++/*
++ * Loop (i.e. jump back to pos) for a given number of iterations (up to 63).
++ * If cnt is zero, execute until PWM_END is encountered.
++ */
++#define PWM_LOOP(cnt, pos)		(0xa000 | (((cnt) & 0x3f) << 7) | \
++					 ((pos) & 0x3f))
++/*
++ * Wait for trigger.  Argument is a mask of channels, shifted by the channel
++ * number, e.g. 0xa for channels 3 and 1.  Note that channels are numbered
++ * from 1, not 0.
++ */
++#define PWM_WAIT_TRIG(chans)		(0xe000 | (((chans) & 0x7) << 6))
++/* Send trigger.  Argument is same as PWM_WAIT_TRIG. */
++#define PWM_SEND_TRIG(chans)		(0xe000 | ((chans) & 0x7))
 +
-+#define TSC2005_HZ	(14000000)
++#define DRIVER_NAME  "lm8323"
 +
-+#define TSC2005_CMD	(0x80)
-+#define TSC2005_REG	(0x00)
-+
-+#define TSC2005_CMD_STOP	(1)
-+#define TSC2005_CMD_10BIT	(0 << 2)
-+#define TSC2005_CMD_12BIT	(1 << 2)
-+
-+#define TSC2005_CMD_SCAN_XYZZ	(0 << 3)
-+#define TSC2005_CMD_SCAN_XY	(1 << 3)
-+#define TSC2005_CMD_SCAN_X	(2 << 3)
-+#define TSC2005_CMD_SCAN_Y	(3 << 3)
-+#define TSC2005_CMD_SCAN_ZZ	(4 << 3)
-+#define TSC2005_CMD_AUX_SINGLE	(5 << 3)
-+#define TSC2005_CMD_TEMP1	(6 << 3)
-+#define TSC2005_CMD_TEMP2	(7 << 3)
-+#define TSC2005_CMD_AUX_CONT	(8 << 3)
-+#define TSC2005_CMD_TEST_X_CONN	(9 << 3)
-+#define TSC2005_CMD_TEST_Y_CONN	(10 << 3)
-+/* command 11 reserved */
-+#define TSC2005_CMD_TEST_SHORT	(12 << 3)
-+#define TSC2005_CMD_DRIVE_XX	(13 << 3)
-+#define TSC2005_CMD_DRIVE_YY	(14 << 3)
-+#define TSC2005_CMD_DRIVE_YX	(15 << 3)
-+
-+#define TSC2005_REG_X		(0 << 3)
-+#define TSC2005_REG_Y		(1 << 3)
-+#define TSC2005_REG_Z1		(2 << 3)
-+#define TSC2005_REG_Z2		(3 << 3)
-+#define TSC2005_REG_AUX		(4 << 3)
-+#define TSC2005_REG_TEMP1	(5 << 3)
-+#define TSC2005_REG_TEMP2	(6 << 3)
-+#define TSC2005_REG_STATUS	(7 << 3)
-+#define TSC2005_REG_AUX_HIGH	(8 << 3)
-+#define TSC2005_REG_AUX_LOW	(9 << 3)
-+#define TSC2005_REG_TEMP_HIGH	(10 << 3)
-+#define TSC2005_REG_TEMP_LOW	(11 << 3)
-+#define TSC2005_REG_CFR0	(12 << 3)
-+#define TSC2005_REG_CFR1	(13 << 3)
-+#define TSC2005_REG_CFR2	(14 << 3)
-+#define TSC2005_REG_FUNCTION	(15 << 3)
-+
-+#define TSC2005_REG_PND0	(1 << 1)
-+#define TSC2005_REG_READ	(0x01)
-+#define TSC2005_REG_WRITE	(0x00)
-+
-+
-+#define TSC2005_CFR0_LONGSAMPLING	(1)
-+#define TSC2005_CFR0_DETECTINWAIT	(1 << 1)
-+#define TSC2005_CFR0_SENSETIME_32US	(0)
-+#define TSC2005_CFR0_SENSETIME_96US	(1 << 2)
-+#define TSC2005_CFR0_SENSETIME_544US	(1 << 3)
-+#define TSC2005_CFR0_SENSETIME_2080US	(1 << 4)
-+#define TSC2005_CFR0_SENSETIME_2656US	(0x001C)
-+#define TSC2005_CFR0_PRECHARGE_20US	(0x0000)
-+#define TSC2005_CFR0_PRECHARGE_84US	(0x0020)
-+#define TSC2005_CFR0_PRECHARGE_276US	(0x0040)
-+#define TSC2005_CFR0_PRECHARGE_1044US	(0x0080)
-+#define TSC2005_CFR0_PRECHARGE_1364US	(0x00E0)
-+#define TSC2005_CFR0_STABTIME_0US	(0x0000)
-+#define TSC2005_CFR0_STABTIME_100US	(0x0100)
-+#define TSC2005_CFR0_STABTIME_500US	(0x0200)
-+#define TSC2005_CFR0_STABTIME_1MS	(0x0300)
-+#define TSC2005_CFR0_STABTIME_5MS	(0x0400)
-+#define TSC2005_CFR0_STABTIME_100MS	(0x0700)
-+#define TSC2005_CFR0_CLOCK_4MHZ		(0x0000)
-+#define TSC2005_CFR0_CLOCK_2MHZ		(0x0800)
-+#define TSC2005_CFR0_CLOCK_1MHZ		(0x1000)
-+#define TSC2005_CFR0_RESOLUTION12	(0x2000)
-+#define TSC2005_CFR0_STATUS		(0x4000)
-+#define TSC2005_CFR0_PENMODE		(0x8000)
-+
-+#define TSC2005_CFR0_INITVALUE	(TSC2005_CFR0_STABTIME_1MS  |	\
-+				 TSC2005_CFR0_CLOCK_1MHZ    |	\
-+				 TSC2005_CFR0_RESOLUTION12  |	\
-+				 TSC2005_CFR0_PRECHARGE_276US | \
-+				 TSC2005_CFR0_PENMODE)
-+
-+#define TSC2005_CFR1_BATCHDELAY_0MS	(0x0000)
-+#define TSC2005_CFR1_BATCHDELAY_1MS	(0x0001)
-+#define TSC2005_CFR1_BATCHDELAY_2MS	(0x0002)
-+#define TSC2005_CFR1_BATCHDELAY_4MS	(0x0003)
-+#define TSC2005_CFR1_BATCHDELAY_10MS	(0x0004)
-+#define TSC2005_CFR1_BATCHDELAY_20MS	(0x0005)
-+#define TSC2005_CFR1_BATCHDELAY_40MS	(0x0006)
-+#define TSC2005_CFR1_BATCHDELAY_100MS	(0x0007)
-+
-+#define TSC2005_CFR1_INITVALUE	(TSC2005_CFR1_BATCHDELAY_2MS)
-+
-+#define TSC2005_CFR2_MAVE_TEMP	(0x0001)
-+#define TSC2005_CFR2_MAVE_AUX	(0x0002)
-+#define TSC2005_CFR2_MAVE_Z	(0x0004)
-+#define TSC2005_CFR2_MAVE_Y	(0x0008)
-+#define TSC2005_CFR2_MAVE_X	(0x0010)
-+#define TSC2005_CFR2_AVG_1	(0x0000)
-+#define TSC2005_CFR2_AVG_3	(0x0400)
-+#define TSC2005_CFR2_AVG_7	(0x0800)
-+#define TSC2005_CFR2_MEDIUM_1	(0x0000)
-+#define TSC2005_CFR2_MEDIUM_3	(0x1000)
-+#define TSC2005_CFR2_MEDIUM_7	(0x2000)
-+#define TSC2005_CFR2_MEDIUM_15	(0x3000)
-+
-+#define TSC2005_CFR2_IRQ_DAV	(0x4000)
-+#define TSC2005_CFR2_IRQ_PEN	(0x8000)
-+#define TSC2005_CFR2_IRQ_PENDAV	(0x0000)
-+
-+#define TSC2005_CFR2_INITVALUE	(TSC2005_CFR2_IRQ_DAV   |	\
-+				 TSC2005_CFR2_MAVE_X    |	\
-+				 TSC2005_CFR2_MAVE_Y    |	\
-+				 TSC2005_CFR2_MAVE_Z    |	\
-+				 TSC2005_CFR2_MEDIUM_15 |	\
-+				 TSC2005_CFR2_AVG_7)
-+
-+#define MAX_12BIT					((1 << 12) - 1)
-+#define TS_SAMPLES					4
-+#define TS_RECT_SIZE					8
-+#define TSC2005_TS_PENUP_TIME				20
-+
-+static const u32 tsc2005_read_reg[] = {
-+	(TSC2005_REG | TSC2005_REG_X | TSC2005_REG_READ) << 16,
-+	(TSC2005_REG | TSC2005_REG_Y | TSC2005_REG_READ) << 16,
-+	(TSC2005_REG | TSC2005_REG_Z1 | TSC2005_REG_READ) << 16,
-+	(TSC2005_REG | TSC2005_REG_Z2 | TSC2005_REG_READ) << 16,
++static unsigned short normal_i2c[] =
++{
++	LM8323_I2C_ADDR00, LM8323_I2C_ADDR01,
++	LM8323_I2C_ADDR10, LM8323_I2C_ADDR11,
++	I2C_CLIENT_END
 +};
-+#define NUM_READ_REGS	(sizeof(tsc2005_read_reg)/sizeof(tsc2005_read_reg[0]))
 +
-+struct tsc2005 {
-+	struct spi_device	*spi;
++I2C_CLIENT_INSMOD;
 +
++struct lm8323_pwm {
++	int			id;
++	int			enabled;
++	int			fade_time;
++	int			brightness;
++	int			desired_brightness;
++	struct work_struct	work;
++	struct led_classdev	cdev;
++};
++
++struct lm8323_chip {
++	struct mutex		lock;
++	struct i2c_client	*client;
++	struct work_struct	work;
 +	struct input_dev	*idev;
-+	char			phys[32];
-+	struct timer_list	penup_timer;
-+	spinlock_t		lock;
-+	struct mutex		mutex;
-+
-+	struct spi_message	read_msg;
-+	struct spi_transfer	read_xfer[NUM_READ_REGS];
-+	u32                     data[NUM_READ_REGS];
-+
-+	/* previous x,y,z */
-+	int			x;
-+	int			y;
-+	int			p;
-+	/* average accumulators for each component */
-+	int			sample_cnt;
-+	int			avg_x;
-+	int			avg_y;
-+	int			avg_z1;
-+	int			avg_z2;
-+	/* configuration */
-+	int			x_plate_ohm;
-+	int			hw_avg_max;
-+	int			stab_time;
-+	int			p_max;
-+	int			touch_pressure;
 +	int			irq;
-+	s16			dav_gpio;
-+	/* status */
-+	u8			sample_sent;
-+	u8			pen_down;
-+	u8			disabled;
-+	u8			disable_depth;
-+	u8			spi_active;
++	unsigned		kp_enabled : 1;
++	unsigned		pm_suspend : 1;
++	unsigned		keys_down;
++	char			phys[32];
++	s16			keymap[LM8323_KEYMAP_SIZE];
++	int			size_x;
++	int			size_y;
++	int			debounce_time;
++	int			active_time;
++	struct lm8323_pwm	pwm1;
++	struct lm8323_pwm	pwm2;
++	struct lm8323_pwm	pwm3;
 +};
 +
-+static void tsc2005_cmd(struct tsc2005 *ts, u8 cmd)
++#define client_to_lm8323(c)	container_of(c, struct lm8323_chip, client)
++#define dev_to_lm8323(d)	container_of(d, struct lm8323_chip, client->dev)
++#define work_to_lm8323(w)	container_of(w, struct lm8323_chip, work)
++#define cdev_to_pwm(c)		container_of(c, struct lm8323_pwm, cdev)
++#define work_to_pwm(w)		container_of(w, struct lm8323_pwm, work)
++
++static struct lm8323_chip *pwm_to_lm8323(struct lm8323_pwm *pwm)
 +{
-+	u16 data = TSC2005_CMD | TSC2005_CMD_12BIT | cmd;
-+	struct spi_message msg;
-+	struct spi_transfer xfer = { 0 };
-+
-+	spi_message_init(&msg);
-+	msg.spi = ts->spi;
-+	xfer.tx_buf = &data;
-+	xfer.rx_buf = NULL;
-+	xfer.len = 2;
-+	xfer.bits_per_word = 8;
-+
-+	spi_message_add_tail(&xfer, &msg);
-+	spi_sync(ts->spi, &msg);
++	switch (pwm->id) {
++	case 1:
++		return container_of(pwm, struct lm8323_chip, pwm1);
++	case 2:
++		return container_of(pwm, struct lm8323_chip, pwm2);
++	case 3:
++		return container_of(pwm, struct lm8323_chip, pwm3);
++	default:
++		return NULL;
++	}
 +}
 +
-+static void tsc2005_write(struct tsc2005 *ts, u8 reg, u16 value)
++static struct lm8323_platform_data *lm8323_pdata = NULL;
++
++
++#define LM8323_MAX_DATA 8
++
++/*
++ * To write, we just access the chip's address in write mode, and dump the
++ * command and data out on the bus.  The command byte and data are taken as
++ * sequential u8s out of varargs, to a maximum of LM8323_MAX_DATA.
++ */
++static int lm8323_write(struct lm8323_chip *lm, int len, ...)
 +{
-+	u32 tx;
-+	struct spi_message msg;
-+	struct spi_transfer xfer = { 0 };
++	int ret, i;
++	va_list ap;
++	u8 data[LM8323_MAX_DATA];
 +
-+	tx = (TSC2005_REG | reg | TSC2005_REG_PND0 |
-+	       TSC2005_REG_WRITE) << (2 * 8);
-+	tx |= value;
++	va_start(ap, len);
 +
-+	spi_message_init(&msg);
-+	msg.spi = ts->spi;
-+	xfer.tx_buf = &tx;
-+	xfer.rx_buf = NULL;
-+	xfer.len = 4;
-+	xfer.bits_per_word = 3 * 8;
-+
-+	spi_message_add_tail(&xfer, &msg);
-+	spi_sync(ts->spi, &msg);
-+}
-+
-+static void tsc2005_ts_update_pen_state(struct tsc2005 *ts,
-+					int x, int y, int pressure)
-+{
-+	if (pressure) {
-+		input_report_abs(ts->idev, ABS_X, x);
-+		input_report_abs(ts->idev, ABS_Y, y);
-+		input_report_abs(ts->idev, ABS_PRESSURE, pressure);
-+		if (!ts->pen_down) {
-+			input_report_key(ts->idev, BTN_TOUCH, 1);
-+			ts->pen_down = 1;
-+		}
-+	} else {
-+		input_report_abs(ts->idev, ABS_PRESSURE, 0);
-+		if (ts->pen_down) {
-+			input_report_key(ts->idev, BTN_TOUCH, 0);
-+		}
-+		ts->pen_down = 0;
++	if (unlikely(len > LM8323_MAX_DATA)) {
++		dev_err(&lm->client->dev, "tried to send %d bytes\n", len);
++		va_end(ap);
++		return 0;
 +	}
 +
-+	input_sync(ts->idev);
++	for (i = 0; i < len; i++)
++		data[i] = va_arg(ap, int);
++
++	va_end(ap);
++
++	/*
++	 * If the host is asleep while we send the data, we can get a NACK
++	 * back while it wakes up, so try again, once.
++	 */
++	ret = i2c_master_send(lm->client, data, len);
++	if (unlikely(ret == -EREMOTEIO))
++		ret = i2c_master_send(lm->client, data, len);
++	if (unlikely(ret != len))
++		dev_err(&lm->client->dev, "sent %d bytes of %d total\n",
++			len, ret);
++
++	return ret;
 +}
 +
 +/*
-+ * This function is called by the SPI framework after the coordinates
-+ * have been read from TSC2005
++ * To read, we first send the command byte to the chip and end the transaction,
++ * then access the chip in read mode, at which point it will send the data.
 + */
-+static void tsc2005_ts_rx(void *arg)
++static int lm8323_read(struct lm8323_chip *lm, u8 cmd, u8 *buf, int len)
 +{
-+	struct tsc2005 *ts = arg;
-+	unsigned long flags;
-+	int inside_rect, pressure_limit;
-+	int x, y, z1, z2, pressure;
++	int ret;
 +
-+	spin_lock_irqsave(&ts->lock, flags);
-+
-+	x = ts->data[0];
-+	y = ts->data[1];
-+	z1 = ts->data[2];
-+	z2 = ts->data[3];
-+
-+	/* validate pressure and position */
-+	if (x > MAX_12BIT || y > MAX_12BIT)
-+		goto out;
-+
-+	/* skip coords if the pressure-components are out of range */
-+	if (z1 < 100 || z2 > 4000)
-+		goto out;
-+
-+	/* don't run average on the "pen down" event */
-+	if (ts->sample_sent) {
-+		ts->avg_x += x;
-+		ts->avg_y += y;
-+		ts->avg_z1 += z1;
-+		ts->avg_z2 += z2;
-+
-+		if (++ts->sample_cnt < TS_SAMPLES)
-+			goto out;
-+
-+		x = ts->avg_x / TS_SAMPLES;
-+		y = ts->avg_y / TS_SAMPLES;
-+		z1 = ts->avg_z1 / TS_SAMPLES;
-+		z2 = ts->avg_z2 / TS_SAMPLES;
++	/*
++	 * If the host is asleep while we send the byte, we can get a NACK
++	 * back while it wakes up, so try again, once.
++	 */
++	ret = i2c_master_send(lm->client, &cmd, 1);
++	if (unlikely(ret == -EREMOTEIO))
++		ret = i2c_master_send(lm->client, &cmd, 1);
++	if (unlikely(ret != 1)) {
++		dev_err(&lm->client->dev, "sending read cmd 0x%02x failed\n",
++			cmd);
++		return 0;
 +	}
 +
-+	ts->sample_cnt = 0;
-+	ts->avg_x = 0;
-+	ts->avg_y = 0;
-+	ts->avg_z1 = 0;
-+	ts->avg_z2 = 0;
++	ret = i2c_master_recv(lm->client, buf, len);
++	if (unlikely(ret != len))
++		dev_err(&lm->client->dev, "wanted %d bytes, got %d\n",
++			len, ret);
 +
-+	if (z1) {
-+		pressure = x * (z2 - z1) / z1;
-+		pressure = pressure * ts->x_plate_ohm / 4096;
-+	} else
-+		goto out;
-+
-+	pressure_limit = ts->sample_sent? ts->p_max: ts->touch_pressure;
-+	if (pressure > pressure_limit)
-+		goto out;
-+
-+	/* discard the event if it still is within the previous rect - unless
-+	 * if the pressure is harder, but then use previous x,y position */
-+	inside_rect = (ts->sample_sent &&
-+		x > (int)ts->x - TS_RECT_SIZE &&
-+		x < (int)ts->x + TS_RECT_SIZE &&
-+		y > (int)ts->y - TS_RECT_SIZE &&
-+		y < (int)ts->y + TS_RECT_SIZE);
-+	if (inside_rect)
-+		x = ts->x, y = ts->y;
-+
-+	if (!inside_rect || pressure < ts->p) {
-+		tsc2005_ts_update_pen_state(ts, x, y, pressure);
-+		ts->sample_sent = 1;
-+		ts->x = x;
-+		ts->y = y;
-+		ts->p = pressure;
-+	}
-+out:
-+	ts->spi_active = 0;
-+	spin_unlock_irqrestore(&ts->lock, flags);
-+
-+	/* kick pen up timer - to make sure it expires again(!) */
-+	if (ts->sample_sent)
-+		mod_timer(&ts->penup_timer,
-+			  jiffies + msecs_to_jiffies(TSC2005_TS_PENUP_TIME));
-+}
-+
-+static void tsc2005_ts_penup_timer_handler(unsigned long data)
-+{
-+	struct tsc2005 *ts = (struct tsc2005 *)data;
-+
-+	if (ts->sample_sent) {
-+		tsc2005_ts_update_pen_state(ts, 0, 0, 0);
-+		ts->sample_sent = 0;
-+	}
++	return ret;
 +}
 +
 +/*
-+ * This interrupt is called when pen is down and coordinates are
-+ * available. That is indicated by a falling edge on DEV line.
++ * Set the chip active time (idle time before it enters halt).
 + */
-+static irqreturn_t tsc2005_ts_irq_handler(int irq, void *dev_id)
++static void lm8323_set_active_time(struct lm8323_chip *lm, int time)
 +{
-+	struct tsc2005 *ts = dev_id;
-+	int r;
++	lm8323_write(lm, 2, LM8323_CMD_SET_ACTIVE, time >> 2);
++}
 +
-+	if (ts->spi_active) return IRQ_HANDLED;
++/*
++ * The signals are AT-style: the low 7 bits are the keycode, and the top
++ * bit indicates the state (1 for down, 0 for up).
++ */
++static inline u8 lm8323_whichkey(u8 event)
++{
++	return event & 0x7f;
++}
 +
-+	ts->spi_active = 1;
-+	r = spi_async(ts->spi, &ts->read_msg);
-+	if (r)
-+		dev_err(&ts->spi->dev, "ts: spi_async() failed");
++static inline int lm8323_ispress(u8 event)
++{
++	return (event & 0x80) ? 1 : 0;
++}
 +
-+	/* kick pen up timer */
-+	mod_timer(&ts->penup_timer,
-+		  jiffies + msecs_to_jiffies(TSC2005_TS_PENUP_TIME));
++static void process_keys(struct lm8323_chip *lm)
++{
++	u8 event;
++	u8 key_fifo[LM8323_FIFO_LEN + 1];
++	int old_keys_down = lm->keys_down;
++	int ret;
++	int i = 0;
++
++	/*
++	 * Read all key events from the FIFO at once. Next READ_FIFO clears the
++	 * FIFO even if we didn't read all events previously.
++	 */
++	ret = lm8323_read(lm, LM8323_CMD_READ_FIFO, key_fifo, LM8323_FIFO_LEN);
++
++	if (ret < 0) {
++		dev_err(&lm->client->dev, "Failed reading fifo \n");
++		return;
++	}
++	key_fifo[ret] = 0;
++
++	while ((event = key_fifo[i])) {
++		u8 key = lm8323_whichkey(event);
++		int isdown = lm8323_ispress(event);
++		s16 keycode = lm->keymap[key];
++
++		if (likely(keycode > 0)) {
++			debug(&lm->client->dev, "key 0x%02x %s\n", key,
++			      isdown ? "down" : "up");
++			if (likely(lm->kp_enabled)) {
++				input_report_key(lm->idev, keycode, isdown);
++				input_sync(lm->idev);
++			}
++			if (isdown)
++				lm->keys_down++;
++			else
++				lm->keys_down--;
++		} else {
++			dev_err(&lm->client->dev, "keycode 0x%02x not mapped "
++				"to any key\n", key);
++		}
++		i++;
++	}
++
++	/*
++	 * Errata: We need to ensure that the chip never enters halt mode
++	 * during a keypress, so set active time to 0.  When it's released,
++	 * we can enter halt again, so set the active time back to normal.
++	 */
++	if (!old_keys_down && lm->keys_down)
++		lm8323_set_active_time(lm, 0);
++	if (old_keys_down && !lm->keys_down)
++		lm8323_set_active_time(lm, lm->active_time);
++}
++
++static void lm8323_process_error(struct lm8323_chip *lm)
++{
++	u8 error;
++
++	if (lm8323_read(lm, LM8323_CMD_READ_ERR, &error, 1) == 1) {
++		if (error & ERR_FIFOOVER)
++			debug(&lm->client->dev, "fifo overflow!\n");
++		if (error & ERR_KEYOVR)
++			debug(&lm->client->dev, "more than two keys pressed\n");
++		if (error & ERR_CMDUNK)
++			debug(&lm->client->dev, "unknown command submitted\n");
++		if (error & ERR_BADPAR)
++			debug(&lm->client->dev, "bad command parameter\n");
++	}
++}
++
++static void lm8323_reset(struct lm8323_chip *lm)
++{
++	/* The docs say we must pass 0xAA as the data byte. */
++	lm8323_write(lm, 2, LM8323_CMD_RESET, 0xAA);
++}
++
++static int lm8323_configure(struct lm8323_chip *lm)
++{
++	int keysize = (lm->size_x << 4) | lm->size_y;
++	int clock = (CLK_SLOWCLKEN | CLK_RCPWM_EXTERNAL);
++	int debounce = lm->debounce_time >> 2;
++	int active = lm->active_time >> 2;
++
++	/*
++	 * Active time must be greater than the debounce time: if it's
++	 * a close-run thing, give ourselves a 12ms buffer.
++	 */
++	if (debounce >= active)
++		active = debounce + 3;
++
++	lm8323_write(lm, 2, LM8323_CMD_WRITE_CFG, 0);
++	lm8323_write(lm, 2, LM8323_CMD_WRITE_CLOCK, clock);
++	lm8323_write(lm, 2, LM8323_CMD_SET_KEY_SIZE, keysize);
++	lm8323_set_active_time(lm, lm->active_time);
++	lm8323_write(lm, 2, LM8323_CMD_SET_DEBOUNCE, debounce);
++	lm8323_write(lm, 3, LM8323_CMD_WRITE_PORT_STATE, 0xff, 0xff);
++	lm8323_write(lm, 3, LM8323_CMD_WRITE_PORT_SEL, 0, 0);
++
++	/*
++	 * Not much we can do about errors at this point, so just hope
++	 * for the best.
++	 */
++
++	return 0;
++}
++
++/*
++ * Bottom half: handle the interrupt by posting key events, or dealing with
++ * errors appropriately.
++ */
++static void lm8323_work(struct work_struct *work)
++{
++	struct lm8323_chip *lm = work_to_lm8323(work);
++	u8 ints;
++
++	mutex_lock(&lm->lock);
++
++	while ((lm8323_read(lm, LM8323_CMD_READ_INT, &ints, 1) == 1) && ints) {
++		if (likely(ints & INT_KEYPAD)) {
++			process_keys(lm);
++		}
++		if (ints & INT_ROTATOR) {
++			/* We don't currently support the rotator. */
++			debug(&lm->client->dev, "rotator fired\n");
++		}
++		if (ints & INT_ERROR) {
++			debug(&lm->client->dev, "error!\n");
++			lm8323_process_error(lm);
++		}
++		if (ints & INT_NOINIT) {
++			dev_err(&lm->client->dev, "chip lost config; "
++						  "reinitialising\n");
++			lm8323_configure(lm);
++		}
++		if (ints & INT_PWM1) {
++			debug(&lm->client->dev, "pwm1 engine completed\n");
++		}
++		if (ints & INT_PWM2) {
++			debug(&lm->client->dev, "pwm2 engine completed\n");
++		}
++		if (ints & INT_PWM3) {
++			debug(&lm->client->dev, "pwm3 engine completed\n");
++		}
++	}
++
++	mutex_unlock(&lm->lock);
++}
++
++/*
++ * We cannot use I2C in interrupt context, so we just schedule work.
++ */
++static irqreturn_t lm8323_irq(int irq, void *data)
++{
++	struct lm8323_chip *lm = data;
++
++	schedule_work(&lm->work);
 +
 +	return IRQ_HANDLED;
 +}
 +
-+static void tsc2005_ts_setup_spi_xfer(struct tsc2005 *ts)
++/*
++ * Read the chip ID.
++ */
++static int lm8323_read_id(struct lm8323_chip *lm, u8 *buf)
 +{
-+	struct spi_message *m = &ts->read_msg;
-+	struct spi_transfer *x = &ts->read_xfer[0];
-+	int i;
++	int bytes;
 +
-+	spi_message_init(m);
-+	m->spi = ts->spi;
-+
-+	for (i = 0; i < NUM_READ_REGS; i++, x++ ) {
-+		x->tx_buf = &tsc2005_read_reg[i];
-+		x->rx_buf = &ts->data[i];
-+		x->len = 4;
-+		x->bits_per_word = 24;
-+		x->cs_change = i < (NUM_READ_REGS - 1);
-+		spi_message_add_tail(x, m);
-+	}
-+
-+	m->complete = tsc2005_ts_rx;
-+	m->context = ts;
-+}
-+
-+static ssize_t tsc2005_ts_pen_down_show(struct device *dev,
-+					struct device_attribute *attr,
-+					char *buf)
-+{
-+	struct tsc2005 *tsc = dev_get_drvdata(dev);
-+
-+	return sprintf(buf, "%u\n", tsc->pen_down);
-+}
-+
-+static DEVICE_ATTR(pen_down, S_IRUGO, tsc2005_ts_pen_down_show, NULL);
-+
-+static int tsc2005_configure(struct tsc2005 *tsc, int flags)
-+{
-+	tsc2005_write(tsc, TSC2005_REG_CFR0, TSC2005_CFR0_INITVALUE);
-+	tsc2005_write(tsc, TSC2005_REG_CFR1, TSC2005_CFR1_INITVALUE);
-+	tsc2005_write(tsc, TSC2005_REG_CFR2, TSC2005_CFR2_INITVALUE);
-+	tsc2005_cmd(tsc, flags);
++	bytes = lm8323_read(lm, LM8323_CMD_READ_ID, buf, 2);
++	if (unlikely(bytes != 2))
++		return -EIO;
 +
 +	return 0;
 +}
 +
-+static void tsc2005_start_scan(struct tsc2005 *tsc)
++static void lm8323_write_pwm_one(struct lm8323_pwm *pwm, int pos, u16 cmd)
 +{
-+	tsc2005_configure(tsc, TSC2005_CMD_SCAN_XYZZ);
++	struct lm8323_chip *lm = pwm_to_lm8323(pwm);
++
++	lm8323_write(lm, 4, LM8323_CMD_PWM_WRITE, (pos << 2) | pwm->id,
++		     (cmd & 0xff00) >> 8, cmd & 0x00ff);
 +}
 +
-+static void tsc2005_stop_scan(struct tsc2005 *tsc)
++/*
++ * Write a script into a given PWM engine, concluding with PWM_END.
++ * If 'keepalive' is specified, the engine will be kept running
++ * indefinitely.
++ */
++static void lm8323_write_pwm(struct lm8323_pwm *pwm, int keepalive,
++			     int len, ...)
 +{
-+	tsc2005_cmd(tsc, TSC2005_CMD_STOP);
-+}
++	struct lm8323_chip *lm = pwm_to_lm8323(pwm);
++	int i, cmd;
++	va_list ap;
 +
-+/* Must be called with mutex held */
-+static void tsc2005_disable(struct tsc2005 *ts)
-+{
-+	if (ts->disable_depth++ != 0) {
-+		return;
++	/*
++	 * If there are any scripts running at the moment, terminate them
++	 * and make sure the duty cycle is as if it finished.
++	 */
++	lm8323_write(lm, 2, LM8323_CMD_STOP_PWM, pwm->id);
++
++	va_start(ap, len);
++	for (i = 0; i < len; i++) {
++		cmd = va_arg(ap, int);
++		lm8323_write_pwm_one(pwm, i, cmd);
 +	}
-+	disable_irq(ts->irq);
++	va_end(ap);
 +
-+	/* wait until penup timer expire normally */
-+	do {
-+		msleep(4);
-+	} while (ts->sample_sent);
++	/* Wait for a trigger from any channel. This keeps the engine alive. */
++	if (keepalive)
++		lm8323_write_pwm_one(pwm, i++, PWM_WAIT_TRIG(0xe));
++	else
++		lm8323_write_pwm_one(pwm, i++, PWM_END(1));
 +
-+	tsc2005_stop_scan(ts);
++	lm8323_write(lm, 2, LM8323_CMD_START_PWM, pwm->id);
 +}
 +
-+static void tsc2005_enable(struct tsc2005 *ts)
++static void lm8323_pwm_work(struct work_struct *work)
 +{
-+	if (--ts->disable_depth != 0) {
++	struct lm8323_pwm *pwm = work_to_pwm(work);
++	int div, perstep, steps, hz, direction, keepalive;
++
++	/* Do nothing if we're already at the requested level. */
++	if (pwm->desired_brightness == pwm->brightness)
 +		return;
++
++	keepalive = (pwm->desired_brightness > 0);
++	direction = (pwm->desired_brightness > pwm->brightness);
++	steps = abs(pwm->desired_brightness - pwm->brightness);
++
++	/*
++	 * Convert time (in ms) into a divisor (512 or 16 on a refclk of
++	 * 32768Hz), and number of ticks per step.
++	 */
++	if ((pwm->fade_time / steps) > (32768 / 512))
++		div = 512;
++	else
++		div = 16;
++
++	hz = 32768 / div;
++	if (pwm->fade_time < ((steps * 1000) / hz))
++		perstep = 1;
++	else
++		perstep = (hz * pwm->fade_time) / (steps * 1000);
++
++	if (perstep == 0)
++		perstep = 1;
++	else if (perstep > 63)
++		perstep = 63;
++
++	if (steps > 252) {
++		lm8323_write_pwm(pwm, keepalive, 3,
++				 PWM_RAMP((div == 512), perstep, 126,
++					  direction),
++				 PWM_RAMP((div == 512), perstep, 126,
++					  direction),
++				 PWM_RAMP((div == 512), perstep, steps - 252,
++					  direction));
++	} else if (steps > 126) {
++		lm8323_write_pwm(pwm, keepalive, 2,
++				 PWM_RAMP((div == 512), perstep, 126,
++					  direction),
++				 PWM_RAMP((div == 512), perstep, steps - 126,
++					  direction));
++	} else {
++		lm8323_write_pwm(pwm, keepalive, 1,
++				 PWM_RAMP((div == 512), perstep, steps,
++					  direction));
 +	}
-+	enable_irq(ts->irq);
 +
-+	tsc2005_start_scan(ts);
++	pwm->brightness = pwm->desired_brightness;
 +}
 +
-+static ssize_t tsc2005_disable_show(struct device *dev,
-+				    struct device_attribute *attr, char *buf)
++static void lm8323_pwm_set_brightness(struct led_classdev *led_cdev,
++				      enum led_brightness brightness)
 +{
-+	struct tsc2005 *ts = dev_get_drvdata(dev);
++	struct lm8323_pwm *pwm = cdev_to_pwm(led_cdev);
++	struct lm8323_chip *lm = pwm_to_lm8323(pwm);
 +
-+	return sprintf(buf, "%u\n", ts->disabled);
++	pwm->desired_brightness = brightness;
++
++	if (in_interrupt()) {
++		schedule_work(&pwm->work);
++	} else {
++		/*
++		 * Schedule PWM work as usual unless we are going into suspend
++		 */
++		mutex_lock(&lm->lock);
++		if (likely(!lm->pm_suspend))
++			schedule_work(&pwm->work);
++		else
++			lm8323_pwm_work(&pwm->work);
++		mutex_unlock(&lm->lock);
++	}
 +}
 +
-+static ssize_t tsc2005_disable_store(struct device *dev,
-+				     struct device_attribute *attr,
-+				     const char *buf, size_t count)
++static ssize_t lm8323_pwm_show_time(struct device *dev,
++		struct device_attribute *attr, char *buf)
 +{
-+	struct tsc2005		*tsc = dev_get_drvdata(dev);
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct lm8323_pwm *pwm = cdev_to_pwm(led_cdev);
++
++	return sprintf(buf, "%d\n", pwm->fade_time);
++}
++
++static ssize_t lm8323_pwm_store_time(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t len)
++{
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct lm8323_pwm *pwm = cdev_to_pwm(led_cdev);
++	char *endptr = NULL;
++	int time;
++
++	time = simple_strtoul(buf, &endptr, 10);
++	/* Numbers only, please. */
++	if (endptr && *endptr != '\n' && *(endptr + 1) != '\0')
++		return -EINVAL;
++
++	pwm->fade_time = time;
++
++	return strlen(buf);
++}
++static DEVICE_ATTR(time, 0644, lm8323_pwm_show_time, lm8323_pwm_store_time);
++
++static int init_pwm(struct lm8323_chip *lm, int id, struct device *dev,
++		    const char *name)
++{
++	struct lm8323_pwm *pwm = NULL;
++
++	BUG_ON(id > 3);
++
++	switch (id) {
++	case 1:
++		pwm = &lm->pwm1;
++		break;
++	case 2:
++		pwm = &lm->pwm2;
++		break;
++	case 3:
++		pwm = &lm->pwm3;
++		break;
++	}
++
++	pwm->id = id;
++	pwm->fade_time = 0;
++	pwm->brightness = 0;
++	pwm->desired_brightness = 0;
++	if (name) {
++		pwm->cdev.name = name;
++		pwm->cdev.brightness_set = lm8323_pwm_set_brightness;
++		if (led_classdev_register(dev, &pwm->cdev) < 0) {
++			dev_err(dev, "couldn't register PWM %d\n", id);
++			return -1;
++		}
++		if (device_create_file(pwm->cdev.dev,
++					     &dev_attr_time) < 0) {
++			dev_err(dev, "couldn't register time attribute\n");
++			led_classdev_unregister(&pwm->cdev);
++			return -1;
++		}
++		INIT_WORK(&pwm->work, lm8323_pwm_work);
++		pwm->enabled = 1;
++	} else {
++		pwm->enabled = 0;
++	}
++
++	return 0;
++}
++
++static struct i2c_driver lm8323_i2c_driver;
++
++static ssize_t lm8323_show_disable(struct device *dev,
++				   struct device_attribute *attr, char *buf)
++{
++	struct lm8323_chip *lm = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%u\n", !lm->kp_enabled);
++}
++
++static ssize_t lm8323_set_disable(struct device *dev,
++				  struct device_attribute *attr,
++				  const char *buf, size_t count)
++{
++	struct lm8323_chip *lm = dev_get_drvdata(dev);
 +	char *endp;
 +	int i;
 +
 +	i = simple_strtoul(buf, &endp, 10);
-+	i = i ? 1 : 0;
 +
-+	mutex_lock(&tsc->mutex);
-+	if (i == tsc->disabled) goto out;
-+	tsc->disabled = i;
++	mutex_lock(&lm->lock);
++	lm->kp_enabled = !i;
++	mutex_unlock(&lm->lock);
 +
-+	if (i)
-+		tsc2005_disable(tsc);
-+	else
-+		tsc2005_enable(tsc);
-+out:
-+	mutex_unlock(&tsc->mutex);
 +	return count;
 +}
++static DEVICE_ATTR(disable_kp, 0644, lm8323_show_disable, lm8323_set_disable);
 +
-+static DEVICE_ATTR(disable_ts, 0664, tsc2005_disable_show,
-+		   tsc2005_disable_store);
-+
-+
-+static int __devinit tsc2005_ts_init(struct tsc2005 *ts,
-+				     struct tsc2005_platform_data *pdata)
++static int lm8323_probe(struct i2c_client *client)
 +{
 +	struct input_dev *idev;
-+	int dav_gpio, r;
-+	int x_max, y_max;
-+	int x_fudge, y_fudge, p_fudge;
++	struct lm8323_chip *lm;
++	int i, err = 0;
++	unsigned long tmo;
++	u8 data[2];
 +
-+	if (pdata->dav_gpio < 0) {
-+		dev_err(&ts->spi->dev, "need DAV GPIO");
-+		return -EINVAL;
++	lm = kzalloc(sizeof *lm, GFP_KERNEL);
++	if (!lm)
++		return -ENOMEM;
++
++	i2c_set_clientdata(client, lm);
++	lm->client = client;
++	lm8323_pdata = client->dev.platform_data;
++	if (!lm8323_pdata)
++		return -EINVAL; /* ? */
++
++	lm->size_x = lm8323_pdata->size_x;
++	if (lm->size_x == 0) {
++		lm->size_x = 8;
++	} else if (lm->size_x > 8) {
++		dev_err(&client->dev, "invalid x size %d specified\n", lm->size_x);
++		lm->size_x = 8;
 +	}
-+	dav_gpio = pdata->dav_gpio;
-+	ts->dav_gpio = dav_gpio;
-+	dev_dbg(&ts->spi->dev, "TSC2005: DAV GPIO = %d\n", dav_gpio);
 +
-+#ifdef CONFIG_ARCH_OMAP
-+	r = omap_request_gpio(dav_gpio);
-+	if (r < 0) {
-+		dev_err(&ts->spi->dev, "unable to get DAV GPIO");
-+		goto err1;
++	lm->size_y = lm8323_pdata->size_y;
++	if (lm->size_y == 0) {
++		lm->size_y = 12;
++	} else if (lm->size_y > 12) {
++		dev_err(&client->dev, "invalid y size %d specified\n", lm->size_y);
++		lm->size_x = 12;
 +	}
-+	omap_set_gpio_direction(dav_gpio, 1);
-+	ts->irq = OMAP_GPIO_IRQ(dav_gpio);
-+	dev_dbg(&ts->spi->dev, "TSC2005: DAV IRQ = %d\n", ts->irq);
-+#endif
-+	init_timer(&ts->penup_timer);
-+	setup_timer(&ts->penup_timer, tsc2005_ts_penup_timer_handler,
-+			(unsigned long)ts);
 +
-+	spin_lock_init(&ts->lock);
-+	mutex_init(&ts->mutex);
++	debug(&c->dev, "Keypad size: %d x %d\n", lm->size_x, lm->size_y);
 +
-+	ts->x_plate_ohm		= pdata->ts_x_plate_ohm ? : 280;
-+	ts->hw_avg_max		= pdata->ts_hw_avg;
-+	ts->stab_time		= pdata->ts_stab_time;
-+	x_max			= pdata->ts_x_max ? : 4096;
-+	x_fudge			= pdata->ts_x_fudge ? : 4;
-+	y_max			= pdata->ts_y_max ? : 4096;
-+	y_fudge			= pdata->ts_y_fudge ? : 8;
-+	ts->p_max		= pdata->ts_pressure_max ? : MAX_12BIT;
-+	ts->touch_pressure	= pdata->ts_touch_pressure ? : ts->p_max;
-+	p_fudge			= pdata->ts_pressure_fudge ? : 2;
++	lm->debounce_time = lm8323_pdata->debounce_time;
++	if (lm->debounce_time == 0) /* Default. */
++		lm->debounce_time = 12;
++	else if (lm->debounce_time == -1) /* Disable debounce. */
++		lm->debounce_time = 0;
++
++	lm->active_time = lm8323_pdata->active_time;
++	if (lm->active_time == 0) /* Default. */
++		lm->active_time = 500;
++	else if (lm->active_time == -1) /* Disable sleep. */
++		lm->active_time = 0;
++
++	lm8323_reset(lm);
++
++	/* Nothing's set up to service the IRQ yet, so just spin for max.
++	 * 100ms until we can configure. */
++	tmo = jiffies + msecs_to_jiffies(100);
++	while (lm8323_read(lm, LM8323_CMD_READ_INT, data, 1) == 1) {
++		if (data[0] & INT_NOINIT)
++			break;
++
++		if (time_after(jiffies, tmo)) {
++			dev_err(&client->dev, "timeout waiting for initialisation\n");
++			break;
++		}
++
++		msleep(1);
++	}
++	lm8323_configure(lm);
++
++	/* If a true probe check the device */
++	if (lm8323_read_id(lm, data) != 0) {
++		dev_err(&client->dev, "device not found\n");
++		err = -ENODEV;
++		goto fail2;
++	}
++
++	if (init_pwm(lm, 1, &client->dev, lm8323_pdata->pwm1_name) < 0)
++		goto fail3;
++	if (init_pwm(lm, 2, &client->dev, lm8323_pdata->pwm2_name) < 0)
++		goto fail4;
++	if (init_pwm(lm, 3, &client->dev, lm8323_pdata->pwm3_name) < 0)
++		goto fail5;
++
++	lm->irq = lm8323_pdata->irq_gpio;
++	debug(&c->dev, "IRQ: %d\n", lm->irq);
++
++	mutex_init(&lm->lock);
++	INIT_WORK(&lm->work, lm8323_work);
++
++	err = request_irq(client->irq, lm8323_irq,
++			  IRQF_TRIGGER_FALLING | IRQF_DISABLED |
++			  IRQF_SAMPLE_RANDOM, DRIVER_NAME, lm);
++	if (err) {
++		dev_err(&client->dev, "could not get IRQ %d\n", lm->irq);
++		goto fail6;
++	}
++
++	set_irq_wake(lm->irq, 1);
++
++	lm->kp_enabled = 1;
++	err = device_create_file(&client->dev, &dev_attr_disable_kp);
++	if (err < 0)
++		goto fail7;
 +
 +	idev = input_allocate_device();
 +	if (idev == NULL) {
-+		r = -ENOMEM;
-+		goto err2;
++		err = -ENOMEM;
++		goto fail8;
 +	}
 +
-+	/*
-+	 * TODO: should be "TSC2005 touchscreen", but X has hardcoded these
-+	 * strings and doesn't accept TSC2005 yet...
-+	 */
-+	idev->name = "TSC2301 touchscreen";
-+	snprintf(ts->phys, sizeof(ts->phys), "%s/input-ts",
-+		 ts->spi->dev.bus_id);
-+	idev->phys = ts->phys;
++	if (lm8323_pdata->name)
++		idev->name = lm8323_pdata->name;
++	else
++		idev->name = "LM8323 keypad";
++	snprintf(lm->phys, sizeof(lm->phys), "%s/input-kp", client->dev.bus_id);
++	idev->phys = lm->phys;
 +
-+	idev->evbit[0] = BIT(EV_ABS) | BIT(EV_KEY);
-+	idev->absbit[0] = BIT(ABS_X) | BIT(ABS_Y) | BIT(ABS_PRESSURE);
-+	ts->idev = idev;
++	lm->keys_down = 0;
++	idev->evbit[0] = BIT(EV_KEY);
++	for (i = 0; i < LM8323_KEYMAP_SIZE; i++) {
++		if (lm8323_pdata->keymap[i] > 0)
++			set_bit(lm8323_pdata->keymap[i], idev->keybit);
 +
-+	tsc2005_ts_setup_spi_xfer(ts);
-+
-+	input_set_abs_params(idev, ABS_X, 0, x_max, x_fudge, 0);
-+	input_set_abs_params(idev, ABS_Y, 0, y_max, y_fudge, 0);
-+	input_set_abs_params(idev, ABS_PRESSURE, 0, ts->p_max, p_fudge, 0);
-+
-+	tsc2005_start_scan(ts);
-+
-+	r = request_irq(ts->irq, tsc2005_ts_irq_handler,
-+			IRQF_TRIGGER_FALLING | IRQF_DISABLED |
-+			IRQF_SAMPLE_RANDOM, "tsc2005", ts);
-+	if (r < 0) {
-+		dev_err(&ts->spi->dev, "unable to get DAV IRQ");
-+		goto err3;
++		lm->keymap[i] = lm8323_pdata->keymap[i];
 +	}
 +
-+	set_irq_wake(ts->irq, 1);
++	if (lm8323_pdata->repeat)
++		set_bit(EV_REP, idev->evbit);
 +
-+	r = input_register_device(idev);
-+	if (r < 0) {
-+		dev_err(&ts->spi->dev, "can't register touchscreen device\n");
-+		goto err4;
++	lm->idev = idev;
++	if (input_register_device(idev)) {
++		dev_dbg(&client->dev, "error registering input device\n");
++		goto fail8;
 +	}
 +
-+	/* We can tolerate these failing */
-+	if (device_create_file(&ts->spi->dev, &dev_attr_pen_down));
-+	if (device_create_file(&ts->spi->dev, &dev_attr_disable_ts));
-+
 +	return 0;
-+err4:
-+	free_irq(ts->irq, ts);
-+err3:
-+	tsc2005_stop_scan(ts);
-+	input_free_device(idev);
-+err2:
-+#ifdef CONFIG_ARCH_OMAP
-+	omap_free_gpio(dav_gpio);
-+#endif
-+err1:
-+	return r;
++
++fail8:
++	device_remove_file(&client->dev, &dev_attr_disable_kp);
++fail7:
++	free_irq(lm->irq, lm);
++fail6:
++	if (lm->pwm3.enabled)
++		led_classdev_unregister(&lm->pwm3.cdev);
++fail5:
++	if (lm->pwm2.enabled)
++		led_classdev_unregister(&lm->pwm2.cdev);
++fail4:
++	if (lm->pwm1.enabled)
++		led_classdev_unregister(&lm->pwm1.cdev);
++fail3:
++fail2:
++	kfree(lm);
++	return err;
 +}
 +
-+static int __devinit tsc2005_probe(struct spi_device *spi)
++static int lm8323_remove(struct i2c_client *client)
 +{
-+	struct tsc2005			*tsc;
-+	struct tsc2005_platform_data	*pdata = spi->dev.platform_data;
-+	int r;
++	struct lm8323_chip *lm = i2c_get_clientdata(client);
 +
-+	if (!pdata) {
-+		dev_dbg(&spi->dev, "no platform data?\n");
-+		return -ENODEV;
-+	}
-+
-+	tsc = kzalloc(sizeof(*tsc), GFP_KERNEL);
-+	if (tsc == NULL)
-+		return -ENOMEM;
-+
-+	dev_set_drvdata(&spi->dev, tsc);
-+	tsc->spi = spi;
-+	spi->dev.power.power_state = PMSG_ON;
-+
-+	spi->mode = SPI_MODE_0;
-+	spi->bits_per_word = 8;
-+	/* The max speed might've been defined by the board-specific
-+	 * struct */
-+	if (!spi->max_speed_hz)
-+		spi->max_speed_hz = TSC2005_HZ;
-+
-+	spi_setup(spi);
-+
-+	r = tsc2005_ts_init(tsc, pdata);
-+	if (r)
-+		goto err1;
++	free_irq(lm->irq, lm);
++	device_remove_file(&lm->client->dev, &dev_attr_disable_kp);
 +
 +	return 0;
-+
-+err1:
-+	kfree(tsc);
-+	return r;
 +}
 +
-+static int __devexit tsc2005_remove(struct spi_device *spi)
++/*
++ * We don't need to explicitly suspend the chip, as it already switches off
++ * when there's no activity.
++ */
++static int lm8323_suspend(struct i2c_client *client, pm_message_t mesg)
 +{
-+	struct tsc2005 *ts = dev_get_drvdata(&spi->dev);
-+	unsigned long flags;
++	struct lm8323_chip *lm = i2c_get_clientdata(client);
 +
-+	spin_lock_irqsave(&ts->lock, flags);
-+	tsc2005_disable(ts);
-+	spin_unlock_irqrestore(&ts->lock, flags);
++	set_irq_wake(lm->irq, 0);
++	disable_irq(lm->irq);
 +
-+	device_remove_file(&ts->spi->dev, &dev_attr_disable_ts);
-+	device_remove_file(&ts->spi->dev, &dev_attr_pen_down);
++	mutex_lock(&lm->lock);
++	lm->pm_suspend = 1;
++	mutex_unlock(&lm->lock);
 +
-+	free_irq(ts->irq, ts);
-+	input_unregister_device(ts->idev);
-+
-+#ifdef CONFIG_ARCH_OMAP
-+	omap_free_gpio(ts->dav_gpio);
-+#endif
-+	kfree(ts);
++	if (lm->pwm1.enabled)
++		led_classdev_suspend(&lm->pwm1.cdev);
++	if (lm->pwm2.enabled)
++		led_classdev_suspend(&lm->pwm2.cdev);
++	if (lm->pwm3.enabled)
++		led_classdev_suspend(&lm->pwm3.cdev);
 +
 +	return 0;
 +}
 +
-+#ifdef CONFIG_PM
-+static int tsc2005_suspend(struct spi_device *spi, pm_message_t mesg)
++static int lm8323_resume(struct i2c_client *client)
 +{
-+	struct tsc2005 *ts = dev_get_drvdata(&spi->dev);
++	struct lm8323_chip *lm = i2c_get_clientdata(client);
 +
-+	mutex_lock(&ts->mutex);
-+	tsc2005_disable(ts);
-+	mutex_unlock(&ts->mutex);
++	mutex_lock(&lm->lock);
++	lm->pm_suspend = 0;
++	mutex_unlock(&lm->lock);
++
++	if (lm->pwm1.enabled)
++		led_classdev_resume(&lm->pwm1.cdev);
++	if (lm->pwm2.enabled)
++		led_classdev_resume(&lm->pwm2.cdev);
++	if (lm->pwm3.enabled)
++		led_classdev_resume(&lm->pwm3.cdev);
++
++	enable_irq(lm->irq);
++	set_irq_wake(lm->irq, 1);
 +
 +	return 0;
 +}
 +
-+static int tsc2005_resume(struct spi_device *spi)
-+{
-+	struct tsc2005 *ts = dev_get_drvdata(&spi->dev);
-+
-+	mutex_lock(&ts->mutex);
-+	tsc2005_enable(ts);
-+	mutex_unlock(&ts->mutex);
-+
-+	return 0;
-+}
-+#endif
-+
-+static struct spi_driver tsc2005_driver = {
++static struct i2c_driver lm8323_i2c_driver = {
 +	.driver = {
-+		.name = "tsc2005",
-+		.bus = &spi_bus_type,
-+		.owner = THIS_MODULE,
++		.name	 = DRIVER_NAME,
 +	},
-+#ifdef CONFIG_PM
-+	.suspend = tsc2005_suspend,
-+	.resume = tsc2005_resume,
-+#endif
-+	.probe = tsc2005_probe,
-+	.remove = __devexit_p(tsc2005_remove),
++	.probe		= lm8323_probe,
++	.remove		= __exit_p(lm8323_remove),
++	.suspend	= lm8323_suspend,
++	.resume		= lm8323_resume,
 +};
 +
-+static int __init tsc2005_init(void)
++static int __init lm8323_init(void)
 +{
-+	printk("TSC2005 driver initializing\n");
-+
-+	return spi_register_driver(&tsc2005_driver);
++	return i2c_add_driver(&lm8323_i2c_driver);
 +}
-+module_init(tsc2005_init);
 +
-+static void __exit tsc2005_exit(void)
++static void __exit lm8323_exit(void)
 +{
-+	spi_unregister_driver(&tsc2005_driver);
++	i2c_del_driver(&lm8323_i2c_driver);
 +}
-+module_exit(tsc2005_exit);
 +
-+MODULE_AUTHOR("Lauri Leukkunen <lauri.leukkunen@nokia.com>");
++MODULE_AUTHOR("Daniel Stone");
++MODULE_DESCRIPTION("LM8323 keypad driver");
 +MODULE_LICENSE("GPL");
 +
-diff --git a/include/linux/spi/tsc2005.h b/include/linux/spi/tsc2005.h
++module_init(lm8323_init);
++module_exit(lm8323_exit);
+diff --git a/include/linux/i2c/lm8323.h b/include/linux/i2c/lm8323.h
 new file mode 100644
-index 0000000..dbc01f7
+index 0000000..2f0c213
 --- /dev/null
-+++ b/include/linux/spi/tsc2005.h
-@@ -0,0 +1,29 @@
-+#ifndef _LINUX_SPI_TSC2005_H
-+#define _LINUX_SPI_TSC2005_H
++++ b/include/linux/i2c/lm8323.h
+@@ -0,0 +1,45 @@
++/*
++ * include/lm8323.h
++ *
++ * Configuration for LM8323 keypad driver.
++ */
++
++#ifndef __LINUX_LM8323_H
++#define __LINUX_LM8323_H
 +
 +#include <linux/types.h>
 +
-+struct tsc2005_platform_data {
-+	s16	reset_gpio;
-+	s16	dav_gpio;
-+	s16	pen_int_gpio;
-+	u16	ts_x_plate_ohm;
-+	u32	ts_stab_time;	/* voltage settling time */
-+	u8	ts_hw_avg;	/* HW assiseted averaging. Can be
-+				   0, 4, 8, 16 samples per reading */
-+	u32	ts_touch_pressure;	/* Pressure limit until we report a
-+					   touch event. After that we switch
-+					   to ts_max_pressure. */
-+	u32	ts_pressure_max;/* Samples with bigger pressure value will
-+				   be ignored, since the corresponding X, Y
-+				   values are unreliable */
-+	u32	ts_pressure_fudge;
-+	u32	ts_x_max;
-+	u32	ts_x_fudge;
-+	u32	ts_y_max;
-+	u32	ts_y_fudge;
++/*
++ * Largest keycode that the chip can send, plus one,
++ * so keys can be mapped directly at the index of the
++ * LM8323 keycode instead of subtracting one.
++ */
++#define LM8323_KEYMAP_SIZE (0x7f + 1)
 +
-+	unsigned ts_ignore_last : 1;
++/*
++ * Keymap is an array indexed with chip keycode, the array entry being
++ * the evdev (not AT) keycode.
++ */
++typedef s16 lm8323_km_t[LM8323_KEYMAP_SIZE];
++
++struct lm8323_platform_data {
++	u16 irq_gpio;
++
++	int debounce_time; /* Time to watch for key bouncing, in ms. */
++	int active_time; /* Idle time until sleep, in ms. */
++
++	int size_x;
++	int size_y;
++	int repeat : 1;
++	const s16 *keymap;
++
++	char *pwm1_name; /* Device name for PWM1. */
++	char *pwm2_name; /* Device name for PWM2. */
++	char *pwm3_name; /* Device name for PWM3. */
++
++	char *name; /* Device name. */
 +};
 +
-+#endif
++void __init lm8323_set_platform_data(struct lm8323_platform_data *pdata);
++
++#endif /* __LINUX_LM8323_H */
 -- 
 1.5.5.rc3
 
