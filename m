@@ -1,73 +1,132 @@
-From: "Bryan Wu" <cooloney@kernel.org>
-Subject: Re: [Help 1/2] MUSB: ZiO! CF card reader will trigger a change from MUSB host mode to MUSB peripheral mode
-Date: Thu, 10 Apr 2008 19:24:50 +0800
-Message-ID: <386072610804100424l46273f0en9cc531dd7ec876ee@mail.gmail.com>
-References: <386072610804070408q16c5ffa1u6a0c2e35295aa327@mail.gmail.com>
-	 <af73f7a75d15439b4761e7b0baa612cf@felipebalbi.com>
-	 <200804070905.10048.david-b@pacbell.net>
-	 <386072610804080006g588c7ad9ya4dd8c9c9c6cf827@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [PATCH] I2C: TWL4030: General cleanup in twl4030's driver
+Date: Thu, 10 Apr 2008 15:40:37 +0300
+Message-ID: <1207831237-24216-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from el-out-1112.google.com ([209.85.162.177]:26437 "EHLO
-	el-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752171AbYDJLYv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Apr 2008 07:24:51 -0400
-Received: by el-out-1112.google.com with SMTP id v27so2090857ele.17
-        for <linux-omap@vger.kernel.org>; Thu, 10 Apr 2008 04:24:50 -0700 (PDT)
-In-Reply-To: <386072610804080006g588c7ad9ya4dd8c9c9c6cf827@mail.gmail.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.105.134]:44048 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754407AbYDJMmH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Apr 2008 08:42:07 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3ACiDgZ023351
+	for <linux-omap@vger.kernel.org>; Thu, 10 Apr 2008 07:44:22 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Felipe Balbi <me@felipebalbi.com>, tony@atomide.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-On Tue, Apr 8, 2008 at 3:06 PM, Bryan Wu <cooloney@kernel.org> wrote:
-> On Tue, Apr 8, 2008 at 12:05 AM, David Brownell <david-b@pacbell.net> wrote:
->  > On Monday 07 April 2008, Felipe Balbi wrote:
->  >  > I recall having some issues on 100mA devices. During enumeration some
->  >  > current spikes a few mAs above 100mA were occuring and we couldn't
->  >  > enumerate the device due to vbus_err interrupt.
->  >
->  >  Yeah, I think the Mentor core is unduly sensitive to voltage
->  >  fluctuation during enumeration.  There's supposed to be about
->  >  100 msec before VBUS must stabilize ... but the silicon doesn't
->  >  seem to accept routine instabilities in that period, and then
->  >  reports inappropriate VBUS errors.
->  >
->
->  For this VBUS error, Blackfin MUSB port follows other platforms idea to retry.
->
->  But to this bug, the ZiO card reader will trigger the mode change
->  maybe due to the VBUS drop.
->  It should be different as the VBUS error in the enumeration, because
->  the enumeration of the ZiO
->  is OK.
->
->  And for our development board EZKIT548, it can provide 500mA current
->  at 5V as it claimed in manual
->  with a external regular. So from my point of view, this bug is not
->  related with 100mA current limit issue.
->
->
+TWL4030's Kconfig entries was a bit mixed.
+Fix some missing '\n'
+Add missing space in two-lined printks
 
-These days I tried hard to workaround this issue, but failed:
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/i2c/chips/Kconfig             |    8 ++++----
+ drivers/i2c/chips/twl4030-core.c      |    2 +-
+ drivers/i2c/chips/twl4030-pwrbutton.c |   10 +++++-----
+ drivers/i2c/chips/twl4030-usb.c       |    2 +-
+ 4 files changed, 11 insertions(+), 11 deletions(-)
 
-- When VBUS_ERR happens in OTG_A_HOST state and the OTG is in
-peripheral mode, I try to start a new session and power on VBUS.
-- CONNECT IRQ fired and OTG is switch back to host mode.
-- In CONNECT IRQ handler, I rescan the musb->endpoint[i].in_qh or
-musb->endpoint[i].out_qh. Then resume the urb transfer which was
-stopped by the wrong VBUS_ERR mode switch IRQ. or just dequeue the urb
-to call off the transfer.
-- But the ZiO does not reply anymore. No IRQ from USB hardware. World
-keeps silence.
+diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
+index 4896f84..c3de735 100644
+--- a/drivers/i2c/chips/Kconfig
++++ b/drivers/i2c/chips/Kconfig
+@@ -132,10 +132,6 @@ config TWL4030_USB
+ 	bool "TWL4030 USB Transceiver Driver"
+ 	depends on TWL4030_CORE
+ 
+-config TWL4030_PWRBUTTON
+-        bool "TWL4030 Power button Driver"
+-	depends on TWL4030_CORE
+-
+ choice
+ 	prompt "Transceiver mode"
+ 	depends on TWL4030_USB
+@@ -143,6 +139,10 @@ choice
+ 	  TWL4030 USB transceiver can operate in various
+ 	  mutually-exclusive modes. Select one of them.
+ 
++config TWL4030_PWRBUTTON
++        bool "TWL4030 Power button Driver"
++	depends on TWL4030_CORE
++
+ config TWL4030_USB_HS_ULPI
+ 	depends on TWL4030_USB
+ 	bool "High-speed ULPI"
+diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
+index 5868a81..49bd63a 100644
+--- a/drivers/i2c/chips/twl4030-core.c
++++ b/drivers/i2c/chips/twl4030-core.c
+@@ -885,7 +885,7 @@ static int __init twl4030_init(void)
+ 	int res;
+ 
+ 	if ((res = i2c_add_driver(&twl4030_driver))) {
+-		printk(KERN_ERR "TWL4030: Driver registration failed \n");
++		printk(KERN_ERR "TWL4030: Driver registration failed\n");
+ 		return res;
+ 	}
+ 
+diff --git a/drivers/i2c/chips/twl4030-pwrbutton.c b/drivers/i2c/chips/twl4030-pwrbutton.c
+index a541ed6..cbc31aa 100644
+--- a/drivers/i2c/chips/twl4030-pwrbutton.c
++++ b/drivers/i2c/chips/twl4030-pwrbutton.c
+@@ -64,7 +64,7 @@ static irqreturn_t powerbutton_irq(int irq, void *dev_id)
+ 				 value & PWR_PWRON_IRQ);
+ 	} else {
+ 		printk(KERN_WARNING "I2C error %d while reading TWL4030"
+-			"PM_MASTER STS_HW_CONDITIONS register\n", err);
++			" PM_MASTER STS_HW_CONDITIONS register\n", err);
+ 	}
+ 
+ 	return IRQ_HANDLED;
+@@ -101,7 +101,7 @@ static int __init twl4030_pwrbutton_init(void)
+ 	err = twl4030_i2c_read_u8(TWL4030_MODULE_INT, &value, PWR_IMR1);
+ 	if (err) {
+ 		printk(KERN_WARNING "I2C error %d while reading TWL4030"
+-					"INT PWR_IMR1 register\n", err);
++					" INT PWR_IMR1 register\n", err);
+ 
+ 		goto free_input_dev;
+ 	}
+@@ -110,14 +110,14 @@ static int __init twl4030_pwrbutton_init(void)
+ 				   value & (~PWR_PWRON_IRQ), PWR_IMR1);
+ 	if (err) {
+ 		printk(KERN_WARNING "I2C error %d while writing TWL4030"
+-				    "INT PWR_IMR1 register\n", err);
++				    " INT PWR_IMR1 register\n", err);
+ 		goto free_input_dev;
+ 	}
+ 
+ 	err = twl4030_i2c_read_u8(TWL4030_MODULE_INT, &value, PWR_EDR1);
+ 	if (err) {
+ 		printk(KERN_WARNING "I2C error %d while reading TWL4030"
+-					"INT PWR_EDR1 register\n", err);
++					" INT PWR_EDR1 register\n", err);
+ 		goto free_input_dev;
+ 	}
+ 
+@@ -126,7 +126,7 @@ static int __init twl4030_pwrbutton_init(void)
+ 
+ 	if (err) {
+ 		printk(KERN_WARNING "I2C error %d while writing TWL4030"
+-					"INT PWR_EDR1 register\n", err);
++					" INT PWR_EDR1 register\n", err);
+ 		goto free_input_dev;
+ 	}
+ 
+diff --git a/drivers/i2c/chips/twl4030-usb.c b/drivers/i2c/chips/twl4030-usb.c
+index a238904..1df5427 100644
+--- a/drivers/i2c/chips/twl4030-usb.c
++++ b/drivers/i2c/chips/twl4030-usb.c
+@@ -726,7 +726,7 @@ static int __init twl4030_usb_init(void)
+ 
+ 	otg_set_transceiver(&twl->otg);
+ 
+-	printk(KERN_INFO "Initialized TWL4030 USB module");
++	printk(KERN_INFO "Initialized TWL4030 USB module\n");
+ 
+ 	return 0;
+ }
+-- 
+1.5.5.23.g2a5fe
 
-I think this kind of devices maybe should be added to the blacklist of
-the musb otg driver.
-
-Do you guys have some idea about that?
-
-Thanks a lot
--Bryan Wu
