@@ -1,306 +1,305 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 1/5] Powerdomains: add OMAP chip type global bitfield; clean up mach-omap2/id.c
-Date: Thu, 10 Apr 2008 08:46:25 -0600
-Message-ID: <20080410153343.801143838@pwsan.com>
+Subject: [PATCH 4/5] Powerdomains: add OMAP2 powerdomains
+Date: Thu, 10 Apr 2008 08:46:28 -0600
+Message-ID: <20080410153344.157299727@pwsan.com>
 References: <20080410144624.246788469@pwsan.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47224 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:47227 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755773AbYDJRPP (ORCPT
+	with ESMTP id S1756454AbYDJRPP (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Apr 2008 13:15:15 -0400
-Content-Disposition: inline; filename=add_omap_chip_id_bits.patch
+Content-Disposition: inline; filename=add_omap2_powerdomains.patch
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Add a new kind of OMAP identification, omap_chip.  omap_chip is a
-bitfield which contains one bit for each OMAP2/3 CPU type, and, on
-3430 and beyond, ES level.  
-
-For example, the CHIP_IS_OMAP2420 bit is set in omap_type at boot on
-an OMAP2420.  On OMAP3430ES2, both CHIP_IS_OMAP3430 and
-CHIP_IS_OMAP3430ES2 bits are set.
-
-omap_chip is set in mach-omap2/id.c by _set_omap_chip().  omap_chip is
-declared static to prevent external code from accessing it directly.
-Other code can test against omap_chip via the omap_chip_is() function.
-
-omap_chip will be used by the forthcoming powerdomain and
-clockdomain patches.  Each powerdomain/clockdomain structure has a
-"omap_type" field, in which one or more of these bits are set, to
-indicate the OMAP chips that the structure is valid for.  
-
-External code should define omap_type fields as omap_type_t, so
-omap_type_t can be transparently extended from its current u8 storage
-size without generating a lot of patch noise.
-
-Also, clean up id.c by splitting some code out of
-omap_check_revision() into its own function, _set_system_rev(); and
-converting some debug printk()s into pr_debug().
+Add OMAP2-specific powerdomains.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
 ---
- arch/arm/mach-omap2/id.c        |  166 ++++++++++++++++++++++++++++------------
- include/asm-arm/arch-omap/cpu.h |   27 ++++++
- 2 files changed, 144 insertions(+), 49 deletions(-)
+ arch/arm/mach-omap2/powerdomains.h     |   16 ++-
+ arch/arm/mach-omap2/powerdomains24xx.h |  176 ++++++++++++++++++++++++=
++++++++++
+ arch/arm/mach-omap2/prm-regbits-24xx.h |   12 +-
+ 3 files changed, 199 insertions(+), 5 deletions(-)
 
-Index: linux-omap/arch/arm/mach-omap2/id.c
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/id.c	2008-04-10 07:34:44.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/id.c	2008-04-10 07:34:57.000000000 -0600
-@@ -18,6 +18,7 @@
- #include <asm/io.h>
- 
- #include <asm/arch/control.h>
-+#include <asm/arch/cpu.h>
- 
- #if defined(CONFIG_ARCH_OMAP2420)
- #define TAP_BASE	io_p2v(0x48014000)
-@@ -62,6 +63,21 @@
- 	{ .hawkeye = 0xb68a, .dev = 0x0, .type = 0x24300000 },
- };
- 
-+static omap_chip_t omap_chip;
-+
-+/**
-+ * omap_chip_is - test whether currently running OMAP matches a chip type
-+ * @oc: omap_chip_t to test against
-+ *
-+ * Test whether the currently-running OMAP chip matches the supplied
-+ * chip type 'oc'.  Returns 1 upon a match; 0 upon failure.
-+ */
-+int omap_chip_is(omap_chip_t oc)
-+{
-+	return (oc & omap_chip) ? 1 : 0;
-+}
-+EXPORT_SYMBOL(omap_chip_is);
-+
- static u32 __init read_tap_reg(int reg)
- {
- 	unsigned int regval = 0;
-@@ -93,9 +109,91 @@
- 
- }
- 
-+/*
-+ * _set_system_rev - set the system_rev global based on current OMAP chip type
-+ *
-+ * Set the system_rev global.  This is primarily used by the cpu_is_omapxxxx()
-+ * macros.
-+ */
-+static void __init _set_system_rev(u32 type, u8 rev)
-+{
-+	u32 i, ctrl_status;
-+
-+	/*
-+	 * system_rev encoding is as follows
-+	 * system_rev & 0xff000000 -> Omap Class (24xx/34xx)
-+	 * system_rev & 0xfff00000 -> Omap Sub Class (242x/343x)
-+	 * system_rev & 0xffff0000 -> Omap type (2420/2422/2423/2430/3430)
-+	 * system_rev & 0x0000f000 -> Silicon revision (ES1, ES2 )
-+	 * system_rev & 0x00000700 -> Device Type ( EMU/HS/GP/BAD )
-+	 * system_rev & 0x000000c0 -> IDCODE revision[6:7]
-+	 * system_rev & 0x0000003f -> sys_boot[0:5]
-+	 */
-+	/* Embedding the ES revision info in type field */
-+	system_rev = type;
-+	/* Also add IDCODE revision info only two lower bits */
-+	system_rev |= ((rev & 0x3) << 6);
-+
-+	/* Add in the device type and sys_boot fields (see above) */
-+	if (cpu_is_omap24xx()) {
-+		i = OMAP24XX_CONTROL_STATUS;
-+	} else if (cpu_is_omap343x()) {
-+		i = OMAP343X_CONTROL_STATUS;
-+	} else {
-+		printk(KERN_ERR "id: unknown CPU type\n");
-+		BUG();
-+	}
-+	ctrl_status = omap_ctrl_readl(i);
-+	system_rev |= (ctrl_status & (OMAP2_SYSBOOT_5_MASK |
-+				      OMAP2_SYSBOOT_4_MASK |
-+				      OMAP2_SYSBOOT_3_MASK |
-+				      OMAP2_SYSBOOT_2_MASK |
-+				      OMAP2_SYSBOOT_1_MASK |
-+				      OMAP2_SYSBOOT_0_MASK));
-+	system_rev |= (ctrl_status & OMAP2_DEVICETYPE_MASK);
-+}
-+
-+
-+/*
-+ * _set_omap_chip - set the omap_chip global based on OMAP chip type
-+ *
-+ * Build the omap_cpu_type bits.  This variable is used by powerdomain and
-+ * clockdomain code to indicate whether structures are applicable for
-+ * the current OMAP chip type by ANDing it against a 'platform' bitfield
-+ * in the structure.
-+ */
-+static void __init _set_omap_chip(void)
-+{
-+	if (cpu_is_omap343x()) {
-+
-+		omap_chip |= CHIP_IS_OMAP3430;
-+		if (is_sil_rev_equal_to(OMAP3430_REV_ES1_0))
-+			omap_chip |= CHIP_IS_OMAP3430ES1;
-+		else if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0))
-+			omap_chip |= CHIP_IS_OMAP3430ES2;
-+
-+	} else if (cpu_is_omap243x()) {
-+
-+		/* Currently only supports 2430ES2.1 and 2430-all */
-+		omap_chip |= CHIP_IS_OMAP2430;
-+
-+	} else if (cpu_is_omap242x()) {
-+
-+		/* Currently only supports 2420ES2.1.1 and 2420-all */
-+		omap_chip |= CHIP_IS_OMAP2420;
-+
-+	} else {
-+
-+		/* Current CPU not supported by this code. */
-+		printk(KERN_WARNING "OMAP chip type code does not yet support "
-+		       "this CPU type.\n");
-+		WARN_ON(1);
-+
-+	}
-+}
-+
- void __init omap2_check_revision(void)
- {
--	int ctrl_status = 0;
- 	int i, j;
- 	u32 idcode;
- 	u32 prod_id;
-@@ -109,21 +207,19 @@
- 	rev = (idcode >> 28) & 0x0f;
- 	dev_type = (prod_id >> 16) & 0x0f;
- 
--#ifdef DEBUG
--	printk(KERN_DEBUG "OMAP_TAP_IDCODE 0x%08x REV %i HAWKEYE 0x%04x MANF %03x\n",
--		idcode, rev, hawkeye, (idcode >> 1) & 0x7ff);
--	printk(KERN_DEBUG "OMAP_TAP_DIE_ID_0: 0x%08x\n",
--		read_tap_reg(OMAP_TAP_DIE_ID_0));
--	printk(KERN_DEBUG "OMAP_TAP_DIE_ID_1: 0x%08x DEV_REV: %i\n",
--		read_tap_reg(OMAP_TAP_DIE_ID_1),
--	       (read_tap_reg(OMAP_TAP_DIE_ID_1) >> 28) & 0xf);
--	printk(KERN_DEBUG "OMAP_TAP_DIE_ID_2: 0x%08x\n",
--		read_tap_reg(OMAP_TAP_DIE_ID_2));
--	printk(KERN_DEBUG "OMAP_TAP_DIE_ID_3: 0x%08x\n",
--		read_tap_reg(OMAP_TAP_DIE_ID_3));
--	printk(KERN_DEBUG "OMAP_TAP_PROD_ID_0: 0x%08x DEV_TYPE: %i\n",
--		prod_id, dev_type);
--#endif
-+	pr_debug("OMAP_TAP_IDCODE 0x%08x REV %i HAWKEYE 0x%04x MANF %03x\n",
-+		 idcode, rev, hawkeye, (idcode >> 1) & 0x7ff);
-+	pr_debug("OMAP_TAP_DIE_ID_0: 0x%08x\n",
-+		 read_tap_reg(OMAP_TAP_DIE_ID_0));
-+	pr_debug("OMAP_TAP_DIE_ID_1: 0x%08x DEV_REV: %i\n",
-+		 read_tap_reg(OMAP_TAP_DIE_ID_1),
-+		 (read_tap_reg(OMAP_TAP_DIE_ID_1) >> 28) & 0xf);
-+	pr_debug("OMAP_TAP_DIE_ID_2: 0x%08x\n",
-+		 read_tap_reg(OMAP_TAP_DIE_ID_2));
-+	pr_debug("OMAP_TAP_DIE_ID_3: 0x%08x\n",
-+		 read_tap_reg(OMAP_TAP_DIE_ID_3));
-+	pr_debug("OMAP_TAP_PROD_ID_0: 0x%08x DEV_TYPE: %i\n",
-+		 prod_id, dev_type);
- 
- 	/*
- 	 * Detection for 34xx ES2.0 and above can be done with just
-@@ -159,43 +255,15 @@
- 		j = i;
- 	}
- 
--	/*
--	 * system_rev encoding is as follows
--	 * system_rev & 0xff000000 -> Omap Class (24xx/34xx)
--	 * system_rev & 0xfff00000 -> Omap Sub Class (242x/343x)
--	 * system_rev & 0xffff0000 -> Omap type (2420/2422/2423/2430/3430)
--	 * system_rev & 0x0000f000 -> Silicon revision (ES1, ES2 )
--	 * system_rev & 0x00000700 -> Device Type ( EMU/HS/GP/BAD )
--	 * system_rev & 0x000000c0 -> IDCODE revision[6:7]
--	 * system_rev & 0x0000003f -> sys_boot[0:5]
--	 */
--	/* Embedding the ES revision info in type field */
--	system_rev = omap_ids[j].type;
--	/* Also add IDCODE revision info only two lower bits */
--	system_rev |= ((rev & 0x3) << 6);
-+	_set_system_rev(omap_ids[j].type, rev);
-+
-+	_set_omap_chip();
- 
--	/* Add in the device type and sys_boot fields (see above) */
--	if (cpu_is_omap24xx()) {
--		i = OMAP24XX_CONTROL_STATUS;
--	} else if (cpu_is_omap343x()) {
--		i = OMAP343X_CONTROL_STATUS;
--	} else {
--		printk(KERN_ERR "id: unknown CPU type\n");
--		BUG();
--	}
--	ctrl_status = omap_ctrl_readl(i);
--	system_rev |= (ctrl_status & (OMAP2_SYSBOOT_5_MASK |
--				      OMAP2_SYSBOOT_4_MASK |
--				      OMAP2_SYSBOOT_3_MASK |
--				      OMAP2_SYSBOOT_2_MASK |
--				      OMAP2_SYSBOOT_1_MASK |
--				      OMAP2_SYSBOOT_0_MASK));
--	system_rev |= (ctrl_status & OMAP2_DEVICETYPE_MASK);
- 
- 	pr_info("OMAP%04x", system_rev >> 16);
- 	if ((system_rev >> 8) & 0x0f)
--		printk("ES%x", (system_rev >> 12) & 0xf);
--	printk("\n");
-+		pr_info("ES%x", (system_rev >> 12) & 0xf);
-+	pr_info("\n");
- 
- }
- 
-Index: linux-omap/include/asm-arm/arch-omap/cpu.h
-===================================================================
---- linux-omap.orig/include/asm-arm/arch-omap/cpu.h	2008-04-10 07:34:44.000000000 -0600
-+++ linux-omap/include/asm-arm/arch-omap/cpu.h	2008-04-10 07:37:36.000000000 -0600
-@@ -26,6 +26,8 @@
- #ifndef __ASM_ARCH_OMAP_CPU_H
- #define __ASM_ARCH_OMAP_CPU_H
- 
-+typedef u8 omap_chip_t;
-+
- extern unsigned int system_rev;
- 
- #define omap2_cpu_rev()		((system_rev >> 12) & 0x0f)
-@@ -349,6 +351,31 @@
- #define OMAP3430_REV_ES2_2	0x34303000
- 
+Index: linux-omap/arch/arm/mach-omap2/powerdomains.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-omap.orig/arch/arm/mach-omap2/powerdomains.h	2008-04-10 07:55=
+:34.000000000 -0600
++++ linux-omap/arch/arm/mach-omap2/powerdomains.h	2008-04-10 07:58:09.0=
+00000000 -0600
+@@ -79,7 +79,6 @@
+ static struct powerdomain mpu_34xx_pwrdm;
+ static struct powerdomain iva2_pwrdm;
+=20
+-
+ /* OMAP2/3-common powerdomains and wakeup dependencies */
+=20
  /*
-+ * omap_chip bits
+@@ -96,6 +95,11 @@
+ 	{ NULL },
+ };
+=20
++/* Include 24XX-specific powerdomains (which may reference the above w=
+kdeps) */
++
++#include "powerdomains24xx.h"
++
++
+ /*
+  * OMAP2/3 common powerdomains
+  */
+@@ -137,6 +141,16 @@
+ 	&gfx_pwrdm,
+ 	&wkup_pwrdm,
+=20
++#ifdef CONFIG_ARCH_OMAP24XX
++	&dsp_pwrdm,
++	&mpu_24xx_pwrdm,
++	&core_24xx_pwrdm,
++#endif
++
++#ifdef CONFIG_ARCH_OMAP243X
++	&mdm_pwrdm,
++#endif
++
+ 	NULL
+ };
+=20
+Index: linux-omap/arch/arm/mach-omap2/powerdomains24xx.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-omap/arch/arm/mach-omap2/powerdomains24xx.h	2008-04-10 07:58:=
+23.000000000 -0600
+@@ -0,0 +1,176 @@
++/*
++ * OMAP24XX powerdomain definitions
 + *
-+ * CHIP_IS_OMAP{2420,2430,3430} indicate that a particular structure is
-+ * valid on all chips of that type.  CHIP_IS_OMAP3430ES{1,2} indicates
-+ * something that is only valid on that particular ES revision.
++ * Copyright (C) 2007-8 Texas Instruments, Inc.
++ * Copyright (C) 2007-8 Nokia Corporation
 + *
-+ * These bits may be ANDed together to indicate structures that are
-+ * available on multiple chip types.
++ * Written by Paul Walmsley
++ * Debugging and integration fixes by Jouni H=C3=B6gander
 + *
-+ * To test whether a particular structure matches the current OMAP chip type,
-+ * use omap_chip_is().
-+ *
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
-+#define CHIP_IS_OMAP2420       (1 << 0)
-+#define CHIP_IS_OMAP2430       (1 << 1)
-+#define CHIP_IS_OMAP3430       (1 << 2)
-+#define CHIP_IS_OMAP3430ES1    (1 << 3)
-+#define CHIP_IS_OMAP3430ES2    (1 << 4)
 +
-+#define CHIP_IS_OMAP24XX       (CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
++#ifndef ARCH_ARM_MACH_OMAP2_POWERDOMAINS24XX
++#define ARCH_ARM_MACH_OMAP2_POWERDOMAINS24XX
 +
-+int omap_chip_is(omap_chip_t oc);
++/*
++ * N.B. If powerdomains are added or removed from this file, update
++ * the array in mach-omap2/powerdomains.h.
++ */
++
++#include <asm/arch/powerdomain.h>
++
++#include "prcm-common.h"
++#include "prm.h"
++#include "prm-regbits-24xx.h"
++#include "cm.h"
++#include "cm-regbits-24xx.h"
++
++/* Forward declarations - so powerdomain dependencies can be encoded *=
+/
++
++#ifdef CONFIG_ARCH_OMAP24XX
++static struct powerdomain dsp_pwrdm;
++static struct powerdomain mpu_24xx_pwrdm;
++static struct powerdomain core_24xx_pwrdm;
++static struct powerdomain iva2_pwrdm;
++static struct powerdomain mdm_pwrdm;
++#endif
++
++
++/* 24XX powerdomains and dependencies */
++
++
++#ifdef CONFIG_ARCH_OMAP24XX
++
++
++/* Wakeup dependency source arrays */
++
++/*
++ * 2420/2430 PM_WKDEP_DSP: CORE, MPU, WKUP
++ * 2430 PM_WKDEP_MDM: same as above
++ */
++static struct pwrdm_dep dsp_mdm_24xx_wkdeps[] =3D {
++	{ .pwrdm =3D &core_24xx_pwrdm,	.omap_chip =3D CHIP_IS_OMAP24XX },
++	{ .pwrdm =3D &mpu_24xx_pwrdm,	.omap_chip =3D CHIP_IS_OMAP24XX },
++	{ .pwrdm =3D &wkup_pwrdm,		.omap_chip =3D CHIP_IS_OMAP24XX },
++	{ NULL },
++};
++
++/*
++ * 2420 PM_WKDEP_MPU: CORE, DSP, WKUP
++ * 2430 adds MDM
++ */
++static struct pwrdm_dep mpu_24xx_wkdeps[] =3D {
++	{ .pwrdm =3D &core_24xx_pwrdm,	.omap_chip =3D CHIP_IS_OMAP24XX },
++	{ .pwrdm =3D &dsp_pwrdm,		.omap_chip =3D CHIP_IS_OMAP24XX },
++	{ .pwrdm =3D &wkup_pwrdm,		.omap_chip =3D CHIP_IS_OMAP24XX },
++	{ .pwrdm =3D &mdm_pwrdm,		.omap_chip =3D CHIP_IS_OMAP2430 },
++	{ NULL },
++};
++
++/*
++ * 2420 PM_WKDEP_CORE: DSP, GFX, MPU, WKUP
++ * 2430 adds MDM
++ */
++static struct pwrdm_dep core_24xx_wkdeps[] =3D {
++	{ .pwrdm =3D &dsp_pwrdm,		.omap_chip =3D CHIP_IS_OMAP24XX },
++	{ .pwrdm =3D &gfx_pwrdm,		.omap_chip =3D CHIP_IS_OMAP24XX },
++	{ .pwrdm =3D &mpu_24xx_pwrdm,	.omap_chip =3D CHIP_IS_OMAP24XX },
++	{ .pwrdm =3D &wkup_pwrdm,		.omap_chip =3D CHIP_IS_OMAP24XX },
++	{ .pwrdm =3D &mdm_pwrdm,		.omap_chip =3D CHIP_IS_OMAP2430 },
++	{ NULL },
++};
++
++
++/* Powerdomains */
++
++static struct powerdomain dsp_pwrdm =3D {
++	.name		  =3D "dsp_pwrdm",
++	.prcm_offs	  =3D OMAP24XX_DSP_MOD,
++	.omap_chip	  =3D CHIP_IS_OMAP24XX,
++	.dep_bit	  =3D OMAP24XX_PM_WKDEP_MPU_EN_DSP_SHIFT,
++	.wkdep_srcs	  =3D dsp_mdm_24xx_wkdeps,
++	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
++	.pwrsts_logic_ret =3D PWRDM_POWER_RET,
++	.banks		  =3D 1,
++	.pwrsts_mem_ret	  =3D {
++		[0] =3D PWRDM_POWER_RET,
++	},
++	.pwrsts_mem_on	  =3D {
++		[0] =3D PWRDM_POWER_ON,
++	},
++};
++
++static struct powerdomain mpu_24xx_pwrdm =3D {
++	.name		  =3D "mpu_pwrdm",
++	.prcm_offs	  =3D MPU_MOD,
++	.omap_chip	  =3D CHIP_IS_OMAP24XX,
++	.dep_bit	  =3D OMAP24XX_EN_MPU_SHIFT,
++	.wkdep_srcs	  =3D mpu_24xx_wkdeps,
++	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
++	.pwrsts_logic_ret =3D PWRSTS_OFF_RET,
++	.banks		  =3D 1,
++	.pwrsts_mem_ret	  =3D {
++		[0] =3D PWRDM_POWER_RET,
++	},
++	.pwrsts_mem_on	  =3D {
++		[0] =3D PWRDM_POWER_ON,
++	},
++};
++
++static struct powerdomain core_24xx_pwrdm =3D {
++	.name		  =3D "core_pwrdm",
++	.prcm_offs	  =3D CORE_MOD,
++	.omap_chip	  =3D CHIP_IS_OMAP24XX,
++	.wkdep_srcs	  =3D core_24xx_wkdeps,
++	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
++	.dep_bit	  =3D OMAP24XX_EN_CORE_SHIFT,
++	.banks		  =3D 3,
++	.pwrsts_mem_ret	  =3D {
++		[0] =3D PWRSTS_OFF_RET,	 /* MEM1RETSTATE */
++		[1] =3D PWRSTS_OFF_RET,	 /* MEM2RETSTATE */
++		[2] =3D PWRSTS_OFF_RET,	 /* MEM3RETSTATE */
++	},
++	.pwrsts_mem_on	  =3D {
++		[0] =3D PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
++		[1] =3D PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
++		[2] =3D PWRSTS_OFF_RET_ON, /* MEM3ONSTATE */
++	},
++};
++
++#endif	   /* CONFIG_ARCH_OMAP24XX */
++
 +
 +
 +/*
-  * Macro to detect device type i.e. EMU/HS/TST/GP/BAD
-  */
- #define DEVICE_TYPE_TEST	0
++ * 2430-specific powerdomains
++ */
++
++#ifdef CONFIG_ARCH_OMAP2430
++
++/* XXX 2430 KILLDOMAINWKUP bit?  No current users apparently */
++
++/* Another case of bit name collisions between several registers: EN_M=
+DM */
++static struct powerdomain mdm_pwrdm =3D {
++	.name		  =3D "mdm_pwrdm",
++	.prcm_offs	  =3D OMAP2430_MDM_MOD,
++	.omap_chip	  =3D CHIP_IS_OMAP2430,
++	.dep_bit	  =3D OMAP2430_PM_WKDEP_MPU_EN_MDM_SHIFT,
++	.wkdep_srcs	  =3D dsp_mdm_wkdeps,
++	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
++	.pwrsts_logic_ret =3D PWRDM_POWER_RET,
++	.banks		  =3D 1,
++	.pwrsts_mem_ret	  =3D {
++		[0] =3D PWRDM_POWER_RET, /* MEMRETSTATE */
++	},
++	.pwrsts_mem_on	  =3D {
++		[0] =3D PWRDM_POWER_ON,  /* MEMONSTATE */
++	},
++};
++
++#endif     /* CONFIG_ARCH_OMAP2430 */
++
++
++#endif
+Index: linux-omap/arch/arm/mach-omap2/prm-regbits-24xx.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-omap.orig/arch/arm/mach-omap2/prm-regbits-24xx.h	2008-04-10 0=
+7:54:32.000000000 -0600
++++ linux-omap/arch/arm/mach-omap2/prm-regbits-24xx.h	2008-04-10 07:55:=
+56.000000000 -0600
+@@ -29,8 +29,10 @@
+ #define OMAP24XX_WKUP1_EN				(1 << 0)
+=20
+ /* PM_WKDEP_GFX, PM_WKDEP_MPU, PM_WKDEP_DSP, PM_WKDEP_MDM shared bits =
+*/
+-#define OMAP24XX_EN_MPU					(1 << 1)
+-#define OMAP24XX_EN_CORE				(1 << 0)
++#define OMAP24XX_EN_MPU_SHIFT				1
++#define OMAP24XX_EN_MPU_MASK				(1 << 1)
++#define OMAP24XX_EN_CORE_SHIFT 				0
++#define OMAP24XX_EN_CORE_MASK				(1 << 0)
+=20
+ /*
+  * PM_PWSTCTRL_MPU, PM_PWSTCTRL_GFX, PM_PWSTCTRL_DSP, PM_PWSTCTRL_MDM
+@@ -140,8 +142,10 @@
+ /* 2430 calls GLOBALWMPU_RST "GLOBALWARM_RST" instead */
+=20
+ /* PM_WKDEP_MPU specific bits */
+-#define OMAP2430_PM_WKDEP_MPU_EN_MDM			(1 << 5)
+-#define OMAP24XX_PM_WKDEP_MPU_EN_DSP			(1 << 2)
++#define OMAP2430_PM_WKDEP_MPU_EN_MDM_SHIFT		5
++#define OMAP2430_PM_WKDEP_MPU_EN_MDM_MASK		(1 << 5)
++#define OMAP24XX_PM_WKDEP_MPU_EN_DSP_SHIFT		2
++#define OMAP24XX_PM_WKDEP_MPU_EN_DSP_MASK		(1 << 2)
+=20
+ /* PM_EVGENCTRL_MPU specific bits */
+=20
 
--- 
+--=20
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
