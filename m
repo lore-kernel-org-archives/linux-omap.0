@@ -1,245 +1,77 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/4] Clockdomains: connect clockdomain code to powerdomain code
-Date: Thu, 10 Apr 2008 10:25:34 -0600
-Message-ID: <20080410163626.045491105@pwsan.com>
-References: <20080410162532.097381890@pwsan.com>
+Subject: [PATCH 0/4] Clockdomains: add OMAP2/3 clockdomain code, link 34xx clocks with clockdomains
+Date: Thu, 10 Apr 2008 10:25:32 -0600
+Message-ID: <20080410162532.097381890@pwsan.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34129 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:34120 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756267AbYDJRRr (ORCPT
+	with ESMTP id S1756100AbYDJRRr (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Apr 2008 13:17:47 -0400
-Content-Disposition: inline; filename=add_powerdomain_clockdomain_code.patch
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: jouni.hogander@nokia.com, sakari.poussa@nokia.com, igor.stoppa@nokia.com, karthik-dp@ti.com, rnayak@ti.com, r-woodruff2@ti.com, tony@atomide.com
 
-Thie patch adds code to the powerdomain layer to track the
-clockdomains associated with each powerdomain.
+Hello,
 
-It also modifies the clockdomain code to register clockdomains
-with their corresponding powerdomain when the clockdomain is registered.
+this patch series adds a hardware control interface for OMAP2/3
+clockdomains.  Also added is clockdomain usecounting of underlying
+clocks, so hardware-supervised and software-supervised clockdomain
+transitions can occur correctly.  The interface is fully documented in
+the code.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+24xx clocks are not yet linked with clockdomains. This will be done in
+a later patchset.
 
----
- arch/arm/mach-omap2/clockdomain.c       |    4 +
- arch/arm/mach-omap2/powerdomain.c       |  128 ++++++++++++++++++++++++++++++++
- include/asm-arm/arch-omap/powerdomain.h |   17 +++-
- 3 files changed, 147 insertions(+), 2 deletions(-)
+This series must be applied after the powerdomain series, posted earlie=
+r.
 
-Index: linux-omap/arch/arm/mach-omap2/clockdomain.c
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/clockdomain.c	2008-04-10 08:04:34.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/clockdomain.c	2008-04-10 08:07:08.000000000 -0600
-@@ -195,6 +195,8 @@
- 	list_add(&clkdm->node, &clkdm_list);
- 	mutex_unlock(&clkdm_mutex);
- 
-+	pwrdm_add_clkdm(pwrdm, clkdm);
-+
- 	pr_debug("clockdomain: registered %s\n", clkdm->name);
- 
- 	return 0;
-@@ -213,6 +215,8 @@
- 	if (!clkdm)
- 		return -EINVAL;
- 
-+	pwrdm_del_clkdm(clkdm->pwrdm, clkdm);
-+
- 	mutex_lock(&clkdm_mutex);
- 	list_del(&clkdm->node);
- 	mutex_unlock(&clkdm_mutex);
-Index: linux-omap/arch/arm/mach-omap2/powerdomain.c
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/powerdomain.c	2008-04-10 08:01:43.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/powerdomain.c	2008-04-10 08:05:40.000000000 -0600
-@@ -32,6 +32,7 @@
- 
- #include <asm/arch/cpu.h>
- #include <asm/arch/powerdomain.h>
-+#include <asm/arch/clockdomain.h>
- 
- /* pwrdm_list contains all registered struct powerdomains */
- static LIST_HEAD(pwrdm_list);
-@@ -208,6 +209,133 @@
- EXPORT_SYMBOL(pwrdm_for_each);
- 
- /**
-+ * pwrdm_add_clkdm - add a clockdomain to a powerdomain
-+ * @pwrdm: struct powerdomain * to add the clockdomain to
-+ * @clkdm: struct clockdomain * to associate with a powerdomain
-+ *
-+ * Associate the clockdomain 'clkdm' with a powerdomain 'pwrdm'.  This
-+ * enables the use of pwrdm_for_each_clkdm().  Returns -EINVAL if
-+ * presented with invalid pointers; -ENOMEM if memory could not be allocated;
-+ * or 0 upon success.
-+ */
-+int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
-+{
-+	int i;
-+	int ret = 0;
-+
-+	if (!pwrdm || !clkdm)
-+		return -EINVAL;
-+
-+	pr_debug("powerdomain: associating clockdomain %s with powerdomain "
-+		 "%s\n", clkdm->name, pwrdm->name);
-+
-+	mutex_lock(&pwrdm_mutex);
-+
-+	for (i = 0; i < PWRDM_MAX_CLKDMS; i++) {
-+		if (!pwrdm->pwrdm_clkdms[i])
-+			break;
-+#ifdef DEBUG
-+		if (pwrdm->pwrdm_clkdms[i] == clkdm) {
-+			ret = -EINVAL;
-+			goto pac_exit;
-+		}
-+#endif
-+	}
-+
-+	if (i == PWRDM_MAX_CLKDMS) {
-+		pr_debug("powerdomain: increase PWRDM_MAX_CLKDMS for "
-+			 "pwrdm %s clkdm %s\n", pwrdm->name, clkdm->name);
-+		WARN_ON(1);
-+		ret = -ENOMEM;
-+		goto pac_exit;
-+	}
-+
-+	pwrdm->pwrdm_clkdms[i] = clkdm;
-+
-+pac_exit:
-+	mutex_unlock(&pwrdm_mutex);
-+
-+	return ret;
-+}
-+
-+/**
-+ * pwrdm_del_clkdm - remove a clockdomain to a powerdomain
-+ * @pwrdm: struct powerdomain * to add the clockdomain to
-+ * @clkdm: struct clockdomain * to associate with a powerdomain
-+ *
-+ * Dissociate the clockdomain 'clkdm' from the powerdomain
-+ * 'pwrdm'. Returns -EINVAL if presented with invalid pointers;
-+ * -ENOENT if the clkdm was not associated with the powerdomain, or 0
-+ * upon success.
-+ */
-+int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
-+{
-+	int ret = 0;
-+	int i;
-+
-+	if (!pwrdm || !clkdm)
-+		return -EINVAL;
-+
-+	pr_debug("powerdomain: dissociating clockdomain %s from powerdomain "
-+		 "%s\n", clkdm->name, pwrdm->name);
-+
-+	mutex_lock(&pwrdm_mutex);
-+
-+	for (i = 0; i < PWRDM_MAX_CLKDMS; i++)
-+		if (pwrdm->pwrdm_clkdms[i] == clkdm)
-+			break;
-+
-+	if (i == PWRDM_MAX_CLKDMS) {
-+		pr_debug("powerdomain: clkdm %s not associated with pwrdm "
-+			 "%s ?!\n", clkdm->name, pwrdm->name);
-+		ret = -ENOENT;
-+		goto pdc_exit;
-+	}
-+
-+	pwrdm->pwrdm_clkdms[i] = NULL;
-+
-+pdc_exit:
-+	mutex_unlock(&pwrdm_mutex);
-+
-+	return ret;
-+}
-+
-+/**
-+ * pwrdm_for_each_clkdm - call function on each clkdm in a pwrdm
-+ * @pwrdm: struct powerdomain * to iterate over
-+ * @fn: callback function *
-+ *
-+ * Call the supplied function for each clockdomain in the powerdomain
-+ * 'pwrdm'.  The callback function can return anything but 0 to bail
-+ * out early from the iterator.	 The callback function is called with
-+ * the pwrdm_mutex held, so no powerdomain structure manipulation
-+ * functions should be called from the callback, although hardware
-+ * powerdomain control functions are fine.  Returns -EINVAL if
-+ * presented with invalid pointers; or passes along the last return
-+ * value of the callback function, which should be 0 for success or
-+ * anything else to indicate failure.
-+ */
-+int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
-+			 int (*fn)(struct powerdomain *pwrdm,
-+				   struct clockdomain *clkdm))
-+{
-+	int ret = 0;
-+	int i;
-+
-+	if (!fn)
-+		return -EINVAL;
-+
-+	mutex_lock(&pwrdm_mutex);
-+
-+	for (i = 0; i < PWRDM_MAX_CLKDMS && !ret; i++)
-+		ret = (*fn)(pwrdm, pwrdm->pwrdm_clkdms[i]);
-+
-+	mutex_unlock(&pwrdm_mutex);
-+
-+	return ret;
-+}
-+
-+/**
-  * pwrdm_add_wkdep - add a wakeup dependency from pwrdm2 to pwrdm1
-  * @pwrdm1: wake this struct powerdomain * up (dependent)
-  * @pwrdm2: when this struct powerdomain * wakes up (source)
-Index: linux-omap/include/asm-arm/arch-omap/powerdomain.h
-===================================================================
---- linux-omap.orig/include/asm-arm/arch-omap/powerdomain.h	2008-04-10 08:01:43.000000000 -0600
-+++ linux-omap/include/asm-arm/arch-omap/powerdomain.h	2008-04-10 08:05:40.000000000 -0600
-@@ -44,9 +44,16 @@
-  */
- #define PWRDM_MAX_MEM_BANKS	4
- 
-+/*
-+ * Maximum number of clockdomains that can be associated with a powerdomain.
-+ * CORE powerdomain is probably the worst case.
-+ */
-+#define PWRDM_MAX_CLKDMS	3
-+
- /* XXX A completely arbitrary number. What is reasonable here? */
- #define PWRDM_TRANSITION_BAILOUT 100000
- 
-+struct clockdomain;
- struct powerdomain;
- 
- /* Encodes dependencies between powerdomains - statically defined */
-@@ -94,8 +101,8 @@
- 	/* Possible memory bank pwrstates when pwrdm is ON */
- 	const u8 pwrsts_mem_on[PWRDM_MAX_MEM_BANKS];
- 
--	/* List of clockdomains in this powerdomain */
--	struct list_head pwrdm_clkdms;
-+	/* Clockdomains in this powerdomain */
-+	struct clockdomain *pwrdm_clkdms[PWRDM_MAX_CLKDMS];
- 
- 	struct kobject *kobj;
- 	struct list_head node;
-@@ -111,6 +118,12 @@
- 
- int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm));
- 
-+int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
-+int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
-+int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
-+			 int (*fn)(struct powerdomain *pwrdm,
-+				   struct clockdomain *clkdm));
-+
- int pwrdm_add_wkdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2);
- int pwrdm_del_wkdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2);
- int pwrdm_read_wkdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2);
+Clockdomain code tested on 3430SDP ES2.1; also boot-tested on N800.
 
--- 
+Many people at Nokia and TI provided commentary and review during the
+development of the clockdomain patches.  Particular help came from (in
+alphabetical order): Karthik Dasu, Tony Lindgren, Rajendra Nayak,
+Sakari Poussa, Igor Stoppa, and Richard Woodruff.  Jouni H=C3=B6gander
+merits special mention; he took the original code and made it do what
+it was supposed to do on the hardware, testing and fixing many bugs.
 
+
+Comments welcome,
+
+- Paul
+
+size:
+  text    data     bss     dec     hex filename
+3270030  151896  100832 3522758  35c0c6 vmlinux.3430sdp.orig
+3272798  154168  100832 3527798  35d476 vmlinux.3430sdp
+
+diffstat:
+ arch/arm/mach-omap2/Makefile            |    3
+ arch/arm/mach-omap2/clock.c             |   45 ++
+ arch/arm/mach-omap2/clock.h             |    1
+ arch/arm/mach-omap2/clock34xx.c         |    4
+ arch/arm/mach-omap2/clock34xx.h         |  198 +++++++++-
+ arch/arm/mach-omap2/clockdomain.c       |  583 +++++++++++++++++++++++=
++++++++++
+ arch/arm/mach-omap2/clockdomains.h      |  283 +++++++++++++++
+ arch/arm/mach-omap2/cm-regbits-24xx.h   |   24 -
+ arch/arm/mach-omap2/cm-regbits-34xx.h   |   42 +-
+ arch/arm/mach-omap2/io.c                |    4
+ arch/arm/mach-omap2/pm.c                |   12
+ arch/arm/mach-omap2/powerdomain.c       |  128 +++++++
+ arch/arm/plat-omap/Kconfig              |   12
+ drivers/dsp/dspgateway/dsp_core.c       |    2
+ include/asm-arm/arch-omap/clock.h       |    4
+ include/asm-arm/arch-omap/clockdomain.h |  105 +++++
+ include/asm-arm/arch-omap/powerdomain.h |   17
+ 17 files changed, 1416 insertions(+), 51 deletions(-)
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
