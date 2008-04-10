@@ -1,556 +1,245 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 3/4] Clockdomains: encode OMAP2/3 clockdomains
-Date: Thu, 10 Apr 2008 10:25:35 -0600
-Message-ID: <20080410163626.143952707@pwsan.com>
+Subject: [PATCH 2/4] Clockdomains: connect clockdomain code to powerdomain code
+Date: Thu, 10 Apr 2008 10:25:34 -0600
+Message-ID: <20080410163626.045491105@pwsan.com>
 References: <20080410162532.097381890@pwsan.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34130 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:34129 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756441AbYDJRRr (ORCPT
+	with ESMTP id S1756267AbYDJRRr (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Apr 2008 13:17:47 -0400
-Content-Disposition: inline; filename=add_24xx_34xx_clockdomains.patch
+Content-Disposition: inline; filename=add_powerdomain_clockdomain_code.patch
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Add clockdomain definitions for OMAP24xx and OMAP34xx chips.  
+Thie patch adds code to the powerdomain layer to track the
+clockdomains associated with each powerdomain.
 
+It also modifies the clockdomain code to register clockdomains
+with their corresponding powerdomain when the clockdomain is registered.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
 ---
- arch/arm/mach-omap2/clockdomains.h    |  283 ++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/cm-regbits-24xx.h |   24 +-
- arch/arm/mach-omap2/cm-regbits-34xx.h |   42 +++--
- arch/arm/mach-omap2/io.c              |    4 
- arch/arm/mach-omap2/pm.c              |   12 -
- drivers/dsp/dspgateway/dsp_core.c     |    2 
- 6 files changed, 342 insertions(+), 25 deletions(-)
+ arch/arm/mach-omap2/clockdomain.c       |    4 +
+ arch/arm/mach-omap2/powerdomain.c       |  128 ++++++++++++++++++++++++++++++++
+ include/asm-arm/arch-omap/powerdomain.h |   17 +++-
+ 3 files changed, 147 insertions(+), 2 deletions(-)
 
-Index: linux-omap/arch/arm/mach-omap2/clockdomains.h
+Index: linux-omap/arch/arm/mach-omap2/clockdomain.c
 ===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-omap/arch/arm/mach-omap2/clockdomains.h	2008-04-10 10:15:48.000000000 -0600
-@@ -0,0 +1,283 @@
-+/*
-+ * OMAP2/3 clockdomains
-+ *
-+ * Copyright (C) 2008 Texas Instruments, Inc.
-+ * Copyright (C) 2008 Nokia Corporation
-+ *
-+ * Written by Paul Walmsley
-+ */
+--- linux-omap.orig/arch/arm/mach-omap2/clockdomain.c	2008-04-10 08:04:34.000000000 -0600
++++ linux-omap/arch/arm/mach-omap2/clockdomain.c	2008-04-10 08:07:08.000000000 -0600
+@@ -195,6 +195,8 @@
+ 	list_add(&clkdm->node, &clkdm_list);
+ 	mutex_unlock(&clkdm_mutex);
+ 
++	pwrdm_add_clkdm(pwrdm, clkdm);
 +
-+#ifndef __ARCH_ARM_MACH_OMAP2_CLOCKDOMAINS_H
-+#define __ARCH_ARM_MACH_OMAP2_CLOCKDOMAINS_H
+ 	pr_debug("clockdomain: registered %s\n", clkdm->name);
+ 
+ 	return 0;
+@@ -213,6 +215,8 @@
+ 	if (!clkdm)
+ 		return -EINVAL;
+ 
++	pwrdm_del_clkdm(clkdm->pwrdm, clkdm);
 +
+ 	mutex_lock(&clkdm_mutex);
+ 	list_del(&clkdm->node);
+ 	mutex_unlock(&clkdm_mutex);
+Index: linux-omap/arch/arm/mach-omap2/powerdomain.c
+===================================================================
+--- linux-omap.orig/arch/arm/mach-omap2/powerdomain.c	2008-04-10 08:01:43.000000000 -0600
++++ linux-omap/arch/arm/mach-omap2/powerdomain.c	2008-04-10 08:05:40.000000000 -0600
+@@ -32,6 +32,7 @@
+ 
+ #include <asm/arch/cpu.h>
+ #include <asm/arch/powerdomain.h>
 +#include <asm/arch/clockdomain.h>
-+
-+/*
-+ * OMAP2/3-common clockdomains
-+ */
-+
-+/* This is an implicit clockdomain - it is never defined as such in TRM */
-+static struct clockdomain wkup_clkdm = {
-+	.name		= "wkup_clkdm",
-+	.pwrdm_name	= "wkup_pwrdm",
-+	.omap_chip	= CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430,
-+};
-+
-+/*
-+ * 2420-only clockdomains
-+ */
-+
-+#if defined(CONFIG_ARCH_OMAP2420)
-+
-+static struct clockdomain mpu_2420_clkdm = {
-+	.name		= "mpu_clkdm",
-+	.pwrdm_name	= "mpu_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP,
-+	.clktrctrl_mask = OMAP24XX_AUTOSTATE_MPU_MASK,
-+	.omap_chip	= CHIP_IS_OMAP24XX,
-+};
-+
-+#endif  /* CONFIG_ARCH_OMAP2420 */
-+
-+
-+/*
-+ * 2430-only clockdomains
-+ */
-+
-+#if defined(CONFIG_ARCH_OMAP2430)
-+
-+static struct clockdomain mpu_2430_clkdm = {
-+	.name		= "mpu_clkdm",
-+	.pwrdm_name	= "mpu_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clktrctrl_mask = OMAP24XX_AUTOSTATE_MPU_MASK,
-+	.omap_chip	= CHIP_IS_OMAP24XX,
-+};
-+
-+static struct clockdomain mdm_clkdm = {
-+	.name		= "mdm_clkdm",
-+	.pwrdm_name	= "mdm_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clktrctrl_mask = OMAP2430_AUTOSTATE_MDM_MASK,
-+	.omap_chip	= CHIP_IS_OMAP2430,
-+};
-+
-+#endif    /* CONFIG_ARCH_OMAP2430 */
-+
-+
-+/*
-+ * 24XX-only clockdomains
-+ */
-+
-+#if defined(CONFIG_ARCH_OMAP24XX)
-+
-+static struct clockdomain dsp_clkdm = {
-+	.name		= "dsp_clkdm",
-+	.pwrdm_name	= "dsp_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clktrctrl_mask = OMAP24XX_AUTOSTATE_DSP_MASK,
-+	.omap_chip	= CHIP_IS_OMAP24XX,
-+};
-+
-+static struct clockdomain gfx_24xx_clkdm = {
-+	.name		= "gfx_clkdm",
-+	.pwrdm_name	= "gfx_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clktrctrl_mask = OMAP24XX_AUTOSTATE_GFX_MASK,
-+	.omap_chip	= CHIP_IS_OMAP24XX,
-+};
-+
-+static struct clockdomain core_l3_24xx_clkdm = {
-+	.name		= "core_l3_clkdm",
-+	.pwrdm_name	= "core_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP,
-+	.clktrctrl_mask = OMAP24XX_AUTOSTATE_L3_MASK,
-+	.omap_chip	= CHIP_IS_OMAP3430,
-+};
-+
-+static struct clockdomain core_l4_24xx_clkdm = {
-+	.name		= "core_l4_clkdm",
-+	.pwrdm_name	= "core_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP,
-+	.clktrctrl_mask = OMAP24XX_AUTOSTATE_L4_MASK,
-+	.omap_chip	= CHIP_IS_OMAP3430,
-+};
-+
-+static struct clockdomain dss_24xx_clkdm = {
-+	.name		= "dss_clkdm",
-+	.pwrdm_name	= "core_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP,
-+	.clktrctrl_mask = OMAP24XX_AUTOSTATE_DSS_MASK,
-+	.omap_chip	= CHIP_IS_OMAP24XX,
-+};
-+
-+#endif   /* CONFIG_ARCH_OMAP24XX */
-+
-+
-+/*
-+ * 34xx clockdomains
-+ */
-+
-+#if defined(CONFIG_ARCH_OMAP34XX)
-+
-+static struct clockdomain mpu_34xx_clkdm = {
-+	.name		= "mpu_clkdm",
-+	.pwrdm_name	= "mpu_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP | CLKDM_CAN_FORCE_WAKEUP,
-+	.clktrctrl_mask = OMAP3430_CLKTRCTRL_MPU_MASK,
-+	.omap_chip	= CHIP_IS_OMAP3430,
-+};
-+
-+static struct clockdomain neon_clkdm = {
-+	.name		= "neon_clkdm",
-+	.pwrdm_name	= "neon_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clktrctrl_mask = OMAP3430_CLKTRCTRL_NEON_MASK,
-+	.omap_chip	= CHIP_IS_OMAP3430,
-+};
-+
-+static struct clockdomain iva2_clkdm = {
-+	.name		= "iva2_clkdm",
-+	.pwrdm_name	= "iva2_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clktrctrl_mask = OMAP3430_CLKTRCTRL_IVA2_MASK,
-+	.omap_chip	= CHIP_IS_OMAP3430,
-+};
-+
-+static struct clockdomain gfx_3430es1_clkdm = {
-+	.name		= "gfx_clkdm",
-+	.pwrdm_name	= "gfx_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clktrctrl_mask = OMAP3430ES1_CLKTRCTRL_GFX_MASK,
-+	.omap_chip	= CHIP_IS_OMAP3430ES1,
-+};
-+
-+static struct clockdomain sgx_clkdm = {
-+	.name		= "sgx_clkdm",
-+	.pwrdm_name	= "sgx_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_SGX_MASK,
-+	.omap_chip	= CHIP_IS_OMAP3430ES2,
-+};
-+
-+static struct clockdomain d2d_clkdm = {
-+	.name		= "d2d_clkdm",
-+	.pwrdm_name	= "core_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP,
-+	.clktrctrl_mask = OMAP3430ES1_CLKTRCTRL_D2D_MASK,
-+	.omap_chip	= CHIP_IS_OMAP3430ES1,
-+};
-+
-+static struct clockdomain core_l3_34xx_clkdm = {
-+	.name		= "core_l3_clkdm",
-+	.pwrdm_name	= "core_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP,
-+	.clktrctrl_mask = OMAP3430_CLKTRCTRL_L3_MASK,
-+	.omap_chip	= CHIP_IS_OMAP3430,
-+};
-+
-+static struct clockdomain core_l4_34xx_clkdm = {
-+	.name		= "core_l4_clkdm",
-+	.pwrdm_name	= "core_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP,
-+	.clktrctrl_mask = OMAP3430_CLKTRCTRL_L4_MASK,
-+	.omap_chip	= CHIP_IS_OMAP3430,
-+};
-+
-+static struct clockdomain dss_34xx_clkdm = {
-+	.name		= "dss_clkdm",
-+	.pwrdm_name	= "dss_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clktrctrl_mask = OMAP3430_CLKTRCTRL_DSS_MASK,
-+	.omap_chip	= CHIP_IS_OMAP3430,
-+};
-+
-+static struct clockdomain cam_clkdm = {
-+	.name		= "cam_clkdm",
-+	.pwrdm_name	= "cam_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clktrctrl_mask = OMAP3430_CLKTRCTRL_CAM_MASK,
-+	.omap_chip	= CHIP_IS_OMAP3430,
-+};
-+
-+static struct clockdomain usbhost_clkdm = {
-+	.name		= "usbhost_clkdm",
-+	.pwrdm_name	= "usbhost_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_USBHOST_MASK,
-+	.omap_chip	= CHIP_IS_OMAP3430ES2,
-+};
-+
-+static struct clockdomain per_clkdm = {
-+	.name		= "per_clkdm",
-+	.pwrdm_name	= "per_pwrdm",
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clktrctrl_mask = OMAP3430_CLKTRCTRL_PER_MASK,
-+	.omap_chip	= CHIP_IS_OMAP3430,
-+};
-+
-+static struct clockdomain emu_clkdm = {
-+	.name		= "emu_clkdm",
-+	.pwrdm_name	= "emu_pwrdm",
-+	.flags		= CLKDM_CAN_ENABLE_AUTO | CLKDM_CAN_SWSUP,
-+	.clktrctrl_mask = OMAP3430_CLKTRCTRL_EMU_MASK,
-+	.omap_chip	= CHIP_IS_OMAP3430,
-+};
-+
-+#endif   /* CONFIG_ARCH_OMAP34XX */
-+
-+/*
-+ * Clockdomain-powerdomain hwsup dependencies (34XX only)
-+ */
-+
-+static struct clkdm_pwrdm_autodep clkdm_pwrdm_autodeps[] = {
-+	{ .pwrdm_name = "mpu_pwrdm",	.omap_chip = CHIP_IS_OMAP3430 },
-+	{ .pwrdm_name = "iva2_pwrdm",	.omap_chip = CHIP_IS_OMAP3430 },
-+	{ NULL }
-+};
-+
-+/*
+ 
+ /* pwrdm_list contains all registered struct powerdomains */
+ static LIST_HEAD(pwrdm_list);
+@@ -208,6 +209,133 @@
+ EXPORT_SYMBOL(pwrdm_for_each);
+ 
+ /**
++ * pwrdm_add_clkdm - add a clockdomain to a powerdomain
++ * @pwrdm: struct powerdomain * to add the clockdomain to
++ * @clkdm: struct clockdomain * to associate with a powerdomain
 + *
++ * Associate the clockdomain 'clkdm' with a powerdomain 'pwrdm'.  This
++ * enables the use of pwrdm_for_each_clkdm().  Returns -EINVAL if
++ * presented with invalid pointers; -ENOMEM if memory could not be allocated;
++ * or 0 upon success.
 + */
++int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
++{
++	int i;
++	int ret = 0;
 +
-+static struct clockdomain *clockdomains_omap[] = {
++	if (!pwrdm || !clkdm)
++		return -EINVAL;
 +
-+	&wkup_clkdm,
++	pr_debug("powerdomain: associating clockdomain %s with powerdomain "
++		 "%s\n", clkdm->name, pwrdm->name);
 +
-+#ifdef CONFIG_ARCH_OMAP2420
-+	&mpu_2420_clkdm,
++	mutex_lock(&pwrdm_mutex);
++
++	for (i = 0; i < PWRDM_MAX_CLKDMS; i++) {
++		if (!pwrdm->pwrdm_clkdms[i])
++			break;
++#ifdef DEBUG
++		if (pwrdm->pwrdm_clkdms[i] == clkdm) {
++			ret = -EINVAL;
++			goto pac_exit;
++		}
 +#endif
++	}
 +
-+#ifdef CONFIG_ARCH_OMAP2430
-+	&mpu_2430_clkdm,
-+	&mdm_clkdm,
-+#endif
++	if (i == PWRDM_MAX_CLKDMS) {
++		pr_debug("powerdomain: increase PWRDM_MAX_CLKDMS for "
++			 "pwrdm %s clkdm %s\n", pwrdm->name, clkdm->name);
++		WARN_ON(1);
++		ret = -ENOMEM;
++		goto pac_exit;
++	}
 +
-+#ifdef CONFIG_ARCH_OMAP24XX
-+	&dsp_clkdm,
-+	&gfx_24xx_clkdm,
-+	&core_l3_24xx_clkdm,
-+	&core_l4_24xx_clkdm,
-+	&dss_24xx_clkdm,
-+#endif
++	pwrdm->pwrdm_clkdms[i] = clkdm;
 +
-+#ifdef CONFIG_ARCH_OMAP34XX
-+	&mpu_34xx_clkdm,
-+	&neon_clkdm,
-+	&iva2_clkdm,
-+	&gfx_3430es1_clkdm,
-+	&sgx_clkdm,
-+	&d2d_clkdm,
-+	&core_l3_34xx_clkdm,
-+	&core_l4_34xx_clkdm,
-+	&dss_34xx_clkdm,
-+	&cam_clkdm,
-+	&usbhost_clkdm,
-+	&per_clkdm,
-+	&emu_clkdm,
-+#endif
++pac_exit:
++	mutex_unlock(&pwrdm_mutex);
 +
-+	NULL,
-+};
++	return ret;
++}
 +
-+#endif
-Index: linux-omap/arch/arm/mach-omap2/cm-regbits-24xx.h
++/**
++ * pwrdm_del_clkdm - remove a clockdomain to a powerdomain
++ * @pwrdm: struct powerdomain * to add the clockdomain to
++ * @clkdm: struct clockdomain * to associate with a powerdomain
++ *
++ * Dissociate the clockdomain 'clkdm' from the powerdomain
++ * 'pwrdm'. Returns -EINVAL if presented with invalid pointers;
++ * -ENOENT if the clkdm was not associated with the powerdomain, or 0
++ * upon success.
++ */
++int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
++{
++	int ret = 0;
++	int i;
++
++	if (!pwrdm || !clkdm)
++		return -EINVAL;
++
++	pr_debug("powerdomain: dissociating clockdomain %s from powerdomain "
++		 "%s\n", clkdm->name, pwrdm->name);
++
++	mutex_lock(&pwrdm_mutex);
++
++	for (i = 0; i < PWRDM_MAX_CLKDMS; i++)
++		if (pwrdm->pwrdm_clkdms[i] == clkdm)
++			break;
++
++	if (i == PWRDM_MAX_CLKDMS) {
++		pr_debug("powerdomain: clkdm %s not associated with pwrdm "
++			 "%s ?!\n", clkdm->name, pwrdm->name);
++		ret = -ENOENT;
++		goto pdc_exit;
++	}
++
++	pwrdm->pwrdm_clkdms[i] = NULL;
++
++pdc_exit:
++	mutex_unlock(&pwrdm_mutex);
++
++	return ret;
++}
++
++/**
++ * pwrdm_for_each_clkdm - call function on each clkdm in a pwrdm
++ * @pwrdm: struct powerdomain * to iterate over
++ * @fn: callback function *
++ *
++ * Call the supplied function for each clockdomain in the powerdomain
++ * 'pwrdm'.  The callback function can return anything but 0 to bail
++ * out early from the iterator.	 The callback function is called with
++ * the pwrdm_mutex held, so no powerdomain structure manipulation
++ * functions should be called from the callback, although hardware
++ * powerdomain control functions are fine.  Returns -EINVAL if
++ * presented with invalid pointers; or passes along the last return
++ * value of the callback function, which should be 0 for success or
++ * anything else to indicate failure.
++ */
++int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
++			 int (*fn)(struct powerdomain *pwrdm,
++				   struct clockdomain *clkdm))
++{
++	int ret = 0;
++	int i;
++
++	if (!fn)
++		return -EINVAL;
++
++	mutex_lock(&pwrdm_mutex);
++
++	for (i = 0; i < PWRDM_MAX_CLKDMS && !ret; i++)
++		ret = (*fn)(pwrdm, pwrdm->pwrdm_clkdms[i]);
++
++	mutex_unlock(&pwrdm_mutex);
++
++	return ret;
++}
++
++/**
+  * pwrdm_add_wkdep - add a wakeup dependency from pwrdm2 to pwrdm1
+  * @pwrdm1: wake this struct powerdomain * up (dependent)
+  * @pwrdm2: when this struct powerdomain * wakes up (source)
+Index: linux-omap/include/asm-arm/arch-omap/powerdomain.h
 ===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/cm-regbits-24xx.h	2008-04-10 08:15:41.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/cm-regbits-24xx.h	2008-04-10 09:53:22.000000000 -0600
-@@ -63,7 +63,8 @@
- #define OMAP24XX_CLKSEL_MPU_MASK			(0x1f << 0)
+--- linux-omap.orig/include/asm-arm/arch-omap/powerdomain.h	2008-04-10 08:01:43.000000000 -0600
++++ linux-omap/include/asm-arm/arch-omap/powerdomain.h	2008-04-10 08:05:40.000000000 -0600
+@@ -44,9 +44,16 @@
+  */
+ #define PWRDM_MAX_MEM_BANKS	4
  
- /* CM_CLKSTCTRL_MPU */
--#define OMAP24XX_AUTOSTATE_MPU				(1 << 0)
-+#define OMAP24XX_AUTOSTATE_MPU_SHIFT			0
-+#define OMAP24XX_AUTOSTATE_MPU_MASK			(1 << 0)
- 
- /* CM_FCLKEN1_CORE specific bits*/
- #define OMAP24XX_EN_TV_SHIFT				2
-@@ -238,9 +239,12 @@
- #define OMAP24XX_CLKSEL_GPT2_MASK			(0x3 << 2)
- 
- /* CM_CLKSTCTRL_CORE */
--#define OMAP24XX_AUTOSTATE_DSS				(1 << 2)
--#define OMAP24XX_AUTOSTATE_L4				(1 << 1)
--#define OMAP24XX_AUTOSTATE_L3				(1 << 0)
-+#define OMAP24XX_AUTOSTATE_DSS_SHIFT			2
-+#define OMAP24XX_AUTOSTATE_DSS_MASK			(1 << 2)
-+#define OMAP24XX_AUTOSTATE_L4_SHIFT			1
-+#define OMAP24XX_AUTOSTATE_L4_MASK			(1 << 1)
-+#define OMAP24XX_AUTOSTATE_L3_SHIFT			0
-+#define OMAP24XX_AUTOSTATE_L3_MASK			(1 << 0)
- 
- /* CM_FCLKEN_GFX */
- #define OMAP24XX_EN_3D_SHIFT				2
-@@ -255,7 +259,8 @@
- /* CM_CLKSEL_GFX specific bits */
- 
- /* CM_CLKSTCTRL_GFX */
--#define OMAP24XX_AUTOSTATE_GFX				(1 << 0)
-+#define OMAP24XX_AUTOSTATE_GFX_SHIFT			0
-+#define OMAP24XX_AUTOSTATE_GFX_MASK			(1 << 0)
- 
- /* CM_FCLKEN_WKUP specific bits */
- 
-@@ -367,8 +372,10 @@
- #define OMAP24XX_CLKSEL_DSP_MASK			(0x1f << 0)
- 
- /* CM_CLKSTCTRL_DSP */
--#define OMAP2420_AUTOSTATE_IVA				(1 << 8)
--#define OMAP24XX_AUTOSTATE_DSP				(1 << 0)
-+#define OMAP2420_AUTOSTATE_IVA_SHIFT			8
-+#define OMAP2420_AUTOSTATE_IVA_MASK			(1 << 8)
-+#define OMAP24XX_AUTOSTATE_DSP_SHIFT			0
-+#define OMAP24XX_AUTOSTATE_DSP_MASK			(1 << 0)
- 
- /* CM_FCLKEN_MDM */
- /* 2430 only */
-@@ -396,6 +403,7 @@
- 
- /* CM_CLKSTCTRL_MDM */
- /* 2430 only */
--#define OMAP2430_AUTOSTATE_MDM				(1 << 0)
-+#define OMAP2430_AUTOSTATE_MDM_SHIFT			0
-+#define OMAP2430_AUTOSTATE_MDM_MASK			(1 << 0)
- 
- #endif
-Index: linux-omap/arch/arm/mach-omap2/cm-regbits-34xx.h
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/cm-regbits-34xx.h	2008-04-10 08:15:41.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/cm-regbits-34xx.h	2008-04-10 09:53:22.000000000 -0600
-@@ -96,7 +96,8 @@
- #define OMAP3430_CLKTRCTRL_IVA2_MASK			(0x3 << 0)
- 
- /* CM_CLKSTST_IVA2 */
--#define OMAP3430_CLKACTIVITY_IVA2			(1 << 0)
-+#define OMAP3430_CLKACTIVITY_IVA2_SHIFT			0
-+#define OMAP3430_CLKACTIVITY_IVA2_MASK			(1 << 0)
- 
- /* CM_REVISION specific bits */
- 
-@@ -140,7 +141,8 @@
- #define OMAP3430_CLKTRCTRL_MPU_MASK			(0x3 << 0)
- 
- /* CM_CLKSTST_MPU */
--#define OMAP3430_CLKACTIVITY_MPU			(1 << 0)
-+#define OMAP3430_CLKACTIVITY_MPU_SHIFT			0
-+#define OMAP3430_CLKACTIVITY_MPU_MASK			(1 << 0)
- 
- /* CM_FCLKEN1_CORE specific bits */
- 
-@@ -300,9 +302,12 @@
- #define OMAP3430_CLKTRCTRL_L3_MASK			(0x3 << 0)
- 
- /* CM_CLKSTST_CORE */
--#define OMAP3430ES1_CLKACTIVITY_D2D			(1 << 2)
--#define OMAP3430_CLKACTIVITY_L4				(1 << 1)
--#define OMAP3430_CLKACTIVITY_L3				(1 << 0)
-+#define OMAP3430ES1_CLKACTIVITY_D2D_SHIFT		2
-+#define OMAP3430ES1_CLKACTIVITY_D2D_MASK		(1 << 2)
-+#define OMAP3430_CLKACTIVITY_L4_SHIFT			1
-+#define OMAP3430_CLKACTIVITY_L4_MASK			(1 << 1)
-+#define OMAP3430_CLKACTIVITY_L3_SHIFT			0
-+#define OMAP3430_CLKACTIVITY_L3_MASK			(1 << 0)
- 
- /* CM_FCLKEN_GFX */
- #define OMAP3430ES1_EN_3D				(1 << 2)
-@@ -323,7 +328,8 @@
- #define OMAP3430ES1_CLKTRCTRL_GFX_MASK			(0x3 << 0)
- 
- /* CM_CLKSTST_GFX */
--#define OMAP3430ES1_CLKACTIVITY_GFX			(1 << 0)
-+#define OMAP3430ES1_CLKACTIVITY_GFX_SHIFT		0
-+#define OMAP3430ES1_CLKACTIVITY_GFX_MASK		(1 << 0)
- 
- /* CM_FCLKEN_SGX */
- #define OMAP3430ES2_EN_SGX_SHIFT			1
-@@ -333,6 +339,14 @@
- #define OMAP3430ES2_CLKSEL_SGX_SHIFT			0
- #define OMAP3430ES2_CLKSEL_SGX_MASK			(0x7 << 0)
- 
-+/* CM_CLKSTCTRL_SGX */
-+#define OMAP3430ES2_CLKTRCTRL_SGX_SHIFT			0
-+#define OMAP3430ES2_CLKTRCTRL_SGX_MASK			(0x3 << 0)
++/*
++ * Maximum number of clockdomains that can be associated with a powerdomain.
++ * CORE powerdomain is probably the worst case.
++ */
++#define PWRDM_MAX_CLKDMS	3
 +
-+/* CM_CLKSTST_SGX */
-+#define OMAP3430ES2_CLKACTIVITY_SGX_SHIFT		0
-+#define OMAP3430ES2_CLKACTIVITY_SGX_MASK		(1 << 0)
+ /* XXX A completely arbitrary number. What is reasonable here? */
+ #define PWRDM_TRANSITION_BAILOUT 100000
+ 
++struct clockdomain;
+ struct powerdomain;
+ 
+ /* Encodes dependencies between powerdomains - statically defined */
+@@ -94,8 +101,8 @@
+ 	/* Possible memory bank pwrstates when pwrdm is ON */
+ 	const u8 pwrsts_mem_on[PWRDM_MAX_MEM_BANKS];
+ 
+-	/* List of clockdomains in this powerdomain */
+-	struct list_head pwrdm_clkdms;
++	/* Clockdomains in this powerdomain */
++	struct clockdomain *pwrdm_clkdms[PWRDM_MAX_CLKDMS];
+ 
+ 	struct kobject *kobj;
+ 	struct list_head node;
+@@ -111,6 +118,12 @@
+ 
+ int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm));
+ 
++int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
++int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
++int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
++			 int (*fn)(struct powerdomain *pwrdm,
++				   struct clockdomain *clkdm));
 +
- /* CM_FCLKEN_WKUP specific bits */
- #define OMAP3430ES2_EN_USIMOCP_SHIFT			9
- 
-@@ -498,7 +512,8 @@
- #define OMAP3430_CLKTRCTRL_DSS_MASK			(0x3 << 0)
- 
- /* CM_CLKSTST_DSS */
--#define OMAP3430_CLKACTIVITY_DSS			(1 << 0)
-+#define OMAP3430_CLKACTIVITY_DSS_SHIFT			0
-+#define OMAP3430_CLKACTIVITY_DSS_MASK			(1 << 0)
- 
- /* CM_FCLKEN_CAM specific bits */
- 
-@@ -522,7 +537,8 @@
- #define OMAP3430_CLKTRCTRL_CAM_MASK			(0x3 << 0)
- 
- /* CM_CLKSTST_CAM */
--#define OMAP3430_CLKACTIVITY_CAM			(1 << 0)
-+#define OMAP3430_CLKACTIVITY_CAM_SHIFT			0
-+#define OMAP3430_CLKACTIVITY_CAM_MASK			(1 << 0)
- 
- /* CM_FCLKEN_PER specific bits */
- 
-@@ -598,7 +614,8 @@
- #define OMAP3430_CLKTRCTRL_PER_MASK			(0x3 << 0)
- 
- /* CM_CLKSTST_PER */
--#define OMAP3430_CLKACTIVITY_PER			(1 << 0)
-+#define OMAP3430_CLKACTIVITY_PER_SHIFT			0
-+#define OMAP3430_CLKACTIVITY_PER_MASK			(1 << 0)
- 
- /* CM_CLKSEL1_EMU */
- #define OMAP3430_DIV_DPLL4_SHIFT			24
-@@ -623,7 +640,8 @@
- #define OMAP3430_CLKTRCTRL_EMU_MASK			(0x3 << 0)
- 
- /* CM_CLKSTST_EMU */
--#define OMAP3430_CLKACTIVITY_EMU			(1 << 0)
-+#define OMAP3430_CLKACTIVITY_EMU_SHIFT			0
-+#define OMAP3430_CLKACTIVITY_EMU_MASK			(1 << 0)
- 
- /* CM_CLKSEL2_EMU specific bits */
- #define OMAP3430_CORE_DPLL_EMU_MULT_SHIFT		8
-@@ -673,6 +691,8 @@
- #define OMAP3430ES2_CLKTRCTRL_USBHOST_SHIFT		0
- #define OMAP3430ES2_CLKTRCTRL_USBHOST_MASK		(3 << 0)
- 
--
-+/* CM_CLKSTST_USBHOST */
-+#define OMAP3430ES2_CLKACTIVITY_USBHOST_SHIFT		0
-+#define OMAP3430ES2_CLKACTIVITY_USBHOST_MASK		(1 << 0)
- 
- #endif
-Index: linux-omap/arch/arm/mach-omap2/io.c
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/io.c	2008-04-10 09:53:04.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/io.c	2008-04-10 09:53:22.000000000 -0600
-@@ -31,6 +31,9 @@
- 
- #include "powerdomains.h"
- 
-+#include <asm/arch/clockdomain.h>
-+#include "clockdomains.h"
-+
- extern void omap_sram_init(void);
- extern int omap2_clk_init(void);
- extern void omap2_check_revision(void);
-@@ -193,6 +196,7 @@
- {
- 	omap2_mux_init();
- 	pwrdm_init(powerdomains_omap);
-+	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
- 	omap2_clk_init();
- 	omap2_init_memory();
- 	gpmc_init();
-Index: linux-omap/arch/arm/mach-omap2/pm.c
-===================================================================
---- linux-omap.orig/arch/arm/mach-omap2/pm.c	2008-04-10 09:53:04.000000000 -0600
-+++ linux-omap/arch/arm/mach-omap2/pm.c	2008-04-10 09:53:22.000000000 -0600
-@@ -679,12 +679,14 @@
- 			  GFX_MOD, PM_PWSTCTRL);
- 
- 	/* Enable clock auto control for all domains */
--	cm_write_mod_reg(OMAP24XX_AUTOSTATE_MPU, MPU_MOD, CM_CLKSTCTRL);
--	cm_write_mod_reg(OMAP24XX_AUTOSTATE_DSS | OMAP24XX_AUTOSTATE_L4 |
--			 OMAP24XX_AUTOSTATE_L3,
-+	cm_write_mod_reg(OMAP24XX_AUTOSTATE_MPU_MASK, MPU_MOD, CM_CLKSTCTRL);
-+	cm_write_mod_reg(OMAP24XX_AUTOSTATE_DSS_MASK |
-+			 OMAP24XX_AUTOSTATE_L4_MASK |
-+			 OMAP24XX_AUTOSTATE_L3_MASK,
- 			 CORE_MOD, CM_CLKSTCTRL);
--	cm_write_mod_reg(OMAP24XX_AUTOSTATE_GFX, GFX_MOD, CM_CLKSTCTRL);
--	cm_write_mod_reg(OMAP2420_AUTOSTATE_IVA | OMAP24XX_AUTOSTATE_DSP,
-+	cm_write_mod_reg(OMAP24XX_AUTOSTATE_GFX_MASK, GFX_MOD, CM_CLKSTCTRL);
-+	cm_write_mod_reg(OMAP2420_AUTOSTATE_IVA_MASK |
-+			 OMAP24XX_AUTOSTATE_DSP_MASK,
- 			 OMAP24XX_DSP_MOD, CM_CLKSTCTRL);
- 
- 	/* Enable clock autoidle for all domains */
-Index: linux-omap/drivers/dsp/dspgateway/dsp_core.c
-===================================================================
---- linux-omap.orig/drivers/dsp/dspgateway/dsp_core.c	2008-04-10 08:15:41.000000000 -0600
-+++ linux-omap/drivers/dsp/dspgateway/dsp_core.c	2008-04-10 09:53:22.000000000 -0600
-@@ -467,7 +467,7 @@
- 	cm_set_mod_reg_bits(OMAP2420_AUTO_DSP_IPI, OMAP24XX_DSP_MOD,
- 			    CM_AUTOIDLE);
- 
--	cm_set_mod_reg_bits(OMAP24XX_AUTOSTATE_DSP, OMAP24XX_DSP_MOD,
-+	cm_set_mod_reg_bits(OMAP24XX_AUTOSTATE_DSP_MASK, OMAP24XX_DSP_MOD,
- 			    CM_CLKSTCTRL);
- 
- 	clk_enable(dsp_fck_handle);
+ int pwrdm_add_wkdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2);
+ int pwrdm_del_wkdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2);
+ int pwrdm_read_wkdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2);
 
 -- 
 
