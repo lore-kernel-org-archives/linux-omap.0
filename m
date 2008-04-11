@@ -1,138 +1,259 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 12/23] USB: MUSB: checkpatch.pl fixed to musb_host.c
-Date: Fri, 11 Apr 2008 11:28:25 +0300
-Message-ID: <1207902516-6374-13-git-send-email-felipe.balbi@nokia.com>
-References: <1207902516-6374-1-git-send-email-felipe.balbi@nokia.com>
- <1207902516-6374-2-git-send-email-felipe.balbi@nokia.com>
- <1207902516-6374-3-git-send-email-felipe.balbi@nokia.com>
- <1207902516-6374-4-git-send-email-felipe.balbi@nokia.com>
- <1207902516-6374-5-git-send-email-felipe.balbi@nokia.com>
- <1207902516-6374-6-git-send-email-felipe.balbi@nokia.com>
- <1207902516-6374-7-git-send-email-felipe.balbi@nokia.com>
- <1207902516-6374-8-git-send-email-felipe.balbi@nokia.com>
- <1207902516-6374-9-git-send-email-felipe.balbi@nokia.com>
- <1207902516-6374-10-git-send-email-felipe.balbi@nokia.com>
- <1207902516-6374-11-git-send-email-felipe.balbi@nokia.com>
- <1207902516-6374-12-git-send-email-felipe.balbi@nokia.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH 01/23] I2C: TWL4030: checkpatch.pl fixes for twl4030-core.c
+Date: Fri, 11 Apr 2008 14:23:05 +0530
+Message-ID: <010C7BAE6783F34D9AC336EE5A01A08805D6500C@dbde01.ent.ti.com>
+References: <1207902516-6374-1-git-send-email-felipe.balbi@nokia.com> <1207902516-6374-2-git-send-email-felipe.balbi@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:40292 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757669AbYDKIaN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 04:30:13 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3B8WRRo001264
-	for <linux-omap@vger.kernel.org>; Fri, 11 Apr 2008 03:32:30 -0500
-In-Reply-To: <1207902516-6374-12-git-send-email-felipe.balbi@nokia.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56455 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758030AbYDKIzU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 04:55:20 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <1207902516-6374-2-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
+To: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
 
-Misc cleanup patch.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Felipe Balbi
+> Sent: Friday, April 11, 2008 1:58 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Felipe Balbi
+> Subject: [PATCH 01/23] I2C: TWL4030: checkpatch.pl fixes for 
+> twl4030-core.c
+> 
+> Misc cleanup patch.
+> 
+> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> ---
+>  drivers/i2c/chips/twl4030-core.c |   61 
+> +++++++++++++++++--------------------
+>  1 files changed, 28 insertions(+), 33 deletions(-)
+> 
+> diff --git a/drivers/i2c/chips/twl4030-core.c 
+> b/drivers/i2c/chips/twl4030-core.c
+> index 49bd63a..953c247 100644
+> --- a/drivers/i2c/chips/twl4030-core.c
+> +++ b/drivers/i2c/chips/twl4030-core.c
+> @@ -43,8 +43,8 @@
+>  #include <linux/slab.h>
+>  #include <linux/clk.h>
+>  #include <linux/device.h>
+> +#include <linux/irq.h>
+>  
+> -#include <asm/irq.h>
+>  #include <asm/mach/irq.h>
+>  
+>  #include <asm/arch/gpio.h>
+> @@ -256,7 +256,7 @@ static struct irq_chip twl4030_irq_chip = {
+>   *
+>   * @return result of operation - 0 is success
+>   */
+> -int twl4030_i2c_write(u8 mod_no, u8 * value, u8 reg, u8 num_bytes)
+> +int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, u8 num_bytes)
+>  {
+>  	int ret;
+>  	int sid;
+> @@ -295,6 +295,7 @@ int twl4030_i2c_write(u8 mod_no, u8 * 
+> value, u8 reg, u8 num_bytes)
+>  		ret = 0;
+>  	return ret;
+>  }
+> +EXPORT_SYMBOL(twl4030_i2c_write);
+>  
+>  /**
+>   * @brief twl4030_i2c_read - Reads a n bit register in TWL4030
+> @@ -306,7 +307,7 @@ int twl4030_i2c_write(u8 mod_no, u8 * value, u8 reg, u8 num_bytes)
+>   *
+>   * @return result of operation - num_bytes is success else failure.
+>   */
+> -int twl4030_i2c_read(u8 mod_no, u8 * value, u8 reg, u8 num_bytes)
+> +int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, u8 num_bytes)
+>  {
+>  	int ret;
+>  	u8 val;
+> @@ -348,6 +349,7 @@ int twl4030_i2c_read(u8 mod_no, u8 * value, u8 reg, u8 num_bytes)
+>  		ret = 0;
+>  	return ret;
+>  }
+> +EXPORT_SYMBOL(twl4030_i2c_read);
+>  
+>  /**
+>   * @brief twl4030_i2c_write_u8 - Writes a 8 bit register in TWL4030
+> @@ -367,6 +369,7 @@ int twl4030_i2c_write_u8(u8 mod_no, u8 value, u8 reg)
+>  	temp_buffer[1] = value;
+>  	return twl4030_i2c_write(mod_no, temp_buffer, reg, 1);
+>  }
+> +EXPORT_SYMBOL(twl4030_i2c_write_u8);
+>  
+>  /**
+>   * @brief twl4030_i2c_read_u8 - Reads a 8 bit register from TWL4030
+> @@ -377,10 +380,11 @@ int twl4030_i2c_write_u8(u8 mod_no, u8 value, u8 reg)
+>   *
+>   * @return result of operation - 0 is success
+>   */
+> -int twl4030_i2c_read_u8(u8 mod_no, u8 * value, u8 reg)
+> +int twl4030_i2c_read_u8(u8 mod_no, u8 *value, u8 reg)
+>  {
+>  	return twl4030_i2c_read(mod_no, value, reg, 1);
+>  }
+> +EXPORT_SYMBOL(twl4030_i2c_read_u8);
+>  
+>  /* Helper Functions */
+>  
+> @@ -431,7 +435,8 @@ static void do_twl4030_module_irq(unsigned int irq, irq_desc_t *desc)
+>  
+>  			if (retval != IRQ_HANDLED)
+>  				printk(KERN_ERR "ISR for TWL4030 module"
+> -					" irq %d can't handle 
+> interrupt\n", irq);
+> +					" irq %d can't handle 
+> interrupt\n",
+> +					irq);
+>  
+>  			/*
+>  			 * Here is where we should call the unmask method, but
+> @@ -475,7 +480,7 @@ static int twl4030_irq_thread(void *data)
+>  			if (++i2c_errors >= max_i2c_errors) {
+>  				printk(KERN_ERR "Maximum I2C 
+> error count"
+>  						" exceeded.  
+> Terminating %s.\n",
+> -						__FUNCTION__);
+> +						__func__);
+>  				break;
+>  			}
+>  			continue;
+> @@ -542,8 +547,10 @@ static int twl4030_detect_client(struct i2c_adapter *adapter, unsigned char sid)
+>  	}
+>  
+>  	/* Check basic functionality */
+> -	if (!(err = i2c_check_functionality(adapter, 
+> I2C_FUNC_SMBUS_WORD_DATA |
+> -						
+> I2C_FUNC_SMBUS_WRITE_BYTE))) {
+> +	err = i2c_check_functionality(adapter,
+> +			I2C_FUNC_SMBUS_WORD_DATA
+> +			| I2C_FUNC_SMBUS_WRITE_BYTE);
+> +	if (!err) {
+>  		pr_err("SlaveID=%d functionality check failed\n", sid);
+>  		return err;
+>  	}
+> @@ -565,7 +572,8 @@ static int twl4030_detect_client(struct 
+> i2c_adapter *adapter, unsigned char sid)
+>  	pr_info("TWL4030: TRY attach Slave %s on Adapter %s [%x]\n",
+>  				twl->client_name, adapter->name, err);
+>  
+> -	if ((err = i2c_attach_client(&twl->client))) {
+> +	err = i2c_attach_client(&twl->client);
+> +	if (err) {
+>  		pr_err("Couldn't attach Slave %s on Adapter"
+>  		       "%s [%x]\n", twl->client_name, 
+> adapter->name, err);
+>  	} else {
+> @@ -586,7 +594,8 @@ static int twl4030_attach_adapter(struct i2c_adapter *adapter)
+>  	for (i = 0; i < TWL4030_NUM_SLAVES; i++) {
+>  		/* Check if I need to hook on to this adapter or not */
+>  		if (twl4030_modules[i].adapter_index == 
+> twl_i2c_adapter) {
+> -			if ((ret = twl4030_detect_client(adapter, i)))
+> +			ret = twl4030_detect_client(adapter, i);
+> +			if (ret)
+>  				goto free_client;
+>  		}
+>  	}
+> @@ -604,7 +613,7 @@ static int twl4030_attach_adapter(struct i2c_adapter *adapter)
+>  	return 0;
+>  
+>  free_client:
+> -	pr_err("TWL_CLIENT(Idx=%d] registration failed[0x%x]\n",i,ret);
+> +	pr_err("TWL_CLIENT(Idx=%d] registration 
+> failed[0x%x]\n", i, ret);
+>  
+>  	/* ignore current slave..it never got registered */
+>  	i--;
+> @@ -621,7 +630,8 @@ free_client: static int twl4030_detach_client(struct i2c_client *client)
+>  {
+>  	int err;
+> -	if ((err = i2c_detach_client(client))) {
+> +	err = i2c_detach_client(client);
+> +	if (err) {
+>  		pr_err("Client detach failed\n");
+>  		return err;
+>  	}
+> @@ -637,7 +647,7 @@ struct task_struct *start_twl4030_irq_thread(int irq)
+>  			     "twl4030 irq %d", irq);
+>  	if (!thread)
+>  		pr_err("%s: could not create twl4030 irq %d thread!\n",
+> -		       __FUNCTION__, irq);
+> +		       __func__, irq);
+>  
+>  	return thread;
+>  }
+> @@ -686,9 +696,9 @@ static int power_companion_init(void)
+>  	clk_put(osc);
+>  
+>  	switch (rate) {
+> -		case 19200000 : ctrl = HFCLK_FREQ_19p2_MHZ; break;
+> -		case 26000000 : ctrl = HFCLK_FREQ_26_MHZ; break;
+> -		case 38400000 : ctrl = HFCLK_FREQ_38p4_MHZ; break;
+> +	case 19200000 : ctrl = HFCLK_FREQ_19p2_MHZ; break;
+> +	case 26000000 : ctrl = HFCLK_FREQ_26_MHZ; break;
+> +	case 38400000 : ctrl = HFCLK_FREQ_38p4_MHZ; break;
+>  	}
+>  
+>  	ctrl |= HIGH_PERF_SQ;
+> @@ -875,23 +885,13 @@ static void twl_init_irq(void)
+>  	set_irq_chained_handler(TWL4030_IRQNUM, do_twl4030_irq);
+>  
+>  	res = power_companion_init();
+> -	if (res < 0) {
+> +	if (res < 0)
+>  		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
+> -	}
+>  }
+>  
+>  static int __init twl4030_init(void)
+>  {
+> -	int res;
+> -
+> -	if ((res = i2c_add_driver(&twl4030_driver))) {
+> -		printk(KERN_ERR "TWL4030: Driver registration failed\n");
+> -		return res;
+> -	}
+> -
+> -	pr_info(KERN_INFO "TWL4030: Driver registration complete.\n");
+> -
+> -	return 0;
+> +	return i2c_add_driver(&twl4030_driver);
+>  }
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/usb/musb/musb_host.c |   26 ++++++++++++--------------
- 1 files changed, 12 insertions(+), 14 deletions(-)
+You're losing the failure print here. Not sure if it matters, but I'm pointing it out anyway.
 
-diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-index 82e1265..f9e98d0 100644
---- a/drivers/usb/musb/musb_host.c
-+++ b/drivers/usb/musb/musb_host.c
-@@ -103,7 +103,7 @@
- 
- static void musb_ep_program(struct musb *musb, u8 epnum,
- 			struct urb *urb, unsigned int nOut,
--			u8 * buf, u32 len);
-+			u8 *buf, u32 len);
- 
- /*
-  * Clear TX fifo. Needed to avoid BABBLE errors.
-@@ -210,7 +210,7 @@ musb_start_urb(struct musb *musb, int is_in, struct musb_qh *qh)
- 			case USB_ENDPOINT_XFER_BULK:	s = "-bulk"; break;
- 			case USB_ENDPOINT_XFER_ISOC:	s = "-iso"; break;
- 			default:			s = "-intr"; break;
--			}; s;}),
-+			}; s; }),
- 			epnum, buf, len);
- 
- 	/* Configure endpoint */
-@@ -244,7 +244,7 @@ musb_start_urb(struct musb *musb, int is_in, struct musb_qh *qh)
- 		} else {
- 			qh->frame = urb->start_frame;
- 			/* enable SOF interrupt so we can count down */
--DBG(1,"SOF for %d\n", epnum);
-+			DBG(1, "SOF for %d\n", epnum);
- #if 1 /* ifndef	CONFIG_ARCH_DAVINCI */
- 			musb_writeb(mbase, MUSB_INTRUSBE, 0xff);
- #endif
-@@ -439,10 +439,9 @@ static inline u16 musb_h_flush_rxfifo(struct musb_hw_ep *hw_ep, u16 csr)
- 	 * leave toggle alone (may not have been saved yet)
- 	 */
- 	csr |= MUSB_RXCSR_FLUSHFIFO | MUSB_RXCSR_RXPKTRDY;
--	csr &= ~( MUSB_RXCSR_H_REQPKT
-+	csr &= ~(MUSB_RXCSR_H_REQPKT
- 		| MUSB_RXCSR_H_AUTOREQ
--		| MUSB_RXCSR_AUTOCLEAR
--		);
-+		| MUSB_RXCSR_AUTOCLEAR);
- 
- 	/* write 2x to allow double buffering */
- 	musb_writew(hw_ep->regs, MUSB_RXCSR, csr);
-@@ -614,7 +613,7 @@ musb_rx_reinit(struct musb *musb, struct musb_qh *qh, struct musb_hw_ep *ep)
-  */
- static void musb_ep_program(struct musb *musb, u8 epnum,
- 			struct urb *urb, unsigned int is_out,
--			u8 * buf, u32 len)
-+			u8 *buf, u32 len)
- {
- 	struct dma_controller	*dma_controller;
- 	struct dma_channel	*dma_channel;
-@@ -754,7 +753,7 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
- 			csr &= ~(MUSB_TXCSR_AUTOSET
- 				| MUSB_TXCSR_DMAMODE
- 				| MUSB_TXCSR_DMAENAB);
--                        csr |= MUSB_TXCSR_MODE;
-+			csr |= MUSB_TXCSR_MODE;
- 			musb_writew(epio, MUSB_TXCSR,
- 				csr | MUSB_TXCSR_MODE);
- 
-@@ -1270,8 +1269,8 @@ void musb_host_tx(struct musb *musb, u8 epnum)
- 			if (qh->segsize < qh->maxpacket)
- 				done = true;
- 			else if (qh->offset == urb->transfer_buffer_length
--					&& !(urb-> transfer_flags
--							& URB_ZERO_PACKET))
-+					&& !(urb->transfer_flags
-+						& URB_ZERO_PACKET))
- 				done = true;
- 			if (!done) {
- 				buf = urb->transfer_buffer
-@@ -1945,13 +1944,12 @@ static int musb_cleanup_urb(struct urb *urb, struct musb_qh *qh, int is_in)
- 	} else {
- 		musb_h_tx_flush_fifo(ep);
- 		csr = musb_readw(epio, MUSB_TXCSR);
--		csr &= ~( MUSB_TXCSR_AUTOSET
-+		csr &= ~(MUSB_TXCSR_AUTOSET
- 			| MUSB_TXCSR_DMAENAB
- 			| MUSB_TXCSR_H_RXSTALL
- 			| MUSB_TXCSR_H_NAKTIMEOUT
- 			| MUSB_TXCSR_H_ERROR
--			| MUSB_TXCSR_TXPKTRDY
--			);
-+			| MUSB_TXCSR_TXPKTRDY);
- 		musb_writew(epio, MUSB_TXCSR, csr);
- 		/* REVISIT may need to clear FLUSHFIFO ... */
- 		musb_writew(epio, MUSB_TXCSR, csr);
-@@ -2139,7 +2137,7 @@ static int musb_bus_resume(struct usb_hcd *hcd)
- const struct hc_driver musb_hc_driver = {
- 	.description		= "musb-hcd",
- 	.product_desc		= "MUSB HDRC host driver",
--	.hcd_priv_size		= sizeof (struct musb),
-+	.hcd_priv_size		= sizeof(struct musb),
- 	.flags			= HCD_USB2 | HCD_MEMORY,
- 
- 	/* not using irq handler or reset hooks from usbcore, since
--- 
-1.5.5.23.g2a5fe
-
+>  
+>  static void __exit twl4030_exit(void)
+> @@ -903,11 +903,6 @@ static void __exit twl4030_exit(void)
+>  subsys_initcall(twl4030_init);
+>  module_exit(twl4030_exit);
+>  
+> -EXPORT_SYMBOL(twl4030_i2c_write_u8);
+> -EXPORT_SYMBOL(twl4030_i2c_read_u8);
+> -EXPORT_SYMBOL(twl4030_i2c_read);
+> -EXPORT_SYMBOL(twl4030_i2c_write);
+> -
+>  MODULE_AUTHOR("Texas Instruments, Inc.");
+>  MODULE_DESCRIPTION("I2C Core interface for TWL4030");
+>  MODULE_LICENSE("GPL");
+> -- 
+> 1.5.5.23.g2a5fe
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
