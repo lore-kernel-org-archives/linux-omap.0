@@ -1,109 +1,81 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 00/23] General checkpatch.pl cleanup for twl and musb
-	drivers
-Date: Fri, 11 Apr 2008 12:11:42 +0300
-Message-ID: <20080411091142.GC7338@gandalf.research.nokia.com>
-References: <1207902516-6374-1-git-send-email-felipe.balbi@nokia.com> <010C7BAE6783F34D9AC336EE5A01A08805D65026@dbde01.ent.ti.com>
-Reply-To: felipe.balbi@nokia.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 15/23] USB: MUSB: checkpatch.pl fixes to musbhsdma.c
+Date: Fri, 11 Apr 2008 12:59:22 +0300
+Message-ID: <1207907962-13987-1-git-send-email-felipe.balbi@nokia.com>
+References: <20080411095836.GF7338@gandalf.research.nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:33002 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758703AbYDKJNF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 05:13:05 -0400
-Content-Disposition: inline
-In-Reply-To: <010C7BAE6783F34D9AC336EE5A01A08805D65026@dbde01.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:53734 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757547AbYDKKAb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 06:00:31 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3BA2aqd027250
+	for <linux-omap@vger.kernel.org>; Fri, 11 Apr 2008 05:02:48 -0500
+In-Reply-To: <20080411095836.GF7338@gandalf.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Gadiyar, Anand" <gadiyar@ti.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-On Fri, Apr 11, 2008 at 02:36:05PM +0530, ext Gadiyar, Anand wrote:
-> Nice job! :)
-> 
-> By the way, how did you manage to get a list of checkpatch ERRORS and WARNINGS on a set of files?
-> Did you do a compare with /dev/null or is there a better way?
+Misc cleanup patch.
 
-scripts/checkpatch.pl --file drivers/usb/musb/*.[ch] ;-)
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/usb/musb/musbhsdma.c |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
 
-> 
-> Regards,
-> Anand
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org 
-> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Felipe Balbi
-> > Sent: Friday, April 11, 2008 1:58 PM
-> > To: linux-omap@vger.kernel.org
-> > Cc: Felipe Balbi
-> > Subject: [PATCH 00/23] General checkpatch.pl cleanup for twl 
-> > and musb drivers
-> > 
-> > The following series gets rid of checkpatch.pl ERRORS and WARNINGS
-> > for both twl4030 and musb drivers. I left some WARNINGS in musb_core.c
-> > because fixing them would decrease the code readability. Line 
-> > was only one
-> > character over the 80 max so it didn't make sense to fix that.
-> > 
-> > Felipe Balbi (23):
-> >   I2C: TWL4030: checkpatch.pl fixes for twl4030-core.c
-> >   I2C: TWL4030: checkpatch.pl fixes for twl4030-usb.c
-> >   I2C: TWL4030: checkpatch.pl fixes for twl4030-gpio.c
-> >   I2C: TWL4030: checkpatch.pl fixes to tlw4030.h
-> >   I2C: TLW4030: checkpatch.pl fixes to tlw4030-rtc.h
-> >   I2C: TWL4030: checkpatch.pl fixes to rtc-twl4030.c
-> >   USB: MUSB: checkpatch.pl fixes to cppi_dma.c
-> >   USB: MUSB: checkpatch.pl fixes to davinci.c
-> >   USB: MUSB: checkpatch.pl fixed to musb_core.c
-> >   USB: MUSB: checkpatch.pl fixes to musb_gadget.c
-> >   USB: MUSB: checkpatch.pl fixed to musb_gadget_ep0.c
-> >   USB: MUSB: checkpatch.pl fixed to musb_host.c
-> >   USB: MUSB: checkpatch.pl fixed to musb_procfs.c
-> >   USB: MUSB: checkpatch.pl fixes to musb_virthub.c
-> >   USB: MUSB: checkpatch.pl fixes to musbhsdma.c
-> >   USB: MUSB: checkpatch.pl fixes to omap2430.c
-> >   USB: MUSB: checkpatch.pl fixes to tusb6010.c
-> >   USB: MUSB: checkpatch.pl fixes to tusb6010_omap.c
-> >   USB: MUSB: checkpatch.pl fixes to davinci.h
-> >   USB: MUSB: checkpatch.pl fixes to musb_core.h
-> >   USB: MUSB: checkpatch.pl fixes to musb_io.h
-> >   USB: MUSB: checkpatch.pl fixed to musb_regs.h
-> >   USB: MUSB: checkpatch.pl fixes to musb_debug.h
-> > 
-> >  drivers/i2c/chips/twl4030-core.c   |   61 
-> > +++++++++++++---------------
-> >  drivers/i2c/chips/twl4030-gpio.c   |   37 ++++++++---------
-> >  drivers/i2c/chips/twl4030-usb.c    |    3 +-
-> >  drivers/rtc/rtc-twl4030.c          |   77 
-> > ++++++++++++++++++-----------------
-> >  drivers/usb/musb/cppi_dma.c        |    2 +-
-> >  drivers/usb/musb/davinci.c         |    8 ++--
-> >  drivers/usb/musb/davinci.h         |    4 +-
-> >  drivers/usb/musb/musb_core.c       |   35 +++++++---------
-> >  drivers/usb/musb/musb_core.h       |   10 ++--
-> >  drivers/usb/musb/musb_debug.h      |   14 +++---
-> >  drivers/usb/musb/musb_gadget.c     |   13 +++---
-> >  drivers/usb/musb/musb_gadget_ep0.c |    2 +-
-> >  drivers/usb/musb/musb_host.c       |   26 ++++++------
-> >  drivers/usb/musb/musb_io.h         |    2 +-
-> >  drivers/usb/musb/musb_procfs.c     |    8 ++--
-> >  drivers/usb/musb/musb_regs.h       |   22 +++++-----
-> >  drivers/usb/musb/musb_virthub.c    |    4 +-
-> >  drivers/usb/musb/musbhsdma.c       |   17 ++++----
-> >  drivers/usb/musb/omap2430.c        |    2 +-
-> >  drivers/usb/musb/tusb6010.c        |   12 +++---
-> >  drivers/usb/musb/tusb6010_omap.c   |   13 +++---
-> >  include/linux/i2c/twl4030-rtc.h    |    4 +-
-> >  include/linux/i2c/twl4030.h        |    6 +-
-> >  23 files changed, 186 insertions(+), 196 deletions(-)
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe 
-> > linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-
+diff --git a/drivers/usb/musb/musbhsdma.c b/drivers/usb/musb/musbhsdma.c
+index 97fd146..f0ac65d 100644
+--- a/drivers/usb/musb/musbhsdma.c
++++ b/drivers/usb/musb/musbhsdma.c
+@@ -216,7 +216,7 @@ static void configure_channel(struct dma_channel *pChannel,
+ 		csr);
+ }
+ 
+-static int dma_channel_program(struct dma_channel * pChannel,
++static int dma_channel_program(struct dma_channel *pChannel,
+ 				u16 packet_sz, u8 mode,
+ 				dma_addr_t dma_addr, u32 len)
+ {
+@@ -257,22 +257,21 @@ static int dma_channel_abort(struct dma_channel *pChannel)
+ 		if (pImplChannel->transmit) {
+ 
+ 			csr = musb_readw(mbase,
+-				MUSB_EP_OFFSET(pImplChannel->epnum,MUSB_TXCSR));
++				MUSB_EP_OFFSET(pImplChannel->epnum, MUSB_TXCSR));
+ 			csr &= ~(MUSB_TXCSR_AUTOSET |
+ 				 MUSB_TXCSR_DMAENAB |
+ 				 MUSB_TXCSR_DMAMODE);
+ 			musb_writew(mbase,
+-				MUSB_EP_OFFSET(pImplChannel->epnum,MUSB_TXCSR),
++				MUSB_EP_OFFSET(pImplChannel->epnum, MUSB_TXCSR),
+ 				csr);
+-		}
+-		else {
++		} else {
+ 			csr = musb_readw(mbase,
+-				MUSB_EP_OFFSET(pImplChannel->epnum,MUSB_RXCSR));
++				MUSB_EP_OFFSET(pImplChannel->epnum, MUSB_RXCSR));
+ 			csr &= ~(MUSB_RXCSR_AUTOCLEAR |
+ 				 MUSB_RXCSR_DMAENAB |
+ 				 MUSB_RXCSR_DMAMODE);
+ 			musb_writew(mbase,
+-				MUSB_EP_OFFSET(pImplChannel->epnum,MUSB_RXCSR),
++				MUSB_EP_OFFSET(pImplChannel->epnum, MUSB_RXCSR),
+ 				csr);
+ 		}
+ 
+@@ -402,8 +401,8 @@ dma_controller_create(struct musb *musb, void __iomem *pCoreBase)
+ 		return NULL;
+ 	}
+ 
+-	if (!(controller = kzalloc(sizeof(struct musb_dma_controller),
+-				GFP_KERNEL)))
++	controller = kzalloc(sizeof(struct musb_dma_controller), GFP_KERNEL);
++	if (!controller)
+ 		return NULL;
+ 
+ 	controller->bChannelCount = MUSB_HSDMA_CHANNELS;
 -- 
-	- Balbi
+1.5.5.23.g2a5fe
+
