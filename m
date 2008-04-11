@@ -1,146 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] I2C: TWL4030: General cleanup in twl4030's driver
-Date: Fri, 11 Apr 2008 12:11:38 -0700
-Message-ID: <20080411191138.GG7717@atomide.com>
-References: <1207831237-24216-1-git-send-email-felipe.balbi@nokia.com>
+Subject: Re: Problems with 2430 NAND prefetch engine
+Date: Fri, 11 Apr 2008 12:22:27 -0700
+Message-ID: <20080411192227.GH7717@atomide.com>
+References: <a46a26fd0804081733i469936d4m3315f3bb3270ff5@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53080 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63856 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760603AbYDKTLk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 15:11:40 -0400
+	with ESMTP id S1761522AbYDKTW3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 15:22:29 -0400
 Content-Disposition: inline
-In-Reply-To: <1207831237-24216-1-git-send-email-felipe.balbi@nokia.com>
+In-Reply-To: <a46a26fd0804081733i469936d4m3315f3bb3270ff5@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
+To: Juha Kuikka <juha.kuikka@gmail.com>
 Cc: linux-omap@vger.kernel.org
 
-* Felipe Balbi <felipe.balbi@nokia.com> [080410 05:42]:
-> TWL4030's Kconfig entries was a bit mixed.
-> Fix some missing '\n'
-> Add missing space in two-lined printks
+* Juha Kuikka <juha.kuikka@gmail.com> [080408 17:33]:
+> Hi,
+> 
+> I am trying to use the NAND prefetch engine to speed up NAND access.
+> 
+> In GPMC CS0 is the NAND chip. GPMC_CONFIG7_0 is set to 0x0000084c by
+> u-boot. Hence the address for this CS should be 0x0C000000.
+> Documentation indicates that the FIFO should be accessible in any
+> associated chip-select region after the engine has been enabled.
+> 
+> In linux I use ioremap() to map 0x0C000000 and use the returned
+> pointer to access the prefetch engine FIFO.
+> 
+> Prefetch engine is configured and started.
+> I get FIFOEVENT interrupt from it and try to read the fifo by using
+> this ioremap's pointer but kernel crashes with:
+> 
+> Unhandled fault: external abort on non-linefetch (0x008) at 0xc4854000
+> 0xc4854000 corresponds to the pointer ioremap() returned.
+>
+> Apparently I miss something either in HW or kernel but I cannot think
+> of anything.
+> Conventional access to the NAND chip through COMMAND/ADDRESS/DATA
+> registers works ok.
+> Any ideas would be appreciated.
 
-Pushing this one too, sorry looks like I pushed them in wrong order,
-this should have gone in before your clean-up series :)
+Are you sure you have all the needed clocks on at this point? At least
+gpmc_fck should be checked. Of course if access to gpmc works in
+general, this is not the problem.
 
 Tony
-
-
-
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> ---
->  drivers/i2c/chips/Kconfig             |    8 ++++----
->  drivers/i2c/chips/twl4030-core.c      |    2 +-
->  drivers/i2c/chips/twl4030-pwrbutton.c |   10 +++++-----
->  drivers/i2c/chips/twl4030-usb.c       |    2 +-
->  4 files changed, 11 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
-> index 4896f84..c3de735 100644
-> --- a/drivers/i2c/chips/Kconfig
-> +++ b/drivers/i2c/chips/Kconfig
-> @@ -132,10 +132,6 @@ config TWL4030_USB
->  	bool "TWL4030 USB Transceiver Driver"
->  	depends on TWL4030_CORE
->  
-> -config TWL4030_PWRBUTTON
-> -        bool "TWL4030 Power button Driver"
-> -	depends on TWL4030_CORE
-> -
->  choice
->  	prompt "Transceiver mode"
->  	depends on TWL4030_USB
-> @@ -143,6 +139,10 @@ choice
->  	  TWL4030 USB transceiver can operate in various
->  	  mutually-exclusive modes. Select one of them.
->  
-> +config TWL4030_PWRBUTTON
-> +        bool "TWL4030 Power button Driver"
-> +	depends on TWL4030_CORE
-> +
->  config TWL4030_USB_HS_ULPI
->  	depends on TWL4030_USB
->  	bool "High-speed ULPI"
-> diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
-> index 5868a81..49bd63a 100644
-> --- a/drivers/i2c/chips/twl4030-core.c
-> +++ b/drivers/i2c/chips/twl4030-core.c
-> @@ -885,7 +885,7 @@ static int __init twl4030_init(void)
->  	int res;
->  
->  	if ((res = i2c_add_driver(&twl4030_driver))) {
-> -		printk(KERN_ERR "TWL4030: Driver registration failed \n");
-> +		printk(KERN_ERR "TWL4030: Driver registration failed\n");
->  		return res;
->  	}
->  
-> diff --git a/drivers/i2c/chips/twl4030-pwrbutton.c b/drivers/i2c/chips/twl4030-pwrbutton.c
-> index a541ed6..cbc31aa 100644
-> --- a/drivers/i2c/chips/twl4030-pwrbutton.c
-> +++ b/drivers/i2c/chips/twl4030-pwrbutton.c
-> @@ -64,7 +64,7 @@ static irqreturn_t powerbutton_irq(int irq, void *dev_id)
->  				 value & PWR_PWRON_IRQ);
->  	} else {
->  		printk(KERN_WARNING "I2C error %d while reading TWL4030"
-> -			"PM_MASTER STS_HW_CONDITIONS register\n", err);
-> +			" PM_MASTER STS_HW_CONDITIONS register\n", err);
->  	}
->  
->  	return IRQ_HANDLED;
-> @@ -101,7 +101,7 @@ static int __init twl4030_pwrbutton_init(void)
->  	err = twl4030_i2c_read_u8(TWL4030_MODULE_INT, &value, PWR_IMR1);
->  	if (err) {
->  		printk(KERN_WARNING "I2C error %d while reading TWL4030"
-> -					"INT PWR_IMR1 register\n", err);
-> +					" INT PWR_IMR1 register\n", err);
->  
->  		goto free_input_dev;
->  	}
-> @@ -110,14 +110,14 @@ static int __init twl4030_pwrbutton_init(void)
->  				   value & (~PWR_PWRON_IRQ), PWR_IMR1);
->  	if (err) {
->  		printk(KERN_WARNING "I2C error %d while writing TWL4030"
-> -				    "INT PWR_IMR1 register\n", err);
-> +				    " INT PWR_IMR1 register\n", err);
->  		goto free_input_dev;
->  	}
->  
->  	err = twl4030_i2c_read_u8(TWL4030_MODULE_INT, &value, PWR_EDR1);
->  	if (err) {
->  		printk(KERN_WARNING "I2C error %d while reading TWL4030"
-> -					"INT PWR_EDR1 register\n", err);
-> +					" INT PWR_EDR1 register\n", err);
->  		goto free_input_dev;
->  	}
->  
-> @@ -126,7 +126,7 @@ static int __init twl4030_pwrbutton_init(void)
->  
->  	if (err) {
->  		printk(KERN_WARNING "I2C error %d while writing TWL4030"
-> -					"INT PWR_EDR1 register\n", err);
-> +					" INT PWR_EDR1 register\n", err);
->  		goto free_input_dev;
->  	}
->  
-> diff --git a/drivers/i2c/chips/twl4030-usb.c b/drivers/i2c/chips/twl4030-usb.c
-> index a238904..1df5427 100644
-> --- a/drivers/i2c/chips/twl4030-usb.c
-> +++ b/drivers/i2c/chips/twl4030-usb.c
-> @@ -726,7 +726,7 @@ static int __init twl4030_usb_init(void)
->  
->  	otg_set_transceiver(&twl->otg);
->  
-> -	printk(KERN_INFO "Initialized TWL4030 USB module");
-> +	printk(KERN_INFO "Initialized TWL4030 USB module\n");
->  
->  	return 0;
->  }
-> -- 
-> 1.5.5.23.g2a5fe
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
