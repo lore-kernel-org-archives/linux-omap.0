@@ -1,51 +1,34 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [Help 1/2] MUSB: ZiO! CF card reader will trigger a change
-	from MUSB host mode to MUSB peripheral mode
-Date: Fri, 11 Apr 2008 17:59:09 +0300
-Message-ID: <20080411145909.GA4457@kedavra.cpe.vivax.com.br>
-References: <386072610804070408q16c5ffa1u6a0c2e35295aa327@mail.gmail.com> <af73f7a75d15439b4761e7b0baa612cf@felipebalbi.com> <200804070905.10048.david-b@pacbell.net> <386072610804080006g588c7ad9ya4dd8c9c9c6cf827@mail.gmail.com> <386072610804100424l46273f0en9cc531dd7ec876ee@mail.gmail.com>
-Reply-To: me@felipebalbi.com
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] MUSB: Update hdrc_cnf.h to enable the full range of endpoints
+Date: Fri, 11 Apr 2008 08:24:15 -0700
+Message-ID: <200804110824.16001.david-b@pacbell.net>
+References: <010C7BAE6783F34D9AC336EE5A01A08805D6502A@dbde01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:47807 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754188AbYDKO5S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 10:57:18 -0400
+Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:29404 "HELO
+	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751767AbYDKPYS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Apr 2008 11:24:18 -0400
+In-Reply-To: <010C7BAE6783F34D9AC336EE5A01A08805D6502A@dbde01.ent.ti.com>
 Content-Disposition: inline
-In-Reply-To: <386072610804100424l46273f0en9cc531dd7ec876ee@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bryan Wu <cooloney@kernel.org>
-Cc: David Brownell <david-b@pacbell.net>, Felipe Balbi <me@felipebalbi.com>, tony@atomide.com, linux-omap@vger.kernel.org
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <me@felipebalbi.com>
 
-On Thu, Apr 10, 2008 at 07:24:50PM +0800, Bryan Wu wrote:
-> I think this kind of devices maybe should be added to the blacklist of
-> the musb otg driver.
+On Friday 11 April 2008, Gadiyar, Anand wrote:
+> From: Anand Gadiyar <gadiyar@ti.com>
 > 
-> Do you guys have some idea about that?
+> Updates to the hdrc_cnf.h file to enable the full range of 16 endpoints.
+> This patch fixes the "musb_hdrc: invalid ep 8" messages that show up on boot.
 
-overcurrent protection is triggering fine, that's why you're getting
-vbus_err. Blacklist shouldn't be in the kernel, what we should do is
-just notify the user about this error (needed for otg certification)
-but never blacklist anything.
+Still doesn't fix:
 
-On the other hand, musb core seems to behave in a quite silly way when
-it comes to current spikes on read/write operations (after enumeration
-and after you can access the device). It should rely on its capacitors
-on case of vbus drop and only trigger vbus_err interrupt if it really
-couldn't recover from it after capacitors are discharged otherwise it
-should stay silently and filter out such current spikes.
+ * This file contains configuration constants for the (m)hdrc
+ * silicon as integrated into DaVinci CPUs.
 
-I'm still looking into how to filter this out in software but it's been
-quite a challenge as you noticed yourself.
-
-Let's try to keep going on this, otherwise user experience will be
-awful with several mass storage devices.
-
--- 
-Best Regards,
-
-Felipe Balbi
-me@felipebalbi.com
-http://blog.felipebalbi.com
+Can you make that reference the relevant OMAP models?
