@@ -1,136 +1,92 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 2/2] I2C: TWL4030: sparse fixes for twl4030 driver
-Date: Fri, 11 Apr 2008 13:59:17 +0300
-Message-ID: <1207911557-9392-3-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 1/2] USB: MUSB: sparse fixes to musb_hdrc driver
+Date: Fri, 11 Apr 2008 13:59:16 +0300
+Message-ID: <1207911557-9392-2-git-send-email-felipe.balbi@nokia.com>
 References: <1207911557-9392-1-git-send-email-felipe.balbi@nokia.com>
- <1207911557-9392-2-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:22612 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:22611 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759366AbYDKLAg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 07:00:36 -0400
+	with ESMTP id S1759183AbYDKLAf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 07:00:35 -0400
 Received: from esebh108.NOE.Nokia.com (esebh108.ntc.nokia.com [172.21.143.145])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3BB06ho021799
-	for <linux-omap@vger.kernel.org>; Fri, 11 Apr 2008 14:00:33 +0300
-In-Reply-To: <1207911557-9392-2-git-send-email-felipe.balbi@nokia.com>
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3BB06hm021799
+	for <linux-omap@vger.kernel.org>; Fri, 11 Apr 2008 14:00:32 +0300
+In-Reply-To: <1207911557-9392-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-Get rid of some sparse warnings in twl4030 driver.
+Get rid of some sparse warnings in musb_hdrc driver.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/i2c/chips/twl4030-core.c     |    2 +-
- drivers/i2c/chips/twl4030-gpio.c     |   53 ++++++++++++++++------------------
- drivers/i2c/chips/twl4030-poweroff.c |    2 +-
- 3 files changed, 27 insertions(+), 30 deletions(-)
+ drivers/usb/musb/musb_host.c |    6 +++---
+ drivers/usb/musb/musbhsdma.c |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
-index 953c247..eedbebd 100644
---- a/drivers/i2c/chips/twl4030-core.c
-+++ b/drivers/i2c/chips/twl4030-core.c
-@@ -638,7 +638,7 @@ static int twl4030_detach_client(struct i2c_client *client)
- 	return 0;
- }
+diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+index f9e98d0..64673b7 100644
+--- a/drivers/usb/musb/musb_host.c
++++ b/drivers/usb/musb/musb_host.c
+@@ -1541,7 +1541,7 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+ 		if (dma) {
+ 			struct dma_controller	*c;
+ 			u16			rx_count;
+-			int			status;
++			int			ret;
  
--struct task_struct *start_twl4030_irq_thread(int irq)
-+static struct task_struct *start_twl4030_irq_thread(int irq)
- {
- 	struct task_struct *thread;
+ 			rx_count = musb_readw(epio, MUSB_RXCOUNT);
  
-diff --git a/drivers/i2c/chips/twl4030-gpio.c b/drivers/i2c/chips/twl4030-gpio.c
-index 349cbda..c1f7107 100644
---- a/drivers/i2c/chips/twl4030-gpio.c
-+++ b/drivers/i2c/chips/twl4030-gpio.c
-@@ -190,9 +190,6 @@ static unsigned int gpio_pending_unmask;
- /* pointer to gpio unmask thread struct */
- static struct task_struct *gpio_unmask_thread;
+@@ -1600,7 +1600,7 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+ 			 * transfer_buffer_length needs to be
+ 			 * adjusted first...
+ 			 */
+-			status = c->channel_program(
++			ret = c->channel_program(
+ 				dma, qh->maxpacket,
+ 				dma->desired_mode,
+ 				urb->transfer_dma
+@@ -1609,7 +1609,7 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+ 					? rx_count
+ 					: urb->transfer_buffer_length);
  
--static inline int gpio_twl4030_read(u8 address);
--static inline int gpio_twl4030_write(u8 address, u8 data);
--
- /*
-  * Helper functions to read and write the GPIO ISR and IMR registers as
-  * 32-bit integers. Functions return 0 on success, non-zero otherwise.
-@@ -312,6 +309,31 @@ static struct irq_chip twl4030_gpio_module_irq_chip = {
- };
+-			if (!status) {
++			if (!ret) {
+ 				c->channel_release(dma);
+ 				dma = hw_ep->rx_channel = NULL;
+ 				/* REVISIT reset CSR */
+diff --git a/drivers/usb/musb/musbhsdma.c b/drivers/usb/musb/musbhsdma.c
+index 75f084f..32bb1e2 100644
+--- a/drivers/usb/musb/musbhsdma.c
++++ b/drivers/usb/musb/musbhsdma.c
+@@ -172,7 +172,7 @@ static void configure_channel(struct dma_channel *pChannel,
+ 	struct musb_dma_channel *pImplChannel =
+ 		(struct musb_dma_channel *) pChannel->private_data;
+ 	struct musb_dma_controller *controller = pImplChannel->controller;
+-	u8 *mbase = controller->pCoreBase;
++	void __iomem *mbase = controller->pCoreBase;
+ 	u8 bChannel = pImplChannel->bIndex;
+ 	u16 csr = 0;
  
- /*
-+ * To configure TWL4030 GPIO module registers
-+ */
-+static inline int gpio_twl4030_write(u8 address, u8 data)
-+{
-+	int ret = 0;
-+
-+	ret = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, data, address);
-+	return ret;
-+}
-+
-+/*
-+ * To read a TWL4030 GPIO module register
-+ */
-+static inline int gpio_twl4030_read(u8 address)
-+{
-+	u8 data;
-+	int ret = 0;
-+
-+	ret = twl4030_i2c_read_u8(TWL4030_MODULE_GPIO, &data, address);
-+	if (ret >= 0)
-+		ret = data;
-+	return ret;
-+}
-+
-+/*
-  * twl4030 GPIO request function
-  */
- int twl4030_request_gpio(int gpio)
-@@ -596,31 +618,6 @@ EXPORT_SYMBOL(twl4030_set_gpio_card_detect);
- /* MODULE FUNCTIONS */
+@@ -250,7 +250,7 @@ static int dma_channel_abort(struct dma_channel *pChannel)
+ 	struct musb_dma_channel *pImplChannel =
+ 		(struct musb_dma_channel *) pChannel->private_data;
+ 	u8 bChannel = pImplChannel->bIndex;
+-	u8 *mbase = pImplChannel->controller->pCoreBase;
++	void __iomem *mbase = pImplChannel->controller->pCoreBase;
+ 	u16 csr;
  
- /*
-- * To configure TWL4030 GPIO module registers
-- */
--static inline int gpio_twl4030_write(u8 address, u8 data)
--{
--	int ret = 0;
--
--	ret = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, data, address);
--	return ret;
--}
--
--/*
-- * To read a TWL4030 GPIO module register
-- */
--static inline int gpio_twl4030_read(u8 address)
--{
--	u8 data;
--	int ret = 0;
--
--	ret = twl4030_i2c_read_u8(TWL4030_MODULE_GPIO, &data, address);
--	if (ret >= 0)
--		ret = data;
--	return ret;
--}
--
--/*
-  * gpio_unmask_thread() runs as a kernel thread.  It is awakened by the unmask
-  * method for the GPIO interrupts.  It unmasks all of the GPIO interrupts
-  * specified in the gpio_pending_unmask bitmask.  We have to do the unmasking
-diff --git a/drivers/i2c/chips/twl4030-poweroff.c b/drivers/i2c/chips/twl4030-poweroff.c
-index dbe413a..57c7fc7 100644
---- a/drivers/i2c/chips/twl4030-poweroff.c
-+++ b/drivers/i2c/chips/twl4030-poweroff.c
-@@ -28,7 +28,7 @@
- #define PWR_P1_SW_EVENTS	0x10
- #define PWR_DEVOFF	(1<<0)
- 
--void twl4030_poweroff(void)
-+static void twl4030_poweroff(void)
- {
- 	u8 val;
- 	int err;
+ 	if (pChannel->status == MUSB_DMA_STATUS_BUSY) {
+@@ -296,7 +296,7 @@ static irqreturn_t dma_controller_irq(int irq, void *private_data)
+ 		(struct musb_dma_controller *)private_data;
+ 	struct musb_dma_channel *pImplChannel;
+ 	struct musb *musb = controller->pDmaPrivate;
+-	u8 *mbase = controller->pCoreBase;
++	void __iomem *mbase = controller->pCoreBase;
+ 	struct dma_channel *pChannel;
+ 	u8 bChannel;
+ 	u16 csr;
 -- 
 1.5.5.23.g2a5fe
 
