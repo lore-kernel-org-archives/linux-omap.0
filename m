@@ -1,91 +1,161 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 15/23] USB: MUSB: checkpatch.pl fixes to musbhsdma.c
-Date: Fri, 11 Apr 2008 12:58:36 +0300
-Message-ID: <20080411095836.GF7338@gandalf.research.nokia.com>
-References: <1207902516-6374-7-git-send-email-felipe.balbi@nokia.com> <1207902516-6374-8-git-send-email-felipe.balbi@nokia.com> <1207902516-6374-9-git-send-email-felipe.balbi@nokia.com> <1207902516-6374-10-git-send-email-felipe.balbi@nokia.com> <1207902516-6374-11-git-send-email-felipe.balbi@nokia.com> <1207902516-6374-12-git-send-email-felipe.balbi@nokia.com> <1207902516-6374-13-git-send-email-felipe.balbi@nokia.com> <1207902516-6374-14-git-send-email-felipe.balbi@nokia.com> <1207902516-6374-15-git-send-email-felipe.balbi@nokia.com> <1207902516-6374-16-git-send-email-felipe.balbi@nokia.com>
-Reply-To: felipe.balbi@nokia.com
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH] MUSB: Update =?UTF-8?Q?hdrc=5Fcnf=2Eh=20to=20enable=20the=20f?=
+ =?UTF-8?Q?ull=20range=20of=20endpoints?=
+Date: Fri, 11 Apr 2008 05:10:14 -0500
+Message-ID: <e84922a6aef69dc2705b2cac39944fb1@felipebalbi.com>
+References: <010C7BAE6783F34D9AC336EE5A01A08805D6502A@dbde01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:39388 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757506AbYDKJ77 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 05:59:59 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3B9xaa8014592
-	for <linux-omap@vger.kernel.org>; Fri, 11 Apr 2008 12:59:56 +0300
-Content-Disposition: inline
-In-Reply-To: <1207902516-6374-16-git-send-email-felipe.balbi@nokia.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:58723 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757837AbYDKKKQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 06:10:16 -0400
+In-Reply-To: <010C7BAE6783F34D9AC336EE5A01A08805D6502A@dbde01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, David Brownell <david-b@pacbell.net>
 
-On Fri, Apr 11, 2008 at 11:28:28AM +0300, Felipe Balbi wrote:
-> Misc cleanup patch.
+
+
+On Fri, 11 Apr 2008 14:41:26 +0530, "Gadiyar, Anand" <gadiyar@ti.com>
+wrote:
+> From: Anand Gadiyar <gadiyar@ti.com>
 > 
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> Updates to the hdrc_cnf.h file to enable the full range of 16 endpoints.
+> This patch fixes the "musb_hdrc: invalid ep 8" messages that show up on
+> boot.
+> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> Signed-off-by: Nishant Kamat <nskamat@ti.com>
+
+Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+
 > ---
->  drivers/usb/musb/musbhsdma.c |   17 ++++++++---------
->  1 files changed, 8 insertions(+), 9 deletions(-)
+>  hdrc_cnf.h |   70
+> ++++++++++++++++++++++++++++++++++++++++++++-----------------
+>  1 files changed, 51 insertions(+), 19 deletions(-)
 > 
-> diff --git a/drivers/usb/musb/musbhsdma.c b/drivers/usb/musb/musbhsdma.c
-> index 97fd146..f0ac65d 100644
-> --- a/drivers/usb/musb/musbhsdma.c
-> +++ b/drivers/usb/musb/musbhsdma.c
-> @@ -216,7 +216,7 @@ static void configure_channel(struct dma_channel *pChannel,
->  		csr);
->  }
+> Index: linux-omap-2.6/include/asm-arm/arch-omap/hdrc_cnf.h
+> ===================================================================
+> --- linux-omap-2.6.orig/include/asm-arm/arch-omap/hdrc_cnf.h	2008-04-08
+> 12:36:41.000000000 +0530
+> +++ linux-omap-2.6/include/asm-arm/arch-omap/hdrc_cnf.h	2007-08-10
+> 17:41:16.000000000 +0530
+> @@ -14,11 +14,11 @@
 >  
-> -static int dma_channel_program(struct dma_channel * pChannel,
-> +static int dma_channel_program(struct dma_channel *pChannel,
->  				u16 packet_sz, u8 mode,
->  				dma_addr_t dma_addr, u32 len)
->  {
-> @@ -257,22 +257,21 @@ static int dma_channel_abort(struct dma_channel *pChannel)
->  		if (pImplChannel->transmit) {
+>  /* ** Number of Tx endpoints ** */
+>  /* Legal values are 1 - 16 (this value includes EP0) */
+> -#define MUSB_C_NUM_EPT 8
+> +#define MUSB_C_NUM_EPT 16
 >  
->  			csr = musb_readw(mbase,
-> -				MUSB_EP_OFFSET(pImplChannel->epnum,MUSB_TXCSR));
-> +				MUSB_EP_OFFSET(pImplChannel->epnum, MUSB_TXCSR));
->  			csr &= ~(MUSB_TXCSR_AUTOSET |
->  				 MUSB_TXCSR_DMAENAB |
->  				 MUSB_TXCSR_DMAMODE);
->  			musb_writew(mbase,
-> -				MUSB_EP_OFFSET(pImplChannel->epnum,MUSB_TXCSR),
-> +				MUSB_EP_OFFSET(pImplChannel->epnum, MUSB_TXCSR),
->  				csr);
-> -		}
-> -		else {
-> +		} else {
->  			csr = musb_readw(mbase,
-> -				MUSB_EP_OFFSET(pImplChannel->epnum,MUSB_RXCSR));
-> +				MUSB_EP_OFFSET(pImplChannel->epnum, MUSB_RXCSR));
->  			csr &= ~(MUSB_RXCSR_AUTOCLEAR |
->  				 MUSB_RXCSR_DMAENAB |
->  				 MUSB_RXCSR_DMAMODE);
->  			musb_writew(mbase,
-> -				MUSB_EP_OFFSET(pImplChannel->epnum,MUSB_RXCSR),
-> +				MUSB_EP_OFFSET(pImplChannel->epnum, MUSB_RXCSR),
->  				csr);
->  		}
+>  /* ** Number of Rx endpoints ** */
+>  /* Legal values are 1 - 16 (this value includes EP0) */
+> -#define MUSB_C_NUM_EPR 8
+> +#define MUSB_C_NUM_EPR 16
 >  
-> @@ -402,8 +401,8 @@ dma_controller_create(struct musb *musb, void __iomem *pCoreBase)
->  		return NULL;
->  	}
+>  /* ** Endpoint 1 to 15 direction types ** */
+>  /* C_EP1_DEF is defined if either Tx endpoint 1 or Rx endpoint 1 are
+used
+> */
+> @@ -62,6 +62,38 @@
+>  #define MUSB_C_EP7_TX_DEF
+>  #define MUSB_C_EP7_RX_DEF
+>  #define MUSB_C_EP7_TAR_DEF
+> +#define MUSB_C_EP8_DEF
+> +#define MUSB_C_EP8_TX_DEF
+> +#define MUSB_C_EP8_RX_DEF
+> +#define MUSB_C_EP8_TAR_DEF
+> +#define MUSB_C_EP9_DEF
+> +#define MUSB_C_EP9_TX_DEF
+> +#define MUSB_C_EP9_RX_DEF
+> +#define MUSB_C_EP9_TAR_DEF
+> +#define MUSB_C_EP10_DEF
+> +#define MUSB_C_EP10_TX_DEF
+> +#define MUSB_C_EP10_RX_DEF
+> +#define MUSB_C_EP10_TAR_DEF
+> +#define MUSB_C_EP11_DEF
+> +#define MUSB_C_EP11_TX_DEF
+> +#define MUSB_C_EP11_RX_DEF
+> +#define MUSB_C_EP11_TAR_DEF
+> +#define MUSB_C_EP12_DEF
+> +#define MUSB_C_EP12_TX_DEF
+> +#define MUSB_C_EP12_RX_DEF
+> +#define MUSB_C_EP12_TAR_DEF
+> +#define MUSB_C_EP13_DEF
+> +#define MUSB_C_EP13_TX_DEF
+> +#define MUSB_C_EP13_RX_DEF
+> +#define MUSB_C_EP13_TAR_DEF
+> +#define MUSB_C_EP14_DEF
+> +#define MUSB_C_EP14_TX_DEF
+> +#define MUSB_C_EP14_RX_DEF
+> +#define MUSB_C_EP14_TAR_DEF
+> +#define MUSB_C_EP15_DEF
+> +#define MUSB_C_EP15_TX_DEF
+> +#define MUSB_C_EP15_RX_DEF
+> +#define MUSB_C_EP15_TAR_DEF
 >  
-> -	if (!(controller = kzalloc(sizeof(struct musb_dma_controller),
-> -				GFP_KERNEL)))
-> +	controller = kzalloc(sizeof(struct musb_dma_controller), GPF_KERNEL);
-
-Ugh, typo here... resending patch
-
-> +	if (!controller)
->  		return NULL;
+>  /* ** Endpoint 1 to 15 FIFO address bits ** */
+>  /* Legal values are 3 to 13 - corresponding to FIFO sizes of 8 to 8192
+> bytes. */
+> @@ -82,22 +114,22 @@
+>  #define MUSB_C_EP6R_BITS 3
+>  #define MUSB_C_EP7T_BITS 3
+>  #define MUSB_C_EP7R_BITS 3
+> -#define MUSB_C_EP8T_BITS 2
+> -#define MUSB_C_EP8R_BITS 2
+> -#define MUSB_C_EP9T_BITS 2
+> -#define MUSB_C_EP9R_BITS 2
+> -#define MUSB_C_EP10T_BITS 2
+> -#define MUSB_C_EP10R_BITS 2
+> -#define MUSB_C_EP11T_BITS 2
+> -#define MUSB_C_EP11R_BITS 2
+> -#define MUSB_C_EP12T_BITS 2
+> -#define MUSB_C_EP12R_BITS 2
+> -#define MUSB_C_EP13T_BITS 2
+> -#define MUSB_C_EP13R_BITS 2
+> -#define MUSB_C_EP14T_BITS 2
+> -#define MUSB_C_EP14R_BITS 2
+> -#define MUSB_C_EP15T_BITS 2
+> -#define MUSB_C_EP15R_BITS 2
+> +#define MUSB_C_EP8T_BITS 3
+> +#define MUSB_C_EP8R_BITS 3
+> +#define MUSB_C_EP9T_BITS 3
+> +#define MUSB_C_EP9R_BITS 3
+> +#define MUSB_C_EP10T_BITS 3
+> +#define MUSB_C_EP10R_BITS 3
+> +#define MUSB_C_EP11T_BITS 3
+> +#define MUSB_C_EP11R_BITS 3
+> +#define MUSB_C_EP12T_BITS 3
+> +#define MUSB_C_EP12R_BITS 3
+> +#define MUSB_C_EP13T_BITS 3
+> +#define MUSB_C_EP13R_BITS 3
+> +#define MUSB_C_EP14T_BITS 3
+> +#define MUSB_C_EP14R_BITS 3
+> +#define MUSB_C_EP15T_BITS 3
+> +#define MUSB_C_EP15R_BITS 3
 >  
->  	controller->bChannelCount = MUSB_HSDMA_CHANNELS;
-> -- 
-> 1.5.5.23.g2a5fe
-
+>  /* Define the following constant if the USB2.0 Transceiver Macrocell
+data
+> width is 16-bits. */
+>  /* `define C_UTM_16 */
+> @@ -163,7 +195,7 @@
+>   * Legal values are 2 - 16
+>   * This must be equal to the larger of C_NUM_EPT, C_NUM_EPR
+>   */
+> -#define MUSB_C_NUM_EPS 8
+> +#define MUSB_C_NUM_EPS 16
+>  
+>  /* C_EPMAX_BITS is equal to the largest endpoint FIFO word address bits
+> */
+>  #define MUSB_C_EPMAX_BITS 12
 -- 
-	- Balbi
+Best Regards,
+
+Felipe Balbi
+http://felipebalbi.com
+me@felipebalbi.com
+
