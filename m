@@ -1,173 +1,72 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 03/23] I2C: TWL4030: checkpatch.pl fixes for twl4030-gpio.c
-Date: Fri, 11 Apr 2008 11:28:16 +0300
-Message-ID: <1207902516-6374-4-git-send-email-felipe.balbi@nokia.com>
-References: <1207902516-6374-1-git-send-email-felipe.balbi@nokia.com>
- <1207902516-6374-2-git-send-email-felipe.balbi@nokia.com>
- <1207902516-6374-3-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 00/23] General checkpatch.pl cleanup for twl and musb drivers
+Date: Fri, 11 Apr 2008 11:28:13 +0300
+Message-ID: <1207902516-6374-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:40220 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756803AbYDKI3o (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 04:29:44 -0400
-Received: from esebh108.NOE.Nokia.com (esebh108.ntc.nokia.com [172.21.143.145])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3B8TWu9030692
-	for <linux-omap@vger.kernel.org>; Fri, 11 Apr 2008 03:31:59 -0500
-In-Reply-To: <1207902516-6374-3-git-send-email-felipe.balbi@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:40608 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757131AbYDKI3s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 04:29:48 -0400
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3B8TaZA015663
+	for <linux-omap@vger.kernel.org>; Fri, 11 Apr 2008 11:29:45 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-Misc cleanup patch.
+The following series gets rid of checkpatch.pl ERRORS and WARNINGS
+for both twl4030 and musb drivers. I left some WARNINGS in musb_core.c
+because fixing them would decrease the code readability. Line was only one
+character over the 80 max so it didn't make sense to fix that.
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/i2c/chips/twl4030-gpio.c |   37 ++++++++++++++++++-------------------
- 1 files changed, 18 insertions(+), 19 deletions(-)
+Felipe Balbi (23):
+  I2C: TWL4030: checkpatch.pl fixes for twl4030-core.c
+  I2C: TWL4030: checkpatch.pl fixes for twl4030-usb.c
+  I2C: TWL4030: checkpatch.pl fixes for twl4030-gpio.c
+  I2C: TWL4030: checkpatch.pl fixes to tlw4030.h
+  I2C: TLW4030: checkpatch.pl fixes to tlw4030-rtc.h
+  I2C: TWL4030: checkpatch.pl fixes to rtc-twl4030.c
+  USB: MUSB: checkpatch.pl fixes to cppi_dma.c
+  USB: MUSB: checkpatch.pl fixes to davinci.c
+  USB: MUSB: checkpatch.pl fixed to musb_core.c
+  USB: MUSB: checkpatch.pl fixes to musb_gadget.c
+  USB: MUSB: checkpatch.pl fixed to musb_gadget_ep0.c
+  USB: MUSB: checkpatch.pl fixed to musb_host.c
+  USB: MUSB: checkpatch.pl fixed to musb_procfs.c
+  USB: MUSB: checkpatch.pl fixes to musb_virthub.c
+  USB: MUSB: checkpatch.pl fixes to musbhsdma.c
+  USB: MUSB: checkpatch.pl fixes to omap2430.c
+  USB: MUSB: checkpatch.pl fixes to tusb6010.c
+  USB: MUSB: checkpatch.pl fixes to tusb6010_omap.c
+  USB: MUSB: checkpatch.pl fixes to davinci.h
+  USB: MUSB: checkpatch.pl fixes to musb_core.h
+  USB: MUSB: checkpatch.pl fixes to musb_io.h
+  USB: MUSB: checkpatch.pl fixed to musb_regs.h
+  USB: MUSB: checkpatch.pl fixes to musb_debug.h
 
-diff --git a/drivers/i2c/chips/twl4030-gpio.c b/drivers/i2c/chips/twl4030-gpio.c
-index a9f3b1d..349cbda 100644
---- a/drivers/i2c/chips/twl4030-gpio.c
-+++ b/drivers/i2c/chips/twl4030-gpio.c
-@@ -34,13 +34,13 @@
- #include <linux/random.h>
- #include <linux/syscalls.h>
- #include <linux/kthread.h>
-+#include <linux/irq.h>
- 
- #include <linux/i2c.h>
- #include <linux/i2c/twl4030.h>
- #include <linux/slab.h>
- 
- #include <asm/arch/irqs.h>
--#include <asm/irq.h>
- #include <asm/mach/irq.h>
- #include <asm/arch/gpio.h>
- #include <asm/arch/mux.h>
-@@ -145,16 +145,16 @@
- #define GPIO_BANK_MAX			GET_GPIO_CTL_BANK(TWL4030_GPIO_MAX)
- 
- /* GPIOPUPDCTRx Fields 5 banks of 4 gpios each */
--#define BIT_GPIOPUPDCTR1_GPIOxPD(x)	(2 *(x))
--#define MASK_GPIOPUPDCTR1_GPIOxPD(x)	(0x01 << (2*(x)))
-+#define BIT_GPIOPUPDCTR1_GPIOxPD(x)	(2 * (x))
-+#define MASK_GPIOPUPDCTR1_GPIOxPD(x)	(0x01 << (2 * (x)))
- #define BIT_GPIOPUPDCTR1_GPIOxPU(x)	((x) + 1)
--#define MASK_GPIOPUPDCTR1_GPIOxPU(x)	(0x01 << (((2*(x)) + 1)))
-+#define MASK_GPIOPUPDCTR1_GPIOxPU(x)	(0x01 << (((2 * (x)) + 1)))
- 
- /* GPIO_EDR1 Fields */
--#define BIT_GPIO_EDR1_GPIOxFALLING(x)	(2 *(x))
--#define MASK_GPIO_EDR1_GPIOxFALLING(x)	(0x01 << (2*(x)))
-+#define BIT_GPIO_EDR1_GPIOxFALLING(x)	(2 * (x))
-+#define MASK_GPIO_EDR1_GPIOxFALLING(x)	(0x01 << (2 * (x)))
- #define BIT_GPIO_EDR1_GPIOxRISING(x)	((x) + 1)
--#define MASK_GPIO_EDR1_GPIOxRISING(x)	(0x01 << (((2*(x)) + 1)))
-+#define MASK_GPIO_EDR1_GPIOxRISING(x)	(0x01 << (((2 * (x)) + 1)))
- 
- /* GPIO_SIH_CTRL Fields */
- #define BIT_GPIO_SIH_CTRL_EXCLEN	(0x000)
-@@ -343,6 +343,7 @@ int twl4030_request_gpio(int gpio)
- 	up(&gpio_sem);
- 	return ret;
- }
-+EXPORT_SYMBOL(twl4030_request_gpio);
- 
- /*
-  * TWL4030 GPIO free module
-@@ -368,6 +369,7 @@ int twl4030_free_gpio(int gpio)
- 	up(&gpio_sem);
- 	return ret;
- }
-+EXPORT_SYMBOL(twl4030_free_gpio);
- 
- /*
-  * Set direction for TWL4030 GPIO
-@@ -399,6 +401,7 @@ int twl4030_set_gpio_direction(int gpio, int is_input)
- 	up(&gpio_sem);
- 	return ret;
- }
-+EXPORT_SYMBOL(twl4030_set_gpio_direction);
- 
- /*
-  * To enable/disable GPIO pin on TWL4030
-@@ -424,6 +427,7 @@ int twl4030_set_gpio_dataout(int gpio, int enable)
- 	up(&gpio_sem);
- 	return ret;
- }
-+EXPORT_SYMBOL(twl4030_set_gpio_dataout);
- 
- /*
-  * To get the status of a GPIO pin on TWL4030
-@@ -448,6 +452,7 @@ int twl4030_get_gpio_datain(int gpio)
- 
- 	return ret;
- }
-+EXPORT_SYMBOL(twl4030_get_gpio_datain);
- 
- /*
-  * Configure PULL type for a GPIO pin on TWL4030
-@@ -484,6 +489,7 @@ int twl4030_set_gpio_pull(int gpio, int pull_dircn)
- 	up(&gpio_sem);
- 	return ret;
- }
-+EXPORT_SYMBOL(twl4030_set_gpio_pull);
- 
- /*
-  * Configure Edge control for a GPIO pin on TWL4030
-@@ -523,6 +529,7 @@ int twl4030_set_gpio_edge_ctrl(int gpio, int edge)
- 	up(&gpio_sem);
- 	return ret;
- }
-+EXPORT_SYMBOL(twl4030_set_gpio_edge_ctrl);
- 
- /*
-  * Configure debounce timing value for a GPIO pin on TWL4030
-@@ -553,6 +560,7 @@ int twl4030_set_gpio_debounce(int gpio, int enable)
- 	up(&gpio_sem);
- 	return ret;
- }
-+EXPORT_SYMBOL(twl4030_set_gpio_debounce);
- 
- /*
-  * Configure Card detect for GPIO pin on TWL4030
-@@ -583,6 +591,7 @@ int twl4030_set_gpio_card_detect(int gpio, int enable)
- 	up(&gpio_sem);
- 	return (ret);
- }
-+EXPORT_SYMBOL(twl4030_set_gpio_card_detect);
- 
- /* MODULE FUNCTIONS */
- 
-@@ -765,8 +774,8 @@ static int __init gpio_twl4030_init(void)
- 			NULL, "twl4030 gpio");
- 		if (!gpio_unmask_thread) {
- 			printk(KERN_ERR
--				"%s: could not create twl4030 gpio unmask thread!\n",
--				__FUNCTION__);
-+				"%s: could not create twl4030 gpio unmask"
-+				" thread!\n", __func__);
- 			ret = -ENOMEM;
- 		}
- 	}
-@@ -821,16 +830,6 @@ static void __exit gpio_twl4030_exit(void)
- module_init(gpio_twl4030_init);
- module_exit(gpio_twl4030_exit);
- 
--EXPORT_SYMBOL(twl4030_request_gpio);
--EXPORT_SYMBOL(twl4030_free_gpio);
--EXPORT_SYMBOL(twl4030_set_gpio_direction);
--EXPORT_SYMBOL(twl4030_set_gpio_dataout);
--EXPORT_SYMBOL(twl4030_get_gpio_datain);
--EXPORT_SYMBOL(twl4030_set_gpio_pull);
--EXPORT_SYMBOL(twl4030_set_gpio_edge_ctrl);
--EXPORT_SYMBOL(twl4030_set_gpio_debounce);
--EXPORT_SYMBOL(twl4030_set_gpio_card_detect);
--
- MODULE_AUTHOR("Texas Instruments, Inc.");
- MODULE_DESCRIPTION("GPIO interface for TWL4030");
- MODULE_LICENSE("GPL");
--- 
-1.5.5.23.g2a5fe
+ drivers/i2c/chips/twl4030-core.c   |   61 +++++++++++++---------------
+ drivers/i2c/chips/twl4030-gpio.c   |   37 ++++++++---------
+ drivers/i2c/chips/twl4030-usb.c    |    3 +-
+ drivers/rtc/rtc-twl4030.c          |   77 ++++++++++++++++++-----------------
+ drivers/usb/musb/cppi_dma.c        |    2 +-
+ drivers/usb/musb/davinci.c         |    8 ++--
+ drivers/usb/musb/davinci.h         |    4 +-
+ drivers/usb/musb/musb_core.c       |   35 +++++++---------
+ drivers/usb/musb/musb_core.h       |   10 ++--
+ drivers/usb/musb/musb_debug.h      |   14 +++---
+ drivers/usb/musb/musb_gadget.c     |   13 +++---
+ drivers/usb/musb/musb_gadget_ep0.c |    2 +-
+ drivers/usb/musb/musb_host.c       |   26 ++++++------
+ drivers/usb/musb/musb_io.h         |    2 +-
+ drivers/usb/musb/musb_procfs.c     |    8 ++--
+ drivers/usb/musb/musb_regs.h       |   22 +++++-----
+ drivers/usb/musb/musb_virthub.c    |    4 +-
+ drivers/usb/musb/musbhsdma.c       |   17 ++++----
+ drivers/usb/musb/omap2430.c        |    2 +-
+ drivers/usb/musb/tusb6010.c        |   12 +++---
+ drivers/usb/musb/tusb6010_omap.c   |   13 +++---
+ include/linux/i2c/twl4030-rtc.h    |    4 +-
+ include/linux/i2c/twl4030.h        |    6 +-
+ 23 files changed, 186 insertions(+), 196 deletions(-)
 
