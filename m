@@ -1,78 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: USB: Fix potential resource overlap due to
-	incorrect end address
-Date: Fri, 11 Apr 2008 12:32:16 -0700
-Message-ID: <20080411193215.GK7717@atomide.com>
-References: <010C7BAE6783F34D9AC336EE5A01A08805C30691@dbde01.ent.ti.com>
+From: "Juha Kuikka" <juha.kuikka@gmail.com>
+Subject: Re: Problems with 2430 NAND prefetch engine
+Date: Fri, 11 Apr 2008 14:10:18 -0700
+Message-ID: <a46a26fd0804111410x2b2e580cw833480139ec2e666@mail.gmail.com>
+References: <a46a26fd0804081733i469936d4m3315f3bb3270ff5@mail.gmail.com>
+	 <20080411192227.GH7717@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56517 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754530AbYDKTcR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 15:32:17 -0400
+Received: from rn-out-0910.google.com ([64.233.170.184]:64166 "EHLO
+	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760422AbYDKVKU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 17:10:20 -0400
+Received: by rn-out-0910.google.com with SMTP id e11so644223rng.17
+        for <linux-omap@vger.kernel.org>; Fri, 11 Apr 2008 14:10:19 -0700 (PDT)
+In-Reply-To: <20080411192227.GH7717@atomide.com>
 Content-Disposition: inline
-In-Reply-To: <010C7BAE6783F34D9AC336EE5A01A08805C30691@dbde01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org
 
-* Gadiyar, Anand <gadiyar@ti.com> [080408 05:08]:
-> From: Anand Gadiyar <gadiyar@ti.com>
-> 
-> The end address for the USB memory resources were incorrectly defined as
-> (<start> + <size>) instead of (<start> + <size - 1>) resulting in a
-> potential overlap with the start address of other resources.
+On Fri, Apr 11, 2008 at 12:22 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Juha Kuikka <juha.kuikka@gmail.com> [080408 17:33]:
+> > Hi,
+>  >
+>  > I am trying to use the NAND prefetch engine to speed up NAND access.
+>  >
+>  > In GPMC CS0 is the NAND chip. GPMC_CONFIG7_0 is set to 0x0000084c by
+>  > u-boot. Hence the address for this CS should be 0x0C000000.
+>  > Documentation indicates that the FIFO should be accessible in any
+>  > associated chip-select region after the engine has been enabled.
+>  >
+>  > In linux I use ioremap() to map 0x0C000000 and use the returned
+>  > pointer to access the prefetch engine FIFO.
+>  >
+>  > Prefetch engine is configured and started.
+>  > I get FIFOEVENT interrupt from it and try to read the fifo by using
+>  > this ioremap's pointer but kernel crashes with:
+>  >
+>  > Unhandled fault: external abort on non-linefetch (0x008) at 0xc4854000
+>  > 0xc4854000 corresponds to the pointer ioremap() returned.
+>  >
+>  > Apparently I miss something either in HW or kernel but I cannot think
+>  > of anything.
+>  > Conventional access to the NAND chip through COMMAND/ADDRESS/DATA
+>  > registers works ok.
+>  > Any ideas would be appreciated.
+>
+>  Are you sure you have all the needed clocks on at this point? At least
+>  gpmc_fck should be checked. Of course if access to gpmc works in
+>  general, this is not the problem.
 
-Pushing today.
+Yes, GPMC access without prefetch engine works fine so clocks are on.
 
-Tony
+I was able to solve this problem though. U-boot configured CS0 mapping
+to be 128MB. If I change this to 64MB it works.
+Very strange indeed.
+
+ / Juha
 
 
-> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> Acked-by: Nishant Kamat <nskamat@ti.com>
-> ---
->  arch/arm/mach-omap2/board-2430sdp-usb.c |    2 +-
->  arch/arm/mach-omap2/board-3430sdp-usb.c |    4 ++--
->  2 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> Index: linux-omap-2.6/arch/arm/mach-omap2/board-2430sdp-usb.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/board-2430sdp-usb.c	2008-04-08 17:28:40.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/mach-omap2/board-2430sdp-usb.c	2008-04-08 17:29:54.868278300 +0530
-> @@ -23,7 +23,7 @@
->  static struct resource musb_resources[] = {
->  	[0] = {
->  		.start	= OMAP243X_HS_BASE,
-> -		.end	= OMAP243X_HS_BASE + SZ_8K,
-> +		.end	= OMAP243X_HS_BASE + SZ_8K - 1,
->  		.flags	= IORESOURCE_MEM,
->  	},
->  	[1] = {	/* general IRQ */
-> Index: linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp-usb.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/board-3430sdp-usb.c	2008-04-08 17:28:40.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp-usb.c	2008-04-08 17:30:21.938407487 +0530
-> @@ -29,7 +29,7 @@
->  static struct resource musb_resources[] = {
->  	[0] = {
->  		.start	= OMAP34XX_HSUSB_OTG_BASE,
-> -		.end	= OMAP34XX_HSUSB_OTG_BASE + SZ_8K,
-> +		.end	= OMAP34XX_HSUSB_OTG_BASE + SZ_8K - 1,
->  		.flags	= IORESOURCE_MEM,
->  	},
->  	[1] = {	/* general IRQ */
-> @@ -100,7 +100,7 @@ static struct platform_device musb_devic
->  static struct resource ehci_resources[] = {
->  	[0] = {
->  		.start   = OMAP34XX_HSUSB_HOST_BASE + 0x800,
-> -		.end     = OMAP34XX_HSUSB_HOST_BASE + 0x800 + SZ_1K,
-> +		.end     = OMAP34XX_HSUSB_HOST_BASE + 0x800 + SZ_1K - 1,
->  		.flags   = IORESOURCE_MEM,
->  	},
->  	[1] = {         /* general IRQ */
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Madness takes it's toll. Please have exact change.
