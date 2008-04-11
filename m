@@ -1,17 +1,22 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 01/23] I2C: TWL4030: checkpatch.pl fixes for twl4030-core.c
-Date: Fri, 11 Apr 2008 11:28:14 +0300
-Message-ID: <1207902516-6374-2-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 06/23] I2C: TWL4030: checkpatch.pl fixes to rtc-twl4030.c
+Date: Fri, 11 Apr 2008 11:28:19 +0300
+Message-ID: <1207902516-6374-7-git-send-email-felipe.balbi@nokia.com>
 References: <1207902516-6374-1-git-send-email-felipe.balbi@nokia.com>
+ <1207902516-6374-2-git-send-email-felipe.balbi@nokia.com>
+ <1207902516-6374-3-git-send-email-felipe.balbi@nokia.com>
+ <1207902516-6374-4-git-send-email-felipe.balbi@nokia.com>
+ <1207902516-6374-5-git-send-email-felipe.balbi@nokia.com>
+ <1207902516-6374-6-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:26524 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757195AbYDKI3s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 04:29:48 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3B8TX0E021432
-	for <linux-omap@vger.kernel.org>; Fri, 11 Apr 2008 11:29:45 +0300
-In-Reply-To: <1207902516-6374-1-git-send-email-felipe.balbi@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:40277 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757392AbYDKIaI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 04:30:08 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3B8TkAw030754
+	for <linux-omap@vger.kernel.org>; Fri, 11 Apr 2008 03:32:25 -0500
+In-Reply-To: <1207902516-6374-6-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -21,209 +26,299 @@ Misc cleanup patch.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/i2c/chips/twl4030-core.c |   61 +++++++++++++++++--------------------
- 1 files changed, 28 insertions(+), 33 deletions(-)
+ drivers/rtc/rtc-twl4030.c |   77 +++++++++++++++++++++++---------------------
+ 1 files changed, 40 insertions(+), 37 deletions(-)
 
-diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
-index 49bd63a..953c247 100644
---- a/drivers/i2c/chips/twl4030-core.c
-+++ b/drivers/i2c/chips/twl4030-core.c
-@@ -43,8 +43,8 @@
- #include <linux/slab.h>
- #include <linux/clk.h>
+diff --git a/drivers/rtc/rtc-twl4030.c b/drivers/rtc/rtc-twl4030.c
+index ca026b1..ef0e175 100644
+--- a/drivers/rtc/rtc-twl4030.c
++++ b/drivers/rtc/rtc-twl4030.c
+@@ -1,14 +1,14 @@
+ /*
+  * drivers/rtc/rtc-twl4030.c
+- * 
++ *
+  * TWL4030 Real Time Clock interface
+- * 
++ *
+  * Copyright (C) 2007 MontaVista Software, Inc
+  * Author: Alexandre Rusev <source@mvista.com>
+  *
+  * Based on original TI driver twl4030-rtc.c
+  *   Copyright (C) 2006 Texas Instruments, Inc.
+- * 
++ *
+  * Based on rtc-omap.c
+  *   Copyright (C) 2003 MontaVista Software, Inc.
+  *   Author: George G. Davis <gdavis@mvista.com> or <source@mvista.com>
+@@ -19,7 +19,7 @@
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version
+  * 2 of the License, or (at your option) any later version.
+- * 
++ *
+  */
+ 
+ #include <linux/kernel.h>
+@@ -36,12 +36,12 @@
  #include <linux/device.h>
+ #include <linux/i2c/twl4030.h>
+ #include <linux/i2c/twl4030-rtc.h>
++#include <linux/io.h>
 +#include <linux/irq.h>
  
+-#include <asm/io.h>
+ #include <asm/mach/time.h>
+ #include <asm/system.h>
+ #include <asm/hardware.h>
 -#include <asm/irq.h>
- #include <asm/mach/irq.h>
  
- #include <asm/arch/gpio.h>
-@@ -256,7 +256,7 @@ static struct irq_chip twl4030_irq_chip = {
-  *
-  * @return result of operation - 0 is success
+ #define ALL_TIME_REGS		6
+ 
+@@ -51,10 +51,10 @@
   */
--int twl4030_i2c_write(u8 mod_no, u8 * value, u8 reg, u8 num_bytes)
-+int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, u8 num_bytes)
+ static int epoch = 1900;	/* year corresponding to 0x00   */
+ 
+-/* 
+- * Supports 1 byte read from TWL4030 RTC register. 
++/*
++ * Supports 1 byte read from TWL4030 RTC register.
+  */
+-static int twl4030_rtc_read_u8(u8 * data, u8 reg)
++static int twl4030_rtc_read_u8(u8 *data, u8 reg)
  {
  	int ret;
- 	int sid;
-@@ -295,6 +295,7 @@ int twl4030_i2c_write(u8 mod_no, u8 * value, u8 reg, u8 num_bytes)
- 		ret = 0;
+ 
+@@ -66,7 +66,7 @@ static int twl4030_rtc_read_u8(u8 * data, u8 reg)
  	return ret;
  }
-+EXPORT_SYMBOL(twl4030_i2c_write);
  
- /**
-  * @brief twl4030_i2c_read - Reads a n bit register in TWL4030
-@@ -306,7 +307,7 @@ int twl4030_i2c_write(u8 mod_no, u8 * value, u8 reg, u8 num_bytes)
-  *
-  * @return result of operation - num_bytes is success else failure.
+-/* 
++/*
+  * Supports 1 byte write to TWL4030 RTC registers.
   */
--int twl4030_i2c_read(u8 mod_no, u8 * value, u8 reg, u8 num_bytes)
-+int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, u8 num_bytes)
- {
+ static int twl4030_rtc_write_u8(u8 data, u8 reg)
+@@ -75,13 +75,13 @@ static int twl4030_rtc_write_u8(u8 data, u8 reg)
+ 
+ 	ret = twl4030_i2c_write_u8(TWL4030_MODULE_RTC, data, reg);
+ 	if (ret < 0) {
+-		printk(KERN_WARNING "twl4030_rtc: Could not write TWL4030" 
++		printk(KERN_WARNING "twl4030_rtc: Could not write TWL4030"
+ 		       "register %X - returned %d[%x]\n", reg, ret, ret);
+ 	}
+ 	return ret;
+ }
+ 
+-/* 
++/*
+  * Enables timer or alarm interrupts.
+  */
+ static int set_rtc_irq_bit(unsigned char bit)
+@@ -101,7 +101,7 @@ set_irq_out:
+ }
+ 
+ #ifdef CONFIG_PM
+-/* 
++/*
+  * Read timer or alarm interrupts register.
+  */
+ static int get_rtc_irq_bit(unsigned char *val)
+@@ -112,7 +112,7 @@ static int get_rtc_irq_bit(unsigned char *val)
+ 	return ret;
+ }
+ #endif
+-/* 
++/*
+  * Disables timer or alarm interrupts.
+  */
+ static int mask_rtc_irq_bit(unsigned char bit)
+@@ -123,7 +123,7 @@ static int mask_rtc_irq_bit(unsigned char bit)
+ 	ret = twl4030_rtc_read_u8(&val, REG_RTC_INTERRUPTS_REG);
+ 	if (ret < 0)
+ 		goto mask_irq_out;
+-	
++
+ 	val &= ~bit;
+ 	ret = twl4030_rtc_write_u8(val, REG_RTC_INTERRUPTS_REG);
+ 
+@@ -136,15 +136,15 @@ static int twl4030_rtc_alarm_irq_set_state(struct device *dev, int enabled)
  	int ret;
- 	u8 val;
-@@ -348,6 +349,7 @@ int twl4030_i2c_read(u8 mod_no, u8 * value, u8 reg, u8 num_bytes)
- 		ret = 0;
+ 
+ 	/* Allow ints for RTC ALARM updates.  */
+-	if (enabled) 
++	if (enabled)
+ 		ret = set_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
+-	else 
++	else
+ 		ret = mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
+ 
  	return ret;
  }
-+EXPORT_SYMBOL(twl4030_i2c_read);
  
- /**
-  * @brief twl4030_i2c_write_u8 - Writes a 8 bit register in TWL4030
-@@ -367,6 +369,7 @@ int twl4030_i2c_write_u8(u8 mod_no, u8 value, u8 reg)
- 	temp_buffer[1] = value;
- 	return twl4030_i2c_write(mod_no, temp_buffer, reg, 1);
- }
-+EXPORT_SYMBOL(twl4030_i2c_write_u8);
- 
- /**
-  * @brief twl4030_i2c_read_u8 - Reads a 8 bit register from TWL4030
-@@ -377,10 +380,11 @@ int twl4030_i2c_write_u8(u8 mod_no, u8 value, u8 reg)
-  *
-  * @return result of operation - 0 is success
+-/* 
++/*
+  * Gets current TWL4030 RTC time and date parameters.
   */
--int twl4030_i2c_read_u8(u8 mod_no, u8 * value, u8 reg)
-+int twl4030_i2c_read_u8(u8 mod_no, u8 *value, u8 reg)
+ static int get_rtc_time(struct rtc_time *rtc_tm)
+@@ -155,7 +155,7 @@ static int get_rtc_time(struct rtc_time *rtc_tm)
+ 
+ 	ret = twl4030_rtc_read_u8(&save_control, REG_RTC_CTRL_REG);
+ 	if (ret < 0)
+-    		return ret;
++		return ret;
+ 
+ 	save_control |= BIT_RTC_CTRL_REG_GET_TIME_M;
+ 
+@@ -182,7 +182,8 @@ static int get_rtc_time(struct rtc_time *rtc_tm)
+ 	 * Account for differences between how the RTC uses the values
+ 	 * and how they are defined in a struct rtc_time;
+ 	 */
+-	if ((rtc_tm->tm_year += (epoch - 1900)) <= 69)
++	rtc_tm->tm_year += (epoch - 1900);
++	if (rtc_tm->tm_year <= 69)
+ 		rtc_tm->tm_year += 100;
+ 
+ 	rtc_tm->tm_mon--;
+@@ -218,7 +219,7 @@ static int twl4030_rtc_set_time(struct device *dev, struct rtc_time *tm)
+ 
+ 	/* update all the alarm registers in one shot */
+ 	ret = twl4030_i2c_write(TWL4030_MODULE_RTC, rtc_data,
+-			        REG_SECONDS_REG, ALL_TIME_REGS);
++			REG_SECONDS_REG, ALL_TIME_REGS);
+ 	if (ret < 0) {
+ 		printk(KERN_ERR "twl4030: twl4030_i2c_write error.\n");
+ 		goto out;
+@@ -232,7 +233,7 @@ out:
+ 	return ret;
+ }
+ 
+-/* 
++/*
+  * Gets current TWL4030 RTC alarm time.
+  */
+ static int get_rtc_alm_time(struct rtc_time *alm_tm)
+@@ -258,7 +259,8 @@ static int get_rtc_alm_time(struct rtc_time *alm_tm)
+ 	 * Account for differences between how the RTC uses the values
+ 	 * and how they are defined in a struct rtc_time;
+ 	 */
+-	if ((alm_tm->tm_year += (epoch - 1900)) <= 69)
++	alm_tm->tm_year += (epoch - 1900);
++	if (alm_tm->tm_year <= 69)
+ 		alm_tm->tm_year += 100;
+ 
+ 	alm_tm->tm_mon--;
+@@ -276,7 +278,7 @@ static int twl4030_rtc_read_time(struct device *dev, struct rtc_time *tm)
+ 	return ret;
+ }
+ 
+-/* 
++/*
+  * Gets current TWL4030 RTC alarm time.
+  */
+ static int twl4030_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
+@@ -317,11 +319,11 @@ static int twl4030_rtc_irq_set_state(struct device *dev, int enabled)
+ 	int ret;
+ 
+ 	/* Allow ints for RTC updates.  */
+-	if (enabled) 
++	if (enabled)
+ 		ret = set_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_TIMER_M);
+-	else 
++	else
+ 		ret = mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_TIMER_M);
+-	
++
+ 	return ret;
+ }
+ 
+@@ -342,7 +344,7 @@ static int twl4030_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+ 
+ 	/* update all the alarm registers in one shot */
+ 	ret = twl4030_i2c_write(TWL4030_MODULE_RTC, alarm_data,
+-			        REG_ALARM_SECONDS_REG, ALL_TIME_REGS);
++			REG_ALARM_SECONDS_REG, ALL_TIME_REGS);
+ 	if (ret) {
+ 		printk(KERN_ERR "twl4030: twl4030_i2c_write error.\n");
+ 		goto out;
+@@ -398,7 +400,7 @@ static int twl4030_rtc_ioctl(struct device *dev, unsigned int cmd,
+ 
+ 	case RTC_EPOCH_READ:
+ 		return put_user(epoch, (unsigned long *)arg);
+-	case RTC_EPOCH_SET:	
++	case RTC_EPOCH_SET:
+ 		/*
+ 		 * There were no RTC clocks before 1900.
+ 		 */
+@@ -425,7 +427,7 @@ static irqreturn_t twl4030_rtc_interrupt(int irq, void *rtc)
+ 	int ret = IRQ_NONE;
+ 	int res;
+ 	u8 rd_reg;
+-	
++
+ 	res = twl4030_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
+ 	if (res)
+ 		goto out;
+@@ -445,12 +447,13 @@ static irqreturn_t twl4030_rtc_interrupt(int irq, void *rtc)
+ 	if (res)
+ 		goto out;
+ 	/*
+-	 * Workaround for strange behaviour with T2. Need to write into ISR 
++	 * Workaround for strange behaviour with T2. Need to write into ISR
+ 	 * register one more time to clear the interrupt. Otherwise, the same
+ 	 * RTC event generates 2 interrupts in a row.
+ 	 * (no errata document available)
+ 	 */
+-	res = twl4030_i2c_write_u8(TWL4030_MODULE_INT, PWR_RTC_INT_CLR, REG_PWR_ISR1);
++	res = twl4030_i2c_write_u8(TWL4030_MODULE_INT,
++			PWR_RTC_INT_CLR, REG_PWR_ISR1);
+ 	if (res)
+ 		goto out;
+ 
+@@ -477,7 +480,7 @@ static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
+ 	struct rtc_device *rtc;
+ 	int ret = 0;
+ 	u8 rd_reg;
+-	
++
+ 	if (pdata != NULL && pdata->init != NULL) {
+ 		ret = pdata->init();
+ 		if (ret < 0)
+@@ -520,7 +523,7 @@ static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "IRQ is not free.\n");
+ 		goto out1;
+-	} 
++	}
+ 
+ 	/* Check RTC module status, Enable if it is off */
+ 	ret = twl4030_rtc_read_u8(&rd_reg, REG_RTC_CTRL_REG);
+@@ -550,7 +553,7 @@ static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
+ 		goto out2;
+ 
+ 	/* Rising edge detection enabled, needed for RTC alarm */
+-	rd_reg |= 0x80;		
++	rd_reg |= 0x80;
+ 	ret = twl4030_i2c_write_u8(TWL4030_MODULE_INT, rd_reg, REG_PWR_EDR1);
+ 	if (ret < 0)
+ 		goto out2;
+@@ -584,7 +587,7 @@ static int __devexit twl4030_rtc_remove(struct platform_device *pdev)
+ 
+ 	free_irq(TWL4030_MODIRQ_PWR, rtc);
+ 
+-	if (pdata != NULL && pdata->exit != NULL) 
++	if (pdata != NULL && pdata->exit != NULL)
+ 		pdata->exit();
+ 
+ 	rtc_device_unregister(rtc);
+@@ -600,7 +603,7 @@ static void twl4030_rtc_shutdown(struct platform_device *pdev)
+ 
+ #ifdef CONFIG_PM
+ 
+-static unsigned char irqstat = 0;
++static unsigned char irqstat;
+ 
+ static int twl4030_rtc_suspend(struct platform_device *pdev, pm_message_t state)
  {
- 	return twl4030_i2c_read(mod_no, value, reg, 1);
- }
-+EXPORT_SYMBOL(twl4030_i2c_read_u8);
- 
- /* Helper Functions */
- 
-@@ -431,7 +435,8 @@ static void do_twl4030_module_irq(unsigned int irq, irq_desc_t *desc)
- 
- 			if (retval != IRQ_HANDLED)
- 				printk(KERN_ERR "ISR for TWL4030 module"
--					" irq %d can't handle interrupt\n", irq);
-+					" irq %d can't handle interrupt\n",
-+					irq);
- 
- 			/*
- 			 * Here is where we should call the unmask method, but
-@@ -475,7 +480,7 @@ static int twl4030_irq_thread(void *data)
- 			if (++i2c_errors >= max_i2c_errors) {
- 				printk(KERN_ERR "Maximum I2C error count"
- 						" exceeded.  Terminating %s.\n",
--						__FUNCTION__);
-+						__func__);
- 				break;
- 			}
- 			continue;
-@@ -542,8 +547,10 @@ static int twl4030_detect_client(struct i2c_adapter *adapter, unsigned char sid)
- 	}
- 
- 	/* Check basic functionality */
--	if (!(err = i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA |
--						I2C_FUNC_SMBUS_WRITE_BYTE))) {
-+	err = i2c_check_functionality(adapter,
-+			I2C_FUNC_SMBUS_WORD_DATA
-+			| I2C_FUNC_SMBUS_WRITE_BYTE);
-+	if (!err) {
- 		pr_err("SlaveID=%d functionality check failed\n", sid);
- 		return err;
- 	}
-@@ -565,7 +572,8 @@ static int twl4030_detect_client(struct i2c_adapter *adapter, unsigned char sid)
- 	pr_info("TWL4030: TRY attach Slave %s on Adapter %s [%x]\n",
- 				twl->client_name, adapter->name, err);
- 
--	if ((err = i2c_attach_client(&twl->client))) {
-+	err = i2c_attach_client(&twl->client);
-+	if (err) {
- 		pr_err("Couldn't attach Slave %s on Adapter"
- 		       "%s [%x]\n", twl->client_name, adapter->name, err);
- 	} else {
-@@ -586,7 +594,8 @@ static int twl4030_attach_adapter(struct i2c_adapter *adapter)
- 	for (i = 0; i < TWL4030_NUM_SLAVES; i++) {
- 		/* Check if I need to hook on to this adapter or not */
- 		if (twl4030_modules[i].adapter_index == twl_i2c_adapter) {
--			if ((ret = twl4030_detect_client(adapter, i)))
-+			ret = twl4030_detect_client(adapter, i);
-+			if (ret)
- 				goto free_client;
- 		}
- 	}
-@@ -604,7 +613,7 @@ static int twl4030_attach_adapter(struct i2c_adapter *adapter)
- 	return 0;
- 
- free_client:
--	pr_err("TWL_CLIENT(Idx=%d] registration failed[0x%x]\n",i,ret);
-+	pr_err("TWL_CLIENT(Idx=%d] registration failed[0x%x]\n", i, ret);
- 
- 	/* ignore current slave..it never got registered */
- 	i--;
-@@ -621,7 +630,8 @@ free_client:
- static int twl4030_detach_client(struct i2c_client *client)
- {
- 	int err;
--	if ((err = i2c_detach_client(client))) {
-+	err = i2c_detach_client(client);
-+	if (err) {
- 		pr_err("Client detach failed\n");
- 		return err;
- 	}
-@@ -637,7 +647,7 @@ struct task_struct *start_twl4030_irq_thread(int irq)
- 			     "twl4030 irq %d", irq);
- 	if (!thread)
- 		pr_err("%s: could not create twl4030 irq %d thread!\n",
--		       __FUNCTION__, irq);
-+		       __func__, irq);
- 
- 	return thread;
- }
-@@ -686,9 +696,9 @@ static int power_companion_init(void)
- 	clk_put(osc);
- 
- 	switch (rate) {
--		case 19200000 : ctrl = HFCLK_FREQ_19p2_MHZ; break;
--		case 26000000 : ctrl = HFCLK_FREQ_26_MHZ; break;
--		case 38400000 : ctrl = HFCLK_FREQ_38p4_MHZ; break;
-+	case 19200000 : ctrl = HFCLK_FREQ_19p2_MHZ; break;
-+	case 26000000 : ctrl = HFCLK_FREQ_26_MHZ; break;
-+	case 38400000 : ctrl = HFCLK_FREQ_38p4_MHZ; break;
- 	}
- 
- 	ctrl |= HIGH_PERF_SQ;
-@@ -875,23 +885,13 @@ static void twl_init_irq(void)
- 	set_irq_chained_handler(TWL4030_IRQNUM, do_twl4030_irq);
- 
- 	res = power_companion_init();
--	if (res < 0) {
-+	if (res < 0)
- 		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
--	}
- }
- 
- static int __init twl4030_init(void)
- {
--	int res;
--
--	if ((res = i2c_add_driver(&twl4030_driver))) {
--		printk(KERN_ERR "TWL4030: Driver registration failed\n");
--		return res;
--	}
--
--	pr_info(KERN_INFO "TWL4030: Driver registration complete.\n");
--
--	return 0;
-+	return i2c_add_driver(&twl4030_driver);
- }
- 
- static void __exit twl4030_exit(void)
-@@ -903,11 +903,6 @@ static void __exit twl4030_exit(void)
- subsys_initcall(twl4030_init);
- module_exit(twl4030_exit);
- 
--EXPORT_SYMBOL(twl4030_i2c_write_u8);
--EXPORT_SYMBOL(twl4030_i2c_read_u8);
--EXPORT_SYMBOL(twl4030_i2c_read);
--EXPORT_SYMBOL(twl4030_i2c_write);
--
- MODULE_AUTHOR("Texas Instruments, Inc.");
- MODULE_DESCRIPTION("I2C Core interface for TWL4030");
- MODULE_LICENSE("GPL");
 -- 
 1.5.5.23.g2a5fe
 
