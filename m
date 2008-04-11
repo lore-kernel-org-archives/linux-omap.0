@@ -1,42 +1,51 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH] I2C: TWL4030: Fix wrong variable warning
-Date: Fri, 11 Apr 2008 14:51:36 +0300
-Message-ID: <1207914696-24035-1-git-send-email-felipe.balbi@nokia.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [Help 1/2] MUSB: ZiO! CF card reader will trigger a change
+	from MUSB host mode to MUSB peripheral mode
+Date: Fri, 11 Apr 2008 17:59:09 +0300
+Message-ID: <20080411145909.GA4457@kedavra.cpe.vivax.com.br>
+References: <386072610804070408q16c5ffa1u6a0c2e35295aa327@mail.gmail.com> <af73f7a75d15439b4761e7b0baa612cf@felipebalbi.com> <200804070905.10048.david-b@pacbell.net> <386072610804080006g588c7ad9ya4dd8c9c9c6cf827@mail.gmail.com> <386072610804100424l46273f0en9cc531dd7ec876ee@mail.gmail.com>
+Reply-To: me@felipebalbi.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:51921 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759804AbYDKLw4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 07:52:56 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3BBqQsA026815
-	for <linux-omap@vger.kernel.org>; Fri, 11 Apr 2008 14:52:53 +0300
+Received: from ns1.siteground211.com ([209.62.36.12]:47807 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754188AbYDKO5S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Apr 2008 10:57:18 -0400
+Content-Disposition: inline
+In-Reply-To: <386072610804100424l46273f0en9cc531dd7ec876ee@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
+To: Bryan Wu <cooloney@kernel.org>
+Cc: David Brownell <david-b@pacbell.net>, Felipe Balbi <me@felipebalbi.com>, tony@atomide.com, linux-omap@vger.kernel.org
 
-twl4030_i2c_write_u8 expects a u8 variable.
-Change ctrl to be u8 in power_companion_init().
+On Thu, Apr 10, 2008 at 07:24:50PM +0800, Bryan Wu wrote:
+> I think this kind of devices maybe should be added to the blacklist of
+> the musb otg driver.
+> 
+> Do you guys have some idea about that?
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/i2c/chips/twl4030-core.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+overcurrent protection is triggering fine, that's why you're getting
+vbus_err. Blacklist shouldn't be in the kernel, what we should do is
+just notify the user about this error (needed for otg certification)
+but never blacklist anything.
 
-diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
-index eedbebd..934433e 100644
---- a/drivers/i2c/chips/twl4030-core.c
-+++ b/drivers/i2c/chips/twl4030-core.c
-@@ -679,7 +679,8 @@ static int unprotect_pm_master(void)
- static int power_companion_init(void)
- {
- 	struct clk *osc;
--	u32 rate, ctrl = HFCLK_FREQ_26_MHZ;
-+	u32 rate;
-+	u8 ctrl = HFCLK_FREQ_26_MHZ;
- 	int e = 0;
- 
- 	if (cpu_is_omap2430())
+On the other hand, musb core seems to behave in a quite silly way when
+it comes to current spikes on read/write operations (after enumeration
+and after you can access the device). It should rely on its capacitors
+on case of vbus drop and only trigger vbus_err interrupt if it really
+couldn't recover from it after capacitors are discharged otherwise it
+should stay silently and filter out such current spikes.
+
+I'm still looking into how to filter this out in software but it's been
+quite a challenge as you noticed yourself.
+
+Let's try to keep going on this, otherwise user experience will be
+awful with several mass storage devices.
+
 -- 
-1.5.5.29.g7134
+Best Regards,
 
+Felipe Balbi
+me@felipebalbi.com
+http://blog.felipebalbi.com
