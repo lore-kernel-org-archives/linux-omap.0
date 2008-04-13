@@ -1,42 +1,48 @@
-From: "Juha Kuikka" <juha.kuikka@gmail.com>
-Subject: Re: Problems with 2430 NAND prefetch engine
-Date: Sun, 13 Apr 2008 12:18:23 -0700
-Message-ID: <a46a26fd0804131218g51573af0o24d2118c957b631a@mail.gmail.com>
-References: <a46a26fd0804081733i469936d4m3315f3bb3270ff5@mail.gmail.com>
-	 <20080411192227.GH7717@atomide.com>
-	 <a46a26fd0804111410x2b2e580cw833480139ec2e666@mail.gmail.com>
-	 <AC2D475575504148943F5EB0938951C40236341E@dbde01.ent.ti.com>
+From: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Subject: [PATCH 0/1] [ALSA] Remove useless sound/driver.h
+Date: Sun, 13 Apr 2008 19:49:21 -0400
+Message-ID: <48029C01.5090906@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.174]:49750 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751736AbYDMTSZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 13 Apr 2008 15:18:25 -0400
-Received: by wf-out-1314.google.com with SMTP id 28so1252504wff.4
-        for <linux-omap@vger.kernel.org>; Sun, 13 Apr 2008 12:18:23 -0700 (PDT)
-In-Reply-To: <AC2D475575504148943F5EB0938951C40236341E@dbde01.ent.ti.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:16787 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752945AbYDMXtl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 13 Apr 2008 19:49:41 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Choraria, Rohit" <rohitkc@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-On Sun, Apr 13, 2008 at 5:22 AM, Choraria, Rohit <rohitkc@ti.com> wrote:
-> > Yes, GPMC access without prefetch engine works fine so clocks are on.
->  >
->  > I was able to solve this problem though. U-boot configured CS0 mapping
->  > to be 128MB. If I change this to 64MB it works.
->  > Very strange indeed.
->  >
->
->  Normally this sort of problem would happen if the start address for the NAND map is not aligned to 128MB boundary.
+Hi Tony and folks,
 
-Of course. I seem to have missed that completely. Thanks for the pointer.
+This patch removes useless include/sound/driver.h from sound/arm/omap/ files,
+following the Takashi Iwai's commit at Linux-OMAP tree [1].
 
- - Juha
+This removes the following warning during omap_h2_1610_defconfig
+building with sound support.
 
+...
+  CC      sound/arm/omap/omap-alsa.o
+In file included from sound/arm/omap/omap-alsa.c:49:
+include/sound/driver.h:1:2: warning: #warning "This file is deprecated"
+  CC      sound/arm/omap/omap-alsa-dma.o
+...
+
+BR,
+
+Carlos.
+
+[1]
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=9004acc70e8c49c50c4c7b652f906f1e0ed5709d
 
 -- 
-Madness takes it's toll. Please have exact change.
+Carlos Eduardo Aguiar
+Nokia Institute of Technology - INdT
+Open Source Mobile Research Center - OSMRC - Manaus
+Core Team
+Phone: +55 92 2126-1079
+Mobile: +55 92 8127-1797
+E-mail: carlos.aguiar@indt.org.br
+
