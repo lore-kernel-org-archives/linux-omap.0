@@ -1,124 +1,34 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 2/2] New Board file for OMAP3 EVM
-Date: Mon, 14 Apr 2008 21:11:44 +0300
-Message-ID: <20080414181144.GB4463@kedavra.cpe.vivax.com.br>
-References: <7EAD1AEEA7621C45899FE99123E124A0018C8605@dbde01.ent.ti.com>
+Subject: Re: [PATCH] I2C: TWL4030: Fix wrong variable warning
+Date: Mon, 14 Apr 2008 21:13:46 +0300
+Message-ID: <20080414181345.GC4463@kedavra.cpe.vivax.com.br>
+References: <1207914696-24035-1-git-send-email-felipe.balbi@nokia.com> <20080411190555.GF7717@atomide.com>
 Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:45070 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:38852 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757611AbYDNSJz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Apr 2008 14:09:55 -0400
+	with ESMTP id S1760689AbYDNSL5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Apr 2008 14:11:57 -0400
 Content-Disposition: inline
-In-Reply-To: <7EAD1AEEA7621C45899FE99123E124A0018C8605@dbde01.ent.ti.com>
+In-Reply-To: <20080411190555.GF7717@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Syed Mohammed, Khasim" <khasim@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
 
-On Mon, Apr 14, 2008 at 05:40:48PM +0530, Syed Mohammed, Khasim wrote:
+On Fri, Apr 11, 2008 at 12:05:55PM -0700, Tony Lindgren wrote:
+> * Felipe Balbi <felipe.balbi@nokia.com> [080411 04:53]:
+> > twl4030_i2c_write_u8 expects a u8 variable.
+> > Change ctrl to be u8 in power_companion_init().
 > 
-> New board file for OMAP3 EVM
-> 
-> Signed-off-by: Syed Mohammed Khasim <khasim@ti.com>
-> ---
->  arch/arm/mach-omap2/board-omap3-evm.c |   79 ++++++++++++++++++++++++++++++++++
->  1 file changed, 79 insertions(+)
-> 
-> Index: my_branch/arch/arm/mach-omap2/board-omap3-evm.c
-> ===================================================================
-> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-> +++ my_branch/arch/arm/mach-omap2/board-omap3-evm.c	2008-04-14 16:18:41.000000000 +0530
-> @@ -0,0 +1,79 @@
-> +/*
-> + * linux/arch/arm/mach-omap2/board-omap3-evm.c
-> + *
-> + * Copyright (C) 2008 Texas Instruments
-> + *
-> + * Modified from mach-omap2/board-3430sdp.c
-> + *
-> + * Initial code: Syed Mohammed Khasim
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/init.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/delay.h>
-> +#include <linux/err.h>
-> +#include <linux/clk.h>
-> +#include <linux/io.h>
-> +
-> +#include <asm/hardware.h>
-> +#include <asm/mach-types.h>
-> +#include <asm/mach/arch.h>
-> +#include <asm/mach/map.h>
-> +
-> +#include <asm/arch/gpio.h>
-> +#include <asm/arch/board.h>
-> +#include <asm/arch/common.h>
-> +
-> +static struct omap_uart_config omap3_evm_uart_config __initdata = {
-> +	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
-> +};
-> +
-> +static int __init omap3_evm_i2c_init(void)
-> +{
-> +	omap_register_i2c_bus(1, 2600, NULL, 0);
-> +	omap_register_i2c_bus(2, 400, NULL, 0);
-> +	omap_register_i2c_bus(3, 400, NULL, 0);
-> +	return 0;
-> +}
-> +
-> +static void __init omap3_evm_init_irq(void)
-> +{
-> +	omap2_init_common_hw();
-> +	omap_init_irq();
-> +	omap_gpio_init();
-> +}
-> +
-> +static struct omap_board_config_kernel omap3_evm_config[] __initdata = {
-> +	{OMAP_TAG_UART,	&omap3_evm_uart_config },
-> +};
-> +
-> +static void __init omap3_evm_init(void)
-> +{
-> +	omap_board_config = omap3_evm_config;
-> +	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
-> +	omap_serial_init();
-> +}
-> +
-> +arch_initcall(omap3_evm_i2c_init);
+> Pushing.
 
-why not putting the omap3_evm_i2c_init() call below
-omap_serial_init() inside omap3_evm_init()??
+thanks :-)
 
-> +
-> +static void __init omap3_evm_map_io(void)
-> +{
-> +	omap2_set_globals_343x();
-> +	omap2_map_common_io();
-> +}
-> +
-> +MACHINE_START(OMAP3EVM, "OMAP3 EVM")
-> +	/* Maintainer: Syed Mohammed Khasim - Texas Instruments */
-> +	.phys_io	= 0x48000000,
-> +	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-> +	.boot_params	= 0x80000100,
-> +	.map_io		= omap3_evm_map_io,
-> +	.init_irq	= omap3_evm_init_irq,
-> +	.init_machine	= omap3_evm_init,
-> +	.timer		= &omap_timer,
-> +MACHINE_END
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'll check if we still owe you any driver and try to publish it/them as
+well.
 
 -- 
 Best Regards,
