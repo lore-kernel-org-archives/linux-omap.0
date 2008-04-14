@@ -1,112 +1,137 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] [ALSA] Remove useless sound/driver.h
-Date: Mon, 14 Apr 2008 11:06:26 -0700
-Message-ID: <20080414180625.GG26832@atomide.com>
-References: <48029C0C.7090708@indt.org.br>
+Subject: Re: Pending patches
+Date: Mon, 14 Apr 2008 11:05:52 -0700
+Message-ID: <20080414180551.GF26832@atomide.com>
+References: <20080412164147.GL7338@gandalf.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:62541 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755331AbYDNSG0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Apr 2008 14:06:26 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50368 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755068AbYDNSFx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Apr 2008 14:05:53 -0400
 Content-Disposition: inline
-In-Reply-To: <48029C0C.7090708@indt.org.br>
+In-Reply-To: <20080412164147.GL7338@gandalf.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Carlos Aguiar <carlos.aguiar@indt.org.br>
+To: Felipe Balbi <felipe.balbi@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
-* Carlos Aguiar <carlos.aguiar@indt.org.br> [080413 17:10]:
-> From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+* Felipe Balbi <felipe.balbi@nokia.com> [080412 09:42]:
+> Hi Tony,
 > 
-> This patch removes useless include/sound/driver.h from sound/arm/omap/ files.
+> You seem to have pushed most of the patches I sent but we're still
+> missing some of them.
+> 
+> Are there still any comments for those patches ? It's higly tested on my
+> n810 and all of them are working fine here.
 
-Pushing today.
+Yeah, thanks. Pushing all of them today.
 
 Tony
 
-> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-> ---
->  sound/arm/omap/eac.c                     |    1 -
->  sound/arm/omap/omap-alsa-aic23-mixer.c   |    1 -
->  sound/arm/omap/omap-alsa-aic23.c         |    1 -
->  sound/arm/omap/omap-alsa-aic23.h         |    1 -
->  sound/arm/omap/omap-alsa-tsc2102-mixer.c |    1 -
->  sound/arm/omap/omap-alsa.c               |    1 -
->  6 files changed, 0 insertions(+), 6 deletions(-)
+
+> Below is an output from:
+> $ git cherry master | cut -d+ -f2 | xargs git show --stat
 > 
-> diff --git a/sound/arm/omap/eac.c b/sound/arm/omap/eac.c
-> index c4bbf61..6ae2677 100644
-> --- a/sound/arm/omap/eac.c
-> +++ b/sound/arm/omap/eac.c
-> @@ -42,7 +42,6 @@
->  #include <asm/io.h>
->  #include <asm/arch/eac.h>
->  
-> -#include <sound/driver.h>
->  #include <sound/core.h>
->  #include <sound/initval.h>
->  
-> diff --git a/sound/arm/omap/omap-alsa-aic23-mixer.c b/sound/arm/omap/omap-alsa-aic23-mixer.c
-> index 38be650..ce55824 100644
-> --- a/sound/arm/omap/omap-alsa-aic23-mixer.c
-> +++ b/sound/arm/omap/omap-alsa-aic23-mixer.c
-> @@ -39,7 +39,6 @@
->  
->  #include <linux/kernel.h>
->  
-> -#include <sound/driver.h>
->  #include <asm/arch/aic23.h>
->  
->  #include <asm/arch/omap-alsa.h>
-> diff --git a/sound/arm/omap/omap-alsa-aic23.c b/sound/arm/omap/omap-alsa-aic23.c
-> index 1e8a101..4d67fa3 100644
-> --- a/sound/arm/omap/omap-alsa-aic23.c
-> +++ b/sound/arm/omap/omap-alsa-aic23.c
-> @@ -17,7 +17,6 @@
->   * option) any later version.
->   */
->  
-> -#include <sound/driver.h>
->  #include <sound/core.h>
->  #include <sound/pcm.h>
->  #include <sound/initval.h>
-> diff --git a/sound/arm/omap/omap-alsa-aic23.h b/sound/arm/omap/omap-alsa-aic23.h
-> index 63907c4..e2e2d59 100644
-> --- a/sound/arm/omap/omap-alsa-aic23.h
-> +++ b/sound/arm/omap/omap-alsa-aic23.h
-> @@ -18,7 +18,6 @@
->  #ifndef __OMAP_ALSA_AIC23_H
->  #define __OMAP_ALSA_AIC23_H
->  
-> -#include <sound/driver.h>
->  #include <asm/arch/dma.h>
->  #include <sound/core.h>
->  #include <sound/pcm.h>
-> diff --git a/sound/arm/omap/omap-alsa-tsc2102-mixer.c b/sound/arm/omap/omap-alsa-tsc2102-mixer.c
-> index d1c8b65..99b1a1d 100644
-> --- a/sound/arm/omap/omap-alsa-tsc2102-mixer.c
-> +++ b/sound/arm/omap/omap-alsa-tsc2102-mixer.c
-> @@ -32,7 +32,6 @@
->  
->  #include <asm/arch/omap-alsa.h>
->  
-> -#include <sound/driver.h>
->  #include <sound/initval.h>
->  #include <sound/control.h>
->  
-> diff --git a/sound/arm/omap/omap-alsa.c b/sound/arm/omap/omap-alsa.c
-> index 8d0f394..30c7942 100644
-> --- a/sound/arm/omap/omap-alsa.c
-> +++ b/sound/arm/omap/omap-alsa.c
-> @@ -46,7 +46,6 @@
->  #ifdef CONFIG_PM
->  #include <linux/pm.h>
->  #endif
-> -#include <sound/driver.h>
->  #include <sound/core.h>
->  #include <sound/pcm.h>
->  
-> -- 1.5.3.GIT
+> commit a3b9e4f4397876d32d51f7fb3742318285a78601
+> Author: Daniel Stone <daniel.stone@nokia.com>
+> Date:   Mon Apr 7 17:07:37 2008 +0300
 > 
+>     I2C: LM8323: Introduce lm8323 keypad driver
+>     
+>     Introduce lm8323 keypad driver.
+>     
+>     Signed-off-by: Daniel Stone <daniel.stone@nokia.com
+>     
+>     Updated to build with recent linux-omap and new-style
+>     i2c driver.
+>     
+>     Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> 
+>  arch/arm/mach-omap2/board-n800.c |   77 ++++
+>  arch/arm/mach-omap2/board-n810.c |    2 +
+>  drivers/input/keyboard/Kconfig   |    7 +
+>  drivers/input/keyboard/Makefile  |    1 +
+>  drivers/input/keyboard/lm8323.c  |  911 ++++++++++++++++++++++++++++++++++++++
+>  include/linux/i2c/lm8323.h       |   39 ++
+>  6 files changed, 1037 insertions(+), 0 deletions(-)
+> 
+> commit a68ff943d8e2e09e218b127142dfa99e6c618ac8
+> Author: Mathias Nyman <mathias.nyman@nokia.com>
+> Date:   Mon Apr 7 16:21:28 2008 +0300
+> 
+>     I2C: TSL2563: Add support for Taos tsl2563 ambient light sensor
+>     
+>     Add support for Taos tsl2563 ambient light sensor.
+>     
+>     Signed-off-by: Mathias Nyman <mathias.nyman@nokia.com>
+>     
+>     Updated to build with current linux-omap, new-style
+>     i2c driver and cleaned up checkpatch.pl issues.
+>     
+>     Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> 
+>  arch/arm/mach-omap2/board-n800.c |    4 +
+>  drivers/i2c/chips/Kconfig        |   10 +
+>  drivers/i2c/chips/Makefile       |    2 +-
+>  drivers/i2c/chips/tsl2563.c      |  731 ++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 746 insertions(+), 1 deletions(-)
+> 
+> commit 9416f0ccc9669a0588e16f776308f8f6c9e91661
+> Author: Lauri Leukkunen <lauri.leukkunen@nokia.com>
+> Date:   Mon Apr 7 19:57:43 2008 +0300
+> 
+>     INPUT: TOUCHSCREEN: Introduce tsc2005 driver
+>     
+>     Introduce n810's tsc2005 driver
+>     
+>     Signed-off-by: Lauri Leukkunen <lauri.leukkunen@nokia.com>
+>     
+>     Updated to build with current linux-omap.
+>     
+>     Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> 
+>  arch/arm/mach-omap2/board-n800.c    |   95 +++++-
+>  drivers/input/touchscreen/Kconfig   |    5 +
+>  drivers/input/touchscreen/Makefile  |    1 +
+>  drivers/input/touchscreen/tsc2005.c |  739 +++++++++++++++++++++++++++++++++++
+>  include/linux/spi/tsc2005.h         |   29 ++
+>  5 files changed, 865 insertions(+), 4 deletions(-)
+> 
+> commit 57871dcd31fa8598ae5d0d3e3979e5e6f5477ea4
+> Author: Mathias Nyman <mathias.nyman@nokia.com>
+> Date:   Tue Apr 8 13:33:04 2008 +0300
+> 
+>     I2C: LP5521: Introduce lp5521 LED driver
+>     
+>     Introduce n810's lp5521 LED driver.
+>     
+>     Signed-off-by: Mathias Nyman <mathias.nyman@nokia.com
+>     
+>     Updated to new style i2c driver and to build on current
+>     linux-omap head.
+>     
+>     Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> 
+>  arch/arm/mach-omap2/board-n800.c |    4 +
+>  drivers/i2c/chips/Kconfig        |    7 +
+>  drivers/i2c/chips/Makefile       |    1 +
+>  drivers/i2c/chips/lp5521.c       |  577 ++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 589 insertions(+), 0 deletions(-)
+> 
+> commit 88573faf7d1e556376c0abb1adaf3497d814660b
+> Author: Felipe Balbi <felipe.balbi@nokia.com>
+> Date:   Tue Apr 8 15:36:32 2008 +0300
+> 
+>     ARM: N800: Update n800 defconfig
+>     
+>     Enables recent drivers and usb.
+>     
+>     Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> 
+>  arch/arm/configs/n800_defconfig |  189 +++++++++++++++++++++++++++++++++++++--
+>  1 files changed, 182 insertions(+), 7 deletions(-)
+> 
+> -- 
+> 	- Balbi
