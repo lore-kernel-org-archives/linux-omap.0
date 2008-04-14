@@ -1,83 +1,128 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] PRCM: 34XX: Fixes to ssi clock handling
-Date: Mon, 14 Apr 2008 11:09:32 -0700
-Message-ID: <20080414180932.GH26832@atomide.com>
-References: <1208178371-18752-1-git-send-email-jouni.hogander@nokia.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 2/2] New Board file for OMAP3 EVM
+Date: Mon, 14 Apr 2008 21:11:44 +0300
+Message-ID: <20080414181144.GB4463@kedavra.cpe.vivax.com.br>
+References: <7EAD1AEEA7621C45899FE99123E124A0018C8605@dbde01.ent.ti.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:50189 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756385AbYDNSJe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Apr 2008 14:09:34 -0400
+Received: from ns1.siteground211.com ([209.62.36.12]:45070 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757611AbYDNSJz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Apr 2008 14:09:55 -0400
 Content-Disposition: inline
-In-Reply-To: <1208178371-18752-1-git-send-email-jouni.hogander@nokia.com>
+In-Reply-To: <7EAD1AEEA7621C45899FE99123E124A0018C8605@dbde01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jouni =?iso-8859-1?Q?H=F6gander?= <jouni.hogander@nokia.com>
+To: "Syed Mohammed, Khasim" <khasim@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-* Jouni H=F6gander <jouni.hogander@nokia.com> [080414 06:23]:
-> ssi_l4_ick should have PARENT_CONTROLS_CLOCK flag.
-> ST_SSI_STDBY bit in idlest register cannot be used in  omap2_clk_wait=
-_ready
-
-Pushing today.
-
-Tony
-
-> Signed-off-by: Jouni H=F6gander <jouni.hogander@nokia.com>
+On Mon, Apr 14, 2008 at 05:40:48PM +0530, Syed Mohammed, Khasim wrote:
+> 
+> New board file for OMAP3 EVM
+> 
+> Signed-off-by: Syed Mohammed Khasim <khasim@ti.com>
 > ---
->  arch/arm/mach-omap2/clock.c     |    4 +++-
->  arch/arm/mach-omap2/clock34xx.h |    3 ++-
->  2 files changed, 5 insertions(+), 2 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.=
-c
-> index dead756..e7e8576 100644
-> --- a/arch/arm/mach-omap2/clock.c
-> +++ b/arch/arm/mach-omap2/clock.c
-> @@ -212,7 +212,9 @@ static void omap2_clk_wait_ready(struct clk *clk,=
- int enable)
->  	/* REVISIT: What are the appropriate exclusions for 34XX? */
->  	/* OMAP3: ignore DSS-mod clocks */
->  	if (cpu_is_omap34xx() &&
-> -	    (((u32)reg & ~0xff) =3D=3D (u32)OMAP_CM_REGADDR(OMAP3430_DSS_MO=
-D, 0)))
-> +	    (((u32)reg & ~0xff) =3D=3D (u32)OMAP_CM_REGADDR(OMAP3430_DSS_MO=
-D, 0) ||
-> +	     ((((u32)reg & ~0xff) =3D=3D (u32)OMAP_CM_REGADDR(CORE_MOD, 0))=
- &&
-> +	     clk->enable_bit =3D=3D OMAP3430_EN_SSI_SHIFT)))
->  		return;
-> =20
->  	bit =3D 1 << clk->enable_bit;
-> diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/cl=
-ock34xx.h
-> index fc03999..9ca2cdf 100644
-> --- a/arch/arm/mach-omap2/clock34xx.h
-> +++ b/arch/arm/mach-omap2/clock34xx.h
-> @@ -1917,7 +1917,8 @@ static struct clk omapctrl_ick =3D {
->  static struct clk ssi_l4_ick =3D {
->  	.name		=3D "ssi_l4_ick",
->  	.parent		=3D &l4_ick,
-> -	.flags		=3D CLOCK_IN_OMAP343X | RATE_PROPAGATES,
-> +	.flags		=3D CLOCK_IN_OMAP343X | RATE_PROPAGATES |
-> +				PARENT_CONTROLS_CLOCK,
->  	.recalc		=3D &followparent_recalc,
->  };
-> =20
-> --=20
-> 1.5.3.5
->=20
+>  arch/arm/mach-omap2/board-omap3-evm.c |   79 ++++++++++++++++++++++++++++++++++
+>  1 file changed, 79 insertions(+)
+> 
+> Index: my_branch/arch/arm/mach-omap2/board-omap3-evm.c
+> ===================================================================
+> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
+> +++ my_branch/arch/arm/mach-omap2/board-omap3-evm.c	2008-04-14 16:18:41.000000000 +0530
+> @@ -0,0 +1,79 @@
+> +/*
+> + * linux/arch/arm/mach-omap2/board-omap3-evm.c
+> + *
+> + * Copyright (C) 2008 Texas Instruments
+> + *
+> + * Modified from mach-omap2/board-3430sdp.c
+> + *
+> + * Initial code: Syed Mohammed Khasim
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/init.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/delay.h>
+> +#include <linux/err.h>
+> +#include <linux/clk.h>
+> +#include <linux/io.h>
+> +
+> +#include <asm/hardware.h>
+> +#include <asm/mach-types.h>
+> +#include <asm/mach/arch.h>
+> +#include <asm/mach/map.h>
+> +
+> +#include <asm/arch/gpio.h>
+> +#include <asm/arch/board.h>
+> +#include <asm/arch/common.h>
+> +
+> +static struct omap_uart_config omap3_evm_uart_config __initdata = {
+> +	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+> +};
+> +
+> +static int __init omap3_evm_i2c_init(void)
+> +{
+> +	omap_register_i2c_bus(1, 2600, NULL, 0);
+> +	omap_register_i2c_bus(2, 400, NULL, 0);
+> +	omap_register_i2c_bus(3, 400, NULL, 0);
+> +	return 0;
+> +}
+> +
+> +static void __init omap3_evm_init_irq(void)
+> +{
+> +	omap2_init_common_hw();
+> +	omap_init_irq();
+> +	omap_gpio_init();
+> +}
+> +
+> +static struct omap_board_config_kernel omap3_evm_config[] __initdata = {
+> +	{OMAP_TAG_UART,	&omap3_evm_uart_config },
+> +};
+> +
+> +static void __init omap3_evm_init(void)
+> +{
+> +	omap_board_config = omap3_evm_config;
+> +	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
+> +	omap_serial_init();
+> +}
+> +
+> +arch_initcall(omap3_evm_i2c_init);
+
+why not putting the omap3_evm_i2c_init() call below
+omap_serial_init() inside omap3_evm_init()??
+
+> +
+> +static void __init omap3_evm_map_io(void)
+> +{
+> +	omap2_set_globals_343x();
+> +	omap2_map_common_io();
+> +}
+> +
+> +MACHINE_START(OMAP3EVM, "OMAP3 EVM")
+> +	/* Maintainer: Syed Mohammed Khasim - Texas Instruments */
+> +	.phys_io	= 0x48000000,
+> +	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
+> +	.boot_params	= 0x80000100,
+> +	.map_io		= omap3_evm_map_io,
+> +	.init_irq	= omap3_evm_init_irq,
+> +	.init_machine	= omap3_evm_init,
+> +	.timer		= &omap_timer,
+> +MACHINE_END
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+Best Regards,
+
+Felipe Balbi
+me@felipebalbi.com
+http://blog.felipebalbi.com
