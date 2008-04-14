@@ -1,65 +1,112 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/5] I2C: LM8323: Introduce lm8323 keypad driver
-Date: Mon, 14 Apr 2008 11:02:09 -0700
-Message-ID: <20080414180209.GD26832@atomide.com>
-References: <1207742644-6260-1-git-send-email-felipe.balbi@nokia.com> <1207742644-6260-2-git-send-email-felipe.balbi@nokia.com> <20080409121124.GS7338@gandalf.research.nokia.com> <fb249edb0804091026h796d373bn7ad2a58a2edb6e0d@mail.gmail.com> <20080409180557.GA15913@kedavra.cpe.vivax.com.br> <20080409182804.GB24100@pure.research.nokia.com> <fb249edb0804091658i4574e760ye2d6979d9a834d5@mail.gmail.com> <20080410001224.GD5897@intune.research.nokia.com> <fb249edb0804091812g77b6fc84x3312ea09c845ea3a@mail.gmail.com>
+Subject: Re: [PATCH 1/1] [ALSA] Remove useless sound/driver.h
+Date: Mon, 14 Apr 2008 11:06:26 -0700
+Message-ID: <20080414180625.GG26832@atomide.com>
+References: <48029C0C.7090708@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:56795 "EHLO
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:62541 "EHLO
 	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763340AbYDNSCP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Apr 2008 14:02:15 -0400
+	with ESMTP id S1755331AbYDNSG0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Apr 2008 14:06:26 -0400
 Content-Disposition: inline
-In-Reply-To: <fb249edb0804091812g77b6fc84x3312ea09c845ea3a@mail.gmail.com>
+In-Reply-To: <48029C0C.7090708@indt.org.br>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: andrzej zaborowski <balrogg@gmail.com>
-Cc: Daniel Stone <daniel.stone@nokia.com>, Lauri Leukkunen <lauri.leukkunen@nokia.com>, ext Felipe Balbi <me@felipebalbi.com>, felipe.balbi@nokia.com, linux-omap@vger.kernel.org, Eduardo Valentin <edubezval@gmail.com>
+To: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Cc: linux-omap@vger.kernel.org
 
-* andrzej zaborowski <balrogg@gmail.com> [080409 18:12]:
-> On 10/04/2008, Daniel Stone <daniel.stone@nokia.com> wrote:
-> > On Thu, Apr 10, 2008 at 01:58:51AM +0200, ext andrzej zaborowski wrote:
-> >  > On 09/04/2008, Lauri Leukkunen <lauri.leukkunen@nokia.com> wrote:
-> >
-> > > > In my opinion kernel should provide "correct" data to user-space, not
-> >  > >  some pseudo-random interference from the LCD.
-> >  >
-> >  > I think this is discutible.  There's a number of userspace libraries
-> >  > written to talk tightly to the kernel and make that data more
-> >  > "correct", one of them is tslib.  Distros that come with tslib often
-> >  > have a set of device-specific config files for tslib which load tslib
-> >  > plugins for things like averaging, smoothing, checking bounds on the
-> >  > values.
-> >  >
-> >  > One of the arguments for doing that in userspace is that of avoiding
-> >  > every touchscreen driver redoing the same averaging and/or limit
-> >  > checking code.  I agree thought that it may be better to sacrifice
-> >  > that for performance.
-> >
-> >
-> > If everyone's doing the same thing, move it to drivers/input/, not to
-> >  userspace.  Why should we be forced to have _two_ drivers and
-> >  essentially maintain a stable kernel/userspace ABI between them? Surely
-> >  it's better to only have _one_ hardware-specific driver, rather than
-> >  half in the kernel, and half hidden behind an abstraction layer that is
-> >  meant to let you just deal with input events without knowing stupid
-> >  details about the hardware?
+* Carlos Aguiar <carlos.aguiar@indt.org.br> [080413 17:10]:
+> From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 > 
-> For the ease of reconfiguration for one thing, tslib is quite
-> configurable with the plugins loaded by a config file.  The ABI you
-> talk about is the same evdev ABI which is already stable.
-> 
-> Averaging doesn't just cancel the noise from LCD, just lessens it but
-> there may be better things to do with it and the userspace already
-> knows how to deal with that. So it expects the kernel driver to be
-> more like a ADC driver.
-> 
-> Of course doing it in drivers/input/ as configured by board files,
-> would also work if things were designed that way.
+> This patch removes useless include/sound/driver.h from sound/arm/omap/ files.
 
-Where to do the filtering should be discussed with the input people.
-
-Meanwhile, I'll push this patch to linux-omap tree.
+Pushing today.
 
 Tony
+
+> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+> ---
+>  sound/arm/omap/eac.c                     |    1 -
+>  sound/arm/omap/omap-alsa-aic23-mixer.c   |    1 -
+>  sound/arm/omap/omap-alsa-aic23.c         |    1 -
+>  sound/arm/omap/omap-alsa-aic23.h         |    1 -
+>  sound/arm/omap/omap-alsa-tsc2102-mixer.c |    1 -
+>  sound/arm/omap/omap-alsa.c               |    1 -
+>  6 files changed, 0 insertions(+), 6 deletions(-)
+> 
+> diff --git a/sound/arm/omap/eac.c b/sound/arm/omap/eac.c
+> index c4bbf61..6ae2677 100644
+> --- a/sound/arm/omap/eac.c
+> +++ b/sound/arm/omap/eac.c
+> @@ -42,7 +42,6 @@
+>  #include <asm/io.h>
+>  #include <asm/arch/eac.h>
+>  
+> -#include <sound/driver.h>
+>  #include <sound/core.h>
+>  #include <sound/initval.h>
+>  
+> diff --git a/sound/arm/omap/omap-alsa-aic23-mixer.c b/sound/arm/omap/omap-alsa-aic23-mixer.c
+> index 38be650..ce55824 100644
+> --- a/sound/arm/omap/omap-alsa-aic23-mixer.c
+> +++ b/sound/arm/omap/omap-alsa-aic23-mixer.c
+> @@ -39,7 +39,6 @@
+>  
+>  #include <linux/kernel.h>
+>  
+> -#include <sound/driver.h>
+>  #include <asm/arch/aic23.h>
+>  
+>  #include <asm/arch/omap-alsa.h>
+> diff --git a/sound/arm/omap/omap-alsa-aic23.c b/sound/arm/omap/omap-alsa-aic23.c
+> index 1e8a101..4d67fa3 100644
+> --- a/sound/arm/omap/omap-alsa-aic23.c
+> +++ b/sound/arm/omap/omap-alsa-aic23.c
+> @@ -17,7 +17,6 @@
+>   * option) any later version.
+>   */
+>  
+> -#include <sound/driver.h>
+>  #include <sound/core.h>
+>  #include <sound/pcm.h>
+>  #include <sound/initval.h>
+> diff --git a/sound/arm/omap/omap-alsa-aic23.h b/sound/arm/omap/omap-alsa-aic23.h
+> index 63907c4..e2e2d59 100644
+> --- a/sound/arm/omap/omap-alsa-aic23.h
+> +++ b/sound/arm/omap/omap-alsa-aic23.h
+> @@ -18,7 +18,6 @@
+>  #ifndef __OMAP_ALSA_AIC23_H
+>  #define __OMAP_ALSA_AIC23_H
+>  
+> -#include <sound/driver.h>
+>  #include <asm/arch/dma.h>
+>  #include <sound/core.h>
+>  #include <sound/pcm.h>
+> diff --git a/sound/arm/omap/omap-alsa-tsc2102-mixer.c b/sound/arm/omap/omap-alsa-tsc2102-mixer.c
+> index d1c8b65..99b1a1d 100644
+> --- a/sound/arm/omap/omap-alsa-tsc2102-mixer.c
+> +++ b/sound/arm/omap/omap-alsa-tsc2102-mixer.c
+> @@ -32,7 +32,6 @@
+>  
+>  #include <asm/arch/omap-alsa.h>
+>  
+> -#include <sound/driver.h>
+>  #include <sound/initval.h>
+>  #include <sound/control.h>
+>  
+> diff --git a/sound/arm/omap/omap-alsa.c b/sound/arm/omap/omap-alsa.c
+> index 8d0f394..30c7942 100644
+> --- a/sound/arm/omap/omap-alsa.c
+> +++ b/sound/arm/omap/omap-alsa.c
+> @@ -46,7 +46,6 @@
+>  #ifdef CONFIG_PM
+>  #include <linux/pm.h>
+>  #endif
+> -#include <sound/driver.h>
+>  #include <sound/core.h>
+>  #include <sound/pcm.h>
+>  
+> -- 1.5.3.GIT
+> 
