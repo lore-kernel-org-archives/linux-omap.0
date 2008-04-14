@@ -1,88 +1,71 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 1/1] ARM: OMAP: Fix build error for "pm.c" with CONFIG_PM_DEBUG
-Date: Mon, 14 Apr 2008 15:40:31 +0300
-Message-ID: <1208176831-28549-1-git-send-email-Hiroshi.DOYU@nokia.com>
+From: =?utf-8?q?Jouni=20H=C3=B6gander?= <jouni.hogander@nokia.com>
+Subject: [PATCH] PRCM: 34XX: Fixes to ssi clock handling
+Date: Mon, 14 Apr 2008 16:06:11 +0300
+Message-ID: <1208178371-18752-1-git-send-email-jouni.hogander@nokia.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:45641 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751846AbYDNMmF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Apr 2008 08:42:05 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:39531 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753873AbYDNNGQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Apr 2008 09:06:16 -0400
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3ED7s3Z030624
+	for <linux-omap@vger.kernel.org>; Mon, 14 Apr 2008 08:08:36 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
+ssi_l4_ick should have PARENT_CONTROLS_CLOCK flag.
+ST_SSI_STDBY bit in idlest register cannot be used in  omap2_clk_wait_r=
+eady
 
-  CC      arch/arm/plat-omap/clock.o
-arch/arm/mach-omap2/pm.c: In function 'pm_init_serial_console':
-arch/arm/mach-omap2/pm.c:188: error: expected ';' before 'break'
-arch/arm/mach-omap2/pm.c:191: error: expected ';' before 'break'
-arch/arm/mach-omap2/pm.c:193: error: 'PM_WKEN2' undeclared (first use in this function)
-arch/arm/mach-omap2/pm.c:193: error: (Each undeclared identifier is reported only once
-arch/arm/mach-omap2/pm.c:193: error: for each function it appears in.)
-arch/arm/mach-omap2/pm.c:194: error: expected ';' before 'break'
-make[1]: *** [arch/arm/mach-omap2/pm.o] Error 1
-make: *** [arch/arm/mach-omap2] Error 2
-
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Signed-off-by: Jouni H=C3=B6gander <jouni.hogander@nokia.com>
 ---
- arch/arm/mach-omap2/pm.c  |   10 +++++-----
- arch/arm/mach-omap2/prm.h |    3 +++
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/clock.c     |    4 +++-
+ arch/arm/mach-omap2/clock34xx.h |    3 ++-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 0dc5952..3949ba7 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -4,7 +4,7 @@
-  * OMAP2 Power Management Routines
-  *
-  * Copyright (C) 2005 Texas Instruments, Inc.
-- * Copyright (C) 2006 Nokia Corporation
-+ * Copyright (C) 2006-2008 Nokia Corporation
-  *
-  * Written by:
-  * Richard Woodruff <r-woodruff2@ti.com>
-@@ -143,7 +143,7 @@ static void serial_console_sleep(int enable)
- 				serial_wakeup = 1;
- 			break;
- 		case 3:
--			l = prm_read_mod_reg(CORE_MOD, OMAP24XX_PM_WKST2);
-+			l = prm_read_mod_reg(CORE_MOD, PM_WKST2);
- 			if (l & OMAP24XX_ST_UART3)
- 				serial_wakeup = 1;
- 			break;
-@@ -184,13 +184,13 @@ static void pm_init_serial_console(void)
- 	}
- 	switch (serial_console_uart) {
- 	case 1:
--		prm_set_mod_reg_bits(OMAP24XX_ST_UART1, CORE_MOD, PM_WKEN1)
-+		prm_set_mod_reg_bits(OMAP24XX_ST_UART1, CORE_MOD, PM_WKEN1);
- 		break;
- 	case 2:
--		prm_set_mod_reg_bits(OMAP24XX_ST_UART2, CORE_MOD, PM_WKEN1)
-+		prm_set_mod_reg_bits(OMAP24XX_ST_UART2, CORE_MOD, PM_WKEN1);
- 		break;
- 	case 3:
--		prm_set_mod_reg_bits(OMAP24XX_ST_UART3, CORE_MOD, PM_WKEN2)
-+		prm_set_mod_reg_bits(OMAP24XX_ST_UART3, CORE_MOD, PM_WKEN2);
- 		break;
- 	}
- }
-diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
-index 125d1e2..5a24e20 100644
---- a/arch/arm/mach-omap2/prm.h
-+++ b/arch/arm/mach-omap2/prm.h
-@@ -178,6 +178,9 @@ static u32 __attribute__((unused)) prm_clear_mod_reg_bits(u32 bits, s16 module,
- #define OMAP24XX_PM_WKEN2				0x00a4
- #define OMAP24XX_PM_WKST2				0x00b4
- 
-+#define PM_WKEN2					OMAP24XX_PM_WKEN2
-+#define PM_WKST2					OMAP24XX_PM_WKST2
-+
- #define OMAP24XX_PRCM_IRQSTATUS_DSP			0x00f0	/* IVA mod */
- #define OMAP24XX_PRCM_IRQENABLE_DSP			0x00f4	/* IVA mod */
- #define OMAP24XX_PRCM_IRQSTATUS_IVA			0x00f8
--- 
-1.5.5.rc2.6.gf58d
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index dead756..e7e8576 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -212,7 +212,9 @@ static void omap2_clk_wait_ready(struct clk *clk, i=
+nt enable)
+ 	/* REVISIT: What are the appropriate exclusions for 34XX? */
+ 	/* OMAP3: ignore DSS-mod clocks */
+ 	if (cpu_is_omap34xx() &&
+-	    (((u32)reg & ~0xff) =3D=3D (u32)OMAP_CM_REGADDR(OMAP3430_DSS_MOD,=
+ 0)))
++	    (((u32)reg & ~0xff) =3D=3D (u32)OMAP_CM_REGADDR(OMAP3430_DSS_MOD,=
+ 0) ||
++	     ((((u32)reg & ~0xff) =3D=3D (u32)OMAP_CM_REGADDR(CORE_MOD, 0)) &=
+&
++	     clk->enable_bit =3D=3D OMAP3430_EN_SSI_SHIFT)))
+ 		return;
+=20
+ 	bit =3D 1 << clk->enable_bit;
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/cloc=
+k34xx.h
+index fc03999..9ca2cdf 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -1917,7 +1917,8 @@ static struct clk omapctrl_ick =3D {
+ static struct clk ssi_l4_ick =3D {
+ 	.name		=3D "ssi_l4_ick",
+ 	.parent		=3D &l4_ick,
+-	.flags		=3D CLOCK_IN_OMAP343X | RATE_PROPAGATES,
++	.flags		=3D CLOCK_IN_OMAP343X | RATE_PROPAGATES |
++				PARENT_CONTROLS_CLOCK,
+ 	.recalc		=3D &followparent_recalc,
+ };
+=20
+--=20
+1.5.3.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
