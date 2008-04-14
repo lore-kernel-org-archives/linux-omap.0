@@ -1,71 +1,87 @@
-From: =?utf-8?q?Jouni=20H=C3=B6gander?= <jouni.hogander@nokia.com>
-Subject: [PATCH] PRCM: 34XX: Fixes to ssi clock handling
-Date: Mon, 14 Apr 2008 16:06:11 +0300
-Message-ID: <1208178371-18752-1-git-send-email-jouni.hogander@nokia.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 3/17] ARM: OMAP2: Add common register access for 24xx and
+	34xx
+Date: Mon, 14 Apr 2008 15:05:15 +0100
+Message-ID: <20080414140515.GD8578@flint.arm.linux.org.uk>
+References: <1205848935-12078-1-git-send-email-tony@atomide.com>
+	<1205848935-12078-2-git-send-email-tony@atomide.com>
+	<1205848935-12078-3-git-send-email-tony@atomide.com>
+	<1205848935-12078-4-git-send-email-tony@atomide.com>
+	<20080407162049.GF5306@flint.arm.linux.org.uk>
+	<20080409205005.GL31071@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:39531 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753873AbYDNNGQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Apr 2008 09:06:16 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3ED7s3Z030624
-	for <linux-omap@vger.kernel.org>; Mon, 14 Apr 2008 08:08:36 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
+Content-Disposition: inline
+In-Reply-To: <20080409205005.GL31071@atomide.com>
+List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://lists.arm.linux.org.uk/lurker/list/linux-arm-kernel.html>
+List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
+List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
+List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-ssi_l4_ick should have PARENT_CONTROLS_CLOCK flag.
-ST_SSI_STDBY bit in idlest register cannot be used in  omap2_clk_wait_r=
-eady
+On Wed, Apr 09, 2008 at 08:50:06PM +0000, Tony Lindgren wrote:
+> Hi,
+> 
+> Thanks for looking through this big set, I'll repost the series
+> with your comments fixed.
+> 
+> Few comments below on what was changed.
+> 
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [080407 16:21]:
+> > On Tue, Mar 18, 2008 at 04:02:01PM +0200, Tony Lindgren wrote:
+> > > diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
+> > > new file mode 100644
+> > > index 0000000..f575a87
+> > > --- /dev/null
+> > > +++ b/arch/arm/mach-omap2/cm.h
+> > > @@ -0,0 +1,142 @@
+> > > +
+> > > +#ifndef __ASSEMBLER__
+> > > +/* Clock management global register get/set */
+> > > +
+> > > +static void __attribute__((unused)) cm_write_reg(u32 val, void __iomem *addr)
+> > > +{
+> > > +	pr_debug("cm_write_reg: writing 0x%0x to 0x%0x\n", val, (u32)addr);
+> > > +
+> > > +	__raw_writel(val, addr);
+> > > +}
+> > > +
+> > > +static u32 __attribute__((unused)) cm_read_reg(void __iomem *addr)
+> > > +{
+> > > +	return __raw_readl(addr);
+> > > +}
+> > > +#endif
+> > 
+> > Erm, code in a header file?  Make them __inline__ or if you really want
+> > to have them as separate functions, put them in a .c file.
+> > 
+> > Next point - what's the purpose of them.  They're doing nothing (apart
+> > from that excess debug statement).
+> 
+> I've made them __inline__ and removed extra debug stuff from these
+> functions.
 
-Signed-off-by: Jouni H=C3=B6gander <jouni.hogander@nokia.com>
----
- arch/arm/mach-omap2/clock.c     |    4 +++-
- arch/arm/mach-omap2/clock34xx.h |    3 ++-
- 2 files changed, 5 insertions(+), 2 deletions(-)
+This should be:
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index dead756..e7e8576 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -212,7 +212,9 @@ static void omap2_clk_wait_ready(struct clk *clk, i=
-nt enable)
- 	/* REVISIT: What are the appropriate exclusions for 34XX? */
- 	/* OMAP3: ignore DSS-mod clocks */
- 	if (cpu_is_omap34xx() &&
--	    (((u32)reg & ~0xff) =3D=3D (u32)OMAP_CM_REGADDR(OMAP3430_DSS_MOD,=
- 0)))
-+	    (((u32)reg & ~0xff) =3D=3D (u32)OMAP_CM_REGADDR(OMAP3430_DSS_MOD,=
- 0) ||
-+	     ((((u32)reg & ~0xff) =3D=3D (u32)OMAP_CM_REGADDR(CORE_MOD, 0)) &=
-&
-+	     clk->enable_bit =3D=3D OMAP3430_EN_SSI_SHIFT)))
- 		return;
-=20
- 	bit =3D 1 << clk->enable_bit;
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/cloc=
-k34xx.h
-index fc03999..9ca2cdf 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -1917,7 +1917,8 @@ static struct clk omapctrl_ick =3D {
- static struct clk ssi_l4_ick =3D {
- 	.name		=3D "ssi_l4_ick",
- 	.parent		=3D &l4_ick,
--	.flags		=3D CLOCK_IN_OMAP343X | RATE_PROPAGATES,
-+	.flags		=3D CLOCK_IN_OMAP343X | RATE_PROPAGATES |
-+				PARENT_CONTROLS_CLOCK,
- 	.recalc		=3D &followparent_recalc,
- };
-=20
---=20
-1.5.3.5
++static inline void cm_write_reg(u32 val, void __iomem *addr)
++{
++	pr_debug("cm_write_reg: writing 0x%0x to 0x%0x\n", val, (u32)addr);
++
++	__raw_writel(val, addr);
++}
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+IOW, without the __attribute__ mess or using the __inline__.
+
+-------------------------------------------------------------------
+List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
+FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
+Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
