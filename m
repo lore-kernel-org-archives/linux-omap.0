@@ -1,137 +1,83 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Pending patches
-Date: Mon, 14 Apr 2008 11:05:52 -0700
-Message-ID: <20080414180551.GF26832@atomide.com>
-References: <20080412164147.GL7338@gandalf.research.nokia.com>
+Subject: Re: [PATCH] PRCM: 34XX: Fixes to ssi clock handling
+Date: Mon, 14 Apr 2008 11:09:32 -0700
+Message-ID: <20080414180932.GH26832@atomide.com>
+References: <1208178371-18752-1-git-send-email-jouni.hogander@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50368 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755068AbYDNSFx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Apr 2008 14:05:53 -0400
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:50189 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756385AbYDNSJe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Apr 2008 14:09:34 -0400
 Content-Disposition: inline
-In-Reply-To: <20080412164147.GL7338@gandalf.research.nokia.com>
+In-Reply-To: <1208178371-18752-1-git-send-email-jouni.hogander@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
+To: Jouni =?iso-8859-1?Q?H=F6gander?= <jouni.hogander@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
-* Felipe Balbi <felipe.balbi@nokia.com> [080412 09:42]:
-> Hi Tony,
-> 
-> You seem to have pushed most of the patches I sent but we're still
-> missing some of them.
-> 
-> Are there still any comments for those patches ? It's higly tested on my
-> n810 and all of them are working fine here.
+* Jouni H=F6gander <jouni.hogander@nokia.com> [080414 06:23]:
+> ssi_l4_ick should have PARENT_CONTROLS_CLOCK flag.
+> ST_SSI_STDBY bit in idlest register cannot be used in  omap2_clk_wait=
+_ready
 
-Yeah, thanks. Pushing all of them today.
+Pushing today.
 
 Tony
 
-
-> Below is an output from:
-> $ git cherry master | cut -d+ -f2 | xargs git show --stat
-> 
-> commit a3b9e4f4397876d32d51f7fb3742318285a78601
-> Author: Daniel Stone <daniel.stone@nokia.com>
-> Date:   Mon Apr 7 17:07:37 2008 +0300
-> 
->     I2C: LM8323: Introduce lm8323 keypad driver
->     
->     Introduce lm8323 keypad driver.
->     
->     Signed-off-by: Daniel Stone <daniel.stone@nokia.com
->     
->     Updated to build with recent linux-omap and new-style
->     i2c driver.
->     
->     Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> 
->  arch/arm/mach-omap2/board-n800.c |   77 ++++
->  arch/arm/mach-omap2/board-n810.c |    2 +
->  drivers/input/keyboard/Kconfig   |    7 +
->  drivers/input/keyboard/Makefile  |    1 +
->  drivers/input/keyboard/lm8323.c  |  911 ++++++++++++++++++++++++++++++++++++++
->  include/linux/i2c/lm8323.h       |   39 ++
->  6 files changed, 1037 insertions(+), 0 deletions(-)
-> 
-> commit a68ff943d8e2e09e218b127142dfa99e6c618ac8
-> Author: Mathias Nyman <mathias.nyman@nokia.com>
-> Date:   Mon Apr 7 16:21:28 2008 +0300
-> 
->     I2C: TSL2563: Add support for Taos tsl2563 ambient light sensor
->     
->     Add support for Taos tsl2563 ambient light sensor.
->     
->     Signed-off-by: Mathias Nyman <mathias.nyman@nokia.com>
->     
->     Updated to build with current linux-omap, new-style
->     i2c driver and cleaned up checkpatch.pl issues.
->     
->     Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> 
->  arch/arm/mach-omap2/board-n800.c |    4 +
->  drivers/i2c/chips/Kconfig        |   10 +
->  drivers/i2c/chips/Makefile       |    2 +-
->  drivers/i2c/chips/tsl2563.c      |  731 ++++++++++++++++++++++++++++++++++++++
->  4 files changed, 746 insertions(+), 1 deletions(-)
-> 
-> commit 9416f0ccc9669a0588e16f776308f8f6c9e91661
-> Author: Lauri Leukkunen <lauri.leukkunen@nokia.com>
-> Date:   Mon Apr 7 19:57:43 2008 +0300
-> 
->     INPUT: TOUCHSCREEN: Introduce tsc2005 driver
->     
->     Introduce n810's tsc2005 driver
->     
->     Signed-off-by: Lauri Leukkunen <lauri.leukkunen@nokia.com>
->     
->     Updated to build with current linux-omap.
->     
->     Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> 
->  arch/arm/mach-omap2/board-n800.c    |   95 +++++-
->  drivers/input/touchscreen/Kconfig   |    5 +
->  drivers/input/touchscreen/Makefile  |    1 +
->  drivers/input/touchscreen/tsc2005.c |  739 +++++++++++++++++++++++++++++++++++
->  include/linux/spi/tsc2005.h         |   29 ++
->  5 files changed, 865 insertions(+), 4 deletions(-)
-> 
-> commit 57871dcd31fa8598ae5d0d3e3979e5e6f5477ea4
-> Author: Mathias Nyman <mathias.nyman@nokia.com>
-> Date:   Tue Apr 8 13:33:04 2008 +0300
-> 
->     I2C: LP5521: Introduce lp5521 LED driver
->     
->     Introduce n810's lp5521 LED driver.
->     
->     Signed-off-by: Mathias Nyman <mathias.nyman@nokia.com
->     
->     Updated to new style i2c driver and to build on current
->     linux-omap head.
->     
->     Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> 
->  arch/arm/mach-omap2/board-n800.c |    4 +
->  drivers/i2c/chips/Kconfig        |    7 +
->  drivers/i2c/chips/Makefile       |    1 +
->  drivers/i2c/chips/lp5521.c       |  577 ++++++++++++++++++++++++++++++++++++++
->  4 files changed, 589 insertions(+), 0 deletions(-)
-> 
-> commit 88573faf7d1e556376c0abb1adaf3497d814660b
-> Author: Felipe Balbi <felipe.balbi@nokia.com>
-> Date:   Tue Apr 8 15:36:32 2008 +0300
-> 
->     ARM: N800: Update n800 defconfig
->     
->     Enables recent drivers and usb.
->     
->     Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> 
->  arch/arm/configs/n800_defconfig |  189 +++++++++++++++++++++++++++++++++++++--
->  1 files changed, 182 insertions(+), 7 deletions(-)
-> 
-> -- 
-> 	- Balbi
+> Signed-off-by: Jouni H=F6gander <jouni.hogander@nokia.com>
+> ---
+>  arch/arm/mach-omap2/clock.c     |    4 +++-
+>  arch/arm/mach-omap2/clock34xx.h |    3 ++-
+>  2 files changed, 5 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.=
+c
+> index dead756..e7e8576 100644
+> --- a/arch/arm/mach-omap2/clock.c
+> +++ b/arch/arm/mach-omap2/clock.c
+> @@ -212,7 +212,9 @@ static void omap2_clk_wait_ready(struct clk *clk,=
+ int enable)
+>  	/* REVISIT: What are the appropriate exclusions for 34XX? */
+>  	/* OMAP3: ignore DSS-mod clocks */
+>  	if (cpu_is_omap34xx() &&
+> -	    (((u32)reg & ~0xff) =3D=3D (u32)OMAP_CM_REGADDR(OMAP3430_DSS_MO=
+D, 0)))
+> +	    (((u32)reg & ~0xff) =3D=3D (u32)OMAP_CM_REGADDR(OMAP3430_DSS_MO=
+D, 0) ||
+> +	     ((((u32)reg & ~0xff) =3D=3D (u32)OMAP_CM_REGADDR(CORE_MOD, 0))=
+ &&
+> +	     clk->enable_bit =3D=3D OMAP3430_EN_SSI_SHIFT)))
+>  		return;
+> =20
+>  	bit =3D 1 << clk->enable_bit;
+> diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/cl=
+ock34xx.h
+> index fc03999..9ca2cdf 100644
+> --- a/arch/arm/mach-omap2/clock34xx.h
+> +++ b/arch/arm/mach-omap2/clock34xx.h
+> @@ -1917,7 +1917,8 @@ static struct clk omapctrl_ick =3D {
+>  static struct clk ssi_l4_ick =3D {
+>  	.name		=3D "ssi_l4_ick",
+>  	.parent		=3D &l4_ick,
+> -	.flags		=3D CLOCK_IN_OMAP343X | RATE_PROPAGATES,
+> +	.flags		=3D CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+> +				PARENT_CONTROLS_CLOCK,
+>  	.recalc		=3D &followparent_recalc,
+>  };
+> =20
+> --=20
+> 1.5.3.5
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
