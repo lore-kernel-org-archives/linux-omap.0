@@ -1,24 +1,15 @@
 From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [PATCH 08/19] Code clean-up for sound/arm/omap/omap-alsa-sx1-mixer.c
-Date: Tue, 15 Apr 2008 10:02:12 -0400
-Message-ID: <1208268143-8789-9-git-send-email-edubezval@gmail.com>
-References: <1208268143-8789-1-git-send-email-edubezval@gmail.com>
- <1208268143-8789-2-git-send-email-edubezval@gmail.com>
- <1208268143-8789-3-git-send-email-edubezval@gmail.com>
- <1208268143-8789-4-git-send-email-edubezval@gmail.com>
- <1208268143-8789-5-git-send-email-edubezval@gmail.com>
- <1208268143-8789-6-git-send-email-edubezval@gmail.com>
- <1208268143-8789-7-git-send-email-edubezval@gmail.com>
- <1208268143-8789-8-git-send-email-edubezval@gmail.com>
+Subject: [PATCH 00/19] Update and clean up on sound/arm/omap/omap-alsa*[c,h]
+Date: Tue, 15 Apr 2008 10:02:04 -0400
+Message-ID: <1208268143-8789-1-git-send-email-edubezval@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:48065 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:48063 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758764AbYDOOCd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Apr 2008 10:02:33 -0400
+	with ESMTP id S1758674AbYDOOCc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Apr 2008 10:02:32 -0400
 Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3FE2PD4018693
-	for <linux-omap@vger.kernel.org>; Tue, 15 Apr 2008 17:02:31 +0300
-In-Reply-To: <1208268143-8789-8-git-send-email-edubezval@gmail.com>
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3FE2PD2018693
+	for <linux-omap@vger.kernel.org>; Tue, 15 Apr 2008 17:02:29 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -26,107 +17,66 @@ Cc: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
 From: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-Removed lots of whitespaces and a few errors and
-warnings reported by checkpatch.pl.
+Hi all,
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+This patch series cleans up most of the errors and warnings reported
+by checkpatch.pl on sound/arm/omap/omap-alsa*[c,h]. Some checks reported
+by checkpatch.pl were ignored, such as removing #if 0 codes. Not all were
+eligible for remotion.
+
+There is also one patch that updates the alsa driver for H2.
+Since tsc2101 i2c driver was updated, this alsa driver stop
+working.
+
+As Carlos already sent a patch to remove old #includes into these files [1],
+this series does not include this fix.
+
+Cheers,
+
 ---
- sound/arm/omap/omap-alsa-sx1-mixer.c |   22 +++++++++++-----------
- 1 files changed, 11 insertions(+), 11 deletions(-)
+Eduardo Valentin
 
-diff --git a/sound/arm/omap/omap-alsa-sx1-mixer.c b/sound/arm/omap/omap-alsa-sx1-mixer.c
-index 631b080..d0c3322 100644
---- a/sound/arm/omap/omap-alsa-sx1-mixer.c
-+++ b/sound/arm/omap/omap-alsa-sx1-mixer.c
-@@ -111,9 +111,9 @@ static int pcm_playback_target_info(struct snd_kcontrol *kcontrol,
- 	uinfo->type = SNDRV_CTL_ELEM_TYPE_ENUMERATED;
- 	uinfo->count = 1;
- 	uinfo->value.enumerated.items = PLAYBACK_TARGET_COUNT;
--	if (uinfo->value.enumerated.item > PLAYBACK_TARGET_COUNT - 1) {
-+	if (uinfo->value.enumerated.item > PLAYBACK_TARGET_COUNT - 1)
- 		uinfo->value.enumerated.item = PLAYBACK_TARGET_COUNT - 1;
--	}
-+
- 	strcpy(uinfo->value.enumerated.name,
- 			texts[uinfo->value.enumerated.item]);
- 	return 0;
-@@ -210,14 +210,14 @@ static int headset_playback_volume_info(struct snd_kcontrol *kcontrol,
- }
- 
- static int headset_playback_volume_get(struct snd_kcontrol *kcontrol,
--						struct snd_ctl_elem_value *ucontrol)
-+					struct snd_ctl_elem_value *ucontrol)
- {
- 	ucontrol->value.integer.value[0]	= current_volume;
- 	return 0;
- }
- 
- static int headset_playback_volume_put(struct snd_kcontrol *kcontrol,
--						struct snd_ctl_elem_value *ucontrol)
-+					struct snd_ctl_elem_value *ucontrol)
- {
- 	return set_mixer_volume(ucontrol->value.integer.value[0]);
- }
-@@ -233,14 +233,14 @@ static int headset_playback_switch_info(struct snd_kcontrol *kcontrol,
- }
- 
- static int headset_playback_switch_get(struct snd_kcontrol *kcontrol,
--						struct snd_ctl_elem_value *ucontrol)
-+					struct snd_ctl_elem_value *ucontrol)
- {
- 	ucontrol->value.integer.value[0] = 1;
- 	return 0;
- }
- 
- static int headset_playback_switch_put(struct snd_kcontrol *kcontrol,
--						struct snd_ctl_elem_value *ucontrol)
-+					struct snd_ctl_elem_value *ucontrol)
- {
- 	/* mute/unmute headset */
- #if 0
-@@ -262,14 +262,14 @@ static int fmradio_playback_volume_info(struct snd_kcontrol *kcontrol,
- }
- 
- static int fmradio_playback_volume_get(struct snd_kcontrol *kcontrol,
--						struct snd_ctl_elem_value *ucontrol)
-+					struct snd_ctl_elem_value *ucontrol)
- {
- 	ucontrol->value.integer.value[0] = current_fm_volume;
- 	return 0;
- }
- 
- static int fmradio_playback_volume_put(struct snd_kcontrol *kcontrol,
--						struct snd_ctl_elem_value *ucontrol)
-+					struct snd_ctl_elem_value *ucontrol)
- {
- 	int ret = current_fm_volume != ucontrol->value.integer.value[0];
- 	int i;
-@@ -291,14 +291,14 @@ static int fmradio_playback_switch_info(struct snd_kcontrol *kcontrol,
- }
- 
- static int fmradio_playback_switch_get(struct snd_kcontrol *kcontrol,
--						struct snd_ctl_elem_value *ucontrol)
-+					struct snd_ctl_elem_value *ucontrol)
- {
- 	ucontrol->value.integer.value[0] = 1;
- 	return 0;
- }
- 
- static int fmradio_playback_switch_put(struct snd_kcontrol *kcontrol,
--						struct snd_ctl_elem_value *ucontrol)
-+					struct snd_ctl_elem_value *ucontrol)
- {
- 	/* mute/unmute FM radio */
- 	if (ucontrol->value.integer.value[0])
-@@ -460,7 +460,7 @@ int snd_omap_mixer(struct snd_card_omap_codec *egold)
- 	if (!egold)
- 		return -EINVAL;
- 
--	for (i=0; i < ARRAY_SIZE(egold_control); i++) {
-+	for (i = 0; i < ARRAY_SIZE(egold_control); i++) {
- 		err = snd_ctl_add(egold->card,
- 				snd_ctl_new1(&egold_control[i], egold->card));
- 		if (err < 0)
--- 
-1.5.5-rc3.GIT
+[1] - http://marc.info/?l=linux-omap&m=120813065101654&w=2
+
+Eduardo Valentin (19):
+  Update audio driver for H2 board
+  Code clean-up for sound/arm/omap/omap-alsa.h
+  Code clean-up for sound/arm/omap/omap-alsa-aic23.c
+  Code clean-up for sound/arm/omap/omap-alsa-aic23.h
+  Code clean-up for sound/arm/omap/omap-alsa-aic23-mixer.c
+  Code clean-up for sound/arm/omap/omap-alsa-dma.c
+  Code clean-up for sound/arm/omap/omap-alsa-dma.h
+  Code clean-up for sound/arm/omap/omap-alsa-sx1-mixer.c
+  Code clean-up for sound/arm/omap/omap-alsa-sx1-mixer.h
+  Code clean-up for sound/arm/omap/omap-alsa-sx1.c
+  Code clean-up for sound/arm/omap/omap-alsa-sx1.h
+  Code clean-up for sound/arm/omap/omap-alsa-tsc2101-mixer.c
+  Code clean-up for sound/arm/omap/omap-alsa-tsc2101-mixer.h
+  Code clean-up for sound/arm/omap/omap-alsa-tsc2101.c
+  Code clean-up for sound/arm/omap/omap-alsa-tsc2101.h
+  Code clean-up for sound/arm/omap/omap-alsa-tsc2102-mixer.c
+  Code clean-up for sound/arm/omap/omap-alsa-tsc2102.c
+  Code clean-up for sound/arm/omap/omap-alsa-tsc2102.h
+  Code clean-up for sound/arm/omap/omap-alsa.c
+
+ arch/arm/mach-omap1/board-h2.c           |   72 ++--
+ include/asm-arm/arch-omap/omap-alsa.h    |   14 +-
+ sound/arm/omap/omap-alsa-aic23-mixer.c   |  138 ++++---
+ sound/arm/omap/omap-alsa-aic23.c         |   59 ++--
+ sound/arm/omap/omap-alsa-aic23.h         |   12 +-
+ sound/arm/omap/omap-alsa-dma.c           |  171 ++++-----
+ sound/arm/omap/omap-alsa-dma.h           |   22 +-
+ sound/arm/omap/omap-alsa-sx1-mixer.c     |   22 +-
+ sound/arm/omap/omap-alsa-sx1-mixer.h     |    6 +-
+ sound/arm/omap/omap-alsa-sx1.c           |   72 +++-
+ sound/arm/omap/omap-alsa-sx1.h           |    3 +-
+ sound/arm/omap/omap-alsa-tsc2101-mixer.c |  631 ++++++++++++++++--------------
+ sound/arm/omap/omap-alsa-tsc2101-mixer.h |   31 +-
+ sound/arm/omap/omap-alsa-tsc2101.c       |  320 ++++++++++-----
+ sound/arm/omap/omap-alsa-tsc2101.h       |   11 +-
+ sound/arm/omap/omap-alsa-tsc2102-mixer.c |   14 +-
+ sound/arm/omap/omap-alsa-tsc2102.c       |   70 ++--
+ sound/arm/omap/omap-alsa-tsc2102.h       |    2 +-
+ sound/arm/omap/omap-alsa.c               |  163 ++++----
+ 19 files changed, 1045 insertions(+), 788 deletions(-)
 
