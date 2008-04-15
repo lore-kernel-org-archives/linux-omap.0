@@ -1,49 +1,50 @@
-From: "=?UTF-8?Q?Lu=C3=ADs_Vit=C3=B3rio_Cargnini?=" <lvcargnini@gmail.com>
+From: David Brownell <david-b@pacbell.net>
 Subject: Re: GPIO issue
-Date: Tue, 15 Apr 2008 19:39:37 -0300
-Message-ID: <ae36f8040804151539t50ecece8v867977c7fe7f7578@mail.gmail.com>
-References: <ae36f8040804151529s4787856ci5d3dbd7f539a6525@mail.gmail.com>
-Reply-To: lvcargnini@gmail.com
+Date: Tue, 15 Apr 2008 15:55:15 -0700
+Message-ID: <200804151555.15722.david-b@pacbell.net>
+References: <ae36f8040804151529s4787856ci5d3dbd7f539a6525@mail.gmail.com> <ae36f8040804151539t50ecece8v867977c7fe7f7578@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.247]:45655 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756782AbYDOWjj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Apr 2008 18:39:39 -0400
-Received: by an-out-0708.google.com with SMTP id d31so589256and.103
-        for <linux-omap@vger.kernel.org>; Tue, 15 Apr 2008 15:39:38 -0700 (PDT)
-In-Reply-To: <ae36f8040804151529s4787856ci5d3dbd7f539a6525@mail.gmail.com>
+Received: from smtp123.sbc.mail.sp1.yahoo.com ([69.147.64.96]:20422 "HELO
+	smtp123.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752637AbYDOWzT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Apr 2008 18:55:19 -0400
+In-Reply-To: <ae36f8040804151539t50ecece8v867977c7fe7f7578@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: lvcargnini@gmail.com
+Cc: linux-omap@vger.kernel.org
 
-ZXhjdXNlIG1lIG5vdyBJIHNhdyBJIGp1c3QgcHV0IHRoZSB3cm9uZyB2YWx1ZSBpbiAgc2V0X2Rp
-cmVjdGlvbgogIG9tYXBfc2V0X2dwaW9fZGlyZWN0aW9uKDgsMSk7CgptdXN0IGJlCiAgb21hcF9z
-ZXRfZ3Bpb19kaXJlY3Rpb24oOCwwKTsKCm5vdyBpdCBpcyB3b3JraW5nCnNpbGx5IG1pc3Rha2Uu
-CgpPbiBUdWUsIEFwciAxNSwgMjAwOCBhdCA3OjI5IFBNLCBMdcOtcyBWaXTDs3JpbyBDYXJnbmlu
-aQo8bHZjYXJnbmluaUBnbWFpbC5jb20+IHdyb3RlOgo+IGRlYXIgZmVsbG93czoKPgo+ICBJIGhh
-dmUgdGhlIGZvbGxvd2luZyBwcm9ibGVtOgo+ICBJIGhhdmUgYW4gT1NLICg1OTEyIGRldiBib2Fy
-ZCkgYW5kIEkgd3JpdHRlbiBhIGRldmljZSBkcml2ZXIgdGhhdCBkb2VzCj4gIHRoZSBmb2xsb3dp
-bmc6Cj4KPiAgb21hcF9yZXF1ZXN0X2dwaW8oOCk7Cj4gIG9tYXBfcmVxdWVzdF9ncGlvKDExKTsK
-Pgo+ICBvbWFwX3NldF9ncGlvX2RpcmVjdGlvbig4LDEpOwo+ICBvbWFwX3NldF9ncGlvX2RpcmVj
-dGlvbigxMSwgMSk7Cj4KPiAgb21hcF9zZXRfZ3Bpb19kYXRhb3V0KDgsIDApOwo+ICBvbWFwX3Nl
-dF9ncGlvX2RhdGFvdXQoMTEsIDEpOwo+Cj4KPiAgQnV0IG5vbmUgb2YgdGhpcyBwaW5zIGFyZSBk
-cml2aW5nIHNpZ25hbHMsIHBsZWFzZSBzb21lb25lIGNhbiBoZWxwIG1lCj4gIHdpdGggdGhpcyBt
-aW5pbWFsIGlzc3VlLgo+Cj4gIC0tCj4gIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+ICBUaGFua3Mg
-JiYgUmVnYXJkcwo+ICBNLlNjLiBCLlNjLiBMdcOtcyBWaXTDs3JpbyBDYXJnbmluaQo+ICBJRUVF
-IE1lbWJlcgo+ICBFbGVjdHJpY2FsIEVuZ2luZWVyIEZhY3VsdHkgQCBQVUNSUwo+ICBJcGlyYW5n
-YSBBdmVudWUsIDY2ODEg4oCTIEJ1aWxkaW5nIDMwCj4gIFAuTy4gQm94OiA5MDYxOS05MDAg4oCT
-IFBvcnRvIEFsZWdyZS9SUwo+ICBQaG9uZTogKzU1IDUxIDMzMjAgMzUwMCAgZXh0ZW5zaW9uOiA3
-Njk2Cj4gIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+CgoKCi0tIAotLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0KVGhhbmtzICYmIFJlZ2FyZHMKTS5TYy4gQi5TYy4gTHXDrXMgVml0w7NyaW8gQ2FyZ25p
-bmkKSUVFRSBNZW1iZXIKRWxlY3RyaWNhbCBFbmdpbmVlciBGYWN1bHR5IEAgUFVDUlMKSXBpcmFu
-Z2EgQXZlbnVlLCA2NjgxIOKAkyBCdWlsZGluZyAzMApQLk8uIEJveDogOTA2MTktOTAwIOKAkyBQ
-b3J0byBBbGVncmUvUlMKUGhvbmU6ICs1NSA1MSAzMzIwIDM1MDAgIGV4dGVuc2lvbjogNzY5Ngot
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0K
+On Tuesday 15 April 2008, Lu=EDs Vit=F3rio Cargnini wrote:
+>=20
+> excuse me now I saw I just put the wrong value in =A0set_direction
+> =A0 omap_set_gpio_direction(8,1);
+>=20
+> must be
+> =A0 omap_set_gpio_direction(8,0);
+
+This is one of *many* reasons to avoid using those
+legacy GPIO calls.  If you had written
+
+	gpio_direction_input(8)
+
+instead of that first call, the issue would have been obvious.  :)
+
+	if (gpio_request(8, "signal_name") =3D=3D 0)
+		gpio_direction_output(8, 1 /* initial value */);
+	else
+		/* ERROR */ ;
+
+Note that /sys/kernel/debug/gpio shows GPIO status,
+assuming you have debugfs mounted in the normal way.
+
+- Dave
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
