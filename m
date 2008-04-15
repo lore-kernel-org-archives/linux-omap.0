@@ -1,86 +1,38 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: RE: [PATCH 1/4] Updating Kconfig and Makefile for OMAP3 EVM support
-Date: Tue, 15 Apr 2008 04:33:53 -0500
-Message-ID: <0d3cf630a9b3224f095a15864f78a779@felipebalbi.com>
-References: <7EAD1AEEA7621C45899FE99123E124A0018C8603@dbde01.ent.ti.com> <20080414180447.GA4463@kedavra.cpe.vivax.com.br> <7EAD1AEEA7621C45899FE99123E124A0018C8749@dbde01.ent.ti.com> <e2a24afe53a509270888ce07ab944818@felipebalbi.com> <7EAD1AEEA7621C45899FE99123E124A0018C87BA@dbde01.ent.ti.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [PATCH 2/2] PLAT-OMAP: MCBSP: Move code mach specific from
+ plat-omap to mach-omap
+Date: Tue, 15 Apr 2008 12:38:05 +0300
+Message-ID: <20080415123805.c2986c15.jarkko.nikula@nokia.com>
+References: <20080414181827.GE4463@kedavra.cpe.vivax.com.br>
+	<1208203891-11225-1-git-send-email-edubezval@gmail.com>
+	<1208203891-11225-2-git-send-email-edubezval@gmail.com>
+	<20080414202338.GJ4463@kedavra.cpe.vivax.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:40961 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755314AbYDOJdz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Apr 2008 05:33:55 -0400
-In-Reply-To: <7EAD1AEEA7621C45899FE99123E124A0018C87BA@dbde01.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:42682 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756910AbYDOJhi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Apr 2008 05:37:38 -0400
+In-Reply-To: <20080414202338.GJ4463@kedavra.cpe.vivax.com.br>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Syed Mohammed, Khasim" <khasim@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: me@felipebalbi.com
+Cc: Eduardo Valentin <edubezval@gmail.com>, linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@indt.org.br>
 
+On Mon, 14 Apr 2008 23:23:39 +0300
+"ext Felipe Balbi" <me@felipebalbi.com> wrote:
 
-
-On Tue, 15 Apr 2008 14:50:20 +0530, "Syed Mohammed, Khasim" <khasim@ti.com>
-wrote:
+> On Mon, Apr 14, 2008 at 04:11:31PM -0400, Eduardo Valentin wrote:
+> > From: Eduardo Valentin <eduardo.valentin@indt.org.br>
+> > 
+> > This patch gets ride of ifdefs on mcbsp.c code.
+> > It moves the mach specific code to mach-omap*.
 > 
->> 
->> >> > Index: my_branch/arch/arm/mach-omap2/Kconfig
->> >> >
-> ===================================================================
->> >> > --- my_branch.orig/arch/arm/mach-omap2/Kconfig	2008-04-14
->> >> 16:07:11.000000000 +0530
->> >> > +++ my_branch/arch/arm/mach-omap2/Kconfig	2008-04-14
->> >> 16:07:41.000000000 +0530
->> >> > @@ -98,10 +98,14 @@
->> >> >  	bool "OMAP 2430 SDP board"
->> >> >  	depends on ARCH_OMAP2 && ARCH_OMAP2430
->> >> >
->> >> > +config MACH_OMAP_2430OSK
->> >> > +	bool "OMAP 2430 OSK board"
->> >> > +	depends on ARCH_OMAP2 && ARCH_OMAP24XX
->> >> > +
->> >> >  config MACH_OMAP_3430SDP
->> >> >  	bool "OMAP 3430 SDP board"
->> >> >  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
->> >> >
->> >> > -config MACH_OMAP_2430OSK
->> >> > -	bool "OMAP 2430 OSK board"
->> >> > -	depends on ARCH_OMAP2 && ARCH_OMAP24XX
->> >> > +config MACH_OMAP3EVM
->> >> > +	bool "OMAP 3530 EVM board"
->> >> > +	depends on ARCH_OMAP3 && ARCH_OMAP34XX
->> >>
->> >> Do you really need to move 2430OSK here?
->> >> It looks like unnecessary change.
->> >>
->> >> please revert.
->> >>
->> > This change is good as it lists all omap2 followed by omap3 boards.
->> > Otherwise it mixes OMAP2 boards with OMAP3 boards.
->> 
->> so put it in a separate patch. It has nothing to do with
->> "Adding support for OMAP3 EVM"
+> It looks ok, checkpatch.pl returns success, boot-test on n810 is fine
 > 
-> Why? ???
-> 
-> These lines add OMAP3 EVM
-> 
-> +config MACH_OMAP3EVM
-> +	bool "OMAP 3530 EVM board"
-> +	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-> 
-> The other lines are re-arranging OMAP2 and OMAP3 boards. 
+Works fine with my ASoC set on N810.
 
-Yes, re-arranging omap2/3 is another "task". Has nothing to do with
-"adding omap3 evm". I'd rather see these two changes split in two
-separate patches but Tony might be the one with the final word anyway. :-p
-If he's ok with this patch...
 
-> 
-> We can make two separate patches but this fix seems to be simple.
--- 
-Best Regards,
-
-Felipe Balbi
-http://felipebalbi.com
-me@felipebalbi.com
-
+Jarkko
