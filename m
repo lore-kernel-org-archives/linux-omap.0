@@ -1,15 +1,15 @@
 From: "Syed Mohammed, Khasim" <khasim@ti.com>
-Subject: [PATCH 6/9] Updated Kconfig and Makefile to add Beagle Board support
-Date: Wed, 16 Apr 2008 18:07:18 +0530
-Message-ID: <7EAD1AEEA7621C45899FE99123E124A0018C8A84@dbde01.ent.ti.com>
+Subject: [PATCH 7/9] Adding New Board file for OMAP3 Beagle Board
+Date: Wed, 16 Apr 2008 18:08:03 +0530
+Message-ID: <7EAD1AEEA7621C45899FE99123E124A0018C8A85@dbde01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:35506 "EHLO calf.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:36862 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755535AbYDPMh2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Apr 2008 08:37:28 -0400
+	id S1761432AbYDPMif convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Apr 2008 08:38:35 -0400
 Content-class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -17,36 +17,96 @@ To: linux-omap@vger.kernel.org
 Cc: discussion@beagleboard.org
 
 
-Updated Kconfig and Makefile to add OMAP3 Beagle Board
+Add new board file for OMAP3 Beagle Board.
+
+For more info regarding this board visit http://beagleboard.org
 
 Signed-off-by: Syed Mohammed Khasim <khasim@ti.com>
 ---
- arch/arm/mach-omap2/Kconfig  |    4 ++++
- arch/arm/mach-omap2/Makefile |    1 +
- 2 files changed, 5 insertions(+)
+ arch/arm/mach-omap2/board-omap3beagle.c |   79 ++++++++++++++++++++++++++++++++
+ 1 file changed, 79 insertions(+)
 
-Index: my_branch/arch/arm/mach-omap2/Kconfig
+Index: my_branch/arch/arm/mach-omap2/board-omap3beagle.c
 ===================================================================
---- my_branch.orig/arch/arm/mach-omap2/Kconfig	2008-04-16 14:41:28.000000000 +0530
-+++ my_branch/arch/arm/mach-omap2/Kconfig	2008-04-16 14:45:38.000000000 +0530
-@@ -109,3 +109,7 @@
- config MACH_OMAP3EVM
- 	bool "OMAP 3530 EVM board"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ my_branch/arch/arm/mach-omap2/board-omap3beagle.c	2008-04-16 14:45:52.000000000 +0530
+@@ -0,0 +1,79 @@
++/*
++ * linux/arch/arm/mach-omap2/board-omap3beagle.c
++ *
++ * Copyright (C) 2008 Texas Instruments
++ *
++ * Modified from mach-omap2/board-3430sdp.c
++ *
++ * Initial code: Syed Mohammed Khasim
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+config MACH_OMAP3_BEAGLE
-+	bool "OMAP3 BEAGLE board"
-+	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-
-Index: my_branch/arch/arm/mach-omap2/Makefile
-===================================================================
---- my_branch.orig/arch/arm/mach-omap2/Makefile	2008-04-16 14:41:28.000000000 +0530
-+++ my_branch/arch/arm/mach-omap2/Makefile	2008-04-16 14:45:38.000000000 +0530
-@@ -35,6 +35,7 @@
- 					   board-3430sdp-usb.o \
- 					   board-3430sdp-flash.o
- obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
-+obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o
- obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
- 					   board-apollon-mmc.o	\
- 					   board-apollon-keys.o
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/delay.h>
++#include <linux/err.h>
++#include <linux/clk.h>
++#include <linux/io.h>
++
++#include <asm/hardware.h>
++#include <asm/mach-types.h>
++#include <asm/mach/arch.h>
++#include <asm/mach/map.h>
++
++#include <asm/arch/gpio.h>
++#include <asm/arch/board.h>
++#include <asm/arch/common.h>
++
++static struct omap_uart_config omap3_beagle_uart_config __initdata = {
++	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
++};
++
++static int __init omap3_beagle_i2c_init(void)
++{
++	omap_register_i2c_bus(1, 2600, NULL, 0);
++	omap_register_i2c_bus(2, 400, NULL, 0);
++	omap_register_i2c_bus(3, 400, NULL, 0);
++	return 0;
++}
++
++static void __init omap3_beagle_init_irq(void)
++{
++	omap2_init_common_hw();
++	omap_init_irq();
++	omap_gpio_init();
++}
++
++static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
++	{OMAP_TAG_UART,	&omap3_beagle_uart_config },
++};
++
++static void __init omap3_beagle_init(void)
++{
++	omap_board_config = omap3_beagle_config;
++	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
++	omap_serial_init();
++}
++
++arch_initcall(omap3_beagle_i2c_init);
++
++static void __init omap3_beagle_map_io(void)
++{
++	omap2_set_globals_343x();
++	omap2_map_common_io();
++}
++
++MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
++	/* Maintainer: Syed Mohammed Khasim - http://beagleboard.org */
++	.phys_io	= 0x48000000,
++	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
++	.boot_params	= 0x80000100,
++	.map_io		= omap3_beagle_map_io,
++	.init_irq	= omap3_beagle_init_irq,
++	.init_machine	= omap3_beagle_init,
++	.timer		= &omap_timer,
++MACHINE_END
