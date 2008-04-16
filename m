@@ -1,109 +1,39 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 1/1] ARM: OMAP: CLKFW: Initial sysfs support for omap clock framework
-Date: Wed, 16 Apr 2008 09:58:17 -0700
-Message-ID: <200804160958.17439.david-b@pacbell.net>
-References: <1208335478-19816-1-git-send-email-Hiroshi.DOYU@nokia.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: OMAP3 DSPBridge GIT tree?
+Date: Wed, 16 Apr 2008 23:37:14 +0530
+Message-ID: <5d5443650804161107h1281c2b1s82af7dc1d89eaee6@mail.gmail.com>
+References: <5d5443650804160200x7ee21beck97b754b4cada965e@mail.gmail.com>
+	 <EBA93F3E4CB46947A4C5275F6308CF3E026F8271@dlee15.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:35146 "HELO
-	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755238AbYDPQ6T (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Apr 2008 12:58:19 -0400
-In-Reply-To: <1208335478-19816-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Received: from nf-out-0910.google.com ([64.233.182.187]:6545 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751007AbYDPSHS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Apr 2008 14:07:18 -0400
+Received: by nf-out-0910.google.com with SMTP id g13so767730nfb.21
+        for <linux-omap@vger.kernel.org>; Wed, 16 Apr 2008 11:07:14 -0700 (PDT)
+In-Reply-To: <EBA93F3E4CB46947A4C5275F6308CF3E026F8271@dlee15.ent.ti.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: "Pasam, Vijay" <vpasam@ti.com>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, linux-omap@vger.kernel.org
 
-On Wednesday 16 April 2008, Hiroshi DOYU wrote:
-> =A0 =A0 =A0 =A0 omap:~# tree -d /sys/kernel/clock/omap_32k_fck/
-> =A0 =A0 =A0 =A0 /sys/kernel/clock/omap_32k_fck/
-> =A0 =A0 =A0 =A0 |-- gpt10_fck
-> =A0 =A0 =A0 =A0 |-- gpt11_fck
-> =A0 =A0 =A0 =A0 |-- gpt1_fck
-> =A0 =A0 =A0 =A0 |-- per_32k_alwon_fck
-> =A0 =A0 =A0 =A0 | =A0 |-- gpio3_fck
-> =A0 =A0 =A0 =A0 | =A0 |-- gpio4_fck
-> =A0 =A0 =A0 =A0 | =A0 |-- gpio5_fck
-> =A0 =A0 =A0 =A0 | =A0 `-- gpio6_fck
-> =A0 =A0 =A0 =A0 |-- ts_fck
-> =A0 =A0 =A0 =A0 `-- wkup_32k_fck
-> =A0 =A0 =A0 =A0 =A0 =A0 `-- gpio1_fck
->=20
-> =A0 =A0 =A0 =A0 11 directories
->=20
-> =A0 =A0 =A0 =A0 omap:~# tree /sys/kernel/clock/omap_32k_fck/gpt10_fck
-> =A0 =A0 =A0 =A0 /sys/kernel/clock/omap_32k_fck/gpt10_fck
-> =A0 =A0 =A0 =A0 |-- flags
-> =A0 =A0 =A0 =A0 |-- rate
-> =A0 =A0 =A0 =A0 `-- usecount
+Hi Vijay,
 
-Does this need to be in sysfs?  I'd think debugfs would be
-more appropriate ... that information isn't needed for normal
-operation.
+On Wed, Apr 16, 2008 at 6:11 PM, Pasam, Vijay <vpasam@ti.com> wrote:
+> Hi Trilok:
+>
+>  We are internally working on moving the source code to GIT tree. We are
+>  investigating various options in this regard. I will let you know more
+>  details as we conclude on various options.
+>
 
-Appended is a small patch I've been carrying around.  This
-doesn't move the clocks info from procfs to debugfs, but
-that'd be an easy patch.  (Probably needs minor updates given
-the recent clocktree changes, but it still applies.  The
-coupling to the device tree is a bit weak, and I'd think
-displaying power domains would be useful too.)
+Thanks for the update. It will be easier to review code then and will
+get more visibility on development of TI dspbridge further.
 
-- Dave
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D CUT HERE
-Make /proc/omap_clocks show the clock hierarchy through indentation,
-and the ids for devices (like i2c and spi; but oddly not uart, gpt,
-mcbsp, or wdt) with multiple instances.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
- arch/arm/plat-omap/clock.c |   23 ++++++++++++++++++++---
- 1 file changed, 20 insertions(+), 3 deletions(-)
-
---- a/arch/arm/plat-omap/clock.c	2007-11-23 18:29:46.000000000 -0800
-+++ b/arch/arm/plat-omap/clock.c	2007-11-23 18:45:44.000000000 -0800
-@@ -465,13 +465,30 @@ static void omap_ck_stop(struct seq_file
- {
- }
-=20
--int omap_ck_show(struct seq_file *m, void *v)
-+/* show clock hierarchy */
-+static void omap_cktree_show(struct seq_file *m, unsigned n, struct cl=
-k *p)
- {
- 	struct clk *cp;
-=20
--	list_for_each_entry(cp, &clocks, node)
--		seq_printf(m,"%s %ld %d\n", cp->name, cp->rate, cp->usecount);
-+	if (p) {
-+		seq_printf(m, "%*s%-*s %9ld Hz, use %2d",
-+			n, "", 30 - n, p->name,
-+			p->rate, p->usecount);
-+		if (p->id)
-+			seq_printf(m, " (id %d)", p->id);
-+		seq_printf(m, "\n");
-+		n +=3D 2;
-+	}
-=20
-+	list_for_each_entry(cp, &clocks, node) {
-+		if (cp->parent =3D=3D p)
-+			omap_cktree_show(m, n, cp);
-+	}
-+}
-+
-+static int omap_ck_show(struct seq_file *m, void *v)
-+{
-+	omap_cktree_show(m, 0, NULL);
- 	return 0;
- }
-=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
