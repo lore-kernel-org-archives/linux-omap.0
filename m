@@ -1,15 +1,15 @@
 From: "Syed Mohammed, Khasim" <khasim@ti.com>
-Subject: [PATCH 5/9] Adding board header file for OMAP3 EVM
-Date: Wed, 16 Apr 2008 18:06:16 +0530
-Message-ID: <7EAD1AEEA7621C45899FE99123E124A0018C8A83@dbde01.ent.ti.com>
+Subject: [PATCH 6/9] Updated Kconfig and Makefile to add Beagle Board support
+Date: Wed, 16 Apr 2008 18:07:18 +0530
+Message-ID: <7EAD1AEEA7621C45899FE99123E124A0018C8A84@dbde01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:35468 "EHLO calf.ext.ti.com"
+Received: from calf.ext.ti.com ([198.47.26.144]:35506 "EHLO calf.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750874AbYDPMgY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Apr 2008 08:36:24 -0400
+	id S1755535AbYDPMh2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Apr 2008 08:37:28 -0400
 Content-class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -17,84 +17,36 @@ To: linux-omap@vger.kernel.org
 Cc: discussion@beagleboard.org
 
 
-Added new board header file for OMAP3 EVM
+Updated Kconfig and Makefile to add OMAP3 Beagle Board
 
 Signed-off-by: Syed Mohammed Khasim <khasim@ti.com>
 ---
- include/asm-arm/arch-omap/board-omap3evm.h |   53 +++++++++++++++++++++++++++++
- include/asm-arm/arch-omap/hardware.h       |    4 ++
- 2 files changed, 57 insertions(+)
+ arch/arm/mach-omap2/Kconfig  |    4 ++++
+ arch/arm/mach-omap2/Makefile |    1 +
+ 2 files changed, 5 insertions(+)
 
-Index: my_branch/include/asm-arm/arch-omap/hardware.h
+Index: my_branch/arch/arm/mach-omap2/Kconfig
 ===================================================================
---- my_branch.orig/include/asm-arm/arch-omap/hardware.h	2008-04-16 14:39:51.000000000 +0530
-+++ my_branch/include/asm-arm/arch-omap/hardware.h	2008-04-16 14:44:09.000000000 +0530
-@@ -335,6 +335,10 @@
- #include "board-3430sdp.h"
- #endif
- 
-+#ifdef CONFIG_MACH_OMAP3EVM
-+#include "board-omap3evm.h"
-+#endif
+--- my_branch.orig/arch/arm/mach-omap2/Kconfig	2008-04-16 14:41:28.000000000 +0530
++++ my_branch/arch/arm/mach-omap2/Kconfig	2008-04-16 14:45:38.000000000 +0530
+@@ -109,3 +109,7 @@
+ config MACH_OMAP3EVM
+ 	bool "OMAP 3530 EVM board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
 +
- #ifdef CONFIG_MACH_OMAP_APOLLON
- #include "board-apollon.h"
- #endif
-Index: my_branch/include/asm-arm/arch-omap/board-omap3evm.h
++config MACH_OMAP3_BEAGLE
++	bool "OMAP3 BEAGLE board"
++	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+
+Index: my_branch/arch/arm/mach-omap2/Makefile
 ===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ my_branch/include/asm-arm/arch-omap/board-omap3evm.h	2008-04-16 14:44:09.000000000 +0530
-@@ -0,0 +1,53 @@
-+/*
-+ * linux/include/asm-arm/arch-omap/board-omap3evm.h
-+ *
-+ * Hardware definitions for TI OMAP3 EVM.
-+ *
-+ * Initial creation by Syed Mohammed Khasim <khasim@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#ifndef __ASM_ARCH_OMAP3_EVM_H
-+#define __ASM_ARCH_OMAP3_EVM_H
-+
-+#ifdef CONFIG_TWL4030_CORE
-+
-+#define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
-+
-+/* TWL4030 Primary Interrupt Handler (PIH) interrupts */
-+#define	IH_TWL4030_BASE		IH_BOARD_BASE
-+#define	IH_TWL4030_END		(IH_TWL4030_BASE+8)
-+#define IH_TWL4030_PWRBASE	(IH_TWL4030_END)
-+#define IH_TWL4030_PWRBASE_END	(IH_TWL4030_PWRBASE+8)
-+
-+#ifdef CONFIG_TWL4030_GPIO
-+/* TWL4030 GPIO Interrupts */
-+#define IH_TWL4030_GPIO_BASE	(IH_TWL4030_PWRBASE_END)
-+#define IH_TWL4030_GPIO_END	(IH_TWL4030_GPIO_BASE+18)
-+#define NR_IRQS			(IH_TWL4030_GPIO_END)
-+#else
-+#define NR_IRQS			(IH_TWL4030_PWRBASE_END)
-+#endif /* CONFIG_I2C_TWL4030_GPIO */
-+
-+#endif /* End of support for TWL4030 */
-+#endif /*  __ASM_ARCH_OMAP3_EVM_H */
-+
+--- my_branch.orig/arch/arm/mach-omap2/Makefile	2008-04-16 14:41:28.000000000 +0530
++++ my_branch/arch/arm/mach-omap2/Makefile	2008-04-16 14:45:38.000000000 +0530
+@@ -35,6 +35,7 @@
+ 					   board-3430sdp-usb.o \
+ 					   board-3430sdp-flash.o
+ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
++obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o
+ obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
+ 					   board-apollon-mmc.o	\
+ 					   board-apollon-keys.o
