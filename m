@@ -1,68 +1,72 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/9] Updated Kconfig and Makefile to add OMAP3 EVM Board
-Date: Wed, 16 Apr 2008 14:06:53 -0700
-Message-ID: <20080416210652.GI17055@atomide.com>
-References: <7EAD1AEEA7621C45899FE99123E124A0018C8A6C@dbde01.ent.ti.com>
+Subject: Re: omap2/pm.c build errors
+Date: Wed, 16 Apr 2008 14:12:01 -0700
+Message-ID: <20080416211200.GJ17055@atomide.com>
+References: <200804161150.20609.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55337 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753539AbYDPVGy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Apr 2008 17:06:54 -0400
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:58635 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754553AbYDPVME (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Apr 2008 17:12:04 -0400
 Content-Disposition: inline
-In-Reply-To: <7EAD1AEEA7621C45899FE99123E124A0018C8A6C@dbde01.ent.ti.com>
+In-Reply-To: <200804161150.20609.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Syed Mohammed, Khasim" <khasim@ti.com>
-Cc: linux-omap@vger.kernel.org, discussion@beagleboard.org
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-omap@vger.kernel.org
 
-* Syed Mohammed, Khasim <khasim@ti.com> [080416 05:05]:
+* David Brownell <david-b@pacbell.net> [080416 11:51]:
+> arch/arm/mach-omap2/pm.c: In function 'pm_init_serial_console':
+> arch/arm/mach-omap2/pm.c:188: error: expected ';' before 'break'
+> arch/arm/mach-omap2/pm.c:191: error: expected ';' before 'break'
+> arch/arm/mach-omap2/pm.c:193: error: 'PM_WKEN2' undeclared (first use in this function)
+> arch/arm/mach-omap2/pm.c:193: error: (Each undeclared identifier is reported only once
+> arch/arm/mach-omap2/pm.c:193: error: for each function it appears in.)
+> arch/arm/mach-omap2/pm.c:194: error: expected ';' before 'break'
 > 
-> Updated Kconfig and Makefile to add OMAP3 EVM Board
+> 
+> ... wasn't there a patch for this?  That's with current GIT.
 
-Can you please repost the patches one more time grouped
-in following patches:
+Hmmm, I don't think so.
 
-1. Add support for omap3 evm (Patches 2, 3, 5)
-2. Add default config for omap3 evm (Patch 4)
-3. Add support for omap3 beagle (Patches 6, 7, 8)
-4. Add default config for omap3 beagle (Patch 9)
+> The "no semicolons after function calls" fix is obvious (and
+> is also a "that patch was never build-tested), but WKEN2 is
+> not quite clear (but see my guess below).
 
-Thanks,
+Heh, this looks easy to miss as it's behind CONFIG_PM_DEBUG :)
+
+FYI, the PM code will be split to common pm.c and pm24xx.c and
+pm34xx.c most likely. Then all the serial PM debug code will get
+moved to serial driver.
+
+Care to S-o-b: this patch?
 
 Tony
 
-> Signed-off-by: Syed Mohammed Khasim <khasim@ti.com>
-> ---
->  arch/arm/mach-omap2/Kconfig  |    3 +++
->  arch/arm/mach-omap2/Makefile |    1 +
->  2 files changed, 4 insertions(+)
 > 
-> Index: my_branch/arch/arm/mach-omap2/Makefile
-> ===================================================================
-> --- my_branch.orig/arch/arm/mach-omap2/Makefile	2008-04-16 14:39:51.000000000 +0530
-> +++ my_branch/arch/arm/mach-omap2/Makefile	2008-04-16 14:41:28.000000000 +0530
-> @@ -34,6 +34,7 @@
->  					   board-sdp-hsmmc.o \
->  					   board-3430sdp-usb.o \
->  					   board-3430sdp-flash.o
-> +obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
->  obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
->  					   board-apollon-mmc.o	\
->  					   board-apollon-keys.o
 > 
-> Index: my_branch/arch/arm/mach-omap2/Kconfig
-> ===================================================================
-> --- my_branch.orig/arch/arm/mach-omap2/Kconfig	2008-04-16 14:40:02.000000000 +0530
-> +++ my_branch/arch/arm/mach-omap2/Kconfig	2008-04-16 14:41:28.000000000 +0530
-> @@ -106,3 +106,6 @@
->  	bool "OMAP 3430 SDP board"
->  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
->  
-> +config MACH_OMAP3EVM
-> +	bool "OMAP 3530 EVM board"
-> +	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -184,13 +184,13 @@ static void pm_init_serial_console(void)
+>  	}
+>  	switch (serial_console_uart) {
+>  	case 1:
+> -		prm_set_mod_reg_bits(OMAP24XX_ST_UART1, CORE_MOD, PM_WKEN1)
+> +		prm_set_mod_reg_bits(OMAP24XX_ST_UART1, CORE_MOD, PM_WKEN1);
+>  		break;
+>  	case 2:
+> -		prm_set_mod_reg_bits(OMAP24XX_ST_UART2, CORE_MOD, PM_WKEN1)
+> +		prm_set_mod_reg_bits(OMAP24XX_ST_UART2, CORE_MOD, PM_WKEN1);
+>  		break;
+>  	case 3:
+> -		prm_set_mod_reg_bits(OMAP24XX_ST_UART3, CORE_MOD, PM_WKEN2)
+> +		prm_set_mod_reg_bits(OMAP24XX_ST_UART3, CORE_MOD, OMAP24XX_PM_WKEN2);
+>  		break;
+>  	}
+>  }
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
