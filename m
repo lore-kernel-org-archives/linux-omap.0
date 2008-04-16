@@ -1,1156 +1,877 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/5] Powerdomains: add base OMAP2/3 powerdomain code
-Date: Wed, 16 Apr 2008 14:31:53 -0700
-Message-ID: <20080416213153.GL17055@atomide.com>
-References: <20080410144624.246788469@pwsan.com> <20080410153343.932983978@pwsan.com>
+Subject: Re: [PATCH 1/4] Clockdomains: add base OMAP2/3 clockdomain code
+Date: Wed, 16 Apr 2008 14:39:45 -0700
+Message-ID: <20080416213932.GM17055@atomide.com>
+References: <20080410162532.097381890@pwsan.com> <20080410163625.918449834@pwsan.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63171 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751146AbYDPVb4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Apr 2008 17:31:56 -0400
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:64739 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932901AbYDPVjs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Apr 2008 17:39:48 -0400
 Content-Disposition: inline
-In-Reply-To: <20080410153343.932983978@pwsan.com>
+In-Reply-To: <20080410163625.918449834@pwsan.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [080410 10:16]:
-> This patch adds an interface to the powerdomain registers in the
-> PRM/CM modules on OMAP2/3.  This interface is intended to be used by 
+* Paul Walmsley <paul@pwsan.com> [080410 10:18]:
+> This patch adds an interface to the clockdomain registers in the
+> PRM/CM modules on OMAP2/3.  This interface is intended to be used by
 > PM code, e.g., pm.c; not by device drivers directly.
-> 
-> Each powerdomain will be defined in later patches as static
-> structures.  Also definable are dependencies between powerdomains,
-> used for adding and removing PM_WKDEP and CM_SLEEPDEP bits.  The
-> powerdomain structures are linked into a list at boot by
-> pwrdm_register(), similar to the OMAP clock code.
-> 
-> The patch adds a Kconfig option, CONFIG_OMAP_DEBUG_POWERDOMAIN, which 
+>=20
+> The patch also adds clockdomain usecount tracking.  This is intended
+> to be called whenever the first clock in a clockdomain is enabled, or
+> when the last enabled clock in a clockdomain is disabled.  If the
+> clockdomain is in software-supervised mode, the code will force-wakeu=
+p
+> or force-sleep the clockdomain.  If the clockdomain is in
+> hardware-supervised mode, the first clock enable will add sleep and
+> wakeup dependencies on a user-selectable set of parent domains (usual=
+ly
+> MPU & IVA2), and the disable will remove them.
+>=20
+> Each clockdomain will be defined in later patches as static
+> structures.  The clockdomain structures are linked into a list at boo=
+t
+> by clkdm_register(), similar to the OMAP clock code.
+>=20
+> The patch adds a Kconfig option, CONFIG_OMAP_DEBUG_CLOCKDOMAIN, which
 > when enabled will emit verbose debug messages via pr_debug().
-> 
+>=20
 > Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> 
+>=20
 > ---
->  arch/arm/mach-omap2/Makefile            |    2 
->  arch/arm/mach-omap2/io.c                |    3 
->  arch/arm/mach-omap2/powerdomain.c       |  884 ++++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/Kconfig              |   12 
->  include/asm-arm/arch-omap/powerdomain.h |  137 ++++
->  5 files changed, 1037 insertions(+), 1 deletion(-)
-> 
+>  arch/arm/mach-omap2/Makefile            |    3=20
+>  arch/arm/mach-omap2/clockdomain.c       |  579 +++++++++++++++++++++=
++++++++++++
+>  arch/arm/plat-omap/Kconfig              |   12=20
+>  include/asm-arm/arch-omap/clockdomain.h |  105 +++++
+>  4 files changed, 698 insertions(+), 1 deletion(-)
+>=20
 > Index: linux-omap/arch/arm/mach-omap2/Makefile
-> ===================================================================
-> --- linux-omap.orig/arch/arm/mach-omap2/Makefile	2008-04-10 08:00:56.000000000 -0600
-> +++ linux-omap/arch/arm/mach-omap2/Makefile	2008-04-10 08:00:58.000000000 -0600
-> @@ -4,7 +4,7 @@
->  
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-omap.orig/arch/arm/mach-omap2/Makefile	2008-04-10 08:00:58.=
+000000000 -0600
+> +++ linux-omap/arch/arm/mach-omap2/Makefile	2008-04-10 08:01:12.00000=
+0000 -0600
+> @@ -4,7 +4,8 @@
+> =20
 >  # Common support
->  obj-y := irq.o id.o io.o memory.o control.o prcm.o clock.o mux.o \
-> -		devices.o serial.o gpmc.o timer-gp.o
-> +		devices.o serial.o gpmc.o timer-gp.o powerdomain.o
->  
+>  obj-y :=3D irq.o id.o io.o memory.o control.o prcm.o clock.o mux.o \
+> -		devices.o serial.o gpmc.o timer-gp.o powerdomain.o
+> +		devices.o serial.o gpmc.o timer-gp.o powerdomain.o \
+> +		clockdomain.o
+> =20
 >  # Functions loaded to SRAM
->  obj-$(CONFIG_ARCH_OMAP2)		+= sram24xx.o
-> Index: linux-omap/arch/arm/mach-omap2/io.c
-> ===================================================================
-> --- linux-omap.orig/arch/arm/mach-omap2/io.c	2008-04-10 08:00:56.000000000 -0600
-> +++ linux-omap/arch/arm/mach-omap2/io.c	2008-04-10 08:00:58.000000000 -0600
-> @@ -27,6 +27,8 @@
->  #include <asm/arch/mux.h>
->  #include <asm/arch/omapfb.h>
->  
-> +#include <asm/arch/powerdomain.h>
-> +
->  extern void omap_sram_init(void);
->  extern int omap2_clk_init(void);
->  extern void omap2_check_revision(void);
-> @@ -188,6 +190,7 @@
->  void __init omap2_init_common_hw(void)
->  {
->  	omap2_mux_init();
-> +	pwrdm_init(NULL);
->  	omap2_clk_init();
->  	omap2_init_memory();
->  	gpmc_init();
-
-The pwrdm_init() above does not do anything, is the plan to make it do
-something later on?
-
-
-> Index: linux-omap/arch/arm/mach-omap2/powerdomain.c
-> ===================================================================
+>  obj-$(CONFIG_ARCH_OMAP2)		+=3D sram24xx.o
+> Index: linux-omap/arch/arm/mach-omap2/clockdomain.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 > --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-> +++ linux-omap/arch/arm/mach-omap2/powerdomain.c	2008-04-10 08:01:08.000000000 -0600
-> @@ -0,0 +1,884 @@
+> +++ linux-omap/arch/arm/mach-omap2/clockdomain.c	2008-04-10 08:04:34.=
+000000000 -0600
+> @@ -0,0 +1,579 @@
 > +/*
-> + * OMAP powerdomain control
+> + * OMAP2/3 clockdomain framework functions
 > + *
-> + * Copyright (C) 2007-2008 Texas Instruments, Inc.
-> + * Copyright (C) 2007-2008 Nokia Corporation
+> + * Copyright (C) 2008 Texas Instruments, Inc.
+> + * Copyright (C) 2008 Nokia Corporation
 > + *
-> + * Written by Paul Walmsley
+> + * Written by Paul Walmsley and Jouni H=F6gander
 > + *
-> + * This program is free software; you can redistribute it and/or modify
+> + * This program is free software; you can redistribute it and/or mod=
+ify
 > + * it under the terms of the GNU General Public License version 2 as
 > + * published by the Free Software Foundation.
 > + */
-> +#ifdef CONFIG_OMAP_DEBUG_POWERDOMAIN
-> +# define DEBUG
+> +#ifdef CONFIG_OMAP_DEBUG_CLOCKDOMAIN
+> +#  define DEBUG
 > +#endif
 > +
-> +#include <linux/kernel.h>
 > +#include <linux/module.h>
-> +#include <linux/types.h>
-> +#include <linux/delay.h>
-> +#include <linux/mutex.h>
+> +#include <linux/kernel.h>
+> +#include <linux/device.h>
 > +#include <linux/list.h>
 > +#include <linux/errno.h>
-> +#include <linux/err.h>
+> +#include <linux/delay.h>
+> +#include <linux/clk.h>
+> +#include <linux/limits.h>
 > +
-> +#include <asm/atomic.h>
+> +#include <linux/io.h>
 > +
-> +#include "cm.h"
-> +#include "cm-regbits-34xx.h"
+> +#include <linux/bitops.h>
+> +
+> +#include <asm/arch/clock.h>
+> +
 > +#include "prm.h"
-> +#include "prm-regbits-34xx.h"
+> +#include "prm-regbits-24xx.h"
+> +#include "cm.h"
 > +
-> +#include <asm/arch/cpu.h>
 > +#include <asm/arch/powerdomain.h>
+> +#include <asm/arch/clockdomain.h>
 > +
-> +/* pwrdm_list contains all registered struct powerdomains */
-> +static LIST_HEAD(pwrdm_list);
+> +/* clkdm_list contains all registered struct clockdomains */
+> +static LIST_HEAD(clkdm_list);
 > +
-> +/* pwrdm_mutex protects pwrdm_list add and del ops */
-> +static DEFINE_MUTEX(pwrdm_mutex);
+> +/* clkdm_mutex protects clkdm_list add and del ops */
+> +static DEFINE_MUTEX(clkdm_mutex);
+> +
+> +/* array of powerdomain deps to be added/removed when clkdm in hwsup=
+ mode */
+> +static struct clkdm_pwrdm_autodep *autodeps;
+> +
 > +
 > +/* Private functions */
 > +
-> +static u32 __attribute__((unused)) prm_read_mod_bits_shift(s16 domain, s16 idx, u32 mask)
+> +/*
+> + * _autodep_lookup - resolve autodep pwrdm names to pwrdm pointers; =
+store
+> + * @autodep: struct clkdm_pwrdm_autodep * to resolve
+> + *
+> + * Resolve autodep powerdomain names to powerdomain pointers via
+> + * pwrdm_lookup() and store the pointers in the autodep structure.  =
+An
+> + * "autodep" is a powerdomain sleep/wakeup dependency that is
+> + * automatically added and removed whenever clocks in the associated
+> + * clockdomain are enabled or disabled (respectively) when the
+> + * clockdomain is in hardware-supervised mode.	Meant to be called
+> + * once at clockdomain layer initialization, since these should rema=
+in
+> + * fixed for a particular architecture.	 No return value.
+> + */
+
+=46ew tabs in the comments above.
+
+
+> +static void _autodep_lookup(struct clkdm_pwrdm_autodep *autodep)
 > +{
-> +	u32 v;
+> +	struct powerdomain *pwrdm;
 > +
-> +	v = prm_read_mod_reg(domain, idx);
-> +	v &= mask;
-> +	v >>= __ffs(mask);
+> +	if (!autodep)
+> +		return;
 > +
-> +	return v;
+> +	if (!omap_chip_is(autodep->omap_chip))
+> +		return;
+> +
+> +	pwrdm =3D pwrdm_lookup(autodep->pwrdm_name);
+> +	if (!pwrdm) {
+> +		pr_debug("clockdomain: _autodep_lookup: powerdomain %s "
+> +			 "does not exist\n", autodep->pwrdm_name);
+> +		WARN_ON(1);
+> +		return;
+> +	}
+> +	autodep->pwrdm =3D pwrdm;
+> +
+> +	return;
 > +}
 > +
-> +/* _pwrdm_deps_lookup - look up the specified powerdomain in a pwrdm list */
-> +static struct powerdomain *_pwrdm_deps_lookup(struct powerdomain *pwrdm,
-> +					      const struct pwrdm_dep *deps)
+> +/*
+> + * _clkdm_add_autodeps - add auto sleepdeps/wkdeps to clkdm upon clo=
+ck enable
+> + * @clkdm: struct clockdomain *
+> + *
+> + * Add the "autodep" sleep & wakeup dependencies to clockdomain 'clk=
+dm'
+> + * in hardware-supervised mode.	 Meant to be called from clock frame=
+work
+> + * when a clock inside clockdomain 'clkdm' is enabled.	No return val=
+ue.
+> + */
+
+Tabs here too.
+
+
+> +static void _clkdm_add_autodeps(struct clockdomain *clkdm)
 > +{
-> +	const struct pwrdm_dep *pd;
+> +	struct clkdm_pwrdm_autodep *autodep;
 > +
-> +	if (!pwrdm || !deps || !omap_chip_is(pwrdm->omap_chip))
-> +		return ERR_PTR(-EINVAL);
+> +	for (autodep =3D autodeps; autodep->pwrdm_name; autodep++) {
+> +		if (!autodep->pwrdm)
+> +			continue;
 > +
-> +	for (pd = deps; pd; pd++)
-> +		if (pd->pwrdm == pwrdm && omap_chip_is(pd->omap_chip))
-> +			break;
+> +		pr_debug("clockdomain: adding %s sleepdep/wkdep for "
+> +			 "pwrdm %s\n", autodep->pwrdm_name,
+> +			 clkdm->pwrdm->name);
 > +
-> +	if (!pd)
-> +		return ERR_PTR(-ENOENT);
-> +
-> +	return pd->pwrdm;
+> +		pwrdm_add_sleepdep(clkdm->pwrdm, autodep->pwrdm);
+> +		pwrdm_add_wkdep(clkdm->pwrdm, autodep->pwrdm);
+> +	}
 > +}
 > +
+> +/*
+> + * _clkdm_add_autodeps - remove auto sleepdeps/wkdeps from clkdm
+> + * @clkdm: struct clockdomain *
+> + *
+> + * Remove the "autodep" sleep & wakeup dependencies from clockdomain=
+ 'clkdm'
+> + * in hardware-supervised mode.	 Meant to be called from clock frame=
+work
+> + * when a clock inside clockdomain 'clkdm' is disabled.	 No return v=
+alue.
+> + */
+
+Tabs here too, might be worth checking all the comments for tabs :)
+
+
+> +static void _clkdm_del_autodeps(struct clockdomain *clkdm)
+> +{
+> +	struct clkdm_pwrdm_autodep *autodep;
+> +
+> +	for (autodep =3D autodeps; autodep->pwrdm_name; autodep++) {
+> +		if (!autodep->pwrdm)
+> +			continue;
+> +
+> +		pr_debug("clockdomain: removing %s sleepdep/wkdep for "
+> +			 "pwrdm %s\n", autodep->pwrdm_name,
+> +			 clkdm->pwrdm->name);
+> +
+> +		pwrdm_del_sleepdep(clkdm->pwrdm, autodep->pwrdm);
+> +		pwrdm_del_wkdep(clkdm->pwrdm, autodep->pwrdm);
+> +	}
+> +}
 > +
 > +/* Public functions */
 > +
 > +/**
-> + * pwrdm_init - set up the powerdomain layer
+> + * clkdm_init - set up the clockdomain layer
+> + * @clkdms: optional pointer to an array of clockdomains to register
+> + * @init_autodeps: optional pointer to an array of autodeps to regis=
+ter
 > + *
-> + *  * Loop through the list of powerdomains, registering all that are
-> + * available on the current CPU. If pwrdm_list is supplied and not
-> + * null, all of the referenced powerdomains will be registered.	 No
-> + * return value.
+> + * Set up internal state.  If a pointer to an array of clockdomains
+> + * was supplied, loop through the list of clockdomains, register all
+> + * that are available on the current platform.	Similarly, if a
+> + * pointer to an array of clockdomain-powerdomain autodependencies w=
+as
+> + * provided, register those.  No return value.
 > + */
-
-There seems to be a tab befoe No above.
-
-
-> +void pwrdm_init(struct powerdomain **pwrdm_list)
+> +void clkdm_init(struct clockdomain **clkdms, struct clkdm_pwrdm_auto=
+dep *init_autodeps)
 > +{
-> +	struct powerdomain **p = NULL;
+> +	struct clockdomain **c =3D NULL;
+> +	struct clkdm_pwrdm_autodep *autodep =3D NULL;
 > +
-> +	if (pwrdm_list)
-> +		for (p = pwrdm_list; *p; p++)
-> +			pwrdm_register(*p);
+> +	if (clkdms)
+> +		for (c =3D clkdms; *c; c++)
+> +			clkdm_register(*c);
+> +
+> +	autodeps =3D init_autodeps;
+> +	if (autodeps)
+> +		for (autodep =3D autodeps; autodep->pwrdm_name; autodep++)
+> +			_autodep_lookup(autodep);
 > +}
 > +
-> +
 > +/**
-> + * pwrdm_register - register a powerdomain
-> + * @pwrdm: struct powerdomain * to register
+> + * clkdm_register - register a clockdomain
+> + * @clkdm: struct clockdomain * to register
 > + *
-> + * Adds a powerdomain to the internal powerdomain list.	 Returns
-> + * -EINVAL if given a null pointer, -EEXIST if a powerdomain is
+> + * Adds a clockdomain to the internal clockdomain list.
+> + * Returns -EINVAL if given a null pointer, -EEXIST if a clockdomain=
+ is
 > + * already registered by the provided name, or 0 upon success.
 > + */
-> +int pwrdm_register(struct powerdomain *pwrdm)
+> +int clkdm_register(struct clockdomain *clkdm)
 > +{
-> +	if (!pwrdm)
+> +	struct powerdomain *pwrdm;
+> +
+> +	if (!clkdm || !clkdm->name)
 > +		return -EINVAL;
 > +
-> +	if (!omap_chip_is(pwrdm->omap_chip))
+> +	if (!omap_chip_is(clkdm->omap_chip))
 > +		return -EINVAL;
 > +
-> +	/* Verify that the powerdomain is not already registered */
-> +	if (pwrdm_lookup(pwrdm->name))
+> +	/* Verify that the clockdomain is not already registered */
+> +	if (clkdm_lookup(clkdm->name))
 > +		return -EEXIST;
 > +
-> +	mutex_lock(&pwrdm_mutex);
-> +	list_add(&pwrdm->node, &pwrdm_list);
-> +	mutex_unlock(&pwrdm_mutex);
+> +	pwrdm =3D pwrdm_lookup(clkdm->pwrdm_name);
+> +	if (!pwrdm) {
+> +		pr_debug("clockdomain: clkdm_register %s: powerdomain %s "
+> +			 "does not exist\n", clkdm->name, clkdm->pwrdm_name);
+> +		return -EINVAL;
+> +	}
+> +	clkdm->pwrdm =3D pwrdm;
 > +
-> +	pr_debug("powerdomain: registered %s\n", pwrdm->name);
+> +	mutex_lock(&clkdm_mutex);
+> +	list_add(&clkdm->node, &clkdm_list);
+> +	mutex_unlock(&clkdm_mutex);
+> +
+> +	pr_debug("clockdomain: registered %s\n", clkdm->name);
 > +
 > +	return 0;
 > +}
-> +EXPORT_SYMBOL(pwrdm_register);
+> +EXPORT_SYMBOL(clkdm_register);
 
-Maybe you should have unlocked _pwrdm_lookup() and mutex_locked()
-pwrdm_lookup() that calls _pwrdm_lookup(). Then mutex_lock() the
-lookup and addition of new chip in pwrdm_register()?
-
-Otherwise there's a slight chance that powerdomain gets added
-between pwrdm_lookup() and list_add().
+There might be the same chip added between clkdm_lookup and list_add
+here too.
 
 
 > +
 > +/**
-> + * pwrdm_unregister - unregister a powerdomain
-> + * @pwrdm: struct powerdomain * to unregister
+> + * clkdm_unregister - unregister a clockdomain
+> + * @clkdm: struct clockdomain * to unregister
 > + *
-> + * Removes a powerdomain from the internal powerdomain list.  Returns
-> + * -EINVAL if pwrdm argument is NULL.
+> + * Removes a clockdomain from the internal clockdomain list.  Return=
+s
+> + * -EINVAL if clkdm argument is NULL.
 > + */
-> +int pwrdm_unregister(struct powerdomain *pwrdm)
+> +int clkdm_unregister(struct clockdomain *clkdm)
 > +{
-> +	if (!pwrdm)
+> +	if (!clkdm)
 > +		return -EINVAL;
 > +
-> +	mutex_lock(&pwrdm_mutex);
-> +	list_del(&pwrdm->node);
-> +	mutex_unlock(&pwrdm_mutex);
+> +	mutex_lock(&clkdm_mutex);
+> +	list_del(&clkdm->node);
+> +	mutex_unlock(&clkdm_mutex);
 > +
-> +	pr_debug("powerdomain: unregistered %s\n", pwrdm->name);
+> +	pr_debug("clockdomain: unregistered %s\n", clkdm->name);
 > +
 > +	return 0;
 > +}
-> +EXPORT_SYMBOL(pwrdm_unregister);
+> +EXPORT_SYMBOL(clkdm_unregister);
 > +
 > +/**
-> + * pwrdm_lookup - look up a powerdomain by name, return a pointer
-> + * @name: name of powerdomain
+> + * clkdm_lookup - look up a clockdomain by name, return a pointer
+> + * @name: name of clockdomain
 > + *
-> + * Find a registered powerdomain by its name.  Returns a pointer to the
-> + * struct powerdomain if found, or NULL otherwise.
+> + * Find a registered clockdomain by its name.  Returns a pointer to =
+the
+> + * struct clockdomain if found, or NULL otherwise.
 > + */
-> +struct powerdomain *pwrdm_lookup(const char *name)
+> +struct clockdomain *clkdm_lookup(const char *name)
 > +{
-> +	struct powerdomain *pwrdm, *temp_pwrdm;
+> +	struct clockdomain *clkdm, *temp_clkdm;
 > +
 > +	if (!name)
 > +		return NULL;
 > +
-> +	pwrdm = NULL;
+> +	clkdm =3D NULL;
 > +
-> +	mutex_lock(&pwrdm_mutex);
-> +	list_for_each_entry(temp_pwrdm, &pwrdm_list, node) {
-> +		if (!strcmp(name, temp_pwrdm->name)) {
-> +			pwrdm = temp_pwrdm;
+> +	mutex_lock(&clkdm_mutex);
+> +	list_for_each_entry(temp_clkdm, &clkdm_list, node) {
+> +		if (!strcmp(name, temp_clkdm->name)) {
+> +			clkdm =3D temp_clkdm;
 > +			break;
 > +		}
 > +	}
-> +	mutex_unlock(&pwrdm_mutex);
+> +	mutex_unlock(&clkdm_mutex);
 > +
-> +	return pwrdm;
+> +	return clkdm;
 > +}
-> +EXPORT_SYMBOL(pwrdm_lookup);
+> +EXPORT_SYMBOL(clkdm_lookup);
 > +
 > +/**
-> + * pwrdm_for_each - call function on each registered clockdomain
+> + * clkdm_for_each - call function on each registered clockdomain
 > + * @fn: callback function *
 > + *
-> + * Call the supplied function for each registered powerdomain.
+> + * Call the supplied function for each registered clockdomain.
 > + * The callback function can return anything but 0 to bail
-> + * out early from the iterator.	 The callback function is called with
-> + * the pwrdm_mutex held, so no powerdomain structure manipulation
+> + * out early from the iterator.	 The callback function is called wit=
+h
+> + * the clkdm_mutex held, so no clockdomain structure manipulation
 > + * functions should be called from the callback, although hardware
-> + * powerdomain control functions are fine.  Returns the last return
+> + * clockdomain control functions are fine.  Returns the last return
 > + * value of the callback function, which should be 0 for success or
-> + * anything else to indicate failure; or -EINVAL if the function pointer
+> + * anything else to indicate failure; or -EINVAL if the function poi=
+nter
 > + * is null.
 > + */
-> +int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm))
+> +int clkdm_for_each(int (*fn)(struct clockdomain *clkdm))
 > +{
-> +	struct powerdomain *temp_pwrdm;
-> +	int ret = 0;
+> +	struct clockdomain *clkdm;
+> +	int ret =3D 0;
 > +
 > +	if (!fn)
 > +		return -EINVAL;
 > +
-> +	mutex_lock(&pwrdm_mutex);
-> +	list_for_each_entry(temp_pwrdm, &pwrdm_list, node) {
-> +		ret = (*fn)(temp_pwrdm);
+> +	mutex_lock(&clkdm_mutex);
+> +	list_for_each_entry(clkdm, &clkdm_list, node) {
+> +		ret =3D (*fn)(clkdm);
 > +		if (ret)
 > +			break;
 > +	}
-> +	mutex_unlock(&pwrdm_mutex);
+> +	mutex_unlock(&clkdm_mutex);
 > +
 > +	return ret;
 > +}
-> +EXPORT_SYMBOL(pwrdm_for_each);
+> +EXPORT_SYMBOL(clkdm_for_each);
+> +
+> +
+> +/* Hardware clockdomain control */
 > +
 > +/**
-> + * pwrdm_add_wkdep - add a wakeup dependency from pwrdm2 to pwrdm1
-> + * @pwrdm1: wake this struct powerdomain * up (dependent)
-> + * @pwrdm2: when this struct powerdomain * wakes up (source)
+> + * omap2_clkdm_clktrctrl_read - read the clkdm's current state trans=
+ition mode
+> + * @clk: struct clk * of a clockdomain
 > + *
-> + * When the powerdomain represented by pwrdm2 wakes up (due to an
-> + * interrupt), wake up pwrdm1.	Implemented in hardware on the OMAP,
-> + * this feature is designed to reduce wakeup latency of the dependent
-> + * powerdomain.	 Returns -EINVAL if presented with invalid powerdomain
-> + * pointers, -ENOENT if pwrdm2 cannot wake up pwrdm1 in hardware, or
-> + * 0 upon success.
+> + * Return the clockdomain's current state transition mode from the
+> + * corresponding domain CM_CLKSTCTRL register.	Returns -EINVAL if cl=
+k
+> + * is NULL or the current mode upon success.
 > + */
-> +int pwrdm_add_wkdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2)
+> +static int omap2_clkdm_clktrctrl_read(struct clockdomain *clkdm)
 > +{
-> +	struct powerdomain *p;
+> +	u32 v;
 > +
-> +	if (!pwrdm1)
+> +	if (!clkdm)
 > +		return -EINVAL;
 > +
-> +	p = _pwrdm_deps_lookup(pwrdm2, pwrdm1->wkdep_srcs);
-> +	if (IS_ERR(p)) {
-> +		pr_debug("powerdomain: hardware cannot set/clear wake up of "
-> +			 "%s when %s wakes up\n", pwrdm1->name, pwrdm2->name);
-> +		return IS_ERR(p);
-> +	}
+> +	v =3D cm_read_mod_reg(clkdm->pwrdm->prcm_offs, CM_CLKSTCTRL);
+> +	v &=3D clkdm->clktrctrl_mask;
+> +	v >>=3D __ffs(clkdm->clktrctrl_mask);
 > +
-> +	pr_debug("powerdomain: hardware will wake up %s when %s wakes up\n",
-> +		 pwrdm1->name, pwrdm2->name);
-> +
-> +	prm_set_mod_reg_bits((1 << pwrdm2->dep_bit),
-> +			     pwrdm1->prcm_offs, PM_WKDEP);
-> +
-> +	return 0;
+> +	return v;
 > +}
-> +EXPORT_SYMBOL(pwrdm_add_wkdep);
 > +
 > +/**
-> + * pwrdm_del_wkdep - remove a wakeup dependency from pwrdm2 to pwrdm1
-> + * @pwrdm1: wake this struct powerdomain * up (dependent)
-> + * @pwrdm2: when this struct powerdomain * wakes up (source)
+> + * omap2_clkdm_sleep - force clockdomain sleep transition
+> + * @clkdm: struct clockdomain *
 > + *
-> + * Remove a wakeup dependency that causes pwrdm1 to wake up when pwrdm2
-> + * wakes up.  Returns -EINVAL if presented with invalid powerdomain
-> + * pointers, -ENOENT if pwrdm2 cannot wake up pwrdm1 in hardware, or
-> + * 0 upon success.
-> + */
-> +int pwrdm_del_wkdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2)
-> +{
-> +	struct powerdomain *p;
-> +
-> +	if (!pwrdm1)
-> +		return -EINVAL;
-> +
-> +	p = _pwrdm_deps_lookup(pwrdm2, pwrdm1->wkdep_srcs);
-> +	if (IS_ERR(p)) {
-> +		pr_debug("powerdomain: hardware cannot set/clear wake up of "
-> +			 "%s when %s wakes up\n", pwrdm1->name, pwrdm2->name);
-> +		return IS_ERR(p);
-> +	}
-> +
-> +	pr_debug("powerdomain: hardware will no longer wake up %s after %s "
-> +		 "wakes up\n", pwrdm1->name, pwrdm2->name);
-> +
-> +	prm_clear_mod_reg_bits((1 << pwrdm2->dep_bit),
-> +			       pwrdm1->prcm_offs, PM_WKDEP);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(pwrdm_del_wkdep);
-> +
-> +/**
-> + * pwrdm_read_wkdep - read wakeup dependency state from pwrdm2 to pwrdm1
-> + * @pwrdm1: wake this struct powerdomain * up (dependent)
-> + * @pwrdm2: when this struct powerdomain * wakes up (source)
-> + *
-> + * Return 1 if a hardware wakeup dependency exists wherein pwrdm1 will be
-> + * awoken when pwrdm2 wakes up; 0 if dependency is not set; -EINVAL
-> + * if either powerdomain pointer is invalid; or -ENOENT if the hardware
-> + * is incapable.
-> + *
-> + * REVISIT: Currently this function only represents software-controllable
-> + * wakeup dependencies.	 Wakeup dependencies fixed in hardware are not
-> + * yet handled here.
-> + */
-> +int pwrdm_read_wkdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2)
-> +{
-> +	struct powerdomain *p;
-> +
-> +	if (!pwrdm1)
-> +		return -EINVAL;
-> +
-> +	p = _pwrdm_deps_lookup(pwrdm2, pwrdm1->wkdep_srcs);
-> +	if (IS_ERR(p)) {
-> +		pr_debug("powerdomain: hardware cannot set/clear wake up of "
-> +			 "%s when %s wakes up\n", pwrdm1->name, pwrdm2->name);
-> +		return IS_ERR(p);
-> +	}
-> +
-> +	return prm_read_mod_bits_shift(pwrdm1->prcm_offs, PM_WKDEP,
-> +					(1 << pwrdm2->dep_bit));
-> +}
-> +EXPORT_SYMBOL(pwrdm_read_wkdep);
-> +
-> +/**
-> + * pwrdm_add_sleepdep - add a sleep dependency from pwrdm2 to pwrdm1
-> + * @pwrdm1: prevent this struct powerdomain * from sleeping (dependent)
-> + * @pwrdm2: when this struct powerdomain * is active (source)
-> + *
-> + * Prevent pwrdm1 from automatically going inactive (and then to
-> + * retention or off) if pwrdm2 is still active.	 Returns -EINVAL if
-> + * presented with invalid powerdomain pointers or called on a machine
-> + * that does not support software-configurable hardware sleep dependencies,
-> + * -ENOENT if the specified dependency cannot be set in hardware, or
-> + * 0 upon success.
-> + */
-> +int pwrdm_add_sleepdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2)
-> +{
-> +	struct powerdomain *p;
-> +
-> +	if (!pwrdm1)
-> +		return -EINVAL;
-> +
-> +	if (!cpu_is_omap34xx())
-> +		return -EINVAL;
-> +
-> +	p = _pwrdm_deps_lookup(pwrdm2, pwrdm1->sleepdep_srcs);
-> +	if (IS_ERR(p)) {
-> +		pr_debug("powerdomain: hardware cannot set/clear sleep "
-> +			 "dependency affecting %s from %s\n", pwrdm1->name,
-> +			 pwrdm2->name);
-> +		return IS_ERR(p);
-> +	}
-> +
-> +	pr_debug("powerdomain: will prevent %s from sleeping if %s is active\n",
-> +		 pwrdm1->name, pwrdm2->name);
-> +
-> +	cm_set_mod_reg_bits((1 << pwrdm2->dep_bit),
-> +			    pwrdm1->prcm_offs, OMAP3430_CM_SLEEPDEP);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(pwrdm_add_sleepdep);
-> +
-> +/**
-> + * pwrdm_del_sleepdep - remove a sleep dependency from pwrdm2 to pwrdm1
-> + * @pwrdm1: prevent this struct powerdomain * from sleeping (dependent)
-> + * @pwrdm2: when this struct powerdomain * is active (source)
-> + *
-> + * Allow pwrdm1 to automatically go inactive (and then to retention or
-> + * off), independent of the activity state of pwrdm2.  Returns -EINVAL
-> + * if presented with invalid powerdomain pointers or called on a machine
-> + * that does not support software-configurable hardware sleep dependencies,
-> + * -ENOENT if the specified dependency cannot be cleared in hardware, or
-> + * 0 upon success.
-> + */
-> +int pwrdm_del_sleepdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2)
-> +{
-> +	struct powerdomain *p;
-> +
-> +	if (!pwrdm1)
-> +		return -EINVAL;
-> +
-> +	if (!cpu_is_omap34xx())
-> +		return -EINVAL;
-> +
-> +	p = _pwrdm_deps_lookup(pwrdm2, pwrdm1->sleepdep_srcs);
-> +	if (IS_ERR(p)) {
-> +		pr_debug("powerdomain: hardware cannot set/clear sleep "
-> +			 "dependency affecting %s from %s\n", pwrdm1->name,
-> +			 pwrdm2->name);
-> +		return IS_ERR(p);
-> +	}
-> +
-> +	pr_debug("powerdomain: will no longer prevent %s from sleeping if "
-> +		 "%s is active\n", pwrdm1->name, pwrdm2->name);
-> +
-> +	cm_clear_mod_reg_bits((1 << pwrdm2->dep_bit),
-> +			      pwrdm1->prcm_offs, OMAP3430_CM_SLEEPDEP);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(pwrdm_del_sleepdep);
-> +
-> +/**
-> + * pwrdm_read_sleepdep - read sleep dependency state from pwrdm2 to pwrdm1
-> + * @pwrdm1: prevent this struct powerdomain * from sleeping (dependent)
-> + * @pwrdm2: when this struct powerdomain * is active (source)
-> + *
-> + * Return 1 if a hardware sleep dependency exists wherein pwrdm1 will
-> + * not be allowed to automatically go inactive if pwrdm2 is active;
-> + * 0 if pwrdm1's automatic power state inactivity transition is independent
-> + * of pwrdm2's; -EINVAL if either powerdomain pointer is invalid or called
-> + * on a machine that does not support software-configurable hardware sleep
-> + * dependencies; or -ENOENT if the hardware is incapable.
-> + *
-> + * REVISIT: Currently this function only represents software-controllable
-> + * sleep dependencies.	Sleep dependencies fixed in hardware are not
-> + * yet handled here.
-> + */
-> +int pwrdm_read_sleepdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2)
-> +{
-> +	struct powerdomain *p;
-> +
-> +	if (!pwrdm1)
-> +		return -EINVAL;
-> +
-> +	if (!cpu_is_omap34xx())
-> +		return -EINVAL;
-> +
-> +	p = _pwrdm_deps_lookup(pwrdm2, pwrdm1->sleepdep_srcs);
-> +	if (IS_ERR(p)) {
-> +		pr_debug("powerdomain: hardware cannot set/clear sleep "
-> +			 "dependency affecting %s from %s\n", pwrdm1->name,
-> +			 pwrdm2->name);
-> +		return IS_ERR(p);
-> +	}
-> +
-> +	return prm_read_mod_bits_shift(pwrdm1->prcm_offs, OMAP3430_CM_SLEEPDEP,
-> +					(1 << pwrdm2->dep_bit));
-> +}
-> +EXPORT_SYMBOL(pwrdm_read_sleepdep);
-> +
-> +
-> +/**
-> + * pwrdm_set_next_pwrst - set next powerdomain power state
-> + * @pwrdm: struct powerdomain * to set
-> + * @pwrst: one of the PWRDM_POWER_* macros
-> + *
-> + * Set the powerdomain pwrdm's next power state to pwrst.  The powerdomain
-> + * may not enter this state immediately if the preconditions for this state
-> + * have not been satisfied.  Returns -EINVAL if the powerdomain pointer is
-> + * null or if the power state is invalid for the powerdomin, or returns 0
-> + * upon success.
-> + */
-> +int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
-> +{
-> +	if (!pwrdm)
-> +		return -EINVAL;
-> +
-> +	if (!(pwrdm->pwrsts & (1 << pwrst)))
-> +		return -EINVAL;
-> +
-> +	pr_debug("powerdomain: setting next powerstate for %s to %0x\n",
-> +		 pwrdm->name, pwrst);
-> +
-> +	prm_rmw_mod_reg_bits(OMAP_POWERSTATE_MASK,
-> +			     (pwrst << OMAP_POWERSTATE_SHIFT),
-> +			     pwrdm->prcm_offs, PM_PWSTCTRL);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(pwrdm_set_next_pwrst);
-> +
-> +/**
-> + * pwrdm_read_next_pwrst - get next powerdomain power state
-> + * @pwrdm: struct powerdomain * to get power state
-> + *
-> + * Return the powerdomain pwrdm's next power state.  Returns -EINVAL
-> + * if the powerdomain pointer is null or returns the next power state
-> + * upon success.
-> + */
-> +int pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
-> +{
-> +	if (!pwrdm)
-> +		return -EINVAL;
-> +
-> +	return prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTCTRL,
-> +					OMAP_POWERSTATE_MASK);
-> +}
-> +EXPORT_SYMBOL(pwrdm_read_next_pwrst);
-> +
-> +/**
-> + * pwrdm_read_pwrst - get current powerdomain power state
-> + * @pwrdm: struct powerdomain * to get power state
-> + *
-> + * Return the powerdomain pwrdm's current power state.	Returns -EINVAL
-> + * if the powerdomain pointer is null or returns the current power state
-> + * upon success.
-> + */
-> +int pwrdm_read_pwrst(struct powerdomain *pwrdm)
-> +{
-> +	if (!pwrdm)
-> +		return -EINVAL;
-> +
-> +	return prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTST,
-> +					OMAP_POWERSTATEST_MASK);
-> +}
-> +EXPORT_SYMBOL(pwrdm_read_pwrst);
-> +
-> +/**
-> + * pwrdm_read_prev_pwrst - get previous powerdomain power state
-> + * @pwrdm: struct powerdomain * to get previous power state
-> + *
-> + * Return the powerdomain pwrdm's previous power state.	 Returns -EINVAL
-> + * if the powerdomain pointer is null or returns the previous power state
-> + * upon success.
-> + */
-> +int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
-> +{
-> +	if (!pwrdm)
-> +		return -EINVAL;
-> +
-> +	return prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP3430_PM_PREPWSTST,
-> +					OMAP3430_LASTPOWERSTATEENTERED_MASK);
-> +}
-> +EXPORT_SYMBOL(pwrdm_read_prev_pwrst);
-> +
-> +/**
-> + * pwrdm_set_logic_retst - set powerdomain logic power state upon retention
-> + * @pwrdm: struct powerdomain * to set
-> + * @pwrst: one of the PWRDM_POWER_* macros
-> + *
-> + * Set the next power state that the logic portion of the powerdomain
-> + * pwrdm will enter when the powerdomain enters retention.  This will
-> + * be either RETENTION or OFF, if supported.  Returns -EINVAL if the
-> + * powerdomain pointer is null or the target power state is not not
-> + * supported, or returns 0 upon success.
-> + */
-> +int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
-> +{
-> +	if (!pwrdm)
-> +		return -EINVAL;
-> +
-> +	if (!(pwrdm->pwrsts_logic_ret & (1 << pwrst)))
-> +		return -EINVAL;
-> +
-> +	pr_debug("powerdomain: setting next logic powerstate for %s to %0x\n",
-> +		 pwrdm->name, pwrst);
-> +
-> +	/*
-> +	 * The register bit names below may not correspond to the
-> +	 * actual names of the bits in each powerdomain's register,
-> +	 * but the type of value returned is the same for each
-> +	 * powerdomain.
-> +	 */
-> +	prm_rmw_mod_reg_bits(OMAP3430_LOGICL1CACHERETSTATE,
-> +			     (pwrst << __ffs(OMAP3430_LOGICL1CACHERETSTATE)),
-> +			     pwrdm->prcm_offs, PM_PWSTCTRL);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(pwrdm_set_logic_retst);
-> +
-> +/**
-> + * pwrdm_set_mem_onst - set memory power state while powerdomain ON
-> + * @pwrdm: struct powerdomain * to set
-> + * @bank: memory bank number to set (0-3)
-> + * @pwrst: one of the PWRDM_POWER_* macros
-> + *
-> + * Set the next power state that memory bank x of the powerdomain
-> + * pwrdm will enter when the powerdomain enters the ON state.  Bank
-> + * will be a number from 0 to 3, and represents different types of
-> + * memory, depending on the powerdomain.  Returns -EINVAL if the
-> + * powerdomain pointer is null or the target power state is not not
-> + * supported for this memory bank, -EEXIST if the target memory bank
-> + * does not exist or is not controllable, or returns 0 upon success.
-> + */
-> +int pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
-> +{
-> +	u32 m;
-> +
-> +	if (!pwrdm)
-> +		return -EINVAL;
-> +
-> +	if (pwrdm->banks < (bank + 1))
-> +		return -EEXIST;
-> +
-> +	if (!(pwrdm->pwrsts_mem_on[bank] & (1 << pwrst)))
-> +		return -EINVAL;
-> +
-> +	pr_debug("powerdomain: setting next memory powerstate for domain %s "
-> +		 "bank %0x while pwrdm-ON to %0x\n", pwrdm->name, bank, pwrst);
-> +
-> +	/*
-> +	 * The register bit names below may not correspond to the
-> +	 * actual names of the bits in each powerdomain's register,
-> +	 * but the type of value returned is the same for each
-> +	 * powerdomain.
-> +	 */
-> +	switch (bank) {
-> +	case 0:
-> +		m = OMAP3430_SHAREDL1CACHEFLATONSTATE_MASK;
-> +		break;
-> +	case 1:
-> +		m = OMAP3430_L1FLATMEMONSTATE_MASK;
-> +		break;
-> +	case 2:
-> +		m = OMAP3430_SHAREDL2CACHEFLATONSTATE_MASK;
-> +		break;
-> +	case 3:
-> +		m = OMAP3430_L2FLATMEMONSTATE_MASK;
-> +		break;
-> +	default:
-> +		WARN_ON(1); /* should never happen */
-> +		return -EEXIST;
-> +	}
-> +
-> +	prm_rmw_mod_reg_bits(m, (pwrst << __ffs(m)),
-> +			     pwrdm->prcm_offs, PM_PWSTCTRL);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(pwrdm_set_mem_onst);
-> +
-> +/**
-> + * pwrdm_set_mem_retst - set memory power state while powerdomain in RET
-> + * @pwrdm: struct powerdomain * to set
-> + * @bank: memory bank number to set (0-3)
-> + * @pwrst: one of the PWRDM_POWER_* macros
-> + *
-> + * Set the next power state that memory bank x of the powerdomain
-> + * pwrdm will enter when the powerdomain enters the RETENTION state.
-> + * Bank will be a number from 0 to 3, and represents different types
-> + * of memory, depending on the powerdomain.  pwrst will be either
-> + * RETENTION or OFF, if supported. Returns -EINVAL if the powerdomain
-> + * pointer is null or the target power state is not not supported for
-> + * this memory bank, -EEXIST if the target memory bank does not exist
-> + * or is not controllable, or returns 0 upon success.
-> + */
-> +int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
-> +{
-> +	u32 m;
-> +
-> +	if (!pwrdm)
-> +		return -EINVAL;
-> +
-> +	if (pwrdm->banks < (bank + 1))
-> +		return -EEXIST;
-> +
-> +	if (!(pwrdm->pwrsts_mem_ret[bank] & (1 << pwrst)))
-> +		return -EINVAL;
-> +
-> +	pr_debug("powerdomain: setting next memory powerstate for domain %s "
-> +		 "bank %0x while pwrdm-RET to %0x\n", pwrdm->name, bank, pwrst);
-> +
-> +	/*
-> +	 * The register bit names below may not correspond to the
-> +	 * actual names of the bits in each powerdomain's register,
-> +	 * but the type of value returned is the same for each
-> +	 * powerdomain.
-> +	 */
-> +	switch (bank) {
-> +	case 0:
-> +		m = OMAP3430_SHAREDL1CACHEFLATRETSTATE;
-> +		break;
-> +	case 1:
-> +		m = OMAP3430_L1FLATMEMRETSTATE;
-> +		break;
-> +	case 2:
-> +		m = OMAP3430_SHAREDL2CACHEFLATRETSTATE;
-> +		break;
-> +	case 3:
-> +		m = OMAP3430_L2FLATMEMRETSTATE;
-> +		break;
-> +	default:
-> +		WARN_ON(1); /* should never happen */
-> +		return -EEXIST;
-> +	}
-> +
-> +	prm_rmw_mod_reg_bits(m, (pwrst << __ffs(m)), pwrdm->prcm_offs,
-> +			     PM_PWSTCTRL);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(pwrdm_set_mem_retst);
-> +
-> +/**
-> + * pwrdm_read_logic_pwrst - get current powerdomain logic retention power state
-> + * @pwrdm: struct powerdomain * to get current logic retention power state
-> + *
-> + * Return the current power state that the logic portion of
-> + * powerdomain pwrdm will enter
-> + * Returns -EINVAL if the powerdomain pointer is null or returns the
-> + * current logic retention power state upon success.
-> + */
-> +int pwrdm_read_logic_pwrst(struct powerdomain *pwrdm)
-> +{
-> +	if (!pwrdm)
-> +		return -EINVAL;
-> +
-> +	return prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTST,
-> +					OMAP3430_LOGICSTATEST);
-> +}
-> +EXPORT_SYMBOL(pwrdm_read_logic_pwrst);
-> +
-> +/**
-> + * pwrdm_read_prev_logic_pwrst - get previous powerdomain logic power state
-> + * @pwrdm: struct powerdomain * to get previous logic power state
-> + *
-> + * Return the powerdomain pwrdm's logic power state.  Returns -EINVAL
-> + * if the powerdomain pointer is null or returns the previous logic
-> + * power state upon success.
-> + */
-> +int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
-> +{
-> +	if (!pwrdm)
-> +		return -EINVAL;
-> +
-> +	/*
-> +	 * The register bit names below may not correspond to the
-> +	 * actual names of the bits in each powerdomain's register,
-> +	 * but the type of value returned is the same for each
-> +	 * powerdomain.
-> +	 */
-> +	return prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP3430_PM_PREPWSTST,
-> +					OMAP3430_LASTLOGICSTATEENTERED);
-> +}
-> +EXPORT_SYMBOL(pwrdm_read_prev_logic_pwrst);
-> +
-> +/**
-> + * pwrdm_read_mem_pwrst - get current memory bank power state
-> + * @pwrdm: struct powerdomain * to get current memory bank power state
-> + * @bank: memory bank number (0-3)
-> + *
-> + * Return the powerdomain pwrdm's current memory power state for bank
-> + * x.  Returns -EINVAL if the powerdomain pointer is null, -EEXIST if
-> + * the target memory bank does not exist or is not controllable, or
-> + * returns the current memory power state upon success.
-> + */
-> +int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
-> +{
-> +	u32 m;
-> +
-> +	if (!pwrdm)
-> +		return -EINVAL;
-> +
-> +	if (pwrdm->banks < (bank + 1))
-> +		return -EEXIST;
-> +
-> +	/*
-> +	 * The register bit names below may not correspond to the
-> +	 * actual names of the bits in each powerdomain's register,
-> +	 * but the type of value returned is the same for each
-> +	 * powerdomain.
-> +	 */
-> +	switch (bank) {
-> +	case 0:
-> +		m = OMAP3430_SHAREDL1CACHEFLATSTATEST_MASK;
-> +		break;
-> +	case 1:
-> +		m = OMAP3430_L1FLATMEMSTATEST_MASK;
-> +		break;
-> +	case 2:
-> +		m = OMAP3430_SHAREDL2CACHEFLATSTATEST_MASK;
-> +		break;
-> +	case 3:
-> +		m = OMAP3430_L2FLATMEMSTATEST_MASK;
-> +		break;
-> +	default:
-> +		WARN_ON(1); /* should never happen */
-> +		return -EEXIST;
-> +	}
-> +
-> +	return prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTST, m);
-> +}
-> +EXPORT_SYMBOL(pwrdm_read_mem_pwrst);
-> +
-> +/**
-> + * pwrdm_read_prev_mem_pwrst - get previous memory bank power state
-> + * @pwrdm: struct powerdomain * to get previous memory bank power state
-> + * @bank: memory bank number (0-3)
-> + *
-> + * Return the powerdomain pwrdm's previous memory power state for bank
-> + * x.  Returns -EINVAL if the powerdomain pointer is null, -EEXIST if
-> + * the target memory bank does not exist or is not controllable, or
-> + * returns the previous memory power state upon success.
-> + */
-> +int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
-> +{
-> +	u32 m;
-> +
-> +	if (!pwrdm)
-> +		return -EINVAL;
-> +
-> +	if (pwrdm->banks < (bank + 1))
-> +		return -EEXIST;
-> +
-> +	/*
-> +	 * The register bit names below may not correspond to the actual
-> +	 * names of the bits in each powerdomain's register,
-> +	 * but the type of value returned is the same for each powerdomain.
-> +	 */
-> +	switch (bank) {
-> +	case 0:
-> +		m = OMAP3430_LASTMEM1STATEENTERED_MASK;
-> +		break;
-> +	case 1:
-> +		m = OMAP3430_LASTMEM2STATEENTERED_MASK;
-> +		break;
-> +	case 2:
-> +		m = OMAP3430_LASTSHAREDL2CACHEFLATSTATEENTERED_MASK;
-> +		break;
-> +	case 3:
-> +		m = OMAP3430_LASTL2FLATMEMSTATEENTERED_MASK;
-> +		break;
-> +	default:
-> +		WARN_ON(1); /* should never happen */
-> +		return -EEXIST;
-> +	}
-> +
-> +	return prm_read_mod_bits_shift(pwrdm->prcm_offs,
-> +					OMAP3430_PM_PREPWSTST, m);
-> +}
-> +EXPORT_SYMBOL(pwrdm_read_prev_mem_pwrst);
-> +
-> +/**
-> + * pwrdm_clear_all_prev_pwrst - clear previous powerstate register for a pwrdm
-> + * @pwrdm: struct powerdomain * to clear
-> + *
-> + * Clear the powerdomain's previous power state register.  Clears the
-> + * entire register, including logic and memory bank previous power states.
-> + * Returns -EINVAL if the powerdomain pointer is null, or returns 0 upon
+> + * Instruct the CM to force a sleep transition on the specified
+> + * clockdomain 'clkdm'.	 Returns -EINVAL if clk is NULL or if
+> + * clockdomain does not support software-initiated sleep; 0 upon
 > + * success.
 > + */
-> +int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
+> +int omap2_clkdm_sleep(struct clockdomain *clkdm)
 > +{
-> +	if (!pwrdm)
+> +	if (!clkdm)
 > +		return -EINVAL;
 > +
-> +	/*
-> +	 * XXX should get the powerdomain's current state here;
-> +	 * warn & fail if it is not ON.
-> +	 */
-> +
-> +	pr_debug("powerdomain: clearing previous power state reg for %s\n",
-> +		 pwrdm->name);
-> +
-> +	prm_write_mod_reg(0, pwrdm->prcm_offs, OMAP3430_PM_PREPWSTST);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(pwrdm_clear_all_prev_pwrst);
-> +
-> +/**
-> + * pwrdm_wait_transition - wait for powerdomain power transition to finish
-> + * @pwrdm: struct powerdomain * to wait for
-> + *
-> + * If the powerdomain pwrdm is in the process of a state transition,
-> + * spin until it completes the power transition, or until an iteration
-> + * bailout value is reached. Returns -EINVAL if the powerdomain
-> + * pointer is null, -EAGAIN if the bailout value was reached, or
-> + * returns 0 upon success.
-> + */
-> +int pwrdm_wait_transition(struct powerdomain *pwrdm)
-> +{
-> +	u32 c = 0;
-> +
-> +	if (!pwrdm)
+> +	if (!(clkdm->flags & CLKDM_CAN_FORCE_SLEEP)) {
+> +		pr_debug("clockdomain: %s does not support forcing "
+> +			 "sleep via software\n", clkdm->name);
 > +		return -EINVAL;
-> +
-> +	/*
-> +	 * REVISIT: pwrdm_wait_transition() may be better implemented
-> +	 * via a callback and a periodic timer check -- how long do we expect
-> +	 * powerdomain transitions to take?
-> +	 */
-> +
-> +	/* XXX Is this udelay() value meaningful? */
-> +	while ((prm_read_mod_reg(pwrdm->prcm_offs, PM_PWSTST) &
-> +		OMAP_INTRANSITION) &&
-> +	       (c++ < PWRDM_TRANSITION_BAILOUT))
-> +		udelay(1);
-> +
-> +	if (c >= PWRDM_TRANSITION_BAILOUT) {
-> +		printk(KERN_ERR "powerdomain: waited too long for "
-> +		       "powerdomain %s to complete transition\n", pwrdm->name);
-> +		return -EAGAIN;
 > +	}
 > +
-> +	pr_debug("powerdomain: completed transition in %d loops\n", c);
+> +	pr_debug("clockdomain: forcing sleep on %s\n", clkdm->name);
+> +
+> +	if (cpu_is_omap24xx()) {
+> +
+> +		cm_set_mod_reg_bits(OMAP24XX_FORCESTATE,
+> +				    clkdm->pwrdm->prcm_offs, PM_PWSTCTRL);
+> +
+> +	} else if (cpu_is_omap34xx()) {
+> +
+> +		u32 v =3D (OMAP34XX_CLKSTCTRL_FORCE_SLEEP <<
+> +			 __ffs(clkdm->clktrctrl_mask));
+> +
+> +		cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask, v,
+> +				    clkdm->pwrdm->prcm_offs, CM_CLKSTCTRL);
+> +
+> +	} else {
+> +		BUG();
+> +	};
 > +
 > +	return 0;
 > +}
-> +EXPORT_SYMBOL(pwrdm_wait_transition);
 > +
+> +/**
+> + * omap2_clkdm_wakeup - force clockdomain wakeup transition
+> + * @clkdm: struct clockdomain *
+> + *
+> + * Instruct the CM to force a wakeup transition on the specified
+> + * clockdomain 'clkdm'.	 Returns -EINVAL if clkdm is NULL or if the
+> + * clockdomain does not support software-controlled wakeup; 0 upon
+> + * success.
+> + */
+> +int omap2_clkdm_wakeup(struct clockdomain *clkdm)
+> +{
+> +	if (!clkdm)
+> +		return -EINVAL;
+> +
+> +	if (!(clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)) {
+> +		pr_debug("clockdomain: %s does not support forcing "
+> +			 "wakeup via software\n", clkdm->name);
+> +		return -EINVAL;
+> +	}
+> +
+> +	pr_debug("clockdomain: forcing wakeup on %s\n", clkdm->name);
+> +
+> +	if (cpu_is_omap24xx()) {
+> +
+> +		cm_clear_mod_reg_bits(OMAP24XX_FORCESTATE,
+> +				      clkdm->pwrdm->prcm_offs, PM_PWSTCTRL);
+> +
+> +	} else if (cpu_is_omap34xx()) {
+> +
+> +		u32 v =3D (OMAP34XX_CLKSTCTRL_FORCE_WAKEUP <<
+> +			 __ffs(clkdm->clktrctrl_mask));
+> +
+> +		cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask, v,
+> +				    clkdm->pwrdm->prcm_offs, CM_CLKSTCTRL);
+> +
+> +	} else {
+> +		BUG();
+> +	};
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * omap2_clkdm_allow_idle - enable hwsup idle transitions for clkdm
+> + * @clkdm: struct clockdomain *
+> + *
+> + * Allow the hardware to automatically switch the clockdomain into
+> + * active or idle states, as needed by downstream clocks.  If the
+> + * clockdomain has any downstream clocks enabled in the clock
+> + * framework, wkdep/sleepdep autodependencies are added; this is so
+> + * device drivers can read and write to the device.  No return value=
+=2E
+> + */
+> +void omap2_clkdm_allow_idle(struct clockdomain *clkdm)
+> +{
+> +	u32 v;
+> +
+> +	if (!clkdm)
+> +		return;
+> +
+> +	if (!(clkdm->flags & CLKDM_CAN_ENABLE_AUTO)) {
+> +		pr_debug("clock: automatic idle transitions cannot be enabled "
+> +			 "on clockdomain %s\n", clkdm->name);
+> +		return;
+> +	}
+> +
+> +	pr_debug("clockdomain: enabling automatic idle transitions for %s\n=
+",
+> +		 clkdm->name);
+> +
+> +	if (atomic_read(&clkdm->usecount) > 0)
+> +		_clkdm_add_autodeps(clkdm);
+> +
+> +	if (cpu_is_omap24xx())
+> +		v =3D OMAP24XX_CLKSTCTRL_ENABLE_AUTO;
+> +	else if (cpu_is_omap34xx())
+> +		v =3D OMAP34XX_CLKSTCTRL_ENABLE_AUTO;
+> +	else
+> +		BUG();
+> +
+> +
+> +	cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask,
+> +			    v << __ffs(clkdm->clktrctrl_mask),
+> +			    clkdm->pwrdm->prcm_offs,
+> +			    CM_CLKSTCTRL);
+> +}
+> +
+> +/**
+> + * omap2_clkdm_deny_idle - disable hwsup idle transitions for clkdm
+> + * @clkdm: struct clockdomain *
+> + *
+> + * Prevent the hardware from automatically switching the clockdomain
+> + * into inactive or idle states.  If the clockdomain has downstream
+> + * clocks enabled in the clock framework, wkdep/sleepdep
+> + * autodependencies are removed.  No return value.
+> + */
+> +void omap2_clkdm_deny_idle(struct clockdomain *clkdm)
+> +{
+> +	u32 v;
+> +
+> +	if (!clkdm)
+> +		return;
+> +
+> +	if (!(clkdm->flags & CLKDM_CAN_DISABLE_AUTO)) {
+> +		pr_debug("clockdomain: automatic idle transitions cannot be "
+> +			 "disabled on %s\n", clkdm->name);
+> +		return;
+> +	}
+> +
+> +	pr_debug("clockdomain: disabling automatic idle transitions for %s\=
+n",
+> +		 clkdm->name);
+> +
+> +	if (cpu_is_omap24xx())
+> +		v =3D OMAP24XX_CLKSTCTRL_DISABLE_AUTO;
+> +	else if (cpu_is_omap34xx())
+> +		v =3D OMAP34XX_CLKSTCTRL_DISABLE_AUTO;
+> +	else
+> +		BUG();
+> +
+> +	cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask,
+> +			    v << __ffs(clkdm->clktrctrl_mask),
+> +			    clkdm->pwrdm->prcm_offs, CM_CLKSTCTRL);
+> +
+> +	if (atomic_read(&clkdm->usecount) > 0)
+> +		_clkdm_del_autodeps(clkdm);
+> +}
+> +
+> +
+> +/* Clockdomain-to-clock framework interface code */
+> +
+> +/**
+> + * omap2_clkdm_clk_enable - add an enabled downstream clock to this =
+clkdm
+> + * @clkdm: struct clockdomain *
+> + * @clk: struct clk * of the enabled downstream clock
+> + *
+> + * Increment the usecount of this clockdomain 'clkdm' and ensure tha=
+t
+> + * it is awake.	 Intended to be called by clk_enable() code.  If the
+> + * clockdomain is in software-supervised idle mode, force the
+> + * clockdomain to wake.	 If the clockdomain is in hardware-supervise=
+d
+> + * idle mode, add clkdm-pwrdm autodependencies, to ensure that devic=
+es
+> + * in the clockdomain can be read from/written to by on-chip process=
+ors.
+> + * Returns -EINVAL if passed null pointers; returns 0 upon success o=
+r
+> + * if the clockdomain is in hwsup idle mode.
+> + */
+> +int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *cl=
+k)
+> +{
+> +	int v;
+> +
+> +	/*
+> +	 * XXX Rewrite this code to maintain a list of enabled
+> +	 * downstream clocks for debugging purposes?
+> +	 */
+> +
+> +	if (!clkdm || !clk)
+> +		return -EINVAL;
+> +
+> +	if (atomic_inc_return(&clkdm->usecount) > 1)
+> +		return 0;
+> +
+> +	/* Clockdomain now has one enabled downstream clock */
+> +
+> +	pr_debug("clockdomain: clkdm %s: clk %s now enabled\n", clkdm->name=
+,
+> +		 clk->name);
+> +
+> +	v =3D omap2_clkdm_clktrctrl_read(clkdm);
+> +
+> +	if ((cpu_is_omap34xx() && v =3D=3D OMAP34XX_CLKSTCTRL_ENABLE_AUTO) =
+||
+> +	    (cpu_is_omap24xx() && v =3D=3D OMAP24XX_CLKSTCTRL_ENABLE_AUTO))
+> +		_clkdm_add_autodeps(clkdm);
+> +	else
+> +		omap2_clkdm_wakeup(clkdm);
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * omap2_clkdm_clk_disable - remove an enabled downstream clock from=
+ this clkdm
+> + * @clkdm: struct clockdomain *
+> + * @clk: struct clk * of the disabled downstream clock
+> + *
+> + * Decrement the usecount of this clockdomain 'clkdm'. Intended to b=
+e
+> + * called by clk_disable() code.  If the usecount goes to 0, put the
+> + * clockdomain to sleep (software-supervised mode) or remove the
+> + * clkdm-pwrdm autodependencies (hardware-supervised mode).  Returns
+> + * -EINVAL if passed null pointers; -ERANGE if the clkdm usecount
+> + * underflows and debugging is enabled; or returns 0 upon success or
+> + * if the clockdomain is in hwsup idle mode.
+> + */
+> +int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *c=
+lk)
+> +{
+> +	int v;
+> +
+> +	/*
+> +	 * XXX Rewrite this code to maintain a list of enabled
+> +	 * downstream clocks for debugging purposes?
+> +	 */
+> +
+> +	if (!clkdm || !clk)
+> +		return -EINVAL;
+> +
+> +#ifdef DEBUG
+> +	if (atomic_read(&clkdm->usecount) =3D=3D 0) {
+> +		WARN_ON(1); /* underflow */
+> +		return -ERANGE;
+> +	}
+> +#endif
+> +
+> +	if (atomic_dec_return(&clkdm->usecount) > 0)
+> +		return 0;
+> +
+> +	/* All downstream clocks of this clockdomain are now disabled */
+> +
+> +	pr_debug("clockdomain: clkdm %s: clk %s now disabled\n", clkdm->nam=
+e,
+> +		 clk->name);
+> +
+> +	v =3D omap2_clkdm_clktrctrl_read(clkdm);
+> +
+> +	if ((cpu_is_omap34xx() && v =3D=3D OMAP34XX_CLKSTCTRL_ENABLE_AUTO) =
+||
+> +	    (cpu_is_omap24xx() && v =3D=3D OMAP24XX_CLKSTCTRL_ENABLE_AUTO))
+> +		_clkdm_del_autodeps(clkdm);
+> +	else
+> +		omap2_clkdm_sleep(clkdm);
+> +
+> +	return 0;
+> +}
 > +
 > Index: linux-omap/arch/arm/plat-omap/Kconfig
-> ===================================================================
-> --- linux-omap.orig/arch/arm/plat-omap/Kconfig	2008-04-10 08:00:56.000000000 -0600
-> +++ linux-omap/arch/arm/plat-omap/Kconfig	2008-04-10 08:00:58.000000000 -0600
-> @@ -42,6 +42,18 @@
->  	  confident in your SRAM code, disabling this will save
->  	  about 600 bytes.
->  
-> +config OMAP_DEBUG_POWERDOMAIN
-> +	bool "Emit debug messages from powerdomain layer"
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-omap.orig/arch/arm/plat-omap/Kconfig	2008-04-10 08:00:58.00=
+0000000 -0600
+> +++ linux-omap/arch/arm/plat-omap/Kconfig	2008-04-10 08:01:12.0000000=
+00 -0600
+> @@ -54,6 +54,18 @@
+>  	  for every powerdomain register write.  However, the
+>  	  extra detail costs some memory.
+> =20
+> +config OMAP_DEBUG_CLOCKDOMAIN
+> +	bool "Emit debug messages from clockdomain layer"
 > +	depends on ARCH_OMAP2 || ARCH_OMAP3
 > +	default n
 > +	help
-> +	  Say Y here if you want to compile in powerdomain layer
+> +	  Say Y here if you want to compile in clockdomain layer
 > +	  debugging messages for OMAP2/3.   These messages can
-> +	  provide more detail as to why some powerdomain calls
+> +	  provide more detail as to why some clockdomain calls
 > +	  may be failing, and will also emit a descriptive message
-> +	  for every powerdomain register write.  However, the
+> +	  for every clockdomain register write.  However, the
 > +	  extra detail costs some memory.
 > +
 >  config OMAP_RESET_CLOCKS
 >  	bool "Reset unused clocks during boot"
 >  	depends on ARCH_OMAP
-> Index: linux-omap/include/asm-arm/arch-omap/powerdomain.h
-> ===================================================================
+> Index: linux-omap/include/asm-arm/arch-omap/clockdomain.h
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 > --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-> +++ linux-omap/include/asm-arm/arch-omap/powerdomain.h	2008-04-10 08:00:58.000000000 -0600
-> @@ -0,0 +1,137 @@
+> +++ linux-omap/include/asm-arm/arch-omap/clockdomain.h	2008-04-10 08:=
+01:12.000000000 -0600
+> @@ -0,0 +1,105 @@
 > +/*
-> + * OMAP2/3 powerdomain control
+> + * linux/include/asm-arm/arch-omap/clockdomain.h
 > + *
-> + * Copyright (C) 2007-8 Texas Instruments, Inc.
-> + * Copyright (C) 2007-8 Nokia Corporation
+> + * OMAP2/3 clockdomain framework functions
+> + *
+> + * Copyright (C) 2008 Texas Instruments, Inc.
+> + * Copyright (C) 2008 Nokia Corporation
 > + *
 > + * Written by Paul Walmsley
 > + *
-> + * This program is free software; you can redistribute it and/or modify
+> + * This program is free software; you can redistribute it and/or mod=
+ify
 > + * it under the terms of the GNU General Public License version 2 as
 > + * published by the Free Software Foundation.
 > + */
 > +
-> +#ifndef ASM_ARM_ARCH_OMAP_POWERDOMAIN
-> +#define ASM_ARM_ARCH_OMAP_POWERDOMAIN
+> +#ifndef __ASM_ARM_ARCH_OMAP_CLOCKDOMAIN_H
+> +#define __ASM_ARM_ARCH_OMAP_CLOCKDOMAIN_H
 > +
-> +#include <linux/types.h>
-> +#include <linux/list.h>
-> +
-> +#include <asm/atomic.h>
-> +
+> +#include <asm/arch/powerdomain.h>
+> +#include <asm/arch/clock.h>
 > +#include <asm/arch/cpu.h>
 > +
+> +/* Clockdomain capability flags */
+> +#define CLKDM_CAN_FORCE_SLEEP			(1 << 0)
+> +#define CLKDM_CAN_FORCE_WAKEUP			(1 << 1)
+> +#define CLKDM_CAN_ENABLE_AUTO			(1 << 2)
+> +#define CLKDM_CAN_DISABLE_AUTO			(1 << 3)
 > +
-> +/* Powerdomain basic power states */
-> +#define PWRDM_POWER_OFF		0x0
-> +#define PWRDM_POWER_RET		0x1
-> +#define PWRDM_POWER_INACTIVE	0x2
-> +#define PWRDM_POWER_ON		0x3
+> +#define CLKDM_CAN_HWSUP		(CLKDM_CAN_ENABLE_AUTO | CLKDM_CAN_DISABLE_=
+AUTO)
+> +#define CLKDM_CAN_SWSUP		(CLKDM_CAN_FORCE_SLEEP | CLKDM_CAN_FORCE_WA=
+KEUP)
+> +#define CLKDM_CAN_HWSUP_SWSUP	(CLKDM_CAN_SWSUP | CLKDM_CAN_HWSUP)
 > +
-> +/* Powerdomain allowable state bitfields */
-> +#define PWRSTS_OFF_ON		((1 << PWRDM_POWER_OFF) | \
-> +				 (1 << PWRDM_POWER_ON))
+> +/* OMAP24XX CM_CLKSTCTRL_*.AUTOSTATE_* register bit values */
+> +#define OMAP24XX_CLKSTCTRL_DISABLE_AUTO		0x0
+> +#define OMAP24XX_CLKSTCTRL_ENABLE_AUTO		0x1
 > +
-> +#define PWRSTS_OFF_RET		((1 << PWRDM_POWER_OFF) | \
-> +				 (1 << PWRDM_POWER_RET))
-> +
-> +#define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | (1 << PWRDM_POWER_ON))
-> +
+> +/* OMAP3XXX CM_CLKSTCTRL_*.CLKTRCTRL_* register bit values */
+> +#define OMAP34XX_CLKSTCTRL_DISABLE_AUTO		0x0
+> +#define OMAP34XX_CLKSTCTRL_FORCE_SLEEP		0x1
+> +#define OMAP34XX_CLKSTCTRL_FORCE_WAKEUP		0x2
+> +#define OMAP34XX_CLKSTCTRL_ENABLE_AUTO		0x3
 > +
 > +/*
-> + * Number of memory banks that are power-controllable.	On OMAP3430, the
-> + * maximum is 4.
+> + * struct clkdm_pwrdm_autodep - a powerdomain that should have wkdep=
+s
+> + * and sleepdeps added when a powerdomain should stay active in hwsu=
+p mode;
+> + * and conversely, removed when the powerdomain should be allowed to=
+ go
+> + * inactive in hwsup mode.
 > + */
-> +#define PWRDM_MAX_MEM_BANKS	4
+> +struct clkdm_pwrdm_autodep {
 > +
-> +/* XXX A completely arbitrary number. What is reasonable here? */
-> +#define PWRDM_TRANSITION_BAILOUT 100000
+> +	/* Name of the powerdomain to add a wkdep/sleepdep on */
+> +	const char *pwrdm_name;
 > +
-> +struct powerdomain;
-> +
-> +/* Encodes dependencies between powerdomains - statically defined */
-> +struct pwrdm_dep {
-> +
+> +	/* Powerdomain pointer (looked up at clkdm_init() time) */
 > +	struct powerdomain *pwrdm;
 > +
-> +	/* Flags to mark OMAP chip restrictions, etc. */
+> +	/* OMAP chip types that this clockdomain dep is valid on */
 > +	const omap_chip_t omap_chip;
 > +
 > +};
 > +
-> +struct powerdomain {
+> +struct clockdomain {
 > +
-> +	/* Powerdomain name */
+> +	/* Clockdomain name */
 > +	const char *name;
 > +
-> +	/* the address offset from CM_BASE/PRM_BASE */
-> +	const s16 prcm_offs;
+> +	/* Powerdomain enclosing this clockdomain */
+> +	const char *pwrdm_name;
 > +
-> +	/* Used to represent the OMAP chip types containing this pwrdm */
+> +	/* CLKTRCTRL/AUTOSTATE field mask in CM_CLKSTCTRL reg */
+> +	const u8 clktrctrl_mask;
+> +
+> +	/* Clockdomain capability flags */
+> +	const u8 flags;
+> +
+> +	/* OMAP chip types that this clockdomain is valid on */
 > +	const omap_chip_t omap_chip;
 > +
-> +	/* Bit shift of this powerdomain's PM_WKDEP/CM_SLEEPDEP bit */
-> +	const u8 dep_bit;
+> +	/* Usecount tracking */
+> +	atomic_t usecount;
 > +
-> +	/* Powerdomains that can be told to wake this powerdomain up */
-> +	const struct pwrdm_dep *wkdep_srcs;
+> +	/* Powerdomain pointer assigned at clkdm_register() */
+> +	struct powerdomain *pwrdm;
 > +
-> +	/* Powerdomains that can be told to keep this pwrdm from inactivity */
-> +	const struct pwrdm_dep *sleepdep_srcs;
-> +
-> +	/* Possible powerdomain power states */
-> +	const u8 pwrsts;
-> +
-> +	/* Possible logic power states when pwrdm in RETENTION */
-> +	const u8 pwrsts_logic_ret;
-> +
-> +	/* Number of software-controllable memory banks in this powerdomain */
-> +	const u8 banks;
-> +
-> +	/* Possible memory bank pwrstates when pwrdm in RETENTION */
-> +	const u8 pwrsts_mem_ret[PWRDM_MAX_MEM_BANKS];
-> +
-> +	/* Possible memory bank pwrstates when pwrdm is ON */
-> +	const u8 pwrsts_mem_on[PWRDM_MAX_MEM_BANKS];
-> +
-> +	/* List of clockdomains in this powerdomain */
-> +	struct list_head pwrdm_clkdms;
-> +
-> +	struct kobject *kobj;
 > +	struct list_head node;
 > +
 > +};
 > +
+> +void clkdm_init(struct clockdomain **clkdms, struct clkdm_pwrdm_auto=
+dep *autodeps);
+> +int clkdm_register(struct clockdomain *clkdm);
+> +int clkdm_unregister(struct clockdomain *clkdm);
+> +struct clockdomain *clkdm_lookup(const char *name);
 > +
-> +void pwrdm_init(struct powerdomain **pwrdm_list);
+> +void omap2_clkdm_allow_idle(struct clockdomain *clkdm);
+> +void omap2_clkdm_deny_idle(struct clockdomain *clkdm);
 > +
-> +int pwrdm_register(struct powerdomain *pwrdm);
-> +int pwrdm_unregister(struct powerdomain *pwrdm);
-> +struct powerdomain *pwrdm_lookup(const char *name);
+> +int omap2_clkdm_wakeup(struct clockdomain *clkdm);
+> +int omap2_clkdm_sleep(struct clockdomain *clkdm);
 > +
-> +int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm));
+> +int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *cl=
+k);
+> +int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *c=
+lk);
 > +
-> +int pwrdm_add_wkdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2);
-> +int pwrdm_del_wkdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2);
-> +int pwrdm_read_wkdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2);
-> +int pwrdm_add_sleepdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2);
-> +int pwrdm_del_sleepdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2);
-> +int pwrdm_read_sleepdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2);
-> +
-> +int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst);
-> +int pwrdm_read_next_pwrst(struct powerdomain *pwrdm);
-> +int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm);
-> +int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm);
-> +
-> +int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst);
-> +int pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
-> +int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
-> +
-> +int pwrdm_read_logic_pwrst(struct powerdomain *pwrdm);
-> +int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm);
-> +int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
-> +int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
-> +
-> +int pwrdm_wait_transition(struct powerdomain *pwrdm);
+> +int clkdm_for_each(int (*fn)(struct clockdomain *clkdm));
 > +
 > +#endif
-> 
-> -- 
-> 
+>=20
+> --=20
+>=20
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
