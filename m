@@ -1,22 +1,36 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 1/1] ARM: OMAP: CLKFW: Initial sysfs support for omap clock framework
-Date: Wed, 16 Apr 2008 11:44:38 +0300
-Message-ID: <1208335478-19816-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 1/1] ARM: OMAP: CLKFW: Initial sysfs support for omap
+ clock framework
+Date: Wed, 16 Apr 2008 11:57:49 +0300 (EEST)
+Message-ID: <20080416.115749.68203391.Hiroshi.DOYU@nokia.com>
+References: <1208335478-19816-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:28653 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753969AbYDPIpF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Apr 2008 04:45:05 -0400
-Received: from esebh108.NOE.Nokia.com (esebh108.ntc.nokia.com [172.21.143.145])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3G8ixZW027244
-	for <linux-omap@vger.kernel.org>; Wed, 16 Apr 2008 11:45:01 +0300
-Received: from oreo.research.nokia.com (esdhcp041142.research.nokia.com [172.21.41.142])
-	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m3G8icNN022591
-	for <linux-omap@vger.kernel.org>; Wed, 16 Apr 2008 11:44:38 +0300
+Received: from smtp.nokia.com ([192.100.122.230]:31419 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751440AbYDPI6G (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Apr 2008 04:58:06 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3G8vZuI004651
+	for <linux-omap@vger.kernel.org>; Wed, 16 Apr 2008 11:58:02 +0300
+In-Reply-To: <1208335478-19816-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: Hiroshi.DOYU@nokia.com
+
+Hi,
+
+Please ignore the previous one. The correct one is here;)
+
+       Hiroshi DOYU
+
+>From 0ccce1d2d3f2760af8ad7b1b390429226042ef71 Mon Sep 17 00:00:00 2001
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Date: Wed, 16 Apr 2008 11:29:07 +0300
+Subject: [PATCH 1/1] ARM: OMAP: CLKFW: Initial sysfs support for omap clock framework
 
 Sysfs can provide the infrastructure to trace the dependencies of
 clock tree hierarchy quite visibly. This patch enables to keep track
@@ -49,15 +63,15 @@ directry as below:
 
 Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 ---
- arch/arm/plat-omap/clock.c        |  153 +++++++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/clock.c        |  151 +++++++++++++++++++++++++++++++++++++
  include/asm-arm/arch-omap/clock.h |    2 +
- 2 files changed, 155 insertions(+), 0 deletions(-)
+ 2 files changed, 153 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 1bd8781..56c7dd2 100644
+index 1bd8781..c794b70 100644
 --- a/arch/arm/plat-omap/clock.c
 +++ b/arch/arm/plat-omap/clock.c
-@@ -33,6 +33,159 @@ static DEFINE_SPINLOCK(clockfw_lock);
+@@ -33,6 +33,157 @@ static DEFINE_SPINLOCK(clockfw_lock);
  
  static struct clk_functions *arch_clock;
  
@@ -114,7 +128,6 @@ index 1bd8781..56c7dd2 100644
 +	unsigned long val;
 +	int err;
 +
-+	spin_lock_irqsave(&clockfw_lock, flags);
 +	sscanf(buf, "%lx", &val);
 +
 +	if (strcmp(attr->attr.name, "rate") == 0) {
@@ -122,7 +135,6 @@ index 1bd8781..56c7dd2 100644
 +		if (err)
 +			count = -EIO;
 +	}
-+	spin_unlock_irqrestore(&clockfw_lock, flags);
 +	return count;
 +}
 +
@@ -239,4 +251,5 @@ index cce55ba..a806f9f 100644
  	int		(*clk_enable)(struct clk *clk);
 -- 
 1.5.5.rc2.6.gf58d
+
 
