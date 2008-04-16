@@ -1,71 +1,324 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: omap2/pm.c build errors
-Date: Wed, 16 Apr 2008 14:12:01 -0700
-Message-ID: <20080416211200.GJ17055@atomide.com>
-References: <200804161150.20609.david-b@pacbell.net>
+Subject: Re: [PATCH 1/5] Powerdomains: add OMAP chip type global bitfield;
+	clean up mach-omap2/id.c
+Date: Wed, 16 Apr 2008 14:20:20 -0700
+Message-ID: <20080416212019.GK17055@atomide.com>
+References: <20080410144624.246788469@pwsan.com> <20080410153343.801143838@pwsan.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:58635 "EHLO
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:65480 "EHLO
 	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754553AbYDPVME (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Apr 2008 17:12:04 -0400
+	with ESMTP id S1751871AbYDPVUW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Apr 2008 17:20:22 -0400
 Content-Disposition: inline
-In-Reply-To: <200804161150.20609.david-b@pacbell.net>
+In-Reply-To: <20080410153343.801143838@pwsan.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
+To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [080416 11:51]:
-> arch/arm/mach-omap2/pm.c: In function 'pm_init_serial_console':
-> arch/arm/mach-omap2/pm.c:188: error: expected ';' before 'break'
-> arch/arm/mach-omap2/pm.c:191: error: expected ';' before 'break'
-> arch/arm/mach-omap2/pm.c:193: error: 'PM_WKEN2' undeclared (first use in this function)
-> arch/arm/mach-omap2/pm.c:193: error: (Each undeclared identifier is reported only once
-> arch/arm/mach-omap2/pm.c:193: error: for each function it appears in.)
-> arch/arm/mach-omap2/pm.c:194: error: expected ';' before 'break'
+One comment below:
+
+* Paul Walmsley <paul@pwsan.com> [080410 10:16]:
+> Add a new kind of OMAP identification, omap_chip.  omap_chip is a
+> bitfield which contains one bit for each OMAP2/3 CPU type, and, on
+> 3430 and beyond, ES level.  
 > 
+> For example, the CHIP_IS_OMAP2420 bit is set in omap_type at boot on
+> an OMAP2420.  On OMAP3430ES2, both CHIP_IS_OMAP3430 and
+> CHIP_IS_OMAP3430ES2 bits are set.
 > 
-> ... wasn't there a patch for this?  That's with current GIT.
-
-Hmmm, I don't think so.
-
-> The "no semicolons after function calls" fix is obvious (and
-> is also a "that patch was never build-tested), but WKEN2 is
-> not quite clear (but see my guess below).
-
-Heh, this looks easy to miss as it's behind CONFIG_PM_DEBUG :)
-
-FYI, the PM code will be split to common pm.c and pm24xx.c and
-pm34xx.c most likely. Then all the serial PM debug code will get
-moved to serial driver.
-
-Care to S-o-b: this patch?
-
-Tony
-
+> omap_chip is set in mach-omap2/id.c by _set_omap_chip().  omap_chip is
+> declared static to prevent external code from accessing it directly.
+> Other code can test against omap_chip via the omap_chip_is() function.
 > 
+> omap_chip will be used by the forthcoming powerdomain and
+> clockdomain patches.  Each powerdomain/clockdomain structure has a
+> "omap_type" field, in which one or more of these bits are set, to
+> indicate the OMAP chips that the structure is valid for.  
 > 
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -184,13 +184,13 @@ static void pm_init_serial_console(void)
->  	}
->  	switch (serial_console_uart) {
->  	case 1:
-> -		prm_set_mod_reg_bits(OMAP24XX_ST_UART1, CORE_MOD, PM_WKEN1)
-> +		prm_set_mod_reg_bits(OMAP24XX_ST_UART1, CORE_MOD, PM_WKEN1);
->  		break;
->  	case 2:
-> -		prm_set_mod_reg_bits(OMAP24XX_ST_UART2, CORE_MOD, PM_WKEN1)
-> +		prm_set_mod_reg_bits(OMAP24XX_ST_UART2, CORE_MOD, PM_WKEN1);
->  		break;
->  	case 3:
-> -		prm_set_mod_reg_bits(OMAP24XX_ST_UART3, CORE_MOD, PM_WKEN2)
-> +		prm_set_mod_reg_bits(OMAP24XX_ST_UART3, CORE_MOD, OMAP24XX_PM_WKEN2);
->  		break;
->  	}
+> External code should define omap_type fields as omap_type_t, so
+> omap_type_t can be transparently extended from its current u8 storage
+> size without generating a lot of patch noise.
+> 
+> Also, clean up id.c by splitting some code out of
+> omap_check_revision() into its own function, _set_system_rev(); and
+> converting some debug printk()s into pr_debug().
+> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> 
+> ---
+>  arch/arm/mach-omap2/id.c        |  166 ++++++++++++++++++++++++++++------------
+>  include/asm-arm/arch-omap/cpu.h |   27 ++++++
+>  2 files changed, 144 insertions(+), 49 deletions(-)
+> 
+> Index: linux-omap/arch/arm/mach-omap2/id.c
+> ===================================================================
+> --- linux-omap.orig/arch/arm/mach-omap2/id.c	2008-04-10 07:34:44.000000000 -0600
+> +++ linux-omap/arch/arm/mach-omap2/id.c	2008-04-10 07:34:57.000000000 -0600
+> @@ -18,6 +18,7 @@
+>  #include <asm/io.h>
+>  
+>  #include <asm/arch/control.h>
+> +#include <asm/arch/cpu.h>
+>  
+>  #if defined(CONFIG_ARCH_OMAP2420)
+>  #define TAP_BASE	io_p2v(0x48014000)
+> @@ -62,6 +63,21 @@
+>  	{ .hawkeye = 0xb68a, .dev = 0x0, .type = 0x24300000 },
+>  };
+>  
+> +static omap_chip_t omap_chip;
+> +
+> +/**
+> + * omap_chip_is - test whether currently running OMAP matches a chip type
+> + * @oc: omap_chip_t to test against
+> + *
+> + * Test whether the currently-running OMAP chip matches the supplied
+> + * chip type 'oc'.  Returns 1 upon a match; 0 upon failure.
+> + */
+> +int omap_chip_is(omap_chip_t oc)
+> +{
+> +	return (oc & omap_chip) ? 1 : 0;
+> +}
+> +EXPORT_SYMBOL(omap_chip_is);
+> +
+>  static u32 __init read_tap_reg(int reg)
+>  {
+>  	unsigned int regval = 0;
+> @@ -93,9 +109,91 @@
+>  
 >  }
+>  
+> +/*
+> + * _set_system_rev - set the system_rev global based on current OMAP chip type
+> + *
+> + * Set the system_rev global.  This is primarily used by the cpu_is_omapxxxx()
+> + * macros.
+> + */
+> +static void __init _set_system_rev(u32 type, u8 rev)
+> +{
+> +	u32 i, ctrl_status;
+> +
+> +	/*
+> +	 * system_rev encoding is as follows
+> +	 * system_rev & 0xff000000 -> Omap Class (24xx/34xx)
+> +	 * system_rev & 0xfff00000 -> Omap Sub Class (242x/343x)
+> +	 * system_rev & 0xffff0000 -> Omap type (2420/2422/2423/2430/3430)
+> +	 * system_rev & 0x0000f000 -> Silicon revision (ES1, ES2 )
+> +	 * system_rev & 0x00000700 -> Device Type ( EMU/HS/GP/BAD )
+> +	 * system_rev & 0x000000c0 -> IDCODE revision[6:7]
+> +	 * system_rev & 0x0000003f -> sys_boot[0:5]
+> +	 */
+> +	/* Embedding the ES revision info in type field */
+> +	system_rev = type;
+> +	/* Also add IDCODE revision info only two lower bits */
+> +	system_rev |= ((rev & 0x3) << 6);
+> +
+> +	/* Add in the device type and sys_boot fields (see above) */
+> +	if (cpu_is_omap24xx()) {
+> +		i = OMAP24XX_CONTROL_STATUS;
+> +	} else if (cpu_is_omap343x()) {
+> +		i = OMAP343X_CONTROL_STATUS;
+> +	} else {
+> +		printk(KERN_ERR "id: unknown CPU type\n");
+> +		BUG();
+> +	}
+> +	ctrl_status = omap_ctrl_readl(i);
+> +	system_rev |= (ctrl_status & (OMAP2_SYSBOOT_5_MASK |
+> +				      OMAP2_SYSBOOT_4_MASK |
+> +				      OMAP2_SYSBOOT_3_MASK |
+> +				      OMAP2_SYSBOOT_2_MASK |
+> +				      OMAP2_SYSBOOT_1_MASK |
+> +				      OMAP2_SYSBOOT_0_MASK));
+> +	system_rev |= (ctrl_status & OMAP2_DEVICETYPE_MASK);
+> +}
+> +
+> +
+> +/*
+> + * _set_omap_chip - set the omap_chip global based on OMAP chip type
+> + *
+> + * Build the omap_cpu_type bits.  This variable is used by powerdomain and
+> + * clockdomain code to indicate whether structures are applicable for
+> + * the current OMAP chip type by ANDing it against a 'platform' bitfield
+> + * in the structure.
+> + */
+> +static void __init _set_omap_chip(void)
+> +{
+> +	if (cpu_is_omap343x()) {
+> +
+> +		omap_chip |= CHIP_IS_OMAP3430;
+> +		if (is_sil_rev_equal_to(OMAP3430_REV_ES1_0))
+> +			omap_chip |= CHIP_IS_OMAP3430ES1;
+> +		else if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0))
+> +			omap_chip |= CHIP_IS_OMAP3430ES2;
+> +
+> +	} else if (cpu_is_omap243x()) {
+> +
+> +		/* Currently only supports 2430ES2.1 and 2430-all */
+> +		omap_chip |= CHIP_IS_OMAP2430;
+> +
+> +	} else if (cpu_is_omap242x()) {
+> +
+> +		/* Currently only supports 2420ES2.1.1 and 2420-all */
+> +		omap_chip |= CHIP_IS_OMAP2420;
+> +
+> +	} else {
+> +
+> +		/* Current CPU not supported by this code. */
+> +		printk(KERN_WARNING "OMAP chip type code does not yet support "
+> +		       "this CPU type.\n");
+> +		WARN_ON(1);
+> +
+> +	}
+> +}
+> +
+>  void __init omap2_check_revision(void)
+>  {
+> -	int ctrl_status = 0;
+>  	int i, j;
+>  	u32 idcode;
+>  	u32 prod_id;
+> @@ -109,21 +207,19 @@
+>  	rev = (idcode >> 28) & 0x0f;
+>  	dev_type = (prod_id >> 16) & 0x0f;
+>  
+> -#ifdef DEBUG
+> -	printk(KERN_DEBUG "OMAP_TAP_IDCODE 0x%08x REV %i HAWKEYE 0x%04x MANF %03x\n",
+> -		idcode, rev, hawkeye, (idcode >> 1) & 0x7ff);
+> -	printk(KERN_DEBUG "OMAP_TAP_DIE_ID_0: 0x%08x\n",
+> -		read_tap_reg(OMAP_TAP_DIE_ID_0));
+> -	printk(KERN_DEBUG "OMAP_TAP_DIE_ID_1: 0x%08x DEV_REV: %i\n",
+> -		read_tap_reg(OMAP_TAP_DIE_ID_1),
+> -	       (read_tap_reg(OMAP_TAP_DIE_ID_1) >> 28) & 0xf);
+> -	printk(KERN_DEBUG "OMAP_TAP_DIE_ID_2: 0x%08x\n",
+> -		read_tap_reg(OMAP_TAP_DIE_ID_2));
+> -	printk(KERN_DEBUG "OMAP_TAP_DIE_ID_3: 0x%08x\n",
+> -		read_tap_reg(OMAP_TAP_DIE_ID_3));
+> -	printk(KERN_DEBUG "OMAP_TAP_PROD_ID_0: 0x%08x DEV_TYPE: %i\n",
+> -		prod_id, dev_type);
+> -#endif
+> +	pr_debug("OMAP_TAP_IDCODE 0x%08x REV %i HAWKEYE 0x%04x MANF %03x\n",
+> +		 idcode, rev, hawkeye, (idcode >> 1) & 0x7ff);
+> +	pr_debug("OMAP_TAP_DIE_ID_0: 0x%08x\n",
+> +		 read_tap_reg(OMAP_TAP_DIE_ID_0));
+> +	pr_debug("OMAP_TAP_DIE_ID_1: 0x%08x DEV_REV: %i\n",
+> +		 read_tap_reg(OMAP_TAP_DIE_ID_1),
+> +		 (read_tap_reg(OMAP_TAP_DIE_ID_1) >> 28) & 0xf);
+> +	pr_debug("OMAP_TAP_DIE_ID_2: 0x%08x\n",
+> +		 read_tap_reg(OMAP_TAP_DIE_ID_2));
+> +	pr_debug("OMAP_TAP_DIE_ID_3: 0x%08x\n",
+> +		 read_tap_reg(OMAP_TAP_DIE_ID_3));
+> +	pr_debug("OMAP_TAP_PROD_ID_0: 0x%08x DEV_TYPE: %i\n",
+> +		 prod_id, dev_type);
+>  
+>  	/*
+>  	 * Detection for 34xx ES2.0 and above can be done with just
+> @@ -159,43 +255,15 @@
+>  		j = i;
+>  	}
+>  
+> -	/*
+> -	 * system_rev encoding is as follows
+> -	 * system_rev & 0xff000000 -> Omap Class (24xx/34xx)
+> -	 * system_rev & 0xfff00000 -> Omap Sub Class (242x/343x)
+> -	 * system_rev & 0xffff0000 -> Omap type (2420/2422/2423/2430/3430)
+> -	 * system_rev & 0x0000f000 -> Silicon revision (ES1, ES2 )
+> -	 * system_rev & 0x00000700 -> Device Type ( EMU/HS/GP/BAD )
+> -	 * system_rev & 0x000000c0 -> IDCODE revision[6:7]
+> -	 * system_rev & 0x0000003f -> sys_boot[0:5]
+> -	 */
+> -	/* Embedding the ES revision info in type field */
+> -	system_rev = omap_ids[j].type;
+> -	/* Also add IDCODE revision info only two lower bits */
+> -	system_rev |= ((rev & 0x3) << 6);
+> +	_set_system_rev(omap_ids[j].type, rev);
+> +
+> +	_set_omap_chip();
+>  
+> -	/* Add in the device type and sys_boot fields (see above) */
+> -	if (cpu_is_omap24xx()) {
+> -		i = OMAP24XX_CONTROL_STATUS;
+> -	} else if (cpu_is_omap343x()) {
+> -		i = OMAP343X_CONTROL_STATUS;
+> -	} else {
+> -		printk(KERN_ERR "id: unknown CPU type\n");
+> -		BUG();
+> -	}
+> -	ctrl_status = omap_ctrl_readl(i);
+> -	system_rev |= (ctrl_status & (OMAP2_SYSBOOT_5_MASK |
+> -				      OMAP2_SYSBOOT_4_MASK |
+> -				      OMAP2_SYSBOOT_3_MASK |
+> -				      OMAP2_SYSBOOT_2_MASK |
+> -				      OMAP2_SYSBOOT_1_MASK |
+> -				      OMAP2_SYSBOOT_0_MASK));
+> -	system_rev |= (ctrl_status & OMAP2_DEVICETYPE_MASK);
+>  
+>  	pr_info("OMAP%04x", system_rev >> 16);
+>  	if ((system_rev >> 8) & 0x0f)
+> -		printk("ES%x", (system_rev >> 12) & 0xf);
+> -	printk("\n");
+> +		pr_info("ES%x", (system_rev >> 12) & 0xf);
+> +	pr_info("\n");
+>  
+>  }
+>  
+> Index: linux-omap/include/asm-arm/arch-omap/cpu.h
+> ===================================================================
+> --- linux-omap.orig/include/asm-arm/arch-omap/cpu.h	2008-04-10 07:34:44.000000000 -0600
+> +++ linux-omap/include/asm-arm/arch-omap/cpu.h	2008-04-10 07:37:36.000000000 -0600
+> @@ -26,6 +26,8 @@
+>  #ifndef __ASM_ARCH_OMAP_CPU_H
+>  #define __ASM_ARCH_OMAP_CPU_H
+>  
+> +typedef u8 omap_chip_t;
+> +
+>  extern unsigned int system_rev;
+>  
+>  #define omap2_cpu_rev()		((system_rev >> 12) & 0x0f)
+
+New typedefs are not liked, that should be just u8.
+
+
+> @@ -349,6 +351,31 @@
+>  #define OMAP3430_REV_ES2_2	0x34303000
+>  
+>  /*
+> + * omap_chip bits
+> + *
+> + * CHIP_IS_OMAP{2420,2430,3430} indicate that a particular structure is
+> + * valid on all chips of that type.  CHIP_IS_OMAP3430ES{1,2} indicates
+> + * something that is only valid on that particular ES revision.
+> + *
+> + * These bits may be ANDed together to indicate structures that are
+> + * available on multiple chip types.
+> + *
+
+Shouldn't above say ORed together?
+
+
+> + * To test whether a particular structure matches the current OMAP chip type,
+> + * use omap_chip_is().
+> + *
+> + */
+> +#define CHIP_IS_OMAP2420       (1 << 0)
+> +#define CHIP_IS_OMAP2430       (1 << 1)
+> +#define CHIP_IS_OMAP3430       (1 << 2)
+> +#define CHIP_IS_OMAP3430ES1    (1 << 3)
+> +#define CHIP_IS_OMAP3430ES2    (1 << 4)
+> +
+> +#define CHIP_IS_OMAP24XX       (CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
+> +
+> +int omap_chip_is(omap_chip_t oc);
+> +
+> +
+> +/*
+>   * Macro to detect device type i.e. EMU/HS/TST/GP/BAD
+>   */
+>  #define DEVICE_TYPE_TEST	0
+> 
+> -- 
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
