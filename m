@@ -1,49 +1,130 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 1/2] ARM: OMAP: CLKFW: Initial debugfs support for omap clock framework
-Date: Thu, 17 Apr 2008 14:22:26 -0700
-Message-ID: <200804171422.26994.david-b@pacbell.net>
-References: <alpine.DEB.1.00.0804170952270.3689@utopia.booyaka.com> <1208461772.32060.14.camel@mort> <alpine.DEB.1.00.0804171422160.8530@utopia.booyaka.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 7/9] Adding New Board file for OMAP3 Beagle Board
+Date: Fri, 18 Apr 2008 01:12:33 +0300
+Message-ID: <20080417221233.GA4492@kedavra.cpe.vivax.com.br>
+References: <7EAD1AEEA7621C45899FE99123E124A0018C8A85@dbde01.ent.ti.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:31019 "HELO
-	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752398AbYDQVW3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Apr 2008 17:22:29 -0400
-In-Reply-To: <alpine.DEB.1.00.0804171422160.8530@utopia.booyaka.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:59729 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754014AbYDQWKv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Apr 2008 18:10:51 -0400
 Content-Disposition: inline
+In-Reply-To: <7EAD1AEEA7621C45899FE99123E124A0018C8A85@dbde01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Igor Stoppa <igor.stoppa@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org
+To: "Syed Mohammed, Khasim" <khasim@ti.com>
+Cc: linux-omap@vger.kernel.org, discussion@beagleboard.org
 
-On Thursday 17 April 2008, Paul Walmsley wrote:
-> >
-> > Userspace should limit itself to changing policies.
->=20
-> CPUFreq is good, but it does not manage non-CPU-frequency knobs very =
-well,=20
-> and there are plenty of those on OMAP3.
+On Wed, Apr 16, 2008 at 06:08:03PM +0530, Syed Mohammed, Khasim wrote:
+> 
+> Add new board file for OMAP3 Beagle Board.
+> 
+> For more info regarding this board visit http://beagleboard.org
+> 
+> Signed-off-by: Syed Mohammed Khasim <khasim@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-omap3beagle.c |   79 ++++++++++++++++++++++++++++++++
+>  1 file changed, 79 insertions(+)
+> 
+> Index: my_branch/arch/arm/mach-omap2/board-omap3beagle.c
+> ===================================================================
+> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
+> +++ my_branch/arch/arm/mach-omap2/board-omap3beagle.c	2008-04-16 14:45:52.000000000 +0530
+> @@ -0,0 +1,79 @@
+> +/*
+> + * linux/arch/arm/mach-omap2/board-omap3beagle.c
+> + *
+> + * Copyright (C) 2008 Texas Instruments
+> + *
+> + * Modified from mach-omap2/board-3430sdp.c
+> + *
+> + * Initial code: Syed Mohammed Khasim
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/init.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/delay.h>
+> +#include <linux/err.h>
+> +#include <linux/clk.h>
+> +#include <linux/io.h>
+> +
+> +#include <asm/hardware.h>
 
-Similar issues are widely acknowledged.
+where's the board-omap3beagle.h ?
+there's only the .c file so hardware.h is not adding anything here?
 
+> +#include <asm/mach-types.h>
+> +#include <asm/mach/arch.h>
+> +#include <asm/mach/map.h>
+> +
+> +#include <asm/arch/gpio.h>
+> +#include <asm/arch/board.h>
+> +#include <asm/arch/common.h>
+> +
+> +static struct omap_uart_config omap3_beagle_uart_config __initdata = {
+> +	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+> +};
+> +
+> +static int __init omap3_beagle_i2c_init(void)
+> +{
+> +	omap_register_i2c_bus(1, 2600, NULL, 0);
+> +	omap_register_i2c_bus(2, 400, NULL, 0);
+> +	omap_register_i2c_bus(3, 400, NULL, 0);
+> +	return 0;
+> +}
+> +
+> +static void __init omap3_beagle_init_irq(void)
+> +{
+> +	omap2_init_common_hw();
+> +	omap_init_irq();
+> +	omap_gpio_init();
+> +}
+> +
+> +static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
+> +	{OMAP_TAG_UART,	&omap3_beagle_uart_config },
+> +};
+> +
+> +static void __init omap3_beagle_init(void)
+> +{
+> +	omap_board_config = omap3_beagle_config;
+> +	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
+> +	omap_serial_init();
+> +}
+> +
+> +arch_initcall(omap3_beagle_i2c_init);
+> +
+> +static void __init omap3_beagle_map_io(void)
+> +{
+> +	omap2_set_globals_343x();
+> +	omap2_map_common_io();
+> +}
+> +
+> +MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
+> +	/* Maintainer: Syed Mohammed Khasim - http://beagleboard.org */
+> +	.phys_io	= 0x48000000,
+> +	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
+> +	.boot_params	= 0x80000100,
+> +	.map_io		= omap3_beagle_map_io,
+> +	.init_irq	= omap3_beagle_init_irq,
+> +	.init_machine	= omap3_beagle_init,
+> +	.timer		= &omap_timer,
+> +MACHINE_END
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> Is there any reason why we should not allow the option of userspace O=
-PP=20
-> selection/powerdomain control for OMAP? =A0If people don't want to us=
-e it,=20
-> they don't have to :-)
+-- 
+Best Regards,
 
-Sure, allow userspace controls.  Even use debugs to prototype
-them.  Just don't build fragile interfaces ... don't expect
-userspace code to do the equivalent of open heart surgery.
-
-- Dave
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Felipe Balbi
+me@felipebalbi.com
+http://blog.felipebalbi.com
