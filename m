@@ -1,269 +1,71 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 3/4] Adding support for OMAP3 Beagle Board
-Date: Thu, 17 Apr 2008 06:39:58 -0500
-Message-ID: <00ea279c69175024d58bdd7a58be8f58@felipebalbi.com>
-References: <7EAD1AEEA7621C45899FE99123E124A0018C8B09@dbde01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [PATCH] I2C: i2c subsystem should print error messages
+Date: Thu, 17 Apr 2008 15:29:01 +0300
+Message-ID: <1208435341-14830-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:36329 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753972AbYDQLkA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Apr 2008 07:40:00 -0400
-In-Reply-To: <7EAD1AEEA7621C45899FE99123E124A0018C8B09@dbde01.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:28742 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1763729AbYDQMas (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Apr 2008 08:30:48 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3HCUOeL031192
+	for <linux-omap@vger.kernel.org>; Thu, 17 Apr 2008 15:30:45 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Syed Mohammed, Khasim" <khasim@ti.com>
-Cc: linux-omap@vger.kernel.org, discussion@beagleboard.org
+To: linux-omap@vger.kernel.org
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
+We don't have to print any error message if i2c_add_driver
+fails since i2c subsystem already does it.
 
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/i2c/chips/isp1301_omap.c |   10 +---------
+ drivers/i2c/chips/menelaus.c     |   10 +---------
+ 2 files changed, 2 insertions(+), 18 deletions(-)
 
-On Thu, 17 Apr 2008 07:41:38 +0530, "Syed Mohammed, Khasim" <khasim@ti.com>
-wrote:
-> 
-> Adding support for OMAP3 Beagle Board
-> 
-> Signed-off-by: Syed Mohammed Khasim <khasim@ti.com>
-> ---
->  arch/arm/mach-omap2/Kconfig                   |    4 +
->  arch/arm/mach-omap2/Makefile                  |    1
->  arch/arm/mach-omap2/board-omap3beagle.c       |   79
-> ++++++++++++++++++++++++++
->  include/asm-arm/arch-omap/board-omap3beagle.h |   53 +++++++++++++++++
->  include/asm-arm/arch-omap/hardware.h          |    4 +
->  5 files changed, 141 insertions(+)
-> 
-> Index: my_branch/arch/arm/mach-omap2/Kconfig
-> ===================================================================
-> --- my_branch.orig/arch/arm/mach-omap2/Kconfig	2008-04-16
-> 14:41:28.000000000 +0530
-> +++ my_branch/arch/arm/mach-omap2/Kconfig	2008-04-16 14:45:38.000000000
-> +0530
-> @@ -109,3 +109,7 @@
->  config MACH_OMAP3EVM
->  	bool "OMAP 3530 EVM board"
->  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-> +
-> +config MACH_OMAP3_BEAGLE
-> +	bool "OMAP3 BEAGLE board"
-> +	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-> 
-> Index: my_branch/arch/arm/mach-omap2/Makefile
-> ===================================================================
-> --- my_branch.orig/arch/arm/mach-omap2/Makefile	2008-04-16
-> 14:41:28.000000000 +0530
-> +++ my_branch/arch/arm/mach-omap2/Makefile	2008-04-16 14:45:38.000000000
-> +0530
-> @@ -35,6 +35,7 @@
->  					   board-3430sdp-usb.o \
->  					   board-3430sdp-flash.o
->  obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
-> +obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o
->  obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
->  					   board-apollon-mmc.o	\
->  					   board-apollon-keys.o
-> 
-> Index: my_branch/arch/arm/mach-omap2/board-omap3beagle.c
-> ===================================================================
-> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-> +++ my_branch/arch/arm/mach-omap2/board-omap3beagle.c	2008-04-16
-> 14:45:52.000000000 +0530
-> @@ -0,0 +1,79 @@
-> +/*
-> + * linux/arch/arm/mach-omap2/board-omap3beagle.c
-> + *
-> + * Copyright (C) 2008 Texas Instruments
-> + *
-> + * Modified from mach-omap2/board-3430sdp.c
-> + *
-> + * Initial code: Syed Mohammed Khasim
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/init.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/delay.h>
-> +#include <linux/err.h>
-> +#include <linux/clk.h>
-> +#include <linux/io.h>
-> +
-> +#include <asm/hardware.h>
-> +#include <asm/mach-types.h>
-> +#include <asm/mach/arch.h>
-> +#include <asm/mach/map.h>
-> +
-> +#include <asm/arch/gpio.h>
-> +#include <asm/arch/board.h>
-> +#include <asm/arch/common.h>
-> +
-> +static struct omap_uart_config omap3_beagle_uart_config __initdata = {
-> +	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
-> +};
-> +
-> +static int __init omap3_beagle_i2c_init(void)
-> +{
-> +	omap_register_i2c_bus(1, 2600, NULL, 0);
-> +	omap_register_i2c_bus(2, 400, NULL, 0);
-> +	omap_register_i2c_bus(3, 400, NULL, 0);
-> +	return 0;
-> +}
-> +
-> +static void __init omap3_beagle_init_irq(void)
-> +{
-> +	omap2_init_common_hw();
-> +	omap_init_irq();
-> +	omap_gpio_init();
-> +}
-> +
-> +static struct omap_board_config_kernel omap3_beagle_config[] __initdata
-=
-> {
-> +	{OMAP_TAG_UART,	&omap3_beagle_uart_config },
-> +};
-> +
-> +static void __init omap3_beagle_init(void)
-> +{
-> +	omap_board_config = omap3_beagle_config;
-> +	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
-> +	omap_serial_init();
-> +}
-> +
-> +arch_initcall(omap3_beagle_i2c_init);
-> +
-> +static void __init omap3_beagle_map_io(void)
-> +{
-> +	omap2_set_globals_343x();
-> +	omap2_map_common_io();
-> +}
-> +
-> +MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
-> +	/* Maintainer: Syed Mohammed Khasim - http://beagleboard.org */
-> +	.phys_io	= 0x48000000,
-> +	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-> +	.boot_params	= 0x80000100,
-> +	.map_io		= omap3_beagle_map_io,
-> +	.init_irq	= omap3_beagle_init_irq,
-> +	.init_machine	= omap3_beagle_init,
-> +	.timer		= &omap_timer,
-> +MACHINE_END
-> 
-> Index: my_branch/include/asm-arm/arch-omap/board-omap3beagle.h
-> ===================================================================
-> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-> +++ my_branch/include/asm-arm/arch-omap/board-omap3beagle.h	2008-04-16
-> 14:47:14.000000000 +0530
-> @@ -0,0 +1,53 @@
-> +/*
-> + * linux/include/asm-arm/arch-omap/board-omap3beagle.h
-> + *
-> + * Hardware definitions for TI OMAP3 BEAGLE.
-> + *
-> + * Initial creation by Syed Mohammed Khasim <khasim@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> it
-> + * under the terms of the GNU General Public License as published by the
-> + * Free Software Foundation; either version 2 of the License, or (at
-your
-> + * option) any later version.
-> + *
-> + * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-> + * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-> + * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-> IN
-> + * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-> + * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-> BUT
-> + * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-> + * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON
-> + * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
-> TORT
-> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-> OF
-> + * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> along
-> + * with this program; if not, write to the Free Software Foundation,
-> Inc.,
-> + * 675 Mass Ave, Cambridge, MA 02139, USA.
-> + */
-> +
-> +#ifndef __ASM_ARCH_OMAP3_BEAGLE_H
-> +#define __ASM_ARCH_OMAP3_BEAGLE_H
-> +
-> +#ifdef CONFIG_TWL4030_CORE
-> +
-> +#define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
-> +
-> +/* TWL4030 Primary Interrupt Handler (PIH) interrupts */
-> +#define	IH_TWL4030_BASE		IH_BOARD_BASE
-> +#define	IH_TWL4030_END		(IH_TWL4030_BASE+8)
-> +#define IH_TWL4030_PWRBASE	(IH_TWL4030_END)
-> +#define IH_TWL4030_PWRBASE_END	(IH_TWL4030_PWRBASE+8)
-> +
-> +#ifdef CONFIG_TWL4030_GPIO
-> +/* TWL4030 GPIO Interrupts */
-> +#define IH_TWL4030_GPIO_BASE	(IH_TWL4030_PWRBASE_END)
-> +#define IH_TWL4030_GPIO_END	(IH_TWL4030_GPIO_BASE+18)
-> +#define NR_IRQS			(IH_TWL4030_GPIO_END)
-> +#else
-> +#define NR_IRQS			(IH_TWL4030_PWRBASE_END)
-> +#endif /* CONFIG_I2C_TWL4030_GPIO */
-
-shouldn't you consider the power base as the other boards ?
-
-#define	IH_TWL4030_BASE		IH_BOARD_BASE
-#define	IH_TWL4030_END		(IH_TWL4030_BASE+8)
-
-#define IH_TWL4030_PWRBASE     (IH_TWL4030_END)
-#define IH_TWL4030_PWRBASE_END (IH_TWL4030_PWRBASE+8)
-
-#ifdef CONFIG_TWL4030_GPIO
-
-/* TWL4030 GPIO Interrupts */
-#define IH_TWL4030_GPIO_BASE	(IH_TWL4030_PWRBASE_END)
-#define IH_TWL4030_GPIO_END	(IH_TWL4030_GPIO_BASE+18)
-#define NR_IRQS			(IH_TWL4030_GPIO_END)
-#else
-#define NR_IRQS			(IH_TWL4030_PWRBASE_END)
-
-> +
-> +#endif /* End of support for TWL4030 */
-> +#endif /*  __ASM_ARCH_OMAP3_BEAGLE_H */
-> +
-> 
-> Index: my_branch/include/asm-arm/arch-omap/hardware.h
-> ===================================================================
-> --- my_branch.orig/include/asm-arm/arch-omap/hardware.h	2008-04-16
-> 14:44:09.000000000 +0530
-> +++ my_branch/include/asm-arm/arch-omap/hardware.h	2008-04-16
-> 14:47:14.000000000 +0530
-> @@ -339,6 +339,10 @@
->  #include "board-omap3evm.h"
->  #endif
-> 
-> +#ifdef CONFIG_MACH_OMAP3_BEAGLE
-> +#include "board-omap3beagle.h"
-> +#endif
-> +
->  #ifdef CONFIG_MACH_OMAP_APOLLON
->  #include "board-apollon.h"
->  #endif
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/i2c/chips/isp1301_omap.c b/drivers/i2c/chips/isp1301_omap.c
+index 6ebff9c..09f9662 100644
+--- a/drivers/i2c/chips/isp1301_omap.c
++++ b/drivers/i2c/chips/isp1301_omap.c
+@@ -1606,15 +1606,7 @@ static struct i2c_driver isp1301_driver = {
+ 
+ static int __init isp_init(void)
+ {
+-	int	status = -ENODEV;
+-
+-	printk(KERN_INFO "%s: version %s\n", DRIVER_NAME, DRIVER_VERSION);
+-
+-	status = i2c_add_driver(&isp1301_driver);
+-	if (status)
+-		printk(KERN_ERR "%s failed to probe\n", DRIVER_NAME);
+-
+-	return status;
++	return i2c_add_driver(&isp1301_driver);
+ }
+ module_init(isp_init);
+ 
+diff --git a/drivers/i2c/chips/menelaus.c b/drivers/i2c/chips/menelaus.c
+index 1d7482a..d4d1ccc 100644
+--- a/drivers/i2c/chips/menelaus.c
++++ b/drivers/i2c/chips/menelaus.c
+@@ -1281,15 +1281,7 @@ static struct i2c_driver menelaus_i2c_driver = {
+ 
+ static int __init menelaus_init(void)
+ {
+-	int res;
+-
+-	res = i2c_add_driver(&menelaus_i2c_driver);
+-	if (res < 0) {
+-		dev_err(&the_menelaus->client->dev, "driver registration failed\n");
+-		return res;
+-	}
+-
+-	return 0;
++	return i2c_add_driver(&menelaus_i2c_driver);
+ }
+ 
+ static void __exit menelaus_exit(void)
 -- 
-Best Regards,
-
-Felipe Balbi
-http://felipebalbi.com
-me@felipebalbi.com
+1.5.5.49.gf43e2
 
