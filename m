@@ -1,53 +1,48 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH] I2C: TWL4030: Fix Kconfig
-Date: Thu, 17 Apr 2008 17:43:56 +0300
-Message-ID: <1208443436-26722-1-git-send-email-felipe.balbi@nokia.com>
+From: "Syed Mohammed, Khasim" <khasim@ti.com>
+Subject: RE: [PATCH 3/4] Adding support for OMAP3 Beagle Board
+Date: Thu, 17 Apr 2008 20:13:12 +0530
+Message-ID: <7EAD1AEEA7621C45899FE99123E124A0018C8CCF@dbde01.ent.ti.com>
+References: <7EAD1AEEA7621C45899FE99123E124A0018C8B09@dbde01.ent.ti.com> <48075F66.8020408@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:61930 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757103AbYDQOpF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Apr 2008 10:45:05 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3HEgn7R003740
-	for <linux-omap@vger.kernel.org>; Thu, 17 Apr 2008 09:47:26 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60013 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756139AbYDQOsm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Apr 2008 10:48:42 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <48075F66.8020408@googlemail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: linux-omap@vger.kernel.org, discussion@beagleboard.org, Koen Kooi <k.kooi@student.utwente.nl>
 
-Misc cleanup patch.
+Hi Dirk,
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/i2c/chips/Kconfig |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+> > +}
+> > +
+> > +static struct omap_board_config_kernel omap3_beagle_config[] __initdata
+> = {
+> > +	{OMAP_TAG_UART,	&omap3_beagle_uart_config },
+> > +};
+> > +
+> > +static void __init omap3_beagle_init(void)
+> > +{
+> > +	omap_board_config = omap3_beagle_config;
+> > +	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
+> > +	omap_serial_init();
+> 
+> Do you like to add here MMC and USB init like recently proposed by
+> Koen Kooi?
+>
+They are any ways adding new functionality we can bring them in as new patches. Just trying to avoid another round of testing :)
+ 
+> If I understand correctly, these patches currently won't boot on
+> BeagleBoard if MMC and USB are missing?
+> 
+I have tried with Ramdisk. Kernel boots on Beagle with out USB and MMC.
 
-diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
-index f3ea82d..5cf4657 100644
---- a/drivers/i2c/chips/Kconfig
-+++ b/drivers/i2c/chips/Kconfig
-@@ -160,10 +160,6 @@ choice
- 	  TWL4030 USB transceiver can operate in various
- 	  mutually-exclusive modes. Select one of them.
- 
--config TWL4030_PWRBUTTON
--        bool "TWL4030 Power button Driver"
--	depends on TWL4030_CORE
--
- config TWL4030_USB_HS_ULPI
- 	depends on TWL4030_USB
- 	bool "High-speed ULPI"
-@@ -173,6 +169,10 @@ config TWL4030_USB_HS_ULPI
- 
- endchoice
- 
-+config TWL4030_PWRBUTTON
-+        bool "TWL4030 Power button Driver"
-+	depends on TWL4030_CORE
-+
- config TWL4030_POWEROFF
- 	bool "TWL4030 device poweroff"
- 	depends on TWL4030_CORE
--- 
-1.5.5.49.gf43e2
+Regards,
+Khasim
 
