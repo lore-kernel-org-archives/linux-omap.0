@@ -1,12 +1,15 @@
 From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [PATCH 00/19] Update and clean up on sound/arm/omap/omap-alsa*[c,h] (take #2)
-Date: Fri, 18 Apr 2008 04:00:47 -0400
-Message-ID: <1208505666-13744-1-git-send-email-edubezval@gmail.com>
+Subject: [PATCH 02/19] Code clean-up for include/asm-arm/arch-omap/omap-alsa.h
+Date: Fri, 18 Apr 2008 04:00:49 -0400
+Message-ID: <1208505666-13744-3-git-send-email-edubezval@gmail.com>
+References: <1208505666-13744-1-git-send-email-edubezval@gmail.com>
+ <1208505666-13744-2-git-send-email-edubezval@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:18771 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:18783 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755776AbYDRIBU (ORCPT
+	with ESMTP id S1756250AbYDRIBU (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 04:01:20 -0400
+In-Reply-To: <1208505666-13744-2-git-send-email-edubezval@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -14,61 +17,74 @@ Cc: Felipe Balbi <me@felipebalbi.com>, Ragner Magalhaes <ragner.magalhaes@indt.o
 
 From: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-Hi all,
+Removed lots of whitespaces and a few errors and
+warnings reported by checkpatch.pl.
 
-This patch series cleans up most of the errors and warnings reported
-by checkpatch.pl on sound/arm/omap/omap-alsa*[c,h]. Some checks reported
-by checkpatch.pl were ignored, such as removing #if 0 codes. Not all were
-eligible for remotion.
-
-There is also one patch that updates the alsa driver for H2.
-Since tsc2101 i2c driver was updated, this alsa driver stop
-working.
-
-Cheers,
-
+Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
 ---
-Eduardo Valentin
+ include/asm-arm/arch-omap/omap-alsa.h |   29 +++++++++++++++++++----------
+ 1 files changed, 19 insertions(+), 10 deletions(-)
 
-Eduardo Valentin (19):
-  Update audio driver for H2 board
-  Code clean-up for include/asm-arm/arch-omap/omap-alsa.h
-  Code clean-up for sound/arm/omap/omap-alsa-aic23.c
-  Code clean-up for sound/arm/omap/omap-alsa-aic23.h
-  Code clean-up for sound/arm/omap/omap-alsa-aic23-mixer.c
-  Code clean-up for sound/arm/omap/omap-alsa-dma.c
-  Code clean-up for sound/arm/omap/omap-alsa-dma.h
-  Code clean-up for sound/arm/omap/omap-alsa-sx1-mixer.c
-  Code clean-up for sound/arm/omap/omap-alsa-sx1-mixer.h
-  Code clean-up for sound/arm/omap/omap-alsa-sx1.c
-  Code clean-up for sound/arm/omap/omap-alsa-sx1.h
-  Code clean-up for sound/arm/omap/omap-alsa-tsc2101-mixer.c
-  Code clean-up for sound/arm/omap/omap-alsa-tsc2101-mixer.h
-  Code clean-up for sound/arm/omap/omap-alsa-tsc2101.c
-  Code clean-up for sound/arm/omap/omap-alsa-tsc2101.h
-  Code clean-up for sound/arm/omap/omap-alsa-tsc2102-mixer.c
-  Code clean-up for sound/arm/omap/omap-alsa-tsc2102.c
-  Code clean-up for sound/arm/omap/omap-alsa-tsc2102.h
-  Code clean-up for sound/arm/omap/omap-alsa.c
-
- arch/arm/mach-omap1/board-h2.c           |   71 ++--
- include/asm-arm/arch-omap/omap-alsa.h    |   29 +-
- sound/arm/omap/omap-alsa-aic23-mixer.c   |  144 ++++---
- sound/arm/omap/omap-alsa-aic23.c         |   59 ++--
- sound/arm/omap/omap-alsa-aic23.h         |   12 +-
- sound/arm/omap/omap-alsa-dma.c           |  171 ++++-----
- sound/arm/omap/omap-alsa-dma.h           |   22 +-
- sound/arm/omap/omap-alsa-sx1-mixer.c     |   22 +-
- sound/arm/omap/omap-alsa-sx1-mixer.h     |    6 +-
- sound/arm/omap/omap-alsa-sx1.c           |   72 +++-
- sound/arm/omap/omap-alsa-sx1.h           |    3 +-
- sound/arm/omap/omap-alsa-tsc2101-mixer.c |  631 ++++++++++++++++--------------
- sound/arm/omap/omap-alsa-tsc2101-mixer.h |   31 +-
- sound/arm/omap/omap-alsa-tsc2101.c       |  320 ++++++++++-----
- sound/arm/omap/omap-alsa-tsc2101.h       |   11 +-
- sound/arm/omap/omap-alsa-tsc2102-mixer.c |   14 +-
- sound/arm/omap/omap-alsa-tsc2102.c       |   70 ++--
- sound/arm/omap/omap-alsa-tsc2102.h       |    2 +-
- sound/arm/omap/omap-alsa.c               |  163 ++++----
- 19 files changed, 1056 insertions(+), 797 deletions(-)
+diff --git a/include/asm-arm/arch-omap/omap-alsa.h b/include/asm-arm/arch-omap/omap-alsa.h
+index 0f8a7d3..9eaa7f2 100644
+--- a/include/asm-arm/arch-omap/omap-alsa.h
++++ b/include/asm-arm/arch-omap/omap-alsa.h
+@@ -49,15 +49,23 @@
+  * Debug functions
+  */
+ #undef DEBUG
+-//#define DEBUG
++/* #define DEBUG */
+ 
+-#define ERR(ARGS...) printk(KERN_ERR "{%s}-ERROR: ", __FUNCTION__);printk(ARGS);
++#define ERR(ARGS...)						\
++	do {							\
++		printk(KERN_ERR "{%s}-ERROR: ", __func__);	\
++		printk(ARGS);					\
++	} while (0)
+ 
+ #ifdef DEBUG
+-#define DPRINTK(ARGS...)  printk(KERN_INFO "<%s>: ",__FUNCTION__);printk(ARGS)
+-#define ADEBUG() printk("XXX Alsa debug f:%s, l:%d\n", __FUNCTION__, __LINE__)
+-#define FN_IN printk(KERN_INFO "[%s]: start\n", __FUNCTION__)
+-#define FN_OUT(n) printk(KERN_INFO "[%s]: end(%u)\n",__FUNCTION__, n)
++#define DPRINTK(ARGS...)					\
++	do {							\
++		printk(KERN_INFO "<%s>: ", __func__);		\
++		printk(ARGS);					\
++	} while (0)
++#define ADEBUG() printk("XXX Alsa debug f:%s, l:%d\n", __func__, __LINE__)
++#define FN_IN printk(KERN_INFO "[%s]: start\n", __func__)
++#define FN_OUT(n) printk(KERN_INFO "[%s]: end(%u)\n", __func__, n)
+ #else
+ #define DPRINTK(ARGS...)	/* nop */
+ #define ADEBUG()		/* nop */
+@@ -81,12 +89,12 @@ struct audio_stream {
+ 	char dma_q_count;	/* DMA Channel Q Count */
+ 	int active:1;		/* we are using this stream for transfer now */
+ 	int period;		/* current transfer period */
+-	int periods;		/* current count of periods registerd in the DMA engine */
++	int periods;		/* current registered periods in DMA engine */
+ 	spinlock_t dma_lock;	/* for locking in DMA operations */
+ 	struct snd_pcm_substream *stream;	/* the pcm stream */
+ 	unsigned linked:1;	/* dma channels linked */
+-	int offset;		/* store start position of the last period in the alsa buffer */
+-	int (*hw_start)(void);  /* interface to start HW interface, e.g. McBSP */
++	int offset;		/* start position of last period in alsa buf */
++	int (*hw_start)(void);  /* interface to start HW interface, (McBSP) */
+ 	int (*hw_stop)(void);   /* interface to stop HW interface, e.g. McBSP */
+ };
+ 
+@@ -127,7 +135,8 @@ void snd_omap_suspend_mixer(void);
+ void snd_omap_resume_mixer(void);
+ #endif
+ 
+-int snd_omap_alsa_post_probe(struct platform_device *pdev, struct omap_alsa_codec_config *config);
++int snd_omap_alsa_post_probe(struct platform_device *pdev,
++				struct omap_alsa_codec_config *config);
+ int snd_omap_alsa_remove(struct platform_device *pdev);
+ #ifdef CONFIG_PM
+ int snd_omap_alsa_suspend(struct platform_device *pdev, pm_message_t state);
+-- 
+1.5.5-rc3.GIT
 
