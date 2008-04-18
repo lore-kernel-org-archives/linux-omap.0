@@ -1,57 +1,210 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] Add usb support to omap3beagle
-Date: Fri, 18 Apr 2008 11:50:01 -0700
-Message-ID: <20080418185000.GG12099@atomide.com>
-References: <CE83D2E2-7DC8-471C-AD14-14A6FED413A9@student.utwente.nl> <200804171126.54874.david-b@pacbell.net> <7F9BB0C5-23DD-4F44-904C-EF3F70324421@student.utwente.nl> <200804171236.07509.david-b@pacbell.net>
+Subject: Re: [PATCH 1/2] ARM: OMAP: HSMMC: General code cleanup and
+	cosmetic fixes
+Date: Fri, 18 Apr 2008 11:39:45 -0700
+Message-ID: <20080418183945.GF12099@atomide.com>
+References: <48061C1E.1030007@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:62046 "EHLO
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:53296 "EHLO
 	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759168AbYDRSuE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 14:50:04 -0400
+	with ESMTP id S932331AbYDRSjt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 14:39:49 -0400
 Content-Disposition: inline
-In-Reply-To: <200804171236.07509.david-b@pacbell.net>
+In-Reply-To: <48061C1E.1030007@indt.org.br>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Koen Kooi <k.kooi@student.utwente.nl>, linux-omap@vger.kernel.org
+To: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Cc: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [080417 12:36]:
-> On Thursday 17 April 2008, Koen Kooi wrote:
-> > >>
-> > >> @@ -69,6 +70,7 @@
-> > >> =A0=A0=A0=A0=A0omap_board_config_size =3D ARRAY_SIZE(omap3_beagl=
-e_config);
-> > >> =A0=A0=A0=A0=A0omap_serial_init();
-> > >> =A0=A0=A0=A0=A0sdp_mmc_init();
-> > >> +=A0=A0=A0=A0sdp3430_usb_init();
-> > >> }
-> > >>
-> > >> arch_initcall(omap3_beagle_i2c_init);
-> > >
-> > > I hope someone makes those sdp_*() routines generic ... or does
-> > > "SDP" not stand for "Software Development Platform" (different bo=
-ard)?
-> >=20
-> > Those routines are indeed name after the sdp board, but they seem
-> > generic enough to get reused in other boards (e.g. omap3evm or omap=
-3
-> > beagle) without change :)
->=20
-> They aren't quite generic enough ... with those names!  :)
+* Carlos Aguiar <carlos.aguiar@indt.org.br> [080416 08:44]:
+> From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+> 
+> This patch makes the following general code cleanup and cosmetic fixes:
+> 
+> - Use #include <linux/io.h> instead of <asm/io.h>, according to warning
+> reported by scripts/checkpatch.pl on arch/arm/mach-omap2/board-sdp-hsmmc.c
+> 
+> - Use if (power_on) instead of if (power_on == 1) and if (!power_on) instead
+> of if (power_on == 0).
+> 
+> - Use if (ret) instead of if (ret != 0).
+> 
+> - Add an extra-line to separate labels.
+> 
+> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+> Acked-by: Anderson Lizardo <anderson.lizardo@indt.org.br>
+> Acked-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+> ---
+>  arch/arm/mach-omap2/board-sdp-hsmmc.c |   41 ++++++++++++++++-----------------
+>  1 files changed, 20 insertions(+), 21 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-sdp-hsmmc.c b/arch/arm/mach-omap2/board-sdp-hsmmc.c
+> index 3ae5b20..71b6a21 100644
+> --- a/arch/arm/mach-omap2/board-sdp-hsmmc.c
+> +++ b/arch/arm/mach-omap2/board-sdp-hsmmc.c
+> @@ -9,6 +9,7 @@
+>   * published by the Free Software Foundation.
+>   */
+>  #include <linux/err.h>
+> +#include <linux/io.h>
+>  #include <linux/module.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/interrupt.h>
+> @@ -17,7 +18,6 @@
+>  #include <asm/hardware.h>
+>  #include <asm/arch/mmc.h>
+>  #include <asm/arch/board.h>
+> -#include <asm/io.h>
+>  
+>  #if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
+>  
+> @@ -31,7 +31,7 @@
+>  #define TWL_GPIO_ISR1A		0x19
+>  #define LDO_CLR			0x00
+>  #define VSEL_S2_CLR		0x40
+> -#define GPIO_0_BIT_POS		1 << 0
+> +#define GPIO_0_BIT_POS		(1 << 0)
+>  #define MMC1_CD_IRQ		0
+>  #define MMC2_CD_IRQ		1
+>  
+> @@ -51,27 +51,27 @@ static int sdp_mmc_late_init(struct device *dev)
+>  	 * Configure TWL4030 GPIO parameters for MMC hotplug irq
+>  	 */
+>  	ret = twl4030_request_gpio(MMC1_CD_IRQ);
+> -	if (ret != 0)
+> +	if (ret)
+>  		goto err;
+>  
+>  	ret = twl4030_set_gpio_edge_ctrl(MMC1_CD_IRQ,
+>  			TWL4030_GPIO_EDGE_RISING | TWL4030_GPIO_EDGE_FALLING);
+> -	if (ret != 0)
+> +	if (ret)
+>  		goto err;
+>  
+>  	ret = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0x02,
+>  						TWL_GPIO_PUPDCTR1);
+> -	if (ret != 0)
+> +	if (ret)
+>  		goto err;
+>  
+>  	ret = twl4030_set_gpio_debounce(MMC1_CD_IRQ, TWL4030_GPIO_IS_ENABLE);
+> -	if (ret != 0)
+> +	if (ret)
+>  		goto err;
+>  
+>  	return ret;
+> +
+>  err:
+>  	dev_err(dev, "Failed to configure TWL4030 GPIO IRQ\n");
+> -
+>  	return ret;
+>  }
+>  
+> @@ -80,7 +80,7 @@ static void sdp_mmc_cleanup(struct device *dev)
+>  	int ret = 0;
+>  
+>  	ret = twl4030_free_gpio(MMC1_CD_IRQ);
+> -	if (ret != 0)
+> +	if (ret)
+>  		dev_err(dev, "Failed to configure TWL4030 GPIO IRQ\n");
+>  }
+>  
+> @@ -96,24 +96,25 @@ static int mask_cd_interrupt(int mask)
+>  	u8 reg = 0, ret = 0;
+>  
+>  	ret = twl4030_i2c_read_u8(TWL4030_MODULE_GPIO, &reg, TWL_GPIO_IMR1A);
+> -	if (ret != 0)
+> +	if (ret)
+>  		goto err;
+>  
+>  	reg = (mask == 1) ? (reg | GPIO_0_BIT_POS) : (reg & ~GPIO_0_BIT_POS);
+>  
+>  	ret = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, reg, TWL_GPIO_IMR1A);
+> -	if (ret != 0)
+> +	if (ret)
+>  		goto err;
+>  
+>  	ret = twl4030_i2c_read_u8(TWL4030_MODULE_GPIO, &reg, TWL_GPIO_ISR1A);
+> -	if (ret != 0)
+> +	if (ret)
+>  		goto err;
+>  
+>  	reg = (mask == 1) ? (reg | GPIO_0_BIT_POS) : (reg & ~GPIO_0_BIT_POS);
+>  
+>  	ret = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, reg, TWL_GPIO_ISR1A);
+> -	if (ret != 0)
+> +	if (ret)
+>  		goto err;
+> +
+>  err:
+>  	return ret;
+>  }
+> @@ -155,7 +156,7 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
+>  	#define OMAP2_CONTROL_PBIAS 0x48002520
+>  #endif
+>  
+> -	if (power_on == 1) {
+> +	if (power_on) {
+>  		if (cpu_is_omap24xx())
+>  			devconf = omap_readl(0x490022E8);
+>  		else
+> @@ -186,12 +187,12 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
+>  
+>  		ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+>  						P1_DEV_GRP, VMMC1_DEV_GRP);
+> -		if (ret != 0)
+> +		if (ret)
+>  			goto err;
+>  
+>  		ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+>  						vdd_sel, VMMC1_DEDICATED);
+> -		if (ret != 0)
+> +		if (ret)
+>  			goto err;
+>  
+>  		msleep(100);
+> @@ -202,7 +203,7 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
+>  
+>  		return ret;
+>  
+> -	} else if (power_on == 0) {
+> +	} else if (!power_on) {
+>  		/* Power OFF */
+>  
+>  		/* For MMC1, Toggle PBIAS before every power up sequence */
 
-Yeah the files should be just twl4030-hsmmc.c instead of
-board-sdp-hsmmmc.c.
+I guess the above else if be just else with this patch?
 
-And usb-musb.c instead of board-2430sdp-usb.c and board-3430sdp-usb.c.
 
-I guess let's do that change next week after we've tagged 2.6.25-omap1.
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> @@ -210,24 +211,22 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
+>  					OMAP2_CONTROL_PBIAS);
+>  		ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+>  						LDO_CLR, VMMC1_DEV_GRP);
+> -		if (ret != 0)
+> +		if (ret)
+>  			goto err;
+>  
+>  		ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+>  						VSEL_S2_CLR, VMMC1_DEDICATED);
+> -		if (ret != 0)
+> +		if (ret)
+>  			goto err;
+>  
+>  		/* 100ms delay required for PBIAS configuration */
+>  		msleep(100);
+>  		omap_writel(omap_readl(OMAP2_CONTROL_PBIAS) | 0x7,
+>  			OMAP2_CONTROL_PBIAS);
+> -	} else {
+> -		ret = -1;
+> -		goto err;
+>  	}
+>  
+>  	return 0;
+> +
+>  err:
+>  	return 1;
+>  }
+> -- 1.5.3.GIT
+> 
