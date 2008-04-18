@@ -1,68 +1,69 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] Adding support for OMAP3 Beagle Board
-Date: Fri, 18 Apr 2008 12:08:55 -0700
-Message-ID: <20080418190855.GK12099@atomide.com>
-References: <7EAD1AEEA7621C45899FE99123E124A0018C8B09@dbde01.ent.ti.com>
+Subject: Re: [Patch 1/4] Adding support for OMAP3 EVM
+Date: Fri, 18 Apr 2008 12:07:58 -0700
+Message-ID: <20080418190757.GJ12099@atomide.com>
+References: <7EAD1AEEA7621C45899FE99123E124A0018C8B07@dbde01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58570 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760682AbYDRTI6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 15:08:58 -0400
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:63009 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759854AbYDRTIA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 15:08:00 -0400
 Content-Disposition: inline
-In-Reply-To: <7EAD1AEEA7621C45899FE99123E124A0018C8B09@dbde01.ent.ti.com>
+In-Reply-To: <7EAD1AEEA7621C45899FE99123E124A0018C8B07@dbde01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Syed Mohammed, Khasim" <khasim@ti.com>
 Cc: linux-omap@vger.kernel.org, discussion@beagleboard.org
 
-* Syed Mohammed, Khasim <khasim@ti.com> [080416 19:12]:
+Just two minor cosmetic comments below:
+
+* Syed Mohammed, Khasim <khasim@ti.com> [080416 19:09]:
 > 
-> Adding support for OMAP3 Beagle Board
+> Adding support for OMAP3 EVM Board
 > 
 > Signed-off-by: Syed Mohammed Khasim <khasim@ti.com>
 > ---
->  arch/arm/mach-omap2/Kconfig                   |    4 +
->  arch/arm/mach-omap2/Makefile                  |    1
->  arch/arm/mach-omap2/board-omap3beagle.c       |   79 ++++++++++++++++++++++++++
->  include/asm-arm/arch-omap/board-omap3beagle.h |   53 +++++++++++++++++
->  include/asm-arm/arch-omap/hardware.h          |    4 +
->  5 files changed, 141 insertions(+)
-> 
-> Index: my_branch/arch/arm/mach-omap2/Kconfig
-> ===================================================================
-> --- my_branch.orig/arch/arm/mach-omap2/Kconfig	2008-04-16 14:41:28.000000000 +0530
-> +++ my_branch/arch/arm/mach-omap2/Kconfig	2008-04-16 14:45:38.000000000 +0530
-> @@ -109,3 +109,7 @@
->  config MACH_OMAP3EVM
->  	bool "OMAP 3530 EVM board"
->  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-> +
-> +config MACH_OMAP3_BEAGLE
-> +	bool "OMAP3 BEAGLE board"
-> +	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  arch/arm/mach-omap2/Kconfig                |    3 +
+>  arch/arm/mach-omap2/Makefile               |    1
+>  arch/arm/mach-omap2/board-omap3evm.c       |   79 +++++++++++++++++++++++++++++
+>  include/asm-arm/arch-omap/board-omap3evm.h |   53 +++++++++++++++++++
+>  include/asm-arm/arch-omap/hardware.h       |    4 +
+>  5 files changed, 140 insertions(+)
 > 
 > Index: my_branch/arch/arm/mach-omap2/Makefile
 > ===================================================================
-> --- my_branch.orig/arch/arm/mach-omap2/Makefile	2008-04-16 14:41:28.000000000 +0530
-> +++ my_branch/arch/arm/mach-omap2/Makefile	2008-04-16 14:45:38.000000000 +0530
-> @@ -35,6 +35,7 @@
+> --- my_branch.orig/arch/arm/mach-omap2/Makefile	2008-04-16 14:39:51.000000000 +0530
+> +++ my_branch/arch/arm/mach-omap2/Makefile	2008-04-16 14:41:28.000000000 +0530
+> @@ -34,6 +34,7 @@
+>  					   board-sdp-hsmmc.o \
 >  					   board-3430sdp-usb.o \
 >  					   board-3430sdp-flash.o
->  obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
-> +obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o
+> +obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
 >  obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
 >  					   board-apollon-mmc.o	\
 >  					   board-apollon-keys.o
 > 
-> Index: my_branch/arch/arm/mach-omap2/board-omap3beagle.c
+> Index: my_branch/arch/arm/mach-omap2/Kconfig
+> ===================================================================
+> --- my_branch.orig/arch/arm/mach-omap2/Kconfig	2008-04-16 14:40:02.000000000 +0530
+> +++ my_branch/arch/arm/mach-omap2/Kconfig	2008-04-16 14:41:28.000000000 +0530
+> @@ -106,3 +106,6 @@
+>  	bool "OMAP 3430 SDP board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  
+> +config MACH_OMAP3EVM
+> +	bool "OMAP 3530 EVM board"
+> +	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> 
+> Index: my_branch/arch/arm/mach-omap2/board-omap3evm.c
 > ===================================================================
 > --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-> +++ my_branch/arch/arm/mach-omap2/board-omap3beagle.c	2008-04-16 14:45:52.000000000 +0530
+> +++ my_branch/arch/arm/mach-omap2/board-omap3evm.c	2008-04-16 14:42:30.000000000 +0530
 > @@ -0,0 +1,79 @@
 > +/*
-> + * linux/arch/arm/mach-omap2/board-omap3beagle.c
+> + * linux/arch/arm/mach-omap2/board-omap3evm.c
 > + *
 > + * Copyright (C) 2008 Texas Instruments
 > + *
@@ -92,11 +93,11 @@ Cc: linux-omap@vger.kernel.org, discussion@beagleboard.org
 > +#include <asm/arch/board.h>
 > +#include <asm/arch/common.h>
 > +
-> +static struct omap_uart_config omap3_beagle_uart_config __initdata = {
+> +static struct omap_uart_config omap3_evm_uart_config __initdata = {
 > +	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
 > +};
 > +
-> +static int __init omap3_beagle_i2c_init(void)
+> +static int __init omap3_evm_i2c_init(void)
 > +{
 > +	omap_register_i2c_bus(1, 2600, NULL, 0);
 > +	omap_register_i2c_bus(2, 400, NULL, 0);
@@ -104,52 +105,71 @@ Cc: linux-omap@vger.kernel.org, discussion@beagleboard.org
 > +	return 0;
 > +}
 > +
-> +static void __init omap3_beagle_init_irq(void)
+> +static void __init omap3_evm_init_irq(void)
 > +{
 > +	omap2_init_common_hw();
 > +	omap_init_irq();
 > +	omap_gpio_init();
 > +}
 > +
-> +static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
-> +	{OMAP_TAG_UART,	&omap3_beagle_uart_config },
+> +static struct omap_board_config_kernel omap3_evm_config[] __initdata = {
+> +	{OMAP_TAG_UART,	&omap3_evm_uart_config },
 > +};
 > +
-> +static void __init omap3_beagle_init(void)
+
+Can you please add a space between { OMAP_TAG_UART... above?
+
+> +static void __init omap3_evm_init(void)
 > +{
-> +	omap_board_config = omap3_beagle_config;
-> +	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
+> +	omap_board_config = omap3_evm_config;
+> +	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
 > +	omap_serial_init();
 > +}
 > +
-> +arch_initcall(omap3_beagle_i2c_init);
+> +arch_initcall(omap3_evm_i2c_init);
 > +
-> +static void __init omap3_beagle_map_io(void)
+> +static void __init omap3_evm_map_io(void)
 > +{
 > +	omap2_set_globals_343x();
 > +	omap2_map_common_io();
 > +}
 > +
-> +MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
-> +	/* Maintainer: Syed Mohammed Khasim - http://beagleboard.org */
+> +MACHINE_START(OMAP3EVM, "OMAP3 EVM")
+> +	/* Maintainer: Syed Mohammed Khasim - Texas Instruments */
 > +	.phys_io	= 0x48000000,
 > +	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
 > +	.boot_params	= 0x80000100,
-> +	.map_io		= omap3_beagle_map_io,
-> +	.init_irq	= omap3_beagle_init_irq,
-> +	.init_machine	= omap3_beagle_init,
+> +	.map_io		= omap3_evm_map_io,
+> +	.init_irq	= omap3_evm_init_irq,
+> +	.init_machine	= omap3_evm_init,
 > +	.timer		= &omap_timer,
 > +MACHINE_END
 > 
-> Index: my_branch/include/asm-arm/arch-omap/board-omap3beagle.h
+> Index: my_branch/include/asm-arm/arch-omap/hardware.h
+> ===================================================================
+> --- my_branch.orig/include/asm-arm/arch-omap/hardware.h	2008-04-16 14:39:51.000000000 +0530
+> +++ my_branch/include/asm-arm/arch-omap/hardware.h	2008-04-16 14:44:09.000000000 +0530
+> @@ -335,6 +335,10 @@
+>  #include "board-3430sdp.h"
+>  #endif
+>  
+> +#ifdef CONFIG_MACH_OMAP3EVM
+> +#include "board-omap3evm.h"
+> +#endif
+> +
+>  #ifdef CONFIG_MACH_OMAP_APOLLON
+>  #include "board-apollon.h"
+>  #endif
+> 
+> Index: my_branch/include/asm-arm/arch-omap/board-omap3evm.h
 > ===================================================================
 > --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-> +++ my_branch/include/asm-arm/arch-omap/board-omap3beagle.h	2008-04-16 14:47:14.000000000 +0530
+> +++ my_branch/include/asm-arm/arch-omap/board-omap3evm.h	2008-04-16 14:44:09.000000000 +0530
 > @@ -0,0 +1,53 @@
 > +/*
-> + * linux/include/asm-arm/arch-omap/board-omap3beagle.h
+> + * linux/include/asm-arm/arch-omap/board-omap3evm.h
 > + *
-> + * Hardware definitions for TI OMAP3 BEAGLE.
+> + * Hardware definitions for TI OMAP3 EVM.
 > + *
 > + * Initial creation by Syed Mohammed Khasim <khasim@ti.com>
 > + *
@@ -174,8 +194,8 @@ Cc: linux-omap@vger.kernel.org, discussion@beagleboard.org
 > + * 675 Mass Ave, Cambridge, MA 02139, USA.
 > + */
 > +
-> +#ifndef __ASM_ARCH_OMAP3_BEAGLE_H
-> +#define __ASM_ARCH_OMAP3_BEAGLE_H
+> +#ifndef __ASM_ARCH_OMAP3_EVM_H
+> +#define __ASM_ARCH_OMAP3_EVM_H
 > +
 > +#ifdef CONFIG_TWL4030_CORE
 > +
@@ -197,27 +217,11 @@ Cc: linux-omap@vger.kernel.org, discussion@beagleboard.org
 > +#endif /* CONFIG_I2C_TWL4030_GPIO */
 > +
 > +#endif /* End of support for TWL4030 */
-> +#endif /*  __ASM_ARCH_OMAP3_BEAGLE_H */
-> +
+> +#endif /*  __ASM_ARCH_OMAP3_EVM_H */
 
-Extra space here too.
+Please remove the extra space above before __ASM_ARCH...
 
-> 
-> Index: my_branch/include/asm-arm/arch-omap/hardware.h
-> ===================================================================
-> --- my_branch.orig/include/asm-arm/arch-omap/hardware.h	2008-04-16 14:44:09.000000000 +0530
-> +++ my_branch/include/asm-arm/arch-omap/hardware.h	2008-04-16 14:47:14.000000000 +0530
-> @@ -339,6 +339,10 @@
->  #include "board-omap3evm.h"
->  #endif
->  
-> +#ifdef CONFIG_MACH_OMAP3_BEAGLE
-> +#include "board-omap3beagle.h"
-> +#endif
 > +
->  #ifdef CONFIG_MACH_OMAP_APOLLON
->  #include "board-apollon.h"
->  #endif
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
