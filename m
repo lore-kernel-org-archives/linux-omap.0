@@ -1,234 +1,224 @@
-From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: Re: [PATCH 1/2] ARM: OMAP: HSMMC: General code cleanup and	cosmetic
- fixes
-Date: Fri, 18 Apr 2008 15:43:10 -0400
-Message-ID: <4808F9CE.5050101@indt.org.br>
-References: <48061C1E.1030007@indt.org.br> <20080418183945.GF12099@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4] Adding support for OMAP3 Beagle Board
+Date: Fri, 18 Apr 2008 12:08:55 -0700
+Message-ID: <20080418190855.GK12099@atomide.com>
+References: <7EAD1AEEA7621C45899FE99123E124A0018C8B09@dbde01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:54183 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750918AbYDRTn5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 15:43:57 -0400
-In-Reply-To: <20080418183945.GF12099@atomide.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58570 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760682AbYDRTI6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 15:08:58 -0400
+Content-Disposition: inline
+In-Reply-To: <7EAD1AEEA7621C45899FE99123E124A0018C8B09@dbde01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: "Syed Mohammed, Khasim" <khasim@ti.com>
+Cc: linux-omap@vger.kernel.org, discussion@beagleboard.org
 
-ext Tony Lindgren wrote:
-> * Carlos Aguiar <carlos.aguiar@indt.org.br> [080416 08:44]:
->   
->> From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
->>
->> This patch makes the following general code cleanup and cosmetic fixes:
->>
->> - Use #include <linux/io.h> instead of <asm/io.h>, according to warning
->> reported by scripts/checkpatch.pl on arch/arm/mach-omap2/board-sdp-hsmmc.c
->>
->> - Use if (power_on) instead of if (power_on == 1) and if (!power_on) instead
->> of if (power_on == 0).
->>
->> - Use if (ret) instead of if (ret != 0).
->>
->> - Add an extra-line to separate labels.
->>
->> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
->> Acked-by: Anderson Lizardo <anderson.lizardo@indt.org.br>
->> Acked-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
->> ---
->>  arch/arm/mach-omap2/board-sdp-hsmmc.c |   41 ++++++++++++++++-----------------
->>  1 files changed, 20 insertions(+), 21 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-sdp-hsmmc.c b/arch/arm/mach-omap2/board-sdp-hsmmc.c
->> index 3ae5b20..71b6a21 100644
->> --- a/arch/arm/mach-omap2/board-sdp-hsmmc.c
->> +++ b/arch/arm/mach-omap2/board-sdp-hsmmc.c
->> @@ -9,6 +9,7 @@
->>   * published by the Free Software Foundation.
->>   */
->>  #include <linux/err.h>
->> +#include <linux/io.h>
->>  #include <linux/module.h>
->>  #include <linux/platform_device.h>
->>  #include <linux/interrupt.h>
->> @@ -17,7 +18,6 @@
->>  #include <asm/hardware.h>
->>  #include <asm/arch/mmc.h>
->>  #include <asm/arch/board.h>
->> -#include <asm/io.h>
->>  
->>  #if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
->>  
->> @@ -31,7 +31,7 @@
->>  #define TWL_GPIO_ISR1A		0x19
->>  #define LDO_CLR			0x00
->>  #define VSEL_S2_CLR		0x40
->> -#define GPIO_0_BIT_POS		1 << 0
->> +#define GPIO_0_BIT_POS		(1 << 0)
->>  #define MMC1_CD_IRQ		0
->>  #define MMC2_CD_IRQ		1
->>  
->> @@ -51,27 +51,27 @@ static int sdp_mmc_late_init(struct device *dev)
->>  	 * Configure TWL4030 GPIO parameters for MMC hotplug irq
->>  	 */
->>  	ret = twl4030_request_gpio(MMC1_CD_IRQ);
->> -	if (ret != 0)
->> +	if (ret)
->>  		goto err;
->>  
->>  	ret = twl4030_set_gpio_edge_ctrl(MMC1_CD_IRQ,
->>  			TWL4030_GPIO_EDGE_RISING | TWL4030_GPIO_EDGE_FALLING);
->> -	if (ret != 0)
->> +	if (ret)
->>  		goto err;
->>  
->>  	ret = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0x02,
->>  						TWL_GPIO_PUPDCTR1);
->> -	if (ret != 0)
->> +	if (ret)
->>  		goto err;
->>  
->>  	ret = twl4030_set_gpio_debounce(MMC1_CD_IRQ, TWL4030_GPIO_IS_ENABLE);
->> -	if (ret != 0)
->> +	if (ret)
->>  		goto err;
->>  
->>  	return ret;
->> +
->>  err:
->>  	dev_err(dev, "Failed to configure TWL4030 GPIO IRQ\n");
->> -
->>  	return ret;
->>  }
->>  
->> @@ -80,7 +80,7 @@ static void sdp_mmc_cleanup(struct device *dev)
->>  	int ret = 0;
->>  
->>  	ret = twl4030_free_gpio(MMC1_CD_IRQ);
->> -	if (ret != 0)
->> +	if (ret)
->>  		dev_err(dev, "Failed to configure TWL4030 GPIO IRQ\n");
->>  }
->>  
->> @@ -96,24 +96,25 @@ static int mask_cd_interrupt(int mask)
->>  	u8 reg = 0, ret = 0;
->>  
->>  	ret = twl4030_i2c_read_u8(TWL4030_MODULE_GPIO, &reg, TWL_GPIO_IMR1A);
->> -	if (ret != 0)
->> +	if (ret)
->>  		goto err;
->>  
->>  	reg = (mask == 1) ? (reg | GPIO_0_BIT_POS) : (reg & ~GPIO_0_BIT_POS);
->>  
->>  	ret = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, reg, TWL_GPIO_IMR1A);
->> -	if (ret != 0)
->> +	if (ret)
->>  		goto err;
->>  
->>  	ret = twl4030_i2c_read_u8(TWL4030_MODULE_GPIO, &reg, TWL_GPIO_ISR1A);
->> -	if (ret != 0)
->> +	if (ret)
->>  		goto err;
->>  
->>  	reg = (mask == 1) ? (reg | GPIO_0_BIT_POS) : (reg & ~GPIO_0_BIT_POS);
->>  
->>  	ret = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, reg, TWL_GPIO_ISR1A);
->> -	if (ret != 0)
->> +	if (ret)
->>  		goto err;
->> +
->>  err:
->>  	return ret;
->>  }
->> @@ -155,7 +156,7 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
->>  	#define OMAP2_CONTROL_PBIAS 0x48002520
->>  #endif
->>  
->> -	if (power_on == 1) {
->> +	if (power_on) {
->>  		if (cpu_is_omap24xx())
->>  			devconf = omap_readl(0x490022E8);
->>  		else
->> @@ -186,12 +187,12 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
->>  
->>  		ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
->>  						P1_DEV_GRP, VMMC1_DEV_GRP);
->> -		if (ret != 0)
->> +		if (ret)
->>  			goto err;
->>  
->>  		ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
->>  						vdd_sel, VMMC1_DEDICATED);
->> -		if (ret != 0)
->> +		if (ret)
->>  			goto err;
->>  
->>  		msleep(100);
->> @@ -202,7 +203,7 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
->>  
->>  		return ret;
->>  
->> -	} else if (power_on == 0) {
->> +	} else if (!power_on) {
->>  		/* Power OFF */
->>  
->>  		/* For MMC1, Toggle PBIAS before every power up sequence */
->>     
->
-> I guess the above else if be just else with this patch?
->   
+* Syed Mohammed, Khasim <khasim@ti.com> [080416 19:12]:
+> 
+> Adding support for OMAP3 Beagle Board
+> 
+> Signed-off-by: Syed Mohammed Khasim <khasim@ti.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig                   |    4 +
+>  arch/arm/mach-omap2/Makefile                  |    1
+>  arch/arm/mach-omap2/board-omap3beagle.c       |   79 ++++++++++++++++++++++++++
+>  include/asm-arm/arch-omap/board-omap3beagle.h |   53 +++++++++++++++++
+>  include/asm-arm/arch-omap/hardware.h          |    4 +
+>  5 files changed, 141 insertions(+)
+> 
+> Index: my_branch/arch/arm/mach-omap2/Kconfig
+> ===================================================================
+> --- my_branch.orig/arch/arm/mach-omap2/Kconfig	2008-04-16 14:41:28.000000000 +0530
+> +++ my_branch/arch/arm/mach-omap2/Kconfig	2008-04-16 14:45:38.000000000 +0530
+> @@ -109,3 +109,7 @@
+>  config MACH_OMAP3EVM
+>  	bool "OMAP 3530 EVM board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> +
+> +config MACH_OMAP3_BEAGLE
+> +	bool "OMAP3 BEAGLE board"
+> +	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> 
+> Index: my_branch/arch/arm/mach-omap2/Makefile
+> ===================================================================
+> --- my_branch.orig/arch/arm/mach-omap2/Makefile	2008-04-16 14:41:28.000000000 +0530
+> +++ my_branch/arch/arm/mach-omap2/Makefile	2008-04-16 14:45:38.000000000 +0530
+> @@ -35,6 +35,7 @@
+>  					   board-3430sdp-usb.o \
+>  					   board-3430sdp-flash.o
+>  obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
+> +obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o
+>  obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
+>  					   board-apollon-mmc.o	\
+>  					   board-apollon-keys.o
+> 
+> Index: my_branch/arch/arm/mach-omap2/board-omap3beagle.c
+> ===================================================================
+> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
+> +++ my_branch/arch/arm/mach-omap2/board-omap3beagle.c	2008-04-16 14:45:52.000000000 +0530
+> @@ -0,0 +1,79 @@
+> +/*
+> + * linux/arch/arm/mach-omap2/board-omap3beagle.c
+> + *
+> + * Copyright (C) 2008 Texas Instruments
+> + *
+> + * Modified from mach-omap2/board-3430sdp.c
+> + *
+> + * Initial code: Syed Mohammed Khasim
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/init.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/delay.h>
+> +#include <linux/err.h>
+> +#include <linux/clk.h>
+> +#include <linux/io.h>
+> +
+> +#include <asm/hardware.h>
+> +#include <asm/mach-types.h>
+> +#include <asm/mach/arch.h>
+> +#include <asm/mach/map.h>
+> +
+> +#include <asm/arch/gpio.h>
+> +#include <asm/arch/board.h>
+> +#include <asm/arch/common.h>
+> +
+> +static struct omap_uart_config omap3_beagle_uart_config __initdata = {
+> +	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+> +};
+> +
+> +static int __init omap3_beagle_i2c_init(void)
+> +{
+> +	omap_register_i2c_bus(1, 2600, NULL, 0);
+> +	omap_register_i2c_bus(2, 400, NULL, 0);
+> +	omap_register_i2c_bus(3, 400, NULL, 0);
+> +	return 0;
+> +}
+> +
+> +static void __init omap3_beagle_init_irq(void)
+> +{
+> +	omap2_init_common_hw();
+> +	omap_init_irq();
+> +	omap_gpio_init();
+> +}
+> +
+> +static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
+> +	{OMAP_TAG_UART,	&omap3_beagle_uart_config },
+> +};
+> +
+> +static void __init omap3_beagle_init(void)
+> +{
+> +	omap_board_config = omap3_beagle_config;
+> +	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
+> +	omap_serial_init();
+> +}
+> +
+> +arch_initcall(omap3_beagle_i2c_init);
+> +
+> +static void __init omap3_beagle_map_io(void)
+> +{
+> +	omap2_set_globals_343x();
+> +	omap2_map_common_io();
+> +}
+> +
+> +MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
+> +	/* Maintainer: Syed Mohammed Khasim - http://beagleboard.org */
+> +	.phys_io	= 0x48000000,
+> +	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
+> +	.boot_params	= 0x80000100,
+> +	.map_io		= omap3_beagle_map_io,
+> +	.init_irq	= omap3_beagle_init_irq,
+> +	.init_machine	= omap3_beagle_init,
+> +	.timer		= &omap_timer,
+> +MACHINE_END
+> 
+> Index: my_branch/include/asm-arm/arch-omap/board-omap3beagle.h
+> ===================================================================
+> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
+> +++ my_branch/include/asm-arm/arch-omap/board-omap3beagle.h	2008-04-16 14:47:14.000000000 +0530
+> @@ -0,0 +1,53 @@
+> +/*
+> + * linux/include/asm-arm/arch-omap/board-omap3beagle.h
+> + *
+> + * Hardware definitions for TI OMAP3 BEAGLE.
+> + *
+> + * Initial creation by Syed Mohammed Khasim <khasim@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License as published by the
+> + * Free Software Foundation; either version 2 of the License, or (at your
+> + * option) any later version.
+> + *
+> + * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+> + * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+> + * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+> + * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+> + * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+> + * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+> + * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+> + * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+> + * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> + *
+> + * You should have received a copy of the GNU General Public License along
+> + * with this program; if not, write to the Free Software Foundation, Inc.,
+> + * 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#ifndef __ASM_ARCH_OMAP3_BEAGLE_H
+> +#define __ASM_ARCH_OMAP3_BEAGLE_H
+> +
+> +#ifdef CONFIG_TWL4030_CORE
+> +
+> +#define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
+> +
+> +/* TWL4030 Primary Interrupt Handler (PIH) interrupts */
+> +#define	IH_TWL4030_BASE		IH_BOARD_BASE
+> +#define	IH_TWL4030_END		(IH_TWL4030_BASE+8)
+> +#define IH_TWL4030_PWRBASE	(IH_TWL4030_END)
+> +#define IH_TWL4030_PWRBASE_END	(IH_TWL4030_PWRBASE+8)
+> +
+> +#ifdef CONFIG_TWL4030_GPIO
+> +/* TWL4030 GPIO Interrupts */
+> +#define IH_TWL4030_GPIO_BASE	(IH_TWL4030_PWRBASE_END)
+> +#define IH_TWL4030_GPIO_END	(IH_TWL4030_GPIO_BASE+18)
+> +#define NR_IRQS			(IH_TWL4030_GPIO_END)
+> +#else
+> +#define NR_IRQS			(IH_TWL4030_PWRBASE_END)
+> +#endif /* CONFIG_I2C_TWL4030_GPIO */
+> +
+> +#endif /* End of support for TWL4030 */
+> +#endif /*  __ASM_ARCH_OMAP3_BEAGLE_H */
+> +
 
-You're right! I'm just going to resending the patches with such correction.
+Extra space here too.
 
-Thanks Tony,
-
-Carlos.
->
->   
->> @@ -210,24 +211,22 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
->>  					OMAP2_CONTROL_PBIAS);
->>  		ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
->>  						LDO_CLR, VMMC1_DEV_GRP);
->> -		if (ret != 0)
->> +		if (ret)
->>  			goto err;
->>  
->>  		ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
->>  						VSEL_S2_CLR, VMMC1_DEDICATED);
->> -		if (ret != 0)
->> +		if (ret)
->>  			goto err;
->>  
->>  		/* 100ms delay required for PBIAS configuration */
->>  		msleep(100);
->>  		omap_writel(omap_readl(OMAP2_CONTROL_PBIAS) | 0x7,
->>  			OMAP2_CONTROL_PBIAS);
->> -	} else {
->> -		ret = -1;
->> -		goto err;
->>  	}
->>  
->>  	return 0;
->> +
->>  err:
->>  	return 1;
->>  }
->> -- 1.5.3.GIT
->>
->>     
->
->   
-
-
--- 
-Carlos Eduardo Aguiar
-Nokia Institute of Technology - INdT
-Open Source Mobile Research Center - OSMRC - Manaus
-Core Team
-Phone: +55 92 2126-1079
-Mobile: +55 92 8127-1797
-E-mail: carlos.aguiar@indt.org.br
-
+> 
+> Index: my_branch/include/asm-arm/arch-omap/hardware.h
+> ===================================================================
+> --- my_branch.orig/include/asm-arm/arch-omap/hardware.h	2008-04-16 14:44:09.000000000 +0530
+> +++ my_branch/include/asm-arm/arch-omap/hardware.h	2008-04-16 14:47:14.000000000 +0530
+> @@ -339,6 +339,10 @@
+>  #include "board-omap3evm.h"
+>  #endif
+>  
+> +#ifdef CONFIG_MACH_OMAP3_BEAGLE
+> +#include "board-omap3beagle.h"
+> +#endif
+> +
+>  #ifdef CONFIG_MACH_OMAP_APOLLON
+>  #include "board-apollon.h"
+>  #endif
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
