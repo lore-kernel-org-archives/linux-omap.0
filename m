@@ -1,36 +1,26 @@
-From: "Pasam, Vijay" <vpasam@ti.com>
-Subject: RE: OMAP3 DSPBridge review
-Date: Thu, 17 Apr 2008 21:55:57 -0500
-Message-ID: <EBA93F3E4CB46947A4C5275F6308CF3E0275A7CE@dlee15.ent.ti.com>
-References: <5d5443650804162324n2a11c2f2na4c81176aadf143a@mail.gmail.com>
+From: "rajeev seetharam" <rseetharam@gmail.com>
+Subject: UART driver DMA support
+Date: Fri, 18 Apr 2008 10:45:40 +0530
+Message-ID: <75b29de30804172215v72ea18f4n61ec097b35f378bd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:60710 "EHLO calf.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753355AbYDRC4L convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Apr 2008 22:56:11 -0400
-Content-class: urn:content-classes:message
-In-reply-to: <5d5443650804162324n2a11c2f2na4c81176aadf143a@mail.gmail.com>
+Received: from qb-out-0506.google.com ([72.14.204.238]:55159 "EHLO
+	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750744AbYDRFPm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 01:15:42 -0400
+Received: by qb-out-0506.google.com with SMTP id e11so245408qbe.15
+        for <linux-omap@vger.kernel.org>; Thu, 17 Apr 2008 22:15:41 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Trilok Soni <soni.trilok@gmail.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Trilok:
+Hi ,
 
-> >  TI has to decide, what path they have to follow now onwards for  
-> > bridge, I see no need of OSAL layer, when we are targeting this as  
-> > Linux kernel driver.
+I am using the OMAP2EVM board based on OMAP2430  and using Linux - 2.6.23
+Is the DMA support available as part of the UART driver.
 
-We are investigating the effort required to do this. We will get back on
-this. 
-
-Thanks for the pointer on the documentation. We will fix this.
-
-Best Regards
-Vijay
- 
-
+Thanks and Regards
+Rajeev
