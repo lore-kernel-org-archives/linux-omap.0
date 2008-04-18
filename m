@@ -1,38 +1,53 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/5] Powerdomains: add OMAP chip type global bitfield;
- clean up mach-omap2/id.c
-Date: Thu, 17 Apr 2008 23:53:01 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0804172352330.8530@utopia.booyaka.com>
-References: <20080410153343.801143838@pwsan.com> <878wzbg1bu.fsf@trdhcp146196.ntc.nokia.com>
-Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1593975204-1208497981=:8530"
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [PATCH 11/19] Code clean-up for sound/arm/omap/omap-alsa-sx1.h
+Date: Fri, 18 Apr 2008 04:00:58 -0400
+Message-ID: <1208505666-13744-12-git-send-email-edubezval@gmail.com>
+References: <1208505666-13744-1-git-send-email-edubezval@gmail.com>
+ <1208505666-13744-2-git-send-email-edubezval@gmail.com>
+ <1208505666-13744-3-git-send-email-edubezval@gmail.com>
+ <1208505666-13744-4-git-send-email-edubezval@gmail.com>
+ <1208505666-13744-5-git-send-email-edubezval@gmail.com>
+ <1208505666-13744-6-git-send-email-edubezval@gmail.com>
+ <1208505666-13744-7-git-send-email-edubezval@gmail.com>
+ <1208505666-13744-8-git-send-email-edubezval@gmail.com>
+ <1208505666-13744-9-git-send-email-edubezval@gmail.com>
+ <1208505666-13744-10-git-send-email-edubezval@gmail.com>
+ <1208505666-13744-11-git-send-email-edubezval@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37487 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751191AbYDRFxD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 01:53:03 -0400
-In-Reply-To: <878wzbg1bu.fsf@trdhcp146196.ntc.nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:18867 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756142AbYDRIBh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 04:01:37 -0400
+In-Reply-To: <1208505666-13744-11-git-send-email-edubezval@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-15?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Felipe Balbi <me@felipebalbi.com>, Ragner Magalhaes <ragner.magalhaes@indt.org.br>, Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+From: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
---155748971-1593975204-1208497981=:8530
-Content-Type: TEXT/PLAIN; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Removed lots of whitespaces and a few errors and
+warnings reported by checkpatch.pl.
 
-On Fri, 18 Apr 2008, H=C3=B6gander Jouni wrote:
+Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+---
+ sound/arm/omap/omap-alsa-sx1.h |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-> Omap chip is not set correctly in case of omap3 es2.x. You should
-> change your code something like this:
+diff --git a/sound/arm/omap/omap-alsa-sx1.h b/sound/arm/omap/omap-alsa-sx1.h
+index af7a409..9e11e0a 100644
+--- a/sound/arm/omap/omap-alsa-sx1.h
++++ b/sound/arm/omap/omap-alsa-sx1.h
+@@ -35,7 +35,8 @@
+ #define OSC_EN				2
+ 
+ /* Send IPC message to sound server */
+-extern int cn_sx1snd_send(unsigned int cmd, unsigned int arg1, unsigned int arg2);
++extern int cn_sx1snd_send(unsigned int cmd, unsigned int arg1,
++				unsigned int arg2);
+ /* cmd for IPC_GROUP_DAC */
+ #define DAC_VOLUME_UPDATE		0
+ #define DAC_SETAUDIODEVICE		1
+-- 
+1.5.5-rc3.GIT
 
-Thanks Jouni, that fix is in the latest version which will be posted later=
-=20
-today.
-
-
-- Paul
---155748971-1593975204-1208497981=:8530--
