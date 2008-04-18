@@ -1,20 +1,12 @@
 From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [PATCH 07/19] Code clean-up for sound/arm/omap/omap-alsa-dma.h
-Date: Fri, 18 Apr 2008 04:00:54 -0400
-Message-ID: <1208505666-13744-8-git-send-email-edubezval@gmail.com>
-References: <1208505666-13744-1-git-send-email-edubezval@gmail.com>
- <1208505666-13744-2-git-send-email-edubezval@gmail.com>
- <1208505666-13744-3-git-send-email-edubezval@gmail.com>
- <1208505666-13744-4-git-send-email-edubezval@gmail.com>
- <1208505666-13744-5-git-send-email-edubezval@gmail.com>
- <1208505666-13744-6-git-send-email-edubezval@gmail.com>
- <1208505666-13744-7-git-send-email-edubezval@gmail.com>
+Subject: [PATCH 00/19] Update and clean up on sound/arm/omap/omap-alsa*[c,h] (take #2)
+Date: Fri, 18 Apr 2008 04:00:47 -0400
+Message-ID: <1208505666-13744-1-git-send-email-edubezval@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:34467 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756300AbYDRIBT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 04:01:19 -0400
-In-Reply-To: <1208505666-13744-7-git-send-email-edubezval@gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:18771 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755776AbYDRIBU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 04:01:20 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -22,75 +14,61 @@ Cc: Felipe Balbi <me@felipebalbi.com>, Ragner Magalhaes <ragner.magalhaes@indt.o
 
 From: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-Removed lots of whitespaces and a few errors and
-warnings reported by checkpatch.pl.
+Hi all,
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+This patch series cleans up most of the errors and warnings reported
+by checkpatch.pl on sound/arm/omap/omap-alsa*[c,h]. Some checks reported
+by checkpatch.pl were ignored, such as removing #if 0 codes. Not all were
+eligible for remotion.
+
+There is also one patch that updates the alsa driver for H2.
+Since tsc2101 i2c driver was updated, this alsa driver stop
+working.
+
+Cheers,
+
 ---
- sound/arm/omap/omap-alsa-dma.h |   22 +++++++++++-----------
- 1 files changed, 11 insertions(+), 11 deletions(-)
+Eduardo Valentin
 
-diff --git a/sound/arm/omap/omap-alsa-dma.h b/sound/arm/omap/omap-alsa-dma.h
-index 1cecc8a..2f0e4e8 100644
---- a/sound/arm/omap/omap-alsa-dma.h
-+++ b/sound/arm/omap/omap-alsa-dma.h
-@@ -1,4 +1,4 @@
--/*  
-+/*
-  * linux/sound/arm/omap/omap-alsa-dma.h
-  *
-  * Common audio DMA handling for the OMAP processors
-@@ -6,7 +6,7 @@
-  * Copyright (C) 2006 Mika Laitio <lamikr@cc.jyu.fi>
-  *
-  * Copyright (C) 2005 Instituto Nokia de Tecnologia - INdT - Manaus Brazil
-- * 
-+ *
-  * Copyright (C) 2004 Texas Instruments, Inc.
-  *
-  * Copyright (C) 2000, 2001 Nicolas Pitre <nico@cam.org>
-@@ -21,8 +21,9 @@
-  *
-  * History:
-  *
-- * 
-- * 2004/08/12  Nishanth Menon - Modified to integrate Audio requirements on 1610,1710 platforms
-+ *
-+ * 2004/08/12  Nishanth Menon - Modified to integrate Audio requirements on
-+ * 				1610, 1710 platforms
-  *
-  * 2005/07/25  INdT Kernel Team - Renamed to omap-alsa-dma.h. Ported to Alsa.
-  */
-@@ -30,23 +31,22 @@
- #ifndef __OMAP_AUDIO_ALSA_DMA_H
- #define __OMAP_AUDIO_ALSA_DMA_H
- 
--/************************** INCLUDES *************************************/
--
- #include <asm/arch/omap-alsa.h>
- 
--/************************** GLOBAL DATA STRUCTURES *********************************/
-+/* Global data structures */
- 
- typedef void (*dma_callback_t) (int lch, u16 ch_status, void *data);
- 
--/**************** ARCH SPECIFIC FUNCIONS *******************************************/
-+/* arch specific functions */
- 
--void omap_clear_alsa_sound_dma(struct audio_stream * s);
-+void omap_clear_alsa_sound_dma(struct audio_stream *s);
- 
- int omap_request_alsa_sound_dma(int device_id, const char *device_name,
--			   void *data, int **channels);
-+				void *data, int **channels);
- int omap_free_alsa_sound_dma(void *data, int **channels);
- 
--int omap_start_alsa_sound_dma(struct audio_stream *s, dma_addr_t dma_ptr,  u_int dma_size);
-+int omap_start_alsa_sound_dma(struct audio_stream *s, dma_addr_t dma_ptr,
-+				u_int dma_size);
- 
- void omap_stop_alsa_sound_dma(struct audio_stream *s);
- 
--- 
-1.5.5-rc3.GIT
+Eduardo Valentin (19):
+  Update audio driver for H2 board
+  Code clean-up for include/asm-arm/arch-omap/omap-alsa.h
+  Code clean-up for sound/arm/omap/omap-alsa-aic23.c
+  Code clean-up for sound/arm/omap/omap-alsa-aic23.h
+  Code clean-up for sound/arm/omap/omap-alsa-aic23-mixer.c
+  Code clean-up for sound/arm/omap/omap-alsa-dma.c
+  Code clean-up for sound/arm/omap/omap-alsa-dma.h
+  Code clean-up for sound/arm/omap/omap-alsa-sx1-mixer.c
+  Code clean-up for sound/arm/omap/omap-alsa-sx1-mixer.h
+  Code clean-up for sound/arm/omap/omap-alsa-sx1.c
+  Code clean-up for sound/arm/omap/omap-alsa-sx1.h
+  Code clean-up for sound/arm/omap/omap-alsa-tsc2101-mixer.c
+  Code clean-up for sound/arm/omap/omap-alsa-tsc2101-mixer.h
+  Code clean-up for sound/arm/omap/omap-alsa-tsc2101.c
+  Code clean-up for sound/arm/omap/omap-alsa-tsc2101.h
+  Code clean-up for sound/arm/omap/omap-alsa-tsc2102-mixer.c
+  Code clean-up for sound/arm/omap/omap-alsa-tsc2102.c
+  Code clean-up for sound/arm/omap/omap-alsa-tsc2102.h
+  Code clean-up for sound/arm/omap/omap-alsa.c
+
+ arch/arm/mach-omap1/board-h2.c           |   71 ++--
+ include/asm-arm/arch-omap/omap-alsa.h    |   29 +-
+ sound/arm/omap/omap-alsa-aic23-mixer.c   |  144 ++++---
+ sound/arm/omap/omap-alsa-aic23.c         |   59 ++--
+ sound/arm/omap/omap-alsa-aic23.h         |   12 +-
+ sound/arm/omap/omap-alsa-dma.c           |  171 ++++-----
+ sound/arm/omap/omap-alsa-dma.h           |   22 +-
+ sound/arm/omap/omap-alsa-sx1-mixer.c     |   22 +-
+ sound/arm/omap/omap-alsa-sx1-mixer.h     |    6 +-
+ sound/arm/omap/omap-alsa-sx1.c           |   72 +++-
+ sound/arm/omap/omap-alsa-sx1.h           |    3 +-
+ sound/arm/omap/omap-alsa-tsc2101-mixer.c |  631 ++++++++++++++++--------------
+ sound/arm/omap/omap-alsa-tsc2101-mixer.h |   31 +-
+ sound/arm/omap/omap-alsa-tsc2101.c       |  320 ++++++++++-----
+ sound/arm/omap/omap-alsa-tsc2101.h       |   11 +-
+ sound/arm/omap/omap-alsa-tsc2102-mixer.c |   14 +-
+ sound/arm/omap/omap-alsa-tsc2102.c       |   70 ++--
+ sound/arm/omap/omap-alsa-tsc2102.h       |    2 +-
+ sound/arm/omap/omap-alsa.c               |  163 ++++----
+ 19 files changed, 1056 insertions(+), 797 deletions(-)
 
