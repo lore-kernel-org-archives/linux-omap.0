@@ -1,30 +1,14 @@
 From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [PATCH 17/19] Code clean-up for sound/arm/omap/omap-alsa-tsc2102.c
-Date: Fri, 18 Apr 2008 04:01:04 -0400
-Message-ID: <1208505666-13744-18-git-send-email-edubezval@gmail.com>
+Subject: [PATCH 01/19] Update audio driver for H2 board
+Date: Fri, 18 Apr 2008 04:00:48 -0400
+Message-ID: <1208505666-13744-2-git-send-email-edubezval@gmail.com>
 References: <1208505666-13744-1-git-send-email-edubezval@gmail.com>
- <1208505666-13744-2-git-send-email-edubezval@gmail.com>
- <1208505666-13744-3-git-send-email-edubezval@gmail.com>
- <1208505666-13744-4-git-send-email-edubezval@gmail.com>
- <1208505666-13744-5-git-send-email-edubezval@gmail.com>
- <1208505666-13744-6-git-send-email-edubezval@gmail.com>
- <1208505666-13744-7-git-send-email-edubezval@gmail.com>
- <1208505666-13744-8-git-send-email-edubezval@gmail.com>
- <1208505666-13744-9-git-send-email-edubezval@gmail.com>
- <1208505666-13744-10-git-send-email-edubezval@gmail.com>
- <1208505666-13744-11-git-send-email-edubezval@gmail.com>
- <1208505666-13744-12-git-send-email-edubezval@gmail.com>
- <1208505666-13744-13-git-send-email-edubezval@gmail.com>
- <1208505666-13744-14-git-send-email-edubezval@gmail.com>
- <1208505666-13744-15-git-send-email-edubezval@gmail.com>
- <1208505666-13744-16-git-send-email-edubezval@gmail.com>
- <1208505666-13744-17-git-send-email-edubezval@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:33514 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756507AbYDRIB0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 04:01:26 -0400
-In-Reply-To: <1208505666-13744-17-git-send-email-edubezval@gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:18775 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755180AbYDRIBU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 04:01:20 -0400
+In-Reply-To: <1208505666-13744-1-git-send-email-edubezval@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -32,157 +16,257 @@ Cc: Felipe Balbi <me@felipebalbi.com>, Ragner Magalhaes <ragner.magalhaes@indt.o
 
 From: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-Removed lots of whitespaces and a few errors and
-warnings reported by checkpatch.pl.
+This patch updates the audio driver based on tsc2101 chip
+for H2 board. tsc2101 driver was updated against new spi
+framework, but its audio driver for H2 wasn't.
 
 Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
 ---
- sound/arm/omap/omap-alsa-tsc2102.c |   70 ++++++++++++++++++------------------
- 1 files changed, 35 insertions(+), 35 deletions(-)
+ arch/arm/mach-omap1/board-h2.c           |   71 +++++++++++++++---------------
+ sound/arm/omap/omap-alsa-tsc2101-mixer.c |    7 ++-
+ sound/arm/omap/omap-alsa-tsc2101-mixer.h |    2 +
+ sound/arm/omap/omap-alsa-tsc2101.c       |   28 ++++++++++--
+ sound/arm/omap/omap-alsa-tsc2101.h       |    5 ++
+ 5 files changed, 70 insertions(+), 43 deletions(-)
 
-diff --git a/sound/arm/omap/omap-alsa-tsc2102.c b/sound/arm/omap/omap-alsa-tsc2102.c
-index 1ca5ba9..911e776 100644
---- a/sound/arm/omap/omap-alsa-tsc2102.c
-+++ b/sound/arm/omap/omap-alsa-tsc2102.c
-@@ -1,6 +1,6 @@
- /*
-  * sound/arm/omap/omap-alsa-tsc2102.c
-- * 
-+ *
-  * Alsa codec driver for TSC2102 chip for OMAP platforms.
-  *
-  * Copyright (c) 2006 Andrzej Zaborowski  <balrog@zabor.org>
-@@ -17,17 +17,16 @@
- #include <linux/platform_device.h>
- #include <linux/clk.h>
- #include <linux/module.h>
-+#include <linux/io.h>
- #include <linux/spi/tsc2102.h>
+diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
+index aa1f8af..4f8e6da 100644
+--- a/arch/arm/mach-omap1/board-h2.c
++++ b/arch/arm/mach-omap1/board-h2.c
+@@ -320,6 +320,40 @@ static void h2_lcd_dev_init(struct spi_device *tsc2101)
+ 	platform_device_register(&h2_lcd_device);
+ }
  
--#include <asm/io.h>
--
- #include <asm/arch/dma.h>
- #include <asm/arch/clock.h>
- #include <asm/arch/omap-alsa.h>
++static struct omap_mcbsp_reg_cfg mcbsp_regs = {
++	.spcr2 = FREE | FRST | GRST | XRST | XINTM(3),
++	.spcr1 = RINTM(3) | RRST,
++	.rcr2  = RPHASE | RFRLEN2(OMAP_MCBSP_WORD_8) |
++			RWDLEN2(OMAP_MCBSP_WORD_16) | RDATDLY(1),
++	.rcr1  = RFRLEN1(OMAP_MCBSP_WORD_8) | RWDLEN1(OMAP_MCBSP_WORD_16),
++	.xcr2  = XPHASE | XFRLEN2(OMAP_MCBSP_WORD_8) |
++			XWDLEN2(OMAP_MCBSP_WORD_16) | XDATDLY(1) | XFIG,
++	.xcr1  = XFRLEN1(OMAP_MCBSP_WORD_8) | XWDLEN1(OMAP_MCBSP_WORD_16),
++	.srgr1 = FWID(15),
++	.srgr2 = GSYNC | CLKSP | FSGM | FPER(31),
++	.pcr0  = CLKXM | CLKRM | FSXP | FSRP | CLKXP | CLKRP,
++	/*.pcr0 = CLKXP | CLKRP,*/        /* mcbsp: slave */
++};
++
++static struct omap_alsa_codec_config alsa_config = {
++	.name                   = "H2 TSC2101",
++	.mcbsp_regs_alsa        = &mcbsp_regs,
++};
++
++static struct platform_device h2_mcbsp1_device = {
++	.name	= "omap_alsa_mcbsp",
++	.id	= 1,
++	.dev = {
++		.platform_data	= &alsa_config,
++	},
++};
++
++static void h2_audio_dev_init(struct spi_device *tsc2101)
++{
++	h2_mcbsp1_device.dev.platform_data = tsc2101;
++	platform_device_register(&h2_mcbsp1_device);
++}
++
+ static int h2_tsc2101_init(struct spi_device *spi)
+ {
+ 	int r;
+@@ -344,6 +378,7 @@ static int h2_tsc2101_init(struct spi_device *spi)
+ 	omap_cfg_reg(N15_1610_UWIRE_CS1);
  
- #include "omap-alsa-tsc2102.h"
+ 	h2_lcd_dev_init(spi);
++	h2_audio_dev_init(spi);
  
--static struct clk *tsc2102_bclk = 0;
-+static struct clk *tsc2102_bclk;
- 
- /*
-  * Hardware capabilities
-@@ -67,62 +66,63 @@ static struct snd_pcm_hardware tsc2102_snd_omap_alsa_playback = {
+ 	return 0;
+ err:
+@@ -386,48 +421,12 @@ static struct spi_board_info h2_spi_board_info[] __initdata = {
+ 	},
  };
  
- #ifdef DUMP_TSC2102_AUDIO_REGISTERS
--static void dump_tsc2102_audio_regs(void) {
--	printk("TSC2102_AUDIO1_CTRL = 0x%04x\n",
-+static void dump_tsc2102_audio_regs(void)
-+{
-+	printk(KERN_INFO "TSC2102_AUDIO1_CTRL = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_AUDIO1_CTRL));
--	printk("TSC2102_DAC_GAIN_CTRL = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_DAC_GAIN_CTRL = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_DAC_GAIN_CTRL));
--	printk("TSC2102_AUDIO2_CTRL = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_AUDIO2_CTRL = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_AUDIO2_CTRL));
--	printk("TSC2102_DAC_POWER_CTRL = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_DAC_POWER_CTRL = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_DAC_POWER_CTRL));
--	printk("TSC2102_AUDIO3_CTRL = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_AUDIO3_CTRL = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_AUDIO_CTRL_3));
--	printk("TSC2102_LCH_BASS_BOOST_N0 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_LCH_BASS_BOOST_N0 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_LCH_BASS_BOOST_N0));
--	printk("TSC2102_LCH_BASS_BOOST_N1 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_LCH_BASS_BOOST_N1 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_LCH_BASS_BOOST_N1));
--	printk("TSC2102_LCH_BASS_BOOST_N2 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_LCH_BASS_BOOST_N2 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_LCH_BASS_BOOST_N2));
--	printk("TSC2102_LCH_BASS_BOOST_N3 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_LCH_BASS_BOOST_N3 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_LCH_BASS_BOOST_N3));
--	printk("TSC2102_LCH_BASS_BOOST_N4 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_LCH_BASS_BOOST_N4 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_LCH_BASS_BOOST_N4));
--	printk("TSC2102_LCH_BASS_BOOST_N5 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_LCH_BASS_BOOST_N5 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_LCH_BASS_BOOST_N5));
--	printk("TSC2102_LCH_BASS_BOOST_D1 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_LCH_BASS_BOOST_D1 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_LCH_BASS_BOOST_D1));
--	printk("TSC2102_LCH_BASS_BOOST_D2 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_LCH_BASS_BOOST_D2 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_LCH_BASS_BOOST_D2));
--	printk("TSC2102_LCH_BASS_BOOST_D4 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_LCH_BASS_BOOST_D4 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_LCH_BASS_BOOST_D4));
--	printk("TSC2102_LCH_BASS_BOOST_D5 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_LCH_BASS_BOOST_D5 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_LCH_BASS_BOOST_D5));
--	printk("TSC2102_RCH_BASS_BOOST_N0 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_RCH_BASS_BOOST_N0 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_RCH_BASS_BOOST_N0));
--	printk("TSC2102_RCH_BASS_BOOST_N1 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_RCH_BASS_BOOST_N1 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_RCH_BASS_BOOST_N1));
--	printk("TSC2102_RCH_BASS_BOOST_N2 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_RCH_BASS_BOOST_N2 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_RCH_BASS_BOOST_N2));
--	printk("TSC2102_RCH_BASS_BOOST_N3 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_RCH_BASS_BOOST_N3 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_RCH_BASS_BOOST_N3));
--	printk("TSC2102_RCH_BASS_BOOST_N4 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_RCH_BASS_BOOST_N4 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_RCH_BASS_BOOST_N4));
--	printk("TSC2102_RCH_BASS_BOOST_N5 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_RCH_BASS_BOOST_N5 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_RCH_BASS_BOOST_N5));
--	printk("TSC2102_RCH_BASS_BOOST_D1 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_RCH_BASS_BOOST_D1 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_RCH_BASS_BOOST_D1));
--	printk("TSC2102_RCH_BASS_BOOST_D2 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_RCH_BASS_BOOST_D2 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_RCH_BASS_BOOST_D2));
--	printk("TSC2102_RCH_BASS_BOOST_D4 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_RCH_BASS_BOOST_D4 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_RCH_BASS_BOOST_D4));
--	printk("TSC2102_RCH_BASS_BOOST_D5 = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_RCH_BASS_BOOST_D5 = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_RCH_BASS_BOOST_D5));
--	printk("TSC2102_PLL1_CTRL = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_PLL1_CTRL = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_PLL1_CTRL));
--	printk("TSC2102_PLL2_CTRL = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_PLL2_CTRL = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_PLL2_CTRL));
--	printk("TSC2102_AUDIO4_CTRL = 0x%04x\n",
-+	printk(KERN_INFO "TSC2102_AUDIO4_CTRL = 0x%04x\n",
- 			tsc2102_read_sync(TSC2102_AUDIO4_CTRL));
- }
- #endif
-@@ -131,7 +131,7 @@ static void dump_tsc2102_audio_regs(void) {
-  * ALSA operations according to board file
+-static struct omap_mcbsp_reg_cfg mcbsp_regs = {
+-	.spcr2 = FREE | FRST | GRST | XRST | XINTM(3),
+-	.spcr1 = RINTM(3) | RRST,
+-	.rcr2  = RPHASE | RFRLEN2(OMAP_MCBSP_WORD_8) |
+-                RWDLEN2(OMAP_MCBSP_WORD_16) | RDATDLY(1),
+-	.rcr1  = RFRLEN1(OMAP_MCBSP_WORD_8) | RWDLEN1(OMAP_MCBSP_WORD_16),
+-	.xcr2  = XPHASE | XFRLEN2(OMAP_MCBSP_WORD_8) |
+-                XWDLEN2(OMAP_MCBSP_WORD_16) | XDATDLY(1) | XFIG,
+-	.xcr1  = XFRLEN1(OMAP_MCBSP_WORD_8) | XWDLEN1(OMAP_MCBSP_WORD_16),
+-	.srgr1 = FWID(15),
+-	.srgr2 = GSYNC | CLKSP | FSGM | FPER(31),
+-
+-	.pcr0  = CLKXM | CLKRM | FSXP | FSRP | CLKXP | CLKRP,
+-	/*.pcr0 = CLKXP | CLKRP,*/        /* mcbsp: slave */
+-};
+-
+-static struct omap_alsa_codec_config alsa_config = {
+-	.name                   = "H2 TSC2101",
+-	.mcbsp_regs_alsa        = &mcbsp_regs,
+-	.codec_configure_dev    = NULL, /* tsc2101_configure, */
+-	.codec_set_samplerate   = NULL, /* tsc2101_set_samplerate, */
+-	.codec_clock_setup      = NULL, /* tsc2101_clock_setup, */
+-	.codec_clock_on         = NULL, /* tsc2101_clock_on, */
+-	.codec_clock_off        = NULL, /* tsc2101_clock_off, */
+-	.get_default_samplerate = NULL, /* tsc2101_get_default_samplerate, */
+-};
+-
+-static struct platform_device h2_mcbsp1_device = {
+-	.name	= "omap_alsa_mcbsp",
+-	.id	= 1,
+-	.dev = {
+-		.platform_data	= &alsa_config,
+-	},
+-};
+-
+ static struct platform_device *h2_devices[] __initdata = {
+ 	&h2_nor_device,
+ 	&h2_nand_device,
+ 	&h2_smc91x_device,
+ 	&h2_irda_device,
+ 	&h2_kp_device,
+-	&h2_mcbsp1_device,
+ };
+ 
+ static void __init h2_init_smc91x(void)
+diff --git a/sound/arm/omap/omap-alsa-tsc2101-mixer.c b/sound/arm/omap/omap-alsa-tsc2101-mixer.c
+index 8faba95..09257d7 100644
+--- a/sound/arm/omap/omap-alsa-tsc2101-mixer.c
++++ b/sound/arm/omap/omap-alsa-tsc2101-mixer.c
+@@ -43,6 +43,7 @@
+ #include "omap-alsa-tsc2101.h"
+ #include "omap-alsa-tsc2101-mixer.h"
+ 
++#include <linux/spi/tsc2101.h>
+ #include <linux/types.h>
+ #include <sound/initval.h>
+ #include <sound/control.h>
+@@ -68,7 +69,8 @@ static int current_rec_src 		= REC_SRC_SINGLE_ENDED_MICIN_HED;
   */
+ inline void omap_tsc2101_audio_write(u8 address, u16 data)
+ {
+-	omap_tsc2101_write(PAGE2_AUDIO_CODEC_REGISTERS, address, data);
++	tsc2101_write_sync(mcbsp_dev.tsc2101_dev, PAGE2_AUDIO_CODEC_REGISTERS,
++				address, data);
+ }
  
--static long current_rate = 0;
-+static long current_rate;
+ /* 
+@@ -76,7 +78,8 @@ inline void omap_tsc2101_audio_write(u8 address, u16 data)
+  */
+ inline u16 omap_tsc2101_audio_read(u8 address)
+ {
+-	return (omap_tsc2101_read(PAGE2_AUDIO_CODEC_REGISTERS, address));
++	return (tsc2101_read_sync(mcbsp_dev.tsc2101_dev,
++					PAGE2_AUDIO_CODEC_REGISTERS, address));
+ }
  
  /*
-  * Sample rate changing
-@@ -180,7 +180,7 @@ static void tsc2102_configure(void)
+diff --git a/sound/arm/omap/omap-alsa-tsc2101-mixer.h b/sound/arm/omap/omap-alsa-tsc2101-mixer.h
+index 513614c..b110b36 100644
+--- a/sound/arm/omap/omap-alsa-tsc2101-mixer.h
++++ b/sound/arm/omap/omap-alsa-tsc2101-mixer.h
+@@ -76,4 +76,6 @@
  
- /*
-  * Omap McBSP clock and Power Management configuration
-- *  
-+ *
-  * Here we have some functions that allow clock to be enabled and
-  * disabled only when needed.  Besides doing clock configuration
-  * they allow turn audio on and off when necessary.
+ #define TSC2101_AUDIO_CODEC_REGISTERS_PAGE2     (2)
+ 
++extern struct mcbsp_dev_info mcbsp_dev;
++
+ #endif /*OMAPALSATSC2101MIXER_H_*/
+diff --git a/sound/arm/omap/omap-alsa-tsc2101.c b/sound/arm/omap/omap-alsa-tsc2101.c
+index 88ed046..1d8adc1 100644
+--- a/sound/arm/omap/omap-alsa-tsc2101.c
++++ b/sound/arm/omap/omap-alsa-tsc2101.c
+@@ -22,6 +22,7 @@
+ #include <linux/soundcard.h>
+ #include <linux/platform_device.h>
+ #include <linux/clk.h>
++#include <linux/spi/tsc2101.h>
+ #include <asm/io.h>
+ #include <asm/arch/mcbsp.h>
+ 
+@@ -38,6 +39,8 @@
+ #include <asm/arch/omap-alsa.h>
+ #include "omap-alsa-tsc2101.h"
+ 
++struct mcbsp_dev_info mcbsp_dev;
++
+ static struct clk *tsc2101_mclk = 0;
+ 
+ //#define DUMP_TSC2101_AUDIO_REGISTERS
+@@ -143,7 +146,8 @@ static struct snd_pcm_hardware tsc2101_snd_omap_alsa_capture = {
+  */
+ inline void tsc2101_audio_write(u8 address, u16 data)
+ {
+-	omap_tsc2101_write(PAGE2_AUDIO_CODEC_REGISTERS, address, data);
++	tsc2101_write_sync(mcbsp_dev.tsc2101_dev, PAGE2_AUDIO_CODEC_REGISTERS,
++				address, data);
+ }
+ 
+ /* 
+@@ -151,7 +155,8 @@ inline void tsc2101_audio_write(u8 address, u16 data)
+  */
+ inline u16 tsc2101_audio_read(u8 address)
+ {
+-	return (omap_tsc2101_read(PAGE2_AUDIO_CODEC_REGISTERS, address));
++	return (tsc2101_read_sync(mcbsp_dev.tsc2101_dev,
++					PAGE2_AUDIO_CODEC_REGISTERS, address));
+ }
+ 
+ #ifdef DUMP_TSC2101_AUDIO_REGISTERS
+@@ -341,9 +346,9 @@ int tsc2101_clock_on(void)
+ 	       err);
+ 
+ 	// Now turn the audio on
+-	omap_tsc2101_write(PAGE2_AUDIO_CODEC_REGISTERS,
+-			TSC2101_CODEC_POWER_CTRL,
+-			0x0000);	
++	tsc2101_write_sync(mcbsp_dev.tsc2101_dev, PAGE2_AUDIO_CODEC_REGISTERS,
++				TSC2101_CODEC_POWER_CTRL,
++				0x0000);
+ 	return 0;	
+ }
+ 
+@@ -382,9 +387,22 @@ int tsc2101_get_default_samplerate(void)
+ 
+ static int __devinit snd_omap_alsa_tsc2101_probe(struct platform_device *pdev)
+ {
++	struct spi_device *tsc2101;
+ 	int	ret;
+ 	struct	omap_alsa_codec_config *codec_cfg;
+ 	
++	tsc2101 = dev_get_drvdata(&pdev->dev);
++	if (tsc2101 == NULL) {
++		dev_err(&pdev->dev, "no platform data\n");
++		return -ENODEV;
++	}
++	if (strncmp(tsc2101->modalias, "tsc2101", 8) != 0) {
++		dev_err(&pdev->dev, "tsc2101 not found\n");
++		return -EINVAL;
++	}
++	mcbsp_dev.mcbsp_dev = pdev;
++	mcbsp_dev.tsc2101_dev = tsc2101;
++
+ 	codec_cfg = pdev->dev.platform_data;
+ 	if (codec_cfg != NULL) {
+ 		codec_cfg->hw_constraints_rates	= &tsc2101_hw_constraints_rates;
+diff --git a/sound/arm/omap/omap-alsa-tsc2101.h b/sound/arm/omap/omap-alsa-tsc2101.h
+index 85dccbb..73999a0 100644
+--- a/sound/arm/omap/omap-alsa-tsc2101.h
++++ b/sound/arm/omap/omap-alsa-tsc2101.h
+@@ -42,6 +42,11 @@
+ 
+ #define PAGE2_AUDIO_CODEC_REGISTERS	(2)
+ 
++struct mcbsp_dev_info {
++	struct platform_device *mcbsp_dev;
++	struct spi_device *tsc2101_dev;
++};
++
+ struct tsc2101_samplerate_reg_info {
+ 	u16 sample_rate;
+ 	u8 divisor;
 -- 
 1.5.5-rc3.GIT
 
