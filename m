@@ -1,57 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] I2C: TWL4030: Fix Kconfig
-Date: Fri, 18 Apr 2008 12:02:14 -0700
-Message-ID: <20080418190214.GH12099@atomide.com>
-References: <1208443436-26722-1-git-send-email-felipe.balbi@nokia.com>
+Subject: Re: [PATCH 2/2] Add usb support to omap3beagle
+Date: Fri, 18 Apr 2008 11:50:01 -0700
+Message-ID: <20080418185000.GG12099@atomide.com>
+References: <CE83D2E2-7DC8-471C-AD14-14A6FED413A9@student.utwente.nl> <200804171126.54874.david-b@pacbell.net> <7F9BB0C5-23DD-4F44-904C-EF3F70324421@student.utwente.nl> <200804171236.07509.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52057 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756263AbYDRTCQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 15:02:16 -0400
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:62046 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759168AbYDRSuE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 14:50:04 -0400
 Content-Disposition: inline
-In-Reply-To: <1208443436-26722-1-git-send-email-felipe.balbi@nokia.com>
+In-Reply-To: <200804171236.07509.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Koen Kooi <k.kooi@student.utwente.nl>, linux-omap@vger.kernel.org
 
-* Felipe Balbi <felipe.balbi@nokia.com> [080417 07:46]:
-> Misc cleanup patch.
-> 
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> ---
->  drivers/i2c/chips/Kconfig |    8 ++++----
->  1 files changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
-> index f3ea82d..5cf4657 100644
-> --- a/drivers/i2c/chips/Kconfig
-> +++ b/drivers/i2c/chips/Kconfig
-> @@ -160,10 +160,6 @@ choice
->  	  TWL4030 USB transceiver can operate in various
->  	  mutually-exclusive modes. Select one of them.
->  
-> -config TWL4030_PWRBUTTON
-> -        bool "TWL4030 Power button Driver"
-> -	depends on TWL4030_CORE
-> -
->  config TWL4030_USB_HS_ULPI
->  	depends on TWL4030_USB
->  	bool "High-speed ULPI"
-> @@ -173,6 +169,10 @@ config TWL4030_USB_HS_ULPI
->  
->  endchoice
->  
-> +config TWL4030_PWRBUTTON
-> +        bool "TWL4030 Power button Driver"
-> +	depends on TWL4030_CORE
-> +
->  config TWL4030_POWEROFF
->  	bool "TWL4030 device poweroff"
->  	depends on TWL4030_CORE
+* David Brownell <david-b@pacbell.net> [080417 12:36]:
+> On Thursday 17 April 2008, Koen Kooi wrote:
+> > >>
+> > >> @@ -69,6 +70,7 @@
+> > >> =A0=A0=A0=A0=A0omap_board_config_size =3D ARRAY_SIZE(omap3_beagl=
+e_config);
+> > >> =A0=A0=A0=A0=A0omap_serial_init();
+> > >> =A0=A0=A0=A0=A0sdp_mmc_init();
+> > >> +=A0=A0=A0=A0sdp3430_usb_init();
+> > >> }
+> > >>
+> > >> arch_initcall(omap3_beagle_i2c_init);
+> > >
+> > > I hope someone makes those sdp_*() routines generic ... or does
+> > > "SDP" not stand for "Software Development Platform" (different bo=
+ard)?
+> >=20
+> > Those routines are indeed name after the sdp board, but they seem
+> > generic enough to get reused in other boards (e.g. omap3evm or omap=
+3
+> > beagle) without change :)
+>=20
+> They aren't quite generic enough ... with those names!  :)
 
-How about fix the spaces into a tabl for bool "TWL4030 Power.." above?
+Yeah the files should be just twl4030-hsmmc.c instead of
+board-sdp-hsmmmc.c.
+
+And usb-musb.c instead of board-2430sdp-usb.c and board-3430sdp-usb.c.
+
+I guess let's do that change next week after we've tagged 2.6.25-omap1.
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
