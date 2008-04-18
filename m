@@ -1,117 +1,144 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 0/5] Powerdomains: add OMAP2/3 powerdomain code and common
-	OMAP type bitfield
-Date: Fri, 18 Apr 2008 19:23:46 -0600
-Message-ID: <20080419012246.6809.79667.stgit@localhost.localdomain>
+From: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Subject: [PATCH 2/2] ARM: OMAP: HSMMC: Use macros instead of some magic constants.
+Date: Fri, 18 Apr 2008 16:29:11 -0400
+Message-ID: <48090497.6080800@indt.org.br>
+References: <48061C1E.1030007@indt.org.br> <20080418183945.GF12099@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60026 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751294AbYDSBe4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 21:34:56 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:23430 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751494AbYDRUd0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 16:33:26 -0400
+In-Reply-To: <20080418183945.GF12099@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, igor.stoppa@nokia.com, sakari.poussa@nokia.com, jouni.hogander@nokia.com, r-woodruff2@ti.com, paul@pwsan.com
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
+From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 
-Hi everyone,
+This patch makes arch/arm/mach-omap2/board-sdp-hsmmc.c file to use macros
+instead of some magic constants.
 
-This is the second version of the powerdomain patches.  It:
-
-=2E replaces omap_type_t typedef with struct omap_chip_id
-
-=2E fixes 34xx bug in OMAP type detection code
-
-=2E removes all EXPORT_SYMBOLs - these can be added back in if powerdom=
-ain
-  code needs to be used from loadable PM modules - the expectation is t=
-hat
-  it will only be used from PM code
-
-=2E gets rid of all of the forward declarations in the powerdomain
-  dependency definitions - now uses powerdomain names
-
-=2E creates _pwrdm_lookup() to avoid potential race in pwrdm_register()
-
-=2E gets rid of tabs in comments
-
-=2E cleans up some dead structure members in struct powerdomain
-
-=2E adds IVA2 sleepdep for DSS, PER, USBHOST
-
-=2E is refreshed against current git head (e015fc7)
-
-This version is tested against 3430SDP ES2.1, and compile-tested with
-the N800 and 2430SDP configs.  Size, diffstat have been updated below.
-
-Thanks to Tony & Jouni for review and comments.  More comments welcome,
-
-
-- Paul
-
--------------------------
-
-Hello,
-
-this patch series adds a hardware control and monitoring interface for
-OMAP2/3 powerdomains.  The interface is fully documented in the code.
-
-The series also adds a common OMAP chip type detection bitfield for use
-with powerdomain and clockdomain structures; it is planned to expand it=
-s
-use to the clock framework in the future.
-
-Powerdomain code tested on 3430SDP ES2.1; also boot-tested on N800.
-
-Many people at Nokia and TI provided commentary and review during the
-development of the powerdomain patches.  Particular help came from (in
-alphabetical order): Jouni H=C3=B6gander, Tony Lindgren, Sakari Poussa,
-Igor Stoppa, and Richard Woodruff.
-
+Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+Signed-off-by: Francisco Alecrim <francisco.alecrim@indt.org.br>
+Acked-by: Anderson Lizardo <anderson.lizardo@indt.org.br>
+Acked-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
 ---
+ arch/arm/mach-omap2/board-sdp-hsmmc.c |   55 +++++++++++++++++++++++---------
+ 1 files changed, 39 insertions(+), 16 deletions(-)
 
-   text    data     bss     dec     hex filename
-3265996  151704  100736 3518436  35afe4 vmlinux.3430sdp.orig
-3269405  152552  100736 3522693  35c085 vmlinux.3430sdp
+diff --git a/arch/arm/mach-omap2/board-sdp-hsmmc.c b/arch/arm/mach-omap2/board-sdp-hsmmc.c
+index 355c1c0..d21af87 100644
+--- a/arch/arm/mach-omap2/board-sdp-hsmmc.c
++++ b/arch/arm/mach-omap2/board-sdp-hsmmc.c
+@@ -35,6 +35,16 @@
+ #define MMC1_CD_IRQ		0
+ #define MMC2_CD_IRQ		1
+ 
++#define OMAP2_CONTROL_DEVCONF0	0x48002274
++#define OMAP2_CONTROL_DEVCONF1	0x490022E8
++
++#define OMAP2_CONTROL_DEVCONF0_LBCLK	(1 << 24)
++#define OMAP2_CONTROL_DEVCONF1_ACTOV	(1 << 31)
++
++#define OMAP2_CONTROL_PBIAS_VMODE	(1 << 0)
++#define OMAP2_CONTROL_PBIAS_PWRDNZ	(1 << 1)
++#define OMAP2_CONTROL_PBIAS_SCTRL	(1 << 2)
++
+ static int sdp_mmc_card_detect(int irq)
+ {
+ 	return twl4030_get_gpio_datain(irq - IH_TWL4030_GPIO_BASE);
+@@ -158,32 +168,36 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
+ 
+ 	if (power_on) {
+ 		if (cpu_is_omap24xx())
+-			devconf = omap_readl(0x490022E8);
++			devconf = omap_readl(OMAP2_CONTROL_DEVCONF1);
+ 		else
+-			devconf = omap_readl(0x48002274);
++			devconf = omap_readl(OMAP2_CONTROL_DEVCONF0);
+ 
+ 		switch (1 << vdd) {
+ 		case MMC_VDD_33_34:
+ 		case MMC_VDD_32_33:
+ 			vdd_sel = VSEL_3V;
+ 			if (cpu_is_omap24xx())
+-				devconf = (devconf | (1 << 31));
++				devconf |= OMAP2_CONTROL_DEVCONF1_ACTOV;
+ 			break;
+ 		case MMC_VDD_165_195:
+ 			vdd_sel = VSEL_18V;
+ 			if (cpu_is_omap24xx())
+-				devconf = (devconf & ~(1 << 31));
++				devconf &= ~OMAP2_CONTROL_DEVCONF1_ACTOV;
+ 		}
+ 
+ 		if (cpu_is_omap24xx())
+-			omap_writel(devconf, 0x490022E8);
++			omap_writel(devconf, OMAP2_CONTROL_DEVCONF1);
+ 		else
+-			omap_writel(devconf | 1 << 24, 0x48002274);
++			omap_writel(devconf | OMAP2_CONTROL_DEVCONF0_LBCLK,
++				    OMAP2_CONTROL_DEVCONF0);
+ 
+-		omap_writel(omap_readl(OMAP2_CONTROL_PBIAS) | 1 << 2,
+-			OMAP2_CONTROL_PBIAS);
+-		omap_writel(omap_readl(OMAP2_CONTROL_PBIAS) & ~(1 << 1),
+-			OMAP2_CONTROL_PBIAS);
++		reg = omap_readl(OMAP2_CONTROL_PBIAS);
++		reg |= OMAP2_CONTROL_PBIAS_SCTRL;
++		omap_writel(reg, OMAP2_CONTROL_PBIAS);
++
++		reg = omap_readl(OMAP2_CONTROL_PBIAS);
++		reg &= ~OMAP2_CONTROL_PBIAS_PWRDNZ;
++		omap_writel(reg, OMAP2_CONTROL_PBIAS);
+ 
+ 		ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+ 						P1_DEV_GRP, VMMC1_DEV_GRP);
+@@ -197,8 +211,12 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
+ 
+ 		msleep(100);
+ 		reg = omap_readl(OMAP2_CONTROL_PBIAS);
+-		reg = (vdd_sel == VSEL_18V) ? ((reg | 0x6) & ~0x1)
+-						: (reg | 0x7);
++		reg |= (OMAP2_CONTROL_PBIAS_SCTRL |
++			OMAP2_CONTROL_PBIAS_PWRDNZ);
++		if (vdd_sel == VSEL_18V)
++			reg &= ~OMAP2_CONTROL_PBIAS_VMODE;
++		else
++			reg |= OMAP2_CONTROL_PBIAS_VMODE;
+ 		omap_writel(reg, OMAP2_CONTROL_PBIAS);
+ 
+ 		return ret;
+@@ -207,8 +225,10 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
+ 		/* Power OFF */
+ 
+ 		/* For MMC1, Toggle PBIAS before every power up sequence */
+-		omap_writel(omap_readl(OMAP2_CONTROL_PBIAS) & ~(1 << 1),
+-					OMAP2_CONTROL_PBIAS);
++		reg = omap_readl(OMAP2_CONTROL_PBIAS);
++		reg &= ~OMAP2_CONTROL_PBIAS_PWRDNZ;
++		omap_writel(reg, OMAP2_CONTROL_PBIAS);
++
+ 		ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+ 						LDO_CLR, VMMC1_DEV_GRP);
+ 		if (ret)
+@@ -221,8 +241,11 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
+ 
+ 		/* 100ms delay required for PBIAS configuration */
+ 		msleep(100);
+-		omap_writel(omap_readl(OMAP2_CONTROL_PBIAS) | 0x7,
+-			OMAP2_CONTROL_PBIAS);
++		reg = omap_readl(OMAP2_CONTROL_PBIAS);
++		reg |= (OMAP2_CONTROL_PBIAS_VMODE |
++			OMAP2_CONTROL_PBIAS_PWRDNZ |
++			OMAP2_CONTROL_PBIAS_SCTRL);
++		omap_writel(reg, OMAP2_CONTROL_PBIAS);
+ 	}
+ 
+ 	return 0;
+-- 1.5.3.GIT
 
-
-Paul Walmsley (5):
-      Subject: add OMAP3 powerdomains
-      Subject: add OMAP2 powerdomains
-      Subject: add OMAP2/3 common powerdomains
-      Subject: add base OMAP2/3 powerdomain code
-      Subject: add OMAP chip type global bitfield; clean up mach-omap2/=
-id.c
-
-
- arch/arm/mach-omap2/Makefile            |    2
- arch/arm/mach-omap2/id.c                |  167 ++++--
- arch/arm/mach-omap2/io.c                |    5
- arch/arm/mach-omap2/pm.c                |    2
- arch/arm/mach-omap2/powerdomain.c       |  885 +++++++++++++++++++++++=
-++++++++
- arch/arm/mach-omap2/powerdomains.h      |  187 +++++++
- arch/arm/mach-omap2/powerdomains24xx.h  |  200 +++++++
- arch/arm/mach-omap2/powerdomains34xx.h  |  327 +++++++++++
- arch/arm/mach-omap2/prcm-common.h       |    3
- arch/arm/mach-omap2/prm-regbits-24xx.h  |   12
- arch/arm/mach-omap2/prm-regbits-34xx.h  |   11
- arch/arm/mach-omap2/prm.h               |    3
- arch/arm/plat-omap/Kconfig              |   12
- include/asm-arm/arch-omap/cpu.h         |   33 +
- include/asm-arm/arch-omap/powerdomain.h |  137 +++++
- 15 files changed, 1924 insertions(+), 62 deletions(-)
- create mode 100644 arch/arm/mach-omap2/powerdomain.c
- create mode 100644 arch/arm/mach-omap2/powerdomains.h
- create mode 100644 arch/arm/mach-omap2/powerdomains24xx.h
- create mode 100644 arch/arm/mach-omap2/powerdomains34xx.h
- create mode 100644 include/asm-arm/arch-omap/powerdomain.h
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
