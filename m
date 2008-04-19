@@ -1,203 +1,252 @@
-From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [PATCH 1/2] ARM: OMAP: HSMMC: General code cleanup and cosmetic fixes
-Date: Fri, 18 Apr 2008 16:29:00 -0400
-Message-ID: <4809048C.3060705@indt.org.br>
-References: <48061C1E.1030007@indt.org.br> <20080418183945.GF12099@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 3/5] add OMAP2/3 common powerdomains
+Date: Fri, 18 Apr 2008 19:26:48 -0600
+Message-ID: <20080419012629.6809.73345.stgit@localhost.localdomain>
+References: <20080419012246.6809.79667.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:23429 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751314AbYDRUdZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 16:33:25 -0400
-In-Reply-To: <20080418183945.GF12099@atomide.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:60055 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751370AbYDSBe7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Apr 2008 21:34:59 -0400
+In-Reply-To: <20080419012246.6809.79667.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, igor.stoppa@nokia.com, sakari.poussa@nokia.com, jouni.hogander@nokia.com, r-woodruff2@ti.com, paul@pwsan.com
 
-From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+Add powerdomains common to both OMAP2 and OMAP3 (WKUP and GFX/SGX).
+Modify mach-omap2/io.c to initialize the powerdomain code on boot.
 
-This patch makes the following general code cleanup and cosmetic fixes:
-
-- Use #include <linux/io.h> instead of <asm/io.h>, according to warning
-reported by scripts/checkpatch.pl on arch/arm/mach-omap2/board-sdp-hsmmc.c
-
-- Use if (power_on) instead of if (power_on == 1).
-
-- Use if (ret) instead of if (ret != 0).
-
-- Add an extra-line to separate labels.
-
-Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
-Acked-by: Anderson Lizardo <anderson.lizardo@indt.org.br>
-Acked-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/board-sdp-hsmmc.c |   41 ++++++++++++++++-----------------
- 1 files changed, 20 insertions(+), 21 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-sdp-hsmmc.c b/arch/arm/mach-omap2/board-sdp-hsmmc.c
-index 3ae5b20..355c1c0 100644
---- a/arch/arm/mach-omap2/board-sdp-hsmmc.c
-+++ b/arch/arm/mach-omap2/board-sdp-hsmmc.c
-@@ -9,6 +9,7 @@
-  * published by the Free Software Foundation.
+ arch/arm/mach-omap2/io.c           |    5 +
+ arch/arm/mach-omap2/pm.c           |    2=20
+ arch/arm/mach-omap2/powerdomains.h |  147 ++++++++++++++++++++++++++++=
+++++++++
+ arch/arm/mach-omap2/prm.h          |    3 -
+ 4 files changed, 155 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/powerdomains.h
+
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 8acdd04..1314cc3 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -27,6 +27,10 @@
+ #include <asm/arch/mux.h>
+ #include <asm/arch/omapfb.h>
+=20
++#include <asm/arch/powerdomain.h>
++
++#include "powerdomains.h"
++
+ extern void omap_sram_init(void);
+ extern int omap2_clk_init(void);
+ extern void omap2_check_revision(void);
+@@ -188,6 +192,7 @@ void __init omap2_map_common_io(void)
+ void __init omap2_init_common_hw(void)
+ {
+ 	omap2_mux_init();
++	pwrdm_init(powerdomains_omap);
+ 	omap2_clk_init();
+ 	omap2_init_memory();
+ 	gpmc_init();
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index a7faba3..b8a13c6 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -651,7 +651,7 @@ static void __init prcm_setup_regs(void)
+ 	__raw_writel(OMAP24XX_AUTOIDLE, OMAP24XX_PRCM_SYSCONFIG);
+=20
+ 	/* Set all domain wakeup dependencies */
+-	prm_write_mod_reg(OMAP_EN_WKUP, MPU_MOD, PM_WKDEP);
++	prm_write_mod_reg(OMAP_EN_WKUP_MASK, MPU_MOD, PM_WKDEP);
+ 	prm_write_mod_reg(0, OMAP24XX_DSP_MOD, PM_WKDEP);
+ 	prm_write_mod_reg(0, GFX_MOD, PM_WKDEP);
+ 	prm_write_mod_reg(0, CORE_MOD, PM_WKDEP);
+diff --git a/arch/arm/mach-omap2/powerdomains.h b/arch/arm/mach-omap2/p=
+owerdomains.h
+new file mode 100644
+index 0000000..56c2a8f
+--- /dev/null
++++ b/arch/arm/mach-omap2/powerdomains.h
+@@ -0,0 +1,147 @@
++/*
++ * OMAP2/3 common powerdomain definitions
++ *
++ * Copyright (C) 2007-8 Texas Instruments, Inc.
++ * Copyright (C) 2007-8 Nokia Corporation
++ *
++ * Written by Paul Walmsley
++ * Debugging and integration fixes by Jouni H=C3=B6gander
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef ARCH_ARM_MACH_OMAP2_POWERDOMAINS
++#define ARCH_ARM_MACH_OMAP2_POWERDOMAINS
++
++/*
++ * This file contains all of the powerdomains that have some element
++ * of software control for the OMAP24xx and OMAP34XX chips.
++ *
++ * A few notes:
++ *
++ * This is not an exhaustive listing of powerdomains on the chips; onl=
+y
++ * powerdomains that can be controlled in software.
++ *
++ * A useful validation rule for struct powerdomain:
++ * Any powerdomain referenced by a wkdep_srcs or sleepdep_srcs array
++ * must have a dep_bit assigned.  So wkdep_srcs/sleepdep_srcs are real=
+ly
++ * just software-controllable dependencies.  Non-software-controllable
++ * dependencies do exist, but they are not encoded below (yet).
++ *
++ * 24xx does not support programmable sleep dependencies (SLEEPDEP)
++ *
++ */
++
++/*
++ * The names for the DSP/IVA2 powerdomains are confusing.
++ *
++ * Most OMAP chips have an on-board DSP.
++ *
++ * On the 2420, this is a 'C55 DSP called, simply, the DSP.  Its
++ * powerdomain is called the "DSP power domain."  On the 2430, the
++ * on-board DSP is a 'C64 DSP, now called the IVA2 or IVA2.1.  Its
++ * powerdomain is still called the "DSP power domain."	On the 3430,
++ * the DSP is a 'C64 DSP like the 2430, also known as the IVA2; but
++ * its powerdomain is now called the "IVA2 power domain."
++ *
++ * The 2420 also has something called the IVA, which is a separate ARM
++ * core, and has nothing to do with the DSP/IVA2.
++ *
++ * Ideally the DSP/IVA2 could just be the same powerdomain, but the PR=
+CM
++ * address offset is different between the C55 and C64 DSPs.
++ *
++ * The overly-specific dep_bit names are due to a bit name collision
++ * with CM_FCLKEN_{DSP,IVA2}.  The DSP/IVA2 PM_WKDEP and CM_SLEEPDEP s=
+hift
++ * value are the same for all powerdomains: 2
++ */
++
++/*
++ * XXX should dep_bit be a mask, so we can test to see if it is 0 as a
++ * sanity check?
++ * XXX encode hardware fixed wakeup dependencies -- esp. for 3430 CORE
++ */
++
++#include <asm/arch/powerdomain.h>
++
++#include "prcm-common.h"
++#include "prm.h"
++#include "cm.h"
++
++/* OMAP2/3-common powerdomains and wakeup dependencies */
++
++/*
++ * 2420/2430 PM_WKDEP_GFX: CORE, MPU, WKUP
++ * 3430ES1 PM_WKDEP_GFX: adds IVA2, removes CORE
++ * 3430ES2 PM_WKDEP_SGX: adds IVA2, removes CORE
++ */
++static struct pwrdm_dep gfx_sgx_wkdeps[] =3D {
++	{
++		.pwrdm_name =3D "core_pwrdm",
++		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
++	},
++	{
++		.pwrdm_name =3D "iva2_pwrdm",
++		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
++	},
++	{
++		.pwrdm_name =3D "mpu_pwrdm",
++		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX |
++					    CHIP_IS_OMAP3430)
++	},
++	{
++		.pwrdm_name =3D "wkup_pwrdm",
++		.omap_chip =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX |
++					    CHIP_IS_OMAP3430)
++	},
++	{ NULL },
++};
++
++/*
++ * OMAP2/3 common powerdomains
++ */
++
++/* XXX add sleepdeps for this powerdomain : 3430 */
++
++/*
++ * The GFX powerdomain is not present on 3430ES2, but currently we do =
+not
++ * have a macro to filter it out at compile-time.
++ */
++static struct powerdomain gfx_pwrdm =3D {
++	.name		  =3D "gfx_pwrdm",
++	.prcm_offs	  =3D GFX_MOD,
++	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX |
++					   CHIP_IS_OMAP3430ES1),
++	.wkdep_srcs	  =3D gfx_sgx_wkdeps,
++	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
++	.pwrsts_logic_ret =3D PWRDM_POWER_RET,
++	.banks		  =3D 1,
++	.pwrsts_mem_ret	  =3D {
++		[0] =3D PWRDM_POWER_RET, /* MEMRETSTATE */
++	},
++	.pwrsts_mem_on	  =3D {
++		[0] =3D PWRDM_POWER_ON,  /* MEMONSTATE */
++	},
++};
++
++static struct powerdomain wkup_pwrdm =3D {
++	.name		=3D "wkup_pwrdm",
++	.prcm_offs	=3D WKUP_MOD,
++	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
++	.dep_bit	=3D OMAP_EN_WKUP_SHIFT,
++};
++
++
++
++/* As powerdomains are added or removed above, this list must also be =
+changed */
++static struct powerdomain *powerdomains_omap[] __initdata =3D {
++
++	&gfx_pwrdm,
++	&wkup_pwrdm,
++
++	NULL
++};
++
++
++#endif
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+index 125d1e2..a00f28f 100644
+--- a/arch/arm/mach-omap2/prm.h
++++ b/arch/arm/mach-omap2/prm.h
+@@ -323,7 +323,8 @@ static __inline__ u32 __attribute__((unused)) prm_r=
+ead_mod_reg(s16 module,
+  * 3430: PM_WKDEP_IVA2, PM_WKDEP_GFX, PM_WKDEP_DSS, PM_WKDEP_CAM,
+  *	 PM_WKDEP_PER
   */
- #include <linux/err.h>
-+#include <linux/io.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
- #include <linux/interrupt.h>
-@@ -17,7 +18,6 @@
- #include <asm/hardware.h>
- #include <asm/arch/mmc.h>
- #include <asm/arch/board.h>
--#include <asm/io.h>
- 
- #if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
- 
-@@ -31,7 +31,7 @@
- #define TWL_GPIO_ISR1A		0x19
- #define LDO_CLR			0x00
- #define VSEL_S2_CLR		0x40
--#define GPIO_0_BIT_POS		1 << 0
-+#define GPIO_0_BIT_POS		(1 << 0)
- #define MMC1_CD_IRQ		0
- #define MMC2_CD_IRQ		1
- 
-@@ -51,27 +51,27 @@ static int sdp_mmc_late_init(struct device *dev)
- 	 * Configure TWL4030 GPIO parameters for MMC hotplug irq
- 	 */
- 	ret = twl4030_request_gpio(MMC1_CD_IRQ);
--	if (ret != 0)
-+	if (ret)
- 		goto err;
- 
- 	ret = twl4030_set_gpio_edge_ctrl(MMC1_CD_IRQ,
- 			TWL4030_GPIO_EDGE_RISING | TWL4030_GPIO_EDGE_FALLING);
--	if (ret != 0)
-+	if (ret)
- 		goto err;
- 
- 	ret = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0x02,
- 						TWL_GPIO_PUPDCTR1);
--	if (ret != 0)
-+	if (ret)
- 		goto err;
- 
- 	ret = twl4030_set_gpio_debounce(MMC1_CD_IRQ, TWL4030_GPIO_IS_ENABLE);
--	if (ret != 0)
-+	if (ret)
- 		goto err;
- 
- 	return ret;
-+
- err:
- 	dev_err(dev, "Failed to configure TWL4030 GPIO IRQ\n");
--
- 	return ret;
- }
- 
-@@ -80,7 +80,7 @@ static void sdp_mmc_cleanup(struct device *dev)
- 	int ret = 0;
- 
- 	ret = twl4030_free_gpio(MMC1_CD_IRQ);
--	if (ret != 0)
-+	if (ret)
- 		dev_err(dev, "Failed to configure TWL4030 GPIO IRQ\n");
- }
- 
-@@ -96,24 +96,25 @@ static int mask_cd_interrupt(int mask)
- 	u8 reg = 0, ret = 0;
- 
- 	ret = twl4030_i2c_read_u8(TWL4030_MODULE_GPIO, &reg, TWL_GPIO_IMR1A);
--	if (ret != 0)
-+	if (ret)
- 		goto err;
- 
- 	reg = (mask == 1) ? (reg | GPIO_0_BIT_POS) : (reg & ~GPIO_0_BIT_POS);
- 
- 	ret = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, reg, TWL_GPIO_IMR1A);
--	if (ret != 0)
-+	if (ret)
- 		goto err;
- 
- 	ret = twl4030_i2c_read_u8(TWL4030_MODULE_GPIO, &reg, TWL_GPIO_ISR1A);
--	if (ret != 0)
-+	if (ret)
- 		goto err;
- 
- 	reg = (mask == 1) ? (reg | GPIO_0_BIT_POS) : (reg & ~GPIO_0_BIT_POS);
- 
- 	ret = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, reg, TWL_GPIO_ISR1A);
--	if (ret != 0)
-+	if (ret)
- 		goto err;
-+
- err:
- 	return ret;
- }
-@@ -155,7 +156,7 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
- 	#define OMAP2_CONTROL_PBIAS 0x48002520
- #endif
- 
--	if (power_on == 1) {
-+	if (power_on) {
- 		if (cpu_is_omap24xx())
- 			devconf = omap_readl(0x490022E8);
- 		else
-@@ -186,12 +187,12 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
- 
- 		ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
- 						P1_DEV_GRP, VMMC1_DEV_GRP);
--		if (ret != 0)
-+		if (ret)
- 			goto err;
- 
- 		ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
- 						vdd_sel, VMMC1_DEDICATED);
--		if (ret != 0)
-+		if (ret)
- 			goto err;
- 
- 		msleep(100);
-@@ -202,7 +203,7 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
- 
- 		return ret;
- 
--	} else if (power_on == 0) {
-+	} else {
- 		/* Power OFF */
- 
- 		/* For MMC1, Toggle PBIAS before every power up sequence */
-@@ -210,24 +211,22 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
- 					OMAP2_CONTROL_PBIAS);
- 		ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
- 						LDO_CLR, VMMC1_DEV_GRP);
--		if (ret != 0)
-+		if (ret)
- 			goto err;
- 
- 		ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
- 						VSEL_S2_CLR, VMMC1_DEDICATED);
--		if (ret != 0)
-+		if (ret)
- 			goto err;
- 
- 		/* 100ms delay required for PBIAS configuration */
- 		msleep(100);
- 		omap_writel(omap_readl(OMAP2_CONTROL_PBIAS) | 0x7,
- 			OMAP2_CONTROL_PBIAS);
--	} else {
--		ret = -1;
--		goto err;
- 	}
- 
- 	return 0;
-+
- err:
- 	return 1;
- }
--- 1.5.3.GIT
+-#define OMAP_EN_WKUP					(1 << 4)
++#define OMAP_EN_WKUP_SHIFT				4
++#define OMAP_EN_WKUP_MASK				(1 << 4)
+=20
+ /*
+  * 24XX: PM_PWSTCTRL_MPU, PM_PWSTCTRL_CORE, PM_PWSTCTRL_GFX,
 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
