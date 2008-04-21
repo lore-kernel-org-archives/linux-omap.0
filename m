@@ -1,1008 +1,387 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] PLAT-OMAP: MCBSP: Move code mach specific from
-	plat-omap to mach-omap
-Date: Mon, 21 Apr 2008 11:33:10 -0700
-Message-ID: <20080421183305.GB12099@atomide.com>
-References: <20080414181827.GE4463@kedavra.cpe.vivax.com.br> <1208203891-11225-1-git-send-email-edubezval@gmail.com> <1208203891-11225-2-git-send-email-edubezval@gmail.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: CLKFW: Initial debugfs support for omap
+	clock framework
+Date: Mon, 21 Apr 2008 11:40:12 -0700
+Message-ID: <20080421184012.GA24257@atomide.com>
+References: <20080417.215723.241260895.Hiroshi.DOYU@nokia.com> <200804171214.35936.david-b@pacbell.net> <alpine.DEB.1.00.0804171319020.8530@utopia.booyaka.com> <20080417.225840.105362426.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64047 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751843AbYDUSdM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Apr 2008 14:33:12 -0400
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:60900 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753231AbYDUSkR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Apr 2008 14:40:17 -0400
 Content-Disposition: inline
-In-Reply-To: <1208203891-11225-2-git-send-email-edubezval@gmail.com>
+In-Reply-To: <20080417.225840.105362426.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>
-Cc: linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@indt.org.br>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: paul@pwsan.com, david-b@pacbell.net, linux-omap@vger.kernel.org
 
-Hi,
-
-Some comments below.
-
-* Eduardo Valentin <edubezval@gmail.com> [080414 13:13]:
-> From: Eduardo Valentin <eduardo.valentin@indt.org.br>
+* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [080417 13:02]:
+> From: "ext Paul Walmsley" <paul@pwsan.com>
+> Subject: Re: [PATCH 1/2] ARM: OMAP: CLKFW: Initial debugfs support for omap clock framework
+> Date: Thu, 17 Apr 2008 13:44:04 -0600 (MDT)
 > 
-> This patch gets ride of ifdefs on mcbsp.c code.
-> It moves the mach specific code to mach-omap*.
+> > Hello Hiroshi, David,
+> > 
+> > On Thu, 17 Apr 2008, David Brownell wrote:
+> > 
+> > > On Thursday 17 April 2008, Hiroshi DOYU wrote:
+> > > 
+> > > > And if there will be a little possibility that sysfs attribute can be
+> > > > used by userland in the future, keeping sysfs instead of debugfs
+> > > > doesn't seem not so illegal, does it?
+> > 
+> > True, but if we can do a debugfs implementation first, then that seems 
+> > like a good way to start, no?  Userspace PM implementations are probably 
+> > some months in the future, and we can mandate that debugfs be mounted for 
+> > those.
 > 
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
-> ---
->  arch/arm/mach-omap1/Makefile      |    2 +
->  arch/arm/mach-omap1/mcbsp.c       |  202 +++++++++++++++++++++
->  arch/arm/mach-omap2/Makefile      |    2 +
->  arch/arm/mach-omap2/mcbsp.c       |  145 ++++++++++++++++
->  arch/arm/plat-omap/mcbsp.c        |  346 +++++--------------------------------
->  include/asm-arm/arch-omap/mcbsp.h |   19 ++
->  6 files changed, 417 insertions(+), 299 deletions(-)
->  create mode 100644 arch/arm/mach-omap1/mcbsp.c
->  create mode 100644 arch/arm/mach-omap2/mcbsp.c
+> Agreed. Update ones attached. The diffs against the previous are:
 > 
-> diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-> index 6ebf23b..09246a7 100644
-> --- a/arch/arm/mach-omap1/Makefile
-> +++ b/arch/arm/mach-omap1/Makefile
-> @@ -5,6 +5,8 @@
->  # Common support
->  obj-y := io.o id.o clock.o irq.o mux.o serial.o devices.o
+> diff -u b/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+> --- b/arch/arm/plat-omap/clock.c
+> +++ b/arch/arm/plat-omap/clock.c
+> @@ -524,7 +524,7 @@
 >  
-> +obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
-> +
->  obj-$(CONFIG_OMAP_MPU_TIMER)	+= time.o
->  obj-$(CONFIG_OMAP_32K_TIMER)	+= timer32k.o
->  
-> diff --git a/arch/arm/mach-omap1/mcbsp.c b/arch/arm/mach-omap1/mcbsp.c
-> new file mode 100644
-> index 0000000..299f036
-> --- /dev/null
-> +++ b/arch/arm/mach-omap1/mcbsp.c
-> @@ -0,0 +1,202 @@
-> +/*
-> + * linux/arch/arm/mach-omap1/mcbsp.c
-> + *
-> + * Copyright (C) 2008 Instituto Nokia de Tecnologia
-> + * Contact: Eduardo Valentin <eduardo.valentin@indt.org.br>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * Multichannel mode not supported.
-> + */
-> +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/clk.h>
-> +#include <linux/err.h>
-> +#include <linux/io.h>
-> +
-> +#include <asm/arch/dma.h>
-> +#include <asm/arch/mux.h>
-> +#include <asm/arch/cpu.h>
-> +#include <asm/arch/mcbsp.h>
-> +#include <asm/arch/dsp_common.h>
-> +
-> +static struct clk *mcbsp_dsp_ck;
-> +static struct clk *mcbsp_api_ck;
-> +static struct clk *mcbsp_dspxor_ck;
-> +
-> +static void omap_mcbsp_dsp_request(void)
-> +{
-> +	if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
-> +		int ret;
-> +
-> +		ret = omap_dsp_request_mem();
-> +		if (ret < 0) {
-> +			printk(KERN_ERR "Could not get dsp memory: %i\n", ret);
-> +			return;
-> +		}
-> +
-> +		clk_enable(mcbsp_dsp_ck);
-> +		clk_enable(mcbsp_api_ck);
-> +
-> +		/* enable 12MHz clock to mcbsp 1 & 3 */
-> +		clk_enable(mcbsp_dspxor_ck);
-> +
-> +		/*
-> +		 * DSP external peripheral reset
-> +		 * FIXME: This should be moved to dsp code
-> +		 */
-> +		__raw_writew(__raw_readw(DSP_RSTCT2) | 1 | 1 << 1,
-> +			     DSP_RSTCT2);
-> +	}
-> +}
-
-How about just do an early return and leave out test for
-cpu_is_omap15xx/16xx():
-
-if (cpu_is_omap730())
-	return;
-
-
-> +static void omap_mcbsp_dsp_free(void)
-> +{
-> +	if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
-> +		omap_dsp_release_mem();
-> +		clk_disable(mcbsp_dspxor_ck);
-> +		clk_disable(mcbsp_dsp_ck);
-> +		clk_disable(mcbsp_api_ck);
-> +	}
-> +}
-
-Here too.
-
-
-> +static int omap1_mcbsp_check(unsigned int id)
-> +{
-> +	if (cpu_is_omap730()) {
-> +		if (id > OMAP_MAX_MCBSP_COUNT - 1) {
-> +		       printk(KERN_ERR "OMAP-McBSP: McBSP%d doesn't exist\n",
-> +				id + 1);
-> +		       return -ENODEV;
-> +		}
-> +		return 0;
-> +	}
-> +
-> +	if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
-> +		if (id > OMAP_MAX_MCBSP_COUNT) {
-> +			printk(KERN_ERR "OMAP-McBSP: McBSP%d doesn't exist\n",
-> +				id + 1);
-> +			return -ENODEV;
-> +		}
-> +		return 0;
-> +	}
-> +
-> +	return -ENODEV;
-> +}
-> +
-> +static void omap1_mcbsp_request(unsigned int id)
-> +{
-> +	/*
-> +	 * On 1510, 1610 and 1710, McBSP1 and McBSP3
-> +	 * are DSP public peripherals.
-> +	 */
-> +	if (id == OMAP_MCBSP1 || id == OMAP_MCBSP3)
-> +		omap_mcbsp_dsp_request();
-> +}
-> +
-> +static void omap1_mcbsp_free(unsigned int id)
-> +{
-> +	if (cpu_class_is_omap1()) {
-> +		if (id == OMAP_MCBSP1 || id == OMAP_MCBSP3)
-> +			omap_mcbsp_dsp_free();
-> +	}
-> +}
-
-Since these are all in mach-omap1, cpu_class_is_omap1() is always true,
-so it can be left out.
-
-> +struct omap_mcbsp_board_cfg omap1_mcbsp_cfg = {
-> +	.check		= omap1_mcbsp_check,
-> +	.request	= omap1_mcbsp_request,
-> +	.free		= omap1_mcbsp_free,
-> +	.mcbsp_infos	=
-> +#ifdef CONFIG_ARCH_OMAP730
-> +	{
-> +		[0] = {
-> +			.virt_base = io_p2v(OMAP730_MCBSP1_BASE),
-> +			.dma_rx_sync = OMAP_DMA_MCBSP1_RX,
-> +			.dma_tx_sync = OMAP_DMA_MCBSP1_TX,
-> +			.rx_irq = INT_730_McBSP1RX,
-> +			.tx_irq = INT_730_McBSP1TX,
-> +		},
-> +		[1] = {
-> +			.virt_base = io_p2v(OMAP730_MCBSP2_BASE),
-> +			.dma_rx_sync = OMAP_DMA_MCBSP3_RX,
-> +			.dma_tx_sync = OMAP_DMA_MCBSP3_TX,
-> +			.rx_irq = INT_730_McBSP2RX,
-> +			.tx_irq = INT_730_McBSP2TX
-> +		},
-> +	},
-> +#elif defined(CONFIG_ARCH_OMAP15XX)
-
-This should not be #elif, it's possible to compile in support for
-multiple boards.
-
-
-> +	{
-> +		[0] = {
-> +			.virt_base = OMAP1510_MCBSP1_BASE,
-> +			.dma_rx_sync = OMAP_DMA_MCBSP1_RX,
-> +			.dma_tx_sync = OMAP_DMA_MCBSP1_TX,
-> +			.rx_irq = INT_McBSP1RX,
-> +			.tx_irq = INT_McBSP1TX
-> +		},
-> +		[1] = {
-> +			.virt_base = io_p2v(OMAP1510_MCBSP2_BASE),
-> +			.dma_rx_sync = OMAP_DMA_MCBSP2_RX,
-> +			.dma_tx_sync = OMAP_DMA_MCBSP2_TX,
-> +			.rx_irq = INT_1510_SPI_RX,
-> +			.tx_irq = INT_1510_SPI_TX
-> +		},
-> +		[2] = {
-> +			.virt_base = OMAP1510_MCBSP3_BASE,
-> +			.dma_rx_sync = OMAP_DMA_MCBSP3_RX,
-> +			.dma_tx_sync = OMAP_DMA_MCBSP3_TX,
-> +			.rx_irq = INT_McBSP3RX,
-> +			.tx_irq = INT_McBSP3TX
-> +	},
-> +#elif defined(CONFIG_ARCH_OMAP16XX)
-
-This too. See how this is handled for example in mux.c.
-
-
-> +	{
-> +		[0] = {
-> +			.virt_base = OMAP1610_MCBSP1_BASE,
-> +			.dma_rx_sync = OMAP_DMA_MCBSP1_RX,
-> +			.dma_tx_sync = OMAP_DMA_MCBSP1_TX,
-> +			.rx_irq = INT_McBSP1RX,
-> +			.tx_irq = INT_McBSP1TX
-> +		},
-> +		[1] = {
-> +			.virt_base = io_p2v(OMAP1610_MCBSP2_BASE),
-> +			.dma_rx_sync = OMAP_DMA_MCBSP2_RX,
-> +			.dma_tx_sync = OMAP_DMA_MCBSP2_TX,
-> +			.rx_irq = INT_1610_McBSP2_RX,
-> +			.tx_irq = INT_1610_McBSP2_TX
-> +		},
-> +		[2] = {
-> +			.virt_base = OMAP1610_MCBSP3_BASE,
-> +			.dma_rx_sync = OMAP_DMA_MCBSP3_RX,
-> +			.dma_tx_sync = OMAP_DMA_MCBSP3_TX,
-> +			.rx_irq = INT_McBSP3RX,
-> +			.tx_irq = INT_McBSP3TX
-> +		},
-> +	},
-> +#else
-> +NULL /* For .mcbsp_infos */
-> +#endif
-> +};
-> +
-> +int __init omap1_mcbsp_init(void)
-> +{
-> +	mcbsp_dsp_ck = clk_get(0, "dsp_ck");
-> +	if (IS_ERR(mcbsp_dsp_ck)) {
-> +		printk(KERN_ERR "mcbsp: could not acquire dsp_ck handle.\n");
-> +		return PTR_ERR(mcbsp_dsp_ck);
-> +	}
-
-I believe this will return error on 730 and init will fail.
-
-
-> +	mcbsp_api_ck = clk_get(0, "api_ck");
-> +	if (IS_ERR(mcbsp_api_ck)) {
-> +		printk(KERN_ERR "mcbsp: could not acquire api_ck handle.\n");
-> +		return PTR_ERR(mcbsp_api_ck);
-> +	}
-> +	mcbsp_dspxor_ck = clk_get(0, "dspxor_ck");
-> +	if (IS_ERR(mcbsp_dspxor_ck)) {
-> +		printk(KERN_ERR "mcbsp: could not acquire dspxor_ck handle.\n");
-> +		return PTR_ERR(mcbsp_dspxor_ck);
-> +	}
-
-This one too I guess.
-
-
-> +	omap_mcbsp_register_board_cfg(&omap1_mcbsp_cfg);
-> +
-> +	return omap_mcbsp_init();
-> +}
-> +arch_initcall(omap1_mcbsp_init);
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 5157ff2..771f8e7 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -6,6 +6,8 @@
->  obj-y := irq.o id.o io.o memory.o control.o prcm.o clock.o mux.o \
->  		devices.o serial.o gpmc.o timer-gp.o
->  
-> +obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
-> +
->  # Functions loaded to SRAM
->  obj-$(CONFIG_ARCH_OMAP2)		+= sram24xx.o
->  
-> diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-> new file mode 100644
-> index 0000000..8c8b97f
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/mcbsp.c
-> @@ -0,0 +1,145 @@
-> +/*
-> + * linux/arch/arm/mach-omap1/mcbsp.c
-> + *
-
-Should be mach-omap2 above.
-
-
-> + * Copyright (C) 2008 Instituto Nokia de Tecnologia
-> + * Contact: Eduardo Valentin <eduardo.valentin@indt.org.br>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * Multichannel mode not supported.
-> + */
-> +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/clk.h>
-> +#include <linux/err.h>
-> +
-> +#include <asm/arch/dma.h>
-> +#include <asm/arch/mux.h>
-> +#include <asm/arch/cpu.h>
-> +#include <asm/arch/mcbsp.h>
-> +
-> +static struct clk *mcbsp1_ick;
-> +static struct clk *mcbsp1_fck;
-> +static struct clk *mcbsp2_ick;
-> +static struct clk *mcbsp2_fck;
-> +
-> +static void omap2_mcbsp2_mux_setup(void)
-> +{
-> +	if (cpu_is_omap2420()) {
-> +		omap_cfg_reg(Y15_24XX_MCBSP2_CLKX);
-> +		omap_cfg_reg(R14_24XX_MCBSP2_FSX);
-> +		omap_cfg_reg(W15_24XX_MCBSP2_DR);
-> +		omap_cfg_reg(V15_24XX_MCBSP2_DX);
-> +		omap_cfg_reg(V14_24XX_GPIO117);
-> +	}
-> +	/*
-> +	 * Need to add MUX settings for OMAP 2430 SDP
-> +	 */
-> +}
-> +
-> +static int omap2_mcbsp_check(unsigned int id)
-> +{
-> +	if (cpu_class_is_omap2()) {
-> +		if (id > OMAP_MAX_MCBSP_COUNT) {
-> +			printk(KERN_ERR "OMAP-McBSP: McBSP%d doesn't exist\n",
-> +				id + 1);
-> +			return -ENODEV;
-> +		}
-> +		return 0;
-> +	}
-> +
-> +	return -ENODEV;
-> +}
-
-The cpu_class_is_omap2() above is not needed, it's always true.
-
-
-> +static void omap2_mcbsp_request(unsigned int id)
-> +{
-> +	if (cpu_class_is_omap2()) {
-> +		if (id == OMAP_MCBSP1) {
-> +			clk_enable(mcbsp1_ick);
-> +			clk_enable(mcbsp1_fck);
-> +		} else {
-> +			clk_enable(mcbsp2_ick);
-> +			clk_enable(mcbsp2_fck);
-> +		}
-> +	}
-> +}
-
-Here too. And a line break is missing between this and next function.
-
-
-> +static void omap2_mcbsp_free(unsigned int id)
-> +{
-> +	if (cpu_class_is_omap2()) {
-> +		if (id == OMAP_MCBSP1) {
-> +			clk_disable(mcbsp1_ick);
-> +			clk_disable(mcbsp1_fck);
-> +		} else {
-> +			clk_disable(mcbsp2_ick);
-> +			clk_disable(mcbsp2_fck);
-> +		}
-> +	}
-> +}
-
-Unnecessary cpu_class_is_omap2() here too.
-
-
-> +static const struct omap_mcbsp_board_cfg mcbsp_24xx_cfg = {
-> +	.check		= omap2_mcbsp_check,
-> +	.request	= omap2_mcbsp_request,
-> +	.free		= omap2_mcbsp_free,
-> +	.mcbsp_infos	= {
-> +		[0] = {
-> +#if defined(CONFIG_ARCH_OMAP24XX)
-> +			.virt_base = IO_ADDRESS(OMAP24XX_MCBSP1_BASE),
-> +#elif defined(CONFIG_ARCH_OMAP34XX)
-> +			.virt_base = IO_ADDRESS(OMAP34XX_MCBSP1_BASE),
-> +#endif
-
-This #elif will add artificial blocker to compile in both 24xx and 34xx.
-
-
-> +			.dma_rx_sync = OMAP24XX_DMA_MCBSP1_RX,
-> +			.dma_tx_sync = OMAP24XX_DMA_MCBSP1_TX,
-> +			.rx_irq = INT_24XX_MCBSP1_IRQ_RX,
-> +			.tx_irq = INT_24XX_MCBSP1_IRQ_TX,
-> +		},
-> +		[1] = {
-> +#if defined(CONFIG_ARCH_OMAP24XX)
-> +			.virt_base = IO_ADDRESS(OMAP24XX_MCBSP2_BASE),
-> +#elif defined(CONFIG_ARCH_OMAP34XX)
-> +			.virt_base = IO_ADDRESS(OMAP34XX_MCBSP2_BASE),
-> +#endif
-
-Here too.
-
-
-> +			.dma_rx_sync = OMAP24XX_DMA_MCBSP2_RX,
-> +			.dma_tx_sync = OMAP24XX_DMA_MCBSP2_TX,
-> +			.rx_irq = INT_24XX_MCBSP2_IRQ_RX,
-> +			.tx_irq = INT_24XX_MCBSP2_IRQ_TX,
-> +		},
-> +	},
-> +};
-> +
-> +int __init omap2_mcbsp_init(void)
-> +{
-> +	mcbsp1_ick = clk_get(0, "mcbsp1_ick");
-> +	if (IS_ERR(mcbsp1_ick)) {
-> +		printk(KERN_ERR "mcbsp: could not acquire "
-> +				"mcbsp1_ick handle.\n");
-> +		return PTR_ERR(mcbsp1_ick);
-> +	}
-> +	mcbsp1_fck = clk_get(0, "mcbsp1_fck");
-> +	if (IS_ERR(mcbsp1_fck)) {
-> +		printk(KERN_ERR "mcbsp: could not acquire "
-> +				"mcbsp1_fck handle.\n");
-> +		return PTR_ERR(mcbsp1_fck);
-> +	}
-> +	mcbsp2_ick = clk_get(0, "mcbsp2_ick");
-> +	if (IS_ERR(mcbsp2_ick)) {
-> +		printk(KERN_ERR "mcbsp: could not acquire "
-> +				"mcbsp2_ick handle.\n");
-> +		return PTR_ERR(mcbsp2_ick);
-> +	}
-> +	mcbsp2_fck = clk_get(0, "mcbsp2_fck");
-> +	if (IS_ERR(mcbsp2_fck)) {
-> +		printk(KERN_ERR "mcbsp: could not acquire "
-> +				"mcbsp2_fck handle.\n");
-> +		return PTR_ERR(mcbsp2_fck);
-> +	}
-> +
-> +	if (cpu_class_is_omap2()) {
-> +		omap_mcbsp_register_board_cfg(&mcbsp_24xx_cfg);
-> +		omap2_mcbsp2_mux_setup();
-> +	}
-
-Unnecessary cpu_class_is_omap2() here too.
-
-
-> +	return omap_mcbsp_init();
-> +}
-> +arch_initcall(omap2_mcbsp_init);
-> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-> index 053de31..fdba002 100644
-> --- a/arch/arm/plat-omap/mcbsp.c
-> +++ b/arch/arm/plat-omap/mcbsp.c
-> @@ -24,11 +24,8 @@
->  #include <linux/io.h>
->  #include <linux/irq.h>
->  
-> -#include <asm/arch/dma.h>
-> -#include <asm/arch/mux.h>
-> -#include <asm/arch/irqs.h>
-> -#include <asm/arch/dsp_common.h>
->  #include <asm/arch/mcbsp.h>
-> +#include <asm/arch/dma.h>
->  
->  #ifdef CONFIG_MCBSP_DEBUG
->  #define DBG(x...)	printk(x)
-> @@ -65,17 +62,10 @@ struct omap_mcbsp {
+>  	p += sprintf(p, "%s", c->name);
+>  	if (c->id != 0)
+> -		sprintf(p, "%d", c->id);
+> +		sprintf(p, ":%d", c->id);
+>  	d = debugfs_create_dir(s, pa ? pa->dent : clk_debugfs_root);
+>  	if (IS_ERR(d))
+>  		return PTR_ERR(d);
+> diff -u b/include/asm-arm/arch-omap/clock.h b/include/asm-arm/arch-omap/clock.h
+> --- b/include/asm-arm/arch-omap/clock.h
+> +++ b/include/asm-arm/arch-omap/clock.h
+> @@ -86,7 +86,7 @@
+>  	__u8			rate_offset;
+>  	__u8			src_offset;
+>  #endif
+> -#ifdef CONFIG_DEBUG_FS
+> +#if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
+>  	struct dentry		*dent;	/* For visible tree hierarchy */
+>  #endif
 >  };
+
+Pushing today.
+
+Tony
+
+
+> 
+>  Hiroshi DOYU
+
+> From fa06e7a21c08299eaa61e6c367ec8e737a8ff13b Mon Sep 17 00:00:00 2001
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> Date: Thu, 17 Apr 2008 16:51:41 +0300
+> Subject: [PATCH 2/2] ARM: OMAP: CLKFW: Remove procfs entry for debugging clock framework
+> 
+> This feature can be covered by debugfs for omap clock framework.
+> 
+> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> ---
+>  arch/arm/plat-omap/clock.c |   96 --------------------------------------------
+>  1 files changed, 0 insertions(+), 96 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+> index 2ae87bf..714dbbf 100644
+> --- a/arch/arm/plat-omap/clock.c
+> +++ b/arch/arm/plat-omap/clock.c
+> @@ -34,41 +34,6 @@ static DEFINE_SPINLOCK(clockfw_lock);
 >  
->  static struct omap_mcbsp mcbsp[OMAP_MAX_MCBSP_COUNT];
-> -#ifdef CONFIG_ARCH_OMAP1
-> -static struct clk *mcbsp_dsp_ck;
-> -static struct clk *mcbsp_api_ck;
-> -static struct clk *mcbsp_dspxor_ck;
-> -#endif
-> -#ifdef CONFIG_ARCH_OMAP2
-> -static struct clk *mcbsp1_ick;
-> -static struct clk *mcbsp1_fck;
-> -static struct clk *mcbsp2_ick;
-> -static struct clk *mcbsp2_fck;
-> -#endif
-> +static const struct omap_mcbsp_board_cfg *mcbsp_config;
-> +
-> +#define omap_mcbsp_check_invalid_id(id)	(mcbsp_config && mcbsp_config->check \
-> +					&& (mcbsp_config->check(id) < 0))
+>  static struct clk_functions *arch_clock;
 >  
->  static void omap_mcbsp_dump_reg(u8 id)
->  {
-> @@ -175,90 +165,13 @@ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg *config)
->  }
->  EXPORT_SYMBOL(omap_mcbsp_config);
->  
-> -static int omap_mcbsp_check(unsigned int id)
+> -#ifdef CONFIG_PM_DEBUG
+> -
+> -static void print_parents(struct clk *clk)
 > -{
-> -	if (cpu_is_omap730()) {
-> -		if (id > OMAP_MAX_MCBSP_COUNT - 1) {
-> -		       printk(KERN_ERR "OMAP-McBSP: McBSP%d doesn't exist\n",
-> -				id + 1);
-> -		       return -1;
+> -	struct clk *p;
+> -	int printed = 0;
+> -
+> -	list_for_each_entry(p, &clocks, node) {
+> -		if (p->parent == clk && p->usecount) {
+> -			if (!clk->usecount && !printed) {
+> -				printk("MISMATCH: %s\n", clk->name);
+> -				printed = 1;
+> -			}
+> -			printk("\t%-15s\n", p->name);
 > -		}
-> -		return 0;
-> -	}
-> -
-> -	if (cpu_is_omap15xx() || cpu_is_omap16xx() || cpu_is_omap24xx()) {
-> -		if (id > OMAP_MAX_MCBSP_COUNT) {
-> -			printk(KERN_ERR "OMAP-McBSP: McBSP%d doesn't exist\n",
-> -				id + 1);
-> -			return -1;
-> -		}
-> -		return 0;
-> -	}
-> -
-> -	return -1;
-> -}
-> -
-> -#ifdef CONFIG_ARCH_OMAP1
-> -static void omap_mcbsp_dsp_request(void)
-> -{
-> -	if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
-> -		int ret;
-> -
-> -		ret = omap_dsp_request_mem();
-> -		if (ret < 0) {
-> -			printk(KERN_ERR "Could not get dsp memory: %i\n", ret);
-> -			return;
-> -		}
-> -
-> -		clk_enable(mcbsp_dsp_ck);
-> -		clk_enable(mcbsp_api_ck);
-> -
-> -		/* enable 12MHz clock to mcbsp 1 & 3 */
-> -		clk_enable(mcbsp_dspxor_ck);
-> -
-> -		/*
-> -		 * DSP external peripheral reset
-> -		 * FIXME: This should be moved to dsp code
-> -		 */
-> -		__raw_writew(__raw_readw(DSP_RSTCT2) | 1 | 1 << 1,
-> -			     DSP_RSTCT2);
 > -	}
 > -}
 > -
-> -static void omap_mcbsp_dsp_free(void)
+> -void clk_print_usecounts(void)
 > -{
-> -	if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
-> -		omap_dsp_release_mem();
-> -		clk_disable(mcbsp_dspxor_ck);
-> -		clk_disable(mcbsp_dsp_ck);
-> -		clk_disable(mcbsp_api_ck);
+> -	unsigned long flags;
+> -	struct clk *p;
+> -
+> -	spin_lock_irqsave(&clockfw_lock, flags);
+> -	list_for_each_entry(p, &clocks, node) {
+> -		if (p->usecount)
+> -			printk("%-15s: %d\n", p->name, p->usecount);
+> -		print_parents(p);
+> -
 > -	}
+> -	spin_unlock_irqrestore(&clockfw_lock, flags);
 > -}
+> -
 > -#endif
 > -
-> -#ifdef CONFIG_ARCH_OMAP2
-> -static void omap2_mcbsp2_mux_setup(void)
-> -{
-> -	if (cpu_is_omap2420()) {
-> -		omap_cfg_reg(Y15_24XX_MCBSP2_CLKX);
-> -		omap_cfg_reg(R14_24XX_MCBSP2_FSX);
-> -		omap_cfg_reg(W15_24XX_MCBSP2_DR);
-> -		omap_cfg_reg(V15_24XX_MCBSP2_DX);
-> -		omap_cfg_reg(V14_24XX_GPIO117);
-> -	}
-> -	/*
-> -	 * Need to add MUX settings for OMAP 2430 SDP
-> -	 */
-> -}
-> -#endif
-> -
->  /*
->   * We can choose between IRQ based or polled IO.
->   * This needs to be called before omap_mcbsp_request().
->   */
->  int omap_mcbsp_set_io_type(unsigned int id, omap_mcbsp_io_type_t io_type)
->  {
-> -	if (omap_mcbsp_check(id) < 0)
-> +	if (omap_mcbsp_check_invalid_id(id))
->  		return -EINVAL;
->  
->  	spin_lock(&mcbsp[id].lock);
-> @@ -282,29 +195,11 @@ int omap_mcbsp_request(unsigned int id)
->  {
->  	int err;
->  
-> -	if (omap_mcbsp_check(id) < 0)
-> +	if (omap_mcbsp_check_invalid_id(id))
->  		return -EINVAL;
->  
-> -#ifdef CONFIG_ARCH_OMAP1
-> -	/*
-> -	 * On 1510, 1610 and 1710, McBSP1 and McBSP3
-> -	 * are DSP public peripherals.
-> -	 */
-> -	if (id == OMAP_MCBSP1 || id == OMAP_MCBSP3)
-> -		omap_mcbsp_dsp_request();
-> -#endif
-> -
-> -#ifdef CONFIG_ARCH_OMAP2
-> -	if (cpu_is_omap24xx()) {
-> -		if (id == OMAP_MCBSP1) {
-> -			clk_enable(mcbsp1_ick);
-> -			clk_enable(mcbsp1_fck);
-> -		} else {
-> -			clk_enable(mcbsp2_ick);
-> -			clk_enable(mcbsp2_fck);
-> -		}
-> -	}
-> -#endif
-> +	if (mcbsp_config && mcbsp_config->request)
-> +		mcbsp_config->request(id);
->  
->  	spin_lock(&mcbsp[id].lock);
->  	if (!mcbsp[id].free) {
-> @@ -349,27 +244,11 @@ EXPORT_SYMBOL(omap_mcbsp_request);
->  
->  void omap_mcbsp_free(unsigned int id)
->  {
-> -	if (omap_mcbsp_check(id) < 0)
-> +	if (omap_mcbsp_check_invalid_id(id))
->  		return;
->  
-> -#ifdef CONFIG_ARCH_OMAP1
-> -	if (cpu_class_is_omap1()) {
-> -		if (id == OMAP_MCBSP1 || id == OMAP_MCBSP3)
-> -			omap_mcbsp_dsp_free();
-> -	}
-> -#endif
-> -
-> -#ifdef CONFIG_ARCH_OMAP2
-> -	if (cpu_is_omap24xx()) {
-> -		if (id == OMAP_MCBSP1) {
-> -			clk_disable(mcbsp1_ick);
-> -			clk_disable(mcbsp1_fck);
-> -		} else {
-> -			clk_disable(mcbsp2_ick);
-> -			clk_disable(mcbsp2_fck);
-> -		}
-> -	}
-> -#endif
-> +	if (mcbsp_config && mcbsp_config->free)
-> +		mcbsp_config->free(id);
->  
->  	spin_lock(&mcbsp[id].lock);
->  	if (mcbsp[id].free) {
-> @@ -400,7 +279,7 @@ void omap_mcbsp_start(unsigned int id)
->  	u32 io_base;
->  	u16 w;
->  
-> -	if (omap_mcbsp_check(id) < 0)
-> +	if (omap_mcbsp_check_invalid_id(id))
->  		return;
->  
->  	io_base = mcbsp[id].io_base;
-> @@ -435,7 +314,7 @@ void omap_mcbsp_stop(unsigned int id)
->  	u32 io_base;
->  	u16 w;
->  
-> -	if (omap_mcbsp_check(id) < 0)
-> +	if (omap_mcbsp_check_invalid_id(id))
->  		return;
->  
->  	io_base = mcbsp[id].io_base;
-> @@ -533,7 +412,7 @@ void omap_mcbsp_xmit_word(unsigned int id, u32 word)
->  	u32 io_base;
->  	omap_mcbsp_word_length word_length = mcbsp[id].tx_word_length;
->  
-> -	if (omap_mcbsp_check(id) < 0)
-> +	if (omap_mcbsp_check_invalid_id(id))
->  		return;
->  
->  	io_base = mcbsp[id].io_base;
-> @@ -552,7 +431,7 @@ u32 omap_mcbsp_recv_word(unsigned int id)
->  	u16 word_lsb, word_msb = 0;
->  	omap_mcbsp_word_length word_length = mcbsp[id].rx_word_length;
->  
-> -	if (omap_mcbsp_check(id) < 0)
-> +	if (omap_mcbsp_check_invalid_id(id))
->  		return -EINVAL;
->  
->  	io_base = mcbsp[id].io_base;
-> @@ -692,7 +571,7 @@ int omap_mcbsp_xmit_buffer(unsigned int id, dma_addr_t buffer,
->  	int dest_port = 0;
->  	int sync_dev = 0;
->  
-> -	if (omap_mcbsp_check(id) < 0)
-> +	if (omap_mcbsp_check_invalid_id(id))
->  		return -EINVAL;
->  
->  	if (omap_request_dma(mcbsp[id].dma_tx_sync, "McBSP TX",
-> @@ -713,7 +592,7 @@ int omap_mcbsp_xmit_buffer(unsigned int id, dma_addr_t buffer,
->  		src_port = OMAP_DMA_PORT_TIPB;
->  		dest_port = OMAP_DMA_PORT_EMIFF;
->  	}
-> -	if (cpu_is_omap24xx())
-> +	if (cpu_class_is_omap2())
->  		sync_dev = mcbsp[id].dma_tx_sync;
->  
->  	omap_set_dma_transfer_params(mcbsp[id].dma_tx_lch,
-> @@ -749,7 +628,7 @@ int omap_mcbsp_recv_buffer(unsigned int id, dma_addr_t buffer,
->  	int dest_port = 0;
->  	int sync_dev = 0;
->  
-> -	if (omap_mcbsp_check(id) < 0)
-> +	if (omap_mcbsp_check_invalid_id(id))
->  		return -EINVAL;
->  
->  	if (omap_request_dma(mcbsp[id].dma_rx_sync, "McBSP RX",
-> @@ -770,7 +649,7 @@ int omap_mcbsp_recv_buffer(unsigned int id, dma_addr_t buffer,
->  		src_port = OMAP_DMA_PORT_TIPB;
->  		dest_port = OMAP_DMA_PORT_EMIFF;
->  	}
-> -	if (cpu_is_omap24xx())
-> +	if (cpu_class_is_omap2())
->  		sync_dev = mcbsp[id].dma_rx_sync;
->  
->  	omap_set_dma_transfer_params(mcbsp[id].dma_rx_lch,
-> @@ -809,7 +688,7 @@ void omap_mcbsp_set_spi_mode(unsigned int id,
->  {
->  	struct omap_mcbsp_reg_cfg mcbsp_cfg;
->  
-> -	if (omap_mcbsp_check(id) < 0)
-> +	if (omap_mcbsp_check_invalid_id(id))
->  		return;
->  
->  	memset(&mcbsp_cfg, 0, sizeof(struct omap_mcbsp_reg_cfg));
-> @@ -871,162 +750,19 @@ EXPORT_SYMBOL(omap_mcbsp_set_spi_mode);
->   * McBSP1 and McBSP3 are directly mapped on 1610 and 1510.
->   * 730 has only 2 McBSP, and both of them are MPU peripherals.
->   */
-> -struct omap_mcbsp_info {
-> -	u32 virt_base;
-> -	u8 dma_rx_sync, dma_tx_sync;
-> -	u16 rx_irq, tx_irq;
-> -};
-> -
-> -#ifdef CONFIG_ARCH_OMAP730
-> -static const struct omap_mcbsp_info mcbsp_730[] = {
-> -	[0] = { .virt_base = io_p2v(OMAP730_MCBSP1_BASE),
-> -		.dma_rx_sync = OMAP_DMA_MCBSP1_RX,
-> -		.dma_tx_sync = OMAP_DMA_MCBSP1_TX,
-> -		.rx_irq = INT_730_McBSP1RX,
-> -		.tx_irq = INT_730_McBSP1TX },
-> -	[1] = { .virt_base = io_p2v(OMAP730_MCBSP2_BASE),
-> -		.dma_rx_sync = OMAP_DMA_MCBSP3_RX,
-> -		.dma_tx_sync = OMAP_DMA_MCBSP3_TX,
-> -		.rx_irq = INT_730_McBSP2RX,
-> -		.tx_irq = INT_730_McBSP2TX },
-> -};
-> -#endif
-> -
-> -#ifdef CONFIG_ARCH_OMAP15XX
-> -static const struct omap_mcbsp_info mcbsp_1510[] = {
-> -	[0] = { .virt_base = OMAP1510_MCBSP1_BASE,
-> -		.dma_rx_sync = OMAP_DMA_MCBSP1_RX,
-> -		.dma_tx_sync = OMAP_DMA_MCBSP1_TX,
-> -		.rx_irq = INT_McBSP1RX,
-> -		.tx_irq = INT_McBSP1TX },
-> -	[1] = { .virt_base = io_p2v(OMAP1510_MCBSP2_BASE),
-> -		.dma_rx_sync = OMAP_DMA_MCBSP2_RX,
-> -		.dma_tx_sync = OMAP_DMA_MCBSP2_TX,
-> -		.rx_irq = INT_1510_SPI_RX,
-> -		.tx_irq = INT_1510_SPI_TX },
-> -	[2] = { .virt_base = OMAP1510_MCBSP3_BASE,
-> -		.dma_rx_sync = OMAP_DMA_MCBSP3_RX,
-> -		.dma_tx_sync = OMAP_DMA_MCBSP3_TX,
-> -		.rx_irq = INT_McBSP3RX,
-> -		.tx_irq = INT_McBSP3TX },
-> -};
-> -#endif
-> -
-> -#if defined(CONFIG_ARCH_OMAP16XX)
-> -static const struct omap_mcbsp_info mcbsp_1610[] = {
-> -	[0] = { .virt_base = OMAP1610_MCBSP1_BASE,
-> -		.dma_rx_sync = OMAP_DMA_MCBSP1_RX,
-> -		.dma_tx_sync = OMAP_DMA_MCBSP1_TX,
-> -		.rx_irq = INT_McBSP1RX,
-> -		.tx_irq = INT_McBSP1TX },
-> -	[1] = { .virt_base = io_p2v(OMAP1610_MCBSP2_BASE),
-> -		.dma_rx_sync = OMAP_DMA_MCBSP2_RX,
-> -		.dma_tx_sync = OMAP_DMA_MCBSP2_TX,
-> -		.rx_irq = INT_1610_McBSP2_RX,
-> -		.tx_irq = INT_1610_McBSP2_TX },
-> -	[2] = { .virt_base = OMAP1610_MCBSP3_BASE,
-> -		.dma_rx_sync = OMAP_DMA_MCBSP3_RX,
-> -		.dma_tx_sync = OMAP_DMA_MCBSP3_TX,
-> -		.rx_irq = INT_McBSP3RX,
-> -		.tx_irq = INT_McBSP3TX },
-> -};
-> -#endif
-> -
-> -#if defined(CONFIG_ARCH_OMAP24XX)
-> -static const struct omap_mcbsp_info mcbsp_24xx[] = {
-> -	[0] = { .virt_base = IO_ADDRESS(OMAP24XX_MCBSP1_BASE),
-> -		.dma_rx_sync = OMAP24XX_DMA_MCBSP1_RX,
-> -		.dma_tx_sync = OMAP24XX_DMA_MCBSP1_TX,
-> -		.rx_irq = INT_24XX_MCBSP1_IRQ_RX,
-> -		.tx_irq = INT_24XX_MCBSP1_IRQ_TX,
-> -		},
-> -	[1] = { .virt_base = IO_ADDRESS(OMAP24XX_MCBSP2_BASE),
-> -		.dma_rx_sync = OMAP24XX_DMA_MCBSP2_RX,
-> -		.dma_tx_sync = OMAP24XX_DMA_MCBSP2_TX,
-> -		.rx_irq = INT_24XX_MCBSP2_IRQ_RX,
-> -		.tx_irq = INT_24XX_MCBSP2_IRQ_TX,
-> -		},
-> -};
-> -#endif
-> -
-> -static int __init omap_mcbsp_init(void)
-> +int __init omap_mcbsp_init(void)
->  {
-> -	int mcbsp_count = 0, i;
-> -	static const struct omap_mcbsp_info *mcbsp_info;
-> +	int i;
->  
-> -	printk(KERN_INFO "Initializing OMAP McBSP system\n");
-> -
-> -#ifdef CONFIG_ARCH_OMAP1
-> -	mcbsp_dsp_ck = clk_get(0, "dsp_ck");
-> -	if (IS_ERR(mcbsp_dsp_ck)) {
-> -		printk(KERN_ERR "mcbsp: could not acquire dsp_ck handle.\n");
-> -		return PTR_ERR(mcbsp_dsp_ck);
-> -	}
-> -	mcbsp_api_ck = clk_get(0, "api_ck");
-> -	if (IS_ERR(mcbsp_api_ck)) {
-> -		printk(KERN_ERR "mcbsp: could not acquire api_ck handle.\n");
-> -		return PTR_ERR(mcbsp_api_ck);
-> -	}
-> -	mcbsp_dspxor_ck = clk_get(0, "dspxor_ck");
-> -	if (IS_ERR(mcbsp_dspxor_ck)) {
-> -		printk(KERN_ERR "mcbsp: could not acquire dspxor_ck handle.\n");
-> -		return PTR_ERR(mcbsp_dspxor_ck);
-> -	}
-> -#endif
-> -#ifdef CONFIG_ARCH_OMAP2
-> -	mcbsp1_ick = clk_get(0, "mcbsp1_ick");
-> -	if (IS_ERR(mcbsp1_ick)) {
-> -		printk(KERN_ERR "mcbsp: could not acquire "
-> -				"mcbsp1_ick handle.\n");
-> -		return PTR_ERR(mcbsp1_ick);
-> -	}
-> -	mcbsp1_fck = clk_get(0, "mcbsp1_fck");
-> -	if (IS_ERR(mcbsp1_fck)) {
-> -		printk(KERN_ERR "mcbsp: could not acquire "
-> -				"mcbsp1_fck handle.\n");
-> -		return PTR_ERR(mcbsp1_fck);
-> -	}
-> -	mcbsp2_ick = clk_get(0, "mcbsp2_ick");
-> -	if (IS_ERR(mcbsp2_ick)) {
-> -		printk(KERN_ERR "mcbsp: could not acquire "
-> -				"mcbsp2_ick handle.\n");
-> -		return PTR_ERR(mcbsp2_ick);
-> -	}
-> -	mcbsp2_fck = clk_get(0, "mcbsp2_fck");
-> -	if (IS_ERR(mcbsp2_fck)) {
-> -		printk(KERN_ERR "mcbsp: could not acquire "
-> -				"mcbsp2_fck handle.\n");
-> -		return PTR_ERR(mcbsp2_fck);
-> +	if (!mcbsp_config) {
-> +		printk(KERN_ERR "McBSP initialized without configuration\n");
-> +		return -EINVAL;
->  	}
-> -#endif
->  
-> -#ifdef CONFIG_ARCH_OMAP730
-> -	if (cpu_is_omap730()) {
-> -		mcbsp_info = mcbsp_730;
-> -		mcbsp_count = ARRAY_SIZE(mcbsp_730);
-> -	}
-> -#endif
-> -#ifdef CONFIG_ARCH_OMAP15XX
-> -	if (cpu_is_omap15xx()) {
-> -		mcbsp_info = mcbsp_1510;
-> -		mcbsp_count = ARRAY_SIZE(mcbsp_1510);
-> -	}
-> -#endif
-> -#if defined(CONFIG_ARCH_OMAP16XX)
-> -	if (cpu_is_omap16xx()) {
-> -		mcbsp_info = mcbsp_1610;
-> -		mcbsp_count = ARRAY_SIZE(mcbsp_1610);
-> -	}
-> -#endif
-> -#if defined(CONFIG_ARCH_OMAP24XX)
-> -	if (cpu_is_omap24xx()) {
-> -		mcbsp_info = mcbsp_24xx;
-> -		mcbsp_count = ARRAY_SIZE(mcbsp_24xx);
-> -		omap2_mcbsp2_mux_setup();
-> -	}
-> -#endif
-> +	printk(KERN_INFO "Initializing OMAP McBSP system\n");
-> +
->  	for (i = 0; i < OMAP_MAX_MCBSP_COUNT ; i++) {
-> -		if (i >= mcbsp_count) {
-> +		if (i >= ARRAY_SIZE(mcbsp_config->mcbsp_infos)) {
->  			mcbsp[i].io_base = 0;
->  			mcbsp[i].free = 0;
->  			continue;
-> @@ -1036,17 +772,29 @@ static int __init omap_mcbsp_init(void)
->  		mcbsp[i].dma_tx_lch = -1;
->  		mcbsp[i].dma_rx_lch = -1;
->  
-> -		mcbsp[i].io_base = mcbsp_info[i].virt_base;
-> +		mcbsp[i].io_base = mcbsp_config->mcbsp_infos[i].virt_base;
->  		/* Default I/O is IRQ based */
->  		mcbsp[i].io_type = OMAP_MCBSP_IRQ_IO;
-> -		mcbsp[i].tx_irq = mcbsp_info[i].tx_irq;
-> -		mcbsp[i].rx_irq = mcbsp_info[i].rx_irq;
-> -		mcbsp[i].dma_rx_sync = mcbsp_info[i].dma_rx_sync;
-> -		mcbsp[i].dma_tx_sync = mcbsp_info[i].dma_tx_sync;
-> +		mcbsp[i].tx_irq = mcbsp_config->mcbsp_infos[i].tx_irq;
-> +		mcbsp[i].rx_irq = mcbsp_config->mcbsp_infos[i].rx_irq;
-> +		mcbsp[i].dma_rx_sync = mcbsp_config->mcbsp_infos[i].dma_rx_sync;
-> +		mcbsp[i].dma_tx_sync = mcbsp_config->mcbsp_infos[i].dma_tx_sync;
->  		spin_lock_init(&mcbsp[i].lock);
->  	}
->  
+>  /*-------------------------------------------------------------------------
+>   * Standard clock functions defined in include/linux/clk.h
+>   *-------------------------------------------------------------------------*/
+> @@ -447,67 +412,6 @@ int __init clk_init(struct clk_functions * custom_clocks)
 >  	return 0;
 >  }
 >  
-> -arch_initcall(omap_mcbsp_init);
-> +int omap_mcbsp_register_board_cfg(const struct omap_mcbsp_board_cfg *config)
+> -#if defined(CONFIG_PM_DEBUG) && defined(CONFIG_PROC_FS)
+> -#include <linux/proc_fs.h>
+> -#include <linux/seq_file.h>
+> -
+> -static void *omap_ck_start(struct seq_file *m, loff_t *pos)
+> -{
+> -	return *pos < 1 ? (void *)1 : NULL;
+> -}
+> -
+> -static void *omap_ck_next(struct seq_file *m, void *v, loff_t *pos)
+> -{
+> -	++*pos;
+> -	return NULL;
+> -}
+> -
+> -static void omap_ck_stop(struct seq_file *m, void *v)
+> -{
+> -}
+> -
+> -int omap_ck_show(struct seq_file *m, void *v)
+> -{
+> -	struct clk *cp;
+> -
+> -	list_for_each_entry(cp, &clocks, node)
+> -		seq_printf(m,"%s %ld %d\n", cp->name, cp->rate, cp->usecount);
+> -
+> -	return 0;
+> -}
+> -
+> -static struct seq_operations omap_ck_op = {
+> -	.start =	omap_ck_start,
+> -	.next =		omap_ck_next,
+> -	.stop =		omap_ck_stop,
+> -	.show =		omap_ck_show
+> -};
+> -
+> -static int omap_ck_open(struct inode *inode, struct file *file)
+> -{
+> -	return seq_open(file, &omap_ck_op);
+> -}
+> -
+> -static struct file_operations proc_omap_ck_operations = {
+> -	.open		= omap_ck_open,
+> -	.read		= seq_read,
+> -	.llseek		= seq_lseek,
+> -	.release	= seq_release,
+> -};
+> -
+> -int __init omap_ck_init(void)
+> -{
+> -	struct proc_dir_entry *entry;
+> -
+> -	entry = create_proc_entry("omap_clocks", 0, NULL);
+> -	if (entry)
+> -		entry->proc_fops = &proc_omap_ck_operations;
+> -	return 0;
+> -
+> -}
+> -__initcall(omap_ck_init);
+> -#endif
+> -
+>  #if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
+>  /*
+>   *	debugfs support to trace clock tree hierarchy and attributes
+> -- 
+> 1.5.5.rc2.6.gf58d
+> 
+
+> From d0c2ffa4d45ea686020959c9d7a68f1669806d22 Mon Sep 17 00:00:00 2001
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> Date: Thu, 17 Apr 2008 13:51:34 +0300
+> Subject: [PATCH 1/2] ARM: OMAP: CLKFW: Initial debugfs support for omap clock framework
+> 
+> debugfs can provide the infrastructure to trace the dependencies of
+> clock tree hierarchy quite visibly. This patch enables to keep track
+> of clock tree hierarchy and expose their attributes under each clock
+> directry as below:
+> 
+> 	omap:~# tree -d -L 2 /debug/clock/omap_32k_fck/
+> 	/debug/clock/omap_32k_fck/
+> 	|-- gpt10_fck
+> 	|-- gpt11_fck
+> 	|-- gpt1_fck
+> 	|-- per_32k_alwon_fck
+> 	|   |-- gpio2_fck
+> 	|   |-- gpio3_fck
+> 	|   |-- gpio4_fck
+> 	|   |-- gpio5_fck
+> 	|   |-- gpio6_fck
+> 	|   `-- wdt3_fck
+> 	|-- ts_fck
+> 	`-- wkup_32k_fck
+> 	    |-- gpio1_fck
+> 	    `-- wdt2_fck
+> 
+> 	14 directories
+> 	omap:~# tree  /debug/clock/omap_32k_fck/gpt10_fck/
+> 	/debug/clock/omap_32k_fck/gpt10_fck/
+> 	|-- flags
+> 	|-- rate
+> 	`-- usecount
+> 
+> 	0 directories, 3 files
+> 
+> Although, compared with David Brownell's small patch, this may look
+> bit overkilling, I expect that this debugfs can deal with other PRCM
+> complexities at the same time. For example, powerdomain dependencies
+> can be expressed by using symbolic links of these clocks if
+> powerdomain supports dubgfs as well.
+> 
+> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> ---
+>  arch/arm/plat-omap/clock.c        |   94 ++++++++++++++++++++++++++++++++++++-
+>  include/asm-arm/arch-omap/clock.h |    3 +
+>  2 files changed, 96 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+> index 1bd8781..2ae87bf 100644
+> --- a/arch/arm/plat-omap/clock.c
+> +++ b/arch/arm/plat-omap/clock.c
+> @@ -1,7 +1,7 @@
+>  /*
+>   *  linux/arch/arm/plat-omap/clock.c
+>   *
+> - *  Copyright (C) 2004 - 2005 Nokia corporation
+> + *  Copyright (C) 2004 - 2008 Nokia corporation
+>   *  Written by Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
+>   *
+>   *  Modified for omap shared clock framework by Tony Lindgren <tony@atomide.com>
+> @@ -21,6 +21,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/mutex.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/debugfs.h>
+>  
+>  #include <asm/io.h>
+>  #include <asm/semaphore.h>
+> @@ -506,3 +507,94 @@ int __init omap_ck_init(void)
+>  }
+>  __initcall(omap_ck_init);
+>  #endif
+> +
+> +#if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
+> +/*
+> + *	debugfs support to trace clock tree hierarchy and attributes
+> + */
+> +static struct dentry *clk_debugfs_root;
+> +
+> +static int clk_debugfs_register_one(struct clk *c)
 > +{
-> +	if (!config || !config->request || !config->free) {
-> +		printk(KERN_ERR "Invalid McBSP configuration\n");
-> +		return -EINVAL;
+> +	int err;
+> +	struct dentry *d, *child;
+> +	struct clk *pa = c->parent;
+> +	char s[255];
+> +	char *p = s;
+> +
+> +	p += sprintf(p, "%s", c->name);
+> +	if (c->id != 0)
+> +		sprintf(p, ":%d", c->id);
+> +	d = debugfs_create_dir(s, pa ? pa->dent : clk_debugfs_root);
+> +	if (IS_ERR(d))
+> +		return PTR_ERR(d);
+> +	c->dent = d;
+> +
+> +	d = debugfs_create_u8("usecount", S_IRUGO, c->dent, (u8 *)&c->usecount);
+> +	if (IS_ERR(d)) {
+> +		err = PTR_ERR(d);
+> +		goto err_out;
 > +	}
-> +
-> +	mcbsp_config = config;
-> +
+> +	d = debugfs_create_u32("rate", S_IRUGO, c->dent, (u32 *)&c->rate);
+> +	if (IS_ERR(d)) {
+> +		err = PTR_ERR(d);
+> +		goto err_out;
+> +	}
+> +	d = debugfs_create_x32("flags", S_IRUGO, c->dent, (u32 *)&c->flags);
+> +	if (IS_ERR(d)) {
+> +		err = PTR_ERR(d);
+> +		goto err_out;
+> +	}
 > +	return 0;
 > +
+> +err_out:
+> +	d = c->dent;
+> +	list_for_each_entry(child, &d->d_subdirs, d_u.d_child)
+> +		debugfs_remove(child);
+> +	debugfs_remove(c->dent);
+> +	return err;
 > +}
 > +
-> diff --git a/include/asm-arm/arch-omap/mcbsp.h b/include/asm-arm/arch-omap/mcbsp.h
-> index b53c3b2..fc53a45 100644
-> --- a/include/asm-arm/arch-omap/mcbsp.h
-> +++ b/include/asm-arm/arch-omap/mcbsp.h
-> @@ -40,6 +40,9 @@
->  #define OMAP24XX_MCBSP1_BASE	0x48074000
->  #define OMAP24XX_MCBSP2_BASE	0x48076000
->  
-> +#define OMAP34XX_MCBSP1_BASE	0x48074000
-> +#define OMAP34XX_MCBSP2_BASE	0x49022000
+> +static int clk_debugfs_register(struct clk *c)
+> +{
+> +	int err;
+> +	struct clk *pa = c->parent;
 > +
->  #if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP730)
->  
->  #define OMAP_MCBSP_REG_DRR2	0x00
-> @@ -298,6 +301,22 @@ struct omap_mcbsp_spi_cfg {
->  	omap_mcbsp_word_length		word_length;
+> +	if (pa && !pa->dent) {
+> +		err = clk_debugfs_register(pa);
+> +		if (err)
+> +			return err;
+> +	}
+> +
+> +	if (!c->dent) {
+> +		err = clk_debugfs_register_one(c);
+> +		if (err)
+> +			return err;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int __init clk_debugfs_init(void)
+> +{
+> +	struct clk *c;
+> +	struct dentry *d;
+> +	int err;
+> +
+> +	d = debugfs_create_dir("clock", NULL);
+> +	if (IS_ERR(d))
+> +		return PTR_ERR(d);
+> +	clk_debugfs_root = d;
+> +
+> +	list_for_each_entry(c, &clocks, node) {
+> +		err = clk_debugfs_register(c);
+> +		if (err)
+> +			goto err_out;
+> +	}
+> +	return 0;
+> +err_out:
+> +	debugfs_remove(clk_debugfs_root); /* REVISIT: Cleanup correctly */
+> +	return err;
+> +}
+> +late_initcall(clk_debugfs_init);
+> +
+> +#endif /* defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS) */
+> diff --git a/include/asm-arm/arch-omap/clock.h b/include/asm-arm/arch-omap/clock.h
+> index cce55ba..811af84 100644
+> --- a/include/asm-arm/arch-omap/clock.h
+> +++ b/include/asm-arm/arch-omap/clock.h
+> @@ -86,6 +86,9 @@ struct clk {
+>  	__u8			rate_offset;
+>  	__u8			src_offset;
+>  #endif
+> +#if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
+> +	struct dentry		*dent;	/* For visible tree hierarchy */
+> +#endif
 >  };
 >  
-> +/* Board specific configuration */
-> +struct omap_mcbsp_info {
-> +	u32 virt_base;
-> +	u8 dma_rx_sync, dma_tx_sync;
-> +	u16 rx_irq, tx_irq;
-> +};
-> +
-> +struct omap_mcbsp_board_cfg {
-> +	void (*request)(unsigned int);
-> +	void (*free)(unsigned int);
-> +	int (*check)(unsigned int);
-> +	struct omap_mcbsp_info mcbsp_infos[OMAP_MAX_MCBSP_COUNT];
-> +};
-> +
-> +int omap_mcbsp_init(void);
-> +int omap_mcbsp_register_board_cfg(const struct omap_mcbsp_board_cfg *config);
->  void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg * config);
->  int omap_mcbsp_request(unsigned int id);
->  void omap_mcbsp_free(unsigned int id);
+>  struct clk_functions {
 > -- 
-> 1.5.5-rc3.GIT
+> 1.5.5.rc2.6.gf58d
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
