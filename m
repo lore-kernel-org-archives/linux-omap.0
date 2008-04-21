@@ -1,117 +1,223 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] Adding support for OMAP3 Beagle Board
-Date: Mon, 21 Apr 2008 11:04:14 -0700
-Message-ID: <20080421180414.GV12099@atomide.com>
-References: <7EAD1AEEA7621C45899FE99123E124A0018C8B09@dbde01.ent.ti.com> <00ea279c69175024d58bdd7a58be8f58@felipebalbi.com> <20080418190554.GI12099@atomide.com> <20080419125130.GC9755@kedavra.cpe.vivax.com.br> <7EAD1AEEA7621C45899FE99123E124A0018C8F2D@dbde01.ent.ti.com> <20080419201412.GA11475@kedavra.cpe.vivax.com.br>
+Subject: Re: [PATCH 1/4] Adding OMAP3 EVM support
+Date: Mon, 21 Apr 2008 11:06:17 -0700
+Message-ID: <20080421180617.GY12099@atomide.com>
+References: <7EAD1AEEA7621C45899FE99123E124A0018C8F1B@dbde01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:61836 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754101AbYDUSEU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Apr 2008 14:04:20 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64780 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754794AbYDUSGS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Apr 2008 14:06:18 -0400
 Content-Disposition: inline
-In-Reply-To: <20080419201412.GA11475@kedavra.cpe.vivax.com.br>
+In-Reply-To: <7EAD1AEEA7621C45899FE99123E124A0018C8F1B@dbde01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: "Syed Mohammed, Khasim" <khasim@ti.com>, linux-omap@vger.kernel.org, discussion@beagleboard.org
+To: "Syed Mohammed, Khasim" <khasim@ti.com>
+Cc: linux-omap@vger.kernel.org, discussion@beagleboard.org
 
-* Felipe Balbi <me@felipebalbi.com> [080419 13:12]:
-> On Sat, Apr 19, 2008 at 09:24:50PM +0530, Syed Mohammed, Khasim wrote:
-> > 
-> > 
-> > > -----Original Message-----
-> > > From: Felipe Balbi [mailto:me@felipebalbi.com]
-> > > Sent: Saturday, April 19, 2008 6:22 PM
-> > > To: Tony Lindgren
-> > > Cc: Felipe Balbi; Syed Mohammed, Khasim; linux-omap@vger.kernel.org;
-> > > discussion@beagleboard.org
-> > > Subject: Re: [PATCH 3/4] Adding support for OMAP3 Beagle Board
-> > > 
-> > > On Fri, Apr 18, 2008 at 12:05:54PM -0700, Tony Lindgren wrote:
-> > > > > > +#ifndef __ASM_ARCH_OMAP3_BEAGLE_H
-> > > > > > +#define __ASM_ARCH_OMAP3_BEAGLE_H
-> > > > > > +
-> > > > > > +#ifdef CONFIG_TWL4030_CORE
-> > > > > > +
-> > > > > > +#define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
-> > > > > > +
-> > > > > > +/* TWL4030 Primary Interrupt Handler (PIH) interrupts */
-> > > > > > +#define	IH_TWL4030_BASE		IH_BOARD_BASE
-> > > > > > +#define	IH_TWL4030_END		(IH_TWL4030_BASE+8)
-> > > > > > +#define IH_TWL4030_PWRBASE	(IH_TWL4030_END)
-> > > > > > +#define IH_TWL4030_PWRBASE_END	(IH_TWL4030_PWRBASE+8)
-> > > > > > +
-> > > > > > +#ifdef CONFIG_TWL4030_GPIO
-> > > > > > +/* TWL4030 GPIO Interrupts */
-> > > > > > +#define IH_TWL4030_GPIO_BASE	(IH_TWL4030_PWRBASE_END)
-> > > > > > +#define IH_TWL4030_GPIO_END	(IH_TWL4030_GPIO_BASE+18)
-> > > > > > +#define NR_IRQS			(IH_TWL4030_GPIO_END)
-> > > > > > +#else
-> > > > > > +#define NR_IRQS			(IH_TWL4030_PWRBASE_END)
-> > > > > > +#endif /* CONFIG_I2C_TWL4030_GPIO */
-> > > > >
-> > > > > shouldn't you consider the power base as the other boards ?
-> > > >
-> > > > Felipe, can you clarify what you mean here?
-> > > 
-> > > Just check board-3430sdp.h
-> > > 
-> > > #ifdef CONFIG_TWL4030_CORE
-> > > 
-> > > #define TWL4030_IRQNUM INT_34XX_SYS_NIRQ
-> > > 
-> > > /* TWL4030 Primary Interrupt Handler (PIH) interrupts */
-> > > #define	IH_TWL4030_BASE		IH_BOARD_BASE
-> > > #define	IH_TWL4030_END		(IH_TWL4030_BASE+8)
-> > > 
-> > > #define IH_TWL4030_PWRBASE     (IH_TWL4030_END)
-> > > #define IH_TWL4030_PWRBASE_END (IH_TWL4030_PWRBASE+8)
-> > > 
-> > > #ifdef CONFIG_TWL4030_GPIO
-> > > 
-> > > /* TWL4030 GPIO Interrupts */
-> > > #define IH_TWL4030_GPIO_BASE	(IH_TWL4030_PWRBASE_END)
-> > > #define IH_TWL4030_GPIO_END	(IH_TWL4030_GPIO_BASE+18)
-> > > #define NR_IRQS			(IH_TWL4030_GPIO_END)
-> > > #else
-> > > #define NR_IRQS			(IH_TWL4030_PWRBASE_END)
-> > > #endif /* CONFIG_I2C_TWL4030_GPIO */
-> > > #endif /* End of support for TWL4030 */
-> > > #endif /*  __ASM_ARCH_OMAP_3430SDP_H */
-> > > 
-> > > if there are no such defines for power base, it will break compilation
-> > > of twl4030-pwrirq.c which is always built whenever we enable twl4030
-> > > support.
-> > >
-> > 
-> > At present I have enabled TWL4030 support in both EVM and beagle patches and it is tested booting on both beagle and evm boards, "with out these defines".   
-> > 
-> > So, these defines are not required now. They will be added when necessary along with relevant functionality. I could have added but then your comment might have been, why to add these defines when they are not used :)
+* Syed Mohammed, Khasim <khasim@ti.com> [080418 20:35]:
 > 
-> I can't see how can you possibly build twl4030 support without those
-> defines. Looking at
-> drivers/i2c/chips/twl4030-pwrirq.c:twl4030_pwrirq_enableint():
-> 
-> static void twl4030_pwrirq_enableint(unsigned int irq)
-> {
-> 	twl4030_pwrirq_pending_unmask |= 1 << (irq - IH_TWL4030_PWRBASE);
-> 	if (twl4030_pwrirq_unmask_thread &&
-> 		twl4030_pwrirq_unmask_thread->state != TASK_RUNNING)
-> 		wake_up_process(twl4030_pwrirq_unmask_thread);
-> }
-> 
-> I clearly see the use of IH_TWL4030_PWRBASE and looking at
-> drivers/i2c/chips/Makefile:
-> 
-> obj-$(CONFIG_TWL4030_CORE)	+= twl4030-core.o twl4030-pwrirq.o
-> 
-> I also clearly see that compilation it will always fail whenever you enable
-> CONFIG_TWL4030_CORE.
-> 
-> But you already put such defines anyway :-p
+> Adding support for OMAP3 EVM Board
 
-OK, PWRBASE is now defined, pushing these today.
+Pushing all four patches.
 
 Tony
+
+> Signed-off-by: Syed Mohammed Khasim <khasim@ti.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig                |    3 +
+>  arch/arm/mach-omap2/Makefile               |    1
+>  arch/arm/mach-omap2/board-omap3evm.c       |   79 +++++++++++++++++++++++++++++
+>  include/asm-arm/arch-omap/board-omap3evm.h |   53 +++++++++++++++++++
+>  include/asm-arm/arch-omap/hardware.h       |    4 +
+>  5 files changed, 140 insertions(+)
+> 
+> Index: my_branch/arch/arm/mach-omap2/Makefile
+> ===================================================================
+> --- my_branch.orig/arch/arm/mach-omap2/Makefile	2008-04-19 07:22:16.000000000 +0530
+> +++ my_branch/arch/arm/mach-omap2/Makefile	2008-04-19 07:44:42.000000000 +0530
+> @@ -34,6 +34,7 @@
+>  					   board-sdp-hsmmc.o \
+>  					   board-3430sdp-usb.o \
+>  					   board-3430sdp-flash.o
+> +obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
+>  obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
+>  					   board-apollon-mmc.o	\
+>  					   board-apollon-keys.o
+> 
+> Index: my_branch/arch/arm/mach-omap2/Kconfig
+> ===================================================================
+> --- my_branch.orig/arch/arm/mach-omap2/Kconfig	2008-04-19 07:44:16.000000000 +0530
+> +++ my_branch/arch/arm/mach-omap2/Kconfig	2008-04-19 07:44:42.000000000 +0530
+> @@ -106,3 +106,6 @@
+>  	bool "OMAP 3430 SDP board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  
+> +config MACH_OMAP3EVM
+> +	bool "OMAP 3530 EVM board"
+> +	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> 
+> Index: my_branch/arch/arm/mach-omap2/board-omap3evm.c
+> ===================================================================
+> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
+> +++ my_branch/arch/arm/mach-omap2/board-omap3evm.c	2008-04-19 07:46:08.000000000 +0530
+> @@ -0,0 +1,79 @@
+> +/*
+> + * linux/arch/arm/mach-omap2/board-omap3evm.c
+> + *
+> + * Copyright (C) 2008 Texas Instruments
+> + *
+> + * Modified from mach-omap2/board-3430sdp.c
+> + *
+> + * Initial code: Syed Mohammed Khasim
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/init.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/delay.h>
+> +#include <linux/err.h>
+> +#include <linux/clk.h>
+> +#include <linux/io.h>
+> +
+> +#include <asm/hardware.h>
+> +#include <asm/mach-types.h>
+> +#include <asm/mach/arch.h>
+> +#include <asm/mach/map.h>
+> +
+> +#include <asm/arch/gpio.h>
+> +#include <asm/arch/board.h>
+> +#include <asm/arch/common.h>
+> +
+> +static struct omap_uart_config omap3_evm_uart_config __initdata = {
+> +	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+> +};
+> +
+> +static int __init omap3_evm_i2c_init(void)
+> +{
+> +	omap_register_i2c_bus(1, 2600, NULL, 0);
+> +	omap_register_i2c_bus(2, 400, NULL, 0);
+> +	omap_register_i2c_bus(3, 400, NULL, 0);
+> +	return 0;
+> +}
+> +
+> +static void __init omap3_evm_init_irq(void)
+> +{
+> +	omap2_init_common_hw();
+> +	omap_init_irq();
+> +	omap_gpio_init();
+> +}
+> +
+> +static struct omap_board_config_kernel omap3_evm_config[] __initdata = {
+> +	{ OMAP_TAG_UART,	&omap3_evm_uart_config },
+> +};
+> +
+> +static void __init omap3_evm_init(void)
+> +{
+> +	omap_board_config = omap3_evm_config;
+> +	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
+> +	omap_serial_init();
+> +}
+> +
+> +arch_initcall(omap3_evm_i2c_init);
+> +
+> +static void __init omap3_evm_map_io(void)
+> +{
+> +	omap2_set_globals_343x();
+> +	omap2_map_common_io();
+> +}
+> +
+> +MACHINE_START(OMAP3EVM, "OMAP3 EVM")
+> +	/* Maintainer: Syed Mohammed Khasim - Texas Instruments */
+> +	.phys_io	= 0x48000000,
+> +	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
+> +	.boot_params	= 0x80000100,
+> +	.map_io		= omap3_evm_map_io,
+> +	.init_irq	= omap3_evm_init_irq,
+> +	.init_machine	= omap3_evm_init,
+> +	.timer		= &omap_timer,
+> +MACHINE_END
+> 
+> Index: my_branch/include/asm-arm/arch-omap/hardware.h
+> ===================================================================
+> --- my_branch.orig/include/asm-arm/arch-omap/hardware.h	2008-04-19 07:22:15.000000000 +0530
+> +++ my_branch/include/asm-arm/arch-omap/hardware.h	2008-04-19 07:44:42.000000000 +0530
+> @@ -335,6 +335,10 @@
+>  #include "board-3430sdp.h"
+>  #endif
+>  
+> +#ifdef CONFIG_MACH_OMAP3EVM
+> +#include "board-omap3evm.h"
+> +#endif
+> +
+>  #ifdef CONFIG_MACH_OMAP_APOLLON
+>  #include "board-apollon.h"
+>  #endif
+> Index: my_branch/include/asm-arm/arch-omap/board-omap3evm.h
+> ===================================================================
+> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
+> +++ my_branch/include/asm-arm/arch-omap/board-omap3evm.h	2008-04-19 07:48:59.000000000 +0530
+> @@ -0,0 +1,53 @@
+> +/*
+> + * linux/include/asm-arm/arch-omap/board-omap3evm.h
+> + *
+> + * Hardware definitions for TI OMAP3 EVM.
+> + *
+> + * Initial creation by Syed Mohammed Khasim <khasim@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License as published by the
+> + * Free Software Foundation; either version 2 of the License, or (at your
+> + * option) any later version.
+> + *
+> + * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+> + * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+> + * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+> + * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+> + * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+> + * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+> + * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+> + * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+> + * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> + *
+> + * You should have received a copy of the GNU General Public License along
+> + * with this program; if not, write to the Free Software Foundation, Inc.,
+> + * 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#ifndef __ASM_ARCH_OMAP3_EVM_H
+> +#define __ASM_ARCH_OMAP3_EVM_H
+> +
+> +#ifdef CONFIG_TWL4030_CORE
+> +
+> +#define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
+> +
+> +/* TWL4030 Primary Interrupt Handler (PIH) interrupts */
+> +#define	IH_TWL4030_BASE		IH_BOARD_BASE
+> +#define	IH_TWL4030_END		(IH_TWL4030_BASE+8)
+> +#define IH_TWL4030_PWRBASE	(IH_TWL4030_END)
+> +#define IH_TWL4030_PWRBASE_END	(IH_TWL4030_PWRBASE+8)
+> +
+> +#ifdef CONFIG_TWL4030_GPIO
+> +/* TWL4030 GPIO Interrupts */
+> +#define IH_TWL4030_GPIO_BASE	(IH_TWL4030_PWRBASE_END)
+> +#define IH_TWL4030_GPIO_END	(IH_TWL4030_GPIO_BASE+18)
+> +#define NR_IRQS			(IH_TWL4030_GPIO_END)
+> +#else
+> +#define NR_IRQS			(IH_TWL4030_PWRBASE_END)
+> +#endif /* CONFIG_I2C_TWL4030_GPIO */
+> +
+> +#endif /* End of support for TWL4030 */
+> +#endif /* __ASM_ARCH_OMAP3_EVM_H */
+> +
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
