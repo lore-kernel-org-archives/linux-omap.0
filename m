@@ -1,223 +1,151 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] Adding OMAP3 EVM support
-Date: Mon, 21 Apr 2008 11:06:17 -0700
-Message-ID: <20080421180617.GY12099@atomide.com>
-References: <7EAD1AEEA7621C45899FE99123E124A0018C8F1B@dbde01.ent.ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP: HSMMC: Use macros instead of some magic
+	constants.
+Date: Mon, 21 Apr 2008 11:05:59 -0700
+Message-ID: <20080421180559.GX12099@atomide.com>
+References: <48061C1E.1030007@indt.org.br> <20080418183945.GF12099@atomide.com> <48090497.6080800@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64780 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64411 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754794AbYDUSGS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Apr 2008 14:06:18 -0400
+	with ESMTP id S1754783AbYDUSGA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Apr 2008 14:06:00 -0400
 Content-Disposition: inline
-In-Reply-To: <7EAD1AEEA7621C45899FE99123E124A0018C8F1B@dbde01.ent.ti.com>
+In-Reply-To: <48090497.6080800@indt.org.br>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Syed Mohammed, Khasim" <khasim@ti.com>
-Cc: linux-omap@vger.kernel.org, discussion@beagleboard.org
+To: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Cc: linux-omap@vger.kernel.org
 
-* Syed Mohammed, Khasim <khasim@ti.com> [080418 20:35]:
+* Carlos Aguiar <carlos.aguiar@indt.org.br> [080418 13:33]:
+> From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 > 
-> Adding support for OMAP3 EVM Board
+> This patch makes arch/arm/mach-omap2/board-sdp-hsmmc.c file to use macros
+> instead of some magic constants.
 
-Pushing all four patches.
+Pushing.
 
 Tony
 
-> Signed-off-by: Syed Mohammed Khasim <khasim@ti.com>
+
+> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+> Signed-off-by: Francisco Alecrim <francisco.alecrim@indt.org.br>
+> Acked-by: Anderson Lizardo <anderson.lizardo@indt.org.br>
+> Acked-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
 > ---
->  arch/arm/mach-omap2/Kconfig                |    3 +
->  arch/arm/mach-omap2/Makefile               |    1
->  arch/arm/mach-omap2/board-omap3evm.c       |   79 +++++++++++++++++++++++++++++
->  include/asm-arm/arch-omap/board-omap3evm.h |   53 +++++++++++++++++++
->  include/asm-arm/arch-omap/hardware.h       |    4 +
->  5 files changed, 140 insertions(+)
+>  arch/arm/mach-omap2/board-sdp-hsmmc.c |   55 +++++++++++++++++++++++---------
+>  1 files changed, 39 insertions(+), 16 deletions(-)
 > 
-> Index: my_branch/arch/arm/mach-omap2/Makefile
-> ===================================================================
-> --- my_branch.orig/arch/arm/mach-omap2/Makefile	2008-04-19 07:22:16.000000000 +0530
-> +++ my_branch/arch/arm/mach-omap2/Makefile	2008-04-19 07:44:42.000000000 +0530
-> @@ -34,6 +34,7 @@
->  					   board-sdp-hsmmc.o \
->  					   board-3430sdp-usb.o \
->  					   board-3430sdp-flash.o
-> +obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
->  obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
->  					   board-apollon-mmc.o	\
->  					   board-apollon-keys.o
-> 
-> Index: my_branch/arch/arm/mach-omap2/Kconfig
-> ===================================================================
-> --- my_branch.orig/arch/arm/mach-omap2/Kconfig	2008-04-19 07:44:16.000000000 +0530
-> +++ my_branch/arch/arm/mach-omap2/Kconfig	2008-04-19 07:44:42.000000000 +0530
-> @@ -106,3 +106,6 @@
->  	bool "OMAP 3430 SDP board"
->  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> diff --git a/arch/arm/mach-omap2/board-sdp-hsmmc.c b/arch/arm/mach-omap2/board-sdp-hsmmc.c
+> index 355c1c0..d21af87 100644
+> --- a/arch/arm/mach-omap2/board-sdp-hsmmc.c
+> +++ b/arch/arm/mach-omap2/board-sdp-hsmmc.c
+> @@ -35,6 +35,16 @@
+>  #define MMC1_CD_IRQ		0
+>  #define MMC2_CD_IRQ		1
 >  
-> +config MACH_OMAP3EVM
-> +	bool "OMAP 3530 EVM board"
-> +	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-> 
-> Index: my_branch/arch/arm/mach-omap2/board-omap3evm.c
-> ===================================================================
-> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-> +++ my_branch/arch/arm/mach-omap2/board-omap3evm.c	2008-04-19 07:46:08.000000000 +0530
-> @@ -0,0 +1,79 @@
-> +/*
-> + * linux/arch/arm/mach-omap2/board-omap3evm.c
-> + *
-> + * Copyright (C) 2008 Texas Instruments
-> + *
-> + * Modified from mach-omap2/board-3430sdp.c
-> + *
-> + * Initial code: Syed Mohammed Khasim
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
+> +#define OMAP2_CONTROL_DEVCONF0	0x48002274
+> +#define OMAP2_CONTROL_DEVCONF1	0x490022E8
 > +
-> +#include <linux/kernel.h>
-> +#include <linux/init.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/delay.h>
-> +#include <linux/err.h>
-> +#include <linux/clk.h>
-> +#include <linux/io.h>
+> +#define OMAP2_CONTROL_DEVCONF0_LBCLK	(1 << 24)
+> +#define OMAP2_CONTROL_DEVCONF1_ACTOV	(1 << 31)
 > +
-> +#include <asm/hardware.h>
-> +#include <asm/mach-types.h>
-> +#include <asm/mach/arch.h>
-> +#include <asm/mach/map.h>
+> +#define OMAP2_CONTROL_PBIAS_VMODE	(1 << 0)
+> +#define OMAP2_CONTROL_PBIAS_PWRDNZ	(1 << 1)
+> +#define OMAP2_CONTROL_PBIAS_SCTRL	(1 << 2)
 > +
-> +#include <asm/arch/gpio.h>
-> +#include <asm/arch/board.h>
-> +#include <asm/arch/common.h>
-> +
-> +static struct omap_uart_config omap3_evm_uart_config __initdata = {
-> +	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
-> +};
-> +
-> +static int __init omap3_evm_i2c_init(void)
-> +{
-> +	omap_register_i2c_bus(1, 2600, NULL, 0);
-> +	omap_register_i2c_bus(2, 400, NULL, 0);
-> +	omap_register_i2c_bus(3, 400, NULL, 0);
-> +	return 0;
-> +}
-> +
-> +static void __init omap3_evm_init_irq(void)
-> +{
-> +	omap2_init_common_hw();
-> +	omap_init_irq();
-> +	omap_gpio_init();
-> +}
-> +
-> +static struct omap_board_config_kernel omap3_evm_config[] __initdata = {
-> +	{ OMAP_TAG_UART,	&omap3_evm_uart_config },
-> +};
-> +
-> +static void __init omap3_evm_init(void)
-> +{
-> +	omap_board_config = omap3_evm_config;
-> +	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
-> +	omap_serial_init();
-> +}
-> +
-> +arch_initcall(omap3_evm_i2c_init);
-> +
-> +static void __init omap3_evm_map_io(void)
-> +{
-> +	omap2_set_globals_343x();
-> +	omap2_map_common_io();
-> +}
-> +
-> +MACHINE_START(OMAP3EVM, "OMAP3 EVM")
-> +	/* Maintainer: Syed Mohammed Khasim - Texas Instruments */
-> +	.phys_io	= 0x48000000,
-> +	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-> +	.boot_params	= 0x80000100,
-> +	.map_io		= omap3_evm_map_io,
-> +	.init_irq	= omap3_evm_init_irq,
-> +	.init_machine	= omap3_evm_init,
-> +	.timer		= &omap_timer,
-> +MACHINE_END
-> 
-> Index: my_branch/include/asm-arm/arch-omap/hardware.h
-> ===================================================================
-> --- my_branch.orig/include/asm-arm/arch-omap/hardware.h	2008-04-19 07:22:15.000000000 +0530
-> +++ my_branch/include/asm-arm/arch-omap/hardware.h	2008-04-19 07:44:42.000000000 +0530
-> @@ -335,6 +335,10 @@
->  #include "board-3430sdp.h"
->  #endif
+>  static int sdp_mmc_card_detect(int irq)
+>  {
+>  	return twl4030_get_gpio_datain(irq - IH_TWL4030_GPIO_BASE);
+> @@ -158,32 +168,36 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
 >  
-> +#ifdef CONFIG_MACH_OMAP3EVM
-> +#include "board-omap3evm.h"
-> +#endif
+>  	if (power_on) {
+>  		if (cpu_is_omap24xx())
+> -			devconf = omap_readl(0x490022E8);
+> +			devconf = omap_readl(OMAP2_CONTROL_DEVCONF1);
+>  		else
+> -			devconf = omap_readl(0x48002274);
+> +			devconf = omap_readl(OMAP2_CONTROL_DEVCONF0);
+>  
+>  		switch (1 << vdd) {
+>  		case MMC_VDD_33_34:
+>  		case MMC_VDD_32_33:
+>  			vdd_sel = VSEL_3V;
+>  			if (cpu_is_omap24xx())
+> -				devconf = (devconf | (1 << 31));
+> +				devconf |= OMAP2_CONTROL_DEVCONF1_ACTOV;
+>  			break;
+>  		case MMC_VDD_165_195:
+>  			vdd_sel = VSEL_18V;
+>  			if (cpu_is_omap24xx())
+> -				devconf = (devconf & ~(1 << 31));
+> +				devconf &= ~OMAP2_CONTROL_DEVCONF1_ACTOV;
+>  		}
+>  
+>  		if (cpu_is_omap24xx())
+> -			omap_writel(devconf, 0x490022E8);
+> +			omap_writel(devconf, OMAP2_CONTROL_DEVCONF1);
+>  		else
+> -			omap_writel(devconf | 1 << 24, 0x48002274);
+> +			omap_writel(devconf | OMAP2_CONTROL_DEVCONF0_LBCLK,
+> +				    OMAP2_CONTROL_DEVCONF0);
+>  
+> -		omap_writel(omap_readl(OMAP2_CONTROL_PBIAS) | 1 << 2,
+> -			OMAP2_CONTROL_PBIAS);
+> -		omap_writel(omap_readl(OMAP2_CONTROL_PBIAS) & ~(1 << 1),
+> -			OMAP2_CONTROL_PBIAS);
+> +		reg = omap_readl(OMAP2_CONTROL_PBIAS);
+> +		reg |= OMAP2_CONTROL_PBIAS_SCTRL;
+> +		omap_writel(reg, OMAP2_CONTROL_PBIAS);
 > +
->  #ifdef CONFIG_MACH_OMAP_APOLLON
->  #include "board-apollon.h"
->  #endif
-> Index: my_branch/include/asm-arm/arch-omap/board-omap3evm.h
-> ===================================================================
-> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-> +++ my_branch/include/asm-arm/arch-omap/board-omap3evm.h	2008-04-19 07:48:59.000000000 +0530
-> @@ -0,0 +1,53 @@
-> +/*
-> + * linux/include/asm-arm/arch-omap/board-omap3evm.h
-> + *
-> + * Hardware definitions for TI OMAP3 EVM.
-> + *
-> + * Initial creation by Syed Mohammed Khasim <khasim@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License as published by the
-> + * Free Software Foundation; either version 2 of the License, or (at your
-> + * option) any later version.
-> + *
-> + * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-> + * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-> + * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-> + * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-> + * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-> + * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-> + * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-> + * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-> + * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-> + *
-> + * You should have received a copy of the GNU General Public License along
-> + * with this program; if not, write to the Free Software Foundation, Inc.,
-> + * 675 Mass Ave, Cambridge, MA 02139, USA.
-> + */
+> +		reg = omap_readl(OMAP2_CONTROL_PBIAS);
+> +		reg &= ~OMAP2_CONTROL_PBIAS_PWRDNZ;
+> +		omap_writel(reg, OMAP2_CONTROL_PBIAS);
+>  
+>  		ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+>  						P1_DEV_GRP, VMMC1_DEV_GRP);
+> @@ -197,8 +211,12 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
+>  
+>  		msleep(100);
+>  		reg = omap_readl(OMAP2_CONTROL_PBIAS);
+> -		reg = (vdd_sel == VSEL_18V) ? ((reg | 0x6) & ~0x1)
+> -						: (reg | 0x7);
+> +		reg |= (OMAP2_CONTROL_PBIAS_SCTRL |
+> +			OMAP2_CONTROL_PBIAS_PWRDNZ);
+> +		if (vdd_sel == VSEL_18V)
+> +			reg &= ~OMAP2_CONTROL_PBIAS_VMODE;
+> +		else
+> +			reg |= OMAP2_CONTROL_PBIAS_VMODE;
+>  		omap_writel(reg, OMAP2_CONTROL_PBIAS);
+>  
+>  		return ret;
+> @@ -207,8 +225,10 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
+>  		/* Power OFF */
+>  
+>  		/* For MMC1, Toggle PBIAS before every power up sequence */
+> -		omap_writel(omap_readl(OMAP2_CONTROL_PBIAS) & ~(1 << 1),
+> -					OMAP2_CONTROL_PBIAS);
+> +		reg = omap_readl(OMAP2_CONTROL_PBIAS);
+> +		reg &= ~OMAP2_CONTROL_PBIAS_PWRDNZ;
+> +		omap_writel(reg, OMAP2_CONTROL_PBIAS);
 > +
-> +#ifndef __ASM_ARCH_OMAP3_EVM_H
-> +#define __ASM_ARCH_OMAP3_EVM_H
-> +
-> +#ifdef CONFIG_TWL4030_CORE
-> +
-> +#define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
-> +
-> +/* TWL4030 Primary Interrupt Handler (PIH) interrupts */
-> +#define	IH_TWL4030_BASE		IH_BOARD_BASE
-> +#define	IH_TWL4030_END		(IH_TWL4030_BASE+8)
-> +#define IH_TWL4030_PWRBASE	(IH_TWL4030_END)
-> +#define IH_TWL4030_PWRBASE_END	(IH_TWL4030_PWRBASE+8)
-> +
-> +#ifdef CONFIG_TWL4030_GPIO
-> +/* TWL4030 GPIO Interrupts */
-> +#define IH_TWL4030_GPIO_BASE	(IH_TWL4030_PWRBASE_END)
-> +#define IH_TWL4030_GPIO_END	(IH_TWL4030_GPIO_BASE+18)
-> +#define NR_IRQS			(IH_TWL4030_GPIO_END)
-> +#else
-> +#define NR_IRQS			(IH_TWL4030_PWRBASE_END)
-> +#endif /* CONFIG_I2C_TWL4030_GPIO */
-> +
-> +#endif /* End of support for TWL4030 */
-> +#endif /* __ASM_ARCH_OMAP3_EVM_H */
-> +
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  		ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+>  						LDO_CLR, VMMC1_DEV_GRP);
+>  		if (ret)
+> @@ -221,8 +241,11 @@ static int sdp_mmc_set_power(struct device *dev, int slot, int power_on,
+>  
+>  		/* 100ms delay required for PBIAS configuration */
+>  		msleep(100);
+> -		omap_writel(omap_readl(OMAP2_CONTROL_PBIAS) | 0x7,
+> -			OMAP2_CONTROL_PBIAS);
+> +		reg = omap_readl(OMAP2_CONTROL_PBIAS);
+> +		reg |= (OMAP2_CONTROL_PBIAS_VMODE |
+> +			OMAP2_CONTROL_PBIAS_PWRDNZ |
+> +			OMAP2_CONTROL_PBIAS_SCTRL);
+> +		omap_writel(reg, OMAP2_CONTROL_PBIAS);
+>  	}
+>  
+>  	return 0;
+> -- 1.5.3.GIT
+> 
