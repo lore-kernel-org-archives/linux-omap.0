@@ -1,44 +1,49 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC/PATCH 1/1] ASoC: Add drivers for the
-	Texas	Instruments OMAP processors
-Date: Tue, 22 Apr 2008 09:49:28 +0100
-Message-ID: <20080422084928.GA1853@rakim.wolfsonmicro.main>
-References: <1207300948-11598-1-git-send-email-jarkko.nikula@nokia.com>
-	<1207300948-11598-2-git-send-email-jarkko.nikula@nokia.com>
-	<20080421181614.GZ12099@atomide.com>
-	<20080422094845.722a949c.jarkko.nikula@nokia.com>
+From: "Syed Mohammed, Khasim" <khasim@ti.com>
+Subject: RE: [PATCH 1/1] ARM: OMAP: omap3beagle: register SD interface
+Date: Tue, 22 Apr 2008 14:48:33 +0530
+Message-ID: <7EAD1AEEA7621C45899FE99123E124A001922608@dbde01.ent.ti.com>
+References: <3A21C48B-9730-4BB7-9095-B08510070F7D@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <20080422094845.722a949c.jarkko.nikula@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: ext Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:57058 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755042AbYDVJUP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2008 05:20:15 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <3A21C48B-9730-4BB7-9095-B08510070F7D@student.utwente.nl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Koen Kooi <k.kooi@student.utwente.nl>, linux-omap@vger.kernel.org
 
-On Tue, Apr 22, 2008 at 09:48:45AM +0300, Jarkko Nikula wrote:
-> "ext Tony Lindgren" <tony@atomide.com> wrote:
 
-> > The platform_device_register() should be done in board-*.c files.
 
-> This is a valid point. I think it should be possible to have also in
-> ASoC v1 e.g n810_mcbsp_aic33 driver whose probe function would be more
-> or less like n810_soc_init now. At least sound/soc/fsl/mpc8610_hpcd.c is
-> doing similar thing.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Koen Kooi
+> Sent: Tuesday, April 22, 2008 1:28 PM
+> To: linux-omap@vger.kernel.org
+> Subject: [PATCH 1/1] ARM: OMAP: omap3beagle: register SD interface
+> 
+> In case of broken-mailer-white-space-damage:
+> http://amethyst.openembedded.net/~koen/beagleboard/0001-omap3beagle-
+> register-SD-interface.patch
+> 
+>  From a4127c880913185919f065800535c8d90751ac3c Mon Sep 17 00:00:00 2001
+> From: Koen Kooi <koen@openembedded.org>
+> Date: Tue, 22 Apr 2008 09:45:45 +0200
+> Subject: [PATCH] omap3beagle: register SD interface
+> 
+> Signed-off-by: Koen Kooi <koen@openembedded.org>
+> - ---
+> arch/arm/mach-omap2/Makefile            |    3 ++-
+> arch/arm/mach-omap2/board-omap3beagle.c |   11 +++++++++++
 
-> Mark, any thoughts?
 
-Leave it as-is for ASoC v1, the soc-audio device can't meaningfully be
-defined in the platform data.  ASoC v2 lets you define a device for the
-platform driver for the particular board (as well as for things like I2S
-controllers on the SoC) which deals with this a lot better.
+> arch/arm/mach-omap2/board-omap3beagle.h |   12 ++++++++++++
+
+Why new header file ? We can use the existing include/asm-arm/arch-omap/board-omap3beagle.h
+
+Regards,
+Khasim
