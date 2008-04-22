@@ -1,68 +1,109 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 3/3] ARM: OMAP: Expose omap tags as debugfs binary blob
-Date: Tue, 22 Apr 2008 10:17:10 +0300
-Message-ID: <1208848630-6771-3-git-send-email-Hiroshi.DOYU@nokia.com>
-References: <1208848630-6771-1-git-send-email-Hiroshi.DOYU@nokia.com>
- <1208848630-6771-2-git-send-email-Hiroshi.DOYU@nokia.com>
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: [PATCH 1/1] ARM: OMAP: omap3beagle: register SD interface
+Date: Tue, 22 Apr 2008 09:57:48 +0200
+Message-ID: <3A21C48B-9730-4BB7-9095-B08510070F7D@student.utwente.nl>
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:64382 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751310AbYDVHRS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2008 03:17:18 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3M7HE0J012237
-	for <linux-omap@vger.kernel.org>; Tue, 22 Apr 2008 10:17:16 +0300
-Received: from oreo.research.nokia.com (esdhcp041142.research.nokia.com [172.21.41.142])
-	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m3M7HB55031112
-	for <linux-omap@vger.kernel.org>; Tue, 22 Apr 2008 10:17:12 +0300
-In-Reply-To: <1208848630-6771-2-git-send-email-Hiroshi.DOYU@nokia.com>
+Received: from smtp1.utsp.utwente.nl ([130.89.2.8]:37748 "EHLO smtp.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752069AbYDVIgE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Apr 2008 04:36:04 -0400
+Received: from wlan142111.mobiel.utwente.nl (wlan142111.mobiel.utwente.nl [130.89.142.111])
+          by smtp.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id m3M8ZJZl030322
+          for <linux-omap@vger.kernel.org>; Tue, 22 Apr 2008 10:35:56 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- arch/arm/plat-omap/common.c |   21 ++++++++++++++++++++-
- 1 files changed, 20 insertions(+), 1 deletions(-)
+In case of broken-mailer-white-space-damage: http://amethyst.openembedded.net/~koen/beagleboard/0001-omap3beagle-register-SD-interface.patch
 
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index f80dab8..5a501e1 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -289,7 +289,26 @@ void __init omap2_set_globals_343x(void)
- #endif
- 
- #ifdef CONFIG_DEBUG_FS
-+
- struct dentry *omap_debugfs_root;
-+
-+#ifdef CONFIG_OMAP_BOOT_TAG
-+static int __init add_tag_blob(void)
-+{
-+	struct dentry *d;
-+	static struct debugfs_blob_wrapper blob;
-+
-+	blob.data = omap_bootloader_tag;
-+	blob.size = omap_bootloader_tag_len;
-+
-+	d = debugfs_create_blob("tag", 0444, omap_debugfs_root, &blob);
-+	if (IS_ERR(d))
-+		return PTR_ERR(d);
-+	return 0;
-+}
-+late_initcall(add_tag_blob);
-+#endif
-+
- static int __init omap_debugfs_init(void)
- {
- 	struct dentry *d;
-@@ -301,4 +320,4 @@ static int __init omap_debugfs_init(void)
- 	return 0;
- }
- arch_initcall(omap_debugfs_init);
--#endif
-+#endif	/* CONFIG_DEBUG_FS */
--- 
-1.5.5.rc2.6.gf58d
+ From a4127c880913185919f065800535c8d90751ac3c Mon Sep 17 00:00:00 2001
+From: Koen Kooi <koen@openembedded.org>
+Date: Tue, 22 Apr 2008 09:45:45 +0200
+Subject: [PATCH] omap3beagle: register SD interface
 
+Signed-off-by: Koen Kooi <koen@openembedded.org>
+- ---
+arch/arm/mach-omap2/Makefile            |    3 ++-
+arch/arm/mach-omap2/board-omap3beagle.c |   11 +++++++++++
+arch/arm/mach-omap2/board-omap3beagle.h |   12 ++++++++++++
+3 files changed, 25 insertions(+), 1 deletions(-)
+create mode 100644 arch/arm/mach-omap2/board-omap3beagle.h
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 9414141..84d99d2 100644
+- --- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -35,7 +35,8 @@ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
+					   board-3430sdp-usb.o \
+					   board-3430sdp-flash.o
+obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
+- -obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o
++obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
++					   board-sdp-hsmmc.o
+obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
+					   board-apollon-mmc.o	\
+					   board-apollon-keys.o
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach- 
+omap2/board-omap3beagle.c
+index 0727ee2..866ecfb 100644
+- --- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -29,6 +29,8 @@
+#include <asm/arch/board.h>
+#include <asm/arch/common.h>
+
++#include "board-omap3beagle.h"
++
+static struct omap_uart_config omap3_beagle_uart_config __initdata = {
+	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+};
+@@ -48,8 +50,16 @@ static void __init omap3_beagle_init_irq(void)
+	omap_gpio_init();
+}
+
++static struct omap_mmc_config omap3beagle_mmc_config __initdata = {
++	.mmc [0] = {
++		.enabled	= 1,
++		.wire4		= 1,
++	},
++};
++
+static struct omap_board_config_kernel omap3_beagle_config[]  
+__initdata = {
+	{ OMAP_TAG_UART,	&omap3_beagle_uart_config },
++	{OMAP_TAG_MMC, &omap3beagle_mmc_config },
+};
+
+static void __init omap3_beagle_init(void)
+@@ -57,6 +67,7 @@ static void __init omap3_beagle_init(void)
+	omap_board_config = omap3_beagle_config;
+	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
+	omap_serial_init();
++	sdp_mmc_init();
+}
+
+arch_initcall(omap3_beagle_i2c_init);
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.h b/arch/arm/mach- 
+omap2/board-omap3beagle.h
+new file mode 100644
+index 0000000..696ef00
+- --- /dev/null
++++ b/arch/arm/mach-omap2/board-omap3beagle.h
+@@ -0,0 +1,12 @@
++/*
++ * linux/arch/arm/mach-omap2/board-omap3beagle.h
++ *
++ * Copyright (C) 2008 Koen Kooi <koen@openembedded.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++extern void __init sdp_mmc_init(void);
++
+- --
+1.5.4.3
