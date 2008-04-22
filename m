@@ -1,49 +1,44 @@
 From: "Syed Mohammed, Khasim" <khasim@ti.com>
-Subject: RE: [PATCH 1/1] ARM: OMAP: omap3beagle: register SD interface
-Date: Tue, 22 Apr 2008 14:48:33 +0530
-Message-ID: <7EAD1AEEA7621C45899FE99123E124A001922608@dbde01.ent.ti.com>
-References: <3A21C48B-9730-4BB7-9095-B08510070F7D@student.utwente.nl>
+Subject: RE: [PATCH 2/2] PLAT-OMAP: MCBSP: Move code mach specific from plat-omap to mach-omap
+Date: Tue, 22 Apr 2008 14:54:21 +0530
+Message-ID: <7EAD1AEEA7621C45899FE99123E124A001922611@dbde01.ent.ti.com>
+References: <20080414181827.GE4463@kedavra.cpe.vivax.com.br> <1208203891-11225-1-git-send-email-edubezval@gmail.com> <1208203891-11225-2-git-send-email-edubezval@gmail.com> <20080421183305.GB12099@atomide.com> <a0580c510804212329p141712d7g97bf9f07dbd59621@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57058 "EHLO bear.ext.ti.com"
+Received: from soda.ext.ti.com ([198.47.26.145]:56551 "EHLO soda.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755042AbYDVJUP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2008 05:20:15 -0400
+	id S1755434AbYDVJZQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2008 05:25:16 -0400
 Content-class: urn:content-classes:message
-In-Reply-To: <3A21C48B-9730-4BB7-9095-B08510070F7D@student.utwente.nl>
+In-Reply-To: <a0580c510804212329p141712d7g97bf9f07dbd59621@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>, linux-omap@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-
+Hi Eduardo,
 
 > -----Original Message-----
 > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Koen Kooi
-> Sent: Tuesday, April 22, 2008 1:28 PM
-> To: linux-omap@vger.kernel.org
-> Subject: [PATCH 1/1] ARM: OMAP: omap3beagle: register SD interface
+> owner@vger.kernel.org] On Behalf Of Eduardo Valentin
+> Sent: Tuesday, April 22, 2008 12:00 PM
+> To: Tony Lindgren
+> Cc: linux-omap@vger.kernel.org; Eduardo Valentin
+> Subject: Re: [PATCH 2/2] PLAT-OMAP: MCBSP: Move code mach specific from
+> plat-omap to mach-omap
 > 
-> In case of broken-mailer-white-space-damage:
-> http://amethyst.openembedded.net/~koen/beagleboard/0001-omap3beagle-
-> register-SD-interface.patch
+> Hi Tony,
 > 
->  From a4127c880913185919f065800535c8d90751ac3c Mon Sep 17 00:00:00 2001
-> From: Koen Kooi <koen@openembedded.org>
-> Date: Tue, 22 Apr 2008 09:45:45 +0200
-> Subject: [PATCH] omap3beagle: register SD interface
-> 
-> Signed-off-by: Koen Kooi <koen@openembedded.org>
-> - ---
-> arch/arm/mach-omap2/Makefile            |    3 ++-
-> arch/arm/mach-omap2/board-omap3beagle.c |   11 +++++++++++
+> I'll apply your comments and re-write mcbsp driver as a platform driver.
+>
 
+Good to know you are volunteering for upgrading McBSP driver.
 
-> arch/arm/mach-omap2/board-omap3beagle.h |   12 ++++++++++++
+Can you also make sure that McBSP driver uses DMA chaining APIs? With out chaining support McBSP Driver will be unusable for a real time audio playback.
 
-Why new header file ? We can use the existing include/asm-arm/arch-omap/board-omap3beagle.h
+Thanks
 
 Regards,
 Khasim
