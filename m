@@ -1,56 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Refrain compile warning for lm8323.c
-Date: Tue, 22 Apr 2008 12:24:20 -0700
-Message-ID: <20080422192420.GI24257@atomide.com>
-References: <1208870513-13351-1-git-send-email-Hiroshi.DOYU@nokia.com>
+From: sharath kumar <sharath_dm@yahoo.com>
+Subject: clock rate configuration through kernel configuration
+Date: Tue, 22 Apr 2008 22:54:59 -0700 (PDT)
+Message-ID: <182325.98011.qm@web32807.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:57160 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765088AbYDVTYW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Apr 2008 15:24:22 -0400
-Content-Disposition: inline
-In-Reply-To: <1208870513-13351-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Received: from web32807.mail.mud.yahoo.com ([68.142.206.37]:39319 "HELO
+	web32807.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751614AbYDWGBk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Apr 2008 02:01:40 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [080422 06:26]:
-> drivers/input/keyboard/lm8323.c: In function 'lm8323_pwm_store_time':
-> drivers/input/keyboard/lm8323.c:590: warning: passing argument 3 of 'strict_strtoul' from incompatible pointer type
-> drivers/input/keyboard/lm8323.c: In function 'lm8323_set_disable':
-> drivers/input/keyboard/lm8323.c:664: warning: passing argument 3 of 'strict_strtoul' from incompatible pointer type
-> 
-> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> ---
->  drivers/input/keyboard/lm8323.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/input/keyboard/lm8323.c b/drivers/input/keyboard/lm8323.c
-> index 3040622..c9ede10 100644
-> --- a/drivers/input/keyboard/lm8323.c
-> +++ b/drivers/input/keyboard/lm8323.c
-> @@ -587,7 +587,7 @@ static ssize_t lm8323_pwm_store_time(struct device *dev,
->  	int ret;
->  	int time;
->  
-> -	ret = strict_strtoul(buf, 10, &time);
-> +	ret = sscanf(buf, "%d", &time);
->  	/* Numbers only, please. */
->  	if (ret)
->  		return -EINVAL;
-> @@ -661,7 +661,7 @@ static ssize_t lm8323_set_disable(struct device *dev,
->  	int ret;
->  	int i;
->  
-> -	i = strict_strtoul(buf, 10, &ret);
-> +	i = sscanf(buf, "%d", &ret);
->  
->  	mutex_lock(&lm->lock);
->  	lm->kp_enabled = !i;
+Hi,
+i am working on OMAP2430
+i want to provide clock speed selection of dpll,
+ARM speed and L3/ddr speed through make menuconfig
 
-Pushing.
+in the function "omap2_select_table_rate" in file
+arch/arm/mach-omap2/clock24xx.c, if the current dpll
+speed is twice or half of the currenlty programmed
+dpll
+value, is calls "omap2_reprogram_sdrc" function. 
+Else only it configures the value given in rate table.
 
-Tony
+So even if i want to change the L3 clock with
+different speed with dpll and arm at same speed i am
+not able to(x-load/u-boot has initialized dpll at 660
+and arm at 330) 
+
+Also what is the purpose of function
+"omap2_reprogram_sdrc"
+
+Any suggestion on fix
+
+Regards
+Sharath
+
+
+
+
+      ____________________________________________________________________________________
+Be a better friend, newshound, and 
+know-it-all with Yahoo! Mobile.  Try it now.  http://mobile.yahoo.com/;_ylt=Ahu06i62sR8HDtDypao8Wcj9tAcJ
