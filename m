@@ -1,94 +1,46 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: [PATCH 1/1] ARM: OMAP: omap3beagle: register SD interface
-Date: Wed, 23 Apr 2008 09:40:55 +0200
-Message-ID: <BF39A517-6A64-4B10-B595-CBBF2F6BF5D0@student.utwente.nl>
-References: <3A21C48B-9730-4BB7-9095-B08510070F7D@student.utwente.nl> <7EAD1AEEA7621C45899FE99123E124A001922608@dbde01.ent.ti.com> <03879EA5-591C-4ED6-A3F5-8600F90CC8E7@student.utwente.nl> <200804220957.43599.david-b@pacbell.net> <E7D86ACF-575E-4A2B-8193-82A3A0B6FFCF@student.utwente.nl> <20080422170758.GB10347@kedavra.cpe.vivax.com.br>
-Mime-Version: 1.0 (Apple Message framework v919.2)
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: PRCM: 34XX: Add PARENT_CONTROLS_CLOCK flag to dpll5_m2_ck
+Date: Wed, 23 Apr 2008 16:12:19 +0300
+Message-ID: <874p9s3ebw.fsf@trdhcp146196.ntc.nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx3.utsp.utwente.nl ([130.89.2.14]:60737 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751134AbYDWHlU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Apr 2008 03:41:20 -0400
-In-Reply-To: <20080422170758.GB10347@kedavra.cpe.vivax.com.br>
+Received: from smtp.nokia.com ([192.100.122.233]:43231 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752715AbYDWNNG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2008 09:13:06 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3NDCpaK014276
+	for <linux-omap@vger.kernel.org>; Wed, 23 Apr 2008 16:13:01 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: "Syed Mohammed, Khasim" <khasim@ti.com>
 
- From dac3cdc5952ab39fa7ae0545d43e2daa95329b07 Mon Sep 17 00:00:00 2001
-From: Koen Kooi <koen@openembedded.org>
-Date: Wed, 23 Apr 2008 09:38:31 +0200
-Subject: [PATCH] omap3beagle: register SD interface
+This patch removes following message on dpll5_m2_ck enable and
+disable:
 
-Signed-off-by: Koen Kooi <koen@openembedded.org>
+clock.c: Enable for dpll5_m2_ck without enable code
+clock: clk_disable called on independent clock dpll5_m2_ck which has no enable_reg
+
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
 ---
-  arch/arm/mach-omap2/Makefile                  |    3 ++-
-  arch/arm/mach-omap2/board-omap3beagle.c       |    9 +++++++++
-  include/asm-arm/arch-omap/board-omap3beagle.h |    2 ++
-  3 files changed, 13 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/clock34xx.h |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 9414141..84d99d2 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -35,7 +35,8 @@ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
-  					   board-3430sdp-usb.o \
-  					   board-3430sdp-flash.o
-  obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
--obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o
-+obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
-+					   board-sdp-hsmmc.o
-  obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
-  					   board-apollon-mmc.o	\
-  					   board-apollon-keys.o
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach- 
-omap2/board-omap3beagle.c
-index 0727ee2..c03bb26 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -48,8 +48,16 @@ static void __init omap3_beagle_init_irq(void)
-  	omap_gpio_init();
-  }
-
-+static struct omap_mmc_config omap3beagle_mmc_config __initdata = {
-+	.mmc [0] = {
-+		.enabled	= 1,
-+		.wire4		= 1,
-+	},
-+};
-+
-  static struct omap_board_config_kernel omap3_beagle_config[]  
-__initdata = {
-  	{ OMAP_TAG_UART,	&omap3_beagle_uart_config },
-+	{ OMAP_TAG_MMC,		&omap3beagle_mmc_config },
-  };
-
-  static void __init omap3_beagle_init(void)
-@@ -57,6 +65,7 @@ static void __init omap3_beagle_init(void)
-  	omap_board_config = omap3_beagle_config;
-  	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
-  	omap_serial_init();
-+	sdp_mmc_init();
-  }
-
-  arch_initcall(omap3_beagle_i2c_init);
-diff --git a/include/asm-arm/arch-omap/board-omap3beagle.h b/include/ 
-asm-arm/arch-omap/board-omap3beagle.h
-index c42db78..fcdf0bc 100644
---- a/include/asm-arm/arch-omap/board-omap3beagle.h
-+++ b/include/asm-arm/arch-omap/board-omap3beagle.h
-@@ -29,6 +29,8 @@
-  #ifndef __ASM_ARCH_OMAP3_BEAGLE_H
-  #define __ASM_ARCH_OMAP3_BEAGLE_H
-
-+extern void sdp_mmc_init(void);
-+
-  #ifdef CONFIG_TWL4030_CORE
-
-  #define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index 9ca2cdf..16ae5bb 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -916,7 +916,8 @@ static struct clk dpll5_m2_ck = {
+ 	.clksel_reg	= OMAP_CM_REGADDR(PLL_MOD, OMAP3430ES2_CM_CLKSEL5),
+ 	.clksel_mask	= OMAP3430ES2_DIV_120M_MASK,
+ 	.clksel		= div16_dpll5_clksel,
+-	.flags		= CLOCK_IN_OMAP3430ES2 | RATE_PROPAGATES,
++	.flags		= CLOCK_IN_OMAP3430ES2 | RATE_PROPAGATES |
++				PARENT_CONTROLS_CLOCK,
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
 -- 
-1.5.4.3
-
+1.5.5
 
