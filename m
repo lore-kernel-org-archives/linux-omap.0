@@ -1,130 +1,107 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] clockdomains: add OMAP2/3 clockdomain code, link
-	34xx clocks with clockdomains
-Date: Wed, 23 Apr 2008 17:05:06 -0700
-Message-ID: <20080424000506.GD27546@atomide.com>
-References: <20080419014100.8203.31672.stgit@localhost.localdomain>
+Subject: Re: [PATCH 1/1] ARM: OMAP: omap3beagle: register SD interface
+Date: Wed, 23 Apr 2008 17:21:20 -0700
+Message-ID: <20080424002120.GE27546@atomide.com>
+References: <3A21C48B-9730-4BB7-9095-B08510070F7D@student.utwente.nl> <7EAD1AEEA7621C45899FE99123E124A001922608@dbde01.ent.ti.com> <03879EA5-591C-4ED6-A3F5-8600F90CC8E7@student.utwente.nl> <200804220957.43599.david-b@pacbell.net> <E7D86ACF-575E-4A2B-8193-82A3A0B6FFCF@student.utwente.nl> <20080422170758.GB10347@kedavra.cpe.vivax.com.br> <BF39A517-6A64-4B10-B595-CBBF2F6BF5D0@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:57457 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750828AbYDXAFI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2008 20:05:08 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51110 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753218AbYDXAVW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2008 20:21:22 -0400
 Content-Disposition: inline
-In-Reply-To: <20080419014100.8203.31672.stgit@localhost.localdomain>
+In-Reply-To: <BF39A517-6A64-4B10-B595-CBBF2F6BF5D0@student.utwente.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, karthik-dp@ti.com, rnayak@ti.com, igor.stoppa@nokia.com, sakari.poussa@nokia.com, jouni.hogander@nokia.com, r-woodruff2@ti.com
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: linux-omap@vger.kernel.org, "Syed Mohammed, Khasim" <khasim@ti.com>
 
-* Paul Walmsley <paul@pwsan.com> [080418 18:48]:
->=20
-> Hi everyone,
->=20
-> This is the second version of the clockdomain patches.  It:=20
->=20
-> . adds the IVA1 clockdomain in the DSP powerdomain, for OMAP2420 only
->=20
-> . replaces omap_type_t typedef with struct omap_chip_id
->=20
-> . removes all EXPORT_SYMBOLs - these can be added back in if clockdom=
-ain
->   code needs to be used from loadable PM modules - the expectation is=
- that=20
->   it will only be used from PM code
->=20
-> . creates _clkdm_lookup() to avoid potential race in clkdm_register()
->=20
-> . fixes several clockdomain platform flag bugs
->=20
-> . gets rid of tabs in comments
->=20
-> . is refreshed against current git head (e015fc7)
->=20
-> This version is tested against 3430SDP ES2.1, and compile-tested with
-> N800 and 2430SDP configs.  Size, diffstat have been updated below.
->=20
-> Thanks to Tony & Jouni for review and comments.  More comments welcom=
-e,
+Hi,
 
-Pushing today.
+* Koen Kooi <k.kooi@student.utwente.nl> [080423 00:42]:
+> From dac3cdc5952ab39fa7ae0545d43e2daa95329b07 Mon Sep 17 00:00:00 2001
+> From: Koen Kooi <koen@openembedded.org>
+> Date: Wed, 23 Apr 2008 09:38:31 +0200
+> Subject: [PATCH] omap3beagle: register SD interface
+
+Thanks for updating it. I've pushed it now, but I had to apply some
+parts manually because of recent changes. Can you please check it
+got applied OK?
 
 Tony
 
->=20
->=20
-> - Paul
->=20
-> -------------------------
->=20
-> Hello,
->=20
-> this patch series adds a hardware control interface for OMAP2/3
-> clockdomains.  Also added is clockdomain usecounting of underlying
-> clocks, so hardware-supervised and software-supervised clockdomain
-> transitions can occur correctly.  The interface is fully documented i=
-n
-> the code.
->=20
-> 24xx clocks are not yet linked with clockdomains. This will be done i=
-n
-> a later patchset.
->=20
-> This series must be applied after the powerdomain series, posted earl=
-ier.
->=20
-> Clockdomain code tested on 3430SDP ES2.1; also boot-tested on N800.
->=20
-> Many people at Nokia and TI provided commentary and review during the
-> development of the clockdomain patches.  Particular help came from (i=
-n
-> alphabetical order): Karthik Dasu, Tony Lindgren, Rajendra Nayak,
-> Sakari Poussa, Igor Stoppa, and Richard Woodruff.  Jouni H=F6gander
-> merits special mention; he took the original code and made it do what
-> it was supposed to do on the hardware, testing and fixing many bugs.
->=20
->=20
-> -----------
->=20
-> size:
->   text    data     bss     dec     hex filename
-> 3269405  152552  100736 3522693  35c085 vmlinux.3430sdp.orig
-> 3272093  154920  100736 3527749  35d445 vmlinux.3430sdp
->=20
-> Paul Walmsley (4):
->       Subject: Integrate OMAP3 clocks with clockdomain code
->       Subject: encode OMAP2/3 clockdomains
->       Subject: connect clockdomain code to powerdomain code
->       Subject: add base OMAP2/3 clockdomain code
->=20
->=20
->  arch/arm/mach-omap2/Makefile            |    3=20
->  arch/arm/mach-omap2/clock.c             |   45 ++
->  arch/arm/mach-omap2/clock.h             |    1=20
->  arch/arm/mach-omap2/clock34xx.c         |    4=20
->  arch/arm/mach-omap2/clock34xx.h         |  196 +++++++++-
->  arch/arm/mach-omap2/clockdomain.c       |  606 +++++++++++++++++++++=
-++++++++++
->  arch/arm/mach-omap2/clockdomains.h      |  298 +++++++++++++++
->  arch/arm/mach-omap2/cm-regbits-24xx.h   |   24 +
->  arch/arm/mach-omap2/cm-regbits-34xx.h   |   42 ++
->  arch/arm/mach-omap2/io.c                |    4=20
->  arch/arm/mach-omap2/pm.c                |   12 -
->  arch/arm/mach-omap2/powerdomain.c       |  132 +++++++
->  arch/arm/plat-omap/Kconfig              |   12 +
->  drivers/dsp/dspgateway/dsp_core.c       |    2=20
->  include/asm-arm/arch-omap/clock.h       |    4=20
->  include/asm-arm/arch-omap/clockdomain.h |  105 +++++
->  include/asm-arm/arch-omap/powerdomain.h |   16 +
->  17 files changed, 1457 insertions(+), 49 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/clockdomain.c
->  create mode 100644 arch/arm/mach-omap2/clockdomains.h
->  create mode 100644 include/asm-arm/arch-omap/clockdomain.h
->=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Koen Kooi <koen@openembedded.org>
+> ---
+>  arch/arm/mach-omap2/Makefile                  |    3 ++-
+>  arch/arm/mach-omap2/board-omap3beagle.c       |    9 +++++++++
+>  include/asm-arm/arch-omap/board-omap3beagle.h |    2 ++
+>  3 files changed, 13 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 9414141..84d99d2 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -35,7 +35,8 @@ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
+>  					   board-3430sdp-usb.o \
+>  					   board-3430sdp-flash.o
+>  obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
+> -obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o
+> +obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
+> +					   board-sdp-hsmmc.o
+>  obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
+>  					   board-apollon-mmc.o	\
+>  					   board-apollon-keys.o
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach- 
+> omap2/board-omap3beagle.c
+> index 0727ee2..c03bb26 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -48,8 +48,16 @@ static void __init omap3_beagle_init_irq(void)
+>  	omap_gpio_init();
+>  }
+>
+> +static struct omap_mmc_config omap3beagle_mmc_config __initdata = {
+> +	.mmc [0] = {
+> +		.enabled	= 1,
+> +		.wire4		= 1,
+> +	},
+> +};
+> +
+>  static struct omap_board_config_kernel omap3_beagle_config[] __initdata 
+> = {
+>  	{ OMAP_TAG_UART,	&omap3_beagle_uart_config },
+> +	{ OMAP_TAG_MMC,		&omap3beagle_mmc_config },
+>  };
+>
+>  static void __init omap3_beagle_init(void)
+> @@ -57,6 +65,7 @@ static void __init omap3_beagle_init(void)
+>  	omap_board_config = omap3_beagle_config;
+>  	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
+>  	omap_serial_init();
+> +	sdp_mmc_init();
+>  }
+>
+>  arch_initcall(omap3_beagle_i2c_init);
+> diff --git a/include/asm-arm/arch-omap/board-omap3beagle.h b/include/ 
+> asm-arm/arch-omap/board-omap3beagle.h
+> index c42db78..fcdf0bc 100644
+> --- a/include/asm-arm/arch-omap/board-omap3beagle.h
+> +++ b/include/asm-arm/arch-omap/board-omap3beagle.h
+> @@ -29,6 +29,8 @@
+>  #ifndef __ASM_ARCH_OMAP3_BEAGLE_H
+>  #define __ASM_ARCH_OMAP3_BEAGLE_H
+>
+> +extern void sdp_mmc_init(void);
+> +
+>  #ifdef CONFIG_TWL4030_CORE
+>
+>  #define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
+> -- 
+> 1.5.4.3
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
