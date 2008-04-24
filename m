@@ -1,56 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/5] Powerdomains: add OMAP2/3 powerdomain code and
-	common OMAP type bitfield
-Date: Wed, 23 Apr 2008 17:04:50 -0700
-Message-ID: <20080424000449.GC27546@atomide.com>
-References: <20080419012246.6809.79667.stgit@localhost.localdomain>
+Subject: Re: [PATCH 0/4] clockdomains: add OMAP2/3 clockdomain code, link
+	34xx clocks with clockdomains
+Date: Wed, 23 Apr 2008 17:05:06 -0700
+Message-ID: <20080424000506.GD27546@atomide.com>
+References: <20080419014100.8203.31672.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63757 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750828AbYDXAEy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2008 20:04:54 -0400
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:57457 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750828AbYDXAFI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Apr 2008 20:05:08 -0400
 Content-Disposition: inline
-In-Reply-To: <20080419012246.6809.79667.stgit@localhost.localdomain>
+In-Reply-To: <20080419014100.8203.31672.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, igor.stoppa@nokia.com, sakari.poussa@nokia.com, jouni.hogander@nokia.com, r-woodruff2@ti.com
+Cc: linux-omap@vger.kernel.org, karthik-dp@ti.com, rnayak@ti.com, igor.stoppa@nokia.com, sakari.poussa@nokia.com, jouni.hogander@nokia.com, r-woodruff2@ti.com
 
-* Paul Walmsley <paul@pwsan.com> [080418 18:35]:
+* Paul Walmsley <paul@pwsan.com> [080418 18:48]:
 >=20
 > Hi everyone,
 >=20
-> This is the second version of the powerdomain patches.  It:
+> This is the second version of the clockdomain patches.  It:=20
+>=20
+> . adds the IVA1 clockdomain in the DSP powerdomain, for OMAP2420 only
 >=20
 > . replaces omap_type_t typedef with struct omap_chip_id
 >=20
-> . fixes 34xx bug in OMAP type detection code
->=20
-> . removes all EXPORT_SYMBOLs - these can be added back in if powerdom=
+> . removes all EXPORT_SYMBOLs - these can be added back in if clockdom=
 ain
 >   code needs to be used from loadable PM modules - the expectation is=
- that
+ that=20
 >   it will only be used from PM code
 >=20
-> . gets rid of all of the forward declarations in the powerdomain
->   dependency definitions - now uses powerdomain names
+> . creates _clkdm_lookup() to avoid potential race in clkdm_register()
 >=20
-> . creates _pwrdm_lookup() to avoid potential race in pwrdm_register()
+> . fixes several clockdomain platform flag bugs
 >=20
 > . gets rid of tabs in comments
->=20
-> . cleans up some dead structure members in struct powerdomain
->=20
-> . adds IVA2 sleepdep for DSS, PER, USBHOST
 >=20
 > . is refreshed against current git head (e015fc7)
 >=20
 > This version is tested against 3430SDP ES2.1, and compile-tested with
-> the N800 and 2430SDP configs.  Size, diffstat have been updated below=
-=2E
+> N800 and 2430SDP configs.  Size, diffstat have been updated below.
 >=20
 > Thanks to Tony & Jouni for review and comments.  More comments welcom=
 e,
@@ -67,62 +61,67 @@ Tony
 >=20
 > Hello,
 >=20
-> this patch series adds a hardware control and monitoring interface fo=
-r
-> OMAP2/3 powerdomains.  The interface is fully documented in the code.
+> this patch series adds a hardware control interface for OMAP2/3
+> clockdomains.  Also added is clockdomain usecounting of underlying
+> clocks, so hardware-supervised and software-supervised clockdomain
+> transitions can occur correctly.  The interface is fully documented i=
+n
+> the code.
 >=20
-> The series also adds a common OMAP chip type detection bitfield for u=
-se
-> with powerdomain and clockdomain structures; it is planned to expand =
-its
-> use to the clock framework in the future.
+> 24xx clocks are not yet linked with clockdomains. This will be done i=
+n
+> a later patchset.
 >=20
-> Powerdomain code tested on 3430SDP ES2.1; also boot-tested on N800.
+> This series must be applied after the powerdomain series, posted earl=
+ier.
+>=20
+> Clockdomain code tested on 3430SDP ES2.1; also boot-tested on N800.
 >=20
 > Many people at Nokia and TI provided commentary and review during the
-> development of the powerdomain patches.  Particular help came from (i=
+> development of the clockdomain patches.  Particular help came from (i=
 n
-> alphabetical order): Jouni H=F6gander, Tony Lindgren, Sakari Poussa,
-> Igor Stoppa, and Richard Woodruff.
->=20
-> ---
->=20
->    text    data     bss     dec     hex filename
-> 3265996  151704  100736 3518436  35afe4 vmlinux.3430sdp.orig
-> 3269405  152552  100736 3522693  35c085 vmlinux.3430sdp
+> alphabetical order): Karthik Dasu, Tony Lindgren, Rajendra Nayak,
+> Sakari Poussa, Igor Stoppa, and Richard Woodruff.  Jouni H=F6gander
+> merits special mention; he took the original code and made it do what
+> it was supposed to do on the hardware, testing and fixing many bugs.
 >=20
 >=20
-> Paul Walmsley (5):
->       Subject: add OMAP3 powerdomains
->       Subject: add OMAP2 powerdomains
->       Subject: add OMAP2/3 common powerdomains
->       Subject: add base OMAP2/3 powerdomain code
->       Subject: add OMAP chip type global bitfield; clean up mach-omap=
-2/id.c
+> -----------
+>=20
+> size:
+>   text    data     bss     dec     hex filename
+> 3269405  152552  100736 3522693  35c085 vmlinux.3430sdp.orig
+> 3272093  154920  100736 3527749  35d445 vmlinux.3430sdp
+>=20
+> Paul Walmsley (4):
+>       Subject: Integrate OMAP3 clocks with clockdomain code
+>       Subject: encode OMAP2/3 clockdomains
+>       Subject: connect clockdomain code to powerdomain code
+>       Subject: add base OMAP2/3 clockdomain code
 >=20
 >=20
->  arch/arm/mach-omap2/Makefile            |    2
->  arch/arm/mach-omap2/id.c                |  167 ++++--
->  arch/arm/mach-omap2/io.c                |    5
->  arch/arm/mach-omap2/pm.c                |    2
->  arch/arm/mach-omap2/powerdomain.c       |  885 +++++++++++++++++++++=
+>  arch/arm/mach-omap2/Makefile            |    3=20
+>  arch/arm/mach-omap2/clock.c             |   45 ++
+>  arch/arm/mach-omap2/clock.h             |    1=20
+>  arch/arm/mach-omap2/clock34xx.c         |    4=20
+>  arch/arm/mach-omap2/clock34xx.h         |  196 +++++++++-
+>  arch/arm/mach-omap2/clockdomain.c       |  606 +++++++++++++++++++++=
 ++++++++++
->  arch/arm/mach-omap2/powerdomains.h      |  187 +++++++
->  arch/arm/mach-omap2/powerdomains24xx.h  |  200 +++++++
->  arch/arm/mach-omap2/powerdomains34xx.h  |  327 +++++++++++
->  arch/arm/mach-omap2/prcm-common.h       |    3
->  arch/arm/mach-omap2/prm-regbits-24xx.h  |   12
->  arch/arm/mach-omap2/prm-regbits-34xx.h  |   11
->  arch/arm/mach-omap2/prm.h               |    3
->  arch/arm/plat-omap/Kconfig              |   12
->  include/asm-arm/arch-omap/cpu.h         |   33 +
->  include/asm-arm/arch-omap/powerdomain.h |  137 +++++
->  15 files changed, 1924 insertions(+), 62 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/powerdomain.c
->  create mode 100644 arch/arm/mach-omap2/powerdomains.h
->  create mode 100644 arch/arm/mach-omap2/powerdomains24xx.h
->  create mode 100644 arch/arm/mach-omap2/powerdomains34xx.h
->  create mode 100644 include/asm-arm/arch-omap/powerdomain.h
+>  arch/arm/mach-omap2/clockdomains.h      |  298 +++++++++++++++
+>  arch/arm/mach-omap2/cm-regbits-24xx.h   |   24 +
+>  arch/arm/mach-omap2/cm-regbits-34xx.h   |   42 ++
+>  arch/arm/mach-omap2/io.c                |    4=20
+>  arch/arm/mach-omap2/pm.c                |   12 -
+>  arch/arm/mach-omap2/powerdomain.c       |  132 +++++++
+>  arch/arm/plat-omap/Kconfig              |   12 +
+>  drivers/dsp/dspgateway/dsp_core.c       |    2=20
+>  include/asm-arm/arch-omap/clock.h       |    4=20
+>  include/asm-arm/arch-omap/clockdomain.h |  105 +++++
+>  include/asm-arm/arch-omap/powerdomain.h |   16 +
+>  17 files changed, 1457 insertions(+), 49 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/clockdomain.c
+>  create mode 100644 arch/arm/mach-omap2/clockdomains.h
+>  create mode 100644 include/asm-arm/arch-omap/clockdomain.h
 >=20
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
