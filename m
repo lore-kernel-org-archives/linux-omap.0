@@ -1,57 +1,72 @@
-From: Igor Stoppa <igor.stoppa@nokia.com>
-Subject: Re: [PATCH 0/5] Updates on mcbsp driver
-Date: Fri, 25 Apr 2008 00:13:03 +0300
-Message-ID: <1209071583.30582.186.camel@mort>
-References: <1209052465-13210-1-git-send-email-edubezval@gmail.com>
-	 <20080424211019.GC8794@kedavra.cpe.vivax.com.br>
-Reply-To: igor.stoppa@nokia.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: Fix MMC2 device configuration for OMAP2430
+Date: Thu, 24 Apr 2008 14:30:00 -0700
+Message-ID: <20080424213000.GK16834@atomide.com>
+References: <20080424192526.GA28609@ubuntu-workstation>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:61739 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753252AbYDXVSe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2008 17:18:34 -0400
-In-Reply-To: <20080424211019.GC8794@kedavra.cpe.vivax.com.br>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53515 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752758AbYDXVaB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2008 17:30:01 -0400
+Received: from c-69-181-40-92.hsd1.ca.comcast.net ([69.181.40.92] helo=localhost.localdomain)
+	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1Jp90y-000IoB-1z
+	for linux-omap@vger.kernel.org; Thu, 24 Apr 2008 21:30:00 +0000
+Content-Disposition: inline
+In-Reply-To: <20080424192526.GA28609@ubuntu-workstation>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: Eduardo Valentin <edubezval@gmail.com>, linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@indt.org.br>, ext Chandra shekhar <x0044955@ti.com>
+To: linux-omap@vger.kernel.org
 
-On Fri, 2008-04-25 at 00:10 +0300, ext Felipe Balbi wrote:
-> On Thu, Apr 24, 2008 at 11:54:20AM -0400, Eduardo Valentin wrote:
-> > From: Eduardo Valentin <eduardo.valentin@indt.org.br>
-> > 
-> > This patch series updates mcbsp driver by transforming it into
-> > a platform driver. This is a very initial implementation.
-> > Basically it moves machine specific code to their correct place
-> > and creates the platform driver necessary structures.
-> > 
-> > It must be working for previous boards. For omap34xx it should
-> > work for mcbsp 1 and 2.
-> > 
-> > In order to do not break other places, I tryied to do not change
-> > previous API. But future improvements are needed.
-> > 
-> > Clock definitions for  mcbsp 1 and 2 were also modified to add
-> > correct support for omap34xx.
-> > 
-> > Comments are wellcome.
+* Seth Forshee <seth.forshee@gmail.com> [080424 12:27]:
+> Currently the MMC2 device configuration is defined for OMAP2430
+> when CONFIG_ARCH_OMAP243X is defined.  This should be
+> CONFIG_ARCH_OMAP2430.
+
+Thanks, pushing today.
+
+Tony
+
+> Signed-off-by: Seth Forshee <seth.forshee@gmail.com>
+> ---
+>  arch/arm/plat-omap/devices.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
 > 
-> checkpatch doesn't complain, although i didn't really test it.
-
-However I'd prefer see this patchset being merged with
-
-[RFC/PATCH  1/1] McBSP support for 2430/34XX
-
-and only later considered for integration.
-
--- 
-Cheers, Igor
-
----
-
-Igor Stoppa
-Next Generation Software
-Nokia Devices R&D - Helsinki
+> diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+> index 6f07451..099182b 100644
+> --- a/arch/arm/plat-omap/devices.c
+> +++ b/arch/arm/plat-omap/devices.c
+> @@ -202,7 +202,7 @@ static struct platform_device mmc_omap_device1 = {
+>  	.resource	= mmc1_resources,
+>  };
+>  
+> -#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP243X) || \
+> +#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP2430) || \
+>  	defined(CONFIG_ARCH_OMAP34XX)
+>  
+>  static struct omap_mmc_platform_data mmc2_data;
+> @@ -251,7 +251,7 @@ static void __init omap_init_mmc(void)
+>  		if (mmc->enabled)
+>  			(void) platform_device_register(&mmc_omap_device1);
+>  
+> -#if defined(CONFIG_ARCH_OMAP243X) || defined(CONFIG_ARCH_OMAP34XX)
+> +#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
+>  		mmc = &mmc_conf->mmc[1];
+>  		if (mmc->enabled)
+>  			(void) platform_device_register(&mmc_omap_device2);
+> @@ -349,7 +349,7 @@ void omap_set_mmc_info(int host, const struct omap_mmc_platform_data *info)
+>  	case 1:
+>  		mmc1_data = *info;
+>  		break;
+> -#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP243X) || \
+> +#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP2430) || \
+>  	defined(CONFIG_ARCH_OMAP34XX)
+>  	case 2:
+>  		mmc2_data = *info;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
