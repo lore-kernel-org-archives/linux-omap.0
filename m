@@ -1,88 +1,86 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] USB: Generalize usb initialization for omap hw
-Date: Thu, 24 Apr 2008 13:48:11 -0700
-Message-ID: <20080424204811.GJ16834@atomide.com>
-References: <200804241129.28213.david-b@pacbell.net> <1209063112-30352-1-git-send-email-felipe.balbi@nokia.com> <1209063112-30352-2-git-send-email-felipe.balbi@nokia.com> <200804241207.43593.david-b@pacbell.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: [PATCH 1/1] ARM: OMAP: omap3beagle: register SD interface
+Date: Thu, 24 Apr 2008 23:01:25 +0200
+Message-ID: <94B0FFAD-7AB5-4B17-9FA6-79AD73E3CEBF@student.utwente.nl>
+References: <3A21C48B-9730-4BB7-9095-B08510070F7D@student.utwente.nl> <7EAD1AEEA7621C45899FE99123E124A001922608@dbde01.ent.ti.com> <03879EA5-591C-4ED6-A3F5-8600F90CC8E7@student.utwente.nl> <200804220957.43599.david-b@pacbell.net> <E7D86ACF-575E-4A2B-8193-82A3A0B6FFCF@student.utwente.nl> <20080422170758.GB10347@kedavra.cpe.vivax.com.br> <BF39A517-6A64-4B10-B595-CBBF2F6BF5D0@student.utwente.nl> <20080424002120.GE27546@atomide.com> <372691CB-3FF8-43FE-9E0D-F771DD8996FE@student.utwente.nl> <20080424200023.GH16834@atomide.com>
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64518 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751795AbYDXUsO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2008 16:48:14 -0400
-Content-Disposition: inline
-In-Reply-To: <200804241207.43593.david-b@pacbell.net>
+Received: from smtp1.utsp.utwente.nl ([130.89.2.8]:55386 "EHLO smtp.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751282AbYDXVCA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Apr 2008 17:02:00 -0400
+Received: from [172.20.1.5] (vpn006030.vpn.utwente.nl [130.89.6.30])
+          by smtp.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id m3OL1RZk018434
+          for <linux-omap@vger.kernel.org>; Thu, 24 Apr 2008 23:01:27 +0200
+In-Reply-To: <20080424200023.GH16834@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [080424 12:07]:
-> Looks better to me, but:
->=20
-> On Thursday 24 April 2008, Felipe Balbi wrote:
-> > +static void setup_ehci_io_mux(void)
-> > +{
-> > +#ifdef CONFIG_OMAP_EHCI_PHY_MODE
->=20
-> This PHY_MODE thing should probably be provided by the board
-> data not Kconfig, and
->=20
-> > +=A0=A0=A0=A0=A0=A0=A0/* PHY mode of operation for board: 750-2083-=
-001
-> > +=A0=A0=A0=A0=A0=A0=A0 * ISP1504 connected to Port1 and Port2
-> > +=A0=A0=A0=A0=A0=A0=A0 * Do Func Mux setting for 12-pin ULPI PHY mo=
-de
-> > +=A0=A0=A0=A0=A0=A0=A0 */
-> > +
-> > +=A0=A0=A0=A0=A0=A0=A0/* Port1 */
-> > +=A0=A0=A0=A0=A0=A0=A0omap_cfg_reg(Y9_3430_USB1HS_PHY_STP);
-> > +=A0=A0=A0=A0=A0=A0=A0omap_cfg_reg(Y8_3430_USB1HS_PHY_CLK);
-> > 	...
->=20
-> All those MUX options should be driven by the board data too.
->=20
-> Unless it's for some reason not possible to configure only one
-> of the three EHCI ports at a time...
->=20
-> This patch being cleanup-only, I don't suggest you fix that
-> at this time.
-
-OK, I'll push Felipe's patch today.
-
-Tony
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
 
+Op 24 apr 2008, om 22:00 heeft Tony Lindgren het volgende geschreven:
+> * Koen Kooi <k.kooi@student.utwente.nl> [080424 12:54]:
+>>
+>> Op 24 apr 2008, om 02:21 heeft Tony Lindgren het volgende geschreven:
+>>> Hi,
+>>>
+>>> * Koen Kooi <k.kooi@student.utwente.nl> [080423 00:42]:
+>>>> From dac3cdc5952ab39fa7ae0545d43e2daa95329b07 Mon Sep 17 00:00:00
+>>>> 2001
+>>>> From: Koen Kooi <koen@openembedded.org>
+>>>> Date: Wed, 23 Apr 2008 09:38:31 +0200
+>>>> Subject: [PATCH] omap3beagle: register SD interface
+>>>
+>>> Thanks for updating it. I've pushed it now, but I had to apply some
+>>> parts manually because of recent changes. Can you please check it
+>>> got applied OK?
+>>
+>> I compiled an booted latest git and see this:
+>>
+>> 6>TWL4030: TRY attach Slave TWL4030-ID1 on Adapter OMAP I2C adapter  
+>> [1]
+>> <1>Unable to handle kernel NULL pointer dereference at virtual  
+>> address
+>> 00000000
+>> <1>pgd = c0004000
+>> <1>[00000000] *pgd=00000000
+>> Internal error: Oops: 5 [#1]
+>> Modules linked in:
+>> CPU: 0    Not tainted  (2.6.25-omap1 #11)
+>> PC is at __rcu_process_callbacks+0x1ac/0x244
+>> LR is at free_task+0x38/0x40
+>> pc : [<c0073924>]    lr : [<c0048b04>]    psr: 80000113
+>> sp : c7c1dda8  ip : c7c085c0  fp : c7c1ddc4
+>> r10: 00000000  r9 : c0405678  r8 : 00000001
+>> r7 : c0400d80  r6 : 00000005  r5 : 00000000  r4 : c040563c
+>> r3 : 00000000  r2 : 00000027  r1 : c7c78340  r0 : c7c085c0
+>> Flags: Nzcv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+>> Control: 00c5387f  Table: 80004018  DAC: 00000017
+>> Process swapper (pid: 1, stack limit = 0xc7c1c2e0)
+>>
+>> More bootlogs at http://amethyst.openembedded.net/~koen/beagleboard/beagle-i2c-crash.txt
+>>
+>> I suspect it's somewhere in i2c, but I have no proof for that. Any
+>> quick guesses what might be causing this?
+>
+> Can you try if reverting following helps?
+>
+> http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commitdiff;h=38c50a71591628c38206aa402500074a6137a4dc
 
-> - Dave
->=20
->=20
->=20
-> > +
-> > +#else
-> > +=A0=A0=A0=A0=A0=A0=A0/* Set Func mux for :
-> > +=A0=A0=A0=A0=A0=A0=A0 * TLL mode of operation
-> > +=A0=A0=A0=A0=A0=A0=A0 * 12-pin ULPI SDR TLL mode for Port1/2/3
-> > +=A0=A0=A0=A0=A0=A0=A0 */
-> > +
-> > +=A0=A0=A0=A0=A0=A0=A0/* Port1 */
-> > +=A0=A0=A0=A0=A0=A0=A0omap_cfg_reg(Y9_3430_USB1HS_TLL_STP);
-> > +=A0=A0=A0=A0=A0=A0=A0omap_cfg_reg(Y8_3430_USB1HS_TLL_CLK);
-> > +=A0=A0=A0=A0=A0=A0=A0	...
-> > +#endif /* CONFIG_OMAP_EHCI_PHY_MODE */
-> > +
-> > +=A0=A0=A0=A0=A0=A0=A0return;
-> > +}
->=20
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That doesn't seem to make a difference.
+
+regards,
+
+Koen
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFIEPUnMkyGM64RGpERAgO8AJ4l8t+4daVTVsDUVKxQ6sU7tpG+JQCfeqpf
+TUDPkP0LNE8sPOOqumMMnGI=
+=fL1j
+-----END PGP SIGNATURE-----
