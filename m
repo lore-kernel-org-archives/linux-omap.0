@@ -1,54 +1,41 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: usb generalization
-Date: Thu, 24 Apr 2008 21:51:51 +0300
-Message-ID: <1209063112-30352-1-git-send-email-felipe.balbi@nokia.com>
-References: <200804241129.28213.david-b@pacbell.net>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 2/2] USB: Generalize usb initialization for omap hw
+Date: Thu, 24 Apr 2008 12:02:56 -0700
+Message-ID: <200804241202.56650.david-b@pacbell.net>
+References: <1209044786-9244-1-git-send-email-felipe.balbi@nokia.com> <200804241129.28213.david-b@pacbell.net> <20080424183240.GU23350@gandalf.research.nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:65071 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756034AbYDXSxr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2008 14:53:47 -0400
-In-Reply-To: <200804241129.28213.david-b@pacbell.net>
+Received: from smtp114.sbc.mail.mud.yahoo.com ([68.142.198.213]:28856 "HELO
+	smtp114.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1756211AbYDXTC7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Apr 2008 15:02:59 -0400
+In-Reply-To: <20080424183240.GU23350@gandalf.research.nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
-Cc: david-b@pacbell.net
+To: felipe.balbi@nokia.com
+Cc: Tony Lindgren <tony@atomide.com>, "ext Gadiyar, Anand" <gadiyar@ti.com>, linux-omap@vger.kernel.org, "Syed Mohammed, Khasim" <khasim@ti.com>
 
-Hi all,
+On Thursday 24 April 2008, Felipe Balbi wrote:
+>=20
+> > > Sorry, I missed this post. I suggested separating out EHCI stuff =
+to
+> > > usb-ehci.c as they can be compiled in separately.
+> >=20
+> > Sounds right to me. =A0Dis-entangle that stuff.
+>=20
+> How about the header, introduce usb-musb.h and usb-ehci.h or usb.h is
+> enough ??
 
-Here's an updated version of the usb generalization.
+Your call.
 
-Please give it a good review, it might be that I missed something in the
-middle although it seems to be working nice in my 3430sdp.
 
-I need someone to test on 2430sdp and give it an ack as well.
 
-Here's some output from minicom:
-
-ehci-omap ehci-omap.0: new USB bus registered, assigned bus number 1
-ehci-omap ehci-omap.0: irq 77, io mem 0x48064800
-ehci-omap ehci-omap.0: USB 0.0 started, EHCI 1.00, driver 10 Dec 2004
-usb usb1: configuration #1 chosen from 1 choice
-hub 1-0:1.0: USB hub found
-hub 1-0:1.0: 3 ports detected
-usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
-usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
-usb usb1: Product: OMAP-EHCI Host Controller
-usb usb1: Manufacturer: Linux 2.6.25-omap1-08065-g11978e7 ehci_hcd
-usb usb1: SerialNumber: ehci-omap.0
-zero gadget: Gadget Zero, version: Lughnasadh, 2007
-zero gadget: using musb_hdrc, OUT ep1out IN ep1in
-musb_hdrc musb_hdrc.0: MUSB HDRC host driver
-musb_hdrc musb_hdrc.0: new USB bus registered, assigned bus number 2
-usb usb2: configuration #1 chosen from 1 choice
-hub 2-0:1.0: USB hub found
-hub 2-0:1.0: 1 port detected
-usb usb2: New USB device found, idVendor=1d6b, idProduct=0002
-usb usb2: New USB device strings: Mfr=3, Product=2, SerialNumber=1
-usb usb2: Product: MUSB HDRC host driver
-usb usb2: Manufacturer: Linux 2.6.25-omap1-08065-g11978e7 musb-hcd
-usb usb2: SerialNumber: musb_hdrc.0
-
-BR,
-	- Balbi
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
