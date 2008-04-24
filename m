@@ -1,48 +1,31 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH 2/2] USB: Generalize usb initialization for omap hw
-Date: Thu, 24 Apr 2008 19:43:16 +0530
-Message-ID: <010C7BAE6783F34D9AC336EE5A01A08805E777E5@dbde01.ent.ti.com>
-References: <1209044786-9244-1-git-send-email-felipe.balbi@nokia.com> <1209044786-9244-2-git-send-email-felipe.balbi@nokia.com> <1209044786-9244-3-git-send-email-felipe.balbi@nokia.com>
+From: "Nishanth Menon" <menon.nishanth@gmail.com>
+Subject: USB and Serial Flashing tool?
+Date: Thu, 24 Apr 2008 09:19:03 -0500
+Message-ID: <782515bb0804240719ob84e09dtc57fb2821039f6f3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58144 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753008AbYDXORr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2008 10:17:47 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <1209044786-9244-3-git-send-email-felipe.balbi@nokia.com>
+Received: from yw-out-2324.google.com ([74.125.46.28]:12538 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751765AbYDXOTH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2008 10:19:07 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so314882ywh.1
+        for <linux-omap@vger.kernel.org>; Thu, 24 Apr 2008 07:19:04 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, David Brownell <david-b@pacbell.net>
-Cc: Tony Lindgren <tony@atomide.com>, "Syed Mohammed, Khasim" <khasim@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Dirk Behme <dirk.behme@googlemail.com>, jkridner@gmail.com, "Syed Mohammed, Khasim" <x0khasim@ti.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Felipe Balbi
-> Sent: Thursday, April 24, 2008 7:16 PM
-> To: linux-omap@vger.kernel.org; David Brownell
-> Cc: Tony Lindgren; Syed Mohammed, Khasim; Felipe Balbi
-> Subject: [PATCH 2/2] USB: Generalize usb initialization for omap hw
-> 
-> Create a generic board-file for initializing usb
-> on omap2430 and omap3 boards.
-> 
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> ---
->  arch/arm/mach-omap2/Makefile                       |    4 +-
->  arch/arm/mach-omap2/board-2430sdp-usb.c            |   96 
-> --------------------
->  arch/arm/mach-omap2/board-2430sdp.c                |    3 +-
->  arch/arm/mach-omap2/board-3430sdp.c                |    3 +-
->  .../mach-omap2/{board-3430sdp-usb.c => usb-musb.c} |   32 ++++---
->  include/asm-arm/arch-omap/usb-musb.h               |   35 +++++++
+Hi Folks,
+we have a recent discussion in the beagle forum which might interest
+all: http://groups.google.com/group/beagleboard/browse_thread/thread/dabf503ace976ea1.
+This is based on a tiny little trial Dirk and I had done w.r.t a
+simple Download utility working for beagle over USB and UART
+http://groups.google.com/group/beagleboard/browse_thread/thread/80ad3da0eb2aa555
+(Sample code also attached in the thread)
 
-usb-musb.{c,h}? EHCI/OHCI has nothing to do with mentor.
-
->  6 files changed, 61 insertions(+), 112 deletions(-)
->  delete mode 100644 arch/arm/mach-omap2/board-2430sdp-usb.c
->  rename arch/arm/mach-omap2/{board-3430sdp-usb.c => usb-musb.c} (91%)
->  create mode 100644 include/asm-arm/arch-omap/usb-musb.h
-> 
+Do let us know your views.
+Regards,
+Nishanth Menon
