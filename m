@@ -1,73 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] USB: Generalize usb initialization for omap hw
-Date: Thu, 24 Apr 2008 14:31:58 -0700
-Message-ID: <20080424213157.GL16834@atomide.com>
-References: <200804241129.28213.david-b@pacbell.net> <1209063112-30352-1-git-send-email-felipe.balbi@nokia.com> <1209063112-30352-2-git-send-email-felipe.balbi@nokia.com> <200804241207.43593.david-b@pacbell.net> <20080424204811.GJ16834@atomide.com> <20080424210821.GB8794@kedavra.cpe.vivax.com.br>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: [PATCH] USB: BEAGLE: Add usb support for omap3beagle
+Date: Fri, 25 Apr 2008 00:46:00 +0300
+Message-ID: <1209073560-9355-1-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55116 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752783AbYDXVcC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2008 17:32:02 -0400
-Content-Disposition: inline
-In-Reply-To: <20080424210821.GB8794@kedavra.cpe.vivax.com.br>
+Received: from ns1.siteground211.com ([209.62.36.12]:35987 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752530AbYDXVoa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2008 17:44:30 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: David Brownell <david-b@pacbell.net>, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Koen Kooi <koen@openembedded.org>, Felipe Balbi <felipe.balbi@nokia.com>, Felipe Balbi <me@felipebalbi.com>
 
-* Felipe Balbi <me@felipebalbi.com> [080424 14:07]:
-> On Thu, Apr 24, 2008 at 01:48:11PM -0700, Tony Lindgren wrote:
-> > * David Brownell <david-b@pacbell.net> [080424 12:07]:
-> > > Looks better to me, but:
-> > >=20
-> > > On Thursday 24 April 2008, Felipe Balbi wrote:
-> > > > +static void setup_ehci_io_mux(void)
-> > > > +{
-> > > > +#ifdef CONFIG_OMAP_EHCI_PHY_MODE
-> > >=20
-> > > This PHY_MODE thing should probably be provided by the board
-> > > data not Kconfig, and
-> > >=20
-> > > > +=A0=A0=A0=A0=A0=A0=A0/* PHY mode of operation for board: 750-2=
-083-001
-> > > > +=A0=A0=A0=A0=A0=A0=A0 * ISP1504 connected to Port1 and Port2
-> > > > +=A0=A0=A0=A0=A0=A0=A0 * Do Func Mux setting for 12-pin ULPI PH=
-Y mode
-> > > > +=A0=A0=A0=A0=A0=A0=A0 */
-> > > > +
-> > > > +=A0=A0=A0=A0=A0=A0=A0/* Port1 */
-> > > > +=A0=A0=A0=A0=A0=A0=A0omap_cfg_reg(Y9_3430_USB1HS_PHY_STP);
-> > > > +=A0=A0=A0=A0=A0=A0=A0omap_cfg_reg(Y8_3430_USB1HS_PHY_CLK);
-> > > > 	...
-> > >=20
-> > > All those MUX options should be driven by the board data too.
-> > >=20
-> > > Unless it's for some reason not possible to configure only one
-> > > of the three EHCI ports at a time...
-> > >=20
-> > > This patch being cleanup-only, I don't suggest you fix that
-> > > at this time.
-> >=20
-> > OK, I'll push Felipe's patch today.
->=20
-> Thanks tony, i'll check dave's comments tomorrow then. Maybe i can co=
-me
-> up with some stuff soon.
+From: Felipe Balbi <felipe.balbi@nokia.com>
 
-Great. While at it, can you also set the TWL4030_IRQNUM during init bas=
-ed
-on cpu_is_omap() macros? I already got rid of all the other TWL defines
-in board-*.h files as you already probably noticed.
+This patch is based on previous patch by
+Koen Kooi <koen@openembedded.org>. It uses
+the new generic usb init calls for omap3-
+and omap2430-based boards.
 
-That way we can remove it from the board-*.h files as it would block
-compiling in multiple omaps.
+Signed-off-by: Felipe Balbi <me@felipebalbi.com>
+---
+ arch/arm/mach-omap2/Makefile            |    1 +
+ arch/arm/mach-omap2/board-omap3beagle.c |    4 ++++
+ 2 files changed, 5 insertions(+), 0 deletions(-)
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 9b6f60e..725dae5 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -39,6 +39,7 @@ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
+ 					   board-3430sdp-flash.o
+ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
+ obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
++					   usb-musb.o usb-ehci.o \
+ 					   board-sdp-hsmmc.o
+ obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
+ 					   board-apollon-mmc.o	\
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index c03bb26..ad5ad2e 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -27,6 +27,8 @@
+ 
+ #include <asm/arch/gpio.h>
+ #include <asm/arch/board.h>
++#include <asm/arch/usb-musb.h>
++#include <asm/arch/usb-ehci.h>
+ #include <asm/arch/common.h>
+ 
+ static struct omap_uart_config omap3_beagle_uart_config __initdata = {
+@@ -66,6 +68,8 @@ static void __init omap3_beagle_init(void)
+ 	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
+ 	omap_serial_init();
+ 	sdp_mmc_init();
++	usb_musb_init();
++	usb_ehci_init();
+ }
+ 
+ arch_initcall(omap3_beagle_i2c_init);
+-- 
+1.5.4.3.447.gc95b3
+
