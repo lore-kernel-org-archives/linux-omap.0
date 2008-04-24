@@ -1,72 +1,76 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/5] OMAP3xx: Add DMA and IRQ definition for McBSP 1
-	and 2
-Date: Thu, 24 Apr 2008 14:46:44 -0700
-Message-ID: <20080424214644.GQ16834@atomide.com>
-References: <1209052465-13210-1-git-send-email-edubezval@gmail.com> <1209052465-13210-2-git-send-email-edubezval@gmail.com> <1209052465-13210-3-git-send-email-edubezval@gmail.com> <1209052465-13210-4-git-send-email-edubezval@gmail.com> <1209052465-13210-5-git-send-email-edubezval@gmail.com>
+Subject: Re: [PATCH] USB: BEAGLE: Add usb support for omap3beagle
+Date: Thu, 24 Apr 2008 14:47:31 -0700
+Message-ID: <20080424214731.GR16834@atomide.com>
+References: <1209073560-9355-1-git-send-email-me@felipebalbi.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50292 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752958AbYDXVqo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2008 17:46:44 -0400
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:63878 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753360AbYDXVrc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2008 17:47:32 -0400
 Content-Disposition: inline
-In-Reply-To: <1209052465-13210-5-git-send-email-edubezval@gmail.com>
+In-Reply-To: <1209073560-9355-1-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>
-Cc: linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@indt.org.br>
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: linux-omap@vger.kernel.org, Koen Kooi <koen@openembedded.org>, Felipe Balbi <felipe.balbi@nokia.com>
 
-* Eduardo Valentin <edubezval@gmail.com> [080424 09:03]:
-> From: Eduardo Valentin <eduardo.valentin@indt.org.br>
+* Felipe Balbi <me@felipebalbi.com> [080424 14:45]:
+> From: Felipe Balbi <felipe.balbi@nokia.com>
 > 
-> This patch adds DMA and IRQ definition for McBSP 1 and 2
-> devices for omap34xx based systems.
+> This patch is based on previous patch by
+> Koen Kooi <koen@openembedded.org>. It uses
+> the new generic usb init calls for omap3-
+> and omap2430-based boards.
 
-I'll push this patch only for now.
+Great, pushing today.
 
 Tony
 
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+> Signed-off-by: Felipe Balbi <me@felipebalbi.com>
 > ---
->  include/asm-arm/arch-omap/dma.h  |    4 ++++
->  include/asm-arm/arch-omap/irqs.h |    4 ++++
->  2 files changed, 8 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/Makefile            |    1 +
+>  arch/arm/mach-omap2/board-omap3beagle.c |    4 ++++
+>  2 files changed, 5 insertions(+), 0 deletions(-)
 > 
-> diff --git a/include/asm-arm/arch-omap/dma.h b/include/asm-arm/arch-omap/dma.h
-> index be0431e..270e158 100644
-> --- a/include/asm-arm/arch-omap/dma.h
-> +++ b/include/asm-arm/arch-omap/dma.h
-> @@ -273,6 +273,10 @@
->  #define OMAP24XX_DMA_MS			63	/* S_DMA_62 */
->  #define OMAP242X_DMA_EXT_DMAREQ5	64	/* S_DMA_63 */
->  #define OMAP243X_DMA_EXT_DMAREQ6	64	/* S_DMA_63 */
-> +#define OMAP34XX_DMA_MCBSP1_TX		31	/* S_DMA_30 */
-> +#define OMAP34XX_DMA_MCBSP1_RX		32	/* S_DMA_31 */
-> +#define OMAP34XX_DMA_MCBSP2_TX		33	/* S_DMA_32 */
-> +#define OMAP34XX_DMA_MCBSP2_RX		34	/* S_DMA_33 */
->  #define OMAP34XX_DMA_EXT_DMAREQ3	64	/* S_DMA_63 */
->  #define OMAP34XX_DMA_AES2_TX		65	/* S_DMA_64 */
->  #define OMAP34XX_DMA_AES2_RX		66	/* S_DMA_65 */
-> diff --git a/include/asm-arm/arch-omap/irqs.h b/include/asm-arm/arch-omap/irqs.h
-> index 15446fd..4e185a8 100644
-> --- a/include/asm-arm/arch-omap/irqs.h
-> +++ b/include/asm-arm/arch-omap/irqs.h
-> @@ -316,7 +316,11 @@
->  #define INT_34XX_USIM_IRQ	35
->  #define INT_34XX_WDT3_IRQ	36
->  #define INT_34XX_SPI4_IRQ	48
-> +#define INT_34XX_MCBSP1_IRQ_TX	59
-> +#define INT_34XX_MCBSP1_IRQ_RX	60
->  #define INT_34XX_I2C3_IRQ	61
-> +#define INT_34XX_MCBSP2_IRQ_TX	62
-> +#define INT_34XX_MCBSP2_IRQ_RX	63
->  #define INT_34XX_PBIAS_IRQ	75
->  #define INT_34XX_OHCI_IRQ	76
->  #define INT_34XX_EHCI_IRQ	77
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 9b6f60e..725dae5 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -39,6 +39,7 @@ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
+>  					   board-3430sdp-flash.o
+>  obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
+>  obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
+> +					   usb-musb.o usb-ehci.o \
+>  					   board-sdp-hsmmc.o
+>  obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
+>  					   board-apollon-mmc.o	\
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index c03bb26..ad5ad2e 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -27,6 +27,8 @@
+>  
+>  #include <asm/arch/gpio.h>
+>  #include <asm/arch/board.h>
+> +#include <asm/arch/usb-musb.h>
+> +#include <asm/arch/usb-ehci.h>
+>  #include <asm/arch/common.h>
+>  
+>  static struct omap_uart_config omap3_beagle_uart_config __initdata = {
+> @@ -66,6 +68,8 @@ static void __init omap3_beagle_init(void)
+>  	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
+>  	omap_serial_init();
+>  	sdp_mmc_init();
+> +	usb_musb_init();
+> +	usb_ehci_init();
+>  }
+>  
+>  arch_initcall(omap3_beagle_i2c_init);
 > -- 
-> 1.5.5.1.67.gbdb8.dirty
+> 1.5.4.3.447.gc95b3
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
