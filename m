@@ -1,64 +1,52 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH] USB: BEAGLE: Add usb support for omap3beagle
-Date: Fri, 25 Apr 2008 00:46:00 +0300
-Message-ID: <1209073560-9355-1-git-send-email-me@felipebalbi.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/5] Updates on mcbsp driver
+Date: Thu, 24 Apr 2008 14:45:46 -0700
+Message-ID: <20080424214544.GP16834@atomide.com>
+References: <1209052465-13210-1-git-send-email-edubezval@gmail.com> <20080424211019.GC8794@kedavra.cpe.vivax.com.br> <1209071583.30582.186.camel@mort>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:35987 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752530AbYDXVoa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2008 17:44:30 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49559 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753403AbYDXVpx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2008 17:45:53 -0400
+Content-Disposition: inline
+In-Reply-To: <1209071583.30582.186.camel@mort>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Koen Kooi <koen@openembedded.org>, Felipe Balbi <felipe.balbi@nokia.com>, Felipe Balbi <me@felipebalbi.com>
+To: Igor Stoppa <igor.stoppa@nokia.com>
+Cc: me@felipebalbi.com, Eduardo Valentin <edubezval@gmail.com>, linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@indt.org.br>, ext Chandra shekhar <x0044955@ti.com>
 
-From: Felipe Balbi <felipe.balbi@nokia.com>
+* Igor Stoppa <igor.stoppa@nokia.com> [080424 14:20]:
+> On Fri, 2008-04-25 at 00:10 +0300, ext Felipe Balbi wrote:
+> > On Thu, Apr 24, 2008 at 11:54:20AM -0400, Eduardo Valentin wrote:
+> > > From: Eduardo Valentin <eduardo.valentin@indt.org.br>
+> > > 
+> > > This patch series updates mcbsp driver by transforming it into
+> > > a platform driver. This is a very initial implementation.
+> > > Basically it moves machine specific code to their correct place
+> > > and creates the platform driver necessary structures.
+> > > 
+> > > It must be working for previous boards. For omap34xx it should
+> > > work for mcbsp 1 and 2.
+> > > 
+> > > In order to do not break other places, I tryied to do not change
+> > > previous API. But future improvements are needed.
+> > > 
+> > > Clock definitions for  mcbsp 1 and 2 were also modified to add
+> > > correct support for omap34xx.
+> > > 
+> > > Comments are wellcome.
+> > 
+> > checkpatch doesn't complain, although i didn't really test it.
+> 
+> However I'd prefer see this patchset being merged with
+> 
+> [RFC/PATCH  1/1] McBSP support for 2430/34XX
+> 
+> and only later considered for integration.
 
-This patch is based on previous patch by
-Koen Kooi <koen@openembedded.org>. It uses
-the new generic usb init calls for omap3-
-and omap2430-based boards.
+Yeah, Chandra and Eduardo, can you guys put together a merged series
+of patches?
 
-Signed-off-by: Felipe Balbi <me@felipebalbi.com>
----
- arch/arm/mach-omap2/Makefile            |    1 +
- arch/arm/mach-omap2/board-omap3beagle.c |    4 ++++
- 2 files changed, 5 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 9b6f60e..725dae5 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -39,6 +39,7 @@ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
- 					   board-3430sdp-flash.o
- obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
- obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
-+					   usb-musb.o usb-ehci.o \
- 					   board-sdp-hsmmc.o
- obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
- 					   board-apollon-mmc.o	\
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index c03bb26..ad5ad2e 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -27,6 +27,8 @@
- 
- #include <asm/arch/gpio.h>
- #include <asm/arch/board.h>
-+#include <asm/arch/usb-musb.h>
-+#include <asm/arch/usb-ehci.h>
- #include <asm/arch/common.h>
- 
- static struct omap_uart_config omap3_beagle_uart_config __initdata = {
-@@ -66,6 +68,8 @@ static void __init omap3_beagle_init(void)
- 	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
- 	omap_serial_init();
- 	sdp_mmc_init();
-+	usb_musb_init();
-+	usb_ehci_init();
- }
- 
- arch_initcall(omap3_beagle_i2c_init);
--- 
-1.5.4.3.447.gc95b3
-
+Tony
