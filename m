@@ -1,52 +1,74 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/5] Updates on mcbsp driver
-Date: Thu, 24 Apr 2008 14:45:46 -0700
-Message-ID: <20080424214544.GP16834@atomide.com>
-References: <1209052465-13210-1-git-send-email-edubezval@gmail.com> <20080424211019.GC8794@kedavra.cpe.vivax.com.br> <1209071583.30582.186.camel@mort>
+Subject: Re: [PATCH 4/5] OMAP3xx: Add DMA and IRQ definition for McBSP 1
+	and 2
+Date: Thu, 24 Apr 2008 14:46:44 -0700
+Message-ID: <20080424214644.GQ16834@atomide.com>
+References: <1209052465-13210-1-git-send-email-edubezval@gmail.com> <1209052465-13210-2-git-send-email-edubezval@gmail.com> <1209052465-13210-3-git-send-email-edubezval@gmail.com> <1209052465-13210-4-git-send-email-edubezval@gmail.com> <1209052465-13210-5-git-send-email-edubezval@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49559 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50292 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753403AbYDXVpx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2008 17:45:53 -0400
+	with ESMTP id S1752958AbYDXVqo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Apr 2008 17:46:44 -0400
 Content-Disposition: inline
-In-Reply-To: <1209071583.30582.186.camel@mort>
+In-Reply-To: <1209052465-13210-5-git-send-email-edubezval@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Stoppa <igor.stoppa@nokia.com>
-Cc: me@felipebalbi.com, Eduardo Valentin <edubezval@gmail.com>, linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@indt.org.br>, ext Chandra shekhar <x0044955@ti.com>
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-* Igor Stoppa <igor.stoppa@nokia.com> [080424 14:20]:
-> On Fri, 2008-04-25 at 00:10 +0300, ext Felipe Balbi wrote:
-> > On Thu, Apr 24, 2008 at 11:54:20AM -0400, Eduardo Valentin wrote:
-> > > From: Eduardo Valentin <eduardo.valentin@indt.org.br>
-> > > 
-> > > This patch series updates mcbsp driver by transforming it into
-> > > a platform driver. This is a very initial implementation.
-> > > Basically it moves machine specific code to their correct place
-> > > and creates the platform driver necessary structures.
-> > > 
-> > > It must be working for previous boards. For omap34xx it should
-> > > work for mcbsp 1 and 2.
-> > > 
-> > > In order to do not break other places, I tryied to do not change
-> > > previous API. But future improvements are needed.
-> > > 
-> > > Clock definitions for  mcbsp 1 and 2 were also modified to add
-> > > correct support for omap34xx.
-> > > 
-> > > Comments are wellcome.
-> > 
-> > checkpatch doesn't complain, although i didn't really test it.
+* Eduardo Valentin <edubezval@gmail.com> [080424 09:03]:
+> From: Eduardo Valentin <eduardo.valentin@indt.org.br>
 > 
-> However I'd prefer see this patchset being merged with
-> 
-> [RFC/PATCH  1/1] McBSP support for 2430/34XX
-> 
-> and only later considered for integration.
+> This patch adds DMA and IRQ definition for McBSP 1 and 2
+> devices for omap34xx based systems.
 
-Yeah, Chandra and Eduardo, can you guys put together a merged series
-of patches?
+I'll push this patch only for now.
 
 Tony
+
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+> ---
+>  include/asm-arm/arch-omap/dma.h  |    4 ++++
+>  include/asm-arm/arch-omap/irqs.h |    4 ++++
+>  2 files changed, 8 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/asm-arm/arch-omap/dma.h b/include/asm-arm/arch-omap/dma.h
+> index be0431e..270e158 100644
+> --- a/include/asm-arm/arch-omap/dma.h
+> +++ b/include/asm-arm/arch-omap/dma.h
+> @@ -273,6 +273,10 @@
+>  #define OMAP24XX_DMA_MS			63	/* S_DMA_62 */
+>  #define OMAP242X_DMA_EXT_DMAREQ5	64	/* S_DMA_63 */
+>  #define OMAP243X_DMA_EXT_DMAREQ6	64	/* S_DMA_63 */
+> +#define OMAP34XX_DMA_MCBSP1_TX		31	/* S_DMA_30 */
+> +#define OMAP34XX_DMA_MCBSP1_RX		32	/* S_DMA_31 */
+> +#define OMAP34XX_DMA_MCBSP2_TX		33	/* S_DMA_32 */
+> +#define OMAP34XX_DMA_MCBSP2_RX		34	/* S_DMA_33 */
+>  #define OMAP34XX_DMA_EXT_DMAREQ3	64	/* S_DMA_63 */
+>  #define OMAP34XX_DMA_AES2_TX		65	/* S_DMA_64 */
+>  #define OMAP34XX_DMA_AES2_RX		66	/* S_DMA_65 */
+> diff --git a/include/asm-arm/arch-omap/irqs.h b/include/asm-arm/arch-omap/irqs.h
+> index 15446fd..4e185a8 100644
+> --- a/include/asm-arm/arch-omap/irqs.h
+> +++ b/include/asm-arm/arch-omap/irqs.h
+> @@ -316,7 +316,11 @@
+>  #define INT_34XX_USIM_IRQ	35
+>  #define INT_34XX_WDT3_IRQ	36
+>  #define INT_34XX_SPI4_IRQ	48
+> +#define INT_34XX_MCBSP1_IRQ_TX	59
+> +#define INT_34XX_MCBSP1_IRQ_RX	60
+>  #define INT_34XX_I2C3_IRQ	61
+> +#define INT_34XX_MCBSP2_IRQ_TX	62
+> +#define INT_34XX_MCBSP2_IRQ_RX	63
+>  #define INT_34XX_PBIAS_IRQ	75
+>  #define INT_34XX_OHCI_IRQ	76
+>  #define INT_34XX_EHCI_IRQ	77
+> -- 
+> 1.5.5.1.67.gbdb8.dirty
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
