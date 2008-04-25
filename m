@@ -1,65 +1,81 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: Android on N810 File System Problem
-Date: Fri, 25 Apr 2008 21:36:06 +0300
-Message-ID: <20080425183605.GA27479@kedavra.cpe.vivax.com.br>
-References: <6a56d69c0804241248w5e46efe8k757c9e5fb9e3ce22@mail.gmail.com> <48116F5C.9040009@googlemail.com>
+Subject: Re: pending patch
+Date: Fri, 25 Apr 2008 21:45:43 +0300
+Message-ID: <20080425184543.GB27479@kedavra.cpe.vivax.com.br>
+References: <20080425075245.GX23350@gandalf.research.nokia.com> <200804250235.21910.david-b@pacbell.net> <20080425101837.GZ23350@gandalf.research.nokia.com> <20080425163644.GC23025@atomide.com>
 Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:53946 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:57036 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753030AbYDYSem (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2008 14:34:42 -0400
+	with ESMTP id S932237AbYDYSoW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2008 14:44:22 -0400
 Content-Disposition: inline
-In-Reply-To: <48116F5C.9040009@googlemail.com>
+In-Reply-To: <20080425163644.GC23025@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: Jonathan Herriott <herriojr@gmail.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, ext David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org
 
-On Fri, Apr 25, 2008 at 07:42:52AM +0200, Dirk Behme wrote:
-> Jonathan,
->
-> CCing OMAP mailing list, there are more people to help.
->
-> Jonathan Herriott wrote:
->> Hi,
->>
->> I'm trying to get android installed on an N810.  I have successfully
->> installed the kernel, 
->
-> Which kernel (2.6.x, x == ?)  do you use on N810? If I remember  
-> correctly, with N810 people use an older kernel than the one coming with 
-> Android SDK.
->
->> but I am having major issues with the file
->> system.  I followed the tutorial you provided at
->> http://elinux.org/Android_on_OMAP, but I get a segmentation fault when
->> I try to init the kernel.  I made sure to use the same android SDK
->> version that was used to patch the kernel.
->>
->> My steps for reproduction are:
->>
->> 1) On my computer, unpack the ramdisk image to a folder.
->> 2) Untar system, dev, and data to the unpacked ramdisk image.
->> 3) Tar up the patched file system and scp it to /opt on the device.
->> Ssh to the device and unpack the file system in /opt
->> 4) Run umask 000 && chroot /opt/android /init
->> 5) Receive a segmentation fault.
->
-> Can you send us the complete segementation fault output?
+On Fri, Apr 25, 2008 at 09:36:44AM -0700, Tony Lindgren wrote:
+> * Felipe Balbi <felipe.balbi@nokia.com> [080425 03:19]:
+> > On Fri, Apr 25, 2008 at 02:35:21AM -0700, David Brownell wrote:
+> > > On Friday 25 April 2008, Felipe Balbi wrote:
+> > > > Hi Tony and Dave,
+> > > > 
+> > > > there's this one pending patch [1]. Do you guys have any comments on that
+> > > > one?
+> > > > 
+> > > > Author: Felipe Balbi <felipe.balbi@nokia.com>
+> > > > Date:   Thu Apr 17 17:34:20 2008 +0300
+> > > > 
+> > > >     USB: MUSB: Don't ignore disconnect on suspend
+> > > >     
+> > > >     As soon as a usb device is disconnect we should
+> > > >     fall into a_wait_bcon state, ignoring disconnect
+> > > >     irq will prevent this behaviour.
+> > > 
+> > > If it passes the OTG tests, fine.  I don't recall how the
+> > > HNP handoff's disconnect signaling is handled ... presumably
+> > > it's different from some "real" disconnect.
+> > 
+> > No opt available for now...
+> > The problem is that when you ignore disconnect on suspend you only ack
+> > the disconnect interrupt after attaching other device. It won't get us
+> > too much trouble besides the bit will still set in int_src, but still
+> > musb should ack disconnect as soon as it happens, shouldn't it? And
+> > right after that start the timer for switching from a_wait_bcon to
+> > a_wait_vfall and after that a_idle.
+> > 
+> > But as soon as I have and opt available, I'll try to run this test and
+> > report you if I can see any issues with this patch applied.
+> > 
+> > For now, let's keep it as pending so.
+> 
+> Yeah. I have not applied any musb/tusb patches because of being afraid
+> of the HS OTG OPT tests breaking.. Still have them all in my l-o mailbox
+> though. So let's plan on applying things after somebody (Felipe?) gets
+> to run HS OTG OPT on them for musb and tusb.
 
-Current linux-omap's head has all the necessary pieces to get n810
-working. Touchscreen, keypad, ambient light sensor, led, usb, everything
-is there.
+I think current driver won't pass opt at all. First of all we have a bug
+in queued control transfers that gives us an oops. Quite easy to
+reproduce: testusb -t 10 (just put a g_zero on the other side).
 
-Maybe it's easier to get android's patches on top of current linux-omap
-?
+According to Dave we have two patches on ehci to help with that. I'm
+looking for them in the archives without much luck but once I find them
+it should be easy to make any other necessary changes to musb driver
+(if any). Anyways, I get an oops in drivers/usb/hcd.c:unmap_urb_for_dma,
+right in the test if (is_root_hub(urb->dev), tracking back to musb, we
+would fall in __musb_giveback_urb()...
 
-but anyway, it seems that you don't have android's fs support on your
-kernel... Are you getting a "VFS: could not mount root" or something
-like that?
+Also, we don't have the messaging support (but that's piece of cake).
+
+> Of course this discussion should get moved to linux-usb-devel..
+
+Yeah, i'm waiting to get all opt and testusb stuff ready so I can
+prepare patches on top of mailine and send to linux-usb-devel. It's
+about time.
 
 -- 
 Best Regards,
