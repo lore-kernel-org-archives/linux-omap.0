@@ -1,69 +1,85 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/5] OMAP3xx: Add DMA and IRQ definition for McBSP 1
-	and 2
-Date: Fri, 25 Apr 2008 09:48:52 -0700
-Message-ID: <20080425164852.GE23025@atomide.com>
-References: <1209052465-13210-1-git-send-email-edubezval@gmail.com> <1209052465-13210-2-git-send-email-edubezval@gmail.com> <1209052465-13210-3-git-send-email-edubezval@gmail.com> <1209052465-13210-4-git-send-email-edubezval@gmail.com> <1209052465-13210-5-git-send-email-edubezval@gmail.com> <5A47E75E594F054BAF48C5E4FC4B92AB2E706B5A@dbde02.ent.ti.com> <a0580c510804242226w415ca9e4n745e05aa70ad5e57@mail.gmail.com> <5A47E75E594F054BAF48C5E4FC4B92AB2E706BB9@dbde02.ent.ti.com> <7EAD1AEEA7621C45899FE99123E124A001922B87@dbde01.ent.ti.com>
+Subject: Re: PRCM_CLKSRC_CTRL bits set incorrectly in omap2_en_osc_ck
+Date: Fri, 25 Apr 2008 10:44:02 -0700
+Message-ID: <20080425174402.GA7671@atomide.com>
+References: <20080425015654.GA7122@ubuntu-workstation> <alpine.DEB.1.00.0804250159350.14755@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64522 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762024AbYDYQs4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2008 12:48:56 -0400
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:63757 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760077AbYDYRoF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2008 13:44:05 -0400
 Content-Disposition: inline
-In-Reply-To: <7EAD1AEEA7621C45899FE99123E124A001922B87@dbde01.ent.ti.com>
+In-Reply-To: <alpine.DEB.1.00.0804250159350.14755@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Syed Mohammed, Khasim" <khasim@ti.com>
-Cc: "Gadiyar, Anand" <gadiyar@ti.com>, Eduardo Valentin <edubezval@gmail.com>, linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@indt.org.br>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Seth Forshee <seth.forshee@gmail.com>, linux-omap@vger.kernel.org
 
-* Syed Mohammed, Khasim <khasim@ti.com> [080424 23:18]:
+* Paul Walmsley <paul@pwsan.com> [080425 01:07]:
+> Hi Seth,
 > 
-> > > > >  #define OMAP24XX_DMA_MS                      63      /* S_DMA_62 */
-> > > > >  #define OMAP242X_DMA_EXT_DMAREQ5     64      /* S_DMA_63 */
-> > > > >  #define OMAP243X_DMA_EXT_DMAREQ6     64      /* S_DMA_63 */
-> > > > > +#define OMAP34XX_DMA_MCBSP1_TX               31      /* S_DMA_30 */
-> > > > > +#define OMAP34XX_DMA_MCBSP1_RX               32      /* S_DMA_31 */
-> > > > > +#define OMAP34XX_DMA_MCBSP2_TX               33      /* S_DMA_32 */
-> > > > > +#define OMAP34XX_DMA_MCBSP2_RX               34      /* S_DMA_33 */
-> > > > >  #define OMAP34XX_DMA_EXT_DMAREQ3     64      /* S_DMA_63 */
-> > > > >  #define OMAP34XX_DMA_AES2_TX         65      /* S_DMA_64 */
-> > > > >  #define OMAP34XX_DMA_AES2_RX         66      /* S_DMA_65 */
-> > > >
-> > > >  What's the point of this patch? Can't you use OMAP24XX_DMA_MCBSP*
-> > names?
-> > >
-> > > Yes, OMAP24XX_DMA_MCBSP* can be used as they have same values.
-> > > There is no big difference, but readability. That's the point
-> > > of this patch.
-> > > Defining names OMAP34XX_DMA_MCBSP* would let people to
-> > > write more readable code when specifying things specific for OMAP34XX.
-> > 
-> > I was under the impression that one wouldn't be writing code specific to
-> > OMAP34XX given that it would work with zero modifications on a 24XX as in
-> > this case. In such a case, would it not make more sense to use the more
-> > generic name? That was why I left it that way - anything common to a 24XX
-> > and a 34XX gets the OMAP24XX name.
-> > 
-> > __Quote__
-> > OMAP242X_* for 2420 specific names
-> > OMAP243X_* for 2430 specific names/names present from 243X onwards
-> > OMAP24XX_* for names common to all 24XX, 34XX
-> > OMAP34XX_* for 34XX specific names
-> > __End_Quote__
-> > 
+> On Thu, 24 Apr 2008, Seth Forshee wrote:
 > 
-> One small correction, can we make OMAP34XX as just OMAP3, today we have OMAP3410, 3420, 3430 and OMAP3530, 3503. We also have OMAP2530, but changing OMAP24XX to OMAP2 will be a painful task. Let's just take this up for OMAP3 alone.
+> > On my OMAP2430 board I was seeing the contents of DRAM become corrupted
+> > shortly after the kernel started.  I tracked this down to
+> > omap2_enable_osc_ck().  I think this function is intended to only clear
+> > the bits in OMAP_AUTOEXTCLKMODE_MASK, but it has the side-effect of
+> > setting all of the other bits in the register.  This includes setting
+> > some fields to reserved values.
+> > 
+> > I'm not 100% sure whether the problem is with omap2_enable_osc_ck() or
+> > prm_rmw_reg_bits() (maybe this should be masking off any bits not set in
+> > mask), but based on what I see elsewhere I think that
+> > omap2_enable_osc_ck() is to blame.  If this is the case, the patch below
+> > fixes the problem.
+> > 
+> > ----------
+> > From: Seth Forshee <seth.forshee@gmail.com>
+> > Subject: [PATCH] ARM: OMAP2: Set PRCM_CLKSRC_CTRL correctly in omap2_enable_osc_ck
+> > 
+> > This patch fixes an incorrect use of prm_rmw_reg_bits() in
+> > omap2_enable_osc_ck() which is changing bits in PRCM_CLKSRC_CTRL
+> > that are unrelated to the function it is performing.
+> > 
+> > Signed-off-by: Seth Forshee <seth.forshee@gmail.com>
+> 
+> Indeed, you have found a bug - thanks for the patch!
 
-Sounds good to me. Then for stuff that covers omap2 and omap3, we
-should just OMAP2_* unless somebody have a better name.
-
-And just to remind people, let's not start renaming things because
-of the patch noise it causes. Let's rather wait on clean-up like
-that until we have things in sync with mainline tree first.
-
-Regards,
+Pushing today.
 
 Tony
 
+
+> Acked-by: Paul Walmsley <paul@pwsan.com>
+> 
+> > ---
+> >  arch/arm/mach-omap2/clock24xx.c |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
+> > index 9b7fd15..e7968e7 100644
+> > --- a/arch/arm/mach-omap2/clock24xx.c
+> > +++ b/arch/arm/mach-omap2/clock24xx.c
+> > @@ -78,7 +78,7 @@ static u32 omap2_get_dpll_rate_24xx(struct clk *tclk)
+> >  static int omap2_enable_osc_ck(struct clk *clk)
+> >  {
+> >  
+> > -	prm_rmw_reg_bits(OMAP_AUTOEXTCLKMODE_MASK, ~OMAP_AUTOEXTCLKMODE_MASK,
+> > +	prm_rmw_reg_bits(OMAP_AUTOEXTCLKMODE_MASK, 0,
+> >  			 OMAP24XX_PRCM_CLKSRC_CTRL);
+> >  
+> >  	return 0;
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
+> 
+> - Paul
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
