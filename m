@@ -1,706 +1,124 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [RFC/PATCH] BQ27000/BQ27200 battery monitoring driver for OMAP34xx
-Date: Fri, 25 Apr 2008 05:49:55 -0500
-Message-ID: <8ce339cf29cd530453f35b8fe91240a8@felipebalbi.com>
-References: <004201c8a6b7$283188a0$018918ac@ent.ti.com>
+Subject: Re: [PATCH 1/1] ARM: OMAP: omap3beagle: register SD interface
+Date: Fri, 25 Apr 2008 05:52:07 -0500
+Message-ID: <a36ff0fb4439c66a79f59a2dc4632e84@felipebalbi.com>
+References: <3A21C48B-9730-4BB7-9095-B08510070F7D@student.utwente.nl> <7EAD1AEEA7621C45899FE99123E124A001922608@dbde01.ent.ti.com> <03879EA5-591C-4ED6-A3F5-8600F90CC8E7@student.utwente.nl> <200804220957.43599.david-b@pacbell.net> <E7D86ACF-575E-4A2B-8193-82A3A0B6FFCF@student.utwente.nl> <20080422170758.GB10347@kedavra.cpe.vivax.com.br> <BF39A517-6A64-4B10-B595-CBBF2F6BF5D0@student.utwente.nl> <20080424002120.GE27546@atomide.com> <372691CB-3FF8-43FE-9E0D-F771DD8996FE@student.utwente.nl> <20080424200023.GH16834@atomide.com> <94B0FFAD-7AB5-4B17-9FA6-79AD73E3CEBF@student.utwente.nl> <4811848F.70803@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:59708 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:59896 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751333AbYDYKt5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2008 06:49:57 -0400
-In-Reply-To: <004201c8a6b7$283188a0$018918ac@ent.ti.com>
+	with ESMTP id S1751333AbYDYKwJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2008 06:52:09 -0400
+In-Reply-To: <4811848F.70803@googlemail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-
-Some cosmetic comments below
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: Koen Kooi <k.kooi@student.utwente.nl>, linux-omap@vger.kernel.org
 
 
 
-On Fri, 25 Apr 2008 15:01:34 +0530, "Madhusudhan Chikkature Rajashekar"
-<madhu.cr@ti.com> wrote:
-> This patch provides the battery monitoring driver to monitor batteries
-with
-> BQ27000(HDQ) or BQ27200(i2C) chips.
-> On omap 3430 sdp BQ27000 battery is tested through the HDQ interface
-which
-> uses the earlier posted HDQ and BQ slave drivers.
-> The BQ27200 support is an extension to the BQ27000 driver as the register
-> set between BQ27000 and BQ27200 is the same.
+On Fri, 25 Apr 2008 09:13:19 +0200, Dirk Behme <dirk.behme@googlemail.com>
+wrote:
+> Koen Kooi wrote:
+>> -----BEGIN PGP SIGNED MESSAGE-----
+>> Hash: SHA1
+>>
+>>
+>> Op 24 apr 2008, om 22:00 heeft Tony Lindgren het volgende geschreven:
+>>
+>>> * Koen Kooi <k.kooi@student.utwente.nl> [080424 12:54]:
+>>>
+>>>>
+>>>> Op 24 apr 2008, om 02:21 heeft Tony Lindgren het volgende geschreven:
+>>>>
+>>>>> Hi,
+>>>>>
+>>>>> * Koen Kooi <k.kooi@student.utwente.nl> [080423 00:42]:
+>>>>>
+>>>>>> From dac3cdc5952ab39fa7ae0545d43e2daa95329b07 Mon Sep 17 00:00:00
+>>>>>> 2001
+>>>>>> From: Koen Kooi <koen@openembedded.org>
+>>>>>> Date: Wed, 23 Apr 2008 09:38:31 +0200
+>>>>>> Subject: [PATCH] omap3beagle: register SD interface
+>>>>>
+>>>>>
+>>>>> Thanks for updating it. I've pushed it now, but I had to apply some
+>>>>> parts manually because of recent changes. Can you please check it
+>>>>> got applied OK?
+>>>>
+>>>>
+>>>> I compiled an booted latest git and see this:
+>>>>
+>>>> 6>TWL4030: TRY attach Slave TWL4030-ID1 on Adapter OMAP I2C adapter 
+> [1]
+>>>> <1>Unable to handle kernel NULL pointer dereference at virtual 
+> address
+>>>> 00000000
+>>>> <1>pgd = c0004000
+>>>> <1>[00000000] *pgd=00000000
+>>>> Internal error: Oops: 5 [#1]
+>>>> Modules linked in:
+>>>> CPU: 0    Not tainted  (2.6.25-omap1 #11)
+>>>> PC is at __rcu_process_callbacks+0x1ac/0x244
+>>>> LR is at free_task+0x38/0x40
+>>>> pc : [<c0073924>]    lr : [<c0048b04>]    psr: 80000113
+>>>> sp : c7c1dda8  ip : c7c085c0  fp : c7c1ddc4
+>>>> r10: 00000000  r9 : c0405678  r8 : 00000001
+>>>> r7 : c0400d80  r6 : 00000005  r5 : 00000000  r4 : c040563c
+>>>> r3 : 00000000  r2 : 00000027  r1 : c7c78340  r0 : c7c085c0
+>>>> Flags: Nzcv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+>>>> Control: 00c5387f  Table: 80004018  DAC: 00000017
+>>>> Process swapper (pid: 1, stack limit = 0xc7c1c2e0)
+>>>>
+>>>> More bootlogs at
+>>>>
+> http://amethyst.openembedded.net/~koen/beagleboard/beagle-i2c-crash.txt
+>>>>
+>>>> I suspect it's somewhere in i2c, but I have no proof for that. Any
+>>>> quick guesses what might be causing this?
+>>>
+>>>
+>>> Can you try if reverting following helps?
+>>>
+>>>
+>
+http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commitdiff;h=38c50a71591628c38206aa402500074a6137a4dc
+>>>
+>>
+>> That doesn't seem to make a difference.
 > 
-> Thanks to Klaus.K Pedersen and Mikko Ylinen for the suggestions to add
-> support for BQ27200 chip as part of
-> this driver.
+> Just tried recent OMAP git with "gcc version 4.2.3 (Sourcery G++ Lite
+> 2008q1-126)" (download from today). With configuration in attachment
+> it boots fine:
 > 
+> -- cut --
+> ...
+> USB: No board-specific platform config found
+> i2c_omap i2c_omap.1: bus 1 rev3.12 at 2600 kHz
+> i2c_omap i2c_omap.2: bus 2 rev3.12 at 400 kHz
+> i2c_omap i2c_omap.3: bus 3 rev3.12 at 400 kHz
+> TWL4030: TRY attach Slave TWL4030-ID0 on Adapter OMAP I2C adapter [1]
+> TWL4030: TRY attach Slave TWL4030-ID1 on Adapter OMAP I2C adapter [1]
+> TWL4030: TRY attach Slave TWL4030-ID2 on Adapter OMAP I2C adapter [1]
+> TWL4030: TRY attach Slave TWL4030-ID3 on Adapter OMAP I2C adapter [1]
+
+but still some problems in twl4030 driver, you see:
+
+> i2c_omap i2c_omap.1: Transmit overflow
+> Unable to register interrupt subsystem[-5][748]
+> Trying to install chained interrupt handler for IRQ373
+> Initialized TWL4030 USB module
+> SCSI subsystem initialized
+> NET: Registered protocol family 2
+> ...
+> -- cut --
 > 
-> Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
+> No patches applied, only switched from arm-linux- to
+> arm-none-linux-gnueabi- in main Makefile.
 > 
-> ---
->  drivers/power/Kconfig           |   21 +
->  drivers/power/Makefile          |    1
->  drivers/power/bq27x00_battery.c |  556
-> ++++++++++++++++++++++++++++++++++++++++
->  drivers/w1/slaves/w1_bq27000.c  |    2
->  4 files changed, 579 insertions(+), 1 deletion(-)
-> 
-> Index: linux-omap-2.6/drivers/power/bq27x00_battery.c
-> ===================================================================
-> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-> +++ linux-omap-2.6/drivers/power/bq27x00_battery.c	2008-04-24
-> 10:50:53.631358952 +0530
-> @@ -0,0 +1,556 @@
-> +/*
-> + * linux/drivers/power/bq27x00_battery.c
-> + *
-> + * BQ27000/BQ27200 battery driver
-> + *
-> + * Copyright (C) 2008 Texas Instruments, Inc.
-> + *
-> + * Author: Texas Instruments
-> + *
-> + * This package is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-> + * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-> + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-> + *
-> + */
-> +#include <linux/module.h>
-> +#include <linux/param.h>
-> +#include <linux/jiffies.h>
-> +#include <linux/workqueue.h>
-> +#include <linux/delay.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/power_supply.h>
-> +
-> +#if defined(CONFIG_BATTERY_BQ27000)
-
-Here use ifdef
-
-> +#define BATTERY_BQ27000
-
-there's no need to add this one as you can use the Kconfig option
-
-> +#include "../w1/w1.h"
-> +#endif
-> +#if defined(CONFIG_BATTERY_BQ27200)
-> +#define BATTERY_BQ27200
-> +#include <linux/i2c.h>
-> +#endif
-> +
-> +#define BQ27x00_REG_TEMP		0x06
-> +#define BQ27x00_REG_VOLT		0x08
-> +#define BQ27x00_REG_RSOC		0x0B /* Relative State-of-Charge */
-> +#define BQ27x00_REG_AI			0x14
-> +#define BQ27x00_REG_FLAGS		0x0A
-> +#define HIGH_BYTE(A)			((A) << 8)
-> +
-> +#if defined(BATTERY_BQ27000)
-> +extern int w1_bq27000_read(struct device *dev, u8 reg);
-> +#endif
-> +
-> +struct bq27x00_device_info;
-> +struct bq27x00_access_methods {
-> +	int (*read)(u8 reg, int *rt_value, int b_single,
-> +		struct bq27x00_device_info *di);
-> +};
-> +
-> +struct bq27x00_device_info {
-> +	struct device 		*dev;
-> +#if defined(BATTERY_BQ27000)
-
-#ifdef CONFIG_BATERRY_BQ27000
-
-> +	struct device		*w1_dev;
-> +#endif
-> +#if defined(BATTERY_BQ27200)
-
-#ifdef CONFIG_BATTERY_BQ27200
-
-> +	struct i2c_client *client;
-> +#endif
-> +	unsigned long		update_time;
-> +	int			voltage_uV;
-> +	int			current_uA;
-> +	int			temp_C;
-> +	int			charge_rsoc;
-> +	struct bq27x00_access_methods	*bus;
-> +	struct power_supply	bat;
-> +	struct delayed_work	monitor_work;
-> +};
-> +
-> +static unsigned int cache_time = 60000;
-> +module_param(cache_time, uint, 0644);
-> +MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
-> +
-> +static enum power_supply_property bq27x00_battery_props[] = {
-> +	POWER_SUPPLY_PROP_PRESENT,
-> +	POWER_SUPPLY_PROP_VOLTAGE_NOW,
-> +	POWER_SUPPLY_PROP_CURRENT_NOW,
-> +	POWER_SUPPLY_PROP_CHARGE_NOW,
-> +	POWER_SUPPLY_PROP_CAPACITY,
-> +	POWER_SUPPLY_PROP_TEMP,
-> +};
-> +
-> +static int bq27x00_read(u8 reg, int *rt_value, int b_single,
-> +	struct bq27x00_device_info *di);
-> +
-> +#if defined(BATTERY_BQ27000)
-> +static int bq27000_battery_probe(struct platform_device *dev);
-> +static int bq27000_battery_remove(struct platform_device *dev);
-> +#ifdef CONFIG_PM
-> +static int bq27000_battery_suspend(struct platform_device *dev,
-> +	pm_message_t state);
-> +static int bq27000_battery_resume(struct platform_device *dev);
-> +#endif
-> +
-> +static struct platform_driver bq27000_battery_driver = {
-> +	.probe = bq27000_battery_probe,
-> +	.remove = bq27000_battery_remove,
-> +#ifdef CONFIG_PM
-> +	.suspend = bq27000_battery_suspend,
-> +	.resume = bq27000_battery_resume,
-> +#endif
-> +	.driver = {
-> +		.name = "bq27000-bat",
-> +	},
-> +};
-> +#endif
-> +
-> +#if defined(BATTERY_BQ27200)
-> +static int bq27200_battery_probe(struct i2c_client *client);
-> +static int bq27200_battery_remove(struct i2c_client *client);
-> +static int bq27200_battery_suspend(struct i2c_client *client,
-> +		pm_message_t mesg);
-> +static int bq27200_battery_resume(struct i2c_client *client);
-> +static struct i2c_driver bq27200_battery_driver = {
-> +	.driver = {
-> +		.name   = "bq27200-bat",
-> +	},
-> +	.probe  = bq27200_battery_probe,
-> +	.remove = bq27200_battery_remove,
-> +#ifdef CONFIG_PM
-> +	.suspend = bq27200_battery_suspend,
-> +	.resume = bq27200_battery_resume,
-> +#endif
-> +};
-> +#endif
-> +
-> +/*
-> + * Return the battery temperature in Celcius degrees
-> + * Or < 0 if something fails.
-> + */
-> +static int bq27x00_battery_temperature(struct bq27x00_device_info *di)
-> +{
-> +	int ret, temp = 0;
-> +
-> +	ret = bq27x00_read(BQ27x00_REG_TEMP, &temp, 0, di);
-> +	if (ret) {
-> +		pr_err("BQ27x00 battery driver:"
-> +			"Error reading temperature from the battery\n");
-> +		return ret;
-> +	}
-> +
-> +	return (temp >> 2) - 273;
-> +}
-> +
-> +/*
-> + * Return the battery Voltage in milivolts
-> + * Or < 0 if something fails.
-> + */
-> +static int bq27x00_battery_voltage(struct bq27x00_device_info *di)
-> +{
-> +	int ret, volt = 0;
-> +
-> +	ret = bq27x00_read(BQ27x00_REG_VOLT, &volt, 0, di);
-> +	if (ret) {
-> +		pr_err("BQ27x00 battery driver:"
-> +			"Error reading battery voltage from the battery\n");
-> +		return ret;
-> +	}
-> +
-> +	return volt;
-> +}
-> +
-> +/*
-> + * Return the battery average current
-> + * Note that current can be negative signed as well
-> + * Or 0 if something fails.
-> + */
-> +static int bq27x00_battery_current(struct bq27x00_device_info *di)
-> +{
-> +	int ret, curr = 0, flags = 0;
-> +
-> +	ret = bq27x00_read(BQ27x00_REG_AI, &curr, 0, di);
-> +	if (ret) {
-> +		pr_err("BQ27x00 battery driver:"
-> +			"Error reading current from the battery\n");
-> +		return 0;
-> +	}
-> +	ret = bq27x00_read(BQ27x00_REG_FLAGS, &flags, 0, di);
-> +	if (ret < 0) {
-> +		pr_err("BQ27x00 battery driver:"
-> +			"Error reading battery flags\n");
-> +		return 0;
-> +	}
-> +	if ((flags & (1 << 7)) != 0) {
-> +		pr_debug("Negative current\n");
-> +		return -curr;
-> +	} else {
-> +		return curr;
-> +	}
-> +}
-> +
-> +/*
-> + * Return the battery Relative State-of-Charge
-> + * Or < 0 if something fails.
-> + */
-> +static int bq27x00_battery_rsoc(struct bq27x00_device_info *di)
-> +{
-> +	int ret, rsoc = 0;
-> +
-> +	ret = bq27x00_read(BQ27x00_REG_RSOC, &rsoc, 1, di);
-> +	if (ret) {
-> +		pr_err("BQ27x00 battery driver:"
-> +			"Error reading battery Relative"
-> +			"State-of-Charge\n");
-> +		return ret;
-> +	}
-> +	return rsoc;
-> +}
-> +
-> +#if defined(BATTERY_BQ27000)
-> +static int bq27000_read(u8 reg, int *rt_value, int b_single,
-> +	struct bq27x00_device_info *di)
-> +{
-> +	u8 val;
-> +
-> +	val = w1_bq27000_read(di->w1_dev, reg);
-> +	*rt_value = val;
-> +
-> +	if (!b_single) {
-> +		val = 0;
-> +		val = w1_bq27000_read(di->w1_dev, reg + 1);
-> +		*rt_value +=  HIGH_BYTE((int) val);
-> +	}
-> +
-> +	return 0;
-> +}
-> +#else
-> +#define bq27000_read NULL
-
-this should be defined as 0 or an static inline int [...] { return 0; }
-
-> +#endif
-> +
-> +#if defined(BATTERY_BQ27200)
-> +static int bq27200_read(u8 reg, int *rt_value, int b_single,
-> +	struct bq27x00_device_info *di)
-> +{
-> +	struct i2c_client *client = di->client;
-> +	struct i2c_msg msg[1];
-> +	unsigned char data[2];
-> +	int err;
-> +
-> +	if (!client->adapter)
-> +		return -ENODEV;
-> +
-> +	msg->addr = client->addr;
-> +	msg->flags = 0;
-> +	msg->len = 1;
-> +	msg->buf = data;
-> +
-> +	data[0] = reg;
-> +	err = i2c_transfer(client->adapter, msg, 1);
-> +
-> +	if (err >= 0) {
-> +		if (!b_single)
-> +			msg->len = 2;
-> +		else
-> +			msg->len = 1;
-> +
-> +		msg->flags = I2C_M_RD;
-> +		err = i2c_transfer(client->adapter, msg, 1);
-> +		if (err >= 0) {
-> +			if (!b_single)
-> +				*rt_value = data[1] | HIGH_BYTE(data[0]);
-> +			else
-> +				*rt_value = data[0];
-> +
-> +			return 0;
-> +		} else {
-> +			pr_err("BQ27200 I2C read failed\n");
-> +			return err;
-> +		}
-> +	} else {
-> +		pr_err("BQ27200 I2C write failed\n");
-> +		return err;
-> +	}
-> +}
-> +#else
-> +#define bq27200_read NULL
-
-same here
-
-> +#endif
-> +
-> +static int bq27x00_read(u8 reg, int *rt_value, int b_single,
-> +	struct bq27x00_device_info *di)
-> +{
-> +	int ret;
-> +
-> +	ret = di->bus->read(reg, rt_value, b_single, di);
-> +	return ret;
-> +}
-> +
-> +/*
-> + * Read the battery temp, voltage, current and relative state of charge.
-> + */
-> +static void bq27x00_battery_read_status(struct bq27x00_device_info *di)
-> +{
-> +	if (di->update_time && time_before(jiffies, di->update_time +
-> +					msecs_to_jiffies(cache_time)))
-> +		return;
-> +
-> +	di->temp_C = bq27x00_battery_temperature(di);
-> +	di->voltage_uV = bq27x00_battery_voltage(di);
-> +	di->current_uA = bq27x00_battery_current(di);
-> +	di->charge_rsoc = bq27x00_battery_rsoc(di);
-> +
-> +	di->update_time = jiffies;
-> +
-> +	return;
-> +}
-> +
-> +static void bq27x00_battery_work(struct delayed_work *work)
-> +{
-> +	struct bq27x00_device_info *di = container_of(work,
-> +		struct bq27x00_device_info, monitor_work);
-> +
-> +	bq27x00_battery_read_status(di);
-> +	schedule_delayed_work(&di->monitor_work, 100);
-> +	return;
-> +}
-> +
-> +#define to_bq27x00_device_info(x) container_of((x), \
-> +				struct bq27x00_device_info, bat);
-> +
-> +static int bq27x00_battery_get_property(struct power_supply *psy,
-> +					enum power_supply_property psp,
-> +					union power_supply_propval *val)
-> +{
-> +	struct bq27x00_device_info *di = to_bq27x00_device_info(psy);
-> +
-> +	switch (psp) {
-> +	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-> +		val->intval = di->voltage_uV;
-> +		break;
-> +	case POWER_SUPPLY_PROP_CURRENT_NOW:
-> +		val->intval = di->current_uA;
-> +		break;
-> +	case POWER_SUPPLY_PROP_CHARGE_NOW:
-> +		val->intval = di->charge_rsoc;
-> +		break;
-> +	case POWER_SUPPLY_PROP_TEMP:
-> +		val->intval = di->temp_C;
-> +		break;
-> +	case POWER_SUPPLY_PROP_CAPACITY:
-> +		val->intval = di->charge_rsoc;
-> +		break;
-> +	case POWER_SUPPLY_PROP_PRESENT:
-> +		if (di->voltage_uV == 0)
-> +			val->intval = 0;
-> +		else
-> +			val->intval = 1;
-> +		break;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static void bq27x00_powersupply_init(struct bq27x00_device_info *di)
-> +{
-> +	di->bat.type = POWER_SUPPLY_TYPE_BATTERY;
-> +	di->bat.properties = bq27x00_battery_props;
-> +	di->bat.num_properties = ARRAY_SIZE(bq27x00_battery_props);
-> +	di->bat.get_property = bq27x00_battery_get_property;
-> +	di->bat.external_power_changed = NULL;
-> +	return;
-> +}
-> +
-> +#ifdef BATTERY_BQ27200
-> +static int bq27200_battery_probe(struct i2c_client *client)
-> +{
-> +	struct bq27x00_device_info *di;
-> +	struct bq27x00_access_methods *bus;
-> +	int retval = 0;
-> +
-> +	di = kzalloc(sizeof(*di), GFP_KERNEL);
-> +	if (!di) {
-> +		pr_err("BQ27000 battery driver:"
-> +			"Failed to allocate device info structure\n");
-> +		return -ENOMEM;
-> +	}
-> +
-> +	bus = kzalloc(sizeof(*bus), GFP_KERNEL);
-> +	if (!bus) {
-> +		pr_err("BQ27000 battery driver:"
-> +			"Failed to allocate access method structure\n");
-> +		kfree(di);
-> +		return -ENOMEM;
-> +	}
-> +
-> +	i2c_set_clientdata(client, di);
-> +	di->dev = &client->dev;
-> +	di->bat.name = "bq27200";
-> +	bus->read = &bq27200_read;
-> +	di->bus = bus;
-> +	di->client = client;
-> +
-> +	bq27x00_powersupply_init(di);
-> +
-> +	retval = power_supply_register(&client->dev, &di->bat);
-> +	if (retval) {
-> +		pr_err("BQ27200 battery driver: Failed to register battery\n");
-> +		goto batt_failed;
-> +	}
-> +
-> +	INIT_DELAYED_WORK(&di->monitor_work, bq27x00_battery_work);
-> +	schedule_delayed_work(&di->monitor_work, 100);
-> +
-> +	return 0;
-> +
-> +batt_failed:
-> +	kfree(bus);
-> +	kfree(di);
-> +	return retval;
-> +}
-> +
-> +static int bq27200_battery_remove(struct i2c_client *client)
-> +{
-> +	struct bq27x00_device_info *di  = i2c_get_clientdata(client);
-> +
-> +	flush_scheduled_work();
-> +	power_supply_unregister(&di->bat);
-> +	kfree(di);
-> +
-> +	return 0;
-> +}
-> +
-> +#ifdef CONFIG_PM
-> +static int bq27200_battery_suspend(struct i2c_client *client,
-> pm_message_t mesg)
-> +{
-> +	struct bq27x00_device_info *di  = i2c_get_clientdata(client);
-> +
-> +	cancel_delayed_work(&di->monitor_work);
-> +	return 0;
-> +}
-> +
-> +static int bq27200_battery_resume(struct i2c_client *client)
-> +{
-> +	struct bq27x00_device_info *di  = i2c_get_clientdata(client);
-> +
-> +	schedule_delayed_work(&di->monitor_work, 0);
-> +	return 0;
-> +}
-> +#endif
-> +#endif
-
-put a comment indicating which ifdef you're closing, like:
-
-#endif        /* CONFIG_PM */
-
-> +
-> +#ifdef BATTERY_BQ27000
-> +static int bq27000_battery_probe(struct  platform_device *pdev)
-> +{
-> +	struct bq27x00_device_info *di;
-> +	struct bq27x00_access_methods *bus;
-> +	int retval = 0;
-> +
-> +	di = kzalloc(sizeof(*di), GFP_KERNEL);
-> +	if (!di) {
-> +		pr_err("BQ27000 battery driver:"
-> +			"Failed to allocate device info structure\n");
-> +		return -ENOMEM;
-> +	}
-> +
-> +	bus = kzalloc(sizeof(*bus), GFP_KERNEL);
-> +	if (!bus) {
-> +		pr_err("BQ27000 battery driver:"
-> +			"Failed to allocate access method structure\n");
-> +		kfree(di);
-> +		return -ENOMEM;
-> +	}
-> +
-> +	platform_set_drvdata(pdev, di);
-> +
-> +	di->dev = &pdev->dev;
-> +	di->w1_dev = pdev->dev.parent;
-> +	di->bat.name = "bq27000";
-> +	bus->read = &bq27000_read;
-> +	di->bus = bus;
-> +
-> +	bq27x00_powersupply_init(di);
-> +
-> +	retval = power_supply_register(&pdev->dev, &di->bat);
-> +	if (retval) {
-> +		pr_err("BQ27000 battery driver: Failed to register battery\n");
-> +		goto batt_failed;
-> +	}
-> +
-> +	INIT_DELAYED_WORK(&di->monitor_work, bq27x00_battery_work);
-> +	schedule_delayed_work(&di->monitor_work, 50);
-> +
-> +	return 0;
-> +
-> +batt_failed:
-> +	kfree(bus);
-> +	kfree(di);
-> +	return retval;
-> +}
-> +
-> +static int bq27000_battery_remove(struct  platform_device *pdev)
-> +{
-> +	struct bq27x00_device_info *di = platform_get_drvdata(pdev);
-> +
-> +	flush_scheduled_work();
-> +	power_supply_unregister(&di->bat);
-> +	platform_set_drvdata(pdev, NULL);
-> +	kfree(di);
-> +
-> +	return 0;
-> +}
-> +
-> +#ifdef CONFIG_PM
-> +static int bq27000_battery_suspend(struct platform_device *pdev,
-> +	pm_message_t state)
-> +{
-> +	struct bq27x00_device_info *di = platform_get_drvdata(pdev);
-> +
-> +	cancel_delayed_work(&di->monitor_work);
-> +	return 0;
-> +}
-> +
-> +static int bq27000_battery_resume(struct platform_device *pdev)
-> +{
-> +	struct bq27x00_device_info *di = platform_get_drvdata(pdev);
-> +
-> +	schedule_delayed_work(&di->monitor_work, 0);
-> +	return 0;
-> +}
-> +#endif
-> +#endif
-> +
-> +static int __init bq27x00_battery_init(void)
-> +{
-> +	int status = 0;
-> +
-> +#if defined(BATTERY_BQ27000)
-> +	status = platform_driver_register(&bq27000_battery_driver);
-> +	if (status)
-> +		printk(KERN_ERR "Unable to register BQ27000 driver\n");
-> +#endif
-> +#if defined(BATTERY_BQ27200)
-> +	status = i2c_add_driver(&bq27200_battery_driver);
-> +		printk(KERN_ERR "Unable to register BQ27200 driver\n");
-> +#endif
-> +	return status;
-> +}
-> +
-> +static void __exit bq27x00_battery_exit(void)
-> +{
-> +#if defined(BATTERY_BQ27000)
-> +	platform_driver_unregister(&bq27000_battery_driver);
-> +#endif
-> +#if defined(BATTERY_BQ27200)
-> +	i2c_del_driver(&bq27200_battery_driver);
-> +#endif
-> +}
-> +
-> +module_init(bq27x00_battery_init);
-> +module_exit(bq27x00_battery_exit);
-> +
-> +MODULE_AUTHOR("Texas Instruments");
-> +MODULE_DESCRIPTION("BQ27x00 battery moniter driver");
-> +MODULE_LICENSE("GPL");
-> Index: linux-omap-2.6/drivers/power/Kconfig
-> ===================================================================
-> --- linux-omap-2.6.orig/drivers/power/Kconfig	2008-04-08
-> 17:15:04.000000000 +0530
-> +++ linux-omap-2.6/drivers/power/Kconfig	2008-04-21 08:25:00.000000000
-> +0530
-> @@ -49,4 +49,25 @@
->  	help
->  	  Say Y to enable support for the battery on the OLPC laptop.
-> 
-> +config BATTERY_BQ27x00
-> +	tristate "BQ27x00 battery driver"
-> +	help
-> +	  Say Y here to enable support for batteries with BQ27000 or BQ27200
-> chip.
-> +
-> +config BATTERY_BQ27000
-> +	bool "BQ27000 battery driver"
-> +	depends on BATTERY_BQ27x00
-> +	select W1
-> +	select W1_SLAVE_BQ27000
-> +	help
-> +	  Say Y here to enable support for batteries with BQ27000(HDQ) chip.
-> +
-> +config BATTERY_BQ27200
-> +	bool "BQ27200 battery driver"
-> +	depends on BATTERY_BQ27x00
-> +	select I2C
-> +	select I2C_OMAP
-> +	help
-> +	  Say Y here to enable support for batteries with BQ27200(I2C) chip.
-> +
->  endif # POWER_SUPPLY
-> Index: linux-omap-2.6/drivers/power/Makefile
-> ===================================================================
-> --- linux-omap-2.6.orig/drivers/power/Makefile	2008-04-08
-> 17:15:04.000000000 +0530
-> +++ linux-omap-2.6/drivers/power/Makefile	2008-04-20 17:03:51.000000000
-> +0530
-> @@ -20,3 +20,4 @@
->  obj-$(CONFIG_BATTERY_DS2760)	+= ds2760_battery.o
->  obj-$(CONFIG_BATTERY_PMU)	+= pmu_battery.o
->  obj-$(CONFIG_BATTERY_OLPC)	+= olpc_battery.o
-> +obj-$(CONFIG_BATTERY_BQ27x00)   += bq27x00_battery.o
-> Index: linux-omap-2.6/drivers/w1/slaves/w1_bq27000.c
-> ===================================================================
-> --- linux-omap-2.6.orig/drivers/w1/slaves/w1_bq27000.c	2008-04-08
-> 17:15:05.000000000 +0530
-> +++ linux-omap-2.6/drivers/w1/slaves/w1_bq27000.c	2008-04-20
-> 17:08:55.000000000 +0530
-> @@ -59,7 +59,7 @@
->  	int id = 1;
->  	struct platform_device *pdev;
-> 
-> -	pdev = platform_device_alloc("omap-bq2700-battery", id);
-> +	pdev = platform_device_alloc("bq27000-bat", id);
-
-do you really need to change the name here?
-It seems that this change doesn't belong to this patch.
-
->  	if (!pdev) {
->  		ret = -ENOMEM;
->  		return ret;
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Dirk
 -- 
 Best Regards,
 
