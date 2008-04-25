@@ -1,40 +1,93 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: PRCM: 34XX: Add PARENT_CONTROLS_CLOCK flag to dpll5_m2_ck
-Date: Fri, 25 Apr 2008 11:53:29 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0804251152550.28937@utopia.booyaka.com>
-References: <874p9s3ebw.fsf@trdhcp146196.ntc.nokia.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH 4/5] OMAP3xx: Add DMA and IRQ definition for McBSP 1	and
+ 2
+Date: Fri, 25 Apr 2008 23:40:00 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB2E76E128@dbde02.ent.ti.com>
+References: <1209052465-13210-1-git-send-email-edubezval@gmail.com>
+ <1209052465-13210-2-git-send-email-edubezval@gmail.com>
+ <1209052465-13210-3-git-send-email-edubezval@gmail.com>
+ <1209052465-13210-4-git-send-email-edubezval@gmail.com>
+ <1209052465-13210-5-git-send-email-edubezval@gmail.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB2E706B5A@dbde02.ent.ti.com>
+ <20080425164618.GD23025@atomide.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-802455447-1209146009=:28937"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33262 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757017AbYDYRxa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2008 13:53:30 -0400
-In-Reply-To: <874p9s3ebw.fsf@trdhcp146196.ntc.nokia.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:35853 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1765427AbYDYSLP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2008 14:11:15 -0400
+In-Reply-To: <20080425164618.GD23025@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-15?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
---155748971-802455447-1209146009=:28937
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-On Wed, 23 Apr 2008, H=F6gander Jouni wrote:
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Friday, April 25, 2008 10:16 PM
+> To: Gadiyar, Anand
+> Cc: Eduardo Valentin; linux-omap@vger.kernel.org; Eduardo Valentin
+> Subject: Re: [PATCH 4/5] OMAP3xx: Add DMA and IRQ definition
+> for McBSP 1 and 2
+>
+> * Gadiyar, Anand <gadiyar@ti.com> [080424 22:12]:
+> > <snip>
+> > > diff --git a/include/asm-arm/arch-omap/dma.h
+> > > b/include/asm-arm/arch-omap/dma.h
+> > > index be0431e..270e158 100644
+> > > --- a/include/asm-arm/arch-omap/dma.h
+> > > +++ b/include/asm-arm/arch-omap/dma.h
+> > > @@ -273,6 +273,10 @@
+> > >  #define OMAP24XX_DMA_MS                      63      /* S_DMA_62 */
+> > >  #define OMAP242X_DMA_EXT_DMAREQ5     64      /* S_DMA_63 */
+> > >  #define OMAP243X_DMA_EXT_DMAREQ6     64      /* S_DMA_63 */
+> > > +#define OMAP34XX_DMA_MCBSP1_TX               31      /* S_DMA_30 */
+> > > +#define OMAP34XX_DMA_MCBSP1_RX               32      /* S_DMA_31 */
+> > > +#define OMAP34XX_DMA_MCBSP2_TX               33      /* S_DMA_32 */
+> > > +#define OMAP34XX_DMA_MCBSP2_RX               34      /* S_DMA_33 */
+> > >  #define OMAP34XX_DMA_EXT_DMAREQ3     64      /* S_DMA_63 */
+> > >  #define OMAP34XX_DMA_AES2_TX         65      /* S_DMA_64 */
+> > >  #define OMAP34XX_DMA_AES2_RX         66      /* S_DMA_65 */
+> >
+> > What's the point of this patch? Can't you use OMAP24XX_DMA_MCBSP* names?
+> >
+> > > diff --git a/include/asm-arm/arch-omap/irqs.h
+> > > b/include/asm-arm/arch-omap/irqs.h
+> > > index 15446fd..4e185a8 100644
+> > > --- a/include/asm-arm/arch-omap/irqs.h
+> > > +++ b/include/asm-arm/arch-omap/irqs.h
+> > > @@ -316,7 +316,11 @@
+> > >  #define INT_34XX_USIM_IRQ    35
+> > >  #define INT_34XX_WDT3_IRQ    36
+> > >  #define INT_34XX_SPI4_IRQ    48
+> > > +#define INT_34XX_MCBSP1_IRQ_TX       59
+> > > +#define INT_34XX_MCBSP1_IRQ_RX       60
+> > >  #define INT_34XX_I2C3_IRQ    61
+> > > +#define INT_34XX_MCBSP2_IRQ_TX       62
+> > > +#define INT_34XX_MCBSP2_IRQ_RX       63
+> > >  #define INT_34XX_PBIAS_IRQ   75
+> > >  #define INT_34XX_OHCI_IRQ    76
+> > >  #define INT_34XX_EHCI_IRQ    77
+> >
+> > Ditto with the IRQ lines?
+> >
+> > @Tony,
+> > It would be nice to give people some time to take a look at
+> the patches before they get pushed.
+>
+> Sorry, it seemed like a safe patch to push. I will revert it
+> today.
 
-> This patch removes following message on dpll5_m2_ck enable and
-> disable:
->=20
-> clock.c: Enable for dpll5_m2_ck without enable code
-> clock: clk_disable called on independent clock dpll5_m2_ck which has no e=
-nable_reg
->=20
-> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+I'm sorry I snapped at you guys earlier - it's just that this DMA
+code was some of my earliest work in the community and I'm a little
+passionate about it. This particular request line cleanup went
+through several iterations and I thought I'd done it reasonably well.
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
+Regards,
 
-- Paul
---155748971-802455447-1209146009=:28937--
+Anand
