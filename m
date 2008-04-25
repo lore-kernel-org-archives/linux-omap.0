@@ -1,51 +1,74 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: pending patch
-Date: Fri, 25 Apr 2008 10:52:47 +0300
-Message-ID: <20080425075245.GX23350@gandalf.research.nokia.com>
-Reply-To: felipe.balbi@nokia.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: PRCM_CLKSRC_CTRL bits set incorrectly in omap2_en_osc_ck
+Date: Fri, 25 Apr 2008 02:01:42 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0804250159350.14755@utopia.booyaka.com>
+References: <20080425015654.GA7122@ubuntu-workstation>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:17292 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757340AbYDYHx5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2008 03:53:57 -0400
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:42855 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756554AbYDYIBo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2008 04:01:44 -0400
+In-Reply-To: <20080425015654.GA7122@ubuntu-workstation>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org
-Cc: david-b@pacbell.net
+To: Seth Forshee <seth.forshee@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Tony and Dave,
+Hi Seth,
 
-there's this one pending patch [1]. Do you guys have any comments on that
-one?
+On Thu, 24 Apr 2008, Seth Forshee wrote:
 
-Author: Felipe Balbi <felipe.balbi@nokia.com>
-Date:   Thu Apr 17 17:34:20 2008 +0300
+> On my OMAP2430 board I was seeing the contents of DRAM become corrupted
+> shortly after the kernel started.  I tracked this down to
+> omap2_enable_osc_ck().  I think this function is intended to only clear
+> the bits in OMAP_AUTOEXTCLKMODE_MASK, but it has the side-effect of
+> setting all of the other bits in the register.  This includes setting
+> some fields to reserved values.
+> 
+> I'm not 100% sure whether the problem is with omap2_enable_osc_ck() or
+> prm_rmw_reg_bits() (maybe this should be masking off any bits not set in
+> mask), but based on what I see elsewhere I think that
+> omap2_enable_osc_ck() is to blame.  If this is the case, the patch below
+> fixes the problem.
+> 
+> ----------
+> From: Seth Forshee <seth.forshee@gmail.com>
+> Subject: [PATCH] ARM: OMAP2: Set PRCM_CLKSRC_CTRL correctly in omap2_enable_osc_ck
+> 
+> This patch fixes an incorrect use of prm_rmw_reg_bits() in
+> omap2_enable_osc_ck() which is changing bits in PRCM_CLKSRC_CTRL
+> that are unrelated to the function it is performing.
+> 
+> Signed-off-by: Seth Forshee <seth.forshee@gmail.com>
 
-    USB: MUSB: Don't ignore disconnect on suspend
-    
-    As soon as a usb device is disconnect we should
-    fall into a_wait_bcon state, ignoring disconnect
-    irq will prevent this behaviour.
-    
-    Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+Indeed, you have found a bug - thanks for the patch!
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index c5816a2..019898a 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -659,7 +659,7 @@ static irqreturn_t musb_stage0_irq(struct musb *musb, u8 int_usb,
-                        switch (musb->xceiv.state) {
- #ifdef CONFIG_USB_OTG
-                        case OTG_STATE_A_SUSPEND:
--                               musb->ignore_disconnect = 1;
-+                               musb->ignore_disconnect = 0;
-                                musb_g_reset(musb);
-                                /* FALLTHROUGH */
-                        case OTG_STATE_A_WAIT_BCON:     /* OPT TD.4.7-900ms */
+Acked-by: Paul Walmsley <paul@pwsan.com>
 
-[1] http://marc.info/?l=linux-omap&m=120844324526642&w=2
--- 
-	- Balbi
+> ---
+>  arch/arm/mach-omap2/clock24xx.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
+> index 9b7fd15..e7968e7 100644
+> --- a/arch/arm/mach-omap2/clock24xx.c
+> +++ b/arch/arm/mach-omap2/clock24xx.c
+> @@ -78,7 +78,7 @@ static u32 omap2_get_dpll_rate_24xx(struct clk *tclk)
+>  static int omap2_enable_osc_ck(struct clk *clk)
+>  {
+>  
+> -	prm_rmw_reg_bits(OMAP_AUTOEXTCLKMODE_MASK, ~OMAP_AUTOEXTCLKMODE_MASK,
+> +	prm_rmw_reg_bits(OMAP_AUTOEXTCLKMODE_MASK, 0,
+>  			 OMAP24XX_PRCM_CLKSRC_CTRL);
+>  
+>  	return 0;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+- Paul
