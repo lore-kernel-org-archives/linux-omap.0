@@ -1,51 +1,57 @@
-From: "Eduardo Valentin" <edubezval@gmail.com>
-Subject: Re: [PATCH 0/5] Updates on mcbsp driver
-Date: Fri, 25 Apr 2008 01:30:53 -0400
-Message-ID: <a0580c510804242230x50d85643w99a2761f861bd137@mail.gmail.com>
-References: <1209052465-13210-1-git-send-email-edubezval@gmail.com>
-	 <20080424211019.GC8794@kedavra.cpe.vivax.com.br>
-	 <1209071583.30582.186.camel@mort> <20080424214544.GP16834@atomide.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: Android on N810 File System Problem
+Date: Fri, 25 Apr 2008 07:42:52 +0200
+Message-ID: <48116F5C.9040009@googlemail.com>
+References: <6a56d69c0804241248w5e46efe8k757c9e5fb9e3ce22@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.181]:44585 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753494AbYDYFa4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2008 01:30:56 -0400
-Received: by wa-out-1112.google.com with SMTP id m16so5771195waf.23
-        for <linux-omap@vger.kernel.org>; Thu, 24 Apr 2008 22:30:53 -0700 (PDT)
-In-Reply-To: <20080424214544.GP16834@atomide.com>
-Content-Disposition: inline
+Received: from nf-out-0910.google.com ([64.233.182.185]:40545 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754205AbYDYFnD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2008 01:43:03 -0400
+Received: by nf-out-0910.google.com with SMTP id g13so1396927nfb.21
+        for <linux-omap@vger.kernel.org>; Thu, 24 Apr 2008 22:42:59 -0700 (PDT)
+In-Reply-To: <6a56d69c0804241248w5e46efe8k757c9e5fb9e3ce22@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Igor Stoppa <igor.stoppa@nokia.com>, Chandra shekhar <x0044955@ti.com>, me@felipebalbi.com, linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@indt.org.br>
+To: Jonathan Herriott <herriojr@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Tony and Igor,
+Jonathan,
 
-<snip>
->  > >
->  > > checkpatch doesn't complain, although i didn't really test it.
->  >
->  > However I'd prefer see this patchset being merged with
->  >
->  > [RFC/PATCH  1/1] McBSP support for 2430/34XX
->  >
->  > and only later considered for integration.
->
->  Yeah, Chandra and Eduardo, can you guys put together a merged series
->  of patches?
->
+CCing OMAP mailing list, there are more people to help.
 
-I'll check with Chandra the best way to merge this with his patch.
-However, it'd be nice to have comments for our patches before starting
-to merge.
+Jonathan Herriott wrote:
+> Hi,
+> 
+> I'm trying to get android installed on an N810.  I have successfully
+> installed the kernel, 
 
->  Tony
->
+Which kernel (2.6.x, x == ?)  do you use on N810? If I remember 
+correctly, with N810 people use an older kernel than the one coming 
+with Android SDK.
+
+> but I am having major issues with the file
+> system.  I followed the tutorial you provided at
+> http://elinux.org/Android_on_OMAP, but I get a segmentation fault when
+> I try to init the kernel.  I made sure to use the same android SDK
+> version that was used to patch the kernel.
+> 
+> My steps for reproduction are:
+> 
+> 1) On my computer, unpack the ramdisk image to a folder.
+> 2) Untar system, dev, and data to the unpacked ramdisk image.
+> 3) Tar up the patched file system and scp it to /opt on the device.
+> Ssh to the device and unpack the file system in /opt
+> 4) Run umask 000 && chroot /opt/android /init
+> 5) Receive a segmentation fault.
+
+Can you send us the complete segementation fault output?
+
+Regards
+
+Dirk
 
 
-
--- 
-Eduardo Bezerra Valentin
