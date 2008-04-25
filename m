@@ -1,74 +1,89 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: PRCM_CLKSRC_CTRL bits set incorrectly in omap2_en_osc_ck
-Date: Fri, 25 Apr 2008 02:01:42 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0804250159350.14755@utopia.booyaka.com>
-References: <20080425015654.GA7122@ubuntu-workstation>
+From: "Simon Braunschmidt" <sbraunschmidt.linuxlists@googlemail.com>
+Subject: Re: framebuffer on 2430sdp, configuration and bug [RESOLVED]
+Date: Fri, 25 Apr 2008 11:30:03 +0200
+Message-ID: <1ee641e10804250230q4e4a348dia5fe70652c25b5b3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42855 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756554AbYDYIBo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2008 04:01:44 -0400
-In-Reply-To: <20080425015654.GA7122@ubuntu-workstation>
+Received: from an-out-0708.google.com ([209.85.132.243]:44189 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759150AbYDYJaE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2008 05:30:04 -0400
+Received: by an-out-0708.google.com with SMTP id d31so926933and.103
+        for <linux-omap@vger.kernel.org>; Fri, 25 Apr 2008 02:30:03 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Seth Forshee <seth.forshee@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: arun c <arun.edarath@gmail.com>
+Cc: linux-omap@vger.kernel.org, Ronny.Lampert@teleca.com, arthur.mielimonka@teleca.com
 
-Hi Seth,
+Hi Arun, all
 
-On Thu, 24 Apr 2008, Seth Forshee wrote:
+I just switched to 2.6.23-omap1, which is booting with framebuffer.
+Which recent kernel version would you recommend to get down and dirty
+with Android on the 2430sdp?
 
-> On my OMAP2430 board I was seeing the contents of DRAM become corrupted
-> shortly after the kernel started.  I tracked this down to
-> omap2_enable_osc_ck().  I think this function is intended to only clear
-> the bits in OMAP_AUTOEXTCLKMODE_MASK, but it has the side-effect of
-> setting all of the other bits in the register.  This includes setting
-> some fields to reserved values.
-> 
-> I'm not 100% sure whether the problem is with omap2_enable_osc_ck() or
-> prm_rmw_reg_bits() (maybe this should be masking off any bits not set in
-> mask), but based on what I see elsewhere I think that
-> omap2_enable_osc_ck() is to blame.  If this is the case, the patch below
-> fixes the problem.
-> 
-> ----------
-> From: Seth Forshee <seth.forshee@gmail.com>
-> Subject: [PATCH] ARM: OMAP2: Set PRCM_CLKSRC_CTRL correctly in omap2_enable_osc_ck
-> 
-> This patch fixes an incorrect use of prm_rmw_reg_bits() in
-> omap2_enable_osc_ck() which is changing bits in PRCM_CLKSRC_CTRL
-> that are unrelated to the function it is performing.
-> 
-> Signed-off-by: Seth Forshee <seth.forshee@gmail.com>
+btw 2.6.24-omap1 is booting for me on 2430sdp, but with not
+framebuffer, though framebuffer gets registered according to kernel
+bootlog and is now also usable with my testprogramm, just nothing on
+the lcd
 
-Indeed, you have found a bug - thanks for the patch!
+The bug we were seeing:
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
+SYNCLOST .... something in dispc.c irq handler
 
-> ---
->  arch/arm/mach-omap2/clock24xx.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-> index 9b7fd15..e7968e7 100644
-> --- a/arch/arm/mach-omap2/clock24xx.c
-> +++ b/arch/arm/mach-omap2/clock24xx.c
-> @@ -78,7 +78,7 @@ static u32 omap2_get_dpll_rate_24xx(struct clk *tclk)
->  static int omap2_enable_osc_ck(struct clk *clk)
->  {
->  
-> -	prm_rmw_reg_bits(OMAP_AUTOEXTCLKMODE_MASK, ~OMAP_AUTOEXTCLKMODE_MASK,
-> +	prm_rmw_reg_bits(OMAP_AUTOEXTCLKMODE_MASK, 0,
->  			 OMAP24XX_PRCM_CLKSRC_CTRL);
->  
->  	return 0;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+disappeared, looking backwards this may be also related to our recent
+switch to git for maintaining kernel sources. Maybe our selfhosted
+sources got tainted by our half-baked patching  approaches, so sorry
+for the noise...
 
+Greetings, Gruessla
+Simon
 
-- Paul
+2008/4/25, arun c <arun.edarath@gmail.com>:
+> On Fri, Apr 25, 2008 at 12:35 PM, Simon Braunschmidt
+>  <sbraunschmidt.linuxlists@googlemail.com> wrote:
+>  > >
+>  >  >
+>  >  > It's wrapped and you need to add some spaces before %s in all of them
+>  >  >  :-p
+>  >  >
+>  >  >  In any case, this is only for testing purpose, i think it shouldn't be
+>  >  >  applied. I don't have lcd working on 3430sdp as well but never look at
+>  >  >  it.
+>  >  >
+>  >  >
+>  >
+>  >  Ya i have seen its wrapped, stupid google webmailer wrapping my precious code!
+>  >  Anyways, patch is just to get the extra debug output, that is actually
+>  >  bothering me.
+>  >
+>  >
+>
+> > --
+>  >  To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>  >  the body of a message to majordomo@vger.kernel.org
+>  >  More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  >
+>
+>  Hi,
+>
+>  For me also v2.6.24-omap1 is not booting on 2430SDP
+>  In my case it fails in the panel enable
+>       r = fbdev->panel->enable(fbdev->panel);
+>
+>  Due to some twl4030 related issue r gets -ve return
+>  value and fb initialization fails.
+>
+>  twl4030 keypad also not working..
+>
+>  I have checked the hardware with the 2.6.14 kernel
+>  from ti site.
+>
+>  I think problem is with twl2430 driver
+>
+>  Regards,
+>
+> Arun c
+>
