@@ -1,57 +1,66 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: Android on N810 File System Problem
-Date: Fri, 25 Apr 2008 07:42:52 +0200
-Message-ID: <48116F5C.9040009@googlemail.com>
-References: <6a56d69c0804241248w5e46efe8k757c9e5fb9e3ce22@mail.gmail.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH 4/5] OMAP3xx: Add DMA and IRQ definition for McBSP 1 and
+ 2
+Date: Fri, 25 Apr 2008 11:16:02 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB2E706BB9@dbde02.ent.ti.com>
+References: <1209052465-13210-1-git-send-email-edubezval@gmail.com>
+	 <1209052465-13210-2-git-send-email-edubezval@gmail.com>
+	 <1209052465-13210-3-git-send-email-edubezval@gmail.com>
+	 <1209052465-13210-4-git-send-email-edubezval@gmail.com>
+	 <1209052465-13210-5-git-send-email-edubezval@gmail.com>
+	 <5A47E75E594F054BAF48C5E4FC4B92AB2E706B5A@dbde02.ent.ti.com>
+ <a0580c510804242226w415ca9e4n745e05aa70ad5e57@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.185]:40545 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754205AbYDYFnD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2008 01:43:03 -0400
-Received: by nf-out-0910.google.com with SMTP id g13so1396927nfb.21
-        for <linux-omap@vger.kernel.org>; Thu, 24 Apr 2008 22:42:59 -0700 (PDT)
-In-Reply-To: <6a56d69c0804241248w5e46efe8k757c9e5fb9e3ce22@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53991 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753199AbYDYFqR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Apr 2008 01:46:17 -0400
+In-Reply-To: <a0580c510804242226w415ca9e4n745e05aa70ad5e57@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jonathan Herriott <herriojr@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-Jonathan,
+> > <snip>
+> >
+> > > diff --git a/include/asm-arm/arch-omap/dma.h
+> > > b/include/asm-arm/arch-omap/dma.h
+> > > index be0431e..270e158 100644
+> > > --- a/include/asm-arm/arch-omap/dma.h
+> > > +++ b/include/asm-arm/arch-omap/dma.h
+> > > @@ -273,6 +273,10 @@
+> > >  #define OMAP24XX_DMA_MS                      63      /* S_DMA_62 */
+> > >  #define OMAP242X_DMA_EXT_DMAREQ5     64      /* S_DMA_63 */
+> > >  #define OMAP243X_DMA_EXT_DMAREQ6     64      /* S_DMA_63 */
+> > > +#define OMAP34XX_DMA_MCBSP1_TX               31      /* S_DMA_30 */
+> > > +#define OMAP34XX_DMA_MCBSP1_RX               32      /* S_DMA_31 */
+> > > +#define OMAP34XX_DMA_MCBSP2_TX               33      /* S_DMA_32 */
+> > > +#define OMAP34XX_DMA_MCBSP2_RX               34      /* S_DMA_33 */
+> > >  #define OMAP34XX_DMA_EXT_DMAREQ3     64      /* S_DMA_63 */
+> > >  #define OMAP34XX_DMA_AES2_TX         65      /* S_DMA_64 */
+> > >  #define OMAP34XX_DMA_AES2_RX         66      /* S_DMA_65 */
+> >
+> >  What's the point of this patch? Can't you use OMAP24XX_DMA_MCBSP* names?
+>
+> Yes, OMAP24XX_DMA_MCBSP* can be used as they have same values.
+> There is no big difference, but readability. That's the point
+> of this patch.
+> Defining names OMAP34XX_DMA_MCBSP* would let people to
+> write more readable code when specifying things specific for OMAP34XX.
 
-CCing OMAP mailing list, there are more people to help.
+I was under the impression that one wouldn't be writing code specific to OMAP34XX given that it would work with zero modifications on a 24XX as in this case. In such a case, would it not make more sense to use the more generic name? That was why I left it that way - anything common to a 24XX and a 34XX gets the OMAP24XX name.
 
-Jonathan Herriott wrote:
-> Hi,
-> 
-> I'm trying to get android installed on an N810.  I have successfully
-> installed the kernel, 
+__Quote__
+OMAP242X_* for 2420 specific names
+OMAP243X_* for 2430 specific names/names present from 243X onwards
+OMAP24XX_* for names common to all 24XX, 34XX
+OMAP34XX_* for 34XX specific names
+__End_Quote__
 
-Which kernel (2.6.x, x == ?)  do you use on N810? If I remember 
-correctly, with N810 people use an older kernel than the one coming 
-with Android SDK.
+That's why I did not see a point in this patch.
 
-> but I am having major issues with the file
-> system.  I followed the tutorial you provided at
-> http://elinux.org/Android_on_OMAP, but I get a segmentation fault when
-> I try to init the kernel.  I made sure to use the same android SDK
-> version that was used to patch the kernel.
-> 
-> My steps for reproduction are:
-> 
-> 1) On my computer, unpack the ramdisk image to a folder.
-> 2) Untar system, dev, and data to the unpacked ramdisk image.
-> 3) Tar up the patched file system and scp it to /opt on the device.
-> Ssh to the device and unpack the file system in /opt
-> 4) Run umask 000 && chroot /opt/android /init
-> 5) Receive a segmentation fault.
-
-Can you send us the complete segementation fault output?
-
-Regards
-
-Dirk
-
-
+-Anand
