@@ -1,30 +1,32 @@
-From: Kalle Valo <kalle.valo@nokia.com>
-Subject: Re: Android on N810 File System Problem
-Date: Sun, 27 Apr 2008 12:43:19 +0300
-Message-ID: <87fxt7my4o.fsf@nokia.com>
-References: <6a56d69c0804241248w5e46efe8k757c9e5fb9e3ce22@mail.gmail.com>
-	<48116F5C.9040009@googlemail.com>
-	<20080425183605.GA27479@kedavra.cpe.vivax.com.br>
+From: astralstorm@gen2.org
+Subject: linux-omap vs N810
+Date: Mon, 28 Apr 2008 00:01:09 +0200 (CEST)
+Message-ID: <55288.89.77.111.170.1209333669.squirrel@mail.gen2.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:31319 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620AbYD0Jnk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 27 Apr 2008 05:43:40 -0400
-In-Reply-To: <20080425183605.GA27479@kedavra.cpe.vivax.com.br> (ext Felipe Balbi's message of "Fri\, 25 Apr 2008 21\:36\:06 +0300")
+Received: from host-91-192-90-10.elomza.pl ([91.192.90.10]:36642 "EHLO
+	gen2.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752066AbYD0WOc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 27 Apr 2008 18:14:32 -0400
+Received: from mail.gen2.org (neptune.gen2.org [127.0.0.1])
+	by gen2.org (Postfix) with ESMTP id BEEAB3D6B1
+	for <linux-omap@vger.kernel.org>; Mon, 28 Apr 2008 00:01:07 +0200 (CEST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: Dirk Behme <dirk.behme@googlemail.com>, Jonathan Herriott <herriojr@gmail.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-"ext Felipe Balbi" <me@felipebalbi.com> writes:
+Hello,
+I'm having a major problem running linux-omap kernel on Nokia N810.
+After correct build and flashing (tested by the use of self-built patched
+Nokia kernel) the device seems to hang before framebuffer initialization,
+then is rebooted by the watchdog. Manual FB update is disabled, I've
+checked the configuration in many possible ways.
 
-> Current linux-omap's head has all the necessary pieces to get n810
-> working. Touchscreen, keypad, ambient light sensor, led, usb, everything
-> is there.
+I'd like to hear about possible causes of that.
 
-What about sound?
+I do not have the serial console wired in (yet_, but would still like to
+get debugging output. What would you recommend?
 
--- 
-Kalle Valo
+
