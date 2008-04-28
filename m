@@ -1,54 +1,45 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: [PATCH 7/7] OMAP3 EVM: add rtc support
-Date: Mon, 28 Apr 2008 16:30:33 -0700
-Message-ID: <5e088bd90804281630n7ca89dc6lf7027148fd599649@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Android on N810 File System Problem
+Date: Mon, 28 Apr 2008 16:38:28 -0700
+Message-ID: <20080428233827.GE8449@atomide.com>
+References: <6a56d69c0804241248w5e46efe8k757c9e5fb9e3ce22@mail.gmail.com> <48116F5C.9040009@googlemail.com> <20080425183605.GA27479@kedavra.cpe.vivax.com.br> <87fxt7my4o.fsf@nokia.com> <20080427223248.GA5962@kedavra.cpe.vivax.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:43564 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754941AbYD1Xae (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2008 19:30:34 -0400
-Received: by ug-out-1314.google.com with SMTP id z38so953239ugc.16
-        for <linux-omap@vger.kernel.org>; Mon, 28 Apr 2008 16:30:34 -0700 (PDT)
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:59057 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934014AbYD1Xie (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2008 19:38:34 -0400
 Content-Disposition: inline
+In-Reply-To: <20080427223248.GA5962@kedavra.cpe.vivax.com.br>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: Kalle Valo <kalle.valo@nokia.com>, Dirk Behme <dirk.behme@googlemail.com>, Jonathan Herriott <herriojr@gmail.com>, linux-omap@vger.kernel.org
 
-From: Steve Sakoman <steve@sakoman.com>
+* Felipe Balbi <me@felipebalbi.com> [080427 15:31]:
+> On Sun, Apr 27, 2008 at 12:43:19PM +0300, Kalle Valo wrote:
+> > "ext Felipe Balbi" <me@felipebalbi.com> writes:
+> > 
+> > > Current linux-omap's head has all the necessary pieces to get n810
+> > > working. Touchscreen, keypad, ambient light sensor, led, usb, everything
+> > > is there.
+> > 
+> > What about sound?
+> 
+> I'm sure it'll come from alsa-devel soon.
 
-Add twl4030 RTC support for OMAP3 EVM
+I've merged Jarkko's asoc patch to linux-omap for testing. Have not
+gotten any sound out of it on my n810 though.. Maybe some alsamixer
+settings issue?
 
-Signed-off-by: Steve Sakoman <steve@sakoman.com>
----
- board-omap3evm.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
-diff -uprN -X a/Documentation/dontdiff
-a/arch/arm/mach-omap2/board-omap3evm.c
-b/arch/arm/mach-omap2/board-omap3evm.c
---- a/arch/arm/mach-omap2/board-omap3evm.c	2008-04-28 13:48:30.000000000 -0700
-+++ b/arch/arm/mach-omap2/board-omap3evm.c	2008-04-28 14:20:12.000000000 -0700
-@@ -60,6 +60,11 @@ static struct omap_lcd_config omap3_evm_
- 	.ctrl_name	= "internal",
- };
+Kalle, do you have any tips on getting WLAN to work on n8x0?
 
-+static struct platform_device omap3_evm_twl4030rtc_device = {
-+	.name		= "twl4030_rtc",
-+	.id		= -1,
-+};
-+
- static void __init omap3_evm_init_irq(void)
- {
- 	omap2_init_common_hw();
-@@ -75,6 +80,9 @@ static struct omap_board_config_kernel o
+Don't know if there's anything new there to you, but I posted some
+info on getting things to work with current linux-omap kernel at:
 
- static struct platform_device *omap3_evm_devices[] __initdata = {
- 	&omap3_evm_lcd_device,
-+#ifdef CONFIG_RTC_DRV_TWL4030
-+	&omap3_evm_twl4030rtc_device,
-+#endif
- };
+http://www.muru.com/linux/n8x0/
 
- static void __init omap3_evm_init(void)
+Regards,
+
+Tony
