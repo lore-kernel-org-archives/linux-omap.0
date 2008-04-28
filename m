@@ -1,17 +1,17 @@
 From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: [PATCH 4/7] OMAP3 EVM: add onenand flash support
-Date: Mon, 28 Apr 2008 16:29:14 -0700
-Message-ID: <5e088bd90804281629n5bb4eb0cu3eb1704e521548cf@mail.gmail.com>
+Subject: [PATCH 5/7] OMAP3 EVM: enable frame buffer in defconfig
+Date: Mon, 28 Apr 2008 16:29:41 -0700
+Message-ID: <5e088bd90804281629p79a32aa1g8728991c5ff652ce@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from ug-out-1314.google.com ([66.249.92.174]:43564 "EHLO
 	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755257AbYD1X3O (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2008 19:29:14 -0400
+	with ESMTP id S934488AbYD1X3m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2008 19:29:42 -0400
 Received: by ug-out-1314.google.com with SMTP id z38so953239ugc.16
-        for <linux-omap@vger.kernel.org>; Mon, 28 Apr 2008 16:29:14 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Mon, 28 Apr 2008 16:29:41 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,182 +19,64 @@ To: linux-omap@vger.kernel.org
 
 From: Steve Sakoman <steve@sakoman.com>
 
-Add onenand support for OMAP3 EVM
+Enable frame buffer in omap3_evm_defconfig
 
 Signed-off-by: Steve Sakoman <steve@sakoman.com>
 ---
- arch/arm/mach-omap2/Makefile               |    3
- arch/arm/mach-omap2/board-omap3evm-flash.c |  117 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-omap3evm.c       |    1
- include/asm-arm/arch-omap/board-omap3evm.h |    4 +
- 4 files changed, 126 insertions(+), 1 deletion(-)
-diff -uprN -X a/Documentation/dontdiff
-a/arch/arm/mach-omap2/board-omap3evm.c
-b/arch/arm/mach-omap2/board-omap3evm.c
---- a/arch/arm/mach-omap2/board-omap3evm.c	2008-04-27 22:48:55.000000000 -0700
-+++ b/arch/arm/mach-omap2/board-omap3evm.c	2008-04-28 09:21:22.000000000 -0700
-@@ -71,6 +71,7 @@ static void __init omap3_evm_init(void)
- 	hsmmc_init();
- 	usb_musb_init();
- 	usb_ehci_init();
-+	omap3evm_flash_init();
- }
+ omap3_evm_defconfig |   32 ++++++++++++++++++++++++++++++--
+ 1 file changed, 30 insertions(+), 2 deletions(-)
+--- a/arch/arm/configs/omap3_evm_defconfig	2008-04-26 06:32:11.000000000 -0700
++++ b/arch/arm/configs/omap3_evm_defconfig	2008-04-28 08:14:22.000000000 -0700
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+ # Linux kernel version: 2.6.25-omap1
+-# Mon Apr 28 08:14:22 2008
++# Mon Apr 28 10:21:40 2008
+ #
+ CONFIG_ARM=y
+ CONFIG_SYS_SUPPORTS_APM_EMULATION=y
+@@ -725,7 +725,33 @@ CONFIG_DAB=y
+ #
+ # CONFIG_VGASTATE is not set
+ # CONFIG_VIDEO_OUTPUT_CONTROL is not set
+-# CONFIG_FB is not set
++CONFIG_FB=y
++# CONFIG_FIRMWARE_EDID is not set
++# CONFIG_FB_DDC is not set
++CONFIG_FB_CFB_FILLRECT=y
++CONFIG_FB_CFB_COPYAREA=y
++CONFIG_FB_CFB_IMAGEBLIT=y
++# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
++# CONFIG_FB_SYS_FILLRECT is not set
++# CONFIG_FB_SYS_COPYAREA is not set
++# CONFIG_FB_SYS_IMAGEBLIT is not set
++# CONFIG_FB_SYS_FOPS is not set
++CONFIG_FB_DEFERRED_IO=y
++# CONFIG_FB_SVGALIB is not set
++# CONFIG_FB_MACMODES is not set
++# CONFIG_FB_BACKLIGHT is not set
++# CONFIG_FB_MODE_HELPERS is not set
++# CONFIG_FB_TILEBLITTING is not set
++
++#
++# Frame buffer hardware drivers
++#
++# CONFIG_FB_S1D13XXX is not set
++# CONFIG_FB_VIRTUAL is not set
++CONFIG_FB_OMAP=y
++# CONFIG_FB_OMAP_LCDC_EXTERNAL is not set
++# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
++CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
+ # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
 
- arch_initcall(omap3_evm_i2c_init);
-diff -uprN -X a/Documentation/dontdiff
-a/arch/arm/mach-omap2/board-omap3evm-flash.c
-b/arch/arm/mach-omap2/board-omap3evm-flash.c
---- a/arch/arm/mach-omap2/board-omap3evm-flash.c	1969-12-31
-16:00:00.000000000 -0800
-+++ b/arch/arm/mach-omap2/board-omap3evm-flash.c	2008-04-28
-09:11:46.000000000 -0700
-@@ -0,0 +1,117 @@
-+/*
-+ * board-omap3evm-flash.c
-+ *
-+ * Copyright (c) 2008 Texas Instruments,
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/platform_device.h>
-+#include <linux/mtd/mtd.h>
-+#include <linux/mtd/partitions.h>
-+#include <linux/mtd/nand.h>
-+#include <linux/mtd/onenand_regs.h>
-+#include <linux/types.h>
-+#include <linux/io.h>
-+
-+#include <asm/mach/flash.h>
-+#include <asm/arch/onenand.h>
-+#include <asm/arch/board.h>
-+#include <asm/arch/gpmc.h>
-+#include <asm/arch/nand.h>
-+
-+static int omap3evm_onenand_setup(void __iomem *);
-+
-+static struct mtd_partition omap3evm_onenand_partitions[] = {
-+	{
-+		.name           = "xloader",
-+		.offset         = 0,
-+		.size           = 4*(64*2048),
-+		.mask_flags     = MTD_WRITEABLE
-+	},
-+	{
-+		.name           = "uboot",
-+		.offset         = MTDPART_OFS_APPEND,
-+		.size           =  15*(64*2048),
-+		.mask_flags     = MTD_WRITEABLE
-+	},
-+	{
-+		.name           = "params",
-+		.offset         = MTDPART_OFS_APPEND,
-+		.size           = 1*(64*2048),
-+	},
-+	{
-+		.name           = "linux",
-+		.offset         = MTDPART_OFS_APPEND,
-+		.size           = 40*(64*2048),
-+	},
-+	{
-+		.name           = "jffs2",
-+		.offset         = MTDPART_OFS_APPEND,
-+		.size           = MTDPART_SIZ_FULL,
-+	},
-+};
-+
-+static struct omap_onenand_platform_data omap3evm_onenand_data = {
-+	.parts = omap3evm_onenand_partitions,
-+	.nr_parts = ARRAY_SIZE(omap3evm_onenand_partitions),
-+	.onenand_setup = omap3evm_onenand_setup,
-+	.dma_channel	= -1,	/* disable DMA in OMAP OneNAND driver */
-+};
-+
-+static struct platform_device omap3evm_onenand_device = {
-+	.name		= "omap2-onenand",
-+	.id		= -1,
-+	.dev = {
-+		.platform_data = &omap3evm_onenand_data,
-+	},
-+};
-+
-+/*
-+ *      omap3evm_onenand_setup - Set the onenand sync mode
-+ *      @onenand_base:  The onenand base address in GPMC memory map
-+ *
-+ */
-+
-+static int omap3evm_onenand_setup(void __iomem *onenand_base)
-+	{
-+	/* nothing is required to be setup for onenand as of now */
-+	return 0;
-+}
-+
-+void __init omap3evm_flash_init(void)
-+{
-+	u8		cs = 0;
-+	u8		onenandcs = GPMC_CS_NUM + 1;
-+
-+	while (cs < GPMC_CS_NUM) {
-+		u32 ret = 0;
-+		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
-+
-+		/*
-+		* xloader/Uboot would have programmed the oneNAND
-+		* base address for us This is a ugly hack. The proper
-+		* way of doing this is to pass the setup of u-boot up
-+		* to kernel using kernel params - something on the
-+		* lines of machineID. Check if oneNAND is configured
-+		*/
-+		if ((ret & 0x3F) == (ONENAND_MAP >> 24))
-+			onenandcs = cs;
-+		cs++;
-+	}
-+	if (onenandcs > GPMC_CS_NUM) {
-+		printk(KERN_INFO "OneNAND: Unable to find configuration "
-+				" in GPMC\n ");
-+		return;
-+	}
-+
-+	if (onenandcs < GPMC_CS_NUM) {
-+		omap3evm_onenand_data.cs = onenandcs;
-+		if (platform_device_register(&omap3evm_onenand_device) < 0)
-+			printk(KERN_ERR "Unable to register OneNAND device\n");
-+	}
-+}
-+
-diff -uprN -X a/Documentation/dontdiff a/arch/arm/mach-omap2/Makefile
-b/arch/arm/mach-omap2/Makefile
---- a/arch/arm/mach-omap2/Makefile	2008-04-28 07:29:24.000000000 -0700
-+++ b/arch/arm/mach-omap2/Makefile	2008-04-28 09:11:46.000000000 -0700
-@@ -39,7 +39,8 @@ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= boar
- 					   board-3430sdp-flash.o
- obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
- 					   hsmmc.o \
--					   usb-musb.o usb-ehci.o
-+					   usb-musb.o usb-ehci.o \
-+					   board-omap3evm-flash.o
- obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
- 					   usb-musb.o usb-ehci.o \
- 					   hsmmc.o
-diff -uprN -X a/Documentation/dontdiff
-a/include/asm-arm/arch-omap/board-omap3evm.h
-b/include/asm-arm/arch-omap/board-omap3evm.h
---- a/include/asm-arm/arch-omap/board-omap3evm.h	2008-04-26
-06:32:31.000000000 -0700
-+++ b/include/asm-arm/arch-omap/board-omap3evm.h	2008-04-28
-09:21:19.000000000 -0700
-@@ -29,7 +29,11 @@
- #ifndef __ASM_ARCH_OMAP3_EVM_H
- #define __ASM_ARCH_OMAP3_EVM_H
+ #
+@@ -738,6 +764,8 @@ CONFIG_DAB=y
+ #
+ # CONFIG_VGA_CONSOLE is not set
+ CONFIG_DUMMY_CONSOLE=y
++# CONFIG_FRAMEBUFFER_CONSOLE is not set
++# CONFIG_LOGO is not set
 
-+extern void omap3evm_flash_init(void);
-+
- #define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
-
-+#define ONENAND_MAP		0x20000000
-+
- #endif /* __ASM_ARCH_OMAP3_EVM_H */
+ #
+ # Sound
