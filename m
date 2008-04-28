@@ -1,38 +1,29 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/1] ARM: OMAP: Enable TSC2301 drivers in N800 defconfig
-Date: Mon, 28 Apr 2008 16:23:07 -0700
-Message-ID: <20080428232307.GD8449@atomide.com>
-References: <1209370114-17007-1-git-send-email-jarkko.nikula@nokia.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: [PATCH 0/7] OMAP3 EVM: series of patches to add additional hw support
+Date: Mon, 28 Apr 2008 16:27:13 -0700
+Message-ID: <5e088bd90804281627x694b4084x334d6d4f76ee44fe@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53709 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935249AbYD1XXK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2008 19:23:10 -0400
+Received: from ug-out-1314.google.com ([66.249.92.169]:41034 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755300AbYD1X1O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2008 19:27:14 -0400
+Received: by ug-out-1314.google.com with SMTP id z38so952864ugc.16
+        for <linux-omap@vger.kernel.org>; Mon, 28 Apr 2008 16:27:13 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1209370114-17007-1-git-send-email-jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>
+To: linux-omap@vger.kernel.org
 
-* Jarkko Nikula <jarkko.nikula@nokia.com> [080428 01:08]:
-> Patch because N800 didn't work anymore with n800_defconfig...
-> 
-> Note that camera driver doesn't compile at the moment so please disable
-> CONFIG_VIDEO_OMAP2 manually before trying.
+This series of patches adds support for mmc, usb, onenand, lcd, and
+rtc on the OMAP3 EVM.
 
-I posted a fix for v4l in the other thread, have not tested it though.
+The first patch (mmc) was submitted individually a couple of days ago
+-- I'm resubmitting it as part of this group since the usb, onenand,
+lcd, and rtc patches assume that the mmc patch has been applied first.
 
-Tony
+I have tested the resulting kernel on my OMAP 35XX EVM.
 
-
-> Felipe, can you test does this config still work on N810?
-> 
-> -- 
-> Jarkko
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Steve
