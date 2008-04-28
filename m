@@ -1,53 +1,41 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH] USB: Generalize usb initialization for omap hw
-Date: Mon, 28 Apr 2008 14:02:16 +0300
-Message-ID: <20080428110216.GB23224@gandalf.research.nokia.com>
-References: <200804241129.28213.david-b@pacbell.net> <1209063112-30352-1-git-send-email-felipe.balbi@nokia.com> <1209063112-30352-2-git-send-email-felipe.balbi@nokia.com> <FCCFB4CDC6E5564B9182F639FC3560872F72C997@dbde02.ent.ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: [PATCH] OMAP: Correcting the gpmc prefetch control register address
+Date: Mon, 28 Apr 2008 16:55:01 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB2E7A2591@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:23472 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756781AbYD1LDq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2008 07:03:46 -0400
-Content-Disposition: inline
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560872F72C997@dbde02.ent.ti.com>
+Received: from soda.ext.ti.com ([198.47.26.145]:38808 "EHLO soda.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1763083AbYD1LZN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2008 07:25:13 -0400
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m3SBP77m018045
+	for <linux-omap@vger.kernel.org>; Mon, 28 Apr 2008 06:25:12 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m3SBP6pI020218
+	for <linux-omap@vger.kernel.org>; Mon, 28 Apr 2008 06:25:06 -0500 (CDT)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Apr 28, 2008 at 04:29:19PM +0530, ext Pandita, Vikram wrote:
-> Hi Filipe
-> 
-> >-----Original Message-----
-> >Create a generic board-file for initializing usb
-> >on omap2430 and omap3 boards.
-> >
-> >Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> >---
-> > arch/arm/mach-omap2/Makefile            |    6 +-
-> > arch/arm/mach-omap2/board-2430sdp-usb.c |   96 ------------
-> > arch/arm/mach-omap2/board-2430sdp.c     |    5 +-
-> > arch/arm/mach-omap2/board-3430sdp-usb.c |  241 -------------------------------
-> > arch/arm/mach-omap2/board-3430sdp.c     |    5 +-
-> > arch/arm/mach-omap2/usb-ehci.c          |  162 +++++++++++++++++++++
-> > arch/arm/mach-omap2/usb-musb.c          |  116 +++++++++++++++
-> > include/asm-arm/arch-omap/usb-ehci.h    |   35 +++++
-> > include/asm-arm/arch-omap/usb-musb.h    |   35 +++++
-> > 9 files changed, 360 insertions(+), 341 deletions(-)
-> > delete mode 100644 arch/arm/mach-omap2/board-2430sdp-usb.c
-> 
-> Comment:
-> > delete mode 100644 arch/arm/mach-omap2/board-3430sdp-usb.c
-> 
-> You forgot to carry forward the following copyright notice in new files as you code is a copy from the previously deleted file.
-> 
->  * Copyright (C) 2007 Texas Instruments
->  * Author: Vikram Pandita
+From: Thara Gopinath <thara@ti.com>
 
-Sorry for that, could you please send the patch adding such lines?
+Correcting the GPMC_PREFETCH_CONTROL register address
 
--- 
-	- Balbi
+Signed-off-by: Thara Gopinath <thara@ti.com>
+Index: linux-omap-2.6/arch/arm/mach-omap2/gpmc.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/gpmc.c      2008-04-28 16:07:01.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/gpmc.c   2008-04-28 16:09:06.246933117 +0530
+@@ -41,7 +41,7 @@
+ #define GPMC_STATUS            0x54
+ #define GPMC_PREFETCH_CONFIG1  0x1e0
+ #define GPMC_PREFETCH_CONFIG2  0x1e4
+-#define GPMC_PREFETCH_CONTROL  0x1e8
++#define GPMC_PREFETCH_CONTROL  0x1ec
+ #define GPMC_PREFETCH_STATUS   0x1f0
+ #define GPMC_ECC_CONFIG                0x1f4
+ #define GPMC_ECC_CONTROL       0x1f8
