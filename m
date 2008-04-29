@@ -1,45 +1,102 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Android on N810 File System Problem
-Date: Mon, 28 Apr 2008 16:38:28 -0700
-Message-ID: <20080428233827.GE8449@atomide.com>
-References: <6a56d69c0804241248w5e46efe8k757c9e5fb9e3ce22@mail.gmail.com> <48116F5C.9040009@googlemail.com> <20080425183605.GA27479@kedavra.cpe.vivax.com.br> <87fxt7my4o.fsf@nokia.com> <20080427223248.GA5962@kedavra.cpe.vivax.com.br>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: [PATCH] PRCM: Combine 34xx l3_icks and l4_icks
+Date: Tue, 29 Apr 2008 09:49:27 +0300
+Message-ID: <87ej8p6tqg.fsf@trdhcp146196.ntc.nokia.com>
+References: <873ap69ybi.fsf@trdhcp146196.ntc.nokia.com>
+	<ce4301aed702935b2ce93992b362479e@felipebalbi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:59057 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934014AbYD1Xie (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Apr 2008 19:38:34 -0400
-Content-Disposition: inline
-In-Reply-To: <20080427223248.GA5962@kedavra.cpe.vivax.com.br>
+Received: from smtp.nokia.com ([192.100.105.134]:61435 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750930AbYD2GuB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2008 02:50:01 -0400
+In-Reply-To: <ce4301aed702935b2ce93992b362479e@felipebalbi.com> (ext Felipe
+	Balbi's message of "Mon, 28 Apr 2008 05:49:27 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: Kalle Valo <kalle.valo@nokia.com>, Dirk Behme <dirk.behme@googlemail.com>, Jonathan Herriott <herriojr@gmail.com>, linux-omap@vger.kernel.org
+To: ext Felipe Balbi <me@felipebalbi.com>
+Cc: linux-omap@vger.kernel.org, ext Tony Lindgren <tony@atomide.com>, ext Paul Walmsley <paul@pwsan.com>, igor.stoppa@nokia.com
 
-* Felipe Balbi <me@felipebalbi.com> [080427 15:31]:
-> On Sun, Apr 27, 2008 at 12:43:19PM +0300, Kalle Valo wrote:
-> > "ext Felipe Balbi" <me@felipebalbi.com> writes:
-> > 
-> > > Current linux-omap's head has all the necessary pieces to get n810
-> > > working. Touchscreen, keypad, ambient light sensor, led, usb, everything
-> > > is there.
-> > 
-> > What about sound?
-> 
-> I'm sure it'll come from alsa-devel soon.
+"ext Felipe Balbi" <me@felipebalbi.com> writes:
 
-I've merged Jarkko's asoc patch to linux-omap for testing. Have not
-gotten any sound out of it on my n810 though.. Maybe some alsamixer
-settings issue?
+> On Mon, 28 Apr 2008 11:29:53 +0300, jouni.hogander@nokia.com (H=C3=B6=
+gander
+> Jouni) wrote:
+>> E.g dss_l3_ick and dss_l4_ick have same gating control. Having own
+>> clock for both of them causes race condition between enable / disabl=
+e.
+>>=20
+>> This patch combines this kind of clocks and names new clock as
+>> <module>_ick.
+>>=20
+>> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+>
+> Good, the following patch fixes ehci-omap.c after clock name change
+> :-)
 
-Kalle, do you have any tips on getting WLAN to work on n8x0?
+Sorry, I should have used grep here. I did it now. There are no
+other references to changed clock names than this you pointed out. I
+checked ca=E1=B8=BF_l3_ick, cam_l4_ick, usbhost_l3_ick, usbhost_l4_ick.
 
-Don't know if there's anything new there to you, but I posted some
-info on getting things to work with current linux-omap kernel at:
+Yes, your patch needs to be applied if "[PATCH] PRCM: Combine 34xx
+l3_icks and l4_icks" is applied.
 
-http://www.muru.com/linux/n8x0/
+>
+> Could you check, please:
+>
+> From 4102f3ad5db10e662633c0f9ddee6aca43fec8e6 Mon Sep 17 00:00:00 200=
+1
+> From: Felipe Balbi <felipe.balbi@nokia.com>
+> Date: Mon, 28 Apr 2008 13:45:49 +0300
+> Subject: [PATCH] USB: EHCI: Fix clock name for ehci-omap.c
+> MIME-Version: 1.0
+> Content-Type: text/plain; charset=3Dutf-8
+> Content-Transfer-Encoding: 8bit
+>
+> Patch from Jouni H=C3=B6gander changed usbhost_l4_ick to
+> usbhost_ick, fixing in ehci-omap.c
+>
+> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> Cc: Jouni H=C3=B6gander <jouni.hogander@nokia.com>
+> ---
+>  drivers/usb/host/ehci-omap.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-oma=
+p.c
+> index 495c979..be93c69 100644
+> --- a/drivers/usb/host/ehci-omap.c
+> +++ b/drivers/usb/host/ehci-omap.c
+> @@ -73,7 +73,7 @@ struct ehci_omap_clock_defs {
+>  };
+> =20
+>  /* Clock names as per clock framework: May change so keep as #defs *=
+/
+> -#define USBHOST_ICKL	"usbhost_l4_ick"
+> +#define USBHOST_ICKL	"usbhost_ick"
+>  #define USBHOST_120M_FCLK	"usbhost_120m_fck"
+>  #define USBHOST_48M_FCLK	"usbhost_48m_fck"
+>  #define USBHOST_TLL_ICKL	"usbtll_ick"
+> --=20
+> 1.5.5.1.57.g5909c
+>
+>
+>
+> --=20
+> Best Regards,
+>
+> Felipe Balbi
+> http://felipebalbi.com
+> me@felipebalbi.com
+>
 
-Regards,
+--=20
+Jouni H=C3=B6gander
 
-Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
