@@ -1,241 +1,34 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [RFC/PATCH] OMAP PM interface
-Date: Tue, 29 Apr 2008 01:32:14 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0804290119480.5853@utopia.booyaka.com>
+Subject: OMAP PM no-op patch, in bootable form
+Date: Tue, 29 Apr 2008 02:22:25 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0804290209340.5853@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33408 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:40058 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753946AbYD2HcP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2008 03:32:15 -0400
+	with ESMTP id S1753611AbYD2IW1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2008 04:22:27 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: sakari.poussa@nokia.com, sawant@ti.com, karthik-dp@ti.com, igor.stoppa@nokia.com, tony@atomide.com, r-woodruff2@ti.com, veera@ti.com, rnayak@ti.com
 
 
-Hello,
+Hello everyone,
 
-This message proposes a power management interface (the "OMAP PM 
-interface") for the linux-omap kernel tree.  It includes a general device 
-driver PM interface, along with some specialized interfaces for CPUFreq, 
-DSP/Bridge, and the powerdomain/clockdomain code.  This message focuses on 
-the general device driver portion, since it is most relevant to the larger 
-community of OMAP device driver developers.
+by the way, that previous OMAP PM no-op patch had a minor bug in it that 
+prevented it from compiling - unrelated to the interface itself.  In the 
+event that anyone would like to compile that no-op code as part of the 
+comment process, an updated patch is below.
 
-To summarize, this interface is intended to allow drivers to take
-advantage of OMAP power management features:
-
-- without locking drivers into a particular underlying implementation;
-
-- without adding constraints that are specific to particular OMAP 
-  variants; and
-
-- without affecting other architectures.
-
-
-The device driver portion of the interface currently covers the
-following four types of PM constraints:
-
-1. Set the maximum MPU interrupt response latency (MPU pwrdm);
-
-2. Set the maximum DMA transfer start latency (CORE pwrdm);
-
-3. Set the minimum bus throughput needed by a device;
-
-4. Set the maximum device wakeup latency.
-
-These are described in more detail below, along with a detailed rationale.
-
-
-Included below is a 'no-op' implementation that documents the
-interface and emits debug messages.  TI has also developed an initial
-implementation of the OMAP PM interface that relies on the Shared
-Resource Framework.  And also under development is an implementation
-of the OMAP PM code that uses the existing Linux PM QOS code.
-
-This interface was created by reviewing the current constraints in use
-by drivers in the TI CDP 12.14 tree and reformulating the underlying
-intention in terms of measurable quantities (latency or throughput).
-It is a collaborative product of many people from Nokia and TI:
-Karthik Dasu, Tony Lindgren, Rajendra Nayak, Sakari Poussa,
-Veeramanikandan Raju, Anand Sawant, Igor Stoppa, Paul Walmsley, and
-Richard Woodruff.
-
-
-Comments welcomed,
 
 - Paul
 
 
-
-Existing PM interfaces are currently not ideal for OMAP
--------------------------------------------------------
-
-There are currently two PM interfaces in use with publicly-distributed
-OMAP Linux code: the TI Shared Resource Framework (SRF) and the
-Linux PM QOS parameters code.  Neither interface is ideal for Linux
-OMAP code, for reasons described below.
-
-TI Shared Resource Framework:
-
-The TI CDP 12.14 tree drivers currently use the TI Shared Resource
-Framework (SRF) to control chip power management.  Use of the SRF
-allowed TI to get the drivers up and running quickly with considerable
-power savings; and the SRF provided debugging support.  However, many
-of the SRF parameters are specified in OMAP-specific terms, such as
-target OPPs, rather than in terms of actual latency or throughput
-requirements.  OPPs change depending on OMAP silicon revisions or OMAP
-types, and are meaningless for other architectures, so drivers shared
-between OMAP and other architectures would also have to #ifdef out the
-SRF constraints.
-
-Linux PM QOS parameters:
-
-As of February, the mainline Linux kernel contains code that is
-somewhat similar to the SRF: the Linux PM QOS parameters code, located
-in kernel/pm_qos_params.c.  (This code replaced the latency management
-code that was present in earlier kernels.)  Ideally, OMAP drivers
-would be able to use this Linux PM QOS code directly, but the current
-PM QOS code has some drawbacks:
-
-- It combines some power management parameters that should be kept
-  separate for maximum power savings on OMAP3.  For example, in the PM
-  QOS code, CPU and DMA wakeup latency are combined into one
-  parameter; but on OMAP3, these are distinct parameters.  The Linux
-  PM QOS code also combines all network power management knobs into
-  two non-device-specific parameters.  OMAP2/3 systems can have
-  different network devices with different power management
-  requirements - for example, a wired Ethernet interface may have
-  different latency and throughput constraints than a wireless Ethernet
-  interface.
-
-- It does not yet cover all of the power management capabilities of
-  the OMAP3 architecture.  It does not express latency constraints on
-  a per-device or per-powerdomain basis; it only covers
-  cpu_dma_latency and network throughput and latency, which would not
-  cover most of the OMAP3 devices.
-
-The result is that drivers using the current Linux PM QOS layer
-directly are unlikely to reach the same level of power efficiency as
-driver code using the Shared Resource Framework.
-
-To summarize, the SRF provides significant power savings, but
-expresses power constraints in an OMAP- and silicon-revision-specific
-way; and the PM QOS layer expresses PM constraints in a cross-platform
-manner (in terms of fundamental physical units), but does not support
-per-powerdomain constraints and does not cover many of the OMAP power
-management features.
-
-
-An alternative: the OMAP PM interface
--------------------------------------
-
-We need a way for driver code to express PM parameters which:
-
-- supports the range of power management parameters present in the TI SRF;
-
-- separates the drivers from the underlying PM parameter
-  implementation, whether it is the TI SRF or Linux PM QOS or Linux
-  latency framework or something else;
-
-- specifies PM parameters in terms of fundamental units, such as
-  latency and throughput, rather than units which are specific to OMAP
-  or to particular OMAP variants;
-
-- allows drivers which are shared with other architectures (e.g.,
-  DaVinci) to add these constraints in a way which won't affect non-OMAP
-  systems,
-
-- can be implemented immediately with minimal disruption of other
-  architectures.
-
-
-We therefore propose the OMAP PM interface, including the following
-four power management functions for driver code:
-
-1. Set the maximum MPU interrupt response latency (MPU pwrdm):
-   pdata->set_max_intr_lat(struct device *dev, long t)
-
-2. Set the maximum DMA transfer start latency (CORE pwrdm):
-   pdata->set_max_dma_lat(struct device *dev, long t)
-
-3. Set the minimum bus throughput needed by a device:
-   pdata->set_min_bus_tput(struct device *dev, struct bus *bus, unsigned long r)
-
-4. Set the maximum device wakeup latency:
-   pdata->set_max_dev_wakeup_lat(struct device *dev, unsigned long t)
-
-
-These functions are extensively documented in the no-op OMAP PM layer 
-below.
-
-
-Driver usage of the OMAP PM functions
--------------------------------------
-
-As the 'pdata' in the above examples indicates, we expose these
-functions to drivers through function pointers in driver
-.platform_data structures.  The function pointers are initialized by
-the board-*.c files to point to the corresponding OMAP PM functions:
-.set_max_cpu_lat will point to omap_pm_set_max_cpu_lat(), etc.  Other
-architectures which do not support these functions should leave these
-function pointers set to NULL.  So drivers should use the following
-idiom:
-
-        if (pdata->set_max_cpu_lat)
-            pdata->set_max_cpu_lat(dev, t);
-
-The most common usage of these functions will probably be to specify
-the maximum time from when an interrupt occurs, to when the device
-becomes accessible.  To accomplish this, driver writers should use
-both the set_max_cpu_lat() function (which constrains the MPU wakeup
-latency) and the set_max_dev_wakeup_lat() function (which constrains
-the device wakeup latency (from clk_enable() to accessibility).  For
-example,
-
-        if (pdata->set_max_cpu_lat)
-            pdata->set_max_cpu_lat(dev, t);
-        if (pdata->set_max_dev_wakeup_lat)
-            pdata->set_max_dev_wakeup_lat(dev, t);
-
-These PM parameters can be overwritten by calling the function again
-with the new value.  The settings can be removed by calling the
-function with a t argument of -1 (except in the case of
-set_max_bus_tput(), which should be called with an r argument of 0).
-
-
-Other specialized interface functions
--------------------------------------
-
-The four functions listed above are intended to be usable by any
-device driver.  DSP Bridge and CPUFreq, however, have special
-requirements.  DSP Bridge expresses target DSP performance levels in
-terms of OPP IDs.  CPUFreq expresses target MPU performance levels in
-terms of MPU frequency.  So the OMAP PM interface contains functions
-for these specialized cases to convert that input information
-(OPPs/MPU frequency) into whatever form the underlying power
-management implementation needs.  Additionally, there are also
-functions for the clockdomain layer to use to indicate that a
-powerdomain should wake up or be put to sleep.
-
-These functions are not discussed in this summary, but are documented
-in the included sample code.
-
-
-The OMAP PM layer is intended to be temporary
----------------------------------------------
-
-It's likely that in time, the Linux PM QOS layer will support the
-range of power management features present in OMAP3.  As this happens,
-existing drivers using the OMAP PM interface can be modified to use
-the Linux PM QOS code.
-
-
------------------------------------------------------------------------------
-
-Patch follows.
+Add a default OMAP PM no-op layer, defining the interface between
+device drivers, CPUFreq, and DSP Bridge on one side; and hardware-specific
+APIs on the other (e.g., powerdomain API, clock framework, etc).
+Copious documentation is in the omap-pm-noop.c file itself.
 
 ---
 
@@ -243,14 +36,14 @@ Patch follows.
  arch/arm/plat-omap/Kconfig          |   13 +
  arch/arm/plat-omap/Makefile         |    1 
  arch/arm/plat-omap/omap-pm-noop.c   |  452 +++++++++++++++++++++++++++++++++++
- include/asm-arm/arch-omap/omap-pm.h |   42 +++
- 5 files changed, 511 insertions(+), 0 deletions(-)
+ include/asm-arm/arch-omap/omap-pm.h |   43 +++
+ 5 files changed, 512 insertions(+), 0 deletions(-)
  create mode 100644 arch/arm/plat-omap/omap-pm-noop.c
  create mode 100644 include/asm-arm/arch-omap/omap-pm.h
 
 
 diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index aa319a5..2b4c204 100644
+index aa319a5..6d7a57a 100644
 --- a/arch/arm/mach-omap2/io.c
 +++ b/arch/arm/mach-omap2/io.c
 @@ -34,6 +34,8 @@
@@ -262,14 +55,14 @@ index aa319a5..2b4c204 100644
  extern void omap_sram_init(void);
  extern int omap2_clk_init(void);
  extern void omap2_check_revision(void);
-@@ -198,6 +200,7 @@ void __init omap2_init_common_hw(void)
+@@ -195,6 +197,7 @@ void __init omap2_map_common_io(void)
+ void __init omap2_init_common_hw(void)
+ {
+ 	omap2_mux_init();
++	omap_pm_init();
  	pwrdm_init(powerdomains_omap);
  	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
  	omap2_clk_init();
-+	omap_pm_init();
- 	omap2_init_memory();
- 	gpmc_init();
- }
 diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
 index ba858a8..d8e8485 100644
 --- a/arch/arm/plat-omap/Kconfig
@@ -304,7 +97,7 @@ index a3f1f5c..09d195b 100644
 \ No newline at end of file
 diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
 new file mode 100644
-index 0000000..c19b561
+index 0000000..b32dd2b
 --- /dev/null
 +++ b/arch/arm/plat-omap/omap-pm-noop.c
 @@ -0,0 +1,452 @@
@@ -337,7 +130,7 @@ index 0000000..c19b561
 +
 +#include <asm/arch/powerdomain.h>
 +
-+static int __init omap_pm_init(void)
++int __init omap_pm_init(void)
 +{
 +	/*
 +	 * Allocate and build CPUFreq frequency table here: loop over
@@ -762,10 +555,10 @@ index 0000000..c19b561
 +
 diff --git a/include/asm-arm/arch-omap/omap-pm.h b/include/asm-arm/arch-omap/omap-pm.h
 new file mode 100644
-index 0000000..020dcf6
+index 0000000..1de7dee
 --- /dev/null
 +++ b/include/asm-arm/arch-omap/omap-pm.h
-@@ -0,0 +1,42 @@
+@@ -0,0 +1,43 @@
 +/*
 + * omap-pm-noop.h - OMAP power management interface
 + *
@@ -788,6 +581,7 @@ index 0000000..020dcf6
 +
 +#include "powerdomain.h"
 +
++int __init omap_pm_init(void);
 +void omap_pm_exit(void);
 +
 +void omap_pm_set_max_cpu_lat(struct device *dev, long t);
@@ -808,4 +602,3 @@ index 0000000..020dcf6
 +
 +
 +#endif
-
