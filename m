@@ -1,82 +1,80 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: [RFC/PATCH] OMAP PM interface
-Date: Tue, 29 Apr 2008 15:59:43 -0700
-Message-ID: <874p9kgtcw.fsf@paris.hilman.org>
-References: <alpine.DEB.1.00.0804290119480.5853@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/1] MMC: OMAP: Remove unnecessary extern sdp_mmc_init
+Date: Tue, 29 Apr 2008 17:22:35 -0700
+Message-ID: <20080430002235.GD8981@atomide.com>
+References: <1209150302-6292-1-git-send-email-francisco.alecrim@indt.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from homer.mvista.com ([63.81.120.158]:61022 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751270AbYD2W7s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2008 18:59:48 -0400
-In-Reply-To: <alpine.DEB.1.00.0804290119480.5853@utopia.booyaka.com> (Paul Walmsley's message of "Tue\, 29 Apr 2008 01\:32\:14 -0600 \(MDT\)")
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59780 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754705AbYD3AWi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Apr 2008 20:22:38 -0400
+Content-Disposition: inline
+In-Reply-To: <1209150302-6292-1-git-send-email-francisco.alecrim@indt.org.br>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, sakari.poussa@nokia.com, sawant@ti.com, karthik-dp@ti.com, igor.stoppa@nokia.com, tony@atomide.com, r-woodruff2@ti.com, veera@ti.com, rnayak@ti.com
+To: Francisco Alecrim <francisco.alecrim@indt.org.br>
+Cc: linux-omap@vger.kernel.org
 
-Paul Walmsley <paul@pwsan.com> writes:
+* Francisco Alecrim <francisco.alecrim@indt.org.br> [080425 12:27]:
+> From: Francisco Alecrim <francisco.alecrim@indt.org.br>
+> 
+> Remove unnecessary extern sdp_mmc_init() at board header. New extern
+> hsmmc_init() defined include/asm-arm/arch-omap/hsmmc.h.
 
-> Linux PM QOS parameters:
->
-> As of February, the mainline Linux kernel contains code that is
-> somewhat similar to the SRF: the Linux PM QOS parameters code, located
-> in kernel/pm_qos_params.c.  (This code replaced the latency management
-> code that was present in earlier kernels.)  Ideally, OMAP drivers
-> would be able to use this Linux PM QOS code directly, but the current
-> PM QOS code has some drawbacks:
->
-> - It combines some power management parameters that should be kept
->   separate for maximum power savings on OMAP3.  For example, in the PM
->   QOS code, CPU and DMA wakeup latency are combined into one
->   parameter; but on OMAP3, these are distinct parameters.  The Linux
->   PM QOS code also combines all network power management knobs into
->   two non-device-specific parameters.  OMAP2/3 systems can have
->   different network devices with different power management
->   requirements - for example, a wired Ethernet interface may have
->   different latency and throughput constraints than a wireless Ethernet
->   interface.
->
-> - It does not yet cover all of the power management capabilities of
->   the OMAP3 architecture.  It does not express latency constraints on
->   a per-device or per-powerdomain basis; it only covers
->   cpu_dma_latency and network throughput and latency, which would not
->   cover most of the OMAP3 devices.
->
-> The result is that drivers using the current Linux PM QOS layer
-> directly are unlikely to reach the same level of power efficiency as
-> driver code using the Shared Resource Framework.
+Pushing today.
 
-Paul,
+Tony
 
-First, thanks for working on this.  This is a huge step in the right
-direction in my opinon.  Thanks!
-
-I've only given a quick glance so far at the actual patch, but my
-first comments are regarding the dismissal of the PM QoS framework.
-
-I totally agree that the QoS framework in its current form has several
-drawbacks and limitations.  However, instead of re-designing something
-new, I think maybe we should first try to extend the QoS framework.
-
-I've had a few conversations with the Intel folks who worked on PM QoS
-and got it into mainline, especially Mark Gross.  He is quite aware
-that it is only the very beginnings of a framework.  He is also very
-interested in potential users and their concerns about limitations of
-the framework.
-
-Since it came out of Intel, PM QoS definitely has a PC/UMPC focus, but
-this is a perfect opportunity to help extend the framework to be
-useful in embedded systems.  I'm sure the Intel guys will be happy to
-hear about potential users and use cases for the framework and why it
-should be extended/updated to work well in embedded.
-
-For starters, we could just use the existing PM QoS framework as it is
-and just add a new set of parameters.  Then begin dissucions with the
-PM QoS folks as to how they could be generalized and unified with the
-existing ones.
-
-Thoughts?
-
-Kevin
+> Signed-off-by: Francisco Alecrim <francisco.alecrim@indt.org.br>
+> Acked-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+> ---
+>  include/asm-arm/arch-omap/board-2430sdp.h     |    1 -
+>  include/asm-arm/arch-omap/board-3430sdp.h     |    1 -
+>  include/asm-arm/arch-omap/board-omap3beagle.h |    2 --
+>  3 files changed, 0 insertions(+), 4 deletions(-)
+> 
+> diff --git a/include/asm-arm/arch-omap/board-2430sdp.h b/include/asm-arm/arch-omap/board-2430sdp.h
+> index ad682c5..b308e88 100644
+> --- a/include/asm-arm/arch-omap/board-2430sdp.h
+> +++ b/include/asm-arm/arch-omap/board-2430sdp.h
+> @@ -39,6 +39,5 @@
+>  /* Function prototypes */
+>  extern void sdp2430_flash_init(void);
+>  extern void sdp2430_usb_init(void);
+> -extern void sdp_mmc_init(void);
+>  
+>  #endif /* __ASM_ARCH_OMAP_2430SDP_H */
+> diff --git a/include/asm-arm/arch-omap/board-3430sdp.h b/include/asm-arm/arch-omap/board-3430sdp.h
+> index 34e878a..77f8647 100644
+> --- a/include/asm-arm/arch-omap/board-3430sdp.h
+> +++ b/include/asm-arm/arch-omap/board-3430sdp.h
+> @@ -30,7 +30,6 @@
+>  #define __ASM_ARCH_OMAP_3430SDP_H
+>  
+>  extern void sdp3430_usb_init(void);
+> -extern void sdp_mmc_init(void);
+>  
+>  #define DEBUG_BASE			0x08000000  /* debug board */
+>  
+> diff --git a/include/asm-arm/arch-omap/board-omap3beagle.h b/include/asm-arm/arch-omap/board-omap3beagle.h
+> index 782e2e5..14db589 100644
+> --- a/include/asm-arm/arch-omap/board-omap3beagle.h
+> +++ b/include/asm-arm/arch-omap/board-omap3beagle.h
+> @@ -29,8 +29,6 @@
+>  #ifndef __ASM_ARCH_OMAP3_BEAGLE_H
+>  #define __ASM_ARCH_OMAP3_BEAGLE_H
+>  
+> -extern void sdp_mmc_init(void);
+> -
+>  #define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
+>  
+>  #endif /* __ASM_ARCH_OMAP3_BEAGLE_H */
+> -- 
+> 1.5.4.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
