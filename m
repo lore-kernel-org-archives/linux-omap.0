@@ -1,51 +1,106 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH 0/3] DMA clean-up for multi-boot
-Date: Wed, 30 Apr 2008 23:30:41 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB2E7D6A3D@dbde02.ent.ti.com>
-References: omap-dma-2008-04-30
- <1209575641-25613-1-git-send-email-tony@atomide.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: [PATCH 1/2] OMAP3 EVM: enable spi, touchscreen, and ads7846 driver in defconfig
+Date: Wed, 30 Apr 2008 12:25:52 -0700
+Message-ID: <5e088bd90804301225l70cfa4ccw898801c57ab4c792@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47102 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752786AbYD3SAu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Apr 2008 14:00:50 -0400
-In-Reply-To: <1209575641-25613-1-git-send-email-tony@atomide.com>
-Content-Language: en-US
+Received: from fg-out-1718.google.com ([72.14.220.153]:65146 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762065AbYD3TZ4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Apr 2008 15:25:56 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so260782fgg.17
+        for <linux-omap@vger.kernel.org>; Wed, 30 Apr 2008 12:25:52 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> Hi all,
->
-> Here are three patches to clean DMA code to support multi-boot
-> better. I have made quick testing on 24xx and 34xx only so far,
-> and things seem to work.
->
-> I will also do more testing, but I would appreciate if people would
-> give them a quick spin and see if anything breaks. Functionality
-> should be same as earlier.
->
+From: Steve Sakoman <steve@sakoman.com>
 
-I'll try and test these over the next couple of days.
+Enable spi, touchscreen, and ADS7846 in omap3_evm_defconfig
 
-I had some DMA cleanups pending. Will wait till these get in.
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
+---
+ omap3_evm_defconfig |   42 ++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 38 insertions(+), 4 deletions(-)
+--- a/arch/arm/configs/omap3_evm_defconfig	2008-04-26 06:32:11.000000000 -0700
++++ b/arch/arm/configs/omap3_evm_defconfig	2008-04-28 08:14:22.000000000 -0700
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+ # Linux kernel version: 2.6.25-omap1
+-# Mon Apr 28 10:21:40 2008
++# Tue Apr 29 08:06:20 2008
+ #
+ CONFIG_ARM=y
+ CONFIG_SYS_SUPPORTS_APM_EMULATION=y
+@@ -459,6 +459,8 @@ CONFIG_MTD_CFI_I2=y
+ #
+ # Self-contained MTD device drivers
+ #
++# CONFIG_MTD_DATAFLASH is not set
++# CONFIG_MTD_M25P80 is not set
+ # CONFIG_MTD_SLRAM is not set
+ # CONFIG_MTD_PHRAM is not set
+ # CONFIG_MTD_MTDRAM is not set
+@@ -587,7 +589,20 @@ CONFIG_INPUT=y
+ # CONFIG_INPUT_MOUSE is not set
+ # CONFIG_INPUT_JOYSTICK is not set
+ # CONFIG_INPUT_TABLET is not set
+-# CONFIG_INPUT_TOUCHSCREEN is not set
++CONFIG_INPUT_TOUCHSCREEN=y
++CONFIG_TOUCHSCREEN_ADS7846=y
++# CONFIG_TOUCHSCREEN_FUJITSU is not set
++# CONFIG_TOUCHSCREEN_GUNZE is not set
++# CONFIG_TOUCHSCREEN_ELO is not set
++# CONFIG_TOUCHSCREEN_MTOUCH is not set
++# CONFIG_TOUCHSCREEN_MK712 is not set
++# CONFIG_TOUCHSCREEN_PENMOUNT is not set
++# CONFIG_TOUCHSCREEN_TOUCHRIGHT is not set
++# CONFIG_TOUCHSCREEN_TOUCHWIN is not set
++# CONFIG_TOUCHSCREEN_UCB1400 is not set
++# CONFIG_TOUCHSCREEN_TSC2005 is not set
++# CONFIG_TOUCHSCREEN_TSC2102 is not set
++# CONFIG_TOUCHSCREEN_TSC210X is not set
+ # CONFIG_INPUT_MISC is not set
 
-- Anand
+ #
+@@ -676,8 +691,26 @@ CONFIG_TWL4030_USB_HS_ULPI=y
+ #
+ # SPI support
+ #
+-# CONFIG_SPI is not set
+-# CONFIG_SPI_MASTER is not set
++CONFIG_SPI=y
++# CONFIG_SPI_DEBUG is not set
++CONFIG_SPI_MASTER=y
++
++#
++# SPI Master Controller Drivers
++#
++# CONFIG_SPI_BITBANG is not set
++CONFIG_SPI_OMAP24XX=m
++
++#
++# SPI Protocol Masters
++#
++# CONFIG_SPI_AT25 is not set
++# CONFIG_SPI_TSC2101 is not set
++# CONFIG_SPI_TSC2102 is not set
++# CONFIG_SPI_TSC210X is not set
++# CONFIG_SPI_TSC2301 is not set
++# CONFIG_SPI_SPIDEV is not set
++# CONFIG_SPI_TLE62X0 is not set
+ CONFIG_HAVE_GPIO_LIB=y
 
-> I've removed direct DMA register access in few places such as
-> omap-hw.c, usb-udc.c, and various audio drivers. So especially
-> those areas should be tested carefully.
->
-> Regards,
->
-> Tony
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+ #
+@@ -694,6 +727,7 @@ CONFIG_HAVE_GPIO_LIB=y
+ #
+ # SPI GPIO expanders:
+ #
++# CONFIG_GPIO_MCP23S08 is not set
+ # CONFIG_W1 is not set
+ # CONFIG_POWER_SUPPLY is not set
+ # CONFIG_HWMON is not set
