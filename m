@@ -1,66 +1,90 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH] ARM: OMAP: 2430SDP: Use defines in asm/sizes.h
-Date: Wed, 30 Apr 2008 11:43:50 +0300
-Message-ID: <1209545030-31637-1-git-send-email-felipe.balbi@nokia.com>
+From: "Syed Mohammed, Khasim" <khasim@ti.com>
+Subject: USB EHCI issue on OMAP3 Beagle
+Date: Wed, 30 Apr 2008 14:12:49 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C02E703DED@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:23398 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756059AbYD3IpS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Apr 2008 04:45:18 -0400
-Received: from esebh108.NOE.Nokia.com (esebh108.ntc.nokia.com [172.21.143.145])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m3U8jDAY029044
-	for <linux-omap@vger.kernel.org>; Wed, 30 Apr 2008 11:45:15 +0300
+Received: from bear.ext.ti.com ([192.94.94.41]:38174 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756476AbYD3IqS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Apr 2008 04:46:18 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "discussion@beagleboard.org" <discussion@beagleboard.org>
 
-Instead of manually calculating the partition sizes, it's
-better to use defines already set in include/asm-arm/sizes.h
+Hi all,
 
-Compile test only.
+We have USB ECHI port 1 integrated with SMSC PHY (USB 3326) on Beagle Board. I have connected a high speed Mass Storage (USB harddisk) to the port, the enumeration happens fine and I am also able to do a data transfer, but after some time, it fails with below message:
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- arch/arm/mach-omap2/board-2430sdp-flash.c |   11 ++++++-----
- 1 files changed, 6 insertions(+), 5 deletions(-)
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+# ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+hub 2-0:1.0: Cannot enable port 1.  Maybe the USB cable is bad?
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+hub 2-0:1.0: Cannot enable port 1.  Maybe the USB cable is bad?
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+hub 2-0:1.0: Cannot enable port 1.  Maybe the USB cable is bad?
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+ehci-omap ehci-omap.0: port 1 reset error -110
+hub 2-0:1.0: hub_port_status failed (err = -32)
+hub 2-0:1.0: Cannot enable port 1.  Maybe the USB cable is bad?
+usb 2-1: USB disconnect, address 2
+sd 0:0:0:0: [sda] Result: hostbyte=0x01 driverbyte=0x00
+end_request: I/O error, dev sda, sector 226436535
+Buffer I/O error on device sda1, logical block 47837202
+lost page write due to I/O error on sda1
+Buffer I/O error on device sda1, logical block 69593106
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp-flash.c b/arch/arm/mach-omap2/board-2430sdp-flash.c
-index 47aa8bf..f645051 100644
---- a/arch/arm/mach-omap2/board-2430sdp-flash.c
-+++ b/arch/arm/mach-omap2/board-2430sdp-flash.c
-@@ -38,25 +38,26 @@ static struct mtd_partition nand_partitions[] = {
- 	{
- 		.name		= "X-Loader",
- 		.offset		= 0,
--		.size		= 4*(64*2048),  /* 0-3 blks reserved.
--						   Mandated by ROM code */
-+		.size		= SZ_128K,	 /* 0-3 blks reserved.
-+						  * Mandated by ROM code
-+						  */
- 		.mask_flags	= MTD_WRITEABLE	/* force read-only */
- 	},
- 	{
- 		.name		= "U-Boot",
- 		.offset		= MTDPART_OFS_APPEND,
--		.size		=  4*(64*2048),
-+		.size		= SZ_128K,
- 		.mask_flags	= MTD_WRITEABLE	/* force read-only */
- 	},
- 	{
- 		.name		= "U-Boot Environment",
- 		.offset		= MTDPART_OFS_APPEND,
--		.size		= 2*(64*2048),
-+		.size		= SZ_128K,
- 	},
- 	{
- 		.name		= "Kernel",
- 		.offset		= MTDPART_OFS_APPEND,
--		.size		= 32*(64*2048),		/* 4*1M */
-+		.size		= SZ_4M,		/* 4*1M */
- 	},
- 	{
- 		.name		= "File System",
--- 
-1.5.5.1.99.gf0ec4
+<so on>
+
+I have also tried connecting a self powered HUB, this fails as well. Other USB devices like Ethernet, Mouse, Keyboard, etc fail after similarly.
+
+We have done USB eye diagram tests and found no issues with hardware as such.
+
+Any pointers on these should be helpful, let me know if you need any further info.
+
+FYI, I am using drivers/usb/host/ehci-omap.c on latest OMAP GIT.
+
+Hardware reference manual for Beagle can be found here,
+
+http://www.beagleboard.org/uploads/Beagle_HW_Reference_Manual_A_5.pdf
+
+Regards,
+Khasim
 
