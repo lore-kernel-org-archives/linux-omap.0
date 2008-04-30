@@ -1,96 +1,255 @@
 From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: [PATCH 4/7] OMAP3 EVM: add onenand flash support
-Date: Wed, 30 Apr 2008 06:59:22 -0700
-Message-ID: <5e088bd90804300659p7c4946c1he7abde8c9a53e9dc@mail.gmail.com>
-References: <5e088bd90804281629n5bb4eb0cu3eb1704e521548cf@mail.gmail.com>
-	 <0841370d1474c97fc74cfad2116790aa@felipebalbi.com>
-	 <5e088bd90804300608p4b57e07bxcb0c317d036cbc8e@mail.gmail.com>
-	 <0680EC522D0CC943BC586913CF3768C02E71F71F@dbde02.ent.ti.com>
+Subject: Re: [PATCH 6/7] OMAP3 EVM: add lcd support (resubmit to respond to feedback)
+Date: Wed, 30 Apr 2008 07:14:53 -0700
+Message-ID: <5e088bd90804300714p5349a257rf1b89ddd347bb72@mail.gmail.com>
+References: <5e088bd90804292353t9e05fcatf1505a086770cb63@mail.gmail.com>
+	 <2a4801c741aef4f504dbaf153b85afab@felipebalbi.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:57794 "EHLO
+Received: from fg-out-1718.google.com ([72.14.220.152]:25581 "EHLO
 	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752284AbYD3N7Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Apr 2008 09:59:24 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so165966fgg.17
-        for <linux-omap@vger.kernel.org>; Wed, 30 Apr 2008 06:59:22 -0700 (PDT)
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C02E71F71F@dbde02.ent.ti.com>
+	with ESMTP id S1754198AbYD3OOy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Apr 2008 10:14:54 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so170713fgg.17
+        for <linux-omap@vger.kernel.org>; Wed, 30 Apr 2008 07:14:53 -0700 (PDT)
+In-Reply-To: <2a4801c741aef4f504dbaf153b85afab@felipebalbi.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Syed Mohammed, Khasim" <khasim@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Felipe Balbi <me@felipebalbi.com>
+To: linux-omap@vger.kernel.org, Felipe Balbi <me@felipebalbi.com>
 
-I just saw that discussion and I agree.  Let's leave the patch as it is.
+From: Steve Sakoman <steve@sakoman.com>
 
-Steve
+Add LCD support for OMAP3 EVM
 
-On Wed, Apr 30, 2008 at 6:14 AM, Syed Mohammed, Khasim <khasim@ti.com> wrote:
->
->  > -----Original Message-----
->  > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->  > owner@vger.kernel.org] On Behalf Of Steve Sakoman
->  > Sent: Wednesday, April 30, 2008 6:38 PM
->  > To: linux-omap@vger.kernel.org; Felipe Balbi
->  > Subject: Re: [PATCH 4/7] OMAP3 EVM: add onenand flash support
->  >
->  > On Wed, Apr 30, 2008 at 1:35 AM, Felipe Balbi <me@felipebalbi.com> wrote:
->  >
->  > >  > +             .name           = "xloader",
->  > >  > +             .offset         = 0,
->  > >  > +             .size           = 4*(64*2048),
->  > >
->  > >  should be .size = SZ_512k,
->  >
->  > OK, will do.
->  >
->
->  Sakoman,
->
->  No need to re-work on this patch, as Richard mentioned they all depend on the geometry of the flash and might not meet the defined macros.
->
->  Regards,
->  Khasim
->
->
->  > >  > +             .name           = "uboot",
->  > >  > +             .offset         = MTDPART_OFS_APPEND,
->  > >  > +             .size           =  15*(64*2048),
->  > >
->  > >  most of the boards use .size = SZ_128K here
->  >
->  > This seemed strange to me too, but this is the way the board ships so
->  > I was hesitant to change it.  A change here will require changes to
->  > u-boot reflash scripts, etc.  Might cause a bit of confusion!  What do
->  > others think?
->  >
->  > >  > +             .name           = "params",
->  > >  > +             .offset         = MTDPART_OFS_APPEND,
->  > >  > +             .size           = 1*(64*2048),
->  > >
->  > >  SZ_128K
->  >
->  > OK, will do.
->  >
->  > >  > +             .name           = "linux",
->  > >  > +             .offset         = MTDPART_OFS_APPEND,
->  > >  > +             .size           = 40*(64*2048),
->  > >
->  > >  This looks too big for kernel only.
->  > >  SZ_4M is way enough.
->  >
->  > Same comment as above.  I am hesitant to change this without more
->  > discussion here.  But I agree that it makes sense :-)
->  >
->  > Thanks!
->  >
->  > Steve
->
->
-> > --
->  > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->  > the body of a message to majordomo@vger.kernel.org
->  > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
+---
+ arch/arm/mach-omap2/board-omap3evm.c |   15 +++
+ drivers/video/omap/Makefile          |    1
+ drivers/video/omap/lcd_omap3evm.c    |  167 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 183 insertions(+)
+diff -uprN -X a/Documentation/dontdiff
+a/arch/arm/mach-omap2/board-omap3evm.c
+b/arch/arm/mach-omap2/board-omap3evm.c
+--- a/arch/arm/mach-omap2/board-omap3evm.c	2008-04-28 11:11:51.000000000 -0700
++++ b/arch/arm/mach-omap2/board-omap3evm.c	2008-04-28 11:31:01.000000000 -0700
+@@ -51,6 +51,15 @@ static struct omap_mmc_config omap3_evm_
+ 	},
+ };
+
++static struct platform_device omap3_evm_lcd_device = {
++	.name		= "omap3evm_lcd",
++	.id		= -1,
++};
++
++static struct omap_lcd_config omap3_evm_lcd_config __initdata = {
++	.ctrl_name	= "internal",
++};
++
+ static void __init omap3_evm_init_irq(void)
+ {
+ 	omap2_init_common_hw();
+@@ -61,10 +70,16 @@ static void __init omap3_evm_init_irq(vo
+ static struct omap_board_config_kernel omap3_evm_config[] __initdata = {
+ 	{ OMAP_TAG_UART,	&omap3_evm_uart_config },
+ 	{ OMAP_TAG_MMC,		&omap3_evm_mmc_config },
++	{ OMAP_TAG_LCD,		&omap3_evm_lcd_config },
++};
++
++static struct platform_device *omap3_evm_devices[] __initdata = {
++	&omap3_evm_lcd_device,
+ };
+
+ static void __init omap3_evm_init(void)
+ {
++	platform_add_devices(omap3_evm_devices, ARRAY_SIZE(omap3_evm_devices));
+ 	omap_board_config = omap3_evm_config;
+ 	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
+ 	omap_serial_init();
+diff -uprN -X a/Documentation/dontdiff
+a/drivers/video/omap/lcd_omap3evm.c
+b/drivers/video/omap/lcd_omap3evm.c
+--- a/drivers/video/omap/lcd_omap3evm.c	1969-12-31 16:00:00.000000000 -0800
++++ b/drivers/video/omap/lcd_omap3evm.c	2008-04-28 11:31:01.000000000 -0700
+@@ -0,0 +1,167 @@
++/*
++ * LCD panel support for the TI OMAP3 EVM board
++ *
++ * Author: Steve Sakoman <steve@sakoman.com>
++ *
++ * Derived from drivers/video/omap/lcd-apollon.c
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/i2c/twl4030.h>
++
++#include <asm/arch/gpio.h>
++#include <asm/arch/mux.h>
++#include <asm/arch/omapfb.h>
++#include <asm/mach-types.h>
++
++#define LCD_PANEL_ENABLE_GPIO       153
++#define LCD_PANEL_LR                2
++#define LCD_PANEL_UD                3
++#define LCD_PANEL_INI               152
++#define LCD_PANEL_QVGA              154
++#define LCD_PANEL_RESB              155
++
++#define LCD_XRES	 	480
++#define LCD_YRES 		640
++#define LCD_PIXCLOCK_MAX	41700 /* in pico seconds  */
++#define LCD_PIXCLOCK_MIN	38000 /* in pico seconds */
++
++#define ENABLE_VDAC_DEDICATED	0x03
++#define ENABLE_VDAC_DEV_GRP	0x20
++#define ENABLE_VPLL2_DEDICATED	0x05
++#define ENABLE_VPLL2_DEV_GRP	0xE0
++
++static int omap3evm_panel_init(struct lcd_panel *panel,
++				struct omapfb_device *fbdev)
++{
++	omap_request_gpio(LCD_PANEL_LR);
++	omap_request_gpio(LCD_PANEL_UD);
++	omap_request_gpio(LCD_PANEL_INI);
++	omap_request_gpio(LCD_PANEL_RESB);
++	omap_request_gpio(LCD_PANEL_QVGA);
++
++	omap_set_gpio_direction(LCD_PANEL_LR, 0);
++	omap_set_gpio_direction(LCD_PANEL_UD, 0);
++	omap_set_gpio_direction(LCD_PANEL_INI, 0);
++	omap_set_gpio_direction(LCD_PANEL_RESB, 0);
++	omap_set_gpio_direction(LCD_PANEL_QVGA, 0);
++
++	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x7F, 0);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x7F, 1);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PWMB, 0x7F, 0);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PWMB, 0x7F, 1);
++
++	omap_set_gpio_dataout(LCD_PANEL_RESB, 1);
++	omap_set_gpio_dataout(LCD_PANEL_INI, 1);
++	omap_set_gpio_dataout(LCD_PANEL_QVGA, 0);
++	omap_set_gpio_dataout(LCD_PANEL_LR, 1);
++	omap_set_gpio_dataout(LCD_PANEL_UD, 1);
++
++	return 0;
++}
++
++static void omap3evm_panel_cleanup(struct lcd_panel *panel)
++{
++}
++
++static int omap3evm_panel_enable(struct lcd_panel *panel)
++{
++	omap_set_gpio_dataout(LCD_PANEL_ENABLE_GPIO, 0);
++	return 0;
++}
++
++static void omap3evm_panel_disable(struct lcd_panel *panel)
++{
++	omap_set_gpio_dataout(LCD_PANEL_ENABLE_GPIO, 1);
++}
++
++static unsigned long omap3evm_panel_get_caps(struct lcd_panel *panel)
++{
++	return 0;
++}
++
++struct lcd_panel omap3evm_panel = {
++	.name		= "omap3evm",
++	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
++			  OMAP_LCDC_INV_HSYNC,
++
++	.bpp		= 16,
++	.data_lines	= 18,
++	.x_res		= LCD_XRES,
++	.y_res		= LCD_YRES,
++	.hsw		= 3,		/* hsync_len (4) - 1 */
++	.hfp		= 3,		/* right_margin (4) - 1 */
++	.hbp		= 39,		/* left_margin (40) - 1 */
++	.vsw		= 1,		/* vsync_len (2) - 1 */
++	.vfp		= 2,		/* lower_margin */
++	.vbp		= 7,		/* upper_margin (8) - 1 */
++
++	.pixel_clock	= LCD_PIXCLOCK_MAX,
++
++	.init		= omap3evm_panel_init,
++	.cleanup	= omap3evm_panel_cleanup,
++	.enable		= omap3evm_panel_enable,
++	.disable	= omap3evm_panel_disable,
++	.get_caps	= omap3evm_panel_get_caps,
++};
++
++static int omap3evm_panel_probe(struct platform_device *pdev)
++{
++	omapfb_register_panel(&omap3evm_panel);
++	return 0;
++}
++
++static int omap3evm_panel_remove(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static int omap3evm_panel_suspend(struct platform_device *pdev,
++				   pm_message_t mesg)
++{
++	return 0;
++}
++
++static int omap3evm_panel_resume(struct platform_device *pdev)
++{
++	return 0;
++}
++
++struct platform_driver omap3evm_panel_driver = {
++	.probe		= omap3evm_panel_probe,
++	.remove		= omap3evm_panel_remove,
++	.suspend	= omap3evm_panel_suspend,
++	.resume		= omap3evm_panel_resume,
++	.driver		= {
++		.name	= "omap3evm_lcd",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init omap3evm_panel_drv_init(void)
++{
++	return platform_driver_register(&omap3evm_panel_driver);
++}
++
++static void __exit omap3evm_panel_drv_exit(void)
++{
++	platform_driver_unregister(&omap3evm_panel_driver);
++}
++
++module_init(omap3evm_panel_drv_init);
++module_exit(omap3evm_panel_drv_exit);
+diff -uprN -X a/Documentation/dontdiff a/drivers/video/omap/Makefile
+b/drivers/video/omap/Makefile
+--- a/drivers/video/omap/Makefile	2008-04-26 06:32:30.000000000 -0700
++++ b/drivers/video/omap/Makefile	2008-04-28 11:31:01.000000000 -0700
+@@ -31,6 +31,7 @@ objs-y$(CONFIG_MACH_SX1) += lcd_sx1.o
+ objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
+ objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd_2430sdp.o
+ objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_2430sdp.o
++objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
+ objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
+
+ omapfb-objs := $(objs-yy)
