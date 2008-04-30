@@ -1,252 +1,154 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: [PATCH 6/7] OMAP3 EVM: add lcd support (resubmit to respond to feedback)
-Date: Tue, 29 Apr 2008 23:53:42 -0700
-Message-ID: <5e088bd90804292353t9e05fcatf1505a086770cb63@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Jouni Hogander <jouni.hogander@nokia.com>
+Subject: [PATCH] OMAP: SERIAL: Provide function to enable/disable uart clocks
+Date: Wed, 30 Apr 2008 10:08:45 +0300
+Message-ID: <1209539325-10443-1-git-send-email-jouni.hogander@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:25843 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751069AbYD3Gxp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Apr 2008 02:53:45 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so43076fgg.17
-        for <linux-omap@vger.kernel.org>; Tue, 29 Apr 2008 23:53:42 -0700 (PDT)
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.233]:55971 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752406AbYD3HJB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Apr 2008 03:09:01 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, tony@atomide.com
 
-From: Steve Sakoman <steve@sakoman.com>
+This patch adds common function to enable/disable omap2/3 uart
+clocks. Enabled uarts are passed by bootloader in atags and clocks for
+these enabled uarts are touched.
 
-Add LCD support for OMAP3 EVM
-
-Signed-off-by: Steve Sakoman <steve@sakoman.com>
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
 ---
- arch/arm/mach-omap2/board-omap3evm.c |   15 +++
- drivers/video/omap/Makefile          |    1
- drivers/video/omap/lcd_omap3evm.c    |  166 +++++++++++++++++++++++++++++++++++
- 3 files changed, 182 insertions(+)
-diff -uprN -X a/Documentation/dontdiff
-a/arch/arm/mach-omap2/board-omap3evm.c
-b/arch/arm/mach-omap2/board-omap3evm.c
---- a/arch/arm/mach-omap2/board-omap3evm.c	2008-04-28 11:11:51.000000000 -0700
-+++ b/arch/arm/mach-omap2/board-omap3evm.c	2008-04-28 11:31:01.000000000 -0700
-@@ -51,6 +51,15 @@ static struct omap_mmc_config omap3_evm_
- 	},
- };
+ arch/arm/mach-omap2/serial.c       |   79 ++++++++++++++---------------------
+ include/asm-arm/arch-omap/common.h |    1 +
+ 2 files changed, 33 insertions(+), 47 deletions(-)
 
-+static struct platform_device omap3_evm_lcd_device = {
-+	.name		= "omap3evm_lcd",
-+	.id		= -1,
-+};
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index c9697a4..54ab7af 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -3,7 +3,7 @@
+  *
+  * OMAP2 serial support.
+  *
+- * Copyright (C) 2005 Nokia Corporation
++ * Copyright (C) 2005-2008 Nokia Corporation
+  * Author: Paul Mundt <paul.mundt@nokia.com>
+  *
+  * Based off of arch/arm/mach-omap/omap1/serial.c
+@@ -23,12 +23,8 @@
+ #include <asm/arch/common.h>
+ #include <asm/arch/board.h>
+ 
+-static struct clk * uart1_ick = NULL;
+-static struct clk * uart1_fck = NULL;
+-static struct clk * uart2_ick = NULL;
+-static struct clk * uart2_fck = NULL;
+-static struct clk * uart3_ick = NULL;
+-static struct clk * uart3_fck = NULL;
++static struct clk *uart_ick[OMAP_MAX_NR_PORTS];
++static struct clk *uart_fck[OMAP_MAX_NR_PORTS];
+ 
+ static struct plat_serial8250_port serial_platform_data[] = {
+ 	{
+@@ -87,10 +83,24 @@ static inline void __init omap_serial_reset(struct plat_serial8250_port *p)
+ 	serial_write_reg(p, UART_OMAP_SYSC, (0x02 << 3) | (1 << 2) | (1 << 0));
+ }
+ 
++void omap_serial_enable_clocks(int enable)
++{
++	int i;
++	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
++		if (uart_ick[i])
++			enable ? clk_enable(uart_ick[i]) :
++				clk_disable(uart_ick[i]);
++		if (uart_fck[i])
++			enable ? clk_enable(uart_fck[i]) :
++				clk_disable(uart_fck[i]);
++	}
++}
 +
-+static struct omap_lcd_config omap3_evm_lcd_config __initdata = {
-+	.ctrl_name	= "internal",
-+};
-+
- static void __init omap3_evm_init_irq(void)
+ void __init omap_serial_init(void)
  {
- 	omap2_init_common_hw();
-@@ -61,10 +70,16 @@ static void __init omap3_evm_init_irq(vo
- static struct omap_board_config_kernel omap3_evm_config[] __initdata = {
- 	{ OMAP_TAG_UART,	&omap3_evm_uart_config },
- 	{ OMAP_TAG_MMC,		&omap3_evm_mmc_config },
-+	{ OMAP_TAG_LCD,		&omap3_evm_lcd_config },
-+};
-+
-+static struct platform_device *omap3_evm_devices[] __initdata = {
-+	&omap3_evm_lcd_device,
- };
+ 	int i;
+ 	const struct omap_uart_config *info;
++	char name[16];
+ 
+ 	/*
+ 	 * Make sure the serial ports are muxed on at this point.
+@@ -112,47 +122,22 @@ void __init omap_serial_init(void)
+ 			continue;
+ 		}
+ 
+-		switch (i) {
+-		case 0:
+-			uart1_ick = clk_get(NULL, "uart1_ick");
+-			if (IS_ERR(uart1_ick))
+-				printk("Could not get uart1_ick\n");
+-			else
+-				clk_enable(uart1_ick);
+-
+-			uart1_fck = clk_get(NULL, "uart1_fck");
+-			if (IS_ERR(uart1_fck))
+-				printk("Could not get uart1_fck\n");
+-			else
+-				clk_enable(uart1_fck);
+-			break;
+-		case 1:
+-			uart2_ick = clk_get(NULL, "uart2_ick");
+-			if (IS_ERR(uart2_ick))
+-				printk("Could not get uart2_ick\n");
+-			else
+-				clk_enable(uart2_ick);
+-
+-			uart2_fck = clk_get(NULL, "uart2_fck");
+-			if (IS_ERR(uart2_fck))
+-				printk("Could not get uart2_fck\n");
+-			else
+-				clk_enable(uart2_fck);
+-			break;
+-		case 2:
+-			uart3_ick = clk_get(NULL, "uart3_ick");
+-			if (IS_ERR(uart3_ick))
+-				printk("Could not get uart3_ick\n");
+-			else
+-				clk_enable(uart3_ick);
+-
+-			uart3_fck = clk_get(NULL, "uart3_fck");
+-			if (IS_ERR(uart3_fck))
+-				printk("Could not get uart3_fck\n");
+-			else
+-				clk_enable(uart3_fck);
+-			break;
++		sprintf(name, "uart%d_ick", i+1);
++		uart_ick[i] = clk_get(NULL, name);
++		if (IS_ERR(uart_ick[i])) {
++			printk(KERN_ERR "Could not get uart%d_ick\n", i+1);
++			uart_ick[i] = NULL;
++		}
++		else
++			clk_enable(uart_ick[i]);
++		sprintf(name, "uart%d_fck", i+1);
++		uart_fck[i] = clk_get(NULL, name);
++		if (IS_ERR(uart_fck[i])) {
++			printk(KERN_ERR "Could not get uart%d_fck\n", i+1);
++			uart_ick[i] = NULL;
+ 		}
++		else
++			clk_enable(uart_fck[i]);
+ 
+ 		omap_serial_reset(p);
+ 	}
+diff --git a/include/asm-arm/arch-omap/common.h b/include/asm-arm/arch-omap/common.h
+index 36a3b62..6c072de 100644
+--- a/include/asm-arm/arch-omap/common.h
++++ b/include/asm-arm/arch-omap/common.h
+@@ -34,6 +34,7 @@ struct sys_timer;
+ extern void omap_map_common_io(void);
+ extern struct sys_timer omap_timer;
+ extern void omap_serial_init(void);
++extern void omap_serial_enable_clocks(int enable);
+ #ifdef CONFIG_I2C_OMAP
+ extern int omap_register_i2c_bus(int bus_id, u32 clkrate,
+ 				 struct i2c_board_info const *info,
+-- 
+1.5.5
 
- static void __init omap3_evm_init(void)
- {
-+	platform_add_devices(omap3_evm_devices, ARRAY_SIZE(omap3_evm_devices));
- 	omap_board_config = omap3_evm_config;
- 	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
- 	omap_serial_init();
-diff -uprN -X a/Documentation/dontdiff
-a/drivers/video/omap/lcd_omap3evm.c
-b/drivers/video/omap/lcd_omap3evm.c
---- a/drivers/video/omap/lcd_omap3evm.c	1969-12-31 16:00:00.000000000 -0800
-+++ b/drivers/video/omap/lcd_omap3evm.c	2008-04-28 11:31:01.000000000 -0700
-@@ -0,0 +1,166 @@
-+/*
-+ * LCD panel support for the TI OMAP3 EVM board
-+ *
-+ * Author: Steve Sakoman <steve@sakoman.com>
-+ *
-+ * Derived from drivers/video/omap/lcd-apollon.c
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/i2c/twl4030.h>
-+
-+#include <asm/arch/gpio.h>
-+#include <asm/arch/mux.h>
-+#include <asm/arch/omapfb.h>
-+#include <asm/mach-types.h>
-+
-+#define LCD_PANEL_ENABLE_GPIO       153
-+#define LCD_PANEL_LR                2
-+#define LCD_PANEL_UD                3
-+#define LCD_PANEL_INI               152
-+#define LCD_PANEL_QVGA              154
-+#define LCD_PANEL_RESB              155
-+
-+#define LCD_XRES	 	480
-+#define LCD_YRES 		640
-+#define LCD_PIXCLOCK_MAX	41700 /* in pico seconds  */
-+#define LCD_PIXCLOCK_MIN	38000 /* in pico seconds */
-+
-+#define ENABLE_VDAC_DEDICATED	0x03
-+#define ENABLE_VDAC_DEV_GRP	0x20
-+#define ENABLE_VPLL2_DEDICATED	0x05
-+#define ENABLE_VPLL2_DEV_GRP	0xE0
-+
-+static int omap3evm_panel_init(struct lcd_panel *panel,
-+				struct omapfb_device *fbdev)
-+{
-+	omap_request_gpio(LCD_PANEL_LR);
-+	omap_request_gpio(LCD_PANEL_UD);
-+	omap_request_gpio(LCD_PANEL_INI);
-+	omap_request_gpio(LCD_PANEL_RESB);
-+	omap_request_gpio(LCD_PANEL_QVGA);
-+
-+	omap_set_gpio_direction(LCD_PANEL_LR, 0);
-+	omap_set_gpio_direction(LCD_PANEL_UD, 0);
-+	omap_set_gpio_direction(LCD_PANEL_INI, 0);
-+	omap_set_gpio_direction(LCD_PANEL_RESB, 0);
-+	omap_set_gpio_direction(LCD_PANEL_QVGA, 0);
-+
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x7F, 0);
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x7F, 1);
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PWMB, 0x7F, 0);
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PWMB, 0x7F, 1);
-+
-+	omap_set_gpio_dataout(LCD_PANEL_RESB, 1);
-+	omap_set_gpio_dataout(LCD_PANEL_INI, 1);
-+	omap_set_gpio_dataout(LCD_PANEL_QVGA, 0);
-+	omap_set_gpio_dataout(LCD_PANEL_LR, 1);
-+	omap_set_gpio_dataout(LCD_PANEL_UD, 1);
-+
-+	return 0;
-+}
-+
-+static void omap3evm_panel_cleanup(struct lcd_panel *panel)
-+{
-+}
-+
-+static int omap3evm_panel_enable(struct lcd_panel *panel)
-+{
-+	omap_set_gpio_dataout(LCD_PANEL_ENABLE_GPIO, 0);
-+	return 0;
-+}
-+
-+static void omap3evm_panel_disable(struct lcd_panel *panel)
-+{
-+	omap_set_gpio_dataout(LCD_PANEL_ENABLE_GPIO, 1);
-+}
-+
-+static unsigned long omap3evm_panel_get_caps(struct lcd_panel *panel)
-+{
-+	return 0;
-+}
-+
-+struct lcd_panel omap3evm_panel = {
-+	.name		= "omap3evm",
-+	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
-+			  OMAP_LCDC_INV_HSYNC,
-+
-+	.bpp		= 16,
-+	.data_lines	= 18,
-+	.x_res		= LCD_XRES,
-+	.y_res		= LCD_YRES,
-+	.hsw		= 3,		/* hsync_len (4) - 1 */
-+	.hfp		= 3,		/* right_margin (4) - 1 */
-+	.hbp		= 39,		/* left_margin (40) - 1 */
-+	.vsw		= 1,		/* vsync_len (2) - 1 */
-+	.vfp		= 2,		/* lower_margin */
-+	.vbp		= 7,		/* upper_margin (8) - 1 */
-+
-+	.pixel_clock	= LCD_PIXCLOCK_MAX,
-+
-+	.init		= omap3evm_panel_init,
-+	.cleanup	= omap3evm_panel_cleanup,
-+	.enable		= omap3evm_panel_enable,
-+	.disable	= omap3evm_panel_disable,
-+	.get_caps	= omap3evm_panel_get_caps,
-+};
-+
-+static int omap3evm_panel_probe(struct platform_device *pdev)
-+{
-+	omapfb_register_panel(&omap3evm_panel);
-+	return 0;
-+}
-+
-+static int omap3evm_panel_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static int omap3evm_panel_suspend(struct platform_device *pdev,
-pm_message_t mesg)
-+{
-+	return 0;
-+}
-+
-+static int omap3evm_panel_resume(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+struct platform_driver omap3evm_panel_driver = {
-+	.probe		= omap3evm_panel_probe,
-+	.remove		= omap3evm_panel_remove,
-+	.suspend	= omap3evm_panel_suspend,
-+	.resume		= omap3evm_panel_resume,
-+	.driver		= {
-+		.name	= "omap3evm_lcd",
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+static int __init omap3evm_panel_drv_init(void)
-+{
-+	return platform_driver_register(&omap3evm_panel_driver);
-+}
-+
-+static void __exit omap3evm_panel_drv_exit(void)
-+{
-+	platform_driver_unregister(&omap3evm_panel_driver);
-+}
-+
-+module_init(omap3evm_panel_drv_init);
-+module_exit(omap3evm_panel_drv_exit);
-diff -uprN -X a/Documentation/dontdiff a/drivers/video/omap/Makefile
-b/drivers/video/omap/Makefile
---- a/drivers/video/omap/Makefile	2008-04-26 06:32:30.000000000 -0700
-+++ b/drivers/video/omap/Makefile	2008-04-28 11:31:01.000000000 -0700
-@@ -31,6 +31,7 @@ objs-y$(CONFIG_MACH_SX1) += lcd_sx1.o
- objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
- objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd_2430sdp.o
- objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_2430sdp.o
-+objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
- objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
-
- omapfb-objs := $(objs-yy)
