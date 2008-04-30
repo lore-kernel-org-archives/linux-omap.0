@@ -1,86 +1,48 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: USB EHCI issue on OMAP3 Beagle
-Date: Wed, 30 Apr 2008 05:44:22 -0500
-Message-ID: <a21ba9cd04fe783a860d392dd35a6396@felipebalbi.com>
-References: <0680EC522D0CC943BC586913CF3768C02E703DED@dbde02.ent.ti.com> <241B8109-541C-43EC-B83E-F301F53B6FA9@student.utwente.nl> <3d69a905f897ec2d3153921f1a447013@felipebalbi.com> <289F77B4-2CEB-43C0-BC2A-A65C6CDF37C6@student.utwente.nl>
+Subject: Re: Android on N810 File System Problem
+Date: Wed, 30 Apr 2008 05:46:22 -0500
+Message-ID: <152c662ddc4540ddad11fe3f9fa81ad0@felipebalbi.com>
+References: <6a56d69c0804241248w5e46efe8k757c9e5fb9e3ce22@mail.gmail.com> <48116F5C.9040009@googlemail.com> <20080425183605.GA27479@kedavra.cpe.vivax.com.br> <87fxt7my4o.fsf@nokia.com> <20080427223248.GA5962@kedavra.cpe.vivax.com.br> <20080428233827.GE8449@atomide.com> <20080429090032.GA25363@bulgaria.corp.google.com> <87bq3ry8o7.fsf@nokia.com> <20080430102036.GA23558@bulgaria.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:58151 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:58311 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756474AbYD3KoX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Apr 2008 06:44:23 -0400
-In-Reply-To: <289F77B4-2CEB-43C0-BC2A-A65C6CDF37C6@student.utwente.nl>
+	with ESMTP id S1755586AbYD3Kq3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Apr 2008 06:46:29 -0400
+In-Reply-To: <20080430102036.GA23558@bulgaria.corp.google.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: linux-omap@vger.kernel.org, discussion@beagleboard.org
+To: Brian Swetland <swetland@google.com>
+Cc: Kalle Valo <kalle.valo@nokia.com>, Tony Lindgren <tony@atomide.com>, Dirk Behme <dirk.behme@googlemail.com>, Jonathan Herriott <herriojr@gmail.com>, linux-omap@vger.kernel.org
 
 
 
-On Wed, 30 Apr 2008 12:20:28 +0200, Koen Kooi <k.kooi@student.utwente.nl>
+On Wed, 30 Apr 2008 03:20:36 -0700, Brian Swetland <swetland@google.com>
 wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> 
-> Op 30 apr 2008, om 11:17 heeft Felipe Balbi het volgende geschreven:
->>
->>
->> On Wed, 30 Apr 2008 11:09:37 +0200, Koen Kooi <k.kooi@student.utwente.nl
+> [Kalle Valo <kalle.valo@nokia.com>]
+>> Brian Swetland <swetland@google.com> writes:
 >> >
->> wrote:
->>> -----BEGIN PGP SIGNED MESSAGE-----
->>> Hash: SHA1
->>>
->>>
->>> Op 30 apr 2008, om 10:42 heeft Syed Mohammed, Khasim het volgende
->>> geschreven:
->>>> Hi all,
->>>>
->>>> We have USB ECHI port 1 integrated with SMSC PHY (USB 3326) on
->>>> Beagle Board. I have connected a high speed Mass Storage (USB
->>>> harddisk) to the port, the enumeration happens fine and I am also
->>>> able to do a data transfer, but after some time, it fails with below
->>>> message:
->>>
->>>> ehci-omap ehci-omap.0: port 1 reset error -110
->>>> hub 2-0:1.0: hub_port_status failed (err = -32)
->>>> # ehci-omap ehci-omap.0: port 1 reset error -110
->>>> hub 2-0:1.0: hub_port_status failed (err = -32)
->>>
->>> I'm having similar issues with usbon the beagleboard:
->>>
->>> usb 1-1: USB disconnect, address 2
->>> usb 1-1.3: USB disconnect, address 7
->>> eth0: unregister 'asix' usb-ehci-omap.0-1.3, ASIX AX8817x USB 2.0
->>> Ethernet
->>> usb 1-1: clear tt 4 (9082) error -19
->>> usb 1-1: clear tt 4 (9082) error -19
->>>
->>> I tried various combinations of the usb-ethernet adaptor with and
->>> without hub and found:
->>>
->>> * no hub,  low cpu load + slow transfer (e.g. download over adsl):
->>> transferring a few MiBs is OK
->>> * hub, low cpu load + slow transfer: transferring ~ 1MiB is OK
->>> * big cpu load (e.g. using scp): 128KiB max
->>>
->>> I didn't dare to try a USB disk yet :)
+>> > This was the show-stopper for me.  When I last got things hobbling
+>> > along on n8x0, the binary-only wlan module was incompatible with
+>> > newer kernels than 2.6.21 (changes in some network data structures).
 >>
->> false overcurrent indication maybe ?
+>> That's exactly the problem. I have written something about it here:
 >>
->> try modprobe ehci_hcd ignore_oc=1
+>>
+>
+https://garage.maemo.org/pipermail/cx3110x-devel/2007-December/000007.html
 > 
-> I've uploaded a kernel with your timeout patch and a modular ehci_hcd
-> (so you need to unpack modules.tgz into your rootfs) to here:
+> Just did a quick diff between v2.6.21 and v2.6.24 and the skbuff changes
+> are pretty daunting.  Doesn't look like there's an easy hack here...
 > 
-> http://amethyst.openembedded.net/~koen/beagleboard/usbtest/
+>> Currently there's nothing I can do to resolve the issue, unfortunately.
 > 
-> I'm currently 700 km from my beagleboard, so testing is appreciated :)
+> Pity.  It'd be nice to get newer kernels running on the n8x0 -- it's
+> nice hardware.
 
-Maybe someone else could test it, I'm still waiting mine to come :-p
+eheheh, reverse engineering 2.6.21 driver with a jtag sounds fun :-p
 
 -- 
 Best Regards,
