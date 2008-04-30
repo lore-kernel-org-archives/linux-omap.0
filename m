@@ -1,51 +1,64 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: 2430SDP: Use defines in asm/sizes.h
-Date: Wed, 30 Apr 2008 07:49:01 -0500
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429042C61F4@dlee13.ent.ti.com>
-References: <1209545030-31637-1-git-send-email-felipe.balbi@nokia.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: [PATCH 4/7] OMAP3 EVM: add onenand flash support
+Date: Wed, 30 Apr 2008 06:08:06 -0700
+Message-ID: <5e088bd90804300608p4b57e07bxcb0c317d036cbc8e@mail.gmail.com>
+References: <5e088bd90804281629n5bb4eb0cu3eb1704e521548cf@mail.gmail.com>
+	 <0841370d1474c97fc74cfad2116790aa@felipebalbi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from soda.ext.ti.com ([198.47.26.145]:34865 "EHLO soda.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754073AbYD3MtK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Apr 2008 08:49:10 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <1209545030-31637-1-git-send-email-felipe.balbi@nokia.com>
+Received: from fg-out-1718.google.com ([72.14.220.157]:20055 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757710AbYD3NIJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Apr 2008 09:08:09 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so151074fgg.17
+        for <linux-omap@vger.kernel.org>; Wed, 30 Apr 2008 06:08:06 -0700 (PDT)
+In-Reply-To: <0841370d1474c97fc74cfad2116790aa@felipebalbi.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Felipe Balbi <me@felipebalbi.com>
 
-> Instead of manually calculating the partition sizes, it's
-> better to use defines already set in include/asm-arm/sizes.h
+On Wed, Apr 30, 2008 at 1:35 AM, Felipe Balbi <me@felipebalbi.com> wrote:
 
-I don't know that I agree with this for a flash device.  Knowing something about the block geometry of the device with out having to dig up the data sheet is pretty useful.
+>  > +             .name           = "xloader",
+>  > +             .offset         = 0,
+>  > +             .size           = 4*(64*2048),
+>
+>  should be .size = SZ_512k,
 
-I'm not vouching for the original code's actual just what the intent might be.  You should have the 1st 4 blocks for a redundant x-loader, the next blocks for a size sufficient to hold a u-boot, then generally 1 block for u-boot environment, and then the definition from there as to how to have the kernel and file system has a few ways to go.
+OK, will do.
 
-Really using the boot command line is best as compared to a static array here.
+>  > +             .name           = "uboot",
+>  > +             .offset         = MTDPART_OFS_APPEND,
+>  > +             .size           =  15*(64*2048),
+>
+>  most of the boards use .size = SZ_128K here
 
-> Compile test only.
-> 
+This seemed strange to me too, but this is the way the board ships so
+I was hesitant to change it.  A change here will require changes to
+u-boot reflash scripts, etc.  Might cause a bit of confusion!  What do
+others think?
 
-It doesn't look like you did your math correctly.  How can these 2 partitions have the same .size in your patch given their original definition?
+>  > +             .name           = "params",
+>  > +             .offset         = MTDPART_OFS_APPEND,
+>  > +             .size           = 1*(64*2048),
+>
+>  SZ_128K
 
->  		.mask_flags	= MTD_WRITEABLE	/* force read-only */
->  	},
->  	{
->  		.name		= "U-Boot",
->  		.offset		= MTDPART_OFS_APPEND,
-> -		.size		=  4*(64*2048),
-> +		.size		= SZ_128K,
->  		.mask_flags	= MTD_WRITEABLE	/* force read-only */
->  	},
->  	{
->  		.name		= "U-Boot Environment",
->  		.offset		= MTDPART_OFS_APPEND,
-> -		.size		= 2*(64*2048),
-> +		.size		= SZ_128K,
->  	},
+OK, will do.
 
-Regards,
-Richard W.
+>  > +             .name           = "linux",
+>  > +             .offset         = MTDPART_OFS_APPEND,
+>  > +             .size           = 40*(64*2048),
+>
+>  This looks too big for kernel only.
+>  SZ_4M is way enough.
+
+Same comment as above.  I am hesitant to change this without more
+discussion here.  But I agree that it makes sense :-)
+
+Thanks!
+
+Steve
