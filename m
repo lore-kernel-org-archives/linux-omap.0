@@ -1,106 +1,26 @@
 From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: [PATCH 1/2] OMAP3 EVM: enable spi, touchscreen, and ads7846 driver in defconfig
-Date: Wed, 30 Apr 2008 12:25:52 -0700
-Message-ID: <5e088bd90804301225l70cfa4ccw898801c57ab4c792@mail.gmail.com>
+Subject: [PATCH 0/2] OMAP3 EVM: patches to add touchscreen support
+Date: Wed, 30 Apr 2008 12:26:12 -0700
+Message-ID: <5e088bd90804301226i73b86abtdcf81e187321d6dd@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from fg-out-1718.google.com ([72.14.220.153]:65146 "EHLO
 	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762065AbYD3TZ4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Apr 2008 15:25:56 -0400
+	with ESMTP id S1763808AbYD3T0N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Apr 2008 15:26:13 -0400
 Received: by fg-out-1718.google.com with SMTP id 19so260782fgg.17
-        for <linux-omap@vger.kernel.org>; Wed, 30 Apr 2008 12:25:52 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Wed, 30 Apr 2008 12:26:12 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Steve Sakoman <steve@sakoman.com>
+These patches are intended to be applied after my previous batch.
 
-Enable spi, touchscreen, and ADS7846 in omap3_evm_defconfig
+Touchscreen support was tested on my EVM using an x11 rootfs.  I was
+able to calibrate the touchscreen, use the onscreen keyboard, and
+manipulate UI widgets.
 
-Signed-off-by: Steve Sakoman <steve@sakoman.com>
----
- omap3_evm_defconfig |   42 ++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 38 insertions(+), 4 deletions(-)
---- a/arch/arm/configs/omap3_evm_defconfig	2008-04-26 06:32:11.000000000 -0700
-+++ b/arch/arm/configs/omap3_evm_defconfig	2008-04-28 08:14:22.000000000 -0700
-@@ -1,7 +1,7 @@
- #
- # Automatically generated make config: don't edit
- # Linux kernel version: 2.6.25-omap1
--# Mon Apr 28 10:21:40 2008
-+# Tue Apr 29 08:06:20 2008
- #
- CONFIG_ARM=y
- CONFIG_SYS_SUPPORTS_APM_EMULATION=y
-@@ -459,6 +459,8 @@ CONFIG_MTD_CFI_I2=y
- #
- # Self-contained MTD device drivers
- #
-+# CONFIG_MTD_DATAFLASH is not set
-+# CONFIG_MTD_M25P80 is not set
- # CONFIG_MTD_SLRAM is not set
- # CONFIG_MTD_PHRAM is not set
- # CONFIG_MTD_MTDRAM is not set
-@@ -587,7 +589,20 @@ CONFIG_INPUT=y
- # CONFIG_INPUT_MOUSE is not set
- # CONFIG_INPUT_JOYSTICK is not set
- # CONFIG_INPUT_TABLET is not set
--# CONFIG_INPUT_TOUCHSCREEN is not set
-+CONFIG_INPUT_TOUCHSCREEN=y
-+CONFIG_TOUCHSCREEN_ADS7846=y
-+# CONFIG_TOUCHSCREEN_FUJITSU is not set
-+# CONFIG_TOUCHSCREEN_GUNZE is not set
-+# CONFIG_TOUCHSCREEN_ELO is not set
-+# CONFIG_TOUCHSCREEN_MTOUCH is not set
-+# CONFIG_TOUCHSCREEN_MK712 is not set
-+# CONFIG_TOUCHSCREEN_PENMOUNT is not set
-+# CONFIG_TOUCHSCREEN_TOUCHRIGHT is not set
-+# CONFIG_TOUCHSCREEN_TOUCHWIN is not set
-+# CONFIG_TOUCHSCREEN_UCB1400 is not set
-+# CONFIG_TOUCHSCREEN_TSC2005 is not set
-+# CONFIG_TOUCHSCREEN_TSC2102 is not set
-+# CONFIG_TOUCHSCREEN_TSC210X is not set
- # CONFIG_INPUT_MISC is not set
-
- #
-@@ -676,8 +691,26 @@ CONFIG_TWL4030_USB_HS_ULPI=y
- #
- # SPI support
- #
--# CONFIG_SPI is not set
--# CONFIG_SPI_MASTER is not set
-+CONFIG_SPI=y
-+# CONFIG_SPI_DEBUG is not set
-+CONFIG_SPI_MASTER=y
-+
-+#
-+# SPI Master Controller Drivers
-+#
-+# CONFIG_SPI_BITBANG is not set
-+CONFIG_SPI_OMAP24XX=m
-+
-+#
-+# SPI Protocol Masters
-+#
-+# CONFIG_SPI_AT25 is not set
-+# CONFIG_SPI_TSC2101 is not set
-+# CONFIG_SPI_TSC2102 is not set
-+# CONFIG_SPI_TSC210X is not set
-+# CONFIG_SPI_TSC2301 is not set
-+# CONFIG_SPI_SPIDEV is not set
-+# CONFIG_SPI_TLE62X0 is not set
- CONFIG_HAVE_GPIO_LIB=y
-
- #
-@@ -694,6 +727,7 @@ CONFIG_HAVE_GPIO_LIB=y
- #
- # SPI GPIO expanders:
- #
-+# CONFIG_GPIO_MCP23S08 is not set
- # CONFIG_W1 is not set
- # CONFIG_POWER_SUPPLY is not set
- # CONFIG_HWMON is not set
+Steve
