@@ -1,129 +1,79 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: [PATCH 2/2] OMAP3 EVM: add touchscreen support
-Date: Wed, 30 Apr 2008 12:32:57 -0700
-Message-ID: <5e088bd90804301232k5a442506oc9f355c0716add43@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [RFC/PATCH] OMAP PM interface
+Date: Wed, 30 Apr 2008 23:45:34 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0804302330570.4777@utopia.booyaka.com>
+References: <alpine.DEB.1.00.0804290119480.5853@utopia.booyaka.com> <874p9kgtcw.fsf@paris.hilman.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:13783 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752596AbYD3Tc7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Apr 2008 15:32:59 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so262659fgg.17
-        for <linux-omap@vger.kernel.org>; Wed, 30 Apr 2008 12:32:57 -0700 (PDT)
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:48605 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753153AbYEAFpf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 May 2008 01:45:35 -0400
+In-Reply-To: <874p9kgtcw.fsf@paris.hilman.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@mvista.com>
+Cc: linux-omap@vger.kernel.org, sakari.poussa@nokia.com, sawant@ti.com, karthik-dp@ti.com, igor.stoppa@nokia.com, tony@atomide.com, r-woodruff2@ti.com, veera@ti.com, rnayak@ti.com
 
-From: Steve Sakoman <steve@sakoman.com>
+Hello Kevin,
 
-Add touchscreen support for OMAP3 EVM
+Thanks, as always, for your comments.
 
-Signed-off-by: Steve Sakoman <steve@sakoman.com>
----
- arch/arm/mach-omap2/board-omap3evm.c       |   42 +++++++++++++++++++++++++++++
- include/asm-arm/arch-omap/board-omap3evm.h |    1
- 2 files changed, 43 insertions(+)
-diff -uprN -X a/Documentation/dontdiff
-a/arch/arm/mach-omap2/board-omap3evm.c
-b/arch/arm/mach-omap2/board-omap3evm.c
---- a/arch/arm/mach-omap2/board-omap3evm.c	2008-04-28 21:03:22.000000000 -0700
-+++ b/arch/arm/mach-omap2/board-omap3evm.c	2008-04-28 21:16:35.000000000 -0700
-@@ -19,6 +19,8 @@
- #include <linux/err.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/spi/spi.h>
-+#include <linux/spi/ads7846.h>
+On Tue, 29 Apr 2008, Kevin Hilman wrote:
 
- #include <asm/hardware.h>
- #include <asm/mach-types.h>
-@@ -31,6 +33,7 @@
- #include <asm/arch/usb-musb.h>
- #include <asm/arch/usb-ehci.h>
- #include <asm/arch/common.h>
-+#include <asm/arch/mcspi.h>
+> I've only given a quick glance so far at the actual patch, but my
+> first comments are regarding the dismissal of the PM QoS framework.
+> 
+> I totally agree that the QoS framework in its current form has several
+> drawbacks and limitations.  However, instead of re-designing something
+> new, I think maybe we should first try to extend the QoS framework.
 
- static struct omap_uart_config omap3_evm_uart_config __initdata = {
- 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
-@@ -65,6 +68,44 @@
- 	.id		= -1,
- };
+I agree that the PM QOS code should be extended, but I suspect that this 
+will probably take several months and quite a bit of coordination.
 
-+static void ads7846_dev_init(void)
-+{
-+	if (omap_request_gpio(TS_GPIO) < 0)
-+		printk(KERN_ERR "can't get ads7846 pen down GPIO\n");
-+
-+	omap_set_gpio_direction(TS_GPIO, 1);
-+
-+	omap_set_gpio_debounce(TS_GPIO, 1);
-+	omap_set_gpio_debounce_time(TS_GPIO, 0xa);
-+}
-+
-+static int ads7846_get_pendown_state(void)
-+{
-+	return !omap_get_gpio_datain(TS_GPIO);
-+}
-+
-+struct ads7846_platform_data ads7846_config = {
-+	.get_pendown_state	= ads7846_get_pendown_state,
-+	.keep_vref_on		= 1,
-+};
-+
-+static struct omap2_mcspi_device_config ads7846_mcspi_config = {
-+	.turbo_mode	= 0,
-+	.single_channel	= 1,  /* 0: slave, 1: master */
-+};
-+
-+struct spi_board_info omap3evm_spi_board_info[] = {
-+	[0] = {
-+		.modalias		= "ads7846",
-+		.bus_num		= 1,
-+		.chip_select		= 0,
-+		.max_speed_hz		= 1500000,
-+		.controller_data	= &ads7846_mcspi_config,
-+		.irq			= OMAP_GPIO_IRQ(TS_GPIO),
-+		.platform_data		= &ads7846_config,
-+	},
-+};
-+
- static void __init omap3_evm_init_irq(void)
- {
- 	omap2_init_common_hw();
-@@ -90,6 +90,10 @@ static void __init omap3_evm_init(void)
- 	platform_add_devices(omap3_evm_devices, ARRAY_SIZE(omap3_evm_devices));
- 	omap_board_config = omap3_evm_config;
- 	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
-+
-+	spi_register_board_info(omap3evm_spi_board_info,
-+				ARRAY_SIZE(omap3evm_spi_board_info));
-+
- 	omap_serial_init();
- 	hsmmc_init();
- 	usb_musb_init();
-@@ -95,6 +136,7 @@
- 	usb_musb_init();
- 	usb_ehci_init();
- 	omap3evm_flash_init();
-+	ads7846_dev_init();
- }
+The OMAP PM interface isn't intended to replace the PM QOS code.  Its 
+purpose is to provide a common interface behind which either the TI Shared 
+Resource Framework or the Linux PM QOS code can be used.
 
- arch_initcall(omap3_evm_i2c_init);
-diff -uprN -X a/Documentation/dontdiff
-a/include/asm-arm/arch-omap/board-omap3evm.h
-b/include/asm-arm/arch-omap/board-omap3evm.h
---- a/include/asm-arm/arch-omap/board-omap3evm.h	2008-04-28
-21:03:19.000000000 -0700
-+++ b/include/asm-arm/arch-omap/board-omap3evm.h	2008-04-28
-21:11:29.000000000 -0700
-@@ -31,6 +31,7 @@
+The proposed interface is intended to be temporary.  In the medium- to 
+long-term, the OMAP PM interface functionality needs to be integrated into 
+the Linux PM QOS code.  As the PM QOS layer matures, I expect that the 
+OMAP PM interface will disappear.
 
- extern void omap3evm_flash_init(void);
+Perhaps where we differ is in the expectation of how long the process of 
+updating the PM QOS code will take.
 
-+#define TS_GPIO		175
- #define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
+It seems like non-trivial work to get the PM QOS code to match the power 
+savings possible with TI SRF in a way that isn't architecture- or 
+chip-revision-specific.  It will probably require some general notion of a 
+powerdomain, and will probably involve bus and device code.  Our PM QOS 
+changes will affect other architectures and drivers not used by OMAP, 
+which will create patches and testing liability for code outside the OMAP 
+tree.  Our design changes also should be sufficiently 
+architecture-agnostic, so they won't need to be scrapped when the next 
+chip architecture comes along.  These goals all seem possible, but will 
+take time to discuss across architectures, implement, and get into 
+mainline.
 
- #define ONENAND_MAP		0x20000000
+Meanwhile, during that process, we should take advantage of the power 
+savings possible with the SRF code.  The SRF itself could theoretically be 
+merged, but it also has some shortcomings.  The driver PM interface should 
+not be specific to particular OMAP silicon.  Driver PM calls should not 
+require other architectures to share notions of OMAP-specific layers like 
+powerdomains.  And we'd like to compare a future PM QOS implementation 
+with the SRF without changing each individual driver, via some mechanism 
+like Kconfig.
+
+Hence the proposed interface.  As an additional benefit, we'll end up
+documenting the changes that we need to make to the Linux PM QOS code
+via working driver code, rather than just assertions.
+
+I don't mean to portray the OMAP PM interface as a panacea. Its purpose is 
+pretty limited.  It's intended to bridge the gap between where PM QOS is 
+now, and hopefully where it'll be in several months' time.
+
+
+regards,
+
+- Paul
