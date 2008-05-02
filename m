@@ -1,86 +1,108 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/7] NET: SMC911X: Driver works for SMC9211 too
-Date: Fri, 2 May 2008 16:19:22 -0700
-Message-ID: <20080502231922.GY8981@atomide.com>
-References: <1209727441-4312-1-git-send-email-nskamat@ti.com> <1209727441-4312-2-git-send-email-nskamat@ti.com> <1209727441-4312-3-git-send-email-nskamat@ti.com> <1209727441-4312-4-git-send-email-nskamat@ti.com> <1209727441-4312-5-git-send-email-nskamat@ti.com>
+Subject: Re: [PATCH 5/7] NET: SMC911X: Add support for OMAP LDP platform
+Date: Fri, 2 May 2008 16:19:51 -0700
+Message-ID: <20080502231951.GZ8981@atomide.com>
+References: <1209727441-4312-1-git-send-email-nskamat@ti.com> <1209727441-4312-2-git-send-email-nskamat@ti.com> <1209727441-4312-3-git-send-email-nskamat@ti.com> <1209727441-4312-4-git-send-email-nskamat@ti.com> <1209727441-4312-5-git-send-email-nskamat@ti.com> <1209727441-4312-6-git-send-email-nskamat@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59969 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932485AbYEBXTX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 May 2008 19:19:23 -0400
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:57354 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764749AbYEBXTw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 May 2008 19:19:52 -0400
 Content-Disposition: inline
-In-Reply-To: <1209727441-4312-5-git-send-email-nskamat@ti.com>
+In-Reply-To: <1209727441-4312-6-git-send-email-nskamat@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Nishant Kamat <nskamat@ti.com>
 Cc: linux-omap@vger.kernel.org
 
 * Nishant Kamat <nskamat@ti.com> [080502 04:26]:
-> The smc911x driver can support SMC9211 also. This patch adds 9211
-> in the table of supported chip ids, and fixes the ID verification
-> to care about only 4 nibbles.
+> This patch adds support for OMAP LDP platform to smc911x driver.
 
-This patch should be sent via smc911x maintainer on appropriate
-mailing list.
+This too should go via smc911x maintainer.
 
 Tony
 
+> 
 > Signed-off-by: Nishant Kamat <nskamat@ti.com>
 > ---
->  drivers/net/smc911x.c |    4 ++--
->  drivers/net/smc911x.h |    5 ++++-
->  2 files changed, 6 insertions(+), 3 deletions(-)
+>  drivers/net/Kconfig   |    2 +-
+>  drivers/net/smc911x.c |    9 ++++++---
+>  drivers/net/smc911x.h |    5 +++++
+>  3 files changed, 12 insertions(+), 4 deletions(-)
 > 
+> diff --git a/drivers/net/Kconfig b/drivers/net/Kconfig
+> index 015e163..49752d0 100644
+> --- a/drivers/net/Kconfig
+> +++ b/drivers/net/Kconfig
+> @@ -955,7 +955,7 @@ config SMC911X
+>  	tristate "SMSC LAN911[5678] support"
+>  	select CRC32
+>  	select MII
+> -	depends on ARCH_PXA || SH_MAGIC_PANEL_R2
+> +	depends on ARCH_PXA || SH_MAGIC_PANEL_R2 || ARCH_OMAP34XX
+>  	help
+>  	  This is a driver for SMSC's LAN911x series of Ethernet chipsets
+>  	  including the new LAN9115, LAN9116, LAN9117, and LAN9118.
 > diff --git a/drivers/net/smc911x.c b/drivers/net/smc911x.c
-> index 76cc1d3..00b9b3e 100644
+> index 00b9b3e..14a0e3a 100644
 > --- a/drivers/net/smc911x.c
 > +++ b/drivers/net/smc911x.c
-> @@ -1,6 +1,6 @@
->  /*
->   * smc911x.c
-> - * This is a driver for SMSC's LAN911{5,6,7,8} single-chip Ethernet devices.
-> + * Driver for SMSC's LAN9{115,116,117,118, 211} single-chip Ethernet devices.
->   *
->   * Copyright (C) 2005 Sensoria Corp
->   *	   Derived from the unified SMC91x driver by Nicolas Pitre
-> @@ -1902,7 +1902,7 @@ static int __init smc911x_probe(struct net_device *dev, unsigned long ioaddr)
->  	 * recognize.	These might need to be added to later,
->  	 * as future revisions could be added.
+> @@ -2136,7 +2136,7 @@ static int smc911x_drv_probe(struct platform_device *pdev)
+>  		ret = -ENODEV;
+>  		goto out;
+>  	}
+> -
+> +#ifndef SMC_MEM_RESERVED
+>  	/*
+>  	 * Request the regions.
 >  	 */
-> -	chip_id = SMC_GET_PN();
-> +	chip_id = 0xffff & SMC_GET_PN();
->  	DBG(SMC_DEBUG_MISC, "%s: id probe returned 0x%04x\n", CARDNAME, chip_id);
->  	for(i=0;chip_ids[i].id != 0; i++) {
->  		if (chip_ids[i].id == chip_id) break;
+> @@ -2144,7 +2144,7 @@ static int smc911x_drv_probe(struct platform_device *pdev)
+>  		 ret = -EBUSY;
+>  		 goto out;
+>  	}
+> -
+> +#endif
+>  	ndev = alloc_etherdev(sizeof(struct smc911x_local));
+>  	if (!ndev) {
+>  		printk("%s: could not allocate device.\n", CARDNAME);
+> @@ -2172,7 +2172,9 @@ static int smc911x_drv_probe(struct platform_device *pdev)
+>  release_both:
+>  		free_netdev(ndev);
+>  release_1:
+> +#ifndef SMC_MEM_RESERVED
+>  		release_mem_region(res->start, SMC911X_IO_EXTENT);
+> +#endif
+>  out:
+>  		printk("%s: not found (%d).\n", CARDNAME, ret);
+>  	}
+> @@ -2211,8 +2213,9 @@ static int smc911x_drv_remove(struct platform_device *pdev)
+>  #endif
+>  	iounmap((void *)ndev->base_addr);
+>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +#ifndef SMC_MEM_RESERVED
+>  	release_mem_region(res->start, SMC911X_IO_EXTENT);
+> -
+> +#endif
+>  	free_netdev(ndev);
+>  	return 0;
+>  }
 > diff --git a/drivers/net/smc911x.h b/drivers/net/smc911x.h
-> index 7defa63..a416c61 100644
+> index a416c61..aed2121 100644
 > --- a/drivers/net/smc911x.h
 > +++ b/drivers/net/smc911x.h
-> @@ -1,5 +1,6 @@
->  /*------------------------------------------------------------------------
-> - . smc911x.h - macros for SMSC's LAN911{5,6,7,8} single-chip Ethernet device.
-> + . smc911x.h - macros for SMSC's LAN9{115,116,117,118,211} single-chip
-> + . Ethernet device.
->   .
->   . Copyright (C) 2005 Sensoria Corp.
->   . Derived from the unified SMC91x driver by Nicolas Pitre
-> @@ -608,6 +609,7 @@ smc_pxa_dma_outsw(struct device *dev, u_long ioaddr, u_long physaddr,
->  #define CHIP_9116	0x116
->  #define CHIP_9117	0x117
->  #define CHIP_9118	0x118
-> +#define CHIP_9211	0x9211
+> @@ -43,6 +43,11 @@
+>    #define SMC_USE_16BIT		0
+>    #define SMC_USE_32BIT		1
+>    #define SMC_IRQ_SENSE		IRQF_TRIGGER_LOW
+> +#elif defined(CONFIG_MACH_OMAP_LDP)
+> +  #define SMC_USE_16BIT		0
+> +  #define SMC_USE_32BIT		1
+> +  #define SMC_IRQ_SENSE		IRQF_TRIGGER_LOW
+> +  #define SMC_MEM_RESERVED	1
+>  #endif
 >  
->  struct chip_id {
->  	u16 id;
-> @@ -619,6 +621,7 @@ static const struct chip_id chip_ids[] =  {
->  	{ CHIP_9116, "LAN9116" },
->  	{ CHIP_9117, "LAN9117" },
->  	{ CHIP_9118, "LAN9118" },
-> +	{ CHIP_9211, "LAN9211" },
->  	{ 0, NULL },
->  };
 >  
 > -- 
 > 1.5.3.2
