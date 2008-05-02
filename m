@@ -1,108 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] USB: MUSB: Better sysconf reg settings on PM point of
-	view
-Date: Fri, 2 May 2008 15:57:00 -0700
-Message-ID: <20080502225659.GU8981@atomide.com>
-References: <1209467151-24972-1-git-send-email-felipe.balbi@nokia.com>
+From: "andrzej zaborowski" <balrogg@gmail.com>
+Subject: Re: OMAP SDL
+Date: Sat, 3 May 2008 01:02:50 +0200
+Message-ID: <fb249edb0805021602r3a5de297i882ee565fad67c11@mail.gmail.com>
+References: <DF2E621E2E4C14428B271D6363D915C801131DB7@dnce03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:60134 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759265AbYEBW5B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 May 2008 18:57:01 -0400
+Received: from ug-out-1314.google.com ([66.249.92.174]:54769 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932180AbYEBXCy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 May 2008 19:02:54 -0400
+Received: by ug-out-1314.google.com with SMTP id h3so165895ugf.16
+        for <linux-omap@vger.kernel.org>; Fri, 02 May 2008 16:02:52 -0700 (PDT)
+In-Reply-To: <DF2E621E2E4C14428B271D6363D915C801131DB7@dnce03.ent.ti.com>
 Content-Disposition: inline
-In-Reply-To: <1209467151-24972-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: linux-omap@vger.kernel.org, Jouni =?iso-8859-1?Q?H=F6gander?= <jouni.hogander@nokia.com>
+To: "Royer, Fabien" <f-royer@ti.com>
+Cc: linux-omap-open-source@linux.omap.com, linux-omap@vger.kernel.org
 
-* Felipe Balbi <felipe.balbi@nokia.com> [080429 04:08]:
-> The following patch is needed because usb is preventing core
-> powerdomain to enter sleep state.
->=20
-> Thanks to Jouni H=F6gander for pointing this
+On 02/05/2008, Royer, Fabien <f-royer@ti.com> wrote:
+>  First, I try a program which print a helloWorld on the Screen. But the
+>  probleme is that the Fonction SDL_Init doesn't work properly for
+>  SDL_INIT_VIDEO.
+>
+>
+>
+>  I get the message with SDL_GetError() , error=enable to open mouse.
 
-Pushing today.
+Are you running this in X? If not, you may have set SDL_MOUSEDRV and
+SDL_MOUSEDEV manually (e.g. to some /dev/input/eventN node).  I don't
+know if there's a "dummy" mouse drv in sdl.
 
-=46YI, I'm putting together patches to get rid of the __REG32 and
-__REG16 macros in order to get multi-omap booting working between
-926, arm11, and cortex using the same kernel.
-
-The __REG macros won't work for multi-omap when the IO
-bases are different as these macros cannot be replaced by
-functions in io.c.
-
-Tony
-
-
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> Signed-off-by: Jouni H=F6gander <jouni.hogander@nokia.com>
-> ---
->  drivers/usb/musb/omap2430.c |   23 ++++++++++++-----------
->  1 files changed, 12 insertions(+), 11 deletions(-)
->=20
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.=
-c
-> index e092393..36f1739 100644
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -224,6 +224,14 @@ int __init musb_platform_init(struct musb *musb)
->  	musb->xceiv =3D *xceiv;
->  	musb_platform_resume(musb);
-> =20
-> +	OTG_SYSCONFIG_REG &=3D ~ENABLEWAKEUP;	/* disable wakeup */
-> +	OTG_SYSCONFIG_REG &=3D ~NOSTDBY;		/* remove possible nostdby */
-> +	OTG_SYSCONFIG_REG |=3D SMARTSTDBY;	/* enable smart standby */
-> +	OTG_SYSCONFIG_REG &=3D ~AUTOIDLE;		/* disable auto idle */
-> +	OTG_SYSCONFIG_REG &=3D ~NOIDLE;		/* remove possible noidle */
-> +	OTG_SYSCONFIG_REG |=3D SMARTIDLE;		/* enable smart idle */
-> +	OTG_SYSCONFIG_REG |=3D AUTOIDLE;		/* enable auto idle */
-> +
->  	OTG_INTERFSEL_REG |=3D ULPI_12PIN;
-> =20
->  	pr_debug("HS USB OTG: revision 0x%x, sysconfig 0x%02x, "
-> @@ -250,12 +258,8 @@ int musb_platform_suspend(struct musb *musb)
->  		return 0;
-> =20
->  	/* in any role */
-> -	OTG_FORCESTDBY_REG &=3D ~ENABLEFORCE; /* disable MSTANDBY */
-> -	OTG_SYSCONFIG_REG &=3D FORCESTDBY;	/* enable force standby */
-> -	OTG_SYSCONFIG_REG &=3D ~AUTOIDLE;		/* disable auto idle */
-> -	OTG_SYSCONFIG_REG |=3D SMARTIDLE;		/* enable smart idle */
-> -	OTG_FORCESTDBY_REG |=3D ENABLEFORCE; /* enable MSTANDBY */
-> -	OTG_SYSCONFIG_REG |=3D AUTOIDLE;		/* enable auto idle */
-> +	OTG_FORCESTDBY_REG |=3D ENABLEFORCE;	/* enable MSTANDBY */
-> +	OTG_SYSCONFIG_REG |=3D ENABLEWAKEUP;	/* enable wakeup */
-> =20
->  	if (musb->xceiv.set_suspend)
->  		musb->xceiv.set_suspend(&musb->xceiv, 1);
-> @@ -281,11 +285,8 @@ int musb_platform_resume(struct musb *musb)
->  	else
->  		clk_enable(musb->clock);
-> =20
-> -	OTG_FORCESTDBY_REG &=3D ~ENABLEFORCE; /* disable MSTANDBY */
-> -	OTG_SYSCONFIG_REG |=3D SMARTSTDBY;	/* enable smart standby */
-> -	OTG_SYSCONFIG_REG &=3D ~AUTOIDLE;		/* disable auto idle */
-> -	OTG_SYSCONFIG_REG |=3D SMARTIDLE;		/* enable smart idle */
-> -	OTG_SYSCONFIG_REG |=3D AUTOIDLE;		/* enable auto idle */
-> +	OTG_SYSCONFIG_REG &=3D ~ENABLEWAKEUP;	/* disable wakeup */
-> +	OTG_FORCESTDBY_REG &=3D ~ENABLEFORCE;	/* disable MSTANDBY */
-> =20
->  	return 0;
->  }
-> --=20
-> 1.5.5.1.99.gf0ec4
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+HTH
+-- 
+Please do not print this email unless absolutely necessary. Spread
+environmental awareness.
