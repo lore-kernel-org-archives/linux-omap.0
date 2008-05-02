@@ -1,43 +1,115 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH 0/3] DMA clean-up for multi-boot
-Date: Fri, 2 May 2008 20:45:01 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02223E1EDA@dbde02.ent.ti.com>
-References: omap-dma-2008-04-30
- <1209575641-25613-1-git-send-email-tony@atomide.com>
+From: Philip Balister <philip@balister.org>
+Subject: Re: Booting OMAP5912 with 2.6.8 kernel
+Date: Fri, 02 May 2008 13:26:25 -0400
+Message-ID: <481B4EC1.8050203@balister.org>
+References: <5573C19A4BBDB441BED2A44157E9705303C3FE65@dlee12.ent.ti.com> <5573C19A4BBDB441BED2A44157E9705303C3FE93@dlee12.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms020907080507000702030705"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:41248 "EHLO calf.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935516AbYEBPPK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 May 2008 11:15:10 -0400
-In-Reply-To: <1209575641-25613-1-git-send-email-tony@atomide.com>
-Content-Language: en-US
+Received: from mail.geekisp.com ([216.168.135.169]:20060 "EHLO
+	starfish.geekisp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1766010AbYEBRdK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 May 2008 13:33:10 -0400
+In-Reply-To: <5573C19A4BBDB441BED2A44157E9705303C3FE93@dlee12.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: rajagopal.venkat@gmail.com, linux-omap@vger.kernel.org
 
-> Hi all,
->
-> Here are three patches to clean DMA code to support multi-boot
-> better. I have made quick testing on 24xx and 34xx only so far,
-> and things seem to work.
->
-> I will also do more testing, but I would appreciate if people would
-> give them a quick spin and see if anything breaks. Functionality
-> should be same as earlier.
->
-> I've removed direct DMA register access in few places such as
-> omap-hw.c, usb-udc.c, and various audio drivers. So especially
-> those areas should be tested carefully.
->
-> Regards,
->
-> Tony
+This is a cryptographically signed message in MIME format.
 
-I ran some DMA tests I had on a 3430SDP and they work just fine. Have not tried on OMAP2 yet.
-Will run some more tests over the weekend.
+--------------ms020907080507000702030705
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Regards,
-Anand
+Hunter, Jon wrote:
+> Check out the OSK wiki page: http://elinux.org/OSK
+> 
+> In particular see the "OSK5912 Newbie Guide" that provides details on
+> how to create a flash file-system. 
+> 
+> http://www.capgo.com/Resources/SoftwareDev/osk-newbie-guide.pdf
+> 
+> Also, please copy the list. You can also search the mailing list on the
+> following page, as there has been a lot of discussion with regard to the
+> OSK in the past. 
+> 
+> http://dir.gmane.org/gmane.linux.ports.arm.omap
+
+You can download a rootfs and a 2.6.23 based kernel from:
+
+http://www.angstrom-distribution.org/releases/2007.12/images/omap5912osk/
+
+Let me know of they work for you.
+
+Philip
+
+--------------ms020907080507000702030705
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJRTCC
+Av0wggJmoAMCAQICEHW4VJIUQV0u11NnfLpF2IUwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UE
+BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
+I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA4MDQxNDE5MTkzMVoX
+DTA5MDQxNDE5MTkzMVowYjERMA8GA1UEBBMIQmFsaXN0ZXIxDzANBgNVBCoTBlBoaWxpcDEY
+MBYGA1UEAxMPUGhpbGlwIEJhbGlzdGVyMSIwIAYJKoZIhvcNAQkBFhNwaGlsaXBAYmFsaXN0
+ZXIub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxyNViPlSmMq2Kl4m7iDB
+I3gB7Pwhg+4vnXCKEF3qIoLwNDVl27CP8RY0umjENzykOR6ZhzYx4fH8arNV5+nlXsH8KNnb
+Dpd5ICTZvbUJdt1gPETmLczGy4hh8woCu7qodyy7YZcGMiUY5LxoL7vIQHysir4rbMRV/JId
+mhKfFrHb+glDe8XbfTJ3xKO+BsMgLDaSiRMelH6uFLAVv9oRoIJxHQhwKLvlrOSQj+ek2fL6
+83BzOUsM4BN/fiwvtJ/y3doVEoKUp8ippOXrwLAXFPprPAAdIydqufTxHotooFqbQzqSJv4c
+TNDTxf2fg9YfH2RAs8vTdc/wgIVlL8fJnQIDAQABozAwLjAeBgNVHREEFzAVgRNwaGlsaXBA
+YmFsaXN0ZXIub3JnMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEASFC7i4DqutUT
+ifbyNtEe+e9bqgqWUScDFl0BTV5fFVBX/mFpM3RBZJfq+iM5q0L7qont3sGaXG0cdVvRk2dk
+uV2i0HwkmTLJ4HTLMyJ57BjMJWY9ydDiY+Ai1pINmjIgq/qI0aireByqNee68q+PaWE7bfW1
+XvfqZD56QunCijswggL9MIICZqADAgECAhB1uFSSFEFdLtdTZ3y6RdiFMA0GCSqGSIb3DQEB
+BQUAMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBM
+dGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTAeFw0w
+ODA0MTQxOTE5MzFaFw0wOTA0MTQxOTE5MzFaMGIxETAPBgNVBAQTCEJhbGlzdGVyMQ8wDQYD
+VQQqEwZQaGlsaXAxGDAWBgNVBAMTD1BoaWxpcCBCYWxpc3RlcjEiMCAGCSqGSIb3DQEJARYT
+cGhpbGlwQGJhbGlzdGVyLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMcj
+VYj5UpjKtipeJu4gwSN4Aez8IYPuL51wihBd6iKC8DQ1Zduwj/EWNLpoxDc8pDkemYc2MeHx
+/GqzVefp5V7B/CjZ2w6XeSAk2b21CXbdYDxE5i3MxsuIYfMKAru6qHcsu2GXBjIlGOS8aC+7
+yEB8rIq+K2zEVfySHZoSnxax2/oJQ3vF230yd8SjvgbDICw2kokTHpR+rhSwFb/aEaCCcR0I
+cCi75azkkI/npNny+vNwczlLDOATf34sL7Sf8t3aFRKClKfIqaTl68CwFxT6azwAHSMnarn0
+8R6LaKBam0M6kib+HEzQ08X9n4PWHx9kQLPL03XP8ICFZS/HyZ0CAwEAAaMwMC4wHgYDVR0R
+BBcwFYETcGhpbGlwQGJhbGlzdGVyLm9yZzAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBBQUA
+A4GBAEhQu4uA6rrVE4n28jbRHvnvW6oKllEnAxZdAU1eXxVQV/5haTN0QWSX6vojOatC+6qJ
+7d7BmlxtHHVb0ZNnZLldotB8JJkyyeB0yzMieewYzCVmPcnQ4mPgItaSDZoyIKv6iNGoq3gc
+qjXnuvKvj2lhO231tV736mQ+ekLpwoo7MIIDPzCCAqigAwIBAgIBDTANBgkqhkiG9w0BAQUF
+ADCB0TELMAkGA1UEBhMCWkExFTATBgNVBAgTDFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2Fw
+ZSBUb3duMRowGAYDVQQKExFUaGF3dGUgQ29uc3VsdGluZzEoMCYGA1UECxMfQ2VydGlmaWNh
+dGlvbiBTZXJ2aWNlcyBEaXZpc2lvbjEkMCIGA1UEAxMbVGhhd3RlIFBlcnNvbmFsIEZyZWVt
+YWlsIENBMSswKQYJKoZIhvcNAQkBFhxwZXJzb25hbC1mcmVlbWFpbEB0aGF3dGUuY29tMB4X
+DTAzMDcxNzAwMDAwMFoXDTEzMDcxNjIzNTk1OVowYjELMAkGA1UEBhMCWkExJTAjBgNVBAoT
+HFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25h
+bCBGcmVlbWFpbCBJc3N1aW5nIENBMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEpjxV
+c1X7TrnKmVoeaMB1BHCd3+n/ox7svc31W/Iadr1/DDph8r9RzgHU5VAKMNcCY1osiRVwjt3J
+8CuFWqo/cVbLrzwLB+fxH5E2JCoTzyvV84J3PQO+K/67GD4Hv0CAAmTXp6a7n2XRxSpUhQ9I
+BH+nttE8YQRAHmQZcmC3+wIDAQABo4GUMIGRMBIGA1UdEwEB/wQIMAYBAf8CAQAwQwYDVR0f
+BDwwOjA4oDagNIYyaHR0cDovL2NybC50aGF3dGUuY29tL1RoYXd0ZVBlcnNvbmFsRnJlZW1h
+aWxDQS5jcmwwCwYDVR0PBAQDAgEGMCkGA1UdEQQiMCCkHjAcMRowGAYDVQQDExFQcml2YXRl
+TGFiZWwyLTEzODANBgkqhkiG9w0BAQUFAAOBgQBIjNFQg+oLLswNo2asZw9/r6y+whehQ5aU
+nX9MIbj4Nh+qLZ82L8D0HFAgk3A8/a3hYWLD2ToZfoSxmRsAxRoLgnSeJVCUYsfbJ3FXJY3d
+qZw5jowgT2Vfldr394fWxghOrvbqNOUQGls1TXfjViF4gtwhGTXeJLHTHUb/XV9lTzGCA2Qw
+ggNgAgEBMHYwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQ
+dHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENB
+AhB1uFSSFEFdLtdTZ3y6RdiFMAkGBSsOAwIaBQCgggHDMBgGCSqGSIb3DQEJAzELBgkqhkiG
+9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA4MDUwMjE3MjYyNVowIwYJKoZIhvcNAQkEMRYEFLao
+o9+gnqSvOQAkS5GjfZw1RHJ6MFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZI
+hvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGFBgkr
+BgEEAYI3EAQxeDB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGlu
+ZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
+ZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTCBhwYLKoZIhvcNAQkQAgsxeKB2MGIxCzAJBgNVBAYT
+AlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNU
+aGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTAN
+BgkqhkiG9w0BAQEFAASCAQBMaXBn1CYbPT8rXrkb2pqGeUfR5lQ4Q+5Uz6W1ZU90FKS7pUxS
+mcfG7Zvuu6sIGyRqo7XMyxIuwfFbfcy7ZTPfA4/hgR7tQ82FoHi0qGaeyqiEhL3NiTz/yYyo
+0iM4WA9KmVEYF/b7BrSWqeVvYVhaeoy/TIO57iAuSUDyV/k/yiOVcqoqDbOSiztn6g5o86iS
+ydp/wLae30qL/8VZ8GMtEp3bteXym0OxBVzh/6GywJSh2ROK8oT+TqAn+IhPHB06ZKc0ciie
+s40v/haZHDHV1p3mi1Vf3vJCcW3sLCzHNSa3Jjhj2oLsSagQVOP5BPpunCFfkvQsNOUVPTvy
+/WF6AAAAAAAA
+--------------ms020907080507000702030705--
