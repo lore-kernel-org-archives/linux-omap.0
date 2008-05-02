@@ -1,64 +1,55 @@
-From: "Syed Mohammed, Khasim" <khasim@ti.com>
-Subject: RE: PM Issues after Android bootup on 2430
-Date: Fri, 2 May 2008 09:16:45 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C001578E7762@dbde02.ent.ti.com>
-References: <70E3BF80B2DA6E469688AD5C3BBCC6C40365F3B7@BLR-EC-MBX02.wipro.com>
-	<782515bb0804291818w2296bdcajc026f3ab6e6af96a@mail.gmail.com>
- <87d4o5elx0.fsf@paris.hilman.org>
+From: Kalle Valo <kalle.valo@nokia.com>
+Subject: Re: Android on N810 File System Problem
+Date: Fri, 02 May 2008 09:17:12 +0300
+Message-ID: <87bq3p8c2f.fsf@nokia.com>
+References: <6a56d69c0804241248w5e46efe8k757c9e5fb9e3ce22@mail.gmail.com>
+	<48116F5C.9040009@googlemail.com>
+	<20080425183605.GA27479@kedavra.cpe.vivax.com.br>
+	<87fxt7my4o.fsf@nokia.com>
+	<20080427223248.GA5962@kedavra.cpe.vivax.com.br>
+	<20080428233827.GE8449@atomide.com>
+	<20080429090032.GA25363@bulgaria.corp.google.com>
+	<87bq3ry8o7.fsf@nokia.com>
+	<20080430102036.GA23558@bulgaria.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54943 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754644AbYEBDsP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 May 2008 23:48:15 -0400
-In-Reply-To: <87d4o5elx0.fsf@paris.hilman.org>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:24431 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751535AbYEBGRq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 May 2008 02:17:46 -0400
+In-Reply-To: <20080430102036.GA23558@bulgaria.corp.google.com> (ext Brian Swetland's message of "Wed\, 30 Apr 2008 03\:20\:36 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@mvista.com>, Nishanth Menon <menon.nishanth@gmail.com>
-Cc: "shivananda.hebbarp@wipro.com" <shivananda.hebbarp@wipro.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Brian Swetland <swetland@google.com>
+Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <me@felipebalbi.com>, Dirk Behme <dirk.behme@googlemail.com>, Jonathan Herriott <herriojr@gmail.com>, linux-omap@vger.kernel.org
 
+Brian Swetland <swetland@google.com> writes:
 
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: Friday, May 02, 2008 3:18 AM
-> To: Nishanth Menon
-> Cc: shivananda.hebbarp@wipro.com; linux-omap@vger.kernel.org
-> Subject: Re: PM Issues after Android bootup on 2430
+> [Kalle Valo <kalle.valo@nokia.com>]
+>> Brian Swetland <swetland@google.com> writes:
+>> >
+>> > This was the show-stopper for me.  When I last got things hobbling
+>> > along on n8x0, the binary-only wlan module was incompatible with
+>> > newer kernels than 2.6.21 (changes in some network data structures).
+>> 
+>> That's exactly the problem. I have written something about it here:
+>> 
+>> https://garage.maemo.org/pipermail/cx3110x-devel/2007-December/000007.html
 >
-> "Nishanth Menon" <menon.nishanth@gmail.com> writes:
+> Just did a quick diff between v2.6.21 and v2.6.24 and the skbuff changes
+> are pretty daunting.  Doesn't look like there's an easy hack here...
 >
-> > On 4/29/08, shivananda.hebbarp@wipro.com <shivananda.hebbarp@wipro.com>
-> wrote:
-> >> omapfb omapfb: irq error status 00e2
-> >> omapfb omapfb: irq error status 0040
-> >> omapfb omapfb: irq error status 0040
-> >> omapfb omapfb: irq error status 0040
-> >> omapfb omapfb: irq error status 0040
-> >> omapfb omapfb: irq error status 0040
-> >> omapfb omapfb: irq error status 0040
-> >> omapfb omapfb: irq error status 0040
-> >> omapfb omapfb: irq error status 0040
-> >> omapfb omapfb: irq error status 0040
-> > This does look suspiciously like the thread
-> > http://linux.omap.com/pipermail/linux-omap-open-source/2007-
-> July/010566.html
-> >
-> > Interesting... ;)... I never got the chance to debug this issue..
-> >
-> > Kevin, Khasim, did u guys get a chance to look at this later?? I dont
-> > recollect hearing any one saying the same for 3430 though..
+>> Currently there's nothing I can do to resolve the issue, unfortunately.
 >
-> No, I never debugged this any further.  AFAIK, the omapfb is still
-> broken in git.
->
-Me too :(.
+> Pity.  It'd be nice to get newer kernels running on the n8x0 -- it's
+> nice hardware.
 
-We have FB working for 3530 EVM / Beagle boards. Should be same for 2430/2530 as well.
+Trust me, I share the pain. If a solution comes up, I'll let you know.
 
-Regards,
-Khasim
+It's also a good idea to follow cx3110x-devel:
+
+https://garage.maemo.org/mailman/listinfo/cx3110x-devel
+
+-- 
+Kalle Valo
