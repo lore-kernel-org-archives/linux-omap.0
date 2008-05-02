@@ -1,115 +1,130 @@
-From: Philip Balister <philip@balister.org>
-Subject: Re: Booting OMAP5912 with 2.6.8 kernel
-Date: Fri, 02 May 2008 13:26:25 -0400
-Message-ID: <481B4EC1.8050203@balister.org>
-References: <5573C19A4BBDB441BED2A44157E9705303C3FE65@dlee12.ent.ti.com> <5573C19A4BBDB441BED2A44157E9705303C3FE93@dlee12.ent.ti.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: [PATCH 5/7] NET: SMC911X: Add support for OMAP LDP platform
+Date: Fri, 2 May 2008 11:09:48 -0700
+Message-ID: <5e088bd90805021109u5f21ce0bk692039ef63944c05@mail.gmail.com>
+References: <1209727441-4312-1-git-send-email-nskamat@ti.com>
+	 <1209727441-4312-2-git-send-email-nskamat@ti.com>
+	 <1209727441-4312-3-git-send-email-nskamat@ti.com>
+	 <1209727441-4312-4-git-send-email-nskamat@ti.com>
+	 <1209727441-4312-5-git-send-email-nskamat@ti.com>
+	 <1209727441-4312-6-git-send-email-nskamat@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms020907080507000702030705"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.geekisp.com ([216.168.135.169]:20060 "EHLO
-	starfish.geekisp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1766010AbYEBRdK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 May 2008 13:33:10 -0400
-In-Reply-To: <5573C19A4BBDB441BED2A44157E9705303C3FE93@dlee12.ent.ti.com>
+Received: from rv-out-0506.google.com ([209.85.198.229]:42079 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758307AbYEBSJw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 May 2008 14:09:52 -0400
+Received: by rv-out-0506.google.com with SMTP id l9so171798rvb.1
+        for <linux-omap@vger.kernel.org>; Fri, 02 May 2008 11:09:48 -0700 (PDT)
+In-Reply-To: <1209727441-4312-6-git-send-email-nskamat@ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: rajagopal.venkat@gmail.com, linux-omap@vger.kernel.org
+To: Nishant Kamat <nskamat@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This is a cryptographically signed message in MIME format.
+I tested patches 4, 5, and 6 with the OPM3 EVM (after a 1 line
+change).  No compilation issues, and networking functioned properly.
 
---------------ms020907080507000702030705
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+I have only one change to suggest (and it was required for proper
+operation on the OMAP3 EVM).  See below for inline comment.
 
-Hunter, Jon wrote:
-> Check out the OSK wiki page: http://elinux.org/OSK
-> 
-> In particular see the "OSK5912 Newbie Guide" that provides details on
-> how to create a flash file-system. 
-> 
-> http://www.capgo.com/Resources/SoftwareDev/osk-newbie-guide.pdf
-> 
-> Also, please copy the list. You can also search the mailing list on the
-> following page, as there has been a lot of discussion with regard to the
-> OSK in the past. 
-> 
-> http://dir.gmane.org/gmane.linux.ports.arm.omap
+Steve
 
-You can download a rootfs and a 2.6.23 based kernel from:
+On Fri, May 2, 2008 at 4:23 AM, Nishant Kamat <nskamat@ti.com> wrote:
+> This patch adds support for OMAP LDP platform to smc911x driver.
+>
+>  Signed-off-by: Nishant Kamat <nskamat@ti.com>
+>  ---
+>   drivers/net/Kconfig   |    2 +-
+>   drivers/net/smc911x.c |    9 ++++++---
+>   drivers/net/smc911x.h |    5 +++++
+>   3 files changed, 12 insertions(+), 4 deletions(-)
+>
+>  diff --git a/drivers/net/Kconfig b/drivers/net/Kconfig
+>  index 015e163..49752d0 100644
+>  --- a/drivers/net/Kconfig
+>  +++ b/drivers/net/Kconfig
+>  @@ -955,7 +955,7 @@ config SMC911X
+>         tristate "SMSC LAN911[5678] support"
+>         select CRC32
+>         select MII
+>  -       depends on ARCH_PXA || SH_MAGIC_PANEL_R2
+>  +       depends on ARCH_PXA || SH_MAGIC_PANEL_R2 || ARCH_OMAP34XX
+>         help
+>           This is a driver for SMSC's LAN911x series of Ethernet chipsets
+>           including the new LAN9115, LAN9116, LAN9117, and LAN9118.
+>  diff --git a/drivers/net/smc911x.c b/drivers/net/smc911x.c
+>  index 00b9b3e..14a0e3a 100644
+>  --- a/drivers/net/smc911x.c
+>  +++ b/drivers/net/smc911x.c
+>  @@ -2136,7 +2136,7 @@ static int smc911x_drv_probe(struct platform_device *pdev)
+>                 ret = -ENODEV;
+>                 goto out;
+>         }
+>  -
+>  +#ifndef SMC_MEM_RESERVED
+>         /*
+>          * Request the regions.
+>          */
+>  @@ -2144,7 +2144,7 @@ static int smc911x_drv_probe(struct platform_device *pdev)
+>                  ret = -EBUSY;
+>                  goto out;
+>         }
+>  -
+>  +#endif
+>         ndev = alloc_etherdev(sizeof(struct smc911x_local));
+>         if (!ndev) {
+>                 printk("%s: could not allocate device.\n", CARDNAME);
+>  @@ -2172,7 +2172,9 @@ static int smc911x_drv_probe(struct platform_device *pdev)
+>   release_both:
+>                 free_netdev(ndev);
+>   release_1:
+>  +#ifndef SMC_MEM_RESERVED
+>                 release_mem_region(res->start, SMC911X_IO_EXTENT);
+>  +#endif
+>   out:
+>                 printk("%s: not found (%d).\n", CARDNAME, ret);
+>         }
+>  @@ -2211,8 +2213,9 @@ static int smc911x_drv_remove(struct platform_device *pdev)
+>   #endif
+>         iounmap((void *)ndev->base_addr);
+>         res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  +#ifndef SMC_MEM_RESERVED
+>         release_mem_region(res->start, SMC911X_IO_EXTENT);
+>  -
+>  +#endif
+>         free_netdev(ndev);
+>         return 0;
+>   }
+>  diff --git a/drivers/net/smc911x.h b/drivers/net/smc911x.h
+>  index a416c61..aed2121 100644
+>  --- a/drivers/net/smc911x.h
+>  +++ b/drivers/net/smc911x.h
+>  @@ -43,6 +43,11 @@
+>    #define SMC_USE_16BIT                0
+>    #define SMC_USE_32BIT                1
+>    #define SMC_IRQ_SENSE                IRQF_TRIGGER_LOW
+>  +#elif defined(CONFIG_MACH_OMAP_LDP)
 
-http://www.angstrom-distribution.org/releases/2007.12/images/omap5912osk/
+In order to generalize this patch for use by other 34xx architecture
+boards, the above line should be:
 
-Let me know of they work for you.
++#elif defined(CONFIG_ARCH_OMAP34XX)
 
-Philip
-
---------------ms020907080507000702030705
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJRTCC
-Av0wggJmoAMCAQICEHW4VJIUQV0u11NnfLpF2IUwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UE
-BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
-I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA4MDQxNDE5MTkzMVoX
-DTA5MDQxNDE5MTkzMVowYjERMA8GA1UEBBMIQmFsaXN0ZXIxDzANBgNVBCoTBlBoaWxpcDEY
-MBYGA1UEAxMPUGhpbGlwIEJhbGlzdGVyMSIwIAYJKoZIhvcNAQkBFhNwaGlsaXBAYmFsaXN0
-ZXIub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxyNViPlSmMq2Kl4m7iDB
-I3gB7Pwhg+4vnXCKEF3qIoLwNDVl27CP8RY0umjENzykOR6ZhzYx4fH8arNV5+nlXsH8KNnb
-Dpd5ICTZvbUJdt1gPETmLczGy4hh8woCu7qodyy7YZcGMiUY5LxoL7vIQHysir4rbMRV/JId
-mhKfFrHb+glDe8XbfTJ3xKO+BsMgLDaSiRMelH6uFLAVv9oRoIJxHQhwKLvlrOSQj+ek2fL6
-83BzOUsM4BN/fiwvtJ/y3doVEoKUp8ippOXrwLAXFPprPAAdIydqufTxHotooFqbQzqSJv4c
-TNDTxf2fg9YfH2RAs8vTdc/wgIVlL8fJnQIDAQABozAwLjAeBgNVHREEFzAVgRNwaGlsaXBA
-YmFsaXN0ZXIub3JnMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEASFC7i4DqutUT
-ifbyNtEe+e9bqgqWUScDFl0BTV5fFVBX/mFpM3RBZJfq+iM5q0L7qont3sGaXG0cdVvRk2dk
-uV2i0HwkmTLJ4HTLMyJ57BjMJWY9ydDiY+Ai1pINmjIgq/qI0aireByqNee68q+PaWE7bfW1
-XvfqZD56QunCijswggL9MIICZqADAgECAhB1uFSSFEFdLtdTZ3y6RdiFMA0GCSqGSIb3DQEB
-BQUAMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBM
-dGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTAeFw0w
-ODA0MTQxOTE5MzFaFw0wOTA0MTQxOTE5MzFaMGIxETAPBgNVBAQTCEJhbGlzdGVyMQ8wDQYD
-VQQqEwZQaGlsaXAxGDAWBgNVBAMTD1BoaWxpcCBCYWxpc3RlcjEiMCAGCSqGSIb3DQEJARYT
-cGhpbGlwQGJhbGlzdGVyLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMcj
-VYj5UpjKtipeJu4gwSN4Aez8IYPuL51wihBd6iKC8DQ1Zduwj/EWNLpoxDc8pDkemYc2MeHx
-/GqzVefp5V7B/CjZ2w6XeSAk2b21CXbdYDxE5i3MxsuIYfMKAru6qHcsu2GXBjIlGOS8aC+7
-yEB8rIq+K2zEVfySHZoSnxax2/oJQ3vF230yd8SjvgbDICw2kokTHpR+rhSwFb/aEaCCcR0I
-cCi75azkkI/npNny+vNwczlLDOATf34sL7Sf8t3aFRKClKfIqaTl68CwFxT6azwAHSMnarn0
-8R6LaKBam0M6kib+HEzQ08X9n4PWHx9kQLPL03XP8ICFZS/HyZ0CAwEAAaMwMC4wHgYDVR0R
-BBcwFYETcGhpbGlwQGJhbGlzdGVyLm9yZzAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBBQUA
-A4GBAEhQu4uA6rrVE4n28jbRHvnvW6oKllEnAxZdAU1eXxVQV/5haTN0QWSX6vojOatC+6qJ
-7d7BmlxtHHVb0ZNnZLldotB8JJkyyeB0yzMieewYzCVmPcnQ4mPgItaSDZoyIKv6iNGoq3gc
-qjXnuvKvj2lhO231tV736mQ+ekLpwoo7MIIDPzCCAqigAwIBAgIBDTANBgkqhkiG9w0BAQUF
-ADCB0TELMAkGA1UEBhMCWkExFTATBgNVBAgTDFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2Fw
-ZSBUb3duMRowGAYDVQQKExFUaGF3dGUgQ29uc3VsdGluZzEoMCYGA1UECxMfQ2VydGlmaWNh
-dGlvbiBTZXJ2aWNlcyBEaXZpc2lvbjEkMCIGA1UEAxMbVGhhd3RlIFBlcnNvbmFsIEZyZWVt
-YWlsIENBMSswKQYJKoZIhvcNAQkBFhxwZXJzb25hbC1mcmVlbWFpbEB0aGF3dGUuY29tMB4X
-DTAzMDcxNzAwMDAwMFoXDTEzMDcxNjIzNTk1OVowYjELMAkGA1UEBhMCWkExJTAjBgNVBAoT
-HFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25h
-bCBGcmVlbWFpbCBJc3N1aW5nIENBMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEpjxV
-c1X7TrnKmVoeaMB1BHCd3+n/ox7svc31W/Iadr1/DDph8r9RzgHU5VAKMNcCY1osiRVwjt3J
-8CuFWqo/cVbLrzwLB+fxH5E2JCoTzyvV84J3PQO+K/67GD4Hv0CAAmTXp6a7n2XRxSpUhQ9I
-BH+nttE8YQRAHmQZcmC3+wIDAQABo4GUMIGRMBIGA1UdEwEB/wQIMAYBAf8CAQAwQwYDVR0f
-BDwwOjA4oDagNIYyaHR0cDovL2NybC50aGF3dGUuY29tL1RoYXd0ZVBlcnNvbmFsRnJlZW1h
-aWxDQS5jcmwwCwYDVR0PBAQDAgEGMCkGA1UdEQQiMCCkHjAcMRowGAYDVQQDExFQcml2YXRl
-TGFiZWwyLTEzODANBgkqhkiG9w0BAQUFAAOBgQBIjNFQg+oLLswNo2asZw9/r6y+whehQ5aU
-nX9MIbj4Nh+qLZ82L8D0HFAgk3A8/a3hYWLD2ToZfoSxmRsAxRoLgnSeJVCUYsfbJ3FXJY3d
-qZw5jowgT2Vfldr394fWxghOrvbqNOUQGls1TXfjViF4gtwhGTXeJLHTHUb/XV9lTzGCA2Qw
-ggNgAgEBMHYwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQ
-dHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENB
-AhB1uFSSFEFdLtdTZ3y6RdiFMAkGBSsOAwIaBQCgggHDMBgGCSqGSIb3DQEJAzELBgkqhkiG
-9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA4MDUwMjE3MjYyNVowIwYJKoZIhvcNAQkEMRYEFLao
-o9+gnqSvOQAkS5GjfZw1RHJ6MFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZI
-hvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGFBgkr
-BgEEAYI3EAQxeDB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGlu
-ZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
-ZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTCBhwYLKoZIhvcNAQkQAgsxeKB2MGIxCzAJBgNVBAYT
-AlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNU
-aGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTAN
-BgkqhkiG9w0BAQEFAASCAQBMaXBn1CYbPT8rXrkb2pqGeUfR5lQ4Q+5Uz6W1ZU90FKS7pUxS
-mcfG7Zvuu6sIGyRqo7XMyxIuwfFbfcy7ZTPfA4/hgR7tQ82FoHi0qGaeyqiEhL3NiTz/yYyo
-0iM4WA9KmVEYF/b7BrSWqeVvYVhaeoy/TIO57iAuSUDyV/k/yiOVcqoqDbOSiztn6g5o86iS
-ydp/wLae30qL/8VZ8GMtEp3bteXym0OxBVzh/6GywJSh2ROK8oT+TqAn+IhPHB06ZKc0ciie
-s40v/haZHDHV1p3mi1Vf3vJCcW3sLCzHNSa3Jjhj2oLsSagQVOP5BPpunCFfkvQsNOUVPTvy
-/WF6AAAAAAAA
---------------ms020907080507000702030705--
+>  +  #define SMC_USE_16BIT                0
+>  +  #define SMC_USE_32BIT                1
+>  +  #define SMC_IRQ_SENSE                IRQF_TRIGGER_LOW
+>  +  #define SMC_MEM_RESERVED     1
+>   #endif
+>
+>
+>  --
+>  1.5.3.2
+>
+>  --
+>  To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>  the body of a message to majordomo@vger.kernel.org
+>  More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
