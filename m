@@ -1,39 +1,55 @@
-From: "andrzej zaborowski" <balrogg@gmail.com>
-Subject: Re: OMAP SDL
-Date: Sat, 3 May 2008 01:02:50 +0200
-Message-ID: <fb249edb0805021602r3a5de297i882ee565fad67c11@mail.gmail.com>
-References: <DF2E621E2E4C14428B271D6363D915C801131DB7@dnce03.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/7] OMAP3 EVM: series of patches to add additional hw
+	support
+Date: Fri, 2 May 2008 16:09:11 -0700
+Message-ID: <20080502230911.GV8981@atomide.com>
+References: <5e088bd90804281627x694b4084x334d6d4f76ee44fe@mail.gmail.com> <0680EC522D0CC943BC586913CF3768C02E703D34@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:54769 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932180AbYEBXCy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 May 2008 19:02:54 -0400
-Received: by ug-out-1314.google.com with SMTP id h3so165895ugf.16
-        for <linux-omap@vger.kernel.org>; Fri, 02 May 2008 16:02:52 -0700 (PDT)
-In-Reply-To: <DF2E621E2E4C14428B271D6363D915C801131DB7@dnce03.ent.ti.com>
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:50860 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760589AbYEBXJN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 May 2008 19:09:13 -0400
 Content-Disposition: inline
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C02E703D34@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Royer, Fabien" <f-royer@ti.com>
-Cc: linux-omap-open-source@linux.omap.com, linux-omap@vger.kernel.org
+To: "Syed Mohammed, Khasim" <khasim@ti.com>
+Cc: Steve Sakoman <sakoman@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 02/05/2008, Royer, Fabien <f-royer@ti.com> wrote:
->  First, I try a program which print a helloWorld on the Screen. But the
->  probleme is that the Fonction SDL_Init doesn't work properly for
->  SDL_INIT_VIDEO.
->
->
->
->  I get the message with SDL_GetError() , error=enable to open mouse.
+* Syed Mohammed, Khasim <khasim@ti.com> [080429 21:44]:
+> 
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Steve Sakoman
+> > Sent: Tuesday, April 29, 2008 4:57 AM
+> > To: linux-omap@vger.kernel.org
+> > Subject: [PATCH 0/7] OMAP3 EVM: series of patches to add additional hw
+> > support
+> >
+> > This series of patches adds support for mmc, usb, onenand, lcd, and
+> > rtc on the OMAP3 EVM.
+> >
+> > The first patch (mmc) was submitted individually a couple of days ago
+> > -- I'm resubmitting it as part of this group since the usb, onenand,
+> > lcd, and rtc patches assume that the mmc patch has been applied first.
+> >
+> > I have tested the resulting kernel on my OMAP 35XX EVM.
+> >
+> I have reviewed all these patches, didn't find any issues as such.
 
-Are you running this in X? If not, you may have set SDL_MOUSEDRV and
-SDL_MOUSEDEV manually (e.g. to some /dev/input/eventN node).  I don't
-know if there's a "dummy" mouse drv in sdl.
+Pushing this series today.
 
-HTH
--- 
-Please do not print this email unless absolutely necessary. Spread
-environmental awareness.
+Tony
+
+
+> Acked-by: Syed Mohammed Khasim <khasim@ti.com>
+> 
+> Regards,
+> Khasim
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
