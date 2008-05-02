@@ -1,42 +1,76 @@
 From: Nishant Kamat <nskamat@ti.com>
-Subject: [PATCH 0/7] Support for OMAP3430 LDP (Zoom)
-Date: Fri,  2 May 2008 06:23:54 -0500
-Message-ID: <1209727441-4312-1-git-send-email-nskamat@ti.com>
+Subject: [PATCH 6/7] NET: SMC911X: Fix timeout handling
+Date: Fri,  2 May 2008 06:24:00 -0500
+Message-ID: <1209727441-4312-7-git-send-email-nskamat@ti.com>
+References: <1209727441-4312-1-git-send-email-nskamat@ti.com>
+ <1209727441-4312-2-git-send-email-nskamat@ti.com>
+ <1209727441-4312-3-git-send-email-nskamat@ti.com>
+ <1209727441-4312-4-git-send-email-nskamat@ti.com>
+ <1209727441-4312-5-git-send-email-nskamat@ti.com>
+ <1209727441-4312-6-git-send-email-nskamat@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:59107 "EHLO calf.ext.ti.com"
+Received: from soda.ext.ti.com ([198.47.26.145]:54397 "EHLO soda.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755745AbYEBLYI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 May 2008 07:24:08 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by calf.ext.ti.com (8.13.7/8.13.7) with ESMTP id m42BO2V8003838
-	for <linux-omap@vger.kernel.org>; Fri, 2 May 2008 06:24:07 -0500
-Received: from legion.dal.design.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id m42BO23e014696
-	for <linux-omap@vger.kernel.org>; Fri, 2 May 2008 06:24:02 -0500 (CDT)
-Received: from dirac.dal.design.ti.com (dirac.dal.design.ti.com [128.247.25.123])
-	by legion.dal.design.ti.com (8.11.7p1+Sun/8.11.7) with ESMTP id m42BO1G04009
-	for <linux-omap@vger.kernel.org>; Fri, 2 May 2008 06:24:01 -0500 (CDT)
-Received: from dirac.dal.design.ti.com (localhost.localdomain [127.0.0.1])
-	by dirac.dal.design.ti.com (8.12.11/8.12.11) with ESMTP id m42BO1D8016057
-	for <linux-omap@vger.kernel.org>; Fri, 2 May 2008 06:24:01 -0500
-Received: (from a0868510@localhost)
-	by dirac.dal.design.ti.com (8.12.11/8.12.11/Submit) id m42BO1i7016049
-	for linux-omap@vger.kernel.org; Fri, 2 May 2008 06:24:01 -0500
+	id S1755745AbYEBLYJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 May 2008 07:24:09 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m42BO4FX019409
+	for <linux-omap@vger.kernel.org>; Fri, 2 May 2008 06:24:09 -0500
+In-Reply-To: <1209727441-4312-6-git-send-email-nskamat@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Nishant Kamat <nskamat@ti.com>
 
+Due to incorrect decrement operation in the loop, the timeout
+value would never be zero in case of hardware error. This patch
+fixes the decrement operation.
 
-Tony, All,
+Signed-off-by: Nishant Kamat <nskamat@ti.com>
+---
+ drivers/net/smc911x.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-Following is a series of patches that add basic support for OMAP3430 LDP,
- also known as the Zoom development kit. Refer [1] for more info.
-
-Please consider for merging.
-
-Thanks,
-Nishant
-
-[1] http://focus.ti.com/general/docs/wtbu/wtbusplashcontent.tsp?templateId=6123&contentId=36405
-
+diff --git a/drivers/net/smc911x.c b/drivers/net/smc911x.c
+index 14a0e3a..e5afcf2 100644
+--- a/drivers/net/smc911x.c
++++ b/drivers/net/smc911x.c
+@@ -243,7 +243,7 @@ static void smc911x_reset(struct net_device *dev)
+ 		do {
+ 			udelay(10);
+ 			reg = SMC_GET_PMT_CTRL() & PMT_CTRL_READY_;
+-		} while ( timeout-- && !reg);
++		} while (--timeout && !reg);
+ 		if (timeout == 0) {
+ 			PRINTK("%s: smc911x_reset timeout waiting for PM restore\n", dev->name);
+ 			return;
+@@ -267,7 +267,7 @@ static void smc911x_reset(struct net_device *dev)
+ 				resets++;
+ 				break;
+ 			}
+-		} while ( timeout-- && (reg & HW_CFG_SRST_));
++		} while (--timeout && (reg & HW_CFG_SRST_));
+ 	}
+ 	if (timeout == 0) {
+ 		PRINTK("%s: smc911x_reset timeout waiting for reset\n", dev->name);
+@@ -276,7 +276,7 @@ static void smc911x_reset(struct net_device *dev)
+ 
+ 	/* make sure EEPROM has finished loading before setting GPIO_CFG */
+ 	timeout=1000;
+-	while ( timeout-- && (SMC_GET_E2P_CMD() & E2P_CMD_EPC_BUSY_)) {
++	while (--timeout && (SMC_GET_E2P_CMD() & E2P_CMD_EPC_BUSY_)) {
+ 		udelay(10);
+ 	}
+ 	if (timeout == 0){
+@@ -413,7 +413,7 @@ static inline void smc911x_drop_pkt(struct net_device *dev)
+ 		do {
+ 			udelay(10);
+ 			reg = SMC_GET_RX_DP_CTRL() & RX_DP_CTRL_FFWD_BUSY_;
+-		} while ( timeout-- && reg);
++		} while (--timeout && reg);
+ 		if (timeout == 0) {
+ 			PRINTK("%s: timeout waiting for RX fast forward\n", dev->name);
+ 		}
+-- 
+1.5.3.2
 
