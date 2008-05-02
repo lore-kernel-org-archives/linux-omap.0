@@ -1,92 +1,103 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: PM Issues after Android bootup on 2430
-Date: Fri, 2 May 2008 08:52:07 +0200
-Message-ID: <7ACFA832-E2A9-4691-8FBE-9A418BD8E3D7@student.utwente.nl>
-References: <70E3BF80B2DA6E469688AD5C3BBCC6C40365F3B7@BLR-EC-MBX02.wipro.com> <782515bb0804291818w2296bdcajc026f3ab6e6af96a@mail.gmail.com> <87d4o5elx0.fsf@paris.hilman.org> <0680EC522D0CC943BC586913CF3768C001578E7762@dbde02.ent.ti.com>
-Mime-Version: 1.0 (Apple Message framework v919.2)
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: [PATCH] OMAP: EHCI: Support new USB expansion board
+Date: Fri, 2 May 2008 15:34:16 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608701291523C0@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:45900 "EHLO smtp.utwente.nl"
+Received: from calf.ext.ti.com ([198.47.26.144]:57219 "EHLO calf.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755667AbYEBGwc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 May 2008 02:52:32 -0400
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C001578E7762@dbde02.ent.ti.com>
+	id S1753618AbYEBKEZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 May 2008 06:04:25 -0400
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by calf.ext.ti.com (8.13.7/8.13.7) with ESMTP id m42A4JXP025896
+	for <linux-omap@vger.kernel.org>; Fri, 2 May 2008 05:04:24 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m42A4IkP006992
+	for <linux-omap@vger.kernel.org>; Fri, 2 May 2008 05:04:19 -0500 (CDT)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Syed Mohammed, Khasim" <khasim@ti.com>, linux-omap@vger.kernel.org
-
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
-Op 2 mei 2008, om 05:46 heeft Syed Mohammed, Khasim het volgende  
-geschreven:
->
->
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Kevin Hilman
->> Sent: Friday, May 02, 2008 3:18 AM
->> To: Nishanth Menon
->> Cc: shivananda.hebbarp@wipro.com; linux-omap@vger.kernel.org
->> Subject: Re: PM Issues after Android bootup on 2430
->>
->> "Nishanth Menon" <menon.nishanth@gmail.com> writes:
->>
->>> On 4/29/08, shivananda.hebbarp@wipro.com <shivananda.hebbarp@wipro.com 
->>> >
->> wrote:
->>>> omapfb omapfb: irq error status 00e2
->>>> omapfb omapfb: irq error status 0040
->>>> omapfb omapfb: irq error status 0040
->>>> omapfb omapfb: irq error status 0040
->>>> omapfb omapfb: irq error status 0040
->>>> omapfb omapfb: irq error status 0040
->>>> omapfb omapfb: irq error status 0040
->>>> omapfb omapfb: irq error status 0040
->>>> omapfb omapfb: irq error status 0040
->>>> omapfb omapfb: irq error status 0040
->>> This does look suspiciously like the thread
->>> http://linux.omap.com/pipermail/linux-omap-open-source/2007-
->> July/010566.html
->>>
->>> Interesting... ;)... I never got the chance to debug this issue..
->>>
->>> Kevin, Khasim, did u guys get a chance to look at this later?? I  
->>> dont
->>> recollect hearing any one saying the same for 3430 though..
->>
->> No, I never debugged this any further.  AFAIK, the omapfb is still
->> broken in git.
->>
-> Me too :(.
->
-> We have FB working for 3530 EVM / Beagle boards. Should be same for  
-> 2430/2530 as well.
+ - Code changes for next revision of USB expansion board 750-2099-001(C)
+   with h/w bug fixes to support ISP1504 PHY in input clocking mode
 
+ - Changes tested on SDP3430
 
-against git or 2.6.22?
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+---
+ drivers/usb/host/ehci-omap.c |   37 ++++++-------------------------------
+ 1 file changed, 6 insertions(+), 31 deletions(-)
 
-regards,
+Index: linux-omap-2.6/drivers/usb/host/ehci-omap.c
+===================================================================
+--- linux-omap-2.6.orig/drivers/usb/host/ehci-omap.c    2008-05-02 14:11:56.000000000 +0530
++++ linux-omap-2.6/drivers/usb/host/ehci-omap.c 2008-05-02 15:05:40.000000000 +0530
+@@ -35,7 +35,7 @@
+ #ifdef CONFIG_OMAP_EHCI_PHY_MODE
+ /* EHCI connected to External PHY */
 
-KOen
+-/* External USB connectivity board: 750-2083-001
++/* External USB connectivity board: 750-2099-001(C)
+  * Connected to OMAP3430 SDP
+  * The board has Port1 and Port2 connected to ISP1504 in 12-pin ULPI mode
+  */
+@@ -50,14 +50,7 @@
+ #define EXTERNAL_PHY_RESET
+ #define        EXT_PHY_RESET_GPIO_PORT1        (57)
+ #define        EXT_PHY_RESET_GPIO_PORT2        (61)
+-#define        EXT_PHY_RESET_DELAY             (10)
+-
+-/* ISSUE2:
+- * USBHOST supports External charge pump PHYs only
+- * Use the VBUS from Port1 to power VBUS of Port2 externally
+- * So use Port2 as the working ULPI port
+- */
+-#define VBUS_INTERNAL_CHARGEPUMP_HACK
++#define        EXT_PHY_RESET_DELAY             (500)
 
->
->
-> Regards,
-> Khasim
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux- 
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+ #endif /* CONFIG_OMAP_EHCI_PHY_MODE */
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
+@@ -228,8 +221,8 @@ static int omap_start_ehc(struct platfor
+        omap_set_gpio_direction(EXT_PHY_RESET_GPIO_PORT1, 0);
+        omap_request_gpio(EXT_PHY_RESET_GPIO_PORT2);
+        omap_set_gpio_direction(EXT_PHY_RESET_GPIO_PORT2, 0);
+-       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT1, 0);
+-       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT2, 0);
++       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT1, 1);
++       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT2, 1);
+        /* Hold the PHY in RESET for enough time till DIR is high */
+        udelay(EXT_PHY_RESET_DELAY);
+ #endif
+@@ -305,26 +298,8 @@ static int omap_start_ehc(struct platfor
+         * Hold the PHY in RESET for enough time till PHY is settled and ready
+         */
+        udelay(EXT_PHY_RESET_DELAY);
+-       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT1, 1);
+-       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT2, 1);
+-#endif
+-
+-#ifdef VBUS_INTERNAL_CHARGEPUMP_HACK
+-       /* Refer ISSUE2: LINK assumes external charge pump */
+-
+-       /* use Port1 VBUS to charge externally Port2:
+-        *      So for PHY mode operation use Port2 only
+-        */
+-       omap_writel((0xA << EHCI_INSNREG05_ULPI_REGADD_SHIFT) |/* OTG ctrl reg*/
+-                       (2 << EHCI_INSNREG05_ULPI_OPSEL_SHIFT) |/*   Write */
+-                       (1 << EHCI_INSNREG05_ULPI_PORTSEL_SHIFT) |/* Port1 */
+-                       (1 << EHCI_INSNREG05_ULPI_CONTROL_SHIFT) |/* Start */
+-                       (0x26),
+-                       EHCI_INSNREG05_ULPI);
+-
+-       while (!(omap_readl(EHCI_INSNREG05_ULPI) &
+-               (1<<EHCI_INSNREG05_ULPI_CONTROL_SHIFT)));
+-
++       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT1, 0);
++       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT2, 0);
+ #endif
 
-iD8DBQFIGroaMkyGM64RGpERAoJfAJ9CRdM/Bo7qmM4qoe3YO70ALcU8sgCfVoqi
-1mC/iHb196xeHblIunXDBEQ=
-=HR7R
------END PGP SIGNATURE-----
+        return 0;
