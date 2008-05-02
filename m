@@ -1,55 +1,92 @@
-From: Kalle Valo <kalle.valo@nokia.com>
-Subject: Re: Android on N810 File System Problem
-Date: Fri, 02 May 2008 09:17:12 +0300
-Message-ID: <87bq3p8c2f.fsf@nokia.com>
-References: <6a56d69c0804241248w5e46efe8k757c9e5fb9e3ce22@mail.gmail.com>
-	<48116F5C.9040009@googlemail.com>
-	<20080425183605.GA27479@kedavra.cpe.vivax.com.br>
-	<87fxt7my4o.fsf@nokia.com>
-	<20080427223248.GA5962@kedavra.cpe.vivax.com.br>
-	<20080428233827.GE8449@atomide.com>
-	<20080429090032.GA25363@bulgaria.corp.google.com>
-	<87bq3ry8o7.fsf@nokia.com>
-	<20080430102036.GA23558@bulgaria.corp.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: PM Issues after Android bootup on 2430
+Date: Fri, 2 May 2008 08:52:07 +0200
+Message-ID: <7ACFA832-E2A9-4691-8FBE-9A418BD8E3D7@student.utwente.nl>
+References: <70E3BF80B2DA6E469688AD5C3BBCC6C40365F3B7@BLR-EC-MBX02.wipro.com> <782515bb0804291818w2296bdcajc026f3ab6e6af96a@mail.gmail.com> <87d4o5elx0.fsf@paris.hilman.org> <0680EC522D0CC943BC586913CF3768C001578E7762@dbde02.ent.ti.com>
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:24431 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751535AbYEBGRq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 May 2008 02:17:46 -0400
-In-Reply-To: <20080430102036.GA23558@bulgaria.corp.google.com> (ext Brian Swetland's message of "Wed\, 30 Apr 2008 03\:20\:36 -0700")
+Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:45900 "EHLO smtp.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755667AbYEBGwc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 May 2008 02:52:32 -0400
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C001578E7762@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Brian Swetland <swetland@google.com>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <me@felipebalbi.com>, Dirk Behme <dirk.behme@googlemail.com>, Jonathan Herriott <herriojr@gmail.com>, linux-omap@vger.kernel.org
+To: "Syed Mohammed, Khasim" <khasim@ti.com>, linux-omap@vger.kernel.org
 
-Brian Swetland <swetland@google.com> writes:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> [Kalle Valo <kalle.valo@nokia.com>]
->> Brian Swetland <swetland@google.com> writes:
->> >
->> > This was the show-stopper for me.  When I last got things hobbling
->> > along on n8x0, the binary-only wlan module was incompatible with
->> > newer kernels than 2.6.21 (changes in some network data structures).
->> 
->> That's exactly the problem. I have written something about it here:
->> 
->> https://garage.maemo.org/pipermail/cx3110x-devel/2007-December/000007.html
+
+Op 2 mei 2008, om 05:46 heeft Syed Mohammed, Khasim het volgende  
+geschreven:
 >
-> Just did a quick diff between v2.6.21 and v2.6.24 and the skbuff changes
-> are pretty daunting.  Doesn't look like there's an easy hack here...
 >
->> Currently there's nothing I can do to resolve the issue, unfortunately.
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Kevin Hilman
+>> Sent: Friday, May 02, 2008 3:18 AM
+>> To: Nishanth Menon
+>> Cc: shivananda.hebbarp@wipro.com; linux-omap@vger.kernel.org
+>> Subject: Re: PM Issues after Android bootup on 2430
+>>
+>> "Nishanth Menon" <menon.nishanth@gmail.com> writes:
+>>
+>>> On 4/29/08, shivananda.hebbarp@wipro.com <shivananda.hebbarp@wipro.com 
+>>> >
+>> wrote:
+>>>> omapfb omapfb: irq error status 00e2
+>>>> omapfb omapfb: irq error status 0040
+>>>> omapfb omapfb: irq error status 0040
+>>>> omapfb omapfb: irq error status 0040
+>>>> omapfb omapfb: irq error status 0040
+>>>> omapfb omapfb: irq error status 0040
+>>>> omapfb omapfb: irq error status 0040
+>>>> omapfb omapfb: irq error status 0040
+>>>> omapfb omapfb: irq error status 0040
+>>>> omapfb omapfb: irq error status 0040
+>>> This does look suspiciously like the thread
+>>> http://linux.omap.com/pipermail/linux-omap-open-source/2007-
+>> July/010566.html
+>>>
+>>> Interesting... ;)... I never got the chance to debug this issue..
+>>>
+>>> Kevin, Khasim, did u guys get a chance to look at this later?? I  
+>>> dont
+>>> recollect hearing any one saying the same for 3430 though..
+>>
+>> No, I never debugged this any further.  AFAIK, the omapfb is still
+>> broken in git.
+>>
+> Me too :(.
 >
-> Pity.  It'd be nice to get newer kernels running on the n8x0 -- it's
-> nice hardware.
+> We have FB working for 3530 EVM / Beagle boards. Should be same for  
+> 2430/2530 as well.
 
-Trust me, I share the pain. If a solution comes up, I'll let you know.
 
-It's also a good idea to follow cx3110x-devel:
+against git or 2.6.22?
 
-https://garage.maemo.org/mailman/listinfo/cx3110x-devel
+regards,
 
--- 
-Kalle Valo
+KOen
+
+>
+>
+> Regards,
+> Khasim
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux- 
+> omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFIGroaMkyGM64RGpERAoJfAJ9CRdM/Bo7qmM4qoe3YO70ALcU8sgCfVoqi
+1mC/iHb196xeHblIunXDBEQ=
+=HR7R
+-----END PGP SIGNATURE-----
