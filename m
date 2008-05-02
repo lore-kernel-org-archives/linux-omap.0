@@ -1,429 +1,46 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 1/7] ARM: OMAP: Add basic board support for OMAP LDP.
-Date: Fri, 02 May 2008 06:31:45 -0500
-Message-ID: <6dfcaa3c0e34f764879c9ec7090e5cea@felipebalbi.com>
-References: <1209727441-4312-1-git-send-email-nskamat@ti.com> <1209727441-4312-2-git-send-email-nskamat@ti.com>
+From: "Kamat, Nishant" <nskamat@ti.com>
+Subject: RE: [PATCH 1/7] ARM: OMAP: Add basic board support for OMAP LDP.
+Date: Fri, 2 May 2008 06:44:16 -0500
+Message-ID: <6E3DC4E6E09EF440B55B7AD683608D6D03A4495D@dlee13.ent.ti.com>
+References: <6dfcaa3c0e34f764879c9ec7090e5cea@felipebalbi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:50500 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755241AbYEBLbr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 May 2008 07:31:47 -0400
-In-Reply-To: <1209727441-4312-2-git-send-email-nskamat@ti.com>
+Received: from soda.ext.ti.com ([198.47.26.145]:54927 "EHLO soda.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757017AbYEBLo1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 May 2008 07:44:27 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <6dfcaa3c0e34f764879c9ec7090e5cea@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishant Kamat <nskamat@ti.com>
+To: Felipe Balbi <me@felipebalbi.com>
 Cc: linux-omap@vger.kernel.org
 
+Filipe,
 
+> -----Original Message-----
+> From: Felipe Balbi [mailto:me@felipebalbi.com] 
+>
+[. . .]
 
-On Fri,  2 May 2008 06:23:55 -0500, Nishant Kamat <nskamat@ti.com> wrote:
-> This adds basic board support for the OMAP3430 LDP development platform.
-> It adds support for the touchscreen, RTC, UART and MMC - all of which
-work
-> with little or no changes w.r.t. the OMAP3430 SDP.
+> > +	ads7846_dev_init();
+> > +	omap_serial_init();
+> > +	hsmmc_init();
 > 
-> Signed-off-by: Nishant Kamat <nskamat@ti.com>
-> ---
->  arch/arm/mach-omap2/Kconfig           |    4 +
->  arch/arm/mach-omap2/Makefile          |    2 +
->  arch/arm/mach-omap2/board-ldp.c       |  251
-> +++++++++++++++++++++++++++++++++
->  include/asm-arm/arch-omap/board-ldp.h |   34 +++++
->  include/asm-arm/arch-omap/hardware.h  |    4 +
->  include/linux/i2c/twl4030.h           |    2 +
->  6 files changed, 297 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/board-ldp.c
->  create mode 100644 include/asm-arm/arch-omap/board-ldp.h
+> no usb?
+> How about usb_musb() here?
 > 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 5c229cc..d38f8ca 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -98,6 +98,10 @@ config MACH_OMAP_2430SDP
->  	bool "OMAP 2430 SDP board"
->  	depends on ARCH_OMAP2 && ARCH_OMAP2430
+> Could you try that ?
 > 
-> +config MACH_OMAP_LDP
-> +	bool "OMAP 3 LDP board"
-> +	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-> +
->  config MACH_OMAP_2430OSK
->  	bool "OMAP 2430 OSK board"
->  	depends on ARCH_OMAP2 && ARCH_OMAP24XX
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 512b446..f58d341 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -41,6 +41,8 @@ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
->  obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
->  					   usb-musb.o usb-ehci.o \
->  					   hsmmc.o
-> +obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
-> +					   hsmmc.o
->  obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
->  					   board-apollon-mmc.o	\
->  					   board-apollon-keys.o
-> diff --git a/arch/arm/mach-omap2/board-ldp.c
-> b/arch/arm/mach-omap2/board-ldp.c
-> new file mode 100644
-> index 0000000..4994dd8
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/board-ldp.c
-> @@ -0,0 +1,251 @@
-> +/*
-> + * linux/arch/arm/mach-omap2/board-ldp.c
-> + *
-> + * Copyright (C) 2008 Texas Instruments Inc.
-> + * Nishant Kamat <nskamat@ti.com>
-> + *
-> + * Modified from mach-omap2/board-3430sdp.c
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/init.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/delay.h>
-> +#include <linux/input.h>
-> +#include <linux/workqueue.h>
-> +#include <linux/err.h>
-> +#include <linux/clk.h>
-> +#include <linux/spi/spi.h>
-> +#include <linux/spi/ads7846.h>
-> +#include <linux/i2c/twl4030.h>
-> +#include <linux/i2c/twl4030-rtc.h>
-> +
-> +#include <asm/hardware.h>
-> +#include <asm/mach-types.h>
-> +#include <asm/mach/arch.h>
-> +#include <asm/mach/map.h>
-> +
-> +#include <asm/arch/mcspi.h>
-> +#include <asm/arch/gpio.h>
-> +#include <asm/arch/board.h>
-> +#include <asm/arch/common.h>
-> +#include <asm/arch/gpmc.h>
-> +#include <asm/arch/hsmmc.h>
-> +
-> +#include <asm/io.h>
-> +#include <asm/delay.h>
-> +#include <asm/arch/control.h>
-> +
-> +#define ENABLE_VAUX1_DEDICATED	0x03
-> +#define ENABLE_VAUX1_DEV_GRP	0x20
-> +
-> +#define TWL4030_MSECURE_GPIO	22
-> +
-> +static int ts_gpio;
-> +
-> +#ifdef CONFIG_RTC_DRV_TWL4030
-> +static int twl4030_rtc_init(void)
-> +{
-> +	int ret = 0;
-> +
-> +	/* 3430ES2.0 doesn't have msecure/gpio-22 line connected to T2 */
-> +	if (is_device_type_gp() && is_sil_rev_less_than(OMAP3430_REV_ES2_0)) {
-> +		u32 msecure_pad_config_reg = omap_ctrl_base_get() + 0xA3C;
-> +		int mux_mask = 0x04;
-> +		u16 tmp;
-> +
-> +		ret = omap_request_gpio(TWL4030_MSECURE_GPIO);
-> +		if (ret < 0) {
-> +			printk(KERN_ERR "twl4030_rtc_init: can't"
-> +				"reserve GPIO:%d !\n", TWL4030_MSECURE_GPIO);
-> +			goto out;
-> +		}
-> +		/*
-> +		 * TWL4030 will be in secure mode if msecure line from OMAP
-> +		 * is low. Make msecure line high in order to change the
-> +		 * TWL4030 RTC time and calender registers.
-> +		 */
-> +		omap_set_gpio_direction(TWL4030_MSECURE_GPIO, 0);
-> +
-> +		tmp = omap_readw(msecure_pad_config_reg);
-> +		tmp &= 0xF8;	/* To enable mux mode 03/04 = GPIO_RTC */
-> +		tmp |= mux_mask;/* To enable mux mode 03/04 = GPIO_RTC */
-> +		omap_writew(tmp, msecure_pad_config_reg);
-> +
-> +		omap_set_gpio_dataout(TWL4030_MSECURE_GPIO, 1);
-> +	}
-> +out:
-> +	return ret;
-> +}
-> +
-> +static void twl4030_rtc_exit(void)
-> +{
-> +	omap_free_gpio(TWL4030_MSECURE_GPIO);
-> +}
-> +
-> +static struct twl4030rtc_platform_data ldp_twl4030rtc_data = {
-> +	.init = &twl4030_rtc_init,
-> +	.exit = &twl4030_rtc_exit,
-> +};
-> +
-> +static struct platform_device ldp_twl4030rtc_device = {
-> +	.name		= "twl4030_rtc",
-> +	.id		= -1,
-> +	.dev		= {
-> +		.platform_data	= &ldp_twl4030rtc_data,
-> +	},
-> +};
-> +#endif
-> +
-> +/**
-> + * @brief ads7846_dev_init : Requests & sets GPIO line for pen-irq
-> + *
-> + * @return - void. If request gpio fails then Flag KERN_ERR.
-> + */
-> +static void ads7846_dev_init(void)
-> +{
-> +	if (omap_request_gpio(ts_gpio) < 0) {
-> +		printk(KERN_ERR "can't get ads746 pen down GPIO\n");
-> +		return;
-> +	}
-> +
-> +	omap_set_gpio_direction(ts_gpio, 1);
-> +
-> +	omap_set_gpio_debounce(ts_gpio, 1);
-> +	omap_set_gpio_debounce_time(ts_gpio, 0xa);
-> +}
-> +
-> +static int ads7846_get_pendown_state(void)
-> +{
-> +	return !omap_get_gpio_datain(ts_gpio);
-> +}
-> +
-> +/*
-> + * This enable(1)/disable(0) the voltage for TS: uses twl4030 calls
-> + */
-> +static int ads7846_vaux_control(int vaux_cntrl)
-> +{
-> +	int ret = 0;
-> +
-> +#ifdef CONFIG_TWL4030_CORE
-> +	/* check for return value of ldo_use: if success it returns 0 */
-> +	if (vaux_cntrl == VAUX_ENABLE) {
-> +		if (ret != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +			ENABLE_VAUX1_DEDICATED, TWL4030_VAUX1_DEDICATED))
-> +			return -EIO;
-> +		if (ret != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +			ENABLE_VAUX1_DEV_GRP, TWL4030_VAUX1_DEV_GRP))
-> +			return -EIO;
-> +	} else if (vaux_cntrl == VAUX_DISABLE) {
-> +		if (ret != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +			0x00, TWL4030_VAUX1_DEDICATED))
-> +			return -EIO;
-> +		if (ret != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +			0x00, TWL4030_VAUX1_DEV_GRP))
-> +			return -EIO;
-> +	}
-> +#else
-> +	ret = -EIO;
-> +#endif
-> +	return ret;
-> +}
-> +
-> +static struct ads7846_platform_data tsc2046_config __initdata = {
-> +	.get_pendown_state	= ads7846_get_pendown_state,
-> +	.keep_vref_on		= 1,
-> +	.vaux_control		= ads7846_vaux_control,
-> +};
-> +
-> +
-> +static struct omap2_mcspi_device_config tsc2046_mcspi_config = {
-> +	.turbo_mode	= 0,
-> +	.single_channel	= 1,  /* 0: slave, 1: master */
-> +};
-> +
-> +static struct spi_board_info ldp_spi_board_info[] __initdata = {
-> +	[0] = {
-> +		/*
-> +		 * TSC2046 operates at a max freqency of 2MHz, so
-> +		 * operate slightly below at 1.5MHz
-> +		 */
-> +		.modalias		= "ads7846",
-> +		.bus_num		= 1,
-> +		.chip_select		= 0,
-> +		.max_speed_hz		= 1500000,
-> +		.controller_data	= &tsc2046_mcspi_config,
-> +		.irq			= 0,
-> +		.platform_data		= &tsc2046_config,
-> +	},
-> +};
-> +
-> +static struct platform_device *ldp_devices[] __initdata = {
-> +#ifdef CONFIG_RTC_DRV_TWL4030
-> +	&ldp_twl4030rtc_device,
-> +#endif
-> +};
-> +
-> +static void __init omap_ldp_init_irq(void)
-> +{
-> +	omap2_init_common_hw();
-> +	omap_init_irq();
-> +	omap_gpio_init();
-> +}
-> +
-> +static struct omap_uart_config ldp_uart_config __initdata = {
-> +	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
-> +};
-> +
-> +static struct omap_mmc_config ldp_mmc_config __initdata = {
-> +	.mmc [0] = {
-> +		.enabled	= 1,
-> +		.wire4		= 1,
-> +	},
-> +};
-> +
-> +static struct omap_board_config_kernel ldp_config[] __initdata = {
-> +	{ OMAP_TAG_UART,	&ldp_uart_config },
-> +	{ OMAP_TAG_MMC,		&ldp_mmc_config },
-> +};
-> +
-> +static int __init omap_i2c_init(void)
-> +{
-> +	omap_register_i2c_bus(1, 2600, NULL, 0);
-> +	omap_register_i2c_bus(2, 400, NULL, 0);
-> +	omap_register_i2c_bus(3, 400, NULL, 0);
-> +	return 0;
-> +}
-> +
-> +static void __init omap_ldp_init(void)
-> +{
-> +	platform_add_devices(ldp_devices, ARRAY_SIZE(ldp_devices));
-> +	omap_board_config = ldp_config;
-> +	omap_board_config_size = ARRAY_SIZE(ldp_config);
-> +	ts_gpio = 54;
-> +	ldp_spi_board_info[0].irq = OMAP_GPIO_IRQ(ts_gpio);
-> +	spi_register_board_info(ldp_spi_board_info,
-> +				ARRAY_SIZE(ldp_spi_board_info));
-> +	ads7846_dev_init();
-> +	omap_serial_init();
-> +	hsmmc_init();
-
-no usb?
-How about usb_musb() here?
-
-Could you try that ?
-
-you'll need to include <asm/arch/usb-musb.h>
-
-if it works, just append to this patch ;-)
-
-> +}
-> +
-> +static void __init omap_ldp_map_io(void)
-> +{
-> +	omap2_set_globals_343x();
-> +	omap2_map_common_io();
-> +}
-> +arch_initcall(omap_i2c_init);
-> +
-> +MACHINE_START(OMAP_LDP, "OMAP LDP board")
-> +	.phys_io	= 0x48000000,
-> +	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-> +	.boot_params	= 0x80000100,
-> +	.map_io		= omap_ldp_map_io,
-> +	.init_irq	= omap_ldp_init_irq,
-> +	.init_machine	= omap_ldp_init,
-> +	.timer		= &omap_timer,
-> +MACHINE_END
-> diff --git a/include/asm-arm/arch-omap/board-ldp.h
-> b/include/asm-arm/arch-omap/board-ldp.h
-> new file mode 100644
-> index 0000000..b227561
-> --- /dev/null
-> +++ b/include/asm-arm/arch-omap/board-ldp.h
-> @@ -0,0 +1,34 @@
-> +/*
-> + * linux/include/asm-arm/arch-omap/board-ldp.h
-> + *
-> + * Hardware definitions for TI OMAP3 LDP.
-> + *
-> + * Copyright (C) 2008 Texas Instruments Inc.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> it
-> + * under the terms of the GNU General Public License as published by the
-> + * Free Software Foundation; either version 2 of the License, or (at
-your
-> + * option) any later version.
-> + *
-> + * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-> + * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-> + * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-> IN
-> + * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-> + * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-> BUT
-> + * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-> + * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON
-> + * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
-> TORT
-> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-> OF
-> + * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> along
-> + * with this program; if not, write to the Free Software Foundation,
-> Inc.,
-> + * 675 Mass Ave, Cambridge, MA 02139, USA.
-> + */
-> +
-> +#ifndef __ASM_ARCH_OMAP_LDP_H
-> +#define __ASM_ARCH_OMAP_LDP_H
-> +
-> +#define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
-> +
-> +#endif /* __ASM_ARCH_OMAP_LDP_H */
-> diff --git a/include/asm-arm/arch-omap/hardware.h
-> b/include/asm-arm/arch-omap/hardware.h
-> index 09f8ef8..fed9a76 100644
-> --- a/include/asm-arm/arch-omap/hardware.h
-> +++ b/include/asm-arm/arch-omap/hardware.h
-> @@ -343,6 +343,10 @@
->  #include "board-omap3beagle.h"
->  #endif
+> you'll need to include <asm/arch/usb-musb.h>
 > 
-> +#ifdef CONFIG_MACH_OMAP_LDP
-> +#include "board-ldp.h"
-> +#endif
-> +
->  #ifdef CONFIG_MACH_OMAP_APOLLON
->  #include "board-apollon.h"
->  #endif
-> diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
-> index 05d07f9..40af46e 100644
-> --- a/include/linux/i2c/twl4030.h
-> +++ b/include/linux/i2c/twl4030.h
-> @@ -77,6 +77,8 @@
->  /* Offsets to Power Registers */
->  #define TWL4030_VDAC_DEV_GRP		0x3B
->  #define TWL4030_VDAC_DEDICATED		0x3E
-> +#define TWL4030_VAUX1_DEV_GRP		0x17
-> +#define TWL4030_VAUX1_DEDICATED		0x1A
->  #define TWL4030_VAUX2_DEV_GRP		0x1B
->  #define TWL4030_VAUX2_DEDICATED		0x1E
->  #define TWL4030_VAUX3_DEV_GRP		0x1F
-> --
-> 1.5.3.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
--- 
-Best Regards,
+> if it works, just append to this patch ;-)
 
-Felipe Balbi
-http://felipebalbi.com
-me@felipebalbi.com
+Last time I tried, it didn't work straight off the bat. I'll send it in
+another patch once it works..
 
+Regards,
+Nishant
