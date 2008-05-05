@@ -1,55 +1,63 @@
-From: <shivananda.hebbarp@wipro.com>
-Subject: RE: Questions on Android
-Date: Mon, 5 May 2008 18:08:07 +0530
-Message-ID: <70E3BF80B2DA6E469688AD5C3BBCC6C4036B0817@BLR-EC-MBX02.wipro.com>
-References: <20080429101351.GA25657@bulgaria.corp.google.com>
+From: "Simon Braunschmidt" <sbraunschmidt.linuxlists@googlemail.com>
+Subject: Re: framebuffer on 2430sdp, configuration and bug [RESOLVED]
+Date: Mon, 5 May 2008 16:52:02 +0200
+Message-ID: <1ee641e10805050752t691d2393g138d8f6e5bb9571f@mail.gmail.com>
+References: <1ee641e10804250230q4e4a348dia5fe70652c25b5b3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wipro-blr-out01.wipro.com ([203.91.198.74]:36124 "EHLO
-	wipro-blr-out01.wipro.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751572AbYEEMi1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2008 08:38:27 -0400
-Received: from blr-ec-bh01.wipro.com (unknown [10.201.50.91])
-	by wipro-blr-out01.wipro.com (Symantec Mail Security) with ESMTP id 0BB874E4003
-	for <linux-omap@vger.kernel.org>; Mon,  5 May 2008 18:08:25 +0530 (IST)
-Content-class: urn:content-classes:message
-In-Reply-To: <20080429101351.GA25657@bulgaria.corp.google.com>
+Received: from an-out-0708.google.com ([209.85.132.244]:62527 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756580AbYEEOwE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2008 10:52:04 -0400
+Received: by an-out-0708.google.com with SMTP id d40so550078and.103
+        for <linux-omap@vger.kernel.org>; Mon, 05 May 2008 07:52:02 -0700 (PDT)
+In-Reply-To: <1ee641e10804250230q4e4a348dia5fe70652c25b5b3@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: anils@mistralsolutions.com
-Cc: dirk.behme@googlemail.com, linux-omap@vger.kernel.org, colorant@163.com, swetland@google.com
+To: linux-omap@vger.kernel.org
 
- 
->[Anil S <anils@mistralsolutions.com>]
-> Hello Brian,
-> 
-> 	It would be really great if you could share thoughts on the
-questions 
-> given here on Android:
-> 
-> I was able to add support for the keypad, touch and network in 
-> Android, however the interfaces like GPS, Accelerometer, vibrator, 
-> hardware 3D acceleration, battery etc. are not integrated with Android
+Hi
 
-> right now. I would appreciate if you could throw some light on these 
-> open issues. How exactly can these interfaces be integrated with
-Android?
+Just a follow-up on the SYNCLOST problem we are seeing with the
+framebuffer driver.
 
-Hi Anil,
+It seems as if we only get SYNCLOST signal in the display controller
+interrupt handler when we activate the ADS7846 touchscreen which is
+connected via SPI. Maybe signal integrity is to blame, since both LCD
+and touchscreen signal go over the same flat cable.
 
-I had reported some Power management behavior after bringing up android
-on 2430. Here is the thread .
-http://marc.info/?l=linux-omap&m=120948254632401&w=2
+Problem is seen on 2.6.23-omap1 with CONFIG_SPI_OMAP24XX,
+CONFIG_TOUCHSCREEN_ADS7846 and CONFIG_FB_OMAP enabled, configured for
+2430sdp.
 
-Basically the Android GUI comes up and transitions from Active to Sleep
-mode happens properly for the first 2 times.(by pressing the up and down
-keys).
-But the third time ,it never comes from the deep sleep mode. 
+Can anyone comment on this issue?
 
-Do you any idea about this ?Any inputs on this is highly appreciated.
 
-Regards,
-Shivananda
+BR
+Simon Braunschmidt
+2008/4/25 Simon Braunschmidt <sbraunschmidt.linuxlists@googlemail.com>:
+> Hi Arun, all
+>
+>  I just switched to 2.6.23-omap1, which is booting with framebuffer.
+>  Which recent kernel version would you recommend to get down and dirty
+>  with Android on the 2430sdp?
+>
+>  btw 2.6.24-omap1 is booting for me on 2430sdp, but with not
+>  framebuffer, though framebuffer gets registered according to kernel
+>  bootlog and is now also usable with my testprogramm, just nothing on
+>  the lcd
+>
+>  The bug we were seeing:
+>
+>  SYNCLOST .... something in dispc.c irq handler
+>
+>  disappeared, looking backwards this may be also related to our recent
+>  switch to git for maintaining kernel sources. Maybe our selfhosted
+>  sources got tainted by our half-baked patching  approaches, so sorry
+>  for the noise...
+>
+>  Greetings, Gruessla
+>  Simon
