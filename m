@@ -1,15 +1,16 @@
 From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [PATCH 2/4] MACH-OMAP1: MCBSP: Add support for mcbsp on mach-omap1
-Date: Mon,  5 May 2008 17:23:05 -0400
-Message-ID: <1210022587-7756-3-git-send-email-edubezval@gmail.com>
+Subject: [PATCH 3/4] Fix mcbsp clock definition on clock34xx.h
+Date: Mon,  5 May 2008 17:23:06 -0400
+Message-ID: <1210022587-7756-4-git-send-email-edubezval@gmail.com>
 References: <1210022587-7756-1-git-send-email-edubezval@gmail.com>
  <1210022587-7756-2-git-send-email-edubezval@gmail.com>
+ <1210022587-7756-3-git-send-email-edubezval@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:32757 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:32767 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754919AbYEEVXg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2008 17:23:36 -0400
-In-Reply-To: <1210022587-7756-2-git-send-email-edubezval@gmail.com>
+	with ESMTP id S1760967AbYEEVXt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2008 17:23:49 -0400
+In-Reply-To: <1210022587-7756-3-git-send-email-edubezval@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -17,200 +18,119 @@ Cc: Tony Lindgren <tony@atomide.com>, Chandra shekhar <x0044955@ti.com>, Eduardo
 
 From: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-This patch adds support for mach-omap1 based on current
-mcbsp platform driver.
+This patch fix the clock definition for mcbsps on clock34xx.h.
+Device identification must be done using .id field, not
+only name field.
 
 Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
 ---
- arch/arm/mach-omap1/Makefile |    2 +
- arch/arm/mach-omap1/mcbsp.c  |  165 ++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 167 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap1/mcbsp.c
+ arch/arm/mach-omap2/clock34xx.h |   30 ++++++++++++++++++++----------
+ 1 files changed, 20 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-index 6ebf23b..09246a7 100644
---- a/arch/arm/mach-omap1/Makefile
-+++ b/arch/arm/mach-omap1/Makefile
-@@ -5,6 +5,8 @@
- # Common support
- obj-y := io.o id.o clock.o irq.o mux.o serial.o devices.o
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index 85afe1e..3fea82e 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -1480,7 +1480,8 @@ static const struct clksel mcbsp_15_clksel[] = {
+ };
  
-+obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
-+
- obj-$(CONFIG_OMAP_MPU_TIMER)	+= time.o
- obj-$(CONFIG_OMAP_32K_TIMER)	+= timer32k.o
+ static struct clk mcbsp5_fck = {
+-	.name		= "mcbsp5_fck",
++	.name		= "mcbsp_fck",
++	.id		= 5,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+ 	.enable_bit	= OMAP3430_EN_MCBSP5_SHIFT,
+@@ -1493,7 +1494,8 @@ static struct clk mcbsp5_fck = {
+ };
  
-diff --git a/arch/arm/mach-omap1/mcbsp.c b/arch/arm/mach-omap1/mcbsp.c
-new file mode 100644
-index 0000000..f30624a
---- /dev/null
-+++ b/arch/arm/mach-omap1/mcbsp.c
-@@ -0,0 +1,165 @@
-+/*
-+ * linux/arch/arm/mach-omap1/mcbsp.c
-+ *
-+ * Copyright (C) 2008 Instituto Nokia de Tecnologia
-+ * Contact: Eduardo Valentin <eduardo.valentin@indt.org.br>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * Multichannel mode not supported.
-+ */
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/clk.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
-+
-+#include <asm/arch/dma.h>
-+#include <asm/arch/mux.h>
-+#include <asm/arch/cpu.h>
-+#include <asm/arch/mcbsp.h>
-+#include <asm/arch/dsp_common.h>
-+
-+#define DPS_RSTCT2_PER_EN	(1 << 0)
-+#define DSP_RSTCT2_WD_PER_EN	(1 << 1)
-+
-+static int omap1_mcbsp_check(unsigned int id)
-+{
-+	/* REVISIT: Check correctly for number of registered McBSPs */
-+	if (cpu_is_omap730()) {
-+		if (id > OMAP_MAX_MCBSP_COUNT - 2) {
-+		       printk(KERN_ERR "OMAP-McBSP: McBSP%d doesn't exist\n",
-+				id + 1);
-+		       return -ENODEV;
-+		}
-+		return 0;
-+	}
-+
-+	if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
-+		if (id > OMAP_MAX_MCBSP_COUNT - 1) {
-+			printk(KERN_ERR "OMAP-McBSP: McBSP%d doesn't exist\n",
-+				id + 1);
-+			return -ENODEV;
-+		}
-+		return 0;
-+	}
-+
-+	return -ENODEV;
-+}
-+
-+static void omap1_mcbsp_request(unsigned int id)
-+{
-+	/*
-+	 * On 1510, 1610 and 1710, McBSP1 and McBSP3
-+	 * are DSP public peripherals.
-+	 */
-+	if (id == OMAP_MCBSP1 || id == OMAP_MCBSP3) {
-+		omap_dsp_request_mem();
-+		/*
-+		 * DSP external peripheral reset
-+		 * FIXME: This should be moved to dsp code
-+		 */
-+		__raw_writew(__raw_readw(DSP_RSTCT2) | DPS_RSTCT2_PER_EN |
-+				DSP_RSTCT2_WD_PER_EN, DSP_RSTCT2);
-+	}
-+}
-+
-+static void omap1_mcbsp_free(unsigned int id)
-+{
-+	if (id == OMAP_MCBSP1 || id == OMAP_MCBSP3)
-+		omap_dsp_release_mem();
-+}
-+
-+static struct omap_mcbsp_ops omap1_mcbsp_ops = {
-+	.check		= omap1_mcbsp_check,
-+	.request	= omap1_mcbsp_request,
-+	.free		= omap1_mcbsp_free,
-+};
-+
-+static struct omap_mcbsp_platform_data omap1_mcbsp_pdata[] = {
-+#ifdef CONFIG_ARCH_OMAP730
-+	{
-+		.virt_base	= io_p2v(OMAP730_MCBSP1_BASE),
-+		.dma_rx_sync	= OMAP_DMA_MCBSP1_RX,
-+		.dma_tx_sync	= OMAP_DMA_MCBSP1_TX,
-+		.rx_irq		= INT_730_McBSP1RX,
-+		.tx_irq		= INT_730_McBSP1TX,
-+		.ops		= &omap1_mcbsp_ops,
-+	},
-+	{
-+		.virt_base	= io_p2v(OMAP730_MCBSP2_BASE),
-+		.dma_rx_sync	= OMAP_DMA_MCBSP3_RX,
-+		.dma_tx_sync	= OMAP_DMA_MCBSP3_TX,
-+		.rx_irq		= INT_730_McBSP2RX,
-+		.tx_irq		= INT_730_McBSP2TX
-+		.ops		= &omap1_mcbsp_ops,
-+	},
-+#endif
-+#ifdef CONFIG_ARCH_OMAP15XX
-+	{
-+		.virt_base	= OMAP1510_MCBSP1_BASE,
-+		.dma_rx_sync	= OMAP_DMA_MCBSP1_RX,
-+		.dma_tx_sync	= OMAP_DMA_MCBSP1_TX,
-+		.rx_irq		= INT_McBSP1RX,
-+		.tx_irq		= INT_McBSP1TX,
-+		.ops		= &omap1_mcbsp_ops,
-+		.clocks		= { "dsp_ck", "api_ck", "dspxor_ck" },
-+		},
-+	{
-+		.virt_base	= io_p2v(OMAP1510_MCBSP2_BASE),
-+		.dma_rx_sync	= OMAP_DMA_MCBSP2_RX,
-+		.dma_tx_sync	= OMAP_DMA_MCBSP2_TX,
-+		.rx_irq		= INT_1510_SPI_RX,
-+		.tx_irq		= INT_1510_SPI_TX,
-+		.ops		= &omap1_mcbsp_ops,
-+	},
-+	{
-+		.virt_base	= OMAP1510_MCBSP3_BASE,
-+		.dma_rx_sync	= OMAP_DMA_MCBSP3_RX,
-+		.dma_tx_sync	= OMAP_DMA_MCBSP3_TX,
-+		.rx_irq		= INT_McBSP3RX,
-+		.tx_irq		= INT_McBSP3TX,
-+		.ops		= &omap1_mcbsp_ops,
-+		.clocks		= { "dsp_ck", "api_ck", "dspxor_ck" },
-+	},
-+#endif
-+#ifdef CONFIG_ARCH_OMAP16XX
-+	{
-+		.virt_base	= OMAP1610_MCBSP1_BASE,
-+		.dma_rx_sync	= OMAP_DMA_MCBSP1_RX,
-+		.dma_tx_sync	= OMAP_DMA_MCBSP1_TX,
-+		.rx_irq		= INT_McBSP1RX,
-+		.tx_irq		= INT_McBSP1TX,
-+		.ops		= &omap1_mcbsp_ops,
-+		.clocks		= { "dsp_ck", "api_ck", "dspxor_ck" },
-+	},
-+	{
-+		.virt_base	= io_p2v(OMAP1610_MCBSP2_BASE),
-+		.dma_rx_sync	= OMAP_DMA_MCBSP2_RX,
-+		.dma_tx_sync	= OMAP_DMA_MCBSP2_TX,
-+		.rx_irq		= INT_1610_McBSP2_RX,
-+		.tx_irq		= INT_1610_McBSP2_TX,
-+		.ops		= &omap1_mcbsp_ops,
-+	},
-+	{
-+		.virt_base	= OMAP1610_MCBSP3_BASE,
-+		.dma_rx_sync	= OMAP_DMA_MCBSP3_RX,
-+		.dma_tx_sync	= OMAP_DMA_MCBSP3_TX,
-+		.rx_irq		= INT_McBSP3RX,
-+		.tx_irq		= INT_McBSP3TX,
-+		.ops		= &omap1_mcbsp_ops,
-+		.clocks		= { "dsp_ck", "api_ck", "dspxor_ck" },
-+	},
-+#endif
-+};
-+#define mcbsp_count		ARRAY_SIZE(omap1_mcbsp_pdata)
-+
-+int __init omap1_mcbsp_init(void)
-+{
-+	omap_mcbsp_register_board_cfg(omap1_mcbsp_pdata, mcbsp_count);
-+
-+	return omap_mcbsp_init();
-+}
-+arch_initcall(omap1_mcbsp_init);
+ static struct clk mcbsp1_fck = {
+-	.name		= "mcbsp1_fck",
++	.name		= "mcbsp_fck",
++	.id		= 1,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+ 	.enable_bit	= OMAP3430_EN_MCBSP1_SHIFT,
+@@ -1941,7 +1943,8 @@ static struct clk gpt10_ick = {
+ };
+ 
+ static struct clk mcbsp5_ick = {
+-	.name		= "mcbsp5_ick",
++	.name		= "mcbsp_ick",
++	.id		= 5,
+ 	.parent		= &core_l4_ick,
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+ 	.enable_bit	= OMAP3430_EN_MCBSP5_SHIFT,
+@@ -1951,7 +1954,8 @@ static struct clk mcbsp5_ick = {
+ };
+ 
+ static struct clk mcbsp1_ick = {
+-	.name		= "mcbsp1_ick",
++	.name		= "mcbsp_ick",
++	.id		= 1,
+ 	.parent		= &core_l4_ick,
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+ 	.enable_bit	= OMAP3430_EN_MCBSP1_SHIFT,
+@@ -2754,7 +2758,8 @@ static struct clk gpt2_ick = {
+ };
+ 
+ static struct clk mcbsp2_ick = {
+-	.name		= "mcbsp2_ick",
++	.name		= "mcbsp_ick",
++	.id		= 2,
+ 	.parent		= &per_l4_ick,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+ 	.enable_bit	= OMAP3430_EN_MCBSP2_SHIFT,
+@@ -2764,7 +2769,8 @@ static struct clk mcbsp2_ick = {
+ };
+ 
+ static struct clk mcbsp3_ick = {
+-	.name		= "mcbsp3_ick",
++	.name		= "mcbsp_ick",
++	.id		= 3,
+ 	.parent		= &per_l4_ick,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+ 	.enable_bit	= OMAP3430_EN_MCBSP3_SHIFT,
+@@ -2774,7 +2780,8 @@ static struct clk mcbsp3_ick = {
+ };
+ 
+ static struct clk mcbsp4_ick = {
+-	.name		= "mcbsp4_ick",
++	.name		= "mcbsp_ick",
++	.id		= 4,
+ 	.parent		= &per_l4_ick,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
+ 	.enable_bit	= OMAP3430_EN_MCBSP4_SHIFT,
+@@ -2790,7 +2797,8 @@ static const struct clksel mcbsp_234_clksel[] = {
+ };
+ 
+ static struct clk mcbsp2_fck = {
+-	.name		= "mcbsp2_fck",
++	.name		= "mcbsp_fck",
++	.id		= 2,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_MCBSP2_SHIFT,
+@@ -2803,7 +2811,8 @@ static struct clk mcbsp2_fck = {
+ };
+ 
+ static struct clk mcbsp3_fck = {
+-	.name		= "mcbsp3_fck",
++	.name		= "mcbsp_fck",
++	.id		= 3,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_MCBSP3_SHIFT,
+@@ -2816,7 +2825,8 @@ static struct clk mcbsp3_fck = {
+ };
+ 
+ static struct clk mcbsp4_fck = {
+-	.name		= "mcbsp4_fck",
++	.name		= "mcbsp_fck",
++	.id		= 4,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_MCBSP4_SHIFT,
 -- 
 1.5.5.1.67.gbdb8.dirty
 
