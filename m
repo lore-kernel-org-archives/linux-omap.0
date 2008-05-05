@@ -1,35 +1,55 @@
-From: sharath kumar <sharath_dm@yahoo.com>
-Subject: support for sys_vmode pin on linux-2.6.14-omap2-v5 PM
-Date: Mon, 5 May 2008 03:47:32 -0700 (PDT)
-Message-ID: <940082.45697.qm@web32806.mail.mud.yahoo.com>
+From: <shivananda.hebbarp@wipro.com>
+Subject: RE: Questions on Android
+Date: Mon, 5 May 2008 18:08:07 +0530
+Message-ID: <70E3BF80B2DA6E469688AD5C3BBCC6C4036B0817@BLR-EC-MBX02.wipro.com>
+References: <20080429101351.GA25657@bulgaria.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from web32806.mail.mud.yahoo.com ([68.142.206.36]:20101 "HELO
-	web32806.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752889AbYEEKrd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2008 06:47:33 -0400
+Received: from wipro-blr-out01.wipro.com ([203.91.198.74]:36124 "EHLO
+	wipro-blr-out01.wipro.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751572AbYEEMi1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2008 08:38:27 -0400
+Received: from blr-ec-bh01.wipro.com (unknown [10.201.50.91])
+	by wipro-blr-out01.wipro.com (Symantec Mail Security) with ESMTP id 0BB874E4003
+	for <linux-omap@vger.kernel.org>; Mon,  5 May 2008 18:08:25 +0530 (IST)
+Content-class: urn:content-classes:message
+In-Reply-To: <20080429101351.GA25657@bulgaria.corp.google.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: anils@mistralsolutions.com
+Cc: dirk.behme@googlemail.com, linux-omap@vger.kernel.org, colorant@163.com, swetland@google.com
 
-Hi,
-i am working on adding PM support for OMAP2530EVM
+ 
+>[Anil S <anils@mistralsolutions.com>]
+> Hello Brian,
+> 
+> 	It would be really great if you could share thoughts on the
+questions 
+> given here on Android:
+> 
+> I was able to add support for the keypad, touch and network in 
+> Android, however the interfaces like GPS, Accelerometer, vibrator, 
+> hardware 3D acceleration, battery etc. are not integrated with Android
 
-When we move linux to suspend( by command "echo
-"standby" > /sys/power/state") the sys_vmode pin
-should go low(PRCM_VOLTCTRL setting).
+> right now. I would appreciate if you could throw some light on these 
+> open issues. How exactly can these interfaces be integrated with
+Android?
 
-But this is not happening.
-Any information on this?
+Hi Anil,
 
-Regards
-Sharath
+I had reported some Power management behavior after bringing up android
+on 2430. Here is the thread .
+http://marc.info/?l=linux-omap&m=120948254632401&w=2
 
+Basically the Android GUI comes up and transitions from Active to Sleep
+mode happens properly for the first 2 times.(by pressing the up and down
+keys).
+But the third time ,it never comes from the deep sleep mode. 
 
+Do you any idea about this ?Any inputs on this is highly appreciated.
 
-
-      ____________________________________________________________________________________
-Be a better friend, newshound, and 
-know-it-all with Yahoo! Mobile.  Try it now.  http://mobile.yahoo.com/;_ylt=Ahu06i62sR8HDtDypao8Wcj9tAcJ
+Regards,
+Shivananda
