@@ -1,126 +1,35 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH] MUSB: misc clean-up.
-Date: Mon, 05 May 2008 02:55:05 -0500
-Message-ID: <d1368e13f1a909c545bc51824c754176@felipebalbi.com>
-References: <12098207903324-git-send-email-balrogg@gmail.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [PATCH 0/3] DMA clean-up for multi-boot
+Date: Mon, 5 May 2008 13:14:03 +0300
+Message-ID: <20080505131403.93d0a64d.jarkko.nikula@nokia.com>
+References: <1209575641-25613-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:42904 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754084AbYEEHzH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2008 03:55:07 -0400
-In-Reply-To: <12098207903324-git-send-email-balrogg@gmail.com>
+Received: from smtp.nokia.com ([192.100.122.233]:32644 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751231AbYEEKNx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 May 2008 06:13:53 -0400
+In-Reply-To: <1209575641-25613-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrzej Zaborowski <balrogg@gmail.com>
+To: ext Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org
 
+On Wed, 30 Apr 2008 10:13:58 -0700
+"ext Tony Lindgren" <tony@atomide.com> wrote:
 
+> Hi all,
+> 
+> Here are three patches to clean DMA code to support multi-boot
+> better. I have made quick testing on 24xx and 34xx only so far,
+> and things seem to work.
+> 
+> I will also do more testing, but I would appreciate if people would
+> give them a quick spin and see if anything breaks. Functionality
+> should be same as earlier.
+> 
+OMAP ASoC is still working on N810.
 
-On Sat,  3 May 2008 15:19:50 +0200, Andrzej Zaborowski <balrogg@gmail.com>
-wrote:
-> Correct the interrupt mask in TUSB6010 and other nit-picking from my
-tree.
-> 
-> Signed-off-by: Andrzej Zaborowski <balrog@zabor.org>
-
-Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
-
-> ---
->  drivers/usb/musb/musb_host.c     |    2 +-
->  drivers/usb/musb/musb_procfs.c   |    2 +-
->  drivers/usb/musb/tusb6010.c      |    6 +++---
->  drivers/usb/musb/tusb6010_omap.c |    2 +-
->  4 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-> index 64673b7..e9c766f 100644
-> --- a/drivers/usb/musb/musb_host.c
-> +++ b/drivers/usb/musb/musb_host.c
-> @@ -1203,7 +1203,7 @@ void musb_host_tx(struct musb *musb, u8 epnum)
->  		 * we have a candidate... NAKing is *NOT* an error
->  		 */
->  		musb_ep_select(mbase, epnum);
-> -		musb_writew(epio, MUSB_CSR0,
-> +		musb_writew(epio, MUSB_TXCSR,
->  				MUSB_TXCSR_H_WZC_BITS
->  				| MUSB_TXCSR_TXPKTRDY);
->  		goto finish;
-> diff --git a/drivers/usb/musb/musb_procfs.c
-> b/drivers/usb/musb/musb_procfs.c
-> index e6e050c..da683eb 100644
-> --- a/drivers/usb/musb/musb_procfs.c
-> +++ b/drivers/usb/musb/musb_procfs.c
-> @@ -453,7 +453,7 @@ dump_end_info(struct musb *musb, u8 epnum, char
-> *aBuffer, unsigned max)
-> 
->  /* Dump the current status and compile options.
->   * @param musb the device driver instance
-> - * @param buffer where to dump the status; it must be big enough hold
-the
-> + * @param buffer where to dump the status; it must be big enough to hold
-> the
->   * result otherwise "BAD THINGS HAPPENS(TM)".
->   */
->  static int dump_header_stats(struct musb *musb, char *buffer)
-> diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
-> index bed2e18..1f3643b 100644
-> --- a/drivers/usb/musb/tusb6010.c
-> +++ b/drivers/usb/musb/tusb6010.c
-> @@ -740,7 +740,7 @@ tusb_otg_ints(struct musb *musb, u32 int_src, void
-> __iomem *tbase)
->  				break;
->  			case OTG_STATE_A_WAIT_VFALL:
->  				/* REVISIT this irq triggers during short
-> -				 * spikes causet by enumeration ...
-> +				 * spikes caused by enumeration ...
->  				 */
->  				if (musb->vbuserr_retry) {
->  					musb->vbuserr_retry--;
-> @@ -888,7 +888,7 @@ static irqreturn_t tusb_interrupt(int irq, void
-> *__hci)
->  		musb_writel(tbase, TUSB_DMA_INT_CLEAR, dma_src);
->  	}
-> 
-> -	/* EP interrupts. In OCP mode tusb6010 mirrors the MUSB * interrupts */
-> +	/* EP interrupts. In OCP mode tusb6010 mirrors the MUSB interrupts */
->  	if (int_src & (TUSB_INT_SRC_USB_IP_TX | TUSB_INT_SRC_USB_IP_RX)) {
->  		u32	musb_src = musb_readl(tbase, TUSB_USBIP_INT_SRC);
-> 
-> @@ -972,7 +972,7 @@ void musb_platform_disable(struct musb *musb)
-> 
->  	/* disable all IRQs */
->  	musb_writel(tbase, TUSB_INT_MASK, ~TUSB_INT_MASK_RESERVED_BITS);
-> -	musb_writel(tbase, TUSB_USBIP_INT_MASK, 0);
-> +	musb_writel(tbase, TUSB_USBIP_INT_MASK, 0x7fffffff);
->  	musb_writel(tbase, TUSB_DMA_INT_MASK, 0x7fffffff);
->  	musb_writel(tbase, TUSB_GPIO_INT_MASK, 0x1ff);
-> 
-> diff --git a/drivers/usb/musb/tusb6010_omap.c
-> b/drivers/usb/musb/tusb6010_omap.c
-> index 66e146e..f7a3ffe 100644
-> --- a/drivers/usb/musb/tusb6010_omap.c
-> +++ b/drivers/usb/musb/tusb6010_omap.c
-> @@ -188,7 +188,7 @@ static void tusb_omap_dma_cb(int lch, u16 ch_status,
-> void *data)
-> 
->  	channel->status = MUSB_DMA_STATUS_FREE;
-> 
-> -	/* Handle only RX callbacks here. TX callbacks musb be handled based
-> +	/* Handle only RX callbacks here. TX callbacks must be handled based
->  	 * on the TUSB DMA status interrupt.
->  	 * REVISIT: Use both TUSB DMA status interrupt and OMAP DMA callback
->  	 * interrupt for RX and TX.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
--- 
-Best Regards,
-
-Felipe Balbi
-http://felipebalbi.com
-me@felipebalbi.com
-
+Jarkko
