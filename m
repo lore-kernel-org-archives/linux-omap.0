@@ -1,47 +1,124 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: public git l2 cache off.
-Date: Tue, 06 May 2008 20:13:44 +0200
-Message-ID: <48209FD8.6050709@googlemail.com>
-References: <1209575641-25613-1-git-send-email-tony@atomide.com> <20080505131403.93d0a64d.jarkko.nikula@nokia.com> <3B6D69C3A9EBCA4BA5DA60D9130274290439AAD8@dlee13.ent.ti.com> <A9503EED-55EA-4656-AABD-A6DA28F717DA@student.utwente.nl> <3B6D69C3A9EBCA4BA5DA60D9130274290439AD2F@dlee13.ent.ti.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: [RFC/PATCH] twl4030: Set irq number based upon cpu type rather than requiring #define in board.h files
+Date: Tue, 6 May 2008 12:14:04 -0700
+Message-ID: <5e088bd90805061214i2ff9a22x118bcc26b0578cbc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.175]:36950 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751293AbYEFSMd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2008 14:12:33 -0400
-Received: by ug-out-1314.google.com with SMTP id h2so400847ugf.16
-        for <linux-omap@vger.kernel.org>; Tue, 06 May 2008 11:12:31 -0700 (PDT)
-In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D9130274290439AD2F@dlee13.ent.ti.com>
+Received: from mu-out-0910.google.com ([209.85.134.187]:2418 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761910AbYEFTOM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2008 15:14:12 -0400
+Received: by mu-out-0910.google.com with SMTP id w8so325615mue.1
+        for <linux-omap@vger.kernel.org>; Tue, 06 May 2008 12:14:04 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Koen Kooi <k.kooi@student.utwente.nl>, linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Woodruff, Richard wrote:
->>Enabling L2 cache was removed from proc-v7.S since was cortex specific
->>instead of armv7 specific and u-boot explicitly turns of L2 before
->>booting into linux. I made a reverse patch, but my omap3 board doesn't
->>boot if I use it:
-> 
-> 
-> Our 2.6.24 kernel does something close and boots fine on OMAP3-SDP and Labrador boards.  Which platform did you try on?
+From: Steve Sakoman <steve@sakoman.com>
 
-I think we are talking about BeagleBoard here.
+Set twl4030 irq number based upon cpu type rather than requiring
+#define in board.h files
 
-Dirk
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
+---
+diff -uprN a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
+--- a/drivers/i2c/chips/twl4030-core.c	2008-05-06 10:45:14.000000000 -0700
++++ b/drivers/i2c/chips/twl4030-core.c	2008-05-06 10:57:01.000000000 -0700
+@@ -716,6 +716,7 @@ static void twl_init_irq(void)
+ 	int	i = 0;
+ 	int	res = 0;
+ 	char	*msg = "Unable to register interrupt subsystem";
++	unsigned int irq_num;
 
-> I'll try the latest from here on SDP with this and see if it works.  There is also a difference in CR handling.  I had submitted long back a fix to Russell but let it get by me as I didn't have the time to fix per his comments.  I think our version was more correct then the one in place but was still lacking a bit.
-> 
-> [*] It seems possible you could have an issue depending on what your boot loader is or isn't doing for you.
-> 
-> Regards,
-> Richard W.
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+ 	/*
+ 	 * We end up with interrupts from other modules before
+@@ -880,10 +881,12 @@ static void twl_init_irq(void)
+ 		set_irq_flags(i, IRQF_VALID);
+ 	}
 
++	irq_num = (cpu_is_omap2430()) ? INT_24XX_SYS_NIRQ : INT_34XX_SYS_NIRQ;
++
+ 	/* install an irq handler to demultiplex the TWL4030 interrupt */
+-	set_irq_data(TWL4030_IRQNUM, start_twl4030_irq_thread(TWL4030_IRQNUM));
+-	set_irq_type(TWL4030_IRQNUM, IRQT_FALLING);
+-	set_irq_chained_handler(TWL4030_IRQNUM, do_twl4030_irq);
++	set_irq_data(irq_num, start_twl4030_irq_thread(irq_num));
++	set_irq_type(irq_num, IRQT_FALLING);
++	set_irq_chained_handler(irq_num, do_twl4030_irq);
+
+ 	res = power_companion_init();
+ 	if (res < 0)
+diff -uprN a/include/asm-arm/arch-omap/board-2430osk.h
+b/include/asm-arm/arch-omap/board-2430osk.h
+--- a/include/asm-arm/arch-omap/board-2430osk.h	2008-05-05
+22:30:26.000000000 -0700
++++ b/include/asm-arm/arch-omap/board-2430osk.h	2008-05-06
+11:02:37.000000000 -0700
+@@ -33,6 +33,4 @@
+ #define OMAP24XX_ETHR_START		0x08000300
+ #define OMAP24XX_ETHR_GPIO_IRQ		149
+
+-#define TWL4030_IRQNUM			INT_24XX_SYS_NIRQ
+-
+ #endif /* __ASM_ARCH_OMAP_2430OSK_H */
+diff -uprN a/include/asm-arm/arch-omap/board-2430sdp.h
+b/include/asm-arm/arch-omap/board-2430sdp.h
+--- a/include/asm-arm/arch-omap/board-2430sdp.h	2008-05-05
+22:30:26.000000000 -0700
++++ b/include/asm-arm/arch-omap/board-2430sdp.h	2008-05-06
+11:02:57.000000000 -0700
+@@ -34,8 +34,6 @@
+ #define OMAP24XX_ETHR_GPIO_IRQ		149
+ #define SDP2430_CS0_BASE		0x04000000
+
+-#define TWL4030_IRQNUM			INT_24XX_SYS_NIRQ
+-
+ /* Function prototypes */
+ extern void sdp2430_flash_init(void);
+ extern void sdp2430_usb_init(void);
+diff -uprN a/include/asm-arm/arch-omap/board-3430sdp.h
+b/include/asm-arm/arch-omap/board-3430sdp.h
+--- a/include/asm-arm/arch-omap/board-3430sdp.h	2008-05-05
+22:30:26.000000000 -0700
++++ b/include/asm-arm/arch-omap/board-3430sdp.h	2008-05-06
+11:03:17.000000000 -0700
+@@ -66,7 +66,5 @@ extern void sdp3430_usb_init(void);
+ #define FLASH_SIZE_SDPV1	SZ_64M
+ #define FLASH_SIZE_SDPV2	SZ_128M
+
+-#define TWL4030_IRQNUM INT_34XX_SYS_NIRQ
+-
+ #endif /* __ASM_ARCH_OMAP_3430SDP_H */
+
+diff -uprN a/include/asm-arm/arch-omap/board-omap3beagle.h
+b/include/asm-arm/arch-omap/board-omap3beagle.h
+--- a/include/asm-arm/arch-omap/board-omap3beagle.h	2008-05-05
+22:30:26.000000000 -0700
++++ b/include/asm-arm/arch-omap/board-omap3beagle.h	2008-05-06
+11:03:34.000000000 -0700
+@@ -29,7 +29,5 @@
+ #ifndef __ASM_ARCH_OMAP3_BEAGLE_H
+ #define __ASM_ARCH_OMAP3_BEAGLE_H
+
+-#define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
+-
+ #endif /* __ASM_ARCH_OMAP3_BEAGLE_H */
+
+diff -uprN a/include/asm-arm/arch-omap/board-omap3evm.h
+b/include/asm-arm/arch-omap/board-omap3evm.h
+--- a/include/asm-arm/arch-omap/board-omap3evm.h	2008-05-05
+22:30:26.000000000 -0700
++++ b/include/asm-arm/arch-omap/board-omap3evm.h	2008-05-06
+11:04:01.000000000 -0700
+@@ -31,8 +31,6 @@
+
+ extern void omap3evm_flash_init(void);
+
+-#define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
+-
+ #define ONENAND_MAP		0x20000000
+
+ #endif /* __ASM_ARCH_OMAP3_EVM_H */
