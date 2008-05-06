@@ -1,135 +1,42 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/PATCH] twl4030: Set irq number based upon cpu type rather
-	than requiring #define in board.h files
-Date: Tue, 6 May 2008 14:28:09 -0700
-Message-ID: <20080506212809.GC18682@atomide.com>
-References: <5e088bd90805061214i2ff9a22x118bcc26b0578cbc@mail.gmail.com>
+Subject: Re: [PATCH 1/1] PRM: Fixed comments on global PRM register usage.
+Date: Tue, 6 May 2008 15:13:11 -0700
+Message-ID: <20080506221310.GF18682@atomide.com>
+References: <1210059181-18192-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51123 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933687AbYEFV2L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2008 17:28:11 -0400
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:56575 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764215AbYEFWNN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2008 18:13:13 -0400
 Content-Disposition: inline
-In-Reply-To: <5e088bd90805061214i2ff9a22x118bcc26b0578cbc@mail.gmail.com>
+In-Reply-To: <1210059181-18192-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-* Steve Sakoman <sakoman@gmail.com> [080506 12:15]:
-> From: Steve Sakoman <steve@sakoman.com>
+* Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com> [080506 00:33]:
+> Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+> ---
+>  arch/arm/mach-omap2/prm.h |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> Set twl4030 irq number based upon cpu type rather than requiring
-> #define in board.h files
+> diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+> index 125d1e2..6715d6f 100644
+> --- a/arch/arm/mach-omap2/prm.h
+> +++ b/arch/arm/mach-omap2/prm.h
+> @@ -33,7 +33,7 @@
+>  
+>  /*
+>   * Architecture-specific global PRM registers
+> - * Use prm_{read,write}_reg() with these registers.
+> + * Use __raw_{read,write}l() with these registers.
+>   *
+>   * With a few exceptions, these are the register names beginning with
+>   * PRCM_* on 24xx, and PRM_* on 34xx.  (The exceptions are the
 
-Thanks, looks good to me until we have a patch that passes the irq
-in struct i2c_board_info.
+Thanks, pushing.
 
 Tony
-
-> Signed-off-by: Steve Sakoman <steve@sakoman.com>
-> ---
-> diff -uprN a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
-> --- a/drivers/i2c/chips/twl4030-core.c	2008-05-06 10:45:14.000000000 -0700
-> +++ b/drivers/i2c/chips/twl4030-core.c	2008-05-06 10:57:01.000000000 -0700
-> @@ -716,6 +716,7 @@ static void twl_init_irq(void)
->  	int	i = 0;
->  	int	res = 0;
->  	char	*msg = "Unable to register interrupt subsystem";
-> +	unsigned int irq_num;
-> 
->  	/*
->  	 * We end up with interrupts from other modules before
-> @@ -880,10 +881,12 @@ static void twl_init_irq(void)
->  		set_irq_flags(i, IRQF_VALID);
->  	}
-> 
-> +	irq_num = (cpu_is_omap2430()) ? INT_24XX_SYS_NIRQ : INT_34XX_SYS_NIRQ;
-> +
->  	/* install an irq handler to demultiplex the TWL4030 interrupt */
-> -	set_irq_data(TWL4030_IRQNUM, start_twl4030_irq_thread(TWL4030_IRQNUM));
-> -	set_irq_type(TWL4030_IRQNUM, IRQT_FALLING);
-> -	set_irq_chained_handler(TWL4030_IRQNUM, do_twl4030_irq);
-> +	set_irq_data(irq_num, start_twl4030_irq_thread(irq_num));
-> +	set_irq_type(irq_num, IRQT_FALLING);
-> +	set_irq_chained_handler(irq_num, do_twl4030_irq);
-> 
->  	res = power_companion_init();
->  	if (res < 0)
-> diff -uprN a/include/asm-arm/arch-omap/board-2430osk.h
-> b/include/asm-arm/arch-omap/board-2430osk.h
-> --- a/include/asm-arm/arch-omap/board-2430osk.h	2008-05-05
-> 22:30:26.000000000 -0700
-> +++ b/include/asm-arm/arch-omap/board-2430osk.h	2008-05-06
-> 11:02:37.000000000 -0700
-> @@ -33,6 +33,4 @@
->  #define OMAP24XX_ETHR_START		0x08000300
->  #define OMAP24XX_ETHR_GPIO_IRQ		149
-> 
-> -#define TWL4030_IRQNUM			INT_24XX_SYS_NIRQ
-> -
->  #endif /* __ASM_ARCH_OMAP_2430OSK_H */
-> diff -uprN a/include/asm-arm/arch-omap/board-2430sdp.h
-> b/include/asm-arm/arch-omap/board-2430sdp.h
-> --- a/include/asm-arm/arch-omap/board-2430sdp.h	2008-05-05
-> 22:30:26.000000000 -0700
-> +++ b/include/asm-arm/arch-omap/board-2430sdp.h	2008-05-06
-> 11:02:57.000000000 -0700
-> @@ -34,8 +34,6 @@
->  #define OMAP24XX_ETHR_GPIO_IRQ		149
->  #define SDP2430_CS0_BASE		0x04000000
-> 
-> -#define TWL4030_IRQNUM			INT_24XX_SYS_NIRQ
-> -
->  /* Function prototypes */
->  extern void sdp2430_flash_init(void);
->  extern void sdp2430_usb_init(void);
-> diff -uprN a/include/asm-arm/arch-omap/board-3430sdp.h
-> b/include/asm-arm/arch-omap/board-3430sdp.h
-> --- a/include/asm-arm/arch-omap/board-3430sdp.h	2008-05-05
-> 22:30:26.000000000 -0700
-> +++ b/include/asm-arm/arch-omap/board-3430sdp.h	2008-05-06
-> 11:03:17.000000000 -0700
-> @@ -66,7 +66,5 @@ extern void sdp3430_usb_init(void);
->  #define FLASH_SIZE_SDPV1	SZ_64M
->  #define FLASH_SIZE_SDPV2	SZ_128M
-> 
-> -#define TWL4030_IRQNUM INT_34XX_SYS_NIRQ
-> -
->  #endif /* __ASM_ARCH_OMAP_3430SDP_H */
-> 
-> diff -uprN a/include/asm-arm/arch-omap/board-omap3beagle.h
-> b/include/asm-arm/arch-omap/board-omap3beagle.h
-> --- a/include/asm-arm/arch-omap/board-omap3beagle.h	2008-05-05
-> 22:30:26.000000000 -0700
-> +++ b/include/asm-arm/arch-omap/board-omap3beagle.h	2008-05-06
-> 11:03:34.000000000 -0700
-> @@ -29,7 +29,5 @@
->  #ifndef __ASM_ARCH_OMAP3_BEAGLE_H
->  #define __ASM_ARCH_OMAP3_BEAGLE_H
-> 
-> -#define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
-> -
->  #endif /* __ASM_ARCH_OMAP3_BEAGLE_H */
-> 
-> diff -uprN a/include/asm-arm/arch-omap/board-omap3evm.h
-> b/include/asm-arm/arch-omap/board-omap3evm.h
-> --- a/include/asm-arm/arch-omap/board-omap3evm.h	2008-05-05
-> 22:30:26.000000000 -0700
-> +++ b/include/asm-arm/arch-omap/board-omap3evm.h	2008-05-06
-> 11:04:01.000000000 -0700
-> @@ -31,8 +31,6 @@
-> 
->  extern void omap3evm_flash_init(void);
-> 
-> -#define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
-> -
->  #define ONENAND_MAP		0x20000000
-> 
->  #endif /* __ASM_ARCH_OMAP3_EVM_H */
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
