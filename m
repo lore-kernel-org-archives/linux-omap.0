@@ -1,78 +1,86 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mach-omap2/serial.c: fix minor bug and checkpatch
-	warnings
-Date: Wed, 7 May 2008 16:38:40 -0700
-Message-ID: <20080507233840.GT18682@atomide.com>
-References: <alpine.DEB.1.00.0805071348280.8498@utopia.booyaka.com>
+Subject: Re: vanilla kernel is broken on omap board
+Date: Wed, 7 May 2008 16:44:01 -0700
+Message-ID: <20080507234401.GU18682@atomide.com>
+References: <9c9fda240805061748n3287cb24v530f779b6b622d53@mail.gmail.com> <20080507011914.GM18682@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55239 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752500AbYEGXim (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 May 2008 19:38:42 -0400
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:63617 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754454AbYEGXoF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 May 2008 19:44:05 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.1.00.0805071348280.8498@utopia.booyaka.com>
+In-Reply-To: <20080507011914.GM18682@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, jouni.hogander@nokia.com
+To: Kyungmin Park <kmpark@infradead.org>
+Cc: linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, paul@pwsan.com
 
-* Paul Walmsley <paul@pwsan.com> [080507 12:51]:
+* Tony Lindgren <tony@atomide.com> [080506 18:19]:
+> Hi,
 > 
-> omap_serial_init() in arch/arm/mach-omap2/serial.c clears the wrong
-> variable if it can't clk_get() a fclk - fix this.  Also fix some
-> checkpatch.pl warnings.
+> * Kyungmin Park <kmpark@infradead.org> [080506 17:48]:
+> > Hi Tony,
+> > 
+> > Current vanilla kernel is broken on omap2 boards.
+> > In the previous time you committed some omap2 patches, but some
+> > patches are not missing.
+> > Such as Runtime constants series. [1]
+> > 
+> > Now "some parts" are already included.
+> > So you just commit the remain parts too such as in [2]
+> > In most cases the board files don't set the their own global variables.
+> 
+> Well at least we're getting closer to making omap2 really usable with
+> mainline kernel :)
+> 
+> Thanks for fixing that, will add this to omap-fixes queue and send it
+> upstream with bunch of other fixes.
 
-I've pushed this but left out the unnecessary braces around both 
-clk_enable() lines.
-
-Tony
+Kyungmin, can you reply with your Signed-off-by for this patch?
 
 > 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
+> Regards,
 > 
->  arch/arm/mach-omap2/serial.c |   12 ++++++------
->  1 files changed, 6 insertions(+), 6 deletions(-)
+> Tony
 > 
 > 
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index 54ab7af..bb79f43 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -18,7 +18,7 @@
->  #include <linux/serial_reg.h>
->  #include <linux/clk.h>
->  
-> -#include <asm/io.h>
-> +#include <linux/io.h>
->  
->  #include <asm/arch/common.h>
->  #include <asm/arch/board.h>
-> @@ -127,17 +127,17 @@ void __init omap_serial_init(void)
->  		if (IS_ERR(uart_ick[i])) {
->  			printk(KERN_ERR "Could not get uart%d_ick\n", i+1);
->  			uart_ick[i] = NULL;
-> -		}
-> -		else
-> +		} else {
->  			clk_enable(uart_ick[i]);
-> +		}
->  		sprintf(name, "uart%d_fck", i+1);
->  		uart_fck[i] = clk_get(NULL, name);
->  		if (IS_ERR(uart_fck[i])) {
->  			printk(KERN_ERR "Could not get uart%d_fck\n", i+1);
-> -			uart_ick[i] = NULL;
-> -		}
-> -		else
-> +			uart_fck[i] = NULL;
-> +		} else {
->  			clk_enable(uart_fck[i]);
-> +		}
->  
->  		omap_serial_reset(p);
->  	}
+> > Thank you,
+> > Kyungmin Park
+> > 
+> > 1. Runtime constants: introduce omap2_set_globals_*()
+> > http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=2b256e28e8e70592f0c38a862cc4ba0498c9db7b
+> > Runtime constants: use runtime-computed SDRC base
+> > http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commitdiff;h=7b5f8cdb222052a7aa02ed38c59e0af1946b1e06
+> > Runtime constants: use runtime-computed SMS base
+> > http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commitdiff;h=80ccf4b99eb3892809bbebf7673bdd1a359d56ff
+> > 
+> > 2.
+> > diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apo
+> > index a1e1e67..620fa0f 100644
+> > --- a/arch/arm/mach-omap2/board-apollon.c
+> > +++ b/arch/arm/mach-omap2/board-apollon.c
+> > @@ -394,6 +394,7 @@ static void __init omap_apollon_init(void)
+> > 
+> >  static void __init omap_apollon_map_io(void)
+> >  {
+> > +       omap2_set_globals_242x();
+> >         omap2_map_common_io();
+> >  }
+> > diff --git a/include/asm-arm/arch-omap/common.h b/include/asm-arm/arch-omap/comm
+> > index 224e009..36a3b62 100644
+> > --- a/include/asm-arm/arch-omap/common.h
+> > +++ b/include/asm-arm/arch-omap/common.h
+> > @@ -47,4 +47,8 @@ static inline int omap_register_i2c_bus(int bus_id, u32 clkrat
+> >  }
+> >  #endif
+> > 
+> > +void omap2_set_globals_242x(void);
+> > +void omap2_set_globals_243x(void);
+> > +void omap2_set_globals_343x(void);
+> > +
+> >  #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
