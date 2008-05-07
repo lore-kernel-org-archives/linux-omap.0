@@ -1,100 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] MMC: Fix omap compile by replacing dev_name with
-	dma_dev_name
-Date: Tue, 6 May 2008 16:36:47 -0700
-Message-ID: <20080506233647.GL18682@atomide.com>
+From: "Kyungmin Park" <kmpark@infradead.org>
+Subject: vanilla kernel is broken on omap board
+Date: Wed, 7 May 2008 09:48:31 +0900
+Message-ID: <9c9fda240805061748n3287cb24v530f779b6b622d53@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="ikeVEW9yuYc//A+q"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59435 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934099AbYEFXgu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2008 19:36:50 -0400
+Received: from wf-out-1314.google.com ([209.85.200.174]:3875 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752879AbYEGAsc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2008 20:48:32 -0400
+Received: by wf-out-1314.google.com with SMTP id 27so56525wfd.4
+        for <linux-omap@vger.kernel.org>; Tue, 06 May 2008 17:48:31 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pierre Ossman <drzeus-list@drzeus.cx>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Carlos Aguiar <carlos.aguiar@indt.org.br>, Anderson Briglia <anderson.briglia@indt.org.br>, Syed Khasim <sm.khasim@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, paul@pwsan.com
 
+Hi Tony,
 
---ikeVEW9yuYc//A+q
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Current vanilla kernel is broken on omap2 boards.
+In the previous time you committed some omap2 patches, but some
+patches are not missing.
+Such as Runtime constants series. [1]
 
-Hi Pierre,
+Now "some parts" are already included.
+So you just commit the remain parts too such as in [2]
+In most cases the board files don't set the their own global variables.
 
-Here's a fix to make omap.c compile again because of a name conflict
-introduced by 3efcdd76c4906236f9043c8b34837818177b291d.
+Thank you,
+Kyungmin Park
 
-Regards,
+1. Runtime constants: introduce omap2_set_globals_*()
+http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=2b256e28e8e70592f0c38a862cc4ba0498c9db7b
+Runtime constants: use runtime-computed SDRC base
+http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commitdiff;h=7b5f8cdb222052a7aa02ed38c59e0af1946b1e06
+Runtime constants: use runtime-computed SMS base
+http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commitdiff;h=80ccf4b99eb3892809bbebf7673bdd1a359d56ff
 
-Tony
+2.
+diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apo
+index a1e1e67..620fa0f 100644
+--- a/arch/arm/mach-omap2/board-apollon.c
++++ b/arch/arm/mach-omap2/board-apollon.c
+@@ -394,6 +394,7 @@ static void __init omap_apollon_init(void)
 
---ikeVEW9yuYc//A+q
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="mmc-omap-fix-compile.patch"
-
->From 3efcdd76c4906236f9043c8b34837818177b291d Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 6 May 2008 16:06:06 -0700
-Subject: [PATCH] MMC: Fix omap compile by replacing dev_name with dma_dev_name
-
-This patch fixes error:
-
-drivers/mmc/host/omap.c: In function 'mmc_omap_get_dma_channel':
-drivers/mmc/host/omap.c:1038: error: called object 'dev_name' is not a function
-
-Commit 06916639e2fed9ee475efef2747a1b7429f8fe76 adds a function
-called dev_name. This will cause a name conflict as dev_dbg calls
-dev_name(((host->mmc)->parent)).
-
-This same issue should not affect other drivers as they don't seem
-to use dev_name with dev_dbg.
-
-Thanks to Paul Walmsley <paul@pwsan.com> for figuring this one out.
-
-Cc: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index 14759e9..549517c 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -1003,7 +1003,7 @@ static void mmc_omap_dma_cb(int lch, u16 ch_status, void *data)
- 
- static int mmc_omap_get_dma_channel(struct mmc_omap_host *host, struct mmc_data *data)
+ static void __init omap_apollon_map_io(void)
  {
--	const char *dev_name;
-+	const char *dma_dev_name;
- 	int sync_dev, dma_ch, is_read, r;
- 
- 	is_read = !(data->flags & MMC_DATA_WRITE);
-@@ -1018,21 +1018,21 @@ static int mmc_omap_get_dma_channel(struct mmc_omap_host *host, struct mmc_data
- 	if (is_read) {
- 		if (host->id == 1) {
- 			sync_dev = OMAP_DMA_MMC_RX;
--			dev_name = "MMC1 read";
-+			dma_dev_name = "MMC1 read";
- 		} else {
- 			sync_dev = OMAP_DMA_MMC2_RX;
--			dev_name = "MMC2 read";
-+			dma_dev_name = "MMC2 read";
- 		}
- 	} else {
- 		if (host->id == 1) {
- 			sync_dev = OMAP_DMA_MMC_TX;
--			dev_name = "MMC1 write";
-+			dma_dev_name = "MMC1 write";
- 		} else {
- 			sync_dev = OMAP_DMA_MMC2_TX;
--			dev_name = "MMC2 write";
-+			dma_dev_name = "MMC2 write";
- 		}
- 	}
--	r = omap_request_dma(sync_dev, dev_name, mmc_omap_dma_cb,
-+	r = omap_request_dma(sync_dev, dma_dev_name, mmc_omap_dma_cb,
- 			     host, &dma_ch);
- 	if (r != 0) {
- 		dev_dbg(mmc_dev(host->mmc), "omap_request_dma() failed with %d\n", r);
++       omap2_set_globals_242x();
+        omap2_map_common_io();
+ }
+diff --git a/include/asm-arm/arch-omap/common.h b/include/asm-arm/arch-omap/comm
+index 224e009..36a3b62 100644
+--- a/include/asm-arm/arch-omap/common.h
++++ b/include/asm-arm/arch-omap/common.h
+@@ -47,4 +47,8 @@ static inline int omap_register_i2c_bus(int bus_id, u32 clkrat
+ }
+ #endif
 
---ikeVEW9yuYc//A+q--
++void omap2_set_globals_242x(void);
++void omap2_set_globals_243x(void);
++void omap2_set_globals_343x(void);
++
+ #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
