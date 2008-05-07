@@ -1,17 +1,17 @@
 From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: [PATCH 1/2] OMAP3 EVM: Add touchscreen support
-Date: Tue, 6 May 2008 19:38:11 -0700
-Message-ID: <5e088bd90805061938y39d97b14m1cd8b879a4a85f91@mail.gmail.com>
+Subject: [PATCH 2/2] OMAP3 EVM: enable spi, touchscreen, and ads7846 driver in defconfig
+Date: Tue, 6 May 2008 19:38:30 -0700
+Message-ID: <5e088bd90805061938n3f31ac03l5b7d58c218db55ca@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.185]:9581 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752269AbYEGCiP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2008 22:38:15 -0400
-Received: by mu-out-0910.google.com with SMTP id w8so87289mue.1
-        for <linux-omap@vger.kernel.org>; Tue, 06 May 2008 19:38:11 -0700 (PDT)
+Received: from fk-out-0910.google.com ([209.85.128.184]:15952 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755240AbYEGCic (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2008 22:38:32 -0400
+Received: by fk-out-0910.google.com with SMTP id 18so101158fkq.5
+        for <linux-omap@vger.kernel.org>; Tue, 06 May 2008 19:38:30 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,111 +19,88 @@ To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 From: Steve Sakoman <steve@sakoman.com>
 
-Add touchscreen support for OMAP3 EVM
+Enable spi, touchscreen, and ADS7846 in omap3_evm_defconfig
 
 Signed-off-by: Steve Sakoman <steve@sakoman.com>
 ---
- arch/arm/mach-omap2/board-omap3evm.c       |   42 +++++++++++++++++++++++++++++
- include/asm-arm/arch-omap/board-omap3evm.h |    1
- 2 files changed, 43 insertions(+)
-diff -uprN -X a/Documentation/dontdiff
-a/arch/arm/mach-omap2/board-omap3evm.c
-b/arch/arm/mach-omap2/board-omap3evm.c
---- a/arch/arm/mach-omap2/board-omap3evm.c	2008-04-28 21:03:22.000000000 -0700
-+++ b/arch/arm/mach-omap2/board-omap3evm.c	2008-04-28 21:16:35.000000000 -0700
-@@ -19,6 +19,8 @@
- #include <linux/err.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/spi/spi.h>
-+#include <linux/spi/ads7846.h>
+ omap3_evm_defconfig |   42 ++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 38 insertions(+), 4 deletions(-)
+--- a/arch/arm/configs/omap3_evm_defconfig	2008-04-26 06:32:11.000000000 -0700
++++ b/arch/arm/configs/omap3_evm_defconfig	2008-04-28 08:14:22.000000000 -0700
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+ # Linux kernel version: 2.6.25-omap1
+-# Mon Apr 28 10:21:40 2008
++# Tue Apr 29 08:06:20 2008
+ #
+ CONFIG_ARM=y
+ CONFIG_SYS_SUPPORTS_APM_EMULATION=y
+@@ -459,6 +459,8 @@ CONFIG_MTD_CFI_I2=y
+ #
+ # Self-contained MTD device drivers
+ #
++# CONFIG_MTD_DATAFLASH is not set
++# CONFIG_MTD_M25P80 is not set
+ # CONFIG_MTD_SLRAM is not set
+ # CONFIG_MTD_PHRAM is not set
+ # CONFIG_MTD_MTDRAM is not set
+@@ -587,7 +589,20 @@ CONFIG_INPUT=y
+ # CONFIG_INPUT_MOUSE is not set
+ # CONFIG_INPUT_JOYSTICK is not set
+ # CONFIG_INPUT_TABLET is not set
+-# CONFIG_INPUT_TOUCHSCREEN is not set
++CONFIG_INPUT_TOUCHSCREEN=y
++CONFIG_TOUCHSCREEN_ADS7846=y
++# CONFIG_TOUCHSCREEN_FUJITSU is not set
++# CONFIG_TOUCHSCREEN_GUNZE is not set
++# CONFIG_TOUCHSCREEN_ELO is not set
++# CONFIG_TOUCHSCREEN_MTOUCH is not set
++# CONFIG_TOUCHSCREEN_MK712 is not set
++# CONFIG_TOUCHSCREEN_PENMOUNT is not set
++# CONFIG_TOUCHSCREEN_TOUCHRIGHT is not set
++# CONFIG_TOUCHSCREEN_TOUCHWIN is not set
++# CONFIG_TOUCHSCREEN_UCB1400 is not set
++# CONFIG_TOUCHSCREEN_TSC2005 is not set
++# CONFIG_TOUCHSCREEN_TSC2102 is not set
++# CONFIG_TOUCHSCREEN_TSC210X is not set
+ # CONFIG_INPUT_MISC is not set
 
- #include <asm/hardware.h>
- #include <asm/mach-types.h>
-@@ -31,6 +33,7 @@
- #include <asm/arch/usb-musb.h>
- #include <asm/arch/usb-ehci.h>
- #include <asm/arch/common.h>
-+#include <asm/arch/mcspi.h>
+ #
+@@ -676,8 +691,26 @@ CONFIG_TWL4030_USB_HS_ULPI=y
+ #
+ # SPI support
+ #
+-# CONFIG_SPI is not set
+-# CONFIG_SPI_MASTER is not set
++CONFIG_SPI=y
++# CONFIG_SPI_DEBUG is not set
++CONFIG_SPI_MASTER=y
++
++#
++# SPI Master Controller Drivers
++#
++# CONFIG_SPI_BITBANG is not set
++CONFIG_SPI_OMAP24XX=m
++
++#
++# SPI Protocol Masters
++#
++# CONFIG_SPI_AT25 is not set
++# CONFIG_SPI_TSC2101 is not set
++# CONFIG_SPI_TSC2102 is not set
++# CONFIG_SPI_TSC210X is not set
++# CONFIG_SPI_TSC2301 is not set
++# CONFIG_SPI_SPIDEV is not set
++# CONFIG_SPI_TLE62X0 is not set
+ CONFIG_HAVE_GPIO_LIB=y
 
- static struct omap_uart_config omap3_evm_uart_config __initdata = {
- 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
-@@ -65,6 +68,44 @@
- 	.id		= -1,
- };
-
-+static void ads7846_dev_init(void)
-+{
-+	if (omap_request_gpio(OMAP3_EVM_TS_GPIO) < 0)
-+		printk(KERN_ERR "can't get ads7846 pen down GPIO\n");
-+
-+	omap_set_gpio_direction(OMAP3_EVM_TS_GPIO, 1);
-+
-+	omap_set_gpio_debounce(OMAP3_EVM_TS_GPIO, 1);
-+	omap_set_gpio_debounce_time(OMAP3_EVM_TS_GPIO, 0xa);
-+}
-+
-+static int ads7846_get_pendown_state(void)
-+{
-+	return !omap_get_gpio_datain(OMAP3_EVM_TS_GPIO);
-+}
-+
-+struct ads7846_platform_data ads7846_config = {
-+	.get_pendown_state	= ads7846_get_pendown_state,
-+	.keep_vref_on		= 1,
-+};
-+
-+static struct omap2_mcspi_device_config ads7846_mcspi_config = {
-+	.turbo_mode	= 0,
-+	.single_channel	= 1,  /* 0: slave, 1: master */
-+};
-+
-+struct spi_board_info omap3evm_spi_board_info[] = {
-+	[0] = {
-+		.modalias		= "ads7846",
-+		.bus_num		= 1,
-+		.chip_select		= 0,
-+		.max_speed_hz		= 1500000,
-+		.controller_data	= &ads7846_mcspi_config,
-+		.irq			= OMAP_GPIO_IRQ(OMAP3_EVM_TS_GPIO),
-+		.platform_data		= &ads7846_config,
-+	},
-+};
-+
- static void __init omap3_evm_init_irq(void)
- {
- 	omap2_init_common_hw();
-@@ -90,6 +90,10 @@ static void __init omap3_evm_init(void)
- 	platform_add_devices(omap3_evm_devices, ARRAY_SIZE(omap3_evm_devices));
- 	omap_board_config = omap3_evm_config;
- 	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
-+
-+	spi_register_board_info(omap3evm_spi_board_info,
-+				ARRAY_SIZE(omap3evm_spi_board_info));
-+
- 	omap_serial_init();
- 	hsmmc_init();
- 	usb_musb_init();
-@@ -95,6 +136,7 @@
- 	usb_musb_init();
- 	usb_ehci_init();
- 	omap3evm_flash_init();
-+	ads7846_dev_init();
- }
-
- arch_initcall(omap3_evm_i2c_init);
-diff -uprN -X a/Documentation/dontdiff
-a/include/asm-arm/arch-omap/board-omap3evm.h
-b/include/asm-arm/arch-omap/board-omap3evm.h
---- a/include/asm-arm/arch-omap/board-omap3evm.h	2008-04-28
-21:03:19.000000000 -0700
-+++ b/include/asm-arm/arch-omap/board-omap3evm.h	2008-04-28
-21:11:29.000000000 -0700
-@@ -31,6 +31,7 @@
-
- extern void omap3evm_flash_init(void);
-
-+#define OMAP3_EVM_TS_GPIO	175
- #define ONENAND_MAP		0x20000000
-
- #endif /* __ASM_ARCH_OMAP3_EVM_H */
+ #
+@@ -694,6 +727,7 @@ CONFIG_HAVE_GPIO_LIB=y
+ #
+ # SPI GPIO expanders:
+ #
++# CONFIG_GPIO_MCP23S08 is not set
+ # CONFIG_W1 is not set
+ # CONFIG_POWER_SUPPLY is not set
+ # CONFIG_HWMON is not set
