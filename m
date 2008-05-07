@@ -1,27 +1,129 @@
 From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: [PATCH 0/2] OMAP3 EVM: Add touchscreen support
-Date: Tue, 6 May 2008 19:37:52 -0700
-Message-ID: <5e088bd90805061937t1f4d81fdteffbe5f07f75c97@mail.gmail.com>
+Subject: [PATCH 1/2] OMAP3 EVM: Add touchscreen support
+Date: Tue, 6 May 2008 19:38:11 -0700
+Message-ID: <5e088bd90805061938y39d97b14m1cd8b879a4a85f91@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.158]:25111 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753868AbYEGChy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2008 22:37:54 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so70534fgg.17
-        for <linux-omap@vger.kernel.org>; Tue, 06 May 2008 19:37:52 -0700 (PDT)
+Received: from mu-out-0910.google.com ([209.85.134.185]:9581 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752269AbYEGCiP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 May 2008 22:38:15 -0400
+Received: by mu-out-0910.google.com with SMTP id w8so87289mue.1
+        for <linux-omap@vger.kernel.org>; Tue, 06 May 2008 19:38:11 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This is a re-submission addressing the comments given on my intial submission.
+From: Steve Sakoman <steve@sakoman.com>
 
-These patches are intended to be applied after my previous "twl4030:
-set irq number" patch.
+Add touchscreen support for OMAP3 EVM
 
-Touchscreen support was tested on my EVM using an x11 rootfs.  I was
-able to calibrate the touchscreen, use the onscreen keyboard, and
-manipulate UI widgets.
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
+---
+ arch/arm/mach-omap2/board-omap3evm.c       |   42 +++++++++++++++++++++++++++++
+ include/asm-arm/arch-omap/board-omap3evm.h |    1
+ 2 files changed, 43 insertions(+)
+diff -uprN -X a/Documentation/dontdiff
+a/arch/arm/mach-omap2/board-omap3evm.c
+b/arch/arm/mach-omap2/board-omap3evm.c
+--- a/arch/arm/mach-omap2/board-omap3evm.c	2008-04-28 21:03:22.000000000 -0700
++++ b/arch/arm/mach-omap2/board-omap3evm.c	2008-04-28 21:16:35.000000000 -0700
+@@ -19,6 +19,8 @@
+ #include <linux/err.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
++#include <linux/spi/spi.h>
++#include <linux/spi/ads7846.h>
+
+ #include <asm/hardware.h>
+ #include <asm/mach-types.h>
+@@ -31,6 +33,7 @@
+ #include <asm/arch/usb-musb.h>
+ #include <asm/arch/usb-ehci.h>
+ #include <asm/arch/common.h>
++#include <asm/arch/mcspi.h>
+
+ static struct omap_uart_config omap3_evm_uart_config __initdata = {
+ 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+@@ -65,6 +68,44 @@
+ 	.id		= -1,
+ };
+
++static void ads7846_dev_init(void)
++{
++	if (omap_request_gpio(OMAP3_EVM_TS_GPIO) < 0)
++		printk(KERN_ERR "can't get ads7846 pen down GPIO\n");
++
++	omap_set_gpio_direction(OMAP3_EVM_TS_GPIO, 1);
++
++	omap_set_gpio_debounce(OMAP3_EVM_TS_GPIO, 1);
++	omap_set_gpio_debounce_time(OMAP3_EVM_TS_GPIO, 0xa);
++}
++
++static int ads7846_get_pendown_state(void)
++{
++	return !omap_get_gpio_datain(OMAP3_EVM_TS_GPIO);
++}
++
++struct ads7846_platform_data ads7846_config = {
++	.get_pendown_state	= ads7846_get_pendown_state,
++	.keep_vref_on		= 1,
++};
++
++static struct omap2_mcspi_device_config ads7846_mcspi_config = {
++	.turbo_mode	= 0,
++	.single_channel	= 1,  /* 0: slave, 1: master */
++};
++
++struct spi_board_info omap3evm_spi_board_info[] = {
++	[0] = {
++		.modalias		= "ads7846",
++		.bus_num		= 1,
++		.chip_select		= 0,
++		.max_speed_hz		= 1500000,
++		.controller_data	= &ads7846_mcspi_config,
++		.irq			= OMAP_GPIO_IRQ(OMAP3_EVM_TS_GPIO),
++		.platform_data		= &ads7846_config,
++	},
++};
++
+ static void __init omap3_evm_init_irq(void)
+ {
+ 	omap2_init_common_hw();
+@@ -90,6 +90,10 @@ static void __init omap3_evm_init(void)
+ 	platform_add_devices(omap3_evm_devices, ARRAY_SIZE(omap3_evm_devices));
+ 	omap_board_config = omap3_evm_config;
+ 	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
++
++	spi_register_board_info(omap3evm_spi_board_info,
++				ARRAY_SIZE(omap3evm_spi_board_info));
++
+ 	omap_serial_init();
+ 	hsmmc_init();
+ 	usb_musb_init();
+@@ -95,6 +136,7 @@
+ 	usb_musb_init();
+ 	usb_ehci_init();
+ 	omap3evm_flash_init();
++	ads7846_dev_init();
+ }
+
+ arch_initcall(omap3_evm_i2c_init);
+diff -uprN -X a/Documentation/dontdiff
+a/include/asm-arm/arch-omap/board-omap3evm.h
+b/include/asm-arm/arch-omap/board-omap3evm.h
+--- a/include/asm-arm/arch-omap/board-omap3evm.h	2008-04-28
+21:03:19.000000000 -0700
++++ b/include/asm-arm/arch-omap/board-omap3evm.h	2008-04-28
+21:11:29.000000000 -0700
+@@ -31,6 +31,7 @@
+
+ extern void omap3evm_flash_init(void);
+
++#define OMAP3_EVM_TS_GPIO	175
+ #define ONENAND_MAP		0x20000000
+
+ #endif /* __ASM_ARCH_OMAP3_EVM_H */
