@@ -1,225 +1,64 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: public git l2 cache off.
-Date: Wed, 7 May 2008 12:51:52 +0200
-Message-ID: <AAF72EA1-D835-4638-BD3D-C758CAEA409A@student.utwente.nl>
-References: <1209575641-25613-1-git-send-email-tony@atomide.com> <20080505131403.93d0a64d.jarkko.nikula@nokia.com> <3B6D69C3A9EBCA4BA5DA60D9130274290439AAD8@dlee13.ent.ti.com> <A9503EED-55EA-4656-AABD-A6DA28F717DA@student.utwente.nl> <3B6D69C3A9EBCA4BA5DA60D9130274290439AD2F@dlee13.ent.ti.com> <4BE5184F-5D21-4487-B19A-DCA436A9C77E@student.utwente.nl> <3B6D69C3A9EBCA4BA5DA60D9130274290439AE8F@dlee13.ent.ti.com> <137745C3-BCAB-4A39-8023-F255463194BF@student.utwente.nl> <0680EC522D0CC943BC586913CF3768C001578E7DAE@dbde02.ent.ti.com>
-Mime-Version: 1.0 (Apple Message framework v919.2)
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] mach-omap2/serial.c: fix minor bug and checkpatch warnings
+Date: Wed, 7 May 2008 13:50:19 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0805071348280.8498@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx3.utsp.utwente.nl ([130.89.2.14]:50117 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753537AbYEGKwU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 May 2008 06:52:20 -0400
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C001578E7DAE@dbde02.ent.ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:59084 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755252AbYEGTuU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 May 2008 15:50:20 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Syed Mohammed, Khasim" <khasim@ti.com>
-Cc: linux-omap@vger.kernel.org
-
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+To: linux-omap@vger.kernel.org
+Cc: jouni.hogander@nokia.com
 
 
-Op 7 mei 2008, om 09:42 heeft Syed Mohammed, Khasim het volgende  
-geschreven:
-> The below patch should get you going with L2 Cache enabled on GIT  
-> kernel, tested on Beagle board.
+omap_serial_init() in arch/arm/mach-omap2/serial.c clears the wrong
+variable if it can't clk_get() a fclk - fix this.  Also fix some
+checkpatch.pl warnings.
 
-Unscientific benchmark:
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
 
-mplayer -nosound -vo null -quiet -benchmark -loop 12   
-matrixbench_normdivx_vbrmp3.avi | grep BENCHMARK
-
-kernel without l2 cache, at 381MHz:
-BENCHMARKs: VC: 193.856s VO:   0.153s A:   0.000s Sys:   2.718s =  
-196.727s
-
-kernel with l2 cache at 500MHz:
-BENCHMARKs: VC:  56.150s VO:   0.133s A:   0.000s Sys:   1.043s =    
-57.327s
-
-mplayer is 2.7 times faster :)
+ arch/arm/mach-omap2/serial.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
 
-
->
->
-> Regards,
-> Khasim
->
->
-> --- ../my_linux_omap/arch/arm/mm/Kconfig        2008-05-06  
-> 16:37:17.000000000 +0530
-> +++ arch/arm/mm/Kconfig 2008-05-07 12:40:05.000000000 +0530
-> @@ -659,6 +659,20 @@ config CPU_DCACHE_SIZE
->          If your SoC is configured to have a different size, define  
-> the value
->          here with proper conditions.
->
-> +choice
-> +       prompt "L2 Cache Size"
-> +       depends on ARCH_OMAP34XX
-> +
-> +config CPU_LOCKDOWN_TO_64K_L2
-> +       bool "Lock down L2 Cache to 64K"
-> +
-> +config CPU_LOCKDOWN_TO_128K_L2
-> +       bool "Lock down L2 Cache to 128K"
-> +
-> +config CPU_LOCKDOWN_TO_256K_L2
-> +       bool "Lock down L2 Cache to 256K"
-> +endchoice
-> +
-> config CPU_DCACHE_WRITETHROUGH
->        bool "Force write through D-cache"
->        depends on (CPU_ARM740T || CPU_ARM920T || CPU_ARM922T ||  
-> CPU_ARM925T || CPU_ARM926T || CPU_ARM940T || CPU_ARM946E ||  
-> CPU_ARM1020) && !CPU_DCACHE_DISABLE
-> @@ -674,6 +688,12 @@ config CPU_CACHE_ROUND_ROBIN
->          Say Y here to use the predictable round-robin cache  
-> replacement
->          policy.  Unless you specifically require this or are  
-> unsure, say N.
->
-> +config CPU_L2CACHE_DISABLE
-> +       bool "Disable level 2 cache"
-> +       depends on CPU_V7
-> +       help
-> +         Say Y here to disable the level 2 cache.  If unsure, say N.
-> +
-> config CPU_BPREDICT_DISABLE
->        bool "Disable branch prediction"
->        depends on CPU_ARM1020 || CPU_V6 || CPU_XSC3 || CPU_V7
->
-> --- ../my_linux_omap/arch/arm/mm/proc-v7.S      2008-04-27  
-> 00:13:57.000000000 +0530
-> +++ arch/arm/mm/proc-v7.S       2008-05-07 12:22:29.000000000 +0530
-> @@ -182,11 +182,72 @@ __v7_setup:
->        mov     r10, #0x1f                      @ domains 0, 1 =  
-> manager
->        mcr     p15, 0, r10, c3, c0, 0          @ load domain access  
-> register
-> #endif
-> +#if defined(CONFIG_ARCH_OMAP3)
-> +       @ L2 cache is enabled in the aux control register
-> +       mrc     p15, 0, r0, c1, c0, 1
-> +       orr     r0, r0, #0x11           @ speculative+no-alais  
-> protection
-> +#ifdef CONFIG_CPU_L2CACHE_DISABLE
-> +       bic     r0, r0, #0x2            @ disable L2 Cache.
-> +#else
-> +       orr     r0, r0, #0x2            @ enaable L2 Cache.
-> +#endif
-> +
-> +/* On 3430 ES2.0 ZeBu and silicon, Aux Ctrl Reg can be written  
-> outside
-> + * Secure mode also
-> + */
-> +       mcr     p15, 0, r0, c1, c0, 1
-> +
-> +#ifdef CONFIG_ARCH_OMAP34XX
-> +#ifdef CONFIG_CPU_LOCKDOWN_TO_64K_L2
-> +       mov     r10, #0xfc
-> +       mcr     p15, 1, r10, c9, c0, 0
-> +#endif
-> +
-> +#ifdef CONFIG_CPU_LOCKDOWN_TO_128K_L2
-> +       mov     r10, #0xf0
-> +       mcr     p15, 1, r10, c9, c0, 0
-> +#endif
-> +
-> +#ifdef CONFIG_CPU_LOCKDOWN_TO_256K_L2
-> +       mov     r10, #0x00
-> +       mcr     p15, 1, r10, c9, c0, 0
-> +#endif
-> +#endif
-> +
->        adr     r5, v7_crval
->        ldmia   r5, {r5, r6}
-> -       mrc     p15, 0, r0, c1, c0, 0           @ read control  
-> register
-> -       bic     r0, r0, r5                      @ clear bits them
-> -       orr     r0, r0, r6                      @ set them
-> +       mrc     p15, 0, r0, c1, c0, 0   @ read control register
-> +       bic     r0, r0, r5              @ clear bits them
-> +       orr     r0, r0, r6              @ set them
-> +       mov     pc, lr                  @ return to head.S:__ret
-> +
-> +       /*
-> +        *  TAT N EV   F        H   R
-> +        * .EFR M.EE .UI. ..A. .RVI Z... B... .CAM
-> +        * 0xxx x0xx 11x0 01x1 0xxx x000 0111 1xxx < forced typical
-> +        * r    rr   rr r rr r r         rrr rrrr r     < always  
-> read only
-> +        * .000 ..00 ..0. ..0. .011 1... .... .101 < we want
-> +        */
-> +       .type   v7_crval, #object
-> +v7_crval:
-> +       crval   clear=0x7322f006, mmuset=0x00003805, ucset=0x00001804
-> +#else
-> +
-> +#ifndef CONFIG_CPU_L2CACHE_DISABLE
-> +       @ L2 cache configuration in the L2 aux control register
-> +       mrc     p15, 1, r10, c9, c0, 2
-> +       bic     r10, r10, #(1 << 16)            @ L2 outer cache
-> +       mcr     p15, 1, r10, c9, c0, 2
-> +       @ L2 cache is enabled in the aux control register
-> +       mrc     p15, 0, r10, c1, c0, 1
-> +       orr     r10, r10, #2
-> +       mcr     p15, 0, r10, c1, c0, 1
-> +#endif
-> +       mrc     p15, 0, r0, c1, c0, 0           @ read control  
-> register
-> +       ldr     r10, cr1_clear                  @ get mask for bits  
-> to clear
-> +       bic     r0, r0, r10                     @ clear bits them
-> +       ldr     r10, cr1_set                    @ get mask for bits  
-> to set
-> +       orr     r0, r0, r10                     @ set them
->        mov     pc, lr                          @ return to  
-> head.S:__ret
->
->        /*
-> @@ -195,9 +256,13 @@ __v7_setup:
->         * rrrr rrrx xxx0 0101 xxxx xxxx x111 xxxx < forced
->         *         0 110       0011 1.00 .111 1101 < we want
->         */
-> -       .type   v7_crval, #object
-> -v7_crval:
-> -       crval   clear=0x0120c302, mmuset=0x00c0387d, ucset=0x00c0187c
-> +       .type   cr1_clear, #object
-> +       .type   cr1_set, #object
-> +cr1_clear:
-> +       .word   0x0120c302
-> +cr1_set:
-> +       .word   0x00c0387d
-> +#endif
->
-> __v7_setup_stack:
->        .space  4 * 11                          @ 11 registers
-> @@ -205,7 +270,6 @@ __v7_setup_stack:
->        .type   v7_processor_functions, #object
-> ENTRY(v7_processor_functions)
->        .word   v7_early_abort
-> -       .word   pabort_ifar
->        .word   cpu_v7_proc_init
->        .word   cpu_v7_proc_fin
->        .word   cpu_v7_reset
-> @@ -213,6 +277,7 @@ ENTRY(v7_processor_functions)
->        .word   cpu_v7_dcache_clean_area
->        .word   cpu_v7_switch_mm
->        .word   cpu_v7_set_pte_ext
-> +       .word   pabort_ifar
->        .size   v7_processor_functions, . - v7_processor_functions
->
->        .type   cpu_arch_name, #object
->
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFIIYnKMkyGM64RGpERAot4AJ4yGHnYGjMzBUgiPZs8MVI5D6xsfACfc6gl
-sEIca4auZilcU1ggRjSFVJI=
-=6IDq
------END PGP SIGNATURE-----
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 54ab7af..bb79f43 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -18,7 +18,7 @@
+ #include <linux/serial_reg.h>
+ #include <linux/clk.h>
+ 
+-#include <asm/io.h>
++#include <linux/io.h>
+ 
+ #include <asm/arch/common.h>
+ #include <asm/arch/board.h>
+@@ -127,17 +127,17 @@ void __init omap_serial_init(void)
+ 		if (IS_ERR(uart_ick[i])) {
+ 			printk(KERN_ERR "Could not get uart%d_ick\n", i+1);
+ 			uart_ick[i] = NULL;
+-		}
+-		else
++		} else {
+ 			clk_enable(uart_ick[i]);
++		}
+ 		sprintf(name, "uart%d_fck", i+1);
+ 		uart_fck[i] = clk_get(NULL, name);
+ 		if (IS_ERR(uart_fck[i])) {
+ 			printk(KERN_ERR "Could not get uart%d_fck\n", i+1);
+-			uart_ick[i] = NULL;
+-		}
+-		else
++			uart_fck[i] = NULL;
++		} else {
+ 			clk_enable(uart_fck[i]);
++		}
+ 
+ 		omap_serial_reset(p);
+ 	}
