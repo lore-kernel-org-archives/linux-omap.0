@@ -1,89 +1,181 @@
-From: "arun c" <arunedarath@mistralsolutions.com>
-Subject: [PATCH] OMAP:DISPC Register name typo
-Date: Wed, 7 May 2008 13:00:34 +0530
-Message-ID: <c656a4d20805070030k1e5bcd39md4a7d3ce3730c56c@mail.gmail.com>
+From: "Syed Mohammed, Khasim" <khasim@ti.com>
+Subject: RE: public git l2 cache off.
+Date: Wed, 7 May 2008 13:12:13 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C001578E7DAE@dbde02.ent.ti.com>
+References: <1209575641-25613-1-git-send-email-tony@atomide.com>
+ <20080505131403.93d0a64d.jarkko.nikula@nokia.com>
+ <3B6D69C3A9EBCA4BA5DA60D9130274290439AAD8@dlee13.ent.ti.com>
+ <A9503EED-55EA-4656-AABD-A6DA28F717DA@student.utwente.nl>
+ <3B6D69C3A9EBCA4BA5DA60D9130274290439AD2F@dlee13.ent.ti.com>
+ <4BE5184F-5D21-4487-B19A-DCA436A9C77E@student.utwente.nl>
+ <3B6D69C3A9EBCA4BA5DA60D9130274290439AE8F@dlee13.ent.ti.com>
+ <137745C3-BCAB-4A39-8023-F255463194BF@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_8670_10534250.1210145434972"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from po-out-1718.google.com ([72.14.252.152]:40402 "EHLO
-	po-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760070AbYEGHah (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 May 2008 03:30:37 -0400
-Received: by po-out-1718.google.com with SMTP id y22so259162pof.1
-        for <linux-omap@vger.kernel.org>; Wed, 07 May 2008 00:30:35 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38212 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754666AbYEGHm3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 May 2008 03:42:29 -0400
+In-Reply-To: <137745C3-BCAB-4A39-8023-F255463194BF@student.utwente.nl>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Woodruff, Richard" <r-woodruff2@ti.com>
 
-------=_Part_8670_10534250.1210145434972
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hi all,
-
-This patch corrects the register name typo in dispc.c.
-False read happens just after the reset(reading DISPC_CONTROL returns
-zero), this
-might be the reason it worked fine without any issue.
-
-############################################
->From 8734c18115caf53121c46002983b6c4763bd7f2b Mon Sep 17 00:00:00 2001
-From: arun <arunedarath@mistralsolutions.com>
-Date: Wed, 7 May 2008 12:25:40 +0530
-Subject: [PATCH] OMAP:DISPC Register name typo
-
-DISPC_CONTROL was used instead of DISPC_SYSCONFIG.
-
-Signed-off-by: arun <arunedarath@mistralsolutions.com>
----
- drivers/video/omap/dispc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
-index 4c055a2..6aff476 100644
---- a/drivers/video/omap/dispc.c
-+++ b/drivers/video/omap/dispc.c
-@@ -1393,7 +1393,7 @@ static int omap_dispc_init(struct omapfb_device
-*fbdev, int ext_mode,
- 	}
-
- 	/* Enable smart idle and autoidle */
--	l = dispc_read_reg(DISPC_CONTROL);
-+	l = dispc_read_reg(DISPC_SYSCONFIG);
- 	l &= ~((3 << 12) | (3 << 3));
- 	l |= (2 << 12) | (2 << 3) | (1 << 0);
- 	dispc_write_reg(DISPC_SYSCONFIG, l);
--- 
-1.5.3.4
-
-##########################################
+The below patch should get you going with L2 Cache enabled on GIT kernel, tested on Beagle board.
 
 Regards,
-Arun C
+Khasim
 
-------=_Part_8670_10534250.1210145434972
-Content-Type: text/x-patch; name=0001-OMAP-DISPC-Register-name-typo.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ffxiv7s60
-Content-Disposition: attachment;
- filename=0001-OMAP-DISPC-Register-name-typo.patch
 
-RnJvbSA4NzM0YzE4MTE1Y2FmNTMxMjFjNDYwMDI5ODNiNmM0NzYzYmQ3ZjJiIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBhcnVuIDxhcnVuZWRhcmF0aEBtaXN0cmFsc29sdXRpb25zLmNv
-bT4KRGF0ZTogV2VkLCA3IE1heSAyMDA4IDEyOjI1OjQwICswNTMwClN1YmplY3Q6IFtQQVRDSF0g
-T01BUDpESVNQQyBSZWdpc3RlciBuYW1lIHR5cG8KCkRJU1BDX0NPTlRST0wgd2FzIHVzZWQgaW5z
-dGVhZCBvZiBESVNQQ19TWVNDT05GSUcuCgpTaWduZWQtb2ZmLWJ5OiBhcnVuIDxhcnVuZWRhcmF0
-aEBtaXN0cmFsc29sdXRpb25zLmNvbT4KLS0tCiBkcml2ZXJzL3ZpZGVvL29tYXAvZGlzcGMuYyB8
-ICAgIDIgKy0KIDEgZmlsZXMgY2hhbmdlZCwgMSBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9ucygt
-KQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vb21hcC9kaXNwYy5jIGIvZHJpdmVycy92aWRl
-by9vbWFwL2Rpc3BjLmMKaW5kZXggNGMwNTVhMi4uNmFmZjQ3NiAxMDA2NDQKLS0tIGEvZHJpdmVy
-cy92aWRlby9vbWFwL2Rpc3BjLmMKKysrIGIvZHJpdmVycy92aWRlby9vbWFwL2Rpc3BjLmMKQEAg
-LTEzOTMsNyArMTM5Myw3IEBAIHN0YXRpYyBpbnQgb21hcF9kaXNwY19pbml0KHN0cnVjdCBvbWFw
-ZmJfZGV2aWNlICpmYmRldiwgaW50IGV4dF9tb2RlLAogCX0KIAogCS8qIEVuYWJsZSBzbWFydCBp
-ZGxlIGFuZCBhdXRvaWRsZSAqLwotCWwgPSBkaXNwY19yZWFkX3JlZyhESVNQQ19DT05UUk9MKTsK
-KwlsID0gZGlzcGNfcmVhZF9yZWcoRElTUENfU1lTQ09ORklHKTsKIAlsICY9IH4oKDMgPDwgMTIp
-IHwgKDMgPDwgMykpOwogCWwgfD0gKDIgPDwgMTIpIHwgKDIgPDwgMykgfCAoMSA8PCAwKTsKIAlk
-aXNwY193cml0ZV9yZWcoRElTUENfU1lTQ09ORklHLCBsKTsKLS0gCjEuNS4zLjQKCg==
-------=_Part_8670_10534250.1210145434972--
+--- ../my_linux_omap/arch/arm/mm/Kconfig        2008-05-06 16:37:17.000000000 +0530
++++ arch/arm/mm/Kconfig 2008-05-07 12:40:05.000000000 +0530
+@@ -659,6 +659,20 @@ config CPU_DCACHE_SIZE
+          If your SoC is configured to have a different size, define the value
+          here with proper conditions.
+
++choice
++       prompt "L2 Cache Size"
++       depends on ARCH_OMAP34XX
++
++config CPU_LOCKDOWN_TO_64K_L2
++       bool "Lock down L2 Cache to 64K"
++
++config CPU_LOCKDOWN_TO_128K_L2
++       bool "Lock down L2 Cache to 128K"
++
++config CPU_LOCKDOWN_TO_256K_L2
++       bool "Lock down L2 Cache to 256K"
++endchoice
++
+ config CPU_DCACHE_WRITETHROUGH
+        bool "Force write through D-cache"
+        depends on (CPU_ARM740T || CPU_ARM920T || CPU_ARM922T || CPU_ARM925T || CPU_ARM926T || CPU_ARM940T || CPU_ARM946E || CPU_ARM1020) && !CPU_DCACHE_DISABLE
+@@ -674,6 +688,12 @@ config CPU_CACHE_ROUND_ROBIN
+          Say Y here to use the predictable round-robin cache replacement
+          policy.  Unless you specifically require this or are unsure, say N.
+
++config CPU_L2CACHE_DISABLE
++       bool "Disable level 2 cache"
++       depends on CPU_V7
++       help
++         Say Y here to disable the level 2 cache.  If unsure, say N.
++
+ config CPU_BPREDICT_DISABLE
+        bool "Disable branch prediction"
+        depends on CPU_ARM1020 || CPU_V6 || CPU_XSC3 || CPU_V7
+
+--- ../my_linux_omap/arch/arm/mm/proc-v7.S      2008-04-27 00:13:57.000000000 +0530
++++ arch/arm/mm/proc-v7.S       2008-05-07 12:22:29.000000000 +0530
+@@ -182,11 +182,72 @@ __v7_setup:
+        mov     r10, #0x1f                      @ domains 0, 1 = manager
+        mcr     p15, 0, r10, c3, c0, 0          @ load domain access register
+ #endif
++#if defined(CONFIG_ARCH_OMAP3)
++       @ L2 cache is enabled in the aux control register
++       mrc     p15, 0, r0, c1, c0, 1
++       orr     r0, r0, #0x11           @ speculative+no-alais protection
++#ifdef CONFIG_CPU_L2CACHE_DISABLE
++       bic     r0, r0, #0x2            @ disable L2 Cache.
++#else
++       orr     r0, r0, #0x2            @ enaable L2 Cache.
++#endif
++
++/* On 3430 ES2.0 ZeBu and silicon, Aux Ctrl Reg can be written outside
++ * Secure mode also
++ */
++       mcr     p15, 0, r0, c1, c0, 1
++
++#ifdef CONFIG_ARCH_OMAP34XX
++#ifdef CONFIG_CPU_LOCKDOWN_TO_64K_L2
++       mov     r10, #0xfc
++       mcr     p15, 1, r10, c9, c0, 0
++#endif
++
++#ifdef CONFIG_CPU_LOCKDOWN_TO_128K_L2
++       mov     r10, #0xf0
++       mcr     p15, 1, r10, c9, c0, 0
++#endif
++
++#ifdef CONFIG_CPU_LOCKDOWN_TO_256K_L2
++       mov     r10, #0x00
++       mcr     p15, 1, r10, c9, c0, 0
++#endif
++#endif
++
+        adr     r5, v7_crval
+        ldmia   r5, {r5, r6}
+-       mrc     p15, 0, r0, c1, c0, 0           @ read control register
+-       bic     r0, r0, r5                      @ clear bits them
+-       orr     r0, r0, r6                      @ set them
++       mrc     p15, 0, r0, c1, c0, 0   @ read control register
++       bic     r0, r0, r5              @ clear bits them
++       orr     r0, r0, r6              @ set them
++       mov     pc, lr                  @ return to head.S:__ret
++
++       /*
++        *  TAT N EV   F        H   R
++        * .EFR M.EE .UI. ..A. .RVI Z... B... .CAM
++        * 0xxx x0xx 11x0 01x1 0xxx x000 0111 1xxx < forced typical
++        * r    rr   rr r rr r r         rrr rrrr r     < always read only
++        * .000 ..00 ..0. ..0. .011 1... .... .101 < we want
++        */
++       .type   v7_crval, #object
++v7_crval:
++       crval   clear=0x7322f006, mmuset=0x00003805, ucset=0x00001804
++#else
++
++#ifndef CONFIG_CPU_L2CACHE_DISABLE
++       @ L2 cache configuration in the L2 aux control register
++       mrc     p15, 1, r10, c9, c0, 2
++       bic     r10, r10, #(1 << 16)            @ L2 outer cache
++       mcr     p15, 1, r10, c9, c0, 2
++       @ L2 cache is enabled in the aux control register
++       mrc     p15, 0, r10, c1, c0, 1
++       orr     r10, r10, #2
++       mcr     p15, 0, r10, c1, c0, 1
++#endif
++       mrc     p15, 0, r0, c1, c0, 0           @ read control register
++       ldr     r10, cr1_clear                  @ get mask for bits to clear
++       bic     r0, r0, r10                     @ clear bits them
++       ldr     r10, cr1_set                    @ get mask for bits to set
++       orr     r0, r0, r10                     @ set them
+        mov     pc, lr                          @ return to head.S:__ret
+
+        /*
+@@ -195,9 +256,13 @@ __v7_setup:
+         * rrrr rrrx xxx0 0101 xxxx xxxx x111 xxxx < forced
+         *         0 110       0011 1.00 .111 1101 < we want
+         */
+-       .type   v7_crval, #object
+-v7_crval:
+-       crval   clear=0x0120c302, mmuset=0x00c0387d, ucset=0x00c0187c
++       .type   cr1_clear, #object
++       .type   cr1_set, #object
++cr1_clear:
++       .word   0x0120c302
++cr1_set:
++       .word   0x00c0387d
++#endif
+
+ __v7_setup_stack:
+        .space  4 * 11                          @ 11 registers
+@@ -205,7 +270,6 @@ __v7_setup_stack:
+        .type   v7_processor_functions, #object
+ ENTRY(v7_processor_functions)
+        .word   v7_early_abort
+-       .word   pabort_ifar
+        .word   cpu_v7_proc_init
+        .word   cpu_v7_proc_fin
+        .word   cpu_v7_reset
+@@ -213,6 +277,7 @@ ENTRY(v7_processor_functions)
+        .word   cpu_v7_dcache_clean_area
+        .word   cpu_v7_switch_mm
+        .word   cpu_v7_set_pte_ext
++       .word   pabort_ifar
+        .size   v7_processor_functions, . - v7_processor_functions
+
+        .type   cpu_arch_name, #object
