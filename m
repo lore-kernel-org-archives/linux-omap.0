@@ -1,409 +1,153 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 5/5] Fix remaining sparse warnings in arch/arm/mach-omap2
+Subject: [PATCH 3/5] fix sparse, checkpatch warnings in OMAP2/3 IRQ code
 Date: Wed, 07 May 2008 11:52:02 -0600
-Message-ID: <20080507175202.17732.89931.stgit@localhost.localdomain>
+Message-ID: <20080507175201.17732.94211.stgit@localhost.localdomain>
 References: <20080507171204.17732.97601.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47802 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:59091 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755404AbYEGTuo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 May 2008 15:50:44 -0400
+	with ESMTP id S933333AbYEGTuj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 May 2008 15:50:39 -0400
 In-Reply-To: <20080507171204.17732.97601.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Fix remaining sparse warnings in arch/arm/mach-omap2/.	These fixes
-mostly consist of:
+Fix sparse warnings in mach-omap2/irq.c. Fix by defining
+intc_bank_write_reg() and intc_bank_read_reg(), and convert INTC module
+register access to use them rather than __raw_{read,write}l.
 
-- tagging appropriate integer<->pointer casts with __force
+Also clear up some checkpatch warnings involving includes from asm/
+rather than linux/.
 
-- marking private structures and functions as static; adding function
-  prototypes in .h files for public functions
-
-- assigning NULL to pointers, not 0
-
-- adding prototypes for *_init() functions in the appropriate header
-  files, and getting rid of the corresponding open-coded extern
-  prototypes in other C files
-
-
-Also clean up checkpatch issues - this mostly involves converting some
-asm/ includes to linux/ includes.
-
-While here, shrink some bitfields in struct omap_pwm_led_platform_data
-down to the smallest possible type.
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
 
- arch/arm/mach-omap2/devices.c             |   10 +++++-----
- arch/arm/mach-omap2/id.c                  |    9 ++++-----
- arch/arm/mach-omap2/io.c                  |    3 ---
- arch/arm/mach-omap2/mux.c                 |   14 ++++++--------
- arch/arm/mach-omap2/serial.c              |   21 ++++++++++++---------
- arch/arm/mach-omap2/usb-ehci.c            |    2 +-
- include/asm-arm/arch-omap/board-3430sdp.h |    1 +
- include/asm-arm/arch-omap/board.h         |    6 +++---
- include/asm-arm/arch-omap/cpu.h           |    6 +++++-
- include/asm-arm/arch-omap/mmc.h           |    4 ++++
- include/asm-arm/arch-omap/omapfb.h        |    1 +
- include/asm-arm/arch-omap/system.h        |    4 ++--
- include/asm-arm/arch-omap/timex.h         |    2 ++
- include/asm-arm/arch-omap/usb.h           |    3 +++
- 14 files changed, 49 insertions(+), 37 deletions(-)
+ arch/arm/mach-omap2/irq.c |   58 ++++++++++++++++++++++++++++-----------------
+ 1 files changed, 36 insertions(+), 22 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 4041fe5..d02e9e5 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -13,9 +13,9 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/platform_device.h>
-+#include <linux/io.h>
- 
+diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+index 8237529..ac062ee 100644
+--- a/arch/arm/mach-omap2/irq.c
++++ b/arch/arm/mach-omap2/irq.c
+@@ -15,8 +15,10 @@
+ #include <linux/interrupt.h>
  #include <asm/hardware.h>
+ #include <asm/mach/irq.h>
+-#include <asm/irq.h>
 -#include <asm/io.h>
- #include <asm/mach-types.h>
- #include <asm/mach/map.h>
- 
-@@ -149,7 +149,7 @@ static struct resource omap2_mcspi1_resources[] = {
- 	},
- };
- 
--struct platform_device omap2_mcspi1 = {
-+static struct platform_device omap2_mcspi1 = {
- 	.name		= "omap2_mcspi",
- 	.id		= 1,
- 	.num_resources	= ARRAY_SIZE(omap2_mcspi1_resources),
-@@ -171,7 +171,7 @@ static struct resource omap2_mcspi2_resources[] = {
- 	},
- };
- 
--struct platform_device omap2_mcspi2 = {
-+static struct platform_device omap2_mcspi2 = {
- 	.name		= "omap2_mcspi",
- 	.id		= 2,
- 	.num_resources	= ARRAY_SIZE(omap2_mcspi2_resources),
-@@ -194,7 +194,7 @@ static struct resource omap2_mcspi3_resources[] = {
- 	},
- };
- 
--struct platform_device omap2_mcspi3 = {
-+static struct platform_device omap2_mcspi3 = {
- 	.name		= "omap2_mcspi",
- 	.id		= 3,
- 	.num_resources	= ARRAY_SIZE(omap2_mcspi3_resources),
-@@ -218,7 +218,7 @@ static struct resource omap2_mcspi4_resources[] = {
- 	},
- };
- 
--struct platform_device omap2_mcspi4 = {
-+static struct platform_device omap2_mcspi4 = {
- 	.name		= "omap2_mcspi",
- 	.id		= 4,
- 	.num_resources	= ARRAY_SIZE(omap2_mcspi4_resources),
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index dff4b16..835452b 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -14,18 +14,17 @@
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
--
--#include <asm/io.h>
++#include <linux/irq.h>
 +#include <linux/io.h>
++
++/* selected INTC register offsets */
  
- #include <asm/arch/control.h>
- #include <asm/arch/cpu.h>
+ #define INTC_REVISION	0x0000
+ #define INTC_SYSCONFIG	0x0010
+@@ -42,36 +44,49 @@ static struct omap_irq_bank {
+ 	},
+ };
  
- #if defined(CONFIG_ARCH_OMAP2420)
--#define TAP_BASE	io_p2v(0x48014000)
-+#define TAP_BASE	(__force void __iomem *)io_p2v(0x48014000)
- #elif defined(CONFIG_ARCH_OMAP2430)
--#define TAP_BASE	io_p2v(0x4900A000)
-+#define TAP_BASE	(__force void __iomem *)io_p2v(0x4900A000)
- #elif defined(CONFIG_ARCH_OMAP34XX)
--#define TAP_BASE	io_p2v(0x4830A000)
-+#define TAP_BASE	(__force void __iomem *)io_p2v(0x4830A000)
- #endif
- 
- #define OMAP_TAP_IDCODE		0x0204
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 2bb808e..2af0cdc 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -38,9 +38,6 @@
- #include <asm/arch/clockdomain.h>
- #include "clockdomains.h"
- 
--extern void omap2_check_revision(void);
--extern void omapfb_reserve_sdram(void);
--
- /*
-  * The machine specific code may provide the extra mapping besides the
-  * default mapping provided here.
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index fb639f5..7d56516 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -26,7 +26,7 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <asm/system.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- #include <linux/spinlock.h>
- 
- #include <asm/arch/control.h>
-@@ -365,7 +365,7 @@ MUX_CFG_34XX("AA12_3430_USB3HS_TLL_D7", 0x172,
- #endif	/* CONFIG_ARCH_OMAP34XX */
- 
- #if defined(CONFIG_OMAP_MUX_DEBUG) || defined(CONFIG_OMAP_MUX_WARNINGS)
--void __init_or_module omap2_cfg_debug(const struct pin_config *cfg, u16 reg)
-+static void __init_or_module omap2_cfg_debug(const struct pin_config *cfg, u16 reg)
++/* INTC bank register get/set */
++
++static void intc_bank_write_reg(u32 val, struct omap_irq_bank *bank, u16 reg)
++{
++	pr_debug("intc_write_reg: writing 0x%0x to 0x%0x\n", val,
++		 (__force u32)(bank->base_reg + reg));
++
++	omap_writel(val, bank->base_reg + reg);
++}
++
++static u32 intc_bank_read_reg(struct omap_irq_bank *bank, u16 reg)
++{
++	return omap_readl(bank->base_reg + reg);
++}
++
+ /* XXX: FIQ and additional INTC support (only MPU at the moment) */
+ static void omap_ack_irq(unsigned int irq)
  {
- 	u16 orig;
- 	u8 warn = 0, debug = 0;
-@@ -409,11 +409,11 @@ int __init_or_module omap24xx_cfg_reg(const struct pin_config *cfg)
- 	return 0;
+-	__raw_writel(0x1, irq_banks[0].base_reg + INTC_CONTROL);
++	intc_bank_write_reg(0x1, &irq_banks[0], INTC_CONTROL);
  }
- #else
--#define omap24xx_cfg_reg	0
-+#define omap24xx_cfg_reg	NULL
- #endif
  
- #ifdef CONFIG_ARCH_OMAP34XX
--int __init_or_module omap34xx_cfg_reg(const struct pin_config *cfg)
-+static int __init_or_module omap34xx_cfg_reg(const struct pin_config *cfg)
+ static void omap_mask_irq(unsigned int irq)
  {
- 	static DEFINE_SPINLOCK(mux_spin_lock);
- 	unsigned long flags;
-@@ -428,7 +428,7 @@ int __init_or_module omap34xx_cfg_reg(const struct pin_config *cfg)
- 	return 0;
- }
- #else
--#define omap34xx_cfg_reg	0
-+#define omap34xx_cfg_reg	NULL
- #endif
+ 	int offset = (irq >> 5) << 5;
  
- int __init omap2_mux_init(void)
-@@ -437,9 +437,7 @@ int __init omap2_mux_init(void)
- 		arch_mux_cfg.pins	= omap24xx_pins;
- 		arch_mux_cfg.size	= OMAP24XX_PINS_SZ;
- 		arch_mux_cfg.cfg_reg	= omap24xx_cfg_reg;
+-	if (irq >= 64) {
++	if (irq >= 64)
+ 		irq %= 64;
+-	} else if (irq >= 32) {
++	else if (irq >= 32)
+ 		irq %= 32;
 -	}
--
--	if (cpu_is_omap34xx()) {
-+	} else if (cpu_is_omap34xx()) {
- 		arch_mux_cfg.pins	= omap34xx_pins;
- 		arch_mux_cfg.size	= OMAP34XX_PINS_SZ;
- 		arch_mux_cfg.cfg_reg	= omap34xx_cfg_reg;
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index bb79f43..c953c85 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -28,7 +28,7 @@ static struct clk *uart_fck[OMAP_MAX_NR_PORTS];
  
- static struct plat_serial8250_port serial_platform_data[] = {
- 	{
--		.membase	= (char *)IO_ADDRESS(OMAP_UART1_BASE),
-+		.membase	= (__force void __iomem *)IO_ADDRESS(OMAP_UART1_BASE),
- 		.mapbase	= (unsigned long)OMAP_UART1_BASE,
- 		.irq		= 72,
- 		.flags		= UPF_BOOT_AUTOCONF,
-@@ -36,7 +36,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
- 		.regshift	= 2,
- 		.uartclk	= OMAP24XX_BASE_BAUD * 16,
- 	}, {
--		.membase	= (char *)IO_ADDRESS(OMAP_UART2_BASE),
-+		.membase	= (__force void __iomem *)IO_ADDRESS(OMAP_UART2_BASE),
- 		.mapbase	= (unsigned long)OMAP_UART2_BASE,
- 		.irq		= 73,
- 		.flags		= UPF_BOOT_AUTOCONF,
-@@ -44,7 +44,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
- 		.regshift	= 2,
- 		.uartclk	= OMAP24XX_BASE_BAUD * 16,
- 	}, {
--		.membase	= (char *)IO_ADDRESS(OMAP_UART3_BASE),
-+		.membase	= (__force void __iomem *)IO_ADDRESS(OMAP_UART3_BASE),
- 		.mapbase	= (unsigned long)OMAP_UART3_BASE,
- 		.irq		= 74,
- 		.flags		= UPF_BOOT_AUTOCONF,
-@@ -67,7 +67,7 @@ static inline void serial_write_reg(struct plat_serial8250_port *p, int offset,
- 				    int value)
- {
- 	offset <<= p->regshift;
--	__raw_writeb(value, (unsigned long)(p->membase + offset));
-+	__raw_writeb(value, p->membase + offset);
+-	__raw_writel(1 << irq, irq_banks[0].base_reg + INTC_MIR_SET0 + offset);
++	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_SET0 + offset);
  }
  
- /*
-@@ -87,12 +87,15 @@ void omap_serial_enable_clocks(int enable)
+ static void omap_unmask_irq(unsigned int irq)
  {
- 	int i;
- 	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
--		if (uart_ick[i])
--			enable ? clk_enable(uart_ick[i]) :
-+		if (uart_ick[i] && uart_fck[i]) {
-+			if (enable) {
-+				clk_enable(uart_ick[i]);
-+				clk_enable(uart_fck[i]);
-+			} else {
- 				clk_disable(uart_ick[i]);
--		if (uart_fck[i])
--			enable ? clk_enable(uart_fck[i]) :
- 				clk_disable(uart_fck[i]);
-+			}
-+		}
- 	}
+ 	int offset = (irq >> 5) << 5;
+ 
+-	if (irq >= 64) {
++	if (irq >= 64)
+ 		irq %= 64;
+-	} else if (irq >= 32) {
++	else if (irq >= 32)
+ 		irq %= 32;
+-	}
+ 
+-	__raw_writel(1 << irq, irq_banks[0].base_reg + INTC_MIR_CLEAR0 + offset);
++	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_CLEAR0 + offset);
  }
  
-@@ -117,7 +120,7 @@ void __init omap_serial_init(void)
- 		struct plat_serial8250_port *p = serial_platform_data + i;
- 
- 		if (!(info->enabled_uarts & (1 << i))) {
--			p->membase = 0;
-+			p->membase = NULL;
- 			p->mapbase = 0;
- 			continue;
- 		}
-diff --git a/arch/arm/mach-omap2/usb-ehci.c b/arch/arm/mach-omap2/usb-ehci.c
-index e48e773..e178a0d 100644
---- a/arch/arm/mach-omap2/usb-ehci.c
-+++ b/arch/arm/mach-omap2/usb-ehci.c
-@@ -48,7 +48,7 @@ static struct platform_device ehci_device = {
- 	.dev = {
- 		.dma_mask               = &ehci_dmamask,
- 		.coherent_dma_mask      = 0xffffffff,
--		.platform_data          = 0x0,
-+		.platform_data          = NULL,
- 	},
- 	.num_resources  = ARRAY_SIZE(ehci_resources),
- 	.resource       = ehci_resources,
-diff --git a/include/asm-arm/arch-omap/board-3430sdp.h b/include/asm-arm/arch-omap/board-3430sdp.h
-index 8c166c2..d583008 100644
---- a/include/asm-arm/arch-omap/board-3430sdp.h
-+++ b/include/asm-arm/arch-omap/board-3430sdp.h
-@@ -30,6 +30,7 @@
- #define __ASM_ARCH_OMAP_3430SDP_H
- 
- extern void sdp3430_usb_init(void);
-+extern void sdp3430_flash_init(void);
- 
- #define DEBUG_BASE			0x08000000  /* debug board */
- 
-diff --git a/include/asm-arm/arch-omap/board.h b/include/asm-arm/arch-omap/board.h
-index 3763f3e..0783e60 100644
---- a/include/asm-arm/arch-omap/board.h
-+++ b/include/asm-arm/arch-omap/board.h
-@@ -128,9 +128,9 @@ struct omap_pwm_led_platform_data {
- struct omap_gpio_switch_config {
- 	char name[12];
- 	u16 gpio;
--	int flags:4;
--	int type:4;
--	int key_code:24; /* Linux key code */
-+	u8 flags:4;
-+	u8 type:4;
-+	unsigned int key_code:24; /* Linux key code */
- };
- 
- struct omap_uart_config {
-diff --git a/include/asm-arm/arch-omap/cpu.h b/include/asm-arm/arch-omap/cpu.h
-index 2626fbd..0f1cf78 100644
---- a/include/asm-arm/arch-omap/cpu.h
-+++ b/include/asm-arm/arch-omap/cpu.h
-@@ -26,6 +26,8 @@
- #ifndef __ASM_ARCH_OMAP_CPU_H
- #define __ASM_ARCH_OMAP_CPU_H
- 
-+#include <linux/init.h>
-+
- struct omap_chip_id {
- 	u8 oc;
- };
-@@ -395,6 +397,8 @@ int omap_chip_is(struct omap_chip_id oci);
- #define is_device_type_gp()	(get_device_type() == DEVICE_TYPE_GP)
- #define is_device_type_bad()	(get_device_type() == DEVICE_TYPE_BAD)
- 
--#endif
-+void __init omap2_check_revision(void);
-+
-+#endif    /* defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3) */
- 
- #endif
-diff --git a/include/asm-arm/arch-omap/mmc.h b/include/asm-arm/arch-omap/mmc.h
-index 6dff38e..55eb955 100644
---- a/include/asm-arm/arch-omap/mmc.h
-+++ b/include/asm-arm/arch-omap/mmc.h
-@@ -71,4 +71,8 @@ extern void omap_set_mmc_info(int host, const struct omap_mmc_platform_data *inf
- /* called from board-specific card detection service routine */
- extern void omap_mmc_notify_cover_event(struct device *dev, int slot, int is_closed);
- 
-+#if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
-+void __init hsmmc_init(void);
-+#endif
-+
- #endif
-diff --git a/include/asm-arm/arch-omap/omapfb.h b/include/asm-arm/arch-omap/omapfb.h
-index 55132ad..722eeec 100644
---- a/include/asm-arm/arch-omap/omapfb.h
-+++ b/include/asm-arm/arch-omap/omapfb.h
-@@ -376,6 +376,7 @@ extern struct lcd_ctrl omap1_lcd_ctrl;
- extern struct lcd_ctrl omap2_disp_ctrl;
- #endif
- 
-+extern void omapfb_reserve_sdram(void);
- extern void omapfb_register_panel(struct lcd_panel *panel);
- extern void omapfb_write_first_pixel(struct omapfb_device *fbdev, u16 pixval);
- extern void omapfb_notify_clients(struct omapfb_device *fbdev,
-diff --git a/include/asm-arm/arch-omap/system.h b/include/asm-arm/arch-omap/system.h
-index 5bdac69..4faeb9f 100644
---- a/include/asm-arm/arch-omap/system.h
-+++ b/include/asm-arm/arch-omap/system.h
-@@ -9,12 +9,12 @@
- #include <asm/mach-types.h>
- #include <asm/hardware.h>
- 
-+#include <asm/arch/prcm.h>
-+
- #ifndef CONFIG_MACH_VOICEBLUE
- #define voiceblue_reset()		do {} while (0)
- #endif
- 
--extern void omap_prcm_arch_reset(char mode);
--
- static inline void arch_idle(void)
+ static void omap_mask_ack_irq(unsigned int irq)
+@@ -91,20 +106,20 @@ static void __init omap_irq_bank_init_one(struct omap_irq_bank *bank)
  {
- 	cpu_do_idle();
-diff --git a/include/asm-arm/arch-omap/timex.h b/include/asm-arm/arch-omap/timex.h
-index 21f2e36..f1808cd 100644
---- a/include/asm-arm/arch-omap/timex.h
-+++ b/include/asm-arm/arch-omap/timex.h
-@@ -38,4 +38,6 @@
- #define CLOCK_TICK_RATE		(HZ * 100000UL)
- #endif
+ 	unsigned long tmp;
  
-+extern struct sys_timer omap_timer;
+-	tmp = __raw_readl(bank->base_reg + INTC_REVISION) & 0xff;
++	tmp = intc_bank_read_reg(bank, INTC_REVISION) & 0xff;
+ 	printk(KERN_INFO "IRQ: Found an INTC at 0x%08lx "
+ 			 "(revision %ld.%ld) with %d interrupts\n",
+ 			 bank->base_reg, tmp >> 4, tmp & 0xf, bank->nr_irqs);
+ 
+-	tmp = __raw_readl(bank->base_reg + INTC_SYSCONFIG);
++	tmp = intc_bank_read_reg(bank, INTC_SYSCONFIG);
+ 	tmp |= 1 << 1;	/* soft reset */
+-	__raw_writel(tmp, bank->base_reg + INTC_SYSCONFIG);
++	intc_bank_write_reg(tmp, bank, INTC_SYSCONFIG);
+ 
+-	while (!(__raw_readl(bank->base_reg + INTC_SYSSTATUS) & 0x1))
++	while (!(intc_bank_read_reg(bank, INTC_SYSSTATUS) & 0x1))
+ 		/* Wait for reset to complete */;
+ 
+ 	/* Enable autoidle */
+-	__raw_writel(1 << 0, bank->base_reg + INTC_SYSCONFIG);
++	intc_bank_write_reg(1 << 0, bank, INTC_SYSCONFIG);
+ }
+ 
+ void __init omap_init_irq(void)
+@@ -116,12 +131,11 @@ void __init omap_init_irq(void)
+ 	for (i = 0; i < ARRAY_SIZE(irq_banks); i++) {
+ 		struct omap_irq_bank *bank = irq_banks + i;
+ 
+-		if (cpu_is_omap24xx()) {
+-			bank->base_reg = IO_ADDRESS(OMAP24XX_IC_BASE);
+-		}
+-		if (cpu_is_omap34xx()) {
+-			bank->base_reg = IO_ADDRESS(OMAP34XX_IC_BASE);
+-		}
++		if (cpu_is_omap24xx())
++			bank->base_reg = OMAP24XX_IC_BASE;
++		else if (cpu_is_omap34xx())
++			bank->base_reg = OMAP34XX_IC_BASE;
 +
- #endif /* __ASM_ARCH_OMAP_TIMEX_H */
-diff --git a/include/asm-arm/arch-omap/usb.h b/include/asm-arm/arch-omap/usb.h
-index 2147d18..580a718 100644
---- a/include/asm-arm/arch-omap/usb.h
-+++ b/include/asm-arm/arch-omap/usb.h
-@@ -27,6 +27,9 @@
- #define UDC_BASE			OMAP2_UDC_BASE
- #define OMAP_OHCI_BASE			OMAP2_OHCI_BASE
+ 		omap_irq_bank_init_one(bank);
  
-+void __init usb_musb_init(void);
-+void __init usb_ehci_init(void);
-+
- #endif
- 
- /*-------------------------------------------------------------------------*/
+ 		nr_irqs += bank->nr_irqs;
 
 
