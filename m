@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 7/11] ARM: OMAP: Fix 34xx to use correct shift values for gpio2-6 fclks
-Date: Thu,  8 May 2008 15:49:31 -0700
-Message-ID: <1210286975-29506-8-git-send-email-tony@atomide.com>
+Subject: [PATCH 8/11] ARM: OMAP: Add fuctional clock enabler for iva2
+Date: Thu,  8 May 2008 15:49:32 -0700
+Message-ID: <1210286975-29506-9-git-send-email-tony@atomide.com>
 References: omap-fixes-2008-05-08-154932
  <1210286975-29506-1-git-send-email-tony@atomide.com>
  <1210286975-29506-2-git-send-email-tony@atomide.com>
@@ -10,86 +10,62 @@ References: omap-fixes-2008-05-08-154932
  <1210286975-29506-5-git-send-email-tony@atomide.com>
  <1210286975-29506-6-git-send-email-tony@atomide.com>
  <1210286975-29506-7-git-send-email-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+ <1210286975-29506-8-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61507 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762054AbYEHWtt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 May 2008 18:49:49 -0400
-In-Reply-To: <1210286975-29506-7-git-send-email-tony@atomide.com>
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:52097 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761687AbYEHWtu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 May 2008 18:49:50 -0400
+In-Reply-To: <1210286975-29506-8-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, =?utf-8?q?Jouni=20H=C3=B6gander?= <jouni.hogander@nokia.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Tony Lindgren <tony@atomide.com>
 
-=46rom: Jouni H=C3=B6gander <jouni.hogander@nokia.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-Wrong shift values were used for gpio2-6  fclks (gpt2-6 shift).
+Add fuctional clock enabler for iva2
 
-Signed-off-by: Jouni H=C3=B6gander <jouni.hogander@nokia.com>
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 Acked-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/clock34xx.h |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/clock34xx.h       |    5 +++--
+ arch/arm/mach-omap2/cm-regbits-34xx.h |    1 +
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/cloc=
-k34xx.h
-index cf4644a..a728117 100644
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index a728117..3f133a0 100644
 --- a/arch/arm/mach-omap2/clock34xx.h
 +++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -2344,7 +2344,7 @@ static struct clk gpio6_fck =3D {
- 	.name		=3D "gpio6_fck",
- 	.parent		=3D &per_32k_alwon_fck,
- 	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
--	.enable_bit	=3D OMAP3430_EN_GPT6_SHIFT,
-+	.enable_bit	=3D OMAP3430_EN_GPIO6_SHIFT,
- 	.flags		=3D CLOCK_IN_OMAP343X,
- 	.recalc		=3D &followparent_recalc,
+@@ -1046,12 +1046,13 @@ static struct clk iva2_ck = {
+ 	.name		= "iva2_ck",
+ 	.parent		= &dpll2_m2_ck,
+ 	.init		= &omap2_init_clksel_parent,
++	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, CM_FCLKEN),
++	.enable_bit	= OMAP3430_CM_FCLKEN_IVA2_EN_IVA2_SHIFT,
+ 	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD,
+ 					  OMAP3430_CM_IDLEST_PLL),
+ 	.clksel_mask	= OMAP3430_ST_IVA2_CLK_MASK,
+ 	.clksel		= iva2_clksel,
+-	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+-				PARENT_CONTROLS_CLOCK,
++	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES,
+ 	.recalc		= &omap2_clksel_recalc,
  };
-@@ -2353,7 +2353,7 @@ static struct clk gpio5_fck =3D {
- 	.name		=3D "gpio5_fck",
- 	.parent		=3D &per_32k_alwon_fck,
- 	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
--	.enable_bit	=3D OMAP3430_EN_GPT5_SHIFT,
-+	.enable_bit	=3D OMAP3430_EN_GPIO5_SHIFT,
- 	.flags		=3D CLOCK_IN_OMAP343X,
- 	.recalc		=3D &followparent_recalc,
- };
-@@ -2362,7 +2362,7 @@ static struct clk gpio4_fck =3D {
- 	.name		=3D "gpio4_fck",
- 	.parent		=3D &per_32k_alwon_fck,
- 	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
--	.enable_bit	=3D OMAP3430_EN_GPT4_SHIFT,
-+	.enable_bit	=3D OMAP3430_EN_GPIO4_SHIFT,
- 	.flags		=3D CLOCK_IN_OMAP343X,
- 	.recalc		=3D &followparent_recalc,
- };
-@@ -2371,7 +2371,7 @@ static struct clk gpio3_fck =3D {
- 	.name		=3D "gpio3_fck",
- 	.parent		=3D &per_32k_alwon_fck,
- 	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
--	.enable_bit	=3D OMAP3430_EN_GPT3_SHIFT,
-+	.enable_bit	=3D OMAP3430_EN_GPIO3_SHIFT,
- 	.flags		=3D CLOCK_IN_OMAP343X,
- 	.recalc		=3D &followparent_recalc,
- };
-@@ -2380,7 +2380,7 @@ static struct clk gpio2_fck =3D {
- 	.name		=3D "gpio2_fck",
- 	.parent		=3D &per_32k_alwon_fck,
- 	.enable_reg	=3D OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
--	.enable_bit	=3D OMAP3430_EN_GPT2_SHIFT,
-+	.enable_bit	=3D OMAP3430_EN_GPIO2_SHIFT,
- 	.flags		=3D CLOCK_IN_OMAP343X,
- 	.recalc		=3D &followparent_recalc,
- };
---=20
+ 
+diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+index 9249129..3c38395 100644
+--- a/arch/arm/mach-omap2/cm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+@@ -56,6 +56,7 @@
+ 
+ /* CM_FCLKEN_IVA2 */
+ #define OMAP3430_CM_FCLKEN_IVA2_EN_IVA2			(1 << 0)
++#define OMAP3430_CM_FCLKEN_IVA2_EN_IVA2_SHIFT		0
+ 
+ /* CM_CLKEN_PLL_IVA2 */
+ #define OMAP3430_IVA2_DPLL_RAMPTIME_SHIFT		8
+-- 
 1.5.3.6
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
