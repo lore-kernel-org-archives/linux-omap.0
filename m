@@ -1,77 +1,230 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: [beagleboard] Re: TWL4030 intermittent freakout on boot
-Date: Fri, 09 May 2008 20:08:34 +0200
-Message-ID: <48249322.4060004@googlemail.com>
-References: <alpine.DEB.1.00.0805081201450.27986@utopia.booyaka.com> <EF9B9E21-ACCB-46A7-94C7-1FB6DD58B093@student.utwente.nl> <20080508182807.GE24454@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: [PATCH] ARM: OMAP: omap3beagle: add driver to turn on the TFP410 framer to get DVI output
+Date: Fri, 9 May 2008 20:57:56 +0200
+Message-ID: <3F891198-890E-4D3A-8522-E096A463EAEC@student.utwente.nl>
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:13178 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750774AbYEISIL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2008 14:08:11 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so910456fgg.17
-        for <linux-omap@vger.kernel.org>; Fri, 09 May 2008 11:08:09 -0700 (PDT)
-In-Reply-To: <20080508182807.GE24454@atomide.com>
+Received: from smtp1.utsp.utwente.nl ([130.89.2.8]:33911 "EHLO smtp.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754183AbYEITJE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 May 2008 15:09:04 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: beagleboard@googlegroups.com, Koen Kooi <k.kooi@student.utwente.nl>, linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, felipe.balbi@nokia.com, peter.de-schrijver@nokia.com, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: Khasim Syed Mohammed <khasim@ti.com>, Beagle Board <beagleboard@googlegroups.com>
 
-Tony Lindgren wrote:
-> * Koen Kooi <k.kooi@student.utwente.nl> [080508 11:22]:
-> 
->>Op 8 mei 2008, om 20:13 heeft Paul Walmsley het volgende geschreven:
->>
->>>Hello everyone,
->>>
->>>occasionally the TWL4030 driver on the 3430SDP freaks out on boot.   
->>>(This
->>>is either an ES2.0 or ES2.1, not sure.)  Here's a partial console  
->>>log with
->>>initcall debugging enabled.  This probably happens every thirty or  
->>>forty
->>>boots, I would guess.  The board does boot to userspace when this  
->>>happens.
->>>
->>>Perhaps the TWL4030 experts out there might know what's going on?
->>>
->>><3>i2c_omap i2c_omap.1: controller timed out
->>><3>i2c_omap i2c_omap.1: controller timed out
->>><3>twl4030_usb: i2c write failed, line 422
->>
->>Looks suspiciously like the symptons in
->>
->>http://code.google.com/p/beagleboard/issues/detail?id=14
-> 
-> 
-> This also looks similar to the earlier twl4030 hangs where access
-> to some domains caused twl4030 to hang. If twl4030 hangs, there's
-> no way to reset it as all control is over I2C. When twl4030 hangs,
-> bootloader won't be able to detect the chip either unless devices
-> is power cycled (and USB cable detached).
-> 
-> The reason earlier was that twl4030 internal clock was not being
-> programmed properly, and was fixed by patch
-> 0d81cf7e804c529c58d3054c1b9bdb7b3f1dec5d.
+This patch adds a driver to turn on the TFP410 framer that drives the  
+DVI port on the beagleboard. Framebuffer console is looking strange,  
+but X11 works great.
 
-Link for this is
+Signed-off-by: Koen Kooi <koen@openembedded.org>
+---
+  arch/arm/mach-omap2/board-omap3beagle.c |   11 +++
+  drivers/video/omap/Makefile             |    1 +
+  drivers/video/omap/lcd_omap3beagle.c    |  140 ++++++++++++++++++++++ 
++++++++++
+  3 files changed, 152 insertions(+), 0 deletions(-)
+  create mode 100644 drivers/video/omap/lcd_omap3beagle.c
 
-http://source.mvista.com/git/?p=linux-omap-2.6.git;a=commitdiff;h=0d81cf7e804c529c58d3054c1b9bdb7b3f1dec5d
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach- 
+omap2/board-omap3beagle.c
+index 0c0cbfc..c992cc7 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -63,12 +63,23 @@ static struct platform_device  
+omap3_beagle_twl4030rtc_device = {
+  	.id             = -1,
+  };
 
-I don't know OMAP3 good enough yet, but which clock should we use on 
-OMAP3 here?
++static struct platform_device omap3_beagle_lcd_device = {
++	.name		= "omap3beagle_lcd",
++	.id		= -1,
++};
++
++static struct omap_lcd_config omap3_beagle_lcd_config __initdata = {
++	.ctrl_name	= "internal",
++};
++
+  static struct omap_board_config_kernel omap3_beagle_config[]  
+__initdata = {
+  	{ OMAP_TAG_UART,	&omap3_beagle_uart_config },
+  	{ OMAP_TAG_MMC,		&omap3beagle_mmc_config },
++	{ OMAP_TAG_LCD,		&omap3_beagle_lcd_config },
+  };
 
-Does it make sense to use osc_ck for OMAP3 instead of osc_sys_ck, too?
+  static struct platform_device *omap3_beagle_devices[] __initdata = {
++	&omap3_beagle_lcd_device,
+  #ifdef CONFIG_RTC_DRV_TWL4030
+  	&omap3_beagle_twl4030rtc_device,
+  #endif
+diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
+index cad6a68..fe7ee5d 100644
+--- a/drivers/video/omap/Makefile
++++ b/drivers/video/omap/Makefile
+@@ -32,6 +32,7 @@ objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
+  objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd_2430sdp.o
+  objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_2430sdp.o
+  objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
++objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
+  objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
 
-E.g something like
+  omapfb-objs := $(objs-yy)
+diff --git a/drivers/video/omap/lcd_omap3beagle.c b/drivers/video/omap/ 
+lcd_omap3beagle.c
+new file mode 100644
+index 0000000..d49101a
+--- /dev/null
++++ b/drivers/video/omap/lcd_omap3beagle.c
+@@ -0,0 +1,140 @@
++/*
++ * LCD panel support for the TI OMAP3 Beagle board
++ *
++ * Author: Koen Kooi <koen@openembedded.org>
++ *
++ * Derived from drivers/video/omap/lcd-omap3evm.c
++ *
++ * This program is free software; you can redistribute it and/or  
+modify it
++ * under the terms of the GNU General Public License as published by  
+the
++ * Free Software Foundation; either version 2 of the License, or (at  
+your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License  
+along
++ * with this program; if not, write to the Free Software Foundation,  
+Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/i2c/twl4030.h>
++
++#include <asm/arch/gpio.h>
++#include <asm/arch/mux.h>
++#include <asm/arch/omapfb.h>
++#include <asm/mach-types.h>
++
++#define LCD_PANEL_ENABLE_GPIO       170
++
++#define LCD_XRES	 	1024	
++#define LCD_YRES 		768
++#define LCD_PIXCLOCK_MAX        64000 /* in pico seconds  */
++#define LCD_PIXCLOCK_MIN        64000 /* in pico seconds */
++
++#define ENABLE_VDAC_DEDICATED	0x03
++#define ENABLE_VDAC_DEV_GRP	0x20
++#define ENABLE_VPLL2_DEDICATED	0x05
++#define ENABLE_VPLL2_DEV_GRP	0xE0
++
++static int omap3beagle_panel_init(struct lcd_panel *panel,
++				struct omapfb_device *fbdev)
++{
++	omap_request_gpio(LCD_PANEL_ENABLE_GPIO);
++
++	return 0;
++}
++
++static void omap3beagle_panel_cleanup(struct lcd_panel *panel)
++{
++}
++
++static int omap3beagle_panel_enable(struct lcd_panel *panel)
++{
++	omap_set_gpio_dataout(LCD_PANEL_ENABLE_GPIO, 1);
++	return 0;
++}
++
++static void omap3beagle_panel_disable(struct lcd_panel *panel)
++{
++	omap_set_gpio_dataout(LCD_PANEL_ENABLE_GPIO, 0);
++}
++
++static unsigned long omap3beagle_panel_get_caps(struct lcd_panel  
+*panel)
++{
++	return 0;
++}
++
++struct lcd_panel omap3beagle_panel = {
++	.name		= "omap3beagle",
++	.config		= OMAP_LCDC_PANEL_TFT,
++
++	.bpp		= 24,
++	.data_lines	= 24,
++	.x_res		= LCD_XRES,
++	.y_res		= LCD_YRES,
++	.hsw		= 3,		/* hsync_len (4) - 1 */
++	.hfp		= 3,		/* right_margin (4) - 1 */
++	.hbp		= 39,		/* left_margin (40) - 1 */
++	.vsw		= 1,		/* vsync_len (2) - 1 */
++	.vfp		= 2,		/* lower_margin */
++	.vbp		= 7,		/* upper_margin (8) - 1 */
++
++	.pixel_clock	= LCD_PIXCLOCK_MAX,
++
++	.init		= omap3beagle_panel_init,
++	.cleanup	= omap3beagle_panel_cleanup,
++	.enable		= omap3beagle_panel_enable,
++	.disable	= omap3beagle_panel_disable,
++	.get_caps	= omap3beagle_panel_get_caps,
++};
++
++static int omap3beagle_panel_probe(struct platform_device *pdev)
++{
++	omapfb_register_panel(&omap3beagle_panel);
++	return 0;
++}
++
++static int omap3beagle_panel_remove(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static int omap3beagle_panel_suspend(struct platform_device *pdev,
++				   pm_message_t mesg)
++{
++	return 0;
++}
++
++static int omap3beagle_panel_resume(struct platform_device *pdev)
++{
++	return 0;
++}
++
++struct platform_driver omap3beagle_panel_driver = {
++	.probe		= omap3beagle_panel_probe,
++	.remove		= omap3beagle_panel_remove,
++	.suspend	= omap3beagle_panel_suspend,
++	.resume		= omap3beagle_panel_resume,
++	.driver		= {
++		.name	= "omap3beagle_lcd",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init omap3beagle_panel_drv_init(void)
++{
++	return platform_driver_register(&omap3beagle_panel_driver);
++}
++
++static void __exit omap3beagle_panel_drv_exit(void)
++{
++	platform_driver_unregister(&omap3beagle_panel_driver);
++}
++
++module_init(omap3beagle_panel_drv_init);
++module_exit(omap3beagle_panel_drv_exit);
+-- 
+1.5.4.3
 
-...
-if (cpu_is_omap2430() || cpu_is_omap34xx())
-   osc = clk_get(NULL, "osc_ck");
-else
-   osc = clk_get(NULL, "osc_sys_ck");
-...
 
-Dirk
