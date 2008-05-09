@@ -1,99 +1,127 @@
 From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: 2430SDP booting problem with the latest git
-Date: Fri, 9 May 2008 16:46:17 +0200
-Message-ID: <82523908-9B09-42C1-8393-181C463503B1@student.utwente.nl>
-References: <c656a4d20805090613l1ecf4201m4385bb4ee75e9d90@mail.gmail.com> <30da4de7f0df635e44381efc88211bb4@felipebalbi.com>
+Subject: Re: [PATCH] ARM: OMAP: add RTC support to beagleboard
+Date: Fri, 9 May 2008 16:49:27 +0200
+Message-ID: <E454E413-ED07-497F-811C-5BDAE97B468A@student.utwente.nl>
+References: <6996A016-47DB-45BF-8F78-8AD0051C4695@student.utwente.nl> <fb249edb0805080955h5222acdcy1fe8f3d83f251d43@mail.gmail.com> <E0DD11B5-7C21-4B77-A980-BFB116BC1A96@student.utwente.nl>
 Mime-Version: 1.0 (Apple Message framework v919.2)
 Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx1.utsp.utwente.nl ([130.89.2.12]:38133 "EHLO mx.utwente.nl"
+Received: from mx1.utsp.utwente.nl ([130.89.2.12]:38427 "EHLO mx.utwente.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751270AbYEIOv7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 May 2008 10:51:59 -0400
-In-Reply-To: <30da4de7f0df635e44381efc88211bb4@felipebalbi.com>
+	id S1751800AbYEIO4m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 May 2008 10:56:42 -0400
+In-Reply-To: <E0DD11B5-7C21-4B77-A980-BFB116BC1A96@student.utwente.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Beagle Board <beagleboard@googlegroups.com>
 
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
 
-Op 9 mei 2008, om 15:42 heeft Felipe Balbi het volgende geschreven:
+Op 8 mei 2008, om 19:04 heeft Koen Kooi het volgende geschreven:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
 >
 >
-> On Fri, 9 May 2008 18:43:40 +0530, "arun c"
-
-<snip>
-
->> TWL4030 GPIO Demux: IRQ Range 384 to 402, Initialization Failed
->> omapflash.0: Found 1 x16 devices at 0x0 in 16-bit bank
->> omapflash.0: Found 1 x16 devices at 0x2000000 in 16-bit bank
->> Intel/Sharp Extended Query Table at 0x010A
->> Intel/Sharp Extended Query Table at 0x010A
->> Intel/Sharp Extended Query Table at 0x010A
->> Intel/Sharp Extended Query Table at 0x010A
->> Intel/Sharp Extended Query Table at 0x010A
->> Intel/Sharp Extended Query Table at 0x010A
->> Using buffer write method
->> Using auto-unlock on power-up/resume
->> cfi_cmdset_0001: Erase suspend on write enabled
->> OMAP2 OneNAND driver initializing
->> input: omap_twl4030keypad as /class/input/input0
->> omap_twl4030keypad omap_twl4030keypad: Could not write TWL4030: 0 -
->> ret -121[ff]OMAP Watchdog Timer Rev 0x22: initial timeout 60 sec
->> mmci-omap: probe of mmci-omap.1 failed with error -22
+> Op 8 mei 2008, om 18:55 heeft andrzej zaborowski het volgende  
+> geschreven:
+>> Something must be missing here, omap3_beagle_devices is not being  
+>> referenced.
+>>
+>> The missing line probably looks something like
+>> platform_add_devices(omap3_beagle_devices,  
+>> ARRAY_SIZE(omap3_beagle_devices));
 >
-> Besides the omapfb, this took my attention as well.
-> MMC is failing on 2430sdp, could anyone take a look at it ?
+> You're 100% right :) I forgot --amend, so the patch missed my second  
+> commit
+>
+>> You can also add the #ifdef around omap3_beagle_twl4030rtc_device to
+>> avoid a compiler warning, or drop it in both places.
+>
+> The idea is that a next patch (rudimentary lcd support) will add  
+> device in there as well. I can move the ifdef for this patch if you  
+> want.
+>
+> thanks for the review,
+>
+> Koen
+>
+> Updated patch:
 
-Lots of TWL related stuff is failing (from log above):
+With the current patch I get this in the bootlog:
 
->> TWL4030 GPIO Demux: IRQ Range 384 to 402, Initialization Failed
+usb0: RNDIS ready
+mice: PS/2 mouse device common for all mice
+twl4030_rtc twl4030_rtc: rtc core: registered twl4030_rtc as rtc0
+OMAP Watchdog Timer Rev 0x31: initial timeout 60 sec
+[..]
+twl4030_rtc twl4030_rtc: setting system clock to 2000-01-01 00:02:15  
+UTC (946684935)
 
->> omap_twl4030keypad omap_twl4030keypad: Could not write TWL4030: 0 -
-
-So the mmc problem might be the twl acting up: http://thread.gmane.org/gmane.linux.ports.arm.omap/8173
+So it works :)
 
 regards,
 
 Koen
 
 
-
-
 >
 >
->> TCP cubic registered
->> NET: Registered protocol family 17
->> NET: Registered protocol family 15
->> RPC: Registered udp transport module.
->> RPC: Registered tcp transport module.
->> Power Management for OMAP2 initializing
->> PRCM revision 1.0
->> eth0: link up
->> Sending DHCP requests ., OK
->> IP-Config: Got DHCP answer from 0.0.0.0, my address is 192.168.13.153
->> IP-Config: Complete:
->>     device=eth0, addr=192.168.13.153, mask=255.255.255.0,
->> gw=192.168.13.188,
->>     host=192.168.13.153, domain=, nis-domain=(none),
->>     bootserver=0.0.0.0, rootserver=192.168.10.135, rootpath=
->> Looking up port of RPC 100003/2 on 192.168.10.135
->> ###########################################
->>
->> Regards,
->> Arun C
+> This patch adds RTC support to the omap3 based beagleboard
 >
-> --  
-> Best Regards,
+> Signed-off-by: Koen Kooi <koen@openembedded.org>
+> - ---
+> arch/arm/mach-omap2/board-omap3beagle.c |   12 ++++++++++++
+> 1 files changed, 12 insertions(+), 0 deletions(-)
 >
-> Felipe Balbi
-> http://felipebalbi.com
-> me@felipebalbi.com
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach- 
+> omap2/board-omap3beagle.c
+> index 626f004..0c0cbfc 100644
+> - --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -58,13 +58,25 @@ static struct omap_mmc_config  
+> omap3beagle_mmc_config __initdata = {
+> 	},
+> };
 >
+> +static struct platform_device omap3_beagle_twl4030rtc_device = {
+> +	.name           = "twl4030_rtc",
+> +	.id             = -1,
+> +};
+> +
+> static struct omap_board_config_kernel omap3_beagle_config[]  
+> __initdata = {
+> 	{ OMAP_TAG_UART,	&omap3_beagle_uart_config },
+> 	{ OMAP_TAG_MMC,		&omap3beagle_mmc_config },
+> };
+>
+> +static struct platform_device *omap3_beagle_devices[] __initdata = {
+> +#ifdef CONFIG_RTC_DRV_TWL4030
+> +	&omap3_beagle_twl4030rtc_device,
+> +#endif
+> +};
+> +
+> static void __init omap3_beagle_init(void)
+> {
+> +	platform_add_devices(omap3_beagle_devices,  
+> ARRAY_SIZE(omap3_beagle_devices));
+> 	omap_board_config = omap3_beagle_config;
+> 	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
+> 	omap_serial_init();
+> - --
+> 1.5.4.3
+>
+>
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v1.4.5 (Darwin)
+>
+> iD8DBQFIIzK8MkyGM64RGpERAgE7AJ9meokVhJ/V/iR3PfwNbf0ZeR0aDACcDP2/
+> 2kdpcssXcbftzzC5o6D2mLU=
+> =dk6K
+> -----END PGP SIGNATURE-----
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux- 
 > omap" in
@@ -104,7 +132,7 @@ Koen
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.5 (Darwin)
 
-iD8DBQFIJGO7MkyGM64RGpERArnUAJ9IZCnp3dMFr8c8glPATMs0ZnCPpQCgrkys
-XMdm6x3WbJYwJsEHq99iwa4=
-=3M2b
+iD8DBQFIJGR5MkyGM64RGpERAozLAJ9p3ee94zhiX5NKOr1/8Sv5v/YBXwCePaRS
+/hoiJjfbEV+rHBnnxc1wKak=
+=nRIx
 -----END PGP SIGNATURE-----
