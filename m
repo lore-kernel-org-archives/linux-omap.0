@@ -1,37 +1,111 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/PATCH 0/3] OMAP3 EVM: enable ethernet support
-Date: Fri, 9 May 2008 15:00:14 -0700
-Message-ID: <20080509220014.GH5976@atomide.com>
-References: <5e088bd90805080947u5ffc7188h4a1df0309841b767@mail.gmail.com>
+Subject: Re: [PATCH] OMAP: EHCI: Support new USB expansion board
+Date: Fri, 9 May 2008 15:01:37 -0700
+Message-ID: <20080509220136.GI5976@atomide.com>
+References: <FCCFB4CDC6E5564B9182F639FC35608701291523C0@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52709 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752906AbYEIWAQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2008 18:00:16 -0400
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:62472 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752316AbYEIWBi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2008 18:01:38 -0400
 Content-Disposition: inline
-In-Reply-To: <5e088bd90805080947u5ffc7188h4a1df0309841b767@mail.gmail.com>
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608701291523C0@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Steve Sakoman <sakoman@gmail.com> [080508 09:48]:
-> This series of patches enables ethernet support on the OMAP3 EVM.  It
-> has been tested with an x11 image and I was able to successfully
-> browse the web and download OE packages.
+Hi,
+
+* Pandita, Vikram <vikram.pandita@ti.com> [080502 03:04]:
 > 
-> The first patch has been submitted to linux-netdev by Nishant Kamat
-> and is currently under consideration there.  The second two patches
-> are linux-omap specific.
+>  - Code changes for next revision of USB expansion board 750-2099-001(C)
+>    with h/w bug fixes to support ISP1504 PHY in input clocking mode
+> 
+>  - Changes tested on SDP3430
 
-Good to hear it was sent to linux-netdev.
-
-> I'm posting this series for comment while we wait for acceptance of
-> the first patch.
-
-Well I'll push them so the board is more usable :) I'll use whatever
-version comes from upstream for the smc91x files.
+Does this still work with older boards too?
 
 Tony
+
+
+> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+> ---
+>  drivers/usb/host/ehci-omap.c |   37 ++++++-------------------------------
+>  1 file changed, 6 insertions(+), 31 deletions(-)
+> 
+> Index: linux-omap-2.6/drivers/usb/host/ehci-omap.c
+> ===================================================================
+> --- linux-omap-2.6.orig/drivers/usb/host/ehci-omap.c    2008-05-02 14:11:56.000000000 +0530
+> +++ linux-omap-2.6/drivers/usb/host/ehci-omap.c 2008-05-02 15:05:40.000000000 +0530
+> @@ -35,7 +35,7 @@
+>  #ifdef CONFIG_OMAP_EHCI_PHY_MODE
+>  /* EHCI connected to External PHY */
+> 
+> -/* External USB connectivity board: 750-2083-001
+> +/* External USB connectivity board: 750-2099-001(C)
+>   * Connected to OMAP3430 SDP
+>   * The board has Port1 and Port2 connected to ISP1504 in 12-pin ULPI mode
+>   */
+> @@ -50,14 +50,7 @@
+>  #define EXTERNAL_PHY_RESET
+>  #define        EXT_PHY_RESET_GPIO_PORT1        (57)
+>  #define        EXT_PHY_RESET_GPIO_PORT2        (61)
+> -#define        EXT_PHY_RESET_DELAY             (10)
+> -
+> -/* ISSUE2:
+> - * USBHOST supports External charge pump PHYs only
+> - * Use the VBUS from Port1 to power VBUS of Port2 externally
+> - * So use Port2 as the working ULPI port
+> - */
+> -#define VBUS_INTERNAL_CHARGEPUMP_HACK
+> +#define        EXT_PHY_RESET_DELAY             (500)
+> 
+>  #endif /* CONFIG_OMAP_EHCI_PHY_MODE */
+> 
+> @@ -228,8 +221,8 @@ static int omap_start_ehc(struct platfor
+>         omap_set_gpio_direction(EXT_PHY_RESET_GPIO_PORT1, 0);
+>         omap_request_gpio(EXT_PHY_RESET_GPIO_PORT2);
+>         omap_set_gpio_direction(EXT_PHY_RESET_GPIO_PORT2, 0);
+> -       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT1, 0);
+> -       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT2, 0);
+> +       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT1, 1);
+> +       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT2, 1);
+>         /* Hold the PHY in RESET for enough time till DIR is high */
+>         udelay(EXT_PHY_RESET_DELAY);
+>  #endif
+> @@ -305,26 +298,8 @@ static int omap_start_ehc(struct platfor
+>          * Hold the PHY in RESET for enough time till PHY is settled and ready
+>          */
+>         udelay(EXT_PHY_RESET_DELAY);
+> -       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT1, 1);
+> -       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT2, 1);
+> -#endif
+> -
+> -#ifdef VBUS_INTERNAL_CHARGEPUMP_HACK
+> -       /* Refer ISSUE2: LINK assumes external charge pump */
+> -
+> -       /* use Port1 VBUS to charge externally Port2:
+> -        *      So for PHY mode operation use Port2 only
+> -        */
+> -       omap_writel((0xA << EHCI_INSNREG05_ULPI_REGADD_SHIFT) |/* OTG ctrl reg*/
+> -                       (2 << EHCI_INSNREG05_ULPI_OPSEL_SHIFT) |/*   Write */
+> -                       (1 << EHCI_INSNREG05_ULPI_PORTSEL_SHIFT) |/* Port1 */
+> -                       (1 << EHCI_INSNREG05_ULPI_CONTROL_SHIFT) |/* Start */
+> -                       (0x26),
+> -                       EHCI_INSNREG05_ULPI);
+> -
+> -       while (!(omap_readl(EHCI_INSNREG05_ULPI) &
+> -               (1<<EHCI_INSNREG05_ULPI_CONTROL_SHIFT)));
+> -
+> +       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT1, 0);
+> +       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT2, 0);
+>  #endif
+> 
+>         return 0;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
