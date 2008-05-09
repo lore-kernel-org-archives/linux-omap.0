@@ -1,144 +1,96 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/11] ARM: OMAP: Update MMC header to fix compile
-Date: Fri, 9 May 2008 10:30:45 -0700
-Message-ID: <20080509173044.GH24454@atomide.com>
-References: <1210286975-29506-1-git-send-email-tony@atomide.com> <1210286975-29506-2-git-send-email-tony@atomide.com> <1d0d774ffcdd0ab0537d3b0917d42144@felipebalbi.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: [PATCH 6/7] OMAP3 EVM: add lcd support (resubmit to respond to feedback)
+Date: Fri, 9 May 2008 10:35:29 -0700
+Message-ID: <5e088bd90805091035lbd4bf0ei6febbc463275c48a@mail.gmail.com>
+References: <5e088bd90804292353t9e05fcatf1505a086770cb63@mail.gmail.com>
+	 <2a4801c741aef4f504dbaf153b85afab@felipebalbi.com>
+	 <5e088bd90804300714p5349a257rf1b89ddd347bb72@mail.gmail.com>
+	 <5D9B6FC3-222B-4315-9DA9-62C8FFFB4537@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="xHFwDpU9dbj6ez1V"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:57599 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757401AbYEIRax (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2008 13:30:53 -0400
+Received: from fg-out-1718.google.com ([72.14.220.156]:63499 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753483AbYEIRfd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2008 13:35:33 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so898350fgg.17
+        for <linux-omap@vger.kernel.org>; Fri, 09 May 2008 10:35:29 -0700 (PDT)
+In-Reply-To: <5D9B6FC3-222B-4315-9DA9-62C8FFFB4537@student.utwente.nl>
 Content-Disposition: inline
-In-Reply-To: <1d0d774ffcdd0ab0537d3b0917d42144@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: linux-omap@vger.kernel.org
 
+>  I strongly suspect the above comments needs to be "/* in kHz */ ...
 
---xHFwDpU9dbj6ez1V
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+That is correct - a cut and paste from the old style driver that I did not fix.
 
-* Felipe Balbi <me@felipebalbi.com> [080509 02:51]:
-> 
-> 
-> On Thu,  8 May 2008 15:49:25 -0700, Tony Lindgren <tony@atomide.com> wrote:
-> > Update MMC header from linux-omap tree to match the recent
-> > MMC driver updates.
-> > 
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+I will submit a cleanup patch later today.
+
+Thanks!
+
+Steve
+
+On Fri, May 9, 2008 at 9:35 AM, Koen Kooi <k.kooi@student.utwente.nl> wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+>  Hash: SHA1
+>
+>
+>  Op 30 apr 2008, om 16:14 heeft Steve Sakoman het volgende geschreven:
+>
+> >
+> > From: Steve Sakoman <steve@sakoman.com>
+> >
+> > Add LCD support for OMAP3 EVM
+> >
+> > Signed-off-by: Steve Sakoman <steve@sakoman.com>
 > > ---
-> >  include/asm-arm/arch-omap/mmc.h |   26 ++++++++++++++++----------
-> >  1 files changed, 16 insertions(+), 10 deletions(-)
-> > 
-> > diff --git a/include/asm-arm/arch-omap/mmc.h
-> > b/include/asm-arm/arch-omap/mmc.h
-> > index c9588f4..6dff38e 100644
-> > --- a/include/asm-arm/arch-omap/mmc.h
-> > +++ b/include/asm-arm/arch-omap/mmc.h
-> > @@ -15,21 +15,16 @@
-> >  #include <linux/device.h>
-> >  #include <linux/mmc/host.h>
-> > 
-> > +#include <asm/arch/board.h>
+> >
+> >
+> > +#define LCD_PIXCLOCK_MAX       41700 /* in pico seconds  */
+> > +#define LCD_PIXCLOCK_MIN       38000 /* in pico seconds */
+> >
+>
+>  I strongly suspect the above comments needs to be "/* in kHz */ ...
+>
+>
+>
+> >
+> > +struct lcd_panel omap3evm_panel = {
+> > +       .name           = "omap3evm",
+> > +       .config         = OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
+> > +                         OMAP_LCDC_INV_HSYNC,
 > > +
-> >  #define OMAP_MMC_MAX_SLOTS	2
-> > 
-> >  struct omap_mmc_platform_data {
-> > -	struct omap_mmc_conf	conf;
-> > +	struct omap_mmc_conf    conf;
-> 
-> could you revert this line ? you converted the tab into spaces.
-
-Yeah, that should not be there. Updated patch below, also fixed
-in linux-omap tree.
-
-Tony
-
---xHFwDpU9dbj6ez1V
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="0001-ARM-OMAP-Update-MMC-header-to-fix-compile.patch"
-
->From 0a4b53a22d75efa750f0b93c9b00dd0dc51c0b07 Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Thu, 8 May 2008 15:30:33 -0700
-Subject: [PATCH] ARM: OMAP: Update MMC header to fix compile
-
-Update MMC header from linux-omap tree to match the recent
-MMC driver updates.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- include/asm-arm/arch-omap/mmc.h |   24 +++++++++++++++---------
- 1 files changed, 15 insertions(+), 9 deletions(-)
-
-diff --git a/include/asm-arm/arch-omap/mmc.h b/include/asm-arm/arch-omap/mmc.h
-index c9588f4..7cfc5f2 100644
---- a/include/asm-arm/arch-omap/mmc.h
-+++ b/include/asm-arm/arch-omap/mmc.h
-@@ -15,21 +15,16 @@
- #include <linux/device.h>
- #include <linux/mmc/host.h>
- 
-+#include <asm/arch/board.h>
-+
- #define OMAP_MMC_MAX_SLOTS	2
- 
- struct omap_mmc_platform_data {
- 	struct omap_mmc_conf	conf;
- 
--	unsigned enabled:1;
- 	/* number of slots on board */
- 	unsigned nr_slots:2;
--	/* nomux means "standard" muxing is wrong on this board, and that
--	 * board-specific code handled it before common init logic.
--	 */
--	unsigned nomux:1;
--	/* 4 wire signaling is optional, and is only used for SD/SDIO and
--	 * MMCv4 */
--	unsigned wire4:1;
-+
- 	/* set if your board has components or wiring that limits the
- 	 * maximum frequency on the MMC bus */
- 	unsigned int max_freq;
-@@ -40,6 +35,11 @@ struct omap_mmc_platform_data {
- 	 * not supported */
- 	int (* init)(struct device *dev);
- 	void (* cleanup)(struct device *dev);
-+	void (* shutdown)(struct device *dev);
-+
-+	/* To handle board related suspend/resume functionality for MMC */
-+	int (*suspend)(struct device *dev, int slot);
-+	int (*resume)(struct device *dev, int slot);
- 
- 	struct omap_mmc_slot_data {
- 		int (* set_bus_mode)(struct device *dev, int slot, int bus_mode);
-@@ -56,13 +56,19 @@ struct omap_mmc_platform_data {
- 
- 		const char *name;
- 		u32 ocr_mask;
-+
-+		/* Card detection IRQs */
-+		int card_detect_irq;
-+		int (* card_detect)(int irq);
-+
-+		unsigned int ban_openended:1;
-+
- 	} slots[OMAP_MMC_MAX_SLOTS];
- };
- 
- extern void omap_set_mmc_info(int host, const struct omap_mmc_platform_data *info);
- 
- /* called from board-specific card detection service routine */
--extern void omap_mmc_notify_card_detect(struct device *dev, int slot, int detected);
- extern void omap_mmc_notify_cover_event(struct device *dev, int slot, int is_closed);
- 
- #endif
--- 
-1.5.3.6
-
-
---xHFwDpU9dbj6ez1V--
+> > +       .bpp            = 16,
+> > +       .data_lines     = 18,
+> > +       .x_res          = LCD_XRES,
+> > +       .y_res          = LCD_YRES,
+> > +       .hsw            = 3,            /* hsync_len (4) - 1 */
+> > +       .hfp            = 3,            /* right_margin (4) - 1 */
+> > +       .hbp            = 39,           /* left_margin (40) - 1 */
+> > +       .vsw            = 1,            /* vsync_len (2) - 1 */
+> > +       .vfp            = 2,            /* lower_margin */
+> > +       .vbp            = 7,            /* upper_margin (8) - 1 */
+> > +
+> > +       .pixel_clock    = LCD_PIXCLOCK_MAX,
+> >
+>
+>  ... since pixel_clock seems to be in kHz. Could someone confirm this?
+>
+>  regards,
+>
+>  Koen
+>  -----BEGIN PGP SIGNATURE-----
+>  Version: GnuPG v1.4.5 (Darwin)
+>
+>  iD8DBQFIJH1KMkyGM64RGpERAifEAJwLITHNkhjJ/zhKKiTFdVEq+6AuMgCfVoXd
+>  oFX58FQibqqSyaIk4sTVCNE=
+>  =yJ/0
+>  -----END PGP SIGNATURE-----
+>  --
+>  To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>  the body of a message to majordomo@vger.kernel.org
+>  More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
