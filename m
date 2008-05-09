@@ -1,66 +1,116 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: pending patch
-Date: Fri, 9 May 2008 12:19:19 +0300
-Message-ID: <20080509091919.GB4326@gandalf.research.nokia.com>
-References: <20080425075245.GX23350@gandalf.research.nokia.com> <200804250235.21910.david-b@pacbell.net> <20080425101837.GZ23350@gandalf.research.nokia.com> <20080425163644.GC23025@atomide.com> <20080425184543.GB27479@kedavra.cpe.vivax.com.br>
-Reply-To: felipe.balbi@nokia.com
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 1/11] ARM: OMAP: Update MMC header to fix compile
+Date: Fri, 09 May 2008 04:51:35 -0500
+Message-ID: <1d0d774ffcdd0ab0537d3b0917d42144@felipebalbi.com>
+References: omap-fixes-2008-05-08-154932 <1210286975-29506-1-git-send-email-tony@atomide.com> <1210286975-29506-2-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:37541 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758331AbYEIJUf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2008 05:20:35 -0400
-Content-Disposition: inline
-In-Reply-To: <20080425184543.GB27479@kedavra.cpe.vivax.com.br>
+Received: from ns1.siteground211.com ([209.62.36.12]:50916 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753651AbYEIJvi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2008 05:51:38 -0400
+In-Reply-To: <1210286975-29506-2-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Felipe Balbi <me@felipebalbi.com>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>, ext David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-On Fri, Apr 25, 2008 at 09:45:43PM +0300, ext Felipe Balbi wrote:
-> On Fri, Apr 25, 2008 at 09:36:44AM -0700, Tony Lindgren wrote:
-> > * Felipe Balbi <felipe.balbi@nokia.com> [080425 03:19]:
-> > > On Fri, Apr 25, 2008 at 02:35:21AM -0700, David Brownell wrote:
-> > > > On Friday 25 April 2008, Felipe Balbi wrote:
-> > > > > Hi Tony and Dave,
-> > > > > 
-> > > > > there's this one pending patch [1]. Do you guys have any comments on that
-> > > > > one?
-> > > > > 
-> > > > > Author: Felipe Balbi <felipe.balbi@nokia.com>
-> > > > > Date:   Thu Apr 17 17:34:20 2008 +0300
-> > > > > 
-> > > > >     USB: MUSB: Don't ignore disconnect on suspend
-> > > > >     
-> > > > >     As soon as a usb device is disconnect we should
-> > > > >     fall into a_wait_bcon state, ignoring disconnect
-> > > > >     irq will prevent this behaviour.
-> > > > 
-> > > > If it passes the OTG tests, fine.  I don't recall how the
-> > > > HNP handoff's disconnect signaling is handled ... presumably
-> > > > it's different from some "real" disconnect.
-> > > 
-> > > No opt available for now...
-> > > The problem is that when you ignore disconnect on suspend you only ack
-> > > the disconnect interrupt after attaching other device. It won't get us
-> > > too much trouble besides the bit will still set in int_src, but still
-> > > musb should ack disconnect as soon as it happens, shouldn't it? And
-> > > right after that start the timer for switching from a_wait_bcon to
-> > > a_wait_vfall and after that a_idle.
-> > > 
-> > > But as soon as I have and opt available, I'll try to run this test and
-> > > report you if I can see any issues with this patch applied.
-> > > 
-> > > For now, let's keep it as pending so.
-> > 
-> > Yeah. I have not applied any musb/tusb patches because of being afraid
-> > of the HS OTG OPT tests breaking.. Still have them all in my l-o mailbox
-> > though. So let's plan on applying things after somebody (Felipe?) gets
-> > to run HS OTG OPT on them for musb and tusb.
 
-Ok, this patch doesn't break any opt tests. Safe to apply. Tested
-yesterday.
 
+On Thu,  8 May 2008 15:49:25 -0700, Tony Lindgren <tony@atomide.com> wrote:
+> Update MMC header from linux-omap tree to match the recent
+> MMC driver updates.
+> 
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  include/asm-arm/arch-omap/mmc.h |   26 ++++++++++++++++----------
+>  1 files changed, 16 insertions(+), 10 deletions(-)
+> 
+> diff --git a/include/asm-arm/arch-omap/mmc.h
+> b/include/asm-arm/arch-omap/mmc.h
+> index c9588f4..6dff38e 100644
+> --- a/include/asm-arm/arch-omap/mmc.h
+> +++ b/include/asm-arm/arch-omap/mmc.h
+> @@ -15,21 +15,16 @@
+>  #include <linux/device.h>
+>  #include <linux/mmc/host.h>
+> 
+> +#include <asm/arch/board.h>
+> +
+>  #define OMAP_MMC_MAX_SLOTS	2
+> 
+>  struct omap_mmc_platform_data {
+> -	struct omap_mmc_conf	conf;
+> +	struct omap_mmc_conf    conf;
+
+could you revert this line ? you converted the tab into spaces.
+
+> 
+> -	unsigned enabled:1;
+>  	/* number of slots on board */
+>  	unsigned nr_slots:2;
+> -	/* nomux means "standard" muxing is wrong on this board, and that
+> -	 * board-specific code handled it before common init logic.
+> -	 */
+> -	unsigned nomux:1;
+> -	/* 4 wire signaling is optional, and is only used for SD/SDIO and
+> -	 * MMCv4 */
+> -	unsigned wire4:1;
+> +
+>  	/* set if your board has components or wiring that limits the
+>  	 * maximum frequency on the MMC bus */
+>  	unsigned int max_freq;
+> @@ -40,6 +35,11 @@ struct omap_mmc_platform_data {
+>  	 * not supported */
+>  	int (* init)(struct device *dev);
+>  	void (* cleanup)(struct device *dev);
+> +	void (* shutdown)(struct device *dev);
+> +
+> +	/* To handle board related suspend/resume functionality for MMC */
+> +	int (*suspend)(struct device *dev, int slot);
+> +	int (*resume)(struct device *dev, int slot);
+> 
+>  	struct omap_mmc_slot_data {
+>  		int (* set_bus_mode)(struct device *dev, int slot, int bus_mode);
+> @@ -56,13 +56,19 @@ struct omap_mmc_platform_data {
+> 
+>  		const char *name;
+>  		u32 ocr_mask;
+> +
+> +		/* Card detection IRQs */
+> +		int card_detect_irq;
+> +		int (* card_detect)(int irq);
+> +
+> +		unsigned int ban_openended:1;
+> +
+>  	} slots[OMAP_MMC_MAX_SLOTS];
+>  };
+> 
+>  extern void omap_set_mmc_info(int host, const struct
+> omap_mmc_platform_data *info);
+> 
+>  /* called from board-specific card detection service routine */
+> -extern void omap_mmc_notify_card_detect(struct device *dev, int slot,
+int
+> detected);
+>  extern void omap_mmc_notify_cover_event(struct device *dev, int slot,
+int
+> is_closed);
+> 
+>  #endif
+> --
+> 1.5.3.6
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 -- 
-	- Balbi
+Best Regards,
+
+Felipe Balbi
+http://felipebalbi.com
+me@felipebalbi.com
+
