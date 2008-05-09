@@ -1,50 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] powerdomain: convert pwrdm_mutex to rwsem
-Date: Fri, 9 May 2008 14:42:50 -0700
-Message-ID: <20080509214250.GC5976@atomide.com>
-References: <alpine.DEB.1.00.0805071840260.8498@utopia.booyaka.com>
+Subject: Re: [PATCH try #2] powerdomain: convert pwrdm_mutex to rwsem
+Date: Fri, 9 May 2008 14:45:44 -0700
+Message-ID: <20080509214544.GD5976@atomide.com>
+References: <alpine.DEB.1.00.0805071850580.8498@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54048 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754094AbYEIVmv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2008 17:42:51 -0400
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:50578 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753594AbYEIVpq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2008 17:45:46 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.1.00.0805071840260.8498@utopia.booyaka.com>
+In-Reply-To: <alpine.DEB.1.00.0805071850580.8498@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap@vger.kernel.org, jouni.hogander@nokia.com
 
-* Paul Walmsley <paul@pwsan.com> [080507 17:42]:
+* Paul Walmsley <paul@pwsan.com> [080507 17:54]:
 >=20
-> Convert pwrdm_mutex to pwrdm_rwsem to avoid trying to relock mutex in=
- the=20
-> event that the pwrdm_for_each() callback function calls something tha=
-t=20
-> triggers a pwrdm_lookup().  Problem found by Jouni H=F6gander=20
-> <jouni.hogander@nokia.com>
+> Hi,=20
+>=20
+> that last patch escaped with some trailing whitespace.  Here's a fixe=
+d=20
+> copy.
 
-Pushing.
+Correction, pushing this one instead.
 
 Tony
 
-
+> - Paul
+>=20
+> ---
+>=20
+>=20
+> Convert pwrdm_mutex to pwrdm_rwsem to avoid trying to relock mutex in=
+ the
+> event that the pwrdm_for_each() callback function calls something tha=
+t
+> triggers a pwrdm_lookup().  Problem found by Jouni H=F6gander
+> <jouni.hogander@nokia.com>
 >=20
 > Signed-off-by: Paul Walmsley <paul@pwsan.com>
 >=20
 > ---
 >=20
->  arch/arm/mach-omap2/powerdomain.c |   69 ++++++++++++++++++++-------=
+>  arch/arm/mach-omap2/powerdomain.c |   61 ++++++++++++++++++++-------=
 ----------
->  1 files changed, 37 insertions(+), 32 deletions(-)
+>  1 files changed, 33 insertions(+), 28 deletions(-)
 >=20
 >=20
 > diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/=
 powerdomain.c
-> index dd9f40e..e1cfbbb 100644
+> index dd9f40e..939efe4 100644
 > --- a/arch/arm/mach-omap2/powerdomain.c
 > +++ b/arch/arm/mach-omap2/powerdomain.c
 > @@ -18,7 +18,7 @@
@@ -62,8 +71,8 @@ powerdomain.c
 > =20
 > -/* pwrdm_mutex protects pwrdm_list add and del ops */
 > -static DEFINE_MUTEX(pwrdm_mutex);
-> +/*=20
-> + * pwrdm_rwsem protects pwrdm_list add and del ops - also reused to=20
+> +/*
+> + * pwrdm_rwsem protects pwrdm_list add and del ops - also reused to
 > + * protect pwrdm_clkdms[] during clkdm add/del ops
 > + */
 > +static DECLARE_RWSEM(pwrdm_rwsem);
@@ -187,32 +196,19 @@ struct clockdomain *clkdm)
 >   * @pwrdm: struct powerdomain * to add the clockdomain to
 >   * @clkdm: struct clockdomain * to associate with a powerdomain
 >   *
-> @@ -299,25 +304,25 @@ int pwrdm_del_clkdm(struct powerdomain *pwrdm, =
-struct clockdomain *clkdm)
+> @@ -299,7 +304,7 @@ int pwrdm_del_clkdm(struct powerdomain *pwrdm, st=
+ruct clockdomain *clkdm)
 >  	pr_debug("powerdomain: dissociating clockdomain %s from powerdomain=
  "
 >  		 "%s\n", clkdm->name, pwrdm->name);
 > =20
 > -	mutex_lock(&pwrdm_mutex);
-> -
 > +	down_write(&pwrdm_rwsem);
-> +=09
+> =20
 >  	for (i =3D 0; i < PWRDM_MAX_CLKDMS; i++)
 >  		if (pwrdm->pwrdm_clkdms[i] =3D=3D clkdm)
->  			break;
-> -
-> +=09
->  	if (i =3D=3D PWRDM_MAX_CLKDMS) {
->  		pr_debug("powerdomain: clkdm %s not associated with pwrdm "
->  			 "%s ?!\n", clkdm->name, pwrdm->name);
->  		ret =3D -ENOENT;
->  		goto pdc_exit;
->  	}
-> -
-> +=09
->  	pwrdm->pwrdm_clkdms[i] =3D NULL;
-> -
-> +	=09
+> @@ -317,7 +322,7 @@ int pwrdm_del_clkdm(struct powerdomain *pwrdm, st=
+ruct clockdomain *clkdm)
 >  	ret =3D 0;
 > =20
 >  pdc_exit:
