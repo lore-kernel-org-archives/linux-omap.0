@@ -1,57 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 10/11] ARM: OMAP: Add PARENT_CONTROLS_CLOCK flag to dpll5_m2_ck
-Date: Thu,  8 May 2008 15:49:34 -0700
-Message-ID: <1210286975-29506-11-git-send-email-tony@atomide.com>
-References: omap-fixes-2008-05-08-154932
-	<1210286975-29506-1-git-send-email-tony@atomide.com>
-	<1210286975-29506-2-git-send-email-tony@atomide.com>
-	<1210286975-29506-3-git-send-email-tony@atomide.com>
-	<1210286975-29506-4-git-send-email-tony@atomide.com>
-	<1210286975-29506-5-git-send-email-tony@atomide.com>
-	<1210286975-29506-6-git-send-email-tony@atomide.com>
-	<1210286975-29506-7-git-send-email-tony@atomide.com>
-	<1210286975-29506-8-git-send-email-tony@atomide.com>
-	<1210286975-29506-9-git-send-email-tony@atomide.com>
-	<1210286975-29506-10-git-send-email-tony@atomide.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: pending patch
+Date: Fri, 9 May 2008 12:19:19 +0300
+Message-ID: <20080509091919.GB4326@gandalf.research.nokia.com>
+References: <20080425075245.GX23350@gandalf.research.nokia.com> <200804250235.21910.david-b@pacbell.net> <20080425101837.GZ23350@gandalf.research.nokia.com> <20080425163644.GC23025@atomide.com> <20080425184543.GB27479@kedavra.cpe.vivax.com.br>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
-In-Reply-To: <1210286975-29506-10-git-send-email-tony@atomide.com>
-List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://lists.arm.linux.org.uk/lurker/list/linux-arm-kernel.html>
-List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
-List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
-List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, =?utf-8?q?H=C3=B6gander=20Jouni?= <jouni.hogander@nokia.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:37541 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758331AbYEIJUf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 May 2008 05:20:35 -0400
+Content-Disposition: inline
+In-Reply-To: <20080425184543.GB27479@kedavra.cpe.vivax.com.br>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Felipe Balbi <me@felipebalbi.com>
+Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>, ext David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org
 
-RnJvbTogSMO2Z2FuZGVyIEpvdW5pIDxqb3VuaS5ob2dhbmRlckBub2tpYS5jb20+CgpUaGlzIHBh
-dGNoIHJlbW92ZXMgZm9sbG93aW5nIG1lc3NhZ2Ugb24gZHBsbDVfbTJfY2sgZW5hYmxlIGFuZApk
-aXNhYmxlOgoKY2xvY2suYzogRW5hYmxlIGZvciBkcGxsNV9tMl9jayB3aXRob3V0IGVuYWJsZSBj
-b2RlCmNsb2NrOiBjbGtfZGlzYWJsZSBjYWxsZWQgb24gaW5kZXBlbmRlbnQgY2xvY2sgZHBsbDVf
-bTJfY2sKd2hpY2ggaGFzIG5vIGVuYWJsZV9yZWcKClNpZ25lZC1vZmYtYnk6IEpvdW5pIEhvZ2Fu
-ZGVyIDxqb3VuaS5ob2dhbmRlckBub2tpYS5jb20+CkFja2VkLWJ5OiBQYXVsIFdhbG1zbGV5IDxw
-YXVsQHB3c2FuLmNvbT4KU2lnbmVkLW9mZi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRl
-LmNvbT4KLS0tCiBhcmNoL2FybS9tYWNoLW9tYXAyL2Nsb2NrMzR4eC5oIHwgICAgMyArKy0KIDEg
-ZmlsZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdp
-dCBhL2FyY2gvYXJtL21hY2gtb21hcDIvY2xvY2szNHh4LmggYi9hcmNoL2FybS9tYWNoLW9tYXAy
-L2Nsb2NrMzR4eC5oCmluZGV4IGY4YmRjYzEuLmM5YzU5NzIgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJt
-L21hY2gtb21hcDIvY2xvY2szNHh4LmgKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9jbG9jazM0
-eHguaApAQCAtODM2LDcgKzgzNiw4IEBAIHN0YXRpYyBzdHJ1Y3QgY2xrIGRwbGw1X20yX2NrID0g
-ewogCS5jbGtzZWxfcmVnCT0gT01BUF9DTV9SRUdBRERSKFBMTF9NT0QsIE9NQVAzNDMwRVMyX0NN
-X0NMS1NFTDUpLAogCS5jbGtzZWxfbWFzawk9IE9NQVAzNDMwRVMyX0RJVl8xMjBNX01BU0ssCiAJ
-LmNsa3NlbAkJPSBkaXYxNl9kcGxsNV9jbGtzZWwsCi0JLmZsYWdzCQk9IENMT0NLX0lOX09NQVAz
-NDMwRVMyIHwgUkFURV9QUk9QQUdBVEVTLAorCS5mbGFncwkJPSBDTE9DS19JTl9PTUFQMzQzMEVT
-MiB8IFJBVEVfUFJPUEFHQVRFUyB8CisJCQkJUEFSRU5UX0NPTlRST0xTX0NMT0NLLAogCS5yZWNh
-bGMJCT0gJm9tYXAyX2Nsa3NlbF9yZWNhbGMsCiB9OwogCi0tIAoxLjUuMy42CgoKLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LQpMaXN0IGFkbWluOiBodHRwOi8vbGlzdHMuYXJtLmxpbnV4Lm9yZy51ay9tYWlsbWFuL2xpc3Rp
-bmZvL2xpbnV4LWFybS1rZXJuZWwKRkFROiAgICAgICAgaHR0cDovL3d3dy5hcm0ubGludXgub3Jn
-LnVrL21haWxpbmdsaXN0cy9mYXEucGhwCkV0aXF1ZXR0ZTogIGh0dHA6Ly93d3cuYXJtLmxpbnV4
-Lm9yZy51ay9tYWlsaW5nbGlzdHMvZXRpcXVldHRlLnBocA==
+On Fri, Apr 25, 2008 at 09:45:43PM +0300, ext Felipe Balbi wrote:
+> On Fri, Apr 25, 2008 at 09:36:44AM -0700, Tony Lindgren wrote:
+> > * Felipe Balbi <felipe.balbi@nokia.com> [080425 03:19]:
+> > > On Fri, Apr 25, 2008 at 02:35:21AM -0700, David Brownell wrote:
+> > > > On Friday 25 April 2008, Felipe Balbi wrote:
+> > > > > Hi Tony and Dave,
+> > > > > 
+> > > > > there's this one pending patch [1]. Do you guys have any comments on that
+> > > > > one?
+> > > > > 
+> > > > > Author: Felipe Balbi <felipe.balbi@nokia.com>
+> > > > > Date:   Thu Apr 17 17:34:20 2008 +0300
+> > > > > 
+> > > > >     USB: MUSB: Don't ignore disconnect on suspend
+> > > > >     
+> > > > >     As soon as a usb device is disconnect we should
+> > > > >     fall into a_wait_bcon state, ignoring disconnect
+> > > > >     irq will prevent this behaviour.
+> > > > 
+> > > > If it passes the OTG tests, fine.  I don't recall how the
+> > > > HNP handoff's disconnect signaling is handled ... presumably
+> > > > it's different from some "real" disconnect.
+> > > 
+> > > No opt available for now...
+> > > The problem is that when you ignore disconnect on suspend you only ack
+> > > the disconnect interrupt after attaching other device. It won't get us
+> > > too much trouble besides the bit will still set in int_src, but still
+> > > musb should ack disconnect as soon as it happens, shouldn't it? And
+> > > right after that start the timer for switching from a_wait_bcon to
+> > > a_wait_vfall and after that a_idle.
+> > > 
+> > > But as soon as I have and opt available, I'll try to run this test and
+> > > report you if I can see any issues with this patch applied.
+> > > 
+> > > For now, let's keep it as pending so.
+> > 
+> > Yeah. I have not applied any musb/tusb patches because of being afraid
+> > of the HS OTG OPT tests breaking.. Still have them all in my l-o mailbox
+> > though. So let's plan on applying things after somebody (Felipe?) gets
+> > to run HS OTG OPT on them for musb and tusb.
+
+Ok, this patch doesn't break any opt tests. Safe to apply. Tested
+yesterday.
+
+-- 
+	- Balbi
