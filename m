@@ -1,56 +1,61 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: [beagleboard] Re: TWL4030 intermittent freakout on boot
-Date: Sat, 10 May 2008 17:16:28 +0200
-Message-ID: <423471D7-9E8F-4BF1-BFEB-056BF13B484E@student.utwente.nl>
-References: <alpine.DEB.1.00.0805081201450.27986@utopia.booyaka.com> <EF9B9E21-ACCB-46A7-94C7-1FB6DD58B093@student.utwente.nl> <20080508182807.GE24454@atomide.com> <48249322.4060004@googlemail.com> <20080509213608.GA5976@atomide.com> <5e088bd90805091611q4a8a22d0l3dab427fe644a990@mail.gmail.com> <48256CDE.6040600@googlemail.com> <5e088bd90805100642s2ddf4048he6b01cc7a07e736e@mail.gmail.com> <3B6D69C3A9EBCA4BA5DA60D9130274290447A000@dlee13.ent.ti.com>
-Mime-Version: 1.0 (Apple Message framework v919.2)
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Recent OMAP git broken on Beagle
+Date: Sat, 10 May 2008 11:09:36 -0700
+Message-ID: <20080510180935.GA8121@atomide.com>
+References: <48254562.7000006@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx2.utsp.utwente.nl ([130.89.2.13]:39303 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752353AbYEJPQr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 10 May 2008 11:16:47 -0400
-In-Reply-To: <3B6D69C3A9EBCA4BA5DA60D9130274290447A000@dlee13.ent.ti.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64417 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753342AbYEJSJh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 May 2008 14:09:37 -0400
+Content-Disposition: inline
+In-Reply-To: <48254562.7000006@googlemail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Richard Woodruff <r-woodruff2@ti.com>, Beagle Board <beagleboard@googlegroups.com>
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: linux-omap@vger.kernel.org, beagleboard@googlegroups.com
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-
-Op 10 mei 2008, om 16:57 heeft Woodruff, Richard het volgende  
-geschreven:
-> Hi,
+* Dirk Behme <dirk.behme@googlemail.com> [080509 23:49]:
 >
->> A grep of u-boot sources for the OMAP3 EVM does not yield any
->> occurrences of twl403 so you might be on to something with this
->> theory!
+> I tried latest OMAP git (2.6.26-rc1-omap1, git from today, HEAD ==  
+> 42fa072e237427675752bb9da05bf406bff19719, "OMAP3 EVM: enable ethernet  
+> support")  on OMAP3 based BeagleBoard and it immediately stops after  
+> output of Kernel command line (with CONFIG_DEBUG_LL enabled):
 >
-> Your SYS_BOOT line values make a difference in TWL behavior.  The  
-> mask ROM knows specifics about this companion chip.
+> ...
+> Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 32512
+> <5>Kernel command line: console=ttyS2,115200n8 ...
 >
-> One aspect people seem to miss is the fact that the mask ROM will  
-> touch T2 based on the boot order.  The mask ROM also monkeys with  
-> some internal clocks and modules.
+> No later output or crash, nothing.
 >
-> So, just because your x-loader or u-boot doesn't touch a register  
-> that doesn't mean the mask ROM hasn't.  So don't expect reset value.
+> On an older 2.6.25-omap1 kernel next output is
+>
+> ...
+> Kernel command line: console=ttyS2,115200n8 ...
+> Clocking rate (Crystal/DPLL/ARM core): 26.0/266/381 MHz
+> GPMC revision 5.0
+> ...
+>
+> Assuming that it might be related to recent clock or powerdomain changes 
+> [1] I switched back to HEAD == "Fix remaining sparse warnings in 
+> arch/arm/mach-omap2" (git-checkout  
+> cdda2a9adbc5421f4857e0313afc6c189f422e25) and system now boots again.
+>
+> Any idea?
 
-Would it be an option to dump TWL regs with something like devmem2  
-after boot for the .22 WTBU kernels and linux-omap git ones? Or just  
-printk() them during early boot? It would be nice the have the correct  
-values, so the git twl driver can use those.
+Can you try git-bisect to see which one breaks booting on beagle?
 
-regards,
+Tony
 
-Koen
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
 
-iD8DBQFIJbxOMkyGM64RGpERAkufAKCSRqUoZxcjzdQNTARs3/Uo2RjYaACfYcwo
-3Niob3Jr57b3c1QmDU9CWDk=
-=TzdK
------END PGP SIGNATURE-----
+> Many thanks
+>
+> Dirk
+>
+> [1] http://source.mvista.com/git/?p=linux-omap-2.6.git;a=summary
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
