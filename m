@@ -1,95 +1,76 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: Recent OMAP git broken on Beagle
-Date: Sat, 10 May 2008 21:19:30 +0200
-Message-ID: <4825F542.1040906@googlemail.com>
-References: <48254562.7000006@googlemail.com> <20080510180935.GA8121@atomide.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH v2] ARM: OMAP3: Check for L2 cache enabled
+Date: Sat, 10 May 2008 23:48:39 +0300
+Message-ID: <20080510204838.GA5553@kedavra.cpe.vivax.com.br>
+References: <4825EC4B.1020903@googlemail.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:4345 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754380AbYEJTT2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 May 2008 15:19:28 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so1238039fgg.17
-        for <linux-omap@vger.kernel.org>; Sat, 10 May 2008 12:19:26 -0700 (PDT)
-In-Reply-To: <20080510180935.GA8121@atomide.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:48553 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758254AbYEJUrk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 May 2008 16:47:40 -0400
+Content-Disposition: inline
+In-Reply-To: <4825EC4B.1020903@googlemail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, beagleboard@googlegroups.com
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: linux-omap@vger.kernel.org
 
-Tony Lindgren wrote:
-> * Dirk Behme <dirk.behme@googlemail.com> [080509 23:49]:
->=20
->>I tried latest OMAP git (2.6.26-rc1-omap1, git from today, HEAD =3D=3D=
- =20
->>42fa072e237427675752bb9da05bf406bff19719, "OMAP3 EVM: enable ethernet=
- =20
->>support")  on OMAP3 based BeagleBoard and it immediately stops after =
-=20
->>output of Kernel command line (with CONFIG_DEBUG_LL enabled):
->>
->>...
->>Built 1 zonelists in Zone order, mobility grouping on.  Total pages: =
-32512
->><5>Kernel command line: console=3DttyS2,115200n8 ...
->>
->>No later output or crash, nothing.
->>
->>On an older 2.6.25-omap1 kernel next output is
->>
->>...
->>Kernel command line: console=3DttyS2,115200n8 ...
->>Clocking rate (Crystal/DPLL/ARM core): 26.0/266/381 MHz
->>GPMC revision 5.0
->>...
->>
->>Assuming that it might be related to recent clock or powerdomain chan=
-ges=20
->>[1] I switched back to HEAD =3D=3D "Fix remaining sparse warnings in=20
->>arch/arm/mach-omap2" (git-checkout =20
->>cdda2a9adbc5421f4857e0313afc6c189f422e25) and system now boots again.
->>
->>Any idea?
->=20
->=20
-> Can you try git-bisect to see which one breaks booting on beagle?
+On Sat, May 10, 2008 at 08:41:15PM +0200, Dirk Behme wrote:
+>
+> Enabling L2 cache of Cortex-A8 based OMAP3 has to be done by bootloader. 
+> Check if this is done and warn if not.
+>
+> Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
+>
+> ----
+>
+> Changes in v2: Fix a typo.
 
--- cut --
- > git bisect bad
-757f0b4ad6b0fd4377c2ee512fc595b5778aa3ac is first bad commit
-commit 757f0b4ad6b0fd4377c2ee512fc595b5778aa3ac
-Author: Paul Walmsley <paul@pwsan.com>
-Date:   Fri May 9 14:45:24 2008 -0700
+> Index: linux-beagle/arch/arm/mach-omap2/id.c
+> ===================================================================
+> --- linux-beagle.orig/arch/arm/mach-omap2/id.c
+> +++ linux-beagle/arch/arm/mach-omap2/id.c
+> @@ -267,3 +267,26 @@ void __init omap2_check_revision(void)
+>  
+>  }
+>  
+> +#ifdef CONFIG_ARCH_OMAP3
+> +/*
+> + * OMAP3 has L2 cache which has to be enabled by bootloader.
+> + */
+> +static int __init omap3_check_l2cache(void)
+> +{
+> +	u32 val;
+> +
+> +	/* Get CP15 AUX register, bit 1 enabled indicates L2 cache is on */
+> +	asm volatile("mrc p15, 0, %0, c1, c0, 1":"=r" (val));
+> +
+> +	if ((val & 0x2) == 0) {
 
-     powerdomain: convert pwrdm_mutex to rwsem
+The {} are unneeded here.
 
-     Convert pwrdm_mutex to pwrdm_rwsem to avoid trying to relock=20
-mutex in the
-     event that the pwrdm_for_each() callback function calls something=20
-that
-     triggers a pwrdm_lookup().  Problem found by Jouni H=F6gander
-     <jouni.hogander@nokia.com>
+> +		printk(KERN_WARNING "Warning: L2 cache not enabled. Check "
+> +		       "your bootloader. L2 off results in performance loss\n");
+> +	} else {
 
-     Signed-off-by: Paul Walmsley <paul@pwsan.com>
-     Signed-off-by: Tony Lindgren <tony@atomide.com>
+same here.
 
-:040000 040000 833450098951bb58b4753d0ec641e8b1e767c419=20
-eb7329d713ff74ae46d0a8145f80cd4a259b8fc8 M arch
--- cut --
+> +		pr_info("OMAP3 L2 cache enabled");
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +arch_initcall(omap3_check_l2cache);
+> +#endif /* CONFIG_ARCH_OMAP3 */
 
-http://source.mvista.com/git/?p=3Dlinux-omap-2.6.git;a=3Dcommitdiff;h=3D=
-757f0b4ad6b0fd4377c2ee512fc595b5778aa3ac
 
-Anybody with Beagle can confirm this?
+-- 
+Best Regards,
 
-Many thanks
-
-Dirk
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Felipe Balbi
+me@felipebalbi.com
+http://blog.felipebalbi.com
