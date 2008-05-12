@@ -1,64 +1,63 @@
-From: "Syed Mohammed, Khasim" <khasim@ti.com>
-Subject: OMAP3530 EVM Sources are on linux.omap.com
-Date: Mon, 12 May 2008 16:29:21 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C001578E8398@dbde02.ent.ti.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: Android on N810 File System Problem
+Date: Mon, 12 May 2008 14:32:17 +0200
+Message-ID: <482838D1.20301@googlemail.com>
+References: <6a56d69c0804241248w5e46efe8k757c9e5fb9e3ce22@mail.gmail.com> <48116F5C.9040009@googlemail.com> <20080425183605.GA27479@kedavra.cpe.vivax.com.br> <87fxt7my4o.fsf@nokia.com> <20080427223248.GA5962@kedavra.cpe.vivax.com.br> <20080428233827.GE8449@atomide.com> <20080429090032.GA25363@bulgaria.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40657 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751155AbYELK7n convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2008 06:59:43 -0400
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m4CAxO9c022801
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 12 May 2008 05:59:34 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m4CAxNq7024618
-	for <linux-omap@vger.kernel.org>; Mon, 12 May 2008 05:59:23 -0500 (CDT)
-Content-Language: en-US
+Received: from fg-out-1718.google.com ([72.14.220.158]:39384 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754967AbYELMbZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 May 2008 08:31:25 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so1780658fgg.17
+        for <linux-omap@vger.kernel.org>; Mon, 12 May 2008 05:31:23 -0700 (PDT)
+In-Reply-To: <20080429090032.GA25363@bulgaria.corp.google.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Brian Swetland <swetland@google.com>
+Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <me@felipebalbi.com>, Kalle Valo <kalle.valo@nokia.com>, Jonathan Herriott <herriojr@gmail.com>, linux-omap@vger.kernel.org
 
-Hello all:
+Brian Swetland wrote:
+> [Tony Lindgren <tony@atomide.com>]
+> 
+>>I've merged Jarkko's asoc patch to linux-omap for testing. Have not
+>>gotten any sound out of it on my n810 though.. Maybe some alsamixer
+>>settings issue?
+>>
+>>Kalle, do you have any tips on getting WLAN to work on n8x0?
+> 
+> This was the show-stopper for me.  When I last got things hobbling
+> along on n8x0, the binary-only wlan module was incompatible with
+> newer kernels than 2.6.21 (changes in some network data structures).
+> 
+> The newer android builds expect 2.6.24 or more recent.  I'm hoping
+> that Nokia will release a newer build of the wlan module for 2.6.24
+> at some point.  That'd be a big motivator for me to spend time hacking
+> on the platform again.
 
-We have uploaded OMAP3530 EVM sources on linux.omap.com
+Have a look to the section
 
-x-loader               : http://linux.omap.com/pub/xloader/3530evm/
-u-boot-1.1.4           : http://linux.omap.com/pub/bootloader/3530evm/
-Linux Kernel 2.6.22-18 : http://linux.omap.com/pub/kernel/3530evm/
-Tool Chain used        : Code Sourcery arm-2007q3
+-- cut --
+...
 
-Few important features supported in kernel are listed below:
+In the end I think what would be realistically possible ...
+is that Nokia provides one person whose sole task is to support the
+community by mantaining the closed code and providing new binaries that
+link against recent libraries. The community would still be able to set
+the direction for the development and ask for updates, so that these
+closed areas would not hold back work done in the open part. Which is
+the majority.
 
-*       ALSA Audio Driver.
-*       Power Management
-*       Supports for NFS file system.
-*       Ethernet.
-*       Frame buffer (FBDEV).
-*       Debug UART port.
-*       DMA framework.
-*       TWL4030 (T2) RTC.
-*       Watchdog driver.
-*       Support T2 Core GPIO.
-*       GPIO.
-*       V4L2 Based Video driver.
-*       Keypad.
-*       HS-I2C.
-*       McBSP.
-*       McSPI.
-*       TouchScreen.
-*       UART library.
-*       High-speed MMC
-*       NAND
-*       USB OTG
-*       TV out.
-*       Clock framework with device driver adaptation
+...
+-- cut --
 
-Platform description can be found here,
-http://focus.ti.com/general/docs/wtbu/wtbusplashcontent.tsp?templateId=6123&contentId=4750#omap3530
+of
 
-Regards,
-Khasim
+http://lists.maemo.org/pipermail//maemo-developers/2008-May/017556.html
+
+Maybe you "as community" should "ask for updates" on maemo-developers 
+list?
+
+Dirk
