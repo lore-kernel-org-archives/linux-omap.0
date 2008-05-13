@@ -1,52 +1,31 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [RFC PATCH 3/5] USB: MUSB: Do not turn vbus on immediately
-Date: Tue, 13 May 2008 15:29:54 +0300
-Message-ID: <1210681796-1984-4-git-send-email-felipe.balbi@nokia.com>
-References: <1210681796-1984-1-git-send-email-felipe.balbi@nokia.com>
- <1210681796-1984-2-git-send-email-felipe.balbi@nokia.com>
- <1210681796-1984-3-git-send-email-felipe.balbi@nokia.com>
+Subject: TWL4030 keypad timeout interrupt
+Date: Tue, 13 May 2008 16:54:17 +0300
+Message-ID: <20080513135417.GL4244@gandalf.research.nokia.com>
+Reply-To: felipe.balbi@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:35651 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752631AbYEMMdg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 May 2008 08:33:36 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m4DCXPJn031177
-	for <linux-omap@vger.kernel.org>; Tue, 13 May 2008 07:33:34 -0500
-In-Reply-To: <1210681796-1984-3-git-send-email-felipe.balbi@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:54092 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757412AbYEMNze (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 May 2008 09:55:34 -0400
+Received: from esebh108.NOE.Nokia.com (esebh108.ntc.nokia.com [172.21.143.145])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m4DDt5Z3008636
+	for <linux-omap@vger.kernel.org>; Tue, 13 May 2008 16:55:32 +0300
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: ext Felipe Balbi <felipe.balbi@nokia.com>
+To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-From: ext Felipe Balbi <felipe.balbi@nokia.com>
+Hi all,
 
-Wait for user interaction to turn vbus on.
-On end user products, this behavior could be
-masked under some application with permission to
-write to /sys/devices/platform/musb_hdrc/session.
+I noted whenever we release a key in omap-twl4030.c driver it generates
+two interrupts: one for release event and one for a timeout event.
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/usb/musb/tusb6010.c |    5 -----
- 1 files changed, 0 insertions(+), 5 deletions(-)
+Is that expected or is that a bug somewhere in the driver ?
 
-diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
-index 9f92cef..14220d9 100644
---- a/drivers/usb/musb/tusb6010.c
-+++ b/drivers/usb/musb/tusb6010.c
-@@ -675,11 +675,6 @@ tusb_otg_ints(struct musb *musb, u32 int_src, void __iomem *tbase)
- 		musb->xceiv.default_a = default_a;
- 		musb->xceiv.state = default_a ? OTG_STATE_A_IDLE
- 			: OTG_STATE_B_IDLE;
--		tusb_source_power(musb, default_a);
--
--		/* Don't allow idling immediately */
--		if (default_a)
--			idle_timeout = jiffies + (HZ * 3);
- 	}
- 
- 	/* VBUS state change */
+It's easily noted by cat /proc/interrupts ;-)
+
 -- 
-1.5.5.1.125.gc697a
-
+	- Balbi
