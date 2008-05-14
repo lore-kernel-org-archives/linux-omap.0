@@ -1,36 +1,277 @@
-From: Pierre Ossman <drzeus-list@drzeus.cx>
-Subject: Re: [PATCH] MMC: Fix omap compile by replacing dev_name with
- dma_dev_name
-Date: Wed, 14 May 2008 21:01:05 +0200
-Message-ID: <20080514210105.6e7827c1@mjolnir.drzeus.cx>
-References: <20080506233647.GL18682@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: [PATCH] mach-omap2/powerdomain.c: convert rwsem to rwlock
+Date: Wed, 14 May 2008 22:38:03 +0200
+Message-ID: <9623AC80-636D-429A-991C-598934472CEA@student.utwente.nl>
+References: <alpine.DEB.1.00.0805141215270.31270@utopia.booyaka.com>
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761853AbYENTBk@vger.kernel.org>
-In-Reply-To: <20080506233647.GL18682@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Carlos Aguiar <carlos.aguiar@indt.org.br>, Anderson Briglia <anderson.briglia@indt.org.br>, Syed Khasim <sm.khasim@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mx2.utsp.utwente.nl ([130.89.2.13]:41702 "EHLO mx.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753028AbYENUiX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 May 2008 16:38:23 -0400
+In-Reply-To: <alpine.DEB.1.00.0805141215270.31270@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, dirk.behme@googlemail.com
 
-On Tue, 6 May 2008 16:36:47 -0700
-Tony Lindgren <tony@atomide.com> wrote:
-
-> Hi Pierre,
-> 
-> Here's a fix to make omap.c compile again because of a name conflict
-> introduced by 3efcdd76c4906236f9043c8b34837818177b291d.
-> 
-> Regards,
-> 
-> Tony
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
 
-applied, thanks
+Op 14 mei 2008, om 20:16 heeft Paul Walmsley het volgende geschreven:
+>
+> The generic rwsem implementation of down_read() and down_write()  
+> does not
+> save and restore interrupt state.  This causes powerdomain code to
+> inadvertently enable interrupts early in the boot process, causing
+> init/main.c to complain.   This patch converts powerdomain locking to
+> r-w spinlocks instead.
+>
+> I'm also curious to know if this fixes the BeagleBoard boot problem.
 
--- 
-     -- Pierre Ossman
+It does for me:
 
-  Linux kernel, MMC maintainer        http://www.kernel.org
-  rdesktop, core developer          http://www.rdesktop.org
+Linux beagleboard 2.6.26-rc2-omap1 #1 Wed May 14 22:25:53 CEST 2008  
+armv7l unknown unknown GNU/Linux
+
+
+
+>
+>
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> ---
+>
+> arch/arm/mach-omap2/powerdomain.c |   46 +++++++++++++++++++++ 
+> +---------------
+> 1 files changed, 27 insertions(+), 19 deletions(-)
+>
+>
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/ 
+> powerdomain.c
+> index 939efe4..0a6caaf 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -18,7 +18,7 @@
+> #include <linux/module.h>
+> #include <linux/types.h>
+> #include <linux/delay.h>
+> -#include <linux/rwsem.h>
+> +#include <linux/spinlock.h>
+> #include <linux/list.h>
+> #include <linux/errno.h>
+> #include <linux/err.h>
+> @@ -38,10 +38,10 @@
+> static LIST_HEAD(pwrdm_list);
+>
+> /*
+> - * pwrdm_rwsem protects pwrdm_list add and del ops - also reused to
+> + * pwrdm_rwlock protects pwrdm_list add and del ops - also reused to
+>  * protect pwrdm_clkdms[] during clkdm add/del ops
+>  */
+> -static DECLARE_RWSEM(pwrdm_rwsem);
+> +static DEFINE_RWLOCK(pwrdm_rwlock);
+>
+>
+> /* Private functions */
+> @@ -131,6 +131,7 @@ void pwrdm_init(struct powerdomain **pwrdm_list)
+>  */
+> int pwrdm_register(struct powerdomain *pwrdm)
+> {
+> +	unsigned long flags;
+> 	int ret = -EINVAL;
+>
+> 	if (!pwrdm)
+> @@ -139,7 +140,7 @@ int pwrdm_register(struct powerdomain *pwrdm)
+> 	if (!omap_chip_is(pwrdm->omap_chip))
+> 		return -EINVAL;
+>
+> -	down_write(&pwrdm_rwsem);
+> +	write_lock_irqsave(&pwrdm_rwlock, flags);
+> 	if (_pwrdm_lookup(pwrdm->name)) {
+> 		ret = -EEXIST;
+> 		goto pr_unlock;
+> @@ -151,7 +152,7 @@ int pwrdm_register(struct powerdomain *pwrdm)
+> 	ret = 0;
+>
+> pr_unlock:
+> -	up_write(&pwrdm_rwsem);
+> +	write_unlock_irqrestore(&pwrdm_rwlock, flags);
+>
+> 	return ret;
+> }
+> @@ -165,12 +166,14 @@ pr_unlock:
+>  */
+> int pwrdm_unregister(struct powerdomain *pwrdm)
+> {
+> +	unsigned long flags;
+> +
+> 	if (!pwrdm)
+> 		return -EINVAL;
+>
+> -	down_write(&pwrdm_rwsem);
+> +	write_lock_irqsave(&pwrdm_rwlock, flags);
+> 	list_del(&pwrdm->node);
+> -	up_write(&pwrdm_rwsem);
+> +	write_unlock_irqrestore(&pwrdm_rwlock, flags);
+>
+> 	pr_debug("powerdomain: unregistered %s\n", pwrdm->name);
+>
+> @@ -187,13 +190,14 @@ int pwrdm_unregister(struct powerdomain *pwrdm)
+> struct powerdomain *pwrdm_lookup(const char *name)
+> {
+> 	struct powerdomain *pwrdm;
+> +	unsigned long flags;
+>
+> 	if (!name)
+> 		return NULL;
+>
+> -	down_read(&pwrdm_rwsem);
+> +	read_lock_irqsave(&pwrdm_rwlock, flags);
+> 	pwrdm = _pwrdm_lookup(name);
+> -	up_read(&pwrdm_rwsem);
+> +	read_unlock_irqrestore(&pwrdm_rwlock, flags);
+>
+> 	return pwrdm;
+> }
+> @@ -204,7 +208,7 @@ struct powerdomain *pwrdm_lookup(const char *name)
+>  *
+>  * Call the supplied function for each registered powerdomain.  The
+>  * callback function can return anything but 0 to bail out early from
+> - * the iterator.  The callback function is called with the  
+> pwrdm_rwsem
+> + * the iterator.  The callback function is called with the  
+> pwrdm_rwlock
+>  * held for reading, so no powerdomain structure manipulation
+>  * functions should be called from the callback, although hardware
+>  * powerdomain control functions are fine.  Returns the last return
+> @@ -215,18 +219,19 @@ struct powerdomain *pwrdm_lookup(const char  
+> *name)
+> int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm))
+> {
+> 	struct powerdomain *temp_pwrdm;
+> +	unsigned long flags;
+> 	int ret = 0;
+>
+> 	if (!fn)
+> 		return -EINVAL;
+>
+> -	down_read(&pwrdm_rwsem);
+> +	read_lock_irqsave(&pwrdm_rwlock, flags);
+> 	list_for_each_entry(temp_pwrdm, &pwrdm_list, node) {
+> 		ret = (*fn)(temp_pwrdm);
+> 		if (ret)
+> 			break;
+> 	}
+> -	up_read(&pwrdm_rwsem);
+> +	read_unlock_irqrestore(&pwrdm_rwlock, flags);
+>
+> 	return ret;
+> }
+> @@ -243,6 +248,7 @@ int pwrdm_for_each(int (*fn)(struct powerdomain  
+> *pwrdm))
+>  */
+> int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain  
+> *clkdm)
+> {
+> +	unsigned long flags;
+> 	int i;
+> 	int ret = -EINVAL;
+>
+> @@ -252,7 +258,7 @@ int pwrdm_add_clkdm(struct powerdomain *pwrdm,  
+> struct clockdomain *clkdm)
+> 	pr_debug("powerdomain: associating clockdomain %s with powerdomain "
+> 		 "%s\n", clkdm->name, pwrdm->name);
+>
+> -	down_write(&pwrdm_rwsem);
+> +	write_lock_irqsave(&pwrdm_rwlock, flags);
+>
+> 	for (i = 0; i < PWRDM_MAX_CLKDMS; i++) {
+> 		if (!pwrdm->pwrdm_clkdms[i])
+> @@ -278,7 +284,7 @@ int pwrdm_add_clkdm(struct powerdomain *pwrdm,  
+> struct clockdomain *clkdm)
+> 	ret = 0;
+>
+> pac_exit:
+> -	up_write(&pwrdm_rwsem);
+> +	write_unlock_irqrestore(&pwrdm_rwlock, flags);
+>
+> 	return ret;
+> }
+> @@ -295,6 +301,7 @@ pac_exit:
+>  */
+> int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain  
+> *clkdm)
+> {
+> +	unsigned long flags;
+> 	int ret = -EINVAL;
+> 	int i;
+>
+> @@ -304,7 +311,7 @@ int pwrdm_del_clkdm(struct powerdomain *pwrdm,  
+> struct clockdomain *clkdm)
+> 	pr_debug("powerdomain: dissociating clockdomain %s from powerdomain "
+> 		 "%s\n", clkdm->name, pwrdm->name);
+>
+> -	down_write(&pwrdm_rwsem);
+> +	write_lock_irqsave(&pwrdm_rwlock, flags);
+>
+> 	for (i = 0; i < PWRDM_MAX_CLKDMS; i++)
+> 		if (pwrdm->pwrdm_clkdms[i] == clkdm)
+> @@ -322,7 +329,7 @@ int pwrdm_del_clkdm(struct powerdomain *pwrdm,  
+> struct clockdomain *clkdm)
+> 	ret = 0;
+>
+> pdc_exit:
+> -	up_write(&pwrdm_rwsem);
+> +	write_unlock_irqrestore(&pwrdm_rwlock, flags);
+>
+> 	return ret;
+> }
+> @@ -335,7 +342,7 @@ pdc_exit:
+>  * Call the supplied function for each clockdomain in the powerdomain
+>  * 'pwrdm'.  The callback function can return anything but 0 to bail
+>  * out early from the iterator.  The callback function is called with
+> - * the pwrdm_rwsem held for reading, so no powerdomain structure
+> + * the pwrdm_rwlock held for reading, so no powerdomain structure
+>  * manipulation functions should be called from the callback, although
+>  * hardware powerdomain control functions are fine.  Returns -EINVAL
+>  * if presented with invalid pointers; or passes along the last return
+> @@ -346,18 +353,19 @@ int pwrdm_for_each_clkdm(struct powerdomain  
+> *pwrdm,
+> 			 int (*fn)(struct powerdomain *pwrdm,
+> 				   struct clockdomain *clkdm))
+> {
+> +	unsigned long flags;
+> 	int ret = 0;
+> 	int i;
+>
+> 	if (!fn)
+> 		return -EINVAL;
+>
+> -	down_read(&pwrdm_rwsem);
+> +	read_lock_irqsave(&pwrdm_rwlock, flags);
+>
+> 	for (i = 0; i < PWRDM_MAX_CLKDMS && !ret; i++)
+> 		ret = (*fn)(pwrdm, pwrdm->pwrdm_clkdms[i]);
+>
+> -	up_read(&pwrdm_rwsem);
+> +	read_unlock_irqrestore(&pwrdm_rwlock, flags);
+>
+> 	return ret;
+> }
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux- 
+> omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFIK02tMkyGM64RGpERArxBAJ9t6nRF7Vzw9+cestJ94Dlmx+o+VwCgiCvi
+JCvndrJHH/3bVEcJkcVvRMs=
+=s48v
+-----END PGP SIGNATURE-----
