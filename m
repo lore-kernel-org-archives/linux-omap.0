@@ -1,75 +1,232 @@
-From: Sakari Ailus <sakari.ailus@nokia.com>
-Subject: [PATCH 1/3] TCM825x: Include invertation of image mirroring in configuration
-Date: Wed, 14 May 2008 15:05:31 +0300
-Message-ID: <12107667331990-git-send-email-sakari.ailus@nokia.com>
-References: <482AD555.40905@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] mach-omap2/powerdomain.c: convert rwsem to rwlock
+Date: Wed, 14 May 2008 12:16:46 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0805141215270.31270@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:17249 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760150AbYENMF4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2008 08:05:56 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m4EC5ask031349
-	for <linux-omap@vger.kernel.org>; Wed, 14 May 2008 15:05:54 +0300
-Received: from kaali.localdomain (kaali.localdomain [192.168.239.7])
-	by maxwell.research.nokia.com (Postfix) with ESMTP id 622A24674E
-	for <linux-omap@vger.kernel.org>; Wed, 14 May 2008 15:05:33 +0300 (EEST)
-Received: from sailus by kaali.localdomain with local (Exim 4.63)
-	(envelope-from <sakari.ailus@nokia.com>)
-	id 1JwFjh-0006RR-Er
-	for linux-omap@vger.kernel.org; Wed, 14 May 2008 15:05:33 +0300
-In-Reply-To: <482AD555.40905@nokia.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:37182 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755230AbYENSQs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2008 14:16:48 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: dirk.behme@googlemail.com
 
-Add invertation of image mirroring register bits to default
-configuration.
 
-This is useful when the camera module is e.g. mounted upside down.
+The generic rwsem implementation of down_read() and down_write() does not
+save and restore interrupt state.  This causes powerdomain code to
+inadvertently enable interrupts early in the boot process, causing
+init/main.c to complain.   This patch converts powerdomain locking to
+r-w spinlocks instead.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
+I'm also curious to know if this fixes the BeagleBoard boot problem.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- drivers/media/video/tcm825x.c |    6 ++++++
- drivers/media/video/tcm825x.h |    1 +
- 2 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/tcm825x.c b/drivers/media/video/tcm825x.c
-index e57a646..216638e 100644
---- a/drivers/media/video/tcm825x.c
-+++ b/drivers/media/video/tcm825x.c
-@@ -523,6 +523,9 @@ static int ioctl_g_ctrl(struct v4l2_int_device *s,
- 	if (val < 0)
- 		return val;
+ arch/arm/mach-omap2/powerdomain.c |   46 ++++++++++++++++++++++---------------
+ 1 files changed, 27 insertions(+), 19 deletions(-)
+
+
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 939efe4..0a6caaf 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -18,7 +18,7 @@
+ #include <linux/module.h>
+ #include <linux/types.h>
+ #include <linux/delay.h>
+-#include <linux/rwsem.h>
++#include <linux/spinlock.h>
+ #include <linux/list.h>
+ #include <linux/errno.h>
+ #include <linux/err.h>
+@@ -38,10 +38,10 @@
+ static LIST_HEAD(pwrdm_list);
  
-+	if (vc->id == V4L2_CID_HFLIP || vc->id == V4L2_CID_VFLIP)
-+		val ^= sensor->platform_data->is_upside_down();
-+
- 	vc->value = val;
- 	return 0;
- }
-@@ -556,6 +559,9 @@ static int ioctl_s_ctrl(struct v4l2_int_device *s,
- 	if (lvc == NULL)
+ /*
+- * pwrdm_rwsem protects pwrdm_list add and del ops - also reused to
++ * pwrdm_rwlock protects pwrdm_list add and del ops - also reused to
+  * protect pwrdm_clkdms[] during clkdm add/del ops
+  */
+-static DECLARE_RWSEM(pwrdm_rwsem);
++static DEFINE_RWLOCK(pwrdm_rwlock);
+ 
+ 
+ /* Private functions */
+@@ -131,6 +131,7 @@ void pwrdm_init(struct powerdomain **pwrdm_list)
+  */
+ int pwrdm_register(struct powerdomain *pwrdm)
+ {
++	unsigned long flags;
+ 	int ret = -EINVAL;
+ 
+ 	if (!pwrdm)
+@@ -139,7 +140,7 @@ int pwrdm_register(struct powerdomain *pwrdm)
+ 	if (!omap_chip_is(pwrdm->omap_chip))
  		return -EINVAL;
  
-+	if (vc->id == V4L2_CID_HFLIP || vc->id == V4L2_CID_VFLIP)
-+		val ^= sensor->platform_data->is_upside_down();
-+
- 	val = val << lvc->start_bit;
- 	if (tcm825x_write_reg_mask(client, lvc->reg, val))
- 		return -EIO;
-diff --git a/drivers/media/video/tcm825x.h b/drivers/media/video/tcm825x.h
-index 966765b..770ebac 100644
---- a/drivers/media/video/tcm825x.h
-+++ b/drivers/media/video/tcm825x.h
-@@ -182,6 +182,7 @@ struct tcm825x_platform_data {
- 	int (*needs_reset)(struct v4l2_int_device *s, void *buf,
- 			   struct v4l2_pix_format *fmt);
- 	int (*ifparm)(struct v4l2_ifparm *p);
-+	int (*is_upside_down)(void);
- };
+-	down_write(&pwrdm_rwsem);
++	write_lock_irqsave(&pwrdm_rwlock, flags);
+ 	if (_pwrdm_lookup(pwrdm->name)) {
+ 		ret = -EEXIST;
+ 		goto pr_unlock;
+@@ -151,7 +152,7 @@ int pwrdm_register(struct powerdomain *pwrdm)
+ 	ret = 0;
  
- /* Array of image sizes supported by TCM825X.  These must be ordered from
--- 
-1.5.0.6
-
+ pr_unlock:
+-	up_write(&pwrdm_rwsem);
++	write_unlock_irqrestore(&pwrdm_rwlock, flags);
+ 
+ 	return ret;
+ }
+@@ -165,12 +166,14 @@ pr_unlock:
+  */
+ int pwrdm_unregister(struct powerdomain *pwrdm)
+ {
++	unsigned long flags;
++
+ 	if (!pwrdm)
+ 		return -EINVAL;
+ 
+-	down_write(&pwrdm_rwsem);
++	write_lock_irqsave(&pwrdm_rwlock, flags);
+ 	list_del(&pwrdm->node);
+-	up_write(&pwrdm_rwsem);
++	write_unlock_irqrestore(&pwrdm_rwlock, flags);
+ 
+ 	pr_debug("powerdomain: unregistered %s\n", pwrdm->name);
+ 
+@@ -187,13 +190,14 @@ int pwrdm_unregister(struct powerdomain *pwrdm)
+ struct powerdomain *pwrdm_lookup(const char *name)
+ {
+ 	struct powerdomain *pwrdm;
++	unsigned long flags;
+ 
+ 	if (!name)
+ 		return NULL;
+ 
+-	down_read(&pwrdm_rwsem);
++	read_lock_irqsave(&pwrdm_rwlock, flags);
+ 	pwrdm = _pwrdm_lookup(name);
+-	up_read(&pwrdm_rwsem);
++	read_unlock_irqrestore(&pwrdm_rwlock, flags);
+ 
+ 	return pwrdm;
+ }
+@@ -204,7 +208,7 @@ struct powerdomain *pwrdm_lookup(const char *name)
+  *
+  * Call the supplied function for each registered powerdomain.  The
+  * callback function can return anything but 0 to bail out early from
+- * the iterator.  The callback function is called with the pwrdm_rwsem
++ * the iterator.  The callback function is called with the pwrdm_rwlock
+  * held for reading, so no powerdomain structure manipulation
+  * functions should be called from the callback, although hardware
+  * powerdomain control functions are fine.  Returns the last return
+@@ -215,18 +219,19 @@ struct powerdomain *pwrdm_lookup(const char *name)
+ int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm))
+ {
+ 	struct powerdomain *temp_pwrdm;
++	unsigned long flags;
+ 	int ret = 0;
+ 
+ 	if (!fn)
+ 		return -EINVAL;
+ 
+-	down_read(&pwrdm_rwsem);
++	read_lock_irqsave(&pwrdm_rwlock, flags);
+ 	list_for_each_entry(temp_pwrdm, &pwrdm_list, node) {
+ 		ret = (*fn)(temp_pwrdm);
+ 		if (ret)
+ 			break;
+ 	}
+-	up_read(&pwrdm_rwsem);
++	read_unlock_irqrestore(&pwrdm_rwlock, flags);
+ 
+ 	return ret;
+ }
+@@ -243,6 +248,7 @@ int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm))
+  */
+ int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
+ {
++	unsigned long flags;
+ 	int i;
+ 	int ret = -EINVAL;
+ 
+@@ -252,7 +258,7 @@ int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
+ 	pr_debug("powerdomain: associating clockdomain %s with powerdomain "
+ 		 "%s\n", clkdm->name, pwrdm->name);
+ 
+-	down_write(&pwrdm_rwsem);
++	write_lock_irqsave(&pwrdm_rwlock, flags);
+ 
+ 	for (i = 0; i < PWRDM_MAX_CLKDMS; i++) {
+ 		if (!pwrdm->pwrdm_clkdms[i])
+@@ -278,7 +284,7 @@ int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
+ 	ret = 0;
+ 
+ pac_exit:
+-	up_write(&pwrdm_rwsem);
++	write_unlock_irqrestore(&pwrdm_rwlock, flags);
+ 
+ 	return ret;
+ }
+@@ -295,6 +301,7 @@ pac_exit:
+  */
+ int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
+ {
++	unsigned long flags;
+ 	int ret = -EINVAL;
+ 	int i;
+ 
+@@ -304,7 +311,7 @@ int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
+ 	pr_debug("powerdomain: dissociating clockdomain %s from powerdomain "
+ 		 "%s\n", clkdm->name, pwrdm->name);
+ 
+-	down_write(&pwrdm_rwsem);
++	write_lock_irqsave(&pwrdm_rwlock, flags);
+ 
+ 	for (i = 0; i < PWRDM_MAX_CLKDMS; i++)
+ 		if (pwrdm->pwrdm_clkdms[i] == clkdm)
+@@ -322,7 +329,7 @@ int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
+ 	ret = 0;
+ 
+ pdc_exit:
+-	up_write(&pwrdm_rwsem);
++	write_unlock_irqrestore(&pwrdm_rwlock, flags);
+ 
+ 	return ret;
+ }
+@@ -335,7 +342,7 @@ pdc_exit:
+  * Call the supplied function for each clockdomain in the powerdomain
+  * 'pwrdm'.  The callback function can return anything but 0 to bail
+  * out early from the iterator.  The callback function is called with
+- * the pwrdm_rwsem held for reading, so no powerdomain structure
++ * the pwrdm_rwlock held for reading, so no powerdomain structure
+  * manipulation functions should be called from the callback, although
+  * hardware powerdomain control functions are fine.  Returns -EINVAL
+  * if presented with invalid pointers; or passes along the last return
+@@ -346,18 +353,19 @@ int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
+ 			 int (*fn)(struct powerdomain *pwrdm,
+ 				   struct clockdomain *clkdm))
+ {
++	unsigned long flags;
+ 	int ret = 0;
+ 	int i;
+ 
+ 	if (!fn)
+ 		return -EINVAL;
+ 
+-	down_read(&pwrdm_rwsem);
++	read_lock_irqsave(&pwrdm_rwlock, flags);
+ 
+ 	for (i = 0; i < PWRDM_MAX_CLKDMS && !ret; i++)
+ 		ret = (*fn)(pwrdm, pwrdm->pwrdm_clkdms[i]);
+ 
+-	up_read(&pwrdm_rwsem);
++	read_unlock_irqrestore(&pwrdm_rwlock, flags);
+ 
+ 	return ret;
+ }
