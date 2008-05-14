@@ -1,79 +1,74 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3] ARM: OMAP3: Check for L2 cache enabled
-Date: Wed, 14 May 2008 16:06:46 -0700
-Message-ID: <20080514230644.GH8928@atomide.com>
-References: <48268E60.8010703@googlemail.com> <20080511084423.GA9164@kedavra.cpe.vivax.com.br>
+Subject: Re: [PATCH] ARCH: OMAP: MUSB: Do not block sleep
+Date: Wed, 14 May 2008 16:12:49 -0700
+Message-ID: <20080514231248.GI8928@atomide.com>
+References: <1210805485-2645-1-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:61439 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753228AbYENXGq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2008 19:06:46 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62302 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751490AbYENXMu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2008 19:12:50 -0400
 Content-Disposition: inline
-In-Reply-To: <20080511084423.GA9164@kedavra.cpe.vivax.com.br>
+In-Reply-To: <1210805485-2645-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: Dirk Behme <dirk.behme@googlemail.com>, linux-omap@vger.kernel.org
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: linux-omap@vger.kernel.org, Jouni =?iso-8859-1?Q?H=F6gander?= <jouni.hogander@nokia.com>
 
-* Felipe Balbi <me@felipebalbi.com> [080511 01:43]:
-> On Sun, May 11, 2008 at 08:12:48AM +0200, Dirk Behme wrote:
-> >
-> > Enabling L2 cache of Cortex-A8 based OMAP3 has to be done by bootloader. 
-> > Check if this is done and warn if not.
-> >
-> > Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
-> Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+* Felipe Balbi <felipe.balbi@nokia.com> [080514 16:06]:
+> Do not block sleep while musb clock is enabled
+> as it completely blocks dynamic sleep.
 
-Pushing today.
+Hmm, as far as I remember this will break all USB connections at least
+on tusb if osc_ck is taken out. Can you check that?
 
 Tony
 
-> >
-> > ----
-> >
-> > Changes in v3: Remove braces. Thanks to Felipe for review!
-> 
-> > Index: linux-beagle/arch/arm/mach-omap2/id.c
-> > ===================================================================
-> > --- linux-beagle.orig/arch/arm/mach-omap2/id.c
-> > +++ linux-beagle/arch/arm/mach-omap2/id.c
-> > @@ -267,3 +267,25 @@ void __init omap2_check_revision(void)
-> >  
-> >  }
-> >  
-> > +#ifdef CONFIG_ARCH_OMAP3
-> > +/*
-> > + * OMAP3 has L2 cache which has to be enabled by bootloader.
-> > + */
-> > +static int __init omap3_check_l2cache(void)
-> > +{
-> > +	u32 val;
-> > +
-> > +	/* Get CP15 AUX register, bit 1 enabled indicates L2 cache is on */
-> > +	asm volatile("mrc p15, 0, %0, c1, c0, 1":"=r" (val));
-> > +
-> > +	if ((val & 0x2) == 0)
-> > +		printk(KERN_WARNING "Warning: L2 cache not enabled. Check "
-> > +		       "your bootloader. L2 off results in performance loss\n");
-> > +	else
-> > +		pr_info("OMAP3 L2 cache enabled\n");
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +arch_initcall(omap3_check_l2cache);
-> > +#endif /* CONFIG_ARCH_OMAP3 */
-> 
-> 
-> -- 
-> Best Regards,
-> 
-> Felipe Balbi
-> me@felipebalbi.com
-> http://blog.felipebalbi.com
+>=20
+> Thanks to Jouni H=F6gander.
+>=20
+> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> Signed-off-by: Jouni H=F6gander <jouni.hogander@nokia.com>
+> ---
+>  arch/arm/mach-omap2/usb-musb.c |    2 --
+>  1 files changed, 0 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb=
+-musb.c
+> index cbd59f8..bd3556b 100644
+> --- a/arch/arm/mach-omap2/usb-musb.c
+> +++ b/arch/arm/mach-omap2/usb-musb.c
+> @@ -58,7 +58,6 @@ static int musb_set_clock(struct clk *clk, int stat=
+e)
+>  		if (clk_on > 0)
+>  			return -ENODEV;
+> =20
+> -		omap2_block_sleep();
+>  		clk_enable(clk);
+>  		clk_on =3D 1;
+>  	} else {
+> @@ -67,7 +66,6 @@ static int musb_set_clock(struct clk *clk, int stat=
+e)
+> =20
+>  		clk_disable(clk);
+>  		clk_on =3D 0;
+> -		omap2_allow_sleep();
+>  	}
+> =20
+>  	return 0;
+> --=20
+> 1.5.4.3.447.gc95b3
+>=20
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
