@@ -1,63 +1,78 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] OMAP3 EVM: Fix pixel_clock picoseconds/kHz error
-Date: Wed, 14 May 2008 16:05:29 -0700
-Message-ID: <20080514230528.GG8928@atomide.com>
-References: <5e088bd90805122103r7a4303b4r45ac312cfb8353f7@mail.gmail.com>
+Subject: Re: [PATCH v3] ARM: OMAP3: Check for L2 cache enabled
+Date: Wed, 14 May 2008 16:06:46 -0700
+Message-ID: <20080514230644.GH8928@atomide.com>
+References: <48268E60.8010703@googlemail.com> <20080511084423.GA9164@kedavra.cpe.vivax.com.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:60470 "EHLO
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:61439 "EHLO
 	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752936AbYENXFa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2008 19:05:30 -0400
+	with ESMTP id S1753228AbYENXGq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2008 19:06:46 -0400
 Content-Disposition: inline
-In-Reply-To: <5e088bd90805122103r7a4303b4r45ac312cfb8353f7@mail.gmail.com>
+In-Reply-To: <20080511084423.GA9164@kedavra.cpe.vivax.com.br>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: Dirk Behme <dirk.behme@googlemail.com>, linux-omap@vger.kernel.org
 
-* Steve Sakoman <sakoman@gmail.com> [080512 21:04]:
-> From: Steve Sakoman <steve@sakoman.com>
-> 
-> Fix pixel_clock picoseconds/kHz error in LCD config, eliminate unused #define
+* Felipe Balbi <me@felipebalbi.com> [080511 01:43]:
+> On Sun, May 11, 2008 at 08:12:48AM +0200, Dirk Behme wrote:
+> >
+> > Enabling L2 cache of Cortex-A8 based OMAP3 has to be done by bootloader. 
+> > Check if this is done and warn if not.
+> >
+> > Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
+> Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
 
 Pushing today.
 
 Tony
 
-> Signed-off-by: Steve Sakoman <steve@sakoman.com>
+> >
+> > ----
+> >
+> > Changes in v3: Remove braces. Thanks to Felipe for review!
 > 
-> ---
->  drivers/video/omap/lcd_omap3evm.c |    5 ++---
->  1 files changed, 2 insertions(+), 3 deletions(-)
+> > Index: linux-beagle/arch/arm/mach-omap2/id.c
+> > ===================================================================
+> > --- linux-beagle.orig/arch/arm/mach-omap2/id.c
+> > +++ linux-beagle/arch/arm/mach-omap2/id.c
+> > @@ -267,3 +267,25 @@ void __init omap2_check_revision(void)
+> >  
+> >  }
+> >  
+> > +#ifdef CONFIG_ARCH_OMAP3
+> > +/*
+> > + * OMAP3 has L2 cache which has to be enabled by bootloader.
+> > + */
+> > +static int __init omap3_check_l2cache(void)
+> > +{
+> > +	u32 val;
+> > +
+> > +	/* Get CP15 AUX register, bit 1 enabled indicates L2 cache is on */
+> > +	asm volatile("mrc p15, 0, %0, c1, c0, 1":"=r" (val));
+> > +
+> > +	if ((val & 0x2) == 0)
+> > +		printk(KERN_WARNING "Warning: L2 cache not enabled. Check "
+> > +		       "your bootloader. L2 off results in performance loss\n");
+> > +	else
+> > +		pr_info("OMAP3 L2 cache enabled\n");
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +arch_initcall(omap3_check_l2cache);
+> > +#endif /* CONFIG_ARCH_OMAP3 */
 > 
-> diff --git a/drivers/video/omap/lcd_omap3evm.c
-> b/drivers/video/omap/lcd_omap3evm.c
-> index 04e40b6..4e0a64c 100644
-> --- a/drivers/video/omap/lcd_omap3evm.c
-> +++ b/drivers/video/omap/lcd_omap3evm.c
-> @@ -38,8 +38,7 @@
 > 
->  #define LCD_XRES	 	480
->  #define LCD_YRES 		640
-> -#define LCD_PIXCLOCK_MAX	41700 /* in pico seconds  */
-> -#define LCD_PIXCLOCK_MIN	38000 /* in pico seconds */
-> +#define LCD_PIXCLOCK		26000 /* in kHz  */
-> 
->  #define ENABLE_VDAC_DEDICATED	0x03
->  #define ENABLE_VDAC_DEV_GRP	0x20
-> @@ -111,7 +110,7 @@ struct lcd_panel omap3evm_panel = {
->  	.vfp		= 2,		/* lower_margin */
->  	.vbp		= 7,		/* upper_margin (8) - 1 */
-> 
-> -	.pixel_clock	= LCD_PIXCLOCK_MAX,
-> +	.pixel_clock	= LCD_PIXCLOCK,
-> 
->  	.init		= omap3evm_panel_init,
->  	.cleanup	= omap3evm_panel_cleanup,
 > -- 
-> 1.5.4.5
+> Best Regards,
+> 
+> Felipe Balbi
+> me@felipebalbi.com
+> http://blog.felipebalbi.com
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
