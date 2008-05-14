@@ -1,74 +1,102 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARCH: OMAP: MUSB: Do not block sleep
-Date: Wed, 14 May 2008 16:12:49 -0700
-Message-ID: <20080514231248.GI8928@atomide.com>
-References: <1210805485-2645-1-git-send-email-felipe.balbi@nokia.com>
+From: barban@openhandsetdevelopers.com
+Subject: Re: Android on OMAP
+Date: Wed, 14 May 2008 18:47:41 -0500
+Message-ID: <20080514184741.at5z36mpxcw4oc44@openhandsetdevelopers.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII;
+	DelSp=Yes	format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62302 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751490AbYENXMu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2008 19:12:50 -0400
+Received: from server28.01domain.net ([74.86.116.172]:50938 "EHLO
+	server28.01domain.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752105AbYEOBHh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 May 2008 21:07:37 -0400
 Content-Disposition: inline
-In-Reply-To: <1210805485-2645-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: linux-omap@vger.kernel.org, Jouni =?iso-8859-1?Q?H=F6gander?= <jouni.hogander@nokia.com>
+To: linux-omap@vger.kernel.org
+Cc: dirk.behme@googlemail.com
 
-* Felipe Balbi <felipe.balbi@nokia.com> [080514 16:06]:
-> Do not block sleep while musb clock is enabled
-> as it completely blocks dynamic sleep.
+Hi Dirk & all you OMAP experts,
+I have reached this mailing list by investigating the very interesting
+results you achieved concerning Android on OMAP.
 
-Hmm, as far as I remember this will break all USB connections at least
-on tusb if osc_ck is taken out. Can you check that?
+>> The whole Filesystem is about 28MBytes in bz2 format.
+>> I don't know where can I upload it. I can not find some place where  
+>>   can hold such big file for a long time.
+>> I am glad to upload it , if someone has the network storage resources.
 
-Tony
+I don't know if you have already found a good place for collecting the
+stuff related to your work: if not, I would be glad to offer you
+network storage as well as other facilities you can need at
+www.OpenHandsetDevelopers.com
 
->=20
-> Thanks to Jouni H=F6gander.
->=20
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> Signed-off-by: Jouni H=F6gander <jouni.hogander@nokia.com>
-> ---
->  arch/arm/mach-omap2/usb-musb.c |    2 --
->  1 files changed, 0 insertions(+), 2 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb=
--musb.c
-> index cbd59f8..bd3556b 100644
-> --- a/arch/arm/mach-omap2/usb-musb.c
-> +++ b/arch/arm/mach-omap2/usb-musb.c
-> @@ -58,7 +58,6 @@ static int musb_set_clock(struct clk *clk, int stat=
-e)
->  		if (clk_on > 0)
->  			return -ENODEV;
-> =20
-> -		omap2_block_sleep();
->  		clk_enable(clk);
->  		clk_on =3D 1;
->  	} else {
-> @@ -67,7 +66,6 @@ static int musb_set_clock(struct clk *clk, int stat=
-e)
-> =20
->  		clk_disable(clk);
->  		clk_on =3D 0;
-> -		omap2_allow_sleep();
->  	}
-> =20
->  	return 0;
-> --=20
-> 1.5.4.3.447.gc95b3
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+At the moment, you can find in my site a directory which collects
+applications for Android to be used on the emulator and discussion
+boards for a community of developers interested in the Android
+platform and Android devices.
+
+Do not hesitate to contact me, just in case it can be useful to create  
+a specific category/section for your work.
+
+Best regards and enjoy with Android!
+
+Andrea, owner of OpenHandsetDevelopers.com
+
+
+
+
+> skyflame wrote:
+>>>> Hi
+>>>>
+>>>> I move to m5-r14 with both kernel driver and filesystem grabed    
+>>>> from the sdk.
+>>>> Now, I can enter the homescreen , and the keyboard is also working 8 )
+>>>>
+>>>> I don't do anything extra than what I am doing on the m3-r14 release.
+>>>
+>>>
+>>> Great! Congratulations! :)
+>>>
+>>> Do you think you can make the kernel patch (against 2.6.23-omap1?)  
+>>>   and the filesystem available somewhere? Then we can link wiki   
+>>> page  to it.
+>>>
+>>> Dirk
+>>>
+>>>
+>>
+>> Hi Dirk
+>>
+>> I was working on a 2.6.21 kernel. For I don't got a working 2.6.23   
+>>  kernel on hand.
+>> The git tree kernel don't work fine with my omap2430SDP V5.0
+>> The PMIC seems not working in the right way, thus the LCD don't run up.
+>> So I can not make the diff over 2.6.23 omap1  : (
+>
+> Okay. I sent my 2.6.23 omap1 Android patch yesterday (seems that it
+> didn't reach the list cause of > 100k). If you didn't get it I can
+> send it again in private mail. Would be quite nice if you could check
+> if there are the same files in it you used.
+>
+> Anything like
+>
+> cat my_patch | grep +++ > file1
+> cat your_patch | grep +++ > file2
+> kdiff3 file1 file2
+>
+>> The whole Filesystem is about 28MBytes in bz2 format.
+>> I don't know where can I upload it. I can not find some place where  
+>>   can hold such big file for a long time.
+>> I am glad to upload it , if someone has the network storage resources.
+>
+> As already mentioned yesterday: Same to me ;)
+>
+> Anybody with ~30-40 MB permanent public storage?
+>
+> Many thanks
+>
+> Dirk
+
+
+
