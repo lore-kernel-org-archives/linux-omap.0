@@ -1,84 +1,79 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: [Resend] [PATCH] ARM: OMAP: add RTC support to beagleboard
-Date: Thu, 15 May 2008 08:41:09 +0200
-Message-ID: <686764F7-B5C9-4E24-9778-FF4630C84B51@student.utwente.nl>
-References: <C5EF98DB-8FEF-4AE0-A6BF-7D3FD1E41313@student.utwente.nl> <20080514224253.GE8928@atomide.com> <20080514225636.GE1582@kedavra.cpe.vivax.com.br>
-Mime-Version: 1.0 (Apple Message framework v919.2)
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+From: "andrzej zaborowski" <balrogg@gmail.com>
+Subject: Re: [PATCH 2/3] N810: Don't export camera orientation
+Date: Thu, 15 May 2008 08:54:34 +0200
+Message-ID: <fb249edb0805142354o2060cf43xd98e6d3e64806a74@mail.gmail.com>
+References: <12106946631016-git-send-email-sakari.ailus@nokia.com>
+	 <1210694663310-git-send-email-sakari.ailus@nokia.com>
+	 <20147cff763adbdb887ad31373040efc@felipebalbi.com>
+	 <482AD555.40905@nokia.com>
+	 <20080514225823.GF1582@kedavra.cpe.vivax.com.br>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx2.utsp.utwente.nl ([130.89.2.13]:39459 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752255AbYEOGlW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 May 2008 02:41:22 -0400
-In-Reply-To: <20080514225636.GE1582@kedavra.cpe.vivax.com.br>
+Received: from ug-out-1314.google.com ([66.249.92.171]:42124 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752372AbYEOGyg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 02:54:36 -0400
+Received: by ug-out-1314.google.com with SMTP id h2so1313485ugf.16
+        for <linux-omap@vger.kernel.org>; Wed, 14 May 2008 23:54:34 -0700 (PDT)
+In-Reply-To: <20080514225823.GF1582@kedavra.cpe.vivax.com.br>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: me@felipebalbi.com
-Cc: linux-omap@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@nokia.com>, linux-omap@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On 15/05/2008, Felipe Balbi <me@felipebalbi.com> wrote:
+> On Wed, May 14, 2008 at 03:04:37PM +0300, Sakari Ailus wrote:
+>  > ext Felipe Balbi wrote:
+>  >
+>  > Hello Felipe, and thanks for reviewing the patch! :)
+>  >
+>  >> On Tue, 13 May 2008 19:04:22 +0300, Sakari Ailus <sakari.ailus@nokia.com>
+>  >> wrote:
+>  >>> @@ -298,12 +340,21 @@ static int tcm825x_ifparm(struct v4l2_ifparm *p)
+>  >>>     return 0;
+>  >>>  }
+>  >>>
+>  >>> +static int tcm825x_is_upside_down(void)
+>  >>> +{
+>  >>> +   if (machine_is_nokia_n810())
+>  >>> +           return 1;
+>  >>> +
+>  >>> +   return 0;
+>  >>> +}
+>  >>> +
+>  >>>  const struct tcm825x_platform_data n800_tcm825x_platform_data = {
+>  >>> -   .is_okay      = tcm825x_is_okay,
+>  >>> -   .power_set    = tcm825x_power_set,
+>  >>> -   .default_regs = tcm825x_default_regs,
+>  >>> -   .needs_reset  = tcm825x_needs_reset,
+>  >>> -   .ifparm       = tcm825x_ifparm,
+>  >>> +   .is_okay        = tcm825x_is_okay,
+>  >>> +   .power_set      = tcm825x_power_set,
+>  >>> +   .default_regs   = tcm825x_default_regs,
+>  >>> +   .needs_reset    = tcm825x_needs_reset,
+>  >>> +   .ifparm         = tcm825x_ifparm,
+>  >>> +   .is_upside_down = tcm825x_is_upside_down,
+>  >>
+>  >> ok, now i got your point but this could be:
+>  >> .is_upside_down = machine_is_nokia_n810() ? 1 : 0,
+>  >
+>  > This doesn't work because machine_is_nokia_n810() is not constant.
+>  >
+>  > Anyway, tcm825x_is_upside_down can be made more simple as it could just
+>  > return machine_is_nokia_n810().
+>  >
+>  > I'll send new patches.
+>
+>  Didn't quite get, machine_is_nokia_n810() will always be true when
+>  running in n810. Could you clarify a bit :-p
 
+It'll *return* true, but C initialisers must be constants.  It simply
+wouldn't compile.
 
-Op 15 mei 2008, om 00:56 heeft Felipe Balbi het volgende geschreven:
-> On Wed, May 14, 2008 at 03:42:53PM -0700, Tony Lindgren wrote:
->> * Koen Kooi <k.kooi@student.utwente.nl> [080513 01:20]:
->>> This patch adds RTC support to the omap3 based beagleboard
->>
->> I've pushed this after tweaking it manually again. It seems it was  
->> for
->> some older kernel? Also you should check your mail client or smtp  
->> server
->> to make sure patches don't wrap like this one is wrapped. It makes it
->> hard to read and apply them.
->
-> maybe
->
-> $ git send-email --from "Koen Kooi <koen@openembedded.org>" --to linux-omap@vger.kernel.org 
->  file.patch
->
-> is enough. At least it doesn't wrap lines ;-)
->
-> just set
->
-> $ git config --global sendemail.smtpserver mail.openembedded.org
->
-> or whatever you use as smtp server.
->
-> if you need auth:
->
-> $ git config --global sendemail.user <username>
->
-> recent versions of git will interactively ask password.
-
-I'll try that next time, thanks.
-
-regards,
-
-Koen
-
-
-
->
->
-> -- 
-> Best Regards,
->
-> Felipe Balbi
-> me@felipebalbi.com
-> http://blog.felipebalbi.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux- 
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFIK9sHMkyGM64RGpERAsiCAKCFPIfjKZ+8zE9PpAZngf2B83Y7cQCfTmcs
-uhCshhlj574ZKUCaTtmh2VY=
-=fQtT
------END PGP SIGNATURE-----
+Cheers
+-- 
+Please do not print this email unless absolutely necessary. Spread
+environmental awareness.
