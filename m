@@ -1,140 +1,113 @@
-From: Roman Tereshonkov <roman.tereshonkov@nokia.com>
-Subject: [PATCH] Chip message format is either 8-bit cmd or 8-bit cmd + 16-bit data.
-Date: Thu, 15 May 2008 18:44:27 +0300
-Message-ID: <1210866268-19254-1-git-send-email-roman.tereshonkov@nokia.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: N810: linux-2.6.26-rc2-omap1 with muru.com N810 patches
+Date: Thu, 15 May 2008 11:14:58 -0500
+Message-ID: <4530c67662adea689bad79e193a9323a@felipebalbi.com>
+References: <20080515140914.GA30594@swansys>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:37629 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751279AbYEOPp1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 11:45:27 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m4FFin4w009107
-	for <linux-omap@vger.kernel.org>; Thu, 15 May 2008 10:45:19 -0500
+Received: from ns1.siteground211.com ([209.62.36.12]:60988 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756985AbYEOQPB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 12:15:01 -0400
+In-Reply-To: <20080515140914.GA30594@swansys>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Roman Tereshonkov <roman.tereshonkov@nokia.com>
-
-Fix the touchscreen input device name.
-
-No need in msg.spi = ts->spi assignments. It is done in
-spi_async called from spi_sync.
-
-No need in driver bus assignment. It is done in spi_driver_register.
+To: green <greenfreedom10@gmail.com>
+Cc: Linux-OMAP List <linux-omap@vger.kernel.org>
 
 
-Signed-off-by: Roman Tereshonkov <roman.tereshonkov@nokia.com>
----
- drivers/input/touchscreen/tsc2005.c |   36 ++++++++++++++++------------------
- 1 files changed, 17 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/input/touchscreen/tsc2005.c b/drivers/input/touchscreen/tsc2005.c
-index 035d209..fa01799 100644
---- a/drivers/input/touchscreen/tsc2005.c
-+++ b/drivers/input/touchscreen/tsc2005.c
-@@ -54,7 +54,13 @@
-  *     during the last 20ms which means the pen has been lifted.
-  */
- 
--#define TSC2005_HZ	(14000000)
-+#define TSC2005_VDD_LOWER_27
-+
-+#ifdef TSC2005_VDD_LOWER_27
-+#define TSC2005_HZ     (10000000)
-+#else
-+#define TSC2005_HZ     (25000000)
-+#endif
- 
- #define TSC2005_CMD	(0x80)
- #define TSC2005_REG	(0x00)
-@@ -226,13 +232,12 @@ static void tsc2005_cmd(struct tsc2005 *ts, u8 cmd)
- 	struct spi_message msg;
- 	struct spi_transfer xfer = { 0 };
- 
--	spi_message_init(&msg);
--	msg.spi = ts->spi;
- 	xfer.tx_buf = &data;
- 	xfer.rx_buf = NULL;
--	xfer.len = 2;
-+	xfer.len = 1;
- 	xfer.bits_per_word = 8;
- 
-+	spi_message_init(&msg);
- 	spi_message_add_tail(&xfer, &msg);
- 	spi_sync(ts->spi, &msg);
- }
-@@ -244,16 +249,15 @@ static void tsc2005_write(struct tsc2005 *ts, u8 reg, u16 value)
- 	struct spi_transfer xfer = { 0 };
- 
- 	tx = (TSC2005_REG | reg | TSC2005_REG_PND0 |
--	       TSC2005_REG_WRITE) << (2 * 8);
-+	       TSC2005_REG_WRITE) << 16;
- 	tx |= value;
- 
--	spi_message_init(&msg);
--	msg.spi = ts->spi;
- 	xfer.tx_buf = &tx;
- 	xfer.rx_buf = NULL;
- 	xfer.len = 4;
--	xfer.bits_per_word = 3 * 8;
-+	xfer.bits_per_word = 24;
- 
-+	spi_message_init(&msg);
- 	spi_message_add_tail(&xfer, &msg);
- 	spi_sync(ts->spi, &msg);
- }
-@@ -271,10 +275,10 @@ static void tsc2005_ts_update_pen_state(struct tsc2005 *ts,
- 		}
- 	} else {
- 		input_report_abs(ts->idev, ABS_PRESSURE, 0);
--		if (ts->pen_down)
-+		if (ts->pen_down) {
- 			input_report_key(ts->idev, BTN_TOUCH, 0);
--
--		ts->pen_down = 0;
-+			ts->pen_down = 0;
-+		}
- 	}
- 
- 	input_sync(ts->idev);
-@@ -377,7 +381,7 @@ static void tsc2005_ts_penup_timer_handler(unsigned long data)
- 
- /*
-  * This interrupt is called when pen is down and coordinates are
-- * available. That is indicated by a falling edge on DEV line.
-+ * available. That is indicated by a falling edge on DAV line.
-  */
- static irqreturn_t tsc2005_ts_irq_handler(int irq, void *dev_id)
- {
-@@ -406,7 +410,6 @@ static void tsc2005_ts_setup_spi_xfer(struct tsc2005 *ts)
- 	int i;
- 
- 	spi_message_init(m);
--	m->spi = ts->spi;
- 
- 	for (i = 0; i < NUM_READ_REGS; i++, x++) {
- 		x->tx_buf = &tsc2005_read_reg[i];
-@@ -565,11 +568,7 @@ static int __devinit tsc2005_ts_init(struct tsc2005 *ts,
- 		goto err2;
- 	}
- 
--	/*
--	 * TODO: should be "TSC2005 touchscreen", but X has hardcoded these
--	 * strings and doesn't accept TSC2005 yet...
--	 */
--	idev->name = "TSC2301 touchscreen";
-+	idev->name = "TSC2005 touchscreen";
- 	snprintf(ts->phys, sizeof(ts->phys), "%s/input-ts",
- 		 ts->spi->dev.bus_id);
- 	idev->phys = ts->phys;
-@@ -709,7 +708,6 @@ static int tsc2005_resume(struct spi_device *spi)
- static struct spi_driver tsc2005_driver = {
- 	.driver = {
- 		.name = "tsc2005",
--		.bus = &spi_bus_type,
- 		.owner = THIS_MODULE,
- 	},
- #ifdef CONFIG_PM
+On Thu, 15 May 2008 09:09:14 -0500, green <greenfreedom10@gmail.com> wrote:
+> Hello, I am trying to run Debian Sid on a Nokia N810.  I have tried
+several
+> 
+> different kernel sources and lots of different configs without seeing
+> anything 
+> but the NOKIA splash screen.  Therefore, my current goal has been reduced
+> to 
+> simply booting a kernel and seeing some text output from it so I know it
+> is at 
+> least attempting to boot.  Once I've succeeded in that I'll continue
+> toward my 
+> ultimate goal of running Debian Sid.
+> 
+> I have built a Debian Sid armel chroot on the N810 and have compiled many
+
+> kernels in the chroot.  I send the kernels to the N810 using the flasher
+> (-f 
+> -k $IMAGE -R).
+> 
+> I have used these three different kernel sources with two results.
+>  maemo 2008 kernel
+>   http://repository.maemo.org/pool/maemo4.0.1/free/k/kernel-source-rx-34/
+>  2.6.25-omap1
+>   http://www.muru.com/linux/omap/patches/patch-2.6.25-omap1.bz2
+>  2.6.26-rc2-omap1 with muru.com N810 patches
+>   http://source.mvista.com/git/?p=linux-omap-2.6.git
+>   http://www.muru.com/linux/n8x0/n8x0-2008-05-12.tar.gz
+> 
+> Always, one of these two happens after I flash the compiled zImage:
+>  - The NOKIA splash screen is displayed for about 20 seconds and then the
+> N810 
+> powers off.
+>  - The splash screen is shown for <1 second and the device resets (loop);
+> I 
+> have to remove the battery.
+
+flasher --enable-rd-mode --set-rd-flags=serial-console,no-lifeguard-reset
+-f
+
+> 
+> I have enabled CONFIG_FRAMEBUFFER_CONSOLE and disabled 
+> CONFIG_FB_OMAP_MANUAL_UPDATE.  The last config I've tried (with 
+> linux-2.6.26-rc2-omap1 +N810) is attached.
+> 
+> I'm using gcc 4.3.0-4 and binutils 2.18.1~cvs20080103-4 in Debian Sid.
+> 
+> I have enable R&D mode on the N810 and disabled the lifeguard-reset flag.
+> 
+> One of the N810 patches from muru.com changes the N810 machine number to
+> 5555; 
+> I've tried both that and the 1548, on the assumption that perhaps a
+> bootloader 
+> update has fixed the machine number.
+> 
+> I've used 'make n800_defconfig' (2.6.26-rc2-omap1 +N810) and changed only
+> the 
+> default cmdline without success.  Also I've used 'make
+> nokia_2420_defconfig' 
+> with the maemo kernel.
+
+try also
+flasher --set-root-device mmc
+
+> 
+> Note that the initfs, X-Loader, NOLO secondary bootloader, and NOLO cold 
+> flasher ("2nd") images are all from the 
+> RX-44_2008SE_2.2007.51-3_PR_COMBINED_MR0_ARM.bin maemo FIASCO (I guess)
+> image.  
+> The rootfs is probably from an older one (I never updated it) but I'm
+> assuming 
+> that the rootfs doesn't matter anyway.
+> 
+> Please ask for any more information that might be helpful.
+> 
+> Oh, and one more question that I ought to know the answer to by now:
+> Is it okay to do 'make zImage', then change the config, then 'make
+zImage'
+> 
+> again without doing a 'make clean', so long as nothing in the source has
+> been 
+> changed?  That saves a lot of time.
+
+Yes, it's ok. ;-)
+
 -- 
-1.5.3.7
+Best Regards,
+
+Felipe Balbi
+http://felipebalbi.com
+me@felipebalbi.com
 
