@@ -1,31 +1,45 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 2/3] N810: Don't export camera orientation
-Date: Thu, 15 May 2008 11:17:01 +0300
-Message-ID: <20080515081701.GA4853@kedavra.cpe.vivax.com.br>
-References: <12106946631016-git-send-email-sakari.ailus@nokia.com> <1210694663310-git-send-email-sakari.ailus@nokia.com> <20147cff763adbdb887ad31373040efc@felipebalbi.com> <482AD555.40905@nokia.com> <20080514225823.GF1582@kedavra.cpe.vivax.com.br> <fb249edb0805142354o2060cf43xd98e6d3e64806a74@mail.gmail.com> <20080515075723.GA4625@kedavra.cpe.vivax.com.br> <fb249edb0805150111q35922041tb9247c5f78ebe622@mail.gmail.com>
+Subject: Re: [PATCH 2/2] Input: Make lm8323 sticky key to work with console
+Date: Thu, 15 May 2008 11:20:13 +0300
+Message-ID: <20080515082013.GB4853@kedavra.cpe.vivax.com.br>
+References: <1210824079-22548-1-git-send-email-tony@atomide.com> <1210824079-22548-2-git-send-email-tony@atomide.com> <1210824079-22548-3-git-send-email-tony@atomide.com> <20080515080333.GD4625@kedavra.cpe.vivax.com.br> <fb249edb0805150114vdcf2a7crbd498f36613c7bc@mail.gmail.com>
 Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:38909 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:45600 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752860AbYEOIQN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 04:16:13 -0400
+	with ESMTP id S1752862AbYEOITZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 04:19:25 -0400
 Content-Disposition: inline
-In-Reply-To: <fb249edb0805150111q35922041tb9247c5f78ebe622@mail.gmail.com>
+In-Reply-To: <fb249edb0805150114vdcf2a7crbd498f36613c7bc@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: andrzej zaborowski <balrogg@gmail.com>
-Cc: me@felipebalbi.com, Sakari Ailus <sakari.ailus@nokia.com>, linux-omap@vger.kernel.org
+Cc: me@felipebalbi.com, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, daniel.stone@nokia.com
 
-On Thu, May 15, 2008 at 10:11:59AM +0200, andrzej zaborowski wrote:
-> This doesn't change anything - since machine_is_... is not constant,
-> the whole expression is not constant and is a syntax error.  The
-> compiler needs to know at compile time whether to store a 0 or a 1 in
-> the initialiser.
+On Thu, May 15, 2008 at 10:14:24AM +0200, andrzej zaborowski wrote:
+> On 15/05/2008, Felipe Balbi <me@felipebalbi.com> wrote:
+> > On Wed, May 14, 2008 at 09:01:19PM -0700, Tony Lindgren wrote:
+> >  > This allows using N810 keyboard from console by adding optional
+> >  > Fn and shift sticky key handling by passing them from platform_data.
+> >  >
+> >  > Currently some not so obvious mappings are:
+> >  >
+> >  > - Pipe is Fn + Enter
+> >  > - Delete is Fn + Backspace
+> >  > - Escape is Fn + Ctrl
+> >
+> >  no tab? :-(
+> >
+> >  Fn + space maybe?? :-p
+> 
+> Fn + Right is assigned in the patch (I check too :) ).  But I'm not
+> sure whther that should be done in the lm8323 driver or elsewhere. The
+> existence of keys like Fn and Shift is N810-specific and lm8323 is
+> just a gpio matrix keypad chip.
 
-ugh, that's true :-p
-forget about it.
+but that's coming from board file. It should be ok.
 
 -- 
 Best Regards,
