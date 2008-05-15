@@ -1,52 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] Input: Make lm8323 sticky key to work with console
-Date: Thu, 15 May 2008 01:31:44 -0700
-Message-ID: <20080515083144.GN8928@atomide.com>
-References: <1210824079-22548-1-git-send-email-tony@atomide.com> <1210824079-22548-2-git-send-email-tony@atomide.com> <1210824079-22548-3-git-send-email-tony@atomide.com> <20080515080333.GD4625@kedavra.cpe.vivax.com.br> <fb249edb0805150114vdcf2a7crbd498f36613c7bc@mail.gmail.com> <20080515082013.GB4853@kedavra.cpe.vivax.com.br> <20080515082957.GM8928@atomide.com>
+From: Daniel Stone <daniel.stone@nokia.com>
+Subject: Re: [PATCH 0/2] Make N810 keyboard work with console
+Date: Thu, 15 May 2008 11:58:52 +0300
+Message-ID: <20080515085852.GF12699@intune.research.nokia.com>
+References: <1210824079-22548-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jKBxcB1XkHIR0Eqt"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49617 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752637AbYEOIbp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 04:31:45 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:17579 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752880AbYEOI5h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 04:57:37 -0400
 Content-Disposition: inline
-In-Reply-To: <20080515082957.GM8928@atomide.com>
+In-Reply-To: <1210824079-22548-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: andrzej zaborowski <balrogg@gmail.com>, linux-omap@vger.kernel.org, daniel.stone@nokia.com
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [080515 01:30]:
-> * Felipe Balbi <me@felipebalbi.com> [080515 01:19]:
-> > On Thu, May 15, 2008 at 10:14:24AM +0200, andrzej zaborowski wrote:
-> > > On 15/05/2008, Felipe Balbi <me@felipebalbi.com> wrote:
-> > > > On Wed, May 14, 2008 at 09:01:19PM -0700, Tony Lindgren wrote:
-> > > >  > This allows using N810 keyboard from console by adding optional
-> > > >  > Fn and shift sticky key handling by passing them from platform_data.
-> > > >  >
-> > > >  > Currently some not so obvious mappings are:
-> > > >  >
-> > > >  > - Pipe is Fn + Enter
-> > > >  > - Delete is Fn + Backspace
-> > > >  > - Escape is Fn + Ctrl
-> > > >
-> > > >  no tab? :-(
-> > > >
-> > > >  Fn + space maybe?? :-p
-> > > 
-> > > Fn + Right is assigned in the patch (I check too :) ).  But I'm not
-> > > sure whther that should be done in the lm8323 driver or elsewhere. The
-> > > existence of keys like Fn and Shift is N810-specific and lm8323 is
-> > > just a gpio matrix keypad chip.
-> > 
-> > but that's coming from board file. It should be ok.
-> 
-> Yeah I think it should be OK too as nothing happens if platform_data does
-> not pass fn or shift keys. So the driver should work with any keyboard
-> layout.
 
-BTW, I like the idea for FN + space for tab key, easier to use than
-FN + Right :)
+--jKBxcB1XkHIR0Eqt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Tony
+On Wed, May 14, 2008 at 09:01:17PM -0700, ext Tony Lindgren wrote:
+> Here are few fun patches for N810 hackers to make the integrated
+> keyboard work with console :) This should be done in a generic way
+> and the old behaviour is preserved if optional sticky keys are not
+> passed from platform_data.
+
+Uhm.  If you're going to implement latching/locking keys, surely it'd be
+better to do this in the generic input layer than the keyboard driver?
+
+NAK from myself (for what little that means) simply due to the sheer
+horror of seeing what should, by all rights, be a tiny driver, explode
+into non-triviality. :)
+
+Cheers,
+Daniel
+
+--jKBxcB1XkHIR0Eqt
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFIK/tM68xJuWtYYdURAtVGAKCVbu6CfQie4YogsVePSC6guJESQwCffdAX
+bwb0FDi2qnwga6HrsLlm9+k=
+=k5nN
+-----END PGP SIGNATURE-----
+
+--jKBxcB1XkHIR0Eqt--
