@@ -1,113 +1,248 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: N810: linux-2.6.26-rc2-omap1 with muru.com N810 patches
-Date: Thu, 15 May 2008 11:14:58 -0500
-Message-ID: <4530c67662adea689bad79e193a9323a@felipebalbi.com>
-References: <20080515140914.GA30594@swansys>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: [PATCH] mach-omap2/powerdomain.c: convert rwsem to rwlock
+Date: Thu, 15 May 2008 18:45:18 +0200
+Message-ID: <482C689E.1020802@googlemail.com>
+References: <alpine.DEB.1.00.0805141215270.31270@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:60988 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756985AbYEOQPB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 12:15:01 -0400
-In-Reply-To: <20080515140914.GA30594@swansys>
+Received: from fk-out-0910.google.com ([209.85.128.184]:56867 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753207AbYEOQpY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 12:45:24 -0400
+Received: by fk-out-0910.google.com with SMTP id 18so386133fkq.5
+        for <linux-omap@vger.kernel.org>; Thu, 15 May 2008 09:45:22 -0700 (PDT)
+In-Reply-To: <alpine.DEB.1.00.0805141215270.31270@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: green <greenfreedom10@gmail.com>
-Cc: Linux-OMAP List <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
+
+Paul Walmsley wrote:
+> The generic rwsem implementation of down_read() and down_write() does not
+> save and restore interrupt state.  This causes powerdomain code to
+> inadvertently enable interrupts early in the boot process, causing
+> init/main.c to complain.   This patch converts powerdomain locking to
+> r-w spinlocks instead.
+> 
+> I'm also curious to know if this fixes the BeagleBoard boot problem.
+
+Yes! :)
+
+Git head is now working on Beagle again.
+
+Many thanks
+
+Dirk
 
 
-
-On Thu, 15 May 2008 09:09:14 -0500, green <greenfreedom10@gmail.com> wrote:
-> Hello, I am trying to run Debian Sid on a Nokia N810.  I have tried
-several
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> ---
 > 
-> different kernel sources and lots of different configs without seeing
-> anything 
-> but the NOKIA splash screen.  Therefore, my current goal has been reduced
-> to 
-> simply booting a kernel and seeing some text output from it so I know it
-> is at 
-> least attempting to boot.  Once I've succeeded in that I'll continue
-> toward my 
-> ultimate goal of running Debian Sid.
+>  arch/arm/mach-omap2/powerdomain.c |   46 ++++++++++++++++++++++---------------
+>  1 files changed, 27 insertions(+), 19 deletions(-)
 > 
-> I have built a Debian Sid armel chroot on the N810 and have compiled many
-
-> kernels in the chroot.  I send the kernels to the N810 using the flasher
-> (-f 
-> -k $IMAGE -R).
 > 
-> I have used these three different kernel sources with two results.
->  maemo 2008 kernel
->   http://repository.maemo.org/pool/maemo4.0.1/free/k/kernel-source-rx-34/
->  2.6.25-omap1
->   http://www.muru.com/linux/omap/patches/patch-2.6.25-omap1.bz2
->  2.6.26-rc2-omap1 with muru.com N810 patches
->   http://source.mvista.com/git/?p=linux-omap-2.6.git
->   http://www.muru.com/linux/n8x0/n8x0-2008-05-12.tar.gz
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index 939efe4..0a6caaf 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -18,7 +18,7 @@
+>  #include <linux/module.h>
+>  #include <linux/types.h>
+>  #include <linux/delay.h>
+> -#include <linux/rwsem.h>
+> +#include <linux/spinlock.h>
+>  #include <linux/list.h>
+>  #include <linux/errno.h>
+>  #include <linux/err.h>
+> @@ -38,10 +38,10 @@
+>  static LIST_HEAD(pwrdm_list);
+>  
+>  /*
+> - * pwrdm_rwsem protects pwrdm_list add and del ops - also reused to
+> + * pwrdm_rwlock protects pwrdm_list add and del ops - also reused to
+>   * protect pwrdm_clkdms[] during clkdm add/del ops
+>   */
+> -static DECLARE_RWSEM(pwrdm_rwsem);
+> +static DEFINE_RWLOCK(pwrdm_rwlock);
+>  
+>  
+>  /* Private functions */
+> @@ -131,6 +131,7 @@ void pwrdm_init(struct powerdomain **pwrdm_list)
+>   */
+>  int pwrdm_register(struct powerdomain *pwrdm)
+>  {
+> +	unsigned long flags;
+>  	int ret = -EINVAL;
+>  
+>  	if (!pwrdm)
+> @@ -139,7 +140,7 @@ int pwrdm_register(struct powerdomain *pwrdm)
+>  	if (!omap_chip_is(pwrdm->omap_chip))
+>  		return -EINVAL;
+>  
+> -	down_write(&pwrdm_rwsem);
+> +	write_lock_irqsave(&pwrdm_rwlock, flags);
+>  	if (_pwrdm_lookup(pwrdm->name)) {
+>  		ret = -EEXIST;
+>  		goto pr_unlock;
+> @@ -151,7 +152,7 @@ int pwrdm_register(struct powerdomain *pwrdm)
+>  	ret = 0;
+>  
+>  pr_unlock:
+> -	up_write(&pwrdm_rwsem);
+> +	write_unlock_irqrestore(&pwrdm_rwlock, flags);
+>  
+>  	return ret;
+>  }
+> @@ -165,12 +166,14 @@ pr_unlock:
+>   */
+>  int pwrdm_unregister(struct powerdomain *pwrdm)
+>  {
+> +	unsigned long flags;
+> +
+>  	if (!pwrdm)
+>  		return -EINVAL;
+>  
+> -	down_write(&pwrdm_rwsem);
+> +	write_lock_irqsave(&pwrdm_rwlock, flags);
+>  	list_del(&pwrdm->node);
+> -	up_write(&pwrdm_rwsem);
+> +	write_unlock_irqrestore(&pwrdm_rwlock, flags);
+>  
+>  	pr_debug("powerdomain: unregistered %s\n", pwrdm->name);
+>  
+> @@ -187,13 +190,14 @@ int pwrdm_unregister(struct powerdomain *pwrdm)
+>  struct powerdomain *pwrdm_lookup(const char *name)
+>  {
+>  	struct powerdomain *pwrdm;
+> +	unsigned long flags;
+>  
+>  	if (!name)
+>  		return NULL;
+>  
+> -	down_read(&pwrdm_rwsem);
+> +	read_lock_irqsave(&pwrdm_rwlock, flags);
+>  	pwrdm = _pwrdm_lookup(name);
+> -	up_read(&pwrdm_rwsem);
+> +	read_unlock_irqrestore(&pwrdm_rwlock, flags);
+>  
+>  	return pwrdm;
+>  }
+> @@ -204,7 +208,7 @@ struct powerdomain *pwrdm_lookup(const char *name)
+>   *
+>   * Call the supplied function for each registered powerdomain.  The
+>   * callback function can return anything but 0 to bail out early from
+> - * the iterator.  The callback function is called with the pwrdm_rwsem
+> + * the iterator.  The callback function is called with the pwrdm_rwlock
+>   * held for reading, so no powerdomain structure manipulation
+>   * functions should be called from the callback, although hardware
+>   * powerdomain control functions are fine.  Returns the last return
+> @@ -215,18 +219,19 @@ struct powerdomain *pwrdm_lookup(const char *name)
+>  int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm))
+>  {
+>  	struct powerdomain *temp_pwrdm;
+> +	unsigned long flags;
+>  	int ret = 0;
+>  
+>  	if (!fn)
+>  		return -EINVAL;
+>  
+> -	down_read(&pwrdm_rwsem);
+> +	read_lock_irqsave(&pwrdm_rwlock, flags);
+>  	list_for_each_entry(temp_pwrdm, &pwrdm_list, node) {
+>  		ret = (*fn)(temp_pwrdm);
+>  		if (ret)
+>  			break;
+>  	}
+> -	up_read(&pwrdm_rwsem);
+> +	read_unlock_irqrestore(&pwrdm_rwlock, flags);
+>  
+>  	return ret;
+>  }
+> @@ -243,6 +248,7 @@ int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm))
+>   */
+>  int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
+>  {
+> +	unsigned long flags;
+>  	int i;
+>  	int ret = -EINVAL;
+>  
+> @@ -252,7 +258,7 @@ int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
+>  	pr_debug("powerdomain: associating clockdomain %s with powerdomain "
+>  		 "%s\n", clkdm->name, pwrdm->name);
+>  
+> -	down_write(&pwrdm_rwsem);
+> +	write_lock_irqsave(&pwrdm_rwlock, flags);
+>  
+>  	for (i = 0; i < PWRDM_MAX_CLKDMS; i++) {
+>  		if (!pwrdm->pwrdm_clkdms[i])
+> @@ -278,7 +284,7 @@ int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
+>  	ret = 0;
+>  
+>  pac_exit:
+> -	up_write(&pwrdm_rwsem);
+> +	write_unlock_irqrestore(&pwrdm_rwlock, flags);
+>  
+>  	return ret;
+>  }
+> @@ -295,6 +301,7 @@ pac_exit:
+>   */
+>  int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
+>  {
+> +	unsigned long flags;
+>  	int ret = -EINVAL;
+>  	int i;
+>  
+> @@ -304,7 +311,7 @@ int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
+>  	pr_debug("powerdomain: dissociating clockdomain %s from powerdomain "
+>  		 "%s\n", clkdm->name, pwrdm->name);
+>  
+> -	down_write(&pwrdm_rwsem);
+> +	write_lock_irqsave(&pwrdm_rwlock, flags);
+>  
+>  	for (i = 0; i < PWRDM_MAX_CLKDMS; i++)
+>  		if (pwrdm->pwrdm_clkdms[i] == clkdm)
+> @@ -322,7 +329,7 @@ int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
+>  	ret = 0;
+>  
+>  pdc_exit:
+> -	up_write(&pwrdm_rwsem);
+> +	write_unlock_irqrestore(&pwrdm_rwlock, flags);
+>  
+>  	return ret;
+>  }
+> @@ -335,7 +342,7 @@ pdc_exit:
+>   * Call the supplied function for each clockdomain in the powerdomain
+>   * 'pwrdm'.  The callback function can return anything but 0 to bail
+>   * out early from the iterator.  The callback function is called with
+> - * the pwrdm_rwsem held for reading, so no powerdomain structure
+> + * the pwrdm_rwlock held for reading, so no powerdomain structure
+>   * manipulation functions should be called from the callback, although
+>   * hardware powerdomain control functions are fine.  Returns -EINVAL
+>   * if presented with invalid pointers; or passes along the last return
+> @@ -346,18 +353,19 @@ int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
+>  			 int (*fn)(struct powerdomain *pwrdm,
+>  				   struct clockdomain *clkdm))
+>  {
+> +	unsigned long flags;
+>  	int ret = 0;
+>  	int i;
+>  
+>  	if (!fn)
+>  		return -EINVAL;
+>  
+> -	down_read(&pwrdm_rwsem);
+> +	read_lock_irqsave(&pwrdm_rwlock, flags);
+>  
+>  	for (i = 0; i < PWRDM_MAX_CLKDMS && !ret; i++)
+>  		ret = (*fn)(pwrdm, pwrdm->pwrdm_clkdms[i]);
+>  
+> -	up_read(&pwrdm_rwsem);
+> +	read_unlock_irqrestore(&pwrdm_rwlock, flags);
+>  
+>  	return ret;
+>  }
 > 
-> Always, one of these two happens after I flash the compiled zImage:
->  - The NOKIA splash screen is displayed for about 20 seconds and then the
-> N810 
-> powers off.
->  - The splash screen is shown for <1 second and the device resets (loop);
-> I 
-> have to remove the battery.
-
-flasher --enable-rd-mode --set-rd-flags=serial-console,no-lifeguard-reset
--f
-
-> 
-> I have enabled CONFIG_FRAMEBUFFER_CONSOLE and disabled 
-> CONFIG_FB_OMAP_MANUAL_UPDATE.  The last config I've tried (with 
-> linux-2.6.26-rc2-omap1 +N810) is attached.
-> 
-> I'm using gcc 4.3.0-4 and binutils 2.18.1~cvs20080103-4 in Debian Sid.
-> 
-> I have enable R&D mode on the N810 and disabled the lifeguard-reset flag.
-> 
-> One of the N810 patches from muru.com changes the N810 machine number to
-> 5555; 
-> I've tried both that and the 1548, on the assumption that perhaps a
-> bootloader 
-> update has fixed the machine number.
-> 
-> I've used 'make n800_defconfig' (2.6.26-rc2-omap1 +N810) and changed only
-> the 
-> default cmdline without success.  Also I've used 'make
-> nokia_2420_defconfig' 
-> with the maemo kernel.
-
-try also
-flasher --set-root-device mmc
-
-> 
-> Note that the initfs, X-Loader, NOLO secondary bootloader, and NOLO cold 
-> flasher ("2nd") images are all from the 
-> RX-44_2008SE_2.2007.51-3_PR_COMBINED_MR0_ARM.bin maemo FIASCO (I guess)
-> image.  
-> The rootfs is probably from an older one (I never updated it) but I'm
-> assuming 
-> that the rootfs doesn't matter anyway.
-> 
-> Please ask for any more information that might be helpful.
-> 
-> Oh, and one more question that I ought to know the answer to by now:
-> Is it okay to do 'make zImage', then change the config, then 'make
-zImage'
-> 
-> again without doing a 'make clean', so long as nothing in the source has
-> been 
-> changed?  That saves a lot of time.
-
-Yes, it's ok. ;-)
-
--- 
-Best Regards,
-
-Felipe Balbi
-http://felipebalbi.com
-me@felipebalbi.com
 
