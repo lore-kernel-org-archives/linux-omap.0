@@ -1,81 +1,60 @@
-From: "Remith Ravi" <remith@mistralsolutions.com>
-Subject: Re: OMAP3530 EVM Sources are on linux.omap.com
-Date: Thu, 15 May 2008 21:02:59 +0530
-Message-ID: <814dfab70805150832x4f1ffb04ue24a591497ec8cb4@mail.gmail.com>
-References: <0680EC522D0CC943BC586913CF3768C001578E8398@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: ALSA SoC for TWL4030
+Date: Thu, 15 May 2008 17:39:32 +0200
+Message-ID: <8AF7AD1D-C577-4C88-9F87-05F742FE2895@student.utwente.nl>
+References: <5e088bd90805150818h1c2a5d8ep263811c8baed333a@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.188]:29733 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932580AbYEOPdC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 11:33:02 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so233003tic.23
-        for <linux-omap@vger.kernel.org>; Thu, 15 May 2008 08:32:59 -0700 (PDT)
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C001578E8398@dbde02.ent.ti.com>
-Content-Disposition: inline
+Received: from mx3.utsp.utwente.nl ([130.89.2.14]:5288 "EHLO mx.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755914AbYEOPkC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 May 2008 11:40:02 -0400
+In-Reply-To: <5e088bd90805150818h1c2a5d8ep263811c8baed333a@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Syed Mohammed, Khasim" <khasim@ti.com>, remith@mistralsolutions.com
+To: Steve Sakoman <sakoman@gmail.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Khasim,
-
-After running the power management command ' echo "mem" >
-/sys/power/state '  the OMAP3430EVM entered into suspend state.
-
-Now what I have to do to make the system resume the normal state? I
-tried pressing some keys but it didn't help.
-
-Regards,
-Remith
-Mistral Solutions.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
 
-On Mon, May 12, 2008 at 4:29 PM, Syed Mohammed, Khasim <khasim@ti.com> wrote:
-> Hello all:
+Op 15 mei 2008, om 17:18 heeft Steve Sakoman het volgende geschreven:
+> I'm thinking of tackling audio support for the OMAP3 EVM next.
 >
-> We have uploaded OMAP3530 EVM sources on linux.omap.com
+> I'd like to make sure that I'm not duplicating work :-)
 >
-> x-loader               : http://linux.omap.com/pub/xloader/3530evm/
-> u-boot-1.1.4           : http://linux.omap.com/pub/bootloader/3530evm/
-> Linux Kernel 2.6.22-18 : http://linux.omap.com/pub/kernel/3530evm/
-> Tool Chain used        : Code Sourcery arm-2007q3
->
-> Few important features supported in kernel are listed below:
->
-> *       ALSA Audio Driver.
-> *       Power Management
-> *       Supports for NFS file system.
-> *       Ethernet.
-> *       Frame buffer (FBDEV).
-> *       Debug UART port.
-> *       DMA framework.
-> *       TWL4030 (T2) RTC.
-> *       Watchdog driver.
-> *       Support T2 Core GPIO.
-> *       GPIO.
-> *       V4L2 Based Video driver.
-> *       Keypad.
-> *       HS-I2C.
-> *       McBSP.
-> *       McSPI.
-> *       TouchScreen.
-> *       UART library.
-> *       High-speed MMC
-> *       NAND
-> *       USB OTG
-> *       TV out.
-> *       Clock framework with device driver adaptation
->
-> Platform description can be found here,
-> http://focus.ti.com/general/docs/wtbu/wtbusplashcontent.tsp?templateId=6123&contentId=4750#omap3530
->
-> Regards,
-> Khasim
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> Is anyone aware of any existing efforts to support the TWL4030 audio
+> functionality?  I've seen the TI work in the 2.6.22 kernel, but it is
+> not an SoC driver and seems to use a different mcbsp implementation
+> than is in the current linux-omap tree.
+
+There does seem to be an ASoC driver for the McBSP2 I2S side, but the  
+KConfig entry:
+
+- --
+
+config SND_OMAP_SOC_MCBSP
+         tristate
+         select OMAP_MCBSP
+
+- --
+
+doesn't show up in menuconfig :(
+
+Anyway, it is rumoured that the tlv320aic3x is similar to the twl, so  
+you could have a look at tlv320aic3x.c.
+
+
+regards,
+
+Koen
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFILFk2MkyGM64RGpERAiHOAKC3l3F8FHdsLixiUmdBDEB/otzMswCfU4RU
+p6t5EnoaxxNEkJCttkiQwTw=
+=eBCX
+-----END PGP SIGNATURE-----
