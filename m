@@ -1,60 +1,140 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: ALSA SoC for TWL4030
-Date: Thu, 15 May 2008 17:39:32 +0200
-Message-ID: <8AF7AD1D-C577-4C88-9F87-05F742FE2895@student.utwente.nl>
-References: <5e088bd90805150818h1c2a5d8ep263811c8baed333a@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v919.2)
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+From: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+Subject: [PATCH] Chip message format is either 8-bit cmd or 8-bit cmd + 16-bit data.
+Date: Thu, 15 May 2008 18:44:27 +0300
+Message-ID: <1210866268-19254-1-git-send-email-roman.tereshonkov@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx3.utsp.utwente.nl ([130.89.2.14]:5288 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755914AbYEOPkC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 May 2008 11:40:02 -0400
-In-Reply-To: <5e088bd90805150818h1c2a5d8ep263811c8baed333a@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.105.134]:37629 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751279AbYEOPp1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 11:45:27 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m4FFin4w009107
+	for <linux-omap@vger.kernel.org>; Thu, 15 May 2008 10:45:19 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Roman Tereshonkov <roman.tereshonkov@nokia.com>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Fix the touchscreen input device name.
 
+No need in msg.spi = ts->spi assignments. It is done in
+spi_async called from spi_sync.
 
-Op 15 mei 2008, om 17:18 heeft Steve Sakoman het volgende geschreven:
-> I'm thinking of tackling audio support for the OMAP3 EVM next.
->
-> I'd like to make sure that I'm not duplicating work :-)
->
-> Is anyone aware of any existing efforts to support the TWL4030 audio
-> functionality?  I've seen the TI work in the 2.6.22 kernel, but it is
-> not an SoC driver and seems to use a different mcbsp implementation
-> than is in the current linux-omap tree.
-
-There does seem to be an ASoC driver for the McBSP2 I2S side, but the  
-KConfig entry:
-
-- --
-
-config SND_OMAP_SOC_MCBSP
-         tristate
-         select OMAP_MCBSP
-
-- --
-
-doesn't show up in menuconfig :(
-
-Anyway, it is rumoured that the tlv320aic3x is similar to the twl, so  
-you could have a look at tlv320aic3x.c.
+No need in driver bus assignment. It is done in spi_driver_register.
 
 
-regards,
+Signed-off-by: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+---
+ drivers/input/touchscreen/tsc2005.c |   36 ++++++++++++++++------------------
+ 1 files changed, 17 insertions(+), 19 deletions(-)
 
-Koen
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
+diff --git a/drivers/input/touchscreen/tsc2005.c b/drivers/input/touchscreen/tsc2005.c
+index 035d209..fa01799 100644
+--- a/drivers/input/touchscreen/tsc2005.c
++++ b/drivers/input/touchscreen/tsc2005.c
+@@ -54,7 +54,13 @@
+  *     during the last 20ms which means the pen has been lifted.
+  */
+ 
+-#define TSC2005_HZ	(14000000)
++#define TSC2005_VDD_LOWER_27
++
++#ifdef TSC2005_VDD_LOWER_27
++#define TSC2005_HZ     (10000000)
++#else
++#define TSC2005_HZ     (25000000)
++#endif
+ 
+ #define TSC2005_CMD	(0x80)
+ #define TSC2005_REG	(0x00)
+@@ -226,13 +232,12 @@ static void tsc2005_cmd(struct tsc2005 *ts, u8 cmd)
+ 	struct spi_message msg;
+ 	struct spi_transfer xfer = { 0 };
+ 
+-	spi_message_init(&msg);
+-	msg.spi = ts->spi;
+ 	xfer.tx_buf = &data;
+ 	xfer.rx_buf = NULL;
+-	xfer.len = 2;
++	xfer.len = 1;
+ 	xfer.bits_per_word = 8;
+ 
++	spi_message_init(&msg);
+ 	spi_message_add_tail(&xfer, &msg);
+ 	spi_sync(ts->spi, &msg);
+ }
+@@ -244,16 +249,15 @@ static void tsc2005_write(struct tsc2005 *ts, u8 reg, u16 value)
+ 	struct spi_transfer xfer = { 0 };
+ 
+ 	tx = (TSC2005_REG | reg | TSC2005_REG_PND0 |
+-	       TSC2005_REG_WRITE) << (2 * 8);
++	       TSC2005_REG_WRITE) << 16;
+ 	tx |= value;
+ 
+-	spi_message_init(&msg);
+-	msg.spi = ts->spi;
+ 	xfer.tx_buf = &tx;
+ 	xfer.rx_buf = NULL;
+ 	xfer.len = 4;
+-	xfer.bits_per_word = 3 * 8;
++	xfer.bits_per_word = 24;
+ 
++	spi_message_init(&msg);
+ 	spi_message_add_tail(&xfer, &msg);
+ 	spi_sync(ts->spi, &msg);
+ }
+@@ -271,10 +275,10 @@ static void tsc2005_ts_update_pen_state(struct tsc2005 *ts,
+ 		}
+ 	} else {
+ 		input_report_abs(ts->idev, ABS_PRESSURE, 0);
+-		if (ts->pen_down)
++		if (ts->pen_down) {
+ 			input_report_key(ts->idev, BTN_TOUCH, 0);
+-
+-		ts->pen_down = 0;
++			ts->pen_down = 0;
++		}
+ 	}
+ 
+ 	input_sync(ts->idev);
+@@ -377,7 +381,7 @@ static void tsc2005_ts_penup_timer_handler(unsigned long data)
+ 
+ /*
+  * This interrupt is called when pen is down and coordinates are
+- * available. That is indicated by a falling edge on DEV line.
++ * available. That is indicated by a falling edge on DAV line.
+  */
+ static irqreturn_t tsc2005_ts_irq_handler(int irq, void *dev_id)
+ {
+@@ -406,7 +410,6 @@ static void tsc2005_ts_setup_spi_xfer(struct tsc2005 *ts)
+ 	int i;
+ 
+ 	spi_message_init(m);
+-	m->spi = ts->spi;
+ 
+ 	for (i = 0; i < NUM_READ_REGS; i++, x++) {
+ 		x->tx_buf = &tsc2005_read_reg[i];
+@@ -565,11 +568,7 @@ static int __devinit tsc2005_ts_init(struct tsc2005 *ts,
+ 		goto err2;
+ 	}
+ 
+-	/*
+-	 * TODO: should be "TSC2005 touchscreen", but X has hardcoded these
+-	 * strings and doesn't accept TSC2005 yet...
+-	 */
+-	idev->name = "TSC2301 touchscreen";
++	idev->name = "TSC2005 touchscreen";
+ 	snprintf(ts->phys, sizeof(ts->phys), "%s/input-ts",
+ 		 ts->spi->dev.bus_id);
+ 	idev->phys = ts->phys;
+@@ -709,7 +708,6 @@ static int tsc2005_resume(struct spi_device *spi)
+ static struct spi_driver tsc2005_driver = {
+ 	.driver = {
+ 		.name = "tsc2005",
+-		.bus = &spi_bus_type,
+ 		.owner = THIS_MODULE,
+ 	},
+ #ifdef CONFIG_PM
+-- 
+1.5.3.7
 
-iD8DBQFILFk2MkyGM64RGpERAiHOAKC3l3F8FHdsLixiUmdBDEB/otzMswCfU4RU
-p6t5EnoaxxNEkJCttkiQwTw=
-=eBCX
------END PGP SIGNATURE-----
