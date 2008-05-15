@@ -1,92 +1,49 @@
 From: "andrzej zaborowski" <balrogg@gmail.com>
-Subject: Re: [PATCH 2/3] N810: Don't export camera orientation
-Date: Thu, 15 May 2008 10:11:59 +0200
-Message-ID: <fb249edb0805150111q35922041tb9247c5f78ebe622@mail.gmail.com>
-References: <12106946631016-git-send-email-sakari.ailus@nokia.com>
-	 <1210694663310-git-send-email-sakari.ailus@nokia.com>
-	 <20147cff763adbdb887ad31373040efc@felipebalbi.com>
-	 <482AD555.40905@nokia.com>
-	 <20080514225823.GF1582@kedavra.cpe.vivax.com.br>
-	 <fb249edb0805142354o2060cf43xd98e6d3e64806a74@mail.gmail.com>
-	 <20080515075723.GA4625@kedavra.cpe.vivax.com.br>
+Subject: Re: [PATCH 2/2] Input: Make lm8323 sticky key to work with console
+Date: Thu, 15 May 2008 10:14:24 +0200
+Message-ID: <fb249edb0805150114vdcf2a7crbd498f36613c7bc@mail.gmail.com>
+References: <1210824079-22548-1-git-send-email-tony@atomide.com>
+	 <1210824079-22548-2-git-send-email-tony@atomide.com>
+	 <1210824079-22548-3-git-send-email-tony@atomide.com>
+	 <20080515080333.GD4625@kedavra.cpe.vivax.com.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.175]:10220 "EHLO
+Received: from ug-out-1314.google.com ([66.249.92.169]:13084 "EHLO
 	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751915AbYEOIMB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 04:12:01 -0400
-Received: by ug-out-1314.google.com with SMTP id h2so1325271ugf.16
-        for <linux-omap@vger.kernel.org>; Thu, 15 May 2008 01:12:00 -0700 (PDT)
-In-Reply-To: <20080515075723.GA4625@kedavra.cpe.vivax.com.br>
+	with ESMTP id S1752842AbYEOIO0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 04:14:26 -0400
+Received: by ug-out-1314.google.com with SMTP id h2so1325623ugf.16
+        for <linux-omap@vger.kernel.org>; Thu, 15 May 2008 01:14:25 -0700 (PDT)
+In-Reply-To: <20080515080333.GD4625@kedavra.cpe.vivax.com.br>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: me@felipebalbi.com
-Cc: Sakari Ailus <sakari.ailus@nokia.com>, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, daniel.stone@nokia.com
 
 On 15/05/2008, Felipe Balbi <me@felipebalbi.com> wrote:
-> On Thu, May 15, 2008 at 08:54:34AM +0200, andrzej zaborowski wrote:
->  > On 15/05/2008, Felipe Balbi <me@felipebalbi.com> wrote:
->  > > On Wed, May 14, 2008 at 03:04:37PM +0300, Sakari Ailus wrote:
->  > >  > ext Felipe Balbi wrote:
->  > >  >
->  > >  > Hello Felipe, and thanks for reviewing the patch! :)
->  > >  >
->  > >  >> On Tue, 13 May 2008 19:04:22 +0300, Sakari Ailus <sakari.ailus@nokia.com>
->  > >  >> wrote:
->  > >  >>> @@ -298,12 +340,21 @@ static int tcm825x_ifparm(struct v4l2_ifparm *p)
->  > >  >>>     return 0;
->  > >  >>>  }
->  > >  >>>
->  > >  >>> +static int tcm825x_is_upside_down(void)
->  > >  >>> +{
->  > >  >>> +   if (machine_is_nokia_n810())
->  > >  >>> +           return 1;
->  > >  >>> +
->  > >  >>> +   return 0;
->  > >  >>> +}
->  > >  >>> +
->  > >  >>>  const struct tcm825x_platform_data n800_tcm825x_platform_data = {
->  > >  >>> -   .is_okay      = tcm825x_is_okay,
->  > >  >>> -   .power_set    = tcm825x_power_set,
->  > >  >>> -   .default_regs = tcm825x_default_regs,
->  > >  >>> -   .needs_reset  = tcm825x_needs_reset,
->  > >  >>> -   .ifparm       = tcm825x_ifparm,
->  > >  >>> +   .is_okay        = tcm825x_is_okay,
->  > >  >>> +   .power_set      = tcm825x_power_set,
->  > >  >>> +   .default_regs   = tcm825x_default_regs,
->  > >  >>> +   .needs_reset    = tcm825x_needs_reset,
->  > >  >>> +   .ifparm         = tcm825x_ifparm,
->  > >  >>> +   .is_upside_down = tcm825x_is_upside_down,
->  > >  >>
->  > >  >> ok, now i got your point but this could be:
->  > >  >> .is_upside_down = machine_is_nokia_n810() ? 1 : 0,
->  > >  >
->  > >  > This doesn't work because machine_is_nokia_n810() is not constant.
->  > >  >
->  > >  > Anyway, tcm825x_is_upside_down can be made more simple as it could just
->  > >  > return machine_is_nokia_n810().
->  > >  >
->  > >  > I'll send new patches.
->  > >
->  > >  Didn't quite get, machine_is_nokia_n810() will always be true when
->  > >  running in n810. Could you clarify a bit :-p
+> On Wed, May 14, 2008 at 09:01:19PM -0700, Tony Lindgren wrote:
+>  > This allows using N810 keyboard from console by adding optional
+>  > Fn and shift sticky key handling by passing them from platform_data.
 >  >
->  > It'll *return* true, but C initialisers must be constants.  It simply
->  > wouldn't compile.
+>  > Currently some not so obvious mappings are:
+>  >
+>  > - Pipe is Fn + Enter
+>  > - Delete is Fn + Backspace
+>  > - Escape is Fn + Ctrl
 >
+>  no tab? :-(
 >
-> and that's why i was using ?:
->
->
->  machine_is_nokia_n810 ? 1 : 0
+>  Fn + space maybe?? :-p
 
-This doesn't change anything - since machine_is_... is not constant,
-the whole expression is not constant and is a syntax error.  The
-compiler needs to know at compile time whether to store a 0 or a 1 in
-the initialiser.
+Fn + Right is assigned in the patch (I check too :) ).  But I'm not
+sure whther that should be done in the lm8323 driver or elsewhere. The
+existence of keys like Fn and Shift is N810-specific and lm8323 is
+just a gpio matrix keypad chip.
+
+Regards
 -- 
 Please do not print this email unless absolutely necessary. Spread
 environmental awareness.
