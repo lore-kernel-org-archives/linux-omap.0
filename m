@@ -1,93 +1,98 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 2/3] N810: Don't export camera orientation
-Date: Thu, 15 May 2008 10:57:24 +0300
-Message-ID: <20080515075723.GA4625@kedavra.cpe.vivax.com.br>
-References: <12106946631016-git-send-email-sakari.ailus@nokia.com> <1210694663310-git-send-email-sakari.ailus@nokia.com> <20147cff763adbdb887ad31373040efc@felipebalbi.com> <482AD555.40905@nokia.com> <20080514225823.GF1582@kedavra.cpe.vivax.com.br> <fb249edb0805142354o2060cf43xd98e6d3e64806a74@mail.gmail.com>
+Subject: Re: [PATCH] ARCH: OMAP: MUSB: Do not block sleep
+Date: Thu, 15 May 2008 10:58:50 +0300
+Message-ID: <20080515075849.GB4625@kedavra.cpe.vivax.com.br>
+References: <1210805485-2645-1-git-send-email-felipe.balbi@nokia.com> <20080514231248.GI8928@atomide.com>
 Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:43304 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:43419 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752982AbYEOH4g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 03:56:36 -0400
+	with ESMTP id S1757522AbYEOH6B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 03:58:01 -0400
 Content-Disposition: inline
-In-Reply-To: <fb249edb0805142354o2060cf43xd98e6d3e64806a74@mail.gmail.com>
+In-Reply-To: <20080514231248.GI8928@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: andrzej zaborowski <balrogg@gmail.com>
-Cc: me@felipebalbi.com, Sakari Ailus <sakari.ailus@nokia.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, Jouni H?gander <jouni.hogander@nokia.com>
 
-On Thu, May 15, 2008 at 08:54:34AM +0200, andrzej zaborowski wrote:
-> On 15/05/2008, Felipe Balbi <me@felipebalbi.com> wrote:
-> > On Wed, May 14, 2008 at 03:04:37PM +0300, Sakari Ailus wrote:
-> >  > ext Felipe Balbi wrote:
-> >  >
-> >  > Hello Felipe, and thanks for reviewing the patch! :)
-> >  >
-> >  >> On Tue, 13 May 2008 19:04:22 +0300, Sakari Ailus <sakari.ailus@nokia.com>
-> >  >> wrote:
-> >  >>> @@ -298,12 +340,21 @@ static int tcm825x_ifparm(struct v4l2_ifparm *p)
-> >  >>>     return 0;
-> >  >>>  }
-> >  >>>
-> >  >>> +static int tcm825x_is_upside_down(void)
-> >  >>> +{
-> >  >>> +   if (machine_is_nokia_n810())
-> >  >>> +           return 1;
-> >  >>> +
-> >  >>> +   return 0;
-> >  >>> +}
-> >  >>> +
-> >  >>>  const struct tcm825x_platform_data n800_tcm825x_platform_data = {
-> >  >>> -   .is_okay      = tcm825x_is_okay,
-> >  >>> -   .power_set    = tcm825x_power_set,
-> >  >>> -   .default_regs = tcm825x_default_regs,
-> >  >>> -   .needs_reset  = tcm825x_needs_reset,
-> >  >>> -   .ifparm       = tcm825x_ifparm,
-> >  >>> +   .is_okay        = tcm825x_is_okay,
-> >  >>> +   .power_set      = tcm825x_power_set,
-> >  >>> +   .default_regs   = tcm825x_default_regs,
-> >  >>> +   .needs_reset    = tcm825x_needs_reset,
-> >  >>> +   .ifparm         = tcm825x_ifparm,
-> >  >>> +   .is_upside_down = tcm825x_is_upside_down,
-> >  >>
-> >  >> ok, now i got your point but this could be:
-> >  >> .is_upside_down = machine_is_nokia_n810() ? 1 : 0,
-> >  >
-> >  > This doesn't work because machine_is_nokia_n810() is not constant.
-> >  >
-> >  > Anyway, tcm825x_is_upside_down can be made more simple as it could just
-> >  > return machine_is_nokia_n810().
-> >  >
-> >  > I'll send new patches.
-> >
-> >  Didn't quite get, machine_is_nokia_n810() will always be true when
-> >  running in n810. Could you clarify a bit :-p
-> 
-> It'll *return* true, but C initialisers must be constants.  It simply
-> wouldn't compile.
+On Wed, May 14, 2008 at 04:12:49PM -0700, Tony Lindgren wrote:
+> * Felipe Balbi <felipe.balbi@nokia.com> [080514 16:06]:
+> > Do not block sleep while musb clock is enabled
+> > as it completely blocks dynamic sleep.
+>=20
+> Hmm, as far as I remember this will break all USB connections at leas=
+t
+> on tusb if osc_ck is taken out. Can you check that?
 
-and that's why i was using ?:
+This doesn't touch tusb. I didn't move tusb to this generic init code s=
+o
+far.
 
-machine_is_nokia_n810 ? 1 : 0
+But good point. I'll move it and check.
 
-the same as:
+In any case, I could block_sleep only if TUSB is been used ;-)
 
-if (machine_is_nokia_n810)
-	return 1;
-else
-	return 0;
+>=20
+> Tony
+>=20
+> >=20
+> > Thanks to Jouni H=F6gander.
+> >=20
+> > Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> > Signed-off-by: Jouni H=F6gander <jouni.hogander@nokia.com>
+> > ---
+> >  arch/arm/mach-omap2/usb-musb.c |    2 --
+> >  1 files changed, 0 insertions(+), 2 deletions(-)
+> >=20
+> > diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/u=
+sb-musb.c
+> > index cbd59f8..bd3556b 100644
+> > --- a/arch/arm/mach-omap2/usb-musb.c
+> > +++ b/arch/arm/mach-omap2/usb-musb.c
+> > @@ -58,7 +58,6 @@ static int musb_set_clock(struct clk *clk, int st=
+ate)
+> >  		if (clk_on > 0)
+> >  			return -ENODEV;
+> > =20
+> > -		omap2_block_sleep();
+> >  		clk_enable(clk);
+> >  		clk_on =3D 1;
+> >  	} else {
+> > @@ -67,7 +66,6 @@ static int musb_set_clock(struct clk *clk, int st=
+ate)
+> > =20
+> >  		clk_disable(clk);
+> >  		clk_on =3D 0;
+> > -		omap2_allow_sleep();
+> >  	}
+> > =20
+> >  	return 0;
+> > --=20
+> > 1.5.4.3.447.gc95b3
+> >=20
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-oma=
+p" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> 
-> Cheers
-> -- 
-> Please do not print this email unless absolutely necessary. Spread
-> environmental awareness.
-
--- 
+--=20
 Best Regards,
 
-Felipe Balbi
+=46elipe Balbi
 me@felipebalbi.com
 http://blog.felipebalbi.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
