@@ -1,387 +1,381 @@
 From: Nishant Kamat <nskamat@ti.com>
-Subject: [PATCH] ARM: OMAP: Add ethernet support for OMAP LDP
-Date: Thu, 15 May 2008 09:30:32 -0500
-Message-ID: <1210861832-10048-5-git-send-email-nskamat@ti.com>
+Subject: [PATCH] ARM: OMAP: Add basic board support for OMAP LDP.
+Date: Thu, 15 May 2008 09:30:30 -0500
+Message-ID: <1210861832-10048-3-git-send-email-nskamat@ti.com>
 References: <1210861832-10048-1-git-send-email-nskamat@ti.com>
  <1210861832-10048-2-git-send-email-nskamat@ti.com>
- <1210861832-10048-3-git-send-email-nskamat@ti.com>
- <1210861832-10048-4-git-send-email-nskamat@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33567 "EHLO arroyo.ext.ti.com"
+Received: from calf.ext.ti.com ([198.47.26.144]:37944 "EHLO calf.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752999AbYEOOaj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754108AbYEOOaj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 15 May 2008 10:30:39 -0400
 Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m4FEUYhG012577
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 15 May 2008 09:30:39 -0500
-In-Reply-To: <1210861832-10048-4-git-send-email-nskamat@ti.com>
+	by calf.ext.ti.com (8.13.7/8.13.7) with ESMTP id m4FEUXxP004442
+	for <linux-omap@vger.kernel.org>; Thu, 15 May 2008 09:30:38 -0500
+In-Reply-To: <1210861832-10048-2-git-send-email-nskamat@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Nishant Kamat <nskamat@ti.com>
 
-This patch adds ethernet support (smc911x) for OMAP LDP platform.
+This adds basic board support for the OMAP3430 LDP development platform.
+It adds support for the touchscreen, RTC, UART, USB and MMC - all of which
+work with little or no changes w.r.t. the OMAP3430 SDP.
 
 Signed-off-by: Nishant Kamat <nskamat@ti.com>
 ---
- arch/arm/configs/omap_ldp_defconfig   |  164 ++++++++++++++++++++++++++++++++-
- arch/arm/mach-omap2/board-ldp.c       |   51 ++++++++++
- include/asm-arm/arch-omap/board-ldp.h |    6 +
- 3 files changed, 218 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/Kconfig           |    4 +
+ arch/arm/mach-omap2/Makefile          |    3 +
+ arch/arm/mach-omap2/board-ldp.c       |  253 +++++++++++++++++++++++++++++++++
+ include/asm-arm/arch-omap/board-ldp.h |   34 +++++
+ include/asm-arm/arch-omap/hardware.h  |    4 +
+ 5 files changed, 298 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-ldp.c
+ create mode 100644 include/asm-arm/arch-omap/board-ldp.h
 
-diff --git a/arch/arm/configs/omap_ldp_defconfig b/arch/arm/configs/omap_ldp_defconfig
-index 9a90975..fb2880b 100644
---- a/arch/arm/configs/omap_ldp_defconfig
-+++ b/arch/arm/configs/omap_ldp_defconfig
-@@ -1,7 +1,7 @@
- #
- # Automatically generated make config: don't edit
- # Linux kernel version: 2.6.26-rc2-omap1
--# Thu May 15 19:08:39 2008
-+# Thu May 15 19:09:22 2008
- #
- CONFIG_ARM=y
- CONFIG_SYS_SUPPORTS_APM_EMULATION=y
-@@ -37,8 +37,11 @@ CONFIG_LOCALVERSION_AUTO=y
- CONFIG_SWAP=y
- CONFIG_SYSVIPC=y
- CONFIG_SYSVIPC_SYSCTL=y
-+# CONFIG_POSIX_MQUEUE is not set
- CONFIG_BSD_PROCESS_ACCT=y
- # CONFIG_BSD_PROCESS_ACCT_V3 is not set
-+# CONFIG_TASKSTATS is not set
-+# CONFIG_AUDIT is not set
- # CONFIG_IKCONFIG is not set
- CONFIG_LOG_BUF_SHIFT=14
- # CONFIG_CGROUPS is not set
-@@ -319,7 +322,86 @@ CONFIG_ARCH_SUSPEND_POSSIBLE=y
- #
- # Networking
- #
--# CONFIG_NET is not set
-+CONFIG_NET=y
-+
-+#
-+# Networking options
-+#
-+CONFIG_PACKET=y
-+# CONFIG_PACKET_MMAP is not set
-+CONFIG_UNIX=y
-+CONFIG_XFRM=y
-+# CONFIG_XFRM_USER is not set
-+# CONFIG_XFRM_SUB_POLICY is not set
-+# CONFIG_XFRM_MIGRATE is not set
-+# CONFIG_XFRM_STATISTICS is not set
-+CONFIG_NET_KEY=y
-+# CONFIG_NET_KEY_MIGRATE is not set
-+CONFIG_INET=y
-+# CONFIG_IP_MULTICAST is not set
-+# CONFIG_IP_ADVANCED_ROUTER is not set
-+CONFIG_IP_FIB_HASH=y
-+CONFIG_IP_PNP=y
-+CONFIG_IP_PNP_DHCP=y
-+CONFIG_IP_PNP_BOOTP=y
-+CONFIG_IP_PNP_RARP=y
-+# CONFIG_NET_IPIP is not set
-+# CONFIG_NET_IPGRE is not set
-+# CONFIG_ARPD is not set
-+# CONFIG_SYN_COOKIES is not set
-+# CONFIG_INET_AH is not set
-+# CONFIG_INET_ESP is not set
-+# CONFIG_INET_IPCOMP is not set
-+# CONFIG_INET_XFRM_TUNNEL is not set
-+# CONFIG_INET_TUNNEL is not set
-+CONFIG_INET_XFRM_MODE_TRANSPORT=y
-+CONFIG_INET_XFRM_MODE_TUNNEL=y
-+CONFIG_INET_XFRM_MODE_BEET=y
-+# CONFIG_INET_LRO is not set
-+CONFIG_INET_DIAG=y
-+CONFIG_INET_TCP_DIAG=y
-+# CONFIG_TCP_CONG_ADVANCED is not set
-+CONFIG_TCP_CONG_CUBIC=y
-+CONFIG_DEFAULT_TCP_CONG="cubic"
-+# CONFIG_TCP_MD5SIG is not set
-+# CONFIG_IPV6 is not set
-+# CONFIG_NETWORK_SECMARK is not set
-+# CONFIG_NETFILTER is not set
-+# CONFIG_IP_DCCP is not set
-+# CONFIG_IP_SCTP is not set
-+# CONFIG_TIPC is not set
-+# CONFIG_ATM is not set
-+# CONFIG_BRIDGE is not set
-+# CONFIG_VLAN_8021Q is not set
-+# CONFIG_DECNET is not set
-+# CONFIG_LLC2 is not set
-+# CONFIG_IPX is not set
-+# CONFIG_ATALK is not set
-+# CONFIG_X25 is not set
-+# CONFIG_LAPB is not set
-+# CONFIG_ECONET is not set
-+# CONFIG_WAN_ROUTER is not set
-+# CONFIG_NET_SCHED is not set
-+
-+#
-+# Network testing
-+#
-+# CONFIG_NET_PKTGEN is not set
-+# CONFIG_HAMRADIO is not set
-+# CONFIG_CAN is not set
-+# CONFIG_IRDA is not set
-+# CONFIG_BT is not set
-+# CONFIG_AF_RXRPC is not set
-+
-+#
-+# Wireless
-+#
-+# CONFIG_CFG80211 is not set
-+# CONFIG_WIRELESS_EXT is not set
-+# CONFIG_MAC80211 is not set
-+# CONFIG_IEEE80211 is not set
-+# CONFIG_RFKILL is not set
-+# CONFIG_NET_9P is not set
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 5c229cc..d38f8ca 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -98,6 +98,10 @@ config MACH_OMAP_2430SDP
+ 	bool "OMAP 2430 SDP board"
+ 	depends on ARCH_OMAP2 && ARCH_OMAP2430
  
- #
- # Device Drivers
-@@ -335,18 +417,21 @@ CONFIG_PREVENT_FIRMWARE_BUILD=y
- # CONFIG_DEBUG_DRIVER is not set
- # CONFIG_DEBUG_DEVRES is not set
- # CONFIG_SYS_HYPERVISOR is not set
-+# CONFIG_CONNECTOR is not set
- # CONFIG_MTD is not set
- # CONFIG_PARPORT is not set
- CONFIG_BLK_DEV=y
- # CONFIG_BLK_DEV_COW_COMMON is not set
- CONFIG_BLK_DEV_LOOP=y
- # CONFIG_BLK_DEV_CRYPTOLOOP is not set
-+# CONFIG_BLK_DEV_NBD is not set
- # CONFIG_BLK_DEV_UB is not set
- CONFIG_BLK_DEV_RAM=y
- CONFIG_BLK_DEV_RAM_COUNT=16
- CONFIG_BLK_DEV_RAM_SIZE=16384
- # CONFIG_BLK_DEV_XIP is not set
- # CONFIG_CDROM_PKTCDVD is not set
-+# CONFIG_ATA_OVER_ETH is not set
- CONFIG_MISC_DEVICES=y
- # CONFIG_EEPROM_93CX6 is not set
- # CONFIG_OMAP_STI is not set
-@@ -388,12 +473,61 @@ CONFIG_SCSI_WAIT_SCAN=m
- #
- # CONFIG_SCSI_SPI_ATTRS is not set
- # CONFIG_SCSI_FC_ATTRS is not set
-+# CONFIG_SCSI_ISCSI_ATTRS is not set
- # CONFIG_SCSI_SAS_LIBSAS is not set
- # CONFIG_SCSI_SRP_ATTRS is not set
- CONFIG_SCSI_LOWLEVEL=y
-+# CONFIG_ISCSI_TCP is not set
- # CONFIG_SCSI_DEBUG is not set
- # CONFIG_ATA is not set
- # CONFIG_MD is not set
-+CONFIG_NETDEVICES=y
-+# CONFIG_NETDEVICES_MULTIQUEUE is not set
-+# CONFIG_DUMMY is not set
-+# CONFIG_BONDING is not set
-+# CONFIG_MACVLAN is not set
-+# CONFIG_EQUALIZER is not set
-+# CONFIG_TUN is not set
-+# CONFIG_VETH is not set
-+# CONFIG_PHYLIB is not set
-+CONFIG_NET_ETHERNET=y
-+CONFIG_MII=y
-+# CONFIG_AX88796 is not set
-+# CONFIG_SMC91X is not set
-+# CONFIG_DM9000 is not set
-+# CONFIG_ENC28J60 is not set
-+CONFIG_SMC911X=y
-+# CONFIG_IBM_NEW_EMAC_ZMII is not set
-+# CONFIG_IBM_NEW_EMAC_RGMII is not set
-+# CONFIG_IBM_NEW_EMAC_TAH is not set
-+# CONFIG_IBM_NEW_EMAC_EMAC4 is not set
-+# CONFIG_B44 is not set
-+CONFIG_NETDEV_1000=y
-+# CONFIG_E1000E_ENABLED is not set
-+CONFIG_NETDEV_10000=y
++config MACH_OMAP_LDP
++	bool "OMAP 3 LDP board"
++	depends on ARCH_OMAP3 && ARCH_OMAP34XX
 +
-+#
-+# Wireless LAN
-+#
-+# CONFIG_WLAN_PRE80211 is not set
-+# CONFIG_WLAN_80211 is not set
-+# CONFIG_IWLWIFI_LEDS is not set
-+
-+#
-+# USB Network Adapters
-+#
-+# CONFIG_USB_CATC is not set
-+# CONFIG_USB_KAWETH is not set
-+# CONFIG_USB_PEGASUS is not set
-+# CONFIG_USB_RTL8150 is not set
-+# CONFIG_USB_USBNET is not set
-+# CONFIG_WAN is not set
-+# CONFIG_PPP is not set
-+# CONFIG_SLIP is not set
-+# CONFIG_NETCONSOLE is not set
-+# CONFIG_NETPOLL is not set
-+# CONFIG_NET_POLL_CONTROLLER is not set
-+# CONFIG_ISDN is not set
- 
- #
- # Input device support
-@@ -615,6 +749,7 @@ CONFIG_SSB_POSSIBLE=y
- # Multimedia core support
- #
- # CONFIG_VIDEO_DEV is not set
-+# CONFIG_DVB_CORE is not set
- 
- #
- # Multimedia drivers
-@@ -926,12 +1061,14 @@ CONFIG_EXT3_FS=y
- CONFIG_JBD=y
- # CONFIG_REISERFS_FS is not set
- # CONFIG_JFS_FS is not set
--# CONFIG_FS_POSIX_ACL is not set
-+CONFIG_FS_POSIX_ACL=y
- # CONFIG_XFS_FS is not set
-+# CONFIG_OCFS2_FS is not set
- CONFIG_DNOTIFY=y
- CONFIG_INOTIFY=y
- CONFIG_INOTIFY_USER=y
- CONFIG_QUOTA=y
-+# CONFIG_QUOTA_NETLINK_INTERFACE is not set
- CONFIG_PRINT_QUOTA_WARNING=y
- # CONFIG_QFMT_V1 is not set
- CONFIG_QFMT_V2=y
-@@ -985,6 +1122,26 @@ CONFIG_TMPFS=y
- # CONFIG_ROMFS_FS is not set
- # CONFIG_SYSV_FS is not set
- # CONFIG_UFS_FS is not set
-+CONFIG_NETWORK_FILESYSTEMS=y
-+CONFIG_NFS_FS=y
-+CONFIG_NFS_V3=y
-+CONFIG_NFS_V3_ACL=y
-+# CONFIG_NFS_V4 is not set
-+# CONFIG_NFSD is not set
-+CONFIG_ROOT_NFS=y
-+CONFIG_LOCKD=y
-+CONFIG_LOCKD_V4=y
-+CONFIG_NFS_ACL_SUPPORT=y
-+CONFIG_NFS_COMMON=y
-+CONFIG_SUNRPC=y
-+# CONFIG_SUNRPC_BIND34 is not set
-+# CONFIG_RPCSEC_GSS_KRB5 is not set
-+# CONFIG_RPCSEC_GSS_SPKM3 is not set
-+# CONFIG_SMB_FS is not set
-+# CONFIG_CIFS is not set
-+# CONFIG_NCP_FS is not set
-+# CONFIG_CODA_FS is not set
-+# CONFIG_AFS_FS is not set
- 
- #
- # Partition Types
-@@ -1047,6 +1204,7 @@ CONFIG_NLS_ISO8859_1=y
- # CONFIG_NLS_KOI8_R is not set
- # CONFIG_NLS_KOI8_U is not set
- # CONFIG_NLS_UTF8 is not set
-+# CONFIG_DLM is not set
- 
- #
- # Kernel hacking
+ config MACH_OMAP_2430OSK
+ 	bool "OMAP 2430 OSK board"
+ 	depends on ARCH_OMAP2 && ARCH_OMAP24XX
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 552664c..b6eea89 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -44,6 +44,9 @@ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
+ obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
+ 					   usb-musb.o usb-ehci.o \
+ 					   hsmmc.o
++obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
++					   hsmmc.o \
++					   usb-musb.o
+ obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
+ 					   board-apollon-mmc.o	\
+ 					   board-apollon-keys.o
 diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index 2ac4c9b..47e86bf 100644
---- a/arch/arm/mach-omap2/board-ldp.c
+new file mode 100644
+index 0000000..2ac4c9b
+--- /dev/null
 +++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -46,6 +46,26 @@
- 
- #define TWL4030_MSECURE_GPIO	22
- 
-+static struct resource ldp_smc911x_resources[] = {
-+	[0] = {
-+		.start	= OMAP34XX_ETHR_START,
-+		.end	= OMAP34XX_ETHR_START + SZ_4K,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.start	= 0,
-+		.end	= 0,
-+		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
-+	},
-+};
+@@ -0,0 +1,253 @@
++/*
++ * linux/arch/arm/mach-omap2/board-ldp.c
++ *
++ * Copyright (C) 2008 Texas Instruments Inc.
++ * Nishant Kamat <nskamat@ti.com>
++ *
++ * Modified from mach-omap2/board-3430sdp.c
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+static struct platform_device ldp_smc911x_device = {
-+	.name		= "smc911x",
-+	.id		= -1,
-+	.num_resources	= ARRAY_SIZE(ldp_smc911x_resources),
-+	.resource	= ldp_smc911x_resources,
-+};
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/delay.h>
++#include <linux/input.h>
++#include <linux/workqueue.h>
++#include <linux/err.h>
++#include <linux/clk.h>
++#include <linux/spi/spi.h>
++#include <linux/spi/ads7846.h>
++#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl4030-rtc.h>
 +
- static int ts_gpio;
- 
- #ifdef CONFIG_RTC_DRV_TWL4030
-@@ -184,16 +204,47 @@ static struct spi_board_info ldp_spi_board_info[] __initdata = {
- };
- 
- static struct platform_device *ldp_devices[] __initdata = {
-+	&ldp_smc911x_device,
- #ifdef CONFIG_RTC_DRV_TWL4030
- 	&ldp_twl4030rtc_device,
- #endif
- };
- 
-+static inline void __init ldp_init_smc911x(void)
++#include <asm/hardware.h>
++#include <asm/mach-types.h>
++#include <asm/mach/arch.h>
++#include <asm/mach/map.h>
++
++#include <asm/arch/mcspi.h>
++#include <asm/arch/gpio.h>
++#include <asm/arch/board.h>
++#include <asm/arch/common.h>
++#include <asm/arch/gpmc.h>
++#include <asm/arch/hsmmc.h>
++#include <asm/arch/usb-musb.h>
++
++#include <asm/io.h>
++#include <asm/delay.h>
++#include <asm/arch/control.h>
++
++#define ENABLE_VAUX1_DEDICATED	0x03
++#define ENABLE_VAUX1_DEV_GRP	0x20
++
++#define TWL4030_MSECURE_GPIO	22
++
++static int ts_gpio;
++
++#ifdef CONFIG_RTC_DRV_TWL4030
++static int twl4030_rtc_init(void)
 +{
-+	int eth_cs;
-+	unsigned long cs_mem_base;
-+	int eth_gpio = 0;
++	int ret = 0;
 +
-+	eth_cs = LDP_SMC911X_CS;
++	/* 3430ES2.0 doesn't have msecure/gpio-22 line connected to T2 */
++	if (is_device_type_gp() && is_sil_rev_less_than(OMAP3430_REV_ES2_0)) {
++		u32 msecure_pad_config_reg = omap_ctrl_base_get() + 0xA3C;
++		int mux_mask = 0x04;
++		u16 tmp;
 +
-+	if (gpmc_cs_request(eth_cs, SZ_16M, &cs_mem_base) < 0) {
-+		printk(KERN_ERR "Failed to request GPMC mem for smc911x\n");
-+		return;
++		ret = omap_request_gpio(TWL4030_MSECURE_GPIO);
++		if (ret < 0) {
++			printk(KERN_ERR "twl4030_rtc_init: can't"
++				"reserve GPIO:%d !\n", TWL4030_MSECURE_GPIO);
++			goto out;
++		}
++		/*
++		 * TWL4030 will be in secure mode if msecure line from OMAP
++		 * is low. Make msecure line high in order to change the
++		 * TWL4030 RTC time and calender registers.
++		 */
++		omap_set_gpio_direction(TWL4030_MSECURE_GPIO, 0);
++
++		tmp = omap_readw(msecure_pad_config_reg);
++		tmp &= 0xF8;	/* To enable mux mode 03/04 = GPIO_RTC */
++		tmp |= mux_mask;/* To enable mux mode 03/04 = GPIO_RTC */
++		omap_writew(tmp, msecure_pad_config_reg);
++
++		omap_set_gpio_dataout(TWL4030_MSECURE_GPIO, 1);
 +	}
-+
-+	ldp_smc911x_resources[0].start = cs_mem_base + 0x0;
-+	ldp_smc911x_resources[0].end   = cs_mem_base + 0xf;
-+	udelay(100);
-+
-+	eth_gpio = LDP_SMC911X_GPIO;
-+
-+	ldp_smc911x_resources[1].start = OMAP_GPIO_IRQ(eth_gpio);
-+
-+	if (omap_request_gpio(eth_gpio) < 0) {
-+		printk(KERN_ERR "Failed to request GPIO%d for smc911x IRQ\n",
-+			eth_gpio);
-+		return;
-+	}
-+	omap_set_gpio_direction(eth_gpio, 1);
++out:
++	return ret;
 +}
 +
- static void __init omap_ldp_init_irq(void)
- {
- 	omap2_init_common_hw();
- 	omap_init_irq();
- 	omap_gpio_init();
-+	ldp_init_smc911x();
- }
- 
- static struct omap_uart_config ldp_uart_config __initdata = {
++static void twl4030_rtc_exit(void)
++{
++	omap_free_gpio(TWL4030_MSECURE_GPIO);
++}
++
++static struct twl4030rtc_platform_data ldp_twl4030rtc_data = {
++	.init = &twl4030_rtc_init,
++	.exit = &twl4030_rtc_exit,
++};
++
++static struct platform_device ldp_twl4030rtc_device = {
++	.name		= "twl4030_rtc",
++	.id		= -1,
++	.dev		= {
++		.platform_data	= &ldp_twl4030rtc_data,
++	},
++};
++#endif
++
++/**
++ * @brief ads7846_dev_init : Requests & sets GPIO line for pen-irq
++ *
++ * @return - void. If request gpio fails then Flag KERN_ERR.
++ */
++static void ads7846_dev_init(void)
++{
++	if (omap_request_gpio(ts_gpio) < 0) {
++		printk(KERN_ERR "can't get ads746 pen down GPIO\n");
++		return;
++	}
++
++	omap_set_gpio_direction(ts_gpio, 1);
++
++	omap_set_gpio_debounce(ts_gpio, 1);
++	omap_set_gpio_debounce_time(ts_gpio, 0xa);
++}
++
++static int ads7846_get_pendown_state(void)
++{
++	return !omap_get_gpio_datain(ts_gpio);
++}
++
++/*
++ * This enable(1)/disable(0) the voltage for TS: uses twl4030 calls
++ */
++static int ads7846_vaux_control(int vaux_cntrl)
++{
++	int ret = 0;
++
++#ifdef CONFIG_TWL4030_CORE
++	/* check for return value of ldo_use: if success it returns 0 */
++	if (vaux_cntrl == VAUX_ENABLE) {
++		if (ret != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			ENABLE_VAUX1_DEDICATED, TWL4030_VAUX1_DEDICATED))
++			return -EIO;
++		if (ret != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			ENABLE_VAUX1_DEV_GRP, TWL4030_VAUX1_DEV_GRP))
++			return -EIO;
++	} else if (vaux_cntrl == VAUX_DISABLE) {
++		if (ret != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			0x00, TWL4030_VAUX1_DEDICATED))
++			return -EIO;
++		if (ret != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			0x00, TWL4030_VAUX1_DEV_GRP))
++			return -EIO;
++	}
++#else
++	ret = -EIO;
++#endif
++	return ret;
++}
++
++static struct ads7846_platform_data tsc2046_config __initdata = {
++	.get_pendown_state	= ads7846_get_pendown_state,
++	.keep_vref_on		= 1,
++	.vaux_control		= ads7846_vaux_control,
++};
++
++
++static struct omap2_mcspi_device_config tsc2046_mcspi_config = {
++	.turbo_mode	= 0,
++	.single_channel	= 1,  /* 0: slave, 1: master */
++};
++
++static struct spi_board_info ldp_spi_board_info[] __initdata = {
++	[0] = {
++		/*
++		 * TSC2046 operates at a max freqency of 2MHz, so
++		 * operate slightly below at 1.5MHz
++		 */
++		.modalias		= "ads7846",
++		.bus_num		= 1,
++		.chip_select		= 0,
++		.max_speed_hz		= 1500000,
++		.controller_data	= &tsc2046_mcspi_config,
++		.irq			= 0,
++		.platform_data		= &tsc2046_config,
++	},
++};
++
++static struct platform_device *ldp_devices[] __initdata = {
++#ifdef CONFIG_RTC_DRV_TWL4030
++	&ldp_twl4030rtc_device,
++#endif
++};
++
++static void __init omap_ldp_init_irq(void)
++{
++	omap2_init_common_hw();
++	omap_init_irq();
++	omap_gpio_init();
++}
++
++static struct omap_uart_config ldp_uart_config __initdata = {
++	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
++};
++
++static struct omap_mmc_config ldp_mmc_config __initdata = {
++	.mmc [0] = {
++		.enabled	= 1,
++		.wire4		= 1,
++	},
++};
++
++static struct omap_board_config_kernel ldp_config[] __initdata = {
++	{ OMAP_TAG_UART,	&ldp_uart_config },
++	{ OMAP_TAG_MMC,		&ldp_mmc_config },
++};
++
++static int __init omap_i2c_init(void)
++{
++	omap_register_i2c_bus(1, 2600, NULL, 0);
++	omap_register_i2c_bus(2, 400, NULL, 0);
++	omap_register_i2c_bus(3, 400, NULL, 0);
++	return 0;
++}
++
++static void __init omap_ldp_init(void)
++{
++	platform_add_devices(ldp_devices, ARRAY_SIZE(ldp_devices));
++	omap_board_config = ldp_config;
++	omap_board_config_size = ARRAY_SIZE(ldp_config);
++	ts_gpio = 54;
++	ldp_spi_board_info[0].irq = OMAP_GPIO_IRQ(ts_gpio);
++	spi_register_board_info(ldp_spi_board_info,
++				ARRAY_SIZE(ldp_spi_board_info));
++	ads7846_dev_init();
++	omap_serial_init();
++	usb_musb_init();
++	hsmmc_init();
++}
++
++static void __init omap_ldp_map_io(void)
++{
++	omap2_set_globals_343x();
++	omap2_map_common_io();
++}
++arch_initcall(omap_i2c_init);
++
++MACHINE_START(OMAP_LDP, "OMAP LDP board")
++	.phys_io	= 0x48000000,
++	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
++	.boot_params	= 0x80000100,
++	.map_io		= omap_ldp_map_io,
++	.init_irq	= omap_ldp_init_irq,
++	.init_machine	= omap_ldp_init,
++	.timer		= &omap_timer,
++MACHINE_END
 diff --git a/include/asm-arm/arch-omap/board-ldp.h b/include/asm-arm/arch-omap/board-ldp.h
-index b227561..97c15d9 100644
---- a/include/asm-arm/arch-omap/board-ldp.h
+new file mode 100644
+index 0000000..b227561
+--- /dev/null
 +++ b/include/asm-arm/arch-omap/board-ldp.h
-@@ -29,6 +29,12 @@
- #ifndef __ASM_ARCH_OMAP_LDP_H
- #define __ASM_ARCH_OMAP_LDP_H
- 
-+#define DEBUG_BASE		0x08000000
+@@ -0,0 +1,34 @@
++/*
++ * linux/include/asm-arm/arch-omap/board-ldp.h
++ *
++ * Hardware definitions for TI OMAP3 LDP.
++ *
++ * Copyright (C) 2008 Texas Instruments Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
++ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
++ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
 +
-+#define OMAP34XX_ETHR_START	DEBUG_BASE
-+#define LDP_SMC911X_CS		1
-+#define LDP_SMC911X_GPIO	152
++#ifndef __ASM_ARCH_OMAP_LDP_H
++#define __ASM_ARCH_OMAP_LDP_H
 +
- #define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
++#define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
++
++#endif /* __ASM_ARCH_OMAP_LDP_H */
+diff --git a/include/asm-arm/arch-omap/hardware.h b/include/asm-arm/arch-omap/hardware.h
+index 09f8ef8..fed9a76 100644
+--- a/include/asm-arm/arch-omap/hardware.h
++++ b/include/asm-arm/arch-omap/hardware.h
+@@ -343,6 +343,10 @@
+ #include "board-omap3beagle.h"
+ #endif
  
- #endif /* __ASM_ARCH_OMAP_LDP_H */
++#ifdef CONFIG_MACH_OMAP_LDP
++#include "board-ldp.h"
++#endif
++
+ #ifdef CONFIG_MACH_OMAP_APOLLON
+ #include "board-apollon.h"
+ #endif
 -- 
 1.5.3.2
 
