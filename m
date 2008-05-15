@@ -1,91 +1,65 @@
-From: green <greenfreedom10@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: N810: linux-2.6.26-rc2-omap1 with muru.com N810 patches
-Date: Thu, 15 May 2008 13:19:15 -0500
-Message-ID: <20080515181915.GD8875@swansys>
-References: <20080515140914.GA30594@swansys> <4530c67662adea689bad79e193a9323a@felipebalbi.com>
+Date: Thu, 15 May 2008 11:28:41 -0700
+Message-ID: <20080515182840.GS8928@atomide.com>
+References: <20080515140914.GA30594@swansys> <20080515165448.GB8875@swansys>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3607uds81ZQvwCD0"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.178]:53007 "EHLO
-	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764298AbYEOSZf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 14:25:35 -0400
-Received: by py-out-1112.google.com with SMTP id u52so471210pyb.10
-        for <linux-omap@vger.kernel.org>; Thu, 15 May 2008 11:25:34 -0700 (PDT)
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53867 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754603AbYEOS2m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 14:28:42 -0400
+Received: from c-69-181-40-92.hsd1.ca.comcast.net ([69.181.40.92] helo=localhost.localdomain)
+	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1JwiC0-0002lq-Lv
+	for linux-omap@vger.kernel.org; Thu, 15 May 2008 18:28:41 +0000
 Content-Disposition: inline
-In-Reply-To: <4530c67662adea689bad79e193a9323a@felipebalbi.com>
-Content-Language: en
+In-Reply-To: <20080515165448.GB8875@swansys>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Linux-OMAP List <linux-omap@vger.kernel.org>
 
-
---3607uds81ZQvwCD0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, 2008.05.15, 136, Felipe Balbi wrote:
-> > Always, one of these two happens after I flash the compiled zImage:
-> >  - The NOKIA splash screen is displayed for about 20 seconds and then t=
-he
-> > N810=20
+* green <greenfreedom10@gmail.com> [080515 10:03]:
+> On Thu, 2008.05.15, 136, green wrote:
+> > I have built a Debian Sid armel chroot on the N810 and have compiled many 
+> > kernels in the chroot.  I send the kernels to the N810 using the flasher (-f 
+> > -k $IMAGE -R).
+> 
+> I've also built 2.6.26-rc2-omap1 (with muru.com N810 patches) on my amd64 
+> system using the gnueabi tools from emdebian.org.
+> 
+> gcc 4.3.0-4
+> binutils 2.18.1~cvs20080103-4
+> 
+> Same results.
+> >  - The NOKIA splash screen is displayed for about 20 seconds and then the N810 
 > > powers off.
-> >  - The splash screen is shown for <1 second and the device resets (loop=
-);
-> > I=20
-> > have to remove the battery.
->=20
-> flasher --enable-rd-mode --set-rd-flags=3Dserial-console,no-lifeguard-res=
-et
-> -f
 
-I had already done that, though not the serial-console one; I don't have an=
-y=20
-way to use it:
+Hmm, the patches I've posted should work fine to mount root from
+internal MMC card (assuming you have both cards inserted right now...)
 
-> > I have enable R&D mode on the N810 and disabled the lifeguard-reset fla=
-g.
+You should see the white Nokia splash screen for few seconds, then
+the black framebuffer console with penguin.
 
-> > I've used 'make n800_defconfig' (2.6.26-rc2-omap1 +N810) and changed on=
-ly
-> > the=20
-> > default cmdline without success.  Also I've used 'make
-> > nokia_2420_defconfig'=20
-> > with the maemo kernel.
->=20
-> try also
-> flasher --set-root-device mmc
+I tarred up my n810 hacks to http://muru.com/linux/n8x0/ with the
+keyboard patches included.
 
-I've tried this before, but can it really make any difference to whether th=
-e=20
-custom kernel boots?  The root device doesn't matter until after I have=20
-successfully booted a kernel.
+Here's also a temporary test zImage:
 
-> > Oh, and one more question that I ought to know the answer to by now:
-> > Is it okay to do 'make zImage', then change the config, then 'make
-> zImage'
-> >=20
-> > again without doing a 'make clean', so long as nothing in the source has
-> > been=20
-> > changed?  That saves a lot of time.
->=20
-> Yes, it's ok. ;-)
+http://muru.com/linux/n8x0/zImage-n8x0-2008-05-15
 
-Great, thanks!
+You can test that with:
 
---3607uds81ZQvwCD0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+$ flasher -k zImage-n8x0-2008-05-15 -l -b
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+I'll remove that zImage at some point soon because of my limited
+server bandwidth.. This zImage works with n810, and seemed to boot
+on n800 too.
 
-iD8DBQFILH6j682C+dBP+oQRAqhiAKC58F7BgZZJDOKG1uCE65WXUVX4ywCbBY31
-87i1k4SLF+UtoTYviDCkGCE=
-=TucW
------END PGP SIGNATURE-----
+BTW, you need to disable rd mode with flasher --disable-rd-mode with
+the serial clock hack applied. Otherwise the boot won't complete. Or
+at least you should not have --set-rd-flags=serial-console set.
 
---3607uds81ZQvwCD0--
+Tony
