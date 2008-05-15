@@ -1,20 +1,19 @@
 From: Nishant Kamat <nskamat@ti.com>
-Subject: [PATCH] ARM: OMAP: Add default kernel config for OMAP LDP
-Date: Thu, 15 May 2008 09:30:31 -0500
-Message-ID: <1210861832-10048-4-git-send-email-nskamat@ti.com>
-References: <1210861832-10048-1-git-send-email-nskamat@ti.com>
- <1210861832-10048-2-git-send-email-nskamat@ti.com>
- <1210861832-10048-3-git-send-email-nskamat@ti.com>
+Subject: [RESENDING PATCH 3/4] ARM: OMAP: Add default kernel config for OMAP LDP
+Date: Thu, 15 May 2008 09:42:41 -0500
+Message-ID: <1210862562-5903-3-git-send-email-nskamat@ti.com>
+References: <1210862562-5903-1-git-send-email-nskamat@ti.com>
+ <1210862562-5903-2-git-send-email-nskamat@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51071 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34533 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753887AbYEOOay (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 May 2008 10:30:54 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m4FEUY4N015712
+	id S1755116AbYEOOmu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 May 2008 10:42:50 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m4FEgiEg020406
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 15 May 2008 09:30:44 -0500
-In-Reply-To: <1210861832-10048-3-git-send-email-nskamat@ti.com>
+	for <linux-omap@vger.kernel.org>; Thu, 15 May 2008 09:42:49 -0500
+In-Reply-To: <1210862562-5903-2-git-send-email-nskamat@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
