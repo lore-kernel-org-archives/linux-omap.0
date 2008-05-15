@@ -1,235 +1,95 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] Input: Fix lm8323 probe and module unloading, take
-	#2
-Date: Thu, 15 May 2008 15:54:57 -0700
-Message-ID: <20080515225457.GW8928@atomide.com>
-References: <1210824079-22548-1-git-send-email-tony@atomide.com> <1210824079-22548-2-git-send-email-tony@atomide.com> <20080515080105.GC4625@kedavra.cpe.vivax.com.br> <20080515181826.GQ8928@atomide.com>
+From: green <greenfreedom10@gmail.com>
+Subject: Re: N810: linux-2.6.26-rc2-omap1 with muru.com N810 patches
+	(success)
+Date: Thu, 15 May 2008 18:10:58 -0500
+Message-ID: <20080515231058.GB11713@swansys>
+References: <20080515140914.GA30594@swansys> <20080515165448.GB8875@swansys> <20080515182840.GS8928@atomide.com> <20080515193333.GA11713@swansys> <20080515202511.GT8928@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="v9Ux+11Zm5mwPlX6"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:57090 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751665AbYEOWy5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 18:54:57 -0400
+Received: from py-out-1112.google.com ([64.233.166.180]:33731 "EHLO
+	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751658AbYEOXLR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 19:11:17 -0400
+Received: by py-out-1112.google.com with SMTP id u52so581873pyb.10
+        for <linux-omap@vger.kernel.org>; Thu, 15 May 2008 16:11:16 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20080515181826.GQ8928@atomide.com>
+In-Reply-To: <20080515202511.GT8928@atomide.com>
+Content-Language: en
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: linux-omap@vger.kernel.org, daniel.stone@nokia.com
+To: Linux-OMAP List <linux-omap@vger.kernel.org>
 
-* Tony Lindgren <tony@atomide.com> [080515 11:20]:
-> * Felipe Balbi <me@felipebalbi.com> [080515 01:00]:
-> > On Wed, May 14, 2008 at 09:01:18PM -0700, Tony Lindgren wrote:
-> > > Make module unloading and reloading behave:
-> > > 
-> > > - Driver probe could fail if input_register_device fails as
-> > >   no error was returned from probe
-> > > 
-> > > - Driver interrupt was using unused platform_data field,
-> > >   change to use i2c platform data interrupt instead
-> > > 
-> > > - Free resources on unloading module
-> > > 
-> > > - Mark platform data as __init_or_module
-> > > 
-> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > > ---
-> > >  arch/arm/mach-omap2/board-n800.c |    2 +-
-> > >  drivers/input/keyboard/lm8323.c  |   18 +++++++++++++-----
-> > >  include/linux/i2c/lm8323.h       |    2 --
-> > >  3 files changed, 14 insertions(+), 8 deletions(-)
-> > > 
-> > > diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/board-n800.c
-> > > index efcb25d..ae85c2c 100644
-> > > --- a/arch/arm/mach-omap2/board-n800.c
-> > > +++ b/arch/arm/mach-omap2/board-n800.c
-> > > @@ -642,7 +642,7 @@ static struct i2c_board_info __initdata n800_i2c_board_info_1[] = {
-> > >  
-> > >  extern struct tcm825x_platform_data n800_tcm825x_platform_data;
-> > >  
-> > > -static struct i2c_board_info __initdata n800_i2c_board_info_2[] = {
-> > > +static struct i2c_board_info __initdata_or_module n800_i2c_board_info_2[] = {
-> > >  #if defined (CONFIG_VIDEO_TCM825X) || defined (CONFIG_VIDEO_TCM825X_MODULE)
-> > >  	{
-> > >  		I2C_BOARD_INFO(TCM825X_NAME, TCM825X_I2C_ADDR),
-> > > diff --git a/drivers/input/keyboard/lm8323.c b/drivers/input/keyboard/lm8323.c
-> > > index e793ae7..d472da0 100644
-> > > --- a/drivers/input/keyboard/lm8323.c
-> > > +++ b/drivers/input/keyboard/lm8323.c
-> > > @@ -755,13 +755,11 @@ static int lm8323_probe(struct i2c_client *client,
-> > >  	if (init_pwm(lm, 3, &client->dev, lm8323_pdata->pwm3_name) < 0)
-> > >  		goto fail5;
-> > >  
-> > > -	lm->irq = lm8323_pdata->irq_gpio;
-> > > -	debug(&c->dev, "IRQ: %d\n", lm->irq);
-> > > -
-> > > +	lm->irq = client->irq;
-> > >  	mutex_init(&lm->lock);
-> > >  	INIT_WORK(&lm->work, lm8323_work);
-> > >  
-> > > -	err = request_irq(client->irq, lm8323_irq,
-> > > +	err = request_irq(lm->irq, lm8323_irq,
-> > 
-> > instead, you could just remove lm->irq field from structure and keep
-> > using client->irq.
-> 
-> Good idea, here's an updated patch.
 
-I'll push this first patch only today, the second one still needs more
-work.
+--v9Ux+11Zm5mwPlX6
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> Tony
-> 
+On Thu, 2008.05.15, 136, Tony Lindgren wrote:
+> * green <greenfreedom10@gmail.com> [080515 12:45]:
+> > Okay, I've got the zImage and updated patches; thanks.  This zImage doe=
+s work,=20
+> > but fails to mount root device (maybe something I did wrong; I'll worry=
+ about=20
+> > that later).  Could you send the config you used?  Or maybe I'm doing=
+=20
+> > something wrong when compiling.
+>=20
+> The last patch in the series contains the changes to n800_defconfig.
+> Also attached as .config.
 
-> From aa1c7706df6f99df31322d297e7142267e237819 Mon Sep 17 00:00:00 2001
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Mon, 12 May 2008 22:53:07 -0700
-> Subject: [PATCH] Input: Fix lm8323 probe and module unloading
-> 
-> Make module unloading and reloading behave:
-> 
-> - Driver probe could fail if input_register_device fails as
->   no error was returned from probe
-> 
-> - Driver interrupt was using unused platform_data field,
->   change to use i2c platform data interrupt instead
-> 
-> - Free resources on unloading module
-> 
-> - Mark platform data as __init_or_module
-> 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/mach-omap2/board-n800.c |    2 +-
->  drivers/input/keyboard/lm8323.c  |   32 +++++++++++++++++++-------------
->  include/linux/i2c/lm8323.h       |    2 --
->  3 files changed, 20 insertions(+), 16 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/board-n800.c
-> index efcb25d..ae85c2c 100644
-> --- a/arch/arm/mach-omap2/board-n800.c
-> +++ b/arch/arm/mach-omap2/board-n800.c
-> @@ -642,7 +642,7 @@ static struct i2c_board_info __initdata n800_i2c_board_info_1[] = {
->  
->  extern struct tcm825x_platform_data n800_tcm825x_platform_data;
->  
-> -static struct i2c_board_info __initdata n800_i2c_board_info_2[] = {
-> +static struct i2c_board_info __initdata_or_module n800_i2c_board_info_2[] = {
->  #if defined (CONFIG_VIDEO_TCM825X) || defined (CONFIG_VIDEO_TCM825X_MODULE)
->  	{
->  		I2C_BOARD_INFO(TCM825X_NAME, TCM825X_I2C_ADDR),
-> diff --git a/drivers/input/keyboard/lm8323.c b/drivers/input/keyboard/lm8323.c
-> index e793ae7..72bb587 100644
-> --- a/drivers/input/keyboard/lm8323.c
-> +++ b/drivers/input/keyboard/lm8323.c
-> @@ -150,7 +150,6 @@ struct lm8323_chip {
->  	struct i2c_client	*client;
->  	struct work_struct	work;
->  	struct input_dev	*idev;
-> -	int			irq;
->  	unsigned		kp_enabled : 1;
->  	unsigned		pm_suspend : 1;
->  	unsigned		keys_down;
-> @@ -755,9 +754,6 @@ static int lm8323_probe(struct i2c_client *client,
->  	if (init_pwm(lm, 3, &client->dev, lm8323_pdata->pwm3_name) < 0)
->  		goto fail5;
->  
-> -	lm->irq = lm8323_pdata->irq_gpio;
-> -	debug(&c->dev, "IRQ: %d\n", lm->irq);
-> -
->  	mutex_init(&lm->lock);
->  	INIT_WORK(&lm->work, lm8323_work);
->  
-> @@ -765,11 +761,11 @@ static int lm8323_probe(struct i2c_client *client,
->  			  IRQF_TRIGGER_FALLING | IRQF_DISABLED |
->  			  IRQF_SAMPLE_RANDOM, DRIVER_NAME, lm);
->  	if (err) {
-> -		dev_err(&client->dev, "could not get IRQ %d\n", lm->irq);
-> +		dev_err(&client->dev, "could not get IRQ %d\n", client->irq);
->  		goto fail6;
->  	}
->  
-> -	set_irq_wake(lm->irq, 1);
-> +	set_irq_wake(client->irq, 1);
->  
->  	lm->kp_enabled = 1;
->  	err = device_create_file(&client->dev, &dev_attr_disable_kp);
-> @@ -802,7 +798,8 @@ static int lm8323_probe(struct i2c_client *client,
->  		set_bit(EV_REP, idev->evbit);
->  
->  	lm->idev = idev;
-> -	if (input_register_device(idev)) {
-> +	err = input_register_device(idev);
-> +	if (err) {
->  		dev_dbg(&client->dev, "error registering input device\n");
->  		goto fail8;
->  	}
-> @@ -812,7 +809,7 @@ static int lm8323_probe(struct i2c_client *client,
->  fail8:
->  	device_remove_file(&client->dev, &dev_attr_disable_kp);
->  fail7:
-> -	free_irq(lm->irq, lm);
-> +	free_irq(client->irq, lm);
->  fail6:
->  	if (lm->pwm3.enabled)
->  		led_classdev_unregister(&lm->pwm3.cdev);
-> @@ -832,8 +829,17 @@ static int lm8323_remove(struct i2c_client *client)
->  {
->  	struct lm8323_chip *lm = i2c_get_clientdata(client);
->  
-> -	free_irq(lm->irq, lm);
-> +	free_irq(client->irq, lm);
-> +	cancel_work_sync(&lm->work);
-> +	input_unregister_device(lm->idev);
->  	device_remove_file(&lm->client->dev, &dev_attr_disable_kp);
-> +	if (lm->pwm3.enabled)
-> +		led_classdev_unregister(&lm->pwm3.cdev);
-> +	if (lm->pwm2.enabled)
-> +		led_classdev_unregister(&lm->pwm2.cdev);
-> +	if (lm->pwm1.enabled)
-> +		led_classdev_unregister(&lm->pwm1.cdev);
-> +	kfree(lm);
->  
->  	return 0;
->  }
-> @@ -846,8 +852,8 @@ static int lm8323_suspend(struct i2c_client *client, pm_message_t mesg)
->  {
->  	struct lm8323_chip *lm = i2c_get_clientdata(client);
->  
-> -	set_irq_wake(lm->irq, 0);
-> -	disable_irq(lm->irq);
-> +	set_irq_wake(client->irq, 0);
-> +	disable_irq(client->irq);
->  
->  	mutex_lock(&lm->lock);
->  	lm->pm_suspend = 1;
-> @@ -878,8 +884,8 @@ static int lm8323_resume(struct i2c_client *client)
->  	if (lm->pwm3.enabled)
->  		led_classdev_resume(&lm->pwm3.cdev);
->  
-> -	enable_irq(lm->irq);
-> -	set_irq_wake(lm->irq, 1);
-> +	enable_irq(client->irq);
-> +	set_irq_wake(client->irq, 1);
->  
->  	return 0;
->  }
-> diff --git a/include/linux/i2c/lm8323.h b/include/linux/i2c/lm8323.h
-> index 5cb09ab..17d6b33 100644
-> --- a/include/linux/i2c/lm8323.h
-> +++ b/include/linux/i2c/lm8323.h
-> @@ -17,8 +17,6 @@
->  #define LM8323_KEYMAP_SIZE (0x7f + 1)
->  
->  struct lm8323_platform_data {
-> -	u16 irq_gpio;
-> -
->  	int debounce_time; /* Time to watch for key bouncing, in ms. */
->  	int active_time; /* Idle time until sleep, in ms. */
->  
-> -- 
-> 1.5.3.6
-> 
+I don't understand, then, why there are differences between the config=20
+generated by 'make n800_defconfig' and the config you attached.  Like=20
+CONFIG_FRAMEBUFFER_CONSOLE is Y in the attached config but N in the generat=
+ed=20
+config (and others).
 
+> > I'm compiling on an amd64 system with the following packages (and their=
+=20
+> > dependencies) from emdebian.org:
+> > binutils-arm-linux-gnueabi 2.18.1~cvs20080103-4
+> > cpp-4.3-arm-linux-gnueabi 4.3.0-4
+> > g++-4.3-arm-linux-gnueabi 4.3.0-4
+> > gcc-4.3-arm-linux-gnueabi 4.3.0-4
+> >=20
+> > and in the Makefile:
+> > CROSS_COMPILE   ?=3D arm-linux-gnueabi-
+> >=20
+> > For now I'll try with the latest from linux-omap-2.6 with your patches.
+>=20
+> Yeah that should work. Just dor ARCH=3Darm CROSS_COMPILE=3Dgcc-4.3-arm-li=
+nux-gnueabi-
+> If in doubt, you can also try the codesourcery toolchain, but sounds
+> like your compiler is just fine.
+
+I have been using the Makefile instead, just changing this:
+CROSS_COMPILE ?=3D arm-linux-gnueabi-
+
+But that still doesn't work so:
+
+I installed 4.2.3-5 of cpp, g++, and gcc and tried it again and finally it=
+=20
+works.  So I guess I can blame the 4.3 packages, because I have been using =
+them=20
+all this time in some form, both in the chroot and on the amd64 system.  I=
+=20
+should have tried 4.2 earlier.
+
+Thanks for your help.
+
+--v9Ux+11Zm5mwPlX6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFILMMC682C+dBP+oQRAu1YAJ9UirRyeJJqzxjvilSbKytH4kH6OgCgllLs
+3k3Xvj4x9zTgbzGFitwy+oc=
+=8vpL
+-----END PGP SIGNATURE-----
+
+--v9Ux+11Zm5mwPlX6--
