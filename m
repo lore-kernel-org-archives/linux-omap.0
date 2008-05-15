@@ -1,55 +1,67 @@
-From: Daniel Stone <daniel.stone@nokia.com>
-Subject: Re: [PATCH 0/2] Make N810 keyboard work with console
-Date: Thu, 15 May 2008 11:58:52 +0300
-Message-ID: <20080515085852.GF12699@intune.research.nokia.com>
-References: <1210824079-22548-1-git-send-email-tony@atomide.com>
+From: "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Subject: Query ISP1301 with OMAP
+Date: Thu, 15 May 2008 15:57:42 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087012929E676@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jKBxcB1XkHIR0Eqt"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:17579 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752880AbYEOI5h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 04:57:37 -0400
-Content-Disposition: inline
-In-Reply-To: <1210824079-22548-1-git-send-email-tony@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
 
 
---jKBxcB1XkHIR0Eqt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I am facing issues with configuring ISP1301 in 3-pin Host only mode.
 
-On Wed, May 14, 2008 at 09:01:17PM -0700, ext Tony Lindgren wrote:
-> Here are few fun patches for N810 hackers to make the integrated
-> keyboard work with console :) This should be done in a generic way
-> and the old behaviour is preserved if optional sticky keys are not
-> passed from platform_data.
+I have a board with ISP1301 connected in 3-pin mode to OMAP3430-OHCI controller.
+I am trying to reuse the file: drivers/i2c/chips/isp1301_omap.c to configure in HOST only mode.
 
-Uhm.  If you're going to implement latching/locking keys, surely it'd be
-better to do this in the generic input layer than the keyboard driver?
+I have setup the OHCI HCD successfully, but what I observe is that with or without the device,
+OHCI is getting a "LOW SPEED" device attach interrupts.
 
-NAK from myself (for what little that means) simply due to the sheer
-horror of seeing what should, by all rights, be a tiny driver, explode
-into non-triviality. :)
+I am suspecting something going wrong with ISP1301. Any clues from logs?
 
-Cheers,
-Daniel
+Logs:
+usb usb1: configuration #1 chosen from 1 choice
+hub 1-0:1.0: USB hub found
+hub 1-0:1.0: 3 ports detected
+usb usb1: Product: OMAP OHCI
+usb usb1: Manufacturer: Linux 2.6.24.5-omap1-arm2 ohci_hcd
+usb usb1: SerialNumber: ohci-omap.0
 
---jKBxcB1XkHIR0Eqt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+>
+>usb 1-1: new low speed USB device using ohci-omap and address 2
+>
+ OHCI-IRQ 46
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+ OHCI-IRQ 44
 
-iD8DBQFIK/tM68xJuWtYYdURAtVGAKCVbu6CfQie4YogsVePSC6guJESQwCffdAX
-bwb0FDi2qnwga6HrsLlm9+k=
-=k5nN
------END PGP SIGNATURE-----
+ OHCI-IRQ 46
 
---jKBxcB1XkHIR0Eqt--
+ OHCI-IRQ 44
+
+ OHCI-IRQ 46
+
+ OHCI-IRQ 44
+usb 1-1: device descriptor read/64, error -62
+
+ OHCI-IRQ 46
+
+ OHCI-IRQ 44
+
+ OHCI-IRQ 46
+
+ OHCI-IRQ 44
+
+ OHCI-IRQ 46
+
+ OHCI-IRQ 44
+usb 1-1: device descriptor read/64, error -62
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
