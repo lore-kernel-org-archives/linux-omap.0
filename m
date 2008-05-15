@@ -1,60 +1,69 @@
-From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
-Subject: Re: [PATCH] Performance enhancement for MMCSD when feature CONFIG_MMC_BLOCK_BOUNCE is enabled in the MMC core
-Date: Thu, 15 May 2008 16:30:10 +0300
-Message-ID: <31e679430805150630h194f6c93j5b67ef7a9d41917e@mail.gmail.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB593010A9B60D4@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: [PATCH] I2C: TSL2563, LP5521, TEA5761: Refer to id_table in i2c_driver structures
+Date: Thu, 15 May 2008 16:48:08 +0300
+Message-ID: <1210859288-15657-1-git-send-email-jarkko.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:15027 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751424AbYEONaM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 09:30:12 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so340174fgg.17
-        for <linux-omap@vger.kernel.org>; Thu, 15 May 2008 06:30:11 -0700 (PDT)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593010A9B60D4@dbde02.ent.ti.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.105.134]:25332 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752396AbYEONrl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 09:47:41 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m4FDlXSB028094
+	for <linux-omap@vger.kernel.org>; Thu, 15 May 2008 08:47:39 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kumar, Purushotam" <purushotam@ti.com>
-Cc: "linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, "Gole, Anant" <anantgole@ti.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, Jarkko Nikula <jarkko.nikula@nokia.com>
 
-Hi,
+Continue following commits since otherwise probe functions are not called.
 
-this list moved to linux-omap@vger.kernel.org ;-)
+11f26b681796e5f40d83321ea66e6fafa8f121d7
+5744c1ebdd713c68fc3f1a93942d2baa8d139e79
+0b80905e9c1f81085069c502662ba122437d6a7c
 
-On Thu, May 15, 2008 at 4:25 PM, Kumar, Purushotam <purushotam@ti.com> wrote:
-> This patch will increase performance significantly. In my testing with a SD Extreme III high speed 2GB SD card using FAT file system on OMAP35X TI EVM, write speed has improved by 2x whereas read speed has improved by 3 times for MMCSD when CONFIG_MMC_BLOCK_BOUNCE is enabled.  It is supposed that larger/bounce buffers will be used by mmc core if CONFIG_MMC_BLOCK_BOUNCE is defined. But, in the mmc core, size of buffer is set to mmc->max_req_size if mmc->max_req_size is smaller than MMC_QUEUE_BOUNCESZ i.e. bounce buffer size (which is 64KB). By default, mmc->max_req_size is set to 4K. So, buffers of 4K will be used instead of 64K even if CONFIG_MMC_BLOCK_BOUNCE is defined without this patch. This patches forces mmc core to use bounce buffer of size MMC_QUEUE_BOUNCESZ and so performance is 
- increased.
->
-> Signed-off-by: Purushotam Kumar <purushotam@ti.com>
-> ---
-> Index: linux-omap-2.6/drivers/mmc/host/omap_hsmmc.c
-> ===================================================================
-> --- linux-omap-2.6.orig/drivers/mmc/host/omap_hsmmc.c
-> +++ linux-omap-2.6/drivers/mmc/host/omap_hsmmc.c
-> @@ -782,6 +782,15 @@ static int __init omap_mmc_probe(struct
->                else
->                        host->dbclk_enabled = 1;
->
-> +#ifdef CONFIG_MMC_BLOCK_BOUNCE
-> +       mmc->max_phys_segs = 1;
-> +       mmc->max_hw_segs = 1;
-> +#endif
-> +       mmc->max_blk_size = 512;       /* Block Length at max can be 1024 */
-> +       mmc->max_blk_count = 0xFFFF;    /* No. of Blocks is 16 bits */
-> +       mmc->max_req_size = mmc->max_blk_size * mmc->max_blk_count;
-> +       mmc->max_seg_size = mmc->max_req_size;
-> +
->        mmc->ocr_avail = mmc_slot(host).ocr_mask;
->        mmc->caps |= MMC_CAP_MULTIWRITE | MMC_CAP_MMC_HIGHSPEED |
->                                MMC_CAP_SD_HIGHSPEED;
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+---
+ drivers/i2c/chips/lp5521.c          |    1 +
+ drivers/i2c/chips/tsl2563.c         |    1 +
+ drivers/media/radio/radio-tea5761.c |    1 +
+ 3 files changed, 3 insertions(+), 0 deletions(-)
 
-Do you have any measurements results to share :-p
-
+diff --git a/drivers/i2c/chips/lp5521.c b/drivers/i2c/chips/lp5521.c
+index 254d555..32664c0 100644
+--- a/drivers/i2c/chips/lp5521.c
++++ b/drivers/i2c/chips/lp5521.c
+@@ -564,6 +564,7 @@ static struct i2c_driver lp5521_driver = {
+ 	},
+ 	.probe		= lp5521_probe,
+ 	.remove		= __devexit_p(lp5521_remove),
++	.id_table	= lp5521_id,
+ };
+ 
+ static int __init lp5521_init(void)
+diff --git a/drivers/i2c/chips/tsl2563.c b/drivers/i2c/chips/tsl2563.c
+index bc58106..ddca5e3 100644
+--- a/drivers/i2c/chips/tsl2563.c
++++ b/drivers/i2c/chips/tsl2563.c
+@@ -718,6 +718,7 @@ static struct i2c_driver tsl2563_i2c_driver = {
+ 	.resume		= tsl2563_resume,
+ 	.probe		= tsl2563_probe,
+ 	.remove		= __devexit_p(tsl2563_remove),
++	.id_table	= tsl2563_id,
+ };
+ 
+ static int __init tsl2563_init(void)
+diff --git a/drivers/media/radio/radio-tea5761.c b/drivers/media/radio/radio-tea5761.c
+index 34fcd3a..e8ccf29 100644
+--- a/drivers/media/radio/radio-tea5761.c
++++ b/drivers/media/radio/radio-tea5761.c
+@@ -485,6 +485,7 @@ static struct i2c_driver tea5761_driver = {
+ 	},
+ 	.probe	= tea5761_i2c_driver_probe,
+ 	.remove = __devexit_p(tea5761_i2c_driver_remove),
++	.id_table = tea5761_id,
+ };
+ 
+ static int __init tea5761_init(void)
 -- 
-Best Regards,
+1.5.5.1
 
-Felipe Balbi
-felipebalbi@users.sourceforge.net
