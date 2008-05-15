@@ -1,98 +1,60 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: Query ISP1301 with OMAP
-Date: Thu, 15 May 2008 17:46:23 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087012929E715@dbde02.ent.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC356087012929E676@dbde02.ent.ti.com>
+From: "Felipe Balbi" <felipebalbi@users.sourceforge.net>
+Subject: Re: [PATCH] Performance enhancement for MMCSD when feature CONFIG_MMC_BLOCK_BOUNCE is enabled in the MMC core
+Date: Thu, 15 May 2008 16:30:10 +0300
+Message-ID: <31e679430805150630h194f6c93j5b67ef7a9d41917e@mail.gmail.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB593010A9B60D4@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43004 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751298AbYEOMQv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 08:16:51 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087012929E676@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from fg-out-1718.google.com ([72.14.220.156]:15027 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751424AbYEONaM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 09:30:12 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so340174fgg.17
+        for <linux-omap@vger.kernel.org>; Thu, 15 May 2008 06:30:11 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593010A9B60D4@dbde02.ent.ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Kumar, Purushotam" <purushotam@ti.com>
+Cc: "linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, "Gole, Anant" <anantgole@ti.com>, linux-omap@vger.kernel.org
 
+Hi,
 
-> To: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org
-> Subject: Query ISP1301 with OMAP
+this list moved to linux-omap@vger.kernel.org ;-)
 
-Another observation:
-There is a comment in isp1301_omap.c file:
+On Thu, May 15, 2008 at 4:25 PM, Kumar, Purushotam <purushotam@ti.com> wrote:
+> This patch will increase performance significantly. In my testing with a SD Extreme III high speed 2GB SD card using FAT file system on OMAP35X TI EVM, write speed has improved by 2x whereas read speed has improved by 3 times for MMCSD when CONFIG_MMC_BLOCK_BOUNCE is enabled.  It is supposed that larger/bounce buffers will be used by mmc core if CONFIG_MMC_BLOCK_BOUNCE is defined. But, in the mmc core, size of buffer is set to mmc->max_req_size if mmc->max_req_size is smaller than MMC_QUEUE_BOUNCESZ i.e. bounce buffer size (which is 64KB). By default, mmc->max_req_size is set to 4K. So, buffers of 4K will be used instead of 64K even if CONFIG_MMC_BLOCK_BOUNCE is defined without this patch. This patches forces mmc core to use bounce buffer of size MMC_QUEUE_BOUNCESZ and so performance is 
+ increased.
+>
+> Signed-off-by: Purushotam Kumar <purushotam@ti.com>
+> ---
+> Index: linux-omap-2.6/drivers/mmc/host/omap_hsmmc.c
+> ===================================================================
+> --- linux-omap-2.6.orig/drivers/mmc/host/omap_hsmmc.c
+> +++ linux-omap-2.6/drivers/mmc/host/omap_hsmmc.c
+> @@ -782,6 +782,15 @@ static int __init omap_mmc_probe(struct
+>                else
+>                        host->dbclk_enabled = 1;
+>
+> +#ifdef CONFIG_MMC_BLOCK_BOUNCE
+> +       mmc->max_phys_segs = 1;
+> +       mmc->max_hw_segs = 1;
+> +#endif
+> +       mmc->max_blk_size = 512;       /* Block Length at max can be 1024 */
+> +       mmc->max_blk_count = 0xFFFF;    /* No. of Blocks is 16 bits */
+> +       mmc->max_req_size = mmc->max_blk_size * mmc->max_blk_count;
+> +       mmc->max_seg_size = mmc->max_req_size;
+> +
+>        mmc->ocr_avail = mmc_slot(host).ocr_mask;
+>        mmc->caps |= MMC_CAP_MULTIWRITE | MMC_CAP_MMC_HIGHSPEED |
+>                                MMC_CAP_SD_HIGHSPEED;
 
-static void power_up(struct isp1301 *isp)
-        /* do this only when cpu is driving transceiver,
-         * so host won't see a low speed device...
-         */
+Do you have any measurements results to share :-p
 
-Could anyone give more details as to what this means?
-When will OHCI host see a low speed device (even when no device is connected)?
+-- 
+Best Regards,
 
-In this state, the OHCI portsc register is: reg-0x48064454 => 0x10301
-And ISP1301 register value is:
-ISP1301_INTERRUPT_SOURCE= 1a => DM_HI
-
-I have ensured in h/w that DM line is not pulled high at all.
-
->
->
-> I am facing issues with configuring ISP1301 in 3-pin Host only mode.
->
-> I have a board with ISP1301 connected in 3-pin mode to OMAP3430-OHCI
-> controller.
-> I am trying to reuse the file: drivers/i2c/chips/isp1301_omap.c to
-> configure in HOST only mode.
->
-> I have setup the OHCI HCD successfully, but what I observe is that with or
-> without the device,
-> OHCI is getting a "LOW SPEED" device attach interrupts.
->
-> I am suspecting something going wrong with ISP1301. Any clues from logs?
->
-> Logs:
-> usb usb1: configuration #1 chosen from 1 choice
-> hub 1-0:1.0: USB hub found
-> hub 1-0:1.0: 3 ports detected
-> usb usb1: Product: OMAP OHCI
-> usb usb1: Manufacturer: Linux 2.6.24.5-omap1-arm2 ohci_hcd
-> usb usb1: SerialNumber: ohci-omap.0
->
-> >
-> >usb 1-1: new low speed USB device using ohci-omap and address 2
-> >
->  OHCI-IRQ 46
->
->  OHCI-IRQ 44
->
->  OHCI-IRQ 46
->
->  OHCI-IRQ 44
->
->  OHCI-IRQ 46
->
->  OHCI-IRQ 44
-> usb 1-1: device descriptor read/64, error -62
->
->  OHCI-IRQ 46
->
->  OHCI-IRQ 44
->
->  OHCI-IRQ 46
->
->  OHCI-IRQ 44
->
->  OHCI-IRQ 46
->
->  OHCI-IRQ 44
-> usb 1-1: device descriptor read/64, error -62
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Felipe Balbi
+felipebalbi@users.sourceforge.net
