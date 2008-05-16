@@ -1,49 +1,469 @@
 From: Jouni Hogander <jouni.hogander@nokia.com>
-Subject: [PATCH 9/9] OMAP3430SDP: Enable config options CONFIG_OMAP_RESET_CLOCKS and CONFIG_SUSPEND
-Date: Fri, 16 May 2008 13:58:27 +0300
-Message-ID: <1210935507-27742-1-git-send-email-jouni.hogander@nokia.com>
+Subject: [PATCH 8/9] 34XX: PM: Initial version of suspend and dynamic retention
+Date: Fri, 16 May 2008 13:58:25 +0300
+Message-ID: <1210935505-27719-1-git-send-email-jouni.hogander@nokia.com>
 References: <878wyav7ti.fsf@trdhcp146196.ntc.nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:58405 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753548AbYEPK6c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2008 06:58:32 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m4GAwAxW029216
-	for <linux-omap@vger.kernel.org>; Fri, 16 May 2008 13:58:30 +0300
+Received: from smtp.nokia.com ([192.100.105.134]:36682 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753628AbYEPK6e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2008 06:58:34 -0400
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m4GAvCoC024549
+	for <linux-omap@vger.kernel.org>; Fri, 16 May 2008 05:58:32 -0500
 In-Reply-To: <878wyav7ti.fsf@trdhcp146196.ntc.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: jouni.hogander@nokia.com
 
+This is initial version of suspend and dynamic retention for
+34xx. Omap is tried to put to full retention on suspend and pm_idle.
+
 Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
 ---
- arch/arm/configs/omap_3430sdp_defconfig |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/Makefile |    3 +
+ arch/arm/mach-omap2/pm.c     |    4 +-
+ arch/arm/mach-omap2/pm.h     |    2 +
+ arch/arm/mach-omap2/pm34xx.c |  386 ++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 394 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/pm34xx.c
 
-diff --git a/arch/arm/configs/omap_3430sdp_defconfig b/arch/arm/configs/omap_3430sdp_defconfig
-index 0fef29d..9e4af26 100644
---- a/arch/arm/configs/omap_3430sdp_defconfig
-+++ b/arch/arm/configs/omap_3430sdp_defconfig
-@@ -168,7 +168,7 @@ CONFIG_ARCH_OMAP3=y
- # OMAP Feature Selections
- #
- CONFIG_OMAP_DEBUG_SRAM_PATCH=y
--# CONFIG_OMAP_RESET_CLOCKS is not set
-+CONFIG_OMAP_RESET_CLOCKS=y
- CONFIG_OMAP_BOOT_TAG=y
- CONFIG_OMAP_BOOT_REASON=y
- # CONFIG_OMAP_COMPONENT_VERSION is not set
-@@ -308,7 +308,7 @@ CONFIG_BINFMT_MISC=y
- CONFIG_PM=y
- # CONFIG_PM_LEGACY is not set
- # CONFIG_PM_DEBUG is not set
--# CONFIG_SUSPEND is not set
-+CONFIG_SUSPEND=y
- # CONFIG_APM_EMULATION is not set
- CONFIG_ARCH_SUSPEND_POSSIBLE=y
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 12f6a6f..6168aa4 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -18,6 +18,9 @@ ifeq ($(CONFIG_ARCH_OMAP2),y)
+ obj-$(CONFIG_PM) += pm24xx.o sleep24xx.o
+ endif
  
++ifeq ($(CONFIG_ARCH_OMAP3),y)
++obj-$(CONFIG_PM) += pm34xx.o sleep34xx.o
++endif
+ obj-$(CONFIG_PM_DEBUG) += pm-debug.o
+ 
+ # Clock framework
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 55ed75b..bef58d7 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -74,8 +74,10 @@ int __init omap_pm_init(void)
+ 
+ 	if (cpu_is_omap24xx())
+ 		error = omap2_pm_init();
++	if (cpu_is_omap34xx())
++		error = omap3_pm_init();
+ 	if (error) {
+-		printk(KERN_ERR "omap2_pm_init failed: %d\n", error);
++		printk(KERN_ERR "omap2|3_pm_init failed: %d\n", error);
+ 		return error;
+ 	}
+ 
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 15482ba..351456e 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -14,6 +14,8 @@
+  */
+ 
+ extern int omap2_pm_init(void);
++extern int omap3_pm_init(void);
++
+ extern unsigned short enable_dyn_sleep;
+ extern atomic_t sleep_block;
+ 
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+new file mode 100644
+index 0000000..a1bfb30
+--- /dev/null
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -0,0 +1,386 @@
++/*
++ * linux/arch/arm/mach-omap2/pm34xx.c
++ *
++ * OMAP3 Power Management Routines
++ *
++ * Copyright (C) 2006-2008 Nokia Corporation
++ * Tony Lindgren <tony@atomide.com>
++ * Jouni Hogander
++ *
++ * Copyright (C) 2005 Texas Instruments, Inc.
++ * Richard Woodruff <r-woodruff2@ti.com>
++ *
++ * Based on pm.c for omap1
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/pm.h>
++#include <linux/suspend.h>
++#include <linux/interrupt.h>
++#include <linux/module.h>
++#include <linux/list.h>
++#include <linux/err.h>
++
++#include <asm/arch/gpio.h>
++#include <asm/arch/sram.h>
++#include <asm/arch/pm.h>
++#include <asm/arch/clockdomain.h>
++#include <asm/arch/powerdomain.h>
++
++#include "cm.h"
++#include "cm-regbits-34xx.h"
++#include "prm-regbits-34xx.h"
++
++#include "prm.h"
++#include "pm.h"
++
++struct power_state {
++	struct powerdomain *pwrdm;
++	u32 next_state;
++	u32 saved_state;
++	struct list_head node;
++};
++
++static LIST_HEAD(pwrst_list);
++
++void (*_omap_sram_idle)(u32 *addr, int save_state);
++
++static void (*saved_idle)(void);
++
++static struct powerdomain *mpu_pwrdm;
++
++/* PRCM Interrupt Handler for wakeups */
++static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
++{
++	u32 wkst, irqstatus_mpu;
++	u32 fclk, iclk;
++
++	/* WKUP */
++	wkst = prm_read_mod_reg(WKUP_MOD, PM_WKST);
++	if (wkst) {
++		iclk = cm_read_mod_reg(WKUP_MOD, CM_ICLKEN);
++		fclk = cm_read_mod_reg(WKUP_MOD, CM_FCLKEN);
++		cm_set_mod_reg_bits(wkst, WKUP_MOD, CM_ICLKEN);
++		cm_set_mod_reg_bits(wkst, WKUP_MOD, CM_FCLKEN);
++		prm_write_mod_reg(wkst, WKUP_MOD, PM_WKST);
++		while (prm_read_mod_reg(WKUP_MOD, PM_WKST));
++		cm_write_mod_reg(iclk, WKUP_MOD, CM_ICLKEN);
++		cm_write_mod_reg(fclk, WKUP_MOD, CM_FCLKEN);
++	}
++
++	/* CORE */
++	wkst = prm_read_mod_reg(CORE_MOD, PM_WKST1);
++	if (wkst) {
++		iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN1);
++		fclk = cm_read_mod_reg(CORE_MOD, CM_FCLKEN1);
++		cm_set_mod_reg_bits(wkst, CORE_MOD, CM_ICLKEN1);
++		cm_set_mod_reg_bits(wkst, CORE_MOD, CM_FCLKEN1);
++		prm_write_mod_reg(wkst, CORE_MOD, PM_WKST1);
++		while (prm_read_mod_reg(CORE_MOD, PM_WKST1));
++		cm_write_mod_reg(iclk, CORE_MOD, CM_ICLKEN1);
++		cm_write_mod_reg(fclk, CORE_MOD, CM_FCLKEN1);
++	}
++	wkst = prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_WKST3);
++	if (wkst) {
++		iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN3);
++		fclk = cm_read_mod_reg(CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
++		cm_set_mod_reg_bits(wkst, CORE_MOD, CM_ICLKEN3);
++		cm_set_mod_reg_bits(wkst, CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
++		prm_write_mod_reg(wkst, CORE_MOD, OMAP3430ES2_PM_WKST3);
++		while (prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_WKST3));
++		cm_write_mod_reg(iclk, CORE_MOD, CM_ICLKEN3);
++		cm_write_mod_reg(fclk, CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
++	}
++
++	/* PER */
++	wkst = prm_read_mod_reg(OMAP3430_PER_MOD, PM_WKST);
++	if (wkst) {
++		iclk = cm_read_mod_reg(OMAP3430_PER_MOD, CM_ICLKEN);
++		fclk = cm_read_mod_reg(OMAP3430_PER_MOD, CM_FCLKEN);
++		cm_set_mod_reg_bits(wkst, OMAP3430_PER_MOD, CM_ICLKEN);
++		cm_set_mod_reg_bits(wkst, OMAP3430_PER_MOD, CM_FCLKEN);
++		prm_write_mod_reg(wkst, OMAP3430_PER_MOD, PM_WKST);
++		while (prm_read_mod_reg(OMAP3430_PER_MOD, PM_WKST));
++		cm_write_mod_reg(iclk, OMAP3430_PER_MOD, CM_ICLKEN);
++		cm_write_mod_reg(fclk, OMAP3430_PER_MOD, CM_FCLKEN);
++	}
++
++	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
++		/* USBHOST */
++		wkst = prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, PM_WKST);
++		if (wkst) {
++			iclk = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
++					       CM_ICLKEN);
++			fclk = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
++					       CM_FCLKEN);
++			cm_set_mod_reg_bits(wkst, OMAP3430ES2_USBHOST_MOD,
++					 CM_ICLKEN);
++			cm_set_mod_reg_bits(wkst, OMAP3430ES2_USBHOST_MOD,
++					 CM_FCLKEN);
++			prm_write_mod_reg(wkst, OMAP3430ES2_USBHOST_MOD,
++					  PM_WKST);
++			while (prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
++						PM_WKST));
++			cm_write_mod_reg(iclk, OMAP3430ES2_USBHOST_MOD,
++					 CM_ICLKEN);
++			cm_write_mod_reg(fclk, OMAP3430ES2_USBHOST_MOD,
++					 CM_FCLKEN);
++		}
++	}
++
++	irqstatus_mpu = __raw_readl(OMAP3430_PRM_IRQSTATUS_MPU);
++	__raw_writel(irqstatus_mpu, OMAP3430_PRM_IRQSTATUS_MPU);
++	while (__raw_readl(OMAP3430_PRM_IRQSTATUS_MPU));
++
++	return IRQ_HANDLED;
++}
++
++static void omap_sram_idle(void)
++{
++	/* Variable to tell what needs to be saved and restored
++	 * in omap_sram_idle*/
++	/* save_state = 0 => Nothing to save and restored */
++	/* save_state = 1 => Only L1 and logic lost */
++	/* save_state = 2 => Only L2 lost */
++	/* save_state = 3 => L1, L2 and logic lost */
++	int save_state = 0, mpu_next_state;
++
++	if (!_omap_sram_idle)
++		return;
++
++	mpu_next_state = pwrdm_read_next_pwrst(mpu_pwrdm);
++	switch (mpu_next_state) {
++	case PWRDM_POWER_RET:
++		/* No need to save context */
++		save_state = 0;
++		break;
++	default:
++		/* Invalid state */
++		printk(KERN_ERR "Invalid mpu state in sram_idle\n");
++		return;
++	}
++
++	omap2_gpio_prepare_for_retention();
++
++	_omap_sram_idle(NULL, save_state);
++
++	omap2_gpio_resume_after_retention();
++}
++
++static int omap3_can_sleep(void)
++{
++	if (!enable_dyn_sleep)
++		return 0;
++	if (atomic_read(&sleep_block) > 0)
++		return 0;
++	return 1;
++}
++
++/* This sets pwrdm state (other than mpu & core. Currently only ON &
++ * RET are supported. Function is assuming that clkdm doesn't have
++ * hw_sup mode enabled. */
++static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
++{
++	u32 cur_state;
++	int ret = 0;
++	int i = 0;
++
++	if (pwrdm == NULL || IS_ERR(pwrdm))
++		return -EINVAL;
++
++	cur_state = pwrdm_read_next_pwrst(pwrdm);
++
++	if (cur_state == state)
++		return ret;
++
++	for (i = 0; pwrdm->pwrdm_clkdms[i]; i++)
++		omap2_clkdm_deny_idle(pwrdm->pwrdm_clkdms[i]);
++
++	ret = pwrdm_set_next_pwrst(pwrdm, state);
++	if (ret) {
++		printk(KERN_ERR "Unable to set state of powerdomain: %s\n",
++		       pwrdm->name);
++		goto err;
++	}
++
++	for (i = 0; pwrdm->pwrdm_clkdms[i]; i++)
++		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[i]);
++
++err:
++	return ret;
++}
++
++static void omap3_pm_idle(void)
++{
++	local_irq_disable();
++	local_fiq_disable();
++
++	if (!omap3_can_sleep())
++		goto out;
++
++	if (omap_irq_pending())
++		goto out;
++
++	omap_sram_idle();
++
++out:
++	local_fiq_enable();
++	local_irq_enable();
++}
++
++static int omap3_pm_prepare(void)
++{
++	saved_idle = pm_idle;
++	pm_idle = NULL;
++	return 0;
++}
++
++static int omap3_pm_suspend(void)
++{
++	struct power_state *pwrst;
++	int state, ret = 0;
++
++	/* Read current next_pwrsts */
++	list_for_each_entry(pwrst, &pwrst_list, node)
++		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
++	/* Set ones wanted by suspend */
++	list_for_each_entry(pwrst, &pwrst_list, node) {
++		if (set_pwrdm_state(pwrst->pwrdm, pwrst->next_state))
++			goto restore;
++		if (pwrdm_clear_all_prev_pwrst(pwrst->pwrdm))
++			goto restore;
++	}
++
++	omap_sram_idle();
++
++restore:
++	/* Restore next_pwrsts */
++	list_for_each_entry(pwrst, &pwrst_list, node) {
++		set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
++		state = pwrdm_read_prev_pwrst(pwrst->pwrdm);
++		if (state != pwrst->next_state) {
++			printk(KERN_INFO "Powerdomain (%s) didn't enter "
++			       "target state %d\n",
++			       pwrst->pwrdm->name, pwrst->next_state);
++			ret = -1;
++		}
++	}
++	if (ret)
++		printk(KERN_ERR "Could not enter target state in pm_suspend\n");
++	else
++		printk(KERN_INFO "Successfully put all powerdomains "
++		       "to target state\n");
++
++	return ret;
++}
++
++static int omap3_pm_enter(suspend_state_t state)
++{
++	int ret = 0;
++
++	switch (state) {
++	case PM_SUSPEND_STANDBY:
++	case PM_SUSPEND_MEM:
++		ret = omap3_pm_suspend();
++		break;
++	default:
++		ret = -EINVAL;
++	}
++
++	return ret;
++}
++
++static void omap3_pm_finish(void)
++{
++	pm_idle = saved_idle;
++}
++
++static struct platform_suspend_ops omap_pm_ops = {
++	.prepare	= omap3_pm_prepare,
++	.enter		= omap3_pm_enter,
++	.finish		= omap3_pm_finish,
++	.valid		= suspend_valid_only_mem,
++};
++
++static void __init prcm_setup_regs(void)
++{
++	u32 v;
++
++	/* setup wakup source */
++	prm_write_mod_reg(OMAP3430_EN_IO | OMAP3430_EN_GPIO1 | OMAP3430_EN_GPT1,
++			  WKUP_MOD, PM_WKEN);
++	/* No need to write EN_IO, that is always enabled */
++	prm_write_mod_reg(OMAP3430_EN_GPIO1 | OMAP3430_EN_GPT1,
++			  WKUP_MOD, OMAP3430_PM_MPUGRPSEL);
++	/* For some reason IO doesn't generate wakeup event even if
++	 * it is selected to mpu wakeup goup */
++	__raw_writel(OMAP3430_IO_EN | OMAP3430_WKUP_EN,
++		     OMAP3430_PRM_IRQENABLE_MPU);
++}
++
++static int __init pwrdms_setup(struct powerdomain *pwrdm)
++{
++	struct power_state *pwrst;
++
++	if (!pwrdm->pwrsts)
++		return 0;
++
++	pwrst = kmalloc(sizeof(struct power_state), GFP_KERNEL);
++	if (!pwrst)
++		return -ENOMEM;
++	pwrst->pwrdm = pwrdm;
++	pwrst->next_state = PWRDM_POWER_RET;
++	list_add(&pwrst->node, &pwrst_list);
++	return set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
++}
++
++int __init omap3_pm_init(void)
++{
++	struct power_state *pwrst;
++	int ret;
++
++	printk(KERN_ERR "Power Management for TI OMAP3.\n");
++
++	ret = request_irq(INT_34XX_PRCM_MPU_IRQ,
++			  (irq_handler_t)prcm_interrupt_handler,
++			  IRQF_DISABLED, "prcm", NULL);
++	if (ret) {
++		printk(KERN_ERR "request_irq failed to register for 0x%x\n",
++		       INT_34XX_PRCM_MPU_IRQ);
++		goto err1;
++	}
++
++	ret = pwrdm_for_each(pwrdms_setup);
++	if (ret) {
++		printk(KERN_ERR "Failed to setup powerdomains\n");
++		goto err2;
++	}
++
++	mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
++	if (mpu_pwrdm == NULL) {
++		printk(KERN_ERR "Failed to get mpu_pwrdm\n");
++		goto err2;
++	}
++
++	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
++					omap34xx_cpu_suspend_sz);
++
++	suspend_set_ops(&omap_pm_ops);
++
++	prcm_setup_regs();
++
++	pm_idle = omap3_pm_idle;
++
++err1:
++	return ret;
++err2:
++	free_irq(INT_34XX_PRCM_MPU_IRQ, NULL);
++	list_for_each_entry(pwrst, &pwrst_list, node) {
++		list_del(&pwrst->node);
++		kfree(pwrst);
++	}
++	return ret;
++}
 -- 
 1.5.5
 
