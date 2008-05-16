@@ -1,52 +1,89 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] N800: Select tcm825x only if wanted
-Date: Fri, 16 May 2008 10:44:54 -0700
-Message-ID: <20080516174454.GO23002@atomide.com>
-References: <482AD555.40905@nokia.com> <12107667331990-git-send-email-sakari.ailus@nokia.com> <12107667331986-git-send-email-sakari.ailus@nokia.com> <12107667332796-git-send-email-sakari.ailus@nokia.com>
+Subject: Re: [PATCH] I2C: TSL2563, LP5521, TEA5761: Refer to id_table in
+	i2c_driver structures
+Date: Fri, 16 May 2008 10:49:10 -0700
+Message-ID: <20080516174909.GP23002@atomide.com>
+References: <1210859288-15657-1-git-send-email-jarkko.nikula@nokia.com> <20080515135053.GP17908@gandalf.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61996 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759514AbYEPRow (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2008 13:44:52 -0400
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:64582 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754876AbYEPRtJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2008 13:49:09 -0400
 Content-Disposition: inline
-In-Reply-To: <12107667332796-git-send-email-sakari.ailus@nokia.com>
+In-Reply-To: <20080515135053.GP17908@gandalf.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, linux-omap@vger.kernel.org
 
-* Sakari Ailus <sakari.ailus@nokia.com> [080514 06:36]:
-> Don't enable automatically TCM825x on N800 unless
-> VIDEO_HELPER_CHIPS_AUTO is selected.
+* Felipe Balbi <felipe.balbi@nokia.com> [080515 06:53]:
+> On Thu, May 15, 2008 at 04:48:08PM +0300, Jarkko Nikula wrote:
+> > Continue following commits since otherwise probe functions are not called.
+> > 
+> > 11f26b681796e5f40d83321ea66e6fafa8f121d7
+> > 5744c1ebdd713c68fc3f1a93942d2baa8d139e79
+> > 0b80905e9c1f81085069c502662ba122437d6a7c
+> > 
+> > Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+> 
+> Thanks Jarkko, forgot to add these on last patches.
+> 
+> Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
 
 Pushing.
 
 Tony
 
-
-> Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
-> ---
->  arch/arm/mach-omap2/Kconfig |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 5c229cc..94beff0 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -35,7 +35,7 @@ config MACH_OMAP_GENERIC
->  config MACH_NOKIA_N800
->  	bool "Nokia N800"
->  	depends on ARCH_OMAP2420
-> -	select VIDEO_TCM825X if VIDEO_OMAP2
-> +	select VIDEO_TCM825X if VIDEO_OMAP2 && VIDEO_HELPER_CHIPS_AUTO
->  	select CBUS if VIDEO_TCM825X
->  	select CBUS_RETU if VIDEO_TCM825X
->  	select MENELAUS if VIDEO_TCM825X
+> > ---
+> >  drivers/i2c/chips/lp5521.c          |    1 +
+> >  drivers/i2c/chips/tsl2563.c         |    1 +
+> >  drivers/media/radio/radio-tea5761.c |    1 +
+> >  3 files changed, 3 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/i2c/chips/lp5521.c b/drivers/i2c/chips/lp5521.c
+> > index 254d555..32664c0 100644
+> > --- a/drivers/i2c/chips/lp5521.c
+> > +++ b/drivers/i2c/chips/lp5521.c
+> > @@ -564,6 +564,7 @@ static struct i2c_driver lp5521_driver = {
+> >  	},
+> >  	.probe		= lp5521_probe,
+> >  	.remove		= __devexit_p(lp5521_remove),
+> > +	.id_table	= lp5521_id,
+> >  };
+> >  
+> >  static int __init lp5521_init(void)
+> > diff --git a/drivers/i2c/chips/tsl2563.c b/drivers/i2c/chips/tsl2563.c
+> > index bc58106..ddca5e3 100644
+> > --- a/drivers/i2c/chips/tsl2563.c
+> > +++ b/drivers/i2c/chips/tsl2563.c
+> > @@ -718,6 +718,7 @@ static struct i2c_driver tsl2563_i2c_driver = {
+> >  	.resume		= tsl2563_resume,
+> >  	.probe		= tsl2563_probe,
+> >  	.remove		= __devexit_p(tsl2563_remove),
+> > +	.id_table	= tsl2563_id,
+> >  };
+> >  
+> >  static int __init tsl2563_init(void)
+> > diff --git a/drivers/media/radio/radio-tea5761.c b/drivers/media/radio/radio-tea5761.c
+> > index 34fcd3a..e8ccf29 100644
+> > --- a/drivers/media/radio/radio-tea5761.c
+> > +++ b/drivers/media/radio/radio-tea5761.c
+> > @@ -485,6 +485,7 @@ static struct i2c_driver tea5761_driver = {
+> >  	},
+> >  	.probe	= tea5761_i2c_driver_probe,
+> >  	.remove = __devexit_p(tea5761_i2c_driver_remove),
+> > +	.id_table = tea5761_id,
+> >  };
+> >  
+> >  static int __init tea5761_init(void)
+> > -- 
+> > 1.5.5.1
+> 
 > -- 
-> 1.5.0.6
-> 
+> 	- Balbi
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
