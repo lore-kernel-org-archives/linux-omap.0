@@ -1,134 +1,223 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESENDING PATCH 4/4] ARM: OMAP: Add ethernet support for OMAP
-	LDP
-Date: Fri, 16 May 2008 10:55:49 -0700
-Message-ID: <20080516175549.GW23002@atomide.com>
-References: <1210862562-5903-1-git-send-email-nskamat@ti.com> <1210862562-5903-2-git-send-email-nskamat@ti.com> <1210862562-5903-3-git-send-email-nskamat@ti.com> <1210862562-5903-4-git-send-email-nskamat@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: This patch adds the driver to turn on the
+	TFP410 framer to get DVI output working on the beagleboard
+Date: Fri, 16 May 2008 10:58:46 -0700
+Message-ID: <20080516175845.GX23002@atomide.com>
+References: <1210933014-302-1-git-send-email-koen@openembedded.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:53550 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751184AbYEPRzs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2008 13:55:48 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59869 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752024AbYEPR6o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2008 13:58:44 -0400
 Content-Disposition: inline
-In-Reply-To: <1210862562-5903-4-git-send-email-nskamat@ti.com>
+In-Reply-To: <1210933014-302-1-git-send-email-koen@openembedded.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishant Kamat <nskamat@ti.com>
+To: Koen Kooi <koen@openembedded.org>
 Cc: linux-omap@vger.kernel.org
 
-* Nishant Kamat <nskamat@ti.com> [080515 07:45]:
-> This patch adds ethernet support (smc911x) for OMAP LDP platform.
+* Koen Kooi <koen@openembedded.org> [080516 03:18]:
+> The default resolution is 1024x768@24bit
 > 
-> Signed-off-by: Nishant Kamat <nskamat@ti.com>
-> ---
->  arch/arm/configs/omap_ldp_defconfig   |  164 ++++++++++++++++++++++++++++++++-
->  arch/arm/mach-omap2/board-ldp.c       |   51 ++++++++++
->  include/asm-arm/arch-omap/board-ldp.h |    6 +
->  3 files changed, 218 insertions(+), 3 deletions(-)
-> 
+> This version addresses the comments from Felipe Balbi adn Arun Edarath
 
-<snip>
-
-> diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-> index 2ac4c9b..47e86bf 100644
-> --- a/arch/arm/mach-omap2/board-ldp.c
-> +++ b/arch/arm/mach-omap2/board-ldp.c
-> @@ -46,6 +46,26 @@
->  
->  #define TWL4030_MSECURE_GPIO	22
->  
-> +static struct resource ldp_smc911x_resources[] = {
-> +	[0] = {
-> +		.start	= OMAP34XX_ETHR_START,
-> +		.end	= OMAP34XX_ETHR_START + SZ_4K,
-> +		.flags	= IORESOURCE_MEM,
-> +	},
-> +	[1] = {
-> +		.start	= 0,
-> +		.end	= 0,
-> +		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
-> +	},
-> +};
-> +
-> +static struct platform_device ldp_smc911x_device = {
-> +	.name		= "smc911x",
-> +	.id		= -1,
-> +	.num_resources	= ARRAY_SIZE(ldp_smc911x_resources),
-> +	.resource	= ldp_smc911x_resources,
-> +};
-> +
->  static int ts_gpio;
->  
->  #ifdef CONFIG_RTC_DRV_TWL4030
-> @@ -184,16 +204,47 @@ static struct spi_board_info ldp_spi_board_info[] __initdata = {
->  };
->  
->  static struct platform_device *ldp_devices[] __initdata = {
-> +	&ldp_smc911x_device,
->  #ifdef CONFIG_RTC_DRV_TWL4030
->  	&ldp_twl4030rtc_device,
->  #endif
->  };
->  
-> +static inline void __init ldp_init_smc911x(void)
-> +{
-> +	int eth_cs;
-> +	unsigned long cs_mem_base;
-> +	int eth_gpio = 0;
-> +
-> +	eth_cs = LDP_SMC911X_CS;
-> +
-> +	if (gpmc_cs_request(eth_cs, SZ_16M, &cs_mem_base) < 0) {
-> +		printk(KERN_ERR "Failed to request GPMC mem for smc911x\n");
-> +		return;
-> +	}
-> +
-> +	ldp_smc911x_resources[0].start = cs_mem_base + 0x0;
-> +	ldp_smc911x_resources[0].end   = cs_mem_base + 0xf;
-> +	udelay(100);
-> +
-> +	eth_gpio = LDP_SMC911X_GPIO;
-> +
-> +	ldp_smc911x_resources[1].start = OMAP_GPIO_IRQ(eth_gpio);
-> +
-> +	if (omap_request_gpio(eth_gpio) < 0) {
-> +		printk(KERN_ERR "Failed to request GPIO%d for smc911x IRQ\n",
-> +			eth_gpio);
-> +		return;
-> +	}
-> +	omap_set_gpio_direction(eth_gpio, 1);
-> +}
-> +
->  static void __init omap_ldp_init_irq(void)
->  {
->  	omap2_init_common_hw();
->  	omap_init_irq();
->  	omap_gpio_init();
-> +	ldp_init_smc911x();
->  }
->  
->  static struct omap_uart_config ldp_uart_config __initdata = {
-> diff --git a/include/asm-arm/arch-omap/board-ldp.h b/include/asm-arm/arch-omap/board-ldp.h
-> index b227561..97c15d9 100644
-> --- a/include/asm-arm/arch-omap/board-ldp.h
-> +++ b/include/asm-arm/arch-omap/board-ldp.h
-> @@ -29,6 +29,12 @@
->  #ifndef __ASM_ARCH_OMAP_LDP_H
->  #define __ASM_ARCH_OMAP_LDP_H
->  
-> +#define DEBUG_BASE		0x08000000
-> +
-> +#define OMAP34XX_ETHR_START	DEBUG_BASE
-> +#define LDP_SMC911X_CS		1
-> +#define LDP_SMC911X_GPIO	152
-> +
->  #define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
->  
->  #endif /* __ASM_ARCH_OMAP_LDP_H */
-
-These redefines will conflict when compiling in support for multiple
-boards. They should be passed in the platform_data.
+Pushing with one whitespace warning corrected.
 
 Tony
+
+> Signed-off-by: Koen Kooi <koen@openembedded.org>
+> ---
+>  arch/arm/mach-omap2/board-omap3beagle.c |   11 +++
+>  drivers/video/omap/Makefile             |    1 +
+>  drivers/video/omap/lcd_omap3beagle.c    |  133 +++++++++++++++++++++++++++++++
+>  3 files changed, 145 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/video/omap/lcd_omap3beagle.c
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index 0c0cbfc..c992cc7 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -63,12 +63,23 @@ static struct platform_device omap3_beagle_twl4030rtc_device = {
+>  	.id             = -1,
+>  };
+>  
+> +static struct platform_device omap3_beagle_lcd_device = {
+> +	.name		= "omap3beagle_lcd",
+> +	.id		= -1,
+> +};
+> +
+> +static struct omap_lcd_config omap3_beagle_lcd_config __initdata = {
+> +	.ctrl_name	= "internal",
+> +};
+> +
+>  static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
+>  	{ OMAP_TAG_UART,	&omap3_beagle_uart_config },
+>  	{ OMAP_TAG_MMC,		&omap3beagle_mmc_config },
+> +	{ OMAP_TAG_LCD,		&omap3_beagle_lcd_config },
+>  };
+>  
+>  static struct platform_device *omap3_beagle_devices[] __initdata = {
+> +	&omap3_beagle_lcd_device,
+>  #ifdef CONFIG_RTC_DRV_TWL4030
+>  	&omap3_beagle_twl4030rtc_device,
+>  #endif
+> diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
+> index cad6a68..fe7ee5d 100644
+> --- a/drivers/video/omap/Makefile
+> +++ b/drivers/video/omap/Makefile
+> @@ -32,6 +32,7 @@ objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
+>  objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd_2430sdp.o
+>  objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_2430sdp.o
+>  objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
+> +objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
+>  objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
+>  
+>  omapfb-objs := $(objs-yy)
+> diff --git a/drivers/video/omap/lcd_omap3beagle.c b/drivers/video/omap/lcd_omap3beagle.c
+> new file mode 100644
+> index 0000000..e7ec46e
+> --- /dev/null
+> +++ b/drivers/video/omap/lcd_omap3beagle.c
+> @@ -0,0 +1,133 @@
+> +/*
+> + * LCD panel support for the TI OMAP3 Beagle board
+> + *
+> + * Author: Koen Kooi <koen@openembedded.org>
+> + *
+> + * Derived from drivers/video/omap/lcd-omap3evm.c
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License as published by the
+> + * Free Software Foundation; either version 2 of the License, or (at your
+> + * option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License along
+> + * with this program; if not, write to the Free Software Foundation, Inc.,
+> + * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/i2c/twl4030.h>
+> +
+> +#include <asm/arch/gpio.h>
+> +#include <asm/arch/mux.h>
+> +#include <asm/arch/omapfb.h>
+> +#include <asm/mach-types.h>
+> +
+> +#define LCD_PANEL_ENABLE_GPIO       170
+> +
+> +#define LCD_XRES	 	1024	
+> +#define LCD_YRES 		768
+> +#define LCD_PIXCLOCK		64000 /* in kHz */
+> +
+> +static int omap3beagle_panel_init(struct lcd_panel *panel,
+> +				struct omapfb_device *fbdev)
+> +{
+> +	omap_request_gpio(LCD_PANEL_ENABLE_GPIO);
+> +	return 0;
+> +}
+> +
+> +static void omap3beagle_panel_cleanup(struct lcd_panel *panel)
+> +{
+> +}
+> +
+> +static int omap3beagle_panel_enable(struct lcd_panel *panel)
+> +{
+> +	omap_set_gpio_dataout(LCD_PANEL_ENABLE_GPIO, 1);
+> +	return 0;
+> +}
+> +
+> +static void omap3beagle_panel_disable(struct lcd_panel *panel)
+> +{
+> +	omap_set_gpio_dataout(LCD_PANEL_ENABLE_GPIO, 0);
+> +}
+> +
+> +static unsigned long omap3beagle_panel_get_caps(struct lcd_panel *panel)
+> +{
+> +	return 0;
+> +}
+> +
+> +struct lcd_panel omap3beagle_panel = {
+> +	.name		= "omap3beagle",
+> +	.config		= OMAP_LCDC_PANEL_TFT,
+> +
+> +	.bpp		= 24,
+> +	.data_lines	= 24,
+> +	.x_res		= LCD_XRES,
+> +	.y_res		= LCD_YRES,
+> +	.hsw		= 3,		/* hsync_len (4) - 1 */
+> +	.hfp		= 3,		/* right_margin (4) - 1 */
+> +	.hbp		= 39,		/* left_margin (40) - 1 */
+> +	.vsw		= 1,		/* vsync_len (2) - 1 */
+> +	.vfp		= 2,		/* lower_margin */
+> +	.vbp		= 7,		/* upper_margin (8) - 1 */
+> +
+> +	.pixel_clock	= LCD_PIXCLOCK,
+> +
+> +	.init		= omap3beagle_panel_init,
+> +	.cleanup	= omap3beagle_panel_cleanup,
+> +	.enable		= omap3beagle_panel_enable,
+> +	.disable	= omap3beagle_panel_disable,
+> +	.get_caps	= omap3beagle_panel_get_caps,
+> +};
+> +
+> +static int omap3beagle_panel_probe(struct platform_device *pdev)
+> +{
+> +	omapfb_register_panel(&omap3beagle_panel);
+> +	return 0;
+> +}
+> +
+> +static int omap3beagle_panel_remove(struct platform_device *pdev)
+> +{
+> +	return 0;
+> +}
+> +
+> +static int omap3beagle_panel_suspend(struct platform_device *pdev,
+> +				   pm_message_t mesg)
+> +{
+> +	return 0;
+> +}
+> +
+> +static int omap3beagle_panel_resume(struct platform_device *pdev)
+> +{
+> +	return 0;
+> +}
+> +
+> +struct platform_driver omap3beagle_panel_driver = {
+> +	.probe		= omap3beagle_panel_probe,
+> +	.remove		= omap3beagle_panel_remove,
+> +	.suspend	= omap3beagle_panel_suspend,
+> +	.resume		= omap3beagle_panel_resume,
+> +	.driver		= {
+> +		.name	= "omap3beagle_lcd",
+> +		.owner	= THIS_MODULE,
+> +	},
+> +};
+> +
+> +static int __init omap3beagle_panel_drv_init(void)
+> +{
+> +	return platform_driver_register(&omap3beagle_panel_driver);
+> +}
+> +
+> +static void __exit omap3beagle_panel_drv_exit(void)
+> +{
+> +	platform_driver_unregister(&omap3beagle_panel_driver);
+> +}
+> +
+> +module_init(omap3beagle_panel_drv_init);
+> +module_exit(omap3beagle_panel_drv_exit);
+> -- 
+> 1.5.4.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
