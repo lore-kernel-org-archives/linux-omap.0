@@ -1,59 +1,68 @@
-From: green <greenfreedom10@gmail.com>
-Subject: Re: wear-leveling necessary on N810 internal/removable cards?
-Date: Thu, 15 May 2008 21:45:35 -0500
-Message-ID: <20080516024535.GE11713@swansys>
-References: <20080515231104.GC11713@swansys> <9c9fda240805151714ydf70459gf3d8e073671cc5b@mail.gmail.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: ALSA SoC for TWL4030
+Date: Fri, 16 May 2008 08:57:24 +0300
+Message-ID: <20080516085724.d4997266.jarkko.nikula@nokia.com>
+References: <5e088bd90805150818h1c2a5d8ep263811c8baed333a@mail.gmail.com>
+	<8AF7AD1D-C577-4C88-9F87-05F742FE2895@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2qXFWqzzG3v1+95a"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.179]:34992 "EHLO
-	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751153AbYEPDGs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 May 2008 23:06:48 -0400
-Received: by py-out-1112.google.com with SMTP id u52so658330pyb.10
-        for <linux-omap@vger.kernel.org>; Thu, 15 May 2008 20:06:47 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <9c9fda240805151714ydf70459gf3d8e073671cc5b@mail.gmail.com>
-Content-Language: en
+Received: from smtp.nokia.com ([192.100.105.134]:41099 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750946AbYEPF5K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2008 01:57:10 -0400
+In-Reply-To: <8AF7AD1D-C577-4C88-9F87-05F742FE2895@student.utwente.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux-OMAP List <linux-omap@vger.kernel.org>
+To: ext Koen Kooi <k.kooi@student.utwente.nl>
+Cc: Steve Sakoman <sakoman@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+On Thu, 15 May 2008 17:39:32 +0200
+"ext Koen Kooi" <k.kooi@student.utwente.nl> wrote:
+
+> Op 15 mei 2008, om 17:18 heeft Steve Sakoman het volgende geschreven:
+> > I'm thinking of tackling audio support for the OMAP3 EVM next.
+> >
+> > I'd like to make sure that I'm not duplicating work :-)
+> >
+> > Is anyone aware of any existing efforts to support the TWL4030 audio
+> > functionality?  I've seen the TI work in the 2.6.22 kernel, but it
+> > is not an SoC driver and seems to use a different mcbsp
+> > implementation than is in the current linux-omap tree.
+> 
+It would be great to get ASoC driver for TWL4030 since it's the biggest
+task to get ASoC audio on OMAP3 EVM. AFAIK TWL4030 is used also in
+other EVMs as well so those boards can be supported also by just adding
+own ASoC machine drivers for them.
+
+Currently ASoC for OMAP doesn't support yet OMAP3 but it's not very big
+issue to add it after low-level McBSP driver supports it. Eduardo
+Valentin is currently updating it.
+
+> There does seem to be an ASoC driver for the McBSP2 I2S side, but
+> the KConfig entry:
+> 
+> - --
+> 
+> config SND_OMAP_SOC_MCBSP
+>          tristate
+>          select OMAP_MCBSP
+> 
+> - --
+> 
+> doesn't show up in menuconfig :(
+> 
+Convention in ASoC is that only machines are shown and their entries
+will then select the codec and link drivers. E.g
+
+config SND_OMAP_SOC_N810
+	tristate "SoC Audio support for Nokia N810"
+	depends on SND_OMAP_SOC && MACH_NOKIA_N810
+	select SND_OMAP_SOC_MCBSP
+	select SND_SOC_TLV320AIC3X
+	help
+	  Say Y if you want to add support for SoC audio on Nokia N810.
 
 
---2qXFWqzzG3v1+95a
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, 2008.05.16, 137, Kyungmin Park wrote:
-> On Fri, May 16, 2008 at 8:11 AM, green <greenfreedom10@gmail.com> wrote:
-> > Simply: do the controllers for the internal and removeable Flash cards =
-of the
-> > Nokia N810 do wear-leveling automatically or should I use something lik=
-e JFFS2
-> > to handle that?  I suppose that the location of the kernel, initfs, and=
- rootfs
-> > does not do wear-leveling because the maemo OS does use JFFS2 for the r=
-ootfs,
-> > but I'm not sure about the two Flash cards.
->=20
-> It's MMC cards which means it does its own wear-leveling internally.
-> So you don't need to worry it.
-
-Okay, thanks!
-
---2qXFWqzzG3v1+95a
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFILPVP682C+dBP+oQRAvwAAKCC+hLtn+sG5U6PgFgozojCqzt8AwCgr0Mb
-jOMwxzcbrg3pPFcyt8fIuco=
-=+EKO
------END PGP SIGNATURE-----
-
---2qXFWqzzG3v1+95a--
+Jarkko
