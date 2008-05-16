@@ -1,43 +1,162 @@
 From: Jouni Hogander <jouni.hogander@nokia.com>
-Subject: [PATCH 08/10] 34XX: PM: Workaround to disable mmc
-Date: Fri, 16 May 2008 14:05:12 +0300
-Message-ID: <1210935912-28059-1-git-send-email-jouni.hogander@nokia.com>
+Subject: [PATCH 05/10] 34XX: PM: Workaround to enable autoidle for clocks and plls
+Date: Fri, 16 May 2008 14:05:05 +0300
+Message-ID: <1210935905-27998-1-git-send-email-jouni.hogander@nokia.com>
 References: <874p8yv7dq.fsf@trdhcp146196.ntc.nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:48240 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:48273 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753941AbYEPLFT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2008 07:05:19 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m4GB4tHQ019849
-	for <linux-omap@vger.kernel.org>; Fri, 16 May 2008 14:05:17 +0300
+	with ESMTP id S1753657AbYEPLFX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 May 2008 07:05:23 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m4GB5BxV020199
+	for <linux-omap@vger.kernel.org>; Fri, 16 May 2008 14:05:21 +0300
 In-Reply-To: <874p8yv7dq.fsf@trdhcp146196.ntc.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: jouni.hogander@nokia.com
 
-Current hsmmc is not pm friendly. Disable it because it prevents omap3
-retention
+This workaround enables autoidle for interface clocks and plls. Also
+automatic control of external oscillator through sys_clkreq is
+enabled. I think these should be done by clockfw.
 
 Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
 ---
- arch/arm/configs/omap_3430sdp_defconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |  120 ++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 120 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/configs/omap_3430sdp_defconfig b/arch/arm/configs/omap_3430sdp_defconfig
-index 9e4af26..4239b25 100644
---- a/arch/arm/configs/omap_3430sdp_defconfig
-+++ b/arch/arm/configs/omap_3430sdp_defconfig
-@@ -966,7 +966,7 @@ CONFIG_USB_ZERO=y
- # CONFIG_USB_G_SERIAL is not set
- # CONFIG_USB_MIDI_GADGET is not set
- # CONFIG_USB_G_PRINTER is not set
--CONFIG_MMC=y
-+# CONFIG_MMC is not set
- # CONFIG_MMC_DEBUG is not set
- # CONFIG_MMC_UNSAFE_RESUME is not set
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 49e2989..c30a218 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -369,6 +369,126 @@ static void __init prcm_setup_regs(void)
+ {
+ 	u32 v;
  
++	/* XXX Enable interface clock autoidle for all modules. This
++	 * should be done by clockfw */
++	cm_write_mod_reg(
++		OMAP3430ES2_AUTO_MMC3 |
++		OMAP3430ES2_AUTO_ICR |
++		OMAP3430_AUTO_AES2 |
++		OMAP3430_AUTO_SHA12 |
++		OMAP3430_AUTO_DES2 |
++		OMAP3430_AUTO_MMC2 |
++		OMAP3430_AUTO_MMC1 |
++		OMAP3430_AUTO_MSPRO |
++		OMAP3430_AUTO_HDQ |
++		OMAP3430_AUTO_MCSPI4 |
++		OMAP3430_AUTO_MCSPI3 |
++		OMAP3430_AUTO_MCSPI2 |
++		OMAP3430_AUTO_MCSPI1 |
++		OMAP3430_AUTO_I2C3 |
++		OMAP3430_AUTO_I2C2 |
++		OMAP3430_AUTO_I2C1 |
++		OMAP3430_AUTO_UART2 |
++		OMAP3430_AUTO_UART1 |
++		OMAP3430_AUTO_GPT11 |
++		OMAP3430_AUTO_GPT10 |
++		OMAP3430_AUTO_MCBSP5 |
++		OMAP3430_AUTO_MCBSP1 |
++		OMAP3430ES1_AUTO_FAC | /* This is es1 only */
++		OMAP3430_AUTO_MAILBOXES |
++		OMAP3430_AUTO_OMAPCTRL |
++		OMAP3430ES1_AUTO_FSHOSTUSB |
++		OMAP3430_AUTO_HSOTGUSB |
++		OMAP3430ES1_AUTO_D2D | /* This is es1 only */
++		OMAP3430_AUTO_SSI,
++		CORE_MOD, CM_AUTOIDLE1);
++
++	cm_write_mod_reg(
++		OMAP3430_AUTO_PKA |
++		OMAP3430_AUTO_AES1 |
++		OMAP3430_AUTO_RNG |
++		OMAP3430_AUTO_SHA11 |
++		OMAP3430_AUTO_DES1,
++		CORE_MOD, CM_AUTOIDLE2);
++
++	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
++		cm_write_mod_reg(
++			OMAP3430ES2_AUTO_USBTLL,
++			CORE_MOD, CM_AUTOIDLE3);
++	}
++
++	cm_write_mod_reg(
++		OMAP3430_AUTO_WDT2 |
++		OMAP3430_AUTO_WDT1 |
++		OMAP3430_AUTO_GPIO1 |
++		OMAP3430_AUTO_32KSYNC |
++		OMAP3430_AUTO_GPT12 |
++		OMAP3430_AUTO_GPT1 ,
++		WKUP_MOD, CM_AUTOIDLE);
++
++	cm_write_mod_reg(
++		OMAP3430_AUTO_DSS,
++		OMAP3430_DSS_MOD,
++		CM_AUTOIDLE);
++
++	cm_write_mod_reg(
++		OMAP3430_AUTO_CAM,
++		OMAP3430_CAM_MOD,
++		CM_AUTOIDLE);
++
++	cm_write_mod_reg(
++		OMAP3430_AUTO_GPIO6 |
++		OMAP3430_AUTO_GPIO5 |
++		OMAP3430_AUTO_GPIO4 |
++		OMAP3430_AUTO_GPIO3 |
++		OMAP3430_AUTO_GPIO2 |
++		OMAP3430_AUTO_WDT3 |
++		OMAP3430_AUTO_UART3 |
++		OMAP3430_AUTO_GPT9 |
++		OMAP3430_AUTO_GPT8 |
++		OMAP3430_AUTO_GPT7 |
++		OMAP3430_AUTO_GPT6 |
++		OMAP3430_AUTO_GPT5 |
++		OMAP3430_AUTO_GPT4 |
++		OMAP3430_AUTO_GPT3 |
++		OMAP3430_AUTO_GPT2 |
++		OMAP3430_AUTO_MCBSP4 |
++		OMAP3430_AUTO_MCBSP3 |
++		OMAP3430_AUTO_MCBSP2,
++		OMAP3430_PER_MOD,
++		CM_AUTOIDLE);
++
++	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
++		cm_write_mod_reg(
++			OMAP3430ES2_AUTO_USBHOST,
++			OMAP3430ES2_USBHOST_MOD,
++			CM_AUTOIDLE);
++	}
++
++	/* XXX Set all plls to autoidle. This is needed until autoidle is
++	 * enabled by clockfw */
++	cm_write_mod_reg(1 << OMAP3430_CLKTRCTRL_IVA2_SHIFT,
++			 OMAP3430_IVA2_MOD,
++			 CM_AUTOIDLE2);
++	cm_write_mod_reg(1 << OMAP3430_AUTO_MPU_DPLL_SHIFT,
++			 MPU_MOD,
++			 CM_AUTOIDLE2);
++	cm_write_mod_reg((1 << OMAP3430_AUTO_PERIPH_DPLL_SHIFT) |
++			 (1 << OMAP3430_AUTO_CORE_DPLL_SHIFT),
++			 PLL_MOD,
++			 CM_AUTOIDLE);
++	cm_write_mod_reg(1 << OMAP3430ES2_AUTO_PERIPH2_DPLL_SHIFT,
++			 PLL_MOD,
++			 CM_AUTOIDLE2);
++
++	/* XXX Enable control of expternal oscillator through
++	 * sys_clkreq. I think clockfw should provide means to do this
++	*/
++	v = __raw_readl(OMAP3430_PRM_CLKSRC_CTRL);
++	v &= ~(OMAP_AUTOEXTCLKMODE_MASK);
++	v |= (1 << OMAP_AUTOEXTCLKMODE_SHIFT);
++	__raw_writel(v, OMAP3430_PRM_CLKSRC_CTRL);
++
+ 	/* setup wakup source */
+ 	prm_write_mod_reg(OMAP3430_EN_IO | OMAP3430_EN_GPIO1 | OMAP3430_EN_GPT1,
+ 			  WKUP_MOD, PM_WKEN);
 -- 
 1.5.5
 
