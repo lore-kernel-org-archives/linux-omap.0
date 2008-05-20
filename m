@@ -1,47 +1,63 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: Power management behavior of linux-2.6.14-omap2-v5
-Date: Tue, 20 May 2008 06:48:00 -0500
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429045C506B@dlee13.ent.ti.com>
-References: <c656a4d20805182349h66efb783pc3b3658a1935ba5@mail.gmail.com> <3B6D69C3A9EBCA4BA5DA60D913027429045555F3@dlee13.ent.ti.com> <c656a4d20805192146m5bece6e6lffd3a65a7c414a55@mail.gmail.com>
+From: "=?UTF-8?Q?Lu=C3=ADs_Vit=C3=B3rio_Cargnini?=" <lvcargnini@gmail.com>
+Subject: Problems with RT pathc s in OMAP kernel
+Date: Tue, 20 May 2008 11:42:54 -0300
+Message-ID: <ae36f8040805200742x6de272c5mc9c12ccc798649ee@mail.gmail.com>
+Reply-To: lvcargnini@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:57543 "EHLO calf.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752557AbYETLsK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 May 2008 07:48:10 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <c656a4d20805192146m5bece6e6lffd3a65a7c414a55@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Return-path: <linux-rt-users-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-rt-users-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, RT <linux-rt-users@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: arun c <arun.edarath@gmail.com>, linux-omap@vger.kernel.org
 
-> On Mon, May 19, 2008 at 6:48 PM, Woodruff, Richard <r-woodruff2@ti.com>
-> wrote:
-> > You are just talking about your logo disappearing (usually tux)?
-> 
-> No not just tux.
-> 
-> If i run tslib (ts_test) and suspend& resume the
-> board then also the same behavior is happening.
-> ie. The normal ts_test screen disappears and
-> blue screen comes.
-> 
-> Also if i do a cat of some image to /dev/fb0 then
-> the same image disappears after a
-> suspend&resume cycle, whether this behavior also
-> linked to console layer?
-> 
-> Or a higher level mechanism (like X server)
-> is required to save and restore the framebuffer
-> after a PM cycle or it's the fb driver's responsibility
-> to do so?
-
-The only effect I recall not being restored was TUX.  The virtual console did save its current screen as part of its shut down then restore on restart.
-
-Other UI things when VC was not driving the screen worked.  You may have more issues with which ever driver you are using.
-
-Regards,
-Richard W.
-
+RGVhciBmZWxsb3dzOgpBZnRlciBhcHBsaWVkIHRoZSBSVCBwYXRjaCBzZXQgaW4gbXkga2VybmVs
+IHRyZWUgSSBnZXQgdGhlIGZvbGxvd2luZwplcnJvciAoUlQgcGF0Y2ggb3JpZ2luOiBodHRwOi8v
+cnQud2lraS5rZXJuZWwub3JnL2luZGV4LnBocC9NYWluX1BhZ2UpCjoKCihlbnRlcnByaXNlOn4v
+cHVjL2luc3RyYW1lZC9saW51eC1vbWFwLTIuNi5kZWEucnQpIGx2Y2FyZ25pbmklIG1ha2UKICBD
+SEsgICAgIGluY2x1ZGUvbGludXgvdmVyc2lvbi5oCm1ha2VbMV06IGBpbmNsdWRlL2FzbS1hcm0v
+bWFjaC10eXBlcy5oJyBpcyB1cCB0byBkYXRlLgogIENISyAgICAgaW5jbHVkZS9saW51eC91dHNy
+ZWxlYXNlLmgKICBDQyAgICAgIGFyY2gvYXJtL2tlcm5lbC9hc20tb2Zmc2V0cy5zCkluIGZpbGUg
+aW5jbHVkZWQgZnJvbSBpbmNsdWRlL2FzbS9zeXN0ZW0uaDozNjYsCiAgICAgICAgICAgICAgICAg
+ZnJvbSBpbmNsdWRlL2FzbS9iaXRvcHMuaDoyNywKICAgICAgICAgICAgICAgICBmcm9tIGluY2x1
+ZGUvbGludXgvYml0b3BzLmg6MTcsCiAgICAgICAgICAgICAgICAgZnJvbSBpbmNsdWRlL2xpbnV4
+L2tlcm5lbC5oOjE1LAogICAgICAgICAgICAgICAgIGZyb20gaW5jbHVkZS9saW51eC9zY2hlZC5o
+OjUyLAogICAgICAgICAgICAgICAgIGZyb20gYXJjaC9hcm0va2VybmVsL2FzbS1vZmZzZXRzLmM6
+MTM6CmluY2x1ZGUvYXNtLWdlbmVyaWMvY21weGNoZy1sb2NhbC5oOiBJbiBmdW5jdGlvbiAnX19j
+bXB4Y2hnX2xvY2FsX2dlbmVyaWMnOgppbmNsdWRlL2FzbS1nZW5lcmljL2NtcHhjaGctbG9jYWwu
+aDoyMzogZXJyZXVyOiBpbXBsaWNpdCBkZWNsYXJhdGlvbgpvZiBmdW5jdGlvbiAnQlVJTERfQlVH
+X09OJwppbmNsdWRlL2FzbS1nZW5lcmljL2NtcHhjaGctbG9jYWwuaDoyMzogZXJyZXVyOiBpbXBs
+aWNpdCBkZWNsYXJhdGlvbgpvZiBmdW5jdGlvbiAndHlwZWNoZWNrJwppbmNsdWRlL2FzbS1nZW5l
+cmljL2NtcHhjaGctbG9jYWwuaDoyMzogZXJyZXVyOiBleHBlY3RlZCBleHByZXNzaW9uCmJlZm9y
+ZSAndW5zaWduZWQnCmluY2x1ZGUvYXNtLWdlbmVyaWMvY21weGNoZy1sb2NhbC5oOjQ0OiBlcnJl
+dXI6IGV4cGVjdGVkIGV4cHJlc3Npb24KYmVmb3JlICd1bnNpZ25lZCcKaW5jbHVkZS9hc20tZ2Vu
+ZXJpYy9jbXB4Y2hnLWxvY2FsLmg6IEluIGZ1bmN0aW9uICdfX2NtcHhjaGc2NF9sb2NhbF9nZW5l
+cmljJzoKaW5jbHVkZS9hc20tZ2VuZXJpYy9jbXB4Y2hnLWxvY2FsLmg6NTc6IGVycmV1cjogZXhw
+ZWN0ZWQgZXhwcmVzc2lvbgpiZWZvcmUgJ3Vuc2lnbmVkJwppbmNsdWRlL2FzbS1nZW5lcmljL2Nt
+cHhjaGctbG9jYWwuaDo2MTogZXJyZXVyOiBleHBlY3RlZCBleHByZXNzaW9uCmJlZm9yZSAndW5z
+aWduZWQnCkRhbnMgbGUgZmljaGllciBpbmNsdXMgw6AgcGFydGlyIGRlIGluY2x1ZGUvbGludXgv
+cnRfbG9jay5oOjE1LAogICAgICAgICAgw6AgcGFydGlyIGRlIGluY2x1ZGUvbGludXgvc3Bpbmxv
+Y2suaDoxMTcsCiAgICAgICAgICDDoCBwYXJ0aXIgZGUgaW5jbHVkZS9saW51eC9zZXFsb2NrLmg6
+MjksCiAgICAgICAgICDDoCBwYXJ0aXIgZGUgaW5jbHVkZS9saW51eC90aW1lLmg6OCwKICAgICAg
+ICAgIMOgIHBhcnRpciBkZSBpbmNsdWRlL2xpbnV4L3RpbWV4Lmg6NTcsCiAgICAgICAgICDDoCBw
+YXJ0aXIgZGUgaW5jbHVkZS9saW51eC9zY2hlZC5oOjU0LAogICAgICAgICAgw6AgcGFydGlyIGRl
+IGFyY2gvYXJtL2tlcm5lbC9hc20tb2Zmc2V0cy5jOjEzOgppbmNsdWRlL2FzbS9hdG9taWMuaDoy
+NDE6MTogYXR0ZW50aW9uIDogwqsgY21weGNoZyDCuyByZWTDqWZpbmkKRGFucyBsZSBmaWNoaWVy
+IGluY2x1cyDDoCBwYXJ0aXIgZGUgaW5jbHVkZS9hc20vc3lzdGVtLmg6Mzc4LAogICAgICAgICAg
+w6AgcGFydGlyIGRlIGluY2x1ZGUvYXNtL2JpdG9wcy5oOjI3LAogICAgICAgICAgw6AgcGFydGly
+IGRlIGluY2x1ZGUvbGludXgvYml0b3BzLmg6MTcsCiAgICAgICAgICDDoCBwYXJ0aXIgZGUgaW5j
+bHVkZS9saW51eC9rZXJuZWwuaDoxNSwKICAgICAgICAgIMOgIHBhcnRpciBkZSBpbmNsdWRlL2xp
+bnV4L3NjaGVkLmg6NTIsCiAgICAgICAgICDDoCBwYXJ0aXIgZGUgYXJjaC9hcm0va2VybmVsL2Fz
+bS1vZmZzZXRzLmM6MTM6CmluY2x1ZGUvYXNtLWdlbmVyaWMvY21weGNoZy5oOjE5OjE6IGF0dGVu
+dGlvbiA6IGNlY2kgZXN0IGxhCmxvY2FsaXNhdGlvbiBkJ3VuZSBwcsOpY8OpZGVudGUgZMOpZmlu
+aXRpb24KbWFrZVsxXTogKioqIFthcmNoL2FybS9rZXJuZWwvYXNtLW9mZnNldHMuc10gRXJyb3Ig
+MQptYWtlOiAqKiogW3ByZXBhcmUwXSBFcnJvciAyCgpTb21lb25lIGtub3dzIGhvdyBjYW4gSSBm
+aXggdGhpcyA/ClNvbWVvbmUgaGFzIGEgcGF0Y2ggPwpUaGFua3MuCgotLSAKLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tClRoYW5rcyAmJiBSZWdhcmRzCk0uU2MuIEIuU2MuIEx1w61zIFZpdMOzcmlvIENh
+cmduaW5pCklFRUUgTWVtYmVyCkVsZWN0cmljYWwgRW5naW5lZXIgRmFjdWx0eSBAIFBVQ1JTCklw
+aXJhbmdhIEF2ZW51ZSwgNjY4MSDigJMgQnVpbGRpbmcgMzAKUC5PLiBCb3g6IDkwNjE5LTkwMCDi
+gJMgUG9ydG8gQWxlZ3JlL1JTClBob25lOiArNTUgNTEgMzMyMCAzNTAwICBleHRlbnNpb246IDc2
+OTYKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCg==
