@@ -1,39 +1,44 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: Problems with RT pathc s in OMAP kernel
-Date: Tue, 20 May 2008 15:03:37 -0700
-Message-ID: <48334AB9.3020808@mvista.com>
-References: <ae36f8040805200742x6de272c5mc9c12ccc798649ee@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/9] 34XX: PM: Support for retention on suspend and idle
+Date: Tue, 20 May 2008 15:13:58 -0700
+Message-ID: <20080520221357.GQ23002@atomide.com>
+References: <878wyav7ti.fsf@trdhcp146196.ntc.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:40988 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934514AbYETWDv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 May 2008 18:03:51 -0400
-In-Reply-To: <ae36f8040805200742x6de272c5mc9c12ccc798649ee@mail.gmail.com>
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:53250 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760177AbYETWN4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 May 2008 18:13:56 -0400
+Content-Disposition: inline
+In-Reply-To: <878wyav7ti.fsf@trdhcp146196.ntc.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: lvcargnini@gmail.com
-Cc: linux-omap@vger.kernel.org, RT <linux-rt-users@vger.kernel.org>
+To: =?iso-8859-1?Q?H=F6gander?= Jouni <jouni.hogander@nokia.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com
 
-Lu=C3=ADs Vit=C3=B3rio Cargnini wrote:
-> Dear fellows:
-> After applied the RT patch set in my kernel tree I get the following
-> error (RT patch origin: http://rt.wiki.kernel.org/index.php/Main_Page=
-)
+* H=F6gander Jouni <jouni.hogander@nokia.com> [080516 03:54]:
+> This patch set adds suspend and pm idle support for omap3. There are
+> still lots of missing stuff so omap doesn't enter full retention
+> without workaround patches. Workaround patches are sent in separate
+> set.
+>=20
+> You can try these by applying this set and workaround set. Then boot
+> the device and do "echo mem > /sys/power/state". Dynamic retention ca=
+n
+> be tried by "echo 1 > /sys/power/sleep_while_idle". There is one
+> pending patch by Felipe Balbi (ARCH: OMAP: MUSB: Do not block sleep)
+> addition to this and workaround set which is needed dynamic idle to
+> work. Enabling dynamic idle has nasty side effect that serial console
+> stops to work. This happens only if you enable it by "echo 1 >
+> /sys/power/sleep_while_idle"
+>=20
+> I have tested these patches on TI 3430 SDP ES2.0 board.
 
-[...]
+Pushing this series today.
 
-> Someone knows how can I fix this ?
-> Someone has a patch ?
-
-I've got a series of patches against 2.6.25.4-rt3 that fix compilation=20
-on ARM.  Will post shortly.
-
-Kevin
-
+Tony
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
