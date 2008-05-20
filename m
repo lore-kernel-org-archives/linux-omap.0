@@ -1,48 +1,40 @@
 From: Kevin Hilman <khilman@mvista.com>
-Subject: [PATCH 5/5] ARM: OMAP: remove unnecessary locking in clk_get_rate()
-Date: Tue, 20 May 2008 15:45:50 -0700
-Message-ID: <1211323550-5318-6-git-send-email-khilman@mvista.com>
-References: <1211323550-5318-1-git-send-email-khilman@mvista.com>
- <1211323550-5318-2-git-send-email-khilman@mvista.com>
- <1211323550-5318-3-git-send-email-khilman@mvista.com>
- <1211323550-5318-4-git-send-email-khilman@mvista.com>
- <1211323550-5318-5-git-send-email-khilman@mvista.com>
-Return-path: <linux-rt-users-owner@vger.kernel.org>
-In-Reply-To: <1211323550-5318-5-git-send-email-khilman@mvista.com>
-In-Reply-To: <483353F0.6090902@mvista.com>
+Subject: [PATCH 1/5] RT: ARM: remove non-existant trace_preempt_*_idle calls from idle loop
+Date: Tue, 20 May 2008 15:45:45 -0700
+Message-ID: <1211323550-5318-1-git-send-email-khilman@mvista.com>
 References: <483353F0.6090902@mvista.com>
-Sender: linux-rt-users-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from deeprooted.net ([216.254.16.51]:36944 "EHLO paris.hilman.org"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1762238AbYETW4z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 May 2008 18:56:55 -0400
+In-Reply-To: <483353F0.6090902@mvista.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-rt-users@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@mvista.com>
-List-Id: linux-omap@vger.kernel.org
-
-The locking in the get_rate() hook is unnecessary, and causes problems
-when used with the -rt patch, since it may be called recursively.
 
 Signed-off-by: Kevin Hilman <khilman@mvista.com>
 ---
- arch/arm/plat-omap/clock.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ arch/arm/kernel/process.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 714dbbf..3842540 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -134,15 +134,12 @@ EXPORT_SYMBOL(clk_get_usecount);
- 
- unsigned long clk_get_rate(struct clk *clk)
- {
--	unsigned long flags;
- 	unsigned long ret = 0;
- 
- 	if (clk == NULL || IS_ERR(clk))
- 		return 0;
- 
--	spin_lock_irqsave(&clockfw_lock, flags);
- 	ret = clk->rate;
--	spin_unlock_irqrestore(&clockfw_lock, flags);
- 
- 	return ret;
+diff --git a/arch/arm/kernel/process.c b/arch/arm/kernel/process.c
+index 9308346..a0aad84 100644
+--- a/arch/arm/kernel/process.c
++++ b/arch/arm/kernel/process.c
+@@ -171,12 +171,10 @@ void cpu_idle(void)
+ 			idle();
+ 		leds_event(led_idle_end);
+ 		local_irq_disable();
+-		trace_preempt_exit_idle();
+ 		tick_nohz_restart_sched_tick();
+ 		__preempt_enable_no_resched();
+ 		__schedule();
+ 		preempt_disable();
+-		trace_preempt_enter_idle();
+ 		local_irq_enable();
+ 	}
  }
 -- 
 1.5.4.1.166.g6706d
