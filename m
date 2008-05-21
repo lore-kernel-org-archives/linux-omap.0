@@ -1,31 +1,30 @@
-From: "mohammed shareef" <mdshareef@gmail.com>
-Subject: enabling uart2 on omap5912 osk
-Date: Wed, 21 May 2008 12:12:40 +0530
-Message-ID: <a1d91fa0805202342k706a4389h54b5b89178991d86@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: MMC/SD cards hotplug scenario
+Date: Wed, 21 May 2008 08:30:17 +0100
+Message-ID: <20080521073017.GB23427@flint.arm.linux.org.uk>
+References: <004e01c8bb09$989fac00$538918ac@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.187]:62552 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758921AbYEUGmm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2008 02:42:42 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so1313858tic.23
-        for <linux-omap@vger.kernel.org>; Tue, 20 May 2008 23:42:40 -0700 (PDT)
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:50138 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756134AbYEUHai (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2008 03:30:38 -0400
 Content-Disposition: inline
+In-Reply-To: <004e01c8bb09$989fac00$538918ac@ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: omap <linux-omap@vger.kernel.org>, linux-omap-open-source@linux.omap.com
+To: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
+Cc: 'Pierre Ossman' <drzeus@drzeus.cx>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-Hello,
+On Wed, May 21, 2008 at 11:42:04AM +0530, Madhusudhan Chikkature Rajashekar wrote:
+> After the end of the I/O errors I can umount the partition that was
+> mounted and I reinsert the card.
 
-How do i enable UART2 on omap5912_osk in the kernel?
+That's rather expected - outstanding IO has to be errored when the
+medium is removed.
 
-and is there a way by which i can test if the uart2 has been recongnised?
+> It seem not to work very well consistently.
 
-i dont see uart module being initialized during the kernel boot-up.
-
-thank you.
-
-regards,
-Shareef
+Vague handwaving comment with no useful information.  What precisely is
+the problem that you're seeing?
