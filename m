@@ -1,40 +1,46 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: enabling uart2 on omap5912 osk
-Date: Wed, 21 May 2008 14:37:29 -0500
-Message-ID: <db841a1287fea2504e17c787c8e25940@felipebalbi.com>
-References: <a1d91fa0805202342k706a4389h54b5b89178991d86@mail.gmail.com> <20080521154010.GY23002@atomide.com> <a1d91fa0805211012v607195f2we8cc373b5a54ae4@mail.gmail.com> <20080521174426.GC23002@atomide.com>
+Subject: Re: sdio cmd53 doesn't work on omap 2430sdp
+Date: Wed, 21 May 2008 14:42:09 -0500
+Message-ID: <2e1baaf9ae66f81f8c4352d583da0e8f@felipebalbi.com>
+References: <200805211521.10604.dmytro.chumak@inobject.com> <007901c8bb40$f8b8a290$538918ac@ent.ti.com> <200805211616.39484.dmytro.chumak@inobject.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:44563 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:40745 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755569AbYEUThd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2008 15:37:33 -0400
-In-Reply-To: <20080521174426.GC23002@atomide.com>
+	with ESMTP id S1758208AbYEUTmT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2008 15:42:19 -0400
+In-Reply-To: <200805211616.39484.dmytro.chumak@inobject.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: mohammed shareef <mdshareef@gmail.com>, omap <linux-omap@vger.kernel.org>, linux-omap-open-source@linux.omap.com
+To: dmytro.chumak@inobject.com
+Cc: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, linux-omap-open-source@linux.omap.com, linux-omap@vger.kernel.org
 
 
 
-On Wed, 21 May 2008 10:44:28 -0700, Tony Lindgren <tony@atomide.com> wrote:
-> * mohammed shareef <mdshareef@gmail.com> [080521 10:12]:
->> i see the following lines in the omap-osk.c file regarding the uarts:
->>
->> static struct omap_uart_config osk_uart_config __initdata = {
->> 	.enabled_uarts = (1 << 0),
->> };
->>
->>
->> what does it mean? i want all my uarts (1,2,3) enabled. how do i have
->> to modify the above line?
+On Wed, 21 May 2008 16:16:39 +0300, Dmitriy Chumak
+<dmytro.chumak@inobject.com> wrote:
+> On Wednesday 21 May 2008 15:48:27 you wrote:
 > 
-> How about try .enabled_uarts = 3
+>> the SDIO core issues a series of CMD52 to read the card capabilities and
+>> Setup the bus width etc... Does these go through fine for the card you
+> are
+>> using? Does the core detect the new SDIO card?
+> 
+> Yes, all these go fine and the core detects a new SDIO card, only CMD53
+> doesn't work. Could it be because of using DMA? Are there any way to not
+> use
+> DMA with CMD53?
 
-this would enable only uarts 1 and 2, right?
-maybe it's enough :-p
+You can disable dma for the whole driver by changing the following line
+from:
+
+736         host->use_dma   = 1;
+
+to:
+
+736         host->use_dma   = 0;
 
 -- 
 Best Regards,
