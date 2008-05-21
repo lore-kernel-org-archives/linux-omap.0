@@ -1,36 +1,42 @@
-From: "Mike Frysinger" <vapier.adi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/2] MUSB: 2 patches to fix some bug found on Blackfin
-Date: Wed, 21 May 2008 16:10:00 -0400
-Message-ID: <8bd0f97a0805211310t650ccbb1u9a2ecf789ce74458@mail.gmail.com>
-References: <1211022081-27298-1-git-send-email-cooloney@kernel.org>
-	 <200805211014.45170.david-b@pacbell.net>
-	 <61cdb2dcc22913ddefddd7b4a6faede3@felipebalbi.com>
-	 <200805211304.53082.david-b@pacbell.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: enabling uart2 on omap5912 osk
+Date: Wed, 21 May 2008 13:48:22 -0700
+Message-ID: <20080521204822.GD23002@atomide.com>
+References: <a1d91fa0805202342k706a4389h54b5b89178991d86@mail.gmail.com> <20080521154010.GY23002@atomide.com> <a1d91fa0805211012v607195f2we8cc373b5a54ae4@mail.gmail.com> <20080521174426.GC23002@atomide.com> <db841a1287fea2504e17c787c8e25940@felipebalbi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <200805211304.53082.david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58248 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932709AbYEUUsV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2008 16:48:21 -0400
 Content-Disposition: inline
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Cc: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Bryan Wu <cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <db841a1287fea2504e17c787c8e25940@felipebalbi.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: mohammed shareef <mdshareef@gmail.com>, omap <linux-omap@vger.kernel.org>, linux-omap-open-source@linux.omap.com
 
-On Wed, May 21, 2008 at 4:04 PM, David Brownell wrote:
-> That said, I'm looking forward to seeing the www.beagleboard.org
-> hardware [1] become more generally available.  That will make some
-> musb_hdrc hardware available in a more developer-friendly rig than,
-> say, an N810 tablet.  And it might well get more folk in a position
-> where they can use that driver!  (I think some Blackfin devboards
-> are available already, but they're more pricey.)
+* Felipe Balbi <me@felipebalbi.com> [080521 12:37]:
+> 
+> 
+> On Wed, 21 May 2008 10:44:28 -0700, Tony Lindgren <tony@atomide.com> wrote:
+> > * mohammed shareef <mdshareef@gmail.com> [080521 10:12]:
+> >> i see the following lines in the omap-osk.c file regarding the uarts:
+> >>
+> >> static struct omap_uart_config osk_uart_config __initdata = {
+> >> 	.enabled_uarts = (1 << 0),
+> >> };
+> >>
+> >>
+> >> what does it mean? i want all my uarts (1,2,3) enabled. how do i have
+> >> to modify the above line?
+> > 
+> > How about try .enabled_uarts = 3
+> 
+> this would enable only uarts 1 and 2, right?
+> maybe it's enough :-p
 
-unfortunately, that is the case.  the BF527 EZKit is ~$900 while the
-BF548 EZKit is ~$1000.  i'm hoping us software guys keep complaining
-enough for the hardware guys to put out a bare bone kit at a
-reasonable price (sub $300).
--mike
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Oh yeh, that's true :)
+
+Tony
