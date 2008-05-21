@@ -1,35 +1,91 @@
-From: Dmitriy Chumak <dmytro.chumak@inobject.com>
-Subject: Re: sdio cmd53 doesn't work on omap 2430sdp
-Date: Wed, 21 May 2008 16:16:39 +0300
-Message-ID: <200805211616.39484.dmytro.chumak@inobject.com>
-References: <200805211521.10604.dmytro.chumak@inobject.com> <007901c8bb40$f8b8a290$538918ac@ent.ti.com>
-Reply-To: dmytro.chumak@inobject.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] IRQ: simplify OMAP2 mask_irq/unmask_irq code
+Date: Wed, 21 May 2008 08:05:54 -0700
+Message-ID: <20080521150554.GX23002@atomide.com>
+References: <alpine.DEB.1.00.0805201915320.9463@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kyiv.inobject.com ([62.221.40.190]:58042 "EHLO
-	kyiv.inobject.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763188AbYEUNcD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2008 09:32:03 -0400
-In-Reply-To: <007901c8bb40$f8b8a290$538918ac@ent.ti.com>
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:49346 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754401AbYEUPFw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2008 11:05:52 -0400
 Content-Disposition: inline
+In-Reply-To: <alpine.DEB.1.00.0805201915320.9463@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
-Cc: linux-omap-open-source@linux.omap.com, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, Paul Mundt <lethal@linux-sh.org>, Kyungmin Park <kmpark@infradead.org>
 
-On Wednesday 21 May 2008 15:48:27 you wrote:
+Hi,
 
-> the SDIO core issues a series of CMD52 to read the card capabilities and
-> Setup the bus width etc... Does these go through fine for the card you are
-> using? Does the core detect the new SDIO card?
+* Paul Walmsley <paul@pwsan.com> [080520 18:20]:
+> 
+> Modify mach-omap2/irq.c to simplify the IRQ number-to-IRQ register and IRQ 
+> number-to-register bit calculations.
 
-Yes, all these go fine and the core detects a new SDIO card, only CMD53 
-doesn't work. Could it be because of using DMA? Are there any way to not use 
-DMA with CMD53?
+How about patching Jouni's new omap_irq_pending() for this too?
 
-Regards,
-Dmitriy
+Tony
 
+> Signed-off-by: Kyungmin Park <kmpark@infradead.org>
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Acked-by: Paul Mundt <lethal@linux-sh.org>
+> 
+> size:
+>    text    data     bss     dec     hex filename
+> 3341347  170992  109008 3621347  3741e3 vmlinux.3430sdp
+> 3341315  170992  109008 3621315  3741c3 vmlinux.3430sdp.patched
+> ---
+> 
+>  arch/arm/mach-omap2/irq.c |   17 +++++++----------
+>  1 files changed, 7 insertions(+), 10 deletions(-)
+> 
+> 
+> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+> index ac062ee..9300712 100644
+> --- a/arch/arm/mach-omap2/irq.c
+> +++ b/arch/arm/mach-omap2/irq.c
+> @@ -27,6 +27,9 @@
+>  #define INTC_MIR_CLEAR0	0x0088
+>  #define INTC_MIR_SET0	0x008c
+>  
+> +/* Number of IRQ state bits in each MIR register */
+> +#define IRQ_BITS_PER_REG	32
+> +
+>  /*
+>   * OMAP2 has a number of different interrupt controllers, each interrupt
+>   * controller is identified as its own "bank". Register definitions are
+> @@ -67,24 +70,18 @@ static void omap_ack_irq(unsigned int irq)
+>  
+>  static void omap_mask_irq(unsigned int irq)
+>  {
+> -	int offset = (irq >> 5) << 5;
+> +	int offset = irq & (~(IRQ_BITS_PER_REG - 1));
+>  
+> -	if (irq >= 64)
+> -		irq %= 64;
+> -	else if (irq >= 32)
+> -		irq %= 32;
+> +	irq &= (IRQ_BITS_PER_REG - 1);
+>  
+>  	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_SET0 + offset);
+>  }
+>  
+>  static void omap_unmask_irq(unsigned int irq)
+>  {
+> -	int offset = (irq >> 5) << 5;
+> +	int offset = irq & (~(IRQ_BITS_PER_REG - 1));
+>  
+> -	if (irq >= 64)
+> -		irq %= 64;
+> -	else if (irq >= 32)
+> -		irq %= 32;
+> +	irq &= (IRQ_BITS_PER_REG - 1);
+>  
+>  	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_CLEAR0 + offset);
+>  }
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
