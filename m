@@ -1,51 +1,44 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: sdio cmd53 doesn't work on omap 2430sdp
-Date: Wed, 21 May 2008 14:42:09 -0500
-Message-ID: <2e1baaf9ae66f81f8c4352d583da0e8f@felipebalbi.com>
-References: <200805211521.10604.dmytro.chumak@inobject.com> <007901c8bb40$f8b8a290$538918ac@ent.ti.com> <200805211616.39484.dmytro.chumak@inobject.com>
+From: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Subject: Re: [PATCH 0/2] MUSB: 2 patches to fix some bug found on Blackfin
+Date: Wed, 21 May 2008 13:04:52 -0700
+Message-ID: <200805211304.53082.david-b@pacbell.net>
+References: <1211022081-27298-1-git-send-email-cooloney@kernel.org> <200805211014.45170.david-b@pacbell.net> <61cdb2dcc22913ddefddd7b4a6faede3@felipebalbi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:40745 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758208AbYEUTmT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2008 15:42:19 -0400
-In-Reply-To: <200805211616.39484.dmytro.chumak@inobject.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <61cdb2dcc22913ddefddd7b4a6faede3-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Bryan Wu <cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: dmytro.chumak@inobject.com
-Cc: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, linux-omap-open-source@linux.omap.com, linux-omap@vger.kernel.org
 
+On Wednesday 21 May 2008, Felipe Balbi wrote:
+>=20
+> > I'm all for getting the musb_hdrc driver into the 2.6.27 queue...
+> > I presume there are still some infrastructure changes in usbcore
+> > that block that merge? =A0It'd be nice if we could merge musb_hdrc
+> > without those changes (OTG related) and then update that stuff
+> > separately.
+>=20
+> Ok then, I'll prepare the patches during the next week and post
+> here on l-o so people can comment.
 
+When it's a USB patch, please post to linux-usb.  Most of the
+relevant reviewers won't be on Linux-OMAP.  ;)
 
-On Wed, 21 May 2008 16:16:39 +0300, Dmitriy Chumak
-<dmytro.chumak@inobject.com> wrote:
-> On Wednesday 21 May 2008 15:48:27 you wrote:
-> 
->> the SDIO core issues a series of CMD52 to read the card capabilities and
->> Setup the bus width etc... Does these go through fine for the card you
-> are
->> using? Does the core detect the new SDIO card?
-> 
-> Yes, all these go fine and the core detects a new SDIO card, only CMD53
-> doesn't work. Could it be because of using DMA? Are there any way to not
-> use
-> DMA with CMD53?
+That said, I'm looking forward to seeing the www.beagleboard.org
+hardware [1] become more generally available.  That will make some
+musb_hdrc hardware available in a more developer-friendly rig than,
+say, an N810 tablet.  And it might well get more folk in a position
+where they can use that driver!  (I think some Blackfin devboards
+are available already, but they're more pricey.)
 
-You can disable dma for the whole driver by changing the following line
-from:
+- Dave
 
-736         host->use_dma   = 1;
-
-to:
-
-736         host->use_dma   = 0;
-
--- 
-Best Regards,
-
-Felipe Balbi
-http://felipebalbi.com
-me@felipebalbi.com
-
+[1] http://www.elinux.org/BeagleBoard
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
