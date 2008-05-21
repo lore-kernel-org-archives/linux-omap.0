@@ -1,43 +1,37 @@
-From: Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] ARM: OMAP: Fix compiler error at pm-debug
-Date: Wed, 21 May 2008 14:43:30 +0900
-Message-ID: <20080521054330.GA5460@party>
+From: "Madhusudhan Chikkature Rajashekar" <madhu.cr@ti.com>
+Subject: MMC/SD cards hotplug scenario
+Date: Wed, 21 May 2008 11:42:04 +0530
+Message-ID: <004e01c8bb09$989fac00$538918ac@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:47898 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755040AbYEUF5Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2008 01:57:25 -0400
-Content-Disposition: inline
+Received: from calf.ext.ti.com ([198.47.26.144]:36121 "EHLO calf.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756289AbYEUGMq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 May 2008 02:12:46 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>
+To: 'Pierre Ossman' <drzeus@drzeus.cx>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-Fix compiler error at pm-debug
+Hi Pierre/All,
 
-  CC      arch/arm/mach-omap2/pm-debug.o
-In file included from arch/arm/mach-omap2/pm-debug.c:30:
-arch/arm/mach-omap2/prm.h: In function `prm_rmw_reg_bits':
-arch/arm/mach-omap2/prm.h:107: error: implicit declaration of function `__raw_readl'
-arch/arm/mach-omap2/prm.h:110: error: implicit declaration of function `__raw_writel'
-arch/arm/mach-omap2/pm-debug.c: In function `serial_wait_tx':
-arch/arm/mach-omap2/pm-debug.c:59: error: implicit declaration of function `__raw_readb'
-make[1]: *** [arch/arm/mach-omap2/pm-debug.o] Error 1
-make: *** [arch/arm/mach-omap2] Error 2
+I have a query regarding one of the MMC/SD cards hotplug use case scenario and its expected behavior.
 
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 361e52b..8a9f3c4 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -23,6 +23,7 @@
- 
- #include <linux/clk.h>
- #include <linux/err.h>
-+#include <linux/io.h>
- 
- #include <asm/arch/clock.h>
- #include <asm/arch/board.h>
+In the case where the MMC/SD card is removed physically from the slot during an active data transfer happening on the card, I notice
+lot of
+I/O errors being generated. The numbers of I/O errors seem to depend on the size of the file being copied(the errors semm to be a
+mixture of FS + MMC core errors). After the end of the I/O errors I can umount the partition that was mounted and I reinsert the
+card. It seem not to work very well consistently. I mean some times the card removal/insertion does seem to work that well. Whereas
+card insertion/removal works perfectly fine if tested when no data transfer is happening.
+
+Does MMC/SD core need to handle some things to support this scenario? Does MMC/SD core handle this scenario gracefully? Has anyone
+tried something similar before?
+
+As far as I understand this type of scenario can not be handled well in the controller drivers alone. Am I missing something here?
+
+Regards,
+Madhu
+
