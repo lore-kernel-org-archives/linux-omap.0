@@ -1,77 +1,72 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] IRQ: simplify OMAP2 mask_irq/unmask_irq code
-Date: Tue, 20 May 2008 19:19:21 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0805201915320.9463@utopia.booyaka.com>
+From: "=?UTF-8?Q?Lu=C3=ADs_Vit=C3=B3rio_Cargnini?=" <lvcargnini@gmail.com>
+Subject: Re: [PATCH 0/5] RT: Misc. fixups for ARM/OMAP against 2.6.25.4-rt3
+Date: Tue, 20 May 2008 22:33:23 -0300
+Message-ID: <ae36f8040805201833o262782a4o327e000325724551@mail.gmail.com>
+References: <483353F0.6090902@mvista.com>
+Reply-To: lvcargnini@gmail.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40485 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756891AbYEUBTX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 May 2008 21:19:23 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Return-path: <linux-rt-users-owner@vger.kernel.org>
+In-Reply-To: <483353F0.6090902@mvista.com>
+Content-Disposition: inline
+Sender: linux-rt-users-owner@vger.kernel.org
+To: Kevin Hilman <khilman@mvista.com>
+Cc: RT <linux-rt-users@vger.kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Paul Mundt <lethal@linux-sh.org>, Kyungmin Park <kmpark@infradead.org>
 
-
-Modify mach-omap2/irq.c to simplify the IRQ number-to-IRQ register and IRQ 
-number-to-register bit calculations.
-
-Signed-off-by: Kyungmin Park <kmpark@infradead.org>
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-
-size:
-   text    data     bss     dec     hex filename
-3341347  170992  109008 3621347  3741e3 vmlinux.3430sdp
-3341315  170992  109008 3621315  3741c3 vmlinux.3430sdp.patched
----
-
- arch/arm/mach-omap2/irq.c |   17 +++++++----------
- 1 files changed, 7 insertions(+), 10 deletions(-)
-
-
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index ac062ee..9300712 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -27,6 +27,9 @@
- #define INTC_MIR_CLEAR0	0x0088
- #define INTC_MIR_SET0	0x008c
- 
-+/* Number of IRQ state bits in each MIR register */
-+#define IRQ_BITS_PER_REG	32
-+
- /*
-  * OMAP2 has a number of different interrupt controllers, each interrupt
-  * controller is identified as its own "bank". Register definitions are
-@@ -67,24 +70,18 @@ static void omap_ack_irq(unsigned int irq)
- 
- static void omap_mask_irq(unsigned int irq)
- {
--	int offset = (irq >> 5) << 5;
-+	int offset = irq & (~(IRQ_BITS_PER_REG - 1));
- 
--	if (irq >= 64)
--		irq %= 64;
--	else if (irq >= 32)
--		irq %= 32;
-+	irq &= (IRQ_BITS_PER_REG - 1);
- 
- 	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_SET0 + offset);
- }
- 
- static void omap_unmask_irq(unsigned int irq)
- {
--	int offset = (irq >> 5) << 5;
-+	int offset = irq & (~(IRQ_BITS_PER_REG - 1));
- 
--	if (irq >= 64)
--		irq %= 64;
--	else if (irq >= 32)
--		irq %= 32;
-+	irq &= (IRQ_BITS_PER_REG - 1);
- 
- 	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_CLEAR0 + offset);
- }
+d2VsbCBJIGdldCB0aGUgZm9sbG93aW5nIGVycm9yIGluIG15IHNvdXJjZSBjb2RlIGNvbXBpbGF0
+aW9uIHRpbWU6CiAgICAgICDDoCBwYXJ0aXIgZGUga2VybmVsL3J0bXV0ZXguYzoxMzoKaW5jbHVk
+ZS9hc20vYXRvbWljLmg6MjQxOjE6IGF0dGVudGlvbiA6IMKrIGNtcHhjaGcgwrsgcmVkw6lmaW5p
+CkRhbnMgbGUgZmljaGllciBpbmNsdXMgw6AgcGFydGlyIGRlIGluY2x1ZGUvYXNtL3N5c3RlbS5o
+OjM3OCwKICAgICAgICAgIMOgIHBhcnRpciBkZSBpbmNsdWRlL2FzbS9iaXRvcHMuaDoyNywKICAg
+ICAgICAgIMOgIHBhcnRpciBkZSBpbmNsdWRlL2xpbnV4L2JpdG9wcy5oOjE3LAogICAgICAgICAg
+w6AgcGFydGlyIGRlIGluY2x1ZGUvbGludXgvdGhyZWFkX2luZm8uaDozNCwKICAgICAgICAgIMOg
+IHBhcnRpciBkZSBpbmNsdWRlL2xpbnV4L3ByZWVtcHQuaDo5LAogICAgICAgICAgw6AgcGFydGly
+IGRlIGluY2x1ZGUvbGludXgvc3BpbmxvY2suaDo4NSwKICAgICAgICAgIMOgIHBhcnRpciBkZSBr
+ZXJuZWwvcnRtdXRleC5jOjEzOgppbmNsdWRlL2FzbS1nZW5lcmljL2NtcHhjaGcuaDoxOToxOiBh
+dHRlbnRpb24gOiBjZWNpIGVzdCBsYQpsb2NhbGlzYXRpb24gZCd1bmUgcHLDqWPDqWRlbnRlIGTD
+qWZpbml0aW9uCmtlcm5lbC9ydG11dGV4LmM6MTI0OiBlcnJldXI6IHJlZGVmaW5pdGlvbiBvZiAn
+aW5pdF9saXN0cycKa2VybmVsL3J0bXV0ZXguYzoxMTA6IGVycmV1cjogcHJldmlvdXMgZGVmaW5p
+dGlvbiBvZiAnaW5pdF9saXN0cycgd2FzIGhlcmUKa2VybmVsL3J0bXV0ZXguYzogSW4gZnVuY3Rp
+b24gJ2RvX3RyeV90b190YWtlX3J0X211dGV4JzoKa2VybmVsL3J0bXV0ZXguYzo0MjU6IGVycmV1
+cjogdG9vIG1hbnkgYXJndW1lbnRzIHRvIGZ1bmN0aW9uICd0cnlfdG9fc3RlYWxfbG9jaycKa2Vy
+bmVsL3J0bXV0ZXguYzogSW4gZnVuY3Rpb24gJ3J0X3NwaW5fbG9ja19zbG93bG9jayc6Cmtlcm5l
+bC9ydG11dGV4LmM6Nzg3OiBlcnJldXI6ICdzYXZlZF9sb2NrX2RlcHRoJyB1bmRlY2xhcmVkIChm
+aXJzdCB1c2UKaW4gdGhpcyBmdW5jdGlvbikKa2VybmVsL3J0bXV0ZXguYzo3ODc6IGVycmV1cjog
+KEVhY2ggdW5kZWNsYXJlZCBpZGVudGlmaWVyIGlzIHJlcG9ydGVkIG9ubHkgb25jZQprZXJuZWwv
+cnRtdXRleC5jOjc4NzogZXJyZXVyOiBmb3IgZWFjaCBmdW5jdGlvbiBpdCBhcHBlYXJzIGluLikK
+a2VybmVsL3J0bXV0ZXguYzo3ODg6IGVycmV1cjogaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVu
+Y3Rpb24KJ3J0X3JlYWNxdWlyZV9ia2wnCmtlcm5lbC9ydG11dGV4LmM6IEhvcnMgZGUgdG91dGUg
+Zm9uY3Rpb24gOgprZXJuZWwvcnRtdXRleC5jOjEyMzk6IGVycmV1cjogcmVkZWZpbml0aW9uIG9m
+ICdydF9tdXRleF9sb2NrX2tpbGxhYmxlJwprZXJuZWwvcnRtdXRleC5jOjEyMTg6IGVycmV1cjog
+cHJldmlvdXMgZGVmaW5pdGlvbiBvZgoncnRfbXV0ZXhfbG9ja19raWxsYWJsZScgd2FzIGhlcmUK
+a2VybmVsL3J0bXV0ZXguYzoxMjQ1OiBlcnJldXI6IHJlZGVmaW5pdGlvbiBvZgonX19rc3RydGFi
+X3J0X211dGV4X2xvY2tfa2lsbGFibGUnCmtlcm5lbC9ydG11dGV4LmM6MTIyNDogZXJyZXVyOiBw
+cmV2aW91cyBkZWZpbml0aW9uIG9mCidfX2tzdHJ0YWJfcnRfbXV0ZXhfbG9ja19raWxsYWJsZScg
+d2FzIGhlcmUKa2VybmVsL3J0bXV0ZXguYzoxMjQ1OiBlcnJldXI6IHJlZGVmaW5pdGlvbiBvZgon
+X19rc3ltdGFiX3J0X211dGV4X2xvY2tfa2lsbGFibGUnCmtlcm5lbC9ydG11dGV4LmM6MTIyNDog
+ZXJyZXVyOiBwcmV2aW91cyBkZWZpbml0aW9uIG9mCidfX2tzeW10YWJfcnRfbXV0ZXhfbG9ja19r
+aWxsYWJsZScgd2FzIGhlcmUKbWFrZVsxXTogKioqIFtrZXJuZWwvcnRtdXRleC5vXSBFcnJvciAx
+Cm1ha2U6ICoqKiBba2VybmVsXSBFcnJvciAyCgoKYW5kIHRoZSBmb2xsb3dpbmcgd2FybmluZyBp
+cyBub2lzeSBiZWVuIHNob3duOgppbmNsdWRlL2FzbS9hdG9taWMuaDoyNDE6MTogYXR0ZW50aW9u
+IDogwqsgY21weGNoZyDCuyByZWTDqWZpbmkKRGFucyBsZSBmaWNoaWVyIGluY2x1cyDDoCBwYXJ0
+aXIgZGUgaW5jbHVkZS9hc20vc3lzdGVtLmg6Mzc4LAoKCk9uIFR1ZSwgTWF5IDIwLCAyMDA4IGF0
+IDc6NDIgUE0sIEtldmluIEhpbG1hbiA8a2hpbG1hbkBtdmlzdGEuY29tPiB3cm90ZToKPiBXaGF0
+IGZvbGxvd3MgYXJlIGEgc2VyaWVzIG9mIG1pbm9yIGZpeGVzIHRvIGdldCAtcnQzIGJ1aWxkaW5n
+L2Jvb3Rpbmcgb24KPiAgQVJNLiAgVGhlIGZpcnN0IDMgYXJlIHJlYWR5IGRvIGJlIGluY2x1ZGVk
+IGludG8gdGhlIC1ydCBwYXRjaCwgd2hpbGUgdGhlCj4gbGFzdCA0dGggb25lIChjbXB4Y2hnIGR1
+cGxpY2F0aW9uKSBuZWVkcyBhIGxpdHRsZSBpbnZlc3RpZ2F0aW5nLiBUaGUgNXRoIG9uZQo+IG5l
+ZWRzIHRvIGdvIHVwc3RyZWFtIHZpYSB0aGUgT01BUCB0cmVlLgo+Cj4gVGhpcyB3YXMgYnVpbGQv
+Ym9vdCB0ZXN0ZWQgb24gdGhlIFRJIE9NQVAzNDMwIFNEUCBwbGF0Zm9ybQo+Cj4gS2V2aW4KPiAt
+LQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNj
+cmliZSBsaW51eC1ydC11c2VycyIgaW4KPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jk
+b21vQHZnZXIua2VybmVsLm9yZwo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2Vy
+Lmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo+CgoKCi0tIAotLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0KVGhhbmtzICYmIFJlZ2FyZHMKTS5TYy4gQi5TYy4gTHXDrXMgVml0w7NyaW8gQ2FyZ25p
+bmkKSUVFRSBNZW1iZXIKRWxlY3RyaWNhbCBFbmdpbmVlciBGYWN1bHR5IEAgUFVDUlMKSXBpcmFu
+Z2EgQXZlbnVlLCA2NjgxIOKAkyBCdWlsZGluZyAzMApQLk8uIEJveDogOTA2MTktOTAwIOKAkyBQ
+b3J0byBBbGVncmUvUlMKUGhvbmU6ICs1NSA1MSAzMzIwIDM1MDAgZXh0ZW5zaW9uOiA3Njk2Ci0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo=
